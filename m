@@ -1,430 +1,219 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:53691 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751650Ab2FSNcV convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1373 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750859Ab2F1Gsg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jun 2012 09:32:21 -0400
-Received: by weyu7 with SMTP id u7so4414324wey.19
-        for <linux-media@vger.kernel.org>; Tue, 19 Jun 2012 06:32:20 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4FE07255.6050606@redhat.com>
-References: <1338202005-10208-1-git-send-email-hverkuil@xs4all.nl>
- <005651489cd5c9f832df2d5d90e19e2eee07c9b9.1338201853.git.hans.verkuil@cisco.com>
- <4FDFCC0F.9000208@redhat.com> <4FE037FE.7030804@redhat.com>
- <4FE05DF4.7030905@redhat.com> <4FE07255.6050606@redhat.com>
-From: halli manjunatha <hallimanju@gmail.com>
-Date: Tue, 19 Jun 2012 08:31:59 -0500
-Message-ID: <CAMT6Pyfh67370=VO_hrX=s-pBOJyy=KZDP-UYnPSi6f6eOyByQ@mail.gmail.com>
-Subject: Re: [RFCv2 PATCH 4/6] videodev2.h: add frequency band information.
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Thu, 28 Jun 2012 02:48:36 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Subject: [RFCv3 PATCH 02/33] v4l2-ioctl.c: introduce INFO_FL_CLEAR to replace switch.
+Date: Thu, 28 Jun 2012 08:47:56 +0200
+Message-Id: <a0ce0e927df5fdc721f113dac454354a8edf1964.1340865818.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
+References: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Please take the Patch-set 7 which I submitted by removing my set_band
-implementation (as per Hans V suggestion).
+The switch statement that determines how much data should be copied from
+userspace is replaced by a table lookup.
 
-https://lkml.org/lkml/2012/5/21/294
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/v4l2-ioctl.c |  103 +++++++++++++++-----------------------
+ 1 file changed, 41 insertions(+), 62 deletions(-)
 
-Regards
-Manju
-
-On Tue, Jun 19, 2012 at 7:36 AM, Hans de Goede <hdegoede@redhat.com> wrote:
-> Hi,
->
->
-> On 06/19/2012 01:09 PM, Mauro Carvalho Chehab wrote:
->>
->> Em 19-06-2012 05:27, Hans de Goede escreveu:
->>>
->>> Hi,
->>>
->>> On 06/19/2012 02:47 AM, Mauro Carvalho Chehab wrote:
->>>>
->>>> Em 28-05-2012 07:46, Hans Verkuil escreveu:
->>>>>
->>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>>>
->>>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>>>> Acked-by: Hans de Goede <hdegoede@redhat.com>
->>>>> ---
->>>>>    include/linux/videodev2.h |   19 +++++++++++++++++--
->>>>>    1 file changed, 17 insertions(+), 2 deletions(-)
->>>>>
->>>>> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
->>>>> index 2339678..013ee46 100644
->>>>> --- a/include/linux/videodev2.h
->>>>> +++ b/include/linux/videodev2.h
->>>>> @@ -2023,7 +2023,8 @@ struct v4l2_tuner {
->>>>>        __u32            audmode;
->>>>>        __s32            signal;
->>>>>        __s32            afc;
->>>>> -    __u32            reserved[4];
->>>>> +    __u32            band;
->>>>> +    __u32            reserved[3];
->>>>>    };
->>>>>
->>>>>    struct v4l2_modulator {
->>>>> @@ -2033,7 +2034,8 @@ struct v4l2_modulator {
->>>>>        __u32            rangelow;
->>>>>        __u32            rangehigh;
->>>>>        __u32            txsubchans;
->>>>> -    __u32            reserved[4];
->>>>> +    __u32            band;
->>>>> +    __u32            reserved[3];
->>>>>    };
->>>>>
->>>>>    /*  Flags for the 'capability' field */
->>>>> @@ -2048,6 +2050,11 @@ struct v4l2_modulator {
->>>>>    #define V4L2_TUNER_CAP_RDS        0x0080
->>>>>    #define V4L2_TUNER_CAP_RDS_BLOCK_IO    0x0100
->>>>>    #define V4L2_TUNER_CAP_RDS_CONTROLS    0x0200
->>>>> +#define V4L2_TUNER_CAP_BAND_FM_EUROPE_US     0x00010000
->>>>> +#define V4L2_TUNER_CAP_BAND_FM_JAPAN         0x00020000
->>>>> +#define V4L2_TUNER_CAP_BAND_FM_RUSSIAN       0x00040000
->>>>> +#define V4L2_TUNER_CAP_BAND_FM_WEATHER       0x00080000
->>>>> +#define V4L2_TUNER_CAP_BAND_AM_MW            0x00100000
->>>>
->>>>
->>>> Frequency band is already specified by rangelow/rangehigh.
->>>>
->>>> Why do you need to duplicate this information?
->>>
->>>
->>> Because radio tuners may support multiple non overlapping
->>> bands, this is why this patch also adds a band member
->>> to the tuner struct, which can be used to set/get
->>> the current band.
->>>
->>> One example of this are the tea5757 / tea5759
->>> radio tuner chips:
->>>
->>> FM:
->>> tea5757 87.5 - 108 MHz
->>
->>
->>        rangelow = 87.5 * 62500;
->>        rangehigh = 108 * 62500;
->>
->>> tea5759 76 - 91 MHz
->>
->>
->>        rangelow = 76 * 62500;
->>        rangehigh = 91 * 62500;
->>
->>> AM:
->>> Both: 530 - 1710 kHz
->>
->>
->>        rangelow = 0.530 * 62500;
->>        rangehigh = 0.1710 * 62500;
->>
->>
->> See radio-cadet.c:
->>
->> static int vidioc_g_tuner(struct file *file, void *priv,
->>                                struct v4l2_tuner *v)
->> {
->>        struct cadet *dev = video_drvdata(file);
->>
->>        v->type = V4L2_TUNER_RADIO;
->>        switch (v->index) {
->>        case 0:
->>                strlcpy(v->name, "FM", sizeof(v->name));
->>                v->capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS
->> |
->>                        V4L2_TUNER_CAP_RDS_BLOCK_IO;
->>                v->rangelow = 1400;     /* 87.5 MHz */
->>                v->rangehigh = 1728;    /* 108.0 MHz */
->>                v->rxsubchans = cadet_getstereo(dev);
->>                switch (v->rxsubchans) {
->>                case V4L2_TUNER_SUB_MONO:
->>                        v->audmode = V4L2_TUNER_MODE_MONO;
->>                        break;
->>                case V4L2_TUNER_SUB_STEREO:
->>                        v->audmode = V4L2_TUNER_MODE_STEREO;
->>                        break;
->>                default:
->>                        break;
->>                }
->>                v->rxsubchans |= V4L2_TUNER_SUB_RDS;
->>                break;
->>        case 1:
->>                strlcpy(v->name, "AM", sizeof(v->name));
->>                v->capability = V4L2_TUNER_CAP_LOW;
->>                v->rangelow = 8320;      /* 520 kHz */
->>                v->rangehigh = 26400;    /* 1650 kHz */
->>                v->rxsubchans = V4L2_TUNER_SUB_MONO;
->>                v->audmode = V4L2_TUNER_MODE_MONO;
->>                break;
->>        default:
->>                return -EINVAL;
->>        }
->>        v->signal = dev->sigstrength; /* We might need to modify scaling of
->> this
->>  */
->>        return 0;
->> }
->> static int vidioc_s_tuner(struct file *file, void *priv,
->>                                struct v4l2_tuner *v)
->> {
->>        struct cadet *dev = video_drvdata(file);
->>
->>        if (v->index != 0 && v->index != 1)
->>                return -EINVAL;
->>        dev->curtuner = v->index;
->>        return 0;
->> }
->>
->> Band switching are made via g_tuner/s_tuner calls. If a device have
->> several non-overlapping bands, just implement it there. There's no
->> need for a new API.
->
->
-> <sigh>, this has been discussed extensively between me, Hans V and
-> Halli Manjunatha on both irc and on the list. What the cadet driver is
-> doing is an ugly hack, and really a poor match for what we want.
->
-> Not to mention that it is a clear violation of the v4l2 spec:
-> http://linuxtv.org/downloads/v4l-dvb-apis/tuner.html
->
-> "Radio input devices have exactly one tuner with index zero, no video
-> inputs."
->
-> So there is supposed to be only one tuner, and s_tuner / g_tuner
-> on radio devices always expect a tuner index of 0.
->
-> Also from the same page:
-> "Note that VIDIOC_S_TUNER does not switch the current tuner, when there is
-> more than one at all."
->
-> So if we model discontinuous ranges as multiple tuners how do we
-> select the right tuner? Certainly *not* though s_tuner, as that would
-> violate the spec. Note that changing the spec here is not really an option,
-> S_TUNER is expected to change the properties of the tuner selected through
-> the index, and is *not* expected to change the active tuner , esp. since
-> changing the active tuner would raise the question, change the active tuner
-> for which input ? The spec is clear on this:
-> "The tuner is solely determined by the current video input."
->
-> iow s_tuner sets tuner parameters (such as the band of a multi-band tuner),
-> but it does not select a tuner. Making s_tuner actually select 1 of multiple
-> tuners for radio devices, would cause a large discrepancy between radio and
-> tv tuners.
->
-> For tv tuners we've a 1:1 mapping between tuners and inputs, which makes
-> sense, because
-> there are actual dual tuner devices, and the purpose of those is to be able
-> to watch /
-> record 2 "shows" at the same time. This is simply not the case with these
-> radio devices,
-> they can tune both AM and FM but *not* at the same time, so they have a
-> *single*
-> *multiple-band* tuner.
->
-> Modeling this as multiple tuners is just wrong. Not only have we already
-> discussed
-> this in a long discussion, I've patches to extend the tea575x driver with AM
-> support,
-> and the initial revision used the multiple tuner model, but that just does
-> not work
-> well, and I'm bad Hans V. intervened and pointed out Halli Manjunatha's
-> patchset for
-> limiting hw-freq seek ranges, after which all of this has been discussed
-> extensively!
->
->
->> Also, this is generic enough to cover even devices with non-standard
->> frequency ranges.
->>
->> All bands can easily be detected via a g_tuner loop, and band switching
->> is done via s_tuner.
->>
->> Each band range can have its name ("AM", "FM", "AM-SW", "FM-Japan", ...),
->> and this is a way more generic than what's being proposed.
->
->
-> It is also very very wrong, there is only a single tuner on these devices,
-> modeling this as multiple tuners is just wrong!
->
->
->> It likely makes sense to standardize the band names inside the radio core,
->> in order to avoid having the same band called with two different names
->> inside
->> the drivers.
->>
->> It should also be noticed that each band may have different properties.
->> On the above, the FM band can do stereo/mono and RDS, while AM is just
->> mono So, a change like what's proposed would keep requiring two entries.
->
->
-> With FM we already have a situation where some channels are mono and other
-> stereo, with AM/FM the tuner capabilities would reflect what the tuner can
-> do on some bands-frequency combinations, just like it now reflects what
-> it can do on some frequencies.
->
-> <snip>
->
->
->>> 87.5 - 108 MHz is very close to 88 - 108 MHz, I don't think it is worth
->>> creating 2 band defines for this.
->>
->>
->> Yes, it is very close, but Countries that added the extra 500 kHz
->> bandwidth
->> added stations there. On those, older devices can't tune into the new
->> channels.
->
->
-> On those older devices rangelow would get reported as 88 rather then 87.5,
-> the
-> band selection mechanism is there to select a certain range approximately,
-> the exact resulting range will be hw specific and reported in rangelow /'
-> rangehigh, as the patch documenting the new fields clearly documents.
->
-> <snip>
->
->
->>> This would be covered by the V4L2_TUNER_BAND_FM_UNIVERSAL, however,
->>> on some devices V4L2_TUNER_BAND_FM_UNIVERSAL may include the weather
->>> band,
->>> thus going all the way from 76 - 163 Mhz, so I guess we should add a
->>> V4L2_TUNER_BAND_FM_JAPAN_WIDE for this. Note that the si470x already
->>> supports this, and indeed calls it "Japan wide band"
->>
->>
->> That's why giving them name via defines is a bad thing: the concept of
->> "universal" changes from time to time: 15 years ago, an "universal" radio
->> is a device that were able to tune at AM-SW, AM-MW, AM-HW and FM
->> (88-108MHz).
->>
->> An "universal FM" radio used to be 76-108 MHz, but, with the weather band,
->> it is now 76-163 Mhz.
->>
->> If a band like that is described as "FM" with a frequency range from 76
->> to 163 MHz, this is clearer than calling it as "FM unversal".
->
->
-> We will still have rangelow and rangehigh to report the actual implemented
-> band. So there is no problem here. An app can select universal and then
-> figure out what universal is on the specific device it is using with a
-> G_TUNER.
->
-> <snip>
->
->
->>> So lets get back to the basis, for AM/FM switching / limiting hw-freq
->>> seeking, and on some devices likely even just to be able to tune to
->>> certain frequencies we need to select a band with various radio devices.
->>>
->>> On some radio devices we may be able to just program the seek range, but
->>> on
->>> most it is hardcoded based on a band selection register.
->>
->>
->> Except due to regulatory requirements, the driver could just expose the
->> broadest range. That's what I did with tea5767, as it allows using either
->> an "universal" range from 76 to 108 MHz, or to limit it to 88.5-108MHz.
->>
->>> So we need some way of naming the bands, with approx. expected ranges
->>> (the real range supported by the specific device will be reported on a
->>> G_TUNER).
->>>
->>> Looking at:
->>> http://en.wikipedia.org/wiki/FM_broadcast_band
->>>
->>> I suggest naming the bands after their standards, except for the Japanese
->>> bands which are special and I suggest just naming them after their
->>> country, resulting in:
->>>
->>> #define V4L2_TUNER_BAND_FM_CCIR        1 /* 87.5 - 108 Mhz */
->>
->>
->> CCIR is a bad (and obsolete) name.
->
->
-> Ok, so we call it V4L2_TUNER_BAND_FM_STANDARD, since it seems to
-> be what most of the world is either using or moving too (most of the
-> former USSR has also moved to a range of 87.5 - 108, rather then the
-> OIRT bands).
->
->
->> It is a bad name because it is the name of the Radio committee of the ITU,
->> and this committee standardizes all radio ranges, not only the above.
->>
->> It is an obsolete name, as CCIR was renamed to ITU-R, back in 1992[1].
->>
->> Btw, take a look at ITU-R BS.450-3 spec, table 1a[2]: it defines several
->> ranges there:
->>        87.5-108
->>        88-108
->>        88-100          (Norway)
->
->
-> Standard
->
->>        66-73           (Gambia)
->>        66-74           (Lithuania)
->
->
-> OIRT
->
->>        87.8-108        (US)
->>        100-108         (India)
->
->
-> Standard
->
->>        76-90           (Japan)
->
->
-> Japan
->
-> Note that currently several drivers already implement a band concept in some
-> way, ie in the tea5767 driver, you expose this through a config flag called
-> japan_band,
-> and that at least the saa7134 and cx88 cards code adds a tea5767 tuner
-> with the japan_band flag set to 0, resulting in not getting the wide band,
-> but the
-> small band, and thus likely not working in japan. Also note that since the
-> tea5767
-> radio tuner driver uses the standard tuner framework, it reports a hardcoded
-> range
-> of 65-108 (radio_range in drivers/media/video/tuner-core.c) independent of
-> the
-> japan_band parameter.
->
-> The si470x driver has a band *module* parameter instead, note though that in
-> both cases
-> the (average) user ends up with a hardcoded band, where he should be able to
-> adjust it
-> to match the country/regio he is in...
->
-> So we really need some way to enumerate and set radio-bands, not
-> radio-tuners, but
-> radio-bands, and that is exactly what the proposed API gives us in a nice
-> and simple
-> way.
->
-> Regards,
->
-> Hans
->
->
->
->
->
->
->
-
-
-
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 46fd953..e2f77bc 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -394,7 +394,7 @@ static int check_fmt(const struct v4l2_ioctl_ops *ops, enum v4l2_buf_type type)
+ 
+ struct v4l2_ioctl_info {
+ 	unsigned int ioctl;
+-	u16 flags;
++	u32 flags;
+ 	const char * const name;
+ };
+ 
+@@ -402,6 +402,11 @@ struct v4l2_ioctl_info {
+ #define INFO_FL_PRIO	(1 << 0)
+ /* This control can be valid if the filehandle passes a control handler. */
+ #define INFO_FL_CTRL	(1 << 1)
++/* Zero struct from after the field to the end */
++#define INFO_FL_CLEAR(v4l2_struct, field)			\
++	((offsetof(struct v4l2_struct, field) +			\
++	  sizeof(((struct v4l2_struct *)0)->field)) << 16)
++#define INFO_FL_CLEAR_MASK (_IOC_SIZEMASK << 16)
+ 
+ #define IOCTL_INFO(_ioctl, _flags) [_IOC_NR(_ioctl)] = {	\
+ 	.ioctl = _ioctl,					\
+@@ -411,11 +416,11 @@ struct v4l2_ioctl_info {
+ 
+ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO(VIDIOC_QUERYCAP, 0),
+-	IOCTL_INFO(VIDIOC_ENUM_FMT, 0),
+-	IOCTL_INFO(VIDIOC_G_FMT, 0),
++	IOCTL_INFO(VIDIOC_ENUM_FMT, INFO_FL_CLEAR(v4l2_fmtdesc, type)),
++	IOCTL_INFO(VIDIOC_G_FMT, INFO_FL_CLEAR(v4l2_format, type)),
+ 	IOCTL_INFO(VIDIOC_S_FMT, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_REQBUFS, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_QUERYBUF, 0),
++	IOCTL_INFO(VIDIOC_QUERYBUF, INFO_FL_CLEAR(v4l2_buffer, length)),
+ 	IOCTL_INFO(VIDIOC_G_FBUF, 0),
+ 	IOCTL_INFO(VIDIOC_S_FBUF, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_OVERLAY, INFO_FL_PRIO),
+@@ -423,33 +428,33 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO(VIDIOC_DQBUF, 0),
+ 	IOCTL_INFO(VIDIOC_STREAMON, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_STREAMOFF, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_G_PARM, 0),
++	IOCTL_INFO(VIDIOC_G_PARM, INFO_FL_CLEAR(v4l2_streamparm, type)),
+ 	IOCTL_INFO(VIDIOC_S_PARM, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_G_STD, 0),
+ 	IOCTL_INFO(VIDIOC_S_STD, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_ENUMSTD, 0),
+-	IOCTL_INFO(VIDIOC_ENUMINPUT, 0),
++	IOCTL_INFO(VIDIOC_ENUMSTD, INFO_FL_CLEAR(v4l2_standard, index)),
++	IOCTL_INFO(VIDIOC_ENUMINPUT, INFO_FL_CLEAR(v4l2_input, index)),
+ 	IOCTL_INFO(VIDIOC_G_CTRL, INFO_FL_CTRL),
+ 	IOCTL_INFO(VIDIOC_S_CTRL, INFO_FL_PRIO | INFO_FL_CTRL),
+-	IOCTL_INFO(VIDIOC_G_TUNER, 0),
++	IOCTL_INFO(VIDIOC_G_TUNER, INFO_FL_CLEAR(v4l2_tuner, index)),
+ 	IOCTL_INFO(VIDIOC_S_TUNER, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_G_AUDIO, 0),
+ 	IOCTL_INFO(VIDIOC_S_AUDIO, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_QUERYCTRL, INFO_FL_CTRL),
+-	IOCTL_INFO(VIDIOC_QUERYMENU, INFO_FL_CTRL),
++	IOCTL_INFO(VIDIOC_QUERYCTRL, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_queryctrl, id)),
++	IOCTL_INFO(VIDIOC_QUERYMENU, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_querymenu, index)),
+ 	IOCTL_INFO(VIDIOC_G_INPUT, 0),
+ 	IOCTL_INFO(VIDIOC_S_INPUT, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_G_OUTPUT, 0),
++	IOCTL_INFO(VIDIOC_G_OUTPUT, INFO_FL_CLEAR(v4l2_output, index)),
+ 	IOCTL_INFO(VIDIOC_S_OUTPUT, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_ENUMOUTPUT, 0),
+ 	IOCTL_INFO(VIDIOC_G_AUDOUT, 0),
+ 	IOCTL_INFO(VIDIOC_S_AUDOUT, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_G_MODULATOR, 0),
++	IOCTL_INFO(VIDIOC_G_MODULATOR, INFO_FL_CLEAR(v4l2_modulator, index)),
+ 	IOCTL_INFO(VIDIOC_S_MODULATOR, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_G_FREQUENCY, 0),
++	IOCTL_INFO(VIDIOC_G_FREQUENCY, INFO_FL_CLEAR(v4l2_frequency, tuner)),
+ 	IOCTL_INFO(VIDIOC_S_FREQUENCY, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_CROPCAP, 0),
+-	IOCTL_INFO(VIDIOC_G_CROP, 0),
++	IOCTL_INFO(VIDIOC_CROPCAP, INFO_FL_CLEAR(v4l2_cropcap, type)),
++	IOCTL_INFO(VIDIOC_G_CROP, INFO_FL_CLEAR(v4l2_crop, type)),
+ 	IOCTL_INFO(VIDIOC_S_CROP, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_G_SELECTION, 0),
+ 	IOCTL_INFO(VIDIOC_S_SELECTION, INFO_FL_PRIO),
+@@ -457,20 +462,20 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO(VIDIOC_S_JPEGCOMP, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_QUERYSTD, 0),
+ 	IOCTL_INFO(VIDIOC_TRY_FMT, 0),
+-	IOCTL_INFO(VIDIOC_ENUMAUDIO, 0),
+-	IOCTL_INFO(VIDIOC_ENUMAUDOUT, 0),
++	IOCTL_INFO(VIDIOC_ENUMAUDIO, INFO_FL_CLEAR(v4l2_audio, index)),
++	IOCTL_INFO(VIDIOC_ENUMAUDOUT, INFO_FL_CLEAR(v4l2_audioout, index)),
+ 	IOCTL_INFO(VIDIOC_G_PRIORITY, 0),
+ 	IOCTL_INFO(VIDIOC_S_PRIORITY, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_G_SLICED_VBI_CAP, 0),
++	IOCTL_INFO(VIDIOC_G_SLICED_VBI_CAP, INFO_FL_CLEAR(v4l2_sliced_vbi_cap, type)),
+ 	IOCTL_INFO(VIDIOC_LOG_STATUS, 0),
+ 	IOCTL_INFO(VIDIOC_G_EXT_CTRLS, INFO_FL_CTRL),
+ 	IOCTL_INFO(VIDIOC_S_EXT_CTRLS, INFO_FL_PRIO | INFO_FL_CTRL),
+ 	IOCTL_INFO(VIDIOC_TRY_EXT_CTRLS, 0),
+-	IOCTL_INFO(VIDIOC_ENUM_FRAMESIZES, 0),
+-	IOCTL_INFO(VIDIOC_ENUM_FRAMEINTERVALS, 0),
++	IOCTL_INFO(VIDIOC_ENUM_FRAMESIZES, INFO_FL_CLEAR(v4l2_frmsizeenum, pixel_format)),
++	IOCTL_INFO(VIDIOC_ENUM_FRAMEINTERVALS, INFO_FL_CLEAR(v4l2_frmivalenum, height)),
+ 	IOCTL_INFO(VIDIOC_G_ENC_INDEX, 0),
+-	IOCTL_INFO(VIDIOC_ENCODER_CMD, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_TRY_ENCODER_CMD, 0),
++	IOCTL_INFO(VIDIOC_ENCODER_CMD, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_encoder_cmd, flags)),
++	IOCTL_INFO(VIDIOC_TRY_ENCODER_CMD, INFO_FL_CLEAR(v4l2_encoder_cmd, flags)),
+ 	IOCTL_INFO(VIDIOC_DECODER_CMD, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_TRY_DECODER_CMD, 0),
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+@@ -2106,45 +2111,6 @@ static long __video_do_ioctl(struct file *file,
+ 	return ret;
+ }
+ 
+-/* In some cases, only a few fields are used as input, i.e. when the app sets
+- * "index" and then the driver fills in the rest of the structure for the thing
+- * with that index.  We only need to copy up the first non-input field.  */
+-static unsigned long cmd_input_size(unsigned int cmd)
+-{
+-	/* Size of structure up to and including 'field' */
+-#define CMDINSIZE(cmd, type, field) 				\
+-	case VIDIOC_##cmd: 					\
+-		return offsetof(struct v4l2_##type, field) + 	\
+-			sizeof(((struct v4l2_##type *)0)->field);
+-
+-	switch (cmd) {
+-		CMDINSIZE(ENUM_FMT,		fmtdesc,	type);
+-		CMDINSIZE(G_FMT,		format,		type);
+-		CMDINSIZE(QUERYBUF,		buffer,		length);
+-		CMDINSIZE(G_PARM,		streamparm,	type);
+-		CMDINSIZE(ENUMSTD,		standard,	index);
+-		CMDINSIZE(ENUMINPUT,		input,		index);
+-		CMDINSIZE(G_CTRL,		control,	id);
+-		CMDINSIZE(G_TUNER,		tuner,		index);
+-		CMDINSIZE(QUERYCTRL,		queryctrl,	id);
+-		CMDINSIZE(QUERYMENU,		querymenu,	index);
+-		CMDINSIZE(ENUMOUTPUT,		output,		index);
+-		CMDINSIZE(G_MODULATOR,		modulator,	index);
+-		CMDINSIZE(G_FREQUENCY,		frequency,	tuner);
+-		CMDINSIZE(CROPCAP,		cropcap,	type);
+-		CMDINSIZE(G_CROP,		crop,		type);
+-		CMDINSIZE(ENUMAUDIO,		audio, 		index);
+-		CMDINSIZE(ENUMAUDOUT,		audioout, 	index);
+-		CMDINSIZE(ENCODER_CMD,		encoder_cmd,	flags);
+-		CMDINSIZE(TRY_ENCODER_CMD,	encoder_cmd,	flags);
+-		CMDINSIZE(G_SLICED_VBI_CAP,	sliced_vbi_cap,	type);
+-		CMDINSIZE(ENUM_FRAMESIZES,	frmsizeenum,	pixel_format);
+-		CMDINSIZE(ENUM_FRAMEINTERVALS,	frmivalenum,	height);
+-	default:
+-		return _IOC_SIZE(cmd);
+-	}
+-}
+-
+ static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
+ 			    void * __user *user_ptr, void ***kernel_ptr)
+ {
+@@ -2219,7 +2185,20 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+ 
+ 		err = -EFAULT;
+ 		if (_IOC_DIR(cmd) & _IOC_WRITE) {
+-			unsigned long n = cmd_input_size(cmd);
++			unsigned int n = _IOC_SIZE(cmd);
++
++			/*
++			 * In some cases, only a few fields are used as input,
++			 * i.e. when the app sets "index" and then the driver
++			 * fills in the rest of the structure for the thing
++			 * with that index.  We only need to copy up the first
++			 * non-input field.
++			 */
++			if (v4l2_is_known_ioctl(cmd)) {
++				u32 flags = v4l2_ioctls[_IOC_NR(cmd)].flags;
++				if (flags & INFO_FL_CLEAR_MASK)
++					n = (flags & INFO_FL_CLEAR_MASK) >> 16;
++			}
+ 
+ 			if (copy_from_user(parg, (void __user *)arg, n))
+ 				goto out;
 -- 
-Regards
-Halli
+1.7.10
+
