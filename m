@@ -1,69 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:37498 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759474Ab2FCCAk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Jun 2012 22:00:40 -0400
-Received: by vcbf11 with SMTP id f11so1940552vcb.19
-        for <linux-media@vger.kernel.org>; Sat, 02 Jun 2012 19:00:39 -0700 (PDT)
-From: Peter Senna Tschudin <peter.senna@gmail.com>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2313 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932433Ab2F1Gs5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jun 2012 02:48:57 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: elezegarcia@gmail.com, Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH] cx231xx: Paranoic stack memory save
-Date: Sat,  2 Jun 2012 23:00:14 -0300
-Message-Id: <1338688814-2043-1-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <CA+MoWDqx-agjxCDOJmWOuY21FzkoXyg_ckWj=gV-FyF0cLxpDQ@mail.gmail.com>
-References: <CA+MoWDqx-agjxCDOJmWOuY21FzkoXyg_ckWj=gV-FyF0cLxpDQ@mail.gmail.com>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 30/33] vivi: add create_bufs/preparebuf support.
+Date: Thu, 28 Jun 2012 08:48:24 +0200
+Message-Id: <a38c2a7ca5b0cdb8cb1a73703851d19d883a8933.1340865818.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
+References: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch saves 255 bytes of stack memory on cx231xx_usb_probe() by removing a char array. Tested by compilation only.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This should replace the patch:
-http://patchwork.linuxtv.org/patch/11565/
-
-Because something went wrong with the previous E-mail, and not all lines of the patch were reconized as being the patch.
-
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/video/cx231xx/cx231xx-cards.c |   17 +++--------------
- 1 file changed, 3 insertions(+), 14 deletions(-)
+ drivers/media/video/vivi.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/video/cx231xx/cx231xx-cards.c b/drivers/media/video/cx231xx/cx231xx-cards.c
-index 8ed460d..02d4d36 100644
---- a/drivers/media/video/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/video/cx231xx/cx231xx-cards.c
-@@ -1023,7 +1023,6 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
- 	int nr = 0, ifnum;
- 	int i, isoc_pipe = 0;
- 	char *speed;
--	char descr[255] = "";
- 	struct usb_interface_assoc_descriptor *assoc_desc;
+diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
+index f6d7c6e..1e8c4f3 100644
+--- a/drivers/media/video/vivi.c
++++ b/drivers/media/video/vivi.c
+@@ -767,7 +767,13 @@ static int queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
+ 	struct vivi_dev *dev = vb2_get_drv_priv(vq);
+ 	unsigned long size;
  
- 	udev = usb_get_dev(interface_to_usbdev(interface));
-@@ -1098,20 +1097,10 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
- 		speed = "unknown";
- 	}
+-	size = dev->width * dev->height * dev->pixelsize;
++	if (fmt)
++		size = fmt->fmt.pix.sizeimage;
++	else
++		size = dev->width * dev->height * dev->pixelsize;
++
++	if (size == 0)
++		return -EINVAL;
  
--	if (udev->manufacturer)
--		strlcpy(descr, udev->manufacturer, sizeof(descr));
--
--	if (udev->product) {
--		if (*descr)
--			strlcat(descr, " ", sizeof(descr));
--		strlcat(descr, udev->product, sizeof(descr));
--	}
--	if (*descr)
--		strlcat(descr, " ", sizeof(descr));
--
--	cx231xx_info("New device %s@ %s Mbps "
-+	cx231xx_info("New device %s %s @ %s Mbps "
- 	     "(%04x:%04x) with %d interfaces\n",
--	     descr,
-+	     udev->manufacturer ? udev->manufacturer : "",
-+	     udev->product ? udev->product : "",
- 	     speed,
- 	     le16_to_cpu(udev->descriptor.idVendor),
- 	     le16_to_cpu(udev->descriptor.idProduct),
+ 	if (0 == *nbuffers)
+ 		*nbuffers = 32;
+@@ -1180,6 +1186,8 @@ static const struct v4l2_ioctl_ops vivi_ioctl_ops = {
+ 	.vidioc_try_fmt_vid_cap   = vidioc_try_fmt_vid_cap,
+ 	.vidioc_s_fmt_vid_cap     = vidioc_s_fmt_vid_cap,
+ 	.vidioc_reqbufs       = vb2_ioctl_reqbufs,
++	.vidioc_create_bufs   = vb2_ioctl_create_bufs,
++	.vidioc_prepare_buf   = vb2_ioctl_prepare_buf,
+ 	.vidioc_querybuf      = vb2_ioctl_querybuf,
+ 	.vidioc_qbuf          = vb2_ioctl_qbuf,
+ 	.vidioc_dqbuf         = vb2_ioctl_dqbuf,
 -- 
-1.7.10.2
+1.7.10
 
