@@ -1,364 +1,437 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:50253 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756947Ab2FONow (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jun 2012 09:44:52 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2225 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753054Ab2F1Gsr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jun 2012 02:48:47 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	snjw23@gmail.com, t.stanislaws@samsung.com
-Subject: [PATCH v4 4/7] v4l: Common documentation for selection targets
-Date: Fri, 15 Jun 2012 16:44:37 +0300
-Message-Id: <1339767880-8412-4-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <4FDB3C2E.9060502@iki.fi>
-References: <4FDB3C2E.9060502@iki.fi>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 10/33] v4l2-ioctl.c: use the new table for queuing/parm ioctls.
+Date: Thu, 28 Jun 2012 08:48:04 +0200
+Message-Id: <d2b174b0647fa6545af985426a4f33389d74d3f9.1340865818.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
+References: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Both V4L2 and V4L2 subdev interface have very similar selection APIs with
-differences foremost related to in-memory and media bus formats. However,
-the selection targets are the same for both. Most targets are and in the
-future will likely continue to be more the same than with any differences.
-Thus it makes sense to unify the documentation of the targets.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/DocBook/media/v4l/compat.xml         |    9 +-
- Documentation/DocBook/media/v4l/dev-subdev.xml     |   10 +-
- Documentation/DocBook/media/v4l/selection-api.xml  |    6 +-
- .../DocBook/media/v4l/selections-common.xml        |   92 ++++++++++++++++++++
- Documentation/DocBook/media/v4l/v4l2.xml           |    5 +
- .../DocBook/media/v4l/vidioc-g-selection.xml       |   54 +-----------
- .../media/v4l/vidioc-subdev-g-selection.xml        |   34 +-------
- 7 files changed, 118 insertions(+), 92 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/selections-common.xml
+ drivers/media/video/v4l2-ioctl.c |  317 ++++++++++++++++++++------------------
+ 1 file changed, 166 insertions(+), 151 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index ea42ef8..162a0ba 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2377,10 +2377,11 @@ that used it. It was originally scheduled for removal in 2.6.35.
- 	  <para>V4L2_CTRL_FLAG_VOLATILE was added to signal volatile controls to userspace.</para>
-         </listitem>
-         <listitem>
--	  <para>Add selection API for extended control over cropping and
--composing. Does not affect the compatibility of current drivers and
--applications.  See <link linkend="selection-api"> selection API </link> for
--details.</para>
-+	  <para>Add selection API for extended control over cropping
-+	  and composing. Does not affect the compatibility of current
-+	  drivers and applications. See <link
-+	  linkend="selection-api"> selection API </link> for
-+	  details.</para>
-         </listitem>
-       </orderedlist>
-     </section>
-diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml b/Documentation/DocBook/media/v4l/dev-subdev.xml
-index ac715dd..76c4307 100644
---- a/Documentation/DocBook/media/v4l/dev-subdev.xml
-+++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
-@@ -276,7 +276,7 @@
-       </para>
-     </section>
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 4d2d0d6..1f75a6c 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -426,48 +426,97 @@ static void v4l_print_hw_freq_seek(const void *arg, bool write_only)
+ 		p->tuner, p->type, p->seek_upward, p->wrap_around, p->spacing);
+ }
  
--    <section>
-+    <section id="v4l2-subdev-selections">
-       <title>Selections: cropping, scaling and composition</title>
+-static void v4l_print_u32(const void *arg, bool write_only)
++static void v4l_print_requestbuffers(const void *arg, bool write_only)
+ {
+-	pr_cont("value=%u\n", *(const u32 *)arg);
++	const struct v4l2_requestbuffers *p = arg;
++
++	pr_cont("count=%d, type=%s, memory=%s\n",
++		p->count,
++		prt_names(p->type, v4l2_type_names),
++		prt_names(p->memory, v4l2_memory_names));
+ }
  
-       <para>Many sub-devices support cropping frames on their input or output
-@@ -289,9 +289,9 @@
-       &v4l2-rect; by the coordinates of the top left corner and the rectangle
-       size. Both the coordinates and sizes are expressed in pixels.</para>
+-static void dbgbuf(unsigned int cmd, struct video_device *vfd,
+-					struct v4l2_buffer *p)
++static void v4l_print_buffer(const void *arg, bool write_only)
+ {
+-	struct v4l2_timecode *tc = &p->timecode;
+-	struct v4l2_plane *plane;
++	const struct v4l2_buffer *p = arg;
++	const struct v4l2_timecode *tc = &p->timecode;
++	const struct v4l2_plane *plane;
+ 	int i;
  
--      <para>As for pad formats, drivers store try and active rectangles for
--      the selection targets <xref
--      linkend="v4l2-subdev-selection-targets">.</xref></para>
-+      <para>As for pad formats, drivers store try and active
-+      rectangles for the selection targets <xref
-+      linkend="v4l2-selections-common">.</xref></para>
+-	dbgarg(cmd, "%02ld:%02d:%02d.%08ld index=%d, type=%s, "
+-		"flags=0x%08d, field=%0d, sequence=%d, memory=%s\n",
++	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, "
++		"flags=0x%08x, field=%s, sequence=%d, memory=%s",
+ 			p->timestamp.tv_sec / 3600,
+ 			(int)(p->timestamp.tv_sec / 60) % 60,
+ 			(int)(p->timestamp.tv_sec % 60),
+ 			(long)p->timestamp.tv_usec,
+ 			p->index,
+ 			prt_names(p->type, v4l2_type_names),
+-			p->flags, p->field, p->sequence,
+-			prt_names(p->memory, v4l2_memory_names));
++			p->flags, prt_names(p->field, v4l2_field_names),
++			p->sequence, prt_names(p->memory, v4l2_memory_names));
  
-       <para>On sink pads, cropping is applied relative to the
-       current pad format. The pad format represents the image size as
-@@ -308,7 +308,7 @@
-       <para>Scaling support is optional. When supported by a subdev,
-       the crop rectangle on the subdev's sink pad is scaled to the
-       size configured using the &VIDIOC-SUBDEV-S-SELECTION; IOCTL
--      using <constant>V4L2_SUBDEV_SEL_TGT_COMPOSE</constant>
-+      using <constant>V4L2_SEL_TGT_COMPOSE</constant>
-       selection target on the same pad. If the subdev supports scaling
-       but not composing, the top and left values are not used and must
-       always be set to zero.</para>
-diff --git a/Documentation/DocBook/media/v4l/selection-api.xml b/Documentation/DocBook/media/v4l/selection-api.xml
-index ac013e5..24dec10 100644
---- a/Documentation/DocBook/media/v4l/selection-api.xml
-+++ b/Documentation/DocBook/media/v4l/selection-api.xml
-@@ -53,11 +53,11 @@ cropping and composing rectangles have the same size.</para>
- 	</mediaobject>
-       </figure>
+ 	if (V4L2_TYPE_IS_MULTIPLANAR(p->type) && p->m.planes) {
++		pr_cont("\n");
+ 		for (i = 0; i < p->length; ++i) {
+ 			plane = &p->m.planes[i];
+-			dbgarg2("plane %d: bytesused=%d, data_offset=0x%08x "
+-				"offset/userptr=0x%08lx, length=%d\n",
++			printk(KERN_DEBUG
++				"plane %d: bytesused=%d, data_offset=0x%08x "
++				"offset/userptr=0x%lx, length=%d\n",
+ 				i, plane->bytesused, plane->data_offset,
+ 				plane->m.userptr, plane->length);
+ 		}
+ 	} else {
+-		dbgarg2("bytesused=%d, offset/userptr=0x%08lx, length=%d\n",
++		pr_cont("bytesused=%d, offset/userptr=0x%lx, length=%d\n",
+ 			p->bytesused, p->m.userptr, p->length);
+ 	}
  
--For complete list of the available selection targets see table <xref
--linkend="v4l2-sel-target"/>
+-	dbgarg2("timecode=%02d:%02d:%02d type=%d, "
+-		"flags=0x%08d, frames=%d, userbits=0x%08x\n",
++	printk(KERN_DEBUG "timecode=%02d:%02d:%02d type=%d, "
++		"flags=0x%08x, frames=%d, userbits=0x%08x\n",
+ 			tc->hours, tc->minutes, tc->seconds,
+ 			tc->type, tc->flags, tc->frames, *(__u32 *)tc->userbits);
+ }
+ 
++static void v4l_print_create_buffers(const void *arg, bool write_only)
++{
++	const struct v4l2_create_buffers *p = arg;
++
++	pr_cont("index=%d, count=%d, memory=%s, ",
++			p->index, p->count,
++			prt_names(p->memory, v4l2_memory_names));
++	v4l_print_format(&p->format, write_only);
++}
++
++static void v4l_print_streamparm(const void *arg, bool write_only)
++{
++	const struct v4l2_streamparm *p = arg;
++
++	pr_cont("type=%s", prt_names(p->type, v4l2_type_names));
++
++	if (p->type == V4L2_BUF_TYPE_VIDEO_CAPTURE ||
++	    p->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
++		const struct v4l2_captureparm *c = &p->parm.capture;
++
++		pr_cont(", capability=0x%x, capturemode=0x%x, timeperframe=%d/%d, "
++			"extendedmode=%d, readbuffers=%d\n",
++			c->capability, c->capturemode,
++			c->timeperframe.numerator, c->timeperframe.denominator,
++			c->extendedmode, c->readbuffers);
++	} else if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT ||
++		   p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
++		const struct v4l2_outputparm *c = &p->parm.output;
++
++		pr_cont(", capability=0x%x, outputmode=0x%x, timeperframe=%d/%d, "
++			"extendedmode=%d, writebuffers=%d\n",
++			c->capability, c->outputmode,
++			c->timeperframe.numerator, c->timeperframe.denominator,
++			c->extendedmode, c->writebuffers);
++	}
++}
++
++static void v4l_print_u32(const void *arg, bool write_only)
++{
++	pr_cont("value=%u\n", *(const u32 *)arg);
++}
++
+ static inline void dbgrect(struct video_device *vfd, char *s,
+ 							struct v4l2_rect *r)
+ {
+@@ -1070,6 +1119,100 @@ static int v4l_s_hw_freq_seek(const struct v4l2_ioctl_ops *ops,
+ 	return ops->vidioc_s_hw_freq_seek(file, fh, p);
+ }
+ 
++static int v4l_reqbufs(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct v4l2_requestbuffers *p = arg;
++	int ret = check_fmt(ops, p->type);
++
++	if (ret)
++		return ret;
++
++	if (p->type < V4L2_BUF_TYPE_PRIVATE)
++		CLEAR_AFTER_FIELD(p, memory);
++
++	return ops->vidioc_reqbufs(file, fh, p);
++}
++
++static int v4l_querybuf(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct v4l2_buffer *p = arg;
++	int ret = check_fmt(ops, p->type);
++
++	return ret ? ret : ops->vidioc_querybuf(file, fh, p);
++}
++
++static int v4l_qbuf(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct v4l2_buffer *p = arg;
++	int ret = check_fmt(ops, p->type);
++
++	return ret ? ret : ops->vidioc_qbuf(file, fh, p);
++}
++
++static int v4l_dqbuf(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct v4l2_buffer *p = arg;
++	int ret = check_fmt(ops, p->type);
++
++	return ret ? ret : ops->vidioc_dqbuf(file, fh, p);
++}
++
++static int v4l_create_bufs(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct v4l2_create_buffers *create = arg;
++	int ret = check_fmt(ops, create->format.type);
++
++	return ret ? ret : ops->vidioc_create_bufs(file, fh, create);
++}
++
++static int v4l_prepare_buf(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct v4l2_buffer *b = arg;
++	int ret = check_fmt(ops, b->type);
++
++	return ret ? ret : ops->vidioc_prepare_buf(file, fh, b);
++}
++
++static int v4l_g_parm(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct video_device *vfd = video_devdata(file);
++	struct v4l2_streamparm *p = arg;
++	v4l2_std_id std;
++	int ret = check_fmt(ops, p->type);
++
++	if (ret)
++		return ret;
++	if (ops->vidioc_g_parm)
++		return ops->vidioc_g_parm(file, fh, p);
++	std = vfd->current_norm;
++	if (p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
++	    p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
++		return -EINVAL;
++	p->parm.capture.readbuffers = 2;
++	if (ops->vidioc_g_std)
++		ret = ops->vidioc_g_std(file, fh, &std);
++	if (ret == 0)
++		v4l2_video_std_frame_period(std,
++			    &p->parm.capture.timeperframe);
++	return ret;
++}
++
++static int v4l_s_parm(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct v4l2_streamparm *p = arg;
++	int ret = check_fmt(ops, p->type);
++
++	return ret ? ret : ops->vidioc_s_parm(file, fh, p);
++}
++
+ struct v4l2_ioctl_info {
+ 	unsigned int ioctl;
+ 	u32 flags;
+@@ -1125,17 +1268,17 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO_FNC(VIDIOC_ENUM_FMT, v4l_enum_fmt, v4l_print_fmtdesc, INFO_FL_CLEAR(v4l2_fmtdesc, type)),
+ 	IOCTL_INFO_FNC(VIDIOC_G_FMT, v4l_g_fmt, v4l_print_format, INFO_FL_CLEAR(v4l2_format, type)),
+ 	IOCTL_INFO_FNC(VIDIOC_S_FMT, v4l_s_fmt, v4l_print_format, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_REQBUFS, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_QUERYBUF, INFO_FL_CLEAR(v4l2_buffer, length)),
++	IOCTL_INFO_FNC(VIDIOC_REQBUFS, v4l_reqbufs, v4l_print_requestbuffers, INFO_FL_PRIO),
++	IOCTL_INFO_FNC(VIDIOC_QUERYBUF, v4l_querybuf, v4l_print_buffer, INFO_FL_CLEAR(v4l2_buffer, length)),
+ 	IOCTL_INFO_STD(VIDIOC_G_FBUF, vidioc_g_fbuf, v4l_print_framebuffer, 0),
+ 	IOCTL_INFO_STD(VIDIOC_S_FBUF, vidioc_s_fbuf, v4l_print_framebuffer, INFO_FL_PRIO),
+ 	IOCTL_INFO_STD(VIDIOC_OVERLAY, vidioc_overlay, v4l_print_u32, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_QBUF, 0),
+-	IOCTL_INFO(VIDIOC_DQBUF, 0),
++	IOCTL_INFO_FNC(VIDIOC_QBUF, v4l_qbuf, v4l_print_buffer, 0),
++	IOCTL_INFO_FNC(VIDIOC_DQBUF, v4l_dqbuf, v4l_print_buffer, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_STREAMON, v4l_streamon, v4l_print_buftype, INFO_FL_PRIO),
+ 	IOCTL_INFO_FNC(VIDIOC_STREAMOFF, v4l_streamoff, v4l_print_buftype, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_G_PARM, INFO_FL_CLEAR(v4l2_streamparm, type)),
+-	IOCTL_INFO(VIDIOC_S_PARM, INFO_FL_PRIO),
++	IOCTL_INFO_FNC(VIDIOC_G_PARM, v4l_g_parm, v4l_print_streamparm, INFO_FL_CLEAR(v4l2_streamparm, type)),
++	IOCTL_INFO_FNC(VIDIOC_S_PARM, v4l_s_parm, v4l_print_streamparm, INFO_FL_PRIO),
+ 	IOCTL_INFO_FNC(VIDIOC_G_STD, v4l_g_std, v4l_print_std, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_S_STD, v4l_s_std, v4l_print_std, INFO_FL_PRIO),
+ 	IOCTL_INFO_FNC(VIDIOC_ENUMSTD, v4l_enumstd, v4l_print_standard, INFO_FL_CLEAR(v4l2_standard, index)),
+@@ -1197,8 +1340,8 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO(VIDIOC_DQEVENT, 0),
+ 	IOCTL_INFO(VIDIOC_SUBSCRIBE_EVENT, 0),
+ 	IOCTL_INFO(VIDIOC_UNSUBSCRIBE_EVENT, 0),
+-	IOCTL_INFO(VIDIOC_CREATE_BUFS, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_PREPARE_BUF, 0),
++	IOCTL_INFO_FNC(VIDIOC_CREATE_BUFS, v4l_create_bufs, v4l_print_create_buffers, INFO_FL_PRIO),
++	IOCTL_INFO_FNC(VIDIOC_PREPARE_BUF, v4l_prepare_buf, v4l_print_buffer, 0),
+ 	IOCTL_INFO(VIDIOC_ENUM_DV_TIMINGS, 0),
+ 	IOCTL_INFO(VIDIOC_QUERY_DV_TIMINGS, 0),
+ 	IOCTL_INFO(VIDIOC_DV_TIMINGS_CAP, 0),
+@@ -1308,68 +1451,6 @@ static long __video_do_ioctl(struct file *file,
+ 	}
+ 
+ 	switch (cmd) {
+-	/* FIXME: Those buf reqs could be handled here,
+-	   with some changes on videobuf to allow its header to be included at
+-	   videodev2.h or being merged at videodev2.
+-	 */
+-	case VIDIOC_REQBUFS:
+-	{
+-		struct v4l2_requestbuffers *p = arg;
 -
-     </section>
- 
-+    See <xref linkend="v4l2-selection-targets-table" /> for more
-+    information.
-+
-   <section>
- 
-   <title>Configuration</title>
-diff --git a/Documentation/DocBook/media/v4l/selections-common.xml b/Documentation/DocBook/media/v4l/selections-common.xml
-new file mode 100644
-index 0000000..d0411ab
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/selections-common.xml
-@@ -0,0 +1,92 @@
-+<section id="v4l2-selections-common">
-+
-+  <title>Selection targets</title>
-+
-+  <para>While the <link linkend="selection-api">V4L2 selection
-+  API</link> and <link linkend="v4l2-subdev-selections">V4L2 subdev
-+  selection APIs</link> are very similar, there's one fundamental
-+  difference between the two. On sub-device API, the selection
-+  rectangle refers to the media bus format, and is bound to a
-+  sub-device's pad. On the V4L2 interface the selection rectangles
-+  refer to the in-memory pixel format.</para>
-+
-+  <para>The precise meaning of the selection targets may thus be
-+  affected on which of the two interfaces they are used.</para>
-+
-+  <table pgwide="1" frame="none" id="v4l2-selection-targets-table">
-+  <title>Selection target definitions</title>
-+    <tgroup cols="4">
-+      <colspec colname="c1" />
-+      <colspec colname="c2" />
-+      <colspec colname="c3" />
-+      <colspec colname="c4" />
-+      <colspec colname="c5" />
-+      &cs-def;
-+      <thead>
-+	<row rowsep="1">
-+	  <entry align="left">Target name</entry>
-+	  <entry align="left">id</entry>
-+	  <entry align="left">Definition</entry>
-+	  <entry align="left">Valid for V4L2</entry>
-+	  <entry align="left">Valid for V4L2 subdev</entry>
-+	</row>
-+      </thead>
-+      <tbody valign="top">
-+	<row>
-+	  <entry><constant>V4L2_SEL_TGT_CROP</constant></entry>
-+	  <entry>0x0000</entry>
-+	  <entry>Crop rectangle. Defines the cropped area.</entry>
-+	  <entry>Yes</entry>
-+	  <entry>Yes</entry>
-+	</row>
-+	<row>
-+          <entry><constant>V4L2_SEL_TGT_CROP_DEFAULT</constant></entry>
-+          <entry>0x0001</entry>
-+          <entry>Suggested cropping rectangle that covers the "whole picture".</entry>
-+	  <entry>Yes</entry>
-+	  <entry>No</entry>
-+	</row>
-+	<row>
-+	  <entry><constant>V4L2_SEL_TGT_CROP_BOUNDS</constant></entry>
-+	  <entry>0x0002</entry>
-+	  <entry>Bounds of the crop rectangle. All valid crop
-+	  rectangles fit inside the crop bounds rectangle.
-+	  </entry>
-+	  <entry>Yes</entry>
-+	  <entry>Yes</entry>
-+	</row>
-+	<row>
-+	  <entry><constant>V4L2_SEL_TGT_COMPOSE</constant></entry>
-+	  <entry>0x0100</entry>
-+	  <entry>Compose rectangle. Used to configure scaling
-+	  and composition.</entry>
-+	  <entry>Yes</entry>
-+	  <entry>Yes</entry>
-+	</row>
-+	<row>
-+          <entry><constant>V4L2_SEL_TGT_COMPOSE_DEFAULT</constant></entry>
-+          <entry>0x0101</entry>
-+          <entry>Suggested composition rectangle that covers the "whole picture".</entry>
-+	  <entry>Yes</entry>
-+	  <entry>No</entry>
-+	</row>
-+	<row>
-+	  <entry><constant>V4L2_SEL_TGT_COMPOSE_BOUNDS</constant></entry>
-+	  <entry>0x0102</entry>
-+	  <entry>Bounds of the compose rectangle. All valid compose
-+	  rectangles fit inside the compose bounds rectangle.</entry>
-+	  <entry>Yes</entry>
-+	  <entry>Yes</entry>
-+	</row>
-+	<row>
-+          <entry><constant>V4L2_SEL_TGT_COMPOSE_PADDED</constant></entry>
-+          <entry>0x0103</entry>
-+          <entry>The active area and all padding pixels that are inserted or
-+	    modified by hardware.</entry>
-+	  <entry>Yes</entry>
-+	  <entry>No</entry>
-+	</row>
-+      </tbody>
-+    </tgroup>
-+  </table>
-+</section>
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index 015c561..87d0f4f 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -589,6 +589,11 @@ and discussions on the V4L mailing list.</revremark>
-     &sub-write;
-   </appendix>
- 
-+  <appendix>
-+    <title>Common definitions for V4L2 and V4L2 subdev interfaces</title>
-+      &sub-selections-common;
-+  </appendix>
-+
-   <appendix id="videodev">
-     <title>Video For Linux Two Header File</title>
-     &sub-videodev2-h;
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-index 6376e57..c6f8325 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-@@ -67,7 +67,7 @@ Do not use multiplanar buffers.  Use <constant> V4L2_BUF_TYPE_VIDEO_CAPTURE
- setting the value of &v4l2-selection; <structfield>target</structfield> field
- to <constant> V4L2_SEL_TGT_CROP </constant> (<constant>
- V4L2_SEL_TGT_COMPOSE </constant>).  Please refer to table <xref
--linkend="v4l2-sel-target" /> or <xref linkend="selection-api" /> for additional
-+linkend="v4l2-selections-common" /> or <xref linkend="selection-api" /> for additional
- targets.  The <structfield>flags</structfield> and <structfield>reserved
- </structfield> fields of &v4l2-selection; are ignored and they must be filled
- with zeros.  The driver fills the rest of the structure or
-@@ -88,7 +88,7 @@ use multiplanar buffers.  Use <constant> V4L2_BUF_TYPE_VIDEO_CAPTURE
- setting the value of &v4l2-selection; <structfield>target</structfield> to
- <constant>V4L2_SEL_TGT_CROP</constant> (<constant>
- V4L2_SEL_TGT_COMPOSE </constant>). Please refer to table <xref
--linkend="v4l2-sel-target" /> or <xref linkend="selection-api" /> for additional
-+linkend="v4l2-selections-common" /> or <xref linkend="selection-api" /> for additional
- targets.  The &v4l2-rect; <structfield>r</structfield> rectangle need to be
- set to the desired active area. Field &v4l2-selection; <structfield> reserved
- </structfield> is ignored and must be filled with zeros.  The driver may adjust
-@@ -154,52 +154,8 @@ exist no rectangle </emphasis> that satisfies the constraints.</para>
- 
-   </refsect1>
- 
--  <refsect1>
--    <table frame="none" pgwide="1" id="v4l2-sel-target">
--      <title>Selection targets.</title>
--      <tgroup cols="3">
--	&cs-def;
--	<tbody valign="top">
--	  <row>
--            <entry><constant>V4L2_SEL_TGT_CROP</constant></entry>
--            <entry>0x0000</entry>
--            <entry>The area that is currently cropped by hardware.</entry>
--	  </row>
--	  <row>
--            <entry><constant>V4L2_SEL_TGT_CROP_DEFAULT</constant></entry>
--            <entry>0x0001</entry>
--            <entry>Suggested cropping rectangle that covers the "whole picture".</entry>
--	  </row>
--	  <row>
--            <entry><constant>V4L2_SEL_TGT_CROP_BOUNDS</constant></entry>
--            <entry>0x0002</entry>
--            <entry>Limits for the cropping rectangle.</entry>
--	  </row>
--	  <row>
--            <entry><constant>V4L2_SEL_TGT_COMPOSE</constant></entry>
--            <entry>0x0100</entry>
--            <entry>The area to which data is composed by hardware.</entry>
--	  </row>
--	  <row>
--            <entry><constant>V4L2_SEL_TGT_COMPOSE_DEFAULT</constant></entry>
--            <entry>0x0101</entry>
--            <entry>Suggested composing rectangle that covers the "whole picture".</entry>
--	  </row>
--	  <row>
--            <entry><constant>V4L2_SEL_TGT_COMPOSE_BOUNDS</constant></entry>
--            <entry>0x0102</entry>
--            <entry>Limits for the composing rectangle.</entry>
--	  </row>
--	  <row>
--            <entry><constant>V4L2_SEL_TGT_COMPOSE_PADDED</constant></entry>
--            <entry>0x0103</entry>
--            <entry>The active area and all padding pixels that are inserted or
--	      modified by hardware.</entry>
--	  </row>
--	</tbody>
--      </tgroup>
--    </table>
--  </refsect1>
-+  <para>Selection targets are documented in <xref
-+  linkend="v4l2-selections-common"/>.</para>
- 
-   <refsect1>
-     <table frame="none" pgwide="1" id="v4l2-sel-flags">
-@@ -253,7 +209,7 @@ exist no rectangle </emphasis> that satisfies the constraints.</para>
- 	  <row>
- 	    <entry>__u32</entry>
- 	    <entry><structfield>target</structfield></entry>
--            <entry>Used to select between <link linkend="v4l2-sel-target"> cropping
-+            <entry>Used to select between <link linkend="v4l2-selections-common"> cropping
- 	    and composing rectangles</link>.</entry>
- 	  </row>
- 	  <row>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-index 96ab51e..fa4063a 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-@@ -87,36 +87,8 @@
-       <constant>EINVAL</constant>.</para>
-     </section>
- 
--    <table pgwide="1" frame="none" id="v4l2-subdev-selection-targets">
--      <title>V4L2 subdev selection targets</title>
--      <tgroup cols="3">
--        &cs-def;
--	<tbody valign="top">
--	  <row>
--	    <entry><constant>V4L2_SUBDEV_SEL_TGT_CROP</constant></entry>
--	    <entry>0x0000</entry>
--	    <entry>Actual crop. Defines the cropping
--	    performed by the processing step.</entry>
--	  </row>
--	  <row>
--	    <entry><constant>V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS</constant></entry>
--	    <entry>0x0002</entry>
--	    <entry>Bounds of the crop rectangle.</entry>
--	  </row>
--	  <row>
--	    <entry><constant>V4L2_SUBDEV_SEL_TGT_COMPOSE</constant></entry>
--	    <entry>0x0100</entry>
--	    <entry>Actual compose rectangle. Used to configure scaling
--	    on sink pads and composition on source pads.</entry>
--	  </row>
--	  <row>
--	    <entry><constant>V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS</constant></entry>
--	    <entry>0x0102</entry>
--	    <entry>Bounds of the compose rectangle.</entry>
--	  </row>
--	</tbody>
--      </tgroup>
--    </table>
-+    <para>Selection targets are documented in <xref
-+    linkend="v4l2-selections-common"/>.</para>
- 
-     <table pgwide="1" frame="none" id="v4l2-subdev-selection-flags">
-       <title>V4L2 subdev selection flags</title>
-@@ -173,7 +145,7 @@
- 	    <entry>__u32</entry>
- 	    <entry><structfield>target</structfield></entry>
- 	    <entry>Target selection rectangle. See
--	    <xref linkend="v4l2-subdev-selection-targets">.</xref>.</entry>
-+	    <xref linkend="v4l2-selections-common">.</xref>.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
+-		ret = check_fmt(ops, p->type);
+-		if (ret)
+-			break;
+-
+-		if (p->type < V4L2_BUF_TYPE_PRIVATE)
+-			CLEAR_AFTER_FIELD(p, memory);
+-
+-		ret = ops->vidioc_reqbufs(file, fh, p);
+-		dbgarg(cmd, "count=%d, type=%s, memory=%s\n",
+-				p->count,
+-				prt_names(p->type, v4l2_type_names),
+-				prt_names(p->memory, v4l2_memory_names));
+-		break;
+-	}
+-	case VIDIOC_QUERYBUF:
+-	{
+-		struct v4l2_buffer *p = arg;
+-
+-		ret = check_fmt(ops, p->type);
+-		if (ret)
+-			break;
+-
+-		ret = ops->vidioc_querybuf(file, fh, p);
+-		if (!ret)
+-			dbgbuf(cmd, vfd, p);
+-		break;
+-	}
+-	case VIDIOC_QBUF:
+-	{
+-		struct v4l2_buffer *p = arg;
+-
+-		ret = check_fmt(ops, p->type);
+-		if (ret)
+-			break;
+-
+-		ret = ops->vidioc_qbuf(file, fh, p);
+-		if (!ret)
+-			dbgbuf(cmd, vfd, p);
+-		break;
+-	}
+-	case VIDIOC_DQBUF:
+-	{
+-		struct v4l2_buffer *p = arg;
+-
+-		ret = check_fmt(ops, p->type);
+-		if (ret)
+-			break;
+-
+-		ret = ops->vidioc_dqbuf(file, fh, p);
+-		if (!ret)
+-			dbgbuf(cmd, vfd, p);
+-		break;
+-	}
+-
+ 	/* --- controls ---------------------------------------------- */
+ 	case VIDIOC_QUERYCTRL:
+ 	{
+@@ -1732,46 +1813,6 @@ static long __video_do_ioctl(struct file *file,
+ 			dbgarg(cmd, "cmd=%d, flags=%x\n", p->cmd, p->flags);
+ 		break;
+ 	}
+-	case VIDIOC_G_PARM:
+-	{
+-		struct v4l2_streamparm *p = arg;
+-
+-		if (ops->vidioc_g_parm) {
+-			ret = check_fmt(ops, p->type);
+-			if (ret)
+-				break;
+-			ret = ops->vidioc_g_parm(file, fh, p);
+-		} else {
+-			v4l2_std_id std = vfd->current_norm;
+-
+-			ret = -EINVAL;
+-			if (p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-				break;
+-
+-			ret = 0;
+-			p->parm.capture.readbuffers = 2;
+-			if (ops->vidioc_g_std)
+-				ret = ops->vidioc_g_std(file, fh, &std);
+-			if (ret == 0)
+-				v4l2_video_std_frame_period(std,
+-						    &p->parm.capture.timeperframe);
+-		}
+-
+-		dbgarg(cmd, "type=%d\n", p->type);
+-		break;
+-	}
+-	case VIDIOC_S_PARM:
+-	{
+-		struct v4l2_streamparm *p = arg;
+-
+-		ret = check_fmt(ops, p->type);
+-		if (ret)
+-			break;
+-
+-		dbgarg(cmd, "type=%d\n", p->type);
+-		ret = ops->vidioc_s_parm(file, fh, p);
+-		break;
+-	}
+ 	case VIDIOC_G_SLICED_VBI_CAP:
+ 	{
+ 		struct v4l2_sliced_vbi_cap *p = arg;
+@@ -2052,32 +2093,6 @@ static long __video_do_ioctl(struct file *file,
+ 		dbgarg(cmd, "type=0x%8.8x", sub->type);
+ 		break;
+ 	}
+-	case VIDIOC_CREATE_BUFS:
+-	{
+-		struct v4l2_create_buffers *create = arg;
+-
+-		ret = check_fmt(ops, create->format.type);
+-		if (ret)
+-			break;
+-
+-		ret = ops->vidioc_create_bufs(file, fh, create);
+-
+-		dbgarg(cmd, "count=%d @ %d\n", create->count, create->index);
+-		break;
+-	}
+-	case VIDIOC_PREPARE_BUF:
+-	{
+-		struct v4l2_buffer *b = arg;
+-
+-		ret = check_fmt(ops, b->type);
+-		if (ret)
+-			break;
+-
+-		ret = ops->vidioc_prepare_buf(file, fh, b);
+-
+-		dbgarg(cmd, "index=%d", b->index);
+-		break;
+-	}
+ 	default:
+ 		if (!ops->vidioc_default)
+ 			break;
 -- 
-1.7.2.5
+1.7.10
 
