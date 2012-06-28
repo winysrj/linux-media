@@ -1,150 +1,480 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36437 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757759Ab2FRKfn (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2399 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753704Ab2F1Gsq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jun 2012 06:35:43 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Alex Gershgorin <alexg@meprolight.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: SoC i.mx35 userptr method failure while running capture-example utility
-Date: Mon, 18 Jun 2012 12:35:51 +0200
-Message-ID: <1448068.cLOEOI22jq@avalon>
-In-Reply-To: <CA+V-a8uNKVprBHj9Qeiw_qm6_BghK6RkZjUrjB14dxSdiNzFjw@mail.gmail.com>
-References: <4875438356E7CA4A8F2145FCD3E61C0B2CC9525492@MEP-EXCH.meprolight.com> <Pine.LNX.4.64.1205020044000.12201@axis700.grange> <CA+V-a8uNKVprBHj9Qeiw_qm6_BghK6RkZjUrjB14dxSdiNzFjw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Thu, 28 Jun 2012 02:48:46 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 11/33] v4l2-ioctl.c: use the new table for control ioctls.
+Date: Thu, 28 Jun 2012 08:48:05 +0200
+Message-Id: <1bfd4ab102ccd3b91f629f851164f115f738fbc4.1340865818.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
+References: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Monday 18 June 2012 12:28:44 Prabhakar Lad wrote:
-> On Wed, May 2, 2012 at 4:20 AM, Guennadi Liakhovetski wrote:
-> > On Tue, 1 May 2012, Alex Gershgorin wrote:
-> >> Hi everyone,
-> >> 
-> >> I use user-space utility from
-> >>  http://git.linuxtv.org/v4l-utils.git/blob/HEAD:/contrib/test/capture-ex
-> >> ample.c I made two small changes in this application and this is running
-> >> on i.MX35 SoC
-> >> 
-> >> fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565;
-> >> fmt.fmt.pix.field       = V4L2_FIELD_ANY;
-> >> 
-> >> When MMAP method is used everything works fine, problem occurs when using
-> >> USERPTR method this can see bellow :
-> >> 
-> >> ./capture-example -u -f -d /dev/video0
-> >> mx3-camera mx3-camera.0: MX3 Camera driver attached to camera 0
-> >> Failed acquiring VMA for vaddr 0x76cd9008
-> >> VIDIOC_QBUF error 22, Invalid arg
-> > 
-> > It doesn't surprise me, that this doesn't work. capture-example allocates
-> > absolutely normal user-space buffers, when called with USERPTR, and those
-> > buffers are very likely discontiguous. Whereas mx3-camera needs physically
-> > contiguous buffers, so, this can only fail. This means, you either have to
-> > use MMAP or you need to allocate USERPTR buffers in a special way to
-> > guarantee their contiguity.
-> 
->   Even I am facing a similar issue when ported to VB2 for USERPTR.
->  How do we ensure the buffers not discontiguous. Would cmem assure it?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/v4l2-ioctl.c |  395 +++++++++++++++++++-------------------
+ 1 file changed, 198 insertions(+), 197 deletions(-)
 
-CMEM is definitely not the way to go, it's an out-of-tree hack that should 
-disappear once we get proper CMA and DMABUF support in the kernel.
-
-How to allocate memory depends on your use case(s). If you just need to 
-capture to anonymous memory that will then be read by userspace you shouldn't 
-use USERPTR, but MMAP. If you need to capture to device memory (for instance 
-capturing directly to a frame buffer), you should export a DMABUF object on 
-from the frame buffer driver (this isn't available in mainline yet, I'll try 
-to send a patch soon) and then import it on the V4L2 side (not available in 
-mainline yet either I'm afraid :-)). As an interim solution, mmap() your frame 
-buffer to userspace and then use USERPTR.
-
-> >> Unable to handle kernel NULL pointer dereference at virtual address
-> >> 00000000> 
-> > This, however, is bad and is a bug in the driver. The capture-example
-> > should just fail nicely with no trouble. I'll add it to my TODO and will
-> > try to find some time to debug and fix this, however, I'd be more than
-> > happy if someone else would beat me on this ;-)
-> > 
-> > Thanks
-> > Guennadi
-> > 
-> >> pgd = 80004000
-> >> [00000000] *pgd=00000000
-> >> Internal error: Oops: 817 [#1] ARM
-> >> CPU: 0    Not tainted  (3.4.0-rc5+ #2283
-> >> PC is at mx3_videobuf_release+0x9c/0x10c
-> >> LR is at mx3_videobuf_release+0x20/0x10c
-> >> pc : [<802cd92c>]    lr : [<802cd8b0>]    psr: 00000093
-> >> sp : 86db3e00  ip : 86db3e00  fp : 86db3e2c
-> >> r10: 86ff6b20  r9 : 86817200  r8 : 00000000
-> >> r7 : 86ff568c  r6 : 00000000  r5 : 8801a000  r4 : 86da3000
-> >> r3 : 60000013  r2 : 86da3264  r1 : 00000000  r0 : 00000000
-> >> Flags: nzcv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment user
-> >> Control: 00c5387d  Table: 86dcc008  DAC: 00000015
-> >> Process capture-example (pid: 52, stack limit = 0x86db2268)
-> >> Stack: (0x86db3e00 to 0x86db4000)
-> >> 3e00: 00000000 60000013 00000000 86ff568c 00000000 00000002 86ff56ac
-> >> 00000000 3e20: 86db3e64 86db3e30 802c8978 802cd89c 00000000 80099414
-> >> 86db3e84 86ff568c 3e40: 86dc9a80 8801a03c 80491828 00000000 86817200
-> >> 86ff6b20 86db3e7c 86db3e68 3e60: 802c9a1c 802c8930 802ce048 86ff5600
-> >> 86db3e9c 86db3e80 802cca14 802c9a00 3e80: 86ff5800 86dc9a80 00000008
-> >> 86dc9a88 86db3eb4 86db3ea0 802b936c 802cc9d0 3ea0: 86dc9a80 86ff6b20
-> >> 86db3ef4 86db3eb8 80082f00 802b932c 00000000 00000000 3ec0: 00000000
-> >> 86d35010 86d7f000 86dc9a80 00000000 86d59000 86d90120 0000000c 3ee0:
-> >> 86db2000 00000000 86db3f14 86db3ef8 8007ff58 80082df0 00000000 86d59000
-> >> 3f00: 00000000 00000001 86db3f3c 86db3f18 8001c72c 8007fee4 86d59000
-> >> 86d82000 3f20: 00000100 76ef1770 000000f8 8000e564 86db3f4c 86db3f40
-> >> 8001c7a8 8001c6b4 3f40: 86db3f7c 86db3f50 8001dab4 8001c78c 7eb002b8
-> >> 00000001 00000004 00000000 3f60: 86db3fa4 86db3f70 800824fc 000000f8
-> >> 86db3f94 86db3f80 8001dfc0 8001d8c4 3f80: 0000ffff 000a3d78 86db3fa4
-> >> 86db3f98 8001e004 8001df4c 00000000 86db3fa8 3fa0: 8000e3e0 8001dff8
-> >> 000a3d78 76ef1770 00000001 000a3d64 00000008 00000001 3fc0: 000a3d78
-> >> 76ef1770 76ef1770 000000f8 76e1d248 00000000 00009ecc 7eb02954 3fe0:
-> >> 76f2e000 7eb02908 76de14dc 76e4f3d4 60000010 00000001 00000000 00000000
-> >> Backtrace:
-> >> [<802cd890>] (mx3_videobuf_release+0x0/0x10c) from [<802c8978>]
-> >> (__vb2_queue_free+0x54/0x15c) r8:00000000 r7:86ff56ac r6:00000002
-> >> r5:00000000 r4:86ff568c
-> >> [<802c8924>] (__vb2_queue_free+0x0/0x15c) from [<802c9a1c>]
-> >> (vb2_queue_release+0x28/0x2c) [<802c99f4>] (vb2_queue_release+0x0/0x2c)
-> >> from [<802cca14>] (soc_camera_close+0x50/0xac) r4:86ff5600 r3:802ce048
-> >> [<802cc9c4>] (soc_camera_close+0x0/0xac) from [<802b936c>]
-> >> (v4l2_release+0x4c/0x6c) r7:86dc9a88 r6:00000008 r5:86dc9a80 r4:86ff5800
-> >> [<802b9320>] (v4l2_release+0x0/0x6c) from [<80082f00>] (fput+0x11c/0x204)
-> >>  r5:86ff6b20 r4:86dc9a80
-> >> [<80082de4>] (fput+0x0/0x204) from [<8007ff58>] (filp_close+0x80/0x8c)
-> >> [<8007fed8>] (filp_close+0x0/0x8c) from [<8001c72c>]
-> >> (put_files_struct+0x84/0xd8) r6:00000001 r5:00000000 r4:86d59000
-> >> r3:00000000
-> >> [<8001c6a8>] (put_files_struct+0x0/0xd8) from [<8001c7a8>]
-> >> (exit_files+0x28/0x2c) r8:8000e564 r7:000000f8 r6:76ef1770 r5:00000100
-> >> r4:86d82000
-> >> r3:86d59000
-> >> [<8001c780>] (exit_files+0x0/0x2c) from [<8001dab4>]
-> >> (do_exit+0x1fc/0x688)
-> >> [<8001d8b8>] (do_exit+0x0/0x688) from [<8001dfc0>]
-> >> (do_group_exit+0x80/0xac) r7:000000f8
-> >> [<8001df40>] (do_group_exit+0x0/0xac) from [<8001e004>]
-> >> (sys_exit_group+0x18/0x24) r4:000a3d78 r3:0000ffff
-> >> [<8001dfec>] (sys_exit_group+0x0/0x24) from [<8000e3e0>]
-> >> (ret_fast_syscall+0x0/0x30) Code: 05852024 e5941268 e5940264 e2842f99
-> >> (e5810000)
-> >> ument
-> >> ---[ end trace 23ac1073b67b7fc0 ]---
-> >> Fixing recursive fault but reboot is needed!
-> >> 
-> >> Unfortunately I do not have enough knowledge in this kind of problems,
-> >> any help will be welcomed.
-
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 1f75a6c..798ee42 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -512,6 +512,49 @@ static void v4l_print_streamparm(const void *arg, bool write_only)
+ 	}
+ }
+ 
++static void v4l_print_queryctrl(const void *arg, bool write_only)
++{
++	const struct v4l2_queryctrl *p = arg;
++
++	pr_cont("id=0x%x, type=%d, name=%s, min/max=%d/%d, "
++		"step=%d, default=%d, flags=0x%08x\n",
++			p->id, p->type, p->name,
++			p->minimum, p->maximum,
++			p->step, p->default_value, p->flags);
++}
++
++static void v4l_print_querymenu(const void *arg, bool write_only)
++{
++	const struct v4l2_querymenu *p = arg;
++
++	pr_cont("id=0x%x, index=%d\n", p->id, p->index);
++}
++
++static void v4l_print_control(const void *arg, bool write_only)
++{
++	const struct v4l2_control *p = arg;
++
++	pr_cont("id=0x%x, value=%d\n", p->id, p->value);
++}
++
++static void v4l_print_ext_controls(const void *arg, bool write_only)
++{
++	const struct v4l2_ext_controls *p = arg;
++	int i;
++
++	pr_cont("class=0x%x, count=%d, error_idx=%d",
++			p->ctrl_class, p->count, p->error_idx);
++	for (i = 0; i < p->count; i++) {
++		if (p->controls[i].size)
++			pr_cont(", id/val=0x%x/0x%x",
++				p->controls[i].id, p->controls[i].value);
++		else
++			pr_cont(", id/size=0x%x/%u",
++				p->controls[i].id, p->controls[i].size);
++	}
++	pr_cont("\n");
++}
++
+ static void v4l_print_u32(const void *arg, bool write_only)
+ {
+ 	pr_cont("value=%u\n", *(const u32 *)arg);
+@@ -552,27 +595,7 @@ static void dbgtimings(struct video_device *vfd,
+ 	}
+ }
+ 
+-static inline void v4l_print_ext_ctrls(unsigned int cmd,
+-	struct video_device *vfd, struct v4l2_ext_controls *c, int show_vals)
+-{
+-	__u32 i;
+-
+-	if (!(vfd->debug & V4L2_DEBUG_IOCTL_ARG))
+-		return;
+-	dbgarg(cmd, "");
+-	printk(KERN_CONT "class=0x%x", c->ctrl_class);
+-	for (i = 0; i < c->count; i++) {
+-		if (show_vals && !c->controls[i].size)
+-			printk(KERN_CONT " id/val=0x%x/0x%x",
+-				c->controls[i].id, c->controls[i].value);
+-		else
+-			printk(KERN_CONT " id=0x%x,size=%u",
+-				c->controls[i].id, c->controls[i].size);
+-	}
+-	printk(KERN_CONT "\n");
+-};
+-
+-static inline int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
++static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
+ {
+ 	__u32 i;
+ 
+@@ -1213,6 +1236,153 @@ static int v4l_s_parm(const struct v4l2_ioctl_ops *ops,
+ 	return ret ? ret : ops->vidioc_s_parm(file, fh, p);
+ }
+ 
++static int v4l_queryctrl(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct video_device *vfd = video_devdata(file);
++	struct v4l2_queryctrl *p = arg;
++	struct v4l2_fh *vfh = fh;
++
++	if (vfh && vfh->ctrl_handler)
++		return v4l2_queryctrl(vfh->ctrl_handler, p);
++	if (vfd->ctrl_handler)
++		return v4l2_queryctrl(vfd->ctrl_handler, p);
++	if (ops->vidioc_queryctrl)
++		return ops->vidioc_queryctrl(file, fh, p);
++	return -ENOTTY;
++}
++
++static int v4l_querymenu(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct video_device *vfd = video_devdata(file);
++	struct v4l2_querymenu *p = arg;
++	struct v4l2_fh *vfh = fh;
++
++	if (vfh && vfh->ctrl_handler)
++		return v4l2_querymenu(vfh->ctrl_handler, p);
++	if (vfd->ctrl_handler)
++		return v4l2_querymenu(vfd->ctrl_handler, p);
++	if (ops->vidioc_querymenu)
++		return ops->vidioc_querymenu(file, fh, p);
++	return -ENOTTY;
++}
++
++static int v4l_g_ctrl(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct video_device *vfd = video_devdata(file);
++	struct v4l2_control *p = arg;
++	struct v4l2_fh *vfh = fh;
++	struct v4l2_ext_controls ctrls;
++	struct v4l2_ext_control ctrl;
++
++	if (vfh && vfh->ctrl_handler)
++		return v4l2_g_ctrl(vfh->ctrl_handler, p);
++	if (vfd->ctrl_handler)
++		return v4l2_g_ctrl(vfd->ctrl_handler, p);
++	if (ops->vidioc_g_ctrl)
++		return ops->vidioc_g_ctrl(file, fh, p);
++	if (ops->vidioc_g_ext_ctrls == NULL)
++		return -ENOTTY;
++
++	ctrls.ctrl_class = V4L2_CTRL_ID2CLASS(p->id);
++	ctrls.count = 1;
++	ctrls.controls = &ctrl;
++	ctrl.id = p->id;
++	ctrl.value = p->value;
++	if (check_ext_ctrls(&ctrls, 1)) {
++		int ret = ops->vidioc_g_ext_ctrls(file, fh, &ctrls);
++
++		if (ret == 0)
++			p->value = ctrl.value;
++		return ret;
++	}
++	return -EINVAL;
++}
++
++static int v4l_s_ctrl(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct video_device *vfd = video_devdata(file);
++	struct v4l2_control *p = arg;
++	struct v4l2_fh *vfh = fh;
++	struct v4l2_ext_controls ctrls;
++	struct v4l2_ext_control ctrl;
++
++	if (vfh && vfh->ctrl_handler)
++		return v4l2_s_ctrl(vfh, vfh->ctrl_handler, p);
++	if (vfd->ctrl_handler)
++		return v4l2_s_ctrl(NULL, vfd->ctrl_handler, p);
++	if (ops->vidioc_s_ctrl)
++		return ops->vidioc_s_ctrl(file, fh, p);
++	if (ops->vidioc_s_ext_ctrls == NULL)
++		return -ENOTTY;
++
++	ctrls.ctrl_class = V4L2_CTRL_ID2CLASS(p->id);
++	ctrls.count = 1;
++	ctrls.controls = &ctrl;
++	ctrl.id = p->id;
++	ctrl.value = p->value;
++	if (check_ext_ctrls(&ctrls, 1))
++		return ops->vidioc_s_ext_ctrls(file, fh, &ctrls);
++	return -EINVAL;
++}
++
++static int v4l_g_ext_ctrls(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct video_device *vfd = video_devdata(file);
++	struct v4l2_ext_controls *p = arg;
++	struct v4l2_fh *vfh = fh;
++
++	p->error_idx = p->count;
++	if (vfh && vfh->ctrl_handler)
++		return v4l2_g_ext_ctrls(vfh->ctrl_handler, p);
++	if (vfd->ctrl_handler)
++		return v4l2_g_ext_ctrls(vfd->ctrl_handler, p);
++	if (ops->vidioc_g_ext_ctrls == NULL)
++		return -ENOTTY;
++	return check_ext_ctrls(p, 0) ? ops->vidioc_g_ext_ctrls(file, fh, p) :
++					-EINVAL;
++}
++
++static int v4l_s_ext_ctrls(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct video_device *vfd = video_devdata(file);
++	struct v4l2_ext_controls *p = arg;
++	struct v4l2_fh *vfh = fh;
++
++	p->error_idx = p->count;
++	if (vfh && vfh->ctrl_handler)
++		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, p);
++	if (vfd->ctrl_handler)
++		return v4l2_s_ext_ctrls(NULL, vfd->ctrl_handler, p);
++	if (ops->vidioc_s_ext_ctrls == NULL)
++		return -ENOTTY;
++	return check_ext_ctrls(p, 0) ? ops->vidioc_s_ext_ctrls(file, fh, p) :
++					-EINVAL;
++}
++
++static int v4l_try_ext_ctrls(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct video_device *vfd = video_devdata(file);
++	struct v4l2_ext_controls *p = arg;
++	struct v4l2_fh *vfh = fh;
++
++	p->error_idx = p->count;
++	if (vfh && vfh->ctrl_handler)
++		return v4l2_try_ext_ctrls(vfh->ctrl_handler, p);
++	if (vfd->ctrl_handler)
++		return v4l2_try_ext_ctrls(vfd->ctrl_handler, p);
++	if (ops->vidioc_try_ext_ctrls == NULL)
++		return -ENOTTY;
++	return check_ext_ctrls(p, 0) ? ops->vidioc_try_ext_ctrls(file, fh, p) :
++					-EINVAL;
++}
++
+ struct v4l2_ioctl_info {
+ 	unsigned int ioctl;
+ 	u32 flags;
+@@ -1283,14 +1453,14 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO_FNC(VIDIOC_S_STD, v4l_s_std, v4l_print_std, INFO_FL_PRIO),
+ 	IOCTL_INFO_FNC(VIDIOC_ENUMSTD, v4l_enumstd, v4l_print_standard, INFO_FL_CLEAR(v4l2_standard, index)),
+ 	IOCTL_INFO_FNC(VIDIOC_ENUMINPUT, v4l_enuminput, v4l_print_enuminput, INFO_FL_CLEAR(v4l2_input, index)),
+-	IOCTL_INFO(VIDIOC_G_CTRL, INFO_FL_CTRL),
+-	IOCTL_INFO(VIDIOC_S_CTRL, INFO_FL_PRIO | INFO_FL_CTRL),
++	IOCTL_INFO_FNC(VIDIOC_G_CTRL, v4l_g_ctrl, v4l_print_control, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_control, id)),
++	IOCTL_INFO_FNC(VIDIOC_S_CTRL, v4l_s_ctrl, v4l_print_control, INFO_FL_PRIO | INFO_FL_CTRL),
+ 	IOCTL_INFO_FNC(VIDIOC_G_TUNER, v4l_g_tuner, v4l_print_tuner, INFO_FL_CLEAR(v4l2_tuner, index)),
+ 	IOCTL_INFO_FNC(VIDIOC_S_TUNER, v4l_s_tuner, v4l_print_tuner, INFO_FL_PRIO),
+ 	IOCTL_INFO_STD(VIDIOC_G_AUDIO, vidioc_g_audio, v4l_print_audio, 0),
+ 	IOCTL_INFO_STD(VIDIOC_S_AUDIO, vidioc_s_audio, v4l_print_audio, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_QUERYCTRL, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_queryctrl, id)),
+-	IOCTL_INFO(VIDIOC_QUERYMENU, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_querymenu, index)),
++	IOCTL_INFO_FNC(VIDIOC_QUERYCTRL, v4l_queryctrl, v4l_print_queryctrl, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_queryctrl, id)),
++	IOCTL_INFO_FNC(VIDIOC_QUERYMENU, v4l_querymenu, v4l_print_querymenu, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_querymenu, index)),
+ 	IOCTL_INFO_STD(VIDIOC_G_INPUT, vidioc_g_input, v4l_print_u32, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_S_INPUT, v4l_s_input, v4l_print_u32, INFO_FL_PRIO),
+ 	IOCTL_INFO_STD(VIDIOC_G_OUTPUT, vidioc_g_output, v4l_print_u32, 0),
+@@ -1317,9 +1487,9 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO_FNC(VIDIOC_S_PRIORITY, v4l_s_priority, v4l_print_u32, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_G_SLICED_VBI_CAP, INFO_FL_CLEAR(v4l2_sliced_vbi_cap, type)),
+ 	IOCTL_INFO(VIDIOC_LOG_STATUS, 0),
+-	IOCTL_INFO(VIDIOC_G_EXT_CTRLS, INFO_FL_CTRL),
+-	IOCTL_INFO(VIDIOC_S_EXT_CTRLS, INFO_FL_PRIO | INFO_FL_CTRL),
+-	IOCTL_INFO(VIDIOC_TRY_EXT_CTRLS, 0),
++	IOCTL_INFO_FNC(VIDIOC_G_EXT_CTRLS, v4l_g_ext_ctrls, v4l_print_ext_controls, INFO_FL_CTRL),
++	IOCTL_INFO_FNC(VIDIOC_S_EXT_CTRLS, v4l_s_ext_ctrls, v4l_print_ext_controls, INFO_FL_PRIO | INFO_FL_CTRL),
++	IOCTL_INFO_FNC(VIDIOC_TRY_EXT_CTRLS, v4l_try_ext_ctrls, v4l_print_ext_controls, 0),
+ 	IOCTL_INFO(VIDIOC_ENUM_FRAMESIZES, INFO_FL_CLEAR(v4l2_frmsizeenum, pixel_format)),
+ 	IOCTL_INFO(VIDIOC_ENUM_FRAMEINTERVALS, INFO_FL_CLEAR(v4l2_frmivalenum, height)),
+ 	IOCTL_INFO(VIDIOC_G_ENC_INDEX, 0),
+@@ -1451,175 +1621,6 @@ static long __video_do_ioctl(struct file *file,
+ 	}
+ 
+ 	switch (cmd) {
+-	/* --- controls ---------------------------------------------- */
+-	case VIDIOC_QUERYCTRL:
+-	{
+-		struct v4l2_queryctrl *p = arg;
+-
+-		if (vfh && vfh->ctrl_handler)
+-			ret = v4l2_queryctrl(vfh->ctrl_handler, p);
+-		else if (vfd->ctrl_handler)
+-			ret = v4l2_queryctrl(vfd->ctrl_handler, p);
+-		else if (ops->vidioc_queryctrl)
+-			ret = ops->vidioc_queryctrl(file, fh, p);
+-		else
+-			break;
+-		if (!ret)
+-			dbgarg(cmd, "id=0x%x, type=%d, name=%s, min/max=%d/%d, "
+-					"step=%d, default=%d, flags=0x%08x\n",
+-					p->id, p->type, p->name,
+-					p->minimum, p->maximum,
+-					p->step, p->default_value, p->flags);
+-		else
+-			dbgarg(cmd, "id=0x%x\n", p->id);
+-		break;
+-	}
+-	case VIDIOC_G_CTRL:
+-	{
+-		struct v4l2_control *p = arg;
+-
+-		if (vfh && vfh->ctrl_handler)
+-			ret = v4l2_g_ctrl(vfh->ctrl_handler, p);
+-		else if (vfd->ctrl_handler)
+-			ret = v4l2_g_ctrl(vfd->ctrl_handler, p);
+-		else if (ops->vidioc_g_ctrl)
+-			ret = ops->vidioc_g_ctrl(file, fh, p);
+-		else if (ops->vidioc_g_ext_ctrls) {
+-			struct v4l2_ext_controls ctrls;
+-			struct v4l2_ext_control ctrl;
+-
+-			ctrls.ctrl_class = V4L2_CTRL_ID2CLASS(p->id);
+-			ctrls.count = 1;
+-			ctrls.controls = &ctrl;
+-			ctrl.id = p->id;
+-			ctrl.value = p->value;
+-			if (check_ext_ctrls(&ctrls, 1)) {
+-				ret = ops->vidioc_g_ext_ctrls(file, fh, &ctrls);
+-				if (ret == 0)
+-					p->value = ctrl.value;
+-			}
+-		} else
+-			break;
+-		if (!ret)
+-			dbgarg(cmd, "id=0x%x, value=%d\n", p->id, p->value);
+-		else
+-			dbgarg(cmd, "id=0x%x\n", p->id);
+-		break;
+-	}
+-	case VIDIOC_S_CTRL:
+-	{
+-		struct v4l2_control *p = arg;
+-		struct v4l2_ext_controls ctrls;
+-		struct v4l2_ext_control ctrl;
+-
+-		if (!(vfh && vfh->ctrl_handler) && !vfd->ctrl_handler &&
+-			!ops->vidioc_s_ctrl && !ops->vidioc_s_ext_ctrls)
+-			break;
+-
+-		dbgarg(cmd, "id=0x%x, value=%d\n", p->id, p->value);
+-
+-		if (vfh && vfh->ctrl_handler) {
+-			ret = v4l2_s_ctrl(vfh, vfh->ctrl_handler, p);
+-			break;
+-		}
+-		if (vfd->ctrl_handler) {
+-			ret = v4l2_s_ctrl(NULL, vfd->ctrl_handler, p);
+-			break;
+-		}
+-		if (ops->vidioc_s_ctrl) {
+-			ret = ops->vidioc_s_ctrl(file, fh, p);
+-			break;
+-		}
+-		if (!ops->vidioc_s_ext_ctrls)
+-			break;
+-
+-		ctrls.ctrl_class = V4L2_CTRL_ID2CLASS(p->id);
+-		ctrls.count = 1;
+-		ctrls.controls = &ctrl;
+-		ctrl.id = p->id;
+-		ctrl.value = p->value;
+-		if (check_ext_ctrls(&ctrls, 1))
+-			ret = ops->vidioc_s_ext_ctrls(file, fh, &ctrls);
+-		else
+-			ret = -EINVAL;
+-		break;
+-	}
+-	case VIDIOC_G_EXT_CTRLS:
+-	{
+-		struct v4l2_ext_controls *p = arg;
+-
+-		p->error_idx = p->count;
+-		if (vfh && vfh->ctrl_handler)
+-			ret = v4l2_g_ext_ctrls(vfh->ctrl_handler, p);
+-		else if (vfd->ctrl_handler)
+-			ret = v4l2_g_ext_ctrls(vfd->ctrl_handler, p);
+-		else if (ops->vidioc_g_ext_ctrls)
+-			ret = check_ext_ctrls(p, 0) ?
+-				ops->vidioc_g_ext_ctrls(file, fh, p) :
+-				-EINVAL;
+-		else
+-			break;
+-		v4l_print_ext_ctrls(cmd, vfd, p, !ret);
+-		break;
+-	}
+-	case VIDIOC_S_EXT_CTRLS:
+-	{
+-		struct v4l2_ext_controls *p = arg;
+-
+-		p->error_idx = p->count;
+-		if (!(vfh && vfh->ctrl_handler) && !vfd->ctrl_handler &&
+-				!ops->vidioc_s_ext_ctrls)
+-			break;
+-		v4l_print_ext_ctrls(cmd, vfd, p, 1);
+-		if (vfh && vfh->ctrl_handler)
+-			ret = v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, p);
+-		else if (vfd->ctrl_handler)
+-			ret = v4l2_s_ext_ctrls(NULL, vfd->ctrl_handler, p);
+-		else if (check_ext_ctrls(p, 0))
+-			ret = ops->vidioc_s_ext_ctrls(file, fh, p);
+-		else
+-			ret = -EINVAL;
+-		break;
+-	}
+-	case VIDIOC_TRY_EXT_CTRLS:
+-	{
+-		struct v4l2_ext_controls *p = arg;
+-
+-		p->error_idx = p->count;
+-		if (!(vfh && vfh->ctrl_handler) && !vfd->ctrl_handler &&
+-				!ops->vidioc_try_ext_ctrls)
+-			break;
+-		v4l_print_ext_ctrls(cmd, vfd, p, 1);
+-		if (vfh && vfh->ctrl_handler)
+-			ret = v4l2_try_ext_ctrls(vfh->ctrl_handler, p);
+-		else if (vfd->ctrl_handler)
+-			ret = v4l2_try_ext_ctrls(vfd->ctrl_handler, p);
+-		else if (check_ext_ctrls(p, 0))
+-			ret = ops->vidioc_try_ext_ctrls(file, fh, p);
+-		else
+-			ret = -EINVAL;
+-		break;
+-	}
+-	case VIDIOC_QUERYMENU:
+-	{
+-		struct v4l2_querymenu *p = arg;
+-
+-		if (vfh && vfh->ctrl_handler)
+-			ret = v4l2_querymenu(vfh->ctrl_handler, p);
+-		else if (vfd->ctrl_handler)
+-			ret = v4l2_querymenu(vfd->ctrl_handler, p);
+-		else if (ops->vidioc_querymenu)
+-			ret = ops->vidioc_querymenu(file, fh, p);
+-		else
+-			break;
+-		if (!ret)
+-			dbgarg(cmd, "id=0x%x, index=%d, name=%s\n",
+-				p->id, p->index, p->name);
+-		else
+-			dbgarg(cmd, "id=0x%x, index=%d\n",
+-				p->id, p->index);
+-		break;
+-	}
+ 	case VIDIOC_G_CROP:
+ 	{
+ 		struct v4l2_crop *p = arg;
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10
 
