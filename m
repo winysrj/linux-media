@@ -1,29 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:40258 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754463Ab2FMO4J convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3046 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754586Ab2F1Gst (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jun 2012 10:56:09 -0400
-Received: by yhmm54 with SMTP id m54so593904yhm.19
-        for <linux-media@vger.kernel.org>; Wed, 13 Jun 2012 07:56:09 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <BE0BB692-35BF-42C3-B2F1-5AC9AB053321@dinkum.org.uk>
-References: <CAPz3gmnaPdm1V6GyPB8wPv5WCcg_pJ4HctsQiqROLanbLA=amA@mail.gmail.com>
-	<BE0BB692-35BF-42C3-B2F1-5AC9AB053321@dinkum.org.uk>
-Date: Wed, 13 Jun 2012 16:56:08 +0200
-Message-ID: <CAPz3gmke-ASEXzhcqn+9R-5f10hrux3cqS1NAQ6VYmH3JSjb-Q@mail.gmail.com>
-Subject: Re: Hauppauge WinTV Nova S Plus Composite IN
-From: shacky <shacky83@gmail.com>
-To: Andre <linux-media@dinkum.org.uk>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Thu, 28 Jun 2012 02:48:49 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 18/33] v4l2-dev.c: add debug sysfs entry.
+Date: Thu, 28 Jun 2012 08:48:12 +0200
+Message-Id: <ca2ff6ca2712ca1816f7140e9347ccf72171d48c.1340865818.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
+References: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> mencoder -oac lavc -ovc lavc -of mpeg -mpegopts format=dvd:tsaf   -vf scale=720:576,harddup -srate 48000 -af lavcresample=48000   -lavcopts vcodec=mpeg2video:vrc_buf_size=1835:vrc_maxrate=9800:vbitrate=8000:keyint=15:vstrict=0:acodec=ac3:abitrate=192:aspect=4/3 -ofps 25   -o johntest1.mpg tv:// -tv input=1:norm=PAL-BG:amode=1:alsa=1:adevice=hw.2,0:forceaudio:immediatemode=0:volume=100
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thank you very much Andre! It works!
+Since this could theoretically change the debug value while in the middle
+of v4l2-ioctl.c, we make a copy of vfd->debug to ensure consistent debug
+behavior.
 
-I only have a problem with the audio quality: it is distorted
-especially on the high frequencies.
-Do you have any idea?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/v4l2-dev.c   |   24 ++++++++++++++++++++++++
+ drivers/media/video/v4l2-ioctl.c |    9 +++++----
+ 2 files changed, 29 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index 83dbb2d..c2122e5 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -46,6 +46,29 @@ static ssize_t show_index(struct device *cd,
+ 	return sprintf(buf, "%i\n", vdev->index);
+ }
+ 
++static ssize_t show_debug(struct device *cd,
++			 struct device_attribute *attr, char *buf)
++{
++	struct video_device *vdev = to_video_device(cd);
++
++	return sprintf(buf, "%i\n", vdev->debug);
++}
++
++static ssize_t set_debug(struct device *cd, struct device_attribute *attr,
++		   const char *buf, size_t len)
++{
++	struct video_device *vdev = to_video_device(cd);
++	int res = 0;
++	u16 value;
++
++	res = kstrtou16(buf, 0, &value);
++	if (res)
++		return res;
++
++	vdev->debug = value;
++	return len;
++}
++
+ static ssize_t show_name(struct device *cd,
+ 			 struct device_attribute *attr, char *buf)
+ {
+@@ -56,6 +79,7 @@ static ssize_t show_name(struct device *cd,
+ 
+ static struct device_attribute video_device_attrs[] = {
+ 	__ATTR(name, S_IRUGO, show_name, NULL),
++	__ATTR(debug, 0644, show_debug, set_debug),
+ 	__ATTR(index, S_IRUGO, show_index, NULL),
+ 	__ATTR_NULL
+ };
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 9ded54b..273c6d7 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -1999,6 +1999,7 @@ static long __video_do_ioctl(struct file *file,
+ 	void *fh = file->private_data;
+ 	struct v4l2_fh *vfh = NULL;
+ 	int use_fh_prio = 0;
++	int debug = vfd->debug;
+ 	long ret = -ENOTTY;
+ 
+ 	if (ops == NULL) {
+@@ -2032,7 +2033,7 @@ static long __video_do_ioctl(struct file *file,
+ 	}
+ 
+ 	write_only = _IOC_DIR(cmd) == _IOC_WRITE;
+-	if (write_only && vfd->debug > V4L2_DEBUG_IOCTL) {
++	if (write_only && debug > V4L2_DEBUG_IOCTL) {
+ 		v4l_print_ioctl(vfd->name, cmd);
+ 		pr_cont(": ");
+ 		info->debug(arg, write_only);
+@@ -2054,8 +2055,8 @@ static long __video_do_ioctl(struct file *file,
+ 	}
+ 
+ done:
+-	if (vfd->debug) {
+-		if (write_only && vfd->debug > V4L2_DEBUG_IOCTL) {
++	if (debug) {
++		if (write_only && debug > V4L2_DEBUG_IOCTL) {
+ 			if (ret < 0)
+ 				printk(KERN_DEBUG "%s: error %ld\n",
+ 					video_device_node_name(vfd), ret);
+@@ -2064,7 +2065,7 @@ done:
+ 		v4l_print_ioctl(vfd->name, cmd);
+ 		if (ret < 0)
+ 			pr_cont(": error %ld\n", ret);
+-		else if (vfd->debug == V4L2_DEBUG_IOCTL)
++		else if (debug == V4L2_DEBUG_IOCTL)
+ 			pr_cont("\n");
+ 		else if (_IOC_DIR(cmd) == _IOC_NONE)
+ 			info->debug(arg, write_only);
+-- 
+1.7.10
+
