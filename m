@@ -1,45 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:51240 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752154Ab2FKLKB (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4948 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754344Ab2F1Gss (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jun 2012 07:10:01 -0400
-Received: by dady13 with SMTP id y13so5244228dad.19
-        for <linux-media@vger.kernel.org>; Mon, 11 Jun 2012 04:10:01 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
+	Thu, 28 Jun 2012 02:48:48 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, kyungmin.park@samsung.com,
-	mchehab@infradead.org, sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH] [media] s5p-mfc: Fix checkpatch error in s5p_mfc_shm.h file
-Date: Mon, 11 Jun 2012 16:28:42 +0530
-Message-Id: <1339412322-15524-1-git-send-email-sachin.kamat@linaro.org>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 24/33] Spec: document CREATE_BUFS behavior if count == 0.
+Date: Thu, 28 Jun 2012 08:48:18 +0200
+Message-Id: <d047dd0c9a7c85c5da27839aca37158a6769a1eb.1340865818.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
+References: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes the following error:
-ERROR: open brace '{' following enum go on the same line
-+enum MFC_SHM_OFS
-+{
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/video/s5p-mfc/s5p_mfc_shm.h |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ Documentation/DocBook/media/v4l/vidioc-create-bufs.xml |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_shm.h b/drivers/media/video/s5p-mfc/s5p_mfc_shm.h
-index 764eac6..cf962a4 100644
---- a/drivers/media/video/s5p-mfc/s5p_mfc_shm.h
-+++ b/drivers/media/video/s5p-mfc/s5p_mfc_shm.h
-@@ -13,8 +13,7 @@
- #ifndef S5P_MFC_SHM_H_
- #define S5P_MFC_SHM_H_
- 
--enum MFC_SHM_OFS
--{
-+enum MFC_SHM_OFS {
- 	EXTENEDED_DECODE_STATUS	= 0x00,	/* D */
- 	SET_FRAME_TAG		= 0x04, /* D */
- 	GET_FRAME_TAG_TOP	= 0x08, /* D */
+diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+index a2474ec..5e73b1c 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+@@ -97,7 +97,13 @@ information.</para>
+ 	  <row>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>count</structfield></entry>
+-	    <entry>The number of buffers requested or granted.</entry>
++	    <entry>The number of buffers requested or granted. If count == 0, then
++	    <constant>VIDIOC_CREATE_BUFS</constant> will set <structfield>index</structfield>
++	    to the current number of created buffers, and it will check the validity of
++	    <structfield>memory</structfield> and <structfield>format.type</structfield>.
++	    If those are invalid -1 is returned and errno is set to &EINVAL;,
++	    otherwise <constant>VIDIOC_CREATE_BUFS</constant> returns 0. It will
++	    never set errno to &EBUSY; in this particular case.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
 -- 
-1.7.4.1
+1.7.10
 
