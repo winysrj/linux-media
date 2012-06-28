@@ -1,76 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:50633 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751841Ab2FZUi5 (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:45097 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751036Ab2F1NZu convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jun 2012 16:38:57 -0400
-Received: by pbbrp8 with SMTP id rp8so562268pbb.19
-        for <linux-media@vger.kernel.org>; Tue, 26 Jun 2012 13:38:57 -0700 (PDT)
-Date: Tue, 26 Jun 2012 13:38:52 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Antti Palosaari <crope@iki.fi>, Kay Sievers <kay@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFC 1/4] kmod: add a routine to return if usermode is
- disabled
-Message-ID: <20120626203852.GA3885@kroah.com>
-References: <4FE9169D.5020300@redhat.com>
- <1340739262-13747-1-git-send-email-mchehab@redhat.com>
- <1340739262-13747-2-git-send-email-mchehab@redhat.com>
+	Thu, 28 Jun 2012 09:25:50 -0400
+Received: by werb14 with SMTP id b14so402074wer.19
+        for <linux-media@vger.kernel.org>; Thu, 28 Jun 2012 06:25:49 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1340739262-13747-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <CA+MoWDrBaVAStQwQKrWb+CuNTZHuXJBuewgLJbu9ZrBg7rrJVg@mail.gmail.com>
+References: <1340835544-12053-1-git-send-email-peter.senna@gmail.com>
+	<CALF0-+XZybEFqndCEo4nGGH-achE5CuYOsC+EXiH-k06GSB5vA@mail.gmail.com>
+	<CA+MoWDrBaVAStQwQKrWb+CuNTZHuXJBuewgLJbu9ZrBg7rrJVg@mail.gmail.com>
+Date: Thu, 28 Jun 2012 10:25:49 -0300
+Message-ID: <CA+MoWDq32652XAP9fMsUYiFncFCSGxqPnhXYRQMj33YNvFb88g@mail.gmail.com>
+Subject: Re: [PATCH] [V2] stv090x: variable 'no_signal' set but not used
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guy Martin <gmsoft@tuxicoman.be>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 26, 2012 at 04:34:19PM -0300, Mauro Carvalho Chehab wrote:
-> Several media devices are only capable of probing the device if
-> the firmware load is enabled, e. g. when the usermode var is not
-> disabled.
-> 
-> Add a routine to allow those drivers to test if probe can continue
-> or need to be deferred.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> ---
->  include/linux/firmware.h |    6 ++++++
->  kernel/kmod.c            |    6 ++++++
->  2 files changed, 12 insertions(+)
-> 
-> diff --git a/include/linux/firmware.h b/include/linux/firmware.h
-> index 1e7c011..cacf27e 100644
-> --- a/include/linux/firmware.h
-> +++ b/include/linux/firmware.h
-> @@ -35,6 +35,12 @@ struct builtin_fw {
->  	static const struct builtin_fw __fw_concat(__builtin_fw,__COUNTER__) \
->  	__used __section(.builtin_fw) = { name, blob, size }
->  
-> +/**
-> + * is_usermodehelp_disabled - returns true if firmware usermode is disabled
-> + *			      false otherwise.
-> + */
-> +bool is_usermodehelp_disabled(void);
-> +
->  #if defined(CONFIG_FW_LOADER) || (defined(CONFIG_FW_LOADER_MODULE) && defined(MODULE))
->  int request_firmware(const struct firmware **fw, const char *name,
->  		     struct device *device);
-> diff --git a/kernel/kmod.c b/kernel/kmod.c
-> index 05698a7..68901308 100644
-> --- a/kernel/kmod.c
-> +++ b/kernel/kmod.c
-> @@ -339,6 +339,12 @@ static DECLARE_WAIT_QUEUE_HEAD(running_helpers_waitq);
->   */
->  static DECLARE_WAIT_QUEUE_HEAD(usermodehelper_disabled_waitq);
->  
-> +bool is_usermodehelp_disabled(void)
-> +{
-> +	return usermodehelper_disabled ? true : false;
-> +}
-> +EXPORT_SYMBOL_GPL(is_usermodehelp_disabled);
+On Thu, Jun 28, 2012 at 10:17 AM, Peter Senna Tschudin
+<peter.senna@gmail.com> wrote:
+> Hey Ezequiel,
+>
+> On Thu, Jun 28, 2012 at 1:02 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+>> Hey Peter,
+>>
+>> On Wed, Jun 27, 2012 at 7:18 PM, Peter Senna Tschudin
+>> <peter.senna@gmail.com> wrote:
+>>> -                       no_signal = stv090x_chk_signal(state);
+>>> +                       (void) stv090x_chk_signal(state);
+>>
+>> Why are you casting return to void? I can't see there is a reason to it.
+> The idea is to tell the compiler that I know that stv090x_chk_signal()
+> return a value and I want to ignore it. It is to prevent the compiler
+> to issue warn_unused_result. I found two ways of doing it. First is
+> casting the return to void, second is to change the function
+> definition adding the macro __must_check defined at <linux/compiler.c>
+ defined at <linux/compiler.h>
+> like on:
+>
+> http://lxr.linux.no/linux+v3.4.4/include/linux/kernel.h#L215
+>
+> The (void) solution looked simpler to me, but I'll be happy to change
+> to the __must_check solution if better. What do you think? Keep as is?
+> Add a comment? Change to __must_check?
+>
+>
+>
+>
+>>
+>> Regards,
+>> Ezequiel.
+>
+> Regards,
+>
+> Peter
+>
+> --
+> Peter Senna Tschudin
+> peter.senna@gmail.com
+> gpg id: 48274C36
 
-usermodehelper_disabled is an enum, and the 0 value is UMH_ENABLED, so I
-think you need to explicitly test for the correct value here, you don't
-want to return something incorrectly for UMH_FREEZING, right?
 
-greg k-h
+
+-- 
+Peter Senna Tschudin
+peter.senna@gmail.com
+gpg id: 48274C36
