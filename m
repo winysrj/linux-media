@@ -1,53 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:33431 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756526Ab2FNSAn (ORCPT
+Received: from mail-yw0-f42.google.com ([209.85.213.42]:33855 "EHLO
+	mail-yw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751221Ab2F1OJB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jun 2012 14:00:43 -0400
-Received: by ghrr11 with SMTP id r11so1614804ghr.19
-        for <linux-media@vger.kernel.org>; Thu, 14 Jun 2012 11:00:42 -0700 (PDT)
+	Thu, 28 Jun 2012 10:09:01 -0400
+Received: by yhfq11 with SMTP id q11so2586235yhf.1
+        for <linux-media@vger.kernel.org>; Thu, 28 Jun 2012 07:09:00 -0700 (PDT)
 From: Peter Senna Tschudin <peter.senna@gmail.com>
 To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guy Martin <gmsoft@tuxicoman.be>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
 	linux-media@vger.kernel.org
 Cc: Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH 6/8] stv0367: variable 'tps_rcvd' set but not used
-Date: Thu, 14 Jun 2012 14:58:14 -0300
-Message-Id: <1339696716-14373-6-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <1339696716-14373-1-git-send-email-peter.senna@gmail.com>
-References: <1339696716-14373-1-git-send-email-peter.senna@gmail.com>
+Subject: [PATCH] [V3] stv090x: variable 'no_signal' set but not used
+Date: Thu, 28 Jun 2012 11:08:32 -0300
+Message-Id: <1340892520-9063-1-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
+
+Remove variable and ignore return value of stv090x_chk_signal().
 
 Tested by compilation only.
 
 Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
 ---
- drivers/media/dvb/frontends/stv0367.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/media/dvb/frontends/stv090x.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/dvb/frontends/stv0367.c b/drivers/media/dvb/frontends/stv0367.c
-index fdd20c7..2a8aaeb 100644
---- a/drivers/media/dvb/frontends/stv0367.c
-+++ b/drivers/media/dvb/frontends/stv0367.c
-@@ -1584,7 +1584,7 @@ static int stv0367ter_algo(struct dvb_frontend *fe)
- 	struct stv0367ter_state *ter_state = state->ter_state;
- 	int offset = 0, tempo = 0;
- 	u8 u_var;
--	u8 /*constell,*/ counter, tps_rcvd[2];
-+	u8 /*constell,*/ counter;
- 	s8 step;
- 	s32 timing_offset = 0;
- 	u32 trl_nomrate = 0, InternalFreq = 0, temp = 0;
-@@ -1709,9 +1709,6 @@ static int stv0367ter_algo(struct dvb_frontend *fe)
- 		return 0;
+diff --git a/drivers/media/dvb/frontends/stv090x.c b/drivers/media/dvb/frontends/stv090x.c
+index d79e69f..ea86a56 100644
+--- a/drivers/media/dvb/frontends/stv090x.c
++++ b/drivers/media/dvb/frontends/stv090x.c
+@@ -3172,7 +3172,7 @@ static enum stv090x_signal_state stv090x_algo(struct stv090x_state *state)
+ 	enum stv090x_signal_state signal_state = STV090x_NOCARRIER;
+ 	u32 reg;
+ 	s32 agc1_power, power_iq = 0, i;
+-	int lock = 0, low_sr = 0, no_signal = 0;
++	int lock = 0, low_sr = 0;
  
- 	ter_state->state = FE_TER_LOCKOK;
--	/* update results */
--	tps_rcvd[0] = stv0367_readreg(state, R367TER_TPS_RCVD2);
--	tps_rcvd[1] = stv0367_readreg(state, R367TER_TPS_RCVD3);
- 
- 	ter_state->mode = stv0367_readbits(state, F367TER_SYR_MODE);
- 	ter_state->guard = stv0367_readbits(state, F367TER_SYR_GUARD);
+ 	reg = STV090x_READ_DEMOD(state, TSCFGH);
+ 	STV090x_SETFIELD_Px(reg, RST_HWARE_FIELD, 1); /* Stop path 1 stream merger */
+@@ -3413,7 +3413,7 @@ static enum stv090x_signal_state stv090x_algo(struct stv090x_state *state)
+ 				goto err;
+ 		} else {
+ 			signal_state = STV090x_NODATA;
+-			no_signal = stv090x_chk_signal(state);
++			stv090x_chk_signal(state);
+ 		}
+ 	}
+ 	return signal_state;
 -- 
 1.7.10.2
 
