@@ -1,89 +1,542 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54604 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758883Ab2FUX2y (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2411 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754395Ab2F1Gst (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jun 2012 19:28:54 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: jean-philippe francois <jp.francois@cynove.com>
-Cc: linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH] omap3isp: preview: Add support for non-GRBG Bayer patterns
-Date: Fri, 22 Jun 2012 01:29:05 +0200
-Message-ID: <1495058.aP2aaavdWk@avalon>
-In-Reply-To: <CAGGh5h2NoojuguvRfQRsYx2xX1eRzXWw-sJYdnDgquWqoGbD-w@mail.gmail.com>
-References: <1340029853-2648-1-git-send-email-laurent.pinchart@ideasonboard.com> <CAGGh5h2NoojuguvRfQRsYx2xX1eRzXWw-sJYdnDgquWqoGbD-w@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Thu, 28 Jun 2012 02:48:49 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 09/33] v4l2-ioctl.c: use the new table for std/tuner/modulator ioctls.
+Date: Thu, 28 Jun 2012 08:48:03 +0200
+Message-Id: <ec53c8f5e7f37fa2b15d84f523d01f83a126df52.1340865818.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
+References: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jean-Philippe,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Thursday 21 June 2012 15:35:52 jean-philippe francois wrote:
-> 2012/6/18 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> > Rearrange the CFA interpolation coefficients table based on the Bayer
-> > pattern. Modifying the table during streaming isn't supported anymore,
-> > but didn't make sense in the first place anyway.
-> > 
-> > Support for non-Bayer CFA patterns is dropped as they were not correctly
-> > supported, and have never been tested.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> >  drivers/media/video/omap3isp/isppreview.c |  118 ++++++++++++++----------
-> >  1 files changed, 67 insertions(+), 51 deletions(-)
-> > 
-> > Jean-Philippe,
-> > 
-> > Could you please test this patch on your hardware ?
-> 
-> Hi,
-> 
-> I have applied it on top of your omap3isp-next branch, but my board is
-> oopsing right after the boot. I will try to get rid of this oops, but if you
-> eventually now another tree that includes the changes necessary for this
-> patch to apply, it could perhaps save me some time.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/v4l2-ioctl.c |  430 +++++++++++++++++++-------------------
+ 1 file changed, 220 insertions(+), 210 deletions(-)
 
-The patch should apply on top of the omap3isp-omap3isp-next branch that I've 
-just pushed to my linuxtv tree.
-
-> Here is a oops, in case somebody can point me to a patch, but the oops
-> is not very specific :
-> 
-> <6>Total of 96 interrupts on 1 active controller
-> <4>omap_hwmod: arm_fck: missing clockdomain for arm_fck.
-> <4>omap_hwmod: gpt1_fck: missing clockdomain for gpt1_fck.
-> <6>OMAP clockevent source: GPTIMER1 at 32768 Hz
-> <6>sched_clock: 32 bits at 32kHz, resolution 30517ns, wraps every
-> 131071999ms <1>Unable to handle kernel NULL pointer dereference at virtual
-> address 00000000 <1>pgd = c0004000
-> <1>[00000000] *pgd=00000000
-> <0>Internal error: Oops: 80000005 [#1] PREEMPT ARM
-> <d>Modules linked in:
-> CPU: 0    Not tainted  (3.4.0-rc3 #2)
-> PC is at 0x0
-> LR is at __irq_svc+0x40/0x70
-> pc : [<00000000>]    lr : [<c000e280>]    psr: 000001d3
-> sp : c0461f88  ip : 0000000f  fp : 00000000
-> r10: 00000000  r9 : 413fc082  r8 : 80004059
-> r7 : c0461fbc  r6 : ffffffff  r5 : 00000153  r4 : c04367e0
-> r3 : c0010108  r2 : c0461fd0  r1 : c046b00c  r0 : c0461f88
-> Flags: nzcv  IRQs off  FIQs off  Mode SVC_32  ISA ARM  Segment kernel
-> Control: 10c5387d  Table: 80004019  DAC: 00000015
-> <0>Process swapper (pid: 0, stack limit = 0xc04602e8)
-> <0>Stack: (0xc0461f88 to 0xc0462000)
-> <0>1f80:                   00007735 000001d3 01ffffff c0468118 00000000
-> c046808c <0>1fa0: c0456ec0 c046b004 80004059 413fc082 00000000 00000000
-> 0000000f c0461fd0 <0>1fc0: c0010108 c04367e0 00000153 ffffffff 00000000
-> 00000000 c04364fc 00000000 <0>1fe0: 00000000 c0456ec4 00000000 10c53c7d
-> c046808c 8000803c 00000000 00000000 [<c000e280>] (__irq_svc+0x40/0x70) from
-> [<c04367e0>] (start_kernel+0x138/0x254) [<c04367e0>]
-> (start_kernel+0x138/0x254) from [<8000803c>] (0x8000803c) <0>Code: bad PC
-> value
-
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 78ff09f..4d2d0d6 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -364,6 +364,68 @@ static void v4l_print_buftype(const void *arg, bool write_only)
+ 	pr_cont("type=%s\n", prt_names(*(u32 *)arg, v4l2_type_names));
+ }
+ 
++static void v4l_print_modulator(const void *arg, bool write_only)
++{
++	const struct v4l2_modulator *p = arg;
++
++	if (write_only)
++		pr_cont("index=%u, txsubchans=0x%x", p->index, p->txsubchans);
++	else
++		pr_cont("index=%u, name=%s, capability=0x%x, "
++			"rangelow=%u, rangehigh=%u, txsubchans=0x%x\n",
++			p->index, p->name, p->capability,
++			p->rangelow, p->rangehigh, p->txsubchans);
++}
++
++static void v4l_print_tuner(const void *arg, bool write_only)
++{
++	const struct v4l2_tuner *p = arg;
++
++	if (write_only)
++		pr_cont("index=%u, audmode=%u\n", p->index, p->audmode);
++	else
++		pr_cont("index=%u, name=%s, type=%u, capability=0x%x, "
++			"rangelow=%u, rangehigh=%u, signal=%u, afc=%d, "
++			"rxsubchans=0x%x, audmode=%u\n",
++			p->index, p->name, p->type,
++			p->capability, p->rangelow,
++			p->rangehigh, p->signal, p->afc,
++			p->rxsubchans, p->audmode);
++}
++
++static void v4l_print_frequency(const void *arg, bool write_only)
++{
++	const struct v4l2_frequency *p = arg;
++
++	pr_cont("tuner=%u, type=%u, frequency=%u\n",
++				p->tuner, p->type, p->frequency);
++}
++
++static void v4l_print_standard(const void *arg, bool write_only)
++{
++	const struct v4l2_standard *p = arg;
++
++	pr_cont("index=%u, id=0x%Lx, name=%s, fps=%u/%u, "
++		"framelines=%u\n", p->index,
++		(unsigned long long)p->id, p->name,
++		p->frameperiod.numerator,
++		p->frameperiod.denominator,
++		p->framelines);
++}
++
++static void v4l_print_std(const void *arg, bool write_only)
++{
++	pr_cont("std=0x%08Lx\n", *(const long long unsigned *)arg);
++}
++
++static void v4l_print_hw_freq_seek(const void *arg, bool write_only)
++{
++	const struct v4l2_hw_freq_seek *p = arg;
++
++	pr_cont("tuner=%u, type=%u, seek_upward=%u, wrap_around=%u, spacing=%u\n",
++		p->tuner, p->type, p->seek_upward, p->wrap_around, p->spacing);
++}
++
+ static void v4l_print_u32(const void *arg, bool write_only)
+ {
+ 	pr_cont("value=%u\n", *(const u32 *)arg);
+@@ -861,6 +923,153 @@ static int v4l_streamoff(const struct v4l2_ioctl_ops *ops,
+ 	return ops->vidioc_streamoff(file, fh, *(unsigned int *)arg);
+ }
+ 
++static int v4l_g_tuner(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct video_device *vfd = video_devdata(file);
++	struct v4l2_tuner *p = arg;
++
++	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
++			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
++	return ops->vidioc_g_tuner(file, fh, p);
++}
++
++static int v4l_s_tuner(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct video_device *vfd = video_devdata(file);
++	struct v4l2_tuner *p = arg;
++
++	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
++			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
++	return ops->vidioc_s_tuner(file, fh, p);
++}
++
++static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct video_device *vfd = video_devdata(file);
++	struct v4l2_frequency *p = arg;
++
++	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
++			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
++	return ops->vidioc_g_frequency(file, fh, p);
++}
++
++static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct video_device *vfd = video_devdata(file);
++	struct v4l2_frequency *p = arg;
++	enum v4l2_tuner_type type;
++
++	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
++			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
++	if (p->type != type)
++		return -EINVAL;
++	return ops->vidioc_s_frequency(file, fh, p);
++}
++
++static int v4l_enumstd(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct video_device *vfd = video_devdata(file);
++	struct v4l2_standard *p = arg;
++	v4l2_std_id id = vfd->tvnorms, curr_id = 0;
++	unsigned int index = p->index, i, j = 0;
++	const char *descr = "";
++
++	/* Return norm array in a canonical way */
++	for (i = 0; i <= index && id; i++) {
++		/* last std value in the standards array is 0, so this
++		   while always ends there since (id & 0) == 0. */
++		while ((id & standards[j].std) != standards[j].std)
++			j++;
++		curr_id = standards[j].std;
++		descr = standards[j].descr;
++		j++;
++		if (curr_id == 0)
++			break;
++		if (curr_id != V4L2_STD_PAL &&
++				curr_id != V4L2_STD_SECAM &&
++				curr_id != V4L2_STD_NTSC)
++			id &= ~curr_id;
++	}
++	if (i <= index)
++		return -EINVAL;
++
++	v4l2_video_std_construct(p, curr_id, descr);
++	return 0;
++}
++
++static int v4l_g_std(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct video_device *vfd = video_devdata(file);
++	v4l2_std_id *id = arg;
++
++	/* Calls the specific handler */
++	if (ops->vidioc_g_std)
++		return ops->vidioc_g_std(file, fh, arg);
++	if (vfd->current_norm) {
++		*id = vfd->current_norm;
++		return 0;
++	}
++	return -ENOTTY;
++}
++
++static int v4l_s_std(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct video_device *vfd = video_devdata(file);
++	v4l2_std_id *id = arg, norm;
++	int ret;
++
++	norm = (*id) & vfd->tvnorms;
++	if (vfd->tvnorms && !norm)	/* Check if std is supported */
++		return -EINVAL;
++
++	/* Calls the specific handler */
++	ret = ops->vidioc_s_std(file, fh, &norm);
++
++	/* Updates standard information */
++	if (ret >= 0)
++		vfd->current_norm = norm;
++	return ret;
++}
++
++static int v4l_querystd(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct video_device *vfd = video_devdata(file);
++	v4l2_std_id *p = arg;
++
++	/*
++	 * If nothing detected, it should return all supported
++	 * standard.
++	 * Drivers just need to mask the std argument, in order
++	 * to remove the standards that don't apply from the mask.
++	 * This means that tuners, audio and video decoders can join
++	 * their efforts to improve the standards detection.
++	 */
++	*p = vfd->tvnorms;
++	return ops->vidioc_querystd(file, fh, arg);
++}
++
++static int v4l_s_hw_freq_seek(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct video_device *vfd = video_devdata(file);
++	struct v4l2_hw_freq_seek *p = arg;
++	enum v4l2_tuner_type type;
++
++	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
++		V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
++	if (p->type != type)
++		return -EINVAL;
++	return ops->vidioc_s_hw_freq_seek(file, fh, p);
++}
++
+ struct v4l2_ioctl_info {
+ 	unsigned int ioctl;
+ 	u32 flags;
+@@ -927,14 +1136,14 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO_FNC(VIDIOC_STREAMOFF, v4l_streamoff, v4l_print_buftype, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_G_PARM, INFO_FL_CLEAR(v4l2_streamparm, type)),
+ 	IOCTL_INFO(VIDIOC_S_PARM, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_G_STD, 0),
+-	IOCTL_INFO(VIDIOC_S_STD, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_ENUMSTD, INFO_FL_CLEAR(v4l2_standard, index)),
++	IOCTL_INFO_FNC(VIDIOC_G_STD, v4l_g_std, v4l_print_std, 0),
++	IOCTL_INFO_FNC(VIDIOC_S_STD, v4l_s_std, v4l_print_std, INFO_FL_PRIO),
++	IOCTL_INFO_FNC(VIDIOC_ENUMSTD, v4l_enumstd, v4l_print_standard, INFO_FL_CLEAR(v4l2_standard, index)),
+ 	IOCTL_INFO_FNC(VIDIOC_ENUMINPUT, v4l_enuminput, v4l_print_enuminput, INFO_FL_CLEAR(v4l2_input, index)),
+ 	IOCTL_INFO(VIDIOC_G_CTRL, INFO_FL_CTRL),
+ 	IOCTL_INFO(VIDIOC_S_CTRL, INFO_FL_PRIO | INFO_FL_CTRL),
+-	IOCTL_INFO(VIDIOC_G_TUNER, INFO_FL_CLEAR(v4l2_tuner, index)),
+-	IOCTL_INFO(VIDIOC_S_TUNER, INFO_FL_PRIO),
++	IOCTL_INFO_FNC(VIDIOC_G_TUNER, v4l_g_tuner, v4l_print_tuner, INFO_FL_CLEAR(v4l2_tuner, index)),
++	IOCTL_INFO_FNC(VIDIOC_S_TUNER, v4l_s_tuner, v4l_print_tuner, INFO_FL_PRIO),
+ 	IOCTL_INFO_STD(VIDIOC_G_AUDIO, vidioc_g_audio, v4l_print_audio, 0),
+ 	IOCTL_INFO_STD(VIDIOC_S_AUDIO, vidioc_s_audio, v4l_print_audio, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_QUERYCTRL, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_queryctrl, id)),
+@@ -946,10 +1155,10 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO_FNC(VIDIOC_ENUMOUTPUT, v4l_enumoutput, v4l_print_enumoutput, INFO_FL_CLEAR(v4l2_output, index)),
+ 	IOCTL_INFO_STD(VIDIOC_G_AUDOUT, vidioc_g_audout, v4l_print_audioout, 0),
+ 	IOCTL_INFO_STD(VIDIOC_S_AUDOUT, vidioc_s_audout, v4l_print_audioout, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_G_MODULATOR, INFO_FL_CLEAR(v4l2_modulator, index)),
+-	IOCTL_INFO(VIDIOC_S_MODULATOR, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_G_FREQUENCY, INFO_FL_CLEAR(v4l2_frequency, tuner)),
+-	IOCTL_INFO(VIDIOC_S_FREQUENCY, INFO_FL_PRIO),
++	IOCTL_INFO_STD(VIDIOC_G_MODULATOR, vidioc_g_modulator, v4l_print_modulator, INFO_FL_CLEAR(v4l2_modulator, index)),
++	IOCTL_INFO_STD(VIDIOC_S_MODULATOR, vidioc_s_modulator, v4l_print_modulator, INFO_FL_PRIO),
++	IOCTL_INFO_FNC(VIDIOC_G_FREQUENCY, v4l_g_frequency, v4l_print_frequency, INFO_FL_CLEAR(v4l2_frequency, tuner)),
++	IOCTL_INFO_FNC(VIDIOC_S_FREQUENCY, v4l_s_frequency, v4l_print_frequency, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_CROPCAP, INFO_FL_CLEAR(v4l2_cropcap, type)),
+ 	IOCTL_INFO(VIDIOC_G_CROP, INFO_FL_CLEAR(v4l2_crop, type)),
+ 	IOCTL_INFO(VIDIOC_S_CROP, INFO_FL_PRIO),
+@@ -957,7 +1166,7 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO(VIDIOC_S_SELECTION, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_G_JPEGCOMP, 0),
+ 	IOCTL_INFO(VIDIOC_S_JPEGCOMP, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_QUERYSTD, 0),
++	IOCTL_INFO_FNC(VIDIOC_QUERYSTD, v4l_querystd, v4l_print_std, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_TRY_FMT, v4l_try_fmt, v4l_print_format, 0),
+ 	IOCTL_INFO_STD(VIDIOC_ENUMAUDIO, vidioc_enumaudio, v4l_print_audio, INFO_FL_CLEAR(v4l2_audio, index)),
+ 	IOCTL_INFO_STD(VIDIOC_ENUMAUDOUT, vidioc_enumaudout, v4l_print_audioout, INFO_FL_CLEAR(v4l2_audioout, index)),
+@@ -978,7 +1187,7 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO(VIDIOC_DBG_S_REGISTER, 0),
+ 	IOCTL_INFO(VIDIOC_DBG_G_REGISTER, 0),
+ 	IOCTL_INFO(VIDIOC_DBG_G_CHIP_IDENT, 0),
+-	IOCTL_INFO(VIDIOC_S_HW_FREQ_SEEK, INFO_FL_PRIO),
++	IOCTL_INFO_FNC(VIDIOC_S_HW_FREQ_SEEK, v4l_s_hw_freq_seek, v4l_print_hw_freq_seek, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_ENUM_DV_PRESETS, 0),
+ 	IOCTL_INFO(VIDIOC_S_DV_PRESET, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_G_DV_PRESET, 0),
+@@ -1160,102 +1369,6 @@ static long __video_do_ioctl(struct file *file,
+ 			dbgbuf(cmd, vfd, p);
+ 		break;
+ 	}
+-	/* ---------- tv norms ---------- */
+-	case VIDIOC_ENUMSTD:
+-	{
+-		struct v4l2_standard *p = arg;
+-		v4l2_std_id id = vfd->tvnorms, curr_id = 0;
+-		unsigned int index = p->index, i, j = 0;
+-		const char *descr = "";
+-
+-		if (id == 0)
+-			break;
+-		ret = -EINVAL;
+-
+-		/* Return norm array in a canonical way */
+-		for (i = 0; i <= index && id; i++) {
+-			/* last std value in the standards array is 0, so this
+-			   while always ends there since (id & 0) == 0. */
+-			while ((id & standards[j].std) != standards[j].std)
+-				j++;
+-			curr_id = standards[j].std;
+-			descr = standards[j].descr;
+-			j++;
+-			if (curr_id == 0)
+-				break;
+-			if (curr_id != V4L2_STD_PAL &&
+-			    curr_id != V4L2_STD_SECAM &&
+-			    curr_id != V4L2_STD_NTSC)
+-				id &= ~curr_id;
+-		}
+-		if (i <= index)
+-			break;
+-
+-		v4l2_video_std_construct(p, curr_id, descr);
+-
+-		dbgarg(cmd, "index=%d, id=0x%Lx, name=%s, fps=%d/%d, "
+-				"framelines=%d\n", p->index,
+-				(unsigned long long)p->id, p->name,
+-				p->frameperiod.numerator,
+-				p->frameperiod.denominator,
+-				p->framelines);
+-
+-		ret = 0;
+-		break;
+-	}
+-	case VIDIOC_G_STD:
+-	{
+-		v4l2_std_id *id = arg;
+-
+-		/* Calls the specific handler */
+-		if (ops->vidioc_g_std)
+-			ret = ops->vidioc_g_std(file, fh, id);
+-		else if (vfd->current_norm) {
+-			ret = 0;
+-			*id = vfd->current_norm;
+-		}
+-
+-		if (likely(!ret))
+-			dbgarg(cmd, "std=0x%08Lx\n", (long long unsigned)*id);
+-		break;
+-	}
+-	case VIDIOC_S_STD:
+-	{
+-		v4l2_std_id *id = arg, norm;
+-
+-		dbgarg(cmd, "std=%08Lx\n", (long long unsigned)*id);
+-
+-		ret = -EINVAL;
+-		norm = (*id) & vfd->tvnorms;
+-		if (vfd->tvnorms && !norm)	/* Check if std is supported */
+-			break;
+-
+-		/* Calls the specific handler */
+-		ret = ops->vidioc_s_std(file, fh, &norm);
+-
+-		/* Updates standard information */
+-		if (ret >= 0)
+-			vfd->current_norm = norm;
+-		break;
+-	}
+-	case VIDIOC_QUERYSTD:
+-	{
+-		v4l2_std_id *p = arg;
+-
+-		/*
+-		 * If nothing detected, it should return all supported
+-		 * Drivers just need to mask the std argument, in order
+-		 * to remove the standards that don't apply from the mask.
+-		 * This means that tuners, audio and video decoders can join
+-		 * their efforts to improve the standards detection
+-		 */
+-		*p = vfd->tvnorms;
+-		ret = ops->vidioc_querystd(file, fh, arg);
+-		if (!ret)
+-			dbgarg(cmd, "detected std=%08Lx\n",
+-						(unsigned long long)*p);
+-		break;
+-	}
+ 
+ 	/* --- controls ---------------------------------------------- */
+ 	case VIDIOC_QUERYCTRL:
+@@ -1426,31 +1539,6 @@ static long __video_do_ioctl(struct file *file,
+ 				p->id, p->index);
+ 		break;
+ 	}
+-	case VIDIOC_G_MODULATOR:
+-	{
+-		struct v4l2_modulator *p = arg;
+-
+-		ret = ops->vidioc_g_modulator(file, fh, p);
+-		if (!ret)
+-			dbgarg(cmd, "index=%d, name=%s, "
+-					"capability=%d, rangelow=%d,"
+-					" rangehigh=%d, txsubchans=%d\n",
+-					p->index, p->name, p->capability,
+-					p->rangelow, p->rangehigh,
+-					p->txsubchans);
+-		break;
+-	}
+-	case VIDIOC_S_MODULATOR:
+-	{
+-		struct v4l2_modulator *p = arg;
+-
+-		dbgarg(cmd, "index=%d, name=%s, capability=%d, "
+-				"rangelow=%d, rangehigh=%d, txsubchans=%d\n",
+-				p->index, p->name, p->capability, p->rangelow,
+-				p->rangehigh, p->txsubchans);
+-			ret = ops->vidioc_s_modulator(file, fh, p);
+-		break;
+-	}
+ 	case VIDIOC_G_CROP:
+ 	{
+ 		struct v4l2_crop *p = arg;
+@@ -1684,68 +1772,6 @@ static long __video_do_ioctl(struct file *file,
+ 		ret = ops->vidioc_s_parm(file, fh, p);
+ 		break;
+ 	}
+-	case VIDIOC_G_TUNER:
+-	{
+-		struct v4l2_tuner *p = arg;
+-
+-		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+-			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+-		ret = ops->vidioc_g_tuner(file, fh, p);
+-		if (!ret)
+-			dbgarg(cmd, "index=%d, name=%s, type=%d, "
+-					"capability=0x%x, rangelow=%d, "
+-					"rangehigh=%d, signal=%d, afc=%d, "
+-					"rxsubchans=0x%x, audmode=%d\n",
+-					p->index, p->name, p->type,
+-					p->capability, p->rangelow,
+-					p->rangehigh, p->signal, p->afc,
+-					p->rxsubchans, p->audmode);
+-		break;
+-	}
+-	case VIDIOC_S_TUNER:
+-	{
+-		struct v4l2_tuner *p = arg;
+-
+-		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+-			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+-		dbgarg(cmd, "index=%d, name=%s, type=%d, "
+-				"capability=0x%x, rangelow=%d, "
+-				"rangehigh=%d, signal=%d, afc=%d, "
+-				"rxsubchans=0x%x, audmode=%d\n",
+-				p->index, p->name, p->type,
+-				p->capability, p->rangelow,
+-				p->rangehigh, p->signal, p->afc,
+-				p->rxsubchans, p->audmode);
+-		ret = ops->vidioc_s_tuner(file, fh, p);
+-		break;
+-	}
+-	case VIDIOC_G_FREQUENCY:
+-	{
+-		struct v4l2_frequency *p = arg;
+-
+-		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+-			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+-		ret = ops->vidioc_g_frequency(file, fh, p);
+-		if (!ret)
+-			dbgarg(cmd, "tuner=%d, type=%d, frequency=%d\n",
+-					p->tuner, p->type, p->frequency);
+-		break;
+-	}
+-	case VIDIOC_S_FREQUENCY:
+-	{
+-		struct v4l2_frequency *p = arg;
+-		enum v4l2_tuner_type type;
+-
+-		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+-			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+-		dbgarg(cmd, "tuner=%d, type=%d, frequency=%d\n",
+-				p->tuner, p->type, p->frequency);
+-		if (p->type != type)
+-			ret = -EINVAL;
+-		else
+-			ret = ops->vidioc_s_frequency(file, fh, p);
+-		break;
+-	}
+ 	case VIDIOC_G_SLICED_VBI_CAP:
+ 	{
+ 		struct v4l2_sliced_vbi_cap *p = arg;
+@@ -1805,22 +1831,6 @@ static long __video_do_ioctl(struct file *file,
+ 			dbgarg(cmd, "chip_ident=%u, revision=0x%x\n", p->ident, p->revision);
+ 		break;
+ 	}
+-	case VIDIOC_S_HW_FREQ_SEEK:
+-	{
+-		struct v4l2_hw_freq_seek *p = arg;
+-		enum v4l2_tuner_type type;
+-
+-		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+-			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+-		dbgarg(cmd,
+-			"tuner=%u, type=%u, seek_upward=%u, wrap_around=%u, spacing=%u\n",
+-			p->tuner, p->type, p->seek_upward, p->wrap_around, p->spacing);
+-		if (p->type != type)
+-			ret = -EINVAL;
+-		else
+-			ret = ops->vidioc_s_hw_freq_seek(file, fh, p);
+-		break;
+-	}
+ 	case VIDIOC_ENUM_FRAMESIZES:
+ 	{
+ 		struct v4l2_frmsizeenum *p = arg;
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10
 
