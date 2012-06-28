@@ -1,118 +1,253 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50574 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756028Ab2FNNmz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jun 2012 09:42:55 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: hverkuil@xs4all.nl, Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 1/4] radio-si470x: Don't unnecesarily read registers on G_TUNER
-Date: Thu, 14 Jun 2012 15:43:11 +0200
-Message-Id: <1339681394-11348-1-git-send-email-hdegoede@redhat.com>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:54389 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751741Ab2F1GHK convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jun 2012 02:07:10 -0400
+Received: by ggnp1 with SMTP id p1so1832959ggn.32
+        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2012 23:07:09 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4F671CA3.6080107@ti.com>
+References: <1331110876-11895-1-git-send-email-archit@ti.com>
+ <79CD15C6BA57404B839C016229A409A831810EAA@DBDE01.ent.ti.com>
+ <4F6312E4.5000404@ti.com> <4F631FDF.8070308@ti.com> <79CD15C6BA57404B839C016229A409A83181EB1F@DBDE01.ent.ti.com>
+ <4F671CA3.6080107@ti.com>
+From: "Semwal, Sumit" <sumit.semwal@ti.com>
+Date: Thu, 28 Jun 2012 11:36:48 +0530
+Message-ID: <CAB2ybb-6EEU0Ry-zzyM+_n+7w3jGvVhXvPeWsjRpOFX9fXg4NQ@mail.gmail.com>
+Subject: Re: [PATCH] omap_vout: Set DSS overlay_info only if paddr is non zero
+To: Archit Taneja <a0393947@ti.com>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"Taneja, Archit" <archit@ti.com>,
+	"Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reading registers from the pcear USB dongles with the si470x causes a
-loud pop (and an alsa buffer overrun). Since most radio apps periodically
-call G_TUNER to update mono/stereo, signal and afc status this leads
-to the music . pop . music . pop . music -> not good.
+On Mon, Mar 19, 2012 at 5:16 PM, Archit Taneja <a0393947@ti.com> wrote:
+> On Monday 19 March 2012 02:15 PM, Hiremath, Vaibhav wrote:
+>>
+>> On Fri, Mar 16, 2012 at 16:41:27, Taneja, Archit wrote:
+>>>
+>>> Hi,
+>>>
+>>> On Friday 16 March 2012 03:46 PM, Archit Taneja wrote:
+>>>>
+>>>> On Monday 12 March 2012 03:34 PM, Hiremath, Vaibhav wrote:
+>>>>>
+>>>>> On Wed, Mar 07, 2012 at 14:31:16, Taneja, Archit wrote:
+>>>>>>
+>>>>>> The omap_vout driver tries to set the DSS overlay_info using
+>>>>>> set_overlay_info()
+>>>>>> when the physical address for the overlay is still not configured.
+>>>>>> This happens
+>>>>>> in omap_vout_probe() and vidioc_s_fmt_vid_out().
+>>>>>>
+>>>>>> The calls to omapvid_init(which internally calls set_overlay_info())
+>>>>>> are removed
+>>>>>> from these functions. They don't need to be called as the
+>>>>>> omap_vout_device
+>>>>>> struct anyway maintains the overlay related changes made. Also,
+>>>>>> remove the
+>>>>>> explicit call to set_overlay_info() in vidioc_streamon(), this was
+>>>>>> used to set
+>>>>>> the paddr, this isn't needed as omapvid_init() does the same thing
+>>>>>> later.
+>>>>>>
+>>>>>> These changes are required as the DSS2 driver since 3.3 kernel
+>>>>>> doesn't let you
+>>>>>> set the overlay info with paddr as 0.
+>>>>>>
+>>>>>> Signed-off-by: Archit Taneja<archit@ti.com>
+>>>>>> ---
+>>>>>> drivers/media/video/omap/omap_vout.c | 36
+>>>>>> ++++-----------------------------
+>>>>>> 1 files changed, 5 insertions(+), 31 deletions(-)
+>>>>>>
+>>>>>> diff --git a/drivers/media/video/omap/omap_vout.c
+>>>>>> b/drivers/media/video/omap/omap_vout.c
+>>>>>> index 1fb7d5b..dffcf66 100644
+>>>>>> --- a/drivers/media/video/omap/omap_vout.c
+>>>>>> +++ b/drivers/media/video/omap/omap_vout.c
+>>>>>> @@ -1157,13 +1157,6 @@ static int vidioc_s_fmt_vid_out(struct file
+>>>>>> *file, void *fh,
+>>>>>> /* set default crop and win */
+>>>>>> omap_vout_new_format(&vout->pix,&vout->fbuf,&vout->crop,&vout->win);
+>>>>>>
+>>>>>> - /* Save the changes in the overlay strcuture */
+>>>>>> - ret = omapvid_init(vout, 0);
+>>>>>> - if (ret) {
+>>>>>> - v4l2_err(&vout->vid_dev->v4l2_dev, "failed to change mode\n");
+>>>>>> - goto s_fmt_vid_out_exit;
+>>>>>> - }
+>>>>>> -
+>>>>>> ret = 0;
+>>>>>>
+>>>>>> s_fmt_vid_out_exit:
+>>>>>> @@ -1664,20 +1657,6 @@ static int vidioc_streamon(struct file *file,
+>>>>>> void *fh, enum v4l2_buf_type i)
+>>>>>>
+>>>>>> omap_dispc_register_isr(omap_vout_isr, vout, mask);
+>>>>>>
+>>>>>> - for (j = 0; j<  ovid->num_overlays; j++) {
+>>>>>> - struct omap_overlay *ovl = ovid->overlays[j];
+>>>>>> -
+>>>>>> - if (ovl->manager&&  ovl->manager->device) {
+>>>>>> - struct omap_overlay_info info;
+>>>>>> - ovl->get_overlay_info(ovl,&info);
+>>>>>> - info.paddr = addr;
+>>>>>> - if (ovl->set_overlay_info(ovl,&info)) {
+>>>>>> - ret = -EINVAL;
+>>>>>> - goto streamon_err1;
+>>>>>> - }
+>>>>>> - }
+>>>>>> - }
+>>>>>> -
+>>>>>
+>>>>>
+>>>>> Have you checked for build warnings? I am getting build warnings
+>>>>>
+>>>>> CC drivers/media/video/omap/omap_vout.o
+>>>>> CC drivers/media/video/omap/omap_voutlib.o
+>>>>> CC drivers/media/video/omap/omap_vout_vrfb.o
+>>>>> drivers/media/video/omap/omap_vout.c: In function 'vidioc_streamon':
+>>>>> drivers/media/video/omap/omap_vout.c:1619:25: warning: unused variable
+>>>>> 'ovid'
+>>>>> drivers/media/video/omap/omap_vout.c:1615:15: warning: unused variable
+>>>>> 'j'
+>>>>> LD drivers/media/video/omap/omap-vout.o
+>>>>> LD drivers/media/video/omap/built-in.o
+>>>>>
+>>>>> Can you fix this and submit the next version?
+>>>
+>>>
+>>> I applied the patch on the current mainline kernel, it doesn't give any
+>>> build warnings. Even after applying the patch, 'j and ovid' are still
+>>> used in vidioc_streamon().
+>>>
+>>> Can you check if it was applied correctly?
+>>>
+>>
+>> Archit,
+>>
+>> I could able to trace what's going on here,
+>>
+>> I am using "v4l_for_linus" branch, which has one missing patch,
+>>
+>> commit aaa874a985158383c4b394c687c716ef26288741
+>> Author: Tomi Valkeinen<tomi.valkeinen@ti.com>
+>> Date:   Tue Nov 15 16:37:53 2011 +0200
+>>
+>>     OMAPDSS: APPLY: rewrite overlay enable/disable
+>>
+>>
+>> So, I do not have below changes,
+>>
+>> @@ -1686,6 +1681,16 @@ static int vidioc_streamon(struct file *file, void
+>> *fh, enum v4l2_buf_type i)
+>>         if (ret)
+>>                 v4l2_err(&vout->vid_dev->v4l2_dev, "failed to change
+>> mode\n");
+>>
+>> +       for (j = 0; j<  ovid->num_overlays; j++) {
+>> +               struct omap_overlay *ovl = ovid->overlays[j];
+>> +
+>> +               if (ovl->manager&&  ovl->manager->device) {
+>>
+>> +                       ret = ovl->enable(ovl);
+>> +                       if (ret)
+>> +                               goto streamon_err1;
+>> +               }
+>> +       }
+>> +
+>>
+>> This explains why I am seeing these warnings. Let me give pull request
+>> based on master branch.
+>
+>
+> Okay. Thanks for looking into this.
+>
+> Archit
 
-On the internet there is an howto for flashing the pcear with a newer
-firmware from the silabs reference boardto fix this, but:
-1) This howto relies on a special version of the driver which allows
-   firmware flashing
-2) We should try to avoid the answer to a bug report being upgrade your
-   firmware, if at all possible
-3) Windows does not suffer from the pop sounds
+Hi Vaibhav,
 
-After a quick look at the driver I found at that the register reads are
-not necessary at all, as the device gives us the necessary status through
-usb interrupt packets, and the driver already uses these!
+This patch has been outstanding since March, and we have received
+reports from various users. Could you please push it ASAP to Mauro for
+the upcoming -rc?
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/media/radio/si470x/radio-si470x-common.c |   10 ++++++----
- drivers/media/radio/si470x/radio-si470x-usb.c    |   12 +++++++++---
- drivers/media/radio/si470x/radio-si470x.h        |    1 +
- 3 files changed, 16 insertions(+), 7 deletions(-)
+Or Did I miss a pull request from you containing this?
 
-diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
-index d485b79..5dbb897 100644
---- a/drivers/media/radio/si470x/radio-si470x-common.c
-+++ b/drivers/media/radio/si470x/radio-si470x-common.c
-@@ -583,14 +583,16 @@ static int si470x_vidioc_g_tuner(struct file *file, void *priv,
- 		struct v4l2_tuner *tuner)
- {
- 	struct si470x_device *radio = video_drvdata(file);
--	int retval;
-+	int retval = 0;
- 
- 	if (tuner->index != 0)
- 		return -EINVAL;
- 
--	retval = si470x_get_register(radio, STATUSRSSI);
--	if (retval < 0)
--		return retval;
-+	if (!radio->status_rssi_auto_update) {
-+		retval = si470x_get_register(radio, STATUSRSSI);
-+		if (retval < 0)
-+			return retval;
-+	}
- 
- 	/* driver constants */
- 	strcpy(tuner->name, "FM");
-diff --git a/drivers/media/radio/si470x/radio-si470x-usb.c b/drivers/media/radio/si470x/radio-si470x-usb.c
-index f412f7a..0da5c98 100644
---- a/drivers/media/radio/si470x/radio-si470x-usb.c
-+++ b/drivers/media/radio/si470x/radio-si470x-usb.c
-@@ -399,12 +399,16 @@ static void si470x_int_in_callback(struct urb *urb)
- 		}
- 	}
- 
--	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
-+	/* Sometimes the device returns len 0 packets */
-+	if (urb->actual_length != RDS_REPORT_SIZE)
- 		goto resubmit;
- 
--	if (urb->actual_length > 0) {
-+	radio->registers[STATUSRSSI] =
-+		get_unaligned_be16(&radio->int_in_buffer[1]);
-+
-+	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS)) {
- 		/* Update RDS registers with URB data */
--		for (regnr = 0; regnr < RDS_REGISTER_NUM; regnr++)
-+		for (regnr = 1; regnr < RDS_REGISTER_NUM; regnr++)
- 			radio->registers[STATUSRSSI + regnr] =
- 			    get_unaligned_be16(&radio->int_in_buffer[
- 				regnr * RADIO_REGISTER_SIZE + 1]);
-@@ -480,6 +484,7 @@ resubmit:
- 			radio->int_in_running = 0;
- 		}
- 	}
-+	radio->status_rssi_auto_update = radio->int_in_running;
- }
- 
- 
-@@ -560,6 +565,7 @@ static int si470x_start_usb(struct si470x_device *radio)
- 				"submitting int urb failed (%d)\n", retval);
- 		radio->int_in_running = 0;
- 	}
-+	radio->status_rssi_auto_update = radio->int_in_running;
- 	return retval;
- }
- 
-diff --git a/drivers/media/radio/si470x/radio-si470x.h b/drivers/media/radio/si470x/radio-si470x.h
-index 4921cab..2a0a46f 100644
---- a/drivers/media/radio/si470x/radio-si470x.h
-+++ b/drivers/media/radio/si470x/radio-si470x.h
-@@ -161,6 +161,7 @@ struct si470x_device {
- 
- 	struct completion completion;
- 	bool stci_enabled;		/* Seek/Tune Complete Interrupt */
-+	bool status_rssi_auto_update;	/* Does RSSI get updated automatic? */
- 
- #if defined(CONFIG_USB_SI470X) || defined(CONFIG_USB_SI470X_MODULE)
- 	/* reference to USB and video device */
--- 
-1.7.10.2
+Thanks and best regards,
+~Sumit.
 
+>
+>>
+>>
+>> Thanks,
+>> Vaibhav
+>>
+>>> Regards,
+>>> Archit
+>>>
+>>>>
+>>>> Will fix this and submit.
+>>>>
+>>>> Archit
+>>>>
+>>>>>
+>>>>> Thanks,
+>>>>> Vaibhav
+>>>>>
+>>>>>> /* First save the configuration in ovelray structure */
+>>>>>> ret = omapvid_init(vout, addr);
+>>>>>> if (ret)
+>>>>>> @@ -2071,11 +2050,12 @@ static int __init
+>>>>>> omap_vout_create_video_devices(struct platform_device *pdev)
+>>>>>> }
+>>>>>> video_set_drvdata(vfd, vout);
+>>>>>>
+>>>>>> - /* Configure the overlay structure */
+>>>>>> - ret = omapvid_init(vid_dev->vouts[k], 0);
+>>>>>> - if (!ret)
+>>>>>> - goto success;
+>>>>>> + dev_info(&pdev->dev, ": registered and initialized"
+>>>>>> + " video device %d\n", vfd->minor);
+>>>>>> + if (k == (pdev->num_resources - 1))
+>>>>>> + return 0;
+>>>>>>
+>>>>>> + continue;
+>>>>>> error2:
+>>>>>> if (vout->vid_info.rotation_type == VOUT_ROT_VRFB)
+>>>>>> omap_vout_release_vrfb(vout);
+>>>>>> @@ -2085,12 +2065,6 @@ error1:
+>>>>>> error:
+>>>>>> kfree(vout);
+>>>>>> return ret;
+>>>>>> -
+>>>>>> -success:
+>>>>>> - dev_info(&pdev->dev, ": registered and initialized"
+>>>>>> - " video device %d\n", vfd->minor);
+>>>>>> - if (k == (pdev->num_resources - 1))
+>>>>>> - return 0;
+>>>>>> }
+>>>>>>
+>>>>>> return -ENODEV;
+>>>>>> --
+>>>>>> 1.7.5.4
+>>>>>>
+>>>>>>
+>>>>>
+>>>>>
+>>>>
+>>>>
+>>>
+>>>
+>>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
