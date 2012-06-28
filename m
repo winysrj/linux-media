@@ -1,20 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.72)
-	(envelope-from <chanchoiwing@gmail.com>) id 1Sfk6I-0005gI-Rw
-	for linux-dvb@linuxtv.org; Sat, 16 Jun 2012 05:55:27 +0200
-Received: from mail-pb0-f54.google.com ([209.85.160.54])
-	by mail.tu-berlin.de (exim-4.75/mailfrontend-4) with esmtps
-	[TLSv1:RC4-MD5:128] for <linux-dvb@linuxtv.org>
-	id 1Sfk6I-0003Aa-At; Sat, 16 Jun 2012 05:55:02 +0200
-Received: by pbbro2 with SMTP id ro2so5634367pbb.41
-	for <linux-dvb@linuxtv.org>; Fri, 15 Jun 2012 20:54:59 -0700 (PDT)
+	(envelope-from <sakthisam@gmail.com>) id 1Sk79s-0002E0-3Z
+	for linux-dvb@linuxtv.org; Thu, 28 Jun 2012 07:20:48 +0200
+Received: from mail-lb0-f182.google.com ([209.85.217.182])
+	by mail.tu-berlin.de (exim-4.75/mailfrontend-3) with esmtps
+	[TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
+	id 1Sk79r-0005RF-G0; Thu, 28 Jun 2012 07:20:48 +0200
+Received: by lbon10 with SMTP id n10so2596460lbo.41
+	for <linux-dvb@linuxtv.org>; Wed, 27 Jun 2012 22:20:47 -0700 (PDT)
 MIME-Version: 1.0
-Date: Sat, 16 Jun 2012 11:54:58 +0800
-Message-ID: <CAHPEttk51exv+tQqyBCvTCL5r2APuCPa8E_feyNyzR0PV1yu-Q@mail.gmail.com>
-From: Choi Wing Chan <chanchoiwing@gmail.com>
+In-Reply-To: <CAEEcfUdHGbgjdv7WPfAJTaFNmBFRzJ_97Jd9rLGMWK+ERS7qzA@mail.gmail.com>
+References: <CAEEcfUdHGbgjdv7WPfAJTaFNmBFRzJ_97Jd9rLGMWK+ERS7qzA@mail.gmail.com>
+Date: Thu, 28 Jun 2012 10:50:46 +0530
+Message-ID: <CAEEcfUe-iaFJnRP_zmG4+r4dfdmocaqGYB-ci4PbSC_cy_CTLQ@mail.gmail.com>
+From: sam <sakthisam@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] dmb-th problem
+Subject: [linux-dvb] DVB Multiplexing Help Required ,
+	Using Mplex iso138-18 or Caster
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -23,46 +26,66 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0896732530=="
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-i have two cards both of them are for dmb-th (mainly used in china and
-hong kong). however, these two cards stop working after upgraded the
-kernel to 3.3. sadly the drivers were writen by a person David Wong
-who has been passed away. i traced the code and found a function
-set_delivery_system which assign a value SYS_UNDEFINED in the
-frontend's delivery_system.
+--===============0896732530==
+Content-Type: multipart/alternative; boundary=f46d040169af729b8704c3817e03
 
-i am not quite understand the logic below which is a segment of code
-inside the function set_delivery_system
-fe->ops.delsys[ncapes] = 13 (SYS_DMBTH)
-and desired_system = 3 (SYS_DVBT)
+--f46d040169af729b8704c3817e03
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-		ncaps = 0;
-		while (fe->ops.delsys[ncaps] && ncaps < MAX_DELSYS) {
-			if (fe->ops.delsys[ncaps] == desired_system) {
-				delsys = desired_system;
-				break;
-			}
-			ncaps++;
-		}
-		
-		// still not find anything
-		if (delsys == SYS_UNDEFINED) {
-			dprintk("%s() Couldn't find a delivery system that matches %d\n",
-				__func__, desired_system);
-		}
+Dear All,
 
-after these codes, c->delivery_system is set to be SYS_UNDERFINED and
-all function after failed.
--- 
-http://chanchoiwing.blogspot.com
+Can any one help me on DVB Multiplexing using Mplex or caster.
+
+Regards
+sakthi
+
+
+
+
+
+
+--=20
+--=20
+Regards
+K.S.Sampath Kumar
+Author for Book Understanding FOSS v 1.0 2.0 3.0c 3.0i
+http://en.wikipedia.org/wiki/Opensource
+=E0=AE=B5=E0=AE=BE=E0=AE=B4=E0=AF=8D=E0=AE=95 =E0=AE=B5=E0=AE=B3=E0=AE=AE=
+=E0=AF=81=E0=AE=9F=E0=AE=A9=E0=AF=8D
+
+--f46d040169af729b8704c3817e03
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<br><div class=3D"gmail_quote"><div class=3D"gmail_quote">Dear All,<br><br>=
+Can any one help me on DVB Multiplexing using Mplex or caster.<br><br>Regar=
+ds<br>sakthi<br>
+</div><br><br clear=3D"all"><br>
+</div><br><br clear=3D"all"><br>-- <br>-- <br>Regards<br>K.S.Sampath Kumar<=
+br>Author for Book Understanding FOSS v 1.0 2.0 3.0c 3.0i<br><a href=3D"htt=
+p://en.wikipedia.org/wiki/Opensource" target=3D"_blank">http://en.wikipedia=
+.org/wiki/Opensource</a><br>
+=E0=AE=B5=E0=AE=BE=E0=AE=B4=E0=AF=8D=E0=AE=95 =E0=AE=B5=E0=AE=B3=E0=AE=AE=
+=E0=AF=81=E0=AE=9F=E0=AE=A9=E0=AF=8D <br>
+
+--f46d040169af729b8704c3817e03--
+
+
+--===============0896732530==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0896732530==--
