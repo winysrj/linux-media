@@ -1,76 +1,320 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:37225 "HELO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with SMTP id S1754331Ab2FHL5g (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1719 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932403Ab2F1Gs4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Jun 2012 07:57:36 -0400
-From: Albert Wang <twang13@marvell.com>
-To: pawel@osciak.com, g.liakhovetski@gmx.de
-Cc: linux-media@vger.kernel.org, Albert Wang <twang13@marvell.com>
-Subject: [PATCH] media: videobuf2: fix kernel panic due to missing assign NULL to alloc_ctx
-Date: Fri,  8 Jun 2012 19:55:11 +0800
-Message-Id: <1339156511-16509-1-git-send-email-twang13@marvell.com>
+	Thu, 28 Jun 2012 02:48:56 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 26/33] videobuf2-core: add helper functions.
+Date: Thu, 28 Jun 2012 08:48:20 +0200
+Message-Id: <a7faf8fbd12471e355c78859062184fea7beb6b2.1340865818.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
+References: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  In function vb2_dma_contig_cleanup_ctx(), we only kfree the alloc_ctx
-  If we didn't assign NULL to this point after kfree it,
-  we may encounter the following kernel panic:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
- kernel BUG at kernel/cred.c:98!
- Unable to handle kernel NULL pointer dereference at virtual address 00000000
- pgd = c0004000
- [00000000] *pgd=00000000
- Internal error: Oops: 817 [#1] PREEMPT SMP
- Modules linked in: runcase_sysfs galcore mv_wtm_drv mv_wtm_prim
- CPU: 0    Not tainted  (3.0.8+ #213)
- PC is at __bug+0x18/0x24
- LR is at __bug+0x14/0x24
- pc : [<c0054670>]    lr : [<c005466c>]    psr: 60000113
- sp : c0681ec0  ip : f683e000  fp : 00000000
- r10: e8ab4b58  r9 : 00000fff  r8 : 00000002
- r7 : e8665698  r6 : c10079ec  r5 : e8b13d80  r4 : e8b13d98
- r3 : 00000000  r2 : c0681eb4  r1 : c05c9ccc  r0 : 00000035
- Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
- Control: 10c53c7d  Table: 29c3406a  DAC: 00000015
+Add helper functions to make it easier to adapt drivers to vb2.
 
-  the root cause is we may encounter some i2c or HW issue with sensor
-  which result in driver exit with exception during soc_camera_set_fmt()
-  from soc_camera_open():
+These helpers take care of core locking and check if the filehandle is the
+owner of the queue.
 
-	ret = soc_camera_set_fmt(icd, &f);
-	if (ret < 0)
-		goto esfmt;
-
-  it will call ici->ops->remove() in following code:
-
-  esfmt:
-	pm_runtime_disable(&icd->vdev->dev);
-  eresume:
-	ici->ops->remove(icd);
-
-  ici->ops->remove() will call vb2_dma_contig_cleanup_ctx() for cleanup
-  but we didn't do ici->ops->init_videobuf2() yet at that time
-  it will result in kfree a non-NULL point twice
-
-Change-Id: I1c66dd08438ae90abe555c52edcdbca0d39d829d
-Signed-off-by: Albert Wang <twang13@marvell.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/video/videobuf2-dma-contig.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/media/video/videobuf2-core.c |  227 ++++++++++++++++++++++++++++++++++
+ include/media/videobuf2-core.h       |   32 +++++
+ 2 files changed, 259 insertions(+)
 
-diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
-index 4b71326..9881171 100755
---- a/drivers/media/video/videobuf2-dma-contig.c
-+++ b/drivers/media/video/videobuf2-dma-contig.c
-@@ -178,6 +178,7 @@ EXPORT_SYMBOL_GPL(vb2_dma_contig_init_ctx);
- void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
- {
- 	kfree(alloc_ctx);
-+	alloc_ctx = NULL;
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index 4461106..04c19e6 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -2126,6 +2126,233 @@ size_t vb2_write(struct vb2_queue *q, char __user *data, size_t count,
  }
- EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
+ EXPORT_SYMBOL_GPL(vb2_write);
  
++
++/*
++ * The following functions are not part of the vb2 core API, but are helper
++ * functions that plug into struct v4l2_ioctl_ops and struct v4l2_file_operations.
++ * They contain boilerplate code that most if not all drivers have to do
++ * and so they simplify the driver code.
++ */
++
++/* The queue is busy if there is a owner and you are not that owner. */
++static inline bool vb2_queue_is_busy(struct video_device *vdev, struct file *file)
++{
++	return vdev->queue->owner && vdev->queue->owner != file->private_data;
++}
++
++int vb2_ioctl_reqbufs(struct file *file, void *priv,
++			  struct v4l2_requestbuffers *p)
++{
++	struct video_device *vdev = video_devdata(file);
++	int res = __verify_memory_type(vdev->queue, p->memory, p->type);
++
++	if (res)
++		return res;
++	if (vb2_queue_is_busy(vdev, file))
++		return -EBUSY;
++	res = __reqbufs(vdev->queue, p);
++	/* If count == 0, then the owner has released all buffers and he
++	   is no longer owner of the queue. Otherwise we have a new owner. */
++	if (res == 0)
++		vdev->queue->owner = p->count ? file->private_data : NULL;
++	return res;
++}
++EXPORT_SYMBOL_GPL(vb2_ioctl_reqbufs);
++
++int vb2_ioctl_create_bufs(struct file *file, void *priv,
++			  struct v4l2_create_buffers *p)
++{
++	struct video_device *vdev = video_devdata(file);
++	int res = __verify_memory_type(vdev->queue, p->memory, p->format.type);
++
++	p->index = vdev->queue->num_buffers;
++	/* If count == 0, then just check if memory and type are valid.
++	   Any -EBUSY result from __verify_memory_type can be mapped to 0. */
++	if (p->count == 0)
++		return res != -EBUSY ? res : 0;
++	if (res)
++		return res;
++	if (vb2_queue_is_busy(vdev, file))
++		return -EBUSY;
++	res = __create_bufs(vdev->queue, p);
++	if (res == 0)
++		vdev->queue->owner = file->private_data;
++	return res;
++}
++EXPORT_SYMBOL_GPL(vb2_ioctl_create_bufs);
++
++int vb2_ioctl_prepare_buf(struct file *file, void *priv,
++			  struct v4l2_buffer *p)
++{
++	struct video_device *vdev = video_devdata(file);
++
++	if (vb2_queue_is_busy(vdev, file))
++		return -EBUSY;
++	return vb2_prepare_buf(vdev->queue, p);
++}
++EXPORT_SYMBOL_GPL(vb2_ioctl_prepare_buf);
++
++int vb2_ioctl_querybuf(struct file *file, void *priv, struct v4l2_buffer *p)
++{
++	struct video_device *vdev = video_devdata(file);
++
++	/* No need to call vb2_queue_is_busy(), anyone can query buffers. */
++	return vb2_querybuf(vdev->queue, p);
++}
++EXPORT_SYMBOL_GPL(vb2_ioctl_querybuf);
++
++int vb2_ioctl_qbuf(struct file *file, void *priv, struct v4l2_buffer *p)
++{
++	struct video_device *vdev = video_devdata(file);
++
++	if (vb2_queue_is_busy(vdev, file))
++		return -EBUSY;
++	return vb2_qbuf(vdev->queue, p);
++}
++EXPORT_SYMBOL_GPL(vb2_ioctl_qbuf);
++
++int vb2_ioctl_dqbuf(struct file *file, void *priv, struct v4l2_buffer *p)
++{
++	struct video_device *vdev = video_devdata(file);
++
++	if (vb2_queue_is_busy(vdev, file))
++		return -EBUSY;
++	return vb2_dqbuf(vdev->queue, p, file->f_flags & O_NONBLOCK);
++}
++EXPORT_SYMBOL_GPL(vb2_ioctl_dqbuf);
++
++int vb2_ioctl_streamon(struct file *file, void *priv, enum v4l2_buf_type i)
++{
++	struct video_device *vdev = video_devdata(file);
++
++	if (vb2_queue_is_busy(vdev, file))
++		return -EBUSY;
++	return vb2_streamon(vdev->queue, i);
++}
++EXPORT_SYMBOL_GPL(vb2_ioctl_streamon);
++
++int vb2_ioctl_streamoff(struct file *file, void *priv, enum v4l2_buf_type i)
++{
++	struct video_device *vdev = video_devdata(file);
++
++	if (vb2_queue_is_busy(vdev, file))
++		return -EBUSY;
++	return vb2_streamoff(vdev->queue, i);
++}
++EXPORT_SYMBOL_GPL(vb2_ioctl_streamoff);
++
++int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	struct video_device *vdev = video_devdata(file);
++
++	return vb2_mmap(vdev->queue, vma);
++}
++EXPORT_SYMBOL_GPL(vb2_fop_mmap);
++
++int vb2_fop_release(struct file *file)
++{
++	struct video_device *vdev = video_devdata(file);
++
++	if (file->private_data == vdev->queue->owner) {
++		vb2_queue_release(vdev->queue);
++		vdev->queue->owner = NULL;
++	}
++	return v4l2_fh_release(file);
++}
++EXPORT_SYMBOL_GPL(vb2_fop_release);
++
++ssize_t vb2_fop_write(struct file *file, char __user *buf,
++		size_t count, loff_t *ppos)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct mutex *lock = vdev->queue->lock ? vdev->queue->lock : vdev->lock;
++	bool must_lock = !test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags) && lock;
++	int err = -EBUSY;
++
++	if (must_lock && mutex_lock_interruptible(lock))
++		return -ERESTARTSYS;
++	if (vb2_queue_is_busy(vdev, file))
++		goto exit;
++	err = vb2_write(vdev->queue, buf, count, ppos,
++		       file->f_flags & O_NONBLOCK);
++	if (err >= 0)
++		vdev->queue->owner = file->private_data;
++exit:
++	if (must_lock)
++		mutex_unlock(lock);
++	return err;
++}
++EXPORT_SYMBOL_GPL(vb2_fop_write);
++
++ssize_t vb2_fop_read(struct file *file, char __user *buf,
++		size_t count, loff_t *ppos)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct mutex *lock = vdev->queue->lock ? vdev->queue->lock : vdev->lock;
++	bool must_lock = !test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags) && vdev->lock;
++	int err = -EBUSY;
++
++	if (must_lock && mutex_lock_interruptible(lock))
++		return -ERESTARTSYS;
++	if (vb2_queue_is_busy(vdev, file))
++		goto exit;
++	err = vb2_read(vdev->queue, buf, count, ppos,
++		       file->f_flags & O_NONBLOCK);
++	if (err >= 0)
++		vdev->queue->owner = file->private_data;
++exit:
++	if (must_lock)
++		mutex_unlock(lock);
++	return err;
++}
++EXPORT_SYMBOL_GPL(vb2_fop_read);
++
++unsigned int vb2_fop_poll(struct file *file, poll_table *wait)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct vb2_queue *q = vdev->queue;
++	struct mutex *lock = q->lock ? q->lock : vdev->lock;
++	unsigned long req_events = poll_requested_events(wait);
++	unsigned res;
++	void *fileio;
++	/* Yuck. We really need to get rid of this flag asap. If it is
++	   set, then the core took the serialization lock before calling
++	   poll(). This is being phased out, but for now we have to handle
++	   this case. */
++	bool locked = test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags);
++	bool must_lock = false;
++
++	/* Try to be smart: only lock if polling might start fileio,
++	   otherwise locking will only introduce unwanted delays. */
++	if (q->num_buffers == 0 && q->fileio == NULL) {
++		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ) &&
++				(req_events & (POLLIN | POLLRDNORM)))
++			must_lock = true;
++		else if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE) &&
++				(req_events & (POLLOUT | POLLWRNORM)))
++			must_lock = true;
++	}
++
++	/* If locking is needed, but this helper doesn't know how, then you
++	   shouldn't be using this helper but you should write your own. */
++	WARN_ON(must_lock && !locked && !lock);
++
++	if (must_lock && !locked && lock && mutex_lock_interruptible(lock))
++		return POLLERR;
++
++	fileio = q->fileio;
++
++	res = vb2_poll(vdev->queue, file, wait);
++
++	/* If fileio was started, then we have a new queue owner. */
++	if (must_lock && !fileio && q->fileio)
++		q->owner = file->private_data;
++	if (must_lock && !locked && lock)
++		mutex_unlock(lock);
++	return res;
++}
++EXPORT_SYMBOL_GPL(vb2_fop_poll);
++
+ MODULE_DESCRIPTION("Driver helper framework for Video for Linux 2");
+ MODULE_AUTHOR("Pawel Osciak <pawel@osciak.com>, Marek Szyprowski");
+ MODULE_LICENSE("GPL");
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 924e95e..5ca3212 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -417,4 +417,36 @@ vb2_plane_size(struct vb2_buffer *vb, unsigned int plane_no)
+ 	return 0;
+ }
+ 
++/*
++ * The following functions are not part of the vb2 core API, but are simple
++ * helper functions that you can use in your struct v4l2_file_operations and
++ * struct v4l2_ioctl_ops. They will serialize if vb2_queue->lock or
++ * video_device->lock is set, and they will set and test vb2_queue->owner
++ * to check if the calling filehandle is permitted to do the queuing operation.
++ */
++
++/* struct v4l2_ioctl_ops helpers */
++
++int vb2_ioctl_reqbufs(struct file *file, void *priv,
++			  struct v4l2_requestbuffers *p);
++int vb2_ioctl_create_bufs(struct file *file, void *priv,
++			  struct v4l2_create_buffers *p);
++int vb2_ioctl_prepare_buf(struct file *file, void *priv,
++			  struct v4l2_buffer *p);
++int vb2_ioctl_querybuf(struct file *file, void *priv, struct v4l2_buffer *p);
++int vb2_ioctl_qbuf(struct file *file, void *priv, struct v4l2_buffer *p);
++int vb2_ioctl_dqbuf(struct file *file, void *priv, struct v4l2_buffer *p);
++int vb2_ioctl_streamon(struct file *file, void *priv, enum v4l2_buf_type i);
++int vb2_ioctl_streamoff(struct file *file, void *priv, enum v4l2_buf_type i);
++
++/* struct v4l2_file_operations helpers */
++
++int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma);
++int vb2_fop_release(struct file *file);
++ssize_t vb2_fop_write(struct file *file, char __user *buf,
++		size_t count, loff_t *ppos);
++ssize_t vb2_fop_read(struct file *file, char __user *buf,
++		size_t count, loff_t *ppos);
++unsigned int vb2_fop_poll(struct file *file, poll_table *wait);
++
+ #endif /* _MEDIA_VIDEOBUF2_CORE_H */
 -- 
-1.7.0.4
+1.7.10
 
