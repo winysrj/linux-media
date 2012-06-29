@@ -1,94 +1,220 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40873 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:14066 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754597Ab2FSTOd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jun 2012 15:14:33 -0400
-Message-ID: <4FE0D0AF.40801@redhat.com>
-Date: Tue, 19 Jun 2012 21:19:11 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: halli manjunatha <hallimanju@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 PATCH 4/6] videodev2.h: add frequency band information.
-References: <1338202005-10208-1-git-send-email-hverkuil@xs4all.nl> <005651489cd5c9f832df2d5d90e19e2eee07c9b9.1338201853.git.hans.verkuil@cisco.com> <4FDFCC0F.9000208@redhat.com> <4FE037FE.7030804@redhat.com> <4FE05DF4.7030905@redhat.com> <4FE07255.6050606@redhat.com> <4FE08942.8020603@redhat.com> <4FE0AD29.4070300@redhat.com> <4FE0B802.3080703@redhat.com> <CAMT6PycQvuGxVC=ThLRYc5zDXitxy4QG2=jpO2qfagRhDFsdaQ@mail.gmail.com>
-In-Reply-To: <CAMT6PycQvuGxVC=ThLRYc5zDXitxy4QG2=jpO2qfagRhDFsdaQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1751971Ab2F2VwB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jun 2012 17:52:01 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q5TLq1L3023098
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 29 Jun 2012 17:52:01 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 1/4] [media] drxk: change it to use request_firmware_nowait()
+Date: Fri, 29 Jun 2012 18:51:54 -0300
+Message-Id: <1341006717-32373-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1341006717-32373-1-git-send-email-mchehab@redhat.com>
+References: <20120629124719.2cf23f6b@endymion.delvare>
+ <1341006717-32373-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The firmware blob may not be available when the driver probes.
 
-On 06/19/2012 07:43 PM, halli manjunatha wrote:
-> On Tue, Jun 19, 2012 at 12:33 PM, Hans de Goede <hdegoede@redhat.com> wrote:
->> Hi,
->>
->>
->> On 06/19/2012 06:47 PM, Hans de Goede wrote:
->>>
->>> Hi,
->>>
->>> <snip long discussion about having a fixed set of bands versus
->>> a way to enumerate bands, including their rangelow, rangehigh
->>> and capabilities>
->>>
->>> Ok, you've convinced me. I agree that having a way to actually
->>> enumerate ranges, rather then having a fixed set of ranges, is
->>> better.
->>>
->>> Which brings us back many weeks to the proposal for making
->>> it possible to enumerate bands on radio devices. Rather
->>> then digging up the old mails lets start anew, I propose
->>> the following API for this:
->>>
->>> 1. A radio device can have multiple tuners, but only 1 can
->>> be active (streaming audio to the associated audio input)
->>> at the same time.
->>>
->>> 2. Radio device tuners are enumerated by calling G_TUNER
->>> with an increasing index until EINVAL gets returned
->>>
->>> 3. G_FREQUENCY will always return the frequency and index
->>> of the currently active tuner
->>>
->>> 4. When calling S_TUNER on a radio device, the active
->>> tuner will be set to the v4l2_tuner index field
->>>
->>> 5. When calling S_FREQUENCY on a radio device, the active
->>> tuner will be set to the v4l2_frequency tuner field
->>>
->>> 6. On a G_TUNER call on a radio device the rxsubchans,
->>> audmode, signal and afc v4l2_tuner fields are only
->>> filled on for the active tuner (as returned by
->>> G_FREQUENCY) for inactive tuners these fields are reported
->>> as 0.
->>
->>
->> p.s.
->>
->> I forgot:
->>
->> 7. When calling VIDIOC_S_HW_FREQ_SEEK on a radio device, the active
->> tuner will be set to the v4l2_hw_freq_seek tuner field
->>
->> 8. When changing the active tuner with S_TUNER or S_HW_FREQ_SEEK,
->> the current frequency may be changed to fit in the range of the
->> new active tuner
->>
->> 9. For backwards compatibility reasons tuner 0 should be the tuner
->> with the broadest possible FM range
->
-> So with this approach every time during S_FREQ/S_HW_SEEK/S_TUNER
-> driver will check which tuner mode it is set to and change the tuner
-> mode (or band) according to tuner field.
->
-> So in my case I will have to support 5 tuner modes (EUROPE, JAPAN,
-> RUSSIAN, WEATHER and DEFAULT) just like bands.
+Instead of blocking the whole kernel use request_firmware_nowait() and
+continue without firmware.
 
-Correct.
+This shouldn't be that bad on drx-k devices, as they all seem to have an
+internal firmware. So, only the firmware update will take a little longer
+to happen.
 
-Regards,
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/drxk_hard.c |  109 +++++++++++++++++++------------
+ drivers/media/dvb/frontends/drxk_hard.h |    3 +
+ 2 files changed, 72 insertions(+), 40 deletions(-)
 
-Hans
+diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
+index 60b868f..4cb8d1e 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.c
++++ b/drivers/media/dvb/frontends/drxk_hard.c
+@@ -5968,29 +5968,9 @@ error:
+ 	return status;
+ }
+ 
+-static int load_microcode(struct drxk_state *state, const char *mc_name)
+-{
+-	const struct firmware *fw = NULL;
+-	int err = 0;
+-
+-	dprintk(1, "\n");
+-
+-	err = request_firmware(&fw, mc_name, state->i2c->dev.parent);
+-	if (err < 0) {
+-		printk(KERN_ERR
+-		       "drxk: Could not load firmware file %s.\n", mc_name);
+-		printk(KERN_INFO
+-		       "drxk: Copy %s to your hotplug directory!\n", mc_name);
+-		return err;
+-	}
+-	err = DownloadMicrocode(state, fw->data, fw->size);
+-	release_firmware(fw);
+-	return err;
+-}
+-
+ static int init_drxk(struct drxk_state *state)
+ {
+-	int status = 0;
++	int status = 0, n = 0;
+ 	enum DRXPowerMode powerMode = DRXK_POWER_DOWN_OFDM;
+ 	u16 driverVersion;
+ 
+@@ -6073,8 +6053,12 @@ static int init_drxk(struct drxk_state *state)
+ 		if (status < 0)
+ 			goto error;
+ 
+-		if (state->microcode_name)
+-			load_microcode(state, state->microcode_name);
++		if (state->fw) {
++			status = DownloadMicrocode(state, state->fw->data,
++						   state->fw->size);
++			if (status < 0)
++				goto error;
++		}
+ 
+ 		/* disable token-ring bus through OFDM block for possible ucode upload */
+ 		status = write16(state, SIO_OFDM_SH_OFDM_RING_ENABLE__A, SIO_OFDM_SH_OFDM_RING_ENABLE_OFF);
+@@ -6167,6 +6151,20 @@ static int init_drxk(struct drxk_state *state)
+ 			state->m_DrxkState = DRXK_POWERED_DOWN;
+ 		} else
+ 			state->m_DrxkState = DRXK_STOPPED;
++
++		/* Initialize the supported delivery systems */
++		n = 0;
++		if (state->m_hasDVBC) {
++			state->frontend.ops.delsys[n++] = SYS_DVBC_ANNEX_A;
++			state->frontend.ops.delsys[n++] = SYS_DVBC_ANNEX_C;
++			strlcat(state->frontend.ops.info.name, " DVB-C",
++				sizeof(state->frontend.ops.info.name));
++		}
++		if (state->m_hasDVBT) {
++			state->frontend.ops.delsys[n++] = SYS_DVBT;
++			strlcat(state->frontend.ops.info.name, " DVB-T",
++				sizeof(state->frontend.ops.info.name));
++		}
+ 	}
+ error:
+ 	if (status < 0)
+@@ -6175,11 +6173,44 @@ error:
+ 	return status;
+ }
+ 
++static void load_firmware_cb(const struct firmware *fw,
++			     void *context)
++{
++	struct drxk_state *state = context;
++
++	if (!fw) {
++		printk(KERN_ERR
++		       "drxk: Could not load firmware file %s.\n",
++			state->microcode_name);
++		printk(KERN_INFO
++		       "drxk: Copy %s to your hotplug directory!\n",
++			state->microcode_name);
++		state->microcode_name = NULL;
++
++		/*
++		 * As firmware is now load asynchronous, it is not possible
++		 * anymore to fail at frontend attach. We might silently
++		 * return here, and hope that the driver won't crash.
++		 * We might also change all DVB callbacks to return -ENODEV
++		 * if the device is not initialized.
++		 * As the DRX-K devices have their own internal firmware,
++		 * let's just hope that it will match a firmware revision
++		 * compatible with this driver and proceed.
++		 */
++	}
++	state->fw = fw;
++
++	init_drxk(state);
++}
++
+ static void drxk_release(struct dvb_frontend *fe)
+ {
+ 	struct drxk_state *state = fe->demodulator_priv;
+ 
+ 	dprintk(1, "\n");
++	if (state->fw)
++		release_firmware(state->fw);
++
+ 	kfree(state);
+ }
+ 
+@@ -6371,10 +6402,9 @@ static struct dvb_frontend_ops drxk_ops = {
+ struct dvb_frontend *drxk_attach(const struct drxk_config *config,
+ 				 struct i2c_adapter *i2c)
+ {
+-	int n;
+-
+ 	struct drxk_state *state = NULL;
+ 	u8 adr = config->adr;
++	int status;
+ 
+ 	dprintk(1, "\n");
+ 	state = kzalloc(sizeof(struct drxk_state), GFP_KERNEL);
+@@ -6425,22 +6455,21 @@ struct dvb_frontend *drxk_attach(const struct drxk_config *config,
+ 	state->frontend.demodulator_priv = state;
+ 
+ 	init_state(state);
+-	if (init_drxk(state) < 0)
+-		goto error;
+ 
+-	/* Initialize the supported delivery systems */
+-	n = 0;
+-	if (state->m_hasDVBC) {
+-		state->frontend.ops.delsys[n++] = SYS_DVBC_ANNEX_A;
+-		state->frontend.ops.delsys[n++] = SYS_DVBC_ANNEX_C;
+-		strlcat(state->frontend.ops.info.name, " DVB-C",
+-			sizeof(state->frontend.ops.info.name));
+-	}
+-	if (state->m_hasDVBT) {
+-		state->frontend.ops.delsys[n++] = SYS_DVBT;
+-		strlcat(state->frontend.ops.info.name, " DVB-T",
+-			sizeof(state->frontend.ops.info.name));
+-	}
++	/* Load firmware and initialize DRX-K */
++	if (state->microcode_name) {
++		status = request_firmware_nowait(THIS_MODULE, 1,
++					      state->microcode_name,
++					      state->i2c->dev.parent,
++					      GFP_KERNEL,
++					      state, load_firmware_cb);
++		if (status < 0) {
++			printk(KERN_ERR
++			"drxk: failed to request a firmware\n");
++			return NULL;
++		}
++	} else if (init_drxk(state) < 0)
++		goto error;
+ 
+ 	printk(KERN_INFO "drxk: frontend initialized.\n");
+ 	return &state->frontend;
+diff --git a/drivers/media/dvb/frontends/drxk_hard.h b/drivers/media/dvb/frontends/drxk_hard.h
+index 4bbf841..36677cd 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.h
++++ b/drivers/media/dvb/frontends/drxk_hard.h
+@@ -338,7 +338,10 @@ struct drxk_state {
+ 	bool	antenna_dvbt;
+ 	u16	antenna_gpio;
+ 
++	/* Firmware */
+ 	const char *microcode_name;
++	struct completion fw_wait_load;
++	const struct firmware *fw;
+ };
+ 
+ #define NEVER_LOCK 0
+-- 
+1.7.10.2
+
