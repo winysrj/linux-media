@@ -1,68 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:50781 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750985Ab2FKU7s convert rfc822-to-8bit (ORCPT
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:63016 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755054Ab2F2QdR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jun 2012 16:59:48 -0400
-Date: Mon, 11 Jun 2012 22:59:46 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Su Jiaquan <jiaquan.lnx@gmail.com>
-cc: linux-media <linux-media@vger.kernel.org>,
-	twang13 <twang13@marvell.com>
-Subject: Re: [media] soc_camera: suggest to postpone applying default format
-In-Reply-To: <CALxrGmVo1TZTdvA_QwzjBvyA4WXYV0Cpavr5mC5d3BXCwm5CMQ@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1206112243590.3390@axis700.grange>
-References: <CALxrGmVo1TZTdvA_QwzjBvyA4WXYV0Cpavr5mC5d3BXCwm5CMQ@mail.gmail.com>
+	Fri, 29 Jun 2012 12:33:17 -0400
+Received: by dady13 with SMTP id y13so4590812dad.19
+        for <linux-media@vger.kernel.org>; Fri, 29 Jun 2012 09:33:17 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <4FEDD41E.3000608@redhat.com>
+References: <1340918440-17523-1-git-send-email-martin.blumenstingl@googlemail.com>
+ <1340918440-17523-2-git-send-email-martin.blumenstingl@googlemail.com>
+ <20461.26585.508583.521723@morden.metzler> <CAFBinCApTRMdut01wPqT08ViOW=++57UHBY2ok=k=EfQSaEVCQ@mail.gmail.com>
+ <4FEDD41E.3000608@redhat.com>
+From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Date: Fri, 29 Jun 2012 18:32:57 +0200
+Message-ID: <CAFBinCC5nRA=DKuegUu2cbcWzCtpDs-RgRuVKB=1FwDCzw8pNw@mail.gmail.com>
+Subject: Re: [PATCH 1/2] [media] drxk: Make the QAM demodulator command configurable.
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Ralph Metzler <rjkm@metzlerbros.de>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jiaquan
+Hi,
 
-On Mon, 11 Jun 2012, Su Jiaquan wrote:
+> I didn't tell "old command", or at least not in the sense of old firmware. I told
+> that the first drivers (ddbridge and mantis), based on drxk_ac3.mc firmware, use the
+> 4-parameters variant, while the other drivers use the 2-parameters variant.
+Oh sorry, I must have gotten that wrong.
 
-> Hi Guennadi,
-> 
->          I found in soc_camera when video device is opened, default
-> format is applied sensor. I think this is the right thing to do, be it
-> also means a lot of i2c transactions.
+> Anyway, using the name "old" for such parameter is not a good idea. IMHO, you
+> should use something like qam_demod_needs_4_parameters for this config data,
+> or, maybe "number_of_qam_demod_parameters".
+Sounds good.
 
-It doesn't have to actually. It is up to the sensor (or any other client) 
-driver to decide whether to apply requested formats immediately or only 
-check and store them internally. Then the driver can decide to actually 
-apply them only at STREAMON time. Doing this would also make the client 
-driver better suitable to work outside of the soc-camera framework, where 
-it will be expected to preserve its configuration across open() / close() 
-cycles, possibly, without its .s_mbus_fmt() being called.
+> If number_of_qam_demod_parameters is not 2 or 4, try both ways. So, a device driver
+> that won't specify it will be auto-probed.
+Ok, I'll keep the existing order:
+- first try the 4-parameter one
+- then try the 2-parameter one
+And I'll update the variable then to make sure we're not doing that
+trial-and-error thing
+twice.
 
-So, I would rather suggest to fix individual client drivers one by one 
-instead of changing the soc-camera core, which would immediately affect 
-all related drivers.
+I'll also update all drxk_config instances where I'm sure that they're
+using the (newer)
+2-parameter method.
 
-Thanks
-Guennadi
+Thanks you two for you feedback!
 
-> I think in case of app wants to query drivers capability, it do a
-> quick “open-query-close”, expecting only to get some information
-> rather than really configuring camera. So maybe this is a point that
-> can be optimize.
-> 
-> Have you consider postpone it to some point later, how about, say,
-> before stream_on? At that point we can check if VIDIOC_S_FMT is
-> called, if yes, we do nothing, if no, we can configure the default
-> format.
-> 
->          I simply move some code from soc_camera_open() to
-> soc_camera_set_fmt(), just a few changes, do you think it OK to make
-> this adjustment?
-> 
->          Thanks!
-> Jiaquan
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Regards,
+Martin
