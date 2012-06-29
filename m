@@ -1,96 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:33968 "EHLO mgw-da01.nokia.com"
+Received: from mx1.redhat.com ([209.132.183.28]:40822 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751882Ab2FEUo1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Jun 2012 16:44:27 -0400
-Message-ID: <4FCE6F94.7030004@iki.fi>
-Date: Tue, 05 Jun 2012 23:44:04 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	id S1750712Ab2F2ESp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jun 2012 00:18:45 -0400
+Message-ID: <4FED2CA0.6020909@redhat.com>
+Date: Fri, 29 Jun 2012 01:18:40 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Oleksij Rempel <bug-track@fisher-privat.net>,
-	linux-uvc-devel@lists.sourceforge.net, linux-media@vger.kernel.org,
-	Youness Alaoui <youness.alaoui@collabora.co.uk>
-Subject: Re: [RFC] Media controller entity information ioctl [was "Re: [patch]
- suggestion for media framework"]
-References: <4FCB9C12.1@fisher-privat.net> <9993866.a3VUSWRbyi@avalon>
-In-Reply-To: <9993866.a3VUSWRbyi@avalon>
+To: Mack Stanley <mcs1937@gmail.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] Add support for newer PCTV 800i cards with s5h1411
+ demodulators
+References: <4FECCCB4.9000402@gmail.com>
+In-Reply-To: <4FECCCB4.9000402@gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-Laurent Pinchart wrote:
-> Hi Oleksiy,
+Em 28-06-2012 18:29, Mack Stanley escreveu:
+> Testing is needed on older (aka Pinnacle) PCTV 800i cards with S5H1409
+> demodulators
+> to check that current support for them isn't broken by this patch.
 > 
-> Thank you for the patch.
+> Signed-off-by: Mack Stanley <mcs1937@gmail.com>
+> ---
+>   drivers/media/video/cx88/cx88-dvb.c |   40
+> ++++++++++++++++++++++++----------
+>   1 files changed, 28 insertions(+), 12 deletions(-)
 > 
-> [CC'ing linux-media]
+> diff --git a/drivers/media/video/cx88/cx88-dvb.c
+> b/drivers/media/video/cx88/cx88-dvb.c
+> index 003937c..6d49672 100644
+> --- a/drivers/media/video/cx88/cx88-dvb.c
+> +++ b/drivers/media/video/cx88/cx88-dvb.c
+> @@ -501,7 +501,7 @@ static const struct cx24123_config
+> kworld_dvbs_100_config = {
+>          .lnb_polarity  = 1,
+>   };
 > 
-> On Sunday 03 June 2012 19:17:06 Oleksij Rempel wrote:
->> Hi Laurent,
->>
->> in attachment is a suggestion patch for media framework and a test
->> program which use this patch.
->>
->> Suddenly we still didn't solved the problem with finding of XU. You
->> know, the proper way to find them is guid (i do not need to explain this
->> :)). Since uvc devices starting to have more and complicated XUs, media
->> api is probably proper way to go - how you suggested.
->>
->> On the wiki of TexasInstruments i found some code examples, how they use
->> this api. And it looks like there is some desing differences between
->> OMPA drivers and UVC. It is easy to find proper entity name for omap
->> devices just by: "(!strcmp(entity[index].name, "OMAP3 ISP CCDC"))".
->> We can't do the same for UVC, current names are just "Extension %u". We
->> can put guid instead, but it will looks ugly and not really informative.
->> This is why i added new struct uvc_ext.
->>
->> If you do not agree with this patch, it will be good if you proved other
->> solution. This problem need to be solved.
+> -static const struct s5h1409_config pinnacle_pctv_hd_800i_config = {
+> +static const struct s5h1409_config pinnacle_pctv_hd_800i_s5h1409_config = {
+>          .demod_address = 0x32 >> 1,
+>          .output_mode   = S5H1409_PARALLEL_OUTPUT,
+>          .gpio          = S5H1409_GPIO_ON,
+> @@ -509,7 +509,7 @@ static const struct s5h1409_config
+> pinnacle_pctv_hd_800i_config = {
+>          .inversion     = S5H1409_INVERSION_OFF,
+>          .status_mode   = S5H1409_DEMODLOCKING,
+>          .mpeg_timing   = S5H1409_MPEGTIMING_NONCONTINOUS_NONINVERTING_CLOCK,
+> -};
+> +};
 > 
-> The patch goes in the right direction, in that I think the media controller 
-> API is the proper way to solve this problem. However, extending the 
-> media_entity_desc structure with information about all possible kinds of 
-> entities will not scale, especially given that an entity may need to expose 
-> information related to multiple types (for instance an XU need to expose its 
-> GUID, but also subdev-related information if it has a device node).
+>   static const struct s5h1409_config dvico_hdtv5_pci_nano_config = {
+>          .demod_address = 0x32 >> 1,
+> @@ -556,6 +556,16 @@ static const struct s5h1411_config
+> dvico_fusionhdtv7_config = {
+
+Patch got line-wrapped by your email. Please fix, otherwise, it can't be applied.
+
+>          .status_mode   = S5H1411_DEMODLOCKING
+>   };
 > 
-> I've been thinking about adding a new ioctl to the media controller API for 
-> some time now, to report advanced static information about entities.
+> +static const struct s5h1411_config pinnacle_pctv_hd_800i_s5h1411_config = {
+> +       .output_mode   = S5H1411_PARALLEL_OUTPUT,
+> +       .gpio          = S5H1411_GPIO_ON,
+> +       .mpeg_timing   = S5H1411_MPEGTIMING_NONCONTINOUS_NONINVERTING_CLOCK,
+> +       .qam_if        = S5H1411_IF_44000,
+> +       .vsb_if        = S5H1411_IF_44000,
+> +       .inversion     = S5H1411_INVERSION_OFF,
+> +       .status_mode   = S5H1411_DEMODLOCKING
+> +};
+> +
+>   static const struct xc5000_config dvico_fusionhdtv7_tuner_config = {
+>          .i2c_address    = 0xc2 >> 1,
+>          .if_khz         = 5380,
+> @@ -1297,16 +1307,22 @@ static int dvb_register(struct cx8802_dev *dev)
+>                  }
+>                  break;
+>          case CX88_BOARD_PINNACLE_PCTV_HD_800i:
+> -               fe0->dvb.frontend = dvb_attach(s5h1409_attach,
+> -
+> &pinnacle_pctv_hd_800i_config,
+> -                                              &core->i2c_adap);
+> -               if (fe0->dvb.frontend != NULL) {
+> -                       if (!dvb_attach(xc5000_attach, fe0->dvb.frontend,
+> -                                       &core->i2c_adap,
+> -
+> &pinnacle_pctv_hd_800i_tuner_config))
+> -                               goto frontend_detach;
+> -               }
+> -               break;
+> +               /* Try s5h1409 chip first */
+> +               fe0->dvb.frontend = dvb_attach(s5h1409_attach,
+> +
+> &pinnacle_pctv_hd_800i_s5h1409_config,
+> +                                       &core->i2c_adap);
+> +               /* Otherwise, try s5h1411 */
+> +               if (fe0->dvb.frontend == NULL)
+> +                       fe0->dvb.frontend = dvb_attach(s5h1411_attach,
+> +
+> &pinnacle_pctv_hd_800i_s5h1411_config,
+> +                                       &core->i2c_adap);
+> +               if (fe0->dvb.frontend != NULL) {
+> +                       if (!dvb_attach(xc5000_attach, fe0->dvb.frontend,
+> +                                       &core->i2c_adap,
+> +
+> &pinnacle_pctv_hd_800i_tuner_config))
+> +                               goto frontend_detach;
+> +               }
+> +               break;
+>          case CX88_BOARD_DVICO_FUSIONHDTV_5_PCI_NANO:
+>                  fe0->dvb.frontend = dvb_attach(s5h1409_attach,
+>                                                 
+> &dvico_hdtv5_pci_nano_config,
+> --
+> 1.7.7.6
 > 
-> The idea is that each entity would be allowed to report an arbitrary number of 
-> static items. Items would have a type (for which we would likely need some 
-> kind of central registry, possible with driver-specific types), a length and 
-> data. The items would be static (registered an initialization time) and 
-> aggregated in a single buffer that would be read in one go through a new 
-> ioctl.
 > 
-> One important benefit of such an API would be to be able to report more than 
-> one entity type per subdev using entity type items. Many entities serve 
-> several purpose, for instance a sensor can integrate a flash controller. This 
-> can't be reported with the current API, as subdevs have a single type. By 
-> having several entity type items we could fix this issue.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-I welcome this idea!
 
-Another example of information that's missing currently is the lack of
-bus information for the entities: it's next to impossible for the user
-space to learn which i2c device a subdev is related to. At the same time
-we could deprecate the media_entity_desc.type field.
-
-Providing entity bus information as part of entity enumeration would
-resolve this issue.
-
-Btw. do you think a new IOCTL is really required? Why not to just add a
-pointer for additional data the user may provide to the driver to fill
-up? There's plenty of room in the struct for a pointer and perhaps a
-size field.
-
-Cheers,
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
