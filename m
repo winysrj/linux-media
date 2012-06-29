@@ -1,273 +1,93 @@
-Return-Path: linux-dvb-bounces+mchehab=redhat.com@linuxtv.org
-Received: from mail.tu-berlin.de ([130.149.7.33])
-	by www.linuxtv.org with esmtp (Exim 4.72)
-	(envelope-from <RHeidelberg@pctvsystems.com>) id 1SXpeP-0001XH-1V
-	for linux-dvb@linuxtv.org; Fri, 25 May 2012 10:13:33 +0200
-Received: from mx1.pctvsystems.com ([213.252.189.134])
-	by mail.tu-berlin.de (exim-4.75/mailfrontend-4) with esmtp
-	for <linux-dvb@linuxtv.org>
-	id 1SXpeO-0001yS-Bc; Fri, 25 May 2012 10:13:32 +0200
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:34402 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754234Ab2F2O3H (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jun 2012 10:29:07 -0400
+Message-ID: <4FEDBB9B.9010400@redhat.com>
+Date: Fri, 29 Jun 2012 11:28:43 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-class: urn:content-classes:message
-Date: Fri, 25 May 2012 10:13:34 +0200
-Message-ID: <101260B451BFC64699575BAC372B3DEE017BD33D@mx1.pctvsystems.com>
-In-Reply-To: <4FBF3E6A.5010501@pctvsystems.com>
-References: <4FBF3E6A.5010501@pctvsystems.com>
-From: "Ralph Heidelberg" <RHeidelberg@pctvsystems.com>
-To: <linux-dvb@linuxtv.org>
-Cc: Mike Krufky <mkrufky@hauppauge.com>
-Subject: Re: [linux-dvb] S2API: Problem with 64/32bit compatibility
-Reply-To: linux-media@vger.kernel.org
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0011320058=="
-Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=redhat.com@linuxtv.org
-List-ID: <linux-dvb@linuxtv.org>
-
-This is a multi-part message in MIME format.
-
---===============0011320058==
-Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01CD3A4E.462767A3"
-Content-class: urn:content-classes:message
-
-This is a multi-part message in MIME format.
-
-------_=_NextPart_001_01CD3A4E.462767A3
-Content-Type: text/plain;
-	charset="ISO-8859-15"
-Content-Transfer-Encoding: quoted-printable
-
-
-	Hi guys.
-=09
-	I would like to revoke this issue.
-	http://linuxtv.org/pipermail/linux-dvb/2009-January/031436.html
-=09
-	Are there any plans to fix this?
-	A possible solution would be:
-=09
-=09
-	struct dtv_property2 {
-		__u32 cmd;
-		__u32 reserved[3];
-		union {
-			__u32 data;
-			struct {
-				__u8 data[32];
-				__u32 len;
-				__u32 reserved1[3];
-				__u32 reserved2;
-			} buffer;
-		} u;
-		__s32 result;
-	}
-=09
-	struct dtv_properties2 {
-	        __u32 num;
-	        struct dtv_property2 props[64];
-	};
-=09
-	#define FE_SET_PROPERTY2   _IOW('o', 92, struct dtv_properties2)
-	#define FE_GET_PROPERTY2   _IOR('o', 93, struct dtv_properties2)
-	=20
-	What do you think?
-=09
-	Best regards,
-	Ralph Heidelberg
-	Senior Software Engineer
-	PCTV Systems S.a.r.l.
-	(a division of Hauppauge)
-=09
-=09
-________________________________
-
-	Original message:
-=09
-	Hi!
-	  I would like to report a problem with S2API. It looks that it doesn't
-	maintain 64/32bit compatibility.
-	  It began with my attempt to run the SVN version of kaffeine on =
-linux-2.6.28.
-	  My system is a 64bit GNU/Linux, but, for historical reasons, I'm =
-still using
-	32bit KDE 3.5.10, so kaffeine has been compiled as a 32bit binary.
-	  I've found that I cannot play DVB on this combination. It's because =
-the
-	FE_SET_PROPERTY ioctl is not properly handled in the kernel.
-	  After a lot of analysis of both kaffeine and kernel source code, I've =
-found
-	that the core of the problem is in =
-/usr/src/linux/include/linux/dvb/frontend.h,
-	where the ioctl is declared. There, a struct dtv_properties is =
-declared:
-=09
-	struct dtv_properties {
-	        __u32 num;
-	        struct dtv_property *props;
-	};
-=09
-	  This struct is then used as a data entry in the FE_SET_PROPERTY =
-ioctl.
-	  The problem is, that the pointer has different sizes on 32 and 64bit
-	architectures, so the whole struct differs in size too. And because the =
-size
-	is passed as a part of the ioctl command code, the FE_SET_PROPERTY (and
-	FE_GET_PROPERTY too) command codes differ for 32/64 bit compilation of =
-the
-	same include file! For example, for FE_SET_PROPERTY, its 0x40106f52 on =
-64bit,
-	but 0x40086f52 on 32bit. So, the kernel (having the 64bit code inside) =
-cannot
-	recognize the 32bit code of the cmd and fails to handle it correctly.
-	  The second part is that these ioctls are not yet added to the=20
-	/usr/src/linux/fs/compat_ioctl.c file, maybe just because of the =
-problem above.
-=09
-	  Are there plans to fix this problem ? I think that 64/32bit =
-compatibility
-	should be fully maintained, I think that my case is not so rare yet.
-=09
-	  With regards, Pavel Troller  =20
-=09
-
-
-
-------_=_NextPart_001_01CD3A4E.462767A3
-Content-Type: text/html;
-	charset="ISO-8859-15"
-Content-Transfer-Encoding: quoted-printable
-
-<html>
-  <head>
-   =20
-  </head>
-  <body bgcolor=3D"#FFFFFF" text=3D"#000000">
-    <br>
-    <blockquote cite=3D"mid:4FBF3E6A.5010501@pctvsystems.com" =
-type=3D"cite">
-     =20
-      Hi guys.<br>
-      <br>
-      I would like to revoke this issue.<br>
-      <a moz-do-not-send=3D"true"
-        =
-href=3D"http://linuxtv.org/pipermail/linux-dvb/2009-January/031436.html">=
-http://linuxtv.org/pipermail/linux-dvb/2009-January/031436.html</a><br>
-      <br>
-      Are there any plans to fix this?<br>
-      A possible solution would be:<br>
-      <br>
-      <pre style=3D"color: rgb(0, 0, 0); font-style: normal; =
-font-variant: normal; font-weight: normal; letter-spacing: normal; =
-line-height: normal; orphans: 2; text-align: -webkit-auto; text-indent: =
-0px; text-transform: none; widows: 2; word-spacing: 0px; =
--webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; ">struct =
-dtv_property2 {
-	__u32 cmd;
-	__u32 reserved[3];
-	union {
-		__u32 data;
-		struct {
-			__u8 data[32];
-			__u32 len;
-			__u32 reserved1[3];
-<b>			__u32 reserved2;
-</b>		} buffer;
-	} u;
-<b>	__s32 result;
-</b>}
-
-struct dtv_properties2 {
-        __u32 num;
-<b>        struct dtv_property2 props[64];
-</b>};
-
-#define FE_SET_PROPERTY2   _IOW('o', 92, struct dtv_properties2)
-#define FE_GET_PROPERTY2   _IOR('o', 93, struct dtv_properties2)
-=A0
-</pre>
-      What do you think?<br>
-      <br>
-      Best regards,<br>
-      Ralph Heidelberg<br>
-      <small><small>Senior Software Engineer<br>
-          PCTV Systems S.a.r.l.<br>
-          (a division of Hauppauge)<br>
-        </small></small><br>
-      <hr size=3D"2" width=3D"100%">Original message:<br>
-      <pre style=3D"color: rgb(0, 0, 0); font-style: normal; =
-font-variant: normal; font-weight: normal; letter-spacing: normal; =
-line-height: normal; orphans: 2; text-align: -webkit-auto; text-indent: =
-0px; text-transform: none; widows: 2; word-spacing: 0px; =
--webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; ">Hi!
-  I would like to report a problem with S2API. It looks that it doesn't
-maintain 64/32bit compatibility.
-  It began with my attempt to run the SVN version of kaffeine on =
-linux-2.6.28.
-  My system is a 64bit GNU/Linux, but, for historical reasons, I'm still =
-using
-32bit KDE 3.5.10, so kaffeine has been compiled as a 32bit binary.
-  I've found that I cannot play DVB on this combination. It's because =
-the
-FE_SET_PROPERTY ioctl is not properly handled in the kernel.
-  After a lot of analysis of both kaffeine and kernel source code, I've =
-found
-that the core of the problem is in =
-/usr/src/linux/include/linux/dvb/frontend.h,
-where the ioctl is declared. There, a struct dtv_properties is declared:
-
-struct dtv_properties {
-        __u32 num;
-        struct dtv_property *props;
-};
-
-  This struct is then used as a data entry in the FE_SET_PROPERTY ioctl.
-  The problem is, that the pointer has different sizes on 32 and 64bit
-architectures, so the whole struct differs in size too. And because the =
-size
-is passed as a part of the ioctl command code, the FE_SET_PROPERTY (and
-FE_GET_PROPERTY too) command codes differ for 32/64 bit compilation of =
-the
-same include file! For example, for FE_SET_PROPERTY, its 0x40106f52 on =
-64bit,
-but 0x40086f52 on 32bit. So, the kernel (having the 64bit code inside) =
-cannot
-recognize the 32bit code of the cmd and fails to handle it correctly.
-  The second part is that these ioctls are not yet added to the=20
-/usr/src/linux/fs/compat_ioctl.c file, maybe just because of the problem =
-above.
-
-  Are there plans to fix this problem ? I think that 64/32bit =
-compatibility
-should be fully maintained, I think that my case is not so rare yet.
-
-  With regards, Pavel Troller  =20
-
-</pre>
-      <br>
-    </blockquote>
-  </body>
-</html>
-
-------_=_NextPart_001_01CD3A4E.462767A3--
-
-
---===============0011320058==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+CC: Antti Palosaari <crope@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>,
+	htl10@users.sourceforge.net
+Subject: Re: DVB core enhancements - comments please?
+References: <4FEBA656.7060608@iki.fi> <4FED2FE0.9010602@redhat.com> <4FED3714.2080901@iki.fi> <2601054.j5eSD2QU7J@dibcom294>
+In-Reply-To: <2601054.j5eSD2QU7J@dibcom294>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Sender: linux-media-owner@vger.kernel.org
+List-ID: <linux-media.vger.kernel.org>
 
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0011320058==--
+Em 29-06-2012 08:24, Patrick Boettcher escreveu:
+> On Friday 29 June 2012 08:03:16 Antti Palosaari wrote:
+>> On 06/29/2012 07:32 AM, Mauro Carvalho Chehab wrote:
+>>> Em 27-06-2012 21:33, Antti Palosaari escreveu:
+>>>> SDR - Softaware Defined Radio support DVB API
+>>>> --------------------------------------------------
+>>>> *
+>>>> http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructu
+>>>> re/44461 * there is existing devices that are SDR (RTL2832U "rtl-sdr")
+>>>> * SDR is quite near what is digital TV streaming
+>>>> * study what is needed
+>>>> * new delivery system for frontend API called SDR?
+>>>> * some core changes needed, like status (is locked etc)
+>>>> * how about demuxer?
+>>>> * stream conversion, inside Kernel?
+>>>> * what are new parameters needed for DVB API?
+>>>
+>>> Let's not mix APIs: the radio control should use the V4L2 API, as this
+>>> is not DVB. The V4L2 API has already everything needed for radio. The
+>>> only missing part ther is the audio stream. However, there are a few
+>>> drivers that provide audio via the radio device node, using
+>>> read()/poll() syscalls, like pvrusb. On this specific driver, audio
+>>> comes through a MPEG stream. As SDR provides audio on a different
+>>> format, it could make sense to use VIDIOC_S_STD/VIDIOC_G_STD to
+>>> set/retrieve the type of audio stream, for SDR, but maybe it better to
+>>> just add capabilities flag at VIDIOC_QUERYCTL or VIDIOC_G_TUNER to
+>>> indicate that the audio will come though the radio node and if the
+>>> format is MPEG or SDR.
+>> SDR is not a radio in mean of V4L2 analog audio radios. SDR can receive
+>> all kind of signals, analog audio, analog television, digital radio,
+>> digital television, cellular phones, etc. You can even receive DVB-T,
+>> but hardware I have is not capable to receive such wide stream.
+>>
+>> That chip supports natively DVB-T TS but change be switched to SDR mode.
+>> Is it even possible to switch from DVB API (DVB-T delivery system) to
+>> V4L2 API at runtime?
+> 
+> It could be possible that neither the DVB-API nor the V4L2 API is the right
+> user-interface for such devices. The output of such devices is the
+> acquisition of raw (digitalized) data of a signal and here signal is meant
+> in the sense of anything which can be digitalized (e.g.: sensors, tuners,
+> ADCs).
+> 
+> Such device will surely be have a device-specific (user-space?) library to
+> do the post/pre-processing before putting this data into a generic format.
+
+That's one more reason why using the V4L2 API is better: at the V4L2 API, the
+output format is represented by a 32 bits unique code. There are several
+standard fourcc codes there, plus several proprietary formats represented.
+The decoding between the proprietary formats is done via libv4l. Libv4l
+can be used with any pre-compiled userspace application, via LD_PRELOAD,
+although almost all V4L2 userspace applications[1] are using the libv4l to decode
+data. Adding SDR decoding there should not be hard.
+
+[1] Radio applications don't use it yet, as almost all radio devices output
+audio via ALSA API, so some work will be needed there to add SDR radio
+support.
+
+>> That said, IMO, the rtl-sdr driver should sit on the DVB-API. Maybe V4L2
+>> provides a device-specific control path (to configure the hardware) if not
+>> somewhere else, or something new needs to be created.
+
+> *argl* I wanted to say, ... should _not_ sit on the DVB-API...
+
+Agreed. Tuning with the V4L2 API is more direct, as doesn't have any
+threads looking for DVB demod status, in order to do frequency zig-zag.
+
+It also have support for hardware frequency scanning, which can be an
+interesting feature if supported.
+
+Regards,
+Mauro
