@@ -1,151 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:49993 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759192Ab2FUKCU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jun 2012 06:02:20 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: extend v4l2_mbus_framefmt
-Date: Thu, 21 Jun 2012 12:02:16 +0200
-Cc: Scott Jiang <scott.jiang.linux@gmail.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	LMML <linux-media@vger.kernel.org>,
-	uclinux-dist-devel@blackfin.uclinux.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <CAHG8p1AW6577=oGPo3o8S0LgF2p8_cfmLLnvYbikk7kEaYdxzw@mail.gmail.com> <201206201300.34614.hverkuil@xs4all.nl> <20120621065324.GN12505@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20120621065324.GN12505@valkosipuli.retiisi.org.uk>
+Received: from mail.kapsi.fi ([217.30.184.167]:47698 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753861Ab2F2MzN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jun 2012 08:55:13 -0400
+Message-ID: <4FEDA5A8.5030704@iki.fi>
+Date: Fri, 29 Jun 2012 15:55:04 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media <linux-media@vger.kernel.org>,
+	htl10@users.sourceforge.net
+Subject: Re: DVB core enhancements - comments please?
+References: <4FEBA656.7060608@iki.fi> <4FED2FE0.9010602@redhat.com> <4FED3714.2080901@iki.fi> <4FED9972.9090105@redhat.com>
+In-Reply-To: <4FED9972.9090105@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201206211202.16752.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 21 June 2012 08:53:25 Sakari Ailus wrote:
-> Hi Hans,
-> 
-> On Wed, Jun 20, 2012 at 01:00:34PM +0200, Hans Verkuil wrote:
-> > On Wed 20 June 2012 12:25:09 Sakari Ailus wrote:
-> > > Hi Scott,
-> > > 
-> > > Scott Jiang wrote:
-> > > >>>>>> I would expect that the combination of v4l2_mbus_framefmt +
-> > > >>>>>> v4l2_dv_timings
-> > > >>>>>> gives you the information you need.
-> > > >>>>>>
-> > > >>>>> I can solve this problem in HD, but how about SD? Add a fake
-> > > >>>>> dv_timings ops in SD decoder driver?
-> > > >>>>>
-> > > >>>>
-> > > >>>> No, you add g/s_std instead. SD timings are set through that API. It is
-> > > >>>> not so
-> > > >>>> much that you give explicit timings, but that you give the SD standard.
-> > > >>>> And from
-> > > >>>> that you can derive the timings (i.e., one for 60 Hz formats, and one for
-> > > >>>> 50 Hz
-> > > >>>> formats).
-> > > >>>>
-> > > >>> Yes, it's a solution for decoder. I can convert one by one. But how
-> > > >>> about sensors?They can output VGA, QVGA or any manual resolution.
-> > > >>> My question is why we can't add these blanking details in
-> > > >>> v4l2_mbus_framefmt? This structure is used to describe frame format on
-> > > >>> media bus. And I believe blanking data also transfer on this bus. I
-> > > >>> know most hardwares don't care about blanking areas, but some hardware
-> > > >>> such as PPI does. PPI can capture ancillary data both in herizontal
-> > > >>> and vertical interval. Even it works in active video only mode, it
-> > > >>> expects to get total timing info.
-> > > >>
-> > > >>
-> > > >> Since I don't know what you are trying to do, it is hard for me to give
-> > > >> a good answer.
-> > > >>
-> > > >> So first I'd like to know if this is related to the adv7842 chip? I think
-> > > >> you are talking about how this is done in general, and not specifically in
-> > > >> relationship to the adv7842. At least, I can't see how/why you would
-> > > >> hook up a sensor to the adv7842.
-> > > > Yes, I want to have a general solution.
-> > > >
-> > > >>
-> > > >> Sensor configuration is a separate topic, and something I am not an
-> > > >> expert on. People like Sakari Ailus and Laurent Pinchart know much
-> > > >> more about that than I do.
-> > > >>
-> > > >> I know that there is some support for blanking through low-level image
-> > > >> source
-> > > >> controls:
-> > > >>
-> > > >> http://hverkuil.home.xs4all.nl/spec/media.html#image-source-controls
-> > > >>
-> > > >> This is experimental and if this is insufficient for your requirements than
-> > > >> I suggest posting a message where you explain what you need, CC-ing the
-> > > >> people
-> > > >> I mentioned,
-> > > >>
-> > > >> Most of these APIs are quite new and by marking them as experimental we can
-> > > >> make changes later if it turns out it is not good enough.
-> > > > I remember I have discussed this topic with Sakari before but without
-> > > > working out a solution.
-> > > > In conclusion, my current solution is:
-> > > > if (HD)
-> > > >      dv_timings
-> > > > else if (SD)
-> > > >      fill in according to PAL/NTSC timings
-> > > > else
-> > > >      get control of V4L2_CID_HBLANK/V4L2_CID_VBLANK
-> > > >
-> > > > I guess this can solve my problem. But it's a bit complicated. If
-> > > > v4l2_mbus_framefmt contains thes members, it's convenient and simple.
-> > > 
-> > > Adding horizontal and vertical blanking as fields to struct 
-> > > v4l2_mbus_framefmt was discussed long ago --- I even sent a patch doing 
-> > > that AFAIR. It'd have been a simple solution, yes. The resulting 
-> > > discussion concluded, however, that as the horizontal or vertical 
-> > > blanking are not really a property of the image format, and generally 
-> > > only affect timing (frame rate, they do not belong to this struct.
-> > > 
-> > > Also changing them while streaming is almost always possible (except in 
-> > > your case, I believe) whereas the rest of the fields are considered 
-> > > static. It'd be difficult for the user to know which fields can be 
-> > > actually changed while streamon, and which can't.
-> > > 
-> > > For these reasons (AFAIR) we chose to use controls instead.
-> > > 
-> > > I think the right solution to the problem when it comes to sensors, is 
-> > > to mark these controls busy from the bridge driver if the bridge 
-> > > hardware can't cope with changes in blanking. The control framework 
-> > > doesn't support this currently but it might not be that much of work to 
-> > > implement it. Such feature would definitely have to be used with care.
-> > > 
-> > > Hans, what do you think?
-> > 
-> > That's already supported for a long time. If the control flag V4L2_CTRL_FLAG_GRABBED
-> > is set, then the control is marked busy.
-> > 
-> > There aren't many drivers that use this flag, but some do.
-> 
-> The problem is it's a flag. In this case the driver marking the control busy
-> would be a different driver from the one that implements it, and I don't
-> think we could trust only one of the drivers will want to modify it. So it'd
-> have to be a counter instead.
+On 06/29/2012 03:02 PM, Mauro Carvalho Chehab wrote:
+> Em 29-06-2012 02:03, Antti Palosaari escreveu:
+>> On 06/29/2012 07:32 AM, Mauro Carvalho Chehab wrote:
+>>> Em 27-06-2012 21:33, Antti Palosaari escreveu:
+>>>> SDR - Softaware Defined Radio support DVB API
+>>>> --------------------------------------------------
+>>>> * http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/44461
+>>>> * there is existing devices that are SDR (RTL2832U "rtl-sdr")
+>>>> * SDR is quite near what is digital TV streaming
+>>>> * study what is needed
+>>>> * new delivery system for frontend API called SDR?
+>>>> * some core changes needed, like status (is locked etc)
+>>>> * how about demuxer?
+>>>> * stream conversion, inside Kernel?
+>>>> * what are new parameters needed for DVB API?
+>>>
+>>> Let's not mix APIs: the radio control should use the V4L2 API, as this is not
+>>> DVB. The V4L2 API has already everything needed for radio. The only missing
+>>> part ther is the audio stream. However, there are a few drivers that provide
+>>> audio via the radio device node, using read()/poll() syscalls, like pvrusb.
+>>> On this specific driver, audio comes through a MPEG stream. As SDR provides
+>>> audio on a different format, it could make sense to use VIDIOC_S_STD/VIDIOC_G_STD
+>>> to set/retrieve the type of audio stream, for SDR, but maybe it better to just
+>>> add capabilities flag at VIDIOC_QUERYCTL or VIDIOC_G_TUNER to indicate that
+>>> the audio will come though the radio node and if the format is MPEG or SDR.
+>>
+>> SDR is not a radio in mean of V4L2 analog audio radios.
+>
+> Why not? There's nothing at V4L2 API that limits it to analog, otherwise it couldn't
+> be used by digital cameras.
+>
+>> SDR can receive all kind of signals, analog audio, analog television, digital radio,
+>> digital television, cellular phones, etc. You can even receive DVB-T, but hardware I
+>> have is not capable to receive such wide stream.
+>
+> The V4L2 API has everything to control receivers. What it doesn't have (and it doesn't make
+> sense to have, as such thing would just duplicate existing features at DVB API)
+> are the per delivery-system specific demodulator properties and PID filtering.
+>
+>> That chip supports natively DVB-T TS but change be switched to SDR mode. Is it even possible
+>> to switch from DVB API (DVB-T delivery system) to V4L2 API at runtime?
+>
+> Yes. There are lots of drivers that do that. There are even a few that allow to control the
+> frontend and demod via DVB API and to receive streams via V4L2 mmap or read API.
 
-Why would another driver than the bridge driver want to change this?
+Could you give closest example?
+In that case I have RTL2832 DVB-T frontend which I want to change SDR 
+mode. What are the those existing DVB frontend drivers look example.
 
-Right now it is no problem for the bridge driver to change the grabbed flag of
-a control of a subdev driver.
+regards
+Antti
 
-If this would have to be implemented as a counter, then that would make things
-more complicated. But I'd like to see an actual need for that before I would
-consider implementing this.
 
-> That could still require special handling in some cases so we could specify
-> which controls may be grabbed by other drivers and when as the drivers may
-> want to modify the controls themselves, too.
+-- 
+http://palosaari.fi/
 
-Well, if someone grabbed the control, then no driver or application should be
-able to modify it until it is 'ungrabbed'.
 
-Regards,
-
-	Hans
