@@ -1,70 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:46347 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752815Ab2FRTYY (ORCPT
+Received: from mail-yw0-f42.google.com ([209.85.213.42]:59794 "EHLO
+	mail-yw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753226Ab2F2Sf0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jun 2012 15:24:24 -0400
-Received: by mail-yx0-f174.google.com with SMTP id l2so3568634yen.19
-        for <linux-media@vger.kernel.org>; Mon, 18 Jun 2012 12:24:24 -0700 (PDT)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: <linux-media@vger.kernel.org>,
-	Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: [PATCH 11/12] cx25821: Remove useless struct i2c_algo_bit_data usage
-Date: Mon, 18 Jun 2012 16:23:44 -0300
-Message-Id: <1340047425-32000-11-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1340047425-32000-1-git-send-email-elezegarcia@gmail.com>
-References: <1340047425-32000-1-git-send-email-elezegarcia@gmail.com>
+	Fri, 29 Jun 2012 14:35:26 -0400
+Received: by yhfq11 with SMTP id q11so4376115yhf.1
+        for <linux-media@vger.kernel.org>; Fri, 29 Jun 2012 11:35:25 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201206291757.000492@ms2.cniteam.com>
+References: <201206291649.000461@ms2.cniteam.com>
+	<CAGoCfiwqJ93O5iHW96tJHFZ7uNdvKAwk==3R2YGUnwy=i-rQPg@mail.gmail.com>
+	<201206291719.000478@ms2.cniteam.com>
+	<CAGoCfixAUwMjGm3nUZvkhj+cY0GraxR2sqq+TUu9m+DO4SoVjQ@mail.gmail.com>
+	<201206291757.000492@ms2.cniteam.com>
+Date: Fri, 29 Jun 2012 14:35:25 -0400
+Message-ID: <CAGoCfiwby3tn5Zh1cyEbnW-Jag6SXbCKg89SMkxMyPKD29JEfg@mail.gmail.com>
+Subject: Re: AverTVHD Volar Max (h286DU)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: aschuler@bright.net
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- drivers/media/video/cx25821/cx25821-i2c.c |    3 ---
- drivers/media/video/cx25821/cx25821.h     |    2 --
- 2 files changed, 0 insertions(+), 5 deletions(-)
+On Fri, Jun 29, 2012 at 1:57 PM,  <aschuler@bright.net> wrote:
+> I don't need to save the video, except that I'm using CC
+> extractor, which expects an Mpeg-2 file. I'd like to capture as
+> many streams from one tuner as possible (one reason for working
+> in the Linux environment), the vendor-provided applications do
+> not allow me to run parallel instances. I'm hoping I can get
+> around that - does that seem naive?
+>
+> I do need ATSC/Clear QAM support. Analog is not necessary. USB
+> is preferable because I'm testing with a laptop.
 
-diff --git a/drivers/media/video/cx25821/cx25821-i2c.c b/drivers/media/video/cx25821/cx25821-i2c.c
-index 398e0e6..431fa7f 100644
---- a/drivers/media/video/cx25821/cx25821-i2c.c
-+++ b/drivers/media/video/cx25821/cx25821-i2c.c
-@@ -307,8 +307,6 @@ int cx25821_i2c_register(struct cx25821_i2c *bus)
- 
- 	memcpy(&bus->i2c_adap, &cx25821_i2c_adap_template,
- 	       sizeof(bus->i2c_adap));
--	memcpy(&bus->i2c_algo, &cx25821_i2c_algo_template,
--	       sizeof(bus->i2c_algo));
- 	memcpy(&bus->i2c_client, &cx25821_i2c_client_template,
- 	       sizeof(bus->i2c_client));
- 
-@@ -316,7 +314,6 @@ int cx25821_i2c_register(struct cx25821_i2c *bus)
- 
- 	strlcpy(bus->i2c_adap.name, bus->dev->name, sizeof(bus->i2c_adap.name));
- 
--	bus->i2c_algo.data = bus;
- 	bus->i2c_adap.algo_data = bus;
- 	i2c_set_adapdata(&bus->i2c_adap, &dev->v4l2_dev);
- 	bus->i2c_rc = i2c_add_adapter(&bus->i2c_adap);
-diff --git a/drivers/media/video/cx25821/cx25821.h b/drivers/media/video/cx25821/cx25821.h
-index b9aa801..ed52501 100644
---- a/drivers/media/video/cx25821/cx25821.h
-+++ b/drivers/media/video/cx25821/cx25821.h
-@@ -26,7 +26,6 @@
- 
- #include <linux/pci.h>
- #include <linux/i2c.h>
--#include <linux/i2c-algo-bit.h>
- #include <linux/interrupt.h>
- #include <linux/delay.h>
- #include <linux/sched.h>
-@@ -213,7 +212,6 @@ struct cx25821_i2c {
- 
- 	/* i2c i/o */
- 	struct i2c_adapter i2c_adap;
--	struct i2c_algo_bit_data i2c_algo;
- 	struct i2c_client i2c_client;
- 	u32 i2c_rc;
- 
+If you don't need analog then that makes things considerably simpler.
+The tuner will already deliver MPEG-2 (since that's what the
+broadcaster is sending), and tuners can be configured to deliver a
+full stream for cases where there are multiple channels on the same
+frequency.  That said though, you are limited by the number of
+physical tuners in that a single tuner can only be on one frequency at
+a time.
+
+What you need to understand is that different products have different
+numbers of tuners.  For example, the Hauppauge HVR-950q has a single
+tuner which can be shared for analog and digital while the HVR-2250
+has two tuners (each of which can tune to a single analog or digital
+channel).
+
+There is no inherent limitation under Linux which prevents you from
+having multiple tuners in use in parallel.  In fact it's actually
+quite common (many MythTV users for example record several programs at
+the same time since they have multiple tuners installed).
+
+Devin
+
 -- 
-1.7.4.4
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
