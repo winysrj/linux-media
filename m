@@ -1,105 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55875 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:12962 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758903Ab2FPAzG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jun 2012 20:55:06 -0400
-Message-ID: <4FDBD966.2030505@iki.fi>
-Date: Sat, 16 Jun 2012 03:55:02 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Malcolm Priestley <tvboxspy@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: dvb_usb_v2: use pointers to properties[REGRESSION]
-References: <1339798273.12274.21.camel@Route3278> <4FDBBD36.9020302@iki.fi> <1339806912.13364.35.camel@Route3278>
-In-Reply-To: <1339806912.13364.35.camel@Route3278>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+	id S1752201Ab2F2VwB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jun 2012 17:52:01 -0400
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q5TLq12i024276
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 29 Jun 2012 17:52:01 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 3/4] [media] drxk: Lock I2C bus during firmware load
+Date: Fri, 29 Jun 2012 18:51:56 -0300
+Message-Id: <1341006717-32373-4-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1341006717-32373-1-git-send-email-mchehab@redhat.com>
+References: <20120629124719.2cf23f6b@endymion.delvare>
+ <1341006717-32373-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/16/2012 03:35 AM, Malcolm Priestley wrote:
-> On Sat, 2012-06-16 at 01:54 +0300, Antti Palosaari wrote:
->> Hello Malcolm,
->>
->> On 06/16/2012 01:11 AM, Malcolm Priestley wrote:
->>> Hi Antti
->>>
->>> You can't have dvb_usb_device_properties as constant structure pointer.
->>>
->>> At run time it needs to be copied to a private area.
->>
->> Having constant structure for properties was one of main idea of whole
->> change. Earlier it causes some problems when driver changes those values
->> - for example remote configuration based info from the eeprom.
->>
->>> Two or more devices of the same type on the system will be pointing to
->>> the same structure.
->>
->> Yes and no. You can define struct dvb_usb_device_properties for each USB ID.
->>
->>> Any changes they make to the structure will be common to all.
->>
->> For those devices having same USB ID only.
->> Changing dvb_usb_device_properties is *not* allowed. It is constant and
->> should be. That was how I designed it. Due to that I introduced those
->> new callbacks to resolve needed values dynamically.
-> Yes, but it does make run-time tweaks difficult.
->
->> If there is still something that is needed to resolve at runtime I am
->> happy to add new callback. For example PID filter configuration is
->> static currently as per adapter and if it is needed to to reconfigure at
->> runtime new callback is needed.
-> I will look at the PID filter later, it defaulted to off.
->
-> However, in my builds for ARM devices it is defaulted on. I will be
-> testing this later. I can't see any problems.
->
->>
->> Could you say what is your problem I can likely say how to resolve it.
->>
->
-> Well, the problem is, I now need two separate structures for LME2510 and
-> LME2510C as in the existing driver, the hope was to merge them as one.
-> The only difference being the stream endpoint number.
+Don't allow other devices at the same I2C bus to use it during
+firmware load, in order to prevent using the device while it is
+not on a sane state.
 
-Then you should use .get_usb_stream_config() instead of static stream 
-configuration. That is now supported.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/drxk_hard.c |   29 +++++++++++++++++++++++++++--
+ drivers/media/dvb/frontends/drxk_hard.h |    3 +++
+ 2 files changed, 30 insertions(+), 2 deletions(-)
 
-I have found one logical error in my current implementation. 
-get_usb_stream_config gets frontend as a parameter, but it is called 
-frontend == NULL when attaching adapters and after that frontend is real 
-value when called (just before streaming is started). Now what happens 
-if we has multiple adapters? We cannot know which adapter is requested 
-during attach since FE is NULL :)
-But that is problem case only if you have multiple adapters. I will find 
-out better solution next few days. It is ugly now.
-You can just skip fe checking or something. See AF9015 for example.
-
-> Currently, it is implemented in identify_state on dvb_usb_v2.
->
-> The get_usb_stream_config has no access to device to to allow a run-time
-> change there.
-
-Hmmm, what you try to say? As FE is given as a pointer, you have also 
-adapter and device. Those are nested, device is root, then adapter is 
-under that and finally frontend are under the adapter.
-
-
-.
-└── device
-     ├── adapter0
-     │   ├── frontend0
-     │   ├── frontend1
-     │   └── frontend2
-     └── adapter1
-         ├── frontend0
-         ├── frontend1
-         └── frontend2
-
-
-regards
-Antti
+diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
+index 5b3a17c..87cb3f0 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.c
++++ b/drivers/media/dvb/frontends/drxk_hard.c
+@@ -28,6 +28,7 @@
+ #include <linux/delay.h>
+ #include <linux/firmware.h>
+ #include <linux/i2c.h>
++#include <linux/hardirq.h>
+ #include <asm/div64.h>
+ 
+ #include "dvb_frontend.h"
+@@ -308,10 +309,30 @@ static u32 Log10Times100(u32 x)
+ /* I2C **********************************************************************/
+ /****************************************************************************/
+ 
++static int drxk_i2c_lock(struct drxk_state *state)
++{
++	i2c_lock_adapter(state->i2c);
++	state->drxk_i2c_exclusive_lock = true;
++
++	return 0;
++}
++
++static void drxk_i2c_unlock(struct drxk_state *state)
++{
++	if (!state->drxk_i2c_exclusive_lock)
++		return;
++
++	i2c_unlock_adapter(state->i2c);
++	state->drxk_i2c_exclusive_lock = false;
++}
++
+ static int drxk_i2c_transfer(struct drxk_state *state, struct i2c_msg *msgs,
+ 			     unsigned len)
+ {
+-	return i2c_transfer(state->i2c, msgs, len);
++	if (state->drxk_i2c_exclusive_lock)
++		return __i2c_transfer(state->i2c, msgs, len);
++	else
++		return i2c_transfer(state->i2c, msgs, len);
+ }
+ 
+ static int i2c_read1(struct drxk_state *state, u8 adr, u8 *val)
+@@ -5982,6 +6003,7 @@ static int init_drxk(struct drxk_state *state)
+ 
+ 	dprintk(1, "\n");
+ 	if ((state->m_DrxkState == DRXK_UNINITIALIZED)) {
++		drxk_i2c_lock(state);
+ 		status = PowerUpDevice(state);
+ 		if (status < 0)
+ 			goto error;
+@@ -6171,10 +6193,13 @@ static int init_drxk(struct drxk_state *state)
+ 			strlcat(state->frontend.ops.info.name, " DVB-T",
+ 				sizeof(state->frontend.ops.info.name));
+ 		}
++		drxk_i2c_unlock(state);
+ 	}
+ error:
+-	if (status < 0)
++	if (status < 0) {
++		drxk_i2c_unlock(state);
+ 		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
++	}
+ 
+ 	return status;
+ }
+diff --git a/drivers/media/dvb/frontends/drxk_hard.h b/drivers/media/dvb/frontends/drxk_hard.h
+index 36677cd..c35ab2b 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.h
++++ b/drivers/media/dvb/frontends/drxk_hard.h
+@@ -325,6 +325,9 @@ struct drxk_state {
+ 
+ 	enum DRXPowerMode m_currentPowerMode;
+ 
++	/* when true, avoids other devices to use the I2C bus */
++	bool		  drxk_i2c_exclusive_lock;
++
+ 	/*
+ 	 * Configurable parameters at the driver. They stores the values found
+ 	 * at struct drxk_config.
 -- 
-http://palosaari.fi/
-
+1.7.10.2
 
