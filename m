@@ -1,90 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2254 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755879Ab2FXL3T (ORCPT
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:53710 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751895Ab2F2ON7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jun 2012 07:29:19 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 29 Jun 2012 10:13:59 -0400
+Received: by gglu4 with SMTP id u4so2731897ggl.19
+        for <linux-media@vger.kernel.org>; Fri, 29 Jun 2012 07:13:58 -0700 (PDT)
+MIME-Version: 1.0
+Date: Fri, 29 Jun 2012 09:13:58 -0500
+Message-ID: <CAC-OdnAEsT=wDGZZVcNaywAFg2aquRNk3NkYFZZjbYH+VBPpBQ@mail.gmail.com>
+Subject: [Query] Clearing V4L2_BUF_FLAG_MAPPED flag on a videobuf2 buffer
+ after munmap
+From: Sergio Aguirre <sergio.a.aguirre@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Manjunatha Halli <manjunatha_halli@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Anatolij Gustschin <agust@denx.de>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Sensoray Linux Development <linux-dev@sensoray.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	mitov@issp.bas.bg, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 17/26] bfin_capture: remove V4L2_FL_LOCK_ALL_FOPS
-Date: Sun, 24 Jun 2012 13:26:09 +0200
-Message-Id: <b2dda39d22d754510be4dd390f55670f52249913.1340536092.git.hans.verkuil@cisco.com>
-In-Reply-To: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
-References: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
-References: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi all,
 
-Add proper locking to the file operations, allowing for the removal
-of the V4L2_FL_LOCK_ALL_FOPS flag.
+So, I've been trying to test the REQBUFS(0) from libv4l2 with my
+omap4iss device, and I've hit the following problem:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/blackfin/bfin_capture.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+So, I basically do the basic IOCTL sequence:
 
-diff --git a/drivers/media/video/blackfin/bfin_capture.c b/drivers/media/video/blackfin/bfin_capture.c
-index 0aba45e..1677623 100644
---- a/drivers/media/video/blackfin/bfin_capture.c
-+++ b/drivers/media/video/blackfin/bfin_capture.c
-@@ -235,8 +235,13 @@ static int bcap_release(struct file *file)
- static int bcap_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	struct bcap_device *bcap_dev = video_drvdata(file);
-+	int ret;
- 
--	return vb2_mmap(&bcap_dev->buffer_queue, vma);
-+	if (mutex_lock_interruptible(&bcap_dev->mutex))
-+		return -ERESTARTSYS;
-+	ret = vb2_mmap(&bcap_dev->buffer_queue, vma);
-+	mutex_unlock(&bcap_dev->mutex);
-+	return ret;
- }
- 
- #ifndef CONFIG_MMU
-@@ -259,8 +264,12 @@ static unsigned long bcap_get_unmapped_area(struct file *file,
- static unsigned int bcap_poll(struct file *file, poll_table *wait)
- {
- 	struct bcap_device *bcap_dev = video_drvdata(file);
-+	unsigned int res;
- 
--	return vb2_poll(&bcap_dev->buffer_queue, file, wait);
-+	mutex_lock(&bcap_dev->mutex);
-+	res = vb2_poll(&bcap_dev->buffer_queue, file, wait);
-+	mutex_unlock(&bcap_dev->mutex);
-+	return res;
- }
- 
- static int bcap_queue_setup(struct vb2_queue *vq,
-@@ -942,10 +951,6 @@ static int __devinit bcap_probe(struct platform_device *pdev)
- 	INIT_LIST_HEAD(&bcap_dev->dma_queue);
- 
- 	vfd->lock = &bcap_dev->mutex;
--	/* Locking in file operations other than ioctl should be done
--	   by the driver, not the V4L2 core.
--	   This driver needs auditing so that this flag can be removed. */
--	set_bit(V4L2_FL_LOCK_ALL_FOPS, &vfd->flags);
- 
- 	/* register video device */
- 	ret = video_register_device(bcap_dev->video_dev, VFL_TYPE_GRABBER, -1);
--- 
-1.7.10
+open(/dev/video0)
+VIDIOC_QUERYCAP
+VIDIOC_ENUM_FMT
+VIDIOC_ENUM_FRAMESIZES
+VIDIOC_ENUM_FRAMEINTERVALS
+VIDIOC_S_FMT (w = 640, h = 480, pixfmt = V4L2_PIX_FMT_YUYV, type =
+V4L2_BUF_TYPE_VIDEO_CAPTURE)
+VIDIOC_S_PARM (capability = V4L2_CAP_TIMEPERFRAME, timeperframe = 1/30)
+VIDIOC_REQBUFS (count = 6, MMAP)
+  Loop for 6 times:
+    VIDIOC_QUERYBUF (to get buff length)
+    mmap(length)
+  Loop for 6 times:
+    VIDIOC_QBUF(index = 0-5)
+VIDIOC_STREAMON
+  (Loop to poll, DQBUF and QBUF the same buffer)
+VIDIOC_STREAMOFF
+  Loop for 6 times:
+    munmap()
+VIDIOC_REQBUFS (count = 0, MMAP)
 
+... And in this call, it fails on libv4l2 level, since it checks all
+buffers to see
+if they're mapped, by doign QUERYBUF on each index, and checking for
+"V4L2_BUF_FLAG_MAPPED" flag.
+
+Now, digging deep into how this flag is populated, I noticed the following:
+
+I notice that in "drivers/media/video/videobuf2-core.c", inside:
+vb2_querybuf()
+  -> __fill_v4l2_buffer()
+
+There's this condition:
+	if (vb->num_planes_mapped == vb->num_planes)
+		b->flags |= V4L2_BUF_FLAG_MAPPED;
+
+The problem is that, even if i did a munmap, the count of vb->num_planes_mapped
+is not decreased... :/
+
+How's this supposed to work? Do I need to do something in my driver to avoid
+this flag to be set?
+
+Regards,
+Sergio
