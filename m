@@ -1,63 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4569 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932803Ab2FVMV5 (ORCPT
+Received: from zoneX.GCU-Squad.org ([194.213.125.0]:25255 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754834Ab2F2Kr2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jun 2012 08:21:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pawel Osciak <pawel@osciak.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 31/34] vivi: add create_bufs/preparebuf support.
-Date: Fri, 22 Jun 2012 14:21:25 +0200
-Message-Id: <a4475e644e339d9c3de8a4aebdc0f08488df8a1a.1340366355.git.hans.verkuil@cisco.com>
-In-Reply-To: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
-References: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1cee710ae251aa69bed8e563a94b419ed99bc41a.1340366355.git.hans.verkuil@cisco.com>
-References: <1cee710ae251aa69bed8e563a94b419ed99bc41a.1340366355.git.hans.verkuil@cisco.com>
+	Fri, 29 Jun 2012 06:47:28 -0400
+Date: Fri, 29 Jun 2012 12:47:19 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Linux I2C <linux-i2c@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: LMML <linux-media@vger.kernel.org>
+Subject: [PATCH] i2c: Export an unlocked flavor of i2c_transfer
+Message-ID: <20120629124719.2cf23f6b@endymion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Some drivers (in particular for TV cards) need exclusive access to
+their I2C buses for specific operations. Export an unlocked flavor
+of i2c_transfer to give them full control.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+The unlocked flavor has the following limitations:
+* Obviously, caller must hold the i2c adapter lock.
+* No debug messages are logged. We don't want to log messages while
+  holding a rt_mutex.
+* No check is done on the existence of adap->algo->master_xfer. It
+  is thus the caller's responsibility to ensure that the function is
+  OK to call.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/video/vivi.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+Mauro, would this be OK with you?
 
-diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-index f6d7c6e..1e8c4f3 100644
---- a/drivers/media/video/vivi.c
-+++ b/drivers/media/video/vivi.c
-@@ -767,7 +767,13 @@ static int queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
- 	struct vivi_dev *dev = vb2_get_drv_priv(vq);
- 	unsigned long size;
+ drivers/i2c/i2c-core.c |   44 +++++++++++++++++++++++++++++++++-----------
+ include/linux/i2c.h    |    3 +++
+ 2 files changed, 36 insertions(+), 11 deletions(-)
+
+--- linux-3.5-rc4.orig/drivers/i2c/i2c-core.c	2012-06-05 16:22:59.000000000 +0200
++++ linux-3.5-rc4/drivers/i2c/i2c-core.c	2012-06-29 12:41:04.707793937 +0200
+@@ -1312,6 +1312,37 @@ module_exit(i2c_exit);
+  */
  
--	size = dev->width * dev->height * dev->pixelsize;
-+	if (fmt)
-+		size = fmt->fmt.pix.sizeimage;
-+	else
-+		size = dev->width * dev->height * dev->pixelsize;
+ /**
++ * __i2c_transfer - unlocked flavor of i2c_transfer
++ * @adap: Handle to I2C bus
++ * @msgs: One or more messages to execute before STOP is issued to
++ *	terminate the operation; each message begins with a START.
++ * @num: Number of messages to be executed.
++ *
++ * Returns negative errno, else the number of messages executed.
++ *
++ * Adapter lock must be held when calling this function. No debug logging
++ * takes place. adap->algo->master_xfer existence isn't checked.
++ */
++int __i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
++{
++	unsigned long orig_jiffies;
++	int ret, try;
 +
-+	if (size == 0)
-+		return -EINVAL;
++	/* Retry automatically on arbitration loss */
++	orig_jiffies = jiffies;
++	for (ret = 0, try = 0; try <= adap->retries; try++) {
++		ret = adap->algo->master_xfer(adap, msgs, num);
++		if (ret != -EAGAIN)
++			break;
++		if (time_after(jiffies, orig_jiffies + adap->timeout))
++			break;
++	}
++
++	return ret;
++}
++EXPORT_SYMBOL(__i2c_transfer);
++
++/**
+  * i2c_transfer - execute a single or combined I2C message
+  * @adap: Handle to I2C bus
+  * @msgs: One or more messages to execute before STOP is issued to
+@@ -1325,8 +1356,7 @@ module_exit(i2c_exit);
+  */
+ int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
+ {
+-	unsigned long orig_jiffies;
+-	int ret, try;
++	int ret;
  
- 	if (0 == *nbuffers)
- 		*nbuffers = 32;
-@@ -1180,6 +1186,8 @@ static const struct v4l2_ioctl_ops vivi_ioctl_ops = {
- 	.vidioc_try_fmt_vid_cap   = vidioc_try_fmt_vid_cap,
- 	.vidioc_s_fmt_vid_cap     = vidioc_s_fmt_vid_cap,
- 	.vidioc_reqbufs       = vb2_ioctl_reqbufs,
-+	.vidioc_create_bufs   = vb2_ioctl_create_bufs,
-+	.vidioc_prepare_buf   = vb2_ioctl_prepare_buf,
- 	.vidioc_querybuf      = vb2_ioctl_querybuf,
- 	.vidioc_qbuf          = vb2_ioctl_qbuf,
- 	.vidioc_dqbuf         = vb2_ioctl_dqbuf,
--- 
-1.7.10
+ 	/* REVISIT the fault reporting model here is weak:
+ 	 *
+@@ -1364,15 +1394,7 @@ int i2c_transfer(struct i2c_adapter *ada
+ 			i2c_lock_adapter(adap);
+ 		}
+ 
+-		/* Retry automatically on arbitration loss */
+-		orig_jiffies = jiffies;
+-		for (ret = 0, try = 0; try <= adap->retries; try++) {
+-			ret = adap->algo->master_xfer(adap, msgs, num);
+-			if (ret != -EAGAIN)
+-				break;
+-			if (time_after(jiffies, orig_jiffies + adap->timeout))
+-				break;
+-		}
++		ret = __i2c_transfer(adap, msgs, num);
+ 		i2c_unlock_adapter(adap);
+ 
+ 		return ret;
+--- linux-3.5-rc4.orig/include/linux/i2c.h	2012-06-05 16:23:05.000000000 +0200
++++ linux-3.5-rc4/include/linux/i2c.h	2012-06-29 10:29:47.865621249 +0200
+@@ -68,6 +68,9 @@ extern int i2c_master_recv(const struct
+  */
+ extern int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs,
+ 			int num);
++/* Unlocked flavor */
++extern int __i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs,
++			  int num);
+ 
+ /* This is the very generalized SMBus access routine. You probably do not
+    want to use this, though; one of the functions below may be much easier,
 
+-- 
+Jean Delvare
