@@ -1,41 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:54221 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753953Ab2FGS0G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jun 2012 14:26:06 -0400
-Received: by lbbgm6 with SMTP id gm6so760973lbb.19
-        for <linux-media@vger.kernel.org>; Thu, 07 Jun 2012 11:26:04 -0700 (PDT)
-MIME-Version: 1.0
-Date: Thu, 7 Jun 2012 15:26:04 -0300
-Message-ID: <CALF0-+VmR6izw6zXj+kOsrQDPN94v8jqhoRmeYp1vvexuoFJ1Q@mail.gmail.com>
-Subject: [Q] Why is it needed to add an alsa module to v4l audio capture devices?
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:35805 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751845Ab2F2VwB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jun 2012 17:52:01 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q5TLq1lF024161
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 29 Jun 2012 17:52:01 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 0/4] drxk: use request_firmware_nowait()
+Date: Fri, 29 Jun 2012 18:51:53 -0300
+Message-Id: <1341006717-32373-1-git-send-email-mchehab@redhat.com>
+In-Reply-To: <20120629124719.2cf23f6b@endymion.delvare>
+References: <20120629124719.2cf23f6b@endymion.delvare>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+This patch series should be applied after "i2c: Export an unlocked 
+flavor of i2c_transfer". It converts the drxk driver to use
+request_firmware_nowait() and prevents I2C bus usage during firmware
+load.
 
-(I hope this is a genuine question, and I'm not avoiding my own homework here.)
+If firmware load doesn't happen and the device cannot be reset due
+to that, -ENODEV will be returned to all dvb callbacks.
 
-I'm trying to support the audio part of the stk1160 usb bridge
-(similar to em28xx).
-Currently, the snd-usb-audio module is being loaded when I physically
-plug my device,
-but I can't seem to capture any sound with vlc.
+Mauro Carvalho Chehab (4):
+  [media] drxk: change it to use request_firmware_nowait()
+  [media] drxk: pass drxk priv struct instead of I2C adapter to i2c
+    calls
+  [media] drxk: Lock I2C bus during firmware load
+  [media] drxk: prevent doing something wrong when init is not ok
 
-I still have to research and work a lot to understand the connection
-between my device
-and alsa, and altough I could write a working module similar to
-em28xx-alsa.ko, I still
-can't figure out why do I need to write one in the first place.
+ drivers/media/dvb/frontends/drxk_hard.c |  228 +++++++++++++++++++++++--------
+ drivers/media/dvb/frontends/drxk_hard.h |   16 ++-
+ 2 files changed, 187 insertions(+), 57 deletions(-)
 
-Why is this module suffficient for gspca microphone devices (gspca, to name one)
-and why is a new alsa driver needed for em28xx (or stk1160)?
+-- 
+1.7.10.2
 
-Hope my question is clear enough,
-Thanks in advance,
-Ezequiel.
