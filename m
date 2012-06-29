@@ -1,167 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:46633 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752666Ab2FNWcL (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:60839 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752750Ab2F2JGO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jun 2012 18:32:11 -0400
-Received: by weyu7 with SMTP id u7so1610178wey.19
-        for <linux-media@vger.kernel.org>; Thu, 14 Jun 2012 15:32:10 -0700 (PDT)
-Message-ID: <1339713121.27851.9.camel@Route3278>
-Subject: Re: [PATCH 1/2] [BUG] dvb_usb_v2:  return the download ret in
- dvb_usb_download_firmware
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	htl10@users.sourceforge.net
-Date: Thu, 14 Jun 2012 23:32:01 +0100
-In-Reply-To: <4FDA61BD.9040809@iki.fi>
-References: <1339626272.2421.74.camel@Route3278> <4FD9224F.7050809@iki.fi>
-	  <1339634648.3833.37.camel@Route3278> <4FD93B3B.9000003@iki.fi>
-	  <4FDA4A18.5050900@iki.fi> <1339709613.16046.11.camel@Route3278>
-	 <4FDA61BD.9040809@iki.fi>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 29 Jun 2012 05:06:14 -0400
+Date: Fri, 29 Jun 2012 11:06:12 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 7/8] soc-camera: Add and use soc_camera_power_[on|off]()
+ helper functions
+In-Reply-To: <1392195.aTfbvqOaS8@avalon>
+Message-ID: <Pine.LNX.4.64.1206291014490.3929@axis700.grange>
+References: <1337786855-28759-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1337786855-28759-8-git-send-email-laurent.pinchart@ideasonboard.com>
+ <Pine.LNX.4.64.1206211645430.3513@axis700.grange> <1392195.aTfbvqOaS8@avalon>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2012-06-15 at 01:12 +0300, Antti Palosaari wrote:
-> On 06/15/2012 12:33 AM, Malcolm Priestley wrote:
-> > On Thu, 2012-06-14 at 23:31 +0300, Antti Palosaari wrote:
-> >> On 06/14/2012 04:15 AM, Antti Palosaari wrote:
-> >>> On 06/14/2012 03:44 AM, Malcolm Priestley wrote:
-> >>>> On Thu, 2012-06-14 at 02:29 +0300, Antti Palosaari wrote:
-> >>>>> Hi Malcolm,
-> >>>>> I was really surprised someone has had interest to test that stuff at
-> >>>>> that phase as I did not even advertised it yet :) It is likely happen
-> >>>>> next Monday or so as there is some issues I would like to check / solve.
-> >>>>>
-> >>>>>
-> >>>>> On 06/14/2012 01:24 AM, Malcolm Priestley wrote:
-> >>>>>> Hi antti
-> >>>>>>
-> >>>>>> There some issues with dvb_usb_v2 with the lmedm04 driver.
-> >>>>>>
-> >>>>>> The first being this patch, no return value from
-> >>>>>> dvb_usb_download_firmware
-> >>>>>> causes system wide dead lock with COLD disconnect as system attempts
-> >>>>>> to continue
-> >>>>>> to warm state.
-> >>>>>
-> >>>>> Hmm, I did not understand what you mean. What I looked lmedm04 driver I
-> >>>>> think it uses single USB ID (no cold + warm IDs). So it downloads
-> >>>>> firmware and then reconnects itself from the USB bus?
-> >>>>> For that scenario you should "return RECONNECTS_USB;" from the driver
-> >>>>> .download_firmware().
-> >>>>>
-> >>>> If the device disconnects from the USB bus after the firmware download.
-> >>>>
-> >>>> In most cases the device is already gone.
-> >>>>
-> >>>> There is currently no way to insert RECONNECTS_USB into the return.
-> >>>
-> >>> Argh, I was blind! You are absolutely correct. It never returns value 1
-> >>> (RECONNECTS_USB) from the .download_firmware().
-> >>>
-> >>> That patch is fine, I will apply it, thanks!
-> >>>
-> >>> I think that must be also changed to return immediately without
-> >>> releasing the interface. Let the USB core release it when it detects
-> >>> disconnect - otherwise it could crash as it tries to access potentially
-> >>> resources that are already freed. Just for the timing issue if it
-> >>> happens or not.
-> >>>
-> >>> } else if (ret == RECONNECTS_USB) {
-> >>> ret = 0;
-> >>> goto exit_usb_driver_release_interface;
-> >>>
-> >>> add return 0 here without releasing interface and test.
-> >>>
-> >>>
-> >>>>> I tested it using one non-public Cypress FX2 device - it was changing
-> >>>>> USB ID after the FX download, but from the driver perspective it does
-> >>>>> not matter. It is always new device if it reconnects USB.
-> >>>>>
-> >>>>
-> >>>> Have double checked that the thread is not continuing to write on the
-> >>>> old ID?
-> >>>
-> >>> Nope, but likely delayed probe() is finished until it reconnects so I
-> >>> cannot see problem. You device disconnects faster and thus USB core
-> >>> traps .disconnect() earlier...
-> >>>
-> >>> Could you test returning 0 and if it works sent new patch.
-> >>>
-> >>>> The zero condition will lead to dvb_usb_init.
-> >>>>
-> >>>>> PS. as I looked that driver I saw many different firmwares. That is now
-> >>>>> supported and you should use .get_firmware_name() (maybe you already did
-> >>>>> it).
-> >>>>>
-> >>>> Yes, I have supported this in the driver.
-> >>
-> >> Malcolm,
-> >>
-> >> could you just test if returning from the routines after fw download is
-> >> enough to fix all your problems?
-> >>
-> >> I mean those two fixes:
-> >> dvb_usb_download_firmware()
-> >> * return RECONNECTS_USB correctly
-> >>
-> >> dvb_usbv2_init_work()
-> >> * return without releasing USB interface if RECONNECTS_USB
-> > Hi Antti,
-> >
-> > Yes, I have tested it and there is no difference.
-> >
-> > My understanding is, if the interface is no longer bound it returns
-> > anyway.
-> >
-> > It is best not to use it, other drivers in the dvb-usb tree may not like
-> > to be forcibly unbound prior to their reset.
-> 
-> I don't understand why this logic cannot work. Do you have some crash 
-> dump I can see likely functions in path?
-Sorry, you misunderstood me, there is no crash.
+On Thu, 28 Jun 2012, Laurent Pinchart wrote:
 
-I was only talking using usb_driver_release_interface() or not.
-
-The skeleton code below would work fine :-)
-
-Regards
-
-Malcolm
-
+> Hi Guennadi,
 > 
-> I draw it here as a skeleton code.
+> Thanks for the review.
 > 
-> dvb_usbv2_init_work()
->    ret = download_firmware()
->    if (ret == DEVICE_IS_WARM)
->      init_device()
->      return
->    else if (ret == DEVICE_RECONECTS_USB)
->      return
->    else (ret == some error code)
->      usb_driver_release_interface()
->      return
-> 
-> dvb_usbv2_probe()
->    state = alloc()
->    usb_set_intfdata(state)
->    schedule_work(dvb_usbv2_init_work)
->    return 0
-> 
-> dvb_usbv2_disconnect()
->    state = usb_get_intfdata()
->    cancel_work_sync(dvb_usbv2_init_work)
->    free(state)
-> 
-> Anyhow, I have devices I know how to force reconnect USB (AF9015, EC168) 
-> when needed. So I will make some tests here.
-> 
-> regards
-> Antti
+> On Thursday 21 June 2012 23:15:14 Guennadi Liakhovetski wrote:
+> > On Wed, 23 May 2012, Laurent Pinchart wrote:
 
+> > > -static int soc_camera_power_off(struct soc_camera_device *icd,
+> > > -				struct soc_camera_link *icl)
+> > > +int soc_camera_power_off(struct device *dev, struct soc_camera_link *icl)
+> > >  {
+> > > -	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+> > > -	int ret = v4l2_subdev_call(sd, core, s_power, 0);
+> > > -
+> > > -	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
+> > > -		return ret;
+> > > +	int ret;
+> > > 
+> > >  	if (icl->power) {
+> > > -		ret = icl->power(icd->control, 0);
+> > > -		if (ret < 0) {
+> > > -			dev_err(icd->pdev,
+> > > +		ret = icl->power(dev, 0);
+> > > +		if (ret < 0)
+> > > +			dev_err(dev,
+> > >  				"Platform failed to power-off the camera.\n");
+> > > -			return ret;
+> > > -		}
+> > >  	}
+> > >  	
+> > >  	ret = regulator_bulk_disable(icl->num_regulators,
+> > >  				     icl->regulators);
+> > 
+> > This is also a change in behaviour: currently if any of power-off stages
+> > fails we bail out. With this patch you change it to continue with the next
+> > stage. I'm not sure which one is more correct, but at least I wouldn't
+> > silently change it under the counter ;-)
+> 
+> During power off I think it's better to continue to the next stage. Would you 
+> like me to split this to another patch, or to mention it in the commit message 
+> ?
 
+Ok, since this patch is so big and touches so mane other drivers, I think 
+it'd be cleaner splitting this into a separate patch, preferably - before 
+this one.
+
+> > > @@ -1070,7 +1076,7 @@ static int soc_camera_probe(struct soc_camera_device
+> > > *icd)> 
+> > >  	 * again after initialisation, even though it shouldn't be needed, we
+> > >  	 * don't do any IO here.
+> > >  	 */
+> > > 
+> > > -	ret = soc_camera_power_on(icd, icl);
+> > > +	ret = soc_camera_power_on(NULL, icl);
+> > 
+> > Oops, no good... I think, at least dev_err() et al. don't like being
+> > called with NULL dev... But even without that, I think, this looks so bad,
+> > that it defeats the whole conversion... IIRC, you didn't like keeping the
+> > original soc-camera platform device pointer for icl->power(), because non
+> > soc-camera hosts and platforms don't have that device and would have to
+> > either pass NULL or some other device pointer. Now, we're switching all
+> > icl->power() calls to point to the physical device, which is largely
+> > useless also for soc-camera platforms (they'd have to go back to the
+> > original platform device if they wish to use that pointer at all), all -
+> > except one - in which we pass NULL... So, what's the point? :) I really
+> > would keep the soc-camera platform device pointer for icl->power().
+> > 
+> > There would be a slight difficulty to get to that pointer in
+> > soc_camera_power_*(). Just passing a subdevice pointer to it and using
+> > v4l2_get_subdev_hostdata(sd) isn't sufficient, because that would only
+> > work in the soc-camera environment. If the same client driver is running
+> > outside of it, v4l2_get_subdev_hostdata(sd) might well point to something
+> > completely different. So, we need a way to distinguish, whether this
+> > client is running on an soc-camera host or not. It is possible to have a
+> > system with two cameras - one connected to the SoC interface and another
+> > one to USB with both sensors using soc-camera services. Only one of them
+> > is associated with an soc-camera device, and another one is not. One way
+> > to distinguish this would be to scan the devices list in soc_camera.c to
+> > see, whether any icd->link == icl. If the client is found - we pass its
+> > platform device pointer to icl->power(). If not - pass NULL. The wrapper
+> > inline function would then become
+> > 
+> > 	return soc_camera_s_power(icl, on);
+> > 
+> > Do you see any problems with this approach?
+> 
+> If I had proposed such a hack I would have sworn you would have rejected it 
+> ;-)
+
+Of course, what did you expect? ;-)
+
+> My first idea was to get rid of the device pointer completely. None of the 
+> platform callbacks use it. You didn't really like that, as it would make 
+> implementation of a future platform that would require the device pointer more 
+> complex.
+
+Not only this. Pushing a patch that touches drivers, arch/sh and arch/arm 
+is something, that doesn't seem to be favoured very highly these days. 
+You'd need something as ugly as - (1) add a new callback without the 
+device pointer and convert soc-camera to check-and-call both, (2) port all 
+platforms to the new one, (3) remove the old one. All this for no 
+practical gain, especially since they'll be gone soon with DT:-)
+
+> I've thus decided to switch to pass the physical struct device 
+> associated with the device to the power functions, down to the board code. I 
+> don't think board code would need to go back to the original platform device 
+> to discriminate between devices, checking the physical device properties (such 
+> as the I2C address or bus number for instance) should be enough.
+> 
+> With your approach we would pass a different device pointer to platform code 
+> depending on whether we use a soc-camera host or not. With non soc-camera 
+> hosts the device pointer would always be NULL, which wouldn't let board code 
+> discrimate between devices. That's not a good situation either.
+
+Remember that those would normally be different platforms, you won't need 
+to distinguish between valid-pointer / NULL-pointer in one function. 
+Those, that know they'll be getting NULL will just ignore it. A case, like 
+in my example, with a USB camera and an SoC camera and both using the same 
+.power() function is rather unlikely, I think.
+
+> I'm really beginning to wonder whether we're not trying to fix a problem that 
+> will go away in the future, as we'll need to find a way to remove the platform 
+> callbacks when switching to the device tree anyway. Wouldn't it be better to 
+> remove the device pointer completely ?
+
+See above :)
+
+> (As for the dev_* macros, we could pass the platform device pointer here, and 
+> the physical device pointer when the power functions are called from devices).
+> 
+> And now I've just remembered that patch 8/8 removes this soc_camera_power_on() 
+> completely, so the above argument just got pointless, hasn't it ? :-/
+
+Almost. Ok, you can choose any of the following 3 options (or propose 
+more, of course:-)): (1) follow my idea with list scanning, (2) swap 
+patches 8/9 and 9/9 to first remove power managing in probe(), then you 
+don't have the NULL problem, (3) keep everything as is, only use the 
+platform device pointer in this single call instead of NULL and put a 
+comment, saying like - yes, this is a dirty hack, will go with the next 
+commit.
+
+> [snip]
+> 
+> > > diff --git a/drivers/media/video/soc_camera_platform.c
+> > > b/drivers/media/video/soc_camera_platform.c index f59ccad..efd85e7 100644
+> > > --- a/drivers/media/video/soc_camera_platform.c
+> > > +++ b/drivers/media/video/soc_camera_platform.c
+> > > @@ -50,7 +50,20 @@ static int soc_camera_platform_fill_fmt(struct
+> > > v4l2_subdev *sd,> 
+> > >  	return 0;
+> > >  
+> > >  }
+> > > 
+> > > -static struct v4l2_subdev_core_ops platform_subdev_core_ops;
+> > > +static int soc_camera_platform_s_power(struct v4l2_subdev *sd, int on)
+> > > +{
+> > > +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> > 
+> > Nnnnoo... soc_camera_platform is special - it doesn't (have to) have an
+> > i2c device associated with it.
+> 
+> Oops. You're right. This might be the result of copy and paste late at night.
+> 
+> > You're only guaranteed to have a subdevice and an struct
+> > soc_camera_platform_priv instance (the latter actually contains the former
+> > as its only member). But you have the advantage, that this driver always
+> > only runs under soc-camera. At least I hope noone ever comes up with an idea
+> > to use it outside of soc-camera ;-) So, if we accept my above proposal to
+> > use the platform device for soc_camera_power_*(), then you can use something
+> > like
+> > 
+> > 	struct soc_camera_platform_info *p = v4l2_get_subdevdata(sd);
+> > 	soc_camera_s_power(p->icd->link, on);
+> 
+> A pointer to the physical device is stored at probe time in p->icd->control. 
+> What about
+> 
+>         struct soc_camera_platform_info *p = v4l2_get_subdevdata(sd);
+> 
+>         return soc_camera_set_power(p->icd->control, p->icd->link, on);
+
+Yep, seems ok.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
