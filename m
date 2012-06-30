@@ -1,71 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:46644 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754542Ab2FJBoz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jun 2012 21:44:55 -0400
-From: =?UTF-8?q?Daniel=20Gl=C3=B6ckner?= <daniel-gl@gmx.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Daniel=20Gl=C3=B6ckner?= <daniel-gl@gmx.net>
-Subject: [PATCH 2/9] tvaudio: fix tda8425_setmode
-Date: Sun, 10 Jun 2012 03:43:51 +0200
-Message-Id: <1339292638-12205-3-git-send-email-daniel-gl@gmx.net>
-In-Reply-To: <20120609214100.GA1598@minime.bse>
-References: <20120609214100.GA1598@minime.bse>
+Received: from emh07.mail.saunalahti.fi ([62.142.5.117]:43218 "EHLO
+	emh07.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752200Ab2F3JoH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 30 Jun 2012 05:44:07 -0400
+Message-ID: <4FEECA65.9090205@kolumbus.fi>
+Date: Sat, 30 Jun 2012 12:44:05 +0300
+From: Marko Ristola <marko.ristola@kolumbus.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media <linux-media@vger.kernel.org>,
+	htl10@users.sourceforge.net
+Subject: Re: DVB core enhancements - comments please?
+References: <4FEBA656.7060608@iki.fi>
+In-Reply-To: <4FEBA656.7060608@iki.fi>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The passed audio mode is not a bitfield.
 
-Signed-off-by: Daniel Glöckner <daniel-gl@gmx.net>
----
- drivers/media/video/tvaudio.c |   24 ++++++++++++++----------
- 1 files changed, 14 insertions(+), 10 deletions(-)
+Hi Antti.
 
-diff --git a/drivers/media/video/tvaudio.c b/drivers/media/video/tvaudio.c
-index 9b85e2a..76a8cbe 100644
---- a/drivers/media/video/tvaudio.c
-+++ b/drivers/media/video/tvaudio.c
-@@ -1230,21 +1230,25 @@ static void tda8425_setmode(struct CHIPSTATE *chip, int mode)
- {
- 	int s1 = chip->shadow.bytes[TDA8425_S1+1] & 0xe1;
- 
--	if (mode & V4L2_TUNER_MODE_LANG1) {
-+	switch (mode) {
-+	case V4L2_TUNER_MODE_LANG1:
- 		s1 |= TDA8425_S1_ML_SOUND_A;
- 		s1 |= TDA8425_S1_STEREO_PSEUDO;
--
--	} else if (mode & V4L2_TUNER_MODE_LANG2) {
-+		break;
-+	case V4L2_TUNER_MODE_LANG2:
- 		s1 |= TDA8425_S1_ML_SOUND_B;
- 		s1 |= TDA8425_S1_STEREO_PSEUDO;
--
--	} else {
-+		break;
-+	case V4L2_TUNER_MODE_MONO:
- 		s1 |= TDA8425_S1_ML_STEREO;
--
--		if (mode & V4L2_TUNER_MODE_MONO)
--			s1 |= TDA8425_S1_STEREO_MONO;
--		if (mode & V4L2_TUNER_MODE_STEREO)
--			s1 |= TDA8425_S1_STEREO_SPATIAL;
-+		s1 |= TDA8425_S1_STEREO_MONO;
-+		break;
-+	case V4L2_TUNER_MODE_STEREO:
-+		s1 |= TDA8425_S1_ML_STEREO;
-+		s1 |= TDA8425_S1_STEREO_SPATIAL;
-+		break;
-+	default:
-+		return;
- 	}
- 	chip_write(chip,TDA8425_S1,s1);
- }
--- 
-1.7.0.5
+My suspend / resume patch implemented "Kaffeine continues viewing channel after resume".
+Some of the ideas could be still useful: http://www.spinics.net/lists/linux-dvb/msg19651.html
 
+Rest of this email has a more thorough description.
+
+Regards,
+Marko Ristola
+
+On 06/28/2012 03:33 AM, Antti Palosaari wrote:
+> Here is my list of needed DVB core related changes. Feel free to comment - what are not needed or what you would like to see instead. I will try to implement what I can (and what I like most interesting :).
+>
+...
+> suspend / resume support
+> --------------------------------------------------
+> * support is currently quite missing, all what is done is on interface drivers
+> * needs power management
+> * streaming makes it hard
+> * quite a lot work to get it working in case of straming is ongoing
+
+
+I've implemented Suspend/Resume for Mantis cu1216 in 2007 (PCI DVB-C device):
+Kaffeine continued viewing the channel after resume.
+When Tuner was idle too long, it was powered off too.
+
+According to Manu Abraham at that time, somewhat smaller patch would have sufficed.
+That patch contais nonrelated fixes too, and won't compile now.
+
+Here is the reference (with Manu's answer):
+Start of the thread: http://www.spinics.net/lists/linux-dvb/msg19532.html
+The patch: http://www.spinics.net/lists/linux-dvb/msg19651.html
+Manu's answer: http://www.spinics.net/lists/linux-dvb/msg19668.html
+
+Thoughts about up-to-date implementation
+- Bridge (PCI) device must implement suspend/resume callbacks.
+- Frontend might need some change (power off / power on callbacks)?
+- "save Tuner / DMA transfer state to memory" might be addable to dvb_core.
+- Bridge device supporting suspend/resume needs to have a (non-regression)
+   fallback for (frontend) devices that don't have a full tested "Kaffeine works"
+   suspend/resume implementation yet.
+- What changes encrypted channels need?
+
+Marko
