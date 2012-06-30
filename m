@@ -1,49 +1,26 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:40301 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750703Ab2FIOWA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jun 2012 10:22:00 -0400
-Received: by wibhj8 with SMTP id hj8so1427685wib.1
-        for <linux-media@vger.kernel.org>; Sat, 09 Jun 2012 07:21:59 -0700 (PDT)
-MIME-Version: 1.0
-Date: Sat, 9 Jun 2012 11:21:58 -0300
-Message-ID: <CA+MoWDquq+aGEjV=tT-yPe5DLk8eqV8zYRVRKeqC7aY7j2E8Fg@mail.gmail.com>
-Subject: Janitor / newbie patches
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:39322 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752792Ab2F3WdD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 30 Jun 2012 18:33:03 -0400
+Received: by bkcji2 with SMTP id ji2so3876459bkc.19
+        for <linux-media@vger.kernel.org>; Sat, 30 Jun 2012 15:33:01 -0700 (PDT)
+From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 1/2] [media] drxk: Make the QAM demodulator command parameters configurable. 
+Date: Sun,  1 Jul 2012 00:32:46 +0200
+Message-Id: <1341095567-24225-1-git-send-email-martin.blumenstingl@googlemail.com>
+In-Reply-To: <1340918440-17523-2-git-send-email-martin.blumenstingl@googlemail.com>
+References: <1340918440-17523-2-git-send-email-martin.blumenstingl@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear List,
+Hi,
 
-I've sent some janitor/newbie patches and I want to know if am I doing
-something wrong before continuing with more patches.
+this is an updated version of my patch.
+Thanks to Mauro Carvalho Chehab and Ralph Metzler for the suggestions.
 
-The patches I've submitted:
-http://patchwork.linuxtv.org/patch/11576/
+Regards,
+Martin
 
-   This one was sent only to the list, I've not cc:
-   Mauro Carvalho Chehab <mchehab@infradead.org>
-   Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-   Devin Heitmueller <dheitmueller@kernellabs.com>
-   Julia Lawall <julia@diku.dk>
-   Greg Kroah-Hartman <gregkh@suse.de>
-
-   What should I do about it?
-
-http://patchwork.linuxtv.org/patch/11600/
-http://patchwork.linuxtv.org/patch/11601/
-http://patchwork.linuxtv.org/patch/11602/
-http://patchwork.linuxtv.org/patch/11603/
-http://patchwork.linuxtv.org/patch/11604/
-
-[]'s
-
-Peter
-
-
--- 
-Peter Senna Tschudin
-peter.senna@gmail.com
-gpg id: 48274C36
