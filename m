@@ -1,38 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:20402 "EHLO mgw-sa01.nokia.com"
+Received: from smtp.nokia.com ([147.243.1.47]:51615 "EHLO mgw-sa01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754212Ab2FMWj3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jun 2012 18:39:29 -0400
-Message-ID: <4FD91697.9050100@iki.fi>
-Date: Thu, 14 Jun 2012 01:39:19 +0300
+	id S1752289Ab2F3RFi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 30 Jun 2012 13:05:38 -0400
 From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <snjw23@gmail.com>
-Subject: [PATCH v3 0/6] V4L2 and V4L2 subdev selection target and flag changes
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: sylwester.nawrocki@gmail.com, t.stanislaws@samsung.com,
+	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
+Subject: [PATCH 8/8] v4l: Correct conflicting V4L2 subdev selection API documentation
+Date: Sat, 30 Jun 2012 20:03:59 +0300
+Message-Id: <1341075839-18586-8-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120630170506.GE19384@valkosipuli.retiisi.org.uk>
+References: <20120630170506.GE19384@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The API reference documents that the KEEP_CONFIG flag tells the
+configuration should not be propagated by the driver whereas the interface
+documentation (dev-subdev.xml) prohibited any changes to the rest of the
+pipeline. Resolve the conflict by changing the API reference to disallow
+changes.
 
-Compared to the previous version of the patchset, I've addressed
-more comments from Sylwester. The fixes are simple but yet important,
-plus I added back a missing reference from the selection API to the
-target reference.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ .../DocBook/media/v4l/selections-common.xml        |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-The resulting HTML documentation is available here (same location as
-last time):
-
-<URL:http://www.retiisi.org.uk/v4l2/tmp/media_api5/>
-
-Kind regards,
-
+diff --git a/Documentation/DocBook/media/v4l/selections-common.xml b/Documentation/DocBook/media/v4l/selections-common.xml
+index 7cec5c1..007e0c5 100644
+--- a/Documentation/DocBook/media/v4l/selections-common.xml
++++ b/Documentation/DocBook/media/v4l/selections-common.xml
+@@ -148,7 +148,7 @@
+ 	  <row>
+ 	    <entry><constant>V4L2_SEL_FLAG_KEEP_CONFIG</constant></entry>
+ 	    <entry>(1 &lt;&lt; 2)</entry>
+-	    <entry>The configuration should not be propagated to any
++	    <entry>The configuration must not be propagated to any
+ 	    further processing steps. If this flag is not given, the
+ 	    configuration is propagated inside the subdevice to all
+ 	    further processing steps.</entry>
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+1.7.2.5
 
