@@ -1,47 +1,303 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:34353 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751477Ab2FOAOn (ORCPT
+Received: from mail-ee0-f66.google.com ([74.125.83.66]:58687 "EHLO
+	mail-ee0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751800Ab2F3VNr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jun 2012 20:14:43 -0400
-Received: by mail-pz0-f46.google.com with SMTP id y13so3255760dad.19
-        for <linux-media@vger.kernel.org>; Thu, 14 Jun 2012 17:14:43 -0700 (PDT)
-Message-ID: <4FDA7E70.5030405@gmail.com>
-Date: Fri, 15 Jun 2012 05:44:40 +0530
-From: Shubhadeep Chaudhuri <shubhadeepc@gmail.com>
+	Sat, 30 Jun 2012 17:13:47 -0400
+Received: by eeke50 with SMTP id e50so373648eek.1
+        for <linux-media@vger.kernel.org>; Sat, 30 Jun 2012 14:13:43 -0700 (PDT)
+Message-ID: <4FEF6C04.8010405@gmail.com>
+Date: Sat, 30 Jun 2012 23:13:40 +0200
+From: Sylwester Nawrocki <sylwester.nawrocki@gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Webcam Genius 1300[AF] V2 not working since kernel 2.6.39
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org, t.stanislaws@samsung.com,
+	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
+Subject: Re: [PATCH 6/8] v4l: Unify selection flags documentation
+References: <20120630170506.GE19384@valkosipuli.retiisi.org.uk> <1341075839-18586-6-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1341075839-18586-6-git-send-email-sakari.ailus@iki.fi>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The webcams Genius 1300 V2 and Genius 1300AF V2 (and probably some built-in
-MacBook iSight webcams) face an issue since v2.6.39. For versions before
-that,
-they work fine.
+On 06/30/2012 07:03 PM, Sakari Ailus wrote:
+> As for the selection targets, the selection flags are now the same on V4L2
+> and V4L2 subdev interfaces. Also document them so.
+> 
+> Signed-off-by: Sakari Ailus<sakari.ailus@iki.fi>
+> ---
+>   Documentation/DocBook/media/v4l/dev-subdev.xml     |    6 +-
+>   Documentation/DocBook/media/v4l/selection-api.xml  |    6 +-
+>   .../DocBook/media/v4l/selections-common.xml        |  226 +++++++++++++-------
+>   .../DocBook/media/v4l/vidioc-g-selection.xml       |   27 +---
+>   .../media/v4l/vidioc-subdev-g-selection.xml        |   39 +----
+>   5 files changed, 159 insertions(+), 145 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml b/Documentation/DocBook/media/v4l/dev-subdev.xml
+> index afeb196..a3d9dd0 100644
+> --- a/Documentation/DocBook/media/v4l/dev-subdev.xml
+> +++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
+> @@ -323,10 +323,10 @@
+>         <para>The drivers should always use the closest possible
+>         rectangle the user requests on all selection targets, unless
+>         specifically told otherwise.
+> -<constant>V4L2_SUBDEV_SEL_FLAG_SIZE_GE</constant>  and
+> -<constant>V4L2_SUBDEV_SEL_FLAG_SIZE_LE</constant>  flags may be
+> +<constant>V4L2_SEL_FLAG_GE</constant>  and
+> +<constant>V4L2_SEL_FLAG_LE</constant>  flags may be
+>         used to round the image size either up or down.<xref
+> -      linkend="v4l2-subdev-selection-flags"></xref></para>
+> +      linkend="v4l2-selection-flags" /></para>
+>       </section>
+> 
+>       <section>
+> diff --git a/Documentation/DocBook/media/v4l/selection-api.xml b/Documentation/DocBook/media/v4l/selection-api.xml
+> index 24dec10..e7ed507 100644
+> --- a/Documentation/DocBook/media/v4l/selection-api.xml
+> +++ b/Documentation/DocBook/media/v4l/selection-api.xml
+> @@ -55,7 +55,7 @@ cropping and composing rectangles have the same size.</para>
+> 
+>       </section>
+> 
+> -    See<xref linkend="v4l2-selection-targets-table" />  for more
+> +    See<xref linkend="v4l2-selection-targets" />  for more
+>       information.
+> 
+>     <section>
+> @@ -74,7 +74,7 @@ cropping/composing rectangles may have to be aligned, and both the source and
+>   the sink may have arbitrary upper and lower size limits. Therefore, as usual,
+>   drivers are expected to adjust the requested parameters and return the actual
+>   values selected. An application can control the rounding behaviour using<link
+> -linkend="v4l2-sel-flags">  constraint flags</link>.</para>
+> +linkend="v4l2-selection-flags">  constraint flags</link>.</para>
+> 
+>      <section>
+> 
+> @@ -117,7 +117,7 @@ the bounds rectangle. The composing rectangle must lie completely inside bounds
+>   rectangle. The driver must adjust the composing rectangle to fit to the
+>   bounding limits. Moreover, the driver can perform other adjustments according
+>   to hardware limitations. The application can control rounding behaviour using
+> -<link linkend="v4l2-sel-flags">  constraint flags</link>.</para>
+> +<link linkend="v4l2-selection-flags">  constraint flags</link>.</para>
+> 
+>   <para>For capture devices the default composing rectangle is queried using
+>   <constant>  V4L2_SEL_TGT_COMPOSE_DEFAULT</constant>. It is usually equal to the
+> diff --git a/Documentation/DocBook/media/v4l/selections-common.xml b/Documentation/DocBook/media/v4l/selections-common.xml
+> index d0411ab..7cec5c1 100644
+> --- a/Documentation/DocBook/media/v4l/selections-common.xml
+> +++ b/Documentation/DocBook/media/v4l/selections-common.xml
+> @@ -1,6 +1,6 @@
+>   <section id="v4l2-selections-common">
+> 
+> -<title>Selection targets</title>
+> +<title>Common selection definitions</title>
+> 
+>     <para>While the<link linkend="selection-api">V4L2 selection
+>     API</link>  and<link linkend="v4l2-subdev-selections">V4L2 subdev
+> @@ -10,83 +10,155 @@
+>     sub-device's pad. On the V4L2 interface the selection rectangles
+>     refer to the in-memory pixel format.</para>
+> 
+> -<para>The precise meaning of the selection targets may thus be
+> -  affected on which of the two interfaces they are used.</para>
+> +<para>This section defines the common definitions of the
+> +  selection interfaces on the two APIs.</para>
+> 
+> -<table pgwide="1" frame="none" id="v4l2-selection-targets-table">
+> -<title>Selection target definitions</title>
+> -<tgroup cols="4">
+> -<colspec colname="c1" />
+> -<colspec colname="c2" />
+> -<colspec colname="c3" />
+> -<colspec colname="c4" />
+> -<colspec colname="c5" />
+> -&cs-def;
+> -<thead>
+> -	<row rowsep="1">
+> -	<entry align="left">Target name</entry>
+> -	<entry align="left">id</entry>
+> -	<entry align="left">Definition</entry>
+> -	<entry align="left">Valid for V4L2</entry>
+> -	<entry align="left">Valid for V4L2 subdev</entry>
+> -	</row>
+> -</thead>
+> -<tbody valign="top">
+> -	<row>
+> -	<entry><constant>V4L2_SEL_TGT_CROP</constant></entry>
+> -	<entry>0x0000</entry>
+> -	<entry>Crop rectangle. Defines the cropped area.</entry>
+> -	<entry>Yes</entry>
+> -	<entry>Yes</entry>
+> -	</row>
+> -	<row>
+> -<entry><constant>V4L2_SEL_TGT_CROP_DEFAULT</constant></entry>
+> -<entry>0x0001</entry>
+> -<entry>Suggested cropping rectangle that covers the "whole picture".</entry>
+> -	<entry>Yes</entry>
+> -	<entry>No</entry>
+> -	</row>
+> -	<row>
+> -	<entry><constant>V4L2_SEL_TGT_CROP_BOUNDS</constant></entry>
+> -	<entry>0x0002</entry>
+> -	<entry>Bounds of the crop rectangle. All valid crop
+> -	  rectangles fit inside the crop bounds rectangle.
+> -	</entry>
+> -	<entry>Yes</entry>
+> -	<entry>Yes</entry>
+> -	</row>
+> -	<row>
+> -	<entry><constant>V4L2_SEL_TGT_COMPOSE</constant></entry>
+> -	<entry>0x0100</entry>
+> -	<entry>Compose rectangle. Used to configure scaling
+> -	  and composition.</entry>
+> -	<entry>Yes</entry>
+> -	<entry>Yes</entry>
+> -	</row>
+> -	<row>
+> -<entry><constant>V4L2_SEL_TGT_COMPOSE_DEFAULT</constant></entry>
+> -<entry>0x0101</entry>
+> -<entry>Suggested composition rectangle that covers the "whole picture".</entry>
+> -	<entry>Yes</entry>
+> -	<entry>No</entry>
+> -	</row>
+> -	<row>
+> -	<entry><constant>V4L2_SEL_TGT_COMPOSE_BOUNDS</constant></entry>
+> -	<entry>0x0102</entry>
+> -	<entry>Bounds of the compose rectangle. All valid compose
+> -	  rectangles fit inside the compose bounds rectangle.</entry>
+> -	<entry>Yes</entry>
+> -	<entry>Yes</entry>
+> -	</row>
+> -	<row>
+> -<entry><constant>V4L2_SEL_TGT_COMPOSE_PADDED</constant></entry>
+> -<entry>0x0103</entry>
+> -<entry>The active area and all padding pixels that are inserted or
+> +<section id="v4l2-selection-targets">
+> +
+> +<title>Selection targets</title>
+> +
+> +<para>The precise meaning of the selection targets may be
+> +    dependent on which of the two interfaces they are used.</para>
+> +
+> +<table pgwide="1" frame="none" id="v4l2-selection-targets-table">
+> +<title>Selection target definitions</title>
+> +<tgroup cols="4">
 
-Every application displays a black screen for the devices except for mplayer
-which displays a green screen.
+s/4/5
 
-Output of lsusb -vvv -d 0458:7067
-http://pastebin.com/9R9atS9L
+> +	<colspec colname="c1" />
+> +	<colspec colname="c2" />
+> +	<colspec colname="c3" />
+> +	<colspec colname="c4" />
+> +	<colspec colname="c5" />
+> +	&cs-def;
+> +	<thead>
+> +	<row rowsep="1">
+> +	<entry align="left">Target name</entry>
+> +	<entry align="left">id</entry>
+> +	<entry align="left">Definition</entry>
+> +	<entry align="left">Valid for V4L2</entry>
+> +	<entry align="left">Valid for V4L2 subdev</entry>
+> +	</row>
+> +	</thead>
+> +	<tbody valign="top">
+> +	<row>
+> +	<entry><constant>V4L2_SEL_TGT_CROP</constant></entry>
+> +	<entry>0x0000</entry>
+> +	<entry>Crop rectangle. Defines the cropped area.</entry>
+> +	<entry>Yes</entry>
+> +	<entry>Yes</entry>
+> +	</row>
+> +	<row>
+> +	<entry><constant>V4L2_SEL_TGT_CROP_DEFAULT</constant></entry>
+> +	<entry>0x0001</entry>
+> +	<entry>Suggested cropping rectangle that covers the "whole picture".</entry>
+> +	<entry>Yes</entry>
+> +	<entry>No</entry>
+> +	</row>
+> +	<row>
+> +	<entry><constant>V4L2_SEL_TGT_CROP_BOUNDS</constant></entry>
+> +	<entry>0x0002</entry>
+> +	<entry>Bounds of the crop rectangle. All valid crop
+> +	    rectangles fit inside the crop bounds rectangle.
+> +	</entry>
+> +	<entry>Yes</entry>
+> +	<entry>Yes</entry>
+> +	</row>
+> +	<row>
+> +	<entry><constant>V4L2_SEL_TGT_COMPOSE</constant></entry>
+> +	<entry>0x0100</entry>
+> +	<entry>Compose rectangle. Used to configure scaling
+> +	    and composition.</entry>
+> +	<entry>Yes</entry>
+> +	<entry>Yes</entry>
+> +	</row>
+> +	<row>
+> +	<entry><constant>V4L2_SEL_TGT_COMPOSE_DEFAULT</constant></entry>
+> +	<entry>0x0101</entry>
+> +	<entry>Suggested composition rectangle that covers the "whole picture".</entry>
+> +	<entry>Yes</entry>
+> +	<entry>No</entry>
+> +	</row>
+> +	<row>
+> +	<entry><constant>V4L2_SEL_TGT_COMPOSE_BOUNDS</constant></entry>
+> +	<entry>0x0102</entry>
+> +	<entry>Bounds of the compose rectangle. All valid compose
+> +	    rectangles fit inside the compose bounds rectangle.</entry>
+> +	<entry>Yes</entry>
+> +	<entry>Yes</entry>
+> +	</row>
+> +	<row>
+> +	<entry><constant>V4L2_SEL_TGT_COMPOSE_PADDED</constant></entry>
+> +	<entry>0x0103</entry>
+> +	<entry>The active area and all padding pixels that are inserted or
+>   	    modified by hardware.</entry>
+> -	<entry>Yes</entry>
+> -	<entry>No</entry>
+> +	<entry>Yes</entry>
+> +	<entry>No</entry>
+> +	</row>
+> +	</tbody>
+> +</tgroup>
+> +</table>
+> +
+> +</section>
+> +
+> +<section id="v4l2-selection-flags">
+> +
+> +<title>Selection flags</title>
+> +
+> +<table pgwide="1" frame="none" id="v4l2-selection-flags-table">
+> +<title>Selection flag definitions</title>
+> +<tgroup cols="4">
 
-Output of mplayer tv:// -tv
-driver=v4l2:width=640:height=480:device=/dev/video0
--fps 30
-http://pastebin.com/pHuaKDv8
+s/4/5
 
-On doing git bisect, I was able to find the commit which brings the
-regression.
-It's commit e1620d591a75a10b15cf61dbf8243a0b7e6731a2 titled USB: Move
-runtime
-PM callbacks to usb_device_pm_ops.
+> +	<colspec colname="c1" />
+> +	<colspec colname="c2" />
+> +	<colspec colname="c3" />
+> +	<colspec colname="c4" />
+> +	<colspec colname="c5" />
+> +	&cs-def;
+> +	<thead>
+> +	<row rowsep="1">
+> +	<entry align="left">Flag name</entry>
+> +	<entry align="left">id</entry>
+> +	<entry align="left">Definition</entry>
+> +	<entry align="left">Valid for V4L2</entry>
+> +	<entry align="left">Valid for V4L2 subdev</entry>
+>   	</row>
+> -</tbody>
+> -</tgroup>
+> -</table>
+> +	</thead>
+> +	<tbody valign="top">
+> +	<row>
+> +	<entry><constant>V4L2_SEL_FLAG_GE</constant></entry>
+> +	<entry>(1&lt;&lt; 0)</entry>
 
-A bug was reported with UVC on sourceforge by another user
-http://sourceforge.net/mailarchive/message.php?msg_id=29030464
+This field is quite badly formatted, due to too small width of column c2.
+I couldn't fix that with "colwidth" though. It's minor issue anyway.
 
-Please fix this. Would hate to see this remain unfixed especially since
-I gave
-quite an amount of time to find the commit.
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com> 
