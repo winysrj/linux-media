@@ -1,89 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:51390 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753673Ab2GQKtt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Jul 2012 06:49:49 -0400
-Received: from [10.2.0.242] (unknown [10.2.0.242])
-	(using TLSv1 with cipher DHE-RSA-CAMELLIA256-SHA (256/256 bits))
-	(No client certificate requested)
-	by 7of9.schinagl.nl (Postfix) with ESMTPSA id 75D6F24422
-	for <linux-media@vger.kernel.org>; Tue, 17 Jul 2012 12:50:16 +0200 (CEST)
-Message-ID: <50053610.9010909@schinagl.nl>
-Date: Tue, 17 Jul 2012 11:53:20 +0200
-From: Oliver Schinagl <oliver+list@schinagl.nl>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: TechnoTrend Budget CI stutters and often fails at tuning encrypted
- channel.
-References: <500522AE.9020900@schinagl.nl>
-In-Reply-To: <500522AE.9020900@schinagl.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:48205 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755242Ab2GAKQU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Jul 2012 06:16:20 -0400
+Received: by wibhm11 with SMTP id hm11so2277840wib.1
+        for <linux-media@vger.kernel.org>; Sun, 01 Jul 2012 03:16:19 -0700 (PDT)
+Message-ID: <1341137769.2510.21.camel@Route3278>
+Subject: Re: [PATCH] [TEST] Regarding m88rs2000 i2c gate operation, SNR, BER
+ and others
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: "Igor M. Liplianin" <liplianin@me.by>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Date: Sun, 01 Jul 2012 11:16:09 +0100
+In-Reply-To: <1682436.JdK20qceHM@useri>
+References: <1682436.JdK20qceHM@useri>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17-07-12 10:30, Oliver Schinagl wrote:
-> Hi list,
->
-> I have been using a tt1500, a saa7146 PCI DVB-T tuner for well over a 
-> year now. Running gentoo 64bit tracking the ~amd64 branch (that only 
-> get bi-monthly upgraded) I've been always more or less up to date.
->
-> This card however has never properly worked. I've been running vdr 
-> 1.6.* since that is what's stably in gentoo. Whilst writing this down 
-> I realized I still have to test me-tv to double check my findings.
->
-> Some background info. Here in NL we have 4 FTA channels and about 20 
-> conax encrypted channels that the CAM in the CI module decrypts. I 
-> have two smartcards, of which one is only in active use at the moment.
->
-> When changing channels between the FTA channels, the first 'bug' 
-> occurs. Somtimes (not predictably or anything, about 50% of the 
-> channel changes) sound stutters the first few seconds, upto 30 seconds 
-> sometimes. It sounds almost if the sound is being fed through some 
-> sort of PWM, that slowly catches up. So first you hear 1 second of 
-> audio, 3 seconds of nothing, then 1 second of audio again, then 2 
-> seconds of nothing etc. This audio delay is random. E.g. sometimes it 
-> stutters for about 30 seconds while it has a hard time to catch up, 
-> other times the audio needs only 2 or 3 seconds to catch up. Very 
-> occasionally it instantly works right. The stuttering appears to be 
-> worse on encrypted channels.
->
-> Encrypted channels has the additional annoyance, that quote often, an 
-> entire channel is not available. That is, every channel in its bouqet. 
-> Simply waiting on that channel for about a minute or two, mysteriously 
-> brings the unavailable channel up. Allthough it 'feels' like changing 
-> channel helps this fix faster, it's just a placebo effect if you ask 
-> me ;)
->
-> I cannot safely say that the same skipping happens to the video, I 
-> have not noticed it really. I have checked signal strength etc and 
-> though the strength is only at 55%, the SNR is at 99% quite stable and 
-> the BER (unrecoverable errors? are at 0). If for some reason there is 
-> interferance, bad whether, blocked antenna, then the BER goes up 
-> followed by distorted imagery and with really bad signal bad audio as 
-> well (humans are more sensitive to bad audio iirc).
->
-> I'm not sure what to profile, where to enable debugging, what logs to 
-> check or what to do to help 'fix' this.
->
-> lspci output:
-> 00:0a.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
->              Subsystem: Technotrend Systemtechnik GmbH DVB T-1500
->              Flags: bus master, medium devsel, latency 32, IRQ 18
->              Memory at f0162000 (32-bit, non-prefetchable) [size=512]
->              Kernel drive in use: budget_ci dvb
->
-> /proc/interrupts
-> 18:                499    107651  IO-APIC-fasteoi   saa7146  (0)
->
-> Tuner: tda10046h dvb-t, firmware revision 20
->
->
-> Thank you for your time,
-> oliver
-P.S. I forgot to mention, that once tuned to a channel, I can receive 
-(and decode) it fine for many hours. I think the longest I had one 
-channel up was about 8 hours or so without issue. A dvb-t radio channel 
-(thus not dab) i had up for even longer, so once it goes, it goes on 
-happily forever!
+On Wed, 2012-05-09 at 04:54 -0700, Igor M. Liplianin wrote:
+> Malcolm,
+> 
+> I made SNR, BER, UCB and signal level code for m88rc2000, but my cards show 
+> them correctly only if I made changes in m88rs2000_tuner_read function.
+> Analyzing USB logs I found that register 0x81 never set to 0x85 value.
+> It is always set to 0x84 regardless of read or write operation to tuner.
+> I was wondering is this my hardware specific? Can you test you cards with 
+> attached patch?
+> 
+> Igor
+
+
+Hi Igor
+
+I have no problems with patch, please could you add your signoff
+
+I you and me have followed a typo error with m88rc2000 for m88rs2000 in
+the title.
+
+This patch and patch 
+
+http://patchwork.linuxtv.org/patch/11235/
+
+can go upstream
+
+Regards
+
+
+Malcolm
+
+
+
+> differences between files attachment (snrber.patch)
+> diff --git a/drivers/media/dvb/frontends/m88rs2000.c b/drivers/media/dvb/frontends/m88rs2000.c
+> index f6d6e39..f5ece59 100644
+> --- a/drivers/media/dvb/frontends/m88rs2000.c
+> +++ b/drivers/media/dvb/frontends/m88rs2000.c
+> @@ -143,7 +143,7 @@ static u8 m88rs2000_demod_read(struct m88rs2000_state *state, u8 reg)
+>  
+>  static u8 m88rs2000_tuner_read(struct m88rs2000_state *state, u8 reg)
+>  {
+> -	m88rs2000_demod_write(state, 0x81, 0x85);
+> +	m88rs2000_demod_write(state, 0x81, 0x84);
+>  	udelay(10);
+>  	return m88rs2000_readreg(state, 0, reg);
+>  }
+> @@ -492,33 +492,81 @@ static int m88rs2000_read_status(struct dvb_frontend *fe, fe_status_t *status)
+>  	return 0;
+>  }
+>  
+> -/* Extact code for these unknown but lmedm04 driver uses interupt callbacks */
+> -
+>  static int m88rs2000_read_ber(struct dvb_frontend *fe, u32 *ber)
+>  {
+> -	deb_info("m88rs2000_read_ber %d\n", *ber);
+> -	*ber = 0;
+> +	struct m88rs2000_state *state = fe->demodulator_priv;
+> +	u8 tmp0, tmp1;
+> +
+> +	m88rs2000_demod_write(state, 0x9a, 0x30);
+> +	tmp0 = m88rs2000_demod_read(state, 0xd8);
+> +	if ((tmp0 & 0x10) != 0) {
+> +		m88rs2000_demod_write(state, 0x9a, 0xb0);
+> +		*ber = 0xffffffff;
+> +		return 0;
+> +	}
+> +
+> +	*ber = (m88rs2000_demod_read(state, 0xd7) << 8) |
+> +		m88rs2000_demod_read(state, 0xd6);
+> +
+> +	tmp1 = m88rs2000_demod_read(state, 0xd9);
+> +	m88rs2000_demod_write(state, 0xd9, (tmp1 & ~7) | 4);
+> +	/* needs twice */
+> +	m88rs2000_demod_write(state, 0xd8, (tmp0 & ~8) | 0x30);
+> +	m88rs2000_demod_write(state, 0xd8, (tmp0 & ~8) | 0x30);
+> +	m88rs2000_demod_write(state, 0x9a, 0xb0);
+> +
+>  	return 0;
+>  }
+>  
+>  static int m88rs2000_read_signal_strength(struct dvb_frontend *fe,
+> -	u16 *strength)
+> +						u16 *signal_strength)
+>  {
+> -	*strength = 0;
+> +	struct m88rs2000_state *state = fe->demodulator_priv;
+> +	u8 rfg, bbg, gain, strength;
+> +
+> +	rfg = m88rs2000_tuner_read(state, 0x3d) & 0x1f;
+> +	bbg = m88rs2000_tuner_read(state, 0x21) & 0x1f;
+> +	gain = rfg * 2 + bbg * 3;
+> +
+> +	if (gain > 80)
+> +		strength = 0;
+> +	else if (gain > 65)
+> +		strength = 4 * (80 - gain);
+> +	else if (gain > 50)
+> +		strength = 65 + 4 * (65 - gain) / 3;
+> +	else
+> +		strength = 85 + 2 * (50 - gain) / 3;
+> +
+> +	*signal_strength = strength * 655;
+> +
+> +	deb_info("%s: rfg, bbg / gain = %d, %d, %d\n",
+> +		__func__, rfg, bbg, gain);
+> +
+>  	return 0;
+>  }
+>  
+>  static int m88rs2000_read_snr(struct dvb_frontend *fe, u16 *snr)
+>  {
+> -	deb_info("m88rs2000_read_snr %d\n", *snr);
+> -	*snr = 0;
+> +	struct m88rs2000_state *state = fe->demodulator_priv;
+> +
+> +	*snr = 512 * m88rs2000_demod_read(state, 0x65);
+> +
+>  	return 0;
+>  }
+>  
+>  static int m88rs2000_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+>  {
+> -	deb_info("m88rs2000_read_ber %d\n", *ucblocks);
+> -	*ucblocks = 0;
+> +	struct m88rs2000_state *state = fe->demodulator_priv;
+> +	u8 tmp;
+> +
+> +	*ucblocks = (m88rs2000_demod_read(state, 0xd5) << 8) |
+> +			m88rs2000_demod_read(state, 0xd4);
+> +	tmp = m88rs2000_demod_read(state, 0xd8);
+> +	m88rs2000_demod_write(state, 0xd8, tmp & ~0x20);
+> +	/* needs two times */
+> +	m88rs2000_demod_write(state, 0xd8, tmp | 0x20);
+> +	m88rs2000_demod_write(state, 0xd8, tmp | 0x20);
+> +
+>  	return 0;
+>  }
+>  
+
+
