@@ -1,47 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54280 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45684 "EHLO
 	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751233Ab2G3JIv (ORCPT
+	by vger.kernel.org with ESMTP id S932401Ab2GAOBB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jul 2012 05:08:51 -0400
+	Sun, 1 Jul 2012 10:01:01 -0400
+Date: Sun, 1 Jul 2012 17:00:58 +0300
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com
-Subject: [PATCH 1/1] v4l: Add missing compatibility definitions for bounds rectangles
-Date: Mon, 30 Jul 2012 12:08:47 +0300
-Message-Id: <1343639327-31329-1-git-send-email-sakari.ailus@iki.fi>
+To: Hans Petter Selasky <hselasky@c2i.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Question about V4L2_MEMORY_USERPTR
+Message-ID: <20120701140058.GB20344@valkosipuli.retiisi.org.uk>
+References: <201203230819.45385.hselasky@c2i.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201203230819.45385.hselasky@c2i.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Compatibility defines for ACTUAL subdev selection rectangles were added and
-also the name of the BOUNDS rectangles was changed in the process, which,
-alas, went unnoticed until now. Add compatibility definitions for these
-rectangles.
+Hi Hans,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- include/linux/v4l2-common.h |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+On Fri, Mar 23, 2012 at 08:19:45AM +0100, Hans Petter Selasky wrote:
+> Hi,
+> 
+> I have a question about V4L2_MEMORY_USERPTR:
+> 
+> From which context are the kernel's "copy_to_user()" functions called in 
+> relation to V4L2_MEMORY_USERPTR ? Can this be a USB callback function or is it 
+> only syscalls, like read/write/ioctl that are allowed to call "copy_to_user()" 
+> ?
+> 
+> The reason for asking is that I am maintaining a userland port of the media 
+> tree's USB drivers for FreeBSD. At the present moment it is not allowed to 
+> call copy_to_user() or copy_from_user() unless the backtrace shows a syscall, 
+> so the V4L2_MEMORY_USERPTR feature is simply removed and disabled. I'm 
+> currently thinking how I can enable this feature.
 
-diff --git a/include/linux/v4l2-common.h b/include/linux/v4l2-common.h
-index 0fa8b64..4f0667e 100644
---- a/include/linux/v4l2-common.h
-+++ b/include/linux/v4l2-common.h
-@@ -53,10 +53,10 @@
- /* Backward compatibility target definitions --- to be removed. */
- #define V4L2_SEL_TGT_CROP_ACTIVE	V4L2_SEL_TGT_CROP
- #define V4L2_SEL_TGT_COMPOSE_ACTIVE	V4L2_SEL_TGT_COMPOSE
--#define V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL \
--	V4L2_SEL_TGT_CROP
--#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL \
--	V4L2_SEL_TGT_COMPOSE
-+#define V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL	V4L2_SEL_TGT_CROP
-+#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL V4L2_SEL_TGT_COMPOSE
-+#define V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS	V4L2_SEL_TGT_CROP_BOUNDS
-+#define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS V4L2_SEL_TGT_COMPOSE_BOUNDS
- 
- /* Selection flags */
- #define V4L2_SEL_FLAG_GE		(1 << 0)
+I hope this is still relevant --- I just read your message the first time.
+
+I don't know how V4L2 is being used in FreeBSD userland, but the intent of
+copy_to_user() function is to copy the contents of kernel memory to
+somewhere the user space has a mapping to (and the other way around for
+copy_from_user()).
+
+Are your video buffers allocated by the kernel or not? How is USB accessed
+when you don't have the Linux kernel USB framework around?
+
+Kind regards,
+
 -- 
-1.7.2.5
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
