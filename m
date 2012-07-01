@@ -1,93 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54837 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45672 "EHLO
 	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756026Ab2GaMRI (ORCPT
+	by vger.kernel.org with ESMTP id S932134Ab2GALN5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 08:17:08 -0400
-Date: Tue, 31 Jul 2012 15:17:04 +0300
+	Sun, 1 Jul 2012 07:13:57 -0400
+Date: Sun, 1 Jul 2012 14:13:52 +0300
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [media-ctl PATCH 1/1] libv4l2subdev: Add
- v4l2_subdev_enum_mbus_code()
-Message-ID: <20120731121704.GJ26642@valkosipuli.retiisi.org.uk>
-References: <1343686560-31983-1-git-send-email-sakari.ailus@iki.fi>
- <1370725.tme9eTgAke@avalon>
+To: Sylwester Nawrocki <sylwester.nawrocki@gmail.com>
+Cc: linux-media@vger.kernel.org, t.stanislaws@samsung.com,
+	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
+Subject: Re: [PATCH 3/8] v4l: Unify selection targets across V4L2 and V4L2
+ subdev interfaces
+Message-ID: <20120701111352.GH19384@valkosipuli.retiisi.org.uk>
+References: <20120630170506.GE19384@valkosipuli.retiisi.org.uk>
+ <1341075839-18586-3-git-send-email-sakari.ailus@iki.fi>
+ <4FEF6006.3050109@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1370725.tme9eTgAke@avalon>
+In-Reply-To: <4FEF6006.3050109@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Sylwester,
 
-On Tue, Jul 31, 2012 at 01:38:41PM +0200, Laurent Pinchart wrote:
-> Thanks for the patch.
-
-Thanks for the comments!
-
-> On Tuesday 31 July 2012 01:16:00 Sakari Ailus wrote:
-> > v4l2_subdev_enum_mbus_code() enumerates over supported media bus formats on
-> > a pad.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > ---
-> >  src/v4l2subdev.c |   23 +++++++++++++++++++++++
-> >  src/v4l2subdev.h |   14 ++++++++++++++
-> >  2 files changed, 37 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/src/v4l2subdev.c b/src/v4l2subdev.c
-> > index d60bd7e..6b6df0a 100644
-> > --- a/src/v4l2subdev.c
-> > +++ b/src/v4l2subdev.c
-> > @@ -58,6 +58,29 @@ void v4l2_subdev_close(struct media_entity *entity)
-> >  	entity->fd = -1;
-> >  }
-> > 
-> > +int v4l2_subdev_enum_mbus_code(struct media_entity *entity,
-> > +			       uint32_t *code, uint32_t pad, uint32_t index)
+On Sat, Jun 30, 2012 at 10:22:30PM +0200, Sylwester Nawrocki wrote:
+> On 06/30/2012 07:03 PM, Sakari Ailus wrote:
 > 
-> I would use unsigned int for the pad and index arguments to match the other 
-> functions. We could then fix all of them in one go to use stdint types to 
-> match the kernel API types.
+> Would be good to add at least a small description here, that this
+> patch converts users of V4L2_SUBDEV_SEL_TGT_* to use V4L2_SEL_TGT_*,
+> or something similar.
 
-I'm fine with that.
+Fixed.
 
-> > +{
-> > +	struct v4l2_subdev_mbus_code_enum c;
-> > +	int ret;
-> > +
-> > +	ret = v4l2_subdev_open(entity);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	memset(&c, 0, sizeof(c));
-> > +	c.pad = pad;
-> > +	c.index = index;
-> > +
-> > +	ret = ioctl(entity->fd, VIDIOC_SUBDEV_ENUM_MBUS_CODE, &c);
-> > +	if (ret < 0)
-> > +		return -errno;
-> > +
-> > +	*code = c.code;
-> > +
-> > +	return 0;
-> > +}
+...
+
+> >diff --git a/include/linux/v4l2-common.h b/include/linux/v4l2-common.h
+> >new file mode 100644
+> >index 0000000..b49a37a
+> >--- /dev/null
+> >+++ b/include/linux/v4l2-common.h
+> >@@ -0,0 +1,57 @@
+> >+/*
+> >+ * include/linux/v4l2-common.h
+> >+ *
+> >+ * Common V4L2 and V4L2 subdev definitions.
+> >+ *
+> >+ * Users are advised to #include this file either through videodev2.h
+> >+ * (V4L2) or through v4l2-subdev.h (V4L2 subdev) rather than to refer
+> >+ * to this file directly.
+> >+ *
+> >+ * Copyright (C) 2012 Nokia Corporation
+> >+ * Contact: Sakari Ailus<sakari.ailus@iki.fi>
+> >+ *
+> >+ * This program is free software; you can redistribute it and/or
+> >+ * modify it under the terms of the GNU General Public License
+> >+ * version 2 as published by the Free Software Foundation.
+> >+ *
+> >+ * This program is distributed in the hope that it will be useful, but
+> >+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+> >+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> >+ * General Public License for more details.
+> >+ *
+> >+ * You should have received a copy of the GNU General Public License
+> >+ * along with this program; if not, write to the Free Software
+> >+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> >+ * 02110-1301 USA
+> >+ *
+> >+ */
+> >+
+> >+#ifndef __V4L2_COMMON__
+> >+#define __V4L2_COMMON__
+> >+
+> >+/* Selection target definitions */
+> >+
+> >+/* Current cropping area */
+> >+#define V4L2_SEL_TGT_CROP		0x0000
+> >+/* Default cropping area */
+> >+#define V4L2_SEL_TGT_CROP_DEFAULT	0x0001
+> >+/* Cropping bounds */
+> >+#define V4L2_SEL_TGT_CROP_BOUNDS	0x0002
+> >+/* Current composing area */
+> >+#define V4L2_SEL_TGT_COMPOSE		0x0100
+> >+/* Default composing area */
+> >+#define V4L2_SEL_TGT_COMPOSE_DEFAULT	0x0101
+> >+/* Composing bounds */
+> >+#define V4L2_SEL_TGT_COMPOSE_BOUNDS	0x0102
+> >+/* Current composing area plus all padding pixels */
+> >+#define V4L2_SEL_TGT_COMPOSE_PADDED	0x0103
+> >+
+> >+/* Backward compatibility definitions */
+> >+#define V4L2_SEL_TGT_CROP_ACTIVE	V4L2_SEL_TGT_CROP
+> >+#define V4L2_SEL_TGT_COMPOSE_ACTIVE	V4L2_SEL_TGT_COMPOSE
+> >+#define V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL \
+> >+	V4L2_SUBDEV_SEL_TGT_CROP
+> >+#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL \
+> >+	V4L2_SUBDEV_SEL_TGT_COMPOSE
 > 
-> What about a higher-level API that would enumerate all formats and return a 
-> list/array ?
+> This should read:
+> 
+> #define V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL		V4L2_SEL_TGT_CROP
+> #define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL	V4L2_SEL_TGT_COMPOSE
+> 
+> right ? As V4L2_SUBDEV_SEL_TGT_* defines are already annihilated
+> at this point ?
 
-The information could be stored to media entities. We could add a V4L2
-subdev pointer to media entities, and have the information stored there the
-first time this function is called. How about that?
+Correct. There's been so many variations of these that I've become blind to
+small differences. ;-)
 
-On source pads the pixel code is obviously possibly dependent on the pixel
-code on the sink pad so I need to store mappings from sink pad pixel code to
-a list of source pad pixel code, but can it have other dependencies? None
-come to mind right now, though.
+> I would also increase indentation between symbols and numbers
+> and wouldn't use backslashes.
+> 
+> With this fixed:
+> 
+> Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-Cheers,
+Thanks!!
 
 -- 
 Sakari Ailus
