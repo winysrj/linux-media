@@ -1,121 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:58601 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755715Ab2GaLaB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 07:30:01 -0400
-Date: Tue, 31 Jul 2012 13:29:55 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org, b.zolnierkie@samsung.com
-Subject: Re: [RFC/PATCH 09/13] media: s5k6aa: Add support for device tree
- based instantiation
-In-Reply-To: <3336686.TMIyoLDix4@avalon>
-Message-ID: <Pine.LNX.4.64.1207311326250.27888@axis700.grange>
-References: <4FBFE1EC.9060209@samsung.com> <2642305.FyjWrDc1Fo@avalon>
- <Pine.LNX.4.64.1207311312580.27888@axis700.grange> <3336686.TMIyoLDix4@avalon>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-qa0-f53.google.com ([209.85.216.53]:51555 "EHLO
+	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751250Ab2GAUP5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Jul 2012 16:15:57 -0400
+Received: by mail-qa0-f53.google.com with SMTP id s11so1561997qaa.19
+        for <linux-media@vger.kernel.org>; Sun, 01 Jul 2012 13:15:57 -0700 (PDT)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: linux-media@vger.kernel.org
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: [PATCH 4/6] cx25840: fix vsrc/hsrc usage on cx23888 designs
+Date: Sun,  1 Jul 2012 16:15:12 -0400
+Message-Id: <1341173714-23627-5-git-send-email-dheitmueller@kernellabs.com>
+In-Reply-To: <1341173714-23627-1-git-send-email-dheitmueller@kernellabs.com>
+References: <1341173714-23627-1-git-send-email-dheitmueller@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 31 Jul 2012, Laurent Pinchart wrote:
+The location of the vsrc/hsrc registers moved in the cx23888, causing the
+s_mbus call to fail prematurely indicating that "720x480 is not a valid size".
+The function bailed out before many pertinent registers were set related to
+the scaler (causing unexpected results in video rendering when doing raw
+video capture).
 
-> Hi Guennadi,
-> 
-> On Tuesday 31 July 2012 13:14:13 Guennadi Liakhovetski wrote:
-> > On Tue, 31 Jul 2012, Laurent Pinchart wrote:
-> > > On Tuesday 31 July 2012 11:56:44 Guennadi Liakhovetski wrote:
-> > > > On Thu, 26 Jul 2012, Laurent Pinchart wrote:
-> > > > > On Wednesday 18 July 2012 11:18:33 Sylwester Nawrocki wrote:
-> > > > > > On 07/16/2012 11:42 AM, Guennadi Liakhovetski wrote:
-> > > > > > > On Fri, 25 May 2012, Sylwester Nawrocki wrote:
-> > > > > > >> The driver initializes all board related properties except the
-> > > > > > >> s_power() callback to board code. The platforms that require this
-> > > > > > >> callback are not supported by this driver yet for CONFIG_OF=y.
-> > > > > > >> 
-> > > > > > >> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
-> > > > > > >> Signed-off-by: Bartlomiej
-> > > > > > >> Zolnierkiewicz<b.zolnierkie@samsung.com>
-> > > > > > >> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
-> > > > > > >> ---
-> > > > > > >> 
-> > > > > > >>   .../bindings/camera/samsung-s5k6aafx.txt           |   57
-> > > > > > >>   +++++++++
-> > > > > > >>   drivers/media/video/s5k6aa.c                       |  129
-> > > > > > >>   ++++++++++++++------ 2 files changed, 146 insertions(+), 40
-> > > > > > >>   deletions(-)
-> > > > > > >>   create mode 100644
-> > > > > > >>   Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt>>
-> > > > > > >> 
-> > > > > > >> diff --git
-> > > > > > >> a/Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt
-> > > > > > >> b/Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt
-> > > > > > >> new
-> > > > > > >> file
-> > > > > > >> mode 100644
-> > > > > > >> index 0000000..6685a9c
-> > > > > > >> --- /dev/null
-> > > > > > >> +++
-> > > > > > >> b/Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt
-> > > > > > >> @@ -0,0 +1,57 @@
-> > > > > > >> +Samsung S5K6AAFX camera sensor
-> > > > > > >> +------------------------------
-> > > > > > >> +
-> > > > > > >> +Required properties:
-> > > > > > >> +
-> > > > > > >> +- compatible : "samsung,s5k6aafx";
-> > > > > > >> +- reg : base address of the device on I2C bus;
-> > > > > > > 
-> > > > > > > You said you ended up putting your sensors outside of I2C busses,
-> > > > > > > is this one of changes, that are present in your git-tree but not
-> > > > > > > in this series?
-> > > > > > 
-> > > > > > No, I must have been not clear enough on that. Our idea was to keep
-> > > > > > I2C slave device nodes as an I2C controller's child nodes, according
-> > > > > > to the current convention.
-> > > > > > The 'sensor' nodes (the 'camera''s children) would only contain a
-> > > > > > phandle to a respective I2C slave node.
-> > > > > > 
-> > > > > > This implies that we cannot access I2C bus in I2C client's device
-> > > > > > probe() callback. An actual H/W access could begin only from within
-> > > > > > and after invocation of v4l2_subdev .registered callback..
-> > > > > 
-> > > > > That's how I've envisioned the DT bindings for sensors as well, this
-> > > > > sounds good. The real challenge will be to get hold of the subdev to
-> > > > > register it without race conditions.
-> > > > 
-> > > > Hrm... That's how early pre-subdev versions of soc-camera used to work,
-> > > > that's where all the <device>_video_probe() functions come from. But
-> > > > then we switched to dynamic i2c device registration. Do we want to
-> > > > switch all drivers back now?... Couldn't we "temporarily" use references
-> > > > from subdevs to hosts until the clock API is available?
-> > > 
-> > > I don't think that requires a reference from subdevs to hosts in the DT.
-> > > The subdev will need the host to be probed before a clock can be
-> > > available so you won't be able to access the hardware in the probe()
-> > > function in the generic case. You will need to wait until the
-> > > registered() subdev operation is called, at which point the host can be
-> > > accessed through the v4l2_device.
-> > 
-> > Sure, I understand, but that's exactly what we wanted to avoid -
-> > succeeding client's i2c .probe() without even touching the hardware.
-> 
-> But should we allow host probe() to succeed if the sensor isn't present ?
+Use the correct registers for the cx23888.
 
-I think we should, yes. The host hardware is there and functional - 
-whether or not all or some of the clients are failing. Theoretically 
-clients can also be hot-plugged. Whether and how many video device nodes 
-we create, that's a different question.
+Validated with the following boards:
 
-Thanks
-Guennadi
+HVR-1800 retail (0070:7801)
+HVR-1800 OEM (0070:7809)
+HVR-1850 retail (0070:8541)
+
+Thanks to Steven Toth and Hauppauge for	loaning	me various boards to
+regression test with.
+
+Reported-by: Jonathan <sitten74490@mypacks.net>
+Thanks-to: Steven Toth <stoth@kernellabs.com>
+Signed-off-by: Devin Heitmueler <dheitmueller@kernellabs.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/cx25840/cx25840-core.c |   18 ++++++++++++++----
+ 1 files changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/video/cx25840/cx25840-core.c b/drivers/media/video/cx25840/cx25840-core.c
+index 7dc7bb1..d8eac3e 100644
+--- a/drivers/media/video/cx25840/cx25840-core.c
++++ b/drivers/media/video/cx25840/cx25840-core.c
+@@ -1380,11 +1380,21 @@ static int cx25840_s_mbus_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt
+ 	fmt->field = V4L2_FIELD_INTERLACED;
+ 	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
+ 
+-	Vsrc = (cx25840_read(client, 0x476) & 0x3f) << 4;
+-	Vsrc |= (cx25840_read(client, 0x475) & 0xf0) >> 4;
++	if (is_cx23888(state)) {
++		Vsrc = (cx25840_read(client, 0x42a) & 0x3f) << 4;
++		Vsrc |= (cx25840_read(client, 0x429) & 0xf0) >> 4;
++	} else {
++		Vsrc = (cx25840_read(client, 0x476) & 0x3f) << 4;
++		Vsrc |= (cx25840_read(client, 0x475) & 0xf0) >> 4;
++	}
+ 
+-	Hsrc = (cx25840_read(client, 0x472) & 0x3f) << 4;
+-	Hsrc |= (cx25840_read(client, 0x471) & 0xf0) >> 4;
++	if (is_cx23888(state)) {
++		Hsrc = (cx25840_read(client, 0x426) & 0x3f) << 4;
++		Hsrc |= (cx25840_read(client, 0x425) & 0xf0) >> 4;
++	} else {
++		Hsrc = (cx25840_read(client, 0x472) & 0x3f) << 4;
++		Hsrc |= (cx25840_read(client, 0x471) & 0xf0) >> 4;
++	}
+ 
+ 	Vlines = fmt->height + (is_50Hz ? 4 : 7);
+ 
+-- 
+1.7.1
+
