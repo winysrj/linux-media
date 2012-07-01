@@ -1,77 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:53329 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754935Ab2GFGry (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 02:47:54 -0400
-Received: by wibhr14 with SMTP id hr14so478010wib.1
-        for <linux-media@vger.kernel.org>; Thu, 05 Jul 2012 23:47:53 -0700 (PDT)
+Received: from cpsmtpb-ews06.kpnxchange.com ([213.75.39.9]:3925 "EHLO
+	cpsmtpb-ews06.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751176Ab2GASwq convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Jul 2012 14:52:46 -0400
+Date: Sun, 1 Jul 2012 20:52:43 +0200
+Message-ID: <4FC4F2520000DE77@mta-nl-7.mail.tiscali.sys>
+In-Reply-To: <4FC4F2480000D990@mta-nl-1.mail.tiscali.sys>
+From: cedric.dewijs@telfort.nl
+Subject: Betr: RE: dib0700 can't enable debug messages
+To: "Olivier GRENIE" <olivier.grenie@parrot.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <20120706064332.GA30009@pengutronix.de>
-References: <1341556309-2934-1-git-send-email-javier.martin@vista-silicon.com>
-	<20120706064332.GA30009@pengutronix.de>
-Date: Fri, 6 Jul 2012 08:47:53 +0200
-Message-ID: <CACKLOr09nCrfdu6CreRsBckzfaKDT1o7fhRXWZq-iwAKcDUAGg@mail.gmail.com>
-Subject: Re: media: i.MX27: Fix emma-prp clocks in mx2_camera.c
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: linux-media@vger.kernel.org, fabio.estevam@freescale.com,
-	laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
-	mchehab@infradead.org, kernel@pengutronix.de
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 6 July 2012 08:43, Sascha Hauer <s.hauer@pengutronix.de> wrote:
-> Hi Javier,
+
+>-- Oorspronkelijk bericht --
+>Date: Sat, 30 Jun 2012 12:42:29 +0200
+>From: cedric.dewijs@telfort.nl
+>Subject: Betr: RE: dib0700 can't enable debug messages
+>To: "Olivier GRENIE" <olivier.grenie@parrot.com>,
+> "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 >
-> On Fri, Jul 06, 2012 at 08:31:49AM +0200, Javier Martin wrote:
->> This driver wasn't converted to the new clock changes
->> (clk_prepare_enable/clk_disable_unprepare). Also naming
->> of emma-prp related clocks for the i.MX27 was not correct.
 >
-> Thanks for fixing this. Sorry for breaking this in the first place.
 >
->> @@ -1668,12 +1658,26 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
->>               goto exit;
->>       }
+>>-- Oorspronkelijk bericht --
+>>From: Olivier GRENIE <olivier.grenie@parrot.com>
+>>To: "cedric.dewijs@telfort.nl" <cedric.dewijs@telfort.nl>,
+>>	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+>>Date: Fri, 29 Jun 2012 15:25:00 +0100
+>>Subject: RE: dib0700 can't enable debug messages
 >>
->> -     pcdev->clk_csi = clk_get(&pdev->dev, NULL);
->> +     pcdev->clk_csi = devm_clk_get(&pdev->dev, NULL);
->>       if (IS_ERR(pcdev->clk_csi)) {
->>               dev_err(&pdev->dev, "Could not get csi clock\n");
->>               err = PTR_ERR(pcdev->clk_csi);
->>               goto exit_kfree;
->>       }
->> +     pcdev->clk_emma_ipg = devm_clk_get(&pdev->dev, "ipg");
->> +     if (IS_ERR(pcdev->clk_emma_ipg)) {
->> +             err = PTR_ERR(pcdev->clk_emma_ipg);
->> +             goto exit_kfree;
->> +     }
->> +     pcdev->clk_emma_ahb = devm_clk_get(&pdev->dev, "ahb");
->> +     if (IS_ERR(pcdev->clk_emma_ahb)) {
->> +             err = PTR_ERR(pcdev->clk_emma_ahb);
->> +             goto exit_kfree;
->> +     }
->
-> So we have three clocks involved here, a csi ahb clock and two emma
-> clocks. Can we rename the clocks to:
->
->         clk_register_clkdev(clk[csi_ahb_gate], "ahb", "mx2-camera.0");
->         clk_register_clkdev(clk[emma_ahb_gate], "emma-ahb", "mx2-camera.0");
->         clk_register_clkdev(clk[emma_ipg_gate], "emma-ipg", "mx2-camera.0");
->
-> The rationale is that the csi_ahb_gate really is a ahb clock related to
-> the csi whereas the emma clocks are normally for the emma device, but
-> the csi driver happens to use parts of the emma.
+>>
+>>Hello,
+>>did you enable the DVB USB debugging (CONFIG_DVB_USB_DEBUG) in your kernel
+>>configuration?
+>>
+Hi Olivier,
 
-Yes, I find it quite appealing. Let me send a new patch.
+I see in the INSTALL file make xconfig needs the full kernel source. I have
+fiddled around some with symlinks, but I can't get make xconfig to work:
 
 
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+In the media_build directory I have first created a symlink to the freshly
+downloaded kernel source:
+$ ls -l
+scripts -> /home/cedric/downloads/linux-3.4.3/scripts/
+
+Then I issued the following command:
+$ make xconfig
+make -C /storage/home/cedric/tmp/linuxtv-mediabuild/media_build/v4l xconfig
+make[1]: Entering directory `/storage/home/cedric/tmp/linuxtv-mediabuild/media_build/v4l'
+make -C /lib/modules/3.3.7-1-ARCH/build -f /storage/home/cedric/tmp/linuxtv-mediabuild/media_build/v4l/Makefile.kernel
+config-targets=1 mixed-targets=0 dot-config=0 SRCDIR=/lib/modules/3.3.7-1-ARCH/build
+v4l-qconf
+make[2]: Entering directory `/usr/src/linux-3.3.7-1-ARCH'
+  HOSTCC  scripts/basic/fixdep
+scripts/basic/fixdep.c:433:1: fatal error: opening dependency file scripts/basic/.fixdep.d:
+Permission denied
+compilation terminated.
+make[3]: *** [scripts/basic/fixdep] Error 1
+make[2]: *** [scripts_basic] Error 2
+make[2]: Leaving directory `/usr/src/linux-3.3.7-1-ARCH'
+make[1]: *** [/lib/modules/3.3.7-1-ARCH/build/scripts/kconfig/qconf] Error
+2
+make[1]: Leaving directory `/storage/home/cedric/tmp/linuxtv-mediabuild/media_build/v4l'
+make: *** [xconfig] Error 2
+
+The directory scripts/basic/.fixdep.d is not present:
+$ ls -lA scripts/basic/
+total 20
+-rw-r--r-- 1 cedric cedric 10782 Jun 17 20:21 fixdep.c
+-rw-r--r-- 1 cedric cedric     7 Jun 17 20:21 .gitignore
+-rw-r--r-- 1 cedric cedric   671 Jun 17 20:21 Makefile
+
+Next I goto my kernel directory, and run make xconfig from here:
+$ cd downloads/linux-3.4.3
+[cedric@cedric linux-3.4.3]$ make xconfig
+  HOSTCC  scripts/basic/fixdep
+  CHECK   qt
+  HOSTCC  scripts/kconfig/conf.o
+  SHIPPED scripts/kconfig/zconf.tab.c
+  SHIPPED scripts/kconfig/zconf.lex.c
+  SHIPPED scripts/kconfig/zconf.hash.c
+  HOSTCC  scripts/kconfig/zconf.tab.o
+/usr/bin/moc -i scripts/kconfig/qconf.h -o scripts/kconfig/qconf.moc
+  HOSTCXX scripts/kconfig/qconf.o
+  HOSTLD  scripts/kconfig/qconf
+scripts/kconfig/qconf Kconfig
+#
+# using defaults found in arch/x86/configs/x86_64_defconfig
+#
+
+and now back in the media-build directory I run make xconfig again:
+$ cd tmp/linuxtv-mediabuild/media_build/
+[cedric@cedric media_build]$ make xconfig
+make -C /storage/home/cedric/tmp/linuxtv-mediabuild/media_build/v4l xconfig
+make[1]: Entering directory `/storage/home/cedric/tmp/linuxtv-mediabuild/media_build/v4l'
+make -C /lib/modules/3.3.7-1-ARCH/build -f /storage/home/cedric/tmp/linuxtv-mediabuild/media_build/v4l/Makefile.kernel
+config-targets=1 mixed-targets=0 dot-config=0 SRCDIR=/lib/modules/3.3.7-1-ARCH/build
+v4l-qconf
+make[2]: Entering directory `/usr/src/linux-3.3.7-1-ARCH'
+  HOSTCC  scripts/basic/fixdep
+scripts/basic/fixdep.c:433:1: fatal error: opening dependency file scripts/basic/.fixdep.d:
+Permission denied
+compilation terminated.
+make[3]: *** [scripts/basic/fixdep] Error 1
+make[2]: *** [scripts_basic] Error 2
+make[2]: Leaving directory `/usr/src/linux-3.3.7-1-ARCH'
+make[1]: *** [/lib/modules/3.3.7-1-ARCH/build/scripts/kconfig/qconf] Error
+2
+make[1]: Leaving directory `/storage/home/cedric/tmp/linuxtv-mediabuild/media_build/v4l'
+make: *** [xconfig] Error 2
+
+I don't have the directory .fixdep.d:
+$ ls -lA scripts/basic/
+total 40
+-rwxr-xr-x 1 cedric cedric 14561 Jul  1 20:45 fixdep
+-rw-r--r-- 1 cedric cedric 10782 Jun 17 20:21 fixdep.c
+-rw-r--r-- 1 cedric cedric  2836 Jul  1 20:45 .fixdep.cmd
+-rw-r--r-- 1 cedric cedric     7 Jun 17 20:21 .gitignore
+-rw-r--r-- 1 cedric cedric   671 Jun 17 20:21 Makefile
+
+What did I miss?
+Best regards,
+Cedric
+
+
+       
+
+
+
