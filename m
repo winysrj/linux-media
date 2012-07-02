@@ -1,78 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:42336 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750712Ab2GRNYh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jul 2012 09:24:37 -0400
-Received: by yenl2 with SMTP id l2so1531084yen.19
-        for <linux-media@vger.kernel.org>; Wed, 18 Jul 2012 06:24:37 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CALF0-+U7HYyuLZJzUH4_OhJ7U4X33fOAmSmYuP-xATkMVjpKcQ@mail.gmail.com>
-References: <1342615958949547500@masin.eu>
-	<CALF0-+U7HYyuLZJzUH4_OhJ7U4X33fOAmSmYuP-xATkMVjpKcQ@mail.gmail.com>
-Date: Wed, 18 Jul 2012 10:24:36 -0300
-Message-ID: <CALF0-+WcRGGWzcE7eQ4h+MOYKy5+gnVPnxTas9uhyi4-b6VaqA@mail.gmail.com>
-Subject: Re: CX25821 driver in kernel 3.4.4 problem
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: =?ISO-8859-2?Q?Radek_Ma=B9=EDn?= <radek@masin.eu>
-Cc: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=14dae934092da1baff04c51a9569
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1940 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750793Ab2GBOPu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2012 10:15:50 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	halli manjunatha <hallimanju@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 5/6] radio-cadet: fix RDS handling.
+Date: Mon,  2 Jul 2012 16:15:11 +0200
+Message-Id: <7b6c80b567538c354fd9d5357726a84c35274e51.1341237775.git.hans.verkuil@cisco.com>
+In-Reply-To: <1341238512-17504-1-git-send-email-hverkuil@xs4all.nl>
+References: <1341238512-17504-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <f8baa47c370e4d79309e126b56127df8a5edd11a.1341237775.git.hans.verkuil@cisco.com>
+References: <f8baa47c370e4d79309e126b56127df8a5edd11a.1341237775.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---14dae934092da1baff04c51a9569
-Content-Type: text/plain; charset=ISO-8859-1
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Radek,
+The current RDS code suffered from bit rot. Clean it up and make it work again.
 
-On Wed, Jul 18, 2012 at 10:14 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
-> Hi Radek,
->
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/radio/radio-cadet.c |   56 ++++++++++++++++++++++++++-----------
+ 1 file changed, 39 insertions(+), 17 deletions(-)
 
-I think the attached patch will solve this issue.
+diff --git a/drivers/media/radio/radio-cadet.c b/drivers/media/radio/radio-cadet.c
+index 93536b7..d1fb427 100644
+--- a/drivers/media/radio/radio-cadet.c
++++ b/drivers/media/radio/radio-cadet.c
+@@ -71,7 +71,7 @@ struct cadet {
+ 	int sigstrength;
+ 	wait_queue_head_t read_queue;
+ 	struct timer_list readtimer;
+-	__u8 rdsin, rdsout, rdsstat;
++	u8 rdsin, rdsout, rdsstat;
+ 	unsigned char rdsbuf[RDS_BUFFER];
+ 	struct mutex lock;
+ 	int reading;
+@@ -85,8 +85,8 @@ static struct cadet cadet_card;
+  * strength value.  These values are in microvolts of RF at the tuner's input.
+  */
+ static __u16 sigtable[2][4] = {
+-	{  5, 10, 30,  150 },
+-	{ 28, 40, 63, 1000 }
++	{ 2185, 4369, 13107, 65535 },
++	{ 1835, 2621,  4128, 65535 }
+ };
+ 
+ 
+@@ -240,10 +240,13 @@ static void cadet_setfreq(struct cadet *dev, unsigned freq)
+ 		cadet_gettune(dev);
+ 		if ((dev->tunestat & 0x40) == 0) {   /* Tuned */
+ 			dev->sigstrength = sigtable[dev->curtuner][j];
+-			return;
++			goto reset_rds;
+ 		}
+ 	}
+ 	dev->sigstrength = 0;
++reset_rds:
++	outb(3, dev->io);
++	outb(inb(dev->io + 1) & 0x7f, dev->io + 1);
+ }
+ 
+ 
+@@ -259,7 +262,7 @@ static void cadet_handler(unsigned long data)
+ 		outb(0x80, dev->io);      /* Select RDS fifo */
+ 		while ((inb(dev->io) & 0x80) != 0) {
+ 			dev->rdsbuf[dev->rdsin] = inb(dev->io + 1);
+-			if (dev->rdsin == dev->rdsout)
++			if (dev->rdsin + 1 == dev->rdsout)
+ 				printk(KERN_WARNING "cadet: RDS buffer overflow\n");
+ 			else
+ 				dev->rdsin++;
+@@ -278,11 +281,21 @@ static void cadet_handler(unsigned long data)
+ 	 */
+ 	init_timer(&dev->readtimer);
+ 	dev->readtimer.function = cadet_handler;
+-	dev->readtimer.data = (unsigned long)0;
++	dev->readtimer.data = data;
+ 	dev->readtimer.expires = jiffies + msecs_to_jiffies(50);
+ 	add_timer(&dev->readtimer);
+ }
+ 
++static void cadet_start_rds(struct cadet *dev)
++{
++	dev->rdsstat = 1;
++	outb(0x80, dev->io);        /* Select RDS fifo */
++	init_timer(&dev->readtimer);
++	dev->readtimer.function = cadet_handler;
++	dev->readtimer.data = (unsigned long)dev;
++	dev->readtimer.expires = jiffies + msecs_to_jiffies(50);
++	add_timer(&dev->readtimer);
++}
+ 
+ static ssize_t cadet_read(struct file *file, char __user *data, size_t count, loff_t *ppos)
+ {
+@@ -291,26 +304,21 @@ static ssize_t cadet_read(struct file *file, char __user *data, size_t count, lo
+ 	int i = 0;
+ 
+ 	mutex_lock(&dev->lock);
+-	if (dev->rdsstat == 0) {
+-		dev->rdsstat = 1;
+-		outb(0x80, dev->io);        /* Select RDS fifo */
+-		init_timer(&dev->readtimer);
+-		dev->readtimer.function = cadet_handler;
+-		dev->readtimer.data = (unsigned long)dev;
+-		dev->readtimer.expires = jiffies + msecs_to_jiffies(50);
+-		add_timer(&dev->readtimer);
+-	}
++	if (dev->rdsstat == 0)
++		cadet_start_rds(dev);
+ 	if (dev->rdsin == dev->rdsout) {
+ 		if (file->f_flags & O_NONBLOCK) {
+ 			i = -EWOULDBLOCK;
+ 			goto unlock;
+ 		}
++		mutex_unlock(&dev->lock);
+ 		interruptible_sleep_on(&dev->read_queue);
++		mutex_lock(&dev->lock);
+ 	}
+ 	while (i < count && dev->rdsin != dev->rdsout)
+ 		readbuf[i++] = dev->rdsbuf[dev->rdsout++];
+ 
+-	if (copy_to_user(data, readbuf, i))
++	if (i && copy_to_user(data, readbuf, i))
+ 		i = -EFAULT;
+ unlock:
+ 	mutex_unlock(&dev->lock);
+@@ -345,7 +353,12 @@ static int vidioc_g_tuner(struct file *file, void *priv,
+ 		v->rangehigh = 1728000;    /* 108.0 MHz */
+ 		v->rxsubchans = cadet_getstereo(dev);
+ 		v->audmode = V4L2_TUNER_MODE_STEREO;
+-		v->rxsubchans |= V4L2_TUNER_SUB_RDS;
++		outb(3, dev->io);
++		outb(inb(dev->io + 1) & 0x7f, dev->io + 1);
++		mdelay(100);
++		outb(3, dev->io);
++		if (inb(dev->io + 1) & 0x80)
++			v->rxsubchans |= V4L2_TUNER_SUB_RDS;
+ 		break;
+ 	case 1:
+ 		strlcpy(v->name, "AM", sizeof(v->name));
+@@ -455,9 +468,16 @@ static int cadet_release(struct file *file)
+ static unsigned int cadet_poll(struct file *file, struct poll_table_struct *wait)
+ {
+ 	struct cadet *dev = video_drvdata(file);
++	unsigned long req_events = poll_requested_events(wait);
+ 	unsigned int res = v4l2_ctrl_poll(file, wait);
+ 
+ 	poll_wait(file, &dev->read_queue, wait);
++	if (dev->rdsstat == 0 && (req_events & (POLLIN | POLLRDNORM))) {
++		mutex_lock(&dev->lock);
++		if (dev->rdsstat == 0)
++			cadet_start_rds(dev);
++		mutex_unlock(&dev->lock);
++	}
+ 	if (dev->rdsin != dev->rdsout)
+ 		res |= POLLIN | POLLRDNORM;
+ 	return res;
+@@ -628,6 +648,8 @@ static void __exit cadet_exit(void)
+ 	video_unregister_device(&dev->vdev);
+ 	v4l2_ctrl_handler_free(&dev->ctrl_handler);
+ 	v4l2_device_unregister(&dev->v4l2_dev);
++	outb(7, dev->io);	/* Mute */
++	outb(0x00, dev->io + 1);
+ 	release_region(dev->io, 2);
+ 	pnp_unregister_driver(&cadet_pnp_driver);
+ }
+-- 
+1.7.10
 
-Please test and tell me if it did,
-Ezequiel.
-
---14dae934092da1baff04c51a9569
-Content-Type: application/octet-stream;
-	name="0001-cx25821-Remove-bad-strcpy-to-read-only-char.patch"
-Content-Disposition: attachment;
-	filename="0001-cx25821-Remove-bad-strcpy-to-read-only-char.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_h4sg0gj00
-
-RnJvbSAxODU5NTIxZTc2MjI2Njg3ZTc5ZTE0NTJiMDQwZmQzZTAyYzQ2OWQ4IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBFemVxdWllbCBHYXJjaWEgPGVsZXplZ2FyY2lhQGdtYWlsLmNv
-bT4KRGF0ZTogV2VkLCAxOCBKdWwgMjAxMiAxMDowNToyNiAtMDMwMApTdWJqZWN0OiBbUEFUQ0hd
-IGN4MjU4MjE6IFJlbW92ZSBiYWQgc3RyY3B5IHRvIHJlYWQtb25seSBjaGFyKgpNSU1FLVZlcnNp
-b246IDEuMApDb250ZW50LVR5cGU6IHRleHQvcGxhaW47IGNoYXJzZXQ9VVRGLTgKQ29udGVudC1U
-cmFuc2Zlci1FbmNvZGluZzogOGJpdAoKVGhlIHN0cmNweSB3YXMgYmVpbmcgdXNlZCB0byBzZXQg
-dGhlIG5hbWUgb2YgdGhlIGJvYXJkLgpTaW5jZSB0aGUgZGVzdGluYXRpb24gY2hhciogd2FzIHJl
-YWQtb25seSBhbmQgdGhlIG5hbWUKaXMgc2V0IHN0YXRpY2FsbHkgYXQgY29tcGlsZSB0aW1lOyB0
-aGlzIHdhcyBib3RoCndyb25nIGFuZCByZWR1bmRhbnQuCgpUaGUgdHlwZSBvZiBjaGFyKiBpcyBj
-aGFuZ2VkIHRvIGNvbnN0IGNoYXIqIHRvIHByZXZlbnQKZnV0dXJlIGVycm9ycy4KClJlcG9ydGVk
-LWJ5OiBSYWRlayBNYcWhw61uIDxyYWRla0BtYXNpbi5ldT4KU2lnbmVkLW9mZi1ieTogRXplcXVp
-ZWwgR2FyY2lhIDxlbGV6ZWdhcmNpYUBnbWFpbC5jb20+Ci0tLQogZHJpdmVycy9tZWRpYS92aWRl
-by9jeDI1ODIxL2N4MjU4MjEtY29yZS5jIHwgICAgMyAtLS0KIGRyaXZlcnMvbWVkaWEvdmlkZW8v
-Y3gyNTgyMS9jeDI1ODIxLmggICAgICB8ICAgIDIgKy0KIDIgZmlsZXMgY2hhbmdlZCwgMSBpbnNl
-cnRpb25zKCspLCA0IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlk
-ZW8vY3gyNTgyMS9jeDI1ODIxLWNvcmUuYyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gyNTgyMS9j
-eDI1ODIxLWNvcmUuYwppbmRleCA3OTMwY2E1Li4yMzViZjdkIDEwMDY0NAotLS0gYS9kcml2ZXJz
-L21lZGlhL3ZpZGVvL2N4MjU4MjEvY3gyNTgyMS1jb3JlLmMKKysrIGIvZHJpdmVycy9tZWRpYS92
-aWRlby9jeDI1ODIxL2N4MjU4MjEtY29yZS5jCkBAIC05MTIsOSArOTEyLDYgQEAgc3RhdGljIGlu
-dCBjeDI1ODIxX2Rldl9zZXR1cChzdHJ1Y3QgY3gyNTgyMV9kZXYgKmRldikKIAlsaXN0X2FkZF90
-YWlsKCZkZXYtPmRldmxpc3QsICZjeDI1ODIxX2Rldmxpc3QpOwogCW11dGV4X3VubG9jaygmY3gy
-NTgyMV9kZXZsaXN0X211dGV4KTsKIAotCXN0cmNweShjeDI1ODIxX2JvYXJkc1tVTktOT1dOX0JP
-QVJEXS5uYW1lLCAidW5rbm93biIpOwotCXN0cmNweShjeDI1ODIxX2JvYXJkc1tDWDI1ODIxX0JP
-QVJEXS5uYW1lLCAiY3gyNTgyMSIpOwotCiAJaWYgKGRldi0+cGNpLT5kZXZpY2UgIT0gMHg4MjEw
-KSB7CiAJCXByX2luZm8oIiVzKCk6IEV4aXRpbmcuIEluY29ycmVjdCBIYXJkd2FyZSBkZXZpY2Ug
-PSAweCUwMnhcbiIsCiAJCQlfX2Z1bmNfXywgZGV2LT5wY2ktPmRldmljZSk7CmRpZmYgLS1naXQg
-YS9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4MjU4MjEvY3gyNTgyMS5oIGIvZHJpdmVycy9tZWRpYS92
-aWRlby9jeDI1ODIxL2N4MjU4MjEuaAppbmRleCBiOWFhODAxLi4wMjlmMjkzIDEwMDY0NAotLS0g
-YS9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4MjU4MjEvY3gyNTgyMS5oCisrKyBiL2RyaXZlcnMvbWVk
-aWEvdmlkZW8vY3gyNTgyMS9jeDI1ODIxLmgKQEAgLTE4Nyw3ICsxODcsNyBAQCBlbnVtIHBvcnQg
-ewogfTsKIAogc3RydWN0IGN4MjU4MjFfYm9hcmQgewotCWNoYXIgKm5hbWU7CisJY29uc3QgY2hh
-ciAqbmFtZTsKIAllbnVtIHBvcnQgcG9ydGE7CiAJZW51bSBwb3J0IHBvcnRiOwogCWVudW0gcG9y
-dCBwb3J0YzsKLS0gCjEuNy44LjYKCg==
---14dae934092da1baff04c51a9569--
