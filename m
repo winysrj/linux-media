@@ -1,186 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:29860 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751119Ab2GZNQJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jul 2012 09:16:09 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mailfe07.c2i.net ([212.247.154.194]:57102 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751047Ab2GBTNG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Jul 2012 15:13:06 -0400
+From: Hans Petter Selasky <hselasky@c2i.net>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] mt9v032: Provide link frequency control
-Date: Thu, 26 Jul 2012 15:16:04 +0200
-Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi
-References: <1343307416-23172-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1343307416-23172-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: Re: Question about V4L2_MEMORY_USERPTR
+Date: Mon, 2 Jul 2012 21:07:56 +0200
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
+References: <201203230819.45385.hselasky@c2i.net> <20120701140058.GB20344@valkosipuli.retiisi.org.uk> <1507857.9YMcHMaQav@avalon>
+In-Reply-To: <1507857.9YMcHMaQav@avalon>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201207261516.04868.hverkuil@xs4all.nl>
+Message-Id: <201207022107.56259.hselasky@c2i.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 26 July 2012 14:56:56 Laurent Pinchart wrote:
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/video/mt9v032.c |   48 ++++++++++++++++++++++++++++++++++++----
->  include/media/mt9v032.h       |    3 ++
->  2 files changed, 46 insertions(+), 5 deletions(-)
+Hi Laurent and Sakari,
+
+For the sake of the matter, here is the driver in question:
+http://www.freshports.org/multimedia/webcamd/
+
+Under native-Linux (kernel mode):
+
+I've looked at the linux-media code a bit and it appears that video data is 
+copied directly from the USB callback functions to the destination process in 
+userspace. This works because the userspace buffer is mapped into kernel 
+memory it appears. Correct me if I'm wrong:
+
+video/videobuf-core.c:
+
+        err = __videobuf_mmap_setup(q, count, size, V4L2_MEMORY_USERPTR);
+
+Under FreeBSD where the Linux kernel code is running in user-space as a driver 
+daemon, this part cannot be done exactly like this, so I've just patched out 
+the V4L2_MEMORY_USERPTR feature until further.
+
+Am I clear?
+
+--HPS
+
+On Monday 02 July 2012 11:24:15 Laurent Pinchart wrote:
+> On Sunday 01 July 2012 17:00:58 Sakari Ailus wrote:
+> > On Fri, Mar 23, 2012 at 08:19:45AM +0100, Hans Petter Selasky wrote:
+> > > Hi,
+> > > 
+> > > I have a question about V4L2_MEMORY_USERPTR:
+> > > 
+> > > From which context are the kernel's "copy_to_user()" functions called
+> > > in relation to V4L2_MEMORY_USERPTR ? Can this be a USB callback
+> > > function or is it only syscalls, like read/write/ioctl that are
+> > > allowed to call "copy_to_user()" ?
+> > > 
+> > > The reason for asking is that I am maintaining a userland port of the
+> > > media tree's USB drivers for FreeBSD. At the present moment it is not
+> > > allowed to call copy_to_user() or copy_from_user() unless the backtrace
+> > > shows a syscall, so the V4L2_MEMORY_USERPTR feature is simply removed
+> > > and disabled. I'm currently thinking how I can enable this feature.
+> > 
+> > I hope this is still relevant --- I just read your message the first
+> > time.
+> > 
+> > I don't know how V4L2 is being used in FreeBSD userland, but the intent
+> > of copy_to_user() function is to copy the contents of kernel memory to
+> > somewhere the user space has a mapping to (and the other way around for
+> > copy_from_user()).
 > 
-> diff --git a/drivers/media/video/mt9v032.c b/drivers/media/video/mt9v032.c
-> index 2203a6f..39217b8 100644
-> --- a/drivers/media/video/mt9v032.c
-> +++ b/drivers/media/video/mt9v032.c
-> @@ -29,6 +29,8 @@
->  #define MT9V032_PIXEL_ARRAY_HEIGHT			492
->  #define MT9V032_PIXEL_ARRAY_WIDTH			782
->  
-> +#define MT9V032_SYSCLK_FREQ_DEF				26600000
-> +
->  #define MT9V032_CHIP_VERSION				0x00
->  #define		MT9V032_CHIP_ID_REV1			0x1311
->  #define		MT9V032_CHIP_ID_REV3			0x1313
-> @@ -122,13 +124,18 @@ struct mt9v032 {
->  	struct v4l2_mbus_framefmt format;
->  	struct v4l2_rect crop;
->  
-> -	struct v4l2_ctrl *pixel_rate;
->  	struct v4l2_ctrl_handler ctrls;
-> +	struct {
-> +		struct v4l2_ctrl *link_freq;
-> +		struct v4l2_ctrl *pixel_rate;
-> +	};
->  
->  	struct mutex power_lock;
->  	int power_count;
->  
->  	struct mt9v032_platform_data *pdata;
-> +
-> +	u32 sysclk;
->  	u16 chip_control;
->  	u16 aec_agc;
->  };
-> @@ -196,7 +203,7 @@ static int mt9v032_power_on(struct mt9v032 *mt9v032)
->  	int ret;
->  
->  	if (mt9v032->pdata->set_clock) {
-> -		mt9v032->pdata->set_clock(&mt9v032->subdev, EXT_CLK);
-> +		mt9v032->pdata->set_clock(&mt9v032->subdev, mt9v032->sysclk);
->  		udelay(1);
->  	}
->  
-> @@ -374,7 +381,8 @@ static void mt9v032_configure_pixel_rate(struct mt9v032 *mt9v032,
->  	struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
->  	int ret;
->  
-> -	ret = v4l2_ctrl_s_ctrl_int64(mt9v032->pixel_rate, EXT_CLK / hratio);
-> +	ret = v4l2_ctrl_s_ctrl_int64(mt9v032->pixel_rate,
-> +				     mt9v032->sysclk / hratio);
->  	if (ret < 0)
->  		dev_warn(&client->dev, "failed to set pixel rate (%d)\n", ret);
->  }
-> @@ -487,6 +495,7 @@ static int mt9v032_s_ctrl(struct v4l2_ctrl *ctrl)
->  	struct mt9v032 *mt9v032 =
->  			container_of(ctrl->handler, struct mt9v032, ctrls);
->  	struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
-> +	u32 freq;
->  	u16 data;
->  
->  	switch (ctrl->id) {
-> @@ -505,6 +514,16 @@ static int mt9v032_s_ctrl(struct v4l2_ctrl *ctrl)
->  		return mt9v032_write(client, MT9V032_TOTAL_SHUTTER_WIDTH,
->  				     ctrl->val);
->  
-> +	case V4L2_CID_PIXEL_RATE:
-> +	case V4L2_CID_LINK_FREQ:
-> +		if (mt9v032->link_freq == NULL)
-> +			break;
-> +
-> +		freq = mt9v032->pdata->link_freqs[mt9v032->link_freq->val];
-> +		mt9v032->pixel_rate->cur.val = freq;
-
-That should be 'mt9v032->pixel_rate->val = freq;'.
-
-It used to be cur.val some time ago, but that was changed. You never set cur.val
-anymore inside a s_ctrl handler.
-
-Regards,
-
-	Hans
-
-> +		mt9v032->sysclk = freq;
-> +		break;
-> +
->  	case V4L2_CID_TEST_PATTERN:
->  		switch (ctrl->val) {
->  		case 0:
-> @@ -683,6 +702,7 @@ static const struct v4l2_subdev_internal_ops mt9v032_subdev_internal_ops = {
->  static int mt9v032_probe(struct i2c_client *client,
->  		const struct i2c_device_id *did)
->  {
-> +	struct mt9v032_platform_data *pdata = client->dev.platform_data;
->  	struct mt9v032 *mt9v032;
->  	unsigned int i;
->  	int ret;
-> @@ -699,9 +719,9 @@ static int mt9v032_probe(struct i2c_client *client,
->  		return -ENOMEM;
->  
->  	mutex_init(&mt9v032->power_lock);
-> -	mt9v032->pdata = client->dev.platform_data;
-> +	mt9v032->pdata = pdata;
->  
-> -	v4l2_ctrl_handler_init(&mt9v032->ctrls, ARRAY_SIZE(mt9v032_ctrls) + 5);
-> +	v4l2_ctrl_handler_init(&mt9v032->ctrls, ARRAY_SIZE(mt9v032_ctrls) + 6);
->  
->  	v4l2_ctrl_new_std(&mt9v032->ctrls, &mt9v032_ctrl_ops,
->  			  V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
-> @@ -715,10 +735,27 @@ static int mt9v032_probe(struct i2c_client *client,
->  			  V4L2_CID_EXPOSURE, MT9V032_TOTAL_SHUTTER_WIDTH_MIN,
->  			  MT9V032_TOTAL_SHUTTER_WIDTH_MAX, 1,
->  			  MT9V032_TOTAL_SHUTTER_WIDTH_DEF);
-> +
->  	mt9v032->pixel_rate =
->  		v4l2_ctrl_new_std(&mt9v032->ctrls, &mt9v032_ctrl_ops,
->  				  V4L2_CID_PIXEL_RATE, 0, 0, 1, 0);
->  
-> +	if (pdata && pdata->link_freqs) {
-> +		unsigned int def = 0;
-> +
-> +		for (i = 0; pdata->link_freqs[i]; ++i) {
-> +			if (pdata->link_freqs[i] == pdata->link_def_freq)
-> +				def = i;
-> +		}
-> +
-> +		mt9v032->link_freq =
-> +			v4l2_ctrl_new_int_menu(&mt9v032->ctrls,
-> +					       &mt9v032_ctrl_ops,
-> +					       V4L2_CID_LINK_FREQ, i - 1, def,
-> +					       pdata->link_freqs);
-> +		v4l2_ctrl_cluster(2, &mt9v032->link_freq);
-> +	}
-> +
->  	for (i = 0; i < ARRAY_SIZE(mt9v032_ctrls); ++i)
->  		v4l2_ctrl_new_custom(&mt9v032->ctrls, &mt9v032_ctrls[i], NULL);
->  
-> @@ -740,6 +777,7 @@ static int mt9v032_probe(struct i2c_client *client,
->  	mt9v032->format.colorspace = V4L2_COLORSPACE_SRGB;
->  
->  	mt9v032->aec_agc = MT9V032_AEC_ENABLE | MT9V032_AGC_ENABLE;
-> +	mt9v032->sysclk = MT9V032_SYSCLK_FREQ_DEF;
->  
->  	v4l2_i2c_subdev_init(&mt9v032->subdev, client, &mt9v032_subdev_ops);
->  	mt9v032->subdev.internal_ops = &mt9v032_subdev_internal_ops;
-> diff --git a/include/media/mt9v032.h b/include/media/mt9v032.h
-> index 5e27f9b..78fd39e 100644
-> --- a/include/media/mt9v032.h
-> +++ b/include/media/mt9v032.h
-> @@ -7,6 +7,9 @@ struct mt9v032_platform_data {
->  	unsigned int clk_pol:1;
->  
->  	void (*set_clock)(struct v4l2_subdev *subdev, unsigned int rate);
-> +
-> +	const s64 *link_freqs;
-> +	s64 link_def_freq;
->  };
->  
->  #endif
+> copy_(to|from)_user(), by definition, require a userspace memory context to
+> perform the copy operation. They can't be called from interrupt context,
+> kernel threads, or any other context where no userspace memory context is
+> present.
 > 
+> > Are your video buffers allocated by the kernel or not? How is USB
+> > accessed when you don't have the Linux kernel USB framework around?
