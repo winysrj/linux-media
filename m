@@ -1,61 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:52802 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753798Ab2G3PdQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jul 2012 11:33:16 -0400
-Date: Mon, 30 Jul 2012 17:33:14 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-cc: linux-arm-kernel@lists.infradead.org, mchehab@redhat.com,
-	linux@arm.linux.org.uk, kernel@pengutronix.de,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Subject: Re: [PATCH] media: mx2_camera: Remove MX2_CAMERA_SWAP16 and
- MX2_CAMERA_PACK_DIR_MSB flags.
-In-Reply-To: <CACKLOr2sKVWCk3we_cP5MvnR6-WsaFwA9AC=fgp3iLm8B6mfEA@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1207301718510.28003@axis700.grange>
-References: <1342083809-19921-1-git-send-email-javier.martin@vista-silicon.com>
- <Pine.LNX.4.64.1207201330240.27906@axis700.grange>
- <CACKLOr2sKVWCk3we_cP5MvnR6-WsaFwA9AC=fgp3iLm8B6mfEA@mail.gmail.com>
+Received: from persephone.nexusuk.org ([217.172.134.9]:57075 "EHLO nexusuk.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752479Ab2GBRG1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Jul 2012 13:06:27 -0400
+Received: from [146.90.100.166] (helo=atlantis.nexusuk.org)
+	by nexusuk.org with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.63)
+	(envelope-from <steve@nexusuk.org>)
+	id 1SljZE-00076B-Ot
+	for linux-media@vger.kernel.org; Mon, 02 Jul 2012 17:33:40 +0100
+Message-ID: <4FF1CD63.10003@nexusuk.org>
+Date: Mon, 02 Jul 2012 17:33:39 +0100
+From: Steve Hill <steve@nexusuk.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: linux-media@vger.kernel.org
+Subject: pctv452e
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier
 
-On Mon, 30 Jul 2012, javier Martin wrote:
+I've been using a Technotrend TT 3600 USB DVB-S2 receiver for a couple 
+of years, which has (largely) been working fine under the S2-liplianin 
+pctv452e driver.  I've been aware of a lot of documented problems with 
+running this receiver under the 3.x kernel, so I've stuck with the 2.6 
+series kernels.
 
-> Hi,
-> thank you for yor ACKs.
-> 
-> On 20 July 2012 13:31, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> > On Thu, 12 Jul 2012, Javier Martin wrote:
-> >
-> >> These flags are not used any longer and can be safely removed
-> >> since the following patch:
-> >> http://www.spinics.net/lists/linux-media/msg50165.html
-> >>
-> >> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
-> >
-> > For the ARM tree:
-> >
-> > Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> 
-> forgive my ignorance on the matter. Could you please point me to the
-> git repository this patch should be merged?
+Unfortunately I've now had to upgrade to the 3.2.0 kernel for other 
+unrelated reasons, and it seems that the device is more or less unusable 
+under this kernel.  With the stock 3.2.0 kernel, the driver produces 
+numerous I2C errors and is quite unreliable.  The I2C errors seem to be 
+produced exclusively as a result of stb_6100_read_reg() reading register 
+F, and notably all calls to stb6100_read_regs() seem to succeed, so I've 
+replaced the stb_6100_read_reg() function with a call to 
+stb6100_read_regs(), so it reads all the registers and then returns the 
+requested one, rather than reading just the requested register.  This 
+seems to make the I2C errors disappear.
 
-Sorry, my "for the ARM tree" comment was probably not clear enough. This 
-patch should certainly go via the ARM (SoC) tree, since it only touches 
-arch/arm. So, the maintainer (Sascha - added to CC), that will be 
-forwarding this patch to Linus can thereby add my "acked-by" to this 
-patch, if he feels like it.
+However, the card is still very unreliable - after about 5 minutes of 
+receiving a channel (using MythTV), it breaks.  No errors logged in 
+dmesg, but MythTV logs:
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+DevRdB(/dev/dvb/adapter0/frontend0) Error: Poll giving up
+DVBSH(/dev/dvb/adapter0/frontend0) Error: Device error detected
+DVBRec(7:/dev/dvb/adapter0/frontend0) Error: Stream handler died 
+unexpectedly.
+
+
+Can anyone give me any pointers that might help?  I've searched and 
+searched and all I can see if people saying that it won't work since the 
+DVB-S2 code was integrated into the kernel tree, but I've not seen 
+anyone try to figure out _why_ it won't work.
+
+Thanks.
+
+-- 
+
+  - Steve
+
