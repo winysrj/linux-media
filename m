@@ -1,83 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34129 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751281Ab2GEONx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Jul 2012 10:13:53 -0400
-Message-ID: <4FF5A119.6020903@iki.fi>
-Date: Thu, 05 Jul 2012 17:13:45 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:57451 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753352Ab2GBLNS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2012 07:13:18 -0400
+Received: by werb14 with SMTP id b14so2434131wer.19
+        for <linux-media@vger.kernel.org>; Mon, 02 Jul 2012 04:13:17 -0700 (PDT)
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	hverkuil@xs4all.nl
-Subject: Re: [PATCH 4/4] radio-si470x: Lower firmware version requirements
-References: <1339681394-11348-1-git-send-email-hdegoede@redhat.com> <1339681394-11348-4-git-send-email-hdegoede@redhat.com> <4FF45FF7.4020300@iki.fi> <4FF5515A.1030704@redhat.com> <4FF5980F.8030109@iki.fi> <4FF59995.4010604@redhat.com>
-In-Reply-To: <4FF59995.4010604@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20120702105427.GP2698@pengutronix.de>
+References: <1340115094-859-1-git-send-email-javier.martin@vista-silicon.com>
+	<20120619181717.GE28394@pengutronix.de>
+	<CACKLOr1zCp2NfLjBrHjtXpmsFMHqhoHFPpghN=Tyf3YAcyRrYg@mail.gmail.com>
+	<20120620090126.GO28394@pengutronix.de>
+	<20120620100015.GA30243@sirena.org.uk>
+	<20120620130941.GB2253@S2101-09.ap.freescale.net>
+	<CACKLOr28vm9n08VSOim=riB54os665be1CHdUqFXk+3MqPqtWQ@mail.gmail.com>
+	<20120620143336.GE2253@S2101-09.ap.freescale.net>
+	<CACKLOr1oZZPZBNv+p9p3Vf5oY4K8K65_dJ5qkJO6NqeP2=2unw@mail.gmail.com>
+	<20120702105427.GP2698@pengutronix.de>
+Date: Mon, 2 Jul 2012 13:13:17 +0200
+Message-ID: <CACKLOr1shAodE9FDD9dZ1dgAKy4PyPRQAsyMOiNzqQ0uQFTYGA@mail.gmail.com>
+Subject: Re: [RFC] Support for 'Coda' video codec IP.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Shawn Guo <shawn.guo@linaro.org>, fabio.estevam@freescale.com,
+	dirk.behme@googlemail.com, r.schwebel@pengutronix.de,
+	kernel@pengutronix.de, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/05/2012 04:41 PM, Hans de Goede wrote:
-> Hi,
->
-> On 07/05/2012 03:35 PM, Antti Palosaari wrote:
->
-> <snip>
->
->>> I believe you're doing something wrong ...
->>>
->>>> I compiled radio from http://git.linuxtv.org/xawtv3.git to tune and
->>>  > "arecord  -r96000 -c2 -f S16_LE | aplay - " to play sound. Just
->>> silent white noise is heard.
->>>
->>> You're not specifying which device arecord should record from so likely
->>> it is taking
->>> the default input of your soundcard (line/mic in), rather then recording
->>> from the
->>> radio device.
+On 2 July 2012 12:54, Sascha Hauer <s.hauer@pengutronix.de> wrote:
+> On Mon, Jul 02, 2012 at 12:36:46PM +0200, javier Martin wrote:
+>> Hi Sascha,
+>> I almost have a final version ready which includes multi-instance
+>> support (not tested though) [1]. As I stated, we assumed the extra
+>> effort of looking at your code in [2] in order to provide a mechanism
+>> that preserves compatibility between VPUs in i.MX21, i.MX51 and
+>> i.MX53. This is the only thing left in order to send the driver for
+>> mainline submission.
 >>
->> I tried to define hw:1,0 etc. but only hw:0,0 exists.
+>> While I was reading your code I found out that you keep the following
+>> formats for v1 (codadx6-i.MX27) codec:
 >>
->>> Note the latest radio from http://git.linuxtv.org/xawtv3.git will do the
->>> digital loopback of
->>> the sound itself, so try things again with running arecord / aplay, if
->>> you then start radio
->>> and exit again (so that you can see its startup messages) you should see
->>> something like this:
->>>
->>> "Using alsa loopback: cap: hw:1,0 (/dev/radio0), out: default"
->>>
->>> Note radio will automatically select the correct alsa device to record
->>> from for the radio-usb-stick.
+>> static int vpu_v1_codecs[VPU_CODEC_MAX] = {
+>>       [VPU_CODEC_AVC_DEC] = 2,
+>>       [VPU_CODEC_VC1_DEC] = -1,
+>>       [VPU_CODEC_MP2_DEC] = -1,
+>>       [VPU_CODEC_DV3_DEC] = -1,
+>>       [VPU_CODEC_RV_DEC] = -1,
+>>       [VPU_CODEC_MJPG_DEC] = 0x82,
+>>       [VPU_CODEC_AVC_ENC] = 3,
+>>       [VPU_CODEC_MP4_ENC] = 1,
+>>       [VPU_CODEC_MJPG_ENC] = 0x83,
+>> };
 >>
->> For some reason I don't see that happening.
+>> As I understand, this means the following operations are supported:
+>>
+>> 1- H264 decoding.
+>> 2- H264 encoding
+>> 3- MP4 encoding.
+>> 4- MJPG  decoding.
+>> 5- MJPG encoding.
+>>
+>> I totally agree with MP4 and H264 formats but, are you sure about
+>> MJPG? I have a i.MX27 v1 codec (codadx6) but I didn't know that this
+>> codec supported MJPG. Have you tested this code with an i.MX27 and
+>> MJPG? Where did you find out that it supports this format?
 >
-> Hmm, so it seems that for some reason alsa is not working with the usb
-> "sound-card" part of the usb-stick. Can you try doing:
+> We haven't tested MJPG on the i.MX27. The table above is from the
+> original Freescale code, so I assume it's correct and I assume that
+> the coda dx6 can do MJPEG.
+
+Fabio, could you confirm that the VPU in the i.MX27 supports MJPG too?
+
+>> Are you
+>> using firmware version 2.2.4 for v1 codecs?
 >
-> ls /dev/snd/
->
-> Before and after plugging in the device, you should get a new
-> PCMC?D0c device there.
+> No, 2.2.5
 
-Two files appears, controlC2 and pcmC2D0c.
+Where did you get that firmware version? The only related download I
+can find in [1] is
+'MX273DS_FULL_VPU_SW_AND_VPU_FIRMWARE_2.2.4_WINCE_TO2.X_ONLY' which
+includes firmware 2.2.4.
 
-> Otherwise see if you can enable some debugging options for snd-usb-audio
-> and find out why it is not liking your device (and maybe at a quirk for
-> it somewhere) ? If you do end up adding a quirk please let me know
-> and I'll test with mine to ensure the quirck does not break working
-> versions :)
-
-And now I can hear the voice too using "arecord -D hw:2,0 -r96000 -c2 -f 
-S16_LE | aplay -".
-
-But loopback is still missing.
-
-regards
-Antti
+[1] http://www.freescale.com/webapp/sps/site/prod_summary.jsp?code=i.MX27&nodeId=018rH3ZrDR66AF&fpsp=1&tab=Design_Tools_Tab
 
 -- 
-http://palosaari.fi/
-
-
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
