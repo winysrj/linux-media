@@ -1,37 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:48952 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754174Ab2GCKRN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jul 2012 06:17:13 -0400
-Received: from eusync3.samsung.com (mailout3.w1.samsung.com [210.118.77.13])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M6K00JZ6XXNOX60@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 03 Jul 2012 11:17:47 +0100 (BST)
-Received: from [106.116.147.32] by eusync3.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0M6K00HO0XWMKL10@eusync3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 03 Jul 2012 11:17:11 +0100 (BST)
-Message-id: <4FF2C6A6.5050700@samsung.com>
-Date: Tue, 03 Jul 2012 12:17:10 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: linux-media@vger.kernel.org, andrzej.p@samsung.com,
-	mchehab@infradead.org, patches@linaro.org
-Subject: Re: [PATCH 1/1] [media] s5p-jpeg: Use module_platform_driver in
- jpeg-core.c file
-References: <1341309273-1279-1-git-send-email-sachin.kamat@linaro.org>
-In-reply-to: <1341309273-1279-1-git-send-email-sachin.kamat@linaro.org>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42224 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932421Ab2GBJYM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2012 05:24:12 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Petter Selasky <hselasky@c2i.net>, linux-media@vger.kernel.org
+Subject: Re: Question about V4L2_MEMORY_USERPTR
+Date: Mon, 02 Jul 2012 11:24:15 +0200
+Message-ID: <1507857.9YMcHMaQav@avalon>
+In-Reply-To: <20120701140058.GB20344@valkosipuli.retiisi.org.uk>
+References: <201203230819.45385.hselasky@c2i.net> <20120701140058.GB20344@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/03/2012 11:54 AM, Sachin Kamat wrote:
-> module_platform_driver makes the code simpler by eliminating module_init
-> and module_exit calls.
+On Sunday 01 July 2012 17:00:58 Sakari Ailus wrote:
+> On Fri, Mar 23, 2012 at 08:19:45AM +0100, Hans Petter Selasky wrote:
+> > Hi,
+> > 
+> > I have a question about V4L2_MEMORY_USERPTR:
+> > 
+> > From which context are the kernel's "copy_to_user()" functions called in
+> > relation to V4L2_MEMORY_USERPTR ? Can this be a USB callback function or
+> > is it only syscalls, like read/write/ioctl that are allowed to call
+> > "copy_to_user()" ?
+> > 
+> > The reason for asking is that I am maintaining a userland port of the
+> > media tree's USB drivers for FreeBSD. At the present moment it is not
+> > allowed to call copy_to_user() or copy_from_user() unless the backtrace
+> > shows a syscall, so the V4L2_MEMORY_USERPTR feature is simply removed and
+> > disabled. I'm currently thinking how I can enable this feature.
 > 
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+> I hope this is still relevant --- I just read your message the first time.
+> 
+> I don't know how V4L2 is being used in FreeBSD userland, but the intent of
+> copy_to_user() function is to copy the contents of kernel memory to
+> somewhere the user space has a mapping to (and the other way around for
+> copy_from_user()).
 
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+copy_(to|from)_user(), by definition, require a userspace memory context to 
+perform the copy operation. They can't be called from interrupt context, 
+kernel threads, or any other context where no userspace memory context is 
+present.
+
+> Are your video buffers allocated by the kernel or not? How is USB accessed
+> when you don't have the Linux kernel USB framework around?
+
+-- 
+Regards,
+
+Laurent Pinchart
+
