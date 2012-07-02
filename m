@@ -1,244 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:57622 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754837Ab2GaPPB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 11:15:01 -0400
-Date: Tue, 31 Jul 2012 17:14:25 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Javier Martin <javier.martin@vista-silicon.com>
-cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	fabio.estevam@freescale.com,
-	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
-	mchehab@infradead.org, linux@arm.linux.org.uk,
-	kernel@pengutronix.de
-Subject: Re: [PATCH 4/4] media: mx2_camera: Fix clock handling for i.MX27.
-In-Reply-To: <1343301637-19676-5-git-send-email-javier.martin@vista-silicon.com>
-Message-ID: <Pine.LNX.4.64.1207311644590.27888@axis700.grange>
-References: <1343301637-19676-1-git-send-email-javier.martin@vista-silicon.com>
- <1343301637-19676-5-git-send-email-javier.martin@vista-silicon.com>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:49405 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750793Ab2GBNsN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2012 09:48:13 -0400
+Received: by wibhr14 with SMTP id hr14so3202600wib.1
+        for <linux-media@vger.kernel.org>; Mon, 02 Jul 2012 06:48:11 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <CACKLOr1shAodE9FDD9dZ1dgAKy4PyPRQAsyMOiNzqQ0uQFTYGA@mail.gmail.com>
+References: <1340115094-859-1-git-send-email-javier.martin@vista-silicon.com>
+	<20120619181717.GE28394@pengutronix.de>
+	<CACKLOr1zCp2NfLjBrHjtXpmsFMHqhoHFPpghN=Tyf3YAcyRrYg@mail.gmail.com>
+	<20120620090126.GO28394@pengutronix.de>
+	<20120620100015.GA30243@sirena.org.uk>
+	<20120620130941.GB2253@S2101-09.ap.freescale.net>
+	<CACKLOr28vm9n08VSOim=riB54os665be1CHdUqFXk+3MqPqtWQ@mail.gmail.com>
+	<20120620143336.GE2253@S2101-09.ap.freescale.net>
+	<CACKLOr1oZZPZBNv+p9p3Vf5oY4K8K65_dJ5qkJO6NqeP2=2unw@mail.gmail.com>
+	<20120702105427.GP2698@pengutronix.de>
+	<CACKLOr1shAodE9FDD9dZ1dgAKy4PyPRQAsyMOiNzqQ0uQFTYGA@mail.gmail.com>
+Date: Mon, 2 Jul 2012 15:48:11 +0200
+Message-ID: <CACKLOr31Gp5N2FpEsyqLw2QvOg1BBhDCOMetmzUBZwLezjS=gQ@mail.gmail.com>
+Subject: Re: [RFC] Support for 'Coda' video codec IP.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Shawn Guo <shawn.guo@linaro.org>, fabio.estevam@freescale.com,
+	dirk.behme@googlemail.com, r.schwebel@pengutronix.de,
+	kernel@pengutronix.de, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier
+On 2 July 2012 13:13, javier Martin <javier.martin@vista-silicon.com> wrote:
+> On 2 July 2012 12:54, Sascha Hauer <s.hauer@pengutronix.de> wrote:
+>> On Mon, Jul 02, 2012 at 12:36:46PM +0200, javier Martin wrote:
+>>> Hi Sascha,
+>>> I almost have a final version ready which includes multi-instance
+>>> support (not tested though) [1]. As I stated, we assumed the extra
+>>> effort of looking at your code in [2] in order to provide a mechanism
+>>> that preserves compatibility between VPUs in i.MX21, i.MX51 and
+>>> i.MX53. This is the only thing left in order to send the driver for
+>>> mainline submission.
+>>>
+>>> While I was reading your code I found out that you keep the following
+>>> formats for v1 (codadx6-i.MX27) codec:
+>>>
+>>> static int vpu_v1_codecs[VPU_CODEC_MAX] = {
+>>>       [VPU_CODEC_AVC_DEC] = 2,
+>>>       [VPU_CODEC_VC1_DEC] = -1,
+>>>       [VPU_CODEC_MP2_DEC] = -1,
+>>>       [VPU_CODEC_DV3_DEC] = -1,
+>>>       [VPU_CODEC_RV_DEC] = -1,
+>>>       [VPU_CODEC_MJPG_DEC] = 0x82,
+>>>       [VPU_CODEC_AVC_ENC] = 3,
+>>>       [VPU_CODEC_MP4_ENC] = 1,
+>>>       [VPU_CODEC_MJPG_ENC] = 0x83,
+>>> };
+>>>
+>>> As I understand, this means the following operations are supported:
+>>>
+>>> 1- H264 decoding.
+>>> 2- H264 encoding
+>>> 3- MP4 encoding.
+>>> 4- MJPG  decoding.
+>>> 5- MJPG encoding.
+>>>
+>>> I totally agree with MP4 and H264 formats but, are you sure about
+>>> MJPG? I have a i.MX27 v1 codec (codadx6) but I didn't know that this
+>>> codec supported MJPG. Have you tested this code with an i.MX27 and
+>>> MJPG? Where did you find out that it supports this format?
+>>
+>> We haven't tested MJPG on the i.MX27. The table above is from the
+>> original Freescale code, so I assume it's correct and I assume that
+>> the coda dx6 can do MJPEG.
+>
+> Fabio, could you confirm that the VPU in the i.MX27 supports MJPG too?
+>
+>>> Are you
+>>> using firmware version 2.2.4 for v1 codecs?
+>>
+>> No, 2.2.5
+>
+> Where did you get that firmware version? The only related download I
+> can find in [1] is
+> 'MX273DS_FULL_VPU_SW_AND_VPU_FIRMWARE_2.2.4_WINCE_TO2.X_ONLY' which
+> includes firmware 2.2.4.
+>
+> [1] http://www.freescale.com/webapp/sps/site/prod_summary.jsp?code=i.MX27&nodeId=018rH3ZrDR66AF&fpsp=1&tab=Design_Tools_Tab
 
-Thanks for the patch. Let me try to understand what it is doing, please, 
-correct any my mistakes.
+Hi, I was wrong regarding firmware version; we are dealing with 2.2.5
+too. Sorry for the noise.
 
-On Thu, 26 Jul 2012, Javier Martin wrote:
+However, it would be great if Fabio could confirm that codadx6 in the
+i.MX27 supports MJPG too.
 
-> This driver wasn't converted to the new clock framework
-> (e038ed50a4a767add205094c035b6943e7b30140).
-> 
-> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
-> ---
->  drivers/media/video/mx2_camera.c |   67 ++++++++++++++++++++++----------------
->  1 file changed, 39 insertions(+), 28 deletions(-)
-> 
-> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-> index 3c38b5f..88dcae6 100644
-> --- a/drivers/media/video/mx2_camera.c
-> +++ b/drivers/media/video/mx2_camera.c
-> @@ -273,7 +273,7 @@ struct mx2_camera_dev {
->  	struct device		*dev;
->  	struct soc_camera_host	soc_host;
->  	struct soc_camera_device *icd;
-> -	struct clk		*clk_csi, *clk_emma;
-> +	struct clk		*clk_csi, *clk_emma_ahb, *clk_emma_ipg;
->  
->  	unsigned int		irq_csi, irq_emma;
->  	void __iomem		*base_csi, *base_emma;
-> @@ -436,7 +436,8 @@ static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
->  {
->  	unsigned long flags;
->  
-> -	clk_disable(pcdev->clk_csi);
-> +	if (cpu_is_mx27())
-> +		clk_disable_unprepare(pcdev->clk_csi);
+Regards.
 
-This tells me, there are already 2 things going on here:
-
-1. add clock-(un)prepare operations to enable / disable. Is this a problem 
-atm? is the driver non-functional without this change or is it just an API 
-correctness change? I thought you replied to this already, but 
-unfortunately I couldn't find that your reply again, sorry.
-
-2. use clocks only on i.MX27
-
->  	writel(0, pcdev->base_csi + CSICR1);
->  	if (cpu_is_mx27()) {
->  		writel(0, pcdev->base_emma + PRP_CNTL);
-> @@ -464,9 +465,11 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
->  	if (pcdev->icd)
->  		return -EBUSY;
->  
-> -	ret = clk_enable(pcdev->clk_csi);
-> -	if (ret < 0)
-> -		return ret;
-> +	if (cpu_is_mx27()) {
-> +		ret = clk_prepare_enable(pcdev->clk_csi);
-> +		if (ret < 0)
-> +			return ret;
-> +	}
-
-Same two as above.
-
->  
->  	csicr1 = CSICR1_MCLKEN;
->  
-> @@ -1675,23 +1678,12 @@ static int __devinit mx27_camera_emma_init(struct mx2_camera_dev *pcdev)
->  		goto exit_iounmap;
->  	}
->  
-> -	pcdev->clk_emma = clk_get(NULL, "emma");
-> -	if (IS_ERR(pcdev->clk_emma)) {
-> -		err = PTR_ERR(pcdev->clk_emma);
-> -		goto exit_free_irq;
-> -	}
-> -
-> -	clk_enable(pcdev->clk_emma);
-> -
->  	err = mx27_camera_emma_prp_reset(pcdev);
->  	if (err)
-> -		goto exit_clk_emma_put;
-> +		goto exit_free_irq;
->  
->  	return err;
->  
-> -exit_clk_emma_put:
-> -	clk_disable(pcdev->clk_emma);
-> -	clk_put(pcdev->clk_emma);
->  exit_free_irq:
->  	free_irq(pcdev->irq_emma, pcdev);
->  exit_iounmap:
-> @@ -1714,6 +1706,7 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
->  
->  	res_csi = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->  	irq_csi = platform_get_irq(pdev, 0);
-> +
->  	if (res_csi == NULL || irq_csi < 0) {
->  		dev_err(&pdev->dev, "Missing platform resources data\n");
->  		err = -ENODEV;
-> @@ -1727,11 +1720,26 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
->  		goto exit;
->  	}
->  
-> -	pcdev->clk_csi = clk_get(&pdev->dev, NULL);
-> -	if (IS_ERR(pcdev->clk_csi)) {
-> -		dev_err(&pdev->dev, "Could not get csi clock\n");
-> -		err = PTR_ERR(pcdev->clk_csi);
-> -		goto exit_kfree;
-> +	if (cpu_is_mx27()) {
-> +		pcdev->clk_csi = devm_clk_get(&pdev->dev, "ahb");
-> +		if (IS_ERR(pcdev->clk_csi)) {
-> +			dev_err(&pdev->dev, "Could not get csi clock\n");
-> +			err = PTR_ERR(pcdev->clk_csi);
-> +			goto exit_kfree;
-> +		}
-> +		pcdev->clk_emma_ipg = devm_clk_get(&pdev->dev, "emma-ipg");
-> +		if (IS_ERR(pcdev->clk_emma_ipg)) {
-> +			err = PTR_ERR(pcdev->clk_emma_ipg);
-> +			goto exit_kfree;
-> +		}
-> +		pcdev->clk_emma_ahb = devm_clk_get(&pdev->dev, "emma-ahb");
-> +		if (IS_ERR(pcdev->clk_emma_ahb)) {
-> +			err = PTR_ERR(pcdev->clk_emma_ahb);
-> +			goto exit_kfree;
-> +		}
-> +		clk_prepare_enable(pcdev->clk_csi);
-> +		clk_prepare_enable(pcdev->clk_emma_ipg);
-> +		clk_prepare_enable(pcdev->clk_emma_ahb);
->  	}
->  
->  	pcdev->res_csi = res_csi;
-
-This does:
-
-1. add clock-(un)prepare operations to enable / disable.
-
-2. use clocks only on i.MX27
-
-3. switch to managed clock requesting
-
-4. groups clk_get(_devm)() and clk_prepare(_enable)() calls together
-
-> @@ -1827,8 +1835,8 @@ exit_free_emma:
->  eallocctx:
->  	if (cpu_is_mx27()) {
->  		free_irq(pcdev->irq_emma, pcdev);
-> -		clk_disable(pcdev->clk_emma);
-> -		clk_put(pcdev->clk_emma);
-> +		clk_disable_unprepare(pcdev->clk_emma_ipg);
-> +		clk_disable_unprepare(pcdev->clk_emma_ahb);
->  		iounmap(pcdev->base_emma);
->  		release_mem_region(pcdev->res_emma->start, resource_size(pcdev->res_emma));
->  	}
-> @@ -1840,7 +1848,11 @@ exit_iounmap:
->  exit_release:
->  	release_mem_region(res_csi->start, resource_size(res_csi));
->  exit_dma_free:
-> -	clk_put(pcdev->clk_csi);
-> +	if (cpu_is_mx27()) {
-> +		clk_disable_unprepare(pcdev->clk_emma_ipg);
-> +		clk_disable_unprepare(pcdev->clk_emma_ahb);
-> +		clk_disable_unprepare(pcdev->clk_csi);
-> +	}
->  exit_kfree:
->  	kfree(pcdev);
->  exit:
-> @@ -1854,7 +1866,6 @@ static int __devexit mx2_camera_remove(struct platform_device *pdev)
->  			struct mx2_camera_dev, soc_host);
->  	struct resource *res;
->  
-> -	clk_put(pcdev->clk_csi);
->  	if (cpu_is_mx25())
->  		free_irq(pcdev->irq_csi, pcdev);
->  	if (cpu_is_mx27())
-> @@ -1867,8 +1878,8 @@ static int __devexit mx2_camera_remove(struct platform_device *pdev)
->  	iounmap(pcdev->base_csi);
->  
->  	if (cpu_is_mx27()) {
-> -		clk_disable(pcdev->clk_emma);
-> -		clk_put(pcdev->clk_emma);
-> +		clk_disable_unprepare(pcdev->clk_emma_ipg);
-> +		clk_disable_unprepare(pcdev->clk_emma_ahb);
->  		iounmap(pcdev->base_emma);
->  		res = pcdev->res_emma;
->  		release_mem_region(res->start, resource_size(res));
-> -- 
-> 1.7.9.5
-
-The rest adds to the implementation of the above 4 points.
-
-So, if this is correct, my suggestion would be:
-
-1. Don't make the CSI clock i.MX27-specific. You can do
-
--	pcdev->clk_csi = clk_get(&pdev->dev, NULL);
-+	pcdev->clk_csi = clk_get(&pdev->dev, "ahb");
-
-If NULL connection ID worked for i.MX25 before, using any non-empty string 
-will work too.
-
-2. I would rather not re-group clock requesting. It is not too unlogical, 
-that mx27_camera_emma_init() allocates EMMA clocks. And keeping the CSI 
-clock where it is would anyway make your grouping look less symmetric than 
-in this version.
-
-3. identify the real bug-fix portion of this patch and separate it from 
-all other changes. Is the fix in using two separate "emma-ipg" and 
-"emma-ahb" clocks instead of just a single "emma?" Or is prepare / 
-unprepare also required? Please, make these to 1 or two _fix_ patches and 
-the rest you can put in a clean-up / feature / improvement patch.
-
-Does this make sense?
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
