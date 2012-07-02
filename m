@@ -1,45 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:37011 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751862Ab2GHSdR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Jul 2012 14:33:17 -0400
-Date: Sun, 8 Jul 2012 20:33:03 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: martin-eric.racine@iki.fi
-Cc: Hans de Goede <hdegoede@redhat.com>, 677533@bugs.debian.org,
-	linux-media@vger.kernel.org
-Subject: Re: video: USB webcam fails since kernel 3.2
-Message-ID: <20120708203303.26d13474@armhf>
-In-Reply-To: <4FF9CA30.9050105@redhat.com>
-References: <20120614162609.4613.22122.reportbug@henna.lan>
-	<20120614215359.GF3537@burratino>
-	<CAPZXPQd9gNCxn7xGyqj_xymPaF5OxvRtxRFkt+SsLs942te4og@mail.gmail.com>
-	<20120616044137.GB4076@burratino>
-	<1339932233.20497.14.camel@henna.lan>
-	<CAPZXPQegp7RA5M0H9Ofq4rJ9aj-rEdg=Ly9_1c6vAKi3COw50g@mail.gmail.com>
-	<4FF9CA30.9050105@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:4884 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750909Ab2GBLvX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2012 07:51:23 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.6] cx88: convert to the control framework
+Date: Mon, 2 Jul 2012 13:51:16 +0200
+Cc: Steven Toth <stoth@kernellabs.com>,
+	Mike Krufky <mkrufky@linuxtv.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201207021351.16201.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 08 Jul 2012 19:58:08 +0200
-Hans de Goede <hdegoede@redhat.com> wrote:
+Hi all!
 
-> Hmm, this is then likely caused by the new isoc bandwidth negotiation code
-> in 3.2, unfortunately the vc032x driver is one of the few gspca drivers
-> for which I don't have a cam to test with. Can you try to build your own
-> kernel from source?
+I didn't get any comments since my RFC post:
 
-Hi Martin-Éric,
+http://www.spinics.net/lists/linux-media/msg48764.html
 
-Instead of re-building the gspca driver from a kernel source, you may
-try the gspca test tarball from my web site
-	http://moinejf.free.fr/gspca-2.15.18.tar.gz
-It contains most of the bug fixes, including the one about the
-bandwidth problem.
+So it's time to send out the pull request.
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Regards,
+
+	Hans
+
+The following changes since commit 704a28e88ab6c9cfe393ae626b612cab8b46028e:
+
+  [media] drxk: prevent doing something wrong when init is not ok (2012-06-29 19:04:32 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git cx88
+
+for you to fetch changes up to bc7432646ff6e276bee5490faefb6cd244b95464:
+
+  cx88-blackbird: replace ioctl by unlocked_ioctl. (2012-07-02 13:47:29 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (11):
+      cx88: fix querycap
+      cx88: first phase to convert cx88 to the control framework.
+      cx88: each device node gets the right controls.
+      cx88: convert cx88-blackbird to the control framework.
+      cx88: remove radio and type from cx8800_fh.
+      cx88: move fmt, width and height to cx8800_dev.
+      cx88: add priority support.
+      cx88: support control events.
+      cx88: fix a number of v4l2-compliance violations.
+      cx88: don't use current_norm.
+      cx88-blackbird: replace ioctl by unlocked_ioctl.
+
+ drivers/media/video/cx88/cx88-alsa.c      |   31 +---
+ drivers/media/video/cx88/cx88-blackbird.c |  234 ++++++++++--------------------
+ drivers/media/video/cx88/cx88-cards.c     |   20 +++
+ drivers/media/video/cx88/cx88-core.c      |    7 +-
+ drivers/media/video/cx88/cx88-video.c     |  901 ++++++++++++++++++++++++++++++++++++++++++++++++++----------------------------------------------------------------
+ drivers/media/video/cx88/cx88.h           |   68 +++++----
+ 6 files changed, 540 insertions(+), 721 deletions(-)
