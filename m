@@ -1,201 +1,289 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:55720 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753133Ab2GJWIT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jul 2012 18:08:19 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1SoibR-0005Fe-96
-	for linux-media@vger.kernel.org; Wed, 11 Jul 2012 00:08:17 +0200
-Received: from bws20.neoplus.adsl.tpnet.pl ([83.29.242.20])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 11 Jul 2012 00:08:17 +0200
-Received: from acc.for.news by bws20.neoplus.adsl.tpnet.pl with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 11 Jul 2012 00:08:17 +0200
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1912 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750985Ab2GBOPx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2012 10:15:53 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-From: Marx <acc.for.news@gmail.com>
-Subject: Re: pctv452e
-Date: Tue, 10 Jul 2012 23:08:23 +0200
-Message-ID: <d7iuc9-ua5.ln1@wuwek.kopernik.gliwice.pl>
-References: <4FF4697C.8080602@nexusuk.org> <4FF46DC4.4070204@iki.fi> <4FF4911B.9090600@web.de> <4FF4931B.7000708@iki.fi> <gjggc9-dl4.ln1@wuwek.kopernik.gliwice.pl> <4FF5A350.9070509@iki.fi> <r8cic9-ht4.ln1@wuwek.kopernik.gliwice.pl> <4FF6B121.6010105@iki.fi> <9btic9-vd5.ln1@wuwek.kopernik.gliwice.pl> <835kc9-7p4.ln1@wuwek.kopernik.gliwice.pl> <4FF77C1B.50406@iki.fi> <l2smc9-pj4.ln1@wuwek.kopernik.gliwice.pl> <4FF97DF8.4080208@iki.fi> <n1aqc9-sp4.ln1@wuwek.kopernik.gliwice.pl> <4FFA996D.9010206@iki.fi> <scerc9-bm6.ln1@wuwek.kopernik.gliwice.pl> <4FFB172A.2070009@iki.fi> <4FFB1900.6010306@iki.fi> <79vsc9-dte.ln1@wuwek.kopernik.gliwice.pl> <4FFBF6F8.7010907@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <4FFBF6F8.7010907@iki.fi>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	halli manjunatha <hallimanju@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 6/6] radio-cadet: implement frequency band enumeration.
+Date: Mon,  2 Jul 2012 16:15:12 +0200
+Message-Id: <258495c468f251f431d30ad10e5b5b926bc3afdc.1341237775.git.hans.verkuil@cisco.com>
+In-Reply-To: <1341238512-17504-1-git-send-email-hverkuil@xs4all.nl>
+References: <1341238512-17504-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <f8baa47c370e4d79309e126b56127df8a5edd11a.1341237775.git.hans.verkuil@cisco.com>
+References: <f8baa47c370e4d79309e126b56127df8a5edd11a.1341237775.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-W dniu 2012-07-10 11:33, Antti Palosaari pisze:
->
-> Seems like stream is broken. It should look like that:
->
-> Input #0, mpegts, from '/dev/dvb/adapter0/dvr0':
->    Duration: N/A, start: 19013.637311, bitrate: 15224 kb/s
->      Stream #0:0[0x231]: Audio: mp2, 48000 Hz, stereo, s16, 224 kb/s
->      Stream #0:1[0x131]: Video: mpeg2video (Main), yuv420p, 720x576 [SAR
-> 64:45 DAR 16:9], 15000 kb/s, 26.89 fps, 25 tbr, 90k tbn, 50 tbc
->
->
-> You have said it works some times. Could you try to using tzap + ffmpeg
-> cases when it works and when it does not. Use FTA channels to analyze as
-> I think ffmpeg could not say much about encrypted streams.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-It's hard to say it works because I have no GUI on this PC and I don't 
-know a method to share directly device/stream into PC.
-Hovewer I've tried to tune and analyze several FTA channels.
-I have now better results because:
-1) i've disconnected pctv device (USB & power)
-2) poweroff
-3) poweron
-4) connect device
-If I simply reboot or reconnect device - it doesn't help.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/radio/radio-cadet.c |  129 +++++++++++++++++++++----------------
+ 1 file changed, 72 insertions(+), 57 deletions(-)
 
-[   67.544510] Linux media interface: v0.10
-[   67.565420] Linux video capture interface: v2.00
-[   67.834186] saa7146: register extension 'av7110'
-[ 1536.841356] usb 1-4: new high-speed USB device number 2 using ehci_hcd
-[ 1537.437957] usb 1-4: New USB device found, idVendor=2304, idProduct=021f
-[ 1537.437971] usb 1-4: New USB device strings: Mfr=1, Product=2, 
-SerialNumber=0
-[ 1537.437980] usb 1-4: Product: PCTV452e
-[ 1537.437989] usb 1-4: Manufacturer: Pinnacle
-[ 1537.556548] usb 1-4: dvb_usbv2: found a 'PCTV HDTV USB' in warm state
-[ 1537.556560] pctv452e_power_ctrl: 1
-[ 1537.556565] pctv452e_power_ctrl: step 1
-[ 1537.556570] pctv452e_power_ctrl: step 2
-[ 1537.557057] pctv452e_power_ctrl: step 3
-[ 1537.557197] usbcore: registered new interface driver dvb_usb_pctv452e
-[ 1537.557263] pctv452e_power_ctrl: step 4
-[ 1537.557491] pctv452e_power_ctrl: step 5
-[ 1537.557610] usb 1-4: dvb_usbv2: will pass the complete MPEG2 
-transport stream to the software demuxer
-[ 1537.557670] DVB: registering new adapter (PCTV HDTV USB)
-[ 1537.602916] stb0899_attach: Attaching STB0899
-[ 1537.611531] DVB: registering adapter 0 frontend 0 (STB0899 
-Multistandard)...
-[ 1537.625143] stb6100_attach: Attaching STB6100
-[ 1537.625158] pctv452e_power_ctrl: 0
-[ 1537.625173] usb 1-4: dvb_usbv2: 'PCTV HDTV USB' successfully 
-initialized and connected
-
-I don't know why it say device is in warm state. As I understand warm 
-means with firmware loaded(?), but this device was completely switched off.
-
-1) Mango 24
-wuwek:~# szap -n 51 -r
-reading channels from file '/root/.szap/channels.conf'
-zapping to 51 'Mango 24;TVN':
-sat 0, frequency = 11393 MHz V, symbolrate 27500000, vpid = 0x0205, apid 
-= 0x02bc sid = 0x0245
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-status 1f | signal 01c6 | snr 0093 | ber 00000000 | unc fffffffe | 
-FE_HAS_LOCK
-
-wuwek:~# ffmpeg -i /dev/dvb/adapter0/dvr0
-p11-kit: couldn't load module: 
-/usr/lib/i386-linux-gnu/pkcs11/gnome-keyring-pkcs11.so: 
-/usr/lib/i386-linux-gnu/pkcs11/gnome-keyring-pkcs11.so: cannot open 
-shared object file: No such file or directory
-ffmpeg version 0.8.3-6:0.8.3-4, Copyright (c) 2000-2012 the Libav developers
-   built on Jun 26 2012 07:23:46 with gcc 4.7.1
-*** THIS PROGRAM IS DEPRECATED ***
-This program is only provided for compatibility and will be removed in a 
-future release. Please use avconv instead.
-[mpeg2video @ 0x8d47940] mpeg_decode_postinit() failure
-[mp3 @ 0x8d4a5c0] Header missing
-     Last message repeated 2 times
-[mpegts @ 0x8d43900] max_analyze_duration reached
-[mpegts @ 0x8d43900] Estimating duration from bitrate, this may be 
-inaccurate
-Input #0, mpegts, from '/dev/dvb/adapter0/dvr0':
-   Duration: N/A, start: 90810.592967, bitrate: 10000 kb/s
-     Stream #0.0[0x205]: Video: mpeg2video (Main), yuv420p, 480x576 [PAR 
-32:15 DAR 16:9], 10000 kb/s, 25 fps, 25 tbr, 90k tbn, 50 tbc
-     Stream #0.1[0x2bc]: Audio: mp3, 0 channels, s16
-At least one output file must be specified
-
-2. Eska TV
-wuwek:~# szap -n 52 -r
-reading channels from file '/root/.szap/channels.conf'
-zapping to 52 'Eska TV;ITI':
-sat 0, frequency = 11508 MHz V, symbolrate 27500000, vpid = 0x020a, apid 
-= 0x02d6 sid = 0x0000
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-status 1f | signal 01ce | snr 008e | ber 00000000 | unc fffffffe | 
-FE_HAS_LOCK
-
-wuwek:~# ffmpeg -i /dev/dvb/adapter0/dvr0
-p11-kit: couldn't load module: 
-/usr/lib/i386-linux-gnu/pkcs11/gnome-keyring-pkcs11.so: 
-/usr/lib/i386-linux-gnu/pkcs11/gnome-keyring-pkcs11.so: cannot open 
-shared object file: No such file or directory
-ffmpeg version 0.8.3-6:0.8.3-4, Copyright (c) 2000-2012 the Libav developers
-   built on Jun 26 2012 07:23:46 with gcc 4.7.1
-*** THIS PROGRAM IS DEPRECATED ***
-This program is only provided for compatibility and will be removed in a 
-future release. Please use avconv instead.
-[mpegts @ 0x9f1e900] max_analyze_duration reached
-[mpegts @ 0x9f1e900] Estimating duration from bitrate, this may be 
-inaccurate
-Input #0, mpegts, from '/dev/dvb/adapter0/dvr0':
-   Duration: N/A, start: 94027.528811, bitrate: 10000 kb/s
-     Stream #0.0[0x2d6]: Data: [0][0][0][0] / 0x0000
-     Stream #0.1[0x20a]: Video: mpeg2video (Main), yuv420p, 704x576 [PAR 
-16:11 DAR 16:9], 10000 kb/s, 25 fps, 25 tbr, 90k tbn, 50 tbc
-At least one output file must be specified
-
-3. again Mango
-[mpeg2video @ 0x987bb80] mpeg_decode_postinit() failure
-     Last message repeated 6 times
-[mpegts @ 0x9877900] max_analyze_duration reached
-[mpegts @ 0x9877900] Estimating duration from bitrate, this may be 
-inaccurate
-Input #0, mpegts, from '/dev/dvb/adapter0/dvr0':
-   Duration: N/A, start: 91684.528967, bitrate: 10000 kb/s
-     Stream #0.0[0x205]: Video: mpeg2video (Main), yuv420p, 480x576 [PAR 
-32:15 DAR 16:9], 10000 kb/s, 26 fps, 25 tbr, 90k tbn, 50 tbc
-     Stream #0.1[0x2bc]: Data: [0][0][0][0] / 0x0000
-At least one output file must be specified
-
-4. again Mango
-[mpeg2video @ 0x818b940] mpeg_decode_postinit() failure
-     Last message repeated 7 times
-[mpegts @ 0x8187900] max_analyze_duration reached
-[mpegts @ 0x8187900] Estimating duration from bitrate, this may be 
-inaccurate
-Input #0, mpegts, from '/dev/dvb/adapter0/dvr0':
-   Duration: N/A, start: 92216.440967, bitrate: 10000 kb/s
-     Stream #0.0[0x205]: Video: mpeg2video (Main), yuv420p, 480x576 [PAR 
-32:15 DAR 16:9], 10000 kb/s, 26.20 fps, 25 tbr, 90k tbn, 50 tbc
-     Stream #0.1[0x2bc]: Data: [0][0][0][0] / 0x0000
-At least one output file must be specified
-
-
-I saved Mango file. VLC for windows doesn't play it, but Media Player 
-Classic plays it.
-FFMpeg says:
-wuwek:~# ffmpeg -i /mnt/video/test5.ts
-p11-kit: couldn't load module: 
-/usr/lib/i386-linux-gnu/pkcs11/gnome-keyring-pkcs11.so: 
-/usr/lib/i386-linux-gnu/pkcs11/gnome-keyring-pkcs11.so: cannot open 
-shared object file: No such file or directory
-ffmpeg version 0.8.3-6:0.8.3-4, Copyright (c) 2000-2012 the Libav developers
-   built on Jun 26 2012 07:23:46 with gcc 4.7.1
-*** THIS PROGRAM IS DEPRECATED ***
-This program is only provided for compatibility and will be removed in a 
-future release. Please use avconv instead.
-[mp3 @ 0x9ccb940] Header missing
-     Last message repeated 4 times
-[mpegts @ 0x9cc7900] max_analyze_duration reached
-[mpegts @ 0x9cc7900] PES packet size mismatch
-Input #0, mpegts, from '/mnt/video/test5.ts':
-   Duration: 00:00:28.00, start: 94048.816811, bitrate: 4240 kb/s
-     Stream #0.0[0x2d6]: Audio: mp3, 0 channels, s16
-     Stream #0.1[0x20a]: Video: mpeg2video (Main), yuv420p, 704x576 [PAR 
-16:11 DAR 16:9], 10000 kb/s, 25 fps, 25 tbr, 90k tbn, 50 tbc
-At least one output file must be specified
-
-Marx
+diff --git a/drivers/media/radio/radio-cadet.c b/drivers/media/radio/radio-cadet.c
+index d1fb427..946a4d7 100644
+--- a/drivers/media/radio/radio-cadet.c
++++ b/drivers/media/radio/radio-cadet.c
+@@ -66,7 +66,8 @@ struct cadet {
+ 	struct video_device vdev;
+ 	struct v4l2_ctrl_handler ctrl_handler;
+ 	int io;
+-	int curtuner;
++	bool is_fm_band;
++	u32 curfreq;
+ 	int tunestat;
+ 	int sigstrength;
+ 	wait_queue_head_t read_queue;
+@@ -84,9 +85,9 @@ static struct cadet cadet_card;
+  * The V4L API spec does not define any particular unit for the signal
+  * strength value.  These values are in microvolts of RF at the tuner's input.
+  */
+-static __u16 sigtable[2][4] = {
++static u16 sigtable[2][4] = {
++	{ 1835, 2621,  4128, 65535 },
+ 	{ 2185, 4369, 13107, 65535 },
+-	{ 1835, 2621,  4128, 65535 }
+ };
+ 
+ 
+@@ -94,7 +95,7 @@ static int cadet_getstereo(struct cadet *dev)
+ {
+ 	int ret = V4L2_TUNER_SUB_MONO;
+ 
+-	if (dev->curtuner != 0)	/* Only FM has stereo capability! */
++	if (!dev->is_fm_band)	/* Only FM has stereo capability! */
+ 		return V4L2_TUNER_SUB_MONO;
+ 
+ 	outb(7, dev->io);          /* Select tuner control */
+@@ -149,20 +150,18 @@ static unsigned cadet_getfreq(struct cadet *dev)
+ 	/*
+ 	 * Convert to actual frequency
+ 	 */
+-	if (dev->curtuner == 0) {    /* FM */
+-		test = 12500;
+-		for (i = 0; i < 14; i++) {
+-			if ((fifo & 0x01) != 0)
+-				freq += test;
+-			test = test << 1;
+-			fifo = fifo >> 1;
+-		}
+-		freq -= 10700000;           /* IF frequency is 10.7 MHz */
+-		freq = (freq * 16) / 1000;   /* Make it 1/16 kHz */
++	if (!dev->is_fm_band)    /* AM */
++		return ((fifo & 0x7fff) - 2010) * 16;
++
++	test = 12500;
++	for (i = 0; i < 14; i++) {
++		if ((fifo & 0x01) != 0)
++			freq += test;
++		test = test << 1;
++		fifo = fifo >> 1;
+ 	}
+-	if (dev->curtuner == 1)    /* AM */
+-		freq = ((fifo & 0x7fff) - 2010) * 16;
+-
++	freq -= 10700000;           /* IF frequency is 10.7 MHz */
++	freq = (freq * 16) / 1000;   /* Make it 1/16 kHz */
+ 	return freq;
+ }
+ 
+@@ -197,11 +196,12 @@ static void cadet_setfreq(struct cadet *dev, unsigned freq)
+ 	int i, j, test;
+ 	int curvol;
+ 
++	dev->curfreq = freq;
+ 	/*
+ 	 * Formulate a fifo command
+ 	 */
+ 	fifo = 0;
+-	if (dev->curtuner == 0) {    /* FM */
++	if (dev->is_fm_band) {    /* FM */
+ 		test = 102400;
+ 		freq = freq / 16;       /* Make it kHz */
+ 		freq += 10700;               /* IF is 10700 kHz */
+@@ -213,10 +213,9 @@ static void cadet_setfreq(struct cadet *dev, unsigned freq)
+ 			}
+ 			test = test >> 1;
+ 		}
+-	}
+-	if (dev->curtuner == 1) {    /* AM */
+-		fifo = (freq / 16) + 2010;            /* Make it kHz */
+-		fifo |= 0x100000;            /* Select AM Band */
++	} else {	/* AM */
++		fifo = (freq / 16) + 450;	/* Make it kHz */
++		fifo |= 0x100000;		/* Select AM Band */
+ 	}
+ 
+ 	/*
+@@ -239,7 +238,7 @@ static void cadet_setfreq(struct cadet *dev, unsigned freq)
+ 
+ 		cadet_gettune(dev);
+ 		if ((dev->tunestat & 0x40) == 0) {   /* Tuned */
+-			dev->sigstrength = sigtable[dev->curtuner][j];
++			dev->sigstrength = sigtable[dev->is_fm_band][j];
+ 			goto reset_rds;
+ 		}
+ 	}
+@@ -338,39 +337,50 @@ static int vidioc_querycap(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
++static const struct v4l2_frequency_band bands[] = {
++	{
++		.index = 0,
++		.name = "AM MW",
++		.capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_FREQ_BANDS,
++		.rangelow = 8320,      /* 520 kHz */
++		.rangehigh = 26400,    /* 1650 kHz */
++	}, {
++		.index = 1,
++		.name = "FM",
++		.capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS |
++			V4L2_TUNER_CAP_RDS_BLOCK_IO | V4L2_TUNER_CAP_LOW |
++			V4L2_TUNER_CAP_FREQ_BANDS,
++		.rangelow = 1400000,   /* 87.5 MHz */
++		.rangehigh = 1728000,  /* 108.0 MHz */
++	},
++};
++
+ static int vidioc_g_tuner(struct file *file, void *priv,
+ 				struct v4l2_tuner *v)
+ {
+ 	struct cadet *dev = video_drvdata(file);
+ 
++	if (v->index)
++		return -EINVAL;
+ 	v->type = V4L2_TUNER_RADIO;
+-	switch (v->index) {
+-	case 0:
+-		strlcpy(v->name, "FM", sizeof(v->name));
+-		v->capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS |
+-			V4L2_TUNER_CAP_RDS_BLOCK_IO | V4L2_TUNER_CAP_LOW;
+-		v->rangelow = 1400000;     /* 87.5 MHz */
+-		v->rangehigh = 1728000;    /* 108.0 MHz */
++	strlcpy(v->name, "Radio", sizeof(v->name));
++	v->capability = bands[0].capability | bands[1].capability;
++	v->rangelow = bands[0].rangelow;	   /* 520 kHz (start of AM band) */
++	v->rangehigh = bands[1].rangehigh;    /* 108.0 MHz (end of FM band) */
++	if (dev->is_fm_band) {
+ 		v->rxsubchans = cadet_getstereo(dev);
+-		v->audmode = V4L2_TUNER_MODE_STEREO;
+ 		outb(3, dev->io);
+ 		outb(inb(dev->io + 1) & 0x7f, dev->io + 1);
+ 		mdelay(100);
+ 		outb(3, dev->io);
+ 		if (inb(dev->io + 1) & 0x80)
+ 			v->rxsubchans |= V4L2_TUNER_SUB_RDS;
+-		break;
+-	case 1:
+-		strlcpy(v->name, "AM", sizeof(v->name));
+-		v->capability = V4L2_TUNER_CAP_LOW;
++	} else {
+ 		v->rangelow = 8320;      /* 520 kHz */
+ 		v->rangehigh = 26400;    /* 1650 kHz */
+ 		v->rxsubchans = V4L2_TUNER_SUB_MONO;
+-		v->audmode = V4L2_TUNER_MODE_MONO;
+-		break;
+-	default:
+-		return -EINVAL;
+ 	}
++	v->audmode = V4L2_TUNER_MODE_STEREO;
+ 	v->signal = dev->sigstrength; /* We might need to modify scaling of this */
+ 	return 0;
+ }
+@@ -378,8 +388,17 @@ static int vidioc_g_tuner(struct file *file, void *priv,
+ static int vidioc_s_tuner(struct file *file, void *priv,
+ 				struct v4l2_tuner *v)
+ {
+-	if (v->index != 0 && v->index != 1)
++	return v->index ? -EINVAL : 0;
++}
++
++static int vidioc_enum_freq_bands(struct file *file, void *priv,
++				struct v4l2_frequency_band *band)
++{
++	if (band->tuner)
++		return -EINVAL;
++	if (band->index >= ARRAY_SIZE(bands))
+ 		return -EINVAL;
++	*band = bands[band->index];
+ 	return 0;
+ }
+ 
+@@ -388,10 +407,10 @@ static int vidioc_g_frequency(struct file *file, void *priv,
+ {
+ 	struct cadet *dev = video_drvdata(file);
+ 
+-	if (f->tuner > 1)
++	if (f->tuner)
+ 		return -EINVAL;
+ 	f->type = V4L2_TUNER_RADIO;
+-	f->frequency = cadet_getfreq(dev);
++	f->frequency = dev->curfreq;
+ 	return 0;
+ }
+ 
+@@ -401,20 +420,12 @@ static int vidioc_s_frequency(struct file *file, void *priv,
+ {
+ 	struct cadet *dev = video_drvdata(file);
+ 
+-	if (f->type != V4L2_TUNER_RADIO)
+-		return -EINVAL;
+-	if (f->tuner == 0) {
+-		if (f->frequency < 1400000)
+-			f->frequency = 1400000;
+-		else if (f->frequency > 1728000)
+-			f->frequency = 1728000;
+-	} else if (f->tuner == 1) {
+-		if (f->frequency < 8320)
+-			f->frequency = 8320;
+-		else if (f->frequency > 26400)
+-			f->frequency = 26400;
+-	} else
++	if (f->tuner)
+ 		return -EINVAL;
++	dev->is_fm_band =
++		f->frequency >= (bands[0].rangehigh + bands[1].rangelow) / 2;
++	clamp(f->frequency, bands[dev->is_fm_band].rangelow,
++			    bands[dev->is_fm_band].rangehigh);
+ 	cadet_setfreq(dev, f->frequency);
+ 	return 0;
+ }
+@@ -499,6 +510,7 @@ static const struct v4l2_ioctl_ops cadet_ioctl_ops = {
+ 	.vidioc_s_tuner     = vidioc_s_tuner,
+ 	.vidioc_g_frequency = vidioc_g_frequency,
+ 	.vidioc_s_frequency = vidioc_s_frequency,
++	.vidioc_enum_freq_bands = vidioc_enum_freq_bands,
+ 	.vidioc_log_status  = v4l2_ctrl_log_status,
+ 	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
+ 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+@@ -555,8 +567,8 @@ static void cadet_probe(struct cadet *dev)
+ 	for (i = 0; i < 8; i++) {
+ 		dev->io = iovals[i];
+ 		if (request_region(dev->io, 2, "cadet-probe")) {
+-			cadet_setfreq(dev, 1410);
+-			if (cadet_getfreq(dev) == 1410) {
++			cadet_setfreq(dev, bands[1].rangelow);
++			if (cadet_getfreq(dev) == bands[1].rangelow) {
+ 				release_region(dev->io, 2);
+ 				return;
+ 			}
+@@ -619,6 +631,9 @@ static int __init cadet_init(void)
+ 		goto err_hdl;
+ 	}
+ 
++	dev->is_fm_band = true;
++	dev->curfreq = bands[dev->is_fm_band].rangelow;
++	cadet_setfreq(dev, dev->curfreq);
+ 	strlcpy(dev->vdev.name, v4l2_dev->name, sizeof(dev->vdev.name));
+ 	dev->vdev.v4l2_dev = v4l2_dev;
+ 	dev->vdev.fops = &cadet_fops;
+-- 
+1.7.10
 
