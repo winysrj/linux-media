@@ -1,51 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:59888 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752001Ab2GVUmy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Jul 2012 16:42:54 -0400
-Subject: Re: [PATCH 1/2] kthread_worker: reorganize to prepare for
- flush_kthread_work() reimplementation
-From: Andy Walls <awalls@md.metrocast.net>
-To: Tejun Heo <tj@kernel.org>
-Cc: linux-kernel@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Avi Kivity <avi@redhat.com>, kvm@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	Grant Likely <grant.likely@secretlab.ca>,
-	spi-devel-general@lists.sourceforge.net,
-	Linus Torvalds <torvalds@linux-foundation.org>
-Date: Sun, 22 Jul 2012 16:42:12 -0400
-In-Reply-To: <20120722164607.GB5144@dhcp-172-17-108-109.mtv.corp.google.com>
-References: <20120719211510.GA32763@google.com>
-	 <20120719211541.GB32763@google.com>
-	 <1342890808.2504.3.camel@palomino.walls.org>
-	 <20120722164607.GB5144@dhcp-172-17-108-109.mtv.corp.google.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Message-ID: <1342989735.2487.15.camel@palomino.walls.org>
+Received: from ozlabs.org ([203.10.76.45]:39778 "EHLO ozlabs.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754571Ab2GBB6A (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Jul 2012 21:58:00 -0400
+Date: Mon, 2 Jul 2012 11:58:00 +1000
+From: Anton Blanchard <anton@samba.org>
+To: mchehab@infradead.org, david@hardeman.nu
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 1/3] [media] winbond-cir: Fix txandrx module info
+Message-ID: <20120702115800.1275f944@kryten>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2012-07-22 at 09:46 -0700, Tejun Heo wrote:
-> Hello,
-> 
-> On Sat, Jul 21, 2012 at 01:13:27PM -0400, Andy Walls wrote:
-> > > +/* insert @work before @pos in @worker */
-> > 
-> > Hi Tejun,
-> > 
-> > Would a comment that the caller should be holding worker->lock be useful
-> > here?  Anyway, comment or not:
-> > 
-> > Acked-by: Andy Walls <awall@md.metrocast.net>
-> 
-> Will add lockdep_assert_held().  Thanks!
-> 
 
-Great!  Thank you.
+We aren't getting any module info for the txandx option because
+of a typo:
 
-Regards,
-Andy 
+parm:           txandrx:bool
 
+Signed-off-by: Anton Blanchard <anton@samba.org>
+---
+
+Index: linux-2.6/drivers/media/rc/winbond-cir.c
+===================================================================
+--- linux-2.6.orig/drivers/media/rc/winbond-cir.c	2011-11-20 20:30:57.831906589 +1100
++++ linux-2.6/drivers/media/rc/winbond-cir.c	2011-11-20 20:32:13.472362123 +1100
+@@ -232,7 +232,7 @@ MODULE_PARM_DESC(invert, "Invert the sig
+ 
+ static int txandrx; /* default = 0 */
+ module_param(txandrx, bool, 0444);
+-MODULE_PARM_DESC(invert, "Allow simultaneous TX and RX");
++MODULE_PARM_DESC(txandrx, "Allow simultaneous TX and RX");
+ 
+ static unsigned int wake_sc = 0x800F040C;
+ module_param(wake_sc, uint, 0644);
