@@ -1,78 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59149 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751276Ab2GRN61 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jul 2012 09:58:27 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH v2 4/9] ov772x: try_fmt must not default to the current format
-Date: Wed, 18 Jul 2012 15:58:21 +0200
-Message-Id: <1342619906-5820-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1342619906-5820-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1342619906-5820-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:36152 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750834Ab2GBLra (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2012 07:47:30 -0400
+Received: by obbuo13 with SMTP id uo13so8104170obb.19
+        for <linux-media@vger.kernel.org>; Mon, 02 Jul 2012 04:47:30 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4FEA1E08.3070703@suse.cz>
+References: <4FEA1E08.3070703@suse.cz>
+Date: Mon, 2 Jul 2012 13:47:29 +0200
+Message-ID: <CAL7owaDKkawK=+LO2_XMifCFV17tZaQWnJQX6UvLOuDiBdSOfA@mail.gmail.com>
+Subject: Re: [PATCH dvb-utils] proper dvb-t scan data for Czech Republic
+From: Christoph Pfister <christophpfister@gmail.com>
+To: Jiri Slaby <jslaby@suse.cz>
+Cc: js@convergence.de, adq_dvb@lidskialf.net,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the requested format isn't supported, return a fixed default format
-instead of the current format.
+Pushed, thanks.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/ov772x.c |   36 +++++++-----------------------------
- 1 files changed, 7 insertions(+), 29 deletions(-)
+2012/6/26 Jiri Slaby <jslaby@suse.cz>:
+> BTW I would appreciate if you move also dvb-utils to GIT. hg wastes our
+> time.
 
-diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
-index c2bd087..be3dfb5 100644
---- a/drivers/media/video/ov772x.c
-+++ b/drivers/media/video/ov772x.c
-@@ -919,38 +919,16 @@ static int ov772x_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
- static int ov772x_try_fmt(struct v4l2_subdev *sd,
- 			  struct v4l2_mbus_framefmt *mf)
- {
--	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
-+	const struct ov772x_color_format *cfmt;
- 	const struct ov772x_win_size *win;
--	int i;
--
--	/*
--	 * select suitable win
--	 */
--	win = ov772x_select_win(mf->width, mf->height);
- 
--	mf->width	= win->width;
--	mf->height	= win->height;
--	mf->field	= V4L2_FIELD_NONE;
--
--	for (i = 0; i < ARRAY_SIZE(ov772x_cfmts); i++)
--		if (mf->code == ov772x_cfmts[i].code)
--			break;
-+	ov772x_select_params(mf, &cfmt, &win);
- 
--	if (i == ARRAY_SIZE(ov772x_cfmts)) {
--		/* Unsupported format requested. Propose either */
--		if (priv->cfmt) {
--			/* the current one or */
--			mf->colorspace = priv->cfmt->colorspace;
--			mf->code = priv->cfmt->code;
--		} else {
--			/* the default one */
--			mf->colorspace = ov772x_cfmts[0].colorspace;
--			mf->code = ov772x_cfmts[0].code;
--		}
--	} else {
--		/* Also return the colorspace */
--		mf->colorspace	= ov772x_cfmts[i].colorspace;
--	}
-+	mf->code = cfmt->code;
-+	mf->width = win->width;
-+	mf->height = win->height;
-+	mf->field = V4L2_FIELD_NONE;
-+	mf->colorspace = cfmt->colorspace;
- 
- 	return 0;
- }
--- 
-1.7.8.6
+I don't mind, but I won't spend time on that.
 
+> --
+> js
+> suse labs
+
+Christoph
