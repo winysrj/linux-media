@@ -1,112 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:54268 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750777Ab2GAUPw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Jul 2012 16:15:52 -0400
-Received: by qcro28 with SMTP id o28so2600569qcr.19
-        for <linux-media@vger.kernel.org>; Sun, 01 Jul 2012 13:15:51 -0700 (PDT)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Received: from mailout2.samsung.com ([203.254.224.25]:56778 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754763Ab2GCPNo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jul 2012 11:13:44 -0400
+Received: from epcpsbgm1.samsung.com (mailout2.samsung.com [203.254.224.25])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M6L008OMBMLYY10@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 04 Jul 2012 00:13:42 +0900 (KST)
+Received: from amdc248.digital.local ([106.116.147.32])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0M6L00LKCBMMDF90@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 04 Jul 2012 00:13:42 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH 1/6] cx25840: fix regression in HVR-1800 analog support
-Date: Sun,  1 Jul 2012 16:15:09 -0400
-Message-Id: <1341173714-23627-2-git-send-email-dheitmueller@kernellabs.com>
-In-Reply-To: <1341173714-23627-1-git-send-email-dheitmueller@kernellabs.com>
-References: <1341173714-23627-1-git-send-email-dheitmueller@kernellabs.com>
+Cc: kyungmin.park@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH] m5mols: Correct reported ISO values
+Date: Tue, 03 Jul 2012 17:13:31 +0200
+Message-id: <1341328411-24958-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The refactoring of the cx25840 driver to support the cx23888 caused breakage
-with the existing support for cx23885/cx23887 analog support.  Rework the
-routines such that the new code is only used for the 888.
+The V4L2_CID_ISO_SENSITIVITY control values should be standard
+ISO values multiplied by 1000. Multiply all menu items by 1000
+so ISO is properly reported as 50...3200 range.
 
-Validated with the following boards:
-
-HVR-1800 retail (0070:7801)
-HVR-1800 OEM (0070:7809)
-HVR_1850 retail (0070:8541)
-
-Thanks to Steven Toth and Hauppauge for loaning me various boards to
-regression test with.
-
-Reported-by: Jonathan <sitten74490@mypacks.net>
-Thanks-to: Steven Toth <stoth@kernellabs.com>
-Signed-off-by: Devin Heitmueler <dheitmueller@kernellabs.com>
+Cc: HeungJun, Kim <riverful.kim@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/video/cx25840/cx25840-core.c |   23 +++++++++++++----------
- 1 files changed, 13 insertions(+), 10 deletions(-)
+ drivers/media/video/m5mols/m5mols_controls.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/video/cx25840/cx25840-core.c b/drivers/media/video/cx25840/cx25840-core.c
-index fc1ff69..a82b704 100644
---- a/drivers/media/video/cx25840/cx25840-core.c
-+++ b/drivers/media/video/cx25840/cx25840-core.c
-@@ -84,7 +84,7 @@ MODULE_PARM_DESC(debug, "Debugging messages [0=Off (default) 1=On]");
- 
- 
- /* ----------------------------------------------------------------------- */
--static void cx23885_std_setup(struct i2c_client *client);
-+static void cx23888_std_setup(struct i2c_client *client);
- 
- int cx25840_write(struct i2c_client *client, u16 addr, u8 value)
- {
-@@ -638,10 +638,13 @@ static void cx23885_initialize(struct i2c_client *client)
- 	finish_wait(&state->fw_wait, &wait);
- 	destroy_workqueue(q);
- 
--	/* Call the cx23885 specific std setup func, we no longer rely on
-+	/* Call the cx23888 specific std setup func, we no longer rely on
- 	 * the generic cx24840 func.
- 	 */
--	cx23885_std_setup(client);
-+	if (is_cx23888(state))
-+		cx23888_std_setup(client);
-+	else
-+		cx25840_std_setup(client);
- 
- 	/* (re)set input */
- 	set_input(client, state->vid_input, state->aud_input);
-@@ -1298,8 +1301,8 @@ static int set_v4lstd(struct i2c_client *client)
- 	}
- 	cx25840_and_or(client, 0x400, ~0xf, fmt);
- 	cx25840_and_or(client, 0x403, ~0x3, pal_m);
--	if (is_cx2388x(state))
--		cx23885_std_setup(client);
-+	if (is_cx23888(state))
-+		cx23888_std_setup(client);
- 	else
- 		cx25840_std_setup(client);
- 	if (!is_cx2583x(state))
-@@ -1782,8 +1785,8 @@ static int cx25840_s_video_routing(struct v4l2_subdev *sd,
- 	struct cx25840_state *state = to_state(sd);
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
--	if (is_cx2388x(state))
--		cx23885_std_setup(client);
-+	if (is_cx23888(state))
-+		cx23888_std_setup(client);
- 
- 	return set_input(client, input, state->aud_input);
- }
-@@ -1794,8 +1797,8 @@ static int cx25840_s_audio_routing(struct v4l2_subdev *sd,
- 	struct cx25840_state *state = to_state(sd);
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
--	if (is_cx2388x(state))
--		cx23885_std_setup(client);
-+	if (is_cx23888(state))
-+		cx23888_std_setup(client);
- 	return set_input(client, state->vid_input, input);
- }
- 
-@@ -4939,7 +4942,7 @@ void cx23885_dif_setup(struct i2c_client *client, u32 ifHz)
- 	}
- }
- 
--static void cx23885_std_setup(struct i2c_client *client)
-+static void cx23888_std_setup(struct i2c_client *client)
- {
- 	struct cx25840_state *state = to_state(i2c_get_clientdata(client));
- 	v4l2_std_id std = state->std;
--- 
-1.7.1
+diff --git a/drivers/media/video/m5mols/m5mols_controls.c b/drivers/media/video/m5mols/m5mols_controls.c
+index 54f597a..17dc280 100644
+--- a/drivers/media/video/m5mols/m5mols_controls.c
++++ b/drivers/media/video/m5mols/m5mols_controls.c
+@@ -547,9 +547,8 @@ static const struct v4l2_ctrl_ops m5mols_ctrl_ops = {
+
+ /* Supported manual ISO values */
+ static const s64 iso_qmenu[] = {
+-	/* AE_ISO: 0x01...0x07 */
+-	50, 100, 200, 400, 800, 1600, 3200
++	/* AE_ISO: 0x01...0x07 (ISO: 50...3200) */
++	50000, 100000, 200000, 400000, 800000, 1600000, 3200000
+ };
+
+ /* Supported Exposure Bias values, -2.0EV...+2.0EV */
+--
+1.7.10
 
