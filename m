@@ -1,51 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54601 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751278Ab2GERS4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Jul 2012 13:18:56 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: chanchoiwing@gmail.com, Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Steven Toth <stoth@linuxtv.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH] [media] xc5000: Add support for DMB-TH and ISDB-T
-Date: Thu,  5 Jul 2012 14:18:44 -0300
-Message-Id: <1341508724-32619-1-git-send-email-mchehab@redhat.com>
-In-Reply-To: <CAHPEtt=7Yxz=U1YaJrMAk8GqoiVSkZpJD9vwo2vumpAb27CCCw@mail.gmail.com>
-References: <CAHPEtt=7Yxz=U1YaJrMAk8GqoiVSkZpJD9vwo2vumpAb27CCCw@mail.gmail.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail2.matrix-vision.com ([85.214.244.251]:54098 "EHLO
+	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752264Ab2GCJoa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jul 2012 05:44:30 -0400
+Message-ID: <4FF2BF79.2020302@matrix-vision.de>
+Date: Tue, 03 Jul 2012 11:46:33 +0200
+From: Michael Jones <michael.jones@matrix-vision.de>
+MIME-Version: 1.0
+To: linux-media ML <linux-media@vger.kernel.org>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: capture_mem limitations in OMAP ISP
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-xc5000 is just a tuner, not a decoder, so both DMB-TH and ISDB-T should
-work properly there: it is just a matter of teaching the driver what
-saw filter should be used and how to calculate the center frequency.
+Hi Laurent & co.,
 
-Requested-by: Choi Wing Chan <chanchoiwing@gmail.com>
-Cc: Steven Toth <stoth@linuxtv.org>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/tuners/xc5000.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+I'm looking at the memory limitations in the omap3isp driver.  'struct 
+isp_video' contains member 'capture_mem', which is set separately for 
+each of our v4l2 video device nodes.  The CCDC, for example, has 
+capture_mem = 4096 * 4096 * 3 = 48MB, while the previewer and resizer 
+each have twice that. Where do these numbers come from?
 
-diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
-index dcca42c..bac8009 100644
---- a/drivers/media/common/tuners/xc5000.c
-+++ b/drivers/media/common/tuners/xc5000.c
-@@ -717,6 +717,12 @@ static int xc5000_set_params(struct dvb_frontend *fe)
- 		priv->freq_hz = freq - 1750000;
- 		priv->video_standard = DTV6;
- 		break;
-+	case SYS_ISDBT:
-+		/* All ISDB-T are currently for 6 MHz bw */
-+		if (!bw)
-+			bw = 6000000;
-+		/* fall to OFDM handling */
-+	case SYS_DMBTH:
- 	case SYS_DVBT:
- 	case SYS_DVBT2:
- 		dprintk(1, "%s() OFDM\n", __func__);
--- 
-1.7.10.4
+Is the CCDC incapable of DMA'ing more than 48MB into memory?  I know 
+that ISP_VIDEO_MAX_BUFFERS also limits the # of buffers, but I assume 
+this is basically an arbitrary number so we can have a finite array of 
+isp_video_buffer's.  The 48MB, on the other hand, looks like it might 
+have a good reason.
 
+thanks,
+Michael
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
