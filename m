@@ -1,297 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:59701 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753903Ab2GDVhT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2012 17:37:19 -0400
-Received: by mail-wg0-f44.google.com with SMTP id dr13so7689587wgb.1
-        for <linux-media@vger.kernel.org>; Wed, 04 Jul 2012 14:37:19 -0700 (PDT)
-From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-To: linux-media@vger.kernel.org
-Cc: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Subject: [PATCH 1/2] [media] drxk: Make the QAM demodulator command parameters configurable.
-Date: Wed,  4 Jul 2012 23:36:55 +0200
-Message-Id: <1341437815-3223-2-git-send-email-martin.blumenstingl@googlemail.com>
-In-Reply-To: <1341437815-3223-1-git-send-email-martin.blumenstingl@googlemail.com>
-References: <1341095567-24225-2-git-send-email-martin.blumenstingl@googlemail.com>
- <1341437815-3223-1-git-send-email-martin.blumenstingl@googlemail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:34695 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751998Ab2GCVrZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Jul 2012 17:47:25 -0400
+Message-ID: <4FF36865.1090808@iki.fi>
+Date: Wed, 04 Jul 2012 00:47:17 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v3.6] DVB USB v2
+References: <4FF19D3C.6070506@iki.fi>
+In-Reply-To: <4FF19D3C.6070506@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently there are two different implementations (in the firmware) for
-the QAM demodulator command: one takes 4 and the other takes 2 parameters.
-The driver shows an error in dmesg When using the 4-parameter command with
-firmware that implements the 2-parameter command.
-Unfortunately this happens every time when chaning the frequency (on DVB-C).
+On 07/02/2012 04:08 PM, Antti Palosaari wrote:
+> Here it is finally - quite totally rewritten DVB-USB-framework. I
+> haven't got almost any feedback so far...
 
-This patch simply makes configurable, how many command parameters will be
-used.
-All existing drxk_config instances using the "drxk_a3.mc" were updated
-because this firmware is the only loadable firmware where the QAM
-demodulator command takes 4 parameters. Some firmwares in the ROM
-might also use it.
-The drxk instances in the em28xx-dvb driver were also updated to
-silence the warnings.
+I rebased it in order to fix compilation issues coming from Kconfig.
 
-If no qam_demod_parameter_count is given in the drxk_config struct,
-then the correct number of parameters will be auto-detected.
 
-Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
----
- drivers/media/dvb/ddbridge/ddbridge-core.c |   1 +
- drivers/media/dvb/frontends/drxk.h         |  11 ++-
- drivers/media/dvb/frontends/drxk_hard.c    | 112 ++++++++++++++++++++++-------
- drivers/media/dvb/frontends/drxk_hard.h    |   1 +
- drivers/media/dvb/ngene/ngene-cards.c      |   1 +
- drivers/media/video/em28xx/em28xx-dvb.c    |   4 ++
- 6 files changed, 104 insertions(+), 26 deletions(-)
+> regards
+> Antti
+>
+>
+> The following changes since commit
+> 6887a4131da3adaab011613776d865f4bcfb5678:
+>
+>    Linux 3.5-rc5 (2012-06-30 16:08:57 -0700)
+>
+> are available in the git repository at:
+>
+>    git://linuxtv.org/anttip/media_tree.git dvb_usb_pull
+>
+> for you to fetch changes up to 747abaa1e0ee4415e67026c119cb73e6277f4898:
+>
+>    dvb_usb_v2: remove usb_clear_halt() from stream (2012-07-02 15:54:29
+> +0300)
+>
+> ----------------------------------------------------------------
+> Antti Palosaari (103):
+>        dvb_usb_v2: copy current dvb_usb as a starting point
+>        dvb_usb_v2: add .init() callback
+>        dvb_usb_v2: remove one parameter from dvb_usbv2_device_init()
+>        dvb_usb_v2: use .driver_info to pass struct
+> dvb_usb_device_properties
+>        dvb_usb_v2: remove owner parameter from dvb_usbv2_device_init()
+>        dvb_usb_v2: remove adapter_nums parameter from
+> dvb_usbv2_device_init()
+>        dvb_usb_v2: pass (struct dvb_usb_device *) as a parameter for fw
+> download
+>        dvb_usb_v2: implement .get_firmware_name()
+>        dvb_usb_v2: fix issues raised by checkpatch.pl
+>        dvb_usb_v2: pass device name too using (struct usb_device_id)
+>        dvb_usb_v2: implement .get_adapter_count()
+>        dvb_usb_v2: implement .read_config()
+>        dvb_usb_v2: remote controller
+>        dvb_usb_v2: restore .firmware - pointer to name
+>        dvb_usb_v2: init I2C and USB mutex earlier
+>        dvb_usb_v2: remote controller changes
+>        dvb_usb_v2: dynamic USB stream URB configuration
+>        dvb_usb_v2: usb_urb.c use dynamic debugs
+>        dvb_usb_v2: add .get_usb_stream_config()
+>        dvb_usb_v2: move (struct usb_data_stream) to one level up
+>        dvb_usb_v2: add .get_ts_config() callback
+>        dvb_usb_v2: move (struct usb_data_stream_properties) to upper level
+>        dvb_usb_v2: move PID filters from frontend to adapter
+>        dvb_usb_v2: move 3 callbacks from the frontend to adapter
+>        dvb_usb_v2: get rid of (struct dvb_usb_adapter_fe_properties)
+>        dvb_usb_v2: remove .num_frontends
+>        dvb_usb_v2: delay firmware download as it blocks module init
+>        dvb_usb_v2: clean firmware downloading routines
+>        dvb_usb_v2: add macro for filling usb_device_id table entry
+>        dvb_usb_v2: use dynamic debugs
+>        dvb_usb_v2: remove various unneeded variables
+>        dvb_usb_v2: frontend switching changes
+>        dvb_usb_v2: ensure driver_info is not null
+>        dvb_usb_v2: refactor delayed init
+>        dvb_usb_v2: remove usb_clear_halt()
+>        dvb_usb_v2: unregister all frontends in error case
+>        dvb_usb_v2: use Kernel logging (pr_debug/pr_err/pr_info)
+>        dvb_usb_v2: move I2C adapter code to different file
+>        dvb_usb_v2: rename device_init/device_exit to probe/disconnect
+>        dvb_usb_v2: add .bInterfaceNumber match
+>        dvb_usb_v2: add missing new line for log writings
+>        dvb_usb_v2: fix dvb_usb_generic_rw() debug
+>        af9015: switch to new DVB-USB
+>        dvb_usb_v2: do not free resources until delayed init is done
+>        af9015: use USB core soft_unbind
+>        dvb_usb_v2: I2C adapter changes
+>        dvb_usb_v2: misc changes
+>        dvb_usb_v2: probe/disconnect error handling
+>        dvb_usb_v2: add .disconnect() callback
+>        dvb_usb_v2: suspend/resume stop/start USB streaming
+>        dvb_usb_v2: Cypress firmware download module
+>        dvb_usb_v2: move few callbacks one level up
+>        dvb_usb_v2: use keyword const for USB ID table
+>        af9015: suspend/resume
+>        dvb_usb_v2: use pointers to properties
+>        ec168: convert to new DVB USB
+>        ec168: switch Kernel pr_* logging
+>        dvb_usb_v2: do not check active fe when stop streaming
+>        ec168: re-implement firmware loading
+>        au6610: convert to new DVB USB
+>        dvb_usb_v2: move remote controller to the main file
+>        ce6230: convert to new DVB USB
+>        ce6230: various small changes
+>        dvb_usb_v2: attach tuners later
+>        anysee: convert to new DVB USB
+>        dvb_usb_v2: do not release USB interface when device reconnects
+>        dvb_usb_v2: try to remove all adapters on exit
+>        dvb_usb_v2: simplify remote init/exit logic
+>        dvb_usb_v2: get rid of dvb_usb_device state
+>        dvb_usb_v2: move fe_ioctl_override() callback
+>        dvb_usb_v2: remove num_frontends_initialized from dvb_usb_adapter
+>        dvb_usb_v2: .read_mac_address() callback changes
+>        dvb_usb_v2: add macros to fill USB stream properties
+>        dvb_usb_v2: change USB stream config logic
+>        af9015: update USB streaming configuration logic
+>        dvb_usb_v2: helper macros for device/adapter/frontend pointers
+>        af9015: use helper macros for some pointers
+>        dvb_usb_v2: use lock to sync feed and frontend control
+>        af9035: convert to new DVB USB
+>        dvb_usb_v2: git rid of dvb_usb_adapter state variable
+>        anysee: use DVB USB macros
+>        au6610: use DVB USB macros
+>        ce6230: use DVB USB macros
+>        ec168: use DVB UDB macros
+>        dvb_usb_v2: use container_of() for adapter to device
+>        dvb_usb_v2: merge get_ts_config() to get_usb_stream_config()
+>        dvb_usb_v2: use identify_state() to resolve firmware name
+>        dvb_usb_v2: remove num_adapters_initialized variable
+>        dvb_usb_v2: refactor dvb_usb_ctrl_feed() logic
+>        dvb_usb_v2: merge files dvb_usb_init.c and dvb_usb_dvb.c
+>        dvb_usb_v2: move dvb_usbv2_generic_rw() debugs behind define
+>        dvb_usb_v2: multiple small tweaks around the code
+>        dvb_usb_v2: refactor dvb_usbv2_generic_rw()
+>        dvb_usb_v2: update header dvb_usb.h comments
+>        dvb_usb_v2: remove unused variable
+>        dvb_usb_v2: update copyrights
+>        dvb_usb_v2: fix power_ctrl() callback error handling
+>        dvb_usb_v2: change streaming control callback parameter
+>        mxl111sf: convert to new DVB USB
+>        gl861: convert to new DVB USB
+>        dvb_usb_v2: use dev_* logging macros
+>        dvb_usb_v2: do not try to remove non-existent adapter
+>        dvb_usb_v2: remove usb_clear_halt() from stream
+>
+> Malcolm Priestley (1):
+>        dvb_usb_v2: return the download ret in dvb_usb_download_firmware
+>
+>   drivers/media/dvb/dvb-usb/Kconfig            |   19 ++
+>   drivers/media/dvb/dvb-usb/Makefile           |    5 +
+>   drivers/media/dvb/dvb-usb/af9015.c           | 2072
+> +++++++++++++++++++++++++++++++++++++++++++++++++----------------------------------------------------------------------------------
+>
+>   drivers/media/dvb/dvb-usb/af9015.h           |   67 ++++-
+>   drivers/media/dvb/dvb-usb/af9035.c           |  727
+> ++++++++++++++++++----------------------------
+>   drivers/media/dvb/dvb-usb/af9035.h           |    6 +-
+>   drivers/media/dvb/dvb-usb/anysee.c           |  612
+> +++++++++++++++++----------------------
+>   drivers/media/dvb/dvb-usb/anysee.h           |   26 +-
+>   drivers/media/dvb/dvb-usb/au6610.c           |  116 +++-----
+>   drivers/media/dvb/dvb-usb/au6610.h           |   13 +-
+>   drivers/media/dvb/dvb-usb/ce6230.c           |  181 +++++-------
+>   drivers/media/dvb/dvb-usb/ce6230.h           |   36 +--
+>   drivers/media/dvb/dvb-usb/dvb_usb.h          |  392
+> +++++++++++++++++++++++++
+>   drivers/media/dvb/dvb-usb/dvb_usb_common.h   |   35 +++
+>   drivers/media/dvb/dvb-usb/dvb_usb_core.c     |  996
+> +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>   drivers/media/dvb/dvb-usb/dvb_usb_firmware.c |  125 ++++++++
+>   drivers/media/dvb/dvb-usb/dvb_usb_firmware.h |   31 ++
+>   drivers/media/dvb/dvb-usb/dvb_usb_urb.c      |   83 ++++++
+>   drivers/media/dvb/dvb-usb/ec168.c            |  321 +++++++++------------
+>   drivers/media/dvb/dvb-usb/ec168.h            |   26 +-
+>   drivers/media/dvb/dvb-usb/gl861.c            |  130 +++------
+>   drivers/media/dvb/dvb-usb/gl861.h            |    5 +-
+>   drivers/media/dvb/dvb-usb/mxl111sf-tuner.c   |    2 +
+>   drivers/media/dvb/dvb-usb/mxl111sf.c         | 1456
+> +++++++++++++++++++++++++++++++++++---------------------------------------------------------
+>
+>   drivers/media/dvb/dvb-usb/mxl111sf.h         |   22 +-
+>   drivers/media/dvb/dvb-usb/usb_urb.c          |  357
+> +++++++++++++++++++++++
+>   26 files changed, 4306 insertions(+), 3555 deletions(-)
+>   create mode 100644 drivers/media/dvb/dvb-usb/dvb_usb.h
+>   create mode 100644 drivers/media/dvb/dvb-usb/dvb_usb_common.h
+>   create mode 100644 drivers/media/dvb/dvb-usb/dvb_usb_core.c
+>   create mode 100644 drivers/media/dvb/dvb-usb/dvb_usb_firmware.c
+>   create mode 100644 drivers/media/dvb/dvb-usb/dvb_usb_firmware.h
+>   create mode 100644 drivers/media/dvb/dvb-usb/dvb_usb_urb.c
+>   create mode 100644 drivers/media/dvb/dvb-usb/usb_urb.c
+>
 
-diff --git a/drivers/media/dvb/ddbridge/ddbridge-core.c b/drivers/media/dvb/ddbridge/ddbridge-core.c
-index 131b938..ebf3f05 100644
---- a/drivers/media/dvb/ddbridge/ddbridge-core.c
-+++ b/drivers/media/dvb/ddbridge/ddbridge-core.c
-@@ -578,6 +578,7 @@ static int demod_attach_drxk(struct ddb_input *input)
- 
- 	memset(&config, 0, sizeof(config));
- 	config.microcode_name = "drxk_a3.mc";
-+	config.qam_demod_parameter_count = 4;
- 	config.adr = 0x29 + (input->nr & 1);
- 
- 	fe = input->fe = dvb_attach(drxk_attach, &config, i2c);
-diff --git a/drivers/media/dvb/frontends/drxk.h b/drivers/media/dvb/frontends/drxk.h
-index 9d64e4f..d615d7d 100644
---- a/drivers/media/dvb/frontends/drxk.h
-+++ b/drivers/media/dvb/frontends/drxk.h
-@@ -20,6 +20,14 @@
-  *			means that 1=DVBC, 0 = DVBT. Zero means the opposite.
-  * @mpeg_out_clk_strength: DRXK Mpeg output clock drive strength.
-  * @microcode_name:	Name of the firmware file with the microcode
-+ * @qam_demod_parameter_count:	The number of parameters used for the command
-+ *				to set the demodulator parameters. All
-+ *				firmwares are using the 2-parameter commmand.
-+ *				An exception is the "drxk_a3.mc" firmware,
-+ *				which uses the 4-parameter command.
-+ *				A value of 0 (default) or lower indicates that
-+ *				the correct number of parameters will be
-+ *				automatically detected.
-  *
-  * On the *_gpio vars, bit 0 is UIO-1, bit 1 is UIO-2 and bit 2 is
-  * UIO-3.
-@@ -38,7 +46,8 @@ struct drxk_config {
- 	u8	mpeg_out_clk_strength;
- 	int	chunk_size;
- 
--	const char *microcode_name;
-+	const char	*microcode_name;
-+	int		 qam_demod_parameter_count;
- };
- 
- #if defined(CONFIG_DVB_DRXK) || (defined(CONFIG_DVB_DRXK_MODULE) \
-diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
-index 8fa28bb..07b362f 100644
---- a/drivers/media/dvb/frontends/drxk_hard.c
-+++ b/drivers/media/dvb/frontends/drxk_hard.c
-@@ -5415,12 +5415,67 @@ static int GetQAMLockStatus(struct drxk_state *state, u32 *pLockStatus)
- #define QAM_LOCKRANGE__M      0x10
- #define QAM_LOCKRANGE_NORMAL  0x10
- 
-+static int QAMDemodulatorCommand(struct drxk_state *state,
-+				 int numberOfParameters)
-+{
-+	int status;
-+	u16 cmdResult;
-+	u16 setParamParameters[4] = { 0, 0, 0, 0 };
-+
-+	setParamParameters[0] = state->m_Constellation;	/* modulation     */
-+	setParamParameters[1] = DRXK_QAM_I12_J17;	/* interleave mode   */
-+
-+	if (numberOfParameters == 2) {
-+		u16 setEnvParameters[1] = { 0 };
-+
-+		if (state->m_OperationMode == OM_QAM_ITU_C)
-+			setEnvParameters[0] = QAM_TOP_ANNEX_C;
-+		else
-+			setEnvParameters[0] = QAM_TOP_ANNEX_A;
-+
-+		status = scu_command(state,
-+				     SCU_RAM_COMMAND_STANDARD_QAM | SCU_RAM_COMMAND_CMD_DEMOD_SET_ENV,
-+				     1, setEnvParameters, 1, &cmdResult);
-+		if (status < 0)
-+			goto error;
-+
-+		status = scu_command(state,
-+				     SCU_RAM_COMMAND_STANDARD_QAM | SCU_RAM_COMMAND_CMD_DEMOD_SET_PARAM,
-+				     numberOfParameters, setParamParameters,
-+				     1, &cmdResult);
-+	} else if (numberOfParameters == 4) {
-+		if (state->m_OperationMode == OM_QAM_ITU_C)
-+			setParamParameters[2] = QAM_TOP_ANNEX_C;
-+		else
-+			setParamParameters[2] = QAM_TOP_ANNEX_A;
-+
-+		setParamParameters[3] |= (QAM_MIRROR_AUTO_ON);
-+		/* Env parameters */
-+		/* check for LOCKRANGE Extented */
-+		/* setParamParameters[3] |= QAM_LOCKRANGE_NORMAL; */
-+
-+		status = scu_command(state,
-+				     SCU_RAM_COMMAND_STANDARD_QAM | SCU_RAM_COMMAND_CMD_DEMOD_SET_PARAM,
-+				     numberOfParameters, setParamParameters,
-+				     1, &cmdResult);
-+	} else {
-+		printk(KERN_WARNING "drxk: Unknown QAM demodulator parameter "
-+			"count %d\n", numberOfParameters);
-+	}
-+
-+error:
-+	if (status < 0)
-+		printk(KERN_WARNING "drxk: Warning %d on %s\n",
-+		       status, __func__);
-+	return status;
-+}
-+
- static int SetQAM(struct drxk_state *state, u16 IntermediateFreqkHz,
- 		  s32 tunerFreqOffset)
- {
- 	int status;
--	u16 setParamParameters[4] = { 0, 0, 0, 0 };
- 	u16 cmdResult;
-+	int qamDemodParamCount = state->qam_demod_parameter_count;
- 
- 	dprintk(1, "\n");
- 	/*
-@@ -5472,34 +5527,40 @@ static int SetQAM(struct drxk_state *state, u16 IntermediateFreqkHz,
- 	}
- 	if (status < 0)
- 		goto error;
--	setParamParameters[0] = state->m_Constellation;	/* modulation     */
--	setParamParameters[1] = DRXK_QAM_I12_J17;	/* interleave mode   */
--	if (state->m_OperationMode == OM_QAM_ITU_C)
--		setParamParameters[2] = QAM_TOP_ANNEX_C;
--	else
--		setParamParameters[2] = QAM_TOP_ANNEX_A;
--	setParamParameters[3] |= (QAM_MIRROR_AUTO_ON);
--	/* Env parameters */
--	/* check for LOCKRANGE Extented */
--	/* setParamParameters[3] |= QAM_LOCKRANGE_NORMAL; */
- 
--	status = scu_command(state, SCU_RAM_COMMAND_STANDARD_QAM | SCU_RAM_COMMAND_CMD_DEMOD_SET_PARAM, 4, setParamParameters, 1, &cmdResult);
--	if (status < 0) {
--		/* Fall-back to the simpler call */
--		if (state->m_OperationMode == OM_QAM_ITU_C)
--			setParamParameters[0] = QAM_TOP_ANNEX_C;
--		else
--			setParamParameters[0] = QAM_TOP_ANNEX_A;
--		status = scu_command(state, SCU_RAM_COMMAND_STANDARD_QAM | SCU_RAM_COMMAND_CMD_DEMOD_SET_ENV, 1, setParamParameters, 1, &cmdResult);
--		if (status < 0)
--			goto error;
-+	/* Use the 4-parameter if it's requested or we're probing for
-+	 * the correct command. */
-+	if (state->qam_demod_parameter_count == 4
-+		|| !state->qam_demod_parameter_count) {
-+		qamDemodParamCount = 4;
-+		status = QAMDemodulatorCommand(state, qamDemodParamCount);
-+	}
- 
--		setParamParameters[0] = state->m_Constellation; /* modulation     */
--		setParamParameters[1] = DRXK_QAM_I12_J17;       /* interleave mode   */
--		status = scu_command(state, SCU_RAM_COMMAND_STANDARD_QAM | SCU_RAM_COMMAND_CMD_DEMOD_SET_PARAM, 2, setParamParameters, 1, &cmdResult);
-+	/* Use the 2-parameter command if it was requested or if we're
-+	 * probing for the correct command and the 4-parameter command
-+	 * failed. */
-+	if (state->qam_demod_parameter_count == 2
-+		|| (!state->qam_demod_parameter_count && status < 0)) {
-+		qamDemodParamCount = 2;
-+		status = QAMDemodulatorCommand(state, qamDemodParamCount);
- 	}
--	if (status < 0)
-+
-+	if (status < 0) {
-+		dprintk(1, "Could not set demodulator parameters. Make "
-+			"sure qam_demod_parameter_count (%d) is correct for "
-+			"your firmware (%s).\n",
-+			state->qam_demod_parameter_count,
-+			state->microcode_name);
- 		goto error;
-+	} else if (!state->qam_demod_parameter_count) {
-+		dprintk(1, "Auto-probing the correct QAM demodulator command "
-+			"parameters was successful - using %d parameters.\n",
-+			qamDemodParamCount);
-+
-+		/* One of our commands was successful. We don't need to
-+		/* auto-probe anymore, now that we got the correct command. */
-+		state->qam_demod_parameter_count = qamDemodParamCount;
-+	}
- 
- 	/*
- 	 * STEP 3: enable the system in a mode where the ADC provides valid
-@@ -6502,6 +6563,7 @@ struct dvb_frontend *drxk_attach(const struct drxk_config *config,
- 	state->demod_address = adr;
- 	state->single_master = config->single_master;
- 	state->microcode_name = config->microcode_name;
-+	state->qam_demod_parameter_count = config->qam_demod_parameter_count;
- 	state->no_i2c_bridge = config->no_i2c_bridge;
- 	state->antenna_gpio = config->antenna_gpio;
- 	state->antenna_dvbt = config->antenna_dvbt;
-diff --git a/drivers/media/dvb/frontends/drxk_hard.h b/drivers/media/dvb/frontends/drxk_hard.h
-index f417797..6bb9fc4 100644
---- a/drivers/media/dvb/frontends/drxk_hard.h
-+++ b/drivers/media/dvb/frontends/drxk_hard.h
-@@ -353,6 +353,7 @@ struct drxk_state {
- 	const char *microcode_name;
- 	struct completion fw_wait_load;
- 	const struct firmware *fw;
-+	int qam_demod_parameter_count;
- };
- 
- #define NEVER_LOCK 0
-diff --git a/drivers/media/dvb/ngene/ngene-cards.c b/drivers/media/dvb/ngene/ngene-cards.c
-index 7539a5d..72ee8de 100644
---- a/drivers/media/dvb/ngene/ngene-cards.c
-+++ b/drivers/media/dvb/ngene/ngene-cards.c
-@@ -217,6 +217,7 @@ static int demod_attach_drxk(struct ngene_channel *chan,
- 
- 	memset(&config, 0, sizeof(config));
- 	config.microcode_name = "drxk_a3.mc";
-+	config.qam_demod_parameter_count = 4;
- 	config.adr = 0x29 + (chan->number ^ 2);
- 
- 	chan->fe = dvb_attach(drxk_attach, &config, i2c);
-diff --git a/drivers/media/video/em28xx/em28xx-dvb.c b/drivers/media/video/em28xx/em28xx-dvb.c
-index f8ffe10..a16531f 100644
---- a/drivers/media/video/em28xx/em28xx-dvb.c
-+++ b/drivers/media/video/em28xx/em28xx-dvb.c
-@@ -315,6 +315,7 @@ static struct drxk_config terratec_h5_drxk = {
- 	.single_master = 1,
- 	.no_i2c_bridge = 1,
- 	.microcode_name = "dvb-usb-terratec-h5-drxk.fw",
-+	.qam_demod_parameter_count = 2,
- };
- 
- static struct drxk_config hauppauge_930c_drxk = {
-@@ -323,6 +324,7 @@ static struct drxk_config hauppauge_930c_drxk = {
- 	.no_i2c_bridge = 1,
- 	.microcode_name = "dvb-usb-hauppauge-hvr930c-drxk.fw",
- 	.chunk_size = 56,
-+	.qam_demod_parameter_count = 2,
- };
- 
- struct drxk_config terratec_htc_stick_drxk = {
-@@ -331,6 +333,7 @@ struct drxk_config terratec_htc_stick_drxk = {
- 	.no_i2c_bridge = 1,
- 	.microcode_name = "dvb-usb-terratec-htc-stick-drxk.fw",
- 	.chunk_size = 54,
-+	.qam_demod_parameter_count = 2,
- 	/* Required for the antenna_gpio to disable LNA. */
- 	.antenna_dvbt = true,
- 	/* The windows driver uses the same. This will disable LNA. */
-@@ -347,6 +350,7 @@ static struct drxk_config pctv_520e_drxk = {
- 	.adr = 0x29,
- 	.single_master = 1,
- 	.microcode_name = "dvb-demod-drxk-pctv.fw",
-+	.qam_demod_parameter_count = 2,
- 	.chunk_size = 58,
- 	.antenna_dvbt = true, /* disable LNA */
- 	.antenna_gpio = (1 << 2), /* disable LNA */
+
 -- 
-1.7.11.1
+http://palosaari.fi/
+
 
