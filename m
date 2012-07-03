@@ -1,52 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48528 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:3901 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751299Ab2GUPfj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Jul 2012 11:35:39 -0400
-Message-ID: <500ACC3F.7070007@iki.fi>
-Date: Sat, 21 Jul 2012 18:35:27 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S932269Ab2GCTzO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Jul 2012 15:55:14 -0400
+Message-ID: <4FF34E0E.1090507@redhat.com>
+Date: Tue, 03 Jul 2012 16:54:54 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: poma <pomidorabelisima@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Firmware in da wonderland
-References: <500ACB80.9080500@gmail.com>
-In-Reply-To: <500ACB80.9080500@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+To: Antti Palosaari <crope@iki.fi>
+CC: Patrick Boettcher <pboettcher@kernellabs.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	htl10@users.sourceforge.net
+Subject: Re: DVB core enhancements - comments please?
+References: <4FEBA656.7060608@iki.fi> <4FED2FE0.9010602@redhat.com> <4FED3714.2080901@iki.fi> <2601054.j5eSD2QU7J@dibcom294> <4FEDBB9B.9010400@redhat.com> <4FF21238.1000002@iki.fi> <4FF31CEB.3070707@redhat.com>
+In-Reply-To: <4FF31CEB.3070707@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/21/2012 06:32 PM, poma wrote:
->
-> This one speak for itself;
-> …
-> usb 1-1: new high-speed USB device number 8 using ehci_hcd
-> usb 1-1: New USB device found, idVendor=0ccd, idProduct=0097
-> usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-> usb 1-1: Product: USB2.0 DVB-T TV Stick
-> usb 1-1: Manufacturer: NEWMI
-> usb 1-1: SerialNumber: 010101010600001
-> dvb-usb: found a 'TerraTec Cinergy T Stick RC' in cold state, will try
-> to load a firmware
-> dvb-usb: did not find the firmware file. (dvb-usb-af9015.fw) Please see
-> linux/Documentation/dvb/ for more details on firmware-problems. (-2)
-> dvb_usb_af9015: probe of 1-1:1.0 failed with error -2
-> input: NEWMI USB2.0 DVB-T TV Stick as
-> /devices/pci0000:00/0000:00:04.1/usb1/1-1/1-1:1.1/input/input18
-> generic-usb 0003:0CCD:0097.0007: input,hidraw6: USB HID v1.01 Keyboard
-> [NEWMI USB2.0 DVB-T TV Stick] on usb-0000:00:04.1-1/input1
-> …
-> FW path:
-> /usr/lib/firmware/dvb-usb-af9015.fw
-> Is it somehow related to Fedora UsrMove!?
-> Or Fedora itself :)
+Em 03-07-2012 13:25, Mauro Carvalho Chehab escreveu:
+> Em 02-07-2012 18:27, Antti Palosaari escreveu:
 
-Bug 827538 - DVB USB device firmware requested in module_init()
-https://bugzilla.redhat.com/show_bug.cgi?id=827538
+>> OK, I have now played (too) many hours. Looking existing code and testing. But I cannot listen even simple FM-radio station. What are most famous / best radio applications ? I tried gnomeradio, gqradio and fmscan...
+>>
+>> That is USB radio based si470x chipset.
+> 
+> Well, I don't have any si470x device here.
+> 
+> It should be noticed that radio applications in general don't open the
+> alsa devices to get audio, as old devices used to have a cable to wire
+> at the audio adapter.
+> 
+> I bet that this device uses snd-usb-audio module for audio. So, you may
+> need to use aplayer/arecord in order to listen, with a syntax similar to:
+> 
+> 	arecord -D hw:1,0 -r 32000 -c 2 -f S16_LE | aplay -
+> 
+> The -r 32000 is for 32 kHz.
+> 
+> 
+> In my case, I prefer to use "radio" aplication that comes with xawtv.
+> It shouldn't be hard to patch it to also create the audio playback command
+> there, as the code for that is already there at xawtv3 tree, and it is
+> used by xawtv.
+> 
+> I'll see if I can write a patch for that today.
 
-Antti
--- 
-http://palosaari.fi/
+Gah, worked on that just to discover that Hans de Goede had added it already...
 
+Anyway, it is good to know that this got already fixed :)
 
+Anyway, "radio" should do the proper alsa loopback handling:
+
+	$ radio
+	Using alsa loopback: cap: hw:2,0 (/dev/radio0), out: default
+
+Regards,
+Mauro
