@@ -1,66 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56986 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752603Ab2GFWW3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Jul 2012 18:22:29 -0400
-Message-ID: <4FF7651A.7020907@redhat.com>
-Date: Fri, 06 Jul 2012 19:22:18 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:49682 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755796Ab2GCHoB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jul 2012 03:44:01 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 0/4] drxk: use request_firmware_nowait()
+Date: Tue, 3 Jul 2012 09:43:58 +0200
+References: <20120629124719.2cf23f6b@endymion.delvare> <1341006717-32373-1-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1341006717-32373-1-git-send-email-mchehab@redhat.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v3.6] DVB USB v2
-References: <4FF19D3C.6070506@iki.fi> <4FF36865.1090808@iki.fi>
-In-Reply-To: <4FF36865.1090808@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201207030943.58833.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 03-07-2012 18:47, Antti Palosaari escreveu:
-> On 07/02/2012 04:08 PM, Antti Palosaari wrote:
->> Here it is finally - quite totally rewritten DVB-USB-framework. I
->> haven't got almost any feedback so far...
-> 
-> I rebased it in order to fix compilation issues coming from Kconfig.
-> 
-> 
->> regards
->> Antti
->>
->>
->> The following changes since commit
->> 6887a4131da3adaab011613776d865f4bcfb5678:
->>
->>    Linux 3.5-rc5 (2012-06-30 16:08:57 -0700)
->>
->> are available in the git repository at:
->>
->>    git://linuxtv.org/anttip/media_tree.git dvb_usb_pull
->>
->> for you to fetch changes up to 747abaa1e0ee4415e67026c119cb73e6277f4898:
->>
->>    dvb_usb_v2: remove usb_clear_halt() from stream (2012-07-02 15:54:29
->> +0300)
->>
->> ----------------------------------------------------------------
->> Antti Palosaari (103):
->>        dvb_usb_v2: copy current dvb_usb as a starting point
+Hi Mauro!
 
-Naming the DVB USB v2 as dvb_usb, instead of dvb-usb is very very ugly.
-It took me some time to discover what happened.
+On Fri 29 June 2012 23:51:53 Mauro Carvalho Chehab wrote:
+> This patch series should be applied after "i2c: Export an unlocked 
+> flavor of i2c_transfer". It converts the drxk driver to use
+> request_firmware_nowait() and prevents I2C bus usage during firmware
+> load.
 
-You should have named it as dvb-usb-v2 instead, or to store it into
-a separate directory.
-
-This is even worse as it seems that this series doesn't change all
-drivers to use dvb usb v2. So, it will be harder to discover what
-drivers are at V1 and what are at V2.
-
-I won't merge it as-is at staging/for_v3.6. I may eventually create
-a separate topic branch and add them there, while the namespace mess
-is not corrected, if I still have some time today. Otherwise, I'll only
-handle that after returning from vacations.
+Can you take a look at media_build? After this change it fails to build drxk
+for kernels <= 3.4 (i.e., all kernels :-) ).
 
 Regards,
-Mauro
+
+	Hans
+
+> 
+> If firmware load doesn't happen and the device cannot be reset due
+> to that, -ENODEV will be returned to all dvb callbacks.
+> 
+> Mauro Carvalho Chehab (4):
+>   [media] drxk: change it to use request_firmware_nowait()
+>   [media] drxk: pass drxk priv struct instead of I2C adapter to i2c
+>     calls
+>   [media] drxk: Lock I2C bus during firmware load
+>   [media] drxk: prevent doing something wrong when init is not ok
+> 
+>  drivers/media/dvb/frontends/drxk_hard.c |  228 +++++++++++++++++++++++--------
+>  drivers/media/dvb/frontends/drxk_hard.h |   16 ++-
+>  2 files changed, 187 insertions(+), 57 deletions(-)
+> 
+> 
