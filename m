@@ -1,74 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:64229 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932936Ab2GLVIB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jul 2012 17:08:01 -0400
-Received: by yhmm54 with SMTP id m54so3226593yhm.19
-        for <linux-media@vger.kernel.org>; Thu, 12 Jul 2012 14:08:00 -0700 (PDT)
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:38566 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751899Ab2GCU21 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jul 2012 16:28:27 -0400
+Date: Tue, 3 Jul 2012 22:28:25 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Anton Blanchard <anton@samba.org>
+Cc: mchehab@infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/3] [media] winbond-cir: Adjust sample frequency to
+ improve reliability
+Message-ID: <20120703202825.GC29839@hardeman.nu>
+References: <20120702115800.1275f944@kryten>
+ <20120702115937.623d3b41@kryten>
 MIME-Version: 1.0
-In-Reply-To: <CALzAhNVwN3TJhn-3i9SDhKfk=tvZZ49RTKkUzWC8RZ_m=v=A+w@mail.gmail.com>
-References: <4FFF327A.9080300@iki.fi>
-	<CALzAhNVwN3TJhn-3i9SDhKfk=tvZZ49RTKkUzWC8RZ_m=v=A+w@mail.gmail.com>
-Date: Thu, 12 Jul 2012 17:07:59 -0400
-Message-ID: <CALzAhNUmdcd7cE-fcMHJsNk1rTcKXoZR9Oyu+5XciNZQ57EBGQ@mail.gmail.com>
-Subject: Re: GPIO interface between DVB sub-drivers (bridge, demod, tuner)
-From: Steven Toth <stoth@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20120702115937.623d3b41@kryten>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Resend in plaintext, it got bounced from vger.
+On Mon, Jul 02, 2012 at 11:59:37AM +1000, Anton Blanchard wrote:
+>
+>When using my Logitech Harmony remote I get regular dropped events
+>(about 1 in every 3). Adjusting the sample frequency to 6us so we
+>sample at a multiple of an RC-6 pulse (444us) fixes it.
 
-On Thu, Jul 12, 2012 at 4:49 PM, Steven Toth <stoth@kernellabs.com> wrote:
->>
->> Is there anyone who could say straight now what is best approach and
->> where to look example?
->>
+Sounds weird.
+
+The in-kernel RC6 decoder already has margins of around 50% for most
+pulse/spaces (i.e. 444us +/- 222us). Changing the sample resolution from
+10 to 6 us should have little to no effect on the RC6 decoding (also,
+the Windows driver uses a 50us resolution IIRC).
+
+Do you have a log of a successful and unsuccesful event (the timings
+that is)?
+
+>Signed-off-by: Anton Blanchard <anton@samba.org>
+>---
 >
-> I don't have an answer but the topic does interest me. :)
+>Index: linux/drivers/media/rc/winbond-cir.c
+>===================================================================
+>--- linux.orig/drivers/media/rc/winbond-cir.c	2012-07-01 14:54:28.993475033 +1000
+>+++ linux/drivers/media/rc/winbond-cir.c	2012-07-01 14:55:50.500939910 +1000
+>@@ -358,7 +358,7 @@ wbcir_irq_rx(struct wbcir_data *data, st
+> 		if (data->rxstate == WBCIR_RXSTATE_ERROR)
+> 			continue;
+> 		rawir.pulse = irdata & 0x80 ? false : true;
+>-		rawir.duration = US_TO_NS((irdata & 0x7F) * 10);
+>+		rawir.duration = US_TO_NS((irdata & 0x7F) * 6);
+> 		ir_raw_event_store_with_filter(data->dev, &rawir);
+> 	}
+> 
+>@@ -874,8 +874,8 @@ wbcir_init_hw(struct wbcir_data *data)
+> 	/* prescaler 1.0, tx/rx fifo lvl 16 */
+> 	outb(0x30, data->sbase + WBCIR_REG_SP3_EXCR2);
+> 
+>-	/* Set baud divisor to sample every 10 us */
+>-	outb(0x0F, data->sbase + WBCIR_REG_SP3_BGDL);
+>+	/* Set baud divisor to sample every 6 us */
+>+	outb(0x09, data->sbase + WBCIR_REG_SP3_BGDL);
+> 	outb(0x00, data->sbase + WBCIR_REG_SP3_BGDH);
+> 
+> 	/* Set CEIR mode */
 >
-> Nobody understands the relationship between the bridge and the
-> sub-component as well as the bridge driver. The current interfaces are
-> limiting in many ways. We solve that today with rather ugly 'attach'
-> structures that are inflexible, for example to set gpios to a default state.
-> Then, once that interface is attached, the bridge effectively loses most of
-> the control to the tuner and/or demod. The result is a large disconnect
-> between the bridge and subcomponents.
->
-> Why limit any interface extension to GPIOs? Why not make something a
-> little more flexible so we can pass custom messages around?
->
-> get(int parm, *value) and set(int parm, value)
->
-> Bridges and demods can define whatever parmid's they like in their attach
-> headers. (Like we do for callbacks currently).
->
-> For example, some tuners have temperature sensors, I have no ability to
-> read that today from the bridge, other than via I2C - then I'm pulling i2c
-> device specific logic into the bridge. :(
->
-> It would be nice to be able to demod/tunerptr->get(XC5000_PARAM_TEMP,
-> &value), for example.
->
-> Get/Set I/F is a bit of a classic, between tuners and video decoders. This
-> (at least a while ago) was poorly handled, or not at all. Only the bridge
-> really knows how to deal with odd component configurations like this, yet it
-> has little or no control.
->
-> I'd want to see a list of 4 or 5 good get/set use cases though, with some
-> unusual parms, before I'd really believe a generic get/set is more
-> appropriate than a strongly typed set of additional function pointers.
->
-> What did you ever decide about the enable/disable of the LNA? And, how
-> would the bridge do that in your proposed solution? Via the proposed GPIO
-> interface?
->
-> Regards,
->
-> --
-> Steven Toth - Kernel Labs
-> http://www.kernellabs.com
-> +1.646.355.8490
