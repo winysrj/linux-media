@@ -1,114 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:60918 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752691Ab2GLMnb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jul 2012 08:43:31 -0400
-Received: from epcpsbge2.samsung.com (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M71002QHSNMTO70@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 12 Jul 2012 21:43:30 +0900 (KST)
-Date: Thu, 12 Jul 2012 12:43:30 +0000 (GMT)
-From: Arun Kumar K <arun.kk@samsung.com>
-Subject: Re: [PATCH v2 2/2] [media] s5p-mfc: update MFC v4l2 driver to support
- MFC6.x
-To: Kyungmin Park <kmpark@infradead.org>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	Jang-Hyuck Kim <janghyuck.kim@samsung.com>,
-	peter Oh <jaeryul.oh@samsung.com>,
-	NAVEEN KRISHNA CHATRADHI <ch.naveen@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-	"mchehab@infradead.org" <mchehab@infradead.org>
-Reply-to: arun.kk@samsung.com
-MIME-version: 1.0
-Content-transfer-encoding: base64
-Content-type: text/plain; charset=windows-1252
-MIME-version: 1.0
-Message-id: <3152828.307961342097010008.JavaMail.weblogic@epml02>
+Received: from smtp.polymtl.ca ([132.207.4.11]:53224 "EHLO smtp.polymtl.ca"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751402Ab2GCEpe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Jul 2012 00:45:34 -0400
+Received: from localhost (imp-4-1.polymtl.ca [132.207.4.76])
+	by smtp.polymtl.ca (8.14.3/8.14.3) with ESMTP id q634NrIF022306
+	for <linux-media@vger.kernel.org>; Tue, 3 Jul 2012 00:23:54 -0400
+Message-ID: <1341289433.4ff273d907cd4@www.imp.polymtl.ca>
+Date: Tue, 03 Jul 2012 00:23:53 -0400
+From: Naveen Goswamy <naveen.goswamy@polymtl.ca>
+To: linux-media@vger.kernel.org
+Subject: Support for USB capture device
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgS3l1bmdtaW4gUGFyaywNCg0KVGhhbmsgeW91IGZvciB0aGUgcmV2aWV3Lg0KUGxlYXNlIGZp
-bmQgbXkgY29tbWVudHMgaW5saW5lLg0KDQpPbiBGcmksIEp1bCA2LCAyMDEyIGF0IDc6NTEgUE0s
-IEt5dW5nbWluIFBhcmsgPGttcGFya0BpbmZyYWRlYWQub3JnPiB3cm90ZToNCj4gSGksDQo+DQo+
-IE9uIEZyaSwgSnVsIDYsIDIwMTIgYXQgMTE6MDAgUE0sIEFydW4gS3VtYXIgSyA8YXJ1bi5ra0Bz
-YW1zdW5nLmNvbT4gd3JvdGU6DQo+PiBGcm9tOiBKZW9uZ3RhZSBQYXJrIDxqdHAucGFya0BzYW1z
-dW5nLmNvbT4NCj4+DQo+PiBNdWx0aSBGb3JtYXQgQ29kZWMgNi54IGlzIGEgaGFyZHdhcmUgdmlk
-ZW8gY29kaW5nIGFjY2VsZXJhdGlvbg0KPj4gbW9kdWxlIGZvdW50IGluIG5ldyBFeHlub3M1IFNv
-QyBzZXJpZXMuDQo+PiBJdCBpcyBjYXBhYmxlIG9mIGhhbmRsaW5nIGEgcmFuZ2Ugb2YgdmlkZW8g
-Y29kZWNzIGFuZCB0aGlzIGRyaXZlcg0KPj4gcHJvdmlkZXMgYSBWNEwyIGludGVyZmFjZSBmb3Ig
-dmlkZW8gZGVjb2RpbmcgYW5kIGVuY29kaW5nLg0KPj4NCj4+IFNpZ25lZC1vZmYtYnk6IEplb25n
-dGFlIFBhcmsgPGp0cC5wYXJrQHNhbXN1bmcuY29tPg0KPj4gU2luZ2VkLW9mZi1ieTogSmFuZ2h5
-dWNrIEtpbSA8amFuZ2h5dWNrLmtpbUBzYW1zdW5nLmNvbT4NCj4+IFNpbmdlZC1vZmYtYnk6IEph
-ZXJ5dWwgT2ggPGphZXJ5dWwub2hAc2Ftc3VuZy5jb20+DQo+PiBTaWduZWQtb2ZmLWJ5OiBOYXZl
-ZW4gS3Jpc2huYSBDaGF0cmFkaGkgPGNoLm5hdmVlbkBzYW1zdW5nLmNvbT4NCj4+IFNpZ25lZC1v
-ZmYtYnk6IEFydW4gS3VtYXIgSyA8YXJ1bi5ra0BzYW1zdW5nLmNvbT4NCj4+IENjOiBNYXJlayBT
-enlwcm93c2tpIDxtLnN6eXByb3dza2lAc2Ftc3VuZy5jb20+DQo+PiBDYzogS2FtaWwgRGVic2tp
-IDxrLmRlYnNraUBzYW1zdW5nLmNvbT4NCj4+IC0tLQ0KPj4gIGRyaXZlcnMvbWVkaWEvdmlkZW8v
-S2NvbmZpZyAgICAgICAgICAgICAgICAgIHwgICAxNiArLQ0KPj4gIGRyaXZlcnMvbWVkaWEvdmlk
-ZW8vczVwLW1mYy9NYWtlZmlsZSAgICAgICAgIHwgICAgNyArLQ0KPj4gIGRyaXZlcnMvbWVkaWEv
-dmlkZW8vczVwLW1mYy9yZWdzLW1mYy12Ni5oICAgIHwgIDY3NiArKysrKysrKysrDQo+PiAgZHJp
-dmVycy9tZWRpYS92aWRlby9zNXAtbWZjL3JlZ3MtbWZjLmggICAgICAgfCAgIDI5ICsNCj4+ICBk
-cml2ZXJzL21lZGlhL3ZpZGVvL3M1cC1tZmMvczVwX21mYy5jICAgICAgICB8ICAxNjMgKystDQo+
-PiAgZHJpdmVycy9tZWRpYS92aWRlby9zNXAtbWZjL3M1cF9tZmNfY21kLmMgICAgfCAgICA2ICst
-DQo+PiAgZHJpdmVycy9tZWRpYS92aWRlby9zNXAtbWZjL3M1cF9tZmNfY21kLmggICAgfCAgICAz
-ICsNCj4+ICBkcml2ZXJzL21lZGlhL3ZpZGVvL3M1cC1tZmMvczVwX21mY19jbWRfdjYuYyB8ICAg
-OTYgKysNCj4+ICBkcml2ZXJzL21lZGlhL3ZpZGVvL3M1cC1tZmMvczVwX21mY19jb21tb24uaCB8
-ICAxMjMgKystDQo+PiAgZHJpdmVycy9tZWRpYS92aWRlby9zNXAtbWZjL3M1cF9tZmNfY3RybC5j
-ICAgfCAgMTYwICsrLQ0KPj4gIGRyaXZlcnMvbWVkaWEvdmlkZW8vczVwLW1mYy9zNXBfbWZjX2N0
-cmwuaCAgIHwgICAgMSArDQo+PiAgZHJpdmVycy9tZWRpYS92aWRlby9zNXAtbWZjL3M1cF9tZmNf
-ZGVjLmMgICAgfCAgMjEwICsrKy0NCj4+ICBkcml2ZXJzL21lZGlhL3ZpZGVvL3M1cC1tZmMvczVw
-X21mY19kZWMuaCAgICB8ICAgIDEgKw0KPj4gIGRyaXZlcnMvbWVkaWEvdmlkZW8vczVwLW1mYy9z
-NXBfbWZjX2VuYy5jICAgIHwgIDE5MSArKy0tDQo+PiAgZHJpdmVycy9tZWRpYS92aWRlby9zNXAt
-bWZjL3M1cF9tZmNfZW5jLmggICAgfCAgICAxICsNCj4+ICBkcml2ZXJzL21lZGlhL3ZpZGVvL3M1
-cC1tZmMvczVwX21mY19pbnRyLmMgICB8ICAgIDEgLQ0KPj4gIGRyaXZlcnMvbWVkaWEvdmlkZW8v
-czVwLW1mYy9zNXBfbWZjX29wci5jICAgIHwgIDI3OCArKystLQ0KPj4gIGRyaXZlcnMvbWVkaWEv
-dmlkZW8vczVwLW1mYy9zNXBfbWZjX29wci5oICAgIHwgICAyNSArLQ0KPj4gIGRyaXZlcnMvbWVk
-aWEvdmlkZW8vczVwLW1mYy9zNXBfbWZjX29wcl92Ni5jIHwgMTY5NyArKysrKysrKysrKysrKysr
-KysrKysrKysrKw0KPj4gIGRyaXZlcnMvbWVkaWEvdmlkZW8vczVwLW1mYy9zNXBfbWZjX29wcl92
-Ni5oIHwgIDE0MCArKysNCj4+ICBkcml2ZXJzL21lZGlhL3ZpZGVvL3M1cC1tZmMvczVwX21mY19w
-bS5jICAgICB8ICAgIDYgKy0NCj4+ICBkcml2ZXJzL21lZGlhL3ZpZGVvL3M1cC1tZmMvczVwX21m
-Y19zaG0uYyAgICB8ICAgMjggKy0NCj4+ICBkcml2ZXJzL21lZGlhL3ZpZGVvL3M1cC1tZmMvczVw
-X21mY19zaG0uaCAgICB8ICAgMTMgKy0NCj4+ICBkcml2ZXJzL21lZGlhL3ZpZGVvL3Y0bDItY3Ry
-bHMuYyAgICAgICAgICAgICB8ICAgIDEgLQ0KPj4gIDI0IGZpbGVzIGNoYW5nZWQsIDM0NzYgaW5z
-ZXJ0aW9ucygrKSwgMzk2IGRlbGV0aW9ucygtKQ0KPg0KPiBEb2Vzbid0IGl0IHRvbyBiaWcgZm9y
-IG9uZSBwYXRjaD8gQ2FuIHlvdSBzcGxpdCBpdCBpbnRvIHNldmVyYWwgcGF0Y2hlcz8NCj4NCg0K
-T2suIEkgd2lsbCBzcGxpdCBpdCBpbiB0aGUgbmV4dCBwYXRjaC4NCg0KPj4gIGNyZWF0ZSBtb2Rl
-IDEwMDY0NCBkcml2ZXJzL21lZGlhL3ZpZGVvL3M1cC1tZmMvcmVncy1tZmMtdjYuaA0KPj4gIGNy
-ZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL21lZGlhL3ZpZGVvL3M1cC1tZmMvczVwX21mY19jbWRf
-djYuYw0KPj4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL21lZGlhL3ZpZGVvL3M1cC1tZmMv
-czVwX21mY19vcHJfdjYuYw0KPj4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL21lZGlhL3Zp
-ZGVvL3M1cC1tZmMvczVwX21mY19vcHJfdjYuaA0KPj4NCj4+IGRpZmYgLS1naXQgYS9kcml2ZXJz
-L21lZGlhL3ZpZGVvL0tjb25maWcgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL0tjb25maWcNCj4+IGlu
-ZGV4IDk5OTM3YzkuLjBkN2ZlNzcgMTAwNjQ0DQo+PiAtLS0gYS9kcml2ZXJzL21lZGlhL3ZpZGVv
-L0tjb25maWcNCj4+ICsrKyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vS2NvbmZpZw0KPj4gQEAgLTEx
-OTgsMTMgKzExOTgsMjcgQEAgY29uZmlnIFZJREVPX1NBTVNVTkdfUzVQX0pQRUcNCj4+ICAgICAg
-ICAgICBUaGlzIGlzIGEgdjRsMiBkcml2ZXIgZm9yIFNhbXN1bmcgUzVQIGFuZCBFWFlOT1M0IEpQ
-RUcgY29kZWMNCj4+DQo+PiAgY29uZmlnIFZJREVPX1NBTVNVTkdfUzVQX01GQw0KPj4gKyAgICAg
-ICBib29sDQo+PiArDQo+PiArY29uZmlnIFZJREVPX1NBTVNVTkdfUzVQX01GQ19WNQ0KPj4gICAg
-ICAgICB0cmlzdGF0ZSAiU2Ftc3VuZyBTNVAgTUZDIDUuMSBWaWRlbyBDb2RlYyINCj4+IC0gICAg
-ICAgZGVwZW5kcyBvbiBWSURFT19ERVYgJiYgVklERU9fVjRMMiAmJiBQTEFUX1M1UA0KPj4gKyAg
-ICAgICBkZXBlbmRzIG9uIFZJREVPX0RFViAmJiBWSURFT19WNEwyICYmIEFSQ0hfRVhZTk9TNA0K
-Pj4gKyAgICAgICBzZWxlY3QgVklERU9fU0FNU1VOR19TNVBfTUZDDQo+PiAgICAgICAgIHNlbGVj
-dCBWSURFT0JVRjJfRE1BX0NPTlRJRw0KPj4gICAgICAgICBkZWZhdWx0IG4NCj4+ICAgICAgICAg
-aGVscA0KPj4gICAgICAgICAgICAgTUZDIDUuMSBkcml2ZXIgZm9yIFY0TDIuDQo+Pg0KPj4gK2Nv
-bmZpZyBWSURFT19TQU1TVU5HX1M1UF9NRkNfVjYNCj4NCj4gWWVzLCBJIGtub3cgaXQncyBleHlu
-b3M1IHNlcmllcyBmZWF0dXJlcy4gaG93ZXZlciwgaXQncyBub3QgZ29vZCBpZGVhDQo+IHRvIGFk
-ZCBuZXcgY29uZmlnLg0KPiBJdCBhbHJlYWR5IGhhbmRsZWQgcGxhdGZvcm0gZGV2aWNlIHdpdGgg
-cHJvcGVyIG5hbWUuDQo+IGUuZy4sIHM1cC1tZmMtdjUsIHM1cC1tZmMtdjYgYW5kIGhhbmRsZSBp
-dCB3aXRoIHBsYXRmb3JtIGRhdGEuDQo+DQoNCk9rLiBDb2RlIGNoYW5nZXMgYXJlIHJlcXVpcmVk
-IGZvciBjb21waWxpbmcgYm90aCB2NSBhbmQgdjYgdG9nZXRoZXIuDQpXaWxsIGluY29ycG9yYXRl
-IGluIG5leHQgcGF0Y2guDQoNCltzbmlwXQ0KDQo+PiAtI2RlZmluZSBNRkNfQ0xLTkFNRSAgICAg
-ICAgICAgICJzY2xrX21mYyINCj4+ICsjaWYgZGVmaW5lZChDT05GSUdfVklERU9fU0FNU1VOR19T
-NVBfTUZDX1Y1KQ0KPj4gKyNkZWZpbmUgTUZDX0NMS05BTUUgICAgICAgICAgICAic2Nsa19tZmMi
-DQo+PiArI2VsaWYgZGVmaW5lZChDT05GSUdfVklERU9fU0FNU1VOR19TNVBfTUZDX1Y2KQ0KPj4g
-KyNkZWZpbmUgTUZDX0NMS05BTUUgICAgICAgICAgICAiYWNsa18zMzMiDQo+IEkgdGhpbmsgaXQg
-Y2FuIGhhbmRsZSBjbGtuYW1lIHdpdGhvdXQgbmV3IGNvbmZpZy4NCj4NCg0KWWVzIEkgd2lsbCBj
-aGFuZ2UgaXQuDQoNClJlZ2FyZHMNCkFydW4=
+anyone know what this is?  It's called the QQDVR
 
+http://dl.dropbox.com/u/19500951/QQDVR_guts.JPG
 
+I'm trying to get it to work with zoneminder
+
+It's from china, ebay, supposedly has an h264 encoder on board.
+
+http://szwandao.en.made-in-china.com/product/DMpEboVlfZce/China-4CH-Real-Time-Full-D1-USB-Digital-Video-Recorder-QQDVR-4CH-.html
+
+According to dmesg ...
+
+New USB device found, idVendor=04b4, idProduct=8613
+
+Cheers,
+
+Naveen
