@@ -1,68 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:52205 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751916Ab2GPSch (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jul 2012 14:32:37 -0400
-Received: by vcbfk26 with SMTP id fk26so1070533vcb.19
-        for <linux-media@vger.kernel.org>; Mon, 16 Jul 2012 11:32:37 -0700 (PDT)
+Received: from emh07.mail.saunalahti.fi ([62.142.5.117]:49376 "EHLO
+	emh07.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752181Ab2GCRVu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jul 2012 13:21:50 -0400
+Message-ID: <4FF32A2B.7010607@kolumbus.fi>
+Date: Tue, 03 Jul 2012 20:21:47 +0300
+From: Marko Ristola <marko.ristola@kolumbus.fi>
 MIME-Version: 1.0
-In-Reply-To: <1342137623-7628-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1342137623-7628-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Date: Mon, 16 Jul 2012 13:32:36 -0500
-Message-ID: <CAF6AEGsD41WJhcvVmR+Vw6BKrAWM+bMRuCi6OG-DnXdCPDVwBA@mail.gmail.com>
-Subject: Re: [PATCH] Documentation: DocBook DRM framework documentation
-From: Rob Clark <rob.clark@linaro.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media <linux-media@vger.kernel.org>,
+	htl10@users.sourceforge.net
+Subject: Re: DVB core enhancements - comments please?
+References: <4FEBA656.7060608@iki.fi> <4FEECA65.9090205@kolumbus.fi> <4FF0307E.50408@iki.fi>
+In-Reply-To: <4FF0307E.50408@iki.fi>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 12, 2012 at 7:00 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  Documentation/DocBook/drm.tmpl | 2835 +++++++++++++++++++++++++++++++---------
->  1 files changed, 2226 insertions(+), 609 deletions(-)
+
+Moikka Antti.
+
+
+On 07/01/2012 02:11 PM, Antti Palosaari wrote:
+> Moikka Marko,
 >
-> Hi everybody,
+-- snip --
 >
-> Here's the DRM kernel framework documentation previously posted to the
-> dri-devel mailing list. The documentation has been reworked, converted to
-> DocBook and merged with the existing DocBook DRM documentation stub. The
-> result doesn't cover the whole DRM API but should hopefully be good enough
-> for a start.
+> Hmm, I did some initial suspend / resume changes for DVB USB when I rewrote it recently. On suspend, it just kills all ongoing urbs used for streaming. And on resume it resubmit those urbs in order to resume streaming. It just works as it doesn't hang computer anymore. What I tested applications continued to show same television channels on resume.
 >
-> I've done my best to follow a natural flow starting at initialization and
-> covering the major DRM internal topics. As I'm not a native English speaker
-> I'm not totally happy with the result, so if anyone wants to edit the text
-> please feel free to do so. Review will as usual be appreciated, and acks will
-> be even more welcome (I've been working on this document for longer than I
-> feel comfortable with).
+> The problem for that solution is that it does not have any power management as power management is DVB-core responsibility. So it continues eating current because chips are not put sleep and due to that those DVB-core changes are required.
 
-btw, thanks for this!
+I think that runtime (RT) frontend power saving is a different thing.
+It isn't necessarily suspend/resume thing.
 
-One minor typo below.. with that,
+I implemented runtime Frontend power saving in 2007 on that patch I referenced.
+I used dvb-core's existing functionality. Maybe this concept is applicable for you too.
 
-Reviewed-by: Rob Clark <rob.clark@linaro.org>
+I added into Mantis bridge device initialization following functions:
++                       mantis->fe->ops.tuner_ops.sleep = mantis_dvb_tuner_sleep;
++                       mantis->fe->ops.tuner_ops.init = mantis_dvb_tuner_init;
+tuner_ops.{sleep,init} modification had to be the last one.
 
-> diff --git a/Documentation/DocBook/drm.tmpl b/Documentation/DocBook/drm.tmpl
-> index 196b8b9..44a2c66 100644
-[snip]
-> +    <sect2>
-> +      <title>Output Polling</title>
-> +      <synopsis>void (*output_poll_changed)(struct drm_device *dev);</synopsis>
-> +      <para>
-> +        This operation notifies the driver that the status of one or more
-> +        connectors has changed. Drivers that use the fbdev helper can just call
+I maintained in mantis->has_power the frontend's power status.
+Maybe I could have read the active status from PCI context too.
 
-s/fbdev/fb/
+The concept was something like:
+- dvb-core has responsibility to call tuner_ops.sleep() and tuner_ops.init() when applicable.
+- Mantis PCI Bridge driver (or specific USB driver) has responsibility
+   to provide sleep and init implementations for the specific device.
+- Mantis bridge device will do the whole task of frontend power management, by calling Frontend's
+   tear down / initialization functions when necessary.
 
-> +        the <function>drm_fb_helper_hotplug_event</function> function to handle
-> +        this operation.
+>
+>> - What changes encrypted channels need?
+>
+> I think none?
+>
+>
+> regards
+> Antti
+>
 
 
-
-BR,
--R
+Regards,
+Marko
