@@ -1,78 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:55063 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755050Ab2GaGpy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 02:45:54 -0400
-Date: Tue, 31 Jul 2012 08:45:47 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Alex Gershgorin <alexg@meprolight.com>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	laurent.pinchart@ideasonboard.com, m.szyprowski@samsung.com,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] media: mx3_camera: buf_init() add buffer state check
-In-Reply-To: <1343675227-9061-1-git-send-email-alexg@meprolight.com>
-Message-ID: <Pine.LNX.4.64.1207310838110.27888@axis700.grange>
-References: <1343675227-9061-1-git-send-email-alexg@meprolight.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:60626 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932272Ab2GDStH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Jul 2012 14:49:07 -0400
+Message-ID: <4FF4901C.3010701@iki.fi>
+Date: Wed, 04 Jul 2012 21:49:00 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Dharam Kumar <dharam.kumar.gupta@gmail.com>
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: Info on Remote controller keys like upper-right, upper-left ,
+ lower-right, lower-left ,sub-picture etc.
+References: <CAOt5+pSrpsyvuyyT=kQj0k6u5m+KnJTH_+Q7hLhkkW0pNFSqpA@mail.gmail.com>
+In-Reply-To: <CAOt5+pSrpsyvuyyT=kQj0k6u5m+KnJTH_+Q7hLhkkW0pNFSqpA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alex
+On 07/04/2012 09:34 PM, Dharam Kumar wrote:
+> Hi All,
+>
+> I've been working on a MHL( www.mhltech.org  ) transmitter driver
+> which needs to receive/handle incoming Remote control keys.
+>
+> The specification tells me that other than normal keys[up,down,left,
+> right etc.] there are certain remote control keys like Upper-right,
+> Upper-left, Lower-right, Lower-left, Sub-picture etc.
+>
+> While creating a key map in the driver, I tried to find whether these
+> keys has been defined in <linux/input.h> ,but I could not find such
+> key definitions
+> in the header file.
+>
+> Please note that, although the Specs do define these Remote Controller
+> keys, the driver will have the choice
+> to support the key depending on the key-map.
+>
+> Something like this:
+> /* Key Map for the driver */
+>    ....
+>   { KEY_UP, <supported> },
+>   { KEY_DOWN, <supported>},
+>   {KEY_UPPERRIGHT, <supported>},      /* No  definition for
+> KEY_UPPERRIGHT in input.h  */
+>   {KEY_UPPERLEFT, <not-supported>},  /* No definition for KEY_UPPERLEFT
+> in input.h, although this key is not supported by driver */
+> ....
+>
+>
+> In other mailing lists[linux-input], it has been suggested that these
+> keys are similar to Joystick keys.
+> I've looked into drivers/input/joystick/analog.c file, but could not
+> find any buttons/pads which are similar to the above one[Am I missing
+> something here??]
+>
+> any pointers??
 
-On Mon, 30 Jul 2012, Alex Gershgorin wrote:
+Here is list of key bindings used for media device remote controllers 
+(television, radio, etc):
+http://linuxtv.org/wiki/index.php/Remote_Controllers
 
-> This patch check the state of the buffer when calling buf_init() method.
-> The thread http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/48587
-> also includes report witch can show the problem. This patch solved the problem.
-> Both MMAP and USERPTR methods was successfully tested.
-> 
-> Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
-> ---
->  drivers/media/video/mx3_camera.c |   12 +++++++-----
->  1 files changed, 7 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
-> index f13643d..950a8fe 100644
-> --- a/drivers/media/video/mx3_camera.c
-> +++ b/drivers/media/video/mx3_camera.c
-> @@ -405,13 +405,15 @@ static int mx3_videobuf_init(struct vb2_buffer *vb)
+But still no definitions like up-left etc.
 
-Sorry, don't understand. As we see in the thread, mentioned above, the 
-Oops happened in mx3_videobuf_release(). If my analysis was correct in 
-that thread, that Oops happened, when .buf_cleanup() was called without 
-.buf_init() being called. This your patch modifies mx3_videobuf_init(). 
-which isn't even called in the problem case. How does this help?
+regards
+Antti
 
-Thanks
-Guennadi
 
->  	struct mx3_camera_dev *mx3_cam = ici->priv;
->  	struct mx3_camera_buffer *buf = to_mx3_vb(vb);
->  
-> -	/* This is for locking debugging only */
-> -	INIT_LIST_HEAD(&buf->queue);
-> -	sg_init_table(&buf->sg, 1);
-> +	if (buf->state != CSI_BUF_PREPARED) {
-> +		/* This is for locking debugging only */
-> +		INIT_LIST_HEAD(&buf->queue);
-> +		sg_init_table(&buf->sg, 1);
->  
-> -	buf->state = CSI_BUF_NEEDS_INIT;
-> +		buf->state = CSI_BUF_NEEDS_INIT;
->  
-> -	mx3_cam->buf_total += vb2_plane_size(vb, 0);
-> +		mx3_cam->buf_total += vb2_plane_size(vb, 0);
-> +	}
->  
->  	return 0;
->  }
-> -- 
-> 1.7.0.4
-> 
+-- 
+http://palosaari.fi/
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+
