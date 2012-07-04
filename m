@@ -1,57 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51616 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751321Ab2GZOmm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jul 2012 10:42:42 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org, b.zolnierkie@samsung.com
-Subject: Re: [RFC/PATCH 01/13] ARM: Samsung: Extend MIPI PHY callback with an index argument
-Date: Thu, 26 Jul 2012 16:42:49 +0200
-Message-ID: <3148357.irbGOBJ73x@avalon>
-In-Reply-To: <1337975573-27117-1-git-send-email-s.nawrocki@samsung.com>
-References: <4FBFE1EC.9060209@samsung.com> <1337975573-27117-1-git-send-email-s.nawrocki@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout1.samsung.com ([203.254.224.24]:16153 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750834Ab2GDMRQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2012 08:17:16 -0400
+Received: from epcpsbgm1.samsung.com (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M6M00MBCY4QSIQ0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 04 Jul 2012 21:17:14 +0900 (KST)
+Received: from localhost.localdomain ([107.108.73.106])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0M6M00BBUY4EBE00@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 04 Jul 2012 21:17:14 +0900 (KST)
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: jtp.park@samsung.com, janghyuck.kim@samsung.com,
+	jaeryul.oh@samsung.com, ch.naveen@samsung.com,
+	m.szyprowski@samsung.com, k.debski@samsung.com, arun.kk@samsung.com
+Subject: [PATCH v1] s5p-mfc: update MFC v4l2 driver to support MFC6.x
+Date: Wed, 04 Jul 2012 18:00:43 +0530
+Message-id: <1341405044-16051-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+This patch is re-worked version of the original patch posted
+by Jeongtae Park for support of MFCv6.x
+The comment given by Kamil Debski can be found here:
+http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/45189
+The crash issue reported on MFC 5.1 on applying this patch has been fixed.
+This is tested for decoding functionality on MFC 5.1 and MFC 6.5.
+Encoder functionality is not tested on Exynos5 yet.
 
-On Friday 25 May 2012 21:52:40 Sylwester Nawrocki wrote:
-> For systems instantiated from device tree struct platform_device id
-> field is always -1, add an 'id' argument to the s5p_csis_phy_enable()
-> function so the MIPI-CSIS hardware instance index can be passed in
-> by driver, for CONFIG_OF=y.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  arch/arm/plat-s5p/setup-mipiphy.c              |   20 ++++++++------------
->  arch/arm/plat-samsung/include/plat/mipi_csis.h |   10 ++++++----
->  2 files changed, 14 insertions(+), 16 deletions(-)
-> 
-> diff --git a/arch/arm/plat-s5p/setup-mipiphy.c
-> b/arch/arm/plat-s5p/setup-mipiphy.c index 683c466..146ecc3 100644
-> --- a/arch/arm/plat-s5p/setup-mipiphy.c
-> +++ b/arch/arm/plat-s5p/setup-mipiphy.c
-> @@ -14,24 +14,19 @@
->  #include <linux/spinlock.h>
->  #include <mach/regs-clock.h>
-> 
-> -static int __s5p_mipi_phy_control(struct platform_device *pdev,
-> +static int __s5p_mipi_phy_control(struct platform_device *pdev, int id,
->  				  bool on, u32 reset)
+Jeongtae Park (1):
+  [media] s5p-mfc: update MFC v4l2 driver to support MFC6.x
 
-What about removing the pdev argument, as it's now not needed ?
-
--- 
-Regards,
-
-Laurent Pinchart
+ drivers/media/video/Kconfig                  |   16 +-
+ drivers/media/video/s5p-mfc/Makefile         |    7 +-
+ drivers/media/video/s5p-mfc/regs-mfc-v6.h    |  676 ++++++++++
+ drivers/media/video/s5p-mfc/regs-mfc.h       |   29 +
+ drivers/media/video/s5p-mfc/s5p_mfc.c        |  163 ++-
+ drivers/media/video/s5p-mfc/s5p_mfc_cmd.c    |    6 +-
+ drivers/media/video/s5p-mfc/s5p_mfc_cmd.h    |    3 +
+ drivers/media/video/s5p-mfc/s5p_mfc_cmd_v6.c |   96 ++
+ drivers/media/video/s5p-mfc/s5p_mfc_common.h |  123 ++-
+ drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c   |  160 ++-
+ drivers/media/video/s5p-mfc/s5p_mfc_ctrl.h   |    1 +
+ drivers/media/video/s5p-mfc/s5p_mfc_dec.c    |  210 +++-
+ drivers/media/video/s5p-mfc/s5p_mfc_dec.h    |    1 +
+ drivers/media/video/s5p-mfc/s5p_mfc_enc.c    |  377 +++++--
+ drivers/media/video/s5p-mfc/s5p_mfc_enc.h    |    1 +
+ drivers/media/video/s5p-mfc/s5p_mfc_intr.c   |    1 -
+ drivers/media/video/s5p-mfc/s5p_mfc_opr.c    |  282 +++--
+ drivers/media/video/s5p-mfc/s5p_mfc_opr.h    |   25 +-
+ drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.c | 1697 ++++++++++++++++++++++++++
+ drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.h |  140 +++
+ drivers/media/video/s5p-mfc/s5p_mfc_pm.c     |    6 +-
+ drivers/media/video/s5p-mfc/s5p_mfc_shm.c    |   28 +-
+ drivers/media/video/s5p-mfc/s5p_mfc_shm.h    |   13 +-
+ 23 files changed, 3661 insertions(+), 400 deletions(-)
+ create mode 100644 drivers/media/video/s5p-mfc/regs-mfc-v6.h
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_cmd_v6.c
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.c
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.h
 
