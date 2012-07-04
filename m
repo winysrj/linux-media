@@ -1,184 +1,409 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:49912 "EHLO
-	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755372Ab2GKOYk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jul 2012 10:24:40 -0400
-From: Albert Wang <twang13@marvell.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Jonathan Corbet <corbet@lwn.net>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Chao Xie <cxie4@marvell.com>, Angela Wan <jwan@marvell.com>,
-	Kassey Lee <kassey1216@gmail.com>,
-	Albert <bluebellice@gmail.com>
-Date: Wed, 11 Jul 2012 07:24:59 -0700
-Subject: Add V4l2 camera driver for Marvell PXA910/PXA688/PXA2128 CCIC
-Message-ID: <477F20668A386D41ADCC57781B1F7043083AB3314D@SC-VEXCH1.marvell.com>
-References: <477F20668A386D41ADCC57781B1F7043083A57BA08@SC-VEXCH1.marvell.com>
- <20120511102752.4b87024f@lwn.net>
- <477F20668A386D41ADCC57781B1F7043083A57BA5C@SC-VEXCH1.marvell.com>
- <Pine.LNX.4.64.1205122051330.11826@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1205122051330.11826@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:56470 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751256Ab2GDHrh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2012 03:47:37 -0400
+From: "Du, Changbin" <changbin.du@gmail.com>
+To: "'Du, Changbin'" <changbin.du@gmail.com>, <mchehab@infradead.org>
+Cc: <anssi.hannula@iki.fi>, <gregkh@suse.de>,
+	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+References: <4ff14691.0ae1440a.54a9.3331@mx.google.com>
+In-Reply-To: <4ff14691.0ae1440a.54a9.3331@mx.google.com>
+Subject: RE: [PATCH 1/1] media: rc: ati_remote.c: code style and compile warning fixing
+Date: Wed, 4 Jul 2012 15:47:30 +0800
+Message-ID: <4ff3f518.8588440a.40a8.10fe@mx.google.com>
 MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+Content-Language: zh-cn
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGksIEd1ZW5uYWRpICYgSm9uYXRoYW4NCg0KQXMgd2UgaGF2ZSBkaXNjdXNzZWQgMiBtb250aHMg
-YWdvLCB3ZSBtYWtlIHRoZSB1cGRhdGVkIHZlcnNpb24gb2YgbW1wX2NhbWVyYSBkcml2ZXIgd2hp
-Y2ggYmFzZWQgb24ga2VybmVsIDMuNCBmb3Igc3VwcG9ydCBNYXJ2ZWxsIE1NUCBzb2MgZmFtaWx5
-Lg0KDQpTbyBjb3VsZCB5b3UgcGxlYXNlIGZpbmQgdGltZSB0byB0YWtlIGEgbG9vayBhdCB0aGlz
-IHBhdGNoPw0KDQpUaGFuayB5b3UgdmVyeSBtdWNoIQ0KDQoNClRoYW5rcw0KQWxiZXJ0IFdhbmcN
-Cjg2LTIxLTYxMDkyNjU2DQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBHdWVu
-bmFkaSBMaWFraG92ZXRza2kgW21haWx0bzpnLmxpYWtob3ZldHNraUBnbXguZGVdIA0KU2VudDog
-U3VuZGF5LCAxMyBNYXksIDIwMTIgMDM6MDUNClRvOiBBbGJlcnQgV2FuZw0KQ2M6IEpvbmF0aGFu
-IENvcmJldDsgTGludXggTWVkaWEgTWFpbGluZyBMaXN0OyBNYXVybyBDYXJ2YWxobyBDaGVoYWI7
-IENoYW8gWGllOyBBbmdlbGEgV2FuOyBLYXNzZXkgTGVlOyBBbGJlcnQNClN1YmplY3Q6IFJFOiBt
-YXJ2ZWxsLWNjaWM6IGxhY2tzIG9mIHNvbWUgZmVhdHVyZXMNCg0KSGkgQWxiZXJ0DQoNCk9uIEZy
-aSwgMTEgTWF5IDIwMTIsIEFsYmVydCBXYW5nIHdyb3RlOg0KDQo+IEhpLCBKb25hdGhhbg0KPiAN
-Cj4gTmljZSB0byBtZWV0IHlvdSENCj4gDQo+IFdlIG11c3QgY2xhcmlmeSB0aGF0IGl0J3Mgbm90
-IG91ciB0YXJnZXQgdG8gcmVwbGFjZSB5b3VyIG1hcnZlbGwtY2NpYyANCj4gYnkgb3VyIG12X2Nh
-bWVyYSBpbiB0aGUgdHJlZQ0KPiANCj4gV2UganVzdCBob3BlIHlvdSBjYW4gaGVscCB0byByZXZp
-ZXcgb3VyIG12X2NhbWVyYSBwYXRjaGVzIGFuZCBkaXNjdXNzIA0KPiBpZiBjYW4gcHV0IGl0IGlu
-IHRyZWUsIGJlY2F1c2UgaXQgbWF5IHN1cHBvcnQgbW9yZSBhbmQgYmV0dGVyIGZvciANCj4gTWFy
-dmVsbCBTb2MgY2hpcHMuDQo+IFRoZXJlIGlzIG5vIGNvbmZsaWN0IGJldHdlZW4geW91ciBtYXJ2
-ZWxsLWNjaWMgd2hpY2ggc3VwcG9ydCBPTFBDIGFuZCANCj4gb3VyIG12X2NhbWVyYSB3aGljaCBz
-dXBwb3J0IG1vc3QgTWFydmVsbCBwbGF0Zm9ybXMuDQo+IEFjdHVhbGx5IHdlIGFyZSB3aWxsaW5n
-IHRvIGFkZCBzdXBwb3J0IG9uIE9MUEMuIDopDQoNClRoYW5rcyBmb3IgY29udGludWluZyB5b3Vy
-IHdvcmsgb24gdGhlIG12X2NhbWVyYSBkcml2ZXIgYW5kIGZvciB5b3VyIGVmZm9ydCB0byBpbnRl
-Z3JhdGUgaXQgaW50byB0aGUgbWFpbmxpbmUhIFdlIGNlcnRhaW5seSB3YW50IHRvIHN1cHBvcnQg
-bmV3IGhhcmR3YXJlIHR5cGVzIGFuZCBmZWF0dXJlcy4gU28sIHdlJ3JlIGNlcnRhaW5seSBnbGFk
-IHRvIGhlYXIsIHRoYXQgeW91ciBkcml2ZXIgc3VwcG9ydHMgZmVhdHVyZXMsIG5vdCBwcmVzZW50
-bHkgYXZhaWxhYmxlIGluIHRoZSBtYWlubGluZS4NCg0KQXMgeW91IGNlcnRhaW5seSB1bmRlcnN0
-YW5kLCB3ZSBhbHNvIHdhbnQgdG8gcmV1c2Uga2VybmVsIGNvZGUgYXMgbXVjaCBhcyBwb3NzaWJs
-ZS4gRHJpdmVycyBmb3IgdGhlIHNhbWUgSVAgYmxvY2sgaW4gZGlmZmVyZW50IHBhY2thZ2luZywg
-d2l0aCBkaWZmZXJlbnQgaW50ZXJmYWNlcyBldmVuIHdpdGggc2xpZ2h0IGRpZmZlcmVuY2VzIGlu
-IGZ1bmN0aW9uYWxpdHkgaXMgb25lIHN1Y2ggZXhhbXBsZS4gVGhlcmVmb3JlLCB3ZSBjZXJ0YWlu
-bHkgd291bGQgX3ZlcnkgbXVjaF8gcHJlZmVyIGhhdmluZyB5b3VyIGRyaXZlciBhbmQgbWFydmVs
-bC1jY2ljIHNoYXJlIGFzIG11Y2ggY29kZSBhcyBwb3NzaWJsZS4NCg0KSXQgd291bGQgYmUgaW50
-ZXJlc3RpbmcgdG8ga25vdzogaGF2ZSB5b3UgYWN0dWFsbHkgdHJpZWQgdG8gYnVpbGQgeW91ciBk
-cml2ZXIgYXJvdW5kIHRoZSBtYXJ2ZWxsLWNjaWMgY29kZS1iYXNlPyBJZiB5ZXMgLSBob3cgZGlk
-IGl0IGdvPyBXaGF0IGRpZmZpY3VsdGllcyBkaWQgeW91IGVuY291bnRlcj8gSWYgbm8gLSBoYXZl
-IHlvdSBjb25zaWRlcmVkIGRvaW5nIHNvPyBJZiB5ZXMgLSB3aHkgaGF2ZSB5b3UgZGVjaWRlZCBh
-Z2FpbnN0IGl0PyBIYXZlIHlvdSBjb25zaWRlcmVkIGEgcG9zc2liaWxpdHkgb2YgYnVpbGRpbmcg
-eW91ciBkcml2ZXIgYXMgYW4gc29jLWNhbWVyYSBkcml2ZXIsIHdoaWxlIHN0aWxsIHJldXNpbmcg
-dGhlIGNvcmUgZnVuY3Rpb25hbGl0eSBmcm9tIG1hcnZlbGwtY2NpYz8NCg0KVGhhbmtzDQpHdWVu
-bmFkaQ0KDQo+IE9LLCB3ZSB3aWxsIHByb3ZpZGUgdGhlIHBhdGNoZXMgZm9yIGRpc2N1c3Npbmcu
-DQo+IFRoYW5rIHlvdSB2ZXJ5IG11Y2ghDQo+IA0KPiANCj4gVGhhbmtzDQo+IEFsYmVydCBXYW5n
-DQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IEpvbmF0aGFuIENvcmJldCBb
-bWFpbHRvOmNvcmJldEBsd24ubmV0XQ0KPiBTZW50OiBTYXR1cmRheSwgMTIgTWF5LCAyMDEyIDAw
-OjI4DQo+IFRvOiBBbGJlcnQgV2FuZw0KPiBDYzogJ0d1ZW5uYWRpIExpYWtob3ZldHNraSc7IExp
-bnV4IE1lZGlhIE1haWxpbmcgTGlzdDsgTWF1cm8gQ2FydmFsaG8gDQo+IENoZWhhYjsgQ2hhbyBY
-aWU7IEFuZ2VsYSBXYW47IEthc3NleSBMZWU7IEFsYmVydA0KPiBTdWJqZWN0OiBSZTogbWFydmVs
-bC1jY2ljOiBsYWNrcyBvZiBzb21lIGZlYXR1cmVzDQo+IA0KPiBPbiBGcmksIDExIE1heSAyMDEy
-IDA5OjAyOjI2IC0wNzAwDQo+IEFsYmVydCBXYW5nIDx0d2FuZzEzQG1hcnZlbGwuY29tPiB3cm90
-ZToNCj4gDQo+ID4gSGksIEpvbmF0aGFuICYgR3Vlbm5hZGkNCj4gPiANCj4gPiBXZSB1c2VkIHRo
-ZSBtYXJ2ZWxsLWNjaWMgY29kZSBhbmQgZm91bmQgaXQgbGFja3Mgb2Ygc29tZSBmZWF0dXJlcywg
-DQo+ID4gYnV0IG91ciBNYXJ2ZWxsIENhbWVyYSBkcml2ZXIgKG12X2NhbWVyYS5jKSB3aGljaCBi
-YXNlZCBvbiANCj4gPiBzb2NfY2FtZXJhIGNhbiBzdXBwb3J0IGFsbCB0aGVzZSBmZWF0dXJlczoN
-Cj4gDQo+IFRoZSBtYXJ2ZWxsLWNjaWMgZHJpdmVyIGhhcyB0aGUgZmVhdHVyZXMgdGhhdCB3ZXJl
-IG5lZWRlZCBieSB0aGUgcGVvcGxlIGRvaW5nIHRoZSB3b3JrIGFuZCB0aGF0IEkgaGFkIHRoZSBk
-b2N1bWVudGF0aW9uIGFuZCBoYXJkd2FyZSB0byBzdXBwb3J0Lg0KPiBPZiBjb3Vyc2UgaXQncyBp
-bmNvbXBsZXRlLg0KPiANCj4gSSdsbCBnbyB0aHJvdWdoIHlvdXIgbGlzdCwgYnV0LCBmaXJzdDog
-aXMgdGhlIHB1cnBvc2Ugb2YgeW91ciBtZXNzYWdlIHRvIGFyZ3VlIGZvciBhIHJlcGxhY2VtZW50
-IG9mIHRoZSBtYXJ2ZWxsLWNjaWMgZHJpdmVyIGJ5IHlvdXIgbXZfY2FtZXJhIGRyaXZlcj8gIEkg
-YW0gbm90IG5lY2Vzc2FyaWx5IG9wcG9zZWQgdG8gdGhhdCBpZGVhIGlmIG12X2NhbWVyYSBjYW4g
-c3VwcG9ydCBkZXBsb3llZCBzeXN0ZW1zIGJhY2sgdG8gdGhlIE9MUEMgWE8gMS4wIGFuZCBpZiBp
-dCBzZWVtcyBjbGVhciB0aGF0IGEgcmVwbGFjZW1lbnQgbWFrZXMgbW9yZSBzZW5zZSB0aGFuIGFk
-ZGluZyBmZWF0dXJlcyB0byB0aGUgaW4tdHJlZSBkcml2ZXIuICANCj4gDQo+ID4gMS4gbWFydmVs
-bC1jY2ljIG9ubHkgc3VwcG9ydCBNTVAyIChQWEE2ODgpLCBpdCBjYW7igJl0IHN1cHBvcnQgb3Ro
-ZXIgDQo+ID4gTWFydmVsbCBTT0MgY2hpcHMgT3VyIG12X2NhbWVyYSBjYW4gc3VwcG9ydCBzdWNo
-IGFzIE1NUDMgKFBYQTIxMjgpLCANCj4gPiBURA0KPiA+IChQWEE5MTAvOTIwKSBhbmQgc28gb24g
-YmVzaWRlcyBNTVAyDQo+IA0KPiBXaGljaCBpcyBjb29sLiAgSXQgaXMgbmljZSB0aGF0IE1hcnZl
-bGwgaXMgZmluYWxseSBwcm92aWRpbmcgTGludXggc3VwcG9ydCBmb3IgaXRzIGNhbWVyYSBjb250
-cm9sbGVycyBhZnRlciBhbGwgdGhlc2UgeWVhcnMuICBGb3IgdGhlIGxhc3Qgc2V2ZXJhbCB5ZWFy
-cywgSSd2ZSBuZWNlc3NhcmlseSBiZWVuIGxpbWl0ZWQgaW4gdGhlIGNvbnRyb2xsZXJzIEkgY291
-bGQgc3VwcG9ydC4NCj4gSXMgaXQgTWFydmVsbCdzIGludGVudGlvbiB0byBwcm92aWRlIHVwc3Ry
-ZWFtIG1haW50ZW5hbmNlIGFuZCBzdXBwb3J0IGdvaW5nIGZvcndhcmQ/IA0KPiANCj4gPiAyLiBt
-YXJ2ZWxsLWNjaWMgb25seSBzdXBwb3J0IHBhcmFsbGVsIChEVlApIG1vZGUsIGNhbuKAmXQgc3Vw
-cG9ydCBNSVBJIA0KPiA+IG1vZGUgT3VyIG12X2NhbWVyYSBjYW4gc3VwcG9ydCBib3RoIERWUCBt
-b2RlIGFuZCBNSVBJIG1vZGUsIE1JUEkgDQo+ID4gaW50ZXJmYWNlIGlzIHRoZSB0cmVuZCBvZiBj
-dXJyZW50IGNhbWVyYSBzZW5zb3JzIHdpdGggaGlnaCANCj4gPiByZXNvbHV0aW9uDQo+IA0KPiBB
-ZGRpbmcgTUlQSSBkb2Vzbid0IGxvb2sgdGhhdCBoYXJkLCBJJ3ZlIGp1c3QgbmV2ZXIgaGFkIGEg
-cmVhc29uIChvcg0KPiBoYXJkd2FyZSkgdG8gZG8gaXQuDQo+IA0KPiA+IA0KPiA+IDMuIG1hcnZl
-bGwtY2NpYyBvbmx5IHN1cHBvcnQgY2NpYzEgY29udHJvbGxlciwgY2Fu4oCZdCBzdXBwb3J0IGNj
-aWMyIA0KPiA+IG9yIGR1YWwgY2NpYyBjb250cm9sbGVycyBBcyB5b3Uga25vd24sIGJvdGggTU1Q
-MiBhbmQgTU1QMyBoYXZlIDIgDQo+ID4gY2NpYyBjb250cm9sbGVycywgY2NpYzIgaXMgZGlmZmVy
-ZW50IHdpdGggY2NpYzEgU29tZXRpbWVzIHdlIG5lZWQgDQo+ID4gdXNlIGJvdGgNCj4gPiAyIGNj
-aWMgY29udHJvbGxlcnMgZm9yIGNvbm5lY3RpbmcgMiBjYW1lcmEgc2Vuc29ycyBBY3R1YWxseSwg
-d2UgaGF2ZSANCj4gPiB1c2VkIDIgY2NpYyBjb250cm9sbGVycycgY2FzZXMgaW4gb3VyIHBsYXRm
-b3JtcyBPdXIgbXZfY2FtZXJhIGNhbiANCj4gPiBzdXBwb3J0IHRoZXNlIGNhc2VzOiBvbmx5IHVz
-ZSBjY2ljMSwgb25seSB1c2UgY2NpYzIgYW5kIHVzZSBjY2ljMSArDQo+ID4gY2NpYzINCj4gDQo+
-IEl0IGRvZXNuJ3Qgc3VwcG9ydCB0d28gYmVjYXVzZSBub2JvZHkgaGFzIGFza2VkIGZvciBpdCwg
-YnV0IHRoZSBkcml2ZXIgd2FzIHdyaXR0ZW4gd2l0aCB0aGF0IGluIG1pbmQuICBJIGRvbid0IHNl
-ZSBzdXBwb3J0aW5nIHRoZSBzZWNvbmQgY29udHJvbGxlciBhcyBhIGJpZyBqb2IuDQo+IA0KPiA+
-IDQuIG1hcnZlbGwtY2NpYyBvbmx5IHN1cHBvcnQgY2FtZXJhIHNlbnNvciBPVjc2NzAgSXQncyBh
-biBvbGQgYW5kIA0KPiA+IGxvdyByZXNvbHV0aW9uIHBhcmFsbGVsIHNlbnNvciwgYW5kIHNlbnNv
-ciBpbmZvIGFsc28gaXMgaGFyZCBjb2RlIA0KPiA+IEJ1dCBpdCBsb29va3Mgd2Ugc2hvdWxkIGJl
-dHRlciBzZXBhcmF0ZSBjb250cm9sbGVyIGFuZCBzZW5zb3IgaW4gDQo+ID4gZHJpdmVyLCBjb250
-cm9sbGVyIGRvZXNuJ3QgY2FyZSBzZW5zb3IgdHlwZSB3aGljaCB3aWxsIGNvbW11bmljYXRlIA0K
-PiA+IHdpdGggT3VyIG12X2NhbWVyYSBjYW4gc3VwcG9ydCBhbnkgY2FtZXJhIHNlbnNvciB3aGlj
-aCBiYXNlZCBvbiANCj4gPiBzdWJkZXYgc3RydWN0dXJlDQo+IA0KPiBUaGF0IGlzIGEgd2VsbC1r
-bm93biBsaW1pdGF0aW9uLCB3aGljaCwgYWdhaW4sIGlzbid0IHRoYXQgaGFyZCB0byBmaXguICBU
-aGUgbWFpbiBwcm9ibGVtIGlzIGZpeGluZyBpdCB3aXRob3V0IGJyZWFraW5nIGV4aXN0aW5nIHVz
-ZXJzLg0KPiANCj4gPiA1LiBtYXJ2ZWxsLWNjaWMgb25seSBzdXBwb3J0IFlVWVYgZm9ybWF0IHdo
-aWNoIGlzIHBhY2tlZCBmb3JtYXQgDQo+ID4gYmVzaWRlcw0KPiA+IFJHQjQ0NCBhbmQgUkdCNTY1
-LCBpdCBjYW7igJl0IHN1cHBvcnQgcGxhbmFyIGZvcm1hdHMgT3VyIG12X2NhbWVyYSBjYW4gDQo+
-ID4gc3VwcG9ydCBib3RoIHBhY2tlZCBmb3JtYXQgYW5kIHBsYW5hciBmb3JtYXRzIHN1Y2ggYXMN
-Cj4gPiBZVVY0MjAgYW5kIFlVVjQyMlANCj4gDQo+IEFnYWluLCBub3QgYSBmdW5kYW1lbnRhbCBk
-cml2ZXIgbGltaXRhdGlvbjsgZGVmaW5pdGVseSB3b3J0aCBmaXhpbmcgd2hlbiBzb21lYm9keSBh
-Y3R1YWxseSBuZWVkcyBwbGFuYXIgZm9ybWF0cy4NCj4gDQo+ID4gNi4gbWFydmVsbC1jY2ljIGRp
-ZG4ndCBzdXBwb3J0IEpQRUcgZm9ybWF0IGZvciBzdGlsbCBjYXB0dXJlIG1vZGUgDQo+ID4gT3Vy
-IG12X2NhbWVyYSBjYW4gc3VwcG9ydCBKUEVHIGRpcmVjdGx5IGZvciBzdGlsbCBjYXB0dXJlLCBt
-b3N0IGhpZ2ggDQo+ID4gcmVzb2x1dGlvbiBjYW1lcmEgc2Vuc29yIGNhbiBvdXRwdXQgSlBFRyBm
-b3JtYXQgZGlyZWN0bHkNCj4gDQo+IFRoYXQgd291bGQgaW5kZWVkIGJlIGEgbmljZSBmZWF0dXJl
-IHRvIGhhdmUuDQo+IA0KPiA+IDcuIG1hcnZlbGwtY2NpYyBjYW7igJl0IHN1cHBvcnQgZHVhbCBj
-YW1lcmEgc2Vuc29ycyBvciBtdWx0aSBjYW1lcmEgDQo+ID4gc2Vuc29ycyBjYXNlcyBDdXJyZW50
-IG1vc3QgcGxhdGZvcm1zIGNhbiBzdXBwb3J0IGR1YWwgY2FtZXJhIHNlbnNvciANCj4gPiBjYXNl
-LCBpbmNsdWRlIGZyb250LWZhY2luZyBzZW5zb3IgYW5kIHJlYXItZmFjaW5nIHNlbnNvciBFdmVu
-IHNvbWUgDQo+ID4gaGlnaCBlbmQgcGxhdGZvcm1zIGNhbiBzdXBwb3J0IDNEIG1vZGUgcmVjb3Jk
-OyBpdCBuZWVkIHN1cHBvcnQgMisxIGNhbWVyYSBzZW5zb3JzIE91ciBtdl9jYW1lcmEgY2FuIHN1
-cHBvcnQgdGhlc2UgY2FzZXM6DQo+ID4gZHVhbCBjYW1lcmEgc2Vuc29yIGNvbm5lY3QgdG8gY2Np
-YzEgb3IgY2NpYzIgb25lIGNhbWVyYSBzZW5zb3IgDQo+ID4gY29ubmVjdCB0byBjY2ljMSBhbmQg
-dGhlIG90aGVyIGNhbWVyYSBzZW5zb3IgY29ubmVjdCB0byBjY2ljMiBkdWFsIA0KPiA+IGNhbWVy
-YSBzZW5zb3IgY29ubmVjdCB0byBjY2ljMSBhbmQgb25lIGNhbWVyYSBzZW5zb3IgY29ubmVjdCB0
-byANCj4gPiBjY2ljMg0KPiANCj4gU291bmRzIGxpa2UgbmljZSBzdHVmZi4NCj4gDQo+ID4gOC4g
-bWFydmVsbC1jY2ljIGNhbuKAmXQgc3VwcG9ydCBleHRlcm5hbCBJU1AgKyByYXcgY2FtZXJhIHNl
-bnNvciBtb2RlIA0KPiA+IEFzIHlvdSBrbm93biwgbW9yZSBhbmQgbW9yZSBjYW1lcmEgc2Vuc29y
-cyB3aXRoIGhpZ2ggcmVzb2x1dGlvbiBhcmUgDQo+ID4gcmF3IGNhbWVyYSBzZW5zb3JzIGJ1dCBu
-b3Qgc21hcnQgc2Vuc29ycyBJdCBuZWVkcyBleHRlcm5hbCBJU1AgDQo+ID4gKEltYWdlIFNpZ25h
-bA0KPiA+IFByb2Nlc3NvcikgdG8gZ2VuZXJhdGUgdGhlIGRlc2lyZWQgZm9ybWF0cyBhbmQgcmVz
-b2x1dGlvbnMgd2l0aCBzb21lIA0KPiA+IGFkdmFuY2VkIGZlYXR1cmVzIGJhc2VkIG9uIHRoZSBy
-YXcgZGF0YSBmcm9tIHNlbnNvciBPdXIgbXZfY2FtZXJhIA0KPiA+IGNhbiBzdXBwb3J0IGJvdGgg
-c21hcnQgY2FtZXJhIHNlbnNvcnMgYW5kIGV4dGVybmFsIElTUCArIHJhdyBjYW1lcmEgDQo+ID4g
-c2Vuc29ycw0KPiANCj4gU3VwcG9ydGluZyB0aGF0IG1vZGUgd291bGQgYmUgYSBzaWduaWZpY2Fu
-dCBiaXQgb2Ygd29yay4gIEJ1dCBwbGVhc2UgbGV0J3Mgbm90IGNvbmZ1c2UgImNhbid0IiBhbmQg
-ImRvZXNuJ3QgY3VycmVudGx5LiINCj4gDQo+ID4gOS4gbWFydmVsbC1jY2ljIHN0aWxsIHVzZWQg
-b2Jzb2xldGUgbWV0aG9kIHRvIHN0b3AgY2NpYyBETUEgVGhpcyANCj4gPiBtZXRob2Qgc2hvdWxk
-IGJlIGluaGVyaXR0ZWQgZnJvbSBvbGQgY2FmZS1jY2ljIGRyaXZlciwgaXQgdXNlIENGIA0KPiA+
-IGZsYWcgd2hpY2ggaXMgdHJpZ2dlZCBieSBTT0YgVGhpcyBtZXRob2QgaXMgaW5lZmZpY2llbnQs
-IHdlIG11c3QgDQo+ID4gd2FpdCBhdCBsZWFzdCAxNTBtcyBmb3Igc3RvcCBjY2ljIERNQSBhbmQg
-aXQgYWxzbyBjYW4gcmVzdWx0IGluIG1hbnkgDQo+ID4gaXNzdWVzIGR1cmluZyB0aG91c2FuZHMg
-cmVzb2x1dGlvbnMgb3IgZm9ybWF0cyBzd2l0Y2ggc3RyZXNzIHRlc3QgDQo+ID4gQWN0dWFsbHkg
-b3VyIGNjaWMgY2FuIGhhbmRsZSBpdCBpZiB3ZSB1c2UgdGhlIHJpZ2h0IHN0b3Agc2VxdWVuY2Ug
-YnkgDQo+ID4gY29uZmlnIHNvbWUgY2NpYyByZWdpc3RlcnMgT3VyIG12X2NhbWVyYSBoYWQgYXBw
-bGllZCB0aGUgbmV3IGFuZCANCj4gPiByaWdodCBzdG9wIG1ldGhvZCBhbmQgaXQgYWxzbyBwYXNz
-ZWQgdGhlIHRob3VzYW5kcyByZXNvbHV0aW9ucyBvciANCj4gPiBmb3JtYXRzIHN3aXRjaCBzdHJl
-c3MgdGVzdA0KPiANCj4gV2hpY2ggRE1BIG1vZGUgYXJlIHlvdSB0YWxraW5nIGFib3V0IG5vdz8g
-IEkndmUgc3VwcG9ydGVkIERNQSB0byB0aGUgYmVzdCBvZiBteSBhYmlsaXR5IGdpdmVuIHRoZSBp
-bmZvcm1hdGlvbiBpbiB0aGUgZGF0YSBzaGVldCwgcGx1cyBhIGNvdXBsZSBvZiBoaW50cyBmcm9t
-IEthc3NleSBMZWUgKHdobywgSSBiZWxpZXZlLCBubyBsb25nZXIgd29ya3MgdGhlcmU/KS4gIFRo
-aXMgY2FuJ3QgYmUgYSBoYXJkIHRoaW5nIHRvIGNoYW5nZSwgYW55d2F5Lg0KPiANCj4gQW55d2F5
-LCB3ZSdyZSBzZWVpbmcgdGhlIHJlc3VsdHMgb2YgTWFydmVsbCBnb2luZyBvZmYgYW5kIHdvcmtp
-bmcgb24gaXRzIG93biBwcml2YXRlIGNvZGUgaW5zdGVhZCBvZiBlbmhhbmNpbmcgdGhlIGluLXRy
-ZWUgZHJpdmVyIHRoYXQgaGFzIGJlZW4gdGhlcmUgc2luY2UgMjAwNi4gIFNhZCwgYnV0IHNvIGl0
-IGdvZXMuICBCdXQgaWYgTWFydmVsbCB3YW50cyB0byB3b3JrIHVwc3RyZWFtIG5vdywgSSBzdXJl
-IGRvbid0IHdhbnQgdG8gbWFrZSB0aGluZ3MgaGFyZGVyLiAgSG93IGFib3V0IHdlIGdldCBhIG5l
-dyB2ZXJzaW9uIG9mIHRoZSBtdl9jYW1lcmEgZHJpdmVyIGZvciByZXZpZXcgYW5kIHdlIGNhbiBh
-bGwgdGhpbmsgYWJvdXQgd2hhdCdzIHRoZSBiZXN0IHRoaW5nIHRvIGRvIGF0IHRoaXMgcG9pbnQ/
-DQo+IA0KPiBUaGFua3MsDQo+IA0KPiBqb24NCj4gDQoNCi0tLQ0KR3Vlbm5hZGkgTGlha2hvdmV0
-c2tpLCBQaC5ELg0KRnJlZWxhbmNlIE9wZW4tU291cmNlIFNvZnR3YXJlIERldmVsb3BlciBodHRw
-Oi8vd3d3Lm9wZW4tdGVjaG5vbG9neS5kZS8NCg==
+Since this mail message had been unexpectedly wrapped by my mail client, I
+will resend a new one.
+
+> changes:
+> 	1. break some lines that are longer than 80 characters.
+> 	2. remove local function prototype declarations which do not
+> 	   need.
+> 	3. replace TAB character with a space character in function
+> 	   comments.
+> 	4. change the types of array init1[] and init2[] to
+> 	   "unsigned char" to avoid compile warning.
+> 
+> Signed-off-by: Du, Changbin <changbin.du@gmail.com>
+> ---
+>  drivers/media/rc/ati_remote.c |  139
+> +++++++++++++++++++++++++----------------
+>  1 file changed, 84 insertions(+), 55 deletions(-)
+> 
+> diff --git a/drivers/media/rc/ati_remote.c b/drivers/media/rc/ati_remote.c
+> index 7be377f..0df66ac 100644
+> --- a/drivers/media/rc/ati_remote.c
+> +++ b/drivers/media/rc/ati_remote.c
+> @@ -23,6 +23,8 @@
+>   *                Vincent Vanackere <vanackere@lif.univ-mrs.fr>
+>   *            Added support for the "Lola" remote contributed by:
+>   *                Seth Cohn <sethcohn@yahoo.com>
+> + *  Jul 2012: Du, Changbin <changbin.du@gmail.com>
+> + *            Code style and compile warning fixing
+>   *
+>   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*
+> *
+>   *
+> @@ -147,7 +149,8 @@ static bool mouse = true;
+>  module_param(mouse, bool, 0444);
+>  MODULE_PARM_DESC(mouse, "Enable mouse device, default = yes");
+> 
+> -#define dbginfo(dev, format, arg...) do { if (debug) dev_info(dev ,
+format
+> , ## arg); } while (0)
+> +#define dbginfo(dev, format, arg...) \
+> +	do { if (debug) dev_info(dev , format , ## arg); } while (0)
+>  #undef err
+>  #define err(format, arg...) printk(KERN_ERR format , ## arg)
+> 
+> @@ -191,17 +194,41 @@ static const char *get_medion_keymap(struct
+> usb_interface *interface)
+>  	return RC_MAP_MEDION_X10;
+>  }
+> 
+> -static const struct ati_receiver_type type_ati		= {
+.default_keymap
+> = RC_MAP_ATI_X10 };
+> -static const struct ati_receiver_type type_medion	= {
+> .get_default_keymap = get_medion_keymap };
+> -static const struct ati_receiver_type type_firefly	= { .default_keymap
+> = RC_MAP_SNAPSTREAM_FIREFLY };
+> +static const struct ati_receiver_type type_ati		= {
+> +	.default_keymap = RC_MAP_ATI_X10
+> +};
+> +static const struct ati_receiver_type type_medion	= {
+> +	.get_default_keymap = get_medion_keymap
+> +};
+> +static const struct ati_receiver_type type_firefly	= {
+> +	.default_keymap = RC_MAP_SNAPSTREAM_FIREFLY
+> +};
+> 
+>  static struct usb_device_id ati_remote_table[] = {
+> -	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, LOLA_REMOTE_PRODUCT_ID),
+> .driver_info = (unsigned long)&type_ati },
+> -	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID,
+> LOLA2_REMOTE_PRODUCT_ID),
+> .driver_info = (unsigned long)&type_ati },
+> -	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, ATI_REMOTE_PRODUCT_ID),
+> .driver_info = (unsigned long)&type_ati },
+> -	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID,
+> NVIDIA_REMOTE_PRODUCT_ID),
+> .driver_info = (unsigned long)&type_ati },
+> -	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID,
+> MEDION_REMOTE_PRODUCT_ID),
+> .driver_info = (unsigned long)&type_medion },
+> -	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID,
+> FIREFLY_REMOTE_PRODUCT_ID),
+> .driver_info = (unsigned long)&type_firefly },
+> +	{
+> +		USB_DEVICE(ATI_REMOTE_VENDOR_ID,
+> LOLA_REMOTE_PRODUCT_ID),
+> +		.driver_info = (unsigned long)&type_ati
+> +	},
+> +	{
+> +		USB_DEVICE(ATI_REMOTE_VENDOR_ID,
+> LOLA2_REMOTE_PRODUCT_ID),
+> +		.driver_info = (unsigned long)&type_ati
+> +	},
+> +	{
+> +		USB_DEVICE(ATI_REMOTE_VENDOR_ID,
+> ATI_REMOTE_PRODUCT_ID),
+> +		.driver_info = (unsigned long)&type_ati
+> +	},
+> +	{
+> +		USB_DEVICE(ATI_REMOTE_VENDOR_ID,
+> NVIDIA_REMOTE_PRODUCT_ID),
+> +		.driver_info = (unsigned long)&type_ati
+> +	},
+> +	{
+> +		USB_DEVICE(ATI_REMOTE_VENDOR_ID,
+> MEDION_REMOTE_PRODUCT_ID),
+> +		.driver_info = (unsigned long)&type_medion
+> +	},
+> +	{
+> +		USB_DEVICE(ATI_REMOTE_VENDOR_ID,
+> FIREFLY_REMOTE_PRODUCT_ID),
+> +		.driver_info = (unsigned long)&type_firefly
+> +	},
+>  	{}	/* Terminating entry */
+>  };
+> 
+> @@ -215,8 +242,8 @@ MODULE_DEVICE_TABLE(usb, ati_remote_table);
+>  #define SEND_FLAG_COMPLETE	2
+> 
+>  /* Device initialization strings */
+> -static char init1[] = { 0x01, 0x00, 0x20, 0x14 };
+> -static char init2[] = { 0x01, 0x00, 0x20, 0x14, 0x20, 0x20, 0x20 };
+> +static unsigned char init1[] = { 0x01, 0x00, 0x20, 0x14 };
+> +static unsigned char init2[] = { 0x01, 0x00, 0x20, 0x14, 0x20, 0x20, 0x20
+> };
+> 
+>  struct ati_remote {
+>  	struct input_dev *idev;
+> @@ -296,25 +323,8 @@ static const struct {
+>  	{KIND_END, 0x00, EV_MAX + 1, 0, 0}
+>  };
+> 
+> -/* Local function prototypes */
+> -static int ati_remote_sendpacket	(struct ati_remote *ati_remote, u16
+> cmd, unsigned char *data);
+> -static void ati_remote_irq_out		(struct urb *urb);
+> -static void ati_remote_irq_in		(struct urb *urb);
+> -static void ati_remote_input_report	(struct urb *urb);
+> -static int ati_remote_initialize	(struct ati_remote *ati_remote);
+> -static int ati_remote_probe		(struct usb_interface *interface,
+> const struct usb_device_id *id);
+> -static void ati_remote_disconnect	(struct usb_interface *interface);
+> -
+> -/* usb specific object to register with the usb subsystem */
+> -static struct usb_driver ati_remote_driver = {
+> -	.name         = "ati_remote",
+> -	.probe        = ati_remote_probe,
+> -	.disconnect   = ati_remote_disconnect,
+> -	.id_table     = ati_remote_table,
+> -};
+> -
+>  /*
+> - *	ati_remote_dump_input
+> + * ati_remote_dump_input
+>   */
+>  static void ati_remote_dump(struct device *dev, unsigned char *data,
+>  			    unsigned int len)
+> @@ -326,12 +336,14 @@ static void ati_remote_dump(struct device *dev,
+> unsigned char *data,
+>  		dev_warn(dev, "Weird key %02x %02x %02x %02x\n",
+>  		     data[0], data[1], data[2], data[3]);
+>  	else
+> -		dev_warn(dev, "Weird data, len=%d %02x %02x %02x %02x %02x
+> %02x ...\n",
+> -		     len, data[0], data[1], data[2], data[3], data[4],
+> data[5]);
+> +		dev_warn(dev,
+> +			"Weird data, len=%d %02x %02x %02x %02x %02x %02x
+> ...\n",
+> +			len, data[0], data[1], data[2], data[3], data[4],
+> +			data[5]);
+>  }
+> 
+>  /*
+> - *	ati_remote_open
+> + * ati_remote_open
+>   */
+>  static int ati_remote_open(struct ati_remote *ati_remote)
+>  {
+> @@ -355,7 +367,7 @@ out:	mutex_unlock(&ati_remote->open_mutex);
+>  }
+> 
+>  /*
+> - *	ati_remote_close
+> + * ati_remote_close
+>   */
+>  static void ati_remote_close(struct ati_remote *ati_remote)
+>  {
+> @@ -390,7 +402,7 @@ static void ati_remote_rc_close(struct rc_dev *rdev)
+>  }
+> 
+>  /*
+> - *		ati_remote_irq_out
+> + * ati_remote_irq_out
+>   */
+>  static void ati_remote_irq_out(struct urb *urb)
+>  {
+> @@ -408,11 +420,12 @@ static void ati_remote_irq_out(struct urb *urb)
+>  }
+> 
+>  /*
+> - *	ati_remote_sendpacket
+> + * ati_remote_sendpacket
+>   *
+> - *	Used to send device initialization strings
+> + * Used to send device initialization strings
+>   */
+> -static int ati_remote_sendpacket(struct ati_remote *ati_remote, u16 cmd,
+> unsigned char *data)
+> +static int ati_remote_sendpacket(struct ati_remote *ati_remote, u16 cmd,
+> +	unsigned char *data)
+>  {
+>  	int retval = 0;
+> 
+> @@ -441,7 +454,7 @@ static int ati_remote_sendpacket(struct ati_remote
+> *ati_remote, u16 cmd, unsigne
+>  }
+> 
+>  /*
+> - *	ati_remote_compute_accel
+> + * ati_remote_compute_accel
+>   *
+>   * Implements acceleration curve for directional control pad
+>   * If elapsed time since last event is > 1/4 second, user "stopped",
+> @@ -478,7 +491,7 @@ static int ati_remote_compute_accel(struct
+> ati_remote
+> *ati_remote)
+>  }
+> 
+>  /*
+> - *	ati_remote_report_input
+> + * ati_remote_report_input
+>   */
+>  static void ati_remote_input_report(struct urb *urb)
+>  {
+> @@ -518,7 +531,8 @@ static void ati_remote_input_report(struct urb *urb)
+>  	remote_num = (data[3] >> 4) & 0x0f;
+>  	if (channel_mask & (1 << (remote_num + 1))) {
+>  		dbginfo(&ati_remote->interface->dev,
+> -			"Masked input from channel 0x%02x: data %02x,%02x,
+> mask= 0x%02lx\n",
+> +			"Masked input from channel 0x%02x: data %02x,%02x, "
+> +			"mask= 0x%02lx\n",
+>  			remote_num, data[1], data[2], channel_mask);
+>  		return;
+>  	}
+> @@ -546,7 +560,9 @@ static void ati_remote_input_report(struct urb *urb)
+>  		if (wheel_keycode == KEY_RESERVED) {
+>  			/* scrollwheel was not mapped, assume mouse */
+> 
+> -			/* Look up event code index in the mouse translation
+> table. */
+> +			/* Look up event code index in the mouse translation
+> +			 * table.
+> +			 */
+>  			for (i = 0; ati_remote_tbl[i].kind != KIND_END; i++)
+> {
+>  				if (scancode == ati_remote_tbl[i].data) {
+>  					index = i;
+> @@ -630,9 +646,9 @@ static void ati_remote_input_report(struct urb *urb)
+>  	} else {
+> 
+>  		/*
+> -		 * Other event kinds are from the directional control pad,
+> and have an
+> -		 * acceleration factor applied to them.  Without this
+> acceleration, the
+> -		 * control pad is mostly unusable.
+> +		 * Other event kinds are from the directional control pad,
+> and
+> +		 * have an acceleration factor applied to them.  Without
+> this
+> +		 * acceleration, the control pad is mostly unusable.
+>  		 */
+>  		acc = ati_remote_compute_accel(ati_remote);
+> 
+> @@ -659,7 +675,8 @@ static void ati_remote_input_report(struct urb *urb)
+>  			input_report_rel(dev, REL_Y, acc);
+>  			break;
+>  		default:
+> -			dev_dbg(&ati_remote->interface->dev, "ati_remote
+> kind=%d\n",
+> +			dev_dbg(&ati_remote->interface->dev,
+> +				"ati_remote kind=%d\n",
+>  				ati_remote_tbl[index].kind);
+>  		}
+>  		input_sync(dev);
+> @@ -670,7 +687,7 @@ static void ati_remote_input_report(struct urb *urb)
+>  }
+> 
+>  /*
+> - *	ati_remote_irq_in
+> + * ati_remote_irq_in
+>   */
+>  static void ati_remote_irq_in(struct urb *urb)
+>  {
+> @@ -684,22 +701,25 @@ static void ati_remote_irq_in(struct urb *urb)
+>  	case -ECONNRESET:	/* unlink */
+>  	case -ENOENT:
+>  	case -ESHUTDOWN:
+> -		dev_dbg(&ati_remote->interface->dev, "%s: urb error status,
+> unlink? \n",
+> +		dev_dbg(&ati_remote->interface->dev,
+> +			"%s: urb error status, unlink?\n",
+>  			__func__);
+>  		return;
+>  	default:		/* error */
+> -		dev_dbg(&ati_remote->interface->dev, "%s: Nonzero urb status
+> %d\n",
+> +		dev_dbg(&ati_remote->interface->dev,
+> +			"%s: Nonzero urb status %d\n",
+>  			__func__, urb->status);
+>  	}
+> 
+>  	retval = usb_submit_urb(urb, GFP_ATOMIC);
+>  	if (retval)
+> -		dev_err(&ati_remote->interface->dev, "%s:
+> usb_submit_urb()=%d\n",
+> +		dev_err(&ati_remote->interface->dev,
+> +			"%s: usb_submit_urb()=%d\n",
+>  			__func__, retval);
+>  }
+> 
+>  /*
+> - *	ati_remote_alloc_buffers
+> + * ati_remote_alloc_buffers
+>   */
+>  static int ati_remote_alloc_buffers(struct usb_device *udev,
+>  				    struct ati_remote *ati_remote)
+> @@ -726,7 +746,7 @@ static int ati_remote_alloc_buffers(struct usb_device
+> *udev,
+>  }
+> 
+>  /*
+> - *	ati_remote_free_buffers
+> + * ati_remote_free_buffers
+>   */
+>  static void ati_remote_free_buffers(struct ati_remote *ati_remote)
+>  {
+> @@ -825,9 +845,10 @@ static int ati_remote_initialize(struct ati_remote
+> *ati_remote)
+>  }
+> 
+>  /*
+> - *	ati_remote_probe
+> + * ati_remote_probe
+>   */
+> -static int ati_remote_probe(struct usb_interface *interface, const struct
+> usb_device_id *id)
+> +static int ati_remote_probe(struct usb_interface *interface,
+> +	const struct usb_device_id *id)
+>  {
+>  	struct usb_device *udev = interface_to_usbdev(interface);
+>  	struct usb_host_interface *iface_host = interface->cur_altsetting;
+> @@ -949,7 +970,7 @@ static int ati_remote_probe(struct usb_interface
+> *interface, const struct usb_de
+>  }
+> 
+>  /*
+> - *	ati_remote_disconnect
+> + * ati_remote_disconnect
+>   */
+>  static void ati_remote_disconnect(struct usb_interface *interface)
+>  {
+> @@ -971,6 +992,14 @@ static void ati_remote_disconnect(struct
+> usb_interface
+> *interface)
+>  	kfree(ati_remote);
+>  }
+> 
+> +/* usb specific object to register with the usb subsystem */
+> +static struct usb_driver ati_remote_driver = {
+> +	.name         = "ati_remote",
+> +	.probe        = ati_remote_probe,
+> +	.disconnect   = ati_remote_disconnect,
+> +	.id_table     = ati_remote_table,
+> +};
+> +
+>  module_usb_driver(ati_remote_driver);
+> 
+>  MODULE_AUTHOR(DRIVER_AUTHOR);
+> --
+> 1.7.9.5
+> 
+
+
