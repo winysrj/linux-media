@@ -1,362 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2805 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753641Ab2GWPFj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jul 2012 11:05:39 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2] v4l2-ctrls: Add v4l2_ctrl_[gs]_ctrl_int64()
-Date: Mon, 23 Jul 2012 17:05:35 +0200
-Cc: linux-media@vger.kernel.org
-References: <1343052160-24229-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1343052160-24229-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:62295 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755651Ab2GDSey (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2012 14:34:54 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201207231705.35789.hverkuil@xs4all.nl>
+From: Dharam Kumar <dharam.kumar.gupta@gmail.com>
+Date: Thu, 5 Jul 2012 00:04:32 +0530
+Message-ID: <CAOt5+pSrpsyvuyyT=kQj0k6u5m+KnJTH_+Q7hLhkkW0pNFSqpA@mail.gmail.com>
+Subject: Info on Remote controller keys like upper-right, upper-left ,
+ lower-right, lower-left ,sub-picture etc.
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon July 23 2012 16:02:40 Laurent Pinchart wrote:
-> These helper functions get and set a 64-bit control's value from within
-> a driver. They are similar to v4l2_ctrl_[gs]_ctrl() but operate on
-> 64-bit integer controls instead of 32-bit controls.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/video/v4l2-ctrls.c |  135 +++++++++++++++++++++++---------------
->  include/media/v4l2-ctrls.h       |   23 +++++++
->  2 files changed, 105 insertions(+), 53 deletions(-)
-> 
-> Changes since v1:
-> 
-> - Add v4l2_ctrl_g_ctrl_int64()
-> - Merge validate_new_int() and validate_new()
-> - Add a comment warning about string controls in set_ctrl()
-> 
-> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-> index 9abd9ab..3042895 100644
-> --- a/drivers/media/video/v4l2-ctrls.c
-> +++ b/drivers/media/video/v4l2-ctrls.c
-> @@ -1173,76 +1173,53 @@ static int cluster_changed(struct v4l2_ctrl *master)
->  	return diff;
->  }
->  
-> -/* Validate integer-type control */
-> -static int validate_new_int(const struct v4l2_ctrl *ctrl, s32 *pval)
-> +/* Validate a new control */
-> +static int validate_new(const struct v4l2_ctrl *ctrl,
-> +			struct v4l2_ext_control *c)
->  {
-> -	s32 val = *pval;
-> +	size_t len;
->  	u32 offset;
-> +	s32 val;
->  
->  	switch (ctrl->type) {
->  	case V4L2_CTRL_TYPE_INTEGER:
->  		/* Round towards the closest legal value */
-> -		val += ctrl->step / 2;
-> -		if (val < ctrl->minimum)
-> -			val = ctrl->minimum;
-> -		if (val > ctrl->maximum)
-> -			val = ctrl->maximum;
-> +		val = c->value + ctrl->step / 2;
-> +		val = clamp(val, ctrl->minimum, ctrl->maximum);
->  		offset = val - ctrl->minimum;
->  		offset = ctrl->step * (offset / ctrl->step);
-> -		val = ctrl->minimum + offset;
-> -		*pval = val;
-> +		c->value = ctrl->minimum + offset;
->  		return 0;
->  
->  	case V4L2_CTRL_TYPE_BOOLEAN:
-> -		*pval = !!val;
-> +		c->value = !!c->value;
->  		return 0;
->  
->  	case V4L2_CTRL_TYPE_MENU:
->  	case V4L2_CTRL_TYPE_INTEGER_MENU:
-> -		if (val < ctrl->minimum || val > ctrl->maximum)
-> +		if (c->value < ctrl->minimum || c->value > ctrl->maximum)
->  			return -ERANGE;
-> -		if (ctrl->menu_skip_mask & (1 << val))
-> +		if (ctrl->menu_skip_mask & (1 << c->value))
->  			return -EINVAL;
->  		if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
-> -		    ctrl->qmenu[val][0] == '\0')
-> +		    ctrl->qmenu[c->value][0] == '\0')
->  			return -EINVAL;
->  		return 0;
->  
->  	case V4L2_CTRL_TYPE_BITMASK:
-> -		*pval &= ctrl->maximum;
-> +		c->value &= ctrl->maximum;
->  		return 0;
->  
->  	case V4L2_CTRL_TYPE_BUTTON:
->  	case V4L2_CTRL_TYPE_CTRL_CLASS:
-> -		*pval = 0;
-> +		c->value = 0;
->  		return 0;
->  
-> -	default:
-> -		return -EINVAL;
-> -	}
-> -}
-> -
-> -/* Validate a new control */
-> -static int validate_new(const struct v4l2_ctrl *ctrl, struct v4l2_ext_control *c)
-> -{
-> -	char *s = c->string;
-> -	size_t len;
-> -
-> -	switch (ctrl->type) {
-> -	case V4L2_CTRL_TYPE_INTEGER:
-> -	case V4L2_CTRL_TYPE_BOOLEAN:
-> -	case V4L2_CTRL_TYPE_MENU:
-> -	case V4L2_CTRL_TYPE_INTEGER_MENU:
-> -	case V4L2_CTRL_TYPE_BITMASK:
-> -	case V4L2_CTRL_TYPE_BUTTON:
-> -	case V4L2_CTRL_TYPE_CTRL_CLASS:
-> -		return validate_new_int(ctrl, &c->value);
-> -
->  	case V4L2_CTRL_TYPE_INTEGER64:
->  		return 0;
->  
->  	case V4L2_CTRL_TYPE_STRING:
-> -		len = strlen(s);
-> +		len = strlen(c->string);
->  		if (len < ctrl->minimum)
->  			return -ERANGE;
->  		if ((len - ctrl->minimum) % ctrl->step)
-> @@ -2234,12 +2211,19 @@ int v4l2_subdev_g_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs
->  EXPORT_SYMBOL(v4l2_subdev_g_ext_ctrls);
->  
->  /* Helper function to get a single control */
-> -static int get_ctrl(struct v4l2_ctrl *ctrl, s32 *val)
-> +static int get_ctrl(struct v4l2_ctrl *ctrl, struct v4l2_ext_control *c)
->  {
->  	struct v4l2_ctrl *master = ctrl->cluster[0];
->  	int ret = 0;
->  	int i;
->  
-> +	/* String controls are not supported. The new_to_user() and
-> +	 * cur_to_user() calls below would need to be fixed not to access
-> +	 * userspace memory.
+Hi All,
 
-Just one small suggestion: change this comment to:
+I've been working on a MHL( www.mhltech.org  ) transmitter driver
+which needs to receive/handle incoming Remote control keys.
 
-	/* String controls are not supported. The new_to_user() and
-	 * cur_to_user() calls below would need to be modified not to access
-	 * userspace memory when called from get_ctrl().
-	 */
+The specification tells me that other than normal keys[up,down,left,
+right etc.] there are certain remote control keys like Upper-right,
+Upper-left, Lower-right, Lower-left, Sub-picture etc.
 
-And a similar change in the comment with set_ctrl.
+While creating a key map in the driver, I tried to find whether these
+keys has been defined in <linux/input.h> ,but I could not find such
+key definitions
+in the header file.
 
-The word 'fixed' suggested that new_to_user etc. were broken, which isn't the
-case. We are just using it in a special situation.
+Please note that, although the Specs do define these Remote Controller
+keys, the driver will have the choice
+to support the key depending on the key-map.
 
-With the above change to get/set_ctrl you can add my
+Something like this:
+/* Key Map for the driver */
+  ....
+ { KEY_UP, <supported> },
+ { KEY_DOWN, <supported>},
+ {KEY_UPPERRIGHT, <supported>},      /* No  definition for
+KEY_UPPERRIGHT in input.h  */
+ {KEY_UPPERLEFT, <not-supported>},  /* No definition for KEY_UPPERLEFT
+in input.h, although this key is not supported by driver */
+....
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+In other mailing lists[linux-input], it has been suggested that these
+keys are similar to Joystick keys.
+I've looked into drivers/input/joystick/analog.c file, but could not
+find any buttons/pads which are similar to the above one[Am I missing
+something here??]
+
+any pointers??
 
 Regards,
-
-	Hans
-
-> +	 */
-> +	if (ctrl->type == V4L2_CTRL_TYPE_STRING)
-> +		return -EINVAL;
-> +
->  	if (ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
->  		return -EACCES;
->  
-> @@ -2249,9 +2233,9 @@ static int get_ctrl(struct v4l2_ctrl *ctrl, s32 *val)
->  		for (i = 0; i < master->ncontrols; i++)
->  			cur_to_new(master->cluster[i]);
->  		ret = call_op(master, g_volatile_ctrl);
-> -		*val = ctrl->val;
-> +		new_to_user(c, ctrl);
->  	} else {
-> -		*val = ctrl->cur.val;
-> +		cur_to_user(c, ctrl);
->  	}
->  	v4l2_ctrl_unlock(master);
->  	return ret;
-> @@ -2260,10 +2244,14 @@ static int get_ctrl(struct v4l2_ctrl *ctrl, s32 *val)
->  int v4l2_g_ctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_control *control)
->  {
->  	struct v4l2_ctrl *ctrl = v4l2_ctrl_find(hdl, control->id);
-> +	struct v4l2_ext_control c;
-> +	int ret;
->  
->  	if (ctrl == NULL || !type_is_int(ctrl))
->  		return -EINVAL;
-> -	return get_ctrl(ctrl, &control->value);
-> +	ret = get_ctrl(ctrl, &c);
-> +	control->value = c.value;
-> +	return ret;
->  }
->  EXPORT_SYMBOL(v4l2_g_ctrl);
->  
-> @@ -2275,15 +2263,28 @@ EXPORT_SYMBOL(v4l2_subdev_g_ctrl);
->  
->  s32 v4l2_ctrl_g_ctrl(struct v4l2_ctrl *ctrl)
->  {
-> -	s32 val = 0;
-> +	struct v4l2_ext_control c;
->  
->  	/* It's a driver bug if this happens. */
->  	WARN_ON(!type_is_int(ctrl));
-> -	get_ctrl(ctrl, &val);
-> -	return val;
-> +	c.value = 0;
-> +	get_ctrl(ctrl, &c);
-> +	return c.value;
->  }
->  EXPORT_SYMBOL(v4l2_ctrl_g_ctrl);
->  
-> +s64 v4l2_ctrl_g_ctrl_int64(struct v4l2_ctrl *ctrl)
-> +{
-> +	struct v4l2_ext_control c;
-> +
-> +	/* It's a driver bug if this happens. */
-> +	WARN_ON(ctrl->type != V4L2_CTRL_TYPE_INTEGER64);
-> +	c.value = 0;
-> +	get_ctrl(ctrl, &c);
-> +	return c.value;
-> +}
-> +EXPORT_SYMBOL(v4l2_ctrl_g_ctrl_int64);
-> +
->  
->  /* Core function that calls try/s_ctrl and ensures that the new value is
->     copied to the current value on a set.
-> @@ -2499,13 +2500,21 @@ int v4l2_subdev_s_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs
->  EXPORT_SYMBOL(v4l2_subdev_s_ext_ctrls);
->  
->  /* Helper function for VIDIOC_S_CTRL compatibility */
-> -static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, s32 *val)
-> +static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl,
-> +		    struct v4l2_ext_control *c)
->  {
->  	struct v4l2_ctrl *master = ctrl->cluster[0];
->  	int ret;
->  	int i;
->  
-> -	ret = validate_new_int(ctrl, val);
-> +	/* String controls are not supported. The user_to_new() and
-> +	 * cur_to_user() calls below would need to be fixed not to access
-> +	 * userspace memory.
-> +	 */
-> +	if (ctrl->type == V4L2_CTRL_TYPE_STRING)
-> +		return -EINVAL;
-> +
-> +	ret = validate_new(ctrl, c);
->  	if (ret)
->  		return ret;
->  
-> @@ -2520,12 +2529,13 @@ static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, s32 *val)
->  	   manual mode we have to update the current volatile values since
->  	   those will become the initial manual values after such a switch. */
->  	if (master->is_auto && master->has_volatiles && ctrl == master &&
-> -	    !is_cur_manual(master) && *val == master->manual_mode_value)
-> +	    !is_cur_manual(master) && c->value == master->manual_mode_value)
->  		update_from_auto_cluster(master);
-> -	ctrl->val = *val;
-> -	ctrl->is_new = 1;
-> +
-> +	user_to_new(c, ctrl);
->  	ret = try_or_set_cluster(fh, master, true);
-> -	*val = ctrl->cur.val;
-> +	cur_to_user(c, ctrl);
-> +
->  	v4l2_ctrl_unlock(ctrl);
->  	return ret;
->  }
-> @@ -2534,6 +2544,8 @@ int v4l2_s_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
->  					struct v4l2_control *control)
->  {
->  	struct v4l2_ctrl *ctrl = v4l2_ctrl_find(hdl, control->id);
-> +	struct v4l2_ext_control c;
-> +	int ret;
->  
->  	if (ctrl == NULL || !type_is_int(ctrl))
->  		return -EINVAL;
-> @@ -2541,7 +2553,10 @@ int v4l2_s_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
->  	if (ctrl->flags & V4L2_CTRL_FLAG_READ_ONLY)
->  		return -EACCES;
->  
-> -	return set_ctrl(fh, ctrl, &control->value);
-> +	c.value = control->value;
-> +	ret = set_ctrl(fh, ctrl, &c);
-> +	control->value = c.value;
-> +	return ret;
->  }
->  EXPORT_SYMBOL(v4l2_s_ctrl);
->  
-> @@ -2553,12 +2568,26 @@ EXPORT_SYMBOL(v4l2_subdev_s_ctrl);
->  
->  int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val)
->  {
-> +	struct v4l2_ext_control c;
-> +
->  	/* It's a driver bug if this happens. */
->  	WARN_ON(!type_is_int(ctrl));
-> -	return set_ctrl(NULL, ctrl, &val);
-> +	c.value = val;
-> +	return set_ctrl(NULL, ctrl, &c);
->  }
->  EXPORT_SYMBOL(v4l2_ctrl_s_ctrl);
->  
-> +int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val)
-> +{
-> +	struct v4l2_ext_control c;
-> +
-> +	/* It's a driver bug if this happens. */
-> +	WARN_ON(ctrl->type != V4L2_CTRL_TYPE_INTEGER64);
-> +	c.value64 = val;
-> +	return set_ctrl(NULL, ctrl, &c);
-> +}
-> +EXPORT_SYMBOL(v4l2_ctrl_s_ctrl_int64);
-> +
->  static int v4l2_ctrl_add_event(struct v4l2_subscribed_event *sev, unsigned elems)
->  {
->  	struct v4l2_ctrl *ctrl = v4l2_ctrl_find(sev->fh->ctrl_handler, sev->id);
-> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-> index 776605f..7ef6b27 100644
-> --- a/include/media/v4l2-ctrls.h
-> +++ b/include/media/v4l2-ctrls.h
-> @@ -511,6 +511,29 @@ s32 v4l2_ctrl_g_ctrl(struct v4l2_ctrl *ctrl);
->    */
->  int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val);
->  
-> +/** v4l2_ctrl_g_ctrl_int64() - Helper function to get a 64-bit control's value from within a driver.
-> +  * @ctrl:	The control.
-> +  *
-> +  * This returns the control's value safely by going through the control
-> +  * framework. This function will lock the control's handler, so it cannot be
-> +  * used from within the &v4l2_ctrl_ops functions.
-> +  *
-> +  * This function is for 64-bit integer type controls only.
-> +  */
-> +s64 v4l2_ctrl_g_ctrl_int64(struct v4l2_ctrl *ctrl);
-> +
-> +/** v4l2_ctrl_s_ctrl_int64() - Helper function to set a 64-bit control's value from within a driver.
-> +  * @ctrl:	The control.
-> +  * @val:	The new value.
-> +  *
-> +  * This set the control's new value safely by going through the control
-> +  * framework. This function will lock the control's handler, so it cannot be
-> +  * used from within the &v4l2_ctrl_ops functions.
-> +  *
-> +  * This function is for 64-bit integer type controls only.
-> +  */
-> +int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val);
-> +
->  /* Internal helper functions that deal with control events. */
->  extern const struct v4l2_subscribed_event_ops v4l2_ctrl_sub_ev_ops;
->  void v4l2_ctrl_replace(struct v4l2_event *old, const struct v4l2_event *new);
-> 
+Dharam
