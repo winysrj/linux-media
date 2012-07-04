@@ -1,62 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:55670 "EHLO 7of9.schinagl.nl"
+Received: from persephone.nexusuk.org ([217.172.134.9]:50097 "EHLO nexusuk.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751036Ab2GSTuc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jul 2012 15:50:32 -0400
-Message-ID: <50086528.1010309@schinagl.nl>
-Date: Thu, 19 Jul 2012 21:51:04 +0200
-From: Oliver Schinagl <oliver+list@schinagl.nl>
+	id S1754274Ab2GDQEQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Jul 2012 12:04:16 -0400
+Received: from [146.90.238.24] (helo=atlantis.nexusuk.org)
+	by nexusuk.org with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.63)
+	(envelope-from <steve@nexusuk.org>)
+	id 1SmS3q-00088y-Sk
+	for linux-media@vger.kernel.org; Wed, 04 Jul 2012 17:04:14 +0100
+Message-ID: <4FF4697C.8080602@nexusuk.org>
+Date: Wed, 04 Jul 2012 17:04:12 +0100
+From: Steve Hill <steve@nexusuk.org>
 MIME-Version: 1.0
-To: Heberto Cristiano Alves Machado <heberto.machado@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Problems with Asus My Cinema-U3000Hybrid tuner
-References: <CAOLE0zPeaRXNJY9yVwVG0n5tsbgYoqw1pQs7_+2fQoA-K0uS3Q@mail.gmail.com> <CAOLE0zMrNpNAa9pvVxXhnN6r_NdAYSHJ7wsGCMACOGCmmgBJRA@mail.gmail.com> <loom.20120719T133924-657@post.gmane.org> <5007EF20.3080800@schinagl.nl> <loom.20120719T205627-29@post.gmane.org>
-In-Reply-To: <loom.20120719T205627-29@post.gmane.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: linux-media@vger.kernel.org
+Subject: re: pctv452e
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-You really should supply a LOT more info. Dmesg output etc. Did you try 
-changing USB output? What motherboard etc do you have. 'It does not 
-work' doesn't help really :)
+ >> Ps. Steve, could you please give me full version of kernel which
+ >> works with pctv452e?
 
-On 07/19/12 21:10, Heberto Cristiano Alves Machado wrote:
-> Oliver Schinagl<oliver+list<at>  schinagl.nl>  writes:
->
->>
->> I take it you've tried one of the distro's that currently supports this
->> USB tuner? Ubuntu should/could have support for it, I don't know.
->>
->> On 19-07-12 13:58, Heberto Cristiano Alves Machado wrote:
->>>> Hello.
->>>>
->>>> Can anybody help?
->>>>
->>>> Best regards!
->>>>
->
-> I've posted in ubuntu forums
-> --->
-> http://ubuntuforums.org/showthread.php?p=12115667#post12115667
-> and I've searched all over. It's odd there's just me with
-> this problem.
->
-> That is why I am trying to actively seek help.
-> Until now I have only searched by
-> myself.
-> I have tried several approaches but none has worked.
->
-> What seems surprising is that at the beginning (say the first half a minute)
-> the image and sound are fairly good. But as the time moves on (and the card
-> heats up) image and sound get poorer.
->
-> I appreciate your gesture, Oliver.
->
-> Regards
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I think it was 2.6.37-1-kirkwood from Debian which I was using (this is 
+an ARM system).
+
+ > As the new DVB-USB fixes many bugs I ask you to test it. I converted 
+ > pctv452e driver for you:
+ >
+ > http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/pctv452e
+ >
+ > Only PCTV device supported currently, not TechnoTrend at that time.
+
+Can I ask why it only works on the PCTV devices?  I was under the 
+impression that the TechnoTrend hardware was identical?
+
+
+If you are able to provide any pointers as to where the TechnoTrend 
+support is broken (or what debugging I should be turning on to figure 
+out where it is broken) then that would be helpful.
+
+Thanks.
+
+-- 
+
+  - Steve
 
