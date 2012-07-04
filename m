@@ -1,112 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60067 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757509Ab2GFOe6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 10:34:58 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:37856 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752050Ab2GDNsO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2012 09:48:14 -0400
+Received: by gglu4 with SMTP id u4so6448921ggl.19
+        for <linux-media@vger.kernel.org>; Wed, 04 Jul 2012 06:48:13 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAD4Xxq8CpCMtNP=sPSMhsWs4K1qULXWBtGzbu1ENqs1pgBBs3Q@mail.gmail.com>
+References: <CAD4Xxq_s4zbRKBrjcQAfn4v5Dp0sytU=8_=XUViice98aQFysQ@mail.gmail.com>
+	<CAD4Xxq9LXGXQKRiNsU_tE8LcyJY64Wk5H4OFzEyhhXtsJJy3dw@mail.gmail.com>
+	<CAD4Xxq8c_SBbJsZc764oFwNjRDeGKuVEX_042ry=xeZBY_ZH-A@mail.gmail.com>
+	<CAD4Xxq8CpCMtNP=sPSMhsWs4K1qULXWBtGzbu1ENqs1pgBBs3Q@mail.gmail.com>
+Date: Wed, 4 Jul 2012 09:48:13 -0400
+Message-ID: <CAGoCfiwO_sJcqoUQyn5ks1_p1Kf1DG-XtNv_gQSP1L+8myFy3A@mail.gmail.com>
+Subject: Re: ATI theatre 750 HD tuner USB stick
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Fisher Grubb <fisher.grubb@gmail.com>
 Cc: linux-media@vger.kernel.org
-Subject: [PATCH 06/10] ov772x: Make to_ov772x convert from v4l2_subdev to ov772x_priv
-Date: Fri,  6 Jul 2012 16:34:57 +0200
-Message-Id: <1341585301-1003-7-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1341585301-1003-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1341585301-1003-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Conversion from i2c_client to ov772x_priv is only needed in a single
-location, while conversion from v4l2_subdev to ov772x_priv is needed in
-several locations. Perform the former manually, and use to_ov772x for
-the later.
+On Wed, Jul 4, 2012 at 9:27 AM, Fisher Grubb <fisher.grubb@gmail.com> wrote:
+> I was in contact with AMD today regarding this tuner haveing no
+> support on Linux and I was given a link for a feedback form and told
+> to get specific needs from www.linuxtv.org to help the cause and if
+> there were enough people, then the AMD developers may help.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/ov772x.c |   21 ++++++++++-----------
- 1 files changed, 10 insertions(+), 11 deletions(-)
+I'm not sure why they would direct you to linuxtv.org.  *They* are the
+ones with all the information that the linuxtv community would need.
 
-diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
-index e3de4de..9055ba4 100644
---- a/drivers/media/video/ov772x.c
-+++ b/drivers/media/video/ov772x.c
-@@ -442,10 +442,9 @@ static const struct regval_list ov772x_vga_regs[] = {
-  * general function
-  */
- 
--static struct ov772x_priv *to_ov772x(const struct i2c_client *client)
-+static struct ov772x_priv *to_ov772x(struct v4l2_subdev *sd)
- {
--	return container_of(i2c_get_clientdata(client), struct ov772x_priv,
--			    subdev);
-+	return container_of(sd, struct ov772x_priv, subdev);
- }
- 
- static int ov772x_write_array(struct i2c_client        *client,
-@@ -789,7 +788,7 @@ static const struct v4l2_ctrl_ops ov772x_ctrl_ops = {
- static int ov772x_g_chip_ident(struct v4l2_subdev *sd,
- 			       struct v4l2_dbg_chip_ident *id)
- {
--	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
-+	struct ov772x_priv *priv = to_ov772x(sd);
- 
- 	id->ident    = priv->model;
- 	id->revision = 0;
-@@ -845,7 +844,7 @@ static int ov772x_s_power(struct v4l2_subdev *sd, int on)
- static int ov772x_s_stream(struct v4l2_subdev *sd, int enable)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
-+	struct ov772x_priv *priv = to_ov772x(sd);
- 
- 	if (!enable) {
- 		ov772x_mask_set(client, COM2, SOFT_SLEEP_MODE, SOFT_SLEEP_MODE);
-@@ -863,7 +862,7 @@ static int ov772x_s_stream(struct v4l2_subdev *sd, int enable)
- static int ov772x_g_fmt(struct v4l2_subdev *sd,
- 			struct v4l2_mbus_framefmt *mf)
- {
--	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
-+	struct ov772x_priv *priv = to_ov772x(sd);
- 
- 	mf->width	= priv->win->width;
- 	mf->height	= priv->win->height;
-@@ -876,7 +875,7 @@ static int ov772x_g_fmt(struct v4l2_subdev *sd,
- 
- static int ov772x_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
- {
--	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
-+	struct ov772x_priv *priv = to_ov772x(sd);
- 	const struct ov772x_color_format *cfmt;
- 	const struct ov772x_win_size *win;
- 	int ret;
-@@ -999,9 +998,9 @@ static struct v4l2_subdev_ops ov772x_subdev_ops = {
-  * Initialization and cleanup
-  */
- 
--static int ov772x_video_probe(struct i2c_client *client)
-+static int ov772x_video_probe(struct ov772x_priv *priv)
- {
--	struct ov772x_priv *priv = to_ov772x(client);
-+	struct i2c_client  *client = v4l2_get_subdevdata(&priv->subdev);
- 	u8                  pid, ver;
- 	const char         *devname;
- 	int		    ret;
-@@ -1086,7 +1085,7 @@ static int ov772x_probe(struct i2c_client *client,
- 		goto done;
- 	}
- 
--	ret = ov772x_video_probe(client);
-+	ret = ov772x_video_probe(priv);
- 	if (ret < 0)
- 		goto done;
- 
-@@ -1103,7 +1102,7 @@ done:
- 
- static int ov772x_remove(struct i2c_client *client)
- {
--	struct ov772x_priv *priv = to_ov772x(client);
-+	struct ov772x_priv *priv = to_ov772x(i2c_get_clientdata(client));
- 
- 	v4l2_device_unregister_subdev(&priv->subdev);
- 	v4l2_ctrl_handler_free(&priv->hdl);
+> Of course I wouldn't be surprised if people will have to reverse
+> engineer it from the windows drivers but I thought I would mention it.
+>  I could not find any info on this 750 HD on www.linuxtv.org regarding
+> where it stands.  What help is needed for it?
+
+1.  Datasheets for the 750 (under NDA is fine), but they need to agree
+to allow them to be used to author a GPL driver.
+2.  Reference driver sources which can be legally incorporated into a
+GPL driver.
+3.  Firmware with a license that permits free redistribution.
+
+I attempted to work with them back in 2009 on the T316 chip (an
+ATSC/ClearQAM demodulator), and they couldn't provide all of the
+above.  Perhaps things have changed since then but I doubt it (in
+particular, the sale of their TV chip unit to Broadcom left all sorts
+of unknowns regarding who owns the relevant intellectual property).
+
+Finally, even if you get the above, there still needs to be some
+developer who has the time/interest to do the work.  While three years
+ago the big challenge was getting access to the datasheets, nowadays a
+much bigger problem is there are no developers who are both qualified
+and not already too busy with other work.  Bootstrapping a new chip
+like that is probably a 50-100 hour investment for somebody who is
+experienced in this area, which is a fairly big chunk of time if the
+developer doesn't have any vested interest.
+
+Devin
+
 -- 
-1.7.8.6
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
