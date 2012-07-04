@@ -1,53 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:50856 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754158Ab2GKH3r (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jul 2012 03:29:47 -0400
-Received: by wibhr14 with SMTP id hr14so809827wib.1
-        for <linux-media@vger.kernel.org>; Wed, 11 Jul 2012 00:29:46 -0700 (PDT)
-From: Javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: fabio.estevam@freescale.com, laurent.pinchart@ideasonboard.com,
-	g.liakhovetski@gmx.de, mchehab@infradead.org,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH v2] media: mx2_camera: Don't modify non volatile parameters in try_fmt.
-Date: Wed, 11 Jul 2012 09:29:36 +0200
-Message-Id: <1341991776-11970-1-git-send-email-javier.martin@vista-silicon.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:50966 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932117Ab2GDTJF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Jul 2012 15:09:05 -0400
+Message-ID: <4FF494CB.5070001@iki.fi>
+Date: Wed, 04 Jul 2012 22:08:59 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: pierigno <pierigno@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: AF9035 Twinstar has firmware errors
+References: <CAN7fRVviA=svPsrHUkXj7B_ZZO02XMAOFyXQz0Sa-DiWvjg1cQ@mail.gmail.com>
+In-Reply-To: <CAN7fRVviA=svPsrHUkXj7B_ZZO02XMAOFyXQz0Sa-DiWvjg1cQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
----
- drivers/media/video/mx2_camera.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Hello and thank you for testing.
 
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index d5355de..eda98fc 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -1370,6 +1370,7 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
- 	__u32 pixfmt = pix->pixelformat;
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct mx2_camera_dev *pcdev = ici->priv;
-+	struct mx2_fmt_cfg *emma_prp;
- 	unsigned int width_limit;
- 	int ret;
- 
-@@ -1432,12 +1433,12 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
- 		__func__, pcdev->s_width, pcdev->s_height);
- 
- 	/* If the sensor does not support image size try PrP resizing */
--	pcdev->emma_prp = mx27_emma_prp_get_format(xlate->code,
-+	emma_prp = mx27_emma_prp_get_format(xlate->code,
- 						   xlate->host_fmt->fourcc);
- 
- 	memset(pcdev->resizing, 0, sizeof(pcdev->resizing));
- 	if ((mf.width != pix->width || mf.height != pix->height) &&
--		pcdev->emma_prp->cfg.in_fmt == PRP_CNTL_DATA_IN_YUV422) {
-+		emma_prp->cfg.in_fmt == PRP_CNTL_DATA_IN_YUV422) {
- 		if (mx2_emmaprp_resize(pcdev, &mf, pix, false) < 0)
- 			dev_dbg(icd->parent, "%s: can't resize\n", __func__);
- 	}
+On 07/04/2012 09:55 PM, pierigno wrote:
+> hello,
+>
+> I've downloaded and compiled against karnel 3.0.0 and kernel 3.4.3 the
+> latest git tree from antii, branch dvb-usb-pull, and it doesn't
+> recognize my dual tuner Avermedia Twinstar (af9035 + mxl5007t)
+> anymore. Here's the logs from dmesg (the compiled modules do not have
+> any debug parameters to enable):
+
+It is uses new / current dynamic debugs.
+
+modprobe dvb_usbv2; echo -n 'module dvb_usbv2 +p' > 
+/sys/kernel/debug/dynamic_debug/control
+echo 'file drivers/media/dvb/dvb-usb/usb_urb.c line 30 -p' > 
+/sys/kernel/debug/dynamic_debug/control
+modprobe dvb_usb_af9035; echo -n 'module dvb_usb_af9035 +p' > 
+/sys/kernel/debug/dynamic_debug/control
+
+
+> [44919.820892] DVB: registering new adapter (AVerMedia Twinstar (A825))
+> [44919.826864] af9033: firmware version: LINK=11.5.9.0 OFDM=5.17.9.1
+> [44919.826875] DVB: registering adapter 0 frontend 0 (Afatech AF9033 (DVB-T))...
+> [44920.166089] mxl5007t 16-0060: creating new instance
+> [44920.166883] mxl5007t_get_chip_id: unknown rev (3f)
+> [44920.166891] mxl5007t_get_chip_id: MxL5007T detected @ 16-0060
+> [44920.178890] usb 2-1.2: dvb_usbv2: 'AVerMedia Twinstar (A825)' error
+> while loading driver (-22)
+
+hmm, -22 == -EINVAL. Should look where this is coming from...
+
+> How can I enable debug parameters in order to provide better
+> informations? I've compiled as usual using the following command
+> sequence:
+>
+> git clone git://linuxtv.org/media_build.git
+> cd media_build
+> ./build --git git://linuxtv.org/anttip/media_tree.git dvb_usb_pull
+
+I wasn't even aware that is possible. Nice!
+
+regards
+Antti
+
+
 -- 
-1.7.9.5
+http://palosaari.fi/
+
 
