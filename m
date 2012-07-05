@@ -1,47 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:39624 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751854Ab2GDLBJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2012 07:01:09 -0400
-Received: by gglu4 with SMTP id u4so6295023ggl.19
-        for <linux-media@vger.kernel.org>; Wed, 04 Jul 2012 04:01:08 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CA+_MOwRbsj_oa9RGRTVUwnZ0=DUqsrWyU-6bB7no3J_SA0PtFQ@mail.gmail.com>
-References: <CA+_MOwRbsj_oa9RGRTVUwnZ0=DUqsrWyU-6bB7no3J_SA0PtFQ@mail.gmail.com>
-Date: Wed, 4 Jul 2012 08:01:07 -0300
-Message-ID: <CALF0-+XvJchgSufv7WZ4EWfS5yUS2szfK1090bs2+p8edr+=eQ@mail.gmail.com>
-Subject: Re: Easycap
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Robert Walter <rolinbee@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45905 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756506Ab2GERpa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 13:45:30 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi,
+	Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
+Subject: [PATCH] omap3isp: preview: Fix output size computation depending on input format
+Date: Thu,  5 Jul 2012 19:45:34 +0200
+Message-Id: <1341510334-9791-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Robert,
+The preview engine crops 4 columns and 4 lines when CFA is enabled.
+Commit b2da46e52fe7871cba36e1a435844502c0eccf39 ("omap3isp: preview: Add
+support for greyscale input") inverted the condition by mistake, fix
+this.
 
-I've added linux-media on Cc since someone might find your
-question on interest.
+Reported-by: Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/omap3isp/isppreview.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-On Wed, Jul 4, 2012 at 3:16 AM, Robert Walter <rolinbee@gmail.com> wrote:
-> I wonder if you could point me in the right direction? I bought an easy-cap
-> video capture device but it doesn't look like anything I've seen before.
-> The USB ID is 1b71:3002 and lsusb -v tells me the USB bridge is made by
-> Fuchsia and the device name is usbtv007. I would like to know if this device
-> is supported in Linux and if not, what is the preferred way to get a device
-> supported.
->
+This is a v3.5 regression, I'll send a pull request in the next couple of
+days.
 
-There is currently no driver supporting 0x1b71 vendor id.
+diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
+index 8a4935e..a48a747 100644
+--- a/drivers/media/video/omap3isp/isppreview.c
++++ b/drivers/media/video/omap3isp/isppreview.c
+@@ -1102,7 +1102,7 @@ static void preview_config_input_size(struct isp_prev_device *prev, u32 active)
+ 	unsigned int elv = prev->crop.top + prev->crop.height - 1;
+ 	u32 features;
+ 
+-	if (format->code == V4L2_MBUS_FMT_Y10_1X10) {
++	if (format->code != V4L2_MBUS_FMT_Y10_1X10) {
+ 		sph -= 2;
+ 		eph += 2;
+ 		slv -= 2;
+-- 
+Regards,
 
-It seems Chinese manufacturers like to make usb capture devices
-and use the name Easycap for every one of them :-)
+Laurent Pinchart
 
-However, since usb bridge chip is different,
-a completely new driver should be written;
-and unless you can get a datasheet the
-only way I know to (blindly) write such driver
-is with a lot of reverse engineering.
-
-Good luck,
-Ezequiel.
