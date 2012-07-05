@@ -1,60 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36715 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752087Ab2GTBnX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jul 2012 21:43:23 -0400
-Message-ID: <5008B7B0.1020602@iki.fi>
-Date: Fri, 20 Jul 2012 04:43:12 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:42458 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756248Ab2GERhl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 13:37:41 -0400
+Received: by pbbrp8 with SMTP id rp8so13097651pbb.19
+        for <linux-media@vger.kernel.org>; Thu, 05 Jul 2012 10:37:41 -0700 (PDT)
 MIME-Version: 1.0
-To: Steven Toth <stoth@kernellabs.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: GPIO interface between DVB sub-drivers (bridge, demod, tuner)
-References: <4FFF327A.9080300@iki.fi> <CALzAhNVwN3TJhn-3i9SDhKfk=tvZZ49RTKkUzWC8RZ_m=v=A+w@mail.gmail.com> <CALzAhNUmdcd7cE-fcMHJsNk1rTcKXoZR9Oyu+5XciNZQ57EBGQ@mail.gmail.com>
-In-Reply-To: <CALzAhNUmdcd7cE-fcMHJsNk1rTcKXoZR9Oyu+5XciNZQ57EBGQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4FF5AD40.3070707@iki.fi>
+References: <1341497792-6066-1-git-send-email-mchehab@redhat.com>
+ <1341497792-6066-3-git-send-email-mchehab@redhat.com> <4FF5AD40.3070707@iki.fi>
+From: Bert Massop <bert.massop@gmail.com>
+Date: Thu, 5 Jul 2012 19:37:21 +0200
+Message-ID: <CAKJOob9KBQRHXWTrOM_=hmF5OSoovhPWY4aGCbhhsbLKTk5NgQ@mail.gmail.com>
+Subject: Re: [PATCH 3/3] [media] tuner, xc2028: add support for get_afc()
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/13/2012 12:07 AM, Steven Toth wrote:
-> On Thu, Jul 12, 2012 at 4:49 PM, Steven Toth <stoth@kernellabs.com> wrote:
->> Nobody understands the relationship between the bridge and the
->> sub-component as well as the bridge driver. The current interfaces are
->> limiting in many ways. We solve that today with rather ugly 'attach'
->> structures that are inflexible, for example to set gpios to a default state.
->> Then, once that interface is attached, the bridge effectively loses most of
->> the control to the tuner and/or demod. The result is a large disconnect
->> between the bridge and subcomponents.
+On Thu, Jul 5, 2012 at 5:05 PM, Antti Palosaari <crope@iki.fi> wrote:
+>
+> On 07/05/2012 05:16 PM, Mauro Carvalho Chehab wrote:
 >>
->> Why limit any interface extension to GPIOs? Why not make something a
->> little more flexible so we can pass custom messages around?
+>> Implement API support to return AFC frequency shift, as this device
+>> supports it. The only other driver that implements it is tda9887,
+>> and the frequency there is reported in Hz. So, use Hz also for this
+>> tuner.
+>
+>
+> What is AFC and why it is needed?
+>
 
->> What did you ever decide about the enable/disable of the LNA? And, how
->> would the bridge do that in your proposed solution? Via the proposed GPIO
->> interface?
+AFC is short for Automatic Frequency Control, by which a tuner
+automatically fine-tunes the frequency for the best reception,
+compensating for small offsets and oscillator frequency drift.
+This is however done automatically on the tuner, so its configuration
+is read-only. Aside from being a "nice to know" statistic, getting
+hold of the AFC frequency shift does as far as I know not have any
+practical uses related to properly operating the tuner.
 
-GPIO / LNA is ready, see following patches:
-add LNA support for DVB API
-cxd2820r: use Kernel GPIO for GPIO access
-em28xx: implement FE set_lna() callback
-
-from:
-http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/dvb_core
-
-Kernel GPIOs were quite easy to implement and use - when needed 
-knowledge was gathered after all the testing and study. I wonder why 
-none was done that earlier for DVB...
-
-It also offer nice debug/devel feature as you can mount those GPIOs via 
-sysfs and use directly.
-
-
-Next-step: DVB power management.
-
-regards
-Antti
--- 
-http://palosaari.fi/
-
-
+Regards,
+Bert
