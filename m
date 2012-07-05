@@ -1,81 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:63597 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754832Ab2GaGOB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 02:14:01 -0400
-Received: by wgbdr13 with SMTP id dr13so5531457wgb.1
-        for <linux-media@vger.kernel.org>; Mon, 30 Jul 2012 23:14:00 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:64471 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751115Ab2GEUzi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Jul 2012 16:55:38 -0400
+Message-ID: <4FF5FF3F.6030909@redhat.com>
+Date: Thu, 05 Jul 2012 17:55:27 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <50170DE0.2030007@redhat.com>
-References: <1343295404-8931-1-git-send-email-javier.martin@vista-silicon.com>
-	<50170DE0.2030007@redhat.com>
-Date: Tue, 31 Jul 2012 08:13:59 +0200
-Message-ID: <CACKLOr2+y5emMuvKR0nLdQR=GtUOZ6Ms7j65bO5iXB8jJw0L4Q@mail.gmail.com>
-Subject: Re: "[PULL] video_visstrim for 3.6"
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, Sascha Hauer <s.hauer@pengutronix.de>,
-	Russell King <linux@arm.linux.org.uk>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR 3.6] V4L2 API cleanups
+References: <4FD50223.4030501@iki.fi>
+In-Reply-To: <4FD50223.4030501@iki.fi>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 31 July 2012 00:42, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> Em 26-07-2012 06:36, Javier Martin escreveu:
->> Hi Mauro,
->> this pull request is composed of two series that provide support for two mem2mem devices:
->> - 'm2m-deinterlace' video deinterlacer
->> - 'coda video codec'
->> I've included platform support for them too.
->>
->>
->> The following changes since commit 6887a4131da3adaab011613776d865f4bcfb5678:
->>
->>    Linux 3.5-rc5 (2012-06-30 16:08:57 -0700)
->>
->> are available in the git repository at:
->>
->>    https://github.com/jmartinc/video_visstrim.git for_3.6
->>
->> for you to fetch changes up to 9bb10266da63ae7f8f198573e099580e9f98f4e8:
->>
->>    i.MX27: Visstrim_M10: Add support for deinterlacing driver. (2012-07-26 10:57:30 +0200)
->>
->> ----------------------------------------------------------------
->> Javier Martin (5):
->>        i.MX: coda: Add platform support for coda in i.MX27.
->>        media: coda: Add driver for Coda video codec.
->>        Visstrim M10: Add support for Coda.
->>        media: Add mem2mem deinterlacing driver.
->>        i.MX27: Visstrim_M10: Add support for deinterlacing driver.
->>
->>   arch/arm/mach-imx/clk-imx27.c                   |    4 +-
->>   arch/arm/mach-imx/devices-imx27.h               |    4 +
->>   arch/arm/mach-imx/mach-imx27_visstrim_m10.c     |   49 +-
->>   arch/arm/plat-mxc/devices/Kconfig               |    6 +-
->>   arch/arm/plat-mxc/devices/Makefile              |    1 +
->>   arch/arm/plat-mxc/devices/platform-imx27-coda.c |   37 +
->>   arch/arm/plat-mxc/include/mach/devices-common.h |    8 +
->
-> I need ARM maintainer's ack for the patches that touch the above files.
->
-> Regards,
-> Mauro
+Em 10-06-2012 17:22, Sakari Ailus escreveu:
+> Hi Mauro,
+> 
+> Here are two V4L2 API cleanup patches; the first removes __user from
+> videodev2.h from a few places, making it possible to use the header file
+> as such in user space, while the second one changes the
+> v4l2_buffer.input field back to reserved.
+> 
+> 
+> The following changes since commit 5472d3f17845c4398c6a510b46855820920c2181:
+> 
+>    [media] mt9m032: Implement V4L2_CID_PIXEL_RATE control (2012-05-24
+> 09:27:24 -0300)
+> 
+> are available in the git repository at:
+>    ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.6
+> 
+> Sakari Ailus (2):
+>        v4l: Remove __user from interface structure definitions
 
-Sascha or Russell,
-could you please give me an ACK for the following patches?
+>        v4l: drop v4l2_buffer.input and V4L2_BUF_FLAG_INPUT
 
-i.MX27: Visstrim_M10: Add support for deinterlacing driver.
-(http://www.spinics.net/lists/linux-media/msg50223.html)
-Visstrim M10: Add support for Coda.. (http://patchwork.linuxtv.org/patch/13286/)
+Indeed, no drivers use V4L2_BUF_FLAG_INPUT, although I think this should be
+used there, for some devices.
 
-Regards.
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+There are several surveillance boards (mostly bttv boards, but there are
+also cx88 and saa7134 models in the market) where the same chip is used 
+by up to 4 cameras. What software does is to switch the video input
+to sample one of those cameras on a given frequency (1/60Hz or 1/30Hz),
+in order to collect the streams for the 4 cameras.
+
+Without an input field there at the buffer metadata, it might happen that 
+software would look into the wrong input.
+
+That's said, considering that:
+
+1) no driver is currently filling buffer queue with its "inputs" field,
+   this flag is not used anywhere;
+
+2) an implementation for input switch currently requires userspace to tell
+   Kernel to switch to the next input, with is racy;
+
+3) a model where the Kernel itself would switch to the next input would
+   require some Kernelspace changes.
+
+I agree that we can just remove this bad implementation. If latter needed,
+we'll need to not only reapply this patch but also to add a better way to
+allow time-sharing the same video sampler with multiple inputs.
+
+So, I'll apply this patch.
+
+Regards,
+Mauro
