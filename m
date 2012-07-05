@@ -1,204 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60504 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751200Ab2G0K7b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jul 2012 06:59:31 -0400
-From: Prabhakar Lad <prabhakar.lad@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v7 2/2] v4l2: add new pixel formats supported on dm365
-Date: Fri, 27 Jul 2012 16:25:05 +0530
-Message-ID: <1343386505-8695-3-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1343386505-8695-1-git-send-email-prabhakar.lad@ti.com>
-References: <1343386505-8695-1-git-send-email-prabhakar.lad@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60429 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751025Ab2GEUio (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 16:38:44 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH v2 0/9] Miscellaneous soc-camera patches
+Date: Thu,  5 Jul 2012 22:38:39 +0200
+Message-Id: <1341520728-2707-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Manjunath Hadli <manjunath.hadli@ti.com>
+Here's the second version of the miscellaneous soc-camera patches that try to
+improve the interoperability between soc-camera clients and non soc-camera
+hosts.
 
-add new macro V4L2_PIX_FMT_SGRBG10ALAW8 and associated formats
-to represent Bayer format frames compressed by A-LAW algorithm,
-add V4L2_PIX_FMT_UV8 to represent storage of CbCr data (UV interleaved)
-only.
+As with the previous version, all patches have been compile-tested but not
+runtime-tested as I lack the necessary hardware.
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- .../DocBook/media/v4l/pixfmt-srggb10alaw8.xml      |   34 +++++++++++
- Documentation/DocBook/media/v4l/pixfmt-uv8.xml     |   62 ++++++++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt.xml         |    2 +
- include/linux/videodev2.h                          |    8 +++
- 4 files changed, 106 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-uv8.xml
+Changes compared to v1:
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
-new file mode 100644
-index 0000000..c934192
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
-@@ -0,0 +1,34 @@
-+	<refentry>
-+	  <refmeta>
-+	    <refentrytitle>
-+	      V4L2_PIX_FMT_SBGGR10ALAW8 ('aBA8'),
-+	      V4L2_PIX_FMT_SGBRG10ALAW8 ('aGA8'),
-+	      V4L2_PIX_FMT_SGRBG10ALAW8 ('agA8'),
-+	      V4L2_PIX_FMT_SRGGB10ALAW8 ('aRA8'),
-+	    </refentrytitle>
-+	    &manvol;
-+	  </refmeta>
-+	  <refnamediv>
-+	    <refname id="V4L2-PIX-FMT-SBGGR10ALAW8">
-+	      <constant>V4L2_PIX_FMT_SBGGR10ALAW8</constant>
-+	    </refname>
-+	    <refname id="V4L2-PIX-FMT-SGBRG10ALAW8">
-+	      <constant>V4L2_PIX_FMT_SGBRG10ALAW8</constant>
-+	    </refname>
-+	    <refname id="V4L2-PIX-FMT-SGRBG10ALAW8">
-+	      <constant>V4L2_PIX_FMT_SGRBG10ALAW8</constant>
-+	    </refname>
-+	    <refname id="V4L2-PIX-FMT-SRGGB10ALAW8">
-+	      <constant>V4L2_PIX_FMT_SRGGB10ALAW8</constant>
-+	    </refname>
-+	    <refpurpose>10-bit Bayer formats compressed to 8 bits</refpurpose>
-+	  </refnamediv>
-+	  <refsect1>
-+	    <title>Description</title>
-+	    <para>The following four pixel formats are raw sRGB / Bayer
-+	    formats with 10 bits per color compressed to 8 bits each,
-+	    using the A-LAW algorithm. Each color component consumes 8
-+	    bits of memory. In other respects this format is similar to
-+	    <xref linkend="V4L2-PIX-FMT-SRGGB8">.</xref></para>
-+	  </refsect1>
-+	</refentry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-uv8.xml b/Documentation/DocBook/media/v4l/pixfmt-uv8.xml
-new file mode 100644
-index 0000000..c507c1f
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-uv8.xml
-@@ -0,0 +1,62 @@
-+	<refentry id="V4L2-PIX-FMT-UV8">
-+	  <refmeta>
-+	    <refentrytitle>V4L2_PIX_FMT_UV8  ('UV8')</refentrytitle>
-+	    &manvol;
-+	  </refmeta>
-+	  <refnamediv>
-+	    <refname><constant>V4L2_PIX_FMT_UV8</constant></refname>
-+	    <refpurpose>UV plane interleaved</refpurpose>
-+	  </refnamediv>
-+	  <refsect1>
-+	    <title>Description</title>
-+	    <para>In this format there is no Y plane, Only CbCr plane. ie
-+	    (UV interleaved)</para>
-+	    <example>
-+	    <title>
-+	      <constant>V4L2_PIX_FMT_UV8</constant>
-+	       pixel image
-+	    </title>
-+
-+	    <formalpara>
-+	      <title>Byte Order.</title>
-+	      <para>Each cell is one byte.
-+	        <informaltable frame="none">
-+	        <tgroup cols="5" align="center">
-+		  <colspec align="left" colwidth="2*" />
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry>start&nbsp;+&nbsp;0:</entry>
-+		      <entry>Cb<subscript>00</subscript></entry>
-+		      <entry>Cr<subscript>00</subscript></entry>
-+		      <entry>Cb<subscript>01</subscript></entry>
-+		      <entry>Cr<subscript>01</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start&nbsp;+&nbsp;4:</entry>
-+		      <entry>Cb<subscript>10</subscript></entry>
-+		      <entry>Cr<subscript>10</subscript></entry>
-+		      <entry>Cb<subscript>11</subscript></entry>
-+		      <entry>Cr<subscript>11</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start&nbsp;+&nbsp;8:</entry>
-+		      <entry>Cb<subscript>20</subscript></entry>
-+		      <entry>Cr<subscript>20</subscript></entry>
-+		      <entry>Cb<subscript>21</subscript></entry>
-+		      <entry>Cr<subscript>21</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start&nbsp;+&nbsp;12:</entry>
-+		      <entry>Cb<subscript>30</subscript></entry>
-+		      <entry>Cr<subscript>30</subscript></entry>
-+		      <entry>Cb<subscript>31</subscript></entry>
-+		      <entry>Cr<subscript>31</subscript></entry>
-+		    </row>
-+		  </tbody>
-+		</tgroup>
-+		</informaltable>
-+	      </para>
-+	      </formalpara>
-+	    </example>
-+	  </refsect1>
-+	</refentry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index e58934c..930f55d 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -673,6 +673,7 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
-     &sub-srggb8;
-     &sub-sbggr16;
-     &sub-srggb10;
-+    &sub-srggb10alaw8;
-     &sub-srggb10dpcm8;
-     &sub-srggb12;
-   </section>
-@@ -701,6 +702,7 @@ information.</para>
-     &sub-y12;
-     &sub-y10b;
-     &sub-y16;
-+    &sub-uv8;
-     &sub-yuyv;
-     &sub-uyvy;
-     &sub-yvyu;
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 5d78910..2cdf2c1 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -329,6 +329,9 @@ struct v4l2_pix_format {
- /* Palette formats */
- #define V4L2_PIX_FMT_PAL8    v4l2_fourcc('P', 'A', 'L', '8') /*  8  8-bit palette */
- 
-+/* Chrominance formats */
-+#define V4L2_PIX_FMT_UV8      v4l2_fourcc('U', 'V', '8', ' ') /*  8  UV 4:4 */
-+
- /* Luminance+Chrominance formats */
- #define V4L2_PIX_FMT_YVU410  v4l2_fourcc('Y', 'V', 'U', '9') /*  9  YVU 4:1:0     */
- #define V4L2_PIX_FMT_YVU420  v4l2_fourcc('Y', 'V', '1', '2') /* 12  YVU 4:2:0     */
-@@ -378,6 +381,11 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_SGBRG12 v4l2_fourcc('G', 'B', '1', '2') /* 12  GBGB.. RGRG.. */
- #define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
- #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
-+	/* 10bit raw bayer a-law compressed to 8 bits */
-+#define V4L2_PIX_FMT_SBGGR10ALAW8 v4l2_fourcc('a', 'B', 'A', '8')
-+#define V4L2_PIX_FMT_SGBRG10ALAW8 v4l2_fourcc('a', 'G', 'A', '8')
-+#define V4L2_PIX_FMT_SGRBG10ALAW8 v4l2_fourcc('a', 'g', 'A', '8')
-+#define V4L2_PIX_FMT_SRGGB10ALAW8 v4l2_fourcc('a', 'R', 'A', '8')
- 	/* 10bit raw bayer DPCM compressed to 8 bits */
- #define V4L2_PIX_FMT_SBGGR10DPCM8 v4l2_fourcc('b', 'B', 'A', '8')
- #define V4L2_PIX_FMT_SGBRG10DPCM8 v4l2_fourcc('b', 'G', 'A', '8')
+- Set priv->cfmt_code in ov2640 driver (3/9)
+- Split the soc-camera power off sequence change to its own patch (7/9)
+- Added an inline soc_camera_set_power() function (8/9)
+- Make sure the mt9m111 gets powered off completely if power on fails (8/9)
+- Simplify the s_power implementation in the ov5642 driver (8/9)
+- Don't modify power handling in the sh_mobile_csi2 driver
+- Don't pass a NULL device pointer to soc_camera_power_on() at probe time (8/9)
+- Fix physical device retrieval in soc_camera_platform_s_power() (8/9)
+- Don't loose return codes in mt9m111_video_probe() (9/9)
+- Remove unneeded enable/idle/disable calls in mt9p031 probe (9/9)
+
+Laurent Pinchart (9):
+  soc-camera: Don't fail at module init time if no device is present
+  soc-camera: Pass the physical device to the power operation
+  ov2640: Don't access the device in the g_mbus_fmt operation
+  ov772x: Don't access the device in the g_mbus_fmt operation
+  tw9910: Don't access the device in the g_mbus_fmt operation
+  soc_camera: Don't call .s_power() during probe
+  soc-camera: Continue the power off sequence if one of the steps fails
+  soc-camera: Add and use soc_camera_power_[on|off]() helper functions
+  soc-camera: Push probe-time power management to drivers
+
+ drivers/media/video/imx074.c              |   30 ++++++-
+ drivers/media/video/mt9m001.c             |   26 ++++++-
+ drivers/media/video/mt9m111.c             |  116 ++++++++++++++++++----------
+ drivers/media/video/mt9t031.c             |   48 ++++++------
+ drivers/media/video/mt9t112.c             |   21 +++++-
+ drivers/media/video/mt9v022.c             |   14 ++++
+ drivers/media/video/ov2640.c              |   26 +++++--
+ drivers/media/video/ov5642.c              |   31 ++++++--
+ drivers/media/video/ov6650.c              |   28 ++++++--
+ drivers/media/video/ov772x.c              |   31 ++++++--
+ drivers/media/video/ov9640.c              |   27 ++++++-
+ drivers/media/video/ov9740.c              |   38 +++++++---
+ drivers/media/video/rj54n1cb0c.c          |   27 ++++++-
+ drivers/media/video/soc_camera.c          |  101 +++++++++++--------------
+ drivers/media/video/soc_camera_platform.c |   11 +++-
+ drivers/media/video/tw9910.c              |   29 ++++++--
+ include/media/soc_camera.h                |   10 +++
+ 17 files changed, 423 insertions(+), 191 deletions(-)
+
 -- 
-1.7.0.4
+Regards,
+
+Laurent Pinchart
 
