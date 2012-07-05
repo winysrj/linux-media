@@ -1,106 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f53.google.com ([209.85.216.53]:51555 "EHLO
-	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750861Ab2GAUPy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Jul 2012 16:15:54 -0400
-Received: by mail-qa0-f53.google.com with SMTP id s11so1561997qaa.19
-        for <linux-media@vger.kernel.org>; Sun, 01 Jul 2012 13:15:54 -0700 (PDT)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH 2/6] cx25840: fix regression in HVR-1800 analog support hue/saturation controls
-Date: Sun,  1 Jul 2012 16:15:10 -0400
-Message-Id: <1341173714-23627-3-git-send-email-dheitmueller@kernellabs.com>
-In-Reply-To: <1341173714-23627-1-git-send-email-dheitmueller@kernellabs.com>
-References: <1341173714-23627-1-git-send-email-dheitmueller@kernellabs.com>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:24496 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754557Ab2GEI2x (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 04:28:53 -0400
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Received: from eusync3.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M6O00IJHI8X1X40@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 05 Jul 2012 09:29:21 +0100 (BST)
+Content-transfer-encoding: 8BIT
+Received: from [106.116.147.32] by eusync3.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0M6O0047WI83W220@eusync3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 05 Jul 2012 09:28:51 +0100 (BST)
+Message-id: <4FF55042.6090102@samsung.com>
+Date: Thu, 05 Jul 2012 10:28:50 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [GIT PULL FOR v3.6] mostly remove V4L2_FL_LOCK_ALL_FOPS
+References: <201207041942.04606.hverkuil@xs4all.nl>
+ <4FF49957.3070604@gmail.com> <201207050854.20966.hverkuil@xs4all.nl>
+In-reply-to: <201207050854.20966.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The changes made for the cx23888 caused regressions in the analog support
-for cx23885/cx23887 based boards (partly due to changes in the locations of
-the hue/saturation controls).  As a result the wrong registers were being
-overwritten.
+Hi Hans,
 
-Add code to use the correct registers if it's a cx23888
+On 07/05/2012 08:54 AM, Hans Verkuil wrote:
+> Hi Sylwester,
+> 
+> It still doesn't apply. This patch starts with:
+> 
+> diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+> index da2c40e..cb04a870 100644
+> --- a/drivers/media/video/s5p-fimc/fimc-capture.c
+> +++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+> @@ -480,48 +480,59 @@ static int fimc_capture_set_default_format(struct fimc_dev *fimc);
+>  static int fimc_capture_open(struct file *file)
+>  {
+>         struct fimc_dev *fimc = video_drvdata(file);
+> -       int ret;
+> +       int ret = -EBUSY;
+> 
+> The actual current source code starts with:
+> 
+> static int fimc_capture_open(struct file *file)
+> {
+>         struct fimc_dev *fimc = video_drvdata(file);
+>         int ret = v4l2_fh_open(file);
+> 
+> Quite different. That 'int ret = v4l2_fh_open(file);' line was added June 10th, 2011, so
+> I don't understand why that isn't in your git repository.
 
-Validated with the following boards:
+Because is has been removed by one of patches from v4l-fimc-fixes branch
+that I sent to Mauro on 25th of May and is still not upstream.
+Branch v4l-fimc-next depends on v4l-fimc-fixes, sorry if it wasn't clear
+enough. You need to pull v4l-fimc-fixes branch first. If I would have
+rebased patches for -next then the fixup patches wouldn't apply. That
+just doesn't seem right.
 
-HVR-1800 retail (0070:7801)
-HVR-1800 OEM (0070:7809)
-HVR-1850 retail (0070:8541)
+Mauro, are you going to send another pull request to Linus for 3.5-rc,
+including these patches: http://patchwork.linuxtv.org/patch/11503 ?
 
-Thanks to Steven Toth and Hauppauge for	loaning	me various boards to
-regression test	 with.
-
-Reported-by: Jonathan <sitten74490@mypacks.net>
-Thanks-to: Steven Toth <stoth@kernellabs.com>
-Signed-off-by: Devin Heitmueler <dheitmueller@kernellabs.com>
----
- drivers/media/video/cx25840/cx25840-core.c |   33 +++++++++++++++++++++++----
- 1 files changed, 28 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/video/cx25840/cx25840-core.c b/drivers/media/video/cx25840/cx25840-core.c
-index a82b704..e12b3b0 100644
---- a/drivers/media/video/cx25840/cx25840-core.c
-+++ b/drivers/media/video/cx25840/cx25840-core.c
-@@ -1106,9 +1106,23 @@ static int set_input(struct i2c_client *client, enum cx25840_video_input vid_inp
- 
- 			cx25840_write4(client, 0x410, 0xffff0dbf);
- 			cx25840_write4(client, 0x414, 0x00137d03);
--			cx25840_write4(client, 0x418, 0x01008080);
-+
-+			/* on the 887, 0x418 is HSCALE_CTRL, on the 888 it is 
-+			   CHROMA_CTRL */
-+			if (is_cx23888(state))
-+				cx25840_write4(client, 0x418, 0x01008080);
-+			else
-+				cx25840_write4(client, 0x418, 0x01000000);
-+
- 			cx25840_write4(client, 0x41c, 0x00000000);
--			cx25840_write4(client, 0x420, 0x001c3e0f);
-+
-+			/* on the 887, 0x420 is CHROMA_CTRL, on the 888 it is 
-+			   CRUSH_CTRL */
-+			if (is_cx23888(state))
-+				cx25840_write4(client, 0x420, 0x001c3e0f);
-+			else
-+				cx25840_write4(client, 0x420, 0x001c8282);
-+
- 			cx25840_write4(client, 0x42c, 0x42600000);
- 			cx25840_write4(client, 0x430, 0x0000039b);
- 			cx25840_write4(client, 0x438, 0x00000000);
-@@ -1315,6 +1329,7 @@ static int set_v4lstd(struct i2c_client *client)
- static int cx25840_s_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	struct v4l2_subdev *sd = to_sd(ctrl);
-+	struct cx25840_state *state = to_state(sd);
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
- 	switch (ctrl->id) {
-@@ -1327,12 +1342,20 @@ static int cx25840_s_ctrl(struct v4l2_ctrl *ctrl)
- 		break;
- 
- 	case V4L2_CID_SATURATION:
--		cx25840_write(client, 0x420, ctrl->val << 1);
--		cx25840_write(client, 0x421, ctrl->val << 1);
-+		if (is_cx23888(state)) {
-+			cx25840_write(client, 0x418, ctrl->val << 1);
-+			cx25840_write(client, 0x419, ctrl->val << 1);
-+		} else {
-+			cx25840_write(client, 0x420, ctrl->val << 1);
-+			cx25840_write(client, 0x421, ctrl->val << 1);
-+		}
- 		break;
- 
- 	case V4L2_CID_HUE:
--		cx25840_write(client, 0x422, ctrl->val);
-+		if (is_cx23888(state))
-+			cx25840_write(client, 0x41a, ctrl->val);
-+		else
-+			cx25840_write(client, 0x422, ctrl->val);
- 		break;
- 
- 	default:
+Regards,
 -- 
-1.7.1
-
+Sylwester Nawrocki
+실베스터 나브로츠키
+Samsung Poland R&D Center
