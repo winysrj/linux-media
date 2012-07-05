@@ -1,52 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:38744 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751466Ab2GSVFs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jul 2012 17:05:48 -0400
-Received: by yhmm54 with SMTP id m54so3289996yhm.19
-        for <linux-media@vger.kernel.org>; Thu, 19 Jul 2012 14:05:48 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201207192245.49852.hverkuil@xs4all.nl>
-References: <201207192245.49852.hverkuil@xs4all.nl>
-Date: Thu, 19 Jul 2012 18:05:47 -0300
-Message-ID: <CALF0-+UD-+L4AcN8BkTrjoXq4m78sV3eeTiLgY0Q1B1Y==_5sg@mail.gmail.com>
-Subject: Re: [PATCH] vivi: remove pointless video_nr++
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:36483 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932805Ab2GEOgD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 10:36:03 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, device-drivers-devel@blackfin.uclinux.org
+Subject: [RFCv1 PATCH 1/7] v4l2 core: add the missing pieces to support DVI/HDMI/DisplayPort.
+Date: Thu,  5 Jul 2012 16:26:09 +0200
+Message-Id: <e47312104a7f92ad99d1021e317b7d16e0344be3.1341497271.git.hans.verkuil@cisco.com>
+In-Reply-To: <1341498375-9411-1-git-send-email-hans.verkuil@cisco.com>
+References: <1341498375-9411-1-git-send-email-hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 19, 2012 at 5:45 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Remove the pointless video_nr++. It doesn't do anything useful and it has
-> the unexpected side-effect of changing the video_nr module option, so
-> cat /sys/module/vivi/parameters/video_nr gives a different value back
-> then what was specified with modprobe.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->
-> diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-> index 1e8c4f3..679e329 100644
-> --- a/drivers/media/video/vivi.c
-> +++ b/drivers/media/video/vivi.c
-> @@ -1330,9 +1330,6 @@ static int __init vivi_create_instance(int inst)
->         /* Now that everything is fine, let's add it to device list */
->         list_add_tail(&dev->vivi_devlist, &vivi_devlist);
->
-> -       if (video_nr != -1)
-> -               video_nr++;
-> -
->         v4l2_info(&dev->v4l2_dev, "V4L2 device registered as %s\n",
->                   video_device_node_name(vfd));
->         return 0;
-> --
+These new controls and two new ioctls make it possible to properly support
+VGA, DVI-A/D/I, HDMI and DisplayPort connectors. All these controls and the
+ioctls are all at the sub-device level. They are meant for V4L2 bridge/platform
+drivers or to be accessed on embedded systems through /dev/v4l-subdev* device
+nodes.
 
-Hans,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/linux/v4l2-subdev.h |   10 ++++++++++
+ include/linux/videodev2.h   |   23 +++++++++++++++++++++++
+ 2 files changed, 33 insertions(+)
 
-I think you forgot to *also* remove the video_nr module parameter.
-(and, of course, pass a '-1' to video_register_device)
+diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
+index 812019e..158a784 100644
+--- a/include/linux/v4l2-subdev.h
++++ b/include/linux/v4l2-subdev.h
+@@ -160,6 +160,14 @@ struct v4l2_subdev_selection {
+ 	__u32 reserved[8];
+ };
+ 
++struct v4l2_subdev_edid {
++	__u32 pad;
++	__u32 start_block;
++	__u32 blocks;
++	__u32 reserved[5];
++	__u8 __user *edid;
++};
++
+ #define VIDIOC_SUBDEV_G_FMT	_IOWR('V',  4, struct v4l2_subdev_format)
+ #define VIDIOC_SUBDEV_S_FMT	_IOWR('V',  5, struct v4l2_subdev_format)
+ #define VIDIOC_SUBDEV_G_FRAME_INTERVAL \
+@@ -178,5 +186,7 @@ struct v4l2_subdev_selection {
+ 	_IOWR('V', 61, struct v4l2_subdev_selection)
+ #define VIDIOC_SUBDEV_S_SELECTION \
+ 	_IOWR('V', 62, struct v4l2_subdev_selection)
++#define VIDIOC_SUBDEV_G_EDID	_IOWR('V', 63, struct v4l2_subdev_edid)
++#define VIDIOC_SUBDEV_S_EDID	_IOWR('V', 64, struct v4l2_subdev_edid)
+ 
+ #endif
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index f79d0cc..1e0dc25 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1266,6 +1266,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_CLASS_JPEG 0x009d0000		/* JPEG-compression controls */
+ #define V4L2_CTRL_CLASS_IMAGE_SOURCE 0x009e0000	/* Image source controls */
+ #define V4L2_CTRL_CLASS_IMAGE_PROC 0x009f0000	/* Image processing controls */
++#define V4L2_CTRL_CLASS_DV 0x00a00000		/* Digital Video controls */
+ 
+ #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+ #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+@@ -2009,6 +2010,28 @@ enum v4l2_jpeg_chroma_subsampling {
+ #define V4L2_CID_LINK_FREQ			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 1)
+ #define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
+ 
++/*  DV-class control IDs defined by V4L2 */
++#define V4L2_CID_DV_CLASS_BASE			(V4L2_CTRL_CLASS_DV | 0x900)
++#define V4L2_CID_DV_CLASS			(V4L2_CTRL_CLASS_DV | 1)
++
++#define	V4L2_CID_DV_TX_HOTPLUG			(V4L2_CID_DV_CLASS_BASE + 1)
++#define	V4L2_CID_DV_TX_RXSENSE			(V4L2_CID_DV_CLASS_BASE + 2)
++#define	V4L2_CID_DV_TX_EDID_PRESENT		(V4L2_CID_DV_CLASS_BASE + 3)
++#define	V4L2_CID_DV_TX_MODE			(V4L2_CID_DV_CLASS_BASE + 4)
++enum v4l2_dv_tx_mode {
++	V4L2_DV_TX_MODE_DVI_D	= 0,
++	V4L2_DV_TX_MODE_HDMI	= 1,
++};
++#define V4L2_CID_DV_TX_RGB_RANGE		(V4L2_CID_DV_CLASS_BASE + 5)
++enum v4l2_dv_rgb_range {
++	V4L2_DV_RGB_RANGE_AUTO	  = 0,
++	V4L2_DV_RGB_RANGE_LIMITED = 1,
++	V4L2_DV_RGB_RANGE_FULL	  = 2,
++};
++
++#define	V4L2_CID_DV_RX_POWER_PRESENT		(V4L2_CID_DV_CLASS_BASE + 100)
++#define V4L2_CID_DV_RX_RGB_RANGE		(V4L2_CID_DV_CLASS_BASE + 101)
++
+ /*
+  *	T U N I N G
+  */
+-- 
+1.7.10
 
-Regards,
-Ezequiel.
