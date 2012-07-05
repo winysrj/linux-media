@@ -1,98 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54453 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753784Ab2GWRMh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jul 2012 13:12:37 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Michael Jones <michael.jones@matrix-vision.de>
-Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] Documentation: DocBook DRM framework documentation
-Date: Mon, 23 Jul 2012 19:12:42 +0200
-Message-ID: <70690010.zp9nLr8Ar9@avalon>
-In-Reply-To: <500D69EB.6000008@matrix-vision.de>
-References: <1342137623-7628-1-git-send-email-laurent.pinchart@ideasonboard.com> <500D69EB.6000008@matrix-vision.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:18988 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751981Ab2GEIrm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 04:47:42 -0400
+Received: from eusync1.samsung.com (mailout4.w1.samsung.com [210.118.77.14])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M6O002RCJ4LBE40@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 05 Jul 2012 09:48:21 +0100 (BST)
+Received: from [106.116.147.108] by eusync1.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0M6O00KPBJ3GGN20@eusync1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 05 Jul 2012 09:47:40 +0100 (BST)
+Message-id: <4FF554A9.6070100@samsung.com>
+Date: Thu, 05 Jul 2012 10:47:37 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+MIME-version: 1.0
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	s.nawrocki@samsung.com, patches@linaro.org
+Subject: Re: [PATCH 1/1] [media] s5p-tv: Use module_i2c_driver in sii9234_drv.c
+ file
+References: <1341383595-4386-1-git-send-email-sachin.kamat@linaro.org>
+In-reply-to: <1341383595-4386-1-git-send-email-sachin.kamat@linaro.org>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michael,
+Hi Sachin,
 
-Thank you for the review.
+Thank you for the patch.
 
-On Monday 23 July 2012 17:12:43 Michael Jones wrote:
-> Hi Laurent,
+
+On 07/04/2012 08:33 AM, Sachin Kamat wrote:
+> module_i2c_driver makes the code simpler by eliminating module_init
+> and module_exit calls.
 > 
-> At a quick glance I noticed a couple of things:
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+
+Acked-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+
+> ---
+>  drivers/media/video/s5p-tv/sii9234_drv.c |   12 +-----------
+>  1 files changed, 1 insertions(+), 11 deletions(-)
 > 
-> On 07/13/2012 02:00 AM, Laurent Pinchart wrote:
-> 
-> [snip]
-> 
-> > +    <para>
-> > +      The <structname>drm_driver</structname> structure contains static
-> > +      information that describe the driver and features it supports, and
-> 
-> s/describe/describes/
+> diff --git a/drivers/media/video/s5p-tv/sii9234_drv.c b/drivers/media/video/s5p-tv/sii9234_drv.c
+> index 0f31ecc..6d348f9 100644
+> --- a/drivers/media/video/s5p-tv/sii9234_drv.c
+> +++ b/drivers/media/video/s5p-tv/sii9234_drv.c
+> @@ -419,14 +419,4 @@ static struct i2c_driver sii9234_driver = {
+>  	.id_table = sii9234_id,
+>  };
+>  
+> -static int __init sii9234_init(void)
+> -{
+> -	return i2c_add_driver(&sii9234_driver);
+> -}
+> -module_init(sii9234_init);
+> -
+> -static void __exit sii9234_exit(void)
+> -{
+> -	i2c_del_driver(&sii9234_driver);
+> -}
+> -module_exit(sii9234_exit);
+> +module_i2c_driver(sii9234_driver);
 
-Fixed.
-
-> > +      pointers to methods that the DRM core will call to implement the
-> > DRM API.
-> > +      We will first go through the <structname>drm_driver</structname>
-> > static
-> > +      information fields, and will then describe individual operations in
-> > +      details as they get used in later sections.
-> >       </para>
-> > -
-> >       <sect2>
-> > -      <title>Driver private &amp; performance counters</title>
-> > -      <para>
-> > -	The driver private hangs off the main drm_device structure and
-> > -	can be used for tracking various device-specific bits of
-> > -	information, like register offsets, command buffer status,
-> > -	register state for suspend/resume, etc.  At load time, a
-> > -	driver may simply allocate one and set drm_device.dev_priv
-> > -	appropriately; it should be freed and drm_device.dev_priv set
-> > -	to NULL when the driver is unloaded.
-> > -      </para>
-> > +      <title>Driver Information</title>
-> > +      <sect3>
-> > +        <title>Driver Features</title>
-> > +        <para>
-> > +          Drivers inform the DRM core about their requirements and
-> > supported
-> > +          features by setting appropriate flags in the
-> > +          <structfield>driver_features</structfield> field. Since those
-> > flags
-> > +          influence the DRM core behaviour since registration time, most
-> > of them
->
-> Elsewhere you use the American spelling "behavior".
-
-I've used "behavior" when copying sections from the existing documentation. 
-I'll unify that. Does kernel documentation favour one of the spellings ?
-
-> [snip]
-> 
-> > +      <sect3>
-> > +        <title>Major, Minor and Patchlevel</title>
-> > +        <synopsis>int major;
-> > +  int minor;
-> > +  int patchlevel;</synopsis>
-> 
-> In my browser, "int minor" and "int patchlevel" look indented, whereas
-> "int major" does not.  Looks like they _should_ be indented identically.
-> Don't know how you fix this or if you even see the same problem.
-
-Fixed.
-
-[snip]
-
--- 
-Regards,
-
-Laurent Pinchart
 
