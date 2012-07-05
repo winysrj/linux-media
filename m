@@ -1,210 +1,357 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1599 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753846Ab2GCQsQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jul 2012 12:48:16 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFC PATCH 1/6] videodev2.h: add VIDIOC_ENUM_FREQ_BANDS.
-Date: Tue, 3 Jul 2012 18:47:38 +0200
-Cc: linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>,
-	halli manjunatha <hallimanju@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1341238512-17504-1-git-send-email-hverkuil@xs4all.nl> <201207030919.11090.hverkuil@xs4all.nl> <4FF3176F.6050304@redhat.com>
-In-Reply-To: <4FF3176F.6050304@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201207031847.38946.hverkuil@xs4all.nl>
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:2793 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756189Ab2GEOgE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 10:36:04 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, device-drivers-devel@blackfin.uclinux.org
+Subject: [RFCv1 PATCH 2/7] V4L2 spec: document the new DV controls and ioctls.
+Date: Thu,  5 Jul 2012 16:26:10 +0200
+Message-Id: <0d555ef8a2ac4d86cd67181e4a035f21ed4db66d.1341497271.git.hans.verkuil@cisco.com>
+In-Reply-To: <1341498375-9411-1-git-send-email-hans.verkuil@cisco.com>
+References: <1341498375-9411-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <e47312104a7f92ad99d1021e317b7d16e0344be3.1341497271.git.hans.verkuil@cisco.com>
+References: <e47312104a7f92ad99d1021e317b7d16e0344be3.1341497271.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue July 3 2012 18:01:51 Mauro Carvalho Chehab wrote:
-> Em 03-07-2012 04:19, Hans Verkuil escreveu:
-> > On Mon 2 July 2012 19:42:33 Mauro Carvalho Chehab wrote:
-> >> Em 02-07-2012 11:15, Hans Verkuil escreveu:
-> >>> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>
-> >>> Add a new ioctl to enumerate the supported frequency bands of a tuner.
-> >>>
-> >>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >>> ---
-> >>>    include/linux/videodev2.h |   36 ++++++++++++++++++++++++++----------
-> >>>    1 file changed, 26 insertions(+), 10 deletions(-)
-> >>>
-> >>> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> >>> index f79d0cc..d54ec6e 100644
-> >>> --- a/include/linux/videodev2.h
-> >>> +++ b/include/linux/videodev2.h
-> >>> @@ -2048,6 +2048,7 @@ struct v4l2_modulator {
-> >>>    #define V4L2_TUNER_CAP_RDS		0x0080
-> >>>    #define V4L2_TUNER_CAP_RDS_BLOCK_IO	0x0100
-> >>>    #define V4L2_TUNER_CAP_RDS_CONTROLS	0x0200
-> >>> +#define V4L2_TUNER_CAP_FREQ_BANDS	0x0400
-> >>>    
-> >>>    /*  Flags for the 'rxsubchans' field */
-> >>>    #define V4L2_TUNER_SUB_MONO		0x0001
-> >>> @@ -2066,19 +2067,30 @@ struct v4l2_modulator {
-> >>>    #define V4L2_TUNER_MODE_LANG1_LANG2	0x0004
-> >>>    
-> >>>    struct v4l2_frequency {
-> >>> -	__u32		      tuner;
-> >>> -	__u32		      type;	/* enum v4l2_tuner_type */
-> >>> -	__u32		      frequency;
-> >>> -	__u32		      reserved[8];
-> >>> +	__u32	tuner;
-> >>> +	__u32	type;	/* enum v4l2_tuner_type */
-> >>> +	__u32	frequency;
-> >>> +	__u32	reserved[8];
-> >>> +};
-> >>> +
-> >>> +struct v4l2_frequency_band {
-> >>> +	__u32	tuner;
-> >>> +	__u32	type;	/* enum v4l2_tuner_type */
-> >>> +	__u32	index;
-> >>> +	__u32	capability;
-> >>> +	__u32	rangelow;
-> >>> +	__u32	rangehigh;
-> >>> +	__u8	name[32];
-> >>
-> >> As we've discussed, band name can be inferred from the frequency.
-> >> Also, there are more than one name for the same band (it could be
-> >> named based on the wavelength or frequency - also, some bands or
-> >> band segments may have special names, like Tropical Wave).
-> >> Let's userspace just call it whatever it wants. So, I'll just
-> >> drop it.
-> > 
-> > That will lead to chaos IMHO: one application will call it one thing,
-> > the other something else. Since the frequency band boundaries will
-> > generally be slightly different between different products it is even
-> > not so easy to map a frequency to a particular name. Not to mention
-> > the simple fact that most apps will only ever see FM since the number of
-> > products that support other bands is very, very small.
-> > 
-> > Sure, an application can just print the frequency range and use that
-> > as the name, but how many end-users would know how to interpret that as
-> > FM or AM MW, etc.? Very few indeed.
-> 
-> AM or FM can be retrieved from a modulation field. The band range is:
-> 	1) Country-dependent, e. g. they're defined by the regulator's
-> 	   agency on each Country and standardized on ITU-R;
-> 
-> 	2) Per-country regulatory restrictions may apply, as it may be
-> illegal or it may be required an special license to operate outside the 
-> public services range. Some of the supported devices for can be used
-> at the amateur radio range
-> 
-> 	3) requires locale support. For example, in Brazil:
-> 		short wave is OC
-> 		medium wave is OM
-> 		part of the OC band is called Tropical wave
-> 		...
-> 
-> Devices with dual TV/FM tuners allows a band that it is larger than SW+MW+LW.
-> How would you call such band?
-> 
-> What I'm saying is that an application that would properly implement radio
-> support will need to have a per-Country regulatory data, in order to name
-> a band, using the Country's denomination for that band.
-> 
-> It is not a Kernel's task to keep such database. It may be added on a library,
-> through.
-> 
-> >> On the other hand, the modulation is independent on the band, and
-> >> ITU-R and regulator agencies may allow more than one modulation type
-> >> and usage for the same frequency (like primary and secondary usage).
-> > 
-> > But the actual tuner/demod in question will support only one modulation
-> > type per frequency range. It's not something you can change in our API. So
-> > what's the use of such a modulation type? What would an application do with
-> > it? I want to avoid adding a field for which there is no practical use.
-> 
-> Devices like bttv and cx88 with a TV/FM tuner allow at least 2 modulation types:
-> FM and SDR (Software Delivered Radio), as the internal RISC processor can deliver
-> the IF samples though the DMA engine, allowing demodulation in userspace.
-> 
-> > This API is used to show a combobox or similar to the end-user allowing him/her
-> > to select a frequency band that the radio application will use. So you need
-> > human-readable names for the frequency bands that are understandable for
-> > your average human being. Frequency ranges or talk about ITU standards are
-> > NOT suitable for that.
-> 
-> It is not a Kernel's task to present a combobox. Also, converting the radio
-> band names into a combobox will require converting the band names into locale
-> data, with is more complex, less portable than to compare the band ranges with 
-> the ITU-R tables.
-> 
-> That's said, let's suppose an application that would allow to select between:
-> 	- FM Europe/America;
-> 	- FM Japan;
-> 	- FM Russia
-> 
-> And let's suppose 2 different drivers:
-> 	- driver 1: bttv + TV/FM tuner - band from 56 MHz to 165 MHz;
-> 	- driver 2: tea5767 - japan band from 76 to 108 MHz;
-> 		    european band from 87.5 to 108 MHz;
-> 
-> For driver 1, the band will be bigger than all 3 FM ranges. Userspace will need
-> to use S_TUNER to adjust the single band to the selected one, or to prevent
-> using a frequency outside band;
-> 
-> For driver 2, for euro band, it can just select the second band. However, for
-> band 1, it will need to use S_TUNER to restrict the maximum frequency to 90 MHz,
-> in order to match the regulatory band.
-> 
-> So, whatever "name" would be used, the userspace will need to know what are the
-> regulatory standards and use some logic to make sure that the proper band will
-> be used.
-> 
-> Of course, as such logic is common for all radio applications, it makes sense to
-> add it into a radio v4l-utils library.
-> 
-> > Prior to me becoming involved in this discussion the only names I would have
-> > understood are FM and AM SW/MW/LW and I would have no idea what the frequency
-> > ranges for the AM bands were.
-> 
-> Well, the sort wave range is actually 15 bands, each with their own regulations.
-> For example, In Brazil, SW is used by broadcast and amateur radio. For amateur
-> radio, those are the used ranges:
-> 	160m, 80m, 40m, 30m, 20m, 17m, 15m, 12m, 10m
-> 
-> In summary, band names can't be properly represented in Kernel, as this is not
-> a trivial issue, nor Kernel should bother about localized names or per-Country
-> data.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml       |  149 +++++++++++++++++++
+ Documentation/DocBook/media/v4l/v4l2.xml           |    1 +
+ .../DocBook/media/v4l/vidioc-subdev-g-edid.xml     |  152 ++++++++++++++++++++
+ 3 files changed, 302 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
 
-You clearly have way too much knowledge on this topic :-)
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 8994132..da41504 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -4269,4 +4269,153 @@ interface and may change in the future.</para>
+       </table>
+ 
+     </section>
++
++    <section id="dv-controls">
++      <title>Digital Video Control Reference</title>
++
++      <note>
++	<title>Experimental</title>
++
++	<para>This is an <link
++	linkend="experimental">experimental</link> interface and may
++	change in the future.</para>
++      </note>
++
++      <para>
++	The Digital Video control class is intended to control receivers
++	and transmitters for VGA, DVI, HDMI and DisplayPort. These controls
++	are generally expected to be private to the receiver or transmitter
++	subdevice that implements them, so they are only exposed on the
++	<filename>/dev/v4l-subdev*</filename> device node.
++      </para>
++
++      <para>Note that these devices can have multiple input or output pads which are
++      hooked up to e.g. HDMI connectors. Even though the subdevice will receive or
++      transmit video from/to only one of those pads, the other pads can still be
++      active when it comes to EDID and HDCP processing, allowing the device
++      to do the fairly slow EDID/HDCP handling in advance. This allows for quick
++      switching between connectors.</para>
++
++      <para>These pads appear in several of the controls in this section as
++      bitmasks, one bit for each pad starting at bit 0. The maximum value of
++      the control is the set of valid pads.</para>
++
++      <table pgwide="1" frame="none" id="dv-control-id">
++      <title>Digital Video Control IDs</title>
++
++      <tgroup cols="4">
++	<colspec colname="c1" colwidth="1*" />
++	<colspec colname="c2" colwidth="6*" />
++	<colspec colname="c3" colwidth="2*" />
++	<colspec colname="c4" colwidth="6*" />
++	<spanspec namest="c1" nameend="c2" spanname="id" />
++	<spanspec namest="c2" nameend="c4" spanname="descr" />
++	<thead>
++	  <row>
++	    <entry spanname="id" align="left">ID</entry>
++	    <entry align="left">Type</entry>
++	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
++	  </row>
++	</thead>
++	<tbody valign="top">
++	  <row><entry></entry></row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_DV_CLASS</constant></entry>
++	    <entry>class</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">The DV class descriptor.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_DV_TX_HOTPLUG</constant></entry>
++	    <entry>bitmask</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Many connectors have a hotplug pin which is high
++	    if EDID information is available from the source. This control shows the
++	    state of the hotplug pin as seen by the transmitter.
++	    Each bit corresponds to an output pad on the transmitter.
++	    This read-only control is applicable to DVI-D, HDMI and DisplayPort connectors.
++	    </entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_DV_TX_RXSENSE</constant></entry>
++	    <entry>bitmask</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Rx Sense is the detection of pull-ups on the TMDS
++            clock lines. This normally means that the sink has left/entered standby (i.e.
++	    the transmitter can sense that the receiver is ready to receive video).
++	    Each bit corresponds to an output pad on the transmitter.
++	    This read-only control is applicable to DVI-D and HDMI devices.
++	    </entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_DV_TX_EDID_PRESENT</constant></entry>
++	    <entry>bitmask</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">When the transmitter sees the hotplug signal from the
++	    receiver it will attempt to read the EDID. If set, then the transmitter has read
++	    at least the first block (= 128 bytes).
++	    Each bit corresponds to an output pad on the transmitter.
++	    This read-only control is applicable to VGA, DVI-A/D, HDMI and DisplayPort connectors.
++	    </entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_DV_TX_MODE</constant></entry>
++	    <entry id="v4l2-dv-tx-mode">enum v4l2_dv_tx_mode</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">HDMI transmitters can transmit in DVI-D mode (just video)
++	    or in HDMI mode (video + audio + auxiliary data). This control selects which mode
++	    to use: V4L2_DV_TX_MODE_DVI_D or V4L2_DV_TX_MODE_HDMI.
++	    This control is applicable to HDMI connectors.
++	    </entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_DV_TX_RGB_RANGE</constant></entry>
++	    <entry id="v4l2-dv-rgb-range">enum v4l2_dv_rgb_range</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Select the quantization range for RGB output. V4L2_DV_RANGE_AUTO
++	    follows the RGB quantization range specified in the standard for the video interface
++	    (ie. CEA-861 for HDMI). V4L2_DV_RANGE_LIMITED and V4L2_DV_RANGE_FULL override the standard
++	    to be compatible with sinks that have not implemented the standard correctly
++	    (unfortunately quite common for HDMI and DVI-D).
++	    This control is applicable to VGA, DVI-A/D, HDMI and DisplayPort connectors.
++	    </entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_DV_RX_POWER_PRESENT</constant></entry>
++	    <entry>bitmask</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Detects whether the receiver receives power from the source
++	    (e.g. HDMI carries 5V on one of the pins). This is often used to power an eeprom
++	    which contains EDID information, such that the source can read the EDID even if
++	    the sink is in standby/power off.
++	    Each bit corresponds to an input pad on the receiver.
++	    This read-only control is applicable to DVI-D, HDMI and DisplayPort connectors.
++	    </entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_DV_RX_RGB_RANGE</constant></entry>
++	    <entry>enum v4l2_dv_rgb_range</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Select the quantization range for RGB input. V4L2_DV_RANGE_AUTO
++	    follows the RGB quantization range specified in the standard for the video interface
++	    (ie. CEA-861 for HDMI). V4L2_DV_RANGE_LIMITED and V4L2_DV_RANGE_FULL override the standard
++	    to be compatible with sources that have not implemented the standard correctly
++	    (unfortunately quite common for HDMI and DVI-D).
++	    This control is applicable to VGA, DVI-A/D, HDMI and DisplayPort connectors.
++	    </entry>
++	  </row>
++	  <row><entry></entry></row>
++	</tbody>
++      </tgroup>
++      </table>
++
++    </section>
+ </section>
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index 008c2d7..51395f7 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -575,6 +575,7 @@ and discussions on the V4L mailing list.</revremark>
+     &sub-subdev-enum-frame-size;
+     &sub-subdev-enum-mbus-code;
+     &sub-subdev-g-crop;
++    &sub-subdev-g-edid;
+     &sub-subdev-g-fmt;
+     &sub-subdev-g-frame-interval;
+     &sub-subdev-g-selection;
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
+new file mode 100644
+index 0000000..05371db
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
+@@ -0,0 +1,152 @@
++<refentry id="vidioc-subdev-g-edid">
++  <refmeta>
++    <refentrytitle>ioctl VIDIOC_SUBDEV_G_EDID, VIDIOC_SUBDEV_S_EDID</refentrytitle>
++    &manvol;
++  </refmeta>
++
++  <refnamediv>
++    <refname>VIDIOC_SUBDEV_G_EDID</refname>
++    <refname>VIDIOC_SUBDEV_S_EDID</refname>
++    <refpurpose>Get or set the EDID of a video receiver/transmitter</refpurpose>
++  </refnamediv>
++
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>struct v4l2_subdev_edid *<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>const struct v4l2_subdev_edid *<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
++
++  <refsect1>
++    <title>Arguments</title>
++
++    <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>&fd;</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>VIDIOC_SUBDEV_G_EDID, VIDIOC_SUBDEV_S_EDID</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++    <para>These ioctls can be used to get or set an EDID associated with an input pad
++    from a receiver or an output pad of a transmitter subdevice.</para>
++
++    <para>To get the EDID data the application has to fill in the <structfield>pad</structfield>,
++    <structfield>start_block</structfield>, <structfield>blocks</structfield> and <structfield>edid</structfield>
++    fields and call <constant>VIDIOC_SUBDEV_G_EDID</constant>. The current EDID from block
++    <structfield>start_block</structfield> and of size <structfield>blocks</structfield>
++    will be placed in the memory <structfield>edid</structfield> points to. The <structfield>edid</structfield>
++    pointer must point to memory at least <structfield>blocks</structfield>&nbsp;*&nbsp;128 bytes
++    large (the size of one block is 128 bytes).</para>
++
++    <para>If there are fewer blocks than specified, then the driver will set <structfield>blocks</structfield>
++    to the actual number of blocks. If there are no EDID blocks available at all, then the error code
++    ENODATA is set.</para>
++
++    <para>If blocks have to be retrieved from the sink, then this call will block until they
++    have been read.</para>
++
++    <para>To set the EDID blocks of a receiver the application has to fill in the <structfield>pad</structfield>,
++    <structfield>blocks</structfield> and <structfield>edid</structfield> fields and set
++    <structfield>start_block</structfield> to 0. It is not possible to set part of an EDID,
++    it is always all or nothing. Setting the EDID data is only valid for receivers as it makes
++    no sense for a transmitter.</para>
++
++    <para>The driver assumes that the full EDID is passed in. If there are more EDID blocks than
++    the hardware can handle then the EDID is not written, but instead the error code E2BIG is set
++    and <structfield>blocks</structfield> is set to the maximum that the hardware supports.
++    If <structfield>start_block</structfield> is any
++    value other than 0 then the error code EINVAL is set.</para>
++
++    <para>To disable an EDID you set <structfield>blocks</structfield> to 0. Depending on the
++    hardware this will drive the hotplug pin low and/or block the source from reading the EDID
++    data in some way. In any case, the end result is the same: the EDID is no longer available.
++    </para>
++
++    <table pgwide="1" frame="none" id="v4l2-subdev-edid">
++      <title>struct <structname>v4l2_subdev_edid</structname></title>
++      <tgroup cols="3">
++        &cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>pad</structfield></entry>
++	    <entry>Pad for which to get/set the EDID blocks.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>start_block</structfield></entry>
++	    <entry>Read the EDID from starting with this block. Must be 0 when setting
++	    the EDID.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>blocks</structfield></entry>
++	    <entry>The number of blocks to get or set. Must be less or equal to 255 (the
++	    maximum block number defined by the standard). When you set the EDID and
++	    <structfield>blocks</structfield> is 0, then the EDID is disabled or erased.</entry>
++	  </row>
++	  <row>
++	    <entry>__u8&nbsp;*</entry>
++	    <entry><structfield>edid</structfield></entry>
++	    <entry>Pointer to memory that contains the EDID. The minimum size is
++	    <structfield>blocks</structfield>&nbsp;*&nbsp;128.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[5]</entry>
++	    <entry>Reserved for future extensions. Applications and drivers must
++	    set the array to zero.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++  </refsect1>
++
++  <refsect1>
++    &return-value;
++
++    <variablelist>
++      <varlistentry>
++	<term><errorcode>ENODATA</errorcode></term>
++	<listitem>
++	  <para>The EDID data is not available.</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><errorcode>E2BIG</errorcode></term>
++	<listitem>
++	  <para>The EDID data you provided is more than the hardware can handle.</para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++</refentry>
+-- 
+1.7.10
 
-OK, name is out, a modulation field is in.
-
-This promptly leads to the next problem: there is no modulation field in v4l2_tuner,
-so what to do for existing drivers.
-
-It makes sense to have the tuner capability field be a union of the caps of all bands,
-but you can't do the same for a modulation field (unless you make it a bitfield, but
-that's just weird IMHO).
-
-So perhaps we should add compat code like what I suggested earlier in a private email
-where, if no enum_freq_bands op is defined but g_tuner is, then the core will provide
-a enum_freq_bands version that uses the caps/rangelow/high from g_tuner and that can
-fill in the modulation type based on the video node (i.e. if called from radio, then
-the modulation is FM, else VSB).
-
-This is true for all currently available drivers, except for radio-cadet. But the
-latter will be updated with proper enum_freq_bands support, so it won't use the
-compat code.
-
-As a result of this, an application can always find the modulation of a particular
-frequency band by calling VIDIOC_ENUM_FREQ_BANDS.
-
-Note that for the sake of brevity I'm ignoring the modulator in this discussion, but
-the same principle applies there.
-
-BTW, if I understand it correctly SDR isn't a modulation type as such, it's the raw
-output from the tuner and it is up to the software to decide whether to demodulate
-as FM or AM (in the case of analog radio), right? Although in practice I expect it
-to be obvious what should be used.
-
-Regards,
-
-	Hans
