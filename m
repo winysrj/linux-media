@@ -1,43 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:41422 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751031Ab2GGSvM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jul 2012 14:51:12 -0400
-From: Emil Goode <emilgoode@gmail.com>
-To: jarod@wilsonet.com, mchehab@infradead.org,
-	gregkh@linuxfoundation.org, rusty@rustcorp.com.au, davej@redhat.com
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	kernel-janitors@vger.kernel.org, Emil Goode <emilgoode@gmail.com>
-Subject: [PATCH] lirc: fix non-ANSI function declaration warning
-Date: Sat,  7 Jul 2012 20:53:25 +0200
-Message-Id: <1341687205-21963-1-git-send-email-emilgoode@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60431 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750720Ab2GEUio (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 16:38:44 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH v2 1/9] soc-camera: Don't fail at module init time if no device is present
+Date: Thu,  5 Jul 2012 22:38:40 +0200
+Message-Id: <1341520728-2707-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1341520728-2707-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1341520728-2707-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sparse is warning about non-ANSI function declaration.
-Add void to the parameterless function.
+The soc-camera module exports functions that are needed by soc-camera
+client drivers even when not running in soc-camera mode. Replace the
+platform_driver_probe() with a platform_driver_register() call to avoid
+module load failures if no soc-camera device is present.
 
-drivers/staging/media/lirc/lirc_bt829.c:174:22: warning:
-	non-ANSI function declaration of function 'poll_main'
-
-Signed-off-by: Emil Goode <emilgoode@gmail.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/staging/media/lirc/lirc_bt829.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/video/soc_camera.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/staging/media/lirc/lirc_bt829.c b/drivers/staging/media/lirc/lirc_bt829.c
-index 4d20e9f..951007a 100644
---- a/drivers/staging/media/lirc/lirc_bt829.c
-+++ b/drivers/staging/media/lirc/lirc_bt829.c
-@@ -171,7 +171,7 @@ static void cycle_delay(int cycle)
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index 0421bf9..e7c6809 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -1518,6 +1518,7 @@ static int __devexit soc_camera_pdrv_remove(struct platform_device *pdev)
  }
  
+ static struct platform_driver __refdata soc_camera_pdrv = {
++	.probe = soc_camera_pdrv_probe,
+ 	.remove  = __devexit_p(soc_camera_pdrv_remove),
+ 	.driver  = {
+ 		.name	= "soc-camera-pdrv",
+@@ -1527,7 +1528,7 @@ static struct platform_driver __refdata soc_camera_pdrv = {
  
--static int poll_main()
-+static int poll_main(void)
+ static int __init soc_camera_init(void)
  {
- 	unsigned char status_high, status_low;
+-	return platform_driver_probe(&soc_camera_pdrv, soc_camera_pdrv_probe);
++	return platform_driver_register(&soc_camera_pdrv);
+ }
  
+ static void __exit soc_camera_exit(void)
 -- 
-1.7.10.4
+1.7.8.6
 
