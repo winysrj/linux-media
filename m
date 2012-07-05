@@ -1,39 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:22130 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751711Ab2GUIdg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Jul 2012 04:33:36 -0400
-Date: Sat, 21 Jul 2012 11:32:59 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Gianluca Gennari <gennarone@gmail.com>,
-	Thomas Meyer <thomas@m3y3r.de>,
-	Miroslav Slugen <thunder.mmm@gmail.com>,
-	Thierry Reding <thierry.reding@avionic-design.de>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch 2/2] [media] tuner-xc2028: unlock on error in xc2028_get_afc()
-Message-ID: <20120721083259.GB13454@elgon.mountain>
+Received: from mail1.hostpark.net ([212.243.197.31]:58999 "EHLO
+	mail1.hostpark.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751182Ab2GEOGI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 10:06:08 -0400
+From: Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>
+Date: Thu, 5 Jul 2012 16:06:03 +0200
+Subject: RE: omap3isp: cropping bug in previewer?
+Message-ID: <B21EB8416BB7744FAB36AEE2627158CD0119103FEC66@REBITSERVER.rebit.local>
+Content-Language: de-DE
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We need to do a mutex_unlock(&priv->lock) before returning.
+Hi Laurent,
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Laurent Pinchart wrote on 2012-07-05:
+>> When I now capture a frame with yavta (see [3] for details), I must use
+>> 846x639 as frame size (as this size is reported by the driver). But it
+>> seems that the outputted image is 2px wider (that means 848x639). This
+>> results in a "scrambled"/unusable image on screen when streaming (see
+>> [6] bad-frame-846x639_on_display.bmp for an example how it looks like
+>> on screen). Also the file size too big for a 846x639 image: The frame
+>> size is 1083744 bytes, which is exactly 848*639*2 (NOT 846*639*2)!
+> 
+> The OMAP3 ISP pads lines to multiples of 32 or 64 bytes when reading
+> from/writing to memory. 846 pixels * 2 bytes per pixel is not a multiple of 32
+> bytes, so the line length gets padded to the next multiple, 848 pixels in this
+> case. The information is reported by the bytesperline field of the
+> v4l2_pix_format structure returned by VIDIOC_G_FMT and VIDIOC_S_FMT
+> on the
+> preview engine output video node. You need to take the padding into
+> account in
+> your application, that should solve your issue. raw2rgbpnm tries to detect
+> padding at the end of lines, and skips it automatically.
 
-diff --git a/drivers/media/common/tuners/tuner-xc2028.c b/drivers/media/common/tuners/tuner-xc2028.c
-index 9e60285..ea0550e 100644
---- a/drivers/media/common/tuners/tuner-xc2028.c
-+++ b/drivers/media/common/tuners/tuner-xc2028.c
-@@ -978,7 +978,7 @@ static int xc2028_get_afc(struct dvb_frontend *fe, s32 *afc)
- 	/* Get AFC */
- 	rc = xc2028_get_reg(priv, XREG_FREQ_ERROR, &afc_reg);
- 	if (rc < 0)
--		return rc;
-+		goto ret;
- 
- 	*afc = afc_reg * 15625; /* Hz */
- 
+Thanks for your fast answer and the explanation!
+So you're saying that yavta doesn't check that the image is coming from the previewer-output and has maybe a padding? So yavta needs a patch to extend the line width when not aligned on 32 bytes or strip out the padding?
+
+>> If you look in the isp-datasheet [7] in table 6-40 (page
+>> 1201) you see, that the CFA interpolation block for bayer-mode crops 4
+>> px per line and 4 lines. So shouldn't we respect this in the
+>> preview_config_input_size function? My RFC is:
+>> 
+>> Index: git/drivers/media/video/omap3isp/isppreview.c
+>> 
+>> =========================================================
+>> --- git.orig/drivers/media/video/omap3isp/isppreview.c	2012-07-05
+>> 10:59:33.675358396 +0200 +++
+>> git/drivers/media/video/omap3isp/isppreview.c	2012-07-05
+>> 12:14:33.723223514 +0200 @@ -1140,6 +1140,12 @@
+>>  	} 	if (features & (OMAP3ISP_PREV_CHROMA_SUPP |
+>>  OMAP3ISP_PREV_LUMAENH)) 		sph -= 2;
+>> +	if (features & OMAP3ISP_PREV_CFA) {
+>> +		sph -= 2;
+>> +		eph += 2;
+>> +		slv -= 2;
+>> +		elv += 2;
+>> +	}
+>> 
+>>  	isp_reg_writel(isp, (sph << ISPPRV_HORZ_INFO_SPH_SHIFT) | eph,
+>>  		       OMAP3_ISP_IOMEM_PREV, ISPPRV_HORZ_INFO);
+>> =========================================================
+>> NOTE: This still gives an unusable picture at the previewer output BUT if I
+>> extend the pipeline to the resizer output, the picture is good. So I must
+>> be missing something...
+
+After reading your explanation about the padding, I understand why the image is broken on the previewer out. But if I configure the pipeline to output on the resizer-out, the image is still broken (without my patch). I used a resolution of 800x600 for the resizer-out, so the alignment should be fine:
+
+# media-ctl -v -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3 ISP resizer output": 0[1]' 
+# media-ctl -v -f '"mt9p031 2-0048":0 [SGRBG12 800x600], "OMAP3 ISP CCDC":2 [SGRBG10 800x600], "OMAP3 ISP preview":1 [UYVY 800x600], "OMAP3 ISP resizer":1 [UYVY 800x600]' 
+# yavta -f UYVY -s 800x600 -n 8 --skip 3 --capture=1000 --stdout /dev/video6 | mplayer - -demuxer rawvideo -rawvideo w=800:h=600:format=uyvy -vo fbdev
+
+Does my patch just output a good picture by chance, or is there really an issue?
+
+-- 
+Best regards,
+Florian Neuhaus
+
+
