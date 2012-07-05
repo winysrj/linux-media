@@ -1,109 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:44212 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753460Ab2GYAPb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jul 2012 20:15:31 -0400
-Received: by weyx8 with SMTP id x8so106551wey.19
-        for <linux-media@vger.kernel.org>; Tue, 24 Jul 2012 17:15:30 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44068 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755430Ab2GEKni (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 06:43:38 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>
+Subject: Re: omap3isp: cropping bug in previewer?
+Date: Thu, 05 Jul 2012 12:43:41 +0200
+Message-ID: <1371650.7y1cE3s6ZE@avalon>
+In-Reply-To: <B21EB8416BB7744FAB36AEE2627158CD0119103FEC61@REBITSERVER.rebit.local>
+References: <B21EB8416BB7744FAB36AEE2627158CD0119103FEC61@REBITSERVER.rebit.local>
 MIME-Version: 1.0
-In-Reply-To: <CAOcJUbzXoLx10o8oprxPM1TELFxyGE7_wodcWsBr8MX4OR0N_w@mail.gmail.com>
-References: <500C5B9B.8000303@iki.fi>
-	<CAOcJUbw-8zG-j7YobgKy7k5vp-k_trkaB5fYGz605KdUQHKTGQ@mail.gmail.com>
-	<500F1DC5.1000608@iki.fi>
-	<CAOcJUbzXoLx10o8oprxPM1TELFxyGE7_wodcWsBr8MX4OR0N_w@mail.gmail.com>
-Date: Tue, 24 Jul 2012 20:15:30 -0400
-Message-ID: <CAOcJUbzJjBBMcLmeaOCsJRz44KVPqZ_sGctG8+ai=n1W+9P9xA@mail.gmail.com>
-Subject: Re: tda18271 driver power consumption
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 24, 2012 at 6:17 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> On Tue, Jul 24, 2012 at 6:12 PM, Antti Palosaari <crope@iki.fi> wrote:
->> On 07/25/2012 12:55 AM, Michael Krufky wrote:
->>>
->>> On Sun, Jul 22, 2012 at 3:59 PM, Antti Palosaari <crope@iki.fi> wrote:
->>>>
->>>> Moi Michael,
->>>> I just realized tda18271 driver eats 160mA too much current after attach.
->>>> This means, there is power management bug.
->>>>
->>>> When I plug my nanoStick it eats total 240mA, after tda18271 sleep is
->>>> called
->>>> it eats only 80mA total which is reasonable. If I use Digital Devices
->>>> tda18271c2dd driver it is total 110mA after attach, which is also quite
->>>> OK.
->>>
->>>
->>> Thanks for the report -- I will take a look at it.
->>>
->>> ...patches are welcome, of course :-)
->>
->>
->> I suspect it does some tweaking on attach() and chip leaves powered (I saw
->> demod debugs at calls I2C-gate control quite many times thus this
->> suspicion). When chip is powered-up it is usually in some sleep state by
->> default. Also, on attach() there should be no I/O unless very good reason.
->> For example chip ID is allowed to read and download firmware in case it is
->> really needed to continue - like for tuner communication.
->>
->>
->> What I found quickly testing few DVB USB sticks there seems to be very much
->> power management problems... I am now waiting for new multimeter in order to
->> make better measurements and likely return fixing these issues later.
->
-> The driver does some calibration during attach, some of which is a
-> one-time initialization to determine a temperature differential for
-> tune calculation later on, which can take some time on slower USB
-> buses.  The "fix" for the power usage issue would just be to make sure
-> to sleep the device before exiting the attach() function.
->
-> I'm not looking to remove the calibration from the attach -- this was
-> done on purpose.
->
+Hi Florian,
 
-Antti,
+On Thursday 05 July 2012 12:28:04 Florian Neuhaus wrote:
+> Dear all,
+> I am trying to get a mt9p031 sensor running on a beagleboard-xm with the
+> following configuration:
+> 
+> Hardware:
+> - beagleboard-xm, rev c1
+> - Leopard Imaging cam module LI-5M03 with a mt9p031 5MP sensor
+> 
+> Software:
+> - Angstrom-distro built with bitbake using the setup-scripts from [4]
+> (commit da56a56b690bcc07a50716f1071e90e2b3a4fb47). - own bitbake recipe to
+> build a linux-omap kernel 3.5-rc1 from the tmdlind branch (this source:
+> [5], tag omap-fixes-for-v3.5-rc1) - some patches to update the 3.5-rc1
+> omap3-isp module (not the whole kernel) to the latest omap3isp-sensors-next
+> branch from Laurent Pinchart [1] - yavta with an extension to output data
+> to stdout
+> - mediactl to configure the omap3isp pipeline
+> 
+> Problem:
+> 
+> I configure a pipe with mediactl from OMAP3 ISP CCDC input to the previewer
+> output (see [3] for a detailed log) with an example resolution of 800x600.
+> This resolution is adapted by the omap3isp driver to 846x639 at the
+> previewer output. In my understanding the adjustment of the resolution
+> (from 800x600 to 846x639) is a result of the following process: 1) The
+> closest possible windowing of the mt9p031 sensor is 864x648. 2) The
+> ccdc-source pad crops the height by one line (see function ccdc_try_format
+> in ispccdc.c) - we are now on 864x647 3) The previewer (isppreview.c) crops
+> a left margin of 8px and a right margin of 6px (see the PREV_MARGIN_*
+> defines) plus 4px if the input is from ccdc (see preview_try_crop) - we are
+> now on 846x639. As there are no filters activated, the input size will not
+> be modified by the preview_config_input_size function.
+> 
+> When I now capture a frame with yavta (see [3] for details), I must use
+> 846x639 as frame size (as this size is reported by the driver). But it
+> seems that the outputted image is 2px wider (that means 848x639). This
+> results in a "scrambled"/unusable image on screen when streaming (see [6]
+> bad-frame-846x639_on_display.bmp for an example how it looks like on
+> screen). Also the file size too big for a 846x639 image: The frame size is
+> 1083744 bytes, which is exactly 848*639*2 (NOT 846*639*2)!
 
-After looking again, I realize that we are purposefully not sleeping
-the device before we exit the attach() function.
+The OMAP3 ISP pads lines to multiples of 32 or 64 bytes when reading 
+from/writing to memory. 846 pixels * 2 bytes per pixel is not a multiple of 32 
+bytes, so the line length gets padded to the next multiple, 848 pixels in this 
+case. The information is reported by the bytesperline field of the 
+v4l2_pix_format structure returned by VIDIOC_G_FMT and VIDIOC_S_FMT on the 
+preview engine output video node. You need to take the padding into account in 
+your application, that should solve your issue. raw2rgbpnm tries to detect 
+padding at the end of lines, and skips it automatically.
 
-The tda18271 is commonly found in multi-chip designs that may or may
-not include an analog demodulator and / or other tda18271 tuners.  In
-such designs, the chips tend to be daisy-chained to each other, using
-the xtal output and loop-thru features of the tda18271.  We set the
-required features in the attach-time configuration structure.
-However, we must keep in mind that this is a hybrid tuner chip, and
-the analog side of the bridge driver may actually come up before the
-digital side.  Since the actual configuration tends to be done in the
-digital bring-up, the analog side is brought up within tuner.ko using
-the most generic one-size-fits all configuration, which gets
-overridden when the digital side initializes.
+> Then I transformed the "bad" yuv-picture with raw2rgbpnm which gives me a
+> good picture with both frame-sizes (see bad-frame-846x639.pnm and
+> bad-frame-848x639_on_display.bmp in [6]). So the picture-information seems
+> to be good, but I guess that the input-size is configured badly by the
+> driver. If you look in the isp-datasheet [7] in table 6-40 (page 1201) you
+> see, that the CFA interpolation block for bayer-mode crops 4 px per line
+> and 4 lines. So shouldn't we respect this in the preview_config_input_size
+> function? My RFC is:
+> 
+> Index: git/drivers/media/video/omap3isp/isppreview.c
+> ===================================================================
+> --- git.orig/drivers/media/video/omap3isp/isppreview.c	2012-07-05
+> 10:59:33.675358396 +0200 +++
+> git/drivers/media/video/omap3isp/isppreview.c	2012-07-05 
+12:14:33.723223514
+> +0200 @@ -1140,6 +1140,12 @@
+>  	}
+>  	if (features & (OMAP3ISP_PREV_CHROMA_SUPP | OMAP3ISP_PREV_LUMAENH))
+>  		sph -= 2;
+> +	if (features & OMAP3ISP_PREV_CFA) {
+> +		sph -= 2;
+> +		eph += 2;
+> +		slv -= 2;
+> +		elv += 2;
+> +	}
+> 
+>  	isp_reg_writel(isp, (sph << ISPPRV_HORZ_INFO_SPH_SHIFT) | eph,
+>  		       OMAP3_ISP_IOMEM_PREV, ISPPRV_HORZ_INFO);
+> ===================================================================
+> NOTE: This still gives an unusable picture at the previewer output BUT if I
+> extend the pipeline to the resizer output, the picture is good. So I must
+> be missing something...
+> 
+> It would be nice, if someone could tell me, if my assumptions are right and
+> point me the right direction.
+> 
+> Further information:
+> - Bootup dmesg: [2]
+> - Configuration of the pipe with mediactl, capturing of an image with yavta
+> and analyze of the image with raw2rgbpnm: [3]
+> 
+> [1]
+> http://git.linuxtv.org/pinchartl/media.git/commit/019214973ee4f03c8f2d58246
+> 8b914fcf3385089 [2] http://pastebin.com/7PQnzcmx
+> [3] http://pastebin.com/ChEaYHMy
+> [4] https://github.com/Angstrom-distribution/setup-scripts
+> [5] git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
+> [6] https://www.dropbox.com/sh/p2fy5u4i71c3vy8/Fyya25YqK-
+> [7] http://www.ti.com/lit/ug/sprugn4q/sprugn4q.pdf
 
-It is absolutely crucial that if we actually need the xtal output
-feature enabled, that it must *never* be turned off, otherwise the i2c
-bus may get wedged unrecoverably.  So, we make sure to leave this
-feature enabled during the attach function, since we don't yet know at
-that point whether there is another "instance" of this same tuner yet
-to be initialized.  It is not safe to power off that feature until
-after we are sure that the bridge has completely initialized.
-
-In order to rectify this issue from within your driver, you should
-call sleep after you complete the attach.  For instance, this is what
-we do in the cx23885 driver:
-
-if (fe0->dvb.frontend->ops.analog_ops.standby)
-                 fe0->dvb.frontend->ops.analog_ops.standby(fe0->dvb.frontend);
-
-
-...except you should call into the tuner_ops->sleep() function instead
-of analog_demod_ops->standby()
-
-Does this clear things up for you?
-
+-- 
 Regards,
 
-Mike Krufky
+Laurent Pinchart
+
