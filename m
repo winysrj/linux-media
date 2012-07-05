@@ -1,80 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:63772 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750944Ab2GTOEX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jul 2012 10:04:23 -0400
-Received: by yhmm54 with SMTP id m54so3981736yhm.19
-        for <linux-media@vger.kernel.org>; Fri, 20 Jul 2012 07:04:23 -0700 (PDT)
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>
-Subject: [PATCH] davinci: vpbe: add build infrastructure for VPBE on dm365 and dm355
-Date: Fri, 20 Jul 2012 19:34:12 +0530
-Message-Id: <1342793052-16481-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60436 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751025Ab2GEUiq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 16:38:46 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH v2 4/9] ov772x: Don't access the device in the g_mbus_fmt operation
+Date: Thu,  5 Jul 2012 22:38:43 +0200
+Message-Id: <1341520728-2707-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1341520728-2707-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1341520728-2707-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Manjunath Hadli <manjunath.hadli@ti.com>
+The g_mbus_fmt operation only needs to return the current mbus frame
+format and doesn't need to configure the hardware to do so. Fix it to
+avoid requiring the chip to be powered on when calling the operation.
 
-add Kconfig and Makefile changes to build VPBE display
-driver on dm365 and dm355 along with dm644x.
-
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/video/davinci/Kconfig  |   12 ++++++------
- drivers/media/video/davinci/Makefile |    2 +-
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/media/video/ov772x.c |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/video/davinci/Kconfig b/drivers/media/video/davinci/Kconfig
-index 9337b56..7fd125d 100644
---- a/drivers/media/video/davinci/Kconfig
-+++ b/drivers/media/video/davinci/Kconfig
-@@ -93,13 +93,13 @@ config VIDEO_ISIF
- 	   To compile this driver as a module, choose M here: the
- 	   module will be called vpfe.
+diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
+index 74e77d3..6d79b89 100644
+--- a/drivers/media/video/ov772x.c
++++ b/drivers/media/video/ov772x.c
+@@ -880,15 +880,11 @@ static int ov772x_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
+ static int ov772x_g_fmt(struct v4l2_subdev *sd,
+ 			struct v4l2_mbus_framefmt *mf)
+ {
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
  
--config VIDEO_DM644X_VPBE
--	tristate "DM644X VPBE HW module"
--	depends on ARCH_DAVINCI_DM644x
-+config VIDEO_DAVINCI_VPBE
-+	tristate "DAVINCI VPBE HW module"
-+	depends on ARCH_DAVINCI_DM644x || ARCH_DAVINCI_DM365 || ARCH_DAVINCI_DM355
- 	select VIDEO_VPSS_SYSTEM
- 	select VIDEOBUF_DMA_CONTIG
- 	help
--	    Enables VPBE modules used for display on a DM644x
-+	    Enables VPBE modules used for display on a DM644x, DM365, DM355
- 	    SoC.
+ 	if (!priv->win || !priv->cfmt) {
+-		u32 width = VGA_WIDTH, height = VGA_HEIGHT;
+-		int ret = ov772x_set_params(client, &width, &height,
+-					    V4L2_MBUS_FMT_YUYV8_2X8);
+-		if (ret < 0)
+-			return ret;
++		priv->cfmt = &ov772x_cfmts[0];
++		priv->win = ov772x_select_win(VGA_WIDTH, VGA_HEIGHT);
+ 	}
  
- 	    To compile this driver as a module, choose M here: the
-@@ -108,10 +108,10 @@ config VIDEO_DM644X_VPBE
- 
- config VIDEO_VPBE_DISPLAY
- 	tristate "VPBE V4L2 Display driver"
--	depends on ARCH_DAVINCI_DM644x
-+	depends on ARCH_DAVINCI_DM644x || ARCH_DAVINCI_DM365 || ARCH_DAVINCI_DM355
- 	select VIDEO_DM644X_VPBE
- 	help
--	    Enables VPBE V4L2 Display driver on a DM644x device
-+	    Enables VPBE V4L2 Display driver on a DM644x, DM365, DM355 device
- 
- 	    To compile this driver as a module, choose M here: the
- 	    module will be called vpbe_display.
-diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
-index ae7dafb..3057822 100644
---- a/drivers/media/video/davinci/Makefile
-+++ b/drivers/media/video/davinci/Makefile
-@@ -16,5 +16,5 @@ obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
- obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
- obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
- obj-$(CONFIG_VIDEO_ISIF) += isif.o
--obj-$(CONFIG_VIDEO_DM644X_VPBE) += vpbe.o vpbe_osd.o vpbe_venc.o
-+obj-$(CONFIG_VIDEO_DAVINCI_VPBE) += vpbe.o vpbe_osd.o vpbe_venc.o
- obj-$(CONFIG_VIDEO_VPBE_DISPLAY) += vpbe_display.o
+ 	mf->width	= priv->win->width;
 -- 
-1.7.4.1
+1.7.8.6
 
