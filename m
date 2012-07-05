@@ -1,63 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:11349 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752445Ab2G3QNY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jul 2012 12:13:24 -0400
-Message-ID: <5016B29F.4080605@redhat.com>
-Date: Mon, 30 Jul 2012 13:13:19 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:45338 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755626Ab2GERWt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 13:22:49 -0400
+Received: by ghrr11 with SMTP id r11so7655027ghr.19
+        for <linux-media@vger.kernel.org>; Thu, 05 Jul 2012 10:22:48 -0700 (PDT)
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Toralf_F=F6rster?= <toralf.foerster@gmx.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: set default protocol for  TerraTec Cinergy XXS  to "nec"
-References: <50047814.20701@gmx.de>
-In-Reply-To: <50047814.20701@gmx.de>
+In-Reply-To: <CALF0-+XzNOiM+TA3rzY2NGSyXgFL8SuVU_yP0GTpcFMavQmNSg@mail.gmail.com>
+References: <1339509222-2714-1-git-send-email-elezegarcia@gmail.com>
+	<1339509222-2714-2-git-send-email-elezegarcia@gmail.com>
+	<4FF5C77C.7030500@redhat.com>
+	<CALF0-+XzNOiM+TA3rzY2NGSyXgFL8SuVU_yP0GTpcFMavQmNSg@mail.gmail.com>
+Date: Thu, 5 Jul 2012 14:22:47 -0300
+Message-ID: <CALF0-+X3=8kcyz30cqYAH7nunEZyKpvkq0gh70_TB-r-jbutig@mail.gmail.com>
+Subject: Re: [PATCH] em28xx: Remove useless runtime->private_data usage
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 16-07-2012 17:22, Toralf Förster escreveu:
-> For a TerraTec Cinergy XXS USB stick (Bus 001 Device 008: ID 0ccd:00ab TerraTec Electronic GmbH )
-> I've to switch the protocol every time after plugin to get (at least few) keys working :
-> 
-> $> sudo ir-keytable --protocol=nec --sysdev=`ir-keytable 2>&1 | head -n 1 | cut -f5 -d'/'`
-> 
-> /me wonders whether "nec" should be set as the default for this key in kernel or not
+Hi Mauro,
 
-It makes sense to patch it to use the nec protocol. If not all keys are working, it also makes
-sense to fix the kernel table to handle all codes, or to point to a new table where all
-Terratec keys are defined.
+On Thu, Jul 5, 2012 at 1:57 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
 
-Could you please write such patch?
+>>
+>>       snd_pcm_hw_constraint_integer(runtime, SNDRV_PCM_HW_PARAM_PERIODS);
+>>       dev->adev.capture_pcm_substream = substream;
+>> -     runtime->private_data = dev;
+>
+>
+> Are you sure that this can be removed? I think this is used internally
+> by the alsa API, but maybe something has changed and this is not
+> required anymore.
 
-Thank you!
-Mauro
+Yes, I'm sure.
 
-> 
-> 
->  From the syslog :
-> 2012-07-16T22:12:53.357+02:00 n22 kernel: usb 1-1: new high-speed USB device number 7 using ehci_hcd
-> 2012-07-16T22:12:53.460+02:00 n22 kernel: ehci_hcd 0000:00:1a.7: dma_pool_free ehci_qh, f60cd4e0/fffff4e0 (bad dma)
-> 2012-07-16T22:12:53.471+02:00 n22 kernel: usb 1-1: New USB device found, idVendor=0ccd, idProduct=00ab
-> 2012-07-16T22:12:53.471+02:00 n22 kernel: usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-> 2012-07-16T22:12:53.471+02:00 n22 kernel: usb 1-1: Product: Cinergy T XXS
-> 2012-07-16T22:12:53.471+02:00 n22 kernel: usb 1-1: Manufacturer: TerraTec GmbH
-> 2012-07-16T22:12:53.471+02:00 n22 kernel: usb 1-1: SerialNumber: 0000000001
-> 2012-07-16T22:12:53.639+02:00 n22 kernel: dvb-usb: found a 'Terratec Cinergy T USB XXS (HD)/ T3' in cold state, will try to load a firmware
-> 2012-07-16T22:12:53.650+02:00 n22 kernel: dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
-> 2012-07-16T22:12:53.854+02:00 n22 kernel: dib0700: firmware started successfully.
-> 2012-07-16T22:12:54.355+02:00 n22 kernel: dvb-usb: found a 'Terratec Cinergy T USB XXS (HD)/ T3' in warm state.
-> 2012-07-16T22:12:54.355+02:00 n22 kernel: dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-> 2012-07-16T22:12:54.355+02:00 n22 kernel: DVB: registering new adapter (Terratec Cinergy T USB XXS (HD)/ T3)
-> 2012-07-16T22:12:54.560+02:00 n22 kernel: DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
-> 2012-07-16T22:12:54.763+02:00 n22 kernel: DiB0070: successfully identified
-> 2012-07-16T22:12:54.801+02:00 n22 kernel: Registered IR keymap rc-dib0700-rc5
-> 2012-07-16T22:12:54.801+02:00 n22 kernel: input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1a.7/usb1/1-1/rc/rc0/input15
-> 2012-07-16T22:12:54.801+02:00 n22 kernel: rc0: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1a.7/usb1/1-1/rc/rc0
-> 2012-07-16T22:12:54.801+02:00 n22 kernel: dvb-usb: schedule remote query interval to 50 msecs.
-> 2012-07-16T22:12:54.801+02:00 n22 kernel: dvb-usb: Terratec Cinergy T USB XXS (HD)/ T3 successfully initialized and connected.
-> 2012-07-16T22:12:54.801+02:00 n22 kernel: usbcore: registered new interface driver dvb_usb_dib0700
-> 2012-07-16T22:12:55.000+02:00 n22 sudo: tfoerste : TTY=pts/2 ; PWD=/home/tfoerste/tmp ; USER=root ; COMMAND=/usr/bin/ir-keytable --protocol=nec --sysdev=rc0
-> 
+>
+> Had you test em28xx audio with this change?
 
+No, I did not test it.
+
+To make this patch, I've considered two things:
+
+1. Alsa documentation [1]
+This is from chapter 5, "Private Data" section.
+
+---
+You can allocate a record for the substream and store it in
+runtime->private_data. Usually, this is done in the open callback.
+Don't mix this with pcm->private_data. The pcm->private_data usually
+points to the chip instance assigned statically at the creation of
+PCM, while the runtime->private_data points to a dynamic data
+structure created at the PCM open callback.
+
+  static int snd_xxx_open(struct snd_pcm_substream *substream)
+  {
+          struct my_pcm_data *data;
+          ....
+          data = kmalloc(sizeof(*data), GFP_KERNEL);
+          substream->runtime->private_data = data;
+          ....
+  }
+---
+
+I think the part "Don't mix this with pcm->private_data", is the one
+related to this case.
+Also, what alsa documentation calls "chip instance" is our em28xx
+device structure.
+
+2. Regular kernel practice:
+Normally, private_data fields are suppose to be (private) data the
+driver author wants
+the core subsystem to pass him as callback parameter. The core
+subsystem is not supposed
+to use it in anyway (he wouldn't know how).
+So, if you don't use it anywhere else in your code, it's safe to remove it.
+
+If still in doubt, just don't apply it.
+
+I'm not really concerned about one extra line,
+rather about drivers doing unnecessary stuff,
+and then others take these drivers as example
+and spread the bloatness all over the place, so to speak.
+
+[1] http://www.alsa-project.org/~tiwai/writing-an-alsa-driver/ch05s05.html
