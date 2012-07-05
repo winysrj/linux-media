@@ -1,77 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:55187 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756593Ab2GKSIF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jul 2012 14:08:05 -0400
-Received: by gglu4 with SMTP id u4so1528876ggl.19
-        for <linux-media@vger.kernel.org>; Wed, 11 Jul 2012 11:08:04 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:5339 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752879Ab2GEVlc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Jul 2012 17:41:32 -0400
+Message-ID: <4FF60A00.4000802@redhat.com>
+Date: Thu, 05 Jul 2012 18:41:20 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Reply-To: martin-eric.racine@iki.fi
-In-Reply-To: <20120711191835.1be1c8ef@armhf>
-References: <20120614162609.4613.22122.reportbug@henna.lan>
-	<20120616044137.GB4076@burratino>
-	<1339932233.20497.14.camel@henna.lan>
-	<CAPZXPQegp7RA5M0H9Ofq4rJ9aj-rEdg=Ly9_1c6vAKi3COw50g@mail.gmail.com>
-	<4FF9CA30.9050105@redhat.com>
-	<CAPZXPQd026xfKrAU0D7CLQGbdAs8U01u5vsHp+5-wbVofAwdqQ@mail.gmail.com>
-	<4FFAD8D9.8070203@redhat.com>
-	<20120709203929.GC17301@burratino>
-	<CAPZXPQcaEzW1zGXfGwp-JuOrfBu2xhoidaYjthD8jhYAFpWr7A@mail.gmail.com>
-	<20120710163645.04fb0af0@armhf>
-	<CAPZXPQehjGRDZ=rXWjGFPQvRqOMzRpeA2dpoSWc3XwuUkvvesg@mail.gmail.com>
-	<20120711100436.2305b098@armhf>
-	<CAPZXPQdJC5yCYY6YRzuKj-ukFLzbY_yUzbogzbDx1S0bL1GrgQ@mail.gmail.com>
-	<20120711124441.346a86b3@armhf>
-	<CAPZXPQcvGqPjeyZh=vHtbSOoA91Htsg6DeyYyhYLeDgay8GSBg@mail.gmail.com>
-	<20120711132739.6b527a27@armhf>
-	<CAPZXPQeDKLAu13Qs-MhhxJEBrF-5620HNZDmPiH+4NRmkxx3Ag@mail.gmail.com>
-	<4FFD7F48.6060905@redhat.com>
-	<CAPZXPQfMrWySzx9=61WqoZ7zwzw19p69nN6_fuwAHjZVqGLDBw@mail.gmail.com>
-	<20120711191835.1be1c8ef@armhf>
-Date: Wed, 11 Jul 2012 21:08:03 +0300
-Message-ID: <CAPZXPQeWC+pKJNLr12y_AybYCCKZr6ayBAa=EhaiyfN4iU8g5g@mail.gmail.com>
-Subject: Re: video: USB webcam fails since kernel 3.2
-From: =?UTF-8?Q?Martin=2D=C3=89ric_Racine?= <martin-eric.racine@iki.fi>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Jonathan Nieder <jrnieder@gmail.com>, 677533@bugs.debian.org,
-	linux-media@vger.kernel.org, debian-kernel@lists.debian.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	elezegarcia@gmail.com, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [GIT PULL FOR 3.6] V4L2 API cleanups
+References: <4FD50223.4030501@iki.fi> <4FF5FF3F.6030909@redhat.com> <4FF60566.5070802@iki.fi>
+In-Reply-To: <4FF60566.5070802@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/7/11 Jean-Francois Moine <moinejf@free.fr>:
-> On Wed, 11 Jul 2012 16:43:47 +0300
-> Martin-Éric Racine <martin-eric.racine@iki.fi> wrote:
->
->> > Jean-Francois, can you perhaps make a patch against my latest tree for
->> > the poXXXX / PO3130 changes in your tarbal?
+Em 05-07-2012 18:21, Sakari Ailus escreveu:
+> Hi Mauro,
+> 
+> Mauro Carvalho Chehab wrote:
+>> Em 10-06-2012 17:22, Sakari Ailus escreveu:
+>>> Hi Mauro,
+>>>
+>>> Here are two V4L2 API cleanup patches; the first removes __user from
+>>> videodev2.h from a few places, making it possible to use the header file
+>>> as such in user space, while the second one changes the
+>>> v4l2_buffer.input field back to reserved.
+>>>
+>>>
+>>> The following changes since commit 5472d3f17845c4398c6a510b46855820920c2181:
+>>>
+>>>     [media] mt9m032: Implement V4L2_CID_PIXEL_RATE control (2012-05-24
+>>> 09:27:24 -0300)
+>>>
+>>> are available in the git repository at:
+>>>     ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.6
+>>>
+>>> Sakari Ailus (2):
+>>>         v4l: Remove __user from interface structure definitions
 >>
->> Noted.  Hopefully, the Debian kernel team can contribute to the
->> backporting part, since it's needed for the upcoming stable release.
->
-> I had many problems with the vc032x driver, and the source code is very
-> different from the code in the official kernels.
->
-> As I have no webcam, Martin-Éric, may I ask you to test the backport
-> I will do? It will be done only in the vc032x driver, so you could keep
-> the working gspca_vc032x.ko file you have and restore it between the
-> tests. I still lack the sensor type of your webcam. May you send me the
-> result of:
->
->         dmesg | fgrep gspca
+>>>         v4l: drop v4l2_buffer.input and V4L2_BUF_FLAG_INPUT
+>>
+>> Indeed, no drivers use V4L2_BUF_FLAG_INPUT, although I think this should be
+>> used there, for some devices.
+>>
+>> There are several surveillance boards (mostly bttv boards, but there are
+>> also cx88 and saa7134 models in the market) where the same chip is used
+>> by up to 4 cameras. What software does is to switch the video input
+>> to sample one of those cameras on a given frequency (1/60Hz or 1/30Hz),
+>> in order to collect the streams for the 4 cameras.
+>>
+>> Without an input field there at the buffer metadata, it might happen that
+>> software would look into the wrong input.
+>>
+>> That's said, considering that:
+>>
+>> 1) no driver is currently filling buffer queue with its "inputs" field,
+>>     this flag is not used anywhere;
+>>
+>> 2) an implementation for input switch currently requires userspace to tell
+>>     Kernel to switch to the next input, with is racy;
+>>
+>> 3) a model where the Kernel itself would switch to the next input would
+>>     require some Kernelspace changes.
+>>
+>> I agree that we can just remove this bad implementation. If latter needed,
+>> we'll need to not only reapply this patch but also to add a better way to
+>> allow time-sharing the same video sampler with multiple inputs.
+>>
+>> So, I'll apply this patch.
+> 
+> Thanks!
+> 
+> There was a discussion between Ezequiel and Hans that in my understanding led to a conclusion there's no such use case, at least one which would be properly supported by the hardware. (Please correct me if I'm mistaken.)
+> 
+> <URL:http://www.spinics.net/lists/linux-media/msg48474.html>
+> 
+> So if we ever get such hardware then we could start rethinking it. :-)
 
-[   11.834852] gspca_main: v2.15.18 registered
-[   11.844262] gspca_main: vc032x-2.15.18 probing 0ac8:0321
-[   11.844682] gspca_vc032x: vc0321 check sensor header 2c
-[   11.850304] gspca_vc032x: Sensor ID 3130 (0)
-[   11.850309] gspca_vc032x: Find Sensor PO3130NC
-[   11.851809] gspca_main: video0 created
+This use case exists and I've seen several embedded surveillance systems
+doing the right thing there (didn't look inside the source code),
+but I suspect that there's a lack of open-source applications over there
+and perhaps this used to be working with V4L1 API.
 
-Backport would be needed against 3.2.21 as this is what Debian will
-(probably) release with.
+Once I got one of such hardware borrowed and I noticed the issue, but I
+didn't manage to get more than one camera in order to properly address it
+there.
 
-Cheers!
-Martin-Éric
+It probably makes sense to have one set of video buffers per input, and let
+the Kernel to do switch the buffer per input, but doing that is not trivial
+with the V4L2 API.
+
+Another alternative would be to add an ioctl that would allow userspace to
+tell what inputs should be multiplexed, and then use the current way.
+
+Doing input switching everytime switching is bad, as the framerate per
+input will reduce. Also, input switching may generate artifacts, so
+drivers need to be aware of that and do the switching during the vertical
+retrace time.
+
+Anyway, let's discuss it the next time someone come up with this issue, and
+have some hardware with multiple cameras per input to test it.
+
+Regards,
+Mauro
