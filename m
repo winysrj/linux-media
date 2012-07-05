@@ -1,81 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from haggis.pcug.org.au ([203.10.76.10]:41644 "EHLO
-	members.tip.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750832Ab2GQHgD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Jul 2012 03:36:03 -0400
-Date: Tue, 17 Jul 2012 17:35:53 +1000
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Ming Lei <ming.lei@canonical.com>,
-	Randy Dunlap <rdunlap@xenotime.net>,
-	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	"linux-media" <linux-media@vger.kernel.org>
-Subject: Re: linux-next: Tree for July 12 (v4l2-ioctl.c)
-Message-Id: <20120717173553.095663543a67620efe55c9e2@canb.auug.org.au>
-In-Reply-To: <201207170848.37945.hverkuil@xs4all.nl>
-References: <20120712160335.9cbff13c2f18eadc7d3cb0cf@canb.auug.org.au>
-	<4FFEF21A.7050701@xenotime.net>
-	<CACVXFVOy7VGstdotnofq=o_UmFh0KwqH6p25MamwAbLfRgcTRg@mail.gmail.com>
-	<201207170848.37945.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA256";
- boundary="Signature=_Tue__17_Jul_2012_17_35_53_+1000_ZiYuRUdTjxeI0Qnm"
+Received: from mail.kapsi.fi ([217.30.184.167]:58745 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753808Ab2GEPJk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Jul 2012 11:09:40 -0400
+Message-ID: <4FF5AE2D.7040309@iki.fi>
+Date: Thu, 05 Jul 2012 18:09:33 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	hverkuil@xs4all.nl
+Subject: Re: [PATCH 4/4] radio-si470x: Lower firmware version requirements
+References: <1339681394-11348-1-git-send-email-hdegoede@redhat.com> <1339681394-11348-4-git-send-email-hdegoede@redhat.com> <4FF45FF7.4020300@iki.fi> <4FF5515A.1030704@redhat.com> <4FF5980F.8030109@iki.fi> <4FF59995.4010604@redhat.com> <4FF5A119.6020903@iki.fi> <4FF5ADE3.5040600@redhat.com>
+In-Reply-To: <4FF5ADE3.5040600@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Signature=_Tue__17_Jul_2012_17_35_53_+1000_ZiYuRUdTjxeI0Qnm
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi all,
-
-On Tue, 17 Jul 2012 08:48:37 +0200 Hans Verkuil <hverkuil@xs4all.nl> wrote:
+On 07/05/2012 06:08 PM, Hans de Goede wrote:
+> Hi,
 >
-> On Tue July 17 2012 04:25:35 Ming Lei wrote:
-> > On Thu, Jul 12, 2012 at 11:49 PM, Randy Dunlap <rdunlap@xenotime.net> w=
-rote:
-> > >
-> > > on i386 and/or x86_64, drivers/media/video/v4l2-ioctl.c has too many
-> > > errors to be listed here.  This is the beginning few lines of the err=
-ors:
-> >=20
-> > I see the errors on ARM too.
->=20
-> A fix can be found here:
->=20
-> http://patchwork.linuxtv.org/patch/13336/
+> On 07/05/2012 04:13 PM, Antti Palosaari wrote:
+>> On 07/05/2012 04:41 PM, Hans de Goede wrote:
+>>> Hi,
+>>>
+>>> On 07/05/2012 03:35 PM, Antti Palosaari wrote:
+>>>
+>>> <snip>
+>>>
+>>>>> I believe you're doing something wrong ...
+>>>>>
+>>>>>> I compiled radio from http://git.linuxtv.org/xawtv3.git to tune and
+>>>>>  > "arecord  -r96000 -c2 -f S16_LE | aplay - " to play sound. Just
+>>>>> silent white noise is heard.
+>>>>>
+>>>>> You're not specifying which device arecord should record from so
+>>>>> likely
+>>>>> it is taking
+>>>>> the default input of your soundcard (line/mic in), rather then
+>>>>> recording
+>>>>> from the
+>>>>> radio device.
+>>>>
+>>>> I tried to define hw:1,0 etc. but only hw:0,0 exists.
+>>>>
+>>>>> Note the latest radio from http://git.linuxtv.org/xawtv3.git will
+>>>>> do the
+>>>>> digital loopback of
+>>>>> the sound itself, so try things again with running arecord / aplay, if
+>>>>> you then start radio
+>>>>> and exit again (so that you can see its startup messages) you
+>>>>> should see
+>>>>> something like this:
+>>>>>
+>>>>> "Using alsa loopback: cap: hw:1,0 (/dev/radio0), out: default"
+>>>>>
+>>>>> Note radio will automatically select the correct alsa device to record
+>>>>> from for the radio-usb-stick.
+>>>>
+>>>> For some reason I don't see that happening.
+>>>
+>>> Hmm, so it seems that for some reason alsa is not working with the usb
+>>> "sound-card" part of the usb-stick. Can you try doing:
+>>>
+>>> ls /dev/snd/
+>>>
+>>> Before and after plugging in the device, you should get a new
+>>> PCMC?D0c device there.
+>>
+>> Two files appears, controlC2 and pcmC2D0c.
+>>
+>>> Otherwise see if you can enable some debugging options for snd-usb-audio
+>>> and find out why it is not liking your device (and maybe at a quirk for
+>>> it somewhere) ? If you do end up adding a quirk please let me know
+>>> and I'll test with mine to ensure the quirck does not break working
+>>> versions :)
+>>
+>> And now I can hear the voice too using "arecord -D hw:2,0 -r96000 -c2
+>> -f S16_LE | aplay -".
+>  >
+>  > But loopback is still missing.
+>
+> So if you start radio before starting the arecord, it won't do the
+> loopback for you?
+> Have you compiled xawtv with alsa support? (this requires the libalsa
+> headers to be installed)
 
-And I have been applying that fix to linux-next since next-20120713 -
-though Mauro has not applied it to the v4l-dvb tree yet ...
+aah, that explains.
 
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
+compile time options summary
+============================
 
---Signature=_Tue__17_Jul_2012_17_35_53_+1000_ZiYuRUdTjxeI0Qnm
-Content-Type: application/pgp-signature
+     aalib        : no
+     alsa         : no
+     dv           : no
+     QuickTime    : no
+     OpenMotif    : no
+     X11R6        : no
+     OpenGL       : no
+     zvbi         : no
+     libv4l       : yes
+     libexplain   : no
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+regards
+Antti
 
-iQIcBAEBCAAGBQJQBRXZAAoJEECxmPOUX5FEGdEP/2AwWiwtl3RECKWWuJSXJmWD
-OuwKx8UWtKn3TbsrSeB8PNFDtUsnyE4Tz6v2vYEP4xCA/QSqdPOHPLFxaKszjZ9j
-EwCEeLprncW1/JGVvWTvgqIivO+69GDZmB30L0aAuXwxy2xvT8q4QGqWK1e1w2dG
-Jse9HWbAMI7/TKlKuh1VLnxXhmpSwm/qsopHHVtHacPmn0bsPjlSYt/4DUx/Jz2+
-/KGhOf5N4KmmYqWFyfjWOhGei21qdGP6I3N5SCzOIIXaNFOtw55eIK1xFBYlgilI
-Wwc88tUPgdA7GRo+vgSLtnRhQ0JCPx+nN1Bg2gR1UQcPgeCjGjDRtRezBMJwFID+
-UjHvr3KDprt2lXMGqsly2HEcqHfyvIbjoF/26lNXv8FOo8IsLQ6jS6XyT4d4QtkA
-vYvwMu+UQ3PxM10uuelCRlE7lF8vC5n5r5fkgwNS80jOYIVrKf4n6x6jE/WsYCWd
-DkoWuGU7umoGQs3+UJuaZGNrkrSVrvMGSjDJeJe5H9OX8Ketp+hW183MjB/GspHs
-V2OQNYnbjJdO7t73RHN9x0AyCOypUE2ONImaa2dqEoTzEHTSE1YaEwg8pBPSHS88
-BinJ+iY3tJ1zjQkfVTPRRj2YKDAkzeBEiAqUjHGdZonmgo0EYfpYV4nFfAUh72ry
-JWe1fWDXCFnFomVA0avS
-=lpaz
------END PGP SIGNATURE-----
+-- 
+http://palosaari.fi/
 
---Signature=_Tue__17_Jul_2012_17_35_53_+1000_ZiYuRUdTjxeI0Qnm--
+
