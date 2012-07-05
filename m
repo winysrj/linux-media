@@ -1,126 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:47476 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:35130 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751211Ab2GHR5v (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 Jul 2012 13:57:51 -0400
-Message-ID: <4FF9CA30.9050105@redhat.com>
-Date: Sun, 08 Jul 2012 19:58:08 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1752079Ab2GEPye (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Jul 2012 11:54:34 -0400
+Message-ID: <4FF5B8AE.803@redhat.com>
+Date: Thu, 05 Jul 2012 12:54:22 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: martin-eric.racine@iki.fi
-CC: =?UTF-8?B?SmVhbi1GcmFuw6dvaXMgTW9pbmU=?= <moinejf@free.fr>,
-	677533@bugs.debian.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: video: USB webcam fails since kernel 3.2
-References: <20120614162609.4613.22122.reportbug@henna.lan> <20120614215359.GF3537@burratino> <CAPZXPQd9gNCxn7xGyqj_xymPaF5OxvRtxRFkt+SsLs942te4og@mail.gmail.com> <20120616044137.GB4076@burratino> <1339932233.20497.14.camel@henna.lan> <CAPZXPQegp7RA5M0H9Ofq4rJ9aj-rEdg=Ly9_1c6vAKi3COw50g@mail.gmail.com>
-In-Reply-To: <CAPZXPQegp7RA5M0H9Ofq4rJ9aj-rEdg=Ly9_1c6vAKi3COw50g@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+To: Antti Palosaari <crope@iki.fi>
+CC: Thomas Mair <thomas.mair86@googlemail.com>,
+	linux-media@vger.kernel.org, pomidorabelisima@gmail.com
+Subject: Re: [PATCH v5 1/5] rtl2832 ver. 0.5: support for RTL2832 demod
+References: <1> <1337366864-1256-1-git-send-email-thomas.mair86@googlemail.com> <1337366864-1256-2-git-send-email-thomas.mair86@googlemail.com> <4FF5A582.7070908@redhat.com> <4FF5A617.90200@iki.fi>
+In-Reply-To: <4FF5A617.90200@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em 05-07-2012 11:35, Antti Palosaari escreveu:
+> On 07/05/2012 05:32 PM, Mauro Carvalho Chehab wrote:
+>> Em 18-05-2012 15:47, Thomas Mair escreveu:
 
-On 07/08/2012 03:01 PM, Martin-Éric Racine wrote:
-> 2012/6/17 Martin-Éric Racine <martin-eric.racine@iki.fi>:
->> pe, 2012-06-15 kello 23:41 -0500, Jonathan Nieder kirjoitti:
->>> Martin-Ã‰ric Racine wrote:
->>>> usb 1-7: new high-speed USB device number 3 using ehci_hcd
->>> [...]
->>>> usb 1-7: New USB device found, idVendor=0ac8, idProduct=0321
->>>> usb 1-7: New USB device strings: Mfr=1, Product=2, SerialNumber=0
->>>> usb 1-7: Product: USB2.0 Web Camera
->>>> usb 1-7: Manufacturer: Vimicro Corp.
->>> [...]
->>>> Linux media interface: v0.10
->>>> Linux video capture interface: v2.00
->>>> gspca_main: v2.14.0 registered
->>>> gspca_main: vc032x-2.14.0 probing 0ac8:0321
->>>> usbcore: registered new interface driver vc032x
->>>
->>> The device of interest is discovered.
->>>
->>>> gspca_main: ISOC data error: [36] len=0, status=-71
->>>> gspca_main: ISOC data error: [65] len=0, status=-71
->>> [...]
->>>> gspca_main: ISOC data error: [48] len=0, status=-71
->>>> video_source:sr[3246]: segfault at 0 ip   (null) sp ab36de1c error 14 in cheese[8048000+21000]
->>>> gspca_main: ISOC data error: [17] len=0, status=-71
->>>
->>> (The above data error spew starts around t=121 seconds and continues
->>> at a rate of about 15 messages per second.  The segfault is around
->>> t=154.)
+>>> +static const int reg_mask[32] = {
+>>> +    0x00000001,
+>>> +    0x00000003,
+>>> +    0x00000007,
+>>> +    0x0000000f,
+>>> +    0x0000001f,
+>>> +    0x0000003f,
+>>> +    0x0000007f,
+>>> +    0x000000ff,
+>>> +    0x000001ff,
+>>> +    0x000003ff,
+>>> +    0x000007ff,
+>>> +    0x00000fff,
+>>> +    0x00001fff,
+>>> +    0x00003fff,
+>>> +    0x00007fff,
+>>> +    0x0000ffff,
+>>> +    0x0001ffff,
+>>> +    0x0003ffff,
+>>> +    0x0007ffff,
+>>> +    0x000fffff,
+>>> +    0x001fffff,
+>>> +    0x003fffff,
+>>> +    0x007fffff,
+>>> +    0x00ffffff,
+>>> +    0x01ffffff,
+>>> +    0x03ffffff,
+>>> +    0x07ffffff,
+>>> +    0x0fffffff,
+>>> +    0x1fffffff,
+>>> +    0x3fffffff,
+>>> +    0x7fffffff,
+>>> +    0xffffffff
+>>> +};
 >>
->>> The vc032x code hasn't changed since 3.4.1, so please report your
->>> symptoms to Jean-FranÃ§ois Moine <moinejf@free.fr>, cc-ing
->>> linux-media@vger.kernel.org, linux-kernel@vger.kernel.org, and either
->>> me or this bug log so we can track it.  Be sure to mention:
->>>
->>>   - steps to reproduce, expected result, actual result, and how the
->>>     difference indicates a bug (should be simple enough in this case)
+>> It would be better to use a macro here like:
 >>
->> 1. Ensure that user 'myself' is a member of the 'video' group.
->> 2. Launch the webcam application Cheese from the GNOME desktop.
+>> #define REG_MASK(b)    ((1 << ((b) + 1)) -1)
 >>
->> Expected result: Cheese displays whatever this laptop's camera sees.
+>> Even better, you could use the bitops.h BIT() macro:
 >>
->> Actual result: Cheese crashes while attempting to access the camera.
+>> #define REG_MASK(b)    (BIT(b + 1) - 1)
+> 
+> I said also that once for Thomas during review but he didn't changed it :)
+
+As those findings are minor ones, I'll just apply the patch series
+and add a patch replacing reg_mask table by a macro like above.
+
+>>> +static int rtl2832_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
+>>> +{
+>>> +    *strength = 0;
+>>> +    return 0;
+>>> +}
 >>
->>>   - how reproducible the bug is (100%?)
->>
->> 100%
->>
->>>   - which kernel versions you have tested and result with each (what is
->>>     the newest kernel version that worked?)
->>
->> It probably was 3.1.0 or some earlier 3.2 release (the upcoming Debian
->> will release with 3.2.x; 3.4 was only used here for testing purposes),
->> but I wouldn't know for sure since I don't use my webcam too often.
->
-> I finally found time to perform further testing, using kernel packages
-> from snapshots.debian.org, and the last one that positively worked (at
-> least using GNOME's webcam application Cheese) was:
->
-> linux-image-3.1.0-1-686-pae          3.1.8-2
->   Linux 3.1 for modern PCs
->
-> This loaded the following video modules:
->
-> gspca_vc032x
-> gspca_main
-> videodev
-> media
->
-> Tests using 3.2.1-1 or more recent crashed as described before. This
-> at least gives us a time frame for when the regression started.
+>> Why to implement the above, if they're doing nothing?
+> 
+> Other your findings were correct but for that I would like to comment.
+> 
+> Have you ever tested what happens you lest those without stub implementation? IIRC ugly errors are seen for example zap and femon outputs. Some kind of DVB-core changes are needed. And IIRC there was some error code defined too for API - but such code does not exists.
+> 
 
-Hmm, this is then likely caused by the new isoc bandwidth negotiation code
-in 3.2, unfortunately the vc032x driver is one of the few gspca drivers
-for which I don't have a cam to test with. Can you try to build your own
-kernel from source?
-
-Boot into your own kernel, and verify the regression is still there,
-then edit drivers/media/video/gspca/gspca.c and go to the which_bandwidth
-function, and at the beginning of this function add the following line:
-
-return 2000 * 2000 * 120;
-
-Then rebuild and re-install the kernel and try again.
-
-If that helps, remove the added
-return 2000 * 2000 * 120;
-line, and also remove the following lines from which_bandwidth:
-
-         /* if the image is compressed, estimate its mean size */
-         if (!gspca_dev->cam.needs_full_bandwidth &&
-             bandwidth < gspca_dev->cam.cam_mode[i].width *
-                                 gspca_dev->cam.cam_mode[i].height)
-                 bandwidth = bandwidth * 3 / 8;  /* 0.375 */
-
-And try again if things still work this way.
-
-Once you've tested this I can try to write a fix for this.
+I'll keep those stubs for now, but we should really fix the core and not allow/add
+crap things like that.
 
 Regards,
-
-Hans
+Mauro
