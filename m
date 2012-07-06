@@ -1,41 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40600 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751261Ab2GPOdT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jul 2012 10:33:19 -0400
-Received: from avalon.localnet (unknown [91.178.115.48])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id D8E547B0D
-	for <linux-media@vger.kernel.org>; Mon, 16 Jul 2012 16:33:18 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:47661 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757567Ab2GFTXz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 15:23:55 -0400
+Received: by wibhr14 with SMTP id hr14so1171001wib.1
+        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2012 12:23:54 -0700 (PDT)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.6] uvcvideo fixes
-Date: Mon, 16 Jul 2012 16:33:23 +0200
-Message-ID: <6425711.7gs2P3ML9l@avalon>
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 2/5] libdvbv5: Fix set delsys other than current
+Date: Fri,  6 Jul 2012 21:23:09 +0200
+Message-Id: <1341602592-29508-2-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1341602592-29508-1-git-send-email-neolynx@gmail.com>
+References: <1341602592-29508-1-git-send-email-neolynx@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Signed-off-by: André Roth <neolynx@gmail.com>
+---
+ lib/libdvbv5/dvb-fe.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-The following change since commit 931efdf58bd83af8d0578a6cc53421675daf6d41:
-
-  Merge branch 'v4l_for_linus' into staging/for_v3.6 (2012-07-14 15:45:44 -0300)
-
-is available in the git repository at:
-
-  git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-next
-
-Jayakrishnan Memana (1):
-      uvcvideo: Reset the bytesused field when recycling an erroneous buffer
-
- drivers/media/video/uvc/uvc_queue.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
+diff --git a/lib/libdvbv5/dvb-fe.c b/lib/libdvbv5/dvb-fe.c
+index 4fb927a..9b18226 100644
+--- a/lib/libdvbv5/dvb-fe.c
++++ b/lib/libdvbv5/dvb-fe.c
+@@ -392,8 +392,8 @@ int dvb_set_compat_delivery_system(struct dvb_v5_fe_parms *parms,
+ 	for (i = 0; i < parms->num_systems; i++) {
+ 		if (parms->systems[i] == desired_system) {
+ 			dvb_set_sys(parms, desired_system);
++			return 0;
+ 		}
+-		return 0;
+ 	}
+ 
+ 	/*
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.2.5
 
