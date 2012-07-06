@@ -1,72 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:64471 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751115Ab2GEUzi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Jul 2012 16:55:38 -0400
-Message-ID: <4FF5FF3F.6030909@redhat.com>
-Date: Thu, 05 Jul 2012 17:55:27 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from moutng.kundenserver.de ([212.227.17.8]:50007 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751369Ab2GFMi5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 08:38:57 -0400
+Date: Fri, 6 Jul 2012 14:38:53 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: javier Martin <javier.martin@vista-silicon.com>
+cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	fabio.estevam@freescale.com, mchehab@infradead.org,
+	kernel@pengutronix.de
+Subject: Re: [PATCH v3][for_v3.5] media: mx2_camera: Fix mbus format handling
+In-Reply-To: <CACKLOr1RKcwEqt9E90wbf5peB08erb7nOo+KVQ7m87BbsDJhbA@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1207061437470.29809@axis700.grange>
+References: <1338543105-20322-1-git-send-email-javier.martin@vista-silicon.com>
+ <CACKLOr0J1JjpCMRf4toJ5uBMDAFZT8VGdFuX6MpUpxpNaAO_SA@mail.gmail.com>
+ <Pine.LNX.4.64.1207061308300.29809@axis700.grange>
+ <CACKLOr0nwKoO4UL9MKZJmD9WN1uyJhpNzAybd7w7x-GnLtM5cw@mail.gmail.com>
+ <Pine.LNX.4.64.1207061338170.29809@axis700.grange>
+ <CACKLOr1RKcwEqt9E90wbf5peB08erb7nOo+KVQ7m87BbsDJhbA@mail.gmail.com>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR 3.6] V4L2 API cleanups
-References: <4FD50223.4030501@iki.fi>
-In-Reply-To: <4FD50223.4030501@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 10-06-2012 17:22, Sakari Ailus escreveu:
-> Hi Mauro,
+On Fri, 6 Jul 2012, javier Martin wrote:
+
+> Hi Guennadi,
 > 
-> Here are two V4L2 API cleanup patches; the first removes __user from
-> videodev2.h from a few places, making it possible to use the header file
-> as such in user space, while the second one changes the
-> v4l2_buffer.input field back to reserved.
+> On 6 July 2012 13:39, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> > On Fri, 6 Jul 2012, javier Martin wrote:
+> >
+> >> Hi Guennadi,
+> >>
+> >> On 6 July 2012 13:09, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> >> > On Fri, 6 Jul 2012, javier Martin wrote:
+> >> >
+> >> >> Hi,
+> >> >> can this patch be applied please?
+> >> >>
+> >> >> It solves a BUG for 3.5. Guennadi, Fabio, could you give me an ack for this?
+> >> >
+> >> > Sorry? This patch has been applied and proven to break more, than it
+> >> > fixed, so, it has been reverted. Am I missing something?
+> >>
+> >> Patch v1 was the version that broke pass-through mode (which nobody
+> >> seems to be using/testing). It was applied, then it was reverted as
+> >> you requested in [1].
+> >>
+> >> Then I sent v2 that didn't break pass-through but was invalid too
+> >> because of a merge conflict [2].
+> >>
+> >> Finally, this is v3 which has the pass-through problem and the merge
+> >> problem fixed. It is currently marked as "Under review" and should be
+> >> applied as a fix to 3.5.
+> >
+> > Ah, ok, then, don't you think, that expecting your patch to be applied
+> > within 4 minutes of its submission is a bit... overoptimistic? Because
+> > it's 4 minutes after your original patch, that you've sent your
+> > "reminder"...
 > 
+> This patch was sent on '2012-06-01 09:31:45', which is more than a
+> month ago. Look at patchwork:
+> http://patchwork.linuxtv.org/patch/11559/
 > 
-> The following changes since commit 5472d3f17845c4398c6a510b46855820920c2181:
-> 
->    [media] mt9m032: Implement V4L2_CID_PIXEL_RATE control (2012-05-24
-> 09:27:24 -0300)
-> 
-> are available in the git repository at:
->    ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.6
-> 
-> Sakari Ailus (2):
->        v4l: Remove __user from interface structure definitions
+> I think that a month is a reasonable period to send a reminder and I
+> didn't mean to offend anyone with it.
 
->        v4l: drop v4l2_buffer.input and V4L2_BUF_FLAG_INPUT
+Hrm, right, sorry. Must have been blind. I've looked at v3 of your patch, 
+I've got one more question to it, expect a reply in a few minutes.
 
-Indeed, no drivers use V4L2_BUF_FLAG_INPUT, although I think this should be
-used there, for some devices.
-
-There are several surveillance boards (mostly bttv boards, but there are
-also cx88 and saa7134 models in the market) where the same chip is used 
-by up to 4 cameras. What software does is to switch the video input
-to sample one of those cameras on a given frequency (1/60Hz or 1/30Hz),
-in order to collect the streams for the 4 cameras.
-
-Without an input field there at the buffer metadata, it might happen that 
-software would look into the wrong input.
-
-That's said, considering that:
-
-1) no driver is currently filling buffer queue with its "inputs" field,
-   this flag is not used anywhere;
-
-2) an implementation for input switch currently requires userspace to tell
-   Kernel to switch to the next input, with is racy;
-
-3) a model where the Kernel itself would switch to the next input would
-   require some Kernelspace changes.
-
-I agree that we can just remove this bad implementation. If latter needed,
-we'll need to not only reapply this patch but also to add a better way to
-allow time-sharing the same video sampler with multiple inputs.
-
-So, I'll apply this patch.
-
-Regards,
-Mauro
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
