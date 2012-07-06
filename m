@@ -1,86 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44840 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755746Ab2GaLFQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 07:05:16 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org, b.zolnierkie@samsung.com
-Subject: Re: [RFC/PATCH 02/13] media: s5p-csis: Add device tree support
-Date: Tue, 31 Jul 2012 13:05:23 +0200
-Message-ID: <4835930.8zRiqxUPR0@avalon>
-In-Reply-To: <Pine.LNX.4.64.1207311257020.27888@axis700.grange>
-References: <4FBFE1EC.9060209@samsung.com> <24452426.AaRH9zzLOy@avalon> <Pine.LNX.4.64.1207311257020.27888@axis700.grange>
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:53286 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750906Ab2GFPPO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 11:15:14 -0400
+Received: by gglu4 with SMTP id u4so8688980ggl.19
+        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2012 08:15:14 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <CACK0K0i53VJVCVsJy2YGX_pWab0QVSkew5tJL5MQ7CcLyGvjMg@mail.gmail.com>
+References: <CACK0K0gXr08aNe3gKkWXmKkZ+JA0RBcWtq35aFfNaSqCCWMM1Q@mail.gmail.com>
+	<CALF0-+ViQTmGnAS19kOCZPZAj0ZYZX4Ef-+J7A=k1J2OFhFuVg@mail.gmail.com>
+	<CALF0-+XoKmw0fe_vpOs-BEZXDZThA5WuNw8CRjohLJojZ2O4Dw@mail.gmail.com>
+	<CACK0K0j4mSG=EtU1R-VvvoF_5ZCxrTk4p3niyHBt4tAGVdqLVA@mail.gmail.com>
+	<CALF0-+XR_ZE8_52zQKZ9n9x8sGrmJWNpeXnKD_j6Lg1YHta=vQ@mail.gmail.com>
+	<CACK0K0i53VJVCVsJy2YGX_pWab0QVSkew5tJL5MQ7CcLyGvjMg@mail.gmail.com>
+Date: Fri, 6 Jul 2012 12:15:13 -0300
+Message-ID: <CALF0-+U_QHB=uc40osz_XvjdWWLCK6aWam=o-cEdg0Wju4S6Hw@mail.gmail.com>
+Subject: Re: stk1160 linux driver
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Gianluca Bergamo <gianluca.bergamo@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Gianluca,
 
-On Tuesday 31 July 2012 12:58:50 Guennadi Liakhovetski wrote:
-> On Fri, 27 Jul 2012, Laurent Pinchart wrote:
-> > On Thursday 26 July 2012 21:51:30 Sylwester Nawrocki wrote:
-> > > On 07/26/2012 04:38 PM, Laurent Pinchart wrote:
-> > > >>>> --- /dev/null
-> > > >>>> +++ b/Documentation/devicetree/bindings/video/mipi.txt
-> > > >>>> @@ -0,0 +1,5 @@
-> > > >>>> +Common properties of MIPI-CSI1 and MIPI-CSI2 receivers and
-> > > >>>> transmitters
-> > > >>>> +
-> > > >>>> + - data-lanes : number of differential data lanes wired and
-> > > >>>> actively
-> > > >>>> used in
-> > > >>>> +		communication between the transmitter and the receiver, this
-> > > >>>> +		excludes the clock lane;
-> > > >>> 
-> > > >>> Wouldn't it be better to use the standard "bus-width" DT property?
-> > > >> 
-> > > >> I can't see any problems with using "bus-width". It seems sufficient
-> > > >> and could indeed be better, without a need to invent new MIPI-CSI
-> > > >> specific names. That was my first RFC on that and my perspective
-> > > >> wasn't probably broad enough. :)
-> > > > 
-> > > > What about CSI receivers that can reroute the lanes internally ? We
-> > > > would
-> > > > need to specify lane indices for each lane then, maybe with something
-> > > > like
-> > > > 
-> > > > clock-lane =<0>;
-> > > > data-lanes =<2 3 1>;
-> > > 
-> > > Sounds good to me. And the clock-lane could be made optional, as not all
-> > > devices would need it.
-> > > 
-> > > However, as far as I can see, there is currently no generic API for
-> > > handling this kind of data structure. E.g. number of cells for the
-> > > "interrupts" property is specified with an additional
-> > > "#interrupt-cells" property.
-> > > 
-> > > It would have been much easier to handle something like:
-> > > 
-> > > data-lanes = <2>, <3>, <1>;
-> > > 
-> > > i.e. an array of the lane indexes.
-> > 
-> > I'm fine with that.
-> 
-> ...on a second thought: shouldn't this be handled by pinctrl? Or is it
-> some CSI-2 module internal lane switching, not the global SoC pin function
-> configuration?
+On Mon, Jun 25, 2012 at 4:09 AM, Gianluca Bergamo
+<gianluca.bergamo@gmail.com> wrote:
 
-On the hardware I came across, it's handled by the CSI2 receiver, not the SoC 
-pinmux feature.
+> In my environment this command line gives only one format supported (UYVY)
+> and then yavta freezes.
+> I suspect it freezes on an ioctl to the driver. I must check it.
+>
 
--- 
+This freezing is actually a dead lock, and I think it's not related to
+ARM but to a (now fixed) bug.
+
+The bug was related to differences in locking scheme between v3.2 and
+v3.4 kernel,
+i.e. to make stk1160 work on v3.2 some fixes are needed, beside your
+"module_usb_driver"
+patch.
+
+If you (or anyone) wants to use stk1160 on current kernels (3.2 and such) you
+can checkout this github tree I've prepared to help user adoption of stk1160.
+
+This is current (beta tested) branch:
+https://github.com/ezequielgarcia/stk1160-standalone
+
+And this is with "keep_buffers" parameter:
+https://github.com/ezequielgarcia/stk1160-standalone/tree/0.9.4_v3.2
+
+I don't know if you're still interested in using stk1160, but I wanted you to be
+aware of this issue. As far as I know, there shouldn't be any issues
+with ARM; if you can confirm this we'd appreciate it.
+
 Regards,
-
-Laurent Pinchart
-
+Ezequiel.
