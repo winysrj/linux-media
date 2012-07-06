@@ -1,69 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:18988 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751981Ab2GEIrm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 04:47:42 -0400
-Received: from eusync1.samsung.com (mailout4.w1.samsung.com [210.118.77.14])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M6O002RCJ4LBE40@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 05 Jul 2012 09:48:21 +0100 (BST)
-Received: from [106.116.147.108] by eusync1.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0M6O00KPBJ3GGN20@eusync1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 05 Jul 2012 09:47:40 +0100 (BST)
-Message-id: <4FF554A9.6070100@samsung.com>
-Date: Thu, 05 Jul 2012 10:47:37 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-MIME-version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	s.nawrocki@samsung.com, patches@linaro.org
-Subject: Re: [PATCH 1/1] [media] s5p-tv: Use module_i2c_driver in sii9234_drv.c
- file
-References: <1341383595-4386-1-git-send-email-sachin.kamat@linaro.org>
-In-reply-to: <1341383595-4386-1-git-send-email-sachin.kamat@linaro.org>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:53329 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754935Ab2GFGry (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 02:47:54 -0400
+Received: by wibhr14 with SMTP id hr14so478010wib.1
+        for <linux-media@vger.kernel.org>; Thu, 05 Jul 2012 23:47:53 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20120706064332.GA30009@pengutronix.de>
+References: <1341556309-2934-1-git-send-email-javier.martin@vista-silicon.com>
+	<20120706064332.GA30009@pengutronix.de>
+Date: Fri, 6 Jul 2012 08:47:53 +0200
+Message-ID: <CACKLOr09nCrfdu6CreRsBckzfaKDT1o7fhRXWZq-iwAKcDUAGg@mail.gmail.com>
+Subject: Re: media: i.MX27: Fix emma-prp clocks in mx2_camera.c
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: linux-media@vger.kernel.org, fabio.estevam@freescale.com,
+	laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
+	mchehab@infradead.org, kernel@pengutronix.de
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sachin,
+On 6 July 2012 08:43, Sascha Hauer <s.hauer@pengutronix.de> wrote:
+> Hi Javier,
+>
+> On Fri, Jul 06, 2012 at 08:31:49AM +0200, Javier Martin wrote:
+>> This driver wasn't converted to the new clock changes
+>> (clk_prepare_enable/clk_disable_unprepare). Also naming
+>> of emma-prp related clocks for the i.MX27 was not correct.
+>
+> Thanks for fixing this. Sorry for breaking this in the first place.
+>
+>> @@ -1668,12 +1658,26 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+>>               goto exit;
+>>       }
+>>
+>> -     pcdev->clk_csi = clk_get(&pdev->dev, NULL);
+>> +     pcdev->clk_csi = devm_clk_get(&pdev->dev, NULL);
+>>       if (IS_ERR(pcdev->clk_csi)) {
+>>               dev_err(&pdev->dev, "Could not get csi clock\n");
+>>               err = PTR_ERR(pcdev->clk_csi);
+>>               goto exit_kfree;
+>>       }
+>> +     pcdev->clk_emma_ipg = devm_clk_get(&pdev->dev, "ipg");
+>> +     if (IS_ERR(pcdev->clk_emma_ipg)) {
+>> +             err = PTR_ERR(pcdev->clk_emma_ipg);
+>> +             goto exit_kfree;
+>> +     }
+>> +     pcdev->clk_emma_ahb = devm_clk_get(&pdev->dev, "ahb");
+>> +     if (IS_ERR(pcdev->clk_emma_ahb)) {
+>> +             err = PTR_ERR(pcdev->clk_emma_ahb);
+>> +             goto exit_kfree;
+>> +     }
+>
+> So we have three clocks involved here, a csi ahb clock and two emma
+> clocks. Can we rename the clocks to:
+>
+>         clk_register_clkdev(clk[csi_ahb_gate], "ahb", "mx2-camera.0");
+>         clk_register_clkdev(clk[emma_ahb_gate], "emma-ahb", "mx2-camera.0");
+>         clk_register_clkdev(clk[emma_ipg_gate], "emma-ipg", "mx2-camera.0");
+>
+> The rationale is that the csi_ahb_gate really is a ahb clock related to
+> the csi whereas the emma clocks are normally for the emma device, but
+> the csi driver happens to use parts of the emma.
 
-Thank you for the patch.
+Yes, I find it quite appealing. Let me send a new patch.
 
 
-On 07/04/2012 08:33 AM, Sachin Kamat wrote:
-> module_i2c_driver makes the code simpler by eliminating module_init
-> and module_exit calls.
-> 
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-
-Acked-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-
-> ---
->  drivers/media/video/s5p-tv/sii9234_drv.c |   12 +-----------
->  1 files changed, 1 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/video/s5p-tv/sii9234_drv.c b/drivers/media/video/s5p-tv/sii9234_drv.c
-> index 0f31ecc..6d348f9 100644
-> --- a/drivers/media/video/s5p-tv/sii9234_drv.c
-> +++ b/drivers/media/video/s5p-tv/sii9234_drv.c
-> @@ -419,14 +419,4 @@ static struct i2c_driver sii9234_driver = {
->  	.id_table = sii9234_id,
->  };
->  
-> -static int __init sii9234_init(void)
-> -{
-> -	return i2c_add_driver(&sii9234_driver);
-> -}
-> -module_init(sii9234_init);
-> -
-> -static void __exit sii9234_exit(void)
-> -{
-> -	i2c_del_driver(&sii9234_driver);
-> -}
-> -module_exit(sii9234_exit);
-> +module_i2c_driver(sii9234_driver);
-
-
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
