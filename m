@@ -1,45 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:61148 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754935Ab2GFB71 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Jul 2012 21:59:27 -0400
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q661xRkL016953
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 5 Jul 2012 21:59:27 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] [media] em28xx: fix em28xx-rc load
-Date: Thu,  5 Jul 2012 22:59:22 -0300
-Message-Id: <1341539962-22511-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-we0-f174.google.com ([74.125.82.174]:50302 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755814Ab2GFTXy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 15:23:54 -0400
+Received: by werb14 with SMTP id b14so6568003wer.19
+        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2012 12:23:53 -0700 (PDT)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 1/5] libdvbv5: Fix dvb-file USER CMD
+Date: Fri,  6 Jul 2012 21:23:08 +0200
+Message-Id: <1341602592-29508-1-git-send-email-neolynx@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The logic that checks if a device has remote control is wrong.
-Due to that, the em28xx RC module is not loaded by default.
-
-Fix the logic, in order to make it work properly.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: André Roth <neolynx@gmail.com>
 ---
- drivers/media/video/em28xx/em28xx-cards.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/libdvbv5/dvb-file.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
-index 12bc54a..ca62b99 100644
---- a/drivers/media/video/em28xx/em28xx-cards.c
-+++ b/drivers/media/video/em28xx/em28xx-cards.c
-@@ -2888,7 +2888,7 @@ static void request_module_async(struct work_struct *work)
- 
- 	if (dev->board.has_dvb)
- 		request_module("em28xx-dvb");
--	if (dev->board.has_ir_i2c && !disable_ir)
-+	if (dev->board.ir_codes && !disable_ir)
- 		request_module("em28xx-rc");
- }
- 
+diff --git a/lib/libdvbv5/dvb-file.c b/lib/libdvbv5/dvb-file.c
+index 5ab0d97..ea9caa0 100644
+--- a/lib/libdvbv5/dvb-file.c
++++ b/lib/libdvbv5/dvb-file.c
+@@ -387,7 +387,7 @@ static int fill_entry(struct dvb_entry *entry, char *key, char *value)
+ 			break;
+ 	}
+ 	if (i < ARRAY_SIZE(dvb_v5_name)) {
+-		const char * const *attr_name = dvb_v5_attr_names[i];
++		const char * const *attr_name = dvb_attr_names(i);
+ 		n_prop = entry->n_props;
+ 		entry->props[n_prop].cmd = i;
+ 		if (!attr_name || !*attr_name)
+@@ -412,7 +412,7 @@ static int fill_entry(struct dvb_entry *entry, char *key, char *value)
+ 			break;
+ 	}
+ 	if (i < ARRAY_SIZE(dvb_user_name)) {
+-		const char * const *attr_name = dvb_user_attr_names[i];
++		const char * const *attr_name = dvb_attr_names(i);
+ 		n_prop = entry->n_props;
+ 		entry->props[n_prop].cmd = i + DTV_USER_COMMAND_START;
+ 		if (!attr_name || !*attr_name)
 -- 
-1.7.10.4
+1.7.2.5
 
