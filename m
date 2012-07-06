@@ -1,116 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:53034 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753460Ab2GYAny (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jul 2012 20:43:54 -0400
-Message-ID: <500F4140.1000202@iki.fi>
-Date: Wed, 25 Jul 2012 03:43:44 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Michael Krufky <mkrufky@linuxtv.org>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: tda18271 driver power consumption
-References: <500C5B9B.8000303@iki.fi> <CAOcJUbw-8zG-j7YobgKy7k5vp-k_trkaB5fYGz605KdUQHKTGQ@mail.gmail.com> <500F1DC5.1000608@iki.fi> <CAOcJUbzXoLx10o8oprxPM1TELFxyGE7_wodcWsBr8MX4OR0N_w@mail.gmail.com> <CAOcJUbzJjBBMcLmeaOCsJRz44KVPqZ_sGctG8+ai=n1W+9P9xA@mail.gmail.com>
-In-Reply-To: <CAOcJUbzJjBBMcLmeaOCsJRz44KVPqZ_sGctG8+ai=n1W+9P9xA@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:45768 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932307Ab2GFGcE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 02:32:04 -0400
+Received: by wibhr14 with SMTP id hr14so465106wib.1
+        for <linux-media@vger.kernel.org>; Thu, 05 Jul 2012 23:32:02 -0700 (PDT)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: fabio.estevam@freescale.com, laurent.pinchart@ideasonboard.com,
+	g.liakhovetski@gmx.de, mchehab@infradead.org, kernel@pengutronix.de
+Subject: media: i.MX27: Fix emma-prp clocks in mx2_camera.c
+Date: Fri,  6 Jul 2012 08:31:49 +0200
+Message-Id: <1341556309-2934-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/25/2012 03:15 AM, Michael Krufky wrote:
-> On Tue, Jul 24, 2012 at 6:17 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
->> On Tue, Jul 24, 2012 at 6:12 PM, Antti Palosaari <crope@iki.fi> wrote:
->>> On 07/25/2012 12:55 AM, Michael Krufky wrote:
->>>>
->>>> On Sun, Jul 22, 2012 at 3:59 PM, Antti Palosaari <crope@iki.fi> wrote:
->>>>>
->>>>> Moi Michael,
->>>>> I just realized tda18271 driver eats 160mA too much current after attach.
->>>>> This means, there is power management bug.
->>>>>
->>>>> When I plug my nanoStick it eats total 240mA, after tda18271 sleep is
->>>>> called
->>>>> it eats only 80mA total which is reasonable. If I use Digital Devices
->>>>> tda18271c2dd driver it is total 110mA after attach, which is also quite
->>>>> OK.
->>>>
->>>>
->>>> Thanks for the report -- I will take a look at it.
->>>>
->>>> ...patches are welcome, of course :-)
->>>
->>>
->>> I suspect it does some tweaking on attach() and chip leaves powered (I saw
->>> demod debugs at calls I2C-gate control quite many times thus this
->>> suspicion). When chip is powered-up it is usually in some sleep state by
->>> default. Also, on attach() there should be no I/O unless very good reason.
->>> For example chip ID is allowed to read and download firmware in case it is
->>> really needed to continue - like for tuner communication.
->>>
->>>
->>> What I found quickly testing few DVB USB sticks there seems to be very much
->>> power management problems... I am now waiting for new multimeter in order to
->>> make better measurements and likely return fixing these issues later.
->>
->> The driver does some calibration during attach, some of which is a
->> one-time initialization to determine a temperature differential for
->> tune calculation later on, which can take some time on slower USB
->> buses.  The "fix" for the power usage issue would just be to make sure
->> to sleep the device before exiting the attach() function.
->>
->> I'm not looking to remove the calibration from the attach -- this was
->> done on purpose.
->>
->
-> Antti,
->
-> After looking again, I realize that we are purposefully not sleeping
-> the device before we exit the attach() function.
->
-> The tda18271 is commonly found in multi-chip designs that may or may
-> not include an analog demodulator and / or other tda18271 tuners.  In
-> such designs, the chips tend to be daisy-chained to each other, using
-> the xtal output and loop-thru features of the tda18271.  We set the
-> required features in the attach-time configuration structure.
-> However, we must keep in mind that this is a hybrid tuner chip, and
-> the analog side of the bridge driver may actually come up before the
-> digital side.  Since the actual configuration tends to be done in the
-> digital bring-up, the analog side is brought up within tuner.ko using
-> the most generic one-size-fits all configuration, which gets
-> overridden when the digital side initializes.
->
-> It is absolutely crucial that if we actually need the xtal output
-> feature enabled, that it must *never* be turned off, otherwise the i2c
-> bus may get wedged unrecoverably.  So, we make sure to leave this
-> feature enabled during the attach function, since we don't yet know at
-> that point whether there is another "instance" of this same tuner yet
-> to be initialized.  It is not safe to power off that feature until
-> after we are sure that the bridge has completely initialized.
->
-> In order to rectify this issue from within your driver, you should
-> call sleep after you complete the attach.  For instance, this is what
-> we do in the cx23885 driver:
->
-> if (fe0->dvb.frontend->ops.analog_ops.standby)
->                   fe0->dvb.frontend->ops.analog_ops.standby(fe0->dvb.frontend);
->
->
-> ...except you should call into the tuner_ops->sleep() function instead
-> of analog_demod_ops->standby()
->
-> Does this clear things up for you?
+This driver wasn't converted to the new clock changes
+(clk_prepare_enable/clk_disable_unprepare). Also naming
+of emma-prp related clocks for the i.MX27 was not correct.
 
-Surely this is possible and it will resolve power drain issue. But it is 
-not nice looking and causes more deviation compared to others.
-
-Could you add configuration option "bool do_not_powerdown_on_attach" ?
-
-I have quite many tda18271 devices here and all those are DVB onlỵ (OK, 
-PCTV 520e is DVB + analog, but analog is not supported). Having 
-configuration parameter sounds like better plan.
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
+Signed-of-by: Javier Martin <javier.martin@vista-silicon.com>
+---
+diff --git a/arch/arm/mach-imx/clk-imx27.c b/arch/arm/mach-imx/clk-imx27.c
+index 295cbd7..e8a6016 100644
+--- a/arch/arm/mach-imx/clk-imx27.c
++++ b/arch/arm/mach-imx/clk-imx27.c
+@@ -250,8 +250,10 @@ int __init mx27_clocks_init(unsigned long fref)
+ 	clk_register_clkdev(clk[i2c2_ipg_gate], NULL, "imx-i2c.1");
+ 	clk_register_clkdev(clk[owire_ipg_gate], NULL, "mxc_w1.0");
+ 	clk_register_clkdev(clk[kpp_ipg_gate], NULL, "imx-keypad");
+-	clk_register_clkdev(clk[emma_ahb_gate], "ahb", "imx-emma");
+-	clk_register_clkdev(clk[emma_ipg_gate], "ipg", "imx-emma");
++	clk_register_clkdev(clk[emma_ahb_gate], "ahb", "mx2-camera.0");
++	clk_register_clkdev(clk[emma_ipg_gate], "ipg", "mx2-camera.0");
++	clk_register_clkdev(clk[emma_ahb_gate], "ahb", "m2m-emmaprp.0");
++	clk_register_clkdev(clk[emma_ipg_gate], "ipg", "m2m-emmaprp.0");
+ 	clk_register_clkdev(clk[iim_ipg_gate], "iim", NULL);
+ 	clk_register_clkdev(clk[gpio_ipg_gate], "gpio", NULL);
+ 	clk_register_clkdev(clk[brom_ahb_gate], "brom", NULL);
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index 41f9a25..95154e8 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -270,7 +270,7 @@ struct mx2_camera_dev {
+ 	struct device		*dev;
+ 	struct soc_camera_host	soc_host;
+ 	struct soc_camera_device *icd;
+-	struct clk		*clk_csi, *clk_emma;
++	struct clk		*clk_csi, *clk_emma_ahb, *clk_emma_ipg;
+ 
+ 	unsigned int		irq_csi, irq_emma;
+ 	void __iomem		*base_csi, *base_emma;
+@@ -417,7 +417,7 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
+ 	if (pcdev->icd)
+ 		return -EBUSY;
+ 
+-	ret = clk_enable(pcdev->clk_csi);
++	ret = clk_prepare_enable(pcdev->clk_csi);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -1616,23 +1616,12 @@ static int __devinit mx27_camera_emma_init(struct mx2_camera_dev *pcdev)
+ 		goto exit_iounmap;
+ 	}
+ 
+-	pcdev->clk_emma = clk_get(NULL, "emma");
+-	if (IS_ERR(pcdev->clk_emma)) {
+-		err = PTR_ERR(pcdev->clk_emma);
+-		goto exit_free_irq;
+-	}
+-
+-	clk_enable(pcdev->clk_emma);
+-
+ 	err = mx27_camera_emma_prp_reset(pcdev);
+ 	if (err)
+-		goto exit_clk_emma_put;
++		goto exit_free_irq;
+ 
+ 	return err;
+ 
+-exit_clk_emma_put:
+-	clk_disable(pcdev->clk_emma);
+-	clk_put(pcdev->clk_emma);
+ exit_free_irq:
+ 	free_irq(pcdev->irq_emma, pcdev);
+ exit_iounmap:
+@@ -1655,6 +1644,7 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+ 
+ 	res_csi = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	irq_csi = platform_get_irq(pdev, 0);
++
+ 	if (res_csi == NULL || irq_csi < 0) {
+ 		dev_err(&pdev->dev, "Missing platform resources data\n");
+ 		err = -ENODEV;
+@@ -1668,12 +1658,26 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+ 		goto exit;
+ 	}
+ 
+-	pcdev->clk_csi = clk_get(&pdev->dev, NULL);
++	pcdev->clk_csi = devm_clk_get(&pdev->dev, NULL);
+ 	if (IS_ERR(pcdev->clk_csi)) {
+ 		dev_err(&pdev->dev, "Could not get csi clock\n");
+ 		err = PTR_ERR(pcdev->clk_csi);
+ 		goto exit_kfree;
+ 	}
++	pcdev->clk_emma_ipg = devm_clk_get(&pdev->dev, "ipg");
++	if (IS_ERR(pcdev->clk_emma_ipg)) {
++		err = PTR_ERR(pcdev->clk_emma_ipg);
++		goto exit_kfree;
++	}
++	pcdev->clk_emma_ahb = devm_clk_get(&pdev->dev, "ahb");
++	if (IS_ERR(pcdev->clk_emma_ahb)) {
++		err = PTR_ERR(pcdev->clk_emma_ahb);
++		goto exit_kfree;
++	}
++
++	clk_prepare_enable(pcdev->clk_csi);
++	clk_prepare_enable(pcdev->clk_emma_ipg);
++	clk_prepare_enable(pcdev->clk_emma_ahb);
+ 
+ 	pcdev->res_csi = res_csi;
+ 	pcdev->pdata = pdev->dev.platform_data;
+@@ -1768,8 +1772,8 @@ exit_free_emma:
+ eallocctx:
+ 	if (cpu_is_mx27()) {
+ 		free_irq(pcdev->irq_emma, pcdev);
+-		clk_disable(pcdev->clk_emma);
+-		clk_put(pcdev->clk_emma);
++		clk_disable_unprepare(pcdev->clk_emma_ipg);
++		clk_disable_unprepare(pcdev->clk_emma_ahb);
+ 		iounmap(pcdev->base_emma);
+ 		release_mem_region(pcdev->res_emma->start, resource_size(pcdev->res_emma));
+ 	}
+@@ -1781,7 +1785,9 @@ exit_iounmap:
+ exit_release:
+ 	release_mem_region(res_csi->start, resource_size(res_csi));
+ exit_dma_free:
+-	clk_put(pcdev->clk_csi);
++	clk_disable_unprepare(pcdev->clk_emma_ipg);
++	clk_disable_unprepare(pcdev->clk_emma_ahb);
++	clk_disable_unprepare(pcdev->clk_csi);
+ exit_kfree:
+ 	kfree(pcdev);
+ exit:
+@@ -1795,7 +1801,6 @@ static int __devexit mx2_camera_remove(struct platform_device *pdev)
+ 			struct mx2_camera_dev, soc_host);
+ 	struct resource *res;
+ 
+-	clk_put(pcdev->clk_csi);
+ 	if (cpu_is_mx25())
+ 		free_irq(pcdev->irq_csi, pcdev);
+ 	if (cpu_is_mx27())
+@@ -1808,8 +1813,8 @@ static int __devexit mx2_camera_remove(struct platform_device *pdev)
+ 	iounmap(pcdev->base_csi);
+ 
+ 	if (cpu_is_mx27()) {
+-		clk_disable(pcdev->clk_emma);
+-		clk_put(pcdev->clk_emma);
++		clk_disable_unprepare(pcdev->clk_emma_ipg);
++		clk_disable_unprepare(pcdev->clk_emma_ahb);
+ 		iounmap(pcdev->base_emma);
+ 		res = pcdev->res_emma;
+ 		release_mem_region(res->start, resource_size(res));
