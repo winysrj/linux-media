@@ -1,126 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59149 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754566Ab2GRN62 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jul 2012 09:58:28 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH v2 6/9] ov772x: Add ov772x_read() and ov772x_write() functions
-Date: Wed, 18 Jul 2012 15:58:23 +0200
-Message-Id: <1342619906-5820-7-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1342619906-5820-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1342619906-5820-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from plane.gmane.org ([80.91.229.3]:47436 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030326Ab2GFMIZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Jul 2012 08:08:25 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1Sn7Kd-00069a-0K
+	for linux-media@vger.kernel.org; Fri, 06 Jul 2012 14:08:19 +0200
+Received: from btm70.neoplus.adsl.tpnet.pl ([83.29.158.70])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2012 14:08:18 +0200
+Received: from acc.for.news by btm70.neoplus.adsl.tpnet.pl with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2012 14:08:18 +0200
+To: linux-media@vger.kernel.org
+From: Marx <acc.for.news@gmail.com>
+Subject: Re: pctv452e
+Date: Fri, 06 Jul 2012 13:04:41 +0200
+Message-ID: <9btic9-vd5.ln1@wuwek.kopernik.gliwice.pl>
+References: <4FF4697C.8080602@nexusuk.org> <4FF46DC4.4070204@iki.fi> <4FF4911B.9090600@web.de> <4FF4931B.7000708@iki.fi> <gjggc9-dl4.ln1@wuwek.kopernik.gliwice.pl> <4FF5A350.9070509@iki.fi> <r8cic9-ht4.ln1@wuwek.kopernik.gliwice.pl> <4FF6B121.6010105@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <4FF6B121.6010105@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-And use them instead of calling SMBus access functions directly.
+On 06.07.2012 11:34, Antti Palosaari wrote:
+> Did I missed something? PCTV device does not support CI/CAM and thus no
+> support for encrypted channels. Is there still CI slot?
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/ov772x.c |   38 ++++++++++++++++++++++----------------
- 1 files changed, 22 insertions(+), 16 deletions(-)
+no, I simply use external reader with plugin in VDR. Unfortunetelly on 
+Hotbird there is no unencrypted HD channel I can use to test.
 
-diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
-index 2b95dd4..13f4688 100644
---- a/drivers/media/video/ov772x.c
-+++ b/drivers/media/video/ov772x.c
-@@ -530,13 +530,21 @@ static struct ov772x_priv *to_ov772x(struct v4l2_subdev *sd)
- 	return container_of(sd, struct ov772x_priv, subdev);
- }
- 
-+static inline int ov772x_read(struct i2c_client *client, u8 addr)
-+{
-+	return i2c_smbus_read_byte_data(client, addr);
-+}
-+
-+static inline int ov772x_write(struct i2c_client *client, u8 addr, u8 value)
-+{
-+	return i2c_smbus_write_byte_data(client, addr, value);
-+}
-+
- static int ov772x_write_array(struct i2c_client        *client,
- 			      const struct regval_list *vals)
- {
- 	while (vals->reg_num != 0xff) {
--		int ret = i2c_smbus_write_byte_data(client,
--						    vals->reg_num,
--						    vals->value);
-+		int ret = ov772x_write(client, vals->reg_num, vals->value);
- 		if (ret < 0)
- 			return ret;
- 		vals++;
-@@ -544,24 +552,22 @@ static int ov772x_write_array(struct i2c_client        *client,
- 	return 0;
- }
- 
--static int ov772x_mask_set(struct i2c_client *client,
--					  u8  command,
--					  u8  mask,
--					  u8  set)
-+static int ov772x_mask_set(struct i2c_client *client, u8  command, u8  mask,
-+			   u8  set)
- {
--	s32 val = i2c_smbus_read_byte_data(client, command);
-+	s32 val = ov772x_read(client, command);
- 	if (val < 0)
- 		return val;
- 
- 	val &= ~mask;
- 	val |= set & mask;
- 
--	return i2c_smbus_write_byte_data(client, command, val);
-+	return ov772x_write(client, command, val);
- }
- 
- static int ov772x_reset(struct i2c_client *client)
- {
--	int ret = i2c_smbus_write_byte_data(client, COM7, SCCB_RESET);
-+	int ret = ov772x_write(client, COM7, SCCB_RESET);
- 	msleep(1);
- 	return ret;
- }
-@@ -656,7 +662,7 @@ static int ov772x_g_register(struct v4l2_subdev *sd,
- 	if (reg->reg > 0xff)
- 		return -EINVAL;
- 
--	ret = i2c_smbus_read_byte_data(client, reg->reg);
-+	ret = ov772x_read(client, reg->reg);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -674,7 +680,7 @@ static int ov772x_s_register(struct v4l2_subdev *sd,
- 	    reg->val > 0xff)
- 		return -EINVAL;
- 
--	return i2c_smbus_write_byte_data(client, reg->reg, reg->val);
-+	return ov772x_write(client, reg->reg, reg->val);
- }
- #endif
- 
-@@ -946,8 +952,8 @@ static int ov772x_video_probe(struct ov772x_priv *priv)
- 	/*
- 	 * check and show product ID and manufacturer ID
- 	 */
--	pid = i2c_smbus_read_byte_data(client, PID);
--	ver = i2c_smbus_read_byte_data(client, VER);
-+	pid = ov772x_read(client, PID);
-+	ver = ov772x_read(client, VER);
- 
- 	switch (VERSION(pid, ver)) {
- 	case OV7720:
-@@ -970,8 +976,8 @@ static int ov772x_video_probe(struct ov772x_priv *priv)
- 		 devname,
- 		 pid,
- 		 ver,
--		 i2c_smbus_read_byte_data(client, MIDH),
--		 i2c_smbus_read_byte_data(client, MIDL));
-+		 ov772x_read(client, MIDH),
-+		 ov772x_read(client, MIDL));
- 	ret = v4l2_ctrl_handler_setup(&priv->hdl);
- 
- done:
--- 
-1.7.8.6
+>> Anyway when using card logs are full of i2c errors
+>
+> Argh! But this must be issue of earlier driver too.
+
+yes, those errors were in logs earlier on previous driver. Hovewer 
+previous driver allowed to play only once or two time and then was 
+stopping work. And i've never played successfully HD channel on this card.
+
+> I debug it and it seems to be totally clueless implementation of
+> stb6100_read_reg() as it sets device address like "device address +
+> register address". This makes stb6100 I2C address of tuner set for that
+> request 0x66 whilst it should be 0x60. Is that code never tested...
+>
+> pctv452e DVB USB driver behaves just correctly as it says this is not
+> valid and returns error.
+>
+> Also pctv452e I2C adapter supports only I2C operations that are done
+> with repeated STOP condition - but I cannot see there is logic to sent
+> STOP after last message. I suspect it is not correct as logically but
+> will work - very common mistake with many I2C adapters we have.
+
+I have second card in this computer
+http://www.proftuners.com/prof8000.html
+which uses STB6100 (and also STV0903 and CX23885).
+I wasn't aware that both of this card uses the same chip (as I see from 
+http://www.linuxtv.org/wiki/index.php/TechnoTrend_TT-connect_S2-3650_CI 
+it uses STB6100 too).
+Can it be a problem? Anyway i will take off this second card a test again.
+
+> Regardless of those errors it still works?
+
+Thank you for help. I had only a few minutes at the morning to test it 
+and it partly worked. More test are planned tonight and I will write 
+here outcomes.
+
+Marx
 
