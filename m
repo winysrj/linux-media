@@ -1,3165 +1,4938 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:59653 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753128Ab2GQQSi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Jul 2012 12:18:38 -0400
-Received: by eekc13 with SMTP id c13so233749eek.19
-        for <linux-media@vger.kernel.org>; Tue, 17 Jul 2012 09:18:36 -0700 (PDT)
-From: Sangwook Lee <sangwook.lee@linaro.org>
+Received: from mailout2.samsung.com ([203.254.224.25]:26029 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752252Ab2GFNqw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 09:46:52 -0400
+Received: from epcpsbgm1.samsung.com (mailout2.samsung.com [203.254.224.25])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M6Q00GXTRM1EV30@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 06 Jul 2012 22:46:50 +0900 (KST)
+Received: from localhost.localdomain ([107.108.73.106])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0M6Q00L9JRLECT00@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 06 Jul 2012 22:46:49 +0900 (KST)
+From: Arun Kumar K <arun.kk@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, kyungmin.park@samsung.com,
-	sakari.ailus@maxwell.research.nokia.com, suapapa@insignal.co.kr,
-	quartz.jang@samsung.com, linaro-dev@lists.linaro.org,
-	patches@linaro.org, Sangwook Lee <sangwook.lee@linaro.org>
-Subject: [PATCH 1/2] v4l: Add factory register values form S5K4ECGX sensor
-Date: Tue, 17 Jul 2012 17:17:09 +0100
-Message-Id: <1342541830-22667-2-git-send-email-sangwook.lee@linaro.org>
-In-Reply-To: <1342541830-22667-1-git-send-email-sangwook.lee@linaro.org>
-References: <1342541830-22667-1-git-send-email-sangwook.lee@linaro.org>
+Cc: jtp.park@samsung.com, janghyuck.kim@samsung.com,
+	jaeryul.oh@samsung.com, ch.naveen@samsung.com, arun.kk@samsung.com,
+	m.szyprowski@samsung.com, k.debski@samsung.com,
+	s.nawrocki@samsung.com, hans.verkuil@cisco.com,
+	mchehab@infradead.org
+Subject: [PATCH v2 2/2] [media] s5p-mfc: update MFC v4l2 driver to support
+ MFC6.x
+Date: Fri, 06 Jul 2012 19:30:17 +0530
+Message-id: <1341583217-11305-3-git-send-email-arun.kk@samsung.com>
+In-reply-to: <1341583217-11305-1-git-send-email-arun.kk@samsung.com>
+References: <1341583217-11305-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add factory default settings for S5K4ECGX sensor registers.
-I copied them from the reference code of Samsung S.LSI.
+From: Jeongtae Park <jtp.park@samsung.com>
 
-According to comments from the reference code, they do not
-recommend any changes of these settings.
+Multi Format Codec 6.x is a hardware video coding acceleration
+module fount in new Exynos5 SoC series.
+It is capable of handling a range of video codecs and this driver
+provides a V4L2 interface for video decoding and encoding.
 
-Signed-off-by: Sangwook Lee <sangwook.lee@linaro.org>
+Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
+Singed-off-by: Janghyuck Kim <janghyuck.kim@samsung.com>
+Singed-off-by: Jaeryul Oh <jaeryul.oh@samsung.com>
+Signed-off-by: Naveen Krishna Chatradhi <ch.naveen@samsung.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Kamil Debski <k.debski@samsung.com>
 ---
- drivers/media/video/s5k4ecgx_regs.h | 3121 +++++++++++++++++++++++++++++++++++
- 1 file changed, 3121 insertions(+)
- create mode 100644 drivers/media/video/s5k4ecgx_regs.h
+ drivers/media/video/Kconfig                  |   16 +-
+ drivers/media/video/s5p-mfc/Makefile         |    7 +-
+ drivers/media/video/s5p-mfc/regs-mfc-v6.h    |  676 ++++++++++
+ drivers/media/video/s5p-mfc/regs-mfc.h       |   29 +
+ drivers/media/video/s5p-mfc/s5p_mfc.c        |  163 ++-
+ drivers/media/video/s5p-mfc/s5p_mfc_cmd.c    |    6 +-
+ drivers/media/video/s5p-mfc/s5p_mfc_cmd.h    |    3 +
+ drivers/media/video/s5p-mfc/s5p_mfc_cmd_v6.c |   96 ++
+ drivers/media/video/s5p-mfc/s5p_mfc_common.h |  123 ++-
+ drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c   |  160 ++-
+ drivers/media/video/s5p-mfc/s5p_mfc_ctrl.h   |    1 +
+ drivers/media/video/s5p-mfc/s5p_mfc_dec.c    |  210 +++-
+ drivers/media/video/s5p-mfc/s5p_mfc_dec.h    |    1 +
+ drivers/media/video/s5p-mfc/s5p_mfc_enc.c    |  191 ++--
+ drivers/media/video/s5p-mfc/s5p_mfc_enc.h    |    1 +
+ drivers/media/video/s5p-mfc/s5p_mfc_intr.c   |    1 -
+ drivers/media/video/s5p-mfc/s5p_mfc_opr.c    |  278 +++--
+ drivers/media/video/s5p-mfc/s5p_mfc_opr.h    |   25 +-
+ drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.c | 1697 ++++++++++++++++++++++++++
+ drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.h |  140 +++
+ drivers/media/video/s5p-mfc/s5p_mfc_pm.c     |    6 +-
+ drivers/media/video/s5p-mfc/s5p_mfc_shm.c    |   28 +-
+ drivers/media/video/s5p-mfc/s5p_mfc_shm.h    |   13 +-
+ drivers/media/video/v4l2-ctrls.c             |    1 -
+ 24 files changed, 3476 insertions(+), 396 deletions(-)
+ create mode 100644 drivers/media/video/s5p-mfc/regs-mfc-v6.h
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_cmd_v6.c
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.c
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.h
 
-diff --git a/drivers/media/video/s5k4ecgx_regs.h b/drivers/media/video/s5k4ecgx_regs.h
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 99937c9..0d7fe77 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -1198,13 +1198,27 @@ config VIDEO_SAMSUNG_S5P_JPEG
+ 	  This is a v4l2 driver for Samsung S5P and EXYNOS4 JPEG codec
+ 
+ config VIDEO_SAMSUNG_S5P_MFC
++	bool
++
++config VIDEO_SAMSUNG_S5P_MFC_V5
+ 	tristate "Samsung S5P MFC 5.1 Video Codec"
+-	depends on VIDEO_DEV && VIDEO_V4L2 && PLAT_S5P
++	depends on VIDEO_DEV && VIDEO_V4L2 && ARCH_EXYNOS4
++	select VIDEO_SAMSUNG_S5P_MFC
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	default n
+ 	help
+ 	    MFC 5.1 driver for V4L2.
+ 
++config VIDEO_SAMSUNG_S5P_MFC_V6
++	tristate "Samsung S5P MFC 6.x Video Codec"
++	depends on VIDEO_DEV && VIDEO_V4L2 && ARCH_EXYNOS5
++	select VIDEO_SAMSUNG_S5P_MFC
++	select VIDEOBUF2_DMA_CONTIG
++	select DMA_SHARED_BUFFER
++	default n
++	help
++	    MFC 6.x driver for V4L2.
++
+ config VIDEO_MX2_EMMAPRP
+ 	tristate "MX2 eMMa-PrP support"
+ 	depends on VIDEO_DEV && VIDEO_V4L2 && SOC_IMX27
+diff --git a/drivers/media/video/s5p-mfc/Makefile b/drivers/media/video/s5p-mfc/Makefile
+index d066340..0308d74 100644
+--- a/drivers/media/video/s5p-mfc/Makefile
++++ b/drivers/media/video/s5p-mfc/Makefile
+@@ -1,5 +1,6 @@
+ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_MFC) := s5p-mfc.o
+-s5p-mfc-y += s5p_mfc.o s5p_mfc_intr.o s5p_mfc_opr.o
++s5p-mfc-y += s5p_mfc.o s5p_mfc_intr.o
+ s5p-mfc-y += s5p_mfc_dec.o s5p_mfc_enc.o
+-s5p-mfc-y += s5p_mfc_ctrl.o s5p_mfc_cmd.o
+-s5p-mfc-y += s5p_mfc_pm.o s5p_mfc_shm.o
++s5p-mfc-y += s5p_mfc_ctrl.o s5p_mfc_pm.o
++obj-$(CONFIG_VIDEO_SAMSUNG_S5P_MFC_V5) += s5p_mfc_opr.o s5p_mfc_cmd.o s5p_mfc_shm.o
++obj-$(CONFIG_VIDEO_SAMSUNG_S5P_MFC_V6) += s5p_mfc_opr_v6.o s5p_mfc_cmd_v6.o
+diff --git a/drivers/media/video/s5p-mfc/regs-mfc-v6.h b/drivers/media/video/s5p-mfc/regs-mfc-v6.h
 new file mode 100644
-index 0000000..3b17934
+index 0000000..f22a159
 --- /dev/null
-+++ b/drivers/media/video/s5k4ecgx_regs.h
-@@ -0,0 +1,3121 @@
++++ b/drivers/media/video/s5p-mfc/regs-mfc-v6.h
+@@ -0,0 +1,676 @@
 +/*
-+ * Samsung S5K4ECGX registers table for default values
++ * Register definition file for Samsung MFC V6.x Interface (FIMV) driver
 + *
-+ * Copyright (C) 2012 Linaro
-+ * Copyright (C) 2012 Insignal Co,. Ltd
++ * Copyright (c) 2012 Samsung Electronics
++ *		http://www.samsung.com/
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
 + */
 +
-+#ifndef __DRIVERS_MEDIA_VIDEO_S5K4ECGX_H__
-+#define __DRIVERS_MEDIA_VIDEO_S5K4ECGX_H__
++#ifndef _REGS_FIMV_V6_H
++#define _REGS_FIMV_V6_H
 +
++#define S5P_FIMV_REG_SIZE	(S5P_FIMV_END_ADDR - S5P_FIMV_START_ADDR)
++#define S5P_FIMV_REG_COUNT	((S5P_FIMV_END_ADDR - S5P_FIMV_START_ADDR) / 4)
++
++/* Number of bits that the buffer address should be shifted for particular
++ * MFC buffers.  */
++#define S5P_FIMV_MEM_OFFSET		0
++
++#define S5P_FIMV_START_ADDR		0x0000
++#define S5P_FIMV_END_ADDR		0xfd80
++
++#define S5P_FIMV_REG_CLEAR_BEGIN	0xf000
++#define S5P_FIMV_REG_CLEAR_COUNT	1024
++
++/* Codec Common Registers */
++#define S5P_FIMV_RISC_ON			0x0000
++#define S5P_FIMV_RISC2HOST_INT			0x003C
++#define S5P_FIMV_HOST2RISC_INT			0x0044
++#define S5P_FIMV_RISC_BASE_ADDRESS		0x0054
++
++#define S5P_FIMV_MFC_RESET			0x1070
++
++#define S5P_FIMV_HOST2RISC_CMD			0x1100
++#define S5P_FIMV_H2R_CMD_EMPTY			0
++#define S5P_FIMV_H2R_CMD_SYS_INIT		1
++#define S5P_FIMV_H2R_CMD_OPEN_INSTANCE		2
++#define S5P_FIMV_CH_SEQ_HEADER			3
++#define S5P_FIMV_CH_INIT_BUFS			4
++#define S5P_FIMV_CH_FRAME_START			5
++#define S5P_FIMV_H2R_CMD_CLOSE_INSTANCE		6
++#define S5P_FIMV_H2R_CMD_SLEEP			7
++#define S5P_FIMV_H2R_CMD_WAKEUP			8
++#define S5P_FIMV_CH_LAST_FRAME			9
++#define S5P_FIMV_H2R_CMD_FLUSH			10
++/* RMVME: REALLOC used? */
++#define S5P_FIMV_CH_FRAME_START_REALLOC		5
++
++#define S5P_FIMV_RISC2HOST_CMD			0x1104
++#define S5P_FIMV_R2H_CMD_EMPTY			0
++#define S5P_FIMV_R2H_CMD_SYS_INIT_RET		1
++#define S5P_FIMV_R2H_CMD_OPEN_INSTANCE_RET	2
++#define S5P_FIMV_R2H_CMD_SEQ_DONE_RET		3
++#define S5P_FIMV_R2H_CMD_INIT_BUFFERS_RET	4
++
++#define S5P_FIMV_R2H_CMD_CLOSE_INSTANCE_RET	6
++#define S5P_FIMV_R2H_CMD_SLEEP_RET		7
++#define S5P_FIMV_R2H_CMD_WAKEUP_RET		8
++#define S5P_FIMV_R2H_CMD_COMPLETE_SEQ_RET	9
++#define S5P_FIMV_R2H_CMD_DPB_FLUSH_RET		10
++#define S5P_FIMV_R2H_CMD_NAL_ABORT_RET		11
++#define S5P_FIMV_R2H_CMD_FW_STATUS_RET		12
++#define S5P_FIMV_R2H_CMD_FRAME_DONE_RET		13
++#define S5P_FIMV_R2H_CMD_FIELD_DONE_RET		14
++#define S5P_FIMV_R2H_CMD_SLICE_DONE_RET		15
++#define S5P_FIMV_R2H_CMD_ENC_BUFFER_FUL_RET	16
++#define S5P_FIMV_R2H_CMD_ERR_RET		32
++
++#define S5P_FIMV_FW_VERSION			0xF000
++
++#define S5P_FIMV_INSTANCE_ID			0xF008
++#define S5P_FIMV_CODEC_TYPE			0xF00C
++#define S5P_FIMV_CONTEXT_MEM_ADDR		0xF014
++#define S5P_FIMV_CONTEXT_MEM_SIZE		0xF018
++#define S5P_FIMV_PIXEL_FORMAT			0xF020
++
++#define S5P_FIMV_METADATA_ENABLE		0xF024
++#define S5P_FIMV_DBG_BUFFER_ADDR		0xF030
++#define S5P_FIMV_DBG_BUFFER_SIZE		0xF034
++#define S5P_FIMV_RET_INSTANCE_ID		0xF070
++
++#define S5P_FIMV_ERROR_CODE			0xF074
++#define S5P_FIMV_ERR_WARNINGS_START		160
++#define S5P_FIMV_ERR_DEC_MASK			0xFFFF
++#define S5P_FIMV_ERR_DEC_SHIFT			0
++#define S5P_FIMV_ERR_DSPL_MASK			0xFFFF0000
++#define S5P_FIMV_ERR_DSPL_SHIFT			16
++
++#define S5P_FIMV_DBG_BUFFER_OUTPUT_SIZE		0xF078
++#define S5P_FIMV_METADATA_STATUS		0xF07C
++#define S5P_FIMV_METADATA_ADDR_MB_INFO		0xF080
++#define S5P_FIMV_METADATA_SIZE_MB_INFO		0xF084
++
++/* Decoder Registers */
++#define S5P_FIMV_D_CRC_CTRL			0xF0B0
++#define S5P_FIMV_D_DEC_OPTIONS			0xF0B4
++#define S5P_FIMV_D_OPT_FMO_ASO_CTRL_MASK	4
++#define S5P_FIMV_D_OPT_DDELAY_EN_SHIFT		3
++#define S5P_FIMV_D_OPT_LF_CTRL_SHIFT		1
++#define S5P_FIMV_D_OPT_LF_CTRL_MASK		0x3
++#define S5P_FIMV_D_OPT_TILE_MODE_SHIFT		0
++
++#define S5P_FIMV_D_DISPLAY_DELAY		0xF0B8
++
++#define S5P_FIMV_D_SET_FRAME_WIDTH		0xF0BC
++#define S5P_FIMV_D_SET_FRAME_HEIGHT		0xF0C0
++
++#define S5P_FIMV_D_SEI_ENABLE			0xF0C4
++
++/* Buffer setting registers */
++#define S5P_FIMV_D_MIN_NUM_DPB			0xF0F0
++#define S5P_FIMV_D_MIN_LUMA_DPB_SIZE		0xF0F4
++#define S5P_FIMV_D_MIN_CHROMA_DPB_SIZE		0xF0F8
++#define S5P_FIMV_D_MVC_NUM_VIEWS		0xF0FC
++#define S5P_FIMV_D_NUM_DPB			0xF130
++#define S5P_FIMV_D_LUMA_DPB_SIZE		0xF134
++#define S5P_FIMV_D_CHROMA_DPB_SIZE		0xF138
++#define S5P_FIMV_D_MV_BUFFER_SIZE		0xF13C
++
++#define S5P_FIMV_D_LUMA_DPB			0xF140
++#define S5P_FIMV_D_CHROMA_DPB			0xF240
++#define S5P_FIMV_D_MV_BUFFER			0xF340
++
++#define S5P_FIMV_D_SCRATCH_BUFFER_ADDR		0xF440
++#define S5P_FIMV_D_SCRATCH_BUFFER_SIZE		0xF444
++#define S5P_FIMV_D_METADATA_BUFFER_ADDR		0xF448
++#define S5P_FIMV_D_METADATA_BUFFER_SIZE		0xF44C
++#define S5P_FIMV_D_CPB_BUFFER_ADDR		0xF4B0
++#define S5P_FIMV_D_CPB_BUFFER_SIZE		0xF4B4
++
++#define S5P_FIMV_D_AVAILABLE_DPB_FLAG_UPPER	0xF4B8
++#define S5P_FIMV_D_AVAILABLE_DPB_FLAG_LOWER	0xF4BC
++#define S5P_FIMV_D_CPB_BUFFER_OFFSET		0xF4C0
++#define S5P_FIMV_D_SLICE_IF_ENABLE		0xF4C4
++#define S5P_FIMV_D_PICTURE_TAG			0xF4C8
++#define S5P_FIMV_D_STREAM_DATA_SIZE		0xF4D0
++
++/* Display information register */
++#define S5P_FIMV_D_DISPLAY_FRAME_WIDTH		0xF500
++#define S5P_FIMV_D_DISPLAY_FRAME_HEIGHT		0xF504
++
++/* Display status */
++#define S5P_FIMV_D_DISPLAY_STATUS		0xF508
++#define S5P_FIMV_DEC_STATUS_DECODING_ONLY		0
++#define S5P_FIMV_DEC_STATUS_DECODING_DISPLAY		1
++#define S5P_FIMV_DEC_STATUS_DISPLAY_ONLY		2
++#define S5P_FIMV_DEC_STATUS_DECODING_EMPTY		3
++#define S5P_FIMV_DEC_STATUS_DECODING_STATUS_MASK	7
++#define S5P_FIMV_DEC_STATUS_PROGRESSIVE			(0<<3)
++#define S5P_FIMV_DEC_STATUS_INTERLACE			(1<<3)
++#define S5P_FIMV_DEC_STATUS_INTERLACE_MASK		(1<<3)
++#define S5P_FIMV_DEC_STATUS_RESOLUTION_MASK		(3<<4)
++#define S5P_FIMV_DEC_STATUS_RESOLUTION_INC		(1<<4)
++#define S5P_FIMV_DEC_STATUS_RESOLUTION_DEC		(2<<4)
++#define S5P_FIMV_DEC_STATUS_RESOLUTION_SHIFT		4
++#define S5P_FIMV_DEC_STATUS_CRC_GENERATED		(1<<5)
++#define S5P_FIMV_DEC_STATUS_CRC_NOT_GENERATED		(0<<5)
++#define S5P_FIMV_DEC_STATUS_CRC_MASK			(1<<5)
++
++#define S5P_FIMV_D_DISPLAY_LUMA_ADDR		0xF50C
++#define S5P_FIMV_D_DISPLAY_CHROMA_ADDR		0xF510
++
++#define S5P_FIMV_D_DISPLAY_FRAME_TYPE		0xF514
++#define S5P_FIMV_DECODE_FRAME_SKIPPED		0
++#define S5P_FIMV_DECODE_FRAME_I_FRAME		1
++#define S5P_FIMV_DECODE_FRAME_P_FRAME		2
++#define S5P_FIMV_DECODE_FRAME_B_FRAME		3
++#define S5P_FIMV_DECODE_FRAME_OTHER_FRAME	4
++#define S5P_FIMV_SHARED_CROP_INFO_H		0x0020
++#define S5P_FIMV_SHARED_CROP_LEFT_MASK		0xFFFF
++#define S5P_FIMV_SHARED_CROP_LEFT_SHIFT		0
++#define S5P_FIMV_SHARED_CROP_RIGHT_MASK		0xFFFF0000
++#define S5P_FIMV_SHARED_CROP_RIGHT_SHIFT	16
++#define S5P_FIMV_SHARED_CROP_INFO_V		0x0024
++#define S5P_FIMV_SHARED_CROP_TOP_MASK		0xFFFF
++#define S5P_FIMV_SHARED_CROP_TOP_SHIFT		0
++#define S5P_FIMV_SHARED_CROP_BOTTOM_MASK	0xFFFF0000
++#define S5P_FIMV_SHARED_CROP_BOTTOM_SHIFT	16
++
++#define S5P_FIMV_D_DISPLAY_CROP_INFO1		0xF518
++#define S5P_FIMV_D_DISPLAY_CROP_INFO2		0xF51C
++#define S5P_FIMV_D_DISPLAY_PICTURE_PROFILE	0xF520
++#define S5P_FIMV_D_DISPLAY_LUMA_CRC_TOP		0xF524
++#define S5P_FIMV_D_DISPLAY_CHROMA_CRC_TOP	0xF528
++#define S5P_FIMV_D_DISPLAY_LUMA_CRC_BOT		0xF52C
++#define S5P_FIMV_D_DISPLAY_CHROMA_CRC_BOT	0xF530
++#define S5P_FIMV_D_DISPLAY_ASPECT_RATIO		0xF534
++#define S5P_FIMV_D_DISPLAY_EXTENDED_AR		0xF538
++
++/* Decoded picture information register */
++#define S5P_FIMV_D_DECODED_FRAME_WIDTH		0xF53C
++#define S5P_FIMV_D_DECODED_FRAME_HEIGHT		0xF540
++#define S5P_FIMV_D_DECODED_STATUS		0xF544
++#define S5P_FIMV_DEC_CRC_GEN_MASK		0x1
++#define S5P_FIMV_DEC_CRC_GEN_SHIFT		6
++
++#define S5P_FIMV_D_DECODED_LUMA_ADDR		0xF548
++#define S5P_FIMV_D_DECODED_CHROMA_ADDR		0xF54C
++
++#define S5P_FIMV_D_DECODED_FRAME_TYPE		0xF550
++#define S5P_FIMV_DECODE_FRAME_MASK		7
++
++#define S5P_FIMV_D_DECODED_CROP_INFO1		0xF554
++#define S5P_FIMV_D_DECODED_CROP_INFO2		0xF558
++#define S5P_FIMV_D_DECODED_PICTURE_PROFILE	0xF55C
++#define S5P_FIMV_D_DECODED_NAL_SIZE		0xF560
++#define S5P_FIMV_D_DECODED_LUMA_CRC_TOP		0xF564
++#define S5P_FIMV_D_DECODED_CHROMA_CRC_TOP	0xF568
++#define S5P_FIMV_D_DECODED_LUMA_CRC_BOT		0xF56C
++#define S5P_FIMV_D_DECODED_CHROMA_CRC_BOT	0xF570
++
++/* Returned value register for specific setting */
++#define S5P_FIMV_D_RET_PICTURE_TAG_TOP		0xF574
++#define S5P_FIMV_D_RET_PICTURE_TAG_BOT		0xF578
++#define S5P_FIMV_D_RET_PICTURE_TIME_TOP		0xF57C
++#define S5P_FIMV_D_RET_PICTURE_TIME_BOT		0xF580
++#define S5P_FIMV_D_CHROMA_FORMAT		0xF588
++#define S5P_FIMV_D_MPEG4_INFO			0xF58C
++#define S5P_FIMV_D_H264_INFO			0xF590
++
++#define S5P_FIMV_D_METADATA_ADDR_CONCEALED_MB	0xF594
++#define S5P_FIMV_D_METADATA_SIZE_CONCEALED_MB	0xF598
++#define S5P_FIMV_D_METADATA_ADDR_VC1_PARAM	0xF59C
++#define S5P_FIMV_D_METADATA_SIZE_VC1_PARAM	0xF5A0
++#define S5P_FIMV_D_METADATA_ADDR_SEI_NAL	0xF5A4
++#define S5P_FIMV_D_METADATA_SIZE_SEI_NAL	0xF5A8
++#define S5P_FIMV_D_METADATA_ADDR_VUI		0xF5AC
++#define S5P_FIMV_D_METADATA_SIZE_VUI		0xF5B0
++
++#define S5P_FIMV_D_MVC_VIEW_ID			0xF5B4
++
++/* SEI related information */
++#define S5P_FIMV_D_FRAME_PACK_SEI_AVAIL		0xF5F0
++#define S5P_FIMV_D_FRAME_PACK_ARRGMENT_ID	0xF5F4
++#define S5P_FIMV_D_FRAME_PACK_SEI_INFO		0xF5F8
++#define S5P_FIMV_D_FRAME_PACK_GRID_POS		0xF5FC
++
++/* Encoder Registers */
++#define S5P_FIMV_E_FRAME_WIDTH			0xF770
++#define S5P_FIMV_E_FRAME_HEIGHT			0xF774
++#define S5P_FIMV_E_CROPPED_FRAME_WIDTH		0xF778
++#define S5P_FIMV_E_CROPPED_FRAME_HEIGHT		0xF77C
++#define S5P_FIMV_E_FRAME_CROP_OFFSET		0xF780
++#define S5P_FIMV_E_ENC_OPTIONS			0xF784
++#define S5P_FIMV_E_PICTURE_PROFILE		0xF788
++#define S5P_FIMV_ENC_PROFILE_H264_MAIN			0
++#define S5P_FIMV_ENC_PROFILE_H264_HIGH			1
++#define S5P_FIMV_ENC_PROFILE_H264_BASELINE		2
++#define S5P_FIMV_ENC_PROFILE_H264_CONSTRAINED_BASELINE	3
++#define S5P_FIMV_ENC_PROFILE_MPEG4_SIMPLE		0
++#define S5P_FIMV_ENC_PROFILE_MPEG4_ADVANCED_SIMPLE	1
++#define S5P_FIMV_E_FIXED_PICTURE_QP		0xF790
++
++#define S5P_FIMV_E_RC_CONFIG			0xF794
++#define S5P_FIMV_E_RC_QP_BOUND			0xF798
++#define S5P_FIMV_E_RC_RPARAM			0xF79C
++#define S5P_FIMV_E_MB_RC_CONFIG			0xF7A0
++#define S5P_FIMV_E_PADDING_CTRL			0xF7A4
++#define S5P_FIMV_E_MV_HOR_RANGE			0xF7AC
++#define S5P_FIMV_E_MV_VER_RANGE			0xF7B0
++
++#define S5P_FIMV_E_VBV_BUFFER_SIZE		0xF84C
++#define S5P_FIMV_E_VBV_INIT_DELAY		0xF850
++#define S5P_FIMV_E_NUM_DPB			0xF890
++#define S5P_FIMV_E_LUMA_DPB			0xF8C0
++#define S5P_FIMV_E_CHROMA_DPB			0xF904
++#define S5P_FIMV_E_ME_BUFFER			0xF948
++
++#define S5P_FIMV_E_SCRATCH_BUFFER_ADDR		0xF98C
++#define S5P_FIMV_E_SCRATCH_BUFFER_SIZE		0xF990
++#define S5P_FIMV_E_TMV_BUFFER0			0xF994
++#define S5P_FIMV_E_TMV_BUFFER1			0xF998
++#define S5P_FIMV_E_SOURCE_LUMA_ADDR		0xF9F0
++#define S5P_FIMV_E_SOURCE_CHROMA_ADDR		0xF9F4
++#define S5P_FIMV_E_STREAM_BUFFER_ADDR		0xF9F8
++#define S5P_FIMV_E_STREAM_BUFFER_SIZE		0xF9FC
++#define S5P_FIMV_E_ROI_BUFFER_ADDR		0xFA00
++
++#define S5P_FIMV_E_PARAM_CHANGE			0xFA04
++#define S5P_FIMV_E_IR_SIZE			0xFA08
++#define S5P_FIMV_E_GOP_CONFIG			0xFA0C
++#define S5P_FIMV_E_MSLICE_MODE			0xFA10
++#define S5P_FIMV_E_MSLICE_SIZE_MB		0xFA14
++#define S5P_FIMV_E_MSLICE_SIZE_BITS		0xFA18
++#define S5P_FIMV_E_FRAME_INSERTION		0xFA1C
++
++#define S5P_FIMV_E_RC_FRAME_RATE		0xFA20
++#define S5P_FIMV_E_RC_BIT_RATE			0xFA24
++#define S5P_FIMV_E_RC_QP_OFFSET			0xFA28
++#define S5P_FIMV_E_RC_ROI_CTRL			0xFA2C
++#define S5P_FIMV_E_PICTURE_TAG			0xFA30
++#define S5P_FIMV_E_BIT_COUNT_ENABLE		0xFA34
++#define S5P_FIMV_E_MAX_BIT_COUNT		0xFA38
++#define S5P_FIMV_E_MIN_BIT_COUNT		0xFA3C
++
++#define S5P_FIMV_E_METADATA_BUFFER_ADDR		0xFA40
++#define S5P_FIMV_E_METADATA_BUFFER_SIZE		0xFA44
++#define S5P_FIMV_E_STREAM_SIZE			0xFA80
++#define S5P_FIMV_E_SLICE_TYPE			0xFA84
++#define S5P_FIMV_ENC_SI_SLICE_TYPE_NON_CODED	0
++#define S5P_FIMV_ENC_SI_SLICE_TYPE_I		1
++#define S5P_FIMV_ENC_SI_SLICE_TYPE_P		2
++#define S5P_FIMV_ENC_SI_SLICE_TYPE_B		3
++#define S5P_FIMV_ENC_SI_SLICE_TYPE_SKIPPED	4
++#define S5P_FIMV_ENC_SI_SLICE_TYPE_OTHERS	5
++#define S5P_FIMV_E_PICTURE_COUNT		0xFA88
++#define S5P_FIMV_E_RET_PICTURE_TAG		0xFA8C
++#define S5P_FIMV_E_STREAM_BUFFER_WRITE_POINTER	0xFA90
++
++#define S5P_FIMV_E_ENCODED_SOURCE_LUMA_ADDR	0xFA94
++#define S5P_FIMV_E_ENCODED_SOURCE_CHROMA_ADDR	0xFA98
++#define S5P_FIMV_E_RECON_LUMA_DPB_ADDR		0xFA9C
++#define S5P_FIMV_E_RECON_CHROMA_DPB_ADDR	0xFAA0
++#define S5P_FIMV_E_METADATA_ADDR_ENC_SLICE	0xFAA4
++#define S5P_FIMV_E_METADATA_SIZE_ENC_SLICE	0xFAA8
++
++#define S5P_FIMV_E_MPEG4_OPTIONS		0xFB10
++#define S5P_FIMV_E_MPEG4_HEC_PERIOD		0xFB14
++#define S5P_FIMV_E_ASPECT_RATIO			0xFB50
++#define S5P_FIMV_E_EXTENDED_SAR			0xFB54
++
++#define S5P_FIMV_E_H264_OPTIONS			0xFB58
++#define S5P_FIMV_E_H264_LF_ALPHA_OFFSET		0xFB5C
++#define S5P_FIMV_E_H264_LF_BETA_OFFSET		0xFB60
++#define S5P_FIMV_E_H264_I_PERIOD		0xFB64
++
++#define S5P_FIMV_E_H264_FMO_SLICE_GRP_MAP_TYPE			0xFB68
++#define S5P_FIMV_E_H264_FMO_NUM_SLICE_GRP_MINUS1		0xFB6C
++#define S5P_FIMV_E_H264_FMO_SLICE_GRP_CHANGE_DIR		0xFB70
++#define S5P_FIMV_E_H264_FMO_SLICE_GRP_CHANGE_RATE_MINUS1	0xFB74
++#define S5P_FIMV_E_H264_FMO_RUN_LENGTH_MINUS1_0	0xFB78
++#define S5P_FIMV_E_H264_FMO_RUN_LENGTH_MINUS1_1	0xFB7C
++#define S5P_FIMV_E_H264_FMO_RUN_LENGTH_MINUS1_2	0xFB80
++#define S5P_FIMV_E_H264_FMO_RUN_LENGTH_MINUS1_3	0xFB84
++
++#define S5P_FIMV_E_H264_ASO_SLICE_ORDER_0	0xFB88
++#define S5P_FIMV_E_H264_ASO_SLICE_ORDER_1	0xFB8C
++#define S5P_FIMV_E_H264_ASO_SLICE_ORDER_2	0xFB90
++#define S5P_FIMV_E_H264_ASO_SLICE_ORDER_3	0xFB94
++#define S5P_FIMV_E_H264_ASO_SLICE_ORDER_4	0xFB98
++#define S5P_FIMV_E_H264_ASO_SLICE_ORDER_5	0xFB9C
++#define S5P_FIMV_E_H264_ASO_SLICE_ORDER_6	0xFBA0
++#define S5P_FIMV_E_H264_ASO_SLICE_ORDER_7	0xFBA4
++
++#define S5P_FIMV_E_H264_CHROMA_QP_OFFSET	0xFBA8
++#define S5P_FIMV_E_H264_NUM_T_LAYER		0xFBAC
++
++#define S5P_FIMV_E_H264_HIERARCHICAL_QP_LAYER0	0xFBB0
++#define S5P_FIMV_E_H264_HIERARCHICAL_QP_LAYER1	0xFBB4
++#define S5P_FIMV_E_H264_HIERARCHICAL_QP_LAYER2	0xFBB8
++#define S5P_FIMV_E_H264_HIERARCHICAL_QP_LAYER3	0xFBBC
++#define S5P_FIMV_E_H264_HIERARCHICAL_QP_LAYER4	0xFBC0
++#define S5P_FIMV_E_H264_HIERARCHICAL_QP_LAYER5	0xFBC4
++#define S5P_FIMV_E_H264_HIERARCHICAL_QP_LAYER6	0xFBC8
++
++#define S5P_FIMV_E_H264_FRAME_PACKING_SEI_INFO	0xFC4C
++#define S5P_FIMV_ENC_FP_ARRANGEMENT_TYPE_SIDE_BY_SIDE	0
++#define S5P_FIMV_ENC_FP_ARRANGEMENT_TYPE_TOP_BOTTOM	1
++#define S5P_FIMV_ENC_FP_ARRANGEMENT_TYPE_TEMPORAL	2
++
++#define S5P_FIMV_E_MVC_FRAME_QP_VIEW1		0xFD40
++#define S5P_FIMV_E_MVC_RC_FRAME_RATE_VIEW1	0xFD44
++#define S5P_FIMV_E_MVC_RC_BIT_RATE_VIEW1	0xFD48
++#define S5P_FIMV_E_MVC_RC_QBOUND_VIEW1		0xFD4C
++#define S5P_FIMV_E_MVC_RC_RPARA_VIEW1		0xFD50
++#define S5P_FIMV_E_MVC_INTER_VIEW_PREDICTION_ON	0xFD80
++
++/* Codec numbers  */
++#define S5P_FIMV_CODEC_NONE		-1
++
++
++#define S5P_FIMV_CODEC_H264_DEC	0
++#define S5P_FIMV_CODEC_H264_MVC_DEC	1
++
++#define S5P_FIMV_CODEC_MPEG4_DEC	3
++#define S5P_FIMV_CODEC_FIMV1_DEC	4
++#define S5P_FIMV_CODEC_FIMV2_DEC	5
++#define S5P_FIMV_CODEC_FIMV3_DEC	6
++#define S5P_FIMV_CODEC_FIMV4_DEC	7
++#define S5P_FIMV_CODEC_H263_DEC	8
++#define S5P_FIMV_CODEC_VC1RCV_DEC	9
++#define S5P_FIMV_CODEC_VC1_DEC		10
++/* FIXME: Add 11~12 */
++#define S5P_FIMV_CODEC_MPEG2_DEC	13
++#define S5P_FIMV_CODEC_VP8_DEC		14
++/* FIXME: Add 15~16 */
++#define S5P_FIMV_CODEC_H264_ENC	20
++#define S5P_FIMV_CODEC_H264_MVC_ENC	21
++
++#define S5P_FIMV_CODEC_MPEG4_ENC	23
++#define S5P_FIMV_CODEC_H263_ENC	24
++/***	Definitions for MFCv5 compatibility ***/
++#define S5P_FIMV_SI_DISPLAY_Y_ADR		S5P_FIMV_D_DISPLAY_LUMA_ADDR
++#define S5P_FIMV_SI_DISPLAY_C_ADR		S5P_FIMV_D_DISPLAY_CHROMA_ADDR
++
++#define S5P_FIMV_CRC_LUMA0			S5P_FIMV_D_DECODED_LUMA_CRC_TOP
++#define S5P_FIMV_CRC_CHROMA0			S5P_FIMV_D_DECODED_CHROMA_CRC_TOP
++#define S5P_FIMV_CRC_LUMA1			S5P_FIMV_D_DECODED_LUMA_CRC_BOT
++#define S5P_FIMV_CRC_CHROMA1			S5P_FIMV_D_DECODED_CHROMA_CRC_BOT
++#define S5P_FIMV_CRC_DISP_LUMA0			S5P_FIMV_D_DISPLAY_LUMA_CRC_TOP
++#define S5P_FIMV_CRC_DISP_CHROMA0		S5P_FIMV_D_DISPLAY_CHROMA_CRC_TOP
++
++#define S5P_FIMV_SI_DECODED_STATUS		S5P_FIMV_D_DECODED_STATUS
++#define S5P_FIMV_SI_DISPLAY_STATUS		S5P_FIMV_D_DISPLAY_STATUS
++#define S5P_FIMV_SHARED_SET_FRAME_TAG		S5P_FIMV_D_PICTURE_TAG
++#define S5P_FIMV_SHARED_GET_FRAME_TAG_TOP	S5P_FIMV_D_RET_PICTURE_TAG_TOP
++#define S5P_FIMV_CRC_DISP_STATUS		S5P_FIMV_D_DISPLAY_STATUS
++
++/* SEI related information */
++#define S5P_FIMV_FRAME_PACK_SEI_AVAIL		S5P_FIMV_D_FRAME_PACK_SEI_AVAIL
++#define S5P_FIMV_FRAME_PACK_ARRGMENT_ID		S5P_FIMV_D_FRAME_PACK_ARRGMENT_ID
++#define S5P_FIMV_FRAME_PACK_SEI_INFO		S5P_FIMV_D_FRAME_PACK_SEI_INFO
++#define S5P_FIMV_FRAME_PACK_GRID_POS		S5P_FIMV_D_FRAME_PACK_GRID_POS
++
++#define S5P_FIMV_SHARED_SET_E_FRAME_TAG		S5P_FIMV_E_PICTURE_TAG
++#define S5P_FIMV_SHARED_GET_E_FRAME_TAG		S5P_FIMV_E_RET_PICTURE_TAG
++#define S5P_FIMV_ENCODED_LUMA_ADDR		S5P_FIMV_E_ENCODED_SOURCE_LUMA_ADDR
++#define S5P_FIMV_ENCODED_CHROMA_ADDR		S5P_FIMV_E_ENCODED_SOURCE_CHROMA_ADDR
++#define	S5P_FIMV_FRAME_INSERTION		S5P_FIMV_E_FRAME_INSERTION
++
++#define S5P_FIMV_PARAM_CHANGE_FLAG		S5P_FIMV_E_PARAM_CHANGE /* flag */
++#define S5P_FIMV_NEW_I_PERIOD			S5P_FIMV_E_GOP_CONFIG
++#define S5P_FIMV_NEW_RC_FRAME_RATE		S5P_FIMV_E_RC_FRAME_RATE
++#define S5P_FIMV_NEW_RC_BIT_RATE		S5P_FIMV_E_RC_BIT_RATE
++/*** End of MFCv5 compatibility definitions ***/
++
++/***      old definitions     ***/
++#define S5P_FIMV_SW_RESET		0x0000
++#define S5P_FIMV_RISC_HOST_INT		0x0008
++
++/* Command from HOST to RISC */
++#define S5P_FIMV_HOST2RISC_ARG1		0x0034
++#define S5P_FIMV_HOST2RISC_ARG2		0x0038
++#define S5P_FIMV_HOST2RISC_ARG3		0x003c
++#define S5P_FIMV_HOST2RISC_ARG4		0x0040
++
++/* Command from RISC to HOST */
++#define S5P_FIMV_RISC2HOST_CMD_MASK	0x1FFFF
++#define S5P_FIMV_RISC2HOST_ARG1		0x0048
++#define S5P_FIMV_RISC2HOST_ARG2		0x004c
++#define S5P_FIMV_RISC2HOST_ARG3		0x0050
++#define S5P_FIMV_RISC2HOST_ARG4		0x0054
++
++#define S5P_FIMV_SYS_MEM_SZ		0x005c
++#define S5P_FIMV_FW_STATUS		0x0080
++
++/* Memory controller register */
++#define S5P_FIMV_MC_DRAMBASE_ADR_A	0x0508
++#define S5P_FIMV_MC_DRAMBASE_ADR_B	0x050c
++#define S5P_FIMV_MC_STATUS		0x0510
++
++/* Common register */
++#define S5P_FIMV_COMMON_BASE_A		0x0600
++#define S5P_FIMV_COMMON_BASE_B		0x0700
++
++/* Decoder */
++#define S5P_FIMV_DEC_CHROMA_ADR		(S5P_FIMV_COMMON_BASE_A)
++#define S5P_FIMV_DEC_LUMA_ADR		(S5P_FIMV_COMMON_BASE_B)
++
++/* H.264 decoding */
++#define S5P_FIMV_H264_VERT_NB_MV_ADR	(S5P_FIMV_COMMON_BASE_A + 0x8c)	/* vertical neighbor motion vector */
++#define S5P_FIMV_H264_NB_IP_ADR		(S5P_FIMV_COMMON_BASE_A + 0x90)	/* neighbor pixels for intra pred */
++#define S5P_FIMV_H264_MV_ADR		(S5P_FIMV_COMMON_BASE_B + 0x80)	/* H264 motion vector */
++
++/* MPEG4 decoding */
++#define S5P_FIMV_MPEG4_NB_DCAC_ADR	(S5P_FIMV_COMMON_BASE_A + 0x8c)	/* neighbor AC/DC coeff. */
++#define S5P_FIMV_MPEG4_UP_NB_MV_ADR	(S5P_FIMV_COMMON_BASE_A + 0x90)	/* upper neighbor motion vector */
++#define S5P_FIMV_MPEG4_SA_MV_ADR	(S5P_FIMV_COMMON_BASE_A + 0x94)	/* subseq. anchor motion vector */
++#define S5P_FIMV_MPEG4_OT_LINE_ADR	(S5P_FIMV_COMMON_BASE_A + 0x98)	/* overlap transform line */
++#define S5P_FIMV_MPEG4_SP_ADR		(S5P_FIMV_COMMON_BASE_A + 0xa8)	/* syntax parser */
++
++/* H.263 decoding */
++#define S5P_FIMV_H263_NB_DCAC_ADR	(S5P_FIMV_COMMON_BASE_A + 0x8c)
++#define S5P_FIMV_H263_UP_NB_MV_ADR	(S5P_FIMV_COMMON_BASE_A + 0x90)
++#define S5P_FIMV_H263_SA_MV_ADR		(S5P_FIMV_COMMON_BASE_A + 0x94)
++#define S5P_FIMV_H263_OT_LINE_ADR	(S5P_FIMV_COMMON_BASE_A + 0x98)
++
++/* VC-1 decoding */
++#define S5P_FIMV_VC1_NB_DCAC_ADR	(S5P_FIMV_COMMON_BASE_A + 0x8c)
++#define S5P_FIMV_VC1_UP_NB_MV_ADR	(S5P_FIMV_COMMON_BASE_A + 0x90)
++#define S5P_FIMV_VC1_SA_MV_ADR		(S5P_FIMV_COMMON_BASE_A + 0x94)
++#define S5P_FIMV_VC1_OT_LINE_ADR	(S5P_FIMV_COMMON_BASE_A + 0x98)
++#define S5P_FIMV_VC1_BITPLANE3_ADR	(S5P_FIMV_COMMON_BASE_A + 0x9c)	/* bitplane3 */
++#define S5P_FIMV_VC1_BITPLANE2_ADR	(S5P_FIMV_COMMON_BASE_A + 0xa0)	/* bitplane2 */
++#define S5P_FIMV_VC1_BITPLANE1_ADR	(S5P_FIMV_COMMON_BASE_A + 0xa4)	/* bitplane1 */
++
++/* Encoder */
++#define S5P_FIMV_ENC_REF0_LUMA_ADR	(S5P_FIMV_COMMON_BASE_A + 0x1c)	/* reconstructed luma */
++#define S5P_FIMV_ENC_REF1_LUMA_ADR	(S5P_FIMV_COMMON_BASE_A + 0x20)
++#define S5P_FIMV_ENC_REF0_CHROMA_ADR	(S5P_FIMV_COMMON_BASE_B)	/* reconstructed chroma */
++#define S5P_FIMV_ENC_REF1_CHROMA_ADR	(S5P_FIMV_COMMON_BASE_B + 0x04)
++#define S5P_FIMV_ENC_REF2_LUMA_ADR	(S5P_FIMV_COMMON_BASE_B + 0x10)
++#define S5P_FIMV_ENC_REF2_CHROMA_ADR	(S5P_FIMV_COMMON_BASE_B + 0x08)
++#define S5P_FIMV_ENC_REF3_LUMA_ADR	(S5P_FIMV_COMMON_BASE_B + 0x14)
++#define S5P_FIMV_ENC_REF3_CHROMA_ADR	(S5P_FIMV_COMMON_BASE_B + 0x0c)
++
++/* H.264 encoding */
++#define S5P_FIMV_H264_UP_MV_ADR		(S5P_FIMV_COMMON_BASE_A)	/* upper motion vector */
++#define S5P_FIMV_H264_NBOR_INFO_ADR	(S5P_FIMV_COMMON_BASE_A + 0x04)	/* entropy engine's neighbor info. */
++#define S5P_FIMV_H264_UP_INTRA_MD_ADR	(S5P_FIMV_COMMON_BASE_A + 0x08)	/* upper intra MD */
++#define S5P_FIMV_H264_COZERO_FLAG_ADR	(S5P_FIMV_COMMON_BASE_A + 0x10)	/* direct cozero flag */
++#define S5P_FIMV_H264_UP_INTRA_PRED_ADR	(S5P_FIMV_COMMON_BASE_B + 0x40)	/* upper intra PRED */
++
++/* H.263 encoding */
++#define S5P_FIMV_H263_UP_MV_ADR		(S5P_FIMV_COMMON_BASE_A)	/* upper motion vector */
++#define S5P_FIMV_H263_ACDC_COEF_ADR	(S5P_FIMV_COMMON_BASE_A + 0x04)	/* upper Q coeff. */
++
++/* MPEG4 encoding */
++#define S5P_FIMV_MPEG4_UP_MV_ADR	(S5P_FIMV_COMMON_BASE_A)	/* upper motion vector */
++#define S5P_FIMV_MPEG4_ACDC_COEF_ADR	(S5P_FIMV_COMMON_BASE_A + 0x04)	/* upper Q coeff. */
++#define S5P_FIMV_MPEG4_COZERO_FLAG_ADR	(S5P_FIMV_COMMON_BASE_A + 0x10)	/* direct cozero flag */
++
++#define S5P_FIMV_ENC_REF_B_LUMA_ADR     0x062c /* ref B Luma addr */
++#define S5P_FIMV_ENC_REF_B_CHROMA_ADR   0x0630 /* ref B Chroma addr */
++
++#define S5P_FIMV_ENC_CUR_LUMA_ADR	0x0718 /* current Luma addr */
++#define S5P_FIMV_ENC_CUR_CHROMA_ADR	0x071C /* current Chroma addr */
++
++/* Codec common register */
++#define S5P_FIMV_ENC_HSIZE_PX		0x0818 /* frame width at encoder */
++#define S5P_FIMV_ENC_VSIZE_PX		0x081c /* frame height at encoder */
++#define S5P_FIMV_ENC_PROFILE		0x0830 /* profile register */
++#define S5P_FIMV_ENC_PIC_STRUCT		0x083c /* picture field/frame flag */
++#define S5P_FIMV_ENC_LF_CTRL		0x0848 /* loop filter control */
++#define S5P_FIMV_ENC_ALPHA_OFF		0x084c /* loop filter alpha offset */
++#define S5P_FIMV_ENC_BETA_OFF		0x0850 /* loop filter beta offset */
++#define S5P_FIMV_MR_BUSIF_CTRL		0x0854 /* hidden, bus interface ctrl */
++#define S5P_FIMV_ENC_PXL_CACHE_CTRL	0x0a00 /* pixel cache control */
++
++/* Channel & stream interface register */
++#define S5P_FIMV_SI_RTN_CHID		0x2000 /* Return CH instance ID register */
++#define S5P_FIMV_SI_CH0_INST_ID		0x2040 /* codec instance ID */
++#define S5P_FIMV_SI_CH1_INST_ID		0x2080 /* codec instance ID */
++/* Decoder */
++#define S5P_FIMV_SI_VRESOL		0x2004 /* vertical resolution of decoder */
++#define S5P_FIMV_SI_HRESOL		0x2008 /* horizontal resolution of decoder */
++#define S5P_FIMV_SI_BUF_NUMBER		0x200c /* number of frames in the decoded pic */
++#define S5P_FIMV_SI_CONSUMED_BYTES	0x2018 /* Consumed number of bytes to decode
++								a frame */
++#define S5P_FIMV_SI_FRAME_TYPE		0x2020 /* frame type such as skip/I/P/B */
++
++#define S5P_FIMV_SI_CH0_SB_ST_ADR	0x2044 /* start addr of stream buf */
++#define S5P_FIMV_SI_CH0_SB_FRM_SIZE	0x2048 /* size of stream buf */
++#define S5P_FIMV_SI_CH0_DESC_ADR	0x204c /* addr of descriptor buf */
++#define S5P_FIMV_SI_CH0_CPB_SIZE	0x2058 /* max size of coded pic. buf */
++#define S5P_FIMV_SI_CH0_DESC_SIZE	0x205c /* max size of descriptor buf */
++
++#define S5P_FIMV_SI_CH1_SB_ST_ADR	0x2084 /* start addr of stream buf */
++#define S5P_FIMV_SI_CH1_SB_FRM_SIZE	0x2088 /* size of stream buf */
++#define S5P_FIMV_SI_CH1_DESC_ADR	0x208c /* addr of descriptor buf */
++#define S5P_FIMV_SI_CH1_CPB_SIZE	0x2098 /* max size of coded pic. buf */
++#define S5P_FIMV_SI_CH1_DESC_SIZE	0x209c /* max size of descriptor buf */
++
++#define S5P_FIMV_SI_FIMV1_HRESOL	0x2054 /* horizontal resolution */
++#define S5P_FIMV_SI_FIMV1_VRESOL	0x2050 /* vertical resolution */
++
++/* Decode frame address */
++#define S5P_FIMV_DECODE_Y_ADR			0x2024
++#define S5P_FIMV_DECODE_C_ADR			0x2028
++
++/* Decoded frame type */
++#define S5P_FIMV_DECODE_FRAME_TYPE		0x2020
++
++/* Sizes of buffers required for decoding */
++#define S5P_FIMV_DEC_NB_IP_SIZE			(32 * 1024)
++#define S5P_FIMV_DEC_VERT_NB_MV_SIZE		(16 * 1024)
++#define S5P_FIMV_DEC_NB_DCAC_SIZE		(16 * 1024)
++#define S5P_FIMV_DEC_UPNB_MV_SIZE		(68 * 1024)
++#define S5P_FIMV_DEC_SUB_ANCHOR_MV_SIZE		(136 * 1024)
++#define S5P_FIMV_DEC_OVERLAP_TRANSFORM_SIZE     (32 * 1024)
++#define S5P_FIMV_DEC_VC1_BITPLANE_SIZE		(2 * 1024)
++#define S5P_FIMV_DEC_STX_PARSER_SIZE		(68 * 1024)
++
++#define S5P_FIMV_NV12M_HALIGN			16
++#define S5P_FIMV_NV12MT_HALIGN			16
++#define S5P_FIMV_NV12MT_VALIGN			16
++
++/* Sizes of buffers required for encoding */
++#define S5P_FIMV_ENC_UPMV_SIZE			(0x10000)
++#define S5P_FIMV_ENC_COLFLG_SIZE		(0x10000)
++#define S5P_FIMV_ENC_INTRAMD_SIZE		(0x10000)
++#define S5P_FIMV_ENC_INTRAPRED_SIZE		(0x4000)
++#define S5P_FIMV_ENC_NBORINFO_SIZE		(0x10000)
++#define S5P_FIMV_ENC_ACDCCOEF_SIZE		(0x10000)
++
++/* Encoder */
++#define S5P_FIMV_ENC_SI_STRM_SIZE	0x2004 /* stream size */
++#define S5P_FIMV_ENC_SI_PIC_CNT		0x2008 /* picture count */
++#define S5P_FIMV_ENC_SI_WRITE_PTR	0x200c /* write pointer */
++#define S5P_FIMV_ENC_SI_SLICE_TYPE	0x2010 /* slice type(I/P/B/IDR) */
++
++#define S5P_FIMV_ENCODED_Y_ADDR         0x2014 /* the addr of the encoded luma pic */
++#define S5P_FIMV_ENCODED_C_ADDR         0x2018 /* the addr of the encoded chroma pic */
++
++#define S5P_FIMV_ENC_SI_CH0_SB_ADR	0x2044 /* addr of stream buf */
++#define S5P_FIMV_ENC_SI_CH0_SB_SIZE	0x204c /* size of stream buf */
++#define S5P_FIMV_ENC_SI_CH0_CUR_Y_ADR	0x2050 /* current Luma addr */
++#define S5P_FIMV_ENC_SI_CH0_CUR_C_ADR	0x2054 /* current Chroma addr */
++#define S5P_FIMV_ENC_SI_CH0_FRAME_INS	0x2058 /* frame insertion */
++
++#define S5P_FIMV_ENC_SI_CH1_SB_ADR	0x2084 /* addr of stream buf */
++#define S5P_FIMV_ENC_SI_CH1_SB_SIZE	0x208c /* size of stream buf */
++#define S5P_FIMV_ENC_SI_CH1_CUR_Y_ADR	0x2090 /* current Luma addr */
++#define S5P_FIMV_ENC_SI_CH1_CUR_C_ADR	0x2094 /* current Chroma addr */
++#define S5P_FIMV_ENC_SI_CH1_FRAME_INS	0x2098 /* frame insertion */
++
++#define S5P_FIMV_ENC_PIC_TYPE_CTRL	0xc504 /* pic type level control */
++#define S5P_FIMV_ENC_B_RECON_WRITE_ON	0xc508 /* B frame recon write ctrl */
++#define S5P_FIMV_ENC_MSLICE_CTRL	0xc50c /* multi slice control */
++#define S5P_FIMV_ENC_MSLICE_MB		0xc510 /* MB number in the one slice */
++#define S5P_FIMV_ENC_MSLICE_BIT		0xc514 /* bit count for one slice */
++#define S5P_FIMV_ENC_CIR_CTRL		0xc518 /* number of intra refresh MB */
++#define S5P_FIMV_ENC_MAP_FOR_CUR	0xc51c /* linear or 64x32 tiled mode */
++#define S5P_FIMV_ENC_PADDING_CTRL	0xc520 /* padding control */
++
++#define S5P_FIMV_ENC_RC_CONFIG		0xc5a0 /* RC config */
++#define S5P_FIMV_ENC_RC_BIT_RATE	0xc5a8 /* bit rate */
++#define S5P_FIMV_ENC_RC_QBOUND		0xc5ac /* max/min QP */
++#define S5P_FIMV_ENC_RC_RPARA		0xc5b0 /* rate control reaction coeff */
++#define S5P_FIMV_ENC_RC_MB_CTRL		0xc5b4 /* MB adaptive scaling */
++
++/* Encoder for H264 only */
++#define S5P_FIMV_ENC_H264_ENTRP_MODE	0xd004 /* CAVLC or CABAC */
++#define S5P_FIMV_ENC_H264_ALPHA_OFF	0xd008 /* loop filter alpha offset */
++#define S5P_FIMV_ENC_H264_BETA_OFF	0xd00c /* loop filter beta offset */
++#define S5P_FIMV_ENC_H264_NUM_OF_REF	0xd010 /* number of reference for P/B */
++#define S5P_FIMV_ENC_H264_TRANS_FLAG	0xd034 /* 8x8 transform flag in PPS & high profile */
++
++#define S5P_FIMV_ENC_RC_FRAME_RATE	0xd0d0 /* frame rate */
++
++/* Encoder for MPEG4 only */
++#define S5P_FIMV_ENC_MPEG4_QUART_PXL	0xe008 /* qpel interpolation ctrl */
++
++/* Additional */
++#define S5P_FIMV_SI_CH0_DPB_CONF_CTRL   0x2068 /* DPB Config Control Register */
++#define S5P_FIMV_DPB_COUNT_MASK		0xffff
++
++#define S5P_FIMV_SI_CH0_RELEASE_BUF     0x2060 /* DPB release buffer register */
++#define S5P_FIMV_SI_CH0_HOST_WR_ADR	0x2064 /* address of shared memory */
++
++/* Channel Control Register */
++#define S5P_FIMV_CH_FRAME_START_REALLOC	5
++
++#define S5P_FIMV_CH_MASK		7
++#define S5P_FIMV_CH_SHIFT		16
++
++/* Host to RISC command */
++#define S5P_FIMV_R2H_CMD_RSV_RET		3
++#define S5P_FIMV_R2H_CMD_ENC_COMPLETE_RET	7
++#define S5P_FIMV_R2H_CMD_FLUSH_RET		12
++#define S5P_FIMV_R2H_CMD_EDFU_INIT_RET		16
++
++/* Shared memory registers' offsets */
++
++/* An offset of the start position in the stream when
++ * the start position is not aligned */
++#define S5P_FIMV_SHARED_GET_FRAME_TAG_BOT	0x000C
++#define S5P_FIMV_SHARED_START_BYTE_NUM		0x0018
++#define S5P_FIMV_SHARED_RC_VOP_TIMING		0x0030
++#define S5P_FIMV_SHARED_LUMA_DPB_SIZE		0x0064
++#define S5P_FIMV_SHARED_CHROMA_DPB_SIZE		0x0068
++#define S5P_FIMV_SHARED_MV_SIZE			0x006C
++#define S5P_FIMV_SHARED_PIC_TIME_TOP		0x0010
++#define S5P_FIMV_SHARED_PIC_TIME_BOTTOM		0x0014
++#define S5P_FIMV_SHARED_EXT_ENC_CONTROL		0x0028
++#define S5P_FIMV_SHARED_P_B_FRAME_QP		0x0070
++#define S5P_FIMV_SHARED_ASPECT_RATIO_IDC	0x0074
++#define S5P_FIMV_SHARED_EXTENDED_SAR		0x0078
++#define S5P_FIMV_SHARED_H264_I_PERIOD		0x009C
++#define S5P_FIMV_SHARED_RC_CONTROL_CONFIG	0x00A0
++
++/* End of old definitions */
++
++#endif /* _REGS_FIMV_V6_H */
+diff --git a/drivers/media/video/s5p-mfc/regs-mfc.h b/drivers/media/video/s5p-mfc/regs-mfc.h
+index a19bece..d2dfb06 100644
+--- a/drivers/media/video/s5p-mfc/regs-mfc.h
++++ b/drivers/media/video/s5p-mfc/regs-mfc.h
+@@ -144,6 +144,7 @@
+ #define S5P_FIMV_ENC_PROFILE_H264_MAIN			0
+ #define S5P_FIMV_ENC_PROFILE_H264_HIGH			1
+ #define S5P_FIMV_ENC_PROFILE_H264_BASELINE		2
++#define S5P_FIMV_ENC_PROFILE_H264_CONSTRAINED_BASELINE	3
+ #define S5P_FIMV_ENC_PROFILE_MPEG4_SIMPLE		0
+ #define S5P_FIMV_ENC_PROFILE_MPEG4_ADVANCED_SIMPLE	1
+ #define S5P_FIMV_ENC_PIC_STRUCT		0x083c /* picture field/frame flag */
+@@ -213,6 +214,7 @@
+ #define S5P_FIMV_DEC_STATUS_RESOLUTION_MASK		(3<<4)
+ #define S5P_FIMV_DEC_STATUS_RESOLUTION_INC		(1<<4)
+ #define S5P_FIMV_DEC_STATUS_RESOLUTION_DEC		(2<<4)
++#define S5P_FIMV_DEC_STATUS_RESOLUTION_SHIFT		4
+ 
+ /* Decode frame address */
+ #define S5P_FIMV_DECODE_Y_ADR			0x2024
+@@ -377,6 +379,16 @@
+ #define S5P_FIMV_R2H_CMD_EDFU_INIT_RET		16
+ #define S5P_FIMV_R2H_CMD_ERR_RET		32
+ 
++/* Dummy definition for MFCv6 compatibilty */
++#define S5P_FIMV_CODEC_H264_MVC_DEC		-1
++#define S5P_FIMV_R2H_CMD_FIELD_DONE_RET		-1
++#define S5P_FIMV_MFC_RESET			-1
++#define S5P_FIMV_RISC_ON			-1
++#define S5P_FIMV_RISC_BASE_ADDRESS		-1
++#define S5P_FIMV_CODEC_VP8_DEC			-1
++#define S5P_FIMV_REG_CLEAR_BEGIN		0
++#define S5P_FIMV_REG_CLEAR_COUNT		0
++
+ /* Error handling defines */
+ #define S5P_FIMV_ERR_WARNINGS_START		145
+ #define S5P_FIMV_ERR_DEC_MASK			0xFFFF
+@@ -414,5 +426,22 @@
+ #define S5P_FIMV_SHARED_EXTENDED_SAR		0x0078
+ #define S5P_FIMV_SHARED_H264_I_PERIOD		0x009C
+ #define S5P_FIMV_SHARED_RC_CONTROL_CONFIG	0x00A0
++#define S5P_FIMV_SHARED_DISP_FRAME_TYPE_SHIFT	2
++
++#define S5P_FIMV_SHARED_FRAME_PACK_SEI_AVAIL    0x16C
++#define S5P_FIMV_SHARED_FRAME_PACK_ARRGMENT_ID  0x170
++#define S5P_FIMV_SHARED_FRAME_PACK_SEI_INFO     0x174
++#define S5P_FIMV_SHARED_FRAME_PACK_GRID_POS     0x178
++
++/* SEI related information */
++#define S5P_FIMV_FRAME_PACK_SEI_AVAIL           S5P_FIMV_SHARED_FRAME_PACK_SEI_AVAIL
++#define S5P_FIMV_FRAME_PACK_ARRGMENT_ID         S5P_FIMV_SHARED_FRAME_PACK_ARRGMENT_ID
++#define S5P_FIMV_FRAME_PACK_SEI_INFO            S5P_FIMV_SHARED_FRAME_PACK_SEI_INFO
++#define S5P_FIMV_FRAME_PACK_GRID_POS            S5P_FIMV_SHARED_FRAME_PACK_GRID_POS
++
++#define S5P_FIMV_SHARED_SET_E_FRAME_TAG		S5P_FIMV_SHARED_SET_FRAME_TAG
++#define S5P_FIMV_SHARED_GET_E_FRAME_TAG		S5P_FIMV_SHARED_GET_FRAME_TAG_TOP
++#define S5P_FIMV_ENCODED_LUMA_ADDR		S5P_FIMV_ENCODED_Y_ADDR
++#define S5P_FIMV_ENCODED_CHROMA_ADDR		S5P_FIMV_ENCODED_C_ADDR
+ 
+ #endif /* _REGS_FIMV_H */
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc.c b/drivers/media/video/s5p-mfc/s5p_mfc.c
+index 9bb68e7..bec94bc 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc.c
+@@ -21,15 +21,13 @@
+ #include <linux/videodev2.h>
+ #include <linux/workqueue.h>
+ #include <media/videobuf2-core.h>
+-#include "regs-mfc.h"
++#include "s5p_mfc_common.h"
+ #include "s5p_mfc_ctrl.h"
+ #include "s5p_mfc_debug.h"
+ #include "s5p_mfc_dec.h"
+ #include "s5p_mfc_enc.h"
+ #include "s5p_mfc_intr.h"
+-#include "s5p_mfc_opr.h"
+ #include "s5p_mfc_pm.h"
+-#include "s5p_mfc_shm.h"
+ 
+ #define S5P_MFC_NAME		"s5p-mfc"
+ #define S5P_MFC_DEC_NAME	"s5p-mfc-dec"
+@@ -155,13 +153,6 @@ static enum s5p_mfc_node_type s5p_mfc_get_node_type(struct file *file)
+ 	return MFCNODE_INVALID;
+ }
+ 
+-static void s5p_mfc_clear_int_flags(struct s5p_mfc_dev *dev)
+-{
+-	mfc_write(dev, 0, S5P_FIMV_RISC_HOST_INT);
+-	mfc_write(dev, 0, S5P_FIMV_RISC2HOST_CMD);
+-	mfc_write(dev, 0xffff, S5P_FIMV_SI_RTN_CHID);
+-}
+-
+ static void s5p_mfc_handle_frame_all_extracted(struct s5p_mfc_ctx *ctx)
+ {
+ 	struct s5p_mfc_buf *dst_buf;
+@@ -179,8 +170,8 @@ static void s5p_mfc_handle_frame_all_extracted(struct s5p_mfc_ctx *ctx)
+ 		ctx->dst_queue_cnt--;
+ 		dst_buf->b->v4l2_buf.sequence = (ctx->sequence++);
+ 
+-		if (s5p_mfc_read_shm(ctx, PIC_TIME_TOP) ==
+-			s5p_mfc_read_shm(ctx, PIC_TIME_BOT))
++		if (s5p_mfc_read_info(ctx, PIC_TIME_TOP) ==
++			s5p_mfc_read_info(ctx, PIC_TIME_BOT))
+ 			dst_buf->b->v4l2_buf.field = V4L2_FIELD_NONE;
+ 		else
+ 			dst_buf->b->v4l2_buf.field = V4L2_FIELD_INTERLACED;
+@@ -195,7 +186,7 @@ static void s5p_mfc_handle_frame_copy_time(struct s5p_mfc_ctx *ctx)
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+ 	struct s5p_mfc_buf  *dst_buf, *src_buf;
+ 	size_t dec_y_addr = s5p_mfc_get_dec_y_adr();
+-	unsigned int frame_type = s5p_mfc_get_frame_type();
++	unsigned int frame_type = s5p_mfc_get_dec_frame_type();
+ 
+ 	/* Copy timestamp / timecode from decoded src to dst and set
+ 	   appropraite flags */
+@@ -232,7 +223,7 @@ static void s5p_mfc_handle_frame_new(struct s5p_mfc_ctx *ctx, unsigned int err)
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+ 	struct s5p_mfc_buf  *dst_buf;
+ 	size_t dspl_y_addr = s5p_mfc_get_dspl_y_adr();
+-	unsigned int frame_type = s5p_mfc_get_frame_type();
++	unsigned int frame_type = s5p_mfc_get_dec_frame_type();
+ 	unsigned int index;
+ 
+ 	/* If frame is same as previous then skip and do not dequeue */
+@@ -251,8 +242,8 @@ static void s5p_mfc_handle_frame_new(struct s5p_mfc_ctx *ctx, unsigned int err)
+ 			list_del(&dst_buf->list);
+ 			ctx->dst_queue_cnt--;
+ 			dst_buf->b->v4l2_buf.sequence = ctx->sequence;
+-			if (s5p_mfc_read_shm(ctx, PIC_TIME_TOP) ==
+-				s5p_mfc_read_shm(ctx, PIC_TIME_BOT))
++			if (s5p_mfc_read_info(ctx, PIC_TIME_TOP) ==
++				s5p_mfc_read_info(ctx, PIC_TIME_BOT))
+ 				dst_buf->b->v4l2_buf.field = V4L2_FIELD_NONE;
+ 			else
+ 				dst_buf->b->v4l2_buf.field =
+@@ -285,12 +276,13 @@ static void s5p_mfc_handle_frame(struct s5p_mfc_ctx *ctx,
+ 
+ 	dst_frame_status = s5p_mfc_get_dspl_status()
+ 				& S5P_FIMV_DEC_STATUS_DECODING_STATUS_MASK;
+-	res_change = s5p_mfc_get_dspl_status()
+-				& S5P_FIMV_DEC_STATUS_RESOLUTION_MASK;
++	res_change = (s5p_mfc_get_dspl_status()
++				& S5P_FIMV_DEC_STATUS_RESOLUTION_MASK)
++				>> S5P_FIMV_DEC_STATUS_RESOLUTION_SHIFT;
+ 	mfc_debug(2, "Frame Status: %x\n", dst_frame_status);
+ 	if (ctx->state == MFCINST_RES_CHANGE_INIT)
+ 		ctx->state = MFCINST_RES_CHANGE_FLUSH;
+-	if (res_change) {
++	if (res_change && res_change != 3) {
+ 		ctx->state = MFCINST_RES_CHANGE_INIT;
+ 		s5p_mfc_clear_int_flags(dev);
+ 		wake_up_ctx(ctx, reason, err);
+@@ -333,7 +325,8 @@ static void s5p_mfc_handle_frame(struct s5p_mfc_ctx *ctx,
+ 								list);
+ 		ctx->consumed_stream += s5p_mfc_get_consumed_stream();
+ 		if (ctx->codec_mode != S5P_FIMV_CODEC_H264_DEC &&
+-			s5p_mfc_get_frame_type() == S5P_FIMV_DECODE_FRAME_P_FRAME
++			s5p_mfc_get_dec_frame_type() ==
++					S5P_FIMV_DECODE_FRAME_P_FRAME
+ 					&& ctx->consumed_stream + STUFF_BYTE <
+ 					src_buf->b->v4l2_planes[0].bytesused) {
+ 			/* Run MFC again on the same buffer */
+@@ -427,7 +420,6 @@ static void s5p_mfc_handle_seq_done(struct s5p_mfc_ctx *ctx,
+ 				 unsigned int reason, unsigned int err)
+ {
+ 	struct s5p_mfc_dev *dev;
+-	unsigned int guard_width, guard_height;
+ 
+ 	if (ctx == NULL)
+ 		return;
+@@ -439,45 +431,28 @@ static void s5p_mfc_handle_seq_done(struct s5p_mfc_ctx *ctx,
+ 		ctx->img_width = s5p_mfc_get_img_width();
+ 		ctx->img_height = s5p_mfc_get_img_height();
+ 
+-		ctx->buf_width = ALIGN(ctx->img_width,
+-						S5P_FIMV_NV12MT_HALIGN);
+-		ctx->buf_height = ALIGN(ctx->img_height,
+-						S5P_FIMV_NV12MT_VALIGN);
+-		mfc_debug(2, "SEQ Done: Movie dimensions %dx%d, "
+-			"buffer dimensions: %dx%d\n", ctx->img_width,
+-				ctx->img_height, ctx->buf_width,
+-						ctx->buf_height);
+-		if (ctx->codec_mode == S5P_FIMV_CODEC_H264_DEC) {
+-			ctx->luma_size = ALIGN(ctx->buf_width *
+-				ctx->buf_height, S5P_FIMV_DEC_BUF_ALIGN);
+-			ctx->chroma_size = ALIGN(ctx->buf_width *
+-					 ALIGN((ctx->img_height >> 1),
+-					       S5P_FIMV_NV12MT_VALIGN),
+-					       S5P_FIMV_DEC_BUF_ALIGN);
+-			ctx->mv_size = ALIGN(ctx->buf_width *
+-					ALIGN((ctx->buf_height >> 2),
+-					S5P_FIMV_NV12MT_VALIGN),
+-					S5P_FIMV_DEC_BUF_ALIGN);
+-		} else {
+-			guard_width = ALIGN(ctx->img_width + 24,
+-					S5P_FIMV_NV12MT_HALIGN);
+-			guard_height = ALIGN(ctx->img_height + 16,
+-						S5P_FIMV_NV12MT_VALIGN);
+-			ctx->luma_size = ALIGN(guard_width *
+-				guard_height, S5P_FIMV_DEC_BUF_ALIGN);
+-			guard_width = ALIGN(ctx->img_width + 16,
+-						S5P_FIMV_NV12MT_HALIGN);
+-			guard_height = ALIGN((ctx->img_height >> 1) + 4,
+-						S5P_FIMV_NV12MT_VALIGN);
+-			ctx->chroma_size = ALIGN(guard_width *
+-				guard_height, S5P_FIMV_DEC_BUF_ALIGN);
+-			ctx->mv_size = 0;
+-		}
++		s5p_mfc_dec_calc_dpb_size(ctx);
++
+ 		ctx->dpb_count = s5p_mfc_get_dpb_count();
+ 		if (ctx->img_width == 0 || ctx->img_height == 0)
+ 			ctx->state = MFCINST_ERROR;
+ 		else
+ 			ctx->state = MFCINST_HEAD_PARSED;
++
++		if ((ctx->codec_mode == S5P_FIMV_CODEC_H264_DEC ||
++			ctx->codec_mode == S5P_FIMV_CODEC_H264_MVC_DEC) &&
++				!list_empty(&ctx->src_queue)) {
++			struct s5p_mfc_buf *src_buf;
++			src_buf = list_entry(ctx->src_queue.next,
++					struct s5p_mfc_buf, list);
++			mfc_debug(2, "Check consumed size of header. ");
++			mfc_debug(2, "source : %d, consumed : %d\n",
++					s5p_mfc_get_consumed_stream(),
++					src_buf->b->v4l2_planes[0].bytesused);
++			if (s5p_mfc_get_consumed_stream() <
++					src_buf->b->v4l2_planes[0].bytesused)
++				ctx->remained = 1;
++		}
+ 	}
+ 	s5p_mfc_clear_int_flags(dev);
+ 	clear_work_bit(ctx);
+@@ -508,7 +483,7 @@ static void s5p_mfc_handle_init_buffers(struct s5p_mfc_ctx *ctx,
+ 	spin_unlock(&dev->condlock);
+ 	if (err == 0) {
+ 		ctx->state = MFCINST_RUNNING;
+-		if (!ctx->dpb_flush_flag) {
++		if (!ctx->dpb_flush_flag && !ctx->remained) {
+ 			spin_lock_irqsave(&dev->irqlock, flags);
+ 			if (!list_empty(&ctx->src_queue)) {
+ 				src_buf = list_entry(ctx->src_queue.next,
+@@ -567,6 +542,7 @@ static irqreturn_t s5p_mfc_irq(int irq, void *priv)
+ 		break;
+ 
+ 	case S5P_FIMV_R2H_CMD_SLICE_DONE_RET:
++	case S5P_FIMV_R2H_CMD_FIELD_DONE_RET:
+ 	case S5P_FIMV_R2H_CMD_FRAME_DONE_RET:
+ 		if (ctx->c_ops->post_frame_start) {
+ 			if (ctx->c_ops->post_frame_start(ctx))
+@@ -679,6 +655,7 @@ static int s5p_mfc_open(struct file *file)
+ 	if (s5p_mfc_get_node_type(file) == MFCNODE_DECODER) {
+ 		ctx->type = MFCINST_DECODER;
+ 		ctx->c_ops = get_dec_codec_ops();
++		s5p_mfc_dec_init(ctx);
+ 		/* Setup ctrl handler */
+ 		ret = s5p_mfc_dec_ctrls_setup(ctx);
+ 		if (ret) {
+@@ -691,6 +668,7 @@ static int s5p_mfc_open(struct file *file)
+ 		/* only for encoder */
+ 		INIT_LIST_HEAD(&ctx->ref_queue);
+ 		ctx->ref_queue_cnt = 0;
++		s5p_mfc_enc_init(ctx);
+ 		/* Setup ctrl handler */
+ 		ret = s5p_mfc_enc_ctrls_setup(ctx);
+ 		if (ret) {
+@@ -842,6 +820,7 @@ static int s5p_mfc_release(struct file *file)
+ 		mfc_debug(2, "Last instance - release firmware\n");
+ 		/* reset <-> F/W release */
+ 		s5p_mfc_reset(dev);
++		s5p_mfc_deinit_hw(dev);
+ 		s5p_mfc_release_firmware(dev);
+ 		del_timer_sync(&dev->watchdog_timer);
+ 		if (s5p_mfc_power_off() < 0)
+@@ -1086,6 +1065,9 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+ 	dev->watchdog_timer.data = (unsigned long)dev;
+ 	dev->watchdog_timer.function = s5p_mfc_watchdog;
+ 
++	dev->variant = (struct s5p_mfc_variant *)
++		platform_get_device_id(pdev)->driver_data;
++
+ 	pr_debug("%s--\n", __func__);
+ 	return 0;
+ 
+@@ -1205,9 +1187,74 @@ static const struct dev_pm_ops s5p_mfc_pm_ops = {
+ 			   NULL)
+ };
+ 
++struct s5p_mfc_buf_size_v5 mfc_buf_size_v5 = {
++	.h264_ctx	= 0x96000,
++	.non_h264_ctx	= 0x2800,
++	.dsc		= 0x20000,
++	.shm		= 0x1000,
++};
++
++struct s5p_mfc_buf_size buf_size_v5 = {
++	.fw	= 0x60000,
++	.cpb	= 0x400000,	/*   4MB */
++	.priv	= &mfc_buf_size_v5,
++};
++
++struct s5p_mfc_buf_align mfc_buf_align_v5 = {
++	.base = 17,
++};
++
++static struct s5p_mfc_variant mfc_drvdata_v5 = {
++	.version	= 0x51,
++	.port_num	= 2,
++	.buf_size	= &buf_size_v5,
++	.buf_align	= &mfc_buf_align_v5,
++};
++
++struct s5p_mfc_buf_size_v6 mfc_buf_size_v6 = {
++	.dev_ctx	= 0x7000,	/*  28KB */
++	.h264_dec_ctx	= 0x200000,	/* 1.6MB */
++	.other_dec_ctx	= 0x5000,	/*  20KB */
++	.h264_enc_ctx	= 0x19000,	/* 100KB */
++	.other_enc_ctx	= 0x3000,	/*  12KB */
++};
++
++struct s5p_mfc_buf_size buf_size_v6 = {
++	.fw	= 0x100000,	/*   1MB */
++	.cpb	= 0x300000,	/*   3MB */
++	.priv	= &mfc_buf_size_v6,
++};
++
++struct s5p_mfc_buf_align mfc_buf_align_v6 = {
++	.base = 0,
++};
++
++static struct s5p_mfc_variant mfc_drvdata_v6 = {
++	.version	= 0x61,
++	.port_num	= 1,
++	.buf_size	= &buf_size_v6,
++	.buf_align	= &mfc_buf_align_v6,
++};
++
++static struct platform_device_id mfc_driver_ids[] = {
++	{
++		.name = "s5p-mfc",
++		.driver_data = (unsigned long)&mfc_drvdata_v5,
++	}, {
++		.name = "s5p-mfc-v5",
++		.driver_data = (unsigned long)&mfc_drvdata_v5,
++	}, {
++		.name = "s5p-mfc-v6",
++		.driver_data = (unsigned long)&mfc_drvdata_v6,
++	},
++	{},
++};
++MODULE_DEVICE_TABLE(platform, mfc_driver_ids);
++
+ static struct platform_driver s5p_mfc_driver = {
+-	.probe	= s5p_mfc_probe,
+-	.remove	= __devexit_p(s5p_mfc_remove),
++	.probe		= s5p_mfc_probe,
++	.remove		= __devexit_p(s5p_mfc_remove),
++	.id_table	= mfc_driver_ids,
+ 	.driver	= {
+ 		.name	= S5P_MFC_NAME,
+ 		.owner	= THIS_MODULE,
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_cmd.c b/drivers/media/video/s5p-mfc/s5p_mfc_cmd.c
+index f0665ed..e3c64db 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_cmd.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_cmd.c
+@@ -16,8 +16,8 @@
+ #include "s5p_mfc_debug.h"
+ 
+ /* This function is used to send a command to the MFC */
+-static int s5p_mfc_cmd_host2risc(struct s5p_mfc_dev *dev, int cmd,
+-						struct s5p_mfc_cmd_args *args)
++int s5p_mfc_cmd_host2risc(struct s5p_mfc_dev *dev, int cmd,
++				struct s5p_mfc_cmd_args *args)
+ {
+ 	int cur_cmd;
+ 	unsigned long timeout;
+@@ -81,7 +81,7 @@ int s5p_mfc_open_inst_cmd(struct s5p_mfc_ctx *ctx)
+ 	memset(&h2r_args, 0, sizeof(struct s5p_mfc_cmd_args));
+ 	h2r_args.arg[0] = ctx->codec_mode;
+ 	h2r_args.arg[1] = 0; /* no crc & no pixelcache */
+-	h2r_args.arg[2] = ctx->ctx_ofs;
++	h2r_args.arg[2] = ctx->ctx.ofs;
+ 	h2r_args.arg[3] = ctx->ctx_size;
+ 	ret = s5p_mfc_cmd_host2risc(dev, S5P_FIMV_H2R_CMD_OPEN_INSTANCE,
+ 								&h2r_args);
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_cmd.h b/drivers/media/video/s5p-mfc/s5p_mfc_cmd.h
+index 5ceebfe..5c9e662 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_cmd.h
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_cmd.h
+@@ -21,6 +21,9 @@ struct s5p_mfc_cmd_args {
+ 	unsigned int	arg[MAX_H2R_ARG];
+ };
+ 
++int s5p_mfc_cmd_host2risc(struct s5p_mfc_dev *dev, int cmd,
++	struct s5p_mfc_cmd_args *args);
++
+ int s5p_mfc_sys_init_cmd(struct s5p_mfc_dev *dev);
+ int s5p_mfc_sleep_cmd(struct s5p_mfc_dev *dev);
+ int s5p_mfc_wakeup_cmd(struct s5p_mfc_dev *dev);
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_cmd_v6.c b/drivers/media/video/s5p-mfc/s5p_mfc_cmd_v6.c
+new file mode 100644
+index 0000000..6a631e0
+--- /dev/null
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_cmd_v6.c
+@@ -0,0 +1,96 @@
 +/*
-+ * Tokens for register write
-+ * Default type about how to write values to registers
++ * linux/drivers/media/video/s5p-mfc/s5p_mfc_cmd_v6.c
++ *
++ * Copyright (c) 2012 Samsung Electronics Co., Ltd.
++ *		http://www.samsung.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
 + */
-+enum token_type {
-+	TOK_TERM = 0,	/* terminating token */
-+	TOK_CMD,	/* Command write */
-+	TOK_WRITE,	/* token for write operation */
-+	TOK_DELAY,	/* delay token for reg list */
-+	TOK_READ,
++
++#include "s5p_mfc_common.h"
++
++#include "s5p_mfc_cmd.h"
++#include "s5p_mfc_debug.h"
++#include "s5p_mfc_intr.h"
++
++int s5p_mfc_cmd_host2risc(struct s5p_mfc_dev *dev, int cmd,
++				struct s5p_mfc_cmd_args *args)
++{
++	mfc_debug(2, "Issue the command: %d\n", cmd);
++
++	/* Reset RISC2HOST command */
++	mfc_write(dev, 0x0, S5P_FIMV_RISC2HOST_CMD);
++
++	/* Issue the command */
++	mfc_write(dev, cmd, S5P_FIMV_HOST2RISC_CMD);
++	mfc_write(dev, 0x1, S5P_FIMV_HOST2RISC_INT);
++
++	return 0;
++}
++
++int s5p_mfc_sys_init_cmd(struct s5p_mfc_dev *dev)
++{
++	struct s5p_mfc_cmd_args h2r_args;
++	struct s5p_mfc_buf_size_v6 *buf_size = dev->variant->buf_size->priv;
++
++	s5p_mfc_alloc_dev_context_buffer(dev);
++	mfc_write(dev, dev->ctx_buf.dma, S5P_FIMV_CONTEXT_MEM_ADDR);
++	mfc_write(dev, buf_size->dev_ctx, S5P_FIMV_CONTEXT_MEM_SIZE);
++	return s5p_mfc_cmd_host2risc(dev, S5P_FIMV_H2R_CMD_SYS_INIT, &h2r_args);
++}
++
++int s5p_mfc_sleep_cmd(struct s5p_mfc_dev *dev)
++{
++	struct s5p_mfc_cmd_args h2r_args;
++
++	memset(&h2r_args, 0, sizeof(struct s5p_mfc_cmd_args));
++	return s5p_mfc_cmd_host2risc(dev, S5P_FIMV_H2R_CMD_SLEEP, &h2r_args);
++}
++
++int s5p_mfc_wakeup_cmd(struct s5p_mfc_dev *dev)
++{
++	struct s5p_mfc_cmd_args h2r_args;
++
++	memset(&h2r_args, 0, sizeof(struct s5p_mfc_cmd_args));
++	return s5p_mfc_cmd_host2risc(dev, S5P_FIMV_H2R_CMD_WAKEUP, &h2r_args);
++}
++
++/* Open a new instance and get its number */
++int s5p_mfc_open_inst_cmd(struct s5p_mfc_ctx *ctx)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++	struct s5p_mfc_cmd_args h2r_args;
++
++	mfc_debug(2, "Requested codec mode: %d\n", ctx->codec_mode);
++	dev->curr_ctx = ctx->num;
++	mfc_write(dev, ctx->codec_mode, S5P_FIMV_CODEC_TYPE);
++	mfc_write(dev, ctx->ctx.dma, S5P_FIMV_CONTEXT_MEM_ADDR);
++	mfc_write(dev, ctx->ctx_size, S5P_FIMV_CONTEXT_MEM_SIZE);
++	mfc_write(dev, 0, S5P_FIMV_D_CRC_CTRL); /* no crc */
++
++	return s5p_mfc_cmd_host2risc(dev, S5P_FIMV_H2R_CMD_OPEN_INSTANCE,
++					&h2r_args);
++}
++
++/* Close instance */
++int s5p_mfc_close_inst_cmd(struct s5p_mfc_ctx *ctx)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++	struct s5p_mfc_cmd_args h2r_args;
++	int ret = 0;
++
++	dev->curr_ctx = ctx->num;
++	if (ctx->state != MFCINST_FREE) {
++		mfc_write(dev, ctx->inst_no, S5P_FIMV_INSTANCE_ID);
++		ret = s5p_mfc_cmd_host2risc(dev,
++					S5P_FIMV_H2R_CMD_CLOSE_INSTANCE,
++					&h2r_args);
++	} else {
++		ret = -EINVAL;
++	}
++
++	return ret;
++}
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_common.h b/drivers/media/video/s5p-mfc/s5p_mfc_common.h
+index bd5706a..8c646f4 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_common.h
+@@ -16,7 +16,6 @@
+ #ifndef S5P_MFC_COMMON_H_
+ #define S5P_MFC_COMMON_H_
+ 
+-#include "regs-mfc.h"
+ #include <linux/platform_device.h>
+ #include <linux/videodev2.h>
+ #include <media/v4l2-ctrls.h>
+@@ -34,10 +33,6 @@
+ #define MFC_OFFSET_SHIFT	11
+ 
+ #define FIRMWARE_ALIGN		0x20000		/* 128KB */
+-#define MFC_H264_CTX_BUF_SIZE	0x96000		/* 600KB per H264 instance */
+-#define MFC_CTX_BUF_SIZE	0x2800		/* 10KB per instance */
+-#define DESC_BUF_SIZE		0x20000		/* 128KB for DESC buffer */
+-#define SHARED_BUF_SIZE		0x2000		/* 8KB for shared buffer */
+ 
+ #define DEF_CPB_SIZE		0x40000		/* 512KB */
+ 
+@@ -174,6 +169,54 @@ struct s5p_mfc_pm {
+ 	struct device	*device;
+ };
+ 
++struct s5p_mfc_buf_size_v5 {
++	unsigned int h264_ctx;
++	unsigned int non_h264_ctx;
++	unsigned int dsc;
++	unsigned int shm;
 +};
 +
-+struct regval_list {
-+	enum	token_type type;
-+	u32	addr;
-+	u16	val;
++struct s5p_mfc_buf_size_v6 {
++	unsigned int dev_ctx;
++	unsigned int h264_dec_ctx;
++	unsigned int other_dec_ctx;
++	unsigned int h264_enc_ctx;
++	unsigned int other_enc_ctx;
 +};
 +
++struct s5p_mfc_buf_size {
++	unsigned int fw;
++	unsigned int cpb;
++	void *priv;
++};
++
++struct s5p_mfc_buf_align {
++	unsigned int base;
++};
++
++struct s5p_mfc_variant {
++	unsigned int version;
++	unsigned int port_num;
++	struct s5p_mfc_buf_size *buf_size;
++	struct s5p_mfc_buf_align *buf_align;
++};
++
++/**
++ * struct s5p_mfc_priv_buf - represents internal used buffer
++ * @alloc:		allocation-specific context for each buffer
++ *			(videobuf2 allocator)
++ * @ofs:		offset of each buffer, will be used for MFC
++ * @virt:		kernel virtual address, only valid when the
++ *			buffer accessed by driver
++ * @dma:		DMA address, only valid when kernel DMA API used
++ */
++struct s5p_mfc_priv_buf {
++	void		*alloc;
++	unsigned long	ofs;
++	void		*virt;
++	dma_addr_t	dma;
++};
++
+ /**
+  * struct s5p_mfc_dev - The struct containing driver internal parameters.
+  *
+@@ -209,6 +252,7 @@ struct s5p_mfc_pm {
+  * @watchdog_work:	worker for the watchdog
+  * @alloc_ctx:		videobuf2 allocator contexts for two memory banks
+  * @enter_suspend:	flag set when entering suspend
++ * @ctx_buf:		common context memory (MFCv6)
+  *
+  */
+ struct s5p_mfc_dev {
+@@ -223,6 +267,7 @@ struct s5p_mfc_dev {
+ 	struct v4l2_ctrl_handler dec_ctrl_handler;
+ 	struct v4l2_ctrl_handler enc_ctrl_handler;
+ 	struct s5p_mfc_pm	pm;
++	struct s5p_mfc_variant	*variant;
+ 	int num_inst;
+ 	spinlock_t irqlock;	/* lock when operating on videobuf2 queues */
+ 	spinlock_t condlock;	/* lock when changing/checking if a context is
+@@ -245,6 +290,8 @@ struct s5p_mfc_dev {
+ 	struct work_struct watchdog_work;
+ 	void *alloc_ctx[2];
+ 	unsigned long enter_suspend;
++
++	struct s5p_mfc_priv_buf ctx_buf;
+ };
+ 
+ /**
+@@ -278,6 +325,23 @@ struct s5p_mfc_h264_enc_params {
+ 	enum v4l2_mpeg_video_h264_level level_v4l2;
+ 	int level;
+ 	u16 cpb_size;
++	int interlace;
++	u8 hier_qp;
++	u8 hier_qp_type;
++	u8 hier_qp_layer;
++	u8 hier_qp_layer_qp[7];
++	u8 sei_frame_packing;
++	u8 sei_fp_curr_frame_0;
++	u8 sei_fp_arrangement_type;
++
++	u8 fmo;
++	u8 fmo_map_type;
++	u8 fmo_slice_grp;
++	u8 fmo_chg_dir;
++	u32 fmo_chg_rate;
++	u32 fmo_run_len[4];
++	u8 aso;
++	u32 aso_slice_order[8];
+ };
+ 
+ /**
+@@ -288,8 +352,6 @@ struct s5p_mfc_mpeg4_enc_params {
+ 	enum v4l2_mpeg_video_mpeg4_profile profile;
+ 	int quarter_pixel;
+ 	/* Common for MPEG4, H263 */
+-	u16 vop_time_res;
+-	u16 vop_frm_delta;
+ 	u8 rc_frame_qp;
+ 	u8 rc_min_qp;
+ 	u8 rc_max_qp;
+@@ -316,9 +378,11 @@ struct s5p_mfc_enc_params {
+ 	u8 pad_cb;
+ 	u8 pad_cr;
+ 	int rc_frame;
++	int rc_mb;
+ 	u32 rc_bitrate;
+ 	u16 rc_reaction_coeff;
+ 	u16 vbv_size;
++	u32 vbv_delay;
+ 
+ 	enum v4l2_mpeg_video_header_mode seq_hdr_mode;
+ 	enum v4l2_mpeg_mfc51_video_frame_skip_mode frame_skip_mode;
+@@ -327,7 +391,6 @@ struct s5p_mfc_enc_params {
+ 	u8 num_b_frame;
+ 	u32 rc_framerate_num;
+ 	u32 rc_framerate_denom;
+-	int interlace;
+ 
+ 	union {
+ 		struct s5p_mfc_h264_enc_params h264;
+@@ -470,6 +533,7 @@ struct s5p_mfc_ctx {
+ 	unsigned long consumed_stream;
+ 
+ 	unsigned int dpb_flush_flag;
++	unsigned int remained;
+ 
+ 	/* Buffers */
+ 	void *bank1_buf;
+@@ -499,37 +563,42 @@ struct s5p_mfc_ctx {
+ 	int display_delay;
+ 	int display_delay_enable;
+ 	int after_packed_pb;
++	int sei_fp_parse;
+ 
+ 	int dpb_count;
+ 	int total_dpb_count;
+ 
+ 	/* Buffers */
+-	void *ctx_buf;
+-	size_t ctx_phys;
+-	size_t ctx_ofs;
+-	size_t ctx_size;
+-
+-	void *desc_buf;
+-	size_t desc_phys;
+-
+-
+-	void *shm_alloc;
+-	void *shm;
+-	size_t shm_ofs;
++	unsigned int ctx_size;
++	struct s5p_mfc_priv_buf ctx;
++	struct s5p_mfc_priv_buf dsc;
++	struct s5p_mfc_priv_buf shm;
+ 
+ 	struct s5p_mfc_enc_params enc_params;
+ 
+ 	size_t enc_dst_buf_size;
++	size_t luma_dpb_size;
++	size_t chroma_dpb_size;
++	size_t me_buffer_size;
++	size_t tmv_buffer_size;
+ 
+ 	enum v4l2_mpeg_mfc51_video_force_frame_type force_frame_type;
+ 
+ 	struct list_head ref_queue;
+ 	unsigned int ref_queue_cnt;
+ 
++	enum v4l2_mpeg_video_multi_slice_mode slice_mode;
++	union {
++		unsigned int mb;
++		unsigned int bits;
++	} slice_size;
++
+ 	struct s5p_mfc_codec_ops *c_ops;
+ 
+ 	struct v4l2_ctrl *ctrls[MFC_MAX_CTRLS];
+ 	struct v4l2_ctrl_handler ctrl_handler;
++	unsigned int frame_tag;
++	size_t scratch_buf_size;
+ };
+ 
+ /*
+@@ -567,4 +636,18 @@ struct mfc_control {
+ #define ctrl_to_ctx(__ctrl) \
+ 	container_of((__ctrl)->handler, struct s5p_mfc_ctx, ctrl_handler)
+ 
++#define HAS_PORTNUM(dev)	(dev ? (dev->variant ? \
++				(dev->variant->port_num ? 1 : 0) : 0) : 0)
++#define IS_TWOPORT(dev)		(dev->variant->port_num == 2 ? 1 : 0)
++#define IS_MFCV6(dev)		(dev->variant->version >= 0x60 ? 1 : 0)
++
++#if defined(CONFIG_VIDEO_SAMSUNG_S5P_MFC_V5)
++#include "regs-mfc.h"
++#include "s5p_mfc_opr.h"
++#include "s5p_mfc_shm.h"
++#elif defined(CONFIG_VIDEO_SAMSUNG_S5P_MFC_V6)
++#include "regs-mfc-v6.h"
++#include "s5p_mfc_opr_v6.h"
++#endif
++
+ #endif /* S5P_MFC_COMMON_H_ */
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
+index 08a5cfe..65ff15d 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
+@@ -15,7 +15,6 @@
+ #include <linux/firmware.h>
+ #include <linux/jiffies.h>
+ #include <linux/sched.h>
+-#include "regs-mfc.h"
+ #include "s5p_mfc_cmd.h"
+ #include "s5p_mfc_common.h"
+ #include "s5p_mfc_debug.h"
+@@ -38,12 +37,12 @@ int s5p_mfc_alloc_and_load_firmware(struct s5p_mfc_dev *dev)
+ 	 * into kernel. */
+ 	mfc_debug_enter();
+ 	err = request_firmware((const struct firmware **)&fw_blob,
+-				     "s5p-mfc.fw", dev->v4l2_dev.dev);
++				     "mfc_fw.bin", dev->v4l2_dev.dev);
+ 	if (err != 0) {
+ 		mfc_err("Firmware is not present in the /lib/firmware directory nor compiled in kernel\n");
+ 		return -EINVAL;
+ 	}
+-	dev->fw_size = ALIGN(fw_blob->size, FIRMWARE_ALIGN);
++	dev->fw_size = dev->variant->buf_size->fw;
+ 	if (s5p_mfc_bitproc_buf) {
+ 		mfc_err("Attempting to allocate firmware when it seems that it is already loaded\n");
+ 		release_firmware(fw_blob);
+@@ -77,28 +76,33 @@ int s5p_mfc_alloc_and_load_firmware(struct s5p_mfc_dev *dev)
+ 		return -EIO;
+ 	}
+ 	dev->bank1 = s5p_mfc_bitproc_phys;
+-	b_base = vb2_dma_contig_memops.alloc(
+-		dev->alloc_ctx[MFC_BANK2_ALLOC_CTX], 1 << MFC_BANK2_ALIGN_ORDER);
+-	if (IS_ERR(b_base)) {
+-		vb2_dma_contig_memops.put(s5p_mfc_bitproc_buf);
+-		s5p_mfc_bitproc_phys = 0;
+-		s5p_mfc_bitproc_buf = NULL;
+-		mfc_err("Allocating bank2 base failed\n");
+-	release_firmware(fw_blob);
+-		return -ENOMEM;
+-	}
+-	bank2_base_phys = s5p_mfc_mem_cookie(
+-		dev->alloc_ctx[MFC_BANK2_ALLOC_CTX], b_base);
+-	vb2_dma_contig_memops.put(b_base);
+-	if (bank2_base_phys & ((1 << MFC_BASE_ALIGN_ORDER) - 1)) {
+-		mfc_err("The base memory for bank 2 is not aligned to 128KB\n");
+-		vb2_dma_contig_memops.put(s5p_mfc_bitproc_buf);
+-		s5p_mfc_bitproc_phys = 0;
+-		s5p_mfc_bitproc_buf = NULL;
+-		release_firmware(fw_blob);
+-		return -EIO;
++	if (HAS_PORTNUM(dev) && IS_TWOPORT(dev)) {
++		b_base = vb2_dma_contig_memops.alloc(
++			dev->alloc_ctx[MFC_BANK2_ALLOC_CTX],
++			1 << MFC_BANK2_ALIGN_ORDER);
++		if (IS_ERR(b_base)) {
++			vb2_dma_contig_memops.put(s5p_mfc_bitproc_buf);
++			s5p_mfc_bitproc_phys = 0;
++			s5p_mfc_bitproc_buf = 0;
++			mfc_err("Allocating bank2 base failed\n");
++			release_firmware(fw_blob);
++			return -ENOMEM;
++		}
++		bank2_base_phys = s5p_mfc_mem_cookie(
++			dev->alloc_ctx[MFC_BANK2_ALLOC_CTX], b_base);
++		vb2_dma_contig_memops.put(b_base);
++		if (bank2_base_phys & ((1 << MFC_BASE_ALIGN_ORDER) - 1)) {
++			mfc_err("The base memory for bank 2 is not aligned to 128KB\n");
++			vb2_dma_contig_memops.put(s5p_mfc_bitproc_buf);
++			s5p_mfc_bitproc_phys = 0;
++			s5p_mfc_bitproc_buf = 0;
++			release_firmware(fw_blob);
++			return -EIO;
++		}
++		dev->bank2 = bank2_base_phys;
++	} else {
++		dev->bank2 = dev->bank1;
+ 	}
+-	dev->bank2 = bank2_base_phys;
+ 	memcpy(s5p_mfc_bitproc_virt, fw_blob->data, fw_blob->size);
+ 	wmb();
+ 	release_firmware(fw_blob);
+@@ -116,7 +120,7 @@ int s5p_mfc_reload_firmware(struct s5p_mfc_dev *dev)
+ 	 * into kernel. */
+ 	mfc_debug_enter();
+ 	err = request_firmware((const struct firmware **)&fw_blob,
+-				     "s5p-mfc.fw", dev->v4l2_dev.dev);
++				     "mfc_fw.bin", dev->v4l2_dev.dev);
+ 	if (err != 0) {
+ 		mfc_err("Firmware is not present in the /lib/firmware directory nor compiled in kernel\n");
+ 		return -EINVAL;
+@@ -157,46 +161,81 @@ int s5p_mfc_reset(struct s5p_mfc_dev *dev)
+ {
+ 	unsigned int mc_status;
+ 	unsigned long timeout;
++	int i;
+ 
+ 	mfc_debug_enter();
+-	/* Stop procedure */
+-	/*  reset RISC */
+-	mfc_write(dev, 0x3f6, S5P_FIMV_SW_RESET);
+-	/*  All reset except for MC */
+-	mfc_write(dev, 0x3e2, S5P_FIMV_SW_RESET);
+-	mdelay(10);
+-
+-	timeout = jiffies + msecs_to_jiffies(MFC_BW_TIMEOUT);
+-	/* Check MC status */
+-	do {
+-		if (time_after(jiffies, timeout)) {
+-			mfc_err("Timeout while resetting MFC\n");
+-			return -EIO;
+-		}
+ 
+-		mc_status = mfc_read(dev, S5P_FIMV_MC_STATUS);
++	if (IS_MFCV6(dev)) {
++		/* Reset IP */
++		/*  except RISC, reset */
++		mfc_write(dev, 0xFEE, S5P_FIMV_MFC_RESET);
++		/*  reset release */
++		mfc_write(dev, 0x0, S5P_FIMV_MFC_RESET);
+ 
+-	} while (mc_status & 0x3);
++		/* Zero Initialization of MFC registers */
++		mfc_write(dev, 0, S5P_FIMV_RISC2HOST_CMD);
++		mfc_write(dev, 0, S5P_FIMV_HOST2RISC_CMD);
++		mfc_write(dev, 0, S5P_FIMV_FW_VERSION);
++
++		for (i = 0; i < S5P_FIMV_REG_CLEAR_COUNT; i++)
++			mfc_write(dev, 0, S5P_FIMV_REG_CLEAR_BEGIN + (i*4));
++
++		/* Reset */
++		mfc_write(dev, 0, S5P_FIMV_RISC_ON);
++		mfc_write(dev, 0x1FFF, S5P_FIMV_MFC_RESET);
++		mfc_write(dev, 0, S5P_FIMV_MFC_RESET);
++	} else {
++		/* Stop procedure */
++		/*  reset RISC */
++		mfc_write(dev, 0x3f6, S5P_FIMV_SW_RESET);
++		/*  All reset except for MC */
++		mfc_write(dev, 0x3e2, S5P_FIMV_SW_RESET);
++		mdelay(10);
++
++		timeout = jiffies + msecs_to_jiffies(MFC_BW_TIMEOUT);
++		/* Check MC status */
++		do {
++			if (time_after(jiffies, timeout)) {
++				mfc_err("Timeout while resetting MFC\n");
++				return -EIO;
++			}
++
++			mc_status = mfc_read(dev, S5P_FIMV_MC_STATUS);
++
++		} while (mc_status & 0x3);
++
++		mfc_write(dev, 0x0, S5P_FIMV_SW_RESET);
++		mfc_write(dev, 0x3fe, S5P_FIMV_SW_RESET);
++	}
+ 
+-	mfc_write(dev, 0x0, S5P_FIMV_SW_RESET);
+-	mfc_write(dev, 0x3fe, S5P_FIMV_SW_RESET);
+ 	mfc_debug_leave();
+ 	return 0;
+ }
+ 
+ static inline void s5p_mfc_init_memctrl(struct s5p_mfc_dev *dev)
+ {
+-	mfc_write(dev, dev->bank1, S5P_FIMV_MC_DRAMBASE_ADR_A);
+-	mfc_write(dev, dev->bank2, S5P_FIMV_MC_DRAMBASE_ADR_B);
+-	mfc_debug(2, "Bank1: %08x, Bank2: %08x\n", dev->bank1, dev->bank2);
++	if (IS_MFCV6(dev)) {
++		mfc_write(dev, dev->bank1, S5P_FIMV_RISC_BASE_ADDRESS);
++		mfc_debug(2, "Base Address : %08x\n", dev->bank1);
++	} else {
++		mfc_write(dev, dev->bank1, S5P_FIMV_MC_DRAMBASE_ADR_A);
++		mfc_write(dev, dev->bank2, S5P_FIMV_MC_DRAMBASE_ADR_B);
++		mfc_debug(2, "Bank1: %08x, Bank2: %08x\n",
++				dev->bank1, dev->bank2);
++	}
+ }
+ 
+ static inline void s5p_mfc_clear_cmds(struct s5p_mfc_dev *dev)
+ {
+-	mfc_write(dev, 0xffffffff, S5P_FIMV_SI_CH0_INST_ID);
+-	mfc_write(dev, 0xffffffff, S5P_FIMV_SI_CH1_INST_ID);
+-	mfc_write(dev, 0, S5P_FIMV_RISC2HOST_CMD);
+-	mfc_write(dev, 0, S5P_FIMV_HOST2RISC_CMD);
++	if (IS_MFCV6(dev)) {
++		/* Zero initialization should be done before RESET.
++		 * Nothing to do here. */
++	} else {
++		mfc_write(dev, 0xffffffff, S5P_FIMV_SI_CH0_INST_ID);
++		mfc_write(dev, 0xffffffff, S5P_FIMV_SI_CH1_INST_ID);
++		mfc_write(dev, 0, S5P_FIMV_RISC2HOST_CMD);
++		mfc_write(dev, 0, S5P_FIMV_HOST2RISC_CMD);
++	}
+ }
+ 
+ /* Initialize hardware */
+@@ -224,7 +263,10 @@ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
+ 	s5p_mfc_clear_cmds(dev);
+ 	/* 3. Release reset signal to the RISC */
+ 	s5p_mfc_clean_dev_int_flags(dev);
+-	mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
++	if (IS_MFCV6(dev))
++		mfc_write(dev, 0x1, S5P_FIMV_RISC_ON);
++	else
++		mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
+ 	mfc_debug(2, "Will now wait for completion of firmware transfer\n");
+ 	if (s5p_mfc_wait_for_done_dev(dev, S5P_FIMV_R2H_CMD_FW_STATUS_RET)) {
+ 		mfc_err("Failed to load firmware\n");
+@@ -267,6 +309,17 @@ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
+ }
+ 
+ 
++/* Deinitialize hardware */
++void s5p_mfc_deinit_hw(struct s5p_mfc_dev *dev)
++{
++	s5p_mfc_clock_on();
++
++	s5p_mfc_reset(dev);
++	s5p_mfc_release_dev_context_buffer(dev);
++
++	s5p_mfc_clock_off();
++}
++
+ int s5p_mfc_sleep(struct s5p_mfc_dev *dev)
+ {
+ 	int ret;
+@@ -322,7 +375,10 @@ int s5p_mfc_wakeup(struct s5p_mfc_dev *dev)
+ 		return ret;
+ 	}
+ 	/* 4. Release reset signal to the RISC */
+-	mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
++	if (IS_MFCV6(dev))
++		mfc_write(dev, 0x1, S5P_FIMV_RISC_ON);
++	else
++		mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
+ 	mfc_debug(2, "Ok, now will write a command to wakeup the system\n");
+ 	if (s5p_mfc_wait_for_done_dev(dev, S5P_FIMV_R2H_CMD_WAKEUP_RET)) {
+ 		mfc_err("Failed to load firmware\n");
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.h b/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.h
+index 61dc23b..b72c8c6 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.h
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.h
+@@ -20,6 +20,7 @@ int s5p_mfc_alloc_and_load_firmware(struct s5p_mfc_dev *dev);
+ int s5p_mfc_reload_firmware(struct s5p_mfc_dev *dev);
+ 
+ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev);
++void s5p_mfc_deinit_hw(struct s5p_mfc_dev *dev);
+ 
+ int s5p_mfc_sleep(struct s5p_mfc_dev *dev);
+ int s5p_mfc_wakeup(struct s5p_mfc_dev *dev);
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
+index 4dd32fc..d4c6cf2 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
+@@ -23,85 +23,113 @@
+ #include <linux/workqueue.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/videobuf2-core.h>
+-#include "regs-mfc.h"
+ #include "s5p_mfc_common.h"
+ #include "s5p_mfc_debug.h"
+ #include "s5p_mfc_dec.h"
+ #include "s5p_mfc_intr.h"
+-#include "s5p_mfc_opr.h"
+ #include "s5p_mfc_pm.h"
+-#include "s5p_mfc_shm.h"
++
++#define DEF_SRC_FMT	4
++#define DEF_DST_FMT	0
+ 
+ static struct s5p_mfc_fmt formats[] = {
+ 	{
++		.name		= "4:2:0 2 Planes 16x16 Tiles",
++		.fourcc		= V4L2_PIX_FMT_NV12MT_16X16,
++		.codec_mode	= S5P_FIMV_CODEC_NONE,
++		.type		= MFC_FMT_RAW,
++		.num_planes	= 2,
++	},
++	{
+ 		.name		= "4:2:0 2 Planes 64x32 Tiles",
+ 		.fourcc		= V4L2_PIX_FMT_NV12MT,
+ 		.codec_mode	= S5P_FIMV_CODEC_NONE,
+ 		.type		= MFC_FMT_RAW,
+ 		.num_planes	= 2,
+-	 },
++	},
++	{
++		.name		= "4:2:0 2 Planes Y/CbCr",
++		.fourcc		= V4L2_PIX_FMT_NV12M,
++		.codec_mode	= S5P_FIMV_CODEC_NONE,
++		.type		= MFC_FMT_RAW,
++		.num_planes	= 2,
++	},
++	{
++		.name		= "4:2:0 2 Planes Y/CrCb",
++		.fourcc		= V4L2_PIX_FMT_NV21M,
++		.codec_mode	= S5P_FIMV_CODEC_NONE,
++		.type		= MFC_FMT_RAW,
++		.num_planes	= 2,
++	},
+ 	{
+-		.name = "4:2:0 2 Planes",
+-		.fourcc = V4L2_PIX_FMT_NV12M,
+-		.codec_mode = S5P_FIMV_CODEC_NONE,
+-		.type = MFC_FMT_RAW,
+-		.num_planes = 2,
++		.name		= "H264 Encoded Stream",
++		.fourcc		= V4L2_PIX_FMT_H264,
++		.codec_mode	= S5P_FIMV_CODEC_H264_DEC,
++		.type		= MFC_FMT_DEC,
++		.num_planes	= 1,
+ 	},
+ 	{
+-		.name = "H264 Encoded Stream",
+-		.fourcc = V4L2_PIX_FMT_H264,
+-		.codec_mode = S5P_FIMV_CODEC_H264_DEC,
+-		.type = MFC_FMT_DEC,
+-		.num_planes = 1,
++		.name		= "H264/MVC Encoded Stream",
++		.fourcc		= V4L2_PIX_FMT_H264_MVC,
++		.codec_mode	= S5P_FIMV_CODEC_H264_MVC_DEC,
++		.type		= MFC_FMT_DEC,
++		.num_planes	= 1,
+ 	},
+ 	{
+-		.name = "H263 Encoded Stream",
+-		.fourcc = V4L2_PIX_FMT_H263,
+-		.codec_mode = S5P_FIMV_CODEC_H263_DEC,
+-		.type = MFC_FMT_DEC,
+-		.num_planes = 1,
++		.name		= "H263 Encoded Stream",
++		.fourcc		= V4L2_PIX_FMT_H263,
++		.codec_mode	= S5P_FIMV_CODEC_H263_DEC,
++		.type		= MFC_FMT_DEC,
++		.num_planes	= 1,
+ 	},
+ 	{
+-		.name = "MPEG1 Encoded Stream",
+-		.fourcc = V4L2_PIX_FMT_MPEG1,
+-		.codec_mode = S5P_FIMV_CODEC_MPEG2_DEC,
+-		.type = MFC_FMT_DEC,
+-		.num_planes = 1,
++		.name		= "MPEG1 Encoded Stream",
++		.fourcc		= V4L2_PIX_FMT_MPEG1,
++		.codec_mode	= S5P_FIMV_CODEC_MPEG2_DEC,
++		.type		= MFC_FMT_DEC,
++		.num_planes	= 1,
+ 	},
+ 	{
+-		.name = "MPEG2 Encoded Stream",
+-		.fourcc = V4L2_PIX_FMT_MPEG2,
+-		.codec_mode = S5P_FIMV_CODEC_MPEG2_DEC,
+-		.type = MFC_FMT_DEC,
+-		.num_planes = 1,
++		.name		= "MPEG2 Encoded Stream",
++		.fourcc		= V4L2_PIX_FMT_MPEG2,
++		.codec_mode	= S5P_FIMV_CODEC_MPEG2_DEC,
++		.type		= MFC_FMT_DEC,
++		.num_planes	= 1,
+ 	},
+ 	{
+-		.name = "MPEG4 Encoded Stream",
+-		.fourcc = V4L2_PIX_FMT_MPEG4,
+-		.codec_mode = S5P_FIMV_CODEC_MPEG4_DEC,
+-		.type = MFC_FMT_DEC,
+-		.num_planes = 1,
++		.name		= "MPEG4 Encoded Stream",
++		.fourcc		= V4L2_PIX_FMT_MPEG4,
++		.codec_mode	= S5P_FIMV_CODEC_MPEG4_DEC,
++		.type		= MFC_FMT_DEC,
++		.num_planes	= 1,
+ 	},
+ 	{
+-		.name = "XviD Encoded Stream",
+-		.fourcc = V4L2_PIX_FMT_XVID,
+-		.codec_mode = S5P_FIMV_CODEC_MPEG4_DEC,
+-		.type = MFC_FMT_DEC,
+-		.num_planes = 1,
++		.name		= "XviD Encoded Stream",
++		.fourcc		= V4L2_PIX_FMT_XVID,
++		.codec_mode	= S5P_FIMV_CODEC_MPEG4_DEC,
++		.type		= MFC_FMT_DEC,
++		.num_planes	= 1,
+ 	},
+ 	{
+-		.name = "VC1 Encoded Stream",
+-		.fourcc = V4L2_PIX_FMT_VC1_ANNEX_G,
+-		.codec_mode = S5P_FIMV_CODEC_VC1_DEC,
+-		.type = MFC_FMT_DEC,
+-		.num_planes = 1,
++		.name		= "VC1 Encoded Stream",
++		.fourcc		= V4L2_PIX_FMT_VC1_ANNEX_G,
++		.codec_mode	= S5P_FIMV_CODEC_VC1_DEC,
++		.type		= MFC_FMT_DEC,
++		.num_planes	= 1,
+ 	},
+ 	{
+-		.name = "VC1 RCV Encoded Stream",
+-		.fourcc = V4L2_PIX_FMT_VC1_ANNEX_L,
+-		.codec_mode = S5P_FIMV_CODEC_VC1RCV_DEC,
+-		.type = MFC_FMT_DEC,
+-		.num_planes = 1,
++		.name		= "VC1 RCV Encoded Stream",
++		.fourcc		= V4L2_PIX_FMT_VC1_ANNEX_L,
++		.codec_mode	= S5P_FIMV_CODEC_VC1RCV_DEC,
++		.type		= MFC_FMT_DEC,
++		.num_planes	= 1,
++	},
++	{
++		.name		= "VC8 Encoded Stream",
++		.fourcc		= V4L2_PIX_FMT_VP8,
++		.codec_mode	= S5P_FIMV_CODEC_VP8_DEC,
++		.type		= MFC_FMT_DEC,
++		.num_planes	= 1,
+ 	},
+ };
+ 
+@@ -336,21 +364,35 @@ static int vidioc_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ /* Try format */
+ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ {
++	struct s5p_mfc_dev *dev = video_drvdata(file);
+ 	struct s5p_mfc_fmt *fmt;
+ 
+-	if (f->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+-		mfc_err("This node supports decoding only\n");
+-		return -EINVAL;
+-	}
+-	fmt = find_format(f, MFC_FMT_DEC);
+-	if (!fmt) {
+-		mfc_err("Unsupported format\n");
+-		return -EINVAL;
+-	}
+-	if (fmt->type != MFC_FMT_DEC) {
+-		mfc_err("\n");
+-		return -EINVAL;
++	mfc_debug(2, "Type is %d\n", f->type);
++	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
++		fmt = find_format(f, MFC_FMT_DEC);
++		if (!fmt) {
++			mfc_err("Unsupported format for source.\n");
++			return -EINVAL;
++		}
++		if (!IS_MFCV6(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
++			mfc_err("Not supported format.\n");
++			return -EINVAL;
++		}
++	} else if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
++		fmt = find_format(f, MFC_FMT_RAW);
++		if (!fmt) {
++			mfc_err("Unsupported format for destination.\n");
++			return -EINVAL;
++		}
++		if (IS_MFCV6(dev) && (fmt->fourcc == V4L2_PIX_FMT_NV12MT)) {
++			mfc_err("Not supported format.\n");
++			return -EINVAL;
++		} else if (fmt->fourcc != V4L2_PIX_FMT_NV12MT) {
++			mfc_err("Not supported format.\n");
++			return -EINVAL;
++		}
+ 	}
++
+ 	return 0;
+ }
+ 
+@@ -373,6 +415,26 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 		ret = -EBUSY;
+ 		goto out;
+ 	}
++	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
++		fmt = find_format(f, MFC_FMT_RAW);
++		if (!fmt) {
++			mfc_err("Unsupported format for source.\n");
++			return -EINVAL;
++		}
++		if (!IS_MFCV6(dev) && (fmt->fourcc != V4L2_PIX_FMT_NV12MT)) {
++			mfc_err("Not supported format.\n");
++			return -EINVAL;
++		} else if (IS_MFCV6(dev) && (fmt->fourcc == V4L2_PIX_FMT_NV12MT)) {
++			mfc_err("Not supported format.\n");
++			return -EINVAL;
++		}
++		ctx->dst_fmt = fmt;
++		mfc_debug_leave();
++		return ret;
++	} else if (f->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
++		mfc_err("Wrong type error for S_FMT : %d", f->type);
++		return -EINVAL;
++	}
+ 	fmt = find_format(f, MFC_FMT_DEC);
+ 	if (!fmt || fmt->codec_mode == S5P_FIMV_CODEC_NONE) {
+ 		mfc_err("Unknown codec\n");
+@@ -385,6 +447,10 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 		ret = -EINVAL;
+ 		goto out;
+ 	}
++	if (!IS_MFCV6(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
++		mfc_err("Not supported format.\n");
++		return -EINVAL;
++	}
+ 	ctx->src_fmt = fmt;
+ 	ctx->codec_mode = fmt->codec_mode;
+ 	mfc_debug(2, "The codec number is: %d\n", ctx->codec_mode);
+@@ -498,7 +564,7 @@ static int vidioc_reqbufs(struct file *file, void *priv,
+ 		}
+ 		s5p_mfc_try_run(dev);
+ 		s5p_mfc_wait_for_done_ctx(ctx,
+-					 S5P_FIMV_R2H_CMD_INIT_BUFFERS_RET, 0);
++					S5P_FIMV_R2H_CMD_INIT_BUFFERS_RET, 0);
+ 	}
+ 	return ret;
+ }
+@@ -696,10 +762,10 @@ static int vidioc_g_crop(struct file *file, void *priv,
+ 			return -EINVAL;
+ 		}
+ 	if (ctx->src_fmt->fourcc == V4L2_PIX_FMT_H264) {
+-		left = s5p_mfc_read_shm(ctx, CROP_INFO_H);
++		left = s5p_mfc_read_info(ctx, CROP_INFO_H);
+ 		right = left >> S5P_FIMV_SHARED_CROP_RIGHT_SHIFT;
+ 		left = left & S5P_FIMV_SHARED_CROP_LEFT_MASK;
+-		top = s5p_mfc_read_shm(ctx, CROP_INFO_V);
++		top = s5p_mfc_read_info(ctx, CROP_INFO_V);
+ 		bottom = top >> S5P_FIMV_SHARED_CROP_BOTTOM_SHIFT;
+ 		top = top & S5P_FIMV_SHARED_CROP_TOP_MASK;
+ 		cr->c.left = left;
+@@ -750,6 +816,7 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
+ 			void *allocators[])
+ {
+ 	struct s5p_mfc_ctx *ctx = fh_to_ctx(vq->drv_priv);
++	struct s5p_mfc_dev *dev = ctx->dev;
+ 
+ 	/* Video output for decoding (source)
+ 	 * this can be set after getting an instance */
+@@ -785,7 +852,13 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
+ 	    vq->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+ 		psize[0] = ctx->luma_size;
+ 		psize[1] = ctx->chroma_size;
+-		allocators[0] = ctx->dev->alloc_ctx[MFC_BANK2_ALLOC_CTX];
++
++		if (IS_MFCV6(dev))
++			allocators[0] =
++				ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
++		else
++			allocators[0] =
++				ctx->dev->alloc_ctx[MFC_BANK2_ALLOC_CTX];
+ 		allocators[1] = ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
+ 	} else if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE &&
+ 		   ctx->state == MFCINST_INIT) {
+@@ -1035,3 +1108,10 @@ void s5p_mfc_dec_ctrls_delete(struct s5p_mfc_ctx *ctx)
+ 		ctx->ctrls[i] = NULL;
+ }
+ 
++void s5p_mfc_dec_init(struct s5p_mfc_ctx *ctx)
++{
++	ctx->src_fmt = &formats[DEF_SRC_FMT];
++	ctx->dst_fmt = &formats[DEF_DST_FMT];
++	mfc_debug(2, "Default src_fmt is %x, dest_fmt is %x\n",
++			(unsigned int)ctx->src_fmt, (unsigned int)ctx->dst_fmt);
++}
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_dec.h b/drivers/media/video/s5p-mfc/s5p_mfc_dec.h
+index fb8b215..c53baf8 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_dec.h
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_dec.h
+@@ -19,5 +19,6 @@ const struct v4l2_ioctl_ops *get_dec_v4l2_ioctl_ops(void);
+ struct s5p_mfc_fmt *get_dec_def_fmt(bool src);
+ int s5p_mfc_dec_ctrls_setup(struct s5p_mfc_ctx *ctx);
+ void s5p_mfc_dec_ctrls_delete(struct s5p_mfc_ctx *ctx);
++void s5p_mfc_dec_init(struct s5p_mfc_ctx *ctx);
+ 
+ #endif /* S5P_MFC_DEC_H_ */
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+index 03d8334..645a8ef 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+@@ -24,48 +24,63 @@
+ #include <linux/workqueue.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/videobuf2-core.h>
+-#include "regs-mfc.h"
+ #include "s5p_mfc_common.h"
+ #include "s5p_mfc_debug.h"
+ #include "s5p_mfc_enc.h"
+ #include "s5p_mfc_intr.h"
+-#include "s5p_mfc_opr.h"
++
++#define DEF_SRC_FMT	2
++#define DEF_DST_FMT	4
+ 
+ static struct s5p_mfc_fmt formats[] = {
+ 	{
+-		.name = "4:2:0 2 Planes 64x32 Tiles",
+-		.fourcc = V4L2_PIX_FMT_NV12MT,
+-		.codec_mode = S5P_FIMV_CODEC_NONE,
+-		.type = MFC_FMT_RAW,
+-		.num_planes = 2,
++		.name		= "4:2:0 2 Planes 16x16 Tiles",
++		.fourcc		= V4L2_PIX_FMT_NV12MT_16X16,
++		.codec_mode	= S5P_FIMV_CODEC_NONE,
++		.type		= MFC_FMT_RAW,
++		.num_planes	= 2,
++	},
++	{
++		.name		= "4:2:0 2 Planes 64x32 Tiles",
++		.fourcc		= V4L2_PIX_FMT_NV12MT,
++		.codec_mode	= S5P_FIMV_CODEC_NONE,
++		.type		= MFC_FMT_RAW,
++		.num_planes	= 2,
++	},
++	{
++		.name		= "4:2:0 2 Planes Y/CbCr",
++		.fourcc		= V4L2_PIX_FMT_NV12M,
++		.codec_mode	= S5P_FIMV_CODEC_NONE,
++		.type		= MFC_FMT_RAW,
++		.num_planes	= 2,
+ 	},
+ 	{
+-		.name = "4:2:0 2 Planes",
+-		.fourcc = V4L2_PIX_FMT_NV12M,
+-		.codec_mode = S5P_FIMV_CODEC_NONE,
+-		.type = MFC_FMT_RAW,
+-		.num_planes = 2,
++		.name		= "4:2:0 2 Planes Y/CrCb",
++		.fourcc		= V4L2_PIX_FMT_NV21M,
++		.codec_mode	= S5P_FIMV_CODEC_NONE,
++		.type		= MFC_FMT_RAW,
++		.num_planes	= 2,
+ 	},
+ 	{
+-		.name = "H264 Encoded Stream",
+-		.fourcc = V4L2_PIX_FMT_H264,
+-		.codec_mode = S5P_FIMV_CODEC_H264_ENC,
+-		.type = MFC_FMT_ENC,
+-		.num_planes = 1,
++		.name		= "H264 Encoded Stream",
++		.fourcc		= V4L2_PIX_FMT_H264,
++		.codec_mode	= S5P_FIMV_CODEC_H264_ENC,
++		.type		= MFC_FMT_ENC,
++		.num_planes	= 1,
+ 	},
+ 	{
+-		.name = "MPEG4 Encoded Stream",
+-		.fourcc = V4L2_PIX_FMT_MPEG4,
+-		.codec_mode = S5P_FIMV_CODEC_MPEG4_ENC,
+-		.type = MFC_FMT_ENC,
+-		.num_planes = 1,
++		.name		= "MPEG4 Encoded Stream",
++		.fourcc		= V4L2_PIX_FMT_MPEG4,
++		.codec_mode	= S5P_FIMV_CODEC_MPEG4_ENC,
++		.type		= MFC_FMT_ENC,
++		.num_planes	= 1,
+ 	},
+ 	{
+-		.name = "H263 Encoded Stream",
+-		.fourcc = V4L2_PIX_FMT_H263,
+-		.codec_mode = S5P_FIMV_CODEC_H263_ENC,
+-		.type = MFC_FMT_ENC,
+-		.num_planes = 1,
++		.name		= "H263 Encoded Stream",
++		.fourcc		= V4L2_PIX_FMT_H263,
++		.codec_mode	= S5P_FIMV_CODEC_H263_ENC,
++		.type		= MFC_FMT_ENC,
++		.num_planes	= 1,
+ 	},
+ };
+ 
+@@ -641,13 +656,22 @@ static int enc_post_seq_start(struct s5p_mfc_ctx *ctx)
+ 		vb2_buffer_done(dst_mb->b, VB2_BUF_STATE_DONE);
+ 		spin_unlock_irqrestore(&dev->irqlock, flags);
+ 	}
+-	ctx->state = MFCINST_RUNNING;
+-	if (s5p_mfc_ctx_ready(ctx)) {
+-		spin_lock_irqsave(&dev->condlock, flags);
+-		set_bit(ctx->num, &dev->ctx_work_bits);
+-		spin_unlock_irqrestore(&dev->condlock, flags);
++
++	if (IS_MFCV6(dev)) {
++		ctx->state = MFCINST_HEAD_PARSED; /* for INIT_BUFFER cmd */
++	} else {
++		ctx->state = MFCINST_RUNNING;
++		if (s5p_mfc_ctx_ready(ctx)) {
++			spin_lock_irqsave(&dev->condlock, flags);
++			set_bit(ctx->num, &dev->ctx_work_bits);
++			spin_unlock_irqrestore(&dev->condlock, flags);
++		}
++		s5p_mfc_try_run(dev);
+ 	}
+-	s5p_mfc_try_run(dev);
++
++	if (IS_MFCV6(dev))
++		ctx->dpb_count = s5p_mfc_get_enc_dpb_count();
++
+ 	return 0;
+ }
+ 
+@@ -961,6 +985,17 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 			mfc_err("failed to set output format\n");
+ 			return -EINVAL;
+ 		}
++
++		if (!IS_MFCV6(dev) &&
++				(fmt->fourcc == V4L2_PIX_FMT_NV12MT_16X16)) {
++			mfc_err("Not supported format.\n");
++			return -EINVAL;
++		} else if (IS_MFCV6(dev) &&
++				(fmt->fourcc == V4L2_PIX_FMT_NV12MT)) {
++			mfc_err("Not supported format.\n");
++			return -EINVAL;
++		}
++
+ 		if (fmt->num_planes != pix_fmt_mp->num_planes) {
+ 			mfc_err("failed to set output format\n");
+ 			ret = -EINVAL;
+@@ -973,45 +1008,13 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 		mfc_debug(2, "fmt - w: %d, h: %d, ctx - w: %d, h: %d\n",
+ 			pix_fmt_mp->width, pix_fmt_mp->height,
+ 			ctx->img_width, ctx->img_height);
+-		if (ctx->src_fmt->fourcc == V4L2_PIX_FMT_NV12M) {
+-			ctx->buf_width = ALIGN(ctx->img_width,
+-							S5P_FIMV_NV12M_HALIGN);
+-			ctx->luma_size = ALIGN(ctx->img_width,
+-				S5P_FIMV_NV12M_HALIGN) * ALIGN(ctx->img_height,
+-				S5P_FIMV_NV12M_LVALIGN);
+-			ctx->chroma_size = ALIGN(ctx->img_width,
+-				S5P_FIMV_NV12M_HALIGN) * ALIGN((ctx->img_height
+-				>> 1), S5P_FIMV_NV12M_CVALIGN);
+-
+-			ctx->luma_size = ALIGN(ctx->luma_size,
+-							S5P_FIMV_NV12M_SALIGN);
+-			ctx->chroma_size = ALIGN(ctx->chroma_size,
+-							S5P_FIMV_NV12M_SALIGN);
+-
+-			pix_fmt_mp->plane_fmt[0].sizeimage = ctx->luma_size;
+-			pix_fmt_mp->plane_fmt[0].bytesperline = ctx->buf_width;
+-			pix_fmt_mp->plane_fmt[1].sizeimage = ctx->chroma_size;
+-			pix_fmt_mp->plane_fmt[1].bytesperline = ctx->buf_width;
+-
+-		} else if (ctx->src_fmt->fourcc == V4L2_PIX_FMT_NV12MT) {
+-			ctx->buf_width = ALIGN(ctx->img_width,
+-							S5P_FIMV_NV12MT_HALIGN);
+-			ctx->luma_size = ALIGN(ctx->img_width,
+-				S5P_FIMV_NV12MT_HALIGN)	* ALIGN(ctx->img_height,
+-				S5P_FIMV_NV12MT_VALIGN);
+-			ctx->chroma_size = ALIGN(ctx->img_width,
+-				S5P_FIMV_NV12MT_HALIGN) * ALIGN((ctx->img_height
+-				>> 1), S5P_FIMV_NV12MT_VALIGN);
+-			ctx->luma_size = ALIGN(ctx->luma_size,
+-							S5P_FIMV_NV12MT_SALIGN);
+-			ctx->chroma_size = ALIGN(ctx->chroma_size,
+-							S5P_FIMV_NV12MT_SALIGN);
+-
+-			pix_fmt_mp->plane_fmt[0].sizeimage = ctx->luma_size;
+-			pix_fmt_mp->plane_fmt[0].bytesperline = ctx->buf_width;
+-			pix_fmt_mp->plane_fmt[1].sizeimage = ctx->chroma_size;
+-			pix_fmt_mp->plane_fmt[1].bytesperline = ctx->buf_width;
+-		}
++
++		s5p_mfc_enc_calc_src_size(ctx);
++		pix_fmt_mp->plane_fmt[0].sizeimage = ctx->luma_size;
++		pix_fmt_mp->plane_fmt[0].bytesperline = ctx->buf_width;
++		pix_fmt_mp->plane_fmt[1].sizeimage = ctx->chroma_size;
++		pix_fmt_mp->plane_fmt[1].bytesperline = ctx->buf_width;
++
+ 		ctx->src_bufs_cnt = 0;
+ 		ctx->output_state = QUEUE_FREE;
+ 	} else {
+@@ -1026,6 +1029,7 @@ out:
+ static int vidioc_reqbufs(struct file *file, void *priv,
+ 					  struct v4l2_requestbuffers *reqbufs)
+ {
++	struct s5p_mfc_dev *dev = video_drvdata(file);
+ 	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
+ 	int ret = 0;
+ 
+@@ -1045,12 +1049,15 @@ static int vidioc_reqbufs(struct file *file, void *priv,
+ 			return ret;
+ 		}
+ 		ctx->capture_state = QUEUE_BUFS_REQUESTED;
+-		ret = s5p_mfc_alloc_codec_buffers(ctx);
+-		if (ret) {
+-			mfc_err("Failed to allocate encoding buffers\n");
+-			reqbufs->count = 0;
+-			ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
+-			return -ENOMEM;
++
++		if (!IS_MFCV6(dev)) {
++			ret = s5p_mfc_alloc_codec_buffers(ctx);
++			if (ret) {
++				mfc_err("Failed to allocate encoding buffers\n");
++				reqbufs->count = 0;
++				ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
++				return -ENOMEM;
++			}
+ 		}
+ 	} else if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+ 		if (ctx->output_state != QUEUE_FREE) {
+@@ -1297,6 +1304,13 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
+ 			p->codec.h264.profile =
+ 				S5P_FIMV_ENC_PROFILE_H264_BASELINE;
+ 			break;
++		case V4L2_MPEG_VIDEO_H264_PROFILE_CONSTRAINED_BASELINE:
++			if (IS_MFCV6(dev))
++				p->codec.h264.profile =
++				S5P_FIMV_ENC_PROFILE_H264_CONSTRAINED_BASELINE;
++			else
++				ret = -EINVAL;
++			break;
+ 		default:
+ 			ret = -EINVAL;
+ 		}
+@@ -1516,6 +1530,7 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
+ 			unsigned int psize[], void *allocators[])
+ {
+ 	struct s5p_mfc_ctx *ctx = fh_to_ctx(vq->drv_priv);
++	struct s5p_mfc_dev *dev = ctx->dev;
+ 
+ 	if (ctx->state != MFCINST_GOT_INST) {
+ 		mfc_err("inavlid state: %d\n", ctx->state);
+@@ -1544,8 +1559,17 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
+ 			*buf_count = MFC_MAX_BUFFERS;
+ 		psize[0] = ctx->luma_size;
+ 		psize[1] = ctx->chroma_size;
+-		allocators[0] = ctx->dev->alloc_ctx[MFC_BANK2_ALLOC_CTX];
+-		allocators[1] = ctx->dev->alloc_ctx[MFC_BANK2_ALLOC_CTX];
++		if (IS_MFCV6(dev)) {
++			allocators[0] =
++				ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
++			allocators[1] =
++				ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
++		} else {
++			allocators[0] =
++				ctx->dev->alloc_ctx[MFC_BANK2_ALLOC_CTX];
++			allocators[1] =
++				ctx->dev->alloc_ctx[MFC_BANK2_ALLOC_CTX];
++		}
+ 	} else {
+ 		mfc_err("inavlid queue type: %d\n", vq->type);
+ 		return -EINVAL;
+@@ -1826,3 +1850,10 @@ void s5p_mfc_enc_ctrls_delete(struct s5p_mfc_ctx *ctx)
+ 	for (i = 0; i < NUM_CTRLS; i++)
+ 		ctx->ctrls[i] = NULL;
+ }
++
++void s5p_mfc_enc_init(struct s5p_mfc_ctx *ctx)
++{
++	ctx->src_fmt = &formats[DEF_SRC_FMT];
++	ctx->dst_fmt = &formats[DEF_DST_FMT];
++}
++
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_enc.h b/drivers/media/video/s5p-mfc/s5p_mfc_enc.h
+index 405bdd3..413f22f 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_enc.h
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_enc.h
+@@ -19,5 +19,6 @@ const struct v4l2_ioctl_ops *get_enc_v4l2_ioctl_ops(void);
+ struct s5p_mfc_fmt *get_enc_def_fmt(bool src);
+ int s5p_mfc_enc_ctrls_setup(struct s5p_mfc_ctx *ctx);
+ void s5p_mfc_enc_ctrls_delete(struct s5p_mfc_ctx *ctx);
++void s5p_mfc_enc_init(struct s5p_mfc_ctx *ctx);
+ 
+ #endif /* S5P_MFC_ENC_H_  */
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_intr.c b/drivers/media/video/s5p-mfc/s5p_mfc_intr.c
+index 8f2f8bf..dfdc558 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_intr.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_intr.c
+@@ -17,7 +17,6 @@
+ #include <linux/io.h>
+ #include <linux/sched.h>
+ #include <linux/wait.h>
+-#include "regs-mfc.h"
+ #include "s5p_mfc_common.h"
+ #include "s5p_mfc_debug.h"
+ #include "s5p_mfc_intr.h"
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_opr.c b/drivers/media/video/s5p-mfc/s5p_mfc_opr.c
+index e6217cb..1fd9c92 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_opr.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_opr.c
+@@ -12,15 +12,12 @@
+  * published by the Free Software Foundation.
+  */
+ 
+-#include "regs-mfc.h"
+-#include "s5p_mfc_cmd.h"
+ #include "s5p_mfc_common.h"
++#include "s5p_mfc_cmd.h"
+ #include "s5p_mfc_ctrl.h"
+ #include "s5p_mfc_debug.h"
+ #include "s5p_mfc_intr.h"
+-#include "s5p_mfc_opr.h"
+ #include "s5p_mfc_pm.h"
+-#include "s5p_mfc_shm.h"
+ #include <asm/cacheflush.h>
+ #include <linux/delay.h>
+ #include <linux/dma-mapping.h>
+@@ -37,39 +34,31 @@
+ /* Allocate temporary buffers for decoding */
+ int s5p_mfc_alloc_dec_temp_buffers(struct s5p_mfc_ctx *ctx)
+ {
+-	void *desc_virt;
+ 	struct s5p_mfc_dev *dev = ctx->dev;
++	struct s5p_mfc_buf_size_v5 *buf_size = dev->variant->buf_size->priv;
+ 
+-	ctx->desc_buf = vb2_dma_contig_memops.alloc(
+-			dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], DESC_BUF_SIZE);
+-	if (IS_ERR_VALUE((int)ctx->desc_buf)) {
+-		ctx->desc_buf = NULL;
++	ctx->dsc.alloc = vb2_dma_contig_memops.alloc(
++			dev->alloc_ctx[MFC_BANK1_ALLOC_CTX],
++			buf_size->dsc);
++	if (IS_ERR_VALUE((int)ctx->dsc.alloc)) {
++		ctx->dsc.alloc = NULL;
+ 		mfc_err("Allocating DESC buffer failed\n");
+ 		return -ENOMEM;
+ 	}
+-	ctx->desc_phys = s5p_mfc_mem_cookie(
+-			dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->desc_buf);
+-	BUG_ON(ctx->desc_phys & ((1 << MFC_BANK1_ALIGN_ORDER) - 1));
+-	desc_virt = vb2_dma_contig_memops.vaddr(ctx->desc_buf);
+-	if (desc_virt == NULL) {
+-		vb2_dma_contig_memops.put(ctx->desc_buf);
+-		ctx->desc_phys = 0;
+-		ctx->desc_buf = NULL;
+-		mfc_err("Remapping DESC buffer failed\n");
+-		return -ENOMEM;
+-	}
+-	memset(desc_virt, 0, DESC_BUF_SIZE);
+-	wmb();
++	ctx->dsc.dma = s5p_mfc_mem_cookie(
++			dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->dsc.alloc);
++	BUG_ON(ctx->dsc.dma & ((1 << MFC_BANK1_ALIGN_ORDER) - 1));
++
+ 	return 0;
+ }
+ 
+ /* Release temporary buffers for decoding */
+ void s5p_mfc_release_dec_desc_buffer(struct s5p_mfc_ctx *ctx)
+ {
+-	if (ctx->desc_phys) {
+-		vb2_dma_contig_memops.put(ctx->desc_buf);
+-		ctx->desc_phys = 0;
+-		ctx->desc_buf = NULL;
++	if (ctx->dsc.dma) {
++		vb2_dma_contig_memops.put(ctx->dsc.alloc);
++		ctx->dsc.alloc = NULL;
++		ctx->dsc.dma = 0;
+ 	}
+ }
+ 
+@@ -231,41 +220,43 @@ void s5p_mfc_release_codec_buffers(struct s5p_mfc_ctx *ctx)
+ /* Allocate memory for instance data buffer */
+ int s5p_mfc_alloc_instance_buffer(struct s5p_mfc_ctx *ctx)
+ {
+-	void *context_virt;
+ 	struct s5p_mfc_dev *dev = ctx->dev;
++	struct s5p_mfc_buf_size_v5 *buf_size = dev->variant->buf_size->priv;
+ 
+ 	if (ctx->codec_mode == S5P_FIMV_CODEC_H264_DEC ||
+ 		ctx->codec_mode == S5P_FIMV_CODEC_H264_ENC)
+-		ctx->ctx_size = MFC_H264_CTX_BUF_SIZE;
++		ctx->ctx_size = buf_size->h264_ctx;
+ 	else
+-		ctx->ctx_size = MFC_CTX_BUF_SIZE;
+-	ctx->ctx_buf = vb2_dma_contig_memops.alloc(
++		ctx->ctx_size = buf_size->non_h264_ctx;
++	ctx->ctx.alloc = vb2_dma_contig_memops.alloc(
+ 		dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->ctx_size);
+-	if (IS_ERR(ctx->ctx_buf)) {
++	if (IS_ERR(ctx->ctx.alloc)) {
+ 		mfc_err("Allocating context buffer failed\n");
+-		ctx->ctx_phys = 0;
+-		ctx->ctx_buf = NULL;
++		ctx->ctx.alloc = NULL;
+ 		return -ENOMEM;
+ 	}
+-	ctx->ctx_phys = s5p_mfc_mem_cookie(
+-		dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->ctx_buf);
+-	BUG_ON(ctx->ctx_phys & ((1 << MFC_BANK1_ALIGN_ORDER) - 1));
+-	ctx->ctx_ofs = OFFSETA(ctx->ctx_phys);
+-	context_virt = vb2_dma_contig_memops.vaddr(ctx->ctx_buf);
+-	if (context_virt == NULL) {
++	ctx->ctx.dma = s5p_mfc_mem_cookie(
++		dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->ctx.alloc);
++	BUG_ON(ctx->ctx.dma & ((1 << MFC_BANK1_ALIGN_ORDER) - 1));
++	ctx->ctx.ofs = OFFSETA(ctx->ctx.dma);
++	ctx->ctx.virt = vb2_dma_contig_memops.vaddr(ctx->ctx.alloc);
++	if (!ctx->ctx.virt) {
+ 		mfc_err("Remapping instance buffer failed\n");
+-		vb2_dma_contig_memops.put(ctx->ctx_buf);
+-		ctx->ctx_phys = 0;
+-		ctx->ctx_buf = NULL;
++		vb2_dma_contig_memops.put(ctx->ctx.alloc);
++		ctx->ctx.alloc = NULL;
++		ctx->ctx.ofs = 0;
++		ctx->ctx.dma = 0;
+ 		return -ENOMEM;
+ 	}
+ 	/* Zero content of the allocated memory */
+-	memset(context_virt, 0, ctx->ctx_size);
++	memset(ctx->ctx.virt, 0, ctx->ctx_size);
+ 	wmb();
+ 	if (s5p_mfc_init_shm(ctx) < 0) {
+-		vb2_dma_contig_memops.put(ctx->ctx_buf);
+-		ctx->ctx_phys = 0;
+-		ctx->ctx_buf = NULL;
++		vb2_dma_contig_memops.put(ctx->ctx.alloc);
++		ctx->ctx.alloc = NULL;
++		ctx->ctx.ofs = 0;
++		ctx->ctx.virt = NULL;
++		ctx->ctx.dma = 0;
+ 		return -ENOMEM;
+ 	}
+ 	return 0;
+@@ -274,15 +265,100 @@ int s5p_mfc_alloc_instance_buffer(struct s5p_mfc_ctx *ctx)
+ /* Release instance buffer */
+ void s5p_mfc_release_instance_buffer(struct s5p_mfc_ctx *ctx)
+ {
+-	if (ctx->ctx_buf) {
+-		vb2_dma_contig_memops.put(ctx->ctx_buf);
+-		ctx->ctx_phys = 0;
+-		ctx->ctx_buf = NULL;
++	if (ctx->ctx.alloc) {
++		vb2_dma_contig_memops.put(ctx->ctx.alloc);
++		ctx->ctx.alloc = NULL;
++		ctx->ctx.ofs = 0;
++		ctx->ctx.virt = NULL;
++		ctx->ctx.dma = 0;
+ 	}
+-	if (ctx->shm_alloc) {
+-		vb2_dma_contig_memops.put(ctx->shm_alloc);
+-		ctx->shm_alloc = NULL;
+-		ctx->shm = NULL;
++	if (ctx->shm.alloc) {
++		vb2_dma_contig_memops.put(ctx->shm.alloc);
++		ctx->shm.alloc = NULL;
++		ctx->shm.ofs = 0;
++		ctx->shm.virt = NULL;
++	}
++}
++
++int s5p_mfc_alloc_dev_context_buffer(struct s5p_mfc_dev *dev)
++{
++	/* NOP */
++
++	return 0;
++}
++
++void s5p_mfc_release_dev_context_buffer(struct s5p_mfc_dev *dev)
++{
++	/* NOP */
++}
++
++void s5p_mfc_dec_calc_dpb_size(struct s5p_mfc_ctx *ctx)
++{
++	unsigned int guard_width, guard_height;
++
++	ctx->buf_width = ALIGN(ctx->img_width, S5P_FIMV_NV12MT_HALIGN);
++	ctx->buf_height = ALIGN(ctx->img_height, S5P_FIMV_NV12MT_VALIGN);
++	mfc_debug(2,
++		"SEQ Done: Movie dimensions %dx%d, buffer dimensions: %dx%d\n",
++		ctx->img_width,	ctx->img_height, ctx->buf_width,
++		ctx->buf_height);
++
++	if (ctx->codec_mode == S5P_FIMV_CODEC_H264_DEC) {
++		ctx->luma_size = ALIGN(ctx->buf_width * ctx->buf_height,
++				S5P_FIMV_DEC_BUF_ALIGN);
++		ctx->chroma_size = ALIGN(ctx->buf_width *
++				ALIGN((ctx->img_height >> 1),
++					S5P_FIMV_NV12MT_VALIGN),
++				S5P_FIMV_DEC_BUF_ALIGN);
++		ctx->mv_size = ALIGN(ctx->buf_width *
++				ALIGN((ctx->buf_height >> 2),
++					S5P_FIMV_NV12MT_VALIGN),
++				S5P_FIMV_DEC_BUF_ALIGN);
++	} else {
++		guard_width =
++			ALIGN(ctx->img_width + 24, S5P_FIMV_NV12MT_HALIGN);
++		guard_height =
++			ALIGN(ctx->img_height + 16, S5P_FIMV_NV12MT_VALIGN);
++		ctx->luma_size = ALIGN(guard_width * guard_height,
++				S5P_FIMV_DEC_BUF_ALIGN);
++
++		guard_width =
++			ALIGN(ctx->img_width + 16, S5P_FIMV_NV12MT_HALIGN);
++		guard_height =
++			ALIGN((ctx->img_height >> 1) + 4,
++					S5P_FIMV_NV12MT_VALIGN);
++		ctx->chroma_size = ALIGN(guard_width * guard_height,
++				S5P_FIMV_DEC_BUF_ALIGN);
++
++		ctx->mv_size = 0;
++	}
++}
++
++void s5p_mfc_enc_calc_src_size(struct s5p_mfc_ctx *ctx)
++{
++	if (ctx->src_fmt->fourcc == V4L2_PIX_FMT_NV12M) {
++		ctx->buf_width = ALIGN(ctx->img_width, S5P_FIMV_NV12M_HALIGN);
++
++		ctx->luma_size = ALIGN(ctx->img_width, S5P_FIMV_NV12M_HALIGN)
++			* ALIGN(ctx->img_height, S5P_FIMV_NV12M_LVALIGN);
++		ctx->chroma_size = ALIGN(ctx->img_width, S5P_FIMV_NV12M_HALIGN)
++			* ALIGN((ctx->img_height >> 1), S5P_FIMV_NV12M_CVALIGN);
++
++		ctx->luma_size = ALIGN(ctx->luma_size, S5P_FIMV_NV12M_SALIGN);
++		ctx->chroma_size =
++			ALIGN(ctx->chroma_size, S5P_FIMV_NV12M_SALIGN);
++	} else if (ctx->src_fmt->fourcc == V4L2_PIX_FMT_NV12MT) {
++		ctx->buf_width = ALIGN(ctx->img_width, S5P_FIMV_NV12MT_HALIGN);
++
++		ctx->luma_size = ALIGN(ctx->img_width, S5P_FIMV_NV12MT_HALIGN)
++			* ALIGN(ctx->img_height, S5P_FIMV_NV12MT_VALIGN);
++		ctx->chroma_size =
++			ALIGN(ctx->img_width, S5P_FIMV_NV12MT_HALIGN)
++			* ALIGN((ctx->img_height >> 1), S5P_FIMV_NV12MT_VALIGN);
++
++		ctx->luma_size = ALIGN(ctx->luma_size, S5P_FIMV_NV12MT_SALIGN);
++		ctx->chroma_size =
++			ALIGN(ctx->chroma_size, S5P_FIMV_NV12MT_SALIGN);
+ 	}
+ }
+ 
+@@ -290,16 +366,17 @@ void s5p_mfc_release_instance_buffer(struct s5p_mfc_ctx *ctx)
+ void s5p_mfc_set_dec_desc_buffer(struct s5p_mfc_ctx *ctx)
+ {
+ 	struct s5p_mfc_dev *dev = ctx->dev;
++	struct s5p_mfc_buf_size_v5 *buf_size = dev->variant->buf_size->priv;
+ 
+-	mfc_write(dev, OFFSETA(ctx->desc_phys), S5P_FIMV_SI_CH0_DESC_ADR);
+-	mfc_write(dev, DESC_BUF_SIZE, S5P_FIMV_SI_CH0_DESC_SIZE);
++	mfc_write(dev, OFFSETA(ctx->dsc.dma), S5P_FIMV_SI_CH0_DESC_ADR);
++	mfc_write(dev, buf_size->dsc, S5P_FIMV_SI_CH0_DESC_SIZE);
+ }
+ 
+ /* Set registers for shared buffer */
+ static void s5p_mfc_set_shared_buffer(struct s5p_mfc_ctx *ctx)
+ {
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+-	mfc_write(dev, ctx->shm_ofs, S5P_FIMV_SI_CH0_HOST_WR_ADR);
++	mfc_write(dev, ctx->shm.ofs, S5P_FIMV_SI_CH0_HOST_WR_ADR);
+ }
+ 
+ /* Set registers for decoding stream buffer */
+@@ -311,7 +388,7 @@ int s5p_mfc_set_dec_stream_buffer(struct s5p_mfc_ctx *ctx, int buf_addr,
+ 	mfc_write(dev, OFFSETA(buf_addr), S5P_FIMV_SI_CH0_SB_ST_ADR);
+ 	mfc_write(dev, ctx->dec_src_buf_size, S5P_FIMV_SI_CH0_CPB_SIZE);
+ 	mfc_write(dev, buf_size, S5P_FIMV_SI_CH0_SB_FRM_SIZE);
+-	s5p_mfc_write_shm(ctx, start_num_byte, START_BYTE_NUM);
++	s5p_mfc_write_info(ctx, start_num_byte, START_BYTE_NUM);
+ 	return 0;
+ }
+ 
+@@ -438,10 +515,10 @@ int s5p_mfc_set_dec_frame_buffer(struct s5p_mfc_ctx *ctx)
+ 		mfc_debug(2, "Not enough memory has been allocated\n");
+ 		return -ENOMEM;
+ 	}
+-	s5p_mfc_write_shm(ctx, frame_size, ALLOC_LUMA_DPB_SIZE);
+-	s5p_mfc_write_shm(ctx, frame_size_ch, ALLOC_CHROMA_DPB_SIZE);
++	s5p_mfc_write_info(ctx, frame_size, ALLOC_LUMA_DPB_SIZE);
++	s5p_mfc_write_info(ctx, frame_size_ch, ALLOC_CHROMA_DPB_SIZE);
+ 	if (ctx->codec_mode == S5P_FIMV_CODEC_H264_DEC)
+-		s5p_mfc_write_shm(ctx, frame_size_mv, ALLOC_MV_SIZE);
++		s5p_mfc_write_info(ctx, frame_size_mv, ALLOC_MV_SIZE);
+ 	mfc_write(dev, ((S5P_FIMV_CH_INIT_BUFS & S5P_FIMV_CH_MASK)
+ 					<< S5P_FIMV_CH_SHIFT) | (ctx->inst_no),
+ 						S5P_FIMV_SI_CH0_INST_ID);
+@@ -685,16 +762,16 @@ static int s5p_mfc_set_enc_params(struct s5p_mfc_ctx *ctx)
+ 	/* reaction coefficient */
+ 	if (p->rc_frame)
+ 		mfc_write(dev, p->rc_reaction_coeff, S5P_FIMV_ENC_RC_RPARA);
+-	shm = s5p_mfc_read_shm(ctx, EXT_ENC_CONTROL);
++	shm = s5p_mfc_read_info(ctx, EXT_ENC_CONTROL);
+ 	/* seq header ctrl */
+ 	shm &= ~(0x1 << 3);
+ 	shm |= (p->seq_hdr_mode << 3);
+ 	/* frame skip mode */
+ 	shm &= ~(0x3 << 1);
+ 	shm |= (p->frame_skip_mode << 1);
+-	s5p_mfc_write_shm(ctx, shm, EXT_ENC_CONTROL);
++	s5p_mfc_write_info(ctx, shm, EXT_ENC_CONTROL);
+ 	/* fixed target bit */
+-	s5p_mfc_write_shm(ctx, p->fixed_target_bit, RC_CONTROL_CONFIG);
++	s5p_mfc_write_info(ctx, p->fixed_target_bit, RC_CONTROL_CONFIG);
+ 	return 0;
+ }
+ 
+@@ -723,9 +800,9 @@ static int s5p_mfc_set_enc_params_h264(struct s5p_mfc_ctx *ctx)
+ 	reg |= p_264->profile;
+ 	mfc_write(dev, reg, S5P_FIMV_ENC_PROFILE);
+ 	/* interlace  */
+-	mfc_write(dev, p->interlace, S5P_FIMV_ENC_PIC_STRUCT);
++	mfc_write(dev, p_264->interlace, S5P_FIMV_ENC_PIC_STRUCT);
+ 	/* height */
+-	if (p->interlace)
++	if (p_264->interlace)
+ 		mfc_write(dev, ctx->img_height >> 1, S5P_FIMV_ENC_VSIZE_PX);
+ 	/* loopfilter ctrl */
+ 	mfc_write(dev, p_264->loop_filter_mode, S5P_FIMV_ENC_LF_CTRL);
+@@ -767,7 +844,7 @@ static int s5p_mfc_set_enc_params_h264(struct s5p_mfc_ctx *ctx)
+ 	reg = mfc_read(dev, S5P_FIMV_ENC_RC_CONFIG);
+ 	/* macroblock level rate control */
+ 	reg &= ~(0x1 << 8);
+-	reg |= (p_264->rc_mb << 8);
++	reg |= (p->rc_mb << 8);
+ 	/* frame QP */
+ 	reg &= ~(0x3F);
+ 	reg |= p_264->rc_frame_qp;
+@@ -788,7 +865,7 @@ static int s5p_mfc_set_enc_params_h264(struct s5p_mfc_ctx *ctx)
+ 	reg |= p_264->rc_min_qp;
+ 	mfc_write(dev, reg, S5P_FIMV_ENC_RC_QBOUND);
+ 	/* macroblock adaptive scaling features */
+-	if (p_264->rc_mb) {
++	if (p->rc_mb) {
+ 		reg = mfc_read(dev, S5P_FIMV_ENC_RC_MB_CTRL);
+ 		/* dark region */
+ 		reg &= ~(0x1 << 3);
+@@ -804,37 +881,36 @@ static int s5p_mfc_set_enc_params_h264(struct s5p_mfc_ctx *ctx)
+ 		reg |= p_264->rc_mb_activity;
+ 		mfc_write(dev, reg, S5P_FIMV_ENC_RC_MB_CTRL);
+ 	}
+-	if (!p->rc_frame &&
+-	    !p_264->rc_mb) {
+-		shm = s5p_mfc_read_shm(ctx, P_B_FRAME_QP);
++	if (!p->rc_frame && !p->rc_mb) {
++		shm = s5p_mfc_read_info(ctx, P_B_FRAME_QP);
+ 		shm &= ~(0xFFF);
+ 		shm |= ((p_264->rc_b_frame_qp & 0x3F) << 6);
+ 		shm |= (p_264->rc_p_frame_qp & 0x3F);
+-		s5p_mfc_write_shm(ctx, shm, P_B_FRAME_QP);
++		s5p_mfc_write_info(ctx, shm, P_B_FRAME_QP);
+ 	}
+ 	/* extended encoder ctrl */
+-	shm = s5p_mfc_read_shm(ctx, EXT_ENC_CONTROL);
++	shm = s5p_mfc_read_info(ctx, EXT_ENC_CONTROL);
+ 	/* AR VUI control */
+ 	shm &= ~(0x1 << 15);
+ 	shm |= (p_264->vui_sar << 1);
+-	s5p_mfc_write_shm(ctx, shm, EXT_ENC_CONTROL);
++	s5p_mfc_write_info(ctx, shm, EXT_ENC_CONTROL);
+ 	if (p_264->vui_sar) {
+ 		/* aspect ration IDC */
+-		shm = s5p_mfc_read_shm(ctx, SAMPLE_ASPECT_RATIO_IDC);
++		shm = s5p_mfc_read_info(ctx, SAMPLE_ASPECT_RATIO_IDC);
+ 		shm &= ~(0xFF);
+ 		shm |= p_264->vui_sar_idc;
+-		s5p_mfc_write_shm(ctx, shm, SAMPLE_ASPECT_RATIO_IDC);
++		s5p_mfc_write_info(ctx, shm, SAMPLE_ASPECT_RATIO_IDC);
+ 		if (p_264->vui_sar_idc == 0xFF) {
+ 			/* sample  AR info */
+-			shm = s5p_mfc_read_shm(ctx, EXTENDED_SAR);
++			shm = s5p_mfc_read_info(ctx, EXTENDED_SAR);
+ 			shm &= ~(0xFFFFFFFF);
+ 			shm |= p_264->vui_ext_sar_width << 16;
+ 			shm |= p_264->vui_ext_sar_height;
+-			s5p_mfc_write_shm(ctx, shm, EXTENDED_SAR);
++			s5p_mfc_write_info(ctx, shm, EXTENDED_SAR);
+ 		}
+ 	}
+ 	/* intra picture period for H.264 */
+-	shm = s5p_mfc_read_shm(ctx, H264_I_PERIOD);
++	shm = s5p_mfc_read_info(ctx, H264_I_PERIOD);
+ 	/* control */
+ 	shm &= ~(0x1 << 16);
+ 	shm |= (p_264->open_gop << 16);
+@@ -843,16 +919,16 @@ static int s5p_mfc_set_enc_params_h264(struct s5p_mfc_ctx *ctx)
+ 		shm &= ~(0xFFFF);
+ 		shm |= p_264->open_gop_size;
+ 	}
+-	s5p_mfc_write_shm(ctx, shm, H264_I_PERIOD);
++	s5p_mfc_write_info(ctx, shm, H264_I_PERIOD);
+ 	/* extended encoder ctrl */
+-	shm = s5p_mfc_read_shm(ctx, EXT_ENC_CONTROL);
++	shm = s5p_mfc_read_info(ctx, EXT_ENC_CONTROL);
+ 	/* vbv buffer size */
+ 	if (p->frame_skip_mode ==
+ 			V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_BUF_LIMIT) {
+ 		shm &= ~(0xFFFF << 16);
+ 		shm |= (p_264->cpb_size << 16);
+ 	}
+-	s5p_mfc_write_shm(ctx, shm, EXT_ENC_CONTROL);
++	s5p_mfc_write_info(ctx, shm, EXT_ENC_CONTROL);
+ 	return 0;
+ }
+ 
+@@ -885,11 +961,11 @@ static int s5p_mfc_set_enc_params_mpeg4(struct s5p_mfc_ctx *ctx)
+ 	mfc_write(dev, p_mpeg4->quarter_pixel, S5P_FIMV_ENC_MPEG4_QUART_PXL);
+ 	/* qp */
+ 	if (!p->rc_frame) {
+-		shm = s5p_mfc_read_shm(ctx, P_B_FRAME_QP);
++		shm = s5p_mfc_read_info(ctx, P_B_FRAME_QP);
+ 		shm &= ~(0xFFF);
+ 		shm |= ((p_mpeg4->rc_b_frame_qp & 0x3F) << 6);
+ 		shm |= (p_mpeg4->rc_p_frame_qp & 0x3F);
+-		s5p_mfc_write_shm(ctx, shm, P_B_FRAME_QP);
++		s5p_mfc_write_info(ctx, shm, P_B_FRAME_QP);
+ 	}
+ 	/* frame rate */
+ 	if (p->rc_frame) {
+@@ -898,12 +974,12 @@ static int s5p_mfc_set_enc_params_mpeg4(struct s5p_mfc_ctx *ctx)
+ 						p->rc_framerate_denom;
+ 			mfc_write(dev, framerate,
+ 				S5P_FIMV_ENC_RC_FRAME_RATE);
+-			shm = s5p_mfc_read_shm(ctx, RC_VOP_TIMING);
++			shm = s5p_mfc_read_info(ctx, RC_VOP_TIMING);
+ 			shm &= ~(0xFFFFFFFF);
+ 			shm |= (1 << 31);
+ 			shm |= ((p->rc_framerate_num & 0x7FFF) << 16);
+ 			shm |= (p->rc_framerate_denom & 0xFFFF);
+-			s5p_mfc_write_shm(ctx, shm, RC_VOP_TIMING);
++			s5p_mfc_write_info(ctx, shm, RC_VOP_TIMING);
+ 		}
+ 	} else {
+ 		mfc_write(dev, 0, S5P_FIMV_ENC_RC_FRAME_RATE);
+@@ -924,14 +1000,14 @@ static int s5p_mfc_set_enc_params_mpeg4(struct s5p_mfc_ctx *ctx)
+ 	reg |= p_mpeg4->rc_min_qp;
+ 	mfc_write(dev, reg, S5P_FIMV_ENC_RC_QBOUND);
+ 	/* extended encoder ctrl */
+-	shm = s5p_mfc_read_shm(ctx, EXT_ENC_CONTROL);
++	shm = s5p_mfc_read_info(ctx, EXT_ENC_CONTROL);
+ 	/* vbv buffer size */
+ 	if (p->frame_skip_mode ==
+ 			V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_BUF_LIMIT) {
+ 		shm &= ~(0xFFFF << 16);
+ 		shm |= (p->vbv_size << 16);
+ 	}
+-	s5p_mfc_write_shm(ctx, shm, EXT_ENC_CONTROL);
++	s5p_mfc_write_info(ctx, shm, EXT_ENC_CONTROL);
+ 	return 0;
+ }
+ 
+@@ -946,10 +1022,10 @@ static int s5p_mfc_set_enc_params_h263(struct s5p_mfc_ctx *ctx)
+ 	s5p_mfc_set_enc_params(ctx);
+ 	/* qp */
+ 	if (!p->rc_frame) {
+-		shm = s5p_mfc_read_shm(ctx, P_B_FRAME_QP);
++		shm = s5p_mfc_read_info(ctx, P_B_FRAME_QP);
+ 		shm &= ~(0xFFF);
+ 		shm |= (p_h263->rc_p_frame_qp & 0x3F);
+-		s5p_mfc_write_shm(ctx, shm, P_B_FRAME_QP);
++		s5p_mfc_write_info(ctx, shm, P_B_FRAME_QP);
+ 	}
+ 	/* frame rate */
+ 	if (p->rc_frame && p->rc_framerate_denom)
+@@ -973,14 +1049,14 @@ static int s5p_mfc_set_enc_params_h263(struct s5p_mfc_ctx *ctx)
+ 	reg |= p_h263->rc_min_qp;
+ 	mfc_write(dev, reg, S5P_FIMV_ENC_RC_QBOUND);
+ 	/* extended encoder ctrl */
+-	shm = s5p_mfc_read_shm(ctx, EXT_ENC_CONTROL);
++	shm = s5p_mfc_read_info(ctx, EXT_ENC_CONTROL);
+ 	/* vbv buffer size */
+ 	if (p->frame_skip_mode ==
+ 			V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_BUF_LIMIT) {
+ 		shm &= ~(0xFFFF << 16);
+ 		shm |= (p->vbv_size << 16);
+ 	}
+-	s5p_mfc_write_shm(ctx, shm, EXT_ENC_CONTROL);
++	s5p_mfc_write_info(ctx, shm, EXT_ENC_CONTROL);
+ 	return 0;
+ }
+ 
+@@ -1395,3 +1471,21 @@ void s5p_mfc_cleanup_queue(struct list_head *lh, struct vb2_queue *vq)
+ 	}
+ }
+ 
++void s5p_mfc_clear_int_flags(struct s5p_mfc_dev *dev)
++{
++	mfc_write(dev, 0, S5P_FIMV_RISC_HOST_INT);
++	mfc_write(dev, 0, S5P_FIMV_RISC2HOST_CMD);
++	mfc_write(dev, 0xffff, S5P_FIMV_SI_RTN_CHID);
++}
++
++void s5p_mfc_write_info(struct s5p_mfc_ctx *ctx, unsigned int data,
++			unsigned int ofs)
++{
++	s5p_mfc_write_shm(ctx, data, ofs);
++}
++
++unsigned int s5p_mfc_read_info(struct s5p_mfc_ctx *ctx,
++				unsigned int ofs)
++{
++	return s5p_mfc_read_shm(ctx, ofs);
++}
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_opr.h b/drivers/media/video/s5p-mfc/s5p_mfc_opr.h
+index 5932d1c..6b49a7c 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_opr.h
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_opr.h
+@@ -50,8 +50,20 @@ void s5p_mfc_release_codec_buffers(struct s5p_mfc_ctx *ctx);
+ int s5p_mfc_alloc_instance_buffer(struct s5p_mfc_ctx *ctx);
+ void s5p_mfc_release_instance_buffer(struct s5p_mfc_ctx *ctx);
+ 
++int s5p_mfc_alloc_dev_context_buffer(struct s5p_mfc_dev *dev);
++void s5p_mfc_release_dev_context_buffer(struct s5p_mfc_dev *dev);
++
++void s5p_mfc_dec_calc_dpb_size(struct s5p_mfc_ctx *ctx);
++void s5p_mfc_enc_calc_src_size(struct s5p_mfc_ctx *ctx);
++
+ void s5p_mfc_try_run(struct s5p_mfc_dev *dev);
+ void s5p_mfc_cleanup_queue(struct list_head *lh, struct vb2_queue *vq);
++void s5p_mfc_clear_int_flags(struct s5p_mfc_dev *dev);
++
++void s5p_mfc_write_info(struct s5p_mfc_ctx *ctx, unsigned int data,
++		unsigned int ofs);
++unsigned int s5p_mfc_read_info(struct s5p_mfc_ctx *ctx,
++		unsigned int ofs);
+ 
+ #define s5p_mfc_get_dspl_y_adr()	(readl(dev->regs_base + \
+ 					S5P_FIMV_SI_DISPLAY_Y_ADR) << \
+@@ -63,9 +75,13 @@ void s5p_mfc_cleanup_queue(struct list_head *lh, struct vb2_queue *vq);
+ 						S5P_FIMV_SI_DISPLAY_STATUS)
+ #define s5p_mfc_get_dec_status()	readl(dev->regs_base + \
+ 						S5P_FIMV_SI_DECODE_STATUS)
+-#define s5p_mfc_get_frame_type()	(readl(dev->regs_base + \
++#define s5p_mfc_get_dec_frame_type()	(readl(dev->regs_base + \
+ 						S5P_FIMV_DECODE_FRAME_TYPE) \
+ 					& S5P_FIMV_DECODE_FRAME_MASK)
++#define s5p_mfc_get_disp_frame_type()	((s5p_mfc_read_shm(ctx, \
++						DISP_PIC_FRAME_TYPE) \
++						>> S5P_FIMV_SHARED_DISP_FRAME_TYPE_SHIFT) \
++					& S5P_FIMV_DECODE_FRAME_MASK)
+ #define s5p_mfc_get_consumed_stream()	readl(dev->regs_base + \
+ 						S5P_FIMV_SI_CONSUMED_BYTES)
+ #define s5p_mfc_get_int_reason()	(readl(dev->regs_base + \
+@@ -89,5 +105,12 @@ void s5p_mfc_cleanup_queue(struct list_head *lh, struct vb2_queue *vq);
+ 						S5P_FIMV_ENC_SI_STRM_SIZE)
+ #define s5p_mfc_get_enc_slice_type()	readl(dev->regs_base + \
+ 						S5P_FIMV_ENC_SI_SLICE_TYPE)
++#define s5p_mfc_get_enc_dpb_count()	-1
++#define s5p_mfc_get_enc_pic_count()	readl(dev->regs_base + \
++						S5P_FIMV_ENC_SI_PIC_CNT)
++#define s5p_mfc_get_sei_avail_status()	s5p_mfc_read_shm(ctx, \
++						FRAME_PACK_SEI_AVAIL)
++#define s5p_mfc_get_mvc_num_views()	-1
++#define s5p_mfc_get_mvc_view_id()	-1
+ 
+ #endif /* S5P_MFC_OPR_H_ */
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.c
+new file mode 100644
+index 0000000..8e68ecc
+--- /dev/null
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -0,0 +1,1697 @@
 +/*
-+ * FIXME:
-+ * The tables are default values of a S5K4ECGX sensor EVT1.1
-+ * and are provided from Samsung LSI.
-+ * It seems that no information is available for these registers
-+ * in the datasheet
++ * drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.c
++ *
++ * Samsung MFC (Multi Function Codec - FIMV) driver
++ * This file contains hw related functions.
++ *
++ * Copyright (c) 2012 Samsung Electronics
++ *		http://www.samsung.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
-+struct regval_list s5k4ecgx_init_regs[] = {
-+	{TOK_CMD, 0xFCFC, 0xD000},
-+	{TOK_CMD, 0x0010, 0x0001},
-+	{TOK_CMD, 0x1030, 0x0000},
-+	{TOK_CMD, 0x0014, 0x0001},
-+	{TOK_DELAY, 0x0, 0x64},
-+	{TOK_WRITE, 0xD0001082, 0x01AA},
-+	{TOK_WRITE, 0xD0001084, 0x01AA},
-+	{TOK_WRITE, 0xD0001086, 0x0055},
-+	{TOK_WRITE, 0xD0001088, 0x01AF},
-+	{TOK_WRITE, 0xD000100E, 0x0000},
-+	{TOK_WRITE, 0xD000007A, 0x0000},
-+	{TOK_WRITE, 0xD000E406, 0x0092},
-+	{TOK_WRITE, 0xD000E410, 0x3804},
-+	{TOK_WRITE, 0xD000E41A, 0x0010},
-+	{TOK_WRITE, 0xD000E420, 0x0003},
-+	{TOK_WRITE, 0xD000E422, 0x0060},
-+	{TOK_WRITE, 0xD000E42E, 0x0004},
-+	{TOK_WRITE, 0xD000F400, 0x5A3C},
-+	{TOK_WRITE, 0xD000F402, 0x0023},
-+	{TOK_WRITE, 0xD000F404, 0x8080},
-+	{TOK_WRITE, 0xD000F406, 0x03AF},
-+	{TOK_WRITE, 0xD000F408, 0x000A},
-+	{TOK_WRITE, 0xD000F40A, 0xAA54},
-+	{TOK_WRITE, 0xD000F40C, 0x0040},
-+	{TOK_WRITE, 0xD000F40E, 0x464E},
-+	{TOK_WRITE, 0xD000F410, 0x0240},
-+	{TOK_WRITE, 0xD000F412, 0x0240},
-+	{TOK_WRITE, 0xD000F414, 0x0040},
-+	{TOK_WRITE, 0xD000F416, 0x1000},
-+	{TOK_WRITE, 0xD000F418, 0x55FF},
-+	{TOK_WRITE, 0xD000F41A, 0xD000},
-+	{TOK_WRITE, 0xD000F41C, 0x0010},
-+	{TOK_WRITE, 0xD000F41E, 0x0202},
-+	{TOK_WRITE, 0xD000F420, 0x0401},
-+	{TOK_WRITE, 0xD000F422, 0x0022},
-+	{TOK_WRITE, 0xD000F424, 0x0088},
-+	{TOK_WRITE, 0xD000F426, 0x009F},
-+	{TOK_WRITE, 0xD000F428, 0x0000},
-+	{TOK_WRITE, 0xD000F42A, 0x1800},
-+	{TOK_WRITE, 0xD000F42C, 0x0088},
-+	{TOK_WRITE, 0xD000F42E, 0x0000},
-+	{TOK_WRITE, 0xD000F430, 0x2428},
-+	{TOK_WRITE, 0xD000F432, 0x0000},
-+	{TOK_WRITE, 0xD000F434, 0x03EE},
-+	{TOK_WRITE, 0xD000F436, 0x0000},
-+	{TOK_WRITE, 0xD000F438, 0x0000},
-+	{TOK_WRITE, 0xD000F43A, 0x0000},
-+	{TOK_WRITE, 0xD000F552, 0x0708},
-+	{TOK_WRITE, 0xD000F554, 0x080C},
-+	{TOK_WRITE, 0x700018BC, 0x0004},
-+	{TOK_WRITE, 0x700018BE, 0x05B6},
-+	{TOK_WRITE, 0x700018C0, 0x0000},
-+	{TOK_WRITE, 0x700018C2, 0x0000},
-+	{TOK_WRITE, 0x700018C4, 0x0001},
-+	{TOK_WRITE, 0x700018C6, 0x05BA},
-+	{TOK_WRITE, 0x700018C8, 0x0000},
-+	{TOK_WRITE, 0x700018CA, 0x0000},
-+	{TOK_WRITE, 0x700018CC, 0x0007},
-+	{TOK_WRITE, 0x700018CE, 0x05BA},
-+	{TOK_WRITE, 0x700018D0, 0x0000},
-+	{TOK_WRITE, 0x700018D2, 0x0000},
-+	{TOK_WRITE, 0x700018D4, 0x01F4},
-+	{TOK_WRITE, 0x700018D6, 0x024E},
-+	{TOK_WRITE, 0x700018D8, 0x0000},
-+	{TOK_WRITE, 0x700018DA, 0x0000},
-+	{TOK_WRITE, 0x700018DC, 0x01F4},
-+	{TOK_WRITE, 0x700018DE, 0x05B6},
-+	{TOK_WRITE, 0x700018E0, 0x0000},
-+	{TOK_WRITE, 0x700018E2, 0x0000},
-+	{TOK_WRITE, 0x700018E4, 0x01F4},
-+	{TOK_WRITE, 0x700018E6, 0x05BA},
-+	{TOK_WRITE, 0x700018E8, 0x0000},
-+	{TOK_WRITE, 0x700018EA, 0x0000},
-+	{TOK_WRITE, 0x700018EC, 0x01F4},
-+	{TOK_WRITE, 0x700018EE, 0x024F},
-+	{TOK_WRITE, 0x700018F0, 0x0000},
-+	{TOK_WRITE, 0x700018F2, 0x0000},
-+	{TOK_WRITE, 0x700018F4, 0x0000},
-+	{TOK_WRITE, 0x700018F6, 0x0000},
-+	{TOK_WRITE, 0x700018F8, 0x0000},
-+	{TOK_WRITE, 0x700018FA, 0x0000},
-+	{TOK_WRITE, 0x700018FC, 0x0075},
-+	{TOK_WRITE, 0x700018FE, 0x00CF},
-+	{TOK_WRITE, 0x70001900, 0x0000},
-+	{TOK_WRITE, 0x70001902, 0x0000},
-+	{TOK_WRITE, 0x70001904, 0x0075},
-+	{TOK_WRITE, 0x70001906, 0x00D6},
-+	{TOK_WRITE, 0x70001908, 0x0000},
-+	{TOK_WRITE, 0x7000190A, 0x0000},
-+	{TOK_WRITE, 0x7000190C, 0x0004},
-+	{TOK_WRITE, 0x7000190E, 0x01F4},
-+	{TOK_WRITE, 0x70001910, 0x0000},
-+	{TOK_WRITE, 0x70001912, 0x0000},
-+	{TOK_WRITE, 0x70001914, 0x00F0},
-+	{TOK_WRITE, 0x70001916, 0x01F4},
-+	{TOK_WRITE, 0x70001918, 0x029E},
-+	{TOK_WRITE, 0x7000191A, 0x05B2},
-+	{TOK_WRITE, 0x7000191C, 0x0000},
-+	{TOK_WRITE, 0x7000191E, 0x0000},
-+	{TOK_WRITE, 0x70001920, 0x0000},
-+	{TOK_WRITE, 0x70001922, 0x0000},
-+	{TOK_WRITE, 0x70001924, 0x01F8},
-+	{TOK_WRITE, 0x70001926, 0x0228},
-+	{TOK_WRITE, 0x70001928, 0x0000},
-+	{TOK_WRITE, 0x7000192A, 0x0000},
-+	{TOK_WRITE, 0x7000192C, 0x0000},
-+	{TOK_WRITE, 0x7000192E, 0x0000},
-+	{TOK_WRITE, 0x70001930, 0x0208},
-+	{TOK_WRITE, 0x70001932, 0x0238},
-+	{TOK_WRITE, 0x70001934, 0x0000},
-+	{TOK_WRITE, 0x70001936, 0x0000},
-+	{TOK_WRITE, 0x70001938, 0x0000},
-+	{TOK_WRITE, 0x7000193A, 0x0000},
-+	{TOK_WRITE, 0x7000193C, 0x0218},
-+	{TOK_WRITE, 0x7000193E, 0x0238},
-+	{TOK_WRITE, 0x70001940, 0x0000},
-+	{TOK_WRITE, 0x70001942, 0x0000},
-+	{TOK_WRITE, 0x70001944, 0x0000},
-+	{TOK_WRITE, 0x70001946, 0x0000},
-+	{TOK_WRITE, 0x70001948, 0x0001},
-+	{TOK_WRITE, 0x7000194A, 0x0009},
-+	{TOK_WRITE, 0x7000194C, 0x00DE},
-+	{TOK_WRITE, 0x7000194E, 0x05C0},
-+	{TOK_WRITE, 0x70001950, 0x0000},
-+	{TOK_WRITE, 0x70001952, 0x0000},
-+	{TOK_WRITE, 0x70001954, 0x00DF},
-+	{TOK_WRITE, 0x70001956, 0x00E4},
-+	{TOK_WRITE, 0x70001958, 0x01F8},
-+	{TOK_WRITE, 0x7000195A, 0x01FD},
-+	{TOK_WRITE, 0x7000195C, 0x05B6},
-+	{TOK_WRITE, 0x7000195E, 0x05BB},
-+	{TOK_WRITE, 0x70001960, 0x0000},
-+	{TOK_WRITE, 0x70001962, 0x0000},
-+	{TOK_WRITE, 0x70001964, 0x0000},
-+	{TOK_WRITE, 0x70001966, 0x0000},
-+	{TOK_WRITE, 0x70001968, 0x0000},
-+	{TOK_WRITE, 0x7000196A, 0x0000},
-+	{TOK_WRITE, 0x7000196C, 0x0000},
-+	{TOK_WRITE, 0x7000196E, 0x0000},
-+	{TOK_WRITE, 0x70001970, 0x0000},
-+	{TOK_WRITE, 0x70001972, 0x0000},
-+	{TOK_WRITE, 0x70001974, 0x0000},
-+	{TOK_WRITE, 0x70001976, 0x0000},
-+	{TOK_WRITE, 0x70001978, 0x01F8},
-+	{TOK_WRITE, 0x7000197A, 0x0000},
-+	{TOK_WRITE, 0x7000197C, 0x0000},
-+	{TOK_WRITE, 0x7000197E, 0x0077},
-+	{TOK_WRITE, 0x70001980, 0x007E},
-+	{TOK_WRITE, 0x70001982, 0x024F},
-+	{TOK_WRITE, 0x70001984, 0x025E},
-+	{TOK_WRITE, 0x70001986, 0x0000},
-+	{TOK_WRITE, 0x70001988, 0x0000},
-+	{TOK_WRITE, 0x7000198A, 0x0000},
-+	{TOK_WRITE, 0x7000198C, 0x0000},
-+	{TOK_WRITE, 0x7000198E, 0x0004},
-+	{TOK_WRITE, 0x70001990, 0x09D1},
-+	{TOK_WRITE, 0x70001992, 0x0000},
-+	{TOK_WRITE, 0x70001994, 0x0000},
-+	{TOK_WRITE, 0x70001996, 0x0001},
-+	{TOK_WRITE, 0x70001998, 0x09D5},
-+	{TOK_WRITE, 0x7000199A, 0x0000},
-+	{TOK_WRITE, 0x7000199C, 0x0000},
-+	{TOK_WRITE, 0x7000199E, 0x0008},
-+	{TOK_WRITE, 0x700019A0, 0x09D5},
-+	{TOK_WRITE, 0x700019A2, 0x0000},
-+	{TOK_WRITE, 0x700019A4, 0x0000},
-+	{TOK_WRITE, 0x700019A6, 0x02AA},
-+	{TOK_WRITE, 0x700019A8, 0x0326},
-+	{TOK_WRITE, 0x700019AA, 0x0000},
-+	{TOK_WRITE, 0x700019AC, 0x0000},
-+	{TOK_WRITE, 0x700019AE, 0x02AA},
-+	{TOK_WRITE, 0x700019B0, 0x09D1},
-+	{TOK_WRITE, 0x700019B2, 0x0000},
-+	{TOK_WRITE, 0x700019B4, 0x0000},
-+	{TOK_WRITE, 0x700019B6, 0x02AA},
-+	{TOK_WRITE, 0x700019B8, 0x09D5},
-+	{TOK_WRITE, 0x700019BA, 0x0000},
-+	{TOK_WRITE, 0x700019BC, 0x0000},
-+	{TOK_WRITE, 0x700019BE, 0x02AA},
-+	{TOK_WRITE, 0x700019C0, 0x0327},
-+	{TOK_WRITE, 0x700019C2, 0x0000},
-+	{TOK_WRITE, 0x700019C4, 0x0000},
-+	{TOK_WRITE, 0x700019C6, 0x0000},
-+	{TOK_WRITE, 0x700019C8, 0x0000},
-+	{TOK_WRITE, 0x700019CA, 0x0000},
-+	{TOK_WRITE, 0x700019CC, 0x0000},
-+	{TOK_WRITE, 0x700019CE, 0x0008},
-+	{TOK_WRITE, 0x700019D0, 0x0084},
-+	{TOK_WRITE, 0x700019D2, 0x0000},
-+	{TOK_WRITE, 0x700019D4, 0x0000},
-+	{TOK_WRITE, 0x700019D6, 0x0008},
-+	{TOK_WRITE, 0x700019D8, 0x008D},
-+	{TOK_WRITE, 0x700019DA, 0x0000},
-+	{TOK_WRITE, 0x700019DC, 0x0000},
-+	{TOK_WRITE, 0x700019DE, 0x0008},
-+	{TOK_WRITE, 0x700019E0, 0x02AA},
-+	{TOK_WRITE, 0x700019E2, 0x0000},
-+	{TOK_WRITE, 0x700019E4, 0x0000},
-+	{TOK_WRITE, 0x700019E6, 0x00AA},
-+	{TOK_WRITE, 0x700019E8, 0x02AA},
-+	{TOK_WRITE, 0x700019EA, 0x03AD},
-+	{TOK_WRITE, 0x700019EC, 0x09CD},
-+	{TOK_WRITE, 0x700019EE, 0x0000},
-+	{TOK_WRITE, 0x700019F0, 0x0000},
-+	{TOK_WRITE, 0x700019F2, 0x0000},
-+	{TOK_WRITE, 0x700019F4, 0x0000},
-+	{TOK_WRITE, 0x700019F6, 0x02AE},
-+	{TOK_WRITE, 0x700019F8, 0x02DE},
-+	{TOK_WRITE, 0x700019FA, 0x0000},
-+	{TOK_WRITE, 0x700019FC, 0x0000},
-+	{TOK_WRITE, 0x700019FE, 0x0000},
-+	{TOK_WRITE, 0x70001A00, 0x0000},
-+	{TOK_WRITE, 0x70001A02, 0x02BE},
-+	{TOK_WRITE, 0x70001A04, 0x02EE},
-+	{TOK_WRITE, 0x70001A06, 0x0000},
-+	{TOK_WRITE, 0x70001A08, 0x0000},
-+	{TOK_WRITE, 0x70001A0A, 0x0000},
-+	{TOK_WRITE, 0x70001A0C, 0x0000},
-+	{TOK_WRITE, 0x70001A0E, 0x02CE},
-+	{TOK_WRITE, 0x70001A10, 0x02EE},
-+	{TOK_WRITE, 0x70001A12, 0x0000},
-+	{TOK_WRITE, 0x70001A14, 0x0000},
-+	{TOK_WRITE, 0x70001A16, 0x0000},
-+	{TOK_WRITE, 0x70001A18, 0x0000},
-+	{TOK_WRITE, 0x70001A1A, 0x0001},
-+	{TOK_WRITE, 0x70001A1C, 0x0009},
-+	{TOK_WRITE, 0x70001A1E, 0x0095},
-+	{TOK_WRITE, 0x70001A20, 0x09DB},
-+	{TOK_WRITE, 0x70001A22, 0x0000},
-+	{TOK_WRITE, 0x70001A24, 0x0000},
-+	{TOK_WRITE, 0x70001A26, 0x0096},
-+	{TOK_WRITE, 0x70001A28, 0x009B},
-+	{TOK_WRITE, 0x70001A2A, 0x02AE},
-+	{TOK_WRITE, 0x70001A2C, 0x02B3},
-+	{TOK_WRITE, 0x70001A2E, 0x09D1},
-+	{TOK_WRITE, 0x70001A30, 0x09D6},
-+	{TOK_WRITE, 0x70001A32, 0x0000},
-+	{TOK_WRITE, 0x70001A34, 0x0000},
-+	{TOK_WRITE, 0x70001A36, 0x0000},
-+	{TOK_WRITE, 0x70001A38, 0x0000},
-+	{TOK_WRITE, 0x70001A3A, 0x0000},
-+	{TOK_WRITE, 0x70001A3C, 0x0000},
-+	{TOK_WRITE, 0x70001A3E, 0x0000},
-+	{TOK_WRITE, 0x70001A40, 0x0000},
-+	{TOK_WRITE, 0x70001A42, 0x0000},
-+	{TOK_WRITE, 0x70001A44, 0x0000},
-+	{TOK_WRITE, 0x70001A46, 0x0000},
-+	{TOK_WRITE, 0x70001A48, 0x0000},
-+	{TOK_WRITE, 0x70001A4A, 0x02AE},
-+	{TOK_WRITE, 0x70001A4C, 0x0000},
-+	{TOK_WRITE, 0x70001A4E, 0x0000},
-+	{TOK_WRITE, 0x70001A50, 0x0009},
-+	{TOK_WRITE, 0x70001A52, 0x0010},
-+	{TOK_WRITE, 0x70001A54, 0x0327},
-+	{TOK_WRITE, 0x70001A56, 0x0336},
-+	{TOK_WRITE, 0x70001A58, 0x0000},
-+	{TOK_WRITE, 0x70001A5A, 0x0000},
-+	{TOK_WRITE, 0x70001A5C, 0x0000},
-+	{TOK_WRITE, 0x70001A5E, 0x0000},
-+	{TOK_WRITE, 0x70001AF8, 0x5A3C},
-+	{TOK_WRITE, 0x70001896, 0x0002},
-+	{TOK_WRITE, 0x70001898, 0x0000},
-+	{TOK_WRITE, 0x7000189A, 0x0003},
-+	{TOK_WRITE, 0x7000189E, 0x0FB0},
-+	{TOK_WRITE, 0x700018AC, 0x0060},
-+	{TOK_WRITE, 0x700018AE, 0x0060},
-+	{TOK_WRITE, 0x700018B0, 0x05C0},
-+	{TOK_WRITE, 0x700018B2, 0x05C0},
-+	{TOK_WRITE, 0x70001AEA, 0x8080},
-+	{TOK_WRITE, 0x70001AEC, 0x0080},
-+	{TOK_WRITE, 0x70001AE0, 0x0000},
-+	{TOK_WRITE, 0x70001A72, 0x0000},
-+	{TOK_WRITE, 0x700018A2, 0x0004},
-+	{TOK_WRITE, 0x70001A6A, 0x009A},
-+	{TOK_WRITE, 0x7000385E, 0x024C},
-+	{TOK_WRITE, 0x70000EE6, 0x0000},
-+	{TOK_WRITE, 0x70001B2A, 0x0300},
-+	{TOK_WRITE, 0x70001B2C, 0x00D6},
-+	{TOK_WRITE, 0x70001B2E, 0x008D},
-+	{TOK_WRITE, 0x70001B30, 0x00CF},
-+	{TOK_WRITE, 0x70001B32, 0x0084},
-+	{TOK_WRITE, 0x70000722, 0x0100},
-+	{TOK_WRITE, 0x70000726, 0x0001},
-+	{TOK_WRITE, 0x700008D6, 0x0001},
-+	{TOK_WRITE, 0x7000146E, 0x0000},
-+	{TOK_WRITE, 0x700008DC, 0x0000},
-+	{TOK_WRITE, 0x70003AF8, 0xB570},
-+	{TOK_WRITE, 0x70003AFA, 0x4B39},
-+	{TOK_WRITE, 0x70003AFC, 0x4939},
-+	{TOK_WRITE, 0x70003AFE, 0x483A},
-+	{TOK_WRITE, 0x70003B00, 0x2200},
-+	{TOK_WRITE, 0x70003B02, 0xC008},
-+	{TOK_WRITE, 0x70003B04, 0x6001},
-+	{TOK_WRITE, 0x70003B06, 0x4939},
-+	{TOK_WRITE, 0x70003B08, 0x4839},
-+	{TOK_WRITE, 0x70003B0A, 0x2401},
-+	{TOK_WRITE, 0x70003B0C, 0xF000},
-+	{TOK_WRITE, 0x70003B0E, 0xFBD4},
-+	{TOK_WRITE, 0x70003B10, 0x4938},
-+	{TOK_WRITE, 0x70003B12, 0x4839},
-+	{TOK_WRITE, 0x70003B14, 0x2502},
-+	{TOK_WRITE, 0x70003B16, 0x0022},
-+	{TOK_WRITE, 0x70003B18, 0xF000},
-+	{TOK_WRITE, 0x70003B1A, 0xFBCE},
-+	{TOK_WRITE, 0x70003B1C, 0x4837},
-+	{TOK_WRITE, 0x70003B1E, 0x0261},
-+	{TOK_WRITE, 0x70003B20, 0x8001},
-+	{TOK_WRITE, 0x70003B22, 0x2100},
-+	{TOK_WRITE, 0x70003B24, 0x8041},
-+	{TOK_WRITE, 0x70003B26, 0x4936},
-+	{TOK_WRITE, 0x70003B28, 0x4836},
-+	{TOK_WRITE, 0x70003B2A, 0x6041},
-+	{TOK_WRITE, 0x70003B2C, 0x4936},
-+	{TOK_WRITE, 0x70003B2E, 0x4837},
-+	{TOK_WRITE, 0x70003B30, 0x2403},
-+	{TOK_WRITE, 0x70003B32, 0x002A},
-+	{TOK_WRITE, 0x70003B34, 0xF000},
-+	{TOK_WRITE, 0x70003B36, 0xFBC0},
-+	{TOK_WRITE, 0x70003B38, 0x4832},
-+	{TOK_WRITE, 0x70003B3A, 0x4935},
-+	{TOK_WRITE, 0x70003B3C, 0x30C0},
-+	{TOK_WRITE, 0x70003B3E, 0x63C1},
-+	{TOK_WRITE, 0x70003B40, 0x4930},
-+	{TOK_WRITE, 0x70003B42, 0x4834},
-+	{TOK_WRITE, 0x70003B44, 0x3980},
-+	{TOK_WRITE, 0x70003B46, 0x6408},
-+	{TOK_WRITE, 0x70003B48, 0x4833},
-+	{TOK_WRITE, 0x70003B4A, 0x4934},
-+	{TOK_WRITE, 0x70003B4C, 0x6388},
-+	{TOK_WRITE, 0x70003B4E, 0x4934},
-+	{TOK_WRITE, 0x70003B50, 0x4834},
-+	{TOK_WRITE, 0x70003B52, 0x0022},
-+	{TOK_WRITE, 0x70003B54, 0x2504},
-+	{TOK_WRITE, 0x70003B56, 0xF000},
-+	{TOK_WRITE, 0x70003B58, 0xFBAF},
-+	{TOK_WRITE, 0x70003B5A, 0x4933},
-+	{TOK_WRITE, 0x70003B5C, 0x4833},
-+	{TOK_WRITE, 0x70003B5E, 0x2405},
-+	{TOK_WRITE, 0x70003B60, 0x002A},
-+	{TOK_WRITE, 0x70003B62, 0xF000},
-+	{TOK_WRITE, 0x70003B64, 0xF881},
-+	{TOK_WRITE, 0x70003B66, 0x491F},
-+	{TOK_WRITE, 0x70003B68, 0x4830},
-+	{TOK_WRITE, 0x70003B6A, 0x0022},
-+	{TOK_WRITE, 0x70003B6C, 0x2506},
-+	{TOK_WRITE, 0x70003B6E, 0x39B6},
-+	{TOK_WRITE, 0x70003B70, 0x1D80},
-+	{TOK_WRITE, 0x70003B72, 0xF000},
-+	{TOK_WRITE, 0x70003B74, 0xF879},
-+	{TOK_WRITE, 0x70003B76, 0x482D},
-+	{TOK_WRITE, 0x70003B78, 0x492D},
-+	{TOK_WRITE, 0x70003B7A, 0x2407},
-+	{TOK_WRITE, 0x70003B7C, 0x002A},
-+	{TOK_WRITE, 0x70003B7E, 0x300C},
-+	{TOK_WRITE, 0x70003B80, 0xF000},
-+	{TOK_WRITE, 0x70003B82, 0xF872},
-+	{TOK_WRITE, 0x70003B84, 0x4829},
-+	{TOK_WRITE, 0x70003B86, 0x492B},
-+	{TOK_WRITE, 0x70003B88, 0x0022},
-+	{TOK_WRITE, 0x70003B8A, 0x2508},
-+	{TOK_WRITE, 0x70003B8C, 0x3010},
-+	{TOK_WRITE, 0x70003B8E, 0xF000},
-+	{TOK_WRITE, 0x70003B90, 0xF86B},
-+	{TOK_WRITE, 0x70003B92, 0x4929},
-+	{TOK_WRITE, 0x70003B94, 0x4829},
-+	{TOK_WRITE, 0x70003B96, 0x2409},
-+	{TOK_WRITE, 0x70003B98, 0x002A},
-+	{TOK_WRITE, 0x70003B9A, 0xF000},
-+	{TOK_WRITE, 0x70003B9C, 0xFB8D},
-+	{TOK_WRITE, 0x70003B9E, 0x4928},
-+	{TOK_WRITE, 0x70003BA0, 0x4828},
-+	{TOK_WRITE, 0x70003BA2, 0x0022},
-+	{TOK_WRITE, 0x70003BA4, 0x250A},
-+	{TOK_WRITE, 0x70003BA6, 0xF000},
-+	{TOK_WRITE, 0x70003BA8, 0xFB87},
-+	{TOK_WRITE, 0x70003BAA, 0x4927},
-+	{TOK_WRITE, 0x70003BAC, 0x4827},
-+	{TOK_WRITE, 0x70003BAE, 0x240B},
-+	{TOK_WRITE, 0x70003BB0, 0x002A},
-+	{TOK_WRITE, 0x70003BB2, 0xF000},
-+	{TOK_WRITE, 0x70003BB4, 0xFB81},
-+	{TOK_WRITE, 0x70003BB6, 0x4926},
-+	{TOK_WRITE, 0x70003BB8, 0x4826},
-+	{TOK_WRITE, 0x70003BBA, 0x0022},
-+	{TOK_WRITE, 0x70003BBC, 0x250C},
-+	{TOK_WRITE, 0x70003BBE, 0xF000},
-+	{TOK_WRITE, 0x70003BC0, 0xFB7B},
-+	{TOK_WRITE, 0x70003BC2, 0x4925},
-+	{TOK_WRITE, 0x70003BC4, 0x4825},
-+	{TOK_WRITE, 0x70003BC6, 0x240D},
-+	{TOK_WRITE, 0x70003BC8, 0x002A},
-+	{TOK_WRITE, 0x70003BCA, 0xF000},
-+	{TOK_WRITE, 0x70003BCC, 0xFB75},
-+	{TOK_WRITE, 0x70003BCE, 0x4924},
-+	{TOK_WRITE, 0x70003BD0, 0x4824},
-+	{TOK_WRITE, 0x70003BD2, 0x0022},
-+	{TOK_WRITE, 0x70003BD4, 0xF000},
-+	{TOK_WRITE, 0x70003BD6, 0xFB70},
-+	{TOK_WRITE, 0x70003BD8, 0xBC70},
-+	{TOK_WRITE, 0x70003BDA, 0xBC08},
-+	{TOK_WRITE, 0x70003BDC, 0x4718},
-+	{TOK_WRITE, 0x70003BDE, 0x0000},
-+	{TOK_WRITE, 0x70003BE0, 0x018F},
-+	{TOK_WRITE, 0x70003BE2, 0x4EC2},
-+	{TOK_WRITE, 0x70003BE4, 0x037F},
-+	{TOK_WRITE, 0x70003BE6, 0x0000},
-+	{TOK_WRITE, 0x70003BE8, 0x1F90},
-+	{TOK_WRITE, 0x70003BEA, 0x7000},
-+	{TOK_WRITE, 0x70003BEC, 0x3C81},
-+	{TOK_WRITE, 0x70003BEE, 0x7000},
-+	{TOK_WRITE, 0x70003BF0, 0xE38B},
-+	{TOK_WRITE, 0x70003BF2, 0x0000},
-+	{TOK_WRITE, 0x70003BF4, 0x3CB9},
-+	{TOK_WRITE, 0x70003BF6, 0x7000},
-+	{TOK_WRITE, 0x70003BF8, 0xC3B1},
-+	{TOK_WRITE, 0x70003BFA, 0x0000},
-+	{TOK_WRITE, 0x70003BFC, 0x4780},
-+	{TOK_WRITE, 0x70003BFE, 0x7000},
-+	{TOK_WRITE, 0x70003C00, 0x3D17},
-+	{TOK_WRITE, 0x70003C02, 0x7000},
-+	{TOK_WRITE, 0x70003C04, 0x0080},
-+	{TOK_WRITE, 0x70003C06, 0x7000},
-+	{TOK_WRITE, 0x70003C08, 0x3D53},
-+	{TOK_WRITE, 0x70003C0A, 0x7000},
-+	{TOK_WRITE, 0x70003C0C, 0xB49D},
-+	{TOK_WRITE, 0x70003C0E, 0x0000},
-+	{TOK_WRITE, 0x70003C10, 0x3DFF},
-+	{TOK_WRITE, 0x70003C12, 0x7000},
-+	{TOK_WRITE, 0x70003C14, 0x3DB3},
-+	{TOK_WRITE, 0x70003C16, 0x7000},
-+	{TOK_WRITE, 0x70003C18, 0xFFFF},
-+	{TOK_WRITE, 0x70003C1A, 0x00FF},
-+	{TOK_WRITE, 0x70003C1C, 0x17E0},
-+	{TOK_WRITE, 0x70003C1E, 0x7000},
-+	{TOK_WRITE, 0x70003C20, 0x3F7B},
-+	{TOK_WRITE, 0x70003C22, 0x7000},
-+	{TOK_WRITE, 0x70003C24, 0x053D},
-+	{TOK_WRITE, 0x70003C26, 0x0000},
-+	{TOK_WRITE, 0x70003C28, 0x0000},
-+	{TOK_WRITE, 0x70003C2A, 0x0A89},
-+	{TOK_WRITE, 0x70003C2C, 0x6CD2},
-+	{TOK_WRITE, 0x70003C2E, 0x0000},
-+	{TOK_WRITE, 0x70003C30, 0x0000},
-+	{TOK_WRITE, 0x70003C32, 0x0A9A},
-+	{TOK_WRITE, 0x70003C34, 0x0000},
-+	{TOK_WRITE, 0x70003C36, 0x02D2},
-+	{TOK_WRITE, 0x70003C38, 0x3FC9},
-+	{TOK_WRITE, 0x70003C3A, 0x7000},
-+	{TOK_WRITE, 0x70003C3C, 0x9E65},
-+	{TOK_WRITE, 0x70003C3E, 0x0000},
-+	{TOK_WRITE, 0x70003C40, 0x403D},
-+	{TOK_WRITE, 0x70003C42, 0x7000},
-+	{TOK_WRITE, 0x70003C44, 0x7C49},
-+	{TOK_WRITE, 0x70003C46, 0x0000},
-+	{TOK_WRITE, 0x70003C48, 0x40B1},
-+	{TOK_WRITE, 0x70003C4A, 0x7000},
-+	{TOK_WRITE, 0x70003C4C, 0x7C63},
-+	{TOK_WRITE, 0x70003C4E, 0x0000},
-+	{TOK_WRITE, 0x70003C50, 0x40CD},
-+	{TOK_WRITE, 0x70003C52, 0x7000},
-+	{TOK_WRITE, 0x70003C54, 0x8F01},
-+	{TOK_WRITE, 0x70003C56, 0x0000},
-+	{TOK_WRITE, 0x70003C58, 0x416F},
-+	{TOK_WRITE, 0x70003C5A, 0x7000},
-+	{TOK_WRITE, 0x70003C5C, 0x7F3F},
-+	{TOK_WRITE, 0x70003C5E, 0x0000},
-+	{TOK_WRITE, 0x70003C60, 0x41FD},
-+	{TOK_WRITE, 0x70003C62, 0x7000},
-+	{TOK_WRITE, 0x70003C64, 0x98C5},
-+	{TOK_WRITE, 0x70003C66, 0x0000},
-+	{TOK_WRITE, 0x70003C68, 0xB570},
-+	{TOK_WRITE, 0x70003C6A, 0x000C},
-+	{TOK_WRITE, 0x70003C6C, 0x0015},
-+	{TOK_WRITE, 0x70003C6E, 0x0029},
-+	{TOK_WRITE, 0x70003C70, 0xF000},
-+	{TOK_WRITE, 0x70003C72, 0xFB2A},
-+	{TOK_WRITE, 0x70003C74, 0x49F8},
-+	{TOK_WRITE, 0x70003C76, 0x00A8},
-+	{TOK_WRITE, 0x70003C78, 0x500C},
-+	{TOK_WRITE, 0x70003C7A, 0xBC70},
-+	{TOK_WRITE, 0x70003C7C, 0xBC08},
-+	{TOK_WRITE, 0x70003C7E, 0x4718},
-+	{TOK_WRITE, 0x70003C80, 0x6808},
-+	{TOK_WRITE, 0x70003C82, 0x0400},
-+	{TOK_WRITE, 0x70003C84, 0x0C00},
-+	{TOK_WRITE, 0x70003C86, 0x6849},
-+	{TOK_WRITE, 0x70003C88, 0x0409},
-+	{TOK_WRITE, 0x70003C8A, 0x0C09},
-+	{TOK_WRITE, 0x70003C8C, 0x4AF3},
-+	{TOK_WRITE, 0x70003C8E, 0x8992},
-+	{TOK_WRITE, 0x70003C90, 0x2A00},
-+	{TOK_WRITE, 0x70003C92, 0xD00D},
-+	{TOK_WRITE, 0x70003C94, 0x2300},
-+	{TOK_WRITE, 0x70003C96, 0x1A89},
-+	{TOK_WRITE, 0x70003C98, 0xD400},
-+	{TOK_WRITE, 0x70003C9A, 0x000B},
-+	{TOK_WRITE, 0x70003C9C, 0x0419},
-+	{TOK_WRITE, 0x70003C9E, 0x0C09},
-+	{TOK_WRITE, 0x70003CA0, 0x23FF},
-+	{TOK_WRITE, 0x70003CA2, 0x33C1},
-+	{TOK_WRITE, 0x70003CA4, 0x1810},
-+	{TOK_WRITE, 0x70003CA6, 0x4298},
-+	{TOK_WRITE, 0x70003CA8, 0xD800},
-+	{TOK_WRITE, 0x70003CAA, 0x0003},
-+	{TOK_WRITE, 0x70003CAC, 0x0418},
-+	{TOK_WRITE, 0x70003CAE, 0x0C00},
-+	{TOK_WRITE, 0x70003CB0, 0x4AEB},
-+	{TOK_WRITE, 0x70003CB2, 0x8150},
-+	{TOK_WRITE, 0x70003CB4, 0x8191},
-+	{TOK_WRITE, 0x70003CB6, 0x4770},
-+	{TOK_WRITE, 0x70003CB8, 0xB5F3},
-+	{TOK_WRITE, 0x70003CBA, 0x0004},
-+	{TOK_WRITE, 0x70003CBC, 0xB081},
-+	{TOK_WRITE, 0x70003CBE, 0x9802},
-+	{TOK_WRITE, 0x70003CC0, 0x6800},
-+	{TOK_WRITE, 0x70003CC2, 0x0600},
-+	{TOK_WRITE, 0x70003CC4, 0x0E00},
-+	{TOK_WRITE, 0x70003CC6, 0x2201},
-+	{TOK_WRITE, 0x70003CC8, 0x0015},
-+	{TOK_WRITE, 0x70003CCA, 0x0021},
-+	{TOK_WRITE, 0x70003CCC, 0x3910},
-+	{TOK_WRITE, 0x70003CCE, 0x408A},
-+	{TOK_WRITE, 0x70003CD0, 0x40A5},
-+	{TOK_WRITE, 0x70003CD2, 0x4FE4},
-+	{TOK_WRITE, 0x70003CD4, 0x0016},
-+	{TOK_WRITE, 0x70003CD6, 0x2C10},
-+	{TOK_WRITE, 0x70003CD8, 0xDA03},
-+	{TOK_WRITE, 0x70003CDA, 0x8839},
-+	{TOK_WRITE, 0x70003CDC, 0x43A9},
-+	{TOK_WRITE, 0x70003CDE, 0x8039},
-+	{TOK_WRITE, 0x70003CE0, 0xE002},
-+	{TOK_WRITE, 0x70003CE2, 0x8879},
-+	{TOK_WRITE, 0x70003CE4, 0x43B1},
-+	{TOK_WRITE, 0x70003CE6, 0x8079},
-+	{TOK_WRITE, 0x70003CE8, 0xF000},
-+	{TOK_WRITE, 0x70003CEA, 0xFAF6},
-+	{TOK_WRITE, 0x70003CEC, 0x2C10},
-+	{TOK_WRITE, 0x70003CEE, 0xDA03},
-+	{TOK_WRITE, 0x70003CF0, 0x8839},
-+	{TOK_WRITE, 0x70003CF2, 0x4329},
-+	{TOK_WRITE, 0x70003CF4, 0x8039},
-+	{TOK_WRITE, 0x70003CF6, 0xE002},
-+	{TOK_WRITE, 0x70003CF8, 0x8879},
-+	{TOK_WRITE, 0x70003CFA, 0x4331},
-+	{TOK_WRITE, 0x70003CFC, 0x8079},
-+	{TOK_WRITE, 0x70003CFE, 0x49DA},
-+	{TOK_WRITE, 0x70003D00, 0x8809},
-+	{TOK_WRITE, 0x70003D02, 0x2900},
-+	{TOK_WRITE, 0x70003D04, 0xD102},
-+	{TOK_WRITE, 0x70003D06, 0xF000},
-+	{TOK_WRITE, 0x70003D08, 0xFAEF},
-+	{TOK_WRITE, 0x70003D0A, 0x2000},
-+	{TOK_WRITE, 0x70003D0C, 0x9902},
-+	{TOK_WRITE, 0x70003D0E, 0x6008},
-+	{TOK_WRITE, 0x70003D10, 0xBCFE},
-+	{TOK_WRITE, 0x70003D12, 0xBC08},
-+	{TOK_WRITE, 0x70003D14, 0x4718},
-+	{TOK_WRITE, 0x70003D16, 0xB538},
-+	{TOK_WRITE, 0x70003D18, 0x9C04},
-+	{TOK_WRITE, 0x70003D1A, 0x0015},
-+	{TOK_WRITE, 0x70003D1C, 0x002A},
-+	{TOK_WRITE, 0x70003D1E, 0x9400},
-+	{TOK_WRITE, 0x70003D20, 0xF000},
-+	{TOK_WRITE, 0x70003D22, 0xFAEA},
-+	{TOK_WRITE, 0x70003D24, 0x4AD1},
-+	{TOK_WRITE, 0x70003D26, 0x8811},
-+	{TOK_WRITE, 0x70003D28, 0x2900},
-+	{TOK_WRITE, 0x70003D2A, 0xD00F},
-+	{TOK_WRITE, 0x70003D2C, 0x8820},
-+	{TOK_WRITE, 0x70003D2E, 0x4281},
-+	{TOK_WRITE, 0x70003D30, 0xD20C},
-+	{TOK_WRITE, 0x70003D32, 0x8861},
-+	{TOK_WRITE, 0x70003D34, 0x8853},
-+	{TOK_WRITE, 0x70003D36, 0x4299},
-+	{TOK_WRITE, 0x70003D38, 0xD200},
-+	{TOK_WRITE, 0x70003D3A, 0x1E40},
-+	{TOK_WRITE, 0x70003D3C, 0x0400},
-+	{TOK_WRITE, 0x70003D3E, 0x0C00},
-+	{TOK_WRITE, 0x70003D40, 0x8020},
-+	{TOK_WRITE, 0x70003D42, 0x8851},
-+	{TOK_WRITE, 0x70003D44, 0x8061},
-+	{TOK_WRITE, 0x70003D46, 0x4368},
-+	{TOK_WRITE, 0x70003D48, 0x1840},
-+	{TOK_WRITE, 0x70003D4A, 0x6060},
-+	{TOK_WRITE, 0x70003D4C, 0xBC38},
-+	{TOK_WRITE, 0x70003D4E, 0xBC08},
-+	{TOK_WRITE, 0x70003D50, 0x4718},
-+	{TOK_WRITE, 0x70003D52, 0xB5F8},
-+	{TOK_WRITE, 0x70003D54, 0x0004},
-+	{TOK_WRITE, 0x70003D56, 0x6808},
-+	{TOK_WRITE, 0x70003D58, 0x0400},
-+	{TOK_WRITE, 0x70003D5A, 0x0C00},
-+	{TOK_WRITE, 0x70003D5C, 0x2201},
-+	{TOK_WRITE, 0x70003D5E, 0x0015},
-+	{TOK_WRITE, 0x70003D60, 0x0021},
-+	{TOK_WRITE, 0x70003D62, 0x3910},
-+	{TOK_WRITE, 0x70003D64, 0x408A},
-+	{TOK_WRITE, 0x70003D66, 0x40A5},
-+	{TOK_WRITE, 0x70003D68, 0x4FBE},
-+	{TOK_WRITE, 0x70003D6A, 0x0016},
-+	{TOK_WRITE, 0x70003D6C, 0x2C10},
-+	{TOK_WRITE, 0x70003D6E, 0xDA03},
-+	{TOK_WRITE, 0x70003D70, 0x8839},
-+	{TOK_WRITE, 0x70003D72, 0x43A9},
-+	{TOK_WRITE, 0x70003D74, 0x8039},
-+	{TOK_WRITE, 0x70003D76, 0xE002},
-+	{TOK_WRITE, 0x70003D78, 0x8879},
-+	{TOK_WRITE, 0x70003D7A, 0x43B1},
-+	{TOK_WRITE, 0x70003D7C, 0x8079},
-+	{TOK_WRITE, 0x70003D7E, 0xF000},
-+	{TOK_WRITE, 0x70003D80, 0xFAC3},
-+	{TOK_WRITE, 0x70003D82, 0x2C10},
-+	{TOK_WRITE, 0x70003D84, 0xDA03},
-+	{TOK_WRITE, 0x70003D86, 0x8838},
-+	{TOK_WRITE, 0x70003D88, 0x4328},
-+	{TOK_WRITE, 0x70003D8A, 0x8038},
-+	{TOK_WRITE, 0x70003D8C, 0xE002},
-+	{TOK_WRITE, 0x70003D8E, 0x8878},
-+	{TOK_WRITE, 0x70003D90, 0x4330},
-+	{TOK_WRITE, 0x70003D92, 0x8078},
-+	{TOK_WRITE, 0x70003D94, 0x48B6},
-+	{TOK_WRITE, 0x70003D96, 0x8800},
-+	{TOK_WRITE, 0x70003D98, 0x0400},
-+	{TOK_WRITE, 0x70003D9A, 0xD507},
-+	{TOK_WRITE, 0x70003D9C, 0x4BB5},
-+	{TOK_WRITE, 0x70003D9E, 0x7819},
-+	{TOK_WRITE, 0x70003DA0, 0x4AB5},
-+	{TOK_WRITE, 0x70003DA2, 0x7810},
-+	{TOK_WRITE, 0x70003DA4, 0x7018},
-+	{TOK_WRITE, 0x70003DA6, 0x7011},
-+	{TOK_WRITE, 0x70003DA8, 0x49B4},
-+	{TOK_WRITE, 0x70003DAA, 0x8188},
-+	{TOK_WRITE, 0x70003DAC, 0xBCF8},
-+	{TOK_WRITE, 0x70003DAE, 0xBC08},
-+	{TOK_WRITE, 0x70003DB0, 0x4718},
-+	{TOK_WRITE, 0x70003DB2, 0xB538},
-+	{TOK_WRITE, 0x70003DB4, 0x48B2},
-+	{TOK_WRITE, 0x70003DB6, 0x4669},
-+	{TOK_WRITE, 0x70003DB8, 0xF000},
-+	{TOK_WRITE, 0x70003DBA, 0xFAAE},
-+	{TOK_WRITE, 0x70003DBC, 0x48B1},
-+	{TOK_WRITE, 0x70003DBE, 0x49B0},
-+	{TOK_WRITE, 0x70003DC0, 0x69C2},
-+	{TOK_WRITE, 0x70003DC2, 0x2400},
-+	{TOK_WRITE, 0x70003DC4, 0x31A8},
-+	{TOK_WRITE, 0x70003DC6, 0x2A00},
-+	{TOK_WRITE, 0x70003DC8, 0xD008},
-+	{TOK_WRITE, 0x70003DCA, 0x61C4},
-+	{TOK_WRITE, 0x70003DCC, 0x684A},
-+	{TOK_WRITE, 0x70003DCE, 0x6242},
-+	{TOK_WRITE, 0x70003DD0, 0x6282},
-+	{TOK_WRITE, 0x70003DD2, 0x466B},
-+	{TOK_WRITE, 0x70003DD4, 0x881A},
-+	{TOK_WRITE, 0x70003DD6, 0x6302},
-+	{TOK_WRITE, 0x70003DD8, 0x885A},
-+	{TOK_WRITE, 0x70003DDA, 0x6342},
-+	{TOK_WRITE, 0x70003DDC, 0x6A02},
-+	{TOK_WRITE, 0x70003DDE, 0x2A00},
-+	{TOK_WRITE, 0x70003DE0, 0xD00A},
-+	{TOK_WRITE, 0x70003DE2, 0x6204},
-+	{TOK_WRITE, 0x70003DE4, 0x6849},
-+	{TOK_WRITE, 0x70003DE6, 0x6281},
-+	{TOK_WRITE, 0x70003DE8, 0x466B},
-+	{TOK_WRITE, 0x70003DEA, 0x8819},
-+	{TOK_WRITE, 0x70003DEC, 0x6301},
-+	{TOK_WRITE, 0x70003DEE, 0x8859},
-+	{TOK_WRITE, 0x70003DF0, 0x6341},
-+	{TOK_WRITE, 0x70003DF2, 0x49A5},
-+	{TOK_WRITE, 0x70003DF4, 0x88C9},
-+	{TOK_WRITE, 0x70003DF6, 0x63C1},
-+	{TOK_WRITE, 0x70003DF8, 0xF000},
-+	{TOK_WRITE, 0x70003DFA, 0xFA96},
-+	{TOK_WRITE, 0x70003DFC, 0xE7A6},
-+	{TOK_WRITE, 0x70003DFE, 0xB5F0},
-+	{TOK_WRITE, 0x70003E00, 0xB08B},
-+	{TOK_WRITE, 0x70003E02, 0x20FF},
-+	{TOK_WRITE, 0x70003E04, 0x1C40},
-+	{TOK_WRITE, 0x70003E06, 0x49A1},
-+	{TOK_WRITE, 0x70003E08, 0x89CC},
-+	{TOK_WRITE, 0x70003E0A, 0x4E9E},
-+	{TOK_WRITE, 0x70003E0C, 0x6AB1},
-+	{TOK_WRITE, 0x70003E0E, 0x4284},
-+	{TOK_WRITE, 0x70003E10, 0xD101},
-+	{TOK_WRITE, 0x70003E12, 0x489F},
-+	{TOK_WRITE, 0x70003E14, 0x6081},
-+	{TOK_WRITE, 0x70003E16, 0x6A70},
-+	{TOK_WRITE, 0x70003E18, 0x0200},
-+	{TOK_WRITE, 0x70003E1A, 0xF000},
-+	{TOK_WRITE, 0x70003E1C, 0xFA8D},
-+	{TOK_WRITE, 0x70003E1E, 0x0400},
-+	{TOK_WRITE, 0x70003E20, 0x0C00},
-+	{TOK_WRITE, 0x70003E22, 0x4A96},
-+	{TOK_WRITE, 0x70003E24, 0x8A11},
-+	{TOK_WRITE, 0x70003E26, 0x9109},
-+	{TOK_WRITE, 0x70003E28, 0x2101},
-+	{TOK_WRITE, 0x70003E2A, 0x0349},
-+	{TOK_WRITE, 0x70003E2C, 0x4288},
-+	{TOK_WRITE, 0x70003E2E, 0xD200},
-+	{TOK_WRITE, 0x70003E30, 0x0001},
-+	{TOK_WRITE, 0x70003E32, 0x4A92},
-+	{TOK_WRITE, 0x70003E34, 0x8211},
-+	{TOK_WRITE, 0x70003E36, 0x4D97},
-+	{TOK_WRITE, 0x70003E38, 0x8829},
-+	{TOK_WRITE, 0x70003E3A, 0x9108},
-+	{TOK_WRITE, 0x70003E3C, 0x4A8B},
-+	{TOK_WRITE, 0x70003E3E, 0x2303},
-+	{TOK_WRITE, 0x70003E40, 0x3222},
-+	{TOK_WRITE, 0x70003E42, 0x1F91},
-+	{TOK_WRITE, 0x70003E44, 0xF000},
-+	{TOK_WRITE, 0x70003E46, 0xFA7E},
-+	{TOK_WRITE, 0x70003E48, 0x8028},
-+	{TOK_WRITE, 0x70003E4A, 0x488E},
-+	{TOK_WRITE, 0x70003E4C, 0x4987},
-+	{TOK_WRITE, 0x70003E4E, 0x6BC2},
-+	{TOK_WRITE, 0x70003E50, 0x6AC0},
-+	{TOK_WRITE, 0x70003E52, 0x4282},
-+	{TOK_WRITE, 0x70003E54, 0xD201},
-+	{TOK_WRITE, 0x70003E56, 0x8CC8},
-+	{TOK_WRITE, 0x70003E58, 0x8028},
-+	{TOK_WRITE, 0x70003E5A, 0x88E8},
-+	{TOK_WRITE, 0x70003E5C, 0x9007},
-+	{TOK_WRITE, 0x70003E5E, 0x2240},
-+	{TOK_WRITE, 0x70003E60, 0x4310},
-+	{TOK_WRITE, 0x70003E62, 0x80E8},
-+	{TOK_WRITE, 0x70003E64, 0x2000},
-+	{TOK_WRITE, 0x70003E66, 0x0041},
-+	{TOK_WRITE, 0x70003E68, 0x194B},
-+	{TOK_WRITE, 0x70003E6A, 0x001E},
-+	{TOK_WRITE, 0x70003E6C, 0x3680},
-+	{TOK_WRITE, 0x70003E6E, 0x8BB2},
-+	{TOK_WRITE, 0x70003E70, 0xAF04},
-+	{TOK_WRITE, 0x70003E72, 0x527A},
-+	{TOK_WRITE, 0x70003E74, 0x4A7D},
-+	{TOK_WRITE, 0x70003E76, 0x188A},
-+	{TOK_WRITE, 0x70003E78, 0x8897},
-+	{TOK_WRITE, 0x70003E7A, 0x83B7},
-+	{TOK_WRITE, 0x70003E7C, 0x33A0},
-+	{TOK_WRITE, 0x70003E7E, 0x891F},
-+	{TOK_WRITE, 0x70003E80, 0xAE01},
-+	{TOK_WRITE, 0x70003E82, 0x5277},
-+	{TOK_WRITE, 0x70003E84, 0x8A11},
-+	{TOK_WRITE, 0x70003E86, 0x8119},
-+	{TOK_WRITE, 0x70003E88, 0x1C40},
-+	{TOK_WRITE, 0x70003E8A, 0x0400},
-+	{TOK_WRITE, 0x70003E8C, 0x0C00},
-+	{TOK_WRITE, 0x70003E8E, 0x2806},
-+	{TOK_WRITE, 0x70003E90, 0xD3E9},
-+	{TOK_WRITE, 0x70003E92, 0xF000},
-+	{TOK_WRITE, 0x70003E94, 0xFA5F},
-+	{TOK_WRITE, 0x70003E96, 0xF000},
-+	{TOK_WRITE, 0x70003E98, 0xFA65},
-+	{TOK_WRITE, 0x70003E9A, 0x4F79},
-+	{TOK_WRITE, 0x70003E9C, 0x37A8},
-+	{TOK_WRITE, 0x70003E9E, 0x2800},
-+	{TOK_WRITE, 0x70003EA0, 0xD10A},
-+	{TOK_WRITE, 0x70003EA2, 0x1FE0},
-+	{TOK_WRITE, 0x70003EA4, 0x38FD},
-+	{TOK_WRITE, 0x70003EA6, 0xD001},
-+	{TOK_WRITE, 0x70003EA8, 0x1CC0},
-+	{TOK_WRITE, 0x70003EAA, 0xD105},
-+	{TOK_WRITE, 0x70003EAC, 0x4874},
-+	{TOK_WRITE, 0x70003EAE, 0x8829},
-+	{TOK_WRITE, 0x70003EB0, 0x3818},
-+	{TOK_WRITE, 0x70003EB2, 0x6840},
-+	{TOK_WRITE, 0x70003EB4, 0x4348},
-+	{TOK_WRITE, 0x70003EB6, 0x6078},
-+	{TOK_WRITE, 0x70003EB8, 0x4972},
-+	{TOK_WRITE, 0x70003EBA, 0x6878},
-+	{TOK_WRITE, 0x70003EBC, 0x6B89},
-+	{TOK_WRITE, 0x70003EBE, 0x4288},
-+	{TOK_WRITE, 0x70003EC0, 0xD300},
-+	{TOK_WRITE, 0x70003EC2, 0x0008},
-+	{TOK_WRITE, 0x70003EC4, 0x6078},
-+	{TOK_WRITE, 0x70003EC6, 0x2000},
-+	{TOK_WRITE, 0x70003EC8, 0x0041},
-+	{TOK_WRITE, 0x70003ECA, 0xAA04},
-+	{TOK_WRITE, 0x70003ECC, 0x5A53},
-+	{TOK_WRITE, 0x70003ECE, 0x194A},
-+	{TOK_WRITE, 0x70003ED0, 0x269C},
-+	{TOK_WRITE, 0x70003ED2, 0x52B3},
-+	{TOK_WRITE, 0x70003ED4, 0xAB01},
-+	{TOK_WRITE, 0x70003ED6, 0x5A59},
-+	{TOK_WRITE, 0x70003ED8, 0x32A0},
-+	{TOK_WRITE, 0x70003EDA, 0x8111},
-+	{TOK_WRITE, 0x70003EDC, 0x1C40},
-+	{TOK_WRITE, 0x70003EDE, 0x0400},
-+	{TOK_WRITE, 0x70003EE0, 0x0C00},
-+	{TOK_WRITE, 0x70003EE2, 0x2806},
-+	{TOK_WRITE, 0x70003EE4, 0xD3F0},
-+	{TOK_WRITE, 0x70003EE6, 0x4965},
-+	{TOK_WRITE, 0x70003EE8, 0x9809},
-+	{TOK_WRITE, 0x70003EEA, 0x8208},
-+	{TOK_WRITE, 0x70003EEC, 0x9808},
-+	{TOK_WRITE, 0x70003EEE, 0x8028},
-+	{TOK_WRITE, 0x70003EF0, 0x9807},
-+	{TOK_WRITE, 0x70003EF2, 0x80E8},
-+	{TOK_WRITE, 0x70003EF4, 0x1FE0},
-+	{TOK_WRITE, 0x70003EF6, 0x38FD},
-+	{TOK_WRITE, 0x70003EF8, 0xD13B},
-+	{TOK_WRITE, 0x70003EFA, 0x4D64},
-+	{TOK_WRITE, 0x70003EFC, 0x89E8},
-+	{TOK_WRITE, 0x70003EFE, 0x1FC1},
-+	{TOK_WRITE, 0x70003F00, 0x39FF},
-+	{TOK_WRITE, 0x70003F02, 0xD136},
-+	{TOK_WRITE, 0x70003F04, 0x4C5F},
-+	{TOK_WRITE, 0x70003F06, 0x8AE0},
-+	{TOK_WRITE, 0x70003F08, 0xF000},
-+	{TOK_WRITE, 0x70003F0A, 0xFA34},
-+	{TOK_WRITE, 0x70003F0C, 0x0006},
-+	{TOK_WRITE, 0x70003F0E, 0x8B20},
-+	{TOK_WRITE, 0x70003F10, 0xF000},
-+	{TOK_WRITE, 0x70003F12, 0xFA38},
-+	{TOK_WRITE, 0x70003F14, 0x9000},
-+	{TOK_WRITE, 0x70003F16, 0x6AA1},
-+	{TOK_WRITE, 0x70003F18, 0x6878},
-+	{TOK_WRITE, 0x70003F1A, 0x1809},
-+	{TOK_WRITE, 0x70003F1C, 0x0200},
-+	{TOK_WRITE, 0x70003F1E, 0xF000},
-+	{TOK_WRITE, 0x70003F20, 0xFA0B},
-+	{TOK_WRITE, 0x70003F22, 0x0400},
-+	{TOK_WRITE, 0x70003F24, 0x0C00},
-+	{TOK_WRITE, 0x70003F26, 0x0022},
-+	{TOK_WRITE, 0x70003F28, 0x3246},
-+	{TOK_WRITE, 0x70003F2A, 0x0011},
-+	{TOK_WRITE, 0x70003F2C, 0x310A},
-+	{TOK_WRITE, 0x70003F2E, 0x2305},
-+	{TOK_WRITE, 0x70003F30, 0xF000},
-+	{TOK_WRITE, 0x70003F32, 0xFA08},
-+	{TOK_WRITE, 0x70003F34, 0x66E8},
-+	{TOK_WRITE, 0x70003F36, 0x6B23},
-+	{TOK_WRITE, 0x70003F38, 0x0002},
-+	{TOK_WRITE, 0x70003F3A, 0x0031},
-+	{TOK_WRITE, 0x70003F3C, 0x0018},
-+	{TOK_WRITE, 0x70003F3E, 0xF000},
-+	{TOK_WRITE, 0x70003F40, 0xFA29},
-+	{TOK_WRITE, 0x70003F42, 0x466B},
-+	{TOK_WRITE, 0x70003F44, 0x8518},
-+	{TOK_WRITE, 0x70003F46, 0x6EEA},
-+	{TOK_WRITE, 0x70003F48, 0x6B60},
-+	{TOK_WRITE, 0x70003F4A, 0x9900},
-+	{TOK_WRITE, 0x70003F4C, 0xF000},
-+	{TOK_WRITE, 0x70003F4E, 0xFA22},
-+	{TOK_WRITE, 0x70003F50, 0x466B},
-+	{TOK_WRITE, 0x70003F52, 0x8558},
-+	{TOK_WRITE, 0x70003F54, 0x0029},
-+	{TOK_WRITE, 0x70003F56, 0x980A},
-+	{TOK_WRITE, 0x70003F58, 0x3170},
-+	{TOK_WRITE, 0x70003F5A, 0xF000},
-+	{TOK_WRITE, 0x70003F5C, 0xFA23},
-+	{TOK_WRITE, 0x70003F5E, 0x0028},
-+	{TOK_WRITE, 0x70003F60, 0x3060},
-+	{TOK_WRITE, 0x70003F62, 0x8A02},
-+	{TOK_WRITE, 0x70003F64, 0x4946},
-+	{TOK_WRITE, 0x70003F66, 0x3128},
-+	{TOK_WRITE, 0x70003F68, 0x808A},
-+	{TOK_WRITE, 0x70003F6A, 0x8A42},
-+	{TOK_WRITE, 0x70003F6C, 0x80CA},
-+	{TOK_WRITE, 0x70003F6E, 0x8A80},
-+	{TOK_WRITE, 0x70003F70, 0x8108},
-+	{TOK_WRITE, 0x70003F72, 0xB00B},
-+	{TOK_WRITE, 0x70003F74, 0xBCF0},
-+	{TOK_WRITE, 0x70003F76, 0xBC08},
-+	{TOK_WRITE, 0x70003F78, 0x4718},
-+	{TOK_WRITE, 0x70003F7A, 0xB570},
-+	{TOK_WRITE, 0x70003F7C, 0x2400},
-+	{TOK_WRITE, 0x70003F7E, 0x4D46},
-+	{TOK_WRITE, 0x70003F80, 0x4846},
-+	{TOK_WRITE, 0x70003F82, 0x8881},
-+	{TOK_WRITE, 0x70003F84, 0x4846},
-+	{TOK_WRITE, 0x70003F86, 0x8041},
-+	{TOK_WRITE, 0x70003F88, 0x2101},
-+	{TOK_WRITE, 0x70003F8A, 0x8001},
-+	{TOK_WRITE, 0x70003F8C, 0xF000},
-+	{TOK_WRITE, 0x70003F8E, 0xFA12},
-+	{TOK_WRITE, 0x70003F90, 0x4842},
-+	{TOK_WRITE, 0x70003F92, 0x3820},
-+	{TOK_WRITE, 0x70003F94, 0x8BC0},
-+	{TOK_WRITE, 0x70003F96, 0xF000},
-+	{TOK_WRITE, 0x70003F98, 0xFA15},
-+	{TOK_WRITE, 0x70003F9A, 0x4B42},
-+	{TOK_WRITE, 0x70003F9C, 0x220D},
-+	{TOK_WRITE, 0x70003F9E, 0x0712},
-+	{TOK_WRITE, 0x70003FA0, 0x18A8},
-+	{TOK_WRITE, 0x70003FA2, 0x8806},
-+	{TOK_WRITE, 0x70003FA4, 0x00E1},
-+	{TOK_WRITE, 0x70003FA6, 0x18C9},
-+	{TOK_WRITE, 0x70003FA8, 0x81CE},
-+	{TOK_WRITE, 0x70003FAA, 0x8846},
-+	{TOK_WRITE, 0x70003FAC, 0x818E},
-+	{TOK_WRITE, 0x70003FAE, 0x8886},
-+	{TOK_WRITE, 0x70003FB0, 0x824E},
-+	{TOK_WRITE, 0x70003FB2, 0x88C0},
-+	{TOK_WRITE, 0x70003FB4, 0x8208},
-+	{TOK_WRITE, 0x70003FB6, 0x3508},
-+	{TOK_WRITE, 0x70003FB8, 0x042D},
-+	{TOK_WRITE, 0x70003FBA, 0x0C2D},
-+	{TOK_WRITE, 0x70003FBC, 0x1C64},
-+	{TOK_WRITE, 0x70003FBE, 0x0424},
-+	{TOK_WRITE, 0x70003FC0, 0x0C24},
-+	{TOK_WRITE, 0x70003FC2, 0x2C07},
-+	{TOK_WRITE, 0x70003FC4, 0xD3EC},
-+	{TOK_WRITE, 0x70003FC6, 0xE658},
-+	{TOK_WRITE, 0x70003FC8, 0xB510},
-+	{TOK_WRITE, 0x70003FCA, 0x4834},
-+	{TOK_WRITE, 0x70003FCC, 0x4C34},
-+	{TOK_WRITE, 0x70003FCE, 0x88C0},
-+	{TOK_WRITE, 0x70003FD0, 0x8060},
-+	{TOK_WRITE, 0x70003FD2, 0x2001},
-+	{TOK_WRITE, 0x70003FD4, 0x8020},
-+	{TOK_WRITE, 0x70003FD6, 0x4831},
-+	{TOK_WRITE, 0x70003FD8, 0x3820},
-+	{TOK_WRITE, 0x70003FDA, 0x8BC0},
-+	{TOK_WRITE, 0x70003FDC, 0xF000},
-+	{TOK_WRITE, 0x70003FDE, 0xF9F2},
-+	{TOK_WRITE, 0x70003FE0, 0x88E0},
-+	{TOK_WRITE, 0x70003FE2, 0x4A31},
-+	{TOK_WRITE, 0x70003FE4, 0x2800},
-+	{TOK_WRITE, 0x70003FE6, 0xD003},
-+	{TOK_WRITE, 0x70003FE8, 0x4930},
-+	{TOK_WRITE, 0x70003FEA, 0x8849},
-+	{TOK_WRITE, 0x70003FEC, 0x2900},
-+	{TOK_WRITE, 0x70003FEE, 0xD009},
-+	{TOK_WRITE, 0x70003FF0, 0x2001},
-+	{TOK_WRITE, 0x70003FF2, 0x03C0},
-+	{TOK_WRITE, 0x70003FF4, 0x8050},
-+	{TOK_WRITE, 0x70003FF6, 0x80D0},
-+	{TOK_WRITE, 0x70003FF8, 0x2000},
-+	{TOK_WRITE, 0x70003FFA, 0x8090},
-+	{TOK_WRITE, 0x70003FFC, 0x8110},
-+	{TOK_WRITE, 0x70003FFE, 0xBC10},
-+	{TOK_WRITE, 0x70004000, 0xBC08},
-+	{TOK_WRITE, 0x70004002, 0x4718},
-+	{TOK_WRITE, 0x70004004, 0x8050},
-+	{TOK_WRITE, 0x70004006, 0x8920},
-+	{TOK_WRITE, 0x70004008, 0x80D0},
-+	{TOK_WRITE, 0x7000400A, 0x8960},
-+	{TOK_WRITE, 0x7000400C, 0x0400},
-+	{TOK_WRITE, 0x7000400E, 0x1400},
-+	{TOK_WRITE, 0x70004010, 0x8090},
-+	{TOK_WRITE, 0x70004012, 0x89A1},
-+	{TOK_WRITE, 0x70004014, 0x0409},
-+	{TOK_WRITE, 0x70004016, 0x1409},
-+	{TOK_WRITE, 0x70004018, 0x8111},
-+	{TOK_WRITE, 0x7000401A, 0x89E3},
-+	{TOK_WRITE, 0x7000401C, 0x8A24},
-+	{TOK_WRITE, 0x7000401E, 0x2B00},
-+	{TOK_WRITE, 0x70004020, 0xD104},
-+	{TOK_WRITE, 0x70004022, 0x17C3},
-+	{TOK_WRITE, 0x70004024, 0x0F5B},
-+	{TOK_WRITE, 0x70004026, 0x1818},
-+	{TOK_WRITE, 0x70004028, 0x10C0},
-+	{TOK_WRITE, 0x7000402A, 0x8090},
-+	{TOK_WRITE, 0x7000402C, 0x2C00},
-+	{TOK_WRITE, 0x7000402E, 0xD1E6},
-+	{TOK_WRITE, 0x70004030, 0x17C8},
-+	{TOK_WRITE, 0x70004032, 0x0F40},
-+	{TOK_WRITE, 0x70004034, 0x1840},
-+	{TOK_WRITE, 0x70004036, 0x10C0},
-+	{TOK_WRITE, 0x70004038, 0x8110},
-+	{TOK_WRITE, 0x7000403A, 0xE7E0},
-+	{TOK_WRITE, 0x7000403C, 0xB510},
-+	{TOK_WRITE, 0x7000403E, 0x000C},
-+	{TOK_WRITE, 0x70004040, 0x4919},
-+	{TOK_WRITE, 0x70004042, 0x2204},
-+	{TOK_WRITE, 0x70004044, 0x6820},
-+	{TOK_WRITE, 0x70004046, 0x5E8A},
-+	{TOK_WRITE, 0x70004048, 0x0140},
-+	{TOK_WRITE, 0x7000404A, 0x1A80},
-+	{TOK_WRITE, 0x7000404C, 0x0280},
-+	{TOK_WRITE, 0x7000404E, 0x8849},
-+	{TOK_WRITE, 0x70004050, 0xF000},
-+	{TOK_WRITE, 0x70004052, 0xF9C0},
-+	{TOK_WRITE, 0x70004054, 0x6020},
-+	{TOK_WRITE, 0x70004056, 0xE7D2},
-+	{TOK_WRITE, 0x70004058, 0x38D4},
-+	{TOK_WRITE, 0x7000405A, 0x7000},
-+	{TOK_WRITE, 0x7000405C, 0x17D0},
-+	{TOK_WRITE, 0x7000405E, 0x7000},
-+	{TOK_WRITE, 0x70004060, 0x5000},
-+	{TOK_WRITE, 0x70004062, 0xD000},
-+	{TOK_WRITE, 0x70004064, 0x1100},
-+	{TOK_WRITE, 0x70004066, 0xD000},
-+	{TOK_WRITE, 0x70004068, 0x171A},
-+	{TOK_WRITE, 0x7000406A, 0x7000},
-+	{TOK_WRITE, 0x7000406C, 0x4780},
-+	{TOK_WRITE, 0x7000406E, 0x7000},
-+	{TOK_WRITE, 0x70004070, 0x2FCA},
-+	{TOK_WRITE, 0x70004072, 0x7000},
-+	{TOK_WRITE, 0x70004074, 0x2FC5},
-+	{TOK_WRITE, 0x70004076, 0x7000},
-+	{TOK_WRITE, 0x70004078, 0x2FC6},
-+	{TOK_WRITE, 0x7000407A, 0x7000},
-+	{TOK_WRITE, 0x7000407C, 0x2ED8},
-+	{TOK_WRITE, 0x7000407E, 0x7000},
-+	{TOK_WRITE, 0x70004080, 0x2BD0},
-+	{TOK_WRITE, 0x70004082, 0x7000},
-+	{TOK_WRITE, 0x70004084, 0x17E0},
-+	{TOK_WRITE, 0x70004086, 0x7000},
-+	{TOK_WRITE, 0x70004088, 0x2DE8},
-+	{TOK_WRITE, 0x7000408A, 0x7000},
-+	{TOK_WRITE, 0x7000408C, 0x37E0},
-+	{TOK_WRITE, 0x7000408E, 0x7000},
-+	{TOK_WRITE, 0x70004090, 0x210C},
-+	{TOK_WRITE, 0x70004092, 0x7000},
-+	{TOK_WRITE, 0x70004094, 0x1484},
-+	{TOK_WRITE, 0x70004096, 0x7000},
-+	{TOK_WRITE, 0x70004098, 0xA006},
-+	{TOK_WRITE, 0x7000409A, 0x0000},
-+	{TOK_WRITE, 0x7000409C, 0x0724},
-+	{TOK_WRITE, 0x7000409E, 0x7000},
-+	{TOK_WRITE, 0x700040A0, 0xA000},
-+	{TOK_WRITE, 0x700040A2, 0xD000},
-+	{TOK_WRITE, 0x700040A4, 0x2270},
-+	{TOK_WRITE, 0x700040A6, 0x7000},
-+	{TOK_WRITE, 0x700040A8, 0x2558},
-+	{TOK_WRITE, 0x700040AA, 0x7000},
-+	{TOK_WRITE, 0x700040AC, 0x146C},
-+	{TOK_WRITE, 0x700040AE, 0x7000},
-+	{TOK_WRITE, 0x700040B0, 0xB510},
-+	{TOK_WRITE, 0x700040B2, 0x000C},
-+	{TOK_WRITE, 0x700040B4, 0x4979},
-+	{TOK_WRITE, 0x700040B6, 0x2208},
-+	{TOK_WRITE, 0x700040B8, 0x6820},
-+	{TOK_WRITE, 0x700040BA, 0x5E8A},
-+	{TOK_WRITE, 0x700040BC, 0x0140},
-+	{TOK_WRITE, 0x700040BE, 0x1A80},
-+	{TOK_WRITE, 0x700040C0, 0x0280},
-+	{TOK_WRITE, 0x700040C2, 0x88C9},
-+	{TOK_WRITE, 0x700040C4, 0xF000},
-+	{TOK_WRITE, 0x700040C6, 0xF986},
-+	{TOK_WRITE, 0x700040C8, 0x6020},
-+	{TOK_WRITE, 0x700040CA, 0xE798},
-+	{TOK_WRITE, 0x700040CC, 0xB5FE},
-+	{TOK_WRITE, 0x700040CE, 0x000C},
-+	{TOK_WRITE, 0x700040D0, 0x6825},
-+	{TOK_WRITE, 0x700040D2, 0x6866},
-+	{TOK_WRITE, 0x700040D4, 0x68A0},
-+	{TOK_WRITE, 0x700040D6, 0x9001},
-+	{TOK_WRITE, 0x700040D8, 0x68E7},
-+	{TOK_WRITE, 0x700040DA, 0x1BA8},
-+	{TOK_WRITE, 0x700040DC, 0x42B5},
-+	{TOK_WRITE, 0x700040DE, 0xDA00},
-+	{TOK_WRITE, 0x700040E0, 0x1B70},
-+	{TOK_WRITE, 0x700040E2, 0x9000},
-+	{TOK_WRITE, 0x700040E4, 0x496D},
-+	{TOK_WRITE, 0x700040E6, 0x486E},
-+	{TOK_WRITE, 0x700040E8, 0x884A},
-+	{TOK_WRITE, 0x700040EA, 0x8843},
-+	{TOK_WRITE, 0x700040EC, 0x435A},
-+	{TOK_WRITE, 0x700040EE, 0x2304},
-+	{TOK_WRITE, 0x700040F0, 0x5ECB},
-+	{TOK_WRITE, 0x700040F2, 0x0A92},
-+	{TOK_WRITE, 0x700040F4, 0x18D2},
-+	{TOK_WRITE, 0x700040F6, 0x02D2},
-+	{TOK_WRITE, 0x700040F8, 0x0C12},
-+	{TOK_WRITE, 0x700040FA, 0x88CB},
-+	{TOK_WRITE, 0x700040FC, 0x8880},
-+	{TOK_WRITE, 0x700040FE, 0x4343},
-+	{TOK_WRITE, 0x70004100, 0x0A98},
-+	{TOK_WRITE, 0x70004102, 0x2308},
-+	{TOK_WRITE, 0x70004104, 0x5ECB},
-+	{TOK_WRITE, 0x70004106, 0x18C0},
-+	{TOK_WRITE, 0x70004108, 0x02C0},
-+	{TOK_WRITE, 0x7000410A, 0x0C00},
-+	{TOK_WRITE, 0x7000410C, 0x0411},
-+	{TOK_WRITE, 0x7000410E, 0x0400},
-+	{TOK_WRITE, 0x70004110, 0x1409},
-+	{TOK_WRITE, 0x70004112, 0x1400},
-+	{TOK_WRITE, 0x70004114, 0x1A08},
-+	{TOK_WRITE, 0x70004116, 0x4962},
-+	{TOK_WRITE, 0x70004118, 0x39E0},
-+	{TOK_WRITE, 0x7000411A, 0x6148},
-+	{TOK_WRITE, 0x7000411C, 0x9801},
-+	{TOK_WRITE, 0x7000411E, 0x3040},
-+	{TOK_WRITE, 0x70004120, 0x7880},
-+	{TOK_WRITE, 0x70004122, 0x2800},
-+	{TOK_WRITE, 0x70004124, 0xD103},
-+	{TOK_WRITE, 0x70004126, 0x9801},
-+	{TOK_WRITE, 0x70004128, 0x0029},
-+	{TOK_WRITE, 0x7000412A, 0xF000},
-+	{TOK_WRITE, 0x7000412C, 0xF959},
-+	{TOK_WRITE, 0x7000412E, 0x8839},
-+	{TOK_WRITE, 0x70004130, 0x9800},
-+	{TOK_WRITE, 0x70004132, 0x4281},
-+	{TOK_WRITE, 0x70004134, 0xD814},
-+	{TOK_WRITE, 0x70004136, 0x8879},
-+	{TOK_WRITE, 0x70004138, 0x9800},
-+	{TOK_WRITE, 0x7000413A, 0x4281},
-+	{TOK_WRITE, 0x7000413C, 0xD20C},
-+	{TOK_WRITE, 0x7000413E, 0x9801},
-+	{TOK_WRITE, 0x70004140, 0x0029},
-+	{TOK_WRITE, 0x70004142, 0xF000},
-+	{TOK_WRITE, 0x70004144, 0xF955},
-+	{TOK_WRITE, 0x70004146, 0x9801},
-+	{TOK_WRITE, 0x70004148, 0x0029},
-+	{TOK_WRITE, 0x7000414A, 0xF000},
-+	{TOK_WRITE, 0x7000414C, 0xF951},
-+	{TOK_WRITE, 0x7000414E, 0x9801},
-+	{TOK_WRITE, 0x70004150, 0x0029},
-+	{TOK_WRITE, 0x70004152, 0xF000},
-+	{TOK_WRITE, 0x70004154, 0xF94D},
-+	{TOK_WRITE, 0x70004156, 0xE003},
-+	{TOK_WRITE, 0x70004158, 0x9801},
-+	{TOK_WRITE, 0x7000415A, 0x0029},
-+	{TOK_WRITE, 0x7000415C, 0xF000},
-+	{TOK_WRITE, 0x7000415E, 0xF948},
-+	{TOK_WRITE, 0x70004160, 0x9801},
-+	{TOK_WRITE, 0x70004162, 0x0032},
-+	{TOK_WRITE, 0x70004164, 0x0039},
-+	{TOK_WRITE, 0x70004166, 0xF000},
-+	{TOK_WRITE, 0x70004168, 0xF94B},
-+	{TOK_WRITE, 0x7000416A, 0x6020},
-+	{TOK_WRITE, 0x7000416C, 0xE5D0},
-+	{TOK_WRITE, 0x7000416E, 0xB57C},
-+	{TOK_WRITE, 0x70004170, 0x484C},
-+	{TOK_WRITE, 0x70004172, 0xA901},
-+	{TOK_WRITE, 0x70004174, 0x0004},
-+	{TOK_WRITE, 0x70004176, 0xF000},
-+	{TOK_WRITE, 0x70004178, 0xF8CF},
-+	{TOK_WRITE, 0x7000417A, 0x466B},
-+	{TOK_WRITE, 0x7000417C, 0x88D9},
-+	{TOK_WRITE, 0x7000417E, 0x8898},
-+	{TOK_WRITE, 0x70004180, 0x4B47},
-+	{TOK_WRITE, 0x70004182, 0x3346},
-+	{TOK_WRITE, 0x70004184, 0x1E9A},
-+	{TOK_WRITE, 0x70004186, 0xF000},
-+	{TOK_WRITE, 0x70004188, 0xF943},
-+	{TOK_WRITE, 0x7000418A, 0x4846},
-+	{TOK_WRITE, 0x7000418C, 0x4944},
-+	{TOK_WRITE, 0x7000418E, 0x3812},
-+	{TOK_WRITE, 0x70004190, 0x3140},
-+	{TOK_WRITE, 0x70004192, 0x8A42},
-+	{TOK_WRITE, 0x70004194, 0x888B},
-+	{TOK_WRITE, 0x70004196, 0x18D2},
-+	{TOK_WRITE, 0x70004198, 0x8242},
-+	{TOK_WRITE, 0x7000419A, 0x8AC2},
-+	{TOK_WRITE, 0x7000419C, 0x88C9},
-+	{TOK_WRITE, 0x7000419E, 0x1851},
-+	{TOK_WRITE, 0x700041A0, 0x82C1},
-+	{TOK_WRITE, 0x700041A2, 0x0020},
-+	{TOK_WRITE, 0x700041A4, 0x4669},
-+	{TOK_WRITE, 0x700041A6, 0xF000},
-+	{TOK_WRITE, 0x700041A8, 0xF8B7},
-+	{TOK_WRITE, 0x700041AA, 0x483F},
-+	{TOK_WRITE, 0x700041AC, 0x214D},
-+	{TOK_WRITE, 0x700041AE, 0x8301},
-+	{TOK_WRITE, 0x700041B0, 0x2196},
-+	{TOK_WRITE, 0x700041B2, 0x8381},
-+	{TOK_WRITE, 0x700041B4, 0x211D},
-+	{TOK_WRITE, 0x700041B6, 0x3020},
-+	{TOK_WRITE, 0x700041B8, 0x8001},
-+	{TOK_WRITE, 0x700041BA, 0xF000},
-+	{TOK_WRITE, 0x700041BC, 0xF931},
-+	{TOK_WRITE, 0x700041BE, 0xF000},
-+	{TOK_WRITE, 0x700041C0, 0xF937},
-+	{TOK_WRITE, 0x700041C2, 0x483A},
-+	{TOK_WRITE, 0x700041C4, 0x4C3A},
-+	{TOK_WRITE, 0x700041C6, 0x6E00},
-+	{TOK_WRITE, 0x700041C8, 0x60E0},
-+	{TOK_WRITE, 0x700041CA, 0x466B},
-+	{TOK_WRITE, 0x700041CC, 0x8818},
-+	{TOK_WRITE, 0x700041CE, 0x8859},
-+	{TOK_WRITE, 0x700041D0, 0x0025},
-+	{TOK_WRITE, 0x700041D2, 0x1A40},
-+	{TOK_WRITE, 0x700041D4, 0x3540},
-+	{TOK_WRITE, 0x700041D6, 0x61A8},
-+	{TOK_WRITE, 0x700041D8, 0x4831},
-+	{TOK_WRITE, 0x700041DA, 0x9900},
-+	{TOK_WRITE, 0x700041DC, 0x3060},
-+	{TOK_WRITE, 0x700041DE, 0xF000},
-+	{TOK_WRITE, 0x700041E0, 0xF92F},
-+	{TOK_WRITE, 0x700041E2, 0x466B},
-+	{TOK_WRITE, 0x700041E4, 0x8819},
-+	{TOK_WRITE, 0x700041E6, 0x1DE0},
-+	{TOK_WRITE, 0x700041E8, 0x30F9},
-+	{TOK_WRITE, 0x700041EA, 0x8741},
-+	{TOK_WRITE, 0x700041EC, 0x8859},
-+	{TOK_WRITE, 0x700041EE, 0x8781},
-+	{TOK_WRITE, 0x700041F0, 0x2000},
-+	{TOK_WRITE, 0x700041F2, 0x71A0},
-+	{TOK_WRITE, 0x700041F4, 0x74A8},
-+	{TOK_WRITE, 0x700041F6, 0xBC7C},
-+	{TOK_WRITE, 0x700041F8, 0xBC08},
-+	{TOK_WRITE, 0x700041FA, 0x4718},
-+	{TOK_WRITE, 0x700041FC, 0xB5F8},
-+	{TOK_WRITE, 0x700041FE, 0x0005},
-+	{TOK_WRITE, 0x70004200, 0x6808},
-+	{TOK_WRITE, 0x70004202, 0x0400},
-+	{TOK_WRITE, 0x70004204, 0x0C00},
-+	{TOK_WRITE, 0x70004206, 0x684A},
-+	{TOK_WRITE, 0x70004208, 0x0412},
-+	{TOK_WRITE, 0x7000420A, 0x0C12},
-+	{TOK_WRITE, 0x7000420C, 0x688E},
-+	{TOK_WRITE, 0x7000420E, 0x68CC},
-+	{TOK_WRITE, 0x70004210, 0x4922},
-+	{TOK_WRITE, 0x70004212, 0x884B},
-+	{TOK_WRITE, 0x70004214, 0x4343},
-+	{TOK_WRITE, 0x70004216, 0x0A98},
-+	{TOK_WRITE, 0x70004218, 0x2304},
-+	{TOK_WRITE, 0x7000421A, 0x5ECB},
-+	{TOK_WRITE, 0x7000421C, 0x18C0},
-+	{TOK_WRITE, 0x7000421E, 0x02C0},
-+	{TOK_WRITE, 0x70004220, 0x0C00},
-+	{TOK_WRITE, 0x70004222, 0x88CB},
-+	{TOK_WRITE, 0x70004224, 0x4353},
-+	{TOK_WRITE, 0x70004226, 0x0A9A},
-+	{TOK_WRITE, 0x70004228, 0x2308},
-+	{TOK_WRITE, 0x7000422A, 0x5ECB},
-+	{TOK_WRITE, 0x7000422C, 0x18D1},
-+	{TOK_WRITE, 0x7000422E, 0x02C9},
-+	{TOK_WRITE, 0x70004230, 0x0C09},
-+	{TOK_WRITE, 0x70004232, 0x2701},
-+	{TOK_WRITE, 0x70004234, 0x003A},
-+	{TOK_WRITE, 0x70004236, 0x40AA},
-+	{TOK_WRITE, 0x70004238, 0x9200},
-+	{TOK_WRITE, 0x7000423A, 0x002A},
-+	{TOK_WRITE, 0x7000423C, 0x3A10},
-+	{TOK_WRITE, 0x7000423E, 0x4097},
-+	{TOK_WRITE, 0x70004240, 0x2D10},
-+	{TOK_WRITE, 0x70004242, 0xDA06},
-+	{TOK_WRITE, 0x70004244, 0x4A1B},
-+	{TOK_WRITE, 0x70004246, 0x9B00},
-+	{TOK_WRITE, 0x70004248, 0x8812},
-+	{TOK_WRITE, 0x7000424A, 0x439A},
-+	{TOK_WRITE, 0x7000424C, 0x4B19},
-+	{TOK_WRITE, 0x7000424E, 0x801A},
-+	{TOK_WRITE, 0x70004250, 0xE003},
-+	{TOK_WRITE, 0x70004252, 0x4B18},
-+	{TOK_WRITE, 0x70004254, 0x885A},
-+	{TOK_WRITE, 0x70004256, 0x43BA},
-+	{TOK_WRITE, 0x70004258, 0x805A},
-+	{TOK_WRITE, 0x7000425A, 0x0023},
-+	{TOK_WRITE, 0x7000425C, 0x0032},
-+	{TOK_WRITE, 0x7000425E, 0xF000},
-+	{TOK_WRITE, 0x70004260, 0xF8D7},
-+	{TOK_WRITE, 0x70004262, 0x2D10},
-+	{TOK_WRITE, 0x70004264, 0xDA05},
-+	{TOK_WRITE, 0x70004266, 0x4913},
-+	{TOK_WRITE, 0x70004268, 0x9A00},
-+	{TOK_WRITE, 0x7000426A, 0x8808},
-+	{TOK_WRITE, 0x7000426C, 0x4310},
-+	{TOK_WRITE, 0x7000426E, 0x8008},
-+	{TOK_WRITE, 0x70004270, 0xE003},
-+	{TOK_WRITE, 0x70004272, 0x4810},
-+	{TOK_WRITE, 0x70004274, 0x8841},
-+	{TOK_WRITE, 0x70004276, 0x4339},
-+	{TOK_WRITE, 0x70004278, 0x8041},
-+	{TOK_WRITE, 0x7000427A, 0x4D0D},
-+	{TOK_WRITE, 0x7000427C, 0x2000},
-+	{TOK_WRITE, 0x7000427E, 0x3580},
-+	{TOK_WRITE, 0x70004280, 0x88AA},
-+	{TOK_WRITE, 0x70004282, 0x5E30},
-+	{TOK_WRITE, 0x70004284, 0x2100},
-+	{TOK_WRITE, 0x70004286, 0xF000},
-+	{TOK_WRITE, 0x70004288, 0xF8E3},
-+	{TOK_WRITE, 0x7000428A, 0x8030},
-+	{TOK_WRITE, 0x7000428C, 0x2000},
-+	{TOK_WRITE, 0x7000428E, 0x88AA},
-+	{TOK_WRITE, 0x70004290, 0x5E20},
-+	{TOK_WRITE, 0x70004292, 0x2100},
-+	{TOK_WRITE, 0x70004294, 0xF000},
-+	{TOK_WRITE, 0x70004296, 0xF8DC},
-+	{TOK_WRITE, 0x70004298, 0x8020},
-+	{TOK_WRITE, 0x7000429A, 0xE587},
-+	{TOK_WRITE, 0x7000429C, 0x2558},
-+	{TOK_WRITE, 0x7000429E, 0x7000},
-+	{TOK_WRITE, 0x700042A0, 0x2AB8},
-+	{TOK_WRITE, 0x700042A2, 0x7000},
-+	{TOK_WRITE, 0x700042A4, 0x145E},
-+	{TOK_WRITE, 0x700042A6, 0x7000},
-+	{TOK_WRITE, 0x700042A8, 0x2698},
-+	{TOK_WRITE, 0x700042AA, 0x7000},
-+	{TOK_WRITE, 0x700042AC, 0x2BB8},
-+	{TOK_WRITE, 0x700042AE, 0x7000},
-+	{TOK_WRITE, 0x700042B0, 0x2998},
-+	{TOK_WRITE, 0x700042B2, 0x7000},
-+	{TOK_WRITE, 0x700042B4, 0x1100},
-+	{TOK_WRITE, 0x700042B6, 0xD000},
-+	{TOK_WRITE, 0x700042B8, 0x4778},
-+	{TOK_WRITE, 0x700042BA, 0x46C0},
-+	{TOK_WRITE, 0x700042BC, 0xC000},
-+	{TOK_WRITE, 0x700042BE, 0xE59F},
-+	{TOK_WRITE, 0x700042C0, 0xFF1C},
-+	{TOK_WRITE, 0x700042C2, 0xE12F},
-+	{TOK_WRITE, 0x700042C4, 0x1789},
-+	{TOK_WRITE, 0x700042C6, 0x0001},
-+	{TOK_WRITE, 0x700042C8, 0x4778},
-+	{TOK_WRITE, 0x700042CA, 0x46C0},
-+	{TOK_WRITE, 0x700042CC, 0xC000},
-+	{TOK_WRITE, 0x700042CE, 0xE59F},
-+	{TOK_WRITE, 0x700042D0, 0xFF1C},
-+	{TOK_WRITE, 0x700042D2, 0xE12F},
-+	{TOK_WRITE, 0x700042D4, 0x16F1},
-+	{TOK_WRITE, 0x700042D6, 0x0001},
-+	{TOK_WRITE, 0x700042D8, 0x4778},
-+	{TOK_WRITE, 0x700042DA, 0x46C0},
-+	{TOK_WRITE, 0x700042DC, 0xC000},
-+	{TOK_WRITE, 0x700042DE, 0xE59F},
-+	{TOK_WRITE, 0x700042E0, 0xFF1C},
-+	{TOK_WRITE, 0x700042E2, 0xE12F},
-+	{TOK_WRITE, 0x700042E4, 0xC3B1},
-+	{TOK_WRITE, 0x700042E6, 0x0000},
-+	{TOK_WRITE, 0x700042E8, 0x4778},
-+	{TOK_WRITE, 0x700042EA, 0x46C0},
-+	{TOK_WRITE, 0x700042EC, 0xC000},
-+	{TOK_WRITE, 0x700042EE, 0xE59F},
-+	{TOK_WRITE, 0x700042F0, 0xFF1C},
-+	{TOK_WRITE, 0x700042F2, 0xE12F},
-+	{TOK_WRITE, 0x700042F4, 0xC36D},
-+	{TOK_WRITE, 0x700042F6, 0x0000},
-+	{TOK_WRITE, 0x700042F8, 0x4778},
-+	{TOK_WRITE, 0x700042FA, 0x46C0},
-+	{TOK_WRITE, 0x700042FC, 0xC000},
-+	{TOK_WRITE, 0x700042FE, 0xE59F},
-+	{TOK_WRITE, 0x70004300, 0xFF1C},
-+	{TOK_WRITE, 0x70004302, 0xE12F},
-+	{TOK_WRITE, 0x70004304, 0xF6D7},
-+	{TOK_WRITE, 0x70004306, 0x0000},
-+	{TOK_WRITE, 0x70004308, 0x4778},
-+	{TOK_WRITE, 0x7000430A, 0x46C0},
-+	{TOK_WRITE, 0x7000430C, 0xC000},
-+	{TOK_WRITE, 0x7000430E, 0xE59F},
-+	{TOK_WRITE, 0x70004310, 0xFF1C},
-+	{TOK_WRITE, 0x70004312, 0xE12F},
-+	{TOK_WRITE, 0x70004314, 0xB49D},
-+	{TOK_WRITE, 0x70004316, 0x0000},
-+	{TOK_WRITE, 0x70004318, 0x4778},
-+	{TOK_WRITE, 0x7000431A, 0x46C0},
-+	{TOK_WRITE, 0x7000431C, 0xC000},
-+	{TOK_WRITE, 0x7000431E, 0xE59F},
-+	{TOK_WRITE, 0x70004320, 0xFF1C},
-+	{TOK_WRITE, 0x70004322, 0xE12F},
-+	{TOK_WRITE, 0x70004324, 0x7EDF},
-+	{TOK_WRITE, 0x70004326, 0x0000},
-+	{TOK_WRITE, 0x70004328, 0x4778},
-+	{TOK_WRITE, 0x7000432A, 0x46C0},
-+	{TOK_WRITE, 0x7000432C, 0xC000},
-+	{TOK_WRITE, 0x7000432E, 0xE59F},
-+	{TOK_WRITE, 0x70004330, 0xFF1C},
-+	{TOK_WRITE, 0x70004332, 0xE12F},
-+	{TOK_WRITE, 0x70004334, 0x448D},
-+	{TOK_WRITE, 0x70004336, 0x0000},
-+	{TOK_WRITE, 0x70004338, 0x4778},
-+	{TOK_WRITE, 0x7000433A, 0x46C0},
-+	{TOK_WRITE, 0x7000433C, 0xF004},
-+	{TOK_WRITE, 0x7000433E, 0xE51F},
-+	{TOK_WRITE, 0x70004340, 0x29EC},
-+	{TOK_WRITE, 0x70004342, 0x0001},
-+	{TOK_WRITE, 0x70004344, 0x4778},
-+	{TOK_WRITE, 0x70004346, 0x46C0},
-+	{TOK_WRITE, 0x70004348, 0xC000},
-+	{TOK_WRITE, 0x7000434A, 0xE59F},
-+	{TOK_WRITE, 0x7000434C, 0xFF1C},
-+	{TOK_WRITE, 0x7000434E, 0xE12F},
-+	{TOK_WRITE, 0x70004350, 0x2EF1},
-+	{TOK_WRITE, 0x70004352, 0x0000},
-+	{TOK_WRITE, 0x70004354, 0x4778},
-+	{TOK_WRITE, 0x70004356, 0x46C0},
-+	{TOK_WRITE, 0x70004358, 0xC000},
-+	{TOK_WRITE, 0x7000435A, 0xE59F},
-+	{TOK_WRITE, 0x7000435C, 0xFF1C},
-+	{TOK_WRITE, 0x7000435E, 0xE12F},
-+	{TOK_WRITE, 0x70004360, 0xEE03},
-+	{TOK_WRITE, 0x70004362, 0x0000},
-+	{TOK_WRITE, 0x70004364, 0x4778},
-+	{TOK_WRITE, 0x70004366, 0x46C0},
-+	{TOK_WRITE, 0x70004368, 0xC000},
-+	{TOK_WRITE, 0x7000436A, 0xE59F},
-+	{TOK_WRITE, 0x7000436C, 0xFF1C},
-+	{TOK_WRITE, 0x7000436E, 0xE12F},
-+	{TOK_WRITE, 0x70004370, 0xA58B},
-+	{TOK_WRITE, 0x70004372, 0x0000},
-+	{TOK_WRITE, 0x70004374, 0x4778},
-+	{TOK_WRITE, 0x70004376, 0x46C0},
-+	{TOK_WRITE, 0x70004378, 0xC000},
-+	{TOK_WRITE, 0x7000437A, 0xE59F},
-+	{TOK_WRITE, 0x7000437C, 0xFF1C},
-+	{TOK_WRITE, 0x7000437E, 0xE12F},
-+	{TOK_WRITE, 0x70004380, 0x7C49},
-+	{TOK_WRITE, 0x70004382, 0x0000},
-+	{TOK_WRITE, 0x70004384, 0x4778},
-+	{TOK_WRITE, 0x70004386, 0x46C0},
-+	{TOK_WRITE, 0x70004388, 0xC000},
-+	{TOK_WRITE, 0x7000438A, 0xE59F},
-+	{TOK_WRITE, 0x7000438C, 0xFF1C},
-+	{TOK_WRITE, 0x7000438E, 0xE12F},
-+	{TOK_WRITE, 0x70004390, 0x7C63},
-+	{TOK_WRITE, 0x70004392, 0x0000},
-+	{TOK_WRITE, 0x70004394, 0x4778},
-+	{TOK_WRITE, 0x70004396, 0x46C0},
-+	{TOK_WRITE, 0x70004398, 0xC000},
-+	{TOK_WRITE, 0x7000439A, 0xE59F},
-+	{TOK_WRITE, 0x7000439C, 0xFF1C},
-+	{TOK_WRITE, 0x7000439E, 0xE12F},
-+	{TOK_WRITE, 0x700043A0, 0x2DB7},
-+	{TOK_WRITE, 0x700043A2, 0x0000},
-+	{TOK_WRITE, 0x700043A4, 0x4778},
-+	{TOK_WRITE, 0x700043A6, 0x46C0},
-+	{TOK_WRITE, 0x700043A8, 0xC000},
-+	{TOK_WRITE, 0x700043AA, 0xE59F},
-+	{TOK_WRITE, 0x700043AC, 0xFF1C},
-+	{TOK_WRITE, 0x700043AE, 0xE12F},
-+	{TOK_WRITE, 0x700043B0, 0xEB3D},
-+	{TOK_WRITE, 0x700043B2, 0x0000},
-+	{TOK_WRITE, 0x700043B4, 0x4778},
-+	{TOK_WRITE, 0x700043B6, 0x46C0},
-+	{TOK_WRITE, 0x700043B8, 0xC000},
-+	{TOK_WRITE, 0x700043BA, 0xE59F},
-+	{TOK_WRITE, 0x700043BC, 0xFF1C},
-+	{TOK_WRITE, 0x700043BE, 0xE12F},
-+	{TOK_WRITE, 0x700043C0, 0xF061},
-+	{TOK_WRITE, 0x700043C2, 0x0000},
-+	{TOK_WRITE, 0x700043C4, 0x4778},
-+	{TOK_WRITE, 0x700043C6, 0x46C0},
-+	{TOK_WRITE, 0x700043C8, 0xC000},
-+	{TOK_WRITE, 0x700043CA, 0xE59F},
-+	{TOK_WRITE, 0x700043CC, 0xFF1C},
-+	{TOK_WRITE, 0x700043CE, 0xE12F},
-+	{TOK_WRITE, 0x700043D0, 0xF0EF},
-+	{TOK_WRITE, 0x700043D2, 0x0000},
-+	{TOK_WRITE, 0x700043D4, 0x4778},
-+	{TOK_WRITE, 0x700043D6, 0x46C0},
-+	{TOK_WRITE, 0x700043D8, 0xF004},
-+	{TOK_WRITE, 0x700043DA, 0xE51F},
-+	{TOK_WRITE, 0x700043DC, 0x2824},
-+	{TOK_WRITE, 0x700043DE, 0x0001},
-+	{TOK_WRITE, 0x700043E0, 0x4778},
-+	{TOK_WRITE, 0x700043E2, 0x46C0},
-+	{TOK_WRITE, 0x700043E4, 0xC000},
-+	{TOK_WRITE, 0x700043E6, 0xE59F},
-+	{TOK_WRITE, 0x700043E8, 0xFF1C},
-+	{TOK_WRITE, 0x700043EA, 0xE12F},
-+	{TOK_WRITE, 0x700043EC, 0x8EDD},
-+	{TOK_WRITE, 0x700043EE, 0x0000},
-+	{TOK_WRITE, 0x700043F0, 0x4778},
-+	{TOK_WRITE, 0x700043F2, 0x46C0},
-+	{TOK_WRITE, 0x700043F4, 0xC000},
-+	{TOK_WRITE, 0x700043F6, 0xE59F},
-+	{TOK_WRITE, 0x700043F8, 0xFF1C},
-+	{TOK_WRITE, 0x700043FA, 0xE12F},
-+	{TOK_WRITE, 0x700043FC, 0x8DCB},
-+	{TOK_WRITE, 0x700043FE, 0x0000},
-+	{TOK_WRITE, 0x70004400, 0x4778},
-+	{TOK_WRITE, 0x70004402, 0x46C0},
-+	{TOK_WRITE, 0x70004404, 0xC000},
-+	{TOK_WRITE, 0x70004406, 0xE59F},
-+	{TOK_WRITE, 0x70004408, 0xFF1C},
-+	{TOK_WRITE, 0x7000440A, 0xE12F},
-+	{TOK_WRITE, 0x7000440C, 0x8E17},
-+	{TOK_WRITE, 0x7000440E, 0x0000},
-+	{TOK_WRITE, 0x70004410, 0x4778},
-+	{TOK_WRITE, 0x70004412, 0x46C0},
-+	{TOK_WRITE, 0x70004414, 0xC000},
-+	{TOK_WRITE, 0x70004416, 0xE59F},
-+	{TOK_WRITE, 0x70004418, 0xFF1C},
-+	{TOK_WRITE, 0x7000441A, 0xE12F},
-+	{TOK_WRITE, 0x7000441C, 0x98C5},
-+	{TOK_WRITE, 0x7000441E, 0x0000},
-+	{TOK_WRITE, 0x70004420, 0x4778},
-+	{TOK_WRITE, 0x70004422, 0x46C0},
-+	{TOK_WRITE, 0x70004424, 0xC000},
-+	{TOK_WRITE, 0x70004426, 0xE59F},
-+	{TOK_WRITE, 0x70004428, 0xFF1C},
-+	{TOK_WRITE, 0x7000442A, 0xE12F},
-+	{TOK_WRITE, 0x7000442C, 0x7C7D},
-+	{TOK_WRITE, 0x7000442E, 0x0000},
-+	{TOK_WRITE, 0x70004430, 0x4778},
-+	{TOK_WRITE, 0x70004432, 0x46C0},
-+	{TOK_WRITE, 0x70004434, 0xC000},
-+	{TOK_WRITE, 0x70004436, 0xE59F},
-+	{TOK_WRITE, 0x70004438, 0xFF1C},
-+	{TOK_WRITE, 0x7000443A, 0xE12F},
-+	{TOK_WRITE, 0x7000443C, 0x7E31},
-+	{TOK_WRITE, 0x7000443E, 0x0000},
-+	{TOK_WRITE, 0x70004440, 0x4778},
-+	{TOK_WRITE, 0x70004442, 0x46C0},
-+	{TOK_WRITE, 0x70004444, 0xC000},
-+	{TOK_WRITE, 0x70004446, 0xE59F},
-+	{TOK_WRITE, 0x70004448, 0xFF1C},
-+	{TOK_WRITE, 0x7000444A, 0xE12F},
-+	{TOK_WRITE, 0x7000444C, 0x7EAB},
-+	{TOK_WRITE, 0x7000444E, 0x0000},
-+	{TOK_WRITE, 0x70004450, 0x4778},
-+	{TOK_WRITE, 0x70004452, 0x46C0},
-+	{TOK_WRITE, 0x70004454, 0xC000},
-+	{TOK_WRITE, 0x70004456, 0xE59F},
-+	{TOK_WRITE, 0x70004458, 0xFF1C},
-+	{TOK_WRITE, 0x7000445A, 0xE12F},
-+	{TOK_WRITE, 0x7000445C, 0x7501},
-+	{TOK_WRITE, 0x7000445E, 0x0000},
-+	{TOK_WRITE, 0xD0001000, 0x0001},
-+	{TOK_WRITE, 0x700001FC, 0x0001},
-+	{TOK_WRITE, 0x700001FE, 0x0003},
-+	{TOK_WRITE, 0x70000200, 0x0000},
-+	{TOK_WRITE, 0x70000204, 0x0061},
-+	{TOK_WRITE, 0x7000020C, 0x2F0C},
-+	{TOK_WRITE, 0x7000020E, 0x0190},
-+	{TOK_WRITE, 0x70000294, 0x0100},
-+	{TOK_WRITE, 0x70000296, 0x00E3},
-+	{TOK_WRITE, 0x70000298, 0x0200},
-+	{TOK_WRITE, 0x7000029A, 0x0238},
-+	{TOK_WRITE, 0x7000029C, 0x01C6},
-+	{TOK_WRITE, 0x7000029E, 0x0166},
-+	{TOK_WRITE, 0x700002A0, 0x0074},
-+	{TOK_WRITE, 0x700002A2, 0x0132},
-+	{TOK_WRITE, 0x700002A4, 0x0001},
-+	{TOK_WRITE, 0x7000070E, 0x00FF},
-+	{TOK_WRITE, 0x7000071E, 0x0001},
-+	{TOK_WRITE, 0x7000163C, 0x0000},
-+	{TOK_WRITE, 0x70001648, 0x9002},
-+	{TOK_WRITE, 0x70001652, 0x0002},
-+	{TOK_WRITE, 0x70001654, 0x0000},
-+	{TOK_WRITE, 0x700015E0, 0x0801},
-+	{TOK_WRITE, 0x7000164C, 0x0003},
-+	{TOK_WRITE, 0x7000163E, 0x00E5},
-+	{TOK_WRITE, 0x70001640, 0x00CC},
-+	{TOK_WRITE, 0x700015D4, 0x0000},
-+	{TOK_WRITE, 0x700015D6, 0xD000},
-+	{TOK_WRITE, 0x7000169A, 0xFF95},
-+	{TOK_WRITE, 0x7000166A, 0x0280},
-+	{TOK_WRITE, 0x70001676, 0x03A0},
-+	{TOK_WRITE, 0x70001678, 0x0320},
-+	{TOK_WRITE, 0x700016BC, 0x0030},
-+	{TOK_WRITE, 0x700016E0, 0x0060},
-+	{TOK_WRITE, 0x700016D4, 0x0010},
-+	{TOK_WRITE, 0x70001656, 0x0000},
-+	{TOK_WRITE, 0x700015E6, 0x003C},
-+	{TOK_WRITE, 0x700015E8, 0x0015},
-+	{TOK_WRITE, 0x700015EA, 0x0032},
-+	{TOK_WRITE, 0x700015EC, 0x0038},
-+	{TOK_WRITE, 0x700015EE, 0x003E},
-+	{TOK_WRITE, 0x700015F0, 0x0044},
-+	{TOK_WRITE, 0x700015F2, 0x004A},
-+	{TOK_WRITE, 0x700015F4, 0x0050},
-+	{TOK_WRITE, 0x700015F6, 0x0056},
-+	{TOK_WRITE, 0x700015F8, 0x005C},
-+	{TOK_WRITE, 0x700015FA, 0x0062},
-+	{TOK_WRITE, 0x700015FC, 0x0068},
-+	{TOK_WRITE, 0x700015FE, 0x006E},
-+	{TOK_WRITE, 0x70001600, 0x0074},
-+	{TOK_WRITE, 0x70001602, 0x007A},
-+	{TOK_WRITE, 0x70001604, 0x0080},
-+	{TOK_WRITE, 0x70001606, 0x0086},
-+	{TOK_WRITE, 0x70001608, 0x008C},
-+	{TOK_WRITE, 0x7000160A, 0x0092},
-+	{TOK_WRITE, 0x7000160C, 0x0098},
-+	{TOK_WRITE, 0x7000160E, 0x009E},
-+	{TOK_WRITE, 0x70001610, 0x00A4},
-+	{TOK_WRITE, 0x70001612, 0x00AA},
-+	{TOK_WRITE, 0x70001614, 0x00B0},
-+	{TOK_WRITE, 0x70001722, 0x8000},
-+	{TOK_WRITE, 0x70001724, 0x0006},
-+	{TOK_WRITE, 0x70001726, 0x3FF0},
-+	{TOK_WRITE, 0x70001728, 0x03E8},
-+	{TOK_WRITE, 0x7000172A, 0x0000},
-+	{TOK_WRITE, 0x7000172C, 0x0080},
-+	{TOK_WRITE, 0x7000172E, 0x0009},
-+	{TOK_WRITE, 0x70001730, 0x0020},
-+	{TOK_WRITE, 0x70001732, 0x0040},
-+	{TOK_WRITE, 0x70001734, 0x0080},
-+	{TOK_WRITE, 0x70001736, 0x00C0},
-+	{TOK_WRITE, 0x70001738, 0x00E0},
-+	{TOK_WRITE, 0x7000028C, 0x0003},
-+	{TOK_WRITE, 0x700008B4, 0x0001},
-+	{TOK_WRITE, 0x700008BC, 0x00C0},
-+	{TOK_WRITE, 0x700008BE, 0x00DF},
-+	{TOK_WRITE, 0x700008C0, 0x0100},
-+	{TOK_WRITE, 0x700008C2, 0x0125},
-+	{TOK_WRITE, 0x700008C4, 0x015F},
-+	{TOK_WRITE, 0x700008C6, 0x017C},
-+	{TOK_WRITE, 0x700008C8, 0x0194},
-+	{TOK_WRITE, 0x700008F6, 0x4000},
-+	{TOK_WRITE, 0x700008F8, 0x4000},
-+	{TOK_WRITE, 0x700008FA, 0x4000},
-+	{TOK_WRITE, 0x700008FC, 0x4000},
-+	{TOK_WRITE, 0x700008FE, 0x4000},
-+	{TOK_WRITE, 0x70000900, 0x4000},
-+	{TOK_WRITE, 0x70000902, 0x4000},
-+	{TOK_WRITE, 0x70000904, 0x4000},
-+	{TOK_WRITE, 0x70000906, 0x4000},
-+	{TOK_WRITE, 0x70000908, 0x4000},
-+	{TOK_WRITE, 0x7000090A, 0x4000},
-+	{TOK_WRITE, 0x7000090C, 0x4000},
-+	{TOK_WRITE, 0x7000090E, 0x3800},
-+	{TOK_WRITE, 0x70000910, 0x4000},
-+	{TOK_WRITE, 0x70000912, 0x4000},
-+	{TOK_WRITE, 0x70000914, 0x4000},
-+	{TOK_WRITE, 0x70000916, 0x3B00},
-+	{TOK_WRITE, 0x70000918, 0x4000},
-+	{TOK_WRITE, 0x7000091A, 0x4000},
-+	{TOK_WRITE, 0x7000091C, 0x4000},
-+	{TOK_WRITE, 0x7000091E, 0x4300},
-+	{TOK_WRITE, 0x70000920, 0x4000},
-+	{TOK_WRITE, 0x70000922, 0x4000},
-+	{TOK_WRITE, 0x70000924, 0x4000},
-+	{TOK_WRITE, 0x70000926, 0x4300},
-+	{TOK_WRITE, 0x70000928, 0x4000},
-+	{TOK_WRITE, 0x7000092A, 0x4000},
-+	{TOK_WRITE, 0x7000092C, 0x4000},
-+	{TOK_WRITE, 0x7000092E, 0x4500},
-+	{TOK_WRITE, 0x70000930, 0x4000},
-+	{TOK_WRITE, 0x70000932, 0x4000},
-+	{TOK_WRITE, 0x70000934, 0x4000},
-+	{TOK_WRITE, 0x700008F4, 0x0001},
-+	{TOK_WRITE, 0x70001492, 0x0100},
-+	{TOK_WRITE, 0x70001494, 0x0101},
-+	{TOK_WRITE, 0x70001496, 0x0101},
-+	{TOK_WRITE, 0x70001498, 0x0001},
-+	{TOK_WRITE, 0x7000149A, 0x0101},
-+	{TOK_WRITE, 0x7000149C, 0x0201},
-+	{TOK_WRITE, 0x7000149E, 0x0102},
-+	{TOK_WRITE, 0x700014A0, 0x0101},
-+	{TOK_WRITE, 0x700014A2, 0x0101},
-+	{TOK_WRITE, 0x700014A4, 0x0202},
-+	{TOK_WRITE, 0x700014A6, 0x0202},
-+	{TOK_WRITE, 0x700014A8, 0x0101},
-+	{TOK_WRITE, 0x700014AA, 0x0201},
-+	{TOK_WRITE, 0x700014AC, 0x0302},
-+	{TOK_WRITE, 0x700014AE, 0x0203},
-+	{TOK_WRITE, 0x700014B0, 0x0102},
-+	{TOK_WRITE, 0x700014B2, 0x0201},
-+	{TOK_WRITE, 0x700014B4, 0x0302},
-+	{TOK_WRITE, 0x700014B6, 0x0203},
-+	{TOK_WRITE, 0x700014B8, 0x0102},
-+	{TOK_WRITE, 0x700014BA, 0x0201},
-+	{TOK_WRITE, 0x700014BC, 0x0202},
-+	{TOK_WRITE, 0x700014BE, 0x0202},
-+	{TOK_WRITE, 0x700014C0, 0x0102},
-+	{TOK_WRITE, 0x700014C2, 0x0101},
-+	{TOK_WRITE, 0x700014C4, 0x0202},
-+	{TOK_WRITE, 0x700014C6, 0x0202},
-+	{TOK_WRITE, 0x700014C8, 0x0101},
-+	{TOK_WRITE, 0x700014CA, 0x0101},
-+	{TOK_WRITE, 0x700014CC, 0x0101},
-+	{TOK_WRITE, 0x700014CE, 0x0101},
-+	{TOK_WRITE, 0x700014D0, 0x0101},
-+	{TOK_WRITE, 0x70001484, 0x003C},
-+	{TOK_WRITE, 0x7000148A, 0x000F},
-+	{TOK_WRITE, 0x7000058C, 0x3520},
-+	{TOK_WRITE, 0x7000058E, 0x0000},
-+	{TOK_WRITE, 0x70000590, 0xC350},
-+	{TOK_WRITE, 0x70000592, 0x0000},
-+	{TOK_WRITE, 0x70000594, 0x3520},
-+	{TOK_WRITE, 0x70000596, 0x0000},
-+	{TOK_WRITE, 0x70000598, 0xC350},
-+	{TOK_WRITE, 0x7000059A, 0x0000},
-+	{TOK_WRITE, 0x7000059C, 0x0470},
-+	{TOK_WRITE, 0x7000059E, 0x0C00},
-+	{TOK_WRITE, 0x700005A0, 0x0100},
-+	{TOK_WRITE, 0x700005A2, 0x1000},
-+	{TOK_WRITE, 0x70000544, 0x0111},
-+	{TOK_WRITE, 0x70000546, 0x00EF},
-+	{TOK_WRITE, 0x70000F2A, 0x0000},
-+	{TOK_WRITE, 0x700004E6, 0x077F},
-+	{TOK_WRITE, 0x70000F30, 0x0001},
-+	{TOK_WRITE, 0x70000608, 0x0001},
-+	{TOK_WRITE, 0x7000060A, 0x0001},
-+	{TOK_WRITE, 0x7000060C, 0x0800},
-+	{TOK_WRITE, 0x7000060E, 0x0100},
-+	{TOK_WRITE, 0x70000610, 0x0001},
-+	{TOK_WRITE, 0x70000612, 0x0000},
-+	{TOK_WRITE, 0x70000614, 0x0A3C},
-+	{TOK_WRITE, 0x70000616, 0x0000},
-+	{TOK_WRITE, 0x70000618, 0x0D05},
-+	{TOK_WRITE, 0x7000061A, 0x0000},
-+	{TOK_WRITE, 0x7000061C, 0x4008},
-+	{TOK_WRITE, 0x7000061E, 0x0000},
-+	{TOK_WRITE, 0x70000620, 0x7000},
-+	{TOK_WRITE, 0x70000622, 0x0000},
-+	{TOK_WRITE, 0x70000624, 0x9C00},
-+	{TOK_WRITE, 0x70000626, 0x0000},
-+	{TOK_WRITE, 0x70000628, 0xAD00},
-+	{TOK_WRITE, 0x7000062A, 0x0001},
-+	{TOK_WRITE, 0x7000062C, 0xF1D4},
-+	{TOK_WRITE, 0x7000062E, 0x0002},
-+	{TOK_WRITE, 0x70000630, 0xDC00},
-+	{TOK_WRITE, 0x70000632, 0x0005},
-+	{TOK_WRITE, 0x70000634, 0xDC00},
-+	{TOK_WRITE, 0x70000636, 0x0005},
-+	{TOK_WRITE, 0x70000638, 0x0001},
-+	{TOK_WRITE, 0x7000063A, 0x0000},
-+	{TOK_WRITE, 0x7000063C, 0x0A3C},
-+	{TOK_WRITE, 0x7000063E, 0x0000},
-+	{TOK_WRITE, 0x70000640, 0x0D05},
-+	{TOK_WRITE, 0x70000642, 0x0000},
-+	{TOK_WRITE, 0x70000644, 0x3408},
-+	{TOK_WRITE, 0x70000646, 0x0000},
-+	{TOK_WRITE, 0x70000648, 0x3408},
-+	{TOK_WRITE, 0x7000064A, 0x0000},
-+	{TOK_WRITE, 0x7000064C, 0x6810},
-+	{TOK_WRITE, 0x7000064E, 0x0000},
-+	{TOK_WRITE, 0x70000650, 0x8214},
-+	{TOK_WRITE, 0x70000652, 0x0000},
-+	{TOK_WRITE, 0x70000654, 0xC350},
-+	{TOK_WRITE, 0x70000656, 0x0000},
-+	{TOK_WRITE, 0x70000658, 0xC350},
-+	{TOK_WRITE, 0x7000065A, 0x0000},
-+	{TOK_WRITE, 0x7000065C, 0xC350},
-+	{TOK_WRITE, 0x7000065E, 0x0000},
-+	{TOK_WRITE, 0x70000660, 0x0650},
-+	{TOK_WRITE, 0x70000662, 0x0100},
-+	{TOK_WRITE, 0x700006B8, 0x452C},
-+	{TOK_WRITE, 0x700006BA, 0x0005},
-+	{TOK_WRITE, 0x700005D0, 0x0000},
-+	{TOK_WRITE, 0x7000145E, 0x0580},
-+	{TOK_WRITE, 0x70001460, 0x0428},
-+	{TOK_WRITE, 0x70001462, 0x07B0},
-+	{TOK_WRITE, 0x700011F0, 0x0120},
-+	{TOK_WRITE, 0x700011F2, 0x0121},
-+	{TOK_WRITE, 0x7000101C, 0x037C},
-+	{TOK_WRITE, 0x7000101E, 0x038E},
-+	{TOK_WRITE, 0x70001020, 0x033C},
-+	{TOK_WRITE, 0x70001022, 0x0384},
-+	{TOK_WRITE, 0x70001024, 0x02FE},
-+	{TOK_WRITE, 0x70001026, 0x036C},
-+	{TOK_WRITE, 0x70001028, 0x02BA},
-+	{TOK_WRITE, 0x7000102A, 0x0352},
-+	{TOK_WRITE, 0x7000102C, 0x028E},
-+	{TOK_WRITE, 0x7000102E, 0x0300},
-+	{TOK_WRITE, 0x70001030, 0x026A},
-+	{TOK_WRITE, 0x70001032, 0x02C8},
-+	{TOK_WRITE, 0x70001034, 0x0254},
-+	{TOK_WRITE, 0x70001036, 0x02A8},
-+	{TOK_WRITE, 0x70001038, 0x0242},
-+	{TOK_WRITE, 0x7000103A, 0x02A0},
-+	{TOK_WRITE, 0x7000103C, 0x021A},
-+	{TOK_WRITE, 0x7000103E, 0x02A0},
-+	{TOK_WRITE, 0x70001040, 0x01F4},
-+	{TOK_WRITE, 0x70001042, 0x0298},
-+	{TOK_WRITE, 0x70001044, 0x01D4},
-+	{TOK_WRITE, 0x70001046, 0x0290},
-+	{TOK_WRITE, 0x70001048, 0x01CC},
-+	{TOK_WRITE, 0x7000104A, 0x0276},
-+	{TOK_WRITE, 0x7000104C, 0x01D2},
-+	{TOK_WRITE, 0x7000104E, 0x0260},
-+	{TOK_WRITE, 0x70001050, 0x01F6},
-+	{TOK_WRITE, 0x70001052, 0x023A},
-+	{TOK_WRITE, 0x70001054, 0x0000},
-+	{TOK_WRITE, 0x70001056, 0x0000},
-+	{TOK_WRITE, 0x70001058, 0x0000},
-+	{TOK_WRITE, 0x7000105A, 0x0000},
-+	{TOK_WRITE, 0x7000105C, 0x0000},
-+	{TOK_WRITE, 0x7000105E, 0x0000},
-+	{TOK_WRITE, 0x70001060, 0x0000},
-+	{TOK_WRITE, 0x70001062, 0x0000},
-+	{TOK_WRITE, 0x70001064, 0x0000},
-+	{TOK_WRITE, 0x70001066, 0x0000},
-+	{TOK_WRITE, 0x70001068, 0x0000},
-+	{TOK_WRITE, 0x7000106A, 0x0000},
-+	{TOK_WRITE, 0x7000106C, 0x0005},
-+	{TOK_WRITE, 0x70001070, 0x000E},
-+	{TOK_WRITE, 0x70001074, 0x0126},
-+	{TOK_WRITE, 0x70001078, 0x0272},
-+	{TOK_WRITE, 0x7000107A, 0x02A0},
-+	{TOK_WRITE, 0x7000107C, 0x025A},
-+	{TOK_WRITE, 0x7000107E, 0x02BC},
-+	{TOK_WRITE, 0x70001080, 0x024A},
-+	{TOK_WRITE, 0x70001082, 0x02C0},
-+	{TOK_WRITE, 0x70001084, 0x023C},
-+	{TOK_WRITE, 0x70001086, 0x02BE},
-+	{TOK_WRITE, 0x70001088, 0x022E},
-+	{TOK_WRITE, 0x7000108A, 0x02BC},
-+	{TOK_WRITE, 0x7000108C, 0x0224},
-+	{TOK_WRITE, 0x7000108E, 0x02B6},
-+	{TOK_WRITE, 0x70001090, 0x0218},
-+	{TOK_WRITE, 0x70001092, 0x02AA},
-+	{TOK_WRITE, 0x70001094, 0x0210},
-+	{TOK_WRITE, 0x70001096, 0x02A0},
-+	{TOK_WRITE, 0x70001098, 0x020C},
-+	{TOK_WRITE, 0x7000109A, 0x0296},
-+	{TOK_WRITE, 0x7000109C, 0x020A},
-+	{TOK_WRITE, 0x7000109E, 0x028C},
-+	{TOK_WRITE, 0x700010A0, 0x0212},
-+	{TOK_WRITE, 0x700010A2, 0x027E},
-+	{TOK_WRITE, 0x700010A4, 0x0234},
-+	{TOK_WRITE, 0x700010A6, 0x0256},
-+	{TOK_WRITE, 0x700010A8, 0x0004},
-+	{TOK_WRITE, 0x700010AC, 0x000C},
-+	{TOK_WRITE, 0x700010B0, 0x01D8},
-+	{TOK_WRITE, 0x700010B4, 0x0350},
-+	{TOK_WRITE, 0x700010B6, 0x0422},
-+	{TOK_WRITE, 0x700010B8, 0x02C4},
-+	{TOK_WRITE, 0x700010BA, 0x0452},
-+	{TOK_WRITE, 0x700010BC, 0x0278},
-+	{TOK_WRITE, 0x700010BE, 0x041C},
-+	{TOK_WRITE, 0x700010C0, 0x0230},
-+	{TOK_WRITE, 0x700010C2, 0x03EE},
-+	{TOK_WRITE, 0x700010C4, 0x01F0},
-+	{TOK_WRITE, 0x700010C6, 0x0392},
-+	{TOK_WRITE, 0x700010C8, 0x01C0},
-+	{TOK_WRITE, 0x700010CA, 0x0340},
-+	{TOK_WRITE, 0x700010CC, 0x0194},
-+	{TOK_WRITE, 0x700010CE, 0x0302},
-+	{TOK_WRITE, 0x700010D0, 0x016E},
-+	{TOK_WRITE, 0x700010D2, 0x02C2},
-+	{TOK_WRITE, 0x700010D4, 0x0148},
-+	{TOK_WRITE, 0x700010D6, 0x0286},
-+	{TOK_WRITE, 0x700010D8, 0x018A},
-+	{TOK_WRITE, 0x700010DA, 0x0242},
-+	{TOK_WRITE, 0x700010DC, 0x0000},
-+	{TOK_WRITE, 0x700010DE, 0x0000},
-+	{TOK_WRITE, 0x700010E0, 0x0000},
-+	{TOK_WRITE, 0x700010E2, 0x0000},
-+	{TOK_WRITE, 0x700010E4, 0x0006},
-+	{TOK_WRITE, 0x700010E8, 0x000A},
-+	{TOK_WRITE, 0x700010EC, 0x0106},
-+	{TOK_WRITE, 0x700010F0, 0x0380},
-+	{TOK_WRITE, 0x700010F2, 0x0000},
-+	{TOK_WRITE, 0x700010F4, 0x0168},
-+	{TOK_WRITE, 0x700010F6, 0x0000},
-+	{TOK_WRITE, 0x700010F8, 0x2D90},
-+	{TOK_WRITE, 0x700010FA, 0x0000},
-+	{TOK_WRITE, 0x70001464, 0x0008},
-+	{TOK_WRITE, 0x70001466, 0x0190},
-+	{TOK_WRITE, 0x70001468, 0x00A0},
-+	{TOK_WRITE, 0x70001228, 0x00C0},
-+	{TOK_WRITE, 0x7000122C, 0x0010},
-+	{TOK_WRITE, 0x7000122A, 0x0010},
-+	{TOK_WRITE, 0x7000120A, 0x05D5},
-+	{TOK_WRITE, 0x7000120E, 0x0000},
-+	{TOK_WRITE, 0x70001210, 0x0771},
-+	{TOK_WRITE, 0x70001212, 0x03A4},
-+	{TOK_WRITE, 0x70001214, 0x0036},
-+	{TOK_WRITE, 0x70001216, 0x002A},
-+	{TOK_WRITE, 0x70001278, 0xFEF7},
-+	{TOK_WRITE, 0x7000127A, 0x0021},
-+	{TOK_WRITE, 0x7000127C, 0x0AF0},
-+	{TOK_WRITE, 0x7000127E, 0x0AF0},
-+	{TOK_WRITE, 0x70001280, 0x018F},
-+	{TOK_WRITE, 0x70001282, 0x0096},
-+	{TOK_WRITE, 0x70001284, 0x000E},
-+	{TOK_WRITE, 0x70001224, 0x0032},
-+	{TOK_WRITE, 0x70001226, 0x001E},
-+	{TOK_WRITE, 0x70001228, 0x00C0},
-+	{TOK_WRITE, 0x7000122A, 0x0010},
-+	{TOK_WRITE, 0x7000122C, 0x0002},
-+	{TOK_WRITE, 0x70002BA4, 0x0006},
-+	{TOK_WRITE, 0x7000146C, 0x0002},
-+	{TOK_WRITE, 0x70001434, 0x02CE},
-+	{TOK_WRITE, 0x70001436, 0x0347},
-+	{TOK_WRITE, 0x70001438, 0x03C2},
-+	{TOK_WRITE, 0x7000143A, 0x10A0},
-+	{TOK_WRITE, 0x7000143C, 0x10A1},
-+	{TOK_WRITE, 0x7000143E, 0x1185},
-+	{TOK_WRITE, 0x70001440, 0x1186},
-+	{TOK_WRITE, 0x70001442, 0x11E5},
-+	{TOK_WRITE, 0x70001444, 0x11E6},
-+	{TOK_WRITE, 0x70001446, 0x00AB},
-+	{TOK_WRITE, 0x70001448, 0x00BF},
-+	{TOK_WRITE, 0x7000144A, 0x00D2},
-+	{TOK_WRITE, 0x7000144C, 0x0093},
-+	{TOK_WRITE, 0x700013A4, 0xFFF6},
-+	{TOK_WRITE, 0x700013A6, 0xFFD8},
-+	{TOK_WRITE, 0x700013A8, 0xFFD8},
-+	{TOK_WRITE, 0x700013AA, 0xFFD8},
-+	{TOK_WRITE, 0x700013AC, 0xFFD8},
-+	{TOK_WRITE, 0x700013AE, 0xFFD0},
-+	{TOK_WRITE, 0x700013B0, 0xFFF6},
-+	{TOK_WRITE, 0x700013B2, 0xFFD8},
-+	{TOK_WRITE, 0x700013B4, 0xFFD8},
-+	{TOK_WRITE, 0x700013B6, 0xFFD8},
-+	{TOK_WRITE, 0x700013B8, 0xFFD8},
-+	{TOK_WRITE, 0x700013BA, 0xFFD0},
-+	{TOK_WRITE, 0x700013BC, 0xFFF6},
-+	{TOK_WRITE, 0x700013BE, 0xFFD8},
-+	{TOK_WRITE, 0x700013C0, 0xFFD8},
-+	{TOK_WRITE, 0x700013C2, 0xFFD8},
-+	{TOK_WRITE, 0x700013C4, 0xFFD8},
-+	{TOK_WRITE, 0x700013C6, 0xFFD0},
-+	{TOK_WRITE, 0x700013C8, 0xFFEC},
-+	{TOK_WRITE, 0x700013CA, 0x000A},
-+	{TOK_WRITE, 0x700013CC, 0x000A},
-+	{TOK_WRITE, 0x700013CE, 0x0050},
-+	{TOK_WRITE, 0x700013D0, 0x0050},
-+	{TOK_WRITE, 0x700013D2, 0x0078},
-+	{TOK_WRITE, 0x700013D4, 0xFFEC},
-+	{TOK_WRITE, 0x700013D6, 0x000A},
-+	{TOK_WRITE, 0x700013D8, 0x000A},
-+	{TOK_WRITE, 0x700013DA, 0x0050},
-+	{TOK_WRITE, 0x700013DC, 0x0050},
-+	{TOK_WRITE, 0x700013DE, 0x0078},
-+	{TOK_WRITE, 0x700013E0, 0xFFEC},
-+	{TOK_WRITE, 0x700013E2, 0x000A},
-+	{TOK_WRITE, 0x700013E4, 0x000A},
-+	{TOK_WRITE, 0x700013E6, 0x0050},
-+	{TOK_WRITE, 0x700013E8, 0x0050},
-+	{TOK_WRITE, 0x700013EA, 0x0078},
-+	{TOK_WRITE, 0x700013EC, 0x0000},
-+	{TOK_WRITE, 0x700013EE, 0x0000},
-+	{TOK_WRITE, 0x700013F0, 0x0000},
-+	{TOK_WRITE, 0x700013F2, 0x0000},
-+	{TOK_WRITE, 0x700013F4, 0x0000},
-+	{TOK_WRITE, 0x700013F6, 0x0000},
-+	{TOK_WRITE, 0x700013F8, 0x0000},
-+	{TOK_WRITE, 0x700013FA, 0x0000},
-+	{TOK_WRITE, 0x700013FC, 0x0000},
-+	{TOK_WRITE, 0x700013FE, 0x0000},
-+	{TOK_WRITE, 0x70001400, 0x0000},
-+	{TOK_WRITE, 0x70001402, 0x0000},
-+	{TOK_WRITE, 0x70001404, 0x0000},
-+	{TOK_WRITE, 0x70001406, 0x0000},
-+	{TOK_WRITE, 0x70001408, 0x0000},
-+	{TOK_WRITE, 0x7000140A, 0x0000},
-+	{TOK_WRITE, 0x7000140C, 0x0000},
-+	{TOK_WRITE, 0x7000140E, 0x0000},
-+	{TOK_WRITE, 0x70001410, 0xFFC0},
-+	{TOK_WRITE, 0x70001412, 0xFFC0},
-+	{TOK_WRITE, 0x70001414, 0xFFC0},
-+	{TOK_WRITE, 0x70001416, 0x0000},
-+	{TOK_WRITE, 0x70001418, 0x0000},
-+	{TOK_WRITE, 0x7000141A, 0x0000},
-+	{TOK_WRITE, 0x7000141C, 0xFFC0},
-+	{TOK_WRITE, 0x7000141E, 0xFFC0},
-+	{TOK_WRITE, 0x70001420, 0xFFC0},
-+	{TOK_WRITE, 0x70001422, 0x0000},
-+	{TOK_WRITE, 0x70001424, 0x0000},
-+	{TOK_WRITE, 0x70001426, 0x0000},
-+	{TOK_WRITE, 0x70001428, 0xFFC0},
-+	{TOK_WRITE, 0x7000142A, 0xFFC0},
-+	{TOK_WRITE, 0x7000142C, 0xFFC0},
-+	{TOK_WRITE, 0x7000142E, 0x0000},
-+	{TOK_WRITE, 0x70001430, 0x0000},
-+	{TOK_WRITE, 0x70001432, 0x0000},
-+	{TOK_WRITE, 0x70001208, 0x0020},
-+	{TOK_WRITE, 0x7000144E, 0x0000},
-+	{TOK_WRITE, 0x70001450, 0xFFE0},
-+	{TOK_WRITE, 0x70001452, 0x0000},
-+	{TOK_WRITE, 0x70000734, 0x0000},
-+	{TOK_WRITE, 0x70000736, 0x000A},
-+	{TOK_WRITE, 0x70000738, 0x0016},
-+	{TOK_WRITE, 0x7000073A, 0x0030},
-+	{TOK_WRITE, 0x7000073C, 0x0066},
-+	{TOK_WRITE, 0x7000073E, 0x00D5},
-+	{TOK_WRITE, 0x70000740, 0x0138},
-+	{TOK_WRITE, 0x70000742, 0x0163},
-+	{TOK_WRITE, 0x70000744, 0x0189},
-+	{TOK_WRITE, 0x70000746, 0x01C6},
-+	{TOK_WRITE, 0x70000748, 0x01F8},
-+	{TOK_WRITE, 0x7000074A, 0x0222},
-+	{TOK_WRITE, 0x7000074C, 0x0247},
-+	{TOK_WRITE, 0x7000074E, 0x0282},
-+	{TOK_WRITE, 0x70000750, 0x02B5},
-+	{TOK_WRITE, 0x70000752, 0x030F},
-+	{TOK_WRITE, 0x70000754, 0x035F},
-+	{TOK_WRITE, 0x70000756, 0x03A2},
-+	{TOK_WRITE, 0x70000758, 0x03D8},
-+	{TOK_WRITE, 0x7000075A, 0x03FF},
-+	{TOK_WRITE, 0x7000075C, 0x0000},
-+	{TOK_WRITE, 0x7000075E, 0x000A},
-+	{TOK_WRITE, 0x70000760, 0x0016},
-+	{TOK_WRITE, 0x70000762, 0x0030},
-+	{TOK_WRITE, 0x70000764, 0x0066},
-+	{TOK_WRITE, 0x70000766, 0x00D5},
-+	{TOK_WRITE, 0x70000768, 0x0138},
-+	{TOK_WRITE, 0x7000076A, 0x0163},
-+	{TOK_WRITE, 0x7000076C, 0x0189},
-+	{TOK_WRITE, 0x7000076E, 0x01C6},
-+	{TOK_WRITE, 0x70000770, 0x01F8},
-+	{TOK_WRITE, 0x70000772, 0x0222},
-+	{TOK_WRITE, 0x70000774, 0x0247},
-+	{TOK_WRITE, 0x70000776, 0x0282},
-+	{TOK_WRITE, 0x70000778, 0x02B5},
-+	{TOK_WRITE, 0x7000077A, 0x030F},
-+	{TOK_WRITE, 0x7000077C, 0x035F},
-+	{TOK_WRITE, 0x7000077E, 0x03A2},
-+	{TOK_WRITE, 0x70000780, 0x03D8},
-+	{TOK_WRITE, 0x70000782, 0x03FF},
-+	{TOK_WRITE, 0x70000784, 0x0000},
-+	{TOK_WRITE, 0x70000786, 0x000A},
-+	{TOK_WRITE, 0x70000788, 0x0016},
-+	{TOK_WRITE, 0x7000078A, 0x0030},
-+	{TOK_WRITE, 0x7000078C, 0x0066},
-+	{TOK_WRITE, 0x7000078E, 0x00D5},
-+	{TOK_WRITE, 0x70000790, 0x0138},
-+	{TOK_WRITE, 0x70000792, 0x0163},
-+	{TOK_WRITE, 0x70000794, 0x0189},
-+	{TOK_WRITE, 0x70000796, 0x01C6},
-+	{TOK_WRITE, 0x70000798, 0x01F8},
-+	{TOK_WRITE, 0x7000079A, 0x0222},
-+	{TOK_WRITE, 0x7000079C, 0x0247},
-+	{TOK_WRITE, 0x7000079E, 0x0282},
-+	{TOK_WRITE, 0x700007A0, 0x02B5},
-+	{TOK_WRITE, 0x700007A2, 0x030F},
-+	{TOK_WRITE, 0x700007A4, 0x035F},
-+	{TOK_WRITE, 0x700007A6, 0x03A2},
-+	{TOK_WRITE, 0x700007A8, 0x03D8},
-+	{TOK_WRITE, 0x700007AA, 0x03FF},
-+	{TOK_WRITE, 0x700007AC, 0x0000},
-+	{TOK_WRITE, 0x700007AE, 0x000B},
-+	{TOK_WRITE, 0x700007B0, 0x0019},
-+	{TOK_WRITE, 0x700007B2, 0x0036},
-+	{TOK_WRITE, 0x700007B4, 0x006F},
-+	{TOK_WRITE, 0x700007B6, 0x00D8},
-+	{TOK_WRITE, 0x700007B8, 0x0135},
-+	{TOK_WRITE, 0x700007BA, 0x015F},
-+	{TOK_WRITE, 0x700007BC, 0x0185},
-+	{TOK_WRITE, 0x700007BE, 0x01C1},
-+	{TOK_WRITE, 0x700007C0, 0x01F3},
-+	{TOK_WRITE, 0x700007C2, 0x0220},
-+	{TOK_WRITE, 0x700007C4, 0x024A},
-+	{TOK_WRITE, 0x700007C6, 0x0291},
-+	{TOK_WRITE, 0x700007C8, 0x02D0},
-+	{TOK_WRITE, 0x700007CA, 0x032A},
-+	{TOK_WRITE, 0x700007CC, 0x036A},
-+	{TOK_WRITE, 0x700007CE, 0x039F},
-+	{TOK_WRITE, 0x700007D0, 0x03CC},
-+	{TOK_WRITE, 0x700007D2, 0x03F9},
-+	{TOK_WRITE, 0x700007D4, 0x0000},
-+	{TOK_WRITE, 0x700007D6, 0x000B},
-+	{TOK_WRITE, 0x700007D8, 0x0019},
-+	{TOK_WRITE, 0x700007DA, 0x0036},
-+	{TOK_WRITE, 0x700007DC, 0x006F},
-+	{TOK_WRITE, 0x700007DE, 0x00D8},
-+	{TOK_WRITE, 0x700007E0, 0x0135},
-+	{TOK_WRITE, 0x700007E2, 0x015F},
-+	{TOK_WRITE, 0x700007E4, 0x0185},
-+	{TOK_WRITE, 0x700007E6, 0x01C1},
-+	{TOK_WRITE, 0x700007E8, 0x01F3},
-+	{TOK_WRITE, 0x700007EA, 0x0220},
-+	{TOK_WRITE, 0x700007EC, 0x024A},
-+	{TOK_WRITE, 0x700007EE, 0x0291},
-+	{TOK_WRITE, 0x700007F0, 0x02D0},
-+	{TOK_WRITE, 0x700007F2, 0x032A},
-+	{TOK_WRITE, 0x700007F4, 0x036A},
-+	{TOK_WRITE, 0x700007F6, 0x039F},
-+	{TOK_WRITE, 0x700007F8, 0x03CC},
-+	{TOK_WRITE, 0x700007FA, 0x03F9},
-+	{TOK_WRITE, 0x700007FC, 0x0000},
-+	{TOK_WRITE, 0x700007FE, 0x000B},
-+	{TOK_WRITE, 0x70000800, 0x0019},
-+	{TOK_WRITE, 0x70000802, 0x0036},
-+	{TOK_WRITE, 0x70000804, 0x006F},
-+	{TOK_WRITE, 0x70000806, 0x00D8},
-+	{TOK_WRITE, 0x70000808, 0x0135},
-+	{TOK_WRITE, 0x7000080A, 0x015F},
-+	{TOK_WRITE, 0x7000080C, 0x0185},
-+	{TOK_WRITE, 0x7000080E, 0x01C1},
-+	{TOK_WRITE, 0x70000810, 0x01F3},
-+	{TOK_WRITE, 0x70000812, 0x0220},
-+	{TOK_WRITE, 0x70000814, 0x024A},
-+	{TOK_WRITE, 0x70000816, 0x0291},
-+	{TOK_WRITE, 0x70000818, 0x02D0},
-+	{TOK_WRITE, 0x7000081A, 0x032A},
-+	{TOK_WRITE, 0x7000081C, 0x036A},
-+	{TOK_WRITE, 0x7000081E, 0x039F},
-+	{TOK_WRITE, 0x70000820, 0x03CC},
-+	{TOK_WRITE, 0x70000822, 0x03F9},
-+	{TOK_WRITE, 0x700008A6, 0x00C0},
-+	{TOK_WRITE, 0x700008A8, 0x0100},
-+	{TOK_WRITE, 0x700008AA, 0x0125},
-+	{TOK_WRITE, 0x700008AC, 0x015F},
-+	{TOK_WRITE, 0x700008AE, 0x017C},
-+	{TOK_WRITE, 0x700008B0, 0x0194},
-+	{TOK_WRITE, 0x700008B2, 0x0001},
-+	{TOK_WRITE, 0x70000898, 0x4800},
-+	{TOK_WRITE, 0x7000089A, 0x7000},
-+	{TOK_WRITE, 0x700008A0, 0x48D8},
-+	{TOK_WRITE, 0x700008A2, 0x7000},
-+	{TOK_WRITE, 0x70004800, 0x024C},
-+	{TOK_WRITE, 0x70004802, 0xFF5E},
-+	{TOK_WRITE, 0x70004804, 0xFF9D},
-+	{TOK_WRITE, 0x70004806, 0xFEC9},
-+	{TOK_WRITE, 0x70004808, 0x0203},
-+	{TOK_WRITE, 0x7000480A, 0xFF08},
-+	{TOK_WRITE, 0x7000480C, 0xFFDB},
-+	{TOK_WRITE, 0x7000480E, 0xFF8F},
-+	{TOK_WRITE, 0x70004810, 0x0206},
-+	{TOK_WRITE, 0x70004812, 0x00E0},
-+	{TOK_WRITE, 0x70004814, 0x009F},
-+	{TOK_WRITE, 0x70004816, 0xFE7B},
-+	{TOK_WRITE, 0x70004818, 0x0227},
-+	{TOK_WRITE, 0x7000481A, 0xFEFE},
-+	{TOK_WRITE, 0x7000481C, 0x0194},
-+	{TOK_WRITE, 0x7000481E, 0xFE86},
-+	{TOK_WRITE, 0x70004820, 0x01E0},
-+	{TOK_WRITE, 0x70004822, 0x0104},
-+	{TOK_WRITE, 0x70004824, 0x024C},
-+	{TOK_WRITE, 0x70004826, 0xFF5E},
-+	{TOK_WRITE, 0x70004828, 0xFF9D},
-+	{TOK_WRITE, 0x7000482A, 0xFEC9},
-+	{TOK_WRITE, 0x7000482C, 0x0203},
-+	{TOK_WRITE, 0x7000482E, 0xFF08},
-+	{TOK_WRITE, 0x70004830, 0xFFDB},
-+	{TOK_WRITE, 0x70004832, 0xFF8F},
-+	{TOK_WRITE, 0x70004834, 0x0206},
-+	{TOK_WRITE, 0x70004836, 0x00E0},
-+	{TOK_WRITE, 0x70004838, 0x009F},
-+	{TOK_WRITE, 0x7000483A, 0xFE7B},
-+	{TOK_WRITE, 0x7000483C, 0x0227},
-+	{TOK_WRITE, 0x7000483E, 0xFEFE},
-+	{TOK_WRITE, 0x70004840, 0x0194},
-+	{TOK_WRITE, 0x70004842, 0xFE86},
-+	{TOK_WRITE, 0x70004844, 0x01E0},
-+	{TOK_WRITE, 0x70004846, 0x0104},
-+	{TOK_WRITE, 0x70004848, 0x0208},
-+	{TOK_WRITE, 0x7000484A, 0xFFB5},
-+	{TOK_WRITE, 0x7000484C, 0xFFE8},
-+	{TOK_WRITE, 0x7000484E, 0xFF20},
-+	{TOK_WRITE, 0x70004850, 0x01BF},
-+	{TOK_WRITE, 0x70004852, 0xFF53},
-+	{TOK_WRITE, 0x70004854, 0x0022},
-+	{TOK_WRITE, 0x70004856, 0xFFEA},
-+	{TOK_WRITE, 0x70004858, 0x01C2},
-+	{TOK_WRITE, 0x7000485A, 0x00C6},
-+	{TOK_WRITE, 0x7000485C, 0x0095},
-+	{TOK_WRITE, 0x7000485E, 0xFEFD},
-+	{TOK_WRITE, 0x70004860, 0x0206},
-+	{TOK_WRITE, 0x70004862, 0xFF7F},
-+	{TOK_WRITE, 0x70004864, 0x0191},
-+	{TOK_WRITE, 0x70004866, 0xFF06},
-+	{TOK_WRITE, 0x70004868, 0x01BA},
-+	{TOK_WRITE, 0x7000486A, 0x0108},
-+	{TOK_WRITE, 0x7000486C, 0x0204},
-+	{TOK_WRITE, 0x7000486E, 0xFFB2},
-+	{TOK_WRITE, 0x70004870, 0xFFF5},
-+	{TOK_WRITE, 0x70004872, 0xFEF1},
-+	{TOK_WRITE, 0x70004874, 0x014E},
-+	{TOK_WRITE, 0x70004876, 0xFF18},
-+	{TOK_WRITE, 0x70004878, 0xFFE6},
-+	{TOK_WRITE, 0x7000487A, 0xFFDD},
-+	{TOK_WRITE, 0x7000487C, 0x01B2},
-+	{TOK_WRITE, 0x7000487E, 0x00F2},
-+	{TOK_WRITE, 0x70004880, 0x00CA},
-+	{TOK_WRITE, 0x70004882, 0xFF48},
-+	{TOK_WRITE, 0x70004884, 0x0151},
-+	{TOK_WRITE, 0x70004886, 0xFF50},
-+	{TOK_WRITE, 0x70004888, 0x0147},
-+	{TOK_WRITE, 0x7000488A, 0xFF75},
-+	{TOK_WRITE, 0x7000488C, 0x0187},
-+	{TOK_WRITE, 0x7000488E, 0x01BF},
-+	{TOK_WRITE, 0x70004890, 0x0204},
-+	{TOK_WRITE, 0x70004892, 0xFFB2},
-+	{TOK_WRITE, 0x70004894, 0xFFF5},
-+	{TOK_WRITE, 0x70004896, 0xFEF1},
-+	{TOK_WRITE, 0x70004898, 0x014E},
-+	{TOK_WRITE, 0x7000489A, 0xFF18},
-+	{TOK_WRITE, 0x7000489C, 0xFFE6},
-+	{TOK_WRITE, 0x7000489E, 0xFFDD},
-+	{TOK_WRITE, 0x700048A0, 0x01B2},
-+	{TOK_WRITE, 0x700048A2, 0x00F2},
-+	{TOK_WRITE, 0x700048A4, 0x00CA},
-+	{TOK_WRITE, 0x700048A6, 0xFF48},
-+	{TOK_WRITE, 0x700048A8, 0x0151},
-+	{TOK_WRITE, 0x700048AA, 0xFF50},
-+	{TOK_WRITE, 0x700048AC, 0x0147},
-+	{TOK_WRITE, 0x700048AE, 0xFF75},
-+	{TOK_WRITE, 0x700048B0, 0x0187},
-+	{TOK_WRITE, 0x700048B2, 0x01BF},
-+	{TOK_WRITE, 0x700048B4, 0x0204},
-+	{TOK_WRITE, 0x700048B6, 0xFFB2},
-+	{TOK_WRITE, 0x700048B8, 0xFFF5},
-+	{TOK_WRITE, 0x700048BA, 0xFEF1},
-+	{TOK_WRITE, 0x700048BC, 0x014E},
-+	{TOK_WRITE, 0x700048BE, 0xFF18},
-+	{TOK_WRITE, 0x700048C0, 0xFFE6},
-+	{TOK_WRITE, 0x700048C2, 0xFFDD},
-+	{TOK_WRITE, 0x700048C4, 0x01B2},
-+	{TOK_WRITE, 0x700048C6, 0x00F2},
-+	{TOK_WRITE, 0x700048C8, 0x00CA},
-+	{TOK_WRITE, 0x700048CA, 0xFF48},
-+	{TOK_WRITE, 0x700048CC, 0x0151},
-+	{TOK_WRITE, 0x700048CE, 0xFF50},
-+	{TOK_WRITE, 0x700048D0, 0x0147},
-+	{TOK_WRITE, 0x700048D2, 0xFF75},
-+	{TOK_WRITE, 0x700048D4, 0x0187},
-+	{TOK_WRITE, 0x700048D6, 0x01BF},
-+	{TOK_WRITE, 0x700048D8, 0x01E5},
-+	{TOK_WRITE, 0x700048DA, 0xFFA4},
-+	{TOK_WRITE, 0x700048DC, 0xFFDC},
-+	{TOK_WRITE, 0x700048DE, 0xFE90},
-+	{TOK_WRITE, 0x700048E0, 0x013F},
-+	{TOK_WRITE, 0x700048E2, 0xFF1B},
-+	{TOK_WRITE, 0x700048E4, 0xFFD2},
-+	{TOK_WRITE, 0x700048E6, 0xFFDF},
-+	{TOK_WRITE, 0x700048E8, 0x0236},
-+	{TOK_WRITE, 0x700048EA, 0x00EC},
-+	{TOK_WRITE, 0x700048EC, 0x00F8},
-+	{TOK_WRITE, 0x700048EE, 0xFF34},
-+	{TOK_WRITE, 0x700048F0, 0x01CE},
-+	{TOK_WRITE, 0x700048F2, 0xFF83},
-+	{TOK_WRITE, 0x700048F4, 0x0195},
-+	{TOK_WRITE, 0x700048F6, 0xFEF3},
-+	{TOK_WRITE, 0x700048F8, 0x0126},
-+	{TOK_WRITE, 0x700048FA, 0x0162},
-+	{TOK_WRITE, 0x70000944, 0x0050},
-+	{TOK_WRITE, 0x70000946, 0x00B0},
-+	{TOK_WRITE, 0x70000948, 0x0196},
-+	{TOK_WRITE, 0x7000094A, 0x0245},
-+	{TOK_WRITE, 0x7000094C, 0x0300},
-+	{TOK_WRITE, 0x7000097A, 0x0000},
-+	{TOK_WRITE, 0x7000097C, 0x01CC},
-+	{TOK_WRITE, 0x7000097E, 0x01CC},
-+	{TOK_WRITE, 0x70000980, 0x01CC},
-+	{TOK_WRITE, 0x70000982, 0x01CC},
-+	{TOK_WRITE, 0x70000984, 0x01CC},
-+	{TOK_WRITE, 0x70000986, 0x0180},
-+	{TOK_WRITE, 0x70000988, 0x0196},
-+	{TOK_WRITE, 0x70000976, 0x0070},
-+	{TOK_WRITE, 0x70000978, 0x0005},
-+	{TOK_WRITE, 0x70000938, 0x0000},
-+	{TOK_WRITE, 0x7000093A, 0x0014},
-+	{TOK_WRITE, 0x7000093C, 0x00D2},
-+	{TOK_WRITE, 0x7000093E, 0x0384},
-+	{TOK_WRITE, 0x70000940, 0x07D0},
-+	{TOK_WRITE, 0x70000942, 0x1388},
-+	{TOK_WRITE, 0x7000098C, 0x0000},
-+	{TOK_WRITE, 0x7000098E, 0x0000},
-+	{TOK_WRITE, 0x70000990, 0x0000},
-+	{TOK_WRITE, 0x70000992, 0x0000},
-+	{TOK_WRITE, 0x70000994, 0x0000},
-+	{TOK_WRITE, 0x70000996, 0x00C0},
-+	{TOK_WRITE, 0x70000998, 0x0064},
-+	{TOK_WRITE, 0x7000099A, 0x0384},
-+	{TOK_WRITE, 0x7000099C, 0x005F},
-+	{TOK_WRITE, 0x7000099E, 0x01F4},
-+	{TOK_WRITE, 0x700009A0, 0x0070},
-+	{TOK_WRITE, 0x700009A2, 0x0040},
-+	{TOK_WRITE, 0x700009A4, 0x00A0},
-+	{TOK_WRITE, 0x700009A6, 0x0100},
-+	{TOK_WRITE, 0x700009A8, 0x0010},
-+	{TOK_WRITE, 0x700009AA, 0x0040},
-+	{TOK_WRITE, 0x700009AC, 0x00A0},
-+	{TOK_WRITE, 0x700009AE, 0x1430},
-+	{TOK_WRITE, 0x700009B0, 0x0201},
-+	{TOK_WRITE, 0x700009B2, 0x0204},
-+	{TOK_WRITE, 0x700009B4, 0x3604},
-+	{TOK_WRITE, 0x700009B6, 0x032A},
-+	{TOK_WRITE, 0x700009B8, 0x0403},
-+	{TOK_WRITE, 0x700009BA, 0x1B06},
-+	{TOK_WRITE, 0x700009BC, 0x6015},
-+	{TOK_WRITE, 0x700009BE, 0x00C0},
-+	{TOK_WRITE, 0x700009C0, 0x6080},
-+	{TOK_WRITE, 0x700009C2, 0x4080},
-+	{TOK_WRITE, 0x700009C4, 0x0640},
-+	{TOK_WRITE, 0x700009C6, 0x0306},
-+	{TOK_WRITE, 0x700009C8, 0x2003},
-+	{TOK_WRITE, 0x700009CA, 0xFF01},
-+	{TOK_WRITE, 0x700009CC, 0x0000},
-+	{TOK_WRITE, 0x700009CE, 0x0400},
-+	{TOK_WRITE, 0x700009D0, 0x365A},
-+	{TOK_WRITE, 0x700009D2, 0x102A},
-+	{TOK_WRITE, 0x700009D4, 0x000B},
-+	{TOK_WRITE, 0x700009D6, 0x0600},
-+	{TOK_WRITE, 0x700009D8, 0x5A0F},
-+	{TOK_WRITE, 0x700009DA, 0x0505},
-+	{TOK_WRITE, 0x700009DC, 0x1802},
-+	{TOK_WRITE, 0x700009DE, 0x0000},
-+	{TOK_WRITE, 0x700009E0, 0x2006},
-+	{TOK_WRITE, 0x700009E2, 0x3028},
-+	{TOK_WRITE, 0x700009E4, 0x0418},
-+	{TOK_WRITE, 0x700009E6, 0x0101},
-+	{TOK_WRITE, 0x700009E8, 0x0800},
-+	{TOK_WRITE, 0x700009EA, 0x1804},
-+	{TOK_WRITE, 0x700009EC, 0x4008},
-+	{TOK_WRITE, 0x700009EE, 0x0540},
-+	{TOK_WRITE, 0x700009F0, 0x8006},
-+	{TOK_WRITE, 0x700009F2, 0x0020},
-+	{TOK_WRITE, 0x700009F4, 0x0000},
-+	{TOK_WRITE, 0x700009F6, 0x1800},
-+	{TOK_WRITE, 0x700009F8, 0x0000},
-+	{TOK_WRITE, 0x700009FA, 0x1E10},
-+	{TOK_WRITE, 0x700009FC, 0x000B},
-+	{TOK_WRITE, 0x700009FE, 0x0607},
-+	{TOK_WRITE, 0x70000A00, 0x0005},
-+	{TOK_WRITE, 0x70000A02, 0x0607},
-+	{TOK_WRITE, 0x70000A04, 0x0405},
-+	{TOK_WRITE, 0x70000A06, 0x0205},
-+	{TOK_WRITE, 0x70000A08, 0x0304},
-+	{TOK_WRITE, 0x70000A0A, 0x0409},
-+	{TOK_WRITE, 0x70000A0C, 0x0306},
-+	{TOK_WRITE, 0x70000A0E, 0x0407},
-+	{TOK_WRITE, 0x70000A10, 0x1C04},
-+	{TOK_WRITE, 0x70000A12, 0x0214},
-+	{TOK_WRITE, 0x70000A14, 0x1002},
-+	{TOK_WRITE, 0x70000A16, 0x0610},
-+	{TOK_WRITE, 0x70000A18, 0x1A02},
-+	{TOK_WRITE, 0x70000A1A, 0x4A18},
-+	{TOK_WRITE, 0x70000A1C, 0x0080},
-+	{TOK_WRITE, 0x70000A1E, 0x0348},
-+	{TOK_WRITE, 0x70000A20, 0x0180},
-+	{TOK_WRITE, 0x70000A22, 0x0A0A},
-+	{TOK_WRITE, 0x70000A24, 0x0101},
-+	{TOK_WRITE, 0x70000A26, 0x2A36},
-+	{TOK_WRITE, 0x70000A28, 0x6024},
-+	{TOK_WRITE, 0x70000A2A, 0x2A36},
-+	{TOK_WRITE, 0x70000A2C, 0xFFFF},
-+	{TOK_WRITE, 0x70000A2E, 0x0808},
-+	{TOK_WRITE, 0x70000A30, 0x0A01},
-+	{TOK_WRITE, 0x70000A32, 0x010A},
-+	{TOK_WRITE, 0x70000A34, 0x3601},
-+	{TOK_WRITE, 0x70000A36, 0x242A},
-+	{TOK_WRITE, 0x70000A38, 0x3660},
-+	{TOK_WRITE, 0x70000A3A, 0xFF2A},
-+	{TOK_WRITE, 0x70000A3C, 0x08FF},
-+	{TOK_WRITE, 0x70000A3E, 0x0008},
-+	{TOK_WRITE, 0x70000A40, 0x0001},
-+	{TOK_WRITE, 0x70000A42, 0x0000},
-+	{TOK_WRITE, 0x70000A44, 0x0000},
-+	{TOK_WRITE, 0x70000A46, 0x0010},
-+	{TOK_WRITE, 0x70000A48, 0x0000},
-+	{TOK_WRITE, 0x70000A4A, 0x0000},
-+	{TOK_WRITE, 0x70000A4C, 0x00C0},
-+	{TOK_WRITE, 0x70000A4E, 0x0064},
-+	{TOK_WRITE, 0x70000A50, 0x0384},
-+	{TOK_WRITE, 0x70000A52, 0x0051},
-+	{TOK_WRITE, 0x70000A54, 0x01F4},
-+	{TOK_WRITE, 0x70000A56, 0x0070},
-+	{TOK_WRITE, 0x70000A58, 0x0040},
-+	{TOK_WRITE, 0x70000A5A, 0x00A0},
-+	{TOK_WRITE, 0x70000A5C, 0x0100},
-+	{TOK_WRITE, 0x70000A5E, 0x0010},
-+	{TOK_WRITE, 0x70000A60, 0x0060},
-+	{TOK_WRITE, 0x70000A62, 0x0100},
-+	{TOK_WRITE, 0x70000A64, 0x1430},
-+	{TOK_WRITE, 0x70000A66, 0x0201},
-+	{TOK_WRITE, 0x70000A68, 0x0204},
-+	{TOK_WRITE, 0x70000A6A, 0x2404},
-+	{TOK_WRITE, 0x70000A6C, 0x031B},
-+	{TOK_WRITE, 0x70000A6E, 0x0103},
-+	{TOK_WRITE, 0x70000A70, 0x1205},
-+	{TOK_WRITE, 0x70000A72, 0x400D},
-+	{TOK_WRITE, 0x70000A74, 0x0080},
-+	{TOK_WRITE, 0x70000A76, 0x2080},
-+	{TOK_WRITE, 0x70000A78, 0x3040},
-+	{TOK_WRITE, 0x70000A7A, 0x0630},
-+	{TOK_WRITE, 0x70000A7C, 0x0306},
-+	{TOK_WRITE, 0x70000A7E, 0x2003},
-+	{TOK_WRITE, 0x70000A80, 0xFF01},
-+	{TOK_WRITE, 0x70000A82, 0x0404},
-+	{TOK_WRITE, 0x70000A84, 0x0300},
-+	{TOK_WRITE, 0x70000A86, 0x245A},
-+	{TOK_WRITE, 0x70000A88, 0x1018},
-+	{TOK_WRITE, 0x70000A8A, 0x000B},
-+	{TOK_WRITE, 0x70000A8C, 0x0B00},
-+	{TOK_WRITE, 0x70000A8E, 0x5A0F},
-+	{TOK_WRITE, 0x70000A90, 0x0505},
-+	{TOK_WRITE, 0x70000A92, 0x1802},
-+	{TOK_WRITE, 0x70000A94, 0x0000},
-+	{TOK_WRITE, 0x70000A96, 0x2006},
-+	{TOK_WRITE, 0x70000A98, 0x3428},
-+	{TOK_WRITE, 0x70000A9A, 0x041C},
-+	{TOK_WRITE, 0x70000A9C, 0x0101},
-+	{TOK_WRITE, 0x70000A9E, 0x0800},
-+	{TOK_WRITE, 0x70000AA0, 0x1004},
-+	{TOK_WRITE, 0x70000AA2, 0x4008},
-+	{TOK_WRITE, 0x70000AA4, 0x0540},
-+	{TOK_WRITE, 0x70000AA6, 0x8006},
-+	{TOK_WRITE, 0x70000AA8, 0x0020},
-+	{TOK_WRITE, 0x70000AAA, 0x0000},
-+	{TOK_WRITE, 0x70000AAC, 0x1800},
-+	{TOK_WRITE, 0x70000AAE, 0x0000},
-+	{TOK_WRITE, 0x70000AB0, 0x1E10},
-+	{TOK_WRITE, 0x70000AB2, 0x000B},
-+	{TOK_WRITE, 0x70000AB4, 0x0607},
-+	{TOK_WRITE, 0x70000AB6, 0x0005},
-+	{TOK_WRITE, 0x70000AB8, 0x0607},
-+	{TOK_WRITE, 0x70000ABA, 0x0405},
-+	{TOK_WRITE, 0x70000ABC, 0x0205},
-+	{TOK_WRITE, 0x70000ABE, 0x0304},
-+	{TOK_WRITE, 0x70000AC0, 0x0409},
-+	{TOK_WRITE, 0x70000AC2, 0x0306},
-+	{TOK_WRITE, 0x70000AC4, 0x0407},
-+	{TOK_WRITE, 0x70000AC6, 0x1F04},
-+	{TOK_WRITE, 0x70000AC8, 0x0218},
-+	{TOK_WRITE, 0x70000ACA, 0x1102},
-+	{TOK_WRITE, 0x70000ACC, 0x0611},
-+	{TOK_WRITE, 0x70000ACE, 0x1A02},
-+	{TOK_WRITE, 0x70000AD0, 0x8018},
-+	{TOK_WRITE, 0x70000AD2, 0x0080},
-+	{TOK_WRITE, 0x70000AD4, 0x0380},
-+	{TOK_WRITE, 0x70000AD6, 0x0180},
-+	{TOK_WRITE, 0x70000AD8, 0x0A0A},
-+	{TOK_WRITE, 0x70000ADA, 0x0101},
-+	{TOK_WRITE, 0x70000ADC, 0x1B24},
-+	{TOK_WRITE, 0x70000ADE, 0x6024},
-+	{TOK_WRITE, 0x70000AE0, 0x1D22},
-+	{TOK_WRITE, 0x70000AE2, 0xFFFF},
-+	{TOK_WRITE, 0x70000AE4, 0x0808},
-+	{TOK_WRITE, 0x70000AE6, 0x0A01},
-+	{TOK_WRITE, 0x70000AE8, 0x010A},
-+	{TOK_WRITE, 0x70000AEA, 0x2401},
-+	{TOK_WRITE, 0x70000AEC, 0x241B},
-+	{TOK_WRITE, 0x70000AEE, 0x1E60},
-+	{TOK_WRITE, 0x70000AF0, 0xFF18},
-+	{TOK_WRITE, 0x70000AF2, 0x08FF},
-+	{TOK_WRITE, 0x70000AF4, 0x0008},
-+	{TOK_WRITE, 0x70000AF6, 0x0001},
-+	{TOK_WRITE, 0x70000AF8, 0x0000},
-+	{TOK_WRITE, 0x70000AFA, 0x0000},
-+	{TOK_WRITE, 0x70000AFC, 0x0010},
-+	{TOK_WRITE, 0x70000AFE, 0x0000},
-+	{TOK_WRITE, 0x70000B00, 0x0000},
-+	{TOK_WRITE, 0x70000B02, 0x00C0},
-+	{TOK_WRITE, 0x70000B04, 0x0064},
-+	{TOK_WRITE, 0x70000B06, 0x0384},
-+	{TOK_WRITE, 0x70000B08, 0x0043},
-+	{TOK_WRITE, 0x70000B0A, 0x01F4},
-+	{TOK_WRITE, 0x70000B0C, 0x0070},
-+	{TOK_WRITE, 0x70000B0E, 0x0040},
-+	{TOK_WRITE, 0x70000B10, 0x00A0},
-+	{TOK_WRITE, 0x70000B12, 0x0100},
-+	{TOK_WRITE, 0x70000B14, 0x0010},
-+	{TOK_WRITE, 0x70000B16, 0x0060},
-+	{TOK_WRITE, 0x70000B18, 0x0100},
-+	{TOK_WRITE, 0x70000B1A, 0x1430},
-+	{TOK_WRITE, 0x70000B1C, 0x0201},
-+	{TOK_WRITE, 0x70000B1E, 0x0204},
-+	{TOK_WRITE, 0x70000B20, 0x1B04},
-+	{TOK_WRITE, 0x70000B22, 0x0312},
-+	{TOK_WRITE, 0x70000B24, 0x0003},
-+	{TOK_WRITE, 0x70000B26, 0x0C03},
-+	{TOK_WRITE, 0x70000B28, 0x2806},
-+	{TOK_WRITE, 0x70000B2A, 0x0060},
-+	{TOK_WRITE, 0x70000B2C, 0x1580},
-+	{TOK_WRITE, 0x70000B2E, 0x2020},
-+	{TOK_WRITE, 0x70000B30, 0x0620},
-+	{TOK_WRITE, 0x70000B32, 0x0306},
-+	{TOK_WRITE, 0x70000B34, 0x2003},
-+	{TOK_WRITE, 0x70000B36, 0xFF01},
-+	{TOK_WRITE, 0x70000B38, 0x0404},
-+	{TOK_WRITE, 0x70000B3A, 0x0300},
-+	{TOK_WRITE, 0x70000B3C, 0x145A},
-+	{TOK_WRITE, 0x70000B3E, 0x1010},
-+	{TOK_WRITE, 0x70000B40, 0x000B},
-+	{TOK_WRITE, 0x70000B42, 0x0E00},
-+	{TOK_WRITE, 0x70000B44, 0x5A0F},
-+	{TOK_WRITE, 0x70000B46, 0x0504},
-+	{TOK_WRITE, 0x70000B48, 0x1802},
-+	{TOK_WRITE, 0x70000B4A, 0x0000},
-+	{TOK_WRITE, 0x70000B4C, 0x2006},
-+	{TOK_WRITE, 0x70000B4E, 0x3828},
-+	{TOK_WRITE, 0x70000B50, 0x0428},
-+	{TOK_WRITE, 0x70000B52, 0x0101},
-+	{TOK_WRITE, 0x70000B54, 0x8000},
-+	{TOK_WRITE, 0x70000B56, 0x0A04},
-+	{TOK_WRITE, 0x70000B58, 0x4008},
-+	{TOK_WRITE, 0x70000B5A, 0x0540},
-+	{TOK_WRITE, 0x70000B5C, 0x8006},
-+	{TOK_WRITE, 0x70000B5E, 0x0020},
-+	{TOK_WRITE, 0x70000B60, 0x0000},
-+	{TOK_WRITE, 0x70000B62, 0x1800},
-+	{TOK_WRITE, 0x70000B64, 0x0000},
-+	{TOK_WRITE, 0x70000B66, 0x1E10},
-+	{TOK_WRITE, 0x70000B68, 0x000B},
-+	{TOK_WRITE, 0x70000B6A, 0x0607},
-+	{TOK_WRITE, 0x70000B6C, 0x0005},
-+	{TOK_WRITE, 0x70000B6E, 0x0607},
-+	{TOK_WRITE, 0x70000B70, 0x0405},
-+	{TOK_WRITE, 0x70000B72, 0x0207},
-+	{TOK_WRITE, 0x70000B74, 0x0304},
-+	{TOK_WRITE, 0x70000B76, 0x0409},
-+	{TOK_WRITE, 0x70000B78, 0x0306},
-+	{TOK_WRITE, 0x70000B7A, 0x0407},
-+	{TOK_WRITE, 0x70000B7C, 0x2404},
-+	{TOK_WRITE, 0x70000B7E, 0x0221},
-+	{TOK_WRITE, 0x70000B80, 0x1202},
-+	{TOK_WRITE, 0x70000B82, 0x0613},
-+	{TOK_WRITE, 0x70000B84, 0x1A02},
-+	{TOK_WRITE, 0x70000B86, 0x8018},
-+	{TOK_WRITE, 0x70000B88, 0x0080},
-+	{TOK_WRITE, 0x70000B8A, 0x0080},
-+	{TOK_WRITE, 0x70000B8C, 0x0180},
-+	{TOK_WRITE, 0x70000B8E, 0x0A0A},
-+	{TOK_WRITE, 0x70000B90, 0x0101},
-+	{TOK_WRITE, 0x70000B92, 0x141D},
-+	{TOK_WRITE, 0x70000B94, 0x6024},
-+	{TOK_WRITE, 0x70000B96, 0x0C0C},
-+	{TOK_WRITE, 0x70000B98, 0xFFFF},
-+	{TOK_WRITE, 0x70000B9A, 0x0808},
-+	{TOK_WRITE, 0x70000B9C, 0x0A01},
-+	{TOK_WRITE, 0x70000B9E, 0x010A},
-+	{TOK_WRITE, 0x70000BA0, 0x1B01},
-+	{TOK_WRITE, 0x70000BA2, 0x2412},
-+	{TOK_WRITE, 0x70000BA4, 0x0C60},
-+	{TOK_WRITE, 0x70000BA6, 0xFF0C},
-+	{TOK_WRITE, 0x70000BA8, 0x08FF},
-+	{TOK_WRITE, 0x70000BAA, 0x0008},
-+	{TOK_WRITE, 0x70000BAC, 0x0001},
-+	{TOK_WRITE, 0x70000BAE, 0x0000},
-+	{TOK_WRITE, 0x70000BB0, 0x0000},
-+	{TOK_WRITE, 0x70000BB2, 0x000A},
-+	{TOK_WRITE, 0x70000BB4, 0x0000},
-+	{TOK_WRITE, 0x70000BB6, 0x0000},
-+	{TOK_WRITE, 0x70000BB8, 0x00C0},
-+	{TOK_WRITE, 0x70000BBA, 0x0064},
-+	{TOK_WRITE, 0x70000BBC, 0x0384},
-+	{TOK_WRITE, 0x70000BBE, 0x0032},
-+	{TOK_WRITE, 0x70000BC0, 0x01F4},
-+	{TOK_WRITE, 0x70000BC2, 0x0070},
-+	{TOK_WRITE, 0x70000BC4, 0x0040},
-+	{TOK_WRITE, 0x70000BC6, 0x00A0},
-+	{TOK_WRITE, 0x70000BC8, 0x0100},
-+	{TOK_WRITE, 0x70000BCA, 0x0010},
-+	{TOK_WRITE, 0x70000BCC, 0x0060},
-+	{TOK_WRITE, 0x70000BCE, 0x0100},
-+	{TOK_WRITE, 0x70000BD0, 0x1430},
-+	{TOK_WRITE, 0x70000BD2, 0x0201},
-+	{TOK_WRITE, 0x70000BD4, 0x0204},
-+	{TOK_WRITE, 0x70000BD6, 0x1504},
-+	{TOK_WRITE, 0x70000BD8, 0x030F},
-+	{TOK_WRITE, 0x70000BDA, 0x0003},
-+	{TOK_WRITE, 0x70000BDC, 0x0902},
-+	{TOK_WRITE, 0x70000BDE, 0x2004},
-+	{TOK_WRITE, 0x70000BE0, 0x0050},
-+	{TOK_WRITE, 0x70000BE2, 0x1140},
-+	{TOK_WRITE, 0x70000BE4, 0x201C},
-+	{TOK_WRITE, 0x70000BE6, 0x0620},
-+	{TOK_WRITE, 0x70000BE8, 0x0306},
-+	{TOK_WRITE, 0x70000BEA, 0x2003},
-+	{TOK_WRITE, 0x70000BEC, 0xFF01},
-+	{TOK_WRITE, 0x70000BEE, 0x0404},
-+	{TOK_WRITE, 0x70000BF0, 0x0300},
-+	{TOK_WRITE, 0x70000BF2, 0x145A},
-+	{TOK_WRITE, 0x70000BF4, 0x1010},
-+	{TOK_WRITE, 0x70000BF6, 0x000B},
-+	{TOK_WRITE, 0x70000BF8, 0x1000},
-+	{TOK_WRITE, 0x70000BFA, 0x5A0F},
-+	{TOK_WRITE, 0x70000BFC, 0x0503},
-+	{TOK_WRITE, 0x70000BFE, 0x1802},
-+	{TOK_WRITE, 0x70000C00, 0x0000},
-+	{TOK_WRITE, 0x70000C02, 0x2006},
-+	{TOK_WRITE, 0x70000C04, 0x3C28},
-+	{TOK_WRITE, 0x70000C06, 0x042C},
-+	{TOK_WRITE, 0x70000C08, 0x0101},
-+	{TOK_WRITE, 0x70000C0A, 0xFF00},
-+	{TOK_WRITE, 0x70000C0C, 0x0904},
-+	{TOK_WRITE, 0x70000C0E, 0x4008},
-+	{TOK_WRITE, 0x70000C10, 0x0540},
-+	{TOK_WRITE, 0x70000C12, 0x8006},
-+	{TOK_WRITE, 0x70000C14, 0x0020},
-+	{TOK_WRITE, 0x70000C16, 0x0000},
-+	{TOK_WRITE, 0x70000C18, 0x1800},
-+	{TOK_WRITE, 0x70000C1A, 0x0000},
-+	{TOK_WRITE, 0x70000C1C, 0x1E10},
-+	{TOK_WRITE, 0x70000C1E, 0x000B},
-+	{TOK_WRITE, 0x70000C20, 0x0607},
-+	{TOK_WRITE, 0x70000C22, 0x0005},
-+	{TOK_WRITE, 0x70000C24, 0x0607},
-+	{TOK_WRITE, 0x70000C26, 0x0405},
-+	{TOK_WRITE, 0x70000C28, 0x0206},
-+	{TOK_WRITE, 0x70000C2A, 0x0304},
-+	{TOK_WRITE, 0x70000C2C, 0x0409},
-+	{TOK_WRITE, 0x70000C2E, 0x0305},
-+	{TOK_WRITE, 0x70000C30, 0x0406},
-+	{TOK_WRITE, 0x70000C32, 0x2804},
-+	{TOK_WRITE, 0x70000C34, 0x0228},
-+	{TOK_WRITE, 0x70000C36, 0x1402},
-+	{TOK_WRITE, 0x70000C38, 0x0618},
-+	{TOK_WRITE, 0x70000C3A, 0x1A02},
-+	{TOK_WRITE, 0x70000C3C, 0x8018},
-+	{TOK_WRITE, 0x70000C3E, 0x0080},
-+	{TOK_WRITE, 0x70000C40, 0x0080},
-+	{TOK_WRITE, 0x70000C42, 0x0180},
-+	{TOK_WRITE, 0x70000C44, 0x0A0A},
-+	{TOK_WRITE, 0x70000C46, 0x0101},
-+	{TOK_WRITE, 0x70000C48, 0x1117},
-+	{TOK_WRITE, 0x70000C4A, 0x6024},
-+	{TOK_WRITE, 0x70000C4C, 0x0A0A},
-+	{TOK_WRITE, 0x70000C4E, 0xFFFF},
-+	{TOK_WRITE, 0x70000C50, 0x0808},
-+	{TOK_WRITE, 0x70000C52, 0x0A01},
-+	{TOK_WRITE, 0x70000C54, 0x010A},
-+	{TOK_WRITE, 0x70000C56, 0x1501},
-+	{TOK_WRITE, 0x70000C58, 0x240F},
-+	{TOK_WRITE, 0x70000C5A, 0x0A60},
-+	{TOK_WRITE, 0x70000C5C, 0xFF0A},
-+	{TOK_WRITE, 0x70000C5E, 0x08FF},
-+	{TOK_WRITE, 0x70000C60, 0x0008},
-+	{TOK_WRITE, 0x70000C62, 0x0001},
-+	{TOK_WRITE, 0x70000C64, 0x0000},
-+	{TOK_WRITE, 0x70000C66, 0x0000},
-+	{TOK_WRITE, 0x70000C68, 0x0000},
-+	{TOK_WRITE, 0x70000C6A, 0x0000},
-+	{TOK_WRITE, 0x70000C6C, 0x0000},
-+	{TOK_WRITE, 0x70000C6E, 0x00C0},
-+	{TOK_WRITE, 0x70000C70, 0x0064},
-+	{TOK_WRITE, 0x70000C72, 0x0384},
-+	{TOK_WRITE, 0x70000C74, 0x0032},
-+	{TOK_WRITE, 0x70000C76, 0x01F4},
-+	{TOK_WRITE, 0x70000C78, 0x0070},
-+	{TOK_WRITE, 0x70000C7A, 0x0040},
-+	{TOK_WRITE, 0x70000C7C, 0x00A0},
-+	{TOK_WRITE, 0x70000C7E, 0x0100},
-+	{TOK_WRITE, 0x70000C80, 0x0010},
-+	{TOK_WRITE, 0x70000C82, 0x0060},
-+	{TOK_WRITE, 0x70000C84, 0x0100},
-+	{TOK_WRITE, 0x70000C86, 0x1430},
-+	{TOK_WRITE, 0x70000C88, 0x0201},
-+	{TOK_WRITE, 0x70000C8A, 0x0204},
-+	{TOK_WRITE, 0x70000C8C, 0x0F04},
-+	{TOK_WRITE, 0x70000C8E, 0x030C},
-+	{TOK_WRITE, 0x70000C90, 0x0003},
-+	{TOK_WRITE, 0x70000C92, 0x0602},
-+	{TOK_WRITE, 0x70000C94, 0x1803},
-+	{TOK_WRITE, 0x70000C96, 0x0040},
-+	{TOK_WRITE, 0x70000C98, 0x0E20},
-+	{TOK_WRITE, 0x70000C9A, 0x2018},
-+	{TOK_WRITE, 0x70000C9C, 0x0620},
-+	{TOK_WRITE, 0x70000C9E, 0x0306},
-+	{TOK_WRITE, 0x70000CA0, 0x2003},
-+	{TOK_WRITE, 0x70000CA2, 0xFF01},
-+	{TOK_WRITE, 0x70000CA4, 0x0404},
-+	{TOK_WRITE, 0x70000CA6, 0x0200},
-+	{TOK_WRITE, 0x70000CA8, 0x145A},
-+	{TOK_WRITE, 0x70000CAA, 0x1010},
-+	{TOK_WRITE, 0x70000CAC, 0x000B},
-+	{TOK_WRITE, 0x70000CAE, 0x1200},
-+	{TOK_WRITE, 0x70000CB0, 0x5A0F},
-+	{TOK_WRITE, 0x70000CB2, 0x0502},
-+	{TOK_WRITE, 0x70000CB4, 0x1802},
-+	{TOK_WRITE, 0x70000CB6, 0x0000},
-+	{TOK_WRITE, 0x70000CB8, 0x2006},
-+	{TOK_WRITE, 0x70000CBA, 0x4028},
-+	{TOK_WRITE, 0x70000CBC, 0x0430},
-+	{TOK_WRITE, 0x70000CBE, 0x0101},
-+	{TOK_WRITE, 0x70000CC0, 0xFF00},
-+	{TOK_WRITE, 0x70000CC2, 0x0804},
-+	{TOK_WRITE, 0x70000CC4, 0x4008},
-+	{TOK_WRITE, 0x70000CC6, 0x0540},
-+	{TOK_WRITE, 0x70000CC8, 0x8006},
-+	{TOK_WRITE, 0x70000CCA, 0x0020},
-+	{TOK_WRITE, 0x70000CCC, 0x0000},
-+	{TOK_WRITE, 0x70000CCE, 0x1800},
-+	{TOK_WRITE, 0x70000CD0, 0x0000},
-+	{TOK_WRITE, 0x70000CD2, 0x1E10},
-+	{TOK_WRITE, 0x70000CD4, 0x000B},
-+	{TOK_WRITE, 0x70000CD6, 0x0607},
-+	{TOK_WRITE, 0x70000CD8, 0x0005},
-+	{TOK_WRITE, 0x70000CDA, 0x0607},
-+	{TOK_WRITE, 0x70000CDC, 0x0405},
-+	{TOK_WRITE, 0x70000CDE, 0x0205},
-+	{TOK_WRITE, 0x70000CE0, 0x0304},
-+	{TOK_WRITE, 0x70000CE2, 0x0409},
-+	{TOK_WRITE, 0x70000CE4, 0x0306},
-+	{TOK_WRITE, 0x70000CE6, 0x0407},
-+	{TOK_WRITE, 0x70000CE8, 0x2C04},
-+	{TOK_WRITE, 0x70000CEA, 0x022C},
-+	{TOK_WRITE, 0x70000CEC, 0x1402},
-+	{TOK_WRITE, 0x70000CEE, 0x0618},
-+	{TOK_WRITE, 0x70000CF0, 0x1A02},
-+	{TOK_WRITE, 0x70000CF2, 0x8018},
-+	{TOK_WRITE, 0x70000CF4, 0x0080},
-+	{TOK_WRITE, 0x70000CF6, 0x0080},
-+	{TOK_WRITE, 0x70000CF8, 0x0180},
-+	{TOK_WRITE, 0x70000CFA, 0x0A0A},
-+	{TOK_WRITE, 0x70000CFC, 0x0101},
-+	{TOK_WRITE, 0x70000CFE, 0x0C0F},
-+	{TOK_WRITE, 0x70000D00, 0x6024},
-+	{TOK_WRITE, 0x70000D02, 0x0808},
-+	{TOK_WRITE, 0x70000D04, 0xFFFF},
-+	{TOK_WRITE, 0x70000D06, 0x0808},
-+	{TOK_WRITE, 0x70000D08, 0x0A01},
-+	{TOK_WRITE, 0x70000D0A, 0x010A},
-+	{TOK_WRITE, 0x70000D0C, 0x0F01},
-+	{TOK_WRITE, 0x70000D0E, 0x240C},
-+	{TOK_WRITE, 0x70000D10, 0x0860},
-+	{TOK_WRITE, 0x70000D12, 0xFF08},
-+	{TOK_WRITE, 0x70000D14, 0x08FF},
-+	{TOK_WRITE, 0x70000D16, 0x0008},
-+	{TOK_WRITE, 0x70000D18, 0x0001},
-+	{TOK_WRITE, 0x70000D1A, 0x23CE},
-+	{TOK_WRITE, 0x70000D1C, 0xFDC8},
-+	{TOK_WRITE, 0x70000D1E, 0x112E},
-+	{TOK_WRITE, 0x70000D20, 0x93A5},
-+	{TOK_WRITE, 0x70000D22, 0xFE67},
-+	{TOK_WRITE, 0x70000D24, 0x0000},
-+	{TOK_WRITE, 0x700001F8, 0x5DC0},
-+	{TOK_WRITE, 0x70000212, 0x0002},
-+	{TOK_WRITE, 0x70000214, 0x0000},
-+	{TOK_WRITE, 0x70000216, 0x0000},
-+	{TOK_WRITE, 0x7000021A, 0x3A98},
-+	{TOK_WRITE, 0x7000021C, 0x4F1A},
-+	{TOK_WRITE, 0x7000021E, 0x4F1A},
-+	{TOK_WRITE, 0x70000220, 0x4F1A},
-+	{TOK_WRITE, 0x70000222, 0x4F1A},
-+	{TOK_WRITE, 0x70000224, 0x4F1A},
-+	{TOK_WRITE, 0x7000022C, 0x0001},
-+	{TOK_WRITE, 0x70000478, 0x005F},
-+	{TOK_WRITE, 0x7000047A, 0x005F},
-+	{TOK_WRITE, 0x7000047C, 0x0001},
-+	{TOK_WRITE, 0x7000047E, 0x0280},
-+	{TOK_WRITE, 0x70000480, 0x01E0},
-+	{TOK_WRITE, 0x70000482, 0x0005},
-+	{TOK_WRITE, 0x700017DC, 0x0054},
-+	{TOK_WRITE, 0x70001AE4, 0x001C},
-+	{TOK_WRITE, 0x70000284, 0x0001},
-+	{TOK_WRITE, 0x7000028A, 0x0000},
-+	{TOK_WRITE, 0x700002A6, 0x0288},
-+	{TOK_WRITE, 0x700002A8, 0x01E8},
-+	{TOK_WRITE, 0x700002AA, 0x0005},
-+	{TOK_WRITE, 0x700002AC, 0x4F1A},
-+	{TOK_WRITE, 0x700002AE, 0x4F1A},
-+	{TOK_WRITE, 0x700002B0, 0x0100},
-+	{TOK_WRITE, 0x700002B2, 0x0300},
-+	{TOK_WRITE, 0x700002B4, 0x0042},
-+	{TOK_WRITE, 0x700002B6, 0x0000},
-+	{TOK_WRITE, 0x700002B8, 0x01E0},
-+	{TOK_WRITE, 0x700002BA, 0x0000},
-+	{TOK_WRITE, 0x700002BC, 0x0000},
-+	{TOK_WRITE, 0x700002BE, 0x0000},
-+	{TOK_WRITE, 0x700002C0, 0x0002},
-+	{TOK_WRITE, 0x700002C2, 0x03E8},
-+	{TOK_WRITE, 0x700002C4, 0x014A},
-+	{TOK_WRITE, 0x700002D0, 0x0000},
-+	{TOK_WRITE, 0x700002D2, 0x0000},
-+	{TOK_WRITE, 0x700002D4, 0x0000},
-+	{TOK_WRITE, 0x70000396, 0x0000},
-+	{TOK_WRITE, 0x70000398, 0x0A00},
-+	{TOK_WRITE, 0x7000039A, 0x0780},
-+	{TOK_WRITE, 0x7000039C, 0x0005},
-+	{TOK_WRITE, 0x7000039E, 0x4F1A},
-+	{TOK_WRITE, 0x700003A0, 0x4F1A},
-+	{TOK_WRITE, 0x700003A2, 0x0100},
-+	{TOK_WRITE, 0x700003A4, 0x0300},
-+	{TOK_WRITE, 0x700003A6, 0x0042},
-+	{TOK_WRITE, 0x700003A8, 0x0070},
-+	{TOK_WRITE, 0x700003AA, 0x0810},
-+	{TOK_WRITE, 0x700003AC, 0x0900},
-+	{TOK_WRITE, 0x700003AE, 0x0001},
-+	{TOK_WRITE, 0x700003B0, 0x0000},
-+	{TOK_WRITE, 0x700003B2, 0x0002},
-+	{TOK_WRITE, 0x700003B4, 0x0535},
-+	{TOK_WRITE, 0x700003B6, 0x029A},
-+	{TOK_WRITE, 0x70000250, 0x0A00},
-+	{TOK_WRITE, 0x70000252, 0x0780},
-+	{TOK_WRITE, 0x70000254, 0x0010},
-+	{TOK_WRITE, 0x70000256, 0x000C},
-+	{TOK_WRITE, 0x70000258, 0x0A00},
-+	{TOK_WRITE, 0x7000025A, 0x0780},
-+	{TOK_WRITE, 0x7000025C, 0x0010},
-+	{TOK_WRITE, 0x7000025E, 0x000C},
-+	{TOK_WRITE, 0x70000494, 0x0A00},
-+	{TOK_WRITE, 0x70000496, 0x0780},
-+	{TOK_WRITE, 0x70000498, 0x0000},
-+	{TOK_WRITE, 0x7000049A, 0x0000},
-+	{TOK_WRITE, 0x7000049C, 0x0A00},
-+	{TOK_WRITE, 0x7000049E, 0x0780},
-+	{TOK_WRITE, 0x700004A0, 0x0000},
-+	{TOK_WRITE, 0x700004A2, 0x0000},
-+	{TOK_WRITE, 0x70000262, 0x0001},
-+	{TOK_WRITE, 0x70000264, 0x0001},
-+	{TOK_WRITE, 0x70001CC2, 0x0100},
-+	{TOK_WRITE, 0x70001CC4, 0x0100},
-+	{TOK_WRITE, 0x70001CC6, 0x0100},
-+	{TOK_WRITE, 0x70001CC8, 0x0100},
-+	{TOK_WRITE, 0x700001A8, 0x0A0A},
-+	{TOK_WRITE, 0x7000147C, 0x0170},
-+	{TOK_WRITE, 0x70001482, 0x01E0},
-+	{TOK_WRITE, 0x70000266, 0x0000},
-+	{TOK_WRITE, 0x7000026A, 0x0001},
-+	{TOK_WRITE, 0x7000024E, 0x0001},
-+	{TOK_WRITE, 0x70000268, 0x0001},
-+	{TOK_WRITE, 0x70000270, 0x0001},
-+	{TOK_WRITE, 0x7000023E, 0x0001},
-+	{TOK_WRITE, 0x70000240, 0x0001},
-+	{TOK_TERM, 0xFFFFFFFF, 0x0},
-+};
++
++#undef DEBUG
++
++#include <linux/delay.h>
++#include <linux/mm.h>
++#include <linux/io.h>
++#include <linux/jiffies.h>
++#include <linux/firmware.h>
++#include <linux/err.h>
++#include <linux/sched.h>
++#include <linux/dma-mapping.h>
++
++#include <asm/cacheflush.h>
++
++#include "s5p_mfc_common.h"
++#include "s5p_mfc_cmd.h"
++#include "s5p_mfc_intr.h"
++#include "s5p_mfc_pm.h"
++#include "s5p_mfc_debug.h"
++
++/* #define S5P_MFC_DEBUG_REGWRITE  */
++#ifdef S5P_MFC_DEBUG_REGWRITE
++#undef writel
++#define writel(v, r)							\
++	do {								\
++		pr_err("MFCWRITE(%p): %08x\n", r, (unsigned int)v);	\
++	__raw_writel(v, r);						\
++	} while (0)
++#endif /* S5P_MFC_DEBUG_REGWRITE */
++
++#define READL(offset)		readl(dev->regs_base + (offset))
++#define WRITEL(data, offset)	writel((data), dev->regs_base + (offset))
++#define OFFSETA(x)		(((x) - dev->port_a) >> S5P_FIMV_MEM_OFFSET)
++#define OFFSETB(x)		(((x) - dev->port_b) >> S5P_FIMV_MEM_OFFSET)
++
++/* Allocate temporary buffers for decoding */
++int s5p_mfc_alloc_dec_temp_buffers(struct s5p_mfc_ctx *ctx)
++{
++	/* NOP */
++
++	return 0;
++}
++
++/* Release temproary buffers for decoding */
++void s5p_mfc_release_dec_desc_buffer(struct s5p_mfc_ctx *ctx)
++{
++	/* NOP */
++}
++
++/* Allocate codec buffers */
++int s5p_mfc_alloc_codec_buffers(struct s5p_mfc_ctx *ctx)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++	unsigned int mb_width, mb_height;
++
++	mb_width = mb_width(ctx->img_width);
++	mb_height = mb_height(ctx->img_height);
++
++	if (ctx->type == MFCINST_DECODER) {
++		mfc_debug(2, "Luma size:%d Chroma size:%d MV size:%d\n",
++			  ctx->luma_size, ctx->chroma_size, ctx->mv_size);
++		mfc_debug(2, "Totals bufs: %d\n", ctx->total_dpb_count);
++	} else if (ctx->type == MFCINST_ENCODER) {
++		ctx->tmv_buffer_size = 2 * ALIGN((mb_width + 1) *
++				(mb_height + 1) * 8, 16);
++		ctx->luma_dpb_size = ALIGN((mb_width * mb_height) * 256, 256);
++		ctx->chroma_dpb_size = ALIGN((mb_width * mb_height) * 128, 256);
++		ctx->me_buffer_size = ALIGN(((((ctx->img_width+63)/64) * 16) *
++			(((ctx->img_height+63)/64) * 16)) +
++			 ((((mb_width*mb_height)+31)/32) * 16), 256);
++
++		mfc_debug(2, "recon luma size: %d chroma size: %d\n",
++			  ctx->luma_dpb_size, ctx->chroma_dpb_size);
++	} else {
++		return -EINVAL;
++	}
++
++	/* Codecs have different memory requirements */
++	switch (ctx->codec_mode) {
++	case S5P_FIMV_CODEC_H264_DEC:
++	case S5P_FIMV_CODEC_H264_MVC_DEC:
++		ctx->scratch_buf_size = (mb_width * 128) + 65536;
++		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size, 256);
++		ctx->bank1_size =
++			ctx->scratch_buf_size +
++			(ctx->total_dpb_count * ctx->mv_size);
++		break;
++	case S5P_FIMV_CODEC_MPEG4_DEC:
++		/* mb_width * (mb_height * 64 + 144) + 8192 * mb_height +
++		 * 41088 */
++		ctx->scratch_buf_size = mb_width * (mb_height * 64 + 144) +
++			((2048 + 15)/16 * mb_height * 64) +
++			((2048 + 15)/16 * 256 + 8320);
++		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size, 256);
++		ctx->bank1_size = ctx->scratch_buf_size;
++		break;
++	case S5P_FIMV_CODEC_VC1RCV_DEC:
++	case S5P_FIMV_CODEC_VC1_DEC:
++		ctx->scratch_buf_size = 2096 * (mb_width + mb_height + 1);
++		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size, 256);
++		ctx->bank1_size = ctx->scratch_buf_size;
++		break;
++	case S5P_FIMV_CODEC_MPEG2_DEC:
++		ctx->bank1_size = 0;
++		ctx->bank2_size = 0;
++		break;
++	case S5P_FIMV_CODEC_H263_DEC:
++		ctx->scratch_buf_size = mb_width * 400;
++		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size, 256);
++		ctx->bank1_size = ctx->scratch_buf_size;
++		break;
++	case S5P_FIMV_CODEC_VP8_DEC:
++		ctx->scratch_buf_size = mb_width * 32 + mb_height * 128 + 34816;
++		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size, 256);
++		ctx->bank1_size = ctx->scratch_buf_size;
++		break;
++	case S5P_FIMV_CODEC_H264_ENC:
++		ctx->scratch_buf_size = (mb_width * 64) +
++			((mb_width + 1) * 16) + (4096 * 16);
++		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size, 256);
++		ctx->bank1_size =
++			ctx->scratch_buf_size + ctx->tmv_buffer_size +
++			(ctx->dpb_count * (ctx->luma_dpb_size +
++			ctx->chroma_dpb_size + ctx->me_buffer_size));
++		ctx->bank2_size = 0;
++		break;
++	case S5P_FIMV_CODEC_MPEG4_ENC:
++	case S5P_FIMV_CODEC_H263_ENC:
++		ctx->scratch_buf_size = (mb_width * 16) + ((mb_width + 1) * 16);
++		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size, 256);
++		ctx->bank1_size =
++			ctx->scratch_buf_size + ctx->tmv_buffer_size +
++			(ctx->dpb_count * (ctx->luma_dpb_size +
++			ctx->chroma_dpb_size + ctx->me_buffer_size));
++		ctx->bank2_size = 0;
++		break;
++	default:
++		break;
++	}
++
++	/* Allocate only if memory from bank 1 is necessary */
++	if (ctx->bank1_size > 0) {
++		ctx->bank1_buf = vb2_dma_contig_memops.alloc(
++		dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->bank1_size);
++		if (IS_ERR(ctx->bank1_buf)) {
++			ctx->bank1_buf = 0;
++			pr_err("Buf alloc for decoding failed (port A)\n");
++			return -ENOMEM;
++		}
++		ctx->bank1_phys = s5p_mfc_mem_cookie(
++			dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->bank1_buf);
++		BUG_ON(ctx->bank1_phys & ((1 << MFC_BANK1_ALIGN_ORDER) - 1));
++	}
++
++	return 0;
++}
++
++/* Release buffers allocated for codec */
++void s5p_mfc_release_codec_buffers(struct s5p_mfc_ctx *ctx)
++{
++	if (ctx->bank1_buf) {
++		vb2_dma_contig_memops.put(ctx->bank1_buf);
++		ctx->bank1_buf = 0;
++		ctx->bank1_phys = 0;
++		ctx->bank1_size = 0;
++	}
++}
++
++/* Allocate memory for instance data buffer */
++int s5p_mfc_alloc_instance_buffer(struct s5p_mfc_ctx *ctx)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++	struct s5p_mfc_buf_size_v6 *buf_size = dev->variant->buf_size->priv;
++
++	mfc_debug_enter();
++
++	switch (ctx->codec_mode) {
++	case S5P_FIMV_CODEC_H264_DEC:
++	case S5P_FIMV_CODEC_H264_MVC_DEC:
++		ctx->ctx_size = buf_size->h264_dec_ctx;
++		break;
++	case S5P_FIMV_CODEC_MPEG4_DEC:
++	case S5P_FIMV_CODEC_H263_DEC:
++	case S5P_FIMV_CODEC_VC1RCV_DEC:
++	case S5P_FIMV_CODEC_VC1_DEC:
++	case S5P_FIMV_CODEC_MPEG2_DEC:
++	case S5P_FIMV_CODEC_VP8_DEC:
++		ctx->ctx_size = buf_size->other_dec_ctx;
++		break;
++	case S5P_FIMV_CODEC_H264_ENC:
++		ctx->ctx_size = buf_size->h264_enc_ctx;
++		break;
++	case S5P_FIMV_CODEC_MPEG4_ENC:
++	case S5P_FIMV_CODEC_H263_ENC:
++		ctx->ctx_size = buf_size->other_enc_ctx;
++		break;
++	default:
++		ctx->ctx_size = 0;
++		mfc_err("Codec type(%d) should be checked!\n", ctx->codec_mode);
++		break;
++	}
++
++	ctx->ctx.alloc = vb2_dma_contig_memops.alloc(
++		dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->ctx_size);
++	if (IS_ERR(ctx->ctx.alloc)) {
++		mfc_err("Allocating context buffer failed.\n");
++		return PTR_ERR(ctx->ctx.alloc);
++	}
++
++	ctx->ctx.dma = s5p_mfc_mem_cookie(
++		dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->ctx.alloc);
++
++	ctx->ctx.virt = vb2_dma_contig_memops.vaddr(ctx->ctx.alloc);
++	if (!ctx->ctx.virt) {
++		vb2_dma_contig_memops.put(ctx->ctx.alloc);
++		ctx->ctx.alloc = NULL;
++		ctx->ctx.dma = 0;
++		ctx->ctx.virt = NULL;
++
++		mfc_err("Remapping context buffer failed.\n");
++		return -ENOMEM;
++	}
++
++	memset(ctx->ctx.virt, 0, ctx->ctx_size);
++	wmb();
++
++	mfc_debug_leave();
++
++	return 0;
++}
++
++/* Release instance buffer */
++void s5p_mfc_release_instance_buffer(struct s5p_mfc_ctx *ctx)
++{
++	mfc_debug_enter();
++
++	if (ctx->ctx.alloc) {
++		vb2_dma_contig_memops.put(ctx->ctx.alloc);
++		ctx->ctx.alloc = NULL;
++		ctx->ctx.dma = 0;
++		ctx->ctx.virt = NULL;
++	}
++
++	mfc_debug_leave();
++}
++
++/* Allocate context buffers for SYS_INIT */
++int s5p_mfc_alloc_dev_context_buffer(struct s5p_mfc_dev *dev)
++{
++	struct s5p_mfc_buf_size_v6 *buf_size = dev->variant->buf_size->priv;
++
++	mfc_debug_enter();
++
++	dev->ctx_buf.alloc = vb2_dma_contig_memops.alloc(
++			dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], buf_size->dev_ctx);
++	if (IS_ERR(dev->ctx_buf.alloc)) {
++		mfc_err("Allocating DESC buffer failed.\n");
++		return PTR_ERR(dev->ctx_buf.alloc);
++	}
++
++	dev->ctx_buf.dma = s5p_mfc_mem_cookie(
++			dev->alloc_ctx[MFC_BANK1_ALLOC_CTX],
++			dev->ctx_buf.alloc);
++
++	dev->ctx_buf.virt = vb2_dma_contig_memops.vaddr(dev->ctx_buf.alloc);
++	if (!dev->ctx_buf.virt) {
++		vb2_dma_contig_memops.put(dev->ctx_buf.alloc);
++		dev->ctx_buf.alloc = NULL;
++		dev->ctx_buf.dma = 0;
++
++		mfc_err("Remapping DESC buffer failed.\n");
++		return -ENOMEM;
++	}
++
++	memset(dev->ctx_buf.virt, 0, buf_size->dev_ctx);
++	wmb();
++
++	mfc_debug_leave();
++
++	return 0;
++}
++
++/* Release context buffers for SYS_INIT */
++void s5p_mfc_release_dev_context_buffer(struct s5p_mfc_dev *dev)
++{
++	if (dev->ctx_buf.alloc) {
++		vb2_dma_contig_memops.put(dev->ctx_buf.alloc);
++		dev->ctx_buf.alloc = NULL;
++		dev->ctx_buf.dma = 0;
++		dev->ctx_buf.virt = NULL;
++	}
++}
++
++static int calc_plane(int width, int height)
++{
++	int mbX, mbY;
++
++	mbX = (width + 15)/16;
++	mbY = (height + 15)/16;
++
++	if (width * height < 2048 * 1024)
++		mbY = (mbY + 1) / 2 * 2;
++
++	return (mbX * 16) * (mbY * 16);
++}
++
++void s5p_mfc_dec_calc_dpb_size(struct s5p_mfc_ctx *ctx)
++{
++	ctx->buf_width = ALIGN(ctx->img_width, S5P_FIMV_NV12MT_HALIGN);
++	ctx->buf_height = ALIGN(ctx->img_height, S5P_FIMV_NV12MT_VALIGN);
++	mfc_debug(2, "SEQ Done: Movie dimensions %dx%d,\n"
++			"buffer dimensions: %dx%d\n", ctx->img_width,
++			ctx->img_height, ctx->buf_width, ctx->buf_height);
++
++	ctx->luma_size = calc_plane(ctx->img_width, ctx->img_height);
++	ctx->chroma_size = calc_plane(ctx->img_width, (ctx->img_height >> 1));
++	if (ctx->codec_mode == S5P_FIMV_CODEC_H264_DEC ||
++			ctx->codec_mode == S5P_FIMV_CODEC_H264_MVC_DEC) {
++		ctx->mv_size = s5p_mfc_dec_mv_size(ctx->img_width,
++				ctx->img_height);
++		ctx->mv_size = ALIGN(ctx->mv_size, 16);
++	} else {
++		ctx->mv_size = 0;
++	}
++}
++
++void s5p_mfc_enc_calc_src_size(struct s5p_mfc_ctx *ctx)
++{
++	unsigned int mb_width, mb_height;
++
++	mb_width = mb_width(ctx->img_width);
++	mb_height = mb_height(ctx->img_height);
++
++	ctx->buf_width = ALIGN(ctx->img_width, S5P_FIMV_NV12M_HALIGN);
++	ctx->luma_size = ALIGN((mb_width * mb_height) * 256, 256);
++	ctx->chroma_size = ALIGN((mb_width * mb_height) * 128, 256);
++}
++
++/* Set registers for decoding stream buffer */
++int s5p_mfc_set_dec_stream_buffer(struct s5p_mfc_ctx *ctx, int buf_addr,
++		  unsigned int start_num_byte, unsigned int strm_size)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++	struct s5p_mfc_buf_size *buf_size = dev->variant->buf_size;
++
++	mfc_debug_enter();
++	mfc_debug(2, "inst_no: %d, buf_addr: 0x%08x,\n"
++		"buf_size: 0x%08x (%d)\n",
++		ctx->inst_no, buf_addr, strm_size, strm_size);
++	WRITEL(strm_size, S5P_FIMV_D_STREAM_DATA_SIZE);
++	WRITEL(buf_addr, S5P_FIMV_D_CPB_BUFFER_ADDR);
++	WRITEL(buf_size->cpb, S5P_FIMV_D_CPB_BUFFER_SIZE);
++	WRITEL(start_num_byte, S5P_FIMV_D_CPB_BUFFER_OFFSET);
++
++	mfc_debug_leave();
++	return 0;
++}
++
++/* Set decoding frame buffer */
++int s5p_mfc_set_dec_frame_buffer(struct s5p_mfc_ctx *ctx)
++{
++	unsigned int frame_size, i;
++	unsigned int frame_size_ch, frame_size_mv;
++	struct s5p_mfc_dev *dev = ctx->dev;
++	size_t buf_addr1;
++	int buf_size1;
++	int align_gap;
++
++	buf_addr1 = ctx->bank1_phys;
++	buf_size1 = ctx->bank1_size;
++
++	mfc_debug(2, "Buf1: %p (%d)\n", (void *)buf_addr1, buf_size1);
++	mfc_debug(2, "Total DPB COUNT: %d\n", ctx->total_dpb_count);
++	mfc_debug(2, "Setting display delay to %d\n", ctx->display_delay);
++
++	WRITEL(ctx->total_dpb_count, S5P_FIMV_D_NUM_DPB);
++	WRITEL(ctx->luma_size, S5P_FIMV_D_LUMA_DPB_SIZE);
++	WRITEL(ctx->chroma_size, S5P_FIMV_D_CHROMA_DPB_SIZE);
++
++	WRITEL(buf_addr1, S5P_FIMV_D_SCRATCH_BUFFER_ADDR);
++	WRITEL(ctx->scratch_buf_size, S5P_FIMV_D_SCRATCH_BUFFER_SIZE);
++	buf_addr1 += ctx->scratch_buf_size;
++	buf_size1 -= ctx->scratch_buf_size;
++
++	if (ctx->codec_mode == S5P_FIMV_CODEC_H264_DEC ||
++			ctx->codec_mode == S5P_FIMV_CODEC_H264_MVC_DEC)
++		WRITEL(ctx->mv_size, S5P_FIMV_D_MV_BUFFER_SIZE);
++
++	frame_size = ctx->luma_size;
++	frame_size_ch = ctx->chroma_size;
++	frame_size_mv = ctx->mv_size;
++	mfc_debug(2, "Frame size: %d ch: %d mv: %d\n",
++			frame_size, frame_size_ch, frame_size_mv);
++
++	for (i = 0; i < ctx->total_dpb_count; i++) {
++		/* Bank2 */
++		mfc_debug(2, "Luma %d: %x\n", i,
++					ctx->dst_bufs[i].cookie.raw.luma);
++		WRITEL(ctx->dst_bufs[i].cookie.raw.luma,
++				S5P_FIMV_D_LUMA_DPB + i * 4);
++		mfc_debug(2, "\tChroma %d: %x\n", i,
++					ctx->dst_bufs[i].cookie.raw.chroma);
++		WRITEL(ctx->dst_bufs[i].cookie.raw.chroma,
++				S5P_FIMV_D_CHROMA_DPB + i * 4);
++
++		if (ctx->codec_mode == S5P_FIMV_CODEC_H264_DEC ||
++				ctx->codec_mode ==
++				S5P_FIMV_CODEC_H264_MVC_DEC) {
++			/* To test alignment */
++			align_gap = buf_addr1;
++			buf_addr1 = ALIGN(buf_addr1, 16);
++			align_gap = buf_addr1 - align_gap;
++			buf_size1 -= align_gap;
++
++			mfc_debug(2, "\tBuf1: %x, size: %d\n",
++					buf_addr1, buf_size1);
++			WRITEL(buf_addr1, S5P_FIMV_D_MV_BUFFER + i * 4);
++			buf_addr1 += frame_size_mv;
++			buf_size1 -= frame_size_mv;
++		}
++	}
++
++	mfc_debug(2, "Buf1: %u, buf_size1: %d (frames %d)\n",
++			buf_addr1, buf_size1, ctx->total_dpb_count);
++	if (buf_size1 < 0) {
++		mfc_debug(2, "Not enough memory has been allocated.\n");
++		return -ENOMEM;
++	}
++
++	WRITEL(ctx->inst_no, S5P_FIMV_INSTANCE_ID);
++	s5p_mfc_cmd_host2risc(dev, S5P_FIMV_CH_INIT_BUFS, NULL);
++
++	mfc_debug(2, "After setting buffers.\n");
++	return 0;
++}
++
++/* Set registers for encoding stream buffer */
++int s5p_mfc_set_enc_stream_buffer(struct s5p_mfc_ctx *ctx,
++		unsigned long addr, unsigned int size)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++
++	WRITEL(addr, S5P_FIMV_E_STREAM_BUFFER_ADDR); /* 16B align */
++	WRITEL(size, S5P_FIMV_E_STREAM_BUFFER_SIZE);
++
++	mfc_debug(2, "stream buf addr: 0x%08lx, size: 0x%d",
++		addr, size);
++
++	return 0;
++}
++
++void s5p_mfc_set_enc_frame_buffer(struct s5p_mfc_ctx *ctx,
++		unsigned long y_addr, unsigned long c_addr)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++
++	WRITEL(y_addr, S5P_FIMV_E_SOURCE_LUMA_ADDR); /* 256B align */
++	WRITEL(c_addr, S5P_FIMV_E_SOURCE_CHROMA_ADDR);
++
++	mfc_debug(2, "enc src y buf addr: 0x%08lx", y_addr);
++	mfc_debug(2, "enc src c buf addr: 0x%08lx", c_addr);
++}
++
++void s5p_mfc_get_enc_frame_buffer(struct s5p_mfc_ctx *ctx,
++		unsigned long *y_addr, unsigned long *c_addr)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++	unsigned long enc_recon_y_addr, enc_recon_c_addr;
++
++	*y_addr = READL(S5P_FIMV_E_ENCODED_SOURCE_LUMA_ADDR);
++	*c_addr = READL(S5P_FIMV_E_ENCODED_SOURCE_CHROMA_ADDR);
++
++	enc_recon_y_addr = READL(S5P_FIMV_E_RECON_LUMA_DPB_ADDR);
++	enc_recon_c_addr = READL(S5P_FIMV_E_RECON_CHROMA_DPB_ADDR);
++
++	mfc_debug(2, "recon y addr: 0x%08lx", enc_recon_y_addr);
++	mfc_debug(2, "recon c addr: 0x%08lx", enc_recon_c_addr);
++}
++
++/* Set encoding ref & codec buffer */
++int s5p_mfc_set_enc_ref_buffer(struct s5p_mfc_ctx *ctx)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++	size_t buf_addr1, buf_size1;
++	int i;
++
++	mfc_debug_enter();
++
++	buf_addr1 = ctx->bank1_phys;
++	buf_size1 = ctx->bank1_size;
++
++	mfc_debug(2, "Buf1: %p (%d)\n", (void *)buf_addr1, buf_size1);
++
++	for (i = 0; i < ctx->dpb_count; i++) {
++		WRITEL(buf_addr1, S5P_FIMV_E_LUMA_DPB + (4 * i));
++		buf_addr1 += ctx->luma_dpb_size;
++		WRITEL(buf_addr1, S5P_FIMV_E_CHROMA_DPB + (4 * i));
++		buf_addr1 += ctx->chroma_dpb_size;
++		WRITEL(buf_addr1, S5P_FIMV_E_ME_BUFFER + (4 * i));
++		buf_addr1 += ctx->me_buffer_size;
++		buf_size1 -= (ctx->luma_dpb_size + ctx->chroma_dpb_size +
++			ctx->me_buffer_size);
++	}
++
++	WRITEL(buf_addr1, S5P_FIMV_E_SCRATCH_BUFFER_ADDR);
++	WRITEL(ctx->scratch_buf_size, S5P_FIMV_E_SCRATCH_BUFFER_SIZE);
++	buf_addr1 += ctx->scratch_buf_size;
++	buf_size1 -= ctx->scratch_buf_size;
++
++	WRITEL(buf_addr1, S5P_FIMV_E_TMV_BUFFER0);
++	buf_addr1 += ctx->tmv_buffer_size >> 1;
++	WRITEL(buf_addr1, S5P_FIMV_E_TMV_BUFFER1);
++	buf_addr1 += ctx->tmv_buffer_size >> 1;
++	buf_size1 -= ctx->tmv_buffer_size;
++
++	mfc_debug(2, "Buf1: %u, buf_size1: %d (ref frames %d)\n",
++			buf_addr1, buf_size1, ctx->dpb_count);
++	if (buf_size1 < 0) {
++		mfc_debug(2, "Not enough memory has been allocated.\n");
++		return -ENOMEM;
++	}
++
++	WRITEL(ctx->inst_no, S5P_FIMV_INSTANCE_ID);
++	s5p_mfc_cmd_host2risc(dev, S5P_FIMV_CH_INIT_BUFS, NULL);
++
++	mfc_debug_leave();
++
++	return 0;
++}
++
++static int s5p_mfc_set_slice_mode(struct s5p_mfc_ctx *ctx)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++
++	/* multi-slice control */
++	/* multi-slice MB number or bit size */
++	WRITEL(ctx->slice_mode, S5P_FIMV_E_MSLICE_MODE);
++	if (ctx->slice_mode == V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB) {
++		WRITEL(ctx->slice_size.mb, S5P_FIMV_E_MSLICE_SIZE_MB);
++	} else if (ctx->slice_mode ==
++			V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES) {
++		WRITEL(ctx->slice_size.bits, S5P_FIMV_E_MSLICE_SIZE_BITS);
++	} else {
++		WRITEL(0x0, S5P_FIMV_E_MSLICE_SIZE_MB);
++		WRITEL(0x0, S5P_FIMV_E_MSLICE_SIZE_BITS);
++	}
++
++	return 0;
++}
++
++static int s5p_mfc_set_enc_params(struct s5p_mfc_ctx *ctx)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++	struct s5p_mfc_enc_params *p = &ctx->enc_params;
++	unsigned int reg = 0;
++
++	mfc_debug_enter();
++
++	/* width */
++	WRITEL(ctx->img_width, S5P_FIMV_E_FRAME_WIDTH); /* 16 align */
++	/* height */
++	WRITEL(ctx->img_height, S5P_FIMV_E_FRAME_HEIGHT); /* 16 align */
++
++	/* cropped width */
++	WRITEL(ctx->img_width, S5P_FIMV_E_CROPPED_FRAME_WIDTH);
++	/* cropped height */
++	WRITEL(ctx->img_height, S5P_FIMV_E_CROPPED_FRAME_HEIGHT);
++	/* cropped offset */
++	WRITEL(0x0, S5P_FIMV_E_FRAME_CROP_OFFSET);
++
++	/* pictype : IDR period */
++	reg = 0;
++	reg |= p->gop_size & 0xFFFF;
++	WRITEL(reg, S5P_FIMV_E_GOP_CONFIG);
++
++	/* multi-slice control */
++	/* multi-slice MB number or bit size */
++	ctx->slice_mode = p->slice_mode;
++	reg = 0;
++	if (p->slice_mode == V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB) {
++		reg |= (0x1 << 3);
++		WRITEL(reg, S5P_FIMV_E_ENC_OPTIONS);
++		ctx->slice_size.mb = p->slice_mb;
++	} else if (p->slice_mode == V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES) {
++		reg |= (0x1 << 3);
++		WRITEL(reg, S5P_FIMV_E_ENC_OPTIONS);
++		ctx->slice_size.bits = p->slice_bit;
++	} else {
++		reg &= ~(0x1 << 3);
++		WRITEL(reg, S5P_FIMV_E_ENC_OPTIONS);
++	}
++
++	s5p_mfc_set_slice_mode(ctx);
++
++	/* cyclic intra refresh */
++	WRITEL(p->intra_refresh_mb, S5P_FIMV_E_IR_SIZE);
++	reg = READL(S5P_FIMV_E_ENC_OPTIONS);
++	if (p->intra_refresh_mb == 0)
++		reg &= ~(0x1 << 4);
++	else
++		reg |= (0x1 << 4);
++	WRITEL(reg, S5P_FIMV_E_ENC_OPTIONS);
++
++	/* 'NON_REFERENCE_STORE_ENABLE' for debugging */
++	reg = READL(S5P_FIMV_E_ENC_OPTIONS);
++	reg &= ~(0x1 << 9);
++	WRITEL(reg, S5P_FIMV_E_ENC_OPTIONS);
++
++	/* memory structure cur. frame */
++	if (ctx->src_fmt->fourcc == V4L2_PIX_FMT_NV12M) {
++		/* 0: Linear, 1: 2D tiled*/
++		reg = READL(S5P_FIMV_E_ENC_OPTIONS);
++		reg &= ~(0x1 << 7);
++		WRITEL(reg, S5P_FIMV_E_ENC_OPTIONS);
++		/* 0: NV12(CbCr), 1: NV21(CrCb) */
++		WRITEL(0x0, S5P_FIMV_PIXEL_FORMAT);
++	} else if (ctx->src_fmt->fourcc == V4L2_PIX_FMT_NV21M) {
++		/* 0: Linear, 1: 2D tiled*/
++		reg = READL(S5P_FIMV_E_ENC_OPTIONS);
++		reg &= ~(0x1 << 7);
++		WRITEL(reg, S5P_FIMV_E_ENC_OPTIONS);
++		/* 0: NV12(CbCr), 1: NV21(CrCb) */
++		WRITEL(0x1, S5P_FIMV_PIXEL_FORMAT);
++	} else if (ctx->src_fmt->fourcc == V4L2_PIX_FMT_NV12MT_16X16) {
++		/* 0: Linear, 1: 2D tiled*/
++		reg = READL(S5P_FIMV_E_ENC_OPTIONS);
++		reg |= (0x1 << 7);
++		WRITEL(reg, S5P_FIMV_E_ENC_OPTIONS);
++		/* 0: NV12(CbCr), 1: NV21(CrCb) */
++		WRITEL(0x0, S5P_FIMV_PIXEL_FORMAT);
++	}
++
++	/* memory structure recon. frame */
++	/* 0: Linear, 1: 2D tiled */
++	reg = READL(S5P_FIMV_E_ENC_OPTIONS);
++	reg |= (0x1 << 8);
++	WRITEL(reg, S5P_FIMV_E_ENC_OPTIONS);
++
++	/* padding control & value */
++	WRITEL(0x0, S5P_FIMV_E_PADDING_CTRL);
++	if (p->pad) {
++		reg = 0;
++		/** enable */
++		reg |= (1 << 31);
++		/** cr value */
++		reg |= ((p->pad_cr & 0xFF) << 16);
++		/** cb value */
++		reg |= ((p->pad_cb & 0xFF) << 8);
++		/** y value */
++		reg |= p->pad_luma & 0xFF;
++		WRITEL(reg, S5P_FIMV_E_PADDING_CTRL);
++	}
++
++	/* rate control config. */
++	reg = 0;
++	/* frame-level rate control */
++	reg |= ((p->rc_frame & 0x1) << 9);
++	WRITEL(reg, S5P_FIMV_E_RC_CONFIG);
++
++	/* bit rate */
++	if (p->rc_frame)
++		WRITEL(p->rc_bitrate,
++			S5P_FIMV_E_RC_BIT_RATE);
++	else
++		WRITEL(1, S5P_FIMV_E_RC_BIT_RATE);
++
++	/* reaction coefficient */
++	if (p->rc_frame) {
++		if (p->rc_reaction_coeff < TIGHT_CBR_MAX) /* tight CBR */
++			WRITEL(1, S5P_FIMV_E_RC_RPARAM);
++		else					  /* loose CBR */
++			WRITEL(2, S5P_FIMV_E_RC_RPARAM);
++	}
++
++	/* seq header ctrl */
++	reg = READL(S5P_FIMV_E_ENC_OPTIONS);
++	reg &= ~(0x1 << 2);
++	reg |= ((p->seq_hdr_mode & 0x1) << 2);
++
++	/* frame skip mode */
++	reg &= ~(0x3);
++	reg |= (p->frame_skip_mode & 0x3);
++	WRITEL(reg, S5P_FIMV_E_ENC_OPTIONS);
++
++	/* 'DROP_CONTROL_ENABLE', disable */
++	reg = READL(S5P_FIMV_E_RC_CONFIG);
++	reg &= ~(0x1 << 10);
++	WRITEL(reg, S5P_FIMV_E_RC_CONFIG);
++
++	/* setting for MV range [16, 256] */
++	reg = 0;
++	reg &= ~(0x3FFF);
++	reg = 256;
++	WRITEL(reg, S5P_FIMV_E_MV_HOR_RANGE);
++
++	reg = 0;
++	reg &= ~(0x3FFF);
++	reg = 256;
++	WRITEL(reg, S5P_FIMV_E_MV_VER_RANGE);
++
++	WRITEL(0x0, S5P_FIMV_E_FRAME_INSERTION);
++	WRITEL(0x0, S5P_FIMV_E_ROI_BUFFER_ADDR);
++	WRITEL(0x0, S5P_FIMV_E_PARAM_CHANGE);
++	WRITEL(0x0, S5P_FIMV_E_RC_ROI_CTRL);
++	WRITEL(0x0, S5P_FIMV_E_PICTURE_TAG);
++
++	WRITEL(0x0, S5P_FIMV_E_BIT_COUNT_ENABLE);
++	WRITEL(0x0, S5P_FIMV_E_MAX_BIT_COUNT);
++	WRITEL(0x0, S5P_FIMV_E_MIN_BIT_COUNT);
++
++	WRITEL(0x0, S5P_FIMV_E_METADATA_BUFFER_ADDR);
++	WRITEL(0x0, S5P_FIMV_E_METADATA_BUFFER_SIZE);
++
++	mfc_debug_leave();
++
++	return 0;
++}
++
++static int s5p_mfc_set_enc_params_h264(struct s5p_mfc_ctx *ctx)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++	struct s5p_mfc_enc_params *p = &ctx->enc_params;
++	struct s5p_mfc_h264_enc_params *p_h264 = &p->codec.h264;
++	unsigned int reg = 0;
++	int i;
++
++	mfc_debug_enter();
++
++	s5p_mfc_set_enc_params(ctx);
++
++	/* pictype : number of B */
++	reg = READL(S5P_FIMV_E_GOP_CONFIG);
++	reg &= ~(0x3 << 16);
++	reg |= ((p->num_b_frame & 0x3) << 16);
++	WRITEL(reg, S5P_FIMV_E_GOP_CONFIG);
++
++	/* profile & level */
++	reg = 0;
++	/** level */
++	reg |= ((p_h264->level & 0xFF) << 8);
++	/** profile - 0 ~ 3 */
++	reg |= p_h264->profile & 0x3F;
++	WRITEL(reg, S5P_FIMV_E_PICTURE_PROFILE);
++
++	/* rate control config. */
++	reg = READL(S5P_FIMV_E_RC_CONFIG);
++	/** macroblock level rate control */
++	reg &= ~(0x1 << 8);
++	reg |= ((p->rc_mb & 0x1) << 8);
++	WRITEL(reg, S5P_FIMV_E_RC_CONFIG);
++	/** frame QP */
++	reg &= ~(0x3F);
++	reg |= p_h264->rc_frame_qp & 0x3F;
++	WRITEL(reg, S5P_FIMV_E_RC_CONFIG);
++
++	/* max & min value of QP */
++	reg = 0;
++	/** max QP */
++	reg |= ((p_h264->rc_max_qp & 0x3F) << 8);
++	/** min QP */
++	reg |= p_h264->rc_min_qp & 0x3F;
++	WRITEL(reg, S5P_FIMV_E_RC_QP_BOUND);
++
++	/* other QPs */
++	WRITEL(0x0, S5P_FIMV_E_FIXED_PICTURE_QP);
++	if (!p->rc_frame && !p->rc_mb) {
++		reg = 0;
++		reg |= ((p_h264->rc_b_frame_qp & 0x3F) << 16);
++		reg |= ((p_h264->rc_p_frame_qp & 0x3F) << 8);
++		reg |= p_h264->rc_frame_qp & 0x3F;
++		WRITEL(reg, S5P_FIMV_E_FIXED_PICTURE_QP);
++	}
++
++	/* frame rate */
++	if (p->rc_frame && p->rc_framerate_num && p->rc_framerate_denom) {
++		reg = 0;
++		reg |= ((p->rc_framerate_num & 0xFFFF) << 16);
++		reg |= p->rc_framerate_denom & 0xFFFF;
++		WRITEL(reg, S5P_FIMV_E_RC_FRAME_RATE);
++	}
++
++	/* vbv buffer size */
++	if (p->frame_skip_mode ==
++			V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_BUF_LIMIT) {
++		WRITEL(p_h264->cpb_size & 0xFFFF, S5P_FIMV_E_VBV_BUFFER_SIZE);
++
++		if (p->rc_frame)
++			WRITEL(p->vbv_delay, S5P_FIMV_E_VBV_INIT_DELAY);
++	}
++
++	/* interlace */
++	reg = 0;
++	reg |= ((p_h264->interlace & 0x1) << 3);
++	WRITEL(reg, S5P_FIMV_E_H264_OPTIONS);
++
++	/* height */
++	if (p_h264->interlace) {
++		WRITEL(ctx->img_height >> 1,
++				S5P_FIMV_E_FRAME_HEIGHT); /* 32 align */
++		/* cropped height */
++		WRITEL(ctx->img_height >> 1, S5P_FIMV_E_CROPPED_FRAME_HEIGHT);
++	}
++
++	/* loop filter ctrl */
++	reg = READL(S5P_FIMV_E_H264_OPTIONS);
++	reg &= ~(0x3 << 1);
++	reg |= ((p_h264->loop_filter_mode & 0x3) << 1);
++	WRITEL(reg, S5P_FIMV_E_H264_OPTIONS);
++
++	/* loopfilter alpha offset */
++	if (p_h264->loop_filter_alpha < 0) {
++		reg = 0x10;
++		reg |= (0xFF - p_h264->loop_filter_alpha) + 1;
++	} else {
++		reg = 0x00;
++		reg |= (p_h264->loop_filter_alpha & 0xF);
++	}
++	WRITEL(reg, S5P_FIMV_E_H264_LF_ALPHA_OFFSET);
++
++	/* loopfilter beta offset */
++	if (p_h264->loop_filter_beta < 0) {
++		reg = 0x10;
++		reg |= (0xFF - p_h264->loop_filter_beta) + 1;
++	} else {
++		reg = 0x00;
++		reg |= (p_h264->loop_filter_beta & 0xF);
++	}
++	WRITEL(reg, S5P_FIMV_E_H264_LF_BETA_OFFSET);
++
++	/* entropy coding mode */
++	reg = READL(S5P_FIMV_E_H264_OPTIONS);
++	reg &= ~(0x1);
++	reg |= p_h264->entropy_mode & 0x1;
++	WRITEL(reg, S5P_FIMV_E_H264_OPTIONS);
++
++	/* number of ref. picture */
++	reg = READL(S5P_FIMV_E_H264_OPTIONS);
++	reg &= ~(0x1 << 7);
++	reg |= (((p_h264->num_ref_pic_4p - 1) & 0x1) << 7);
++	WRITEL(reg, S5P_FIMV_E_H264_OPTIONS);
++
++	/* 8x8 transform enable */
++	reg = READL(S5P_FIMV_E_H264_OPTIONS);
++	reg &= ~(0x3 << 12);
++	reg |= ((p_h264->_8x8_transform & 0x3) << 12);
++	WRITEL(reg, S5P_FIMV_E_H264_OPTIONS);
++
++	/* macroblock adaptive scaling features */
++	WRITEL(0x0, S5P_FIMV_E_MB_RC_CONFIG);
++	if (p->rc_mb) {
++		reg = 0;
++		/** dark region */
++		reg |= ((p_h264->rc_mb_dark & 0x1) << 3);
++		/** smooth region */
++		reg |= ((p_h264->rc_mb_smooth & 0x1) << 2);
++		/** static region */
++		reg |= ((p_h264->rc_mb_static & 0x1) << 1);
++		/** high activity region */
++		reg |= p_h264->rc_mb_activity & 0x1;
++		WRITEL(reg, S5P_FIMV_E_MB_RC_CONFIG);
++	}
++
++	/* aspect ratio VUI */
++	reg = READL(S5P_FIMV_E_H264_OPTIONS);
++	reg &= ~(0x1 << 5);
++	reg |= ((p_h264->vui_sar & 0x1) << 5);
++	WRITEL(reg, S5P_FIMV_E_H264_OPTIONS);
++
++	WRITEL(0x0, S5P_FIMV_E_ASPECT_RATIO);
++	WRITEL(0x0, S5P_FIMV_E_EXTENDED_SAR);
++	if (p_h264->vui_sar) {
++		/* aspect ration IDC */
++		reg = 0;
++		reg |= p_h264->vui_sar_idc & 0xFF;
++		WRITEL(reg, S5P_FIMV_E_ASPECT_RATIO);
++		if (p_h264->vui_sar_idc == 0xFF) {
++			/* extended SAR */
++			reg = 0;
++			reg |= (p_h264->vui_ext_sar_width & 0xFFFF) << 16;
++			reg |= p_h264->vui_ext_sar_height & 0xFFFF;
++			WRITEL(reg, S5P_FIMV_E_EXTENDED_SAR);
++		}
++	}
++
++	/* intra picture period for H.264 open GOP */
++	/* control */
++	reg = READL(S5P_FIMV_E_H264_OPTIONS);
++	reg &= ~(0x1 << 4);
++	reg |= ((p_h264->open_gop & 0x1) << 4);
++	WRITEL(reg, S5P_FIMV_E_H264_OPTIONS);
++	/* value */
++	WRITEL(0x0, S5P_FIMV_E_H264_I_PERIOD);
++	if (p_h264->open_gop) {
++		reg = 0;
++		reg |= p_h264->open_gop_size & 0xFFFF;
++		WRITEL(reg, S5P_FIMV_E_H264_I_PERIOD);
++	}
++
++	/* 'WEIGHTED_BI_PREDICTION' for B is disable */
++	reg = READL(S5P_FIMV_E_H264_OPTIONS);
++	reg &= ~(0x3 << 9);
++	WRITEL(reg, S5P_FIMV_E_H264_OPTIONS);
++
++	/* 'CONSTRAINED_INTRA_PRED_ENABLE' is disable */
++	reg = READL(S5P_FIMV_E_H264_OPTIONS);
++	reg &= ~(0x1 << 14);
++	WRITEL(reg, S5P_FIMV_E_H264_OPTIONS);
++
++	/* ASO */
++	reg = READL(S5P_FIMV_E_H264_OPTIONS);
++	reg &= ~(0x1 << 6);
++	reg |= ((p_h264->aso & 0x1) << 6);
++	WRITEL(reg, S5P_FIMV_E_H264_OPTIONS);
++
++	/* hier qp enable */
++	reg = READL(S5P_FIMV_E_H264_OPTIONS);
++	reg &= ~(0x1 << 8);
++	reg |= ((p_h264->open_gop & 0x1) << 8);
++	WRITEL(reg, S5P_FIMV_E_H264_OPTIONS);
++	reg = 0;
++	if (p_h264->hier_qp && p_h264->hier_qp_layer) {
++		reg |= (p_h264->hier_qp_type & 0x1) << 0x3;
++		reg |= p_h264->hier_qp_layer & 0x7;
++		WRITEL(reg, S5P_FIMV_E_H264_NUM_T_LAYER);
++		/* QP value for each layer */
++		for (i = 0; i < (p_h264->hier_qp_layer & 0x7); i++)
++			WRITEL(p_h264->hier_qp_layer_qp[i],
++				S5P_FIMV_E_H264_HIERARCHICAL_QP_LAYER0 + i * 4);
++	}
++	/* number of coding layer should be zero when hierarchical is disable */
++	WRITEL(reg, S5P_FIMV_E_H264_NUM_T_LAYER);
++
++	/* frame packing SEI generation */
++	reg = READL(S5P_FIMV_E_H264_OPTIONS);
++	reg &= ~(0x1 << 25);
++	reg |= ((p_h264->sei_frame_packing & 0x1) << 25);
++	WRITEL(reg, S5P_FIMV_E_H264_OPTIONS);
++	if (p_h264->sei_frame_packing) {
++		reg = 0;
++		/** current frame0 flag */
++		reg |= ((p_h264->sei_fp_curr_frame_0 & 0x1) << 2);
++		/** arrangement type */
++		reg |= p_h264->sei_fp_arrangement_type & 0x3;
++		WRITEL(reg, S5P_FIMV_E_H264_FRAME_PACKING_SEI_INFO);
++	}
++
++	if (p_h264->fmo) {
++		switch (p_h264->fmo_map_type) {
++		case V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_INTERLEAVED_SLICES:
++			if (p_h264->fmo_slice_grp > 4)
++				p_h264->fmo_slice_grp = 4;
++			for (i = 0; i < (p_h264->fmo_slice_grp & 0xF); i++)
++				WRITEL(p_h264->fmo_run_len[i] - 1,
++				S5P_FIMV_E_H264_FMO_RUN_LENGTH_MINUS1_0 +
++				i * 4);
++			break;
++		case V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_SCATTERED_SLICES:
++			if (p_h264->fmo_slice_grp > 4)
++				p_h264->fmo_slice_grp = 4;
++			break;
++		case V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_RASTER_SCAN:
++		case V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_WIPE_SCAN:
++			if (p_h264->fmo_slice_grp > 2)
++				p_h264->fmo_slice_grp = 2;
++			WRITEL(p_h264->fmo_chg_dir & 0x1,
++				S5P_FIMV_E_H264_FMO_SLICE_GRP_CHANGE_DIR);
++			/* the valid range is 0 ~ number of macroblocks -1 */
++			WRITEL(p_h264->fmo_chg_rate,
++				S5P_FIMV_E_H264_FMO_SLICE_GRP_CHANGE_RATE_MINUS1);
++			break;
++		default:
++			mfc_err("Unsupported map type for FMO: %d\n",
++					p_h264->fmo_map_type);
++			p_h264->fmo_map_type = 0;
++			p_h264->fmo_slice_grp = 1;
++			break;
++		}
++
++		WRITEL(p_h264->fmo_map_type,
++				S5P_FIMV_E_H264_FMO_SLICE_GRP_MAP_TYPE);
++		WRITEL(p_h264->fmo_slice_grp - 1,
++				S5P_FIMV_E_H264_FMO_NUM_SLICE_GRP_MINUS1);
++	} else {
++		WRITEL(0, S5P_FIMV_E_H264_FMO_NUM_SLICE_GRP_MINUS1);
++	}
++
++	mfc_debug_leave();
++
++	return 0;
++}
++
++static int s5p_mfc_set_enc_params_mpeg4(struct s5p_mfc_ctx *ctx)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++	struct s5p_mfc_enc_params *p = &ctx->enc_params;
++	struct s5p_mfc_mpeg4_enc_params *p_mpeg4 = &p->codec.mpeg4;
++	unsigned int reg = 0;
++
++	mfc_debug_enter();
++
++	s5p_mfc_set_enc_params(ctx);
++
++	/* pictype : number of B */
++	reg = READL(S5P_FIMV_E_GOP_CONFIG);
++	reg &= ~(0x3 << 16);
++	reg |= ((p->num_b_frame & 0x3) << 16);
++	WRITEL(reg, S5P_FIMV_E_GOP_CONFIG);
++
++	/* profile & level */
++	reg = 0;
++	/** level */
++	reg |= ((p_mpeg4->level & 0xFF) << 8);
++	/** profile - 0 ~ 1 */
++	reg |= p_mpeg4->profile & 0x3F;
++	WRITEL(reg, S5P_FIMV_E_PICTURE_PROFILE);
++
++	/* rate control config. */
++	reg = READL(S5P_FIMV_E_RC_CONFIG);
++	/** macroblock level rate control */
++	reg &= ~(0x1 << 8);
++	reg |= ((p->rc_mb & 0x1) << 8);
++	WRITEL(reg, S5P_FIMV_E_RC_CONFIG);
++	/** frame QP */
++	reg &= ~(0x3F);
++	reg |= p_mpeg4->rc_frame_qp & 0x3F;
++	WRITEL(reg, S5P_FIMV_E_RC_CONFIG);
++
++	/* max & min value of QP */
++	reg = 0;
++	/** max QP */
++	reg |= ((p_mpeg4->rc_max_qp & 0x3F) << 8);
++	/** min QP */
++	reg |= p_mpeg4->rc_min_qp & 0x3F;
++	WRITEL(reg, S5P_FIMV_E_RC_QP_BOUND);
++
++	/* other QPs */
++	WRITEL(0x0, S5P_FIMV_E_FIXED_PICTURE_QP);
++	if (!p->rc_frame && !p->rc_mb) {
++		reg = 0;
++		reg |= ((p_mpeg4->rc_b_frame_qp & 0x3F) << 16);
++		reg |= ((p_mpeg4->rc_p_frame_qp & 0x3F) << 8);
++		reg |= p_mpeg4->rc_frame_qp & 0x3F;
++		WRITEL(reg, S5P_FIMV_E_FIXED_PICTURE_QP);
++	}
++
++	/* frame rate */
++	if (p->rc_frame && p->rc_framerate_num && p->rc_framerate_denom) {
++		reg = 0;
++		reg |= ((p->rc_framerate_num & 0xFFFF) << 16);
++		reg |= p->rc_framerate_denom & 0xFFFF;
++		WRITEL(reg, S5P_FIMV_E_RC_FRAME_RATE);
++	}
++
++	/* vbv buffer size */
++	if (p->frame_skip_mode ==
++			V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_BUF_LIMIT) {
++		WRITEL(p->vbv_size & 0xFFFF, S5P_FIMV_E_VBV_BUFFER_SIZE);
++
++		if (p->rc_frame)
++			WRITEL(p->vbv_delay, S5P_FIMV_E_VBV_INIT_DELAY);
++	}
++
++	/* Disable HEC */
++	WRITEL(0x0, S5P_FIMV_E_MPEG4_OPTIONS);
++	WRITEL(0x0, S5P_FIMV_E_MPEG4_HEC_PERIOD);
++
++	mfc_debug_leave();
++
++	return 0;
++}
++
++static int s5p_mfc_set_enc_params_h263(struct s5p_mfc_ctx *ctx)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++	struct s5p_mfc_enc_params *p = &ctx->enc_params;
++	struct s5p_mfc_mpeg4_enc_params *p_h263 = &p->codec.mpeg4;
++	unsigned int reg = 0;
++
++	mfc_debug_enter();
++
++	s5p_mfc_set_enc_params(ctx);
++
++	/* profile & level */
++	reg = 0;
++	/** profile */
++	reg |= (0x1 << 4);
++	WRITEL(reg, S5P_FIMV_E_PICTURE_PROFILE);
++
++	/* rate control config. */
++	reg = READL(S5P_FIMV_E_RC_CONFIG);
++	/** macroblock level rate control */
++	reg &= ~(0x1 << 8);
++	reg |= ((p->rc_mb & 0x1) << 8);
++	WRITEL(reg, S5P_FIMV_E_RC_CONFIG);
++	/** frame QP */
++	reg &= ~(0x3F);
++	reg |= p_h263->rc_frame_qp & 0x3F;
++	WRITEL(reg, S5P_FIMV_E_RC_CONFIG);
++
++	/* max & min value of QP */
++	reg = 0;
++	/** max QP */
++	reg |= ((p_h263->rc_max_qp & 0x3F) << 8);
++	/** min QP */
++	reg |= p_h263->rc_min_qp & 0x3F;
++	WRITEL(reg, S5P_FIMV_E_RC_QP_BOUND);
++
++	/* other QPs */
++	WRITEL(0x0, S5P_FIMV_E_FIXED_PICTURE_QP);
++	if (!p->rc_frame && !p->rc_mb) {
++		reg = 0;
++		reg |= ((p_h263->rc_b_frame_qp & 0x3F) << 16);
++		reg |= ((p_h263->rc_p_frame_qp & 0x3F) << 8);
++		reg |= p_h263->rc_frame_qp & 0x3F;
++		WRITEL(reg, S5P_FIMV_E_FIXED_PICTURE_QP);
++	}
++
++	/* frame rate */
++	if (p->rc_frame && p->rc_framerate_num && p->rc_framerate_denom) {
++		reg = 0;
++		reg |= ((p->rc_framerate_num & 0xFFFF) << 16);
++		reg |= p->rc_framerate_denom & 0xFFFF;
++		WRITEL(reg, S5P_FIMV_E_RC_FRAME_RATE);
++	}
++
++	/* vbv buffer size */
++	if (p->frame_skip_mode ==
++			V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_BUF_LIMIT) {
++		WRITEL(p->vbv_size & 0xFFFF, S5P_FIMV_E_VBV_BUFFER_SIZE);
++
++		if (p->rc_frame)
++			WRITEL(p->vbv_delay, S5P_FIMV_E_VBV_INIT_DELAY);
++	}
++
++	mfc_debug_leave();
++
++	return 0;
++}
++
++/* Initialize decoding */
++int s5p_mfc_init_decode(struct s5p_mfc_ctx *ctx)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++	unsigned int reg = 0;
++	int fmo_aso_ctrl = 0;
++
++	mfc_debug_enter();
++	mfc_debug(2, "InstNo: %d/%d\n", ctx->inst_no, S5P_FIMV_CH_SEQ_HEADER);
++	mfc_debug(2, "BUFs: %08x %08x %08x\n",
++		  READL(S5P_FIMV_D_CPB_BUFFER_ADDR),
++		  READL(S5P_FIMV_D_CPB_BUFFER_ADDR),
++		  READL(S5P_FIMV_D_CPB_BUFFER_ADDR));
++
++	/* FMO_ASO_CTRL - 0: Enable, 1: Disable */
++	reg |= (fmo_aso_ctrl << S5P_FIMV_D_OPT_FMO_ASO_CTRL_MASK);
++
++	/* When user sets desplay_delay to 0,
++	 * It works as "display_delay enable" and delay set to 0.
++	 * If user wants display_delay disable, It should be
++	 * set to negative value. */
++	if (ctx->display_delay >= 0) {
++		reg |= (0x1 << S5P_FIMV_D_OPT_DDELAY_EN_SHIFT);
++		WRITEL(ctx->display_delay, S5P_FIMV_D_DISPLAY_DELAY);
++	}
++	/* Setup loop filter, for decoding this is only valid for MPEG4 */
++	if (ctx->codec_mode == S5P_FIMV_CODEC_MPEG4_DEC) {
++		mfc_debug(2, "Set loop filter to: %d\n",
++				ctx->loop_filter_mpeg4);
++		reg |= (ctx->loop_filter_mpeg4 <<
++				S5P_FIMV_D_OPT_LF_CTRL_SHIFT);
++	}
++	if (ctx->dst_fmt->fourcc == V4L2_PIX_FMT_NV12MT_16X16)
++		reg |= (0x1 << S5P_FIMV_D_OPT_TILE_MODE_SHIFT);
++
++	WRITEL(reg, S5P_FIMV_D_DEC_OPTIONS);
++
++	/* 0: NV12(CbCr), 1: NV21(CrCb) */
++	if (ctx->dst_fmt->fourcc == V4L2_PIX_FMT_NV21M)
++		WRITEL(0x1, S5P_FIMV_PIXEL_FORMAT);
++	else
++		WRITEL(0x0, S5P_FIMV_PIXEL_FORMAT);
++
++	/* sei parse */
++	WRITEL(ctx->sei_fp_parse & 0x1, S5P_FIMV_D_SEI_ENABLE);
++
++	WRITEL(ctx->inst_no, S5P_FIMV_INSTANCE_ID);
++	s5p_mfc_cmd_host2risc(dev, S5P_FIMV_CH_SEQ_HEADER, NULL);
++
++	mfc_debug_leave();
++	return 0;
++}
++
++static inline void s5p_mfc_set_flush(struct s5p_mfc_ctx *ctx, int flush)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++	unsigned int dpb;
++	if (flush)
++		dpb = READL(S5P_FIMV_SI_CH0_DPB_CONF_CTRL) | (1 << 14);
++	else
++		dpb = READL(S5P_FIMV_SI_CH0_DPB_CONF_CTRL) & ~(1 << 14);
++	WRITEL(dpb, S5P_FIMV_SI_CH0_DPB_CONF_CTRL);
++}
++
++/* Decode a single frame */
++int s5p_mfc_decode_one_frame(struct s5p_mfc_ctx *ctx, int last_frame)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++
++	WRITEL(0xffffffff, S5P_FIMV_D_AVAILABLE_DPB_FLAG_LOWER);
++	WRITEL(0xffffffff, S5P_FIMV_D_AVAILABLE_DPB_FLAG_UPPER);
++	WRITEL(ctx->slice_interface & 0x1, S5P_FIMV_D_SLICE_IF_ENABLE);
++
++	WRITEL(ctx->inst_no, S5P_FIMV_INSTANCE_ID);
++	/* Issue different commands to instance basing on whether it
++	 * is the last frame or not. */
++	switch (last_frame) {
++	case 0:
++		s5p_mfc_cmd_host2risc(dev, S5P_FIMV_CH_FRAME_START, NULL);
++		break;
++	case 1:
++		s5p_mfc_cmd_host2risc(dev, S5P_FIMV_CH_LAST_FRAME, NULL);
++		break;
++	}
++
++	mfc_debug(2, "Decoding a usual frame.\n");
++	return 0;
++}
++
++int s5p_mfc_init_encode(struct s5p_mfc_ctx *ctx)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++
++	if (ctx->codec_mode == S5P_FIMV_CODEC_H264_ENC)
++		s5p_mfc_set_enc_params_h264(ctx);
++	else if (ctx->codec_mode == S5P_FIMV_CODEC_MPEG4_ENC)
++		s5p_mfc_set_enc_params_mpeg4(ctx);
++	else if (ctx->codec_mode == S5P_FIMV_CODEC_H263_ENC)
++		s5p_mfc_set_enc_params_h263(ctx);
++	else {
++		mfc_err("Unknown codec for encoding (%x).\n",
++			ctx->codec_mode);
++		return -EINVAL;
++	}
++
++	WRITEL(ctx->inst_no, S5P_FIMV_INSTANCE_ID);
++	s5p_mfc_cmd_host2risc(dev, S5P_FIMV_CH_SEQ_HEADER, NULL);
++
++	return 0;
++}
++
++int s5p_mfc_h264_set_aso_slice_order(struct s5p_mfc_ctx *ctx)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++	struct s5p_mfc_enc_params *p = &ctx->enc_params;
++	struct s5p_mfc_h264_enc_params *p_h264 = &p->codec.h264;
++	int i;
++
++	if (p_h264->aso) {
++		for (i = 0; i < 8; i++)
++			WRITEL(p_h264->aso_slice_order[i],
++				S5P_FIMV_E_H264_ASO_SLICE_ORDER_0 + i * 4);
++	}
++	return 0;
++}
++
++/* Encode a single frame */
++int s5p_mfc_encode_one_frame(struct s5p_mfc_ctx *ctx)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++
++	mfc_debug(2, "++\n");
++
++	/* memory structure cur. frame */
++
++	if (ctx->codec_mode == S5P_FIMV_CODEC_H264_ENC)
++		s5p_mfc_h264_set_aso_slice_order(ctx);
++
++	s5p_mfc_set_slice_mode(ctx);
++
++	WRITEL(ctx->inst_no, S5P_FIMV_INSTANCE_ID);
++	s5p_mfc_cmd_host2risc(dev, S5P_FIMV_CH_FRAME_START, NULL);
++
++	mfc_debug(2, "--\n");
++
++	return 0;
++}
++
++static inline int s5p_mfc_get_new_ctx(struct s5p_mfc_dev *dev)
++{
++	unsigned long flags;
++	int new_ctx;
++	int cnt;
++
++	spin_lock_irqsave(&dev->condlock, flags);
++	mfc_debug(2, "Previos context: %d (bits %08lx)\n", dev->curr_ctx,
++							dev->ctx_work_bits);
++	new_ctx = (dev->curr_ctx + 1) % MFC_NUM_CONTEXTS;
++	cnt = 0;
++	while (!test_bit(new_ctx, &dev->ctx_work_bits)) {
++		new_ctx = (new_ctx + 1) % MFC_NUM_CONTEXTS;
++		cnt++;
++		if (cnt > MFC_NUM_CONTEXTS) {
++			/* No contexts to run */
++			spin_unlock_irqrestore(&dev->condlock, flags);
++			return -EAGAIN;
++		}
++	}
++	spin_unlock_irqrestore(&dev->condlock, flags);
++	return new_ctx;
++}
++
++static inline void s5p_mfc_run_dec_last_frames(struct s5p_mfc_ctx *ctx)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++	struct s5p_mfc_buf *temp_vb;
++	unsigned long flags;
++
++	spin_lock_irqsave(&dev->irqlock, flags);
++
++	/* Frames are being decoded */
++	if (list_empty(&ctx->src_queue)) {
++		mfc_debug(2, "No src buffers.\n");
++		spin_unlock_irqrestore(&dev->irqlock, flags);
++		return;
++	}
++	/* Get the next source buffer */
++	temp_vb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
++	temp_vb->used = 1;
++	s5p_mfc_set_dec_stream_buffer(ctx,
++			vb2_dma_contig_plane_dma_addr(temp_vb->b, 0), 0, 0);
++	spin_unlock_irqrestore(&dev->irqlock, flags);
++
++	dev->curr_ctx = ctx->num;
++	s5p_mfc_clean_ctx_int_flags(ctx);
++	s5p_mfc_decode_one_frame(ctx, 1);
++}
++
++static inline int s5p_mfc_run_dec_frame(struct s5p_mfc_ctx *ctx)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++	struct s5p_mfc_buf *temp_vb;
++	unsigned long flags;
++	int last_frame = 0;
++	unsigned int index;
++
++	spin_lock_irqsave(&dev->irqlock, flags);
++
++	/* Frames are being decoded */
++	if (list_empty(&ctx->src_queue)) {
++		mfc_debug(2, "No src buffers.\n");
++		spin_unlock_irqrestore(&dev->irqlock, flags);
++		return -EAGAIN;
++	}
++	/* Get the next source buffer */
++	temp_vb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
++	temp_vb->used = 1;
++	s5p_mfc_set_dec_stream_buffer(ctx,
++		vb2_dma_contig_plane_dma_addr(temp_vb->b, 0), 0,
++			temp_vb->b->v4l2_planes[0].bytesused);
++	spin_unlock_irqrestore(&dev->irqlock, flags);
++
++	index = temp_vb->b->v4l2_buf.index;
++
++	dev->curr_ctx = ctx->num;
++	s5p_mfc_clean_ctx_int_flags(ctx);
++	if (temp_vb->b->v4l2_planes[0].bytesused == 0) {
++		last_frame = 1;
++		mfc_debug(2, "Setting ctx->state to FINISHING\n");
++		ctx->state = MFCINST_FINISHING;
++	}
++	s5p_mfc_decode_one_frame(ctx, last_frame);
++
++	return 0;
++}
++
++static inline int s5p_mfc_run_enc_frame(struct s5p_mfc_ctx *ctx)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++	unsigned long flags;
++	struct s5p_mfc_buf *dst_mb;
++	struct s5p_mfc_buf *src_mb;
++	unsigned long src_y_addr, src_c_addr, dst_addr;
++	/*
++	unsigned int src_y_size, src_c_size;
++	*/
++	unsigned int dst_size;
++	unsigned int index;
++
++	spin_lock_irqsave(&dev->irqlock, flags);
++
++	if (list_empty(&ctx->src_queue)) {
++		mfc_debug(2, "no src buffers.\n");
++		spin_unlock_irqrestore(&dev->irqlock, flags);
++		return -EAGAIN;
++	}
++
++	if (list_empty(&ctx->dst_queue)) {
++		mfc_debug(2, "no dst buffers.\n");
++		spin_unlock_irqrestore(&dev->irqlock, flags);
++		return -EAGAIN;
++	}
++
++	src_mb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
++	src_mb->used = 1;
++	src_y_addr = vb2_dma_contig_plane_dma_addr(src_mb->b, 0);
++	src_c_addr = vb2_dma_contig_plane_dma_addr(src_mb->b, 1);
++
++	mfc_debug(2, "enc src y addr: 0x%08lx", src_y_addr);
++	mfc_debug(2, "enc src c addr: 0x%08lx", src_c_addr);
++
++	s5p_mfc_set_enc_frame_buffer(ctx, src_y_addr, src_c_addr);
++
++	dst_mb = list_entry(ctx->dst_queue.next, struct s5p_mfc_buf, list);
++	dst_mb->used = 1;
++	dst_addr = vb2_dma_contig_plane_dma_addr(dst_mb->b, 0);
++	dst_size = vb2_plane_size(dst_mb->b, 0);
++
++	s5p_mfc_set_enc_stream_buffer(ctx, dst_addr, dst_size);
++
++	spin_unlock_irqrestore(&dev->irqlock, flags);
++
++	index = src_mb->b->v4l2_buf.index;
++
++	dev->curr_ctx = ctx->num;
++	s5p_mfc_clean_ctx_int_flags(ctx);
++	s5p_mfc_encode_one_frame(ctx);
++
++	return 0;
++}
++
++static inline void s5p_mfc_run_init_dec(struct s5p_mfc_ctx *ctx)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++	unsigned long flags;
++	struct s5p_mfc_buf *temp_vb;
++
++	/* Initializing decoding - parsing header */
++	spin_lock_irqsave(&dev->irqlock, flags);
++	mfc_debug(2, "Preparing to init decoding.\n");
++	temp_vb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
++	mfc_debug(2, "Header size: %d\n", temp_vb->b->v4l2_planes[0].bytesused);
++	s5p_mfc_set_dec_stream_buffer(ctx,
++		vb2_dma_contig_plane_dma_addr(temp_vb->b, 0), 0,
++			temp_vb->b->v4l2_planes[0].bytesused);
++	spin_unlock_irqrestore(&dev->irqlock, flags);
++	dev->curr_ctx = ctx->num;
++	s5p_mfc_clean_ctx_int_flags(ctx);
++	s5p_mfc_init_decode(ctx);
++}
++
++static inline void s5p_mfc_run_init_enc(struct s5p_mfc_ctx *ctx)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++	unsigned long flags;
++	struct s5p_mfc_buf *dst_mb;
++	unsigned long dst_addr;
++	unsigned int dst_size;
++
++	spin_lock_irqsave(&dev->irqlock, flags);
++
++	dst_mb = list_entry(ctx->dst_queue.next, struct s5p_mfc_buf, list);
++	dst_addr = vb2_dma_contig_plane_dma_addr(dst_mb->b, 0);
++	dst_size = vb2_plane_size(dst_mb->b, 0);
++	s5p_mfc_set_enc_stream_buffer(ctx, dst_addr, dst_size);
++	spin_unlock_irqrestore(&dev->irqlock, flags);
++	dev->curr_ctx = ctx->num;
++	s5p_mfc_clean_ctx_int_flags(ctx);
++	s5p_mfc_init_encode(ctx);
++}
++
++static inline int s5p_mfc_run_init_dec_buffers(struct s5p_mfc_ctx *ctx)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++	int ret;
++	/* Header was parsed now start processing
++	 * First set the output frame buffers
++	 * s5p_mfc_alloc_dec_buffers(ctx); */
++
++	if (ctx->capture_state != QUEUE_BUFS_MMAPED) {
++		mfc_err("It seems that not all destionation buffers were\n"
++			"mmaped.MFC requires that all destination are mmaped\n"
++			"before starting processing.\n");
++		return -EAGAIN;
++	}
++
++	dev->curr_ctx = ctx->num;
++	s5p_mfc_clean_ctx_int_flags(ctx);
++	ret = s5p_mfc_set_dec_frame_buffer(ctx);
++	if (ret) {
++		mfc_err("Failed to alloc frame mem.\n");
++		ctx->state = MFCINST_ERROR;
++	}
++	return ret;
++}
++
++static inline int s5p_mfc_run_init_enc_buffers(struct s5p_mfc_ctx *ctx)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++	int ret;
++
++	ret = s5p_mfc_alloc_codec_buffers(ctx);
++	if (ret) {
++		mfc_err("Failed to allocate encoding buffers.\n");
++		return -ENOMEM;
++	}
++
++	/* Header was generated now starting processing
++	 * First set the reference frame buffers
++	 */
++	if (ctx->capture_state != QUEUE_BUFS_REQUESTED) {
++		mfc_err("It seems that destionation buffers were not\n"
++			"requested.MFC requires that header should be generated\n"
++			"before allocating codec buffer.\n");
++		return -EAGAIN;
++	}
++
++	dev->curr_ctx = ctx->num;
++	s5p_mfc_clean_ctx_int_flags(ctx);
++	ret = s5p_mfc_set_enc_ref_buffer(ctx);
++	if (ret) {
++		mfc_err("Failed to alloc frame mem.\n");
++		ctx->state = MFCINST_ERROR;
++	}
++	return ret;
++}
++
++/* Try running an operation on hardware */
++void s5p_mfc_try_run(struct s5p_mfc_dev *dev)
++{
++	struct s5p_mfc_ctx *ctx;
++	int new_ctx;
++	unsigned int ret = 0;
++
++	mfc_debug(1, "Try run dev: %p\n", dev);
++
++	/* Check whether hardware is not running */
++	if (test_and_set_bit(0, &dev->hw_lock) != 0) {
++		/* This is perfectly ok, the scheduled ctx should wait */
++		mfc_debug(1, "Couldn't lock HW.\n");
++		return;
++	}
++
++	/* Choose the context to run */
++	new_ctx = s5p_mfc_get_new_ctx(dev);
++	if (new_ctx < 0) {
++		/* No contexts to run */
++		if (test_and_clear_bit(0, &dev->hw_lock) == 0) {
++			mfc_err("Failed to unlock hardware.\n");
++			return;
++		}
++
++		mfc_debug(1, "No ctx is scheduled to be run.\n");
++		return;
++	}
++
++	mfc_debug(1, "New context: %d\n", new_ctx);
++	ctx = dev->ctx[new_ctx];
++	mfc_debug(1, "Seting new context to %p\n", ctx);
++	/* Got context to run in ctx */
++	mfc_debug(1, "ctx->dst_queue_cnt=%d ctx->dpb_count=%d ctx->src_queue_cnt=%d\n",
++		ctx->dst_queue_cnt, ctx->dpb_count, ctx->src_queue_cnt);
++	mfc_debug(1, "ctx->state=%d\n", ctx->state);
++	/* Last frame has already been sent to MFC
++	 * Now obtaining frames from MFC buffer */
++
++	s5p_mfc_clock_on();
++	if (ctx->type == MFCINST_DECODER) {
++		switch (ctx->state) {
++		case MFCINST_FINISHING:
++			s5p_mfc_run_dec_last_frames(ctx);
++			break;
++		case MFCINST_RUNNING:
++			ret = s5p_mfc_run_dec_frame(ctx);
++			break;
++		case MFCINST_INIT:
++			s5p_mfc_clean_ctx_int_flags(ctx);
++			ret = s5p_mfc_open_inst_cmd(ctx);
++			break;
++		case MFCINST_RETURN_INST:
++			s5p_mfc_clean_ctx_int_flags(ctx);
++			ret = s5p_mfc_close_inst_cmd(ctx);
++			break;
++		case MFCINST_GOT_INST:
++			s5p_mfc_run_init_dec(ctx);
++			break;
++		case MFCINST_HEAD_PARSED:
++			ret = s5p_mfc_run_init_dec_buffers(ctx);
++			break;
++		case MFCINST_RES_CHANGE_INIT:
++			s5p_mfc_run_dec_last_frames(ctx);
++			break;
++		case MFCINST_RES_CHANGE_FLUSH:
++			s5p_mfc_run_dec_last_frames(ctx);
++			break;
++		case MFCINST_RES_CHANGE_END:
++			mfc_debug(2, "Finished remaining frames after resolution change.\n");
++			ctx->capture_state = QUEUE_FREE;
++			mfc_debug(2, "Will re-init the codec`.\n");
++			s5p_mfc_run_init_dec(ctx);
++			break;
++		default:
++			ret = -EAGAIN;
++		}
++	} else if (ctx->type == MFCINST_ENCODER) {
++		switch (ctx->state) {
++		case MFCINST_FINISHING:
++		case MFCINST_RUNNING:
++			ret = s5p_mfc_run_enc_frame(ctx);
++			break;
++		case MFCINST_INIT:
++			ret = s5p_mfc_open_inst_cmd(ctx);
++			break;
++		case MFCINST_RETURN_INST:
++			ret = s5p_mfc_close_inst_cmd(ctx);
++			break;
++		case MFCINST_GOT_INST:
++			s5p_mfc_run_init_enc(ctx);
++			break;
++		case MFCINST_HEAD_PARSED: /* Only for MFC6.x */
++			ret = s5p_mfc_run_init_enc_buffers(ctx);
++			break;
++		default:
++			ret = -EAGAIN;
++		}
++	} else {
++		mfc_err("invalid context type: %d\n", ctx->type);
++		ret = -EAGAIN;
++	}
++
++	if (ret) {
++		/* Free hardware lock */
++		if (test_and_clear_bit(0, &dev->hw_lock) == 0)
++			mfc_err("Failed to unlock hardware.\n");
++
++		/* This is in deed imporant, as no operation has been
++		 * scheduled, reduce the clock count as no one will
++		 * ever do this, because no interrupt related to this try_run
++		 * will ever come from hardware. */
++		s5p_mfc_clock_off();
++	}
++}
 +
 +
-+/* Configure 30 FPS */
-+struct regval_list s5k4ecgx_fps_30[] = {
-+	{TOK_WRITE, 0x700002B4, 0x0052},
-+	{TOK_WRITE, 0x700002BE, 0x0000},
-+	{TOK_WRITE, 0x700002C0, 0x0001},
-+	{TOK_WRITE, 0x700002C2, 0x014D},
-+	{TOK_WRITE, 0x700002C4, 0x014D},
-+	{TOK_WRITE, 0x700002D0, 0x0000},
-+	{TOK_WRITE, 0x700002D2, 0x0000},
-+	{TOK_WRITE, 0x70000266, 0x0000},
-+	{TOK_WRITE, 0x7000026A, 0x0001},
-+	{TOK_WRITE, 0x7000024E, 0x0001},
-+	{TOK_WRITE, 0x70000268, 0x0001},
-+	{TOK_TERM, 0xFFFFFFFF, 0x0},
-+};
++void s5p_mfc_cleanup_queue(struct list_head *lh, struct vb2_queue *vq)
++{
++	struct s5p_mfc_buf *b;
++	int i;
 +
-+struct regval_list s5k4ecgx_effect_normal[] = {
-+	{TOK_WRITE, 0x7000023C, 0x0000},
-+	{TOK_TERM, 0xFFFFFFFF, 0x0},
-+};
++	while (!list_empty(lh)) {
++		b = list_entry(lh->next, struct s5p_mfc_buf, list);
++		for (i = 0; i < b->b->num_planes; i++)
++			vb2_set_plane_payload(b->b, i, 0);
++		vb2_buffer_done(b->b, VB2_BUF_STATE_ERROR);
++		list_del(&b->list);
++	}
++}
 +
-+struct regval_list s5k4ecgx_wb_auto[] = {
-+	{TOK_WRITE, 0x700004E6, 0x077F},
-+	{TOK_TERM, 0xFFFFFFFF, 0x0},
-+};
++void s5p_mfc_clear_int_flags(struct s5p_mfc_dev *dev)
++{
++	mfc_write(dev, 0, S5P_FIMV_RISC2HOST_CMD);
++	mfc_write(dev, 0, S5P_FIMV_RISC2HOST_INT);
++}
 +
-+struct regval_list s5k4ecgx_iso_auto[] = {
-+	{TOK_WRITE, 0x70000938, 0x0000},
-+	{TOK_WRITE, 0x70000F2A, 0x0001},
-+	{TOK_WRITE, 0x700004E6, 0x077F},
-+	{TOK_WRITE, 0x700004D0, 0x0000},
-+	{TOK_WRITE, 0x700004D2, 0x0000},
-+	{TOK_WRITE, 0x700004D4, 0x0001},
-+	{TOK_WRITE, 0x700006C2, 0x0200},
-+	{TOK_TERM, 0xFFFFFFFF, 0x0},
-+};
++void s5p_mfc_write_info(struct s5p_mfc_ctx *ctx, unsigned int data,
++		unsigned int ofs)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
 +
-+struct regval_list s5k4ecgx_contrast_default[] = {
-+	{TOK_WRITE, 0x70000232, 0x0000},
-+	{TOK_TERM, 0xFFFFFFFF, 0x0},
-+};
++	s5p_mfc_clock_on();
++	WRITEL(data, ofs);
++	s5p_mfc_clock_off();
++}
 +
-+struct regval_list s5k4ecgx_scene_default[] = {
-+	{TOK_WRITE, 0x70001492, 0x0000},
-+	{TOK_WRITE, 0x70001494, 0x0101},
-+	{TOK_WRITE, 0x70001496, 0x0101},
-+	{TOK_WRITE, 0x70001498, 0x0000},
-+	{TOK_WRITE, 0x7000149A, 0x0101},
-+	{TOK_WRITE, 0x7000149C, 0x0101},
-+	{TOK_WRITE, 0x7000149E, 0x0101},
-+	{TOK_WRITE, 0x700014A0, 0x0101},
-+	{TOK_WRITE, 0x700014A2, 0x0201},
-+	{TOK_WRITE, 0x700014A4, 0x0303},
-+	{TOK_WRITE, 0x700014A6, 0x0303},
-+	{TOK_WRITE, 0x700014A8, 0x0102},
-+	{TOK_WRITE, 0x700014AA, 0x0201},
-+	{TOK_WRITE, 0x700014AC, 0x0403},
-+	{TOK_WRITE, 0x700014AE, 0x0304},
-+	{TOK_WRITE, 0x700014B0, 0x0102},
-+	{TOK_WRITE, 0x700014B2, 0x0201},
-+	{TOK_WRITE, 0x700014B4, 0x0403},
-+	{TOK_WRITE, 0x700014B6, 0x0304},
-+	{TOK_WRITE, 0x700014B8, 0x0102},
-+	{TOK_WRITE, 0x700014BA, 0x0201},
-+	{TOK_WRITE, 0x700014BC, 0x0403},
-+	{TOK_WRITE, 0x700014BE, 0x0304},
-+	{TOK_WRITE, 0x700014C0, 0x0102},
-+	{TOK_WRITE, 0x700014C2, 0x0201},
-+	{TOK_WRITE, 0x700014C4, 0x0303},
-+	{TOK_WRITE, 0x700014C6, 0x0303},
-+	{TOK_WRITE, 0x700014C8, 0x0102},
-+	{TOK_WRITE, 0x700014CA, 0x0201},
-+	{TOK_WRITE, 0x700014CC, 0x0202},
-+	{TOK_WRITE, 0x700014CE, 0x0202},
-+	{TOK_WRITE, 0x700014D0, 0x0102},
-+	{TOK_WRITE, 0x70000938, 0x0000},
-+	{TOK_WRITE, 0x700006B8, 0x452C},
-+	{TOK_WRITE, 0x700006BA, 0x000C},
-+	{TOK_WRITE, 0x70000F2A, 0x0001},
-+	{TOK_WRITE, 0x70000F30, 0x0001},
-+	{TOK_WRITE, 0x700004E6, 0x077F},
-+	{TOK_WRITE, 0x700004D0, 0x0000},
-+	{TOK_WRITE, 0x700004D2, 0x0000},
-+	{TOK_WRITE, 0x700004D4, 0x0001},
-+	{TOK_WRITE, 0x700006C2, 0x0200},
-+	{TOK_WRITE, 0x70002C66, 0x0001},
-+	{TOK_WRITE, 0x70001484, 0x003C},
-+	{TOK_WRITE, 0x7000148A, 0x000F},
-+	{TOK_WRITE, 0x7000058C, 0x3520},
-+	{TOK_WRITE, 0x7000058E, 0x0000},
-+	{TOK_WRITE, 0x70000590, 0xC350},
-+	{TOK_WRITE, 0x70000592, 0x0000},
-+	{TOK_WRITE, 0x70000594, 0x3520},
-+	{TOK_WRITE, 0x70000596, 0x0000},
-+	{TOK_WRITE, 0x70000598, 0xC350},
-+	{TOK_WRITE, 0x7000059A, 0x0000},
-+	{TOK_WRITE, 0x7000059C, 0x0470},
-+	{TOK_WRITE, 0x7000059E, 0x0C00},
-+	{TOK_WRITE, 0x700005A0, 0x0100},
-+	{TOK_WRITE, 0x700005A2, 0x1000},
-+	{TOK_WRITE, 0x70000544, 0x0111},
-+	{TOK_WRITE, 0x70000546, 0x00EF},
-+	{TOK_WRITE, 0x70000608, 0x0001},
-+	{TOK_WRITE, 0x7000060A, 0x0001},
-+	{TOK_WRITE, 0x70000A28, 0x6024},
-+	{TOK_WRITE, 0x70000ADE, 0x6024},
-+	{TOK_WRITE, 0x70000B94, 0x6024},
-+	{TOK_WRITE, 0x70000C4A, 0x6024},
-+	{TOK_WRITE, 0x70000D00, 0x6024},
-+	{TOK_WRITE, 0x70000234, 0x0000},
-+	{TOK_WRITE, 0x70000638, 0x0001},
-+	{TOK_WRITE, 0x7000063A, 0x0000},
-+	{TOK_WRITE, 0x7000063C, 0x0A3C},
-+	{TOK_WRITE, 0x7000063E, 0x0000},
-+	{TOK_WRITE, 0x70000640, 0x0D05},
-+	{TOK_WRITE, 0x70000642, 0x0000},
-+	{TOK_WRITE, 0x70000644, 0x3408},
-+	{TOK_WRITE, 0x70000646, 0x0000},
-+	{TOK_WRITE, 0x70000648, 0x3408},
-+	{TOK_WRITE, 0x7000064A, 0x0000},
-+	{TOK_WRITE, 0x7000064C, 0x6810},
-+	{TOK_WRITE, 0x7000064E, 0x0000},
-+	{TOK_WRITE, 0x70000650, 0x8214},
-+	{TOK_WRITE, 0x70000652, 0x0000},
-+	{TOK_WRITE, 0x70000654, 0xC350},
-+	{TOK_WRITE, 0x70000656, 0x0000},
-+	{TOK_WRITE, 0x70000658, 0xC350},
-+	{TOK_WRITE, 0x7000065A, 0x0000},
-+	{TOK_WRITE, 0x7000065C, 0xC350},
-+	{TOK_WRITE, 0x7000065E, 0x0000},
-+	{TOK_WRITE, 0x700002C2, 0x029A},
-+	/* #REG_0TC_PCFG_usMaxFrTimeMsecMult10 */
-+	{TOK_WRITE, 0x700002C4, 0x014A},
-+	/* #REG_0TC_PCFG_usMinFrTimeMsecMult10 */
-+	{TOK_WRITE, 0x700003B4, 0x0535},
-+	{TOK_WRITE, 0x700003B6, 0x029A},
-+	{TOK_WRITE, 0x70000266, 0x0000},
-+	{TOK_WRITE, 0x7000026A, 0x0001},
-+	{TOK_WRITE, 0x7000024E, 0x0001},
-+	{TOK_WRITE, 0x70000268, 0x0001},
-+	{TOK_WRITE, 0x70000270, 0x0001},
-+	{TOK_WRITE, 0x7000023E, 0x0001},
-+	{TOK_WRITE, 0x70000240, 0x0001},
-+	{TOK_TERM, 0xFFFFFFFF, 0x0},
-+};
++unsigned int s5p_mfc_read_info(struct s5p_mfc_ctx *ctx, unsigned int ofs)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++	int ret;
 +
-+/* Configure 720x480 preview size */
-+struct regval_list s5k4ecgx_720_preview[] = {
-+	{TOK_WRITE, 0x70000250, 0x0A00},
-+	{TOK_WRITE, 0x70000252, 0x06A8},
-+	{TOK_WRITE, 0x70000254, 0x0010},
-+	{TOK_WRITE, 0x70000256, 0x0078},
-+	{TOK_WRITE, 0x70000258, 0x0A00},
-+	{TOK_WRITE, 0x7000025A, 0x06A8},
-+	{TOK_WRITE, 0x7000025C, 0x0010},
-+	{TOK_WRITE, 0x7000025E, 0x0078},
-+	{TOK_WRITE, 0x70000494, 0x0A00},
-+	{TOK_WRITE, 0x70000496, 0x06A8},
-+	{TOK_WRITE, 0x70000498, 0x0000},
-+	{TOK_WRITE, 0x7000049A, 0x0000},
-+	{TOK_WRITE, 0x7000049C, 0x0A00},
-+	{TOK_WRITE, 0x7000049E, 0x06A8},
-+	{TOK_WRITE, 0x700004A0, 0x0000},
-+	{TOK_WRITE, 0x700004A2, 0x0000},
-+	{TOK_WRITE, 0x70000262, 0x0001},
-+	/* #REG_TC_GP_bUseReqInputInPre */
-+	{TOK_WRITE, 0x70000A1E, 0x0028},
-+	{TOK_WRITE, 0x70000AD4, 0x003C},
-+	{TOK_WRITE, 0x700002A6, 0x02D0},
-+	{TOK_WRITE, 0x700002A8, 0x01E0},
-+	{TOK_WRITE, 0x700002AA, 0x0005},
-+	{TOK_WRITE, 0x700002B4, 0x0052},
-+	{TOK_WRITE, 0x700002BE, 0x0000},
-+	{TOK_WRITE, 0x700002C0, 0x0001},
-+	{TOK_WRITE, 0x700002C2, 0x029A},
-+	{TOK_WRITE, 0x700002C4, 0x014D},
-+	{TOK_WRITE, 0x700002D0, 0x0000},
-+	{TOK_WRITE, 0x700002D2, 0x0000},
-+	{TOK_WRITE, 0x70000266, 0x0000},
-+	{TOK_WRITE, 0x7000026A, 0x0001},
-+	{TOK_WRITE, 0x7000024E, 0x0001},
-+	{TOK_WRITE, 0x70000268, 0x0001},
-+	{TOK_TERM, 0xFFFFFFFF, 0x0},
-+};
++	s5p_mfc_clock_on();
++	ret = READL(ofs);
++	s5p_mfc_clock_off();
 +
-+/* Configure 640x480 preview size */
-+struct regval_list s5k4ecgx_640_preview[] = {
-+	{TOK_WRITE, 0x70000250, 0x0A00},
-+	{TOK_WRITE, 0x70000252, 0x0780},
-+	{TOK_WRITE, 0x70000254, 0x0010},
-+	{TOK_WRITE, 0x70000256, 0x000C},
-+	{TOK_WRITE, 0x70000258, 0x0A00},
-+	{TOK_WRITE, 0x7000025A, 0x0780},
-+	{TOK_WRITE, 0x7000025C, 0x0010},
-+	{TOK_WRITE, 0x7000025E, 0x000C},
-+	{TOK_WRITE, 0x70000494, 0x0A00},
-+	{TOK_WRITE, 0x70000496, 0x0780},
-+	{TOK_WRITE, 0x70000498, 0x0000},
-+	{TOK_WRITE, 0x7000049A, 0x0000},
-+	{TOK_WRITE, 0x7000049C, 0x0A00},
-+	{TOK_WRITE, 0x7000049E, 0x0780},
-+	{TOK_WRITE, 0x700004A0, 0x0000},
-+	{TOK_WRITE, 0x700004A2, 0x0000},
-+	{TOK_WRITE, 0x70000262, 0x0001},
-+	{TOK_WRITE, 0x70000A1E, 0x0028},
-+	{TOK_WRITE, 0x70000AD4, 0x003C},
-+	{TOK_WRITE, 0x700002A6, 0x0280},
-+	{TOK_WRITE, 0x700002A8, 0x01E0},
-+	{TOK_WRITE, 0x700002AA, 0x0005},
-+	{TOK_WRITE, 0x700002B4, 0x0052},
-+	{TOK_WRITE, 0x700002BE, 0x0000},
-+	{TOK_WRITE, 0x700002C0, 0x0001},
-+	{TOK_WRITE, 0x700002C2, 0x029A},
-+	{TOK_WRITE, 0x700002C4, 0x014A},
-+	{TOK_WRITE, 0x700002D0, 0x0000},
-+	{TOK_WRITE, 0x700002D2, 0x0000},
-+	{TOK_WRITE, 0x70000266, 0x0000},
-+	{TOK_WRITE, 0x7000026A, 0x0001},
-+	{TOK_WRITE, 0x7000024E, 0x0001},
-+	{TOK_WRITE, 0x70000268, 0x0001},
-+	{TOK_TERM, 0xFFFFFFFF, 0x0},
-+};
++	return ret;
++}
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.h b/drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.h
+new file mode 100644
+index 0000000..93ce2d8
+--- /dev/null
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.h
+@@ -0,0 +1,140 @@
++/*
++ * drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.h
++ *
++ * Header file for Samsung MFC (Multi Function Codec - FIMV) driver
++ * Contains declarations of hw related functions.
++ *
++ * Copyright (c) 2012 Samsung Electronics
++ *		http://www.samsung.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+/* Configure 352x288 preview size */
-+struct regval_list s5k4ecgx_352_preview[] = {
-+	{TOK_WRITE, 0x70000250, 0x0928},
-+	{TOK_WRITE, 0x70000252, 0x0780},
-+	{TOK_WRITE, 0x70000254, 0x007C},
-+	{TOK_WRITE, 0x70000256, 0x000C},
-+	{TOK_WRITE, 0x70000258, 0x0928},
-+	{TOK_WRITE, 0x7000025A, 0x0780},
-+	{TOK_WRITE, 0x7000025C, 0x007C},
-+	{TOK_WRITE, 0x7000025E, 0x000C},
-+	{TOK_WRITE, 0x70000494, 0x0928},
-+	{TOK_WRITE, 0x70000496, 0x0780},
-+	{TOK_WRITE, 0x70000498, 0x0000},
-+	{TOK_WRITE, 0x7000049A, 0x0000},
-+	{TOK_WRITE, 0x7000049C, 0x0928},
-+	{TOK_WRITE, 0x7000049E, 0x0780},
-+	{TOK_WRITE, 0x700004A0, 0x0000},
-+	{TOK_WRITE, 0x700004A2, 0x0000},
-+	{TOK_WRITE, 0x70000262, 0x0001},
-+	{TOK_WRITE, 0x70000A1E, 0x0028},
-+	{TOK_WRITE, 0x70000AD4, 0x003C},
-+	{TOK_WRITE, 0x700002A6, 0x0160},
-+	{TOK_WRITE, 0x700002A8, 0x0120},
-+	{TOK_WRITE, 0x700002AA, 0x0005},
-+	{TOK_WRITE, 0x700002B4, 0x0052},
-+	{TOK_WRITE, 0x700002BE, 0x0000},
-+	{TOK_WRITE, 0x700002C0, 0x0001},
-+	{TOK_WRITE, 0x700002C2, 0x029A},
-+	{TOK_WRITE, 0x700002C4, 0x014D},
-+	{TOK_WRITE, 0x700002D0, 0x0000},
-+	{TOK_WRITE, 0x700002D2, 0x0000},
-+	{TOK_WRITE, 0x70000266, 0x0000},
-+	{TOK_WRITE, 0x7000026A, 0x0001},
-+	{TOK_WRITE, 0x7000024E, 0x0001},
-+	{TOK_WRITE, 0x70000268, 0x0001},
-+	{TOK_TERM, 0xFFFFFFFF, 0x0},
-+};
++#ifndef S5P_MFC_OPR_V6_H_
++#define S5P_MFC_OPR_V6_H_
 +
-+/* Configure 176x144 preview size */
-+struct regval_list s5k4ecgx_176_preview[] = {
-+	{TOK_WRITE, 0x70000250, 0x0928},
-+	{TOK_WRITE, 0x70000252, 0x0780},
-+	{TOK_WRITE, 0x70000254, 0x007C},
-+	{TOK_WRITE, 0x70000256, 0x000C},
-+	{TOK_WRITE, 0x70000258, 0x0928},
-+	{TOK_WRITE, 0x7000025A, 0x0780},
-+	{TOK_WRITE, 0x7000025C, 0x007C},
-+	{TOK_WRITE, 0x7000025E, 0x000C},
-+	{TOK_WRITE, 0x70000494, 0x0928},
-+	{TOK_WRITE, 0x70000496, 0x0780},
-+	{TOK_WRITE, 0x70000498, 0x0000},
-+	{TOK_WRITE, 0x7000049A, 0x0000},
-+	{TOK_WRITE, 0x7000049C, 0x0928},
-+	{TOK_WRITE, 0x7000049E, 0x0780},
-+	{TOK_WRITE, 0x700004A0, 0x0000},
-+	{TOK_WRITE, 0x700004A2, 0x0000},
-+	{TOK_WRITE, 0x70000262, 0x0001},
-+	{TOK_WRITE, 0x70000A1E, 0x0028},
-+	{TOK_WRITE, 0x70000AD4, 0x003C},
-+	{TOK_WRITE, 0x700002A6, 0x00B0},
-+	{TOK_WRITE, 0x700002A8, 0x0090},
-+	{TOK_WRITE, 0x700002AA, 0x0005},
-+	{TOK_WRITE, 0x700002B4, 0x0052},
-+	{TOK_WRITE, 0x700002BE, 0x0000},
-+	{TOK_WRITE, 0x700002C0, 0x0001},
-+	{TOK_WRITE, 0x700002C2, 0x029A},
-+	{TOK_WRITE, 0x700002C4, 0x014D},
-+	{TOK_WRITE, 0x700002D0, 0x0000},
-+	{TOK_WRITE, 0x700002D2, 0x0000},
-+	{TOK_WRITE, 0x70000266, 0x0000},
-+	{TOK_WRITE, 0x7000026A, 0x0001},
-+	{TOK_WRITE, 0x7000024E, 0x0001},
-+	{TOK_WRITE, 0x70000268, 0x0001},
-+	{TOK_TERM, 0xFFFFFFFF, 0x0},
-+};
++#include "s5p_mfc_common.h"
 +
-+/* Default value for brightness */
-+struct regval_list s5k4ecgx_ev_default[] = {
-+	{TOK_WRITE, 0x70000230, 0x0000},
-+	{TOK_TERM, 0xFFFFFFFF, 0x0},
-+};
++#define MFC_CTRL_MODE_CUSTOM	MFC_CTRL_MODE_SFR
 +
-+/* Default value for saturation */
-+struct regval_list s5k4ecgx_saturation_default[] = {
-+	{TOK_WRITE, 0x70000234, 0x0000},
-+	{TOK_TERM, 0xFFFFFFFF, 0x0},
-+};
++int s5p_mfc_init_decode(struct s5p_mfc_ctx *ctx);
++int s5p_mfc_init_encode(struct s5p_mfc_ctx *mfc_ctx);
 +
-+/* Default value for sharpness */
-+struct regval_list s5k4ecgx_sharpness_default[] = {
-+	{TOK_WRITE, 0x70000A28, 0x6024},
-+	{TOK_WRITE, 0x70000ADE, 0x6024},
-+	{TOK_WRITE, 0x70000B94, 0x6024},
-+	{TOK_WRITE, 0x70000C4A, 0x6024},
-+	{TOK_WRITE, 0x70000D00, 0x6024},
-+	{TOK_TERM, 0xFFFFFFFF, 0x0},
-+};
++int s5p_mfc_set_dec_frame_buffer(struct s5p_mfc_ctx *ctx);
++int s5p_mfc_set_dec_stream_buffer(struct s5p_mfc_ctx *ctx, int buf_addr,
++						  unsigned int start_num_byte,
++						  unsigned int buf_size);
 +
-+#endif	/* __DRIVERS_MEDIA_VIDEO_S5K4ECGX_H__ */
++void s5p_mfc_set_enc_frame_buffer(struct s5p_mfc_ctx *ctx,
++		unsigned long y_addr, unsigned long c_addr);
++int s5p_mfc_set_enc_stream_buffer(struct s5p_mfc_ctx *ctx,
++		unsigned long addr, unsigned int size);
++void s5p_mfc_get_enc_frame_buffer(struct s5p_mfc_ctx *ctx,
++		unsigned long *y_addr, unsigned long *c_addr);
++int s5p_mfc_set_enc_ref_buffer(struct s5p_mfc_ctx *mfc_ctx);
++
++int s5p_mfc_decode_one_frame(struct s5p_mfc_ctx *ctx, int last_frame);
++int s5p_mfc_encode_one_frame(struct s5p_mfc_ctx *mfc_ctx);
++
++/* Memory allocation */
++int s5p_mfc_alloc_dec_temp_buffers(struct s5p_mfc_ctx *ctx);
++void s5p_mfc_set_dec_desc_buffer(struct s5p_mfc_ctx *ctx);
++void s5p_mfc_release_dec_desc_buffer(struct s5p_mfc_ctx *ctx);
++
++int s5p_mfc_alloc_codec_buffers(struct s5p_mfc_ctx *ctx);
++void s5p_mfc_release_codec_buffers(struct s5p_mfc_ctx *ctx);
++
++int s5p_mfc_alloc_instance_buffer(struct s5p_mfc_ctx *ctx);
++void s5p_mfc_release_instance_buffer(struct s5p_mfc_ctx *ctx);
++int s5p_mfc_alloc_dev_context_buffer(struct s5p_mfc_dev *dev);
++void s5p_mfc_release_dev_context_buffer(struct s5p_mfc_dev *dev);
++
++void s5p_mfc_dec_calc_dpb_size(struct s5p_mfc_ctx *ctx);
++void s5p_mfc_enc_calc_src_size(struct s5p_mfc_ctx *ctx);
++
++#define s5p_mfc_get_dspl_y_adr()	(readl(dev->regs_base + \
++					S5P_FIMV_SI_DISPLAY_Y_ADR))
++#define s5p_mfc_get_dec_y_adr()		(readl(dev->regs_base + \
++					S5P_FIMV_D_DISPLAY_LUMA_ADDR))
++#define s5p_mfc_get_dspl_status()	readl(dev->regs_base + \
++						S5P_FIMV_D_DISPLAY_STATUS)
++#define s5p_mfc_get_decoded_status()	readl(dev->regs_base + \
++						S5P_FIMV_D_DECODED_STATUS)
++#define s5p_mfc_get_dec_frame_type()	(readl(dev->regs_base + \
++						S5P_FIMV_D_DECODED_FRAME_TYPE) \
++						& S5P_FIMV_DECODE_FRAME_MASK)
++#define s5p_mfc_get_disp_frame_type()	(readl(ctx->dev->regs_base + \
++						S5P_FIMV_D_DISPLAY_FRAME_TYPE) \
++						& S5P_FIMV_DECODE_FRAME_MASK)
++#define s5p_mfc_get_consumed_stream()	readl(dev->regs_base + \
++						S5P_FIMV_D_DECODED_NAL_SIZE)
++#define s5p_mfc_get_int_reason()	(readl(dev->regs_base + \
++					S5P_FIMV_RISC2HOST_CMD) & \
++					S5P_FIMV_RISC2HOST_CMD_MASK)
++#define s5p_mfc_get_int_err()		readl(dev->regs_base + \
++						S5P_FIMV_ERROR_CODE)
++#define s5p_mfc_err_dec(x)		(((x) & S5P_FIMV_ERR_DEC_MASK) >> \
++						S5P_FIMV_ERR_DEC_SHIFT)
++#define s5p_mfc_err_dspl(x)		(((x) & S5P_FIMV_ERR_DSPL_MASK) >> \
++						S5P_FIMV_ERR_DSPL_SHIFT)
++#define s5p_mfc_get_img_width()		readl(dev->regs_base + \
++						S5P_FIMV_D_DISPLAY_FRAME_WIDTH)
++#define s5p_mfc_get_img_height()	readl(dev->regs_base + \
++						S5P_FIMV_D_DISPLAY_FRAME_HEIGHT)
++#define s5p_mfc_get_dpb_count()		readl(dev->regs_base + \
++						S5P_FIMV_D_MIN_NUM_DPB)
++#define s5p_mfc_get_inst_no()		readl(dev->regs_base + \
++						S5P_FIMV_RET_INSTANCE_ID)
++#define s5p_mfc_get_enc_dpb_count()	readl(dev->regs_base + \
++						S5P_FIMV_E_NUM_DPB)
++#define s5p_mfc_get_enc_strm_size()	readl(dev->regs_base + \
++						S5P_FIMV_E_STREAM_SIZE)
++#define s5p_mfc_get_enc_slice_type()	readl(dev->regs_base + \
++						S5P_FIMV_E_SLICE_TYPE)
++#define s5p_mfc_get_enc_pic_count()	readl(dev->regs_base + \
++						S5P_FIMV_E_PICTURE_COUNT)
++#define s5p_mfc_get_sei_avail_status()	readl(dev->regs_base + \
++						S5P_FIMV_D_FRAME_PACK_SEI_AVAIL)
++#define s5p_mfc_get_mvc_num_views()	readl(dev->regs_base + \
++						S5P_FIMV_D_MVC_NUM_VIEWS)
++#define s5p_mfc_get_mvc_view_id()	readl(dev->regs_base + \
++						S5P_FIMV_D_MVC_VIEW_ID)
++
++#define mb_width(x_size)		((x_size + 15) / 16)
++#define mb_height(y_size)		((y_size + 15) / 16)
++#define s5p_mfc_dec_mv_size(x, y)	(mb_width(x) * \
++					(((mb_height(y)+1)/2)*2) * 64 + 128)
++
++/* Definition */
++#define ENC_MULTI_SLICE_MB_MAX		((1 << 30) - 1)
++#define ENC_MULTI_SLICE_BIT_MIN		2800
++#define ENC_INTRA_REFRESH_MB_MAX	((1 << 18) - 1)
++#define ENC_VBV_BUF_SIZE_MAX		((1 << 30) - 1)
++#define ENC_H264_LOOP_FILTER_AB_MIN	-12
++#define ENC_H264_LOOP_FILTER_AB_MAX	12
++#define ENC_H264_RC_FRAME_RATE_MAX	((1 << 16) - 1)
++#define ENC_H263_RC_FRAME_RATE_MAX	((1 << 16) - 1)
++#define ENC_H264_PROFILE_MAX		3
++#define ENC_H264_LEVEL_MAX		42
++#define ENC_MPEG4_VOP_TIME_RES_MAX	((1 << 16) - 1)
++#define FRAME_DELTA_H264_H263		1
++#define TIGHT_CBR_MAX			10
++
++/* Definitions for shared memory compatibility */
++#define PIC_TIME_TOP		S5P_FIMV_D_RET_PICTURE_TAG_TOP
++#define PIC_TIME_BOT		S5P_FIMV_D_RET_PICTURE_TAG_BOT
++#define CROP_INFO_H		S5P_FIMV_D_DISPLAY_CROP_INFO1
++#define CROP_INFO_V		S5P_FIMV_D_DISPLAY_CROP_INFO2
++
++void s5p_mfc_try_run(struct s5p_mfc_dev *dev);
++
++void s5p_mfc_cleanup_queue(struct list_head *lh, struct vb2_queue *vq);
++void s5p_mfc_clear_int_flags(struct s5p_mfc_dev *dev);
++
++void s5p_mfc_write_info(struct s5p_mfc_ctx *ctx, unsigned int data,
++		unsigned int ofs);
++unsigned int s5p_mfc_read_info(struct s5p_mfc_ctx *ctx, unsigned int ofs);
++
++#endif /* S5P_MFC_OPR_V6_H_ */
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_pm.c b/drivers/media/video/s5p-mfc/s5p_mfc_pm.c
+index 738a607..4fa0b54 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_pm.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_pm.c
+@@ -20,7 +20,11 @@
+ #include "s5p_mfc_debug.h"
+ #include "s5p_mfc_pm.h"
+ 
+-#define MFC_CLKNAME		"sclk_mfc"
++#if defined(CONFIG_VIDEO_SAMSUNG_S5P_MFC_V5)
++#define MFC_CLKNAME            "sclk_mfc"
++#elif defined(CONFIG_VIDEO_SAMSUNG_S5P_MFC_V6)
++#define MFC_CLKNAME            "aclk_333"
++#endif
+ #define MFC_GATE_CLK_NAME	"mfc"
+ 
+ #define CLK_DEBUG
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_shm.c b/drivers/media/video/s5p-mfc/s5p_mfc_shm.c
+index 91fdbac..9ee269d 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_shm.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_shm.c
+@@ -21,26 +21,28 @@ int s5p_mfc_init_shm(struct s5p_mfc_ctx *ctx)
+ {
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+ 	void *shm_alloc_ctx = dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
++	struct s5p_mfc_buf_size_v5 *buf_size = dev->variant->buf_size->priv;
+ 
+-	ctx->shm_alloc = vb2_dma_contig_memops.alloc(shm_alloc_ctx,
+-							SHARED_BUF_SIZE);
+-	if (IS_ERR(ctx->shm_alloc)) {
++	ctx->shm.alloc = vb2_dma_contig_memops.alloc(shm_alloc_ctx,
++							buf_size->shm);
++	if (IS_ERR(ctx->shm.alloc)) {
+ 		mfc_err("failed to allocate shared memory\n");
+-		return PTR_ERR(ctx->shm_alloc);
++		return PTR_ERR(ctx->shm.alloc);
+ 	}
+-	/* shm_ofs only keeps the offset from base (port a) */
+-	ctx->shm_ofs = s5p_mfc_mem_cookie(shm_alloc_ctx, ctx->shm_alloc)
++	/* shared memory offset only keeps the offset from base (port a) */
++	ctx->shm.ofs = s5p_mfc_mem_cookie(shm_alloc_ctx, ctx->shm.alloc)
+ 								- dev->bank1;
+-	BUG_ON(ctx->shm_ofs & ((1 << MFC_BANK1_ALIGN_ORDER) - 1));
+-	ctx->shm = vb2_dma_contig_memops.vaddr(ctx->shm_alloc);
+-	if (!ctx->shm) {
+-		vb2_dma_contig_memops.put(ctx->shm_alloc);
+-		ctx->shm_ofs = 0;
+-		ctx->shm_alloc = NULL;
++	BUG_ON(ctx->shm.ofs & ((1 << MFC_BANK1_ALIGN_ORDER) - 1));
++
++	ctx->shm.virt = vb2_dma_contig_memops.vaddr(ctx->shm.alloc);
++	if (!ctx->shm.virt) {
++		vb2_dma_contig_memops.put(ctx->shm.alloc);
++		ctx->shm.alloc = NULL;
++		ctx->shm.ofs = 0;
+ 		mfc_err("failed to virt addr of shared memory\n");
+ 		return -ENOMEM;
+ 	}
+-	memset((void *)ctx->shm, 0, SHARED_BUF_SIZE);
++	memset((void *)ctx->shm.virt, 0, buf_size->shm);
+ 	wmb();
+ 	return 0;
+ }
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_shm.h b/drivers/media/video/s5p-mfc/s5p_mfc_shm.h
+index cf962a4..8400ab0 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_shm.h
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_shm.h
+@@ -71,20 +71,23 @@ enum MFC_SHM_OFS {
+ 	DBG_HISTORY_INPUT1	= 0xD4,	/* C */
+ 	DBG_HISTORY_OUTPUT	= 0xD8,	/* C */
+ 	HIERARCHICAL_P_QP	= 0xE0, /* E, H.264 */
++	FRAME_PACK_SEI_ENABLE	= 0x168, /* C */
++	FRAME_PACK_SEI_AVAIL	= 0x16c, /* D */
++	FRAME_PACK_SEI_INFO	= 0x17c, /* E */
+ };
+ 
+ int s5p_mfc_init_shm(struct s5p_mfc_ctx *ctx);
+ 
+-#define s5p_mfc_write_shm(ctx, x, ofs)		\
+-	do {					\
+-		writel(x, (ctx->shm + ofs));	\
+-		wmb();				\
++#define s5p_mfc_write_shm(ctx, x, ofs)			\
++	do {						\
++		writel(x, (ctx->shm.virt + ofs));	\
++		wmb();					\
+ 	} while (0)
+ 
+ static inline u32 s5p_mfc_read_shm(struct s5p_mfc_ctx *ctx, unsigned int ofs)
+ {
+ 	rmb();
+-	return readl(ctx->shm + ofs);
++	return readl(ctx->shm.virt + ofs);
+ }
+ 
+ #endif /* S5P_MFC_SHM_H_ */
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 9abd9ab..61d6583 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -502,7 +502,6 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		return mpeg4_profile;
+ 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
+ 		return jpeg_chroma_subsampling;
+-
+ 	default:
+ 		return NULL;
+ 	}
 -- 
-1.7.9.5
+1.7.0.4
 
