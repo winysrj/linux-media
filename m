@@ -1,52 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:55733 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:57909 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755923Ab2GaSVq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 14:21:46 -0400
-Message-ID: <5018166D.8020608@redhat.com>
-Date: Tue, 31 Jul 2012 14:31:25 -0300
+	id S1751357Ab2GFNyN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Jul 2012 09:54:13 -0400
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q66DsDrU002343
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 6 Jul 2012 09:54:13 -0400
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: workshop-2011@linuxtv.org,
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [Workshop-2011] Media summit at the Kernel Summit - was: Fwd:
- Re: [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
-References: <20120713173708.GB17109@thunk.org> <5005A14D.8000809@redhat.com> <1442040.RXAGio1Eb8@avalon>
-In-Reply-To: <1442040.RXAGio1Eb8@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH] [media] rc/Kconfig: Move a LIRC sub-option to the right place
+Date: Fri,  6 Jul 2012 10:54:10 -0300
+Message-Id: <1341582850-25811-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 17-07-2012 19:46, Laurent Pinchart escreveu:
-> Hi Mauro,
-> 
-> On Tuesday 17 July 2012 14:30:53 Mauro Carvalho Chehab wrote:
->> As we did in 2012, we're planning to do a media summit again at KS/2012.
-> 
-> Great news!
-> 
->> The KS/2012 will happen in San Diego, CA, US, between Aug 26-28, just before
->> the LinuxCon North America.
->>
->> In order to do it, I'd like to know who is interested on participate, and to
->> get proposals about what subjects will be discussed there, in order to start
->> planning the agenda.
-> 
-> Sakari and I will spend time on the long-awaited media controller library in a 
-> couple of weeks, I hope to have results to present during the summit.
+The IR to LIRC option were at the wrong sub-menu. Move it to the right
+place.
 
-Great!
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/rc/Kconfig |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
-> Depending on the audience, I would also be interested in getting feedback from 
-> SoC vendors who are not (yet) active in the V4L2 community on our approach and 
-> how we could best help them. This could include discussions about Android, as 
-> I believe we need to push V4L2 on that platform. Guennadi's recent work on an 
-> Android V4L2 camera library is a good first step in that direction.
-
-Excelent idea. I'll be adding it at the topics proposal summary.
-
-Thanks,
-Mauro
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index 2478b06..908ef70 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -23,6 +23,17 @@ config LIRC
+ 	   LIRC daemon handles protocol decoding for IR reception and
+ 	   encoding for IR transmitting (aka "blasting").
+ 
++config IR_LIRC_CODEC
++	tristate "Enable IR to LIRC bridge"
++	depends on RC_CORE
++	depends on LIRC
++	default y
++
++	---help---
++	   Enable this option to pass raw IR to and from userspace via
++	   the LIRC interface.
++
++
+ config IR_NEC_DECODER
+ 	tristate "Enable IR raw decoder for the NEC protocol"
+ 	depends on RC_CORE
+@@ -113,16 +124,6 @@ menuconfig RC_DEVICES
+ 
+ if RC_DEVICES
+ 
+-config IR_LIRC_CODEC
+-	tristate "Enable IR to LIRC bridge"
+-	depends on RC_CORE
+-	depends on LIRC
+-	default y
+-
+-	---help---
+-	   Enable this option to pass raw IR to and from userspace via
+-	   the LIRC interface.
+-
+ config RC_ATI_REMOTE
+ 	tristate "ATI / X10 based USB RF remote controls"
+ 	depends on USB_ARCH_HAS_HCD
+-- 
+1.7.10.4
 
