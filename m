@@ -1,41 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52815 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752009Ab2GJMIZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jul 2012 08:08:25 -0400
-From: "Lad, Prabhakar" <prabhakar.lad@ti.com>
-To: "'Mauro Carvalho Chehab'" <mchehab@redhat.com>
-CC: "'LMML'" <linux-media@vger.kernel.org>,
-	"'dlos'" <davinci-linux-open-source@linux.davincidsp.com>,
-	"Hadli, Manjunath" <manjunath.hadli@ti.com>,
-	Federico Vaga <federico.vaga@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL] Videobuf dma-contig fix for v3.5
-Date: Tue, 10 Jul 2012 12:08:17 +0000
-Message-ID: <4665BC9CC4253445B213A010E6DC7B35CE0005@DBDE01.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60064 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752757Ab2GFOez (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 10:34:55 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 00/10] Miscellaneous ov772x cleanups and fixes
+Date: Fri,  6 Jul 2012 16:34:51 +0200
+Message-Id: <1341585301-1003-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
- Please pull the following videobuf dma-contig fix for v3.5
+Hi Guennadi,
 
-Thanks and Regards,
---Prabhakar Lad
+The subject line says it all :-) These patches have been written while
+preparing the ov772x driver for being used with a non soc-camera host.
+They apply on top of my previous soc-camera patch series.
 
-The following changes since commit bd0a521e88aa7a06ae7aabaed7ae196ed4ad867a:
+Laurent Pinchart (10):
+  ov772x: Reorganize the code in sections
+  ov772x: Fix memory leak in probe error path
+  ov772x: Select the default format at probe time
+  ov772x: Don't fail in s_fmt if the requested format isn't supported
+  ov772x: try_fmt must not default to the current format
+  ov772x: Make to_ov772x convert from v4l2_subdev to ov772x_priv
+  ov772x: Add ov772x_read() and ov772x_write() functions
+  ov772x: Add support for SBGGR10 format
+  ov772x: Compute window size registers at runtime
+  ov772x: Stop sensor readout right after reset
 
-  Linux 3.5-rc6 (2012-07-07 17:23:56 -0700)
+ drivers/media/video/ov772x.c |  801 +++++++++++++++++++++---------------------
+ 1 files changed, 398 insertions(+), 403 deletions(-)
 
-are available in the git repository at:
-  git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git pull_videobuf_core_fix
+-- 
+Regards,
 
-Lad, Prabhakar (1):
-      videobuf-dma-contig: restore buffer mapping for uncached bufers
+Laurent Pinchart
 
- drivers/media/video/videobuf-dma-contig.c |   53 +++++++++++++++++-----------
- 1 files changed, 32 insertions(+), 21 deletions(-)
