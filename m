@@ -1,85 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:57068 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752108Ab2GIIHH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2012 04:07:07 -0400
-Date: Mon, 9 Jul 2012 10:07:03 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org, fabio.estevam@freescale.com,
-	linux-arm-kernel@lists.infradead.org,
-	laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
-	mchehab@infradead.org, kernel@pengutronix.de,
-	Baruch Siach <baruch@tkos.co.il>
-Subject: Re: [PATCH] [v3] i.MX27: Fix emma-prp clocks in mx2_camera.c
-Message-ID: <20120709080703.GU30009@pengutronix.de>
-References: <1341572162-29126-1-git-send-email-javier.martin@vista-silicon.com>
- <20120709072809.GP30009@pengutronix.de>
- <CACKLOr25yb1Cx4XNriyPceBcqmc5T4jDpJXFpve9JCXpP7iMLg@mail.gmail.com>
- <20120709074337.GT30009@pengutronix.de>
- <CACKLOr05W5N4n9TSKdaCP-6-j+zDSr=aNG4QoTMVWXTrM30x7Q@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CACKLOr05W5N4n9TSKdaCP-6-j+zDSr=aNG4QoTMVWXTrM30x7Q@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:55040 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756009Ab2GFBij (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Jul 2012 21:38:39 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Steven Toth <stoth@kernellabs.com>
+Subject: [PATCH] [media] get_dvb_firmware: add logic to get sms1xx-hcw* firmware
+Date: Thu,  5 Jul 2012 22:38:30 -0300
+Message-Id: <1341538710-21997-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 09, 2012 at 09:46:03AM +0200, javier Martin wrote:
-> On 9 July 2012 09:43, Sascha Hauer <s.hauer@pengutronix.de> wrote:
-> > On Mon, Jul 09, 2012 at 09:37:25AM +0200, javier Martin wrote:
-> >> On 9 July 2012 09:28, Sascha Hauer <s.hauer@pengutronix.de> wrote:
-> >> > On Fri, Jul 06, 2012 at 12:56:02PM +0200, Javier Martin wrote:
-> >> >> This driver wasn't converted to the new clock changes
-> >> >> (clk_prepare_enable/clk_disable_unprepare). Also naming
-> >> >> of emma-prp related clocks for the i.MX27 was not correct.
-> >> >> ---
-> >> >> Enable clocks only for i.MX27.
-> >> >>
-> >> >
-> >> > Indeed,
-> >> >
-> >> >>
-> >> >> -     pcdev->clk_csi = clk_get(&pdev->dev, NULL);
-> >> >> -     if (IS_ERR(pcdev->clk_csi)) {
-> >> >> -             dev_err(&pdev->dev, "Could not get csi clock\n");
-> >> >> -             err = PTR_ERR(pcdev->clk_csi);
-> >> >> -             goto exit_kfree;
-> >> >> +     if (cpu_is_mx27()) {
-> >> >> +             pcdev->clk_csi = devm_clk_get(&pdev->dev, "ahb");
-> >> >> +             if (IS_ERR(pcdev->clk_csi)) {
-> >> >> +                     dev_err(&pdev->dev, "Could not get csi clock\n");
-> >> >> +                     err = PTR_ERR(pcdev->clk_csi);
-> >> >> +                     goto exit_kfree;
-> >> >> +             }
-> >> >
-> >> > but why? Now the i.MX25 won't get a clock anymore.
-> >>
-> >> What are the clocks needed by i.MX25? csi only?
-> >>
-> >> By the way, is anybody using this driver with i.MX25?
-> >
-> > It seems Baruch (added to Cc) has used it on an i.MX25.
-> 
-> Baruch,
-> could you tell us what are the clocks needed by i.MX25?
+The firmwares are there at the same place for a long time. However,
+each time I need to remember where it is, I need to seek at the net.
 
-I just had a look and the i.MX25 it needs three clocks: ipg, ahb and
-peripheral clock. So this is broken anyway and should probably be fixed
-seperately, that is:
+The better is to just add a logic at the get_dvb_firmare script,
+in order to obtain it from a reliable source.
 
-- provide dummy clocks for the csi clocks on i.MX27
-- clk_get ipg, ahb and peripheral clocks on all SoCs
-- clk_get emma clocks on i.MX27 only
+Cc: Steven Toth <stoth@kernellabs.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ Documentation/dvb/get_dvb_firmware |   24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
 
-As said, this is a separate topic, so your original patch should be fine
-for now.
-
-Sascha
-
-
+diff --git a/Documentation/dvb/get_dvb_firmware b/Documentation/dvb/get_dvb_firmware
+index 94b0168..12d3952e 100755
+--- a/Documentation/dvb/get_dvb_firmware
++++ b/Documentation/dvb/get_dvb_firmware
+@@ -29,7 +29,7 @@ use IO::Handle;
+ 		"af9015", "ngene", "az6027", "lme2510_lg", "lme2510c_s7395",
+ 		"lme2510c_s7395_old", "drxk", "drxk_terratec_h5",
+ 		"drxk_hauppauge_hvr930c", "tda10071", "it9135", "it9137",
+-		"drxk_pctv", "drxk_terratec_htc_stick");
++		"drxk_pctv", "drxk_terratec_htc_stick", "sms1xxx_hcw");
+ 
+ # Check args
+ syntax() if (scalar(@ARGV) != 1);
+@@ -766,6 +766,28 @@ sub drxk_pctv {
+     "$fwfile";
+ }
+ 
++sub sms1xxx_hcw {
++    my $url = "http://steventoth.net/linux/sms1xxx/";
++    my %files = (
++	'sms1xxx-hcw-55xxx-dvbt-01.fw'  => "afb6f9fb9a71d64392e8564ef9577e5a",
++	'sms1xxx-hcw-55xxx-dvbt-02.fw'  => "b44807098ba26e52cbedeadc052ba58f",
++	'sms1xxx-hcw-55xxx-isdbt-02.fw' => "dae934eeea85225acbd63ce6cfe1c9e4",
++    );
++
++    checkstandard();
++
++    my $allfiles;
++    foreach my $fwfile (keys %files) {
++	wgetfile($fwfile, "$url/$fwfile");
++	verify($fwfile, $files{$fwfile});
++	$allfiles .= " $fwfile";
++    }
++
++    $allfiles =~ s/^\s//;
++
++    $allfiles;
++}
++
+ # ---------------------------------------------------------------
+ # Utilities
+ 
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+1.7.10.4
+
