@@ -1,88 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:60054 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751704Ab2GRJBG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jul 2012 05:01:06 -0400
-Received: by wgbdr13 with SMTP id dr13so1176225wgb.1
-        for <linux-media@vger.kernel.org>; Wed, 18 Jul 2012 02:01:04 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1342600546.2542.101.camel@pizza.hi.pengutronix.de>
-References: <1342077100-8629-1-git-send-email-javier.martin@vista-silicon.com>
-	<1342459273.2535.665.camel@pizza.hi.pengutronix.de>
-	<CACKLOr3rOPgwMCRdj3ARR+0655Qp=BfEXq0TsB7TU-hO4NSsqg@mail.gmail.com>
-	<1342600546.2542.101.camel@pizza.hi.pengutronix.de>
-Date: Wed, 18 Jul 2012 11:01:04 +0200
-Message-ID: <CACKLOr1i-iByVtST6sqXqmHHzhJ1mgUdBWjp-jFsYPX-bnAMxQ@mail.gmail.com>
-Subject: Re: [PATCH v3] media: coda: Add driver for Coda video codec.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
-	mchehab@infradead.org, s.hauer@pengutronix.de
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:61148 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754935Ab2GFB71 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Jul 2012 21:59:27 -0400
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q661xRkL016953
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 5 Jul 2012 21:59:27 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] [media] em28xx: fix em28xx-rc load
+Date: Thu,  5 Jul 2012 22:59:22 -0300
+Message-Id: <1341539962-22511-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18 July 2012 10:35, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> Hi Javier,
->
-> Am Mittwoch, den 18.07.2012, 09:12 +0200 schrieb javier Martin:
-> [...]
->> > I see there is a comment about the expected register setting not working
->> > for CODA_REG_BIT_STREAM_CTRL in start_streaming(). Could this be
->> > related?
->>
->> I don't think so. This means that the following line:
->>
->> coda_write(dev, (3 << 3), CODA_REG_BIT_STREAM_CTRL);
->>
->> should be:
->>
->> coda_write(dev, (CODADX6_STREAM_BUF_PIC_RESET |
->> CODADX6_STREAM_BUF_PIC_FLUSH), CODA_REG_BIT_STREAM_CTRL);
->>
->> But the latter does not work.
->
-> Looks to me like (3 << 3) == (CODA7_STREAM_BUF_PIC_RESET |
-> CODA7_STREAM_BUF_PIC_FLUSH) could be the explanation.
+The logic that checks if a device has remote control is wrong.
+Due to that, the em28xx RC module is not loaded by default.
 
-You mean "!=", don't you?
+Fix the logic, in order to make it work properly.
 
-> Maybe the documentation about CODADX6_STREAM_BUF_PIC_RESET |
-> CODADX6_STREAM_BUF_PIC_FLUSH was outdated?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/video/em28xx/em28xx-cards.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Maybe some of these two defines is wrong, I don't know exactly. Maybe
-when support for other coda versions is added we'll find out. To
-clarify my magic value (3 << 3) I decided to add a comment explaining
-that what I am doing is a reset and flush.
-
->> > Also, I've missed two problems with platform device removal and module
->> > autoloading before, see below.
->>
->> Fine.
-> [...]
->> I will send a new v4 with the 'platform' and 'bytesused' issues fixed.
->> Regarding your i.MX53 problems I suppose they should be addressed
->> conditionally in a patch on top of this one where i.MX53 support is
->> added too.
->> What do you think?
->
-> Agreed. After fixing the issues in vidioc_try_fmt, MODULE_DEVICE_TABLE,
-> and coda_remove, feel free to add a
-> Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
->
-
-OK I expect to send v4 during the morning.
-
-Regards.
-
+diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
+index 12bc54a..ca62b99 100644
+--- a/drivers/media/video/em28xx/em28xx-cards.c
++++ b/drivers/media/video/em28xx/em28xx-cards.c
+@@ -2888,7 +2888,7 @@ static void request_module_async(struct work_struct *work)
+ 
+ 	if (dev->board.has_dvb)
+ 		request_module("em28xx-dvb");
+-	if (dev->board.has_ir_i2c && !disable_ir)
++	if (dev->board.ir_codes && !disable_ir)
+ 		request_module("em28xx-rc");
+ }
+ 
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+1.7.10.4
+
