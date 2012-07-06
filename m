@@ -1,44 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:34804 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754519Ab2GKVa6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jul 2012 17:30:58 -0400
-Received: by ghrr11 with SMTP id r11so1757093ghr.19
-        for <linux-media@vger.kernel.org>; Wed, 11 Jul 2012 14:30:58 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:55545 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753982Ab2GFVX4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Jul 2012 17:23:56 -0400
+Message-ID: <4FF7575C.8030808@redhat.com>
+Date: Fri, 06 Jul 2012 18:23:40 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <CAA7C2qi5w+22LX+5r_8fKjxOOtGHGRQfFivC3GG0UD1LWE_Txg@mail.gmail.com>
-References: <CADR1r6gQD-yQhzhfF0PUJq06Xw9Oq7YJHtRVWPXEEmwtR36k+Q@mail.gmail.com>
-	<CAA7C2qi5w+22LX+5r_8fKjxOOtGHGRQfFivC3GG0UD1LWE_Txg@mail.gmail.com>
-Date: Wed, 11 Jul 2012 23:30:57 +0200
-Message-ID: <CADR1r6is7yNaCLYmLuVB-QwJHjBaQJJAL-rnmn2ufE+Rt6_ezg@mail.gmail.com>
-Subject: Re: Make menuconfig doesn't work anymore
-From: Martin Herrman <martin.herrman@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: =?UTF-8?B?QmVub8OudCBUaMOpYmF1ZGVhdQ==?=
+	<benoit.thebaudeau@advansee.com>
+CC: Changbin Du <changbin.du@gmail.com>, tsoni@codeaurora.org,
+	dan carpenter <dan.carpenter@oracle.com>,
+	kumarrav@codeaurora.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, mchehab@infradead.org
+Subject: Re: [PATCH] media: gpio-ir-recv: add allowed_protos and map_name
+ for platform data
+References: <539669167.615856.1341314356547.JavaMail.root@advansee.com>
+In-Reply-To: <539669167.615856.1341314356547.JavaMail.root@advansee.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/7/11 VDR User <user.vdr@gmail.com>:
+Em 03-07-2012 08:19, Benoît Thébaudeau escreveu:
+> Hi Changbin,
+> 
+> On Tue, Jul 3, 2012 at 12:27:19PM +0200, Changbin Du wrote:
+>> It's better to give platform code a chance to specify the allowed
+>> protocols and which keymap to use.
+> 
+> Already half done here:
+> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=2bd237b
 
-> Actually I got the exact same error when compiling a new 3.4.4 kernel.
+OK. Applied just the other half of the change.
 
-It always feels good to know that you're not alone ;-)
+Regards,
+Mauro
 
-> I assume the api_version.patch is bad or needs to be updated. I simple
-> just commented out the "add api_version.patch" line in
-> backports/backports.txt and crossed my fingers the drivers I use still
-> worked -- which they did so all is well here (afaik). But, yeah it
-> does need a proper fix and I only recommend my cheap workaround with a
-> YMMV warning.
+-
 
-thanks, this solved the first part of the problem. I can now do a make
-menuconfig, but the frontend modules I need cannot be selected,
-although the file
-/usr/src/media_build_experimental/linux/drivers/media/dvb/frontends/tda18212dd.c
-etc. do exist.
+[media] media: gpio-ir-recv: add allowed_protos for platform data
 
-I have also looked into the staging drivers and enabled drivers not
-supported by this kernel, but stil no luck.
+From: Du, Changbin <changbin.du@gmail.com>
 
-Did you have this problem as well?
+It's better to give platform code a chance to specify the allowed
+protocols to use.
+
+[mchehab@redhat.com: fix merge conflict with a patch that made
+ half of this change]
+Signed-off-by: Du, Changbin <changbin.du@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
+index 59fe60c..04cb272 100644
+--- a/drivers/media/rc/gpio-ir-recv.c
++++ b/drivers/media/rc/gpio-ir-recv.c
+@@ -84,7 +84,6 @@ static int __devinit gpio_ir_recv_probe(struct platform_device *pdev)
+ 
+ 	rcdev->priv = gpio_dev;
+ 	rcdev->driver_type = RC_DRIVER_IR_RAW;
+-	rcdev->allowed_protos = RC_TYPE_ALL;
+ 	rcdev->input_name = GPIO_IR_DEVICE_NAME;
+ 	rcdev->input_phys = GPIO_IR_DEVICE_NAME "/input0";
+ 	rcdev->input_id.bustype = BUS_HOST;
+@@ -93,6 +92,10 @@ static int __devinit gpio_ir_recv_probe(struct platform_device *pdev)
+ 	rcdev->input_id.version = 0x0100;
+ 	rcdev->dev.parent = &pdev->dev;
+ 	rcdev->driver_name = GPIO_IR_DRIVER_NAME;
++	if (pdata->allowed_protos)
++		rcdev->allowed_protos = pdata->allowed_protos;
++	else
++		rcdev->allowed_protos = RC_TYPE_ALL;
+ 	rcdev->map_name = pdata->map_name ?: RC_MAP_EMPTY;
+ 
+ 	gpio_dev->rcdev = rcdev;
+diff --git a/include/media/gpio-ir-recv.h b/include/media/gpio-ir-recv.h
+index 91546f3..0142736 100644
+--- a/include/media/gpio-ir-recv.h
++++ b/include/media/gpio-ir-recv.h
+@@ -14,9 +14,10 @@
+ #define __GPIO_IR_RECV_H__
+ 
+ struct gpio_ir_recv_platform_data {
+-	int gpio_nr;
+-	bool active_low;
+-	const char *map_name;
++	int		gpio_nr;
++	bool		active_low;
++	u64		allowed_protos;
++	const char	*map_name;
+ };
+ 
+ #endif /* __GPIO_IR_RECV_H__ */
