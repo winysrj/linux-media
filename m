@@ -1,91 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:65036 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754828Ab2GMSRc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jul 2012 14:17:32 -0400
-Received: by wgbdr13 with SMTP id dr13so3430223wgb.1
-        for <linux-media@vger.kernel.org>; Fri, 13 Jul 2012 11:17:31 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:44107 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933440Ab2GFLjC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Jul 2012 07:39:02 -0400
+Message-ID: <4FF6CE48.3000300@iki.fi>
+Date: Fri, 06 Jul 2012 14:38:48 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <20120713115121.GA27595@elgon.mountain>
-References: <20120713115121.GA27595@elgon.mountain>
-From: halli manjunatha <hallimanju@gmail.com>
-Date: Fri, 13 Jul 2012 13:17:11 -0500
-Message-ID: <CAMT6PyccqZ=KJ4+EuPXXaCHZ+YK3+MHWmPVbZEuTOD_e1WTBKA@mail.gmail.com>
-Subject: Re: [media] drivers:media:radio: wl128x: FM Driver Common sources
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: htl10@users.sourceforge.net
+CC: mchehab@redhat.com, linux-media@vger.kernel.org
+Subject: Re: media_build and Terratec Cinergy T Black.
+References: <1341572070.43713.YahooMailClassic@web29402.mail.ird.yahoo.com>
+In-Reply-To: <1341572070.43713.YahooMailClassic@web29402.mail.ird.yahoo.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 13, 2012 at 6:51 AM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
+On 07/06/2012 01:54 PM, Hin-Tak Leung wrote:
+> - $ lsdvb seems to be doing garbage:(fedora 17's)
 >
-> Hello Manjunatha Halli,
+> usb (-1975381336:62 64848224:32767) on PCI Domain:-1965359032 Bus:62 Device:64848416 Function:32767
+> 	DEVICE:0 ADAPTER:0 FRONTEND:0 (Realtek RTL2832 (DVB-T))
+> 		 FE_OFDM Fmin=174MHz Fmax=862MHz
 >
-> The patch e8454ff7b9a4: "[media] drivers:media:radio: wl128x: FM
-> Driver Common sources" from Jan 11, 2011, leads to the following
-> warning:
-> drivers/media/radio/wl128x/fmdrv_common.c:596
-> fm_irq_handle_flag_getcmd_resp()
->          error: untrusted 'fm_evt_hdr->dlen' is not capped properly
+> lsdvb on mercury is only marginally better with the PCI zero's, but the other numbers swapped:
 >
-> [ this is on my private Smatch stuff with too many false positives for
->   general release ].
+> usb (62:-1975379912 32767:-348245472) on PCI Domain:0 Bus:0 Device:0 Function:0
+> 	DEVICE:0 ADAPTER:0 FRONTEND:0 (Realtek RTL2832 (DVB-T))
+> 		 FE_OFDM Fmin=174MHz Fmax=862MHz
+
+I was aware of that tool but didn't know it lists USB devices too.
+Someone should fix it working properly for USB devices.
+
+> - 'scandvb' segfault at the end on its own.
+
+I didn't see that.
+
+> - "scandvb /usr/share/dvb/dvb-t/uk-SandyHeath" (supposedly where I am) got a few "WARNING: >>> tuning failed!!!" and no list.
 >
->    584  static void fm_irq_handle_flag_getcmd_resp(struct fmdev *fmdev)
->    585  {
->    586          struct sk_buff *skb;
->    587          struct fm_event_msg_hdr *fm_evt_hdr;
->    588
->    589          if (check_cmdresp_status(fmdev, &skb))
->    590                  return;
->    591
->    592          fm_evt_hdr = (void *)skb->data;
->    593
->    594          /* Skip header info and copy only response data */
->    595          skb_pull(skb, sizeof(struct fm_event_msg_hdr));
->    596          memcpy(&fmdev->irq_info.flag, skb->data,
-> fm_evt_hdr->dlen);
->                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> - 'w_scan -G -c GB'
+>    have a few curious
+> WARNING: received garbage data: crc = 0xcc93876c; expected crc = 0xb81bb6c4
 >
->    597
->    598          fmdev->irq_info.flag = be16_to_cpu(fmdev->irq_info.flag);
->    599          fmdbg("irq: flag register(0x%x)\n", fmdev->irq_info.flag);
->    600
->    601          /* Continue next function in interrupt handler table */
->    602          fm_irq_call_stage(fmdev, FM_HW_MAL_FUNC_IDX);
->    603  }
+> return a list of 26, with entries like (which seems to be vaguely correct):
 >
-> What are we copying here?  How do we know that ->dlen doesn't overflow
-> the buffer?  Why do we memcpy() and the overwrite part of the data on
-> the next line?
+> BBC ONE;(null):522000:B8C23D0G32M64T8Y0:T:27500:101=2:102,106=eng:0:0:4173:9018:4173:0:100
 
-Here I am trying to get the current value of the flag register which
-is of maximum 16bit wide.
+Both scandvb and w_scan works here, same device used. I suspect your 
+signal is just simply too weak for reception. Small antenna coming with 
+those DVB sticks is not suitable unless you are living very near 
+transmitter. Try to connect it roof antenna. One thing that helps a lot 
+is to attach small bundled antenna to outside window.
 
-So ->dlen value never overflow the buffer.
+There is both dvbscan and scandvb in Fedora dvb-apps. It is not clear 
+for me why two similar looking tools. Anyhow it is just scandvb which I 
+found working one.
 
-In memcopy() case I am just trying to avoid 1 more variable so first I
-memcopy the skb->data to  ->irq_info.flag then I will correct the
-endianness of
 
-->irq_info.flag in next line.
-
-Regards
-manju
-
+> So I just put it in ~/.mplayer:channels.conf
 >
-> regards,
-> dan carpenter
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Took me a while to figure out that mplayer wants:
+>
+> mplayer 'dvb://BBC ONE;(null)'
+>
+> rather than anything else - curious about the ';(null)' part.
+>
+> --------
+> Playing dvb://BBC ONE;(null).
+> dvb_tune Freq: 522000
+> ERROR IN SETTING DMX_FILTER 9018 for fd 4: ERRNO: 22ERROR, COULDN'T SET CHANNEL  8: Failed to open dvb://BBC ONE;(null).
+> ----------
+
+Typical channels.conf entry looks like that:
+MTV3:714000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:305:561:49
+
+And tuning to that channel using mplayer:
+mplayer dvb://MTV3
+
+However, I prefer VLC. Just open channels.conf to VLC and should show 
+playlist. Totem does not work anymore. at least stream used here in 
+Finland. It went broken when they changed from playbin to playbin2 which 
+is really shame as it is default video player for Gnome desktop.
 
 
+> At this point I am lost :-).
+
+Not big surprise unfortunately :/
+
+Unfortunately desktop integration is currently poor and most users are 
+coming from the HTPC.
+
+regards
+Antti
 
 
---
-Regards
-Halli
+-- 
+http://palosaari.fi/
+
+
