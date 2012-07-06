@@ -1,142 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:23870 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754829Ab2GQLDe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Jul 2012 07:03:34 -0400
-Message-ID: <50054682.7070503@linux.intel.com>
-Date: Tue, 17 Jul 2012 14:03:30 +0300
-From: David Cohen <david.a.cohen@linux.intel.com>
+Received: from smtp-out-146.synserver.de ([212.40.185.146]:1112 "EHLO
+	smtp-out-146.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751715Ab2GFINE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 04:13:04 -0400
+Message-ID: <4FF69D67.8050408@metafoo.de>
+Date: Fri, 06 Jul 2012 10:10:15 +0200
+From: Lars-Peter Clausen <lars@metafoo.de>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 7/9] soc-camera: Continue the power off sequence if
- one of the steps fails
-References: <1341520728-2707-1-git-send-email-laurent.pinchart@ideasonboard.com> <1341520728-2707-8-git-send-email-laurent.pinchart@ideasonboard.com> <50034325.50006@linux.intel.com> <11676269.DxxC5Mj13x@avalon>
-In-Reply-To: <11676269.DxxC5Mj13x@avalon>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Hans Verkuil <hans.verkuil@cisco.com>
+CC: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	device-drivers-devel@blackfin.uclinux.org
+Subject: Re: [Device-drivers-devel] [RFCv1 PATCH 0/7] Add adv7604/ad9389b
+ drivers
+References: <1341498375-9411-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <1341498375-9411-1-git-send-email-hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On 07/05/2012 04:26 PM, Hans Verkuil wrote:
+> Hi all,
+> 
+> This RFC patch series builds on an earlier RFC patch series (posted only to
+> linux-media) that adds support for DVI/HDMI/DP connectors to the V4L2 API.
+> 
+> This earlier patch series is here:
+> 
+> 	http://www.spinics.net/lists/linux-media/msg48529.html
+> 
+> The first 3 patches are effectively unchanged compared to that patch series,
+> patch 4 adds support for the newly defined controls to the V4L2 control framework
+> and patch 5 adds helper functions to v4l2-common.c to help in detecting VESA
+> CVT and GTF formats.
+> 
+> Finally, two Analog Devices drivers are added to actually use this new API.
+> The adv7604 is an HDMI/DVI receiver and the ad9389b is an HDMI transmitter.
+> 
+> Another tree of mine also contains preliminary drivers for the adv7842
+> and adv7511:
 
-On 07/17/2012 02:45 AM, Laurent Pinchart wrote:
-> Hi David,
->
-> Thank you for the review.
+Hm, ok that's interesting I do have a DRM driver for the adv7511:
+https://github.com/lclausen-adi/linux-2.6/blob/adv7511_zynq/drivers/gpu/drm/i2c/adv7511_core.c
 
-You're welcome.
+I wonder if it is possible to share some code on this.
 
->
-> On Monday 16 July 2012 01:24:37 David Cohen wrote:
->> On 07/05/2012 11:38 PM, Laurent Pinchart wrote:
->>> Powering off a device is a "best effort" task: failure to execute one of
->>> the steps should not prevent the next steps to be executed. For
->>> instance, an I2C communication error when putting the chip in stand-by
->>> mode should not prevent the more agressive next step of turning the
->>> chip's power supply off.
->>>
->>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>> ---
->>>
->>>    drivers/media/video/soc_camera.c |    9 +++------
->>>    1 files changed, 3 insertions(+), 6 deletions(-)
->>>
->>> diff --git a/drivers/media/video/soc_camera.c
->>> b/drivers/media/video/soc_camera.c index 55b981f..bbd518f 100644
->>> --- a/drivers/media/video/soc_camera.c
->>> +++ b/drivers/media/video/soc_camera.c
->>> @@ -89,18 +89,15 @@ static int soc_camera_power_off(struct
->>> soc_camera_device *icd,>
->>>    				struct soc_camera_link *icl)
->>>    {
->>>    	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
->>> -	int ret = v4l2_subdev_call(sd, core, s_power, 0);
->>> +	int ret;
->>>
->>> -	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
->>> -		return ret;
->>> +	v4l2_subdev_call(sd, core, s_power, 0);
->>
->> Fair enough. I agree we should not prevent power off because of failure
->> in this step. But IMO we should not silently bypass it too. How about
->> an error message?
->
-> I'll add that.
->
->>>    	if (icl->power) {
->>>    	
->>>    		ret = icl->power(icd->control, 0);
->>>
->>> -		if (ret < 0) {
->>> +		if (ret < 0)
->>>
->>>    			dev_err(icd->pdev,
->>>    			
->>>    				"Platform failed to power-off the camera.\n");
->>>
->>> -			return ret;
->>> -		}
->>>
->>>    	}
->>>    	
->>>    	ret = regulator_bulk_disable(icl->num_regulators,
->>
->> One more comment. Should this function's return value being based fully
->> on last action? If any earlier error happened but this last step is
->> fine, IMO we should not return 0.
->
-> Good point. What about this (on top of the current patch) ?
+> 
+> 	http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/hdmi
+> 
+> However, I want to start with adv7604 and ad9389b since those have had the most
+> testing.
 
-That sounds nice to me :)
+I've also have some code which adds adv7611 support to your adv7604 driver.
 
-Regards,
-
-David Cohen
-
->
-> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-> index bbd518f..7bf21da 100644
-> --- a/drivers/media/video/soc_camera.c
-> +++ b/drivers/media/video/soc_camera.c
-> @@ -89,21 +89,30 @@ static int soc_camera_power_off(struct soc_camera_device *icd,
->                                  struct soc_camera_link *icl)
->   {
->          struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-> -       int ret;
-> +       int ret = 0;
-> +       int err;
->
-> -       v4l2_subdev_call(sd, core, s_power, 0);
-> +       err = v4l2_subdev_call(sd, core, s_power, 0);
-> +       if (err < 0 && err != -ENOIOCTLCMD && err != -ENODEV) {
-> +               dev_err(icd->pdev, "Subdev failed to power-off the camera.\n");
-> +               ret = err;
-> +       }
->
->          if (icl->power) {
-> -               ret = icl->power(icd->control, 0);
-> -               if (ret < 0)
-> +               err = icl->power(icd->control, 0);
-> +               if (err < 0) {
->                          dev_err(icd->pdev,
->                                  "Platform failed to power-off the camera.\n");
-> +                       ret = ret ? : err;
-> +               }
->          }
->
-> -       ret = regulator_bulk_disable(icl->num_regulators,
-> +       err = regulator_bulk_disable(icl->num_regulators,
->                                       icl->regulators);
-> -       if (ret < 0)
-> +       if (err < 0) {
->                  dev_err(icd->pdev, "Cannot disable regulators\n");
-> +               ret = ret ? : err;
-> +       }
->
->          return ret;
->   }
->
-
+> 
+> As the commit message of says these drivers do not implement the full
+> functionality of these devices, but that can be added later, either
+> by Cisco or by others.
+> 
+> A lot of work has been put into the V4L2 subsystem to reach this point,
+> particularly the control framework, the VIDIOC_G/S/ENUM/QUERY_DV_TIMINGS
+> ioctls, and the V4L2 event mechanism. So I'm very pleased to be able to finally
+> post this code.
+> 
+> Comments are welcome!
+> 
+> Regards,
+> 
+> 	Hans Verkuil
+> 
+> _______________________________________________
+> Device-drivers-devel mailing list
+> Device-drivers-devel@blackfin.uclinux.org
+> https://blackfin.uclinux.org/mailman/listinfo/device-drivers-devel
 
