@@ -1,45 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54246 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757488Ab2GFPMd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Jul 2012 11:12:33 -0400
-Message-ID: <4FF7005D.6020809@redhat.com>
-Date: Fri, 06 Jul 2012 12:12:29 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] em28xx: Remove useless runtime->private_data usage
-References: <1339509222-2714-1-git-send-email-elezegarcia@gmail.com> <1339509222-2714-2-git-send-email-elezegarcia@gmail.com> <4FF5C77C.7030500@redhat.com> <CALF0-+XzNOiM+TA3rzY2NGSyXgFL8SuVU_yP0GTpcFMavQmNSg@mail.gmail.com> <CALF0-+X3=8kcyz30cqYAH7nunEZyKpvkq0gh70_TB-r-jbutig@mail.gmail.com> <CALF0-+UqVy8PzgkNzqH3bdML1QWye+XMTx_-YrmnKGE0s_XepQ@mail.gmail.com>
-In-Reply-To: <CALF0-+UqVy8PzgkNzqH3bdML1QWye+XMTx_-YrmnKGE0s_XepQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53529 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750748Ab2GFNcp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 09:32:45 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Jean-Philippe Francois <jp.francois@cynove.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v2 1/6] omap3isp: preview: Fix contrast and brightness handling
+Date: Fri,  6 Jul 2012 15:32:44 +0200
+Message-Id: <1341581569-8292-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1341581569-8292-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1341581569-8292-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 06-07-2012 11:33, Ezequiel Garcia escreveu:
-> Mauro,
-> 
-> On Thu, Jul 5, 2012 at 2:22 PM, Ezequiel Garcia >> Are you sure that
-> this can be removed? I think this is used internally
->>> by the alsa API, but maybe something has changed and this is not
->>> required anymore.
->>
->> Yes, I'm sure.
->>
-> 
-> This should be: "I'm almost sure" :-)
-> Anyway, probably the patch should have a more verbose commit
-> message, right?
+Commit bac387efbb88cf0e8df6f46a38387897cea464ee ("omap3isp: preview:
+Simplify configuration parameters access") added three fields to the
+preview_update structure, but failed to properly update the related
+initializers. Fix this.
 
-Yeah, that would be good.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/omap3isp/isppreview.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-> Do you want to do drop it entirely?
-
-No, but, as I'm taking a 2-week vacations starting next week, I'll postpone
-those "compiled-only" cleanup patches to apply after my return, probably
-holding them to be applied on 3.6.
-
-Regards,
-Mauro
+diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
+index 8a4935e..aec9860 100644
+--- a/drivers/media/video/omap3isp/isppreview.c
++++ b/drivers/media/video/omap3isp/isppreview.c
+@@ -888,12 +888,12 @@ static const struct preview_update update_attrs[] = {
+ 		preview_config_contrast,
+ 		NULL,
+ 		offsetof(struct prev_params, contrast),
+-		0, true,
++		0, 0, true,
+ 	}, /* OMAP3ISP_PREV_BRIGHTNESS */ {
+ 		preview_config_brightness,
+ 		NULL,
+ 		offsetof(struct prev_params, brightness),
+-		0, true,
++		0, 0, true,
+ 	},
+ };
+ 
+-- 
+1.7.8.6
 
