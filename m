@@ -1,58 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:40888 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751920Ab2GMVo1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jul 2012 17:44:27 -0400
-Message-ID: <500096B6.2090208@canonical.com>
-Date: Fri, 13 Jul 2012 23:44:22 +0200
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Received: from mail-wg0-f42.google.com ([74.125.82.42]:46442 "EHLO
+	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932336Ab2GFLbq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 07:31:46 -0400
+Received: by wgbds11 with SMTP id ds11so595444wgb.1
+        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2012 04:31:44 -0700 (PDT)
 MIME-Version: 1.0
-To: Rob Clark <rob.clark@linaro.org>
-CC: Tom Cooksey <tom.cooksey@arm.com>, dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-	patches@linaro.org, daniel.vetter@ffwll.ch,
-	linux-kernel@vger.kernel.org, sumit.semwal@linaro.org
-Subject: Re: [RFC] dma-fence: dma-buf synchronization (v2)
-References: <1342193911-16157-1-git-send-email-rob.clark@linaro.org> <50005dfd.25f2440a.6e6b.ffffbcd9SMTPIN_ADDED@mx.google.com> <CAF6AEGvP1+7BKo7+oCj4XBBw32NPjrH5EAZuodu2zb8oiyVP_Q@mail.gmail.com>
-In-Reply-To: <CAF6AEGvP1+7BKo7+oCj4XBBw32NPjrH5EAZuodu2zb8oiyVP_Q@mail.gmail.com>
+In-Reply-To: <Pine.LNX.4.64.1207061308300.29809@axis700.grange>
+References: <1338543105-20322-1-git-send-email-javier.martin@vista-silicon.com>
+	<CACKLOr0J1JjpCMRf4toJ5uBMDAFZT8VGdFuX6MpUpxpNaAO_SA@mail.gmail.com>
+	<Pine.LNX.4.64.1207061308300.29809@axis700.grange>
+Date: Fri, 6 Jul 2012 13:31:44 +0200
+Message-ID: <CACKLOr0nwKoO4UL9MKZJmD9WN1uyJhpNzAybd7w7x-GnLtM5cw@mail.gmail.com>
+Subject: Re: [PATCH v3][for_v3.5] media: mx2_camera: Fix mbus format handling
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	fabio.estevam@freescale.com, mchehab@infradead.org,
+	kernel@pengutronix.de
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey,
+Hi Guennadi,
 
-Op 13-07-12 20:52, Rob Clark schreef:
-> On Fri, Jul 13, 2012 at 12:35 PM, Tom Cooksey <tom.cooksey@arm.com> wrote:
->> My other thought is around atomicity. Could this be extended to
->> (safely) allow for hardware devices which might want to access
->> multiple buffers simultaneously? I think it probably can with
->> some tweaks to the interface? An atomic function which does
->> something like "give me all the fences for all these buffers
->> and add this fence to each instead/as-well-as"?
-> fwiw, what I'm leaning towards right now is combining dma-fence w/
-> Maarten's idea of dma-buf-mgr (not sure if you saw his patches?).  And
-> let dmabufmgr handle the multi-buffer reservation stuff.  And possibly
-> the read vs write access, although this I'm not 100% sure on... the
-> other option being the concept of read vs write (or
-> exclusive/non-exclusive) fences.
-Agreed, dmabufmgr is meant for reserving multiple buffers without deadlocks.
-The underlying mechanism for synchronization can be dma-fences, it wouldn't
-really change dmabufmgr much.
-> In the current state, the fence is quite simple, and doesn't care
-> *what* it is fencing, which seems advantageous when you get into
-> trying to deal with combinations of devices sharing buffers, some of
-> whom can do hw sync, and some who can't.  So having a bit of
-> partitioning from the code dealing w/ sequencing who can access the
-> buffers when and for what purpose seems like it might not be a bad
-> idea.  Although I'm still working through the different alternatives.
+On 6 July 2012 13:09, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> On Fri, 6 Jul 2012, javier Martin wrote:
 >
-Yeah, I managed to get nouveau hooked up with generating irqs on
-completion today using an invalid command. It's also no longer a
-performance regression, so software syncing is no longer a problem
-for nouveau. i915 already generates irqs and r600 presumably too.
+>> Hi,
+>> can this patch be applied please?
+>>
+>> It solves a BUG for 3.5. Guennadi, Fabio, could you give me an ack for this?
+>
+> Sorry? This patch has been applied and proven to break more, than it
+> fixed, so, it has been reverted. Am I missing something?
 
-Monday I'll take a better look at your patch, end of day now. :)
+Patch v1 was the version that broke pass-through mode (which nobody
+seems to be using/testing). It was applied, then it was reverted as
+you requested in [1].
 
-~Maarten
+Then I sent v2 that didn't break pass-through but was invalid too
+because of a merge conflict [2].
+
+Finally, this is v3 which has the pass-through problem and the merge
+problem fixed. It is currently marked as "Under review" and should be
+applied as a fix to 3.5.
+
+It can be applied safely since the patch I stated previously is
+already in 3.5-rc5 [4] (it was applied through the imx tree).
+
+[1] http://patchwork.linuxtv.org/patch/11504/
+[2] http://patchwork.linuxtv.org/patch/11558/
+[3] http://patchwork.linuxtv.org/patch/11559/
+[4] http://patchwork.linuxtv.org/patch/10483/
+--
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
