@@ -1,84 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44195 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752778Ab2GOXY4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jul 2012 19:24:56 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Frank =?ISO-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [Regression 3.1->3.2, bisected] UVC-webcam: kernel panic when starting capturing
-Date: Mon, 16 Jul 2012 01:24:55 +0200
-Message-ID: <1649650.cNT61xzOAf@avalon>
-In-Reply-To: <50031C83.7060703@googlemail.com>
-References: <4FFF208C.5030306@googlemail.com> <11675039.R7p149JEZD@avalon> <50031C83.7060703@googlemail.com>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:52502 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755223Ab2GFLAk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 07:00:40 -0400
+Received: by wibhm11 with SMTP id hm11so715981wib.1
+        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2012 04:00:39 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+In-Reply-To: <1338543105-20322-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1338543105-20322-1-git-send-email-javier.martin@vista-silicon.com>
+Date: Fri, 6 Jul 2012 13:00:39 +0200
+Message-ID: <CACKLOr0J1JjpCMRf4toJ5uBMDAFZT8VGdFuX6MpUpxpNaAO_SA@mail.gmail.com>
+Subject: Re: [PATCH v3][for_v3.5] media: mx2_camera: Fix mbus format handling
+From: javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, fabio.estevam@freescale.com,
+	g.liakhovetski@gmx.de, mchehab@infradead.org,
+	kernel@pengutronix.de,
+	Javier Martin <javier.martin@vista-silicon.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Frank,
+Hi,
+can this patch be applied please?
 
-On Sunday 15 July 2012 21:39:47 Frank Schäfer wrote:
-> Am 15.07.2012 14:07, schrieb Laurent Pinchart:
-> > On Thursday 12 July 2012 21:07:56 Frank Schäfer wrote:
-> >> Hi,
-> >> 
-> >> when I start capturing from the UVC-webcam 2232:1005 ("WebCam
-> >> SCB-0385N") of my netbook, I get a kernel panic.
-> >> You can find a screenshot of the backtrace here:
-> >> 
-> >> http://imageshack.us/photo/my-images/9/img125km.jpg/
-> >> 
-> >> This is a regression which has been introduced between kernel 3.2-rc2
-> >> and 3.2-rc3 with the following commit:
-> >> 
-> >> 3afedb95858bcc117b207a7c0a6767fe891bdfe9 is the first bad commit
-> >> commit 3afedb95858bcc117b207a7c0a6767fe891bdfe9
-> >> Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >> Date:   Thu Nov 3 07:24:34 2011 -0300
-> >> 
-> >>     [media] uvcvideo: Don't skip erroneous payloads
-> >>     
-> >>     Instead of skipping the payload completely, which would make the
-> >>     resulting image corrupted anyway, store the payload normally and mark
-> >>     the buffer as erroneous. If the no_drop module parameter is set to 1
-> >>     the buffer will then be passed to userspace, and tt will then be up
-> >>     to the application to decide what to do with the buffer.
-> >> 
-> >>     Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> > 
-> > I'm puzzled. Your screenshot shows the uvc_video_stats_decode() function
-> > in the stack trace, but that function wasn't present in
-> > 3afedb95858bcc117b207a7c0a6767fe891bdfe9. Could you please send me a stack
-> > trace corresponding to 3afedb95858bcc117b207a7c0a6767fe891bdfe9 ?
-> > 
-> > Your stack trace looks similar to the problem reported in
-> > https://bugzilla.redhat.com/show_bug.cgi?id=836742.
-> > 3afedb95858bcc117b207a7c0a6767fe891bdfe9 might have introduced a different
-> > bug, possibly fixed in a later commit.
-> 
-> Hmm... you're right.
-> The screenshot I've sent to you was made during the bisection process at
-> a commit somewhere between 3.2-rc7 and 3.2-rc8.
-> It seems that this one is slightly different from the others.
-> 
-> This one is made at commit 3afedb95858bcc117b207a7c0a6767fe891bdfe9 (the
-> first bad commit):
-> 
-> http://imageshack.us/photo/my-images/811/img130hv.jpg
-> 
-> and this one is made at 3.5.rc6+:
-> 
-> http://imageshack.us/photo/my-images/440/img127u.jpg
+It solves a BUG for 3.5. Guennadi, Fabio, could you give me an ack for this?
 
-Thank you. Could you please try the patch I've attached to 
-https://bugzilla.redhat.com/show_bug.cgi?id=836742 ?
-
+Regards.
 -- 
-Regards,
-
-Laurent Pinchart
-
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
