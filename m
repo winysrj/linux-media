@@ -1,51 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:50847 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757829Ab2GKOPa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jul 2012 10:15:30 -0400
-From: Federico Vaga <federico.vaga@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH RFC] [media] adv7180.c: convert to v4l2 control framework
-Date: Wed, 11 Jul 2012 16:19:02 +0200
-Message-ID: <1764384.YhnDdKNyk4@harkonnen>
-In-Reply-To: <201207111605.49470.hverkuil@xs4all.nl>
-References: <1341974086-27887-1-git-send-email-federico.vaga@gmail.com> <1460334.RCi3doz24X@harkonnen> <201207111605.49470.hverkuil@xs4all.nl>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:43941 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751994Ab2GFUEb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 16:04:31 -0400
+Received: by yhmm54 with SMTP id m54so9788269yhm.19
+        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2012 13:04:30 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <4FF73EE1.7050106@redhat.com>
+References: <4FECCCB4.9000402@gmail.com>
+	<4FED2CA0.6020909@redhat.com>
+	<4FED314D.8020900@gmail.com>
+	<4FF73EE1.7050106@redhat.com>
+Date: Fri, 6 Jul 2012 16:04:30 -0400
+Message-ID: <CAGoCfizNuWic0q08FW980tArKOgkut0-V_2JnA5311vq_OD=Dw@mail.gmail.com>
+Subject: Re: [PATCH 1/1] Add support for newer PCTV 800i cards with s5h1411 demodulators
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mack Stanley <mcs1937@gmail.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> > > @@ -445,9 +402,9 @@ static const struct v4l2_subdev_video_ops
-> > > adv7180_video_ops = {> 
-> > >  static const struct v4l2_subdev_core_ops adv7180_core_ops = {
-> > >  
-> > >   .g_chip_ident = adv7180_g_chip_ident,
-> > >   .s_std = adv7180_s_std,
-> > > 
-> > > - .queryctrl = adv7180_queryctrl,
-> > > - .g_ctrl = adv7180_g_ctrl,
-> > > - .s_ctrl = adv7180_s_ctrl,
-> > > + .queryctrl = v4l2_subdev_queryctrl,
-> > > + .g_ctrl = v4l2_subdev_g_ctrl,
-> > > + .s_ctrl = v4l2_subdev_s_ctrl,
-> > 
-> > I'm not sure to undestand this point. I "grepped" for the adv7180
-> > and it seem that I'm the only user of the adv7180 (sta2x11 VIP
-> > driver). In the VIP driver I don't use the control framework (there
-> > aren't controls), so I think these lines must be there. Am I wrong?
-> 
-> Correct. But once sta2x11 is converted to using the control framework,
-> then these lines can be dropped since no one else is using this
-> subdevice driver.
+On Fri, Jul 6, 2012 at 3:39 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em 29-06-2012 01:38, Mack Stanley escreveu:
+>> I'm sorry to have missed the word-wrap.  Here's a new copy. ---Mack
+>>
+>> Testing needed on older (Pinnacle) PCTV 800i cards with S5H1409 demodulators
+>> to check that current support for them isn't broken by this patch.
+>>
+>> Signed-off-by: Mack Stanley <mcs1937@gmail.com>
+>> ---
+>>   drivers/media/video/cx88/cx88-dvb.c |   40
+>> ++++++++++++++++++++++++----------
+>
+>
+> It is still completely mangled. It is impossible to apply it this way.
+>
+> Regards,
+> Mauro
 
-What do you suggest? I re-submit this patch and when sta2x11 is fixed a 
-I submit a new patch to remove these lines; or wait the full conversion 
-of the sta2x11 driver and submit both patch?
+Mack,
+
+Assuming this is a git tree, just use "git format-patch" followed by
+"git send-email".
+
+Devin
 
 -- 
-Federico Vaga
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
