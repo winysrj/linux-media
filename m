@@ -1,332 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41732 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754824Ab2GQK4U (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Jul 2012 06:56:20 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v4 1/2] media: add new mediabus format enums for dm365
-Date: Tue, 17 Jul 2012 12:56:24 +0200
-Message-ID: <9731012.hn1ecEuNnk@avalon>
-In-Reply-To: <1333102154-24657-2-git-send-email-manjunath.hadli@ti.com>
-References: <1333102154-24657-1-git-send-email-manjunath.hadli@ti.com> <1333102154-24657-2-git-send-email-manjunath.hadli@ti.com>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3532 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751143Ab2GFJW0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 05:22:26 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Lars-Peter Clausen" <lars@metafoo.de>
+Subject: Re: [Device-drivers-devel] [RFCv1 PATCH 0/7] Add adv7604/ad9389b drivers
+Date: Fri, 6 Jul 2012 10:46:07 +0200
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org,
+	device-drivers-devel@blackfin.uclinux.org
+References: <1341498375-9411-1-git-send-email-hans.verkuil@cisco.com> <4FF69D67.8050408@metafoo.de>
+In-Reply-To: <4FF69D67.8050408@metafoo.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201207061046.07949.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Manjunath,
-
-Thank you for the patch.
-
-Just some nitpicking, please see below.
-
-On Friday 30 March 2012 10:09:13 Hadli, Manjunath wrote:
-> add new enum entries for supporting the media-bus formats on dm365.
-> These include some bayer and some non-bayer formats.
-> V4L2_MBUS_FMT_YDYC8_1X16 and V4L2_MBUS_FMT_UV8_1X8 are used
-> internal to the hardware by the resizer.
-> V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8 represents the bayer ALAW format
-> that is supported by dm365 hardware.
+On Fri July 6 2012 10:10:15 Lars-Peter Clausen wrote:
+> On 07/05/2012 04:26 PM, Hans Verkuil wrote:
+> > Hi all,
+> > 
+> > This RFC patch series builds on an earlier RFC patch series (posted only to
+> > linux-media) that adds support for DVI/HDMI/DP connectors to the V4L2 API.
+> > 
+> > This earlier patch series is here:
+> > 
+> > 	http://www.spinics.net/lists/linux-media/msg48529.html
+> > 
+> > The first 3 patches are effectively unchanged compared to that patch series,
+> > patch 4 adds support for the newly defined controls to the V4L2 control framework
+> > and patch 5 adds helper functions to v4l2-common.c to help in detecting VESA
+> > CVT and GTF formats.
+> > 
+> > Finally, two Analog Devices drivers are added to actually use this new API.
+> > The adv7604 is an HDMI/DVI receiver and the ad9389b is an HDMI transmitter.
+> > 
+> > Another tree of mine also contains preliminary drivers for the adv7842
+> > and adv7511:
 > 
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  Documentation/DocBook/media/v4l/subdev-formats.xml |  171 +++++++++++++++++
->  include/linux/v4l2-mediabus.h                      |   10 +-
->  2 files changed, 179 insertions(+), 2 deletions(-)
+> Hm, ok that's interesting I do have a DRM driver for the adv7511:
+> https://github.com/lclausen-adi/linux-2.6/blob/adv7511_zynq/drivers/gpu/drm/i2c/adv7511_core.c
 > 
-> diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml
-> b/Documentation/DocBook/media/v4l/subdev-formats.xml index 49c532e..48d92bb
-> 100644
-> --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-> +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-> @@ -356,6 +356,9 @@
->  	<listitem><para>If the pixel components are DPCM-compressed, a mention of
-> the DPCM compression and the number of bits per compressed pixel
-> component.</para> </listitem>
-> +	<listitem><para>If the pixel components are ALAW-compressed, a mention of
-> the
-> +	ALAW compression and the number of bits per compressed pixel
-> component.</para>
-> +	</listitem>
+> I wonder if it is possible to share some code on this.
 
-I would group ALAW and DPCM compression, as they're mutally exclusive. 
-Something like
+That will be an interesting exercise. The V4L and DRM subsystems are trying to
+improve their cooperation, but we are not yet at the stage that you can easily
+share video encoders. This might be a good starting point, though.
 
-    transferred on the same number of bits. Common values are 8, 10 and 12.
-    </para>
-    </listitem>
--   <listitem><para>If the pixel components are DPCM-compressed, a mention of
--   the DPCM compression and the number of bits per compressed pixel
--   component.</para>
--   </listitem>
-+   <listitem><para>The compression (optional). If the pixel components are
-+   ALAW- or DPCM-compressed, a mention of the compression scheme and the
-+   number of bits per compressed pixel component.</para></listitem>
-    <listitem><para>The number of bus samples per pixel. Pixels that are wider
-    than the bus width must be transferred in multiple samples. Common values
-    are 1 and 2.</para></listitem>
-
-
->  	<listitem><para>The number of bus samples per pixel. Pixels that are 
-wider
-> than the bus width must be transferred in multiple samples. Common values
-> are 1 and 2.</para></listitem>
-> @@ -572,6 +575,74 @@
->  	      <entry>r<subscript>1</subscript></entry>
->  	      <entry>r<subscript>0</subscript></entry>
->  	    </row>
-> +	    <row id="V4L2-MBUS-FMT-SBGGR10-ALAW8-1X8">
-> +	      <entry>V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8</entry>
-> +	      <entry>0x3015</entry>
-> +	      <entry></entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>b<subscript>7</subscript></entry>
-> +	      <entry>b<subscript>6</subscript></entry>
-> +	      <entry>b<subscript>5</subscript></entry>
-> +	      <entry>b<subscript>4</subscript></entry>
-> +	      <entry>b<subscript>3</subscript></entry>
-> +	      <entry>b<subscript>2</subscript></entry>
-> +	      <entry>b<subscript>1</subscript></entry>
-> +	      <entry>b<subscript>0</subscript></entry>
-> +	    </row>
-> +	    <row id="V4L2-MBUS-FMT-SGBRG10-ALAW8-1X8">
-> +	      <entry>V4L2_MBUS_FMT_SGBRG10_ALAW8_1X8</entry>
-> +	      <entry>0x3016</entry>
-> +	      <entry></entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>g<subscript>7</subscript></entry>
-> +	      <entry>g<subscript>6</subscript></entry>
-> +	      <entry>g<subscript>5</subscript></entry>
-> +	      <entry>g<subscript>4</subscript></entry>
-> +	      <entry>g<subscript>3</subscript></entry>
-> +	      <entry>g<subscript>2</subscript></entry>
-> +	      <entry>g<subscript>1</subscript></entry>
-> +	      <entry>g<subscript>0</subscript></entry>
-> +	    </row>
-> +	    <row id="V4L2-MBUS-FMT-SGRBG10-ALAW8-1X8">
-> +	      <entry>V4L2_MBUS_FMT_SGRBG10_ALAW8_1X8</entry>
-> +	      <entry>0x3017</entry>
-> +	      <entry></entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>g<subscript>7</subscript></entry>
-> +	      <entry>g<subscript>6</subscript></entry>
-> +	      <entry>g<subscript>5</subscript></entry>
-> +	      <entry>g<subscript>4</subscript></entry>
-> +	      <entry>g<subscript>3</subscript></entry>
-> +	      <entry>g<subscript>2</subscript></entry>
-> +	      <entry>g<subscript>1</subscript></entry>
-> +	      <entry>g<subscript>0</subscript></entry>
-> +	    </row>
-> +	    <row id="V4L2-MBUS-FMT-SRGGB10-ALAW8-1X8">
-> +	      <entry>V4L2_MBUS_FMT_SRGGB10_ALAW8_1X8</entry>
-> +	      <entry>0x3018</entry>
-> +	      <entry></entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>r<subscript>7</subscript></entry>
-> +	      <entry>r<subscript>6</subscript></entry>
-> +	      <entry>r<subscript>5</subscript></entry>
-> +	      <entry>r<subscript>4</subscript></entry>
-> +	      <entry>r<subscript>3</subscript></entry>
-> +	      <entry>r<subscript>2</subscript></entry>
-> +	      <entry>r<subscript>1</subscript></entry>
-> +	      <entry>r<subscript>0</subscript></entry>
-> +	    </row>
-
-Please move the ALAW formats above the DPCM formats to keep them 
-alphabetically sorted.
-
->  	    <row id="V4L2-MBUS-FMT-SBGGR10-2X8-PADHI-BE">
->  	      <entry>V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE</entry>
->  	      <entry>0x3003</entry>
-> @@ -965,6 +1036,56 @@
->  	      <entry>y<subscript>1</subscript></entry>
->  	      <entry>y<subscript>0</subscript></entry>
->  	    </row>
-> +	    <row id="V4L2-MBUS-FMT-UV8-1X8">
-
-That's a weird one. Just out of curiosity, what's the point of transferring 
-chroma information without luma ?
-
-> +	      <entry>V4L2_MBUS_FMT_UV8_1X8</entry>
-> +	      <entry>0x2015</entry>
-> +	      <entry></entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>u<subscript>7</subscript></entry>
-> +	      <entry>u<subscript>6</subscript></entry>
-> +	      <entry>u<subscript>5</subscript></entry>
-> +	      <entry>u<subscript>4</subscript></entry>
-> +	      <entry>u<subscript>3</subscript></entry>
-> +	      <entry>u<subscript>2</subscript></entry>
-> +	      <entry>u<subscript>1</subscript></entry>
-> +	      <entry>u<subscript>0</subscript></entry>
-> +	    </row>
-> +	    <row>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>v<subscript>7</subscript></entry>
-> +	      <entry>v<subscript>6</subscript></entry>
-> +	      <entry>v<subscript>5</subscript></entry>
-> +	      <entry>v<subscript>4</subscript></entry>
-> +	      <entry>v<subscript>3</subscript></entry>
-> +	      <entry>v<subscript>2</subscript></entry>
-> +	      <entry>v<subscript>1</subscript></entry>
-> +	      <entry>v<subscript>0</subscript></entry>
-> +	    </row>
->  	    <row id="V4L2-MBUS-FMT-UYVY8-1_5X8">
->  	      <entry>V4L2_MBUS_FMT_UYVY8_1_5X8</entry>
->  	      <entry>0x2002</entry>
-> @@ -2415,6 +2536,56 @@
->  	      <entry>u<subscript>1</subscript></entry>
->  	      <entry>u<subscript>0</subscript></entry>
->  	    </row>
-> +	    <row id="V4L2-MBUS-FMT-YDYC8-1X16">
-
-What is this beast ? We at least need a textual description, as I have no idea 
-what the format corresponds to.
-
-> +	      <entry>V4L2_MBUS_FMT_YDYC8_1X16</entry>
-> +	      <entry>0x2014</entry>
-> +	      <entry></entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>y<subscript>7</subscript></entry>
-> +	      <entry>y<subscript>6</subscript></entry>
-> +	      <entry>y<subscript>5</subscript></entry>
-> +	      <entry>y<subscript>4</subscript></entry>
-> +	      <entry>y<subscript>3</subscript></entry>
-> +	      <entry>y<subscript>2</subscript></entry>
-> +	      <entry>y<subscript>1</subscript></entry>
-> +	      <entry>y<subscript>0</subscript></entry>
-> +	      <entry>d<subscript>7</subscript></entry>
-> +	      <entry>d<subscript>6</subscript></entry>
-> +	      <entry>d<subscript>5</subscript></entry>
-> +	      <entry>d<subscript>4</subscript></entry>
-> +	      <entry>d<subscript>3</subscript></entry>
-> +	      <entry>d<subscript>2</subscript></entry>
-> +	      <entry>d<subscript>1</subscript></entry>
-> +	      <entry>d<subscript>0</subscript></entry>
-> +	    </row>
-> +	    <row>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>y<subscript>7</subscript></entry>
-> +	      <entry>y<subscript>6</subscript></entry>
-> +	      <entry>y<subscript>5</subscript></entry>
-> +	      <entry>y<subscript>4</subscript></entry>
-> +	      <entry>y<subscript>3</subscript></entry>
-> +	      <entry>y<subscript>2</subscript></entry>
-> +	      <entry>y<subscript>1</subscript></entry>
-> +	      <entry>y<subscript>0</subscript></entry>
-> +	      <entry>c<subscript>7</subscript></entry>
-> +	      <entry>c<subscript>6</subscript></entry>
-> +	      <entry>c<subscript>5</subscript></entry>
-> +	      <entry>c<subscript>4</subscript></entry>
-> +	      <entry>c<subscript>3</subscript></entry>
-> +	      <entry>c<subscript>2</subscript></entry>
-> +	      <entry>c<subscript>1</subscript></entry>
-> +	      <entry>c<subscript>0</subscript></entry>
-> +	    </row>
->  	    <row id="V4L2-MBUS-FMT-YUYV10-1X20">
->  	      <entry>V4L2_MBUS_FMT_YUYV10_1X20</entry>
->  	      <entry>0x200d</entry>
-> diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-> index 5ea7f75..8d68fa1 100644
-> --- a/include/linux/v4l2-mediabus.h
-> +++ b/include/linux/v4l2-mediabus.h
-> @@ -47,8 +47,9 @@ enum v4l2_mbus_pixelcode {
->  	V4L2_MBUS_FMT_RGB565_2X8_BE = 0x1007,
->  	V4L2_MBUS_FMT_RGB565_2X8_LE = 0x1008,
+> > 
+> > 	http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/hdmi
+> > 
+> > However, I want to start with adv7604 and ad9389b since those have had the most
+> > testing.
 > 
-> -	/* YUV (including grey) - next is 0x2014 */
-> +	/* YUV (including grey) - next is 0x2016 */
->  	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
-> +	V4L2_MBUS_FMT_UV8_1X8 = 0x2015,
->  	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
->  	V4L2_MBUS_FMT_VYUY8_1_5X8 = 0x2003,
->  	V4L2_MBUS_FMT_YUYV8_1_5X8 = 0x2004,
-> @@ -65,10 +66,11 @@ enum v4l2_mbus_pixelcode {
->  	V4L2_MBUS_FMT_VYUY8_1X16 = 0x2010,
->  	V4L2_MBUS_FMT_YUYV8_1X16 = 0x2011,
->  	V4L2_MBUS_FMT_YVYU8_1X16 = 0x2012,
-> +	V4L2_MBUS_FMT_YDYC8_1X16 = 0x2014,
->  	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
->  	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
-> 
-> -	/* Bayer - next is 0x3015 */
-> +	/* Bayer - next is 0x3019 */
->  	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
->  	V4L2_MBUS_FMT_SGBRG8_1X8 = 0x3013,
->  	V4L2_MBUS_FMT_SGRBG8_1X8 = 0x3002,
-> @@ -77,6 +79,10 @@ enum v4l2_mbus_pixelcode {
->  	V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8 = 0x300c,
->  	V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 = 0x3009,
->  	V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8 = 0x300d,
-> +	V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8 = 0x3015,
-> +	V4L2_MBUS_FMT_SGBRG10_ALAW8_1X8 = 0x3016,
-> +	V4L2_MBUS_FMT_SGRBG10_ALAW8_1X8 = 0x3017,
-> +	V4L2_MBUS_FMT_SRGGB10_ALAW8_1X8 = 0x3018,
+> I've also have some code which adds adv7611 support to your adv7604 driver.
 
-Please move the ALAW formats above the DPCM formats to keep them 
-alphabetically sorted.
+Let's try and get this driver in first, before we start adding patches other
+than fixes. The main purpose is to get the new API elements merged in the
+kernel, after that the drivers can easily be expanded and improved (which is
+so much easier once they are in the kernel).
 
->  	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE = 0x3003,
->  	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE = 0x3004,
->  	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE = 0x3005,
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
 
+> 
+> > 
+> > As the commit message of says these drivers do not implement the full
+> > functionality of these devices, but that can be added later, either
+> > by Cisco or by others.
+> > 
+> > A lot of work has been put into the V4L2 subsystem to reach this point,
+> > particularly the control framework, the VIDIOC_G/S/ENUM/QUERY_DV_TIMINGS
+> > ioctls, and the V4L2 event mechanism. So I'm very pleased to be able to finally
+> > post this code.
+> > 
+> > Comments are welcome!
+> > 
+> > Regards,
+> > 
+> > 	Hans Verkuil
+> > 
+> > _______________________________________________
+> > Device-drivers-devel mailing list
+> > Device-drivers-devel@blackfin.uclinux.org
+> > https://blackfin.uclinux.org/mailman/listinfo/device-drivers-devel
+> 
