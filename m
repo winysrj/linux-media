@@ -1,86 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:53462 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752364Ab2G1WxB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Jul 2012 18:53:01 -0400
-From: Stefan Muenzel <stefanmuenzel@googlemail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-	Stefan Muenzel <stefanmuenzel@googlemail.com>
-Subject: [PATCH 1/1] [media] uvcvideo: Add 10,12bit and alternate 8bit greyscale
-Date: Sat, 28 Jul 2012 18:49:14 -0400
-Message-Id: <1343515754-1043-1-git-send-email-stefanmuenzel@googlemail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53528 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750736Ab2GFNcp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 09:32:45 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Jean-Philippe Francois <jp.francois@cynove.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v2 0/6] omap3isp: preview: Add support for non-GRBG Bayer patterns
+Date: Fri,  6 Jul 2012 15:32:43 +0200
+Message-Id: <1341581569-8292-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some cameras support 10bit and 12bit greyscale, or use the alternate "Y8
-" FOURCC for 8bit greyscale. Add support for these.
+Hi everybody,
 
-Tested on a 12bit camera.
+Here's the second version of the non-GRBG Bayer patterns support for the OMAP3
+ISP preview engine. Compared to v1, the CFA table can be reconfigured at
+runtime, which resulted in several cleanup patches.
 
-Signed-off-by: Stefan Muenzel <stefanmuenzel@googlemail.com>
----
- drivers/media/video/uvc/uvc_driver.c |   19 +++++++++++++++++--
- drivers/media/video/uvc/uvcvideo.h   |    9 +++++++++
- 2 files changed, 26 insertions(+), 2 deletions(-)
+The first patch is a v3.5 regression fix, I'll send a separate pull request.
 
-diff --git a/drivers/media/video/uvc/uvc_driver.c b/drivers/media/video/uvc/uvc_driver.c
-index 1d13172..11db262 100644
---- a/drivers/media/video/uvc/uvc_driver.c
-+++ b/drivers/media/video/uvc/uvc_driver.c
-@@ -95,12 +95,27 @@ static struct uvc_format_desc uvc_fmts[] = {
- 		.fcc		= V4L2_PIX_FMT_UYVY,
- 	},
- 	{
--		.name		= "Greyscale (8-bit)",
-+		.name		= "Greyscale 8-bit (Y800)",
- 		.guid		= UVC_GUID_FORMAT_Y800,
- 		.fcc		= V4L2_PIX_FMT_GREY,
- 	},
- 	{
--		.name		= "Greyscale (16-bit)",
-+		.name		= "Greyscale 8-bit (Y8  )",
-+		.guid		= UVC_GUID_FORMAT_Y8,
-+		.fcc		= V4L2_PIX_FMT_GREY,
-+	},
-+	{
-+		.name		= "Greyscale 10-bit (Y10 )",
-+		.guid		= UVC_GUID_FORMAT_Y10,
-+		.fcc		= V4L2_PIX_FMT_Y10,
-+	},
-+	{
-+		.name		= "Greyscale 12-bit (Y12 )",
-+		.guid		= UVC_GUID_FORMAT_Y12,
-+		.fcc		= V4L2_PIX_FMT_Y12,
-+	},
-+	{
-+		.name		= "Greyscale 16-bit (Y16 )",
- 		.guid		= UVC_GUID_FORMAT_Y16,
- 		.fcc		= V4L2_PIX_FMT_Y16,
- 	},
-diff --git a/drivers/media/video/uvc/uvcvideo.h b/drivers/media/video/uvc/uvcvideo.h
-index 7c3d082..3764040 100644
---- a/drivers/media/video/uvc/uvcvideo.h
-+++ b/drivers/media/video/uvc/uvcvideo.h
-@@ -79,6 +79,15 @@
- #define UVC_GUID_FORMAT_Y800 \
- 	{ 'Y',  '8',  '0',  '0', 0x00, 0x00, 0x10, 0x00, \
- 	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-+#define UVC_GUID_FORMAT_Y8 \
-+	{ 'Y',  '8',  ' ',  ' ', 0x00, 0x00, 0x10, 0x00, \
-+	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-+#define UVC_GUID_FORMAT_Y10 \
-+	{ 'Y',  '1',  '0',  ' ', 0x00, 0x00, 0x10, 0x00, \
-+	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-+#define UVC_GUID_FORMAT_Y12 \
-+	{ 'Y',  '1',  '2',  ' ', 0x00, 0x00, 0x10, 0x00, \
-+	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
- #define UVC_GUID_FORMAT_Y16 \
- 	{ 'Y',  '1',  '6',  ' ', 0x00, 0x00, 0x10, 0x00, \
- 	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+Jean-Philippe, could you please test this patch set on your hardware ? It's
+based on top of the latest linuxtv/staging/for_v3.6 branch.
+
+Laurent Pinchart (6):
+  omap3isp: preview: Fix contrast and brightness handling
+  omap3isp: preview: Remove lens shading compensation support
+  omap3isp: preview: Pass a prev_params pointer to configuration
+    functions
+  omap3isp: preview: Reorder configuration functions
+  omap3isp: preview: Merge gamma correction and gamma bypass
+  omap3isp: preview: Add support for non-GRBG Bayer patterns
+
+ drivers/media/video/omap3isp/isppreview.c |  706 ++++++++++++++---------------
+ drivers/media/video/omap3isp/isppreview.h |    1 +
+ 2 files changed, 346 insertions(+), 361 deletions(-)
+
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
