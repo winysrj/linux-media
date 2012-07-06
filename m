@@ -1,61 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:50821 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755950Ab2GJP6P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jul 2012 11:58:15 -0400
-Received: by ghrr11 with SMTP id r11so138870ghr.19
-        for <linux-media@vger.kernel.org>; Tue, 10 Jul 2012 08:58:15 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:40630 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932437Ab2GFCYi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Jul 2012 22:24:38 -0400
+Message-ID: <4FF64C60.1070804@redhat.com>
+Date: Thu, 05 Jul 2012 23:24:32 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <4FFC4F71.4000809@gmail.com>
-References: <4FF4697C.8080602@nexusuk.org>
-	<4FF46DC4.4070204@iki.fi>
-	<4FF4911B.9090600@web.de>
-	<4FF4931B.7000708@iki.fi>
-	<gjggc9-dl4.ln1@wuwek.kopernik.gliwice.pl>
-	<4FF5A350.9070509@iki.fi>
-	<r8cic9-ht4.ln1@wuwek.kopernik.gliwice.pl>
-	<4FF6B121.6010105@iki.fi>
-	<9btic9-vd5.ln1@wuwek.kopernik.gliwice.pl>
-	<835kc9-7p4.ln1@wuwek.kopernik.gliwice.pl>
-	<4FF77C1B.50406@iki.fi>
-	<l2smc9-pj4.ln1@wuwek.kopernik.gliwice.pl>
-	<4FF97DF8.4080208@iki.fi>
-	<n1aqc9-sp4.ln1@wuwek.kopernik.gliwice.pl>
-	<4FFA996D.9010206@iki.fi>
-	<scerc9-bm6.ln1@wuwek.kopernik.gliwice.pl>
-	<4FFB2129.2070301@gmail.com>
-	<hhvsc9-pte.ln1@wuwek.kopernik.gliwice.pl>
-	<4FFC4F71.4000809@gmail.com>
-Date: Tue, 10 Jul 2012 11:58:15 -0400
-Message-ID: <CAGoCfizj8buVoMc8qOY-NxKa53KnXNnZLekpr6-wLU08PM5kEw@mail.gmail.com>
-Subject: Re: pctv452e
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: poma <pomidorabelisima@gmail.com>
-Cc: Marx <acc.for.news@gmail.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Douglas Bagnall <douglas@paradise.net.nz>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Avoid sysfs oops when an rc_dev's raw device is absent
+References: <4FE7AA34.8090304@paradise.net.nz>
+In-Reply-To: <4FE7AA34.8090304@paradise.net.nz>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 10, 2012 at 11:51 AM, poma <pomidorabelisima@gmail.com> wrote:
->> Is this pctv452e device known to have poor reception?
+Em 24-06-2012 21:00, Douglas Bagnall escreveu:
+> For some reason, when the lirc daemon learns that a usb remote control
+> has been unplugged, it wants to read the sysfs attributes of the
+> disappearing device. This is useful for uncovering transient
+> inconsistencies, but less so for keeping the system running when such
+> inconsistencies exist.
+> 
+> Under some circumstances (like every time I unplug my dvb stick from
+> my laptop), lirc catches an rc_dev whose raw event handler has been
+> removed (presumably by ir_raw_event_unregister), and proceeds to
+> interrogate the raw protocols supported by the NULL pointer.
+> 
+> This patch avoids the NULL dereference, and ignores the issue of how
+> this state of affairs came about in the first place.
 
-Traditionally speaking, these problems are usually not the hardware
-itself - it tends to be crappy Linux drivers.  Somebody gets support
-working for a chip on some product, and then somebody else does a
-cut/paste of the code to make some other product work.  They see it
-getting signal lock under optimal tuning conditions and declare
-success.
+Please add your Signed-off-by: as described at:
+	http://www.linuxtv.org/wiki/index.php/Development:_Submitting_Patches
 
-Making any given device work *well* tends to be much harder than
-making it work at all.
+> ---
+>   drivers/media/rc/rc-main.c |    4 +++-
+>   1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+> index 6e16b09..58789c9 100644
+> --- a/drivers/media/rc/rc-main.c
+> +++ b/drivers/media/rc/rc-main.c
+> @@ -775,10 +775,12 @@ static ssize_t show_protocols(struct device *device,
+>   	if (dev->driver_type == RC_DRIVER_SCANCODE) {
+>   		enabled = dev->rc_map.rc_type;
+>   		allowed = dev->allowed_protos;
+> -	} else {
+> +	} else if (dev->raw) {
+>   		enabled = dev->raw->enabled_protocols;
+>   		allowed = ir_raw_get_allowed_protocols();
+>   	}
+> +	else
+> +		return -EINVAL;
 
-Want to rule out bad hardware design?  Drop it into a Windows machine
-and see how it performs.  If it works fine under Windows but poorly
-under Linux, then you definitely have a Linux driver problem.
+The return code there should be -ENODEV, as the device got removed.
 
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Regards,
+Mauro
