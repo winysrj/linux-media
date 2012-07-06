@@ -1,51 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:54179 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752435Ab2GZLNl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jul 2012 07:13:41 -0400
-Received: by yhmm54 with SMTP id m54so1795177yhm.19
-        for <linux-media@vger.kernel.org>; Thu, 26 Jul 2012 04:13:41 -0700 (PDT)
-From: Hideki EIRAKU <hdk@igel.co.jp>
-To: Russell King <linux@arm.linux.org.uk>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
-	alsa-devel@alsa-project.org, Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Hideki EIRAKU <hdk@igel.co.jp>
-Subject: [PATCH v2 1/4] ARM: dma-mapping: define ARCH_HAS_DMA_MMAP_COHERENT
-Date: Thu, 26 Jul 2012 20:13:08 +0900
-Message-Id: <1343301191-26001-2-git-send-email-hdk@igel.co.jp>
-In-Reply-To: <1343301191-26001-1-git-send-email-hdk@igel.co.jp>
-References: <1343301191-26001-1-git-send-email-hdk@igel.co.jp>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:58359 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933561Ab2GFLqE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 07:46:04 -0400
+Received: by wgbdr13 with SMTP id dr13so9242852wgb.1
+        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2012 04:46:02 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.1207061338170.29809@axis700.grange>
+References: <1338543105-20322-1-git-send-email-javier.martin@vista-silicon.com>
+	<CACKLOr0J1JjpCMRf4toJ5uBMDAFZT8VGdFuX6MpUpxpNaAO_SA@mail.gmail.com>
+	<Pine.LNX.4.64.1207061308300.29809@axis700.grange>
+	<CACKLOr0nwKoO4UL9MKZJmD9WN1uyJhpNzAybd7w7x-GnLtM5cw@mail.gmail.com>
+	<Pine.LNX.4.64.1207061338170.29809@axis700.grange>
+Date: Fri, 6 Jul 2012 13:46:02 +0200
+Message-ID: <CACKLOr1RKcwEqt9E90wbf5peB08erb7nOo+KVQ7m87BbsDJhbA@mail.gmail.com>
+Subject: Re: [PATCH v3][for_v3.5] media: mx2_camera: Fix mbus format handling
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	fabio.estevam@freescale.com, mchehab@infradead.org,
+	kernel@pengutronix.de
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ARCH_HAS_DMA_MMAP_COHERENT indicates that there is dma_mmap_coherent() API
-in this architecture.  The name is already defined in PowerPC.
+Hi Guennadi,
 
-Signed-off-by: Hideki EIRAKU <hdk@igel.co.jp>
----
- arch/arm/include/asm/dma-mapping.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+On 6 July 2012 13:39, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> On Fri, 6 Jul 2012, javier Martin wrote:
+>
+>> Hi Guennadi,
+>>
+>> On 6 July 2012 13:09, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+>> > On Fri, 6 Jul 2012, javier Martin wrote:
+>> >
+>> >> Hi,
+>> >> can this patch be applied please?
+>> >>
+>> >> It solves a BUG for 3.5. Guennadi, Fabio, could you give me an ack for this?
+>> >
+>> > Sorry? This patch has been applied and proven to break more, than it
+>> > fixed, so, it has been reverted. Am I missing something?
+>>
+>> Patch v1 was the version that broke pass-through mode (which nobody
+>> seems to be using/testing). It was applied, then it was reverted as
+>> you requested in [1].
+>>
+>> Then I sent v2 that didn't break pass-through but was invalid too
+>> because of a merge conflict [2].
+>>
+>> Finally, this is v3 which has the pass-through problem and the merge
+>> problem fixed. It is currently marked as "Under review" and should be
+>> applied as a fix to 3.5.
+>
+> Ah, ok, then, don't you think, that expecting your patch to be applied
+> within 4 minutes of its submission is a bit... overoptimistic? Because
+> it's 4 minutes after your original patch, that you've sent your
+> "reminder"...
 
-diff --git a/arch/arm/include/asm/dma-mapping.h b/arch/arm/include/asm/dma-mapping.h
-index bbef15d..f41cd30 100644
---- a/arch/arm/include/asm/dma-mapping.h
-+++ b/arch/arm/include/asm/dma-mapping.h
-@@ -187,6 +187,7 @@ extern int arm_dma_mmap(struct device *dev, struct vm_area_struct *vma,
- 			struct dma_attrs *attrs);
- 
- #define dma_mmap_coherent(d, v, c, h, s) dma_mmap_attrs(d, v, c, h, s, NULL)
-+#define ARCH_HAS_DMA_MMAP_COHERENT
- 
- static inline int dma_mmap_attrs(struct device *dev, struct vm_area_struct *vma,
- 				  void *cpu_addr, dma_addr_t dma_addr,
+This patch was sent on '2012-06-01 09:31:45', which is more than a
+month ago. Look at patchwork:
+http://patchwork.linuxtv.org/patch/11559/
+
+I think that a month is a reasonable period to send a reminder and I
+didn't mean to offend anyone with it.
+
+Regards.
 -- 
-1.7.0.4
-
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
