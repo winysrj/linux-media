@@ -1,41 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:35029 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932082Ab2GMKAa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jul 2012 06:00:30 -0400
-Date: Fri, 13 Jul 2012 11:00:21 +0100
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-To: Olof Johansson <olof@lixom.net>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	KS2012 <ksummit-2012-discuss@lists.linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [Ksummit-2012-discuss] Device-tree cross-subsystem binding
- workshop [was Media system Summit]
-Message-ID: <20120713100020.GA8925@sirena.org.uk>
-References: <CAOesGMgs7sBn=Tfk6YP7BE=O0s8qQrz17n-GfEi_Vr2HDy6xZA@mail.gmail.com>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:39465 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750906Ab2GFPQQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 11:16:16 -0400
+Received: by yenl2 with SMTP id l2so8684081yen.19
+        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2012 08:16:16 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOesGMgs7sBn=Tfk6YP7BE=O0s8qQrz17n-GfEi_Vr2HDy6xZA@mail.gmail.com>
+In-Reply-To: <4FF7005D.6020809@redhat.com>
+References: <1339509222-2714-1-git-send-email-elezegarcia@gmail.com>
+	<1339509222-2714-2-git-send-email-elezegarcia@gmail.com>
+	<4FF5C77C.7030500@redhat.com>
+	<CALF0-+XzNOiM+TA3rzY2NGSyXgFL8SuVU_yP0GTpcFMavQmNSg@mail.gmail.com>
+	<CALF0-+X3=8kcyz30cqYAH7nunEZyKpvkq0gh70_TB-r-jbutig@mail.gmail.com>
+	<CALF0-+UqVy8PzgkNzqH3bdML1QWye+XMTx_-YrmnKGE0s_XepQ@mail.gmail.com>
+	<4FF7005D.6020809@redhat.com>
+Date: Fri, 6 Jul 2012 12:16:15 -0300
+Message-ID: <CALF0-+W7Z48NYXOkX-j9mk5LVTwfRsSQi1BPE1Bt6SfzBfWBTg@mail.gmail.com>
+Subject: Re: [PATCH] em28xx: Remove useless runtime->private_data usage
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 12, 2012 at 06:20:27PM -0700, Olof Johansson wrote:
-> On Thu, Jul 12, 2012 at 12:03 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+On Fri, Jul 6, 2012 at 12:12 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em 06-07-2012 11:33, Ezequiel Garcia escreveu:
+>> Mauro,
+>>
+>> On Thu, Jul 5, 2012 at 2:22 PM, Ezequiel Garcia >> Are you sure that
+>> this can be removed? I think this is used internally
+>>>> by the alsa API, but maybe something has changed and this is not
+>>>> required anymore.
+>>>
+>>> Yes, I'm sure.
+>>>
+>>
+>> This should be: "I'm almost sure" :-)
+>> Anyway, probably the patch should have a more verbose commit
+>> message, right?
+>
+> Yeah, that would be good.
+>
+>> Do you want to do drop it entirely?
+>
+> No, but, as I'm taking a 2-week vacations starting next week, I'll postpone
+> those "compiled-only" cleanup patches to apply after my return, probably
+> holding them to be applied on 3.6.
+>
 
-> > I'm not so sure: I think that most decisions that need to be made are
-> > quite subsystem specific. Trying to figure out how to implement DT for
-> > multiple subsystems in one workshop seems unlikely to succeed, simply
-> > because of lack of time. I also don't think there is much overlap between
-> > subsystems in this respect, so while the DT implementation for one subsystem
-> > is discussed, the representatives of other subsystems are twiddling their
-> > thumbs.
+Okey.
 
-I'm seeing an awful lot of common patterns in the way the hardware is
-structured here, we shouldn't be redoing the handling of all these
-patterns.  Obviously there will be subsystem specific stuff too but
-there's a lot of repetitive boiler plate in the high level hookup.
+Have a nice holiday!
+Ezequiel.
