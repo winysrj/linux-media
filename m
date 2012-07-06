@@ -1,271 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:53636 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753944Ab2GJK6V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jul 2012 06:58:21 -0400
-From: Maarten Lankhorst <m.b.lankhorst@gmail.com>
-To: dri-devel@lists.freedesktop.org
-Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Subject: [RFC PATCH 3/8] nouveau: Extend prime code
-Date: Tue, 10 Jul 2012 12:57:46 +0200
-Message-Id: <1341917871-2512-4-git-send-email-m.b.lankhorst@gmail.com>
-In-Reply-To: <1341917871-2512-1-git-send-email-m.b.lankhorst@gmail.com>
-References: <1341917871-2512-1-git-send-email-m.b.lankhorst@gmail.com>
+Received: from plane.gmane.org ([80.91.229.3]:51435 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751354Ab2GFHIR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Jul 2012 03:08:17 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1Sn2eF-0003yP-P4
+	for linux-media@vger.kernel.org; Fri, 06 Jul 2012 09:08:15 +0200
+Received: from btm86.neoplus.adsl.tpnet.pl ([83.29.158.86])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2012 09:08:15 +0200
+Received: from acc.for.news by btm86.neoplus.adsl.tpnet.pl with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2012 09:08:15 +0200
+To: linux-media@vger.kernel.org
+From: Marx <acc.for.news@gmail.com>
+Subject: Re: pctv452e
+Date: Fri, 06 Jul 2012 08:13:14 +0200
+Message-ID: <r8cic9-ht4.ln1@wuwek.kopernik.gliwice.pl>
+References: <4FF4697C.8080602@nexusuk.org> <4FF46DC4.4070204@iki.fi> <4FF4911B.9090600@web.de> <4FF4931B.7000708@iki.fi> <gjggc9-dl4.ln1@wuwek.kopernik.gliwice.pl> <4FF5A350.9070509@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <4FF5A350.9070509@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+On 05.07.2012 16:23, Antti Palosaari wrote:
+> Check if those modules are enabled, in file .config
+> CONFIG_DVB_USB_V2=m
+> CONFIG_DVB_USB_PCTV452E=m
+>
+> use make menuconfig to enable if disabled. Then make && make
+> install_modules && make install as usually.
 
-The prime code no longer requires the bo to be backed by a gem object,
-and cpu access calls have been implemented. This will be needed for
-exporting fence bo's.
+You were right, I didn't have this options anabled. I've enabled both 
+via 'make menuconfig' and recompiled kernel. Driver loaded succesfully, 
+I haven time to test only a few SD channels, and they were working, but 
+some encrypted and HD didn't. I have to check yet why.
 
-Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
----
- drivers/gpu/drm/nouveau/nouveau_drv.h   |    6 +-
- drivers/gpu/drm/nouveau/nouveau_prime.c |  106 +++++++++++++++++++++----------
- 2 files changed, 79 insertions(+), 33 deletions(-)
+Anyway when using card logs are full of i2c errors
 
-diff --git a/drivers/gpu/drm/nouveau/nouveau_drv.h b/drivers/gpu/drm/nouveau/nouveau_drv.h
-index 8613cb2..7c52eba 100644
---- a/drivers/gpu/drm/nouveau/nouveau_drv.h
-+++ b/drivers/gpu/drm/nouveau/nouveau_drv.h
-@@ -1374,11 +1374,15 @@ extern int nouveau_gem_ioctl_cpu_fini(struct drm_device *, void *,
- extern int nouveau_gem_ioctl_info(struct drm_device *, void *,
- 				  struct drm_file *);
- 
-+extern int nouveau_gem_prime_export_bo(struct nouveau_bo *nvbo, int flags,
-+				       u32 size, struct dma_buf **ret);
- extern struct dma_buf *nouveau_gem_prime_export(struct drm_device *dev,
- 				struct drm_gem_object *obj, int flags);
- extern struct drm_gem_object *nouveau_gem_prime_import(struct drm_device *dev,
- 				struct dma_buf *dma_buf);
--
-+extern int nouveau_prime_import_bo(struct drm_device *dev,
-+				   struct dma_buf *dma_buf,
-+				   struct nouveau_bo **pnvbo, bool gem);
- /* nouveau_display.c */
- int nouveau_display_create(struct drm_device *dev);
- void nouveau_display_destroy(struct drm_device *dev);
-diff --git a/drivers/gpu/drm/nouveau/nouveau_prime.c b/drivers/gpu/drm/nouveau/nouveau_prime.c
-index a25cf2c..537154d3 100644
---- a/drivers/gpu/drm/nouveau/nouveau_prime.c
-+++ b/drivers/gpu/drm/nouveau/nouveau_prime.c
-@@ -35,7 +35,8 @@ static struct sg_table *nouveau_gem_map_dma_buf(struct dma_buf_attachment *attac
- 					  enum dma_data_direction dir)
- {
- 	struct nouveau_bo *nvbo = attachment->dmabuf->priv;
--	struct drm_device *dev = nvbo->gem->dev;
-+	struct drm_nouveau_private *dev_priv = nouveau_bdev(nvbo->bo.bdev);
-+	struct drm_device *dev = dev_priv->dev;
- 	int npages = nvbo->bo.num_pages;
- 	struct sg_table *sg;
- 	int nents;
-@@ -59,29 +60,37 @@ static void nouveau_gem_dmabuf_release(struct dma_buf *dma_buf)
- {
- 	struct nouveau_bo *nvbo = dma_buf->priv;
- 
--	if (nvbo->gem->export_dma_buf == dma_buf) {
--		nvbo->gem->export_dma_buf = NULL;
-+	nouveau_bo_unpin(nvbo);
-+	if (!nvbo->gem)
-+		nouveau_bo_ref(NULL, &nvbo);
-+	else {
-+		if (nvbo->gem->export_dma_buf == dma_buf)
-+			nvbo->gem->export_dma_buf = NULL;
- 		drm_gem_object_unreference_unlocked(nvbo->gem);
- 	}
- }
- 
- static void *nouveau_gem_kmap_atomic(struct dma_buf *dma_buf, unsigned long page_num)
- {
--	return NULL;
-+	struct nouveau_bo *nvbo = dma_buf->priv;
-+	return kmap_atomic(nvbo->bo.ttm->pages[page_num]);
- }
- 
- static void nouveau_gem_kunmap_atomic(struct dma_buf *dma_buf, unsigned long page_num, void *addr)
- {
--
-+	kunmap_atomic(addr);
- }
-+
- static void *nouveau_gem_kmap(struct dma_buf *dma_buf, unsigned long page_num)
- {
--	return NULL;
-+	struct nouveau_bo *nvbo = dma_buf->priv;
-+	return kmap(nvbo->bo.ttm->pages[page_num]);
- }
- 
- static void nouveau_gem_kunmap(struct dma_buf *dma_buf, unsigned long page_num, void *addr)
- {
--
-+	struct nouveau_bo *nvbo = dma_buf->priv;
-+	return kunmap(nvbo->bo.ttm->pages[page_num]);
- }
- 
- static int nouveau_gem_prime_mmap(struct dma_buf *dma_buf, struct vm_area_struct *vma)
-@@ -92,7 +101,8 @@ static int nouveau_gem_prime_mmap(struct dma_buf *dma_buf, struct vm_area_struct
- static void *nouveau_gem_prime_vmap(struct dma_buf *dma_buf)
- {
- 	struct nouveau_bo *nvbo = dma_buf->priv;
--	struct drm_device *dev = nvbo->gem->dev;
-+	struct drm_nouveau_private *dev_priv = nouveau_bdev(nvbo->bo.bdev);
-+	struct drm_device *dev = dev_priv->dev;
- 	int ret;
- 
- 	mutex_lock(&dev->struct_mutex);
-@@ -116,7 +126,8 @@ out_unlock:
- static void nouveau_gem_prime_vunmap(struct dma_buf *dma_buf, void *vaddr)
- {
- 	struct nouveau_bo *nvbo = dma_buf->priv;
--	struct drm_device *dev = nvbo->gem->dev;
-+	struct drm_nouveau_private *dev_priv = nouveau_bdev(nvbo->bo.bdev);
-+	struct drm_device *dev = dev_priv->dev;
- 
- 	mutex_lock(&dev->struct_mutex);
- 	nvbo->vmapping_count--;
-@@ -140,10 +151,9 @@ static const struct dma_buf_ops nouveau_dmabuf_ops =  {
- };
- 
- static int
--nouveau_prime_new(struct drm_device *dev,
--		  size_t size,
-+nouveau_prime_new(struct drm_device *dev, size_t size,
- 		  struct sg_table *sg,
--		  struct nouveau_bo **pnvbo)
-+		  struct nouveau_bo **pnvbo, bool gem)
- {
- 	struct nouveau_bo *nvbo;
- 	u32 flags = 0;
-@@ -156,12 +166,10 @@ nouveau_prime_new(struct drm_device *dev,
- 	if (ret)
- 		return ret;
- 	nvbo = *pnvbo;
--
--	/* we restrict allowed domains on nv50+ to only the types
--	 * that were requested at creation time.  not possibly on
--	 * earlier chips without busting the ABI.
--	 */
- 	nvbo->valid_domains = NOUVEAU_GEM_DOMAIN_GART;
-+	if (!gem)
-+		return 0;
-+
- 	nvbo->gem = drm_gem_object_alloc(dev, nvbo->bo.mem.size);
- 	if (!nvbo->gem) {
- 		nouveau_bo_ref(NULL, pnvbo);
-@@ -172,22 +180,37 @@ nouveau_prime_new(struct drm_device *dev,
- 	return 0;
- }
- 
--struct dma_buf *nouveau_gem_prime_export(struct drm_device *dev,
--				struct drm_gem_object *obj, int flags)
-+int nouveau_gem_prime_export_bo(struct nouveau_bo *nvbo, int flags,
-+				u32 size, struct dma_buf **buf)
- {
--	struct nouveau_bo *nvbo = nouveau_gem_object(obj);
- 	int ret = 0;
-+	*buf = NULL;
- 
- 	/* pin buffer into GTT */
- 	ret = nouveau_bo_pin(nvbo, TTM_PL_FLAG_TT);
- 	if (ret)
--		return ERR_PTR(-EINVAL);
-+		return -EINVAL;
-+
-+	*buf = dma_buf_export(nvbo, &nouveau_dmabuf_ops, size, flags);
-+	if (!IS_ERR(*buf))
-+		return 0;
- 
--	return dma_buf_export(nvbo, &nouveau_dmabuf_ops, obj->size, flags);
-+	nouveau_bo_unpin(nvbo);
-+	return PTR_ERR(*buf);
-+}
-+
-+struct dma_buf *nouveau_gem_prime_export(struct drm_device *dev,
-+				struct drm_gem_object *obj, int flags)
-+{
-+	struct nouveau_bo *nvbo = nouveau_gem_object(obj);
-+	struct dma_buf *buf;
-+	nouveau_gem_prime_export_bo(nvbo, flags, obj->size, &buf);
-+	return buf;
- }
- 
--struct drm_gem_object *nouveau_gem_prime_import(struct drm_device *dev,
--				struct dma_buf *dma_buf)
-+int nouveau_prime_import_bo(struct drm_device *dev,
-+			    struct dma_buf *dma_buf,
-+			    struct nouveau_bo **pnvbo, bool gem)
- {
- 	struct dma_buf_attachment *attach;
- 	struct sg_table *sg;
-@@ -196,17 +219,22 @@ struct drm_gem_object *nouveau_gem_prime_import(struct drm_device *dev,
- 
- 	if (dma_buf->ops == &nouveau_dmabuf_ops) {
- 		nvbo = dma_buf->priv;
--		if (nvbo->gem) {
-+		if (!gem) {
-+			nouveau_bo_ref(nvbo, pnvbo);
-+			return 0;
-+		}
-+		else if (nvbo->gem) {
- 			if (nvbo->gem->dev == dev) {
- 				drm_gem_object_reference(nvbo->gem);
--				return nvbo->gem;
-+				*pnvbo = nvbo;
-+				return 0;
- 			}
- 		}
- 	}
- 	/* need to attach */
- 	attach = dma_buf_attach(dma_buf, dev->dev);
- 	if (IS_ERR(attach))
--		return ERR_PTR(PTR_ERR(attach));
-+		return PTR_ERR(attach);
- 
- 	sg = dma_buf_map_attachment(attach, DMA_BIDIRECTIONAL);
- 	if (IS_ERR(sg)) {
-@@ -214,18 +242,32 @@ struct drm_gem_object *nouveau_gem_prime_import(struct drm_device *dev,
- 		goto fail_detach;
- 	}
- 
--	ret = nouveau_prime_new(dev, dma_buf->size, sg, &nvbo);
-+	ret = nouveau_prime_new(dev, dma_buf->size, sg, pnvbo, gem);
- 	if (ret)
- 		goto fail_unmap;
- 
--	nvbo->gem->import_attach = attach;
--
--	return nvbo->gem;
-+	if (gem)
-+		(*pnvbo)->gem->import_attach = attach;
-+	BUG_ON(attach->priv);
-+	attach->priv = *pnvbo;
-+	return 0;
- 
- fail_unmap:
- 	dma_buf_unmap_attachment(attach, sg, DMA_BIDIRECTIONAL);
- fail_detach:
- 	dma_buf_detach(dma_buf, attach);
--	return ERR_PTR(ret);
-+	return ret;
-+}
-+
-+struct drm_gem_object *
-+nouveau_gem_prime_import(struct drm_device *dev, struct dma_buf *dma_buf)
-+{
-+	struct nouveau_bo *nvbo = NULL;
-+	int ret;
-+
-+	ret = nouveau_prime_import_bo(dev, dma_buf, &nvbo, true);
-+	if (ret)
-+		return ERR_PTR(ret);
-+	return nvbo->gem;
- }
- 
--- 
-1.7.9.5
+Jul  6 07:04:19 wuwek kernel: [    6.087199] input: HDA ATI SB Line Out 
+Front as /devices/pci0000:00/0000:00:14.2/sound/card
+1/input8
+Jul  6 07:04:19 wuwek kernel: [    6.108046] stb6100_attach: Attaching 
+STB6100
+Jul  6 07:04:19 wuwek kernel: [    6.108054] pctv452e_power_ctrl: 0
+Jul  6 07:04:19 wuwek kernel: [    6.108063] usb 1-4: dvb_usbv2: 'PCTV 
+HDTV USB' successfully initialized and connected
+Jul  6 07:04:19 wuwek kernel: [    7.659462] Adding 2097148k swap on 
+/dev/sda2.  Priority:-1 extents:1 across:2097148k
+Jul  6 07:04:19 wuwek kernel: [    7.707592] EXT4-fs (sda1): re-mounted. 
+Opts: (null)
+
+(...)
+
+Jul  6 07:04:21 wuwek kernel: [   45.112483] Bluetooth: BNEP (Ethernet 
+Emulation) ver 1.3
+Jul  6 07:04:21 wuwek kernel: [   45.112496] Bluetooth: BNEP filters: 
+protocol multicast
+Jul  6 07:04:40 wuwek kernel: [   64.367411] pctv452e_power_ctrl: 1
+Jul  6 07:04:48 wuwek kernel: [   72.693972] I2C error -121; AA 0B  CC 
+00 01 -> 55 0B  CC 00 00.
+Jul  6 07:04:59 wuwek kernel: [   83.605643] I2C error -121; AA 49  CC 
+00 01 -> 55 49  CC 00 00.
+Jul  6 07:05:10 wuwek kernel: [   94.565805] I2C error -121; AA EE  CC 
+00 01 -> 55 EE  CC 00 00.
+Jul  6 07:05:10 wuwek kernel: [   94.578295] I2C error -121; AA 05  CC 
+00 01 -> 55 05  CC 00 00.
+Jul  6 07:05:10 wuwek kernel: [   94.637539] I2C error -121; AA 20  CC 
+00 01 -> 55 20  CC 00 00.
+Jul  6 07:05:18 wuwek kernel: [  102.525868] I2C error -121; AA 08  CC 
+00 01 -> 55 08  CC 00 00.
+Jul  6 07:05:18 wuwek kernel: [  102.538359] I2C error -121; AA 1F  CC 
+00 01 -> 55 1F  CC 00 00.
+Jul  6 07:05:18 wuwek kernel: [  102.597603] I2C error -121; AA 3A  CC 
+00 01 -> 55 3A  CC 00 00.
+Jul  6 07:05:29 wuwek kernel: [  113.765372] I2C error -121; AA F5  CC 
+00 01 -> 55 F5  CC 00 00.
+Jul  6 07:05:29 wuwek kernel: [  113.777986] I2C error -121; AA 0C  CC 
+00 01 -> 55 0C  CC 00 00.
+Jul  6 07:05:29 wuwek kernel: [  113.837480] I2C error -121; AA 27  CC 
+00 01 -> 55 27  CC 00 00.
+Jul  6 07:05:35 wuwek kernel: [  120.069153] I2C error -121; AA CF  CC 
+00 01 -> 55 CF  CC 00 00.
+Jul  6 07:05:37 wuwek kernel: [  121.325610] I2C error -121; AA A7  CC 
+00 01 -> 55 A7  CC 00 00.
+Jul  6 07:05:38 wuwek kernel: [  122.581565] I2C error -121; AA 7F  CC 
+00 01 -> 55 7F  CC 00 00.
+Jul  6 07:05:39 wuwek kernel: [  123.841526] I2C error -121; AA 57  CC 
+00 01 -> 55 57  CC 00 00.
+Jul  6 07:05:40 wuwek kernel: [  125.096979] I2C error -121; AA 2F  CC 
+00 01 -> 55 2F  CC 00 00.
+Jul  6 07:05:42 wuwek kernel: [  126.353689] I2C error -121; AA 07  CC 
+00 01 -> 55 07  CC 00 00.
+
+
+I will test tonight when I have more time
+Marx
 
