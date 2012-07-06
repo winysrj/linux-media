@@ -1,92 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45316 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753093Ab2G1U5H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Jul 2012 16:57:07 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] mt9v032: Export horizontal and vertical blanking as V4L2 controls
-Date: Sat, 28 Jul 2012 21:09:23 +0200
-Message-ID: <1505124.16Oe9aIvIj@avalon>
-In-Reply-To: <20120727212723.GB26642@valkosipuli.retiisi.org.uk>
-References: <1343068502-7431-4-git-send-email-laurent.pinchart@ideasonboard.com> <4375414.cY8huNNgj1@avalon> <20120727212723.GB26642@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mx1.redhat.com ([209.132.183.28]:18380 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750717Ab2GFMQH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Jul 2012 08:16:07 -0400
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q66CG6sq011142
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 6 Jul 2012 08:16:06 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] [media] Kconfig: Split the core support options from the driver ones
+Date: Fri,  6 Jul 2012 09:16:00 -0300
+Message-Id: <1341576960-19782-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Better arrange the remote controller driver items to happen after the
+core support, on their proper menus, and making clerarer what is media
+core options and what is media driver options.
 
-On Saturday 28 July 2012 00:27:23 Sakari Ailus wrote:
-> On Fri, Jul 27, 2012 at 01:02:04AM +0200, Laurent Pinchart wrote:
-> > On Thursday 26 July 2012 23:54:01 Sakari Ailus wrote:
-> > > On Tue, Jul 24, 2012 at 01:10:42AM +0200, Laurent Pinchart wrote:
-> > > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > > ---
-> > > > 
-> > > >  drivers/media/video/mt9v032.c |   36  ++++++++++++++++++++++++++++---
-> > > >  1 files changed, 33 insertions(+), 3 deletions(-)
-> > > > 
-> > > > Changes since v1:
-> > > > 
-> > > > - Make sure the total horizontal time will not go below 660 when
-> > > >   setting the horizontal blanking control
-> > > > 
-> > > > - Restrict the vertical blanking value to 3000 as documented in the
-> > > >   datasheet. Increasing the exposure time actually extends vertical
-> > > >   blanking, as long as the user doesn't forget to turn auto-exposure
-> > > >   off...
-> > > 
-> > > Does binning either horizontally or vertically affect the blanking
-> > > limits? If the process is analogue then the answer is typically "yes".
-> > 
-> > The datasheet doesn't specify whether binning and blanking can influence
-> > each other.
-> 
-> Vertical binning is often analogue since digital binning would require as
-> much temporary memory as the row holds pixels. This means the hardware
-> already does binning before a/d conversion and there's only need to actually
-> read half the number of rows, hence the effect on frame length.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/Kconfig    |    3 ++-
+ drivers/media/rc/Kconfig |   11 +++++++++--
+ 2 files changed, 11 insertions(+), 3 deletions(-)
 
-That will affect the frame length, but why would it affect vertical blanking ?
-
-> > > It's not directly related to this patch, but the effect of the driver
-> > > just exposing one sub-device really shows better now. Besides lacking
-> > > the way to specify binning as in the V4L2 subdev API (compose selection
-> > > target), the user also can't use the crop bounds selection target to get
-> > > the size of the pixel array.
-> > > 
-> > > We could either accept this for the time being and fix it later on of
-> > > fix it now.
-> > > 
-> > > I prefer fixing it right now but admit that this patch isn't breaking
-> > > anything, it rather is missing quite relevant functionality to control
-> > > the sensor in a generic way.
-> > 
-> > I'd rather apply this patch first, as it doesn't break anything :-) Fixing
-> > the problem will require discussions, and that will take time.
-> 
-> How so? There's nothing special in this sensor as far as I can see.
-> 
-> > Binning/skipping is a pretty common feature in sensors. Exposing two sub-
-> > devices like the SMIA++ driver does is one way to fix the problem, but do
-> > we really want to do that for the vast majority of sensors ?
-> 
-> If we want to expose the sensor's functionality using the V4L2 subdev API
-> and not a sensor specific API, the answer is "yes". The bottom line is that
-> we have just one API to configure scaling and cropping and that API
-> (selections) is the same independently of where the operation is being
-> performed; whether it's the sensor or the ISP.
-
-If we want to expose two subdevices for every sensor we will need to get both 
-kernelspace (ISP drivers) and userspace ready for this. I'm not against the 
-idea, but we need to plan it properly.
-
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index 6d10ccb..d941581 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -59,7 +59,7 @@ config MEDIA_RADIO_SUPPORT
+ 		support radio reception. Disabling this option will
+ 		disable support for them.
+ 
+-menuconfig MEDIA_RC_SUPPORT
++config MEDIA_RC_SUPPORT
+ 	bool "Remote Controller support"
+ 	depends on INPUT
+ 	---help---
+@@ -138,6 +138,7 @@ config DVB_NET
+ 	  You may want to disable the network support on embedded devices. If
+ 	  unsure say Y.
+ 
++comment "Media drivers"
+ source "drivers/media/common/Kconfig"
+ source "drivers/media/rc/Kconfig"
+ 
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index d2655f1..2478b06 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -4,6 +4,14 @@ config RC_CORE
+ 	depends on INPUT
+ 	default y
+ 
++source "drivers/media/rc/keymaps/Kconfig"
++
++menuconfig RC_DECODERS
++        bool "Remote controller decoders"
++	depends on RC_CORE
++	default y
++
++if RC_DECODERS
+ config LIRC
+ 	tristate "LIRC interface driver"
+ 	depends on RC_CORE
+@@ -15,8 +23,6 @@ config LIRC
+ 	   LIRC daemon handles protocol decoding for IR reception and
+ 	   encoding for IR transmitting (aka "blasting").
+ 
+-source "drivers/media/rc/keymaps/Kconfig"
+-
+ config IR_NEC_DECODER
+ 	tristate "Enable IR raw decoder for the NEC protocol"
+ 	depends on RC_CORE
+@@ -99,6 +105,7 @@ config IR_MCE_KBD_DECODER
+ 	   Enable this option if you have a Microsoft Remote Keyboard for
+ 	   Windows Media Center Edition, which you would like to use with
+ 	   a raw IR receiver in your system.
++endif #RC_DECODERS
+ 
+ menuconfig RC_DEVICES
+ 	bool "Remote Controller devices"
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
