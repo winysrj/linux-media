@@ -1,132 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42704 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751308Ab2GPXpc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jul 2012 19:45:32 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: David Cohen <david.a.cohen@linux.intel.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 7/9] soc-camera: Continue the power off sequence if one of the steps fails
-Date: Tue, 17 Jul 2012 01:45:35 +0200
-Message-ID: <11676269.DxxC5Mj13x@avalon>
-In-Reply-To: <50034325.50006@linux.intel.com>
-References: <1341520728-2707-1-git-send-email-laurent.pinchart@ideasonboard.com> <1341520728-2707-8-git-send-email-laurent.pinchart@ideasonboard.com> <50034325.50006@linux.intel.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:43900 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751630Ab2GGKrF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Jul 2012 06:47:05 -0400
+Message-ID: <4FF8139F.7010602@iki.fi>
+Date: Sat, 07 Jul 2012 13:46:55 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Bert Massop <bert.massop@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/3] [media] tuner, xc2028: add support for get_afc()
+References: <1341497792-6066-1-git-send-email-mchehab@redhat.com> <1341497792-6066-3-git-send-email-mchehab@redhat.com> <4FF5AD40.3070707@iki.fi> <CAKJOob9KBQRHXWTrOM_=hmF5OSoovhPWY4aGCbhhsbLKTk5NgQ@mail.gmail.com> <4FF5F4C4.7080904@redhat.com>
+In-Reply-To: <4FF5F4C4.7080904@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi David,
+On 07/05/2012 11:10 PM, Mauro Carvalho Chehab wrote:
+> Em 05-07-2012 14:37, Bert Massop escreveu:
+>> On Thu, Jul 5, 2012 at 5:05 PM, Antti Palosaari <crope@iki.fi> wrote:
+>>>
+>>> On 07/05/2012 05:16 PM, Mauro Carvalho Chehab wrote:
+>>>>
+>>>> Implement API support to return AFC frequency shift, as this device
+>>>> supports it. The only other driver that implements it is tda9887,
+>>>> and the frequency there is reported in Hz. So, use Hz also for this
+>>>> tuner.
+>>>
+>>>
+>>> What is AFC and why it is needed?
+>>>
+>>
+>> AFC is short for Automatic Frequency Control, by which a tuner
+>> automatically fine-tunes the frequency for the best reception,
+>> compensating for small offsets and oscillator frequency drift.
+>> This is however done automatically on the tuner, so its configuration
+>> is read-only. Aside from being a "nice to know" statistic, getting
+>> hold of the AFC frequency shift does as far as I know not have any
+>> practical uses related to properly operating the tuner.
+>
+> AFC might be useful on a few situations. For example, my CATV operator
+> still broadcasts some channels in both analog and digital. The analog
+> equipment there doesn't seem to be well-maintained, as some channels have
+> frequency shifts or have some other artifacts. Still, analog broadcast
+> is useful for me to test drivers ;)
+>
+> Anyway, adjusting the channel tables to consider that offset shift help
+> to tune them a little faster and/or get a better quality by letting the
+> PLL to work closer to the pilot carrier.
 
-Thank you for the review.
+We has already .get_frequency() which returns same information. It is 
+not currently used though few drivers implements it (wrongly). So I 
+don't see why this new callback should be added.
 
-On Monday 16 July 2012 01:24:37 David Cohen wrote:
-> On 07/05/2012 11:38 PM, Laurent Pinchart wrote:
-> > Powering off a device is a "best effort" task: failure to execute one of
-> > the steps should not prevent the next steps to be executed. For
-> > instance, an I2C communication error when putting the chip in stand-by
-> > mode should not prevent the more agressive next step of turning the
-> > chip's power supply off.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >   drivers/media/video/soc_camera.c |    9 +++------
-> >   1 files changed, 3 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/soc_camera.c
-> > b/drivers/media/video/soc_camera.c index 55b981f..bbd518f 100644
-> > --- a/drivers/media/video/soc_camera.c
-> > +++ b/drivers/media/video/soc_camera.c
-> > @@ -89,18 +89,15 @@ static int soc_camera_power_off(struct
-> > soc_camera_device *icd,> 
-> >   				struct soc_camera_link *icl)
-> >   {
-> >   	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-> > -	int ret = v4l2_subdev_call(sd, core, s_power, 0);
-> > +	int ret;
-> > 
-> > -	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
-> > -		return ret;
-> > +	v4l2_subdev_call(sd, core, s_power, 0);
-> 
-> Fair enough. I agree we should not prevent power off because of failure
-> in this step. But IMO we should not silently bypass it too. How about
-> an error message?
+u32 actual_freq;
+int afc;
 
-I'll add that.
+struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ret = .get_frequency(fe, &actual_freq);
+afc = c->frequency - actual_freq;
 
-> >   	if (icl->power) {
-> >   	
-> >   		ret = icl->power(icd->control, 0);
-> > 
-> > -		if (ret < 0) {
-> > +		if (ret < 0)
-> > 
-> >   			dev_err(icd->pdev,
-> >   			
-> >   				"Platform failed to power-off the camera.\n");
-> > 
-> > -			return ret;
-> > -		}
-> > 
-> >   	}
-> >   	
-> >   	ret = regulator_bulk_disable(icl->num_regulators,
-> 
-> One more comment. Should this function's return value being based fully
-> on last action? If any earlier error happened but this last step is
-> fine, IMO we should not return 0.
-
-Good point. What about this (on top of the current patch) ?
-
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index bbd518f..7bf21da 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -89,21 +89,30 @@ static int soc_camera_power_off(struct soc_camera_device *icd,
-                                struct soc_camera_link *icl)
- {
-        struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
--       int ret;
-+       int ret = 0;
-+       int err;
- 
--       v4l2_subdev_call(sd, core, s_power, 0);
-+       err = v4l2_subdev_call(sd, core, s_power, 0);
-+       if (err < 0 && err != -ENOIOCTLCMD && err != -ENODEV) {
-+               dev_err(icd->pdev, "Subdev failed to power-off the camera.\n");
-+               ret = err;
-+       }
- 
-        if (icl->power) {
--               ret = icl->power(icd->control, 0);
--               if (ret < 0)
-+               err = icl->power(icd->control, 0);
-+               if (err < 0) {
-                        dev_err(icd->pdev,
-                                "Platform failed to power-off the camera.\n");
-+                       ret = ret ? : err;
-+               }
-        }
- 
--       ret = regulator_bulk_disable(icl->num_regulators,
-+       err = regulator_bulk_disable(icl->num_regulators,
-                                     icl->regulators);
--       if (ret < 0)
-+       if (err < 0) {
-                dev_err(icd->pdev, "Cannot disable regulators\n");
-+               ret = ret ? : err;
-+       }
- 
-        return ret;
- }
+regards
+Antti
 
 -- 
-Regards,
+http://palosaari.fi/
 
-Laurent Pinchart
 
