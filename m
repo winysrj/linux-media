@@ -1,102 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53536 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751143Ab2GFNcs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 09:32:48 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Jean-Philippe Francois <jp.francois@cynove.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v2 5/6] omap3isp: preview: Merge gamma correction and gamma bypass
-Date: Fri,  6 Jul 2012 15:32:48 +0200
-Message-Id: <1341581569-8292-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1341581569-8292-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1341581569-8292-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from nm19-vm0.bullet.mail.ird.yahoo.com ([77.238.189.92]:31533 "HELO
+	nm19-vm0.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751800Ab2GGAm7 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Jul 2012 20:42:59 -0400
+Message-ID: <1341621777.83042.YahooMailClassic@web29401.mail.ird.yahoo.com>
+Date: Sat, 7 Jul 2012 01:42:57 +0100 (BST)
+From: Hin-Tak Leung <hintak_leung@yahoo.co.uk>
+Subject: bugs in dvbscan/scan, dvb-apps(Re: media_build and Terratec Cinergy T Black.)
+To: Antti Palosaari <crope@iki.fi>
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org
+In-Reply-To: <1341608766.83055.YahooMailClassic@web29403.mail.ird.yahoo.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enabling gamma bypass disables gamma correction and vice versa. Merge
-the two parameters.
+--- On Fri, 6/7/12, Hin-Tak Leung <htl10@users.sourceforge.net> wrote:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/omap3isp/isppreview.c |   42 ++++++++++++++--------------
- 1 files changed, 21 insertions(+), 21 deletions(-)
+<snipped>
+> > > - 'scandvb' segfault at the end on its own.
+> > 
+> > I didn't see that.
+> 
+> This is fc17's - it does so in a string function (v*printf)
+> - probably easy to fix if/when I get the debuginfo package,
+> if it isn't fixed upstream already.
 
-diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
-index c325e79..71ce0f4 100644
---- a/drivers/media/video/omap3isp/isppreview.c
-+++ b/drivers/media/video/omap3isp/isppreview.c
-@@ -481,25 +481,6 @@ static void preview_enable_dcor(struct isp_prev_device *prev, bool enable)
- }
- 
- /*
-- * preview_enable_gammabypass - Enable/disable Gamma Bypass
-- *
-- * When gamma bypass is enabled, the output of the gamma correction is the 8 MSB
-- * of the 10-bit input .
-- */
--static void
--preview_enable_gammabypass(struct isp_prev_device *prev, bool enable)
--{
--	struct isp_device *isp = to_isp_device(prev);
--
--	if (enable)
--		isp_reg_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
--			    ISPPRV_PCR_GAMMA_BYPASS);
--	else
--		isp_reg_clr(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
--			    ISPPRV_PCR_GAMMA_BYPASS);
--}
--
--/*
-  * preview_enable_drkframe_capture - Enable/disable Dark Frame Capture
-  */
- static void
-@@ -597,6 +578,25 @@ preview_config_gammacorrn(struct isp_prev_device *prev,
- }
- 
- /*
-+ * preview_enable_gammacorrn - Enable/disable Gamma Correction
-+ *
-+ * When gamma correction is disabled, the module is bypassed and its output is
-+ * the 8 MSB of the 10-bit input .
-+ */
-+static void
-+preview_enable_gammacorrn(struct isp_prev_device *prev, bool enable)
-+{
-+	struct isp_device *isp = to_isp_device(prev);
-+
-+	if (enable)
-+		isp_reg_clr(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
-+			    ISPPRV_PCR_GAMMA_BYPASS);
-+	else
-+		isp_reg_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
-+			    ISPPRV_PCR_GAMMA_BYPASS);
-+}
-+
-+/*
-  * preview_config_contrast - Configure the Contrast
-  *
-  * Value should be programmed before enabling the module.
-@@ -817,7 +817,7 @@ static const struct preview_update update_attrs[] = {
- 		offsetof(struct omap3isp_prev_update_config, dcor),
- 	}, /* OMAP3ISP_PREV_GAMMABYPASS */ {
- 		NULL,
--		preview_enable_gammabypass,
-+		NULL,
- 	}, /* OMAP3ISP_PREV_DRK_FRM_CAPTURE */ {
- 		NULL,
- 		preview_enable_drkframe_capture,
-@@ -835,7 +835,7 @@ static const struct preview_update update_attrs[] = {
- 		offsetof(struct omap3isp_prev_update_config, nf),
- 	}, /* OMAP3ISP_PREV_GAMMA */ {
- 		preview_config_gammacorrn,
--		NULL,
-+		preview_enable_gammacorrn,
- 		offsetof(struct prev_params, gamma),
- 		FIELD_SIZEOF(struct prev_params, gamma),
- 		offsetof(struct omap3isp_prev_update_config, gamma),
--- 
-1.7.8.6
+I got hold of the debuginfo, and found the bug - it is in bad_usage() in dvb-apps/util/scan/scan.c, line 2583 (case 2). The format strings contains two %s, but that statement only supply one:
+
+   fprintf (stderr, usage, pname);
+
+Who should I report this to? (not very good with mercury at the moment...).
+
+running scandvb on its own is supposed to result in an input file listing then print usage; on fc17 it segfaults while printing usage; on a mercury source build, it fills the 2nd %s with some random other string from the program itself.
+
+<snipped>
+> > There is both dvbscan and scandvb in Fedora dvb-apps.
+> It is
+> > not clear for me why two similar looking tools. Anyhow
+> it is
+> > just scandvb which I found working one.
+> 
+> I just found a dvbv5-scan on my harddisk (fc17) also, and
+> dvbscan is in locate.db but gone. Apparently one might be
+> 'scan' but too confusing and got its name changed during
+> packaging.
+
+Found the reason how/why it was gone while I was looking for debuginfo (see change log entry):
+http://koji.fedoraproject.org/koji/buildinfo?buildID=327654
+
+The fedora packager withdrew dvbscan: "drop dvbscan as it's obsolete/broken" - changelog June 26.
 
