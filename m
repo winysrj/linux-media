@@ -1,122 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:34135 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753710Ab2GaSDk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 14:03:40 -0400
-Message-ID: <50181DF7.8080807@gmx.de>
-Date: Tue, 31 Jul 2012 20:03:35 +0200
-From: =?ISO-8859-1?Q?Toralf_F=F6rster?= <toralf.foerster@gmx.de>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:35115 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750903Ab2GGAWy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 20:22:54 -0400
+Received: by werb14 with SMTP id b14so6732369wer.19
+        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2012 17:22:53 -0700 (PDT)
+Message-ID: <4FF7815A.2040709@gmail.com>
+Date: Sat, 07 Jul 2012 02:22:50 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
 To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: set default protocol for  TerraTec Cinergy XXS  to "nec"
-References: <50047814.20701@gmx.de> <5016B29F.4080605@redhat.com>
-In-Reply-To: <5016B29F.4080605@redhat.com>
-Content-Type: multipart/mixed;
- boundary="------------020100010108060806070304"
+CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v3.5] S5P driver fixes
+References: <4FEC864D.5040608@samsung.com> <4FEDEE7C.7080105@samsung.com> <4FF73821.9010108@redhat.com> <4FF74306.2030000@gmail.com> <4FF7689C.8040602@redhat.com>
+In-Reply-To: <4FF7689C.8040602@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------020100010108060806070304
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-
-On 07/30/2012 06:13 PM, Mauro Carvalho Chehab wrote:
-> Em 16-07-2012 17:22, Toralf Förster escreveu:
->> For a TerraTec Cinergy XXS USB stick (Bus 001 Device 008: ID 0ccd:00ab TerraTec Electronic GmbH )
->> I've to switch the protocol every time after plugin to get (at least few) keys working :
->>
->> $> sudo ir-keytable --protocol=nec --sysdev=`ir-keytable 2>&1 | head -n 1 | cut -f5 -d'/'`
->>
->> /me wonders whether "nec" should be set as the default for this key in kernel or not
+On 07/07/2012 12:37 AM, Mauro Carvalho Chehab wrote:
+> I pushed the branch with the fixes into my experimental tree:
+> 	http://git.linuxtv.org/mchehab/experimental.git/shortlog/refs/heads/v4l_for_linus
 > 
-> It makes sense to patch it to use the nec protocol. If not all keys are working, it also makes
-> sense to fix the kernel table to handle all codes, or to point to a new table where all
-> Terratec keys are defined.
-> 
-> Could you please write such patch?
-> 
-> Thank you!
-> Mauro
+> Could you please check what's missing there and rebase the pending patches for it?
 
-I tried it, but the attached (naive) approach doesn't work.
-The kernel dmesg shows "kernel: Registered IR keymap rc-dib0700-nec"
-but keys aren't recognized.
+It looks good, there are only 2 patches missing (from
+git://git.infradead.org/users/kmpark/linux-samsung v4l-fixes):
+
+df5772f Revert "[media] V4L: JPEG class documentation corrections"
+196073a s5p-fimc: Add missing FIMC-LITE file operations locking
+
+They applied cleanly without a need to rebase.
+
+I pushed everything for reference to:
+ git@github.com:snawrocki/linux.git mchehab-experimental
+
+https://github.com/snawrocki/linux/commits/mchehab-experimental
+
+Sorry for the hassle. Next time I'll try not to send subsequent pull request
+when any previous one is pending.
+
+--
+
+Regards,
+Sylwester
 
 
--- 
-MfG/Sincerely
-Toralf Förster
-pgp finger print: 7B1A 07F4 EC82 0F90 D4C2 8936 872A E508 7DB6 9DA3
-
---------------020100010108060806070304
-Content-Type: text/x-patch;
- name="nec.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="nec.patch"
-
-diff --git a/drivers/media/dvb/dvb-usb/dib0700_devices.c b/drivers/media/dvb/dvb-usb/dib0700_devices.c
-index 510001d..46215cc 100644
---- a/drivers/media/dvb/dvb-usb/dib0700_devices.c
-+++ b/drivers/media/dvb/dvb-usb/dib0700_devices.c
-@@ -4276,8 +4276,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
- 			},
- 			{   "Terratec Cinergy T USB XXS (HD)/ T3",
- 				{ &dib0700_usb_id_table[33],
--					&dib0700_usb_id_table[52],
--					&dib0700_usb_id_table[60], NULL},
-+					&dib0700_usb_id_table[52], NULL},
- 				{ NULL },
- 			},
- 			{   "TechniSat AirStar TeleStick 2",
-@@ -4301,6 +4300,45 @@ struct dvb_usb_device_properties dib0700_devices[] = {
- 			.change_protocol  = dib0700_change_protocol,
- 		},
- 	}, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
-+
-+		.num_adapters = 1,
-+		.adapter = {
-+			{
-+			.num_frontends = 1,
-+			.fe = {{
-+				.caps = DVB_USB_ADAP_HAS_PID_FILTER | DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
-+				.pid_filter_count = 32,
-+				.pid_filter       = stk70x0p_pid_filter,
-+				.pid_filter_ctrl  = stk70x0p_pid_filter_ctrl,
-+				.frontend_attach  = stk7770p_frontend_attach,
-+				.tuner_attach     = dib7770p_tuner_attach,
-+
-+				DIB0700_DEFAULT_STREAMING_CONFIG(0x02),
-+			}},
-+				.size_of_priv =
-+					sizeof(struct dib0700_adapter_state),
-+			},
-+		},
-+
-+		.num_device_descs = 1,
-+		.devices = {
-+			{   "Terratec Cinergy T USB XXS (HD)/ T3 _2",
-+				{ &dib0700_usb_id_table[60], NULL},
-+				{ NULL },
-+			},
-+		},
-+
-+		.rc.core = {
-+			.rc_interval      = DEFAULT_RC_INTERVAL,
-+			.rc_codes         = RC_MAP_DIB0700_NEC_TABLE,
-+			.module_name	  = "dib0700",
-+			.rc_query         = dib0700_rc_query_old_firmware,
-+			.allowed_protos   = RC_TYPE_RC5 |
-+					    RC_TYPE_RC6 |
-+					    RC_TYPE_NEC,
-+			.change_protocol  = dib0700_change_protocol,
-+		},
-+	}, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
- 		.num_adapters = 1,
- 		.adapter = {
- 			{
-
---------------020100010108060806070304--
