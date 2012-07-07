@@ -1,56 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42224 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932421Ab2GBJYM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2012 05:24:12 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Petter Selasky <hselasky@c2i.net>, linux-media@vger.kernel.org
-Subject: Re: Question about V4L2_MEMORY_USERPTR
-Date: Mon, 02 Jul 2012 11:24:15 +0200
-Message-ID: <1507857.9YMcHMaQav@avalon>
-In-Reply-To: <20120701140058.GB20344@valkosipuli.retiisi.org.uk>
-References: <201203230819.45385.hselasky@c2i.net> <20120701140058.GB20344@valkosipuli.retiisi.org.uk>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:36708 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751867Ab2GGVk6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jul 2012 17:40:58 -0400
+Received: by lbbgm6 with SMTP id gm6so17570009lbb.19
+        for <linux-media@vger.kernel.org>; Sat, 07 Jul 2012 14:40:56 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <CALefuyj-7XGdRMRCcLPWPdXNF7EwowcggdG5gcu7ui=jEs9tiA@mail.gmail.com>
+References: <CALefuyj-7XGdRMRCcLPWPdXNF7EwowcggdG5gcu7ui=jEs9tiA@mail.gmail.com>
+From: Ben Barker <ben@bbarker.co.uk>
+Date: Sat, 7 Jul 2012 22:40:36 +0100
+Message-ID: <CALefuyijGxvr0=1_wi9Y+wO2nQfYBf6Q-ZbMZWZfVVnNdooH-g@mail.gmail.com>
+Subject: Re: WinTV-Duet
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 01 July 2012 17:00:58 Sakari Ailus wrote:
-> On Fri, Mar 23, 2012 at 08:19:45AM +0100, Hans Petter Selasky wrote:
-> > Hi,
-> > 
-> > I have a question about V4L2_MEMORY_USERPTR:
-> > 
-> > From which context are the kernel's "copy_to_user()" functions called in
-> > relation to V4L2_MEMORY_USERPTR ? Can this be a USB callback function or
-> > is it only syscalls, like read/write/ioctl that are allowed to call
-> > "copy_to_user()" ?
-> > 
-> > The reason for asking is that I am maintaining a userland port of the
-> > media tree's USB drivers for FreeBSD. At the present moment it is not
-> > allowed to call copy_to_user() or copy_from_user() unless the backtrace
-> > shows a syscall, so the V4L2_MEMORY_USERPTR feature is simply removed and
-> > disabled. I'm currently thinking how I can enable this feature.
-> 
-> I hope this is still relevant --- I just read your message the first time.
-> 
-> I don't know how V4L2 is being used in FreeBSD userland, but the intent of
-> copy_to_user() function is to copy the contents of kernel memory to
-> somewhere the user space has a mapping to (and the other way around for
-> copy_from_user()).
+well It looks like this is a "diversity" card, which seems to be a way
+of combining the two tuners, and is not supported on linux.
 
-copy_(to|from)_user(), by definition, require a userspace memory context to 
-perform the copy operation. They can't be called from interrupt context, 
-kernel threads, or any other context where no userspace memory context is 
-present.
+The fact I can use one, or the other, but not both of the tuners makes
+this sound like a likely culprit.
 
-> Are your video buffers allocated by the kernel or not? How is USB accessed
-> when you don't have the Linux kernel USB framework around?
+But all the documentation I can find seems to suggest this not being
+supported merely means you cant combine the tuners - but can still run
+fine with 2. I wonder if in this case I can't uncombine them...and how
+I could check if diversity mode is on or off...
 
--- 
-Regards,
-
-Laurent Pinchart
-
+On Sat, Jul 7, 2012 at 8:27 PM, Ben Barker <ben@bbarker.co.uk> wrote:
+> Firstly, let me apologise if this is not an appropriate place to ask
+> what is not really a development question...
+>
+> I have been playing around with the Hauppauge WinTV Duet dual USB tuner today.
+> dmesg seems happy when it is connected, and detects it as two devices
+>
+> This:
+> http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-Duet-HD-Stick
+>
+> Suggests the device may be supported, though the "HD" vestion does not
+> seem to exist as far as I can tell.
+>
+> I can run "scan" to get a channels list from the device no problem,
+> and whilst VLC will not play from it, tzap works fine.
+> Using mplayer I can access either tuner - but not both at once - so:
+>
+> mplayer "dvb://0@" works, as does mplayer "dvb://1@", but not both
+> together, which whichever is second giving:
+>
+> ERROR OPENING FRONTEND DEVICE /dev/dvb/adapter0/frontend0: ERRNO 16
+> DVB_SET_CHANNEL2, COULDN'T OPEN DEVICES OF CARD: 0, EXIT
+> ERROR, COULDN'T SET CHANNEL  0: Failed to open dvb://1@.
+>
+> dmesg reveals:
+>
+> [   17.402977] DiB0070: successfully identified
+> [   17.402984] dvb-usb: will pass the complete MPEG2 transport stream
+> to the software demuxer.
+> [   17.403290] DVB: registering new adapter (Hauppauge Nova-TD Stick (52009))
+> [   17.502811] [drm] fb mappable at 0xE0142000
+> [   17.502815] [drm] vram apper at 0xE0000000
+> [   17.502817] [drm] size 9216000
+> [   17.502819] [drm] fb depth is 24
+> [   17.502821] [drm]    pitch is 7680
+> [   17.502945] fbcon: radeondrmfb (fb0) is primary device
+> [   17.503041] Console: switching to colour frame buffer device 100x37
+> [   17.503063] fb0: radeondrmfb frame buffer device
+> [   17.503065] drm: registered panic notifier
+> [   17.503073] [drm] Initialized radeon 2.10.0 20080528 for
+> 0000:02:00.0 on minor 0
+> [   17.503517] ACPI: PCI Interrupt Link [APC5] enabled at IRQ 16
+> [   17.503526] HDA Intel 0000:02:00.1: PCI INT B -> Link[APC5] -> GSI
+> 16 (level, low) -> IRQ 16
+> [   17.503604] HDA Intel 0000:02:00.1: irq 43 for MSI/MSI-X
+> [   17.503635] HDA Intel 0000:02:00.1: setting latency timer to 64
+> [   17.546958] HDMI status: Pin=3 Presence_Detect=0 ELD_Valid=0
+> [   17.547313] input: HDA ATI HDMI HDMI/DP,pcm=3 as
+> /devices/pci0000:00/0000:00:09.0/0000:02:00.1/sound/card2/input6
+> [   17.588731] DVB: registering adapter 1 frontend 0 (DiBcom 7000PC)...
+> [   17.722284] scsi 4:0:0:0: Direct-Access     Generic  Flash HS-CF
+>   5.39 PQ: 0 ANSI: 0
+> [   17.725421] scsi 4:0:0:1: Direct-Access     Generic  Flash HS-COMBO
+>   5.39 PQ: 0 ANSI: 0
+> [   17.806976] DiB0070: successfully identified
+> [   17.832059] Registered IR keymap rc-dib0700-rc5
+> [   17.832229] input: IR-receiver inside an USB DVB receiver as
+> /devices/pci0000:00/0000:00:02.1/usb1/1-7/rc/rc1/input7
+> [   17.832314] rc1: IR-receiver inside an USB DVB receiver as
+> /devices/pci0000:00/0000:00:02.1/usb1/1-7/rc/rc1
+> [   17.833518] dvb-usb: schedule remote query interval to 50 msecs.
+> [   17.833525] dvb-usb: Hauppauge Nova-TD Stick (52009) successfully
+> initialized and connected.
+>
+> Whilst lsusb -d 2040:5200 -v gives:
+>
+> Bus 001 Device 004: ID 2040:5200 Hauppauge
+> Device Descriptor:
+>   bLength                18
+>   bDescriptorType         1
+>   bcdUSB               2.00
+>   bDeviceClass            0 (Defined at Interface level)
+>   bDeviceSubClass         0
+>   bDeviceProtocol         0
+>   bMaxPacketSize0        64
+>   idVendor           0x2040 Hauppauge
+>   idProduct          0x5200
+>   bcdDevice            0.01
+>   iManufacturer           1 Hauppauge
+>   iProduct                2 NovaT 500Stick
+>   iSerial                 3 4034702860
+>   bNumConfigurations      1
+>   Configuration Descriptor:
+>     bLength                 9
+>     bDescriptorType         2
+>     wTotalLength           46
+>     bNumInterfaces          1
+>     bConfigurationValue     1
+>     iConfiguration          0
+>     bmAttributes         0x80
+>       (Bus Powered)
+>     MaxPower              500mA
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        0
+>       bAlternateSetting       0
+>       bNumEndpoints           4
+>       bInterfaceClass       255 Vendor Specific Class
+>       bInterfaceSubClass      0
+>       bInterfaceProtocol      0
+>       iInterface              0
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x01  EP 1 OUT
+>         bmAttributes            2
+>           Transfer Type            Bulk
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0200  1x 512 bytes
+>         bInterval               1
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x81  EP 1 IN
+>         bmAttributes            3
+>           Transfer Type            Interrupt
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0040  1x 64 bytes
+>         bInterval              10
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x82  EP 2 IN
+>         bmAttributes            2
+>           Transfer Type            Bulk
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0200  1x 512 bytes
+>         bInterval               1
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x83  EP 3 IN
+>         bmAttributes            2
+>           Transfer Type            Bulk
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0200  1x 512 bytes
+>         bInterval               1
+> Device Qualifier (for other device speed):
+>   bLength                10
+>   bDescriptorType         6
+>   bcdUSB               2.00
+>   bDeviceClass            0 (Defined at Interface level)
+>   bDeviceSubClass         0
+>   bDeviceProtocol         0
+>   bMaxPacketSize0        64
+>   bNumConfigurations      1
+> Device Status:     0x0000
+>   (Bus Powered)
+>
+> There is also a PCI tuner installed (DVB-T 500) - but this is working
+> fine and has done for a while.
+>
+> Can anybody offer any suggestions?
