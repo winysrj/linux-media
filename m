@@ -1,188 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:49250 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751535Ab2GOOb1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jul 2012 10:31:27 -0400
-Received: by obbuo13 with SMTP id uo13so8018572obb.19
-        for <linux-media@vger.kernel.org>; Sun, 15 Jul 2012 07:31:27 -0700 (PDT)
+Received: from nm14-vm0.bullet.mail.ird.yahoo.com ([77.238.189.193]:45337 "HELO
+	nm14-vm0.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751326Ab2GGCLs convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Jul 2012 22:11:48 -0400
+Message-ID: <1341627106.90091.YahooMailClassic@web29405.mail.ird.yahoo.com>
+Date: Sat, 7 Jul 2012 03:11:46 +0100 (BST)
+From: Hin-Tak Leung <htl10@users.sourceforge.net>
+Reply-To: htl10@users.sourceforge.net
+Subject: success! (Re: media_build and Terratec Cinergy T Black.)
+To: Antti Palosaari <crope@iki.fi>
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org
+In-Reply-To: <1341608766.83055.YahooMailClassic@web29403.mail.ird.yahoo.com>
 MIME-Version: 1.0
-In-Reply-To: <4FFFF74F.4020802@mlbassoc.com>
-References: <4FFC3109.3080204@mlbassoc.com>
-	<CABMb9GtV_CZ=ZFoqXD_u3dmZQoD5CmsptYkgwwecO7Ch9v3AAw@mail.gmail.com>
-	<4FFC82F9.2090004@mlbassoc.com>
-	<CAC-OdnBfxJar83+WFm1N-C0=+MivOvfAiWaEP-O3iCkYKxktbA@mail.gmail.com>
-	<4FFFF74F.4020802@mlbassoc.com>
-Date: Sun, 15 Jul 2012 09:31:26 -0500
-Message-ID: <CAC-OdnCN8+nVch+Di9MQHZjGGG3dmYA6tDRkY8nt-mtyA1UOgQ@mail.gmail.com>
-Subject: Re: OMAP4 support
-From: Sergio Aguirre <sergio.a.aguirre@gmail.com>
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: Chris Lalancette <clalancette@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Discussion <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gary,
+--- On Fri, 6/7/12, Hin-Tak Leung <htl10@users.sourceforge.net> wrote:
 
-On Fri, Jul 13, 2012 at 5:24 AM, Gary Thomas <gary@mlbassoc.com> wrote:
-> On 2012-07-12 20:30, Sergio Aguirre wrote:
->>
->> Hi Gary,
->>
->> On Tue, Jul 10, 2012 at 2:31 PM, Gary Thomas <gary@mlbassoc.com> wrote:
->>>
->>> On 2012-07-10 11:05, Chris Lalancette wrote:
->>>>
->>>>
->>>> On Tue, Jul 10, 2012 at 9:41 AM, Gary Thomas <gary@mlbassoc.com> wrote:
->>>>>
->>>>>
->>>>> I'm looking for video support on OMAP4 platforms.  I've found the
->>>>> PandaBoard camera project
->>>>> (http://www.omappedia.org/wiki/PandaBoard_Camera_Support)
->>>>> and this is starting to work.  That said, I'm having some
->>>>> issues with setting up the pipeline, etc.
->>>>>
->>>>> Can this list help out?
->>>>
->>>>
->>>>
->>>> I'm not sure exactly what kind of cameras you want to get working, but
->>>> if you are looking to get CSI2 cameras going through the ISS, Sergio
->>>> Aguirre has been working on support.  He also works on the media-ctl
->>>> tool, which is used for configuring the media framework pipeline.  The
->>>> latest versions that I am aware of are here:
->>>>
->>>> git://gitorious.org/omap4-v4l2-camera/omap4-v4l2-camera.git
->>>
->>>
->>>
->>> Yes, this is the tree I've been working with (pointed to by the page I
->>> mentioned).
->>>
->>> My kernel can see the camera OV5650 and set up the pipeline.  I am able
->>> to
->>> grab
->>> the raw SGRBG10 data but I'd like to get the ISS to convert this to a
->>> more
->>> usable
->>> UYVY format.  Here's what I tried:
->>>    media-ctl -r
->>>    media-ctl -l '"OMAP4 ISS CSI2a":1 -> "OMAP4 ISS ISP IPIPEIF":0 [1]'
->>>    media-ctl -l '"OMAP4 ISS ISP IPIPEIF":1 -> "OMAP4 ISS ISP IPIPEIF
->>> output":0 [1]'
->>>    media-ctl -f '"ov5650 3-0036":0 [SGRBG10 2592x1944]'
->>>    media-ctl -f '"OMAP4 ISS CSI2a":0 [SGRBG10 2592x1944]'
->>>    media-ctl -f '"OMAP4 ISS ISP IPIPEIF":0 [SGRBG10 2592x1944]','"OMAP4
->>> ISS
->>> ISP IPIPEIF":1 [UYVY 2592x1944]'
->>>
->>> Sadly, I can't get the IPIPEIF element to take SGRGB10 in and put UYVY
->>> out
->>> (my reading
->>> of the manual implies that this _should_ be possible).  I always see this
->>> pipeline setup:
->>> - entity 5: OMAP4 ISS ISP IPIPEIF (3 pads, 4 links)
->>>              type V4L2 subdev subtype Unknown
->>>              device node name /dev/v4l-subdev2
->>>          pad0: Input [SGRBG10 2592x1944]
->>>                  <- 'OMAP4 ISS CSI2a':pad1 [ACTIVE]
->>>                  <- 'OMAP4 ISS CSI2b':pad1 []
->>>          pad1: Output [SGRBG10 2592x1944]
->>>                  -> 'OMAP4 ISS ISP IPIPEIF output':pad0 [ACTIVE]
->>>          pad2: Output [SGRBG10 2592x1944]
->>>                  -> 'OMAP4 ISS ISP resizer':pad0 []
->>>
->>> Am I missing something?  How can I make this conversion in the ISS?
->>
->>
->> The core problem is that, i haven't published any support for
->> RAW10->YUV conversion,
->> which is part of the IPIPE module (not the IPIPEIF, like you mention). I
->> had
->> some patches, but sadly it is unfinished work. :/
->>
->> Now, there's a main non-technical problem... I no longer work at TI
->> since end of June
->> this year, and I don't have the right HW setup available anymore.
->> Those sensors were
->> company's asset, and I couldn't keep any.
->>
->> Now, we can make this work with cooperation of someone who has the right
->> setup,
->> and me sharing my patches and some advice on my experience.
->>
->> What do you think?
->>
->>>
->>> Note: if this is not the appropriate place to ask these questions, please
->>> redirect me (hopefully to a useful list :-)
->>
->>
->> As I'm the main person who has been actively developing this, I'm your
->> guy to ask questions :).
->>
->> By the way, this development has been my initiative the whole time,
->> and not an official
->> TI objective, so, to be honest, asking TI for official support won't
->> help much right now.
->
->
-> Tell me how I can help make this happen.  I'll be glad to apply patches,
-> figure out bugs, etc, I just need a little help with getting started.
-> I have access to the hardware and it's really important that I make some
-> progress on this soon.
->
-> Can you share your RAW10->YUV patches and some guidance on how to proceed?
+<snipped>
+> > Typical channels.conf entry looks like that:
+> >
+> MTV3:714000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:305:561:49
+> > 
+> > And tuning to that channel using mplayer:
+> > mplayer dvb://MTV3
+> 
+> Well that at least clear up something - I tried this form
+> (from 
+> /usr/share/doc/dvb-apps-1.1.2/channels-conf/dvb-t/* ) but
+> did not get anything either - the error message seemed worse
+> so I didn't go further. I guess I should try getting w_scan
+> to do this form.
 
-Sure. I just pushed an internal branch I had, named: "devel-ISPSUPPORT-IPIPE",
-please take that as a base.
+<snipped>
+> There seems to be at least two channels.conf formats (one
+> for mplayer/vlc/gstreamer, one for vdr?), and unfortunately
+> both seems to have the same name conventionally, but
+> different content. I can't find documentation about either,
+> or even examples :-).
 
-And please try these commands:
+Apparently it was just me not reading the manual/options properly. There are 3 formats - gstreamer, vdr and mplayer's! I thought it was just vdr vs everything else. It was also confusing that mplayer did not complain about it.
 
-media-ctl -r -l '"OMAP4 ISS CSI2a":1 -> "OMAP4 ISS ISP IPIPEIF":0
-[1]','"OMAP4 ISS ISP IPIPEIF":2 -> "OMAP4 ISS ISP IPIPE":0
-[1]','"OMAP4 ISS ISP IPIPE":1 -> "OMAP4 ISS ISP resizer":0
-[1]','"OMAP4 ISS ISP resizer":1 -> "OMAP4 ISS ISP resizer a output":0
-[1]'
+scandvb still does not work at all, nor those sample config files under /usr/share/doc/dvb-apps-1.1.2/channels-conf/dvb-t/* , or use those (tried about 6 different transmitter config various distance away). It is also true that I have poor reception: all the BBC* channels seems to work okay - about 18 channels - but none of the non-BBC stations. Also they are not there on a 2nd scan, so I guess they are weaker.
 
-media-ctl -f '"ov5650 3-0036":0 [SGRBG10 2592x1944]','"OMAP4 ISS
-CSI2a":0 [SGRBG10 2592x1944]','"OMAP4 ISS ISP IPIPEIF":0 [SGRBG10
-2592x1944]','"OMAP4 ISS ISP IPIPE":0 [SGRBG10 2592x1944]','"OMAP4 ISS
-ISP resizer":0 [UYVY 2592x1944]'
+So obviously there are a lot of rough edges. I also think it is a bit stupid for w_scan not to offer writing *all* the formats, since all the information should be there after a scan. It takes about 8 minutes to do a full scan. It would be more logical to generate all the channels.conf formats on one scan, and let the user throw away the ones he does not need, if it takes that long to do a full scan.
 
-yavta /dev/video3 -c4 -n1 -s2592x1944 -fUYVY -Fov5650_2592x1944_UYVY_8bpp.yuv
 
->
-> I have been able to capture RAW10 data, but often the whole thing just sits
-> there (hangs).  Restarting the process sometimes works, sometimes not.
-> Looking
-> at the registers and the actual signals on a scope do not show any
-> difference
-> that we can find.  Any ideas what might cause this?  Have you seen it as
-> well?
 
-Can you please try again with the before mentioned branch? The branch you
-were using didn't have some changes, so maybe this new one would take
-care of that.
-
->
-> Thanks for the help - Please let me know how I can get this working...
-
-Well, thanks for the patience!
-
-Regards,
-Sergio
-
->
->
-> --
-> ------------------------------------------------------------
-> Gary Thomas                 |  Consulting for the
-> MLB Associates              |    Embedded world
-> ------------------------------------------------------------
->
->
