@@ -1,128 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44068 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755430Ab2GEKni (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 06:43:38 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>
-Subject: Re: omap3isp: cropping bug in previewer?
-Date: Thu, 05 Jul 2012 12:43:41 +0200
-Message-ID: <1371650.7y1cE3s6ZE@avalon>
-In-Reply-To: <B21EB8416BB7744FAB36AEE2627158CD0119103FEC61@REBITSERVER.rebit.local>
-References: <B21EB8416BB7744FAB36AEE2627158CD0119103FEC61@REBITSERVER.rebit.local>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:59356 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751081Ab2GGT1V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jul 2012 15:27:21 -0400
+Received: by werb14 with SMTP id b14so7264855wer.19
+        for <linux-media@vger.kernel.org>; Sat, 07 Jul 2012 12:27:20 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+From: Ben Barker <ben@bbarker.co.uk>
+Date: Sat, 7 Jul 2012 20:27:00 +0100
+Message-ID: <CALefuyj-7XGdRMRCcLPWPdXNF7EwowcggdG5gcu7ui=jEs9tiA@mail.gmail.com>
+Subject: WinTV-Duet
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Florian,
+Firstly, let me apologise if this is not an appropriate place to ask
+what is not really a development question...
 
-On Thursday 05 July 2012 12:28:04 Florian Neuhaus wrote:
-> Dear all,
-> I am trying to get a mt9p031 sensor running on a beagleboard-xm with the
-> following configuration:
-> 
-> Hardware:
-> - beagleboard-xm, rev c1
-> - Leopard Imaging cam module LI-5M03 with a mt9p031 5MP sensor
-> 
-> Software:
-> - Angstrom-distro built with bitbake using the setup-scripts from [4]
-> (commit da56a56b690bcc07a50716f1071e90e2b3a4fb47). - own bitbake recipe to
-> build a linux-omap kernel 3.5-rc1 from the tmdlind branch (this source:
-> [5], tag omap-fixes-for-v3.5-rc1) - some patches to update the 3.5-rc1
-> omap3-isp module (not the whole kernel) to the latest omap3isp-sensors-next
-> branch from Laurent Pinchart [1] - yavta with an extension to output data
-> to stdout
-> - mediactl to configure the omap3isp pipeline
-> 
-> Problem:
-> 
-> I configure a pipe with mediactl from OMAP3 ISP CCDC input to the previewer
-> output (see [3] for a detailed log) with an example resolution of 800x600.
-> This resolution is adapted by the omap3isp driver to 846x639 at the
-> previewer output. In my understanding the adjustment of the resolution
-> (from 800x600 to 846x639) is a result of the following process: 1) The
-> closest possible windowing of the mt9p031 sensor is 864x648. 2) The
-> ccdc-source pad crops the height by one line (see function ccdc_try_format
-> in ispccdc.c) - we are now on 864x647 3) The previewer (isppreview.c) crops
-> a left margin of 8px and a right margin of 6px (see the PREV_MARGIN_*
-> defines) plus 4px if the input is from ccdc (see preview_try_crop) - we are
-> now on 846x639. As there are no filters activated, the input size will not
-> be modified by the preview_config_input_size function.
-> 
-> When I now capture a frame with yavta (see [3] for details), I must use
-> 846x639 as frame size (as this size is reported by the driver). But it
-> seems that the outputted image is 2px wider (that means 848x639). This
-> results in a "scrambled"/unusable image on screen when streaming (see [6]
-> bad-frame-846x639_on_display.bmp for an example how it looks like on
-> screen). Also the file size too big for a 846x639 image: The frame size is
-> 1083744 bytes, which is exactly 848*639*2 (NOT 846*639*2)!
+I have been playing around with the Hauppauge WinTV Duet dual USB tuner today.
+dmesg seems happy when it is connected, and detects it as two devices
 
-The OMAP3 ISP pads lines to multiples of 32 or 64 bytes when reading 
-from/writing to memory. 846 pixels * 2 bytes per pixel is not a multiple of 32 
-bytes, so the line length gets padded to the next multiple, 848 pixels in this 
-case. The information is reported by the bytesperline field of the 
-v4l2_pix_format structure returned by VIDIOC_G_FMT and VIDIOC_S_FMT on the 
-preview engine output video node. You need to take the padding into account in 
-your application, that should solve your issue. raw2rgbpnm tries to detect 
-padding at the end of lines, and skips it automatically.
+This:
+http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-Duet-HD-Stick
 
-> Then I transformed the "bad" yuv-picture with raw2rgbpnm which gives me a
-> good picture with both frame-sizes (see bad-frame-846x639.pnm and
-> bad-frame-848x639_on_display.bmp in [6]). So the picture-information seems
-> to be good, but I guess that the input-size is configured badly by the
-> driver. If you look in the isp-datasheet [7] in table 6-40 (page 1201) you
-> see, that the CFA interpolation block for bayer-mode crops 4 px per line
-> and 4 lines. So shouldn't we respect this in the preview_config_input_size
-> function? My RFC is:
-> 
-> Index: git/drivers/media/video/omap3isp/isppreview.c
-> ===================================================================
-> --- git.orig/drivers/media/video/omap3isp/isppreview.c	2012-07-05
-> 10:59:33.675358396 +0200 +++
-> git/drivers/media/video/omap3isp/isppreview.c	2012-07-05 
-12:14:33.723223514
-> +0200 @@ -1140,6 +1140,12 @@
->  	}
->  	if (features & (OMAP3ISP_PREV_CHROMA_SUPP | OMAP3ISP_PREV_LUMAENH))
->  		sph -= 2;
-> +	if (features & OMAP3ISP_PREV_CFA) {
-> +		sph -= 2;
-> +		eph += 2;
-> +		slv -= 2;
-> +		elv += 2;
-> +	}
-> 
->  	isp_reg_writel(isp, (sph << ISPPRV_HORZ_INFO_SPH_SHIFT) | eph,
->  		       OMAP3_ISP_IOMEM_PREV, ISPPRV_HORZ_INFO);
-> ===================================================================
-> NOTE: This still gives an unusable picture at the previewer output BUT if I
-> extend the pipeline to the resizer output, the picture is good. So I must
-> be missing something...
-> 
-> It would be nice, if someone could tell me, if my assumptions are right and
-> point me the right direction.
-> 
-> Further information:
-> - Bootup dmesg: [2]
-> - Configuration of the pipe with mediactl, capturing of an image with yavta
-> and analyze of the image with raw2rgbpnm: [3]
-> 
-> [1]
-> http://git.linuxtv.org/pinchartl/media.git/commit/019214973ee4f03c8f2d58246
-> 8b914fcf3385089 [2] http://pastebin.com/7PQnzcmx
-> [3] http://pastebin.com/ChEaYHMy
-> [4] https://github.com/Angstrom-distribution/setup-scripts
-> [5] git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
-> [6] https://www.dropbox.com/sh/p2fy5u4i71c3vy8/Fyya25YqK-
-> [7] http://www.ti.com/lit/ug/sprugn4q/sprugn4q.pdf
+Suggests the device may be supported, though the "HD" vestion does not
+seem to exist as far as I can tell.
 
--- 
-Regards,
+I can run "scan" to get a channels list from the device no problem,
+and whilst VLC will not play from it, tzap works fine.
+Using mplayer I can access either tuner - but not both at once - so:
 
-Laurent Pinchart
+mplayer "dvb://0@" works, as does mplayer "dvb://1@", but not both
+together, which whichever is second giving:
 
+ERROR OPENING FRONTEND DEVICE /dev/dvb/adapter0/frontend0: ERRNO 16
+DVB_SET_CHANNEL2, COULDN'T OPEN DEVICES OF CARD: 0, EXIT
+ERROR, COULDN'T SET CHANNEL  0: Failed to open dvb://1@.
+
+dmesg reveals:
+
+[   17.402977] DiB0070: successfully identified
+[   17.402984] dvb-usb: will pass the complete MPEG2 transport stream
+to the software demuxer.
+[   17.403290] DVB: registering new adapter (Hauppauge Nova-TD Stick (52009))
+[   17.502811] [drm] fb mappable at 0xE0142000
+[   17.502815] [drm] vram apper at 0xE0000000
+[   17.502817] [drm] size 9216000
+[   17.502819] [drm] fb depth is 24
+[   17.502821] [drm]    pitch is 7680
+[   17.502945] fbcon: radeondrmfb (fb0) is primary device
+[   17.503041] Console: switching to colour frame buffer device 100x37
+[   17.503063] fb0: radeondrmfb frame buffer device
+[   17.503065] drm: registered panic notifier
+[   17.503073] [drm] Initialized radeon 2.10.0 20080528 for
+0000:02:00.0 on minor 0
+[   17.503517] ACPI: PCI Interrupt Link [APC5] enabled at IRQ 16
+[   17.503526] HDA Intel 0000:02:00.1: PCI INT B -> Link[APC5] -> GSI
+16 (level, low) -> IRQ 16
+[   17.503604] HDA Intel 0000:02:00.1: irq 43 for MSI/MSI-X
+[   17.503635] HDA Intel 0000:02:00.1: setting latency timer to 64
+[   17.546958] HDMI status: Pin=3 Presence_Detect=0 ELD_Valid=0
+[   17.547313] input: HDA ATI HDMI HDMI/DP,pcm=3 as
+/devices/pci0000:00/0000:00:09.0/0000:02:00.1/sound/card2/input6
+[   17.588731] DVB: registering adapter 1 frontend 0 (DiBcom 7000PC)...
+[   17.722284] scsi 4:0:0:0: Direct-Access     Generic  Flash HS-CF
+  5.39 PQ: 0 ANSI: 0
+[   17.725421] scsi 4:0:0:1: Direct-Access     Generic  Flash HS-COMBO
+  5.39 PQ: 0 ANSI: 0
+[   17.806976] DiB0070: successfully identified
+[   17.832059] Registered IR keymap rc-dib0700-rc5
+[   17.832229] input: IR-receiver inside an USB DVB receiver as
+/devices/pci0000:00/0000:00:02.1/usb1/1-7/rc/rc1/input7
+[   17.832314] rc1: IR-receiver inside an USB DVB receiver as
+/devices/pci0000:00/0000:00:02.1/usb1/1-7/rc/rc1
+[   17.833518] dvb-usb: schedule remote query interval to 50 msecs.
+[   17.833525] dvb-usb: Hauppauge Nova-TD Stick (52009) successfully
+initialized and connected.
+
+Whilst lsusb -d 2040:5200 -v gives:
+
+Bus 001 Device 004: ID 2040:5200 Hauppauge
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0
+  bDeviceProtocol         0
+  bMaxPacketSize0        64
+  idVendor           0x2040 Hauppauge
+  idProduct          0x5200
+  bcdDevice            0.01
+  iManufacturer           1 Hauppauge
+  iProduct                2 NovaT 500Stick
+  iSerial                 3 4034702860
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength           46
+    bNumInterfaces          1
+    bConfigurationValue     1
+    iConfiguration          0
+    bmAttributes         0x80
+      (Bus Powered)
+    MaxPower              500mA
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       0
+      bNumEndpoints           4
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass      0
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x01  EP 1 OUT
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            3
+          Transfer Type            Interrupt
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0040  1x 64 bytes
+        bInterval              10
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x83  EP 3 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               1
+Device Qualifier (for other device speed):
+  bLength                10
+  bDescriptorType         6
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0
+  bDeviceProtocol         0
+  bMaxPacketSize0        64
+  bNumConfigurations      1
+Device Status:     0x0000
+  (Bus Powered)
+
+There is also a PCI tuner installed (DVB-T 500) - but this is working
+fine and has done for a while.
+
+Can anybody offer any suggestions?
