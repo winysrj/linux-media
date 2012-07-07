@@ -1,53 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:61810 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752386Ab2GZLNi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jul 2012 07:13:38 -0400
-Received: by pbbrp8 with SMTP id rp8so3069482pbb.19
-        for <linux-media@vger.kernel.org>; Thu, 26 Jul 2012 04:13:38 -0700 (PDT)
-From: Hideki EIRAKU <hdk@igel.co.jp>
-To: Russell King <linux@arm.linux.org.uk>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
-	alsa-devel@alsa-project.org, Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Hideki EIRAKU <hdk@igel.co.jp>
-Subject: [PATCH v2 0/4] Use dma_mmap_coherent to support IOMMU mapper
-Date: Thu, 26 Jul 2012 20:13:07 +0900
-Message-Id: <1343301191-26001-1-git-send-email-hdk@igel.co.jp>
+Received: from mail.kapsi.fi ([217.30.184.167]:41185 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750918Ab2GGJAs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Jul 2012 05:00:48 -0400
+Message-ID: <4FF7FAB6.7040508@iki.fi>
+Date: Sat, 07 Jul 2012 12:00:38 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	hverkuil@xs4all.nl
+Subject: Re: [PATCH 4/4] radio-si470x: Lower firmware version requirements
+References: <1339681394-11348-1-git-send-email-hdegoede@redhat.com> <1339681394-11348-4-git-send-email-hdegoede@redhat.com> <4FF45FF7.4020300@iki.fi> <4FF5515A.1030704@redhat.com> <4FF5980F.8030109@iki.fi> <4FF59995.4010604@redhat.com> <4FF5A119.6020903@iki.fi> <4FF5ADE3.5040600@redhat.com> <4FF7EC0E.7060200@redhat.com>
+In-Reply-To: <4FF7EC0E.7060200@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is a dma_mmap_coherent() API in some architectures.  This API
-provides a mmap function for memory allocated by dma_alloc_coherent().
-Some drivers mmap a dma_addr_t returned by dma_alloc_coherent() as a
-physical address.  But such drivers do not work correctly when IOMMU
-mapper is used.
+Hello Hans,
 
-v2:
-- Rebase on fbdev-next branch of
-  git://github.com/schandinat/linux-2.6.git.
-- Initialize .fb_mmap in both sh_mobile_lcdc_overlay_ops and
-  sh_mobile_lcdc_ops.
-- Add Laurent's clean up patch.
+On 07/07/2012 10:58 AM, Hans de Goede wrote:
+> So is your device working properly now? The reason I'm asking it
+> because it is still causing a firmware version warning, and if
+> it works fine I would like to lower the firmware version warning
+> point, so that the warning goes away.
 
-Hideki EIRAKU (3):
-  ARM: dma-mapping: define ARCH_HAS_DMA_MMAP_COHERENT
-  media: videobuf2-dma-contig: use dma_mmap_coherent if available
-  fbdev: sh_mobile_lcdc: use dma_mmap_coherent if available
+I don't know what is definition of properly in that case.
 
-Laurent Pinchart (1):
-  ALSA: pcm - Don't define ARCH_HAS_DMA_MMAP_COHERENT privately for ARM
+Problem is that when I use radio application from xawtv3 with that new 
+loopback I hear very often cracks and following errors are printed to 
+the radio screen:
+ALSA lib pcm.c:7339:(snd_pcm_recover) underrun occurred
+or
+ALSA lib pcm.c:7339:(snd_pcm_recover) overrun occurred
 
- arch/arm/include/asm/dma-mapping.h         |    1 +
- drivers/media/video/videobuf2-dma-contig.c |   18 ++++++++++++++++++
- drivers/video/sh_mobile_lcdcfb.c           |   28 ++++++++++++++++++++++++++++
- sound/core/pcm_native.c                    |    7 -------
- 4 files changed, 47 insertions(+), 7 deletions(-)
+Looks like those does not appear, at least it does not crack so often 
+nor errors seen, when I use Rhythmbox to tune and "arecord -D hw:2,0 
+-r96000 -c2 -f S16_LE | aplay -" to listen.
+
+I can guess those are not firmware related so warning texts could be 
+removed.
+
+
+Installing alsa-lib-devel and libXt-devel were needed for compiling alsa 
+support.
+
+common/midictrl.c:9:27: fatal error: X11/Intrinsic.h: No such file or 
+directory
+compilation terminated.
+make: *** [common/midictrl.o] Error 1
+
+[crope@localhost xawtv3]$ ./console/radio
+Using alsa loopback: cap: hw:2,0 (/dev/radio0), out: default
+
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
+
 
