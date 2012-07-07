@@ -1,74 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:50896 "EHLO plane.gmane.org"
+Received: from mx1.redhat.com ([209.132.183.28]:45843 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751209Ab2GIAzP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 Jul 2012 20:55:15 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1So2Fl-0005AA-UN
-	for linux-media@vger.kernel.org; Mon, 09 Jul 2012 02:55:06 +0200
-Received: from bb403454.virtua.com.br ([bb403454.virtua.com.br])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 09 Jul 2012 02:55:05 +0200
-Received: from diego.cfporto by bb403454.virtua.com.br with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 09 Jul 2012 02:55:05 +0200
-To: linux-media@vger.kernel.org
-From: Diego Porto <diego.cfporto@gmail.com>
-Subject: Geniatech S870 ISDB-T does not work properly on kernels above 3.2
-Date: Mon, 9 Jul 2012 00:48:34 +0000 (UTC)
-Message-ID: <loom.20120709T024017-786@post.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+	id S1751031Ab2GGSpt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Jul 2012 14:45:49 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	hverkuil@xs4all.nl, Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH] v4l2-ioctl: Don't assume file->private_data always points to a v4l2_fh
+Date: Sat,  7 Jul 2012 20:46:21 +0200
+Message-Id: <1341686781-2013-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'm trying to install the v4l-dvb drivers on fedora 17 so I can use my ISDB-T
-(Geniatech/MyGica S870) usb card but I'm having some issues...
-this is what I did,
+Commit efbceecd4522a41b8442c6b4f68b4508d57d1ccf, adds a number of helper
+functions for ctrl related ioctls to v4l2-ioctl.c, these helpers assume that
+if file->private_data != NULL, it points to a v4l2_fh, which is only the case
+for drivers which actually use v4l2_fh.
 
-- clean install of fedora 17.
-- git clone git://linuxtv.org/media_build.git
-- cd media_build && ./build && make install
-- reboot
+This breaks for example bttv which use the "filedata" pointer for its own uses,
+and now all the ctrl ioctls try to use whatever its filedata points to as
+v4l2_fh and think it has a ctrl_handler, leading to:
 
-then the card starts to work with VLC 2.0, selecting the card as DVB-T.
-but other programs like w_scan/vdr/tvheadend/scandvb don't work.
+[  142.499214] BUG: unable to handle kernel NULL pointer dereference at 0000000000000021
+[  142.499270] IP: [<ffffffffa01cb959>] v4l2_queryctrl+0x29/0x230 [videodev]
+[  142.514649]  [<ffffffffa01c7a77>] v4l_queryctrl+0x47/0x90 [videodev]
+[  142.517417]  [<ffffffffa01c58b1>] __video_do_ioctl+0x2c1/0x420 [videodev]
+[  142.520116]  [<ffffffffa01c7ee6>] video_usercopy+0x1a6/0x470 [videodev]
+...
 
+This patch adds the missing test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags) tests
+to the ctrl ioctl helpers v4l2_fh paths, fixing the issues with for example
+the bttv driver.
 
-I'm using Fedora17 with kernel 3.4.4-5.fc17.i686
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/media/video/v4l2-ioctl.c |   21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
-
-here's the dmesg output, when my card gets plugged in:
-http://pastebin.com/QJHrkwsS
-
-
-here's w_scan output, using "w_scan -c BR >> channels.conf"
-http://pastebin.com/pN6vRsUX
-
-* tvheadend detects my card as dvb-s sometimes.
-if I restart tvheadend a few times it gets detected as dvb-t (as it normally
-would do.) then I'm able to add the multiplexes to tvheadend's list, but
-tvheadend scan fails with this error:
-http://pastebin.com/U3YCTM6j
-
-
-and it also produces this message on dmesg:
-[  315.447669] dtv_property_cache_sync: doesn't know how to handle a DVBv3 call
-to delivery system 0
-[  327.947746] dtv_property_cache_sync: doesn't know how to handle a DVBv3 call
-to delivery system 0
-
-
-
-I tried to do the same thing on ubuntu 12.04 and
-downgrading the kernel to 3.2 fixed the problem.
-but I need this to work on fedora 17, so how can I fix this?
-
-
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 70e0efb..3c498b2 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -1488,7 +1488,8 @@ static int v4l_queryctrl(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_queryctrl *p = arg;
+ 	struct v4l2_fh *vfh = fh;
+ 
+-	if (vfh && vfh->ctrl_handler)
++	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags) &&
++	                vfh && vfh->ctrl_handler)
+ 		return v4l2_queryctrl(vfh->ctrl_handler, p);
+ 	if (vfd->ctrl_handler)
+ 		return v4l2_queryctrl(vfd->ctrl_handler, p);
+@@ -1504,7 +1505,8 @@ static int v4l_querymenu(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_querymenu *p = arg;
+ 	struct v4l2_fh *vfh = fh;
+ 
+-	if (vfh && vfh->ctrl_handler)
++	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags) &&
++	                vfh && vfh->ctrl_handler)
+ 		return v4l2_querymenu(vfh->ctrl_handler, p);
+ 	if (vfd->ctrl_handler)
+ 		return v4l2_querymenu(vfd->ctrl_handler, p);
+@@ -1522,7 +1524,8 @@ static int v4l_g_ctrl(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_ext_controls ctrls;
+ 	struct v4l2_ext_control ctrl;
+ 
+-	if (vfh && vfh->ctrl_handler)
++	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags) &&
++	                vfh && vfh->ctrl_handler)
+ 		return v4l2_g_ctrl(vfh->ctrl_handler, p);
+ 	if (vfd->ctrl_handler)
+ 		return v4l2_g_ctrl(vfd->ctrl_handler, p);
+@@ -1555,7 +1558,8 @@ static int v4l_s_ctrl(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_ext_controls ctrls;
+ 	struct v4l2_ext_control ctrl;
+ 
+-	if (vfh && vfh->ctrl_handler)
++	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags) &&
++	                vfh && vfh->ctrl_handler)
+ 		return v4l2_s_ctrl(vfh, vfh->ctrl_handler, p);
+ 	if (vfd->ctrl_handler)
+ 		return v4l2_s_ctrl(NULL, vfd->ctrl_handler, p);
+@@ -1582,7 +1586,8 @@ static int v4l_g_ext_ctrls(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_fh *vfh = fh;
+ 
+ 	p->error_idx = p->count;
+-	if (vfh && vfh->ctrl_handler)
++	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags) &&
++	                vfh && vfh->ctrl_handler)
+ 		return v4l2_g_ext_ctrls(vfh->ctrl_handler, p);
+ 	if (vfd->ctrl_handler)
+ 		return v4l2_g_ext_ctrls(vfd->ctrl_handler, p);
+@@ -1600,7 +1605,8 @@ static int v4l_s_ext_ctrls(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_fh *vfh = fh;
+ 
+ 	p->error_idx = p->count;
+-	if (vfh && vfh->ctrl_handler)
++	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags) &&
++	                vfh && vfh->ctrl_handler)
+ 		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, p);
+ 	if (vfd->ctrl_handler)
+ 		return v4l2_s_ext_ctrls(NULL, vfd->ctrl_handler, p);
+@@ -1618,7 +1624,8 @@ static int v4l_try_ext_ctrls(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_fh *vfh = fh;
+ 
+ 	p->error_idx = p->count;
+-	if (vfh && vfh->ctrl_handler)
++	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags) &&
++	                vfh && vfh->ctrl_handler)
+ 		return v4l2_try_ext_ctrls(vfh->ctrl_handler, p);
+ 	if (vfd->ctrl_handler)
+ 		return v4l2_try_ext_ctrls(vfd->ctrl_handler, p);
 -- 
-Diego Porto
-Graduando em Ciência da Computação - UFPB
+1.7.10.4
 
