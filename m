@@ -1,50 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60431 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750720Ab2GEUio (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 16:38:44 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH v2 1/9] soc-camera: Don't fail at module init time if no device is present
-Date: Thu,  5 Jul 2012 22:38:40 +0200
-Message-Id: <1341520728-2707-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1341520728-2707-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1341520728-2707-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from nm13-vm0.bullet.mail.ird.yahoo.com ([77.238.189.195]:25837 "HELO
+	nm13-vm0.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751666Ab2GGKrK convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Jul 2012 06:47:10 -0400
+Message-ID: <1341658028.44303.YahooMailClassic@web29405.mail.ird.yahoo.com>
+Date: Sat, 7 Jul 2012 11:47:08 +0100 (BST)
+From: Hin-Tak Leung <hintak_leung@yahoo.co.uk>
+Subject: Re: unload/unplugging (Re: success! (Re: media_build and Terratec Cinergy T Black.))
+To: Antti Palosaari <crope@iki.fi>
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org
+In-Reply-To: <4FF80EEA.2050606@iki.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The soc-camera module exports functions that are needed by soc-camera
-client drivers even when not running in soc-camera mode. Replace the
-platform_driver_probe() with a platform_driver_register() call to avoid
-module load failures if no soc-camera device is present.
+--- On Sat, 7/7/12, Antti Palosaari <crope@iki.fi> wrote:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/soc_camera.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+<snipped>
+> > I am thinking either w_scan is doing something it
+> should not, in which case we should inform its author to
+> have this looked at, or the message does not need to be
+> there?
+> 
+> As scandvb and all the other applications are able to set
+> desired 
+> parameters without that error it must be w_scan issue.
 
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index 0421bf9..e7c6809 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -1518,6 +1518,7 @@ static int __devexit soc_camera_pdrv_remove(struct platform_device *pdev)
- }
- 
- static struct platform_driver __refdata soc_camera_pdrv = {
-+	.probe = soc_camera_pdrv_probe,
- 	.remove  = __devexit_p(soc_camera_pdrv_remove),
- 	.driver  = {
- 		.name	= "soc-camera-pdrv",
-@@ -1527,7 +1528,7 @@ static struct platform_driver __refdata soc_camera_pdrv = {
- 
- static int __init soc_camera_init(void)
- {
--	return platform_driver_probe(&soc_camera_pdrv, soc_camera_pdrv_probe);
-+	return platform_driver_register(&soc_camera_pdrv);
- }
- 
- static void __exit soc_camera_exit(void)
--- 
-1.7.8.6
+But scandvb does not work at all in my case (or rather, the bundled tuning files were wrong/out-dated).
+
+> And personally I don't care whole warning, returning some
+> error code 
+> (which is likely -EINVAL) should be enough. It is not error
+> situation in 
+> the mean of Kernel or device error - it is just user error
+> as user tries 
+> to set unsupported frequency.
+
+It is possibly just too much information in klog/dmesg .
+
+> >>> The kernel seems happy while having the device
+> >> physically pulled out. But the kernel module does
+> not like
+> >> to be unloaded (modprobe -r) while mplayer is
+> running, so we
+> >> need to fix that.
+> >>
+> >> Yep, seems to refuse unload. I suspect it is
+> refused since
+> >> there is ongoing USB transmission as it streams
+> video. But
+> >> should we allow that? And is removing open device
+> nodes OK
+> >> as applications holds those?
+> >
+> > I am thinking about suspend/resume, the poorman's way,
+> which is to unload/reload. One interesting thing to try
+> would be to pause but not quit the application - either just
+> press pause, or say, 'gdb <mplayerbinary>
+> <pid>', and see if 'modprobe -r' can be made to work
+> under that sort of condition, if it isn't already.
+> 
+> hmm, what is that kind of suspend/resume?
+> Is that different what is now implemented?
+
+In the good old days, for drivers which does not suspend/hibernate well, one can add a file /etc/pm/config.d/myfile containing SUSPEND_MODULES="modname" to get them unloaded on suspend. Does it work with mplayer/vlc running or pausing?
+
+
+
 
