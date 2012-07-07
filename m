@@ -1,41 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:57663 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933161Ab2GEWgZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 18:36:25 -0400
-Received: by wgbdr13 with SMTP id dr13so8733218wgb.1
-        for <linux-media@vger.kernel.org>; Thu, 05 Jul 2012 15:36:24 -0700 (PDT)
-Message-ID: <4FF616E5.6040206@gmail.com>
-Date: Fri, 06 Jul 2012 00:36:21 +0200
-From: Sylwester Nawrocki <snjw23@gmail.com>
+Received: from nm13.bullet.mail.ird.yahoo.com ([77.238.189.66]:43385 "HELO
+	nm13.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751102Ab2GGKKq convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Jul 2012 06:10:46 -0400
+Message-ID: <1341655844.10317.YahooMailClassic@web29406.mail.ird.yahoo.com>
+Date: Sat, 7 Jul 2012 11:10:44 +0100 (BST)
+From: Hin-Tak Leung <hintak_leung@yahoo.co.uk>
+Subject: Re: unload/unplugging (Re: success! (Re: media_build and Terratec Cinergy T Black.))
+To: Antti Palosaari <crope@iki.fi>
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org
+In-Reply-To: <4FF80499.4010808@iki.fi>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Ezequiel Garcia <elezegarcia@gmail.com>,
-	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v4] media: Add stk1160 new driver
-References: <1340991243-2951-1-git-send-email-elezegarcia@gmail.com> <4FF61111.7050900@redhat.com>
-In-Reply-To: <4FF61111.7050900@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/06/2012 12:11 AM, Mauro Carvalho Chehab wrote:
->> +static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *p)
->> +{
->> +	struct stk1160 *dev = video_drvdata(file);
->> +
->> +	if (!stk1160_is_owner(dev, file))
->> +		return -EBUSY;
->> +
->> +	return vb2_dqbuf(&dev->vb_vidq, p, file->f_flags&  O_NONBLOCK);
+--- On Sat, 7/7/12, Antti Palosaari <crope@iki.fi> wrote:
+
+<snipped>
+> > I also have quite a few :
+> > 
+> > [224773.229293] DVB: adapter 0 frontend 0 frequency 2
+> out of range (174000000..862000000)
+> > 
+> > This seems to come from running w_scan.
 > 
-> Why to use O_NONBLOCK here? it should be doing whatever userspace wants.
+> yes, those warnings are coming when application request
+> illegal frequency. Setting frequency as a 2 Hz is something
+> totally wrong, wild guess, it is some other value set
+> accidentally as frequency.
 
-This is OK, since the third argument to vb2_dqbuf() is a boolean indicating 
-whether this call should be blocking or not. And a "& O_NONBLOCK" masks this 
-information out from file->f_flags.
+I am thinking either w_scan is doing something it should not, in which case we should inform its author to have this looked at, or the message does not need to be there?
 
---
-Regards,
-Sylwester
+> > The kernel seems happy while having the device
+> physically pulled out. But the kernel module does not like
+> to be unloaded (modprobe -r) while mplayer is running, so we
+> need to fix that.
+> 
+> Yep, seems to refuse unload. I suspect it is refused since
+> there is ongoing USB transmission as it streams video. But
+> should we allow that? And is removing open device nodes OK
+> as applications holds those?
+
+I am thinking about suspend/resume, the poorman's way, which is to unload/reload. One interesting thing to try would be to pause but not quit the application - either just press pause, or say, 'gdb <mplayerbinary> <pid>', and see if 'modprobe -r' can be made to work under that sort of condition, if it isn't already.
