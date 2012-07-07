@@ -1,90 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49297 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751767Ab2GZOFR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jul 2012 10:05:17 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Michael Jones <michael.jones@matrix-vision.de>
-Cc: linux-media@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [RFC] omap3-isp G_FMT & ENUM_FMT
-Date: Thu, 26 Jul 2012 16:05:23 +0200
-Message-ID: <4048543.KhXI4ynbrF@avalon>
-In-Reply-To: <1343303996-16025-1-git-send-email-michael.jones@matrix-vision.de>
-References: <1343303996-16025-1-git-send-email-michael.jones@matrix-vision.de>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:36749 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751552Ab2GGK2b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jul 2012 06:28:31 -0400
+Received: by obbuo13 with SMTP id uo13so16616539obb.19
+        for <linux-media@vger.kernel.org>; Sat, 07 Jul 2012 03:28:31 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <CAPHtXi1f=iVWPjx6xFw20xath+7fe-rHobaYHnMiS1OEaqKWKA@mail.gmail.com>
+References: <CAPHtXi1nVStCzq+h1Kd_TWefNBTdBc18giWCwH3dBygsVgnqKw@mail.gmail.com>
+ <CAPHtXi1f=iVWPjx6xFw20xath+7fe-rHobaYHnMiS1OEaqKWKA@mail.gmail.com>
+From: Leyorus <leyorus@gmail.com>
+Date: Sat, 7 Jul 2012 12:28:10 +0200
+Message-ID: <CAPHtXi3tfnLK2cmfQf+7MoqLr32wu26Yw8uSKzDUc1yK9LhXBw@mail.gmail.com>
+Subject: Re: TERRATEC Cinergy T PCIE dual remote control support ?
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michael,
+No news for this problem ? Nobody has an idea to make the remote control work ?
 
-On Thursday 26 July 2012 13:59:54 Michael Jones wrote:
-> Hello,
-> 
-> I would like to (re)submit a couple of patches to support V4L2 behavior at
-> the V4L2 device nodes of the omap3-isp driver, but I'm guessing they require
-> some discussion first.
+Thanks in advance !
 
-Indeed.
 
-The main reason why the OMAP3 ISP driver implements G_FMT/S_FMT as it does 
-today is to hack around a restriction in the V4L2 API. We needed a way to 
-preallocate and possibly prequeue buffers for snapshot, which wasn't possible 
-in a standard-compliant way back then.
-
-The situation has since changed, and we now have the VIDIOC_CREATE_BUFS and 
-VIDIOC_PREPARE_BUF ioctls. My plan is to
-
-- port the OMAP3 ISP driver to videobuf2
-- implement support for CREATE_BUFS and PREPARE_BUF
-- fix the G_FMT/S_FMT/ENUM_FMT behaviour
-
-The real problem will be to find time to implement this.
-
-> I've previously submitted one of them here [1] to support ENUM_FMT for the
-> omap3-isp. This sparked some discussion, the result of which was that my
-> patch probably made sense. Later [2], Laurent mentioned that there was some
-> discussion/decision about adding "profiles" to the V4L2 specification, and
-> the OMAP3 ISP would probably implement the "streaming" profile. That was 7
-> months ago and I haven't seen any discussion of such profiles. Can somebody
-> bring me up to speed on this?
-> 
-> The purpose of these two patches is for the V4L2 device nodes to support
-> mandatory V4L2 ioctls G_FMT and ENUM_FMT, such that a pure V4L2 application,
-> ignorant of the media controller, can still stream the images from the video
-> nodes. This presumes that the media controller would have been
-> pre-configured. This approach is often seen on the mailing list using
-> 'media-ctl' to configure the ISP, then 'yavta' to retrieve images. Currently
-> this works because yavta doesn't require ENUM_FMT (unlike Gstreamer), and
-> only as long as one sets the same format with yavta as had already been set
-> with media-ctl. I think yavta should be able to just do G_FMT to see what is
-> configured.
-> 
-> To be clear (as discussed in [1]), ENUM_FMT does not behave according to its
-> original intent, because it cannot enumerate possible formats the ISP can
-> deliver. It will enumerate only one format: the one configured with the
-> media controller. In a sense this complies with the specification, because
-> S_FMT wouldn't be able to change the format to anything else.
-> 
-> I have tested these patches on v3.4, but I have rebased them to v3.5 here.
-> I would remove the pr_debug() calls before submitting upstream, but they're
-> useful for testing.
-> 
-> [1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg29640.html
-> [2] http://www.mail-archive.com/linux-media@vger.kernel.org/msg40618.html
-> 
-> Michael Jones (2):
->   [media] omap3isp: implement ENUM_FMT
->   [media] omap3isp: support G_FMT
-> 
->  drivers/media/video/omap3isp/ispvideo.c |   50 ++++++++++++++++++++++++++++
->  1 files changed, 50 insertions(+), 0 deletions(-)
-
--- 
-Regards,
-
-Laurent Pinchart
-
+2012/6/17 Leyorus <leyorus@gmail.com>
+>
+> Hello everybody !
+>
+> First of all, i would like to thank you all for your wonderful work.
+> Thanks to you, my new Terratec Cinergy T PCIE dual card is now
+> receiving TV on my linux HTPC.
+>
+> The only remaining thing that is not working is the remote control (not at
+> all).
+> This remote control seems to be the same as a Cinergy HTC USB XS. It
+> can be seen on image
+> http://www.terratec.net/us/produits/photos/img/3923630_4ac1bb0a60.png
+> So the mapping is probably the same as a Cinergy XS product.
+>
+> In fact, when the cx23885 module driver is loaded, no ir input is
+> associated with the card nor created in /dev/input.
+>
+> Here is the output of dmesg when inserting the cx23885 module in the
+> kernel :
+>
+> [ 9321.995048] cx23885 driver version 0.0.3 loaded
+> [ 9321.999469] CORE cx23885[0]: subsystem: 153b:117e, board: TerraTec
+> Cinergy T PCIe Dual [card=34,autodetected]
+> [ 9322.130326] cx25840 5-0044: cx23885 A/V decoder found @ 0x88
+> (cx23885[0])
+> [ 9322.755350] cx25840 5-0044: loaded v4l-cx23885-avcore-01.fw
+> firmware (16382 bytes)
+> [ 9322.788281] cx23885_dvb_register() allocating 1 frontend(s)
+> [ 9322.788285] cx23885[0]: cx23885 based dvb card
+> [ 9322.803661] drxk: status = 0x639160d9
+> [ 9322.803666] drxk: detected a drx-3916k, spin A3, xtal 20.250 MHz
+> [ 9322.876517] DRXK driver version 0.9.4300
+> [ 9322.900430] drxk: frontend initialized.
+> [ 9322.900449] mt2063_attach: Attaching MT2063
+> [ 9322.900451] DVB: registering new adapter (cx23885[0])
+> [ 9322.900454] DVB: registering adapter 0 frontend 0 (DRXK DVB-T)...
+> [ 9322.901581] cx23885_dvb_register() allocating 1 frontend(s)
+> [ 9322.901586] cx23885[0]: cx23885 based dvb card
+> [ 9322.916744] drxk: status = 0x639130d9
+> [ 9322.916749] drxk: detected a drx-3913k, spin A3, xtal 20.250 MHz
+> [ 9322.989590] DRXK driver version 0.9.4300
+> [ 9323.013545] drxk: frontend initialized.
+> [ 9323.013567] mt2063_attach: Attaching MT2063
+> [ 9323.013570] DVB: registering new adapter (cx23885[0])
+> [ 9323.013573] DVB: registering adapter 1 frontend 0 (DRXK DVB-C DVB-T)...
+> [ 9323.013955] cx23885_dev_checkrevision() Hardware revision = 0xa5
+> [ 9323.013961] cx23885[0]/0: found at 0000:02:00.0, rev: 4, irq: 16,
+> latency: 0, mmio: 0xfd800000
+>
+> Any ideas on how to make the ir receiver recognized and work ?
