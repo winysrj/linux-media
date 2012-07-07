@@ -1,72 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37409 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:37218 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752271Ab2GaT4d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 15:56:33 -0400
-Message-ID: <50183865.9090700@redhat.com>
-Date: Tue, 31 Jul 2012 16:56:21 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1751095Ab2GGHxM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Jul 2012 03:53:12 -0400
+Message-ID: <4FF7EC0E.7060200@redhat.com>
+Date: Sat, 07 Jul 2012 09:58:06 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Randy Dunlap <rdunlap@xenotime.net>
-CC: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: Re: linux-next: Tree for July 31 (media/radio-tea5777)
-References: <20120731152614.de6ebe9e0d4b8fc6645b793a@canb.auug.org.au> <50181451.5040202@xenotime.net>
-In-Reply-To: <50181451.5040202@xenotime.net>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Antti Palosaari <crope@iki.fi>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	hverkuil@xs4all.nl
+Subject: Re: [PATCH 4/4] radio-si470x: Lower firmware version requirements
+References: <1339681394-11348-1-git-send-email-hdegoede@redhat.com> <1339681394-11348-4-git-send-email-hdegoede@redhat.com> <4FF45FF7.4020300@iki.fi> <4FF5515A.1030704@redhat.com> <4FF5980F.8030109@iki.fi> <4FF59995.4010604@redhat.com> <4FF5A119.6020903@iki.fi> <4FF5ADE3.5040600@redhat.com>
+In-Reply-To: <4FF5ADE3.5040600@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 31-07-2012 14:22, Randy Dunlap escreveu:
-> drivers/built-in.o: In function `radio_tea5777_set_freq':
-> radio-tea5777.c:(.text+0x4d8704): undefined reference to `__udivdi3'
-> 
-The patch below should fix it.
+Hi,
 
-Thanks for reporting it!
+So is your device working properly now? The reason I'm asking it
+because it is still causing a firmware version warning, and if
+it works fine I would like to lower the firmware version warning
+point, so that the warning goes away.
 
 Regards,
-Mauro
 
-[media] radio-tea5777: use library for 64bits div
-
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-drivers/built-in.o: In function `radio_tea5777_set_freq':
-radio-tea5777.c:(.text+0x4d8704): undefined reference to `__udivdi3'
-
-Reported-by: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Hans de Goede <hdegoede@redhat.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/radio/radio-tea5777.c b/drivers/media/radio/radio-tea5777.c
-index 3e12179..5bc9fa6 100644
---- a/drivers/media/radio/radio-tea5777.c
-+++ b/drivers/media/radio/radio-tea5777.c
-@@ -33,6 +33,7 @@
- #include <media/v4l2-fh.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-event.h>
-+#include <asm/div64.h>
- #include "radio-tea5777.h"
- 
- MODULE_AUTHOR("Hans de Goede <perex@perex.cz>");
-@@ -158,10 +159,11 @@ static int radio_tea5777_set_freq(struct radio_tea5777 *tea)
- 	int res;
- 
- 	freq = clamp_t(u32, tea->freq,
--		       TEA5777_FM_RANGELOW, TEA5777_FM_RANGEHIGH);
--	freq = (freq + 8) / 16; /* to kHz */
-+		       TEA5777_FM_RANGELOW, TEA5777_FM_RANGEHIGH) + 8;
-+	do_div(freq, 16); /* to kHz */
- 
--	freq = (freq - TEA5777_FM_IF) / TEA5777_FM_FREQ_STEP;
-+	freq -= TEA5777_FM_IF;
-+	do_div(freq, TEA5777_FM_FREQ_STEP);
- 
- 	tea->write_reg &= ~(TEA5777_W_FM_PLL_MASK | TEA5777_W_FM_FREF_MASK);
- 	tea->write_reg |= freq << TEA5777_W_FM_PLL_SHIFT;
-
+Hans
