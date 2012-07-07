@@ -1,28 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:61899 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752911Ab2G3K57 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jul 2012 06:57:59 -0400
-Received: by ghrr11 with SMTP id r11so4637910ghr.19
-        for <linux-media@vger.kernel.org>; Mon, 30 Jul 2012 03:57:58 -0700 (PDT)
-Message-ID: <501668B2.3050107@gmail.com>
-Date: Mon, 30 Jul 2012 06:57:54 -0400
-From: Jerry Haggard <xen2xen1@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:51785 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751031Ab2GGSxM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Jul 2012 14:53:12 -0400
+Message-ID: <4FF885B2.3070509@redhat.com>
+Date: Sat, 07 Jul 2012 20:53:38 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Asus PVR-416
+To: Antti Palosaari <crope@iki.fi>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	hverkuil@xs4all.nl
+Subject: Re: [PATCH 4/4] radio-si470x: Lower firmware version requirements
+References: <1339681394-11348-1-git-send-email-hdegoede@redhat.com> <1339681394-11348-4-git-send-email-hdegoede@redhat.com> <4FF45FF7.4020300@iki.fi> <4FF5515A.1030704@redhat.com> <4FF5980F.8030109@iki.fi> <4FF59995.4010604@redhat.com> <4FF5A119.6020903@iki.fi> <4FF5ADE3.5040600@redhat.com> <4FF7EC0E.7060200@redhat.com> <4FF7FAB6.7040508@iki.fi>
+In-Reply-To: <4FF7FAB6.7040508@iki.fi>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I've been trying to get an ASUS PVR-416 card to work with MythTV .25 on 
-Scientific Linux 6.  I have a bttv card working, my setup works in 
-general, etc, and the driver attempts to load.  But when I check dmesg, 
-I keep getting firmware load errors and checksum errors. I've tried 
-every firmware I could find.  I've used the one from Atrpms, I've 
-downloaded the correctly named firmware from ivtv, but no luck.  Anyone 
-know anything about this card?  I've tried cutting the drivers myself 
-like it says in the direcitons at mythtv.org. This is supposed to be a 
-supported card, does anyone have any experience with it?
+Hi,
+
+On 07/07/2012 11:00 AM, Antti Palosaari wrote:
+> Hello Hans,
+>
+> On 07/07/2012 10:58 AM, Hans de Goede wrote:
+>> So is your device working properly now? The reason I'm asking it
+>> because it is still causing a firmware version warning, and if
+>> it works fine I would like to lower the firmware version warning
+>> point, so that the warning goes away.
+>
+> I don't know what is definition of properly in that case.
+>
+> Problem is that when I use radio application from xawtv3 with that new loopback I hear very often cracks and following errors are printed to the radio screen:
+> ALSA lib pcm.c:7339:(snd_pcm_recover) underrun occurred
+> or
+> ALSA lib pcm.c:7339:(snd_pcm_recover) overrun occurred
+>
+> Looks like those does not appear, at least it does not crack so often nor errors seen, when I use Rhythmbox to tune and "arecord -D hw:2,0 -r96000 -c2 -f S16_LE | aplay -" to listen.
+ >
+> I can guess those are not firmware related so warning texts could be removed.
+
+Actually they may very well be firmware related. At least with my firmware there
+is a bug where actively asking the device for its register contents, it lets
+its audio stream drop.
+
+My patches fix this by waiting for the device to volunteer it register contents
+through its usb interrupt in endpoint, which it does at xx times / sec.
+
+So the first question would be, does this dropping of sound happen approx 1 / sec
+when using radio?
+
+If so this is caused by radio upating the signal strength it displays 1 / sec. If
+you look at radio.c line 981 you will see a radio_getsignal_n_stereo(fd); call
+there in the main loop which gets called 1/sec. Try commenting this out.
+
+If commenting this out fixes your sound issues with radio, then the next
+question is are you using my 4 recent si470x patches, if not please
+give them a try. If you are already using them then I'm afraid that your older
+firmware may be broken even more then my also not so new firmware.
+
+Regards,
+
+Hans
