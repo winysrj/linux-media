@@ -1,85 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:48331 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754673Ab2G3TYV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jul 2012 15:24:21 -0400
-Received: by bkwj10 with SMTP id j10so2977468bkw.19
-        for <linux-media@vger.kernel.org>; Mon, 30 Jul 2012 12:24:20 -0700 (PDT)
-Message-ID: <5016DF61.2010002@gmail.com>
-Date: Mon, 30 Jul 2012 21:24:17 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: davinci-linux-open-source@linux.davincidsp.com,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	LMML <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v7 1/2] media: add new mediabus format enums for dm365
-References: <1343386505-8695-1-git-send-email-prabhakar.lad@ti.com> <20120727220124.GC26642@valkosipuli.retiisi.org.uk> <201207302036.36180.hverkuil@xs4all.nl> <1527741.DUREJZiXMg@avalon>
-In-Reply-To: <1527741.DUREJZiXMg@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp1-g21.free.fr ([212.27.42.1]:37011 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751862Ab2GHSdR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Jul 2012 14:33:17 -0400
+Date: Sun, 8 Jul 2012 20:33:03 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: martin-eric.racine@iki.fi
+Cc: Hans de Goede <hdegoede@redhat.com>, 677533@bugs.debian.org,
+	linux-media@vger.kernel.org
+Subject: Re: video: USB webcam fails since kernel 3.2
+Message-ID: <20120708203303.26d13474@armhf>
+In-Reply-To: <4FF9CA30.9050105@redhat.com>
+References: <20120614162609.4613.22122.reportbug@henna.lan>
+	<20120614215359.GF3537@burratino>
+	<CAPZXPQd9gNCxn7xGyqj_xymPaF5OxvRtxRFkt+SsLs942te4og@mail.gmail.com>
+	<20120616044137.GB4076@burratino>
+	<1339932233.20497.14.camel@henna.lan>
+	<CAPZXPQegp7RA5M0H9Ofq4rJ9aj-rEdg=Ly9_1c6vAKi3COw50g@mail.gmail.com>
+	<4FF9CA30.9050105@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On Sun, 08 Jul 2012 19:58:08 +0200
+Hans de Goede <hdegoede@redhat.com> wrote:
 
-On 07/30/2012 09:06 PM, Laurent Pinchart wrote:
->>>> -	bus. Possible values are YUYV, UYVY, YVYU and VYUY.</para></listitem>
->>>> +	bus. Possible values are YUYV, UYVY, YVYU and VYUY for formats with
-> no
->>>> +	dummy bit, and YDYUYDYV, YDYVYDYU, YUYDYVYD and YVYDYUYD for YDYC
->>>> formats. +	</para></listitem>
->>>>
->>>>   	<listitem><para>The number of bits per pixel component. All
-> components
->>>>   	are
->>>>   	transferred on the same number of bits. Common values are 8, 10 and
->>>>   	12.</para>  </listitem>
->>>
->>> I dicussed dummy vs. padding (zeros) with Laurent and we concluded we
->>> should use zero padding instead. The difference is that when processing
->>> the pixels no extra operations are necessary to get rid of the dummy data
->>> when the dummy bits are actually zero --- which in practice always is the
->>> case.
->>>
->>> I'm not aware of hardware that would assign padding bits (in this very
->>> purpose) that are a part of writes the width of bus width something else
->>> than zeros. It wouldn't make much sense either.
->>>
->>> So I suggest that dummy is replaced by padding which is defined to be
->>> zero.
->>>
->>> The letter in the format name could be 'Z', for example.
->>>
->>> Hans: what do you think?
->>
->> Bad idea. First of all, some hardware or FPGA can insert different values
->> there. It's something that Cisco uses in some cases: it makes it easier to
->> identify the dummy values if they have a non-zero fixed value.
->>
->> Another reason for not doing this is when such formats are used to display
->> video: you don't want to force the software to fill in the dummy values
->> with a specific value for no good reason. That would only cost extra CPU
->> cycles.
-> 
-> On the other hand, when you process data that includes dummy bits stored in
-> memory, knowing that the dummy bits are zero can save a mask operation.
-> 
-> I don't have a strong opinion whether we should use zero or dummy bits for
-> media bus formats. For memory formats I'd be inclined to use zero bits (at
-> least when capturing).
+> Hmm, this is then likely caused by the new isoc bandwidth negotiation code
+> in 3.2, unfortunately the vc032x driver is one of the few gspca drivers
+> for which I don't have a cam to test with. Can you try to build your own
+> kernel from source?
 
-Perhaps it would make sense to assume those dummy bits have undefined
-value and add some other API for retrieving/setting them where possible,
-e.g. a v4l2 control ?
+Hi Martin-Éric,
 
-It just feels like an unnecessary API limitation to assume those dummy
-bits are always zero.
+Instead of re-building the gspca driver from a kernel source, you may
+try the gspca test tarball from my web site
+	http://moinejf.free.fr/gspca-2.15.18.tar.gz
+It contains most of the bug fixes, including the one about the
+bandwidth problem.
 
---
-
-Regards,
-Sylwester
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
