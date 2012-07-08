@@ -1,61 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53671 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752610Ab2GZUyH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jul 2012 16:54:07 -0400
-Date: Thu, 26 Jul 2012 23:54:01 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] mt9v032: Export horizontal and vertical blanking as
- V4L2 controls
-Message-ID: <20120726205401.GA26136@valkosipuli.retiisi.org.uk>
-References: <1343068502-7431-4-git-send-email-laurent.pinchart@ideasonboard.com>
- <1343085042-19695-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:47476 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751211Ab2GHR5v (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 8 Jul 2012 13:57:51 -0400
+Message-ID: <4FF9CA30.9050105@redhat.com>
+Date: Sun, 08 Jul 2012 19:58:08 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1343085042-19695-1-git-send-email-laurent.pinchart@ideasonboard.com>
+To: martin-eric.racine@iki.fi
+CC: =?UTF-8?B?SmVhbi1GcmFuw6dvaXMgTW9pbmU=?= <moinejf@free.fr>,
+	677533@bugs.debian.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: video: USB webcam fails since kernel 3.2
+References: <20120614162609.4613.22122.reportbug@henna.lan> <20120614215359.GF3537@burratino> <CAPZXPQd9gNCxn7xGyqj_xymPaF5OxvRtxRFkt+SsLs942te4og@mail.gmail.com> <20120616044137.GB4076@burratino> <1339932233.20497.14.camel@henna.lan> <CAPZXPQegp7RA5M0H9Ofq4rJ9aj-rEdg=Ly9_1c6vAKi3COw50g@mail.gmail.com>
+In-Reply-To: <CAPZXPQegp7RA5M0H9Ofq4rJ9aj-rEdg=Ly9_1c6vAKi3COw50g@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi,
 
-Thanks for the patch.
+On 07/08/2012 03:01 PM, Martin-Éric Racine wrote:
+> 2012/6/17 Martin-Éric Racine <martin-eric.racine@iki.fi>:
+>> pe, 2012-06-15 kello 23:41 -0500, Jonathan Nieder kirjoitti:
+>>> Martin-Ã‰ric Racine wrote:
+>>>> usb 1-7: new high-speed USB device number 3 using ehci_hcd
+>>> [...]
+>>>> usb 1-7: New USB device found, idVendor=0ac8, idProduct=0321
+>>>> usb 1-7: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+>>>> usb 1-7: Product: USB2.0 Web Camera
+>>>> usb 1-7: Manufacturer: Vimicro Corp.
+>>> [...]
+>>>> Linux media interface: v0.10
+>>>> Linux video capture interface: v2.00
+>>>> gspca_main: v2.14.0 registered
+>>>> gspca_main: vc032x-2.14.0 probing 0ac8:0321
+>>>> usbcore: registered new interface driver vc032x
+>>>
+>>> The device of interest is discovered.
+>>>
+>>>> gspca_main: ISOC data error: [36] len=0, status=-71
+>>>> gspca_main: ISOC data error: [65] len=0, status=-71
+>>> [...]
+>>>> gspca_main: ISOC data error: [48] len=0, status=-71
+>>>> video_source:sr[3246]: segfault at 0 ip   (null) sp ab36de1c error 14 in cheese[8048000+21000]
+>>>> gspca_main: ISOC data error: [17] len=0, status=-71
+>>>
+>>> (The above data error spew starts around t=121 seconds and continues
+>>> at a rate of about 15 messages per second.  The segfault is around
+>>> t=154.)
+>>
+>>> The vc032x code hasn't changed since 3.4.1, so please report your
+>>> symptoms to Jean-FranÃ§ois Moine <moinejf@free.fr>, cc-ing
+>>> linux-media@vger.kernel.org, linux-kernel@vger.kernel.org, and either
+>>> me or this bug log so we can track it.  Be sure to mention:
+>>>
+>>>   - steps to reproduce, expected result, actual result, and how the
+>>>     difference indicates a bug (should be simple enough in this case)
+>>
+>> 1. Ensure that user 'myself' is a member of the 'video' group.
+>> 2. Launch the webcam application Cheese from the GNOME desktop.
+>>
+>> Expected result: Cheese displays whatever this laptop's camera sees.
+>>
+>> Actual result: Cheese crashes while attempting to access the camera.
+>>
+>>>   - how reproducible the bug is (100%?)
+>>
+>> 100%
+>>
+>>>   - which kernel versions you have tested and result with each (what is
+>>>     the newest kernel version that worked?)
+>>
+>> It probably was 3.1.0 or some earlier 3.2 release (the upcoming Debian
+>> will release with 3.2.x; 3.4 was only used here for testing purposes),
+>> but I wouldn't know for sure since I don't use my webcam too often.
+>
+> I finally found time to perform further testing, using kernel packages
+> from snapshots.debian.org, and the last one that positively worked (at
+> least using GNOME's webcam application Cheese) was:
+>
+> linux-image-3.1.0-1-686-pae          3.1.8-2
+>   Linux 3.1 for modern PCs
+>
+> This loaded the following video modules:
+>
+> gspca_vc032x
+> gspca_main
+> videodev
+> media
+>
+> Tests using 3.2.1-1 or more recent crashed as described before. This
+> at least gives us a time frame for when the regression started.
 
-On Tue, Jul 24, 2012 at 01:10:42AM +0200, Laurent Pinchart wrote:
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/video/mt9v032.c |   36 +++++++++++++++++++++++++++++++++---
->  1 files changed, 33 insertions(+), 3 deletions(-)
-> 
-> Changes since v1:
-> 
-> - Make sure the total horizontal time will not go below 660 when setting the
->   horizontal blanking control
-> - Restrict the vertical blanking value to 3000 as documented in the datasheet.
->   Increasing the exposure time actually extends vertical blanking, as long as
->   the user doesn't forget to turn auto-exposure off...
+Hmm, this is then likely caused by the new isoc bandwidth negotiation code
+in 3.2, unfortunately the vc032x driver is one of the few gspca drivers
+for which I don't have a cam to test with. Can you try to build your own
+kernel from source?
 
-Does binning either horizontally or vertically affect the blanking limits?
-If the process is analogue then the answer is typically "yes".
+Boot into your own kernel, and verify the regression is still there,
+then edit drivers/media/video/gspca/gspca.c and go to the which_bandwidth
+function, and at the beginning of this function add the following line:
 
-It's not directly related to this patch, but the effect of the driver just
-exposing one sub-device really shows better now. Besides lacking the way to
-specify binning as in the V4L2 subdev API (compose selection target), the
-user also can't use the crop bounds selection target to get the size of the
-pixel array.
+return 2000 * 2000 * 120;
 
-We could either accept this for the time being and fix it later on of fix it
-now.
+Then rebuild and re-install the kernel and try again.
 
-I prefer fixing it right now but admit that this patch isn't breaking
-anything, it rather is missing quite relevant functionality to control the
-sensor in a generic way.
+If that helps, remove the added
+return 2000 * 2000 * 120;
+line, and also remove the following lines from which_bandwidth:
 
-Kind regards,
+         /* if the image is compressed, estimate its mean size */
+         if (!gspca_dev->cam.needs_full_bandwidth &&
+             bandwidth < gspca_dev->cam.cam_mode[i].width *
+                                 gspca_dev->cam.cam_mode[i].height)
+                 bandwidth = bandwidth * 3 / 8;  /* 0.375 */
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+And try again if things still work this way.
+
+Once you've tested this I can try to write a fix for this.
+
+Regards,
+
+Hans
