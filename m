@@ -1,61 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1450 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751227Ab2GTJgQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jul 2012 05:36:16 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: javier Martin <javier.martin@vista-silicon.com>
-Subject: Re: [PATCH v5] media: coda: Add driver for Coda video codec.
-Date: Fri, 20 Jul 2012 11:35:20 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.hauer@pengutronix.de, p.zabel@pengutronix.de
-References: <1342692073-17317-1-git-send-email-javier.martin@vista-silicon.com> <201207191414.36024.hverkuil@xs4all.nl> <CACKLOr1tXUq2WXMYhszrZixpUe_k=nQYZNrPNQPXh20b+nwSNw@mail.gmail.com>
-In-Reply-To: <CACKLOr1tXUq2WXMYhszrZixpUe_k=nQYZNrPNQPXh20b+nwSNw@mail.gmail.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:63242 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752454Ab2GIHh0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2012 03:37:26 -0400
+Received: by weyx8 with SMTP id x8so972861wey.19
+        for <linux-media@vger.kernel.org>; Mon, 09 Jul 2012 00:37:25 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201207201135.20136.hverkuil@xs4all.nl>
+In-Reply-To: <20120709072809.GP30009@pengutronix.de>
+References: <1341572162-29126-1-git-send-email-javier.martin@vista-silicon.com>
+	<20120709072809.GP30009@pengutronix.de>
+Date: Mon, 9 Jul 2012 09:37:25 +0200
+Message-ID: <CACKLOr25yb1Cx4XNriyPceBcqmc5T4jDpJXFpve9JCXpP7iMLg@mail.gmail.com>
+Subject: Re: [PATCH] [v3] i.MX27: Fix emma-prp clocks in mx2_camera.c
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: linux-media@vger.kernel.org, fabio.estevam@freescale.com,
+	linux-arm-kernel@lists.infradead.org,
+	laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
+	mchehab@infradead.org, kernel@pengutronix.de
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri July 20 2012 11:25:05 javier Martin wrote:
-> On 19 July 2012 14:14, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > Hi Javier,
-> >
-> > Can you run v4l2-compliance? I have updated it today so that it is able to
-> > handle m2m devices.
-> >
-> > It will find at least one problem since you didn't set bus_info in querycap :-)
-> 
-> That's true but in the specification says that "If no such information
-> is available the field may simply count the devices controlled by the
-> driver, or contain the empty string (bus_info[0] = 0)" [1].
-> What should I put in there anyway? My device is memory mapped through
-> the AHB bus. Should I just write "ahb"?
+On 9 July 2012 09:28, Sascha Hauer <s.hauer@pengutronix.de> wrote:
+> On Fri, Jul 06, 2012 at 12:56:02PM +0200, Javier Martin wrote:
+>> This driver wasn't converted to the new clock changes
+>> (clk_prepare_enable/clk_disable_unprepare). Also naming
+>> of emma-prp related clocks for the i.MX27 was not correct.
+>> ---
+>> Enable clocks only for i.MX27.
+>>
+>
+> Indeed,
+>
+>>
+>> -     pcdev->clk_csi = clk_get(&pdev->dev, NULL);
+>> -     if (IS_ERR(pcdev->clk_csi)) {
+>> -             dev_err(&pdev->dev, "Could not get csi clock\n");
+>> -             err = PTR_ERR(pcdev->clk_csi);
+>> -             goto exit_kfree;
+>> +     if (cpu_is_mx27()) {
+>> +             pcdev->clk_csi = devm_clk_get(&pdev->dev, "ahb");
+>> +             if (IS_ERR(pcdev->clk_csi)) {
+>> +                     dev_err(&pdev->dev, "Could not get csi clock\n");
+>> +                     err = PTR_ERR(pcdev->clk_csi);
+>> +                     goto exit_kfree;
+>> +             }
+>
+> but why? Now the i.MX25 won't get a clock anymore.
 
-v4l2-compliance is often more strict than the spec, and this is one such case.
-It should be possible to use bus_info as a unique identifier of the device, and
-an empty string doesn't do that. In platform drivers like this you can just fill
-in the same value as was placed in the card field.
+What are the clocks needed by i.MX25? csi only?
 
-I've put this on the list of API items to discuss during the upcoming V4L2 workshop.
+By the way, is anybody using this driver with i.MX25?
 
-Regards,
-
-	Hans
-
-> 
-> [1] http://v4l2spec.bytesex.org/spec/r13105.htm
-> 
-> > You will also see that it complains about VIDIOC_G_PARM. That's fixed by applying
-> > this patch:
-> >
-> > http://www.mail-archive.com/linux-media@vger.kernel.org/msg49271.html
-> >
-> > That patch is part of a patch series that fixes mem2mem_testdev so that
-> > v4l2-compliance runs without errors.
-> >
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
