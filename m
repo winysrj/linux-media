@@ -1,115 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35537 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755715Ab2GaLij (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 07:38:39 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [media-ctl PATCH 1/1] libv4l2subdev: Add v4l2_subdev_enum_mbus_code()
-Date: Tue, 31 Jul 2012 13:38:41 +0200
-Message-ID: <1370725.tme9eTgAke@avalon>
-In-Reply-To: <1343686560-31983-1-git-send-email-sakari.ailus@iki.fi>
-References: <1343686560-31983-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mx1.redhat.com ([209.132.183.28]:36859 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752449Ab2GIIms (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Jul 2012 04:42:48 -0400
+Message-ID: <4FFA999B.7070000@redhat.com>
+Date: Mon, 09 Jul 2012 10:43:07 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: martin-eric.racine@iki.fi, 677533@bugs.debian.org,
+	linux-media@vger.kernel.org
+Subject: Re: video: USB webcam fails since kernel 3.2
+References: <20120614162609.4613.22122.reportbug@henna.lan> <20120614215359.GF3537@burratino> <CAPZXPQd9gNCxn7xGyqj_xymPaF5OxvRtxRFkt+SsLs942te4og@mail.gmail.com> <20120616044137.GB4076@burratino> <1339932233.20497.14.camel@henna.lan> <CAPZXPQegp7RA5M0H9Ofq4rJ9aj-rEdg=Ly9_1c6vAKi3COw50g@mail.gmail.com> <4FF9CA30.9050105@redhat.com> <20120708203303.26d13474@armhf>
+In-Reply-To: <20120708203303.26d13474@armhf>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi,
 
-Thanks for the patch.
+On 07/08/2012 08:33 PM, Jean-Francois Moine wrote:
+> On Sun, 08 Jul 2012 19:58:08 +0200
+> Hans de Goede <hdegoede@redhat.com> wrote:
+>
+>> Hmm, this is then likely caused by the new isoc bandwidth negotiation code
+>> in 3.2, unfortunately the vc032x driver is one of the few gspca drivers
+>> for which I don't have a cam to test with. Can you try to build your own
+>> kernel from source?
+>
+> Hi Martin-Éric,
+>
+> Instead of re-building the gspca driver from a kernel source, you may
+> try the gspca test tarball from my web site
+> 	http://moinejf.free.fr/gspca-2.15.18.tar.gz
 
-On Tuesday 31 July 2012 01:16:00 Sakari Ailus wrote:
-> v4l2_subdev_enum_mbus_code() enumerates over supported media bus formats on
-> a pad.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  src/v4l2subdev.c |   23 +++++++++++++++++++++++
->  src/v4l2subdev.h |   14 ++++++++++++++
->  2 files changed, 37 insertions(+), 0 deletions(-)
-> 
-> diff --git a/src/v4l2subdev.c b/src/v4l2subdev.c
-> index d60bd7e..6b6df0a 100644
-> --- a/src/v4l2subdev.c
-> +++ b/src/v4l2subdev.c
-> @@ -58,6 +58,29 @@ void v4l2_subdev_close(struct media_entity *entity)
->  	entity->fd = -1;
->  }
-> 
-> +int v4l2_subdev_enum_mbus_code(struct media_entity *entity,
-> +			       uint32_t *code, uint32_t pad, uint32_t index)
+That is a good option too and easier then building a whole new kernel,
+but:
 
-I would use unsigned int for the pad and index arguments to match the other 
-functions. We could then fix all of them in one go to use stdint types to 
-match the kernel API types.
+> It contains most of the bug fixes, including the one about the
+> bandwidth problem.
 
-> +{
-> +	struct v4l2_subdev_mbus_code_enum c;
-> +	int ret;
-> +
-> +	ret = v4l2_subdev_open(entity);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	memset(&c, 0, sizeof(c));
-> +	c.pad = pad;
-> +	c.index = index;
-> +
-> +	ret = ioctl(entity->fd, VIDIOC_SUBDEV_ENUM_MBUS_CODE, &c);
-> +	if (ret < 0)
-> +		return -errno;
-> +
-> +	*code = c.code;
-> +
-> +	return 0;
-> +}
+Right, but the problem with the vc032x driver is that there no bandwidth
+related bugfix for it yet, which is why I asked Martin-Éric, not only
+to build a new gspca driver from source, but also to try some modifications.
 
-What about a higher-level API that would enumerate all formats and return a 
-list/array ?
+Martin-Éric,
 
-> +
->  int v4l2_subdev_get_format(struct media_entity *entity,
->  	struct v4l2_mbus_framefmt *format, unsigned int pad,
->  	enum v4l2_subdev_format_whence which)
-> diff --git a/src/v4l2subdev.h b/src/v4l2subdev.h
-> index 5d55482..1cca7b9 100644
-> --- a/src/v4l2subdev.h
-> +++ b/src/v4l2subdev.h
-> @@ -22,6 +22,7 @@
->  #ifndef __SUBDEV_H__
->  #define __SUBDEV_H__
-> 
-> +#include <stdint.h>
->  #include <linux/v4l2-subdev.h>
-> 
->  struct media_entity;
-> @@ -47,6 +48,19 @@ int v4l2_subdev_open(struct media_entity *entity);
->  void v4l2_subdev_close(struct media_entity *entity);
-> 
->  /**
-> + * @brief Enumerate mbus pixel codes.
-> + * @param entity - subdev-device media entity.
-> + * @param code - mbus pixel code
-> + *
-> + * Enumerate media bus pixel codes. This is just a wrapper for
-> + * VIDIOC_SUBDEV_ENUM_MBUS_CODE IOCTL.
-> + *
-> + * @return 0 on success, or a negative error code on failure.
-> + */
-> +int v4l2_subdev_enum_mbus_code(struct media_entity *entity,
-> +			       uint32_t *code, uint32_t pad, uint32_t index);
-> +
-> +/**
->   * @brief Retrieve the format on a pad.
->   * @param entity - subdev-device media entity.
->   * @param format - format to be filled.
+Building the gspca test-tarbal also is a good way to test this:
+http://moinejf.free.fr/gspca-2.15.18.tar.gz
 
--- 
-Regards,
+But once you've confirmed the problem still happens with that version
+you will still need to try the changes I suggested to gspca.c to help
+us confirm that this is a bandwidth issue and try to come up with a fix.
 
-Laurent Pinchart
+Thanks & Regards,
 
+Hans
