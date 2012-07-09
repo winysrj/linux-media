@@ -1,117 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:43638 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755683Ab2GMKMI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jul 2012 06:12:08 -0400
-Message-ID: <4FFFF48B.8010609@iki.fi>
-Date: Fri, 13 Jul 2012 13:12:27 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org,
-	Jean-Philippe Francois <jp.francois@cynove.com>
-Subject: Re: [PATCH v2 6/6] omap3isp: preview: Add support for non-GRBG Bayer
- patterns
-References: <1341581569-8292-1-git-send-email-laurent.pinchart@ideasonboard.com> <1341581569-8292-7-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1341581569-8292-7-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:53306 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751729Ab2GIHay (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2012 03:30:54 -0400
+Received: by wgbdr13 with SMTP id dr13so11148539wgb.1
+        for <linux-media@vger.kernel.org>; Mon, 09 Jul 2012 00:30:53 -0700 (PDT)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: fabio.estevam@freescale.com, laurent.pinchart@ideasonboard.com,
+	g.liakhovetski@gmx.de, mchehab@infradead.org,
+	kernel@pengutronix.de,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH v4] media: mx2_camera: Fix mbus format handling
+Date: Mon,  9 Jul 2012 09:30:43 +0200
+Message-Id: <1341819043-7308-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Remove MX2_CAMERA_SWAP16 and MX2_CAMERA_PACK_DIR_MSB flags
+so that the driver can negotiate with the attached sensor
+whether the mbus format needs convertion from UYUV to YUYV
+or not.
+---
+Changes since v3:
+ Do not provide pass-through for UYVY8.
+---
+ arch/arm/plat-mxc/include/mach/mx2_cam.h |    2 --
+ drivers/media/video/mx2_camera.c         |   51 +++++++++++++++++++++++++++---
+ 2 files changed, 46 insertions(+), 7 deletions(-)
 
-Thanks for the patch.
-
-Laurent Pinchart wrote:
-> Rearrange the CFA interpolation coefficients table based on the Bayer
-> pattern. Support for non-Bayer CFA patterns is dropped as they were not
-> correctly supported, and have never been tested.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/video/omap3isp/isppreview.c |  134 ++++++++++++++++++-----------
->  drivers/media/video/omap3isp/isppreview.h |    1 +
->  2 files changed, 85 insertions(+), 50 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
-> index 71ce0f4..475908b 100644
-> --- a/drivers/media/video/omap3isp/isppreview.c
-> +++ b/drivers/media/video/omap3isp/isppreview.c
-> @@ -236,20 +236,30 @@ static void preview_enable_hmed(struct isp_prev_device *prev, bool enable)
->  			    ISPPRV_PCR_HMEDEN);
->  }
->  
-> +#define OMAP3ISP_PREV_CFA_BLK_SIZE	(OMAP3ISP_PREV_CFA_TBL_SIZE / 4)
-> +
->  /*
-> - * preview_config_cfa - Configure CFA Interpolation
-> - */
-> -static void
-> -preview_config_cfa(struct isp_prev_device *prev,
-> -		   const struct prev_params *params)
-> -{
-> -	struct isp_device *isp = to_isp_device(prev);
-> + * preview_config_cfa - Configure CFA Interpolation for Bayer formats
-> + *
-> + * The CFA table is organised in four blocks, one per Bayer component. The
-> + * hardware expects blocks to follow the Bayer order of the input data, while
-> + * the driver stores the table in GRBG order in memory. The blocks need to be
-> + * reordered to support non-GRBG Bayer patterns.
-> + */
-> +static void preview_config_cfa(struct isp_prev_device *prev,
-> +			       const struct prev_params *params)
-> +{
-> +	static const unsigned int cfa_coef_order[4][4] = {
-> +		{ 0, 1, 2, 3 }, /* GRBG */
-> +		{ 1, 0, 3, 2 }, /* RGGB */
-> +		{ 2, 3, 0, 1 }, /* BGGR */
-> +		{ 3, 2, 1, 0 }, /* GBRG */
-> +	};
-> +	const unsigned int *order = cfa_coef_order[prev->params.cfa_order];
->  	const struct omap3isp_prev_cfa *cfa = &params->cfa;
-> +	struct isp_device *isp = to_isp_device(prev);
->  	unsigned int i;
-> -
-> -	isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
-> -			ISPPRV_PCR_CFAFMT_MASK,
-> -			cfa->format << ISPPRV_PCR_CFAFMT_SHIFT);
-> +	unsigned int j;
->  
->  	isp_reg_writel(isp,
->  		(cfa->gradthrs_vert << ISPPRV_CFA_GRADTH_VER_SHIFT) |
-> @@ -259,9 +269,13 @@ preview_config_cfa(struct isp_prev_device *prev,
->  	isp_reg_writel(isp, ISPPRV_CFA_TABLE_ADDR,
->  		       OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
->  
-> -	for (i = 0; i < OMAP3ISP_PREV_CFA_TBL_SIZE; i++) {
-> -		isp_reg_writel(isp, cfa->table[i],
-> -			       OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
-> +	for (i = 0; i < 4; ++i) {
-> +		const __u32 *block = cfa->table
-> +				   + order[i] * OMAP3ISP_PREV_CFA_BLK_SIZE;
-> +
-> +		for (j = 0; j < OMAP3ISP_PREV_CFA_BLK_SIZE; ++j)
-> +			isp_reg_writel(isp, block[j], OMAP3_ISP_IOMEM_PREV,
-> +				       ISPPRV_SET_TBL_DATA);
->  	}
->  }
->  
-
-I think struct omap3isp_prev_cfa would benefit from more detailed
-definition of the gamma table. That would also change the API albeit not
-ABI... unless you use an anonymous union which then requires a GCC newer
-than or equal to 4.4, I think.
-
-The table should be two-dimensional array, not one-dimensional.
-
-Now that we're making changes to the user space API anyway, what would
-you think about this? I think it'd make the code much nicer.
-
-Kind regards,
-
+diff --git a/arch/arm/plat-mxc/include/mach/mx2_cam.h b/arch/arm/plat-mxc/include/mach/mx2_cam.h
+index 3c080a3..7ded6f1 100644
+--- a/arch/arm/plat-mxc/include/mach/mx2_cam.h
++++ b/arch/arm/plat-mxc/include/mach/mx2_cam.h
+@@ -23,7 +23,6 @@
+ #ifndef __MACH_MX2_CAM_H_
+ #define __MACH_MX2_CAM_H_
+ 
+-#define MX2_CAMERA_SWAP16		(1 << 0)
+ #define MX2_CAMERA_EXT_VSYNC		(1 << 1)
+ #define MX2_CAMERA_CCIR			(1 << 2)
+ #define MX2_CAMERA_CCIR_INTERLACE	(1 << 3)
+@@ -31,7 +30,6 @@
+ #define MX2_CAMERA_GATED_CLOCK		(1 << 5)
+ #define MX2_CAMERA_INV_DATA		(1 << 6)
+ #define MX2_CAMERA_PCLK_SAMPLE_RISING	(1 << 7)
+-#define MX2_CAMERA_PACK_DIR_MSB		(1 << 8)
+ 
+ /**
+  * struct mx2_camera_platform_data - optional platform data for mx2_camera
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index 11a9353..baa4ec2 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -345,6 +345,19 @@ static struct mx2_fmt_cfg mx27_emma_prp_table[] = {
+ 					PRP_INTR_CH2OVF,
+ 		}
+ 	},
++	{
++		.in_fmt		= V4L2_MBUS_FMT_UYVY8_2X8,
++		.out_fmt	= V4L2_PIX_FMT_YUV420,
++		.cfg		= {
++			.channel	= 2,
++			.in_fmt		= PRP_CNTL_DATA_IN_YUV422,
++			.out_fmt	= PRP_CNTL_CH2_OUT_YUV420,
++			.src_pixel	= 0x22000888, /* YUV422 (YUYV) */
++			.irq_flags	= PRP_INTR_RDERR | PRP_INTR_CH2WERR |
++					PRP_INTR_CH2FC | PRP_INTR_LBOVF |
++					PRP_INTR_CH2OVF,
++		}
++	},
+ };
+ 
+ static struct mx2_fmt_cfg *mx27_emma_prp_get_format(
+@@ -974,6 +987,8 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct mx2_camera_dev *pcdev = ici->priv;
+ 	struct v4l2_mbus_config cfg = {.type = V4L2_MBUS_PARALLEL,};
++	const struct soc_camera_format_xlate *xlate;
++	u32 pixfmt = icd->current_fmt->host_fmt->fourcc;
+ 	unsigned long common_flags;
+ 	int ret;
+ 	int bytesperline;
+@@ -1018,14 +1033,28 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
+ 		return ret;
+ 	}
+ 
++	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
++	if (!xlate) {
++		dev_warn(icd->parent, "Format %x not found\n", pixfmt);
++		return -EINVAL;
++	}
++
++	if (xlate->code == V4L2_MBUS_FMT_YUYV8_2X8) {
++		csicr1 |= CSICR1_PACK_DIR;
++		csicr1 &= ~CSICR1_SWAP16_EN;
++		dev_dbg(icd->parent, "already yuyv format, don't convert\n");
++	} else if (xlate->code == V4L2_MBUS_FMT_UYVY8_2X8) {
++		csicr1 &= ~CSICR1_PACK_DIR;
++		csicr1 |= CSICR1_SWAP16_EN;
++		dev_dbg(icd->parent, "convert uyvy mbus format into yuyv\n");
++	}
++
+ 	if (common_flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
+ 		csicr1 |= CSICR1_REDGE;
+ 	if (common_flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
+ 		csicr1 |= CSICR1_SOF_POL;
+ 	if (common_flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
+ 		csicr1 |= CSICR1_HSYNC_POL;
+-	if (pcdev->platform_flags & MX2_CAMERA_SWAP16)
+-		csicr1 |= CSICR1_SWAP16_EN;
+ 	if (pcdev->platform_flags & MX2_CAMERA_EXT_VSYNC)
+ 		csicr1 |= CSICR1_EXT_VSYNC;
+ 	if (pcdev->platform_flags & MX2_CAMERA_CCIR)
+@@ -1036,8 +1065,6 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
+ 		csicr1 |= CSICR1_GCLK_MODE;
+ 	if (pcdev->platform_flags & MX2_CAMERA_INV_DATA)
+ 		csicr1 |= CSICR1_INV_DATA;
+-	if (pcdev->platform_flags & MX2_CAMERA_PACK_DIR_MSB)
+-		csicr1 |= CSICR1_PACK_DIR;
+ 
+ 	pcdev->csicr1 = csicr1;
+ 
+@@ -1112,7 +1139,8 @@ static int mx2_camera_get_formats(struct soc_camera_device *icd,
+ 		return 0;
+ 	}
+ 
+-	if (code == V4L2_MBUS_FMT_YUYV8_2X8) {
++	if (code == V4L2_MBUS_FMT_YUYV8_2X8 ||
++	    code == V4L2_MBUS_FMT_UYVY8_2X8) {
+ 		formats++;
+ 		if (xlate) {
+ 			/*
+@@ -1128,6 +1156,19 @@ static int mx2_camera_get_formats(struct soc_camera_device *icd,
+ 		}
+ 	}
+ 
++	if (code == V4L2_MBUS_FMT_UYVY8_2X8) {
++		formats++;
++		if (xlate) {
++			xlate->host_fmt =
++				soc_mbus_get_fmtdesc(V4L2_MBUS_FMT_YUYV8_2X8);
++			xlate->code	= code;
++			dev_dbg(dev, "Providing host format %s for sensor code %d\n",
++				xlate->host_fmt->name, code);
++			xlate++;
++		}
++		return formats;
++	}
++
+ 	/* Generic pass-trough */
+ 	formats++;
+ 	if (xlate) {
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
-
+1.7.9.5
 
