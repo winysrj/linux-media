@@ -1,115 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f53.google.com ([209.85.216.53]:51555 "EHLO
-	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750861Ab2GAUP6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Jul 2012 16:15:58 -0400
-Received: by mail-qa0-f53.google.com with SMTP id s11so1561997qaa.19
-        for <linux-media@vger.kernel.org>; Sun, 01 Jul 2012 13:15:58 -0700 (PDT)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH 5/6] cx23885: make analog support work for HVR_1250 (cx23885 variant)
-Date: Sun,  1 Jul 2012 16:15:13 -0400
-Message-Id: <1341173714-23627-6-git-send-email-dheitmueller@kernellabs.com>
-In-Reply-To: <1341173714-23627-1-git-send-email-dheitmueller@kernellabs.com>
-References: <1341173714-23627-1-git-send-email-dheitmueller@kernellabs.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:39706 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753090Ab2GIL6a (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Jul 2012 07:58:30 -0400
+Message-ID: <4FFAC75B.5060506@iki.fi>
+Date: Mon, 09 Jul 2012 14:58:19 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	hverkuil@xs4all.nl
+Subject: Re: [PATCH 4/4] radio-si470x: Lower firmware version requirements
+References: <1339681394-11348-1-git-send-email-hdegoede@redhat.com> <1339681394-11348-4-git-send-email-hdegoede@redhat.com> <4FF45FF7.4020300@iki.fi> <4FF5515A.1030704@redhat.com> <4FF5980F.8030109@iki.fi> <4FF59995.4010604@redhat.com> <4FF5A119.6020903@iki.fi> <4FF5ADE3.5040600@redhat.com> <4FF7EC0E.7060200@redhat.com> <4FF7FAB6.7040508@iki.fi> <4FF885B2.3070509@redhat.com> <4FFAA1B9.6020306@iki.fi> <4FFAAC8F.5080100@redhat.com>
+In-Reply-To: <4FFAAC8F.5080100@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The analog support in the cx23885 driver was completely broken for the
-HVR-1250.  Add the necessary code.
+On 07/09/2012 01:03 PM, Hans de Goede wrote:
+> Hi,
+>
+> On 07/09/2012 11:17 AM, Antti Palosaari wrote:
+>> On 07/07/2012 09:53 PM, Hans de Goede wrote:
+>>> Hi,
+>>>
+>>> On 07/07/2012 11:00 AM, Antti Palosaari wrote:
+>>>> Hello Hans,
+>>>>
+>>>> On 07/07/2012 10:58 AM, Hans de Goede wrote:
+>>>>> So is your device working properly now? The reason I'm asking it
+>>>>> because it is still causing a firmware version warning, and if
+>>>>> it works fine I would like to lower the firmware version warning
+>>>>> point, so that the warning goes away.
+>>>>
+>>>> I don't know what is definition of properly in that case.
+>>>>
+>>>> Problem is that when I use radio application from xawtv3 with that new
+>>>> loopback I hear very often cracks and following errors are printed to
+>>>> the radio screen:
+>>>> ALSA lib pcm.c:7339:(snd_pcm_recover) underrun occurred
+>>>> or
+>>>> ALSA lib pcm.c:7339:(snd_pcm_recover) overrun occurred
+>>>>
+>>>> Looks like those does not appear, at least it does not crack so often
+>>>> nor errors seen, when I use Rhythmbox to tune and "arecord -D hw:2,0
+>>>> -r96000 -c2 -f S16_LE | aplay -" to listen.
+>>>  >
+>>>> I can guess those are not firmware related so warning texts could be
+>>>> removed.
+>>>
+>>> Actually they may very well be firmware related. At least with my
+>>> firmware there
+>>> is a bug where actively asking the device for its register contents, it
+>>> lets
+>>> its audio stream drop.
+>>>
+>>> My patches fix this by waiting for the device to volunteer it register
+>>> contents
+>>> through its usb interrupt in endpoint, which it does at xx times / sec.
+>>>
+>>> So the first question would be, does this dropping of sound happen
+>>> approx 1 / sec
+>>> when using radio?
+>>>
+>>> If so this is caused by radio upating the signal strength it displays 1
+>>> / sec. If
+>>> you look at radio.c line 981 you will see a
+>>> radio_getsignal_n_stereo(fd); call
+>>> there in the main loop which gets called 1/sec. Try commenting this out.
+>>>
+>>> If commenting this out fixes your sound issues with radio, then the next
+>>> question is are you using my 4 recent si470x patches, if not please
+>>> give them a try. If you are already using them then I'm afraid that your
+>>> older
+>>> firmware may be broken even more then my also not so new firmware.
+>>
+>> I suspect these signal strength update pops are different thing. Those
+>> are almost so minor you cannot even hear.
+>>
+>> I recorded small sample:
+>> http://palosaari.fi/linux/v4l-dvb/xawtv3_radio.m4v
+>>
+>> And I am almost 100% sure those cracks are coming ALSA
+>> underrun/overrun as error text is seen just same time when crack happens.
+>
+> The signal updates are what is causing the ALSA under-runs (*), the
+> over-runs are the result of "catching up" after a under-run.
+>
+> *) Or at least an important cause of them
+>
+>> Commenting out line did not help.
+>
+> Are you sure about this? Did you do a make after commenting, are you
+> sure you were using the new build to test?
 
-Note that this only implements analog for the composite and s-video inputs.
-The tuner input continues to be non-functional due to a lack of analog support
-in the mt2131 driver.
+Yes I ran make and new radio bin was generated. And when I make build 
+error as a test build fails so it is compiling.
 
-Validated with the following boards:
+>> But I think I was also hearing those small pops too and likely new
+>> four patches fixes those  - but it is hard to say because it cracks
+>> audio all time.
+>
+> One other thing you can try is increasing the buffer size, using:
+> radio -L 1000
+>
+> For example will increase it from the 500 millisecs default to 1 second
 
-HVR-1250 (0070:7911)
+If I tune using old radio it works. If I tune using latest radio but 
+with option -l 0 (./console/radio -l 0) it also works. Using "arecord -D 
+hw:2,0 -r96000 -c2 -f S16_LE | aplay -" to listen. So it seems that 
+latest radio with alsa loopback is only having those problems.
 
-Thanks to Steven Toth and Hauppauge for	loaning	me various boards to
-regression test	with.
 
-Thanks-to: Steven Toth <stoth@kernellabs.com>
-Signed-off-by: Devin Heitmueler <dheitmueller@kernellabs.com>
----
- drivers/media/video/cx23885/cx23885-cards.c |   31 ++++++++++++++++++++-------
- drivers/media/video/cx23885/cx23885-video.c |    1 +
- 2 files changed, 24 insertions(+), 8 deletions(-)
+These are the patches:
+radio-si470x: Don't unnecesarily read registers on G_TUNER
+radio-si470x: Lower hardware freq seek signal treshold
+radio-si470x: Always use interrupt to wait for tune/seek completion
+radio-si470x: Lower firmware version requirements
 
-diff --git a/drivers/media/video/cx23885/cx23885-cards.c b/drivers/media/video/cx23885/cx23885-cards.c
-index 19b5499..1af9108 100644
---- a/drivers/media/video/cx23885/cx23885-cards.c
-+++ b/drivers/media/video/cx23885/cx23885-cards.c
-@@ -127,22 +127,37 @@ struct cx23885_board cx23885_boards[] = {
- 	},
- 	[CX23885_BOARD_HAUPPAUGE_HVR1250] = {
- 		.name		= "Hauppauge WinTV-HVR1250",
-+		.porta		= CX23885_ANALOG_VIDEO,
- 		.portc		= CX23885_MPEG_DVB,
-+#ifdef MT2131_NO_ANALOG_SUPPORT_YET
-+		.tuner_type	= TUNER_PHILIPS_TDA8290,
-+		.tuner_addr	= 0x42, /* 0x84 >> 1 */
-+		.tuner_bus	= 1,
-+#endif
-+		.force_bff	= 1,
- 		.input          = {{
-+#ifdef MT2131_NO_ANALOG_SUPPORT_YET
- 			.type   = CX23885_VMUX_TELEVISION,
--			.vmux   = 0,
-+			.vmux   =	CX25840_VIN7_CH3 |
-+					CX25840_VIN5_CH2 |
-+					CX25840_VIN2_CH1,
-+			.amux   = CX25840_AUDIO8,
- 			.gpio0  = 0xff00,
- 		}, {
--			.type   = CX23885_VMUX_DEBUG,
--			.vmux   = 0,
--			.gpio0  = 0xff01,
--		}, {
-+#endif
- 			.type   = CX23885_VMUX_COMPOSITE1,
--			.vmux   = 1,
-+			.vmux   =	CX25840_VIN7_CH3 |
-+					CX25840_VIN4_CH2 |
-+					CX25840_VIN6_CH1,
-+			.amux   = CX25840_AUDIO7,
- 			.gpio0  = 0xff02,
- 		}, {
- 			.type   = CX23885_VMUX_SVIDEO,
--			.vmux   = 2,
-+			.vmux   =	CX25840_VIN7_CH3 |
-+					CX25840_VIN4_CH2 |
-+					CX25840_VIN8_CH1 |
-+					CX25840_SVIDEO_ON,
-+			.amux   = CX25840_AUDIO7,
- 			.gpio0  = 0xff02,
- 		} },
- 	},
-@@ -1517,10 +1532,10 @@ void cx23885_card_setup(struct cx23885_dev *dev)
- 	 */
- 	switch (dev->board) {
- 	case CX23885_BOARD_TEVII_S470:
--	case CX23885_BOARD_HAUPPAUGE_HVR1250:
- 		/* Currently only enabled for the integrated IR controller */
- 		if (!enable_885_ir)
- 			break;
-+	case CX23885_BOARD_HAUPPAUGE_HVR1250:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1800:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1800lp:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1700:
-diff --git a/drivers/media/video/cx23885/cx23885-video.c b/drivers/media/video/cx23885/cx23885-video.c
-index c654bdc..4d05689 100644
---- a/drivers/media/video/cx23885/cx23885-video.c
-+++ b/drivers/media/video/cx23885/cx23885-video.c
-@@ -505,6 +505,7 @@ static int cx23885_video_mux(struct cx23885_dev *dev, unsigned int input)
- 
- 	if ((dev->board == CX23885_BOARD_HAUPPAUGE_HVR1800) ||
- 		(dev->board == CX23885_BOARD_MPX885) ||
-+		(dev->board == CX23885_BOARD_HAUPPAUGE_HVR1250) ||
- 		(dev->board == CX23885_BOARD_HAUPPAUGE_HVR1850)) {
- 		/* Configure audio routing */
- 		v4l2_subdev_call(dev->sd_cx25840, audio, s_routing,
+And from that I can see it loads new driver as it does not warn about 
+software version - only firmware.
+Jul  9 14:28:29 localhost kernel: [13403.017920] Linux media interface: 
+v0.10
+Jul  9 14:28:29 localhost kernel: [13403.020866] Linux video capture 
+interface: v2.00
+Jul  9 14:28:29 localhost kernel: [13403.022744] radio-si470x 5-2:1.2: 
+DeviceID=0x1242 ChipID=0x060c
+Jul  9 14:28:29 localhost kernel: [13403.022747] radio-si470x 5-2:1.2: 
+This driver is known to work with firmware version 14,
+Jul  9 14:28:29 localhost kernel: [13403.022749] radio-si470x 5-2:1.2: 
+but the device has firmware version 12.
+Jul  9 14:28:29 localhost kernel: [13403.024715] radio-si470x 5-2:1.2: 
+software version 1, hardware version 7
+Jul  9 14:28:29 localhost kernel: [13403.024717] radio-si470x 5-2:1.2: 
+If you have some trouble using this driver,
+Jul  9 14:28:29 localhost kernel: [13403.024719] radio-si470x 5-2:1.2: 
+please report to V4L ML at linux-media@vger.kernel.org
+Jul  9 14:28:29 localhost kernel: [13403.114583] usbcore: registered new 
+interface driver radio-si470x
+
+regards
+Antti
+
+
 -- 
-1.7.1
+http://palosaari.fi/
+
 
