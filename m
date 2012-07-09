@@ -1,55 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:38570 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752478Ab2GCUcF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jul 2012 16:32:05 -0400
-Date: Tue, 3 Jul 2012 22:22:54 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Anton Blanchard <anton@samba.org>
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/3] [media] winbond-cir: Initialise timeout, driver_type
- and allowed_protos
-Message-ID: <20120703202254.GB29839@hardeman.nu>
-References: <20120702115800.1275f944@kryten>
- <20120702115852.6c0fe919@kryten>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:33940 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752243Ab2GIVcJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Jul 2012 17:32:09 -0400
+References: <CAOkj57_x0CoUTce5t7U-=2YdkjOQV-_tBFKRJj41rZNQrPU+Uw@mail.gmail.com>
+In-Reply-To: <CAOkj57_x0CoUTce5t7U-=2YdkjOQV-_tBFKRJj41rZNQrPU+Uw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+Content-Type: text/plain;
+ charset=UTF-8
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20120702115852.6c0fe919@kryten>
+Subject: Re: Linux equivalent of Windows VBIScope?
+From: Andy Walls <awalls@md.metrocast.net>
+Date: Mon, 09 Jul 2012 17:32:19 -0400
+To: Tim Stowell <stowellt@gmail.com>, linux-media@vger.kernel.org
+Message-ID: <9c03d233-e0dd-4754-a9c7-53be71ac959a@email.android.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 02, 2012 at 11:58:52AM +1000, Anton Blanchard wrote:
+Tim Stowell <stowellt@gmail.com> wrote:
+
+>Hi all,
 >
->We need to set a timeout so we can go idle on no activity.
+>I am using the em28xx driver and have been able to extract captions
+>using zvbi. I would like to visualize the waveform like the DirectShow
+>VBIScope filter on windows (unfortunately the Windows driver doesn't
+>expose any VBI pins). Does anyone know of anythings similar on Linux?
+>Thanks
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media"
+>in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-This change Acked-by: David Härdeman <david@hardeman.nu>
+'osc' is a test utility that is part of the zvbi source distribution.  It probably does what you need.
 
->We weren't setting driver_type and allowed_protos, so fix that
->up too.
-
-driver_type is set in the upstream tree.
-
-allowed_protos isn't used for RC_DRIVER_IR_RAW type drivers (IIRC).
-
->
->Signed-off-by: Anton Blanchard <anton@samba.org>
->---
->
->Index: linux/drivers/media/rc/winbond-cir.c
->===================================================================
->--- linux.orig/drivers/media/rc/winbond-cir.c	2012-06-18 10:32:54.436717423 +1000
->+++ linux/drivers/media/rc/winbond-cir.c	2012-06-18 10:33:00.192754858 +1000
->@@ -1032,6 +1032,9 @@ wbcir_probe(struct pnp_dev *device, cons
-> 	data->dev->tx_ir = wbcir_tx;
-> 	data->dev->priv = data;
-> 	data->dev->dev.parent = &device->dev;
->+	data->dev->timeout = MS_TO_NS(100);
->+	data->dev->driver_type = RC_DRIVER_IR_RAW;
->+	data->dev->allowed_protos = RC_TYPE_ALL;
-> 
-> 	if (!request_region(data->wbase, WAKEUP_IOMEM_LEN, DRVNAME)) {
-> 		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
->
-
+Regards,
+Andy
