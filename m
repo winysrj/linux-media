@@ -1,382 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45011 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750944Ab2GTO7G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jul 2012 10:59:06 -0400
-From: Prabhakar Lad <prabhakar.lad@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hansverk@cisco.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v6 1/2] media: add new mediabus format enums for dm365
-Date: Fri, 20 Jul 2012 20:28:09 +0530
-Message-ID: <1342796290-18947-2-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1342796290-18947-1-git-send-email-prabhakar.lad@ti.com>
-References: <1342796290-18947-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:53486 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752315Ab2GISVe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2012 14:21:34 -0400
+Received: by bkwj10 with SMTP id j10so6316895bkw.19
+        for <linux-media@vger.kernel.org>; Mon, 09 Jul 2012 11:21:33 -0700 (PDT)
+Message-ID: <4FFB2129.2070301@gmail.com>
+Date: Mon, 09 Jul 2012 20:21:29 +0200
+From: poma <pomidorabelisima@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Marx <acc.for.news@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: pctv452e
+References: <4FF4697C.8080602@nexusuk.org> <4FF46DC4.4070204@iki.fi> <4FF4911B.9090600@web.de> <4FF4931B.7000708@iki.fi> <gjggc9-dl4.ln1@wuwek.kopernik.gliwice.pl> <4FF5A350.9070509@iki.fi> <r8cic9-ht4.ln1@wuwek.kopernik.gliwice.pl> <4FF6B121.6010105@iki.fi> <9btic9-vd5.ln1@wuwek.kopernik.gliwice.pl> <835kc9-7p4.ln1@wuwek.kopernik.gliwice.pl> <4FF77C1B.50406@iki.fi> <l2smc9-pj4.ln1@wuwek.kopernik.gliwice.pl> <4FF97DF8.4080208@iki.fi> <n1aqc9-sp4.ln1@wuwek.kopernik.gliwice.pl> <4FFA996D.9010206@iki.fi> <scerc9-bm6.ln1@wuwek.kopernik.gliwice.pl>
+In-Reply-To: <scerc9-bm6.ln1@wuwek.kopernik.gliwice.pl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Manjunath Hadli <manjunath.hadli@ti.com>
+On 07/09/2012 06:44 PM, Marx wrote:
+> W dniu 2012-07-09 10:42, Antti Palosaari pisze:
+>> On 07/09/2012 09:24 AM, Marx wrote:
+>>> On 08.07.2012 14:32, Antti Palosaari wrote:
+>>>> I suspect you stopped szap ?
+>>>>
+>>>> You cannot use dvbdate or dvbtraffic, nor read data from dvr0 unless
+>>>> frontend is tuned. Leave szap running backround and try again.
+>>>
+>>> That way it works, and I can save stream. Hovewer it's strange because I
+>>> shouldn't have to constatly tune channel to watch it, and on previous
+>>> cards it was enough to tune once and then use other commands.
+>>> I base my knowledge on
+>>> http://www.linuxtv.org/wiki/index.php/Testing_your_DVB_device
+>>> There is nothing about constant tuning channel to use it. Am I missing
+>>> something?
+>>
+>> given wiki-page says:
+>> "
+>> 4. After you've tuned a frequency and program
+>>
+>> a) You could now start up your simple TV watching application and decode
+>> the stream you have tuned.
+>>
+>> For example, while keeping {a,c,s,t}zap running in the first console
+>> shell, open up another console and run
+>> "
+>>
+>> Behavior have been always same, at least for the DVB USB.
+>>
+>> So you don't have problems at all?
+> 
+> ok, my fault
+> problem still exists
+> VDR doesn't play any channel, and while you asked me to abandon it, I
+> saved some data using
+>  cat /dev/dvb/adapter0/dvr0 > /mnt/video/test3.ts
+> while tuning in the background.
+> 
+> Stream saved that way is unplayable (I play it using VLC for windows -
+> it played almost all proper TS strems in the past I had). I've tried all
+> software I have - to play this streams - no way.
+> 
+> So
+> - I can tune only 2/3 of channels
+> - TS stream saves with errors
+> - traditional tuner on the same (brand new) dish works ok
+> - i've exchanged cables between the two
+> 
+> is it possible that pctv device is less sensitive and the problem is
+> with too weak signal?
 
-add new enum entries for supporting the media-bus formats on dm365.
-These include some bayer and some non-bayer formats.
-V4L2_MBUS_FMT_YDYUYDYV8_1X16 and V4L2_MBUS_FMT_UV8_1X8 are used
-internal to the hardware by the resizer.
-V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8 represents the bayer ALAW format
-that is supported by dm365 hardware.
+Good reception on one device, completely different story on another
+device - same cable; different tuner sensitivity.
+It is *very* important to achieve *very* good signal reception with
+larger dish(DVB-S) and/or Yagi-Uda(DVB-T) - focal angle/directional gain.
+Try this one:
+dvbstream -f freq -o 8192 > full-mux.ts
+enough free disk space ;)
+mplayer -cache 8912 full-mux.ts (TAB-TAB-TAB…)
+or
+dvbstream -f freq -o vid aid tid pid > single-stream.ts
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- Documentation/DocBook/media/v4l/subdev-formats.xml |  250 +++++++++++++++++++-
- include/linux/v4l2-mediabus.h                      |   10 +-
- 2 files changed, 252 insertions(+), 8 deletions(-)
-
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index 49c532e..01b2811 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -353,9 +353,9 @@
- 	<listitem><para>The number of bits per pixel component. All components are
- 	transferred on the same number of bits. Common values are 8, 10 and 12.</para>
- 	</listitem>
--	<listitem><para>If the pixel components are DPCM-compressed, a mention of the
--	DPCM compression and the number of bits per compressed pixel component.</para>
--	</listitem>
-+	<listitem><para>The compression (optional). If the pixel components are
-+	ALAW- or DPCM-compressed, a mention of the compression scheme and the
-+	number of bits per compressed pixel component.</para></listitem>
- 	<listitem><para>The number of bus samples per pixel. Pixels that are wider than
- 	the bus width must be transferred in multiple samples. Common values are
- 	1 and 2.</para></listitem>
-@@ -504,6 +504,74 @@
- 	      <entry>r<subscript>1</subscript></entry>
- 	      <entry>r<subscript>0</subscript></entry>
- 	    </row>
-+	    <row id="V4L2-MBUS-FMT-SBGGR10-ALAW8-1X8">
-+	      <entry>V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8</entry>
-+	      <entry>0x3015</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>b<subscript>7</subscript></entry>
-+	      <entry>b<subscript>6</subscript></entry>
-+	      <entry>b<subscript>5</subscript></entry>
-+	      <entry>b<subscript>4</subscript></entry>
-+	      <entry>b<subscript>3</subscript></entry>
-+	      <entry>b<subscript>2</subscript></entry>
-+	      <entry>b<subscript>1</subscript></entry>
-+	      <entry>b<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="V4L2-MBUS-FMT-SGBRG10-ALAW8-1X8">
-+	      <entry>V4L2_MBUS_FMT_SGBRG10_ALAW8_1X8</entry>
-+	      <entry>0x3016</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>g<subscript>7</subscript></entry>
-+	      <entry>g<subscript>6</subscript></entry>
-+	      <entry>g<subscript>5</subscript></entry>
-+	      <entry>g<subscript>4</subscript></entry>
-+	      <entry>g<subscript>3</subscript></entry>
-+	      <entry>g<subscript>2</subscript></entry>
-+	      <entry>g<subscript>1</subscript></entry>
-+	      <entry>g<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="V4L2-MBUS-FMT-SGRBG10-ALAW8-1X8">
-+	      <entry>V4L2_MBUS_FMT_SGRBG10_ALAW8_1X8</entry>
-+	      <entry>0x3017</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>g<subscript>7</subscript></entry>
-+	      <entry>g<subscript>6</subscript></entry>
-+	      <entry>g<subscript>5</subscript></entry>
-+	      <entry>g<subscript>4</subscript></entry>
-+	      <entry>g<subscript>3</subscript></entry>
-+	      <entry>g<subscript>2</subscript></entry>
-+	      <entry>g<subscript>1</subscript></entry>
-+	      <entry>g<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="V4L2-MBUS-FMT-SRGGB10-ALAW8-1X8">
-+	      <entry>V4L2_MBUS_FMT_SRGGB10_ALAW8_1X8</entry>
-+	      <entry>0x3018</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>r<subscript>7</subscript></entry>
-+	      <entry>r<subscript>6</subscript></entry>
-+	      <entry>r<subscript>5</subscript></entry>
-+	      <entry>r<subscript>4</subscript></entry>
-+	      <entry>r<subscript>3</subscript></entry>
-+	      <entry>r<subscript>2</subscript></entry>
-+	      <entry>r<subscript>1</subscript></entry>
-+	      <entry>r<subscript>0</subscript></entry>
-+	    </row>
- 	    <row id="V4L2-MBUS-FMT-SBGGR10-DPCM8-1X8">
- 	      <entry>V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8</entry>
- 	      <entry>0x300b</entry>
-@@ -853,10 +921,16 @@
-       <title>Packed YUV Formats</title>
- 
-       <para>Those data formats transfer pixel data as (possibly downsampled) Y, U
--      and V components. The format code is made of the following information.
-+      and V components. Some formats include dummy bits in some of their samples
-+      and are collectively referred to as "YDYC" (Y-Dummy-Y-Chroma) formats.
-+      One cannot rely on the values of these dummy bits as those are undefined.
-+      </para>
-+      <para>The format code is made of the following information.
-       <itemizedlist>
- 	<listitem><para>The Y, U and V components order code, as transferred on the
--	bus. Possible values are YUYV, UYVY, YVYU and VYUY.</para></listitem>
-+	bus. Possible values are YUYV, UYVY, YVYU and VYUY for formats with no
-+	dummy bit, and YDYUYDYV, YDYVYDYU, YUYDYVYD and YVYDYUYD for YDYC formats.
-+	</para></listitem>
- 	<listitem><para>The number of bits per pixel component. All components are
- 	transferred on the same number of bits. Common values are 8, 10 and 12.</para>
- 	</listitem>
-@@ -877,7 +951,21 @@
-       U, Y, V, Y order will be named <constant>V4L2_MBUS_FMT_UYVY8_2X8</constant>.
-       </para>
- 
--      <para>The following table lisst existing packet YUV formats.</para>
-+	<para><xref linkend="v4l2-mbus-pixelcode-yuv8"/> list existing packet YUV
-+	formats and describes the organization of each pixel data in each sample.
-+	When a format pattern is split across multiple samples each of the samples
-+	in the pattern is described.</para>
-+
-+	<para>The role of each bit transferred over the bus is identified by one
-+	of the following codes.</para>
-+
-+	<itemizedlist>
-+	   <listitem><para>y<subscript>x</subscript> for luma component bit number x</para></listitem>
-+	   <listitem><para>u<subscript>x</subscript> for blue chroma component bit number x</para></listitem>
-+	   <listitem><para>v<subscript>x</subscript> for red chroma component bit number x</para></listitem>
-+	   <listitem><para>- for non-available bits (for positions higher than the bus width)</para></listitem>
-+	   <listitem><para>d for dummy bits</para></listitem>
-+	</itemizedlist>
- 
-       <table pgwide="0" frame="none" id="v4l2-mbus-pixelcode-yuv8">
- 	<title>YUV Formats</title>
-@@ -965,6 +1053,56 @@
- 	      <entry>y<subscript>1</subscript></entry>
- 	      <entry>y<subscript>0</subscript></entry>
- 	    </row>
-+	    <row id="V4L2-MBUS-FMT-UV8-1X8">
-+	      <entry>V4L2_MBUS_FMT_UV8_1X8</entry>
-+	      <entry>0x2015</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	    </row>
- 	    <row id="V4L2-MBUS-FMT-UYVY8-1_5X8">
- 	      <entry>V4L2_MBUS_FMT_UYVY8_1_5X8</entry>
- 	      <entry>0x2002</entry>
-@@ -2415,6 +2553,106 @@
- 	      <entry>u<subscript>1</subscript></entry>
- 	      <entry>u<subscript>0</subscript></entry>
- 	    </row>
-+	    <row id="V4L2-MBUS-FMT-YDYUYDYV8-1X16">
-+	      <entry>V4L2_MBUS_FMT_YDYUYDYV8_1X16</entry>
-+	      <entry>0x2014</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	      <entry>d<subscript>7</subscript></entry>
-+	      <entry>d<subscript>6</subscript></entry>
-+	      <entry>d<subscript>5</subscript></entry>
-+	      <entry>d<subscript>4</subscript></entry>
-+	      <entry>d<subscript>3</subscript></entry>
-+	      <entry>d<subscript>2</subscript></entry>
-+	      <entry>d<subscript>1</subscript></entry>
-+	      <entry>d<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	      <entry>d<subscript>7</subscript></entry>
-+	      <entry>d<subscript>6</subscript></entry>
-+	      <entry>d<subscript>5</subscript></entry>
-+	      <entry>d<subscript>4</subscript></entry>
-+	      <entry>d<subscript>3</subscript></entry>
-+	      <entry>d<subscript>2</subscript></entry>
-+	      <entry>d<subscript>1</subscript></entry>
-+	      <entry>d<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	    </row>
- 	    <row id="V4L2-MBUS-FMT-YUYV10-1X20">
- 	      <entry>V4L2_MBUS_FMT_YUYV10_1X20</entry>
- 	      <entry>0x200d</entry>
-diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-index 5ea7f75..a871a4a 100644
---- a/include/linux/v4l2-mediabus.h
-+++ b/include/linux/v4l2-mediabus.h
-@@ -47,8 +47,9 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_RGB565_2X8_BE = 0x1007,
- 	V4L2_MBUS_FMT_RGB565_2X8_LE = 0x1008,
- 
--	/* YUV (including grey) - next is 0x2014 */
-+	/* YUV (including grey) - next is 0x2016 */
- 	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
-+	V4L2_MBUS_FMT_UV8_1X8 = 0x2015,
- 	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
- 	V4L2_MBUS_FMT_VYUY8_1_5X8 = 0x2003,
- 	V4L2_MBUS_FMT_YUYV8_1_5X8 = 0x2004,
-@@ -65,14 +66,19 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_VYUY8_1X16 = 0x2010,
- 	V4L2_MBUS_FMT_YUYV8_1X16 = 0x2011,
- 	V4L2_MBUS_FMT_YVYU8_1X16 = 0x2012,
-+	V4L2_MBUS_FMT_YDYUYDYV8_1X16 = 0x2014,
- 	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
- 	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
- 
--	/* Bayer - next is 0x3015 */
-+	/* Bayer - next is 0x3019 */
- 	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
- 	V4L2_MBUS_FMT_SGBRG8_1X8 = 0x3013,
- 	V4L2_MBUS_FMT_SGRBG8_1X8 = 0x3002,
- 	V4L2_MBUS_FMT_SRGGB8_1X8 = 0x3014,
-+	V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8 = 0x3015,
-+	V4L2_MBUS_FMT_SGBRG10_ALAW8_1X8 = 0x3016,
-+	V4L2_MBUS_FMT_SGRBG10_ALAW8_1X8 = 0x3017,
-+	V4L2_MBUS_FMT_SRGGB10_ALAW8_1X8 = 0x3018,
- 	V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8 = 0x300b,
- 	V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8 = 0x300c,
- 	V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 = 0x3009,
--- 
-1.7.0.4
-
+cheers,
+poma
