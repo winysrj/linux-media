@@ -1,83 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:39798 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750894Ab2GSQYu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jul 2012 12:24:50 -0400
-From: Rob Clark <rob.clark@linaro.org>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Cc: patches@linaro.org, linux@arm.linux.org.uk, arnd@arndb.de,
-	jesse.barker@linaro.org, m.szyprowski@samsung.com, daniel@ffwll.ch,
-	t.stanislaws@samsung.com, sumit.semwal@ti.com,
-	maarten.lankhorst@canonical.com, Rob Clark <rob@ti.com>
-Subject: [PATCH 1/2] device: add dma_params->max_segment_count
-Date: Thu, 19 Jul 2012 11:23:33 -0500
-Message-Id: <1342715014-5316-2-git-send-email-rob.clark@linaro.org>
-In-Reply-To: <1342715014-5316-1-git-send-email-rob.clark@linaro.org>
-References: <1342715014-5316-1-git-send-email-rob.clark@linaro.org>
+Received: from plane.gmane.org ([80.91.229.3]:50896 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751209Ab2GIAzP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 8 Jul 2012 20:55:15 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1So2Fl-0005AA-UN
+	for linux-media@vger.kernel.org; Mon, 09 Jul 2012 02:55:06 +0200
+Received: from bb403454.virtua.com.br ([bb403454.virtua.com.br])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 09 Jul 2012 02:55:05 +0200
+Received: from diego.cfporto by bb403454.virtua.com.br with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 09 Jul 2012 02:55:05 +0200
+To: linux-media@vger.kernel.org
+From: Diego Porto <diego.cfporto@gmail.com>
+Subject: Geniatech S870 ISDB-T does not work properly on kernels above 3.2
+Date: Mon, 9 Jul 2012 00:48:34 +0000 (UTC)
+Message-ID: <loom.20120709T024017-786@post.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Rob Clark <rob@ti.com>
+I'm trying to install the v4l-dvb drivers on fedora 17 so I can use my ISDB-T
+(Geniatech/MyGica S870) usb card but I'm having some issues...
+this is what I did,
 
-For devices which have constraints about maximum number of segments
-in an sglist.  For example, a device which could only deal with
-contiguous buffers would set max_segment_count to 1.
+- clean install of fedora 17.
+- git clone git://linuxtv.org/media_build.git
+- cd media_build && ./build && make install
+- reboot
 
-The initial motivation is for devices sharing buffers via dma-buf,
-to allow the buffer exporter to know the constraints of other
-devices which have attached to the buffer.  The dma_mask and fields
-in 'struct device_dma_parameters' tell the exporter everything else
-that is needed, except whether the importer has constraints about
-maximum number of segments.
+then the card starts to work with VLC 2.0, selecting the card as DVB-T.
+but other programs like w_scan/vdr/tvheadend/scandvb don't work.
 
-Signed-off-by: Rob Clark <rob@ti.com>
----
- include/linux/device.h      |    1 +
- include/linux/dma-mapping.h |   16 ++++++++++++++++
- 2 files changed, 17 insertions(+)
 
-diff --git a/include/linux/device.h b/include/linux/device.h
-index 161d962..3813735 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -568,6 +568,7 @@ struct device_dma_parameters {
- 	 * sg limitations.
- 	 */
- 	unsigned int max_segment_size;
-+	unsigned int max_segment_count;    /* zero for unlimited */
- 	unsigned long segment_boundary_mask;
- };
- 
-diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-index dfc099e..f380f79 100644
---- a/include/linux/dma-mapping.h
-+++ b/include/linux/dma-mapping.h
-@@ -111,6 +111,22 @@ static inline unsigned int dma_set_max_seg_size(struct device *dev,
- 		return -EIO;
- }
- 
-+static inline unsigned int dma_get_max_seg_count(struct device *dev)
-+{
-+	return dev->dma_parms ? dev->dma_parms->max_segment_count : 0;
-+}
-+
-+static inline int dma_set_max_seg_count(struct device *dev,
-+						unsigned int count)
-+{
-+	if (dev->dma_parms) {
-+		dev->dma_parms->max_segment_count = count;
-+		return 0;
-+	} else
-+		return -EIO;
-+}
-+
-+
- static inline unsigned long dma_get_seg_boundary(struct device *dev)
- {
- 	return dev->dma_parms ?
+I'm using Fedora17 with kernel 3.4.4-5.fc17.i686
+
+
+here's the dmesg output, when my card gets plugged in:
+http://pastebin.com/QJHrkwsS
+
+
+here's w_scan output, using "w_scan -c BR >> channels.conf"
+http://pastebin.com/pN6vRsUX
+
+* tvheadend detects my card as dvb-s sometimes.
+if I restart tvheadend a few times it gets detected as dvb-t (as it normally
+would do.) then I'm able to add the multiplexes to tvheadend's list, but
+tvheadend scan fails with this error:
+http://pastebin.com/U3YCTM6j
+
+
+and it also produces this message on dmesg:
+[  315.447669] dtv_property_cache_sync: doesn't know how to handle a DVBv3 call
+to delivery system 0
+[  327.947746] dtv_property_cache_sync: doesn't know how to handle a DVBv3 call
+to delivery system 0
+
+
+
+I tried to do the same thing on ubuntu 12.04 and
+downgrading the kernel to 3.2 fixed the problem.
+but I need this to work on fedora 17, so how can I fix this?
+
+
 -- 
-1.7.9.5
+Diego Porto
+Graduando em Ciência da Computação - UFPB
 
