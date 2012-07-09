@@ -1,67 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51726 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753377Ab2GINem (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Jul 2012 09:34:42 -0400
-Message-ID: <4FFADDEA.3000808@iki.fi>
-Date: Mon, 09 Jul 2012 16:34:34 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:52570 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752187Ab2GIIVp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2012 04:21:45 -0400
+Received: by wibhm11 with SMTP id hm11so3093128wib.1
+        for <linux-media@vger.kernel.org>; Mon, 09 Jul 2012 01:21:44 -0700 (PDT)
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	hverkuil@xs4all.nl
-Subject: Re: [PATCH 4/4] radio-si470x: Lower firmware version requirements
-References: <1339681394-11348-1-git-send-email-hdegoede@redhat.com> <1339681394-11348-4-git-send-email-hdegoede@redhat.com> <4FF45FF7.4020300@iki.fi> <4FF5515A.1030704@redhat.com> <4FF5980F.8030109@iki.fi> <4FF59995.4010604@redhat.com> <4FF5A119.6020903@iki.fi> <4FF5ADE3.5040600@redhat.com> <4FF7EC0E.7060200@redhat.com> <4FF7FAB6.7040508@iki.fi> <4FF885B2.3070509@redhat.com> <4FFAA1B9.6020306@iki.fi> <4FFAAC8F.5080100@redhat.com> <4FFAC75B.5060506@iki.fi> <4FFAD666.5060402@redhat.com>
-In-Reply-To: <4FFAD666.5060402@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1341821944.2489.16.camel@pizza.hi.pengutronix.de>
+References: <1341579471-25208-1-git-send-email-javier.martin@vista-silicon.com>
+	<1341579471-25208-3-git-send-email-javier.martin@vista-silicon.com>
+	<1341816350.2489.1.camel@pizza.hi.pengutronix.de>
+	<CACKLOr10RzcTQMJHrtd2K+imvhOcrvq3-vNFwqnKkyr1NSVqEQ@mail.gmail.com>
+	<1341821944.2489.16.camel@pizza.hi.pengutronix.de>
+Date: Mon, 9 Jul 2012 10:21:44 +0200
+Message-ID: <CACKLOr3w3ZFHnpEr5=mTdSFWk0WBZnHXVceMvds3EyRnf=vbtg@mail.gmail.com>
+Subject: Re: [PATCH 2/3] media: coda: Add driver for Coda video codec.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
+	shawn.guo@linaro.org, fabio.estevam@freescale.com,
+	richard.zhu@linaro.org, arnaud.patard@rtp-net.org,
+	kernel@pengutronix.de, mchehab@infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
-
-On 07/09/2012 04:02 PM, Hans de Goede wrote:
-> On 07/09/2012 01:58 PM, Antti Palosaari wrote:
->> On 07/09/2012 01:03 PM, Hans de Goede wrote:
->> If I tune using old radio it works. If I tune using latest radio but
->> with option -l 0 (./console/radio -l 0) it also works. Using "arecord
->> -D hw:2,0 -r96000 -c2 -f S16_LE | aplay -" to listen. So it seems that
->> latest radio with alsa loopback is only having those problems.
+On 9 July 2012 10:19, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> Am Montag, den 09.07.2012, 10:07 +0200 schrieb javier Martin:
+> [...]
+>> >> +static int vidioc_s_parm(struct file *file, void *priv, struct v4l2_streamparm *a)
+>> >> +{
+>> >> +     struct coda_ctx *ctx = fh_to_ctx(priv);
+>> >> +
+>> >> +     if (a->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+>> >> +             if (a->parm.output.timeperframe.numerator != 1) {
+>> >> +                     v4l2_err(&ctx->dev->v4l2_dev,
+>> >> +                              "FPS numerator must be 1\n");
+>> >> +                     return -EINVAL;
+>> >> +             }
+>> >> +             ctx->params.framerate =
+>> >> +                                     a->parm.output.timeperframe.denominator;
+>> >> +     } else {
+>> >> +             v4l2_err(&ctx->dev->v4l2_dev,
+>> >> +                      "Setting FPS is only possible for the output queue\n");
+>> >> +             return -EINVAL;
+>> >
+>> > Why disallow setting timeperframe on the capture side? Shouldn't it
+>> > rather succeed without setting anything and return the current context's
+>> > frame rate instead?
+>> >
+>> >> +     }
+>> >> +     return 0;
+>> >> +}
+>> >> +
+>> >> +static int vidioc_g_parm(struct file *file, void *priv, struct v4l2_streamparm *a)
+>> >> +{
+>> >> +     struct coda_ctx *ctx = fh_to_ctx(priv);
+>> >> +
+>> >> +     if (a->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+>> >> +             a->parm.output.timeperframe.denominator =
+>> >> +                                     ctx->params.framerate;
+>> >> +             a->parm.output.timeperframe.numerator = 1;
+>> >> +     } else {
+>> >> +             v4l2_err(&ctx->dev->v4l2_dev,
+>> >> +                      "Getting FPS is only possible for the output queue\n");
+>> >
+>> > The nominal capture side timeperframe should match that of the output
+>> > side.
+>> >
+>> > Actually, I'm not sure if this needs to be implemented at all, since
+>> > V4L2_CAP_TIMEPERFRAME is not set and capture frame dropping / output
+>> > frame duplication is not supported.
+>>
+>> I am just following the steps of Samsung here:
+>>
+>> http://lxr.linux.no/#linux+v3.4.4/drivers/media/video/s5p-mfc/s5p_mfc_enc.c#L1439
+>> http://lxr.linux.no/#linux+v3.4.4/drivers/media/video/s5p-mfc/s5p_mfc_opr.c#L775
 >>
 >
-> Ok.
->>
->> These are the patches:
->> radio-si470x: Don't unnecesarily read registers on G_TUNER
->> radio-si470x: Lower hardware freq seek signal treshold
->> radio-si470x: Always use interrupt to wait for tune/seek completion
->> radio-si470x: Lower firmware version requirements
->>
->> And from that I can see it loads new driver as it does not warn about
->> software version - only firmware.
+> I don't think this is completely correct either. According to the V4L2
+> spec, setting timeperframe from an application is meant to make the
+> driver skip or duplicate frames to save bandwidth:
 >
-> Right, so what I want to do is to lower the firmware requirement to 12,
-> so that it won't complain
-> for your device since that seems to be working fine. Does that sound
-> like a good idea to you?
+> http://v4l2spec.bytesex.org/spec-single/v4l2.html#VIDIOC-G-PARM
+>
+> So returning -EINVAL is not necessarily incorrect, as we can choose not
+> to support this ioctl - but claiming support for the output side (and
+> then doing nothing) but returning an error on the capture side seems a
+> bit inconsistent to me.
 
-Yes, indeed lower it to the 12 as it works to get rid of those warnings. 
-It still cracks but rarely, once per 2 mins or so when using arecord + 
-aplay.
-
-
-The whole journey of playing that device was idea to learn V4L2 radio 
-API as I was planning to add SDR functionality. Anyhow, I am a little 
-bit disappointed because that radio uses snd-usb-audio module for audio. 
-Do you know any cheap usb radio which uses vendor specific USB 
-interface, not standard profiles?
-
-
-regards
-Antti
-
+I'll remove it since we don't use it either way.
 
 -- 
-http://palosaari.fi/
-
-
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
