@@ -1,55 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:40993 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753784Ab2GWRMU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jul 2012 13:12:20 -0400
-Date: Mon, 23 Jul 2012 10:12:15 -0700
-From: Tejun Heo <tj@kernel.org>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: linux-kernel@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Avi Kivity <avi@redhat.com>, kvm@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	Grant Likely <grant.likely@secretlab.ca>,
-	spi-devel-general@lists.sourceforge.net,
-	Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH 2/2] kthread_worker: reimplement flush_kthread_work()
- to allow freeing the work item being executed
-Message-ID: <20120723171215.GA5776@google.com>
-References: <20120719211510.GA32763@google.com>
- <20120719211629.GC32763@google.com>
- <1342894814.2504.31.camel@palomino.walls.org>
- <20120722164953.GC5144@dhcp-172-17-108-109.mtv.corp.google.com>
- <1342990015.2487.19.camel@palomino.walls.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:38951 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751452Ab2GIRi7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Jul 2012 13:38:59 -0400
+Message-ID: <4FFB172A.2070009@iki.fi>
+Date: Mon, 09 Jul 2012 20:38:50 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1342990015.2487.19.camel@palomino.walls.org>
+To: Marx <acc.for.news@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: pctv452e
+References: <4FF4697C.8080602@nexusuk.org> <4FF46DC4.4070204@iki.fi> <4FF4911B.9090600@web.de> <4FF4931B.7000708@iki.fi> <gjggc9-dl4.ln1@wuwek.kopernik.gliwice.pl> <4FF5A350.9070509@iki.fi> <r8cic9-ht4.ln1@wuwek.kopernik.gliwice.pl> <4FF6B121.6010105@iki.fi> <9btic9-vd5.ln1@wuwek.kopernik.gliwice.pl> <835kc9-7p4.ln1@wuwek.kopernik.gliwice.pl> <4FF77C1B.50406@iki.fi> <l2smc9-pj4.ln1@wuwek.kopernik.gliwice.pl> <4FF97DF8.4080208@iki.fi> <n1aqc9-sp4.ln1@wuwek.kopernik.gliwice.pl> <4FFA996D.9010206@iki.fi> <scerc9-bm6.ln1@wuwek.kopernik.gliwice.pl>
+In-Reply-To: <scerc9-bm6.ln1@wuwek.kopernik.gliwice.pl>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On 07/09/2012 07:44 PM, Marx wrote:
+> W dniu 2012-07-09 10:42, Antti Palosaari pisze:
+>> On 07/09/2012 09:24 AM, Marx wrote:
+>>> On 08.07.2012 14:32, Antti Palosaari wrote:
+>>>> I suspect you stopped szap ?
+>>>>
+>>>> You cannot use dvbdate or dvbtraffic, nor read data from dvr0 unless
+>>>> frontend is tuned. Leave szap running backround and try again.
+>>>
+>>> That way it works, and I can save stream. Hovewer it's strange because I
+>>> shouldn't have to constatly tune channel to watch it, and on previous
+>>> cards it was enough to tune once and then use other commands.
+>>> I base my knowledge on
+>>> http://www.linuxtv.org/wiki/index.php/Testing_your_DVB_device
+>>> There is nothing about constant tuning channel to use it. Am I missing
+>>> something?
+>>
+>> given wiki-page says:
+>> "
+>> 4. After you've tuned a frequency and program
+>>
+>> a) You could now start up your simple TV watching application and decode
+>> the stream you have tuned.
+>>
+>> For example, while keeping {a,c,s,t}zap running in the first console
+>> shell, open up another console and run
+>> "
+>>
+>> Behavior have been always same, at least for the DVB USB.
+>>
+>> So you don't have problems at all?
+>
+> ok, my fault
+> problem still exists
+> VDR doesn't play any channel, and while you asked me to abandon it, I
+> saved some data using
+>   cat /dev/dvb/adapter0/dvr0 > /mnt/video/test3.ts
+> while tuning in the background.
+>
+> Stream saved that way is unplayable (I play it using VLC for windows -
+> it played almost all proper TS strems in the past I had). I've tried all
+> software I have - to play this streams - no way.
+>
+> So
+> - I can tune only 2/3 of channels
+> - TS stream saves with errors
+> - traditional tuner on the same (brand new) dish works ok
+> - i've exchanged cables between the two
+>
+> is it possible that pctv device is less sensitive and the problem is
+> with too weak signal?
 
-On Sun, Jul 22, 2012 at 04:46:54PM -0400, Andy Walls wrote:
-> Hmmm, I didn't know about the constraint about 'known to be alive' in
-> the other email I just sent.
-> 
-> That might make calling flush_kthread_work() hard for a user to use, if
-> the user lets the work get freed by another thread executing the work.
+If VDR does not work at all, but other tools are working, it could be 
+compatibility issue between VDR and Kernel.
 
-Umm... flushing a freed work item doesn't make any sense at all.  The
-pointer itself loses the ability to identify anything.  What if it
-gets recycled to another work item which happens to depend on the
-flusher to make forward progress?  You now have a circular dependency
-through a recycled memory area.  Good luck hunting that down.
+# tune to channel:
+szap -r "CHANNEL NAME"
+# dump channels from tuned multiplex (if you don't have that command 
+just skip):
+scandvb -c
+# save tuned channel to file (lets say 20 second):
+cat /dev/dvb/adapter0/dvr0 > test.ts
+# check if ffmpeg finds video and audio
+ffmpeg -i test.ts
 
-For pretty much any API, allowing dangling pointers as argument is
-insane.  If you want to flush self-freeing work items, flush the
-kthread_worker.  That's how it is with workqueue and how it should be
-with kthread_worker too.
+and post result here
 
-Thanks.
+regards
+Antti
 
 -- 
-tejun
+http://palosaari.fi/
+
+
