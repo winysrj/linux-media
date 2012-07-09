@@ -1,71 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.matrix-vision.com ([78.47.19.71]:42180 "EHLO
-	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752519Ab2G0JEy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jul 2012 05:04:54 -0400
-Message-ID: <50125A66.80104@matrix-vision.de>
-Date: Fri, 27 Jul 2012 11:07:50 +0200
-From: Michael Jones <michael.jones@matrix-vision.de>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:54428 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753499Ab2GIUjf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2012 16:39:35 -0400
+Date: Mon, 9 Jul 2012 15:39:29 -0500
+From: Jonathan Nieder <jrnieder@gmail.com>
+To: martin-eric.racine@iki.fi
+Cc: Hans de Goede <hdegoede@redhat.com>, 677533@bugs.debian.org,
+	=?utf-8?Q?Jean-Fran=C3=A7ois?= Moine <moinejf@free.fr>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: video: USB webcam fails since kernel 3.2
+Message-ID: <20120709203929.GC17301@burratino>
+References: <20120614162609.4613.22122.reportbug@henna.lan>
+ <20120614215359.GF3537@burratino>
+ <CAPZXPQd9gNCxn7xGyqj_xymPaF5OxvRtxRFkt+SsLs942te4og@mail.gmail.com>
+ <20120616044137.GB4076@burratino>
+ <1339932233.20497.14.camel@henna.lan>
+ <CAPZXPQegp7RA5M0H9Ofq4rJ9aj-rEdg=Ly9_1c6vAKi3COw50g@mail.gmail.com>
+ <4FF9CA30.9050105@redhat.com>
+ <CAPZXPQd026xfKrAU0D7CLQGbdAs8U01u5vsHp+5-wbVofAwdqQ@mail.gmail.com>
+ <4FFAD8D9.8070203@redhat.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [RFC] omap3-isp G_FMT & ENUM_FMT
-References: <1343303996-16025-1-git-send-email-michael.jones@matrix-vision.de> <4048543.KhXI4ynbrF@avalon> <50115299.6000201@matrix-vision.de> <7135672.xS20ZCiE6C@avalon>
-In-Reply-To: <7135672.xS20ZCiE6C@avalon>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
+In-Reply-To: <4FFAD8D9.8070203@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Martin-Éric,
 
-On 07/27/2012 01:32 AM, Laurent Pinchart wrote:
-> Hi Michael,
->
-> On Thursday 26 July 2012 16:22:17 Michael Jones wrote:
->> On 07/26/2012 04:05 PM, Laurent Pinchart wrote:
->>> On Thursday 26 July 2012 13:59:54 Michael Jones wrote:
->>>> Hello,
->>>>
->>>> I would like to (re)submit a couple of patches to support V4L2 behavior
->>>> at the V4L2 device nodes of the omap3-isp driver, but I'm guessing they
->>>> require some discussion first.
->>>
->>> Indeed.
->>>
->>> The main reason why the OMAP3 ISP driver implements G_FMT/S_FMT as it does
->>> today is to hack around a restriction in the V4L2 API. We needed a way to
->>> preallocate and possibly prequeue buffers for snapshot, which wasn't
->>> possible in a standard-compliant way back then.
->>>
->>> The situation has since changed, and we now have the VIDIOC_CREATE_BUFS
->>> and VIDIOC_PREPARE_BUF ioctls. My plan is to
->>>
->>> - port the OMAP3 ISP driver to videobuf2
->>> - implement support for CREATE_BUFS and PREPARE_BUF
->>> - fix the G_FMT/S_FMT/ENUM_FMT behaviour
->>
->> What will the G_FMT/S_FMT/ENUM_FMT behavior be then?  Can you contrast
->> it with the behavior of my patches?  If the behavior will be the same
->> for user space, and your proposed changes won't be in very soon, can we
->> use my patches until you make your changes?
->
-> At the moment the driver accepts any format you give it in a S_FMT call,
-> regardless of the format of the connected pad. The reason for that is to allow
-> VIDIOC_REQBUFS to allocate buffers for an arbitrary size.
->
-> With CREATE_BUFS and PREPARE_BUFS support, G_FMT, S_FMT and ENUM_FMT should
-> return the format of the connected pad.
->
+Hans de Goede wrote:
 
-OK, so this sounds like the same behavior I'd like to add before 
-CREATE_BUFS and PREPARE_BUFS support is in.  My other question was if 
-this is the case, can we use my approach until your planned changes are in?
+> Erm, that is quite a bit of work from my side for something which you
+> can easily do yourself, edit gspca.c, search for which_bandwidth
+> and then under the following lines:
+>         u32 bandwidth;
+>         int i;
+>
+> Add a line like this:
+> 	return 2000 * 2000 * 120;
 
--Michael
+In case it helps, here are some more complete instructions.
 
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
+ 0. Prerequisites:
+
+	apt-get install git build-essential
+
+ 1. Get the kernel history, if you don't already have it:
+
+	git clone \
+	  git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+
+ 2. Try linus's master:
+
+	cd linux
+	git fetch origin
+	git reset --hard origin/master
+	cp /boot/config-$(uname -r) .config; # current configuration
+	scripts/config --disable DEBUG_INFO
+	make localmodconfig; # optional: minimize configuration
+	make deb-pkg; # optionally with -j<num> for parallel build
+	dpkg -i ../<name of package>; # as root
+	reboot
+	... test test test ...
+
+    Hopefully it reproduces the bug.
+
+ 3. Try Hans's first suggested change, as described in the quoted text
+    above:
+
+	cd linux
+	vi drivers/media/video/gspca/gspca.c
+	... make the suggested edits ...
+	make deb-pkg; # maybe with -j4
+	dpkg -i ../<name of package>; # as root
+	reboot
+	... test test test ...
+
+ 4. Try Hans's second suggested change, as described in a previous
+    message:
+
+	cd linux
+	vi drivers/media/video/gspca/gspca.c
+	... make the suggested edits ...
+	make deb-pkg; # maybe with -j4
+	dpkg -i ../<name of package>; # as root
+	reboot
+	... test test test ...
+
+No doubt Jean-François will notice that it is easier to test the
+standalone driver because the first build does not have to compile the
+whole kernel.  That's fine, too.  The instructions above describe how
+to test the in-kernel driver because it's what I'm used to (and
+because it means you test the driver against the same version of the
+rest of the kernel as would get the fix).
+
+Hope that helps,
+Jonathan
