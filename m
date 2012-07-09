@@ -1,88 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail6.hostpark.net ([212.243.197.36]:52133 "EHLO
-	mail6.hostpark.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755578Ab2GEKgI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 06:36:08 -0400
-From: Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>
-Date: Thu, 5 Jul 2012 12:28:04 +0200
-Subject: omap3isp: cropping bug in previewer?
-Message-ID: <B21EB8416BB7744FAB36AEE2627158CD0119103FEC61@REBITSERVER.rebit.local>
-Content-Language: de-DE
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from plane.gmane.org ([80.91.229.3]:56076 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751191Ab2GIRI2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Jul 2012 13:08:28 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1SoHRc-0007UZ-Rh
+	for linux-media@vger.kernel.org; Mon, 09 Jul 2012 19:08:20 +0200
+Received: from bra55.neoplus.adsl.tpnet.pl ([83.29.94.55])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 09 Jul 2012 19:08:20 +0200
+Received: from acc.for.news by bra55.neoplus.adsl.tpnet.pl with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 09 Jul 2012 19:08:20 +0200
+To: linux-media@vger.kernel.org
+From: Marx <acc.for.news@gmail.com>
+Subject: Re: pctv452e
+Date: Mon, 09 Jul 2012 18:44:39 +0200
+Message-ID: <scerc9-bm6.ln1@wuwek.kopernik.gliwice.pl>
+References: <4FF4697C.8080602@nexusuk.org> <4FF46DC4.4070204@iki.fi> <4FF4911B.9090600@web.de> <4FF4931B.7000708@iki.fi> <gjggc9-dl4.ln1@wuwek.kopernik.gliwice.pl> <4FF5A350.9070509@iki.fi> <r8cic9-ht4.ln1@wuwek.kopernik.gliwice.pl> <4FF6B121.6010105@iki.fi> <9btic9-vd5.ln1@wuwek.kopernik.gliwice.pl> <835kc9-7p4.ln1@wuwek.kopernik.gliwice.pl> <4FF77C1B.50406@iki.fi> <l2smc9-pj4.ln1@wuwek.kopernik.gliwice.pl> <4FF97DF8.4080208@iki.fi> <n1aqc9-sp4.ln1@wuwek.kopernik.gliwice.pl> <4FFA996D.9010206@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <4FFA996D.9010206@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear all,
-I am trying to get a mt9p031 sensor running on a beagleboard-xm with the following configuration:
+W dniu 2012-07-09 10:42, Antti Palosaari pisze:
+> On 07/09/2012 09:24 AM, Marx wrote:
+>> On 08.07.2012 14:32, Antti Palosaari wrote:
+>>> I suspect you stopped szap ?
+>>>
+>>> You cannot use dvbdate or dvbtraffic, nor read data from dvr0 unless
+>>> frontend is tuned. Leave szap running backround and try again.
+>>
+>> That way it works, and I can save stream. Hovewer it's strange because I
+>> shouldn't have to constatly tune channel to watch it, and on previous
+>> cards it was enough to tune once and then use other commands.
+>> I base my knowledge on
+>> http://www.linuxtv.org/wiki/index.php/Testing_your_DVB_device
+>> There is nothing about constant tuning channel to use it. Am I missing
+>> something?
+>
+> given wiki-page says:
+> "
+> 4. After you've tuned a frequency and program
+>
+> a) You could now start up your simple TV watching application and decode
+> the stream you have tuned.
+>
+> For example, while keeping {a,c,s,t}zap running in the first console
+> shell, open up another console and run
+> "
+>
+> Behavior have been always same, at least for the DVB USB.
+>
+> So you don't have problems at all?
 
-Hardware:
-- beagleboard-xm, rev c1
-- Leopard Imaging cam module LI-5M03 with a mt9p031 5MP sensor
+ok, my fault
+problem still exists
+VDR doesn't play any channel, and while you asked me to abandon it, I 
+saved some data using
+  cat /dev/dvb/adapter0/dvr0 > /mnt/video/test3.ts
+while tuning in the background.
 
-Software:
-- Angstrom-distro built with bitbake using the setup-scripts from [4] (commit da56a56b690bcc07a50716f1071e90e2b3a4fb47).
-- own bitbake recipe to build a linux-omap kernel 3.5-rc1 from the tmdlind branch (this source: [5], tag omap-fixes-for-v3.5-rc1)
-- some patches to update the 3.5-rc1 omap3-isp module (not the whole kernel) to the latest omap3isp-sensors-next branch from Laurent Pinchart [1]
-- yavta with an extension to output data to stdout
-- mediactl to configure the omap3isp pipeline
+Stream saved that way is unplayable (I play it using VLC for windows - 
+it played almost all proper TS strems in the past I had). I've tried all 
+software I have - to play this streams - no way.
 
-Problem:
+So
+- I can tune only 2/3 of channels
+- TS stream saves with errors
+- traditional tuner on the same (brand new) dish works ok
+- i've exchanged cables between the two
 
-I configure a pipe with mediactl from OMAP3 ISP CCDC input to the previewer output (see [3] for a detailed log) with an example resolution of 800x600. This resolution is adapted by the omap3isp driver to 846x639 at the previewer output. In my understanding the adjustment of the resolution (from 800x600 to 846x639) is a result of the following process:
-1) The closest possible windowing of the mt9p031 sensor is 864x648.
-2) The ccdc-source pad crops the height by one line (see function ccdc_try_format in ispccdc.c) - we are now on 864x647
-3) The previewer (isppreview.c) crops a left margin of 8px and a right margin of 6px (see the PREV_MARGIN_* defines) plus 4px if the input is from ccdc (see preview_try_crop) - we are now on 846x639.
-As there are no filters activated, the input size will not be modified by the preview_config_input_size function.
+is it possible that pctv device is less sensitive and the problem is 
+with too weak signal?
 
-When I now capture a frame with yavta (see [3] for details), I must use 846x639 as frame size (as this size is reported by the driver). But it seems that the outputted image is 2px wider (that means 848x639). This results in a "scrambled"/unusable image on screen when streaming (see [6] bad-frame-846x639_on_display.bmp for an example how it looks like on screen). Also the file size too big for a 846x639 image: 
-The frame size is 1083744 bytes, which is exactly 848*639*2 (NOT 846*639*2)!
-
-Then I transformed the "bad" yuv-picture with raw2rgbpnm which gives me a good picture with both frame-sizes (see bad-frame-846x639.pnm and bad-frame-848x639_on_display.bmp in [6]).
-So the picture-information seems to be good, but I guess that the input-size is configured badly by the driver.
-If you look in the isp-datasheet [7] in table 6-40 (page 1201) you see, that the CFA interpolation block for bayer-mode crops 4 px per line and 4 lines.
-So shouldn't we respect this in the preview_config_input_size function?
-My RFC is:
-
-Index: git/drivers/media/video/omap3isp/isppreview.c
-===================================================================
---- git.orig/drivers/media/video/omap3isp/isppreview.c	2012-07-05 10:59:33.675358396 +0200
-+++ git/drivers/media/video/omap3isp/isppreview.c	2012-07-05 12:14:33.723223514 +0200
-@@ -1140,6 +1140,12 @@
- 	}
- 	if (features & (OMAP3ISP_PREV_CHROMA_SUPP | OMAP3ISP_PREV_LUMAENH))
- 		sph -= 2;
-+	if (features & OMAP3ISP_PREV_CFA) {
-+		sph -= 2;
-+		eph += 2;
-+		slv -= 2;
-+		elv += 2;
-+	}
- 
- 	isp_reg_writel(isp, (sph << ISPPRV_HORZ_INFO_SPH_SHIFT) | eph,
- 		       OMAP3_ISP_IOMEM_PREV, ISPPRV_HORZ_INFO);
-===================================================================
-NOTE: This still gives an unusable picture at the previewer output BUT if I extend the pipeline to the resizer output, the picture is good. So I must be missing something... 
-
-It would be nice, if someone could tell me, if my assumptions are right and point me the right direction. 
-
-Further information:
-- Bootup dmesg: [2]
-- Configuration of the pipe with mediactl, capturing of an image with yavta and analyze of the image with raw2rgbpnm: [3]
-
-[1] http://git.linuxtv.org/pinchartl/media.git/commit/019214973ee4f03c8f2d582468b914fcf3385089
-[2] http://pastebin.com/7PQnzcmx
-[3] http://pastebin.com/ChEaYHMy
-[4] https://github.com/Angstrom-distribution/setup-scripts
-[5] git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
-[6] https://www.dropbox.com/sh/p2fy5u4i71c3vy8/Fyya25YqK-
-[7] http://www.ti.com/lit/ug/sprugn4q/sprugn4q.pdf
-
-Greetings,
-Florian Neuhaus
+Marx
 
