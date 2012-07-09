@@ -1,80 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:35321 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752964Ab2GRJ0q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jul 2012 05:26:46 -0400
-Received: by weyx8 with SMTP id x8so814783wey.19
-        for <linux-media@vger.kernel.org>; Wed, 18 Jul 2012 02:26:45 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:52236 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751782Ab2GIRqs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Jul 2012 13:46:48 -0400
+Message-ID: <4FFB1900.6010306@iki.fi>
+Date: Mon, 09 Jul 2012 20:46:40 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <1342603378.2542.149.camel@pizza.hi.pengutronix.de>
-References: <1342077100-8629-1-git-send-email-javier.martin@vista-silicon.com>
-	<1342459273.2535.665.camel@pizza.hi.pengutronix.de>
-	<CACKLOr3rOPgwMCRdj3ARR+0655Qp=BfEXq0TsB7TU-hO4NSsqg@mail.gmail.com>
-	<1342600546.2542.101.camel@pizza.hi.pengutronix.de>
-	<CACKLOr1i-iByVtST6sqXqmHHzhJ1mgUdBWjp-jFsYPX-bnAMxQ@mail.gmail.com>
-	<1342603378.2542.149.camel@pizza.hi.pengutronix.de>
-Date: Wed, 18 Jul 2012 11:26:44 +0200
-Message-ID: <CACKLOr0861rZbOFZ2O0eXuTY7PB1yiFkSt62_4uXvJT+QMZe9A@mail.gmail.com>
-Subject: Re: [PATCH v3] media: coda: Add driver for Coda video codec.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
-	mchehab@infradead.org, s.hauer@pengutronix.de
-Content-Type: text/plain; charset=ISO-8859-1
+To: Marx <acc.for.news@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: pctv452e
+References: <4FF4697C.8080602@nexusuk.org> <4FF46DC4.4070204@iki.fi> <4FF4911B.9090600@web.de> <4FF4931B.7000708@iki.fi> <gjggc9-dl4.ln1@wuwek.kopernik.gliwice.pl> <4FF5A350.9070509@iki.fi> <r8cic9-ht4.ln1@wuwek.kopernik.gliwice.pl> <4FF6B121.6010105@iki.fi> <9btic9-vd5.ln1@wuwek.kopernik.gliwice.pl> <835kc9-7p4.ln1@wuwek.kopernik.gliwice.pl> <4FF77C1B.50406@iki.fi> <l2smc9-pj4.ln1@wuwek.kopernik.gliwice.pl> <4FF97DF8.4080208@iki.fi> <n1aqc9-sp4.ln1@wuwek.kopernik.gliwice.pl> <4FFA996D.9010206@iki.fi> <scerc9-bm6.ln1@wuwek.kopernik.gliwice.pl> <4FFB172A.2070009@iki.fi>
+In-Reply-To: <4FFB172A.2070009@iki.fi>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18 July 2012 11:22, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> Hi Javier,
->
-> Am Mittwoch, den 18.07.2012, 11:01 +0200 schrieb javier Martin:
->> On 18 July 2012 10:35, Philipp Zabel <p.zabel@pengutronix.de> wrote:
->> > Hi Javier,
->> >
->> > Am Mittwoch, den 18.07.2012, 09:12 +0200 schrieb javier Martin:
->> > [...]
->> >> > I see there is a comment about the expected register setting not working
->> >> > for CODA_REG_BIT_STREAM_CTRL in start_streaming(). Could this be
->> >> > related?
->> >>
->> >> I don't think so. This means that the following line:
->> >>
->> >> coda_write(dev, (3 << 3), CODA_REG_BIT_STREAM_CTRL);
->> >>
->> >> should be:
->> >>
->> >> coda_write(dev, (CODADX6_STREAM_BUF_PIC_RESET |
->> >> CODADX6_STREAM_BUF_PIC_FLUSH), CODA_REG_BIT_STREAM_CTRL);
->> >>
->> >> But the latter does not work.
->> >
->> > Looks to me like (3 << 3) == (CODA7_STREAM_BUF_PIC_RESET |
->> > CODA7_STREAM_BUF_PIC_FLUSH) could be the explanation.
+On 07/09/2012 08:38 PM, Antti Palosaari wrote:
+> On 07/09/2012 07:44 PM, Marx wrote:
+>> W dniu 2012-07-09 10:42, Antti Palosaari pisze:
+>>> On 07/09/2012 09:24 AM, Marx wrote:
+>>>> On 08.07.2012 14:32, Antti Palosaari wrote:
+>>>>> I suspect you stopped szap ?
+>>>>>
+>>>>> You cannot use dvbdate or dvbtraffic, nor read data from dvr0 unless
+>>>>> frontend is tuned. Leave szap running backround and try again.
+>>>>
+>>>> That way it works, and I can save stream. Hovewer it's strange
+>>>> because I
+>>>> shouldn't have to constatly tune channel to watch it, and on previous
+>>>> cards it was enough to tune once and then use other commands.
+>>>> I base my knowledge on
+>>>> http://www.linuxtv.org/wiki/index.php/Testing_your_DVB_device
+>>>> There is nothing about constant tuning channel to use it. Am I missing
+>>>> something?
+>>>
+>>> given wiki-page says:
+>>> "
+>>> 4. After you've tuned a frequency and program
+>>>
+>>> a) You could now start up your simple TV watching application and decode
+>>> the stream you have tuned.
+>>>
+>>> For example, while keeping {a,c,s,t}zap running in the first console
+>>> shell, open up another console and run
+>>> "
+>>>
+>>> Behavior have been always same, at least for the DVB USB.
+>>>
+>>> So you don't have problems at all?
 >>
->> You mean "!=", don't you?
+>> ok, my fault
+>> problem still exists
+>> VDR doesn't play any channel, and while you asked me to abandon it, I
+>> saved some data using
+>>   cat /dev/dvb/adapter0/dvr0 > /mnt/video/test3.ts
+>> while tuning in the background.
+>>
+>> Stream saved that way is unplayable (I play it using VLC for windows -
+>> it played almost all proper TS strems in the past I had). I've tried all
+>> software I have - to play this streams - no way.
+>>
+>> So
+>> - I can tune only 2/3 of channels
+>> - TS stream saves with errors
+>> - traditional tuner on the same (brand new) dish works ok
+>> - i've exchanged cables between the two
+>>
+>> is it possible that pctv device is less sensitive and the problem is
+>> with too weak signal?
 >
-> I mean "==". coda.h contains:
+> If VDR does not work at all, but other tools are working, it could be
+> compatibility issue between VDR and Kernel.
 >
-> #define         CODA7_STREAM_BUF_PIC_RESET      (1 << 4)
-> #define         CODA7_STREAM_BUF_PIC_FLUSH      (1 << 3)
->
-> So maybe those are the correct bits for i.MX27 with the 2.2.5 firmware.
-> If that is the case, you could do s/CODA7_STREAM_BUF_/CODA_STREAM_BUF_/
-> and drop the incorrect CODADX6_STREAM_BUF_ defines.
+> # tune to channel:
+> szap -r "CHANNEL NAME"
+-r option is important here as it routes stream to /dev/dvb/adapter0/dvr0
 
-Sorry, I didn't catch the 'CODA7' prefix in your defines.
-OK then, I'll do  s/CODA7_STREAM_BUF_/CODA_STREAM_BUF_/ and remove the
-comment too.
+> # dump channels from tuned multiplex (if you don't have that command
+> just skip):
+> scandvb -c
+Could be named as scan, dvbscan, scandvb....
 
-Regards.
+> # save tuned channel to file (lets say 20 second):
+> cat /dev/dvb/adapter0/dvr0 > test.ts
+actually seems like ffmpeg could read directly dvr0
+ffmpeg -i /dev/dvb/adapter0/dvr0
+takes ~20 seconds or so until results are shown
+
+> # check if ffmpeg finds video and audio
+> ffmpeg -i test.ts
+>
+> and post result here
+
+Antti
+
+
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+http://palosaari.fi/
+
+
