@@ -1,123 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from forward2.mail.yandex.net ([77.88.46.7]:39336 "EHLO
-	forward2.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755625Ab2GMXRQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jul 2012 19:17:16 -0400
-Received: from web6d.yandex.ru (web6d.yandex.ru [77.88.47.184])
-	by forward2.mail.yandex.net (Yandex) with ESMTP id 020D012A375A
-	for <linux-media@vger.kernel.org>; Sat, 14 Jul 2012 03:11:07 +0400 (MSK)
-From: CrazyCat <crazycat69@yandex.ru>
-To: linux-media@vger.kernel.org
-Subject: [PATCH]DVB-S2 multistream support
+Received: from mail.kapsi.fi ([217.30.184.167]:53637 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752206Ab2GIJRy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Jul 2012 05:17:54 -0400
+Message-ID: <4FFAA1B9.6020306@iki.fi>
+Date: Mon, 09 Jul 2012 12:17:45 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Message-Id: <842721342221067@web6d.yandex.ru>
-Date: Sat, 14 Jul 2012 02:11:07 +0300
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	hverkuil@xs4all.nl
+Subject: Re: [PATCH 4/4] radio-si470x: Lower firmware version requirements
+References: <1339681394-11348-1-git-send-email-hdegoede@redhat.com> <1339681394-11348-4-git-send-email-hdegoede@redhat.com> <4FF45FF7.4020300@iki.fi> <4FF5515A.1030704@redhat.com> <4FF5980F.8030109@iki.fi> <4FF59995.4010604@redhat.com> <4FF5A119.6020903@iki.fi> <4FF5ADE3.5040600@redhat.com> <4FF7EC0E.7060200@redhat.com> <4FF7FAB6.7040508@iki.fi> <4FF885B2.3070509@redhat.com>
+In-Reply-To: <4FF885B2.3070509@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now present DTV_DVBT2_PLP_ID property for DVB-T2, so i add alias DTV_DVBS2_MIS_ID (same feature for advanced DVB-S2). Now DVB-S2 multistream filtration supported for current STV090x demod cut 3.0, so i implement support for stv090x demod driver. Additional fe-caps FE_CAN_MULTISTREAM also added.
+On 07/07/2012 09:53 PM, Hans de Goede wrote:
+> Hi,
+>
+> On 07/07/2012 11:00 AM, Antti Palosaari wrote:
+>> Hello Hans,
+>>
+>> On 07/07/2012 10:58 AM, Hans de Goede wrote:
+>>> So is your device working properly now? The reason I'm asking it
+>>> because it is still causing a firmware version warning, and if
+>>> it works fine I would like to lower the firmware version warning
+>>> point, so that the warning goes away.
+>>
+>> I don't know what is definition of properly in that case.
+>>
+>> Problem is that when I use radio application from xawtv3 with that new
+>> loopback I hear very often cracks and following errors are printed to
+>> the radio screen:
+>> ALSA lib pcm.c:7339:(snd_pcm_recover) underrun occurred
+>> or
+>> ALSA lib pcm.c:7339:(snd_pcm_recover) overrun occurred
+>>
+>> Looks like those does not appear, at least it does not crack so often
+>> nor errors seen, when I use Rhythmbox to tune and "arecord -D hw:2,0
+>> -r96000 -c2 -f S16_LE | aplay -" to listen.
+>  >
+>> I can guess those are not firmware related so warning texts could be
+>> removed.
+>
+> Actually they may very well be firmware related. At least with my
+> firmware there
+> is a bug where actively asking the device for its register contents, it
+> lets
+> its audio stream drop.
+>
+> My patches fix this by waiting for the device to volunteer it register
+> contents
+> through its usb interrupt in endpoint, which it does at xx times / sec.
+>
+> So the first question would be, does this dropping of sound happen
+> approx 1 / sec
+> when using radio?
+>
+> If so this is caused by radio upating the signal strength it displays 1
+> / sec. If
+> you look at radio.c line 981 you will see a
+> radio_getsignal_n_stereo(fd); call
+> there in the main loop which gets called 1/sec. Try commenting this out.
+>
+> If commenting this out fixes your sound issues with radio, then the next
+> question is are you using my 4 recent si470x patches, if not please
+> give them a try. If you are already using them then I'm afraid that your
+> older
+> firmware may be broken even more then my also not so new firmware.
 
-diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
-index f50d405..f625f8d 100644
---- a/include/linux/dvb/frontend.h
-+++ b/include/linux/dvb/frontend.h
-@@ -62,6 +62,7 @@ typedef enum fe_caps {
- 	FE_CAN_8VSB			= 0x200000,
- 	FE_CAN_16VSB			= 0x400000,
- 	FE_HAS_EXTENDED_CAPS		= 0x800000,   /* We need more bitspace for newer APIs, indicate this. */
-+	FE_CAN_MULTISTREAM		= 0x4000000,  /* frontend supports DVB-S2 multistream filtering */
- 	FE_CAN_TURBO_FEC		= 0x8000000,  /* frontend supports "turbo fec modulation" */
- 	FE_CAN_2G_MODULATION		= 0x10000000, /* frontend supports "2nd generation modulation" (DVB-S2) */
- 	FE_NEEDS_BENDING		= 0x20000000, /* not supported anymore, don't use (frontend requires frequency bending) */
-@@ -317,6 +318,7 @@ struct dvb_frontend_event {
- #define DTV_ISDBS_TS_ID		42
- 
- #define DTV_DVBT2_PLP_ID	43
-+#define DTV_DVBS2_MIS_ID	43
- 
- #define DTV_ENUM_DELSYS		44
- 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index aebcdf2..83e51f9 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -947,7 +947,7 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
- 	}
- 
- 	c->isdbs_ts_id = 0;
--	c->dvbt2_plp_id = 0;
-+	c->dvbt2_plp_id = -1;
- 
- 	switch (c->delivery_system) {
- 	case SYS_DVBS:
-diff --git a/drivers/media/dvb/frontends/stv090x.c b/drivers/media/dvb/frontends/stv090x.c
-index ea86a56..eb6f1cf 100644
---- a/drivers/media/dvb/frontends/stv090x.c
-+++ b/drivers/media/dvb/frontends/stv090x.c
-@@ -3425,6 +3425,33 @@ err:
- 	return -1;
- }
- 
-+static int stv090x_set_mis(struct stv090x_state *state, int mis)
-+{
-+	u32 reg;
-+
-+	if (mis<0 || mis>255) {
-+		dprintk(FE_DEBUG, 1, "Disable MIS filtering");
-+		reg = STV090x_READ_DEMOD(state, PDELCTRL1);
-+		STV090x_SETFIELD_Px(reg, FILTER_EN_FIELD, 0x00);
-+		if (STV090x_WRITE_DEMOD(state, PDELCTRL1, reg) < 0)
-+			goto err;
-+	} else {
-+		dprintk(FE_DEBUG, 1, "Enable MIS filtering - %d", mis);
-+		reg = STV090x_READ_DEMOD(state, PDELCTRL1);
-+		STV090x_SETFIELD_Px(reg, FILTER_EN_FIELD, 0x01);
-+		if (STV090x_WRITE_DEMOD(state, PDELCTRL1, reg) < 0)
-+			goto err;
-+		if (STV090x_WRITE_DEMOD(state, ISIENTRY, mis) < 0)
-+			goto err;
-+		if (STV090x_WRITE_DEMOD(state, ISIBITENA, 0xff) < 0)
-+			goto err;
-+	}
-+	return 0;
-+err:
-+	dprintk(FE_ERROR, 1, "I/O error");
-+	return -1;
-+}
-+
- static enum dvbfe_search stv090x_search(struct dvb_frontend *fe)
- {
- 	struct stv090x_state *state = fe->demodulator_priv;
-@@ -3433,6 +3460,8 @@ static enum dvbfe_search stv090x_search(struct dvb_frontend *fe)
- 	if (props->frequency == 0)
- 		return DVBFE_ALGO_SEARCH_INVALID;
- 
-+	stv090x_set_mis(state,props->dvbt2_plp_id);
-+
- 	state->delsys = props->delivery_system;
- 	state->frequency = props->frequency;
- 	state->srate = props->symbol_rate;
-@@ -3447,6 +3476,8 @@ static enum dvbfe_search stv090x_search(struct dvb_frontend *fe)
- 		state->search_range = 5000000;
- 	}
- 
-+	stv090x_set_mis(state,props->dvbt2_plp_id);
-+
- 	if (stv090x_algo(state) == STV090x_RANGEOK) {
- 		dprintk(FE_DEBUG, 1, "Search success!");
- 		return DVBFE_ALGO_SEARCH_SUCCESS;
-@@ -4798,6 +4829,9 @@ struct dvb_frontend *stv090x_attach(const struct stv090x_config *config,
- 		}
- 	}
- 
-+	if (state->internal->dev_ver>=0x30)
-+	    state->frontend.ops.info.caps |= FE_CAN_MULTISTREAM;
-+
- 	/* workaround for stuck DiSEqC output */
- 	if (config->diseqc_envelope_mode)
- 		stv090x_send_diseqc_burst(&state->frontend, SEC_MINI_A);
+I suspect these signal strength update pops are different thing. Those 
+are almost so minor you cannot even hear.
+
+I recorded small sample:
+http://palosaari.fi/linux/v4l-dvb/xawtv3_radio.m4v
+
+And I am almost 100% sure those cracks are coming ALSA underrun/overrun 
+as error text is seen just same time when crack happens.
+
+Commenting out line did not help. But I think I was also hearing those 
+small pops too and likely new four patches fixes those - but it is hard 
+to say because it cracks audio all time.
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
 
 
