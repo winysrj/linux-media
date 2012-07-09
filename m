@@ -1,48 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:63496 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756033Ab2GQRto (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Jul 2012 13:49:44 -0400
-Received: by mail-yw0-f46.google.com with SMTP id m54so661196yhm.19
-        for <linux-media@vger.kernel.org>; Tue, 17 Jul 2012 10:49:44 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:40504 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751432Ab2GITQs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Jul 2012 15:16:48 -0400
+Received: from dyn3-82-128-190-162.psoas.suomi.net ([82.128.190.162] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1SoJRv-0001Iu-HV
+	for linux-media@vger.kernel.org; Mon, 09 Jul 2012 22:16:47 +0300
+Message-ID: <4FFB2E18.5020908@iki.fi>
+Date: Mon, 09 Jul 2012 22:16:40 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <5005A14D.8000809@redhat.com>
-References: <20120713173708.GB17109@thunk.org>
-	<5005A14D.8000809@redhat.com>
-Date: Tue, 17 Jul 2012 13:49:43 -0400
-Message-ID: <CALzAhNVKWOucWo7JpnVTEgcZ6_0Hs4OiqXXq=fQ=C6oxJgRyWQ@mail.gmail.com>
-Subject: Re: Media summit at the Kernel Summit - was: Fwd: Re:
- [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
-From: Steven Toth <stoth@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	workshop-2011@linuxtv.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media <linux-media@vger.kernel.org>
+Subject: dvb_usb_pctv452e driver problems
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> As we did in 2012, we're planning to do a media summit again at KS/2012.
+I am looking problems with that driver. It is said to be buggy after 
+merged to mainline Kernel.
 
-Excellent.
+It supports three different devices:
+PCTV HDTV USB
+Technotrend TT Connect S2-3600
+Technotrend TT Connect S2-3650-CI
 
-> The KS/2012 will happen in San Diego, CA, US, between Aug 26-28, just
-> before the LinuxCon North America.
->
-> In order to do it, I'd like to know who is interested on participate,
-> and to get proposals about what subjects will be discussed there,
-> in order to start planning the agenda.
+All reports are welcome even when it is working as expected.
 
-I'm interested. I like the idea of some cross-subsystem pollination,
-talking with the ALSA people for example ... and given that ARM is
-growing, I'd like to catch up and understand where ARM silicon is
-heading in terms of embedded video decoding and any support for
-hardware specific features we may / may not have / need.
+In problem case I would like to ask if you could test that tree and 
+report if it helps:
+http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/pctv452e
 
-... and of course, if we have anyone from Intel then we should be
-asking if/when their Intel Media SDK (hardware H264  encoding) is
-going to become a reality, or possibly kickstart that process.
+regards
+Antti
 
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+http://palosaari.fi/
+
