@@ -1,66 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:41391 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751310Ab2GNW3x convert rfc822-to-8bit (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48207 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751764Ab2GIJTt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Jul 2012 18:29:53 -0400
-Received: by obbuo13 with SMTP id uo13so7031102obb.19
-        for <linux-media@vger.kernel.org>; Sat, 14 Jul 2012 15:29:52 -0700 (PDT)
-MIME-Version: 1.0
-Date: Sat, 14 Jul 2012 18:29:52 -0400
-Message-ID: <CALzAhNVDnyjwNqcWDcgv2kgQ97Hr0gArk8=V_mL62J0cD0Ydag@mail.gmail.com>
-Subject: staging/for_v3.6 is currently broken
-From: Steven Toth <stoth@kernellabs.com>
-To: Mauro Chehab <mchehab@infradead.org>
-Cc: Linux-Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+	Mon, 9 Jul 2012 05:19:49 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: sfr@canb.auug.org.au
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
+	s.nawrocki@samsung.com
+Subject: [PATCH 1/1] v4l: Export v4l2-common.h in include/linux/Kbuild
+Date: Mon,  9 Jul 2012 12:10:26 +0300
+Message-Id: <1341825026-29120-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120709115046.f09fe2d15e33e7502cbad222@canb.auug.org.au>
+References: <20120709115046.f09fe2d15e33e7502cbad222@canb.auug.org.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Looks like the new union in v4l2_ioctl_info breaks things.
+v4l2-common.h is a header file that's used in user space, thus it must be
+exported using header-y.
 
--bash-4.1$ make -j6
-make[1]: Nothing to be done for `all'.
-  CHK     include/linux/version.h
-  CHK     include/generated/utsrelease.h
-  CALL    scripts/checksyscalls.sh
-  CHK     include/generated/compile.h
-  CC      drivers/media/video/v4l2-ioctl.o
-drivers/media/video/v4l2-ioctl.c:1848:517: error: unknown field ‘func’
-specified in initializer
-drivers/media/video/v4l2-ioctl.c:1848:517: warning: missing braces
-around initializer
-drivers/media/video/v4l2-ioctl.c:1848:517: warning: (near
-initialization for ‘v4l2_ioctls[0].<anonymous>’)
-drivers/media/video/v4l2-ioctl.c:1848:517: warning: initialization
-makes integer from pointer without a cast
-drivers/media/video/v4l2-ioctl.c:1849:644: error: unknown field ‘func’
-specified in initializer
-drivers/media/video/v4l2-ioctl.c:1849:644: warning: initialization
-makes integer from pointer without a cast
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+Hi Stephen,
 
-Removing the union and the code compiles, although that probably
-wasn't the original authors intension.
+Could you try is this patch fixes your issue? The header file indeed should
+be exported which wasn't done previously.
 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 70e0efb..1f090c4 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -1802,11 +1802,9 @@ struct v4l2_ioctl_info {
-        unsigned int ioctl;
-        u32 flags;
-        const char * const name;
--       union {
-                u32 offset;
-                int (*func)(const struct v4l2_ioctl_ops *ops,
-                                struct file *file, void *fh, void *p);
--       };
-        void (*debug)(const void *arg, bool write_only);
- };
+ include/linux/Kbuild |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-FYI
-
+diff --git a/include/linux/Kbuild b/include/linux/Kbuild
+index d38b3a8..ef4cc94 100644
+--- a/include/linux/Kbuild
++++ b/include/linux/Kbuild
+@@ -382,6 +382,7 @@ header-y += usbdevice_fs.h
+ header-y += utime.h
+ header-y += utsname.h
+ header-y += uvcvideo.h
++header-y += v4l2-common.h
+ header-y += v4l2-dv-timings.h
+ header-y += v4l2-mediabus.h
+ header-y += v4l2-subdev.h
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+1.7.2.5
+
