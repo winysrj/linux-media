@@ -1,79 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:21310 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932123Ab2GFV2a (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Jul 2012 17:28:30 -0400
-Message-ID: <4FF7586B.9080902@redhat.com>
-Date: Fri, 06 Jul 2012 18:28:11 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:35536 "EHLO
+	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756416Ab2GJQw3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jul 2012 12:52:29 -0400
+Message-ID: <4FFC5B7A.5060708@stevekerrison.com>
+Date: Tue, 10 Jul 2012 17:42:34 +0100
+From: Steve Kerrison <steve@stevekerrison.com>
 MIME-Version: 1.0
-To: "Du, Changbin" <changbin.du@gmail.com>
-CC: mchehab@infradead.org, anssi.hannula@iki.fi, gregkh@suse.de,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 1/1] media: gpio-ir-recv: add allowed_protos for platform
- data
-References: <4ff3b46c.06da440a.6345.ffff8730@mx.google.com>
-In-Reply-To: <4ff3b46c.06da440a.6345.ffff8730@mx.google.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+CC: Antti Palosaari <crope@iki.fi>
+Subject: Re: comments for DVB LNA API
+References: <4FFC5B4E.8080903@stevekerrison.com>
+In-Reply-To: <4FFC5B4E.8080903@stevekerrison.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 04-07-2012 00:11, Du, Changbin escreveu:
-> Make it possible to specify allowed RC protocols through the device's
-> platform data.
-> 
-> Signed-off-by: Du, Changbin <changbin.du@gmail.com>
+Hi Antti,
 
-Gah, you trapped me: you've resent it, without using the original message ID.
+On 10/07/12 17:20, Antti Palosaari wrote:
+> I am looking how to implement LNA support for the DVB API.
+>
+> What we need to be configurable at least is: OFF, ON, AUTO.
+>
+> There is LNAs that support variable gain and likely those will be
+> sooner or later. Actually I think there is already LNAs integrated to
+> the RF-tuner that offers adjustable gain. Also looking to NXP catalog
+> and you will see there is digital TV LNAs with adjustable gain.
+>
+> Coming from that requirements are:
+> adjustable gain 0-xxx dB
+> LNA OFF
+> LNA ON
+> LNA AUTO
+>
+> Setting LNA is easy but how to query capabilities of supported LNA
+> values? eg. this device has LNA which supports Gain=5dB, Gain=8dB, LNA
+> auto?
+Without having a sample of device capabilities this question may be
+irrelevant, but what if the gain is somewhat continuiously configurable
+vs. discretized? For example can some be configured just for 5,8 and 11,
+whilst some might have some 8-bit value that controls gain between 5 and 11?
+>
+> LNA ON (bypass) could be replaced with Gain=0 and LNA ON with Gain>0,
+> Gain=-1 is for auto example.
 
-Too late. I'll keep the version where I've fixed the merge
-conflict, as it does the same thing.
+How should the API handle differences between the specified gain and the
+capabilities of the LNA? Round to nearest possible config if it's within
+the operating range; return error if out of range?
+>
+>
+>
+> regards
+> Antti
+>
 
-Regards,
-Mauro.
+-- 
+Steve Kerrison MEng Hons.
+http://www.stevekerrison.com/
 
-> ---
-> For v2:
-> 	Keymap has already done by another patch.
-> ---
->   drivers/media/rc/gpio-ir-recv.c |    2 +-
->   include/media/gpio-ir-recv.h    |    7 ++++---
->   2 files changed, 5 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/rc/gpio-ir-recv.c
-> b/drivers/media/rc/gpio-ir-recv.c
-> index 59fe60c..38da91e 100644
-> --- a/drivers/media/rc/gpio-ir-recv.c
-> +++ b/drivers/media/rc/gpio-ir-recv.c
-> @@ -84,7 +84,7 @@ static int __devinit gpio_ir_recv_probe(struct
-> platform_device *pdev)
->   
->   	rcdev->priv = gpio_dev;
->   	rcdev->driver_type = RC_DRIVER_IR_RAW;
-> -	rcdev->allowed_protos = RC_TYPE_ALL;
-> +	rcdev->allowed_protos = pdata->allowed_protos ?: RC_TYPE_ALL;
->   	rcdev->input_name = GPIO_IR_DEVICE_NAME;
->   	rcdev->input_phys = GPIO_IR_DEVICE_NAME "/input0";
->   	rcdev->input_id.bustype = BUS_HOST;
-> diff --git a/include/media/gpio-ir-recv.h b/include/media/gpio-ir-recv.h
-> index 91546f3..0142736 100644
-> --- a/include/media/gpio-ir-recv.h
-> +++ b/include/media/gpio-ir-recv.h
-> @@ -14,9 +14,10 @@
->   #define __GPIO_IR_RECV_H__
->   
->   struct gpio_ir_recv_platform_data {
-> -	int gpio_nr;
-> -	bool active_low;
-> -	const char *map_name;
-> +	int		gpio_nr;
-> +	bool		active_low;
-> +	u64		allowed_protos;
-> +	const char	*map_name;
->   };
->   
->   #endif /* __GPIO_IR_RECV_H__ */
-> 
+
+
+
 
 
