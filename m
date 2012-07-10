@@ -1,84 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.tpi.com ([70.99.223.143]:4105 "EHLO mail.tpi.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932927Ab2GYOFE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jul 2012 10:05:04 -0400
-Message-ID: <500FF804.9050308@canonical.com>
-Date: Wed, 25 Jul 2012 07:43:32 -0600
-From: Tim Gardner <tim.gardner@canonical.com>
+Received: from moutng.kundenserver.de ([212.227.17.8]:49790 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753079Ab2GJMpg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jul 2012 08:45:36 -0400
+Date: Tue, 10 Jul 2012 14:45:28 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Javier Martin <javier.martin@vista-silicon.com>
+cc: linux-media@vger.kernel.org, fabio.estevam@freescale.com,
+	laurent.pinchart@ideasonboard.com, mchehab@infradead.org
+Subject: Re: [PATCH] media: mx2_camera: Don't modify non volatile parameters
+ in try_fmt.
+In-Reply-To: <1341923936-18503-1-git-send-email-javier.martin@vista-silicon.com>
+Message-ID: <Pine.LNX.4.64.1207101444470.29825@axis700.grange>
+References: <1341923936-18503-1-git-send-email-javier.martin@vista-silicon.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Krufky <mkrufky@kernellabs.com>,
-	Eddi De Pieri <eddi@depieri.net>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] xc5000: Add MODULE_FIRMWARE statements
-References: <1343222119-82246-1-git-send-email-tim.gardner@canonical.com> <CAGoCfiziwAz0q2D_qKX=1nrAKQybeX+Ho5eu_gsERhd7QtsaDQ@mail.gmail.com>
-In-Reply-To: <CAGoCfiziwAz0q2D_qKX=1nrAKQybeX+Ho5eu_gsERhd7QtsaDQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/25/2012 07:24 AM, Devin Heitmueller wrote:
-> On Wed, Jul 25, 2012 at 9:15 AM, Tim Gardner <tim.gardner@canonical.com> wrote:
->> This will make modinfo more useful with regard
->> to discovering necessary firmware files.
->>
->> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
->> Cc: Michael Krufky <mkrufky@kernellabs.com>
->> Cc: Eddi De Pieri <eddi@depieri.net>
->> Cc: linux-media@vger.kernel.org
->> Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
->> ---
->>  drivers/media/common/tuners/xc5000.c |    8 ++++++--
->>  1 file changed, 6 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
->> index dcca42c..4d33f86 100644
->> --- a/drivers/media/common/tuners/xc5000.c
->> +++ b/drivers/media/common/tuners/xc5000.c
->> @@ -210,13 +210,15 @@ struct xc5000_fw_cfg {
->>         u16 size;
->>  };
->>
->> +#define XC5000A_FIRMWARE "dvb-fe-xc5000-1.6.114.fw"
->>  static const struct xc5000_fw_cfg xc5000a_1_6_114 = {
->> -       .name = "dvb-fe-xc5000-1.6.114.fw",
->> +       .name = XC5000A_FIRMWARE,
->>         .size = 12401,
->>  };
->>
->> +#define XC5000C_FIRMWARE "dvb-fe-xc5000c-41.024.5.fw"
->>  static const struct xc5000_fw_cfg xc5000c_41_024_5 = {
->> -       .name = "dvb-fe-xc5000c-41.024.5.fw",
->> +       .name = XC5000C_FIRMWARE,
->>         .size = 16497,
->>  };
->>
->> @@ -1253,3 +1255,5 @@ EXPORT_SYMBOL(xc5000_attach);
->>  MODULE_AUTHOR("Steven Toth");
->>  MODULE_DESCRIPTION("Xceive xc5000 silicon tuner driver");
->>  MODULE_LICENSE("GPL");
->> +MODULE_FIRMWARE(XC5000A_FIRMWARE);
->> +MODULE_FIRMWARE(XC5000C_FIRMWARE);
->> --
-> 
-> Hi Tim,
-> 
-> I'm just eyeballing the patch and I'm not familiar with this new
-> functionality, but where are the new macros you're specifying actually
-> defined?  You're swapping out the filename for XC5000A_FIRMWARE, but
-> where is the actual reference to "dvb-fe-xc5000-1.6.114.fw"?
-> 
+On Tue, 10 Jul 2012, Javier Martin wrote:
 
-Devin - Please have a closer look. XC5000A_FIRMWARE and XC5000C_FIRMWARE
-are defined in the patch.
+> ---
+>  drivers/media/video/mx2_camera.c |    3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+> index d5355de..4a96989 100644
+> --- a/drivers/media/video/mx2_camera.c
+> +++ b/drivers/media/video/mx2_camera.c
+> @@ -1370,6 +1370,7 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
+>  	__u32 pixfmt = pix->pixelformat;
+>  	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+>  	struct mx2_camera_dev *pcdev = ici->priv;
+> +	struct mx2_fmt_cfg *emma_prp;
+>  	unsigned int width_limit;
+>  	int ret;
+>  
+> @@ -1432,7 +1433,7 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
+>  		__func__, pcdev->s_width, pcdev->s_height);
+>  
+>  	/* If the sensor does not support image size try PrP resizing */
+> -	pcdev->emma_prp = mx27_emma_prp_get_format(xlate->code,
+> +	emma_prp = mx27_emma_prp_get_format(xlate->code,
+>  						   xlate->host_fmt->fourcc);
+>  
+>  	memset(pcdev->resizing, 0, sizeof(pcdev->resizing));
 
-MODULE_FIRMWARE() is defined in linux/module.h. It creates a firmware
-section such that modinfo can print the names of the firmware files that
-may possibly be in use by this module.
+You forgot to update this:
 
-rtg
--- 
-Tim Gardner tim.gardner@canonical.com
+	if ((mf.width != pix->width || mf.height != pix->height) &&
+		pcdev->emma_prp->cfg.in_fmt == PRP_CNTL_DATA_IN_YUV422) {
+
+		^^^^^^^^^^^^^^^^^^^^
+
+		if (mx2_emmaprp_resize(pcdev, &mf, pix, false) < 0)
+			dev_dbg(icd->parent, "%s: can't resize\n", __func__);
+	}
+
+> -- 
+> 1.7.9.5
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
