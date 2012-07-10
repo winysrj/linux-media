@@ -1,47 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45905 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756506Ab2GERpa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 13:45:30 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi,
-	Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
-Subject: [PATCH] omap3isp: preview: Fix output size computation depending on input format
-Date: Thu,  5 Jul 2012 19:45:34 +0200
-Message-Id: <1341510334-9791-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:36979 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751866Ab2GJGoJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jul 2012 02:44:09 -0400
+From: Devendra Naga <devendra.aaru@gmail.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	H Hartley Sweeten <hsweeten@visionengravers.com>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Devendra Naga <devendra.aaru@gmail.com>
+Subject: [PATCH 4/6] staging/media/dt3155v4l: use module_pci_driver macro
+Date: Tue, 10 Jul 2012 12:13:48 +0530
+Message-Id: <1341902628-22465-1-git-send-email-devendra.aaru@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The preview engine crops 4 columns and 4 lines when CFA is enabled.
-Commit b2da46e52fe7871cba36e1a435844502c0eccf39 ("omap3isp: preview: Add
-support for greyscale input") inverted the condition by mistake, fix
-this.
+the driver duplicates the module_pci_driver code,
+remove the duplicate code and use the module_pci_driver macro.
 
-Reported-by: Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Devendra Naga <devendra.aaru@gmail.com>
 ---
- drivers/media/video/omap3isp/isppreview.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/staging/media/dt3155v4l/dt3155v4l.c |   15 +--------------
+ 1 file changed, 1 insertion(+), 14 deletions(-)
 
-This is a v3.5 regression, I'll send a pull request in the next couple of
-days.
-
-diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
-index 8a4935e..a48a747 100644
---- a/drivers/media/video/omap3isp/isppreview.c
-+++ b/drivers/media/video/omap3isp/isppreview.c
-@@ -1102,7 +1102,7 @@ static void preview_config_input_size(struct isp_prev_device *prev, u32 active)
- 	unsigned int elv = prev->crop.top + prev->crop.height - 1;
- 	u32 features;
+diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.c b/drivers/staging/media/dt3155v4l/dt3155v4l.c
+index c365cdf..ebe5a27 100644
+--- a/drivers/staging/media/dt3155v4l/dt3155v4l.c
++++ b/drivers/staging/media/dt3155v4l/dt3155v4l.c
+@@ -971,20 +971,7 @@ static struct pci_driver pci_driver = {
+ 	.remove = __devexit_p(dt3155_remove),
+ };
  
--	if (format->code == V4L2_MBUS_FMT_Y10_1X10) {
-+	if (format->code != V4L2_MBUS_FMT_Y10_1X10) {
- 		sph -= 2;
- 		eph += 2;
- 		slv -= 2;
+-static int __init
+-dt3155_init_module(void)
+-{
+-	return pci_register_driver(&pci_driver);
+-}
+-
+-static void __exit
+-dt3155_exit_module(void)
+-{
+-	pci_unregister_driver(&pci_driver);
+-}
+-
+-module_init(dt3155_init_module);
+-module_exit(dt3155_exit_module);
++module_pci_driver(pci_driver);
+ 
+ MODULE_DESCRIPTION("video4linux pci-driver for dt3155 frame grabber");
+ MODULE_AUTHOR("Marin Mitov <mitov@issp.bas.bg>");
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
