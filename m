@@ -1,67 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo-p05-ob.rzone.de ([81.169.146.181]:26623 "EHLO
-	mo-p05-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752276Ab2GHU5a convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Jul 2012 16:57:30 -0400
-From: "Stefan Lippers-Hollmann" <s.L-H@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [media] lirc_sir: make device registration work
-Date: Sun, 8 Jul 2012 22:46:09 +0200
-Cc: Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org,
-	680762@bugs.debian.org
-References: <1338829524-29623-1-git-send-email-jarod@redhat.com>
-In-Reply-To: <1338829524-29623-1-git-send-email-jarod@redhat.com>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:57136 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750716Ab2GJD6m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2012 23:58:42 -0400
+Received: by obbuo13 with SMTP id uo13so21542757obb.19
+        for <linux-media@vger.kernel.org>; Mon, 09 Jul 2012 20:58:42 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201207082246.16413.s.L-H@gmx.de>
+In-Reply-To: <CAOkj578ou_hTpEhMwwk05T97_SCZ-+mP346KXH-rbGusLWCvGg@mail.gmail.com>
+References: <CAOkj578ou_hTpEhMwwk05T97_SCZ-+mP346KXH-rbGusLWCvGg@mail.gmail.com>
+Date: Mon, 9 Jul 2012 23:58:41 -0400
+Message-ID: <CAGoCfiztN3LdC=gOfC5PviSiYTf0ec19TO=cEAfsidMC7Lxi6Q@mail.gmail.com>
+Subject: Re: Any program that creates captions from pixel data?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Tim Stowell <stowellt@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+On Mon, Jul 9, 2012 at 11:19 PM, Tim Stowell <stowellt@gmail.com> wrote:
+> Hello,
+>
+> I'm trying to create a bitmap image such that when output via a
+> composite port it will translate into captions, very similar to this:
+> http://al.robotfuzz.com/generating-teletext-in-software/ except NTSC.
+> I have some ideas but wanted to check if anyone had tried something
+> similar as Google didn't turn up much, thanks!
 
-On Monday 04 June 2012, Jarod Wilson wrote:
-> For one, the driver device pointer needs to be filled in, or the lirc core
-> will refuse to load the driver. And we really need to wire up all the
-> platform_device bits. This has been tested via the lirc sourceforge tree
-> and verified to work, been sitting there for months, finally getting
-> around to sending it. :\
+I don't know if this is related to your previous thread about VBI
+capture on em28xx, but if so I can tell you that you can probably
+pretty easily "pass through" the VBI data as a graphical waveform if
+that is your goal.  The only difference between the data provided via
+raw VBI capture and the standard image data is that the chroma is
+stripped out (every other byte in a YUYV sequence).
 
-Please consider pushing this[1] patch to 3.5 and -stable (at least 3.0+
-is affected, most likely everything >= 2.6.37[2]). I can confirm 
-bug - and this patch fixing it on 3.4.4:
+If your goal is to generate the waveform from scratch, I haven't seen
+any software to do that but it would be pretty trivial to write
+(probably a couple hundred lines of code).  You just need to read the
+EIA-608 spec and understand how the byte pairs are represented in the
+waveform.  You should also look more closely at the zvbi source code -
+it has the ability to create a "dummy source" which if I recall
+actually can work with osc (meaning it can generate the waveform
+internally).  You would have to hack up the code to connect the parts
+and extract the actual image data.
 
-serial8250: ttyS1 at I/O 0x2f8 (irq = 3) is a 16550A
-smsc_superio_flat(): fir: 0x230, sir: 0x2f8, dma: 03, irq: 3, mode: 0x0e
-smsc_ircc_present: can't get sir_base of 0x2f8
-[…]
-lirc_dev: IR Remote Control driver registered, major 251
-lirc_sir: module is from the staging directory, the quality is unknown, you have been warned.
-lirc_register_driver: dev pointer not filled in!
-lirc_sir: init_chrdev() failed.
+It's probably also worth mentioning that much of this is dependent on
+the output device you are using.   Many devices don't actually let you
+put data into the VBI area just by including it in the image data.
+You typically have to use special APIs that are specific to the
+platform.
 
-After applying this patch lirc_sir loads find and is usable with 
-irrecord and lirc.
+Devin
 
-serial8250: ttyS1 at I/O 0x2f8 (irq = 3) is a 16550A
-smsc_superio_flat(): fir: 0x230, sir: 0x2f8, dma: 03, irq: 3, mode: 0x0e
-smsc_ircc_present: can't get sir_base of 0x2f8
-[…]
-lirc_dev: IR Remote Control driver registered, major 251 
-lirc_sir: module is from the staging directory, the quality is unknown, you have been warned.
-platform lirc_dev.0: lirc_dev: driver lirc_sir registered at minor = 0
-lirc_sir: I/O port 0x02f8, IRQ 3.
-lirc_sir: Installed
-
-Without this patch lirc_sir can't even get loaded, the alternative 
-would be to mark it as BROKEN for <<3.6.
-
-Regards
-	Stefan Lippers-Hollmann
-
-[1]	http://git.kernel.org/?p=linux/kernel/git/next/linux-next.git;a=commitdiff;h=4b71ca6bce8fab3d08c61bf330e781f957934ae1
-	http://patchwork.linuxtv.org/patch/11579/
-[2]	RedHat bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=557210 [2.6.31.9-174.fc12.i686.PAE]
-	Ubuntu launchpad: https://bugs.launchpad.net/ubuntu/+source/lirc/+bug/912251 [3.0.0-12-generic]
-	Debian BTS: http://bugs.debian.org/680762 [3.2+]
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
