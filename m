@@ -1,64 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.masin.eu ([80.188.199.19]:33795 "EHLO mail.masin.eu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752463Ab2GWNg6 convert rfc822-to-8bit (ORCPT
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:53636 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751711Ab2GJK6G (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jul 2012 09:36:58 -0400
-From: =?utf-8?Q?Radek_Ma=C5=A1=C3=ADn?= <radek@masin.eu>
-Date: Mon, 23 Jul 2012 15:36:55 +0200
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org
-Message-ID: <1343050615472267500@masin.eu>
-In-Reply-To: <CAGoCfixPZjbdG8kKEuWoVHatJ8wO7rQjzzDK+cP8F6KM9Ta0jw@mail.gmail.com>
-References: <1343029203238273500@masin.eu>
- <CAGoCfixPZjbdG8kKEuWoVHatJ8wO7rQjzzDK+cP8F6KM9Ta0jw@mail.gmail.com>
-Subject: Re: CX25821 driver in kernel 3.4.4 problem
-MIME-Version: 1.0
-Content-Type: text/plain;	charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
+	Tue, 10 Jul 2012 06:58:06 -0400
+From: Maarten Lankhorst <m.b.lankhorst@gmail.com>
+To: dri-devel@lists.freedesktop.org
+Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [RFC PATCH 0/8] Dmabuf synchronization
+Date: Tue, 10 Jul 2012 12:57:43 +0200
+Message-Id: <1341917871-2512-1-git-send-email-m.b.lankhorst@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-   Hello,
-thank you for answer. Problems occurs on all channels and don't
-depend on number of channels used. I have tried to run only one
-channel, but it didn't help. 
+This patch implements my attempt at dmabuf synchronization.
+The core idea is that a lot of devices will have their own
+methods of synchronization, but more complicated devices
+allow some way of fencing, so why not export those as
+dma-buf?
 
-I bought this card from dx.com for 65$. 
+This patchset implements dmabufmgr, which is based on ttm's code.
+The ttm code deals with a lot more than just reservation however, 
+I took out almost all the code not dealing with reservations.
 
-May be, I'll be able to provide access to my testing system with 
-this card, if it is enought.
+I used the drm-intel-next-queued tree as base. It contains some i915
+flushing changes. I would rather use linux-next, but the deferred
+fput code makes my system unbootable. That is unfortunate since
+it would reduce the deadlocks happening in dma_buf_put when 2
+devices release each other's dmabuf.
 
-Regards
-Radek Masin
+The i915 changes implement a simple cpu wait only, the nouveau code
+imports the sync dmabuf read-only and maps it to affected channels,
+then performs a wait on it in hardware. Since the hardware may still
+be processing other commands, it could be the case that no hardware
+wait would have to be performed at all.
 
-Dne Po, 07/23/2012 02:20 odp., Devin Heitmueller <dheitmueller@kernellabs.com> napsal(a):
-> On Mon, Jul 23, 2012 at 3:40 AM, Radek Mašín <radek@masin.eu> wrote:
-> > Hello,
-> > may be one more problem. I use Zoneminder software for capturing pictures from card and occasionally
-> > I get corrupted picture. Please take a look for attached files.
-> 
-> Looks like the IRQ handler wasn't servicing fast enough, causing parts
-> of a frame to get dropped.  Does this only happen when you have a
-> bunch of streams running in parallel?
-> 
-> This sort of performance issue would be very difficult to debug
-> without one of the developers having a board.  From what I understand
-> the code provided by Conexant was merged essentially as-is (with some
-> codingstyle cleanups and zero testing), with no upstream developers
-> actually having the hardware.
-> 
-> You're probably out of luck unless you're willing to pay somebody to
-> get a board and debug the problem.
-> 
-> Devin
-> 
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Only the nouveau nv84 code is tested, but the nvc0 code should work
+as well.
+
