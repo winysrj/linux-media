@@ -1,105 +1,237 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:39635 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932467Ab2GKNns convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jul 2012 09:43:48 -0400
-Received: by ghrr11 with SMTP id r11so1203442ghr.19
-        for <linux-media@vger.kernel.org>; Wed, 11 Jul 2012 06:43:48 -0700 (PDT)
-MIME-Version: 1.0
-Reply-To: martin-eric.racine@iki.fi
-In-Reply-To: <4FFD7F48.6060905@redhat.com>
-References: <20120614162609.4613.22122.reportbug@henna.lan>
-	<20120614215359.GF3537@burratino>
-	<CAPZXPQd9gNCxn7xGyqj_xymPaF5OxvRtxRFkt+SsLs942te4og@mail.gmail.com>
-	<20120616044137.GB4076@burratino>
-	<1339932233.20497.14.camel@henna.lan>
-	<CAPZXPQegp7RA5M0H9Ofq4rJ9aj-rEdg=Ly9_1c6vAKi3COw50g@mail.gmail.com>
-	<4FF9CA30.9050105@redhat.com>
-	<CAPZXPQd026xfKrAU0D7CLQGbdAs8U01u5vsHp+5-wbVofAwdqQ@mail.gmail.com>
-	<4FFAD8D9.8070203@redhat.com>
-	<20120709203929.GC17301@burratino>
-	<CAPZXPQcaEzW1zGXfGwp-JuOrfBu2xhoidaYjthD8jhYAFpWr7A@mail.gmail.com>
-	<20120710163645.04fb0af0@armhf>
-	<CAPZXPQehjGRDZ=rXWjGFPQvRqOMzRpeA2dpoSWc3XwuUkvvesg@mail.gmail.com>
-	<20120711100436.2305b098@armhf>
-	<CAPZXPQdJC5yCYY6YRzuKj-ukFLzbY_yUzbogzbDx1S0bL1GrgQ@mail.gmail.com>
-	<20120711124441.346a86b3@armhf>
-	<CAPZXPQcvGqPjeyZh=vHtbSOoA91Htsg6DeyYyhYLeDgay8GSBg@mail.gmail.com>
-	<20120711132739.6b527a27@armhf>
-	<CAPZXPQeDKLAu13Qs-MhhxJEBrF-5620HNZDmPiH+4NRmkxx3Ag@mail.gmail.com>
-	<4FFD7F48.6060905@redhat.com>
-Date: Wed, 11 Jul 2012 16:43:47 +0300
-Message-ID: <CAPZXPQfMrWySzx9=61WqoZ7zwzw19p69nN6_fuwAHjZVqGLDBw@mail.gmail.com>
-Subject: Re: video: USB webcam fails since kernel 3.2
-From: =?UTF-8?Q?Martin=2D=C3=89ric_Racine?= <martin-eric.racine@iki.fi>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Jean-Francois Moine <moinejf@free.fr>,
-	Jonathan Nieder <jrnieder@gmail.com>, 677533@bugs.debian.org,
-	linux-media@vger.kernel.org, debian-kernel@lists.debian.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from plane.gmane.org ([80.91.229.3]:46446 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754176Ab2GJHFG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jul 2012 03:05:06 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1SoUVM-0000OX-TI
+	for linux-media@vger.kernel.org; Tue, 10 Jul 2012 09:05:04 +0200
+Received: from bws20.neoplus.adsl.tpnet.pl ([83.29.242.20])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 10 Jul 2012 09:05:04 +0200
+Received: from acc.for.news by bws20.neoplus.adsl.tpnet.pl with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 10 Jul 2012 09:05:04 +0200
+To: linux-media@vger.kernel.org
+From: Marx <acc.for.news@gmail.com>
+Subject: Re: pctv452e
+Date: Tue, 10 Jul 2012 08:39:03 +0200
+Message-ID: <79vsc9-dte.ln1@wuwek.kopernik.gliwice.pl>
+References: <4FF4697C.8080602@nexusuk.org> <4FF46DC4.4070204@iki.fi> <4FF4911B.9090600@web.de> <4FF4931B.7000708@iki.fi> <gjggc9-dl4.ln1@wuwek.kopernik.gliwice.pl> <4FF5A350.9070509@iki.fi> <r8cic9-ht4.ln1@wuwek.kopernik.gliwice.pl> <4FF6B121.6010105@iki.fi> <9btic9-vd5.ln1@wuwek.kopernik.gliwice.pl> <835kc9-7p4.ln1@wuwek.kopernik.gliwice.pl> <4FF77C1B.50406@iki.fi> <l2smc9-pj4.ln1@wuwek.kopernik.gliwice.pl> <4FF97DF8.4080208@iki.fi> <n1aqc9-sp4.ln1@wuwek.kopernik.gliwice.pl> <4FFA996D.9010206@iki.fi> <scerc9-bm6.ln1@wuwek.kopernik.gliwice.pl> <4FFB172A.2070009@iki.fi> <4FFB1900.6010306@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <4FFB1900.6010306@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/7/11 Hans de Goede <hdegoede@redhat.com>:
-> On 07/11/2012 02:01 PM, Martin-Éric Racine wrote:
+On 09.07.2012 19:46, Antti Palosaari wrote:
 >>
->> 2012/7/11 Jean-Francois Moine <moinejf@free.fr>:
->>>
->>> On Wed, 11 Jul 2012 14:14:24 +0300
->>> Martin-Éric Racine <martin-eric.racine@iki.fi> wrote:
->>>
->>>>    CC [M]  /home/perkelix/gspca-2.15.18/build/ov534_9.o
->>>> /home/perkelix/gspca-2.15.18/build/ov534_9.c: In function ‘sd_init’:
->>>> /home/perkelix/gspca-2.15.18/build/ov534_9.c:1353:3: error: implicit
->>>> declaration of function ‘err’ [-Werror=implicit-function-declaration]
->>>> cc1: some warnings being treated as errors
->>>> make[2]: *** [/home/perkelix/gspca-2.15.18/build/ov534_9.o] Virhe 1
->>>> make[1]: *** [_module_/home/perkelix/gspca-2.15.18/build] Error 2
->>>> make[1]: Leaving directory `/usr/src/linux-headers-3.5.0-rc6+'
->>>> make: *** [modules] Error 2
->>>
->>>
->>> Sorry, I did not compile yet with kernel >= 3.4.
->>>
->>> So, please, edit the file build/ov534_9.c (and possibly other sources),
->>> changing  the calls to 'err' to 'pr_err'.
->>
->>
->> This was was required for both build/ov534_9.c and build/spca505.c to
->> build agaist 3.5.
->>
->> Sure enough, this seems to fix support for this camera in both Cheese
->> and Skype. Hurray! :-)
->
->
-> Ok, so it seems that increasing the bandwidth we claim for the camera
-> (which is what my suggested "return 2000 * 2000 * 120;" change does, helps
-> a bit, where as the changes to vc032x which are in Jean-Francois Moine's
-> gspca-2.15.18 tarbal fix the problem entirely, correct?
+>> # tune to channel:
+>> szap -r "CHANNEL NAME"
+> -r option is important here as it routes stream to /dev/dvb/adapter0/dvr0
 
-As far as I can tell, yes, the modules in Jean-François' tarball work
-as-is to fix the problem.
+done
 
->> Now, the only thing that remains is for this to be merged in the 3.5
->> tree, then backported to the 3.2 tree that is used for Debian's
->> upcoming Wheezy stable release (and for Ubuntu's recently released
->> Precise also).
->
->
-> Well we first need to turn the changes made in gspca-2.15.18 into
-> a patch will which apply to the latest gspca tree:
-> http://git.linuxtv.org/hgoede/gspca.git/shortlog/refs/heads/media-for_v3.6
->
-> And then apply them there, before the can be backported to older
-> kernels. Unfortunately I'm leaving for a week vacation Friday, and I
-> probably won't get around to this before then.
->
-> Jean-Francois, can you perhaps make a patch against my latest tree for
-> the poXXXX / PO3130 changes in your tarbal?
+>> # dump channels from tuned multiplex (if you don't have that command
+>> just skip):
+>> scandvb -c
 
-Noted.  Hopefully, the Debian kernel team can contribute to the
-backporting part, since it's needed for the upcoming stable release.
+marx@wuwek:~/zmaz$ scan -c
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+0x0000 0x10d7: pmt_pid 0x0104 TVN -- TVN (running, scrambled)
+0x0000 0x10d8: pmt_pid 0x0105 TVN -- TVN 24 (running, scrambled)
+0x0000 0x10d9: pmt_pid 0x0106 TVN -- TVN Siedem (running, scrambled)
+0x0000 0x10da: pmt_pid 0x0107 TVN -- nSport (running, scrambled)
+0x0000 0x10dc: pmt_pid 0x0109 TVN -- Mango 24 (running)
+0x0000 0x10dd: pmt_pid 0x010a ITI -- TTV (running, scrambled)
+0x0000 0x10de: pmt_pid 0x010b TVN -- TVN Meteo (running, scrambled)
+0x0000 0x10df: pmt_pid 0x010c TVN -- TVN Turbo (running, scrambled)
+0x0000 0x10e0: pmt_pid 0x010d TVN -- TVN Style (running, scrambled)
+0x0000 0x10e1: pmt_pid 0x010e TVN -- Test (running, scrambled)
+0x0000 0x10e2: pmt_pid 0x010f TVN -- TVN CNBC (running, scrambled)
+0x0000 0x10ed: pmt_pid 0x0118 TVN -- Test_Radio (running)
+0x0000 0x3aca: pmt_pid 0x0101 TVN -- Upload (running)
+dumping lists (13 services)
+TVN                      (0x10d7) 01: PCR == V   V 0x0200 A 0x028a (pol) 
+TT 0x0240 AC3 0x028b SUB 0x1771
+TVN 24                   (0x10d8) 01: PCR == V   V 0x0201 A 0x0294 (pol) 
+0x0295 (org) SUB 0x177c
+TVN Siedem               (0x10d9) 01: PCR == V   V 0x0202 A 0x029e (pol) 
+TT 0x0242 AC3 0x029f SUB 0x1772
+nSport                   (0x10da) 01: PCR == V   V 0x0203 A 0x02a8 (pol)
+Mango 24                 (0x10dc) 01: PCR == V   V 0x0205 A 0x02bc (pol) 
+TT 0x0245
+TTV                      (0x10dd) 01: PCR == V   V 0x0206 A 0x02c6 (pol) 
+TT 0x0246 AC3 0x02c7
+TVN Meteo                (0x10de) 01: PCR == V   V 0x0207 A 0x02d0 (pol) 
+0x02d1 (org) SUB 0x1782
+TVN Turbo                (0x10df) 01: PCR == V   V 0x0208 A 0x02da (pol) 
+TT 0x0247 AC3 0x02db SUB 0x1773
+TVN Style                (0x10e0) 01: PCR == V   V 0x0209 A 0x02e4 (pol) 
+TT 0x0248 AC3 0x02e5 SUB 0x1774
+Test                     (0x10e1) 01: PCR == V   V 0x020a A 0x02ee (pol) 
+TT 0x0249
+TVN CNBC                 (0x10e2) 01: PCR == V   V 0x020b A 0x02f8 (pol)
+Test_Radio               (0x10ed) 02: PCR == A            A 0x0320 (eng)
+Upload                   (0x3aca) 01: PCR 0x1fff
+Done.
 
-Martin-Éric
+
+
+> Could be named as scan, dvbscan, scandvb....
+>
+>> # save tuned channel to file (lets say 20 second):
+>> cat /dev/dvb/adapter0/dvr0 > test.ts
+
+> actually seems like ffmpeg could read directly dvr0
+> ffmpeg -i /dev/dvb/adapter0/dvr0
+> takes ~20 seconds or so until results are shown
+
+marx@wuwek:~/zmaz$ ffmpeg -i /dev/dvb/adapter0/dvr0
+p11-kit: couldn't load module: 
+/usr/lib/i386-linux-gnu/pkcs11/gnome-keyring-pkcs11.so: 
+/usr/lib/i386-linux-gnu/pkcs11/gnome-keyring-pkcs11.so: cannot open 
+shared object file: No such file or directory
+ffmpeg version 0.8.3-6:0.8.3-4, Copyright (c) 2000-2012 the Libav developers
+   built on Jun 26 2012 07:23:46 with gcc 4.7.1
+*** THIS PROGRAM IS DEPRECATED ***
+This program is only provided for compatibility and will be removed in a 
+future release. Please use avconv instead.
+[mpegts @ 0x8cd5900] Continuity check failed for pid 520 expected 5 got 6
+[mpegts @ 0x8cd5900] Continuity check failed for pid 520 expected 0 got 1
+[mpegts @ 0x8cd5900] Continuity check failed for pid 520 expected 2 got 3
+[mpegts @ 0x8cd5900] Continuity check failed for pid 520 expected 5 got 6
+[mpegts @ 0x8cd5900] Continuity check failed for pid 520 expected 15 got 0
+[mpegts @ 0x8cd5900] Continuity check failed for pid 520 expected 7 got 8
+[mpegts @ 0x8cd5900] Continuity check failed for pid 520 expected 11 got 12
+[mpegts @ 0x8cd5900] Continuity check failed for pid 520 expected 13 got 14
+[mpegts @ 0x8cd5900] Continuity check failed for pid 520 expected 7 got 8
+[mpegts @ 0x8cd5900] Continuity check failed for pid 520 expected 15 got 0
+[mpegts @ 0x8cd5900] Continuity check failed for pid 520 expected 4 got 5
+[mpegts @ 0x8cd5900] Continuity check failed for pid 520 expected 10 got 11
+[mpegts @ 0x8cd5900] Continuity check failed for pid 520 expected 2 got 4
+[mpegts @ 0x8cd5900] Continuity check failed for pid 520 expected 5 got 3
+[mpegts @ 0x8cd5900] Continuity check failed for pid 520 expected 11 got 12
+[mpegts @ 0x8cd5900] Continuity check failed for pid 520 expected 14 got 15
+[mpegts @ 0x8cd5900] Continuity check failed for pid 520 expected 1 got 2
+[mpegts @ 0x8cd5900] Continuity check failed for pid 520 expected 10 got 11
+[mpegts @ 0x8cd5900] Continuity check failed for pid 520 expected 1 got 2
+[mpegts @ 0x8cd5900] Continuity check failed for pid 520 expected 3 got 1
+[mpegts @ 0x8cd5900] Continuity check failed for pid 520 expected 7 got 9
+[mpegts @ 0x8cd5900] Continuity check failed for pid 520 expected 10 got 9
+
+
+>
+>> # check if ffmpeg finds video and audio
+>> ffmpeg -i test.ts
+marx@wuwek:~/zmaz$ ffmpeg -i test.ts
+p11-kit: couldn't load module: 
+/usr/lib/i386-linux-gnu/pkcs11/gnome-keyring-pkcs11.so: 
+/usr/lib/i386-linux-gnu/pkcs11/gnome-keyring-pkcs11.so: cannot open 
+shared object file: No such file or directory
+ffmpeg version 0.8.3-6:0.8.3-4, Copyright (c) 2000-2012 the Libav developers
+   built on Jun 26 2012 07:23:46 with gcc 4.7.1
+*** THIS PROGRAM IS DEPRECATED ***
+This program is only provided for compatibility and will be removed in a 
+future release. Please use avconv instead.
+test.ts: Invalid data found when processing input
+
+
+Should I still attach/upload somewhere this test.ts file?
+
+
+I repeated above procedure for FTA channel:
+
+wuwek:~# szap -n 51 -r
+reading channels from file '/root/.szap/channels.conf'
+zapping to 51 'Mango 24;TVN':
+sat 0, frequency = 11393 MHz V, symbolrate 27500000, vpid = 0x0205, apid 
+= 0x02bc sid = 0x0245
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+status 1f | signal 01e5 | snr 0043 | ber 00000000 | unc fffffffe | 
+FE_HAS_LOCK
+status 1f | signal 01e5 | snr 0043 | ber 00000000 | unc fffffffe | 
+FE_HAS_LOCK
+
+wuwek:~# scan -c
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+0x0000 0x10d7: pmt_pid 0x0104 TVN -- TVN (running, scrambled)
+0x0000 0x10d8: pmt_pid 0x0105 TVN -- TVN 24 (running, scrambled)
+0x0000 0x10d9: pmt_pid 0x0106 TVN -- TVN Siedem (running, scrambled)
+0x0000 0x10da: pmt_pid 0x0107 TVN -- nSport (running, scrambled)
+0x0000 0x10dc: pmt_pid 0x0109 TVN -- Mango 24 (running)
+0x0000 0x10dd: pmt_pid 0x010a ITI -- TTV (running, scrambled)
+0x0000 0x10de: pmt_pid 0x010b TVN -- TVN Meteo (running, scrambled)
+0x0000 0x10df: pmt_pid 0x010c TVN -- TVN Turbo (running, scrambled)
+0x0000 0x10e0: pmt_pid 0x010d TVN -- TVN Style (running, scrambled)
+0x0000 0x10e1: pmt_pid 0x010e TVN -- Test (running, scrambled)
+0x0000 0x10e2: pmt_pid 0x010f TVN -- TVN CNBC (running, scrambled)
+0x0000 0x10ed: pmt_pid 0x0118 TVN -- Test_Radio (running)
+0x0000 0x3aca: pmt_pid 0x0101 TVN -- Upload (running)
+dumping lists (13 services)
+TVN                      (0x10d7) 01: PCR == V   V 0x0200 A 0x028a (pol) 
+TT 0x0240 AC3 0x028b SUB 0x1771
+TVN 24                   (0x10d8) 01: PCR == V   V 0x0201 A 0x0294 (pol) 
+0x0295 (org) SUB 0x177c
+TVN Siedem               (0x10d9) 01: PCR == V   V 0x0202 A 0x029e (pol) 
+TT 0x0242 AC3 0x029f SUB 0x1772
+nSport                   (0x10da) 01: PCR == V   V 0x0203 A 0x02a8 (pol)
+Mango 24                 (0x10dc) 01: PCR == V   V 0x0205 A 0x02bc (pol) 
+TT 0x0245
+TTV                      (0x10dd) 01: PCR == V   V 0x0206 A 0x02c6 (pol) 
+TT 0x0246 AC3 0x02c7
+TVN Meteo                (0x10de) 01: PCR == V   V 0x0207 A 0x02d0 (pol) 
+0x02d1 (org) SUB 0x1782
+TVN Turbo                (0x10df) 01: PCR == V   V 0x0208 A 0x02da (pol) 
+TT 0x0247 AC3 0x02db SUB 0x1773
+TVN Style                (0x10e0) 01: PCR == V   V 0x0209 A 0x02e4 (pol) 
+TT 0x0248 AC3 0x02e5 SUB 0x1774
+Test                     (0x10e1) 01: PCR == V   V 0x020a A 0x02ee (pol) 
+TT 0x0249
+TVN CNBC                 (0x10e2) 01: PCR == V   V 0x020b A 0x02f8 (pol)
+Test_Radio               (0x10ed) 02: PCR == A            A 0x0320 (eng)
+Upload                   (0x3aca) 01: PCR 0x1fff
+Done.
+
+*** THIS PROGRAM IS DEPRECATED ***
+This program is only provided for compatibility and will be removed in a 
+future release. Please use avconv instead.
+[mpegts @ 0x9376900] Continuity check failed for pid 517 expected 15 got 0
+[mpegts @ 0x9376900] Continuity check failed for pid 517 expected 1 got 2
+[mpegts @ 0x9376900] Continuity check failed for pid 517 expected 15 got 0
+[mpegts @ 0x9376900] Continuity check failed for pid 517 expected 2 got 3
+[mpegts @ 0x9376900] Continuity check failed for pid 700 expected 7 got 8
+[mpegts @ 0x9376900] Continuity check failed for pid 700 expected 9 got 10
+[mpegts @ 0x9376900] Continuity check failed for pid 517 expected 15 got 0
+[mpegts @ 0x9376900] Continuity check failed for pid 517 expected 14 got 15
+[mpegts @ 0x9376900] Continuity check failed for pid 517 expected 7 got 2
+[mpegts @ 0x9376900] Continuity check failed for pid 517 expected 12 got 13
+[mpegts @ 0x9376900] Continuity check failed for pid 517 expected 4 got 12
+[mpegts @ 0x9376900] Continuity check failed for pid 517 expected 13 got 5
+[mpegts @ 0x9376900] Continuity check failed for pid 517 expected 8 got 9
+[mpegts @ 0x9376900] Continuity check failed for pid 517 expected 9 got 10
+[mpegts @ 0x9376900] Continuity check failed for pid 517 expected 4 got 5
+[mpegts @ 0x9376900] Continuity check failed for pid 700 expected 1 got 2
+[mpegts @ 0x9376900] Continuity check failed for pid 517 expected 11 got 12
+[mpegts @ 0x9376900] PES packet size mismatch
+[mpegts @ 0x9376900] Continuity check failed for pid 517 expected 4 got 5
+[mpegts @ 0x9376900] Continuity check failed for pid 517 expected 10 got 11
+[mpegts @ 0x9376900] Continuity check failed for pid 517 expected 1 got 11
+[mpegts @ 0x9376900] Continuity check failed for pid 517 expected 12 got 2
+[mpegts @ 0x9376900] Continuity check failed for pid 700 expected 7 got 3
+[mpegts @ 0x9376900] Continuity check failed for pid 517 expected 4 got 5
+[mpegts @ 0x9376900] Continuity check failed for pid 517 expected 6 got 8
+[mpegts @ 0x9376900] Continuity check failed for pid 700 expected 4 got 7
+[mpegts @ 0x9376900] Continuity check failed for pid 517 expected 9 got 11
+[mpegts @ 0x9376900] Continuity check failed for pid 517 expected 12 got 10
+[mpegts @ 0x9376900] Continuity check failed for pid 517 expected 14 got 15
+[mpegts @ 0x9376900] Continuity check failed for pid 700 expected 9 got 12
+[mpegts @ 0x9376900] Continuity check failed for pid 517 expected 12 got 7
+[mpegts @ 0x9376900] Continuity check failed for pid 517 expected 8 got 13
+
+
+Marx
+
