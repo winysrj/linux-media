@@ -1,74 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43974 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751936Ab2GTO6b (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jul 2012 10:58:31 -0400
-From: Prabhakar Lad <prabhakar.lad@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hansverk@cisco.com>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: [PATCH v6 0/2] add dm365 specific media formats
-Date: Fri, 20 Jul 2012 20:28:08 +0530
-Message-ID: <1342796290-18947-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:50398 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753072Ab2GJDRm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2012 23:17:42 -0400
+Received: by yhmm54 with SMTP id m54so86292yhm.19
+        for <linux-media@vger.kernel.org>; Mon, 09 Jul 2012 20:17:42 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <CALF0-+W_rNqn-cXK76DJH=5DtdgmvzrfDg-ZcF_RHu_-2pGR2w@mail.gmail.com>
+References: <1340991243-2951-1-git-send-email-elezegarcia@gmail.com>
+	<4FF61111.7050900@redhat.com>
+	<4FF616E5.6040206@gmail.com>
+	<4FF62AD8.2080907@redhat.com>
+	<CALF0-+W_rNqn-cXK76DJH=5DtdgmvzrfDg-ZcF_RHu_-2pGR2w@mail.gmail.com>
+Date: Tue, 10 Jul 2012 00:17:41 -0300
+Message-ID: <CALF0-+WhLkraoL2ckVAqcU044z5tJ3xaWg1EXByBpzKn8My8iQ@mail.gmail.com>
+Subject: Re: [PATCH v4] media: Add stk1160 new driver
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Sylwester Nawrocki <snjw23@gmail.com>, linux-media@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-add mediabus formats and pixel formats supported
-as part of dm365 vpfe device.
-The device supports media formats(transfer and storage)
-which include-
-1: ALAW compressed bayer.
-2: UV interleaved without Y (for resizer).
-3: YDYU
+Hey Mauro,
 
-Changes for v6:
-1: Fixed a comment from Hans, replaced "YUYDYDYV and YVYDYDYU"
-   to "YUYDYVYD and YVYDYUYD".
+On Fri, Jul 6, 2012 at 11:41 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+> On Thu, Jul 5, 2012 at 9:01 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> Em 05-07-2012 19:36, Sylwester Nawrocki escreveu:
+>>> On 07/06/2012 12:11 AM, Mauro Carvalho Chehab wrote:
+>>>>> +static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *p)
+>>>>> +{
+>>>>> +   struct stk1160 *dev = video_drvdata(file);
+>>>>> +
+>>>>> +   if (!stk1160_is_owner(dev, file))
+>>>>> +           return -EBUSY;
+>>>>> +
+>>>>> +   return vb2_dqbuf(&dev->vb_vidq, p, file->f_flags&  O_NONBLOCK);
+>>>>
+>>>> Why to use O_NONBLOCK here? it should be doing whatever userspace wants.
+>>>
+>>> This is OK, since the third argument to vb2_dqbuf() is a boolean indicating
+>>> whether this call should be blocking or not. And a "& O_NONBLOCK" masks this
+>>> information out from file->f_flags.
+>>
+>> Ah! OK then.
+>>
+>> It might be better to initialize it during vb2 initialization, at open,
+>> instead of requiring this argument every time vb_dqbuf() is called.
 
-Changes for v5:
-1: Fixed comment from Laurent, moved ALAW format above DPCM
-   format to keep the alphabetically sorted, grouped textual
-   description for ALAW and DPCM compression, as they're mutally
-   exclusive, Changed V4L2_MBUS_FMT_YDYC8_1X16 to
-   V4L2_MBUS_FMT_YDYUYDYV8_1X16.
+Currently stk1160 doesn't implement an open call, but uses v4l2_fh_open instead.
+I'm not sure I should add a separate open, or perhaps you would accept
+to initialize this non-block flag in vidioc_reqbufs.
 
-Changes for v4:
-1: Rebased the patch set on Sakari's branch
-(http://git.linuxtv.org/sailus/media_tree.git/shortlog/refs/heads/media-for-3.4)
-   mainly because of this patch
-   <URL:http://www.spinics.net/lists/linux-media/msg44871.html>
-2: Fixed comments from Sakari, changed description for
-   UV8, and re-arranged &sub-uv8; in
-   Documentation/DocBook/media/v4l/pixfmt.xml file.
+On the other hand, many drivers are doing it at dqbuf, like here at stk1160,
+and I was wondering: is it *that* bad?
 
-Changes for v3:
-1: Added 4cc code for A-law compressed format as per
-  specified in documentation,
-  http://www.spinics.net/lists/linux-media/msg43890.html
-
-Changes for v2:
-1: Added entries in subdev-formats.xml for
- V4L2_MBUS_FMT_YDYC8_1X16, V4L2_MBUS_FMT_UV8_1X8,
- V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8,
- V4L2_MBUS_FMT_SGBRG10_ALAW8_1X8,
- V4L2_MBUS_FMT_SGRBG10_ALAW8_1X8,
- V4L2_MBUS_FMT_SRGGB10_ALAW8_1X8.
-2: Added documentation of ALAW and UV8 pix format.
-
-Manjunath Hadli (2):
-  media: add new mediabus format enums for dm365
-  v4l2: add new pixel formats supported on dm365
-
- .../DocBook/media/v4l/pixfmt-srggb10alaw8.xml      |   34 +++
- Documentation/DocBook/media/v4l/pixfmt-uv8.xml     |   62 +++++
- Documentation/DocBook/media/v4l/pixfmt.xml         |    2 +
- Documentation/DocBook/media/v4l/subdev-formats.xml |  250 +++++++++++++++++++-
- include/linux/v4l2-mediabus.h                      |   10 +-
- include/linux/videodev2.h                          |    8 +
- 6 files changed, 358 insertions(+), 8 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-uv8.xml
-
+Thanks,
+Ezequiel.
