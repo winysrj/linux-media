@@ -1,111 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:39167 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752284Ab2GZTCH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jul 2012 15:02:07 -0400
-Received: by bkwj10 with SMTP id j10so1469399bkw.19
-        for <linux-media@vger.kernel.org>; Thu, 26 Jul 2012 12:02:06 -0700 (PDT)
-Message-ID: <5011942A.9020300@googlemail.com>
-Date: Thu, 26 Jul 2012 21:02:02 +0200
-From: Gregor Jasny <gjasny@googlemail.com>
-MIME-Version: 1.0
-To: Konke Radlow <kradlow@cisco.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 2/2] Initial version of RDS Control utility Signed-off-by:
- Konke Radlow <kradlow@cisco.com>
-References: <1343238241-26772-1-git-send-email-kradlow@cisco.com> <89e7f656fc45f12f2cb5369738b3afd1f712674f.1343237398.git.kradlow@cisco.com>
-In-Reply-To: <89e7f656fc45f12f2cb5369738b3afd1f712674f.1343237398.git.kradlow@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from plane.gmane.org ([80.91.229.3]:46408 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754083Ab2GJHEg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jul 2012 03:04:36 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1SoUUq-00088y-ME
+	for linux-media@vger.kernel.org; Tue, 10 Jul 2012 09:04:32 +0200
+Received: from bws20.neoplus.adsl.tpnet.pl ([83.29.242.20])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 10 Jul 2012 09:04:32 +0200
+Received: from acc.for.news by bws20.neoplus.adsl.tpnet.pl with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 10 Jul 2012 09:04:32 +0200
+To: linux-media@vger.kernel.org
+From: Marx <acc.for.news@gmail.com>
+Subject: Re: pctv452e
+Date: Tue, 10 Jul 2012 08:43:29 +0200
+Message-ID: <hhvsc9-pte.ln1@wuwek.kopernik.gliwice.pl>
+References: <4FF4697C.8080602@nexusuk.org> <4FF46DC4.4070204@iki.fi> <4FF4911B.9090600@web.de> <4FF4931B.7000708@iki.fi> <gjggc9-dl4.ln1@wuwek.kopernik.gliwice.pl> <4FF5A350.9070509@iki.fi> <r8cic9-ht4.ln1@wuwek.kopernik.gliwice.pl> <4FF6B121.6010105@iki.fi> <9btic9-vd5.ln1@wuwek.kopernik.gliwice.pl> <835kc9-7p4.ln1@wuwek.kopernik.gliwice.pl> <4FF77C1B.50406@iki.fi> <l2smc9-pj4.ln1@wuwek.kopernik.gliwice.pl> <4FF97DF8.4080208@iki.fi> <n1aqc9-sp4.ln1@wuwek.kopernik.gliwice.pl> <4FFA996D.9010206@iki.fi> <scerc9-bm6.ln1@wuwek.kopernik.gliwice.pl> <4FFB2129.2070301@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
+In-Reply-To: <4FFB2129.2070301@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 7/25/12 7:44 PM, Konke Radlow wrote:
-> --- /dev/null
-> +++ b/utils/rds-ctl/rds-ctl.cpp
-> @@ -0,0 +1,978 @@
-> +/*
-> + * rds-ctl.cpp is based on v4l2-ctl.cpp
-> + * 
-> + * the following applies for all RDS related parts:
-> + * Copyright 2012 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-> + * Author: Konke Radlow <koradlow@gmail.com>
-> + * 
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU Lesser General Public License as published by
-> + * the Free Software Foundation; either version 2.1 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA  02110-1335  USA
-> + */
-> +
-> +#include <unistd.h>
-> +#include <stdlib.h>
-> +#include <stdio.h>
-> +#include <string.h>
-> +#include <wchar.h>
-> +#include <locale.h>
-> +#include <inttypes.h>
-> +#include <getopt.h>
-> +#include <sys/types.h>
-> +#include <fcntl.h>
-> +#include <errno.h>
-> +#include <sys/ioctl.h>
-> +#include <sys/time.h>
-> +#include <dirent.h>
-> +#include <config.h>
-> +#include <signal.h>
-> +
-> +#ifdef HAVE_SYS_KLOG_H
-> +#include <sys/klog.h>
-> +#endif
+I've attached stream analysis via ffmpeg in another post. I can upload 
+saved stream if needed. I simply don't know how to check if weak signal 
+is problem. Szap (or extended version szap-s2) gives me some numbers but 
+I don't know how to properly read them.
+Is this pctv452e device known to have poor reception?
+Marx
 
-You don't call klog, so you can drop these three lines
-
-> +static int parse_cl(int argc, char **argv)
-> +{
-> +	int i = 0;
-> +	int idx = 0;
-> +	int opt = 0;
-> +	char short_options[26 * 2 * 2 + 1];
-> +
-> +	if (argc == 1) {
-> +		usage_hint();
-> +		exit(1);
-> +	}
-> +	for (i = 0; long_options[i].name; i++) {
-> +		if (!isalpha(long_options[i].val))
-> +			continue;
-> +		short_options[idx++] = long_options[i].val;
-> +		if (long_options[i].has_arg == required_argument)
-> +			short_options[idx++] = ':';
-> +	}
-> +	while (1) {
-> +		// TODO: remove option_index ?
-> +		int option_index = 0;
-> +
-> +		short_options[idx] = 0;
-> +		opt = getopt_long(argc, argv, short_options,
-> +				 long_options, &option_index);
-> +		if (opt == -1)
-> +			break;
-> +
-> +		params.options[(int)opt] = 1;
-> +		switch (opt) {
-> +		case OptSetDevice:
-> +			strncpy(params.fd_name, optarg, 80);
-> +			if (optarg[0] >= '0' && optarg[0] <= '9' && optarg[1] == 0) {
-
-see isdigit from <types.h> (or std::isdigit from <ctypes>)
-
-
-Thanks,
-Gregor
