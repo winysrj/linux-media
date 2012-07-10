@@ -1,71 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:43067 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751800Ab2GRR2X (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:54785 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754703Ab2GJWyd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jul 2012 13:28:23 -0400
-Message-ID: <5006F232.3000401@gmail.com>
-Date: Wed, 18 Jul 2012 19:28:18 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Tue, 10 Jul 2012 18:54:33 -0400
+Received: by wgbdr13 with SMTP id dr13so432543wgb.1
+        for <linux-media@vger.kernel.org>; Tue, 10 Jul 2012 15:54:32 -0700 (PDT)
+Message-ID: <4FFCB2A4.4040108@gmail.com>
+Date: Wed, 11 Jul 2012 00:54:28 +0200
+From: poma <pomidorabelisima@gmail.com>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org, b.zolnierkie@samsung.com
-Subject: Re: [RFC/PATCH 12/13] media: s5p-fimc: Add device tree based sensors
- registration
-References: <4FBFE1EC.9060209@samsung.com> <1337975573-27117-1-git-send-email-s.nawrocki@samsung.com> <1337975573-27117-12-git-send-email-s.nawrocki@samsung.com> <Pine.LNX.4.64.1207161149230.12302@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1207161149230.12302@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Subject: Re: pctv452e
+References: <4FF4697C.8080602@nexusuk.org> <4FF46DC4.4070204@iki.fi> <4FF4911B.9090600@web.de> <4FF4931B.7000708@iki.fi> <gjggc9-dl4.ln1@wuwek.kopernik.gliwice.pl> <4FF5A350.9070509@iki.fi> <r8cic9-ht4.ln1@wuwek.kopernik.gliwice.pl> <4FF6B121.6010105@iki.fi> <9btic9-vd5.ln1@wuwek.kopernik.gliwice.pl> <835kc9-7p4.ln1@wuwek.kopernik.gliwice.pl> <4FF77C1B.50406@iki.fi> <l2smc9-pj4.ln1@wuwek.kopernik.gliwice.pl> <4FF97DF8.4080208@iki.fi> <n1aqc9-sp4.ln1@wuwek.kopernik.gliwice.pl> <4FFA996D.9010206@iki.fi> <scerc9-bm6.ln1@wuwek.kopernik.gliwice.pl> <4FFB2129.2070301@gmail.com> <hhvsc9-pte.ln1@wuwek.kopernik.gliwice.pl> <4FFC4F71.4000809@gmail.com> <CAGoCfizj8buVoMc8qOY-NxKa53KnXNnZLekpr6-wLU08PM5kEw@mail.gmail.com>
+In-Reply-To: <CAGoCfizj8buVoMc8qOY-NxKa53KnXNnZLekpr6-wLU08PM5kEw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/16/2012 11:51 AM, Guennadi Liakhovetski wrote:
-[...]
->> diff --git a/Documentation/devicetree/bindings/camera/soc/samsung-fimc.txt b/Documentation/devicetree/bindings/camera/soc/samsung-fimc.txt
->> index b459da2..ffe09ac 100644
->> --- a/Documentation/devicetree/bindings/camera/soc/samsung-fimc.txt
->> +++ b/Documentation/devicetree/bindings/camera/soc/samsung-fimc.txt
->> @@ -54,6 +54,28 @@ Required properties:
->>   - cell-index : FIMC-LITE IP instance index;
->>
->>
->> +The 'sensor' nodes
->> +------------------
->> +
->> +Required properties:
->> +
->> + - i2c-client : a phandle to an image sensor I2C client device;
->> +
->> +Optional properties:
->> +
->> +- samsung,camif-mux-id : FIMC video multiplexer input index; for camera
->> +			 port A, B, C the indexes are 0, 1, 0 respectively.
->> +			 If this property is not specified a default 0
->> +			 value will be used by driver.
->
-> Isn't it possible to have several clients connected to different mux
-> inputs and switch between them at run-time? Even if only one of them can
-> be active at any time? That's why I've introduced link nodes in my RFC to
-> specify exactly which pads are connected.
+On 07/10/2012 05:58 PM, Devin Heitmueller wrote:
+> On Tue, Jul 10, 2012 at 11:51 AM, poma <pomidorabelisima@gmail.com> wrote:
+>>> Is this pctv452e device known to have poor reception?
+> 
+> Traditionally speaking, these problems are usually not the hardware
+> itself - it tends to be crappy Linux drivers.  Somebody gets support
+> working for a chip on some product, and then somebody else does a
+> cut/paste of the code to make some other product work.  They see it
+> getting signal lock under optimal tuning conditions and declare
+> success.
+> 
+> Making any given device work *well* tends to be much harder than
+> making it work at all.
+> 
+> Want to rule out bad hardware design?  Drop it into a Windows machine
+> and see how it performs.  If it works fine under Windows but poorly
+> under Linux, then you definitely have a Linux driver problem.
+> 
+> Devin
+> 
 
+This one is for Marx?
 
-Yes, of course it is. For such a configuration there would be multiple
-'sensor' nodes and each of them would contain a 'samsung,camif-mux-id'
-determining camera port the corresponding sensor/encoder is wired to.
+cheers,
+poma
 
-Then switching between the sensors would be possible by setting up
-a proper media link (or just through VIDIOC_S_INPUT ioctl, if that's
-feasible) and then writing the mux input index and the camera port
-type values to the control registers (in this specific case ports A,B 
-(index 0, 1) are parallel and port C (index 0) is a serial port).
-Thus using only input index wouldn't be sufficient to do the sensors
-switch over.
-
---
-
-Thanks,
-Sylwester
