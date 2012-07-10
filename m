@@ -1,47 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:54582 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754703Ab2GJXBU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jul 2012 19:01:20 -0400
-Received: by gglu4 with SMTP id u4so630639ggl.19
-        for <linux-media@vger.kernel.org>; Tue, 10 Jul 2012 16:01:19 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:42467 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751138Ab2GJVcV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jul 2012 17:32:21 -0400
+Message-ID: <4FFC9F5B.9000800@iki.fi>
+Date: Wed, 11 Jul 2012 00:32:11 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <CADR1r6gQD-yQhzhfF0PUJq06Xw9Oq7YJHtRVWPXEEmwtR36k+Q@mail.gmail.com>
-References: <CADR1r6gQD-yQhzhfF0PUJq06Xw9Oq7YJHtRVWPXEEmwtR36k+Q@mail.gmail.com>
-Date: Tue, 10 Jul 2012 16:01:18 -0700
-Message-ID: <CAA7C2qi5w+22LX+5r_8fKjxOOtGHGRQfFivC3GG0UD1LWE_Txg@mail.gmail.com>
-Subject: Re: Make menuconfig doesn't work anymore
-From: VDR User <user.vdr@gmail.com>
-To: Martin Herrman <martin.herrman@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: Steve Kerrison <steve@stevekerrison.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: comments for DVB LNA API
+References: <4FFC5B4E.8080903@stevekerrison.com> <4FFC5B7A.5060708@stevekerrison.com>
+In-Reply-To: <4FFC5B7A.5060708@stevekerrison.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 10, 2012 at 2:16 PM, Martin Herrman
-<martin.herrman@gmail.com> wrote:
-> make[2]: Entering directory `/usr/src/media_build_experimental/linux'
-> Applying patches for kernel 3.5.0-rc6
-> patch -s -f -N -p1 -i ../backports/api_version.patch
-> 1 out of 1 hunk FAILED -- saving rejects to file
-> drivers/media/video/v4l2-ioctl.c.rej
-> make[2]: *** [apply_patches] Error 1
-> make[2]: Leaving directory `/usr/src/media_build_experimental/linux'
-> make[1]: *** [Kconfig] Error 2
-> make[1]: Leaving directory `/usr/src/media_build_experimental/v4l'
-> make: *** [menuconfig] Error 2
+On 07/10/2012 07:42 PM, Steve Kerrison wrote:
+> On 10/07/12 17:20, Antti Palosaari wrote:
+>> I am looking how to implement LNA support for the DVB API.
+>>
+>> What we need to be configurable at least is: OFF, ON, AUTO.
+>>
+>> There is LNAs that support variable gain and likely those will be
+>> sooner or later. Actually I think there is already LNAs integrated to
+>> the RF-tuner that offers adjustable gain. Also looking to NXP catalog
+>> and you will see there is digital TV LNAs with adjustable gain.
+>>
+>> Coming from that requirements are:
+>> adjustable gain 0-xxx dB
+>> LNA OFF
+>> LNA ON
+>> LNA AUTO
+>>
+>> Setting LNA is easy but how to query capabilities of supported LNA
+>> values? eg. this device has LNA which supports Gain=5dB, Gain=8dB, LNA
+>> auto?
+> Without having a sample of device capabilities this question may be
+> irrelevant, but what if the gain is somewhat continuiously configurable
+> vs. discretized? For example can some be configured just for 5,8 and 11,
+> whilst some might have some 8-bit value that controls gain between 5 and
+> 11?
+
+Yes.
+For example external DVB-T/C LNA NXP BGU7033. It does have 3 modes, 10 
+dB, 5 dB and bypass -2 dB.
+
+LNAs offering more adjustable gain is called VGA (variable gain 
+amplifier). It could have control interface like 5-bits or some other 
+bus like I2C. Those are usually integrated to the silicon RF-tuner and 
+in that case configuration is possible via tuner registers. Usually it 
+is not needed to configure at all on run-time.
+
+>> LNA ON (bypass) could be replaced with Gain=0 and LNA ON with Gain>0,
+>> Gain=-1 is for auto example.
 >
-> Make menuconfig *does* work when configuring a new kernel. I have also
-> tried with kernel 3.2.22 and 3.4, but no succes either.
+> How should the API handle differences between the specified gain and the
+> capabilities of the LNA? Round to nearest possible config if it's within
+> the operating range; return error if out of range?
 
-Actually I got the exact same error when compiling a new 3.4.4 kernel.
+I think rounding is best approach.
 
-> Any ideas what is going wrong?
+Maybe it is not necessary to read at all. Just allow user set LNA in 
+steps of one number, 0, 1, 2, 3, ..., 100 and let the driver detect 
+scale. In that case simple LNA having only one static gain value has 
+values: AUTO, 0, 1. LNA having 2 gain levels: AUTO, 0, 1, 2. VGA having 
+3 bit control: AUTO, 0, 1, 2, 3, 4, 5, 6, 7.
 
-I assume the api_version.patch is bad or needs to be updated. I simple
-just commented out the "add api_version.patch" line in
-backports/backports.txt and crossed my fingers the drivers I use still
-worked -- which they did so all is well here (afaik). But, yeah it
-does need a proper fix and I only recommend my cheap workaround with a
-YMMV warning.
+regards
+Antti
+
+
+-- 
+http://palosaari.fi/
+
+
