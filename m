@@ -1,110 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:58059 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753146Ab2GTH6H (ORCPT
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:63220 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752440Ab2GJMeh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jul 2012 03:58:07 -0400
-Date: Fri, 20 Jul 2012 09:57:39 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-cc: linux-media@vger.kernel.org, fabio.estevam@freescale.com,
-	laurent.pinchart@ideasonboard.com, mchehab@infradead.org
-Subject: Re: [PATCH] media: mx2_camera: Add YUYV output format.
-In-Reply-To: <CACKLOr2CnQ6Dok_N-KCKMvp5dzSi=OP=WBFAfqaGr17enEkW8A@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1207200955440.27906@axis700.grange>
-References: <1342083373-18245-1-git-send-email-javier.martin@vista-silicon.com>
- <CACKLOr2CnQ6Dok_N-KCKMvp5dzSi=OP=WBFAfqaGr17enEkW8A@mail.gmail.com>
+	Tue, 10 Jul 2012 08:34:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: Re: [PATCH v4] media: Add stk1160 new driver
+Date: Tue, 10 Jul 2012 14:34:25 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	linux-media@vger.kernel.org
+References: <1340991243-2951-1-git-send-email-elezegarcia@gmail.com> <201207100839.32830.hverkuil@xs4all.nl> <CALF0-+VKNfp=_qUzoTKfJO_nsj_e+29pnNAt5Ze-BCewccBjJA@mail.gmail.com>
+In-Reply-To: <CALF0-+VKNfp=_qUzoTKfJO_nsj_e+29pnNAt5Ze-BCewccBjJA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201207101434.25254.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier
-
-On Fri, 20 Jul 2012, javier Martin wrote:
-
-> On 12 July 2012 10:56, Javier Martin <javier.martin@vista-silicon.com> wrote:
-> > Add explicit conversions from UYVY and YUYV to YUYV so that
-> > csicr1 configuration can be set properly for each format.
-> >
-> > Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
-> > ---
-> >  drivers/media/video/mx2_camera.c |   40 ++++++++++++++++++++++++++++++++++++++
-> >  1 file changed, 40 insertions(+)
-> >
-> > diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-> > index 0f01e7b..2a33bcb 100644
-> > --- a/drivers/media/video/mx2_camera.c
-> > +++ b/drivers/media/video/mx2_camera.c
-> > @@ -337,6 +337,34 @@ static struct mx2_fmt_cfg mx27_emma_prp_table[] = {
-> >                 }
-> >         },
-> >         {
-> > +               .in_fmt         = V4L2_MBUS_FMT_UYVY8_2X8,
-> > +               .out_fmt        = V4L2_PIX_FMT_YUYV,
-> > +               .cfg            = {
-> > +                       .channel        = 1,
-> > +                       .in_fmt         = PRP_CNTL_DATA_IN_YUV422,
-> > +                       .out_fmt        = PRP_CNTL_CH1_OUT_YUV422,
-> > +                       .src_pixel      = 0x22000888, /* YUV422 (YUYV) */
-> > +                       .ch1_pixel      = 0x62000888, /* YUV422 (YUYV) */
-> > +                       .irq_flags      = PRP_INTR_RDERR | PRP_INTR_CH1WERR |
-> > +                                               PRP_INTR_CH1FC | PRP_INTR_LBOVF,
-> > +                       .csicr1         = CSICR1_SWAP16_EN,
-> > +               }
-> > +       },
-> > +       {
-> > +               .in_fmt         = V4L2_MBUS_FMT_YUYV8_2X8,
-> > +               .out_fmt        = V4L2_PIX_FMT_YUYV,
-> > +               .cfg            = {
-> > +                       .channel        = 1,
-> > +                       .in_fmt         = PRP_CNTL_DATA_IN_YUV422,
-> > +                       .out_fmt        = PRP_CNTL_CH1_OUT_YUV422,
-> > +                       .src_pixel      = 0x22000888, /* YUV422 (YUYV) */
-> > +                       .ch1_pixel      = 0x62000888, /* YUV422 (YUYV) */
-> > +                       .irq_flags      = PRP_INTR_RDERR | PRP_INTR_CH1WERR |
-> > +                                               PRP_INTR_CH1FC | PRP_INTR_LBOVF,
-> > +                       .csicr1         = CSICR1_PACK_DIR,
-> > +               }
-> > +       },
-> > +       {
-> >                 .in_fmt         = V4L2_MBUS_FMT_YUYV8_2X8,
-> >                 .out_fmt        = V4L2_PIX_FMT_YUV420,
-> >                 .cfg            = {
-> > @@ -1146,6 +1174,18 @@ static int mx2_camera_get_formats(struct soc_camera_device *icd,
-> >                 }
-> >         }
-> >
-> > +       if (code == V4L2_MBUS_FMT_UYVY8_2X8) {
-> > +               formats++;
-> > +               if (xlate) {
-> > +                       xlate->host_fmt =
-> > +                               soc_mbus_get_fmtdesc(V4L2_MBUS_FMT_YUYV8_2X8);
-> > +                       xlate->code     = code;
-> > +                       dev_dbg(dev, "Providing host format %s for sensor code %d\n",
-> > +                               xlate->host_fmt->name, code);
-> > +                       xlate++;
-> > +               }
-> > +       }
-> > +
-> >         /* Generic pass-trough */
-> >         formats++;
-> >         if (xlate) {
-> > --
-> > 1.7.9.5
-> >
+On Tue 10 July 2012 14:26:11 Ezequiel Garcia wrote:
+> Hi Hans,
 > 
-> Any comments on this one?
+> On Tue, Jul 10, 2012 at 3:39 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > On Tue July 10 2012 05:17:41 Ezequiel Garcia wrote:
+> >> Hey Mauro,
+> >>
+> >> On Fri, Jul 6, 2012 at 11:41 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+> >> > On Thu, Jul 5, 2012 at 9:01 PM, Mauro Carvalho Chehab
+> >> > <mchehab@redhat.com> wrote:
+> >> >> Em 05-07-2012 19:36, Sylwester Nawrocki escreveu:
+> >> >>> On 07/06/2012 12:11 AM, Mauro Carvalho Chehab wrote:
+> >> >>>>> +static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *p)
+> >> >>>>> +{
+> >> >>>>> +   struct stk1160 *dev = video_drvdata(file);
+> >> >>>>> +
+> >> >>>>> +   if (!stk1160_is_owner(dev, file))
+> >> >>>>> +           return -EBUSY;
+> >> >>>>> +
+> >> >>>>> +   return vb2_dqbuf(&dev->vb_vidq, p, file->f_flags&  O_NONBLOCK);
+> >
+> > Take a look at the latest videobuf2-core.h: I've added helper functions
+> > that check the owner. You can probably simplify the driver code quite a bit
+> > by using those helpers.
+> 
+> Ok.
+> 
+> >
+> >> >>>>
+> >> >>>> Why to use O_NONBLOCK here? it should be doing whatever userspace wants.
+> >> >>>
+> >> >>> This is OK, since the third argument to vb2_dqbuf() is a boolean indicating
+> >> >>> whether this call should be blocking or not. And a "& O_NONBLOCK" masks this
+> >> >>> information out from file->f_flags.
+> >> >>
+> >> >> Ah! OK then.
+> >> >>
+> >> >> It might be better to initialize it during vb2 initialization, at open,
+> >> >> instead of requiring this argument every time vb_dqbuf() is called.
+> >
+> > You can't do this at open since the application can change the NONBLOCK mode
+> > after open. So the current approach is correct.
+> 
+> Yes, that sounds ok. Let's wait until Mauro returns from holiday to discuss this
+> with him.
+> 
+> Also, what do you think about current_norm usage?
 
-Thanks for the reminder, but in this specific case I haven't 
-forgottne:-) I'm processing my v4l patch queue ATM, will have a closer 
-look at this and other your patches, will write back if I have any 
-objections. I hope I won't - I'm leaving for a week-long holiday tomorrow, 
-so, I hope to push my queue today.
+Don't use it. Implement g_std instead. current_norm really doesn't add anything
+useful, it is a bit too magical and it doesn't work if you have multiple nodes
+that share the same std (e.g. video and vbi).
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+I'm removing it from existing drivers whenever I have the chance, and it will
+eventually go away.
+
+Regards,
+
+	Hans
