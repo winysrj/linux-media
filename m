@@ -1,101 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44107 "EHLO mail.kapsi.fi"
+Received: from plane.gmane.org ([80.91.229.3]:55720 "EHLO plane.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933440Ab2GFLjC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Jul 2012 07:39:02 -0400
-Message-ID: <4FF6CE48.3000300@iki.fi>
-Date: Fri, 06 Jul 2012 14:38:48 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: htl10@users.sourceforge.net
-CC: mchehab@redhat.com, linux-media@vger.kernel.org
-Subject: Re: media_build and Terratec Cinergy T Black.
-References: <1341572070.43713.YahooMailClassic@web29402.mail.ird.yahoo.com>
-In-Reply-To: <1341572070.43713.YahooMailClassic@web29402.mail.ird.yahoo.com>
+	id S1753133Ab2GJWIT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jul 2012 18:08:19 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1SoibR-0005Fe-96
+	for linux-media@vger.kernel.org; Wed, 11 Jul 2012 00:08:17 +0200
+Received: from bws20.neoplus.adsl.tpnet.pl ([83.29.242.20])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 11 Jul 2012 00:08:17 +0200
+Received: from acc.for.news by bws20.neoplus.adsl.tpnet.pl with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 11 Jul 2012 00:08:17 +0200
+To: linux-media@vger.kernel.org
+From: Marx <acc.for.news@gmail.com>
+Subject: Re: pctv452e
+Date: Tue, 10 Jul 2012 23:08:23 +0200
+Message-ID: <d7iuc9-ua5.ln1@wuwek.kopernik.gliwice.pl>
+References: <4FF4697C.8080602@nexusuk.org> <4FF46DC4.4070204@iki.fi> <4FF4911B.9090600@web.de> <4FF4931B.7000708@iki.fi> <gjggc9-dl4.ln1@wuwek.kopernik.gliwice.pl> <4FF5A350.9070509@iki.fi> <r8cic9-ht4.ln1@wuwek.kopernik.gliwice.pl> <4FF6B121.6010105@iki.fi> <9btic9-vd5.ln1@wuwek.kopernik.gliwice.pl> <835kc9-7p4.ln1@wuwek.kopernik.gliwice.pl> <4FF77C1B.50406@iki.fi> <l2smc9-pj4.ln1@wuwek.kopernik.gliwice.pl> <4FF97DF8.4080208@iki.fi> <n1aqc9-sp4.ln1@wuwek.kopernik.gliwice.pl> <4FFA996D.9010206@iki.fi> <scerc9-bm6.ln1@wuwek.kopernik.gliwice.pl> <4FFB172A.2070009@iki.fi> <4FFB1900.6010306@iki.fi> <79vsc9-dte.ln1@wuwek.kopernik.gliwice.pl> <4FFBF6F8.7010907@iki.fi>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
+In-Reply-To: <4FFBF6F8.7010907@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/06/2012 01:54 PM, Hin-Tak Leung wrote:
-> - $ lsdvb seems to be doing garbage:(fedora 17's)
+W dniu 2012-07-10 11:33, Antti Palosaari pisze:
 >
-> usb (-1975381336:62 64848224:32767) on PCI Domain:-1965359032 Bus:62 Device:64848416 Function:32767
-> 	DEVICE:0 ADAPTER:0 FRONTEND:0 (Realtek RTL2832 (DVB-T))
-> 		 FE_OFDM Fmin=174MHz Fmax=862MHz
+> Seems like stream is broken. It should look like that:
 >
-> lsdvb on mercury is only marginally better with the PCI zero's, but the other numbers swapped:
+> Input #0, mpegts, from '/dev/dvb/adapter0/dvr0':
+>    Duration: N/A, start: 19013.637311, bitrate: 15224 kb/s
+>      Stream #0:0[0x231]: Audio: mp2, 48000 Hz, stereo, s16, 224 kb/s
+>      Stream #0:1[0x131]: Video: mpeg2video (Main), yuv420p, 720x576 [SAR
+> 64:45 DAR 16:9], 15000 kb/s, 26.89 fps, 25 tbr, 90k tbn, 50 tbc
 >
-> usb (62:-1975379912 32767:-348245472) on PCI Domain:0 Bus:0 Device:0 Function:0
-> 	DEVICE:0 ADAPTER:0 FRONTEND:0 (Realtek RTL2832 (DVB-T))
-> 		 FE_OFDM Fmin=174MHz Fmax=862MHz
-
-I was aware of that tool but didn't know it lists USB devices too.
-Someone should fix it working properly for USB devices.
-
-> - 'scandvb' segfault at the end on its own.
-
-I didn't see that.
-
-> - "scandvb /usr/share/dvb/dvb-t/uk-SandyHeath" (supposedly where I am) got a few "WARNING: >>> tuning failed!!!" and no list.
 >
-> - 'w_scan -G -c GB'
->    have a few curious
-> WARNING: received garbage data: crc = 0xcc93876c; expected crc = 0xb81bb6c4
->
-> return a list of 26, with entries like (which seems to be vaguely correct):
->
-> BBC ONE;(null):522000:B8C23D0G32M64T8Y0:T:27500:101=2:102,106=eng:0:0:4173:9018:4173:0:100
+> You have said it works some times. Could you try to using tzap + ffmpeg
+> cases when it works and when it does not. Use FTA channels to analyze as
+> I think ffmpeg could not say much about encrypted streams.
 
-Both scandvb and w_scan works here, same device used. I suspect your 
-signal is just simply too weak for reception. Small antenna coming with 
-those DVB sticks is not suitable unless you are living very near 
-transmitter. Try to connect it roof antenna. One thing that helps a lot 
-is to attach small bundled antenna to outside window.
+It's hard to say it works because I have no GUI on this PC and I don't 
+know a method to share directly device/stream into PC.
+Hovewer I've tried to tune and analyze several FTA channels.
+I have now better results because:
+1) i've disconnected pctv device (USB & power)
+2) poweroff
+3) poweron
+4) connect device
+If I simply reboot or reconnect device - it doesn't help.
 
-There is both dvbscan and scandvb in Fedora dvb-apps. It is not clear 
-for me why two similar looking tools. Anyhow it is just scandvb which I 
-found working one.
+[   67.544510] Linux media interface: v0.10
+[   67.565420] Linux video capture interface: v2.00
+[   67.834186] saa7146: register extension 'av7110'
+[ 1536.841356] usb 1-4: new high-speed USB device number 2 using ehci_hcd
+[ 1537.437957] usb 1-4: New USB device found, idVendor=2304, idProduct=021f
+[ 1537.437971] usb 1-4: New USB device strings: Mfr=1, Product=2, 
+SerialNumber=0
+[ 1537.437980] usb 1-4: Product: PCTV452e
+[ 1537.437989] usb 1-4: Manufacturer: Pinnacle
+[ 1537.556548] usb 1-4: dvb_usbv2: found a 'PCTV HDTV USB' in warm state
+[ 1537.556560] pctv452e_power_ctrl: 1
+[ 1537.556565] pctv452e_power_ctrl: step 1
+[ 1537.556570] pctv452e_power_ctrl: step 2
+[ 1537.557057] pctv452e_power_ctrl: step 3
+[ 1537.557197] usbcore: registered new interface driver dvb_usb_pctv452e
+[ 1537.557263] pctv452e_power_ctrl: step 4
+[ 1537.557491] pctv452e_power_ctrl: step 5
+[ 1537.557610] usb 1-4: dvb_usbv2: will pass the complete MPEG2 
+transport stream to the software demuxer
+[ 1537.557670] DVB: registering new adapter (PCTV HDTV USB)
+[ 1537.602916] stb0899_attach: Attaching STB0899
+[ 1537.611531] DVB: registering adapter 0 frontend 0 (STB0899 
+Multistandard)...
+[ 1537.625143] stb6100_attach: Attaching STB6100
+[ 1537.625158] pctv452e_power_ctrl: 0
+[ 1537.625173] usb 1-4: dvb_usbv2: 'PCTV HDTV USB' successfully 
+initialized and connected
+
+I don't know why it say device is in warm state. As I understand warm 
+means with firmware loaded(?), but this device was completely switched off.
+
+1) Mango 24
+wuwek:~# szap -n 51 -r
+reading channels from file '/root/.szap/channels.conf'
+zapping to 51 'Mango 24;TVN':
+sat 0, frequency = 11393 MHz V, symbolrate 27500000, vpid = 0x0205, apid 
+= 0x02bc sid = 0x0245
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+status 1f | signal 01c6 | snr 0093 | ber 00000000 | unc fffffffe | 
+FE_HAS_LOCK
+
+wuwek:~# ffmpeg -i /dev/dvb/adapter0/dvr0
+p11-kit: couldn't load module: 
+/usr/lib/i386-linux-gnu/pkcs11/gnome-keyring-pkcs11.so: 
+/usr/lib/i386-linux-gnu/pkcs11/gnome-keyring-pkcs11.so: cannot open 
+shared object file: No such file or directory
+ffmpeg version 0.8.3-6:0.8.3-4, Copyright (c) 2000-2012 the Libav developers
+   built on Jun 26 2012 07:23:46 with gcc 4.7.1
+*** THIS PROGRAM IS DEPRECATED ***
+This program is only provided for compatibility and will be removed in a 
+future release. Please use avconv instead.
+[mpeg2video @ 0x8d47940] mpeg_decode_postinit() failure
+[mp3 @ 0x8d4a5c0] Header missing
+     Last message repeated 2 times
+[mpegts @ 0x8d43900] max_analyze_duration reached
+[mpegts @ 0x8d43900] Estimating duration from bitrate, this may be 
+inaccurate
+Input #0, mpegts, from '/dev/dvb/adapter0/dvr0':
+   Duration: N/A, start: 90810.592967, bitrate: 10000 kb/s
+     Stream #0.0[0x205]: Video: mpeg2video (Main), yuv420p, 480x576 [PAR 
+32:15 DAR 16:9], 10000 kb/s, 25 fps, 25 tbr, 90k tbn, 50 tbc
+     Stream #0.1[0x2bc]: Audio: mp3, 0 channels, s16
+At least one output file must be specified
+
+2. Eska TV
+wuwek:~# szap -n 52 -r
+reading channels from file '/root/.szap/channels.conf'
+zapping to 52 'Eska TV;ITI':
+sat 0, frequency = 11508 MHz V, symbolrate 27500000, vpid = 0x020a, apid 
+= 0x02d6 sid = 0x0000
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+status 1f | signal 01ce | snr 008e | ber 00000000 | unc fffffffe | 
+FE_HAS_LOCK
+
+wuwek:~# ffmpeg -i /dev/dvb/adapter0/dvr0
+p11-kit: couldn't load module: 
+/usr/lib/i386-linux-gnu/pkcs11/gnome-keyring-pkcs11.so: 
+/usr/lib/i386-linux-gnu/pkcs11/gnome-keyring-pkcs11.so: cannot open 
+shared object file: No such file or directory
+ffmpeg version 0.8.3-6:0.8.3-4, Copyright (c) 2000-2012 the Libav developers
+   built on Jun 26 2012 07:23:46 with gcc 4.7.1
+*** THIS PROGRAM IS DEPRECATED ***
+This program is only provided for compatibility and will be removed in a 
+future release. Please use avconv instead.
+[mpegts @ 0x9f1e900] max_analyze_duration reached
+[mpegts @ 0x9f1e900] Estimating duration from bitrate, this may be 
+inaccurate
+Input #0, mpegts, from '/dev/dvb/adapter0/dvr0':
+   Duration: N/A, start: 94027.528811, bitrate: 10000 kb/s
+     Stream #0.0[0x2d6]: Data: [0][0][0][0] / 0x0000
+     Stream #0.1[0x20a]: Video: mpeg2video (Main), yuv420p, 704x576 [PAR 
+16:11 DAR 16:9], 10000 kb/s, 25 fps, 25 tbr, 90k tbn, 50 tbc
+At least one output file must be specified
+
+3. again Mango
+[mpeg2video @ 0x987bb80] mpeg_decode_postinit() failure
+     Last message repeated 6 times
+[mpegts @ 0x9877900] max_analyze_duration reached
+[mpegts @ 0x9877900] Estimating duration from bitrate, this may be 
+inaccurate
+Input #0, mpegts, from '/dev/dvb/adapter0/dvr0':
+   Duration: N/A, start: 91684.528967, bitrate: 10000 kb/s
+     Stream #0.0[0x205]: Video: mpeg2video (Main), yuv420p, 480x576 [PAR 
+32:15 DAR 16:9], 10000 kb/s, 26 fps, 25 tbr, 90k tbn, 50 tbc
+     Stream #0.1[0x2bc]: Data: [0][0][0][0] / 0x0000
+At least one output file must be specified
+
+4. again Mango
+[mpeg2video @ 0x818b940] mpeg_decode_postinit() failure
+     Last message repeated 7 times
+[mpegts @ 0x8187900] max_analyze_duration reached
+[mpegts @ 0x8187900] Estimating duration from bitrate, this may be 
+inaccurate
+Input #0, mpegts, from '/dev/dvb/adapter0/dvr0':
+   Duration: N/A, start: 92216.440967, bitrate: 10000 kb/s
+     Stream #0.0[0x205]: Video: mpeg2video (Main), yuv420p, 480x576 [PAR 
+32:15 DAR 16:9], 10000 kb/s, 26.20 fps, 25 tbr, 90k tbn, 50 tbc
+     Stream #0.1[0x2bc]: Data: [0][0][0][0] / 0x0000
+At least one output file must be specified
 
 
-> So I just put it in ~/.mplayer:channels.conf
->
-> Took me a while to figure out that mplayer wants:
->
-> mplayer 'dvb://BBC ONE;(null)'
->
-> rather than anything else - curious about the ';(null)' part.
->
-> --------
-> Playing dvb://BBC ONE;(null).
-> dvb_tune Freq: 522000
-> ERROR IN SETTING DMX_FILTER 9018 for fd 4: ERRNO: 22ERROR, COULDN'T SET CHANNEL  8: Failed to open dvb://BBC ONE;(null).
-> ----------
+I saved Mango file. VLC for windows doesn't play it, but Media Player 
+Classic plays it.
+FFMpeg says:
+wuwek:~# ffmpeg -i /mnt/video/test5.ts
+p11-kit: couldn't load module: 
+/usr/lib/i386-linux-gnu/pkcs11/gnome-keyring-pkcs11.so: 
+/usr/lib/i386-linux-gnu/pkcs11/gnome-keyring-pkcs11.so: cannot open 
+shared object file: No such file or directory
+ffmpeg version 0.8.3-6:0.8.3-4, Copyright (c) 2000-2012 the Libav developers
+   built on Jun 26 2012 07:23:46 with gcc 4.7.1
+*** THIS PROGRAM IS DEPRECATED ***
+This program is only provided for compatibility and will be removed in a 
+future release. Please use avconv instead.
+[mp3 @ 0x9ccb940] Header missing
+     Last message repeated 4 times
+[mpegts @ 0x9cc7900] max_analyze_duration reached
+[mpegts @ 0x9cc7900] PES packet size mismatch
+Input #0, mpegts, from '/mnt/video/test5.ts':
+   Duration: 00:00:28.00, start: 94048.816811, bitrate: 4240 kb/s
+     Stream #0.0[0x2d6]: Audio: mp3, 0 channels, s16
+     Stream #0.1[0x20a]: Video: mpeg2video (Main), yuv420p, 704x576 [PAR 
+16:11 DAR 16:9], 10000 kb/s, 25 fps, 25 tbr, 90k tbn, 50 tbc
+At least one output file must be specified
 
-Typical channels.conf entry looks like that:
-MTV3:714000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:305:561:49
-
-And tuning to that channel using mplayer:
-mplayer dvb://MTV3
-
-However, I prefer VLC. Just open channels.conf to VLC and should show 
-playlist. Totem does not work anymore. at least stream used here in 
-Finland. It went broken when they changed from playbin to playbin2 which 
-is really shame as it is default video player for Gnome desktop.
-
-
-> At this point I am lost :-).
-
-Not big surprise unfortunately :/
-
-Unfortunately desktop integration is currently poor and most users are 
-coming from the HTPC.
-
-regards
-Antti
-
-
--- 
-http://palosaari.fi/
-
+Marx
 
