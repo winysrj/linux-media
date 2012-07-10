@@ -1,116 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3893 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751757Ab2GOKox (ORCPT
+Received: from smtp1-g21.free.fr ([212.27.42.1]:57012 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751970Ab2GJOhv convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jul 2012 06:44:53 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Steven Toth <stoth@kernellabs.com>
-Subject: Re: Tips is OOPSing with basic v4l2 controls - Major breakage
-Date: Sun, 15 Jul 2012 12:43:25 +0200
-Cc: "Linux-Media" <linux-media@vger.kernel.org>,
-	Mauro Chehab <mchehab@infradead.org>
-References: <CALzAhNXPhRv18GPJ5OzZOxCY7o=PsfT4g_tkXWBTapyDvsZXtw@mail.gmail.com>
-In-Reply-To: <CALzAhNXPhRv18GPJ5OzZOxCY7o=PsfT4g_tkXWBTapyDvsZXtw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201207151243.25241.hverkuil@xs4all.nl>
+	Tue, 10 Jul 2012 10:37:51 -0400
+Date: Tue, 10 Jul 2012 16:36:45 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: martin-eric.racine@iki.fi
+Cc: Jonathan Nieder <jrnieder@gmail.com>,
+	Hans de Goede <hdegoede@redhat.com>, 677533@bugs.debian.org,
+	linux-media@vger.kernel.org
+Subject: Re: video: USB webcam fails since kernel 3.2
+Message-ID: <20120710163645.04fb0af0@armhf>
+In-Reply-To: <CAPZXPQcaEzW1zGXfGwp-JuOrfBu2xhoidaYjthD8jhYAFpWr7A@mail.gmail.com>
+References: <20120614162609.4613.22122.reportbug@henna.lan>
+	<20120614215359.GF3537@burratino>
+	<CAPZXPQd9gNCxn7xGyqj_xymPaF5OxvRtxRFkt+SsLs942te4og@mail.gmail.com>
+	<20120616044137.GB4076@burratino>
+	<1339932233.20497.14.camel@henna.lan>
+	<CAPZXPQegp7RA5M0H9Ofq4rJ9aj-rEdg=Ly9_1c6vAKi3COw50g@mail.gmail.com>
+	<4FF9CA30.9050105@redhat.com>
+	<CAPZXPQd026xfKrAU0D7CLQGbdAs8U01u5vsHp+5-wbVofAwdqQ@mail.gmail.com>
+	<4FFAD8D9.8070203@redhat.com>
+	<20120709203929.GC17301@burratino>
+	<CAPZXPQcaEzW1zGXfGwp-JuOrfBu2xhoidaYjthD8jhYAFpWr7A@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun July 15 2012 01:12:02 Steven Toth wrote:
-> Tip is oopsing the moment the V4L2 API is exercised, Eg. v4l2-ctl or tvtime.
-> 
-> Its unusable at this point.
+On Tue, 10 Jul 2012 15:56:08 +0300
+Martin-Éric Racine <martin-eric.racine@iki.fi> wrote:
+	[snip]
+> I hope that the above already provides some usable answers.
 
-It's fixed here:
+Not a lot :(
 
-https://patchwork.kernel.org/patch/1168931/
+Well, I already saw these errors -71. One case was a cable problem.
+An other one occurred with skype only, while vlc worked correctly.
 
-We're all waiting for Mauro to return from vacation :-)
+So, it would be interesting to know if the (almost) last driver works.
+Then, you may try the gspca-2.15.18.tar.gz from my web site:
 
-Regards,
+	wget http://moinejf.free.fr/gspca-2.15.18.tar.gz
+	tar -zxf gspca-2.15.18.tar.gz
+	cd gspca-2.15.18
+	make
+	su
+	make install
+	reboot
 
-	Hans
+You may then try cheese. For skype, don't forget to force the
+use of the v4l library:
 
-> 
-> Verified with two different drivers (cx23885 and SAA7164), same oops.
-> 
-> [  120.255980] BUG: unable to handle kernel NULL pointer dereference at 00000016
-> [  120.255992] IP: [<c074efd6>] v4l2_queryctrl+0x21/0x105
-> [  120.256000] *pdpt = 0000000010de8001 *pde = 0000000000000000
-> [  120.256005] Oops: 0000 [#1] SMP
-> [  120.256009] Modules linked in: mt2131 s5h1409 tda8290 tuner cx25840
-> cx23885 videobuf_dma_sg altera_stapl cx2341x tda18271 videobuf_dvb
-> videobuf_core v4l2_common altera_ci btcx_risc tveeprom fuse nouveau
-> ttm drm_kms_helper drm i2c_algo_bit video nfsd lockd nfs_acl
-> auth_rpcgss exportfs sunrpc ipv6 cpufreq_ondemand acpi_cpufreq mperf
-> uinput pl2303 snd_hda_codec_realtek snd_hda_intel snd_hda_codec
-> snd_hwdep snd_seq snd_seq_device snd_pcm snd_timer snd coretemp r8169
-> iTCO_wdt soundcore i2c_i801 crc32c_intel iTCO_vendor_support
-> snd_page_alloc usbserial i2c_core mii microcode serio_raw pcspkr
-> mxm_wmi floppy wmi [last unloaded: scsi_wait_scan]
-> [  120.256077]
-> [  120.256080] Pid: 2659, comm: tvtime Not tainted 3.4.0-rc7+ #2
-> Gigabyte Technology Co., Ltd. P67A-UD4-B3/P67A-UD4-B3
-> [  120.256088] EIP: 0060:[<c074efd6>] EFLAGS: 00010202 CPU: 0
-> [  120.256092] EIP is at v4l2_queryctrl+0x21/0x105
-> [  120.256095] EAX: ffffffea EBX: 00000002 ECX: d1565c00 EDX: 00980900
-> [  120.256099] ESI: d17d7e58 EDI: e0f8191c EBP: d17d7db8 ESP: d17d7da4
-> [  120.256103]  DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
-> [  120.256106] CR0: 80050033 CR2: 00000016 CR3: 10de6000 CR4: 000407f0
-> [  120.256110] DR0: 00000000 DR1: 00000000 DR2: 00000000 DR3: 00000000
-> [  120.256114] DR6: ffff0ff0 DR7: 00000400
-> [  120.256117] Process tvtime (pid: 2659, ti=d17d6000 task=d27dcb60
-> task.ti=d17d6000)
-> [  120.256121] Stack:
-> [  120.256123]  00000020 d04d11cc d04e0300 d0da3c00 e0f8191c d17d7dd0
-> c074b4a3 d17d7e58
-> [  120.256134]  c0aaaba0 d1565c00 00000000 d17d7e2c c074b989 d17d7e58
-> d04d11cc cfee0840
-> [  120.256344]  00000000 d0da3c00 d04e0300 e0f8191c d17d7e58 00459196
-> 00000000 c0aaaba0[  120.256353] Call Trace:
-> [  120.256357]  [<c074b4a3>] v4l_queryctrl+0x40/0x5f
-> [  120.256361]  [<c074b989>] __video_do_ioctl+0x199/0x29c
-> [  120.256368]  [<c0445624>] ? prepare_signal+0x72/0x169
-> [  120.256373]  [<c0604848>] ? _copy_from_user+0x3e/0x52
-> [  120.256377]  [<c074bcdd>] video_usercopy+0x251/0x30b
-> [  120.256381]  [<c074b7f0>] ? v4l2_is_known_ioctl+0x22/0x22
-> [  120.256386]  [<c0445624>] ? prepare_signal+0x72/0x169
-> [  120.256392]  [<c04de360>] ? handle_pte_fault+0x32f/0x8d0
-> [  120.256397]  [<c0459184>] ? need_resched+0x14/0x1e
-> [  120.256401]  [<c074bdae>] video_ioctl2+0x17/0x19
-> [  120.256405]  [<c074b7f0>] ? v4l2_is_known_ioctl+0x22/0x22
-> [  120.256411]  [<c074805d>] v4l2_ioctl+0xc1/0xdd
-> [  120.256415]  [<c0445624>] ? prepare_signal+0x72/0x169
-> [  120.256420]  [<c0747f9c>] ? v4l2_open+0xf2/0xf2
-> [  120.256425]  [<c050bbb4>] do_vfs_ioctl+0x491/0x4c7
-> [  120.256431]  [<c08470ee>] ? do_page_fault+0x2ce/0x32b
-> [  120.256436]  [<c045ec09>] ? sched_clock_cpu+0x42/0x14d
-> [  120.256444]  [<c0476284>] ? tick_program_event+0x29/0x2d
-> [  120.256996]  [<c04e1c49>] ? do_munmap+0x201/0x218
-> [  120.257438]  [<c0445624>] ? prepare_signal+0x72/0x169
-> [  120.257892]  [<c050bc32>] sys_ioctl+0x48/0x6a
-> [  120.258351]  [<c0426c5d>] ? smp_apic_timer_interrupt+0x69/0x76
-> [  120.258819]  [<c0849c1f>] sysenter_do_call+0x12/0x28
-> [  120.259290]  [<c0445624>] ? prepare_signal+0x72/0x169
-> 
-> (gdb) list *(v4l2_queryctrl + 0x21)
-> 0xc074efd6 is in v4l2_queryctrl (drivers/media/video/v4l2-ctrls.c:1917).
-> 1912		struct v4l2_ctrl *ctrl;
-> 1913	
-> 1914		if (hdl == NULL)
-> 1915			return -EINVAL;
-> 1916	
-> 1917		mutex_lock(hdl->lock);
-> 1918	
-> 1919		/* Try to find it */
-> 1920		ref = find_ref(hdl, id);
-> 1921	
-> (gdb)
-> 
-> FYI
-> 
-> 
+	export LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so
+	skype
+
+If the problem is still there, I'd be glad to get some traces.
+For that, as root, do:
+
+	echo 0x1f > /sys/module/gspca_main/parameters/debug
+
+then, unplug/replug the webcam, do some capture until the problem
+occurs, and send us the last kernel messages starting from the webcam
+probe.
+
+Thanks.
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
