@@ -1,343 +1,271 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.pmeerw.net ([87.118.82.44]:43841 "EHLO pmeerw.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932713Ab2GBV1o (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Jul 2012 17:27:44 -0400
-From: Peter Meerwald <pmeerw@pmeerw.net>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, kraxel@bytesex.org,
-	Peter Meerwald <pmeerw@pmeerw.net>
-Subject: [PATCH] [media] saa7134: fix spelling of detach in label
-Date: Mon,  2 Jul 2012 23:27:41 +0200
-Message-Id: <1341264461-1313-1-git-send-email-pmeerw@pmeerw.net>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:53636 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753944Ab2GJK6V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jul 2012 06:58:21 -0400
+From: Maarten Lankhorst <m.b.lankhorst@gmail.com>
+To: dri-devel@lists.freedesktop.org
+Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Subject: [RFC PATCH 3/8] nouveau: Extend prime code
+Date: Tue, 10 Jul 2012 12:57:46 +0200
+Message-Id: <1341917871-2512-4-git-send-email-m.b.lankhorst@gmail.com>
+In-Reply-To: <1341917871-2512-1-git-send-email-m.b.lankhorst@gmail.com>
+References: <1341917871-2512-1-git-send-email-m.b.lankhorst@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Peter Meerwald <pmeerw@pmeerw.net>
----
- drivers/media/video/saa7134/saa7134-dvb.c |   82 ++++++++++++++---------------
- 1 file changed, 41 insertions(+), 41 deletions(-)
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 
-diff --git a/drivers/media/video/saa7134/saa7134-dvb.c b/drivers/media/video/saa7134/saa7134-dvb.c
-index 5dfd826..cc7f3d6 100644
---- a/drivers/media/video/saa7134/saa7134-dvb.c
-+++ b/drivers/media/video/saa7134/saa7134-dvb.c
-@@ -1282,7 +1282,7 @@ static int dvb_init(struct saa7134_dev *dev)
- 	case SAA7134_BOARD_FLYDVBT_DUO_CARDBUS:
- 		if (configure_tda827x_fe(dev, &tda827x_lifeview_config,
- 					 &tda827x_cfg_0) < 0)
--			goto dettach_frontend;
-+			goto detach_frontend;
- 		break;
- 	case SAA7134_BOARD_PHILIPS_EUROPA:
- 	case SAA7134_BOARD_VIDEOMATE_DVBT_300:
-@@ -1322,7 +1322,7 @@ static int dvb_init(struct saa7134_dev *dev)
- 	case SAA7134_BOARD_KWORLD_DVBT_210:
- 		if (configure_tda827x_fe(dev, &kworld_dvb_t_210_config,
- 					 &tda827x_cfg_2) < 0)
--			goto dettach_frontend;
-+			goto detach_frontend;
- 		break;
- 	case SAA7134_BOARD_HAUPPAUGE_HVR1120:
- 		fe0->dvb.frontend = dvb_attach(tda10048_attach,
-@@ -1340,17 +1340,17 @@ static int dvb_init(struct saa7134_dev *dev)
- 	case SAA7134_BOARD_PHILIPS_TIGER:
- 		if (configure_tda827x_fe(dev, &philips_tiger_config,
- 					 &tda827x_cfg_0) < 0)
--			goto dettach_frontend;
-+			goto detach_frontend;
- 		break;
- 	case SAA7134_BOARD_PINNACLE_PCTV_310i:
- 		if (configure_tda827x_fe(dev, &pinnacle_pctv_310i_config,
- 					 &tda827x_cfg_1) < 0)
--			goto dettach_frontend;
-+			goto detach_frontend;
- 		break;
- 	case SAA7134_BOARD_HAUPPAUGE_HVR1110:
- 		if (configure_tda827x_fe(dev, &hauppauge_hvr_1110_config,
- 					 &tda827x_cfg_1) < 0)
--			goto dettach_frontend;
-+			goto detach_frontend;
- 		break;
- 	case SAA7134_BOARD_HAUPPAUGE_HVR1150:
- 		fe0->dvb.frontend = dvb_attach(lgdt3305_attach,
-@@ -1368,30 +1368,30 @@ static int dvb_init(struct saa7134_dev *dev)
- 	case SAA7134_BOARD_ASUSTeK_P7131_DUAL:
- 		if (configure_tda827x_fe(dev, &asus_p7131_dual_config,
- 					 &tda827x_cfg_0) < 0)
--			goto dettach_frontend;
-+			goto detach_frontend;
- 		break;
- 	case SAA7134_BOARD_FLYDVBT_LR301:
- 		if (configure_tda827x_fe(dev, &tda827x_lifeview_config,
- 					 &tda827x_cfg_0) < 0)
--			goto dettach_frontend;
-+			goto detach_frontend;
- 		break;
- 	case SAA7134_BOARD_FLYDVB_TRIO:
- 		if (!use_frontend) {	/* terrestrial */
- 			if (configure_tda827x_fe(dev, &lifeview_trio_config,
- 						 &tda827x_cfg_0) < 0)
--				goto dettach_frontend;
-+				goto detach_frontend;
- 		} else {  		/* satellite */
- 			fe0->dvb.frontend = dvb_attach(tda10086_attach, &flydvbs, &dev->i2c_adap);
- 			if (fe0->dvb.frontend) {
- 				if (dvb_attach(tda826x_attach, fe0->dvb.frontend, 0x63,
- 									&dev->i2c_adap, 0) == NULL) {
- 					wprintk("%s: Lifeview Trio, No tda826x found!\n", __func__);
--					goto dettach_frontend;
-+					goto detach_frontend;
- 				}
- 				if (dvb_attach(isl6421_attach, fe0->dvb.frontend, &dev->i2c_adap,
- 										0x08, 0, 0) == NULL) {
- 					wprintk("%s: Lifeview Trio, No ISL6421 found!\n", __func__);
--					goto dettach_frontend;
-+					goto detach_frontend;
- 				}
- 			}
- 		}
-@@ -1407,7 +1407,7 @@ static int dvb_init(struct saa7134_dev *dev)
- 								&ads_duo_cfg) == NULL) {
- 				wprintk("no tda827x tuner found at addr: %02x\n",
- 					ads_tech_duo_config.tuner_address);
--				goto dettach_frontend;
-+				goto detach_frontend;
- 			}
- 		} else
- 			wprintk("failed to attach tda10046\n");
-@@ -1415,13 +1415,13 @@ static int dvb_init(struct saa7134_dev *dev)
- 	case SAA7134_BOARD_TEVION_DVBT_220RF:
- 		if (configure_tda827x_fe(dev, &tevion_dvbt220rf_config,
- 					 &tda827x_cfg_0) < 0)
--			goto dettach_frontend;
-+			goto detach_frontend;
- 		break;
- 	case SAA7134_BOARD_MEDION_MD8800_QUADRO:
- 		if (!use_frontend) {     /* terrestrial */
- 			if (configure_tda827x_fe(dev, &md8800_dvbt_config,
- 						 &tda827x_cfg_0) < 0)
--				goto dettach_frontend;
-+				goto detach_frontend;
- 		} else {        /* satellite */
- 			fe0->dvb.frontend = dvb_attach(tda10086_attach,
- 							&flydvbs, &dev->i2c_adap);
-@@ -1435,7 +1435,7 @@ static int dvb_init(struct saa7134_dev *dev)
- 						0x60, &dev->i2c_adap, 0) == NULL) {
- 					wprintk("%s: Medion Quadro, no tda826x "
- 						"found !\n", __func__);
--					goto dettach_frontend;
-+					goto detach_frontend;
- 				}
- 				if (dev_id != 0x08) {
- 					/* we need to open the i2c gate (we know it exists) */
-@@ -1444,7 +1444,7 @@ static int dvb_init(struct saa7134_dev *dev)
- 							&dev->i2c_adap, 0x08, 0, 0) == NULL) {
- 						wprintk("%s: Medion Quadro, no ISL6405 "
- 							"found !\n", __func__);
--						goto dettach_frontend;
-+						goto detach_frontend;
- 					}
- 					if (dev_id == 0x07) {
- 						/* fire up the 2nd section of the LNB supply since
-@@ -1503,12 +1503,12 @@ static int dvb_init(struct saa7134_dev *dev)
- 			if (dvb_attach(tda826x_attach, fe0->dvb.frontend, 0x60,
- 				       &dev->i2c_adap, 0) == NULL) {
- 				wprintk("%s: No tda826x found!\n", __func__);
--				goto dettach_frontend;
-+				goto detach_frontend;
- 			}
- 			if (dvb_attach(isl6421_attach, fe0->dvb.frontend,
- 				       &dev->i2c_adap, 0x08, 0, 0) == NULL) {
- 				wprintk("%s: No ISL6421 found!\n", __func__);
--				goto dettach_frontend;
-+				goto detach_frontend;
- 			}
- 		}
- 		break;
-@@ -1537,37 +1537,37 @@ static int dvb_init(struct saa7134_dev *dev)
- 	case SAA7134_BOARD_CINERGY_HT_PCMCIA:
- 		if (configure_tda827x_fe(dev, &cinergy_ht_config,
- 					 &tda827x_cfg_0) < 0)
--			goto dettach_frontend;
-+			goto detach_frontend;
- 		break;
- 	case SAA7134_BOARD_CINERGY_HT_PCI:
- 		if (configure_tda827x_fe(dev, &cinergy_ht_pci_config,
- 					 &tda827x_cfg_0) < 0)
--			goto dettach_frontend;
-+			goto detach_frontend;
- 		break;
- 	case SAA7134_BOARD_PHILIPS_TIGER_S:
- 		if (configure_tda827x_fe(dev, &philips_tiger_s_config,
- 					 &tda827x_cfg_2) < 0)
--			goto dettach_frontend;
-+			goto detach_frontend;
- 		break;
- 	case SAA7134_BOARD_ASUS_P7131_4871:
- 		if (configure_tda827x_fe(dev, &asus_p7131_4871_config,
- 					 &tda827x_cfg_2) < 0)
--			goto dettach_frontend;
-+			goto detach_frontend;
- 		break;
- 	case SAA7134_BOARD_ASUSTeK_P7131_HYBRID_LNA:
- 		if (configure_tda827x_fe(dev, &asus_p7131_hybrid_lna_config,
- 					 &tda827x_cfg_2) < 0)
--			goto dettach_frontend;
-+			goto detach_frontend;
- 		break;
- 	case SAA7134_BOARD_AVERMEDIA_SUPER_007:
- 		if (configure_tda827x_fe(dev, &avermedia_super_007_config,
- 					 &tda827x_cfg_0) < 0)
--			goto dettach_frontend;
-+			goto detach_frontend;
- 		break;
- 	case SAA7134_BOARD_TWINHAN_DTV_DVB_3056:
- 		if (configure_tda827x_fe(dev, &twinhan_dtv_dvb_3056_config,
- 					 &tda827x_cfg_2_sw42) < 0)
--			goto dettach_frontend;
-+			goto detach_frontend;
- 		break;
- 	case SAA7134_BOARD_PHILIPS_SNAKE:
- 		fe0->dvb.frontend = dvb_attach(tda10086_attach, &flydvbs,
-@@ -1576,24 +1576,24 @@ static int dvb_init(struct saa7134_dev *dev)
- 			if (dvb_attach(tda826x_attach, fe0->dvb.frontend, 0x60,
- 					&dev->i2c_adap, 0) == NULL) {
- 				wprintk("%s: No tda826x found!\n", __func__);
--				goto dettach_frontend;
-+				goto detach_frontend;
- 			}
- 			if (dvb_attach(lnbp21_attach, fe0->dvb.frontend,
- 					&dev->i2c_adap, 0, 0) == NULL) {
- 				wprintk("%s: No lnbp21 found!\n", __func__);
--				goto dettach_frontend;
-+				goto detach_frontend;
- 			}
- 		}
- 		break;
- 	case SAA7134_BOARD_CREATIX_CTX953:
- 		if (configure_tda827x_fe(dev, &md8800_dvbt_config,
- 					 &tda827x_cfg_0) < 0)
--			goto dettach_frontend;
-+			goto detach_frontend;
- 		break;
- 	case SAA7134_BOARD_MSI_TVANYWHERE_AD11:
- 		if (configure_tda827x_fe(dev, &philips_tiger_s_config,
- 					 &tda827x_cfg_2) < 0)
--			goto dettach_frontend;
-+			goto detach_frontend;
- 		break;
- 	case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
- 		dprintk("AverMedia E506R dvb setup\n");
-@@ -1614,7 +1614,7 @@ static int dvb_init(struct saa7134_dev *dev)
- 				  &dev->i2c_adap, DVB_PLL_PHILIPS_SD1878_TDA8261) == NULL) {
- 				wprintk("%s: MD7134 DVB-S, no SD1878 "
- 					"found !\n", __func__);
--				goto dettach_frontend;
-+				goto detach_frontend;
- 			}
- 			/* we need to open the i2c gate (we know it exists) */
- 			fe = fe0->dvb.frontend;
-@@ -1623,7 +1623,7 @@ static int dvb_init(struct saa7134_dev *dev)
- 					&dev->i2c_adap, 0x08, 0, 0) == NULL) {
- 				wprintk("%s: MD7134 DVB-S, no ISL6405 "
- 					"found !\n", __func__);
--				goto dettach_frontend;
-+				goto detach_frontend;
- 			}
- 			fe->ops.i2c_gate_ctrl(fe, 0);
- 			dev->original_set_voltage = fe->ops.set_voltage;
-@@ -1645,7 +1645,7 @@ static int dvb_init(struct saa7134_dev *dev)
- 		if (!use_frontend) {     /* terrestrial */
- 			if (configure_tda827x_fe(dev, &asus_tiger_3in1_config,
- 							&tda827x_cfg_2) < 0)
--				goto dettach_frontend;
-+				goto detach_frontend;
- 		} else {  		/* satellite */
- 			fe0->dvb.frontend = dvb_attach(tda10086_attach,
- 						&flydvbs, &dev->i2c_adap);
-@@ -1655,13 +1655,13 @@ static int dvb_init(struct saa7134_dev *dev)
- 						&dev->i2c_adap, 0) == NULL) {
- 					wprintk("%s: Asus Tiger 3in1, no "
- 						"tda826x found!\n", __func__);
--					goto dettach_frontend;
-+					goto detach_frontend;
- 				}
- 				if (dvb_attach(lnbp21_attach, fe0->dvb.frontend,
- 						&dev->i2c_adap, 0, 0) == NULL) {
- 					wprintk("%s: Asus Tiger 3in1, no lnbp21"
- 						" found!\n", __func__);
--				       goto dettach_frontend;
-+				       goto detach_frontend;
- 			       }
- 		       }
- 	       }
-@@ -1670,7 +1670,7 @@ static int dvb_init(struct saa7134_dev *dev)
- 		if (!use_frontend) {     /* terrestrial */
- 			if (configure_tda827x_fe(dev, &asus_ps3_100_config,
- 						 &tda827x_cfg_2) < 0)
--				goto dettach_frontend;
-+				goto detach_frontend;
- 	       } else {                /* satellite */
- 			fe0->dvb.frontend = dvb_attach(tda10086_attach,
- 						       &flydvbs, &dev->i2c_adap);
-@@ -1680,13 +1680,13 @@ static int dvb_init(struct saa7134_dev *dev)
- 					       &dev->i2c_adap, 0) == NULL) {
- 					wprintk("%s: Asus My Cinema PS3-100, no "
- 						"tda826x found!\n", __func__);
--					goto dettach_frontend;
-+					goto detach_frontend;
- 				}
- 				if (dvb_attach(lnbp21_attach, fe0->dvb.frontend,
- 					       &dev->i2c_adap, 0, 0) == NULL) {
- 					wprintk("%s: Asus My Cinema PS3-100, no lnbp21"
- 						" found!\n", __func__);
--					goto dettach_frontend;
-+					goto detach_frontend;
- 				}
- 			}
- 		}
-@@ -1694,7 +1694,7 @@ static int dvb_init(struct saa7134_dev *dev)
- 	case SAA7134_BOARD_ASUSTeK_TIGER:
- 		if (configure_tda827x_fe(dev, &philips_tiger_config,
- 					 &tda827x_cfg_0) < 0)
--			goto dettach_frontend;
-+			goto detach_frontend;
- 		break;
- 	case SAA7134_BOARD_BEHOLD_H6:
- 		fe0->dvb.frontend = dvb_attach(zl10353_attach,
-@@ -1830,19 +1830,19 @@ static int dvb_init(struct saa7134_dev *dev)
- 		};
+The prime code no longer requires the bo to be backed by a gem object,
+and cpu access calls have been implemented. This will be needed for
+exporting fence bo's.
+
+Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+---
+ drivers/gpu/drm/nouveau/nouveau_drv.h   |    6 +-
+ drivers/gpu/drm/nouveau/nouveau_prime.c |  106 +++++++++++++++++++++----------
+ 2 files changed, 79 insertions(+), 33 deletions(-)
+
+diff --git a/drivers/gpu/drm/nouveau/nouveau_drv.h b/drivers/gpu/drm/nouveau/nouveau_drv.h
+index 8613cb2..7c52eba 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_drv.h
++++ b/drivers/gpu/drm/nouveau/nouveau_drv.h
+@@ -1374,11 +1374,15 @@ extern int nouveau_gem_ioctl_cpu_fini(struct drm_device *, void *,
+ extern int nouveau_gem_ioctl_info(struct drm_device *, void *,
+ 				  struct drm_file *);
  
- 		if (!fe0->dvb.frontend)
--			goto dettach_frontend;
-+			goto detach_frontend;
++extern int nouveau_gem_prime_export_bo(struct nouveau_bo *nvbo, int flags,
++				       u32 size, struct dma_buf **ret);
+ extern struct dma_buf *nouveau_gem_prime_export(struct drm_device *dev,
+ 				struct drm_gem_object *obj, int flags);
+ extern struct drm_gem_object *nouveau_gem_prime_import(struct drm_device *dev,
+ 				struct dma_buf *dma_buf);
+-
++extern int nouveau_prime_import_bo(struct drm_device *dev,
++				   struct dma_buf *dma_buf,
++				   struct nouveau_bo **pnvbo, bool gem);
+ /* nouveau_display.c */
+ int nouveau_display_create(struct drm_device *dev);
+ void nouveau_display_destroy(struct drm_device *dev);
+diff --git a/drivers/gpu/drm/nouveau/nouveau_prime.c b/drivers/gpu/drm/nouveau/nouveau_prime.c
+index a25cf2c..537154d3 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_prime.c
++++ b/drivers/gpu/drm/nouveau/nouveau_prime.c
+@@ -35,7 +35,8 @@ static struct sg_table *nouveau_gem_map_dma_buf(struct dma_buf_attachment *attac
+ 					  enum dma_data_direction dir)
+ {
+ 	struct nouveau_bo *nvbo = attachment->dmabuf->priv;
+-	struct drm_device *dev = nvbo->gem->dev;
++	struct drm_nouveau_private *dev_priv = nouveau_bdev(nvbo->bo.bdev);
++	struct drm_device *dev = dev_priv->dev;
+ 	int npages = nvbo->bo.num_pages;
+ 	struct sg_table *sg;
+ 	int nents;
+@@ -59,29 +60,37 @@ static void nouveau_gem_dmabuf_release(struct dma_buf *dma_buf)
+ {
+ 	struct nouveau_bo *nvbo = dma_buf->priv;
  
- 		fe = dvb_attach(xc2028_attach, fe0->dvb.frontend, &cfg);
- 		if (!fe) {
- 			printk(KERN_ERR "%s/2: xc3028 attach failed\n",
- 			       dev->name);
--			goto dettach_frontend;
-+			goto detach_frontend;
- 		}
+-	if (nvbo->gem->export_dma_buf == dma_buf) {
+-		nvbo->gem->export_dma_buf = NULL;
++	nouveau_bo_unpin(nvbo);
++	if (!nvbo->gem)
++		nouveau_bo_ref(NULL, &nvbo);
++	else {
++		if (nvbo->gem->export_dma_buf == dma_buf)
++			nvbo->gem->export_dma_buf = NULL;
+ 		drm_gem_object_unreference_unlocked(nvbo->gem);
  	}
- 
- 	if (NULL == fe0->dvb.frontend) {
- 		printk(KERN_ERR "%s/dvb: frontend initialization failed\n", dev->name);
--		goto dettach_frontend;
-+		goto detach_frontend;
- 	}
- 	/* define general-purpose callback pointer */
- 	fe0->dvb.frontend->callback = saa7134_tuner_callback;
-@@ -1864,7 +1864,7 @@ static int dvb_init(struct saa7134_dev *dev)
- 	}
- 	return ret;
- 
--dettach_frontend:
-+detach_frontend:
- 	videobuf_dvb_dealloc_frontends(&dev->frontends);
- 	return -EINVAL;
  }
+ 
+ static void *nouveau_gem_kmap_atomic(struct dma_buf *dma_buf, unsigned long page_num)
+ {
+-	return NULL;
++	struct nouveau_bo *nvbo = dma_buf->priv;
++	return kmap_atomic(nvbo->bo.ttm->pages[page_num]);
+ }
+ 
+ static void nouveau_gem_kunmap_atomic(struct dma_buf *dma_buf, unsigned long page_num, void *addr)
+ {
+-
++	kunmap_atomic(addr);
+ }
++
+ static void *nouveau_gem_kmap(struct dma_buf *dma_buf, unsigned long page_num)
+ {
+-	return NULL;
++	struct nouveau_bo *nvbo = dma_buf->priv;
++	return kmap(nvbo->bo.ttm->pages[page_num]);
+ }
+ 
+ static void nouveau_gem_kunmap(struct dma_buf *dma_buf, unsigned long page_num, void *addr)
+ {
+-
++	struct nouveau_bo *nvbo = dma_buf->priv;
++	return kunmap(nvbo->bo.ttm->pages[page_num]);
+ }
+ 
+ static int nouveau_gem_prime_mmap(struct dma_buf *dma_buf, struct vm_area_struct *vma)
+@@ -92,7 +101,8 @@ static int nouveau_gem_prime_mmap(struct dma_buf *dma_buf, struct vm_area_struct
+ static void *nouveau_gem_prime_vmap(struct dma_buf *dma_buf)
+ {
+ 	struct nouveau_bo *nvbo = dma_buf->priv;
+-	struct drm_device *dev = nvbo->gem->dev;
++	struct drm_nouveau_private *dev_priv = nouveau_bdev(nvbo->bo.bdev);
++	struct drm_device *dev = dev_priv->dev;
+ 	int ret;
+ 
+ 	mutex_lock(&dev->struct_mutex);
+@@ -116,7 +126,8 @@ out_unlock:
+ static void nouveau_gem_prime_vunmap(struct dma_buf *dma_buf, void *vaddr)
+ {
+ 	struct nouveau_bo *nvbo = dma_buf->priv;
+-	struct drm_device *dev = nvbo->gem->dev;
++	struct drm_nouveau_private *dev_priv = nouveau_bdev(nvbo->bo.bdev);
++	struct drm_device *dev = dev_priv->dev;
+ 
+ 	mutex_lock(&dev->struct_mutex);
+ 	nvbo->vmapping_count--;
+@@ -140,10 +151,9 @@ static const struct dma_buf_ops nouveau_dmabuf_ops =  {
+ };
+ 
+ static int
+-nouveau_prime_new(struct drm_device *dev,
+-		  size_t size,
++nouveau_prime_new(struct drm_device *dev, size_t size,
+ 		  struct sg_table *sg,
+-		  struct nouveau_bo **pnvbo)
++		  struct nouveau_bo **pnvbo, bool gem)
+ {
+ 	struct nouveau_bo *nvbo;
+ 	u32 flags = 0;
+@@ -156,12 +166,10 @@ nouveau_prime_new(struct drm_device *dev,
+ 	if (ret)
+ 		return ret;
+ 	nvbo = *pnvbo;
+-
+-	/* we restrict allowed domains on nv50+ to only the types
+-	 * that were requested at creation time.  not possibly on
+-	 * earlier chips without busting the ABI.
+-	 */
+ 	nvbo->valid_domains = NOUVEAU_GEM_DOMAIN_GART;
++	if (!gem)
++		return 0;
++
+ 	nvbo->gem = drm_gem_object_alloc(dev, nvbo->bo.mem.size);
+ 	if (!nvbo->gem) {
+ 		nouveau_bo_ref(NULL, pnvbo);
+@@ -172,22 +180,37 @@ nouveau_prime_new(struct drm_device *dev,
+ 	return 0;
+ }
+ 
+-struct dma_buf *nouveau_gem_prime_export(struct drm_device *dev,
+-				struct drm_gem_object *obj, int flags)
++int nouveau_gem_prime_export_bo(struct nouveau_bo *nvbo, int flags,
++				u32 size, struct dma_buf **buf)
+ {
+-	struct nouveau_bo *nvbo = nouveau_gem_object(obj);
+ 	int ret = 0;
++	*buf = NULL;
+ 
+ 	/* pin buffer into GTT */
+ 	ret = nouveau_bo_pin(nvbo, TTM_PL_FLAG_TT);
+ 	if (ret)
+-		return ERR_PTR(-EINVAL);
++		return -EINVAL;
++
++	*buf = dma_buf_export(nvbo, &nouveau_dmabuf_ops, size, flags);
++	if (!IS_ERR(*buf))
++		return 0;
+ 
+-	return dma_buf_export(nvbo, &nouveau_dmabuf_ops, obj->size, flags);
++	nouveau_bo_unpin(nvbo);
++	return PTR_ERR(*buf);
++}
++
++struct dma_buf *nouveau_gem_prime_export(struct drm_device *dev,
++				struct drm_gem_object *obj, int flags)
++{
++	struct nouveau_bo *nvbo = nouveau_gem_object(obj);
++	struct dma_buf *buf;
++	nouveau_gem_prime_export_bo(nvbo, flags, obj->size, &buf);
++	return buf;
+ }
+ 
+-struct drm_gem_object *nouveau_gem_prime_import(struct drm_device *dev,
+-				struct dma_buf *dma_buf)
++int nouveau_prime_import_bo(struct drm_device *dev,
++			    struct dma_buf *dma_buf,
++			    struct nouveau_bo **pnvbo, bool gem)
+ {
+ 	struct dma_buf_attachment *attach;
+ 	struct sg_table *sg;
+@@ -196,17 +219,22 @@ struct drm_gem_object *nouveau_gem_prime_import(struct drm_device *dev,
+ 
+ 	if (dma_buf->ops == &nouveau_dmabuf_ops) {
+ 		nvbo = dma_buf->priv;
+-		if (nvbo->gem) {
++		if (!gem) {
++			nouveau_bo_ref(nvbo, pnvbo);
++			return 0;
++		}
++		else if (nvbo->gem) {
+ 			if (nvbo->gem->dev == dev) {
+ 				drm_gem_object_reference(nvbo->gem);
+-				return nvbo->gem;
++				*pnvbo = nvbo;
++				return 0;
+ 			}
+ 		}
+ 	}
+ 	/* need to attach */
+ 	attach = dma_buf_attach(dma_buf, dev->dev);
+ 	if (IS_ERR(attach))
+-		return ERR_PTR(PTR_ERR(attach));
++		return PTR_ERR(attach);
+ 
+ 	sg = dma_buf_map_attachment(attach, DMA_BIDIRECTIONAL);
+ 	if (IS_ERR(sg)) {
+@@ -214,18 +242,32 @@ struct drm_gem_object *nouveau_gem_prime_import(struct drm_device *dev,
+ 		goto fail_detach;
+ 	}
+ 
+-	ret = nouveau_prime_new(dev, dma_buf->size, sg, &nvbo);
++	ret = nouveau_prime_new(dev, dma_buf->size, sg, pnvbo, gem);
+ 	if (ret)
+ 		goto fail_unmap;
+ 
+-	nvbo->gem->import_attach = attach;
+-
+-	return nvbo->gem;
++	if (gem)
++		(*pnvbo)->gem->import_attach = attach;
++	BUG_ON(attach->priv);
++	attach->priv = *pnvbo;
++	return 0;
+ 
+ fail_unmap:
+ 	dma_buf_unmap_attachment(attach, sg, DMA_BIDIRECTIONAL);
+ fail_detach:
+ 	dma_buf_detach(dma_buf, attach);
+-	return ERR_PTR(ret);
++	return ret;
++}
++
++struct drm_gem_object *
++nouveau_gem_prime_import(struct drm_device *dev, struct dma_buf *dma_buf)
++{
++	struct nouveau_bo *nvbo = NULL;
++	int ret;
++
++	ret = nouveau_prime_import_bo(dev, dma_buf, &nvbo, true);
++	if (ret)
++		return ERR_PTR(ret);
++	return nvbo->gem;
+ }
+ 
 -- 
 1.7.9.5
 
