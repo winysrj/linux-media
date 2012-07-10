@@ -1,35 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f53.google.com ([209.85.216.53]:51555 "EHLO
-	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750777Ab2GAUPo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Jul 2012 16:15:44 -0400
-Received: by qaas11 with SMTP id s11so1561997qaa.19
-        for <linux-media@vger.kernel.org>; Sun, 01 Jul 2012 13:15:43 -0700 (PDT)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH 0/6] Various cx23885 analog fixes
-Date: Sun,  1 Jul 2012 16:15:08 -0400
-Message-Id: <1341173714-23627-1-git-send-email-dheitmueller@kernellabs.com>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:33358 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751042Ab2GJDQI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2012 23:16:08 -0400
+Received: by yhmm54 with SMTP id m54so85475yhm.19
+        for <linux-media@vger.kernel.org>; Mon, 09 Jul 2012 20:16:08 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAGoCfiyAOUY8XjnJpvg4Q7sFT=bYL0w-jqQ=80RPJm6dtxyMKw@mail.gmail.com>
+References: <CAOkj57_x0CoUTce5t7U-=2YdkjOQV-_tBFKRJj41rZNQrPU+Uw@mail.gmail.com>
+	<9c03d233-e0dd-4754-a9c7-53be71ac959a@email.android.com>
+	<CAGoCfiyAOUY8XjnJpvg4Q7sFT=bYL0w-jqQ=80RPJm6dtxyMKw@mail.gmail.com>
+Date: Mon, 9 Jul 2012 21:16:07 -0600
+Message-ID: <CAOkj57-kKxa-QEFqW1CCN6Mdcxv19X29N7JKQeoVKjEsBDRsBg@mail.gmail.com>
+Subject: Re: Linux equivalent of Windows VBIScope?
+From: Tim Stowell <stowellt@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series contains fixes for various cx23885 boards, as well as
-introducing support for analog for the HVR-1250 and 1255.
+osc is perfect, thanks! In my past experience the em28xx driver has
+been great, but I'll let you know if there are any issues.
 
-Devin Heitmueller (6):
-  cx25840: fix regression in HVR-1800 analog support
-  cx25840: fix regression in HVR-1800 analog support hue/saturation
-    controls
-  cx25840: fix regression in HVR-1800 analog audio
-  cx25840: fix vsrc/hsrc usage on cx23888 designs
-  cx23885: make analog support work for HVR_1250 (cx23885 variant)
-  cx23885: add support for HVR-1255 analog (cx23888 variant)
 
- drivers/media/video/cx23885/cx23885-cards.c |   87 ++++++++++++++++++++++++---
- drivers/media/video/cx23885/cx23885-dvb.c   |    6 ++
- drivers/media/video/cx23885/cx23885-video.c |    9 +++-
- drivers/media/video/cx23885/cx23885.h       |    1 +
- drivers/media/video/cx25840/cx25840-core.c  |   76 +++++++++++++++++------
- 5 files changed, 149 insertions(+), 30 deletions(-)
-
+On Mon, Jul 9, 2012 at 3:49 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> On Mon, Jul 9, 2012 at 5:32 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+>> Tim Stowell <stowellt@gmail.com> wrote:
+>>
+>>>Hi all,
+>>>
+>>>I am using the em28xx driver and have been able to extract captions
+>>>using zvbi. I would like to visualize the waveform like the DirectShow
+>>>VBIScope filter on windows (unfortunately the Windows driver doesn't
+>>>expose any VBI pins). Does anyone know of anythings similar on Linux?
+>>>Thanks
+>>>--
+>>>To unsubscribe from this list: send the line "unsubscribe linux-media"
+>>>in
+>>>the body of a message to majordomo@vger.kernel.org
+>>>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>> 'osc' is a test utility that is part of the zvbi source distribution.  It probably does what you need.
+>>
+>> Regards,
+>> Andy
+>
+> I'll second Andy's endorsement of osc.  It's a very handy little tool.
+>
+> Also, if you run into any VBI issues with em28xx, please let me know
+> (I did the original driver support for it).
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
