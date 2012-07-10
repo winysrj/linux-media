@@ -1,138 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50860 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932106Ab2GCQZj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Jul 2012 12:25:39 -0400
-Message-ID: <4FF31CEB.3070707@redhat.com>
-Date: Tue, 03 Jul 2012 13:25:15 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Patrick Boettcher <pboettcher@kernellabs.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	htl10@users.sourceforge.net
-Subject: Re: DVB core enhancements - comments please?
-References: <4FEBA656.7060608@iki.fi> <4FED2FE0.9010602@redhat.com> <4FED3714.2080901@iki.fi> <2601054.j5eSD2QU7J@dibcom294> <4FEDBB9B.9010400@redhat.com> <4FF21238.1000002@iki.fi>
-In-Reply-To: <4FF21238.1000002@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:53636 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754439Ab2GJK6k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jul 2012 06:58:40 -0400
+From: Maarten Lankhorst <m.b.lankhorst@gmail.com>
+To: dri-devel@lists.freedesktop.org
+Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Subject: [RFC PATCH 7/8] nouveau: nvc0 fence prime implementation
+Date: Tue, 10 Jul 2012 12:57:50 +0200
+Message-Id: <1341917871-2512-8-git-send-email-m.b.lankhorst@gmail.com>
+In-Reply-To: <1341917871-2512-1-git-send-email-m.b.lankhorst@gmail.com>
+References: <1341917871-2512-1-git-send-email-m.b.lankhorst@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 02-07-2012 18:27, Antti Palosaari escreveu:
-> On 06/29/2012 05:28 PM, Mauro Carvalho Chehab wrote:
->> Em 29-06-2012 08:24, Patrick Boettcher escreveu:
->>> On Friday 29 June 2012 08:03:16 Antti Palosaari wrote:
->>>> On 06/29/2012 07:32 AM, Mauro Carvalho Chehab wrote:
->>>>> Em 27-06-2012 21:33, Antti Palosaari escreveu:
->>>>>> SDR - Softaware Defined Radio support DVB API
->>>>>> --------------------------------------------------
->>>>>> *
->>>>>> http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructu
->>>>>> re/44461 * there is existing devices that are SDR (RTL2832U "rtl-sdr")
->>>>>> * SDR is quite near what is digital TV streaming
->>>>>> * study what is needed
->>>>>> * new delivery system for frontend API called SDR?
->>>>>> * some core changes needed, like status (is locked etc)
->>>>>> * how about demuxer?
->>>>>> * stream conversion, inside Kernel?
->>>>>> * what are new parameters needed for DVB API?
->>>>>
->>>>> Let's not mix APIs: the radio control should use the V4L2 API, as this
->>>>> is not DVB. The V4L2 API has already everything needed for radio. The
->>>>> only missing part ther is the audio stream. However, there are a few
->>>>> drivers that provide audio via the radio device node, using
->>>>> read()/poll() syscalls, like pvrusb. On this specific driver, audio
->>>>> comes through a MPEG stream. As SDR provides audio on a different
->>>>> format, it could make sense to use VIDIOC_S_STD/VIDIOC_G_STD to
->>>>> set/retrieve the type of audio stream, for SDR, but maybe it better to
->>>>> just add capabilities flag at VIDIOC_QUERYCTL or VIDIOC_G_TUNER to
->>>>> indicate that the audio will come though the radio node and if the
->>>>> format is MPEG or SDR.
->>>> SDR is not a radio in mean of V4L2 analog audio radios. SDR can receive
->>>> all kind of signals, analog audio, analog television, digital radio,
->>>> digital television, cellular phones, etc. You can even receive DVB-T,
->>>> but hardware I have is not capable to receive such wide stream.
->>>>
->>>> That chip supports natively DVB-T TS but change be switched to SDR mode.
->>>> Is it even possible to switch from DVB API (DVB-T delivery system) to
->>>> V4L2 API at runtime?
->>>
->>> It could be possible that neither the DVB-API nor the V4L2 API is the right
->>> user-interface for such devices. The output of such devices is the
->>> acquisition of raw (digitalized) data of a signal and here signal is meant
->>> in the sense of anything which can be digitalized (e.g.: sensors, tuners,
->>> ADCs).
->>>
->>> Such device will surely be have a device-specific (user-space?) library to
->>> do the post/pre-processing before putting this data into a generic format.
->>
->> That's one more reason why using the V4L2 API is better: at the V4L2 API, the
->> output format is represented by a 32 bits unique code. There are several
->> standard fourcc codes there, plus several proprietary formats represented.
->> The decoding between the proprietary formats is done via libv4l. Libv4l
->> can be used with any pre-compiled userspace application, via LD_PRELOAD,
->> although almost all V4L2 userspace applications[1] are using the libv4l to decode
->> data. Adding SDR decoding there should not be hard.
->>
->> [1] Radio applications don't use it yet, as almost all radio devices output
->> audio via ALSA API, so some work will be needed there to add SDR radio
->> support.
->>
->>>> That said, IMO, the rtl-sdr driver should sit on the DVB-API. Maybe V4L2
->>>> provides a device-specific control path (to configure the hardware) if not
->>>> somewhere else, or something new needs to be created.
->>
->>> *argl* I wanted to say, ... should _not_ sit on the DVB-API...
->>
->> Agreed. Tuning with the V4L2 API is more direct, as doesn't have any
->> threads looking for DVB demod status, in order to do frequency zig-zag.
->>
->> It also have support for hardware frequency scanning, which can be an
->> interesting feature if supported.
-> 
-> OK, I have now played (too) many hours. Looking existing code and testing. But I cannot listen even simple FM-radio station. What are most famous / best radio applications ? I tried gnomeradio, gqradio and fmscan...
-> 
-> That is USB radio based si470x chipset.
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 
-Well, I don't have any si470x device here.
+Create a read-only mapping for every imported bo, and create a prime
+bo in in system memory.
 
-It should be noticed that radio applications in general don't open the
-alsa devices to get audio, as old devices used to have a cable to wire
-at the audio adapter.
+Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+---
+ drivers/gpu/drm/nouveau/nvc0_fence.c |  104 +++++++++++++++++++++++++++++-----
+ 1 file changed, 89 insertions(+), 15 deletions(-)
 
-I bet that this device uses snd-usb-audio module for audio. So, you may
-need to use aplayer/arecord in order to listen, with a syntax similar to:
-
-	arecord -D hw:1,0 -r 32000 -c 2 -f S16_LE | aplay -
-
-The -r 32000 is for 32 kHz. 
-
-
-In my case, I prefer to use "radio" aplication that comes with xawtv.
-It shouldn't be hard to patch it to also create the audio playback command
-there, as the code for that is already there at xawtv3 tree, and it is
-used by xawtv.
-
-I'll see if I can write a patch for that today.
-
-> 
-> Jul  3 00:12:18 localhost kernel: [27988.288783] usb 5-2: New USB device found, idVendor=10c5, idProduct=819a
-> Jul  3 00:12:18 localhost kernel: [27988.288787] usb 5-2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-> Jul  3 00:12:18 localhost kernel: [27988.288789] usb 5-2: Manufacturer: www.rding.cn
-> Jul  3 00:12:18 localhost udevd[409]: specified group 'plugdev' unknown
-> Jul  3 00:12:18 localhost kernel: [27988.310751] radio-si470x 5-2:1.2: DeviceID=0x1242 ChipID=0x060c
-> Jul  3 00:12:18 localhost kernel: [27988.310754] radio-si470x 5-2:1.2: This driver is known to work with firmware version 15,
-> Jul  3 00:12:18 localhost kernel: [27988.310756] radio-si470x 5-2:1.2: but the device has firmware version 12.
-> Jul  3 00:12:18 localhost kernel: [27988.312750] radio-si470x 5-2:1.2: software version 1, hardware version 7
-> Jul  3 00:12:18 localhost kernel: [27988.312753] radio-si470x 5-2:1.2: This driver is known to work with software version 7,
-> Jul  3 00:12:18 localhost kernel: [27988.312755] radio-si470x 5-2:1.2: but the device has software version 1.
-> Jul  3 00:12:18 localhost kernel: [27988.312756] radio-si470x 5-2:1.2: If you have some trouble using this driver,
-> Jul  3 00:12:18 localhost kernel: [27988.312757] radio-si470x 5-2:1.2: please report to V4L ML at linux-media@vger.kernel.org
-> 
-> 
-> regards
-> Antti
-> 
-
+diff --git a/drivers/gpu/drm/nouveau/nvc0_fence.c b/drivers/gpu/drm/nouveau/nvc0_fence.c
+index 198e31f..dc6ccab 100644
+--- a/drivers/gpu/drm/nouveau/nvc0_fence.c
++++ b/drivers/gpu/drm/nouveau/nvc0_fence.c
+@@ -37,6 +37,7 @@ struct nvc0_fence_priv {
+ struct nvc0_fence_chan {
+ 	struct nouveau_fence_chan base;
+ 	struct nouveau_vma vma;
++	struct nouveau_vma prime_vma;
+ };
+ 
+ static int
+@@ -45,19 +46,23 @@ nvc0_fence_emit(struct nouveau_fence *fence, bool prime)
+ 	struct nouveau_channel *chan = fence->channel;
+ 	struct nvc0_fence_chan *fctx = chan->engctx[NVOBJ_ENGINE_FENCE];
+ 	u64 addr = fctx->vma.offset + chan->id * 16;
+-	int ret;
++	int ret, i;
+ 
+-	ret = RING_SPACE(chan, 5);
+-	if (ret == 0) {
++	ret = RING_SPACE(chan, prime ? 10 : 5);
++	if (ret)
++		return ret;
++
++	for (i = 0; i < (prime ? 2 : 1); ++i) {
++		if (i)
++			addr = fctx->prime_vma.offset + chan->id * 16;
+ 		BEGIN_NVC0(chan, 0, NV84_SUBCHAN_SEMAPHORE_ADDRESS_HIGH, 4);
+ 		OUT_RING  (chan, upper_32_bits(addr));
+ 		OUT_RING  (chan, lower_32_bits(addr));
+ 		OUT_RING  (chan, fence->sequence);
+ 		OUT_RING  (chan, NV84_SUBCHAN_SEMAPHORE_TRIGGER_WRITE_LONG);
+-		FIRE_RING (chan);
+ 	}
+-
+-	return ret;
++	FIRE_RING(chan);
++	return 0;
+ }
+ 
+ static int
+@@ -95,6 +100,8 @@ nvc0_fence_context_del(struct nouveau_channel *chan, int engine)
+ 	struct nvc0_fence_priv *priv = nv_engine(chan->dev, engine);
+ 	struct nvc0_fence_chan *fctx = chan->engctx[engine];
+ 
++	if (priv->base.prime_bo)
++		nouveau_bo_vma_del(priv->base.prime_bo, &fctx->prime_vma);
+ 	nouveau_bo_vma_del(priv->bo, &fctx->vma);
+ 	nouveau_fence_context_del(chan->dev, &fctx->base);
+ 	chan->engctx[engine] = NULL;
+@@ -115,10 +122,16 @@ nvc0_fence_context_new(struct nouveau_channel *chan, int engine)
+ 	nouveau_fence_context_new(&fctx->base);
+ 
+ 	ret = nouveau_bo_vma_add(priv->bo, chan->vm, &fctx->vma);
++	if (!ret && priv->base.prime_bo)
++		ret = nouveau_bo_vma_add(priv->base.prime_bo, chan->vm,
++					 &fctx->prime_vma);
+ 	if (ret)
+ 		nvc0_fence_context_del(chan, engine);
+ 
+-	nouveau_bo_wr32(priv->bo, chan->id * 16/4, 0x00000000);
++	fctx->base.sequence = nouveau_bo_rd32(priv->bo, chan->id * 16/4);
++	if (priv->base.prime_bo)
++		nouveau_bo_wr32(priv->base.prime_bo, chan->id * 16/4,
++				fctx->base.sequence);
+ 	return ret;
+ }
+ 
+@@ -140,12 +153,55 @@ nvc0_fence_destroy(struct drm_device *dev, int engine)
+ 	struct drm_nouveau_private *dev_priv = dev->dev_private;
+ 	struct nvc0_fence_priv *priv = nv_engine(dev, engine);
+ 
++	nouveau_fence_prime_del(&priv->base);
+ 	nouveau_bo_unmap(priv->bo);
++	nouveau_bo_unpin(priv->bo);
+ 	nouveau_bo_ref(NULL, &priv->bo);
+ 	dev_priv->eng[engine] = NULL;
+ 	kfree(priv);
+ }
+ 
++static int
++nvc0_fence_prime_sync(struct nouveau_channel *chan,
++		      struct nouveau_bo *bo,
++		      u32 ofs, u32 val, u64 sema_start)
++{
++	struct nvc0_fence_chan *fctx = chan->engctx[NVOBJ_ENGINE_FENCE];
++	struct nvc0_fence_priv *priv = nv_engine(chan->dev, NVOBJ_ENGINE_FENCE);
++	int ret = RING_SPACE(chan, 5);
++	if (ret)
++		return ret;
++
++	if (bo == priv->base.prime_bo)
++		sema_start = fctx->prime_vma.offset;
++	else
++		NV_ERROR(chan->dev, "syncing with %08Lx + %08x >= %08x\n",
++			sema_start, ofs, val);
++	sema_start += ofs;
++
++	BEGIN_NVC0(chan, 0, NV84_SUBCHAN_SEMAPHORE_ADDRESS_HIGH, 4);
++	OUT_RING  (chan, upper_32_bits(sema_start));
++	OUT_RING  (chan, lower_32_bits(sema_start));
++	OUT_RING  (chan, val);
++	OUT_RING  (chan, NV84_SUBCHAN_SEMAPHORE_TRIGGER_ACQUIRE_GEQUAL |
++			 NVC0_SUBCHAN_SEMAPHORE_TRIGGER_YIELD);
++	FIRE_RING (chan);
++	return ret;
++}
++
++static void
++nvc0_fence_prime_del_import(struct nouveau_fence_prime_bo_entry *entry) {
++	nouveau_bo_vma_del(entry->bo, &entry->vma);
++}
++
++static int
++nvc0_fence_prime_add_import(struct nouveau_fence_prime_bo_entry *entry) {
++	int ret = nouveau_bo_vma_add_access(entry->bo, entry->chan->vm,
++					    &entry->vma, NV_MEM_ACCESS_RO);
++	entry->sema_start = entry->vma.offset;
++	return ret;
++}
++
+ int
+ nvc0_fence_create(struct drm_device *dev)
+ {
+@@ -168,17 +224,35 @@ nvc0_fence_create(struct drm_device *dev)
+ 	priv->base.read = nvc0_fence_read;
+ 	dev_priv->eng[NVOBJ_ENGINE_FENCE] = &priv->base.engine;
+ 
++	priv->base.prime_sync = nvc0_fence_prime_sync;
++	priv->base.prime_add_import = nvc0_fence_prime_add_import;
++	priv->base.prime_del_import = nvc0_fence_prime_del_import;
++
+ 	ret = nouveau_bo_new(dev, 16 * pfifo->channels, 0, TTM_PL_FLAG_VRAM,
+ 			     0, 0, NULL, &priv->bo);
+-	if (ret == 0) {
+-		ret = nouveau_bo_pin(priv->bo, TTM_PL_FLAG_VRAM);
+-		if (ret == 0)
+-			ret = nouveau_bo_map(priv->bo);
+-		if (ret)
+-			nouveau_bo_ref(NULL, &priv->bo);
+-	}
++	if (ret)
++		goto err;
++	ret = nouveau_bo_pin(priv->bo, TTM_PL_FLAG_VRAM);
++	if (ret)
++		goto err_ref;
+ 
++	ret = nouveau_bo_map(priv->bo);
+ 	if (ret)
+-		nvc0_fence_destroy(dev, NVOBJ_ENGINE_FENCE);
++		goto err_unpin;
++
++	ret = nouveau_fence_prime_init(dev, &priv->base, 16);
++	if (ret)
++		goto err_unmap;
++	return 0;
++
++err_unmap:
++	nouveau_bo_unmap(priv->bo);
++err_unpin:
++	nouveau_bo_unpin(priv->bo);
++err_ref:
++	nouveau_bo_ref(NULL, &priv->bo);
++err:
++	dev_priv->eng[NVOBJ_ENGINE_FENCE] = NULL;
++	kfree(priv);
+ 	return ret;
+ }
+-- 
+1.7.9.5
 
