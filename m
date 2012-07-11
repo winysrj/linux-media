@@ -1,71 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:29378 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755513Ab2GENlP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Jul 2012 09:41:15 -0400
-Message-ID: <4FF59995.4010604@redhat.com>
-Date: Thu, 05 Jul 2012 15:41:41 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:39635 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932467Ab2GKNns convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jul 2012 09:43:48 -0400
+Received: by ghrr11 with SMTP id r11so1203442ghr.19
+        for <linux-media@vger.kernel.org>; Wed, 11 Jul 2012 06:43:48 -0700 (PDT)
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	hverkuil@xs4all.nl
-Subject: Re: [PATCH 4/4] radio-si470x: Lower firmware version requirements
-References: <1339681394-11348-1-git-send-email-hdegoede@redhat.com> <1339681394-11348-4-git-send-email-hdegoede@redhat.com> <4FF45FF7.4020300@iki.fi> <4FF5515A.1030704@redhat.com> <4FF5980F.8030109@iki.fi>
-In-Reply-To: <4FF5980F.8030109@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Reply-To: martin-eric.racine@iki.fi
+In-Reply-To: <4FFD7F48.6060905@redhat.com>
+References: <20120614162609.4613.22122.reportbug@henna.lan>
+	<20120614215359.GF3537@burratino>
+	<CAPZXPQd9gNCxn7xGyqj_xymPaF5OxvRtxRFkt+SsLs942te4og@mail.gmail.com>
+	<20120616044137.GB4076@burratino>
+	<1339932233.20497.14.camel@henna.lan>
+	<CAPZXPQegp7RA5M0H9Ofq4rJ9aj-rEdg=Ly9_1c6vAKi3COw50g@mail.gmail.com>
+	<4FF9CA30.9050105@redhat.com>
+	<CAPZXPQd026xfKrAU0D7CLQGbdAs8U01u5vsHp+5-wbVofAwdqQ@mail.gmail.com>
+	<4FFAD8D9.8070203@redhat.com>
+	<20120709203929.GC17301@burratino>
+	<CAPZXPQcaEzW1zGXfGwp-JuOrfBu2xhoidaYjthD8jhYAFpWr7A@mail.gmail.com>
+	<20120710163645.04fb0af0@armhf>
+	<CAPZXPQehjGRDZ=rXWjGFPQvRqOMzRpeA2dpoSWc3XwuUkvvesg@mail.gmail.com>
+	<20120711100436.2305b098@armhf>
+	<CAPZXPQdJC5yCYY6YRzuKj-ukFLzbY_yUzbogzbDx1S0bL1GrgQ@mail.gmail.com>
+	<20120711124441.346a86b3@armhf>
+	<CAPZXPQcvGqPjeyZh=vHtbSOoA91Htsg6DeyYyhYLeDgay8GSBg@mail.gmail.com>
+	<20120711132739.6b527a27@armhf>
+	<CAPZXPQeDKLAu13Qs-MhhxJEBrF-5620HNZDmPiH+4NRmkxx3Ag@mail.gmail.com>
+	<4FFD7F48.6060905@redhat.com>
+Date: Wed, 11 Jul 2012 16:43:47 +0300
+Message-ID: <CAPZXPQfMrWySzx9=61WqoZ7zwzw19p69nN6_fuwAHjZVqGLDBw@mail.gmail.com>
+Subject: Re: video: USB webcam fails since kernel 3.2
+From: =?UTF-8?Q?Martin=2D=C3=89ric_Racine?= <martin-eric.racine@iki.fi>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Jean-Francois Moine <moinejf@free.fr>,
+	Jonathan Nieder <jrnieder@gmail.com>, 677533@bugs.debian.org,
+	linux-media@vger.kernel.org, debian-kernel@lists.debian.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-On 07/05/2012 03:35 PM, Antti Palosaari wrote:
-
-<snip>
-
->> I believe you're doing something wrong ...
+2012/7/11 Hans de Goede <hdegoede@redhat.com>:
+> On 07/11/2012 02:01 PM, Martin-Éric Racine wrote:
 >>
->>> I compiled radio from http://git.linuxtv.org/xawtv3.git to tune and
->>  > "arecord  -r96000 -c2 -f S16_LE | aplay - " to play sound. Just
->> silent white noise is heard.
+>> 2012/7/11 Jean-Francois Moine <moinejf@free.fr>:
+>>>
+>>> On Wed, 11 Jul 2012 14:14:24 +0300
+>>> Martin-Éric Racine <martin-eric.racine@iki.fi> wrote:
+>>>
+>>>>    CC [M]  /home/perkelix/gspca-2.15.18/build/ov534_9.o
+>>>> /home/perkelix/gspca-2.15.18/build/ov534_9.c: In function ‘sd_init’:
+>>>> /home/perkelix/gspca-2.15.18/build/ov534_9.c:1353:3: error: implicit
+>>>> declaration of function ‘err’ [-Werror=implicit-function-declaration]
+>>>> cc1: some warnings being treated as errors
+>>>> make[2]: *** [/home/perkelix/gspca-2.15.18/build/ov534_9.o] Virhe 1
+>>>> make[1]: *** [_module_/home/perkelix/gspca-2.15.18/build] Error 2
+>>>> make[1]: Leaving directory `/usr/src/linux-headers-3.5.0-rc6+'
+>>>> make: *** [modules] Error 2
+>>>
+>>>
+>>> Sorry, I did not compile yet with kernel >= 3.4.
+>>>
+>>> So, please, edit the file build/ov534_9.c (and possibly other sources),
+>>> changing  the calls to 'err' to 'pr_err'.
 >>
->> You're not specifying which device arecord should record from so likely
->> it is taking
->> the default input of your soundcard (line/mic in), rather then recording
->> from the
->> radio device.
+>>
+>> This was was required for both build/ov534_9.c and build/spca505.c to
+>> build agaist 3.5.
+>>
+>> Sure enough, this seems to fix support for this camera in both Cheese
+>> and Skype. Hurray! :-)
 >
-> I tried to define hw:1,0 etc. but only hw:0,0 exists.
 >
->> Note the latest radio from http://git.linuxtv.org/xawtv3.git will do the
->> digital loopback of
->> the sound itself, so try things again with running arecord / aplay, if
->> you then start radio
->> and exit again (so that you can see its startup messages) you should see
->> something like this:
->>
->> "Using alsa loopback: cap: hw:1,0 (/dev/radio0), out: default"
->>
->> Note radio will automatically select the correct alsa device to record
->> from for the radio-usb-stick.
+> Ok, so it seems that increasing the bandwidth we claim for the camera
+> (which is what my suggested "return 2000 * 2000 * 120;" change does, helps
+> a bit, where as the changes to vc032x which are in Jean-Francois Moine's
+> gspca-2.15.18 tarbal fix the problem entirely, correct?
+
+As far as I can tell, yes, the modules in Jean-François' tarball work
+as-is to fix the problem.
+
+>> Now, the only thing that remains is for this to be merged in the 3.5
+>> tree, then backported to the 3.2 tree that is used for Debian's
+>> upcoming Wheezy stable release (and for Ubuntu's recently released
+>> Precise also).
 >
-> For some reason I don't see that happening.
+>
+> Well we first need to turn the changes made in gspca-2.15.18 into
+> a patch will which apply to the latest gspca tree:
+> http://git.linuxtv.org/hgoede/gspca.git/shortlog/refs/heads/media-for_v3.6
+>
+> And then apply them there, before the can be backported to older
+> kernels. Unfortunately I'm leaving for a week vacation Friday, and I
+> probably won't get around to this before then.
+>
+> Jean-Francois, can you perhaps make a patch against my latest tree for
+> the poXXXX / PO3130 changes in your tarbal?
 
-Hmm, so it seems that for some reason alsa is not working with the usb
-"sound-card" part of the usb-stick. Can you try doing:
+Noted.  Hopefully, the Debian kernel team can contribute to the
+backporting part, since it's needed for the upcoming stable release.
 
-ls /dev/snd/
-
-Before and after plugging in the device, you should get a new
-PCMC?D0c device there.
-
-Otherwise see if you can enable some debugging options for snd-usb-audio
-and find out why it is not liking your device (and maybe at a quirk for
-it somewhere) ? If you do end up adding a quirk please let me know
-and I'll test with mine to ensure the quirck does not break working versions :)
-
-Regards,
-
-Hans
-
+Martin-Éric
