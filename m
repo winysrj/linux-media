@@ -1,105 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm17-vm0.bullet.mail.ird.yahoo.com ([77.238.189.214]:33691 "HELO
-	nm17-vm0.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S933038Ab2GFKyc convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Jul 2012 06:54:32 -0400
-Message-ID: <1341572070.43713.YahooMailClassic@web29402.mail.ird.yahoo.com>
-Date: Fri, 6 Jul 2012 11:54:30 +0100 (BST)
-From: Hin-Tak Leung <htl10@users.sourceforge.net>
-Reply-To: htl10@users.sourceforge.net
-Subject: media_build and Terratec Cinergy T Black.
-To: Antti Palosaari <crope@iki.fi>, mchehab@redhat.com
-Cc: linux-media@vger.kernel.org
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:23923 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755321Ab2GKOWL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jul 2012 10:22:11 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Federico Vaga <federico.vaga@gmail.com>
+Subject: Re: [PATCH RFC] [media] adv7180.c: convert to v4l2 control framework
+Date: Wed, 11 Jul 2012 16:21:56 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <1341974086-27887-1-git-send-email-federico.vaga@gmail.com> <201207111605.49470.hverkuil@xs4all.nl> <1764384.YhnDdKNyk4@harkonnen>
+In-Reply-To: <1764384.YhnDdKNyk4@harkonnen>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201207111621.57058.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Firstly, the downloaded linux-media.tar.bz2 has some simple typos, missing 3 brackets:
+On Wed 11 July 2012 16:19:02 Federico Vaga wrote:
+> > > > @@ -445,9 +402,9 @@ static const struct v4l2_subdev_video_ops
+> > > > adv7180_video_ops = {> 
+> > > >  static const struct v4l2_subdev_core_ops adv7180_core_ops = {
+> > > >  
+> > > >   .g_chip_ident = adv7180_g_chip_ident,
+> > > >   .s_std = adv7180_s_std,
+> > > > 
+> > > > - .queryctrl = adv7180_queryctrl,
+> > > > - .g_ctrl = adv7180_g_ctrl,
+> > > > - .s_ctrl = adv7180_s_ctrl,
+> > > > + .queryctrl = v4l2_subdev_queryctrl,
+> > > > + .g_ctrl = v4l2_subdev_g_ctrl,
+> > > > + .s_ctrl = v4l2_subdev_s_ctrl,
+> > > 
+> > > I'm not sure to undestand this point. I "grepped" for the adv7180
+> > > and it seem that I'm the only user of the adv7180 (sta2x11 VIP
+> > > driver). In the VIP driver I don't use the control framework (there
+> > > aren't controls), so I think these lines must be there. Am I wrong?
+> > 
+> > Correct. But once sta2x11 is converted to using the control framework,
+> > then these lines can be dropped since no one else is using this
+> > subdevice driver.
+> 
+> What do you suggest? I re-submit this patch and when sta2x11 is fixed a 
+> I submit a new patch to remove these lines; or wait the full conversion 
+> of the sta2x11 driver and submit both patch?
 
-(please feel free to add my signed-off though this is trivial).
+Choice 1: when sta2x11 is fixed submit a new patch to remove those lines.
 
--------------
---- linux/drivers/media/video/v4l2-compat-ioctl32.c~	2012-07-06 04:45:17.000000000 +0100
-+++ linux/drivers/media/video/v4l2-compat-ioctl32.c	2012-07-06 07:35:54.166512279 +0100
-@@ -387,7 +387,7 @@
- 		get_user(kp->index, &up->index) ||
- 		get_user(kp->type, &up->type) ||
- 		get_user(kp->flags, &up->flags) ||
--		get_user(kp->memory, &up->memory)
-+		get_user(kp->memory, &up->memory))
- 			return -EFAULT;
- 
- 	if (V4L2_TYPE_IS_OUTPUT(kp->type))
-@@ -471,7 +471,7 @@
- 		put_user(kp->index, &up->index) ||
- 		put_user(kp->type, &up->type) ||
- 		put_user(kp->flags, &up->flags) ||
--		put_user(kp->memory, &up->memory)
-+		put_user(kp->memory, &up->memory))
- 			return -EFAULT;
- 
- 	if (put_user(kp->bytesused, &up->bytesused) ||
-@@ -481,7 +481,7 @@
- 		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
- 		put_user(kp->sequence, &up->sequence) ||
- 		put_user(kp->reserved2, &up->reserved2) ||
--		put_user(kp->reserved, &up->reserved)
-+		put_user(kp->reserved, &up->reserved))
- 			return -EFAULT;
- 
- 	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
-------------
+Regards,
 
-A few comments & issues:
-
-- don't realy like the build script trying to clone media_tree, etc had hard-coded remotes - if(0) out'ed the whole git-on-the-fly block inside to make it use an existing symlink'ed checkout - consider offering something similar?
-
-- $ lsdvb seems to be doing garbage:(fedora 17's)
-
-usb (-1975381336:62 64848224:32767) on PCI Domain:-1965359032 Bus:62 Device:64848416 Function:32767
-	DEVICE:0 ADAPTER:0 FRONTEND:0 (Realtek RTL2832 (DVB-T)) 
-		 FE_OFDM Fmin=174MHz Fmax=862MHz
-
-lsdvb on mercury is only marginally better with the PCI zero's, but the other numbers swapped:
-
-usb (62:-1975379912 32767:-348245472) on PCI Domain:0 Bus:0 Device:0 Function:0
-	DEVICE:0 ADAPTER:0 FRONTEND:0 (Realtek RTL2832 (DVB-T)) 
-		 FE_OFDM Fmin=174MHz Fmax=862MHz
-
-- 'scandvb' segfault at the end on its own.
-
-
-- "scandvb /usr/share/dvb/dvb-t/uk-SandyHeath" (supposedly where I am) got a few "WARNING: >>> tuning failed!!!" and no list.
-
-- 'w_scan -G -c GB'
-  have a few curious
-WARNING: received garbage data: crc = 0xcc93876c; expected crc = 0xb81bb6c4
-
-return a list of 26, with entries like (which seems to be vaguely correct):
-
-BBC ONE;(null):522000:B8C23D0G32M64T8Y0:T:27500:101=2:102,106=eng:0:0:4173:9018:4173:0:100
-
-So I just put it in ~/.mplayer:channels.conf
-
-Took me a while to figure out that mplayer wants:
-
-mplayer 'dvb://BBC ONE;(null)'
-
-rather than anything else - curious about the ';(null)' part.
-
---------
-Playing dvb://BBC ONE;(null).
-dvb_tune Freq: 522000
-ERROR IN SETTING DMX_FILTER 9018 for fd 4: ERRNO: 22ERROR, COULDN'T SET CHANNEL  8: Failed to open dvb://BBC ONE;(null).
-----------
-
-At this point I am lost :-).
-
-
-
-
-
-
+	Hans
