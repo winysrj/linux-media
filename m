@@ -1,125 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60068 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757447Ab2GFOe7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 10:34:59 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 07/10] ov772x: Add ov772x_read() and ov772x_write() functions
-Date: Fri,  6 Jul 2012 16:34:58 +0200
-Message-Id: <1341585301-1003-8-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1341585301-1003-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1341585301-1003-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:9249 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756010Ab2GKPrB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jul 2012 11:47:01 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: hverkuil@xs4all.nl, Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 1/5] v4l2: Add rangelow and rangehigh fields to the v4l2_hw_freq_seek struct
+Date: Wed, 11 Jul 2012 17:47:34 +0200
+Message-Id: <1342021658-27821-2-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1342021658-27821-1-git-send-email-hdegoede@redhat.com>
+References: <1342021658-27821-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-And use them instead of calling SMBus access functions directly.
+To allow apps to limit a hw-freq-seek to a specific band, for further
+info see the documentation this patch adds for these new fields.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/media/video/ov772x.c |   38 ++++++++++++++++++++++----------------
- 1 files changed, 22 insertions(+), 16 deletions(-)
+ .../DocBook/media/v4l/vidioc-s-hw-freq-seek.xml    |   44 ++++++++++++++++----
+ include/linux/videodev2.h                          |    5 ++-
+ 2 files changed, 40 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
-index 9055ba4..67c385b 100644
---- a/drivers/media/video/ov772x.c
-+++ b/drivers/media/video/ov772x.c
-@@ -447,13 +447,21 @@ static struct ov772x_priv *to_ov772x(struct v4l2_subdev *sd)
- 	return container_of(sd, struct ov772x_priv, subdev);
- }
- 
-+static inline int ov772x_read(struct i2c_client *client, u8 addr)
-+{
-+	return i2c_smbus_read_byte_data(client, addr);
-+}
+diff --git a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
+index f4db44d..50dc9f8 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
+@@ -52,11 +52,21 @@
+     <para>Start a hardware frequency seek from the current frequency.
+ To do this applications initialize the <structfield>tuner</structfield>,
+ <structfield>type</structfield>, <structfield>seek_upward</structfield>,
+-<structfield>spacing</structfield> and
+-<structfield>wrap_around</structfield> fields, and zero out the
+-<structfield>reserved</structfield> array of a &v4l2-hw-freq-seek; and
+-call the <constant>VIDIOC_S_HW_FREQ_SEEK</constant> ioctl with a pointer
+-to this structure.</para>
++<structfield>wrap_around</structfield>, <structfield>spacing</structfield>,
++<structfield>rangelow</structfield> and <structfield>rangehigh</structfield>
++fields, and zero out the <structfield>reserved</structfield> array of a
++&v4l2-hw-freq-seek; and call the <constant>VIDIOC_S_HW_FREQ_SEEK</constant>
++ioctl with a pointer to this structure.</para>
 +
-+static inline int ov772x_write(struct i2c_client *client, u8 addr, u8 value)
-+{
-+	return i2c_smbus_write_byte_data(client, addr, value);
-+}
-+
- static int ov772x_write_array(struct i2c_client        *client,
- 			      const struct regval_list *vals)
- {
- 	while (vals->reg_num != 0xff) {
--		int ret = i2c_smbus_write_byte_data(client,
--						    vals->reg_num,
--						    vals->value);
-+		int ret = ov772x_write(client, vals->reg_num, vals->value);
- 		if (ret < 0)
- 			return ret;
- 		vals++;
-@@ -461,24 +469,22 @@ static int ov772x_write_array(struct i2c_client        *client,
- 	return 0;
- }
++    <para>The <structfield>rangelow</structfield> and
++<structfield>rangehigh</structfield> fields can be set to a non-zero value to
++tell the driver to search a specific band. If the &v4l2-tuner;
++<structfield>capability</structfield> field has the
++<constant>V4L2_TUNER_CAP_HWSEEK_PROG_LIM</constant> flag set, these values
++must fall within one of the bands returned by &VIDIOC-ENUM-FREQ-BANDS;. If
++the <constant>V4L2_TUNER_CAP_HWSEEK_PROG_LIM</constant> flag is not set,
++then these values must exactly match those of one of the bands returned by
++&VIDIOC-ENUM-FREQ-BANDS;.</para>
  
--static int ov772x_mask_set(struct i2c_client *client,
--					  u8  command,
--					  u8  mask,
--					  u8  set)
-+static int ov772x_mask_set(struct i2c_client *client, u8  command, u8  mask,
-+			   u8  set)
- {
--	s32 val = i2c_smbus_read_byte_data(client, command);
-+	s32 val = ov772x_read(client, command);
- 	if (val < 0)
- 		return val;
+     <para>If an error is returned, then the original frequency will
+     be restored.</para>
+@@ -102,7 +112,23 @@ field and the &v4l2-tuner; <structfield>index</structfield> field.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+-	    <entry><structfield>reserved</structfield>[7]</entry>
++	    <entry><structfield>rangelow</structfield></entry>
++	    <entry>If non-zero, the lowest tunable frequency of the band to
++search in units of 62.5 kHz, or if the &v4l2-tuner;
++<structfield>capability</structfield> field has the
++<constant>V4L2_TUNER_CAP_LOW</constant> flag set, in units of 62.5 Hz.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>rangehigh</structfield></entry>
++	    <entry>If non-zero, the highest tunable frequency of the band to
++search in units of 62.5 kHz, or if the &v4l2-tuner;
++<structfield>capability</structfield> field has the
++<constant>V4L2_TUNER_CAP_LOW</constant> flag set, in units of 62.5 Hz.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[5]</entry>
+ 	    <entry>Reserved for future extensions. Applications
+ 	    must set the array to zero.</entry>
+ 	  </row>
+@@ -119,8 +145,10 @@ field and the &v4l2-tuner; <structfield>index</structfield> field.</entry>
+ 	<term><errorcode>EINVAL</errorcode></term>
+ 	<listitem>
+ 	  <para>The <structfield>tuner</structfield> index is out of
+-bounds, the wrap_around value is not supported or the value in the <structfield>type</structfield> field is
+-wrong.</para>
++bounds, the <structfield>wrap_around</structfield> value is not supported or
++one of the values in the <structfield>type</structfield>,
++<structfield>rangelow</structfield> or <structfield>rangehigh</structfield>
++fields is wrong.</para>
+ 	</listitem>
+       </varlistentry>
+       <varlistentry>
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 9fa822a..1c6aa63 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -2029,6 +2029,7 @@ struct v4l2_modulator {
+ #define V4L2_TUNER_CAP_RDS_BLOCK_IO	0x0100
+ #define V4L2_TUNER_CAP_RDS_CONTROLS	0x0200
+ #define V4L2_TUNER_CAP_FREQ_BANDS	0x0400
++#define V4L2_TUNER_CAP_HWSEEK_PROG_LIM	0x0800
  
- 	val &= ~mask;
- 	val |= set & mask;
+ /*  Flags for the 'rxsubchans' field */
+ #define V4L2_TUNER_SUB_MONO		0x0001
+@@ -2074,7 +2075,9 @@ struct v4l2_hw_freq_seek {
+ 	__u32	seek_upward;
+ 	__u32	wrap_around;
+ 	__u32	spacing;
+-	__u32	reserved[7];
++	__u32	rangelow;
++	__u32	rangehigh;
++	__u32	reserved[5];
+ };
  
--	return i2c_smbus_write_byte_data(client, command, val);
-+	return ov772x_write(client, command, val);
- }
- 
- static int ov772x_reset(struct i2c_client *client)
- {
--	int ret = i2c_smbus_write_byte_data(client, COM7, SCCB_RESET);
-+	int ret = ov772x_write(client, COM7, SCCB_RESET);
- 	msleep(1);
- 	return ret;
- }
-@@ -807,7 +813,7 @@ static int ov772x_g_register(struct v4l2_subdev *sd,
- 	if (reg->reg > 0xff)
- 		return -EINVAL;
- 
--	ret = i2c_smbus_read_byte_data(client, reg->reg);
-+	ret = ov772x_write(client, reg->reg);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -825,7 +831,7 @@ static int ov772x_s_register(struct v4l2_subdev *sd,
- 	    reg->val > 0xff)
- 		return -EINVAL;
- 
--	return i2c_smbus_write_byte_data(client, reg->reg, reg->val);
-+	return ov772x_write(client, reg->reg, reg->val);
- }
- #endif
- 
-@@ -1012,8 +1018,8 @@ static int ov772x_video_probe(struct ov772x_priv *priv)
- 	/*
- 	 * check and show product ID and manufacturer ID
- 	 */
--	pid = i2c_smbus_read_byte_data(client, PID);
--	ver = i2c_smbus_read_byte_data(client, VER);
-+	pid = ov772x_read(client, PID);
-+	ver = ov772x_read(client, VER);
- 
- 	switch (VERSION(pid, ver)) {
- 	case OV7720:
-@@ -1036,8 +1042,8 @@ static int ov772x_video_probe(struct ov772x_priv *priv)
- 		 devname,
- 		 pid,
- 		 ver,
--		 i2c_smbus_read_byte_data(client, MIDH),
--		 i2c_smbus_read_byte_data(client, MIDL));
-+		 ov772x_read(client, MIDH),
-+		 ov772x_read(client, MIDL));
- 	ret = v4l2_ctrl_handler_setup(&priv->hdl);
- 
- done:
+ /*
 -- 
-1.7.8.6
+1.7.10.4
 
