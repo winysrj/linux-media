@@ -1,41 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.tpi.com ([70.99.223.143]:1184 "EHLO mail.tpi.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751670Ab2GZSZm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jul 2012 14:25:42 -0400
-From: Tim Gardner <tim.gardner@canonical.com>
-To: linux-kernel@vger.kernel.org
-Cc: Tim Gardner <tim.gardner@canonical.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
-Subject: [PATCH] ivtv: Declare MODULE_FIRMWARE usage
-Date: Thu, 26 Jul 2012 12:26:20 -0600
-Message-Id: <1343327180-94759-1-git-send-email-tim.gardner@canonical.com>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:55759 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756778Ab2GKH47 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jul 2012 03:56:59 -0400
+Received: by wibhr14 with SMTP id hr14so833145wib.1
+        for <linux-media@vger.kernel.org>; Wed, 11 Jul 2012 00:56:58 -0700 (PDT)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: fabio.estevam@freescale.com, laurent.pinchart@ideasonboard.com,
+	g.liakhovetski@gmx.de, mchehab@infradead.org,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH v5] media: mx2_camera: Fix mbus format handling
+Date: Wed, 11 Jul 2012 09:56:49 +0200
+Message-Id: <1341993409-20870-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Cc: Andy Walls <awalls@md.metrocast.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: ivtv-devel@ivtvdriver.org
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
+Remove MX2_CAMERA_SWAP16 and MX2_CAMERA_PACK_DIR_MSB flags
+so that the driver can negotiate with the attached sensor
+whether the mbus format needs convertion from UYUV to YUYV
+or not.
 ---
- drivers/media/video/ivtv/ivtv-firmware.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/video/mx2_camera.c |   28 +++++++++++++++++++++++-----
+ 1 file changed, 23 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/video/ivtv/ivtv-firmware.c b/drivers/media/video/ivtv/ivtv-firmware.c
-index 02c5ade..6ec7705 100644
---- a/drivers/media/video/ivtv/ivtv-firmware.c
-+++ b/drivers/media/video/ivtv/ivtv-firmware.c
-@@ -396,3 +396,7 @@ int ivtv_firmware_check(struct ivtv *itv, char *where)
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index 11a9353..0f01e7b 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -118,6 +118,8 @@
+ #define CSISR_ECC_INT		(1 << 1)
+ #define CSISR_DRDY		(1 << 0)
  
- 	return res;
- }
++#define CSICR1_FMT_MASK	 (CSICR1_PACK_DIR | CSICR1_SWAP16_EN)
 +
-+MODULE_FIRMWARE(CX2341X_FIRM_ENC_FILENAME);
-+MODULE_FIRMWARE(CX2341X_FIRM_DEC_FILENAME);
-+MODULE_FIRMWARE(IVTV_DECODE_INIT_MPEG_FILENAME);
+ #define CSICR1			0x00
+ #define CSICR2			0x04
+ #define CSISR			(cpu_is_mx27() ? 0x08 : 0x18)
+@@ -230,6 +232,7 @@ struct mx2_prp_cfg {
+ 	u32 src_pixel;
+ 	u32 ch1_pixel;
+ 	u32 irq_flags;
++	u32 csicr1;
+ };
+ 
+ /* prp resizing parameters */
+@@ -330,6 +333,7 @@ static struct mx2_fmt_cfg mx27_emma_prp_table[] = {
+ 			.ch1_pixel	= 0x2ca00565, /* RGB565 */
+ 			.irq_flags	= PRP_INTR_RDERR | PRP_INTR_CH1WERR |
+ 						PRP_INTR_CH1FC | PRP_INTR_LBOVF,
++			.csicr1		= 0,
+ 		}
+ 	},
+ 	{
+@@ -343,6 +347,21 @@ static struct mx2_fmt_cfg mx27_emma_prp_table[] = {
+ 			.irq_flags	= PRP_INTR_RDERR | PRP_INTR_CH2WERR |
+ 					PRP_INTR_CH2FC | PRP_INTR_LBOVF |
+ 					PRP_INTR_CH2OVF,
++			.csicr1		= CSICR1_PACK_DIR,
++		}
++	},
++	{
++		.in_fmt		= V4L2_MBUS_FMT_UYVY8_2X8,
++		.out_fmt	= V4L2_PIX_FMT_YUV420,
++		.cfg		= {
++			.channel	= 2,
++			.in_fmt		= PRP_CNTL_DATA_IN_YUV422,
++			.out_fmt	= PRP_CNTL_CH2_OUT_YUV420,
++			.src_pixel	= 0x22000888, /* YUV422 (YUYV) */
++			.irq_flags	= PRP_INTR_RDERR | PRP_INTR_CH2WERR |
++					PRP_INTR_CH2FC | PRP_INTR_LBOVF |
++					PRP_INTR_CH2OVF,
++			.csicr1		= CSICR1_SWAP16_EN,
+ 		}
+ 	},
+ };
+@@ -1018,14 +1037,14 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
+ 		return ret;
+ 	}
+ 
++	csicr1 = (csicr1 & ~CSICR1_FMT_MASK) | pcdev->emma_prp->cfg.csicr1;
++
+ 	if (common_flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
+ 		csicr1 |= CSICR1_REDGE;
+ 	if (common_flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
+ 		csicr1 |= CSICR1_SOF_POL;
+ 	if (common_flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
+ 		csicr1 |= CSICR1_HSYNC_POL;
+-	if (pcdev->platform_flags & MX2_CAMERA_SWAP16)
+-		csicr1 |= CSICR1_SWAP16_EN;
+ 	if (pcdev->platform_flags & MX2_CAMERA_EXT_VSYNC)
+ 		csicr1 |= CSICR1_EXT_VSYNC;
+ 	if (pcdev->platform_flags & MX2_CAMERA_CCIR)
+@@ -1036,8 +1055,6 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
+ 		csicr1 |= CSICR1_GCLK_MODE;
+ 	if (pcdev->platform_flags & MX2_CAMERA_INV_DATA)
+ 		csicr1 |= CSICR1_INV_DATA;
+-	if (pcdev->platform_flags & MX2_CAMERA_PACK_DIR_MSB)
+-		csicr1 |= CSICR1_PACK_DIR;
+ 
+ 	pcdev->csicr1 = csicr1;
+ 
+@@ -1112,7 +1129,8 @@ static int mx2_camera_get_formats(struct soc_camera_device *icd,
+ 		return 0;
+ 	}
+ 
+-	if (code == V4L2_MBUS_FMT_YUYV8_2X8) {
++	if (code == V4L2_MBUS_FMT_YUYV8_2X8 ||
++	    code == V4L2_MBUS_FMT_UYVY8_2X8) {
+ 		formats++;
+ 		if (xlate) {
+ 			/*
 -- 
 1.7.9.5
 
