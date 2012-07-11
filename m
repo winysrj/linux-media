@@ -1,100 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:62118 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752206Ab2GIJRc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2012 05:17:32 -0400
-Received: by weyx8 with SMTP id x8so1030899wey.19
-        for <linux-media@vger.kernel.org>; Mon, 09 Jul 2012 02:17:31 -0700 (PDT)
-From: Javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org,
-	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
-	shawn.guo@linaro.org, fabio.estevam@freescale.com,
-	richard.zhu@linaro.org, arnaud.patard@rtp-net.org,
-	kernel@pengutronix.de, mchehab@infradead.org,
-	p.zabel@pengutronix.de,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH v2 3/3] Visstrim M10: Add support for Coda.
-Date: Mon,  9 Jul 2012 11:17:17 +0200
-Message-Id: <1341825437-23420-2-git-send-email-javier.martin@vista-silicon.com>
-In-Reply-To: <1341825437-23420-1-git-send-email-javier.martin@vista-silicon.com>
-References: <1341825437-23420-1-git-send-email-javier.martin@vista-silicon.com>
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:60704 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751688Ab2GKKV4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jul 2012 06:21:56 -0400
+Received: by ghrr11 with SMTP id r11so1018180ghr.19
+        for <linux-media@vger.kernel.org>; Wed, 11 Jul 2012 03:21:55 -0700 (PDT)
+MIME-Version: 1.0
+Reply-To: martin-eric.racine@iki.fi
+In-Reply-To: <20120711100436.2305b098@armhf>
+References: <20120614162609.4613.22122.reportbug@henna.lan>
+	<20120614215359.GF3537@burratino>
+	<CAPZXPQd9gNCxn7xGyqj_xymPaF5OxvRtxRFkt+SsLs942te4og@mail.gmail.com>
+	<20120616044137.GB4076@burratino>
+	<1339932233.20497.14.camel@henna.lan>
+	<CAPZXPQegp7RA5M0H9Ofq4rJ9aj-rEdg=Ly9_1c6vAKi3COw50g@mail.gmail.com>
+	<4FF9CA30.9050105@redhat.com>
+	<CAPZXPQd026xfKrAU0D7CLQGbdAs8U01u5vsHp+5-wbVofAwdqQ@mail.gmail.com>
+	<4FFAD8D9.8070203@redhat.com>
+	<20120709203929.GC17301@burratino>
+	<CAPZXPQcaEzW1zGXfGwp-JuOrfBu2xhoidaYjthD8jhYAFpWr7A@mail.gmail.com>
+	<20120710163645.04fb0af0@armhf>
+	<CAPZXPQehjGRDZ=rXWjGFPQvRqOMzRpeA2dpoSWc3XwuUkvvesg@mail.gmail.com>
+	<20120711100436.2305b098@armhf>
+Date: Wed, 11 Jul 2012 13:21:55 +0300
+Message-ID: <CAPZXPQdJC5yCYY6YRzuKj-ukFLzbY_yUzbogzbDx1S0bL1GrgQ@mail.gmail.com>
+Subject: Re: video: USB webcam fails since kernel 3.2
+From: =?UTF-8?Q?Martin=2D=C3=89ric_Racine?= <martin-eric.racine@iki.fi>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: Jonathan Nieder <jrnieder@gmail.com>,
+	Hans de Goede <hdegoede@redhat.com>, 677533@bugs.debian.org,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Support the codadx6 that is included in
-the i.MX27 SoC.
----
-Changes since v1:
- - Use 'arm_memblock_steal'.
+2012/7/11 Jean-Francois Moine <moinejf@free.fr>:
+> On Wed, 11 Jul 2012 10:02:27 +0300
+> Martin-Éric Racine <martin-eric.racine@iki.fi> wrote:
+>         [snip]
+>> >         wget http://moinejf.free.fr/gspca-2.15.18.tar.gz
+>> >         tar -zxf gspca-2.15.18.tar.gz
+>> >         cd gspca-2.15.18
+>> >         make
+>>
+>> $ LC_ALL=C make
+>> make -C /lib/modules/3.5.0-rc6+/build
+>> M=/home/perkelix/gspca-2.15.18/build modules
+>> make: *** /lib/modules/3.5.0-rc6+/build: No such file or directory.  Stop.
+>> make: *** [modules] Error 2
+>
+> You need the linux headers of your running kernel to compile the tarball.
 
----
- arch/arm/mach-imx/mach-imx27_visstrim_m10.c |   24 ++++++++++++++++++++----
- 1 file changed, 20 insertions(+), 4 deletions(-)
+I installed them. That still doesn't fix it:
 
-diff --git a/arch/arm/mach-imx/mach-imx27_visstrim_m10.c b/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
-index f76edb9..214e4ff 100644
---- a/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
-+++ b/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
-@@ -32,12 +32,12 @@
- #include <linux/delay.h>
- #include <linux/dma-mapping.h>
- #include <linux/leds.h>
--#include <linux/memblock.h>
- #include <media/soc_camera.h>
- #include <sound/tlv320aic32x4.h>
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
- #include <asm/mach/time.h>
-+#include <asm/memblock.h>
- #include <asm/system.h>
- #include <mach/common.h>
- #include <mach/iomux-mx27.h>
-@@ -232,10 +232,8 @@ static void __init visstrim_camera_init(void)
- static void __init visstrim_reserve(void)
- {
- 	/* reserve 4 MiB for mx2-camera */
--	mx2_camera_base = memblock_alloc(MX2_CAMERA_BUF_SIZE,
-+	mx2_camera_base = arm_memblock_steal(2 * MX2_CAMERA_BUF_SIZE,
- 			MX2_CAMERA_BUF_SIZE);
--	memblock_free(mx2_camera_base, MX2_CAMERA_BUF_SIZE);
--	memblock_remove(mx2_camera_base, MX2_CAMERA_BUF_SIZE);
- }
- 
- /* GPIOs used as events for applications */
-@@ -404,6 +402,23 @@ static const struct imx_ssi_platform_data visstrim_m10_ssi_pdata __initconst = {
- 	.flags			= IMX_SSI_DMA | IMX_SSI_SYN,
- };
- 
-+/* coda */
-+
-+static void __init visstrim_coda_init(void)
-+{
-+	struct platform_device *pdev;
-+	int dma;
-+
-+	pdev = imx27_add_coda();
-+	dma = dma_declare_coherent_memory(&pdev->dev,
-+					  mx2_camera_base + MX2_CAMERA_BUF_SIZE,
-+					  mx2_camera_base + MX2_CAMERA_BUF_SIZE,
-+					  MX2_CAMERA_BUF_SIZE,
-+					  DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
-+	if (!(dma & DMA_MEMORY_MAP))
-+		return;
-+}
-+
- static void __init visstrim_m10_revision(void)
- {
- 	int exp_version = 0;
-@@ -467,6 +482,7 @@ static void __init visstrim_m10_board_init(void)
- 				      &iclink_tvp5150, sizeof(iclink_tvp5150));
- 	gpio_led_register_device(0, &visstrim_m10_led_data);
- 	visstrim_camera_init();
-+	visstrim_coda_init();
- }
- 
- static void __init visstrim_m10_timer_init(void)
+$ LC_ALL=C make
+make -C /lib/modules/3.5.0-rc6+/build
+M=/home/perkelix/gspca-2.15.18/build modules
+make[1]: Entering directory `/usr/src/linux-headers-3.5.0-rc6+'
+/usr/src/linux-headers-3.5.0-rc6+/arch/x86/Makefile:39:
+/usr/src/linux-headers-3.5.0-rc6+/arch/x86/Makefile_32.cpu: No such
+file or directory
+make[1]: *** No rule to make target
+`/usr/src/linux-headers-3.5.0-rc6+/arch/x86/Makefile_32.cpu'.  Stop.
+make[1]: Leaving directory `/usr/src/linux-headers-3.5.0-rc6+'
+make: *** [modules] Error 2
+
 -- 
-1.7.9.5
-
+Martin-Éric
