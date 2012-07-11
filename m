@@ -1,105 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51726 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932134Ab2GALMH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Jul 2012 07:12:07 -0400
-Message-ID: <4FF0307E.50408@iki.fi>
-Date: Sun, 01 Jul 2012 14:11:58 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Marko Ristola <marko.ristola@kolumbus.fi>
-CC: linux-media <linux-media@vger.kernel.org>,
-	htl10@users.sourceforge.net
-Subject: Re: DVB core enhancements - comments please?
-References: <4FEBA656.7060608@iki.fi> <4FEECA65.9090205@kolumbus.fi>
-In-Reply-To: <4FEECA65.9090205@kolumbus.fi>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:47317 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751737Ab2GKIzS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jul 2012 04:55:18 -0400
+Received: by wibhr14 with SMTP id hr14so885135wib.1
+        for <linux-media@vger.kernel.org>; Wed, 11 Jul 2012 01:55:17 -0700 (PDT)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org,
+	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
+	mchehab@infradead.org, kernel@pengutronix.de,
+	linux@arm.linux.org.uk,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH 2/2] i.MX27: Visstrim_M10: Add support for deinterlacing driver.
+Date: Wed, 11 Jul 2012 10:55:04 +0200
+Message-Id: <1341996904-22893-3-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1341996904-22893-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1341996904-22893-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka Marko,
+Visstrim_M10 have a tvp5150 whose video output must be deinterlaced.
+The new mem2mem deinterlacing driver is very useful for that purpose.
+---
+ arch/arm/mach-imx/mach-imx27_visstrim_m10.c |   31 ++++++++++++++++++++++++---
+ 1 file changed, 28 insertions(+), 3 deletions(-)
 
-On 06/30/2012 12:44 PM, Marko Ristola wrote:
-> My suspend / resume patch implemented "Kaffeine continues viewing
-> channel after resume".
-> Some of the ideas could be still useful:
-> http://www.spinics.net/lists/linux-dvb/msg19651.html
->
-> Rest of this email has a more thorough description.
->
-> Regards,
-> Marko Ristola
->
-> On 06/28/2012 03:33 AM, Antti Palosaari wrote:
->> Here is my list of needed DVB core related changes. Feel free to
->> comment - what are not needed or what you would like to see instead. I
->> will try to implement what I can (and what I like most interesting :).
->>
-> ...
->> suspend / resume support
->> --------------------------------------------------
->> * support is currently quite missing, all what is done is on interface
->> drivers
->> * needs power management
->> * streaming makes it hard
->> * quite a lot work to get it working in case of straming is ongoing
->
->
-> I've implemented Suspend/Resume for Mantis cu1216 in 2007 (PCI DVB-C
-> device):
-> Kaffeine continued viewing the channel after resume.
-> When Tuner was idle too long, it was powered off too.
->
-> According to Manu Abraham at that time, somewhat smaller patch would
-> have sufficed.
-> That patch contais nonrelated fixes too, and won't compile now.
->
-> Here is the reference (with Manu's answer):
-> Start of the thread: http://www.spinics.net/lists/linux-dvb/msg19532.html
-> The patch: http://www.spinics.net/lists/linux-dvb/msg19651.html
-> Manu's answer: http://www.spinics.net/lists/linux-dvb/msg19668.html
->
-> Thoughts about up-to-date implementation
-> - Bridge (PCI) device must implement suspend/resume callbacks.
-
-That is very likely very clear as without those callbacks we cannot so 
-anything. It is current situation and it is not working as stream is not 
-stopped and driver refuses to unload. What user sees computer never goes 
-suspend and freezes.
-
-> - Frontend might need some change (power off / power on callbacks)?
-
-Likely. The initial plan in my mind is to power off frontend in case 
-suspend and power on in case of resume. On power off save current 
-parameters and on resume re-tune using those old parameters.
-
-> - "save Tuner / DMA transfer state to memory" might be addable to dvb_core.
-> - Bridge device supporting suspend/resume needs to have a (non-regression)
->    fallback for (frontend) devices that don't have a full tested
-> "Kaffeine works"
->    suspend/resume implementation yet.
-
-Hmm, I did some initial suspend / resume changes for DVB USB when I 
-rewrote it recently. On suspend, it just kills all ongoing urbs used for 
-streaming. And on resume it resubmit those urbs in order to resume 
-streaming. It just works as it doesn't hang computer anymore. What I 
-tested applications continued to show same television channels on resume.
-
-The problem for that solution is that it does not have any power 
-management as power management is DVB-core responsibility. So it 
-continues eating current because chips are not put sleep and due to that 
-those DVB-core changes are required.
-
-> - What changes encrypted channels need?
-
-I think none?
-
-
-regards
-Antti
-
+diff --git a/arch/arm/mach-imx/mach-imx27_visstrim_m10.c b/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
+index 214e4ff..1566126 100644
+--- a/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
++++ b/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
+@@ -192,8 +192,8 @@ static struct soc_camera_link iclink_tvp5150 = {
+ 	.bus_id         = 0,
+ 	.board_info     = &visstrim_i2c_camera,
+ 	.i2c_adapter_id = 0,
+-	.power = visstrim_camera_power,
+-	.reset = visstrim_camera_reset,
++// 	.power = visstrim_camera_power,
++// 	.reset = visstrim_camera_reset,
+ };
+ 
+ static struct mx2_camera_platform_data visstrim_camera = {
+@@ -232,7 +232,7 @@ static void __init visstrim_camera_init(void)
+ static void __init visstrim_reserve(void)
+ {
+ 	/* reserve 4 MiB for mx2-camera */
+-	mx2_camera_base = arm_memblock_steal(2 * MX2_CAMERA_BUF_SIZE,
++	mx2_camera_base = arm_memblock_steal(3 * MX2_CAMERA_BUF_SIZE,
+ 			MX2_CAMERA_BUF_SIZE);
+ }
+ 
+@@ -419,6 +419,30 @@ static void __init visstrim_coda_init(void)
+ 		return;
+ }
+ 
++/* DMA deinterlace */
++static struct platform_device visstrim_deinterlace = {
++	.name = "m2m-deinterlace",
++	.id = 0,
++};
++
++static void __init visstrim_deinterlace_init(void)
++{
++	int ret = -ENOMEM;
++	struct platform_device *pdev = &visstrim_deinterlace;
++	int dma;
++
++	ret = platform_device_register(pdev);
++
++	dma = dma_declare_coherent_memory(&pdev->dev,
++					  mx2_camera_base + 2 * MX2_CAMERA_BUF_SIZE,
++					  mx2_camera_base + 2 * MX2_CAMERA_BUF_SIZE,
++					  MX2_CAMERA_BUF_SIZE,
++					  DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
++	if (!(dma & DMA_MEMORY_MAP))
++		return;
++}
++
++
+ static void __init visstrim_m10_revision(void)
+ {
+ 	int exp_version = 0;
+@@ -481,6 +505,7 @@ static void __init visstrim_m10_board_init(void)
+ 	platform_device_register_resndata(NULL, "soc-camera-pdrv", 0, NULL, 0,
+ 				      &iclink_tvp5150, sizeof(iclink_tvp5150));
+ 	gpio_led_register_device(0, &visstrim_m10_led_data);
++	visstrim_deinterlace_init();
+ 	visstrim_camera_init();
+ 	visstrim_coda_init();
+ }
 -- 
-http://palosaari.fi/
-
+1.7.9.5
 
