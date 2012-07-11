@@ -1,77 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60068 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752834Ab2GFOe6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 10:34:58 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 05/10] ov772x: try_fmt must not default to the current format
-Date: Fri,  6 Jul 2012 16:34:56 +0200
-Message-Id: <1341585301-1003-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1341585301-1003-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1341585301-1003-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:43410 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755586Ab2GKSgh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jul 2012 14:36:37 -0400
+Message-ID: <4FFDC7DA.1090808@redhat.com>
+Date: Wed, 11 Jul 2012 20:37:14 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	halli manjunatha <hallimanju@gmail.com>
+Subject: Re: [PATCH 1/5] v4l2: Add rangelow and rangehigh fields to the v4l2_hw_freq_seek
+ struct
+References: <1342021658-27821-1-git-send-email-hdegoede@redhat.com> <1342021658-27821-2-git-send-email-hdegoede@redhat.com> <201207112001.18960.hverkuil@xs4all.nl>
+In-Reply-To: <201207112001.18960.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the requested format isn't supported, return a fixed default format
-instead of the current format.
+Hi Hans,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/ov772x.c |   36 +++++++-----------------------------
- 1 files changed, 7 insertions(+), 29 deletions(-)
+On 07/11/2012 08:01 PM, Hans Verkuil wrote:
+> Hi Hans,
+>
+> Thanks for the patch.
+>
+> I've CC-ed Halli as well.
+>
+> On Wed July 11 2012 17:47:34 Hans de Goede wrote:
+>> To allow apps to limit a hw-freq-seek to a specific band, for further
+>> info see the documentation this patch adds for these new fields.
+>>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>> ---
+>>   .../DocBook/media/v4l/vidioc-s-hw-freq-seek.xml    |   44 ++++++++++++++++----
+>>   include/linux/videodev2.h                          |    5 ++-
+>>   2 files changed, 40 insertions(+), 9 deletions(-)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
+>> index f4db44d..50dc9f8 100644
+>> --- a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
+>> +++ b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
+>> @@ -52,11 +52,21 @@
+>>       <para>Start a hardware frequency seek from the current frequency.
+>>   To do this applications initialize the <structfield>tuner</structfield>,
+>>   <structfield>type</structfield>, <structfield>seek_upward</structfield>,
+>> -<structfield>spacing</structfield> and
+>> -<structfield>wrap_around</structfield> fields, and zero out the
+>> -<structfield>reserved</structfield> array of a &v4l2-hw-freq-seek; and
+>> -call the <constant>VIDIOC_S_HW_FREQ_SEEK</constant> ioctl with a pointer
+>> -to this structure.</para>
+>> +<structfield>wrap_around</structfield>, <structfield>spacing</structfield>,
+>> +<structfield>rangelow</structfield> and <structfield>rangehigh</structfield>
+>> +fields, and zero out the <structfield>reserved</structfield> array of a
+>> +&v4l2-hw-freq-seek; and call the <constant>VIDIOC_S_HW_FREQ_SEEK</constant>
+>> +ioctl with a pointer to this structure.</para>
+>> +
+>> +    <para>The <structfield>rangelow</structfield> and
+>> +<structfield>rangehigh</structfield> fields can be set to a non-zero value to
+>> +tell the driver to search a specific band. If the &v4l2-tuner;
+>> +<structfield>capability</structfield> field has the
+>> +<constant>V4L2_TUNER_CAP_HWSEEK_PROG_LIM</constant> flag set, these values
+>> +must fall within one of the bands returned by &VIDIOC-ENUM-FREQ-BANDS;. If
+>> +the <constant>V4L2_TUNER_CAP_HWSEEK_PROG_LIM</constant> flag is not set,
+>> +then these values must exactly match those of one of the bands returned by
+>> +&VIDIOC-ENUM-FREQ-BANDS;.</para>
+>
+> OK, I have some questions here:
+>
+> 1) If you have a multiband tuner, what should happen if both low and high are
+> zero? Currently it is undefined, other than that the seek should start from
+> the current frequency until it reaches some limit.
 
-diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
-index fcb338a..e3de4de 100644
---- a/drivers/media/video/ov772x.c
-+++ b/drivers/media/video/ov772x.c
-@@ -902,38 +902,16 @@ static int ov772x_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
- static int ov772x_try_fmt(struct v4l2_subdev *sd,
- 			  struct v4l2_mbus_framefmt *mf)
- {
--	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
-+	const struct ov772x_color_format *cfmt;
- 	const struct ov772x_win_size *win;
--	int i;
--
--	/*
--	 * select suitable win
--	 */
--	win = ov772x_select_win(mf->width, mf->height);
- 
--	mf->width	= win->width;
--	mf->height	= win->height;
--	mf->field	= V4L2_FIELD_NONE;
--
--	for (i = 0; i < ARRAY_SIZE(ov772x_cfmts); i++)
--		if (mf->code == ov772x_cfmts[i].code)
--			break;
-+	ov772x_select_params(mf, &cfmt, &win);
- 
--	if (i == ARRAY_SIZE(ov772x_cfmts)) {
--		/* Unsupported format requested. Propose either */
--		if (priv->cfmt) {
--			/* the current one or */
--			mf->colorspace = priv->cfmt->colorspace;
--			mf->code = priv->cfmt->code;
--		} else {
--			/* the default one */
--			mf->colorspace = ov772x_cfmts[0].colorspace;
--			mf->code = ov772x_cfmts[0].code;
--		}
--	} else {
--		/* Also return the colorspace */
--		mf->colorspace	= ov772x_cfmts[i].colorspace;
--	}
-+	mf->code = cfmt->code;
-+	mf->width = win->width;
-+	mf->height = win->height;
-+	mf->field = V4L2_FIELD_NONE;
-+	mf->colorspace = cfmt->colorspace;
- 
- 	return 0;
- }
--- 
-1.7.8.6
+That would be driver specific, we could add the same "If rangelow/high is zero
+a reasonable default value is used." language as used for the spacing. For
+example for the si470x if both are zero I simply switch to the "Japan wide"
+band which covers all frequencies handled by the other bands, but if there
+is no such covers all ranges band, then the logical thing todo would just keep
+the band as is (so as determined by the last s_freq).
 
+> Halli, what does your hardware do? In particular, is the hwseek limited by the
+> US/Europe or Japan band range or can it do the full range? If I'm not mistaken
+> it is the former, right?
+>
+> If it is the former, then you need to explicitly set low + high to ensure that
+> the hwseek uses the correct range because the driver can't guess which of the
+> overlapping bands to use.
+>
+> 2) What happens if the current frequency is outside the low/high range? The
+> hwseek spec says that the seek starts from the current frequency, so that might
+> mean that hwseek returns -ERANGE in this case.
+
+What the si470x code currently does is just clamp the frequency to the new
+range before seeking, but -ERANGE works for me too.
+
+Regards,
+
+Hans
