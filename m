@@ -1,56 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42103 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752463Ab2GIIm3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Jul 2012 04:42:29 -0400
-Message-ID: <4FFA996D.9010206@iki.fi>
-Date: Mon, 09 Jul 2012 11:42:21 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:55187 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756593Ab2GKSIF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jul 2012 14:08:05 -0400
+Received: by gglu4 with SMTP id u4so1528876ggl.19
+        for <linux-media@vger.kernel.org>; Wed, 11 Jul 2012 11:08:04 -0700 (PDT)
 MIME-Version: 1.0
-To: Marx <acc.for.news@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: pctv452e
-References: <4FF4697C.8080602@nexusuk.org> <4FF46DC4.4070204@iki.fi> <4FF4911B.9090600@web.de> <4FF4931B.7000708@iki.fi> <gjggc9-dl4.ln1@wuwek.kopernik.gliwice.pl> <4FF5A350.9070509@iki.fi> <r8cic9-ht4.ln1@wuwek.kopernik.gliwice.pl> <4FF6B121.6010105@iki.fi> <9btic9-vd5.ln1@wuwek.kopernik.gliwice.pl> <835kc9-7p4.ln1@wuwek.kopernik.gliwice.pl> <4FF77C1B.50406@iki.fi> <l2smc9-pj4.ln1@wuwek.kopernik.gliwice.pl> <4FF97DF8.4080208@iki.fi> <n1aqc9-sp4.ln1@wuwek.kopernik.gliwice.pl>
-In-Reply-To: <n1aqc9-sp4.ln1@wuwek.kopernik.gliwice.pl>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Reply-To: martin-eric.racine@iki.fi
+In-Reply-To: <20120711191835.1be1c8ef@armhf>
+References: <20120614162609.4613.22122.reportbug@henna.lan>
+	<20120616044137.GB4076@burratino>
+	<1339932233.20497.14.camel@henna.lan>
+	<CAPZXPQegp7RA5M0H9Ofq4rJ9aj-rEdg=Ly9_1c6vAKi3COw50g@mail.gmail.com>
+	<4FF9CA30.9050105@redhat.com>
+	<CAPZXPQd026xfKrAU0D7CLQGbdAs8U01u5vsHp+5-wbVofAwdqQ@mail.gmail.com>
+	<4FFAD8D9.8070203@redhat.com>
+	<20120709203929.GC17301@burratino>
+	<CAPZXPQcaEzW1zGXfGwp-JuOrfBu2xhoidaYjthD8jhYAFpWr7A@mail.gmail.com>
+	<20120710163645.04fb0af0@armhf>
+	<CAPZXPQehjGRDZ=rXWjGFPQvRqOMzRpeA2dpoSWc3XwuUkvvesg@mail.gmail.com>
+	<20120711100436.2305b098@armhf>
+	<CAPZXPQdJC5yCYY6YRzuKj-ukFLzbY_yUzbogzbDx1S0bL1GrgQ@mail.gmail.com>
+	<20120711124441.346a86b3@armhf>
+	<CAPZXPQcvGqPjeyZh=vHtbSOoA91Htsg6DeyYyhYLeDgay8GSBg@mail.gmail.com>
+	<20120711132739.6b527a27@armhf>
+	<CAPZXPQeDKLAu13Qs-MhhxJEBrF-5620HNZDmPiH+4NRmkxx3Ag@mail.gmail.com>
+	<4FFD7F48.6060905@redhat.com>
+	<CAPZXPQfMrWySzx9=61WqoZ7zwzw19p69nN6_fuwAHjZVqGLDBw@mail.gmail.com>
+	<20120711191835.1be1c8ef@armhf>
+Date: Wed, 11 Jul 2012 21:08:03 +0300
+Message-ID: <CAPZXPQeWC+pKJNLr12y_AybYCCKZr6ayBAa=EhaiyfN4iU8g5g@mail.gmail.com>
+Subject: Re: video: USB webcam fails since kernel 3.2
+From: =?UTF-8?Q?Martin=2D=C3=89ric_Racine?= <martin-eric.racine@iki.fi>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Jonathan Nieder <jrnieder@gmail.com>, 677533@bugs.debian.org,
+	linux-media@vger.kernel.org, debian-kernel@lists.debian.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/09/2012 09:24 AM, Marx wrote:
-> On 08.07.2012 14:32, Antti Palosaari wrote:
->> I suspect you stopped szap ?
->>
->> You cannot use dvbdate or dvbtraffic, nor read data from dvr0 unless
->> frontend is tuned. Leave szap running backround and try again.
+2012/7/11 Jean-Francois Moine <moinejf@free.fr>:
+> On Wed, 11 Jul 2012 16:43:47 +0300
+> Martin-Éric Racine <martin-eric.racine@iki.fi> wrote:
 >
-> That way it works, and I can save stream. Hovewer it's strange because I
-> shouldn't have to constatly tune channel to watch it, and on previous
-> cards it was enough to tune once and then use other commands.
-> I base my knowledge on
-> http://www.linuxtv.org/wiki/index.php/Testing_your_DVB_device
-> There is nothing about constant tuning channel to use it. Am I missing
-> something?
+>> > Jean-Francois, can you perhaps make a patch against my latest tree for
+>> > the poXXXX / PO3130 changes in your tarbal?
+>>
+>> Noted.  Hopefully, the Debian kernel team can contribute to the
+>> backporting part, since it's needed for the upcoming stable release.
+>
+> I had many problems with the vc032x driver, and the source code is very
+> different from the code in the official kernels.
+>
+> As I have no webcam, Martin-Éric, may I ask you to test the backport
+> I will do? It will be done only in the vc032x driver, so you could keep
+> the working gspca_vc032x.ko file you have and restore it between the
+> tests. I still lack the sensor type of your webcam. May you send me the
+> result of:
+>
+>         dmesg | fgrep gspca
 
-given wiki-page says:
-"
-4. After you've tuned a frequency and program
+[   11.834852] gspca_main: v2.15.18 registered
+[   11.844262] gspca_main: vc032x-2.15.18 probing 0ac8:0321
+[   11.844682] gspca_vc032x: vc0321 check sensor header 2c
+[   11.850304] gspca_vc032x: Sensor ID 3130 (0)
+[   11.850309] gspca_vc032x: Find Sensor PO3130NC
+[   11.851809] gspca_main: video0 created
 
-a) You could now start up your simple TV watching application and decode 
-the stream you have tuned.
+Backport would be needed against 3.2.21 as this is what Debian will
+(probably) release with.
 
-For example, while keeping {a,c,s,t}zap running in the first console 
-shell, open up another console and run
-"
-
-Behavior have been always same, at least for the DVB USB.
-
-So you don't have problems at all?
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
-
-
+Cheers!
+Martin-Éric
