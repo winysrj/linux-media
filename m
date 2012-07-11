@@ -1,42 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40504 "EHLO mail.kapsi.fi"
+Received: from smtp1-g21.free.fr ([212.27.42.1]:33133 "EHLO smtp1-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751432Ab2GITQs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Jul 2012 15:16:48 -0400
-Received: from dyn3-82-128-190-162.psoas.suomi.net ([82.128.190.162] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1SoJRv-0001Iu-HV
-	for linux-media@vger.kernel.org; Mon, 09 Jul 2012 22:16:47 +0300
-Message-ID: <4FFB2E18.5020908@iki.fi>
-Date: Mon, 09 Jul 2012 22:16:40 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-Subject: dvb_usb_pctv452e driver problems
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1753554Ab2GKL1o convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jul 2012 07:27:44 -0400
+Date: Wed, 11 Jul 2012 13:27:39 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: martin-eric.racine@iki.fi
+Cc: Jonathan Nieder <jrnieder@gmail.com>,
+	Hans de Goede <hdegoede@redhat.com>, 677533@bugs.debian.org,
+	linux-media@vger.kernel.org
+Subject: Re: video: USB webcam fails since kernel 3.2
+Message-ID: <20120711132739.6b527a27@armhf>
+In-Reply-To: <CAPZXPQcvGqPjeyZh=vHtbSOoA91Htsg6DeyYyhYLeDgay8GSBg@mail.gmail.com>
+References: <20120614162609.4613.22122.reportbug@henna.lan>
+	<20120614215359.GF3537@burratino>
+	<CAPZXPQd9gNCxn7xGyqj_xymPaF5OxvRtxRFkt+SsLs942te4og@mail.gmail.com>
+	<20120616044137.GB4076@burratino>
+	<1339932233.20497.14.camel@henna.lan>
+	<CAPZXPQegp7RA5M0H9Ofq4rJ9aj-rEdg=Ly9_1c6vAKi3COw50g@mail.gmail.com>
+	<4FF9CA30.9050105@redhat.com>
+	<CAPZXPQd026xfKrAU0D7CLQGbdAs8U01u5vsHp+5-wbVofAwdqQ@mail.gmail.com>
+	<4FFAD8D9.8070203@redhat.com>
+	<20120709203929.GC17301@burratino>
+	<CAPZXPQcaEzW1zGXfGwp-JuOrfBu2xhoidaYjthD8jhYAFpWr7A@mail.gmail.com>
+	<20120710163645.04fb0af0@armhf>
+	<CAPZXPQehjGRDZ=rXWjGFPQvRqOMzRpeA2dpoSWc3XwuUkvvesg@mail.gmail.com>
+	<20120711100436.2305b098@armhf>
+	<CAPZXPQdJC5yCYY6YRzuKj-ukFLzbY_yUzbogzbDx1S0bL1GrgQ@mail.gmail.com>
+	<20120711124441.346a86b3@armhf>
+	<CAPZXPQcvGqPjeyZh=vHtbSOoA91Htsg6DeyYyhYLeDgay8GSBg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am looking problems with that driver. It is said to be buggy after 
-merged to mainline Kernel.
+On Wed, 11 Jul 2012 14:14:24 +0300
+Martin-Éric Racine <martin-eric.racine@iki.fi> wrote:
 
-It supports three different devices:
-PCTV HDTV USB
-Technotrend TT Connect S2-3600
-Technotrend TT Connect S2-3650-CI
+>   CC [M]  /home/perkelix/gspca-2.15.18/build/ov534_9.o
+> /home/perkelix/gspca-2.15.18/build/ov534_9.c: In function ‘sd_init’:
+> /home/perkelix/gspca-2.15.18/build/ov534_9.c:1353:3: error: implicit
+> declaration of function ‘err’ [-Werror=implicit-function-declaration]
+> cc1: some warnings being treated as errors
+> make[2]: *** [/home/perkelix/gspca-2.15.18/build/ov534_9.o] Virhe 1
+> make[1]: *** [_module_/home/perkelix/gspca-2.15.18/build] Error 2
+> make[1]: Leaving directory `/usr/src/linux-headers-3.5.0-rc6+'
+> make: *** [modules] Error 2
 
-All reports are welcome even when it is working as expected.
+Sorry, I did not compile yet with kernel >= 3.4.
 
-In problem case I would like to ask if you could test that tree and 
-report if it helps:
-http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/pctv452e
-
-regards
-Antti
+So, please, edit the file build/ov534_9.c (and possibly other sources),
+changing  the calls to 'err' to 'pr_err'.
 
 -- 
-http://palosaari.fi/
-
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
