@@ -1,702 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([93.97.41.153]:39806 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751827Ab2GORix (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jul 2012 13:38:53 -0400
-From: Sean Young <sean@mess.org>
-To: Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
-Cc: lirc-list@lists.sourceforge.net,
-	Joseph Dunn <jdunn@iguanaworks.net>, Sean Young <sean@mess.org>
-Subject: [PATCH] Add support for the IguanaWorks USB IR Transceiver.
-Date: Sun, 15 Jul 2012 18:31:00 +0100
-Message-Id: <1342373461-25675-1-git-send-email-sean@mess.org>
+Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:49912 "EHLO
+	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755372Ab2GKOYk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jul 2012 10:24:40 -0400
+From: Albert Wang <twang13@marvell.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Jonathan Corbet <corbet@lwn.net>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Chao Xie <cxie4@marvell.com>, Angela Wan <jwan@marvell.com>,
+	Kassey Lee <kassey1216@gmail.com>,
+	Albert <bluebellice@gmail.com>
+Date: Wed, 11 Jul 2012 07:24:59 -0700
+Subject: Add V4l2 camera driver for Marvell PXA910/PXA688/PXA2128 CCIC
+Message-ID: <477F20668A386D41ADCC57781B1F7043083AB3314D@SC-VEXCH1.marvell.com>
+References: <477F20668A386D41ADCC57781B1F7043083A57BA08@SC-VEXCH1.marvell.com>
+ <20120511102752.4b87024f@lwn.net>
+ <477F20668A386D41ADCC57781B1F7043083A57BA5C@SC-VEXCH1.marvell.com>
+ <Pine.LNX.4.64.1205122051330.11826@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1205122051330.11826@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/Kconfig    |   11 +
- drivers/media/rc/Makefile   |    1 +
- drivers/media/rc/iguanair.c |  639 +++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 651 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/rc/iguanair.c
-
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index a3fbb21..3b1d4e2 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -253,6 +253,17 @@ config IR_WINBOND_CIR
- 	   To compile this driver as a module, choose M here: the module will
- 	   be called winbond_cir.
- 
-+config IR_IGUANA
-+	tristate "IguanaWorks USB IR Transceiver"
-+	depends on RC_CORE
-+	select USB
-+	---help---
-+	   Say Y here if you want to use the IgaunaWorks USB IR Transceiver.
-+	   Both infrared receive and send are supported.
-+
-+	   To compile this driver as a module, choose M here: the module will
-+	   be called iguanair.
-+
- config RC_LOOPBACK
- 	tristate "Remote Control Loopback Driver"
- 	depends on RC_CORE
-diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
-index 29f364f..f871d19 100644
---- a/drivers/media/rc/Makefile
-+++ b/drivers/media/rc/Makefile
-@@ -27,3 +27,4 @@ obj-$(CONFIG_IR_STREAMZAP) += streamzap.o
- obj-$(CONFIG_IR_WINBOND_CIR) += winbond-cir.o
- obj-$(CONFIG_RC_LOOPBACK) += rc-loopback.o
- obj-$(CONFIG_IR_GPIO_CIR) += gpio-ir-recv.o
-+obj-$(CONFIG_IR_IGUANA) += iguanair.o
-diff --git a/drivers/media/rc/iguanair.c b/drivers/media/rc/iguanair.c
-new file mode 100644
-index 0000000..5e2eaf8
---- /dev/null
-+++ b/drivers/media/rc/iguanair.c
-@@ -0,0 +1,639 @@
-+/*
-+ * IguanaWorks USB IR Transceiver support
-+ *
-+ * Copyright (C) 2012 Sean Young <sean@mess.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ */
-+
-+#include <linux/device.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/usb.h>
-+#include <linux/usb/input.h>
-+#include <linux/slab.h>
-+#include <linux/completion.h>
-+#include <media/rc-core.h>
-+
-+#define DRIVER_NAME "iguanair"
-+
-+struct iguanair {
-+	struct rc_dev *rc;
-+
-+	struct device *dev;
-+	struct usb_device *udev;
-+
-+	int pipe_in, pipe_out;
-+	uint8_t bufsize;
-+	uint8_t version[2];
-+
-+	struct mutex lock;
-+
-+	/* receiver support */
-+	bool receiver_on;
-+	dma_addr_t dma_in;
-+	uint8_t *buf_in;
-+	struct urb *urb_in;
-+	struct completion completion;
-+
-+	/* transmit support */
-+	bool tx_overflow;
-+	uint32_t carrier;
-+	uint8_t cycle_overhead;
-+	uint8_t channels;
-+	uint8_t busy4;
-+	uint8_t busy7;
-+
-+	char name[64];
-+	char phys[64];
-+};
-+
-+#define CMD_GET_VERSION		0x01
-+#define CMD_GET_BUFSIZE		0x11
-+#define CMD_GET_FEATURES	0x10
-+#define CMD_SEND		0x15
-+#define CMD_EXECUTE		0x1f
-+#define CMD_RX_OVERFLOW		0x31
-+#define CMD_TX_OVERFLOW		0x32
-+#define CMD_RECEIVER_ON		0x12
-+#define CMD_RECEIVER_OFF	0x14
-+
-+#define DIR_IN			0xdc
-+#define DIR_OUT			0xcd
-+
-+#define MAX_PACKET_SIZE		8u
-+#define TIMEOUT			1000
-+
-+struct packet {
-+	uint16_t start;
-+	uint8_t direction;
-+	uint8_t cmd;
-+};
-+
-+struct response_packet {
-+	struct packet header;
-+	uint8_t data[4];
-+};
-+
-+struct send_packet {
-+	struct packet header;
-+	uint8_t length;
-+	uint8_t channels;
-+	uint8_t busy7;
-+	uint8_t busy4;
-+	uint8_t payload[0];
-+};
-+
-+static void process_ir_data(struct iguanair *ir, unsigned len)
-+{
-+	if (len >= 4 && ir->buf_in[0] == 0 && ir->buf_in[1] == 0) {
-+		switch (ir->buf_in[3]) {
-+		case CMD_TX_OVERFLOW:
-+			ir->tx_overflow = true;
-+		case CMD_RECEIVER_OFF:
-+		case CMD_RECEIVER_ON:
-+		case CMD_SEND:
-+			complete(&ir->completion);
-+			break;
-+		case CMD_RX_OVERFLOW:
-+			dev_warn(ir->dev, "receive overflow\n");
-+			break;
-+		default:
-+			dev_warn(ir->dev, "control code %02x received\n",
-+							ir->buf_in[3]);
-+			break;
-+		}
-+	} else if (len >= 7) {
-+		DEFINE_IR_RAW_EVENT(rawir);
-+		unsigned i;
-+
-+		init_ir_raw_event(&rawir);
-+
-+		for (i = 0; i < 7; i++) {
-+			if (ir->buf_in[i] == 0x80) {
-+				rawir.pulse = false;
-+				rawir.duration = US_TO_NS(21845);
-+			} else {
-+				rawir.pulse = (ir->buf_in[i] & 0x80) == 0;
-+				rawir.duration = ((ir->buf_in[i] & 0x7f) + 1) *
-+									 21330;
-+			}
-+
-+			ir_raw_event_store_with_filter(ir->rc, &rawir);
-+		}
-+
-+		ir_raw_event_handle(ir->rc);
-+	}
-+}
-+
-+static void iguanair_rx(struct urb *urb)
-+{
-+	struct iguanair *ir;
-+
-+	if (!urb)
-+		return;
-+
-+	ir = urb->context;
-+	if (!ir) {
-+		usb_unlink_urb(urb);
-+		return;
-+	}
-+
-+	switch (urb->status) {
-+	case 0:
-+		process_ir_data(ir, urb->actual_length);
-+		break;
-+	case -ECONNRESET:
-+	case -ENOENT:
-+	case -ESHUTDOWN:
-+		usb_unlink_urb(urb);
-+		return;
-+	case -EPIPE:
-+	default:
-+		dev_dbg(ir->dev, "Error: urb status = %d\n", urb->status);
-+		break;
-+	}
-+
-+	usb_submit_urb(urb, GFP_ATOMIC);
-+}
-+
-+static int iguanair_send(struct iguanair *ir, void *data, unsigned size,
-+			struct response_packet *response, unsigned *res_len)
-+{
-+	unsigned offset, len;
-+	int rc, transferred;
-+
-+	for (offset = 0; offset < size; offset += MAX_PACKET_SIZE) {
-+		len = min(size - offset, MAX_PACKET_SIZE);
-+
-+		if (ir->tx_overflow)
-+			return -EOVERFLOW;
-+
-+		rc = usb_interrupt_msg(ir->udev, ir->pipe_out, data + offset,
-+						len, &transferred, TIMEOUT);
-+		if (rc)
-+			return rc;
-+
-+		if (transferred != len)
-+			return -EIO;
-+	}
-+
-+	if (response) {
-+		rc = usb_interrupt_msg(ir->udev, ir->pipe_in, response,
-+					sizeof(*response), res_len, TIMEOUT);
-+	}
-+
-+	return rc;
-+}
-+
-+static int iguanair_get_features(struct iguanair *ir)
-+{
-+	struct packet packet;
-+	struct response_packet response;
-+	int rc, len;
-+
-+	packet.start = 0;
-+	packet.direction = DIR_OUT;
-+	packet.cmd = CMD_GET_VERSION;
-+
-+	rc = iguanair_send(ir, &packet, sizeof(packet), &response, &len);
-+	if (rc) {
-+		dev_info(ir->dev, "failed to get version\n");
-+		goto out;
-+	}
-+
-+	if (len != 6) {
-+		dev_info(ir->dev, "failed to get version\n");
-+		rc = -EIO;
-+		goto out;
-+	}
-+
-+	ir->version[0] = response.data[0];
-+	ir->version[1] = response.data[1];
-+	ir->bufsize = 150;
-+	ir->cycle_overhead = 65;
-+
-+	packet.cmd = CMD_GET_BUFSIZE;
-+
-+	rc = iguanair_send(ir, &packet, sizeof(packet), &response, &len);
-+	if (rc) {
-+		dev_info(ir->dev, "failed to get buffer size\n");
-+		goto out;
-+	}
-+
-+	if (len != 5) {
-+		dev_info(ir->dev, "failed to get buffer size\n");
-+		rc = -EIO;
-+		goto out;
-+	}
-+
-+	ir->bufsize = response.data[0];
-+
-+	if (ir->version[0] == 0 || ir->version[1] == 0)
-+		goto out;
-+
-+	packet.cmd = CMD_GET_FEATURES;
-+
-+	rc = iguanair_send(ir, &packet, sizeof(packet), &response, &len);
-+	if (rc) {
-+		dev_info(ir->dev, "failed to get features\n");
-+		goto out;
-+	}
-+
-+	if (len < 5) {
-+		dev_info(ir->dev, "failed to get features\n");
-+		rc = -EIO;
-+		goto out;
-+	}
-+
-+	if (len > 5 && ir->version[0] >= 4)
-+		ir->cycle_overhead = response.data[1];
-+
-+out:
-+	return rc;
-+}
-+
-+static int iguanair_receiver(struct iguanair *ir, bool enable)
-+{
-+	struct packet packet = { 0, DIR_OUT, enable ?
-+				CMD_RECEIVER_ON : CMD_RECEIVER_OFF };
-+	int rc;
-+
-+	INIT_COMPLETION(ir->completion);
-+
-+	rc = iguanair_send(ir, &packet, sizeof(packet), NULL, NULL);
-+	if (rc)
-+		return rc;
-+
-+	wait_for_completion_timeout(&ir->completion, TIMEOUT);
-+
-+	return 0;
-+}
-+
-+/*
-+ * The iguana ir creates the carrier by busy spinning after each pulse or
-+ * space. This is counted in CPU cycles, with the CPU running at 24MHz. It is
-+ * broken down into 7-cycles and 4-cyles delays, with a preference for
-+ * 4-cycle delays.
-+ */
-+static int iguanair_set_tx_carrier(struct rc_dev *dev, uint32_t carrier)
-+{
-+	struct iguanair *ir = dev->priv;
-+
-+	if (carrier < 25000 || carrier > 150000)
-+		return -EINVAL;
-+
-+	mutex_lock(&ir->lock);
-+
-+	if (carrier != ir->carrier) {
-+		uint32_t cycles, fours, sevens;
-+
-+		ir->carrier = carrier;
-+
-+		cycles = DIV_ROUND_CLOSEST(24000000, carrier * 2) -
-+							ir->cycle_overhead;
-+
-+		/*  make up the the remainer of 4-cycle blocks */
-+		switch (cycles & 3) {
-+		case 0:
-+			sevens = 0;
-+			break;
-+		case 1:
-+			sevens = 3;
-+			break;
-+		case 2:
-+			sevens = 2;
-+			break;
-+		case 3:
-+			sevens = 1;
-+			break;
-+		}
-+
-+		fours = (cycles - sevens * 7) / 4;
-+
-+		/* magic happens here */
-+		ir->busy7 = (4 - sevens) * 2;
-+		ir->busy4 = 110 - fours;
-+	}
-+
-+	mutex_unlock(&ir->lock);
-+
-+	return carrier;
-+}
-+
-+static int iguanair_set_tx_mask(struct rc_dev *dev, uint32_t mask)
-+{
-+	struct iguanair *ir = dev->priv;
-+
-+	if (mask > 15)
-+		return 4;
-+
-+	mutex_lock(&ir->lock);
-+	ir->channels = mask;
-+	mutex_unlock(&ir->lock);
-+
-+	return 0;
-+}
-+
-+static int iguanair_tx(struct rc_dev *dev, unsigned *txbuf, unsigned count)
-+{
-+	struct iguanair *ir = dev->priv;
-+	uint8_t space, *payload;
-+	unsigned i, size, rc;
-+	struct send_packet *packet;
-+
-+	mutex_lock(&ir->lock);
-+
-+	/* convert from us to carrier periods */
-+	for (i = size = 0; i < count; i++) {
-+		txbuf[i] = DIV_ROUND_CLOSEST(txbuf[i] * ir->carrier, 1000000);
-+		size += (txbuf[i] + 126) / 127;
-+	}
-+
-+	packet = kmalloc(sizeof(*packet) + size, GFP_KERNEL);
-+	if (!packet) {
-+		rc = -ENOMEM;
-+		goto out;
-+	}
-+
-+	if (size > ir->bufsize) {
-+		rc = -E2BIG;
-+		goto out;
-+	}
-+
-+	packet->header.start = 0;
-+	packet->header.direction = DIR_OUT;
-+	packet->header.cmd = CMD_SEND;
-+	packet->length = size;
-+	packet->channels = ir->channels << 4;
-+	packet->busy7 = ir->busy7;
-+	packet->busy4 = ir->busy4;
-+
-+	space = 0;
-+	payload = packet->payload;
-+
-+	for (i = 0; i < count; i++) {
-+		unsigned periods = txbuf[i];
-+
-+		while (periods > 127) {
-+			*payload++ = 127 | space;
-+			periods -= 127;
-+		}
-+
-+		*payload++ = periods | space;
-+		space ^= 0x80;
-+	}
-+
-+	if (ir->receiver_on) {
-+		rc = iguanair_receiver(ir, false);
-+		if (rc) {
-+			dev_warn(ir->dev, "disable receiver before transmit failed\n");
-+			goto out;
-+		}
-+	}
-+
-+	ir->tx_overflow = false;
-+
-+	INIT_COMPLETION(ir->completion);
-+
-+	rc = iguanair_send(ir, packet, size + 8, NULL, NULL);
-+
-+	if (rc == 0) {
-+		wait_for_completion_timeout(&ir->completion, TIMEOUT);
-+		if (ir->tx_overflow)
-+			rc = -EOVERFLOW;
-+	}
-+
-+	ir->tx_overflow = false;
-+
-+	if (ir->receiver_on) {
-+		if (iguanair_receiver(ir, true))
-+			dev_warn(ir->dev, "re-enable receiver after transmit failed\n");
-+	}
-+
-+out:
-+	mutex_unlock(&ir->lock);
-+	kfree(packet);
-+
-+	return rc;
-+}
-+
-+static int iguanair_open(struct rc_dev *rdev)
-+{
-+	struct iguanair *ir = rdev->priv;
-+	int rc;
-+
-+	mutex_lock(&ir->lock);
-+
-+	usb_submit_urb(ir->urb_in, GFP_KERNEL);
-+
-+	BUG_ON(ir->receiver_on);
-+
-+	rc = iguanair_receiver(ir, true);
-+	if (rc == 0)
-+		ir->receiver_on = true;
-+
-+	mutex_unlock(&ir->lock);
-+
-+	return rc;
-+}
-+
-+static void iguanair_close(struct rc_dev *rdev)
-+{
-+	struct iguanair *ir = rdev->priv;
-+	int rc;
-+
-+	mutex_lock(&ir->lock);
-+
-+	rc = iguanair_receiver(ir, false);
-+	ir->receiver_on = false;
-+	if (rc)
-+		dev_warn(ir->dev, "failed to disable receiver: %d\n", rc);
-+
-+	usb_kill_urb(ir->urb_in);
-+
-+	mutex_unlock(&ir->lock);
-+}
-+
-+static int __devinit iguanair_probe(struct usb_interface *intf,
-+						const struct usb_device_id *id)
-+{
-+	struct usb_device *udev = interface_to_usbdev(intf);
-+	struct iguanair *ir;
-+	struct rc_dev *rc;
-+	int ret;
-+	struct usb_host_interface *idesc;
-+
-+	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
-+	rc = rc_allocate_device();
-+	if (!ir || !rc) {
-+		ret = ENOMEM;
-+		goto out;
-+	}
-+
-+	ir->buf_in = usb_alloc_coherent(udev, MAX_PACKET_SIZE, GFP_ATOMIC,
-+								&ir->dma_in);
-+	ir->urb_in = usb_alloc_urb(0, GFP_KERNEL);
-+
-+	if (!ir->buf_in || !ir->urb_in) {
-+		ret = ENOMEM;
-+		goto out;
-+	}
-+
-+	idesc = intf->altsetting;
-+
-+	if (idesc->desc.bNumEndpoints < 2) {
-+		ret = -ENODEV;
-+		goto out;
-+	}
-+
-+	ir->rc = rc;
-+	ir->dev = &intf->dev;
-+	ir->udev = udev;
-+	ir->pipe_in = usb_rcvintpipe(udev,
-+				idesc->endpoint[0].desc.bEndpointAddress);
-+	ir->pipe_out = usb_sndintpipe(udev,
-+				idesc->endpoint[1].desc.bEndpointAddress);
-+	mutex_init(&ir->lock);
-+	init_completion(&ir->completion);
-+
-+	ret = iguanair_get_features(ir);
-+	if (ret) {
-+		dev_warn(&intf->dev, "failed to get device features");
-+		goto out;
-+	}
-+
-+	usb_fill_int_urb(ir->urb_in, ir->udev, ir->pipe_in, ir->buf_in,
-+		MAX_PACKET_SIZE, iguanair_rx, ir,
-+		idesc->endpoint[0].desc.bInterval);
-+	ir->urb_in->transfer_dma = ir->dma_in;
-+	ir->urb_in->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
-+
-+	snprintf(ir->name, sizeof(ir->name),
-+		"IguanaWorks USB IR Transceiver version %d.%d",
-+		ir->version[0], ir->version[1]);
-+
-+	usb_make_path(ir->udev, ir->phys, sizeof(ir->phys));
-+
-+	rc->input_name = ir->name;
-+	rc->input_phys = ir->phys;
-+	usb_to_input_id(ir->udev, &rc->input_id);
-+	rc->dev.parent = &intf->dev;
-+	rc->driver_type = RC_DRIVER_IR_RAW;
-+	rc->allowed_protos = RC_TYPE_ALL;
-+	rc->priv = ir;
-+	rc->open = iguanair_open;
-+	rc->close = iguanair_close;
-+	rc->s_tx_mask = iguanair_set_tx_mask;
-+	rc->s_tx_carrier = iguanair_set_tx_carrier;
-+	rc->tx_ir = iguanair_tx;
-+	rc->driver_name = DRIVER_NAME;
-+	rc->map_name = RC_MAP_EMPTY;
-+
-+	iguanair_set_tx_carrier(rc, 38000);
-+
-+	ret = rc_register_device(rc);
-+	if (ret < 0) {
-+		dev_err(&intf->dev, "failed to register rc device %d", ret);
-+		goto out;
-+	}
-+
-+	usb_set_intfdata(intf, ir);
-+
-+	dev_info(&intf->dev, "Registered %s", ir->name);
-+
-+	return 0;
-+out:
-+	if (ir) {
-+		usb_free_urb(ir->urb_in);
-+		usb_free_coherent(udev, MAX_PACKET_SIZE, ir->buf_in,
-+								ir->dma_in);
-+	}
-+	rc_free_device(rc);
-+	kfree(ir);
-+	return ret;
-+}
-+
-+static void __devexit iguanair_disconnect(struct usb_interface *intf)
-+{
-+	struct iguanair *ir = usb_get_intfdata(intf);
-+
-+	usb_set_intfdata(intf, NULL);
-+
-+	usb_kill_urb(ir->urb_in);
-+	usb_free_urb(ir->urb_in);
-+	usb_free_coherent(ir->udev, MAX_PACKET_SIZE, ir->buf_in, ir->dma_in);
-+	rc_unregister_device(ir->rc);
-+	kfree(ir);
-+}
-+
-+static int iguanair_suspend(struct usb_interface *intf, pm_message_t message)
-+{
-+	struct iguanair *ir = usb_get_intfdata(intf);
-+	int rc = 0;
-+
-+	mutex_lock(&ir->lock);
-+
-+	if (ir->receiver_on) {
-+		rc = iguanair_receiver(ir, false);
-+		if (rc)
-+			dev_warn(ir->dev, "failed to disable receiver for suspend\n");
-+	}
-+
-+	mutex_unlock(&ir->lock);
-+
-+	return rc;
-+}
-+
-+static int iguanair_resume(struct usb_interface *intf)
-+{
-+	struct iguanair *ir = usb_get_intfdata(intf);
-+	int rc = 0;
-+
-+	mutex_lock(&ir->lock);
-+
-+	if (ir->receiver_on) {
-+		rc = iguanair_receiver(ir, true);
-+		if (rc)
-+			dev_warn(ir->dev, "failed to enable receiver after resume\n");
-+	}
-+
-+	mutex_unlock(&ir->lock);
-+
-+	return rc;
-+}
-+
-+static const struct usb_device_id iguanair_table[] = {
-+	{ USB_DEVICE(0x1781, 0x0938) },
-+	{ }
-+};
-+
-+static struct usb_driver iguanair_driver = {
-+	.name =	DRIVER_NAME,
-+	.probe = iguanair_probe,
-+	.disconnect = __devexit_p(iguanair_disconnect),
-+	.suspend = iguanair_suspend,
-+	.resume = iguanair_resume,
-+	.reset_resume = iguanair_resume,
-+	.id_table = iguanair_table
-+};
-+
-+module_usb_driver(iguanair_driver);
-+
-+MODULE_DESCRIPTION("IguanaWorks USB IR Transceiver");
-+MODULE_AUTHOR("Sean Young <sean@mess.org>");
-+MODULE_LICENSE("GPL");
-+MODULE_DEVICE_TABLE(usb, iguanair_table);
-+
--- 
-1.7.2.5
-
+SGksIEd1ZW5uYWRpICYgSm9uYXRoYW4NCg0KQXMgd2UgaGF2ZSBkaXNjdXNzZWQgMiBtb250aHMg
+YWdvLCB3ZSBtYWtlIHRoZSB1cGRhdGVkIHZlcnNpb24gb2YgbW1wX2NhbWVyYSBkcml2ZXIgd2hp
+Y2ggYmFzZWQgb24ga2VybmVsIDMuNCBmb3Igc3VwcG9ydCBNYXJ2ZWxsIE1NUCBzb2MgZmFtaWx5
+Lg0KDQpTbyBjb3VsZCB5b3UgcGxlYXNlIGZpbmQgdGltZSB0byB0YWtlIGEgbG9vayBhdCB0aGlz
+IHBhdGNoPw0KDQpUaGFuayB5b3UgdmVyeSBtdWNoIQ0KDQoNClRoYW5rcw0KQWxiZXJ0IFdhbmcN
+Cjg2LTIxLTYxMDkyNjU2DQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBHdWVu
+bmFkaSBMaWFraG92ZXRza2kgW21haWx0bzpnLmxpYWtob3ZldHNraUBnbXguZGVdIA0KU2VudDog
+U3VuZGF5LCAxMyBNYXksIDIwMTIgMDM6MDUNClRvOiBBbGJlcnQgV2FuZw0KQ2M6IEpvbmF0aGFu
+IENvcmJldDsgTGludXggTWVkaWEgTWFpbGluZyBMaXN0OyBNYXVybyBDYXJ2YWxobyBDaGVoYWI7
+IENoYW8gWGllOyBBbmdlbGEgV2FuOyBLYXNzZXkgTGVlOyBBbGJlcnQNClN1YmplY3Q6IFJFOiBt
+YXJ2ZWxsLWNjaWM6IGxhY2tzIG9mIHNvbWUgZmVhdHVyZXMNCg0KSGkgQWxiZXJ0DQoNCk9uIEZy
+aSwgMTEgTWF5IDIwMTIsIEFsYmVydCBXYW5nIHdyb3RlOg0KDQo+IEhpLCBKb25hdGhhbg0KPiAN
+Cj4gTmljZSB0byBtZWV0IHlvdSENCj4gDQo+IFdlIG11c3QgY2xhcmlmeSB0aGF0IGl0J3Mgbm90
+IG91ciB0YXJnZXQgdG8gcmVwbGFjZSB5b3VyIG1hcnZlbGwtY2NpYyANCj4gYnkgb3VyIG12X2Nh
+bWVyYSBpbiB0aGUgdHJlZQ0KPiANCj4gV2UganVzdCBob3BlIHlvdSBjYW4gaGVscCB0byByZXZp
+ZXcgb3VyIG12X2NhbWVyYSBwYXRjaGVzIGFuZCBkaXNjdXNzIA0KPiBpZiBjYW4gcHV0IGl0IGlu
+IHRyZWUsIGJlY2F1c2UgaXQgbWF5IHN1cHBvcnQgbW9yZSBhbmQgYmV0dGVyIGZvciANCj4gTWFy
+dmVsbCBTb2MgY2hpcHMuDQo+IFRoZXJlIGlzIG5vIGNvbmZsaWN0IGJldHdlZW4geW91ciBtYXJ2
+ZWxsLWNjaWMgd2hpY2ggc3VwcG9ydCBPTFBDIGFuZCANCj4gb3VyIG12X2NhbWVyYSB3aGljaCBz
+dXBwb3J0IG1vc3QgTWFydmVsbCBwbGF0Zm9ybXMuDQo+IEFjdHVhbGx5IHdlIGFyZSB3aWxsaW5n
+IHRvIGFkZCBzdXBwb3J0IG9uIE9MUEMuIDopDQoNClRoYW5rcyBmb3IgY29udGludWluZyB5b3Vy
+IHdvcmsgb24gdGhlIG12X2NhbWVyYSBkcml2ZXIgYW5kIGZvciB5b3VyIGVmZm9ydCB0byBpbnRl
+Z3JhdGUgaXQgaW50byB0aGUgbWFpbmxpbmUhIFdlIGNlcnRhaW5seSB3YW50IHRvIHN1cHBvcnQg
+bmV3IGhhcmR3YXJlIHR5cGVzIGFuZCBmZWF0dXJlcy4gU28sIHdlJ3JlIGNlcnRhaW5seSBnbGFk
+IHRvIGhlYXIsIHRoYXQgeW91ciBkcml2ZXIgc3VwcG9ydHMgZmVhdHVyZXMsIG5vdCBwcmVzZW50
+bHkgYXZhaWxhYmxlIGluIHRoZSBtYWlubGluZS4NCg0KQXMgeW91IGNlcnRhaW5seSB1bmRlcnN0
+YW5kLCB3ZSBhbHNvIHdhbnQgdG8gcmV1c2Uga2VybmVsIGNvZGUgYXMgbXVjaCBhcyBwb3NzaWJs
+ZS4gRHJpdmVycyBmb3IgdGhlIHNhbWUgSVAgYmxvY2sgaW4gZGlmZmVyZW50IHBhY2thZ2luZywg
+d2l0aCBkaWZmZXJlbnQgaW50ZXJmYWNlcyBldmVuIHdpdGggc2xpZ2h0IGRpZmZlcmVuY2VzIGlu
+IGZ1bmN0aW9uYWxpdHkgaXMgb25lIHN1Y2ggZXhhbXBsZS4gVGhlcmVmb3JlLCB3ZSBjZXJ0YWlu
+bHkgd291bGQgX3ZlcnkgbXVjaF8gcHJlZmVyIGhhdmluZyB5b3VyIGRyaXZlciBhbmQgbWFydmVs
+bC1jY2ljIHNoYXJlIGFzIG11Y2ggY29kZSBhcyBwb3NzaWJsZS4NCg0KSXQgd291bGQgYmUgaW50
+ZXJlc3RpbmcgdG8ga25vdzogaGF2ZSB5b3UgYWN0dWFsbHkgdHJpZWQgdG8gYnVpbGQgeW91ciBk
+cml2ZXIgYXJvdW5kIHRoZSBtYXJ2ZWxsLWNjaWMgY29kZS1iYXNlPyBJZiB5ZXMgLSBob3cgZGlk
+IGl0IGdvPyBXaGF0IGRpZmZpY3VsdGllcyBkaWQgeW91IGVuY291bnRlcj8gSWYgbm8gLSBoYXZl
+IHlvdSBjb25zaWRlcmVkIGRvaW5nIHNvPyBJZiB5ZXMgLSB3aHkgaGF2ZSB5b3UgZGVjaWRlZCBh
+Z2FpbnN0IGl0PyBIYXZlIHlvdSBjb25zaWRlcmVkIGEgcG9zc2liaWxpdHkgb2YgYnVpbGRpbmcg
+eW91ciBkcml2ZXIgYXMgYW4gc29jLWNhbWVyYSBkcml2ZXIsIHdoaWxlIHN0aWxsIHJldXNpbmcg
+dGhlIGNvcmUgZnVuY3Rpb25hbGl0eSBmcm9tIG1hcnZlbGwtY2NpYz8NCg0KVGhhbmtzDQpHdWVu
+bmFkaQ0KDQo+IE9LLCB3ZSB3aWxsIHByb3ZpZGUgdGhlIHBhdGNoZXMgZm9yIGRpc2N1c3Npbmcu
+DQo+IFRoYW5rIHlvdSB2ZXJ5IG11Y2ghDQo+IA0KPiANCj4gVGhhbmtzDQo+IEFsYmVydCBXYW5n
+DQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IEpvbmF0aGFuIENvcmJldCBb
+bWFpbHRvOmNvcmJldEBsd24ubmV0XQ0KPiBTZW50OiBTYXR1cmRheSwgMTIgTWF5LCAyMDEyIDAw
+OjI4DQo+IFRvOiBBbGJlcnQgV2FuZw0KPiBDYzogJ0d1ZW5uYWRpIExpYWtob3ZldHNraSc7IExp
+bnV4IE1lZGlhIE1haWxpbmcgTGlzdDsgTWF1cm8gQ2FydmFsaG8gDQo+IENoZWhhYjsgQ2hhbyBY
+aWU7IEFuZ2VsYSBXYW47IEthc3NleSBMZWU7IEFsYmVydA0KPiBTdWJqZWN0OiBSZTogbWFydmVs
+bC1jY2ljOiBsYWNrcyBvZiBzb21lIGZlYXR1cmVzDQo+IA0KPiBPbiBGcmksIDExIE1heSAyMDEy
+IDA5OjAyOjI2IC0wNzAwDQo+IEFsYmVydCBXYW5nIDx0d2FuZzEzQG1hcnZlbGwuY29tPiB3cm90
+ZToNCj4gDQo+ID4gSGksIEpvbmF0aGFuICYgR3Vlbm5hZGkNCj4gPiANCj4gPiBXZSB1c2VkIHRo
+ZSBtYXJ2ZWxsLWNjaWMgY29kZSBhbmQgZm91bmQgaXQgbGFja3Mgb2Ygc29tZSBmZWF0dXJlcywg
+DQo+ID4gYnV0IG91ciBNYXJ2ZWxsIENhbWVyYSBkcml2ZXIgKG12X2NhbWVyYS5jKSB3aGljaCBi
+YXNlZCBvbiANCj4gPiBzb2NfY2FtZXJhIGNhbiBzdXBwb3J0IGFsbCB0aGVzZSBmZWF0dXJlczoN
+Cj4gDQo+IFRoZSBtYXJ2ZWxsLWNjaWMgZHJpdmVyIGhhcyB0aGUgZmVhdHVyZXMgdGhhdCB3ZXJl
+IG5lZWRlZCBieSB0aGUgcGVvcGxlIGRvaW5nIHRoZSB3b3JrIGFuZCB0aGF0IEkgaGFkIHRoZSBk
+b2N1bWVudGF0aW9uIGFuZCBoYXJkd2FyZSB0byBzdXBwb3J0Lg0KPiBPZiBjb3Vyc2UgaXQncyBp
+bmNvbXBsZXRlLg0KPiANCj4gSSdsbCBnbyB0aHJvdWdoIHlvdXIgbGlzdCwgYnV0LCBmaXJzdDog
+aXMgdGhlIHB1cnBvc2Ugb2YgeW91ciBtZXNzYWdlIHRvIGFyZ3VlIGZvciBhIHJlcGxhY2VtZW50
+IG9mIHRoZSBtYXJ2ZWxsLWNjaWMgZHJpdmVyIGJ5IHlvdXIgbXZfY2FtZXJhIGRyaXZlcj8gIEkg
+YW0gbm90IG5lY2Vzc2FyaWx5IG9wcG9zZWQgdG8gdGhhdCBpZGVhIGlmIG12X2NhbWVyYSBjYW4g
+c3VwcG9ydCBkZXBsb3llZCBzeXN0ZW1zIGJhY2sgdG8gdGhlIE9MUEMgWE8gMS4wIGFuZCBpZiBp
+dCBzZWVtcyBjbGVhciB0aGF0IGEgcmVwbGFjZW1lbnQgbWFrZXMgbW9yZSBzZW5zZSB0aGFuIGFk
+ZGluZyBmZWF0dXJlcyB0byB0aGUgaW4tdHJlZSBkcml2ZXIuICANCj4gDQo+ID4gMS4gbWFydmVs
+bC1jY2ljIG9ubHkgc3VwcG9ydCBNTVAyIChQWEE2ODgpLCBpdCBjYW7igJl0IHN1cHBvcnQgb3Ro
+ZXIgDQo+ID4gTWFydmVsbCBTT0MgY2hpcHMgT3VyIG12X2NhbWVyYSBjYW4gc3VwcG9ydCBzdWNo
+IGFzIE1NUDMgKFBYQTIxMjgpLCANCj4gPiBURA0KPiA+IChQWEE5MTAvOTIwKSBhbmQgc28gb24g
+YmVzaWRlcyBNTVAyDQo+IA0KPiBXaGljaCBpcyBjb29sLiAgSXQgaXMgbmljZSB0aGF0IE1hcnZl
+bGwgaXMgZmluYWxseSBwcm92aWRpbmcgTGludXggc3VwcG9ydCBmb3IgaXRzIGNhbWVyYSBjb250
+cm9sbGVycyBhZnRlciBhbGwgdGhlc2UgeWVhcnMuICBGb3IgdGhlIGxhc3Qgc2V2ZXJhbCB5ZWFy
+cywgSSd2ZSBuZWNlc3NhcmlseSBiZWVuIGxpbWl0ZWQgaW4gdGhlIGNvbnRyb2xsZXJzIEkgY291
+bGQgc3VwcG9ydC4NCj4gSXMgaXQgTWFydmVsbCdzIGludGVudGlvbiB0byBwcm92aWRlIHVwc3Ry
+ZWFtIG1haW50ZW5hbmNlIGFuZCBzdXBwb3J0IGdvaW5nIGZvcndhcmQ/IA0KPiANCj4gPiAyLiBt
+YXJ2ZWxsLWNjaWMgb25seSBzdXBwb3J0IHBhcmFsbGVsIChEVlApIG1vZGUsIGNhbuKAmXQgc3Vw
+cG9ydCBNSVBJIA0KPiA+IG1vZGUgT3VyIG12X2NhbWVyYSBjYW4gc3VwcG9ydCBib3RoIERWUCBt
+b2RlIGFuZCBNSVBJIG1vZGUsIE1JUEkgDQo+ID4gaW50ZXJmYWNlIGlzIHRoZSB0cmVuZCBvZiBj
+dXJyZW50IGNhbWVyYSBzZW5zb3JzIHdpdGggaGlnaCANCj4gPiByZXNvbHV0aW9uDQo+IA0KPiBB
+ZGRpbmcgTUlQSSBkb2Vzbid0IGxvb2sgdGhhdCBoYXJkLCBJJ3ZlIGp1c3QgbmV2ZXIgaGFkIGEg
+cmVhc29uIChvcg0KPiBoYXJkd2FyZSkgdG8gZG8gaXQuDQo+IA0KPiA+IA0KPiA+IDMuIG1hcnZl
+bGwtY2NpYyBvbmx5IHN1cHBvcnQgY2NpYzEgY29udHJvbGxlciwgY2Fu4oCZdCBzdXBwb3J0IGNj
+aWMyIA0KPiA+IG9yIGR1YWwgY2NpYyBjb250cm9sbGVycyBBcyB5b3Uga25vd24sIGJvdGggTU1Q
+MiBhbmQgTU1QMyBoYXZlIDIgDQo+ID4gY2NpYyBjb250cm9sbGVycywgY2NpYzIgaXMgZGlmZmVy
+ZW50IHdpdGggY2NpYzEgU29tZXRpbWVzIHdlIG5lZWQgDQo+ID4gdXNlIGJvdGgNCj4gPiAyIGNj
+aWMgY29udHJvbGxlcnMgZm9yIGNvbm5lY3RpbmcgMiBjYW1lcmEgc2Vuc29ycyBBY3R1YWxseSwg
+d2UgaGF2ZSANCj4gPiB1c2VkIDIgY2NpYyBjb250cm9sbGVycycgY2FzZXMgaW4gb3VyIHBsYXRm
+b3JtcyBPdXIgbXZfY2FtZXJhIGNhbiANCj4gPiBzdXBwb3J0IHRoZXNlIGNhc2VzOiBvbmx5IHVz
+ZSBjY2ljMSwgb25seSB1c2UgY2NpYzIgYW5kIHVzZSBjY2ljMSArDQo+ID4gY2NpYzINCj4gDQo+
+IEl0IGRvZXNuJ3Qgc3VwcG9ydCB0d28gYmVjYXVzZSBub2JvZHkgaGFzIGFza2VkIGZvciBpdCwg
+YnV0IHRoZSBkcml2ZXIgd2FzIHdyaXR0ZW4gd2l0aCB0aGF0IGluIG1pbmQuICBJIGRvbid0IHNl
+ZSBzdXBwb3J0aW5nIHRoZSBzZWNvbmQgY29udHJvbGxlciBhcyBhIGJpZyBqb2IuDQo+IA0KPiA+
+IDQuIG1hcnZlbGwtY2NpYyBvbmx5IHN1cHBvcnQgY2FtZXJhIHNlbnNvciBPVjc2NzAgSXQncyBh
+biBvbGQgYW5kIA0KPiA+IGxvdyByZXNvbHV0aW9uIHBhcmFsbGVsIHNlbnNvciwgYW5kIHNlbnNv
+ciBpbmZvIGFsc28gaXMgaGFyZCBjb2RlIA0KPiA+IEJ1dCBpdCBsb29va3Mgd2Ugc2hvdWxkIGJl
+dHRlciBzZXBhcmF0ZSBjb250cm9sbGVyIGFuZCBzZW5zb3IgaW4gDQo+ID4gZHJpdmVyLCBjb250
+cm9sbGVyIGRvZXNuJ3QgY2FyZSBzZW5zb3IgdHlwZSB3aGljaCB3aWxsIGNvbW11bmljYXRlIA0K
+PiA+IHdpdGggT3VyIG12X2NhbWVyYSBjYW4gc3VwcG9ydCBhbnkgY2FtZXJhIHNlbnNvciB3aGlj
+aCBiYXNlZCBvbiANCj4gPiBzdWJkZXYgc3RydWN0dXJlDQo+IA0KPiBUaGF0IGlzIGEgd2VsbC1r
+bm93biBsaW1pdGF0aW9uLCB3aGljaCwgYWdhaW4sIGlzbid0IHRoYXQgaGFyZCB0byBmaXguICBU
+aGUgbWFpbiBwcm9ibGVtIGlzIGZpeGluZyBpdCB3aXRob3V0IGJyZWFraW5nIGV4aXN0aW5nIHVz
+ZXJzLg0KPiANCj4gPiA1LiBtYXJ2ZWxsLWNjaWMgb25seSBzdXBwb3J0IFlVWVYgZm9ybWF0IHdo
+aWNoIGlzIHBhY2tlZCBmb3JtYXQgDQo+ID4gYmVzaWRlcw0KPiA+IFJHQjQ0NCBhbmQgUkdCNTY1
+LCBpdCBjYW7igJl0IHN1cHBvcnQgcGxhbmFyIGZvcm1hdHMgT3VyIG12X2NhbWVyYSBjYW4gDQo+
+ID4gc3VwcG9ydCBib3RoIHBhY2tlZCBmb3JtYXQgYW5kIHBsYW5hciBmb3JtYXRzIHN1Y2ggYXMN
+Cj4gPiBZVVY0MjAgYW5kIFlVVjQyMlANCj4gDQo+IEFnYWluLCBub3QgYSBmdW5kYW1lbnRhbCBk
+cml2ZXIgbGltaXRhdGlvbjsgZGVmaW5pdGVseSB3b3J0aCBmaXhpbmcgd2hlbiBzb21lYm9keSBh
+Y3R1YWxseSBuZWVkcyBwbGFuYXIgZm9ybWF0cy4NCj4gDQo+ID4gNi4gbWFydmVsbC1jY2ljIGRp
+ZG4ndCBzdXBwb3J0IEpQRUcgZm9ybWF0IGZvciBzdGlsbCBjYXB0dXJlIG1vZGUgDQo+ID4gT3Vy
+IG12X2NhbWVyYSBjYW4gc3VwcG9ydCBKUEVHIGRpcmVjdGx5IGZvciBzdGlsbCBjYXB0dXJlLCBt
+b3N0IGhpZ2ggDQo+ID4gcmVzb2x1dGlvbiBjYW1lcmEgc2Vuc29yIGNhbiBvdXRwdXQgSlBFRyBm
+b3JtYXQgZGlyZWN0bHkNCj4gDQo+IFRoYXQgd291bGQgaW5kZWVkIGJlIGEgbmljZSBmZWF0dXJl
+IHRvIGhhdmUuDQo+IA0KPiA+IDcuIG1hcnZlbGwtY2NpYyBjYW7igJl0IHN1cHBvcnQgZHVhbCBj
+YW1lcmEgc2Vuc29ycyBvciBtdWx0aSBjYW1lcmEgDQo+ID4gc2Vuc29ycyBjYXNlcyBDdXJyZW50
+IG1vc3QgcGxhdGZvcm1zIGNhbiBzdXBwb3J0IGR1YWwgY2FtZXJhIHNlbnNvciANCj4gPiBjYXNl
+LCBpbmNsdWRlIGZyb250LWZhY2luZyBzZW5zb3IgYW5kIHJlYXItZmFjaW5nIHNlbnNvciBFdmVu
+IHNvbWUgDQo+ID4gaGlnaCBlbmQgcGxhdGZvcm1zIGNhbiBzdXBwb3J0IDNEIG1vZGUgcmVjb3Jk
+OyBpdCBuZWVkIHN1cHBvcnQgMisxIGNhbWVyYSBzZW5zb3JzIE91ciBtdl9jYW1lcmEgY2FuIHN1
+cHBvcnQgdGhlc2UgY2FzZXM6DQo+ID4gZHVhbCBjYW1lcmEgc2Vuc29yIGNvbm5lY3QgdG8gY2Np
+YzEgb3IgY2NpYzIgb25lIGNhbWVyYSBzZW5zb3IgDQo+ID4gY29ubmVjdCB0byBjY2ljMSBhbmQg
+dGhlIG90aGVyIGNhbWVyYSBzZW5zb3IgY29ubmVjdCB0byBjY2ljMiBkdWFsIA0KPiA+IGNhbWVy
+YSBzZW5zb3IgY29ubmVjdCB0byBjY2ljMSBhbmQgb25lIGNhbWVyYSBzZW5zb3IgY29ubmVjdCB0
+byANCj4gPiBjY2ljMg0KPiANCj4gU291bmRzIGxpa2UgbmljZSBzdHVmZi4NCj4gDQo+ID4gOC4g
+bWFydmVsbC1jY2ljIGNhbuKAmXQgc3VwcG9ydCBleHRlcm5hbCBJU1AgKyByYXcgY2FtZXJhIHNl
+bnNvciBtb2RlIA0KPiA+IEFzIHlvdSBrbm93biwgbW9yZSBhbmQgbW9yZSBjYW1lcmEgc2Vuc29y
+cyB3aXRoIGhpZ2ggcmVzb2x1dGlvbiBhcmUgDQo+ID4gcmF3IGNhbWVyYSBzZW5zb3JzIGJ1dCBu
+b3Qgc21hcnQgc2Vuc29ycyBJdCBuZWVkcyBleHRlcm5hbCBJU1AgDQo+ID4gKEltYWdlIFNpZ25h
+bA0KPiA+IFByb2Nlc3NvcikgdG8gZ2VuZXJhdGUgdGhlIGRlc2lyZWQgZm9ybWF0cyBhbmQgcmVz
+b2x1dGlvbnMgd2l0aCBzb21lIA0KPiA+IGFkdmFuY2VkIGZlYXR1cmVzIGJhc2VkIG9uIHRoZSBy
+YXcgZGF0YSBmcm9tIHNlbnNvciBPdXIgbXZfY2FtZXJhIA0KPiA+IGNhbiBzdXBwb3J0IGJvdGgg
+c21hcnQgY2FtZXJhIHNlbnNvcnMgYW5kIGV4dGVybmFsIElTUCArIHJhdyBjYW1lcmEgDQo+ID4g
+c2Vuc29ycw0KPiANCj4gU3VwcG9ydGluZyB0aGF0IG1vZGUgd291bGQgYmUgYSBzaWduaWZpY2Fu
+dCBiaXQgb2Ygd29yay4gIEJ1dCBwbGVhc2UgbGV0J3Mgbm90IGNvbmZ1c2UgImNhbid0IiBhbmQg
+ImRvZXNuJ3QgY3VycmVudGx5LiINCj4gDQo+ID4gOS4gbWFydmVsbC1jY2ljIHN0aWxsIHVzZWQg
+b2Jzb2xldGUgbWV0aG9kIHRvIHN0b3AgY2NpYyBETUEgVGhpcyANCj4gPiBtZXRob2Qgc2hvdWxk
+IGJlIGluaGVyaXR0ZWQgZnJvbSBvbGQgY2FmZS1jY2ljIGRyaXZlciwgaXQgdXNlIENGIA0KPiA+
+IGZsYWcgd2hpY2ggaXMgdHJpZ2dlZCBieSBTT0YgVGhpcyBtZXRob2QgaXMgaW5lZmZpY2llbnQs
+IHdlIG11c3QgDQo+ID4gd2FpdCBhdCBsZWFzdCAxNTBtcyBmb3Igc3RvcCBjY2ljIERNQSBhbmQg
+aXQgYWxzbyBjYW4gcmVzdWx0IGluIG1hbnkgDQo+ID4gaXNzdWVzIGR1cmluZyB0aG91c2FuZHMg
+cmVzb2x1dGlvbnMgb3IgZm9ybWF0cyBzd2l0Y2ggc3RyZXNzIHRlc3QgDQo+ID4gQWN0dWFsbHkg
+b3VyIGNjaWMgY2FuIGhhbmRsZSBpdCBpZiB3ZSB1c2UgdGhlIHJpZ2h0IHN0b3Agc2VxdWVuY2Ug
+YnkgDQo+ID4gY29uZmlnIHNvbWUgY2NpYyByZWdpc3RlcnMgT3VyIG12X2NhbWVyYSBoYWQgYXBw
+bGllZCB0aGUgbmV3IGFuZCANCj4gPiByaWdodCBzdG9wIG1ldGhvZCBhbmQgaXQgYWxzbyBwYXNz
+ZWQgdGhlIHRob3VzYW5kcyByZXNvbHV0aW9ucyBvciANCj4gPiBmb3JtYXRzIHN3aXRjaCBzdHJl
+c3MgdGVzdA0KPiANCj4gV2hpY2ggRE1BIG1vZGUgYXJlIHlvdSB0YWxraW5nIGFib3V0IG5vdz8g
+IEkndmUgc3VwcG9ydGVkIERNQSB0byB0aGUgYmVzdCBvZiBteSBhYmlsaXR5IGdpdmVuIHRoZSBp
+bmZvcm1hdGlvbiBpbiB0aGUgZGF0YSBzaGVldCwgcGx1cyBhIGNvdXBsZSBvZiBoaW50cyBmcm9t
+IEthc3NleSBMZWUgKHdobywgSSBiZWxpZXZlLCBubyBsb25nZXIgd29ya3MgdGhlcmU/KS4gIFRo
+aXMgY2FuJ3QgYmUgYSBoYXJkIHRoaW5nIHRvIGNoYW5nZSwgYW55d2F5Lg0KPiANCj4gQW55d2F5
+LCB3ZSdyZSBzZWVpbmcgdGhlIHJlc3VsdHMgb2YgTWFydmVsbCBnb2luZyBvZmYgYW5kIHdvcmtp
+bmcgb24gaXRzIG93biBwcml2YXRlIGNvZGUgaW5zdGVhZCBvZiBlbmhhbmNpbmcgdGhlIGluLXRy
+ZWUgZHJpdmVyIHRoYXQgaGFzIGJlZW4gdGhlcmUgc2luY2UgMjAwNi4gIFNhZCwgYnV0IHNvIGl0
+IGdvZXMuICBCdXQgaWYgTWFydmVsbCB3YW50cyB0byB3b3JrIHVwc3RyZWFtIG5vdywgSSBzdXJl
+IGRvbid0IHdhbnQgdG8gbWFrZSB0aGluZ3MgaGFyZGVyLiAgSG93IGFib3V0IHdlIGdldCBhIG5l
+dyB2ZXJzaW9uIG9mIHRoZSBtdl9jYW1lcmEgZHJpdmVyIGZvciByZXZpZXcgYW5kIHdlIGNhbiBh
+bGwgdGhpbmsgYWJvdXQgd2hhdCdzIHRoZSBiZXN0IHRoaW5nIHRvIGRvIGF0IHRoaXMgcG9pbnQ/
+DQo+IA0KPiBUaGFua3MsDQo+IA0KPiBqb24NCj4gDQoNCi0tLQ0KR3Vlbm5hZGkgTGlha2hvdmV0
+c2tpLCBQaC5ELg0KRnJlZWxhbmNlIE9wZW4tU291cmNlIFNvZnR3YXJlIERldmVsb3BlciBodHRw
+Oi8vd3d3Lm9wZW4tdGVjaG5vbG9neS5kZS8NCg==
