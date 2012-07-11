@@ -1,213 +1,430 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.mlbassoc.com ([65.100.170.105]:35143 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933083Ab2GYORE (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4469 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752721Ab2GKGgJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jul 2012 10:17:04 -0400
-Message-ID: <500FFE43.4040203@chez-thomas.org>
-Date: Wed, 25 Jul 2012 08:10:11 -0600
-From: Gary Thomas <gary@chez-thomas.org>
+	Wed, 11 Jul 2012 02:36:09 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Federico Vaga <federico.vaga@gmail.com>
+Subject: Re: [PATCH RFC] [media] adv7180.c: convert to v4l2 control framework
+Date: Wed, 11 Jul 2012 08:34:53 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <1341974086-27887-1-git-send-email-federico.vaga@gmail.com>
+In-Reply-To: <1341974086-27887-1-git-send-email-federico.vaga@gmail.com>
 MIME-Version: 1.0
-To: Sergio Aguirre <sergio.a.aguirre@gmail.com>
-CC: Chris Lalancette <clalancette@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Discussion <linux-media@vger.kernel.org>
-Subject: Re: OMAP4 support
-References: <4FFC3109.3080204@mlbassoc.com> <CABMb9GtV_CZ=ZFoqXD_u3dmZQoD5CmsptYkgwwecO7Ch9v3AAw@mail.gmail.com> <4FFC82F9.2090004@mlbassoc.com> <CAC-OdnBfxJar83+WFm1N-C0=+MivOvfAiWaEP-O3iCkYKxktbA@mail.gmail.com> <4FFFF74F.4020802@mlbassoc.com> <CAC-OdnCN8+nVch+Di9MQHZjGGG3dmYA6tDRkY8nt-mtyA1UOgQ@mail.gmail.com> <500326FE.7050705@mlbassoc.com>
-In-Reply-To: <500326FE.7050705@mlbassoc.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201207110834.53760.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ping?  Can anyone help me with these issues?
+Hi Federico!
 
-On 2012-07-15 14:24, Gary Thomas wrote:
-> On 2012-07-15 08:31, Sergio Aguirre wrote:
->> Hi Gary,
->>
->> On Fri, Jul 13, 2012 at 5:24 AM, Gary Thomas <gary@mlbassoc.com> wrote:
->>> On 2012-07-12 20:30, Sergio Aguirre wrote:
->>>>
->>>> Hi Gary,
->>>>
->>>> On Tue, Jul 10, 2012 at 2:31 PM, Gary Thomas <gary@mlbassoc.com> wrote:
->>>>>
->>>>> On 2012-07-10 11:05, Chris Lalancette wrote:
->>>>>>
->>>>>>
->>>>>> On Tue, Jul 10, 2012 at 9:41 AM, Gary Thomas <gary@mlbassoc.com> wrote:
->>>>>>>
->>>>>>>
->>>>>>> I'm looking for video support on OMAP4 platforms.  I've found the
->>>>>>> PandaBoard camera project
->>>>>>> (http://www.omappedia.org/wiki/PandaBoard_Camera_Support)
->>>>>>> and this is starting to work.  That said, I'm having some
->>>>>>> issues with setting up the pipeline, etc.
->>>>>>>
->>>>>>> Can this list help out?
->>>>>>
->>>>>>
->>>>>>
->>>>>> I'm not sure exactly what kind of cameras you want to get working, but
->>>>>> if you are looking to get CSI2 cameras going through the ISS, Sergio
->>>>>> Aguirre has been working on support.  He also works on the media-ctl
->>>>>> tool, which is used for configuring the media framework pipeline.  The
->>>>>> latest versions that I am aware of are here:
->>>>>>
->>>>>> git://gitorious.org/omap4-v4l2-camera/omap4-v4l2-camera.git
->>>>>
->>>>>
->>>>>
->>>>> Yes, this is the tree I've been working with (pointed to by the page I
->>>>> mentioned).
->>>>>
->>>>> My kernel can see the camera OV5650 and set up the pipeline.  I am able
->>>>> to
->>>>> grab
->>>>> the raw SGRBG10 data but I'd like to get the ISS to convert this to a
->>>>> more
->>>>> usable
->>>>> UYVY format.  Here's what I tried:
->>>>>     media-ctl -r
->>>>>     media-ctl -l '"OMAP4 ISS CSI2a":1 -> "OMAP4 ISS ISP IPIPEIF":0 [1]'
->>>>>     media-ctl -l '"OMAP4 ISS ISP IPIPEIF":1 -> "OMAP4 ISS ISP IPIPEIF
->>>>> output":0 [1]'
->>>>>     media-ctl -f '"ov5650 3-0036":0 [SGRBG10 2592x1944]'
->>>>>     media-ctl -f '"OMAP4 ISS CSI2a":0 [SGRBG10 2592x1944]'
->>>>>     media-ctl -f '"OMAP4 ISS ISP IPIPEIF":0 [SGRBG10 2592x1944]','"OMAP4
->>>>> ISS
->>>>> ISP IPIPEIF":1 [UYVY 2592x1944]'
->>>>>
->>>>> Sadly, I can't get the IPIPEIF element to take SGRGB10 in and put UYVY
->>>>> out
->>>>> (my reading
->>>>> of the manual implies that this _should_ be possible).  I always see this
->>>>> pipeline setup:
->>>>> - entity 5: OMAP4 ISS ISP IPIPEIF (3 pads, 4 links)
->>>>>               type V4L2 subdev subtype Unknown
->>>>>               device node name /dev/v4l-subdev2
->>>>>           pad0: Input [SGRBG10 2592x1944]
->>>>>                   <- 'OMAP4 ISS CSI2a':pad1 [ACTIVE]
->>>>>                   <- 'OMAP4 ISS CSI2b':pad1 []
->>>>>           pad1: Output [SGRBG10 2592x1944]
->>>>>                   -> 'OMAP4 ISS ISP IPIPEIF output':pad0 [ACTIVE]
->>>>>           pad2: Output [SGRBG10 2592x1944]
->>>>>                   -> 'OMAP4 ISS ISP resizer':pad0 []
->>>>>
->>>>> Am I missing something?  How can I make this conversion in the ISS?
->>>>
->>>>
->>>> The core problem is that, i haven't published any support for
->>>> RAW10->YUV conversion,
->>>> which is part of the IPIPE module (not the IPIPEIF, like you mention). I
->>>> had
->>>> some patches, but sadly it is unfinished work. :/
->>>>
->>>> Now, there's a main non-technical problem... I no longer work at TI
->>>> since end of June
->>>> this year, and I don't have the right HW setup available anymore.
->>>> Those sensors were
->>>> company's asset, and I couldn't keep any.
->>>>
->>>> Now, we can make this work with cooperation of someone who has the right
->>>> setup,
->>>> and me sharing my patches and some advice on my experience.
->>>>
->>>> What do you think?
->>>>
->>>>>
->>>>> Note: if this is not the appropriate place to ask these questions, please
->>>>> redirect me (hopefully to a useful list :-)
->>>>
->>>>
->>>> As I'm the main person who has been actively developing this, I'm your
->>>> guy to ask questions :).
->>>>
->>>> By the way, this development has been my initiative the whole time,
->>>> and not an official
->>>> TI objective, so, to be honest, asking TI for official support won't
->>>> help much right now.
->>>
->>>
->>> Tell me how I can help make this happen.  I'll be glad to apply patches,
->>> figure out bugs, etc, I just need a little help with getting started.
->>> I have access to the hardware and it's really important that I make some
->>> progress on this soon.
->>>
->>> Can you share your RAW10->YUV patches and some guidance on how to proceed?
->>
->> Sure. I just pushed an internal branch I had, named: "devel-ISPSUPPORT-IPIPE",
->> please take that as a base.
->>
->> And please try these commands:
->>
->> media-ctl -r -l '"OMAP4 ISS CSI2a":1 -> "OMAP4 ISS ISP IPIPEIF":0
->> [1]','"OMAP4 ISS ISP IPIPEIF":2 -> "OMAP4 ISS ISP IPIPE":0
->> [1]','"OMAP4 ISS ISP IPIPE":1 -> "OMAP4 ISS ISP resizer":0
->> [1]','"OMAP4 ISS ISP resizer":1 -> "OMAP4 ISS ISP resizer a output":0
->> [1]'
->>
->> media-ctl -f '"ov5650 3-0036":0 [SGRBG10 2592x1944]','"OMAP4 ISS
->> CSI2a":0 [SGRBG10 2592x1944]','"OMAP4 ISS ISP IPIPEIF":0 [SGRBG10
->> 2592x1944]','"OMAP4 ISS ISP IPIPE":0 [SGRBG10 2592x1944]','"OMAP4 ISS
->> ISP resizer":0 [UYVY 2592x1944]'
->>
->> yavta /dev/video3 -c4 -n1 -s2592x1944 -fUYVY -Fov5650_2592x1944_UYVY_8bpp.yuv
->
-> With the new branch, I am able to set up the pipeline for UYVY.  That part's good.
->
-> However, just like before, with either RAW10 or UYVY, the grab process does not
-> start more times than it does (it only starts about 1 out of 10 tries).  If I
-> just ^C and try again, it may start, it may not.
->
-> The single time I was able to get the UYVY capture to work, I got an error after
-> the first frame:
->
-> # grab-uyvy
-> Device /dev/video3 opened.
-> Device `OMAP4 ISS ISP resizer a output' on `media' is a video capture device.
-> Video format set: UYVY (59565955) 2592x1944 buffer size 10077696
-> Video format: UYVY (59565955) 2592x1944 buffer size 10077696
-> [  622.039733] omap4iss omap4iss: dma_alloc_coherent of size 10077696 failed
-> 1 buffers requested.
-> length: 10077696 offset: 0
-> Buffer 0 mapped at address 0xb64a2000.
-> 0 (0) [-] 0 1007[  623.131347] omap4iss omap4iss: RSZ Err: FIFO_IN_BLK:0, FIFO_OVF:1,
-> 7696 bytes 623.118776 1342383344.713594 0.001 fps
-> [  623.297790] omap4iss omap4iss: RSZ Err: FIFO_IN_BLK:1, FIFO_OVF:0,
->
-> What can I look at to figure out why the capture is hanging?  I already enabled
-> a debug print in the ISR and see that only fires when it works.  There are no
-> interrupts from the CSI2a when it fails.
->
-> Any hints as to where & what to check (print registers, etc) would be a big help.
->
-> Thanks
->
->>
->>>
->>> I have been able to capture RAW10 data, but often the whole thing just sits
->>> there (hangs).  Restarting the process sometimes works, sometimes not.
->>> Looking
->>> at the registers and the actual signals on a scope do not show any
->>> difference
->>> that we can find.  Any ideas what might cause this?  Have you seen it as
->>> well?
->>
->> Can you please try again with the before mentioned branch? The branch you
->> were using didn't have some changes, so maybe this new one would take
->> care of that.
->>
->>>
->>> Thanks for the help - Please let me know how I can get this working...
->>
->> Well, thanks for the patience!
->>
->> Regards,
->> Sergio
->
+A few small remarks:
 
--- 
-Gary Thomas
+On Wed July 11 2012 04:34:46 Federico Vaga wrote:
+> Signed-off-by: Federico Vaga <federico.vaga@gmail.com>
+> ---
+>  drivers/media/video/adv7180.c |  221 +++++++++++++++++------------------------
+>  1 file changed, 90 insertions(+), 131 deletions(-)
+> 
+> diff --git a/drivers/media/video/adv7180.c b/drivers/media/video/adv7180.c
+> index 174bffa..7705456 100644
+> --- a/drivers/media/video/adv7180.c
+> +++ b/drivers/media/video/adv7180.c
+> @@ -26,11 +26,10 @@
+>  #include <media/v4l2-ioctl.h>
+>  #include <linux/videodev2.h>
+>  #include <media/v4l2-device.h>
+> +#include <media/v4l2-ctrls.h>
+>  #include <media/v4l2-chip-ident.h>
+>  #include <linux/mutex.h>
+>  
+> -#define DRIVER_NAME "adv7180"
+> -
+>  #define ADV7180_INPUT_CONTROL_REG			0x00
+>  #define ADV7180_INPUT_CONTROL_AD_PAL_BG_NTSC_J_SECAM	0x00
+>  #define ADV7180_INPUT_CONTROL_AD_PAL_BG_NTSC_J_SECAM_PED 0x10
+> @@ -55,21 +54,21 @@
+>  
+>  #define ADV7180_AUTODETECT_ENABLE_REG			0x07
+>  #define ADV7180_AUTODETECT_DEFAULT			0x7f
+> -
+> +/* Contrast */
+>  #define ADV7180_CON_REG		0x08	/*Unsigned */
+> -#define CON_REG_MIN		0
+> -#define CON_REG_DEF		128
+> -#define CON_REG_MAX		255
+> -
+> +#define ADV7180_CON_MIN		0
+> +#define ADV7180_CON_DEF		128
+> +#define ADV7180_CON_MAX		255
+> +/* Brightness*/
+>  #define ADV7180_BRI_REG		0x0a	/*Signed */
+> -#define BRI_REG_MIN		-128
+> -#define BRI_REG_DEF		0
+> -#define BRI_REG_MAX		127
+> -
+> +#define ADV7180_BRI_MIN		-128
+> +#define ADV7180_BRI_DEF		0
+> +#define ADV7180_BRI_MAX		127
+> +/* Hue */
+>  #define ADV7180_HUE_REG		0x0b	/*Signed, inverted */
+> -#define HUE_REG_MIN		-127
+> -#define HUE_REG_DEF		0
+> -#define HUE_REG_MAX		128
+> +#define ADV7180_HUE_MIN		-127
+> +#define ADV7180_HUE_DEF		0
+> +#define ADV7180_HUE_MAX		128
+>  
+>  #define ADV7180_ADI_CTRL_REG				0x0e
+>  #define ADV7180_ADI_CTRL_IRQ_SPACE			0x20
+> @@ -98,12 +97,12 @@
+>  #define ADV7180_ICONF1_ACTIVE_LOW	0x01
+>  #define ADV7180_ICONF1_PSYNC_ONLY	0x10
+>  #define ADV7180_ICONF1_ACTIVE_TO_CLR	0xC0
+> -
+> +/* Saturation */
+>  #define ADV7180_SD_SAT_CB_REG	0xe3	/*Unsigned */
+>  #define ADV7180_SD_SAT_CR_REG	0xe4	/*Unsigned */
+> -#define SAT_REG_MIN		0
+> -#define SAT_REG_DEF		128
+> -#define SAT_REG_MAX		255
+> +#define ADV7180_SAT_MIN		0
+> +#define ADV7180_SAT_DEF		128
+> +#define ADV7180_SAT_MAX		255
+>  
+>  #define ADV7180_IRQ1_LOCK	0x01
+>  #define ADV7180_IRQ1_UNLOCK	0x02
+> @@ -121,18 +120,18 @@
+>  #define ADV7180_NTSC_V_BIT_END_MANUAL_NVEND	0x4F
+>  
+>  struct adv7180_state {
+> +	struct v4l2_ctrl_handler ctrl_hdl;
+>  	struct v4l2_subdev	sd;
+>  	struct work_struct	work;
+>  	struct mutex		mutex; /* mutual excl. when accessing chip */
+>  	int			irq;
+>  	v4l2_std_id		curr_norm;
+>  	bool			autodetect;
+> -	s8			brightness;
+> -	s16			hue;
+> -	u8			contrast;
+> -	u8			saturation;
+>  	u8			input;
+>  };
+> +#define to_adv7180_sd(_ctrl) &container_of(_ctrl->handler,		\
+> +					   struct adv7180_state,	\
+> +					   ctrl_hdl)->sd
+>  
+>  static v4l2_std_id adv7180_std_to_v4l2(u8 status1)
+>  {
+> @@ -237,7 +236,7 @@ static int adv7180_s_routing(struct v4l2_subdev *sd, u32 input,
+>  	if (ret)
+>  		return ret;
+>  
+> -	/*We cannot discriminate between LQFP and 40-pin LFCSP, so accept
+> +	/* We cannot discriminate between LQFP and 40-pin LFCSP, so accept
+>  	 * all inputs and let the card driver take care of validation
+>  	 */
+>  	if ((input & ADV7180_INPUT_CONTROL_INSEL_MASK) != input)
+> @@ -316,117 +315,39 @@ out:
+>  	return ret;
+>  }
+>  
+> -static int adv7180_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc)
+> -{
+> -	switch (qc->id) {
+> -	case V4L2_CID_BRIGHTNESS:
+> -		return v4l2_ctrl_query_fill(qc, BRI_REG_MIN, BRI_REG_MAX,
+> -					    1, BRI_REG_DEF);
+> -	case V4L2_CID_HUE:
+> -		return v4l2_ctrl_query_fill(qc, HUE_REG_MIN, HUE_REG_MAX,
+> -					    1, HUE_REG_DEF);
+> -	case V4L2_CID_CONTRAST:
+> -		return v4l2_ctrl_query_fill(qc, CON_REG_MIN, CON_REG_MAX,
+> -					    1, CON_REG_DEF);
+> -	case V4L2_CID_SATURATION:
+> -		return v4l2_ctrl_query_fill(qc, SAT_REG_MIN, SAT_REG_MAX,
+> -					    1, SAT_REG_DEF);
+> -	default:
+> -		break;
+> -	}
+> -
+> -	return -EINVAL;
+> -}
+> -
+> -static int adv7180_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+> -{
+> -	struct adv7180_state *state = to_state(sd);
+> -	int ret = mutex_lock_interruptible(&state->mutex);
+> -	if (ret)
+> -		return ret;
+> -
+> -	switch (ctrl->id) {
+> -	case V4L2_CID_BRIGHTNESS:
+> -		ctrl->value = state->brightness;
+> -		break;
+> -	case V4L2_CID_HUE:
+> -		ctrl->value = state->hue;
+> -		break;
+> -	case V4L2_CID_CONTRAST:
+> -		ctrl->value = state->contrast;
+> -		break;
+> -	case V4L2_CID_SATURATION:
+> -		ctrl->value = state->saturation;
+> -		break;
+> -	default:
+> -		ret = -EINVAL;
+> -	}
+> -
+> -	mutex_unlock(&state->mutex);
+> -	return ret;
+> -}
+> -
+> -static int adv7180_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+> +static int adv7180_s_ctrl(struct v4l2_ctrl *ctrl)
+>  {
+> +	struct v4l2_subdev *sd = to_adv7180_sd(ctrl);
+>  	struct adv7180_state *state = to_state(sd);
+>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>  	int ret = mutex_lock_interruptible(&state->mutex);
+> +	int val;
+> +
+>  	if (ret)
+>  		return ret;
+> -
+> +	val = ctrl->val;
+>  	switch (ctrl->id) {
+>  	case V4L2_CID_BRIGHTNESS:
+> -		if ((ctrl->value > BRI_REG_MAX)
+> -		    || (ctrl->value < BRI_REG_MIN)) {
+> -			ret = -ERANGE;
+> -			break;
+> -		}
+> -		state->brightness = ctrl->value;
+> -		ret = i2c_smbus_write_byte_data(client,
+> -						ADV7180_BRI_REG,
+> -						state->brightness);
+> +		ret = i2c_smbus_write_byte_data(client, ADV7180_BRI_REG, val);
+>  		break;
+>  	case V4L2_CID_HUE:
+> -		if ((ctrl->value > HUE_REG_MAX)
+> -		    || (ctrl->value < HUE_REG_MIN)) {
+> -			ret = -ERANGE;
+> -			break;
+> -		}
+> -		state->hue = ctrl->value;
+>  		/*Hue is inverted according to HSL chart */
+> -		ret = i2c_smbus_write_byte_data(client,
+> -						ADV7180_HUE_REG, -state->hue);
+> +		ret = i2c_smbus_write_byte_data(client, ADV7180_HUE_REG, -val);
+>  		break;
+>  	case V4L2_CID_CONTRAST:
+> -		if ((ctrl->value > CON_REG_MAX)
+> -		    || (ctrl->value < CON_REG_MIN)) {
+> -			ret = -ERANGE;
+> -			break;
+> -		}
+> -		state->contrast = ctrl->value;
+> -		ret = i2c_smbus_write_byte_data(client,
+> -						ADV7180_CON_REG,
+> -						state->contrast);
+> +		ret = i2c_smbus_write_byte_data(client, ADV7180_CON_REG, val);
+>  		break;
+>  	case V4L2_CID_SATURATION:
+> -		if ((ctrl->value > SAT_REG_MAX)
+> -		    || (ctrl->value < SAT_REG_MIN)) {
+> -			ret = -ERANGE;
+> -			break;
+> -		}
+>  		/*
+>  		 *This could be V4L2_CID_BLUE_BALANCE/V4L2_CID_RED_BALANCE
+>  		 *Let's not confuse the user, everybody understands saturation
+>  		 */
+> -		state->saturation = ctrl->value;
+> -		ret = i2c_smbus_write_byte_data(client,
+> -						ADV7180_SD_SAT_CB_REG,
+> -						state->saturation);
+> +		ret = i2c_smbus_write_byte_data(client, ADV7180_SD_SAT_CB_REG,
+> +						val);
+>  		if (ret < 0)
+>  			break;
+> -		ret = i2c_smbus_write_byte_data(client,
+> -						ADV7180_SD_SAT_CR_REG,
+> -						state->saturation);
+> +		ret = i2c_smbus_write_byte_data(client, ADV7180_SD_SAT_CR_REG,
+> +						val);
+>  		break;
+>  	default:
+>  		ret = -EINVAL;
+> @@ -436,6 +357,42 @@ static int adv7180_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+>  	return ret;
+>  }
+>  
+> +static const struct v4l2_ctrl_ops adv7180_ctrl_ops = {
+> +	.s_ctrl = adv7180_s_ctrl,
+> +};
+> +
+> +static int adv7180_init_controls(struct adv7180_state *state)
+> +{
+> +	v4l2_ctrl_handler_init(&state->ctrl_hdl, 2);
 
+2 -> 4, since there are 4 controls. It's a hint only, but it helps optimizing
+the internal hash data structure.
+
+> +
+> +	v4l2_ctrl_new_std(&state->ctrl_hdl, &adv7180_ctrl_ops,
+> +			  V4L2_CID_BRIGHTNESS, ADV7180_BRI_MIN,
+> +			  ADV7180_BRI_MAX, 1, ADV7180_BRI_DEF);
+> +	v4l2_ctrl_new_std(&state->ctrl_hdl, &adv7180_ctrl_ops,
+> +			  V4L2_CID_CONTRAST, ADV7180_CON_MIN,
+> +			  ADV7180_CON_MAX, 1, ADV7180_CON_DEF);
+> +	v4l2_ctrl_new_std(&state->ctrl_hdl, &adv7180_ctrl_ops,
+> +			  V4L2_CID_SATURATION, ADV7180_SAT_MIN,
+> +			  ADV7180_SAT_MAX, 1, ADV7180_SAT_DEF);
+> +	v4l2_ctrl_new_std(&state->ctrl_hdl, &adv7180_ctrl_ops,
+> +			  V4L2_CID_HUE, ADV7180_HUE_MIN,
+> +			  ADV7180_HUE_MAX, 1, ADV7180_HUE_DEF);
+> +	state->sd.ctrl_handler = &state->ctrl_hdl;
+> +	if (state->ctrl_hdl.error) {
+> +		int err = state->ctrl_hdl.error;
+> +
+> +		v4l2_ctrl_handler_free(&state->ctrl_hdl);
+> +		return err;
+> +	}
+> +	v4l2_ctrl_handler_setup(&state->ctrl_hdl);
+> +
+> +	return 0;
+> +}
+> +static void adv7180_exit_controls(struct adv7180_state *state)
+> +{
+> +	v4l2_ctrl_handler_free(&state->ctrl_hdl);
+> +}
+> +
+>  static const struct v4l2_subdev_video_ops adv7180_video_ops = {
+>  	.querystd = adv7180_querystd,
+>  	.g_input_status = adv7180_g_input_status,
+> @@ -445,9 +402,9 @@ static const struct v4l2_subdev_video_ops adv7180_video_ops = {
+>  static const struct v4l2_subdev_core_ops adv7180_core_ops = {
+>  	.g_chip_ident = adv7180_g_chip_ident,
+>  	.s_std = adv7180_s_std,
+> -	.queryctrl = adv7180_queryctrl,
+> -	.g_ctrl = adv7180_g_ctrl,
+> -	.s_ctrl = adv7180_s_ctrl,
+> +	.queryctrl = v4l2_subdev_queryctrl,
+> +	.g_ctrl = v4l2_subdev_g_ctrl,
+> +	.s_ctrl = v4l2_subdev_s_ctrl,
+
+If adv7180 is currently *only* used by bridge/platform drivers that also use
+the control framework, then you can remove queryctrl/g/s_ctrl altogether.
+
+>  };
+>  
+>  static const struct v4l2_subdev_ops adv7180_ops = {
+> @@ -539,7 +496,7 @@ static int init_device(struct i2c_client *client, struct adv7180_state *state)
+>  
+>  	/* register for interrupts */
+>  	if (state->irq > 0) {
+> -		ret = request_irq(state->irq, adv7180_irq, 0, DRIVER_NAME,
+> +		ret = request_irq(state->irq, adv7180_irq, 0, KBUILD_MODNAME,
+>  				  state);
+>  		if (ret)
+>  			return ret;
+> @@ -582,26 +539,27 @@ static int init_device(struct i2c_client *client, struct adv7180_state *state)
+>  
+>  	/*Set default value for controls */
+>  	ret = i2c_smbus_write_byte_data(client, ADV7180_BRI_REG,
+> -					state->brightness);
+> +					ADV7180_BRI_DEF);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> -	ret = i2c_smbus_write_byte_data(client, ADV7180_HUE_REG, state->hue);
+> +	ret = i2c_smbus_write_byte_data(client, ADV7180_HUE_REG,
+> +					ADV7180_HUE_DEF);
+
+It shouldn't be necessary to initialize the controls since v4l2_ctrl_handler_setup
+does that for you already.
+
+>  	if (ret < 0)
+>  		return ret;
+>  
+>  	ret = i2c_smbus_write_byte_data(client, ADV7180_CON_REG,
+> -					state->contrast);
+> +					ADV7180_CON_DEF);
+>  	if (ret < 0)
+>  		return ret;
+>  
+>  	ret = i2c_smbus_write_byte_data(client, ADV7180_SD_SAT_CB_REG,
+> -					state->saturation);
+> +					ADV7180_SAT_DEF);
+>  	if (ret < 0)
+>  		return ret;
+>  
+>  	ret = i2c_smbus_write_byte_data(client, ADV7180_SD_SAT_CR_REG,
+> -					state->saturation);
+> +					ADV7180_SAT_DEF);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> @@ -632,25 +590,26 @@ static __devinit int adv7180_probe(struct i2c_client *client,
+>  	INIT_WORK(&state->work, adv7180_work);
+>  	mutex_init(&state->mutex);
+>  	state->autodetect = true;
+> -	state->brightness = BRI_REG_DEF;
+> -	state->hue = HUE_REG_DEF;
+> -	state->contrast = CON_REG_DEF;
+> -	state->saturation = SAT_REG_DEF;
+>  	state->input = 0;
+>  	sd = &state->sd;
+>  	v4l2_i2c_subdev_init(sd, client, &adv7180_ops);
+>  
+> -	ret = init_device(client, state);
+> -	if (0 != ret)
+> +	ret = adv7180_init_controls(state);
+> +	if (ret)
+>  		goto err_unreg_subdev;
+> +	ret = init_device(client, state);
+> +	if (ret)
+> +		goto err_free_ctrl;
+>  	return 0;
+>  
+> +err_free_ctrl:
+> +	adv7180_exit_controls(state);
+>  err_unreg_subdev:
+>  	mutex_destroy(&state->mutex);
+>  	v4l2_device_unregister_subdev(sd);
+>  	kfree(state);
+>  err:
+> -	printk(KERN_ERR DRIVER_NAME ": Failed to probe: %d\n", ret);
+> +	printk(KERN_ERR KBUILD_MODNAME ": Failed to probe: %d\n", ret);
+>  	return ret;
+>  }
+>  
+> @@ -678,7 +637,7 @@ static __devexit int adv7180_remove(struct i2c_client *client)
+>  }
+>  
+>  static const struct i2c_device_id adv7180_id[] = {
+> -	{DRIVER_NAME, 0},
+> +	{KBUILD_MODNAME, 0},
+>  	{},
+>  };
+>  
+> @@ -716,7 +675,7 @@ MODULE_DEVICE_TABLE(i2c, adv7180_id);
+>  static struct i2c_driver adv7180_driver = {
+>  	.driver = {
+>  		   .owner = THIS_MODULE,
+> -		   .name = DRIVER_NAME,
+> +		   .name = KBUILD_MODNAME,
+>  		   },
+>  	.probe = adv7180_probe,
+>  	.remove = __devexit_p(adv7180_remove),
+> 
+
+Regards,
+
+	Hans
