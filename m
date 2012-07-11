@@ -1,35 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:58188 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754047Ab2GXVzK (ORCPT
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:43315 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757087Ab2GKKSG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jul 2012 17:55:10 -0400
-Received: by wgbfm10 with SMTP id fm10so3897510wgb.1
-        for <linux-media@vger.kernel.org>; Tue, 24 Jul 2012 14:55:09 -0700 (PDT)
+	Wed, 11 Jul 2012 06:18:06 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: javier Martin <javier.martin@vista-silicon.com>
+Subject: Re: [PATCH 1/2] media: Add mem2mem deinterlacing driver.
+Date: Wed, 11 Jul 2012 12:17:52 +0200
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
+	mchehab@infradead.org, kernel@pengutronix.de,
+	linux@arm.linux.org.uk
+References: <1341996904-22893-1-git-send-email-javier.martin@vista-silicon.com> <201207111145.51858.hverkuil@xs4all.nl> <CACKLOr1xgjuGp-jshCaCBZwG4pbWsBSt9Cq9jUdd3PGjpHiXEQ@mail.gmail.com>
+In-Reply-To: <CACKLOr1xgjuGp-jshCaCBZwG4pbWsBSt9Cq9jUdd3PGjpHiXEQ@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <500C5B9B.8000303@iki.fi>
-References: <500C5B9B.8000303@iki.fi>
-Date: Tue, 24 Jul 2012 17:55:09 -0400
-Message-ID: <CAOcJUbw-8zG-j7YobgKy7k5vp-k_trkaB5fYGz605KdUQHKTGQ@mail.gmail.com>
-Subject: Re: tda18271 driver power consumption
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201207111217.52973.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jul 22, 2012 at 3:59 PM, Antti Palosaari <crope@iki.fi> wrote:
-> Moi Michael,
-> I just realized tda18271 driver eats 160mA too much current after attach.
-> This means, there is power management bug.
->
-> When I plug my nanoStick it eats total 240mA, after tda18271 sleep is called
-> it eats only 80mA total which is reasonable. If I use Digital Devices
-> tda18271c2dd driver it is total 110mA after attach, which is also quite OK.
+On Wed 11 July 2012 12:02:48 javier Martin wrote:
+> Hi Hans,
+> thank you for your comments.
+> 
+> On 11 July 2012 11:45, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > Hi Javier!
+> >
+> > Thanks for the patch.
+> >
+> > On Wed 11 July 2012 10:55:03 Javier Martin wrote:
+> >> Some video decoders such as tvp5150 provide separate
+> >> video fields (V4L2_FIELD_SEQ_TB). This driver uses
+> >> dmaengine to convert this format to V4L2_FIELD_INTERLACED_TB
+> >> (weaving) or V4L2_FIELD_NONE (line doubling)
+> >
+> > Which field is used for the line doubling? Top or bottom? Or is each field
+> > doubled, thus doubling the framerate?
+> 
+> No, just top field is used.
+> I don't know if it's worth defining a new field format for doubling fields.
 
-Thanks for the report -- I will take a look at it.
+Probably not, but just make sure it is clearly documented.
 
-...patches are welcome, of course :-)
+> > I also recommend adding SEQ_BT/INTERLACED_BT support: NTSC transmits the bottom
+> > field first, so it is useful to have support for that.
+> 
+> Adding that is quite easy but I cannot test it.
+> Maybe someone could add it later?
 
--Mike
+It shouldn't be too hard to test: make the top field red and the bottom field blue
+and check if the resulting image is correct.
+
+Regards,
+
+	Hans
