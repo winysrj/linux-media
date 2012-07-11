@@ -1,49 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:44557 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754251Ab2GKHKJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jul 2012 03:10:09 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1Sor3n-00018g-PL
-	for linux-media@vger.kernel.org; Wed, 11 Jul 2012 09:10:07 +0200
-Received: from brb79.neoplus.adsl.tpnet.pl ([83.29.95.79])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 11 Jul 2012 09:10:07 +0200
-Received: from acc.for.news by brb79.neoplus.adsl.tpnet.pl with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 11 Jul 2012 09:10:07 +0200
-To: linux-media@vger.kernel.org
-From: Marx <acc.for.news@gmail.com>
-Subject: Re: pctv452e
-Date: Wed, 11 Jul 2012 08:25:50 +0200
-Message-ID: <gsivc9-6u6.ln1@wuwek.kopernik.gliwice.pl>
-References: <4FF4697C.8080602@nexusuk.org> <4FF46DC4.4070204@iki.fi> <4FF4911B.9090600@web.de> <4FF4931B.7000708@iki.fi> <gjggc9-dl4.ln1@wuwek.kopernik.gliwice.pl> <4FF5A350.9070509@iki.fi> <r8cic9-ht4.ln1@wuwek.kopernik.gliwice.pl> <4FF6B121.6010105@iki.fi> <9btic9-vd5.ln1@wuwek.kopernik.gliwice.pl> <835kc9-7p4.ln1@wuwek.kopernik.gliwice.pl> <4FF77C1B.50406@iki.fi> <l2smc9-pj4.ln1@wuwek.kopernik.gliwice.pl> <4FF97DF8.4080208@iki.fi> <n1aqc9-sp4.ln1@wuwek.kopernik.gliwice.pl> <4FFA996D.9010206@iki.fi> <scerc9-bm6.ln1@wuwek.kopernik.gliwice.pl> <4FFB172A.2070009@iki.fi> <4FFB1900.6010306@iki.fi> <79vsc9-dte.ln1@wuwek.kopernik.gliwice.pl> <4FFBF6F8.7010907@iki.fi> <d7iuc9-ua5.ln1@wuwek.kopernik.gliwice.pl> <4FFCB71F.5090807@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <4FFCB71F.5090807@iki.fi>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:61379 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752790Ab2GKKCu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jul 2012 06:02:50 -0400
+Received: by wibhr14 with SMTP id hr14so946663wib.1
+        for <linux-media@vger.kernel.org>; Wed, 11 Jul 2012 03:02:49 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201207111145.51858.hverkuil@xs4all.nl>
+References: <1341996904-22893-1-git-send-email-javier.martin@vista-silicon.com>
+	<1341996904-22893-2-git-send-email-javier.martin@vista-silicon.com>
+	<201207111145.51858.hverkuil@xs4all.nl>
+Date: Wed, 11 Jul 2012 12:02:48 +0200
+Message-ID: <CACKLOr1xgjuGp-jshCaCBZwG4pbWsBSt9Cq9jUdd3PGjpHiXEQ@mail.gmail.com>
+Subject: Re: [PATCH 1/2] media: Add mem2mem deinterlacing driver.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
+	mchehab@infradead.org, kernel@pengutronix.de,
+	linux@arm.linux.org.uk
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11.07.2012 01:13, Antti Palosaari wrote:
-> All these tests shows your device is running as it should.
-There are errors in almost every case, they are absent in your example. 
-Is it ok?
+Hi Hans,
+thank you for your comments.
 
-> Test VDR again to see if it breaks.
-VDR unfortunatelly doesn't work saying "frontend 0/0 timed out while 
-tuning to channel 21, tp 211116" and "ERROR: streamdev: protocol 
-violation (VTP) from 127.0.0.1:38551". In fact I cannot play any stream 
-directly via VDR, but it can be caused by some incompatibility between 
-VDR and the newest kernel.
-VDR reads EPG properly so there is something wrong with it.
-But it's probem not for this list.
+On 11 July 2012 11:45, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Javier!
+>
+> Thanks for the patch.
+>
+> On Wed 11 July 2012 10:55:03 Javier Martin wrote:
+>> Some video decoders such as tvp5150 provide separate
+>> video fields (V4L2_FIELD_SEQ_TB). This driver uses
+>> dmaengine to convert this format to V4L2_FIELD_INTERLACED_TB
+>> (weaving) or V4L2_FIELD_NONE (line doubling)
+>
+> Which field is used for the line doubling? Top or bottom? Or is each field
+> doubled, thus doubling the framerate?
 
-Today test works like yesterday.
+No, just top field is used.
+I don't know if it's worth defining a new field format for doubling fields.
 
-I will wait and test again later.
+> I also recommend adding SEQ_BT/INTERLACED_BT support: NTSC transmits the bottom
+> field first, so it is useful to have support for that.
 
-Marx
+Adding that is quite easy but I cannot test it.
+Maybe someone could add it later?
 
+
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
