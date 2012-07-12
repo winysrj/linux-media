@@ -1,157 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:36351 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756195Ab2GQSQ1 (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:60918 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752691Ab2GLMnb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Jul 2012 14:16:27 -0400
-Message-ID: <5005ABF7.6020008@gmail.com>
-Date: Tue, 17 Jul 2012 20:16:23 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org, b.zolnierkie@samsung.com
-Subject: Re: [RFC/PATCH 02/13] media: s5p-csis: Add device tree support
-References: <4FBFE1EC.9060209@samsung.com> <1337975573-27117-1-git-send-email-s.nawrocki@samsung.com> <1337975573-27117-2-git-send-email-s.nawrocki@samsung.com> <Pine.LNX.4.64.1207161031000.12302@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1207161031000.12302@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Thu, 12 Jul 2012 08:43:31 -0400
+Received: from epcpsbge2.samsung.com (mailout3.samsung.com [203.254.224.33])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M71002QHSNMTO70@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 12 Jul 2012 21:43:30 +0900 (KST)
+Date: Thu, 12 Jul 2012 12:43:30 +0000 (GMT)
+From: Arun Kumar K <arun.kk@samsung.com>
+Subject: Re: [PATCH v2 2/2] [media] s5p-mfc: update MFC v4l2 driver to support
+ MFC6.x
+To: Kyungmin Park <kmpark@infradead.org>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Jang-Hyuck Kim <janghyuck.kim@samsung.com>,
+	peter Oh <jaeryul.oh@samsung.com>,
+	NAVEEN KRISHNA CHATRADHI <ch.naveen@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
+	"mchehab@infradead.org" <mchehab@infradead.org>
+Reply-to: arun.kk@samsung.com
+MIME-version: 1.0
+Content-transfer-encoding: base64
+Content-type: text/plain; charset=windows-1252
+MIME-version: 1.0
+Message-id: <3152828.307961342097010008.JavaMail.weblogic@epml02>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+SGkgS3l1bmdtaW4gUGFyaywNCg0KVGhhbmsgeW91IGZvciB0aGUgcmV2aWV3Lg0KUGxlYXNlIGZp
+bmQgbXkgY29tbWVudHMgaW5saW5lLg0KDQpPbiBGcmksIEp1bCA2LCAyMDEyIGF0IDc6NTEgUE0s
+IEt5dW5nbWluIFBhcmsgPGttcGFya0BpbmZyYWRlYWQub3JnPiB3cm90ZToNCj4gSGksDQo+DQo+
+IE9uIEZyaSwgSnVsIDYsIDIwMTIgYXQgMTE6MDAgUE0sIEFydW4gS3VtYXIgSyA8YXJ1bi5ra0Bz
+YW1zdW5nLmNvbT4gd3JvdGU6DQo+PiBGcm9tOiBKZW9uZ3RhZSBQYXJrIDxqdHAucGFya0BzYW1z
+dW5nLmNvbT4NCj4+DQo+PiBNdWx0aSBGb3JtYXQgQ29kZWMgNi54IGlzIGEgaGFyZHdhcmUgdmlk
+ZW8gY29kaW5nIGFjY2VsZXJhdGlvbg0KPj4gbW9kdWxlIGZvdW50IGluIG5ldyBFeHlub3M1IFNv
+QyBzZXJpZXMuDQo+PiBJdCBpcyBjYXBhYmxlIG9mIGhhbmRsaW5nIGEgcmFuZ2Ugb2YgdmlkZW8g
+Y29kZWNzIGFuZCB0aGlzIGRyaXZlcg0KPj4gcHJvdmlkZXMgYSBWNEwyIGludGVyZmFjZSBmb3Ig
+dmlkZW8gZGVjb2RpbmcgYW5kIGVuY29kaW5nLg0KPj4NCj4+IFNpZ25lZC1vZmYtYnk6IEplb25n
+dGFlIFBhcmsgPGp0cC5wYXJrQHNhbXN1bmcuY29tPg0KPj4gU2luZ2VkLW9mZi1ieTogSmFuZ2h5
+dWNrIEtpbSA8amFuZ2h5dWNrLmtpbUBzYW1zdW5nLmNvbT4NCj4+IFNpbmdlZC1vZmYtYnk6IEph
+ZXJ5dWwgT2ggPGphZXJ5dWwub2hAc2Ftc3VuZy5jb20+DQo+PiBTaWduZWQtb2ZmLWJ5OiBOYXZl
+ZW4gS3Jpc2huYSBDaGF0cmFkaGkgPGNoLm5hdmVlbkBzYW1zdW5nLmNvbT4NCj4+IFNpZ25lZC1v
+ZmYtYnk6IEFydW4gS3VtYXIgSyA8YXJ1bi5ra0BzYW1zdW5nLmNvbT4NCj4+IENjOiBNYXJlayBT
+enlwcm93c2tpIDxtLnN6eXByb3dza2lAc2Ftc3VuZy5jb20+DQo+PiBDYzogS2FtaWwgRGVic2tp
+IDxrLmRlYnNraUBzYW1zdW5nLmNvbT4NCj4+IC0tLQ0KPj4gIGRyaXZlcnMvbWVkaWEvdmlkZW8v
+S2NvbmZpZyAgICAgICAgICAgICAgICAgIHwgICAxNiArLQ0KPj4gIGRyaXZlcnMvbWVkaWEvdmlk
+ZW8vczVwLW1mYy9NYWtlZmlsZSAgICAgICAgIHwgICAgNyArLQ0KPj4gIGRyaXZlcnMvbWVkaWEv
+dmlkZW8vczVwLW1mYy9yZWdzLW1mYy12Ni5oICAgIHwgIDY3NiArKysrKysrKysrDQo+PiAgZHJp
+dmVycy9tZWRpYS92aWRlby9zNXAtbWZjL3JlZ3MtbWZjLmggICAgICAgfCAgIDI5ICsNCj4+ICBk
+cml2ZXJzL21lZGlhL3ZpZGVvL3M1cC1tZmMvczVwX21mYy5jICAgICAgICB8ICAxNjMgKystDQo+
+PiAgZHJpdmVycy9tZWRpYS92aWRlby9zNXAtbWZjL3M1cF9tZmNfY21kLmMgICAgfCAgICA2ICst
+DQo+PiAgZHJpdmVycy9tZWRpYS92aWRlby9zNXAtbWZjL3M1cF9tZmNfY21kLmggICAgfCAgICAz
+ICsNCj4+ICBkcml2ZXJzL21lZGlhL3ZpZGVvL3M1cC1tZmMvczVwX21mY19jbWRfdjYuYyB8ICAg
+OTYgKysNCj4+ICBkcml2ZXJzL21lZGlhL3ZpZGVvL3M1cC1tZmMvczVwX21mY19jb21tb24uaCB8
+ICAxMjMgKystDQo+PiAgZHJpdmVycy9tZWRpYS92aWRlby9zNXAtbWZjL3M1cF9tZmNfY3RybC5j
+ICAgfCAgMTYwICsrLQ0KPj4gIGRyaXZlcnMvbWVkaWEvdmlkZW8vczVwLW1mYy9zNXBfbWZjX2N0
+cmwuaCAgIHwgICAgMSArDQo+PiAgZHJpdmVycy9tZWRpYS92aWRlby9zNXAtbWZjL3M1cF9tZmNf
+ZGVjLmMgICAgfCAgMjEwICsrKy0NCj4+ICBkcml2ZXJzL21lZGlhL3ZpZGVvL3M1cC1tZmMvczVw
+X21mY19kZWMuaCAgICB8ICAgIDEgKw0KPj4gIGRyaXZlcnMvbWVkaWEvdmlkZW8vczVwLW1mYy9z
+NXBfbWZjX2VuYy5jICAgIHwgIDE5MSArKy0tDQo+PiAgZHJpdmVycy9tZWRpYS92aWRlby9zNXAt
+bWZjL3M1cF9tZmNfZW5jLmggICAgfCAgICAxICsNCj4+ICBkcml2ZXJzL21lZGlhL3ZpZGVvL3M1
+cC1tZmMvczVwX21mY19pbnRyLmMgICB8ICAgIDEgLQ0KPj4gIGRyaXZlcnMvbWVkaWEvdmlkZW8v
+czVwLW1mYy9zNXBfbWZjX29wci5jICAgIHwgIDI3OCArKystLQ0KPj4gIGRyaXZlcnMvbWVkaWEv
+dmlkZW8vczVwLW1mYy9zNXBfbWZjX29wci5oICAgIHwgICAyNSArLQ0KPj4gIGRyaXZlcnMvbWVk
+aWEvdmlkZW8vczVwLW1mYy9zNXBfbWZjX29wcl92Ni5jIHwgMTY5NyArKysrKysrKysrKysrKysr
+KysrKysrKysrKw0KPj4gIGRyaXZlcnMvbWVkaWEvdmlkZW8vczVwLW1mYy9zNXBfbWZjX29wcl92
+Ni5oIHwgIDE0MCArKysNCj4+ICBkcml2ZXJzL21lZGlhL3ZpZGVvL3M1cC1tZmMvczVwX21mY19w
+bS5jICAgICB8ICAgIDYgKy0NCj4+ICBkcml2ZXJzL21lZGlhL3ZpZGVvL3M1cC1tZmMvczVwX21m
+Y19zaG0uYyAgICB8ICAgMjggKy0NCj4+ICBkcml2ZXJzL21lZGlhL3ZpZGVvL3M1cC1tZmMvczVw
+X21mY19zaG0uaCAgICB8ICAgMTMgKy0NCj4+ICBkcml2ZXJzL21lZGlhL3ZpZGVvL3Y0bDItY3Ry
+bHMuYyAgICAgICAgICAgICB8ICAgIDEgLQ0KPj4gIDI0IGZpbGVzIGNoYW5nZWQsIDM0NzYgaW5z
+ZXJ0aW9ucygrKSwgMzk2IGRlbGV0aW9ucygtKQ0KPg0KPiBEb2Vzbid0IGl0IHRvbyBiaWcgZm9y
+IG9uZSBwYXRjaD8gQ2FuIHlvdSBzcGxpdCBpdCBpbnRvIHNldmVyYWwgcGF0Y2hlcz8NCj4NCg0K
+T2suIEkgd2lsbCBzcGxpdCBpdCBpbiB0aGUgbmV4dCBwYXRjaC4NCg0KPj4gIGNyZWF0ZSBtb2Rl
+IDEwMDY0NCBkcml2ZXJzL21lZGlhL3ZpZGVvL3M1cC1tZmMvcmVncy1tZmMtdjYuaA0KPj4gIGNy
+ZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL21lZGlhL3ZpZGVvL3M1cC1tZmMvczVwX21mY19jbWRf
+djYuYw0KPj4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL21lZGlhL3ZpZGVvL3M1cC1tZmMv
+czVwX21mY19vcHJfdjYuYw0KPj4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL21lZGlhL3Zp
+ZGVvL3M1cC1tZmMvczVwX21mY19vcHJfdjYuaA0KPj4NCj4+IGRpZmYgLS1naXQgYS9kcml2ZXJz
+L21lZGlhL3ZpZGVvL0tjb25maWcgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL0tjb25maWcNCj4+IGlu
+ZGV4IDk5OTM3YzkuLjBkN2ZlNzcgMTAwNjQ0DQo+PiAtLS0gYS9kcml2ZXJzL21lZGlhL3ZpZGVv
+L0tjb25maWcNCj4+ICsrKyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vS2NvbmZpZw0KPj4gQEAgLTEx
+OTgsMTMgKzExOTgsMjcgQEAgY29uZmlnIFZJREVPX1NBTVNVTkdfUzVQX0pQRUcNCj4+ICAgICAg
+ICAgICBUaGlzIGlzIGEgdjRsMiBkcml2ZXIgZm9yIFNhbXN1bmcgUzVQIGFuZCBFWFlOT1M0IEpQ
+RUcgY29kZWMNCj4+DQo+PiAgY29uZmlnIFZJREVPX1NBTVNVTkdfUzVQX01GQw0KPj4gKyAgICAg
+ICBib29sDQo+PiArDQo+PiArY29uZmlnIFZJREVPX1NBTVNVTkdfUzVQX01GQ19WNQ0KPj4gICAg
+ICAgICB0cmlzdGF0ZSAiU2Ftc3VuZyBTNVAgTUZDIDUuMSBWaWRlbyBDb2RlYyINCj4+IC0gICAg
+ICAgZGVwZW5kcyBvbiBWSURFT19ERVYgJiYgVklERU9fVjRMMiAmJiBQTEFUX1M1UA0KPj4gKyAg
+ICAgICBkZXBlbmRzIG9uIFZJREVPX0RFViAmJiBWSURFT19WNEwyICYmIEFSQ0hfRVhZTk9TNA0K
+Pj4gKyAgICAgICBzZWxlY3QgVklERU9fU0FNU1VOR19TNVBfTUZDDQo+PiAgICAgICAgIHNlbGVj
+dCBWSURFT0JVRjJfRE1BX0NPTlRJRw0KPj4gICAgICAgICBkZWZhdWx0IG4NCj4+ICAgICAgICAg
+aGVscA0KPj4gICAgICAgICAgICAgTUZDIDUuMSBkcml2ZXIgZm9yIFY0TDIuDQo+Pg0KPj4gK2Nv
+bmZpZyBWSURFT19TQU1TVU5HX1M1UF9NRkNfVjYNCj4NCj4gWWVzLCBJIGtub3cgaXQncyBleHlu
+b3M1IHNlcmllcyBmZWF0dXJlcy4gaG93ZXZlciwgaXQncyBub3QgZ29vZCBpZGVhDQo+IHRvIGFk
+ZCBuZXcgY29uZmlnLg0KPiBJdCBhbHJlYWR5IGhhbmRsZWQgcGxhdGZvcm0gZGV2aWNlIHdpdGgg
+cHJvcGVyIG5hbWUuDQo+IGUuZy4sIHM1cC1tZmMtdjUsIHM1cC1tZmMtdjYgYW5kIGhhbmRsZSBp
+dCB3aXRoIHBsYXRmb3JtIGRhdGEuDQo+DQoNCk9rLiBDb2RlIGNoYW5nZXMgYXJlIHJlcXVpcmVk
+IGZvciBjb21waWxpbmcgYm90aCB2NSBhbmQgdjYgdG9nZXRoZXIuDQpXaWxsIGluY29ycG9yYXRl
+IGluIG5leHQgcGF0Y2guDQoNCltzbmlwXQ0KDQo+PiAtI2RlZmluZSBNRkNfQ0xLTkFNRSAgICAg
+ICAgICAgICJzY2xrX21mYyINCj4+ICsjaWYgZGVmaW5lZChDT05GSUdfVklERU9fU0FNU1VOR19T
+NVBfTUZDX1Y1KQ0KPj4gKyNkZWZpbmUgTUZDX0NMS05BTUUgICAgICAgICAgICAic2Nsa19tZmMi
+DQo+PiArI2VsaWYgZGVmaW5lZChDT05GSUdfVklERU9fU0FNU1VOR19TNVBfTUZDX1Y2KQ0KPj4g
+KyNkZWZpbmUgTUZDX0NMS05BTUUgICAgICAgICAgICAiYWNsa18zMzMiDQo+IEkgdGhpbmsgaXQg
+Y2FuIGhhbmRsZSBjbGtuYW1lIHdpdGhvdXQgbmV3IGNvbmZpZy4NCj4NCg0KWWVzIEkgd2lsbCBj
+aGFuZ2UgaXQuDQoNClJlZ2FyZHMNCkFydW4=
 
-On 07/16/2012 10:55 AM, Guennadi Liakhovetski wrote:
-> Hi Sylwester
->
-> Thanks for your comments to my RFC and for pointing out to this your
-> earlier patch series. Unfortunately, I missed in in May, let me try to
-> provide some thoughts about this, we should really try to converge our
-> proposals. Maybe a discussion at KS would help too.
 
-Thank you for the review. I was happy to see your RFC, as previously
-there seemed to be not much interest in DT among the media guys.
-Certainly, we need to work on a common approach to ensure interoperability
-of existing drivers and to avoid having people inventing different
-bindings for common features. I would also expect some share of device
-specific bindings, as diversity of media devices is significant.
-
-I'd be great to discuss these things at KS, especially support for 
-proper suspend/resume sequences. Also having common sessions with 
-other subsystems folks, like ASoC, for example, might be a good idea.
-
-I'm not sure if I'll be travelling to the KS though. :)
-
-> On Fri, 25 May 2012, Sylwester Nawrocki wrote:
->
->> s5p-csis is platform device driver for MIPI-CSI frontend to the FIMC
->> (camera host interface DMA engine and image processor). This patch
->> adds support for instantiating the MIPI-CSIS devices from DT and
->> parsing all SoC and board specific properties from device tree.
->> The MIPI DPHY control callback is now called directly from within
->> the driver, the platform code must ensure this callback does the
->> right thing for each SoC.
->>
->> The cell-index property is used to ensure proper signal routing,
->> from physical camera port, through MIPI-CSI2 receiver to the DMA
->> engine (FIMC?). It's also helpful in exposing the device topology
->> in user space at /dev/media? devnode (Media Controller API).
->>
->> This patch also defines a common property ("data-lanes") for MIPI-CSI
->> receivers and transmitters.
->>
->> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
->> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
->> ---
->>   Documentation/devicetree/bindings/video/mipi.txt   |    5 +
->>   .../bindings/video/samsung-mipi-csis.txt           |   47 ++++++++++
->>   drivers/media/video/s5p-fimc/mipi-csis.c           |   97 +++++++++++++++-----
->>   drivers/media/video/s5p-fimc/mipi-csis.h           |    1 +
->>   4 files changed, 126 insertions(+), 24 deletions(-)
->>   create mode 100644 Documentation/devicetree/bindings/video/mipi.txt
->>   create mode 100644 Documentation/devicetree/bindings/video/samsung-mipi-csis.txt
->>
->> diff --git a/Documentation/devicetree/bindings/video/mipi.txt b/Documentation/devicetree/bindings/video/mipi.txt
->> new file mode 100644
->> index 0000000..5aed285
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/video/mipi.txt
->> @@ -0,0 +1,5 @@
->> +Common properties of MIPI-CSI1 and MIPI-CSI2 receivers and transmitters
->> +
->> + - data-lanes : number of differential data lanes wired and actively used in
->> +		communication between the transmitter and the receiver, this
->> +		excludes the clock lane;
->
-> Wouldn't it be better to use the standard "bus-width" DT property?
-
-I can't see any problems with using "bus-width". It seems sufficient
-and could indeed be better, without a need to invent new MIPI-CSI 
-specific names. That was my first RFC on that and my perspective 
-wasn't probably broad enough. :)
-
->> diff --git a/Documentation/devicetree/bindings/video/samsung-mipi-csis.txt b/Documentation/devicetree/bindings/video/samsung-mipi-csis.txt
->> new file mode 100644
->> index 0000000..7bce6f4
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/video/samsung-mipi-csis.txt
->> @@ -0,0 +1,47 @@
->> +Samsung S5P/EXYNOS SoC MIPI-CSI2 receiver (MIPI CSIS)
->> +-----------------------------------------------------
->> +
->> +Required properties:
->> +
->> +- compatible - one of :
->> +		"samsung,s5pv210-csis",
->> +		"samsung,exynos4210-csis",
->> +		"samsung,exynos4212-csis",
->> +		"samsung,exynos4412-csis";
->> +- reg : physical base address and size of the device memory mapped registers;
->> +- interrupts      : should contain MIPI CSIS interrupt; the format of the
->> +		    interrupt specifier depends on the interrupt controller;
->> +- cell-index      : the hardware instance index;
->
-> Not sure whether this is absolutely needed... Wouldn't it be sufficient to
-> just enumerate them during probing?
-
-As Grant pointed to me, the "cell-index" property is something that we should
-be avoiding. But I needed something like this in the driver,
-to differentiate between the multiple IP instances. I cannot simply assign
-the indexes in random way to the hardware instances. Each of the MIPI-CSI 
-Slaves has different properties (e.g. supporting max. 2 or 4 data lanes).
-Additionally, a particular MIPI-CSI Slave instance is hard-wired inside the
-SoC to the FIMC input mux (cross-bar) and physical video port. IOW, an image
-sensor/video port/MIPI-CSIS instance assignment is fixed. If two MIPI-CSI 
-image sensors are connected, one of them will work only with MIPI-CSIS0, and
-the other only with MIPI-CSIS1.
-
-So the driver must be able to identify it's physical device (IO region + 
-IRQ) precisely.
-
-That said, I found out recently that a proper entries in the "aliases"
-could be used instead, and I could finally abandon the "cell-index" idea.
-Not sure how aliases approach is better but from what I can see it is
-a preferred way to handle things like the above.
-
-Please see Documentation/devicetree/bindings/sound/mxs-saif.txt and users
-of of_alias_get_id() for more details.
-
-So to summarize, the indexes are needed, but the current implementation 
-is not necessarily good, and AFAICT the aliases approach could be the way
-to go.
-
->> +- clock-frequency : The IP's main (system bus) clock frequency in Hz, the default
->> +		    value when this property is not specified is 166 MHz;
->> +- data-lanes      : number of physical MIPI-CSI2 lanes used;
->
-> ditto - bus-width?
-
-Yes, agreed. Let's drop it in favour of "bus-width".
-
---
-
-Regards,
-Sylwester
