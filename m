@@ -1,80 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.matrix-vision.com ([78.47.19.71]:39145 "EHLO
-	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752343Ab2GZL5Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jul 2012 07:57:16 -0400
-From: Michael Jones <michael.jones@matrix-vision.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: [PATCH 2/2] [media] omap3isp: support G_FMT
-Date: Thu, 26 Jul 2012 13:59:56 +0200
-Message-Id: <1343303996-16025-3-git-send-email-michael.jones@matrix-vision.de>
-In-Reply-To: <1343303996-16025-1-git-send-email-michael.jones@matrix-vision.de>
-References: <1343303996-16025-1-git-send-email-michael.jones@matrix-vision.de>
+Received: from mx1.redhat.com ([209.132.183.28]:1490 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750841Ab2GLDSM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jul 2012 23:18:12 -0400
+Message-ID: <4FFE41F0.4010602@redhat.com>
+Date: Thu, 12 Jul 2012 00:18:08 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: KS2012 <ksummit-2012-discuss@lists.linux-foundation.org>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Media system Summit
+References: <1341994155.3522.16.camel@dabdike.int.hansenpartnership.com>
+In-Reply-To: <1341994155.3522.16.camel@dabdike.int.hansenpartnership.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This allows a V4L2 application which has no knowledge of the media
-controller to open a video device node of the already-configured ISP
-and query what it will deliver. Previously, G_FMT only worked after a
-S_FMT had already been done.
+Em 11-07-2012 05:09, James Bottomley escreveu:
+> Hi All,
+> 
+> We have set aside the second day of the kernel summit (Tuesday 28
+> August) as mini-summit day.  So far we have only the PCI mini summit on
+> this day
 
-Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
----
- drivers/media/video/omap3isp/ispvideo.c |   27 +++++++++++++++++++++++++++
- 1 files changed, 27 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-index d1d2c14..955211b 100644
---- a/drivers/media/video/omap3isp/ispvideo.c
-+++ b/drivers/media/video/omap3isp/ispvideo.c
-@@ -1244,6 +1244,7 @@ static int isp_video_open(struct file *file)
- {
- 	struct isp_video *video = video_drvdata(file);
- 	struct isp_video_fh *handle;
-+	struct media_pad *src_pad;
- 	int ret = 0;
- 
- 	handle = kzalloc(sizeof(*handle), GFP_KERNEL);
-@@ -1273,6 +1274,32 @@ static int isp_video_open(struct file *file)
- 	handle->format.type = video->type;
- 	handle->timeperframe.denominator = 1;
- 
-+	src_pad = media_entity_remote_source(&video->pad);
-+
-+	if (src_pad) { /* it's on an active link */
-+		struct v4l2_subdev_format srcfmt = {
-+			.pad = src_pad->index,
-+			.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-+		};
-+		struct v4l2_subdev *src_subdev =
-+			isp_video_remote_subdev(video, NULL);
-+		pr_debug("%s src_subdev=\"%s\"\n", __func__, src_subdev->name);
-+
-+		ret = v4l2_subdev_call(src_subdev, pad, get_fmt, NULL, &srcfmt);
-+		if (ret)
-+			goto done;
-+		pr_debug("%s MBUS format %dx%d code:%x\n", __func__,
-+				srcfmt.format.width, srcfmt.format.height,
-+				srcfmt.format.code);
-+
-+		isp_video_mbus_to_pix(video, &srcfmt.format,
-+			&handle->format.fmt.pix);
-+		pr_debug("%s V4L format %dx%d 4CC:%x\n", __func__,
-+				handle->format.fmt.pix.width,
-+				handle->format.fmt.pix.height,
-+				handle->format.fmt.pix.pixelformat);
-+	}
-+
- 	handle->video = video;
- 	file->private_data = &handle->vfh;
- 
--- 
-1.7.4.1
+Not sure what happened (or maybe my proposal were not clear enough), but 
+I've submitted a proposal to have a media system summit on KS/2011.
+Last year was very productive for media developers, so we'd like to do
+it again ;)
 
 
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
+Message-ID: <4FEC74AB.6070501@redhat.com>
+Date: Thu, 28 Jun 2012 12:13:47 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+[Ksummit-2012-discuss] [ATTEND] media subsystem
+
+I'd like to have media subsystem discussions this year's at kernel summit. 
+The media subsystem is one of the most active driver subsystem, and there are lots of 
+things there that require face-to-face discussions, not only between subsystem developers, 
+but also with other maintainers. In special, during KS/2011, it was identified the need 
+of interacting with video and audio system people, in order to solve some common issues, 
+like HDMI CEC and audio/video synchronization. 
+
+The increasing complexity of SoC designs used by media devices requires API
+extensions at the media APIs in order to proper expose and control all hardware 
+functionality on a standard way. A new API to better allow negotiating userspace
+and Kernelspace capabilities seem to be required.
+
+More discussions with regards to shared resources locking is needed, on devices that
+implement multiple API's, but not a the same time.
+
+The incompatibility between udev-182 and the existing drivers will also require lots
+of discussions, as that affects 64 media drivers, and changing them to comply with
+the current requirement of using request_firmware_nowait() won't work on several
+drivers. So, a solution (or a set of solutions) needs to be found, in order to fix
+such incompatibility.
+
+Thanks,
+Mauro
