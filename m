@@ -1,44 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:31731 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750770Ab2GFNxX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Jul 2012 09:53:23 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q66DrNMs026844
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 6 Jul 2012 09:53:23 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] [media] uvc/Kconfig: Fix INPUT/EVDEV dependencies
-Date: Fri,  6 Jul 2012 10:53:20 -0300
-Message-Id: <1341582800-25760-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:62397 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755379Ab2GLLkT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jul 2012 07:40:19 -0400
+Received: by pbbrp8 with SMTP id rp8so3611891pbb.19
+        for <linux-media@vger.kernel.org>; Thu, 12 Jul 2012 04:40:18 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, hans.verkuil@cisco.com,
+	sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH] [media] videobuf-dma-contig: Use NULL instead of plain integer
+Date: Thu, 12 Jul 2012 17:09:50 +0530
+Message-Id: <1342093190-18597-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-USB_VIDEO_CLASS_INPUT_EVDEV should be dependent on the UVC
-selection, as otherwise, when UVC is unselected, this dependent
-config still appears.
+Fixes the following sparse warning:
+drivers/media/video/videobuf-dma-contig.c:59:46:
+warning: Using plain integer as NULL pointer
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 ---
- drivers/media/video/uvc/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/video/videobuf-dma-contig.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/video/uvc/Kconfig b/drivers/media/video/uvc/Kconfig
-index 6c197da..541c9f1 100644
---- a/drivers/media/video/uvc/Kconfig
-+++ b/drivers/media/video/uvc/Kconfig
-@@ -10,6 +10,7 @@ config USB_VIDEO_CLASS
- config USB_VIDEO_CLASS_INPUT_EVDEV
- 	bool "UVC input events device support"
- 	default y
-+	depends on USB_VIDEO_CLASS
- 	depends on USB_VIDEO_CLASS=INPUT || INPUT=y
- 	---help---
- 	  This option makes USB Video Class devices register an input device
+diff --git a/drivers/media/video/videobuf-dma-contig.c b/drivers/media/video/videobuf-dma-contig.c
+index 9b9a06f..a5af8b4 100644
+--- a/drivers/media/video/videobuf-dma-contig.c
++++ b/drivers/media/video/videobuf-dma-contig.c
+@@ -56,7 +56,7 @@ static int __videobuf_dc_alloc(struct device *dev,
+ 				dev_err(dev, "dma_map_single failed\n");
+ 
+ 				free_pages_exact(mem->vaddr, mem->size);
+-				mem->vaddr = 0;
++				mem->vaddr = NULL;
+ 				return err;
+ 			}
+ 		}
 -- 
-1.7.10.4
+1.7.4.1
 
