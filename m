@@ -1,115 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51586 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751040Ab2GZOi3 (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:49565 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932948Ab2GLVGD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jul 2012 10:38:29 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org, b.zolnierkie@samsung.com
-Subject: Re: [RFC/PATCH 02/13] media: s5p-csis: Add device tree support
-Date: Thu, 26 Jul 2012 16:38:35 +0200
-Message-ID: <24426306.kyhKLGOJzl@avalon>
-In-Reply-To: <5005ABF7.6020008@gmail.com>
-References: <4FBFE1EC.9060209@samsung.com> <Pine.LNX.4.64.1207161031000.12302@axis700.grange> <5005ABF7.6020008@gmail.com>
+	Thu, 12 Jul 2012 17:06:03 -0400
+Date: Thu, 12 Jul 2012 23:05:54 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Olof Johansson <olof@lixom.net>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	KS2012 <ksummit-2012-discuss@lists.linux-foundation.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [Ksummit-2012-discuss] Media system Summit
+In-Reply-To: <201207122103.01910.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1207122256290.19866@axis700.grange>
+References: <1341994155.3522.16.camel@dabdike.int.hansenpartnership.com>
+ <20120712161820.GA4488@sirena.org.uk> <CAOesGMgg6CoxY-RHGnXfpG8y3sqnn-Q=3xY0X=mov41wme7w8Q@mail.gmail.com>
+ <201207122103.01910.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+On Thu, 12 Jul 2012, Hans Verkuil wrote:
 
-On Tuesday 17 July 2012 20:16:23 Sylwester Nawrocki wrote:
-> On 07/16/2012 10:55 AM, Guennadi Liakhovetski wrote:
-> > Hi Sylwester
+> On Thu July 12 2012 18:48:23 Olof Johansson wrote:
+> > On Thu, Jul 12, 2012 at 9:18 AM, Mark Brown
+> > <broonie@opensource.wolfsonmicro.com> wrote:
+> > > On Thu, Jul 12, 2012 at 10:08:04AM +0200, Sylwester Nawrocki wrote:
+> > >
+> > >> I'd like to add a "Common device tree bindings for media devices" topic to
+> > >> the agenda for consideration.
+> > >
+> > > It'd be nice to get this to join up with ASoC...
 > > 
-> > Thanks for your comments to my RFC and for pointing out to this your
-> > earlier patch series. Unfortunately, I missed in in May, let me try to
-> > provide some thoughts about this, we should really try to converge our
-> > proposals. Maybe a discussion at KS would help too.
-> 
-> Thank you for the review. I was happy to see your RFC, as previously
-> there seemed to be not much interest in DT among the media guys.
-> Certainly, we need to work on a common approach to ensure interoperability
-> of existing drivers and to avoid having people inventing different
-> bindings for common features. I would also expect some share of device
-> specific bindings, as diversity of media devices is significant.
-> 
-> I'd be great to discuss these things at KS, especially support for
-> proper suspend/resume sequences. Also having common sessions with
-> other subsystems folks, like ASoC, for example, might be a good idea.
-> 
-> I'm not sure if I'll be travelling to the KS though. :)
-> 
-> > On Fri, 25 May 2012, Sylwester Nawrocki wrote:
-> >> s5p-csis is platform device driver for MIPI-CSI frontend to the FIMC
-> >> (camera host interface DMA engine and image processor). This patch
-> >> adds support for instantiating the MIPI-CSIS devices from DT and
-> >> parsing all SoC and board specific properties from device tree.
-> >> The MIPI DPHY control callback is now called directly from within
-> >> the driver, the platform code must ensure this callback does the
-> >> right thing for each SoC.
-> >> 
-> >> The cell-index property is used to ensure proper signal routing,
-> >> from physical camera port, through MIPI-CSI2 receiver to the DMA
-> >> engine (FIMC?). It's also helpful in exposing the device topology
-> >> in user space at /dev/media? devnode (Media Controller API).
-> >> 
-> >> This patch also defines a common property ("data-lanes") for MIPI-CSI
-> >> receivers and transmitters.
-> >> 
-> >> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
-> >> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
-> >> ---
-> >> 
-> >>   Documentation/devicetree/bindings/video/mipi.txt   |    5 +
-> >>   .../bindings/video/samsung-mipi-csis.txt           |   47 ++++++++++
-> >>   drivers/media/video/s5p-fimc/mipi-csis.c           |   97
-> >>   +++++++++++++++----- drivers/media/video/s5p-fimc/mipi-csis.h         
-> >>    |    1 +
-> >>   4 files changed, 126 insertions(+), 24 deletions(-)
-> >>   create mode 100644 Documentation/devicetree/bindings/video/mipi.txt
-> >>   create mode 100644
-> >>   Documentation/devicetree/bindings/video/samsung-mipi-csis.txt>> 
-> >> diff --git a/Documentation/devicetree/bindings/video/mipi.txt
-> >> b/Documentation/devicetree/bindings/video/mipi.txt new file mode 100644
-> >> index 0000000..5aed285
-> >> --- /dev/null
-> >> +++ b/Documentation/devicetree/bindings/video/mipi.txt
-> >> @@ -0,0 +1,5 @@
-> >> +Common properties of MIPI-CSI1 and MIPI-CSI2 receivers and transmitters
-> >> +
-> >> + - data-lanes : number of differential data lanes wired and actively
-> >> used in
-> >> +		communication between the transmitter and the receiver, this
-> >> +		excludes the clock lane;
 > > 
-> > Wouldn't it be better to use the standard "bus-width" DT property?
+> > There's a handful of various subsystems that have similar topics,
+> > maybe slice it the other way and do a device-tree/ACPI breakout that
+> > cuts across the various areas instead?
+> > 
+> > Communication really needs to be two-way: Crafting good bindings for a
+> > complex piece of hardware isn't trivial and having someone know both
+> > the subsystem and device tree principles is rare. At least getting all
+> > those people into the same room would be good.
 > 
-> I can't see any problems with using "bus-width". It seems sufficient
-> and could indeed be better, without a need to invent new MIPI-CSI
-> specific names. That was my first RFC on that and my perspective
-> wasn't probably broad enough. :)
+> I'm not so sure: I think that most decisions that need to be made are
+> quite subsystem specific. Trying to figure out how to implement DT for
+> multiple subsystems in one workshop seems unlikely to succeed, simply
+> because of lack of time. I also don't think there is much overlap between
+> subsystems in this respect, so while the DT implementation for one subsystem
+> is discussed, the representatives of other subsystems are twiddling their
+> thumbs.
+> 
+> It might be more productive to have one or two DT experts around who
+> rotate over the various workshops that have to deal with the DT and can
+> offer advice.
 
-What about CSI receivers that can reroute the lanes internally ? We would need 
-to specify lane indices for each lane then, maybe with something like
+I'm sure everyone has seen this, but just to have it mentioned here:
 
-clock-lane = <0>;
-data-lanes = <2 3 1>;
+<a 
+href="http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/50755">
+shameless self-advertisement</a>
 
-For receivers that can't reroute lanes internally, the data-lanes property 
-would be need to specify lanes in sequence.
+I'm not sure whether the overlap with other subsystems is large or not, 
+but there definitely is some, also with video (fbdev / drm), e.g., 
+http://thread.gmane.org/gmane.linux.drivers.devicetree/17495
 
-data-lanes = <1 2 3>;
+As for whether or not discuss DT for various subsystems together - why not 
+do both? First short sessions in each subsystems, of course, this would 
+only work if proposals have been prepared beforehand and at least 
+preliminary discussions on the MLs have taken place, and then another 
+(also short) combined session? Of course, it also depends on how much time 
+we can and want to dedicate to this.
 
--- 
-Regards,
+Thanks
+Guennadi
 
-Laurent Pinchart
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> > There's obvious overlap with ARM here as well, since it's one of the
+> > current big pushers of DT use, but I think it would be better to hold
+> > this as a separate breakout from that.
+> > 
+> > 
+> > -Olof
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
