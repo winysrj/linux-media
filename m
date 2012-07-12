@@ -1,53 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60067 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757486Ab2GFOe5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 10:34:57 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 02/10] ov772x: Fix memory leak in probe error path
-Date: Fri,  6 Jul 2012 16:34:53 +0200
-Message-Id: <1341585301-1003-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1341585301-1003-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1341585301-1003-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:46647 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933870Ab2GLUzQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jul 2012 16:55:16 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: hverkuil@xs4all.nl, halli manjunatha <hallimanju@gmail.com>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 3/5] radio-si470x: restore ctrl settings after suspend/resume
+Date: Thu, 12 Jul 2012 22:55:46 +0200
+Message-Id: <1342126548-19349-4-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1342126548-19349-1-git-send-email-hdegoede@redhat.com>
+References: <1342126548-19349-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The control handler isn't freed if its initialization fails. Fix it.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/media/video/ov772x.c |    9 ++++-----
- 1 files changed, 4 insertions(+), 5 deletions(-)
+ drivers/media/radio/si470x/radio-si470x-usb.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
-index 7c645dd..066bac6 100644
---- a/drivers/media/video/ov772x.c
-+++ b/drivers/media/video/ov772x.c
-@@ -1107,18 +1107,17 @@ static int ov772x_probe(struct i2c_client *client,
- 			V4L2_CID_BAND_STOP_FILTER, 0, 256, 1, 0);
- 	priv->subdev.ctrl_handler = &priv->hdl;
- 	if (priv->hdl.error) {
--		int err = priv->hdl.error;
--
--		kfree(priv);
--		return err;
-+		ret = priv->hdl.error;
-+		goto done;
- 	}
+diff --git a/drivers/media/radio/si470x/radio-si470x-usb.c b/drivers/media/radio/si470x/radio-si470x-usb.c
+index 40b963c..0204cf4 100644
+--- a/drivers/media/radio/si470x/radio-si470x-usb.c
++++ b/drivers/media/radio/si470x/radio-si470x-usb.c
+@@ -792,11 +792,16 @@ static int si470x_usb_driver_suspend(struct usb_interface *intf,
+ static int si470x_usb_driver_resume(struct usb_interface *intf)
+ {
+ 	struct si470x_device *radio = usb_get_intfdata(intf);
++	int ret;
  
- 	ret = ov772x_video_probe(client);
+ 	dev_info(&intf->dev, "resuming now...\n");
+ 
+ 	/* start radio */
+-	return si470x_start_usb(radio);
++	ret = si470x_start_usb(radio);
++	if (ret == 0)
++		v4l2_ctrl_handler_setup(&radio->hdl);
 +
-+done:
- 	if (ret) {
- 		v4l2_ctrl_handler_free(&priv->hdl);
- 		kfree(priv);
- 	}
--
- 	return ret;
++	return ret;
  }
  
+ 
 -- 
-1.7.8.6
+1.7.10.4
 
