@@ -1,101 +1,349 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:54671 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755297Ab2GKShu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jul 2012 14:37:50 -0400
-Received: by wibhm11 with SMTP id hm11so6009005wib.1
-        for <linux-media@vger.kernel.org>; Wed, 11 Jul 2012 11:37:49 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201207112001.18960.hverkuil@xs4all.nl>
-References: <1342021658-27821-1-git-send-email-hdegoede@redhat.com>
- <1342021658-27821-2-git-send-email-hdegoede@redhat.com> <201207112001.18960.hverkuil@xs4all.nl>
-From: halli manjunatha <hallimanju@gmail.com>
-Date: Wed, 11 Jul 2012 13:37:27 -0500
-Message-ID: <CAMT6Pycuhe7OnP7D_FJy1yp2oFH780diTiHxEyTiPpyaaVX9Ug@mail.gmail.com>
-Subject: Re: [PATCH 1/5] v4l2: Add rangelow and rangehigh fields to the
- v4l2_hw_freq_seek struct
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:31115 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932911Ab2GLUzN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jul 2012 16:55:13 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: hverkuil@xs4all.nl, halli manjunatha <hallimanju@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/5] v4l2 spec: add VIDIOC_ENUM_FREQ_BANDS documentation.
+Date: Thu, 12 Jul 2012 22:55:44 +0200
+Message-Id: <1342126548-19349-2-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1342126548-19349-1-git-send-email-hdegoede@redhat.com>
+References: <1342126548-19349-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 11, 2012 at 1:01 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Hans,
->
-> Thanks for the patch.
->
-> I've CC-ed Halli as well.
->
-> On Wed July 11 2012 17:47:34 Hans de Goede wrote:
->> To allow apps to limit a hw-freq-seek to a specific band, for further
->> info see the documentation this patch adds for these new fields.
->>
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->> ---
->>  .../DocBook/media/v4l/vidioc-s-hw-freq-seek.xml    |   44 ++++++++++++++++----
->>  include/linux/videodev2.h                          |    5 ++-
->>  2 files changed, 40 insertions(+), 9 deletions(-)
->>
->> diff --git a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
->> index f4db44d..50dc9f8 100644
->> --- a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
->> +++ b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
->> @@ -52,11 +52,21 @@
->>      <para>Start a hardware frequency seek from the current frequency.
->>  To do this applications initialize the <structfield>tuner</structfield>,
->>  <structfield>type</structfield>, <structfield>seek_upward</structfield>,
->> -<structfield>spacing</structfield> and
->> -<structfield>wrap_around</structfield> fields, and zero out the
->> -<structfield>reserved</structfield> array of a &v4l2-hw-freq-seek; and
->> -call the <constant>VIDIOC_S_HW_FREQ_SEEK</constant> ioctl with a pointer
->> -to this structure.</para>
->> +<structfield>wrap_around</structfield>, <structfield>spacing</structfield>,
->> +<structfield>rangelow</structfield> and <structfield>rangehigh</structfield>
->> +fields, and zero out the <structfield>reserved</structfield> array of a
->> +&v4l2-hw-freq-seek; and call the <constant>VIDIOC_S_HW_FREQ_SEEK</constant>
->> +ioctl with a pointer to this structure.</para>
->> +
->> +    <para>The <structfield>rangelow</structfield> and
->> +<structfield>rangehigh</structfield> fields can be set to a non-zero value to
->> +tell the driver to search a specific band. If the &v4l2-tuner;
->> +<structfield>capability</structfield> field has the
->> +<constant>V4L2_TUNER_CAP_HWSEEK_PROG_LIM</constant> flag set, these values
->> +must fall within one of the bands returned by &VIDIOC-ENUM-FREQ-BANDS;. If
->> +the <constant>V4L2_TUNER_CAP_HWSEEK_PROG_LIM</constant> flag is not set,
->> +then these values must exactly match those of one of the bands returned by
->> +&VIDIOC-ENUM-FREQ-BANDS;.</para>
->
-> OK, I have some questions here:
->
-> 1) If you have a multiband tuner, what should happen if both low and high are
-> zero? Currently it is undefined, other than that the seek should start from
-> the current frequency until it reaches some limit.
->
-> Halli, what does your hardware do? In particular, is the hwseek limited by the
-> US/Europe or Japan band range or can it do the full range? If I'm not mistaken
-> it is the former, right?
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-You are right... my hardware seek is limited by the japan/US band range....
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/compat.xml         |   12 ++
+ Documentation/DocBook/media/v4l/v4l2.xml           |    6 +
+ .../DocBook/media/v4l/vidioc-enum-freq-bands.xml   |  179 ++++++++++++++++++++
+ .../DocBook/media/v4l/vidioc-g-frequency.xml       |    7 +-
+ Documentation/DocBook/media/v4l/vidioc-g-tuner.xml |   26 ++-
+ 5 files changed, 221 insertions(+), 9 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
 
-> If it is the former, then you need to explicitly set low + high to ensure that
-> the hwseek uses the correct range because the driver can't guess which of the
-> overlapping bands to use.
-
-Yes in my driver I will take care of this :)....
->
-> 2) What happens if the current frequency is outside the low/high range? The
-> hwseek spec says that the seek starts from the current frequency, so that might
-> mean that hwseek returns -ERANGE in this case.
->
-> Regards,
->
->         Hans
-
-
-
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index 97b8951..aa28015 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2471,6 +2471,15 @@ that used it. It was originally scheduled for removal in 2.6.35.
+       </orderedlist>
+     </section>
+ 
++    <section>
++      <title>V4L2 in Linux 3.6</title>
++      <orderedlist>
++        <listitem>
++	  <para>Added support for frequency band enumerations: &VIDIOC-ENUM-FREQ-BANDS;.</para>
++        </listitem>
++      </orderedlist>
++    </section>
++
+     <section id="other">
+       <title>Relation of V4L2 to other Linux multimedia APIs</title>
+ 
+@@ -2600,6 +2609,9 @@ ioctls.</para>
+ 	  <para><link linkend="v4l2-auto-focus-area"><constant>
+ 	  V4L2_CID_AUTO_FOCUS_AREA</constant></link> control.</para>
+         </listitem>
++        <listitem>
++	  <para>Support for frequency band enumeration: &VIDIOC-ENUM-FREQ-BANDS; ioctl.</para>
++        </listitem>
+       </itemizedlist>
+     </section>
+ 
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index 36bafc4..eee6908 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -140,6 +140,11 @@ structs, ioctls) must be noted in more detail in the history chapter
+ applications. -->
+ 
+       <revision>
++	<revnumber>3.6</revnumber>
++	<date>2012-07-02</date>
++	<authorinitials>hv</authorinitials>
++	<revremark>Added VIDIOC_ENUM_FREQ_BANDS.
++	</revremark>
+ 	<revnumber>3.5</revnumber>
+ 	<date>2012-05-07</date>
+ 	<authorinitials>sa, sn</authorinitials>
+@@ -534,6 +539,7 @@ and discussions on the V4L mailing list.</revremark>
+     &sub-enum-fmt;
+     &sub-enum-framesizes;
+     &sub-enum-frameintervals;
++    &sub-enum-freq-bands;
+     &sub-enuminput;
+     &sub-enumoutput;
+     &sub-enumstd;
+diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml b/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
+new file mode 100644
+index 0000000..6541ba0
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
+@@ -0,0 +1,179 @@
++<refentry id="vidioc-enum-freq-bands">
++  <refmeta>
++    <refentrytitle>ioctl VIDIOC_ENUM_FREQ_BANDS</refentrytitle>
++    &manvol;
++  </refmeta>
++
++  <refnamediv>
++    <refname>VIDIOC_ENUM_FREQ_BANDS</refname>
++    <refpurpose>Enumerate supported frequency bands</refpurpose>
++  </refnamediv>
++
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>struct v4l2_frequency_band
++*<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
++
++  <refsect1>
++    <title>Arguments</title>
++
++    <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>&fd;</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>VIDIOC_ENUM_FREQ_BANDS</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++
++    <note>
++      <title>Experimental</title>
++      <para>This is an <link linkend="experimental"> experimental </link>
++      interface and may change in the future.</para>
++    </note>
++
++    <para>Enumerates the frequency bands that a tuner or modulator supports.
++To do this applications initialize the <structfield>tuner</structfield>,
++<structfield>type</structfield> and <structfield>index</structfield> fields,
++and zero out the <structfield>reserved</structfield> array of a &v4l2-frequency-band; and
++call the <constant>VIDIOC_ENUM_FREQ_BANDS</constant> ioctl with a pointer
++to this structure.</para>
++
++    <para>This ioctl is supported if the <constant>V4L2_TUNER_CAP_FREQ_BANDS</constant> capability
++    of the corresponding tuner/modulator is set.</para>
++
++    <table pgwide="1" frame="none" id="v4l2-frequency-band">
++      <title>struct <structname>v4l2_frequency_band</structname></title>
++      <tgroup cols="3">
++	&cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>tuner</structfield></entry>
++	    <entry>The tuner or modulator index number. This is the
++same value as in the &v4l2-input; <structfield>tuner</structfield>
++field and the &v4l2-tuner; <structfield>index</structfield> field, or
++the &v4l2-output; <structfield>modulator</structfield> field and the
++&v4l2-modulator; <structfield>index</structfield> field.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>type</structfield></entry>
++	    <entry>The tuner type. This is the same value as in the
++&v4l2-tuner; <structfield>type</structfield> field. The type must be set
++to <constant>V4L2_TUNER_RADIO</constant> for <filename>/dev/radioX</filename>
++device nodes, and to <constant>V4L2_TUNER_ANALOG_TV</constant>
++for all others. Set this field to <constant>V4L2_TUNER_RADIO</constant> for
++modulators (currently only radio modulators are supported).
++See <xref linkend="v4l2-tuner-type" /></entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>index</structfield></entry>
++	    <entry>Identifies the frequency band, set by the application.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>capability</structfield></entry>
++	    <entry spanname="hspan">The tuner/modulator capability flags for
++this frequency band, see <xref linkend="tuner-capability" />. The <constant>V4L2_TUNER_CAP_LOW</constant>
++capability must be the same for all frequency bands of the selected tuner/modulator.
++So either all bands have that capability set, or none of them have that capability.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>rangelow</structfield></entry>
++	    <entry spanname="hspan">The lowest tunable frequency in
++units of 62.5 kHz, or if the <structfield>capability</structfield>
++flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
++Hz, for this frequency band.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>rangehigh</structfield></entry>
++	    <entry spanname="hspan">The highest tunable frequency in
++units of 62.5 kHz, or if the <structfield>capability</structfield>
++flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
++Hz, for this frequency band.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>modulation</structfield></entry>
++	    <entry spanname="hspan">The supported modulation systems of this frequency band.
++	    See <xref linkend="band-modulation" />. Note that currently only one
++	    modulation system per frequency band is supported. More work will need to
++	    be done if multiple modulation systems are possible. Contact the
++	    linux-media mailing list (&v4l-ml;) if you need that functionality.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[9]</entry>
++	    <entry>Reserved for future extensions. Applications and drivers
++	    must set the array to zero.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++    <table pgwide="1" frame="none" id="band-modulation">
++      <title>Band Modulation Systems</title>
++      <tgroup cols="3">
++	&cs-def;
++	<tbody valign="top">
++	  <row>
++	    <entry><constant>V4L2_BAND_MODULATION_VSB</constant></entry>
++	    <entry>0x02</entry>
++	    <entry>Vestigial Sideband modulation, used for analog TV.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_BAND_MODULATION_FM</constant></entry>
++	    <entry>0x04</entry>
++	    <entry>Frequency Modulation, commonly used for analog radio.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_BAND_MODULATION_AM</constant></entry>
++	    <entry>0x08</entry>
++	    <entry>Amplitude Modulation, commonly used for analog radio.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++  </refsect1>
++
++  <refsect1>
++    &return-value;
++
++    <variablelist>
++      <varlistentry>
++	<term><errorcode>EINVAL</errorcode></term>
++	<listitem>
++	  <para>The <structfield>tuner</structfield> or <structfield>index</structfield>
++is out of bounds or the <structfield>type</structfield> field is wrong.</para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++</refentry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml b/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
+index 40e58a4..c7a1c46 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
+@@ -98,11 +98,12 @@ the &v4l2-output; <structfield>modulator</structfield> field and the
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>type</structfield></entry>
+ 	    <entry>The tuner type. This is the same value as in the
+-&v4l2-tuner; <structfield>type</structfield> field. See The type must be set
++&v4l2-tuner; <structfield>type</structfield> field. The type must be set
+ to <constant>V4L2_TUNER_RADIO</constant> for <filename>/dev/radioX</filename>
+ device nodes, and to <constant>V4L2_TUNER_ANALOG_TV</constant>
+-for all others. The field is not applicable to modulators, &ie; ignored
+-by drivers. See <xref linkend="v4l2-tuner-type" /></entry>
++for all others. Set this field to <constant>V4L2_TUNER_RADIO</constant> for
++modulators (currently only radio modulators are supported).
++See <xref linkend="v4l2-tuner-type" /></entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
+index 95d5371..7203951 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
+@@ -119,10 +119,14 @@ field is not quite clear.--></para></entry>
+ <xref linkend="tuner-capability" />. Audio flags indicate the ability
+ to decode audio subprograms. They will <emphasis>not</emphasis>
+ change, for example with the current video standard.</para><para>When
+-the structure refers to a radio tuner only the
+-<constant>V4L2_TUNER_CAP_LOW</constant>,
+-<constant>V4L2_TUNER_CAP_STEREO</constant> and
+-<constant>V4L2_TUNER_CAP_RDS</constant> flags can be set.</para></entry>
++the structure refers to a radio tuner the
++<constant>V4L2_TUNER_CAP_LANG1</constant>,
++<constant>V4L2_TUNER_CAP_LANG2</constant> and
++<constant>V4L2_TUNER_CAP_NORM</constant> flags can't be used.</para>
++<para>If multiple frequency bands are supported, then
++<structfield>capability</structfield> is the union of all
++<structfield>capability></structfield> fields of each &v4l2-frequency-band;.
++</para></entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+@@ -130,7 +134,9 @@ the structure refers to a radio tuner only the
+ 	    <entry spanname="hspan">The lowest tunable frequency in
+ units of 62.5 kHz, or if the <structfield>capability</structfield>
+ flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
+-Hz.</entry>
++Hz. If multiple frequency bands are supported, then
++<structfield>rangelow</structfield> is the lowest frequency
++of all the frequency bands.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+@@ -138,7 +144,9 @@ Hz.</entry>
+ 	    <entry spanname="hspan">The highest tunable frequency in
+ units of 62.5 kHz, or if the <structfield>capability</structfield>
+ flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
+-Hz.</entry>
++Hz. If multiple frequency bands are supported, then
++<structfield>rangehigh</structfield> is the highest frequency
++of all the frequency bands.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+@@ -340,6 +348,12 @@ radio tuners.</entry>
+ 	<entry>0x0200</entry>
+ 	<entry>The RDS data is parsed by the hardware and set via controls.</entry>
+ 	  </row>
++	  <row>
++	<entry><constant>V4L2_TUNER_CAP_FREQ_BANDS</constant></entry>
++	<entry>0x0400</entry>
++	<entry>The &VIDIOC-ENUM-FREQ-BANDS; ioctl can be used to enumerate
++	the available frequency bands.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
 -- 
-Regards
-Halli
+1.7.10.4
+
