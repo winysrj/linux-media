@@ -1,148 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:62128 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751832Ab2GWKAc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jul 2012 06:00:32 -0400
-Received: by wibhm11 with SMTP id hm11so2701970wib.1
-        for <linux-media@vger.kernel.org>; Mon, 23 Jul 2012 03:00:31 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:60560 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755012Ab2GLPwb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jul 2012 11:52:31 -0400
+Message-ID: <4FFEF2E4.4010906@redhat.com>
+Date: Thu, 12 Jul 2012 17:53:08 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <CACKLOr312a=KTrm9=N48=SHN5Z=0yTPceopG9MJBu8he_3yjrw@mail.gmail.com>
-References: <1342782515-24992-1-git-send-email-javier.martin@vista-silicon.com>
-	<201207231036.21120.hverkuil@xs4all.nl>
-	<CACKLOr36MnD8fpiJDmDWGir=nWWZEQdrZjvVJTfEBORARMrmGA@mail.gmail.com>
-	<201207231045.48762.hverkuil@xs4all.nl>
-	<CACKLOr312a=KTrm9=N48=SHN5Z=0yTPceopG9MJBu8he_3yjrw@mail.gmail.com>
-Date: Mon, 23 Jul 2012 12:00:30 +0200
-Message-ID: <CACKLOr1RF2PLECz7Y9kFRnFqnCMfHQOcCTT0TgdFvNyFVynCpg@mail.gmail.com>
-Subject: Re: [PATCH v6] media: coda: Add driver for Coda video codec.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.hauer@pengutronix.de, p.zabel@pengutronix.de
-Content-Type: text/plain; charset=ISO-8859-1
+To: halli manjunatha <hallimanju@gmail.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/5] v4l2: Add rangelow and rangehigh fields to the v4l2_hw_freq_seek
+ struct
+References: <1342021658-27821-1-git-send-email-hdegoede@redhat.com> <1342021658-27821-2-git-send-email-hdegoede@redhat.com> <201207112001.18960.hverkuil@xs4all.nl> <CAMT6Pycuhe7OnP7D_FJy1yp2oFH780diTiHxEyTiPpyaaVX9Ug@mail.gmail.com>
+In-Reply-To: <CAMT6Pycuhe7OnP7D_FJy1yp2oFH780diTiHxEyTiPpyaaVX9Ug@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23 July 2012 11:45, javier Martin <javier.martin@vista-silicon.com> wrote:
-> Sorry, I had a problem with my buildroot environment. This is the
-> v4l2-compliance output with the most recent version:
+Hi,
+
+On 07/11/2012 08:37 PM, halli manjunatha wrote:
+> On Wed, Jul 11, 2012 at 1:01 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> Hi Hans,
+>>
+>> Thanks for the patch.
+>>
+>> I've CC-ed Halli as well.
+>>
+>> On Wed July 11 2012 17:47:34 Hans de Goede wrote:
+>>> To allow apps to limit a hw-freq-seek to a specific band, for further
+>>> info see the documentation this patch adds for these new fields.
+>>>
+>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>>> ---
+>>>   .../DocBook/media/v4l/vidioc-s-hw-freq-seek.xml    |   44 ++++++++++++++++----
+>>>   include/linux/videodev2.h                          |    5 ++-
+>>>   2 files changed, 40 insertions(+), 9 deletions(-)
+>>>
+>>> diff --git a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
+>>> index f4db44d..50dc9f8 100644
+>>> --- a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
+>>> +++ b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
+>>> @@ -52,11 +52,21 @@
+>>>       <para>Start a hardware frequency seek from the current frequency.
+>>>   To do this applications initialize the <structfield>tuner</structfield>,
+>>>   <structfield>type</structfield>, <structfield>seek_upward</structfield>,
+>>> -<structfield>spacing</structfield> and
+>>> -<structfield>wrap_around</structfield> fields, and zero out the
+>>> -<structfield>reserved</structfield> array of a &v4l2-hw-freq-seek; and
+>>> -call the <constant>VIDIOC_S_HW_FREQ_SEEK</constant> ioctl with a pointer
+>>> -to this structure.</para>
+>>> +<structfield>wrap_around</structfield>, <structfield>spacing</structfield>,
+>>> +<structfield>rangelow</structfield> and <structfield>rangehigh</structfield>
+>>> +fields, and zero out the <structfield>reserved</structfield> array of a
+>>> +&v4l2-hw-freq-seek; and call the <constant>VIDIOC_S_HW_FREQ_SEEK</constant>
+>>> +ioctl with a pointer to this structure.</para>
+>>> +
+>>> +    <para>The <structfield>rangelow</structfield> and
+>>> +<structfield>rangehigh</structfield> fields can be set to a non-zero value to
+>>> +tell the driver to search a specific band. If the &v4l2-tuner;
+>>> +<structfield>capability</structfield> field has the
+>>> +<constant>V4L2_TUNER_CAP_HWSEEK_PROG_LIM</constant> flag set, these values
+>>> +must fall within one of the bands returned by &VIDIOC-ENUM-FREQ-BANDS;. If
+>>> +the <constant>V4L2_TUNER_CAP_HWSEEK_PROG_LIM</constant> flag is not set,
+>>> +then these values must exactly match those of one of the bands returned by
+>>> +&VIDIOC-ENUM-FREQ-BANDS;.</para>
+>>
+>> OK, I have some questions here:
+>>
+>> 1) If you have a multiband tuner, what should happen if both low and high are
+>> zero? Currently it is undefined, other than that the seek should start from
+>> the current frequency until it reaches some limit.
+>>
+>> Halli, what does your hardware do? In particular, is the hwseek limited by the
+>> US/Europe or Japan band range or can it do the full range? If I'm not mistaken
+>> it is the former, right?
 >
-> # v4l2-compliance -d /dev/video2
-> Driver Info:
->         Driver name   : coda
->         Card type     : coda
->         Bus info      : coda
->         Driver version: 0.0.0
->         Capabilities  : 0x84000003
->                 Video Capture
->                 Video Output
->                 Streaming
->                 Device Capabilities
->         Device Caps   : 0x04000003
->                 Video Capture
->                 Video Output
->                 Streaming
+> You are right... my hardware seek is limited by the japan/US band range....
 >
-> Compliance test for device /dev/video2 (not using libv4l2):
+>> If it is the former, then you need to explicitly set low + high to ensure that
+>> the hwseek uses the correct range because the driver can't guess which of the
+>> overlapping bands to use.
 >
-> Required ioctls:
->                 fail: v4l2-compliance.cpp(270): (vcap.version >> 16) < 3
->         test VIDIOC_QUERYCAP: FAIL
->
+> Yes in my driver I will take care of this :)....
 
-This was related to a memset() that I did in QUERYCAP.
+I think you misunderstood Hans here, not the driver but userspace will need
+to fill in the rangelow / rangehigh fields of struct v4l2_hw_freq_seek, because if
+the current freq is in the overlapping area of the bands, the driver cannot know
+which band to seek, so it will just have to guess, I think it is best to just leave
+the band at its current setting in that case.
 
-Now the output is cleaner.
+The way the new API works (which was done this way to preserve backward compat)
+is that the bands returned from ENUM_BANDS are there as information only. userspace
+never explicitly sets a band, so an old app will just see the entire 76-108 MHZ range
+in the tuner struct and may do a S_FREQUENCY for any of those frequencies, and the
+driver must automatically switch bands when necessary.
 
-# v4l2-compliance -d /dev/video2
-Driver Info:
-        Driver name   : coda
-        Card type     : coda
-        Bus info      : coda
-        Driver version: 3.5.0
-        Capabilities  : 0x84000003
-                Video Capture
-                Video Output
-                Streaming
-                Device Capabilities
-        Device Caps   : 0x04000003
-                Video Capture
-                Video Output
-                Streaming
+With S_HW_FREQ_SEEK we've the 2 new fields to indicate the band to seek for new apps,
+but with old apps these fields will be 0, and the driver needs to just pick a band
+to search on a best effort basis, for the si470x IE, if no band is specified
+in struct v4l2_hw_freq_seek,  I simply always switch to the "Japan wide" band
+of 76-108 Mhz as that includes all other bands supported by the si470x.
 
-Compliance test for device /dev/video2 (not using libv4l2):
+Regards,
 
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-
-Debug ioctls:
-        test VIDIOC_DBG_G_CHIP_IDENT: Not Supported
-        test VIDIOC_DBG_G/S_REGISTER: Not Supported
-        test VIDIOC_LOG_STATUS: Not Supported
-
-Input ioctls:
-        test VIDIOC_G/S_TUNER: Not Supported
-        test VIDIOC_G/S_FREQUENCY: Not Supported
-        test VIDIOC_S_HW_FREQ_SEEK: Not Supported
-        test VIDIOC_ENUMAUDIO: Not Supported
-        test VIDIOC_G/S/ENUMINPUT: Not Supported
-        test VIDIOC_G/S_AUDIO: Not Supported
-        Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: Not Supported
-        test VIDIOC_G/S_FREQUENCY: Not Supported
-        test VIDIOC_ENUMAUDOUT: Not Supported
-        test VIDIOC_G/S/ENUMOUTPUT: Not Supported
-        test VIDIOC_G/S_AUDOUT: Not Supported
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Control ioctls:
-        test VIDIOC_QUERYCTRL/MENU: OK
-        test VIDIOC_G/S_CTRL: OK
-                fail: v4l2-test-controls.cpp(565): try_ext_ctrls did
-not check the read-only flag
-        test VIDIOC_G/S/TRY_EXT_CTRLS: FAIL
-                fail: v4l2-test-controls.cpp(698): subscribe event for
-control 'MPEG Encoder Controls' failed
-        test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
-        test VIDIOC_G/S_JPEGCOMP: Not Supported
-        Standard Controls: 10 Private Controls: 0
-
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: Not Supported
-        test VIDIOC_ENUM/G/S/QUERY_DV_PRESETS: Not Supported
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: Not Supported
-        test VIDIOC_DV_TIMINGS_CAP: Not Supported
-
-Format ioctls:
-        test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                fail: v4l2-test-formats.cpp(558): cap->readbuffers
-        test VIDIOC_G/S_PARM: FAIL
-        test VIDIOC_G_FBUF: Not Supported
-                fail: v4l2-test-formats.cpp(382): !pix.width || !pix.height
-        test VIDIOC_G_FMT: FAIL
-        test VIDIOC_G_SLICED_VBI_CAP: Not Supported
-Buffer ioctls:
-        test VIDIOC_REQBUFS/CREATE_BUFS: OK
-        test read/write: OK
-Total: 34 Succeeded: 30 Failed: 4 Warnings: 2
-
-
-
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Hans
