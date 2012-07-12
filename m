@@ -1,422 +1,411 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:49447 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751661Ab2GaTnT (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:34516 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932833Ab2GLTHl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 15:43:19 -0400
-Received: by mail-we0-f174.google.com with SMTP id x8so4602944wey.19
-        for <linux-media@vger.kernel.org>; Tue, 31 Jul 2012 12:43:19 -0700 (PDT)
-From: Ilyes Gouta <ilyes.gouta@gmail.com>
+	Thu, 12 Jul 2012 15:07:41 -0400
+Received: by bkwj10 with SMTP id j10so2521136bkw.19
+        for <linux-media@vger.kernel.org>; Thu, 12 Jul 2012 12:07:39 -0700 (PDT)
+Message-ID: <4FFF208C.5030306@googlemail.com>
+Date: Thu, 12 Jul 2012 21:07:56 +0200
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: Ilyes Gouta <ilyes.gouta@gmail.com>,
-	Ilyes Gouta <ilyes.gouta@st.com>
-Subject: [RESEND,media] v4l2: define V4L2_PIX_FMT_NV16M and V4L2_PIX_FMT_NV24M pixel formats
-Date: Tue, 31 Jul 2012 20:23:36 +0100
-Message-Id: <1343762616-7295-1-git-send-email-ilyes.gouta@gmail.com>
+CC: laurent.pinchart@ideasonboard.com
+Subject: [Regression 3.1->3.2, bisected] UVC-webcam: kernel panic when starting
+ capturing
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Define the two new V4L2_PIX_FMT_NV16M (4:2:2 two-buffers) and V4L2_PIX_FMT_NV24M (4:4:4 two-buffers)
-pixel formats, the non-contiguous variants of the existing V4L2_PIX_FMT_NV16 and V4L2_PIX_FMT_NV24 formats.
+Hi,
 
-Existing h/w IPs, such as decoders, operate on such separate luma and chroma buffers.
+when I start capturing from the UVC-webcam 2232:1005 ("WebCam
+SCB-0385N") of my netbook, I get a kernel panic.
+You can find a screenshot of the backtrace here:
 
-Signed-off-by: Ilyes Gouta <ilyes.gouta@gmail.com>
----
- Documentation/DocBook/media/v4l/pixfmt-nv16m.xml | 166 +++++++++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt-nv24m.xml | 182 +++++++++++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt.xml       |   2 +
- include/linux/videodev2.h                        |   2 +
- 4 files changed, 352 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv24m.xml
+http://imageshack.us/photo/my-images/9/img125km.jpg/
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-nv16m.xml b/Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
-new file mode 100644
-index 0000000..76e48bf
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
-@@ -0,0 +1,166 @@
-+    <refentry id="V4L2-PIX-FMT-NV16M">
-+      <refmeta>
-+     <refentrytitle>V4L2_PIX_FMT_NV16M ('NM16')</refentrytitle>
-+	&manvol;
-+      </refmeta>
-+      <refnamediv>
-+     <refname> <constant>V4L2_PIX_FMT_NV16M</constant></refname>
-+     <refpurpose>Variation of <constant>V4L2_PIX_FMT_NV16</constant> with planes
-+	  non contiguous in memory. </refpurpose>
-+      </refnamediv>
-+      <refsect1>
-+	<title>Description</title>
-+
-+     <para>This is a multi-planar, two-plane version of the YUV 4:2:2 format.
-+The three components are separated into two sub-images or planes.
-+<constant>V4L2_PIX_FMT_NV16M</constant> differs from <constant>V4L2_PIX_FMT_NV16
-+</constant> in that the two planes are non-contiguous in memory, i.e. the chroma
-+plane do not necessarily immediately follows the luma plane.
-+The luminance data occupies the first plane. The Y plane has one byte per pixel.
-+In the second plane there is a chrominance data with alternating chroma samples.
-+The CbCr plane has the same width and height, in bytes, as the Y plane (and of the image).
-+Each CbCr pair belongs to two pixels. For example,
-+Cb<subscript>0</subscript>/Cr<subscript>0</subscript> belongs to
-+Y<subscript>00</subscript>, Y'<subscript>01</subscript>. </para>
-+
-+     <para><constant>V4L2_PIX_FMT_NV16M</constant> is intended to be
-+used only in drivers and applications that support the multi-planar API,
-+described in <xref linkend="planar-apis"/>. </para>
-+
-+	<para>If the Y plane has pad bytes after each row, then the
-+CbCr plane has as many pad bytes after its rows.</para>
-+
-+	<example>
-+       <title><constant>V4L2_PIX_FMT_NV16M</constant> 4 &times; 4 pixel image</title>
-+
-+	  <formalpara>
-+	    <title>Byte Order.</title>
-+	    <para>Each cell is one byte.
-+		<informaltable frame="none">
-+		<tgroup cols="5" align="center">
-+		  <colspec align="left" colwidth="2*" />
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry>start0&nbsp;+&nbsp;0:</entry>
-+		      <entry>Y'<subscript>00</subscript></entry>
-+		      <entry>Y'<subscript>01</subscript></entry>
-+		      <entry>Y'<subscript>02</subscript></entry>
-+		      <entry>Y'<subscript>03</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start0&nbsp;+&nbsp;4:</entry>
-+		      <entry>Y'<subscript>10</subscript></entry>
-+		      <entry>Y'<subscript>11</subscript></entry>
-+		      <entry>Y'<subscript>12</subscript></entry>
-+		      <entry>Y'<subscript>13</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start0&nbsp;+&nbsp;8:</entry>
-+		      <entry>Y'<subscript>20</subscript></entry>
-+		      <entry>Y'<subscript>21</subscript></entry>
-+		      <entry>Y'<subscript>22</subscript></entry>
-+		      <entry>Y'<subscript>23</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start0&nbsp;+&nbsp;12:</entry>
-+		      <entry>Y'<subscript>30</subscript></entry>
-+		      <entry>Y'<subscript>31</subscript></entry>
-+		      <entry>Y'<subscript>32</subscript></entry>
-+		      <entry>Y'<subscript>33</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start1&nbsp;+&nbsp;0:</entry>
-+		      <entry>Cb<subscript>00</subscript></entry>
-+		      <entry>Cr<subscript>00</subscript></entry>
-+		      <entry>Cb<subscript>01</subscript></entry>
-+		      <entry>Cr<subscript>01</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start1&nbsp;+&nbsp;4:</entry>
-+		      <entry>Cb<subscript>10</subscript></entry>
-+		      <entry>Cr<subscript>10</subscript></entry>
-+		      <entry>Cb<subscript>11</subscript></entry>
-+		      <entry>Cr<subscript>11</subscript></entry>
-+		    </row>
-+              <row>
-+                <entry>start1&nbsp;+&nbsp;8:</entry>
-+                <entry>Cb<subscript>20</subscript></entry>
-+                <entry>Cr<subscript>20</subscript></entry>
-+                <entry>Cb<subscript>21</subscript></entry>
-+                <entry>Cr<subscript>21</subscript></entry>
-+              </row>
-+              <row>
-+                <entry>start1&nbsp;+&nbsp;12:</entry>
-+                <entry>Cb<subscript>30</subscript></entry>
-+                <entry>Cr<subscript>30</subscript></entry>
-+                <entry>Cb<subscript>31</subscript></entry>
-+                <entry>Cr<subscript>31</subscript></entry>
-+              </row>
-+		  </tbody>
-+		</tgroup>
-+		</informaltable>
-+	      </para>
-+	  </formalpara>
-+
-+	  <formalpara>
-+	    <title>Color Sample Location.</title>
-+	    <para>
-+		<informaltable frame="none">
-+		<tgroup cols="7" align="center">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry></entry>
-+		      <entry>0</entry><entry></entry><entry>1</entry><entry></entry>
-+		      <entry>2</entry><entry></entry><entry>3</entry>
-+		    </row>
-+		    <row>
-+		      <entry>0</entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry>
-+		    </row>
-+		    <row>
-+		      <entry></entry>
-+		      <entry></entry><entry>C</entry><entry></entry><entry></entry>
-+		      <entry></entry><entry>C</entry><entry></entry>
-+		    </row>
-+		    <row>
-+		      <entry>1</entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry>
-+		    </row>
-+              <row>
-+                <entry></entry>
-+                <entry></entry><entry>C</entry><entry></entry><entry></entry>
-+                <entry></entry><entry>C</entry><entry></entry>
-+              </row>
-+		    <row>
-+		      <entry>2</entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry>
-+		    </row>
-+		    <row>
-+		      <entry></entry>
-+		      <entry></entry><entry>C</entry><entry></entry><entry></entry>
-+		      <entry></entry><entry>C</entry><entry></entry>
-+		    </row>
-+		    <row>
-+		      <entry>3</entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry>
-+		    </row>
-+              <row>
-+                <entry></entry>
-+                <entry></entry><entry>C</entry><entry></entry><entry></entry>
-+                <entry></entry><entry>C</entry><entry></entry>
-+              </row>
-+		  </tbody>
-+		</tgroup>
-+		</informaltable>
-+	      </para>
-+	  </formalpara>
-+	</example>
-+      </refsect1>
-+    </refentry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-nv24m.xml b/Documentation/DocBook/media/v4l/pixfmt-nv24m.xml
-new file mode 100644
-index 0000000..51b06d1
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-nv24m.xml
-@@ -0,0 +1,182 @@
-+    <refentry id="V4L2-PIX-FMT-NV24M">
-+      <refmeta>
-+     <refentrytitle>V4L2_PIX_FMT_NV24M ('NM24')</refentrytitle>
-+	&manvol;
-+      </refmeta>
-+      <refnamediv>
-+     <refname> <constant>V4L2_PIX_FMT_NV24M</constant></refname>
-+     <refpurpose>Variation of <constant>V4L2_PIX_FMT_NV24</constant> with planes
-+	  non contiguous in memory. </refpurpose>
-+      </refnamediv>
-+      <refsect1>
-+	<title>Description</title>
-+
-+     <para>This is a multi-planar, two-plane version of the YUV 4:4:4 format.
-+The three components are separated into two sub-images or planes.
-+<constant>V4L2_PIX_FMT_NV24M</constant> differs from <constant>V4L2_PIX_FMT_NV24
-+</constant> in that the two planes are non-contiguous in memory, i.e. the chroma
-+plane do not necessarily immediately follows the luma plane.
-+The luminance data occupies the first plane. The Y plane has one byte per pixel.
-+In the second plane there is a chrominance data with alternating chroma samples.
-+The CbCr plane has the double of the width (in bytes) and the same height of the
-+Y plane. Each CbCr pair belongs to one pixel. For example,
-+Cb<subscript>0</subscript>/Cr<subscript>0</subscript> belongs to
-+Y'<subscript>00</subscript>. </para>
-+
-+     <para><constant>V4L2_PIX_FMT_NV24M</constant> is intended to be
-+used only in drivers and applications that support the multi-planar API,
-+described in <xref linkend="planar-apis"/>. </para>
-+
-+	<para>If the Y plane has pad bytes after each row, then the
-+CbCr plane has as many pad bytes after its rows.</para>
-+
-+	<example>
-+       <title><constant>V4L2_PIX_FMT_NV24M</constant> 4 &times; 4 pixel image</title>
-+
-+	  <formalpara>
-+	    <title>Byte Order.</title>
-+	    <para>Each cell is one byte.
-+		<informaltable frame="none">
-+		<tgroup cols="5" align="center">
-+		  <colspec align="left" colwidth="2*" />
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry>start0&nbsp;+&nbsp;0:</entry>
-+		      <entry>Y'<subscript>00</subscript></entry>
-+		      <entry>Y'<subscript>01</subscript></entry>
-+		      <entry>Y'<subscript>02</subscript></entry>
-+		      <entry>Y'<subscript>03</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start0&nbsp;+&nbsp;4:</entry>
-+		      <entry>Y'<subscript>10</subscript></entry>
-+		      <entry>Y'<subscript>11</subscript></entry>
-+		      <entry>Y'<subscript>12</subscript></entry>
-+		      <entry>Y'<subscript>13</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start0&nbsp;+&nbsp;8:</entry>
-+		      <entry>Y'<subscript>20</subscript></entry>
-+		      <entry>Y'<subscript>21</subscript></entry>
-+		      <entry>Y'<subscript>22</subscript></entry>
-+		      <entry>Y'<subscript>23</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start0&nbsp;+&nbsp;12:</entry>
-+		      <entry>Y'<subscript>30</subscript></entry>
-+		      <entry>Y'<subscript>31</subscript></entry>
-+		      <entry>Y'<subscript>32</subscript></entry>
-+		      <entry>Y'<subscript>33</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start1&nbsp;+&nbsp;0:</entry>
-+		      <entry>Cb<subscript>00</subscript></entry>
-+		      <entry>Cr<subscript>00</subscript></entry>
-+		      <entry>Cb<subscript>01</subscript></entry>
-+		      <entry>Cr<subscript>01</subscript></entry>
-+                <entry>Cb<subscript>02</subscript></entry>
-+                <entry>Cr<subscript>02</subscript></entry>
-+                <entry>Cb<subscript>03</subscript></entry>
-+                <entry>Cr<subscript>03</subscript></entry>
-+		    </row>
-+		    <row>
-+                <entry>start1&nbsp;+&nbsp;8:</entry>
-+		      <entry>Cb<subscript>10</subscript></entry>
-+		      <entry>Cr<subscript>10</subscript></entry>
-+		      <entry>Cb<subscript>11</subscript></entry>
-+		      <entry>Cr<subscript>11</subscript></entry>
-+                <entry>Cb<subscript>12</subscript></entry>
-+                <entry>Cr<subscript>12</subscript></entry>
-+                <entry>Cb<subscript>13</subscript></entry>
-+                <entry>Cr<subscript>13</subscript></entry>
-+		    </row>
-+              <row>
-+                <entry>start1&nbsp;+&nbsp;16:</entry>
-+                <entry>Cb<subscript>20</subscript></entry>
-+                <entry>Cr<subscript>20</subscript></entry>
-+                <entry>Cb<subscript>21</subscript></entry>
-+                <entry>Cr<subscript>21</subscript></entry>
-+                <entry>Cb<subscript>22</subscript></entry>
-+                <entry>Cr<subscript>22</subscript></entry>
-+                <entry>Cb<subscript>23</subscript></entry>
-+                <entry>Cr<subscript>23</subscript></entry>
-+              </row>
-+              <row>
-+                <entry>start1&nbsp;+&nbsp;24:</entry>
-+                <entry>Cb<subscript>30</subscript></entry>
-+                <entry>Cr<subscript>30</subscript></entry>
-+                <entry>Cb<subscript>31</subscript></entry>
-+                <entry>Cr<subscript>31</subscript></entry>
-+                <entry>Cb<subscript>32</subscript></entry>
-+                <entry>Cr<subscript>32</subscript></entry>
-+                <entry>Cb<subscript>33</subscript></entry>
-+                <entry>Cr<subscript>33</subscript></entry>
-+              </row>
-+		  </tbody>
-+		</tgroup>
-+		</informaltable>
-+	      </para>
-+	  </formalpara>
-+
-+	  <formalpara>
-+	    <title>Color Sample Location.</title>
-+	    <para>
-+		<informaltable frame="none">
-+		<tgroup cols="7" align="center">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry></entry>
-+		      <entry>0</entry><entry></entry><entry>1</entry><entry></entry>
-+		      <entry>2</entry><entry></entry><entry>3</entry>
-+		    </row>
-+		    <row>
-+		      <entry>0</entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry>
-+		    </row>
-+		    <row>
-+		      <entry></entry>
-+                <entry>C</entry><entry></entry><entry>C</entry><entry></entry>
-+                <entry>C</entry><entry></entry><entry>C</entry>
-+		    </row>
-+		    <row>
-+		      <entry>1</entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry>
-+		    </row>
-+              <row>
-+                <entry></entry>
-+                <entry>C</entry><entry></entry><entry>C</entry><entry></entry>
-+                <entry>C</entry><entry></entry><entry>C</entry>
-+              </row>
-+		    <row>
-+		      <entry>2</entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry>
-+		    </row>
-+              <row>
-+                <entry></entry>
-+                <entry>C</entry><entry></entry><entry>C</entry><entry></entry>
-+                <entry>C</entry><entry></entry><entry>C</entry>
-+              </row>
-+		    <row>
-+		      <entry>3</entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
-+		      <entry>Y</entry><entry></entry><entry>Y</entry>
-+              </row>
-+              <row>
-+                <entry></entry>
-+                <entry>C</entry><entry></entry><entry>C</entry><entry></entry>
-+                <entry>C</entry><entry></entry><entry>C</entry>
-+              </row>
-+		  </tbody>
-+		</tgroup>
-+		</informaltable>
-+	      </para>
-+	  </formalpara>
-+	</example>
-+      </refsect1>
-+    </refentry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index e58934c..24e33db 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -713,6 +713,8 @@ information.</para>
-     &sub-yuv411p;
-     &sub-nv12;
-     &sub-nv12m;
-+    &sub-nv16m;
-+    &sub-nv24m;
-     &sub-nv12mt;
-     &sub-nv16;
-     &sub-nv24;
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 5d78910..618bf50 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -360,6 +360,8 @@ struct v4l2_pix_format {
- 
- /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
- #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
-+#define V4L2_PIX_FMT_NV16M   v4l2_fourcc('N', 'M', '1', '6') /* 16  Y/CbCr 4:2:2  */
-+#define V4L2_PIX_FMT_NV24M   v4l2_fourcc('N', 'M', '2', '4') /* 24  Y/CbCr 4:4:4  */
- #define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 64x32 macroblocks */
- 
- /* three non contiguous planes - Y, Cb, Cr */
--- 
-1.7.11.2
+
+This is a regression which has been introduced between kernel 3.2-rc2
+and 3.2-rc3 with the following commit:
+
+
+3afedb95858bcc117b207a7c0a6767fe891bdfe9 is the first bad commit
+commit 3afedb95858bcc117b207a7c0a6767fe891bdfe9
+Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date:   Thu Nov 3 07:24:34 2011 -0300
+
+    [media] uvcvideo: Don't skip erroneous payloads
+   
+    Instead of skipping the payload completely, which would make the
+    resulting image corrupted anyway, store the payload normally and mark
+    the buffer as erroneous. If the no_drop module parameter is set to 1 the
+    buffer will then be passed to userspace, and tt will then be up to the
+    application to decide what to do with the buffer.
+   
+    Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+
+
+Regards,
+Frank Schäfer
+
+
+
+Output of lsusb -vvv:
+
+device 2232:1005 ("WebCam SCB-0385N")
+
+Bus 001 Device 004: ID 2232:1005 
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass          239 Miscellaneous Device
+  bDeviceSubClass         2 ?
+  bDeviceProtocol         1 Interface Association
+  bMaxPacketSize0        64
+  idVendor           0x2232
+  idProduct          0x1005
+  bcdDevice            0.07
+  iManufacturer           1 Image Processor
+  iProduct                2 WebCam SCB-0385N
+  iSerial                 0
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength          445
+    bNumInterfaces          2
+    bConfigurationValue     1
+    iConfiguration          0
+    bmAttributes         0x80
+      (Bus Powered)
+    MaxPower              500mA
+    Interface Association:
+      bLength                 8
+      bDescriptorType        11
+      bFirstInterface         0
+      bInterfaceCount         2
+      bFunctionClass         14 Video
+      bFunctionSubClass       3 Video Interface Collection
+      bFunctionProtocol       0
+      iFunction               0
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       0
+      bNumEndpoints           1
+      bInterfaceClass        14 Video
+      bInterfaceSubClass      1 Video Control
+      bInterfaceProtocol      0
+      iInterface              0
+      VideoControl Interface Descriptor:
+        bLength                13
+        bDescriptorType        36
+        bDescriptorSubtype      1 (HEADER)
+        bcdUVC               1.00
+        wTotalLength           77
+        dwClockFrequency       30.000000MHz
+        bInCollection           1
+        baInterfaceNr( 0)       1
+      VideoControl Interface Descriptor:
+        bLength                18
+        bDescriptorType        36
+        bDescriptorSubtype      2 (INPUT_TERMINAL)
+        bTerminalID             1
+        wTerminalType      0x0201 Camera Sensor
+        bAssocTerminal          0
+        iTerminal               0
+        wObjectiveFocalLengthMin      0
+        wObjectiveFocalLengthMax      0
+        wOcularFocalLength            0
+        bControlSize                  3
+        bmControls           0x00000000
+      VideoControl Interface Descriptor:
+        bLength                26
+        bDescriptorType        36
+        bDescriptorSubtype      6 (EXTENSION_UNIT)
+        bUnitID                 2
+        guidExtensionCode         {92423946-d10c-e34a-8783-3133f9eaaa3b}
+        bNumControl             3
+        bNrPins                 1
+        baSourceID( 0)          1
+        bControlSize            1
+        bmControls( 0)       0xff
+        iExtension              0
+      VideoControl Interface Descriptor:
+        bLength                11
+        bDescriptorType        36
+        bDescriptorSubtype      5 (PROCESSING_UNIT)
+      Warning: Descriptor too short
+        bUnitID                 3
+        bSourceID               2
+        wMaxMultiplier          0
+        bControlSize            2
+        bmControls     0x0000043f
+          Brightness
+          Contrast
+          Hue
+          Saturation
+          Sharpness
+          Gamma
+          Power Line Frequency
+        iProcessing             0
+        bmVideoStandards     0x 9
+          None
+          SECAM - 625/50
+      VideoControl Interface Descriptor:
+        bLength                 9
+        bDescriptorType        36
+        bDescriptorSubtype      3 (OUTPUT_TERMINAL)
+        bTerminalID             4
+        wTerminalType      0x0101 USB Streaming
+        bAssocTerminal          0
+        bSourceID               3
+        iTerminal               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x83  EP 3 IN
+        bmAttributes            3
+          Transfer Type            Interrupt
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0008  1x 8 bytes
+        bInterval              16
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        1
+      bAlternateSetting       0
+      bNumEndpoints           0
+      bInterfaceClass        14 Video
+      bInterfaceSubClass      2 Video Streaming
+      bInterfaceProtocol      0
+      iInterface              0
+      VideoStreaming Interface Descriptor:
+        bLength                            14
+        bDescriptorType                    36
+        bDescriptorSubtype                  1 (INPUT_HEADER)
+        bNumFormats                         1
+        wTotalLength                      257
+        bEndPointAddress                  129
+        bmInfo                              0
+        bTerminalLink                       4
+        bStillCaptureMethod                 1
+        bTriggerSupport                     0
+        bTriggerUsage                       0
+        bControlSize                        1
+        bmaControls( 0)                    27
+      VideoStreaming Interface Descriptor:
+        bLength                            27
+        bDescriptorType                    36
+        bDescriptorSubtype                  4 (FORMAT_UNCOMPRESSED)
+        bFormatIndex                        1
+        bNumFrameDescriptors                5
+        guidFormat                           
+{59555932-0000-1000-8000-00aa00389b71}
+        bBitsPerPixel                      16
+        bDefaultFrameIndex                  1
+        bAspectRatioX                       0
+        bAspectRatioY                       0
+        bmInterlaceFlags                 0x00
+          Interlaced stream or variable: No
+          Fields per frame: 2 fields
+          Field 1 first: No
+          Field pattern: Field 1 only
+          bCopyProtect                      0
+      VideoStreaming Interface Descriptor:
+        bLength                            42
+        bDescriptorType                    36
+        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
+        bFrameIndex                         1
+        bmCapabilities                   0x00
+          Still image unsupported
+        wWidth                            640
+        wHeight                           480
+        dwMinBitRate                   912384
+        dwMaxBitRate                   912384
+        dwMaxVideoFrameBufferSize      614400
+        dwDefaultFrameInterval         333333
+        bFrameIntervalType                  4
+        dwFrameInterval( 0)            333333
+        dwFrameInterval( 1)            333334
+        dwFrameInterval( 2)            333335
+        dwFrameInterval( 3)            333336
+      VideoStreaming Interface Descriptor:
+        bLength                            42
+        bDescriptorType                    36
+        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
+        bFrameIndex                         2
+        bmCapabilities                   0x00
+          Still image unsupported
+        wWidth                            352
+        wHeight                           288
+        dwMinBitRate                   912384
+        dwMaxBitRate                   912384
+        dwMaxVideoFrameBufferSize      202752
+        dwDefaultFrameInterval         333333
+        bFrameIntervalType                  4
+        dwFrameInterval( 0)            333333
+        dwFrameInterval( 1)            333334
+        dwFrameInterval( 2)            333335
+        dwFrameInterval( 3)            333336
+      VideoStreaming Interface Descriptor:
+        bLength                            42
+        bDescriptorType                    36
+        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
+        bFrameIndex                         3
+        bmCapabilities                   0x01
+          Still image supported
+        wWidth                            320
+        wHeight                           240
+        dwMinBitRate                   912384
+        dwMaxBitRate                   912384
+        dwMaxVideoFrameBufferSize      153600
+        dwDefaultFrameInterval         333333
+        bFrameIntervalType                  4
+        dwFrameInterval( 0)            333333
+        dwFrameInterval( 1)            333334
+        dwFrameInterval( 2)            333335
+        dwFrameInterval( 3)            333336
+      VideoStreaming Interface Descriptor:
+        bLength                            42
+        bDescriptorType                    36
+        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
+        bFrameIndex                         4
+        bmCapabilities                   0x01
+          Still image supported
+        wWidth                            176
+        wHeight                           144
+        dwMinBitRate                   912384
+        dwMaxBitRate                   912384
+        dwMaxVideoFrameBufferSize       50688
+        dwDefaultFrameInterval         333333
+        bFrameIntervalType                  4
+        dwFrameInterval( 0)            333333
+        dwFrameInterval( 1)            333334
+        dwFrameInterval( 2)            333335
+        dwFrameInterval( 3)            333336
+      VideoStreaming Interface Descriptor:
+        bLength                            42
+        bDescriptorType                    36
+        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
+        bFrameIndex                         5
+        bmCapabilities                   0x01
+          Still image supported
+        wWidth                            160
+        wHeight                           120
+        dwMinBitRate                   912384
+        dwMaxBitRate                   912384
+        dwMaxVideoFrameBufferSize       38400
+        dwDefaultFrameInterval         333333
+        bFrameIntervalType                  4
+        dwFrameInterval( 0)            333333
+        dwFrameInterval( 1)            333334
+        dwFrameInterval( 2)            333335
+        dwFrameInterval( 3)            333336
+      VideoStreaming Interface Descriptor:
+        bLength                             6
+        bDescriptorType                    36
+        bDescriptorSubtype                 13 (COLORFORMAT)
+        bColorPrimaries                     0 (Unspecified)
+        bTransferCharacteristics            0 (Unspecified)
+        bMatrixCoefficients                 0 (Unspecified)
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        1
+      bAlternateSetting       1
+      bNumEndpoints           1
+      bInterfaceClass        14 Video
+      bInterfaceSubClass      2 Video Streaming
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            5
+          Transfer Type            Isochronous
+          Synch Type               Asynchronous
+          Usage Type               Data
+        wMaxPacketSize     0x1400  3x 1024 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        1
+      bAlternateSetting       2
+      bNumEndpoints           1
+      bInterfaceClass        14 Video
+      bInterfaceSubClass      2 Video Streaming
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            5
+          Transfer Type            Isochronous
+          Synch Type               Asynchronous
+          Usage Type               Data
+        wMaxPacketSize     0x1340  3x 832 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        1
+      bAlternateSetting       3
+      bNumEndpoints           1
+      bInterfaceClass        14 Video
+      bInterfaceSubClass      2 Video Streaming
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            5
+          Transfer Type            Isochronous
+          Synch Type               Asynchronous
+          Usage Type               Data
+        wMaxPacketSize     0x1300  3x 768 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        1
+      bAlternateSetting       4
+      bNumEndpoints           1
+      bInterfaceClass        14 Video
+      bInterfaceSubClass      2 Video Streaming
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            5
+          Transfer Type            Isochronous
+          Synch Type               Asynchronous
+          Usage Type               Data
+        wMaxPacketSize     0x1400  3x 1024 bytes
+        bInterval               1
+Device Qualifier (for other device speed):
+  bLength                10
+  bDescriptorType         6
+  bcdUSB               2.00
+  bDeviceClass          239 Miscellaneous Device
+  bDeviceSubClass         2 ?
+  bDeviceProtocol         1 Interface Association
+  bMaxPacketSize0        64
+  bNumConfigurations      1
+Device Status:     0x0000
+  (Bus Powered)
 
