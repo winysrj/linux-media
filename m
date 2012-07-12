@@ -1,42 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:39152 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751534Ab2GOMNW (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:64229 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932936Ab2GLVIB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jul 2012 08:13:22 -0400
-Received: by ghrr11 with SMTP id r11so4456966ghr.19
-        for <linux-media@vger.kernel.org>; Sun, 15 Jul 2012 05:13:22 -0700 (PDT)
+	Thu, 12 Jul 2012 17:08:01 -0400
+Received: by yhmm54 with SMTP id m54so3226593yhm.19
+        for <linux-media@vger.kernel.org>; Thu, 12 Jul 2012 14:08:00 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <201207151243.25241.hverkuil@xs4all.nl>
-References: <CALzAhNXPhRv18GPJ5OzZOxCY7o=PsfT4g_tkXWBTapyDvsZXtw@mail.gmail.com>
-	<201207151243.25241.hverkuil@xs4all.nl>
-Date: Sun, 15 Jul 2012 08:13:21 -0400
-Message-ID: <CALzAhNVGgiZA2xr6+uHXAbOVhUJU4VPipO8o92=m9NFS6z4NjA@mail.gmail.com>
-Subject: Re: Tips is OOPSing with basic v4l2 controls - Major breakage
+In-Reply-To: <CALzAhNVwN3TJhn-3i9SDhKfk=tvZZ49RTKkUzWC8RZ_m=v=A+w@mail.gmail.com>
+References: <4FFF327A.9080300@iki.fi>
+	<CALzAhNVwN3TJhn-3i9SDhKfk=tvZZ49RTKkUzWC8RZ_m=v=A+w@mail.gmail.com>
+Date: Thu, 12 Jul 2012 17:07:59 -0400
+Message-ID: <CALzAhNUmdcd7cE-fcMHJsNk1rTcKXoZR9Oyu+5XciNZQ57EBGQ@mail.gmail.com>
+Subject: Re: GPIO interface between DVB sub-drivers (bridge, demod, tuner)
 From: Steven Toth <stoth@kernellabs.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux-Media <linux-media@vger.kernel.org>,
-	Mauro Chehab <mchehab@infradead.org>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jul 15, 2012 at 6:43 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Sun July 15 2012 01:12:02 Steven Toth wrote:
->> Tip is oopsing the moment the V4L2 API is exercised, Eg. v4l2-ctl or tvtime.
+Resend in plaintext, it got bounced from vger.
+
+On Thu, Jul 12, 2012 at 4:49 PM, Steven Toth <stoth@kernellabs.com> wrote:
 >>
->> Its unusable at this point.
+>> Is there anyone who could say straight now what is best approach and
+>> where to look example?
+>>
 >
-> It's fixed here:
+> I don't have an answer but the topic does interest me. :)
 >
-> https://patchwork.kernel.org/patch/1168931/
+> Nobody understands the relationship between the bridge and the
+> sub-component as well as the bridge driver. The current interfaces are
+> limiting in many ways. We solve that today with rather ugly 'attach'
+> structures that are inflexible, for example to set gpios to a default state.
+> Then, once that interface is attached, the bridge effectively loses most of
+> the control to the tuner and/or demod. The result is a large disconnect
+> between the bridge and subcomponents.
 >
-> We're all waiting for Mauro to return from vacation :-)
-
-Thanks Hans. :)
-
-- Steve
-
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+> Why limit any interface extension to GPIOs? Why not make something a
+> little more flexible so we can pass custom messages around?
+>
+> get(int parm, *value) and set(int parm, value)
+>
+> Bridges and demods can define whatever parmid's they like in their attach
+> headers. (Like we do for callbacks currently).
+>
+> For example, some tuners have temperature sensors, I have no ability to
+> read that today from the bridge, other than via I2C - then I'm pulling i2c
+> device specific logic into the bridge. :(
+>
+> It would be nice to be able to demod/tunerptr->get(XC5000_PARAM_TEMP,
+> &value), for example.
+>
+> Get/Set I/F is a bit of a classic, between tuners and video decoders. This
+> (at least a while ago) was poorly handled, or not at all. Only the bridge
+> really knows how to deal with odd component configurations like this, yet it
+> has little or no control.
+>
+> I'd want to see a list of 4 or 5 good get/set use cases though, with some
+> unusual parms, before I'd really believe a generic get/set is more
+> appropriate than a strongly typed set of additional function pointers.
+>
+> What did you ever decide about the enable/disable of the LNA? And, how
+> would the bridge do that in your proposed solution? Via the proposed GPIO
+> interface?
+>
+> Regards,
+>
+> --
+> Steven Toth - Kernel Labs
+> http://www.kernellabs.com
+> +1.646.355.8490
