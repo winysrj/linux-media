@@ -1,60 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:49924 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752428Ab2GZLUu (ORCPT
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:44796 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932521Ab2GLRJ3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jul 2012 07:20:50 -0400
-Received: by mail-we0-f174.google.com with SMTP id x8so1257392wey.19
-        for <linux-media@vger.kernel.org>; Thu, 26 Jul 2012 04:20:49 -0700 (PDT)
-From: Javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, fabio.estevam@freescale.com,
-	g.liakhovetski@gmx.de, sakari.ailus@maxwell.research.nokia.com,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	laurent.pinchart@ideasonboard.com, mchehab@infradead.org,
-	linux@arm.linux.org.uk, kernel@pengutronix.de,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH 1/4] i.MX27: Fix emma-prp and csi clocks.
-Date: Thu, 26 Jul 2012 13:20:34 +0200
-Message-Id: <1343301637-19676-2-git-send-email-javier.martin@vista-silicon.com>
-In-Reply-To: <1343301637-19676-1-git-send-email-javier.martin@vista-silicon.com>
-References: <1343301637-19676-1-git-send-email-javier.martin@vista-silicon.com>
+	Thu, 12 Jul 2012 13:09:29 -0400
+Date: Thu, 12 Jul 2012 18:09:23 +0100
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: Olof Johansson <olof@lixom.net>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	KS2012 <ksummit-2012-discuss@lists.linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [Ksummit-2012-discuss] Media system Summit
+Message-ID: <20120712170923.GA7094@sirena.org.uk>
+References: <1341994155.3522.16.camel@dabdike.int.hansenpartnership.com>
+ <4FFE41F0.4010602@redhat.com>
+ <4FFE85E4.7030609@gmail.com>
+ <20120712161820.GA4488@sirena.org.uk>
+ <CAOesGMgg6CoxY-RHGnXfpG8y3sqnn-Q=3xY0X=mov41wme7w8Q@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOesGMgg6CoxY-RHGnXfpG8y3sqnn-Q=3xY0X=mov41wme7w8Q@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Naming of emma-prp related clocks for the i.MX27 is not correct.
+On Thu, Jul 12, 2012 at 09:48:23AM -0700, Olof Johansson wrote:
 
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
----
- arch/arm/mach-imx/clk-imx27.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+> There's a handful of various subsystems that have similar topics,
+> maybe slice it the other way and do a device-tree/ACPI breakout that
+> cuts across the various areas instead?
 
-diff --git a/arch/arm/mach-imx/clk-imx27.c b/arch/arm/mach-imx/clk-imx27.c
-index b1d343c..6e9cb02 100644
---- a/arch/arm/mach-imx/clk-imx27.c
-+++ b/arch/arm/mach-imx/clk-imx27.c
-@@ -223,7 +223,7 @@ int __init mx27_clocks_init(unsigned long fref)
- 	clk_register_clkdev(clk[per3_gate], "per", "imx-fb.0");
- 	clk_register_clkdev(clk[lcdc_ipg_gate], "ipg", "imx-fb.0");
- 	clk_register_clkdev(clk[lcdc_ahb_gate], "ahb", "imx-fb.0");
--	clk_register_clkdev(clk[csi_ahb_gate], NULL, "mx2-camera.0");
-+	clk_register_clkdev(clk[csi_ahb_gate], "ahb", "mx2-camera.0");
- 	clk_register_clkdev(clk[usb_div], "per", "fsl-usb2-udc");
- 	clk_register_clkdev(clk[usb_ipg_gate], "ipg", "fsl-usb2-udc");
- 	clk_register_clkdev(clk[usb_ahb_gate], "ahb", "fsl-usb2-udc");
-@@ -250,8 +250,10 @@ int __init mx27_clocks_init(unsigned long fref)
- 	clk_register_clkdev(clk[i2c2_ipg_gate], NULL, "imx-i2c.1");
- 	clk_register_clkdev(clk[owire_ipg_gate], NULL, "mxc_w1.0");
- 	clk_register_clkdev(clk[kpp_ipg_gate], NULL, "imx-keypad");
--	clk_register_clkdev(clk[emma_ahb_gate], "ahb", "imx-emma");
--	clk_register_clkdev(clk[emma_ipg_gate], "ipg", "imx-emma");
-+	clk_register_clkdev(clk[emma_ahb_gate], "emma-ahb", "mx2-camera.0");
-+	clk_register_clkdev(clk[emma_ipg_gate], "emma-ipg", "mx2-camera.0");
-+	clk_register_clkdev(clk[emma_ahb_gate], "ahb", "m2m-emmaprp.0");
-+	clk_register_clkdev(clk[emma_ipg_gate], "ipg", "m2m-emmaprp.0");
- 	clk_register_clkdev(clk[iim_ipg_gate], "iim", NULL);
- 	clk_register_clkdev(clk[gpio_ipg_gate], "gpio", NULL);
- 	clk_register_clkdev(clk[brom_ahb_gate], "brom", NULL);
--- 
-1.7.9.5
+> Communication really needs to be two-way: Crafting good bindings for a
+> complex piece of hardware isn't trivial and having someone know both
+> the subsystem and device tree principles is rare. At least getting all
+> those people into the same room would be good.
 
+> There's obvious overlap with ARM here as well, since it's one of the
+> current big pushers of DT use, but I think it would be better to hold
+> this as a separate breakout from that.
+
+I think this is an excellent idea.
