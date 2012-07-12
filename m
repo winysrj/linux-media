@@ -1,64 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59949 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751871Ab2GRLk6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jul 2012 07:40:58 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: workshop-2011@linuxtv.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [Workshop-2011] Media summit at the Kernel Summit - was: Fwd: Re: [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
-Date: Wed, 18 Jul 2012 13:41:03 +0200
-Message-ID: <2985984.7Bq2WeAKvo@avalon>
-In-Reply-To: <Pine.LNX.4.64.1207181022060.8472@axis700.grange>
-References: <20120713173708.GB17109@thunk.org> <1593236.AuB9FuYCQv@avalon> <Pine.LNX.4.64.1207181022060.8472@axis700.grange>
+Received: from mx1.redhat.com ([209.132.183.28]:56759 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932953Ab2GLUzB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jul 2012 16:55:01 -0400
+Message-ID: <4FFF39CA.3050609@redhat.com>
+Date: Thu, 12 Jul 2012 22:55:38 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	halli manjunatha <hallimanju@gmail.com>
+Subject: Re: [PATCH 1/5] v4l2: Add rangelow and rangehigh fields to the v4l2_hw_freq_seek
+ struct
+References: <1342021658-27821-1-git-send-email-hdegoede@redhat.com> <201207112001.18960.hverkuil@xs4all.nl> <4FFDC7DA.1090808@redhat.com> <201207121127.06460.hverkuil@xs4all.nl>
+In-Reply-To: <201207121127.06460.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi,
 
-On Wednesday 18 July 2012 10:30:28 Guennadi Liakhovetski wrote:
-> On Wed, 18 Jul 2012, Laurent Pinchart wrote:
-> > On Tuesday 17 July 2012 21:51:02 Guennadi Liakhovetski wrote:
-> > > On Tue, 17 Jul 2012, Mauro Carvalho Chehab wrote:
-> > > > As we did in 2012, we're planning to do a media summit again at
-> > > > KS/2012.
-> > > > 
-> > > > The KS/2012 will happen in San Diego, CA, US, between Aug 26-28, just
-> > > > before the LinuxCon North America.
-> > > > 
-> > > > In order to do it, I'd like to know who is interested on participate,
-> > > > and to get proposals about what subjects will be discussed there,
-> > > > in order to start planning the agenda.
-> > > 
-> > > I'd love to attend, especially since, as you have seen, I've started
-> > > doing
-> > > some work on V4L DT bindings,
-> > 
-> > As you already know, that's a topic I'm very interested in. DT bindings
-> > will likely involve rethinking how the V4L2 core and V4L2 drivers
-> > instantiate subdevices, a media summit would have been a good occasion to
-> > discuss that. However, we probably need an RFC to start with.
-> 
-> You've certainly seen these two RFCs currently being discussed:
-> 
-> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/50755
+On 07/12/2012 11:27 AM, Hans Verkuil wrote:
+> On Wed 11 July 2012 20:37:14 Hans de Goede wrote:
 
-Sorry, I meant RFC patches. The devil (or part of it) will be in the details, 
-solving race conditions and other similarly fun issues will require 
-experimentation.
+<snip>
 
-> http://thread.gmane.org/gmane.linux.kernel.samsung-soc/11143
+>>> 2) What happens if the current frequency is outside the low/high range? The
+>>> hwseek spec says that the seek starts from the current frequency, so that might
+>>> mean that hwseek returns -ERANGE in this case.
+>>
+>> What the si470x code currently does is just clamp the frequency to the new
+>> range before seeking, but -ERANGE works for me too.
+>
+> Clamping is a better idea IMHO as long as it is documented.
 
-I still need to review that one :-)
+Ok, I've respun this patch to improve the documentation in various parts, I'm
+resending the entire set right after this email.
 
--- 
 Regards,
 
-Laurent Pinchart
+Hans
+
+p.s.
+
+Tomorrow morning I'm leaving for a week of vacation, during which I won't be
+reading my mail. If everybody agrees on the 2nd revision of this patchset
+please add it to your bands2 branch, and if you agree that this seems to be
+it wrt the API for tuner-bands, you could also consider sending a pull-req
+for it to Mauro for 3.6 :)
+
+
+
 
