@@ -1,46 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:36211 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933151Ab2GFLFL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 07:05:11 -0400
-Received: by wibhm11 with SMTP id hm11so720618wib.1
-        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2012 04:05:10 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CACKLOr0J1JjpCMRf4toJ5uBMDAFZT8VGdFuX6MpUpxpNaAO_SA@mail.gmail.com>
-References: <1338543105-20322-1-git-send-email-javier.martin@vista-silicon.com>
-	<CACKLOr0J1JjpCMRf4toJ5uBMDAFZT8VGdFuX6MpUpxpNaAO_SA@mail.gmail.com>
-Date: Fri, 6 Jul 2012 13:05:10 +0200
-Message-ID: <CACKLOr1ZJ4F7+-U94EQ5AD=1z3-HVU1=uK9yjAv+JgfqjTKo0g@mail.gmail.com>
-Subject: Re: [PATCH v3][for_v3.5] media: mx2_camera: Fix mbus format handling
-From: javier Martin <javier.martin@vista-silicon.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:60797 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030566Ab2GLLfn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jul 2012 07:35:43 -0400
+Received: by weyx8 with SMTP id x8so1629761wey.19
+        for <linux-media@vger.kernel.org>; Thu, 12 Jul 2012 04:35:42 -0700 (PDT)
+From: Javier Martin <javier.martin@vista-silicon.com>
 To: linux-media@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, fabio.estevam@freescale.com,
-	g.liakhovetski@gmx.de, mchehab@infradead.org,
-	kernel@pengutronix.de,
+Cc: linux-arm-kernel@lists.infradead.org,
+	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
+	mchehab@infradead.org, kernel@pengutronix.de,
 	Javier Martin <javier.martin@vista-silicon.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: [PATCH 2/2 v2] i.MX27: Visstrim_M10: Add support for deinterlacing driver.
+Date: Thu, 12 Jul 2012 13:35:29 +0200
+Message-Id: <1342092929-31590-2-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1342092929-31590-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1342092929-31590-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 6 July 2012 13:00, javier Martin <javier.martin@vista-silicon.com> wrote:
-> Hi,
-> can this patch be applied please?
->
-> It solves a BUG for 3.5. Guennadi, Fabio, could you give me an ack for this?
->
-> Regards.
+Visstrim_M10 have a tvp5150 whose video output must be deinterlaced.
+The new mem2mem deinterlacing driver is very useful for that purpose.
 
-But it should be applied after this one to preserve bisectability:
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+---
+Changes since v1:
+ - Removed commented out code.
 
-http://patchwork.linuxtv.org/patch/10483/
+---
+ arch/arm/mach-imx/mach-imx27_visstrim_m10.c |   27 ++++++++++++++++++++++++++-
+ 1 file changed, 26 insertions(+), 1 deletion(-)
 
-So I'd better send a new series to clarify the order.
-
+diff --git a/arch/arm/mach-imx/mach-imx27_visstrim_m10.c b/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
+index 214e4ff..dbef59d 100644
+--- a/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
++++ b/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
+@@ -232,7 +232,7 @@ static void __init visstrim_camera_init(void)
+ static void __init visstrim_reserve(void)
+ {
+ 	/* reserve 4 MiB for mx2-camera */
+-	mx2_camera_base = arm_memblock_steal(2 * MX2_CAMERA_BUF_SIZE,
++	mx2_camera_base = arm_memblock_steal(3 * MX2_CAMERA_BUF_SIZE,
+ 			MX2_CAMERA_BUF_SIZE);
+ }
+ 
+@@ -419,6 +419,30 @@ static void __init visstrim_coda_init(void)
+ 		return;
+ }
+ 
++/* DMA deinterlace */
++static struct platform_device visstrim_deinterlace = {
++	.name = "m2m-deinterlace",
++	.id = 0,
++};
++
++static void __init visstrim_deinterlace_init(void)
++{
++	int ret = -ENOMEM;
++	struct platform_device *pdev = &visstrim_deinterlace;
++	int dma;
++
++	ret = platform_device_register(pdev);
++
++	dma = dma_declare_coherent_memory(&pdev->dev,
++					  mx2_camera_base + 2 * MX2_CAMERA_BUF_SIZE,
++					  mx2_camera_base + 2 * MX2_CAMERA_BUF_SIZE,
++					  MX2_CAMERA_BUF_SIZE,
++					  DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
++	if (!(dma & DMA_MEMORY_MAP))
++		return;
++}
++
++
+ static void __init visstrim_m10_revision(void)
+ {
+ 	int exp_version = 0;
+@@ -481,6 +505,7 @@ static void __init visstrim_m10_board_init(void)
+ 	platform_device_register_resndata(NULL, "soc-camera-pdrv", 0, NULL, 0,
+ 				      &iclink_tvp5150, sizeof(iclink_tvp5150));
+ 	gpio_led_register_device(0, &visstrim_m10_led_data);
++	visstrim_deinterlace_init();
+ 	visstrim_camera_init();
+ 	visstrim_coda_init();
+ }
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+1.7.9.5
+
