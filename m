@@ -1,118 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34163 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751814Ab2GZPV2 (ORCPT
+Received: from oproxy5-pub.bluehost.com ([67.222.38.55]:52904 "HELO
+	oproxy5-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1161348Ab2GLQkj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jul 2012 11:21:28 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org, b.zolnierkie@samsung.com
-Subject: Re: [RFC/PATCH 09/13] media: s5k6aa: Add support for device tree based instantiation
-Date: Thu, 26 Jul 2012 17:21:36 +0200
-Message-ID: <1393020.I6XBuRyBXi@avalon>
-In-Reply-To: <1337975573-27117-9-git-send-email-s.nawrocki@samsung.com>
-References: <4FBFE1EC.9060209@samsung.com> <1337975573-27117-1-git-send-email-s.nawrocki@samsung.com> <1337975573-27117-9-git-send-email-s.nawrocki@samsung.com>
+	Thu, 12 Jul 2012 12:40:39 -0400
+Message-ID: <4FFEFDD8.1080909@xenotime.net>
+Date: Thu, 12 Jul 2012 09:39:52 -0700
+From: Randy Dunlap <rdunlap@xenotime.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: [PATCH] Use a named union in struct v4l2_ioctl_info
+References: <201207121806.24955.hverkuil@xs4all.nl>
+In-Reply-To: <201207121806.24955.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+On 07/12/2012 09:06 AM, Hans Verkuil wrote:
 
-On Friday 25 May 2012 21:52:48 Sylwester Nawrocki wrote:
-> The driver initializes all board related properties except the s_power()
-> callback to board code. The platforms that require this callback are not
-> supported by this driver yet for CONFIG_OF=y.
+> Hi Mauro,
 > 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  .../bindings/camera/samsung-s5k6aafx.txt           |   57 +++++++++
->  drivers/media/video/s5k6aa.c                       |  129 ++++++++++++-----
->  2 files changed, 146 insertions(+), 40 deletions(-)
->  create mode 100644
-> Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt
+> struct v4l2_ioctl_info uses an anonymous union, which is initialized
+> in the v4l2_ioctls table.
 > 
-> diff --git a/Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt
-> b/Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt new file
-> mode 100644
-> index 0000000..6685a9c
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt
-> @@ -0,0 +1,57 @@
-> +Samsung S5K6AAFX camera sensor
-> +------------------------------
-> +
-> +Required properties:
-> +
-> +- compatible : "samsung,s5k6aafx";
-> +- reg : base address of the device on I2C bus;
-> +- video-itu-601-bus : parallel bus with HSYNC and VSYNC - ITU-R BT.601;
-> +- vdd_core-supply : digital core voltage supply 1.5V (1.4V to 1.6V);
-> +- vdda-supply : analog power voltage supply 2.8V (2.6V to 3.0V);
-> +- vdd_reg-supply : regulator input power voltage supply 1.8V (1.7V to 1.9V)
-> +		   or 2.8V (2.6V to 3.0);
-> +- vddio-supply : I/O voltage supply 1.8V (1.65V to 1.95V)
-> +		 or 2.8V (2.5V to 3.1V);
-> +
-> +Optional properties:
-> +
-> +- clock-frequency : the IP's main (system bus) clock frequency in Hz, the
-> default 
+> Unfortunately gcc < 4.6 uses a non-standard syntax for that, so trying to
+> compile v4l2-ioctl.c with an older gcc will fail.
+> 
+> It is possible to work around this by testing the gcc version, but in this
+> case it is easier to make the union named since it is used in only a few
+> places.
+> 
+> Randy, Stephen, this patch should solve the v4l2-ioctl.c compilation problem
+> in linux-next. Since Mauro is still on holiday you'll have to apply it manually.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Is that the input clock frequency ? Can't it vary ? Instead of accessing the 
-sensor clock frequency from the FIMC driver you should reference a clock in 
-the sensor DT node. That obviously requires generic clock support, which might 
-not be available for your platform yet (that's one of the reasons the OMAP3 
-ISP driver doesn't support DT yet).
 
-> +		    value when this property is not specified is 24 MHz;
-> +- data-lanes : number of physical lanes used (default 2 if not specified);
-> +- gpio-stby : specifies the S5K6AA_STBY GPIO
-> +- gpio-rst : specifies the S5K6AA_RST GPIO
-> +- samsung,s5k6aa-inv-stby : set inverted S5K6AA_STBY GPIO level;
-> +- samsung,s5k6aa-inv-rst : set inverted S5K6AA_RST GPIO level;
-> +- samsung,s5k6aa-hflip : set the default horizontal image flipping;
-> +- samsung,s5k6aa-vflip : set the default vertical image flipping;
-> +
-> +
-> +Example:
-> +
-> +	gpl2: gpio-controller@0 {
-> +	};
-> +
-> +	reg0: regulator@0 {
-> +	};
-> +
-> +	reg1: regulator@1 {
-> +	};
-> +
-> +	reg2: regulator@2 {
-> +	};
-> +
-> +	reg3: regulator@3 {
-> +	};
-> +
-> +	s5k6aafx@3c {
-> +		compatible = "samsung,s5k6aafx";
-> +		reg = <0x3c>;
-> +		clock-frequency = <24000000>;
-> +		gpio-rst = <&gpl2 0 2 0 3>;
-> +		gpio-stby = <&gpl2 1 2 0 3>;
-> +		video-itu-601-bus;
-> +		vdd_core-supply = <&reg0>;
-> +		vdda-supply = <&reg1>;
-> +		vdd_reg-supply = <&reg2>;
-> +		vddio-supply = <&reg3>;
-> +	};
+Reported-by: Randy Dunlap <rdunlap@xenotime.net>
+Acked-by: Randy Dunlap <rdunlap@xenotime.net>
+
+Thanks.
+
+
+> 
+> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+> index 70e0efb..812beb0 100644
+> --- a/drivers/media/video/v4l2-ioctl.c
+> +++ b/drivers/media/video/v4l2-ioctl.c
+> @@ -1806,7 +1806,7 @@ struct v4l2_ioctl_info {
+>  		u32 offset;
+>  		int (*func)(const struct v4l2_ioctl_ops *ops,
+>  				struct file *file, void *fh, void *p);
+> -	};
+> +	} u;
+>  	void (*debug)(const void *arg, bool write_only);
+>  };
+>  
+> @@ -1831,7 +1831,7 @@ struct v4l2_ioctl_info {
+>  		.ioctl = _ioctl,					\
+>  		.flags = _flags | INFO_FL_STD,				\
+>  		.name = #_ioctl,					\
+> -		.offset = offsetof(struct v4l2_ioctl_ops, _vidioc),	\
+> +		.u.offset = offsetof(struct v4l2_ioctl_ops, _vidioc),	\
+>  		.debug = _debug,					\
+>  	}
+>  
+> @@ -1840,7 +1840,7 @@ struct v4l2_ioctl_info {
+>  		.ioctl = _ioctl,					\
+>  		.flags = _flags | INFO_FL_FUNC,				\
+>  		.name = #_ioctl,					\
+> -		.func = _func,						\
+> +		.u.func = _func,					\
+>  		.debug = _debug,					\
+>  	}
+>  
+> @@ -2038,11 +2038,11 @@ static long __video_do_ioctl(struct file *file,
+>  	if (info->flags & INFO_FL_STD) {
+>  		typedef int (*vidioc_op)(struct file *file, void *fh, void *p);
+>  		const void *p = vfd->ioctl_ops;
+> -		const vidioc_op *vidioc = p + info->offset;
+> +		const vidioc_op *vidioc = p + info->u.offset;
+>  
+>  		ret = (*vidioc)(file, fh, arg);
+>  	} else if (info->flags & INFO_FL_FUNC) {
+> -		ret = info->func(ops, file, fh, arg);
+> +		ret = info->u.func(ops, file, fh, arg);
+>  	} else if (!ops->vidioc_default) {
+>  		ret = -ENOTTY;
+>  	} else {
+> 	
+> --
+
+
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+~Randy
