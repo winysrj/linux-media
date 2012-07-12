@@ -1,56 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60437 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754030Ab2GEUir (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 16:38:47 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH v2 7/9] soc-camera: Continue the power off sequence if one of the steps fails
-Date: Thu,  5 Jul 2012 22:38:46 +0200
-Message-Id: <1341520728-2707-8-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1341520728-2707-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1341520728-2707-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:53505 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933647Ab2GLQSY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jul 2012 12:18:24 -0400
+Date: Thu, 12 Jul 2012 17:18:20 +0100
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	KS2012 <ksummit-2012-discuss@lists.linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [Ksummit-2012-discuss] Media system Summit
+Message-ID: <20120712161820.GA4488@sirena.org.uk>
+References: <1341994155.3522.16.camel@dabdike.int.hansenpartnership.com>
+ <4FFE41F0.4010602@redhat.com>
+ <4FFE85E4.7030609@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4FFE85E4.7030609@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Powering off a device is a "best effort" task: failure to execute one of
-the steps should not prevent the next steps to be executed. For
-instance, an I2C communication error when putting the chip in stand-by
-mode should not prevent the more agressive next step of turning the
-chip's power supply off.
+On Thu, Jul 12, 2012 at 10:08:04AM +0200, Sylwester Nawrocki wrote:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/soc_camera.c |    9 +++------
- 1 files changed, 3 insertions(+), 6 deletions(-)
+> I'd like to add a "Common device tree bindings for media devices" topic to
+> the agenda for consideration.
 
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index 55b981f..bbd518f 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -89,18 +89,15 @@ static int soc_camera_power_off(struct soc_camera_device *icd,
- 				struct soc_camera_link *icl)
- {
- 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
--	int ret = v4l2_subdev_call(sd, core, s_power, 0);
-+	int ret;
- 
--	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
--		return ret;
-+	v4l2_subdev_call(sd, core, s_power, 0);
- 
- 	if (icl->power) {
- 		ret = icl->power(icd->control, 0);
--		if (ret < 0) {
-+		if (ret < 0)
- 			dev_err(icd->pdev,
- 				"Platform failed to power-off the camera.\n");
--			return ret;
--		}
- 	}
- 
- 	ret = regulator_bulk_disable(icl->num_regulators,
--- 
-1.7.8.6
-
+It'd be nice to get this to join up with ASoC...
