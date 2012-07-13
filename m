@@ -1,172 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38758 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750770Ab2GDFCK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2012 01:02:10 -0400
-From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-To: "Hadli, Manjunath" <manjunath.hadli@ti.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>
-Subject: RE: [GIT PULL FOR v3.5] davicni: vpfe:media controller based
- capture driver for dm365
-Date: Wed, 4 Jul 2012 05:01:58 +0000
-Message-ID: <E99FAA59F8D8D34D8A118DD37F7C8F753E939B62@DBDE01.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from forward19.mail.yandex.net ([95.108.253.144]:39421 "EHLO
+	forward19.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752483Ab2GMXV3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Jul 2012 19:21:29 -0400
+Received: from web18g.yandex.ru (web18g.yandex.ru [95.108.252.118])
+	by forward19.mail.yandex.net (Yandex) with ESMTP id 1635C1121DD9
+	for <linux-media@vger.kernel.org>; Sat, 14 Jul 2012 03:15:04 +0400 (MSK)
+From: CrazyCat <crazycat69@yandex.ru>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [PATCH] DVB-S2 multistream support
 MIME-Version: 1.0
+Message-Id: <59951342221302@web18g.yandex.ru>
+Date: Sat, 14 Jul 2012 02:15:02 +0300
+Content-Type: multipart/mixed;
+	boundary="----==--bound.5996.web18g.yandex.ru"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
-Can you please pull the patches? Let me know if anything needs to be done
-from my side.
 
--Manju
+------==--bound.5996.web18g.yandex.ru
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 
+Now present DTV_DVBT2_PLP_ID property for DVB-T2, so i add alias DTV_DVBS2_MIS_ID (same feature for advanced DVB-S2). Now DVB-S2 multistream filtration supported for current STV090x demod cut 3.0, so i implement support for stv090x demod driver. Additional fe-caps FE_CAN_MULTISTREAM also added.
 
-On Thu, May 31, 2012 at 17:42:24, Hadli, Manjunath wrote:
-> Mauro,
->  The following patch set adds the media controller based driver TI dm365 SoC. 
-> Patches have gone through RFC and reviews and are pending for some time.
-> 
-> The main support added here:
-> -CCDC capture
-> -Previewer
-> -Resizer
-> -AEW/AF
-> -Some media formats supported on dm365
-> -PIX_FORMATs supported on dm365
-> 
-> 
-> ---
-> The following changes since commit a01ee165a132fadb57659d26246e340d6ac53265:
-> 
->   Merge branch 'for-linus' of git://git.open-osd.org/linux-open-osd (2012-05-28 13:10:41 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git pull_dm365_mc_for_mauro
-> 
-> Manjunath Hadli (19):
->       media: add new mediabus format enums for dm365
->       v4l2: add new pixel formats supported on dm365
->       davinci: vpfe: add dm3xx IPIPEIF hardware support module
->       davinci: vpfe: add IPIPE hardware layer support
->       davinci: vpfe: add IPIPE support for media controller driver
->       davinci: vpfe: add support for CCDC hardware for dm365
->       davinci: vpfe: add ccdc driver with media controller interface
->       davinci: vpfe: add v4l2 video driver support
->       davinci: vpfe: v4l2 capture driver with media interface
->       davinci: vpfe: previewer driver based on v4l2 media controller framework
->       davinci: vpfe: resizer driver based on media framework
->       davinci: vpfe: add DM365 autofoucus(AF) hardware interface
->       davinci: vpfe: add autofocus driver based on media framework
->       davinci: vpfe: add hardware interface for dm365 aew
->       davinci: vpfe: add aew driver based on v4l2 media framework
->       dm365: vpss: setup ISP registers
->       dm365: vpss: set vpss clk ctrl
->       dm365: vpss: add helper functions for setting hardware parameters used by main driver
->       davinci: vpfe: build infrastructure for dm365
-> 
->  .../DocBook/media/v4l/pixfmt-srggb10alaw8.xml      |   34 +
->  Documentation/DocBook/media/v4l/pixfmt-uv8.xml     |   62 +
->  Documentation/DocBook/media/v4l/pixfmt.xml         |    2 +
->  Documentation/DocBook/media/v4l/subdev-formats.xml |  171 +
->  drivers/media/video/davinci/Kconfig                |   72 +-
->  drivers/media/video/davinci/Makefile               |   17 +
->  drivers/media/video/davinci/ccdc_hw_device.h       |    2 +-
->  drivers/media/video/davinci/dm355_ccdc.c           |    2 +-
->  drivers/media/video/davinci/dm365_a3_hw.c          |  389 ++
->  drivers/media/video/davinci/dm365_a3_hw.h          |  253 ++
->  drivers/media/video/davinci/dm365_aew.c            |  544 +++
->  drivers/media/video/davinci/dm365_aew.h            |   55 +
->  drivers/media/video/davinci/dm365_af.c             |  563 +++
->  drivers/media/video/davinci/dm365_af.h             |   59 +
->  drivers/media/video/davinci/dm365_ccdc.c           | 1453 ++++++++
->  drivers/media/video/davinci/dm365_ccdc.h           |   91 +
->  drivers/media/video/davinci/dm365_ccdc_regs.h      |  309 ++
->  drivers/media/video/davinci/dm365_def_para.c       |  310 ++
->  drivers/media/video/davinci/dm365_def_para.h       |   39 +
->  drivers/media/video/davinci/dm365_ipipe.c          | 3844 ++++++++++++++++++++
->  drivers/media/video/davinci/dm365_ipipe.h          |  378 ++
->  drivers/media/video/davinci/dm365_ipipe_hw.c       |  935 +++++
->  drivers/media/video/davinci/dm365_ipipe_hw.h       |  539 +++
->  drivers/media/video/davinci/dm3xx_ipipeif.c        |  313 ++
->  drivers/media/video/davinci/dm3xx_ipipeif.h        |  256 ++
->  drivers/media/video/davinci/dm644x_ccdc.c          |    2 +-
->  drivers/media/video/davinci/imp_common.h           |   87 +
->  drivers/media/video/davinci/imp_hw_if.h            |  170 +
->  drivers/media/video/davinci/isif.c                 |    2 +-
->  drivers/media/video/davinci/vpfe_aew.c             |  238 ++
->  drivers/media/video/davinci/vpfe_aew.h             |   51 +
->  drivers/media/video/davinci/vpfe_af.c              |  240 ++
->  drivers/media/video/davinci/vpfe_af.h              |   47 +
->  drivers/media/video/davinci/vpfe_capture.c         |    2 +-
->  drivers/media/video/davinci/vpfe_ccdc.c            |  817 +++++
->  drivers/media/video/davinci/vpfe_ccdc.h            |   86 +
->  drivers/media/video/davinci/vpfe_mc_capture.c      |  801 ++++
->  drivers/media/video/davinci/vpfe_mc_capture.h      |   99 +
->  drivers/media/video/davinci/vpfe_previewer.c       | 1066 ++++++
->  drivers/media/video/davinci/vpfe_previewer.h       |   65 +
->  drivers/media/video/davinci/vpfe_resizer.c         | 1076 ++++++
->  drivers/media/video/davinci/vpfe_resizer.h         |   63 +
->  drivers/media/video/davinci/vpfe_video.c           | 1728 +++++++++
->  drivers/media/video/davinci/vpfe_video.h           |  146 +
->  drivers/media/video/davinci/vpss.c                 |   56 +
->  include/linux/dm365_aew.h                          |  153 +
->  include/linux/dm365_af.h                           |  203 +
->  include/linux/dm365_ccdc.h                         |  611 ++++
->  include/linux/dm365_ipipe.h                        | 1029 ++++++
->  include/linux/dm3xx_ipipeif.h                      |   65 +
->  include/linux/imp_common.h                         |  172 +
->  include/linux/v4l2-mediabus.h                      |   10 +-
->  include/linux/videodev2.h                          |    8 +
->  include/media/davinci/vpfe.h                       |   81 +
->  include/media/davinci/vpss.h                       |   15 +
->  55 files changed, 19872 insertions(+), 9 deletions(-)
->  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
->  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-uv8.xml
->  create mode 100644 drivers/media/video/davinci/dm365_a3_hw.c
->  create mode 100644 drivers/media/video/davinci/dm365_a3_hw.h
->  create mode 100644 drivers/media/video/davinci/dm365_aew.c
->  create mode 100644 drivers/media/video/davinci/dm365_aew.h
->  create mode 100644 drivers/media/video/davinci/dm365_af.c
->  create mode 100644 drivers/media/video/davinci/dm365_af.h
->  create mode 100644 drivers/media/video/davinci/dm365_ccdc.c
->  create mode 100644 drivers/media/video/davinci/dm365_ccdc.h
->  create mode 100644 drivers/media/video/davinci/dm365_ccdc_regs.h
->  create mode 100644 drivers/media/video/davinci/dm365_def_para.c
->  create mode 100644 drivers/media/video/davinci/dm365_def_para.h
->  create mode 100644 drivers/media/video/davinci/dm365_ipipe.c
->  create mode 100644 drivers/media/video/davinci/dm365_ipipe.h
->  create mode 100644 drivers/media/video/davinci/dm365_ipipe_hw.c
->  create mode 100644 drivers/media/video/davinci/dm365_ipipe_hw.h
->  create mode 100644 drivers/media/video/davinci/dm3xx_ipipeif.c
->  create mode 100644 drivers/media/video/davinci/dm3xx_ipipeif.h
->  create mode 100644 drivers/media/video/davinci/imp_common.h
->  create mode 100644 drivers/media/video/davinci/imp_hw_if.h
->  create mode 100644 drivers/media/video/davinci/vpfe_aew.c
->  create mode 100644 drivers/media/video/davinci/vpfe_aew.h
->  create mode 100644 drivers/media/video/davinci/vpfe_af.c
->  create mode 100644 drivers/media/video/davinci/vpfe_af.h
->  create mode 100644 drivers/media/video/davinci/vpfe_ccdc.c
->  create mode 100644 drivers/media/video/davinci/vpfe_ccdc.h
->  create mode 100644 drivers/media/video/davinci/vpfe_mc_capture.c
->  create mode 100644 drivers/media/video/davinci/vpfe_mc_capture.h
->  create mode 100644 drivers/media/video/davinci/vpfe_previewer.c
->  create mode 100644 drivers/media/video/davinci/vpfe_previewer.h
->  create mode 100644 drivers/media/video/davinci/vpfe_resizer.c
->  create mode 100644 drivers/media/video/davinci/vpfe_resizer.h
->  create mode 100644 drivers/media/video/davinci/vpfe_video.c
->  create mode 100644 drivers/media/video/davinci/vpfe_video.h
->  create mode 100644 include/linux/dm365_aew.h
->  create mode 100644 include/linux/dm365_af.h
->  create mode 100644 include/linux/dm365_ccdc.h
->  create mode 100644 include/linux/dm365_ipipe.h
->  create mode 100644 include/linux/dm3xx_ipipeif.h
->  create mode 100644 include/linux/imp_common.h
->  create mode 100644 include/media/davinci/vpfe.h
-> 
+------==--bound.5996.web18g.yandex.ru
+Content-Disposition: attachment;
+	filename="frontend-mis.patch"
+Content-Transfer-Encoding: base64
+Content-Type: text/x-c;
+	name="frontend-mis.patch"
 
+ZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvZHZiL2Zyb250ZW5kLmggYi9pbmNsdWRlL2xpbnV4
+L2R2Yi9mcm9udGVuZC5oCmluZGV4IGY1MGQ0MDUuLmY2MjVmOGQgMTAwNjQ0Ci0tLSBhL2luY2x1
+ZGUvbGludXgvZHZiL2Zyb250ZW5kLmgKKysrIGIvaW5jbHVkZS9saW51eC9kdmIvZnJvbnRlbmQu
+aApAQCAtNjIsNiArNjIsNyBAQCB0eXBlZGVmIGVudW0gZmVfY2FwcyB7CiAJRkVfQ0FOXzhWU0IJ
+CQk9IDB4MjAwMDAwLAogCUZFX0NBTl8xNlZTQgkJCT0gMHg0MDAwMDAsCiAJRkVfSEFTX0VYVEVO
+REVEX0NBUFMJCT0gMHg4MDAwMDAsICAgLyogV2UgbmVlZCBtb3JlIGJpdHNwYWNlIGZvciBuZXdl
+ciBBUElzLCBpbmRpY2F0ZSB0aGlzLiAqLworCUZFX0NBTl9NVUxUSVNUUkVBTQkJPSAweDQwMDAw
+MDAsICAvKiBmcm9udGVuZCBzdXBwb3J0cyBEVkItUzIgbXVsdGlzdHJlYW0gZmlsdGVyaW5nICov
+CiAJRkVfQ0FOX1RVUkJPX0ZFQwkJPSAweDgwMDAwMDAsICAvKiBmcm9udGVuZCBzdXBwb3J0cyAi
+dHVyYm8gZmVjIG1vZHVsYXRpb24iICovCiAJRkVfQ0FOXzJHX01PRFVMQVRJT04JCT0gMHgxMDAw
+MDAwMCwgLyogZnJvbnRlbmQgc3VwcG9ydHMgIjJuZCBnZW5lcmF0aW9uIG1vZHVsYXRpb24iIChE
+VkItUzIpICovCiAJRkVfTkVFRFNfQkVORElORwkJPSAweDIwMDAwMDAwLCAvKiBub3Qgc3VwcG9y
+dGVkIGFueW1vcmUsIGRvbid0IHVzZSAoZnJvbnRlbmQgcmVxdWlyZXMgZnJlcXVlbmN5IGJlbmRp
+bmcpICovCkBAIC0zMTcsNiArMzE4LDcgQEAgc3RydWN0IGR2Yl9mcm9udGVuZF9ldmVudCB7CiAj
+ZGVmaW5lIERUVl9JU0RCU19UU19JRAkJNDIKIAogI2RlZmluZSBEVFZfRFZCVDJfUExQX0lECTQz
+CisjZGVmaW5lIERUVl9EVkJTMl9NSVNfSUQJNDMKIAogI2RlZmluZSBEVFZfRU5VTV9ERUxTWVMJ
+CTQ0CiAKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi1jb3JlL2R2Yl9mcm9udGVu
+ZC5jIGIvZHJpdmVycy9tZWRpYS9kdmIvZHZiLWNvcmUvZHZiX2Zyb250ZW5kLmMKaW5kZXggYWVi
+Y2RmMi4uODNlNTFmOSAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS9kdmIvZHZiLWNvcmUvZHZi
+X2Zyb250ZW5kLmMKKysrIGIvZHJpdmVycy9tZWRpYS9kdmIvZHZiLWNvcmUvZHZiX2Zyb250ZW5k
+LmMKQEAgLTk0Nyw3ICs5NDcsNyBAQCBzdGF0aWMgaW50IGR2Yl9mcm9udGVuZF9jbGVhcl9jYWNo
+ZShzdHJ1Y3QgZHZiX2Zyb250ZW5kICpmZSkKIAl9CiAKIAljLT5pc2Ric190c19pZCA9IDA7Ci0J
+Yy0+ZHZidDJfcGxwX2lkID0gMDsKKwljLT5kdmJ0Ml9wbHBfaWQgPSAtMTsKIAogCXN3aXRjaCAo
+Yy0+ZGVsaXZlcnlfc3lzdGVtKSB7CiAJY2FzZSBTWVNfRFZCUzoKZGlmZiAtLWdpdCBhL2RyaXZl
+cnMvbWVkaWEvZHZiL2Zyb250ZW5kcy9zdHYwOTB4LmMgYi9kcml2ZXJzL21lZGlhL2R2Yi9mcm9u
+dGVuZHMvc3R2MDkweC5jCmluZGV4IGVhODZhNTYuLmViNmYxY2YgMTAwNjQ0Ci0tLSBhL2RyaXZl
+cnMvbWVkaWEvZHZiL2Zyb250ZW5kcy9zdHYwOTB4LmMKKysrIGIvZHJpdmVycy9tZWRpYS9kdmIv
+ZnJvbnRlbmRzL3N0djA5MHguYwpAQCAtMzQyNSw2ICszNDI1LDMzIEBAIGVycjoKIAlyZXR1cm4g
+LTE7CiB9CiAKK3N0YXRpYyBpbnQgc3R2MDkweF9zZXRfbWlzKHN0cnVjdCBzdHYwOTB4X3N0YXRl
+ICpzdGF0ZSwgaW50IG1pcykKK3sKKwl1MzIgcmVnOworCisJaWYgKG1pczwwIHx8IG1pcz4yNTUp
+IHsKKwkJZHByaW50ayhGRV9ERUJVRywgMSwgIkRpc2FibGUgTUlTIGZpbHRlcmluZyIpOworCQly
+ZWcgPSBTVFYwOTB4X1JFQURfREVNT0Qoc3RhdGUsIFBERUxDVFJMMSk7CisJCVNUVjA5MHhfU0VU
+RklFTERfUHgocmVnLCBGSUxURVJfRU5fRklFTEQsIDB4MDApOworCQlpZiAoU1RWMDkweF9XUklU
+RV9ERU1PRChzdGF0ZSwgUERFTENUUkwxLCByZWcpIDwgMCkKKwkJCWdvdG8gZXJyOworCX0gZWxz
+ZSB7CisJCWRwcmludGsoRkVfREVCVUcsIDEsICJFbmFibGUgTUlTIGZpbHRlcmluZyAtICVkIiwg
+bWlzKTsKKwkJcmVnID0gU1RWMDkweF9SRUFEX0RFTU9EKHN0YXRlLCBQREVMQ1RSTDEpOworCQlT
+VFYwOTB4X1NFVEZJRUxEX1B4KHJlZywgRklMVEVSX0VOX0ZJRUxELCAweDAxKTsKKwkJaWYgKFNU
+VjA5MHhfV1JJVEVfREVNT0Qoc3RhdGUsIFBERUxDVFJMMSwgcmVnKSA8IDApCisJCQlnb3RvIGVy
+cjsKKwkJaWYgKFNUVjA5MHhfV1JJVEVfREVNT0Qoc3RhdGUsIElTSUVOVFJZLCBtaXMpIDwgMCkK
+KwkJCWdvdG8gZXJyOworCQlpZiAoU1RWMDkweF9XUklURV9ERU1PRChzdGF0ZSwgSVNJQklURU5B
+LCAweGZmKSA8IDApCisJCQlnb3RvIGVycjsKKwl9CisJcmV0dXJuIDA7CitlcnI6CisJZHByaW50
+ayhGRV9FUlJPUiwgMSwgIkkvTyBlcnJvciIpOworCXJldHVybiAtMTsKK30KKwogc3RhdGljIGVu
+dW0gZHZiZmVfc2VhcmNoIHN0djA5MHhfc2VhcmNoKHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlKQog
+ewogCXN0cnVjdCBzdHYwOTB4X3N0YXRlICpzdGF0ZSA9IGZlLT5kZW1vZHVsYXRvcl9wcml2OwpA
+QCAtMzQzMyw2ICszNDYwLDggQEAgc3RhdGljIGVudW0gZHZiZmVfc2VhcmNoIHN0djA5MHhfc2Vh
+cmNoKHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlKQogCWlmIChwcm9wcy0+ZnJlcXVlbmN5ID09IDAp
+CiAJCXJldHVybiBEVkJGRV9BTEdPX1NFQVJDSF9JTlZBTElEOwogCisJc3R2MDkweF9zZXRfbWlz
+KHN0YXRlLHByb3BzLT5kdmJ0Ml9wbHBfaWQpOworCiAJc3RhdGUtPmRlbHN5cyA9IHByb3BzLT5k
+ZWxpdmVyeV9zeXN0ZW07CiAJc3RhdGUtPmZyZXF1ZW5jeSA9IHByb3BzLT5mcmVxdWVuY3k7CiAJ
+c3RhdGUtPnNyYXRlID0gcHJvcHMtPnN5bWJvbF9yYXRlOwpAQCAtMzQ0Nyw2ICszNDc2LDggQEAg
+c3RhdGljIGVudW0gZHZiZmVfc2VhcmNoIHN0djA5MHhfc2VhcmNoKHN0cnVjdCBkdmJfZnJvbnRl
+bmQgKmZlKQogCQlzdGF0ZS0+c2VhcmNoX3JhbmdlID0gNTAwMDAwMDsKIAl9CiAKKwlzdHYwOTB4
+X3NldF9taXMoc3RhdGUscHJvcHMtPmR2YnQyX3BscF9pZCk7CisKIAlpZiAoc3R2MDkweF9hbGdv
+KHN0YXRlKSA9PSBTVFYwOTB4X1JBTkdFT0spIHsKIAkJZHByaW50ayhGRV9ERUJVRywgMSwgIlNl
+YXJjaCBzdWNjZXNzISIpOwogCQlyZXR1cm4gRFZCRkVfQUxHT19TRUFSQ0hfU1VDQ0VTUzsKQEAg
+LTQ3OTgsNiArNDgyOSw5IEBAIHN0cnVjdCBkdmJfZnJvbnRlbmQgKnN0djA5MHhfYXR0YWNoKGNv
+bnN0IHN0cnVjdCBzdHYwOTB4X2NvbmZpZyAqY29uZmlnLAogCQl9CiAJfQogCisJaWYgKHN0YXRl
+LT5pbnRlcm5hbC0+ZGV2X3Zlcj49MHgzMCkKKwkgICAgc3RhdGUtPmZyb250ZW5kLm9wcy5pbmZv
+LmNhcHMgfD0gRkVfQ0FOX01VTFRJU1RSRUFNOworCiAJLyogd29ya2Fyb3VuZCBmb3Igc3R1Y2sg
+RGlTRXFDIG91dHB1dCAqLwogCWlmIChjb25maWctPmRpc2VxY19lbnZlbG9wZV9tb2RlKQogCQlz
+dHYwOTB4X3NlbmRfZGlzZXFjX2J1cnN0KCZzdGF0ZS0+ZnJvbnRlbmQsIFNFQ19NSU5JX0EpOwo=
+------==--bound.5996.web18g.yandex.ru--
