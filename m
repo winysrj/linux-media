@@ -1,48 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:54785 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754703Ab2GJWyd (ORCPT
+Received: from juliet.king.net.nz ([120.89.83.190]:37142 "EHLO
+	juliet.king.net.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753318Ab2GMCsP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jul 2012 18:54:33 -0400
-Received: by wgbdr13 with SMTP id dr13so432543wgb.1
-        for <linux-media@vger.kernel.org>; Tue, 10 Jul 2012 15:54:32 -0700 (PDT)
-Message-ID: <4FFCB2A4.4040108@gmail.com>
-Date: Wed, 11 Jul 2012 00:54:28 +0200
-From: poma <pomidorabelisima@gmail.com>
+	Thu, 12 Jul 2012 22:48:15 -0400
+Received: from [118.148.196.126] (port=38423 helo=kilo)
+	by juliet.king.net.nz with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
+	(Exim 4.72)
+	(envelope-from <alex@king.net.nz>)
+	id 1SpVGB-000575-Fa
+	for linux-media@vger.kernel.org; Fri, 13 Jul 2012 14:05:36 +1200
+Received: from localhost ([127.0.0.1])
+	by kilo with esmtp (Exim 4.80)
+	(envelope-from <alex@king.net.nz>)
+	id 1SpVEU-0005qj-UM
+	for linux-media@vger.kernel.org; Fri, 13 Jul 2012 14:03:51 +1200
+Message-ID: <4FFF8204.5030403@king.net.nz>
+Date: Fri, 13 Jul 2012 14:03:48 +1200
+From: Alex King <alex@king.net.nz>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: pctv452e
-References: <4FF4697C.8080602@nexusuk.org> <4FF46DC4.4070204@iki.fi> <4FF4911B.9090600@web.de> <4FF4931B.7000708@iki.fi> <gjggc9-dl4.ln1@wuwek.kopernik.gliwice.pl> <4FF5A350.9070509@iki.fi> <r8cic9-ht4.ln1@wuwek.kopernik.gliwice.pl> <4FF6B121.6010105@iki.fi> <9btic9-vd5.ln1@wuwek.kopernik.gliwice.pl> <835kc9-7p4.ln1@wuwek.kopernik.gliwice.pl> <4FF77C1B.50406@iki.fi> <l2smc9-pj4.ln1@wuwek.kopernik.gliwice.pl> <4FF97DF8.4080208@iki.fi> <n1aqc9-sp4.ln1@wuwek.kopernik.gliwice.pl> <4FFA996D.9010206@iki.fi> <scerc9-bm6.ln1@wuwek.kopernik.gliwice.pl> <4FFB2129.2070301@gmail.com> <hhvsc9-pte.ln1@wuwek.kopernik.gliwice.pl> <4FFC4F71.4000809@gmail.com> <CAGoCfizj8buVoMc8qOY-NxKa53KnXNnZLekpr6-wLU08PM5kEw@mail.gmail.com>
-In-Reply-To: <CAGoCfizj8buVoMc8qOY-NxKa53KnXNnZLekpr6-wLU08PM5kEw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+Subject: Getting a webcam to work
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/10/2012 05:58 PM, Devin Heitmueller wrote:
-> On Tue, Jul 10, 2012 at 11:51 AM, poma <pomidorabelisima@gmail.com> wrote:
->>> Is this pctv452e device known to have poor reception?
-> 
-> Traditionally speaking, these problems are usually not the hardware
-> itself - it tends to be crappy Linux drivers.  Somebody gets support
-> working for a chip on some product, and then somebody else does a
-> cut/paste of the code to make some other product work.  They see it
-> getting signal lock under optimal tuning conditions and declare
-> success.
-> 
-> Making any given device work *well* tends to be much harder than
-> making it work at all.
-> 
-> Want to rule out bad hardware design?  Drop it into a Windows machine
-> and see how it performs.  If it works fine under Windows but poorly
-> under Linux, then you definitely have a Linux driver problem.
-> 
-> Devin
-> 
+It's labelled "V-Gear TalkCamPro"
 
-This one is for Marx?
+from lsusb:
 
-cheers,
-poma
+Bus 001 Device 012: ID eb1a:2711 eMPIA Technology, Inc.
 
+and:
+
+/:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=ehci_hcd/5p, 480M
+     |__ Port 1: Dev 2, If 0, Class=hub, Driver=hub/7p, 480M
+         |__ Port 1: Dev 12, If 0, Class=vend., Driver=, 480M
+         |__ Port 1: Dev 12, If 1, Class=audio, Driver=snd-usb-audio, 480M
+         |__ Port 1: Dev 12, If 2, Class=audio, Driver=snd-usb-audio, 480M
+
+It looks like the audio part is recognised, but the video not.
+
+I see in 
+http://lxr.linux.no/linux+*/drivers/media/video/em28xx/em28xx-cards.c 
+that product ids 2710, 2750 and 2751 are recognised by the driver, but 
+not 2711.
+
+I'm tempted to add it as a  EM2800_BOARD_UNKNOWN and see if it works.
+
+Is there some methodology I should follow to get a new webcam to work?
+
+Thanks,
+Alex
+
+PS. I'm not subscribed.
