@@ -1,76 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.matrix-vision.com ([78.47.19.71]:39139 "EHLO
-	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752343Ab2GZL5N (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jul 2012 07:57:13 -0400
-From: Michael Jones <michael.jones@matrix-vision.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: [PATCH 1/2] [media] omap3isp: implement ENUM_FMT
-Date: Thu, 26 Jul 2012 13:59:55 +0200
-Message-Id: <1343303996-16025-2-git-send-email-michael.jones@matrix-vision.de>
-In-Reply-To: <1343303996-16025-1-git-send-email-michael.jones@matrix-vision.de>
-References: <1343303996-16025-1-git-send-email-michael.jones@matrix-vision.de>
+Received: from smtp.nokia.com ([147.243.128.24]:21302 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933050Ab2GMMpC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Jul 2012 08:45:02 -0400
+Message-ID: <5000185B.5030008@iki.fi>
+Date: Fri, 13 Jul 2012 15:45:15 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org,
+	Jean-Philippe Francois <jp.francois@cynove.com>
+Subject: Re: [PATCH v3 0/6] omap3isp: preview: Add support for non-GRBG Bayer
+ patterns
+References: <1342179458-1037-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1342179458-1037-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ENUM_FMT will not enumerate all formats that the ISP is capable of,
-it will only return the format which has been previously configured
-using the media controller, because this is the only format available
-to a V4L2 application which is unaware of the media controller.
+Laurent Pinchart wrote:
+> Hi everybody,
+> 
+> Here's the third version of the non-GRBG Bayer patterns support for the OMAP3
+> ISP preview engine. Compared to v2, the OMAP3ISP_PREV_GAMMABYPASS has been
+> removed and the CFA table is now stored in a multi-dimensional array.
+> 
+> Laurent Pinchart (6):
+>   omap3isp: preview: Fix contrast and brightness handling
+>   omap3isp: preview: Remove lens shading compensation support
+>   omap3isp: preview: Pass a prev_params pointer to configuration
+>     functions
+>   omap3isp: preview: Reorder configuration functions
+>   omap3isp: preview: Merge gamma correction and gamma bypass
+>   omap3isp: preview: Add support for non-GRBG Bayer patterns
+> 
+>  drivers/media/video/omap3isp/cfa_coef_table.h |   16 +-
+>  drivers/media/video/omap3isp/isppreview.c     |  707 ++++++++++++-------------
+>  drivers/media/video/omap3isp/isppreview.h     |    1 +
+>  include/linux/omap3isp.h                      |    5 +-
+>  4 files changed, 355 insertions(+), 374 deletions(-)
 
-Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
----
- drivers/media/video/omap3isp/ispvideo.c |   23 +++++++++++++++++++++++
- 1 files changed, 23 insertions(+), 0 deletions(-)
+For the whole set:
 
-diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-index b37379d..d1d2c14 100644
---- a/drivers/media/video/omap3isp/ispvideo.c
-+++ b/drivers/media/video/omap3isp/ispvideo.c
-@@ -678,6 +678,28 @@ isp_video_get_format(struct file *file, void *fh, struct v4l2_format *format)
- }
- 
- static int
-+isp_video_enum_format(struct file *file, void *fh, struct v4l2_fmtdesc *fmtdesc)
-+{
-+	struct isp_video_fh *vfh = to_isp_video_fh(fh);
-+	struct isp_video *video = video_drvdata(file);
-+
-+	if (fmtdesc->index)
-+		return -EINVAL;
-+
-+	if (fmtdesc->type != video->type)
-+		return -EINVAL;
-+
-+	fmtdesc->flags = 0;
-+	fmtdesc->description[0] = 0;
-+
-+	mutex_lock(&video->mutex);
-+	fmtdesc->pixelformat = vfh->format.fmt.pix.pixelformat;
-+	mutex_unlock(&video->mutex);
-+
-+	return 0;
-+}
-+
-+static int
- isp_video_set_format(struct file *file, void *fh, struct v4l2_format *format)
- {
- 	struct isp_video_fh *vfh = to_isp_video_fh(fh);
-@@ -1191,6 +1213,7 @@ isp_video_s_input(struct file *file, void *fh, unsigned int input)
- 
- static const struct v4l2_ioctl_ops isp_video_ioctl_ops = {
- 	.vidioc_querycap		= isp_video_querycap,
-+	.vidioc_enum_fmt_vid_cap	= isp_video_enum_format,
- 	.vidioc_g_fmt_vid_cap		= isp_video_get_format,
- 	.vidioc_s_fmt_vid_cap		= isp_video_set_format,
- 	.vidioc_try_fmt_vid_cap		= isp_video_try_format,
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+
 -- 
-1.7.4.1
+Sakari Ailus
+sakari.ailus@iki.fi
 
 
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
