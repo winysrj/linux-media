@@ -1,145 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:38836 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755741Ab2GXUiu (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:63723 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932328Ab2GMCaP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jul 2012 16:38:50 -0400
-Received: by bkwj10 with SMTP id j10so6661976bkw.19
-        for <linux-media@vger.kernel.org>; Tue, 24 Jul 2012 13:38:49 -0700 (PDT)
-Message-ID: <500F07D5.4070602@gmail.com>
-Date: Tue, 24 Jul 2012 22:38:45 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Thu, 12 Jul 2012 22:30:15 -0400
+Received: by obbuo13 with SMTP id uo13so4182179obb.19
+        for <linux-media@vger.kernel.org>; Thu, 12 Jul 2012 19:30:14 -0700 (PDT)
 MIME-Version: 1.0
-To: Sangwook Lee <sangwook.lee@linaro.org>
-CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media@vger.kernel.org, mchehab@infradead.org,
-	laurent.pinchart@ideasonboard.com,
-	sakari.ailus@maxwell.research.nokia.com, suapapa@insignal.co.kr,
-	quartz.jang@samsung.com, linaro-dev@lists.linaro.org,
-	patches@linaro.org, usman.ahmad@linaro.org,
-	david.a.cohen@linux.intel.com
-Subject: Re: [PATCH v2 1/2] v4l: Add factory register values form S5K4ECGX
- sensor
-References: <1342700047-31806-1-git-send-email-sangwook.lee@linaro.org> <1342700047-31806-2-git-send-email-sangwook.lee@linaro.org> <500862C0.2000507@gmail.com> <CADPsn1bniYQQ-pefrX+XdbLk1n-Na_dSYWspORkGCwo5+XBtrw@mail.gmail.com> <CADPsn1YVOcE=XQk2ayzeLGyse4yYZKJt3voffOf7pVqhk+ZzpA@mail.gmail.com>
-In-Reply-To: <CADPsn1YVOcE=XQk2ayzeLGyse4yYZKJt3voffOf7pVqhk+ZzpA@mail.gmail.com>
+In-Reply-To: <4FFC82F9.2090004@mlbassoc.com>
+References: <4FFC3109.3080204@mlbassoc.com>
+	<CABMb9GtV_CZ=ZFoqXD_u3dmZQoD5CmsptYkgwwecO7Ch9v3AAw@mail.gmail.com>
+	<4FFC82F9.2090004@mlbassoc.com>
+Date: Thu, 12 Jul 2012 21:30:14 -0500
+Message-ID: <CAC-OdnBfxJar83+WFm1N-C0=+MivOvfAiWaEP-O3iCkYKxktbA@mail.gmail.com>
+Subject: Re: OMAP4 support
+From: Sergio Aguirre <sergio.a.aguirre@gmail.com>
+To: Gary Thomas <gary@mlbassoc.com>
+Cc: Chris Lalancette <clalancette@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Discussion <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sangwook,
+Hi Gary,
 
-On 07/20/2012 12:03 PM, Sangwook Lee wrote:
-> Hi Sylwester
-> 
-> Thank for the review.
-> 
-> On 19 July 2012 20:40, Sylwester Nawrocki<sylvester.nawrocki@gmail.com>  wrote:
->> On 07/19/2012 02:14 PM, Sangwook Lee wrote:
-...
->>> Add factory default settings for S5K4ECGX sensor registers.
->>> I copied them from the reference code of Samsung S.LSI.
+On Tue, Jul 10, 2012 at 2:31 PM, Gary Thomas <gary@mlbassoc.com> wrote:
+> On 2012-07-10 11:05, Chris Lalancette wrote:
 >>
->> I'm pretty sure we can do better than that. I've started S5K6AAFX sensor
->> driver development with similar set of write-only register address/value
->> arrays, that stored mainly register default values after the device reset,
->> or were configuring presets that were never used.
+>> On Tue, Jul 10, 2012 at 9:41 AM, Gary Thomas <gary@mlbassoc.com> wrote:
+>>>
+>>> I'm looking for video support on OMAP4 platforms.  I've found the
+>>> PandaBoard camera project
+>>> (http://www.omappedia.org/wiki/PandaBoard_Camera_Support)
+>>> and this is starting to work.  That said, I'm having some
+>>> issues with setting up the pipeline, etc.
+>>>
+>>> Can this list help out?
 >>
->> If you lok at the s5k6aa driver, you'll find only one relatively small
->> array of register values for the analog processing block settings.
->> It's true that I had to reverse engineer a couple of things, but I also
 >>
->> had a relatively good datasheet for the sensor.
+>> I'm not sure exactly what kind of cameras you want to get working, but
+>> if you are looking to get CSI2 cameras going through the ISS, Sergio
+>> Aguirre has been working on support.  He also works on the media-ctl
+>> tool, which is used for configuring the media framework pipeline.  The
+>> latest versions that I am aware of are here:
 >>
-> 
-> Yes, I already saw analog settings in s5k6aa. Compared to s5k6aa,
-> I couldn't also understand why the sensor has lots of initial values.
-> Is it because s5k4ecgx is slightly more complicated than s5k6aa ?
+>> git://gitorious.org/omap4-v4l2-camera/omap4-v4l2-camera.git
+>
+>
+> Yes, this is the tree I've been working with (pointed to by the page I
+> mentioned).
+>
+> My kernel can see the camera OV5650 and set up the pipeline.  I am able to
+> grab
+> the raw SGRBG10 data but I'd like to get the ISS to convert this to a more
+> usable
+> UYVY format.  Here's what I tried:
+>   media-ctl -r
+>   media-ctl -l '"OMAP4 ISS CSI2a":1 -> "OMAP4 ISS ISP IPIPEIF":0 [1]'
+>   media-ctl -l '"OMAP4 ISS ISP IPIPEIF":1 -> "OMAP4 ISS ISP IPIPEIF
+> output":0 [1]'
+>   media-ctl -f '"ov5650 3-0036":0 [SGRBG10 2592x1944]'
+>   media-ctl -f '"OMAP4 ISS CSI2a":0 [SGRBG10 2592x1944]'
+>   media-ctl -f '"OMAP4 ISS ISP IPIPEIF":0 [SGRBG10 2592x1944]','"OMAP4 ISS
+> ISP IPIPEIF":1 [UYVY 2592x1944]'
+>
+> Sadly, I can't get the IPIPEIF element to take SGRGB10 in and put UYVY out
+> (my reading
+> of the manual implies that this _should_ be possible).  I always see this
+> pipeline setup:
+> - entity 5: OMAP4 ISS ISP IPIPEIF (3 pads, 4 links)
+>             type V4L2 subdev subtype Unknown
+>             device node name /dev/v4l-subdev2
+>         pad0: Input [SGRBG10 2592x1944]
+>                 <- 'OMAP4 ISS CSI2a':pad1 [ACTIVE]
+>                 <- 'OMAP4 ISS CSI2b':pad1 []
+>         pad1: Output [SGRBG10 2592x1944]
+>                 -> 'OMAP4 ISS ISP IPIPEIF output':pad0 [ACTIVE]
+>         pad2: Output [SGRBG10 2592x1944]
+>                 -> 'OMAP4 ISS ISP resizer':pad0 []
+>
+> Am I missing something?  How can I make this conversion in the ISS?
 
-IIRC, original S5K6AAFX driver had similar number of initial values that 
-were being written during initialization through I2C bus. But that's true 
-the s5k4ecgx is more complex, it has more still capture features built in.
+The core problem is that, i haven't published any support for
+RAW10->YUV conversion,
+which is part of the IPIPE module (not the IPIPEIF, like you mention). I had
+some patches, but sadly it is unfinished work. :/
 
->>> According to comments from the reference code, they do not
->>> recommend any changes of these settings.
->>
->> Yes, but it doesn't mean cannot convert, at least part of, those ugly
->> tables into function calls.
-> 
-> 
-> Yes, the biggest table seems to be one time for boot-up, at least I need to
-> remove one more macro (token)
+Now, there's a main non-technical problem... I no longer work at TI
+since end of June
+this year, and I don't have the right HW setup available anymore.
+Those sensors were
+company's asset, and I couldn't keep any.
 
-That would be a good start. Also 2 most significant bytes of register
-addresses seem redundant, you'll find there mostly 0xD000 and 0x7000.
-Dropping the token and 2 MS address bytes would decrease the single entry 
-size from 10 to 4 bytes. Given that there is about 3000 table entries 
-the driver's code size would decrease by 18 kB.
+Now, we can make this work with cooperation of someone who has the right setup,
+and me sharing my patches and some advice on my experience.
 
-BTW, you didn't make those arrays "const", so it's all copied to RAM
-during initialization...
+What do you think?
 
->>
->> Have you tried to contact Samsung S.LSI for a datasheet that would
->> contain better registers' description ?
-> 
-> 
-> As you might know, there is a limitation for me to get those information. :-)
+>
+> Note: if this is not the appropriate place to ask these questions, please
+> redirect me (hopefully to a useful list :-)
 
-I find it odd, given that you guys work on software support for one of
-official Exynos4 reference platforms. It's really surprising.
-Maybe you should just contact the right persons ?
+As I'm the main person who has been actively developing this, I'm your
+guy to ask questions :).
 
-> Instead, if I look into the source code of Google Nexus S which uses s5k4ecgx,
-> 
->    https://android.googlesource.com/kernel/samsung.git
-> 
-> I can discover that both Google and Samsung are using the same huge table
-> just for initial settings from the sensor booting-up. I added the
-> original author
-> of this sensor driver. Hopes he might add some comments :-)
+By the way, this development has been my initiative the whole time,
+and not an official
+TI objective, so, to be honest, asking TI for official support won't
+help much right now.
 
-Yeah, that would be great.
+Regards,
+Sergio
 
-I think, this pattern of using register/value arrays is good for quick
-development of drivers for many different sensors - you just switch the 
-tables and everything else mostly stays the same. However, V4L2 mainline 
-standards are a bit different. It would be good to convert as many of 
-those arrays to functions calls as possible.
-
-Also using vmalloc is an overkill IMO. I suspect you could use this
-function (with minimal adaptations):
-
-8<-------------------------------------------------------------------
-static int s5k6aa_write_array(struct v4l2_subdev *sd,
-			      const struct s5k6aa_regval *msg)
-{
-	struct i2c_client *client = v4l2_get_subdevdata(sd);
-	u16 addr_incr = 0;
-	int ret = 0;
-
-	while (msg->addr != S5K6AA_TERM) {
-		if (addr_incr != 2)
-			ret = s5k6aa_i2c_write(client, REG_CMDWR_ADDRL,
-					       msg->addr);
-		if (ret)
-			break;
-		ret = s5k6aa_i2c_write(client, REG_CMDBUF0_ADDR, msg->val);
-		if (ret)
-			break;
-		/* Assume that msg->addr is always less than 0xfffc */
-		addr_incr = (msg + 1)->addr - msg->addr;
-		msg++;
-	}
-
-	return ret;
-}
-8<----------------------------------------------------------------------
-
-instead of s5k4ecgx_prep_buffer() and s5k4ecgx_write_burst(). But that 
-would have to be confirmed with the datasheet or by experimentation.
-
---
-
-Thanks,
-Sylwester
+>
+>
+> Thanks
+>
+> --
+> ------------------------------------------------------------
+> Gary Thomas                 |  Consulting for the
+> MLB Associates              |    Embedded world
+> ------------------------------------------------------------
+>
+>
