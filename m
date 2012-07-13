@@ -1,358 +1,585 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:50404 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752018Ab2GRJGt (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58835 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756040Ab2GMLhl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jul 2012 05:06:49 -0400
-From: Hans Verkuil <hans.verkuil@cisco.com>
+	Fri, 13 Jul 2012 07:37:41 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, device-drivers-devel@blackfin.uclinux.org
-Subject: [RFCv2 PATCH 2/7] V4L2 spec: document the new DV controls and ioctls.
-Date: Wed, 18 Jul 2012 11:06:15 +0200
-Message-Id: <d15df296520702c242958b6a0551a81dc1ec0632.1342601681.git.hans.verkuil@cisco.com>
-In-Reply-To: <1342602380-5854-1-git-send-email-hans.verkuil@cisco.com>
-References: <1342602380-5854-1-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <c9c25dde447e731e6f0925bd175550196c5612e0.1342601681.git.hans.verkuil@cisco.com>
-References: <c9c25dde447e731e6f0925bd175550196c5612e0.1342601681.git.hans.verkuil@cisco.com>
+Cc: Jean-Philippe Francois <jp.francois@cynove.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v3 4/6] omap3isp: preview: Reorder configuration functions
+Date: Fri, 13 Jul 2012 13:37:36 +0200
+Message-Id: <1342179458-1037-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1342179458-1037-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1342179458-1037-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/controls.xml       |  149 +++++++++++++++++++
- Documentation/DocBook/media/v4l/v4l2.xml           |    1 +
- .../DocBook/media/v4l/vidioc-subdev-g-edid.xml     |  152 ++++++++++++++++++++
- 3 files changed, 302 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
+Reorder the configuration and enable functions to match the parameters
+order.
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 43ca749..4ba5e76 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -4269,4 +4269,153 @@ interface and may change in the future.</para>
-       </table>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/omap3isp/isppreview.c |  452 ++++++++++++++--------------
+ 1 files changed, 226 insertions(+), 226 deletions(-)
+
+diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
+index 78a10b0..50be9e2 100644
+--- a/drivers/media/video/omap3isp/isppreview.c
++++ b/drivers/media/video/omap3isp/isppreview.c
+@@ -157,64 +157,53 @@ static u32 luma_enhance_table[] = {
+ };
  
-     </section>
+ /*
+- * preview_enable_invalaw - Enable/disable Inverse A-Law decompression
+- */
+-static void preview_enable_invalaw(struct isp_prev_device *prev, bool enable)
+-{
+-	struct isp_device *isp = to_isp_device(prev);
+-
+-	if (enable)
+-		isp_reg_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+-			    ISPPRV_PCR_WIDTH | ISPPRV_PCR_INVALAW);
+-	else
+-		isp_reg_clr(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+-			    ISPPRV_PCR_WIDTH | ISPPRV_PCR_INVALAW);
+-}
+-
+-/*
+- * preview_enable_drkframe_capture - Enable/disable Dark Frame Capture
++ * preview_config_luma_enhancement - Configure the Luminance Enhancement table
+  */
+ static void
+-preview_enable_drkframe_capture(struct isp_prev_device *prev, bool enable)
++preview_config_luma_enhancement(struct isp_prev_device *prev,
++				const struct prev_params *params)
+ {
+ 	struct isp_device *isp = to_isp_device(prev);
++	const struct omap3isp_prev_luma *yt = &params->luma;
++	unsigned int i;
+ 
+-	if (enable)
+-		isp_reg_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+-			    ISPPRV_PCR_DRKFCAP);
+-	else
+-		isp_reg_clr(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+-			    ISPPRV_PCR_DRKFCAP);
++	isp_reg_writel(isp, ISPPRV_YENH_TABLE_ADDR,
++		       OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
++	for (i = 0; i < OMAP3ISP_PREV_YENH_TBL_SIZE; i++) {
++		isp_reg_writel(isp, yt->table[i],
++			       OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
++	}
+ }
+ 
+ /*
+- * preview_enable_drkframe - Enable/disable Dark Frame Subtraction
++ * preview_enable_luma_enhancement - Enable/disable Luminance Enhancement
+  */
+-static void preview_enable_drkframe(struct isp_prev_device *prev, bool enable)
++static void
++preview_enable_luma_enhancement(struct isp_prev_device *prev, bool enable)
+ {
+ 	struct isp_device *isp = to_isp_device(prev);
+ 
+ 	if (enable)
+ 		isp_reg_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+-			    ISPPRV_PCR_DRKFEN);
++			    ISPPRV_PCR_YNENHEN);
+ 	else
+ 		isp_reg_clr(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+-			    ISPPRV_PCR_DRKFEN);
++			    ISPPRV_PCR_YNENHEN);
+ }
+ 
+ /*
+- * preview_enable_hmed - Enable/disable the Horizontal Median Filter
++ * preview_enable_invalaw - Enable/disable Inverse A-Law decompression
+  */
+-static void preview_enable_hmed(struct isp_prev_device *prev, bool enable)
++static void preview_enable_invalaw(struct isp_prev_device *prev, bool enable)
+ {
+ 	struct isp_device *isp = to_isp_device(prev);
+ 
+ 	if (enable)
+ 		isp_reg_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+-			    ISPPRV_PCR_HMEDEN);
++			    ISPPRV_PCR_WIDTH | ISPPRV_PCR_INVALAW);
+ 	else
+ 		isp_reg_clr(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+-			    ISPPRV_PCR_HMEDEN);
++			    ISPPRV_PCR_WIDTH | ISPPRV_PCR_INVALAW);
+ }
+ 
+ /*
+@@ -233,46 +222,18 @@ static void preview_config_hmed(struct isp_prev_device *prev,
+ }
+ 
+ /*
+- * preview_config_noisefilter - Configure the Noise Filter
+- */
+-static void
+-preview_config_noisefilter(struct isp_prev_device *prev,
+-			   const struct prev_params *params)
+-{
+-	struct isp_device *isp = to_isp_device(prev);
+-	const struct omap3isp_prev_nf *nf = &params->nf;
+-	unsigned int i;
+-
+-	isp_reg_writel(isp, nf->spread, OMAP3_ISP_IOMEM_PREV, ISPPRV_NF);
+-	isp_reg_writel(isp, ISPPRV_NF_TABLE_ADDR,
+-		       OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
+-	for (i = 0; i < OMAP3ISP_PREV_NF_TBL_SIZE; i++) {
+-		isp_reg_writel(isp, nf->table[i],
+-			       OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
+-	}
+-}
+-
+-/*
+- * preview_config_dcor - Configure Couplet Defect Correction
++ * preview_enable_hmed - Enable/disable the Horizontal Median Filter
+  */
+-static void
+-preview_config_dcor(struct isp_prev_device *prev,
+-		    const struct prev_params *params)
++static void preview_enable_hmed(struct isp_prev_device *prev, bool enable)
+ {
+ 	struct isp_device *isp = to_isp_device(prev);
+-	const struct omap3isp_prev_dcor *dcor = &params->dcor;
+ 
+-	isp_reg_writel(isp, dcor->detect_correct[0],
+-		       OMAP3_ISP_IOMEM_PREV, ISPPRV_CDC_THR0);
+-	isp_reg_writel(isp, dcor->detect_correct[1],
+-		       OMAP3_ISP_IOMEM_PREV, ISPPRV_CDC_THR1);
+-	isp_reg_writel(isp, dcor->detect_correct[2],
+-		       OMAP3_ISP_IOMEM_PREV, ISPPRV_CDC_THR2);
+-	isp_reg_writel(isp, dcor->detect_correct[3],
+-		       OMAP3_ISP_IOMEM_PREV, ISPPRV_CDC_THR3);
+-	isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+-			ISPPRV_PCR_DCCOUP,
+-			dcor->couplet_mode_en ? ISPPRV_PCR_DCCOUP : 0);
++	if (enable)
++		isp_reg_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++			    ISPPRV_PCR_HMEDEN);
++	else
++		isp_reg_clr(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++			    ISPPRV_PCR_HMEDEN);
+ }
+ 
+ /*
+@@ -305,55 +266,6 @@ preview_config_cfa(struct isp_prev_device *prev,
+ }
+ 
+ /*
+- * preview_config_gammacorrn - Configure the Gamma Correction tables
+- */
+-static void
+-preview_config_gammacorrn(struct isp_prev_device *prev,
+-			  const struct prev_params *params)
+-{
+-	struct isp_device *isp = to_isp_device(prev);
+-	const struct omap3isp_prev_gtables *gt = &params->gamma;
+-	unsigned int i;
+-
+-	isp_reg_writel(isp, ISPPRV_REDGAMMA_TABLE_ADDR,
+-		       OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
+-	for (i = 0; i < OMAP3ISP_PREV_GAMMA_TBL_SIZE; i++)
+-		isp_reg_writel(isp, gt->red[i], OMAP3_ISP_IOMEM_PREV,
+-			       ISPPRV_SET_TBL_DATA);
+-
+-	isp_reg_writel(isp, ISPPRV_GREENGAMMA_TABLE_ADDR,
+-		       OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
+-	for (i = 0; i < OMAP3ISP_PREV_GAMMA_TBL_SIZE; i++)
+-		isp_reg_writel(isp, gt->green[i], OMAP3_ISP_IOMEM_PREV,
+-			       ISPPRV_SET_TBL_DATA);
+-
+-	isp_reg_writel(isp, ISPPRV_BLUEGAMMA_TABLE_ADDR,
+-		       OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
+-	for (i = 0; i < OMAP3ISP_PREV_GAMMA_TBL_SIZE; i++)
+-		isp_reg_writel(isp, gt->blue[i], OMAP3_ISP_IOMEM_PREV,
+-			       ISPPRV_SET_TBL_DATA);
+-}
+-
+-/*
+- * preview_config_luma_enhancement - Configure the Luminance Enhancement table
+- */
+-static void
+-preview_config_luma_enhancement(struct isp_prev_device *prev,
+-				const struct prev_params *params)
+-{
+-	struct isp_device *isp = to_isp_device(prev);
+-	const struct omap3isp_prev_luma *yt = &params->luma;
+-	unsigned int i;
+-
+-	isp_reg_writel(isp, ISPPRV_YENH_TABLE_ADDR,
+-		       OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
+-	for (i = 0; i < OMAP3ISP_PREV_YENH_TBL_SIZE; i++) {
+-		isp_reg_writel(isp, yt->table[i],
+-			       OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
+-	}
+-}
+-
+-/*
+  * preview_config_chroma_suppression - Configure Chroma Suppression
+  */
+ static void
+@@ -370,72 +282,6 @@ preview_config_chroma_suppression(struct isp_prev_device *prev,
+ }
+ 
+ /*
+- * preview_enable_noisefilter - Enable/disable the Noise Filter
+- */
+-static void
+-preview_enable_noisefilter(struct isp_prev_device *prev, bool enable)
+-{
+-	struct isp_device *isp = to_isp_device(prev);
+-
+-	if (enable)
+-		isp_reg_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+-			    ISPPRV_PCR_NFEN);
+-	else
+-		isp_reg_clr(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+-			    ISPPRV_PCR_NFEN);
+-}
+-
+-/*
+- * preview_enable_dcor - Enable/disable Couplet Defect Correction
+- */
+-static void preview_enable_dcor(struct isp_prev_device *prev, bool enable)
+-{
+-	struct isp_device *isp = to_isp_device(prev);
+-
+-	if (enable)
+-		isp_reg_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+-			    ISPPRV_PCR_DCOREN);
+-	else
+-		isp_reg_clr(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+-			    ISPPRV_PCR_DCOREN);
+-}
+-
+-/*
+- * preview_enable_gammabypass - Enable/disable Gamma Bypass
+- *
+- * When gamma bypass is enabled, the output of the gamma correction is the 8 MSB
+- * of the 10-bit input .
+- */
+-static void
+-preview_enable_gammabypass(struct isp_prev_device *prev, bool enable)
+-{
+-	struct isp_device *isp = to_isp_device(prev);
+-
+-	if (enable)
+-		isp_reg_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+-			    ISPPRV_PCR_GAMMA_BYPASS);
+-	else
+-		isp_reg_clr(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+-			    ISPPRV_PCR_GAMMA_BYPASS);
+-}
+-
+-/*
+- * preview_enable_luma_enhancement - Enable/disable Luminance Enhancement
+- */
+-static void
+-preview_enable_luma_enhancement(struct isp_prev_device *prev, bool enable)
+-{
+-	struct isp_device *isp = to_isp_device(prev);
+-
+-	if (enable)
+-		isp_reg_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+-			    ISPPRV_PCR_YNENHEN);
+-	else
+-		isp_reg_clr(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+-			    ISPPRV_PCR_YNENHEN);
+-}
+-
+-/*
+  * preview_enable_chroma_suppression - Enable/disable Chrominance Suppression
+  */
+ static void
+@@ -579,26 +425,175 @@ preview_config_csc(struct isp_prev_device *prev,
+ }
+ 
+ /*
+- * preview_update_contrast - Updates the contrast.
+- * @contrast: Pointer to hold the current programmed contrast value.
++ * preview_config_yc_range - Configure the max and min Y and C values
++ */
++static void
++preview_config_yc_range(struct isp_prev_device *prev,
++			const struct prev_params *params)
++{
++	struct isp_device *isp = to_isp_device(prev);
++	const struct omap3isp_prev_yclimit *yc = &params->yclimit;
 +
-+    <section id="dv-controls">
-+      <title>Digital Video Control Reference</title>
++	isp_reg_writel(isp,
++		       yc->maxC << ISPPRV_SETUP_YC_MAXC_SHIFT |
++		       yc->maxY << ISPPRV_SETUP_YC_MAXY_SHIFT |
++		       yc->minC << ISPPRV_SETUP_YC_MINC_SHIFT |
++		       yc->minY << ISPPRV_SETUP_YC_MINY_SHIFT,
++		       OMAP3_ISP_IOMEM_PREV, ISPPRV_SETUP_YC);
++}
 +
-+      <note>
-+	<title>Experimental</title>
++/*
++ * preview_config_dcor - Configure Couplet Defect Correction
++ */
++static void
++preview_config_dcor(struct isp_prev_device *prev,
++		    const struct prev_params *params)
++{
++	struct isp_device *isp = to_isp_device(prev);
++	const struct omap3isp_prev_dcor *dcor = &params->dcor;
 +
-+	<para>This is an <link
-+	linkend="experimental">experimental</link> interface and may
-+	change in the future.</para>
-+      </note>
++	isp_reg_writel(isp, dcor->detect_correct[0],
++		       OMAP3_ISP_IOMEM_PREV, ISPPRV_CDC_THR0);
++	isp_reg_writel(isp, dcor->detect_correct[1],
++		       OMAP3_ISP_IOMEM_PREV, ISPPRV_CDC_THR1);
++	isp_reg_writel(isp, dcor->detect_correct[2],
++		       OMAP3_ISP_IOMEM_PREV, ISPPRV_CDC_THR2);
++	isp_reg_writel(isp, dcor->detect_correct[3],
++		       OMAP3_ISP_IOMEM_PREV, ISPPRV_CDC_THR3);
++	isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++			ISPPRV_PCR_DCCOUP,
++			dcor->couplet_mode_en ? ISPPRV_PCR_DCCOUP : 0);
++}
 +
-+      <para>
-+	The Digital Video control class is intended to control receivers
-+	and transmitters for VGA, DVI, HDMI and DisplayPort. These controls
-+	are generally expected to be private to the receiver or transmitter
-+	subdevice that implements them, so they are only exposed on the
-+	<filename>/dev/v4l-subdev*</filename> device node.
-+      </para>
++/*
++ * preview_enable_dcor - Enable/disable Couplet Defect Correction
++ */
++static void preview_enable_dcor(struct isp_prev_device *prev, bool enable)
++{
++	struct isp_device *isp = to_isp_device(prev);
 +
-+      <para>Note that these devices can have multiple input or output pads which are
-+      hooked up to e.g. HDMI connectors. Even though the subdevice will receive or
-+      transmit video from/to only one of those pads, the other pads can still be
-+      active when it comes to EDID and HDCP processing, allowing the device
-+      to do the fairly slow EDID/HDCP handling in advance. This allows for quick
-+      switching between connectors.</para>
++	if (enable)
++		isp_reg_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++			    ISPPRV_PCR_DCOREN);
++	else
++		isp_reg_clr(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++			    ISPPRV_PCR_DCOREN);
++}
 +
-+      <para>These pads appear in several of the controls in this section as
-+      bitmasks, one bit for each pad starting at bit 0. The maximum value of
-+      the control is the set of valid pads.</para>
++/*
++ * preview_enable_gammabypass - Enable/disable Gamma Bypass
+  *
+- * Value should be programmed before enabling the module.
++ * When gamma bypass is enabled, the output of the gamma correction is the 8 MSB
++ * of the 10-bit input .
+  */
+ static void
+-preview_update_contrast(struct isp_prev_device *prev, u8 contrast)
++preview_enable_gammabypass(struct isp_prev_device *prev, bool enable)
+ {
+-	struct prev_params *params;
+-	unsigned long flags;
++	struct isp_device *isp = to_isp_device(prev);
+ 
+-	spin_lock_irqsave(&prev->params.lock, flags);
+-	params = (prev->params.active & OMAP3ISP_PREV_CONTRAST)
+-	       ? &prev->params.params[0] : &prev->params.params[1];
++	if (enable)
++		isp_reg_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++			    ISPPRV_PCR_GAMMA_BYPASS);
++	else
++		isp_reg_clr(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++			    ISPPRV_PCR_GAMMA_BYPASS);
++}
+ 
+-	if (params->contrast != (contrast * ISPPRV_CONTRAST_UNITS)) {
+-		params->contrast = contrast * ISPPRV_CONTRAST_UNITS;
+-		params->update |= OMAP3ISP_PREV_CONTRAST;
++/*
++ * preview_enable_drkframe_capture - Enable/disable Dark Frame Capture
++ */
++static void
++preview_enable_drkframe_capture(struct isp_prev_device *prev, bool enable)
++{
++	struct isp_device *isp = to_isp_device(prev);
 +
-+      <table pgwide="1" frame="none" id="dv-control-id">
-+      <title>Digital Video Control IDs</title>
++	if (enable)
++		isp_reg_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++			    ISPPRV_PCR_DRKFCAP);
++	else
++		isp_reg_clr(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++			    ISPPRV_PCR_DRKFCAP);
++}
 +
-+      <tgroup cols="4">
-+	<colspec colname="c1" colwidth="1*" />
-+	<colspec colname="c2" colwidth="6*" />
-+	<colspec colname="c3" colwidth="2*" />
-+	<colspec colname="c4" colwidth="6*" />
-+	<spanspec namest="c1" nameend="c2" spanname="id" />
-+	<spanspec namest="c2" nameend="c4" spanname="descr" />
-+	<thead>
-+	  <row>
-+	    <entry spanname="id" align="left">ID</entry>
-+	    <entry align="left">Type</entry>
-+	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
-+	  </row>
-+	</thead>
-+	<tbody valign="top">
-+	  <row><entry></entry></row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_DV_CLASS</constant></entry>
-+	    <entry>class</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">The DV class descriptor.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_DV_TX_HOTPLUG</constant></entry>
-+	    <entry>bitmask</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">Many connectors have a hotplug pin which is high
-+	    if EDID information is available from the source. This control shows the
-+	    state of the hotplug pin as seen by the transmitter.
-+	    Each bit corresponds to an output pad on the transmitter.
-+	    This read-only control is applicable to DVI-D, HDMI and DisplayPort connectors.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_DV_TX_RXSENSE</constant></entry>
-+	    <entry>bitmask</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">Rx Sense is the detection of pull-ups on the TMDS
-+            clock lines. This normally means that the sink has left/entered standby (i.e.
-+	    the transmitter can sense that the receiver is ready to receive video).
-+	    Each bit corresponds to an output pad on the transmitter.
-+	    This read-only control is applicable to DVI-D and HDMI devices.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_DV_TX_EDID_PRESENT</constant></entry>
-+	    <entry>bitmask</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">When the transmitter sees the hotplug signal from the
-+	    receiver it will attempt to read the EDID. If set, then the transmitter has read
-+	    at least the first block (= 128 bytes).
-+	    Each bit corresponds to an output pad on the transmitter.
-+	    This read-only control is applicable to VGA, DVI-A/D, HDMI and DisplayPort connectors.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_DV_TX_MODE</constant></entry>
-+	    <entry id="v4l2-dv-tx-mode">enum v4l2_dv_tx_mode</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">HDMI transmitters can transmit in DVI-D mode (just video)
-+	    or in HDMI mode (video + audio + auxiliary data). This control selects which mode
-+	    to use: V4L2_DV_TX_MODE_DVI_D or V4L2_DV_TX_MODE_HDMI.
-+	    This control is applicable to HDMI connectors.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_DV_TX_RGB_RANGE</constant></entry>
-+	    <entry id="v4l2-dv-rgb-range">enum v4l2_dv_rgb_range</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">Select the quantization range for RGB output. V4L2_DV_RANGE_AUTO
-+	    follows the RGB quantization range specified in the standard for the video interface
-+	    (ie. CEA-861 for HDMI). V4L2_DV_RANGE_LIMITED and V4L2_DV_RANGE_FULL override the standard
-+	    to be compatible with sinks that have not implemented the standard correctly
-+	    (unfortunately quite common for HDMI and DVI-D).
-+	    This control is applicable to VGA, DVI-A/D, HDMI and DisplayPort connectors.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_DV_RX_POWER_PRESENT</constant></entry>
-+	    <entry>bitmask</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">Detects whether the receiver receives power from the source
-+	    (e.g. HDMI carries 5V on one of the pins). This is often used to power an eeprom
-+	    which contains EDID information, such that the source can read the EDID even if
-+	    the sink is in standby/power off.
-+	    Each bit corresponds to an input pad on the receiver.
-+	    This read-only control is applicable to DVI-D, HDMI and DisplayPort connectors.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_DV_RX_RGB_RANGE</constant></entry>
-+	    <entry>enum v4l2_dv_rgb_range</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">Select the quantization range for RGB input. V4L2_DV_RANGE_AUTO
-+	    follows the RGB quantization range specified in the standard for the video interface
-+	    (ie. CEA-861 for HDMI). V4L2_DV_RANGE_LIMITED and V4L2_DV_RANGE_FULL override the standard
-+	    to be compatible with sources that have not implemented the standard correctly
-+	    (unfortunately quite common for HDMI and DVI-D).
-+	    This control is applicable to VGA, DVI-A/D, HDMI and DisplayPort connectors.
-+	    </entry>
-+	  </row>
-+	  <row><entry></entry></row>
-+	</tbody>
-+      </tgroup>
-+      </table>
++/*
++ * preview_enable_drkframe - Enable/disable Dark Frame Subtraction
++ */
++static void preview_enable_drkframe(struct isp_prev_device *prev, bool enable)
++{
++	struct isp_device *isp = to_isp_device(prev);
 +
-+    </section>
- </section>
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index 36bafc4..da0c882 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -575,6 +575,7 @@ and discussions on the V4L mailing list.</revremark>
-     &sub-subdev-enum-frame-size;
-     &sub-subdev-enum-mbus-code;
-     &sub-subdev-g-crop;
-+    &sub-subdev-g-edid;
-     &sub-subdev-g-fmt;
-     &sub-subdev-g-frame-interval;
-     &sub-subdev-g-selection;
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
-new file mode 100644
-index 0000000..05371db
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
-@@ -0,0 +1,152 @@
-+<refentry id="vidioc-subdev-g-edid">
-+  <refmeta>
-+    <refentrytitle>ioctl VIDIOC_SUBDEV_G_EDID, VIDIOC_SUBDEV_S_EDID</refentrytitle>
-+    &manvol;
-+  </refmeta>
++	if (enable)
++		isp_reg_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++			    ISPPRV_PCR_DRKFEN);
++	else
++		isp_reg_clr(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++			    ISPPRV_PCR_DRKFEN);
++}
 +
-+  <refnamediv>
-+    <refname>VIDIOC_SUBDEV_G_EDID</refname>
-+    <refname>VIDIOC_SUBDEV_S_EDID</refname>
-+    <refpurpose>Get or set the EDID of a video receiver/transmitter</refpurpose>
-+  </refnamediv>
++/*
++ * preview_config_noisefilter - Configure the Noise Filter
++ */
++static void
++preview_config_noisefilter(struct isp_prev_device *prev,
++			   const struct prev_params *params)
++{
++	struct isp_device *isp = to_isp_device(prev);
++	const struct omap3isp_prev_nf *nf = &params->nf;
++	unsigned int i;
 +
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>struct v4l2_subdev_edid *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>const struct v4l2_subdev_edid *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
++	isp_reg_writel(isp, nf->spread, OMAP3_ISP_IOMEM_PREV, ISPPRV_NF);
++	isp_reg_writel(isp, ISPPRV_NF_TABLE_ADDR,
++		       OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
++	for (i = 0; i < OMAP3ISP_PREV_NF_TBL_SIZE; i++) {
++		isp_reg_writel(isp, nf->table[i],
++			       OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
+ 	}
+-	spin_unlock_irqrestore(&prev->params.lock, flags);
++}
 +
-+  <refsect1>
-+    <title>Arguments</title>
++/*
++ * preview_enable_noisefilter - Enable/disable the Noise Filter
++ */
++static void
++preview_enable_noisefilter(struct isp_prev_device *prev, bool enable)
++{
++	struct isp_device *isp = to_isp_device(prev);
 +
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>&fd;</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>VIDIOC_SUBDEV_G_EDID, VIDIOC_SUBDEV_S_EDID</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
++	if (enable)
++		isp_reg_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++			    ISPPRV_PCR_NFEN);
++	else
++		isp_reg_clr(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++			    ISPPRV_PCR_NFEN);
++}
 +
-+  <refsect1>
-+    <title>Description</title>
-+    <para>These ioctls can be used to get or set an EDID associated with an input pad
-+    from a receiver or an output pad of a transmitter subdevice.</para>
++/*
++ * preview_config_gammacorrn - Configure the Gamma Correction tables
++ */
++static void
++preview_config_gammacorrn(struct isp_prev_device *prev,
++			  const struct prev_params *params)
++{
++	struct isp_device *isp = to_isp_device(prev);
++	const struct omap3isp_prev_gtables *gt = &params->gamma;
++	unsigned int i;
 +
-+    <para>To get the EDID data the application has to fill in the <structfield>pad</structfield>,
-+    <structfield>start_block</structfield>, <structfield>blocks</structfield> and <structfield>edid</structfield>
-+    fields and call <constant>VIDIOC_SUBDEV_G_EDID</constant>. The current EDID from block
-+    <structfield>start_block</structfield> and of size <structfield>blocks</structfield>
-+    will be placed in the memory <structfield>edid</structfield> points to. The <structfield>edid</structfield>
-+    pointer must point to memory at least <structfield>blocks</structfield>&nbsp;*&nbsp;128 bytes
-+    large (the size of one block is 128 bytes).</para>
++	isp_reg_writel(isp, ISPPRV_REDGAMMA_TABLE_ADDR,
++		       OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
++	for (i = 0; i < OMAP3ISP_PREV_GAMMA_TBL_SIZE; i++)
++		isp_reg_writel(isp, gt->red[i], OMAP3_ISP_IOMEM_PREV,
++			       ISPPRV_SET_TBL_DATA);
 +
-+    <para>If there are fewer blocks than specified, then the driver will set <structfield>blocks</structfield>
-+    to the actual number of blocks. If there are no EDID blocks available at all, then the error code
-+    ENODATA is set.</para>
++	isp_reg_writel(isp, ISPPRV_GREENGAMMA_TABLE_ADDR,
++		       OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
++	for (i = 0; i < OMAP3ISP_PREV_GAMMA_TBL_SIZE; i++)
++		isp_reg_writel(isp, gt->green[i], OMAP3_ISP_IOMEM_PREV,
++			       ISPPRV_SET_TBL_DATA);
 +
-+    <para>If blocks have to be retrieved from the sink, then this call will block until they
-+    have been read.</para>
++	isp_reg_writel(isp, ISPPRV_BLUEGAMMA_TABLE_ADDR,
++		       OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
++	for (i = 0; i < OMAP3ISP_PREV_GAMMA_TBL_SIZE; i++)
++		isp_reg_writel(isp, gt->blue[i], OMAP3_ISP_IOMEM_PREV,
++			       ISPPRV_SET_TBL_DATA);
+ }
+ 
+ /*
+@@ -618,57 +613,62 @@ preview_config_contrast(struct isp_prev_device *prev,
+ }
+ 
+ /*
+- * preview_update_brightness - Updates the brightness in preview module.
+- * @brightness: Pointer to hold the current programmed brightness value.
++ * preview_config_brightness - Configure the Brightness
++ */
++static void
++preview_config_brightness(struct isp_prev_device *prev,
++			  const struct prev_params *params)
++{
++	struct isp_device *isp = to_isp_device(prev);
 +
-+    <para>To set the EDID blocks of a receiver the application has to fill in the <structfield>pad</structfield>,
-+    <structfield>blocks</structfield> and <structfield>edid</structfield> fields and set
-+    <structfield>start_block</structfield> to 0. It is not possible to set part of an EDID,
-+    it is always all or nothing. Setting the EDID data is only valid for receivers as it makes
-+    no sense for a transmitter.</para>
++	isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_CNT_BRT,
++			0xff << ISPPRV_CNT_BRT_BRT_SHIFT,
++			params->brightness << ISPPRV_CNT_BRT_BRT_SHIFT);
++}
 +
-+    <para>The driver assumes that the full EDID is passed in. If there are more EDID blocks than
-+    the hardware can handle then the EDID is not written, but instead the error code E2BIG is set
-+    and <structfield>blocks</structfield> is set to the maximum that the hardware supports.
-+    If <structfield>start_block</structfield> is any
-+    value other than 0 then the error code EINVAL is set.</para>
-+
-+    <para>To disable an EDID you set <structfield>blocks</structfield> to 0. Depending on the
-+    hardware this will drive the hotplug pin low and/or block the source from reading the EDID
-+    data in some way. In any case, the end result is the same: the EDID is no longer available.
-+    </para>
-+
-+    <table pgwide="1" frame="none" id="v4l2-subdev-edid">
-+      <title>struct <structname>v4l2_subdev_edid</structname></title>
-+      <tgroup cols="3">
-+        &cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>pad</structfield></entry>
-+	    <entry>Pad for which to get/set the EDID blocks.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>start_block</structfield></entry>
-+	    <entry>Read the EDID from starting with this block. Must be 0 when setting
-+	    the EDID.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>blocks</structfield></entry>
-+	    <entry>The number of blocks to get or set. Must be less or equal to 255 (the
-+	    maximum block number defined by the standard). When you set the EDID and
-+	    <structfield>blocks</structfield> is 0, then the EDID is disabled or erased.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u8&nbsp;*</entry>
-+	    <entry><structfield>edid</structfield></entry>
-+	    <entry>Pointer to memory that contains the EDID. The minimum size is
-+	    <structfield>blocks</structfield>&nbsp;*&nbsp;128.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[5]</entry>
-+	    <entry>Reserved for future extensions. Applications and drivers must
-+	    set the array to zero.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+  </refsect1>
-+
-+  <refsect1>
-+    &return-value;
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><errorcode>ENODATA</errorcode></term>
-+	<listitem>
-+	  <para>The EDID data is not available.</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>E2BIG</errorcode></term>
-+	<listitem>
-+	  <para>The EDID data you provided is more than the hardware can handle.</para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+</refentry>
++/*
++ * preview_update_contrast - Updates the contrast.
++ * @contrast: Pointer to hold the current programmed contrast value.
+  *
++ * Value should be programmed before enabling the module.
+  */
+ static void
+-preview_update_brightness(struct isp_prev_device *prev, u8 brightness)
++preview_update_contrast(struct isp_prev_device *prev, u8 contrast)
+ {
+ 	struct prev_params *params;
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&prev->params.lock, flags);
+-	params = (prev->params.active & OMAP3ISP_PREV_BRIGHTNESS)
++	params = (prev->params.active & OMAP3ISP_PREV_CONTRAST)
+ 	       ? &prev->params.params[0] : &prev->params.params[1];
+ 
+-	if (params->brightness != (brightness * ISPPRV_BRIGHT_UNITS)) {
+-		params->brightness = brightness * ISPPRV_BRIGHT_UNITS;
+-		params->update |= OMAP3ISP_PREV_BRIGHTNESS;
++	if (params->contrast != (contrast * ISPPRV_CONTRAST_UNITS)) {
++		params->contrast = contrast * ISPPRV_CONTRAST_UNITS;
++		params->update |= OMAP3ISP_PREV_CONTRAST;
+ 	}
+ 	spin_unlock_irqrestore(&prev->params.lock, flags);
+ }
+ 
+ /*
+- * preview_config_brightness - Configure the Brightness
++ * preview_update_brightness - Updates the brightness in preview module.
++ * @brightness: Pointer to hold the current programmed brightness value.
++ *
+  */
+ static void
+-preview_config_brightness(struct isp_prev_device *prev,
+-			  const struct prev_params *params)
++preview_update_brightness(struct isp_prev_device *prev, u8 brightness)
+ {
+-	struct isp_device *isp = to_isp_device(prev);
+-
+-	isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_CNT_BRT,
+-			0xff << ISPPRV_CNT_BRT_BRT_SHIFT,
+-			params->brightness << ISPPRV_CNT_BRT_BRT_SHIFT);
+-}
++	struct prev_params *params;
++	unsigned long flags;
+ 
+-/*
+- * preview_config_yc_range - Configure the max and min Y and C values
+- */
+-static void
+-preview_config_yc_range(struct isp_prev_device *prev,
+-			const struct prev_params *params)
+-{
+-	struct isp_device *isp = to_isp_device(prev);
+-	const struct omap3isp_prev_yclimit *yc = &params->yclimit;
++	spin_lock_irqsave(&prev->params.lock, flags);
++	params = (prev->params.active & OMAP3ISP_PREV_BRIGHTNESS)
++	       ? &prev->params.params[0] : &prev->params.params[1];
+ 
+-	isp_reg_writel(isp,
+-		       yc->maxC << ISPPRV_SETUP_YC_MAXC_SHIFT |
+-		       yc->maxY << ISPPRV_SETUP_YC_MAXY_SHIFT |
+-		       yc->minC << ISPPRV_SETUP_YC_MINC_SHIFT |
+-		       yc->minY << ISPPRV_SETUP_YC_MINY_SHIFT,
+-		       OMAP3_ISP_IOMEM_PREV, ISPPRV_SETUP_YC);
++	if (params->brightness != (brightness * ISPPRV_BRIGHT_UNITS)) {
++		params->brightness = brightness * ISPPRV_BRIGHT_UNITS;
++		params->update |= OMAP3ISP_PREV_BRIGHTNESS;
++	}
++	spin_unlock_irqrestore(&prev->params.lock, flags);
+ }
+ 
+ static u32
 -- 
-1.7.10
+1.7.8.6
 
