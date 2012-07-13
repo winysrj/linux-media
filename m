@@ -1,38 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.tpi.com ([70.99.223.143]:3463 "EHLO mail.tpi.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752228Ab2GZSdl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jul 2012 14:33:41 -0400
-From: Tim Gardner <tim.gardner@canonical.com>
-To: linux-kernel@vger.kernel.org
-Cc: Tim Gardner <tim.gardner@canonical.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH] cx231xx: Declare MODULE_FIRMWARE usage
-Date: Thu, 26 Jul 2012 12:34:22 -0600
-Message-Id: <1343327662-95251-1-git-send-email-tim.gardner@canonical.com>
+Received: from acsinet15.oracle.com ([141.146.126.227]:26262 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755799Ab2GMLvb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Jul 2012 07:51:31 -0400
+Date: Fri, 13 Jul 2012 14:51:22 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: manjunatha_halli@ti.com
+Cc: linux-media@vger.kernel.org
+Subject: re: [media] drivers:media:radio: wl128x: FM Driver Common sources
+Message-ID: <20120713115121.GA27595@elgon.mountain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
----
- drivers/media/video/cx231xx/cx231xx-417.c |    2 ++
- 1 file changed, 2 insertions(+)
+Hello Manjunatha Halli,
 
-diff --git a/drivers/media/video/cx231xx/cx231xx-417.c b/drivers/media/video/cx231xx/cx231xx-417.c
-index ce2f622..b024e51 100644
---- a/drivers/media/video/cx231xx/cx231xx-417.c
-+++ b/drivers/media/video/cx231xx/cx231xx-417.c
-@@ -2193,3 +2193,5 @@ int cx231xx_417_register(struct cx231xx *dev)
- 
- 	return 0;
- }
-+
-+MODULE_FIRMWARE(CX231xx_FIRM_IMAGE_NAME);
--- 
-1.7.9.5
+The patch e8454ff7b9a4: "[media] drivers:media:radio: wl128x: FM
+Driver Common sources" from Jan 11, 2011, leads to the following
+warning:
+drivers/media/radio/wl128x/fmdrv_common.c:596 fm_irq_handle_flag_getcmd_resp()
+	 error: untrusted 'fm_evt_hdr->dlen' is not capped properly
 
+[ this is on my private Smatch stuff with too many false positives for
+  general release ].
+
+   584  static void fm_irq_handle_flag_getcmd_resp(struct fmdev *fmdev)
+   585  {
+   586          struct sk_buff *skb;
+   587          struct fm_event_msg_hdr *fm_evt_hdr;
+   588  
+   589          if (check_cmdresp_status(fmdev, &skb))
+   590                  return;
+   591  
+   592          fm_evt_hdr = (void *)skb->data;
+   593  
+   594          /* Skip header info and copy only response data */
+   595          skb_pull(skb, sizeof(struct fm_event_msg_hdr));
+   596          memcpy(&fmdev->irq_info.flag, skb->data, fm_evt_hdr->dlen);
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+   597  
+   598          fmdev->irq_info.flag = be16_to_cpu(fmdev->irq_info.flag);
+   599          fmdbg("irq: flag register(0x%x)\n", fmdev->irq_info.flag);
+   600  
+   601          /* Continue next function in interrupt handler table */
+   602          fm_irq_call_stage(fmdev, FM_HW_MAL_FUNC_IDX);
+   603  }
+
+What are we copying here?  How do we know that ->dlen doesn't overflow
+the buffer?  Why do we memcpy() and the overwrite part of the data on
+the next line?
+
+regards,
+dan carpenter
