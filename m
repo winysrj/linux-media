@@ -1,43 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm9.bullet.mail.ird.yahoo.com ([77.238.189.35]:46011 "HELO
-	nm9.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753292Ab2GPWVO convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jul 2012 18:21:14 -0400
-Message-ID: <1342477272.58502.YahooMailClassic@web29403.mail.ird.yahoo.com>
-Date: Mon, 16 Jul 2012 23:21:12 +0100 (BST)
-From: Hin-Tak Leung <htl10@users.sourceforge.net>
-Reply-To: htl10@users.sourceforge.net
-Subject: patches to media_build, and a few other things
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58835 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753201Ab2GMLhk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Jul 2012 07:37:40 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Jean-Philippe Francois <jp.francois@cynove.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v3 2/6] omap3isp: preview: Remove lens shading compensation support
+Date: Fri, 13 Jul 2012 13:37:34 +0200
+Message-Id: <1342179458-1037-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1342179458-1037-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1342179458-1037-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have a couple of patches to my local media_build repo, which do these:
+The feature isn't fully implemented and doesn't work, remove it.
 
-- a new option "--as-is" to the build script. It basically suppresses any git pull/rebase to both media_build and the ./media subdirectory (if used in combination with --main-git). In combination to --main-git, you are left on your own and be wholy responsible about what is inside ./media - I use that to check Antti's work (which is on a branch), and also since I have some interrim patches to media_build itself, I would prefer I can tell it not to  pull/merge .
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/omap3isp/isppreview.c |   18 +-----------------
+ 1 files changed, 1 insertions(+), 17 deletions(-)
 
-- a small change to v4l/Makefile , to install under /lib/modules/$(KERNELRELEASE)/updates/... - recent fedora seems to have a modprobe preference to load from "../updates/..." (or at least, that's the case of having installed compat-wireless at some stage - one might want to steal some code from that?), when more than one kernel module of the same name exists. This is so as not to trash distro-shipped modules (and also if one cleans out ".../updates/..." and runs "depmod -a", one is back to distro as shipped behavior). Also trashing distro-shipped modules have the side-effect of making drpm not to work and whole kernel packages are downloaded in the next "yum upgrade".
+diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
+index a06af90..75eeafa 100644
+--- a/drivers/media/video/omap3isp/isppreview.c
++++ b/drivers/media/video/omap3isp/isppreview.c
+@@ -215,22 +215,6 @@ preview_enable_drkframe(struct isp_prev_device *prev, u8 enable)
+ }
+ 
+ /*
+- * preview_config_drkf_shadcomp - Configures shift value in shading comp.
+- * @scomp_shtval: 3bit value of shift used in shading compensation.
+- */
+-static void
+-preview_config_drkf_shadcomp(struct isp_prev_device *prev,
+-			     const void *scomp_shtval)
+-{
+-	struct isp_device *isp = to_isp_device(prev);
+-	const u32 *shtval = scomp_shtval;
+-
+-	isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+-			ISPPRV_PCR_SCOMP_SFT_MASK,
+-			*shtval << ISPPRV_PCR_SCOMP_SFT_SHIFT);
+-}
+-
+-/*
+  * preview_enable_hmed - Enables/Disables of the Horizontal Median Filter.
+  * @enable: 1 - Enables Horizontal Median Filter.
+  */
+@@ -870,7 +854,7 @@ static const struct preview_update update_attrs[] = {
+ 		NULL,
+ 		preview_enable_drkframe,
+ 	}, /* OMAP3ISP_PREV_LENS_SHADING */ {
+-		preview_config_drkf_shadcomp,
++		NULL,
+ 		preview_enable_drkframe,
+ 	}, /* OMAP3ISP_PREV_NF */ {
+ 		preview_config_noisefilter,
+-- 
+1.7.8.6
 
-I also have a suggestion to make:
-
-- How http://linux/linuxtv.org/downloads/drivers/linux-media-LATEST.tar.bz2
-is generated, probably should be documented. Over the weekend I was playing with one with timestamp Jul 7, and it is quite broken with firstly header files not in the right place (linux/v4l2-common.h instead of media/v4l2-common.h), and also the following:
-
-media_build/v4l/../linux/include/media/v4l2-dev.h:127:2: error: unknown type name 'v4l2_std_id'
-media_build/v4l/../linux/include/media/v4l2-dev.h:128:2: error: unknown type name 'v4l2_std_id'
-media_build/v4l/../linux/include/media/v4l2-dev.h:135:32: error: 'BASE_VIDIOC_PRIVATE' undeclared here (not in a function)
-
-I see that the Jul 16 version has both of these issues fixed... but I am not against having a look myself if it is urgent enough for me (considered that it was broken for 9 days).
-
-- a few of the firmware files are newer/different than distro-shipped... I am less bothered by it trashing distro-shipped packaged files as the linux-firmware package is rarely upgraded. But maybe one can try pushing some of that upstream?
-
-The last one, something for Antti to figure out:
-
-- I found that that part of backports/api_version.patch, which changes LINUX_VERSION_CODE to V4L2_VERSION in drivers/media/video/v4l2-ioctl.c, is relocated from line 930-ish in http://linux/linuxtv.org/downloads/drivers/linux-media-LATEST.tar.bz2 to 
-line 590-ish in Antti's dvb_core branch. So there are commits which are in 
-linux-media-LATEST.tar.bz2 and not in Antti's branch or vice versa. (so that's any reason who one wants to know how linux-media-LATEST.tar.bz2 is made).
