@@ -1,130 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:54907 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752945Ab2G1QyV (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:60145 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932250Ab2GMB2R (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Jul 2012 12:54:21 -0400
-Subject: Re: [PATCH v3] cx18: Declare MODULE_FIRMWARE usage
-From: Andy Walls <awalls@md.metrocast.net>
-To: Tim Gardner <tim.gardner@canonical.com>
-Cc: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
-Date: Sat, 28 Jul 2012 12:53:45 -0400
-In-Reply-To: <1343407521-45720-1-git-send-email-tim.gardner@canonical.com>
-References: <1343340453.2575.10.camel@palomino.walls.org>
-	 <1343407521-45720-1-git-send-email-tim.gardner@canonical.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Message-ID: <1343494426.2476.13.camel@palomino.walls.org>
-Mime-Version: 1.0
+	Thu, 12 Jul 2012 21:28:17 -0400
+Received: by pbbrp8 with SMTP id rp8so4610787pbb.19
+        for <linux-media@vger.kernel.org>; Thu, 12 Jul 2012 18:28:17 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.1207122256290.19866@axis700.grange>
+References: <1341994155.3522.16.camel@dabdike.int.hansenpartnership.com>
+	<20120712161820.GA4488@sirena.org.uk>
+	<CAOesGMgg6CoxY-RHGnXfpG8y3sqnn-Q=3xY0X=mov41wme7w8Q@mail.gmail.com>
+	<201207122103.01910.hverkuil@xs4all.nl>
+	<Pine.LNX.4.64.1207122256290.19866@axis700.grange>
+Date: Thu, 12 Jul 2012 18:28:16 -0700
+Message-ID: <CAOesGMi9r_a+JqDk2_n64EDSE4dCMnJc-kXzo__xLQgD_LXMWQ@mail.gmail.com>
+Subject: Re: [Ksummit-2012-discuss] Media system Summit
+From: Olof Johansson <olof@lixom.net>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	KS2012 <ksummit-2012-discuss@lists.linux-foundation.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Grant Likely <grant.likely@secretlab.ca>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2012-07-27 at 10:45 -0600, Tim Gardner wrote:
-> Cc: Andy Walls <awalls@md.metrocast.net>
+On Thu, Jul 12, 2012 at 2:05 PM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> On Thu, 12 Jul 2012, Hans Verkuil wrote:
+>
+>> On Thu July 12 2012 18:48:23 Olof Johansson wrote:
+>> > On Thu, Jul 12, 2012 at 9:18 AM, Mark Brown
+>> > <broonie@opensource.wolfsonmicro.com> wrote:
+>> > > On Thu, Jul 12, 2012 at 10:08:04AM +0200, Sylwester Nawrocki wrote:
+>> > >
+>> > >> I'd like to add a "Common device tree bindings for media devices" topic to
+>> > >> the agenda for consideration.
+>> > >
+>> > > It'd be nice to get this to join up with ASoC...
+>> >
+>> >
+>> > There's a handful of various subsystems that have similar topics,
+>> > maybe slice it the other way and do a device-tree/ACPI breakout that
+>> > cuts across the various areas instead?
+>> >
+>> > Communication really needs to be two-way: Crafting good bindings for a
+>> > complex piece of hardware isn't trivial and having someone know both
+>> > the subsystem and device tree principles is rare. At least getting all
+>> > those people into the same room would be good.
+>>
+>> I'm not so sure: I think that most decisions that need to be made are
+>> quite subsystem specific. Trying to figure out how to implement DT for
+>> multiple subsystems in one workshop seems unlikely to succeed, simply
+>> because of lack of time. I also don't think there is much overlap between
+>> subsystems in this respect, so while the DT implementation for one subsystem
+>> is discussed, the representatives of other subsystems are twiddling their
+>> thumbs.
+>>
+>> It might be more productive to have one or two DT experts around who
+>> rotate over the various workshops that have to deal with the DT and can
+>> offer advice.
+>
+> I'm sure everyone has seen this, but just to have it mentioned here:
+>
+> <a
+> href="http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/50755">
+> shameless self-advertisement</a>
 
-Acked-by: Andy Walls <awalls@md.metrocast.net>
+I hadn't seen it, since you didn't cc devicetree-discuss. Well, I'm
+also generally behind on list email right now since I am travelling
+but I couldn't find it in any list folder I subscribe to.
 
-Regards,
-Andy
+> As for whether or not discuss DT for various subsystems together - why not
+> do both? First short sessions in each subsystems, of course, this would
+> only work if proposals have been prepared beforehand and at least
+> preliminary discussions on the MLs have taken place, and then another
+> (also short) combined session? Of course, it also depends on how much time
+> we can and want to dedicate to this.
 
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: ivtv-devel@ivtvdriver.org
-> Cc: linux-media@vger.kernel.org
-> Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
-> ---
->  drivers/media/video/cx18/cx18-av-firmware.c |    2 ++
->  drivers/media/video/cx18/cx18-driver.c      |    1 +
->  drivers/media/video/cx18/cx18-dvb.c         |    6 +++++-
->  drivers/media/video/cx18/cx18-firmware.c    |   10 ++++++++--
->  4 files changed, 16 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/video/cx18/cx18-av-firmware.c b/drivers/media/video/cx18/cx18-av-firmware.c
-> index 280aa4d..a34fd08 100644
-> --- a/drivers/media/video/cx18/cx18-av-firmware.c
-> +++ b/drivers/media/video/cx18/cx18-av-firmware.c
-> @@ -221,3 +221,5 @@ int cx18_av_loadfw(struct cx18 *cx)
->  	release_firmware(fw);
->  	return 0;
->  }
-> +
-> +MODULE_FIRMWARE(FWFILE);
-> diff --git a/drivers/media/video/cx18/cx18-driver.c b/drivers/media/video/cx18/cx18-driver.c
-> index 7e5ffd6..c67733d 100644
-> --- a/drivers/media/video/cx18/cx18-driver.c
-> +++ b/drivers/media/video/cx18/cx18-driver.c
-> @@ -1357,3 +1357,4 @@ static void __exit module_cleanup(void)
->  
->  module_init(module_start);
->  module_exit(module_cleanup);
-> +MODULE_FIRMWARE(XC2028_DEFAULT_FIRMWARE);
-> diff --git a/drivers/media/video/cx18/cx18-dvb.c b/drivers/media/video/cx18/cx18-dvb.c
-> index f41922b..3eac59c 100644
-> --- a/drivers/media/video/cx18/cx18-dvb.c
-> +++ b/drivers/media/video/cx18/cx18-dvb.c
-> @@ -40,6 +40,8 @@
->  
->  DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
->  
-> +#define FWFILE "dvb-cx18-mpc718-mt352.fw"
-> +
->  #define CX18_REG_DMUX_NUM_PORT_0_CONTROL 0xd5a000
->  #define CX18_CLOCK_ENABLE2		 0xc71024
->  #define CX18_DMUX_CLK_MASK		 0x0080
-> @@ -135,7 +137,7 @@ static int yuan_mpc718_mt352_reqfw(struct cx18_stream *stream,
->  				   const struct firmware **fw)
->  {
->  	struct cx18 *cx = stream->cx;
-> -	const char *fn = "dvb-cx18-mpc718-mt352.fw";
-> +	const char *fn = FWFILE;
->  	int ret;
->  
->  	ret = request_firmware(fw, fn, &cx->pci_dev->dev);
-> @@ -603,3 +605,5 @@ static int dvb_register(struct cx18_stream *stream)
->  
->  	return ret;
->  }
-> +
-> +MODULE_FIRMWARE(FWFILE);
-> diff --git a/drivers/media/video/cx18/cx18-firmware.c b/drivers/media/video/cx18/cx18-firmware.c
-> index b85c292..a1c1cec 100644
-> --- a/drivers/media/video/cx18/cx18-firmware.c
-> +++ b/drivers/media/video/cx18/cx18-firmware.c
-> @@ -376,6 +376,9 @@ void cx18_init_memory(struct cx18 *cx)
->  	cx18_write_reg(cx, 0x00000101, CX18_WMB_CLIENT14);  /* AVO */
->  }
->  
-> +#define CX18_CPU_FIRMWARE "v4l-cx23418-cpu.fw"
-> +#define CX18_APU_FIRMWARE "v4l-cx23418-apu.fw"
-> +
->  int cx18_firmware_init(struct cx18 *cx)
->  {
->  	u32 fw_entry_addr;
-> @@ -400,7 +403,7 @@ int cx18_firmware_init(struct cx18 *cx)
->  	cx18_sw1_irq_enable(cx, IRQ_CPU_TO_EPU | IRQ_APU_TO_EPU);
->  	cx18_sw2_irq_enable(cx, IRQ_CPU_TO_EPU_ACK | IRQ_APU_TO_EPU_ACK);
->  
-> -	sz = load_cpu_fw_direct("v4l-cx23418-cpu.fw", cx->enc_mem, cx);
-> +	sz = load_cpu_fw_direct(CX18_CPU_FIRMWARE, cx->enc_mem, cx);
->  	if (sz <= 0)
->  		return sz;
->  
-> @@ -408,7 +411,7 @@ int cx18_firmware_init(struct cx18 *cx)
->  	cx18_init_scb(cx);
->  
->  	fw_entry_addr = 0;
-> -	sz = load_apu_fw_direct("v4l-cx23418-apu.fw", cx->enc_mem, cx,
-> +	sz = load_apu_fw_direct(CX18_APU_FIRMWARE, cx->enc_mem, cx,
->  				&fw_entry_addr);
->  	if (sz <= 0)
->  		return sz;
-> @@ -451,3 +454,6 @@ int cx18_firmware_init(struct cx18 *cx)
->  	cx18_write_reg_expect(cx, 0x14001400, 0xc78110, 0x00001400, 0x14001400);
->  	return 0;
->  }
-> +
-> +MODULE_FIRMWARE(CX18_CPU_FIRMWARE);
-> +MODULE_FIRMWARE(CX18_APU_FIRMWARE);
+The agenda for such a day should probably be partially broken down per
+subsystem, yes, and it would make sense for people from the various
+areas to describe the kind of setup that they need to be able to
+define, similar to how you did in your writeup above.
+
+In some cases it would be a matter of in-person
+review/discussion/arguments of already proposed bindings, in other
+cases it would probably be a seeding discussion for upcoming bindings
+instead. Having the latter piggy-back on hearing what's discussed with
+the former category would likely be a good idea.
 
 
+-Olof
