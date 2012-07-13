@@ -1,71 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:24853 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752181Ab2GFNqi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 09:46:38 -0400
-Received: from epcpsbgm2.samsung.com (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M6Q00FTIRLNIX00@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Fri, 06 Jul 2012 22:46:37 +0900 (KST)
-Received: from localhost.localdomain ([107.108.73.106])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M6Q00L9JRLECT00@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 06 Jul 2012 22:46:37 +0900 (KST)
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: jtp.park@samsung.com, janghyuck.kim@samsung.com,
-	jaeryul.oh@samsung.com, ch.naveen@samsung.com, arun.kk@samsung.com,
-	m.szyprowski@samsung.com, k.debski@samsung.com,
-	s.nawrocki@samsung.com, hans.verkuil@cisco.com,
-	mchehab@infradead.org
-Subject: [PATCH v2 0/2] update MFC v4l2 driver to support MFC6.x
-Date: Fri, 06 Jul 2012 19:30:15 +0530
-Message-id: <1341583217-11305-1-git-send-email-arun.kk@samsung.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:45241 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759273Ab2GMBU2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jul 2012 21:20:28 -0400
+Received: by pbbrp8 with SMTP id rp8so4601152pbb.19
+        for <linux-media@vger.kernel.org>; Thu, 12 Jul 2012 18:20:27 -0700 (PDT)
+MIME-Version: 1.0
+Date: Thu, 12 Jul 2012 18:20:27 -0700
+Message-ID: <CAOesGMgs7sBn=Tfk6YP7BE=O0s8qQrz17n-GfEi_Vr2HDy6xZA@mail.gmail.com>
+Subject: Device-tree cross-subsystem binding workshop [was Media system Summit]
+From: Olof Johansson <olof@lixom.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	KS2012 <ksummit-2012-discuss@lists.linux-foundation.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Grant Likely <grant.likely@secretlab.ca>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is the v2 series of patches for adding support for MFC v6.x.
-In this the new v4l controls added in patch [1] are removed. These can be
-added as a separate patch later for providing extra encoder controls for
-MFC v6. This also incorporates the review comments received for the original
-patch and fixed for backward compatibility with MFC v5.
+On Thu, Jul 12, 2012 at 12:03 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Thu July 12 2012 18:48:23 Olof Johansson wrote:
+>> On Thu, Jul 12, 2012 at 9:18 AM, Mark Brown
+>> <broonie@opensource.wolfsonmicro.com> wrote:
+>> > On Thu, Jul 12, 2012 at 10:08:04AM +0200, Sylwester Nawrocki wrote:
+>> >
+>> >> I'd like to add a "Common device tree bindings for media devices" topic to
+>> >> the agenda for consideration.
+>> >
+>> > It'd be nice to get this to join up with ASoC...
+>>
+>>
+>> There's a handful of various subsystems that have similar topics,
+>> maybe slice it the other way and do a device-tree/ACPI breakout that
+>> cuts across the various areas instead?
+>>
+>> Communication really needs to be two-way: Crafting good bindings for a
+>> complex piece of hardware isn't trivial and having someone know both
+>> the subsystem and device tree principles is rare. At least getting all
+>> those people into the same room would be good.
+>
+> I'm not so sure: I think that most decisions that need to be made are
+> quite subsystem specific. Trying to figure out how to implement DT for
+> multiple subsystems in one workshop seems unlikely to succeed, simply
+> because of lack of time. I also don't think there is much overlap between
+> subsystems in this respect, so while the DT implementation for one subsystem
+> is discussed, the representatives of other subsystems are twiddling their
+> thumbs.
+>
+> It might be more productive to have one or two DT experts around who
+> rotate over the various workshops that have to deal with the DT and can
+> offer advice.
 
-[1] http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/45190/
+One of the real problems right now is the lack of DT reviewers and
+general reviewer fatigue. In particular, many of the proposed bindings
+tend to have the same issues (focusing too much on how the
+platform_data is structured today and not on what the hardware
+actually is), and a few other similar things.
 
-Jeongtae Park (2):
-  [media] v4l: add fourcc definitions for new formats
-  [media] s5p-mfc: update MFC v4l2 driver to support MFC6.x
+Based on that I don't think it's a better solution to have the same
+few people walk from room to room to cover the same thing multiple
+times. No one has to sit there the whole day and listen on it all, but
+for those who are genuinely interested in how other subsystems will
+handle these bindings, I think it would be very useful to learn from
+how they made their decisions. Don't work in a vacuum, etc.
 
- drivers/media/video/Kconfig                  |   16 +-
- drivers/media/video/s5p-mfc/Makefile         |    7 +-
- drivers/media/video/s5p-mfc/regs-mfc-v6.h    |  676 ++++++++++
- drivers/media/video/s5p-mfc/regs-mfc.h       |   29 +
- drivers/media/video/s5p-mfc/s5p_mfc.c        |  163 ++-
- drivers/media/video/s5p-mfc/s5p_mfc_cmd.c    |    6 +-
- drivers/media/video/s5p-mfc/s5p_mfc_cmd.h    |    3 +
- drivers/media/video/s5p-mfc/s5p_mfc_cmd_v6.c |   96 ++
- drivers/media/video/s5p-mfc/s5p_mfc_common.h |  123 ++-
- drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c   |  160 ++-
- drivers/media/video/s5p-mfc/s5p_mfc_ctrl.h   |    1 +
- drivers/media/video/s5p-mfc/s5p_mfc_dec.c    |  210 +++-
- drivers/media/video/s5p-mfc/s5p_mfc_dec.h    |    1 +
- drivers/media/video/s5p-mfc/s5p_mfc_enc.c    |  191 ++--
- drivers/media/video/s5p-mfc/s5p_mfc_enc.h    |    1 +
- drivers/media/video/s5p-mfc/s5p_mfc_intr.c   |    1 -
- drivers/media/video/s5p-mfc/s5p_mfc_opr.c    |  278 +++--
- drivers/media/video/s5p-mfc/s5p_mfc_opr.h    |   25 +-
- drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.c | 1697 ++++++++++++++++++++++++++
- drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.h |  140 +++
- drivers/media/video/s5p-mfc/s5p_mfc_pm.c     |    6 +-
- drivers/media/video/s5p-mfc/s5p_mfc_shm.c    |   28 +-
- drivers/media/video/s5p-mfc/s5p_mfc_shm.h    |   13 +-
- drivers/media/video/v4l2-ctrls.c             |    1 -
- include/linux/videodev2.h                    |    4 +
- 25 files changed, 3480 insertions(+), 396 deletions(-)
- create mode 100644 drivers/media/video/s5p-mfc/regs-mfc-v6.h
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_cmd_v6.c
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.c
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.h
+So, I'd like to formally propose this as a mini-summit or workshop or
+whatever you might want to call it. I can help organize it together
+with Rob and Grant if needed (especially since Grant has a lot of
+other things going on at the moment).
 
+If there's insufficent interest to do this as a separate event we can
+try to accomodate for it as part of the ARM mini-summit, but squeezing
+all of that in with the rest of the ARM activities in one day will be
+hard.
+
+
+-Olof
