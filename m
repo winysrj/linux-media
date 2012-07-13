@@ -1,130 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ftp.meprolight.com ([194.90.149.17]:37124 "EHLO meprolight.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754557Ab2G3PRO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jul 2012 11:17:14 -0400
-From: Alex Gershgorin <alexg@meprolight.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: <g.liakhovetski@gmx.de>, <linux-media@vger.kernel.org>,
-	Alex Gershgorin <alexg@meprolight.com>
-Subject: [PATCH] mt9v022: Add support for mt9v024
-Date: Mon, 30 Jul 2012 18:00:57 +0300
-Message-ID: <1343660457-7238-1-git-send-email-alexg@meprolight.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from haggis.pcug.org.au ([203.10.76.10]:60571 "EHLO
+	members.tip.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753271Ab2GMBZl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jul 2012 21:25:41 -0400
+Date: Fri, 13 Jul 2012 11:25:30 +1000
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] Use a named union in struct v4l2_ioctl_info
+Message-Id: <20120713112530.046231a137c32480d5512954@canb.auug.org.au>
+In-Reply-To: <201207121806.24955.hverkuil@xs4all.nl>
+References: <201207121806.24955.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA256";
+ boundary="Signature=_Fri__13_Jul_2012_11_25_30_+1000_ewbZxarh/_kwNrXS"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch has been successfully tested
+--Signature=_Fri__13_Jul_2012_11_25_30_+1000_ewbZxarh/_kwNrXS
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
----
- drivers/media/video/Kconfig   |    2 +-
- drivers/media/video/mt9v022.c |   28 ++++++++++++++++++----------
- 2 files changed, 19 insertions(+), 11 deletions(-)
+Hi Hans,
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 99937c9..38d6944 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -1013,7 +1013,7 @@ config SOC_CAMERA_MT9T112
- 	  This driver supports MT9T112 cameras from Aptina.
- 
- config SOC_CAMERA_MT9V022
--	tristate "mt9v022 support"
-+	tristate "mt9v022 and mt9v024 support"
- 	depends on SOC_CAMERA && I2C
- 	select GPIO_PCA953X if MT9V022_PCA9536_SWITCH
- 	help
-diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
-index bf63417..d2c1ab1 100644
---- a/drivers/media/video/mt9v022.c
-+++ b/drivers/media/video/mt9v022.c
-@@ -26,7 +26,7 @@
-  * The platform has to define ctruct i2c_board_info objects and link to them
-  * from struct soc_camera_link
-  */
--
-+static s32 chip_id;
- static char *sensor_type;
- module_param(sensor_type, charp, S_IRUGO);
- MODULE_PARM_DESC(sensor_type, "Sensor type: \"colour\" or \"monochrome\"");
-@@ -57,6 +57,10 @@ MODULE_PARM_DESC(sensor_type, "Sensor type: \"colour\" or \"monochrome\"");
- #define MT9V022_AEC_AGC_ENABLE		0xAF
- #define MT9V022_MAX_TOTAL_SHUTTER_WIDTH	0xBD
- 
-+/* mt9v024 partial list register addresses changes with respect to mt9v022 */
-+#define MT9V024_PIXCLK_FV_LV		0x72
-+#define MT9V024_MAX_TOTAL_SHUTTER_WIDTH	0xAD
-+
- /* Progressive scan, master, defaults */
- #define MT9V022_CHIP_CONTROL_DEFAULT	0x188
- 
-@@ -185,7 +189,9 @@ static int mt9v022_init(struct i2c_client *client)
- 	if (!ret)
- 		ret = reg_write(client, MT9V022_TOTAL_SHUTTER_WIDTH, 480);
- 	if (!ret)
--		ret = reg_write(client, MT9V022_MAX_TOTAL_SHUTTER_WIDTH, 480);
-+		ret = reg_write(client, (chip_id == 0x1324) ?
-+				MT9V024_MAX_TOTAL_SHUTTER_WIDTH :
-+				MT9V022_MAX_TOTAL_SHUTTER_WIDTH, 480);
- 	if (!ret)
- 		/* default - auto */
- 		ret = reg_clear(client, MT9V022_BLACK_LEVEL_CALIB_CTRL, 1);
-@@ -238,8 +244,10 @@ static int mt9v022_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
- 	ret = reg_read(client, MT9V022_AEC_AGC_ENABLE);
- 	if (ret >= 0) {
- 		if (ret & 1) /* Autoexposure */
--			ret = reg_write(client, MT9V022_MAX_TOTAL_SHUTTER_WIDTH,
--					rect.height + mt9v022->y_skip_top + 43);
-+			ret = reg_write(client, (chip_id == 0x1324) ?
-+				MT9V024_MAX_TOTAL_SHUTTER_WIDTH :
-+				MT9V022_MAX_TOTAL_SHUTTER_WIDTH,
-+				rect.height + mt9v022->y_skip_top + 43);
- 		else
- 			ret = reg_write(client, MT9V022_TOTAL_SHUTTER_WIDTH,
- 					rect.height + mt9v022->y_skip_top + 43);
-@@ -566,18 +574,17 @@ static int mt9v022_video_probe(struct i2c_client *client)
- {
- 	struct mt9v022 *mt9v022 = to_mt9v022(client);
- 	struct soc_camera_link *icl = soc_camera_i2c_to_link(client);
--	s32 data;
- 	int ret;
- 	unsigned long flags;
- 
- 	/* Read out the chip version register */
--	data = reg_read(client, MT9V022_CHIP_VERSION);
-+	chip_id = reg_read(client, MT9V022_CHIP_VERSION);
- 
- 	/* must be 0x1311 or 0x1313 */
--	if (data != 0x1311 && data != 0x1313) {
-+	if (chip_id != 0x1311 && chip_id != 0x1313 && chip_id != 0x1324) {
- 		ret = -ENODEV;
- 		dev_info(&client->dev, "No MT9V022 found, ID register 0x%x\n",
--			 data);
-+			 chip_id);
- 		goto ei2c;
- 	}
- 
-@@ -632,7 +639,7 @@ static int mt9v022_video_probe(struct i2c_client *client)
- 	mt9v022->fmt = &mt9v022->fmts[0];
- 
- 	dev_info(&client->dev, "Detected a MT9V022 chip ID %x, %s sensor\n",
--		 data, mt9v022->model == V4L2_IDENT_MT9V022IX7ATM ?
-+		 chip_id, mt9v022->model == V4L2_IDENT_MT9V022IX7ATM ?
- 		 "monochrome" : "colour");
- 
- 	ret = mt9v022_init(client);
-@@ -728,7 +735,8 @@ static int mt9v022_s_mbus_config(struct v4l2_subdev *sd,
- 	if (!(flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH))
- 		pixclk |= 0x2;
- 
--	ret = reg_write(client, MT9V022_PIXCLK_FV_LV, pixclk);
-+	ret = reg_write(client, (chip_id == 0x1324) ? MT9V024_PIXCLK_FV_LV :
-+			MT9V022_PIXCLK_FV_LV, pixclk);
- 	if (ret < 0)
- 		return ret;
- 
--- 
-1.7.0.4
+On Thu, 12 Jul 2012 18:06:24 +0200 Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> struct v4l2_ioctl_info uses an anonymous union, which is initialized
+> in the v4l2_ioctls table.
+>=20
+> Unfortunately gcc < 4.6 uses a non-standard syntax for that, so trying to
+> compile v4l2-ioctl.c with an older gcc will fail.
+>=20
+> It is possible to work around this by testing the gcc version, but in this
+> case it is easier to make the union named since it is used in only a few
+> places.
+>=20
+> Randy, Stephen, this patch should solve the v4l2-ioctl.c compilation prob=
+lem
+> in linux-next. Since Mauro is still on holiday you'll have to apply it ma=
+nually.
 
+I have added this as a merge fix for today.
+
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+
+--Signature=_Fri__13_Jul_2012_11_25_30_+1000_ewbZxarh/_kwNrXS
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBCAAGBQJP/3kKAAoJEECxmPOUX5FEqoMQAIIKqo7l2NtIGbWKgGB0r8Jv
+ezH2XqONcFKguUgmtRBgJPCetxgO6QbylpMOYMf+MwzPsUd+S0e6sUWqMf0xMtVG
+VJt+z4LRv5xv+tW1GB40Cxt7v+6hZBihEE5ix4nVwWnArO/Ohv7svYI/zWlSCBuq
+kKXqF4nvVA0cOJJ2Cr08ODyBOaV91WOifV4+UBiPfcUbuCF6xKX2snbbIbwEq122
+CCo4qObUmzSF5wMV9bFh4sD3y1q45RkNEfC5z09ULl59fIKEqBomwSJnn1PW4hUy
+ZenjBqVW46MlO5diC/ikcVOaUAL16+T9fgpVL5yDrabFpsZ/QCL89mq0ew4Xsx1U
+O+ji7Yj6JgXn938FkDdsf9qxiNnu1PnNMyCm0T4DCGVXwukyTd+YELiSo8q8QRrd
+hhRvyZaHPfuZCzZMglAPAom8Dm7V7F40Q+QGMfcbT2+qaLGTGcRAK+NtR7dIIkvl
+/HZP7uOawuBSuhM7oY42z+ua9fpoSpO4LQrARHVOPuJ2w8a6WHnytxxGZaxdzrWZ
+VYLTsGrmLAgDay+ZNxeS7PtQjLQcuzJPRc3VPco/IcGZJ7W8xL6wvRPpeZ1rLw5K
+cnc0Uo8wuld5pPOKKOWINlir9aGoFyFk9Oz85BPstXxcHQSQfbxEjfYZD8QVlpwm
+EVnM98DqdaKHns8mLWvT
+=Y3pv
+-----END PGP SIGNATURE-----
+
+--Signature=_Fri__13_Jul_2012_11_25_30_+1000_ewbZxarh/_kwNrXS--
