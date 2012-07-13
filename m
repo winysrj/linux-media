@@ -1,63 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52874 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754574Ab2GRNyD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jul 2012 09:54:03 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH v3 2/9] soc-camera: Pass the physical device to the power operation
-Date: Wed, 18 Jul 2012 15:53:57 +0200
-Message-Id: <1342619644-5712-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1342619644-5712-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1342619644-5712-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from smtp.nokia.com ([147.243.128.26]:29898 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933050Ab2GMMnl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Jul 2012 08:43:41 -0400
+Message-ID: <50001810.4020200@iki.fi>
+Date: Fri, 13 Jul 2012 15:44:00 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org,
+	Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
+Subject: Re: [PATCH] omap3isp: preview: Fix output size computation depending
+ on input format
+References: <1341510334-9791-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1341510334-9791-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There will be no soc_camera_device instance with a soc-camera device is
-used with a non soc-camera host, so we won't be able to pass the
-soc_camera_device fake platform device to board code. Pass the physical
-device instead.
+Laurent Pinchart wrote:
+> The preview engine crops 4 columns and 4 lines when CFA is enabled.
+> Commit b2da46e52fe7871cba36e1a435844502c0eccf39 ("omap3isp: preview: Add
+> support for greyscale input") inverted the condition by mistake, fix
+> this.
+> 
+> Reported-by: Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-The argument is currently not used by any board file so this is safe.
+Thanks!
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/soc_camera.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index e7c6809..b03ffec 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -62,7 +62,7 @@ static int soc_camera_power_on(struct soc_camera_device *icd,
- 	}
- 
- 	if (icl->power) {
--		ret = icl->power(icd->pdev, 1);
-+		ret = icl->power(icd->control, 1);
- 		if (ret < 0) {
- 			dev_err(icd->pdev,
- 				"Platform failed to power-on the camera.\n");
-@@ -78,7 +78,7 @@ static int soc_camera_power_on(struct soc_camera_device *icd,
- 
- esdpwr:
- 	if (icl->power)
--		icl->power(icd->pdev, 0);
-+		icl->power(icd->control, 0);
- elinkpwr:
- 	regulator_bulk_disable(icl->num_regulators,
- 			       icl->regulators);
-@@ -95,7 +95,7 @@ static int soc_camera_power_off(struct soc_camera_device *icd,
- 		return ret;
- 
- 	if (icl->power) {
--		ret = icl->power(icd->pdev, 0);
-+		ret = icl->power(icd->control, 0);
- 		if (ret < 0) {
- 			dev_err(icd->pdev,
- 				"Platform failed to power-off the camera.\n");
 -- 
-1.7.8.6
+Sakari Ailus
+sakari.ailus@iki.fi
+
 
