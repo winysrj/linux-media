@@ -1,52 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:63853 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753094Ab2GTP2V (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:40740 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752029Ab2GNWiI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jul 2012 11:28:21 -0400
-Received: from epcpsbgm1.samsung.com (mailout4.samsung.com [203.254.224.34])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M7G00ASQTN87QJ0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Sat, 21 Jul 2012 00:28:20 +0900 (KST)
-Received: from localhost.localdomain ([106.116.147.39])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M7G00JMBTMU3P30@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Sat, 21 Jul 2012 00:28:20 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com, jtp.park@samsung.com,
-	Kamil Debski <k.debski@samsung.com>
-Subject: [PATCH 2/2] s5p-mfc: support for dmabuf exporting fix
-Date: Fri, 20 Jul 2012 17:28:04 +0200
-Message-id: <1342798084-2934-2-git-send-email-k.debski@samsung.com>
-In-reply-to: <1342798084-2934-1-git-send-email-k.debski@samsung.com>
-References: <1342798084-2934-1-git-send-email-k.debski@samsung.com>
+	Sat, 14 Jul 2012 18:38:08 -0400
+Received: by obbuo13 with SMTP id uo13so7039692obb.19
+        for <linux-media@vger.kernel.org>; Sat, 14 Jul 2012 15:38:08 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <c8d61d57-0582-455b-9e24-7f1c5e6049c7@email.android.com>
+References: <CALzAhNVDnyjwNqcWDcgv2kgQ97Hr0gArk8=V_mL62J0cD0Ydag@mail.gmail.com>
+	<c8d61d57-0582-455b-9e24-7f1c5e6049c7@email.android.com>
+Date: Sat, 14 Jul 2012 18:38:07 -0400
+Message-ID: <CALzAhNX9s9Hyqb9gX7fH2tkTwTqf8_Bs-doTT_Ro7EaiK3+pew@mail.gmail.com>
+Subject: Re: staging/for_v3.6 is currently broken
+From: Steven Toth <stoth@kernellabs.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Mauro Chehab <mchehab@infradead.org>,
+	Linux-Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Added "select DMA_SHARED_BUFFER" to the Kconfig of the MFC.
+On Sat, Jul 14, 2012 at 6:36 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+> Steven Toth <stoth@kernellabs.com> wrote:
+>
+>>Looks like the new union in v4l2_ioctl_info breaks things.
+>
+> I think Hans fixed it another way:
+>
+> http://www.spinics.net/lists/linux-media/msg50234.html
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/Kconfig |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Thanks Andy.
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 99937c9..33057e4 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -1200,6 +1200,7 @@ config VIDEO_SAMSUNG_S5P_JPEG
- config VIDEO_SAMSUNG_S5P_MFC
- 	tristate "Samsung S5P MFC 5.1 Video Codec"
- 	depends on VIDEO_DEV && VIDEO_V4L2 && PLAT_S5P
-+	select DMA_SHARED_BUFFER
- 	select VIDEOBUF2_DMA_CONTIG
- 	default n
- 	help
 -- 
-1.7.0.4
-
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
