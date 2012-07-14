@@ -1,50 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:35761 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751330Ab2GSMAz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jul 2012 08:00:55 -0400
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [RFC PATCH 6/6] v4l2-dev: G_PARM was incorrectly enabled for all video nodes.
-Date: Thu, 19 Jul 2012 14:00:24 +0200
-Message-Id: <3397e353a24c32221363ba1438ab03364c08b8a9.1342699069.git.hans.verkuil@cisco.com>
-In-Reply-To: <1342699224-12642-1-git-send-email-hans.verkuil@cisco.com>
-References: <1342699224-12642-1-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <903c0da0d6e7354d6f884f0ddec783143165e54c.1342699069.git.hans.verkuil@cisco.com>
-References: <903c0da0d6e7354d6f884f0ddec783143165e54c.1342699069.git.hans.verkuil@cisco.com>
+Received: from tex.lwn.net ([70.33.254.29]:35062 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752313Ab2GNRNg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Jul 2012 13:13:36 -0400
+Date: Sat, 14 Jul 2012 11:14:05 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Albert Wang <twang13@marvell.com>
+Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/7] media: mmp_camera: Add V4l2 camera driver for
+ Marvell PXA910/PXA688/PXA2128 CCIC
+Message-ID: <20120714111405.09164acc@tpl.lwn.net>
+In-Reply-To: <1342016549-23084-1-git-send-email-twang13@marvell.com>
+References: <1342016549-23084-1-git-send-email-twang13@marvell.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-G_PARM should only be enabled if:
+On Wed, 11 Jul 2012 22:22:29 +0800
+Albert Wang <twang13@marvell.com> wrote:
 
-- vidioc_g_parm is present
-- or: it is a video node and vidioc_g_std or tvnorms are set.
+> This v4l2 camera driver is based on soc-camera and videobuf2 framework
+> Support Marvell MMP Soc family TD-PXA910/MMP2-PXA688/MMP3-PXA2128 CCIC
+> Support Dual CCIC controllers on PXA688/PXA2128
+> Support MIPI-CSI2 mode and DVP-Parallel mode
 
-Without this additional check v4l2-compliance would complain about
-being able to use g_parm when it didn't expect it.
+This is going to be really quick.  Life is difficult here, I don't really
+have much time to put into anything.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/v4l2-dev.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+>  arch/arm/mach-mmp/include/mach/camera.h    |   21 +
 
-diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-index d13c47f..beadd97 100644
---- a/drivers/media/video/v4l2-dev.c
-+++ b/drivers/media/video/v4l2-dev.c
-@@ -697,7 +697,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 	SET_VALID_IOCTL(ops, VIDIOC_TRY_ENCODER_CMD, vidioc_try_encoder_cmd);
- 	SET_VALID_IOCTL(ops, VIDIOC_DECODER_CMD, vidioc_decoder_cmd);
- 	SET_VALID_IOCTL(ops, VIDIOC_TRY_DECODER_CMD, vidioc_try_decoder_cmd);
--	if (ops->vidioc_g_parm || vdev->vfl_type == VFL_TYPE_GRABBER)
-+	if (ops->vidioc_g_parm || (vdev->vfl_type == VFL_TYPE_GRABBER &&
-+					(ops->vidioc_g_std || vdev->tvnorms)))
- 		set_bit(_IOC_NR(VIDIOC_G_PARM), valid_ioctls);
- 	SET_VALID_IOCTL(ops, VIDIOC_S_PARM, vidioc_s_parm);
- 	SET_VALID_IOCTL(ops, VIDIOC_G_TUNER, vidioc_g_tuner);
--- 
-1.7.10
+I don't think that this file belongs here; it should be in the driver
+tree.  This camera may not always be tied to this platform; indeed, the
+original Cafe was not.  There will never be a 64-bit SoC with some variant
+of this device?
 
+>  
+> +config VIDEO_MMP
+> +	tristate "Marvell MMP CCIC driver based on SOC_CAMERA"
+> +	depends on VIDEO_DEV && SOC_CAMERA
+> +	select VIDEOBUF2_DMA_CONTIG
+> +	---help---
+> +	  This is a v4l2 driver for the Marvell PXA910/PXA688/PXA2128 CCIC
+> +	  To compile this driver as a module, choose M here: the module will
+> +	  be called mmp_camera.
+
+But...the existing driver already builds as mmp_camera.  Even if we
+eventually agree that this separate driver should go into the mainline, it
+really needs to not build into a module with the same name.
+
+> +/*
+> + * V4L2 Driver for Marvell Mobile SoC PXA910/PXA688/PXA2128 CCIC
+> + * (CMOS Camera Interface Controller)
+> + *
+> + * This driver is based on soc_camera and videobuf2 framework,
+> + * but part of the low level register function is base on cafe-driver.c
+> + *
+> + * Copyright 2006 One Laptop Per Child Association, Inc.
+> + * Copyright 2006-7 Jonathan Corbet <corbet@lwn.net>
+
+Nit: some of the code clearly comes from marvell-ccic/mcam-core.c, so the
+copyright dates (if they really need to be kept) should stretch into 2011
+or so.
+
+I don't see anything else obvious, but it was a very quick reading, sorry.
+
+jon
