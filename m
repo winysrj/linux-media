@@ -1,112 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52926 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755715Ab2GaLWb (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:38949 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751375Ab2GNSiw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 07:22:31 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org, b.zolnierkie@samsung.com
-Subject: Re: [RFC/PATCH 09/13] media: s5k6aa: Add support for device tree based instantiation
-Date: Tue, 31 Jul 2012 13:22:38 +0200
-Message-ID: <3336686.TMIyoLDix4@avalon>
-In-Reply-To: <Pine.LNX.4.64.1207311312580.27888@axis700.grange>
-References: <4FBFE1EC.9060209@samsung.com> <2642305.FyjWrDc1Fo@avalon> <Pine.LNX.4.64.1207311312580.27888@axis700.grange>
+	Sat, 14 Jul 2012 14:38:52 -0400
+Received: by wibhm11 with SMTP id hm11so1582342wib.1
+        for <linux-media@vger.kernel.org>; Sat, 14 Jul 2012 11:38:51 -0700 (PDT)
+Message-ID: <006E41BB892E488D96CC35D62816B7CC@work>
+From: "Meftah Tayeb" <tayeb.dotnet@gmail.com>
+To: <linux-media@vger.kernel.org>
+Subject: Device supported ?
+Date: Sat, 14 Jul 2012 19:50:41 +0300
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hello
+i installed the latest Linux V4L-DVB (mediabuild) in my debian X64 having 
+those DVBS2 cards:
+http://paste.debian.net/179068/
+dmesg output:
+http://paste.debian.net/179072/
+Uname -a: Linux debian 3.2.0-3-amd64 #1 SMP Thu Jun 28 09:07:26 UTC 2012 
+x86_64 GNU/Linux
+Debian release: wheezy/sid
+anyone ?
+thank you,
+    Meftah Tayeb
+IT Consulting
+http://www.tmvoip.com/
+phone: +21321656139
+Mobile: +213660347746 
 
-On Tuesday 31 July 2012 13:14:13 Guennadi Liakhovetski wrote:
-> On Tue, 31 Jul 2012, Laurent Pinchart wrote:
-> > On Tuesday 31 July 2012 11:56:44 Guennadi Liakhovetski wrote:
-> > > On Thu, 26 Jul 2012, Laurent Pinchart wrote:
-> > > > On Wednesday 18 July 2012 11:18:33 Sylwester Nawrocki wrote:
-> > > > > On 07/16/2012 11:42 AM, Guennadi Liakhovetski wrote:
-> > > > > > On Fri, 25 May 2012, Sylwester Nawrocki wrote:
-> > > > > >> The driver initializes all board related properties except the
-> > > > > >> s_power() callback to board code. The platforms that require this
-> > > > > >> callback are not supported by this driver yet for CONFIG_OF=y.
-> > > > > >> 
-> > > > > >> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
-> > > > > >> Signed-off-by: Bartlomiej
-> > > > > >> Zolnierkiewicz<b.zolnierkie@samsung.com>
-> > > > > >> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
-> > > > > >> ---
-> > > > > >> 
-> > > > > >>   .../bindings/camera/samsung-s5k6aafx.txt           |   57
-> > > > > >>   +++++++++
-> > > > > >>   drivers/media/video/s5k6aa.c                       |  129
-> > > > > >>   ++++++++++++++------ 2 files changed, 146 insertions(+), 40
-> > > > > >>   deletions(-)
-> > > > > >>   create mode 100644
-> > > > > >>   Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt>>
-> > > > > >> 
-> > > > > >> diff --git
-> > > > > >> a/Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt
-> > > > > >> b/Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt
-> > > > > >> new
-> > > > > >> file
-> > > > > >> mode 100644
-> > > > > >> index 0000000..6685a9c
-> > > > > >> --- /dev/null
-> > > > > >> +++
-> > > > > >> b/Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt
-> > > > > >> @@ -0,0 +1,57 @@
-> > > > > >> +Samsung S5K6AAFX camera sensor
-> > > > > >> +------------------------------
-> > > > > >> +
-> > > > > >> +Required properties:
-> > > > > >> +
-> > > > > >> +- compatible : "samsung,s5k6aafx";
-> > > > > >> +- reg : base address of the device on I2C bus;
-> > > > > > 
-> > > > > > You said you ended up putting your sensors outside of I2C busses,
-> > > > > > is this one of changes, that are present in your git-tree but not
-> > > > > > in this series?
-> > > > > 
-> > > > > No, I must have been not clear enough on that. Our idea was to keep
-> > > > > I2C slave device nodes as an I2C controller's child nodes, according
-> > > > > to the current convention.
-> > > > > The 'sensor' nodes (the 'camera''s children) would only contain a
-> > > > > phandle to a respective I2C slave node.
-> > > > > 
-> > > > > This implies that we cannot access I2C bus in I2C client's device
-> > > > > probe() callback. An actual H/W access could begin only from within
-> > > > > and after invocation of v4l2_subdev .registered callback..
-> > > > 
-> > > > That's how I've envisioned the DT bindings for sensors as well, this
-> > > > sounds good. The real challenge will be to get hold of the subdev to
-> > > > register it without race conditions.
-> > > 
-> > > Hrm... That's how early pre-subdev versions of soc-camera used to work,
-> > > that's where all the <device>_video_probe() functions come from. But
-> > > then we switched to dynamic i2c device registration. Do we want to
-> > > switch all drivers back now?... Couldn't we "temporarily" use references
-> > > from subdevs to hosts until the clock API is available?
-> > 
-> > I don't think that requires a reference from subdevs to hosts in the DT.
-> > The subdev will need the host to be probed before a clock can be
-> > available so you won't be able to access the hardware in the probe()
-> > function in the generic case. You will need to wait until the
-> > registered() subdev operation is called, at which point the host can be
-> > accessed through the v4l2_device.
-> 
-> Sure, I understand, but that's exactly what we wanted to avoid -
-> succeeding client's i2c .probe() without even touching the hardware.
 
-But should we allow host probe() to succeed if the sensor isn't present ?
+__________ Information from ESET NOD32 Antivirus, version of virus signature database 7293 (20120712) __________
 
--- 
-Regards,
+The message was checked by ESET NOD32 Antivirus.
 
-Laurent Pinchart
+http://www.eset.com
+
+
 
