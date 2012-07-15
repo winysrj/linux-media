@@ -1,108 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:49565 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932948Ab2GLVGD (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44195 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752778Ab2GOXY4 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jul 2012 17:06:03 -0400
-Date: Thu, 12 Jul 2012 23:05:54 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Olof Johansson <olof@lixom.net>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	KS2012 <ksummit-2012-discuss@lists.linux-foundation.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [Ksummit-2012-discuss] Media system Summit
-In-Reply-To: <201207122103.01910.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1207122256290.19866@axis700.grange>
-References: <1341994155.3522.16.camel@dabdike.int.hansenpartnership.com>
- <20120712161820.GA4488@sirena.org.uk> <CAOesGMgg6CoxY-RHGnXfpG8y3sqnn-Q=3xY0X=mov41wme7w8Q@mail.gmail.com>
- <201207122103.01910.hverkuil@xs4all.nl>
+	Sun, 15 Jul 2012 19:24:56 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Frank =?ISO-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [Regression 3.1->3.2, bisected] UVC-webcam: kernel panic when starting capturing
+Date: Mon, 16 Jul 2012 01:24:55 +0200
+Message-ID: <1649650.cNT61xzOAf@avalon>
+In-Reply-To: <50031C83.7060703@googlemail.com>
+References: <4FFF208C.5030306@googlemail.com> <11675039.R7p149JEZD@avalon> <50031C83.7060703@googlemail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 12 Jul 2012, Hans Verkuil wrote:
+Hi Frank,
 
-> On Thu July 12 2012 18:48:23 Olof Johansson wrote:
-> > On Thu, Jul 12, 2012 at 9:18 AM, Mark Brown
-> > <broonie@opensource.wolfsonmicro.com> wrote:
-> > > On Thu, Jul 12, 2012 at 10:08:04AM +0200, Sylwester Nawrocki wrote:
-> > >
-> > >> I'd like to add a "Common device tree bindings for media devices" topic to
-> > >> the agenda for consideration.
-> > >
-> > > It'd be nice to get this to join up with ASoC...
+On Sunday 15 July 2012 21:39:47 Frank Schäfer wrote:
+> Am 15.07.2012 14:07, schrieb Laurent Pinchart:
+> > On Thursday 12 July 2012 21:07:56 Frank Schäfer wrote:
+> >> Hi,
+> >> 
+> >> when I start capturing from the UVC-webcam 2232:1005 ("WebCam
+> >> SCB-0385N") of my netbook, I get a kernel panic.
+> >> You can find a screenshot of the backtrace here:
+> >> 
+> >> http://imageshack.us/photo/my-images/9/img125km.jpg/
+> >> 
+> >> This is a regression which has been introduced between kernel 3.2-rc2
+> >> and 3.2-rc3 with the following commit:
+> >> 
+> >> 3afedb95858bcc117b207a7c0a6767fe891bdfe9 is the first bad commit
+> >> commit 3afedb95858bcc117b207a7c0a6767fe891bdfe9
+> >> Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >> Date:   Thu Nov 3 07:24:34 2011 -0300
+> >> 
+> >>     [media] uvcvideo: Don't skip erroneous payloads
+> >>     
+> >>     Instead of skipping the payload completely, which would make the
+> >>     resulting image corrupted anyway, store the payload normally and mark
+> >>     the buffer as erroneous. If the no_drop module parameter is set to 1
+> >>     the buffer will then be passed to userspace, and tt will then be up
+> >>     to the application to decide what to do with the buffer.
+> >> 
+> >>     Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 > > 
+> > I'm puzzled. Your screenshot shows the uvc_video_stats_decode() function
+> > in the stack trace, but that function wasn't present in
+> > 3afedb95858bcc117b207a7c0a6767fe891bdfe9. Could you please send me a stack
+> > trace corresponding to 3afedb95858bcc117b207a7c0a6767fe891bdfe9 ?
 > > 
-> > There's a handful of various subsystems that have similar topics,
-> > maybe slice it the other way and do a device-tree/ACPI breakout that
-> > cuts across the various areas instead?
-> > 
-> > Communication really needs to be two-way: Crafting good bindings for a
-> > complex piece of hardware isn't trivial and having someone know both
-> > the subsystem and device tree principles is rare. At least getting all
-> > those people into the same room would be good.
+> > Your stack trace looks similar to the problem reported in
+> > https://bugzilla.redhat.com/show_bug.cgi?id=836742.
+> > 3afedb95858bcc117b207a7c0a6767fe891bdfe9 might have introduced a different
+> > bug, possibly fixed in a later commit.
 > 
-> I'm not so sure: I think that most decisions that need to be made are
-> quite subsystem specific. Trying to figure out how to implement DT for
-> multiple subsystems in one workshop seems unlikely to succeed, simply
-> because of lack of time. I also don't think there is much overlap between
-> subsystems in this respect, so while the DT implementation for one subsystem
-> is discussed, the representatives of other subsystems are twiddling their
-> thumbs.
+> Hmm... you're right.
+> The screenshot I've sent to you was made during the bisection process at
+> a commit somewhere between 3.2-rc7 and 3.2-rc8.
+> It seems that this one is slightly different from the others.
 > 
-> It might be more productive to have one or two DT experts around who
-> rotate over the various workshops that have to deal with the DT and can
-> offer advice.
-
-I'm sure everyone has seen this, but just to have it mentioned here:
-
-<a 
-href="http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/50755">
-shameless self-advertisement</a>
-
-I'm not sure whether the overlap with other subsystems is large or not, 
-but there definitely is some, also with video (fbdev / drm), e.g., 
-http://thread.gmane.org/gmane.linux.drivers.devicetree/17495
-
-As for whether or not discuss DT for various subsystems together - why not 
-do both? First short sessions in each subsystems, of course, this would 
-only work if proposals have been prepared beforehand and at least 
-preliminary discussions on the MLs have taken place, and then another 
-(also short) combined session? Of course, it also depends on how much time 
-we can and want to dedicate to this.
-
-Thanks
-Guennadi
-
-> Regards,
+> This one is made at commit 3afedb95858bcc117b207a7c0a6767fe891bdfe9 (the
+> first bad commit):
 > 
-> 	Hans
+> http://imageshack.us/photo/my-images/811/img130hv.jpg
 > 
-> > 
-> > There's obvious overlap with ARM here as well, since it's one of the
-> > current big pushers of DT use, but I think it would be better to hold
-> > this as a separate breakout from that.
-> > 
-> > 
-> > -Olof
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> and this one is made at 3.5.rc6+:
 > 
+> http://imageshack.us/photo/my-images/440/img127u.jpg
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Thank you. Could you please try the patch I've attached to 
+https://bugzilla.redhat.com/show_bug.cgi?id=836742 ?
+
+-- 
+Regards,
+
+Laurent Pinchart
+
