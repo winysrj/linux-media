@@ -1,126 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:51299 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751057Ab2GBHtc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2012 03:49:32 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Subject: Re: Recent update to page_alloc.c causing a crash
-Date: Mon, 2 Jul 2012 09:49:24 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <CA+V-a8t35XnKJkz36Auf5h5kpc0JjCAG6e57A90mEamSRfB9LQ@mail.gmail.com>
-In-Reply-To: <CA+V-a8t35XnKJkz36Auf5h5kpc0JjCAG6e57A90mEamSRfB9LQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201207020949.25009.hverkuil@xs4all.nl>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:60243 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750935Ab2GOGAq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Jul 2012 02:00:46 -0400
+Received: by yhmm54 with SMTP id m54so4733198yhm.19
+        for <linux-media@vger.kernel.org>; Sat, 14 Jul 2012 23:00:46 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: <linux-media@vger.kernel.org>,
+	Ezequiel Garcia <elezegarcia@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] pwc: Use vb2 queue mutex through a single name
+Date: Sun, 15 Jul 2012 03:00:33 -0300
+Message-Id: <1342332033-30250-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon 2 July 2012 09:25:08 Prabhakar Lad wrote:
-> Hi,
-> 
-> Recently when I updated my driver to 3.5 from 3.3, I am observing that
-> my driver is failing for dma_alloc_coherent,
-> when I traced it, I see lots of changes for MM in 3.5 release any
-> Ideas why this could be happening?
-> Here  is the case my driver works fine for 7 runs of the application
-> for 8th time it crashes for MMAP buffers below is
-> the crash log.
+This lock was being taken using two different names
+(pointers) in the same function.
+Both names refer to the same lock,
+so this wasn't an error; but it looked very strange.
 
-Hi Prabhakar,
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/media/video/pwc/pwc-if.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I've got to ask the obvious question: have you checked that the memory
-allocated in the first 7 runs is also freed? In other words, aren't you
-just running out of memory?
+diff --git a/drivers/media/video/pwc/pwc-if.c b/drivers/media/video/pwc/pwc-if.c
+index de7c7ba..b5d0729 100644
+--- a/drivers/media/video/pwc/pwc-if.c
++++ b/drivers/media/video/pwc/pwc-if.c
+@@ -1127,7 +1127,7 @@ static void usb_pwc_disconnect(struct usb_interface *intf)
+ 	v4l2_device_disconnect(&pdev->v4l2_dev);
+ 	video_unregister_device(&pdev->vdev);
+ 	mutex_unlock(&pdev->v4l2_lock);
+-	mutex_unlock(pdev->vb_queue.lock);
++	mutex_unlock(&pdev->vb_queue_lock);
+ 
+ #ifdef CONFIG_USB_PWC_INPUT_EVDEV
+ 	if (pdev->button_dev)
+-- 
+1.7.8.6
 
-The other option is memory fragmentation, making it impossible to allocate
-the contiguous memory that you need. I actually suspect that this is the
-reason for you running out of memory (it's not a crash, it's just telling
-you that it can't allocate the memory you need).
-
-The only correct way to solve this problem is to use CMA. As far as I can
-tell you can just configure the amount of CMA memory as a config option or as
-a kernel parameter (see Documentation/kernel-parameters.txt, search for
-cma). That should ensure that the amount of memory you need is always available
-for the buffers.
-
-Regards,
-
-	Hans
-
-> 
-> Thx,
-> --Prabhakar Lad
-> 
-> vpif_mmap_loopb: page allocation failure: order:10, mode:0xd0
-> Backtrace:
-> [<c000c608>] (dump_backtrace+0x0/0x114) from [<c033cfc0>] (dump_stack+0x18/0x1c)
->  r6:00000000 r5:000000d0 r4:00000001 r3:c048a060
-> [<c033cfa8>] (dump_stack+0x0/0x1c) from [<c0061c00>]
-> (warn_alloc_failed+0xf4/0x118)
-> [<c0061b0c>] (warn_alloc_failed+0x0/0x118) from [<c00627f4>]
-> (__alloc_pages_nodemask+0x544/0x590)
->  r3:c2cfbb64 r2:00000000
->  r7:c04b2f94 r6:c2cfa000 r5:0000000a r4:000000d0
-> [<c00622b0>] (__alloc_pages_nodemask+0x0/0x590) from [<c000e084>]
-> (arm_dma_alloc+0x138/0x358)
-> [<c000df4c>] (arm_dma_alloc+0x0/0x358) from [<c024ca94>]
-> (vb2_dma_contig_alloc+0x78/0xfc)
-> [<c024ca1c>] (vb2_dma_contig_alloc+0x0/0xfc) from [<c024a6cc>]
-> (__vb2_queue_alloc+0xd4/0x338)
->  r6:c36d5400 r5:00000000 r4:c361a190
-> [<c024a5f8>] (__vb2_queue_alloc+0x0/0x338) from [<c024adfc>]
-> (vb2_reqbufs+0x22c/0x308)
-> [<c024abd0>] (vb2_reqbufs+0x0/0x308) from [<c025399c>]
-> (vpif_reqbufs+0x114/0x148)
->  r7:00000001 r6:c2cfbe20 r5:c361a000 r4:c2d09400
-> [<c0253888>] (vpif_reqbufs+0x0/0x148) from [<c023a470>]
-> (__video_do_ioctl+0x1a14/0x4914)
->  r8:c0145608 r7:c03601e8 r6:00000000 r5:c3563000 r4:c2cfbe20
-> r3:00000000
-> [<c0238a5c>] (__video_do_ioctl+0x0/0x4914) from [<c0238890>]
-> (video_usercopy+0x368/0x4b4)
-> [<c0238528>] (video_usercopy+0x0/0x4b4) from [<c02389f0>]
-> (video_ioctl2+0x14/0x1c)
-> [<c02389dc>] (video_ioctl2+0x0/0x1c) from [<c02367e8>] (v4l2_ioctl+0xac/0x158)
-> [<c023673c>] (v4l2_ioctl+0x0/0x158) from [<c009e67c>] (vfs_ioctl+0x28/0x40)
->  r8:c00095a4 r7:00000003 r6:c37992b0 r5:c2c77e80 r4:bed27a24
-> r3:c023673c
-> [<c009e654>] (vfs_ioctl+0x0/0x40) from [<c009edd8>] (do_vfs_ioctl+0x52c/0x588)
-> [<c009e8ac>] (do_vfs_ioctl+0x0/0x588) from [<c009ee74>] (sys_ioctl+0x40/0x64)
->  r9:c2cfa000 r8:c00095a4 r7:00000003 r6:c0145608 r5:bed27a24
-> r4:c2c77e80
-> [<c009ee34>] (sys_ioctl+0x0/0x64) from [<c0009420>] (ret_fast_syscall+0x0/0x2c)
->  r7:00000036 r6:00008710 r5:00000000 r4:0000b308
-> Mem-info:
-> DMA per-cpu:
-> CPU    0: hi:   18, btch:   3 usd:   3
-> active_anon:315 inactive_anon:18 isolated_anon:0
->  active_file:3 inactive_file:112 isolated_file:0
->  unevictable:0 dirty:0 writeback:0 unstable:0
->  free:12196 slab_reclaimable:236 slab_unreclaimable:569
->  mapped:31 shmem:22 pagetables:34 bounce:0
-> DMA free:48712kB min:984kB low:1228kB high:1476kB active_anon:1260kB
-> inactive_anon:72kB active_file:12kB inactive_file:560kB
-> unevictable:0kB isolated(anon):0kB isolated(file):0kB present:609o
-> lowmem_reserve[]: 0 0 0
-> DMA: 69*4kB 108*8kB 115*16kB 53*32kB 44*64kB 19*128kB 13*256kB 9*512kB
-> 8*1024kB 11*2048kB 0*4096kB = 48580kB
-> 217 total pagecache pages
-> 0 pages in swap cache
-> Swap cache stats: add 0, delete 0, find 0/0
-> Free swap  = 0kB
-> Total swap = 0kB
-> 15360 pages of RAM
-> 12199 free pages
-> 1335 reserved pages
-> 669 slab pages
-> 155 pages shared
-> 0 pages swap cached
-> vpif_capture vpif_capture: dma_alloc_coherent of size 2622464 failed
-> cannot allocate memory
-> : Cannot allocate memory
-> 
