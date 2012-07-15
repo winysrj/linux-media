@@ -1,54 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:51917 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754593Ab2G3WKu (ORCPT
+Received: from queueout02-winn.ispmail.ntl.com ([81.103.221.56]:35598 "EHLO
+	queueout02-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750972Ab2GOVti (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jul 2012 18:10:50 -0400
-Subject: Re: Asus PVR-416
-From: Andy Walls <awalls@md.metrocast.net>
-To: Jerry Haggard <xen2xen1@gmail.com>
+	Sun, 15 Jul 2012 17:49:38 -0400
+From: Daniel Drake <dsd@laptop.org>
+To: corbet@lwn.net, mchehab@infradead.org
 Cc: linux-media@vger.kernel.org
-Date: Mon, 30 Jul 2012 18:10:45 -0400
-In-Reply-To: <501668B2.3050107@gmail.com>
-References: <501668B2.3050107@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Message-ID: <1343686247.2486.8.camel@palomino.walls.org>
-Mime-Version: 1.0
+Subject: [PATCH resend] via-camera: pass correct format settings to sensor
+Message-Id: <20120715212305.F2DC99D401E@zog.reactivated.net>
+Date: Sun, 15 Jul 2012 22:23:05 +0100 (BST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2012-07-30 at 06:57 -0400, Jerry Haggard wrote:
-> I've been trying to get an ASUS PVR-416 card to work with MythTV .25 on 
-> Scientific Linux 6.  I have a bttv card working, my setup works in 
-> general, etc, and the driver attempts to load.  But when I check dmesg, 
-> I keep getting firmware load errors and checksum errors. I've tried 
-> every firmware I could find.  I've used the one from Atrpms, I've 
-> downloaded the correctly named firmware from ivtv, but no luck.  Anyone 
-> know anything about this card?  I've tried cutting the drivers myself 
-> like it says in the direcitons at mythtv.org. This is supposed to be a 
-> supported card, does anyone have any experience with it?
+The code attempts to maintain a "user format" and a "sensor format",
+but in this case it looks like a typo is passing the user format down
+to the sensor.
 
-No experience with it.  It is supposedly a Blackbird design supported by
-the cx88 driver.
+This was preventing display of video at anything other than 640x480.
 
-My standard response for legacy PCI cards that are responding somewhat,
-but aren't working properly, is to
+Signed-off-by: Daniel Drake <dsd@laptop.org>
+---
+ drivers/media/video/via-camera.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-1. remove all the legacy PCI cards from all the slots
-2. blow the dust out of all the slots
-3. if feasible, reseat only the 1 card and test again
-4. reseat all the cards and test again
-
-Since legacy PCI uses reflected wave switching, dust in any one slot can
-cause problems.  It's a troubleshooting step that's easy enough to do.
-
-If that doesn't work, we would need to see the output of dmesg
-and/or /var/log/messages when the module is being loaded and the
-firmware loaded.  If providing logs, please don't just grep on the
-'cx88' lines, since other modules are involved in getting the card
-working.
-
-Regards,
-Andy
+diff --git a/drivers/media/video/via-camera.c b/drivers/media/video/via-camera.c
+index 308e150..eb404c2 100644
+--- a/drivers/media/video/via-camera.c
++++ b/drivers/media/video/via-camera.c
+@@ -963,7 +963,7 @@ static int viacam_do_try_fmt(struct via_camera *cam,
+ 
+ 	upix->pixelformat = f->pixelformat;
+ 	viacam_fmt_pre(upix, spix);
+-	v4l2_fill_mbus_format(&mbus_fmt, upix, f->mbus_code);
++	v4l2_fill_mbus_format(&mbus_fmt, spix, f->mbus_code);
+ 	ret = sensor_call(cam, video, try_mbus_fmt, &mbus_fmt);
+ 	v4l2_fill_pix_format(spix, &mbus_fmt);
+ 	viacam_fmt_post(upix, spix);
+-- 
+1.7.10.4
 
