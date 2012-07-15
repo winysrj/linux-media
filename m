@@ -1,85 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:36154 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751043Ab2GOTj2 (ORCPT
+Received: from mail1-relais-roc.national.inria.fr ([192.134.164.82]:16113 "EHLO
+	mail1-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751788Ab2GOJZ1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jul 2012 15:39:28 -0400
-Received: by bkwj10 with SMTP id j10so4219974bkw.19
-        for <linux-media@vger.kernel.org>; Sun, 15 Jul 2012 12:39:26 -0700 (PDT)
-Message-ID: <50031C83.7060703@googlemail.com>
-Date: Sun, 15 Jul 2012 21:39:47 +0200
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: laurent.pinchart@ideasonboard.com
-CC: linux-media@vger.kernel.org
-Subject: Re: [Regression 3.1->3.2, bisected] UVC-webcam: kernel panic when
- starting capturing
-References: <4FFF208C.5030306@googlemail.com> <11675039.R7p149JEZD@avalon>
-In-Reply-To: <11675039.R7p149JEZD@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+	Sun, 15 Jul 2012 05:25:27 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] drivers/media/dvb/siano/smscoreapi.c: use list_for_each_entry
+Date: Sun, 15 Jul 2012 11:25:22 +0200
+Message-Id: <1342344322-11122-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 15.07.2012 14:07, schrieb Laurent Pinchart:
-> Hi Frank,
->
-> Thanks for the report.
->
-> On Thursday 12 July 2012 21:07:56 Frank Schäfer wrote:
->> Hi,
->>
->> when I start capturing from the UVC-webcam 2232:1005 ("WebCam
->> SCB-0385N") of my netbook, I get a kernel panic.
->> You can find a screenshot of the backtrace here:
->>
->> http://imageshack.us/photo/my-images/9/img125km.jpg/
->>
->>
->> This is a regression which has been introduced between kernel 3.2-rc2
->> and 3.2-rc3 with the following commit:
->>
->>
->> 3afedb95858bcc117b207a7c0a6767fe891bdfe9 is the first bad commit
->> commit 3afedb95858bcc117b207a7c0a6767fe891bdfe9
->> Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> Date:   Thu Nov 3 07:24:34 2011 -0300
->>
->>     [media] uvcvideo: Don't skip erroneous payloads
->>
->>     Instead of skipping the payload completely, which would make the
->>     resulting image corrupted anyway, store the payload normally and mark
->>     the buffer as erroneous. If the no_drop module parameter is set to 1 the
->> buffer will then be passed to userspace, and tt will then be up to the
->> application to decide what to do with the buffer.
->>
->>     Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> I'm puzzled. Your screenshot shows the uvc_video_stats_decode() function in 
-> the stack trace, but that function wasn't present in 
-> 3afedb95858bcc117b207a7c0a6767fe891bdfe9. Could you please send me a stack 
-> trace corresponding to 3afedb95858bcc117b207a7c0a6767fe891bdfe9 ?
->
-> Your stack trace looks similar to the problem reported in 
-> https://bugzilla.redhat.com/show_bug.cgi?id=836742. 
-> 3afedb95858bcc117b207a7c0a6767fe891bdfe9 might have introduced a different 
-> bug, possibly fixed in a later commit.
-Hmm... you're right.
-The screenshot I've sent to you was made during the bisection process at
-a commit somewhere between 3.2-rc7 and 3.2-rc8.
-It seems that this one is slightly different from the others.
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
+Use list_for_each_entry and perform some other induced simplifications.
 
-This one is made at commit 3afedb95858bcc117b207a7c0a6767fe891bdfe9 (the
-first bad commit):
+The semantic match that finds the opportunity for this reorganization is as
+follows: (http://coccinelle.lip6.fr/)
 
-http://imageshack.us/photo/my-images/811/img130hv.jpg
+// <smpl>
+@@
+struct list_head *pos;
+struct list_head *head;
+statement S;
+@@
 
+*for (pos = (head)->next; pos != (head); pos = pos->next)
+S
+// </smpl>
 
-and this one is made at 3.5.rc6+:
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-http://imageshack.us/photo/my-images/440/img127u.jpg
+---
+Not tested.
 
+ drivers/media/dvb/siano/smscoreapi.c |   39 ++++++++++++++---------------------
+ 1 file changed, 16 insertions(+), 23 deletions(-)
 
-Regards,
-Frank Schäfer
+diff --git a/drivers/media/dvb/siano/smscoreapi.c b/drivers/media/dvb/siano/smscoreapi.c
+index 7331e84..9cc5554 100644
+--- a/drivers/media/dvb/siano/smscoreapi.c
++++ b/drivers/media/dvb/siano/smscoreapi.c
+@@ -276,16 +276,13 @@ static void smscore_notify_clients(struct smscore_device_t *coredev)
+ static int smscore_notify_callbacks(struct smscore_device_t *coredev,
+ 				    struct device *device, int arrival)
+ {
+-	struct list_head *next, *first;
++	struct smscore_device_notifyee_t *elem;
+ 	int rc = 0;
+ 
+ 	/* note: must be called under g_deviceslock */
+ 
+-	first = &g_smscore_notifyees;
+-
+-	for (next = first->next; next != first; next = next->next) {
+-		rc = ((struct smscore_device_notifyee_t *) next)->
+-				hotplug(coredev, device, arrival);
++	list_for_each_entry(elem, &g_smscore_notifyees, entry) {
++		rc = elem->hotplug(coredev, device, arrival);
+ 		if (rc < 0)
+ 			break;
+ 	}
+@@ -940,29 +937,25 @@ static struct
+ smscore_client_t *smscore_find_client(struct smscore_device_t *coredev,
+ 				      int data_type, int id)
+ {
+-	struct smscore_client_t *client = NULL;
+-	struct list_head *next, *first;
++	struct list_head *first;
++	struct smscore_client_t *client;
+ 	unsigned long flags;
+-	struct list_head *firstid, *nextid;
+-
++	struct list_head *firstid;
++	struct smscore_idlist_t *client_id;
+ 
+ 	spin_lock_irqsave(&coredev->clientslock, flags);
+ 	first = &coredev->clients;
+-	for (next = first->next;
+-	     (next != first) && !client;
+-	     next = next->next) {
+-		firstid = &((struct smscore_client_t *)next)->idlist;
+-		for (nextid = firstid->next;
+-		     nextid != firstid;
+-		     nextid = nextid->next) {
+-			if ((((struct smscore_idlist_t *)nextid)->id == id) &&
+-			    (((struct smscore_idlist_t *)nextid)->data_type == data_type ||
+-			    (((struct smscore_idlist_t *)nextid)->data_type == 0))) {
+-				client = (struct smscore_client_t *) next;
+-				break;
+-			}
++	list_for_each_entry(client, first, entry) {
++		firstid = &client->idlist;
++		list_for_each_entry(client_id, firstid, entry) {
++			if ((client_id->id == id) &&
++			    (client_id->data_type == data_type ||
++			    (client_id->data_type == 0)))
++				goto found;
+ 		}
+ 	}
++	client = NULL;
++found:
+ 	spin_unlock_irqrestore(&coredev->clientslock, flags);
+ 	return client;
+ }
+
