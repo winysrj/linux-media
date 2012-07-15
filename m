@@ -1,348 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39863 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751402Ab2GZAM1 (ORCPT
+Received: from mail.mlbassoc.com ([65.100.170.105]:40850 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750932Ab2GOUYc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jul 2012 20:12:27 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-Cc: "davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	LMML <linux-media@vger.kernel.org>,
-	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Rob Landley <rob@landley.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] [media] davinci: vpfe: Add documentation
-Date: Thu, 26 Jul 2012 02:12:33 +0200
-Message-ID: <1918750.d6McV9yAhK@avalon>
-In-Reply-To: <E99FAA59F8D8D34D8A118DD37F7C8F753E93ED8F@DBDE01.ent.ti.com>
-References: <1342021166-6092-1-git-send-email-manjunath.hadli@ti.com> <6781973.T5EQaLmeMs@avalon> <E99FAA59F8D8D34D8A118DD37F7C8F753E93ED8F@DBDE01.ent.ti.com>
+	Sun, 15 Jul 2012 16:24:32 -0400
+Message-ID: <500326FE.7050705@mlbassoc.com>
+Date: Sun, 15 Jul 2012 14:24:30 -0600
+From: Gary Thomas <gary@mlbassoc.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Sergio Aguirre <sergio.a.aguirre@gmail.com>
+CC: Chris Lalancette <clalancette@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Discussion <linux-media@vger.kernel.org>
+Subject: Re: OMAP4 support
+References: <4FFC3109.3080204@mlbassoc.com> <CABMb9GtV_CZ=ZFoqXD_u3dmZQoD5CmsptYkgwwecO7Ch9v3AAw@mail.gmail.com> <4FFC82F9.2090004@mlbassoc.com> <CAC-OdnBfxJar83+WFm1N-C0=+MivOvfAiWaEP-O3iCkYKxktbA@mail.gmail.com> <4FFFF74F.4020802@mlbassoc.com> <CAC-OdnCN8+nVch+Di9MQHZjGGG3dmYA6tDRkY8nt-mtyA1UOgQ@mail.gmail.com>
+In-Reply-To: <CAC-OdnCN8+nVch+Di9MQHZjGGG3dmYA6tDRkY8nt-mtyA1UOgQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Manjunath,
+On 2012-07-15 08:31, Sergio Aguirre wrote:
+> Hi Gary,
+>
+> On Fri, Jul 13, 2012 at 5:24 AM, Gary Thomas <gary@mlbassoc.com> wrote:
+>> On 2012-07-12 20:30, Sergio Aguirre wrote:
+>>>
+>>> Hi Gary,
+>>>
+>>> On Tue, Jul 10, 2012 at 2:31 PM, Gary Thomas <gary@mlbassoc.com> wrote:
+>>>>
+>>>> On 2012-07-10 11:05, Chris Lalancette wrote:
+>>>>>
+>>>>>
+>>>>> On Tue, Jul 10, 2012 at 9:41 AM, Gary Thomas <gary@mlbassoc.com> wrote:
+>>>>>>
+>>>>>>
+>>>>>> I'm looking for video support on OMAP4 platforms.  I've found the
+>>>>>> PandaBoard camera project
+>>>>>> (http://www.omappedia.org/wiki/PandaBoard_Camera_Support)
+>>>>>> and this is starting to work.  That said, I'm having some
+>>>>>> issues with setting up the pipeline, etc.
+>>>>>>
+>>>>>> Can this list help out?
+>>>>>
+>>>>>
+>>>>>
+>>>>> I'm not sure exactly what kind of cameras you want to get working, but
+>>>>> if you are looking to get CSI2 cameras going through the ISS, Sergio
+>>>>> Aguirre has been working on support.  He also works on the media-ctl
+>>>>> tool, which is used for configuring the media framework pipeline.  The
+>>>>> latest versions that I am aware of are here:
+>>>>>
+>>>>> git://gitorious.org/omap4-v4l2-camera/omap4-v4l2-camera.git
+>>>>
+>>>>
+>>>>
+>>>> Yes, this is the tree I've been working with (pointed to by the page I
+>>>> mentioned).
+>>>>
+>>>> My kernel can see the camera OV5650 and set up the pipeline.  I am able
+>>>> to
+>>>> grab
+>>>> the raw SGRBG10 data but I'd like to get the ISS to convert this to a
+>>>> more
+>>>> usable
+>>>> UYVY format.  Here's what I tried:
+>>>>     media-ctl -r
+>>>>     media-ctl -l '"OMAP4 ISS CSI2a":1 -> "OMAP4 ISS ISP IPIPEIF":0 [1]'
+>>>>     media-ctl -l '"OMAP4 ISS ISP IPIPEIF":1 -> "OMAP4 ISS ISP IPIPEIF
+>>>> output":0 [1]'
+>>>>     media-ctl -f '"ov5650 3-0036":0 [SGRBG10 2592x1944]'
+>>>>     media-ctl -f '"OMAP4 ISS CSI2a":0 [SGRBG10 2592x1944]'
+>>>>     media-ctl -f '"OMAP4 ISS ISP IPIPEIF":0 [SGRBG10 2592x1944]','"OMAP4
+>>>> ISS
+>>>> ISP IPIPEIF":1 [UYVY 2592x1944]'
+>>>>
+>>>> Sadly, I can't get the IPIPEIF element to take SGRGB10 in and put UYVY
+>>>> out
+>>>> (my reading
+>>>> of the manual implies that this _should_ be possible).  I always see this
+>>>> pipeline setup:
+>>>> - entity 5: OMAP4 ISS ISP IPIPEIF (3 pads, 4 links)
+>>>>               type V4L2 subdev subtype Unknown
+>>>>               device node name /dev/v4l-subdev2
+>>>>           pad0: Input [SGRBG10 2592x1944]
+>>>>                   <- 'OMAP4 ISS CSI2a':pad1 [ACTIVE]
+>>>>                   <- 'OMAP4 ISS CSI2b':pad1 []
+>>>>           pad1: Output [SGRBG10 2592x1944]
+>>>>                   -> 'OMAP4 ISS ISP IPIPEIF output':pad0 [ACTIVE]
+>>>>           pad2: Output [SGRBG10 2592x1944]
+>>>>                   -> 'OMAP4 ISS ISP resizer':pad0 []
+>>>>
+>>>> Am I missing something?  How can I make this conversion in the ISS?
+>>>
+>>>
+>>> The core problem is that, i haven't published any support for
+>>> RAW10->YUV conversion,
+>>> which is part of the IPIPE module (not the IPIPEIF, like you mention). I
+>>> had
+>>> some patches, but sadly it is unfinished work. :/
+>>>
+>>> Now, there's a main non-technical problem... I no longer work at TI
+>>> since end of June
+>>> this year, and I don't have the right HW setup available anymore.
+>>> Those sensors were
+>>> company's asset, and I couldn't keep any.
+>>>
+>>> Now, we can make this work with cooperation of someone who has the right
+>>> setup,
+>>> and me sharing my patches and some advice on my experience.
+>>>
+>>> What do you think?
+>>>
+>>>>
+>>>> Note: if this is not the appropriate place to ask these questions, please
+>>>> redirect me (hopefully to a useful list :-)
+>>>
+>>>
+>>> As I'm the main person who has been actively developing this, I'm your
+>>> guy to ask questions :).
+>>>
+>>> By the way, this development has been my initiative the whole time,
+>>> and not an official
+>>> TI objective, so, to be honest, asking TI for official support won't
+>>> help much right now.
+>>
+>>
+>> Tell me how I can help make this happen.  I'll be glad to apply patches,
+>> figure out bugs, etc, I just need a little help with getting started.
+>> I have access to the hardware and it's really important that I make some
+>> progress on this soon.
+>>
+>> Can you share your RAW10->YUV patches and some guidance on how to proceed?
+>
+> Sure. I just pushed an internal branch I had, named: "devel-ISPSUPPORT-IPIPE",
+> please take that as a base.
+>
+> And please try these commands:
+>
+> media-ctl -r -l '"OMAP4 ISS CSI2a":1 -> "OMAP4 ISS ISP IPIPEIF":0
+> [1]','"OMAP4 ISS ISP IPIPEIF":2 -> "OMAP4 ISS ISP IPIPE":0
+> [1]','"OMAP4 ISS ISP IPIPE":1 -> "OMAP4 ISS ISP resizer":0
+> [1]','"OMAP4 ISS ISP resizer":1 -> "OMAP4 ISS ISP resizer a output":0
+> [1]'
+>
+> media-ctl -f '"ov5650 3-0036":0 [SGRBG10 2592x1944]','"OMAP4 ISS
+> CSI2a":0 [SGRBG10 2592x1944]','"OMAP4 ISS ISP IPIPEIF":0 [SGRBG10
+> 2592x1944]','"OMAP4 ISS ISP IPIPE":0 [SGRBG10 2592x1944]','"OMAP4 ISS
+> ISP resizer":0 [UYVY 2592x1944]'
+>
+> yavta /dev/video3 -c4 -n1 -s2592x1944 -fUYVY -Fov5650_2592x1944_UYVY_8bpp.yuv
 
-On Tuesday 17 July 2012 10:43:54 Hadli, Manjunath wrote:
-> On Sun, Jul 15, 2012 at 18:16:25, Laurent Pinchart wrote:
-> > On Wednesday 11 July 2012 21:09:26 Manjunath Hadli wrote:
-> > > Add documentation on the Davinci VPFE driver. Document the subdevs,
-> > > and private IOTCLs the driver implements
-> > > 
-> > > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> > > Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+With the new branch, I am able to set up the pipeline for UYVY.  That part's good.
 
-[snip]
+However, just like before, with either RAW10 or UYVY, the grab process does not
+start more times than it does (it only starts about 1 out of 10 tries).  If I
+just ^C and try again, it may start, it may not.
 
-> > > +	DAVINCI CCDC
-> > > +	DAVINCI PREVIEWER
-> > > +	DAVINCI RESIZER
-> > 
-> > the DM36x VPFE documentation doesn't split the hardware in CCDC, PREVIEWER
-> > and RESIZER modules, but in ISIF, IPIPEIF and IPIPE. Why don't you use
-> > those names ? It looks like you're introducing an abstraction layer on
-> > top of the existing driver. Why is that needed, why don't you just port
-> > the driver to the MC API instead ?
-> 
-> Please see below my comment for "enumerating internal modules".
-> 
-> > > +	DAVINCI AEW
-> > > +	DAVINCI AF
-> > > +
-> > > +Each possible link in the VPFE is modeled by a link in the Media
-> > > controller +interface. For an example program see [1].
-> > > +
-> > > +
-> > > +Private IOCTLs
-> > > +==============
-> > > +
-> > > +The Davinci Video processing Front End (VPFE) driver supports standard
-> > > V4L2 +IOCTLs and controls where possible and practical. Much of the
-> > > functions provided
-> > > +by the VPFE, however, does not fall under the standard IOCTLs.
-> > > +
-> > > +In general, there is a private ioctl for configuring each of the blocks
-> > > +containing hardware-dependent functions.
-> > > +
-> > > +The following private IOCTLs are supported:
-> > > +
-> > > +1: IOCTL: PREV_S_PARAM/PREV_G_PARAM
-> > > +Description:
-> > > +	Sets/Gets the parameters required by the previewer module
-> > > +Parameter:
-> > > +	/**
-> > > +	 * struct prev_module_param- structure to configure preview modules
-> > > +	 * @version: Version of the preview module
-> > 
-> > Who is responsible for filling this field, the application or the driver ?
-> 
-> The application is responsible for filling this info. He would enumerate the
-> capabilities first and  set them using S_PARAM/G_PARAM.
-> 
-> > > +	 * @len: Length of the module config structure
-> > > +	 * @module_id: Module id
-> > > +	 * @param: pointer to module config parameter.
-> > 
-> > What is module_id for ? What does param point to ?
-> 
-> There are a lot of tiny modules in the previewer/resizer which are
-> enumerated as individual modules. The param points to the parameter set
-> that the module expects to be set.
-> 
-> > > +	 */
-> > > +	struct prev_module_param {
-> > > +		char version[IMP_MAX_NAME_SIZE];
-> > 
-> > Is there a need to express the version as a string instead of an integer ?
-> 
-> It could be integer. It is generally a fixed point num, and easy to read it
-> as a string than an integer. Can I keep it as a string?
-> 
-> > > +		unsigned short len;
-> > > +		unsigned short module_id;
-> > > +		void *param;
-> > > +	};
-> > > +
-> > > +2: IOCTL: PREV_S_CONFIG/PREV_G_CONFIG
-> > > +Description:
-> > > +	Sets/Gets the configuration required by the previewer channel
-> > > +Parameter:
-> > > +	/**
-> > > +	 * struct prev_channel_config - structure for configuring the
-> > > previewer
-> > > channel
-> > > +	 * @len: Length of the user configuration
-> > > +	 * @config: pointer to either single shot config or continuous
-> > > +	 */
-> > > +	struct prev_channel_config {
-> > > +		unsigned short len;
-> > > +		void *config;
-> > > +	};
-> > 
-> > What's the difference between parameters and configuration ? What does
-> > config point to ?
-> 
-> Config is setting which is required for a subdev to function based on what
-> it is set for (single shot/continuous.) common to all platforms. Parameters
-> are the settings for individual small sub-ips which might be slightly
-> different from one platform to another. Config points to
-> prev_single_shot_config or  prev_continuous_config currently defined in
-> linux/dm3656ipipe.h. I think we will move it to a common location.
-> > > +
-> > > +3: IOCTL: PREV_ENUM_CAP
-> > > +Description:
-> > > +	Queries the modules available in the image processor for preview the
-> > > +	input image.
-> > > +Parameter:
-> > > +	/**
-> > > +	 * struct prev_cap - structure to enumerate capabilities of previewer
-> > > +	 * @index: application use this to iterate over the available modules
-> > > +	 * @version: version of the preview module
-> > > +	 * @module_id: module id
-> > > +	 * @control: control operation allowed in continuous mode? 1 -
-> > > allowed, 0
-> > > - not allowed
-> > > +	 * @path: path on which the module is sitting
-> > > +	 * @module_name: module name
-> > > +	 */
-> > > +	struct prev_cap {
-> > > +		unsigned short index;
-> > > +		char version[IMP_MAX_NAME_SIZE];
-> > > +		unsigned short module_id;
-> > > +		char control;
-> > > +		enum imp_data_paths path;
-> > > +		char module_name[IMP_MAX_NAME_SIZE];
-> > > +	};
-> > 
-> > Enumerating internal modules is exactly what the MC API was designed for.
-> > Why do you reimplement that using private ioctls ?
-> 
-> The number of these sub-Ips are quite a few in DM365 and Dm355, having a lot
-> of them In a way that may be bewildering to the end-user to be able to
-> connect them quickly and properly. But overall, these are nothing but
-> exposed subips of what we call as CCDC,Previewer  and Resizer.It Made a lot
-> of logical sense to keep it that way, give a default configuration for
-> everything, and if at all the user wants the fine grain config control, be
-> able to give (mainly for the configurations- not so much for connections).
-> In most of the cases the param IOTCLs are only used for fine-tuning the
-> image and not expected to be used as a regular flow of a normal
-> application. I do not think there could be any justification for making all
-> these nitty gritty which keep changing for each IPs as part of regular V4L2
-> IOCTLs. In future, if there is a common theme that emerges, we could
-> definitely relook into this.
-> > > +
-> > > +4: IOCTL: RSZ_S_CONFIG/RSZ_G_CONFIG
-> > > +Description:
-> > > +	Sets/Gets the configuration required by the resizer channel
-> > > +Parameter:
-> > > +	/**
-> > > +	 * struct rsz_channel_config - structure for configuring the resizer
-> > > channel +	 * @chain: chain this resizer at the previewer output
-> > > +	 * @len: length of the user configuration
-> > > +	 * @config: pointer to either single shot config or continuous
-> > > +	 */
-> > > +	struct rsz_channel_config {
-> > > +		unsigned char chain;
-> > > +		unsigned short len;
-> > > +		void *config;
-> > > +	};
-> > 
-> > Same question as for the preview engine, what does this do, what does
-> > config point to ? What is the chain parameter for ?
-> 
-> Config points to rsz_single_shot_config and rsz_continuous_config defined in
-> dm365ipipe.h As mentioned earlier, we could move the definition to a common
-> header. The chain param is to indicate if resizer and previewer are
-> chained. We will remove this.
-> > > +
-> > > +5: IOCTL: VPFE_CMD_S_CCDC_RAW_PARAMS/VPFE_CMD_G_CCDC_RAW_PARAMS
-> > > +Description:
-> > > +	Sets/Gets the CCDC parameter
-> > > +Parameter:
-> > > +	/**
-> > > +	 * struct ccdc_config_params_raw - structure for configuring ccdc
-> > > params
-> > > +	 * @linearize: linearization parameters for image sensor data input
-> > > +	 * @df_csc: data formatter or CSC
-> > > +	 * @dfc: defect Pixel Correction (DFC) configuration
-> > > +	 * @bclamp: Black/Digital Clamp configuration
-> > > +	 * @gain_offset: Gain, offset adjustments
-> > 
-> > Can't you use subdev V4L2 controls for gains ?
-> 
-> In that case only gain has to be taken out as a generic IOCTL. Since that is
-> is The parameter which could be taken out of this big structure
-> 
-> > > +	 * @culling: Culling
-> > > +	 * @pred: predictor for DPCM compression
-> > > +	 * @horz_offset: horizontal offset for Gain/LSC/DFC
-> > > +	 * @vert_offset: vertical offset for Gain/LSC/DFC
-> > > +	 * @col_pat_field0: color pattern for field 0
-> > > +	 * @col_pat_field1: color pattern for field 1
-> > 
-> > Shouldn't color patterns be computed automatically by the driver based on
-> > the media bus pixel code ?
-> 
-> OK.
-> 
-> > > +	 * @data_size: data size from 8 to 16 bits
-> > > +	 * @data_shift: data shift applied before storing to SDRAM
-> > 
-> > Ditto, this should probably be computed automatically.
-> 
-> Do you want to define new MBUS formats for these?
-> 
-> > > +	 * @test_pat_gen: enable input test pattern generation
-> > 
-> > You could use a subdev V4L2 control for that.
-> 
-> Ok.
-> 
-> > > +	 */
-> > > +	struct ccdc_config_params_raw {
-> > > +		struct ccdc_linearize linearize;
-> > > +		struct ccdc_df_csc df_csc;
-> > > +		struct ccdc_dfc dfc;
-> > > +		struct ccdc_black_clamp bclamp;
-> > > +		struct ccdc_gain_offsets_adj gain_offset;
-> > > +		struct ccdc_cul culling;
-> > > +		enum ccdc_dpcm_predictor pred;
-> > > +		unsigned short horz_offset;
-> > > +		unsigned short vert_offset;
-> > > +		struct ccdc_col_pat col_pat_field0;
-> > > +		struct ccdc_col_pat col_pat_field1;
-> > > +		enum ccdc_data_size data_size;
-> > > +		enum ccdc_datasft data_shift;
-> > > +		unsigned char test_pat_gen;
-> > > +	};
+The single time I was able to get the UYVY capture to work, I got an error after
+the first frame:
 
-[snip
-> > > +
-> > > +6: IOCTL: AF_S_PARAM/AF_G_PARAM
-> > > +Description:
-> > > +	AF_S_PARAM performs the hardware setup and sets the parameter for
-> > > +	AF engine.AF_G_PARAM gets the parameter setup in AF engine
-> > > +Parameter:
-> > > +	/**
-> > > +	 * struct af_configuration - struct to configure parameters of AF
-> > > engine
-> > > +	 * @alaw_enable: ALAW status
-> > > +	 * @fv_sel: focus value selection
-> > > +	 * @hmf_config: HMF configurations
-> > > +	 * @rgb_pos: RGB Positions. Only applicable with AF_HFV_ONLY 
-selection
-> > > +	 * @iir_config: IIR filter configurations
-> > > +	 * @fir_config: FIR filter configuration
-> > > +	 * @paxel_config: Paxel parameters
-> > > +	 * @mode: accumulator mode
-> > > +	 */
-> > > +	struct af_configuration {
-> > > +		enum af_enable_flag alaw_enable;
-> > 
-> > Can this be computed automatically based on the media bus pixel code ?
-> 
-> Ok. Sure.
-> 
-> > > +		enum af_focus_val_sel fv_sel;
-> > > +		struct af_hmf hmf_config;
-> > > +		enum rgbpos rgb_pos;
-> > 
-> > Same here ?
-> 
-> New MBUS formats here as well?
-> 
-> > > +		struct af_iir iir_config;
-> > > +		struct af_fir fir_config;
-> > > +		struct af_paxel paxel_config;
-> > > +		enum af_mode mode;
-> > > +	};
-> > > +
-> > > +7: IOCTL: AF_GET_STAT
-> > > +Description:
-> > > +	Copy the entire statistics located in application buffer
-> > > +	to user space from the AF engine
-> > > +Parameter:
-> > > +	/**
-> > > +	 * struct af_statdata - structure to get statistics from AF engine
-> > > +	 * @buffer: pointer to buffer
-> > > +	 * @buf_length: length of buffer
-> > > +	 */
-> > > +	struct af_statdata {
-> > > +		void *buffer;
-> > > +		int buf_length;
-> > > +	};
-> > 
-> > The OMAP3 ISP driver also needs to export statistics data to userspace. We
-> > should design a common API here.
-> 
->  Sure we can take it up sometime later.
+# grab-uyvy
+Device /dev/video3 opened.
+Device `OMAP4 ISS ISP resizer a output' on `media' is a video capture device.
+Video format set: UYVY (59565955) 2592x1944 buffer size 10077696
+Video format: UYVY (59565955) 2592x1944 buffer size 10077696
+[  622.039733] omap4iss omap4iss: dma_alloc_coherent of size 10077696 failed
+1 buffers requested.
+length: 10077696 offset: 0
+Buffer 0 mapped at address 0xb64a2000.
+0 (0) [-] 0 1007[  623.131347] omap4iss omap4iss: RSZ Err: FIFO_IN_BLK:0, FIFO_OVF:1,
+7696 bytes 623.118776 1342383344.713594 0.001 fps
+[  623.297790] omap4iss omap4iss: RSZ Err: FIFO_IN_BLK:1, FIFO_OVF:0,
 
-[snip]
+What can I look at to figure out why the capture is hanging?  I already enabled
+a debug print in the ISR and see that only fires when it works.  There are no
+interrupts from the CSI2a when it fails.
 
-> > > +9: IOCTL: AEW_GET_STAT
-> > > +Description:
-> > > +	Copy the entire statistics located in application buffer
-> > > +	to user space from the AEW engine
-> > > +Parameter:
-> > > +	/**
-> > > +	 * struct aew_statdata - structure to get statistics from AEW engine
-> > > +	 * @buffer: pointer to buffer
-> > > +	 * @buf_length: length of buffer
-> > > +	 */
-> > > +	struct aew_statdata {
-> > > +		void *buffer;
-> > > +		int buf_length;
-> > > +	};
-> > 
-> > Same comment as for AF_GET_STAT.
-> 
-> Yes, we can discuss about it to make it common. I would prefer we get this
-> driver in and make amends when you are doing it for OMAP.
+Any hints as to where & what to check (print registers, etc) would be a big help.
+
+Thanks
+
+>
+>>
+>> I have been able to capture RAW10 data, but often the whole thing just sits
+>> there (hangs).  Restarting the process sometimes works, sometimes not.
+>> Looking
+>> at the registers and the actual signals on a scope do not show any
+>> difference
+>> that we can find.  Any ideas what might cause this?  Have you seen it as
+>> well?
+>
+> Can you please try again with the before mentioned branch? The branch you
+> were using didn't have some changes, so maybe this new one would take
+> care of that.
+>
+>>
+>> Thanks for the help - Please let me know how I can get this working...
+>
+> Well, thanks for the patience!
+>
+> Regards,
+> Sergio
 
 -- 
-Regards,
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
 
-Laurent Pinchart
+
