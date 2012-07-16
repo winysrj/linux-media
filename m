@@ -1,56 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:31144 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751040Ab2GZOjX (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:57444 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751290Ab2GPJPS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jul 2012 10:39:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: Re: [RFC PATCH 1/2] Initial version of the RDS-decoder library Signed-off-by: Konke Radlow <kradlow@cisco.com>
-Date: Thu, 26 Jul 2012 16:39:20 +0200
-Cc: Konke Radlow <kradlow@cisco.com>, linux-media@vger.kernel.org,
-	hdegoede@redhat.com
-References: <1343238241-26772-1-git-send-email-kradlow@cisco.com> <d4b6f91016e799647e929972c60c604f271fb188.1343237398.git.kradlow@cisco.com> <CALF0-+VbHH2APAMmsLw33xfrg1HVz-xVeAPJ8STtruBKpY5=tA@mail.gmail.com>
-In-Reply-To: <CALF0-+VbHH2APAMmsLw33xfrg1HVz-xVeAPJ8STtruBKpY5=tA@mail.gmail.com>
+	Mon, 16 Jul 2012 05:15:18 -0400
+Date: Mon, 16 Jul 2012 11:15:10 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org, b.zolnierkie@samsung.com
+Subject: Re: [RFC/PATCH 06/13] media: s5p-fimc: Add device tree support for
+ FIMC-LITE
+In-Reply-To: <1337975573-27117-6-git-send-email-s.nawrocki@samsung.com>
+Message-ID: <Pine.LNX.4.64.1207161114130.12302@axis700.grange>
+References: <4FBFE1EC.9060209@samsung.com> <1337975573-27117-1-git-send-email-s.nawrocki@samsung.com>
+ <1337975573-27117-6-git-send-email-s.nawrocki@samsung.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201207261639.20482.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 26 July 2012 16:28:20 Ezequiel Garcia wrote:
-> Hi Konke,
+On Fri, 25 May 2012, Sylwester Nawrocki wrote:
+
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  .../bindings/camera/soc/samsung-fimc.txt           |   15 ++++
+>  drivers/media/video/s5p-fimc/fimc-lite.c           |   73 ++++++++++++++------
+>  2 files changed, 67 insertions(+), 21 deletions(-)
 > 
-> > +
-> > +libv4l2rds_la_SOURCES = libv4l2rds.c
-> > +libv4l2rds_la_CPPFLAGS = -fvisibility=hidden $(ENFORCE_LIBV4L_STATIC) -std=c99
-> > +libv4l2rds_la_LDFLAGS = -version-info 0 -lpthread $(DLOPEN_LIBS) $(ENFORCE_LIBV4L_STATIC)
-> > diff --git a/lib/libv4l2rds/libv4l2rds.c b/lib/libv4l2rds/libv4l2rds.c
-> > new file mode 100644
-> > index 0000000..0bacaa2
-> > --- /dev/null
-> > +++ b/lib/libv4l2rds/libv4l2rds.c
-> > @@ -0,0 +1,871 @@
-> > +/*
-> > + * Copyright 2012 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-> [snip]
-> > + * This program is free software; you can redistribute it and/or modify
-> 
-> Just a -probably silly- question...
-> 
-> How can it be "free software" yet claim "All rights reserved" ? Is this correct?
+> diff --git a/Documentation/devicetree/bindings/camera/soc/samsung-fimc.txt b/Documentation/devicetree/bindings/camera/soc/samsung-fimc.txt
+> index 1ec48e9..b459da2 100644
+> --- a/Documentation/devicetree/bindings/camera/soc/samsung-fimc.txt
+> +++ b/Documentation/devicetree/bindings/camera/soc/samsung-fimc.txt
+> @@ -39,6 +39,21 @@ Required properties:
+>  	       depends on the SoC revision. For S5PV210 valid values are:
+>  	       0...2, for Exynos4x1x: 0...3.
+>  
+> +
+> +'fimc-lite' device node
+> +-----------------------
+> +
+> +Required properties:
+> +
+> +- compatible : should be one of:
+> +		"samsung,exynos4212-fimc";
+> +		"samsung,exynos4412-fimc";
+> +- reg	     : physical base address and size of the device's memory mapped
+> +	       registers;
+> +- interrupts : should contain FIMC-LITE interrupt;
+> +- cell-index : FIMC-LITE IP instance index;
 
-Yeah, it's correct. I had the same question when I was told that this was the
-correct phrase to use. Check other copyright lines in the kernel and you'll see
-the same line.
+Same as in an earlier patch - not sure this is needed.
 
-Since it is covered by the LGPLv2 license there aren't many rights to reserve :-)
+Thanks
+Guennadi
 
-The only right there is in practice is the right to decide whether or not to
-allow other licenses as well.
-
-Regards,
-
-	Hans
+> +
+> +
+>  Example:
+>  
+>  	fimc0: fimc@11800000 {
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
