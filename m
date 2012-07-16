@@ -1,132 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34082 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756127Ab2GEWRw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 18:17:52 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] V4L: soc-camera: add selection API host operations
-Date: Fri, 06 Jul 2012 00:17:59 +0200
-Message-ID: <2010732.dj1mZZWrvn@avalon>
-In-Reply-To: <Pine.LNX.4.64.1206221749190.17552@axis700.grange>
-References: <Pine.LNX.4.64.1206221749190.17552@axis700.grange>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:63004 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753641Ab2GPUrl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Jul 2012 16:47:41 -0400
+Received: by bkwj10 with SMTP id j10so5118239bkw.19
+        for <linux-media@vger.kernel.org>; Mon, 16 Jul 2012 13:47:39 -0700 (PDT)
+Message-ID: <CC51B6485B6A454DA3BBE12BBD3636CD@work>
+From: "Meftah Tayeb" <tayeb.dotnet@gmail.com>
+To: "Antti Palosaari" <crope@iki.fi>
+Cc: <linux-media@vger.kernel.org>
+References: <006E41BB892E488D96CC35D62816B7CC@work> <5004787E.4020706@iki.fi>
+Subject: Re: Device supported ?
+Date: Mon, 16 Jul 2012 22:00:07 +0300
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=response
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+i didn't knew that's a propritary driver
+thank you, i allready get it up
+----- Original Message ----- 
+From: "Antti Palosaari" <crope@iki.fi>
+To: "Meftah Tayeb" <tayeb.dotnet@gmail.com>
+Cc: <linux-media@vger.kernel.org>
+Sent: Monday, July 16, 2012 11:24 PM
+Subject: Re: Device supported ?
 
-Thanks for the patch.
 
-On Friday 22 June 2012 18:40:08 Guennadi Liakhovetski wrote:
-> Add .get_selection() and .set_selection() soc-camera host driver
-> operations. Additionally check, that the user is not trying to change the
-> output sizes during a running capture.
-
-How will that interact with the crop operations ? The goal is to move away 
-from crop operations to selection operations, so we need to establish clear 
-rules.
-
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
-> diff --git a/drivers/media/video/soc_camera.c
-> b/drivers/media/video/soc_camera.c index 0421bf9..72798d2 100644
-> --- a/drivers/media/video/soc_camera.c
-> +++ b/drivers/media/video/soc_camera.c
-> @@ -902,6 +902,65 @@ static int soc_camera_s_crop(struct file *file, void
-> *fh, return ret;
->  }
+> On 07/14/2012 07:50 PM, Meftah Tayeb wrote:
+>> Hello
+>> i installed the latest Linux V4L-DVB (mediabuild) in my debian X64
+>> having those DVBS2 cards:
+>> http://paste.debian.net/179068/
+>> dmesg output:
+>> http://paste.debian.net/179072/
+>> Uname -a: Linux debian 3.2.0-3-amd64 #1 SMP Thu Jun 28 09:07:26 UTC 2012
+>> x86_64 GNU/Linux
+>> Debian release: wheezy/sid
+>> anyone ?
+>
+> From those pastes:
+> 04:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI 
+> Video and Audio Decoder (rev 04)
+> CORE cx23885[0]: subsystem: 6981:8888, board: UNKNOWN/GENERIC 
+> [card=0,autodetected]
+>
+> ID 6981:8888 seems to belong for TurboSight TBS 6981. Unfortunately they 
+> use their own binary drivers. This mailing list is for drivers that are 
+> included to the Kernel. You have to look help from the device vendor 
+> support page.
+>
+> regards
+> Antti
+>
+> -- 
+> http://palosaari.fi/
+>
+>
+>
+>
+> __________ Information from ESET NOD32 Antivirus, version of virus 
+> signature database 7303 (20120716) __________
+>
+> The message was checked by ESET NOD32 Antivirus.
+>
+> http://www.eset.com
+>
+>
 > 
-> +static int soc_camera_g_selection(struct file *file, void *fh,
-> +				  struct v4l2_selection *s)
-> +{
-> +	struct soc_camera_device *icd = file->private_data;
-> +	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-> +
-> +	/* With a wrong type no need to try to fall back to cropping */
-> +	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		return -EINVAL;
-> +
-> +	if (!ici->ops->get_selection)
-> +		return -ENOTTY;
-> +
-> +	return ici->ops->get_selection(icd, s);
-> +}
-> +
-> +static int soc_camera_s_selection(struct file *file, void *fh,
-> +				  struct v4l2_selection *s)
-> +{
-> +	struct soc_camera_device *icd = file->private_data;
-> +	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-> +	int ret;
-> +
-> +	/* In all these cases cropping emulation will not help */
-> +	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE ||
-> +	    (s->target != V4L2_SEL_TGT_COMPOSE_ACTIVE &&
-> +	     s->target != V4L2_SEL_TGT_CROP_ACTIVE))
-> +		return -EINVAL;
-> +
-> +	if (s->target == V4L2_SEL_TGT_COMPOSE_ACTIVE) {
-> +		/* No output size change during a running capture! */
-> +		if (is_streaming(ici, icd) &&
-> +		    (icd->user_width != s->r.width ||
-> +		     icd->user_height != s->r.height))
-> +			return -EBUSY;
-> +
-> +		/*
-> +		 * Only one user is allowed to change the output format, touch
-> +		 * buffers, start / stop streaming, poll for data
-> +		 */
-> +		if (icd->streamer && icd->streamer != file)
-> +			return -EBUSY;
-> +	}
-> +
-> +	if (!ici->ops->set_selection)
-> +		return -ENOTTY;
-> +
-> +	ret = ici->ops->set_selection(icd, s);
-> +	if (!ret &&
-> +	    s->target == V4L2_SEL_TGT_COMPOSE_ACTIVE) {
-> +		icd->user_width = s->r.width;
-> +		icd->user_height = s->r.height;
-> +		if (!icd->streamer)
-> +			icd->streamer = file;
-> +	}
-> +
-> +	return ret;
-> +}
-> +
->  static int soc_camera_g_parm(struct file *file, void *fh,
->  			     struct v4l2_streamparm *a)
->  {
-> @@ -1405,6 +1464,8 @@ static const struct v4l2_ioctl_ops
-> soc_camera_ioctl_ops = { .vidioc_cropcap		 = soc_camera_cropcap,
->  	.vidioc_g_crop		 = soc_camera_g_crop,
->  	.vidioc_s_crop		 = soc_camera_s_crop,
-> +	.vidioc_g_selection	 = soc_camera_g_selection,
-> +	.vidioc_s_selection	 = soc_camera_s_selection,
->  	.vidioc_g_parm		 = soc_camera_g_parm,
->  	.vidioc_s_parm		 = soc_camera_s_parm,
->  	.vidioc_g_chip_ident     = soc_camera_g_chip_ident,
-> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-> index d865dcf..f997d6a 100644
-> --- a/include/media/soc_camera.h
-> +++ b/include/media/soc_camera.h
-> @@ -86,6 +86,8 @@ struct soc_camera_host_ops {
->  	int (*cropcap)(struct soc_camera_device *, struct v4l2_cropcap *);
->  	int (*get_crop)(struct soc_camera_device *, struct v4l2_crop *);
->  	int (*set_crop)(struct soc_camera_device *, struct v4l2_crop *);
-> +	int (*get_selection)(struct soc_camera_device *, struct v4l2_selection 
-*);
-> +	int (*set_selection)(struct soc_camera_device *, struct v4l2_selection
-> *); /*
->  	 * The difference to .set_crop() is, that .set_livecrop is not allowed
->  	 * to change the output sizes
--- 
-Regards,
 
-Laurent Pinchart
+
+__________ Information from ESET NOD32 Antivirus, version of virus signature database 7303 (20120716) __________
+
+The message was checked by ESET NOD32 Antivirus.
+
+http://www.eset.com
+
+
 
