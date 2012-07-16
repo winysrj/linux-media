@@ -1,367 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:48010 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754996Ab2GRRAT (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:63963 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751808Ab2GPRSz convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jul 2012 13:00:19 -0400
-Received: by eaak11 with SMTP id k11so625746eaa.19
-        for <linux-media@vger.kernel.org>; Wed, 18 Jul 2012 10:00:18 -0700 (PDT)
-Message-ID: <5006EB9F.5010408@gmail.com>
-Date: Wed, 18 Jul 2012 19:00:15 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Mon, 16 Jul 2012 13:18:55 -0400
+Date: Mon, 16 Jul 2012 19:18:48 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Albert Wang <twang13@marvell.com>
+cc: Jonathan Corbet <corbet@lwn.net>, Chao Xie <cxie4@marvell.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: [PATCH 1/7] media: mmp_camera: Add V4l2 camera driver for Marvell
+ PXA910/PXA688/PXA2128 CCIC
+In-Reply-To: <477F20668A386D41ADCC57781B1F7043083AB33977@SC-VEXCH1.marvell.com>
+Message-ID: <alpine.DEB.2.00.1207161904510.25446@axis700.grange>
+References: <1342016549-23084-1-git-send-email-twang13@marvell.com> <20120714111405.09164acc@tpl.lwn.net> <477F20668A386D41ADCC57781B1F7043083AB33977@SC-VEXCH1.marvell.com>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	devicetree-discuss <devicetree-discuss@lists.ozlabs.org>
-Subject: Re: [RFC] media DT bindings
-References: <Pine.LNX.4.64.1207110854290.18999@axis700.grange> <5000375B.9060100@gmail.com> <Pine.LNX.4.64.1207161257590.18978@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1207161257590.18978@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Albert, Jonathan
 
-On 07/16/2012 01:41 PM, Guennadi Liakhovetski wrote:
-[...]
->> On 07/11/2012 04:27 PM, Guennadi Liakhovetski wrote:
->>> Hi all
->>>
->>> Background
->>> ==========
->>>
->>> With ARM adoption of flat Device Trees a need arises to move platform
->>> device descriptions and their data from platform files to DT. This has
->>> also to be done for media devices, e.g., video capture and output
->>> interfaces, data processing devices, camera sensors, TV decoders and
->>> encoders. This RFC is trying to spawn a discussion to define standard V4L
->>> DT bindings. The first version will concentrate on the capture path,
->>> mostly taking care of simple capture-interface - camera sensor / TV
->>> decoder configurations. Since the author is not working intensively yet
->>> with the Media Controller API, pad-level configuration, these topics might
->>> be underrepresented in this RFC. I hope others, actively working in these
->>> areas, will fill me in on them.
->>
->> We've done some work on device tree support for SoC camera interface
->> with driver based on the Media Controller API, I've posted some RFC
->> patches a few weeks ago:
->> http://www.mail-archive.com/devicetree-discuss@lists.ozlabs.org/msg14769.html
->> But unfortunately didn't receive any comments,
+On Mon, 16 Jul 2012, Albert Wang wrote:
+
+> Hi, Jonathan
 > 
-> You have now ;-)
+> We really appreciate you can find time to review our patch and give us 
+> suggestion.
 
-:)
+I think, my current position with regard to this situation with the two 
+drivers would be the following (please, discuss, if you disagree, I'm open 
+to suggestions and ideas):
 
->> perhaps because the actual
->> bindings were not abstracted enough from a specific hardware support.
->> An updated version of these patch set can be found here:
->> https://github.com/snawrocki/linux/commits/camera-of-2
->>
->> Of course we shouldn't be forgetting that underlying bindings need to
->> be the same, regardless of the drivers are based on soc_camera, Media
->> Controller/subdev pad-level frameworks, or something else.
+ - IIUC, Albert would prefer to push this driver upstream without any 
+   integration with marvell-ccic. I _might_ accept and support this 
+   intention, but for that I'd either need an ack from Jon, that indeed, 
+   the new driver has much more to offer and only reimplements very 
+   insignificant parts of marvell-ccic, or I would have to try to verify 
+   this myself. The latter would take time.
+
+ - If Jon says, that on the contrary, these two hardware implementations 
+   share a lot in common and a shared code base definitely makes sense, I 
+   will accept that and we will look for ways to also organise the drivers 
+   accordingly.
+
+In either case, unless you guys come to an agreement, I will need to find 
+a larger time slot (like a long flight or a boring holiday:-)) to try to 
+look at the code (and datasheets, if made available) myself and make a 
+decision. No idea when I'll be able to find the time.
+
+BTW, are datasheets openly available? If not, a copy of each would be 
+appreciated.
+
+Thanks
+Guennadi
+
+> On Sunday, 15 July, 2012 01:14
 > 
-> Of course, the more properties are common - the better. I also made sure
-> not to introduce any soc-camera specific properties. But since I mostly
-> work with those systems, I am not fully aware of requirements, imposed by
-> other hardware types, so, I hope others will contribute to this work:-)
+> Jonathan Corbet <corbet@lwn.net<mailto:corbet@lwn.net>> wrote:
 > 
->> Anything linux specific in the bindings would be inappropriate.
 > 
-> Not sure what you mean here - which Linux specific bindings and why they
-> wouldn't be appropriate? Don't think our bindings would be used by any
-> other OS kernels.
-
-The bindings should be OS agnostic, so they can be used by other operating
-systems and bootloaders. That's one of fundamental FDT assumptions, AFAIU.
-
-It is outlined in this presentation (slide 22):
-http://events.linuxfoundation.org/images/stories/pdf/lf_elc12_abraham.pdf
-
->>> Overview
->>> ========
->>>
->>> As mentioned above, typical configurations, that we'll be dealing with
->>> consist of a DMA data capture engine, one or more data sources like camera
->>> sensors, possibly some data processing units. Data capture and processing
->>> engines are usually platform devices, whereas data source devices are
->>> typically I2C slaves. Apart from defining each device we'll also describe
->>> connections between them as well as properties of those connections.
->>>
->>> Capture devices
->>> ==============================
->>>
->>> These are usually platform devices, integrated into respective SoCs. There
->>> also exist external image processing devices, but they are rare. Obvious
->>> differences between them and integrated devices include a different bus
->>> attribution and a need to explicitly describe the connection to the SoC.
->>> As far as capture devices are concerned, their configuration will
->>> typically include a few device-specific bindings, as well as standard
->>> ones. Standard bindings will include the usual "reg," "interrupts,"
->>> "clock-frequency" properties.
->>>
->>> It is more complex to describe external links. We need to describe
->>> configurations, used with various devices, attached to various pads. It is
->>> proposed to describe such links as child nodes. Each such link will
->>> reference a client pad, a local pad and specify the bus configuration. The
->>> media bus can be either parallel or serial, e.g., MIPI CSI-2. It is
->>> proposed to describe both the bus-width in the parallel case and the
->>> number of lanes in the serial case, using the standard "bus-width"
->>> property.
->>>
->>> On the parallel bus common properties include signal polarities, possibly
->>> data line shift (8 if lines 15:8 are used, 2 if 9:2, and 0 if lines 7:0),
->>> protocol (e.g., BT.656). Additionally device-specific properties can be
->>> defined.
->>>
->>> A MIPI CSI-2 bus common properties would include, apart from the number of
->>> lanes, routed to that client, the clock frequency, a channel number,
->>> possibly CRC and ECC flags.
->>>
->>> An sh-mobile CEU DT node could look like
->>>
->>> 	ceu0@0xfe910000 = {
->>> 		compatible = "renesas,sh-mobile-ceu";
->>> 		reg =<0xfe910000 0xa0>;
->>> 		interrupts =<0x880>;
->>> 		bus-width =<16>;		/* #lines routed on the board */
->>> 		clock-frequency =<50000000>;	/* max clock */
->>> 		#address-cells =<1>;
->>> 		#size-cells =<0>;
->>> 		...
->>> 		ov772x-1 = {
->>> 			reg =<0>;
-
-This property might be redundant, we already have the "client" phandle
-pointing to "ov772x@0x21-0", which has all interesting properties inside 
-it. Other than there is probably no reasonable usage for it under
-"ceu0@0xfe910000" node ?
-
->>> 			client =<&ov772x@0x21-0>;
->>> 			local-pad = "parallel-sink";
->>> 			remote-pad = "parallel-source";
->>
->> I'm not sure I like that. Is it really needed when we already have
->> the child/parent properties around ?
 > 
-> I think it is. Both the host and the client can have multiple pads (e.g.,
-> parallel / serial). These properties specify which pads are used and make
-> the translation between DT data and our subdev / pad APIs simpler.
-
-OK, sorry, but isn't it all about just specifying what sort of data bus 
-is used ? :-)
-
->>> 			bus-width =<8>;	/* used data lines */
->>> 			data-shift =<0>;	/* lines 7:0 are used */
->>> 			hsync-active =<1>;	/* active high */
->>> 			vsync-active =<1>;	/* active high */
->>
->> In the end I took a bit different approach, similar to how the interrupt
->> flag bindings are defined:
->> https://github.com/snawrocki/linux/commit/c17a61a07008eeb8faea0205f7cc440545641adb
->>
->> However using a separate boolean for each signal, as you proposed, might
->> not be that much of string parsing, and it would have hurt less if this
->> would have been done is some common helper modules.
+> > ...
 > 
-> Personally, I think, I would prefer to have 1 property per flag. Whether
-> we use an integer as above or a boolean as in this patch:
 > 
-> http://thread.gmane.org/gmane.linux.drivers.devicetree/17495
 > 
-> can be discussed.
-
-I don't have strong preference, but I would vote for 
-vsync/hsync/field-active-low; and pclk-sample-falling; boolean keys.
-
->>> 			pclk-sample =<1>;	/* rising */
->>> 			clock-frequency =<24000000>;
->>> 		};
->>> 	};
->>>
->>> Client devices
->>> ==============
->>>
->>> Client nodes are children on their respective busses, e.g., i2c. This
->>> placement leads to these devices being possibly probed before respective
->>> host interfaces, which will fail due to known reasons. Therefore client
->>> drivers have to be adapted to request a delayed probing, as long as the
->>> respective video host hasn't probed.
->>
->> I doubt this is going to be sufficient. Video bridge drivers may require
->> all their sub-devices (e.g. I2C client devices) to be registered, in order
->> to complete their probing. This was discussed in the past:
->> http://www.mail-archive.com/devicetree-discuss@lists.ozlabs.org/msg06595.html
+> >> This v4l2 camera driver is based on soc-camera and videobuf2 framework
 > 
-> How about this:
+> >> Support Marvell MMP Soc family TD-PXA910/MMP2-PXA688/MMP3-PXA2128 CCIC
 > 
->   - if sensors get probed before the host, they request deferred probing;
->   - when the host gets probed, it checks, which clients it should be
->     getting, enables respective clocks, registers a notifier on respective
->     busses (&i2c_bus_type for I2C) and returns success
->   - when after this sensors are re-probed, the notifier gets called and the
->     host can complete its initialisation
-
-This could work, the sensor nodes would need to contain a reference to 
-their respective media parent nodes. And of course a lot of existing
-code would have to be modified to support that.
-
-I'd like just to point one detail here, as sensor subdev drivers control
-their voltage regulators and RESET/STANDBY (gpio) signals, they should
-also be able to control the master clock. In order to ensure proper power 
-up/down sequences. It is a bad practice to enable clocks before voltage
-supplies are switched on and we shouldn't have that as a general 
-assumption at the kernel frameworks.
-
-One possible solution would be to have host/bridge drivers to register
-a clkdev entry for I2C client device, so it can acquire the clock through 
-just clk_get(). We would have to ensure the clock is not tried to be
-accessed before it is registered by a bridge. This would require to add
-clock handling code to all sensor/encoder subdev drivers though..
-
-Or maybe we could add some capability flags, so for sensors that don't 
-control the clock themselves the hosts would enable/disable it when
-needed. 
-
->> So we ended up with defining an aggregate DT node that happens to be
->> associated with the camera media device driver.
->>
->> Here is an example of how it might look like:
->> https://github.com/snawrocki/linux/commit/eae639132681df6c068dc869bb8973f8d9d3efa1
+> >> Support Dual CCIC controllers on PXA688/PXA2128 Support MIPI-CSI2 mode
 > 
-> Yeah, it can be done if absolutely needed, but I wouldn't make it
-> mandatory. On simpler sistems 1 host and 1 sensor nodes should suffice.
+> >> and DVP-Parallel mode
 > 
->>> Client nodes will include all the properties, usual for their busses.
->>> Additionally they will specify properties private to this device type and
->>> common for all V4L2 client devices - device global and per-link. I think,
->>
->> Sounds good.
->>
->>> we should make it possible to define client devices, that can at run-time
->>> be connected to different sinks, even though such configurations might not
->>> be very frequent. To achieve this we also specify link information in
->>> child devices, similar to those in host nodes above. This also helps
->>> uniformity and will let us implement and use a universal link-binding
->>> parser. So, a node, that has been referenced above could look like
->>
->> It seems dubious to me to push media links' description into DT. Links can
->> be configurable, and I don't think it's a rare situation. I'm inclined to
->> code the interconnections within a composite device driver.
 > 
-> Shouldn't a list of all possible links be provided by the platform? If a
-> certain pad can participate in several links, all of them should be
-> specified and at run-time we just switch between them?
-
-Again, this could be entirely coded in drivers with minimal needed 
-information retrieved from DT. Or we could have all possible link
-templates in DT which would then have to be parsed/translated to 
-respective user API calls. I'd like to see a real example of such 
-link parsing at some driver.
-
->>> 	ov772x@0x21-0 = {
->>> 		compatible = "omnivision,ov772x";
->>> 		reg =<0x21>;
->>> 		vdd-supply =<&regulator>;
->>> 		bus-width =<10>;
->>> 		#address-cells =<1>;
->>> 		#size-cells =<0>;
->>> 		...
->>> 		ceu0-1 = {
->>> 			reg =<0>;
->>> 			media-parent =<&ceu0@0xfe910000>;
->>> 			bus-width =<8>;
->>> 			hsync-active =<1>;
->>> 			vsync-active =<0>;	/* who came up with an inverter here?... */
->>> 			pclk-sample =<1>;
->>> 		};
-
-Don't we need to also specify what sort of video bus (serial/parallel)
-is used in such a client node ? How the sensor sub-device driver would
-determine its bus type ?
-
->>
->> Are these mostly supposed to be properties specific to a sub-device and
->> used by a host ?
 > 
-> These parameters specify the subdevice configuration and are also used by
-> the subdevice to configure its signal polarities.
+> >This is going to be really quick.  Life is difficult here, I don't really have much time to put into anything.
 > 
->> If so, how about adding them under the host or the aggregate node grouped
->> into a sub-device specific child node ?
 > 
-> We need 2 copies of them - for both pads, that's exactly the reason for
-> the above inverter "joke."
-
-Yeah, I see. But why we need a "ceu0-1" node under "ov772x@0x21-0" node 
-above ? A driver associated with ceu0@0xfe910000 node could still access 
-properties at "ov772x@0x21-0" node through its "client" phandle.
-I can't see an advantage of having those properties grouped into a media 
-parent specific child node under the sensor node. It's not needed by the 
-sensor subdev driver, is it ?
-
->>> 	};
->>>
->>> Data processors
->>> ===============
->>>
->>> Data processing modules include resizers, codecs, rotators, serialisers,
->>> etc. A node for an sh-mobile CSI-2 subdevice could look like
->>>
->>> 	csi2@0xffc90000 = {
->>> 		compatible = "renesas,sh-mobile-csi2";
->>> 		reg =<0xffc90000 0x1000>;
->>> 		interrupts =<0x17a0>;
->>> 		bus-width =<4>;
->>> 		clock-frequency =<30000000>;
->>> 		...
->>> 		imx074-1 = {
->>> 			client =<&imx074@0x1a-0>;
->>> 			local-pad = "csi2-sink";
->>> 			remote-pad = "csi2-source";
->>> 			bus-width =<2>;
->>> 			clock-frequency =<25000000>;
->>> 			csi2-crc;
->>> 			csi2-ecc;
->>> 			sh-csi2,phy =<0>;
->>> 		};
->>> 		ceu0 = {
->>> 			media-parent =<&ceu0@0xfe910000>;
->>> 			immutable;
->>
->>> 		};
-
-The child nodes don't seem to have standard names. How would the csi2 
-driver determine what is the purpose of each of them ?
-
->>> 	};
->>>
->>> The respective child binding in the CEU node could then look like
->>>
->>> 		csi2-1 = {
->>> 			reg =<1>;
->>> 			client =<&csi2@0xffc90000>;
->>> 			immutable;
->>> 		};
->>
->> It look a bit complex, and could more complex when we run into a system
->> supporting more complex interconnections. I would prefer some sort of
->> more flat structure...
 > 
-> Ideas welcome:-)
+> >>  arch/arm/mach-mmp/include/mach/camera.h    |   21 +
+> 
+> 
+> 
+> >I don't think that this file belongs here; it should be in the driver tree.  This camera may not always be tied to this platform; indeed, the original Cafe was not.  There will never be a 64-bit SoC with
+> 
+> >some variant of this device?
+> 
+> 
+> 
+> Yes, your suggestion is reasonable.
+> 
+> How do you like we change the file name to mrvl-camera.h and move it to include/Linux/platform_data/?
+> 
+> 
+> 
+> 
+> 
+> >> +config VIDEO_MMP
+> 
+> >> +     tristate "Marvell MMP CCIC driver based on SOC_CAMERA"
+> 
+> >> +     depends on VIDEO_DEV && SOC_CAMERA
+> 
+> >> +     select VIDEOBUF2_DMA_CONTIG
+> 
+> >> +     ---help---
+> 
+> >> +       This is a v4l2 driver for the Marvell PXA910/PXA688/PXA2128 CCIC
+> 
+> >> +       To compile this driver as a module, choose M here: the module will
+> 
+> >> +       be called mmp_camera.
+> 
+> 
+> 
+> >But...the existing driver already builds as mmp_camera.  Even if we eventually agree that this separate driver should go into the mainline, it really needs to not build into a module with the same name.
+> 
+> 
+> 
+> OK. We will think about changing the module name for avoiding the name conflict.
+> 
+> 
+> 
+> >> +/*
+> 
+> >> + * V4L2 Driver for Marvell Mobile SoC PXA910/PXA688/PXA2128 CCIC
+> 
+> >> + * (CMOS Camera Interface Controller)
+> 
+> >> + *
+> 
+> >> + * This driver is based on soc_camera and videobuf2 framework,
+> 
+> >> + * but part of the low level register function is base on café-driver.c
+> 
+> >> + *
+> 
+> >> + * Copyright 2006 One Laptop Per Child Association, Inc.
+> 
+> >> + * Copyright 2006-7 Jonathan Corbet <corbet@lwn.net<mailto:corbet@lwn.net>>
+> 
+> 
+> 
+> >Nit: some of the code clearly comes from marvell-ccic/mcam-core.c, so the copyright dates (if they really need to be kept) should stretch into 2011 or so.
+> 
+> 
+> 
+> Yes, we will keep it and change the copyright dates to 2011.
+> 
+> 
+> 
+> >I don't see anything else obvious, but it was a very quick reading, sorry.
+> 
+> 
+> 
+> >Jon
+> 
+> 
+> 
+> Thanks
+> 
+> Albert Wang
+> 
 
-:) It just looked to me like a lot of parsing code for all these constructs. 
-And would such design be flexible enough to support pipelines like:
-
-[sensor] -> [MIPI-CSI2 receiver (frontend)] -> [ISP frontend (+ DMA)] -> 
-[ISP (...)] -> [scaler/rotator + DMA] ->
-
-i.e. containing more than 3 entities ?
-
---
-
-Thanks,
-Sylwester
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
