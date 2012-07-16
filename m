@@ -1,54 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59146 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754566Ab2GRN6Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jul 2012 09:58:25 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH v2 1/9] ov772x: Fix memory leak in probe error path
-Date: Wed, 18 Jul 2012 15:58:18 +0200
-Message-Id: <1342619906-5820-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1342619906-5820-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1342619906-5820-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:38535 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751721Ab2GPUYk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Jul 2012 16:24:40 -0400
+Message-ID: <5004787E.4020706@iki.fi>
+Date: Mon, 16 Jul 2012 23:24:30 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Meftah Tayeb <tayeb.dotnet@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Device supported ?
+References: <006E41BB892E488D96CC35D62816B7CC@work>
+In-Reply-To: <006E41BB892E488D96CC35D62816B7CC@work>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The control handler isn't freed if its initialization fails. Fix it.
+On 07/14/2012 07:50 PM, Meftah Tayeb wrote:
+> Hello
+> i installed the latest Linux V4L-DVB (mediabuild) in my debian X64
+> having those DVBS2 cards:
+> http://paste.debian.net/179068/
+> dmesg output:
+> http://paste.debian.net/179072/
+> Uname -a: Linux debian 3.2.0-3-amd64 #1 SMP Thu Jun 28 09:07:26 UTC 2012
+> x86_64 GNU/Linux
+> Debian release: wheezy/sid
+> anyone ?
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/ov772x.c |    9 ++++-----
- 1 files changed, 4 insertions(+), 5 deletions(-)
+ From those pastes:
+04:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI 
+Video and Audio Decoder (rev 04)
+CORE cx23885[0]: subsystem: 6981:8888, board: UNKNOWN/GENERIC 
+[card=0,autodetected]
 
-diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
-index 641f6f4..0fede50d 100644
---- a/drivers/media/video/ov772x.c
-+++ b/drivers/media/video/ov772x.c
-@@ -1098,18 +1098,17 @@ static int ov772x_probe(struct i2c_client *client,
- 			V4L2_CID_BAND_STOP_FILTER, 0, 256, 1, 0);
- 	priv->subdev.ctrl_handler = &priv->hdl;
- 	if (priv->hdl.error) {
--		int err = priv->hdl.error;
--
--		kfree(priv);
--		return err;
-+		ret = priv->hdl.error;
-+		goto done;
- 	}
- 
- 	ret = ov772x_video_probe(client);
-+
-+done:
- 	if (ret) {
- 		v4l2_ctrl_handler_free(&priv->hdl);
- 		kfree(priv);
- 	}
--
- 	return ret;
- }
- 
+ID 6981:8888 seems to belong for TurboSight TBS 6981. Unfortunately they 
+use their own binary drivers. This mailing list is for drivers that are 
+included to the Kernel. You have to look help from the device vendor 
+support page.
+
+regards
+Antti
+
 -- 
-1.7.8.6
+http://palosaari.fi/
+
 
