@@ -1,39 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:39407 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752606Ab2GVUiF (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40600 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751261Ab2GPOdT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Jul 2012 16:38:05 -0400
-Received: by wgbdr13 with SMTP id dr13so5198612wgb.1
-        for <linux-media@vger.kernel.org>; Sun, 22 Jul 2012 13:38:03 -0700 (PDT)
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: [PATCH] v4l2-compliance: Add commas to increase readability of displayed result
-Date: Sun, 22 Jul 2012 22:37:54 +0200
-Message-Id: <1342989474-4178-1-git-send-email-sylvester.nawrocki@gmail.com>
+	Mon, 16 Jul 2012 10:33:19 -0400
+Received: from avalon.localnet (unknown [91.178.115.48])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id D8E547B0D
+	for <linux-media@vger.kernel.org>; Mon, 16 Jul 2012 16:33:18 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.6] uvcvideo fixes
+Date: Mon, 16 Jul 2012 16:33:23 +0200
+Message-ID: <6425711.7gs2P3ML9l@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
----
- utils/v4l2-compliance/v4l2-compliance.cpp |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Hi Mauro,
 
-diff --git a/utils/v4l2-compliance/v4l2-compliance.cpp b/utils/v4l2-compliance/v4l2-compliance.cpp
-index 10b06f6..8083051 100644
---- a/utils/v4l2-compliance/v4l2-compliance.cpp
-+++ b/utils/v4l2-compliance/v4l2-compliance.cpp
-@@ -660,8 +660,7 @@ int main(int argc, char **argv)
- 	test_close(node.fd);
- 	if (node.node2)
- 		test_close(node.node2->fd);
--	printf("Total: %d Succeeded: %d Failed: %d Warnings: %d\n",
-+	printf("Total: %d, Succeeded: %d, Failed: %d, Warnings: %d\n",
- 			tests_total, tests_ok, tests_total - tests_ok, warnings);
- 	exit(app_result);
- }
---
-1.7.4.1
+The following change since commit 931efdf58bd83af8d0578a6cc53421675daf6d41:
+
+  Merge branch 'v4l_for_linus' into staging/for_v3.6 (2012-07-14 15:45:44 -0300)
+
+is available in the git repository at:
+
+  git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-next
+
+Jayakrishnan Memana (1):
+      uvcvideo: Reset the bytesused field when recycling an erroneous buffer
+
+ drivers/media/video/uvc/uvc_queue.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+-- 
+Regards,
+
+Laurent Pinchart
 
