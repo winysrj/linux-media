@@ -1,49 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:63834 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753043Ab2GTP2O (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:49483 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751069Ab2GPJmT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jul 2012 11:28:14 -0400
-Received: from epcpsbgm2.samsung.com (mailout4.samsung.com [203.254.224.34])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M7G00J1ETN10XG0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Sat, 21 Jul 2012 00:28:13 +0900 (KST)
-Received: from localhost.localdomain ([106.116.147.39])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M7G00JMBTMU3P30@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Sat, 21 Jul 2012 00:28:13 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com, jtp.park@samsung.com,
-	Kamil Debski <k.debski@samsung.com>
-Subject: [PATCH 1/2] s5p-mfc: Fix second memory bank alignment
-Date: Fri, 20 Jul 2012 17:28:03 +0200
-Message-id: <1342798084-2934-1-git-send-email-k.debski@samsung.com>
+	Mon, 16 Jul 2012 05:42:19 -0400
+Date: Mon, 16 Jul 2012 11:42:13 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org, b.zolnierkie@samsung.com
+Subject: Re: [RFC/PATCH 09/13] media: s5k6aa: Add support for device tree
+ based instantiation
+In-Reply-To: <1337975573-27117-9-git-send-email-s.nawrocki@samsung.com>
+Message-ID: <Pine.LNX.4.64.1207161122390.12302@axis700.grange>
+References: <4FBFE1EC.9060209@samsung.com> <1337975573-27117-1-git-send-email-s.nawrocki@samsung.com>
+ <1337975573-27117-9-git-send-email-s.nawrocki@samsung.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+On Fri, 25 May 2012, Sylwester Nawrocki wrote:
+
+> The driver initializes all board related properties except the s_power()
+> callback to board code. The platforms that require this callback are not
+> supported by this driver yet for CONFIG_OF=y.
+> 
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  .../bindings/camera/samsung-s5k6aafx.txt           |   57 +++++++++
+>  drivers/media/video/s5k6aa.c                       |  129 ++++++++++++++------
+>  2 files changed, 146 insertions(+), 40 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt b/Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt
+> new file mode 100644
+> index 0000000..6685a9c
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt
+> @@ -0,0 +1,57 @@
+> +Samsung S5K6AAFX camera sensor
+> +------------------------------
+> +
+> +Required properties:
+> +
+> +- compatible : "samsung,s5k6aafx";
+> +- reg : base address of the device on I2C bus;
+
+You said you ended up putting your sensors outside of I2C busses, is this 
+one of changes, that are present in your git-tree but not in this series?
+
+> +- video-itu-601-bus : parallel bus with HSYNC and VSYNC - ITU-R BT.601;
+
+If this is a boolean property, it cannot be required? Otherwise, as 
+discussed in a different patch comment, this property might not be 
+required, and if it is, I would use the same definition for both the 
+camera interface and for sensors.
+
+> +- vdd_core-supply : digital core voltage supply 1.5V (1.4V to 1.6V);
+> +- vdda-supply : analog power voltage supply 2.8V (2.6V to 3.0V);
+> +- vdd_reg-supply : regulator input power voltage supply 1.8V (1.7V to 1.9V)
+> +		   or 2.8V (2.6V to 3.0);
+
+I think, underscores in property names are generally frowned upon.
+
+> +- vddio-supply : I/O voltage supply 1.8V (1.65V to 1.95V)
+> +		 or 2.8V (2.5V to 3.1V);
+> +
+> +Optional properties:
+> +
+> +- clock-frequency : the IP's main (system bus) clock frequency in Hz, the default
+> +		    value when this property is not specified is 24 MHz;
+> +- data-lanes : number of physical lanes used (default 2 if not specified);
+
+bus-width?
+
+> +- gpio-stby : specifies the S5K6AA_STBY GPIO
+> +- gpio-rst : specifies the S5K6AA_RST GPIO
+
+>From Documentation/devicetree/bindings/gpio/gpio.txt:
+
+<quote>
+GPIO properties should be named "[<name>-]gpios".
+</quote>
+
+> +- samsung,s5k6aa-inv-stby : set inverted S5K6AA_STBY GPIO level;
+> +- samsung,s5k6aa-inv-rst : set inverted S5K6AA_RST GPIO level;
+
+Isn't this provided by GPIO flags as described in include/linux/of_gpio.h 
+by using the OF_GPIO_ACTIVE_LOW bit?
+
+> +- samsung,s5k6aa-hflip : set the default horizontal image flipping;
+> +- samsung,s5k6aa-vflip : set the default vertical image flipping;
+
+This is a board property, specifying how the sensor is wired and mounted 
+on the casing, right? IIRC, libv4l has a database of these for USB 
+cameras. So, maybe it belongs to the user-space for embedded systems too? 
+Or at least this shouldn't be Samsung-specific?
+
+> +
+> +
+> +Example:
+> +
+> +	gpl2: gpio-controller@0 {
+> +	};
+> +
+> +	reg0: regulator@0 {
+> +	};
+> +
+> +	reg1: regulator@1 {
+> +	};
+> +
+> +	reg2: regulator@2 {
+> +	};
+> +
+> +	reg3: regulator@3 {
+> +	};
+> +
+> +	s5k6aafx@3c {
+> +		compatible = "samsung,s5k6aafx";
+> +		reg = <0x3c>;
+> +		clock-frequency = <24000000>;
+> +		gpio-rst = <&gpl2 0 2 0 3>;
+> +		gpio-stby = <&gpl2 1 2 0 3>;
+> +		video-itu-601-bus;
+> +		vdd_core-supply = <&reg0>;
+> +		vdda-supply = <&reg1>;
+> +		vdd_reg-supply = <&reg2>;
+> +		vddio-supply = <&reg3>;
+> +	};
+
+Thanks
+Guennadi
 ---
- drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
-index 08a5cfe..fd62402 100644
---- a/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
-+++ b/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
-@@ -78,7 +78,7 @@ int s5p_mfc_alloc_and_load_firmware(struct s5p_mfc_dev *dev)
- 	}
- 	dev->bank1 = s5p_mfc_bitproc_phys;
- 	b_base = vb2_dma_contig_memops.alloc(
--		dev->alloc_ctx[MFC_BANK2_ALLOC_CTX], 1 << MFC_BANK2_ALIGN_ORDER);
-+		dev->alloc_ctx[MFC_BANK2_ALLOC_CTX], 1 << MFC_BASE_ALIGN_ORDER);
- 	if (IS_ERR(b_base)) {
- 		vb2_dma_contig_memops.put(s5p_mfc_bitproc_buf);
- 		s5p_mfc_bitproc_phys = 0;
--- 
-1.7.0.4
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
