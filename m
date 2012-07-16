@@ -1,364 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45873 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750930Ab2G0Kti (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:57025 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750754Ab2GPIz7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jul 2012 06:49:38 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-Cc: "davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	LMML <linux-media@vger.kernel.org>,
-	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Rob Landley <rob@landley.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David Cohen <david.a.cohen@linux.intel.com>
-Subject: Re: [PATCH] [media] davinci: vpfe: Add documentation
-Date: Fri, 27 Jul 2012 12:49:44 +0200
-Message-ID: <1461029.ufNJEg1MSf@avalon>
-In-Reply-To: <E99FAA59F8D8D34D8A118DD37F7C8F753E941A7E@DBDE01.ent.ti.com>
-References: <1342021166-6092-1-git-send-email-manjunath.hadli@ti.com> <6523233.d6sC4kbUpR@avalon> <E99FAA59F8D8D34D8A118DD37F7C8F753E941A7E@DBDE01.ent.ti.com>
+	Mon, 16 Jul 2012 04:55:59 -0400
+Date: Mon, 16 Jul 2012 10:55:56 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org, b.zolnierkie@samsung.com
+Subject: Re: [RFC/PATCH 02/13] media: s5p-csis: Add device tree support
+In-Reply-To: <1337975573-27117-2-git-send-email-s.nawrocki@samsung.com>
+Message-ID: <Pine.LNX.4.64.1207161031000.12302@axis700.grange>
+References: <4FBFE1EC.9060209@samsung.com> <1337975573-27117-1-git-send-email-s.nawrocki@samsung.com>
+ <1337975573-27117-2-git-send-email-s.nawrocki@samsung.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Manjunath,
+Hi Sylwester
 
-On Friday 27 July 2012 05:49:24 Hadli, Manjunath wrote:
-> On Thu, Jul 26, 2012 at 05:55:31, Laurent Pinchart wrote:
-> > On Tuesday 17 July 2012 10:43:54 Hadli, Manjunath wrote:
-> > > On Sun, Jul 15, 2012 at 18:16:25, Laurent Pinchart wrote:
-> > > > On Wednesday 11 July 2012 21:09:26 Manjunath Hadli wrote:
-> > > > > Add documentation on the Davinci VPFE driver. Document the subdevs,
-> > > > > and private IOTCLs the driver implements
-> > > > > 
-> > > > > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> > > > > Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> > 
-> > [snip]
-> > 
-> > > > > +Private IOCTLs
-> > > > > +==============
-> > > > > +
-> > > > > +The Davinci Video processing Front End (VPFE) driver supports
-> > > > > standard V4L2
-> > > > > +IOCTLs and controls where possible and practical. Much of the
-> > > > > functions provided
-> > > > > +by the VPFE, however, does not fall under the standard IOCTLs.
-> > > > > +
-> > > > > +In general, there is a private ioctl for configuring each of the
-> > > > > blocks
-> > > > > +containing hardware-dependent functions.
-> > > > > +
-> > > > > +The following private IOCTLs are supported:
-> > > > > +
-> > > > > +1: IOCTL: PREV_S_PARAM/PREV_G_PARAM
-> > > > > +Description:
-> > > > > +	Sets/Gets the parameters required by the previewer module
-> > > > > +Parameter:
-> > > > > +	/**
-> > > > > +	 * struct prev_module_param- structure to configure preview
-> > > > > modules
-> > > > > +	 * @version: Version of the preview module
-> > > > 
-> > > > Who is responsible for filling this field, the application or the
-> > > > driver ?
-> > > 
-> > > The application is responsible for filling this info. He would enumerate
-> > > the capabilities first and  set them using S_PARAM/G_PARAM.
-> > 
-> > And what's the point of the application setting the version field ? How
-> > does the driver use it ?
+Thanks for your comments to my RFC and for pointing out to this your 
+earlier patch series. Unfortunately, I missed in in May, let me try to 
+provide some thoughts about this, we should really try to converge our 
+proposals. Maybe a discussion at KS would help too.
+
+On Fri, 25 May 2012, Sylwester Nawrocki wrote:
+
+> s5p-csis is platform device driver for MIPI-CSI frontend to the FIMC
+> (camera host interface DMA engine and image processor). This patch
+> adds support for instantiating the MIPI-CSIS devices from DT and
+> parsing all SoC and board specific properties from device tree.
+> The MIPI DPHY control callback is now called directly from within
+> the driver, the platform code must ensure this callback does the
+> right thing for each SoC.
 > 
-> The version may not be required. Will remove it.
+> The cell-index property is used to ensure proper signal routing,
+> from physical camera port, through MIPI-CSI2 receiver to the DMA
+> engine (FIMC?). It's also helpful in exposing the device topology
+> in user space at /dev/media? devnode (Media Controller API).
 > 
-> > > > > +	 * @len: Length of the module config structure
-> > > > > +	 * @module_id: Module id
-> > > > > +	 * @param: pointer to module config parameter.
-> > > > 
-> > > > What is module_id for ? What does param point to ?
-> > > 
-> > > There are a lot of tiny modules in the previewer/resizer which are
-> > > enumerated as individual modules. The param points to the parameter set
-> > > that the module expects to be set.
-> > 
-> > Why don't you implement something similar to
-> > VPFE_CMD_S_CCDC_RAW_PARAMS/VPFE_CMD_G_CCDC_RAW_PARAMS instead ?
+> This patch also defines a common property ("data-lanes") for MIPI-CSI
+> receivers and transmitters.
 > 
-> I feel if we implement direct IOCTLS there might be many of them. To make
-> sure than independent of the number of internal modules present, having the
-> same IOCTL used for all modules is a good idea.
-
-You can set several parameters using a single ioctl, much like 
-VPFE_CMD_S_CCDC_RAW_PARAMS does. You don't need one ioctl per parameter. 
-
-PREV_ENUM_CAP, PREV_[GS]_PARAM and PREV_[GS]_CONFIG are essentially 
-reinventing V4L2 controls, and I don't think that's a good idea.
-
-> > > > > +	 */
-> > > > > +	struct prev_module_param {
-> > > > > +		char version[IMP_MAX_NAME_SIZE];
-> > > > 
-> > > > Is there a need to express the version as a string instead of an
-> > > > integer ?
-> > > 
-> > > It could be integer. It is generally a fixed point num, and easy to read
-> > > it as a string than an integer. Can I keep it as a string?
-> > 
-> > Let's first decide whether a version field is needed at all :-)
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  Documentation/devicetree/bindings/video/mipi.txt   |    5 +
+>  .../bindings/video/samsung-mipi-csis.txt           |   47 ++++++++++
+>  drivers/media/video/s5p-fimc/mipi-csis.c           |   97 +++++++++++++++-----
+>  drivers/media/video/s5p-fimc/mipi-csis.h           |    1 +
+>  4 files changed, 126 insertions(+), 24 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/video/mipi.txt
+>  create mode 100644 Documentation/devicetree/bindings/video/samsung-mipi-csis.txt
 > 
-> Will remove.
-> 
-> > > > > +		unsigned short len;
-> > > > > +		unsigned short module_id;
-> > > > > +		void *param;
-> > > > > +	};
-> > > > > +
-> > > > > +2: IOCTL: PREV_S_CONFIG/PREV_G_CONFIG
-> > > > > +Description:
-> > > > > +	Sets/Gets the configuration required by the previewer channel
-> > > > > +Parameter:
-> > > > > +	/**
-> > > > > +	 * struct prev_channel_config - structure for configuring the
-> > > > > previewer
-> > > > > channel
-> > > > > +	 * @len: Length of the user configuration
-> > > > > +	 * @config: pointer to either single shot config or continuous
-> > > > > +	 */
-> > > > > +	struct prev_channel_config {
-> > > > > +		unsigned short len;
-> > > > > +		void *config;
-> > > > > +	};
-> > > > 
-> > > > What's the difference between parameters and configuration ? What does
-> > > > config point to ?
-> > > 
-> > > Config is setting which is required for a subdev to function based on
-> > > what it is set for (single shot/continuous.) common to all platforms.
-> > > Parameters are the settings for individual small sub-ips which might be
-> > > slightly different from one platform to another. Config points to
-> > > prev_single_shot_config or  prev_continuous_config currently defined in
-> > > linux/dm3656ipipe.h. I think we will move it to a common location.
-> > 
-> > Why don't you implement something similar to
-> > VPFE_CMD_S_CCDC_RAW_PARAMS/VPFE_CMD_G_CCDC_RAW_PARAMS here as well (same
-> > for the resizer configuration ioctls) ?
-> 
-> Ditto.
-> 
-> > > > > +
-> > > > > +3: IOCTL: PREV_ENUM_CAP
-> > > > > +Description:
-> > > > > +	Queries the modules available in the image processor for preview
-> > > > > the
-> > > > > +	input image.
-> > > > > +Parameter:
-> > > > > +	/**
-> > > > > +	 * struct prev_cap - structure to enumerate capabilities of
-> > > > > previewer
-> > > > > +	 * @index: application use this to iterate over the available
-> > > > > modules
-> > > > > +	 * @version: version of the preview module
-> > > > > +	 * @module_id: module id
-> > > > > +	 * @control: control operation allowed in continuous mode? 1 -
-> > > > > allowed, 0
-> > > > > - not allowed
-> > > > > +	 * @path: path on which the module is sitting
-> > > > > +	 * @module_name: module name
-> > > > > +	 */
-> > > > > +	struct prev_cap {
-> > > > > +		unsigned short index;
-> > > > > +		char version[IMP_MAX_NAME_SIZE];
-> > > > > +		unsigned short module_id;
-> > > > > +		char control;
-> > > > > +		enum imp_data_paths path;
-> > > > > +		char module_name[IMP_MAX_NAME_SIZE];
-> > > > > +	};
-> > > > 
-> > > > Enumerating internal modules is exactly what the MC API was designed
-> > > > for.
-> > > > Why do you reimplement that using private ioctls ?
-> > > 
-> > > The number of these sub-Ips are quite a few in DM365 and Dm355, having a
-> > > lot of them In a way that may be bewildering to the end-user to be able
-> > > to connect them quickly and properly. But overall, these are nothing
-> > > but exposed subips of what we call as CCDC,Previewer  and Resizer.It
-> > > Made a lot of logical sense to keep it that way, give a default
-> > > configuration for everything, and if at all the user wants the fine
-> > > grain config control, be able to give (mainly for the configurations-
-> > > not so much for connections). In most of the cases the param IOTCLs are
-> > > only used for fine-tuning the image and not expected to be used as a
-> > > regular flow of a normal application. I do not think there could be any
-> > > justification for making all these nitty gritty which keep changing for
-> > > each IPs as part of regular V4L2 IOCTLs. In future, if there is a common
-> > > theme that emerges, we could definitely relook into this.
-> > 
-> > I totally agree with you on this, the tiny sub-blocks should not be
-> > exposed as through the MC API. However, I would go one step further : I
-> > wouldn't expose them through a private ioctl either. What would a
-> > userspace application do with this information that it couldn't do with
-> > just the entity name and its revision number ?
-> 
-> Not exposing the full functionality might not be an option. The driver gets
-> used by different kinds of users. Some might want to use only the basic
-> features, but many would like to have the full control in terms of setting
-> all the parameters. Since IPIPE is so much about tuning, not having a fine
-> grain control on its parameters is not an option.
+> diff --git a/Documentation/devicetree/bindings/video/mipi.txt b/Documentation/devicetree/bindings/video/mipi.txt
+> new file mode 100644
+> index 0000000..5aed285
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/video/mipi.txt
+> @@ -0,0 +1,5 @@
+> +Common properties of MIPI-CSI1 and MIPI-CSI2 receivers and transmitters
+> +
+> + - data-lanes : number of differential data lanes wired and actively used in
+> +		communication between the transmitter and the receiver, this
+> +		excludes the clock lane;
 
-My point wasn't that you shouldn't expose all device features, but that you 
-don't need userspace to be able to dynamically enumerate the content of the 
-entity. Applications need to use your private ioctls so they know what 
-hardware they deal with. Knowing the entity name (and possibly revision) 
-should be enough.
+Wouldn't it be better to use the standard "bus-width" DT property?
 
-> > [snip]
-> > 
-> > > > > +5: IOCTL: VPFE_CMD_S_CCDC_RAW_PARAMS/VPFE_CMD_G_CCDC_RAW_PARAMS
-> > > > > +Description:
-> > > > > +	Sets/Gets the CCDC parameter
-> > > > > +Parameter:
-> > > > > +	/**
-> > > > > +	 * struct ccdc_config_params_raw - structure for configuring 
-ccdc
-> > > > > params
-> > > > > +	 * @linearize: linearization parameters for image sensor data
-> > > > > input
-> > > > > +	 * @df_csc: data formatter or CSC
-> > > > > +	 * @dfc: defect Pixel Correction (DFC) configuration
-> > > > > +	 * @bclamp: Black/Digital Clamp configuration
-> > > > > +	 * @gain_offset: Gain, offset adjustments
-> > > > 
-> > > > Can't you use subdev V4L2 controls for gains ?
-> > > 
-> > > In that case only gain has to be taken out as a generic IOCTL. Since
-> > > that is is The parameter which could be taken out of this big structure
-> > 
-> > That's correct.
-> > 
-> > > > > +	 * @culling: Culling
-> > > > > +	 * @pred: predictor for DPCM compression
-> > > > > +	 * @horz_offset: horizontal offset for Gain/LSC/DFC
-> > > > > +	 * @vert_offset: vertical offset for Gain/LSC/DFC
-> > > > > +	 * @col_pat_field0: color pattern for field 0
-> > > > > +	 * @col_pat_field1: color pattern for field 1
-> > > > 
-> > > > Shouldn't color patterns be computed automatically by the driver based
-> > > > on
-> > > > the media bus pixel code ?
-> > > 
-> > > OK.
-> > > 
-> > > > > +	 * @data_size: data size from 8 to 16 bits
-> > > > > +	 * @data_shift: data shift applied before storing to SDRAM
-> > > > 
-> > > > Ditto, this should probably be computed automatically.
-> > > 
-> > > Do you want to define new MBUS formats for these?
-> > 
-> > The media bus format contains information about the data width, so I think
-> > those fields are redundant.
-> 
-> The specific fields here have the control of specifying the datawidth from 9
-> bits to 16 bits. Did you want us to implement media bus format for all
-> these variations?
+> diff --git a/Documentation/devicetree/bindings/video/samsung-mipi-csis.txt b/Documentation/devicetree/bindings/video/samsung-mipi-csis.txt
+> new file mode 100644
+> index 0000000..7bce6f4
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/video/samsung-mipi-csis.txt
+> @@ -0,0 +1,47 @@
+> +Samsung S5P/EXYNOS SoC MIPI-CSI2 receiver (MIPI CSIS)
+> +-----------------------------------------------------
+> +
+> +Required properties:
+> +
+> +- compatible - one of :
+> +		"samsung,s5pv210-csis",
+> +		"samsung,exynos4210-csis",
+> +		"samsung,exynos4212-csis",
+> +		"samsung,exynos4412-csis";
+> +- reg : physical base address and size of the device memory mapped registers;
+> +- interrupts      : should contain MIPI CSIS interrupt; the format of the
+> +		    interrupt specifier depends on the interrupt controller;
+> +- cell-index      : the hardware instance index;
 
-If you have hardware that can generate data in a given width, it needs a media 
-bus format, yes. Just don't add media bus formats for widths that are not 
-implemented in any hardware.
+Not sure whether this is absolutely needed... Wouldn't it be sufficient to 
+just enumerate them during probing?
 
-> Just to make sure we do not get held up, I will send a separate patch on
-> mediabus formats for these variations for review. In the mean time, we will
-> go ahead with this.
->
-> > > > > +	 * @test_pat_gen: enable input test pattern generation
-> > > > 
-> > > > You could use a subdev V4L2 control for that.
-> > > 
-> > > Ok.
-> > > 
-> > > > > +	 */
-> > > > > +	struct ccdc_config_params_raw {
-> > > > > +		struct ccdc_linearize linearize;
-> > > > > +		struct ccdc_df_csc df_csc;
-> > > > > +		struct ccdc_dfc dfc;
-> > > > > +		struct ccdc_black_clamp bclamp;
-> > > > > +		struct ccdc_gain_offsets_adj gain_offset;
-> > > > > +		struct ccdc_cul culling;
-> > > > > +		enum ccdc_dpcm_predictor pred;
-> > > > > +		unsigned short horz_offset;
-> > > > > +		unsigned short vert_offset;
-> > > > > +		struct ccdc_col_pat col_pat_field0;
-> > > > > +		struct ccdc_col_pat col_pat_field1;
-> > > > > +		enum ccdc_data_size data_size;
-> > > > > +		enum ccdc_datasft data_shift;
-> > > > > +		unsigned char test_pat_gen;
-> > > > > +	};
-> > > > > +
-> > 
-> > [snip]
-> > 
-> > > > > +7: IOCTL: AF_GET_STAT
-> > > > > +Description:
-> > > > > +	Copy the entire statistics located in application buffer
-> > > > > +	to user space from the AF engine
-> > > > > +Parameter:
-> > > > > +	/**
-> > > > > +	 * struct af_statdata - structure to get statistics from AF 
-engine
-> > > > > +	 * @buffer: pointer to buffer
-> > > > > +	 * @buf_length: length of buffer
-> > > > > +	 */
-> > > > > +	struct af_statdata {
-> > > > > +		void *buffer;
-> > > > > +		int buf_length;
-> > > > > +	};
-> > > > 
-> > > > The OMAP3 ISP driver also needs to export statistics data to
-> > > > userspace. We should design a common API here.
-> > >  
-> > >  Sure we can take it up sometime later.
-> > 
-> > [snip]
-> > 
-> > > > > +9: IOCTL: AEW_GET_STAT
-> > > > > +Description:
-> > > > > +	Copy the entire statistics located in application buffer
-> > > > > +	to user space from the AEW engine
-> > > > > +Parameter:
-> > > > > +	/**
-> > > > > +	 * struct aew_statdata - structure to get statistics from AEW
-> > > > > engine
-> > > > > +	 * @buffer: pointer to buffer
-> > > > > +	 * @buf_length: length of buffer
-> > > > > +	 */
-> > > > > +	struct aew_statdata {
-> > > > > +		void *buffer;
-> > > > > +		int buf_length;
-> > > > > +	};
-> > > > 
-> > > > Same comment as for AF_GET_STAT.
-> > > 
-> > > Yes, we can discuss about it to make it common. I would prefer we get
-> > > this driver in and make amends when you are doing it for OMAP.
-> > 
-> > OK, but then please start a discussion on the mailing list about this
-> > topic (CC'ing David Cohen as he might be interested).
-> 
-> I will. Let us get the current driver in. In the meantime I will do some
-> analysis and send an RFC.
+> +- clock-frequency : The IP's main (system bus) clock frequency in Hz, the default
+> +		    value when this property is not specified is 166 MHz;
+> +- data-lanes      : number of physical MIPI-CSI2 lanes used;
 
-OK.
+ditto - bus-width?
 
-> If possible, I would request for your ACK on this patch and driver.
+> +- samsung,csis-hs-settle : differential receiver (HS-RX) settle time;
+> +- vddio-supply    : MIPI CSIS I/O and PLL voltage supply (e.g. 1.8V);
+> +- vddcore-supply  : MIPI CSIS Core voltage supply (e.g. 1.1V).
+> +
+> +Example:
+> +
+> +	reg0: regulator@0 {
+> +	};
+> +
+> +	reg1: regulator@1 {
+> +	};
+> +
+> +/* SoC properties */
+> +
+> +	csis@11880000 {
+> +		compatible = "samsung,exynos4210-csis";
+> +		reg = <0x11880000 0x1000>;
+> +		interrupts = <0 78 0>;
+> +		cell-index = <0>;
+> +	};
+> +
+> +/* Board properties */
+> +
+> +	csis@11880000 {
+> +		clock-frequency = <166000000>;
+> +		data-lanes = <2>;
+> +		samsung,csis-hs-settle = <12>;
+> +		vddio-supply = <&reg0>;
+> +		vddcore-supply = <&reg1>;
+> +	};
 
-I can't ack this before we solve the PREV_ENUM_CAP, PREV_[GS]_PARAM and 
-PREV_[GS]_CONFIG issue.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
