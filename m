@@ -1,54 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:10074 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932339Ab2GENKR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Jul 2012 09:10:17 -0400
-Message-ID: <4FF5925A.7060906@redhat.com>
-Date: Thu, 05 Jul 2012 15:10:50 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42704 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751308Ab2GPXpc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Jul 2012 19:45:32 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: David Cohen <david.a.cohen@linux.intel.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 7/9] soc-camera: Continue the power off sequence if one of the steps fails
+Date: Tue, 17 Jul 2012 01:45:35 +0200
+Message-ID: <11676269.DxxC5Mj13x@avalon>
+In-Reply-To: <50034325.50006@linux.intel.com>
+References: <1341520728-2707-1-git-send-email-laurent.pinchart@ideasonboard.com> <1341520728-2707-8-git-send-email-laurent.pinchart@ideasonboard.com> <50034325.50006@linux.intel.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	halli manjunatha <hallimanju@gmail.com>
-Subject: Re: [PATCH 0/6] Add frequency band information
-References: <1341483933-9986-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1341483933-9986-1-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Series looks good to me, ack series:
+Hi David,
 
-Acked-by: Hans de Goede <hdegoede@redhat.com>
+Thank you for the review.
 
-On 07/05/2012 12:25 PM, Hans Verkuil wrote:
-> Hi Mauro,
->
-> This should be the final patch series for adding multiband support to the
-> kernel.
->
-> This patch series assumes that this pull request was merged first:
->
-> http://patchwork.linuxtv.org/patch/13180/
->
-> Changes since the previous RFC patch series:
-> (See http://www.mail-archive.com/linux-media@vger.kernel.org/msg48549.html)
->
-> - The name field was dropped.
-> - A new modulation field was added that describes the possible modulation
->    systems for that frequency band (currently only one modulation system can
->    be supported per band).
-> - Compat code was added to allow VIDIOC_ENUM_FREQ_BANDS to be used for
->    existing drivers.
->
-> A note regarding the cadet driver: I want to do a follow-up patch to this
-> at a later date so that it uses the tea575x-tuner framework. But with these
-> patches it will at least work correctly again.
->
-> Regards,
->
-> 	Hans
->
+On Monday 16 July 2012 01:24:37 David Cohen wrote:
+> On 07/05/2012 11:38 PM, Laurent Pinchart wrote:
+> > Powering off a device is a "best effort" task: failure to execute one of
+> > the steps should not prevent the next steps to be executed. For
+> > instance, an I2C communication error when putting the chip in stand-by
+> > mode should not prevent the more agressive next step of turning the
+> > chip's power supply off.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >   drivers/media/video/soc_camera.c |    9 +++------
+> >   1 files changed, 3 insertions(+), 6 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/soc_camera.c
+> > b/drivers/media/video/soc_camera.c index 55b981f..bbd518f 100644
+> > --- a/drivers/media/video/soc_camera.c
+> > +++ b/drivers/media/video/soc_camera.c
+> > @@ -89,18 +89,15 @@ static int soc_camera_power_off(struct
+> > soc_camera_device *icd,> 
+> >   				struct soc_camera_link *icl)
+> >   {
+> >   	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+> > -	int ret = v4l2_subdev_call(sd, core, s_power, 0);
+> > +	int ret;
+> > 
+> > -	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
+> > -		return ret;
+> > +	v4l2_subdev_call(sd, core, s_power, 0);
+> 
+> Fair enough. I agree we should not prevent power off because of failure
+> in this step. But IMO we should not silently bypass it too. How about
+> an error message?
+
+I'll add that.
+
+> >   	if (icl->power) {
+> >   	
+> >   		ret = icl->power(icd->control, 0);
+> > 
+> > -		if (ret < 0) {
+> > +		if (ret < 0)
+> > 
+> >   			dev_err(icd->pdev,
+> >   			
+> >   				"Platform failed to power-off the camera.\n");
+> > 
+> > -			return ret;
+> > -		}
+> > 
+> >   	}
+> >   	
+> >   	ret = regulator_bulk_disable(icl->num_regulators,
+> 
+> One more comment. Should this function's return value being based fully
+> on last action? If any earlier error happened but this last step is
+> fine, IMO we should not return 0.
+
+Good point. What about this (on top of the current patch) ?
+
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index bbd518f..7bf21da 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -89,21 +89,30 @@ static int soc_camera_power_off(struct soc_camera_device *icd,
+                                struct soc_camera_link *icl)
+ {
+        struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+-       int ret;
++       int ret = 0;
++       int err;
+ 
+-       v4l2_subdev_call(sd, core, s_power, 0);
++       err = v4l2_subdev_call(sd, core, s_power, 0);
++       if (err < 0 && err != -ENOIOCTLCMD && err != -ENODEV) {
++               dev_err(icd->pdev, "Subdev failed to power-off the camera.\n");
++               ret = err;
++       }
+ 
+        if (icl->power) {
+-               ret = icl->power(icd->control, 0);
+-               if (ret < 0)
++               err = icl->power(icd->control, 0);
++               if (err < 0) {
+                        dev_err(icd->pdev,
+                                "Platform failed to power-off the camera.\n");
++                       ret = ret ? : err;
++               }
+        }
+ 
+-       ret = regulator_bulk_disable(icl->num_regulators,
++       err = regulator_bulk_disable(icl->num_regulators,
+                                     icl->regulators);
+-       if (ret < 0)
++       if (err < 0) {
+                dev_err(icd->pdev, "Cannot disable regulators\n");
++               ret = ret ? : err;
++       }
+ 
+        return ret;
+ }
+
+-- 
+Regards,
+
+Laurent Pinchart
 
