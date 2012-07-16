@@ -1,67 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56119 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753003Ab2GFJ1h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 05:27:37 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR 3.6] V4L2 API cleanups
-Date: Fri, 06 Jul 2012 10:51:03 +0200
-Message-ID: <3166722.0kCuVgJOfE@avalon>
-In-Reply-To: <4FF5FD2C.7030505@redhat.com>
-References: <4FD50223.4030501@iki.fi> <20120611093944.GF12505@valkosipuli.retiisi.org.uk> <4FF5FD2C.7030505@redhat.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:46479 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751512Ab2GPKLU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Jul 2012 06:11:20 -0400
+Message-ID: <5003E8C3.7060209@canonical.com>
+Date: Mon, 16 Jul 2012 12:11:15 +0200
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Rob Clark <rob.clark@linaro.org>
+CC: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	linaro-mm-sig@lists.linaro.org, patches@linaro.org,
+	linux-kernel@vger.kernel.org, sumit.semwal@linaro.org,
+	daniel.vetter@ffwll.ch, Rob Clark <rob@ti.com>
+Subject: Re: [RFC] dma-fence: dma-buf synchronization (v2)
+References: <1342193911-16157-1-git-send-email-rob.clark@linaro.org>
+In-Reply-To: <1342193911-16157-1-git-send-email-rob.clark@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hey Rob,
 
-On Thursday 05 July 2012 17:46:36 Mauro Carvalho Chehab wrote:
-> Em 11-06-2012 06:39, Sakari Ailus escreveu:
-> > On Mon, Jun 11, 2012 at 09:50:54AM +0200, Laurent Pinchart wrote:
-> >> On Sunday 10 June 2012 23:22:59 Sakari Ailus wrote:
-> >>> Hi Mauro,
-> >>> 
-> >>> Here are two V4L2 API cleanup patches; the first removes __user from
-> >>> videodev2.h from a few places, making it possible to use the header file
-> >>> as such in user space, while the second one changes the
-> >>> v4l2_buffer.input field back to reserved.
-> >>> 
-> >>> The following changes since commit 
-5472d3f17845c4398c6a510b46855820920c2181:
-> >>>    [media] mt9m032: Implement V4L2_CID_PIXEL_RATE control (2012-05-24
-> >>> 
-> >>> 09:27:24 -0300)
-> >>> 
-> >>> are available in the git repository at:
-> >>>    ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.6
-> >>> 
-> >>> Sakari Ailus (2):
-> >>>        v4l: Remove __user from interface structure definitions
-> >> 
-> >> NAK, sorry.
-> >> 
-> >> __user has a purpose, we need to add it where it's missing, not remove it
-> >> where it's rightfully present.
-> > 
-> > It's not quite as simple as adding __user everywhere it might belong to
-> > ---
-> > these structs are being used in kernel space, too.
-> 
-> Only kernelspace see __user. The "make headers_install" target removes
-> __user from the userspace copy.
+Op 13-07-12 17:38, Rob Clark schreef:
+> ...
+> +/**
+> + * dma_buf_attach_fence - Attach a fence to a dma-buf.
+> + *
+> + * @buf: the dma-buf to attach to
+> + * @fence: the fence to attach
+> + *
+> + * A fence can only be attached to a single dma-buf.  The dma-buf takes
+> + * ownership of the fence, which is unref'd when the fence is signaled.
+> + * The fence takes a reference to the dma-buf so the buffer will not be
+> + * freed while there is a pending fence.
+> + */
+> +int dma_buf_attach_fence(struct dma_buf *buf, struct dma_fence *fence)
+> +{
+> +	unsigned long flags;
+> +	int ret = -EINVAL;
+> +
+> +	if (WARN_ON(!buf || !fence))
+> +		return -EINVAL;
+> +
+> +	spin_lock_irqsave(&fence->event_queue.lock, flags);
+> +	if (!fence->attached) {
+> +		get_dma_buf(buf);
+> +		fence->attached = true;
+> +		list_add(&fence->list_node, &buf->fence_list);
+> +		ret = 0;
+> +	}
+> +	spin_unlock_irqrestore(&fence->event_queue.lock, flags);
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(dma_buf_attach_fence);
+This design that a fence can only be attached to 1 dmabuf?
+Wouldn't it be better to kill the fence_list and just create an array
+of pointers to all the fences attached to current dmabuf?
+Or some other design that would allow multiple fences to be
+attached to a single dmabuf, and a single fence to multiple
+dma-bufs without being attached to all and without too many
+memory allocations. Maybe we should add a limit in a #define
+to how many fences can be attached to a single dmabuf?
+More than 4 fences on a single dma-buf is likely overkill, but I don't
+want to place a limit yet on how many dma-bufs can attach to a
+single fence.
+> +/**
+> + * dma_buf_get_fence - Get the most recent pending fence attached to the
+> + * dma-buf.
+> + *
+> + * @buf: the dma-buf whose fence to get
+> + *
+> + * If this returns NULL, there are no pending fences.  Otherwise this
+> + * takes a reference to the returned fence, so the caller must later
+> + * call dma_fence_put() to release the reference.
+> + */
+> +struct dma_fence *dma_buf_get_fence(struct dma_buf *buf)
+> +{
+> +	struct dma_fence *fence = NULL;
+> +	unsigned long flags;
+> +
+> +	if (WARN_ON(!buf))
+> +		return ERR_PTR(-EINVAL);
+> +
+> +	spin_lock_irqsave(&fence->event_queue.lock, flags);
+> +	if (!list_empty(&buf->fence_list)) {
+> +		fence = list_first_entry(&buf->fence_list,
+> +				struct dma_fence, list_node);
+> +		dma_fence_get(fence);
+> +	}
+> +	spin_unlock_irqrestore(&fence->event_queue.lock, flags);
+> +
+> +	return fence;
+> +}
+> +EXPORT_SYMBOL_GPL(dma_buf_get_fence);
+Would mean obsoleting this function, since there's
+no longer a single fence.
 
-The issue at hand is that the same structure is used as an ioctl argument 
-(where __user annotation makes sense), but also inside the kernel after 
-video_usercopy, where the user pointer fields then store a kernel pointer. We 
-thus can't annotate the fields with __user unconditionally.
+> + * dma_fence_put - Release a reference to the fence.
+> + */
+> +void dma_fence_put(struct dma_fence *fence)
+> +{
+> +	WARN_ON(!fence);
+> +	kref_put(&fence->refcount, release_fence);
+> +}
+> +EXPORT_SYMBOL_GPL(dma_fence_put);
+Make this inline?
 
--- 
-Regards,
+> +/**
+> + * dma_fence_get - Take a reference to the fence.
+> + *
+> + * In most cases this is used only internally by dma-fence.
+> + */
+> +void dma_fence_get(struct dma_fence *fence)
+> +{
+> +	WARN_ON(!fence);
+> +	kref_get(&fence->refcount);
+> +}
+> +EXPORT_SYMBOL_GPL(dma_fence_get);
+Same.
 
-Laurent Pinchart
+> +/**
+> + * dma_fence_add_callback - Add a callback to be called when the fence
+> + * is signaled.
+> + *
+> + * @fence: The fence to wait on
+> + * @cb: The callback to register
+> + *
+> + * Any number of callbacks can be registered to a fence, but a callback
+> + * can only be registered to once fence at a time.
+> + *
+> + * Note that the callback can be called from an atomic context.  If
+> + * fence is already signaled, this function will return -ENOENT (and
+> + * *not* call the callback)
+> + */
+> +int dma_fence_add_callback(struct dma_fence *fence,
+> +		struct dma_fence_cb *cb)
+> +{
+> +	unsigned long flags;
+> +	int ret;
+> +
+> +	if (WARN_ON(!fence || !cb))
+> +		return -EINVAL;
+> +
+> +	ret = check_signaling(fence);
+> +
+> +	spin_lock_irqsave(&fence->event_queue.lock, flags);
+> +	if (ret == -ENOENT) {
+> +		/* if state changed while we dropped the lock, dispatch now */
+> +		signal_fence(fence);
+> +	} else if (!fence->signaled && !ret) {
+> +		dma_fence_get(fence);
+> +		cb->fence = fence;
+> +		__add_wait_queue(&fence->event_queue, &cb->base);
+> +		ret = 0;
+> +	} else {
+> +		ret = -EINVAL;
+> +	}
+> +	spin_unlock_irqrestore(&fence->event_queue.lock, flags);
+Unconditionally taking same spinlock twice seems a bit overkill,
+maybe just drop it in check_signalling if needed?
 
+Some standardized base for hardware dma-buf fence objects would
+also be nice, it will make implementing it for drm a lot easier.
+
+~Maarten
