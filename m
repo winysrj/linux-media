@@ -1,139 +1,219 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35667 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58822 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752672Ab2GWMiK (ORCPT
+	with ESMTP id S1752078Ab2GQK7k (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jul 2012 08:38:10 -0400
+	Tue, 17 Jul 2012 06:59:40 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] v4l2-ctrls: Add v4l2_ctrl_s_ctrl_int64()
-Date: Mon, 23 Jul 2012 14:38:14 +0200
-Message-Id: <1343047094-20013-1-git-send-email-laurent.pinchart@ideasonboard.com>
+To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v4 2/2] v4l2: add new pixel formats supported on dm365
+Date: Tue, 17 Jul 2012 12:59:44 +0200
+Message-ID: <35332134.OR43XtYrnk@avalon>
+In-Reply-To: <1333102154-24657-3-git-send-email-manjunath.hadli@ti.com>
+References: <1333102154-24657-1-git-send-email-manjunath.hadli@ti.com> <1333102154-24657-3-git-send-email-manjunath.hadli@ti.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This helper function sets a 64-bit control's value from within a driver.
-It's similar to v4l2_ctrl_s_ctrl() but operates on 64-bit integer
-controls instead of 32-bit controls.
+Hi Manjunath,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/v4l2-ctrls.c |   37 +++++++++++++++++++++++++++++--------
- include/media/v4l2-ctrls.h       |   12 ++++++++++++
- 2 files changed, 41 insertions(+), 8 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 9abd9ab..41a58b0 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -2499,13 +2499,14 @@ int v4l2_subdev_s_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs
- EXPORT_SYMBOL(v4l2_subdev_s_ext_ctrls);
- 
- /* Helper function for VIDIOC_S_CTRL compatibility */
--static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, s32 *val)
-+static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl,
-+		    struct v4l2_ext_control *c)
- {
- 	struct v4l2_ctrl *master = ctrl->cluster[0];
- 	int ret;
- 	int i;
- 
--	ret = validate_new_int(ctrl, val);
-+	ret = validate_new(ctrl, c);
- 	if (ret)
- 		return ret;
- 
-@@ -2520,12 +2521,13 @@ static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, s32 *val)
- 	   manual mode we have to update the current volatile values since
- 	   those will become the initial manual values after such a switch. */
- 	if (master->is_auto && master->has_volatiles && ctrl == master &&
--	    !is_cur_manual(master) && *val == master->manual_mode_value)
-+	    !is_cur_manual(master) && c->value == master->manual_mode_value)
- 		update_from_auto_cluster(master);
--	ctrl->val = *val;
--	ctrl->is_new = 1;
-+
-+	user_to_new(c, ctrl);
- 	ret = try_or_set_cluster(fh, master, true);
--	*val = ctrl->cur.val;
-+	cur_to_user(c, ctrl);
-+
- 	v4l2_ctrl_unlock(ctrl);
- 	return ret;
- }
-@@ -2534,6 +2536,8 @@ int v4l2_s_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 					struct v4l2_control *control)
- {
- 	struct v4l2_ctrl *ctrl = v4l2_ctrl_find(hdl, control->id);
-+	struct v4l2_ext_control c;
-+	int ret;
- 
- 	if (ctrl == NULL || !type_is_int(ctrl))
- 		return -EINVAL;
-@@ -2541,7 +2545,10 @@ int v4l2_s_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 	if (ctrl->flags & V4L2_CTRL_FLAG_READ_ONLY)
- 		return -EACCES;
- 
--	return set_ctrl(fh, ctrl, &control->value);
-+	c.value = control->value;
-+	ret = set_ctrl(fh, ctrl, &c);
-+	control->value = c.value;
-+	return ret;
- }
- EXPORT_SYMBOL(v4l2_s_ctrl);
- 
-@@ -2553,12 +2560,26 @@ EXPORT_SYMBOL(v4l2_subdev_s_ctrl);
- 
- int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val)
- {
-+	struct v4l2_ext_control c;
-+
- 	/* It's a driver bug if this happens. */
- 	WARN_ON(!type_is_int(ctrl));
--	return set_ctrl(NULL, ctrl, &val);
-+	c.value = val;
-+	return set_ctrl(NULL, ctrl, &c);
- }
- EXPORT_SYMBOL(v4l2_ctrl_s_ctrl);
- 
-+int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val)
-+{
-+	struct v4l2_ext_control c;
-+
-+	/* It's a driver bug if this happens. */
-+	WARN_ON(ctrl->type != V4L2_CTRL_TYPE_INTEGER64);
-+	c.value64 = val;
-+	return set_ctrl(NULL, ctrl, &c);
-+}
-+EXPORT_SYMBOL(v4l2_ctrl_s_ctrl_int64);
-+
- static int v4l2_ctrl_add_event(struct v4l2_subscribed_event *sev, unsigned elems)
- {
- 	struct v4l2_ctrl *ctrl = v4l2_ctrl_find(sev->fh->ctrl_handler, sev->id);
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 776605f..a2c200d 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -511,6 +511,18 @@ s32 v4l2_ctrl_g_ctrl(struct v4l2_ctrl *ctrl);
-   */
- int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val);
- 
-+/** v4l2_ctrl_s_ctrl_int64() - Helper function to set a 64-bit control's value from within a driver.
-+  * @ctrl:	The control.
-+  * @val:	The new value.
-+  *
-+  * This set the control's new value safely by going through the control
-+  * framework. This function will lock the control's handler, so it cannot be
-+  * used from within the &v4l2_ctrl_ops functions.
-+  *
-+  * This function is for 64-bit integer type controls only.
-+  */
-+int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val);
-+
- /* Internal helper functions that deal with control events. */
- extern const struct v4l2_subscribed_event_ops v4l2_ctrl_sub_ev_ops;
- void v4l2_ctrl_replace(struct v4l2_event *old, const struct v4l2_event *new);
+A couple of comments below.
+
+On Friday 30 March 2012 10:09:14 Hadli, Manjunath wrote:
+> add new macro V4L2_PIX_FMT_SGRBG10ALAW8 and associated formats
+> to represent Bayer format frames compressed by A-LAW algorithm,
+> add V4L2_PIX_FMT_UV8 to represent storage of CbCr data (UV interleaved)
+> only.
+> 
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  .../DocBook/media/v4l/pixfmt-srggb10alaw8.xml      |   34 +++++++++++
+>  Documentation/DocBook/media/v4l/pixfmt-uv8.xml     |   62
+> ++++++++++++++++++++ Documentation/DocBook/media/v4l/pixfmt.xml         |  
+>  2 +
+>  include/linux/videodev2.h                          |    8 +++
+>  4 files changed, 106 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
+>  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-uv8.xml
+> 
+> diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
+> b/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml new file mode
+> 100644
+> index 0000000..9b5c80d
+> --- /dev/null
+> +++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
+> @@ -0,0 +1,34 @@
+> +	<refentry>
+> +	  <refmeta>
+> +	    <refentrytitle>
+> +	      V4L2_PIX_FMT_SRGGB10ALAW8 ('aRA8'),
+> +	      V4L2_PIX_FMT_SGRBG10ALAW8 ('agA8'),
+> +	      V4L2_PIX_FMT_SGBRG10ALAW8 ('aGA8'),
+> +	      V4L2_PIX_FMT_SBGGR10ALAW8 ('aBA8'),
+> +	    </refentrytitle>
+> +	    &manvol;
+> +	  </refmeta>
+> +	  <refnamediv>
+> +	    <refname id="V4L2-PIX-FMT-SRGGB10ALAW8">
+> +	      <constant>V4L2_PIX_FMT_SRGGB10ALAW8</constant>
+> +	    </refname>
+> +	    <refname id="V4L2-PIX-FMT-SGRBG10ALAW8">
+> +	      <constant>V4L2_PIX_FMT_SGRBG10ALAW8</constant>
+> +	    </refname>
+> +	    <refname id="V4L2-PIX-FMT-SGBRG10ALAW8">
+> +	      <constant>V4L2_PIX_FMT_SGBRG10ALAW8</constant>
+> +	    </refname>
+> +	    <refname id="V4L2-PIX-FMT-SBGGR10ALAW8">
+> +	      <constant>V4L2_PIX_FMT_SBGGR10ALAW8</constant>
+> +	    </refname>
+> +	    <refpurpose>10-bit Bayer formats compressed to 8 bits</refpurpose>
+> +	  </refnamediv>
+> +	  <refsect1>
+> +	    <title>Description</title>
+> +	    <para>The following four pixel formats are raw sRGB / Bayer
+> +	    formats with 10 bits per colour compressed to 8 bits each,
+> +	    using the A-LAW algorithm. Each colour component consumes 8
+> +	    bits of memory. In other respects this format is similar to
+> +	    <xref linkend="V4L2-PIX-FMT-SRGGB8">.</xref></para>
+> +	  </refsect1>
+> +	</refentry>
+> diff --git a/Documentation/DocBook/media/v4l/pixfmt-uv8.xml
+> b/Documentation/DocBook/media/v4l/pixfmt-uv8.xml new file mode 100644
+> index 0000000..c507c1f
+> --- /dev/null
+> +++ b/Documentation/DocBook/media/v4l/pixfmt-uv8.xml
+> @@ -0,0 +1,62 @@
+> +	<refentry id="V4L2-PIX-FMT-UV8">
+> +	  <refmeta>
+> +	    <refentrytitle>V4L2_PIX_FMT_UV8  ('UV8')</refentrytitle>
+> +	    &manvol;
+> +	  </refmeta>
+> +	  <refnamediv>
+> +	    <refname><constant>V4L2_PIX_FMT_UV8</constant></refname>
+> +	    <refpurpose>UV plane interleaved</refpurpose>
+> +	  </refnamediv>
+> +	  <refsect1>
+> +	    <title>Description</title>
+> +	    <para>In this format there is no Y plane, Only CbCr plane. ie
+> +	    (UV interleaved)</para>
+> +	    <example>
+> +	    <title>
+> +	      <constant>V4L2_PIX_FMT_UV8</constant>
+> +	       pixel image
+> +	    </title>
+> +
+> +	    <formalpara>
+> +	      <title>Byte Order.</title>
+> +	      <para>Each cell is one byte.
+> +	        <informaltable frame="none">
+> +	        <tgroup cols="5" align="center">
+> +		  <colspec align="left" colwidth="2*" />
+> +		  <tbody valign="top">
+> +		    <row>
+> +		      <entry>start&nbsp;+&nbsp;0:</entry>
+> +		      <entry>Cb<subscript>00</subscript></entry>
+> +		      <entry>Cr<subscript>00</subscript></entry>
+> +		      <entry>Cb<subscript>01</subscript></entry>
+> +		      <entry>Cr<subscript>01</subscript></entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry>start&nbsp;+&nbsp;4:</entry>
+> +		      <entry>Cb<subscript>10</subscript></entry>
+> +		      <entry>Cr<subscript>10</subscript></entry>
+> +		      <entry>Cb<subscript>11</subscript></entry>
+> +		      <entry>Cr<subscript>11</subscript></entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry>start&nbsp;+&nbsp;8:</entry>
+> +		      <entry>Cb<subscript>20</subscript></entry>
+> +		      <entry>Cr<subscript>20</subscript></entry>
+> +		      <entry>Cb<subscript>21</subscript></entry>
+> +		      <entry>Cr<subscript>21</subscript></entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry>start&nbsp;+&nbsp;12:</entry>
+> +		      <entry>Cb<subscript>30</subscript></entry>
+> +		      <entry>Cr<subscript>30</subscript></entry>
+> +		      <entry>Cb<subscript>31</subscript></entry>
+> +		      <entry>Cr<subscript>31</subscript></entry>
+> +		    </row>
+> +		  </tbody>
+> +		</tgroup>
+> +		</informaltable>
+> +	      </para>
+> +	      </formalpara>
+> +	    </example>
+> +	  </refsect1>
+> +	</refentry>
+> diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml
+> b/Documentation/DocBook/media/v4l/pixfmt.xml index 74d4fcd..9dc3024 100644
+> --- a/Documentation/DocBook/media/v4l/pixfmt.xml
+> +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+> @@ -674,6 +674,7 @@ access the palette, this must be done with ioctls of the
+> Linux framebuffer API.< &sub-sbggr16;
+>      &sub-srggb10;
+>      &sub-srggb10dpcm8;
+> +    &sub-srggb10alaw8;
+
+Please move the ALAW formats above the DPCM formats to keep them 
+alphabetically sorted.
+
+>      &sub-srggb12;
+>    </section>
+> 
+> @@ -701,6 +702,7 @@ information.</para>
+>      &sub-y12;
+>      &sub-y10b;
+>      &sub-y16;
+> +    &sub-uv8;
+>      &sub-yuyv;
+>      &sub-uyvy;
+>      &sub-yvyu;
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index dbc0d77..71f9f94 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -328,6 +328,9 @@ struct v4l2_pix_format {
+>  /* Palette formats */
+>  #define V4L2_PIX_FMT_PAL8    v4l2_fourcc('P', 'A', 'L', '8') /*  8  8-bit
+> palette */
+> 
+> +/* Chrominance formats */
+> +#define V4L2_PIX_FMT_UV8      v4l2_fourcc('U', 'V', '8', ' ') /*  8  UV 4:4
+> */ +
+>  /* Luminance+Chrominance formats */
+>  #define V4L2_PIX_FMT_YVU410  v4l2_fourcc('Y', 'V', 'U', '9') /*  9  YVU
+> 4:1:0     */ #define V4L2_PIX_FMT_YVU420  v4l2_fourcc('Y', 'V', '1', '2')
+> /* 12  YVU 4:2:0     */ @@ -382,6 +385,11 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_SGBRG10DPCM8 v4l2_fourcc('b', 'G', 'A', '8')
+>  #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
+>  #define V4L2_PIX_FMT_SRGGB10DPCM8 v4l2_fourcc('b', 'R', 'A', '8')
+> +	/* 10bit raw bayer a-law compressed to 8 bits */
+> +#define V4L2_PIX_FMT_SBGGR10ALAW8 v4l2_fourcc('a', 'B', 'A', '8')
+> +#define V4L2_PIX_FMT_SGBRG10ALAW8 v4l2_fourcc('a', 'G', 'A', '8')
+> +#define V4L2_PIX_FMT_SGRBG10ALAW8 v4l2_fourcc('a', 'g', 'A', '8')
+> +#define V4L2_PIX_FMT_SRGGB10ALAW8 v4l2_fourcc('a', 'R', 'A', '8')
+
+Please move the ALAW formats above the DPCM formats to keep them 
+alphabetically sorted.
+
+We still have no clear fourcc allocation scheme for Bayer formats, but I 
+suppose I'll need to give up on that.
+
+>  	/*
+>  	 * 10bit raw bayer, expanded to 16 bits
+>  	 * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
 -- 
 Regards,
 
