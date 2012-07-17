@@ -1,69 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:57444 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751290Ab2GPJPS (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60240 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753425Ab2GQKjk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jul 2012 05:15:18 -0400
-Date: Mon, 16 Jul 2012 11:15:10 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org, b.zolnierkie@samsung.com
-Subject: Re: [RFC/PATCH 06/13] media: s5p-fimc: Add device tree support for
- FIMC-LITE
-In-Reply-To: <1337975573-27117-6-git-send-email-s.nawrocki@samsung.com>
-Message-ID: <Pine.LNX.4.64.1207161114130.12302@axis700.grange>
-References: <4FBFE1EC.9060209@samsung.com> <1337975573-27117-1-git-send-email-s.nawrocki@samsung.com>
- <1337975573-27117-6-git-send-email-s.nawrocki@samsung.com>
+	Tue, 17 Jul 2012 06:39:40 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: David Herrmann <dh.herrmann@googlemail.com>
+Cc: dri-devel@lists.freedesktop.org,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org
+Subject: Re: dma-buf/fbdev: one-to-many support
+Date: Tue, 17 Jul 2012 12:39:43 +0200
+Message-ID: <1497600.3Qx4Vx9if4@avalon>
+In-Reply-To: <CANq1E4SbippxHHTaqLhpGjJLG12y94kWUFdB7P_EAG14o50vrQ@mail.gmail.com>
+References: <CANq1E4SbippxHHTaqLhpGjJLG12y94kWUFdB7P_EAG14o50vrQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 25 May 2012, Sylwester Nawrocki wrote:
+Hi David,
 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  .../bindings/camera/soc/samsung-fimc.txt           |   15 ++++
->  drivers/media/video/s5p-fimc/fimc-lite.c           |   73 ++++++++++++++------
->  2 files changed, 67 insertions(+), 21 deletions(-)
+On Saturday 14 July 2012 16:10:56 David Herrmann wrote:
+> Hi
 > 
-> diff --git a/Documentation/devicetree/bindings/camera/soc/samsung-fimc.txt b/Documentation/devicetree/bindings/camera/soc/samsung-fimc.txt
-> index 1ec48e9..b459da2 100644
-> --- a/Documentation/devicetree/bindings/camera/soc/samsung-fimc.txt
-> +++ b/Documentation/devicetree/bindings/camera/soc/samsung-fimc.txt
-> @@ -39,6 +39,21 @@ Required properties:
->  	       depends on the SoC revision. For S5PV210 valid values are:
->  	       0...2, for Exynos4x1x: 0...3.
->  
-> +
-> +'fimc-lite' device node
-> +-----------------------
-> +
-> +Required properties:
-> +
-> +- compatible : should be one of:
-> +		"samsung,exynos4212-fimc";
-> +		"samsung,exynos4412-fimc";
-> +- reg	     : physical base address and size of the device's memory mapped
-> +	       registers;
-> +- interrupts : should contain FIMC-LITE interrupt;
-> +- cell-index : FIMC-LITE IP instance index;
+> I am currently working on fblog [1] (a replacement for fbcon without
+> VT dependencies) but this questions does also apply to other fbdev
+> users. Is there a way to share framebuffers between fbdev devices? I
+> was thinking especially of USB devices like DisplayLink. If they share
+> the same screen dimensions it would increase performance a lot if I
+> could display a single buffer on all the devices instead of copying it
+> into each framebuffer.
+> 
+> I was told to have a look at the dma-buf framework to implement this.
+> However, looking at the fbdev dma-buf support I think that this isn't
+> currently possible. Each fbdev device takes the exporter-role and
+> provides a single dma-buf object. However, if I wanted to share the
+> buffers, I would need to be the exporter. Or there needs to be a way
+> for the fbdev devices to import a dma-buf from other fbdev devices.
+> 
+> I also took a short look at DRM prime support and noticed that it is
+> capable of importing buffers (or at least it looks like it is).
+> Therefore,  I was wondering whether it does make sense to add an
+> "import dma-buf" callback to fbdev devices and if the fbdev driver
+> supports this, I can simply draw to a single dma-buf from one fbdev
+> device and push it to all other fbdev devices that share the same
+> dimensions.
 
-Same as in an earlier patch - not sure this is needed.
+The main issue is that fbdev has been designed with the implicit assumption 
+that an fbdev driver will always own the graphics memory it uses. All 
+components in the stack, from drivers to applications, have been designed 
+around that assumption.
 
-Thanks
-Guennadi
+We could of course fix this, revamp the fbdev API and turn it into a modern 
+graphics API, but I really wonder whether it would be worth it. DRM has been 
+getting quite a lot of attention lately, especially from embedded developers 
+and vendors, and the trend seems to me like the (Linux) world will gradually 
+move from fbdev to DRM.
 
-> +
-> +
->  Example:
->  
->  	fimc0: fimc@11800000 {
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Please feel free to disagree :-)
+
+> It would also be nice to allow multiple buffer-owners or a way to
+> transfer ownership. That is, if the owner/exporter of the dma-buf
+> vanishes, I would pass it to another fbdev device which would pick it
+> up so I don't have to create a new one.
+> 
+> I think this is only interesting for DisplayLink-devices as they are
+> currently the only way to get a bunch of displays connected to a
+> single machine. Anyway, if you think that this isn't worth it, I will
+> probably drop this idea.
+> 
+> Regards
+> David
+> 
+> [1] fblog kernel driver: http://lwn.net/Articles/505965/
+
+-- 
+Regards,
+
+Laurent Pinchart
+
