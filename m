@@ -1,87 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:45724 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751185Ab2GSNoU (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:63496 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756033Ab2GQRto (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jul 2012 09:44:20 -0400
+	Tue, 17 Jul 2012 13:49:44 -0400
+Received: by mail-yw0-f46.google.com with SMTP id m54so661196yhm.19
+        for <linux-media@vger.kernel.org>; Tue, 17 Jul 2012 10:49:44 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CALF0-+UJamw8fiB-rcX0WdYRAFnAdYxPoPQtMzG=5E2T8wz2yw@mail.gmail.com>
-References: <CALF0-+UJamw8fiB-rcX0WdYRAFnAdYxPoPQtMzG=5E2T8wz2yw@mail.gmail.com>
-Date: Thu, 19 Jul 2012 10:44:19 -0300
-Message-ID: <CALF0-+Uk-5hKMnwi4FO5CBSgH6+QNsz1n8faN5rQxXvgSWVGNg@mail.gmail.com>
-Subject: [PATCH for v3.5] cx25821: Remove bad strcpy to read-only char*
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: torvalds@linux-foundation.org
-Cc: linux-media <linux-media@vger.kernel.org>,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <5005A14D.8000809@redhat.com>
+References: <20120713173708.GB17109@thunk.org>
+	<5005A14D.8000809@redhat.com>
+Date: Tue, 17 Jul 2012 13:49:43 -0400
+Message-ID: <CALzAhNVKWOucWo7JpnVTEgcZ6_0Hs4OiqXXq=fQ=C6oxJgRyWQ@mail.gmail.com>
+Subject: Re: Media summit at the Kernel Summit - was: Fwd: Re:
+ [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
+From: Steven Toth <stoth@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	workshop-2011@linuxtv.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+> As we did in 2012, we're planning to do a media summit again at KS/2012.
 
-I'm sending the attached patch directly to you for inclusion in 3.5 as
-without it the cx25821 driver will panic on probe.
+Excellent.
 
-It looks like this bug has been around since cx25821 was first mainlined,
-so it could make sense to consider its inclusion in stable also.
+> The KS/2012 will happen in San Diego, CA, US, between Aug 26-28, just
+> before the LinuxCon North America.
+>
+> In order to do it, I'd like to know who is interested on participate,
+> and to get proposals about what subjects will be discussed there,
+> in order to start planning the agenda.
 
-Since Mauro is still on vacation, I'm sending directly to you so
-this can be merged for 3.5 before it is released.
+I'm interested. I like the idea of some cross-subsystem pollination,
+talking with the ALSA people for example ... and given that ARM is
+growing, I'd like to catch up and understand where ARM silicon is
+heading in terms of embedded video decoding and any support for
+hardware specific features we may / may not have / need.
 
-Thanks,
-Ezequiel.
+... and of course, if we have anyone from Intel then we should be
+asking if/when their Intel Media SDK (hardware H264  encoding) is
+going to become a reality, or possibly kickstart that process.
 
->From 1859521e76226687e79e1452b040fd3e02c469d8 Mon Sep 17 00:00:00 2001
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-Date: Wed, 18 Jul 2012 10:05:26 -0300
-Subject: [PATCH] cx25821: Remove bad strcpy to read-only char*
-
-The strcpy was being used to set the name of the board.
-Since the destination char* was read-only and the name
-is set statically at compile time; this was both
-wrong and redundant.
-
-The type of char* is changed to const char* to prevent
-future errors.
-
-Reported-by: Radek Masin <radek@masin.eu>
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- drivers/media/video/cx25821/cx25821-core.c |    3 ---
- drivers/media/video/cx25821/cx25821.h      |    2 +-
- 2 files changed, 1 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/video/cx25821/cx25821-core.c
-b/drivers/media/video/cx25821/cx25821-core.c
-index 7930ca5..235bf7d 100644
---- a/drivers/media/video/cx25821/cx25821-core.c
-+++ b/drivers/media/video/cx25821/cx25821-core.c
-@@ -912,9 +912,6 @@ static int cx25821_dev_setup(struct cx25821_dev *dev)
-        list_add_tail(&dev->devlist, &cx25821_devlist);
-        mutex_unlock(&cx25821_devlist_mutex);
-
--       strcpy(cx25821_boards[UNKNOWN_BOARD].name, "unknown");
--       strcpy(cx25821_boards[CX25821_BOARD].name, "cx25821");
--
-        if (dev->pci->device != 0x8210) {
-                pr_info("%s(): Exiting. Incorrect Hardware device = 0x%02x\n",
-                        __func__, dev->pci->device);
-diff --git a/drivers/media/video/cx25821/cx25821.h
-b/drivers/media/video/cx25821/cx25821.h
-index b9aa801..029f293 100644
---- a/drivers/media/video/cx25821/cx25821.h
-+++ b/drivers/media/video/cx25821/cx25821.h
-@@ -187,7 +187,7 @@ enum port {
- };
-
- struct cx25821_board {
--       char *name;
-+       const char *name;
-        enum port porta;
-        enum port portb;
-        enum port portc;
---
-1.7.8.6
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
