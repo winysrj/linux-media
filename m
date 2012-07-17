@@ -1,71 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54812 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756055Ab2GaLlh (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:65263 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752622Ab2GQMXU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 07:41:37 -0400
-Date: Tue, 31 Jul 2012 14:41:32 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	davinci-linux-open-source@linux.davincidsp.com,
-	LMML <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v7 1/2] media: add new mediabus format enums for dm365
-Message-ID: <20120731114132.GH26642@valkosipuli.retiisi.org.uk>
-References: <1343386505-8695-1-git-send-email-prabhakar.lad@ti.com>
- <201207302119.13196.hverkuil@xs4all.nl>
- <20120731111750.GG26642@valkosipuli.retiisi.org.uk>
- <201207311328.39988.hverkuil@xs4all.nl>
+	Tue, 17 Jul 2012 08:23:20 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201207311328.39988.hverkuil@xs4all.nl>
+In-Reply-To: <20120717122449.07489b50@pyramind.ukuu.org.uk>
+References: <CANq1E4SbippxHHTaqLhpGjJLG12y94kWUFdB7P_EAG14o50vrQ@mail.gmail.com>
+	<1497600.3Qx4Vx9if4@avalon>
+	<20120717122449.07489b50@pyramind.ukuu.org.uk>
+Date: Tue, 17 Jul 2012 14:23:18 +0200
+Message-ID: <CANq1E4TMddx-+h5cGAn=R2VoNBQ274CBZDGV02Ku2Hgo_Hc3iA@mail.gmail.com>
+Subject: Re: dma-buf/fbdev: one-to-many support
+From: David Herrmann <dh.herrmann@googlemail.com>
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-fbdev@vger.kernel.org,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Laurent and Alan
 
-Hans Verkuil wrote:
-> On Tue 31 July 2012 13:17:50 Sakari Ailus wrote:
->> Hi Hans and Laurent,
+On Tue, Jul 17, 2012 at 1:24 PM, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
+>> The main issue is that fbdev has been designed with the implicit assumption
+>> that an fbdev driver will always own the graphics memory it uses. All
+>> components in the stack, from drivers to applications, have been designed
+>> around that assumption.
 >>
->> On Mon, Jul 30, 2012 at 09:19:13PM +0200, Hans Verkuil wrote:
-...
->>> And make a new pixel format if you have hardware that doesn't use zero? I think
->>> it's overkill IMHO.
+>> We could of course fix this, revamp the fbdev API and turn it into a modern
+>> graphics API, but I really wonder whether it would be worth it. DRM has been
+>> getting quite a lot of attention lately, especially from embedded developers
+>> and vendors, and the trend seems to me like the (Linux) world will gradually
+>> move from fbdev to DRM.
 >>
->> Could be. But I've seen only zero being used.
->>
->> Applications that need to process raw bayer images optimally are often very
->> hardware specific anyway, adding the assumption that the dummy bits are zero
->> isn't a big deal. The same might not apply as universally to yuv colour
->> space but on the other hand one extra and operation just won't take that
->> much time either.
-> 
-> My experience is with encoders and decoders. Anyway, we're not using this format,
-> and neither will we ever upstream a pixel or mbus format since it is all highly
-> specific to our products, so there is no point in upstreaming. So I am actually
-> OK with saying that these bits should be 0, provided 'D' is replaced by 'Z'.
-> 
-> But I still think keeping it 'D' and allowing for any value is more generic
-> and I expect that it is sufficient.
-> 
->> I'm fine with defining the bits are dummy. I just wanted we make an informed
->> decision on this, and as far as I see that's now been reached.
->>
->> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-> 
-> OK, then we all agree to keep PATCHv7 as is?
+>> Please feel free to disagree :-)
+>
+> I would disagree on the "main issue" bit. All the graphics cards have
+> their own formats and cache management rules. Simply sharing a buffer
+> doesn't work - which is why all of the extra gloop will be needed.
 
-Yes. If we later see that we need to use the format (I was thinking
-in-memory formats instead of media bus pixel codes, but apparently
-replied to this patch instead) to tell especially the unused bits are
-zero we can start creating more formats, but I feel it's unlikely we'd
-get there.
+This is exactly why I suggested adding an "owner" field. A driver
+could then check whether the buffer it is supposed to share/takeover
+is from a compatible (or even the same) driver/device. If it is not,
+it would simply reject using the buffer. Then again, if we have
+multiple devices that are incompatible, we are still unable to share
+the buffer. So this attempt would only be useful if we have tons of
+DisplayLink devices attached that all use the same driver, for
+example.
 
-Kind regards,
+Regarding DRM: In user-space I prefer DRM over fbdev. With the
+introduction of the dumb-buffers there isn't even the need to have
+mesa installed. However, fblog runs in kernel space and currently
+cannot use DRM as there is no in-kernel DRM API. I looked at
+drm-fops.c whether it is easy to create a very simple in-kernel API
+but then I dropped the idea as this might be too complex for a simple
+debugging-only driver. Another attempt would be making the
+drm-fb-helper more generic so we can use this layer as in-kernel DRM
+API.
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+I had a deeper look into this this weekend and so as a summary I think
+all in-kernel graphics access is probably not worth optimizing it.
+fbcon is already working great and fblog is only used during boot and
+oopses/panics and can be restricted to a single device. I will have
+another look at the drivers in a few weeks but if you tell me that
+this is not easy to implement, I will probably have to let this idea
+go.
+
+Thanks
+David
