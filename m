@@ -1,120 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ozlabs.org ([203.10.76.45]:33821 "EHLO ozlabs.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932449Ab2GEKag (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Jul 2012 06:30:36 -0400
-Date: Thu, 5 Jul 2012 20:30:35 +1000
-From: Anton Blanchard <anton@samba.org>
-To: David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/3] [media] winbond-cir: Adjust sample frequency to
- improve reliability
-Message-ID: <20120705203035.196e238e@kryten>
-In-Reply-To: <20120703202825.GC29839@hardeman.nu>
-References: <20120702115800.1275f944@kryten>
-	<20120702115937.623d3b41@kryten>
-	<20120703202825.GC29839@hardeman.nu>
+Received: from mailout-de.gmx.net ([213.165.64.22]:50233 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752023Ab2GQSrz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Jul 2012 14:47:55 -0400
+Message-ID: <1342550765.5078.4.camel@tbastian-desktop.localdomain>
+Subject: Re: libv4l2: error dequeuing buf: Resource temporarily unavailable
+From: "llarevo@gmx.net" <llarevo@gmx.net>
+To: charlie@sensoray.com
+Cc: linux-media@vger.kernel.org
+Date: Tue, 17 Jul 2012 20:46:05 +0200
+In-Reply-To: <a6143f96ee9995c7bf9c7700058b3806.squirrel@sensoray.com>
+References: <1342265363.2362.12.camel@tbastian-desktop.localdomain>
+	 <000901cd637b$77c9e620$675db260$@com>
+	 <1342468678.2083.7.camel@tbastian-desktop.localdomain>
+	 <a6143f96ee9995c7bf9c7700058b3806.squirrel@sensoray.com>
+Content-Type: text/plain; charset="UTF-8"
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-Hi David,
 
-> The in-kernel RC6 decoder already has margins of around 50% for most
-> pulse/spaces (i.e. 444us +/- 222us). Changing the sample resolution
-> from 10 to 6 us should have little to no effect on the RC6 decoding
-> (also, the Windows driver uses a 50us resolution IIRC).
 > 
-> Do you have a log of a successful and unsuccesful event (the timings
-> that is)?
+> >> Your driver load may not be quite right or got some conflicts. According
+> >> to:
+> >> http://www.kernel.org/doc/Documentation/video4linux/CARDLIST.saa7134,
+> >> the Terratec Cinergy 400 TV should be card=8. Have you tried: restart,
+> >> "modprobe -r saa7134", "modprobe saa7134 card=8", "dmesg | grep
+> >> saa7134", and checked if the Terratec Cinergy 400 TV showed up
+> >> correctly? If right, it should be Ok:
+> >>
+> >> ffmpeg -f video4linux2 -i /dev/video0 out.mpg
+> >> ffmpeg -t 30 -f video4linux2 -s vga -r 30 -b 2000k -i /dev/video0
+> >> out-vga-2M-30sec.mpg
+> >> ffmpeg -t 60 -f video4linux2 -s vga -r 30 -b 2000k -i /dev/video0
+> >> out-vga-2M-60sec.avi
+> >> ..., etc.
+> >
+> > Thanks a lot for your help. The card is loaded OK. I tried it with the
+> > card=8 parameter in a newly created file /etc/modprobe.d/saa7134.conf.
+> >
+> > It seems to be loaded properly:
+> >
+> > dmesg | grep saa7134
+> > [   24.978050] saa7134[0]: found at 0000:04:01.0, rev: 1, irq: 17,
+> > latency: 32, mmio: 0xfe500000
+> > [   24.978058] saa7134[0]: subsystem: 153b:1142, board: Terratec Cinergy
+> > 400 TV [card=8,insmod option]
+> > [   24.978073] saa7134[0]: board init: gpio is 50000
+> > [   25.053979] input: saa7134 IR (Terratec Cinergy 40
+> > as
+> > /devices/pci0000:00/0000:00:1c.4/0000:03:00.0/0000:04:01.0/rc/rc0/input6
+> > [   25.054018] rc0: saa7134 IR (Terratec Cinergy 40
+> > as /devices/pci0000:00/0000:00:1c.4/0000:03:00.0/0000:04:01.0/rc/rc0
+> > [   25.187509] saa7134[0]: i2c eeprom 00: 3b 15 42 11 ff ff ff ff ff ff
+> > ff ff ff ff ff ff
+> > [   25.187517] saa7134[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff
+> > ff ff ff ff ff ff
+> > [   25.187523] saa7134[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff ff
+> > ff ff ff ff ff ff
+> > [   25.187529] saa7134[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff
+> > ff ff ff ff ff ff
+> > [   25.187535] saa7134[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff
+> > ff ff ff ff ff ff
+> > [   25.187541] saa7134[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff
+> > ff ff ff ff ff ff
+> > [   25.187547] saa7134[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff
+> > ff ff ff ff ff ff
+> > [   25.187553] saa7134[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff
+> > ff ff ff ff ff ff
+> > [   25.187559] saa7134[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff
+> > ff ff ff ff ff ff
+> > [   25.187566] saa7134[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff
+> > ff ff ff ff ff ff
+> > [   25.187571] saa7134[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff
+> > ff ff ff ff ff ff
+> > [   25.187577] saa7134[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff
+> > ff ff ff ff ff ff
+> > [   25.187583] saa7134[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff
+> > ff ff ff ff ff ff
+> > [   25.187589] saa7134[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff
+> > ff ff ff ff ff ff
+> > [   25.187595] saa7134[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff
+> > ff ff ff ff ff ff
+> > [   25.187601] saa7134[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff
+> > ff ff ff ff ff ff
+> > [   25.716134] saa7134[0]: registered device video0 [v4l2]
+> > [   25.716157] saa7134[0]: registered device vbi0
+> > [   25.998624] saa7134 ALSA driver for DMA sound loaded
+> > [   25.998650] saa7134[0]/alsa: saa7134[0] at 0xfe500000 irq 17
+> > registered as card -1
+> >
+> >
+> > ffmpeg -f video4linux2 -i /dev/video0 test.mpg
+> >
+> > gives still the error mentioned in the subject,
+> >
+> > ffmpeg -t 30 -f video4linux2 -s vga -r 30 -b 2000k -i /dev/video0
+> > out-vga-2M-30sec.mpg
+> >
+> > gives an I/O error while setting the framerate
+> >
+> > ffmpeg version 0.10.4 Copyright (c) 2000-2012 the FFmpeg developers
+> >   built on Jun 13 2012 09:51:06 with gcc 4.7.0 20120507 (Red Hat
+> > 4.7.0-5)
+> >   configuration: --prefix=/usr --bindir=/usr/bin
+> > --datadir=/usr/share/ffmpeg --incdir=/usr/include/ffmpeg
+> > --libdir=/usr/lib64 --mandir=/usr/share/man --arch=x86_64
+> > --extra-cflags='-O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions
+> > -fstack-protector --param=ssp-buffer-size=4 -m64 -mtune=generic'
+> > --enable-bzlib --disable-crystalhd --enable-gnutls --enable-libass
+> > --enable-libcdio --enable-libcelt --enable-libdc1394
+> > --disable-indev=jack --enable-libfreetype --enable-libgsm
+> > --enable-libmp3lame --enable-openal --enable-libopenjpeg
+> > --enable-libpulse --enable-librtmp --enable-libschroedinger
+> > --enable-libspeex --enable-libtheora --enable-libvorbis --enable-libv4l2
+> > --enable-libvpx --enable-libx264 --enable-libxvid --enable-x11grab
+> > --enable-avfilter --enable-postproc --enable-pthreads --disable-static
+> > --enable-shared --enable-gpl --disable-debug --disable-stripping
+> > --shlibdir=/usr/lib64 --enable-runtime-cpudetect
+> >   libavutil      51. 35.100 / 51. 35.100
+> >   libavcodec     53. 61.100 / 53. 61.100
+> >   libavformat    53. 32.100 / 53. 32.100
+> >   libavdevice    53.  4.100 / 53.  4.100
+> >   libavfilter     2. 61.100 /  2. 61.100
+> >   libswscale      2.  1.100 /  2.  1.100
+> >   libswresample   0.  6.100 /  0.  6.100
+> >   libpostproc    52.  0.100 / 52.  0.100
+> > Please use -b:a or -b:v, -b is ambiguous
+> > [video4linux2,v4l2 @ 0x9bd440] ioctl set time per frame(1/30) failed
+> > /dev/video0: Input/output error
+> >
+> > While we have PAL here I tried
+> >
+> > ffmpeg -t 30 -f video4linux2 -s vga -r 25 -b 2000k -i /dev/video0
+> > out-vga-2M-30sec.mpg
+> >
+>"ffmpeg -t 30 -f video4linux2 -s vga -r 25 -b 2000k -i /dev/video0
+> out-vga-2M-30sec.mpg" works, right? If PAL, you may add "-tvstd pal"
+> option.
 
-I had a closer look. I dumped the RC6 debug, but I also printed the raw
-data in the interrupt handler:
+Sorry, I didn't finish my last sentence. No, it does not work. Even if I
+choose the framerate for PAL, I get the error.
 
-    printk("%x %d %d\n", irdata, rawir.pulse, rawir.duration);
+To summarize my results:
 
-A successful event begins with:
+* The SAA7134 is recognized by the kernel (right?).
+* The right module is properly loaded (right?).
+* The card parameter is card=8 (right?).
+* tvtime, mplayer, mencoder, and xawtv work with the card
+* ffmpeg does not, showing the error in the subject.
 
-7f 1 1270000
-7f 1 1270000
- 8 1 80000
-db 0 910000
-27 1 390000
-b3 0 510000
-26 1 380000
-b0 0 480000
-ir_rc6_decode: RC6 decode started at state 0 (2620us pulse)
-ir_rc6_decode: RC6 decode started at state 1 (910us space)
-ir_rc6_decode: RC6 decode started at state 2 (390us pulse)
-ir_rc6_decode: RC6 decode started at state 3 (510us space)
-ir_rc6_decode: RC6 decode started at state 2 (66us space)
-ir_rc6_decode: RC6 decode started at state 2 (380us pulse)
-26 1 380000
-db 0 910000
-26 1 380000
-dd 0 930000
-7d 1 1250000    <---------------
-dd 0 930000
-25 1 370000
-b4 0 520000
-ir_rc6_decode: RC6 decode started at state 3 (480us space)
-ir_rc6_decode: RC6 decode started at state 2 (36us space)
-ir_rc6_decode: RC6 decode started at state 2 (380us pulse)
-ir_rc6_decode: RC6 decode started at state 3 (910us space)
-ir_rc6_decode: RC6 decode started at state 2 (466us space)
-ir_rc6_decode: RC6 decode started at state 3 (380us pulse)
-ir_rc6_decode: RC6 decode started at state 4 (0us pulse)
-ir_rc6_decode: RC6 decode started at state 4 (930us space)
-ir_rc6_decode: RC6 decode started at state 5 (1250us pulse)
-ir_rc6_decode: RC6 decode started at state 6 (361us pulse)
-ir_rc6_decode: RC6 decode started at state 7 (930us space)
 
-Now compare to an unsuccesful event, in particular the byte
-I have tagged in both traces:
 
-7f 1 1270000
-7f 1 1270000
- 2 1 20000
-df 0 950000
-26 1 380000
-b0 0 480000
-26 1 380000
-b0 0 480000
-26 1 380000
-dc 0 920000
-26 1 380000
-ir_rc6_decode: RC6 decode started at state 0 (2560us pulse)
-ir_rc6_decode: RC6 decode started at state 1 (950us space)
-ir_rc6_decode: RC6 decode started at state 2 (380us pulse)
-ir_rc6_decode: RC6 decode started at state 3 (480us space)
-ir_rc6_decode: RC6 decode started at state 2 (36us space)
-ir_rc6_decode: RC6 decode started at state 2 (380us pulse)
-ir_rc6_decode: RC6 decode started at state 3 (480us space)
-ir_rc6_decode: RC6 decode started at state 2 (36us space)
-ir_rc6_decode: RC6 decode started at state 2 (380us pulse)
-ir_rc6_decode: RC6 decode started at state 3 (920us space)
-ir_rc6_decode: RC6 decode started at state 2 (476us space)
-dc 0 920000
-ff 0 1270000 <----------------
-de 0 940000
-25 1 370000
-b1 0 490000
-26 1 380000
-b0 0 480000
-26 1 380000
-ir_rc6_decode: RC6 decode started at state 3 (380us pulse)
-ir_rc6_decode: RC6 decode started at state 4 (0us pulse)
-ir_rc6_decode: RC6 decode started at state 4 (3130us space)
-ir_rc6_decode: RC6 decode failed at state 4 (3130us space)
-
-That should have been a pulse but it came out as a space. This makes me
-wonder if there is an issue with the run length encoding, perhaps when
-a pulse is the right size to just saturate it. It does seem like we
-set the top bit even though we should not have.
-
-If true we could choose any sample rate that avoids it.
-
-Anton
