@@ -1,36 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:60131 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755158Ab2GRRDT convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38327 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751898Ab2GQLT6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jul 2012 13:03:19 -0400
-Received: by yenl2 with SMTP id l2so1796827yen.19
-        for <linux-media@vger.kernel.org>; Wed, 18 Jul 2012 10:03:19 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1342622302269259500@masin.eu>
-References: <1342615958949547500@masin.eu>
-	<CALF0-+U7HYyuLZJzUH4_OhJ7U4X33fOAmSmYuP-xATkMVjpKcQ@mail.gmail.com>
-	<CALF0-+WcRGGWzcE7eQ4h+MOYKy5+gnVPnxTas9uhyi4-b6VaqA@mail.gmail.com>
-	<1342622302269259500@masin.eu>
-Date: Wed, 18 Jul 2012 14:03:18 -0300
-Message-ID: <CALF0-+X9AO8KA68XiqUadhwEPhijfJ2fVJRbQdT_+an67j742w@mail.gmail.com>
-Subject: Re: CX25821 driver in kernel 3.4.4 problem
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: =?ISO-8859-2?Q?Radek_Ma=B9=EDn?= <radek@masin.eu>
+	Tue, 17 Jul 2012 07:19:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org
 Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Subject: Re: [PATCH] Documentation: DocBook DRM framework documentation
+Date: Tue, 17 Jul 2012 13:20:01 +0200
+Message-ID: <1396693.MbzetZmM0M@avalon>
+In-Reply-To: <1342137623-7628-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1342137623-7628-1-git-send-email-laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 18, 2012 at 11:38 AM, Radek Mašín <radek@masin.eu> wrote:
-> Hello,
-> with your patch driver is working properly. I see devices in /dev directory and in dmesg
-> is attached output:
->
+On Friday 13 July 2012 02:00:23 Laurent Pinchart wrote:
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  Documentation/DocBook/drm.tmpl | 2835 ++++++++++++++++++++++++++++---------
+>  1 files changed, 2226 insertions(+), 609 deletions(-)
+> 
+> Hi everybody,
+> 
+> Here's the DRM kernel framework documentation previously posted to the
+> dri-devel mailing list. The documentation has been reworked, converted to
+> DocBook and merged with the existing DocBook DRM documentation stub. The
+> result doesn't cover the whole DRM API but should hopefully be good enough
+> for a start.
+> 
+> I've done my best to follow a natural flow starting at initialization and
+> covering the major DRM internal topics. As I'm not a native English speaker
+> I'm not totally happy with the result, so if anyone wants to edit the text
+> please feel free to do so. Review will as usual be appreciated, and acks
+> will be even more welcome (I've been working on this document for longer
+> than I feel comfortable with).
 
-Great! That's good news. I'll send the patch to the list later.
-If you encounter any other problems, please let us know.
+Just for information, a compiled copy of the DRM documentation with this patch 
+applied can be found at http://www.ideasonboard.org/media/drm/. That might be 
+easier to review than the patch.
 
-Thanks for the report and for the testing,
-Ezequiel.
+-- 
+Regards,
+
+Laurent Pinchart
+
