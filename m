@@ -1,349 +1,236 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:31115 "EHLO mx1.redhat.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:33642 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932911Ab2GLUzN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jul 2012 16:55:13 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: hverkuil@xs4all.nl, halli manjunatha <hallimanju@gmail.com>,
+	id S1751000Ab2GQLnR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Jul 2012 07:43:17 -0400
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/5] v4l2 spec: add VIDIOC_ENUM_FREQ_BANDS documentation.
-Date: Thu, 12 Jul 2012 22:55:44 +0200
-Message-Id: <1342126548-19349-2-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1342126548-19349-1-git-send-email-hdegoede@redhat.com>
-References: <1342126548-19349-1-git-send-email-hdegoede@redhat.com>
+Subject: RE: [PATCH v4 2/2] v4l2: add new pixel formats supported on dm365
+Date: Tue, 17 Jul 2012 11:43:03 +0000
+Message-ID: <E99FAA59F8D8D34D8A118DD37F7C8F753E93EDEE@DBDE01.ent.ti.com>
+References: <1333102154-24657-1-git-send-email-manjunath.hadli@ti.com>
+ <1333102154-24657-3-git-send-email-manjunath.hadli@ti.com>
+ <35332134.OR43XtYrnk@avalon>
+In-Reply-To: <35332134.OR43XtYrnk@avalon>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Laurent,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/compat.xml         |   12 ++
- Documentation/DocBook/media/v4l/v4l2.xml           |    6 +
- .../DocBook/media/v4l/vidioc-enum-freq-bands.xml   |  179 ++++++++++++++++++++
- .../DocBook/media/v4l/vidioc-g-frequency.xml       |    7 +-
- Documentation/DocBook/media/v4l/vidioc-g-tuner.xml |   26 ++-
- 5 files changed, 221 insertions(+), 9 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
+On Tue, Jul 17, 2012 at 16:29:44, Laurent Pinchart wrote:
+> Hi Manjunath,
+> 
+> Thank you for the patch.
+> 
+> A couple of comments below.
+> 
+> On Friday 30 March 2012 10:09:14 Hadli, Manjunath wrote:
+> > add new macro V4L2_PIX_FMT_SGRBG10ALAW8 and associated formats
+> > to represent Bayer format frames compressed by A-LAW algorithm,
+> > add V4L2_PIX_FMT_UV8 to represent storage of CbCr data (UV interleaved)
+> > only.
+> > 
+> > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> > Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  .../DocBook/media/v4l/pixfmt-srggb10alaw8.xml      |   34 +++++++++++
+> >  Documentation/DocBook/media/v4l/pixfmt-uv8.xml     |   62
+> > ++++++++++++++++++++ Documentation/DocBook/media/v4l/pixfmt.xml         |  
+> >  2 +
+> >  include/linux/videodev2.h                          |    8 +++
+> >  4 files changed, 106 insertions(+), 0 deletions(-)
+> >  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
+> >  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-uv8.xml
+> > 
+> > diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
+> > b/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml new file mode
+> > 100644
+> > index 0000000..9b5c80d
+> > --- /dev/null
+> > +++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
+> > @@ -0,0 +1,34 @@
+> > +	<refentry>
+> > +	  <refmeta>
+> > +	    <refentrytitle>
+> > +	      V4L2_PIX_FMT_SRGGB10ALAW8 ('aRA8'),
+> > +	      V4L2_PIX_FMT_SGRBG10ALAW8 ('agA8'),
+> > +	      V4L2_PIX_FMT_SGBRG10ALAW8 ('aGA8'),
+> > +	      V4L2_PIX_FMT_SBGGR10ALAW8 ('aBA8'),
+> > +	    </refentrytitle>
+> > +	    &manvol;
+> > +	  </refmeta>
+> > +	  <refnamediv>
+> > +	    <refname id="V4L2-PIX-FMT-SRGGB10ALAW8">
+> > +	      <constant>V4L2_PIX_FMT_SRGGB10ALAW8</constant>
+> > +	    </refname>
+> > +	    <refname id="V4L2-PIX-FMT-SGRBG10ALAW8">
+> > +	      <constant>V4L2_PIX_FMT_SGRBG10ALAW8</constant>
+> > +	    </refname>
+> > +	    <refname id="V4L2-PIX-FMT-SGBRG10ALAW8">
+> > +	      <constant>V4L2_PIX_FMT_SGBRG10ALAW8</constant>
+> > +	    </refname>
+> > +	    <refname id="V4L2-PIX-FMT-SBGGR10ALAW8">
+> > +	      <constant>V4L2_PIX_FMT_SBGGR10ALAW8</constant>
+> > +	    </refname>
+> > +	    <refpurpose>10-bit Bayer formats compressed to 8 bits</refpurpose>
+> > +	  </refnamediv>
+> > +	  <refsect1>
+> > +	    <title>Description</title>
+> > +	    <para>The following four pixel formats are raw sRGB / Bayer
+> > +	    formats with 10 bits per colour compressed to 8 bits each,
+> > +	    using the A-LAW algorithm. Each colour component consumes 8
+> > +	    bits of memory. In other respects this format is similar to
+> > +	    <xref linkend="V4L2-PIX-FMT-SRGGB8">.</xref></para>
+> > +	  </refsect1>
+> > +	</refentry>
+> > diff --git a/Documentation/DocBook/media/v4l/pixfmt-uv8.xml
+> > b/Documentation/DocBook/media/v4l/pixfmt-uv8.xml new file mode 100644
+> > index 0000000..c507c1f
+> > --- /dev/null
+> > +++ b/Documentation/DocBook/media/v4l/pixfmt-uv8.xml
+> > @@ -0,0 +1,62 @@
+> > +	<refentry id="V4L2-PIX-FMT-UV8">
+> > +	  <refmeta>
+> > +	    <refentrytitle>V4L2_PIX_FMT_UV8  ('UV8')</refentrytitle>
+> > +	    &manvol;
+> > +	  </refmeta>
+> > +	  <refnamediv>
+> > +	    <refname><constant>V4L2_PIX_FMT_UV8</constant></refname>
+> > +	    <refpurpose>UV plane interleaved</refpurpose>
+> > +	  </refnamediv>
+> > +	  <refsect1>
+> > +	    <title>Description</title>
+> > +	    <para>In this format there is no Y plane, Only CbCr plane. ie
+> > +	    (UV interleaved)</para>
+> > +	    <example>
+> > +	    <title>
+> > +	      <constant>V4L2_PIX_FMT_UV8</constant>
+> > +	       pixel image
+> > +	    </title>
+> > +
+> > +	    <formalpara>
+> > +	      <title>Byte Order.</title>
+> > +	      <para>Each cell is one byte.
+> > +	        <informaltable frame="none">
+> > +	        <tgroup cols="5" align="center">
+> > +		  <colspec align="left" colwidth="2*" />
+> > +		  <tbody valign="top">
+> > +		    <row>
+> > +		      <entry>start&nbsp;+&nbsp;0:</entry>
+> > +		      <entry>Cb<subscript>00</subscript></entry>
+> > +		      <entry>Cr<subscript>00</subscript></entry>
+> > +		      <entry>Cb<subscript>01</subscript></entry>
+> > +		      <entry>Cr<subscript>01</subscript></entry>
+> > +		    </row>
+> > +		    <row>
+> > +		      <entry>start&nbsp;+&nbsp;4:</entry>
+> > +		      <entry>Cb<subscript>10</subscript></entry>
+> > +		      <entry>Cr<subscript>10</subscript></entry>
+> > +		      <entry>Cb<subscript>11</subscript></entry>
+> > +		      <entry>Cr<subscript>11</subscript></entry>
+> > +		    </row>
+> > +		    <row>
+> > +		      <entry>start&nbsp;+&nbsp;8:</entry>
+> > +		      <entry>Cb<subscript>20</subscript></entry>
+> > +		      <entry>Cr<subscript>20</subscript></entry>
+> > +		      <entry>Cb<subscript>21</subscript></entry>
+> > +		      <entry>Cr<subscript>21</subscript></entry>
+> > +		    </row>
+> > +		    <row>
+> > +		      <entry>start&nbsp;+&nbsp;12:</entry>
+> > +		      <entry>Cb<subscript>30</subscript></entry>
+> > +		      <entry>Cr<subscript>30</subscript></entry>
+> > +		      <entry>Cb<subscript>31</subscript></entry>
+> > +		      <entry>Cr<subscript>31</subscript></entry>
+> > +		    </row>
+> > +		  </tbody>
+> > +		</tgroup>
+> > +		</informaltable>
+> > +	      </para>
+> > +	      </formalpara>
+> > +	    </example>
+> > +	  </refsect1>
+> > +	</refentry>
+> > diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml
+> > b/Documentation/DocBook/media/v4l/pixfmt.xml index 74d4fcd..9dc3024 100644
+> > --- a/Documentation/DocBook/media/v4l/pixfmt.xml
+> > +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+> > @@ -674,6 +674,7 @@ access the palette, this must be done with ioctls of the
+> > Linux framebuffer API.< &sub-sbggr16;
+> >      &sub-srggb10;
+> >      &sub-srggb10dpcm8;
+> > +    &sub-srggb10alaw8;
+> 
+> Please move the ALAW formats above the DPCM formats to keep them 
+> alphabetically sorted.
+> 
+  Ok.
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index 97b8951..aa28015 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2471,6 +2471,15 @@ that used it. It was originally scheduled for removal in 2.6.35.
-       </orderedlist>
-     </section>
- 
-+    <section>
-+      <title>V4L2 in Linux 3.6</title>
-+      <orderedlist>
-+        <listitem>
-+	  <para>Added support for frequency band enumerations: &VIDIOC-ENUM-FREQ-BANDS;.</para>
-+        </listitem>
-+      </orderedlist>
-+    </section>
-+
-     <section id="other">
-       <title>Relation of V4L2 to other Linux multimedia APIs</title>
- 
-@@ -2600,6 +2609,9 @@ ioctls.</para>
- 	  <para><link linkend="v4l2-auto-focus-area"><constant>
- 	  V4L2_CID_AUTO_FOCUS_AREA</constant></link> control.</para>
-         </listitem>
-+        <listitem>
-+	  <para>Support for frequency band enumeration: &VIDIOC-ENUM-FREQ-BANDS; ioctl.</para>
-+        </listitem>
-       </itemizedlist>
-     </section>
- 
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index 36bafc4..eee6908 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -140,6 +140,11 @@ structs, ioctls) must be noted in more detail in the history chapter
- applications. -->
- 
-       <revision>
-+	<revnumber>3.6</revnumber>
-+	<date>2012-07-02</date>
-+	<authorinitials>hv</authorinitials>
-+	<revremark>Added VIDIOC_ENUM_FREQ_BANDS.
-+	</revremark>
- 	<revnumber>3.5</revnumber>
- 	<date>2012-05-07</date>
- 	<authorinitials>sa, sn</authorinitials>
-@@ -534,6 +539,7 @@ and discussions on the V4L mailing list.</revremark>
-     &sub-enum-fmt;
-     &sub-enum-framesizes;
-     &sub-enum-frameintervals;
-+    &sub-enum-freq-bands;
-     &sub-enuminput;
-     &sub-enumoutput;
-     &sub-enumstd;
-diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml b/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
-new file mode 100644
-index 0000000..6541ba0
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
-@@ -0,0 +1,179 @@
-+<refentry id="vidioc-enum-freq-bands">
-+  <refmeta>
-+    <refentrytitle>ioctl VIDIOC_ENUM_FREQ_BANDS</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>VIDIOC_ENUM_FREQ_BANDS</refname>
-+    <refpurpose>Enumerate supported frequency bands</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>struct v4l2_frequency_band
-+*<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>&fd;</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>VIDIOC_ENUM_FREQ_BANDS</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <note>
-+      <title>Experimental</title>
-+      <para>This is an <link linkend="experimental"> experimental </link>
-+      interface and may change in the future.</para>
-+    </note>
-+
-+    <para>Enumerates the frequency bands that a tuner or modulator supports.
-+To do this applications initialize the <structfield>tuner</structfield>,
-+<structfield>type</structfield> and <structfield>index</structfield> fields,
-+and zero out the <structfield>reserved</structfield> array of a &v4l2-frequency-band; and
-+call the <constant>VIDIOC_ENUM_FREQ_BANDS</constant> ioctl with a pointer
-+to this structure.</para>
-+
-+    <para>This ioctl is supported if the <constant>V4L2_TUNER_CAP_FREQ_BANDS</constant> capability
-+    of the corresponding tuner/modulator is set.</para>
-+
-+    <table pgwide="1" frame="none" id="v4l2-frequency-band">
-+      <title>struct <structname>v4l2_frequency_band</structname></title>
-+      <tgroup cols="3">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>tuner</structfield></entry>
-+	    <entry>The tuner or modulator index number. This is the
-+same value as in the &v4l2-input; <structfield>tuner</structfield>
-+field and the &v4l2-tuner; <structfield>index</structfield> field, or
-+the &v4l2-output; <structfield>modulator</structfield> field and the
-+&v4l2-modulator; <structfield>index</structfield> field.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>type</structfield></entry>
-+	    <entry>The tuner type. This is the same value as in the
-+&v4l2-tuner; <structfield>type</structfield> field. The type must be set
-+to <constant>V4L2_TUNER_RADIO</constant> for <filename>/dev/radioX</filename>
-+device nodes, and to <constant>V4L2_TUNER_ANALOG_TV</constant>
-+for all others. Set this field to <constant>V4L2_TUNER_RADIO</constant> for
-+modulators (currently only radio modulators are supported).
-+See <xref linkend="v4l2-tuner-type" /></entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>index</structfield></entry>
-+	    <entry>Identifies the frequency band, set by the application.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>capability</structfield></entry>
-+	    <entry spanname="hspan">The tuner/modulator capability flags for
-+this frequency band, see <xref linkend="tuner-capability" />. The <constant>V4L2_TUNER_CAP_LOW</constant>
-+capability must be the same for all frequency bands of the selected tuner/modulator.
-+So either all bands have that capability set, or none of them have that capability.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>rangelow</structfield></entry>
-+	    <entry spanname="hspan">The lowest tunable frequency in
-+units of 62.5 kHz, or if the <structfield>capability</structfield>
-+flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
-+Hz, for this frequency band.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>rangehigh</structfield></entry>
-+	    <entry spanname="hspan">The highest tunable frequency in
-+units of 62.5 kHz, or if the <structfield>capability</structfield>
-+flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
-+Hz, for this frequency band.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>modulation</structfield></entry>
-+	    <entry spanname="hspan">The supported modulation systems of this frequency band.
-+	    See <xref linkend="band-modulation" />. Note that currently only one
-+	    modulation system per frequency band is supported. More work will need to
-+	    be done if multiple modulation systems are possible. Contact the
-+	    linux-media mailing list (&v4l-ml;) if you need that functionality.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[9]</entry>
-+	    <entry>Reserved for future extensions. Applications and drivers
-+	    must set the array to zero.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table pgwide="1" frame="none" id="band-modulation">
-+      <title>Band Modulation Systems</title>
-+      <tgroup cols="3">
-+	&cs-def;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>V4L2_BAND_MODULATION_VSB</constant></entry>
-+	    <entry>0x02</entry>
-+	    <entry>Vestigial Sideband modulation, used for analog TV.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_BAND_MODULATION_FM</constant></entry>
-+	    <entry>0x04</entry>
-+	    <entry>Frequency Modulation, commonly used for analog radio.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_BAND_MODULATION_AM</constant></entry>
-+	    <entry>0x08</entry>
-+	    <entry>Amplitude Modulation, commonly used for analog radio.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+  </refsect1>
-+
-+  <refsect1>
-+    &return-value;
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><errorcode>EINVAL</errorcode></term>
-+	<listitem>
-+	  <para>The <structfield>tuner</structfield> or <structfield>index</structfield>
-+is out of bounds or the <structfield>type</structfield> field is wrong.</para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml b/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
-index 40e58a4..c7a1c46 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
-@@ -98,11 +98,12 @@ the &v4l2-output; <structfield>modulator</structfield> field and the
- 	    <entry>__u32</entry>
- 	    <entry><structfield>type</structfield></entry>
- 	    <entry>The tuner type. This is the same value as in the
--&v4l2-tuner; <structfield>type</structfield> field. See The type must be set
-+&v4l2-tuner; <structfield>type</structfield> field. The type must be set
- to <constant>V4L2_TUNER_RADIO</constant> for <filename>/dev/radioX</filename>
- device nodes, and to <constant>V4L2_TUNER_ANALOG_TV</constant>
--for all others. The field is not applicable to modulators, &ie; ignored
--by drivers. See <xref linkend="v4l2-tuner-type" /></entry>
-+for all others. Set this field to <constant>V4L2_TUNER_RADIO</constant> for
-+modulators (currently only radio modulators are supported).
-+See <xref linkend="v4l2-tuner-type" /></entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-index 95d5371..7203951 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-@@ -119,10 +119,14 @@ field is not quite clear.--></para></entry>
- <xref linkend="tuner-capability" />. Audio flags indicate the ability
- to decode audio subprograms. They will <emphasis>not</emphasis>
- change, for example with the current video standard.</para><para>When
--the structure refers to a radio tuner only the
--<constant>V4L2_TUNER_CAP_LOW</constant>,
--<constant>V4L2_TUNER_CAP_STEREO</constant> and
--<constant>V4L2_TUNER_CAP_RDS</constant> flags can be set.</para></entry>
-+the structure refers to a radio tuner the
-+<constant>V4L2_TUNER_CAP_LANG1</constant>,
-+<constant>V4L2_TUNER_CAP_LANG2</constant> and
-+<constant>V4L2_TUNER_CAP_NORM</constant> flags can't be used.</para>
-+<para>If multiple frequency bands are supported, then
-+<structfield>capability</structfield> is the union of all
-+<structfield>capability></structfield> fields of each &v4l2-frequency-band;.
-+</para></entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-@@ -130,7 +134,9 @@ the structure refers to a radio tuner only the
- 	    <entry spanname="hspan">The lowest tunable frequency in
- units of 62.5 kHz, or if the <structfield>capability</structfield>
- flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
--Hz.</entry>
-+Hz. If multiple frequency bands are supported, then
-+<structfield>rangelow</structfield> is the lowest frequency
-+of all the frequency bands.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-@@ -138,7 +144,9 @@ Hz.</entry>
- 	    <entry spanname="hspan">The highest tunable frequency in
- units of 62.5 kHz, or if the <structfield>capability</structfield>
- flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
--Hz.</entry>
-+Hz. If multiple frequency bands are supported, then
-+<structfield>rangehigh</structfield> is the highest frequency
-+of all the frequency bands.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-@@ -340,6 +348,12 @@ radio tuners.</entry>
- 	<entry>0x0200</entry>
- 	<entry>The RDS data is parsed by the hardware and set via controls.</entry>
- 	  </row>
-+	  <row>
-+	<entry><constant>V4L2_TUNER_CAP_FREQ_BANDS</constant></entry>
-+	<entry>0x0400</entry>
-+	<entry>The &VIDIOC-ENUM-FREQ-BANDS; ioctl can be used to enumerate
-+	the available frequency bands.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
--- 
-1.7.10.4
+> >      &sub-srggb12;
+> >    </section>
+> > 
+> > @@ -701,6 +702,7 @@ information.</para>
+> >      &sub-y12;
+> >      &sub-y10b;
+> >      &sub-y16;
+> > +    &sub-uv8;
+> >      &sub-yuyv;
+> >      &sub-uyvy;
+> >      &sub-yvyu;
+> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > index dbc0d77..71f9f94 100644
+> > --- a/include/linux/videodev2.h
+> > +++ b/include/linux/videodev2.h
+> > @@ -328,6 +328,9 @@ struct v4l2_pix_format {
+> >  /* Palette formats */
+> >  #define V4L2_PIX_FMT_PAL8    v4l2_fourcc('P', 'A', 'L', '8') /*  8  8-bit
+> > palette */
+> > 
+> > +/* Chrominance formats */
+> > +#define V4L2_PIX_FMT_UV8      v4l2_fourcc('U', 'V', '8', ' ') /*  8  UV 4:4
+> > */ +
+> >  /* Luminance+Chrominance formats */
+> >  #define V4L2_PIX_FMT_YVU410  v4l2_fourcc('Y', 'V', 'U', '9') /*  9  YVU
+> > 4:1:0     */ #define V4L2_PIX_FMT_YVU420  v4l2_fourcc('Y', 'V', '1', '2')
+> > /* 12  YVU 4:2:0     */ @@ -382,6 +385,11 @@ struct v4l2_pix_format {
+> >  #define V4L2_PIX_FMT_SGBRG10DPCM8 v4l2_fourcc('b', 'G', 'A', '8')
+> >  #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
+> >  #define V4L2_PIX_FMT_SRGGB10DPCM8 v4l2_fourcc('b', 'R', 'A', '8')
+> > +	/* 10bit raw bayer a-law compressed to 8 bits */
+> > +#define V4L2_PIX_FMT_SBGGR10ALAW8 v4l2_fourcc('a', 'B', 'A', '8')
+> > +#define V4L2_PIX_FMT_SGBRG10ALAW8 v4l2_fourcc('a', 'G', 'A', '8')
+> > +#define V4L2_PIX_FMT_SGRBG10ALAW8 v4l2_fourcc('a', 'g', 'A', '8')
+> > +#define V4L2_PIX_FMT_SRGGB10ALAW8 v4l2_fourcc('a', 'R', 'A', '8')
+> 
+> Please move the ALAW formats above the DPCM formats to keep them 
+> alphabetically sorted.
+> 
+  Ok.
+
+Thx,
+--Manju
+
+> We still have no clear fourcc allocation scheme for Bayer formats, but I 
+> suppose I'll need to give up on that.
+> 
+> >  	/*
+> >  	 * 10bit raw bayer, expanded to 16 bits
+> >  	 * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+> 
 
