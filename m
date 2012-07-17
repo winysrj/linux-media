@@ -1,103 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:51435 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751354Ab2GFHIR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Jul 2012 03:08:17 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1Sn2eF-0003yP-P4
-	for linux-media@vger.kernel.org; Fri, 06 Jul 2012 09:08:15 +0200
-Received: from btm86.neoplus.adsl.tpnet.pl ([83.29.158.86])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2012 09:08:15 +0200
-Received: from acc.for.news by btm86.neoplus.adsl.tpnet.pl with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2012 09:08:15 +0200
-To: linux-media@vger.kernel.org
-From: Marx <acc.for.news@gmail.com>
-Subject: Re: pctv452e
-Date: Fri, 06 Jul 2012 08:13:14 +0200
-Message-ID: <r8cic9-ht4.ln1@wuwek.kopernik.gliwice.pl>
-References: <4FF4697C.8080602@nexusuk.org> <4FF46DC4.4070204@iki.fi> <4FF4911B.9090600@web.de> <4FF4931B.7000708@iki.fi> <gjggc9-dl4.ln1@wuwek.kopernik.gliwice.pl> <4FF5A350.9070509@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2056 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752183Ab2GQThl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Jul 2012 15:37:41 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [RFC] media DT bindings
+Date: Tue, 17 Jul 2012 21:37:05 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Magnus Damm <magnus.damm@gmail.com>
+References: <Pine.LNX.4.64.1207110854290.18999@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1207110854290.18999@axis700.grange>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <4FF5A350.9070509@iki.fi>
+Message-Id: <201207172137.05928.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05.07.2012 16:23, Antti Palosaari wrote:
-> Check if those modules are enabled, in file .config
-> CONFIG_DVB_USB_V2=m
-> CONFIG_DVB_USB_PCTV452E=m
->
-> use make menuconfig to enable if disabled. Then make && make
-> install_modules && make install as usually.
+On Wed July 11 2012 16:27:52 Guennadi Liakhovetski wrote:
+> Hi all
+> 
+> Background
+> ==========
+> 
+> With ARM adoption of flat Device Trees a need arises to move platform 
+> device descriptions and their data from platform files to DT. This has 
+> also to be done for media devices, e.g., video capture and output 
+> interfaces, data processing devices, camera sensors, TV decoders and 
+> encoders. This RFC is trying to spawn a discussion to define standard V4L 
+> DT bindings. The first version will concentrate on the capture path, 
+> mostly taking care of simple capture-interface - camera sensor / TV 
+> decoder configurations. Since the author is not working intensively yet 
+> with the Media Controller API, pad-level configuration, these topics might 
+> be underrepresented in this RFC. I hope others, actively working in these 
+> areas, will fill me in on them.
+> 
+> Overview
+> ========
+> 
+> As mentioned above, typical configurations, that we'll be dealing with 
+> consist of a DMA data capture engine, one or more data sources like camera 
+> sensors, possibly some data processing units. Data capture and processing 
+> engines are usually platform devices, whereas data source devices are 
+> typically I2C slaves. Apart from defining each device we'll also describe 
+> connections between them as well as properties of those connections.
+> 
+> Capture devices
+> ==============================
+> 
+> These are usually platform devices, integrated into respective SoCs. There 
+> also exist external image processing devices, but they are rare. Obvious 
+> differences between them and integrated devices include a different bus 
+> attribution and a need to explicitly describe the connection to the SoC. 
+> As far as capture devices are concerned, their configuration will 
+> typically include a few device-specific bindings, as well as standard 
+> ones. Standard bindings will include the usual "reg," "interrupts," 
+> "clock-frequency" properties.
+> 
+> It is more complex to describe external links. We need to describe 
+> configurations, used with various devices, attached to various pads. It is 
+> proposed to describe such links as child nodes. Each such link will 
+> reference a client pad, a local pad and specify the bus configuration. The 
+> media bus can be either parallel or serial, e.g., MIPI CSI-2. It is 
+> proposed to describe both the bus-width in the parallel case and the 
+> number of lanes in the serial case, using the standard "bus-width" 
+> property.
+> 
+> On the parallel bus common properties include signal polarities, possibly 
+> data line shift (8 if lines 15:8 are used, 2 if 9:2, and 0 if lines 7:0), 
+> protocol (e.g., BT.656). Additionally device-specific properties can be 
+> defined.
+> 
+> A MIPI CSI-2 bus common properties would include, apart from the number of 
+> lanes, routed to that client, the clock frequency, a channel number, 
+> possibly CRC and ECC flags.
+> 
+> An sh-mobile CEU DT node could look like
+> 
+> 	ceu0@0xfe910000 = {
+> 		compatible = "renesas,sh-mobile-ceu";
+> 		reg = <0xfe910000 0xa0>;
+> 		interrupts = <0x880>;
+> 		bus-width = <16>;		/* #lines routed on the board */
+> 		clock-frequency = <50000000>;	/* max clock */
+> 		#address-cells = <1>;
+> 		#size-cells = <0>;
+> 		...
+> 		ov772x-1 = {
+> 			reg = <0>;
+> 			client = <&ov772x@0x21-0>;
+> 			local-pad = "parallel-sink";
+> 			remote-pad = "parallel-source";
+> 			bus-width = <8>;	/* used data lines */
+> 			data-shift = <0>;	/* lines 7:0 are used */
+> 			hsync-active = <1>;	/* active high */
+> 			vsync-active = <1>;	/* active high */
+> 			pclk-sample = <1>;	/* rising */
+> 			clock-frequency = <24000000>;
+> 		};
+> 	};
+> 
+> Client devices
+> ==============
+> 
+> Client nodes are children on their respective busses, e.g., i2c. This 
+> placement leads to these devices being possibly probed before respective 
+> host interfaces, which will fail due to known reasons. Therefore client 
+> drivers have to be adapted to request a delayed probing, as long as the 
+> respective video host hasn't probed.
+> 
+> Client nodes will include all the properties, usual for their busses. 
+> Additionally they will specify properties private to this device type and 
+> common for all V4L2 client devices - device global and per-link. I think, 
+> we should make it possible to define client devices, that can at run-time 
+> be connected to different sinks, even though such configurations might not 
+> be very frequent. To achieve this we also specify link information in 
+> child devices, similar to those in host nodes above. This also helps 
+> uniformity and will let us implement and use a universal link-binding 
+> parser. So, a node, that has been referenced above could look like
+> 
+> 	ov772x@0x21-0 = {
+> 		compatible = "omnivision,ov772x";
+> 		reg = <0x21>;
+> 		vdd-supply = <&regulator>;
+> 		bus-width = <10>;
+> 		#address-cells = <1>;
+> 		#size-cells = <0>;
+> 		...
+> 		ceu0-1 = {
+> 			reg = <0>;
+> 			media-parent = <&ceu0@0xfe910000>;
+> 			bus-width = <8>;
+> 			hsync-active = <1>;
+> 			vsync-active = <0>;	/* who came up with an inverter here?... */
+> 			pclk-sample = <1>;
+> 		};
+> 	};
+> 
+> Data processors
+> ===============
+> 
+> Data processing modules include resizers, codecs, rotators, serialisers, 
+> etc. A node for an sh-mobile CSI-2 subdevice could look like
+> 
+> 	csi2@0xffc90000 = {
+> 		compatible = "renesas,sh-mobile-csi2";
+> 		reg = <0xffc90000 0x1000>;
+> 		interrupts = <0x17a0>;
+> 		bus-width = <4>;
+> 		clock-frequency = <30000000>;
+> 		...
+> 		imx074-1 = {
+> 			client = <&imx074@0x1a-0>;
+> 			local-pad = "csi2-sink";
+> 			remote-pad = "csi2-source";
+> 			bus-width = <2>;
+> 			clock-frequency = <25000000>;
+> 			csi2-crc;
+> 			csi2-ecc;
+> 			sh-csi2,phy = <0>;
+> 		};
+> 		ceu0 = {
+> 			media-parent = <&ceu0@0xfe910000>;
+> 			immutable;
+> 		};
+> 	};
+> 
+> The respective child binding in the CEU node could then look like
+> 
+> 		csi2-1 = {
+> 			reg = <1>;
+> 			client = <&csi2@0xffc90000>;
+> 			immutable;
+> 		};
+> 
+> Comments welcome.
 
-You were right, I didn't have this options anabled. I've enabled both 
-via 'make menuconfig' and recompiled kernel. Driver loaded succesfully, 
-I haven time to test only a few SD channels, and they were working, but 
-some encrypted and HD didn't. I have to check yet why.
+One thing that is missing, but that is quite important is that the information
+from ENUMINPUT/ENUMOUTPUT needs to be part of the device tree as well, since
+that is generally completely board specific. See for example how the davinci
+vpif_capture.c and vpif_display.c do that now using platform data. This would
+be solved much more elegantly using the device tree.
 
-Anyway when using card logs are full of i2c errors
+This tends not to feature much when dealing with sensors, but any video receiver
+or transmitter will need this.
 
-Jul  6 07:04:19 wuwek kernel: [    6.087199] input: HDA ATI SB Line Out 
-Front as /devices/pci0000:00/0000:00:14.2/sound/card
-1/input8
-Jul  6 07:04:19 wuwek kernel: [    6.108046] stb6100_attach: Attaching 
-STB6100
-Jul  6 07:04:19 wuwek kernel: [    6.108054] pctv452e_power_ctrl: 0
-Jul  6 07:04:19 wuwek kernel: [    6.108063] usb 1-4: dvb_usbv2: 'PCTV 
-HDTV USB' successfully initialized and connected
-Jul  6 07:04:19 wuwek kernel: [    7.659462] Adding 2097148k swap on 
-/dev/sda2.  Priority:-1 extents:1 across:2097148k
-Jul  6 07:04:19 wuwek kernel: [    7.707592] EXT4-fs (sda1): re-mounted. 
-Opts: (null)
+Regards,
 
-(...)
-
-Jul  6 07:04:21 wuwek kernel: [   45.112483] Bluetooth: BNEP (Ethernet 
-Emulation) ver 1.3
-Jul  6 07:04:21 wuwek kernel: [   45.112496] Bluetooth: BNEP filters: 
-protocol multicast
-Jul  6 07:04:40 wuwek kernel: [   64.367411] pctv452e_power_ctrl: 1
-Jul  6 07:04:48 wuwek kernel: [   72.693972] I2C error -121; AA 0B  CC 
-00 01 -> 55 0B  CC 00 00.
-Jul  6 07:04:59 wuwek kernel: [   83.605643] I2C error -121; AA 49  CC 
-00 01 -> 55 49  CC 00 00.
-Jul  6 07:05:10 wuwek kernel: [   94.565805] I2C error -121; AA EE  CC 
-00 01 -> 55 EE  CC 00 00.
-Jul  6 07:05:10 wuwek kernel: [   94.578295] I2C error -121; AA 05  CC 
-00 01 -> 55 05  CC 00 00.
-Jul  6 07:05:10 wuwek kernel: [   94.637539] I2C error -121; AA 20  CC 
-00 01 -> 55 20  CC 00 00.
-Jul  6 07:05:18 wuwek kernel: [  102.525868] I2C error -121; AA 08  CC 
-00 01 -> 55 08  CC 00 00.
-Jul  6 07:05:18 wuwek kernel: [  102.538359] I2C error -121; AA 1F  CC 
-00 01 -> 55 1F  CC 00 00.
-Jul  6 07:05:18 wuwek kernel: [  102.597603] I2C error -121; AA 3A  CC 
-00 01 -> 55 3A  CC 00 00.
-Jul  6 07:05:29 wuwek kernel: [  113.765372] I2C error -121; AA F5  CC 
-00 01 -> 55 F5  CC 00 00.
-Jul  6 07:05:29 wuwek kernel: [  113.777986] I2C error -121; AA 0C  CC 
-00 01 -> 55 0C  CC 00 00.
-Jul  6 07:05:29 wuwek kernel: [  113.837480] I2C error -121; AA 27  CC 
-00 01 -> 55 27  CC 00 00.
-Jul  6 07:05:35 wuwek kernel: [  120.069153] I2C error -121; AA CF  CC 
-00 01 -> 55 CF  CC 00 00.
-Jul  6 07:05:37 wuwek kernel: [  121.325610] I2C error -121; AA A7  CC 
-00 01 -> 55 A7  CC 00 00.
-Jul  6 07:05:38 wuwek kernel: [  122.581565] I2C error -121; AA 7F  CC 
-00 01 -> 55 7F  CC 00 00.
-Jul  6 07:05:39 wuwek kernel: [  123.841526] I2C error -121; AA 57  CC 
-00 01 -> 55 57  CC 00 00.
-Jul  6 07:05:40 wuwek kernel: [  125.096979] I2C error -121; AA 2F  CC 
-00 01 -> 55 2F  CC 00 00.
-Jul  6 07:05:42 wuwek kernel: [  126.353689] I2C error -121; AA 07  CC 
-00 01 -> 55 07  CC 00 00.
-
-
-I will test tonight when I have more time
-Marx
-
+	Hans
