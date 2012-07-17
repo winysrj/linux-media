@@ -1,67 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:59448 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751729Ab2GIHnm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2012 03:43:42 -0400
-Date: Mon, 9 Jul 2012 09:43:37 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org, fabio.estevam@freescale.com,
-	linux-arm-kernel@lists.infradead.org,
-	laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
-	mchehab@infradead.org, kernel@pengutronix.de,
-	Baruch Siach <baruch@tkos.co.il>
-Subject: Re: [PATCH] [v3] i.MX27: Fix emma-prp clocks in mx2_camera.c
-Message-ID: <20120709074337.GT30009@pengutronix.de>
-References: <1341572162-29126-1-git-send-email-javier.martin@vista-silicon.com>
- <20120709072809.GP30009@pengutronix.de>
- <CACKLOr25yb1Cx4XNriyPceBcqmc5T4jDpJXFpve9JCXpP7iMLg@mail.gmail.com>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2447 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751109Ab2GQGtu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Jul 2012 02:49:50 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Ming Lei <ming.lei@canonical.com>
+Subject: Re: linux-next: Tree for July 12 (v4l2-ioctl.c)
+Date: Tue, 17 Jul 2012 08:48:37 +0200
+Cc: Randy Dunlap <rdunlap@xenotime.net>,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	"linux-media" <linux-media@vger.kernel.org>
+References: <20120712160335.9cbff13c2f18eadc7d3cb0cf@canb.auug.org.au> <4FFEF21A.7050701@xenotime.net> <CACVXFVOy7VGstdotnofq=o_UmFh0KwqH6p25MamwAbLfRgcTRg@mail.gmail.com>
+In-Reply-To: <CACVXFVOy7VGstdotnofq=o_UmFh0KwqH6p25MamwAbLfRgcTRg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CACKLOr25yb1Cx4XNriyPceBcqmc5T4jDpJXFpve9JCXpP7iMLg@mail.gmail.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201207170848.37945.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 09, 2012 at 09:37:25AM +0200, javier Martin wrote:
-> On 9 July 2012 09:28, Sascha Hauer <s.hauer@pengutronix.de> wrote:
-> > On Fri, Jul 06, 2012 at 12:56:02PM +0200, Javier Martin wrote:
-> >> This driver wasn't converted to the new clock changes
-> >> (clk_prepare_enable/clk_disable_unprepare). Also naming
-> >> of emma-prp related clocks for the i.MX27 was not correct.
-> >> ---
-> >> Enable clocks only for i.MX27.
+On Tue July 17 2012 04:25:35 Ming Lei wrote:
+> On Thu, Jul 12, 2012 at 11:49 PM, Randy Dunlap <rdunlap@xenotime.net> wrote:
+> > On 07/11/2012 11:03 PM, Stephen Rothwell wrote:
+> >
+> >> Hi all,
 > >>
+> >> Changes since 20120710:
 > >
-> > Indeed,
 > >
-> >>
-> >> -     pcdev->clk_csi = clk_get(&pdev->dev, NULL);
-> >> -     if (IS_ERR(pcdev->clk_csi)) {
-> >> -             dev_err(&pdev->dev, "Could not get csi clock\n");
-> >> -             err = PTR_ERR(pcdev->clk_csi);
-> >> -             goto exit_kfree;
-> >> +     if (cpu_is_mx27()) {
-> >> +             pcdev->clk_csi = devm_clk_get(&pdev->dev, "ahb");
-> >> +             if (IS_ERR(pcdev->clk_csi)) {
-> >> +                     dev_err(&pdev->dev, "Could not get csi clock\n");
-> >> +                     err = PTR_ERR(pcdev->clk_csi);
-> >> +                     goto exit_kfree;
-> >> +             }
 > >
-> > but why? Now the i.MX25 won't get a clock anymore.
+> > on i386 and/or x86_64, drivers/media/video/v4l2-ioctl.c has too many
+> > errors to be listed here.  This is the beginning few lines of the errors:
 > 
-> What are the clocks needed by i.MX25? csi only?
-> 
-> By the way, is anybody using this driver with i.MX25?
+> I see the errors on ARM too.
 
-It seems Baruch (added to Cc) has used it on an i.MX25.
+A fix can be found here:
 
-Sascha
+http://patchwork.linuxtv.org/patch/13336/
 
+Regards,
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+	Hans
