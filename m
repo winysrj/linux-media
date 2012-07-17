@@ -1,91 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3532 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751143Ab2GFJW0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 05:22:26 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Lars-Peter Clausen" <lars@metafoo.de>
-Subject: Re: [Device-drivers-devel] [RFCv1 PATCH 0/7] Add adv7604/ad9389b drivers
-Date: Fri, 6 Jul 2012 10:46:07 +0200
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org,
-	device-drivers-devel@blackfin.uclinux.org
-References: <1341498375-9411-1-git-send-email-hans.verkuil@cisco.com> <4FF69D67.8050408@metafoo.de>
-In-Reply-To: <4FF69D67.8050408@metafoo.de>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51116 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753758Ab2GQBYl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Jul 2012 21:24:41 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: David Cohen <david.a.cohen@linux.intel.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 8/9] soc-camera: Add and use soc_camera_power_[on|off]() helper functions
+Date: Tue, 17 Jul 2012 03:24:44 +0200
+Message-ID: <1785362.kzK4PIgmvB@avalon>
+In-Reply-To: <50034F97.9060208@linux.intel.com>
+References: <1341520728-2707-1-git-send-email-laurent.pinchart@ideasonboard.com> <1341520728-2707-9-git-send-email-laurent.pinchart@ideasonboard.com> <50034F97.9060208@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201207061046.07949.hverkuil@xs4all.nl>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri July 6 2012 10:10:15 Lars-Peter Clausen wrote:
-> On 07/05/2012 04:26 PM, Hans Verkuil wrote:
-> > Hi all,
+Hi David,
+
+Thanks for the review.
+
+On Monday 16 July 2012 02:17:43 David Cohen wrote:
+> On 07/05/2012 11:38 PM, Laurent Pinchart wrote:
+> > Instead of forcing all soc-camera drivers to go through the mid-layer to
+> > handle power management, create soc_camera_power_[on|off]() functions
+> > that can be called from the subdev .s_power() operation to manage
+> > regulators and platform-specific power handling. This allows non
+> > soc-camera hosts to use soc-camera-aware clients.
 > > 
-> > This RFC patch series builds on an earlier RFC patch series (posted only to
-> > linux-media) that adds support for DVI/HDMI/DP connectors to the V4L2 API.
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
 > > 
-> > This earlier patch series is here:
-> > 
-> > 	http://www.spinics.net/lists/linux-media/msg48529.html
-> > 
-> > The first 3 patches are effectively unchanged compared to that patch series,
-> > patch 4 adds support for the newly defined controls to the V4L2 control framework
-> > and patch 5 adds helper functions to v4l2-common.c to help in detecting VESA
-> > CVT and GTF formats.
-> > 
-> > Finally, two Analog Devices drivers are added to actually use this new API.
-> > The adv7604 is an HDMI/DVI receiver and the ad9389b is an HDMI transmitter.
-> > 
-> > Another tree of mine also contains preliminary drivers for the adv7842
-> > and adv7511:
+> >   drivers/media/video/imx074.c              |    9 +++
+> >   drivers/media/video/mt9m001.c             |    9 +++
+> >   drivers/media/video/mt9m111.c             |   52 +++++++++++++-----
+> >   drivers/media/video/mt9t031.c             |   11 +++-
+> >   drivers/media/video/mt9t112.c             |    9 +++
+> >   drivers/media/video/mt9v022.c             |    9 +++
+> >   drivers/media/video/ov2640.c              |    9 +++
+> >   drivers/media/video/ov5642.c              |   10 +++-
+> >   drivers/media/video/ov6650.c              |    9 +++
+> >   drivers/media/video/ov772x.c              |    9 +++
+> >   drivers/media/video/ov9640.c              |   10 +++-
+> >   drivers/media/video/ov9740.c              |   15 +++++-
+> >   drivers/media/video/rj54n1cb0c.c          |    9 +++
+> >   drivers/media/video/soc_camera.c          |   83   ++++++++++++--------
+> >   drivers/media/video/soc_camera_platform.c |   11 ++++-
+> >   drivers/media/video/tw9910.c              |    9 +++
+> >   include/media/soc_camera.h                |   10 ++++
+> >   17 files changed, 225 insertions(+), 58 deletions(-)
 > 
-> Hm, ok that's interesting I do have a DRM driver for the adv7511:
-> https://github.com/lclausen-adi/linux-2.6/blob/adv7511_zynq/drivers/gpu/drm/i2c/adv7511_core.c
+> [snip]
 > 
-> I wonder if it is possible to share some code on this.
-
-That will be an interesting exercise. The V4L and DRM subsystems are trying to
-improve their cooperation, but we are not yet at the stage that you can easily
-share video encoders. This might be a good starting point, though.
-
+> > diff --git a/drivers/media/video/ov9740.c b/drivers/media/video/ov9740.c
+> > index 3eb07c2..effd0f1 100644
+> > --- a/drivers/media/video/ov9740.c
+> > +++ b/drivers/media/video/ov9740.c
+> > @@ -786,16 +786,29 @@ static int ov9740_g_chip_ident(struct v4l2_subdev
+> > *sd,> 
+> >   static int ov9740_s_power(struct v4l2_subdev *sd, int on)
+> >   {
 > > 
-> > 	http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/hdmi
+> > +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> > +	struct soc_camera_link *icl = soc_camera_i2c_to_link(client);
 > > 
-> > However, I want to start with adv7604 and ad9389b since those have had the most
-> > testing.
+> >   	struct ov9740_priv *priv = to_ov9740(sd);
+> > 
+> > +	int ret;
+> > 
+> > -	if (!priv->current_enable)
+> > +	if (on) {
+> > +		ret = soc_camera_power_on(&client->dev, icl);
+> > +		if (ret < 0)
+> > +			return ret;
+> > +	}
+> > +
+> > +	if (!priv->current_enable) {
+> > +		if (!on)
+> > +			soc_camera_power_off(&client->dev, icl);
 > 
-> I've also have some code which adds adv7611 support to your adv7604 driver.
+> After your changes, this function has 3 if's (one nested) where all of
+> them checks "on" variable due to you need to mix "on" and
+> "priv->current_enable" checks. However, code's traceability is not so
+> trivial.
+> How about if you nest "priv->current_enable" into last "if" and keep
+> only that one?
+> 
+> See an incomplete code below:
+> >   		return 0;
+> > 
+> > +	}
+> > 
+> >   	if (on) {
+> 
+> soc_camera_power_on();
+> if (!priv->current_enable)
+> 	return;
+> 
+> >   		ov9740_s_fmt(sd, &priv->current_mf);
+> >   		ov9740_s_stream(sd, priv->current_enable);
+> >   	
+> >   	} else {
+> >   	
+> >   		ov9740_s_stream(sd, 0);
+> 
+> Execute ov9740_s_stream() conditionally:
+> if (priv->current_enable) {
+> 	ov9740_s_stream();
+> 	priv->current_enable = true;
+> }
+> 
+> > +		soc_camera_power_off(&client->dev, icl);
+> > 
+> >   		priv->current_enable = true;
+> 
+> priv->current_enable is set to false when ov9740_s_stream(0) is called
+> then this function sets it back to true afterwards. So, in case you want
+> to have no functional change, it seems to me you should call
+> soc_camera_power_off() after that variable has its original value set
+> back.
+> In this case, even if you don't like my suggestion, you still need to
+> swap those 2 lines above. :)
 
-Let's try and get this driver in first, before we start adding patches other
-than fixes. The main purpose is to get the new API elements merged in the
-kernel, after that the drivers can easily be expanded and improved (which is
-so much easier once they are in the kernel).
+What do you think of
 
+diff --git a/drivers/media/video/ov9740.c b/drivers/media/video/ov9740.c
+index 3eb07c2..10c0ba9 100644
+--- a/drivers/media/video/ov9740.c
++++ b/drivers/media/video/ov9740.c
+@@ -786,17 +786,27 @@ static int ov9740_g_chip_ident(struct v4l2_subdev *sd,
+ 
+ static int ov9740_s_power(struct v4l2_subdev *sd, int on)
+ {
++       struct i2c_client *client = v4l2_get_subdevdata(sd);
++       struct soc_camera_link *icl = soc_camera_i2c_to_link(client);
+        struct ov9740_priv *priv = to_ov9740(sd);
+-
+-       if (!priv->current_enable)
+-               return 0;
++       int ret;
+ 
+        if (on) {
+-               ov9740_s_fmt(sd, &priv->current_mf);
+-               ov9740_s_stream(sd, priv->current_enable);
++               ret = soc_camera_power_on(&client->dev, icl);
++               if (ret < 0)
++                       return ret;
++
++               if (priv->current_enable) {
++                       ov9740_s_fmt(sd, &priv->current_mf);
++                       ov9740_s_stream(sd, 1);
++               }
+        } else {
+-               ov9740_s_stream(sd, 0);
+-               priv->current_enable = true;
++               if (priv->current_enable) {
++                       ov9740_s_stream(sd, 0);
++                       priv->current_enable = true;
++               }
++
++               soc_camera_power_off(&client->dev, icl);
+        }
+ 
+        return 0;
+
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
 
-> 
-> > 
-> > As the commit message of says these drivers do not implement the full
-> > functionality of these devices, but that can be added later, either
-> > by Cisco or by others.
-> > 
-> > A lot of work has been put into the V4L2 subsystem to reach this point,
-> > particularly the control framework, the VIDIOC_G/S/ENUM/QUERY_DV_TIMINGS
-> > ioctls, and the V4L2 event mechanism. So I'm very pleased to be able to finally
-> > post this code.
-> > 
-> > Comments are welcome!
-> > 
-> > Regards,
-> > 
-> > 	Hans Verkuil
-> > 
-> > _______________________________________________
-> > Device-drivers-devel mailing list
-> > Device-drivers-devel@blackfin.uclinux.org
-> > https://blackfin.uclinux.org/mailman/listinfo/device-drivers-devel
-> 
