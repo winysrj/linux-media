@@ -1,191 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:46176 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752056Ab2GWKoA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jul 2012 06:44:00 -0400
-Received: by weyx8 with SMTP id x8so4141926wey.19
-        for <linux-media@vger.kernel.org>; Mon, 23 Jul 2012 03:43:59 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:35475 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751824Ab2GQOfh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Jul 2012 10:35:37 -0400
+Message-ID: <50057829.206@iki.fi>
+Date: Tue, 17 Jul 2012 17:35:21 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <201207231214.15835.hverkuil@xs4all.nl>
-References: <1342782515-24992-1-git-send-email-javier.martin@vista-silicon.com>
-	<CACKLOr312a=KTrm9=N48=SHN5Z=0yTPceopG9MJBu8he_3yjrw@mail.gmail.com>
-	<CACKLOr1RF2PLECz7Y9kFRnFqnCMfHQOcCTT0TgdFvNyFVynCpg@mail.gmail.com>
-	<201207231214.15835.hverkuil@xs4all.nl>
-Date: Mon, 23 Jul 2012 12:43:59 +0200
-Message-ID: <CACKLOr0+ge3Rxh1w26pdPUKA3BZEHY8qvWS=kysNuCdx3L8tSg@mail.gmail.com>
-Subject: Re: [PATCH v6] media: coda: Add driver for Coda video codec.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.hauer@pengutronix.de, p.zabel@pengutronix.de
-Content-Type: text/plain; charset=ISO-8859-1
+To: htl10@users.sourceforge.net
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: patches to media_build, and a few other things
+References: <1342477272.58502.YahooMailClassic@web29403.mail.ird.yahoo.com>
+In-Reply-To: <1342477272.58502.YahooMailClassic@web29403.mail.ird.yahoo.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23 July 2012 12:14, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Mon July 23 2012 12:00:30 javier Martin wrote:
->> On 23 July 2012 11:45, javier Martin <javier.martin@vista-silicon.com> wrote:
->> > Sorry, I had a problem with my buildroot environment. This is the
->> > v4l2-compliance output with the most recent version:
->> >
->> > # v4l2-compliance -d /dev/video2
->> > Driver Info:
->> >         Driver name   : coda
->> >         Card type     : coda
->> >         Bus info      : coda
->> >         Driver version: 0.0.0
->> >         Capabilities  : 0x84000003
->> >                 Video Capture
->> >                 Video Output
->> >                 Streaming
->> >                 Device Capabilities
->> >         Device Caps   : 0x04000003
->> >                 Video Capture
->> >                 Video Output
->> >                 Streaming
->> >
->> > Compliance test for device /dev/video2 (not using libv4l2):
->> >
->> > Required ioctls:
->> >                 fail: v4l2-compliance.cpp(270): (vcap.version >> 16) < 3
->> >         test VIDIOC_QUERYCAP: FAIL
->> >
->>
->> This was related to a memset() that I did in QUERYCAP.
->>
->> Now the output is cleaner.
+On 07/17/2012 01:21 AM, Hin-Tak Leung wrote:
+> I have a couple of patches to my local media_build repo, which do these:
 >
-> Ah, much better.
+> - a new option "--as-is" to the build script. It basically suppresses any git pull/rebase to both media_build and the ./media subdirectory (if used in combination with --main-git). In combination to --main-git, you are left on your own and be wholy responsible about what is inside ./media - I use that to check Antti's work (which is on a branch), and also since I have some interrim patches to media_build itself, I would prefer I can tell it not to  pull/merge .
 >
->>
->> # v4l2-compliance -d /dev/video2
->> Driver Info:
->>         Driver name   : coda
->>         Card type     : coda
->>         Bus info      : coda
->>         Driver version: 3.5.0
->>         Capabilities  : 0x84000003
->>                 Video Capture
->>                 Video Output
->>                 Streaming
->>                 Device Capabilities
->>         Device Caps   : 0x04000003
->>                 Video Capture
->>                 Video Output
->>                 Streaming
->>
->> Compliance test for device /dev/video2 (not using libv4l2):
->>
->> Required ioctls:
->>         test VIDIOC_QUERYCAP: OK
->>
->> Allow for multiple opens:
->>         test second video open: OK
->>         test VIDIOC_QUERYCAP: OK
->>         test VIDIOC_G/S_PRIORITY: OK
->>
->> Debug ioctls:
->>         test VIDIOC_DBG_G_CHIP_IDENT: Not Supported
->>         test VIDIOC_DBG_G/S_REGISTER: Not Supported
->>         test VIDIOC_LOG_STATUS: Not Supported
->>
->> Input ioctls:
->>         test VIDIOC_G/S_TUNER: Not Supported
->>         test VIDIOC_G/S_FREQUENCY: Not Supported
->>         test VIDIOC_S_HW_FREQ_SEEK: Not Supported
->>         test VIDIOC_ENUMAUDIO: Not Supported
->>         test VIDIOC_G/S/ENUMINPUT: Not Supported
->>         test VIDIOC_G/S_AUDIO: Not Supported
->>         Inputs: 0 Audio Inputs: 0 Tuners: 0
->>
->> Output ioctls:
->>         test VIDIOC_G/S_MODULATOR: Not Supported
->>         test VIDIOC_G/S_FREQUENCY: Not Supported
->>         test VIDIOC_ENUMAUDOUT: Not Supported
->>         test VIDIOC_G/S/ENUMOUTPUT: Not Supported
->>         test VIDIOC_G/S_AUDOUT: Not Supported
->>         Outputs: 0 Audio Outputs: 0 Modulators: 0
->>
->> Control ioctls:
->>         test VIDIOC_QUERYCTRL/MENU: OK
->>         test VIDIOC_G/S_CTRL: OK
->>                 fail: v4l2-test-controls.cpp(565): try_ext_ctrls did
->> not check the read-only flag
+> - a small change to v4l/Makefile , to install under /lib/modules/$(KERNELRELEASE)/updates/... - recent fedora seems to have a modprobe preference to load from "../updates/..." (or at least, that's the case of having installed compat-wireless at some stage - one might want to steal some code from that?), when more than one kernel module of the same name exists. This is so as not to trash distro-shipped modules (and also if one cleans out ".../updates/..." and runs "depmod -a", one is back to distro as shipped behavior). Also trashing distro-shipped modules have the side-effect of making drpm not to work and whole kernel packages are downloaded in the next "yum upgrade".
 >
-> Hmm, what's the reason for this one I wonder. Can you run with '-v2' and see
-> for which control this fails?
+> I also have a suggestion to make:
 >
->>         test VIDIOC_G/S/TRY_EXT_CTRLS: FAIL
->>                 fail: v4l2-test-controls.cpp(698): subscribe event for
->> control 'MPEG Encoder Controls' failed
+> - How http://linux/linuxtv.org/downloads/drivers/linux-media-LATEST.tar.bz2
+> is generated, probably should be documented. Over the weekend I was playing with one with timestamp Jul 7, and it is quite broken with firstly header files not in the right place (linux/v4l2-common.h instead of media/v4l2-common.h), and also the following:
 >
-> Known bug in v4l2-memtest.c. Fixed in my pending patch.
+> media_build/v4l/../linux/include/media/v4l2-dev.h:127:2: error: unknown type name 'v4l2_std_id'
+> media_build/v4l/../linux/include/media/v4l2-dev.h:128:2: error: unknown type name 'v4l2_std_id'
+> media_build/v4l/../linux/include/media/v4l2-dev.h:135:32: error: 'BASE_VIDIOC_PRIVATE' undeclared here (not in a function)
 >
->>         test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
->>         test VIDIOC_G/S_JPEGCOMP: Not Supported
->>         Standard Controls: 10 Private Controls: 0
->>
->> Input/Output configuration ioctls:
->>         test VIDIOC_ENUM/G/S/QUERY_STD: Not Supported
->>         test VIDIOC_ENUM/G/S/QUERY_DV_PRESETS: Not Supported
->>         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: Not Supported
->>         test VIDIOC_DV_TIMINGS_CAP: Not Supported
->>
->> Format ioctls:
->>         test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
->>                 fail: v4l2-test-formats.cpp(558): cap->readbuffers
+> I see that the Jul 16 version has both of these issues fixed... but I am not against having a look myself if it is urgent enough for me (considered that it was broken for 9 days).
 >
-> Fixed in pending patch for v4l2-ioctl.c
+> - a few of the firmware files are newer/different than distro-shipped... I am less bothered by it trashing distro-shipped packaged files as the linux-firmware package is rarely upgraded. But maybe one can try pushing some of that upstream?
 >
->>         test VIDIOC_G/S_PARM: FAIL
->>         test VIDIOC_G_FBUF: Not Supported
->>                 fail: v4l2-test-formats.cpp(382): !pix.width || !pix.height
+> The last one, something for Antti to figure out:
 >
-> This isn't right and you should fix this. I did a similar fix for mem2mem_testdev:
->
-> http://www.spinics.net/lists/linux-media/msg50487.html
+> - I found that that part of backports/api_version.patch, which changes LINUX_VERSION_CODE to V4L2_VERSION in drivers/media/video/v4l2-ioctl.c, is relocated from line 930-ish in http://linux/linuxtv.org/downloads/drivers/linux-media-LATEST.tar.bz2 to
+> line 590-ish in Antti's dvb_core branch. So there are commits which are in
+> linux-media-LATEST.tar.bz2 and not in Antti's branch or vice versa. (so that's any reason who one wants to know how linux-media-LATEST.tar.bz2 is made).
 
-It seems this is the only problem left since the rest are related to
-framework issues which are already fixed.
+I used Linus 3.5 development tree as a base and rebased it continuously 
+to latest rc. Current media_build.git seems to download some older 
+files. I could guess it is tar'ed from Kernel 3.4 /drivers/media/
 
-Ok, the problem here is that for video encoded formats I return 0 for
-both width and height. I've seen Samsung do the same in this driver:
-http://lxr.linux.no/#linux+v3.5/drivers/media/video/s5p-mfc/s5p_mfc_enc.c#L838
+Patch which likely breaks backports/api_version.patch is that:
+http://www.mail-archive.com/linuxtv-commits@linuxtv.org/msg13388.html
 
-Is this correct? Does setting width and height make sense for a video
-encodec format such as H.264, MPEG4?
-
-
->>         test VIDIOC_G_FMT: FAIL
->>         test VIDIOC_G_SLICED_VBI_CAP: Not Supported
->> Buffer ioctls:
->>         test VIDIOC_REQBUFS/CREATE_BUFS: OK
->>         test read/write: OK
->> Total: 34 Succeeded: 30 Failed: 4 Warnings: 2
->
-> Two warnings... One warning is about a missing CREATE_BUFS which is OK, but what's
-> the other warning? (-v1 will show the warnings as well).
-
-It seems there is a warning per interface (output, capture):
-
-Buffer ioctls:
-                warn: v4l2-test-buffers.cpp(125): VIDIOC_CREATE_BUFS
-not supported
-                warn: v4l2-test-buffers.cpp(125): VIDIOC_CREATE_BUFS
-not supported
-        test VIDIOC_REQBUFS/CREATE_BUFS: OK
-
-
-
+regards
+Antti
 
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+http://palosaari.fi/
+
+
