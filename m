@@ -1,59 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f53.google.com ([209.85.216.53]:40610 "EHLO
-	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751839Ab2GZCPi (ORCPT
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:54158 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754813Ab2GQURx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jul 2012 22:15:38 -0400
+	Tue, 17 Jul 2012 16:17:53 -0400
 MIME-Version: 1.0
-In-Reply-To: <1343245264-23291-1-git-send-email-tim.gardner@canonical.com>
-References: <1343245264-23291-1-git-send-email-tim.gardner@canonical.com>
-Date: Thu, 26 Jul 2012 10:15:37 +0800
-Message-ID: <CAMiH66GLN02JBVg4MUZ3NXqLFY4zJqZubBhwxmJdhzMwHE0XQA@mail.gmail.com>
-Subject: Re: [PATCH] tlg2300: Declare MODULE_FIRMWARE usage
-From: Huang Shijie <shijie8@gmail.com>
-To: Tim Gardner <tim.gardner@canonical.com>
-Cc: linux-kernel@vger.kernel.org, Kang Yong <kangyong@telegent.com>,
-	Zhang Xiaobing <xbzhang@telegent.com>,
+In-Reply-To: <1341902726-22580-1-git-send-email-devendra.aaru@gmail.com>
+References: <1341902726-22580-1-git-send-email-devendra.aaru@gmail.com>
+Date: Tue, 17 Jul 2012 17:17:52 -0300
+Message-ID: <CADThq4Jist-h4UdNTEtmktt0NzibZSZnHrW4qaAM_g2xrzBaCw@mail.gmail.com>
+Subject: Re: [PATCH 5/6] staging/media/solo6x10: use module_pci_driver macro
+From: Ismael Luceno <ismael.luceno@gmail.com>
+To: Devendra Naga <devendra.aaru@gmail.com>
+Cc: Ben Collins <bcollins@bluecherry.net>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Andrew Miller <amiller@amilx.com>, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-thanks.
-
-Acked-by: Huang Shijie <shijie8@gmail.com>
-
-On Thu, Jul 26, 2012 at 3:41 AM, Tim Gardner <tim.gardner@canonical.com> wrote:
-> Cc: Huang Shijie <shijie8@gmail.com>
-> Cc: Kang Yong <kangyong@telegent.com>
-> Cc: Zhang Xiaobing <xbzhang@telegent.com>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: linux-media@vger.kernel.org
-> Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
+On Tue, Jul 10, 2012 at 3:45 AM, Devendra Naga <devendra.aaru@gmail.com> wrote:
+> the driver duplicates the module_pci_driver code,
+> how?
+>         module_pci_driver is used for those drivers whose
+>         init and exit paths does only register and unregister
+>         to pci API and nothing else.
+>
+> so use the module_pci_driver macro instead
+>
+> Signed-off-by: Devendra Naga <devendra.aaru@gmail.com>
 > ---
->  drivers/media/video/tlg2300/pd-main.c |    4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
+>  drivers/staging/media/solo6x10/core.c |   13 +------------
+>  1 file changed, 1 insertion(+), 12 deletions(-)
 >
-> diff --git a/drivers/media/video/tlg2300/pd-main.c b/drivers/media/video/tlg2300/pd-main.c
-> index c096b3f..7b1f6eb 100644
-> --- a/drivers/media/video/tlg2300/pd-main.c
-> +++ b/drivers/media/video/tlg2300/pd-main.c
-> @@ -53,7 +53,8 @@ int debug_mode;
->  module_param(debug_mode, int, 0644);
->  MODULE_PARM_DESC(debug_mode, "0 = disable, 1 = enable, 2 = verbose");
+> diff --git a/drivers/staging/media/solo6x10/core.c b/drivers/staging/media/solo6x10/core.c
+> index d2fd842..3ee9b12 100644
+> --- a/drivers/staging/media/solo6x10/core.c
+> +++ b/drivers/staging/media/solo6x10/core.c
+> @@ -318,15 +318,4 @@ static struct pci_driver solo_pci_driver = {
+>         .remove = solo_pci_remove,
+>  };
 >
-> -static const char *firmware_name = "tlg2300_firmware.bin";
-> +#define TLG2300_FIRMWARE "tlg2300_firmware.bin"
-> +static const char *firmware_name = TLG2300_FIRMWARE;
->  static struct usb_driver poseidon_driver;
->  static LIST_HEAD(pd_device_list);
->
-> @@ -532,3 +533,4 @@ MODULE_AUTHOR("Telegent Systems");
->  MODULE_DESCRIPTION("For tlg2300-based USB device ");
->  MODULE_LICENSE("GPL");
->  MODULE_VERSION("0.0.2");
-> +MODULE_FIRMWARE(TLG2300_FIRMWARE);
-> --
-> 1.7.9.5
->
+> -static int __init solo_module_init(void)
+> -{
+> -       return pci_register_driver(&solo_pci_driver);
+> -}
+> -
+> -static void __exit solo_module_exit(void)
+> -{
+> -       pci_unregister_driver(&solo_pci_driver);
+> -}
+> -
+> -module_init(solo_module_init);
+> -module_exit(solo_module_exit);
+> +module_pci_driver(solo_pci_driver);
+
+Acked-by: Ismael Luceno <ismael.luceno@gmail.com>
