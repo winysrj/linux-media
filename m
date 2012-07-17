@@ -1,60 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.tpi.com ([70.99.223.143]:2452 "EHLO mail.tpi.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932731Ab2GYNO6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jul 2012 09:14:58 -0400
-From: Tim Gardner <tim.gardner@canonical.com>
-To: linux-kernel@vger.kernel.org
-Cc: Tim Gardner <tim.gardner@canonical.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Krufky <mkrufky@kernellabs.com>,
-	Eddi De Pieri <eddi@depieri.net>, linux-media@vger.kernel.org
-Subject: [PATCH] xc5000: Add MODULE_FIRMWARE statements
-Date: Wed, 25 Jul 2012 07:15:19 -0600
-Message-Id: <1343222119-82246-1-git-send-email-tim.gardner@canonical.com>
+Received: from haggis.pcug.org.au ([203.10.76.10]:41644 "EHLO
+	members.tip.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750832Ab2GQHgD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Jul 2012 03:36:03 -0400
+Date: Tue, 17 Jul 2012 17:35:53 +1000
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Ming Lei <ming.lei@canonical.com>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	"linux-media" <linux-media@vger.kernel.org>
+Subject: Re: linux-next: Tree for July 12 (v4l2-ioctl.c)
+Message-Id: <20120717173553.095663543a67620efe55c9e2@canb.auug.org.au>
+In-Reply-To: <201207170848.37945.hverkuil@xs4all.nl>
+References: <20120712160335.9cbff13c2f18eadc7d3cb0cf@canb.auug.org.au>
+	<4FFEF21A.7050701@xenotime.net>
+	<CACVXFVOy7VGstdotnofq=o_UmFh0KwqH6p25MamwAbLfRgcTRg@mail.gmail.com>
+	<201207170848.37945.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA256";
+ boundary="Signature=_Tue__17_Jul_2012_17_35_53_+1000_ZiYuRUdTjxeI0Qnm"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This will make modinfo more useful with regard
-to discovering necessary firmware files.
+--Signature=_Tue__17_Jul_2012_17_35_53_+1000_ZiYuRUdTjxeI0Qnm
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Michael Krufky <mkrufky@kernellabs.com>
-Cc: Eddi De Pieri <eddi@depieri.net>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
----
- drivers/media/common/tuners/xc5000.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+Hi all,
 
-diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
-index dcca42c..4d33f86 100644
---- a/drivers/media/common/tuners/xc5000.c
-+++ b/drivers/media/common/tuners/xc5000.c
-@@ -210,13 +210,15 @@ struct xc5000_fw_cfg {
- 	u16 size;
- };
- 
-+#define XC5000A_FIRMWARE "dvb-fe-xc5000-1.6.114.fw"
- static const struct xc5000_fw_cfg xc5000a_1_6_114 = {
--	.name = "dvb-fe-xc5000-1.6.114.fw",
-+	.name = XC5000A_FIRMWARE,
- 	.size = 12401,
- };
- 
-+#define XC5000C_FIRMWARE "dvb-fe-xc5000c-41.024.5.fw"
- static const struct xc5000_fw_cfg xc5000c_41_024_5 = {
--	.name = "dvb-fe-xc5000c-41.024.5.fw",
-+	.name = XC5000C_FIRMWARE,
- 	.size = 16497,
- };
- 
-@@ -1253,3 +1255,5 @@ EXPORT_SYMBOL(xc5000_attach);
- MODULE_AUTHOR("Steven Toth");
- MODULE_DESCRIPTION("Xceive xc5000 silicon tuner driver");
- MODULE_LICENSE("GPL");
-+MODULE_FIRMWARE(XC5000A_FIRMWARE);
-+MODULE_FIRMWARE(XC5000C_FIRMWARE);
--- 
-1.7.9.5
+On Tue, 17 Jul 2012 08:48:37 +0200 Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> On Tue July 17 2012 04:25:35 Ming Lei wrote:
+> > On Thu, Jul 12, 2012 at 11:49 PM, Randy Dunlap <rdunlap@xenotime.net> w=
+rote:
+> > >
+> > > on i386 and/or x86_64, drivers/media/video/v4l2-ioctl.c has too many
+> > > errors to be listed here.  This is the beginning few lines of the err=
+ors:
+> >=20
+> > I see the errors on ARM too.
+>=20
+> A fix can be found here:
+>=20
+> http://patchwork.linuxtv.org/patch/13336/
 
+And I have been applying that fix to linux-next since next-20120713 -
+though Mauro has not applied it to the v4l-dvb tree yet ...
+
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
+
+--Signature=_Tue__17_Jul_2012_17_35_53_+1000_ZiYuRUdTjxeI0Qnm
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBCAAGBQJQBRXZAAoJEECxmPOUX5FEGdEP/2AwWiwtl3RECKWWuJSXJmWD
+OuwKx8UWtKn3TbsrSeB8PNFDtUsnyE4Tz6v2vYEP4xCA/QSqdPOHPLFxaKszjZ9j
+EwCEeLprncW1/JGVvWTvgqIivO+69GDZmB30L0aAuXwxy2xvT8q4QGqWK1e1w2dG
+Jse9HWbAMI7/TKlKuh1VLnxXhmpSwm/qsopHHVtHacPmn0bsPjlSYt/4DUx/Jz2+
+/KGhOf5N4KmmYqWFyfjWOhGei21qdGP6I3N5SCzOIIXaNFOtw55eIK1xFBYlgilI
+Wwc88tUPgdA7GRo+vgSLtnRhQ0JCPx+nN1Bg2gR1UQcPgeCjGjDRtRezBMJwFID+
+UjHvr3KDprt2lXMGqsly2HEcqHfyvIbjoF/26lNXv8FOo8IsLQ6jS6XyT4d4QtkA
+vYvwMu+UQ3PxM10uuelCRlE7lF8vC5n5r5fkgwNS80jOYIVrKf4n6x6jE/WsYCWd
+DkoWuGU7umoGQs3+UJuaZGNrkrSVrvMGSjDJeJe5H9OX8Ketp+hW183MjB/GspHs
+V2OQNYnbjJdO7t73RHN9x0AyCOypUE2ONImaa2dqEoTzEHTSE1YaEwg8pBPSHS88
+BinJ+iY3tJ1zjQkfVTPRRj2YKDAkzeBEiAqUjHGdZonmgo0EYfpYV4nFfAUh72ry
+JWe1fWDXCFnFomVA0avS
+=lpaz
+-----END PGP SIGNATURE-----
+
+--Signature=_Tue__17_Jul_2012_17_35_53_+1000_ZiYuRUdTjxeI0Qnm--
