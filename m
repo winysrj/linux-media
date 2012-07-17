@@ -1,64 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.masin.eu ([80.188.199.19]:49617 "EHLO mail.masin.eu"
+Received: from mga01.intel.com ([192.55.52.88]:41911 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751297Ab2GROiZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jul 2012 10:38:25 -0400
-From: =?utf-8?Q?Radek_Ma=C5=A1=C3=ADn?= <radek@masin.eu>
-Date: Wed, 18 Jul 2012 16:38:22 +0200
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: linux-media@vger.kernel.org
-Message-ID: <1342622302269259500@masin.eu>
-In-Reply-To: <CALF0-+WcRGGWzcE7eQ4h+MOYKy5+gnVPnxTas9uhyi4-b6VaqA@mail.gmail.com>
-References: <1342615958949547500@masin.eu>
-	<CALF0-+U7HYyuLZJzUH4_OhJ7U4X33fOAmSmYuP-xATkMVjpKcQ@mail.gmail.com>
- <CALF0-+WcRGGWzcE7eQ4h+MOYKy5+gnVPnxTas9uhyi4-b6VaqA@mail.gmail.com>
-Subject: Re: CX25821 driver in kernel 3.4.4 problem
+	id S1754997Ab2GQKlD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Jul 2012 06:41:03 -0400
+Message-ID: <5005412E.5050206@linux.intel.com>
+Date: Tue, 17 Jul 2012 13:40:46 +0300
+From: David Cohen <david.a.cohen@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Content-Disposition: inline
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 8/9] soc-camera: Add and use soc_camera_power_[on|off]()
+ helper functions
+References: <1341520728-2707-1-git-send-email-laurent.pinchart@ideasonboard.com> <1341520728-2707-9-git-send-email-laurent.pinchart@ideasonboard.com> <50034F97.9060208@linux.intel.com> <1785362.kzK4PIgmvB@avalon>
+In-Reply-To: <1785362.kzK4PIgmvB@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-with your patch driver is working properly. I see devices in /dev directory and in dmesg
-is attached output:
+Hi Laurent,
 
-[    5.124858] cx25821: driver version 0.0.106 loaded
-[    5.124890] cx25821: Athena pci enable !
-[    5.124891] cx25821:
-[    5.124892] ***********************************
-[    5.124893] cx25821: cx25821 set up
-[    5.124894] cx25821: ***********************************
-[    5.124895]
-[    5.124897] cx25821: Athena Hardware device = 0x8210
-[    5.125165] cx25821: cx25821[1]: subsystem: 0000:0000, board: CX25821 [card=1,autodetected]
-[    5.125201] asus_wmi: ASUS WMI generic driver loaded
-[    5.144539] asus_wmi: Initialization: 0x0
-[    5.144566] asus_wmi: BIOS WMI version: 0.9
-[    5.144616] asus_wmi: SFUN value: 0x0
-[    5.144906] input: Eee PC WMI hotkeys as /devices/platform/eeepc-wmi/input/input4
-[    5.151580] asus_wmi: Backlight controlled by ACPI video driver
-[    5.307573] EXT4-fs (sda3): re-mounted. Opts: acl,user_xattr
-[    5.345621] cx25821: (1): i2c register! bus->i2c_rc = 0
-[    5.424861] cx25821: cx25821_dev_checkrevision(): Hardware revision = 0x00
-[    5.424864] cx25821: (1): setup done!
-[    5.424872] cx25821: cx25821[1]/0: found at 0000:02:00.0, rev: 0, irq: 16, latency: 0, mmio: 0xf7c00000
+On 07/17/2012 04:24 AM, Laurent Pinchart wrote:
+> Hi David,
+>
+> Thanks for the review.
 
-Regards 
-Radek Masin
-radek@masin.eu
+You're welcome.
 
-Dne St, 07/18/2012 03:24 odp., Ezequiel Garcia <elezegarcia@gmail.com> napsal(a):
-> Radek,
-> 
-> On Wed, Jul 18, 2012 at 10:14 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
-> > Hi Radek,
-> >
-> 
-> I think the attached patch will solve this issue.
-> 
-> Please test and tell me if it did,
-> Ezequiel.
-> 
+>
+> On Monday 16 July 2012 02:17:43 David Cohen wrote:
+>> On 07/05/2012 11:38 PM, Laurent Pinchart wrote:
+>>> Instead of forcing all soc-camera drivers to go through the mid-layer to
+>>> handle power management, create soc_camera_power_[on|off]() functions
+>>> that can be called from the subdev .s_power() operation to manage
+>>> regulators and platform-specific power handling. This allows non
+>>> soc-camera hosts to use soc-camera-aware clients.
+>>>
+>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>> ---
+>>>
+>>>    drivers/media/video/imx074.c              |    9 +++
+>>>    drivers/media/video/mt9m001.c             |    9 +++
+>>>    drivers/media/video/mt9m111.c             |   52 +++++++++++++-----
+>>>    drivers/media/video/mt9t031.c             |   11 +++-
+>>>    drivers/media/video/mt9t112.c             |    9 +++
+>>>    drivers/media/video/mt9v022.c             |    9 +++
+>>>    drivers/media/video/ov2640.c              |    9 +++
+>>>    drivers/media/video/ov5642.c              |   10 +++-
+>>>    drivers/media/video/ov6650.c              |    9 +++
+>>>    drivers/media/video/ov772x.c              |    9 +++
+>>>    drivers/media/video/ov9640.c              |   10 +++-
+>>>    drivers/media/video/ov9740.c              |   15 +++++-
+>>>    drivers/media/video/rj54n1cb0c.c          |    9 +++
+>>>    drivers/media/video/soc_camera.c          |   83   ++++++++++++--------
+>>>    drivers/media/video/soc_camera_platform.c |   11 ++++-
+>>>    drivers/media/video/tw9910.c              |    9 +++
+>>>    include/media/soc_camera.h                |   10 ++++
+>>>    17 files changed, 225 insertions(+), 58 deletions(-)
+>>
+>> [snip]
+>>
+>>> diff --git a/drivers/media/video/ov9740.c b/drivers/media/video/ov9740.c
+>>> index 3eb07c2..effd0f1 100644
+>>> --- a/drivers/media/video/ov9740.c
+>>> +++ b/drivers/media/video/ov9740.c
+>>> @@ -786,16 +786,29 @@ static int ov9740_g_chip_ident(struct v4l2_subdev
+>>> *sd,>
+>>>    static int ov9740_s_power(struct v4l2_subdev *sd, int on)
+>>>    {
+>>>
+>>> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>>> +	struct soc_camera_link *icl = soc_camera_i2c_to_link(client);
+>>>
+>>>    	struct ov9740_priv *priv = to_ov9740(sd);
+>>>
+>>> +	int ret;
+>>>
+>>> -	if (!priv->current_enable)
+>>> +	if (on) {
+>>> +		ret = soc_camera_power_on(&client->dev, icl);
+>>> +		if (ret < 0)
+>>> +			return ret;
+>>> +	}
+>>> +
+>>> +	if (!priv->current_enable) {
+>>> +		if (!on)
+>>> +			soc_camera_power_off(&client->dev, icl);
+>>
+>> After your changes, this function has 3 if's (one nested) where all of
+>> them checks "on" variable due to you need to mix "on" and
+>> "priv->current_enable" checks. However, code's traceability is not so
+>> trivial.
+>> How about if you nest "priv->current_enable" into last "if" and keep
+>> only that one?
+>>
+>> See an incomplete code below:
+>>>    		return 0;
+>>>
+>>> +	}
+>>>
+>>>    	if (on) {
+>>
+>> soc_camera_power_on();
+>> if (!priv->current_enable)
+>> 	return;
+>>
+>>>    		ov9740_s_fmt(sd, &priv->current_mf);
+>>>    		ov9740_s_stream(sd, priv->current_enable);
+>>>    	
+>>>    	} else {
+>>>    	
+>>>    		ov9740_s_stream(sd, 0);
+>>
+>> Execute ov9740_s_stream() conditionally:
+>> if (priv->current_enable) {
+>> 	ov9740_s_stream();
+>> 	priv->current_enable = true;
+>> }
+>>
+>>> +		soc_camera_power_off(&client->dev, icl);
+>>>
+>>>    		priv->current_enable = true;
+>>
+>> priv->current_enable is set to false when ov9740_s_stream(0) is called
+>> then this function sets it back to true afterwards. So, in case you want
+>> to have no functional change, it seems to me you should call
+>> soc_camera_power_off() after that variable has its original value set
+>> back.
+>> In this case, even if you don't like my suggestion, you still need to
+>> swap those 2 lines above. :)
+>
+> What do you think of
+
+Sounds good to me :)
+
+Br,
+
+David Cohen
+
+>
+> diff --git a/drivers/media/video/ov9740.c b/drivers/media/video/ov9740.c
+> index 3eb07c2..10c0ba9 100644
+> --- a/drivers/media/video/ov9740.c
+> +++ b/drivers/media/video/ov9740.c
+> @@ -786,17 +786,27 @@ static int ov9740_g_chip_ident(struct v4l2_subdev *sd,
+>
+>   static int ov9740_s_power(struct v4l2_subdev *sd, int on)
+>   {
+> +       struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +       struct soc_camera_link *icl = soc_camera_i2c_to_link(client);
+>          struct ov9740_priv *priv = to_ov9740(sd);
+> -
+> -       if (!priv->current_enable)
+> -               return 0;
+> +       int ret;
+>
+>          if (on) {
+> -               ov9740_s_fmt(sd, &priv->current_mf);
+> -               ov9740_s_stream(sd, priv->current_enable);
+> +               ret = soc_camera_power_on(&client->dev, icl);
+> +               if (ret < 0)
+> +                       return ret;
+> +
+> +               if (priv->current_enable) {
+> +                       ov9740_s_fmt(sd, &priv->current_mf);
+> +                       ov9740_s_stream(sd, 1);
+> +               }
+>          } else {
+> -               ov9740_s_stream(sd, 0);
+> -               priv->current_enable = true;
+> +               if (priv->current_enable) {
+> +                       ov9740_s_stream(sd, 0);
+> +                       priv->current_enable = true;
+> +               }
+> +
+> +               soc_camera_power_off(&client->dev, icl);
+>          }
+>
+>          return 0;
+>
+
+
