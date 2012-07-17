@@ -1,51 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57332 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752570Ab2GJQUX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jul 2012 12:20:23 -0400
-Received: from dyn3-82-128-190-162.psoas.suomi.net ([82.128.190.162] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1SodAj-0006QO-JY
-	for linux-media@vger.kernel.org; Tue, 10 Jul 2012 19:20:21 +0300
-Message-ID: <4FFC563E.4070501@iki.fi>
-Date: Tue, 10 Jul 2012 19:20:14 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33097 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756628Ab2GQU3e (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Jul 2012 16:29:34 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: workshop-2011@linuxtv.org
+Cc: Steven Toth <stoth@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [Workshop-2011] Media summit at the Kernel Summit - was: Fwd: Re: [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
+Date: Tue, 17 Jul 2012 22:29:36 +0200
+Message-ID: <2699399.gsFclupQVz@avalon>
+In-Reply-To: <CALzAhNVKWOucWo7JpnVTEgcZ6_0Hs4OiqXXq=fQ=C6oxJgRyWQ@mail.gmail.com>
+References: <20120713173708.GB17109@thunk.org> <5005A14D.8000809@redhat.com> <CALzAhNVKWOucWo7JpnVTEgcZ6_0Hs4OiqXXq=fQ=C6oxJgRyWQ@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-Subject: comments for DVB LNA API
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am looking how to implement LNA support for the DVB API.
+Hi Steven,
 
-What we need to be configurable at least is: OFF, ON, AUTO.
+On Tuesday 17 July 2012 13:49:43 Steven Toth wrote:
+> > As we did in 2012, we're planning to do a media summit again at KS/2012.
+> 
+> Excellent.
+> 
+> > The KS/2012 will happen in San Diego, CA, US, between Aug 26-28, just
+> > before the LinuxCon North America.
+> > 
+> > In order to do it, I'd like to know who is interested on participate,
+> > and to get proposals about what subjects will be discussed there,
+> > in order to start planning the agenda.
+> 
+> I'm interested. I like the idea of some cross-subsystem pollination, talking
+> with the ALSA people for example ...
 
-There is LNAs that support variable gain and likely those will be sooner 
-or later. Actually I think there is already LNAs integrated to the 
-RF-tuner that offers adjustable gain. Also looking to NXP catalog and 
-you will see there is digital TV LNAs with adjustable gain.
+That's very much in line with the KS/LPC spirit, I'd like to see that happen 
+as well. We've been talking about media controller support in ALSA for ages 
+:-)
 
-Coming from that requirements are:
-adjustable gain 0-xxx dB
-LNA OFF
-LNA ON
-LNA AUTO
+> and given that ARM is growing, I'd like to catch up and understand where ARM
+> silicon is heading in terms of embedded video decoding and any support for
+> hardware specific features we may / may not have / need.
 
-Setting LNA is easy but how to query capabilities of supported LNA 
-values? eg. this device has LNA which supports Gain=5dB, Gain=8dB, LNA auto?
+Information about future directions is unfortunately usually private, but we 
+can always ask. To be honest I sometimes feel like even SoC vendors themselves 
+don't know where they're heading to :-) If only that, a presentation about the 
+latest media-related hardware developments on ARM would be good to get 
+everybody up to speed.
 
-LNA ON (bypass) could be replaced with Gain=0 and LNA ON with Gain>0, 
-Gain=-1 is for auto example.
-
-
-
-regards
-Antti
+> ... and of course, if we have anyone from Intel then we should be asking
+> if/when their Intel Media SDK (hardware H264  encoding) is going to become a
+> reality, or possibly kickstart that process.
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
 
