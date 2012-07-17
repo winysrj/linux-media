@@ -1,172 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:34033 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751182Ab2GELE0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 07:04:26 -0400
-Received: by ghrr11 with SMTP id r11so7224555ghr.19
-        for <linux-media@vger.kernel.org>; Thu, 05 Jul 2012 04:04:26 -0700 (PDT)
+Received: from youngberry.canonical.com ([91.189.89.112]:50269 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753908Ab2GQCZi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Jul 2012 22:25:38 -0400
 MIME-Version: 1.0
-In-Reply-To: <20120705203035.196e238e@kryten>
-References: <20120702115800.1275f944@kryten>
-	<20120702115937.623d3b41@kryten>
-	<20120703202825.GC29839@hardeman.nu>
-	<20120705203035.196e238e@kryten>
-Date: Thu, 5 Jul 2012 14:04:25 +0300
-Message-ID: <CAF0Ff2nysMiZ=4HqV9Eo+6orKhbtQ15Ko-Jj7XsOAF=YT-zuuA@mail.gmail.com>
-Subject: Re: [PATCH 3/3] [media] winbond-cir: Adjust sample frequency to
- improve reliability
-From: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
-To: Anton Blanchard <anton@samba.org>
-Cc: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	mchehab@infradead.org, linux-media@vger.kernel.org
+In-Reply-To: <4FFEF21A.7050701@xenotime.net>
+References: <20120712160335.9cbff13c2f18eadc7d3cb0cf@canb.auug.org.au>
+	<4FFEF21A.7050701@xenotime.net>
+Date: Tue, 17 Jul 2012 10:25:35 +0800
+Message-ID: <CACVXFVOy7VGstdotnofq=o_UmFh0KwqH6p25MamwAbLfRgcTRg@mail.gmail.com>
+Subject: Re: linux-next: Tree for July 12 (v4l2-ioctl.c)
+From: Ming Lei <ming.lei@canonical.com>
+To: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	linux-media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hi Anton,
-
-it's very debatable that is fault of the Linux driver(s) and let me
-elaborate why i think so: i have Logitech Harmony 890 remote and MCE
-USB IR receiver that is supported by 'mceusb.c' in Linux, i.e. it's
-different than your IR receiver, but yet the work is very unstable
-together with my Harmony no matter what type of pulses are used, e.g.
-RC5, RC6 or NEC. however, that is true only if default setting for the
-Harmony are set in the Logitech software for Windows that i used to
-initially setup the remote. so, if in "Logitech Harmony Remote
-Software (7.7.0)" for Windows go to:
-
-Devices -> Settings -> select 'Troubleshoot' -> click 'Next' -> select
-'...responds to some commands either too many times or only
-occasionally' -> click 'Next'
-
-then you're given the option to choose number from 0 to 5 with the
-following explanation by Logitech:
-
-"If your device responds too slowly, or not at all when you press a
-button on the remote, increase the value to 4 or 5.
-If your device responds too quickly, lower the value to 2, 1 or 0."
-
-there are no any details about what actually that setting is doing to
-the Harmony firmware and in fact i found that neither the default
-value, nor Logitech suggestion what value to choose in which case are
-good, but using value of "2" fixed all the issues with my MCE USB IR
-receiver in Linux - totally stable and proper work.
-
-in short i think the problem is created from Harmony firmware and the
-proper solution is to just play with those numbers in Logitech
-software until you find the setting with which you get stable work. of
-course, someone more interested than i'm in this could do further
-investigation and understand the root cause of the issue and what
-changes in how Harmony firmware behaves based on those settings
-Logitech offered in their software, but my point is that i have
-similar issue with RC5 pulses, Harmony 890 and MCE USB IR receiver
-that is supported by 'mceusb.c' or quite different setup than yours
-and the fix i found is from Logitech side and the fact Logitech
-offered such setting suggests that the proper way to fix it.
-
-best regards,
-konstantin
-
-On Thu, Jul 5, 2012 at 1:30 PM, Anton Blanchard <anton@samba.org> wrote:
+On Thu, Jul 12, 2012 at 11:49 PM, Randy Dunlap <rdunlap@xenotime.net> wrote:
+> On 07/11/2012 11:03 PM, Stephen Rothwell wrote:
 >
-> Hi David,
->
->> The in-kernel RC6 decoder already has margins of around 50% for most
->> pulse/spaces (i.e. 444us +/- 222us). Changing the sample resolution
->> from 10 to 6 us should have little to no effect on the RC6 decoding
->> (also, the Windows driver uses a 50us resolution IIRC).
+>> Hi all,
 >>
->> Do you have a log of a successful and unsuccesful event (the timings
->> that is)?
+>> Changes since 20120710:
 >
-> I had a closer look. I dumped the RC6 debug, but I also printed the raw
-> data in the interrupt handler:
 >
->     printk("%x %d %d\n", irdata, rawir.pulse, rawir.duration);
 >
-> A successful event begins with:
->
-> 7f 1 1270000
-> 7f 1 1270000
->  8 1 80000
-> db 0 910000
-> 27 1 390000
-> b3 0 510000
-> 26 1 380000
-> b0 0 480000
-> ir_rc6_decode: RC6 decode started at state 0 (2620us pulse)
-> ir_rc6_decode: RC6 decode started at state 1 (910us space)
-> ir_rc6_decode: RC6 decode started at state 2 (390us pulse)
-> ir_rc6_decode: RC6 decode started at state 3 (510us space)
-> ir_rc6_decode: RC6 decode started at state 2 (66us space)
-> ir_rc6_decode: RC6 decode started at state 2 (380us pulse)
-> 26 1 380000
-> db 0 910000
-> 26 1 380000
-> dd 0 930000
-> 7d 1 1250000    <---------------
-> dd 0 930000
-> 25 1 370000
-> b4 0 520000
-> ir_rc6_decode: RC6 decode started at state 3 (480us space)
-> ir_rc6_decode: RC6 decode started at state 2 (36us space)
-> ir_rc6_decode: RC6 decode started at state 2 (380us pulse)
-> ir_rc6_decode: RC6 decode started at state 3 (910us space)
-> ir_rc6_decode: RC6 decode started at state 2 (466us space)
-> ir_rc6_decode: RC6 decode started at state 3 (380us pulse)
-> ir_rc6_decode: RC6 decode started at state 4 (0us pulse)
-> ir_rc6_decode: RC6 decode started at state 4 (930us space)
-> ir_rc6_decode: RC6 decode started at state 5 (1250us pulse)
-> ir_rc6_decode: RC6 decode started at state 6 (361us pulse)
-> ir_rc6_decode: RC6 decode started at state 7 (930us space)
->
-> Now compare to an unsuccesful event, in particular the byte
-> I have tagged in both traces:
->
-> 7f 1 1270000
-> 7f 1 1270000
->  2 1 20000
-> df 0 950000
-> 26 1 380000
-> b0 0 480000
-> 26 1 380000
-> b0 0 480000
-> 26 1 380000
-> dc 0 920000
-> 26 1 380000
-> ir_rc6_decode: RC6 decode started at state 0 (2560us pulse)
-> ir_rc6_decode: RC6 decode started at state 1 (950us space)
-> ir_rc6_decode: RC6 decode started at state 2 (380us pulse)
-> ir_rc6_decode: RC6 decode started at state 3 (480us space)
-> ir_rc6_decode: RC6 decode started at state 2 (36us space)
-> ir_rc6_decode: RC6 decode started at state 2 (380us pulse)
-> ir_rc6_decode: RC6 decode started at state 3 (480us space)
-> ir_rc6_decode: RC6 decode started at state 2 (36us space)
-> ir_rc6_decode: RC6 decode started at state 2 (380us pulse)
-> ir_rc6_decode: RC6 decode started at state 3 (920us space)
-> ir_rc6_decode: RC6 decode started at state 2 (476us space)
-> dc 0 920000
-> ff 0 1270000 <----------------
-> de 0 940000
-> 25 1 370000
-> b1 0 490000
-> 26 1 380000
-> b0 0 480000
-> 26 1 380000
-> ir_rc6_decode: RC6 decode started at state 3 (380us pulse)
-> ir_rc6_decode: RC6 decode started at state 4 (0us pulse)
-> ir_rc6_decode: RC6 decode started at state 4 (3130us space)
-> ir_rc6_decode: RC6 decode failed at state 4 (3130us space)
->
-> That should have been a pulse but it came out as a space. This makes me
-> wonder if there is an issue with the run length encoding, perhaps when
-> a pulse is the right size to just saturate it. It does seem like we
-> set the top bit even though we should not have.
->
-> If true we could choose any sample rate that avoids it.
->
-> Anton
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> on i386 and/or x86_64, drivers/media/video/v4l2-ioctl.c has too many
+> errors to be listed here.  This is the beginning few lines of the errors:
+
+I see the errors on ARM too.
+
+
+Thanks,
+--
+Ming Lei
