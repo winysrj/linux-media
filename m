@@ -1,164 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:56216 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751424Ab2GTQj1 (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:36650 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752622Ab2GQMW7 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jul 2012 12:39:27 -0400
+	Tue, 17 Jul 2012 08:22:59 -0400
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: RE: [PATCH v4 1/2] media: add new mediabus format enums for dm365
+Date: Tue, 17 Jul 2012 12:22:42 +0000
+Message-ID: <E99FAA59F8D8D34D8A118DD37F7C8F753E93EE3C@DBDE01.ent.ti.com>
+References: <1333102154-24657-1-git-send-email-manjunath.hadli@ti.com>
+ <9731012.hn1ecEuNnk@avalon>
+ <E99FAA59F8D8D34D8A118DD37F7C8F753E93EDDE@DBDE01.ent.ti.com>
+ <1521995.bdrhyBupKO@avalon>
+In-Reply-To: <1521995.bdrhyBupKO@avalon>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <1342715014-5316-3-git-send-email-rob.clark@linaro.org>
-References: <1342715014-5316-1-git-send-email-rob.clark@linaro.org>
-	<1342715014-5316-3-git-send-email-rob.clark@linaro.org>
-Date: Fri, 20 Jul 2012 11:39:26 -0500
-Message-ID: <CAF6AEGs2evpga=h1+0L0sz+vG1czHff83z13WxdBv+xvcxQKxw@mail.gmail.com>
-Subject: Re: [PATCH 2/2] dma-buf: add helpers for attacher dma-parms
-From: Rob Clark <rob.clark@linaro.org>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Cc: patches@linaro.org, linux@arm.linux.org.uk, arnd@arndb.de,
-	jesse.barker@linaro.org, m.szyprowski@samsung.com, daniel@ffwll.ch,
-	t.stanislaws@samsung.com, sumit.semwal@ti.com,
-	maarten.lankhorst@canonical.com, Rob Clark <rob@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fyi, Daniel Vetter had suggested on IRC that it would be cleaner to
-have a single helper fxn that most-restrictive union of all attached
-device's dma_parms.  Really this should include dma_mask and
-coherent_dma_mask, I think.  But that touches a lot of other places in
-the code.  If no one objects to the cleanup of moving
-dma_mask/coherent_dma_mask into dma_parms, I'll do this first.
+Hi Laurent,
 
-So anyways, don't consider this patch yet for inclusion, I'll make an
-updated one based on dma_parms..
+On Tue, Jul 17, 2012 at 17:25:42, Laurent Pinchart wrote:
+> Hi Manjunath,
+> 
+> On Tuesday 17 July 2012 11:41:11 Hadli, Manjunath wrote:
+> > On Tue, Jul 17, 2012 at 16:26:24, Laurent Pinchart wrote:
+> > > On Friday 30 March 2012 10:09:13 Hadli, Manjunath wrote:
+> > > > add new enum entries for supporting the media-bus formats on dm365.
+> > > > These include some bayer and some non-bayer formats.
+> > > > V4L2_MBUS_FMT_YDYC8_1X16 and V4L2_MBUS_FMT_UV8_1X8 are used
+> > > > internal to the hardware by the resizer.
+> > > > V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8 represents the bayer ALAW format
+> > > > that is supported by dm365 hardware.
+> > > > 
+> > > > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> > > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > > Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> > > > Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> > > > ---
+> > > > 
+> > > >  Documentation/DocBook/media/v4l/subdev-formats.xml |  171  ++++++++++++
+> > > >  include/linux/v4l2-mediabus.h                      |   10 +-
+> > > >  2 files changed, 179 insertions(+), 2 deletions(-)
+> > > > 
+> > > > diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml
+> > > > b/Documentation/DocBook/media/v4l/subdev-formats.xml index
+> > > > 49c532e..48d92bb
+> > > > 100644
+> > > > --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
+> > > > +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+> 
+> [snip]
+> 
+> > > > @@ -965,6 +1036,56 @@
+> > > >  	      <entry>y<subscript>1</subscript></entry>
+> > > >  	      <entry>y<subscript>0</subscript></entry>
+> > > >  	    </row>
+> > > > +	    <row id="V4L2-MBUS-FMT-UV8-1X8">
+> > > 
+> > > That's a weird one. Just out of curiosity, what's the point of
+> > > transferring chroma information without luma ?
+> > 
+> > DM365 supports this format.
+> 
+> Right, but what is it used for ?
+> 
+Sorry about that. The Resizer in Dm365 can take only chroma and resize the buffer. It can also take luma of course.In general it can take UV8, Y8 and also UYVY.  
+> [snip]
+> 
+> > > > @@ -2415,6 +2536,56 @@
+> > > >  	      <entry>u<subscript>1</subscript></entry>
+> > > >  	      <entry>u<subscript>0</subscript></entry>
+> > > >  	    </row>
+> > > > +	    <row id="V4L2-MBUS-FMT-YDYC8-1X16">
+> > > 
+> > > What is this beast ? We at least need a textual description, as I have no
+> > > idea what the format corresponds to.
+> > 
+> > This was discussed earlier over here
+> > http://patchwork.linuxtv.org/patch/8843/
+> 
+> My bad, I should have remembered that. Please add a textual description of the 
+> format, it's not clear from the name what D and C are.
+> 
+I see no description for individual MBUS formats but a collective para on everything together.
+Would you like me to add in the same or otherwise can you point to me where I can add this description?
+ 
+Thx,
+--Manju
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+> 
 
-BR,
--R
-
-On Thu, Jul 19, 2012 at 11:23 AM, Rob Clark <rob.clark@linaro.org> wrote:
-> From: Rob Clark <rob@ti.com>
->
-> Add some helpers to iterate through all attachers and get the most
-> restrictive segment size/count/boundary.
->
-> Signed-off-by: Rob Clark <rob@ti.com>
-> ---
->  drivers/base/dma-buf.c  |   63 +++++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/dma-buf.h |   19 ++++++++++++++
->  2 files changed, 82 insertions(+)
->
-> diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-> index 24e88fe..757ee20 100644
-> --- a/drivers/base/dma-buf.c
-> +++ b/drivers/base/dma-buf.c
-> @@ -192,6 +192,69 @@ void dma_buf_put(struct dma_buf *dmabuf)
->  EXPORT_SYMBOL_GPL(dma_buf_put);
->
->  /**
-> + * dma_buf_max_seg_size - helper for exporters to get the minimum of
-> + * all attached device's max segment size
-> + */
-> +unsigned int dma_buf_max_seg_size(struct dma_buf *dmabuf)
-> +{
-> +       struct dma_buf_attachment *attach;
-> +       unsigned int max = (unsigned int)-1;
-> +
-> +       if (WARN_ON(!dmabuf))
-> +               return 0;
-> +
-> +       mutex_lock(&dmabuf->lock);
-> +       list_for_each_entry(attach, &dmabuf->attachments, node)
-> +               max = min(max, dma_get_max_seg_size(attach->dev));
-> +       mutex_unlock(&dmabuf->lock);
-> +
-> +       return max;
-> +}
-> +EXPORT_SYMBOL_GPL(dma_buf_max_seg_size);
-> +
-> +/**
-> + * dma_buf_max_seg_count - helper for exporters to get the minimum of
-> + * all attached device's max segment count
-> + */
-> +unsigned int dma_buf_max_seg_count(struct dma_buf *dmabuf)
-> +{
-> +       struct dma_buf_attachment *attach;
-> +       unsigned int max = (unsigned int)-1;
-> +
-> +       if (WARN_ON(!dmabuf))
-> +               return 0;
-> +
-> +       mutex_lock(&dmabuf->lock);
-> +       list_for_each_entry(attach, &dmabuf->attachments, node)
-> +               max = min(max, dma_get_max_seg_count(attach->dev));
-> +       mutex_unlock(&dmabuf->lock);
-> +
-> +       return max;
-> +}
-> +EXPORT_SYMBOL_GPL(dma_buf_max_seg_count);
-> +
-> +/**
-> + * dma_buf_get_seg_boundary - helper for exporters to get the most
-> + * restrictive segment alignment of all the attached devices
-> + */
-> +unsigned int dma_buf_get_seg_boundary(struct dma_buf *dmabuf)
-> +{
-> +       struct dma_buf_attachment *attach;
-> +       unsigned int mask = (unsigned int)-1;
-> +
-> +       if (WARN_ON(!dmabuf))
-> +               return 0;
-> +
-> +       mutex_lock(&dmabuf->lock);
-> +       list_for_each_entry(attach, &dmabuf->attachments, node)
-> +               mask &= dma_get_seg_boundary(attach->dev);
-> +       mutex_unlock(&dmabuf->lock);
-> +
-> +       return mask;
-> +}
-> +EXPORT_SYMBOL_GPL(dma_buf_get_seg_boundary);
-> +
-> +/**
->   * dma_buf_attach - Add the device to dma_buf's attachments list; optionally,
->   * calls attach() of dma_buf_ops to allow device-specific attach functionality
->   * @dmabuf:    [in]    buffer to attach device to.
-> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-> index eb48f38..9533b9b 100644
-> --- a/include/linux/dma-buf.h
-> +++ b/include/linux/dma-buf.h
-> @@ -167,6 +167,10 @@ int dma_buf_fd(struct dma_buf *dmabuf, int flags);
->  struct dma_buf *dma_buf_get(int fd);
->  void dma_buf_put(struct dma_buf *dmabuf);
->
-> +unsigned int dma_buf_max_seg_size(struct dma_buf *dmabuf);
-> +unsigned int dma_buf_max_seg_count(struct dma_buf *dmabuf);
-> +unsigned int dma_buf_get_seg_boundary(struct dma_buf *dmabuf);
-> +
->  struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *,
->                                         enum dma_data_direction);
->  void dma_buf_unmap_attachment(struct dma_buf_attachment *, struct sg_table *,
-> @@ -220,6 +224,21 @@ static inline void dma_buf_put(struct dma_buf *dmabuf)
->         return;
->  }
->
-> +static inline unsigned int dma_buf_max_seg_size(struct dma_buf *dmabuf)
-> +{
-> +       return 0;
-> +}
-> +
-> +static inline unsigned int dma_buf_max_seg_count(struct dma_buf *dmabuf)
-> +{
-> +       return 0;
-> +}
-> +
-> +static inline unsigned int dma_buf_get_seg_boundary(struct dma_buf *dmabuf)
-> +{
-> +       return 0;
-> +}
-> +
->  static inline struct sg_table *dma_buf_map_attachment(
->         struct dma_buf_attachment *attach, enum dma_data_direction write)
->  {
-> --
-> 1.7.9.5
->
