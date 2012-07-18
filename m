@@ -1,82 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:56076 "EHLO plane.gmane.org"
+Received: from mail.masin.eu ([80.188.199.19]:57298 "EHLO mail.masin.eu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751191Ab2GIRI2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Jul 2012 13:08:28 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1SoHRc-0007UZ-Rh
-	for linux-media@vger.kernel.org; Mon, 09 Jul 2012 19:08:20 +0200
-Received: from bra55.neoplus.adsl.tpnet.pl ([83.29.94.55])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 09 Jul 2012 19:08:20 +0200
-Received: from acc.for.news by bra55.neoplus.adsl.tpnet.pl with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 09 Jul 2012 19:08:20 +0200
-To: linux-media@vger.kernel.org
-From: Marx <acc.for.news@gmail.com>
-Subject: Re: pctv452e
-Date: Mon, 09 Jul 2012 18:44:39 +0200
-Message-ID: <scerc9-bm6.ln1@wuwek.kopernik.gliwice.pl>
-References: <4FF4697C.8080602@nexusuk.org> <4FF46DC4.4070204@iki.fi> <4FF4911B.9090600@web.de> <4FF4931B.7000708@iki.fi> <gjggc9-dl4.ln1@wuwek.kopernik.gliwice.pl> <4FF5A350.9070509@iki.fi> <r8cic9-ht4.ln1@wuwek.kopernik.gliwice.pl> <4FF6B121.6010105@iki.fi> <9btic9-vd5.ln1@wuwek.kopernik.gliwice.pl> <835kc9-7p4.ln1@wuwek.kopernik.gliwice.pl> <4FF77C1B.50406@iki.fi> <l2smc9-pj4.ln1@wuwek.kopernik.gliwice.pl> <4FF97DF8.4080208@iki.fi> <n1aqc9-sp4.ln1@wuwek.kopernik.gliwice.pl> <4FFA996D.9010206@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <4FFA996D.9010206@iki.fi>
+	id S1752912Ab2GRNpH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Jul 2012 09:45:07 -0400
+From: =?utf-8?Q?Radek_Ma=C5=A1=C3=ADn?= <radek@masin.eu>
+Date: Wed, 18 Jul 2012 15:45:04 +0200
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: linux-media@vger.kernel.org
+Message-ID: <1342619104849714500@masin.eu>
+In-Reply-To: <CALF0-+U7HYyuLZJzUH4_OhJ7U4X33fOAmSmYuP-xATkMVjpKcQ@mail.gmail.com>
+References: <1342615958949547500@masin.eu>
+ <CALF0-+U7HYyuLZJzUH4_OhJ7U4X33fOAmSmYuP-xATkMVjpKcQ@mail.gmail.com>
+Subject: Re: CX25821 driver in kernel 3.4.4 problem
+MIME-Version: 1.0
+Content-Type: text/plain;	charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-W dniu 2012-07-09 10:42, Antti Palosaari pisze:
-> On 07/09/2012 09:24 AM, Marx wrote:
->> On 08.07.2012 14:32, Antti Palosaari wrote:
->>> I suspect you stopped szap ?
->>>
->>> You cannot use dvbdate or dvbtraffic, nor read data from dvr0 unless
->>> frontend is tuned. Leave szap running backround and try again.
->>
->> That way it works, and I can save stream. Hovewer it's strange because I
->> shouldn't have to constatly tune channel to watch it, and on previous
->> cards it was enough to tune once and then use other commands.
->> I base my knowledge on
->> http://www.linuxtv.org/wiki/index.php/Testing_your_DVB_device
->> There is nothing about constant tuning channel to use it. Am I missing
->> something?
->
-> given wiki-page says:
-> "
-> 4. After you've tuned a frequency and program
->
-> a) You could now start up your simple TV watching application and decode
-> the stream you have tuned.
->
-> For example, while keeping {a,c,s,t}zap running in the first console
-> shell, open up another console and run
-> "
->
-> Behavior have been always same, at least for the DVB USB.
->
-> So you don't have problems at all?
+Hello,
+I can test it without problems. Please send me a patch.
 
-ok, my fault
-problem still exists
-VDR doesn't play any channel, and while you asked me to abandon it, I 
-saved some data using
-  cat /dev/dvb/adapter0/dvr0 > /mnt/video/test3.ts
-while tuning in the background.
+Regards
+Radek Masin
+radek@masin.eu
 
-Stream saved that way is unplayable (I play it using VLC for windows - 
-it played almost all proper TS strems in the past I had). I've tried all 
-software I have - to play this streams - no way.
-
-So
-- I can tune only 2/3 of channels
-- TS stream saves with errors
-- traditional tuner on the same (brand new) dish works ok
-- i've exchanged cables between the two
-
-is it possible that pctv device is less sensitive and the problem is 
-with too weak signal?
-
-Marx
-
+Dne St, 07/18/2012 03:14 odp., Ezequiel Garcia <elezegarcia@gmail.com> napsal(a):
+> Hi Radek,
+> 
+> On Wed, Jul 18, 2012 at 9:52 AM, Radek Mašín <radek@masin.eu> wrote:
+> >    Hello,
+> > I have upgraded my testing system with cx25821 based video capture card to system (OpenSuSE 12.1)
+> > with kernel 3.4.4 and driver for cx25821 doesn't work. Previous system was with kernel 2.6.37 (OpenSuSE 11.4)
+> > with this patch http://patchwork.linuxtv.org/patch/10056/ and manualy compiled module. With kernel 2.6.37
+> > driver works properly.
+> >
+> > Now I can see, that driver is loaded, but no device in /dev/ are created. Please take a look for attached
+> > outputs:
+> >
+> 
+> I'm preparing a patch for you against v3.4.4. Unfortunately, I can't test this.
+> Would you mind testing it and letting me know?
+> 
+> Thanks,
+> Ezequiel.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
