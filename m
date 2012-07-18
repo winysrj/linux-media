@@ -1,89 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39714 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757795Ab2GFRsf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 13:48:35 -0400
-Date: Fri, 6 Jul 2012 18:48:30 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org, fabio.estevam@freescale.com,
-	sakari.ailus@maxwell.research.nokia.com, kernel@pengutronix.de,
-	arnaud.patard@rtp-net.org, mchehab@infradead.org,
-	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, p.zabel@pengutronix.de,
-	shawn.guo@linaro.org, linux-arm-kernel@lists.infradead.org,
-	richard.zhu@linaro.org
-Subject: Re: [PATCH 2/3] media: coda: Add driver for Coda video codec.
-Message-ID: <20120706174830.GE31508@n2100.arm.linux.org.uk>
-References: <1341579471-25208-1-git-send-email-javier.martin@vista-silicon.com> <1341579471-25208-3-git-send-email-javier.martin@vista-silicon.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1341579471-25208-3-git-send-email-javier.martin@vista-silicon.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:45273 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751871Ab2GRMMG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Jul 2012 08:12:06 -0400
+Subject: Re: [PATCH v3] media: coda: Add driver for Coda video codec.
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: javier Martin <javier.martin@vista-silicon.com>
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
+	mchehab@infradead.org, s.hauer@pengutronix.de
+In-Reply-To: <CACKLOr0861rZbOFZ2O0eXuTY7PB1yiFkSt62_4uXvJT+QMZe9A@mail.gmail.com>
+References: <1342077100-8629-1-git-send-email-javier.martin@vista-silicon.com>
+	 <1342459273.2535.665.camel@pizza.hi.pengutronix.de>
+	 <CACKLOr3rOPgwMCRdj3ARR+0655Qp=BfEXq0TsB7TU-hO4NSsqg@mail.gmail.com>
+	 <1342600546.2542.101.camel@pizza.hi.pengutronix.de>
+	 <CACKLOr1i-iByVtST6sqXqmHHzhJ1mgUdBWjp-jFsYPX-bnAMxQ@mail.gmail.com>
+	 <1342603378.2542.149.camel@pizza.hi.pengutronix.de>
+	 <CACKLOr0861rZbOFZ2O0eXuTY7PB1yiFkSt62_4uXvJT+QMZe9A@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 18 Jul 2012 14:12:02 +0200
+Message-ID: <1342613522.2542.154.camel@pizza.hi.pengutronix.de>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 06, 2012 at 02:57:50PM +0200, Javier Martin wrote:
-> +config VIDEO_CODA
-> +	tristate "Chips&Media Coda multi-standard codec IP"
-> +	depends on VIDEO_DEV && VIDEO_V4L2 && SOC_IMX27
-> +	select VIDEOBUF2_DMA_CONTIG
-> +	select V4L2_MEM2MEM_DEV
-> +	default n
+Am Mittwoch, den 18.07.2012, 11:26 +0200 schrieb javier Martin:
+> On 18 July 2012 11:22, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> > Hi Javier,
+> >
+> > Am Mittwoch, den 18.07.2012, 11:01 +0200 schrieb javier Martin:
+> >> On 18 July 2012 10:35, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> >> > Hi Javier,
+> >> >
+> >> > Am Mittwoch, den 18.07.2012, 09:12 +0200 schrieb javier Martin:
+> >> > [...]
+> >> >> > I see there is a comment about the expected register setting not working
+> >> >> > for CODA_REG_BIT_STREAM_CTRL in start_streaming(). Could this be
+> >> >> > related?
+> >> >>
+> >> >> I don't think so. This means that the following line:
+> >> >>
+> >> >> coda_write(dev, (3 << 3), CODA_REG_BIT_STREAM_CTRL);
+> >> >>
+> >> >> should be:
+> >> >>
+> >> >> coda_write(dev, (CODADX6_STREAM_BUF_PIC_RESET |
+> >> >> CODADX6_STREAM_BUF_PIC_FLUSH), CODA_REG_BIT_STREAM_CTRL);
+> >> >>
+> >> >> But the latter does not work.
+> >> >
+> >> > Looks to me like (3 << 3) == (CODA7_STREAM_BUF_PIC_RESET |
+> >> > CODA7_STREAM_BUF_PIC_FLUSH) could be the explanation.
+> >>
+> >> You mean "!=", don't you?
+> >
+> > I mean "==". coda.h contains:
+> >
+> > #define         CODA7_STREAM_BUF_PIC_RESET      (1 << 4)
+> > #define         CODA7_STREAM_BUF_PIC_FLUSH      (1 << 3)
+> >
+> > So maybe those are the correct bits for i.MX27 with the 2.2.5 firmware.
+> > If that is the case, you could do s/CODA7_STREAM_BUF_/CODA_STREAM_BUF_/
+> > and drop the incorrect CODADX6_STREAM_BUF_ defines.
+> 
+> Sorry, I didn't catch the 'CODA7' prefix in your defines.
+> OK then, I'll do  s/CODA7_STREAM_BUF_/CODA_STREAM_BUF_/ and remove the
+> comment too.
 
-Please, no more 'default n'... it's the default default anyway.
+Hold on, I just read that there should be a ENC_DYN_BUFALLOC_EN bit
+((1 << 5) on i.MX53, (1 << 4) on i.MX27) - so maybe the #defines are
+right after all, just that bit needs to be set for the dynamic buffer
+handling to work.
 
-> +	---help---
-> +	   Coda is a range of video codec IPs that supports
-> +	   H.264, MPEG-4, and other video formats.
-> +
->  config VIDEO_SAMSUNG_S5P_G2D
->  	tristate "Samsung S5P and EXYNOS4 G2D 2d graphics accelerator driver"
->  	depends on VIDEO_DEV && VIDEO_V4L2 && PLAT_S5P
-> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-> index d209de0..a04c307 100644
-> --- a/drivers/media/video/Makefile
-> +++ b/drivers/media/video/Makefile
-> @@ -187,6 +187,7 @@ obj-$(CONFIG_VIDEO_OMAP1)		+= omap1_camera.o
->  obj-$(CONFIG_VIDEO_ATMEL_ISI)		+= atmel-isi.o
->  
->  obj-$(CONFIG_VIDEO_MX2_EMMAPRP)		+= mx2_emmaprp.o
-> +obj-$(CONFIG_VIDEO_CODA) 			+= coda.o
->  
->  obj-$(CONFIG_VIDEO_SAMSUNG_S5P_FIMC) 	+= s5p-fimc/
->  obj-$(CONFIG_VIDEO_SAMSUNG_S5P_JPEG)	+= s5p-jpeg/
-> diff --git a/drivers/media/video/coda.c b/drivers/media/video/coda.c
-> new file mode 100644
-> index 0000000..7b43345
-> --- /dev/null
-> +++ b/drivers/media/video/coda.c
-> @@ -0,0 +1,1916 @@
-> +/*
-> + * Coda multi-standard codec IP
-> + *
-> + * Copyright (C) 2012 Vista Silicon S.L.
-> + *    Javier Martin, <javier.martin@vista-silicon.com>
-> + *    Xavier Duret
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + */
-> +
-> +#include <linux/clk.h>
-> +#include <linux/delay.h>
-> +#include <linux/firmware.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/io.h>
-> +#include <linux/irq.h>
-> +#include <linux/module.h>
-> +#include <linux/of_device.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/slab.h>
-> +#include <linux/videodev2.h>
-> +
-> +#include <mach/hardware.h>
+regards
+Philipp
 
-What in here needs mach/hardware.h ?  We really should be questioning any
-new driver that needs mach/ headers...
