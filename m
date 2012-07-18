@@ -1,34 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45306 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755423Ab2GKPq7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jul 2012 11:46:59 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: hverkuil@xs4all.nl
-Subject: RFC: Add support for limiting hw freq seeks to a certain band
-Date: Wed, 11 Jul 2012 17:47:33 +0200
-Message-Id: <1342021658-27821-1-git-send-email-hdegoede@redhat.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39747 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753067Ab2GRIfu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Jul 2012 04:35:50 -0400
+Subject: Re: [PATCH v3] media: coda: Add driver for Coda video codec.
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: javier Martin <javier.martin@vista-silicon.com>
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
+	mchehab@infradead.org, s.hauer@pengutronix.de
+In-Reply-To: <CACKLOr3rOPgwMCRdj3ARR+0655Qp=BfEXq0TsB7TU-hO4NSsqg@mail.gmail.com>
+References: <1342077100-8629-1-git-send-email-javier.martin@vista-silicon.com>
+	 <1342459273.2535.665.camel@pizza.hi.pengutronix.de>
+	 <CACKLOr3rOPgwMCRdj3ARR+0655Qp=BfEXq0TsB7TU-hO4NSsqg@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 18 Jul 2012 10:35:46 +0200
+Message-ID: <1342600546.2542.101.camel@pizza.hi.pengutronix.de>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset, which builds on top of hverkuil's bands2 branch, which
-adds the VIDIOC_ENUM_FREQ_BANDS API, add support for limiting
-hw freq seeks to one of the bands from VIDIOC_ENUM_FREQ_BANDS, or a subset
-there of.
+Hi Javier,
 
-The first patch introduces the new API and documents its, the other
-patches are patches to the si470x radio driver, implementing the new API,
-and removing the band module parameter as this is no longer needed
-with this new API.
+Am Mittwoch, den 18.07.2012, 09:12 +0200 schrieb javier Martin:
+[...]
+> > I see there is a comment about the expected register setting not working
+> > for CODA_REG_BIT_STREAM_CTRL in start_streaming(). Could this be
+> > related?
+> 
+> I don't think so. This means that the following line:
+> 
+> coda_write(dev, (3 << 3), CODA_REG_BIT_STREAM_CTRL);
+> 
+> should be:
+> 
+> coda_write(dev, (CODADX6_STREAM_BUF_PIC_RESET |
+> CODADX6_STREAM_BUF_PIC_FLUSH), CODA_REG_BIT_STREAM_CTRL);
+> 
+> But the latter does not work.
 
-A git tree with all hverkuils patches included is here:
-http://git.linuxtv.org/hgoede/gspca.git/shortlog/refs/heads/media-for_v3.6-wip
+Looks to me like (3 << 3) == (CODA7_STREAM_BUF_PIC_RESET |
+CODA7_STREAM_BUF_PIC_FLUSH) could be the explanation.
 
-A git tree of xawtv3 with its radio app modified to support the new
-API is here:
-http://git.linuxtv.org/hgoede/xawtv3.git/shortlog/refs/heads/band-support
+Maybe the documentation about CODADX6_STREAM_BUF_PIC_RESET |
+CODADX6_STREAM_BUF_PIC_FLUSH was outdated?
 
-Regards,
+> > Also, I've missed two problems with platform device removal and module
+> > autoloading before, see below.
+> 
+> Fine.
+[...]
+> I will send a new v4 with the 'platform' and 'bytesused' issues fixed.
+> Regarding your i.MX53 problems I suppose they should be addressed
+> conditionally in a patch on top of this one where i.MX53 support is
+> added too.
+> What do you think?
 
-Hans
+Agreed. After fixing the issues in vidioc_try_fmt, MODULE_DEVICE_TABLE,
+and coda_remove, feel free to add a
+Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+
+regards
+Philipp
+
+
