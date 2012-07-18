@@ -1,36 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:46408 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754083Ab2GJHEg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jul 2012 03:04:36 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1SoUUq-00088y-ME
-	for linux-media@vger.kernel.org; Tue, 10 Jul 2012 09:04:32 +0200
-Received: from bws20.neoplus.adsl.tpnet.pl ([83.29.242.20])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 10 Jul 2012 09:04:32 +0200
-Received: from acc.for.news by bws20.neoplus.adsl.tpnet.pl with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 10 Jul 2012 09:04:32 +0200
-To: linux-media@vger.kernel.org
-From: Marx <acc.for.news@gmail.com>
-Subject: Re: pctv452e
-Date: Tue, 10 Jul 2012 08:43:29 +0200
-Message-ID: <hhvsc9-pte.ln1@wuwek.kopernik.gliwice.pl>
-References: <4FF4697C.8080602@nexusuk.org> <4FF46DC4.4070204@iki.fi> <4FF4911B.9090600@web.de> <4FF4931B.7000708@iki.fi> <gjggc9-dl4.ln1@wuwek.kopernik.gliwice.pl> <4FF5A350.9070509@iki.fi> <r8cic9-ht4.ln1@wuwek.kopernik.gliwice.pl> <4FF6B121.6010105@iki.fi> <9btic9-vd5.ln1@wuwek.kopernik.gliwice.pl> <835kc9-7p4.ln1@wuwek.kopernik.gliwice.pl> <4FF77C1B.50406@iki.fi> <l2smc9-pj4.ln1@wuwek.kopernik.gliwice.pl> <4FF97DF8.4080208@iki.fi> <n1aqc9-sp4.ln1@wuwek.kopernik.gliwice.pl> <4FFA996D.9010206@iki.fi> <scerc9-bm6.ln1@wuwek.kopernik.gliwice.pl> <4FFB2129.2070301@gmail.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:56500 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752143Ab2GRJXB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Jul 2012 05:23:01 -0400
+Subject: Re: [PATCH v3] media: coda: Add driver for Coda video codec.
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: javier Martin <javier.martin@vista-silicon.com>
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
+	mchehab@infradead.org, s.hauer@pengutronix.de
+In-Reply-To: <CACKLOr1i-iByVtST6sqXqmHHzhJ1mgUdBWjp-jFsYPX-bnAMxQ@mail.gmail.com>
+References: <1342077100-8629-1-git-send-email-javier.martin@vista-silicon.com>
+	 <1342459273.2535.665.camel@pizza.hi.pengutronix.de>
+	 <CACKLOr3rOPgwMCRdj3ARR+0655Qp=BfEXq0TsB7TU-hO4NSsqg@mail.gmail.com>
+	 <1342600546.2542.101.camel@pizza.hi.pengutronix.de>
+	 <CACKLOr1i-iByVtST6sqXqmHHzhJ1mgUdBWjp-jFsYPX-bnAMxQ@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 18 Jul 2012 11:22:58 +0200
+Message-ID: <1342603378.2542.149.camel@pizza.hi.pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <4FFB2129.2070301@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I've attached stream analysis via ffmpeg in another post. I can upload 
-saved stream if needed. I simply don't know how to check if weak signal 
-is problem. Szap (or extended version szap-s2) gives me some numbers but 
-I don't know how to properly read them.
-Is this pctv452e device known to have poor reception?
-Marx
+Hi Javier,
+
+Am Mittwoch, den 18.07.2012, 11:01 +0200 schrieb javier Martin:
+> On 18 July 2012 10:35, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> > Hi Javier,
+> >
+> > Am Mittwoch, den 18.07.2012, 09:12 +0200 schrieb javier Martin:
+> > [...]
+> >> > I see there is a comment about the expected register setting not working
+> >> > for CODA_REG_BIT_STREAM_CTRL in start_streaming(). Could this be
+> >> > related?
+> >>
+> >> I don't think so. This means that the following line:
+> >>
+> >> coda_write(dev, (3 << 3), CODA_REG_BIT_STREAM_CTRL);
+> >>
+> >> should be:
+> >>
+> >> coda_write(dev, (CODADX6_STREAM_BUF_PIC_RESET |
+> >> CODADX6_STREAM_BUF_PIC_FLUSH), CODA_REG_BIT_STREAM_CTRL);
+> >>
+> >> But the latter does not work.
+> >
+> > Looks to me like (3 << 3) == (CODA7_STREAM_BUF_PIC_RESET |
+> > CODA7_STREAM_BUF_PIC_FLUSH) could be the explanation.
+> 
+> You mean "!=", don't you?
+
+I mean "==". coda.h contains:
+
+#define		CODA7_STREAM_BUF_PIC_RESET	(1 << 4)
+#define		CODA7_STREAM_BUF_PIC_FLUSH	(1 << 3)
+
+So maybe those are the correct bits for i.MX27 with the 2.2.5 firmware.
+If that is the case, you could do s/CODA7_STREAM_BUF_/CODA_STREAM_BUF_/
+and drop the incorrect CODADX6_STREAM_BUF_ defines.
+
+regards
+Philipp
 
