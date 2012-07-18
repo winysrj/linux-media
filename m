@@ -1,71 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:46335 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751230Ab2GFGng (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 02:43:36 -0400
-Date: Fri, 6 Jul 2012 08:43:32 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org, fabio.estevam@freescale.com,
-	laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
-	mchehab@infradead.org, kernel@pengutronix.de
-Subject: Re: media: i.MX27: Fix emma-prp clocks in mx2_camera.c
-Message-ID: <20120706064332.GA30009@pengutronix.de>
-References: <1341556309-2934-1-git-send-email-javier.martin@vista-silicon.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:35321 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752964Ab2GRJ0q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Jul 2012 05:26:46 -0400
+Received: by weyx8 with SMTP id x8so814783wey.19
+        for <linux-media@vger.kernel.org>; Wed, 18 Jul 2012 02:26:45 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1341556309-2934-1-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1342603378.2542.149.camel@pizza.hi.pengutronix.de>
+References: <1342077100-8629-1-git-send-email-javier.martin@vista-silicon.com>
+	<1342459273.2535.665.camel@pizza.hi.pengutronix.de>
+	<CACKLOr3rOPgwMCRdj3ARR+0655Qp=BfEXq0TsB7TU-hO4NSsqg@mail.gmail.com>
+	<1342600546.2542.101.camel@pizza.hi.pengutronix.de>
+	<CACKLOr1i-iByVtST6sqXqmHHzhJ1mgUdBWjp-jFsYPX-bnAMxQ@mail.gmail.com>
+	<1342603378.2542.149.camel@pizza.hi.pengutronix.de>
+Date: Wed, 18 Jul 2012 11:26:44 +0200
+Message-ID: <CACKLOr0861rZbOFZ2O0eXuTY7PB1yiFkSt62_4uXvJT+QMZe9A@mail.gmail.com>
+Subject: Re: [PATCH v3] media: coda: Add driver for Coda video codec.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
+	mchehab@infradead.org, s.hauer@pengutronix.de
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+On 18 July 2012 11:22, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> Hi Javier,
+>
+> Am Mittwoch, den 18.07.2012, 11:01 +0200 schrieb javier Martin:
+>> On 18 July 2012 10:35, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+>> > Hi Javier,
+>> >
+>> > Am Mittwoch, den 18.07.2012, 09:12 +0200 schrieb javier Martin:
+>> > [...]
+>> >> > I see there is a comment about the expected register setting not working
+>> >> > for CODA_REG_BIT_STREAM_CTRL in start_streaming(). Could this be
+>> >> > related?
+>> >>
+>> >> I don't think so. This means that the following line:
+>> >>
+>> >> coda_write(dev, (3 << 3), CODA_REG_BIT_STREAM_CTRL);
+>> >>
+>> >> should be:
+>> >>
+>> >> coda_write(dev, (CODADX6_STREAM_BUF_PIC_RESET |
+>> >> CODADX6_STREAM_BUF_PIC_FLUSH), CODA_REG_BIT_STREAM_CTRL);
+>> >>
+>> >> But the latter does not work.
+>> >
+>> > Looks to me like (3 << 3) == (CODA7_STREAM_BUF_PIC_RESET |
+>> > CODA7_STREAM_BUF_PIC_FLUSH) could be the explanation.
+>>
+>> You mean "!=", don't you?
+>
+> I mean "==". coda.h contains:
+>
+> #define         CODA7_STREAM_BUF_PIC_RESET      (1 << 4)
+> #define         CODA7_STREAM_BUF_PIC_FLUSH      (1 << 3)
+>
+> So maybe those are the correct bits for i.MX27 with the 2.2.5 firmware.
+> If that is the case, you could do s/CODA7_STREAM_BUF_/CODA_STREAM_BUF_/
+> and drop the incorrect CODADX6_STREAM_BUF_ defines.
 
-On Fri, Jul 06, 2012 at 08:31:49AM +0200, Javier Martin wrote:
-> This driver wasn't converted to the new clock changes
-> (clk_prepare_enable/clk_disable_unprepare). Also naming
-> of emma-prp related clocks for the i.MX27 was not correct.
+Sorry, I didn't catch the 'CODA7' prefix in your defines.
+OK then, I'll do  s/CODA7_STREAM_BUF_/CODA_STREAM_BUF_/ and remove the
+comment too.
 
-Thanks for fixing this. Sorry for breaking this in the first place.
-
-> @@ -1668,12 +1658,26 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
->  		goto exit;
->  	}
->  
-> -	pcdev->clk_csi = clk_get(&pdev->dev, NULL);
-> +	pcdev->clk_csi = devm_clk_get(&pdev->dev, NULL);
->  	if (IS_ERR(pcdev->clk_csi)) {
->  		dev_err(&pdev->dev, "Could not get csi clock\n");
->  		err = PTR_ERR(pcdev->clk_csi);
->  		goto exit_kfree;
->  	}
-> +	pcdev->clk_emma_ipg = devm_clk_get(&pdev->dev, "ipg");
-> +	if (IS_ERR(pcdev->clk_emma_ipg)) {
-> +		err = PTR_ERR(pcdev->clk_emma_ipg);
-> +		goto exit_kfree;
-> +	}
-> +	pcdev->clk_emma_ahb = devm_clk_get(&pdev->dev, "ahb");
-> +	if (IS_ERR(pcdev->clk_emma_ahb)) {
-> +		err = PTR_ERR(pcdev->clk_emma_ahb);
-> +		goto exit_kfree;
-> +	}
-
-So we have three clocks involved here, a csi ahb clock and two emma
-clocks. Can we rename the clocks to:
-
-	clk_register_clkdev(clk[csi_ahb_gate], "ahb", "mx2-camera.0");
-	clk_register_clkdev(clk[emma_ahb_gate], "emma-ahb", "mx2-camera.0");
-	clk_register_clkdev(clk[emma_ipg_gate], "emma-ipg", "mx2-camera.0");
-
-The rationale is that the csi_ahb_gate really is a ahb clock related to
-the csi whereas the emma clocks are normally for the emma device, but
-the csi driver happens to use parts of the emma.
-
-Sascha
-
-
+Regards.
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
