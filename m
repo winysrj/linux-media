@@ -1,79 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:11907 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750832Ab2GSMAx (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:52215 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750999Ab2GRH5h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jul 2012 08:00:53 -0400
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [RFC PATCH 3/6] v4l2-mem2mem: support events in v4l2_m2m_poll.
-Date: Thu, 19 Jul 2012 14:00:21 +0200
-Message-Id: <3c54845122c69b570236a6e2200b2697202b85e8.1342699069.git.hans.verkuil@cisco.com>
-In-Reply-To: <1342699224-12642-1-git-send-email-hans.verkuil@cisco.com>
-References: <1342699224-12642-1-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <903c0da0d6e7354d6f884f0ddec783143165e54c.1342699069.git.hans.verkuil@cisco.com>
-References: <903c0da0d6e7354d6f884f0ddec783143165e54c.1342699069.git.hans.verkuil@cisco.com>
+	Wed, 18 Jul 2012 03:57:37 -0400
+Date: Wed, 18 Jul 2012 09:57:34 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org, b.zolnierkie@samsung.com
+Subject: Re: [RFC/PATCH 06/13] media: s5p-fimc: Add device tree support for
+ FIMC-LITE
+In-Reply-To: <5005B51E.20505@gmail.com>
+Message-ID: <alpine.DEB.2.00.1207180939290.6403@axis700.grange>
+References: <4FBFE1EC.9060209@samsung.com> <1337975573-27117-1-git-send-email-s.nawrocki@samsung.com>
+ <1337975573-27117-6-git-send-email-s.nawrocki@samsung.com>
+ <Pine.LNX.4.64.1207161114130.12302@axis700.grange> <5005B51E.20505@gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2_m2m_poll didn't support events, but that's essential if you want to
-be able to use control events for example.
+Hi Sylwester
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+On Tue, 17 Jul 2012, Sylwester Nawrocki wrote:
+
+> On 07/16/2012 11:15 AM, Guennadi Liakhovetski wrote:
+> > > --- a/Documentation/devicetree/bindings/camera/soc/samsung-fimc.txt
+> > > +++ b/Documentation/devicetree/bindings/camera/soc/samsung-fimc.txt
+> > > @@ -39,6 +39,21 @@ Required properties:
+> > >   	       depends on the SoC revision. For S5PV210 valid values are:
+> > >   	       0...2, for Exynos4x1x: 0...3.
+> > > 
+> > > +
+> > > +'fimc-lite' device node
+> > > +-----------------------
+> > > +
+> > > +Required properties:
+> > > +
+> > > +- compatible : should be one of:
+> > > +		"samsung,exynos4212-fimc";
+> > > +		"samsung,exynos4412-fimc";
+> > > +- reg	     : physical base address and size of the device's memory
+> > > mapped
+> > > +	       registers;
+> > > +- interrupts : should contain FIMC-LITE interrupt;
+> > > +- cell-index : FIMC-LITE IP instance index;
+> > 
+> > Same as in an earlier patch - not sure this is needed.
+> 
+> It is needed for setting up a pipeline of multiple sub-device
+> within a SoC. As I commented on patch 2/13 I'd like to replace
+> this with proper entries in the "aliases" node. Some sub-devices
+> have registers that these indexes need to be directly written to.
+
+Aha, so, these are not purely software indices, that you just use to 
+identify your devices, these are actual hardware values? You really have 
+to write, e.g., "1" into a resizer register to connect it to a certain 
+capture engine? Ok, in this case it indeed might make sense to have these 
+values in the DT. Not sure how best to call these properties, or whether 
+aliases is the best solution, but that's already a detail. And btw, if you 
+do decide to keep this as a property, maybe this is one of the cases, 
+where you'd want to mark it with your hardware type, like "fimc,cell-id" 
+or similar?
+
+Thanks
+Guennadi
 ---
- drivers/media/video/v4l2-mem2mem.c |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/video/v4l2-mem2mem.c b/drivers/media/video/v4l2-mem2mem.c
-index 975d0fa..97b4831 100644
---- a/drivers/media/video/v4l2-mem2mem.c
-+++ b/drivers/media/video/v4l2-mem2mem.c
-@@ -19,6 +19,9 @@
- 
- #include <media/videobuf2-core.h>
- #include <media/v4l2-mem2mem.h>
-+#include <media/v4l2-dev.h>
-+#include <media/v4l2-fh.h>
-+#include <media/v4l2-event.h>
- 
- MODULE_DESCRIPTION("Mem to mem device framework for videobuf");
- MODULE_AUTHOR("Pawel Osciak, <pawel@osciak.com>");
-@@ -407,11 +410,24 @@ EXPORT_SYMBOL_GPL(v4l2_m2m_streamoff);
- unsigned int v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
- 			   struct poll_table_struct *wait)
- {
-+	struct video_device *vfd = video_devdata(file);
-+	unsigned long req_events = poll_requested_events(wait);
- 	struct vb2_queue *src_q, *dst_q;
- 	struct vb2_buffer *src_vb = NULL, *dst_vb = NULL;
- 	unsigned int rc = 0;
- 	unsigned long flags;
- 
-+	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags)) {
-+		struct v4l2_fh *fh = file->private_data;
-+
-+		if (v4l2_event_pending(fh))
-+			rc = POLLPRI;
-+		else if (req_events & POLLPRI)
-+			poll_wait(file, &fh->wait, wait);
-+		if (!(req_events & (POLLOUT | POLLWRNORM | POLLIN | POLLRDNORM)))
-+			return rc;
-+	}
-+
- 	src_q = v4l2_m2m_get_src_vq(m2m_ctx);
- 	dst_q = v4l2_m2m_get_dst_vq(m2m_ctx);
- 
-@@ -422,7 +438,7 @@ unsigned int v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
- 	 */
- 	if ((!src_q->streaming || list_empty(&src_q->queued_list))
- 		&& (!dst_q->streaming || list_empty(&dst_q->queued_list))) {
--		rc = POLLERR;
-+		rc |= POLLERR;
- 		goto end;
- 	}
- 
--- 
-1.7.10
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
