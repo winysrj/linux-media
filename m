@@ -1,113 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59150 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754581Ab2GRN61 (ORCPT
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:23034 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754465Ab2GRNLG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jul 2012 09:58:27 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH v2 5/9] ov772x: Make to_ov772x convert from v4l2_subdev to ov772x_priv
-Date: Wed, 18 Jul 2012 15:58:22 +0200
-Message-Id: <1342619906-5820-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1342619906-5820-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1342619906-5820-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Wed, 18 Jul 2012 09:11:06 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: javier Martin <javier.martin@vista-silicon.com>
+Subject: Re: [PATCH v4] media: coda: Add driver for Coda video codec.
+Date: Wed, 18 Jul 2012 15:10:41 +0200
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
+	rob.herring@calxeda.com, grant.likely@secretlab.ca,
+	mchehab@infradead.org
+References: <1342606895-9028-1-git-send-email-javier.martin@vista-silicon.com> <201207181300.05519.hverkuil@xs4all.nl> <CACKLOr1L0Z1L8cfX3AVnJacERWHq4YTtWxLebfJY3bhFj-bF0A@mail.gmail.com>
+In-Reply-To: <CACKLOr1L0Z1L8cfX3AVnJacERWHq4YTtWxLebfJY3bhFj-bF0A@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201207181510.41214.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Conversion from i2c_client to ov772x_priv is only needed in a single
-location, while conversion from v4l2_subdev to ov772x_priv is needed in
-several locations. Perform the former manually, and use to_ov772x for
-the later.
+On Wed 18 July 2012 14:42:00 javier Martin wrote:
+> Hi Hans,
+> thank you for your review.
+> 
+> On 18 July 2012 13:00, Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/ov772x.c |   21 ++++++++++-----------
- 1 files changed, 10 insertions(+), 11 deletions(-)
+<snip>
 
-diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
-index be3dfb5..2b95dd4 100644
---- a/drivers/media/video/ov772x.c
-+++ b/drivers/media/video/ov772x.c
-@@ -525,10 +525,9 @@ static const struct ov772x_win_size ov772x_win_sizes[] = {
-  * general function
-  */
- 
--static struct ov772x_priv *to_ov772x(const struct i2c_client *client)
-+static struct ov772x_priv *to_ov772x(struct v4l2_subdev *sd)
- {
--	return container_of(i2c_get_clientdata(client), struct ov772x_priv,
--			    subdev);
-+	return container_of(sd, struct ov772x_priv, subdev);
- }
- 
- static int ov772x_write_array(struct i2c_client        *client,
-@@ -574,7 +573,7 @@ static int ov772x_reset(struct i2c_client *client)
- static int ov772x_s_stream(struct v4l2_subdev *sd, int enable)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
-+	struct ov772x_priv *priv = to_ov772x(sd);
- 
- 	if (!enable) {
- 		ov772x_mask_set(client, COM2, SOFT_SLEEP_MODE, SOFT_SLEEP_MODE);
-@@ -638,7 +637,7 @@ static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
- static int ov772x_g_chip_ident(struct v4l2_subdev *sd,
- 			       struct v4l2_dbg_chip_ident *id)
- {
--	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
-+	struct ov772x_priv *priv = to_ov772x(sd);
- 
- 	id->ident    = priv->model;
- 	id->revision = 0;
-@@ -880,7 +879,7 @@ static int ov772x_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
- static int ov772x_g_fmt(struct v4l2_subdev *sd,
- 			struct v4l2_mbus_framefmt *mf)
- {
--	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
-+	struct ov772x_priv *priv = to_ov772x(sd);
- 
- 	mf->width	= priv->win->width;
- 	mf->height	= priv->win->height;
-@@ -893,7 +892,7 @@ static int ov772x_g_fmt(struct v4l2_subdev *sd,
- 
- static int ov772x_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
- {
--	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
-+	struct ov772x_priv *priv = to_ov772x(sd);
- 	const struct ov772x_color_format *cfmt;
- 	const struct ov772x_win_size *win;
- 	int ret;
-@@ -933,9 +932,9 @@ static int ov772x_try_fmt(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
--static int ov772x_video_probe(struct i2c_client *client)
-+static int ov772x_video_probe(struct ov772x_priv *priv)
- {
--	struct ov772x_priv *priv = to_ov772x(client);
-+	struct i2c_client  *client = v4l2_get_subdevdata(&priv->subdev);
- 	u8                  pid, ver;
- 	const char         *devname;
- 	int		    ret;
-@@ -1078,7 +1077,7 @@ static int ov772x_probe(struct i2c_client *client,
- 		goto done;
- 	}
- 
--	ret = ov772x_video_probe(client);
-+	ret = ov772x_video_probe(priv);
- 	if (ret < 0)
- 		goto done;
- 
-@@ -1095,7 +1094,7 @@ done:
- 
- static int ov772x_remove(struct i2c_client *client)
- {
--	struct ov772x_priv *priv = to_ov772x(client);
-+	struct ov772x_priv *priv = to_ov772x(i2c_get_clientdata(client));
- 
- 	v4l2_device_unregister_subdev(&priv->subdev);
- 	v4l2_ctrl_handler_free(&priv->hdl);
--- 
-1.7.8.6
+> >
+> > Colorspace.
+> 
+> But I don't know how to handle colorspace in this driver. Video
+> encoder from samsung
+> (http://lxr.linux.no/#linux+v3.4.5/drivers/media/video/s5p-mfc/s5p_mfc_enc.c#L844
+> ) does not handle it either.
 
+That's wrong too :-)
+
+> This is a video encoder which gets an input video streaming (with its
+> specific colorspace) and encodes it. I understand the sense of this
+> field for a video source but for an encoder?
+
+An encoder should copy the colorspace of the video it receives to the output
+video format and default to V4L2_COLORSPACE_SMPTE170M (SDTV) or
+V4L2_COLORSPACE_REC709 (HDTV).
+
+So as long as userspace hasn't told the driver what the colorspace is of the
+video it will encode you can return a default colorspace. Once you know the
+actual colorspace, then that's what should be returned.
+
+This assumes that the encoder doesn't do any colorspace changes and just encodes
+as is.
+
+Regards,
+
+	Hans
