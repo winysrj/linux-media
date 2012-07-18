@@ -1,45 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm129.target-host.de ([188.72.225.129]:47538 "EHLO
-	ffm129.target-host.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754813Ab2GQUQH (ORCPT
+Received: from cnxt09253.conexant.com ([198.62.9.253]:10259 "EHLO
+	cnxtsmtp2.conexant.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750863Ab2GROpD convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Jul 2012 16:16:07 -0400
-Date: Tue, 17 Jul 2012 22:15:57 +0200
-From: Nikolaus Schulz <schulz@macnetix.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Jonathan Nieder <jrnieder@gmail.com>,
-	Oliver Endriss <o.endriss@gmx.de>,
-	Andreas Oberritter <obi@linuxtv.org>,
-	<linux-media@vger.kernel.org>
-Subject: Re: [PATCH] dvb: push down ioctl lock in dvb_usercopy
-Message-ID: <20120717201557.GA18369@pcewns01.macnetix.de>
-References: <1340300655-17696-1-git-send-email-schulz@macnetix.de>
+	Wed, 18 Jul 2012 10:45:03 -0400
+From: "Palash Bandyopadhyay" <Palash.Bandyopadhyay@conexant.com>
+To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
+cc: "workshop-2011@linuxtv.org" <workshop-2011@linuxtv.org>,
+	"Linux Media Mailing List" <linux-media@vger.kernel.org>
+Date: Wed, 18 Jul 2012 07:45:00 -0700
+Subject: RE: [Workshop-2011] Media summit at the Kernel Summit - was: Fwd: Re:
+ [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
+Message-ID: <34B38BE41EDBA046A4AFBB591FA31132050A741BC5@NBMBX01.bbnet.ad>
+References: <20120713173708.GB17109@thunk.org> <1442040.RXAGio1Eb8@avalon>
+ <34B38BE41EDBA046A4AFBB591FA31132050A741B7D@NBMBX01.bbnet.ad> <1655865.Fi4CHzQRbg@avalon>
+In-Reply-To: <1655865.Fi4CHzQRbg@avalon>
+Content-Language: en-US
+Content-Type: text/plain;
+ charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <1340300655-17696-1-git-send-email-schulz@macnetix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Android
 
-I don't want to press or annoy anybody, but may I ask what's the status
-of this patch[1]?
+-palash
 
-On Thu, Jun 21, 2012 at 07:44:15PM +0200, schulz@macnetix.de wrote:
-> Since most dvb ioctls wrap their real work with dvb_usercopy, the static mutex
-> used in dvb_usercopy effectively is a global lock for dvb ioctls.
-> Unfortunately, frontend ioctls can be blocked by the frontend thread for
-> several seconds; this leads to unacceptable lock contention.  Mitigate that by
-> pushing the mutex from dvb_usercopy down to the individual, device specific
-> ioctls.
+-----Original Message-----
+From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com] 
+Sent: Wednesday, July 18, 2012 4:37 AM
+To: Palash Bandyopadhyay
+Cc: workshop-2011@linuxtv.org; Linux Media Mailing List
+Subject: Re: [Workshop-2011] Media summit at the Kernel Summit - was: Fwd: Re: [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
 
-On our systems, this patch has a great effect in terms of scalability
-when operating multiple DVB tuners.
+Hi Palash,
 
-Is it going to be considered?
+On Tuesday 17 July 2012 15:57:18 Palash Bandyopadhyay wrote:
+> Count me in when we have this discussion as this is something we too 
+> are working on.
 
-Thanks,
-Nikolaus
+Which one, the media controller library, or Android ?
 
-[1] http://patchwork.linuxtv.org/patch/12989/
+> On Tuesday, July 17, 2012 3:47 PM Laurent Pinchart wrote:
+> > On Tuesday 17 July 2012 14:30:53 Mauro Carvalho Chehab wrote:
+> > > As we did in 2012, we're planning to do a media summit again at KS/2012.
+> > 
+> > Great news!
+> > 
+> > > The KS/2012 will happen in San Diego, CA, US, between Aug 26-28, 
+> > > just before the LinuxCon North America.
+> > > 
+> > > In order to do it, I'd like to know who is interested on 
+> > > participate, and to get proposals about what subjects will be 
+> > > discussed there, in order to start planning the agenda.
+> > 
+> > Sakari and I will spend time on the long-awaited media controller 
+> > library in a couple of weeks, I hope to have results to present during the summit.
+> > 
+> > Depending on the audience, I would also be interested in getting 
+> > feedback from SoC vendors who are not (yet) active in the V4L2 
+> > community on our approach and how we could best help them. This 
+> > could include discussions about Android, as I believe we need to push V4L2 on that platform.
+> > Guennadi's recent work on an Android V4L2 camera library is a good 
+> > first step in that direction.
+
+--
+Regards,
+
+Laurent Pinchart
+
+
+Conexant E-mail Firewall (Conexant.Com) made the following annotations
+---------------------------------------------------------------------
+********************** Legal Disclaimer **************************** 
+
+"This email may contain confidential and privileged material for the sole use of the intended recipient. Any unauthorized review, use or distribution by others is strictly prohibited. If you have received the message in error, please advise the sender by reply email and delete the message. Thank you." 
+
+********************************************************************** 
+
+---------------------------------------------------------------------
+
