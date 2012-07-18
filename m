@@ -1,64 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58835 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753201Ab2GMLhk (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:60131 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755158Ab2GRRDT convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jul 2012 07:37:40 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Jean-Philippe Francois <jp.francois@cynove.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v3 2/6] omap3isp: preview: Remove lens shading compensation support
-Date: Fri, 13 Jul 2012 13:37:34 +0200
-Message-Id: <1342179458-1037-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1342179458-1037-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1342179458-1037-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Wed, 18 Jul 2012 13:03:19 -0400
+Received: by yenl2 with SMTP id l2so1796827yen.19
+        for <linux-media@vger.kernel.org>; Wed, 18 Jul 2012 10:03:19 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1342622302269259500@masin.eu>
+References: <1342615958949547500@masin.eu>
+	<CALF0-+U7HYyuLZJzUH4_OhJ7U4X33fOAmSmYuP-xATkMVjpKcQ@mail.gmail.com>
+	<CALF0-+WcRGGWzcE7eQ4h+MOYKy5+gnVPnxTas9uhyi4-b6VaqA@mail.gmail.com>
+	<1342622302269259500@masin.eu>
+Date: Wed, 18 Jul 2012 14:03:18 -0300
+Message-ID: <CALF0-+X9AO8KA68XiqUadhwEPhijfJ2fVJRbQdT_+an67j742w@mail.gmail.com>
+Subject: Re: CX25821 driver in kernel 3.4.4 problem
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: =?ISO-8859-2?Q?Radek_Ma=B9=EDn?= <radek@masin.eu>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The feature isn't fully implemented and doesn't work, remove it.
+On Wed, Jul 18, 2012 at 11:38 AM, Radek Mašín <radek@masin.eu> wrote:
+> Hello,
+> with your patch driver is working properly. I see devices in /dev directory and in dmesg
+> is attached output:
+>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/omap3isp/isppreview.c |   18 +-----------------
- 1 files changed, 1 insertions(+), 17 deletions(-)
+Great! That's good news. I'll send the patch to the list later.
+If you encounter any other problems, please let us know.
 
-diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
-index a06af90..75eeafa 100644
---- a/drivers/media/video/omap3isp/isppreview.c
-+++ b/drivers/media/video/omap3isp/isppreview.c
-@@ -215,22 +215,6 @@ preview_enable_drkframe(struct isp_prev_device *prev, u8 enable)
- }
- 
- /*
-- * preview_config_drkf_shadcomp - Configures shift value in shading comp.
-- * @scomp_shtval: 3bit value of shift used in shading compensation.
-- */
--static void
--preview_config_drkf_shadcomp(struct isp_prev_device *prev,
--			     const void *scomp_shtval)
--{
--	struct isp_device *isp = to_isp_device(prev);
--	const u32 *shtval = scomp_shtval;
--
--	isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
--			ISPPRV_PCR_SCOMP_SFT_MASK,
--			*shtval << ISPPRV_PCR_SCOMP_SFT_SHIFT);
--}
--
--/*
-  * preview_enable_hmed - Enables/Disables of the Horizontal Median Filter.
-  * @enable: 1 - Enables Horizontal Median Filter.
-  */
-@@ -870,7 +854,7 @@ static const struct preview_update update_attrs[] = {
- 		NULL,
- 		preview_enable_drkframe,
- 	}, /* OMAP3ISP_PREV_LENS_SHADING */ {
--		preview_config_drkf_shadcomp,
-+		NULL,
- 		preview_enable_drkframe,
- 	}, /* OMAP3ISP_PREV_NF */ {
- 		preview_config_noisefilter,
--- 
-1.7.8.6
-
+Thanks for the report and for the testing,
+Ezequiel.
