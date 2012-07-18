@@ -1,90 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57854 "EHLO mail.kapsi.fi"
+Received: from mail.masin.eu ([80.188.199.19]:49617 "EHLO mail.masin.eu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750771Ab2GISuC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Jul 2012 14:50:02 -0400
-Message-ID: <4FFB27D1.9070204@iki.fi>
-Date: Mon, 09 Jul 2012 21:49:53 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S1751297Ab2GROiZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Jul 2012 10:38:25 -0400
+From: =?utf-8?Q?Radek_Ma=C5=A1=C3=ADn?= <radek@masin.eu>
+Date: Wed, 18 Jul 2012 16:38:22 +0200
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: linux-media@vger.kernel.org
+Message-ID: <1342622302269259500@masin.eu>
+In-Reply-To: <CALF0-+WcRGGWzcE7eQ4h+MOYKy5+gnVPnxTas9uhyi4-b6VaqA@mail.gmail.com>
+References: <1342615958949547500@masin.eu>
+	<CALF0-+U7HYyuLZJzUH4_OhJ7U4X33fOAmSmYuP-xATkMVjpKcQ@mail.gmail.com>
+ <CALF0-+WcRGGWzcE7eQ4h+MOYKy5+gnVPnxTas9uhyi4-b6VaqA@mail.gmail.com>
+Subject: Re: CX25821 driver in kernel 3.4.4 problem
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v3.6] DVB USB v2
-References: <4FF19D3C.6070506@iki.fi> <4FF36865.1090808@iki.fi> <4FF7651A.7020907@redhat.com>
-In-Reply-To: <4FF7651A.7020907@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/07/2012 01:22 AM, Mauro Carvalho Chehab wrote:
-> Em 03-07-2012 18:47, Antti Palosaari escreveu:
->> On 07/02/2012 04:08 PM, Antti Palosaari wrote:
->>> Here it is finally - quite totally rewritten DVB-USB-framework. I
->>> haven't got almost any feedback so far...
->>
->> I rebased it in order to fix compilation issues coming from Kconfig.
->>
->>
->>> regards
->>> Antti
->>>
->>>
->>> The following changes since commit
->>> 6887a4131da3adaab011613776d865f4bcfb5678:
->>>
->>>     Linux 3.5-rc5 (2012-06-30 16:08:57 -0700)
->>>
->>> are available in the git repository at:
->>>
->>>     git://linuxtv.org/anttip/media_tree.git dvb_usb_pull
->>>
->>> for you to fetch changes up to 747abaa1e0ee4415e67026c119cb73e6277f4898:
->>>
->>>     dvb_usb_v2: remove usb_clear_halt() from stream (2012-07-02 15:54:29
->>> +0300)
->>>
->>> ----------------------------------------------------------------
->>> Antti Palosaari (103):
->>>         dvb_usb_v2: copy current dvb_usb as a starting point
->
-> Naming the DVB USB v2 as dvb_usb, instead of dvb-usb is very very ugly.
-> It took me some time to discover what happened.
->
-> You should have named it as dvb-usb-v2 instead, or to store it into
-> a separate directory.
->
-> This is even worse as it seems that this series doesn't change all
-> drivers to use dvb usb v2. So, it will be harder to discover what
-> drivers are at V1 and what are at V2.
->
-> I won't merge it as-is at staging/for_v3.6. I may eventually create
-> a separate topic branch and add them there, while the namespace mess
-> is not corrected, if I still have some time today. Otherwise, I'll only
-> handle that after returning from vacations.
+Hello,
+with your patch driver is working properly. I see devices in /dev directory and in dmesg
+is attached output:
 
-I moved it to the dvb-usb-v2 directory. Same location only added patch 
-top of that.
+[    5.124858] cx25821: driver version 0.0.106 loaded
+[    5.124890] cx25821: Athena pci enable !
+[    5.124891] cx25821:
+[    5.124892] ***********************************
+[    5.124893] cx25821: cx25821 set up
+[    5.124894] cx25821: ***********************************
+[    5.124895]
+[    5.124897] cx25821: Athena Hardware device = 0x8210
+[    5.125165] cx25821: cx25821[1]: subsystem: 0000:0000, board: CX25821 [card=1,autodetected]
+[    5.125201] asus_wmi: ASUS WMI generic driver loaded
+[    5.144539] asus_wmi: Initialization: 0x0
+[    5.144566] asus_wmi: BIOS WMI version: 0.9
+[    5.144616] asus_wmi: SFUN value: 0x0
+[    5.144906] input: Eee PC WMI hotkeys as /devices/platform/eeepc-wmi/input/input4
+[    5.151580] asus_wmi: Backlight controlled by ACPI video driver
+[    5.307573] EXT4-fs (sda3): re-mounted. Opts: acl,user_xattr
+[    5.345621] cx25821: (1): i2c register! bus->i2c_rc = 0
+[    5.424861] cx25821: cx25821_dev_checkrevision(): Hardware revision = 0x00
+[    5.424864] cx25821: (1): setup done!
+[    5.424872] cx25821: cx25821[1]/0: found at 0000:02:00.0, rev: 0, irq: 16, latency: 0, mmio: 0xf7c00000
 
-Surely I can convert all drivers and use old directory, but IMHO it is 
-simply too risky. We have already too much problems coming from that 
-kind of big changes.
+Regards 
+Radek Masin
+radek@masin.eu
 
-And what goes to file naming hyphen (-) vs. underscore (_), underscore 
-seems to be much more common inside Kernel. Anyhow, I keep directory 
-name as dvb-usb-v2 to follow old naming.
-
-$ find ./ -type f -printf "%f\n" | grep "_" | wc -l
-21465
-$ find ./ -type f -printf "%f\n" | grep "-" | wc -l
-13927
-
-
-regards
-Antti
-
-
--- 
-http://palosaari.fi/
-
-
+Dne St, 07/18/2012 03:24 odp., Ezequiel Garcia <elezegarcia@gmail.com> napsal(a):
+> Radek,
+> 
+> On Wed, Jul 18, 2012 at 10:14 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+> > Hi Radek,
+> >
+> 
+> I think the attached patch will solve this issue.
+> 
+> Please test and tell me if it did,
+> Ezequiel.
+> 
