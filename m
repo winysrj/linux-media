@@ -1,106 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:56291 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751670Ab2GZUjf (ORCPT
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:53220 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752009Ab2GRJGs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jul 2012 16:39:35 -0400
-Message-ID: <5011AB03.2070900@gmail.com>
-Date: Thu, 26 Jul 2012 22:39:31 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org, b.zolnierkie@samsung.com
-Subject: Re: [RFC/PATCH 09/13] media: s5k6aa: Add support for device tree
- based instantiation
-References: <4FBFE1EC.9060209@samsung.com> <1337975573-27117-1-git-send-email-s.nawrocki@samsung.com> <1337975573-27117-9-git-send-email-s.nawrocki@samsung.com> <1393020.I6XBuRyBXi@avalon>
-In-Reply-To: <1393020.I6XBuRyBXi@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Wed, 18 Jul 2012 05:06:48 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, device-drivers-devel@blackfin.uclinux.org
+Subject: [RFCv2 PATCH 0/7] Add adv7604/ad9389b drivers
+Date: Wed, 18 Jul 2012 11:06:13 +0200
+Message-Id: <1342602380-5854-1-git-send-email-hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi all,
 
-On 07/26/2012 05:21 PM, Laurent Pinchart wrote:
-> On Friday 25 May 2012 21:52:48 Sylwester Nawrocki wrote:
->> The driver initializes all board related properties except the s_power()
->> callback to board code. The platforms that require this callback are not
->> supported by this driver yet for CONFIG_OF=y.
->>
->> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
->> Signed-off-by: Bartlomiej Zolnierkiewicz<b.zolnierkie@samsung.com>
->> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
->> ---
->>   .../bindings/camera/samsung-s5k6aafx.txt           |   57 +++++++++
->>   drivers/media/video/s5k6aa.c                       |  129 ++++++++++++-----
->>   2 files changed, 146 insertions(+), 40 deletions(-)
->>   create mode 100644
->> Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt
->>
->> diff --git a/Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt
->> b/Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt new file
->> mode 100644
->> index 0000000..6685a9c
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt
->> @@ -0,0 +1,57 @@
->> +Samsung S5K6AAFX camera sensor
->> +------------------------------
->> +
->> +Required properties:
->> +
->> +- compatible : "samsung,s5k6aafx";
->> +- reg : base address of the device on I2C bus;
->> +- video-itu-601-bus : parallel bus with HSYNC and VSYNC - ITU-R BT.601;
->> +- vdd_core-supply : digital core voltage supply 1.5V (1.4V to 1.6V);
->> +- vdda-supply : analog power voltage supply 2.8V (2.6V to 3.0V);
->> +- vdd_reg-supply : regulator input power voltage supply 1.8V (1.7V to 1.9V)
->> +		   or 2.8V (2.6V to 3.0);
->> +- vddio-supply : I/O voltage supply 1.8V (1.65V to 1.95V)
->> +		 or 2.8V (2.5V to 3.1V);
->> +
->> +Optional properties:
->> +
->> +- clock-frequency : the IP's main (system bus) clock frequency in Hz, the
->> default
-> 
-> Is that the input clock frequency ? Can't it vary ? Instead of accessing the
+This is the second version of this patch series.
 
-Yes, the description is incorrect in this patch, it should read:
+The only changes since the first version are in the adv7604 and ad9389b
+drivers themselves:
 
-+- clock-frequency : the sensor's master clock frequency in Hz;
+- adv7604: fixed some incorrect error codes (-1 instead of -EIO)
+- ad9389b+adv7604: fixed incorrect v4l2_ctrl_new_std_menu arguments.
+- ad9389b+adv7604: don't set v4l2_ctrl_ops for status controls, there is
+  nothing to do for the ops.
+- ad9389b+adv7604: zero the reserved array of enum_dv_timings.
+- ad9389b: make DVI-D the default connector mode as that will also work if
+  the HDMI connector is hooked up to a DVI-D connector through an adapter.
 
-and be a required property. As in this patch:
-https://github.com/snawrocki/linux/commit/e8a5f890dec0d7414b656bb1d1ac97d5e7abe563
+The original text of this patch series follows below.
 
-It could vary (as this is a PLL input frequency), so probably a range would
-be a better alternative. Given that host device won't always be able to set 
-this exact value...
-
-> sensor clock frequency from the FIMC driver you should reference a clock in
-> the sensor DT node. That obviously requires generic clock support, which might
-> not be available for your platform yet (that's one of the reasons the OMAP3
-> ISP driver doesn't support DT yet).
-
-I agree it might be better, but waiting unknown number of kernel releases
-for the platforms to get converted to common clock API is not a good 
-alternative either. I guess we could have some transitional solutions
-while other subsystems are getting adapted. 
-
-Yet we need to specify the clock frequency range per sensor, so
-
-1. either we specify it at a sensor node and host device driver references
-   it, or
-2. it could be added to a sensor specific child node of a host device
-   mode, and then only the host would reference it, and sensor would
-   reference a clock in its DT node; I guess it's not a problem that
-   in most cases the camera host device is a clock provider.
-
---
+If there are no more comments, then I want to make the final pull request
+early next week.
 
 Regards,
-Sylwester
+
+	Hans
+
+
+Text from the first version of the patch series:
+
+
+This RFC patch series builds on an earlier RFC patch series (posted only to
+linux-media) that adds support for DVI/HDMI/DP connectors to the V4L2 API.
+
+This earlier patch series is here:
+
+        http://www.spinics.net/lists/linux-media/msg48529.html
+
+The first 3 patches are effectively unchanged compared to that patch series,
+patch 4 adds support for the newly defined controls to the V4L2 control framework
+and patch 5 adds helper functions to v4l2-common.c to help in detecting VESA
+CVT and GTF formats.
+
+Finally, two Analog Devices drivers are added to actually use this new API.
+The adv7604 is an HDMI/DVI receiver and the ad9389b is an HDMI transmitter.
+
+Another tree of mine also contains preliminary drivers for the adv7842
+and adv7511:
+
+        http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/hdmi
+
+However, I want to start with adv7604 and ad9389b since those have had the most
+testing.
+
+As the commit message of says these drivers do not implement the full
+functionality of these devices, but that can be added later, either
+by Cisco or by others.
+
+A lot of work has been put into the V4L2 subsystem to reach this point,
+particularly the control framework, the VIDIOC_G/S/ENUM/QUERY_DV_TIMINGS
+ioctls, and the V4L2 event mechanism. So I'm very pleased to be able to finally
+post this code.
+
+Comments are welcome!
+
+Regards,
+
+        Hans Verkuil
+
