@@ -1,66 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:39971 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751182Ab2GEONT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 10:13:19 -0400
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Date: Thu, 05 Jul 2012 16:13:15 +0200
-From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
-To: Anton Blanchard <anton@samba.org>
-Cc: <mchehab@infradead.org>, <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 3/3] [media] winbond-cir: Adjust sample frequency to improve
- reliability
-In-Reply-To: <20120705203035.196e238e@kryten>
-References: <20120702115800.1275f944@kryten> <20120702115937.623d3b41@kryten> <20120703202825.GC29839@hardeman.nu> <20120705203035.196e238e@kryten>
-Message-ID: <9c21e63d50aba0e550a69a691dd12860@hardeman.nu>
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:60102 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751985Ab2GRJGs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Jul 2012 05:06:48 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, device-drivers-devel@blackfin.uclinux.org
+Subject: [RFCv2 PATCH 3/7] v4l2-subdev: add support for the new edid ioctls.
+Date: Wed, 18 Jul 2012 11:06:16 +0200
+Message-Id: <c9e4cb743bfc9078b7a9399ddec22a9c01163988.1342601681.git.hans.verkuil@cisco.com>
+In-Reply-To: <1342602380-5854-1-git-send-email-hans.verkuil@cisco.com>
+References: <1342602380-5854-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <c9c25dde447e731e6f0925bd175550196c5612e0.1342601681.git.hans.verkuil@cisco.com>
+References: <c9c25dde447e731e6f0925bd175550196c5612e0.1342601681.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 5 Jul 2012 20:30:35 +1000, Anton Blanchard <anton@samba.org>
-wrote:
-> I had a closer look. I dumped the RC6 debug, but I also printed the raw
-> data in the interrupt handler:
-> 
->     printk("%x %d %d\n", irdata, rawir.pulse, rawir.duration);
-> 
-...
-> That should have been a pulse but it came out as a space. This makes me
-> wonder if there is an issue with the run length encoding, perhaps when
-> a pulse is the right size to just saturate it. It does seem like we
-> set the top bit even though we should not have.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/v4l2-ioctl.c  |   13 +++++++++++++
+ drivers/media/video/v4l2-subdev.c |    6 ++++++
+ include/media/v4l2-subdev.h       |    2 ++
+ 3 files changed, 21 insertions(+)
 
-It's quite weird to see a "short" space followed by a max space followed
-by a "short" space (0xdc 0xff 0xde). Almost like there's one or more
-(pulse) bytes missing in between.
-
-I've tested long pulses/spaces before and they've worked as expected (e.g.
-"max", "max", "short" events....the leading 0x7f 0x7f 0x08 sequence in your
-log is a good example).
-
-Now, there is a minor bug in the RLE decoding in that the duration should
-have 1 added to it (meaning that 0x00 or 0x80 are valid values).
-
-Just to make sure something like that isn't happening, could you correct
-the line in wbcir_irq_rx() which currently reads:
-
-rawir.duration = US_TO_NS((irdata & 0x7F) * 10);
-
-so that it reads
-
-rawir.duration = US_TO_NS(((irdata & 0x7F) + 1) * 10);
-
-However, I'm guessing you inserted the extra debug printk inside
-wbcir_irq_rx() so any 0x00 or 0x80 bytes would have been printed?
-
-Another possibility is that the printk in the interrupt handler causes
-overhead...could you do a debug run without the printk in the interrupt
-handler?
-
-Also, could you provide me with the full versions of both logs? (i.e. all
-the way to idle....it might help spot a missed pulse/space)
-
-Thanks,
-David
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 70e0efb..b2aa957 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -2099,6 +2099,19 @@ static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
+ 		break;
+ 	}
+ 
++	case VIDIOC_SUBDEV_G_EDID:
++	case VIDIOC_SUBDEV_S_EDID: {
++		struct v4l2_subdev_edid *edid = parg;
++
++		if (edid->blocks) {
++			*user_ptr = (void __user *)edid->edid;
++			*kernel_ptr = (void *)&edid->edid;
++			*array_size = edid->blocks * 128;
++			ret = 1;
++		}
++		break;
++	}
++
+ 	case VIDIOC_S_EXT_CTRLS:
+ 	case VIDIOC_G_EXT_CTRLS:
+ 	case VIDIOC_TRY_EXT_CTRLS: {
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index 9182f81..dced41c 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -348,6 +348,12 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		return v4l2_subdev_call(
+ 			sd, pad, set_selection, subdev_fh, sel);
+ 	}
++
++	case VIDIOC_SUBDEV_G_EDID:
++		return v4l2_subdev_call(sd, pad, get_edid, arg);
++
++	case VIDIOC_SUBDEV_S_EDID:
++		return v4l2_subdev_call(sd, pad, set_edid, arg);
+ #endif
+ 	default:
+ 		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index c35a354..74c578f 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -476,6 +476,8 @@ struct v4l2_subdev_pad_ops {
+ 			     struct v4l2_subdev_selection *sel);
+ 	int (*set_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 			     struct v4l2_subdev_selection *sel);
++	int (*get_edid)(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid);
++	int (*set_edid)(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid);
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	int (*link_validate)(struct v4l2_subdev *sd, struct media_link *link,
+ 			     struct v4l2_subdev_format *source_fmt,
+-- 
+1.7.10
 
