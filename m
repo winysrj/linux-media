@@ -1,56 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:41879 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753530Ab2GNOK6 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52875 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754576Ab2GRNyE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Jul 2012 10:10:58 -0400
-MIME-Version: 1.0
-Date: Sat, 14 Jul 2012 16:10:56 +0200
-Message-ID: <CANq1E4SbippxHHTaqLhpGjJLG12y94kWUFdB7P_EAG14o50vrQ@mail.gmail.com>
-Subject: dma-buf/fbdev: one-to-many support
-From: David Herrmann <dh.herrmann@googlemail.com>
-To: dri-devel@lists.freedesktop.org
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Wed, 18 Jul 2012 09:54:04 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH v3 5/9] tw9910: Don't access the device in the g_mbus_fmt operation
+Date: Wed, 18 Jul 2012 15:54:00 +0200
+Message-Id: <1342619644-5712-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1342619644-5712-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1342619644-5712-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+The g_mbus_fmt operation only needs to return the current mbus frame
+format and doesn't need to configure the hardware to do so. Fix it to
+avoid requiring the chip to be powered on when calling the operation.
 
-I am currently working on fblog [1] (a replacement for fbcon without
-VT dependencies) but this questions does also apply to other fbdev
-users. Is there a way to share framebuffers between fbdev devices? I
-was thinking especially of USB devices like DisplayLink. If they share
-the same screen dimensions it would increase performance a lot if I
-could display a single buffer on all the devices instead of copying it
-into each framebuffer.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/tw9910.c |    8 +++-----
+ 1 files changed, 3 insertions(+), 5 deletions(-)
 
-I was told to have a look at the dma-buf framework to implement this.
-However, looking at the fbdev dma-buf support I think that this isn't
-currently possible. Each fbdev device takes the exporter-role and
-provides a single dma-buf object. However, if I wanted to share the
-buffers, I would need to be the exporter. Or there needs to be a way
-for the fbdev devices to import a dma-buf from other fbdev devices.
+diff --git a/drivers/media/video/tw9910.c b/drivers/media/video/tw9910.c
+index 8768efb..9f53eac 100644
+--- a/drivers/media/video/tw9910.c
++++ b/drivers/media/video/tw9910.c
+@@ -699,11 +699,9 @@ static int tw9910_g_fmt(struct v4l2_subdev *sd,
+ 	struct tw9910_priv *priv = to_tw9910(client);
+ 
+ 	if (!priv->scale) {
+-		int ret;
+-		u32 width = 640, height = 480;
+-		ret = tw9910_set_frame(sd, &width, &height);
+-		if (ret < 0)
+-			return ret;
++		priv->scale = tw9910_select_norm(priv->norm, 640, 480);
++		if (!priv->scale)
++			return -EINVAL;
+ 	}
+ 
+ 	mf->width	= priv->scale->width;
+-- 
+1.7.8.6
 
-I also took a short look at DRM prime support and noticed that it is
-capable of importing buffers (or at least it looks like it is).
-Therefore,  I was wondering whether it does make sense to add an
-"import dma-buf" callback to fbdev devices and if the fbdev driver
-supports this, I can simply draw to a single dma-buf from one fbdev
-device and push it to all other fbdev devices that share the same
-dimensions.
-It would also be nice to allow multiple buffer-owners or a way to
-transfer ownership. That is, if the owner/exporter of the dma-buf
-vanishes, I would pass it to another fbdev device which would pick it
-up so I don't have to create a new one.
-
-I think this is only interesting for DisplayLink-devices as they are
-currently the only way to get a bunch of displays connected to a
-single machine. Anyway, if you think that this isn't worth it, I will
-probably drop this idea.
-
-Regards
-David
-
-[1] fblog kernel driver: http://lwn.net/Articles/505965/
