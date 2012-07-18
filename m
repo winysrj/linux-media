@@ -1,73 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm13-vm0.bullet.mail.ird.yahoo.com ([77.238.189.195]:25837 "HELO
-	nm13-vm0.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751666Ab2GGKrK convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Jul 2012 06:47:10 -0400
-Message-ID: <1341658028.44303.YahooMailClassic@web29405.mail.ird.yahoo.com>
-Date: Sat, 7 Jul 2012 11:47:08 +0100 (BST)
-From: Hin-Tak Leung <hintak_leung@yahoo.co.uk>
-Subject: Re: unload/unplugging (Re: success! (Re: media_build and Terratec Cinergy T Black.))
-To: Antti Palosaari <crope@iki.fi>
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org
-In-Reply-To: <4FF80EEA.2050606@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59150 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754577Ab2GRN60 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Jul 2012 09:58:26 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH v2 3/9] ov772x: Don't fail in s_fmt if the requested format isn't supported
+Date: Wed, 18 Jul 2012 15:58:20 +0200
+Message-Id: <1342619906-5820-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1342619906-5820-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1342619906-5820-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---- On Sat, 7/7/12, Antti Palosaari <crope@iki.fi> wrote:
+Select a default format instead.
 
-<snipped>
-> > I am thinking either w_scan is doing something it
-> should not, in which case we should inform its author to
-> have this looked at, or the message does not need to be
-> there?
-> 
-> As scandvb and all the other applications are able to set
-> desired 
-> parameters without that error it must be w_scan issue.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/ov772x.c |   83 ++++++++++++++++++++++--------------------
+ 1 files changed, 43 insertions(+), 40 deletions(-)
 
-But scandvb does not work at all in my case (or rather, the bundled tuning files were wrong/out-dated).
-
-> And personally I don't care whole warning, returning some
-> error code 
-> (which is likely -EINVAL) should be enough. It is not error
-> situation in 
-> the mean of Kernel or device error - it is just user error
-> as user tries 
-> to set unsupported frequency.
-
-It is possibly just too much information in klog/dmesg .
-
-> >>> The kernel seems happy while having the device
-> >> physically pulled out. But the kernel module does
-> not like
-> >> to be unloaded (modprobe -r) while mplayer is
-> running, so we
-> >> need to fix that.
-> >>
-> >> Yep, seems to refuse unload. I suspect it is
-> refused since
-> >> there is ongoing USB transmission as it streams
-> video. But
-> >> should we allow that? And is removing open device
-> nodes OK
-> >> as applications holds those?
-> >
-> > I am thinking about suspend/resume, the poorman's way,
-> which is to unload/reload. One interesting thing to try
-> would be to pause but not quit the application - either just
-> press pause, or say, 'gdb <mplayerbinary>
-> <pid>', and see if 'modprobe -r' can be made to work
-> under that sort of condition, if it isn't already.
-> 
-> hmm, what is that kind of suspend/resume?
-> Is that different what is now implemented?
-
-In the good old days, for drivers which does not suspend/hibernate well, one can add a file /etc/pm/config.d/myfile containing SUSPEND_MODULES="modname" to get them unloaded on suspend. Does it work with mplayer/vlc running or pausing?
-
-
-
+diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
+index 3f6e4bf..c2bd087 100644
+--- a/drivers/media/video/ov772x.c
++++ b/drivers/media/video/ov772x.c
+@@ -581,11 +581,6 @@ static int ov772x_s_stream(struct v4l2_subdev *sd, int enable)
+ 		return 0;
+ 	}
+ 
+-	if (!priv->win || !priv->cfmt) {
+-		dev_err(&client->dev, "norm or win select error\n");
+-		return -EPERM;
+-	}
+-
+ 	ov772x_mask_set(client, COM2, SOFT_SLEEP_MODE, 0);
+ 
+ 	dev_dbg(&client->dev, "format %d, win %s\n",
+@@ -710,31 +705,33 @@ static const struct ov772x_win_size *ov772x_select_win(u32 width, u32 height)
+ 	return win;
+ }
+ 
+-static int ov772x_set_params(struct i2c_client *client, u32 *width, u32 *height,
+-			     enum v4l2_mbus_pixelcode code)
++static void ov772x_select_params(const struct v4l2_mbus_framefmt *mf,
++				 const struct ov772x_color_format **cfmt,
++				 const struct ov772x_win_size **win)
+ {
+-	struct ov772x_priv *priv = to_ov772x(client);
+-	int ret = -EINVAL;
+-	u8  val;
+-	int i;
++	unsigned int i;
++
++	/* Select the format format. */
++	*cfmt = &ov772x_cfmts[0];
+ 
+-	/*
+-	 * select format
+-	 */
+-	priv->cfmt = NULL;
+ 	for (i = 0; i < ARRAY_SIZE(ov772x_cfmts); i++) {
+-		if (code == ov772x_cfmts[i].code) {
+-			priv->cfmt = ov772x_cfmts + i;
++		if (mf->code == ov772x_cfmts[i].code) {
++			*cfmt = &ov772x_cfmts[i];
+ 			break;
+ 		}
+ 	}
+-	if (!priv->cfmt)
+-		goto ov772x_set_fmt_error;
+ 
+-	/*
+-	 * select win
+-	 */
+-	priv->win = ov772x_select_win(*width, *height);
++	/* Select the window size. */
++	*win = ov772x_select_win(mf->width, mf->height);
++}
++
++static int ov772x_set_params(struct ov772x_priv *priv,
++			     const struct ov772x_color_format *cfmt,
++			     const struct ov772x_win_size *win)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
++	int ret;
++	u8  val;
+ 
+ 	/*
+ 	 * reset hardware
+@@ -791,14 +788,14 @@ static int ov772x_set_params(struct i2c_client *client, u32 *width, u32 *height,
+ 	/*
+ 	 * set size format
+ 	 */
+-	ret = ov772x_write_array(client, priv->win->regs);
++	ret = ov772x_write_array(client, win->regs);
+ 	if (ret < 0)
+ 		goto ov772x_set_fmt_error;
+ 
+ 	/*
+ 	 * set DSP_CTRL3
+ 	 */
+-	val = priv->cfmt->dsp3;
++	val = cfmt->dsp3;
+ 	if (val) {
+ 		ret = ov772x_mask_set(client,
+ 				      DSP_CTRL3, UV_MASK, val);
+@@ -809,7 +806,7 @@ static int ov772x_set_params(struct i2c_client *client, u32 *width, u32 *height,
+ 	/*
+ 	 * set COM3
+ 	 */
+-	val = priv->cfmt->com3;
++	val = cfmt->com3;
+ 	if (priv->info->flags & OV772X_FLAG_VFLIP)
+ 		val |= VFLIP_IMG;
+ 	if (priv->info->flags & OV772X_FLAG_HFLIP)
+@@ -827,7 +824,7 @@ static int ov772x_set_params(struct i2c_client *client, u32 *width, u32 *height,
+ 	/*
+ 	 * set COM7
+ 	 */
+-	val = priv->win->com7_bit | priv->cfmt->com7;
++	val = win->com7_bit | cfmt->com7;
+ 	ret = ov772x_mask_set(client,
+ 			      COM7, SLCT_MASK | FMT_MASK | OFMT_MASK,
+ 			      val);
+@@ -846,16 +843,11 @@ static int ov772x_set_params(struct i2c_client *client, u32 *width, u32 *height,
+ 			goto ov772x_set_fmt_error;
+ 	}
+ 
+-	*width = priv->win->width;
+-	*height = priv->win->height;
+-
+ 	return ret;
+ 
+ ov772x_set_fmt_error:
+ 
+ 	ov772x_reset(client);
+-	priv->win = NULL;
+-	priv->cfmt = NULL;
+ 
+ 	return ret;
+ }
+@@ -899,18 +891,29 @@ static int ov772x_g_fmt(struct v4l2_subdev *sd,
+ 	return 0;
+ }
+ 
+-static int ov772x_s_fmt(struct v4l2_subdev *sd,
+-			struct v4l2_mbus_framefmt *mf)
++static int ov772x_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
+ {
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
+-	int ret = ov772x_set_params(client, &mf->width, &mf->height,
+-				    mf->code);
++	const struct ov772x_color_format *cfmt;
++	const struct ov772x_win_size *win;
++	int ret;
+ 
+-	if (!ret)
+-		mf->colorspace = priv->cfmt->colorspace;
++	ov772x_select_params(mf, &cfmt, &win);
+ 
+-	return ret;
++	ret = ov772x_set_params(priv, cfmt, win);
++	if (ret < 0)
++		return ret;
++
++	priv->win = win;
++	priv->cfmt = cfmt;
++
++	mf->code = cfmt->code;
++	mf->width = win->width;
++	mf->height = win->height;
++	mf->field = V4L2_FIELD_NONE;
++	mf->colorspace = cfmt->colorspace;
++
++	return 0;
+ }
+ 
+ static int ov772x_try_fmt(struct v4l2_subdev *sd,
+-- 
+1.7.8.6
 
