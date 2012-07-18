@@ -1,85 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:51281 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752876Ab2GaN24 (ORCPT
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:59986 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753738Ab2GRNrv convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 09:28:56 -0400
-Received: from epcpsbgm2.samsung.com (mailout4.samsung.com [203.254.224.34])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M8100EQY1FQ79X0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Tue, 31 Jul 2012 22:28:55 +0900 (KST)
-Received: from localhost.localdomain ([107.108.73.106])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M8100ALP1FF8G60@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 31 Jul 2012 22:28:55 +0900 (KST)
-From: Shaik Ameer Basha <shaik.ameer@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: sungchun.kang@samsung.com, khw0178.kim@samsung.com,
-	mchehab@infradead.org, laurent.pinchart@ideasonboard.com,
-	sy0816.kang@samsung.com, s.nawrocki@samsung.com,
-	posciak@google.com, hverkuil@xs4all.nl, alim.akhtar@gmail.com,
-	prashanth.g@samsung.com, joshi@samsung.com,
-	shaik.samsung@gmail.com, shaik.ameer@samsung.com
-Subject: [PATCH v5 5/5] media: gscaler: Add Makefile for G-Scaler Driver
-Date: Tue, 31 Jul 2012 19:14:06 +0530
-Message-id: <1343742246-27579-6-git-send-email-shaik.ameer@samsung.com>
-In-reply-to: <1343742246-27579-1-git-send-email-shaik.ameer@samsung.com>
-References: <1343742246-27579-1-git-send-email-shaik.ameer@samsung.com>
+	Wed, 18 Jul 2012 09:47:51 -0400
+Received: by gglu4 with SMTP id u4so1555752ggl.19
+        for <linux-media@vger.kernel.org>; Wed, 18 Jul 2012 06:47:51 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1342619104849714500@masin.eu>
+References: <1342615958949547500@masin.eu>
+	<CALF0-+U7HYyuLZJzUH4_OhJ7U4X33fOAmSmYuP-xATkMVjpKcQ@mail.gmail.com>
+	<1342619104849714500@masin.eu>
+Date: Wed, 18 Jul 2012 10:47:50 -0300
+Message-ID: <CALF0-+XG__BL1MLvE=qpqK9jnO=oqOvUYoXZSHwv3Oq-JGrZTw@mail.gmail.com>
+Subject: Re: CX25821 driver in kernel 3.4.4 problem
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: =?ISO-8859-2?Q?Radek_Ma=B9=EDn?= <radek@masin.eu>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the Makefile for G-Scaler driver.
+On Wed, Jul 18, 2012 at 10:45 AM, Radek Mašín <radek@masin.eu> wrote:
+> Hello,
+> I can test it without problems. Please send me a patch.
+>
 
-Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/video/Kconfig             |    8 ++++++++
- drivers/media/video/Makefile            |    2 ++
- drivers/media/video/exynos-gsc/Makefile |    3 +++
- 3 files changed, 13 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/exynos-gsc/Makefile
+I already did :-) Please checkout my previous mail.
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index c128fac..9cf143a 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -1260,4 +1260,12 @@ config VIDEO_MX2_EMMAPRP
- 	    memory to memory. Operations include resizing and format
- 	    conversion.
- 
-+config VIDEO_SAMSUNG_EXYNOS_GSC
-+        tristate "Samsung Exynos G-Scaler driver"
-+        depends on VIDEO_DEV && VIDEO_V4L2 && PLAT_S5P
-+        select VIDEOBUF2_DMA_CONTIG
-+        select V4L2_MEM2MEM_DEV
-+        help
-+            This is v4l2 based G-Scaler driver for EXYNOS5
-+
- endif # V4L_MEM2MEM_DRIVERS
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index b7da9fa..3954f28 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -196,6 +196,8 @@ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_TV)	+= s5p-tv/
- 
- obj-$(CONFIG_VIDEO_SAMSUNG_S5P_G2D)	+= s5p-g2d/
- 
-+obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC)	+= exynos-gsc/
-+
- obj-$(CONFIG_BLACKFIN)                  += blackfin/
- 
- obj-$(CONFIG_ARCH_DAVINCI)		+= davinci/
-diff --git a/drivers/media/video/exynos-gsc/Makefile b/drivers/media/video/exynos-gsc/Makefile
-new file mode 100644
-index 0000000..e9d7f8a
---- /dev/null
-+++ b/drivers/media/video/exynos-gsc/Makefile
-@@ -0,0 +1,3 @@
-+gsc-objs := gsc-core.o gsc-m2m.o gsc-regs.o
-+
-+obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC)	+= gsc.o
--- 
-1.7.0.4
-
+Thanks,
+Ezequiel.
