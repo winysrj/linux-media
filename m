@@ -1,44 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:57493 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755588Ab2GaLFs (ORCPT
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:50432 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754944Ab2GRQ65 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 07:05:48 -0400
-Received: by wibhm11 with SMTP id hm11so2758575wib.1
-        for <linux-media@vger.kernel.org>; Tue, 31 Jul 2012 04:05:47 -0700 (PDT)
+	Wed, 18 Jul 2012 12:58:57 -0400
+Message-ID: <5006EB4D.1020104@gmail.com>
+Date: Wed, 18 Jul 2012 18:58:53 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CACKLOr2+y5emMuvKR0nLdQR=GtUOZ6Ms7j65bO5iXB8jJw0L4Q@mail.gmail.com>
-References: <1343295404-8931-1-git-send-email-javier.martin@vista-silicon.com>
-	<50170DE0.2030007@redhat.com>
-	<CACKLOr2+y5emMuvKR0nLdQR=GtUOZ6Ms7j65bO5iXB8jJw0L4Q@mail.gmail.com>
-Date: Tue, 31 Jul 2012 13:05:46 +0200
-Message-ID: <CACKLOr3A+P0kbqKJW4v3yfh3dB6cuofhLHMEOKpSCbDX6gzzZQ@mail.gmail.com>
-Subject: Re: "[PULL] video_visstrim for 3.6"
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, Sascha Hauer <s.hauer@pengutronix.de>,
-	Russell King <linux@arm.linux.org.uk>,
-	Philipp Zabel <p.zabel@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org, b.zolnierkie@samsung.com
+Subject: Re: [RFC/PATCH 04/13] devicetree: Add common video devices bindings
+ documentation
+References: <4FBFE1EC.9060209@samsung.com> <1337975573-27117-1-git-send-email-s.nawrocki@samsung.com> <1337975573-27117-4-git-send-email-s.nawrocki@samsung.com> <Pine.LNX.4.64.1207161057050.12302@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1207161057050.12302@axis700.grange>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-just in case Sascha's ACK doesn't make it on time. Could you just
-merge the following  patches and drop the rest?
-.
-      media: coda: Add driver for Coda video codec.
-      media: Add mem2mem deinterlacing driver.
+Hi Guennadi,
 
-We did a great effort to push Coda driver for 3.6 and it would be a
-pity we finally missed that deadline.
+On 07/16/2012 11:09 AM, Guennadi Liakhovetski wrote:
+> On Fri, 25 May 2012, Sylwester Nawrocki wrote:
+> 
+>> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
+>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+>> ---
+>>   Documentation/devicetree/bindings/video/video.txt |   10 ++++++++++
+>>   1 file changed, 10 insertions(+)
+>>   create mode 100644 Documentation/devicetree/bindings/video/video.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/video/video.txt b/Documentation/devicetree/bindings/video/video.txt
+>> new file mode 100644
+>> index 0000000..9f6a637
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/video/video.txt
+>> @@ -0,0 +1,10 @@
+>> +Common properties of video data source devices (image sensor, video encoders, etc.)
+>> +
+>> +Video bus types
+>> +---------------
+>> +
+>> +- video-bus-type : must be one of:
+>> +
+>> +    - itu-601   : parallel bus with HSYNC and VSYNC - ITU-R BT.601;
+>> +    - itu-656   : parallel bus with embedded synchronization - ITU-R BT.656;
+> 
+> wikipedia tells me, that bt.601 is mostly a data encoding standard, it
+> also defines bus-types, but recent versions also include serial busses.
 
-Regards.
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Hmm, indeed, I got slightly misled by the Samsung SoCs' User Manuals 
+that used bt.601/bt.656 to distinguish between bus with sync signals
+and with embedded sync.
+
+>> +    - mipi-csi2 : MIPI-CSI2 serial bus;
+> 
+> In general: are these at all needed? Wouldn't it be better to specify pads
+> on sensors and interfaces to differentiate between serial and parallel
+> connections. As for whether HSYNC and VSYNC are used - I see 3
+
+We have video buses and data receivers and transmitters attached to them.
+The pads concept doesn't quite fit here for me. Specifying possible links 
+with character string tags might be a way to go, but I'd like to hear
+others' opinion on that. Do we have any bindings already that do something
+similar ?
+
+> possibilities there:
+> 
+> 1. real sync signals are used - the default.
+> 
+> 2. embedded syncs shall be used, because sync signals are missing. This
+> should (arguably) be derived from pinctrl - see this discussion:
+> 
+> http://lkml.indiana.edu/hypermail/linux/kernel/1205.2/index.html#03893
+
+Hmm, I'm not terribly familiar with pinctrl API, but wouldn't it be 
+required to have two pin group names: (data + clock + sync) signals and
+(data + clock) (for embedded video synchronization) ? We would have to name
+these two configurations somehow anyway, wouldn't we ?
+
+Also, as Stephen pointed out, the control flow is supposed to be from
+drivers to pin controller, not the other way around.
+
+> 3. sync signals are present, but cannot be used, because one of the
+> partners doesn't support them - .g_mbus_config() can be used to retrieve
+> this information.
+
+OK.
+
+> 4. sync signals are available and supported by both peers, but for some
+> reason the user prefers to use embedded sync data - is such a case
+> feasible? Even if so, this should be run-time configurable then?
+
+I've never seen such a situation. I would expect that if sync signal wires 
+are routed, they shall be used. Otherwise only embedded synchronization
+would be used, to save PCB area.
+ 
+> So, maybe we don't need these at all.
+
+We need something that would let drivers distinguish which (serial/
+parallel) bus is supported on a board. And what type of synchronization
+is used. I'm fine as long as this can be specified reliably in DT and
+drivers of the transmitters/receivers can configure their output/input
+interfaces. I'm not against dynamic configuration but static one also
+need to be supported.
+
+--
+Regards,
+Sylwester
