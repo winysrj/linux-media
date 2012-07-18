@@ -1,136 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39793 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752854Ab2GWXKi (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:22257 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751315Ab2GRIX1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jul 2012 19:10:38 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH v2] mt9v032: Export horizontal and vertical blanking as V4L2 controls
-Date: Tue, 24 Jul 2012 01:10:42 +0200
-Message-Id: <1343085042-19695-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1343068502-7431-4-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1343068502-7431-4-git-send-email-laurent.pinchart@ideasonboard.com>
+	Wed, 18 Jul 2012 04:23:27 -0400
+From: Hans Verkuil <hansverk@cisco.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: [PATCH for 3.5] v4l2-dev: forgot to add VIDIOC_DV_TIMINGS_CAP.
+Date: Wed, 18 Jul 2012 10:13:23 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	"'Mauro Carvalho Chehab'" <mchehab@redhat.com>
+MIME-Version: 1.0
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_jAnBQKfGVv+tgiP"
+Message-Id: <201207181013.23597.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/mt9v032.c |   36 +++++++++++++++++++++++++++++++++---
- 1 files changed, 33 insertions(+), 3 deletions(-)
+--Boundary-00=_jAnBQKfGVv+tgiP
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-Changes since v1:
+Hi Linus,
 
-- Make sure the total horizontal time will not go below 660 when setting the
-  horizontal blanking control
-- Restrict the vertical blanking value to 3000 as documented in the datasheet.
-  Increasing the exposure time actually extends vertical blanking, as long as
-  the user doesn't forget to turn auto-exposure off...
+I'm sending the attached one-liner patch directly to you for inclusion in 3.5 as
+without it the new VIDIOC_DV_TIMINGS_CAP ioctl doesn't work. The cause was that
+for 3.5 two patch series were merged, one changing V4L2 core ioctl handling and
+one adding new functionality, and some of the new functionality wasn't handled
+by the new V4L2 core code.
 
-diff --git a/drivers/media/video/mt9v032.c b/drivers/media/video/mt9v032.c
-index 2203a6f..e713ad9 100644
---- a/drivers/media/video/mt9v032.c
-+++ b/drivers/media/video/mt9v032.c
-@@ -50,9 +50,11 @@
- #define		MT9V032_WINDOW_WIDTH_MAX		752
- #define MT9V032_HORIZONTAL_BLANKING			0x05
- #define		MT9V032_HORIZONTAL_BLANKING_MIN		43
-+#define		MT9V032_HORIZONTAL_BLANKING_DEF		94
- #define		MT9V032_HORIZONTAL_BLANKING_MAX		1023
- #define MT9V032_VERTICAL_BLANKING			0x06
- #define		MT9V032_VERTICAL_BLANKING_MIN		4
-+#define		MT9V032_VERTICAL_BLANKING_DEF		45
- #define		MT9V032_VERTICAL_BLANKING_MAX		3000
- #define MT9V032_CHIP_CONTROL				0x07
- #define		MT9V032_CHIP_CONTROL_MASTER_MODE	(1 << 3)
-@@ -129,8 +131,10 @@ struct mt9v032 {
- 	int power_count;
- 
- 	struct mt9v032_platform_data *pdata;
-+
- 	u16 chip_control;
- 	u16 aec_agc;
-+	u16 hblank;
- };
- 
- static struct mt9v032 *to_mt9v032(struct v4l2_subdev *sd)
-@@ -188,6 +192,16 @@ mt9v032_update_aec_agc(struct mt9v032 *mt9v032, u16 which, int enable)
- 	return 0;
- }
- 
-+static int
-+mt9v032_update_hblank(struct mt9v032 *mt9v032)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
-+	struct v4l2_rect *crop = &mt9v032->crop;
-+
-+	return mt9v032_write(client, MT9V032_HORIZONTAL_BLANKING,
-+			     max_t(s32, mt9v032->hblank, 660 - crop->width));
-+}
-+
- #define EXT_CLK		25000000
- 
- static int mt9v032_power_on(struct mt9v032 *mt9v032)
-@@ -322,8 +336,7 @@ static int mt9v032_s_stream(struct v4l2_subdev *subdev, int enable)
- 	if (ret < 0)
- 		return ret;
- 
--	ret = mt9v032_write(client, MT9V032_HORIZONTAL_BLANKING,
--			    max(43, 660 - crop->width));
-+	ret = mt9v032_update_hblank(mt9v032);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -505,6 +518,14 @@ static int mt9v032_s_ctrl(struct v4l2_ctrl *ctrl)
- 		return mt9v032_write(client, MT9V032_TOTAL_SHUTTER_WIDTH,
- 				     ctrl->val);
- 
-+	case V4L2_CID_HBLANK:
-+		mt9v032->hblank = ctrl->val;
-+		return mt9v032_update_hblank(mt9v032);
-+
-+	case V4L2_CID_VBLANK:
-+		return mt9v032_write(client, MT9V032_VERTICAL_BLANKING,
-+				     ctrl->val);
-+
- 	case V4L2_CID_TEST_PATTERN:
- 		switch (ctrl->val) {
- 		case 0:
-@@ -701,7 +722,7 @@ static int mt9v032_probe(struct i2c_client *client,
- 	mutex_init(&mt9v032->power_lock);
- 	mt9v032->pdata = client->dev.platform_data;
- 
--	v4l2_ctrl_handler_init(&mt9v032->ctrls, ARRAY_SIZE(mt9v032_ctrls) + 5);
-+	v4l2_ctrl_handler_init(&mt9v032->ctrls, ARRAY_SIZE(mt9v032_ctrls) + 7);
- 
- 	v4l2_ctrl_new_std(&mt9v032->ctrls, &mt9v032_ctrl_ops,
- 			  V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
-@@ -715,6 +736,14 @@ static int mt9v032_probe(struct i2c_client *client,
- 			  V4L2_CID_EXPOSURE, MT9V032_TOTAL_SHUTTER_WIDTH_MIN,
- 			  MT9V032_TOTAL_SHUTTER_WIDTH_MAX, 1,
- 			  MT9V032_TOTAL_SHUTTER_WIDTH_DEF);
-+	v4l2_ctrl_new_std(&mt9v032->ctrls, &mt9v032_ctrl_ops,
-+			  V4L2_CID_HBLANK, MT9V032_HORIZONTAL_BLANKING_MIN,
-+			  MT9V032_HORIZONTAL_BLANKING_MAX, 1,
-+			  MT9V032_HORIZONTAL_BLANKING_DEF);
-+	v4l2_ctrl_new_std(&mt9v032->ctrls, &mt9v032_ctrl_ops,
-+			  V4L2_CID_VBLANK, MT9V032_VERTICAL_BLANKING_MIN,
-+			  MT9V032_VERTICAL_BLANKING_MAX, 1,
-+			  MT9V032_VERTICAL_BLANKING_DEF);
- 	mt9v032->pixel_rate =
- 		v4l2_ctrl_new_std(&mt9v032->ctrls, &mt9v032_ctrl_ops,
- 				  V4L2_CID_PIXEL_RATE, 0, 0, 1, 0);
-@@ -740,6 +769,7 @@ static int mt9v032_probe(struct i2c_client *client,
- 	mt9v032->format.colorspace = V4L2_COLORSPACE_SRGB;
- 
- 	mt9v032->aec_agc = MT9V032_AEC_ENABLE | MT9V032_AGC_ENABLE;
-+	mt9v032->hblank = MT9V032_HORIZONTAL_BLANKING_DEF;
- 
- 	v4l2_i2c_subdev_init(&mt9v032->subdev, client, &mt9v032_subdev_ops);
- 	mt9v032->subdev.internal_ops = &mt9v032_subdev_internal_ops;
--- 
+Mauro is still on a well-deserved vacation, so I'm sending it to you directly
+so it can be merged for 3.5 before it is released.
+
 Regards,
 
-Laurent Pinchart
+	Hans
 
+--Boundary-00=_jAnBQKfGVv+tgiP
+Content-Type: text/x-patch;
+  charset="ISO-8859-1";
+  name="0001-v4l2-dev-forgot-to-add-VIDIOC_DV_TIMINGS_CAP.patch"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+	filename="0001-v4l2-dev-forgot-to-add-VIDIOC_DV_TIMINGS_CAP.patch"
+
+=46rom 3a9fa27511a2ed13a24ed431879557ddb3ca406b Mon Sep 17 00:00:00 2001
+Message-Id: <3a9fa27511a2ed13a24ed431879557ddb3ca406b.1342592537.git.hans.v=
+erkuil@cisco.com>
+=46rom: Hans Verkuil <hans.verkuil@cisco.com>
+Date: Wed, 11 Jul 2012 14:12:45 +0200
+Subject: [PATCH 1/2] v4l2-dev: forgot to add VIDIOC_DV_TIMINGS_CAP.
+
+The VIDIOC_DV_TIMINGS_CAP ioctl check wasn't added to determine_valid_ioctl=
+s().
+This caused this ioctl to always return -ENOTTY.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+=2D--
+ drivers/media/video/v4l2-dev.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index 83dbb2d..0cbada1 100644
+=2D-- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -681,6 +681,7 @@ static void determine_valid_ioctls(struct video_device =
+*vdev)
+ 	SET_VALID_IOCTL(ops, VIDIOC_G_DV_TIMINGS, vidioc_g_dv_timings);
+ 	SET_VALID_IOCTL(ops, VIDIOC_ENUM_DV_TIMINGS, vidioc_enum_dv_timings);
+ 	SET_VALID_IOCTL(ops, VIDIOC_QUERY_DV_TIMINGS, vidioc_query_dv_timings);
++	SET_VALID_IOCTL(ops, VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap);
+ 	/* yes, really vidioc_subscribe_event */
+ 	SET_VALID_IOCTL(ops, VIDIOC_DQEVENT, vidioc_subscribe_event);
+ 	SET_VALID_IOCTL(ops, VIDIOC_SUBSCRIBE_EVENT, vidioc_subscribe_event);
+=2D-=20
+1.7.10.4
+
+
+--Boundary-00=_jAnBQKfGVv+tgiP--
