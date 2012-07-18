@@ -1,93 +1,267 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:50136 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751713Ab2GaJ4w (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46608 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752009Ab2GRLFO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 05:56:52 -0400
-Date: Tue, 31 Jul 2012 11:56:44 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org, b.zolnierkie@samsung.com
-Subject: Re: [RFC/PATCH 09/13] media: s5k6aa: Add support for device tree
- based instantiation
-In-Reply-To: <6250402.9RzN62tRPe@avalon>
-Message-ID: <Pine.LNX.4.64.1207311144470.27888@axis700.grange>
-References: <4FBFE1EC.9060209@samsung.com> <Pine.LNX.4.64.1207161122390.12302@axis700.grange>
- <50067F69.6080501@gmail.com> <6250402.9RzN62tRPe@avalon>
+	Wed, 18 Jul 2012 07:05:14 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v4 1/2] media: add new mediabus format enums for dm365
+Date: Wed, 18 Jul 2012 13:05:18 +0200
+Message-ID: <41958950.qGmmsSpAPM@avalon>
+In-Reply-To: <E99FAA59F8D8D34D8A118DD37F7C8F753E93EE3C@DBDE01.ent.ti.com>
+References: <1333102154-24657-1-git-send-email-manjunath.hadli@ti.com> <1521995.bdrhyBupKO@avalon> <E99FAA59F8D8D34D8A118DD37F7C8F753E93EE3C@DBDE01.ent.ti.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 26 Jul 2012, Laurent Pinchart wrote:
+Hi Manjunath,
 
-> Hi Sylwester,
-> 
-> On Wednesday 18 July 2012 11:18:33 Sylwester Nawrocki wrote:
-> > On 07/16/2012 11:42 AM, Guennadi Liakhovetski wrote:
-> > > On Fri, 25 May 2012, Sylwester Nawrocki wrote:
-> > >> The driver initializes all board related properties except the s_power()
-> > >> callback to board code. The platforms that require this callback are not
-> > >> supported by this driver yet for CONFIG_OF=y.
-> > >> 
-> > >> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
-> > >> Signed-off-by: Bartlomiej Zolnierkiewicz<b.zolnierkie@samsung.com>
-> > >> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
-> > >> ---
-> > >> 
-> > >>   .../bindings/camera/samsung-s5k6aafx.txt           |   57 +++++++++
-> > >>   drivers/media/video/s5k6aa.c                       |  129
-> > >>   ++++++++++++++------ 2 files changed, 146 insertions(+), 40
-> > >>   deletions(-)
-> > >>   create mode 100644
-> > >>   Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt>> 
-> > >> diff --git
-> > >> a/Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt
-> > >> b/Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt new file
-> > >> mode 100644
-> > >> index 0000000..6685a9c
-> > >> --- /dev/null
-> > >> +++ b/Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt
-> > >> @@ -0,0 +1,57 @@
-> > >> +Samsung S5K6AAFX camera sensor
-> > >> +------------------------------
-> > >> +
-> > >> +Required properties:
-> > >> +
-> > >> +- compatible : "samsung,s5k6aafx";
-> > >> +- reg : base address of the device on I2C bus;
+On Tuesday 17 July 2012 12:22:42 Hadli, Manjunath wrote:
+> On Tue, Jul 17, 2012 at 17:25:42, Laurent Pinchart wrote:
+> > On Tuesday 17 July 2012 11:41:11 Hadli, Manjunath wrote:
+> > > On Tue, Jul 17, 2012 at 16:26:24, Laurent Pinchart wrote:
+> > > > On Friday 30 March 2012 10:09:13 Hadli, Manjunath wrote:
+> > > > > add new enum entries for supporting the media-bus formats on dm365.
+> > > > > These include some bayer and some non-bayer formats.
+> > > > > V4L2_MBUS_FMT_YDYC8_1X16 and V4L2_MBUS_FMT_UV8_1X8 are used
+> > > > > internal to the hardware by the resizer.
+> > > > > V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8 represents the bayer ALAW format
+> > > > > that is supported by dm365 hardware.
+> > > > > 
+> > > > > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> > > > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > > > Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> > > > > Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> > > > > ---
+> > > > > 
+> > > > >  Documentation/DocBook/media/v4l/subdev-formats.xml |  171 
+> > > > >  ++++++++++++
+> > > > >  include/linux/v4l2-mediabus.h                      |   10 +-
+> > > > >  2 files changed, 179 insertions(+), 2 deletions(-)
+> > > > > 
+> > > > > diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml
+> > > > > b/Documentation/DocBook/media/v4l/subdev-formats.xml index
+> > > > > 49c532e..48d92bb
+> > > > > 100644
+> > > > > --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
+> > > > > +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+> > 
+> > [snip]
+> > 
+> > > > > @@ -965,6 +1036,56 @@
+> > > > > 
+> > > > >  	      <entry>y<subscript>1</subscript></entry>
+> > > > >  	      <entry>y<subscript>0</subscript></entry>
+> > > > >  	    
+> > > > >  	    </row>
+> > > > > 
+> > > > > +	    <row id="V4L2-MBUS-FMT-UV8-1X8">
+> > > > 
+> > > > That's a weird one. Just out of curiosity, what's the point of
+> > > > transferring chroma information without luma ?
 > > > 
-> > > You said you ended up putting your sensors outside of I2C busses, is this
-> > > one of changes, that are present in your git-tree but not in this series?
+> > > DM365 supports this format.
 > > 
-> > No, I must have been not clear enough on that. Our idea was to keep
-> > I2C slave device nodes as an I2C controller's child nodes, according
-> > to the current convention.
-> > The 'sensor' nodes (the 'camera''s children) would only contain a phandle
-> > to a respective I2C slave node.
-> > 
-> > This implies that we cannot access I2C bus in I2C client's device probe()
-> > callback. An actual H/W access could begin only from within and after
-> > invocation of v4l2_subdev .registered callback..
+> > Right, but what is it used for ?
 > 
-> That's how I've envisioned the DT bindings for sensors as well, this sounds 
-> good. The real challenge will be to get hold of the subdev to register it 
-> without race conditions.
+> Sorry about that. The Resizer in Dm365 can take only chroma and resize the
+> buffer. It can also take luma of course. In general it can take UV8, Y8 and
+> also UYVY.
 
-Hrm... That's how early pre-subdev versions of soc-camera used to work, 
-that's where all the <device>_video_probe() functions come from. But then 
-we switched to dynamic i2c device registration. Do we want to switch all 
-drivers back now?... Couldn't we "temporarily" use references from subdevs 
-to hosts until the clock API is available?
+So UV8 is used to resize an NV buffer in two passes (first Y8 then UV8) ?
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+> > [snip]
+> > 
+> > > > > @@ -2415,6 +2536,56 @@
+> > > > > 
+> > > > >  	      <entry>u<subscript>1</subscript></entry>
+> > > > >  	      <entry>u<subscript>0</subscript></entry>
+> > > > >  	    
+> > > > >  	    </row>
+> > > > > 
+> > > > > +	    <row id="V4L2-MBUS-FMT-YDYC8-1X16">
+> > > > 
+> > > > What is this beast ? We at least need a textual description, as I have
+> > > > no
+> > > > idea what the format corresponds to.
+> > > 
+> > > This was discussed earlier over here
+> > > http://patchwork.linuxtv.org/patch/8843/
+> > 
+> > My bad, I should have remembered that. Please add a textual description of
+> > the format, it's not clear from the name what D and C are.
+> 
+> I see no description for individual MBUS formats but a collective para on
+> everything together. Would you like me to add in the same or otherwise can
+> you point to me where I can add this description?
+
+What about the following patch ? Note that I've renamed YDYC to YDYU, as we
+might later need a YDYV format.
+
+(Hans, Sakari, any opinion ?)
+
+diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+index 49c532e..47a485e 100644
+--- a/Documentation/DocBook/media/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+@@ -853,10 +853,15 @@
+       <title>Packed YUV Formats</title>
+ 
+       <para>Those data formats transfer pixel data as (possibly downsampled) Y, U
+-      and V components. The format code is made of the following information.
++      and V components. Some formats include dummy bits in some of their samples
++      and are collectively referred to as "YDYC" (Y-Dummy-Y-Chroma) formats.
++      </para>
++
++      <para>The format code is made of the following information.
+       <itemizedlist>
+ 	<listitem><para>The Y, U and V components order code, as transferred on the
+-	bus. Possible values are YUYV, UYVY, YVYU and VYUY.</para></listitem>
++	bus. Possible values are YUYV, UYVY, YVYU and VYUY for formats with no
++	dummy bit, and YDYU, YDYV, YUYD and YVYD for YDYC formats.</para></listitem>
+ 	<listitem><para>The number of bits per pixel component. All components are
+ 	transferred on the same number of bits. Common values are 8, 10 and 12.</para>
+ 	</listitem>
+@@ -877,7 +882,21 @@
+       U, Y, V, Y order will be named <constant>V4L2_MBUS_FMT_UYVY8_2X8</constant>.
+       </para>
+ 
+-      <para>The following table lisst existing packet YUV formats.</para>
++      <para><xref linkend="v4l2-mbus-pixelcode-yuv8"/> list existing packet YUV
++      formats and describes the organization of each pixel data in each sample.
++      When a format pattern is split across multiple samples each of the samples
++      in the pattern is described.</para>
++
++      <para>The role of each bit transferred over the bus is identified by one
++      of the following codes.</para>
++
++      <itemizedlist>
++        <listitem><para>y<subscript>x</subscript> for luma component bit number x</para></listitem>
++        <listitem><para>u<subscript>x</subscript> for blue chroma component bit number x</para></listitem>
++        <listitem><para>v<subscript>x</subscript> for red chroma component bit number x</para></listitem>
++        <listitem><para>- for non-available bits (for positions higher than the bus width)</para></listitem>
++        <listitem><para>/ for dummy bits</para></listitem>
++      </itemizedlist>
+ 
+       <table pgwide="0" frame="none" id="v4l2-mbus-pixelcode-yuv8">
+ 	<title>YUV Formats</title>
+@@ -2415,6 +2434,106 @@
+ 	      <entry>u<subscript>1</subscript></entry>
+ 	      <entry>u<subscript>0</subscript></entry>
+ 	    </row>
++	    <row id="V4L2-MBUS-FMT-YDYU8-1X16">
++	      <entry>V4L2_MBUS_FMT_YDYU8_1X16</entry>
++	      <entry>0x2014</entry>
++	      <entry></entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	      <entry>/</entry>
++	      <entry>/</entry>
++	      <entry>/</entry>
++	      <entry>/</entry>
++	      <entry>/</entry>
++	      <entry>/</entry>
++	      <entry>/</entry>
++	      <entry>/</entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	      <entry>u<subscript>7</subscript></entry>
++	      <entry>u<subscript>6</subscript></entry>
++	      <entry>u<subscript>5</subscript></entry>
++	      <entry>u<subscript>4</subscript></entry>
++	      <entry>u<subscript>3</subscript></entry>
++	      <entry>u<subscript>2</subscript></entry>
++	      <entry>u<subscript>1</subscript></entry>
++	      <entry>u<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	      <entry>/</entry>
++	      <entry>/</entry>
++	      <entry>/</entry>
++	      <entry>/</entry>
++	      <entry>/</entry>
++	      <entry>/</entry>
++	      <entry>/</entry>
++	      <entry>/</entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	      <entry>v<subscript>7</subscript></entry>
++	      <entry>v<subscript>6</subscript></entry>
++	      <entry>v<subscript>5</subscript></entry>
++	      <entry>v<subscript>4</subscript></entry>
++	      <entry>v<subscript>3</subscript></entry>
++	      <entry>v<subscript>2</subscript></entry>
++	      <entry>v<subscript>1</subscript></entry>
++	      <entry>v<subscript>0</subscript></entry>
++	    </row>
+ 	    <row id="V4L2-MBUS-FMT-YUYV10-1X20">
+ 	      <entry>V4L2_MBUS_FMT_YUYV10_1X20</entry>
+ 	      <entry>0x200d</entry>
+
+-- 
+Regards,
+
+Laurent Pinchart
+
