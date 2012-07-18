@@ -1,65 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:40533 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752088Ab2GUSEO (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:42336 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750712Ab2GRNYh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Jul 2012 14:04:14 -0400
-Received: by bkwj10 with SMTP id j10so4203695bkw.19
-        for <linux-media@vger.kernel.org>; Sat, 21 Jul 2012 11:04:13 -0700 (PDT)
-Message-ID: <500AEF19.5030309@gmail.com>
-Date: Sat, 21 Jul 2012 20:04:09 +0200
-From: poma <pomidorabelisima@gmail.com>
+	Wed, 18 Jul 2012 09:24:37 -0400
+Received: by yenl2 with SMTP id l2so1531084yen.19
+        for <linux-media@vger.kernel.org>; Wed, 18 Jul 2012 06:24:37 -0700 (PDT)
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: Firmware in da wonderland
-References: <500ACB80.9080500@gmail.com> <500ACC3F.7070007@iki.fi>
-In-Reply-To: <500ACC3F.7070007@iki.fi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CALF0-+U7HYyuLZJzUH4_OhJ7U4X33fOAmSmYuP-xATkMVjpKcQ@mail.gmail.com>
+References: <1342615958949547500@masin.eu>
+	<CALF0-+U7HYyuLZJzUH4_OhJ7U4X33fOAmSmYuP-xATkMVjpKcQ@mail.gmail.com>
+Date: Wed, 18 Jul 2012 10:24:36 -0300
+Message-ID: <CALF0-+WcRGGWzcE7eQ4h+MOYKy5+gnVPnxTas9uhyi4-b6VaqA@mail.gmail.com>
+Subject: Re: CX25821 driver in kernel 3.4.4 problem
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: =?ISO-8859-2?Q?Radek_Ma=B9=EDn?= <radek@masin.eu>
+Cc: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=14dae934092da1baff04c51a9569
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/21/2012 05:35 PM, Antti Palosaari wrote:
-> On 07/21/2012 06:32 PM, poma wrote:
->>
->> This one speak for itself;
->> …
->> usb 1-1: new high-speed USB device number 8 using ehci_hcd
->> usb 1-1: New USB device found, idVendor=0ccd, idProduct=0097
->> usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
->> usb 1-1: Product: USB2.0 DVB-T TV Stick
->> usb 1-1: Manufacturer: NEWMI
->> usb 1-1: SerialNumber: 010101010600001
->> dvb-usb: found a 'TerraTec Cinergy T Stick RC' in cold state, will try
->> to load a firmware
->> dvb-usb: did not find the firmware file. (dvb-usb-af9015.fw) Please see
->> linux/Documentation/dvb/ for more details on firmware-problems. (-2)
->> dvb_usb_af9015: probe of 1-1:1.0 failed with error -2
->> input: NEWMI USB2.0 DVB-T TV Stick as
->> /devices/pci0000:00/0000:00:04.1/usb1/1-1/1-1:1.1/input/input18
->> generic-usb 0003:0CCD:0097.0007: input,hidraw6: USB HID v1.01 Keyboard
->> [NEWMI USB2.0 DVB-T TV Stick] on usb-0000:00:04.1-1/input1
->> …
->> FW path:
->> /usr/lib/firmware/dvb-usb-af9015.fw
->> Is it somehow related to Fedora UsrMove!?
->> Or Fedora itself :)
-> 
-> Bug 827538 - DVB USB device firmware requested in module_init()
-> https://bugzilla.redhat.com/show_bug.cgi?id=827538
-> 
-> Antti
+--14dae934092da1baff04c51a9569
+Content-Type: text/plain; charset=ISO-8859-1
 
-Live Fast(Driver) Die Young(Firmware) ;)
-Directed by Udev & Systemd
-"…firmware should in general be requested asynchronously…"
-Obviously, some of communication in Red Hat R&D team is done
-asynchronously, too.
-Nice.
-But Hey, Fedora is all about test drive ;)
+Radek,
 
-Antti, keep up the good work!
+On Wed, Jul 18, 2012 at 10:14 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+> Hi Radek,
+>
 
-regards,
-poma
+I think the attached patch will solve this issue.
 
+Please test and tell me if it did,
+Ezequiel.
+
+--14dae934092da1baff04c51a9569
+Content-Type: application/octet-stream;
+	name="0001-cx25821-Remove-bad-strcpy-to-read-only-char.patch"
+Content-Disposition: attachment;
+	filename="0001-cx25821-Remove-bad-strcpy-to-read-only-char.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_h4sg0gj00
+
+RnJvbSAxODU5NTIxZTc2MjI2Njg3ZTc5ZTE0NTJiMDQwZmQzZTAyYzQ2OWQ4IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBFemVxdWllbCBHYXJjaWEgPGVsZXplZ2FyY2lhQGdtYWlsLmNv
+bT4KRGF0ZTogV2VkLCAxOCBKdWwgMjAxMiAxMDowNToyNiAtMDMwMApTdWJqZWN0OiBbUEFUQ0hd
+IGN4MjU4MjE6IFJlbW92ZSBiYWQgc3RyY3B5IHRvIHJlYWQtb25seSBjaGFyKgpNSU1FLVZlcnNp
+b246IDEuMApDb250ZW50LVR5cGU6IHRleHQvcGxhaW47IGNoYXJzZXQ9VVRGLTgKQ29udGVudC1U
+cmFuc2Zlci1FbmNvZGluZzogOGJpdAoKVGhlIHN0cmNweSB3YXMgYmVpbmcgdXNlZCB0byBzZXQg
+dGhlIG5hbWUgb2YgdGhlIGJvYXJkLgpTaW5jZSB0aGUgZGVzdGluYXRpb24gY2hhciogd2FzIHJl
+YWQtb25seSBhbmQgdGhlIG5hbWUKaXMgc2V0IHN0YXRpY2FsbHkgYXQgY29tcGlsZSB0aW1lOyB0
+aGlzIHdhcyBib3RoCndyb25nIGFuZCByZWR1bmRhbnQuCgpUaGUgdHlwZSBvZiBjaGFyKiBpcyBj
+aGFuZ2VkIHRvIGNvbnN0IGNoYXIqIHRvIHByZXZlbnQKZnV0dXJlIGVycm9ycy4KClJlcG9ydGVk
+LWJ5OiBSYWRlayBNYcWhw61uIDxyYWRla0BtYXNpbi5ldT4KU2lnbmVkLW9mZi1ieTogRXplcXVp
+ZWwgR2FyY2lhIDxlbGV6ZWdhcmNpYUBnbWFpbC5jb20+Ci0tLQogZHJpdmVycy9tZWRpYS92aWRl
+by9jeDI1ODIxL2N4MjU4MjEtY29yZS5jIHwgICAgMyAtLS0KIGRyaXZlcnMvbWVkaWEvdmlkZW8v
+Y3gyNTgyMS9jeDI1ODIxLmggICAgICB8ICAgIDIgKy0KIDIgZmlsZXMgY2hhbmdlZCwgMSBpbnNl
+cnRpb25zKCspLCA0IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlk
+ZW8vY3gyNTgyMS9jeDI1ODIxLWNvcmUuYyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gyNTgyMS9j
+eDI1ODIxLWNvcmUuYwppbmRleCA3OTMwY2E1Li4yMzViZjdkIDEwMDY0NAotLS0gYS9kcml2ZXJz
+L21lZGlhL3ZpZGVvL2N4MjU4MjEvY3gyNTgyMS1jb3JlLmMKKysrIGIvZHJpdmVycy9tZWRpYS92
+aWRlby9jeDI1ODIxL2N4MjU4MjEtY29yZS5jCkBAIC05MTIsOSArOTEyLDYgQEAgc3RhdGljIGlu
+dCBjeDI1ODIxX2Rldl9zZXR1cChzdHJ1Y3QgY3gyNTgyMV9kZXYgKmRldikKIAlsaXN0X2FkZF90
+YWlsKCZkZXYtPmRldmxpc3QsICZjeDI1ODIxX2Rldmxpc3QpOwogCW11dGV4X3VubG9jaygmY3gy
+NTgyMV9kZXZsaXN0X211dGV4KTsKIAotCXN0cmNweShjeDI1ODIxX2JvYXJkc1tVTktOT1dOX0JP
+QVJEXS5uYW1lLCAidW5rbm93biIpOwotCXN0cmNweShjeDI1ODIxX2JvYXJkc1tDWDI1ODIxX0JP
+QVJEXS5uYW1lLCAiY3gyNTgyMSIpOwotCiAJaWYgKGRldi0+cGNpLT5kZXZpY2UgIT0gMHg4MjEw
+KSB7CiAJCXByX2luZm8oIiVzKCk6IEV4aXRpbmcuIEluY29ycmVjdCBIYXJkd2FyZSBkZXZpY2Ug
+PSAweCUwMnhcbiIsCiAJCQlfX2Z1bmNfXywgZGV2LT5wY2ktPmRldmljZSk7CmRpZmYgLS1naXQg
+YS9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4MjU4MjEvY3gyNTgyMS5oIGIvZHJpdmVycy9tZWRpYS92
+aWRlby9jeDI1ODIxL2N4MjU4MjEuaAppbmRleCBiOWFhODAxLi4wMjlmMjkzIDEwMDY0NAotLS0g
+YS9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4MjU4MjEvY3gyNTgyMS5oCisrKyBiL2RyaXZlcnMvbWVk
+aWEvdmlkZW8vY3gyNTgyMS9jeDI1ODIxLmgKQEAgLTE4Nyw3ICsxODcsNyBAQCBlbnVtIHBvcnQg
+ewogfTsKIAogc3RydWN0IGN4MjU4MjFfYm9hcmQgewotCWNoYXIgKm5hbWU7CisJY29uc3QgY2hh
+ciAqbmFtZTsKIAllbnVtIHBvcnQgcG9ydGE7CiAJZW51bSBwb3J0IHBvcnRiOwogCWVudW0gcG9y
+dCBwb3J0YzsKLS0gCjEuNy44LjYKCg==
+--14dae934092da1baff04c51a9569--
