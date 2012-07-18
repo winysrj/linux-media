@@ -1,238 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:59409 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751168Ab2GDN1n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2012 09:27:43 -0400
-Received: by yhmm54 with SMTP id m54so7221213yhm.19
-        for <linux-media@vger.kernel.org>; Wed, 04 Jul 2012 06:27:43 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59164 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753885Ab2GROAo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Jul 2012 10:00:44 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: workshop-2011@linuxtv.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [Workshop-2011] Media summit at the Kernel Summit - was: Fwd: Re: [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
+Date: Wed, 18 Jul 2012 16:00:49 +0200
+Message-ID: <10659368.KqSHeLc7Gn@avalon>
+In-Reply-To: <1433177.IUeFs9YjWS@avalon>
+References: <20120713173708.GB17109@thunk.org> <201207172132.22937.hverkuil@xs4all.nl> <1433177.IUeFs9YjWS@avalon>
 MIME-Version: 1.0
-In-Reply-To: <CAD4Xxq8c_SBbJsZc764oFwNjRDeGKuVEX_042ry=xeZBY_ZH-A@mail.gmail.com>
-References: <CAD4Xxq_s4zbRKBrjcQAfn4v5Dp0sytU=8_=XUViice98aQFysQ@mail.gmail.com>
-	<CAD4Xxq9LXGXQKRiNsU_tE8LcyJY64Wk5H4OFzEyhhXtsJJy3dw@mail.gmail.com>
-	<CAD4Xxq8c_SBbJsZc764oFwNjRDeGKuVEX_042ry=xeZBY_ZH-A@mail.gmail.com>
-Date: Wed, 4 Jul 2012 23:27:42 +1000
-Message-ID: <CAD4Xxq8CpCMtNP=sPSMhsWs4K1qULXWBtGzbu1ENqs1pgBBs3Q@mail.gmail.com>
-Subject: Re: ATI theatre 750 HD tuner USB stick
-From: Fisher Grubb <fisher.grubb@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On Tuesday 17 July 2012 21:41:18 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Tuesday 17 July 2012 21:32:22 Hans Verkuil wrote:
+> > On Tue July 17 2012 19:30:53 Mauro Carvalho Chehab wrote:
+> > > As we did in 2012, we're planning to do a media summit again at KS/2012.
+> > > 
+> > > The KS/2012 will happen in San Diego, CA, US, between Aug 26-28, just
+> > > before the LinuxCon North America.
+> > > 
+> > > In order to do it, I'd like to know who is interested on participate,
+> > > and to get proposals about what subjects will be discussed there,
+> > > in order to start planning the agenda.
+> > 
+> > I'd like to have 30 minutes to discuss a few V4L2 API ambiguities or just
+> > plain weirdness, just like I did last year. I'll make an RFC issues to
+> > discuss beforehand. I might also have a short presentation/demo of
+> > v4l2-compliance, as I believe more people need to know about that utility.
+> 
+> That's a good idea. On the topic of ambiguities, could you add
+> VIDIOC_STREAMON and VIDIOC_STREAMOFF behaviour when the stream is already
+> started/stopped respectively ?
 
-I was in contact with AMD today regarding this tuner haveing no
-support on Linux and I was given a link for a feedback form and told
-to get specific needs from www.linuxtv.org to help the cause and if
-there were enough people, then the AMD developers may help.
+Another ambiguity for your list: what should a driver return in TRY_FMT/S_FMT 
+if the requested format is not supported (possible behaviours include 
+returning the currently selected format or a default format).
 
-Of course I wouldn't be surprised if people will have to reverse
-engineer it from the windows drivers but I thought I would mention it.
- I could not find any info on this 750 HD on www.linuxtv.org regarding
-where it stands.  What help is needed for it?
+-- 
+Regards,
 
-Fisher
+Laurent Pinchart
 
-On Wed, Jul 4, 2012 at 11:21 PM, Fisher Grubb <fisher.grubb@gmail.com> wrote:
-> Hi all,
->
-> My name is Fisher Grubb, I have an ATI (now AMD) theatre 750 HD based
-> TV tuner USB stick.  I don't think this ATI chipset is supported by
-> linuxTV and have had no joy search google as others also hit a dead
-> end.
->
-> I have put USB bus dump for that device and the chip part numbers at the bottom.
->
-> Please may I have a quick reply if someone looks at this, thanks.
->
-> Model number is U5071, manufacturer site: http://www.geniatech.com/pa/u5071.asp
->
-> I think this is a very impressive piece of hardware as it can do:
-> Analogue TV, DVB, AV capture and S video capture.  There is an IR
-> receiver on board and came with IR remote control.
->
-> I'm happy to provide any info on it that you may want such as picture
-> of board & chips.  I'm almost finished my electronics degree and so
-> can do hardware probing if someone may give me something specific to
-> look for.  I'm also happy to run software or commands to dump stuff or
-> even help with dumping things from the windows drivers if I've given
-> directions etc.
->
-> Thank you,
->
-> Fisher
->
-> lsusb: Bus 002 Device 021: ID 0438:ac14 Advanced Micro Devices, Inc.
->
-> sudo lsusb -vd 0438:ac14
->
-> Bus 002 Device 021: ID 0438:ac14 Advanced Micro Devices, Inc.
-> Device Descriptor:
->   bLength                18
->   bDescriptorType         1
->   bcdUSB               2.00
->   bDeviceClass            0 (Defined at Interface level)
->   bDeviceSubClass         0
->   bDeviceProtocol         0
->   bMaxPacketSize0        64
->   idVendor           0x0438 Advanced Micro Devices, Inc.
->   idProduct          0xac14
->   bcdDevice            1.00
->   iManufacturer           1 AMD
->   iProduct                2 Cali TV Card
->   iSerial                 3 1234-5678
->   bNumConfigurations      1
->   Configuration Descriptor:
->     bLength                 9
->     bDescriptorType         2
->     wTotalLength           97
->     bNumInterfaces          1
->     bConfigurationValue     1
->     iConfiguration          0
->     bmAttributes         0x80
->       (Bus Powered)
->     MaxPower              500mA
->     Interface Descriptor:
->       bLength                 9
->       bDescriptorType         4
->       bInterfaceNumber        0
->       bAlternateSetting       0
->       bNumEndpoints           5
->       bInterfaceClass       255 Vendor Specific Class
->       bInterfaceSubClass    255 Vendor Specific Subclass
->       bInterfaceProtocol    255 Vendor Specific Protocol
->       iInterface              0
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x81  EP 1 IN
->         bmAttributes            2
->           Transfer Type            Bulk
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0200  1x 512 bytes
->         bInterval               0
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x82  EP 2 IN
->         bmAttributes            2
->           Transfer Type            Bulk
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0200  1x 512 bytes
->         bInterval               0
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x03  EP 3 OUT
->         bmAttributes            2
->           Transfer Type            Bulk
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0200  1x 512 bytes
->         bInterval               3
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x84  EP 4 IN
->         bmAttributes            2
->           Transfer Type            Bulk
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0200  1x 512 bytes
->         bInterval               0
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x85  EP 5 IN
->         bmAttributes            2
->           Transfer Type            Bulk
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0200  1x 512 bytes
->         bInterval               0
->     Interface Descriptor:
->       bLength                 9
->       bDescriptorType         4
->       bInterfaceNumber        0
->       bAlternateSetting       1
->       bNumEndpoints           5
->       bInterfaceClass       255 Vendor Specific Class
->       bInterfaceSubClass    255 Vendor Specific Subclass
->       bInterfaceProtocol    255 Vendor Specific Protocol
->       iInterface              0
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x81  EP 1 IN
->         bmAttributes            1
->           Transfer Type            Isochronous
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x1400  3x 1024 bytes
->         bInterval               1
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x82  EP 2 IN
->         bmAttributes            2
->           Transfer Type            Bulk
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0200  1x 512 bytes
->         bInterval               0
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x03  EP 3 OUT
->         bmAttributes            2
->           Transfer Type            Bulk
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0200  1x 512 bytes
->         bInterval               3
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x84  EP 4 IN
->         bmAttributes            2
->           Transfer Type            Bulk
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0200  1x 512 bytes
->         bInterval               0
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x85  EP 5 IN
->         bmAttributes            2
->           Transfer Type            Bulk
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0200  1x 512 bytes
->         bInterval               0
-> Device Qualifier (for other device speed):
->   bLength                10
->   bDescriptorType         6
->   bcdUSB               2.00
->   bDeviceClass            0 (Defined at Interface level)
->   bDeviceSubClass         0
->   bDeviceProtocol         0
->   bMaxPacketSize0        64
->   bNumConfigurations      1
-> Device Status:     0x0000
->   (Bus Powered)
->
-> Chips:
-> ATI:
-> T507
-> 0930
-> MADE IN TAIWAN
-> P0U493.00
-> 215-0692014
->
-> NXP:
-> TDA18271HDC2
-> P3KN4 02
-> PG09361
