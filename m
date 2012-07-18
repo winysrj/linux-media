@@ -1,40 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.tpi.com ([70.99.223.143]:3474 "EHLO mail.tpi.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751481Ab2GZSio (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jul 2012 14:38:44 -0400
-From: Tim Gardner <tim.gardner@canonical.com>
-To: linux-kernel@vger.kernel.org
-Cc: Tim Gardner <tim.gardner@canonical.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Steven Toth <stoth@kernellabs.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH] cx23885: Declare MODULE_FIRMWARE usage
-Date: Thu, 26 Jul 2012 12:39:24 -0600
-Message-Id: <1343327964-95791-1-git-send-email-tim.gardner@canonical.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52874 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751276Ab2GRNyE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Jul 2012 09:54:04 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH v3 4/9] ov772x: Don't access the device in the g_mbus_fmt operation
+Date: Wed, 18 Jul 2012 15:53:59 +0200
+Message-Id: <1342619644-5712-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1342619644-5712-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1342619644-5712-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Steven Toth <stoth@kernellabs.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
----
- drivers/media/video/cx23885/cx23885-417.c |    2 ++
- 1 file changed, 2 insertions(+)
+The g_mbus_fmt operation only needs to return the current mbus frame
+format and doesn't need to configure the hardware to do so. Fix it to
+avoid requiring the chip to be powered on when calling the operation.
 
-diff --git a/drivers/media/video/cx23885/cx23885-417.c b/drivers/media/video/cx23885/cx23885-417.c
-index f5c79e5..5d5052d 100644
---- a/drivers/media/video/cx23885/cx23885-417.c
-+++ b/drivers/media/video/cx23885/cx23885-417.c
-@@ -1786,3 +1786,5 @@ int cx23885_417_register(struct cx23885_dev *dev)
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/ov772x.c |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
+index 74e77d3..6d79b89 100644
+--- a/drivers/media/video/ov772x.c
++++ b/drivers/media/video/ov772x.c
+@@ -880,15 +880,11 @@ static int ov772x_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
+ static int ov772x_g_fmt(struct v4l2_subdev *sd,
+ 			struct v4l2_mbus_framefmt *mf)
+ {
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
  
- 	return 0;
- }
-+
-+MODULE_FIRMWARE(CX23885_FIRM_IMAGE_NAME);
+ 	if (!priv->win || !priv->cfmt) {
+-		u32 width = VGA_WIDTH, height = VGA_HEIGHT;
+-		int ret = ov772x_set_params(client, &width, &height,
+-					    V4L2_MBUS_FMT_YUYV8_2X8);
+-		if (ret < 0)
+-			return ret;
++		priv->cfmt = &ov772x_cfmts[0];
++		priv->win = ov772x_select_win(VGA_WIDTH, VGA_HEIGHT);
+ 	}
+ 
+ 	mf->width	= priv->win->width;
 -- 
-1.7.9.5
+1.7.8.6
 
