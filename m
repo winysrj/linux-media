@@ -1,57 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:32999 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755392Ab2GXUb6 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59149 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754576Ab2GRN60 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jul 2012 16:31:58 -0400
-References: <20120713173708.GB17109@thunk.org> <5005A14D.8000809@redhat.com> <201207242305.08220.remi@remlab.net> <CAGoCfiwE1pfCxuE3WS3FwOV2jnxMFxhnL6-+hTSfE+2PNnxk-g@mail.gmail.com>
-In-Reply-To: <CAGoCfiwE1pfCxuE3WS3FwOV2jnxMFxhnL6-+hTSfE+2PNnxk-g@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: Media summit at the Kernel Summit - was: Fwd: Re: [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Tue, 24 Jul 2012 16:31:42 -0400
-To: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	=?ISO-8859-1?Q?R=E9mi_Denis-Courmont?= <remi@remlab.net>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	workshop-2011@linuxtv.org
-Message-ID: <7df430bb-7c8e-49a8-b8e8-1bac6bd45ad0@email.android.com>
+	Wed, 18 Jul 2012 09:58:26 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH v2 2/9] ov772x: Select the default format at probe time
+Date: Wed, 18 Jul 2012 15:58:19 +0200
+Message-Id: <1342619906-5820-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1342619906-5820-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1342619906-5820-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
+The format and window size are only initialized during the first g_fmt
+call. This leaves the device in an inconsistent state after
+initialization, which will cause problems when implementing pad
+operations. Move the format and window size initialization to probe
+time.
 
->On Tue, Jul 24, 2012 at 4:05 PM, Rémi Denis-Courmont <remi@remlab.net>
->wrote:
->> If it's of interest to anyone, I could probably present a bunch of
->issues with
->> V4L2 and DVB from userspace perspective.
->
->Remi,
->
->I would strongly be in favor of this.  One thing that we get far to
->little of is feedback from actual userland developers making use of
->the V4L and DVB interfaces (aside from the SoC vendors, which is a
->completely different target audience than the traditional V4L and DVB
->consumers)
->
->Devin
->
->-- 
->Devin J. Heitmueller - Kernel Labs
->http://www.kernellabs.com
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/ov772x.c |   64 +++++++++++++++++++++---------------------
+ 1 files changed, 32 insertions(+), 32 deletions(-)
 
-Ditto.  Input from user application developers  is something that kernel developers need and value greatly.
+diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
+index 0fede50d..3f6e4bf 100644
+--- a/drivers/media/video/ov772x.c
++++ b/drivers/media/video/ov772x.c
+@@ -16,6 +16,7 @@
+  */
+ 
+ #include <linux/init.h>
++#include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
+@@ -504,20 +505,20 @@ static const struct ov772x_color_format ov772x_cfmts[] = {
+ #define MAX_WIDTH   VGA_WIDTH
+ #define MAX_HEIGHT  VGA_HEIGHT
+ 
+-static const struct ov772x_win_size ov772x_win_vga = {
+-	.name     = "VGA",
+-	.width    = VGA_WIDTH,
+-	.height   = VGA_HEIGHT,
+-	.com7_bit = SLCT_VGA,
+-	.regs     = ov772x_vga_regs,
+-};
+-
+-static const struct ov772x_win_size ov772x_win_qvga = {
+-	.name     = "QVGA",
+-	.width    = QVGA_WIDTH,
+-	.height   = QVGA_HEIGHT,
+-	.com7_bit = SLCT_QVGA,
+-	.regs     = ov772x_qvga_regs,
++static const struct ov772x_win_size ov772x_win_sizes[] = {
++	{
++		.name     = "VGA",
++		.width    = VGA_WIDTH,
++		.height   = VGA_HEIGHT,
++		.com7_bit = SLCT_VGA,
++		.regs     = ov772x_vga_regs,
++	}, {
++		.name     = "QVGA",
++		.width    = QVGA_WIDTH,
++		.height   = QVGA_HEIGHT,
++		.com7_bit = SLCT_QVGA,
++		.regs     = ov772x_qvga_regs,
++	},
+ };
+ 
+ /*
+@@ -693,19 +694,18 @@ static int ov772x_s_power(struct v4l2_subdev *sd, int on)
+ 
+ static const struct ov772x_win_size *ov772x_select_win(u32 width, u32 height)
+ {
+-	__u32 diff;
+-	const struct ov772x_win_size *win;
+-
+-	/* default is QVGA */
+-	diff = abs(width - ov772x_win_qvga.width) +
+-		abs(height - ov772x_win_qvga.height);
+-	win = &ov772x_win_qvga;
+-
+-	/* VGA */
+-	if (diff >
+-	    abs(width  - ov772x_win_vga.width) +
+-	    abs(height - ov772x_win_vga.height))
+-		win = &ov772x_win_vga;
++	const struct ov772x_win_size *win = &ov772x_win_sizes[0];
++	u32 best_diff = UINT_MAX;
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(ov772x_win_sizes); ++i) {
++		u32 diff = abs(width - ov772x_win_sizes[i].width)
++			 + abs(height - ov772x_win_sizes[i].height);
++		if (diff < best_diff) {
++			best_diff = diff;
++			win = &ov772x_win_sizes[i];
++		}
++	}
+ 
+ 	return win;
+ }
+@@ -890,11 +890,6 @@ static int ov772x_g_fmt(struct v4l2_subdev *sd,
+ {
+ 	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
+ 
+-	if (!priv->win || !priv->cfmt) {
+-		priv->cfmt = &ov772x_cfmts[0];
+-		priv->win = ov772x_select_win(VGA_WIDTH, VGA_HEIGHT);
+-	}
+-
+ 	mf->width	= priv->win->width;
+ 	mf->height	= priv->win->height;
+ 	mf->code	= priv->cfmt->code;
+@@ -1103,6 +1098,11 @@ static int ov772x_probe(struct i2c_client *client,
+ 	}
+ 
+ 	ret = ov772x_video_probe(client);
++	if (ret < 0)
++		goto done;
++
++	priv->cfmt = &ov772x_cfmts[0];
++	priv->win = &ov772x_win_sizes[0];
+ 
+ done:
+ 	if (ret) {
+-- 
+1.7.8.6
 
-Note, that I will not be at the workshop of Plumbers this year. :( 
-
-Regards,
-Andy
