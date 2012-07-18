@@ -1,52 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51624 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750782Ab2GSKbA (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59150 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754577Ab2GRN63 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jul 2012 06:31:00 -0400
-Date: Thu, 19 Jul 2012 13:30:55 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Duan Jiong <djduanjiong@gmail.com>
-Cc: mchehab@infradead.org, sakari.ailus@maxwell.research.nokia.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] smiapp-core.c: remove duplicated include
-Message-ID: <20120719103055.GD22859@valkosipuli.retiisi.org.uk>
-References: <5006CA58.8080301@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5006CA58.8080301@gmail.com>
+	Wed, 18 Jul 2012 09:58:29 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH v2 9/9] ov772x: Stop sensor readout right after reset
+Date: Wed, 18 Jul 2012 15:58:26 +0200
+Message-Id: <1342619906-5820-10-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1342619906-5820-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1342619906-5820-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Duan,
+The sensor starts streaming video as soon as it gets powered or is
+reset. Disable the output in the reset function.
 
-On Wed, Jul 18, 2012 at 10:38:16PM +0800, Duan Jiong wrote:
-> 
-> Signed-off-by: Duan Jiong <djduanjiong@gmail.com>
-> ---
->  drivers/media/video/smiapp/smiapp-core.c |    1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/media/video/smiapp/smiapp-core.c b/drivers/media/video/smiapp/smiapp-core.c
-> index 9cf5bda..297acaf 100644
-> --- a/drivers/media/video/smiapp/smiapp-core.c
-> +++ b/drivers/media/video/smiapp/smiapp-core.c
-> @@ -33,7 +33,6 @@
->  #include <linux/module.h>
->  #include <linux/slab.h>
->  #include <linux/regulator/consumer.h>
-> -#include <linux/slab.h>
->  #include <linux/v4l2-mediabus.h>
->  #include <media/v4l2-device.h>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/ov772x.c |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
 
-Thanks for the patch.
-
-I'll apply it into my tree, with the change that the other slab.h is removed
---- that keeps the include files in alphabetical order.
-
-Kind regards,
-
+diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
+index aa2ba9e..e78e0e1 100644
+--- a/drivers/media/video/ov772x.c
++++ b/drivers/media/video/ov772x.c
+@@ -537,9 +537,15 @@ static int ov772x_mask_set(struct i2c_client *client, u8  command, u8  mask,
+ 
+ static int ov772x_reset(struct i2c_client *client)
+ {
+-	int ret = ov772x_write(client, COM7, SCCB_RESET);
++	int ret;
++
++	ret = ov772x_write(client, COM7, SCCB_RESET);
++	if (ret < 0)
++		return ret;
++
+ 	msleep(1);
+-	return ret;
++
++	return ov772x_mask_set(client, COM2, SOFT_SLEEP_MODE, SOFT_SLEEP_MODE);
+ }
+ 
+ /*
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.8.6
+
