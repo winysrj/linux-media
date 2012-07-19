@@ -1,63 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53535 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750736Ab2GFNcq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 09:32:46 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Jean-Philippe Francois <jp.francois@cynove.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v2 2/6] omap3isp: preview: Remove lens shading compensation support
-Date: Fri,  6 Jul 2012 15:32:45 +0200
-Message-Id: <1341581569-8292-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1341581569-8292-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1341581569-8292-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from acsinet15.oracle.com ([141.146.126.227]:38612 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751810Ab2GSMOE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Jul 2012 08:14:04 -0400
+Date: Thu, 19 Jul 2012 15:13:55 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: hans.verkuil@cisco.com
+Cc: linux-media@vger.kernel.org
+Subject: re: [media] gspca: Fix locking issues related to suspend/resume
+Message-ID: <20120719121355.GA2609@elgon.mountain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The feature isn't fully implemented and doesn't work, remove it.
+Hello Hans Verkuil,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/omap3isp/isppreview.c |   18 +-----------------
- 1 files changed, 1 insertions(+), 17 deletions(-)
+This is a semi-automatic email about new static checker warnings.
 
-diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
-index aec9860..4cdcc48 100644
---- a/drivers/media/video/omap3isp/isppreview.c
-+++ b/drivers/media/video/omap3isp/isppreview.c
-@@ -215,22 +215,6 @@ preview_enable_drkframe(struct isp_prev_device *prev, u8 enable)
- }
- 
- /*
-- * preview_config_drkf_shadcomp - Configures shift value in shading comp.
-- * @scomp_shtval: 3bit value of shift used in shading compensation.
-- */
--static void
--preview_config_drkf_shadcomp(struct isp_prev_device *prev,
--			     const void *scomp_shtval)
--{
--	struct isp_device *isp = to_isp_device(prev);
--	const u32 *shtval = scomp_shtval;
--
--	isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
--			ISPPRV_PCR_SCOMP_SFT_MASK,
--			*shtval << ISPPRV_PCR_SCOMP_SFT_SHIFT);
--}
--
--/*
-  * preview_enable_hmed - Enables/Disables of the Horizontal Median Filter.
-  * @enable: 1 - Enables Horizontal Median Filter.
-  */
-@@ -870,7 +854,7 @@ static const struct preview_update update_attrs[] = {
- 		NULL,
- 		preview_enable_drkframe,
- 	}, /* OMAP3ISP_PREV_LENS_SHADING */ {
--		preview_config_drkf_shadcomp,
-+		NULL,
- 		preview_enable_drkframe,
- 	}, /* OMAP3ISP_PREV_NF */ {
- 		preview_config_noisefilter,
--- 
-1.7.8.6
+The patch 254902b01d2a: "[media] gspca: Fix locking issues related to 
+suspend/resume" from May 6, 2012, leads to the following Smatch 
+complaint:
+
+drivers/media/video/gspca/sq905c.c:176 sq905c_dostream()
+	 warn: variable dereferenced before check 'gspca_dev->dev' (see line 180)
+
+drivers/media/video/gspca/sq905c.c
+   158                  /* Request the header, which tells the size to download */
+   159                  ret = usb_bulk_msg(gspca_dev->dev,
+   160                                  usb_rcvbulkpipe(gspca_dev->dev, 0x81),
+                                                        ^^^^^^^^^^^^^^
+Derereference inside the calls to usb_bulk_msg() and usb_rcvbulkpipe().
+
+   161                                  buffer, FRAME_HEADER_LEN, &act_len,
+   162                                  SQ905C_DATA_TIMEOUT);
+   163                  PDEBUG(D_STREAM,
+   164                          "Got %d bytes out of %d for header",
+   165                          act_len, FRAME_HEADER_LEN);
+   166                  if (ret < 0 || act_len < FRAME_HEADER_LEN)
+   167                          goto quit_stream;
+   168                  /* size is read from 4 bytes starting 0x40, little endian */
+   169                  bytes_left = buffer[0x40]|(buffer[0x41]<<8)|(buffer[0x42]<<16)
+   170                                          |(buffer[0x43]<<24);
+   171                  PDEBUG(D_STREAM, "bytes_left = 0x%x", bytes_left);
+   172                  /* We keep the header. It has other information, too. */
+   173                  packet_type = FIRST_PACKET;
+   174                  gspca_frame_add(gspca_dev, packet_type,
+   175                                  buffer, FRAME_HEADER_LEN);
+   176			while (bytes_left > 0 && gspca_dev->dev) {
+                                                 ^^^^^^^^^^^^^^
+New check.
+
+   177				data_len = bytes_left > SQ905C_MAX_TRANSFER ?
+   178					SQ905C_MAX_TRANSFER : bytes_left;
+   179				ret = usb_bulk_msg(gspca_dev->dev,
+   180					usb_rcvbulkpipe(gspca_dev->dev, 0x81),
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Some more dereferences here.
+
+   181					buffer, data_len, &act_len,
+   182					SQ905C_DATA_TIMEOUT);
+   183                          if (ret < 0 || act_len < data_len)
+   184                                  goto quit_stream;
+   185                          PDEBUG(D_STREAM,
+   186                                  "Got %d bytes out of %d for frame",
+   187                                  data_len, bytes_left);
+   188                          bytes_left -= data_len;
+   189                          if (bytes_left == 0)
+   190                                  packet_type = LAST_PACKET;
+   191                          else
+   192                                  packet_type = INTER_PACKET;
+   193                          gspca_frame_add(gspca_dev, packet_type,
+   194                                          buffer, data_len);
+   195                  }
+
+regards,
+dan carpenter
 
