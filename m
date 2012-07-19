@@ -1,94 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48144 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750901Ab2GMLZJ (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:65413 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750894Ab2GSQY7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jul 2012 07:25:09 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org,
-	Jean-Philippe Francois <jp.francois@cynove.com>
-Subject: Re: [PATCH v2 6/6] omap3isp: preview: Add support for non-GRBG Bayer patterns
-Date: Fri, 13 Jul 2012 13:25:11 +0200
-Message-ID: <1513848.JfAFJNZTHg@avalon>
-In-Reply-To: <4FFFF48B.8010609@iki.fi>
-References: <1341581569-8292-1-git-send-email-laurent.pinchart@ideasonboard.com> <1341581569-8292-7-git-send-email-laurent.pinchart@ideasonboard.com> <4FFFF48B.8010609@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Thu, 19 Jul 2012 12:24:59 -0400
+From: Rob Clark <rob.clark@linaro.org>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Cc: patches@linaro.org, linux@arm.linux.org.uk, arnd@arndb.de,
+	jesse.barker@linaro.org, m.szyprowski@samsung.com, daniel@ffwll.ch,
+	t.stanislaws@samsung.com, sumit.semwal@ti.com,
+	maarten.lankhorst@canonical.com, Rob Clark <rob@ti.com>
+Subject: [PATCH 2/2] dma-buf: add helpers for attacher dma-parms
+Date: Thu, 19 Jul 2012 11:23:34 -0500
+Message-Id: <1342715014-5316-3-git-send-email-rob.clark@linaro.org>
+In-Reply-To: <1342715014-5316-1-git-send-email-rob.clark@linaro.org>
+References: <1342715014-5316-1-git-send-email-rob.clark@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: Rob Clark <rob@ti.com>
 
-Thanks for the review.
+Add some helpers to iterate through all attachers and get the most
+restrictive segment size/count/boundary.
 
-On Friday 13 July 2012 13:12:27 Sakari Ailus wrote:
-> Laurent Pinchart wrote:
-> > Rearrange the CFA interpolation coefficients table based on the Bayer
-> > pattern. Support for non-Bayer CFA patterns is dropped as they were not
-> > correctly supported, and have never been tested.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Rob Clark <rob@ti.com>
+---
+ drivers/base/dma-buf.c  |   63 +++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/dma-buf.h |   19 ++++++++++++++
+ 2 files changed, 82 insertions(+)
 
-[snip]
-
-> > +static void preview_config_cfa(struct isp_prev_device *prev,
-> > +			       const struct prev_params *params)
-> > +{
-> > +	static const unsigned int cfa_coef_order[4][4] = {
-> > +		{ 0, 1, 2, 3 }, /* GRBG */
-> > +		{ 1, 0, 3, 2 }, /* RGGB */
-> > +		{ 2, 3, 0, 1 }, /* BGGR */
-> > +		{ 3, 2, 1, 0 }, /* GBRG */
-> > +	};
-> > +	const unsigned int *order = cfa_coef_order[prev->params.cfa_order];
-> >  	const struct omap3isp_prev_cfa *cfa = &params->cfa;
-> > +	struct isp_device *isp = to_isp_device(prev);
-> >  	unsigned int i;
-> > -
-> > -	isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
-> > -			ISPPRV_PCR_CFAFMT_MASK,
-> > -			cfa->format << ISPPRV_PCR_CFAFMT_SHIFT);
-> > +	unsigned int j;
-> > 
-> >  	isp_reg_writel(isp,
-> >  		(cfa->gradthrs_vert << ISPPRV_CFA_GRADTH_VER_SHIFT) |
-> > @@ -259,9 +269,13 @@ preview_config_cfa(struct isp_prev_device *prev,
-> >  	isp_reg_writel(isp, ISPPRV_CFA_TABLE_ADDR,
-> >  		       OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
-> > 
-> > -	for (i = 0; i < OMAP3ISP_PREV_CFA_TBL_SIZE; i++) {
-> > -		isp_reg_writel(isp, cfa->table[i],
-> > -			       OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
-> > +	for (i = 0; i < 4; ++i) {
-> > +		const __u32 *block = cfa->table
-> > +				   + order[i] * OMAP3ISP_PREV_CFA_BLK_SIZE;
-> > +
-> > +		for (j = 0; j < OMAP3ISP_PREV_CFA_BLK_SIZE; ++j)
-> > +			isp_reg_writel(isp, block[j], OMAP3_ISP_IOMEM_PREV,
-> > +				       ISPPRV_SET_TBL_DATA);
-> >  	}
-> >  }
-> 
-> I think struct omap3isp_prev_cfa would benefit from more detailed definition
-> of the gamma table.
-
-I suppose you mean the CFA table.
-
-> That would also change the API albeit not ABI... unless you use an anonymous
-> union which then requires a GCC newer than or equal to 4.4, I think.
-> 
-> The table should be two-dimensional array, not one-dimensional.
-> 
-> Now that we're making changes to the user space API anyway, what would
-> you think about this? I think it'd make the code much nicer.
-
-It's a good idea. I'll fix that. I'd like to document the table contents as 
-well, but the information is unfortunately not available publicly :-(
-
+diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
+index 24e88fe..757ee20 100644
+--- a/drivers/base/dma-buf.c
++++ b/drivers/base/dma-buf.c
+@@ -192,6 +192,69 @@ void dma_buf_put(struct dma_buf *dmabuf)
+ EXPORT_SYMBOL_GPL(dma_buf_put);
+ 
+ /**
++ * dma_buf_max_seg_size - helper for exporters to get the minimum of
++ * all attached device's max segment size
++ */
++unsigned int dma_buf_max_seg_size(struct dma_buf *dmabuf)
++{
++	struct dma_buf_attachment *attach;
++	unsigned int max = (unsigned int)-1;
++
++	if (WARN_ON(!dmabuf))
++		return 0;
++
++	mutex_lock(&dmabuf->lock);
++	list_for_each_entry(attach, &dmabuf->attachments, node)
++		max = min(max, dma_get_max_seg_size(attach->dev));
++	mutex_unlock(&dmabuf->lock);
++
++	return max;
++}
++EXPORT_SYMBOL_GPL(dma_buf_max_seg_size);
++
++/**
++ * dma_buf_max_seg_count - helper for exporters to get the minimum of
++ * all attached device's max segment count
++ */
++unsigned int dma_buf_max_seg_count(struct dma_buf *dmabuf)
++{
++	struct dma_buf_attachment *attach;
++	unsigned int max = (unsigned int)-1;
++
++	if (WARN_ON(!dmabuf))
++		return 0;
++
++	mutex_lock(&dmabuf->lock);
++	list_for_each_entry(attach, &dmabuf->attachments, node)
++		max = min(max, dma_get_max_seg_count(attach->dev));
++	mutex_unlock(&dmabuf->lock);
++
++	return max;
++}
++EXPORT_SYMBOL_GPL(dma_buf_max_seg_count);
++
++/**
++ * dma_buf_get_seg_boundary - helper for exporters to get the most
++ * restrictive segment alignment of all the attached devices
++ */
++unsigned int dma_buf_get_seg_boundary(struct dma_buf *dmabuf)
++{
++	struct dma_buf_attachment *attach;
++	unsigned int mask = (unsigned int)-1;
++
++	if (WARN_ON(!dmabuf))
++		return 0;
++
++	mutex_lock(&dmabuf->lock);
++	list_for_each_entry(attach, &dmabuf->attachments, node)
++		mask &= dma_get_seg_boundary(attach->dev);
++	mutex_unlock(&dmabuf->lock);
++
++	return mask;
++}
++EXPORT_SYMBOL_GPL(dma_buf_get_seg_boundary);
++
++/**
+  * dma_buf_attach - Add the device to dma_buf's attachments list; optionally,
+  * calls attach() of dma_buf_ops to allow device-specific attach functionality
+  * @dmabuf:	[in]	buffer to attach device to.
+diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+index eb48f38..9533b9b 100644
+--- a/include/linux/dma-buf.h
++++ b/include/linux/dma-buf.h
+@@ -167,6 +167,10 @@ int dma_buf_fd(struct dma_buf *dmabuf, int flags);
+ struct dma_buf *dma_buf_get(int fd);
+ void dma_buf_put(struct dma_buf *dmabuf);
+ 
++unsigned int dma_buf_max_seg_size(struct dma_buf *dmabuf);
++unsigned int dma_buf_max_seg_count(struct dma_buf *dmabuf);
++unsigned int dma_buf_get_seg_boundary(struct dma_buf *dmabuf);
++
+ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *,
+ 					enum dma_data_direction);
+ void dma_buf_unmap_attachment(struct dma_buf_attachment *, struct sg_table *,
+@@ -220,6 +224,21 @@ static inline void dma_buf_put(struct dma_buf *dmabuf)
+ 	return;
+ }
+ 
++static inline unsigned int dma_buf_max_seg_size(struct dma_buf *dmabuf)
++{
++	return 0;
++}
++
++static inline unsigned int dma_buf_max_seg_count(struct dma_buf *dmabuf)
++{
++	return 0;
++}
++
++static inline unsigned int dma_buf_get_seg_boundary(struct dma_buf *dmabuf)
++{
++	return 0;
++}
++
+ static inline struct sg_table *dma_buf_map_attachment(
+ 	struct dma_buf_attachment *attach, enum dma_data_direction write)
+ {
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
