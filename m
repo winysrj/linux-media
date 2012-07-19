@@ -1,77 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:41046 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751898Ab2GKLOZ convert rfc822-to-8bit (ORCPT
+Received: from einhorn.in-berlin.de ([192.109.42.8]:45590 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751255Ab2GSNgt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jul 2012 07:14:25 -0400
-Received: by gglu4 with SMTP id u4so1062474ggl.19
-        for <linux-media@vger.kernel.org>; Wed, 11 Jul 2012 04:14:25 -0700 (PDT)
+	Thu, 19 Jul 2012 09:36:49 -0400
+Message-ID: <50080D61.5070606@bytesex.org>
+Date: Thu, 19 Jul 2012 15:36:33 +0200
+From: Gerd Hoffmann <kraxel@bytesex.org>
 MIME-Version: 1.0
-Reply-To: martin-eric.racine@iki.fi
-In-Reply-To: <20120711124441.346a86b3@armhf>
-References: <20120614162609.4613.22122.reportbug@henna.lan>
-	<20120614215359.GF3537@burratino>
-	<CAPZXPQd9gNCxn7xGyqj_xymPaF5OxvRtxRFkt+SsLs942te4og@mail.gmail.com>
-	<20120616044137.GB4076@burratino>
-	<1339932233.20497.14.camel@henna.lan>
-	<CAPZXPQegp7RA5M0H9Ofq4rJ9aj-rEdg=Ly9_1c6vAKi3COw50g@mail.gmail.com>
-	<4FF9CA30.9050105@redhat.com>
-	<CAPZXPQd026xfKrAU0D7CLQGbdAs8U01u5vsHp+5-wbVofAwdqQ@mail.gmail.com>
-	<4FFAD8D9.8070203@redhat.com>
-	<20120709203929.GC17301@burratino>
-	<CAPZXPQcaEzW1zGXfGwp-JuOrfBu2xhoidaYjthD8jhYAFpWr7A@mail.gmail.com>
-	<20120710163645.04fb0af0@armhf>
-	<CAPZXPQehjGRDZ=rXWjGFPQvRqOMzRpeA2dpoSWc3XwuUkvvesg@mail.gmail.com>
-	<20120711100436.2305b098@armhf>
-	<CAPZXPQdJC5yCYY6YRzuKj-ukFLzbY_yUzbogzbDx1S0bL1GrgQ@mail.gmail.com>
-	<20120711124441.346a86b3@armhf>
-Date: Wed, 11 Jul 2012 14:14:24 +0300
-Message-ID: <CAPZXPQcvGqPjeyZh=vHtbSOoA91Htsg6DeyYyhYLeDgay8GSBg@mail.gmail.com>
-Subject: Re: video: USB webcam fails since kernel 3.2
-From: =?UTF-8?Q?Martin=2D=C3=89ric_Racine?= <martin-eric.racine@iki.fi>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Jonathan Nieder <jrnieder@gmail.com>,
-	Hans de Goede <hdegoede@redhat.com>, 677533@bugs.debian.org,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Tony Gentile <tony@squid-vision.com>
+Subject: Fwd: bttv kernel patch
+References: <5007E837.1000805@squid-vision.com>
+In-Reply-To: <5007E837.1000805@squid-vision.com>
+Content-Type: multipart/mixed;
+ boundary="------------080004080607040604040106"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/7/11 Jean-Francois Moine <moinejf@free.fr>:
-> On Wed, 11 Jul 2012 13:21:55 +0300
-> Martin-Éric Racine <martin-eric.racine@iki.fi> wrote:
->
->> I installed them. That still doesn't fix it:
->>
->> $ LC_ALL=C make
->> make -C /lib/modules/3.5.0-rc6+/build
->> M=/home/perkelix/gspca-2.15.18/build modules
->> make[1]: Entering directory `/usr/src/linux-headers-3.5.0-rc6+'
->> /usr/src/linux-headers-3.5.0-rc6+/arch/x86/Makefile:39:
->> /usr/src/linux-headers-3.5.0-rc6+/arch/x86/Makefile_32.cpu: No such
->> file or directory
->> make[1]: *** No rule to make target
->
-> Strange. The file arch/x86/Makefile_32.cpu is in the linux 3.5.0 tree.
-> It should have been forgotten in the Debian package. You may copy it
-> from any other kernel source/header you have.
+This is a multi-part message in MIME format.
+--------------080004080607040604040106
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-That would be a bug in upstream GIT's built-in support for producing
-Debian packages then.
 
-Anyhow, after copying the missing file, the build successfully
-launches then breaks as follow:
 
-  CC [M]  /home/perkelix/gspca-2.15.18/build/ov534_9.o
-/home/perkelix/gspca-2.15.18/build/ov534_9.c: In function ‘sd_init’:
-/home/perkelix/gspca-2.15.18/build/ov534_9.c:1353:3: error: implicit
-declaration of function ‘err’ [-Werror=implicit-function-declaration]
-cc1: some warnings being treated as errors
-make[2]: *** [/home/perkelix/gspca-2.15.18/build/ov534_9.o] Virhe 1
-make[1]: *** [_module_/home/perkelix/gspca-2.15.18/build] Error 2
-make[1]: Leaving directory `/usr/src/linux-headers-3.5.0-rc6+'
-make: *** [modules] Error 2
+-------- Original Message --------
+Subject: bttv kernel patch
+Date: Thu, 19 Jul 2012 04:57:59 -0600
+From: Tony Gentile <tony@squid-vision.com>
+To: kraxel@bytesex.org
 
--- 
-Martin-Éric
+Hello Gerd,
+
+Attached is a patch to add the Aposonic W-DVR card to the bttv driver.
+This card is a basic 4 composite + 1 audio in. (I have no way to check
+the audio on the card as that connector has been removed from my
+board.)  This is my first submission.  I hope it is helpful.
+
+Thank you for your time.
+
+Sincerely,
+
+Tony Gentile
+
+
+--------------080004080607040604040106
+Content-Type: text/x-patch;
+ name="linux-3.4.5-Aposonic_W-DVR.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="linux-3.4.5-Aposonic_W-DVR.patch"
+
+diff -uNr linux-3.4.5/Documentation/video4linux/CARDLIST.bttv linux-3.4.5-modded/Documentation/video4linux/CARDLIST.bttv
+--- linux-3.4.5/Documentation/video4linux/CARDLIST.bttv	2012-07-16 12:20:09.000000000 -0600
++++ linux-3.4.5-modded/Documentation/video4linux/CARDLIST.bttv	2012-07-19 05:04:38.000000000 -0600
+@@ -159,3 +159,4 @@
+ 158 -> Geovision GV-800(S) (slave)                         [800b:763d,800c:763d,800d:763d]
+ 159 -> ProVideo PV183                                      [1830:1540,1831:1540,1832:1540,1833:1540,1834:1540,1835:1540,1836:1540,1837:1540]
+ 160 -> Tongwei Video Technology TD-3116                    [f200:3116]
++161 -> Aposonic W-DVR                                      [0279:0228]
+diff -uNr linux-3.4.5/drivers/media/video/bt8xx/bttv-cards.c linux-3.4.5-modded/drivers/media/video/bt8xx/bttv-cards.c
+--- linux-3.4.5/drivers/media/video/bt8xx/bttv-cards.c	2012-07-16 12:20:09.000000000 -0600
++++ linux-3.4.5-modded/drivers/media/video/bt8xx/bttv-cards.c	2012-07-19 04:48:52.000000000 -0600
+@@ -345,7 +345,7 @@
+ 	{ 0x15401836, BTTV_BOARD_PV183,         "Provideo PV183-7" },
+ 	{ 0x15401837, BTTV_BOARD_PV183,         "Provideo PV183-8" },
+ 	{ 0x3116f200, BTTV_BOARD_TVT_TD3116,	"Tongwei Video Technology TD-3116" },
+-
++	{ 0x02280279, BTTV_BOARD_APOSONIC_WDVR, "Aposonic W-DVR" },
+ 	{ 0, -1, NULL }
+ };
+ 
+@@ -2893,6 +2893,14 @@
+ 		.pll		= PLL_28,
+ 		.tuner_type     = TUNER_ABSENT,
+ 	},
++	[BTTV_BOARD_APOSONIC_WDVR] = {
++		.name           = "Aposonic W-DVR",
++		.video_inputs   = 4,
++		.svhs           = NO_SVHS,
++		.muxsel         = MUXSEL(2, 3, 1, 0),
++		.tuner_type     = TUNER_ABSENT,
++	},
++
+ };
+ 
+ static const unsigned int bttv_num_tvcards = ARRAY_SIZE(bttv_tvcards);
+diff -uNr linux-3.4.5/drivers/media/video/bt8xx/bttv.h linux-3.4.5-modded/drivers/media/video/bt8xx/bttv.h
+--- linux-3.4.5/drivers/media/video/bt8xx/bttv.h	2012-07-16 12:20:09.000000000 -0600
++++ linux-3.4.5-modded/drivers/media/video/bt8xx/bttv.h	2012-07-19 04:48:52.000000000 -0600
+@@ -184,7 +184,7 @@
+ #define BTTV_BOARD_GEOVISION_GV800S_SL	   0x9e
+ #define BTTV_BOARD_PV183                   0x9f
+ #define BTTV_BOARD_TVT_TD3116		   0xa0
+-
++#define BTTV_BOARD_APOSONIC_WDVR           0xa1
+ 
+ /* more card-specific defines */
+ #define PT2254_L_CHANNEL 0x10
+
+
+--------------080004080607040604040106--
