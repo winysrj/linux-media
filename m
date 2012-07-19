@@ -1,75 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:13156 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750720Ab2GEIgk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 04:36:40 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [GIT PULL FOR v3.6] mostly remove V4L2_FL_LOCK_ALL_FOPS
-Date: Thu, 5 Jul 2012 10:36:36 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <201207041942.04606.hverkuil@xs4all.nl> <201207050854.20966.hverkuil@xs4all.nl> <4FF55042.6090102@samsung.com>
-In-Reply-To: <4FF55042.6090102@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201207051036.36803.hverkuil@xs4all.nl>
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:33898 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750894Ab2GSQYr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Jul 2012 12:24:47 -0400
+From: Rob Clark <rob.clark@linaro.org>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Cc: patches@linaro.org, linux@arm.linux.org.uk, arnd@arndb.de,
+	jesse.barker@linaro.org, m.szyprowski@samsung.com, daniel@ffwll.ch,
+	t.stanislaws@samsung.com, sumit.semwal@ti.com,
+	maarten.lankhorst@canonical.com, Rob Clark <rob@ti.com>
+Subject: [PATCH 0/2] dma-parms and helpers for dma-buf
+Date: Thu, 19 Jul 2012 11:23:32 -0500
+Message-Id: <1342715014-5316-1-git-send-email-rob.clark@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 5 July 2012 10:28:50 Sylwester Nawrocki wrote:
-> Hi Hans,
-> 
-> On 07/05/2012 08:54 AM, Hans Verkuil wrote:
-> > Hi Sylwester,
-> > 
-> > It still doesn't apply. This patch starts with:
-> > 
-> > diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-> > index da2c40e..cb04a870 100644
-> > --- a/drivers/media/video/s5p-fimc/fimc-capture.c
-> > +++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-> > @@ -480,48 +480,59 @@ static int fimc_capture_set_default_format(struct fimc_dev *fimc);
-> >  static int fimc_capture_open(struct file *file)
-> >  {
-> >         struct fimc_dev *fimc = video_drvdata(file);
-> > -       int ret;
-> > +       int ret = -EBUSY;
-> > 
-> > The actual current source code starts with:
-> > 
-> > static int fimc_capture_open(struct file *file)
-> > {
-> >         struct fimc_dev *fimc = video_drvdata(file);
-> >         int ret = v4l2_fh_open(file);
-> > 
-> > Quite different. That 'int ret = v4l2_fh_open(file);' line was added June 10th, 2011, so
-> > I don't understand why that isn't in your git repository.
-> 
-> Because is has been removed by one of patches from v4l-fimc-fixes branch
-> that I sent to Mauro on 25th of May and is still not upstream.
-> Branch v4l-fimc-next depends on v4l-fimc-fixes, sorry if it wasn't clear
-> enough. You need to pull v4l-fimc-fixes branch first. If I would have
-> rebased patches for -next then the fixup patches wouldn't apply. That
-> just doesn't seem right.
+From: Rob Clark <rob@ti.com>
 
-Ah, OK. Sorry, I misunderstood.
+Re-sending first patch, with a wider audience.  Apparently I didn't
+spam enough inboxes the first time.
 
-In that case I'll just wait for Mauro to pull in the fimc-fixes, and then
-I'll make another pull request to get this last FOPS usage fixed. If I start
-pulling in fixes trees as well, then that's going to be confusing.
+And, at Daniel Vetter's suggestion, adding some helper functions in
+dma-buf to get the most restrictive parameters of all the attached
+devices.
 
-It's OK to have a second pull request later to finalize this as there is no
-urgency associated with these patches.
+Rob Clark (2):
+  device: add dma_params->max_segment_count
+  dma-buf: add helpers for attacher dma-parms
 
-Regards,
+ drivers/base/dma-buf.c      |   63 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/device.h      |    1 +
+ include/linux/dma-buf.h     |   19 +++++++++++++
+ include/linux/dma-mapping.h |   16 +++++++++++
+ 4 files changed, 99 insertions(+)
 
-	Hans
+-- 
+1.7.9.5
 
-> Mauro, are you going to send another pull request to Linus for 3.5-rc,
-> including these patches: http://patchwork.linuxtv.org/patch/11503 ?
-> 
-> Regards,
-> 
