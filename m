@@ -1,74 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52875 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754578Ab2GRNyF (ORCPT
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:53002 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751114Ab2GSUnH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jul 2012 09:54:05 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH v3 7/9] soc-camera: Continue the power off sequence if one of the steps fails
-Date: Wed, 18 Jul 2012 15:54:02 +0200
-Message-Id: <1342619644-5712-8-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1342619644-5712-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1342619644-5712-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Thu, 19 Jul 2012 16:43:07 -0400
+Received: by gglu4 with SMTP id u4so3269007ggl.19
+        for <linux-media@vger.kernel.org>; Thu, 19 Jul 2012 13:43:06 -0700 (PDT)
+Date: Thu, 19 Jul 2012 17:42:58 -0300
+From: Ismael Luceno <ismael.luceno@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 10/10] staging: solo6x10: Avoid extern declaration by
+ reworking module parameter
+Message-ID: <20120719174258.33e93261@pirotess>
+In-Reply-To: <201207192148.33665.hverkuil@xs4all.nl>
+References: <1340308332-1118-1-git-send-email-elezegarcia@gmail.com>
+	<CALF0-+W88U_cAGMrui9rwbNg8BBgekBi9B2unStKySY_RhS3zw@mail.gmail.com>
+	<20120719154111.2e4296b9@pirotess>
+	<201207192148.33665.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Powering off a device is a "best effort" task: failure to execute one of
-the steps should not prevent the next steps to be executed. For
-instance, an I2C communication error when putting the chip in stand-by
-mode should not prevent the more agressive next step of turning the
-chip's power supply off.
+On Thu, 19 Jul 2012 21:48:33 +0200
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Thu July 19 2012 20:41:11 Ismael Luceno wrote:
+> > On Thu, 19 Jul 2012 10:25:09 -0300
+> > Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+> > > On Wed, Jul 18, 2012 at 7:26 PM, Ismael Luceno
+> > > <ismael.luceno@gmail.com> wrote:
+> > > > On Thu, Jun 21, 2012 at 4:52 PM, Ezequiel Garcia
+> > > > <elezegarcia@gmail.com> wrote:
+> > > >> This patch moves video_nr module parameter to core.c
+> > > >> and then passes that parameter as an argument to functions
+> > > >> that need it.
+> > > >> This way we avoid the extern declaration and parameter
+> > > >> dependencies are better exposed.
+> > > > <...>
+> > > >
+> > > > NACK.
+> > > >
+> > > > The changes to video_nr are supposed to be preserved.
+> > > 
+> > > Mmm, I'm sorry but I don't see any functionality change in this
+> > > patch, just a cleanup.
+> > > 
+> > > What do you mean by "changes to video_nr are supposed to be
+> > > preserved"?
+> > 
+> > It is modified by solo_enc_alloc, which is called multiple times by
+> > solo_enc_v4l2_init.
+> 
+> You don't need to modify it at all. video_register_device() will start
+> looking for a free video node number starting at video_nr and counting
+> upwards, so increasing video_nr has no purpose. Leaving it out will
+> give you exactly the same result.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/soc_camera.c |   22 ++++++++++++++--------
- 1 files changed, 14 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index 55b981f..7bf21da 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -89,24 +89,30 @@ static int soc_camera_power_off(struct soc_camera_device *icd,
- 				struct soc_camera_link *icl)
- {
- 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
--	int ret = v4l2_subdev_call(sd, core, s_power, 0);
-+	int ret = 0;
-+	int err;
- 
--	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
--		return ret;
-+	err = v4l2_subdev_call(sd, core, s_power, 0);
-+	if (err < 0 && err != -ENOIOCTLCMD && err != -ENODEV) {
-+		dev_err(icd->pdev, "Subdev failed to power-off the camera.\n");
-+		ret = err;
-+	}
- 
- 	if (icl->power) {
--		ret = icl->power(icd->control, 0);
--		if (ret < 0) {
-+		err = icl->power(icd->control, 0);
-+		if (err < 0) {
- 			dev_err(icd->pdev,
- 				"Platform failed to power-off the camera.\n");
--			return ret;
-+			ret = ret ? : err;
- 		}
- 	}
- 
--	ret = regulator_bulk_disable(icl->num_regulators,
-+	err = regulator_bulk_disable(icl->num_regulators,
- 				     icl->regulators);
--	if (ret < 0)
-+	if (err < 0) {
- 		dev_err(icd->pdev, "Cannot disable regulators\n");
-+		ret = ret ? : err;
-+	}
- 
- 	return ret;
- }
--- 
-1.7.8.6
-
+Oh, didn't know that. Interesting.
