@@ -1,122 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45672 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932134Ab2GALN5 (ORCPT
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:38488 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750743Ab2GSNle (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Jul 2012 07:13:57 -0400
-Date: Sun, 1 Jul 2012 14:13:52 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <sylwester.nawrocki@gmail.com>
-Cc: linux-media@vger.kernel.org, t.stanislaws@samsung.com,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: Re: [PATCH 3/8] v4l: Unify selection targets across V4L2 and V4L2
- subdev interfaces
-Message-ID: <20120701111352.GH19384@valkosipuli.retiisi.org.uk>
-References: <20120630170506.GE19384@valkosipuli.retiisi.org.uk>
- <1341075839-18586-3-git-send-email-sakari.ailus@iki.fi>
- <4FEF6006.3050109@gmail.com>
+	Thu, 19 Jul 2012 09:41:34 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Soby Mathew <soby.linuxtv@gmail.com>
+Subject: Re: Supporting 3D formats in V4L2
+Date: Thu, 19 Jul 2012 15:41:07 +0200
+Cc: linux-media@vger.kernel.org
+References: <CAGzWAsg3hsGV5CPsCzxcKO4djG4iRZauEQvju=G=Zp4Rpqpz2g@mail.gmail.com>
+In-Reply-To: <CAGzWAsg3hsGV5CPsCzxcKO4djG4iRZauEQvju=G=Zp4Rpqpz2g@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4FEF6006.3050109@gmail.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201207191541.07286.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Hi Soby!
 
-On Sat, Jun 30, 2012 at 10:22:30PM +0200, Sylwester Nawrocki wrote:
-> On 06/30/2012 07:03 PM, Sakari Ailus wrote:
+On Thu 19 July 2012 14:18:13 Soby Mathew wrote:
+> Hi everyone,
+>     Currently there is limitation in v4l2 for specifying the 3D
+> formats . In HDMI 1.4 standard, the following 3D formats are
+> specified:
+
+I think that this is ideal for adding to enum v4l2_field.
+I've made some proposals below:
+
 > 
-> Would be good to add at least a small description here, that this
-> patch converts users of V4L2_SUBDEV_SEL_TGT_* to use V4L2_SEL_TGT_*,
-> or something similar.
+>       1. FRAME_PACK,
 
-Fixed.
+V4L2_FIELD_3D_FRAME_PACK	(progressive)
+V4L2_FIELD_3D_FRAME_PACK_TB	(interlaced, odd == top comes first)
 
-...
+>       2. FIELD_ALTERNATIVE,
 
-> >diff --git a/include/linux/v4l2-common.h b/include/linux/v4l2-common.h
-> >new file mode 100644
-> >index 0000000..b49a37a
-> >--- /dev/null
-> >+++ b/include/linux/v4l2-common.h
-> >@@ -0,0 +1,57 @@
-> >+/*
-> >+ * include/linux/v4l2-common.h
-> >+ *
-> >+ * Common V4L2 and V4L2 subdev definitions.
-> >+ *
-> >+ * Users are advised to #include this file either through videodev2.h
-> >+ * (V4L2) or through v4l2-subdev.h (V4L2 subdev) rather than to refer
-> >+ * to this file directly.
-> >+ *
-> >+ * Copyright (C) 2012 Nokia Corporation
-> >+ * Contact: Sakari Ailus<sakari.ailus@iki.fi>
-> >+ *
-> >+ * This program is free software; you can redistribute it and/or
-> >+ * modify it under the terms of the GNU General Public License
-> >+ * version 2 as published by the Free Software Foundation.
-> >+ *
-> >+ * This program is distributed in the hope that it will be useful, but
-> >+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-> >+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> >+ * General Public License for more details.
-> >+ *
-> >+ * You should have received a copy of the GNU General Public License
-> >+ * along with this program; if not, write to the Free Software
-> >+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> >+ * 02110-1301 USA
-> >+ *
-> >+ */
-> >+
-> >+#ifndef __V4L2_COMMON__
-> >+#define __V4L2_COMMON__
-> >+
-> >+/* Selection target definitions */
-> >+
-> >+/* Current cropping area */
-> >+#define V4L2_SEL_TGT_CROP		0x0000
-> >+/* Default cropping area */
-> >+#define V4L2_SEL_TGT_CROP_DEFAULT	0x0001
-> >+/* Cropping bounds */
-> >+#define V4L2_SEL_TGT_CROP_BOUNDS	0x0002
-> >+/* Current composing area */
-> >+#define V4L2_SEL_TGT_COMPOSE		0x0100
-> >+/* Default composing area */
-> >+#define V4L2_SEL_TGT_COMPOSE_DEFAULT	0x0101
-> >+/* Composing bounds */
-> >+#define V4L2_SEL_TGT_COMPOSE_BOUNDS	0x0102
-> >+/* Current composing area plus all padding pixels */
-> >+#define V4L2_SEL_TGT_COMPOSE_PADDED	0x0103
-> >+
-> >+/* Backward compatibility definitions */
-> >+#define V4L2_SEL_TGT_CROP_ACTIVE	V4L2_SEL_TGT_CROP
-> >+#define V4L2_SEL_TGT_COMPOSE_ACTIVE	V4L2_SEL_TGT_COMPOSE
-> >+#define V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL \
-> >+	V4L2_SUBDEV_SEL_TGT_CROP
-> >+#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL \
-> >+	V4L2_SUBDEV_SEL_TGT_COMPOSE
+V4L2_FIELD_3D_FIELD_ALTERNATIVE
+
+>       3. LINE_ALTERNATIVE,
+
+V4L2_FIELD_3D_LINE_ALTERNATIVE
+
+>       4. SIDE BY SIDE FULL,
+
+V4L2_FIELD_3D_SBS_FULL
+
+>       5. SIDE BY SIDE HALF,
+
+V4L2_FIELD_3D_SBS_HALF
+
+>       6. LEFT + DEPTH,
+
+V4L2_FIELD_3D_L_DEPTH
+
+>       7. LEFT + DEPTH + GRAPHICS + GRAPHICS-DEPTH,
+
+V4L2_FIELD_3D_L_DEPTH_GFX_DEPTH
+
+>       8. TOP AND BOTTOM
+
+V4L2_FIELD_3D_TAB
+
+You would also need defines that describe which field is received for the field
+alternative mode (it's put in struct v4l2_buffer):
+
+V4L2_FIELD_3D_LEFT_TOP
+V4L2_FIELD_3D_LEFT_BOTTOM
+V4L2_FIELD_3D_RIGHT_TOP
+V4L2_FIELD_3D_RIGHT_BOTTOM
+
 > 
-> This should read:
 > 
-> #define V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL		V4L2_SEL_TGT_CROP
-> #define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL	V4L2_SEL_TGT_COMPOSE
+> In addition for some of the formats like Side-by-side-half there are
+> some additional metadata (like type of horizontal sub-sampling)
+
+A control seems to be the most appropriate method of exposing the
+horizontal subsampling.
+
+> and
+> parallax information which may be required for programming the display
+> processing pipeline properly.
+
+This would be a new ioctl, but I think this should only be implemented if
+someone can actually test it with real hardware. The same is true for the
+more exotic 3D formats above.
+
+It seems SBS is by far the most common format.
+
 > 
-> right ? As V4L2_SUBDEV_SEL_TGT_* defines are already annihilated
-> at this point ?
-
-Correct. There's been so many variations of these that I've become blind to
-small differences. ;-)
-
-> I would also increase indentation between symbols and numbers
-> and wouldn't use backslashes.
+> I am not very sure on how to expose this to the userspace. This is an
+> inherent property of video signal  , hence it would be appropriate to
+> have an additional field in v4l_format to specify 3D format. Currently
+> this is a requirement for HDMI 1.4 Rx / Tx but in the future it would
+> be applicable to broadcast sources also.
 > 
-> With this fixed:
+> In our implementation we have temporarily defined a Private Control to
+> expose this .
 > 
-> Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Please let me know of your suggestions .
 
-Thanks!!
+I hope this helps!
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Regards,
+
+	Hans
