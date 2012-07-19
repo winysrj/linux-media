@@ -1,72 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from guitar.tcltek.co.il ([192.115.133.116]:41446 "EHLO
-	sivan.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752316Ab2GIICd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2012 04:02:33 -0400
-Date: Mon, 9 Jul 2012 10:52:25 +0300
-From: Baruch Siach <baruch@tkos.co.il>
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>, linux-media@vger.kernel.org,
-	fabio.estevam@freescale.com, linux-arm-kernel@lists.infradead.org,
-	laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
-	mchehab@infradead.org, kernel@pengutronix.de
-Subject: Re: [PATCH] [v3] i.MX27: Fix emma-prp clocks in mx2_camera.c
-Message-ID: <20120709075225.GI22116@sapphire.tkos.co.il>
-References: <1341572162-29126-1-git-send-email-javier.martin@vista-silicon.com>
- <20120709072809.GP30009@pengutronix.de>
- <CACKLOr25yb1Cx4XNriyPceBcqmc5T4jDpJXFpve9JCXpP7iMLg@mail.gmail.com>
- <20120709074337.GT30009@pengutronix.de>
- <CACKLOr05W5N4n9TSKdaCP-6-j+zDSr=aNG4QoTMVWXTrM30x7Q@mail.gmail.com>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1808 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751036Ab2GSTtO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Jul 2012 15:49:14 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Ismael Luceno <ismael.luceno@gmail.com>
+Subject: Re: [PATCH 10/10] staging: solo6x10: Avoid extern declaration by reworking module parameter
+Date: Thu, 19 Jul 2012 21:48:33 +0200
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+References: <1340308332-1118-1-git-send-email-elezegarcia@gmail.com> <CALF0-+W88U_cAGMrui9rwbNg8BBgekBi9B2unStKySY_RhS3zw@mail.gmail.com> <20120719154111.2e4296b9@pirotess>
+In-Reply-To: <20120719154111.2e4296b9@pirotess>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CACKLOr05W5N4n9TSKdaCP-6-j+zDSr=aNG4QoTMVWXTrM30x7Q@mail.gmail.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201207192148.33665.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+On Thu July 19 2012 20:41:11 Ismael Luceno wrote:
+> On Thu, 19 Jul 2012 10:25:09 -0300
+> Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+> > On Wed, Jul 18, 2012 at 7:26 PM, Ismael Luceno
+> > <ismael.luceno@gmail.com> wrote:
+> > > On Thu, Jun 21, 2012 at 4:52 PM, Ezequiel Garcia
+> > > <elezegarcia@gmail.com> wrote:
+> > >> This patch moves video_nr module parameter to core.c
+> > >> and then passes that parameter as an argument to functions
+> > >> that need it.
+> > >> This way we avoid the extern declaration and parameter
+> > >> dependencies are better exposed.
+> > > <...>
+> > >
+> > > NACK.
+> > >
+> > > The changes to video_nr are supposed to be preserved.
+> > 
+> > Mmm, I'm sorry but I don't see any functionality change in this patch,
+> > just a cleanup.
+> > 
+> > What do you mean by "changes to video_nr are supposed to be
+> > preserved"?
+> 
+> It is modified by solo_enc_alloc, which is called multiple times by
+> solo_enc_v4l2_init.
 
-On Mon, Jul 09, 2012 at 09:46:03AM +0200, javier Martin wrote:
-> On 9 July 2012 09:43, Sascha Hauer <s.hauer@pengutronix.de> wrote:
-> > On Mon, Jul 09, 2012 at 09:37:25AM +0200, javier Martin wrote:
-> >> On 9 July 2012 09:28, Sascha Hauer <s.hauer@pengutronix.de> wrote:
-> >> > On Fri, Jul 06, 2012 at 12:56:02PM +0200, Javier Martin wrote:
-> >> >> This driver wasn't converted to the new clock changes
-> >> >> (clk_prepare_enable/clk_disable_unprepare). Also naming
-> >> >> of emma-prp related clocks for the i.MX27 was not correct.
-> >> >> ---
-> >> >> Enable clocks only for i.MX27.
-> >> >
-> >> > Indeed,
-> >> >
-> >> >> -     pcdev->clk_csi = clk_get(&pdev->dev, NULL);
-> >> >> -     if (IS_ERR(pcdev->clk_csi)) {
-> >> >> -             dev_err(&pdev->dev, "Could not get csi clock\n");
-> >> >> -             err = PTR_ERR(pcdev->clk_csi);
-> >> >> -             goto exit_kfree;
-> >> >> +     if (cpu_is_mx27()) {
-> >> >> +             pcdev->clk_csi = devm_clk_get(&pdev->dev, "ahb");
-> >> >> +             if (IS_ERR(pcdev->clk_csi)) {
-> >> >> +                     dev_err(&pdev->dev, "Could not get csi clock\n");
-> >> >> +                     err = PTR_ERR(pcdev->clk_csi);
-> >> >> +                     goto exit_kfree;
-> >> >> +             }
-> >> >
-> >> > but why? Now the i.MX25 won't get a clock anymore.
-> >>
-> >> What are the clocks needed by i.MX25? csi only?
-> >>
-> >> By the way, is anybody using this driver with i.MX25?
-> >
-> > It seems Baruch (added to Cc) has used it on an i.MX25.
-> could you tell us what are the clocks needed by i.MX25?
+You don't need to modify it at all. video_register_device() will start
+looking for a free video node number starting at video_nr and counting
+upwards, so increasing video_nr has no purpose. Leaving it out will give
+you exactly the same result.
 
-According to the code the csi clock is sufficient for i.MX25. Unfortunately I 
-don't have access to a running system anymore, so I can't test current code.
+The only driver that does the same thing is vivi, and I think it should
+be removed from there as well. The solo driver probably copied it from
+vivi :-(
 
-baruch
+Regards,
 
--- 
-     http://baruch.siach.name/blog/                  ~. .~   Tk Open Systems
-=}------------------------------------------------ooO--U--Ooo------------{=
-   - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
+	Hans
