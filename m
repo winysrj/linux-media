@@ -1,141 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:55718 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752009Ab2GJMGx (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:39798 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750894Ab2GSQYu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jul 2012 08:06:53 -0400
-Date: Tue, 10 Jul 2012 14:06:51 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 9/9] soc-camera: Push probe-time power management to
- drivers
-In-Reply-To: <1341520728-2707-10-git-send-email-laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1207101329450.29825@axis700.grange>
-References: <1341520728-2707-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1341520728-2707-10-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Thu, 19 Jul 2012 12:24:50 -0400
+From: Rob Clark <rob.clark@linaro.org>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Cc: patches@linaro.org, linux@arm.linux.org.uk, arnd@arndb.de,
+	jesse.barker@linaro.org, m.szyprowski@samsung.com, daniel@ffwll.ch,
+	t.stanislaws@samsung.com, sumit.semwal@ti.com,
+	maarten.lankhorst@canonical.com, Rob Clark <rob@ti.com>
+Subject: [PATCH 1/2] device: add dma_params->max_segment_count
+Date: Thu, 19 Jul 2012 11:23:33 -0500
+Message-Id: <1342715014-5316-2-git-send-email-rob.clark@linaro.org>
+In-Reply-To: <1342715014-5316-1-git-send-email-rob.clark@linaro.org>
+References: <1342715014-5316-1-git-send-email-rob.clark@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent
+From: Rob Clark <rob@ti.com>
 
-On Thu, 5 Jul 2012, Laurent Pinchart wrote:
+For devices which have constraints about maximum number of segments
+in an sglist.  For example, a device which could only deal with
+contiguous buffers would set max_segment_count to 1.
 
-> Several client drivers access the hardware at probe time, for instance
-> to read the probe chip ID. Such chips need to be powered up when being
-> probed.
-> 
-> soc-camera handles this by powering chips up in the soc-camera probe
-> implementation. However, this will break with non soc-camera hosts that
-> don't perform the same operations.
-> 
-> Fix the problem by pushing the power up/down from the soc-camera core
-> down to individual drivers on a needs basis.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/video/imx074.c     |   21 ++++++++--
->  drivers/media/video/mt9m001.c    |   17 +++++++-
->  drivers/media/video/mt9m111.c    |   80 +++++++++++++++++++++----------------
->  drivers/media/video/mt9t031.c    |   37 +++++++----------
->  drivers/media/video/mt9t112.c    |   12 +++++-
->  drivers/media/video/mt9v022.c    |    5 ++
->  drivers/media/video/ov2640.c     |   11 ++++-
->  drivers/media/video/ov5642.c     |   21 ++++++++--
->  drivers/media/video/ov6650.c     |   19 ++++++---
->  drivers/media/video/ov772x.c     |   14 ++++++-
->  drivers/media/video/ov9640.c     |   17 ++++++--
->  drivers/media/video/ov9740.c     |   23 +++++++----
->  drivers/media/video/rj54n1cb0c.c |   18 ++++++--
->  drivers/media/video/soc_camera.c |   20 ---------
->  drivers/media/video/tw9910.c     |   12 +++++-
->  15 files changed, 204 insertions(+), 123 deletions(-)
+The initial motivation is for devices sharing buffers via dma-buf,
+to allow the buffer exporter to know the constraints of other
+devices which have attached to the buffer.  The dma_mask and fields
+in 'struct device_dma_parameters' tell the exporter everything else
+that is needed, except whether the importer has constraints about
+maximum number of segments.
 
-[snip]
-
-> diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
-> index 9666e20..4f12177 100644
-> --- a/drivers/media/video/mt9t031.c
-> +++ b/drivers/media/video/mt9t031.c
-> @@ -161,14 +161,6 @@ static int mt9t031_idle(struct i2c_client *client)
->  	return ret >= 0 ? 0 : -EIO;
->  }
->  
-> -static int mt9t031_disable(struct i2c_client *client)
-> -{
-> -	/* Disable the chip */
-> -	reg_clear(client, MT9T031_OUTPUT_CONTROL, 2);
-> -
-> -	return 0;
-> -}
-> -
->  static int mt9t031_s_stream(struct v4l2_subdev *sd, int enable)
->  {
->  	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> @@ -643,9 +635,15 @@ static int mt9t031_video_probe(struct i2c_client *client)
->  	s32 data;
->  	int ret;
->  
-> -	/* Enable the chip */
-> -	data = reg_write(client, MT9T031_CHIP_ENABLE, 1);
-> -	dev_dbg(&client->dev, "write: %d\n", data);
-> +	ret = mt9t031_s_power(&mt9t031->subdev, 1);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	ret = mt9t031_idle(client);
-> +	if (ret < 0) {
-> +		dev_err(&client->dev, "Failed to initialise the camera\n");
-> +		return ret;
-
-grm... don't you have to "goto done" here instead to disable the power again?
-
-> +	}
->  
->  	/* Read out the chip version register */
->  	data = reg_read(client, MT9T031_CHIP_VERSION);
-> @@ -657,16 +655,16 @@ static int mt9t031_video_probe(struct i2c_client *client)
->  	default:
->  		dev_err(&client->dev,
->  			"No MT9T031 chip detected, register read %x\n", data);
-> -		return -ENODEV;
-> +		ret = -ENODEV;
-> +		goto done;
->  	}
->  
->  	dev_info(&client->dev, "Detected a MT9T031 chip ID %x\n", data);
->  
-> -	ret = mt9t031_idle(client);
-> -	if (ret < 0)
-> -		dev_err(&client->dev, "Failed to initialise the camera\n");
-> -	else
-> -		v4l2_ctrl_handler_setup(&mt9t031->hdl);
-> +	ret = v4l2_ctrl_handler_setup(&mt9t031->hdl);
-> +
-> +done:
-> +	mt9t031_s_power(&mt9t031->subdev, 0);
->  
->  	return ret;
->  }
-> @@ -817,12 +815,7 @@ static int mt9t031_probe(struct i2c_client *client,
->  	mt9t031->xskip = 1;
->  	mt9t031->yskip = 1;
->  
-> -	mt9t031_idle(client);
-> -
->  	ret = mt9t031_video_probe(client);
-> -
-> -	mt9t031_disable(client);
-> -
->  	if (ret) {
->  		v4l2_ctrl_handler_free(&mt9t031->hdl);
->  		kfree(mt9t031);
-
-Thanks
-Guennadi
+Signed-off-by: Rob Clark <rob@ti.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ include/linux/device.h      |    1 +
+ include/linux/dma-mapping.h |   16 ++++++++++++++++
+ 2 files changed, 17 insertions(+)
+
+diff --git a/include/linux/device.h b/include/linux/device.h
+index 161d962..3813735 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -568,6 +568,7 @@ struct device_dma_parameters {
+ 	 * sg limitations.
+ 	 */
+ 	unsigned int max_segment_size;
++	unsigned int max_segment_count;    /* zero for unlimited */
+ 	unsigned long segment_boundary_mask;
+ };
+ 
+diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
+index dfc099e..f380f79 100644
+--- a/include/linux/dma-mapping.h
++++ b/include/linux/dma-mapping.h
+@@ -111,6 +111,22 @@ static inline unsigned int dma_set_max_seg_size(struct device *dev,
+ 		return -EIO;
+ }
+ 
++static inline unsigned int dma_get_max_seg_count(struct device *dev)
++{
++	return dev->dma_parms ? dev->dma_parms->max_segment_count : 0;
++}
++
++static inline int dma_set_max_seg_count(struct device *dev,
++						unsigned int count)
++{
++	if (dev->dma_parms) {
++		dev->dma_parms->max_segment_count = count;
++		return 0;
++	} else
++		return -EIO;
++}
++
++
+ static inline unsigned long dma_get_seg_boundary(struct device *dev)
+ {
+ 	return dev->dma_parms ?
+-- 
+1.7.9.5
+
