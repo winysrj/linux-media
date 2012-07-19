@@ -1,172 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37860 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753034Ab2GTRcT (ORCPT
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:60480 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751353Ab2GSUzf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jul 2012 13:32:19 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Prabhakar Lad <prabhakar.lad@ti.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hansverk@cisco.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v6 1/2] media: add new mediabus format enums for dm365
-Date: Fri, 20 Jul 2012 19:32:23 +0200
-Message-ID: <5460968.zn5gceMGBZ@avalon>
-In-Reply-To: <1342796290-18947-2-git-send-email-prabhakar.lad@ti.com>
-References: <1342796290-18947-1-git-send-email-prabhakar.lad@ti.com> <1342796290-18947-2-git-send-email-prabhakar.lad@ti.com>
+	Thu, 19 Jul 2012 16:55:35 -0400
+Received: by ghrr11 with SMTP id r11so3286666ghr.19
+        for <linux-media@vger.kernel.org>; Thu, 19 Jul 2012 13:55:35 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <201207192241.54408.hverkuil@xs4all.nl>
+References: <1340308332-1118-1-git-send-email-elezegarcia@gmail.com>
+	<201207192148.33665.hverkuil@xs4all.nl>
+	<CALF0-+V2ZvZOsCj_hZuD=wwVL1D7p0smHki4x=YyghiM5Rvdqw@mail.gmail.com>
+	<201207192241.54408.hverkuil@xs4all.nl>
+Date: Thu, 19 Jul 2012 17:55:34 -0300
+Message-ID: <CALF0-+XGSir6tFR-A=8a3cgJ4n3L7ev+U-e554143pMWbACCnw@mail.gmail.com>
+Subject: Re: [PATCH 10/10] staging: solo6x10: Avoid extern declaration by
+ reworking module parameter
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Ismael Luceno <ismael.luceno@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+On Thu, Jul 19, 2012 at 5:41 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Thu July 19 2012 21:55:20 Ezequiel Garcia wrote:
+>> On Thu, Jul 19, 2012 at 4:48 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> > On Thu July 19 2012 20:41:11 Ismael Luceno wrote:
+>> >> On Thu, 19 Jul 2012 10:25:09 -0300
+>> >> Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+>> >> > On Wed, Jul 18, 2012 at 7:26 PM, Ismael Luceno
+>> >> > <ismael.luceno@gmail.com> wrote:
+>> >> > > On Thu, Jun 21, 2012 at 4:52 PM, Ezequiel Garcia
+>> >> > > <elezegarcia@gmail.com> wrote:
+>> >> > >> This patch moves video_nr module parameter to core.c
+>> >> > >> and then passes that parameter as an argument to functions
+>> >> > >> that need it.
+>> >> > >> This way we avoid the extern declaration and parameter
+>> >> > >> dependencies are better exposed.
+>> >> > > <...>
+>> >> > >
+>> >> > > NACK.
+>> >> > >
+>> >> > > The changes to video_nr are supposed to be preserved.
+>> >> >
+>> >> > Mmm, I'm sorry but I don't see any functionality change in this patch,
+>> >> > just a cleanup.
+>> >> >
+>> >> > What do you mean by "changes to video_nr are supposed to be
+>> >> > preserved"?
+>> >>
+>> >> It is modified by solo_enc_alloc, which is called multiple times by
+>> >> solo_enc_v4l2_init.
+>> >
+>> > You don't need to modify it at all. video_register_device() will start
+>> > looking for a free video node number starting at video_nr and counting
+>> > upwards, so increasing video_nr has no purpose. Leaving it out will give
+>> > you exactly the same result.
+>> >
+>>
+>> Yes, but perhaps the module author wanted to force a device
+>> /dev/videoX *start* number,
+>> as it's documented in the parameter usage string:
+>>
+>>   MODULE_PARM_DESC(video_nr, "videoX start number, -1 is autodetect (default)");
+>>
+>> Now, I don't now why would one want to do that or if it makes sense at all.
+>> In any case, it seems it's the intended behavior.
+>>
+>
+> But doing video_nr++ is pointless and will not have an effect.
+>
+> Example: if video_nr is specified as 2, then video_register_device() will attempt
+> to make a /dev/video2 node, if that's already in use, then it will try /dev/video3,
+> etc.
+>
+> So doing video_nr++ after a video_register_device() will not change the outcome
+> for the next video_register_device() that is called, and has the somewhat odd
+> side-effect of changing the video_nr module parameter from what the user passed in.
+> So cat /sys/module/vivi/parameters/video_nr returns 3 instead of 2.
+>
+> Just don't change it and let video_register_device() do its magic.
+>
 
-Just one small comment below.
+Very true.
 
-On Friday 20 July 2012 20:28:09 Prabhakar Lad wrote:
-> From: Manjunath Hadli <manjunath.hadli@ti.com>
-> 
-> add new enum entries for supporting the media-bus formats on dm365.
-> These include some bayer and some non-bayer formats.
-> V4L2_MBUS_FMT_YDYUYDYV8_1X16 and V4L2_MBUS_FMT_UV8_1X8 are used
-> internal to the hardware by the resizer.
-> V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8 represents the bayer ALAW format
-> that is supported by dm365 hardware.
-> 
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
->  Documentation/DocBook/media/v4l/subdev-formats.xml |  250 ++++++++++++++++-
->  include/linux/v4l2-mediabus.h                      |   10 +-
->  2 files changed, 252 insertions(+), 8 deletions(-)
+I did a quick grep through video drivers and it seems no one should be
+using this
+video_register_device parameter with anything but -1.
 
+Is there any reason to keep it?
 
-> @@ -2415,6 +2553,106 @@
->  	      <entry>u<subscript>1</subscript></entry>
->  	      <entry>u<subscript>0</subscript></entry>
->  	    </row>
-> +	    <row id="V4L2-MBUS-FMT-YDYUYDYV8-1X16">
-> +	      <entry>V4L2_MBUS_FMT_YDYUYDYV8_1X16</entry>
-> +	      <entry>0x2014</entry>
-> +	      <entry></entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>y<subscript>7</subscript></entry>
-> +	      <entry>y<subscript>6</subscript></entry>
-> +	      <entry>y<subscript>5</subscript></entry>
-> +	      <entry>y<subscript>4</subscript></entry>
-> +	      <entry>y<subscript>3</subscript></entry>
-> +	      <entry>y<subscript>2</subscript></entry>
-> +	      <entry>y<subscript>1</subscript></entry>
-> +	      <entry>y<subscript>0</subscript></entry>
-> +	      <entry>d<subscript>7</subscript></entry>
-> +	      <entry>d<subscript>6</subscript></entry>
-> +	      <entry>d<subscript>5</subscript></entry>
-> +	      <entry>d<subscript>4</subscript></entry>
-> +	      <entry>d<subscript>3</subscript></entry>
-> +	      <entry>d<subscript>2</subscript></entry>
-> +	      <entry>d<subscript>1</subscript></entry>
-> +	      <entry>d<subscript>0</subscript></entry>
-
-I would remove the subscripts for all the dummy bits (here and below), as 
-they're dummy.
-
-With that change,
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> +	    </row>
-> +	    <row>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>y<subscript>7</subscript></entry>
-> +	      <entry>y<subscript>6</subscript></entry>
-> +	      <entry>y<subscript>5</subscript></entry>
-> +	      <entry>y<subscript>4</subscript></entry>
-> +	      <entry>y<subscript>3</subscript></entry>
-> +	      <entry>y<subscript>2</subscript></entry>
-> +	      <entry>y<subscript>1</subscript></entry>
-> +	      <entry>y<subscript>0</subscript></entry>
-> +	      <entry>u<subscript>7</subscript></entry>
-> +	      <entry>u<subscript>6</subscript></entry>
-> +	      <entry>u<subscript>5</subscript></entry>
-> +	      <entry>u<subscript>4</subscript></entry>
-> +	      <entry>u<subscript>3</subscript></entry>
-> +	      <entry>u<subscript>2</subscript></entry>
-> +	      <entry>u<subscript>1</subscript></entry>
-> +	      <entry>u<subscript>0</subscript></entry>
-> +	    </row>
-> +	    <row>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>y<subscript>7</subscript></entry>
-> +	      <entry>y<subscript>6</subscript></entry>
-> +	      <entry>y<subscript>5</subscript></entry>
-> +	      <entry>y<subscript>4</subscript></entry>
-> +	      <entry>y<subscript>3</subscript></entry>
-> +	      <entry>y<subscript>2</subscript></entry>
-> +	      <entry>y<subscript>1</subscript></entry>
-> +	      <entry>y<subscript>0</subscript></entry>
-> +	      <entry>d<subscript>7</subscript></entry>
-> +	      <entry>d<subscript>6</subscript></entry>
-> +	      <entry>d<subscript>5</subscript></entry>
-> +	      <entry>d<subscript>4</subscript></entry>
-> +	      <entry>d<subscript>3</subscript></entry>
-> +	      <entry>d<subscript>2</subscript></entry>
-> +	      <entry>d<subscript>1</subscript></entry>
-> +	      <entry>d<subscript>0</subscript></entry>
-> +	    </row>
-> +	    <row>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>y<subscript>7</subscript></entry>
-> +	      <entry>y<subscript>6</subscript></entry>
-> +	      <entry>y<subscript>5</subscript></entry>
-> +	      <entry>y<subscript>4</subscript></entry>
-> +	      <entry>y<subscript>3</subscript></entry>
-> +	      <entry>y<subscript>2</subscript></entry>
-> +	      <entry>y<subscript>1</subscript></entry>
-> +	      <entry>y<subscript>0</subscript></entry>
-> +	      <entry>v<subscript>7</subscript></entry>
-> +	      <entry>v<subscript>6</subscript></entry>
-> +	      <entry>v<subscript>5</subscript></entry>
-> +	      <entry>v<subscript>4</subscript></entry>
-> +	      <entry>v<subscript>3</subscript></entry>
-> +	      <entry>v<subscript>2</subscript></entry>
-> +	      <entry>v<subscript>1</subscript></entry>
-> +	      <entry>v<subscript>0</subscript></entry>
-> +	    </row>
->  	    <row id="V4L2-MBUS-FMT-YUYV10-1X20">
->  	      <entry>V4L2_MBUS_FMT_YUYV10_1X20</entry>
->  	      <entry>0x200d</entry>
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Thanks,
+Ezequiel.
