@@ -1,64 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51785 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751031Ab2GGSxM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Jul 2012 14:53:12 -0400
-Message-ID: <4FF885B2.3070509@redhat.com>
-Date: Sat, 07 Jul 2012 20:53:38 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:53912 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750707Ab2GSNcW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Jul 2012 09:32:22 -0400
+Received: by yhmm54 with SMTP id m54so2737405yhm.19
+        for <linux-media@vger.kernel.org>; Thu, 19 Jul 2012 06:32:22 -0700 (PDT)
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	hverkuil@xs4all.nl
-Subject: Re: [PATCH 4/4] radio-si470x: Lower firmware version requirements
-References: <1339681394-11348-1-git-send-email-hdegoede@redhat.com> <1339681394-11348-4-git-send-email-hdegoede@redhat.com> <4FF45FF7.4020300@iki.fi> <4FF5515A.1030704@redhat.com> <4FF5980F.8030109@iki.fi> <4FF59995.4010604@redhat.com> <4FF5A119.6020903@iki.fi> <4FF5ADE3.5040600@redhat.com> <4FF7EC0E.7060200@redhat.com> <4FF7FAB6.7040508@iki.fi>
-In-Reply-To: <4FF7FAB6.7040508@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <201207191317.56907.hverkuil@xs4all.nl>
+References: <1342633271-5731-1-git-send-email-elezegarcia@gmail.com>
+	<201207191317.56907.hverkuil@xs4all.nl>
+Date: Thu, 19 Jul 2012 10:32:21 -0300
+Message-ID: <CALF0-+Vsp=OkgyMEZ0Uyca03GZzH5hU4UtZ_-kfDkrKGQx=8CA@mail.gmail.com>
+Subject: Re: [PATCH] cx25821: Remove bad strcpy to read-only char*
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-On 07/07/2012 11:00 AM, Antti Palosaari wrote:
-> Hello Hans,
+On Thu, Jul 19, 2012 at 8:17 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Ezequiel,
 >
-> On 07/07/2012 10:58 AM, Hans de Goede wrote:
->> So is your device working properly now? The reason I'm asking it
->> because it is still causing a firmware version warning, and if
->> it works fine I would like to lower the firmware version warning
->> point, so that the warning goes away.
+> Can you post this patch again, but this time to Linus Torvalds as well?
 >
-> I don't know what is definition of properly in that case.
+> See e.g. http://www.spinics.net/lists/linux-media/msg50407.html how I did that.
 >
-> Problem is that when I use radio application from xawtv3 with that new loopback I hear very often cracks and following errors are printed to the radio screen:
-> ALSA lib pcm.c:7339:(snd_pcm_recover) underrun occurred
-> or
-> ALSA lib pcm.c:7339:(snd_pcm_recover) overrun occurred
+> It would be good to have this fixed in 3.5. I'm afraid that by the time
+> Mauro is back 3.5 will be released and this is a nasty bug.
 >
-> Looks like those does not appear, at least it does not crack so often nor errors seen, when I use Rhythmbox to tune and "arecord -D hw:2,0 -r96000 -c2 -f S16_LE | aplay -" to listen.
- >
-> I can guess those are not firmware related so warning texts could be removed.
 
-Actually they may very well be firmware related. At least with my firmware there
-is a bug where actively asking the device for its register contents, it lets
-its audio stream drop.
+Okey, I'll do that. Shouldn't this go to stable also?
 
-My patches fix this by waiting for the device to volunteer it register contents
-through its usb interrupt in endpoint, which it does at xx times / sec.
-
-So the first question would be, does this dropping of sound happen approx 1 / sec
-when using radio?
-
-If so this is caused by radio upating the signal strength it displays 1 / sec. If
-you look at radio.c line 981 you will see a radio_getsignal_n_stereo(fd); call
-there in the main loop which gets called 1/sec. Try commenting this out.
-
-If commenting this out fixes your sound issues with radio, then the next
-question is are you using my 4 recent si470x patches, if not please
-give them a try. If you are already using them then I'm afraid that your older
-firmware may be broken even more then my also not so new firmware.
-
-Regards,
-
-Hans
+Thanks for your help,
+Ezequiel.
