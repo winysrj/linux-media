@@ -1,48 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4234 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751314Ab2G0U52 (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:5824 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750707Ab2GSMAw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jul 2012 16:57:28 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Eduard Vaks <eddie.vaks@clear.net.nz>
-Subject: Re: does not compile on ubuntu 2.6.32-41-generic
-Date: Fri, 27 Jul 2012 22:57:20 +0200
-Cc: linux-media@vger.kernel.org
-References: <5012B7E5.4010707@clear.net.nz>
-In-Reply-To: <5012B7E5.4010707@clear.net.nz>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201207272257.20931.hverkuil@xs4all.nl>
+	Thu, 19 Jul 2012 08:00:52 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [RFC PATCH 0/6] mem2mem_testdev: fix v4l2-compliance errors
+Date: Thu, 19 Jul 2012 14:00:18 +0200
+Message-Id: <1342699224-12642-1-git-send-email-hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri July 27 2012 17:46:45 Eduard Vaks wrote:
-> it may be an old compiler I don't know
-> also i can't seem to get a diff so i have included the whole file I 
-> haven't tested it (well it works on my system but I don' even know if I 
-> use that part of the code) but it is realativly minor.
-> 
-> I have just named the union that func and offset are contained in 
-> because the initalizer did not work + other resulting changes:
-> struct v4l2_ioctl_info {
->          unsigned int ioctl;
->          u32 flags;
->          const char * const name;
->          union {
->                  u32 offset;
->                  int (*func)(const struct v4l2_ioctl_ops *ops,
->                                  struct file *file, void *fh, void *p);
->          } u;
->          void (*debug)(const void *arg, bool write_only);
-> };
+Hi all,
 
-A patch for this (similar to yours) is waiting to be merged:
+This patch series updates mem2mem_testdev so all the modern features
+are supported (mainly converting to the control framework and various
+smaller odds 'n ends).
 
-http://patchwork.linuxtv.org/patch/13336/
+The last patch is actually in the V4L2 core, fixing an incorrect test.
+
+Comments?
 
 Regards,
 
 	Hans
+
