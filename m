@@ -1,64 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58404 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752295Ab2GZN2j (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jul 2012 09:28:39 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi
-Subject: Re: [PATCH] mt9v032: Provide link frequency control
-Date: Thu, 26 Jul 2012 15:28:46 +0200
-Message-ID: <2673019.TNX5Epv3lK@avalon>
-In-Reply-To: <201207261516.04868.hverkuil@xs4all.nl>
-References: <1343307416-23172-1-git-send-email-laurent.pinchart@ideasonboard.com> <201207261516.04868.hverkuil@xs4all.nl>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:55126 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750882Ab2GSSdm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Jul 2012 14:33:42 -0400
+Received: from [10.2.0.129] (unknown [10.2.0.129])
+	(using TLSv1 with cipher DHE-RSA-CAMELLIA256-SHA (256/256 bits))
+	(No client certificate requested)
+	by 7of9.schinagl.nl (Postfix) with ESMTPSA id 2354924423
+	for <linux-media@vger.kernel.org>; Thu, 19 Jul 2012 20:34:19 +0200 (CEST)
+Message-ID: <50085326.1080104@schinagl.nl>
+Date: Thu, 19 Jul 2012 20:34:14 +0200
+From: Oliver Schinagl <oliver+list@schinagl.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: linux-media <linux-media@vger.kernel.org>
+Subject: Actually working DVB cards, linuxtv.org wiki vague.
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi,
 
-Thanks for the review.
+Since I'm not getting any feedback about the TechnoTrend DVB-T 1500 PCI 
+and it's cam module, I'm thinking of going a different route. DVB-C. My 
+ISP actually does transmit unencrypted DVB-C (if you pay for TV) so I 
+may as well switch to DVB-C for now.
 
-On Thursday 26 July 2012 15:16:04 Hans Verkuil wrote:
-> On Thu 26 July 2012 14:56:56 Laurent Pinchart wrote:
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/media/video/mt9v032.c |   48 ++++++++++++++++++++++++++++++++----
-> >  include/media/mt9v032.h       |    3 ++
-> >  2 files changed, 46 insertions(+), 5 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/mt9v032.c b/drivers/media/video/mt9v032.c
-> > index 2203a6f..39217b8 100644
-> > --- a/drivers/media/video/mt9v032.c
-> > +++ b/drivers/media/video/mt9v032.c
+There are two potential devices I see.
 
-[snip]
+Technisat CableStar HD2 [1]
+This card may be slow PCI, but as far as I know far and far plenty of 
+bandwith for DVB-C right? You can grab the entire transport-stream and 
+still have BW left to spare? It is only a single tuner however (which is 
+ok, the DVB-C signal is all on one transponder/frequency).
 
-> > @@ -505,6 +514,16 @@ static int mt9v032_s_ctrl(struct v4l2_ctrl *ctrl)
-> >  		return mt9v032_write(client, MT9V032_TOTAL_SHUTTER_WIDTH,
-> >  				     ctrl->val);
-> > 
-> > +	case V4L2_CID_PIXEL_RATE:
-> > +	case V4L2_CID_LINK_FREQ:
-> > +		if (mt9v032->link_freq == NULL)
-> > +			break;
-> > +
-> > +		freq = mt9v032->pdata->link_freqs[mt9v032->link_freq->val];
-> > +		mt9v032->pixel_rate->cur.val = freq;
-> 
-> That should be 'mt9v032->pixel_rate->val = freq;'.
-> 
-> It used to be cur.val some time ago, but that was changed. You never set
-> cur.val anymore inside a s_ctrl handler.
+I see all modules mentioned from the wiki in the kernel, so while the 
+wiki is outdated, it should work. But have people got experience with 
+the reliability of this? Does it work and work fast?
 
-Thanks. I'll fix that.
+The hardware cam is nice to have, but completely useless. Unless I could 
+get a USB DVB-* device and feed it's transport stream through THAT cam 
+interface.
 
--- 
-Regards,
 
-Laurent Pinchart
+Terratec Cinergy T PCIe Dual [2]
+This card is also very interesting. It would steal one of the viewer 
+available PCI-e sockets, it does feature a dual tuners. I believe you 
+can tune either one DVB-C channel (+one analog channel, but that is 
+really not important at all) or TWO dvb-T channels. This one does not 
+feature a cam, but for DVB-C that is not important and for DVB-T, 
+softcam could be the solution.
 
+Anybody have any experience with this card? I found _some_ references in 
+the 3.3.7 kernel I have on my desktop atm but appearantly 3.4.3 should 
+work better.
+
+I'm sorry for asking here, but I'm not quite sure where else to ask for 
+decent supported cards, and my wallet has run dry from buying badly 
+supported crap :(
+
+
+[1] http://linuxtv.org/wiki/index.php/Technisat_CableStar_HD2
+[2] http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_T_PCIe_dual
