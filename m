@@ -1,85 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:43601 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754130Ab2GYNYC (ORCPT
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:38863 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753062Ab2GSMSO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jul 2012 09:24:02 -0400
-Received: by gglu4 with SMTP id u4so662829ggl.19
-        for <linux-media@vger.kernel.org>; Wed, 25 Jul 2012 06:24:01 -0700 (PDT)
+	Thu, 19 Jul 2012 08:18:14 -0400
+Received: by vcbfk26 with SMTP id fk26so1890686vcb.19
+        for <linux-media@vger.kernel.org>; Thu, 19 Jul 2012 05:18:14 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1343222119-82246-1-git-send-email-tim.gardner@canonical.com>
-References: <1343222119-82246-1-git-send-email-tim.gardner@canonical.com>
-Date: Wed, 25 Jul 2012 09:24:01 -0400
-Message-ID: <CAGoCfiziwAz0q2D_qKX=1nrAKQybeX+Ho5eu_gsERhd7QtsaDQ@mail.gmail.com>
-Subject: Re: [PATCH] xc5000: Add MODULE_FIRMWARE statements
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Tim Gardner <tim.gardner@canonical.com>
-Cc: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Krufky <mkrufky@kernellabs.com>,
-	Eddi De Pieri <eddi@depieri.net>, linux-media@vger.kernel.org
+Date: Thu, 19 Jul 2012 17:48:13 +0530
+Message-ID: <CAGzWAsg3hsGV5CPsCzxcKO4djG4iRZauEQvju=G=Zp4Rpqpz2g@mail.gmail.com>
+Subject: Supporting 3D formats in V4L2
+From: Soby Mathew <soby.linuxtv@gmail.com>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 25, 2012 at 9:15 AM, Tim Gardner <tim.gardner@canonical.com> wrote:
-> This will make modinfo more useful with regard
-> to discovering necessary firmware files.
->
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Michael Krufky <mkrufky@kernellabs.com>
-> Cc: Eddi De Pieri <eddi@depieri.net>
-> Cc: linux-media@vger.kernel.org
-> Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
-> ---
->  drivers/media/common/tuners/xc5000.c |    8 ++++++--
->  1 file changed, 6 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
-> index dcca42c..4d33f86 100644
-> --- a/drivers/media/common/tuners/xc5000.c
-> +++ b/drivers/media/common/tuners/xc5000.c
-> @@ -210,13 +210,15 @@ struct xc5000_fw_cfg {
->         u16 size;
->  };
->
-> +#define XC5000A_FIRMWARE "dvb-fe-xc5000-1.6.114.fw"
->  static const struct xc5000_fw_cfg xc5000a_1_6_114 = {
-> -       .name = "dvb-fe-xc5000-1.6.114.fw",
-> +       .name = XC5000A_FIRMWARE,
->         .size = 12401,
->  };
->
-> +#define XC5000C_FIRMWARE "dvb-fe-xc5000c-41.024.5.fw"
->  static const struct xc5000_fw_cfg xc5000c_41_024_5 = {
-> -       .name = "dvb-fe-xc5000c-41.024.5.fw",
-> +       .name = XC5000C_FIRMWARE,
->         .size = 16497,
->  };
->
-> @@ -1253,3 +1255,5 @@ EXPORT_SYMBOL(xc5000_attach);
->  MODULE_AUTHOR("Steven Toth");
->  MODULE_DESCRIPTION("Xceive xc5000 silicon tuner driver");
->  MODULE_LICENSE("GPL");
-> +MODULE_FIRMWARE(XC5000A_FIRMWARE);
-> +MODULE_FIRMWARE(XC5000C_FIRMWARE);
-> --
+Hi everyone,
+    Currently there is limitation in v4l2 for specifying the 3D
+formats . In HDMI 1.4 standard, the following 3D formats are
+specified:
 
-Hi Tim,
+      1. FRAME_PACK,
+      2. FIELD_ALTERNATIVE,
+      3. LINE_ALTERNATIVE,
+      4. SIDE BY SIDE FULL,
+      5. SIDE BY SIDE HALF,
+      6. LEFT + DEPTH,
+      7. LEFT + DEPTH + GRAPHICS + GRAPHICS-DEPTH,
+      8. TOP AND BOTTOM
 
-I'm just eyeballing the patch and I'm not familiar with this new
-functionality, but where are the new macros you're specifying actually
-defined?  You're swapping out the filename for XC5000A_FIRMWARE, but
-where is the actual reference to "dvb-fe-xc5000-1.6.114.fw"?
 
-Also, Mauro, can I merge this into my tree first rather than you
-pulling it direct?  I've got a whole patch series for xc5000 that I'm
-slated to issue a PULL for this weekend, and I *really* don't want to
-rebase the series for a four line change (which will definitely cause
-a conflict).
+In addition for some of the formats like Side-by-side-half there are
+some additional metadata (like type of horizontal sub-sampling) and
+parallax information which may be required for programming the display
+processing pipeline properly.
 
-Devin
+I am not very sure on how to expose this to the userspace. This is an
+inherent property of video signal  , hence it would be appropriate to
+have an additional field in v4l_format to specify 3D format. Currently
+this is a requirement for HDMI 1.4 Rx / Tx but in the future it would
+be applicable to broadcast sources also.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+In our implementation we have temporarily defined a Private Control to
+expose this .
+
+Please let me know of your suggestions .
+
+Best Regards
+Soby Mathew
