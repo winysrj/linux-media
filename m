@@ -1,57 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:57136 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750716Ab2GJD6m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2012 23:58:42 -0400
-Received: by obbuo13 with SMTP id uo13so21542757obb.19
-        for <linux-media@vger.kernel.org>; Mon, 09 Jul 2012 20:58:42 -0700 (PDT)
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:33556 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751170Ab2GSTSb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Jul 2012 15:18:31 -0400
+Received: by gglu4 with SMTP id u4so3165123ggl.19
+        for <linux-media@vger.kernel.org>; Thu, 19 Jul 2012 12:18:30 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAOkj578ou_hTpEhMwwk05T97_SCZ-+mP346KXH-rbGusLWCvGg@mail.gmail.com>
-References: <CAOkj578ou_hTpEhMwwk05T97_SCZ-+mP346KXH-rbGusLWCvGg@mail.gmail.com>
-Date: Mon, 9 Jul 2012 23:58:41 -0400
-Message-ID: <CAGoCfiztN3LdC=gOfC5PviSiYTf0ec19TO=cEAfsidMC7Lxi6Q@mail.gmail.com>
-Subject: Re: Any program that creates captions from pixel data?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Tim Stowell <stowellt@gmail.com>
-Cc: linux-media@vger.kernel.org
+In-Reply-To: <20120719154111.2e4296b9@pirotess>
+References: <1340308332-1118-1-git-send-email-elezegarcia@gmail.com>
+	<1340308332-1118-10-git-send-email-elezegarcia@gmail.com>
+	<CADThq4+29av-MeYZR8KfBiBQkFPx+OpWhe40Kk+WX1yUD=4dOA@mail.gmail.com>
+	<CALF0-+W88U_cAGMrui9rwbNg8BBgekBi9B2unStKySY_RhS3zw@mail.gmail.com>
+	<20120719154111.2e4296b9@pirotess>
+Date: Thu, 19 Jul 2012 16:18:30 -0300
+Message-ID: <CALF0-+Vv2DhBsddcu_fm47Y3YQDd9vkCZC=ChcxWhoKcenZYTg@mail.gmail.com>
+Subject: Re: [PATCH 10/10] staging: solo6x10: Avoid extern declaration by
+ reworking module parameter
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Ismael Luceno <ismael.luceno@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 9, 2012 at 11:19 PM, Tim Stowell <stowellt@gmail.com> wrote:
-> Hello,
+On Thu, Jul 19, 2012 at 3:41 PM, Ismael Luceno <ismael.luceno@gmail.com> wrote:
+> On Thu, 19 Jul 2012 10:25:09 -0300
+> Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+>> On Wed, Jul 18, 2012 at 7:26 PM, Ismael Luceno
+>> <ismael.luceno@gmail.com> wrote:
+>> > On Thu, Jun 21, 2012 at 4:52 PM, Ezequiel Garcia
+>> > <elezegarcia@gmail.com> wrote:
+>> >> This patch moves video_nr module parameter to core.c
+>> >> and then passes that parameter as an argument to functions
+>> >> that need it.
+>> >> This way we avoid the extern declaration and parameter
+>> >> dependencies are better exposed.
+>> > <...>
+>> >
+>> > NACK.
+>> >
+>> > The changes to video_nr are supposed to be preserved.
+>>
+>> Mmm, I'm sorry but I don't see any functionality change in this patch,
+>> just a cleanup.
+>>
+>> What do you mean by "changes to video_nr are supposed to be
+>> preserved"?
 >
-> I'm trying to create a bitmap image such that when output via a
-> composite port it will translate into captions, very similar to this:
-> http://al.robotfuzz.com/generating-teletext-in-software/ except NTSC.
-> I have some ideas but wanted to check if anyone had tried something
-> similar as Google didn't turn up much, thanks!
+> It is modified by solo_enc_alloc, which is called multiple times by
+> solo_enc_v4l2_init.
 
-I don't know if this is related to your previous thread about VBI
-capture on em28xx, but if so I can tell you that you can probably
-pretty easily "pass through" the VBI data as a graphical waveform if
-that is your goal.  The only difference between the data provided via
-raw VBI capture and the standard image data is that the chroma is
-stripped out (every other byte in a YUYV sequence).
+Mmm, I see what you mean. Sorry for not noticing that :-(
 
-If your goal is to generate the waveform from scratch, I haven't seen
-any software to do that but it would be pretty trivial to write
-(probably a couple hundred lines of code).  You just need to read the
-EIA-608 spec and understand how the byte pairs are represented in the
-waveform.  You should also look more closely at the zvbi source code -
-it has the ability to create a "dummy source" which if I recall
-actually can work with osc (meaning it can generate the waveform
-internally).  You would have to hack up the code to connect the parts
-and extract the actual image data.
+However, I still think that extern int is really not needed and should
+be cleaned up.
+Using global variables is not a nice practice, and using this extern
+hides dependencies, i.e. hides who is using video_nr.
+(For instance, I failed to see such dependency)
 
-It's probably also worth mentioning that much of this is dependent on
-the output device you are using.   Many devices don't actually let you
-put data into the VBI area just by including it in the image data.
-You typically have to use special APIs that are specific to the
-platform.
+Perhaps, you could consider passing the int as a pointer, so that
+solo_enc_alloc()
+can modify it.
 
-Devin
+However, since it's your driver, you have access to the hardware, etc.
+I won't push any further this issue. Plus, this little issue is not the
+one preventing from moving out of staging.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Feel free to nack any other of the patches,
+though I think this one was the only one non-trivial.
+
+Thanks for reviewing,
+Ezequiel.
