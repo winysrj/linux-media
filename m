@@ -1,82 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58496 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932512Ab2GLBEV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jul 2012 21:04:21 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC] add LNA support for DVB API
-Date: Thu, 12 Jul 2012 04:04:00 +0300
-Message-Id: <1342055041-18377-1-git-send-email-crope@iki.fi>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:37251 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751170Ab2GSSlU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Jul 2012 14:41:20 -0400
+Received: by qcro28 with SMTP id o28so1923336qcr.19
+        for <linux-media@vger.kernel.org>; Thu, 19 Jul 2012 11:41:19 -0700 (PDT)
+Date: Thu, 19 Jul 2012 15:41:11 -0300
+From: Ismael Luceno <ismael.luceno@gmail.com>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 10/10] staging: solo6x10: Avoid extern declaration by
+ reworking module parameter
+Message-ID: <20120719154111.2e4296b9@pirotess>
+In-Reply-To: <CALF0-+W88U_cAGMrui9rwbNg8BBgekBi9B2unStKySY_RhS3zw@mail.gmail.com>
+References: <1340308332-1118-1-git-send-email-elezegarcia@gmail.com>
+	<1340308332-1118-10-git-send-email-elezegarcia@gmail.com>
+	<CADThq4+29av-MeYZR8KfBiBQkFPx+OpWhe40Kk+WX1yUD=4dOA@mail.gmail.com>
+	<CALF0-+W88U_cAGMrui9rwbNg8BBgekBi9B2unStKySY_RhS3zw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb/dvb-core/dvb_frontend.c |    5 +++++
- drivers/media/dvb/dvb-core/dvb_frontend.h |    1 +
- include/linux/dvb/frontend.h              |    4 +++-
- 3 files changed, 9 insertions(+), 1 deletion(-)
+On Thu, 19 Jul 2012 10:25:09 -0300
+Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+> On Wed, Jul 18, 2012 at 7:26 PM, Ismael Luceno
+> <ismael.luceno@gmail.com> wrote:
+> > On Thu, Jun 21, 2012 at 4:52 PM, Ezequiel Garcia
+> > <elezegarcia@gmail.com> wrote:
+> >> This patch moves video_nr module parameter to core.c
+> >> and then passes that parameter as an argument to functions
+> >> that need it.
+> >> This way we avoid the extern declaration and parameter
+> >> dependencies are better exposed.
+> > <...>
+> >
+> > NACK.
+> >
+> > The changes to video_nr are supposed to be preserved.
+> 
+> Mmm, I'm sorry but I don't see any functionality change in this patch,
+> just a cleanup.
+> 
+> What do you mean by "changes to video_nr are supposed to be
+> preserved"?
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index b54c297..fe22aaa 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -1020,6 +1020,7 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
- 
- 	_DTV_CMD(DTV_ISDBS_TS_ID, 1, 0),
- 	_DTV_CMD(DTV_DVBT2_PLP_ID, 1, 0),
-+	_DTV_CMD(DTV_LNA, 1, 0),
- 
- 	/* Get */
- 	_DTV_CMD(DTV_DISEQC_SLAVE_REPLY, 0, 1),
-@@ -1723,6 +1724,10 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
- 	case DTV_INTERLEAVING:
- 		c->interleaving = tvp->u.data;
- 		break;
-+	case DTV_LNA:
-+		if (fe->ops.set_lna)
-+			r = fe->ops.set_lna(fe, tvp->u.data);
-+		break;
- 
- 	/* ISDB-T Support here */
- 	case DTV_ISDBT_PARTIAL_RECEPTION:
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h b/drivers/media/dvb/dvb-core/dvb_frontend.h
-index 31a3d1c..628a821 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
-@@ -302,6 +302,7 @@ struct dvb_frontend_ops {
- 	int (*dishnetwork_send_legacy_command)(struct dvb_frontend* fe, unsigned long cmd);
- 	int (*i2c_gate_ctrl)(struct dvb_frontend* fe, int enable);
- 	int (*ts_bus_ctrl)(struct dvb_frontend* fe, int acquire);
-+	int (*set_lna)(struct dvb_frontend *, int);
- 
- 	/* These callbacks are for devices that implement their own
- 	 * tuning algorithms, rather than a simple swzigzag
-diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
-index 2dd5823..e28802a 100644
---- a/include/linux/dvb/frontend.h
-+++ b/include/linux/dvb/frontend.h
-@@ -350,8 +350,9 @@ struct dvb_frontend_event {
- #define DTV_ATSCMH_SCCC_CODE_MODE_D	59
- 
- #define DTV_INTERLEAVING			60
-+#define DTV_LNA					61
- 
--#define DTV_MAX_COMMAND				DTV_INTERLEAVING
-+#define DTV_MAX_COMMAND				DTV_LNA
- 
- typedef enum fe_pilot {
- 	PILOT_ON,
-@@ -424,6 +425,7 @@ enum atscmh_rs_code_mode {
- 	ATSCMH_RSCODE_RES        = 3,
- };
- 
-+#define LNA_AUTO INT_MIN
- 
- struct dtv_cmds_h {
- 	char	*name;		/* A display name for debugging purposes */
--- 
-1.7.10.4
-
+It is modified by solo_enc_alloc, which is called multiple times by
+solo_enc_v4l2_init.
