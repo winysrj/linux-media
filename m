@@ -1,55 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:47941 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751194Ab2GEObm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 10:31:42 -0400
-Received: by ghrr11 with SMTP id r11so7439768ghr.19
-        for <linux-media@vger.kernel.org>; Thu, 05 Jul 2012 07:31:41 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAGoCfixNj8CiSA8E1bDUg2+bUB9jq-pV7JuOht2QyT8NhK0=sA@mail.gmail.com>
-References: <1341497792-6066-1-git-send-email-mchehab@redhat.com>
-	<1341497792-6066-2-git-send-email-mchehab@redhat.com>
-	<CAGoCfixNj8CiSA8E1bDUg2+bUB9jq-pV7JuOht2QyT8NhK0=sA@mail.gmail.com>
-Date: Thu, 5 Jul 2012 10:31:41 -0400
-Message-ID: <CAGoCfiwBimUQzvAWEYuu8WWA50vEHpD2fMgcXhiJP1eB7nDSRg@mail.gmail.com>
-Subject: Re: [PATCH 2/3] [media] tuner-xc2028: Fix signal strength report
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:41684 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751281Ab2GSMAz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Jul 2012 08:00:55 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [RFC PATCH 4/6] mem2mem_testdev: add control events support.
+Date: Thu, 19 Jul 2012 14:00:22 +0200
+Message-Id: <7d3891697e08eb5ab3ef9df61c570ac3062f2f75.1342699069.git.hans.verkuil@cisco.com>
+In-Reply-To: <1342699224-12642-1-git-send-email-hans.verkuil@cisco.com>
+References: <1342699224-12642-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <903c0da0d6e7354d6f884f0ddec783143165e54c.1342699069.git.hans.verkuil@cisco.com>
+References: <903c0da0d6e7354d6f884f0ddec783143165e54c.1342699069.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 5, 2012 at 10:25 AM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> On Thu, Jul 5, 2012 at 10:16 AM, Mauro Carvalho Chehab
->> -       /* Use both frq_lock and signal to generate the result */
->> -       signal = signal || ((signal & 0x07) << 12);
->> +       /* Signal level is 3 bits only */
->> +
->> +       signal = ((1 << 12) - 1) | ((signal & 0x07) << 12);
->
-> Are you sure this is correct?   It's entirely possible the original
-> code used a logical or because the signal level isn't valid unless
-> there is a lock.  The author may have been intending to say:
->
-> if (signal != 0) /* There is a lock, so set the signal level */
->   signal = (signal & 0x07) << 12;
-> else
->   signal = 0 /* Leave signal level at zero since there is no lock */
->
-> I agree that the way the original code was written is confusing, but
-> it may actually be correct.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/mem2mem_testdev.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-On second reading, it would have needed to be a logical AND, not an OR
-in order for my suggestion to have been correct.
-
-That said, empirical results are definitely a stronger argument in
-this case.  You did test this change in cases with no signal, signal
-lock with weak signal, and signal lock with strong signal, right?
-
-Devin
-
+diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
+index fe8c565..f7a2a2d 100644
+--- a/drivers/media/video/mem2mem_testdev.c
++++ b/drivers/media/video/mem2mem_testdev.c
+@@ -28,6 +28,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-ctrls.h>
++#include <media/v4l2-event.h>
+ #include <media/videobuf2-vmalloc.h>
+ 
+ #define MEM2MEM_TEST_MODULE_NAME "mem2mem-testdev"
+@@ -738,6 +739,8 @@ static const struct v4l2_ioctl_ops m2mtest_ioctl_ops = {
+ 
+ 	.vidioc_streamon	= vidioc_streamon,
+ 	.vidioc_streamoff	= vidioc_streamoff,
++	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
++	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
+ 
+ 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.10
+
