@@ -1,85 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.hostpark.net ([212.243.197.31]:58999 "EHLO
-	mail1.hostpark.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751182Ab2GEOGI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 10:06:08 -0400
-From: Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>
-Date: Thu, 5 Jul 2012 16:06:03 +0200
-Subject: RE: omap3isp: cropping bug in previewer?
-Message-ID: <B21EB8416BB7744FAB36AEE2627158CD0119103FEC66@REBITSERVER.rebit.local>
-Content-Language: de-DE
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+Received: from mail.kapsi.fi ([217.30.184.167]:36715 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752087Ab2GTBnX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Jul 2012 21:43:23 -0400
+Message-ID: <5008B7B0.1020602@iki.fi>
+Date: Fri, 20 Jul 2012 04:43:12 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
+To: Steven Toth <stoth@kernellabs.com>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: GPIO interface between DVB sub-drivers (bridge, demod, tuner)
+References: <4FFF327A.9080300@iki.fi> <CALzAhNVwN3TJhn-3i9SDhKfk=tvZZ49RTKkUzWC8RZ_m=v=A+w@mail.gmail.com> <CALzAhNUmdcd7cE-fcMHJsNk1rTcKXoZR9Oyu+5XciNZQ57EBGQ@mail.gmail.com>
+In-Reply-To: <CALzAhNUmdcd7cE-fcMHJsNk1rTcKXoZR9Oyu+5XciNZQ57EBGQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On 07/13/2012 12:07 AM, Steven Toth wrote:
+> On Thu, Jul 12, 2012 at 4:49 PM, Steven Toth <stoth@kernellabs.com> wrote:
+>> Nobody understands the relationship between the bridge and the
+>> sub-component as well as the bridge driver. The current interfaces are
+>> limiting in many ways. We solve that today with rather ugly 'attach'
+>> structures that are inflexible, for example to set gpios to a default state.
+>> Then, once that interface is attached, the bridge effectively loses most of
+>> the control to the tuner and/or demod. The result is a large disconnect
+>> between the bridge and subcomponents.
+>>
+>> Why limit any interface extension to GPIOs? Why not make something a
+>> little more flexible so we can pass custom messages around?
 
-Laurent Pinchart wrote on 2012-07-05:
->> When I now capture a frame with yavta (see [3] for details), I must use
->> 846x639 as frame size (as this size is reported by the driver). But it
->> seems that the outputted image is 2px wider (that means 848x639). This
->> results in a "scrambled"/unusable image on screen when streaming (see
->> [6] bad-frame-846x639_on_display.bmp for an example how it looks like
->> on screen). Also the file size too big for a 846x639 image: The frame
->> size is 1083744 bytes, which is exactly 848*639*2 (NOT 846*639*2)!
-> 
-> The OMAP3 ISP pads lines to multiples of 32 or 64 bytes when reading
-> from/writing to memory. 846 pixels * 2 bytes per pixel is not a multiple of 32
-> bytes, so the line length gets padded to the next multiple, 848 pixels in this
-> case. The information is reported by the bytesperline field of the
-> v4l2_pix_format structure returned by VIDIOC_G_FMT and VIDIOC_S_FMT
-> on the
-> preview engine output video node. You need to take the padding into
-> account in
-> your application, that should solve your issue. raw2rgbpnm tries to detect
-> padding at the end of lines, and skips it automatically.
+>> What did you ever decide about the enable/disable of the LNA? And, how
+>> would the bridge do that in your proposed solution? Via the proposed GPIO
+>> interface?
 
-Thanks for your fast answer and the explanation!
-So you're saying that yavta doesn't check that the image is coming from the previewer-output and has maybe a padding? So yavta needs a patch to extend the line width when not aligned on 32 bytes or strip out the padding?
+GPIO / LNA is ready, see following patches:
+add LNA support for DVB API
+cxd2820r: use Kernel GPIO for GPIO access
+em28xx: implement FE set_lna() callback
 
->> If you look in the isp-datasheet [7] in table 6-40 (page
->> 1201) you see, that the CFA interpolation block for bayer-mode crops 4
->> px per line and 4 lines. So shouldn't we respect this in the
->> preview_config_input_size function? My RFC is:
->> 
->> Index: git/drivers/media/video/omap3isp/isppreview.c
->> 
->> =========================================================
->> --- git.orig/drivers/media/video/omap3isp/isppreview.c	2012-07-05
->> 10:59:33.675358396 +0200 +++
->> git/drivers/media/video/omap3isp/isppreview.c	2012-07-05
->> 12:14:33.723223514 +0200 @@ -1140,6 +1140,12 @@
->>  	} 	if (features & (OMAP3ISP_PREV_CHROMA_SUPP |
->>  OMAP3ISP_PREV_LUMAENH)) 		sph -= 2;
->> +	if (features & OMAP3ISP_PREV_CFA) {
->> +		sph -= 2;
->> +		eph += 2;
->> +		slv -= 2;
->> +		elv += 2;
->> +	}
->> 
->>  	isp_reg_writel(isp, (sph << ISPPRV_HORZ_INFO_SPH_SHIFT) | eph,
->>  		       OMAP3_ISP_IOMEM_PREV, ISPPRV_HORZ_INFO);
->> =========================================================
->> NOTE: This still gives an unusable picture at the previewer output BUT if I
->> extend the pipeline to the resizer output, the picture is good. So I must
->> be missing something...
+from:
+http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/dvb_core
 
-After reading your explanation about the padding, I understand why the image is broken on the previewer out. But if I configure the pipeline to output on the resizer-out, the image is still broken (without my patch). I used a resolution of 800x600 for the resizer-out, so the alignment should be fine:
+Kernel GPIOs were quite easy to implement and use - when needed 
+knowledge was gathered after all the testing and study. I wonder why 
+none was done that earlier for DVB...
 
-# media-ctl -v -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3 ISP resizer output": 0[1]' 
-# media-ctl -v -f '"mt9p031 2-0048":0 [SGRBG12 800x600], "OMAP3 ISP CCDC":2 [SGRBG10 800x600], "OMAP3 ISP preview":1 [UYVY 800x600], "OMAP3 ISP resizer":1 [UYVY 800x600]' 
-# yavta -f UYVY -s 800x600 -n 8 --skip 3 --capture=1000 --stdout /dev/video6 | mplayer - -demuxer rawvideo -rawvideo w=800:h=600:format=uyvy -vo fbdev
+It also offer nice debug/devel feature as you can mount those GPIOs via 
+sysfs and use directly.
 
-Does my patch just output a good picture by chance, or is there really an issue?
 
+Next-step: DVB power management.
+
+regards
+Antti
 -- 
-Best regards,
-Florian Neuhaus
+http://palosaari.fi/
 
 
