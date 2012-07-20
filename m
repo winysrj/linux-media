@@ -1,92 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.tpi.com ([70.99.223.143]:4229 "EHLO mail.tpi.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752367Ab2G0MGq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jul 2012 08:06:46 -0400
-Message-ID: <50128446.1010609@canonical.com>
-Date: Fri, 27 Jul 2012 06:06:30 -0600
-From: Tim Gardner <tim.gardner@canonical.com>
-MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: linux-kernel@vger.kernel.org,
+Received: from 1010ds2-suoe.0.fullrate.dk ([90.184.90.115]:28895 "EHLO
+	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751771Ab2GTUfT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Jul 2012 16:35:19 -0400
+Date: Fri, 20 Jul 2012 22:35:17 +0200 (CEST)
+From: Jesper Juhl <jj@chaosbits.net>
+To: trivial@kernel.org
+cc: Rob Landley <rob@landley.net>, Jaroslav Kysela <perex@perex.cz>,
+	Takashi Iwai <tiwai@suse.de>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] cx25840: Declare MODULE_FIRMWARE usage
-References: <1343321059-124171-1-git-send-email-tim.gardner@canonical.com> <1343339959.2575.3.camel@palomino.walls.org>
-In-Reply-To: <1343339959.2575.3.camel@palomino.walls.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	alsa-devel@alsa-project.org, linux-media@vger.kernel.org
+Subject: [PATCH][Trivial][resend] Documentation: Add newline at end-of-file
+ to files lacking one
+Message-ID: <alpine.LNX.2.00.1207202232240.23164@swampdragon.chaosbits.net>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/26/2012 03:59 PM, Andy Walls wrote:
-> On Thu, 2012-07-26 at 10:44 -0600, Tim Gardner wrote:
->> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
->> Cc: linux-media@vger.kernel.org
->> Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
->> ---
->>   drivers/media/video/cx25840/cx25840-firmware.c |   15 ++++++++++++---
->>   1 file changed, 12 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/media/video/cx25840/cx25840-firmware.c b/drivers/media/video/cx25840/cx25840-firmware.c
->> index 8150200..b3169f9 100644
->> --- a/drivers/media/video/cx25840/cx25840-firmware.c
->> +++ b/drivers/media/video/cx25840/cx25840-firmware.c
->> @@ -61,6 +61,10 @@ static void end_fw_load(struct i2c_client *client)
->>   	cx25840_write(client, 0x803, 0x03);
->>   }
->>
->> +#define CX2388x_FIRMWARE "v4l-cx23885-avcore-01.fw"
->> +#define CX231xx_FIRMWARE "v4l-cx231xx-avcore-01.fw"
->> +#define CX25840_FIRMWARE "v4l-cx25840.fw"
->> +
->>   static const char *get_fw_name(struct i2c_client *client)
->>   {
->>   	struct cx25840_state *state = to_state(i2c_get_clientdata(client));
->> @@ -68,10 +72,10 @@ static const char *get_fw_name(struct i2c_client *client)
->>   	if (firmware[0])
->>   		return firmware;
->>   	if (is_cx2388x(state))
->> -		return "v4l-cx23885-avcore-01.fw";
->> +		return CX2388x_FIRMWARE;
->>   	if (is_cx231xx(state))
->> -		return "v4l-cx231xx-avcore-01.fw";
->> -	return "v4l-cx25840.fw";
->> +		return CX231xx_FIRMWARE;
->> +	return CX25840_FIRMWARE;
->>   }
->>
->>   static int check_fw_load(struct i2c_client *client, int size)
->> @@ -164,3 +168,8 @@ int cx25840_loadfw(struct i2c_client *client)
->>
->>   	return check_fw_load(client, size);
->>   }
->> +
->> +MODULE_FIRMWARE(CX2388x_FIRMWARE);
->> +MODULE_FIRMWARE(CX231xx_FIRMWARE);
->> +MODULE_FIRMWARE(CX25840_FIRMWARE);
->> +
->
-> How will the firmware attribute in the .module_info section be used?
->
-> For any one model of TV capture device, the cx25840 only needs one of
-> the above firmware files.  The others need not exist.
->
-> I would not want anything in user or kernel space to refuse to load the
-> module just because all 3 firmware files are not present.
->
-> Regards,
-> Andy
->
+This patch simply adds a newline character at end-of-file to those
+files in Documentation/ that currently lack one.
 
-The MODULE_FIRMWARE macro is purely informational. Declaring the 
-firmware files that the driver _might_ use helps me pare down the 
-external firmware package to just those files that I know it must have. 
-This patch will have no runtime impact.
+This is done for a few different reasons:
 
-Note that there are plenty of uses of the MODULE_FIRMWARE macro within 
-the kernel.
+A) It's rather annoying when you do "cat some_file.txt" that your
+   prompt/cursor ends up at the end of the last line of output rather
+   than on a new line.
 
-rtg
+B) Some tools that process files line-by-line may get confused by the
+   lack of a newline on the last line.
+
+C) The "\ No newline at end of file" line in diffs annoys me for some
+   reason.
+
+So, let's just add the missing newline once and for all.
+
+Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+---
+ Documentation/ABI/stable/vdso                                  | 2 +-
+ Documentation/ABI/testing/sysfs-block-zram                     | 2 +-
+ Documentation/ABI/testing/sysfs-bus-usb-devices-usbsevseg      | 2 +-
+ Documentation/ABI/testing/sysfs-class-backlight-driver-adp8870 | 2 +-
+ Documentation/arm/Samsung-S3C24XX/H1940.txt                    | 2 +-
+ Documentation/arm/Samsung-S3C24XX/SMDK2440.txt                 | 2 +-
+ Documentation/sound/alsa/hdspm.txt                             | 2 +-
+ Documentation/video4linux/cpia2_overview.txt                   | 2 +-
+ Documentation/video4linux/stv680.txt                           | 2 +-
+ 9 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/Documentation/ABI/stable/vdso b/Documentation/ABI/stable/vdso
+index 8a1cbb5..7cdfc28 100644
+--- a/Documentation/ABI/stable/vdso
++++ b/Documentation/ABI/stable/vdso
+@@ -24,4 +24,4 @@ though.
+ 
+ (As of this writing, this ABI documentation as been confirmed for x86_64.
+  The maintainers of the other vDSO-using architectures should confirm
+- that it is correct for their architecture.)
+\ No newline at end of file
++ that it is correct for their architecture.)
+diff --git a/Documentation/ABI/testing/sysfs-block-zram b/Documentation/ABI/testing/sysfs-block-zram
+index c8b3b48..ec93fe3 100644
+--- a/Documentation/ABI/testing/sysfs-block-zram
++++ b/Documentation/ABI/testing/sysfs-block-zram
+@@ -96,4 +96,4 @@ Description:
+ 		overhead, allocated for this disk. So, allocator space
+ 		efficiency can be calculated using compr_data_size and this
+ 		statistic.
+-		Unit: bytes
+\ No newline at end of file
++		Unit: bytes
+diff --git a/Documentation/ABI/testing/sysfs-bus-usb-devices-usbsevseg b/Documentation/ABI/testing/sysfs-bus-usb-devices-usbsevseg
+index cb830df..70d00df 100644
+--- a/Documentation/ABI/testing/sysfs-bus-usb-devices-usbsevseg
++++ b/Documentation/ABI/testing/sysfs-bus-usb-devices-usbsevseg
+@@ -40,4 +40,4 @@ Description:	Controls the decimal places on the device.
+ 		the value of 10 ** n. Assume this field has
+ 		the value k and has 1 or more decimal places set,
+ 		to set the mth place (where m is not already set),
+-		change this fields value to k + 10 ** m.
+\ No newline at end of file
++		change this fields value to k + 10 ** m.
+diff --git a/Documentation/ABI/testing/sysfs-class-backlight-driver-adp8870 b/Documentation/ABI/testing/sysfs-class-backlight-driver-adp8870
+index 4a9c545..33e6488 100644
+--- a/Documentation/ABI/testing/sysfs-class-backlight-driver-adp8870
++++ b/Documentation/ABI/testing/sysfs-class-backlight-driver-adp8870
+@@ -53,4 +53,4 @@ Description:
+ 		Documentation/ABI/stable/sysfs-class-backlight.
+ 		It can be enabled by writing the value stored in
+ 		/sys/class/backlight/<backlight>/max_brightness to
+-		/sys/class/backlight/<backlight>/brightness.
+\ No newline at end of file
++		/sys/class/backlight/<backlight>/brightness.
+diff --git a/Documentation/arm/Samsung-S3C24XX/H1940.txt b/Documentation/arm/Samsung-S3C24XX/H1940.txt
+index f4a7b22..b738859 100644
+--- a/Documentation/arm/Samsung-S3C24XX/H1940.txt
++++ b/Documentation/arm/Samsung-S3C24XX/H1940.txt
+@@ -37,4 +37,4 @@ Maintainers
+   Thanks to the many others who have also provided support.
+ 
+ 
+-(c) 2005 Ben Dooks
+\ No newline at end of file
++(c) 2005 Ben Dooks
+diff --git a/Documentation/arm/Samsung-S3C24XX/SMDK2440.txt b/Documentation/arm/Samsung-S3C24XX/SMDK2440.txt
+index 32e1eae..429390b 100644
+--- a/Documentation/arm/Samsung-S3C24XX/SMDK2440.txt
++++ b/Documentation/arm/Samsung-S3C24XX/SMDK2440.txt
+@@ -53,4 +53,4 @@ Maintainers
+   and to Simtec Electronics for allowing me time to work on this.
+ 
+ 
+-(c) 2004 Ben Dooks
+\ No newline at end of file
++(c) 2004 Ben Dooks
+diff --git a/Documentation/sound/alsa/hdspm.txt b/Documentation/sound/alsa/hdspm.txt
+index 7a67ff7..7ba3194 100644
+--- a/Documentation/sound/alsa/hdspm.txt
++++ b/Documentation/sound/alsa/hdspm.txt
+@@ -359,4 +359,4 @@ Calling Parameter:
+    enable_monitor int array (min = 1, max = 8), 
+      "Enable Analog Out on Channel 63/64 by default."
+ 
+-      note: here the analog output is enabled (but not routed).
+\ No newline at end of file
++      note: here the analog output is enabled (but not routed).
+diff --git a/Documentation/video4linux/cpia2_overview.txt b/Documentation/video4linux/cpia2_overview.txt
+index a6e5366..ad6adbe 100644
+--- a/Documentation/video4linux/cpia2_overview.txt
++++ b/Documentation/video4linux/cpia2_overview.txt
+@@ -35,4 +35,4 @@ the camera.  There are three modes for this.  Block mode requests a number
+ of contiguous registers.  Random mode reads or writes random registers with
+ a tuple structure containing address/value pairs.  The repeat mode is only
+ used by VP4 to load a firmware patch.  It contains a starting address and
+-a sequence of bytes to be written into a gpio port.
+\ No newline at end of file
++a sequence of bytes to be written into a gpio port.
+diff --git a/Documentation/video4linux/stv680.txt b/Documentation/video4linux/stv680.txt
+index 4f8946f..e3de336 100644
+--- a/Documentation/video4linux/stv680.txt
++++ b/Documentation/video4linux/stv680.txt
+@@ -50,4 +50,4 @@ The latest info on this driver can be found at:
+ http://personal.clt.bellsouth.net/~kjsisson or at
+ http://stv0680-usb.sourceforge.net
+ 
+-Any questions to me can be send to:  kjsisson@bellsouth.net
+\ No newline at end of file
++Any questions to me can be send to:  kjsisson@bellsouth.net
 -- 
-Tim Gardner tim.gardner@canonical.com
+1.7.11.2
+
+
+-- 
+Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
+Don't top-post http://www.catb.org/jargon/html/T/top-post.html
+Plain text mails only, please.
+
