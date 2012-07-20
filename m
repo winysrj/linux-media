@@ -1,53 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:35105 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752553Ab2GIIaE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2012 04:30:04 -0400
-Subject: Re: [PATCH 2/3] media: coda: Add driver for Coda video codec.
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
-	shawn.guo@linaro.org, fabio.estevam@freescale.com,
-	richard.zhu@linaro.org, arnaud.patard@rtp-net.org,
-	kernel@pengutronix.de, mchehab@infradead.org
-In-Reply-To: <CACKLOr0UrZ2bi01L+xub7ARwfnoN7kriGpwWfwWzx-MYgS-H8w@mail.gmail.com>
-References: <1341579471-25208-1-git-send-email-javier.martin@vista-silicon.com>
-	 <1341579471-25208-3-git-send-email-javier.martin@vista-silicon.com>
-	 <1341816350.2489.1.camel@pizza.hi.pengutronix.de>
-	 <CACKLOr0UrZ2bi01L+xub7ARwfnoN7kriGpwWfwWzx-MYgS-H8w@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 09 Jul 2012 10:29:53 +0200
-Message-ID: <1341822593.2489.26.camel@pizza.hi.pengutronix.de>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.samsung.com ([203.254.224.34]:63834 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753043Ab2GTP2O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Jul 2012 11:28:14 -0400
+Received: from epcpsbgm2.samsung.com (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M7G00J1ETN10XG0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 21 Jul 2012 00:28:13 +0900 (KST)
+Received: from localhost.localdomain ([106.116.147.39])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0M7G00JMBTMU3P30@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 21 Jul 2012 00:28:13 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, jtp.park@samsung.com,
+	Kamil Debski <k.debski@samsung.com>
+Subject: [PATCH 1/2] s5p-mfc: Fix second memory bank alignment
+Date: Fri, 20 Jul 2012 17:28:03 +0200
+Message-id: <1342798084-2934-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Montag, den 09.07.2012, 10:14 +0200 schrieb javier Martin:
-[...]
-> >> +enum coda_platform {
-> >> +     CODA_INVALID = 0,
-> >
-> > I don't think CODA_INVALID is useful.
-> 
-> It is, otherwise the following will fail since CODA_IMX27 is 0:
-> 
-> 	if (of_id)
-> 		dev->devtype = of_id->data;
-> 	else if (pdev_id && pdev_id->driver_data)  <-----
-> pdev_id->driver_data = CODA_IMX27 = 0
-> 		dev->devtype = &coda_devdata[pdev_id->driver_data];
-> 	else
-> 		return -EINVAL;
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Oh, right. I think it should be ok to just remove the
-pdev_id->driver_data check.
-Since it's all in the same source file, it's unlikely that somebody adds
-a platform_device_id to coda_platform_ids array but forgets to set
-the .driver_data field.
-
-regards
-Philipp
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
+index 08a5cfe..fd62402 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
+@@ -78,7 +78,7 @@ int s5p_mfc_alloc_and_load_firmware(struct s5p_mfc_dev *dev)
+ 	}
+ 	dev->bank1 = s5p_mfc_bitproc_phys;
+ 	b_base = vb2_dma_contig_memops.alloc(
+-		dev->alloc_ctx[MFC_BANK2_ALLOC_CTX], 1 << MFC_BANK2_ALIGN_ORDER);
++		dev->alloc_ctx[MFC_BANK2_ALLOC_CTX], 1 << MFC_BASE_ALIGN_ORDER);
+ 	if (IS_ERR(b_base)) {
+ 		vb2_dma_contig_memops.put(s5p_mfc_bitproc_buf);
+ 		s5p_mfc_bitproc_phys = 0;
+-- 
+1.7.0.4
 
