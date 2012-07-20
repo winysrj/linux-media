@@ -1,70 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43900 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751630Ab2GGKrF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Jul 2012 06:47:05 -0400
-Message-ID: <4FF8139F.7010602@iki.fi>
-Date: Sat, 07 Jul 2012 13:46:55 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from eu1sys200aog106.obsmtp.com ([207.126.144.121]:53315 "EHLO
+	eu1sys200aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753721Ab2GTNZ4 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Jul 2012 09:25:56 -0400
+Received: from zeta.dmz-eu.st.com (zeta.dmz-eu.st.com [164.129.230.9])
+	by beta.dmz-eu.st.com (STMicroelectronics) with ESMTP id D8209122
+	for <linux-media@vger.kernel.org>; Fri, 20 Jul 2012 13:25:38 +0000 (GMT)
+Received: from Webmail-eu.st.com (safex1hubcas3.st.com [10.75.90.18])
+	by zeta.dmz-eu.st.com (STMicroelectronics) with ESMTP id 884AD475B
+	for <linux-media@vger.kernel.org>; Fri, 20 Jul 2012 13:25:38 +0000 (GMT)
+From: Nicolas THERY <nicolas.thery@st.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Fri, 20 Jul 2012 15:25:37 +0200
+Subject: [PATCH for 3.6] v4l: fix copy/paste typo in vb2_reqbufs comment
+Message-ID: <50095C51.5010207@st.com>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Bert Massop <bert.massop@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/3] [media] tuner, xc2028: add support for get_afc()
-References: <1341497792-6066-1-git-send-email-mchehab@redhat.com> <1341497792-6066-3-git-send-email-mchehab@redhat.com> <4FF5AD40.3070707@iki.fi> <CAKJOob9KBQRHXWTrOM_=hmF5OSoovhPWY4aGCbhhsbLKTk5NgQ@mail.gmail.com> <4FF5F4C4.7080904@redhat.com>
-In-Reply-To: <4FF5F4C4.7080904@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/05/2012 11:10 PM, Mauro Carvalho Chehab wrote:
-> Em 05-07-2012 14:37, Bert Massop escreveu:
->> On Thu, Jul 5, 2012 at 5:05 PM, Antti Palosaari <crope@iki.fi> wrote:
->>>
->>> On 07/05/2012 05:16 PM, Mauro Carvalho Chehab wrote:
->>>>
->>>> Implement API support to return AFC frequency shift, as this device
->>>> supports it. The only other driver that implements it is tda9887,
->>>> and the frequency there is reported in Hz. So, use Hz also for this
->>>> tuner.
->>>
->>>
->>> What is AFC and why it is needed?
->>>
->>
->> AFC is short for Automatic Frequency Control, by which a tuner
->> automatically fine-tunes the frequency for the best reception,
->> compensating for small offsets and oscillator frequency drift.
->> This is however done automatically on the tuner, so its configuration
->> is read-only. Aside from being a "nice to know" statistic, getting
->> hold of the AFC frequency shift does as far as I know not have any
->> practical uses related to properly operating the tuner.
->
-> AFC might be useful on a few situations. For example, my CATV operator
-> still broadcasts some channels in both analog and digital. The analog
-> equipment there doesn't seem to be well-maintained, as some channels have
-> frequency shifts or have some other artifacts. Still, analog broadcast
-> is useful for me to test drivers ;)
->
-> Anyway, adjusting the channel tables to consider that offset shift help
-> to tune them a little faster and/or get a better quality by letting the
-> PLL to work closer to the pilot carrier.
-
-We has already .get_frequency() which returns same information. It is 
-not currently used though few drivers implements it (wrongly). So I 
-don't see why this new callback should be added.
-
-u32 actual_freq;
-int afc;
-
-struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-ret = .get_frequency(fe, &actual_freq);
-afc = c->frequency - actual_freq;
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
-
-
+Signed-off-by: Nicolas Thery <nicolas.thery@st.com>
+---
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index 4e0290a..268c7dd 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -715,8 +715,8 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
+ }
+ 
+ /**
+- * vb2_reqbufs() - Wrapper for __reqbufs() that also verifies the memory and
+- * type values.
++ * vb2_create_bufs() - Wrapper for __create_bufs() that also verifies the
++ * memory and type values.
+  * @q:		videobuf2 queue
+  * @create:	creation parameters, passed from userspace to vidioc_create_bufs
+  *		handler in driver
