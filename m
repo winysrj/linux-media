@@ -1,73 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:57012 "EHLO smtp1-g21.free.fr"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40286 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751970Ab2GJOhv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jul 2012 10:37:51 -0400
-Date: Tue, 10 Jul 2012 16:36:45 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: martin-eric.racine@iki.fi
-Cc: Jonathan Nieder <jrnieder@gmail.com>,
-	Hans de Goede <hdegoede@redhat.com>, 677533@bugs.debian.org,
-	linux-media@vger.kernel.org
-Subject: Re: video: USB webcam fails since kernel 3.2
-Message-ID: <20120710163645.04fb0af0@armhf>
-In-Reply-To: <CAPZXPQcaEzW1zGXfGwp-JuOrfBu2xhoidaYjthD8jhYAFpWr7A@mail.gmail.com>
-References: <20120614162609.4613.22122.reportbug@henna.lan>
-	<20120614215359.GF3537@burratino>
-	<CAPZXPQd9gNCxn7xGyqj_xymPaF5OxvRtxRFkt+SsLs942te4og@mail.gmail.com>
-	<20120616044137.GB4076@burratino>
-	<1339932233.20497.14.camel@henna.lan>
-	<CAPZXPQegp7RA5M0H9Ofq4rJ9aj-rEdg=Ly9_1c6vAKi3COw50g@mail.gmail.com>
-	<4FF9CA30.9050105@redhat.com>
-	<CAPZXPQd026xfKrAU0D7CLQGbdAs8U01u5vsHp+5-wbVofAwdqQ@mail.gmail.com>
-	<4FFAD8D9.8070203@redhat.com>
-	<20120709203929.GC17301@burratino>
-	<CAPZXPQcaEzW1zGXfGwp-JuOrfBu2xhoidaYjthD8jhYAFpWr7A@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	id S1750944Ab2GTO7O (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Jul 2012 10:59:14 -0400
+From: Prabhakar Lad <prabhakar.lad@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hansverk@cisco.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v6 2/2] v4l2: add new pixel formats supported on dm365
+Date: Fri, 20 Jul 2012 20:28:10 +0530
+Message-ID: <1342796290-18947-3-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1342796290-18947-1-git-send-email-prabhakar.lad@ti.com>
+References: <1342796290-18947-1-git-send-email-prabhakar.lad@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 10 Jul 2012 15:56:08 +0300
-Martin-Éric Racine <martin-eric.racine@iki.fi> wrote:
-	[snip]
-> I hope that the above already provides some usable answers.
+From: Manjunath Hadli <manjunath.hadli@ti.com>
 
-Not a lot :(
+add new macro V4L2_PIX_FMT_SGRBG10ALAW8 and associated formats
+to represent Bayer format frames compressed by A-LAW algorithm,
+add V4L2_PIX_FMT_UV8 to represent storage of CbCr data (UV interleaved)
+only.
 
-Well, I already saw these errors -71. One case was a cable problem.
-An other one occurred with skype only, while vlc worked correctly.
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ .../DocBook/media/v4l/pixfmt-srggb10alaw8.xml      |   34 +++++++++++
+ Documentation/DocBook/media/v4l/pixfmt-uv8.xml     |   62 ++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |    2 +
+ include/linux/videodev2.h                          |    8 +++
+ 4 files changed, 106 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-uv8.xml
 
-So, it would be interesting to know if the (almost) last driver works.
-Then, you may try the gspca-2.15.18.tar.gz from my web site:
-
-	wget http://moinejf.free.fr/gspca-2.15.18.tar.gz
-	tar -zxf gspca-2.15.18.tar.gz
-	cd gspca-2.15.18
-	make
-	su
-	make install
-	reboot
-
-You may then try cheese. For skype, don't forget to force the
-use of the v4l library:
-
-	export LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so
-	skype
-
-If the problem is still there, I'd be glad to get some traces.
-For that, as root, do:
-
-	echo 0x1f > /sys/module/gspca_main/parameters/debug
-
-then, unplug/replug the webcam, do some capture until the problem
-occurs, and send us the last kernel messages starting from the webcam
-probe.
-
-Thanks.
-
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
+new file mode 100644
+index 0000000..61cced5
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
+@@ -0,0 +1,34 @@
++	<refentry>
++	  <refmeta>
++	    <refentrytitle>
++	      V4L2_PIX_FMT_SRGGB10ALAW8 ('aRA8'),
++	      V4L2_PIX_FMT_SGRBG10ALAW8 ('agA8'),
++	      V4L2_PIX_FMT_SGBRG10ALAW8 ('aGA8'),
++	      V4L2_PIX_FMT_SBGGR10ALAW8 ('aBA8'),
++	    </refentrytitle>
++	    &manvol;
++	  </refmeta>
++	  <refnamediv>
++	    <refname id="V4L2-PIX-FMT-SRGGB10ALAW8">
++	      <constant>V4L2_PIX_FMT_SRGGB10ALAW8</constant>
++	    </refname>
++	    <refname id="V4L2-PIX-FMT-SGRBG10ALAW8">
++	      <constant>V4L2_PIX_FMT_SGRBG10ALAW8</constant>
++	    </refname>
++	    <refname id="V4L2-PIX-FMT-SGBRG10ALAW8">
++	      <constant>V4L2_PIX_FMT_SGBRG10ALAW8</constant>
++	    </refname>
++	    <refname id="V4L2-PIX-FMT-SBGGR10ALAW8">
++	      <constant>V4L2_PIX_FMT_SBGGR10ALAW8</constant>
++	    </refname>
++	    <refpurpose>10-bit Bayer formats compressed to 8 bits</refpurpose>
++	  </refnamediv>
++	  <refsect1>
++	    <title>Description</title>
++	    <para>The following four pixel formats are raw sRGB / Bayer
++	    formats with 10 bits per color compressed to 8 bits each,
++	    using the A-LAW algorithm. Each color component consumes 8
++	    bits of memory. In other respects this format is similar to
++	    <xref linkend="V4L2-PIX-FMT-SRGGB8">.</xref></para>
++	  </refsect1>
++	</refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-uv8.xml b/Documentation/DocBook/media/v4l/pixfmt-uv8.xml
+new file mode 100644
+index 0000000..c507c1f
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-uv8.xml
+@@ -0,0 +1,62 @@
++	<refentry id="V4L2-PIX-FMT-UV8">
++	  <refmeta>
++	    <refentrytitle>V4L2_PIX_FMT_UV8  ('UV8')</refentrytitle>
++	    &manvol;
++	  </refmeta>
++	  <refnamediv>
++	    <refname><constant>V4L2_PIX_FMT_UV8</constant></refname>
++	    <refpurpose>UV plane interleaved</refpurpose>
++	  </refnamediv>
++	  <refsect1>
++	    <title>Description</title>
++	    <para>In this format there is no Y plane, Only CbCr plane. ie
++	    (UV interleaved)</para>
++	    <example>
++	    <title>
++	      <constant>V4L2_PIX_FMT_UV8</constant>
++	       pixel image
++	    </title>
++
++	    <formalpara>
++	      <title>Byte Order.</title>
++	      <para>Each cell is one byte.
++	        <informaltable frame="none">
++	        <tgroup cols="5" align="center">
++		  <colspec align="left" colwidth="2*" />
++		  <tbody valign="top">
++		    <row>
++		      <entry>start&nbsp;+&nbsp;0:</entry>
++		      <entry>Cb<subscript>00</subscript></entry>
++		      <entry>Cr<subscript>00</subscript></entry>
++		      <entry>Cb<subscript>01</subscript></entry>
++		      <entry>Cr<subscript>01</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;4:</entry>
++		      <entry>Cb<subscript>10</subscript></entry>
++		      <entry>Cr<subscript>10</subscript></entry>
++		      <entry>Cb<subscript>11</subscript></entry>
++		      <entry>Cr<subscript>11</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;8:</entry>
++		      <entry>Cb<subscript>20</subscript></entry>
++		      <entry>Cr<subscript>20</subscript></entry>
++		      <entry>Cb<subscript>21</subscript></entry>
++		      <entry>Cr<subscript>21</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;12:</entry>
++		      <entry>Cb<subscript>30</subscript></entry>
++		      <entry>Cr<subscript>30</subscript></entry>
++		      <entry>Cb<subscript>31</subscript></entry>
++		      <entry>Cr<subscript>31</subscript></entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	      </formalpara>
++	    </example>
++	  </refsect1>
++	</refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index e58934c..930f55d 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -673,6 +673,7 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
+     &sub-srggb8;
+     &sub-sbggr16;
+     &sub-srggb10;
++    &sub-srggb10alaw8;
+     &sub-srggb10dpcm8;
+     &sub-srggb12;
+   </section>
+@@ -701,6 +702,7 @@ information.</para>
+     &sub-y12;
+     &sub-y10b;
+     &sub-y16;
++    &sub-uv8;
+     &sub-yuyv;
+     &sub-uyvy;
+     &sub-yvyu;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 5d78910..2cdf2c1 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -329,6 +329,9 @@ struct v4l2_pix_format {
+ /* Palette formats */
+ #define V4L2_PIX_FMT_PAL8    v4l2_fourcc('P', 'A', 'L', '8') /*  8  8-bit palette */
+ 
++/* Chrominance formats */
++#define V4L2_PIX_FMT_UV8      v4l2_fourcc('U', 'V', '8', ' ') /*  8  UV 4:4 */
++
+ /* Luminance+Chrominance formats */
+ #define V4L2_PIX_FMT_YVU410  v4l2_fourcc('Y', 'V', 'U', '9') /*  9  YVU 4:1:0     */
+ #define V4L2_PIX_FMT_YVU420  v4l2_fourcc('Y', 'V', '1', '2') /* 12  YVU 4:2:0     */
+@@ -378,6 +381,11 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_SGBRG12 v4l2_fourcc('G', 'B', '1', '2') /* 12  GBGB.. RGRG.. */
+ #define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
+ #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
++	/* 10bit raw bayer a-law compressed to 8 bits */
++#define V4L2_PIX_FMT_SBGGR10ALAW8 v4l2_fourcc('a', 'B', 'A', '8')
++#define V4L2_PIX_FMT_SGBRG10ALAW8 v4l2_fourcc('a', 'G', 'A', '8')
++#define V4L2_PIX_FMT_SGRBG10ALAW8 v4l2_fourcc('a', 'g', 'A', '8')
++#define V4L2_PIX_FMT_SRGGB10ALAW8 v4l2_fourcc('a', 'R', 'A', '8')
+ 	/* 10bit raw bayer DPCM compressed to 8 bits */
+ #define V4L2_PIX_FMT_SBGGR10DPCM8 v4l2_fourcc('b', 'B', 'A', '8')
+ #define V4L2_PIX_FMT_SGBRG10DPCM8 v4l2_fourcc('b', 'G', 'A', '8')
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+1.7.0.4
+
