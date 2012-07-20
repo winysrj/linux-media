@@ -1,118 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:47947 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751351Ab2G3Ihl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jul 2012 04:37:41 -0400
-Received: by wibhq12 with SMTP id hq12so2248157wib.1
-        for <linux-media@vger.kernel.org>; Mon, 30 Jul 2012 01:37:40 -0700 (PDT)
-From: Javier Martin <javier.martin@vista-silicon.com>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:35931 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751227Ab2GTJwp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Jul 2012 05:52:45 -0400
+Received: from [10.2.0.238] (unknown [10.2.0.238])
+	(using TLSv1 with cipher DHE-RSA-CAMELLIA256-SHA (256/256 bits))
+	(No client certificate requested)
+	by 7of9.schinagl.nl (Postfix) with ESMTPSA id E364424422
+	for <linux-media@vger.kernel.org>; Fri, 20 Jul 2012 11:53:24 +0200 (CEST)
+Message-ID: <50092A6A.6080101@schinagl.nl>
+Date: Fri, 20 Jul 2012 11:52:42 +0200
+From: Oliver Schinagl <oliver+list@schinagl.nl>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, hdegoede@redhat.com, s.nawrocki@samsung.com,
-	hans.verkuil@cisco.com,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH] media: i.MX27: Fix mx2_emmaprp mem2mem driver clocks.
-Date: Mon, 30 Jul 2012 10:37:30 +0200
-Message-Id: <1343637450-5562-1-git-send-email-javier.martin@vista-silicon.com>
+Subject: Re: Problems with Asus My Cinema-U3000Hybrid tuner
+References: <CAOLE0zPeaRXNJY9yVwVG0n5tsbgYoqw1pQs7_+2fQoA-K0uS3Q@mail.gmail.com> <CAOLE0zMrNpNAa9pvVxXhnN6r_NdAYSHJ7wsGCMACOGCmmgBJRA@mail.gmail.com> <loom.20120719T133924-657@post.gmane.org> <5007EF20.3080800@schinagl.nl> <loom.20120719T205627-29@post.gmane.org> <50086528.1010309@schinagl.nl> <CAOLE0zMWhS7sAg7sDw0-Qv3k+TAVaEDxdQEEmGrpKQLTZrfvVw@mail.gmail.com> <5008FB8B.3020903@schinagl.nl> <CAOLE0zO1158KTV0Yfb1gh-42w+pF2P+vXFuys6fmPMgwjsFOHA@mail.gmail.com>
+In-Reply-To: <CAOLE0zO1158KTV0Yfb1gh-42w+pF2P+vXFuys6fmPMgwjsFOHA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver wasn't converted to the new clock framework
-(e038ed50a4a767add205094c035b6943e7b30140).
+On 20-07-12 11:01, H. Cristiano Alves Machado wrote:
+> 2012/7/20 Oliver Schinagl <oliver+list@schinagl.nl>:
+>> I did do see those already. Well if you have never seen it properly work in
+>> Linux, there may be a few things to try. The easiest is an older version of
+>> ubuntu for example. DIB7000 based devices are supported for quite some time.
+>> 10.04 was an LTS release, best start with that one to test. The only other
+>> thing I could think of, is that maybe your firmware is different. It
+>> currently loads 1.20; Maybe try extracting the firmware from your windows
+>> driver and try that first.
+>>
+>> Other then that, I really have no idea :(
+> Hi Oliver and thanks for the care you've shown up until now! I really
+> appreciate that.
+>
+> I will try to follow your suggestions.
+>
+> I will try to install previous version of ubuntu (10.04 LTS first) and
+> then the second way, adapt windows'.
+I found that on October 13th 2008 Mauro commited support for the Asus My 
+Cinema U3000 Hybrid. Mauro is currently on vacation  so your best bet 
+would have been him. I also see that Albert Comera and Patrick Boettcher 
+signed off on this too, so they should know the details on why it's not 
+working.
 
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
----
- This is broken in current stable 3.5 too. So it should be applied
- to both stable and 3.6.
+I've noticed that my PCI DVB-T card works quite some better in kaffeine 
+then in VDR. Also me-tv works reasonably well (when not using a CAM). 
+Try various applications in your testing enviroment, it may be 
+application related.
 
----
- drivers/media/video/mx2_emmaprp.c |   27 ++++++++++++++++-----------
- 1 file changed, 16 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/media/video/mx2_emmaprp.c b/drivers/media/video/mx2_emmaprp.c
-index 0bd5815..2614a89 100644
---- a/drivers/media/video/mx2_emmaprp.c
-+++ b/drivers/media/video/mx2_emmaprp.c
-@@ -209,7 +209,7 @@ struct emmaprp_dev {
- 
- 	int			irq_emma;
- 	void __iomem		*base_emma;
--	struct clk		*clk_emma;
-+	struct clk		*clk_emma_ahb, *clk_emma_ipg;
- 	struct resource		*res_emma;
- 
- 	struct v4l2_m2m_dev	*m2m_dev;
-@@ -800,7 +800,8 @@ static int emmaprp_open(struct file *file)
- 		return ret;
- 	}
- 
--	clk_enable(pcdev->clk_emma);
-+	clk_prepare_enable(pcdev->clk_emma_ipg);
-+	clk_prepare_enable(pcdev->clk_emma_ahb);
- 	ctx->q_data[V4L2_M2M_SRC].fmt = &formats[1];
- 	ctx->q_data[V4L2_M2M_DST].fmt = &formats[0];
- 
-@@ -816,7 +817,8 @@ static int emmaprp_release(struct file *file)
- 
- 	dprintk(pcdev, "Releasing instance %p\n", ctx);
- 
--	clk_disable(pcdev->clk_emma);
-+	clk_disable_unprepare(pcdev->clk_emma_ahb);
-+	clk_disable_unprepare(pcdev->clk_emma_ipg);
- 	v4l2_m2m_ctx_release(ctx->m2m_ctx);
- 	kfree(ctx);
- 
-@@ -876,9 +878,15 @@ static int emmaprp_probe(struct platform_device *pdev)
- 
- 	spin_lock_init(&pcdev->irqlock);
- 
--	pcdev->clk_emma = clk_get(&pdev->dev, NULL);
--	if (IS_ERR(pcdev->clk_emma)) {
--		ret = PTR_ERR(pcdev->clk_emma);
-+	pcdev->clk_emma_ipg = devm_clk_get(&pdev->dev, "ipg");
-+	if (IS_ERR(pcdev->clk_emma_ipg)) {
-+		ret = PTR_ERR(pcdev->clk_emma_ipg);
-+		goto free_dev;
-+	}
-+
-+	pcdev->clk_emma_ahb = devm_clk_get(&pdev->dev, "ahb");
-+	if (IS_ERR(pcdev->clk_emma_ipg)) {
-+		ret = PTR_ERR(pcdev->clk_emma_ahb);
- 		goto free_dev;
- 	}
- 
-@@ -887,12 +895,12 @@ static int emmaprp_probe(struct platform_device *pdev)
- 	if (irq_emma < 0 || res_emma == NULL) {
- 		dev_err(&pdev->dev, "Missing platform resources data\n");
- 		ret = -ENODEV;
--		goto free_clk;
-+		goto free_dev;
- 	}
- 
- 	ret = v4l2_device_register(&pdev->dev, &pcdev->v4l2_dev);
- 	if (ret)
--		goto free_clk;
-+		goto free_dev;
- 
- 	mutex_init(&pcdev->dev_mutex);
- 
-@@ -965,8 +973,6 @@ rel_vdev:
- 	video_device_release(vfd);
- unreg_dev:
- 	v4l2_device_unregister(&pcdev->v4l2_dev);
--free_clk:
--	clk_put(pcdev->clk_emma);
- free_dev:
- 	kfree(pcdev);
- 
-@@ -983,7 +989,6 @@ static int emmaprp_remove(struct platform_device *pdev)
- 	v4l2_m2m_release(pcdev->m2m_dev);
- 	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
- 	v4l2_device_unregister(&pcdev->v4l2_dev);
--	clk_put(pcdev->clk_emma);
- 	kfree(pcdev);
- 
- 	return 0;
--- 
-1.7.9.5
+Unfortunately I can not help you anymore then that.
+>
+> I have some doubts about extracting windows drivers and applying them here.
+>
+> How can I go about doing that?
+>
+> If you (or someone else can give some pointers I will try to follow them)
+>
+> Besides I will also look (google) around to see how that can be done.
+>
+> Best regards!
 
