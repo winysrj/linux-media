@@ -1,74 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:1581 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754974Ab2GKN1N (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jul 2012 09:27:13 -0400
-Message-ID: <4FFD7F48.6060905@redhat.com>
-Date: Wed, 11 Jul 2012 15:27:36 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: martin-eric.racine@iki.fi
-CC: Jean-Francois Moine <moinejf@free.fr>,
-	Jonathan Nieder <jrnieder@gmail.com>, 677533@bugs.debian.org,
-	linux-media@vger.kernel.org
-Subject: Re: video: USB webcam fails since kernel 3.2
-References: <20120614162609.4613.22122.reportbug@henna.lan> <20120614215359.GF3537@burratino> <CAPZXPQd9gNCxn7xGyqj_xymPaF5OxvRtxRFkt+SsLs942te4og@mail.gmail.com> <20120616044137.GB4076@burratino> <1339932233.20497.14.camel@henna.lan> <CAPZXPQegp7RA5M0H9Ofq4rJ9aj-rEdg=Ly9_1c6vAKi3COw50g@mail.gmail.com> <4FF9CA30.9050105@redhat.com> <CAPZXPQd026xfKrAU0D7CLQGbdAs8U01u5vsHp+5-wbVofAwdqQ@mail.gmail.com> <4FFAD8D9.8070203@redhat.com> <20120709203929.GC17301@burratino> <CAPZXPQcaEzW1zGXfGwp-JuOrfBu2xhoidaYjthD8jhYAFpWr7A@mail.gmail.com> <20120710163645.04fb0af0@armhf> <CAPZXPQehjGRDZ=rXWjGFPQvRqOMzRpeA2dpoSWc3XwuUkvvesg@mail.gmail.com> <20120711100436.2305b098@armhf> <CAPZXPQdJC5yCYY6YRzuKj-ukFLzbY_yUzbogzbDx1S0bL1GrgQ@mail.gmail.com> <20120711124441.346a86b3@armhf> <CAPZXPQcvGqPjeyZh=vHtbSOoA91Htsg6DeyYyhYLeDgay8GSBg@mail.gmail.com> <20120711132739.6b527a27@armhf> <CAPZXPQeDKLAu13Qs-MhhxJEBrF-5620HNZDmPiH+4NRmkxx3Ag@mail.gmail.com>
-In-Reply-To: <CAPZXPQeDKLAu13Qs-MhhxJEBrF-5620HNZDmPiH+4NRmkxx3Ag@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from deliverator1.gatech.edu ([130.207.165.161]:36500 "EHLO
+	deliverator1.gatech.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751879Ab2GTTJf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Jul 2012 15:09:35 -0400
+Received: from deliverator1.gatech.edu (localhost [127.0.0.1])
+	by localhost (Postfix) with SMTP id BBF21D44F27
+	for <linux-media@vger.kernel.org>; Fri, 20 Jul 2012 15:09:34 -0400 (EDT)
+Received: from mail8.gatech.edu (mail8.gatech.edu [130.207.185.168])
+	by deliverator1.gatech.edu (Postfix) with ESMTP id 9C6F9D44B78
+	for <linux-media@vger.kernel.org>; Fri, 20 Jul 2012 15:09:33 -0400 (EDT)
+Received: from [192.168.1.102] (rehearsalrouter.tss.gatech.edu [130.207.44.218])
+	(Authenticated sender: akoza3)
+	by mail8.gatech.edu (Postfix) with ESMTPSA id 8AEEB2E8824
+	for <linux-media@vger.kernel.org>; Fri, 20 Jul 2012 15:09:33 -0400 (EDT)
+From: Adam Koza <adamkoza@gatech.edu>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Subject: Build Failure: ddbridge-core.o and drxk_hard.o
+Message-Id: <76009C42-CABF-412B-885E-0379169DDBA2@gatech.edu>
+Date: Fri, 20 Jul 2012 15:09:31 -0400
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Mime-Version: 1.0 (Mac OS X Mail 6.0 \(1485\))
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi,
 
-On 07/11/2012 02:01 PM, Martin-Éric Racine wrote:
-> 2012/7/11 Jean-Francois Moine <moinejf@free.fr>:
->> On Wed, 11 Jul 2012 14:14:24 +0300
->> Martin-Éric Racine <martin-eric.racine@iki.fi> wrote:
->>
->>>    CC [M]  /home/perkelix/gspca-2.15.18/build/ov534_9.o
->>> /home/perkelix/gspca-2.15.18/build/ov534_9.c: In function ‘sd_init’:
->>> /home/perkelix/gspca-2.15.18/build/ov534_9.c:1353:3: error: implicit
->>> declaration of function ‘err’ [-Werror=implicit-function-declaration]
->>> cc1: some warnings being treated as errors
->>> make[2]: *** [/home/perkelix/gspca-2.15.18/build/ov534_9.o] Virhe 1
->>> make[1]: *** [_module_/home/perkelix/gspca-2.15.18/build] Error 2
->>> make[1]: Leaving directory `/usr/src/linux-headers-3.5.0-rc6+'
->>> make: *** [modules] Error 2
->>
->> Sorry, I did not compile yet with kernel >= 3.4.
->>
->> So, please, edit the file build/ov534_9.c (and possibly other sources),
->> changing  the calls to 'err' to 'pr_err'.
->
-> This was was required for both build/ov534_9.c and build/spca505.c to
-> build agaist 3.5.
->
-> Sure enough, this seems to fix support for this camera in both Cheese
-> and Skype. Hurray! :-)
+I have been building a streaming server at Georgia Tech and I have recently run into a build error using the media_build git repository that I have yet to find a solution for. 
 
-Ok, so it seems that increasing the bandwidth we claim for the camera
-(which is what my suggested "return 2000 * 2000 * 120;" change does, helps
-a bit, where as the changes to vc032x which are in Jean-Francois Moine's
-gspca-2.15.18 tarbal fix the problem entirely, correct?
+The drivers built, installed, and worked about a month ago, but with the recent git update it has failed to build. 
 
->
-> Now, the only thing that remains is for this to be merged in the 3.5
-> tree, then backported to the 3.2 tree that is used for Debian's
-> upcoming Wheezy stable release (and for Ubuntu's recently released
-> Precise also).
+I wasn't able to find the same error in the daily builds and thought I'd ask to see if anyone could point me in the right direction, whether it be a bug in the build files or something on my end. 
 
-Well we first need to turn the changes made in gspca-2.15.18 into
-a patch will which apply to the latest gspca tree:
-http://git.linuxtv.org/hgoede/gspca.git/shortlog/refs/heads/media-for_v3.6
+I am running RHEL 6 without any GUI installed and everything is up to date.
 
-And then apply them there, before the can be backported to older
-kernels. Unfortunately I'm leaving for a week vacation Friday, and I
-probably won't get around to this before then.
+Server Info:
+---------------
+Red Hat Enterprise Linux 6
+Kernel: 2.6.32-279.1.1.el6.x86_64
+GCC Version: 4.4.6
 
-Jean-Francois, can you perhaps make a patch against my latest tree for
-the poXXXX / PO3130 changes in your tarbal?
+Main Build Error:
+-----------------------
+ CC [M]  /root/downloads/media_build/v4l/ddbridge-core.o
+/root/downloads/media_build/v4l/ddbridge-core.c: In function 'ddb_class_create':
+/root/downloads/media_build/v4l/ddbridge-core.c:1502: warning: assignment from incompatible pointer type
+  CC [M]  /root/downloads/media_build/v4l/drxd_firm.o
+  CC [M]  /root/downloads/media_build/v4l/drxd_hard.o
+  CC [M]  /root/downloads/media_build/v4l/drxk_hard.o
+/root/downloads/media_build/v4l/drxk_hard.c: In function 'drxk_attach':
+/root/downloads/media_build/v4l/drxk_hard.c:6615: warning: passing argument 5 of 'request_firmware_nowait' makes integer from pointer without a cast
+include/linux/firmware.h:40: note: expected 'gfp_t' but argument is of type 'struct drxk_state *'
+/root/downloads/media_build/v4l/drxk_hard.c:6615: error: too few arguments to function 'request_firmware_nowait'
+make[3]: *** [/root/downloads/media_build/v4l/drxk_hard.o] Error 1
+make[2]: *** [_module_/root/downloads/media_build/v4l] Error 2
+make[2]: Leaving directory `/usr/src/kernels/2.6.32-279.el6.x86_64'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/root/downloads/media_build/v4l'
+make: *** [all] Error 2
+build failed at ./build line 452.
 
-Regards,
+Other Information:
+------------------------
+Tuning card: Hauppauge WinTV-HVR-2250 (I'm tuning Clear-QAM and NTSC)
+Device Subsystem ID
+Multimedia controller [0480]: Philips Semiconductors SAA7164 [1131:7164] (rev 81)
+	Subsystem: Hauppauge computer works Inc. WinTV HVR-2250 [0070:8851]
+	Flags: bus master, fast devsel, latency 0, IRQ 16
+	Memory at df000000 (64-bit, non-prefetchable) [size=4M]
+	Memory at df400000 (64-bit, non-prefetchable) [size=4M]
+	Capabilities: [40] MSI: Enable- Count=1/16 Maskable- 64bit+
+	Capabilities: [50] Express Endpoint, MSI 00
+	Capabilities: [74] Power Management version 3
+	Capabilities: [7c] Vendor Specific Information <?>
+	Capabilities: [100] Vendor Specific Information <?>
+	Capabilities: [160] Virtual Channel <?>
+	Kernel driver in use: saa7164
+	Kernel modules: saa7164
 
-Hans
+Base Board Information
+	Manufacturer: Dell Inc.
+	Product Name: 05XKKK
+
+BIOS Information
+	Vendor: Dell Inc.
+	Version: 1.8.2
+	Release Date: 08/17/2011
+	Address: 0xF0000
+	Runtime Size: 64 kB
+	ROM Size: 4096 kB
+	Characteristics:
+		ISA is supported
+		PCI is supported
+		PNP is supported
+		BIOS is upgradeable
+		BIOS shadowing is allowed
+		Boot from CD is supported
+		Selectable boot is supported
+		EDD is supported
+		Japanese floppy for Toshiba 1.2 MB is supported (int 13h)
+		5.25"/360 kB floppy services are supported (int 13h)
+		5.25"/1.2 MB floppy services are supported (int 13h)
+		3.5"/720 kB floppy services are supported (int 13h)
+		8042 keyboard services are supported (int 9h)
+		Serial services are supported (int 14h)
+		CGA/mono video services are supported (int 10h)
+		ACPI is supported
+		USB legacy is supported
+		BIOS boot specification is supported
+		Function key-initiated network boot is supported
+		Targeted content distribution is supported
+	BIOS Revision: 1.8
+
+Processor Information
+	Socket Designation: CPU1
+	Type: Central Processor
+	Family: Xeon
+	Manufacturer: Intel
+	ID: E5 06 01 00 FF FB EB BF
+	Signature: Type 0, Family 6, Model 30, Stepping 5
+	Version: Intel(R) Xeon(R) CPU           X3480  @ 3.07GHz
+	Voltage: 1.2 V
+	External Clock: 4800 MHz
+	Max Speed: 3600 MHz
+	Current Speed: 3066 MHz
+	Status: Populated, Enabled
+	Upgrade: Socket LGA1366
+	L1 Cache Handle: 0x0700
+	L2 Cache Handle: 0x0701
+	L3 Cache Handle: 0x0702
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+	Core Count: 4
+	Core Enabled: 4
+	Thread Count: 8
+	Characteristics:
+		64-bit capable
+
+Dmesg Log for saa7164 Driver:
+--------------------------------------------
+saa7164 driver loaded
+saa7164 0000:04:00.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
+CORE saa7164[0]: subsystem: 0070:8851, board: Hauppauge WinTV-HVR2250 [card=7,autodetected]
+saa7164[0]/0: found at 0000:04:00.0, rev: 129, irq: 16, latency: 0, mmio: 0xdf000000
+saa7164 0000:04:00.0: setting latency timer to 64
+IRQ 16/saa7164[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+saa7164_downloadfirmware() no first image
+saa7164_downloadfirmware() Waiting for firmware upload (NXP7164-2010-03-10.1.fw)
+saa7164 0000:04:00.0: firmware: requesting NXP7164-2010-03-10.1.fw
+saa7164_downloadfirmware() firmware read 4019072 bytes.
+saa7164_downloadfirmware() firmware loaded.
+Firmware file header part 1:
+ .FirmwareSize = 0x0
+ .BSLSize = 0x0
+ .Reserved = 0x3d538
+ .Version = 0x3
+saa7164_downloadfirmware() SecBootLoader.FileSize = 4019072
+saa7164_downloadfirmware() FirmwareSize = 0x1fd6
+saa7164_downloadfirmware() BSLSize = 0x0
+saa7164_downloadfirmware() Reserved = 0x0
+saa7164_downloadfirmware() Version = 0x1661c00
+saa7164_downloadimage() Image downloaded, booting...
+saa7164_downloadimage() Image booted successfully.
+starting firmware download(2)
+saa7164_downloadimage() Image downloaded, booting...
+saa7164_downloadimage() Image booted successfully.
+firmware download complete.
+tveeprom 0-0000: Hauppauge model 88061, rev C4F2, serial# 8798501
+tveeprom 0-0000: MAC address is 00:0d:fe:86:41:25
+tveeprom 0-0000: tuner model is NXP 18271C2_716x (idx 152, type 4)
+tveeprom 0-0000: TV standards NTSC(M) ATSC/DVB Digital (eeprom 0x88)
+tveeprom 0-0000: audio processor is SAA7164 (idx 43)
+tveeprom 0-0000: decoder processor is SAA7164 (idx 40)
+tveeprom 0-0000: has radio, has IR receiver, has no IR transmitter
+saa7164[0]: Hauppauge eeprom: model=88061
+tda18271 1-0060: creating new instance
+TDA18271HD/C2 detected @ 1-0060
+DVB: registering new adapter (saa7164)
+DVB: registering adapter 0 frontend 0 (Samsung S5H1411 QAM/8VSB Frontend)...
+tda18271 2-0060: creating new instance
+TDA18271HD/C2 detected @ 2-0060
+tda18271: performing RF tracking filter calibration
+tda18271: RF tracking filter calibration complete
+DVB: registering new adapter (saa7164)
+DVB: registering adapter 1 frontend 0 (Samsung S5H1411 QAM/8VSB Frontend)...
+saa7164[0]: registered device video0 [mpeg]
+saa7164[0]: registered device video1 [mpeg]
+saa7164[0]: registered device vbi0 [vbi]
+saa7164[0]: registered device vbi1 [vbi]
+
+Commands used to build:
+git clone git://linuxtv.org/media_build.git
+cd media_build 
+./build
+
+If you need anymore information I will gladly supply it. Also, let me know if I didn't follow the proper listserv etiquette or should post somewhere else. 
+
+Thanks,
+
+---------------------------------
+Adam Koza
+adamkoza@gatech.edu
