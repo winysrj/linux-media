@@ -1,82 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52040 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750736Ab2G0KzW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jul 2012 06:55:22 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id q6RAtKH9030346
-	for <linux-media@vger.kernel.org>; Fri, 27 Jul 2012 05:55:21 -0500
-From: Prabhakar Lad <prabhakar.lad@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: [PATCH v7 0/2] add dm365 specific media formats
-Date: Fri, 27 Jul 2012 16:25:03 +0530
-Message-ID: <1343386505-8695-1-git-send-email-prabhakar.lad@ti.com>
+Received: from moutng.kundenserver.de ([212.227.17.8]:58059 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753146Ab2GTH6H (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Jul 2012 03:58:07 -0400
+Date: Fri, 20 Jul 2012 09:57:39 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: javier Martin <javier.martin@vista-silicon.com>
+cc: linux-media@vger.kernel.org, fabio.estevam@freescale.com,
+	laurent.pinchart@ideasonboard.com, mchehab@infradead.org
+Subject: Re: [PATCH] media: mx2_camera: Add YUYV output format.
+In-Reply-To: <CACKLOr2CnQ6Dok_N-KCKMvp5dzSi=OP=WBFAfqaGr17enEkW8A@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1207200955440.27906@axis700.grange>
+References: <1342083373-18245-1-git-send-email-javier.martin@vista-silicon.com>
+ <CACKLOr2CnQ6Dok_N-KCKMvp5dzSi=OP=WBFAfqaGr17enEkW8A@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-add mediabus formats and pixel formats supported
-as part of dm365 vpfe device.
-The device supports media formats(transfer and storage)
-which include-
-1: ALAW compressed bayer.
-2: UV interleaved without Y (for resizer).
-3: YDYU
+Hi Javier
 
-Changes for v7:
-1: Fixed a comment from Laurent, removed subscript for 
-   dummy tags.
-2: Fixed a comment from Sakari, used the same order for
-   ALAW pix fmt according to Documentation/video4linux/4CCs.txt.
+On Fri, 20 Jul 2012, javier Martin wrote:
 
-Changes for v6:
-1: Fixed a comment from Hans, replaced "YUYDYDYV and YVYDYDYU"
-   to "YUYDYVYD and YVYDYUYD".
+> On 12 July 2012 10:56, Javier Martin <javier.martin@vista-silicon.com> wrote:
+> > Add explicit conversions from UYVY and YUYV to YUYV so that
+> > csicr1 configuration can be set properly for each format.
+> >
+> > Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+> > ---
+> >  drivers/media/video/mx2_camera.c |   40 ++++++++++++++++++++++++++++++++++++++
+> >  1 file changed, 40 insertions(+)
+> >
+> > diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+> > index 0f01e7b..2a33bcb 100644
+> > --- a/drivers/media/video/mx2_camera.c
+> > +++ b/drivers/media/video/mx2_camera.c
+> > @@ -337,6 +337,34 @@ static struct mx2_fmt_cfg mx27_emma_prp_table[] = {
+> >                 }
+> >         },
+> >         {
+> > +               .in_fmt         = V4L2_MBUS_FMT_UYVY8_2X8,
+> > +               .out_fmt        = V4L2_PIX_FMT_YUYV,
+> > +               .cfg            = {
+> > +                       .channel        = 1,
+> > +                       .in_fmt         = PRP_CNTL_DATA_IN_YUV422,
+> > +                       .out_fmt        = PRP_CNTL_CH1_OUT_YUV422,
+> > +                       .src_pixel      = 0x22000888, /* YUV422 (YUYV) */
+> > +                       .ch1_pixel      = 0x62000888, /* YUV422 (YUYV) */
+> > +                       .irq_flags      = PRP_INTR_RDERR | PRP_INTR_CH1WERR |
+> > +                                               PRP_INTR_CH1FC | PRP_INTR_LBOVF,
+> > +                       .csicr1         = CSICR1_SWAP16_EN,
+> > +               }
+> > +       },
+> > +       {
+> > +               .in_fmt         = V4L2_MBUS_FMT_YUYV8_2X8,
+> > +               .out_fmt        = V4L2_PIX_FMT_YUYV,
+> > +               .cfg            = {
+> > +                       .channel        = 1,
+> > +                       .in_fmt         = PRP_CNTL_DATA_IN_YUV422,
+> > +                       .out_fmt        = PRP_CNTL_CH1_OUT_YUV422,
+> > +                       .src_pixel      = 0x22000888, /* YUV422 (YUYV) */
+> > +                       .ch1_pixel      = 0x62000888, /* YUV422 (YUYV) */
+> > +                       .irq_flags      = PRP_INTR_RDERR | PRP_INTR_CH1WERR |
+> > +                                               PRP_INTR_CH1FC | PRP_INTR_LBOVF,
+> > +                       .csicr1         = CSICR1_PACK_DIR,
+> > +               }
+> > +       },
+> > +       {
+> >                 .in_fmt         = V4L2_MBUS_FMT_YUYV8_2X8,
+> >                 .out_fmt        = V4L2_PIX_FMT_YUV420,
+> >                 .cfg            = {
+> > @@ -1146,6 +1174,18 @@ static int mx2_camera_get_formats(struct soc_camera_device *icd,
+> >                 }
+> >         }
+> >
+> > +       if (code == V4L2_MBUS_FMT_UYVY8_2X8) {
+> > +               formats++;
+> > +               if (xlate) {
+> > +                       xlate->host_fmt =
+> > +                               soc_mbus_get_fmtdesc(V4L2_MBUS_FMT_YUYV8_2X8);
+> > +                       xlate->code     = code;
+> > +                       dev_dbg(dev, "Providing host format %s for sensor code %d\n",
+> > +                               xlate->host_fmt->name, code);
+> > +                       xlate++;
+> > +               }
+> > +       }
+> > +
+> >         /* Generic pass-trough */
+> >         formats++;
+> >         if (xlate) {
+> > --
+> > 1.7.9.5
+> >
+> 
+> Any comments on this one?
 
-Changes for v5:
-1: Fixed comment from Laurent, moved ALAW format above DPCM
-   format to keep the alphabetically sorted, grouped textual
-   description for ALAW and DPCM compression, as they're mutally
-   exclusive, Changed V4L2_MBUS_FMT_YDYC8_1X16 to
-   V4L2_MBUS_FMT_YDYUYDYV8_1X16.
+Thanks for the reminder, but in this specific case I haven't 
+forgottne:-) I'm processing my v4l patch queue ATM, will have a closer 
+look at this and other your patches, will write back if I have any 
+objections. I hope I won't - I'm leaving for a week-long holiday tomorrow, 
+so, I hope to push my queue today.
 
-Changes for v4:
-1: Rebased the patch set on Sakari's branch
-(http://git.linuxtv.org/sailus/media_tree.git/shortlog/refs/heads/media-for-3.4)
-   mainly because of this patch
-   <URL:http://www.spinics.net/lists/linux-media/msg44871.html>
-2: Fixed comments from Sakari, changed description for
-   UV8, and re-arranged &sub-uv8; in
-   Documentation/DocBook/media/v4l/pixfmt.xml file.
-
-Changes for v3:
-1: Added 4cc code for A-law compressed format as per
-  specified in documentation,
-  http://www.spinics.net/lists/linux-media/msg43890.html
-
-Changes for v2:
-1: Added entries in subdev-formats.xml for
- V4L2_MBUS_FMT_YDYC8_1X16, V4L2_MBUS_FMT_UV8_1X8,
- V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8,
- V4L2_MBUS_FMT_SGBRG10_ALAW8_1X8,
- V4L2_MBUS_FMT_SGRBG10_ALAW8_1X8,
- V4L2_MBUS_FMT_SRGGB10_ALAW8_1X8.
-2: Added documentation of ALAW and UV8 pix format.
-
-Manjunath Hadli (2):
-  media: add new mediabus format enums for dm365
-  v4l2: add new pixel formats supported on dm365
-
- .../DocBook/media/v4l/pixfmt-srggb10alaw8.xml      |   34 +++
- Documentation/DocBook/media/v4l/pixfmt-uv8.xml     |   62 +++++
- Documentation/DocBook/media/v4l/pixfmt.xml         |    2 +
- Documentation/DocBook/media/v4l/subdev-formats.xml |  250 +++++++++++++++++++-
- include/linux/v4l2-mediabus.h                      |   10 +-
- include/linux/videodev2.h                          |    8 +
- 6 files changed, 358 insertions(+), 8 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-uv8.xml
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
