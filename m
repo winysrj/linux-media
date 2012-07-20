@@ -1,49 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3542 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751114Ab2GSUp6 (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:55238 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753096Ab2GTP3p (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jul 2012 16:45:58 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id q6JKjtJh045981
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Thu, 19 Jul 2012 22:45:56 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from tschai.localnet (tschai.lan [192.168.1.195])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 4969A35E0007
-	for <linux-media@vger.kernel.org>; Thu, 19 Jul 2012 22:45:50 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [PATCH] vivi: remove pointless video_nr++
-Date: Thu, 19 Jul 2012 22:45:49 +0200
+	Fri, 20 Jul 2012 11:29:45 -0400
+Date: Fri, 20 Jul 2012 17:29:42 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PULL] soc-camera for 3.6
+Message-ID: <Pine.LNX.4.64.1207201727240.5505@axis700.grange>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201207192245.49852.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove the pointless video_nr++. It doesn't do anything useful and it has
-the unexpected side-effect of changing the video_nr module option, so
-cat /sys/module/vivi/parameters/video_nr gives a different value back
-then what was specified with modprobe.
+Hi Mauro
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+This might be a bit more, than what you'd like to see in a single pull
+request, sorry, but I had very little time during the last development
+period, so, my reviews were always delayed - sorry to all developers
+again! I'll try to do better next time. Anyway, here go:
 
-diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-index 1e8c4f3..679e329 100644
---- a/drivers/media/video/vivi.c
-+++ b/drivers/media/video/vivi.c
-@@ -1330,9 +1330,6 @@ static int __init vivi_create_instance(int inst)
- 	/* Now that everything is fine, let's add it to device list */
- 	list_add_tail(&dev->vivi_devlist, &vivi_devlist);
- 
--	if (video_nr != -1)
--		video_nr++;
--
- 	v4l2_info(&dev->v4l2_dev, "V4L2 device registered as %s\n",
- 		  video_device_node_name(vfd));
- 	return 0;
+The following changes since commit 931efdf58bd83af8d0578a6cc53421675daf6d41:
+
+  Merge branch 'v4l_for_linus' into staging/for_v3.6 (2012-07-14 15:45:44 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.6
+
+Fabio Estevam (2):
+      video: mx1_camera: Use clk_prepare_enable/clk_disable_unprepare
+      video: mx2_camera: Use clk_prepare_enable/clk_disable_unprepare
+
+Guennadi Liakhovetski (1):
+      V4L: soc-camera: add selection API host operations
+
+Javier Martin (2):
+      media: mx2_camera: Fix mbus format handling
+      media: mx2_camera: Add YUYV output format.
+
+Laurent Pinchart (18):
+      soc-camera: Don't fail at module init time if no device is present
+      soc-camera: Pass the physical device to the power operation
+      ov2640: Don't access the device in the g_mbus_fmt operation
+      ov772x: Don't access the device in the g_mbus_fmt operation
+      tw9910: Don't access the device in the g_mbus_fmt operation
+      soc_camera: Don't call .s_power() during probe
+      soc-camera: Continue the power off sequence if one of the steps fails
+      soc-camera: Add and use soc_camera_power_[on|off]() helper functions
+      soc-camera: Push probe-time power management to drivers
+      ov772x: Fix memory leak in probe error path
+      ov772x: Select the default format at probe time
+      ov772x: Don't fail in s_fmt if the requested format isn't supported
+      ov772x: try_fmt must not default to the current format
+      ov772x: Make to_ov772x convert from v4l2_subdev to ov772x_priv
+      ov772x: Add ov772x_read() and ov772x_write() functions
+      ov772x: Add support for SBGGR10 format
+      ov772x: Compute window size registers at runtime
+      ov772x: Stop sensor readout right after reset
+
+ drivers/media/video/imx074.c              |   30 ++-
+ drivers/media/video/mt9m001.c             |   26 ++-
+ drivers/media/video/mt9m111.c             |  116 +++++---
+ drivers/media/video/mt9t031.c             |   48 ++--
+ drivers/media/video/mt9t112.c             |   21 ++-
+ drivers/media/video/mt9v022.c             |   14 +
+ drivers/media/video/mx1_camera.c          |    4 +-
+ drivers/media/video/mx2_camera.c          |   79 +++++-
+ drivers/media/video/ov2640.c              |   26 ++-
+ drivers/media/video/ov5642.c              |   31 ++-
+ drivers/media/video/ov6650.c              |   28 ++-
+ drivers/media/video/ov772x.c              |  451 +++++++++++++++--------------
+ drivers/media/video/ov9640.c              |   27 ++-
+ drivers/media/video/ov9740.c              |   47 ++-
+ drivers/media/video/rj54n1cb0c.c          |   27 ++-
+ drivers/media/video/soc_camera.c          |  169 +++++++----
+ drivers/media/video/soc_camera_platform.c |   11 +-
+ drivers/media/video/tw9910.c              |   29 ++-
+ include/media/soc_camera.h                |   12 +
+ 19 files changed, 771 insertions(+), 425 deletions(-)
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
