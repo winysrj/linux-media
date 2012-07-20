@@ -1,55 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:35011 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751119Ab2GZMUK convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37860 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753034Ab2GTRcT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jul 2012 08:20:10 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "=?utf-8?q?R=C3=A9mi?= Denis-Courmont" <remi@remlab.net>
-Subject: Re: [Workshop-2011] Media summit at the Kernel Summit - was: Fwd: Re: [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
-Date: Thu, 26 Jul 2012 14:20:07 +0200
-Cc: workshop-2011@linuxtv.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <20120713173708.GB17109@thunk.org> <201207261142.15446.hverkuil@xs4all.nl> <43393805d24f14d762f4cccd2e14f8a2@chewa.net>
-In-Reply-To: <43393805d24f14d762f4cccd2e14f8a2@chewa.net>
+	Fri, 20 Jul 2012 13:32:19 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Prabhakar Lad <prabhakar.lad@ti.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hansverk@cisco.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v6 1/2] media: add new mediabus format enums for dm365
+Date: Fri, 20 Jul 2012 19:32:23 +0200
+Message-ID: <5460968.zn5gceMGBZ@avalon>
+In-Reply-To: <1342796290-18947-2-git-send-email-prabhakar.lad@ti.com>
+References: <1342796290-18947-1-git-send-email-prabhakar.lad@ti.com> <1342796290-18947-2-git-send-email-prabhakar.lad@ti.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201207261420.07324.hverkuil@xs4all.nl>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 26 July 2012 14:05:51 Rémi Denis-Courmont wrote:
-> On Thu, 26 Jul 2012 11:42:15 +0200, Hans Verkuil <hverkuil@xs4all.nl>
-> wrote:
-> >> > It's timed with the kernel summit and it will be on Tuesday. So you
-> >> > should have ample time.
-> >> 
-> >> Oh? Is this firm yet? There's some pressure to book flights early
-> here...
-> > 
-> > Yes, that's firm.
+Hi Prabhakar,
+
+Just one small comment below.
+
+On Friday 20 July 2012 20:28:09 Prabhakar Lad wrote:
+> From: Manjunath Hadli <manjunath.hadli@ti.com>
 > 
-> Sorry again... Does that mean nothing happens on Sunday and Monday?
+> add new enum entries for supporting the media-bus formats on dm365.
+> These include some bayer and some non-bayer formats.
+> V4L2_MBUS_FMT_YDYUYDYV8_1X16 and V4L2_MBUS_FMT_UV8_1X8 are used
+> internal to the hardware by the resizer.
+> V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8 represents the bayer ALAW format
+> that is supported by dm365 hardware.
+> 
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+>  Documentation/DocBook/media/v4l/subdev-formats.xml |  250 ++++++++++++++++-
+>  include/linux/v4l2-mediabus.h                      |   10 +-
+>  2 files changed, 252 insertions(+), 8 deletions(-)
 
-To my knowledge there is nothing planned with respect to V4L/DVB.
 
-Monday is the closed session of the kernel summit. All workshops of the
-various subsystems are scheduled on Tuesday.
+> @@ -2415,6 +2553,106 @@
+>  	      <entry>u<subscript>1</subscript></entry>
+>  	      <entry>u<subscript>0</subscript></entry>
+>  	    </row>
+> +	    <row id="V4L2-MBUS-FMT-YDYUYDYV8-1X16">
+> +	      <entry>V4L2_MBUS_FMT_YDYUYDYV8_1X16</entry>
+> +	      <entry>0x2014</entry>
+> +	      <entry></entry>
+> +	      <entry>-</entry>
+> +	      <entry>-</entry>
+> +	      <entry>-</entry>
+> +	      <entry>-</entry>
+> +	      <entry>y<subscript>7</subscript></entry>
+> +	      <entry>y<subscript>6</subscript></entry>
+> +	      <entry>y<subscript>5</subscript></entry>
+> +	      <entry>y<subscript>4</subscript></entry>
+> +	      <entry>y<subscript>3</subscript></entry>
+> +	      <entry>y<subscript>2</subscript></entry>
+> +	      <entry>y<subscript>1</subscript></entry>
+> +	      <entry>y<subscript>0</subscript></entry>
+> +	      <entry>d<subscript>7</subscript></entry>
+> +	      <entry>d<subscript>6</subscript></entry>
+> +	      <entry>d<subscript>5</subscript></entry>
+> +	      <entry>d<subscript>4</subscript></entry>
+> +	      <entry>d<subscript>3</subscript></entry>
+> +	      <entry>d<subscript>2</subscript></entry>
+> +	      <entry>d<subscript>1</subscript></entry>
+> +	      <entry>d<subscript>0</subscript></entry>
 
-That doesn't mean nothing happens: I'll be attending the gstreamer
-conference on Monday myself.
+I would remove the subscripts for all the dummy bits (here and below), as 
+they're dummy.
 
-> Also, when do get confirmed invitations to attend the media summit?
+With that change,
 
-I'll make sure you'll be invited. I'm not even sure you need an official
-invite for the workshop. I know that anyone who also attends the LPC can
-get an invite for the workshops on Tuesday for free.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Anyway, I'll put your name on the list and make sure that Mauro will pass
-that on to the organizers once he's back from vacation.
+> +	    </row>
+> +	    <row>
+> +	      <entry></entry>
+> +	      <entry></entry>
+> +	      <entry></entry>
+> +	      <entry>-</entry>
+> +	      <entry>-</entry>
+> +	      <entry>-</entry>
+> +	      <entry>-</entry>
+> +	      <entry>y<subscript>7</subscript></entry>
+> +	      <entry>y<subscript>6</subscript></entry>
+> +	      <entry>y<subscript>5</subscript></entry>
+> +	      <entry>y<subscript>4</subscript></entry>
+> +	      <entry>y<subscript>3</subscript></entry>
+> +	      <entry>y<subscript>2</subscript></entry>
+> +	      <entry>y<subscript>1</subscript></entry>
+> +	      <entry>y<subscript>0</subscript></entry>
+> +	      <entry>u<subscript>7</subscript></entry>
+> +	      <entry>u<subscript>6</subscript></entry>
+> +	      <entry>u<subscript>5</subscript></entry>
+> +	      <entry>u<subscript>4</subscript></entry>
+> +	      <entry>u<subscript>3</subscript></entry>
+> +	      <entry>u<subscript>2</subscript></entry>
+> +	      <entry>u<subscript>1</subscript></entry>
+> +	      <entry>u<subscript>0</subscript></entry>
+> +	    </row>
+> +	    <row>
+> +	      <entry></entry>
+> +	      <entry></entry>
+> +	      <entry></entry>
+> +	      <entry>-</entry>
+> +	      <entry>-</entry>
+> +	      <entry>-</entry>
+> +	      <entry>-</entry>
+> +	      <entry>y<subscript>7</subscript></entry>
+> +	      <entry>y<subscript>6</subscript></entry>
+> +	      <entry>y<subscript>5</subscript></entry>
+> +	      <entry>y<subscript>4</subscript></entry>
+> +	      <entry>y<subscript>3</subscript></entry>
+> +	      <entry>y<subscript>2</subscript></entry>
+> +	      <entry>y<subscript>1</subscript></entry>
+> +	      <entry>y<subscript>0</subscript></entry>
+> +	      <entry>d<subscript>7</subscript></entry>
+> +	      <entry>d<subscript>6</subscript></entry>
+> +	      <entry>d<subscript>5</subscript></entry>
+> +	      <entry>d<subscript>4</subscript></entry>
+> +	      <entry>d<subscript>3</subscript></entry>
+> +	      <entry>d<subscript>2</subscript></entry>
+> +	      <entry>d<subscript>1</subscript></entry>
+> +	      <entry>d<subscript>0</subscript></entry>
+> +	    </row>
+> +	    <row>
+> +	      <entry></entry>
+> +	      <entry></entry>
+> +	      <entry></entry>
+> +	      <entry>-</entry>
+> +	      <entry>-</entry>
+> +	      <entry>-</entry>
+> +	      <entry>-</entry>
+> +	      <entry>y<subscript>7</subscript></entry>
+> +	      <entry>y<subscript>6</subscript></entry>
+> +	      <entry>y<subscript>5</subscript></entry>
+> +	      <entry>y<subscript>4</subscript></entry>
+> +	      <entry>y<subscript>3</subscript></entry>
+> +	      <entry>y<subscript>2</subscript></entry>
+> +	      <entry>y<subscript>1</subscript></entry>
+> +	      <entry>y<subscript>0</subscript></entry>
+> +	      <entry>v<subscript>7</subscript></entry>
+> +	      <entry>v<subscript>6</subscript></entry>
+> +	      <entry>v<subscript>5</subscript></entry>
+> +	      <entry>v<subscript>4</subscript></entry>
+> +	      <entry>v<subscript>3</subscript></entry>
+> +	      <entry>v<subscript>2</subscript></entry>
+> +	      <entry>v<subscript>1</subscript></entry>
+> +	      <entry>v<subscript>0</subscript></entry>
+> +	    </row>
+>  	    <row id="V4L2-MBUS-FMT-YUYV10-1X20">
+>  	      <entry>V4L2_MBUS_FMT_YUYV10_1X20</entry>
+>  	      <entry>0x200d</entry>
 
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
+
