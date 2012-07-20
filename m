@@ -1,214 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:35389 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751691Ab2GWIjh (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:56390 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751624Ab2GTNnO convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jul 2012 04:39:37 -0400
-Received: by wibhm11 with SMTP id hm11so2627464wib.1
-        for <linux-media@vger.kernel.org>; Mon, 23 Jul 2012 01:39:35 -0700 (PDT)
+	Fri, 20 Jul 2012 09:43:14 -0400
+Date: Fri, 20 Jul 2012 15:43:11 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: javier Martin <javier.martin@vista-silicon.com>
+cc: Sascha Hauer <s.hauer@pengutronix.de>, linux-media@vger.kernel.org,
+	fabio.estevam@freescale.com, linux-arm-kernel@lists.infradead.org,
+	laurent.pinchart@ideasonboard.com, mchehab@infradead.org,
+	kernel@pengutronix.de, Baruch Siach <baruch@tkos.co.il>
+Subject: Re: [PATCH] [v3] i.MX27: Fix emma-prp clocks in mx2_camera.c
+In-Reply-To: <CACKLOr3jPjmN25HVU+8Gw95USuGmDAZRAn2zGuC=TCMerjt9Nw@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1207201536110.5505@axis700.grange>
+References: <1341572162-29126-1-git-send-email-javier.martin@vista-silicon.com>
+ <20120709072809.GP30009@pengutronix.de> <CACKLOr25yb1Cx4XNriyPceBcqmc5T4jDpJXFpve9JCXpP7iMLg@mail.gmail.com>
+ <20120709074337.GT30009@pengutronix.de> <CACKLOr05W5N4n9TSKdaCP-6-j+zDSr=aNG4QoTMVWXTrM30x7Q@mail.gmail.com>
+ <20120709080703.GU30009@pengutronix.de> <CACKLOr0hfbv4qnp79XyXzNCE=oXS+7JA31knoXjGU+STG9Fxfg@mail.gmail.com>
+ <Pine.LNX.4.64.1207201247500.27906@axis700.grange>
+ <CACKLOr3jPjmN25HVU+8Gw95USuGmDAZRAn2zGuC=TCMerjt9Nw@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CACKLOr36MnD8fpiJDmDWGir=nWWZEQdrZjvVJTfEBORARMrmGA@mail.gmail.com>
-References: <1342782515-24992-1-git-send-email-javier.martin@vista-silicon.com>
-	<201207231020.58305.hverkuil@xs4all.nl>
-	<CACKLOr2tRXicxUzwPMe0Z3v43aX9dyRK4bFp-XKwXu9pJDJ=pA@mail.gmail.com>
-	<201207231036.21120.hverkuil@xs4all.nl>
-	<CACKLOr36MnD8fpiJDmDWGir=nWWZEQdrZjvVJTfEBORARMrmGA@mail.gmail.com>
-Date: Mon, 23 Jul 2012 10:39:31 +0200
-Message-ID: <CACKLOr1mdG1mxvPye08Yc=dpfZMxzY_iTioOoFo0Om1eMAB1Xw@mail.gmail.com>
-Subject: Fwd: [PATCH v6] media: coda: Add driver for Coda video codec.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.hauer@pengutronix.de, p.zabel@pengutronix.de
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
----------- Forwarded message ----------
-From: javier Martin <javier.martin@vista-silicon.com>
-Date: 23 July 2012 10:39
-Subject: Re: [PATCH v6] media: coda: Add driver for Coda video codec.
-To: Hans Verkuil <hverkuil@xs4all.nl>
+On Fri, 20 Jul 2012, javier Martin wrote:
 
+> On 20 July 2012 13:19, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> > Hi Javier
+> >
+> > Thanks for the patch
+> >
+> > On Mon, 9 Jul 2012, javier Martin wrote:
+> >
+> >> On 9 July 2012 10:07, Sascha Hauer <s.hauer@pengutronix.de> wrote:
+> >> > On Mon, Jul 09, 2012 at 09:46:03AM +0200, javier Martin wrote:
+> >> >> On 9 July 2012 09:43, Sascha Hauer <s.hauer@pengutronix.de> wrote:
+> >> >> > On Mon, Jul 09, 2012 at 09:37:25AM +0200, javier Martin wrote:
+> >> >> >> On 9 July 2012 09:28, Sascha Hauer <s.hauer@pengutronix.de> wrote:
+> >> >> >> > On Fri, Jul 06, 2012 at 12:56:02PM +0200, Javier Martin wrote:
+> >> >> >> >> This driver wasn't converted to the new clock changes
+> >> >> >> >> (clk_prepare_enable/clk_disable_unprepare). Also naming
+> >> >> >> >> of emma-prp related clocks for the i.MX27 was not correct.
+> >> >> >> >> ---
+> >> >> >> >> Enable clocks only for i.MX27.
+> >> >> >> >>
+> >> >> >> >
+> >> >> >> > Indeed,
+> >> >> >> >
+> >> >> >> >>
+> >> >> >> >> -     pcdev->clk_csi = clk_get(&pdev->dev, NULL);
+> >> >> >> >> -     if (IS_ERR(pcdev->clk_csi)) {
+> >> >> >> >> -             dev_err(&pdev->dev, "Could not get csi clock\n");
+> >> >> >> >> -             err = PTR_ERR(pcdev->clk_csi);
+> >> >> >> >> -             goto exit_kfree;
+> >> >> >> >> +     if (cpu_is_mx27()) {
+> >> >> >> >> +             pcdev->clk_csi = devm_clk_get(&pdev->dev, "ahb");
+> >> >> >> >> +             if (IS_ERR(pcdev->clk_csi)) {
+> >> >> >> >> +                     dev_err(&pdev->dev, "Could not get csi clock\n");
+> >> >> >> >> +                     err = PTR_ERR(pcdev->clk_csi);
+> >> >> >> >> +                     goto exit_kfree;
+> >> >> >> >> +             }
+> >> >> >> >
+> >> >> >> > but why? Now the i.MX25 won't get a clock anymore.
+> >> >> >>
+> >> >> >> What are the clocks needed by i.MX25? csi only?
+> >> >> >>
+> >> >> >> By the way, is anybody using this driver with i.MX25?
+> >> >> >
+> >> >> > It seems Baruch (added to Cc) has used it on an i.MX25.
+> >> >>
+> >> >> Baruch,
+> >> >> could you tell us what are the clocks needed by i.MX25?
+> >> >
+> >> > I just had a look and the i.MX25 it needs three clocks: ipg, ahb and
+> >> > peripheral clock. So this is broken anyway and should probably be fixed
+> >> > seperately, that is:
+> >> >
+> >> > - provide dummy clocks for the csi clocks on i.MX27
+> >> > - clk_get ipg, ahb and peripheral clocks on all SoCs
+> >> > - clk_get emma clocks on i.MX27 only
+> >> >
+> >> > As said, this is a separate topic, so your original patch should be fine
+> >> > for now.
+> >
+> > Well, sorry, but I don't think I can share this.
+> >
+> > 1. it touches two areas - arch/ and drivers/ which isnÄt a good thing and
+> >    should be avoided wherever possible
+> > 2. it addresses several problems: (a) missing name for "ahb" camera clock,
+> >    (b) wrong device and connection names for emma clocks, (c) missing
+> >    _(un)prepare suffixes in clock API
+> > 3. it makes a possibly broken i.MX25 even more broken
+> >
+> > IIUC, mx2-camera is broken on i.MX27 in current next because of wrong
+> > clock entries, right? So, we don't have to be bothered not to break
+> > bisection - it is already broken. Then we can clean up the problems
+> > separately under arch/ and drivers/.
+> >
+> > So, would it be possible to split this into 3 parts:
+> >
+> > (a) arch - fix clocks
+> > (b) media - fix clocks on i.MX27 _without_ breaking it even further on
+> >     i.MX25. If we think i.MX25 support is already broken, let's schedule
+> >     its removal and remove properly, or add BROKEN to Kconfig, when built
+> >     on i.MX25. In your patch this would mean just adding an "else" to your
+> >     "if (cpu_is_mx27())" statement and moving the current clk_get() there
+> > (c) add _(un)prepare.
+> >
+> > Since these are fixes, I won't wait too long for these. If you don't
+> > resubmit them today, they'll go in after 3.6-rc1.
+> >
+> > Thanks
+> > Guennadi
+> >
+> >> OK, thanks for your interest.
+> >>
+> >> Regards.
+> >> --
+> >> Javier Martin
+> >> Vista Silicon S.L.
+> >> CDTUC - FASE C - Oficina S-345
+> >> Avda de los Castros s/n
+> >> 39005- Santander. Cantabria. Spain
+> >> +34 942 25 32 60
+> >> www.vista-silicon.com
+> >>
+> >
+> 
+> Hi Guennadi,
+> thanks for your review.
+> 
+> I could agree with some of your reasons for not accepting this patch.
+> Specially (1) and (2).
+> As regards of reason (3), i.MX25 has been broken for months and I
+> refuse that a broken chip that no known board in the mainline uses is
+> constantly slowing the development process.
+> 
+> Furthermore, I sent v3 of this patch 11 days ago. I know you are a
+> busy developer but, honestly, it doesn't seem fair that, having sent
+> the patch with plenty of time I am now given only this little time to
+> fix it. I'm out of the office right now and I won't come back until
+> monday. Couldn't you either make an exception and accept the path or
+> give me until monday in the morning to send the new version?
+> 
+> Alternatively, Sascha, Fabio or any other i.MX27 user could send it
+> too if they have the time.
+> 
+> Otherwise, as you stated it'll have to wait to 3.6-rc1. So 3.5 will be
+> broken for i.MX27.
 
-On 23 July 2012 10:36, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Mon July 23 2012 10:27:13 javier Martin wrote:
->> On 23 July 2012 10:20, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> > On Mon July 23 2012 10:02:04 javier Martin wrote:
->> >> Hi Hans,
->> >>
->> >> On 21 July 2012 11:50, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> >> > On Fri July 20 2012 13:08:35 Javier Martin wrote:
->> >> >> Coda is a range of video codecs from Chips&Media that
->> >> >> support H.264, H.263, MPEG4 and other video standards.
->> >> >>
->> >> >> Currently only support for the codadx6 included in the
->> >> >> i.MX27 SoC is added. H.264 and MPEG4 video encoding
->> >> >> are the only supported capabilities by now.
->> >> >>
->> >> >> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
->> >> >> Reviewed-by: Philipp Zabel<p.zabel@pengutronix.de>
->> >> >> ---
->> >> >> Changes since v5:
->> >> >>  - Fixed some v4l2-compliance issues.
->> >> >
->> >> > Some or all? Can you give me the 'v4l2-compliance -v1' output?
->> >>
->> >> I've not corrected some mistakes that are pointed by v4l2-compliance
->> >> that I consider bogus for my mem2mem video encoder.
->> >>
->> >> I don't mind helping you test the new m2m capabilities of
->> >> 'v4l2-compliance' but I don't think delaying this driver to enter
->> >> mainline for this merge window for this is reasonable. Please, find
->> >> the output you requested below:
->> >>
->> >>
->> >> Driver Info:
->> >>         Driver name   : coda
->> >>         Card type     : coda
->> >>         Bus info      : coda
->> >>         Driver version: 0.0.0
->> >
->> > ??? This should be set to the kernel version by v4l2-ioctl.c. What kernel
->> > are you using?
->> >
->> >>         Capabilities  : 0x84000003
->> >>                 Video Capture
->> >>                 Video Output
->> >>                 Streaming
->> >>
->> >> Compliance test for device /dev/video2 (not using libv4l2):
->> >>
->> >> Required ioctls:
->> >>                 fail: v4l2-compliance.cpp(251): check_0(vcap.reserved,
->> >> sizeof(vcap.reserved))
->> >
->> > This is very strange. Please investigate! vcap is zeroed in v4l2-ioctl.c before
->> > calling vidioc_querycap in the driver, so why would reserved[] be non-zero?
->> > Perhaps some memory overwrite?
->> >
->> >>         test VIDIOC_QUERYCAP: FAIL
->> >>
->> >> Allow for multiple opens:
->> >>         test second video open: OK
->> >>                 fail: v4l2-compliance.cpp(251): check_0(vcap.reserved,
->> >> sizeof(vcap.reserved))
->> >>         test VIDIOC_QUERYCAP: FAIL
->> >>                 fail: v4l2-compliance.cpp(273): doioctl(node,
->> >> VIDIOC_G_PRIORITY, &prio)
->> >
->> > Are you using the latest v4l2-compliance? You shouldn't see this fail for mem2mem
->> > devices.
->> >
->> >>         test VIDIOC_G/S_PRIORITY: FAIL
->> >>
->> >> Debug ioctls:
->> >>         test VIDIOC_DBG_G_CHIP_IDENT: FAIL
->> >>                 fail: v4l2-test-debug.cpp(82): uid == 0 && ret
->> >>         test VIDIOC_DBG_G/S_REGISTER: FAIL
->> >>         test VIDIOC_LOG_STATUS: FAIL
->> >
->> > Weird as well. This suggests you are using this driver with an old kernel. The
->> > return code for unimplemented ioctls changed from EINVAL to ENOTTY some kernel
->> > versions ago. This may actually be the cause of the G_PRIO fail above.
->> >
->> >>
->> >> Input ioctls:
->> >>                 fail: v4l2-test-input-output.cpp(133): couldn't get tuner 0
->> >>         test VIDIOC_G/S_TUNER: FAIL
->> >>                 fail: v4l2-test-input-output.cpp(228): could get
->> >> frequency for invalid tuner 0
->> >>         test VIDIOC_G/S_FREQUENCY: FAIL
->> >>                 fail: v4l2-test-input-output.cpp(358): could not
->> >> enumerate audio input 0
->> >>         test VIDIOC_ENUMAUDIO: FAIL
->> >>                 fail: v4l2-test-input-output.cpp(290): could not get
->> >> current input
->> >>         test VIDIOC_G/S/ENUMINPUT: FAIL
->> >>         test VIDIOC_G/S_AUDIO: Not Supported
->> >>         Inputs: 0 Audio Inputs: 0 Tuners: 0
->> >>
->> >> Output ioctls:
->> >>                 fail: v4l2-test-input-output.cpp(479): couldn't get modulator 0
->> >>         test VIDIOC_G/S_MODULATOR: FAIL
->> >>                 fail: v4l2-test-input-output.cpp(563): could get
->> >> frequency for invalid modulator 0
->> >>         test VIDIOC_G/S_FREQUENCY: FAIL
->> >>                 fail: v4l2-test-input-output.cpp(682): could not
->> >> enumerate audio output 0
->> >>         test VIDIOC_ENUMAUDOUT: FAIL
->> >>         test VIDIOC_G/S/ENUMOUTPUT: FAIL
->> >>         test VIDIOC_G/S_AUDOUT: Not Supported
->> >>         Outputs: 0 Audio Outputs: 0 Modulators: 0
->> >>
->> >> Control ioctls:
->> >>         test VIDIOC_QUERYCTRL/MENU: OK
->> >>         test VIDIOC_G/S_CTRL: OK
->> >>                 fail: v4l2-test-controls.cpp(532): try_ext_ctrls did
->> >> not check the read-only flag
->> >>         test VIDIOC_G/S/TRY_EXT_CTRLS: FAIL
->> >>         Standard Controls: 10 Private Controls: 0
->> >>
->> >> Input/Output configuration ioctls:
->> >>         test VIDIOC_ENUM/G/S/QUERY_STD: Not Supported
->> >>         test VIDIOC_ENUM/G/S/QUERY_DV_PRESETS: Not Supported
->> >>         test VIDIOC_G/S_DV_TIMINGS: Not Supported
->> >>
->> >> Format ioctls:
->> >>                 fail: v4l2-test-formats.cpp(138): expected EINVAL, but
->> >> got 25 when enumerating framesize 0
->> >>         test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: FAIL
->> >>                 fail: v4l2-test-formats.cpp(327): expected EINVAL, but
->> >> got 25 when getting framebuffer format
->> >>         test VIDIOC_G_FBUF: FAIL
->> >>                 fail: v4l2-test-formats.cpp(383): !pix.width || !pix.height
->> >>         test VIDIOC_G_FMT: FAIL
->> >>                 fail: v4l2-test-formats.cpp(509): ret && ret != EINVAL
->> >> && sliced_type
->> >>         test VIDIOC_G_SLICED_VBI_CAP: FAIL
->> >> Total: 27 Succeeded: 8 Failed: 19 Warnings: 0
->> >
->> > It would be much more helpful if you can test this against a recent kernel.
->> >
->> > Regards,
->> >
->> >         Hans
->>
->> Hi Hans.
->> I am using a recent version:
->>
->> Linux visstrim 3.5.0-rc5-00012-g0f6f3b0-dirty #283 PREEMPT Mon Jul 23
->> 09:54:38 CEST 2012 armv5tejl GNU/Linux
->
-> And is v4l2-compliance compiled from the master branch of
-> http://git.linuxtv.org/v4l-utils.git? I'm sure it isn't because I'm missing
-> tests that were added later.
->
-> Regards,
->
->         Hans
+Sorry, now I'm totally lost. Are you saying, that this fix is needed for 
+3.5??? Huh, nice...
 
-+LIBV4L_VERSION = 7d88f06b257dd25db0592186d12e9e876eb4b301
-+LIBV4L_SITE = git://linuxtv.org/v4l-utils.git
-+LIBV4L_SITE_METHOD = git
+commit e038ed50a4a767add205094c035b6943e7b30140
+Author: Sascha Hauer <s.hauer@pengutronix.de>
+Date:   Fri Mar 9 09:11:46 2012 +0100
 
+    ARM i.MX27: implement clocks using common clock framework
 
---
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+appeared in 3.5-rc4 and broke stuff... Cool. I don't think it was 
+mentioned in this patch, that it is for 3.5, was it? So, I naturally 
+assumed it was for 3.6. Nice.
 
+So, if I am right, and it'd that patch that broke mx2-camera, my _firm_ 
+conviction is, that now days before 3.5 is released, the only right way to 
+fix it is to fix _that_ regression and that regression only. I.e., we need 
+a patch _only_ to fix clk-imx27.c. For which I anyway cannot help you.
 
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
