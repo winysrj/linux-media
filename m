@@ -1,99 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:27579 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754408Ab2GYPsy (ORCPT
+Received: from rcsinet15.oracle.com ([148.87.113.117]:26246 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751711Ab2GUIdV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jul 2012 11:48:54 -0400
-Received: from cobaltpc1.localnet (dhcp-10-54-92-107.cisco.com [10.54.92.107])
-	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id q6PFmrnZ026725
-	for <linux-media@vger.kernel.org>; Wed, 25 Jul 2012 15:48:53 GMT
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [PATCH for v3.6] vivi: fix a few format-related compliance issues
-Date: Wed, 25 Jul 2012 17:48:53 +0200
+	Sat, 21 Jul 2012 04:33:21 -0400
+Date: Sat, 21 Jul 2012 11:32:38 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Gianluca Gennari <gennarone@gmail.com>,
+	Thomas Meyer <thomas@m3y3r.de>,
+	Miroslav Slugen <thunder.mmm@gmail.com>,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch 1/2] [media] tuner-xc2028: fix "=" vs "==" typo
+Message-ID: <20120721083238.GA13454@elgon.mountain>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201207251748.53095.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch will always set the field to INTERLACED (this fixes a bug were a driver should
-never return FIELD_ANY), and will default to YUYV pixelformat if an unknown pixelformat
-was specified.
+We intended to do a compare here, not an assignment.
 
-This way S/TRY_FMT will always return a valid format struct.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+Static analysis bug.  I don't own the hardware.
 
-Regards,
-
-	Hans
-
-diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-index 1e8c4f3..7402561 100644
---- a/drivers/media/video/vivi.c
-+++ b/drivers/media/video/vivi.c
-@@ -230,7 +230,6 @@ struct vivi_dev {
- 	struct vivi_fmt            *fmt;
- 	unsigned int               width, height;
- 	struct vb2_queue	   vb_vidq;
--	enum v4l2_field		   field;
- 	unsigned int		   field_count;
- 
- 	u8			   bars[9][3];
-@@ -623,7 +622,7 @@ static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
- 
- 	dev->mv_count += 2;
- 
--	buf->vb.v4l2_buf.field = dev->field;
-+	buf->vb.v4l2_buf.field = V4L2_FIELD_INTERLACED;
- 	dev->field_count++;
- 	buf->vb.v4l2_buf.sequence = dev->field_count >> 1;
- 	do_gettimeofday(&ts);
-@@ -925,7 +924,7 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
- 
- 	f->fmt.pix.width        = dev->width;
- 	f->fmt.pix.height       = dev->height;
--	f->fmt.pix.field        = dev->field;
-+	f->fmt.pix.field        = V4L2_FIELD_INTERLACED;
- 	f->fmt.pix.pixelformat  = dev->fmt->fourcc;
- 	f->fmt.pix.bytesperline =
- 		(f->fmt.pix.width * dev->fmt->depth) >> 3;
-@@ -944,25 +943,16 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- {
- 	struct vivi_dev *dev = video_drvdata(file);
- 	struct vivi_fmt *fmt;
--	enum v4l2_field field;
- 
- 	fmt = get_format(f);
- 	if (!fmt) {
--		dprintk(dev, 1, "Fourcc format (0x%08x) invalid.\n",
-+		dprintk(dev, 1, "Fourcc format (0x%08x) unknown.\n",
- 			f->fmt.pix.pixelformat);
--		return -EINVAL;
--	}
--
--	field = f->fmt.pix.field;
--
--	if (field == V4L2_FIELD_ANY) {
--		field = V4L2_FIELD_INTERLACED;
--	} else if (V4L2_FIELD_INTERLACED != field) {
--		dprintk(dev, 1, "Field type invalid.\n");
--		return -EINVAL;
-+		f->fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
-+		fmt = get_format(f);
- 	}
- 
--	f->fmt.pix.field = field;
-+	f->fmt.pix.field = V4L2_FIELD_INTERLACED;
- 	v4l_bound_align_image(&f->fmt.pix.width, 48, MAX_WIDTH, 2,
- 			      &f->fmt.pix.height, 32, MAX_HEIGHT, 0, 0);
- 	f->fmt.pix.bytesperline =
-@@ -996,7 +986,6 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 	dev->pixelsize = dev->fmt->depth / 8;
- 	dev->width = f->fmt.pix.width;
- 	dev->height = f->fmt.pix.height;
--	dev->field = f->fmt.pix.field;
- 
- 	return 0;
- }
+diff --git a/drivers/media/common/tuners/tuner-xc2028.c b/drivers/media/common/tuners/tuner-xc2028.c
+index f88f948..9e60285 100644
+--- a/drivers/media/common/tuners/tuner-xc2028.c
++++ b/drivers/media/common/tuners/tuner-xc2028.c
+@@ -756,7 +756,7 @@ retry:
+ 	 * No need to reload base firmware if it matches and if the tuner
+ 	 * is not at sleep mode
+ 	 */
+-	if ((priv->state = XC2028_ACTIVE) &&
++	if ((priv->state == XC2028_ACTIVE) &&
+ 	    (((BASE | new_fw.type) & BASE_TYPES) ==
+ 	    (priv->cur_fw.type & BASE_TYPES))) {
+ 		tuner_dbg("BASE firmware not changed.\n");
