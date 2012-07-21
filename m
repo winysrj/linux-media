@@ -1,40 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:18807 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933966Ab2GLOrt (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:43219 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751247Ab2GUPcV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jul 2012 10:47:49 -0400
-Date: Thu, 12 Jul 2012 17:47:28 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Paul Gortmaker <paul.gortmaker@windriver.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [media] tvp5150: signedness bug in tvp5150_selmux()
-Message-ID: <20120712144727.GC24202@elgon.mountain>
+	Sat, 21 Jul 2012 11:32:21 -0400
+Received: by wgbdr13 with SMTP id dr13so4533828wgb.1
+        for <linux-media@vger.kernel.org>; Sat, 21 Jul 2012 08:32:19 -0700 (PDT)
+Message-ID: <500ACB80.9080500@gmail.com>
+Date: Sat, 21 Jul 2012 17:32:16 +0200
+From: poma <pomidorabelisima@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: linux-media@vger.kernel.org
+Subject: Firmware in da wonderland
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tvp5150_read() returns negative error codes so this needs to be an int
-for the error handling to work.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+This one speak for itself;
+…
+usb 1-1: new high-speed USB device number 8 using ehci_hcd
+usb 1-1: New USB device found, idVendor=0ccd, idProduct=0097
+usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+usb 1-1: Product: USB2.0 DVB-T TV Stick
+usb 1-1: Manufacturer: NEWMI
+usb 1-1: SerialNumber: 010101010600001
+dvb-usb: found a 'TerraTec Cinergy T Stick RC' in cold state, will try
+to load a firmware
+dvb-usb: did not find the firmware file. (dvb-usb-af9015.fw) Please see
+linux/Documentation/dvb/ for more details on firmware-problems. (-2)
+dvb_usb_af9015: probe of 1-1:1.0 failed with error -2
+input: NEWMI USB2.0 DVB-T TV Stick as
+/devices/pci0000:00/0000:00:04.1/usb1/1-1/1-1:1.1/input/input18
+generic-usb 0003:0CCD:0097.0007: input,hidraw6: USB HID v1.01 Keyboard
+[NEWMI USB2.0 DVB-T TV Stick] on usb-0000:00:04.1-1/input1
+…
+FW path:
+/usr/lib/firmware/dvb-usb-af9015.fw
+Is it somehow related to Fedora UsrMove!?
+Or Fedora itself :)
 
-diff --git a/drivers/media/video/tvp5150.c b/drivers/media/video/tvp5150.c
-index 0d897cb..a751b6c 100644
---- a/drivers/media/video/tvp5150.c
-+++ b/drivers/media/video/tvp5150.c
-@@ -257,7 +257,7 @@ static inline void tvp5150_selmux(struct v4l2_subdev *sd)
- 	int opmode = 0;
- 	struct tvp5150 *decoder = to_tvp5150(sd);
- 	int input = 0;
--	unsigned char val;
-+	int val;
- 
- 	if ((decoder->output & TVP5150_BLACK_SCREEN) || !decoder->enable)
- 		input = 8;
+Ciao Bella,
+poma
