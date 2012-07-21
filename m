@@ -1,84 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:42497 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756031Ab2GaL5R (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:47258 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750999Ab2GUMQ2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 07:57:17 -0400
-Received: from epcpsbgm1.samsung.com (mailout2.samsung.com [203.254.224.25])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M80000GTX6V8DW0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 31 Jul 2012 20:57:17 +0900 (KST)
-Received: from localhost.localdomain ([107.108.73.106])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M8000CIRX6VNU20@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 31 Jul 2012 20:57:16 +0900 (KST)
-From: Shaik Ameer Basha <shaik.ameer@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: sungchun.kang@samsung.com, khw0178.kim@samsung.com,
-	mchehab@infradead.org, laurent.pinchart@ideasonboard.com,
-	sy0816.kang@samsung.com, s.nawrocki@samsung.com,
-	posciak@google.com, alim.akhtar@gmail.com, prashanth.g@samsung.com,
-	joshi@samsung.com, shaik.samsung@gmail.com, shaik.ameer@samsung.com
-Subject: [PATCH v4 5/5] media: gscaler: Add Makefile for G-Scaler Driver
-Date: Tue, 31 Jul 2012 17:42:33 +0530
-Message-id: <1343736753-18454-6-git-send-email-shaik.ameer@samsung.com>
-In-reply-to: <1343736753-18454-1-git-send-email-shaik.ameer@samsung.com>
-References: <1343736753-18454-1-git-send-email-shaik.ameer@samsung.com>
+	Sat, 21 Jul 2012 08:16:28 -0400
+Received: by bkwj10 with SMTP id j10so4082681bkw.19
+        for <linux-media@vger.kernel.org>; Sat, 21 Jul 2012 05:16:25 -0700 (PDT)
+Message-ID: <500A9D96.5050708@gmail.com>
+Date: Sat, 21 Jul 2012 14:16:22 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	workshop-2011@linuxtv.org
+Subject: Re: Media summit at the Kernel Summit - was: Fwd: Re: [Ksummit-2012-discuss]
+ Organising Mini Summits within the Kernel Summit
+References: <20120713173708.GB17109@thunk.org> <5005A14D.8000809@redhat.com> <201207172132.22937.hverkuil@xs4all.nl>
+In-Reply-To: <201207172132.22937.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the Makefile for G-Scaler driver.
+Hi Hans,
 
-Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/video/Kconfig             |    8 ++++++++
- drivers/media/video/Makefile            |    2 ++
- drivers/media/video/exynos-gsc/Makefile |    3 +++
- 3 files changed, 13 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/exynos-gsc/Makefile
+On 07/17/2012 09:32 PM, Hans Verkuil wrote:
+> On Tue July 17 2012 19:30:53 Mauro Carvalho Chehab wrote:
+>> As we did in 2012, we're planning to do a media summit again at KS/2012.
+>>
+>> The KS/2012 will happen in San Diego, CA, US, between Aug 26-28, just
+>> before the LinuxCon North America.
+>>
+>> In order to do it, I'd like to know who is interested on participate,
+>> and to get proposals about what subjects will be discussed there,
+>> in order to start planning the agenda.
+>
+> I'd like to have 30 minutes to discuss a few V4L2 API ambiguities or just
+> plain weirdness, just like I did last year. I'll make an RFC issues to discuss
+> beforehand. I might also have a short presentation/demo of v4l2-compliance, as
+> I believe more people need to know about that utility.
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 99937c9..36efda9 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -1215,4 +1215,12 @@ config VIDEO_MX2_EMMAPRP
- 	    memory to memory. Operations include resizing and format
- 	    conversion.
- 
-+config VIDEO_SAMSUNG_EXYNOS_GSC
-+        tristate "Samsung Exynos G-Scaler driver"
-+        depends on VIDEO_DEV && VIDEO_V4L2 && PLAT_S5P
-+        select VIDEOBUF2_DMA_CONTIG
-+        select V4L2_MEM2MEM_DEV
-+        help
-+            This is v4l2 based G-Scaler driver for EXYNOS5
-+
- endif # V4L_MEM2MEM_DRIVERS
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index d209de0..763e8b4 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -195,6 +195,8 @@ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_TV)	+= s5p-tv/
- 
- obj-$(CONFIG_VIDEO_SAMSUNG_S5P_G2D)	+= s5p-g2d/
- 
-+obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC)	+= exynos-gsc/
-+
- obj-$(CONFIG_BLACKFIN)                  += blackfin/
- 
- obj-$(CONFIG_ARCH_DAVINCI)		+= davinci/
-diff --git a/drivers/media/video/exynos-gsc/Makefile b/drivers/media/video/exynos-gsc/Makefile
-new file mode 100644
-index 0000000..e9d7f8a
---- /dev/null
-+++ b/drivers/media/video/exynos-gsc/Makefile
-@@ -0,0 +1,3 @@
-+gsc-objs := gsc-core.o gsc-m2m.o gsc-regs.o
-+
-+obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC)	+= gsc.o
--- 
-1.7.0.4
+What do you think about adding new M2M capability flag for memory-to-memory
+video devices ? I prepared an RFC patch for that already:
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg48497.html
 
+I think that at least qualifies to your list of V4L2 API ambiguities, even
+though we have device_caps now. Using ORed OUTPUT and CAPTURE flags implies 
+all existing applications must check now both flags when they're trying to 
+discover a video capture or video output device.
+
+--
+Regards,
+Sylwester
