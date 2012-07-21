@@ -1,57 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from juliet.king.net.nz ([120.89.83.190]:37142 "EHLO
-	juliet.king.net.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753318Ab2GMCsP (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:56125 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750759Ab2GUFGL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jul 2012 22:48:15 -0400
-Received: from [118.148.196.126] (port=38423 helo=kilo)
-	by juliet.king.net.nz with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
-	(Exim 4.72)
-	(envelope-from <alex@king.net.nz>)
-	id 1SpVGB-000575-Fa
-	for linux-media@vger.kernel.org; Fri, 13 Jul 2012 14:05:36 +1200
-Received: from localhost ([127.0.0.1])
-	by kilo with esmtp (Exim 4.80)
-	(envelope-from <alex@king.net.nz>)
-	id 1SpVEU-0005qj-UM
-	for linux-media@vger.kernel.org; Fri, 13 Jul 2012 14:03:51 +1200
-Message-ID: <4FFF8204.5030403@king.net.nz>
-Date: Fri, 13 Jul 2012 14:03:48 +1200
-From: Alex King <alex@king.net.nz>
+	Sat, 21 Jul 2012 01:06:11 -0400
+Date: Sat, 21 Jul 2012 07:06:06 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+cc: workshop-2011@linuxtv.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [Workshop-2011] Media summit at the Kernel Summit - was: Fwd:
+ Re: [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
+In-Reply-To: <Pine.LNX.4.64.1207172149440.30937@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1207210705240.13887@axis700.grange>
+References: <20120713173708.GB17109@thunk.org> <5005A14D.8000809@redhat.com>
+ <Pine.LNX.4.64.1207172149440.30937@axis700.grange>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Getting a webcam to work
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It's labelled "V-Gear TalkCamPro"
+Hi Mauro
 
-from lsusb:
+On Tue, 17 Jul 2012, Guennadi Liakhovetski wrote:
 
-Bus 001 Device 012: ID eb1a:2711 eMPIA Technology, Inc.
+> Hi Mauro
+> 
+> On Tue, 17 Jul 2012, Mauro Carvalho Chehab wrote:
+> 
+> > As we did in 2012, we're planning to do a media summit again at KS/2012.
+> > 
+> > The KS/2012 will happen in San Diego, CA, US, between Aug 26-28, just
+> > before the LinuxCon North America.
+> > 
+> > In order to do it, I'd like to know who is interested on participate,
+> > and to get proposals about what subjects will be discussed there,
+> > in order to start planning the agenda.
+> 
+> I'd love to attend, especially since, as you have seen, I've started doing 
+> some work on V4L DT bindings, but so far it very much looks like I won't 
+> be able to do so unfortunately.
 
-and:
+Things change and sometimes also to the better:-) Looks like I'll be able 
+to attend actually. So, please add me to the list.
 
-/:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=ehci_hcd/5p, 480M
-     |__ Port 1: Dev 2, If 0, Class=hub, Driver=hub/7p, 480M
-         |__ Port 1: Dev 12, If 0, Class=vend., Driver=, 480M
-         |__ Port 1: Dev 12, If 1, Class=audio, Driver=snd-usb-audio, 480M
-         |__ Port 1: Dev 12, If 2, Class=audio, Driver=snd-usb-audio, 480M
+Thanks
+Guennadi
 
-It looks like the audio part is recognised, but the video not.
+> > Thanks!
+> > Mauro
+> > 
+> > -------- Mensagem original --------
+> > Assunto: Re: [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
+> > Data: Fri, 13 Jul 2012 13:37:08 -0400
+> > De: Theodore Ts'o <tytso@mit.edu>
+> > Para: James Bottomley <James.Bottomley@HansenPartnership.com>
+> > CC: ksummit-2012-discuss@lists.linux-foundation.org, linux-kernel <linux-kernel@vger.kernel.org>
+> > 
+> > On Wed, Jul 11, 2012 at 09:09:15AM +0100, James Bottomley wrote:
+> > > Hi All,
+> > > 
+> > > We have set aside the second day of the kernel summit (Tuesday 28
+> > > August) as mini-summit day.  So far we have only the PCI mini summit on
+> > > this day, so if you can think of other topics, please send them to the
+> > > kernel summit discuss list:
+> > > 
+> > > ksummit-2012-discuss@lists.linux-foundation.org
+> > > 
+> > > Looking at the available rooms, we think we can run about four or five
+> > > mini summits.
+> > > 
+> > > As an added incentive, mini summit organisers get to pick who they
+> > > invite and all the people they pick will get an automatic invitation to
+> > > the third day of the kernel summit (but not the core first day) and the
+> > > evening events.
+> > 
+> > OK, so far I believe I've heard concrete suggestions from identified
+> > (or fairly well identified :-) stuckees willing to organize
+> > mini-summits for:
+> > 
+> > * ARM
+> > * Media
+> > * PCI
+> > * memcg
+> > 
+> > I may have missed some, so if people could send a message to the
+> > discuss list with [MINI-SUMMIT] in the subbject line and the name of
+> > the proposed mini-summit, that would be really helpful.  Please
+> > indicate whether you are volunteering to help organize the proposed
+> > mini-summit, or identify someone you think can be volunteered.  :-)
+> > 
+> > Things that we will be asking the mini-summit chars to determine, in
+> > addition to who should be given invites for Tuesday and Wednesday is
+> > an estimate of how much time you need, and a list of sub-topics (and
+> > who might lead the sub-topic discussion).  We will be asking you to
+> > create a fairly well-defined schedule, with 30 and 60 minute slots, so
+> > that we can publish a schedule and so that people who might need to
+> > hop between mini-summits, have a chance to do so.  So please start
+> > thinking about how long each of your sub-topics will need to be, and
+> > who might be needed for a particular sub-topic's discussion to be
+> > successful.  There may be a number of developers, with fingers in
+> > multiple subsystem, where scheduling may become a bit of a challenge.
+> > 
+> > Thanks!!
+> > 
+> > 						- Ted
+> > _______________________________________________
+> > Ksummit-2012-discuss mailing list
+> > Ksummit-2012-discuss@lists.linux-foundation.org
+> > https://lists.linux-foundation.org/mailman/listinfo/ksummit-2012-discuss
+> > 
+> > 
+> > 
+> > _______________________________________________
+> > Workshop-2011 mailing list
+> > Workshop-2011@linuxtv.org
+> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/workshop-2011
+> > 
+> 
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> 
+> _______________________________________________
+> Workshop-2011 mailing list
+> Workshop-2011@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/workshop-2011
+> 
 
-I see in 
-http://lxr.linux.no/linux+*/drivers/media/video/em28xx/em28xx-cards.c 
-that product ids 2710, 2750 and 2751 are recognised by the driver, but 
-not 2711.
-
-I'm tempted to add it as a  EM2800_BOARD_UNKNOWN and see if it works.
-
-Is there some methodology I should follow to get a new webcam to work?
-
-Thanks,
-Alex
-
-PS. I'm not subscribed.
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
