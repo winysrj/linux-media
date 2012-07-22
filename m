@@ -1,17 +1,17 @@
 Return-Path: linux-dvb-bounces+mchehab=redhat.com@linuxtv.org
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.72) (envelope-from
-	<s-qTtyDADBBe4aPc1WnvttDqDbq3cSZW06mh2hH6DBH1caWWPGo9DJr7@bounce.linkedin.com>)
-	id 1Sm8O6-0000DH-4X
-	for linux-dvb@linuxtv.org; Tue, 03 Jul 2012 21:03:50 +0200
-Received: from mailb-ed.linkedin.com ([199.101.162.42])
+	<s-XVIoV9mfZqSN7rrKSnolmlIRxk0g7OHiGddNzjogTk0gIZr2upjCdg@bounce.linkedin.com>)
+	id 1SsmKU-0004ho-1j
+	for linux-dvb@linuxtv.org; Sun, 22 Jul 2012 04:55:59 +0200
+Received: from mailb-ff.linkedin.com ([199.101.162.76])
 	by mail.tu-berlin.de (exim-4.75/mailfrontend-4) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1Sm8O5-0004rK-BZ; Tue, 03 Jul 2012 21:03:50 +0200
-Date: Tue, 3 Jul 2012 19:03:46 +0000 (UTC)
+	id 1SsmKT-0001id-BL; Sun, 22 Jul 2012 04:55:33 +0200
+Date: Sun, 22 Jul 2012 02:55:30 +0000 (UTC)
 From: Hoang Nguyen Minh via LinkedIn <member@linkedin.com>
 To: "Linux D." <linux-dvb@linuxtv.org>
-Message-ID: <1854946389.16891651.1341342226431.JavaMail.app@ela4-bed81.prod>
+Message-ID: <374139288.12152980.1342925730340.JavaMail.app@ela4-bed80.prod>
 MIME-Version: 1.0
 Subject: [linux-dvb] =?utf-8?q?Rejoindre_mon_r=C3=A9seau_sur_LinkedIn?=
 Reply-To: linux-media@vger.kernel.org,
@@ -23,16 +23,16 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0242699815=="
+Content-Type: multipart/mixed; boundary="===============0222443083=="
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=redhat.com@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0242699815==
+--===============0222443083==
 Content-Type: multipart/alternative;
-	boundary="----=_Part_16891648_386666410.1341342226428"
+	boundary="----=_Part_12152979_1860070441.1342925730338"
 
-------=_Part_16891648_386666410.1341342226428
+------=_Part_12152979_1860070441.1342925730338
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
@@ -51,28 +51,28 @@ Je vous invite =C3=A0 faire partie de mon r=C3=A9seau professionnel en lign=
 e sur le site LinkedIn.
 
 Accepter l'invitation de Hoang Nguyen Minh
-http://www.linkedin.com/e/fsr5ur-h47cj1tn-3/XMU0fwnQq28-ZPDQPi60aF6zk7O-8Kb=
-SaR/blk/I260595439_110/6lColZJrmZznQNdhjRQnOpBtn9QfmhBt71BoSd1p65Lr6lOfP0Nc=
-lYVcPgRejkMdz99bPB7i3BhlCNCbPkPej8RcjoOdPsLrCBxbOYWrSlI/EML_comm_afe/?hs=3D=
-false&tok=3D2V_xL_r8nT7Bk1
+http://www.linkedin.com/e/fsr5ur-h4xjb19c-1b/XMU0fwnQq28-ZPDQPi60aF6zk7O-8K=
+bSaR/blk/I267720818_110/3wOtCVFbmdxnSVFbm8JrnpKqlZJrmZzbmNJpjRQnOpBtn9QfmhB=
+t71BoSd1p65Lr6lOfP0NclYUcjwMczsTdz99bPB7i3BhlCNCbPkPej8RcjoOdPsLrCBxbOYWrSl=
+I/eml-comm_invm-b-in_ac-inv28/?hs=3Dfalse&tok=3D1_FJEAWKIfxBk1
 
 Voir le profil de Hoang Nguyen Minh
-http://www.linkedin.com/e/fsr5ur-h47cj1tn-3/rso/192396124/fl50/name/1114163=
-42_I260595439_110/?hs=3Dfalse&tok=3D38bB6Y-SrT7Bk1
+http://www.linkedin.com/e/fsr5ur-h4xjb19c-1b/rso/192396124/fl50/name/111416=
+342_I267720818_110/?hs=3Dfalse&tok=3D25jCU3wIwfxBk1
 ------------------------------------------
 Vous recevez des invitations par e-mail.
 
 
 Cet e-mail est destin=C3=A9 =C3=A0 Linux Dvb.
 D=C3=A9couvrez pourquoi nous avons inclus ceci=C2=A0: http://www.linkedin.c=
-om/e/fsr5ur-h47cj1tn-3/plh/http%3A%2F%2Fhelp%2Elinkedin%2Ecom%2Fapp%2Fanswe=
-rs%2Fdetail%2Fa_id%2F4788/-GXI/?hs=3Dfalse&tok=3D0BjY9mDnvT7Bk1
+om/e/fsr5ur-h4xjb19c-1b/plh/http%3A%2F%2Fhelp%2Elinkedin%2Ecom%2Fapp%2Fansw=
+ers%2Fdetail%2Fa_id%2F4788/-GXI/?hs=3Dfalse&tok=3D0aTnmz9SofxBk1
 
 (c) 2012, LinkedIn Corporation. 2029 Stierlin Ct, Mountain View, CA 94043, =
 USA.
 
 
-------=_Part_16891648_386666410.1341342226428
+------=_Part_12152979_1860070441.1342925730338
 Content-Type: text/html; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
@@ -88,6 +88,9 @@ Content-Transfer-Encoding: quoted-printable
       <table border=3D"0" cellspacing=3D"0" cellpadding=3D"0" style=3D"font=
 -family:Arial;" width=3D"100%" bgcolor=3D"#F4F4F4"><tr><td align=3D"center"=
 >
+
+
+
 
 
 <table width=3D"100%" border=3D"0" cellspacing=3D"0" cellpadding=3D"0" bgco=
@@ -165,8 +168,9 @@ ht:15px;">&nbsp;</div></td></tr></table>
                             <td style=3D"font-family: Arial;color:#333333; =
 font-size:12px;">
                               <a href=3D"http://www.linkedin.com/e/fsr5ur-h=
-47cj1tn-3/rso/192396124/fl50/name/111416342_I260595439_110/?hs=3Dfalse&amp;=
-tok=3D38bB6Y-SrT7Bk1" style=3D"text-decoration: none;">
+4xjb19c-1b/rso/192396124/fl50/name/111416342_I267720818_110/eml-comm_invm-b=
+-pro_txt-inv28/?hs=3Dfalse&amp;tok=3D0i5M2wHTwfxBk1" style=3D"text-decorati=
+on: none;">
                                 <span style=3D"font-family:Arial;font-size:=
 11px;color:#006699;">Voir le profil =C2=BB</span></a>
                             </td>
@@ -189,12 +193,13 @@ kedin.com/scds/common/u/img/bg/yellow_button_back.png) repeat-x scroll 100%=
  0 #FFE86C;background-color:#FFE86C;border:1px solid #E8B463;-moz-border-ra=
 dius:4px;-webkit-border-radius:4px;border-radius:4px;"><div style=3D"paddin=
 g-right:10px;padding-left:10px;"><a href=3D"http://www.linkedin.com/e/fsr5u=
-r-h47cj1tn-3/XMU0fwnQq28-ZPDQPi60aF6zk7O-8KbSaR/blk/I260595439_110/6lColZJr=
-mZznQNdhjRQnOpBtn9QfmhBt71BoSd1p65Lr6lOfP0NclYVcPgRejkMdz99bPB7i3BhlCNCbPkP=
-ej8RcjoOdPsLrCBxbOYWrSlI/EML_comm_afe/?hs=3Dfalse&amp;tok=3D2V_xL_r8nT7Bk1"=
- style=3D"text-decoration:none;"><span style=3D"font-size:12px;font-family:=
-Arial;font-weight:bold;color:#333333;white-space:nowrap;display:block;"> Ac=
-cepter</span></a></div></td></tr></table></td>
+r-h4xjb19c-1b/XMU0fwnQq28-ZPDQPi60aF6zk7O-8KbSaR/blk/I267720818_110/3wOtCVF=
+bmdxnSVFbm8JrnpKqlZJrmZzbmNJpjRQnOpBtn9QfmhBt71BoSd1p65Lr6lOfP0NclYUcjwMczs=
+Tdz99bPB7i3BhlCNCbPkPej8RcjoOdPsLrCBxbOYWrSlI/eml-comm_invm-b-in_ac-inv28/?=
+hs=3Dfalse&amp;tok=3D1_FJEAWKIfxBk1" style=3D"text-decoration:none;"><span =
+style=3D"font-size:12px;font-family:Arial;font-weight:bold;color:#333333;wh=
+ite-space:nowrap;display:block;"> Accepter</span></a></div></td></tr></tabl=
+e></td>
               </tr>
             </table>
           </td>
@@ -207,57 +212,56 @@ a min-width of 15px -->
 =3D"0" cellpadding=3D"0"><tr><td><div style=3D"height:15px;font-size:15px;l=
 ine-height:15px;">&nbsp;</div></td></tr></table></td></tr>
       </table>
-
     </td>
   </tr>
 
-  <tr align=3D"center">
-    <td>
-        <table border=3D"0" cellspacing=3D"5" cellpadding=3D"0" style=3D"fo=
-nt-family:Arial;" width=3D"590">
-          <tr>
-            <td align=3D"left" style=3D"font-family:Arial,sans-serif;font-s=
-ize:11px;color:#999" valign=3D"top">
-              Vous recevez des invitations par e-mail.
-              <a href=3D"https://www.linkedin.com/e/fsr5ur-h47cj1tn-3/XMU0f=
-wnQq28-ZPDQPi60aF6zk7O-8KbSaR/prv/?hs=3Dfalse&amp;tok=3D39KmSgsFbT7Bk1">
-                Se d=C3=A9sinscrire.
-              </a>
-            </td>
-          </tr>
-          <tr><td><table width=3D"1" border=3D"0" cellspacing=3D"0" cellpad=
-ding=3D"0"><tr><td><div style=3D"height:10px;font-size:10px;line-height:10p=
-x;">&nbsp;</div></td></tr></table></td></tr>
-          <tr>
-            <td align=3D"left" style=3D"font-family:Arial,sans-serif;font-s=
-ize:11px;color:#999" valign=3D"top">
-              Cet e-mail est destin=C3=A9 =C3=A0 Linux Dvb.
-              <a href=3D"http://www.linkedin.com/e/fsr5ur-h47cj1tn-3/plh/ht=
-tp%3A%2F%2Fhelp%2Elinkedin%2Ecom%2Fapp%2Fanswers%2Fdetail%2Fa_id%2F4788/-GX=
-I/?hs=3Dfalse&amp;tok=3D0BjY9mDnvT7Bk1">
-                D=C3=A9couvrez pourquoi nous avons inclus ceci.
-              </a>
-              &copy; 2012, LinkedIn Corporation. 2029 Stierlin Ct, Mountain=
- View, CA 94043, USA.
-            </td>
-          </tr>
-        </table>
+
+
+</table>
+
+
+      <!-- Security FOOTER -->
+
+
+
+<table border=3D"0" cellspacing=3D"0" cellpadding=3D"0" style=3D"font-famil=
+y:Arial;" width=3D"580">
+  <tr><td><table width=3D"1" border=3D"0" cellspacing=3D"0" cellpadding=3D"=
+0"><tr><td><div style=3D"height:10px;font-size:10px;line-height:10px;">&nbs=
+p;</div></td></tr></table></td></tr>
+  <tr>
+    <td align=3D"left" style=3D"font-size:11px; font-family:Arial,sans-seri=
+f; color:#999999;">
+            Vous recevez des Invitation par e-mail. <a style=3D"color:#0066=
+99;text-decoration:underline;" href=3D"https://www.linkedin.com/e/fsr5ur-h4=
+xjb19c-1b/XMU0fwnQq28-ZPDQPi60aF6zk7O-8KbSaR/prv/?hs=3Dfalse&tok=3D35-Y78xr=
+4fxBk1">Se d=C3=A9sinscrire</a>.
+        <table width=3D"1" border=3D"0" cellspacing=3D"0" cellpadding=3D"0"=
+><tr><td><div style=3D"height:10px;font-size:10px;line-height:10px;">&nbsp;=
+</div></td></tr></table>
+
+            Cet e-mail est destin=C3=A9 =C3=A0 Linux Dvb. <a style=3D"color=
+: #006699" href=3D"http://www.linkedin.com/e/fsr5ur-h4xjb19c-1b/plh/http%3A=
+%2F%2Fhelp%2Elinkedin%2Ecom%2Fapp%2Fanswers%2Fdetail%2Fa_id%2F4788/-GXI/?hs=
+=3Dfalse&tok=3D0aTnmz9SofxBk1">D=C3=A9couvrez pourquoi nous avons inclus ce=
+ci</a>. &copy; 2012, LinkedIn Corporation. 2029 Stierlin Ct., Mountain View=
+, CA 94043, USA.
     </td>
   </tr>
-
   <tr><td><table width=3D"1" border=3D"0" cellspacing=3D"0" cellpadding=3D"=
 0"><tr><td><div style=3D"height:10px;font-size:10px;line-height:10px;">&nbs=
 p;</div></td></tr></table></td></tr>
 </table>
+
     </td></tr></table>
 
 
 </body>
 </html>
-------=_Part_16891648_386666410.1341342226428--
+------=_Part_12152979_1860070441.1342925730338--
 
 
---===============0242699815==
+--===============0222443083==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -268,4 +272,4 @@ linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0242699815==--
+--===============0222443083==--
