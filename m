@@ -1,48 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:52733 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932767Ab2GDIIT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Jul 2012 04:08:19 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1SmKdD-0004OX-Fu
-	for linux-media@vger.kernel.org; Wed, 04 Jul 2012 10:08:15 +0200
-Received: from cgv79.neoplus.adsl.tpnet.pl ([83.30.249.79])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 04 Jul 2012 10:08:15 +0200
-Received: from acc.for.news by cgv79.neoplus.adsl.tpnet.pl with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 04 Jul 2012 10:08:15 +0200
-To: linux-media@vger.kernel.org
-From: Marx <acc.for.news@gmail.com>
-Subject: Re: pctv452e
-Date: Wed, 04 Jul 2012 09:51:49 +0200
-Message-ID: <l99dc9-9hf.ln1@wuwek.kopernik.gliwice.pl>
-References: <4FF1CD63.10003@nexusuk.org> <oikac9-mbk.ln1@wuwek.kopernik.gliwice.pl> <4FF37A83.2030707@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <4FF37A83.2030707@iki.fi>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:56623 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752308Ab2GVRWi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Jul 2012 13:22:38 -0400
+Date: Sun, 22 Jul 2012 10:22:32 -0700
+From: Tejun Heo <tj@kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Avi Kivity <avi@redhat.com>, kvm@vger.kernel.org,
+	Andy Walls <awalls@md.metrocast.net>,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
+	Grant Likely <grant.likely@secretlab.ca>,
+	spi-devel-general@lists.sourceforge.net,
+	Linus Torvalds <torvalds@linux-foundation.org>
+Subject: [PATCH UPDATED 1/2] kthread_worker: reorganize to prepare for
+ flush_kthread_work() reimplementation
+Message-ID: <20120722172232.GD5144@dhcp-172-17-108-109.mtv.corp.google.com>
+References: <20120719211510.GA32763@google.com>
+ <20120719211541.GB32763@google.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20120719211541.GB32763@google.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04.07.2012 01:04, Antti Palosaari wrote:
-> Your claims about my DVB-USB-framework work is quite bullshit. I am not
-> going to convert all drivers to the new framework just doing compile
-> tests.
+>From 9a2e03d8ed518a61154f18d83d6466628e519f94 Mon Sep 17 00:00:00 2001
+From: Tejun Heo <tj@kernel.org>
+Date: Thu, 19 Jul 2012 13:52:53 -0700
 
-I'm not bashing you, I see you are doing very good job, and not only you 
-but many people here. I don't like mess and refactoring is good thing. 
-The problem is that often makers of hardware doesn't support their linux 
-drivers and changes in DVB core doesn't help it.
-Like with pctv452e - device was working, i've bought it as supported and 
-now it works only partially.
-I don't think there is easy solution to that problem. Card maker should 
-support drivers but in reality we should be happy if he do any working 
-driver for linux.
+Make the following two non-functional changes.
 
-And thank you for modified driver, I will try it at home and of course 
-will write how it is working.
-Marx
+* Separate out insert_kthread_work() from queue_kthread_work().
+
+* Relocate struct kthread_flush_work and kthread_flush_work_fn()
+  definitions above flush_kthread_work().
+
+v2: Added lockdep_assert_held() in insert_kthread_work() as suggested
+    by Andy Walls.
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Acked-by: Andy Walls <awalls@md.metrocast.net>
+---
+ kernel/kthread.c |   42 ++++++++++++++++++++++++++----------------
+ 1 files changed, 26 insertions(+), 16 deletions(-)
+
+diff --git a/kernel/kthread.c b/kernel/kthread.c
+index 3d3de63..4bfbff3 100644
+--- a/kernel/kthread.c
++++ b/kernel/kthread.c
+@@ -378,6 +378,19 @@ repeat:
+ }
+ EXPORT_SYMBOL_GPL(kthread_worker_fn);
+ 
++/* insert @work before @pos in @worker */
++static void insert_kthread_work(struct kthread_worker *worker,
++			       struct kthread_work *work,
++			       struct list_head *pos)
++{
++	lockdep_assert_held(&worker->lock);
++
++	list_add_tail(&work->node, pos);
++	work->queue_seq++;
++	if (likely(worker->task))
++		wake_up_process(worker->task);
++}
++
+ /**
+  * queue_kthread_work - queue a kthread_work
+  * @worker: target kthread_worker
+@@ -395,10 +408,7 @@ bool queue_kthread_work(struct kthread_worker *worker,
+ 
+ 	spin_lock_irqsave(&worker->lock, flags);
+ 	if (list_empty(&work->node)) {
+-		list_add_tail(&work->node, &worker->work_list);
+-		work->queue_seq++;
+-		if (likely(worker->task))
+-			wake_up_process(worker->task);
++		insert_kthread_work(worker, work, &worker->work_list);
+ 		ret = true;
+ 	}
+ 	spin_unlock_irqrestore(&worker->lock, flags);
+@@ -406,6 +416,18 @@ bool queue_kthread_work(struct kthread_worker *worker,
+ }
+ EXPORT_SYMBOL_GPL(queue_kthread_work);
+ 
++struct kthread_flush_work {
++	struct kthread_work	work;
++	struct completion	done;
++};
++
++static void kthread_flush_work_fn(struct kthread_work *work)
++{
++	struct kthread_flush_work *fwork =
++		container_of(work, struct kthread_flush_work, work);
++	complete(&fwork->done);
++}
++
+ /**
+  * flush_kthread_work - flush a kthread_work
+  * @work: work to flush
+@@ -436,18 +458,6 @@ void flush_kthread_work(struct kthread_work *work)
+ }
+ EXPORT_SYMBOL_GPL(flush_kthread_work);
+ 
+-struct kthread_flush_work {
+-	struct kthread_work	work;
+-	struct completion	done;
+-};
+-
+-static void kthread_flush_work_fn(struct kthread_work *work)
+-{
+-	struct kthread_flush_work *fwork =
+-		container_of(work, struct kthread_flush_work, work);
+-	complete(&fwork->done);
+-}
+-
+ /**
+  * flush_kthread_worker - flush all current works on a kthread_worker
+  * @worker: worker to flush
+-- 
+1.7.7.3
 
