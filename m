@@ -1,54 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:41289 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753473Ab2GWQNC (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:48933 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752045Ab2GVQer (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jul 2012 12:13:02 -0400
-Received: by yenl2 with SMTP id l2so5620543yen.19
-        for <linux-media@vger.kernel.org>; Mon, 23 Jul 2012 09:13:01 -0700 (PDT)
-Message-ID: <500D7846.7010802@gmail.com>
-Date: Mon, 23 Jul 2012 12:13:58 -0400
-From: Joshua Roys <roysjosh@gmail.com>
+	Sun, 22 Jul 2012 12:34:47 -0400
+Received: by wgbdr13 with SMTP id dr13so5102441wgb.1
+        for <linux-media@vger.kernel.org>; Sun, 22 Jul 2012 09:34:46 -0700 (PDT)
 MIME-Version: 1.0
+Date: Sun, 22 Jul 2012 17:34:46 +0100
+Message-ID: <CAM1DM6m=WC4DjuhO6AkdZ6VjFphm9gvX41kYmcbykfoKvB3BMw@mail.gmail.com>
+Subject: AVerMedia A373 PCIe MiniCard Dual DVB-T - ITE IT913x Tuners
+From: John Layt <jlayt@kde.org>
 To: linux-media@vger.kernel.org
-Subject: Re: ATI theatre 750 HD tuner USB stick
-In-Reply-To: <CAD4Xxq8c_SBbJsZc764oFwNjRDeGKuVEX_042ry=xeZBY_ZH-A@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fisher Grubb <fisher.grubb <at> gmail.com> writes:
->
-> Hi all,
->
-> My name is Fisher Grubb, I have an ATI (now AMD) theatre 750 HD based
-> TV tuner USB stick.  I don't think this ATI chipset is supported by
-> linuxTV and have had no joy search google as others also hit a dead
-> end.
->
+Hi,
 
-Hello,
+I have recently purchased an Acer Aspire Revo RL70 HTPC which comes
+with a built-in "AVerMedia A373 MiniCard Dual DVB-T" which uses two
+ITE T913x tuners.  This card is currently unsupported in Linux and I
+have documented some details on the wiki at
+http://linuxtv.org/wiki/index.php/AVerMedia_A373_MiniCard_Dual_DVB-T .
+ I have a photo that I can upload once approved, and I also have
+Windows 7 installed on the machine so can provide details from there
+if needed.  If anyone is interested in adding support I'd be happy to
+help out where I can.
 
-I'm working on writing a partial userspace driver for this device from
-traffic dumps presently. I believe that it supports / performs similar
-functions to the rtl-sdr project, but with better specifications (minus
-the great tuner range of the E4000). See
-https://github.com/roysjosh/tvw-sdr for current progress. I suspect it
-can send 8MHz at 12 bits resolution (it sends roughly 125Mbps through
-the USB interface when listening to an FM station).
+Cheers!
 
-Currently, my code initializes the T507 and uploads the firmware blob(s)
-and all register readouts match. Also, my code does it in under 2
-seconds (including a 1 second sleep after the 2nd blob upload) compared
-to the over 45 seconds the closed driver needs. I can reach the TDA18271
-through an I2C bridge, but I don't configure it yet. I'm considering how
-to use existing code rather than write my own from scratch, as much code
-already exists (as was mentioned already).
-
-I would love some help, especially from people who are able to safely RE
-without legal issues.
-
-Thanks,
-
-Josh
+John.
