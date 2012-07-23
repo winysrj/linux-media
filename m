@@ -1,112 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58745 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753808Ab2GEPJk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Jul 2012 11:09:40 -0400
-Message-ID: <4FF5AE2D.7040309@iki.fi>
-Date: Thu, 05 Jul 2012 18:09:33 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:45862 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753962Ab2GWICG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jul 2012 04:02:06 -0400
+Received: by wibhm11 with SMTP id hm11so2593387wib.1
+        for <linux-media@vger.kernel.org>; Mon, 23 Jul 2012 01:02:04 -0700 (PDT)
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	hverkuil@xs4all.nl
-Subject: Re: [PATCH 4/4] radio-si470x: Lower firmware version requirements
-References: <1339681394-11348-1-git-send-email-hdegoede@redhat.com> <1339681394-11348-4-git-send-email-hdegoede@redhat.com> <4FF45FF7.4020300@iki.fi> <4FF5515A.1030704@redhat.com> <4FF5980F.8030109@iki.fi> <4FF59995.4010604@redhat.com> <4FF5A119.6020903@iki.fi> <4FF5ADE3.5040600@redhat.com>
-In-Reply-To: <4FF5ADE3.5040600@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <201207211150.15296.hverkuil@xs4all.nl>
+References: <1342782515-24992-1-git-send-email-javier.martin@vista-silicon.com>
+	<201207211150.15296.hverkuil@xs4all.nl>
+Date: Mon, 23 Jul 2012 10:02:04 +0200
+Message-ID: <CACKLOr3ZuAru9knFv4M=BWxRWP27ztoZdbACPXVHPrNLhzKPng@mail.gmail.com>
+Subject: Re: [PATCH v6] media: coda: Add driver for Coda video codec.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.hauer@pengutronix.de, p.zabel@pengutronix.de
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/05/2012 06:08 PM, Hans de Goede wrote:
-> Hi,
+Hi Hans,
+
+On 21 July 2012 11:50, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Fri July 20 2012 13:08:35 Javier Martin wrote:
+>> Coda is a range of video codecs from Chips&Media that
+>> support H.264, H.263, MPEG4 and other video standards.
+>>
+>> Currently only support for the codadx6 included in the
+>> i.MX27 SoC is added. H.264 and MPEG4 video encoding
+>> are the only supported capabilities by now.
+>>
+>> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+>> Reviewed-by: Philipp Zabel<p.zabel@pengutronix.de>
+>> ---
+>> Changes since v5:
+>>  - Fixed some v4l2-compliance issues.
 >
-> On 07/05/2012 04:13 PM, Antti Palosaari wrote:
->> On 07/05/2012 04:41 PM, Hans de Goede wrote:
->>> Hi,
->>>
->>> On 07/05/2012 03:35 PM, Antti Palosaari wrote:
->>>
->>> <snip>
->>>
->>>>> I believe you're doing something wrong ...
->>>>>
->>>>>> I compiled radio from http://git.linuxtv.org/xawtv3.git to tune and
->>>>>  > "arecord  -r96000 -c2 -f S16_LE | aplay - " to play sound. Just
->>>>> silent white noise is heard.
->>>>>
->>>>> You're not specifying which device arecord should record from so
->>>>> likely
->>>>> it is taking
->>>>> the default input of your soundcard (line/mic in), rather then
->>>>> recording
->>>>> from the
->>>>> radio device.
->>>>
->>>> I tried to define hw:1,0 etc. but only hw:0,0 exists.
->>>>
->>>>> Note the latest radio from http://git.linuxtv.org/xawtv3.git will
->>>>> do the
->>>>> digital loopback of
->>>>> the sound itself, so try things again with running arecord / aplay, if
->>>>> you then start radio
->>>>> and exit again (so that you can see its startup messages) you
->>>>> should see
->>>>> something like this:
->>>>>
->>>>> "Using alsa loopback: cap: hw:1,0 (/dev/radio0), out: default"
->>>>>
->>>>> Note radio will automatically select the correct alsa device to record
->>>>> from for the radio-usb-stick.
->>>>
->>>> For some reason I don't see that happening.
->>>
->>> Hmm, so it seems that for some reason alsa is not working with the usb
->>> "sound-card" part of the usb-stick. Can you try doing:
->>>
->>> ls /dev/snd/
->>>
->>> Before and after plugging in the device, you should get a new
->>> PCMC?D0c device there.
->>
->> Two files appears, controlC2 and pcmC2D0c.
->>
->>> Otherwise see if you can enable some debugging options for snd-usb-audio
->>> and find out why it is not liking your device (and maybe at a quirk for
->>> it somewhere) ? If you do end up adding a quirk please let me know
->>> and I'll test with mine to ensure the quirck does not break working
->>> versions :)
->>
->> And now I can hear the voice too using "arecord -D hw:2,0 -r96000 -c2
->> -f S16_LE | aplay -".
->  >
->  > But loopback is still missing.
+> Some or all? Can you give me the 'v4l2-compliance -v1' output?
+
+I've not corrected some mistakes that are pointed by v4l2-compliance
+that I consider bogus for my mem2mem video encoder.
+
+I don't mind helping you test the new m2m capabilities of
+'v4l2-compliance' but I don't think delaying this driver to enter
+mainline for this merge window for this is reasonable. Please, find
+the output you requested below:
+
+
+Driver Info:
+        Driver name   : coda
+        Card type     : coda
+        Bus info      : coda
+        Driver version: 0.0.0
+        Capabilities  : 0x84000003
+                Video Capture
+                Video Output
+                Streaming
+
+Compliance test for device /dev/video2 (not using libv4l2):
+
+Required ioctls:
+                fail: v4l2-compliance.cpp(251): check_0(vcap.reserved,
+sizeof(vcap.reserved))
+        test VIDIOC_QUERYCAP: FAIL
+
+Allow for multiple opens:
+        test second video open: OK
+                fail: v4l2-compliance.cpp(251): check_0(vcap.reserved,
+sizeof(vcap.reserved))
+        test VIDIOC_QUERYCAP: FAIL
+                fail: v4l2-compliance.cpp(273): doioctl(node,
+VIDIOC_G_PRIORITY, &prio)
+        test VIDIOC_G/S_PRIORITY: FAIL
+
+Debug ioctls:
+        test VIDIOC_DBG_G_CHIP_IDENT: FAIL
+                fail: v4l2-test-debug.cpp(82): uid == 0 && ret
+        test VIDIOC_DBG_G/S_REGISTER: FAIL
+        test VIDIOC_LOG_STATUS: FAIL
+
+Input ioctls:
+                fail: v4l2-test-input-output.cpp(133): couldn't get tuner 0
+        test VIDIOC_G/S_TUNER: FAIL
+                fail: v4l2-test-input-output.cpp(228): could get
+frequency for invalid tuner 0
+        test VIDIOC_G/S_FREQUENCY: FAIL
+                fail: v4l2-test-input-output.cpp(358): could not
+enumerate audio input 0
+        test VIDIOC_ENUMAUDIO: FAIL
+                fail: v4l2-test-input-output.cpp(290): could not get
+current input
+        test VIDIOC_G/S/ENUMINPUT: FAIL
+        test VIDIOC_G/S_AUDIO: Not Supported
+        Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+                fail: v4l2-test-input-output.cpp(479): couldn't get modulator 0
+        test VIDIOC_G/S_MODULATOR: FAIL
+                fail: v4l2-test-input-output.cpp(563): could get
+frequency for invalid modulator 0
+        test VIDIOC_G/S_FREQUENCY: FAIL
+                fail: v4l2-test-input-output.cpp(682): could not
+enumerate audio output 0
+        test VIDIOC_ENUMAUDOUT: FAIL
+        test VIDIOC_G/S/ENUMOUTPUT: FAIL
+        test VIDIOC_G/S_AUDOUT: Not Supported
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Control ioctls:
+        test VIDIOC_QUERYCTRL/MENU: OK
+        test VIDIOC_G/S_CTRL: OK
+                fail: v4l2-test-controls.cpp(532): try_ext_ctrls did
+not check the read-only flag
+        test VIDIOC_G/S/TRY_EXT_CTRLS: FAIL
+        Standard Controls: 10 Private Controls: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: Not Supported
+        test VIDIOC_ENUM/G/S/QUERY_DV_PRESETS: Not Supported
+        test VIDIOC_G/S_DV_TIMINGS: Not Supported
+
+Format ioctls:
+                fail: v4l2-test-formats.cpp(138): expected EINVAL, but
+got 25 when enumerating framesize 0
+        test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: FAIL
+                fail: v4l2-test-formats.cpp(327): expected EINVAL, but
+got 25 when getting framebuffer format
+        test VIDIOC_G_FBUF: FAIL
+                fail: v4l2-test-formats.cpp(383): !pix.width || !pix.height
+        test VIDIOC_G_FMT: FAIL
+                fail: v4l2-test-formats.cpp(509): ret && ret != EINVAL
+&& sliced_type
+        test VIDIOC_G_SLICED_VBI_CAP: FAIL
+Total: 27 Succeeded: 8 Failed: 19 Warnings: 0
+
+
+> Regards,
 >
-> So if you start radio before starting the arecord, it won't do the
-> loopback for you?
-> Have you compiled xawtv with alsa support? (this requires the libalsa
-> headers to be installed)
+>         Hans
+>
+>>  - Attended most of Sylwester's tips.
 
-aah, that explains.
 
-compile time options summary
-============================
-
-     aalib        : no
-     alsa         : no
-     dv           : no
-     QuickTime    : no
-     OpenMotif    : no
-     X11R6        : no
-     OpenGL       : no
-     zvbi         : no
-     libv4l       : yes
-     libexplain   : no
-
-regards
-Antti
+Regards.
 
 -- 
-http://palosaari.fi/
-
-
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
