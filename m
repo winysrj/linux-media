@@ -1,176 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from skyboo.net ([82.160.187.4]:54176 "EHLO skyboo.net"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752349Ab2GZSjl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jul 2012 14:39:41 -0400
-From: Mariusz Bialonczyk <manio@skyboo.net>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mariusz Bialonczyk <manio@skyboo.net>
-Date: Thu, 26 Jul 2012 20:08:43 +0200
-Message-Id: <1343326123-11882-1-git-send-email-manio@skyboo.net>
-Subject: [PATCH] Add support for Prof Revolution DVB-S2 8000 PCI-E card
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35667 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752672Ab2GWMiK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jul 2012 08:38:10 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] v4l2-ctrls: Add v4l2_ctrl_s_ctrl_int64()
+Date: Mon, 23 Jul 2012 14:38:14 +0200
+Message-Id: <1343047094-20013-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The device is based on STV0903 demodulator, STB6100 tuner
-and CX23885 chipset; subsystem id: 8000:3034
+This helper function sets a 64-bit control's value from within a driver.
+It's similar to v4l2_ctrl_s_ctrl() but operates on 64-bit integer
+controls instead of 32-bit controls.
 
-Signed-off-by: Mariusz Bialonczyk <manio@skyboo.net>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/video/cx23885/Kconfig         |    1 +
- drivers/media/video/cx23885/cx23885-cards.c |   10 +++++
- drivers/media/video/cx23885/cx23885-dvb.c   |   56 +++++++++++++++++++++++++++
- drivers/media/video/cx23885/cx23885.h       |    1 +
- 4 files changed, 68 insertions(+)
+ drivers/media/video/v4l2-ctrls.c |   37 +++++++++++++++++++++++++++++--------
+ include/media/v4l2-ctrls.h       |   12 ++++++++++++
+ 2 files changed, 41 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/video/cx23885/Kconfig b/drivers/media/video/cx23885/Kconfig
-index b391e9b..510adfe 100644
---- a/drivers/media/video/cx23885/Kconfig
-+++ b/drivers/media/video/cx23885/Kconfig
-@@ -21,6 +21,7 @@ config VIDEO_CX23885
- 	select DVB_STV6110 if !DVB_FE_CUSTOMISE
- 	select DVB_CX24116 if !DVB_FE_CUSTOMISE
- 	select DVB_STV0900 if !DVB_FE_CUSTOMISE
-+	select DVB_STV090x if !DVB_FE_CUSTOMISE
- 	select DVB_DS3000 if !DVB_FE_CUSTOMISE
- 	select DVB_STV0367 if !DVB_FE_CUSTOMISE
- 	select MEDIA_TUNER_MT2131 if !MEDIA_TUNER_CUSTOMISE
-diff --git a/drivers/media/video/cx23885/cx23885-cards.c b/drivers/media/video/cx23885/cx23885-cards.c
-index 080e111..50fedff 100644
---- a/drivers/media/video/cx23885/cx23885-cards.c
-+++ b/drivers/media/video/cx23885/cx23885-cards.c
-@@ -564,6 +564,10 @@ struct cx23885_board cx23885_boards[] = {
- 	[CX23885_BOARD_TEVII_S471] = {
- 		.name		= "TeVii S471",
- 		.portb		= CX23885_MPEG_DVB,
-+	},
-+	[CX23885_BOARD_PROF_8000] = {
-+		.name		= "Prof Revolution DVB-S2 8000",
-+		.portb		= CX23885_MPEG_DVB,
- 	}
- };
- const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
-@@ -776,6 +780,10 @@ struct cx23885_subid cx23885_subids[] = {
- 		.subvendor = 0xd471,
- 		.subdevice = 0x9022,
- 		.card      = CX23885_BOARD_TEVII_S471,
-+	}, {
-+		.subvendor = 0x8000,
-+		.subdevice = 0x3034,
-+		.card      = CX23885_BOARD_PROF_8000,
- 	},
- };
- const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
-@@ -1155,6 +1163,7 @@ void cx23885_gpio_setup(struct cx23885_dev *dev)
- 		cx_set(GP0_IO, 0x00040004);
- 		break;
- 	case CX23885_BOARD_TBS_6920:
-+	case CX23885_BOARD_PROF_8000:
- 		cx_write(MC417_CTL, 0x00000036);
- 		cx_write(MC417_OEN, 0x00001000);
- 		cx_set(MC417_RWD, 0x00000002);
-@@ -1536,6 +1545,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
- 	case CX23885_BOARD_TEVII_S470:
- 	case CX23885_BOARD_TEVII_S471:
- 	case CX23885_BOARD_DVBWORLD_2005:
-+	case CX23885_BOARD_PROF_8000:
- 		ts1->gen_ctrl_val  = 0x5; /* Parallel */
- 		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
- 		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
-diff --git a/drivers/media/video/cx23885/cx23885-dvb.c b/drivers/media/video/cx23885/cx23885-dvb.c
-index cd54268..ba046ea 100644
---- a/drivers/media/video/cx23885/cx23885-dvb.c
-+++ b/drivers/media/video/cx23885/cx23885-dvb.c
-@@ -63,6 +63,9 @@
- #include "stv0367.h"
- #include "drxk.h"
- #include "mt2063.h"
-+#include "stv090x.h"
-+#include "stb6100.h"
-+#include "stb6100_cfg.h"
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 9abd9ab..41a58b0 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -2499,13 +2499,14 @@ int v4l2_subdev_s_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs
+ EXPORT_SYMBOL(v4l2_subdev_s_ext_ctrls);
  
- static unsigned int debug;
- 
-@@ -489,6 +492,42 @@ static struct xc5000_config mygica_x8506_xc5000_config = {
- 	.if_khz = 5380,
- };
- 
-+static struct stv090x_config prof_8000_stv090x_config = {
-+        .device                 = STV0903,
-+        .demod_mode             = STV090x_SINGLE,
-+        .clk_mode               = STV090x_CLK_EXT,
-+        .xtal                   = 27000000,
-+        .address                = 0x6A,
-+        .ts1_mode               = STV090x_TSMODE_PARALLEL_PUNCTURED,
-+        .repeater_level         = STV090x_RPTLEVEL_64,
-+        .adc1_range             = STV090x_ADC_2Vpp,
-+        .diseqc_envelope_mode   = false,
-+
-+        .tuner_get_frequency    = stb6100_get_frequency,
-+        .tuner_set_frequency    = stb6100_set_frequency,
-+        .tuner_set_bandwidth    = stb6100_set_bandwidth,
-+        .tuner_get_bandwidth    = stb6100_get_bandwidth,
-+};
-+
-+static struct stb6100_config prof_8000_stb6100_config = {
-+	.tuner_address = 0x60,
-+	.refclock = 27000000,
-+};
-+
-+static int p8000_set_voltage(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
-+{
-+	struct cx23885_tsport *port = fe->dvb->priv;
-+	struct cx23885_dev *dev = port->dev;
-+
-+	if (voltage == SEC_VOLTAGE_18)
-+		cx_write(MC417_RWD, 0x00001e00);
-+	else if (voltage == SEC_VOLTAGE_13)
-+		cx_write(MC417_RWD, 0x00001a00);
-+	else
-+		cx_write(MC417_RWD, 0x00001800);
-+	return 0;
-+}
-+
- static int cx23885_dvb_set_frontend(struct dvb_frontend *fe)
+ /* Helper function for VIDIOC_S_CTRL compatibility */
+-static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, s32 *val)
++static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl,
++		    struct v4l2_ext_control *c)
  {
- 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-@@ -1186,6 +1225,23 @@ static int dvb_register(struct cx23885_tsport *port)
- 					&tevii_ds3000_config,
- 					&i2c_bus->i2c_adap);
- 		break;
-+	case CX23885_BOARD_PROF_8000:
-+		i2c_bus = &dev->i2c_bus[0];
-+
-+		fe0->dvb.frontend = dvb_attach(stv090x_attach,
-+						&prof_8000_stv090x_config,
-+						&i2c_bus->i2c_adap,
-+						STV090x_DEMODULATOR_0);
-+		if (fe0->dvb.frontend != NULL) {
-+			if (!dvb_attach(stb6100_attach,
-+					fe0->dvb.frontend,
-+					&prof_8000_stb6100_config,
-+					&i2c_bus->i2c_adap))
-+				goto frontend_detach;
-+
-+			fe0->dvb.frontend->ops.set_voltage = p8000_set_voltage;
-+		}
-+		break;
- 	default:
- 		printk(KERN_INFO "%s: The frontend of your DVB/ATSC card "
- 			" isn't supported yet\n",
-diff --git a/drivers/media/video/cx23885/cx23885.h b/drivers/media/video/cx23885/cx23885.h
-index 13c37ec..452ccec 100644
---- a/drivers/media/video/cx23885/cx23885.h
-+++ b/drivers/media/video/cx23885/cx23885.h
-@@ -91,6 +91,7 @@
- #define CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL 34
- #define CX23885_BOARD_TEVII_S471               35
- #define CX23885_BOARD_HAUPPAUGE_HVR1255_22111  36
-+#define CX23885_BOARD_PROF_8000                37
+ 	struct v4l2_ctrl *master = ctrl->cluster[0];
+ 	int ret;
+ 	int i;
  
- #define GPIO_0 0x00000001
- #define GPIO_1 0x00000002
+-	ret = validate_new_int(ctrl, val);
++	ret = validate_new(ctrl, c);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -2520,12 +2521,13 @@ static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, s32 *val)
+ 	   manual mode we have to update the current volatile values since
+ 	   those will become the initial manual values after such a switch. */
+ 	if (master->is_auto && master->has_volatiles && ctrl == master &&
+-	    !is_cur_manual(master) && *val == master->manual_mode_value)
++	    !is_cur_manual(master) && c->value == master->manual_mode_value)
+ 		update_from_auto_cluster(master);
+-	ctrl->val = *val;
+-	ctrl->is_new = 1;
++
++	user_to_new(c, ctrl);
+ 	ret = try_or_set_cluster(fh, master, true);
+-	*val = ctrl->cur.val;
++	cur_to_user(c, ctrl);
++
+ 	v4l2_ctrl_unlock(ctrl);
+ 	return ret;
+ }
+@@ -2534,6 +2536,8 @@ int v4l2_s_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 					struct v4l2_control *control)
+ {
+ 	struct v4l2_ctrl *ctrl = v4l2_ctrl_find(hdl, control->id);
++	struct v4l2_ext_control c;
++	int ret;
+ 
+ 	if (ctrl == NULL || !type_is_int(ctrl))
+ 		return -EINVAL;
+@@ -2541,7 +2545,10 @@ int v4l2_s_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 	if (ctrl->flags & V4L2_CTRL_FLAG_READ_ONLY)
+ 		return -EACCES;
+ 
+-	return set_ctrl(fh, ctrl, &control->value);
++	c.value = control->value;
++	ret = set_ctrl(fh, ctrl, &c);
++	control->value = c.value;
++	return ret;
+ }
+ EXPORT_SYMBOL(v4l2_s_ctrl);
+ 
+@@ -2553,12 +2560,26 @@ EXPORT_SYMBOL(v4l2_subdev_s_ctrl);
+ 
+ int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val)
+ {
++	struct v4l2_ext_control c;
++
+ 	/* It's a driver bug if this happens. */
+ 	WARN_ON(!type_is_int(ctrl));
+-	return set_ctrl(NULL, ctrl, &val);
++	c.value = val;
++	return set_ctrl(NULL, ctrl, &c);
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_s_ctrl);
+ 
++int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val)
++{
++	struct v4l2_ext_control c;
++
++	/* It's a driver bug if this happens. */
++	WARN_ON(ctrl->type != V4L2_CTRL_TYPE_INTEGER64);
++	c.value64 = val;
++	return set_ctrl(NULL, ctrl, &c);
++}
++EXPORT_SYMBOL(v4l2_ctrl_s_ctrl_int64);
++
+ static int v4l2_ctrl_add_event(struct v4l2_subscribed_event *sev, unsigned elems)
+ {
+ 	struct v4l2_ctrl *ctrl = v4l2_ctrl_find(sev->fh->ctrl_handler, sev->id);
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 776605f..a2c200d 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -511,6 +511,18 @@ s32 v4l2_ctrl_g_ctrl(struct v4l2_ctrl *ctrl);
+   */
+ int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val);
+ 
++/** v4l2_ctrl_s_ctrl_int64() - Helper function to set a 64-bit control's value from within a driver.
++  * @ctrl:	The control.
++  * @val:	The new value.
++  *
++  * This set the control's new value safely by going through the control
++  * framework. This function will lock the control's handler, so it cannot be
++  * used from within the &v4l2_ctrl_ops functions.
++  *
++  * This function is for 64-bit integer type controls only.
++  */
++int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val);
++
+ /* Internal helper functions that deal with control events. */
+ extern const struct v4l2_subscribed_event_ops v4l2_ctrl_sub_ev_ops;
+ void v4l2_ctrl_replace(struct v4l2_event *old, const struct v4l2_event *new);
 -- 
-1.7.10
+Regards,
+
+Laurent Pinchart
 
