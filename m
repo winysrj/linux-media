@@ -1,65 +1,362 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway05.websitewelcome.com ([67.18.144.2]:58360 "EHLO
-	gateway05.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753918Ab2GPR4Z convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jul 2012 13:56:25 -0400
-Received: from gator886.hostgator.com (gator886.hostgator.com [174.120.40.226])
-	by gateway05.websitewelcome.com (Postfix) with ESMTP id 18D5FBB07C839
-	for <linux-media@vger.kernel.org>; Mon, 16 Jul 2012 12:50:16 -0500 (CDT)
-From: "Charlie X. Liu" <charlie@sensoray.com>
-To: <llarevo@gmx.net>, <linux-media@vger.kernel.org>
-References: <1342265363.2362.12.camel@tbastian-desktop.localdomain>
-In-Reply-To: <1342265363.2362.12.camel@tbastian-desktop.localdomain>
-Subject: RE: libv4l2: error dequeuing buf: Resource temporarily unavailable
-Date: Mon, 16 Jul 2012 10:50:19 -0700
-Message-ID: <000901cd637b$77c9e620$675db260$@com>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2805 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753641Ab2GWPFj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jul 2012 11:05:39 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2] v4l2-ctrls: Add v4l2_ctrl_[gs]_ctrl_int64()
+Date: Mon, 23 Jul 2012 17:05:35 +0200
+Cc: linux-media@vger.kernel.org
+References: <1343052160-24229-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1343052160-24229-1-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Content-Language: en-us
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201207231705.35789.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Your driver load may not be quite right or got some conflicts. According to: http://www.kernel.org/doc/Documentation/video4linux/CARDLIST.saa7134, the Terratec Cinergy 400 TV should be card=8. Have you tried: restart, "modprobe -r saa7134", "modprobe saa7134 card=8", "dmesg | grep saa7134", and checked if the Terratec Cinergy 400 TV showed up correctly? If right, it should be Ok:
+On Mon July 23 2012 16:02:40 Laurent Pinchart wrote:
+> These helper functions get and set a 64-bit control's value from within
+> a driver. They are similar to v4l2_ctrl_[gs]_ctrl() but operate on
+> 64-bit integer controls instead of 32-bit controls.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/video/v4l2-ctrls.c |  135 +++++++++++++++++++++++---------------
+>  include/media/v4l2-ctrls.h       |   23 +++++++
+>  2 files changed, 105 insertions(+), 53 deletions(-)
+> 
+> Changes since v1:
+> 
+> - Add v4l2_ctrl_g_ctrl_int64()
+> - Merge validate_new_int() and validate_new()
+> - Add a comment warning about string controls in set_ctrl()
+> 
+> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+> index 9abd9ab..3042895 100644
+> --- a/drivers/media/video/v4l2-ctrls.c
+> +++ b/drivers/media/video/v4l2-ctrls.c
+> @@ -1173,76 +1173,53 @@ static int cluster_changed(struct v4l2_ctrl *master)
+>  	return diff;
+>  }
+>  
+> -/* Validate integer-type control */
+> -static int validate_new_int(const struct v4l2_ctrl *ctrl, s32 *pval)
+> +/* Validate a new control */
+> +static int validate_new(const struct v4l2_ctrl *ctrl,
+> +			struct v4l2_ext_control *c)
+>  {
+> -	s32 val = *pval;
+> +	size_t len;
+>  	u32 offset;
+> +	s32 val;
+>  
+>  	switch (ctrl->type) {
+>  	case V4L2_CTRL_TYPE_INTEGER:
+>  		/* Round towards the closest legal value */
+> -		val += ctrl->step / 2;
+> -		if (val < ctrl->minimum)
+> -			val = ctrl->minimum;
+> -		if (val > ctrl->maximum)
+> -			val = ctrl->maximum;
+> +		val = c->value + ctrl->step / 2;
+> +		val = clamp(val, ctrl->minimum, ctrl->maximum);
+>  		offset = val - ctrl->minimum;
+>  		offset = ctrl->step * (offset / ctrl->step);
+> -		val = ctrl->minimum + offset;
+> -		*pval = val;
+> +		c->value = ctrl->minimum + offset;
+>  		return 0;
+>  
+>  	case V4L2_CTRL_TYPE_BOOLEAN:
+> -		*pval = !!val;
+> +		c->value = !!c->value;
+>  		return 0;
+>  
+>  	case V4L2_CTRL_TYPE_MENU:
+>  	case V4L2_CTRL_TYPE_INTEGER_MENU:
+> -		if (val < ctrl->minimum || val > ctrl->maximum)
+> +		if (c->value < ctrl->minimum || c->value > ctrl->maximum)
+>  			return -ERANGE;
+> -		if (ctrl->menu_skip_mask & (1 << val))
+> +		if (ctrl->menu_skip_mask & (1 << c->value))
+>  			return -EINVAL;
+>  		if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
+> -		    ctrl->qmenu[val][0] == '\0')
+> +		    ctrl->qmenu[c->value][0] == '\0')
+>  			return -EINVAL;
+>  		return 0;
+>  
+>  	case V4L2_CTRL_TYPE_BITMASK:
+> -		*pval &= ctrl->maximum;
+> +		c->value &= ctrl->maximum;
+>  		return 0;
+>  
+>  	case V4L2_CTRL_TYPE_BUTTON:
+>  	case V4L2_CTRL_TYPE_CTRL_CLASS:
+> -		*pval = 0;
+> +		c->value = 0;
+>  		return 0;
+>  
+> -	default:
+> -		return -EINVAL;
+> -	}
+> -}
+> -
+> -/* Validate a new control */
+> -static int validate_new(const struct v4l2_ctrl *ctrl, struct v4l2_ext_control *c)
+> -{
+> -	char *s = c->string;
+> -	size_t len;
+> -
+> -	switch (ctrl->type) {
+> -	case V4L2_CTRL_TYPE_INTEGER:
+> -	case V4L2_CTRL_TYPE_BOOLEAN:
+> -	case V4L2_CTRL_TYPE_MENU:
+> -	case V4L2_CTRL_TYPE_INTEGER_MENU:
+> -	case V4L2_CTRL_TYPE_BITMASK:
+> -	case V4L2_CTRL_TYPE_BUTTON:
+> -	case V4L2_CTRL_TYPE_CTRL_CLASS:
+> -		return validate_new_int(ctrl, &c->value);
+> -
+>  	case V4L2_CTRL_TYPE_INTEGER64:
+>  		return 0;
+>  
+>  	case V4L2_CTRL_TYPE_STRING:
+> -		len = strlen(s);
+> +		len = strlen(c->string);
+>  		if (len < ctrl->minimum)
+>  			return -ERANGE;
+>  		if ((len - ctrl->minimum) % ctrl->step)
+> @@ -2234,12 +2211,19 @@ int v4l2_subdev_g_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs
+>  EXPORT_SYMBOL(v4l2_subdev_g_ext_ctrls);
+>  
+>  /* Helper function to get a single control */
+> -static int get_ctrl(struct v4l2_ctrl *ctrl, s32 *val)
+> +static int get_ctrl(struct v4l2_ctrl *ctrl, struct v4l2_ext_control *c)
+>  {
+>  	struct v4l2_ctrl *master = ctrl->cluster[0];
+>  	int ret = 0;
+>  	int i;
+>  
+> +	/* String controls are not supported. The new_to_user() and
+> +	 * cur_to_user() calls below would need to be fixed not to access
+> +	 * userspace memory.
 
-ffmpeg -f video4linux2 -i /dev/video0 out.mpg
-ffmpeg -t 30 -f video4linux2 -s vga -r 30 -b 2000k -i /dev/video0 out-vga-2M-30sec.mpg
-ffmpeg -t 60 -f video4linux2 -s vga -r 30 -b 2000k -i /dev/video0 out-vga-2M-60sec.avi
-..., etc.
+Just one small suggestion: change this comment to:
 
+	/* String controls are not supported. The new_to_user() and
+	 * cur_to_user() calls below would need to be modified not to access
+	 * userspace memory when called from get_ctrl().
+	 */
 
------Original Message-----
-From: linux-media-owner@vger.kernel.org [mailto:linux-media-owner@vger.kernel.org] On Behalf Of llarevo@gmx.net
-Sent: Saturday, July 14, 2012 4:29 AM
-To: linux-media@vger.kernel.org
-Subject: libv4l2: error dequeuing buf: Resource temporarily unavailable
+And a similar change in the comment with set_ctrl.
 
-Hi,
+The word 'fixed' suggested that new_to_user etc. were broken, which isn't the
+case. We are just using it in a special situation.
 
-I'm not sure, if this is the right list, if I'm wrong here, a hint for a appropriate place for my questions would be very appreciated.
+With the above change to get/set_ctrl you can add my
 
-I have a problem with an analog Terratec Cinergy 400 TV. When I try to capture with ffmpeg, 
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-ffmpeg -f video4linux2 -i /dev/video0 out.mpg
+Regards,
 
-I get the error
+	Hans
 
-libv4l2: error dequeuing buf: Resource temporarily unavailable
-
-I'm using Fedora F17. 
-
-The behavior seems to be pretty strange to me, because xawtv, mencoder, mplayer and tvtime don't have a problem with the hardware at all, ffmpeg has got this problem only with the hardware mentioned above, with a Terratec Cinergy XS, ffmpeg captures without problems.
-
-Why reports libv4l2 "Resource temporarily unavailable"? What are common reasons for that message? What can be a reason that creates the message only on specific hardware (Terratec Cinergy 400 TV)?
-
-Thanks a lot in advance. 
-
---
-Felix
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in the body of a message to majordomo@vger.kernel.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+> +	 */
+> +	if (ctrl->type == V4L2_CTRL_TYPE_STRING)
+> +		return -EINVAL;
+> +
+>  	if (ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
+>  		return -EACCES;
+>  
+> @@ -2249,9 +2233,9 @@ static int get_ctrl(struct v4l2_ctrl *ctrl, s32 *val)
+>  		for (i = 0; i < master->ncontrols; i++)
+>  			cur_to_new(master->cluster[i]);
+>  		ret = call_op(master, g_volatile_ctrl);
+> -		*val = ctrl->val;
+> +		new_to_user(c, ctrl);
+>  	} else {
+> -		*val = ctrl->cur.val;
+> +		cur_to_user(c, ctrl);
+>  	}
+>  	v4l2_ctrl_unlock(master);
+>  	return ret;
+> @@ -2260,10 +2244,14 @@ static int get_ctrl(struct v4l2_ctrl *ctrl, s32 *val)
+>  int v4l2_g_ctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_control *control)
+>  {
+>  	struct v4l2_ctrl *ctrl = v4l2_ctrl_find(hdl, control->id);
+> +	struct v4l2_ext_control c;
+> +	int ret;
+>  
+>  	if (ctrl == NULL || !type_is_int(ctrl))
+>  		return -EINVAL;
+> -	return get_ctrl(ctrl, &control->value);
+> +	ret = get_ctrl(ctrl, &c);
+> +	control->value = c.value;
+> +	return ret;
+>  }
+>  EXPORT_SYMBOL(v4l2_g_ctrl);
+>  
+> @@ -2275,15 +2263,28 @@ EXPORT_SYMBOL(v4l2_subdev_g_ctrl);
+>  
+>  s32 v4l2_ctrl_g_ctrl(struct v4l2_ctrl *ctrl)
+>  {
+> -	s32 val = 0;
+> +	struct v4l2_ext_control c;
+>  
+>  	/* It's a driver bug if this happens. */
+>  	WARN_ON(!type_is_int(ctrl));
+> -	get_ctrl(ctrl, &val);
+> -	return val;
+> +	c.value = 0;
+> +	get_ctrl(ctrl, &c);
+> +	return c.value;
+>  }
+>  EXPORT_SYMBOL(v4l2_ctrl_g_ctrl);
+>  
+> +s64 v4l2_ctrl_g_ctrl_int64(struct v4l2_ctrl *ctrl)
+> +{
+> +	struct v4l2_ext_control c;
+> +
+> +	/* It's a driver bug if this happens. */
+> +	WARN_ON(ctrl->type != V4L2_CTRL_TYPE_INTEGER64);
+> +	c.value = 0;
+> +	get_ctrl(ctrl, &c);
+> +	return c.value;
+> +}
+> +EXPORT_SYMBOL(v4l2_ctrl_g_ctrl_int64);
+> +
+>  
+>  /* Core function that calls try/s_ctrl and ensures that the new value is
+>     copied to the current value on a set.
+> @@ -2499,13 +2500,21 @@ int v4l2_subdev_s_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs
+>  EXPORT_SYMBOL(v4l2_subdev_s_ext_ctrls);
+>  
+>  /* Helper function for VIDIOC_S_CTRL compatibility */
+> -static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, s32 *val)
+> +static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl,
+> +		    struct v4l2_ext_control *c)
+>  {
+>  	struct v4l2_ctrl *master = ctrl->cluster[0];
+>  	int ret;
+>  	int i;
+>  
+> -	ret = validate_new_int(ctrl, val);
+> +	/* String controls are not supported. The user_to_new() and
+> +	 * cur_to_user() calls below would need to be fixed not to access
+> +	 * userspace memory.
+> +	 */
+> +	if (ctrl->type == V4L2_CTRL_TYPE_STRING)
+> +		return -EINVAL;
+> +
+> +	ret = validate_new(ctrl, c);
+>  	if (ret)
+>  		return ret;
+>  
+> @@ -2520,12 +2529,13 @@ static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, s32 *val)
+>  	   manual mode we have to update the current volatile values since
+>  	   those will become the initial manual values after such a switch. */
+>  	if (master->is_auto && master->has_volatiles && ctrl == master &&
+> -	    !is_cur_manual(master) && *val == master->manual_mode_value)
+> +	    !is_cur_manual(master) && c->value == master->manual_mode_value)
+>  		update_from_auto_cluster(master);
+> -	ctrl->val = *val;
+> -	ctrl->is_new = 1;
+> +
+> +	user_to_new(c, ctrl);
+>  	ret = try_or_set_cluster(fh, master, true);
+> -	*val = ctrl->cur.val;
+> +	cur_to_user(c, ctrl);
+> +
+>  	v4l2_ctrl_unlock(ctrl);
+>  	return ret;
+>  }
+> @@ -2534,6 +2544,8 @@ int v4l2_s_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+>  					struct v4l2_control *control)
+>  {
+>  	struct v4l2_ctrl *ctrl = v4l2_ctrl_find(hdl, control->id);
+> +	struct v4l2_ext_control c;
+> +	int ret;
+>  
+>  	if (ctrl == NULL || !type_is_int(ctrl))
+>  		return -EINVAL;
+> @@ -2541,7 +2553,10 @@ int v4l2_s_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+>  	if (ctrl->flags & V4L2_CTRL_FLAG_READ_ONLY)
+>  		return -EACCES;
+>  
+> -	return set_ctrl(fh, ctrl, &control->value);
+> +	c.value = control->value;
+> +	ret = set_ctrl(fh, ctrl, &c);
+> +	control->value = c.value;
+> +	return ret;
+>  }
+>  EXPORT_SYMBOL(v4l2_s_ctrl);
+>  
+> @@ -2553,12 +2568,26 @@ EXPORT_SYMBOL(v4l2_subdev_s_ctrl);
+>  
+>  int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val)
+>  {
+> +	struct v4l2_ext_control c;
+> +
+>  	/* It's a driver bug if this happens. */
+>  	WARN_ON(!type_is_int(ctrl));
+> -	return set_ctrl(NULL, ctrl, &val);
+> +	c.value = val;
+> +	return set_ctrl(NULL, ctrl, &c);
+>  }
+>  EXPORT_SYMBOL(v4l2_ctrl_s_ctrl);
+>  
+> +int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val)
+> +{
+> +	struct v4l2_ext_control c;
+> +
+> +	/* It's a driver bug if this happens. */
+> +	WARN_ON(ctrl->type != V4L2_CTRL_TYPE_INTEGER64);
+> +	c.value64 = val;
+> +	return set_ctrl(NULL, ctrl, &c);
+> +}
+> +EXPORT_SYMBOL(v4l2_ctrl_s_ctrl_int64);
+> +
+>  static int v4l2_ctrl_add_event(struct v4l2_subscribed_event *sev, unsigned elems)
+>  {
+>  	struct v4l2_ctrl *ctrl = v4l2_ctrl_find(sev->fh->ctrl_handler, sev->id);
+> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+> index 776605f..7ef6b27 100644
+> --- a/include/media/v4l2-ctrls.h
+> +++ b/include/media/v4l2-ctrls.h
+> @@ -511,6 +511,29 @@ s32 v4l2_ctrl_g_ctrl(struct v4l2_ctrl *ctrl);
+>    */
+>  int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val);
+>  
+> +/** v4l2_ctrl_g_ctrl_int64() - Helper function to get a 64-bit control's value from within a driver.
+> +  * @ctrl:	The control.
+> +  *
+> +  * This returns the control's value safely by going through the control
+> +  * framework. This function will lock the control's handler, so it cannot be
+> +  * used from within the &v4l2_ctrl_ops functions.
+> +  *
+> +  * This function is for 64-bit integer type controls only.
+> +  */
+> +s64 v4l2_ctrl_g_ctrl_int64(struct v4l2_ctrl *ctrl);
+> +
+> +/** v4l2_ctrl_s_ctrl_int64() - Helper function to set a 64-bit control's value from within a driver.
+> +  * @ctrl:	The control.
+> +  * @val:	The new value.
+> +  *
+> +  * This set the control's new value safely by going through the control
+> +  * framework. This function will lock the control's handler, so it cannot be
+> +  * used from within the &v4l2_ctrl_ops functions.
+> +  *
+> +  * This function is for 64-bit integer type controls only.
+> +  */
+> +int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val);
+> +
+>  /* Internal helper functions that deal with control events. */
+>  extern const struct v4l2_subscribed_event_ops v4l2_ctrl_sub_ev_ops;
+>  void v4l2_ctrl_replace(struct v4l2_event *old, const struct v4l2_event *new);
+> 
