@@ -1,80 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:45273 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751871Ab2GRMMG (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35664 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752672Ab2GWMh4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jul 2012 08:12:06 -0400
-Subject: Re: [PATCH v3] media: coda: Add driver for Coda video codec.
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
-	mchehab@infradead.org, s.hauer@pengutronix.de
-In-Reply-To: <CACKLOr0861rZbOFZ2O0eXuTY7PB1yiFkSt62_4uXvJT+QMZe9A@mail.gmail.com>
-References: <1342077100-8629-1-git-send-email-javier.martin@vista-silicon.com>
-	 <1342459273.2535.665.camel@pizza.hi.pengutronix.de>
-	 <CACKLOr3rOPgwMCRdj3ARR+0655Qp=BfEXq0TsB7TU-hO4NSsqg@mail.gmail.com>
-	 <1342600546.2542.101.camel@pizza.hi.pengutronix.de>
-	 <CACKLOr1i-iByVtST6sqXqmHHzhJ1mgUdBWjp-jFsYPX-bnAMxQ@mail.gmail.com>
-	 <1342603378.2542.149.camel@pizza.hi.pengutronix.de>
-	 <CACKLOr0861rZbOFZ2O0eXuTY7PB1yiFkSt62_4uXvJT+QMZe9A@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 18 Jul 2012 14:12:02 +0200
-Message-ID: <1342613522.2542.154.camel@pizza.hi.pengutronix.de>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Mon, 23 Jul 2012 08:37:56 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v3.6] Add adv7604/ad9389b drivers
+Date: Mon, 23 Jul 2012 14:38:03 +0200
+Message-ID: <2683187.LgYGVSMlAA@avalon>
+In-Reply-To: <201207231436.35962.hverkuil@xs4all.nl>
+References: <201207231336.15392.hverkuil@xs4all.nl> <2229729.zs2QQjUUOH@avalon> <201207231436.35962.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Mittwoch, den 18.07.2012, 11:26 +0200 schrieb javier Martin:
-> On 18 July 2012 11:22, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> > Hi Javier,
-> >
-> > Am Mittwoch, den 18.07.2012, 11:01 +0200 schrieb javier Martin:
-> >> On 18 July 2012 10:35, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> >> > Hi Javier,
-> >> >
-> >> > Am Mittwoch, den 18.07.2012, 09:12 +0200 schrieb javier Martin:
-> >> > [...]
-> >> >> > I see there is a comment about the expected register setting not working
-> >> >> > for CODA_REG_BIT_STREAM_CTRL in start_streaming(). Could this be
-> >> >> > related?
-> >> >>
-> >> >> I don't think so. This means that the following line:
-> >> >>
-> >> >> coda_write(dev, (3 << 3), CODA_REG_BIT_STREAM_CTRL);
-> >> >>
-> >> >> should be:
-> >> >>
-> >> >> coda_write(dev, (CODADX6_STREAM_BUF_PIC_RESET |
-> >> >> CODADX6_STREAM_BUF_PIC_FLUSH), CODA_REG_BIT_STREAM_CTRL);
-> >> >>
-> >> >> But the latter does not work.
-> >> >
-> >> > Looks to me like (3 << 3) == (CODA7_STREAM_BUF_PIC_RESET |
-> >> > CODA7_STREAM_BUF_PIC_FLUSH) could be the explanation.
-> >>
-> >> You mean "!=", don't you?
-> >
-> > I mean "==". coda.h contains:
-> >
-> > #define         CODA7_STREAM_BUF_PIC_RESET      (1 << 4)
-> > #define         CODA7_STREAM_BUF_PIC_FLUSH      (1 << 3)
-> >
-> > So maybe those are the correct bits for i.MX27 with the 2.2.5 firmware.
-> > If that is the case, you could do s/CODA7_STREAM_BUF_/CODA_STREAM_BUF_/
-> > and drop the incorrect CODADX6_STREAM_BUF_ defines.
+Hi Hans,
+
+On Monday 23 July 2012 14:36:35 Hans Verkuil wrote:
+> On Mon July 23 2012 14:25:38 Laurent Pinchart wrote:
+> > On Monday 23 July 2012 13:36:15 Hans Verkuil wrote:
+> > > Hi all!
+> > > 
+> > > There haven't been any comments since either RFCv1 or RFCv2.
+> > > 
+> > > (http://www.spinics.net/lists/linux-media/msg48529.html and
+> > > http://www.spinics.net/lists/linux-media/msg50413.html)
+> > > 
+> > > So I'm making this pull request now.
+> > > 
+> > > The only changes since RFCv2 are some documentation fixes:
+> > > 
+> > > - Add a note that the SUBDEV_G/S_EDID ioctls are experimental
+> > > - Add the proper revision/experimental references.
+> > > - Update the spec version to 3.6.
+> > 
+> > Jumping a bit late on this. Wouldn't it be good to submit the RFCs to the
+> > dri- devel mailing list before pushing them upstream ? They have been
+> > dealing with EDID for ages and might offer good advices.
 > 
-> Sorry, I didn't catch the 'CODA7' prefix in your defines.
-> OK then, I'll do  s/CODA7_STREAM_BUF_/CODA_STREAM_BUF_/ and remove the
-> comment too.
+> I've looked at DRM as well, but there is really nothing to share. This API
+> is for embedded systems: it does *not* parse the EDID, it just transports
+> it from kernel to userspace and vice versa.
+> 
+> The main difference is that DRM attempts to load all blocks from the EDID,
+> whereas this API allows you to load blocks on demand (actually, drivers can
+> still decide to load all blocks initially, but that's an implementation
+> detail). This is more efficient given the slow i2c bus.
 
-Hold on, I just read that there should be a ENC_DYN_BUFALLOC_EN bit
-((1 << 5) on i.MX53, (1 << 4) on i.MX27) - so maybe the #defines are
-right after all, just that bit needs to be set for the dynamic buffer
-handling to work.
+I'm not saying we should share or mimic the DRM EDID API, just that, given 
+their experience with EDID, they might have useful feedback on our API.
 
-regards
-Philipp
+-- 
+Regards,
+
+Laurent Pinchart
 
