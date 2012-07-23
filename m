@@ -1,171 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:63963 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751808Ab2GPRSz convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2347 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751979Ab2GWK6D (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jul 2012 13:18:55 -0400
-Date: Mon, 16 Jul 2012 19:18:48 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Albert Wang <twang13@marvell.com>
-cc: Jonathan Corbet <corbet@lwn.net>, Chao Xie <cxie4@marvell.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCH 1/7] media: mmp_camera: Add V4l2 camera driver for Marvell
- PXA910/PXA688/PXA2128 CCIC
-In-Reply-To: <477F20668A386D41ADCC57781B1F7043083AB33977@SC-VEXCH1.marvell.com>
-Message-ID: <alpine.DEB.2.00.1207161904510.25446@axis700.grange>
-References: <1342016549-23084-1-git-send-email-twang13@marvell.com> <20120714111405.09164acc@tpl.lwn.net> <477F20668A386D41ADCC57781B1F7043083AB33977@SC-VEXCH1.marvell.com>
+	Mon, 23 Jul 2012 06:58:03 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: javier Martin <javier.martin@vista-silicon.com>
+Subject: Re: [PATCH v6] media: coda: Add driver for Coda video codec.
+Date: Mon, 23 Jul 2012 12:56:56 +0200
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.hauer@pengutronix.de, p.zabel@pengutronix.de
+References: <1342782515-24992-1-git-send-email-javier.martin@vista-silicon.com> <201207231214.15835.hverkuil@xs4all.nl> <CACKLOr0+ge3Rxh1w26pdPUKA3BZEHY8qvWS=kysNuCdx3L8tSg@mail.gmail.com>
+In-Reply-To: <CACKLOr0+ge3Rxh1w26pdPUKA3BZEHY8qvWS=kysNuCdx3L8tSg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201207231256.56862.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Albert, Jonathan
+On Mon July 23 2012 12:43:59 javier Martin wrote:
+> On 23 July 2012 12:14, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > On Mon July 23 2012 12:00:30 javier Martin wrote:
+> >> On 23 July 2012 11:45, javier Martin <javier.martin@vista-silicon.com> wrote:
+> >> > Sorry, I had a problem with my buildroot environment. This is the
+> >> > v4l2-compliance output with the most recent version:
+> >> >
+> >> > # v4l2-compliance -d /dev/video2
+> >> > Driver Info:
+> >> >         Driver name   : coda
+> >> >         Card type     : coda
+> >> >         Bus info      : coda
+> >> >         Driver version: 0.0.0
+> >> >         Capabilities  : 0x84000003
+> >> >                 Video Capture
+> >> >                 Video Output
+> >> >                 Streaming
+> >> >                 Device Capabilities
+> >> >         Device Caps   : 0x04000003
+> >> >                 Video Capture
+> >> >                 Video Output
+> >> >                 Streaming
+> >> >
+> >> > Compliance test for device /dev/video2 (not using libv4l2):
+> >> >
+> >> > Required ioctls:
+> >> >                 fail: v4l2-compliance.cpp(270): (vcap.version >> 16) < 3
+> >> >         test VIDIOC_QUERYCAP: FAIL
+> >> >
+> >>
+> >> This was related to a memset() that I did in QUERYCAP.
+> >>
+> >> Now the output is cleaner.
+> >
+> > Ah, much better.
+> >
+> >>
+> >> # v4l2-compliance -d /dev/video2
+> >> Driver Info:
+> >>         Driver name   : coda
+> >>         Card type     : coda
+> >>         Bus info      : coda
+> >>         Driver version: 3.5.0
+> >>         Capabilities  : 0x84000003
+> >>                 Video Capture
+> >>                 Video Output
+> >>                 Streaming
+> >>                 Device Capabilities
+> >>         Device Caps   : 0x04000003
+> >>                 Video Capture
+> >>                 Video Output
+> >>                 Streaming
+> >>
+> >> Compliance test for device /dev/video2 (not using libv4l2):
+> >>
+> >> Required ioctls:
+> >>         test VIDIOC_QUERYCAP: OK
+> >>
+> >> Allow for multiple opens:
+> >>         test second video open: OK
+> >>         test VIDIOC_QUERYCAP: OK
+> >>         test VIDIOC_G/S_PRIORITY: OK
+> >>
+> >> Debug ioctls:
+> >>         test VIDIOC_DBG_G_CHIP_IDENT: Not Supported
+> >>         test VIDIOC_DBG_G/S_REGISTER: Not Supported
+> >>         test VIDIOC_LOG_STATUS: Not Supported
+> >>
+> >> Input ioctls:
+> >>         test VIDIOC_G/S_TUNER: Not Supported
+> >>         test VIDIOC_G/S_FREQUENCY: Not Supported
+> >>         test VIDIOC_S_HW_FREQ_SEEK: Not Supported
+> >>         test VIDIOC_ENUMAUDIO: Not Supported
+> >>         test VIDIOC_G/S/ENUMINPUT: Not Supported
+> >>         test VIDIOC_G/S_AUDIO: Not Supported
+> >>         Inputs: 0 Audio Inputs: 0 Tuners: 0
+> >>
+> >> Output ioctls:
+> >>         test VIDIOC_G/S_MODULATOR: Not Supported
+> >>         test VIDIOC_G/S_FREQUENCY: Not Supported
+> >>         test VIDIOC_ENUMAUDOUT: Not Supported
+> >>         test VIDIOC_G/S/ENUMOUTPUT: Not Supported
+> >>         test VIDIOC_G/S_AUDOUT: Not Supported
+> >>         Outputs: 0 Audio Outputs: 0 Modulators: 0
+> >>
+> >> Control ioctls:
+> >>         test VIDIOC_QUERYCTRL/MENU: OK
+> >>         test VIDIOC_G/S_CTRL: OK
+> >>                 fail: v4l2-test-controls.cpp(565): try_ext_ctrls did
+> >> not check the read-only flag
+> >
+> > Hmm, what's the reason for this one I wonder. Can you run with '-v2' and see
+> > for which control this fails?
+> >
+> >>         test VIDIOC_G/S/TRY_EXT_CTRLS: FAIL
+> >>                 fail: v4l2-test-controls.cpp(698): subscribe event for
+> >> control 'MPEG Encoder Controls' failed
+> >
+> > Known bug in v4l2-memtest.c. Fixed in my pending patch.
+> >
+> >>         test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
+> >>         test VIDIOC_G/S_JPEGCOMP: Not Supported
+> >>         Standard Controls: 10 Private Controls: 0
+> >>
+> >> Input/Output configuration ioctls:
+> >>         test VIDIOC_ENUM/G/S/QUERY_STD: Not Supported
+> >>         test VIDIOC_ENUM/G/S/QUERY_DV_PRESETS: Not Supported
+> >>         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: Not Supported
+> >>         test VIDIOC_DV_TIMINGS_CAP: Not Supported
+> >>
+> >> Format ioctls:
+> >>         test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+> >>                 fail: v4l2-test-formats.cpp(558): cap->readbuffers
+> >
+> > Fixed in pending patch for v4l2-ioctl.c
+> >
+> >>         test VIDIOC_G/S_PARM: FAIL
+> >>         test VIDIOC_G_FBUF: Not Supported
+> >>                 fail: v4l2-test-formats.cpp(382): !pix.width || !pix.height
+> >
+> > This isn't right and you should fix this. I did a similar fix for mem2mem_testdev:
+> >
+> > http://www.spinics.net/lists/linux-media/msg50487.html
+> 
+> It seems this is the only problem left since the rest are related to
+> framework issues which are already fixed.
 
-On Mon, 16 Jul 2012, Albert Wang wrote:
+Correct.
 
-> Hi, Jonathan
-> 
-> We really appreciate you can find time to review our patch and give us 
-> suggestion.
+> Ok, the problem here is that for video encoded formats I return 0 for
+> both width and height. I've seen Samsung do the same in this driver:
+> http://lxr.linux.no/#linux+v3.5/drivers/media/video/s5p-mfc/s5p_mfc_enc.c#L838
 
-I think, my current position with regard to this situation with the two 
-drivers would be the following (please, discuss, if you disagree, I'm open 
-to suggestions and ideas):
+And that's a bug.
+ 
+> Is this correct? Does setting width and height make sense for a video
+> encodec format such as H.264, MPEG4?
 
- - IIUC, Albert would prefer to push this driver upstream without any 
-   integration with marvell-ccic. I _might_ accept and support this 
-   intention, but for that I'd either need an ack from Jon, that indeed, 
-   the new driver has much more to offer and only reimplements very 
-   insignificant parts of marvell-ccic, or I would have to try to verify 
-   this myself. The latter would take time.
+Why wouldn't it? Otherwise the application would have to parse the encoded
+frame to determine the width and height. And the driver should know the
+width and height already, right?
 
- - If Jon says, that on the contrary, these two hardware implementations 
-   share a lot in common and a shared code base definitely makes sense, I 
-   will accept that and we will look for ways to also organise the drivers 
-   accordingly.
+And initially you just setup some default format. V4L2 requires that G_FMT
+always returns something sensible, so you have to pick some initial format.
 
-In either case, unless you guys come to an agreement, I will need to find 
-a larger time slot (like a long flight or a boring holiday:-)) to try to 
-look at the code (and datasheets, if made available) myself and make a 
-decision. No idea when I'll be able to find the time.
+Regards,
 
-BTW, are datasheets openly available? If not, a copy of each would be 
-appreciated.
-
-Thanks
-Guennadi
-
-> On Sunday, 15 July, 2012 01:14
-> 
-> Jonathan Corbet <corbet@lwn.net<mailto:corbet@lwn.net>> wrote:
-> 
-> 
-> 
-> > ...
-> 
-> 
-> 
-> >> This v4l2 camera driver is based on soc-camera and videobuf2 framework
-> 
-> >> Support Marvell MMP Soc family TD-PXA910/MMP2-PXA688/MMP3-PXA2128 CCIC
-> 
-> >> Support Dual CCIC controllers on PXA688/PXA2128 Support MIPI-CSI2 mode
-> 
-> >> and DVP-Parallel mode
-> 
-> 
-> 
-> >This is going to be really quick.  Life is difficult here, I don't really have much time to put into anything.
-> 
-> 
-> 
-> >>  arch/arm/mach-mmp/include/mach/camera.h    |   21 +
-> 
-> 
-> 
-> >I don't think that this file belongs here; it should be in the driver tree.  This camera may not always be tied to this platform; indeed, the original Cafe was not.  There will never be a 64-bit SoC with
-> 
-> >some variant of this device?
-> 
-> 
-> 
-> Yes, your suggestion is reasonable.
-> 
-> How do you like we change the file name to mrvl-camera.h and move it to include/Linux/platform_data/?
-> 
-> 
-> 
-> 
-> 
-> >> +config VIDEO_MMP
-> 
-> >> +     tristate "Marvell MMP CCIC driver based on SOC_CAMERA"
-> 
-> >> +     depends on VIDEO_DEV && SOC_CAMERA
-> 
-> >> +     select VIDEOBUF2_DMA_CONTIG
-> 
-> >> +     ---help---
-> 
-> >> +       This is a v4l2 driver for the Marvell PXA910/PXA688/PXA2128 CCIC
-> 
-> >> +       To compile this driver as a module, choose M here: the module will
-> 
-> >> +       be called mmp_camera.
-> 
-> 
-> 
-> >But...the existing driver already builds as mmp_camera.  Even if we eventually agree that this separate driver should go into the mainline, it really needs to not build into a module with the same name.
-> 
-> 
-> 
-> OK. We will think about changing the module name for avoiding the name conflict.
-> 
-> 
-> 
-> >> +/*
-> 
-> >> + * V4L2 Driver for Marvell Mobile SoC PXA910/PXA688/PXA2128 CCIC
-> 
-> >> + * (CMOS Camera Interface Controller)
-> 
-> >> + *
-> 
-> >> + * This driver is based on soc_camera and videobuf2 framework,
-> 
-> >> + * but part of the low level register function is base on café-driver.c
-> 
-> >> + *
-> 
-> >> + * Copyright 2006 One Laptop Per Child Association, Inc.
-> 
-> >> + * Copyright 2006-7 Jonathan Corbet <corbet@lwn.net<mailto:corbet@lwn.net>>
-> 
-> 
-> 
-> >Nit: some of the code clearly comes from marvell-ccic/mcam-core.c, so the copyright dates (if they really need to be kept) should stretch into 2011 or so.
-> 
-> 
-> 
-> Yes, we will keep it and change the copyright dates to 2011.
-> 
-> 
-> 
-> >I don't see anything else obvious, but it was a very quick reading, sorry.
-> 
-> 
-> 
-> >Jon
-> 
-> 
-> 
-> Thanks
-> 
-> Albert Wang
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+	Hans
