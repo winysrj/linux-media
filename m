@@ -1,46 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48207 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751764Ab2GIJTt (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:56506 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754008Ab2GWI1O (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Jul 2012 05:19:49 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: sfr@canb.auug.org.au
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	s.nawrocki@samsung.com
-Subject: [PATCH 1/1] v4l: Export v4l2-common.h in include/linux/Kbuild
-Date: Mon,  9 Jul 2012 12:10:26 +0300
-Message-Id: <1341825026-29120-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120709115046.f09fe2d15e33e7502cbad222@canb.auug.org.au>
-References: <20120709115046.f09fe2d15e33e7502cbad222@canb.auug.org.au>
+	Mon, 23 Jul 2012 04:27:14 -0400
+Received: by wgbdr13 with SMTP id dr13so5588561wgb.1
+        for <linux-media@vger.kernel.org>; Mon, 23 Jul 2012 01:27:13 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201207231020.58305.hverkuil@xs4all.nl>
+References: <1342782515-24992-1-git-send-email-javier.martin@vista-silicon.com>
+	<201207211150.15296.hverkuil@xs4all.nl>
+	<CACKLOr3ZuAru9knFv4M=BWxRWP27ztoZdbACPXVHPrNLhzKPng@mail.gmail.com>
+	<201207231020.58305.hverkuil@xs4all.nl>
+Date: Mon, 23 Jul 2012 10:27:13 +0200
+Message-ID: <CACKLOr2tRXicxUzwPMe0Z3v43aX9dyRK4bFp-XKwXu9pJDJ=pA@mail.gmail.com>
+Subject: Re: [PATCH v6] media: coda: Add driver for Coda video codec.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.hauer@pengutronix.de, p.zabel@pengutronix.de
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2-common.h is a header file that's used in user space, thus it must be
-exported using header-y.
+On 23 July 2012 10:20, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Mon July 23 2012 10:02:04 javier Martin wrote:
+>> Hi Hans,
+>>
+>> On 21 July 2012 11:50, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> > On Fri July 20 2012 13:08:35 Javier Martin wrote:
+>> >> Coda is a range of video codecs from Chips&Media that
+>> >> support H.264, H.263, MPEG4 and other video standards.
+>> >>
+>> >> Currently only support for the codadx6 included in the
+>> >> i.MX27 SoC is added. H.264 and MPEG4 video encoding
+>> >> are the only supported capabilities by now.
+>> >>
+>> >> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+>> >> Reviewed-by: Philipp Zabel<p.zabel@pengutronix.de>
+>> >> ---
+>> >> Changes since v5:
+>> >>  - Fixed some v4l2-compliance issues.
+>> >
+>> > Some or all? Can you give me the 'v4l2-compliance -v1' output?
+>>
+>> I've not corrected some mistakes that are pointed by v4l2-compliance
+>> that I consider bogus for my mem2mem video encoder.
+>>
+>> I don't mind helping you test the new m2m capabilities of
+>> 'v4l2-compliance' but I don't think delaying this driver to enter
+>> mainline for this merge window for this is reasonable. Please, find
+>> the output you requested below:
+>>
+>>
+>> Driver Info:
+>>         Driver name   : coda
+>>         Card type     : coda
+>>         Bus info      : coda
+>>         Driver version: 0.0.0
+>
+> ??? This should be set to the kernel version by v4l2-ioctl.c. What kernel
+> are you using?
+>
+>>         Capabilities  : 0x84000003
+>>                 Video Capture
+>>                 Video Output
+>>                 Streaming
+>>
+>> Compliance test for device /dev/video2 (not using libv4l2):
+>>
+>> Required ioctls:
+>>                 fail: v4l2-compliance.cpp(251): check_0(vcap.reserved,
+>> sizeof(vcap.reserved))
+>
+> This is very strange. Please investigate! vcap is zeroed in v4l2-ioctl.c before
+> calling vidioc_querycap in the driver, so why would reserved[] be non-zero?
+> Perhaps some memory overwrite?
+>
+>>         test VIDIOC_QUERYCAP: FAIL
+>>
+>> Allow for multiple opens:
+>>         test second video open: OK
+>>                 fail: v4l2-compliance.cpp(251): check_0(vcap.reserved,
+>> sizeof(vcap.reserved))
+>>         test VIDIOC_QUERYCAP: FAIL
+>>                 fail: v4l2-compliance.cpp(273): doioctl(node,
+>> VIDIOC_G_PRIORITY, &prio)
+>
+> Are you using the latest v4l2-compliance? You shouldn't see this fail for mem2mem
+> devices.
+>
+>>         test VIDIOC_G/S_PRIORITY: FAIL
+>>
+>> Debug ioctls:
+>>         test VIDIOC_DBG_G_CHIP_IDENT: FAIL
+>>                 fail: v4l2-test-debug.cpp(82): uid == 0 && ret
+>>         test VIDIOC_DBG_G/S_REGISTER: FAIL
+>>         test VIDIOC_LOG_STATUS: FAIL
+>
+> Weird as well. This suggests you are using this driver with an old kernel. The
+> return code for unimplemented ioctls changed from EINVAL to ENOTTY some kernel
+> versions ago. This may actually be the cause of the G_PRIO fail above.
+>
+>>
+>> Input ioctls:
+>>                 fail: v4l2-test-input-output.cpp(133): couldn't get tuner 0
+>>         test VIDIOC_G/S_TUNER: FAIL
+>>                 fail: v4l2-test-input-output.cpp(228): could get
+>> frequency for invalid tuner 0
+>>         test VIDIOC_G/S_FREQUENCY: FAIL
+>>                 fail: v4l2-test-input-output.cpp(358): could not
+>> enumerate audio input 0
+>>         test VIDIOC_ENUMAUDIO: FAIL
+>>                 fail: v4l2-test-input-output.cpp(290): could not get
+>> current input
+>>         test VIDIOC_G/S/ENUMINPUT: FAIL
+>>         test VIDIOC_G/S_AUDIO: Not Supported
+>>         Inputs: 0 Audio Inputs: 0 Tuners: 0
+>>
+>> Output ioctls:
+>>                 fail: v4l2-test-input-output.cpp(479): couldn't get modulator 0
+>>         test VIDIOC_G/S_MODULATOR: FAIL
+>>                 fail: v4l2-test-input-output.cpp(563): could get
+>> frequency for invalid modulator 0
+>>         test VIDIOC_G/S_FREQUENCY: FAIL
+>>                 fail: v4l2-test-input-output.cpp(682): could not
+>> enumerate audio output 0
+>>         test VIDIOC_ENUMAUDOUT: FAIL
+>>         test VIDIOC_G/S/ENUMOUTPUT: FAIL
+>>         test VIDIOC_G/S_AUDOUT: Not Supported
+>>         Outputs: 0 Audio Outputs: 0 Modulators: 0
+>>
+>> Control ioctls:
+>>         test VIDIOC_QUERYCTRL/MENU: OK
+>>         test VIDIOC_G/S_CTRL: OK
+>>                 fail: v4l2-test-controls.cpp(532): try_ext_ctrls did
+>> not check the read-only flag
+>>         test VIDIOC_G/S/TRY_EXT_CTRLS: FAIL
+>>         Standard Controls: 10 Private Controls: 0
+>>
+>> Input/Output configuration ioctls:
+>>         test VIDIOC_ENUM/G/S/QUERY_STD: Not Supported
+>>         test VIDIOC_ENUM/G/S/QUERY_DV_PRESETS: Not Supported
+>>         test VIDIOC_G/S_DV_TIMINGS: Not Supported
+>>
+>> Format ioctls:
+>>                 fail: v4l2-test-formats.cpp(138): expected EINVAL, but
+>> got 25 when enumerating framesize 0
+>>         test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: FAIL
+>>                 fail: v4l2-test-formats.cpp(327): expected EINVAL, but
+>> got 25 when getting framebuffer format
+>>         test VIDIOC_G_FBUF: FAIL
+>>                 fail: v4l2-test-formats.cpp(383): !pix.width || !pix.height
+>>         test VIDIOC_G_FMT: FAIL
+>>                 fail: v4l2-test-formats.cpp(509): ret && ret != EINVAL
+>> && sliced_type
+>>         test VIDIOC_G_SLICED_VBI_CAP: FAIL
+>> Total: 27 Succeeded: 8 Failed: 19 Warnings: 0
+>
+> It would be much more helpful if you can test this against a recent kernel.
+>
+> Regards,
+>
+>         Hans
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
-Hi Stephen,
+Hi Hans.
+I am using a recent version:
 
-Could you try is this patch fixes your issue? The header file indeed should
-be exported which wasn't done previously.
+Linux visstrim 3.5.0-rc5-00012-g0f6f3b0-dirty #283 PREEMPT Mon Jul 23
+09:54:38 CEST 2012 armv5tejl GNU/Linux
 
- include/linux/Kbuild |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/Kbuild b/include/linux/Kbuild
-index d38b3a8..ef4cc94 100644
---- a/include/linux/Kbuild
-+++ b/include/linux/Kbuild
-@@ -382,6 +382,7 @@ header-y += usbdevice_fs.h
- header-y += utime.h
- header-y += utsname.h
- header-y += uvcvideo.h
-+header-y += v4l2-common.h
- header-y += v4l2-dv-timings.h
- header-y += v4l2-mediabus.h
- header-y += v4l2-subdev.h
+
+
 -- 
-1.7.2.5
-
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
