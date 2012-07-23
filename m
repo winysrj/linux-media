@@ -1,128 +1,338 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43096 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754233Ab2GYKib (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jul 2012 06:38:31 -0400
-Message-ID: <500FCC9C.7070609@iki.fi>
-Date: Wed, 25 Jul 2012 13:38:20 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Marko Ristola <marko.ristola@kolumbus.fi>
-CC: linux-media <linux-media@vger.kernel.org>,
-	htl10@users.sourceforge.net
-Subject: Re: DVB core enhancements - comments please?
-References: <4FEBA656.7060608@iki.fi> <4FEECA65.9090205@kolumbus.fi> <4FF0307E.50408@iki.fi> <4FF32A2B.7010607@kolumbus.fi> <500ADA89.6090508@iki.fi>
-In-Reply-To: <500ADA89.6090508@iki.fi>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41705 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752046Ab2GWOCf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jul 2012 10:02:35 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v2] v4l2-ctrls: Add v4l2_ctrl_[gs]_ctrl_int64()
+Date: Mon, 23 Jul 2012 16:02:40 +0200
+Message-Id: <1343052160-24229-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Marko,
+These helper functions get and set a 64-bit control's value from within
+a driver. They are similar to v4l2_ctrl_[gs]_ctrl() but operate on
+64-bit integer controls instead of 32-bit controls.
 
-On 07/21/2012 07:36 PM, Antti Palosaari wrote:
-> Morjens!
->
-> I am now working with that suspend/resume/power-management, as I got LNA
-> issues resolved.
->
-> On 07/03/2012 08:21 PM, Marko Ristola wrote:
->>
->> Moikka Antti.
->>
->>
->> On 07/01/2012 02:11 PM, Antti Palosaari wrote:
->>> Moikka Marko,
->>>
->> -- snip --
->>>
->>> Hmm, I did some initial suspend / resume changes for DVB USB when I
->>> rewrote it recently. On suspend, it just kills all ongoing urbs used
->>> for streaming. And on resume it resubmit those urbs in order to resume
->>> streaming. It just works as it doesn't hang computer anymore. What I
->>> tested applications continued to show same television channels on
->>> resume.
->>>
->>> The problem for that solution is that it does not have any power
->>> management as power management is DVB-core responsibility. So it
->>> continues eating current because chips are not put sleep and due to
->>> that those DVB-core changes are required.
->>
->> I think that runtime (RT) frontend power saving is a different thing.
->> It isn't necessarily suspend/resume thing.
->
-> Yes it is different thing (DVB-core runtime power-management). But as
-> there is currently implemented .init() and .sleep() callbacks both
-> frontend and tuner for power management I don't see why not to use those
-> for suspend and resume too.
->
->> I implemented runtime Frontend power saving in 2007 on that patch I
->> referenced.
->> I used dvb-core's existing functionality. Maybe this concept is
->> applicable for you too.
->>
->> I added into Mantis bridge device initialization following functions:
->> +                       mantis->fe->ops.tuner_ops.sleep =
->> mantis_dvb_tuner_sleep;
->> +                       mantis->fe->ops.tuner_ops.init =
->> mantis_dvb_tuner_init;
->> tuner_ops.{sleep,init} modification had to be the last one.
->>
->> I maintained in mantis->has_power the frontend's power status.
->> Maybe I could have read the active status from PCI context too.
->>
->> The concept was something like:
->> - dvb-core has responsibility to call tuner_ops.sleep() and
->> tuner_ops.init() when applicable.
->> - Mantis PCI Bridge driver (or specific USB driver) has responsibility
->>    to provide sleep and init implementations for the specific device.
->> - Mantis bridge device will do the whole task of frontend power
->> management, by calling Frontend's
->>    tear down / initialization functions when necessary.
->
-> I looked it and reads your discussion too. That code seem never ended up
-> for Mantis.
->
-> But the idea is just basically same: use existing sleep() calls to put
-> device sleep on suspend and on resume use init() to wake-up again. You
-> stored existing parameters inside driver state and retuned using those
-> when set_frontend() get NULL as a parameter. Things has changed a little
-> after that and now those parameters are stored already in dvb-frontend
-> cache - which means a little less work for driver.
->
->>>> - What changes encrypted channels need?
->>>
->>> I think none?
->
->
->
-> So after all, what I think currently, is:
-> * bridge sets and forwards .suspend() callback to dvb-core
-> * bridge sets and forwards .resume() callback to dvb-core
-> * on suspend, dvb-core puts device sleep
-> * on resume, dvb-core wake-ups device and inits tune (parameters are in
-> cache already)
->
-> Clearly, put hardware sleep similarly as in case frontend is in sleep,
-> but keep userland interface alive (frontend, demux, etc).
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/v4l2-ctrls.c |  135 +++++++++++++++++++++++---------------
+ include/media/v4l2-ctrls.h       |   23 +++++++
+ 2 files changed, 105 insertions(+), 53 deletions(-)
 
-I ended-up still quite much DVB USB driven implementation. DVB-core 
-(frontend) is asked only to do retune on resume.
+Changes since v1:
 
-http://git.linuxtv.org/anttip/media_tree.git/commit/4829b70d8acf8c815e783e55e13f57beb3609602
-http://git.linuxtv.org/anttip/media_tree.git/commit/ec99a11dc0c92df3c7f2b0b1f02fcddb23636391
+- Add v4l2_ctrl_g_ctrl_int64()
+- Merge validate_new_int() and validate_new()
+- Add a comment warning about string controls in set_ctrl()
 
-It still lacks LNB voltage and tone and LNA handling. But as those are 
-quite rare I decided to left those out for now. For LNB there is already 
-some logic inside dvb frontend which could be used...
-
-DVB frontend seems to be quite complex currently and due to that I don't 
-want to touch it much. There is all kind of quirks including APIv3 / 
-APIv5 conversions. I am almost sure half of frontend code could be 
-reduced if written from the scratch.
-
-regards
-Antti
-
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 9abd9ab..3042895 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -1173,76 +1173,53 @@ static int cluster_changed(struct v4l2_ctrl *master)
+ 	return diff;
+ }
+ 
+-/* Validate integer-type control */
+-static int validate_new_int(const struct v4l2_ctrl *ctrl, s32 *pval)
++/* Validate a new control */
++static int validate_new(const struct v4l2_ctrl *ctrl,
++			struct v4l2_ext_control *c)
+ {
+-	s32 val = *pval;
++	size_t len;
+ 	u32 offset;
++	s32 val;
+ 
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_INTEGER:
+ 		/* Round towards the closest legal value */
+-		val += ctrl->step / 2;
+-		if (val < ctrl->minimum)
+-			val = ctrl->minimum;
+-		if (val > ctrl->maximum)
+-			val = ctrl->maximum;
++		val = c->value + ctrl->step / 2;
++		val = clamp(val, ctrl->minimum, ctrl->maximum);
+ 		offset = val - ctrl->minimum;
+ 		offset = ctrl->step * (offset / ctrl->step);
+-		val = ctrl->minimum + offset;
+-		*pval = val;
++		c->value = ctrl->minimum + offset;
+ 		return 0;
+ 
+ 	case V4L2_CTRL_TYPE_BOOLEAN:
+-		*pval = !!val;
++		c->value = !!c->value;
+ 		return 0;
+ 
+ 	case V4L2_CTRL_TYPE_MENU:
+ 	case V4L2_CTRL_TYPE_INTEGER_MENU:
+-		if (val < ctrl->minimum || val > ctrl->maximum)
++		if (c->value < ctrl->minimum || c->value > ctrl->maximum)
+ 			return -ERANGE;
+-		if (ctrl->menu_skip_mask & (1 << val))
++		if (ctrl->menu_skip_mask & (1 << c->value))
+ 			return -EINVAL;
+ 		if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
+-		    ctrl->qmenu[val][0] == '\0')
++		    ctrl->qmenu[c->value][0] == '\0')
+ 			return -EINVAL;
+ 		return 0;
+ 
+ 	case V4L2_CTRL_TYPE_BITMASK:
+-		*pval &= ctrl->maximum;
++		c->value &= ctrl->maximum;
+ 		return 0;
+ 
+ 	case V4L2_CTRL_TYPE_BUTTON:
+ 	case V4L2_CTRL_TYPE_CTRL_CLASS:
+-		*pval = 0;
++		c->value = 0;
+ 		return 0;
+ 
+-	default:
+-		return -EINVAL;
+-	}
+-}
+-
+-/* Validate a new control */
+-static int validate_new(const struct v4l2_ctrl *ctrl, struct v4l2_ext_control *c)
+-{
+-	char *s = c->string;
+-	size_t len;
+-
+-	switch (ctrl->type) {
+-	case V4L2_CTRL_TYPE_INTEGER:
+-	case V4L2_CTRL_TYPE_BOOLEAN:
+-	case V4L2_CTRL_TYPE_MENU:
+-	case V4L2_CTRL_TYPE_INTEGER_MENU:
+-	case V4L2_CTRL_TYPE_BITMASK:
+-	case V4L2_CTRL_TYPE_BUTTON:
+-	case V4L2_CTRL_TYPE_CTRL_CLASS:
+-		return validate_new_int(ctrl, &c->value);
+-
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+ 		return 0;
+ 
+ 	case V4L2_CTRL_TYPE_STRING:
+-		len = strlen(s);
++		len = strlen(c->string);
+ 		if (len < ctrl->minimum)
+ 			return -ERANGE;
+ 		if ((len - ctrl->minimum) % ctrl->step)
+@@ -2234,12 +2211,19 @@ int v4l2_subdev_g_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs
+ EXPORT_SYMBOL(v4l2_subdev_g_ext_ctrls);
+ 
+ /* Helper function to get a single control */
+-static int get_ctrl(struct v4l2_ctrl *ctrl, s32 *val)
++static int get_ctrl(struct v4l2_ctrl *ctrl, struct v4l2_ext_control *c)
+ {
+ 	struct v4l2_ctrl *master = ctrl->cluster[0];
+ 	int ret = 0;
+ 	int i;
+ 
++	/* String controls are not supported. The new_to_user() and
++	 * cur_to_user() calls below would need to be fixed not to access
++	 * userspace memory.
++	 */
++	if (ctrl->type == V4L2_CTRL_TYPE_STRING)
++		return -EINVAL;
++
+ 	if (ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
+ 		return -EACCES;
+ 
+@@ -2249,9 +2233,9 @@ static int get_ctrl(struct v4l2_ctrl *ctrl, s32 *val)
+ 		for (i = 0; i < master->ncontrols; i++)
+ 			cur_to_new(master->cluster[i]);
+ 		ret = call_op(master, g_volatile_ctrl);
+-		*val = ctrl->val;
++		new_to_user(c, ctrl);
+ 	} else {
+-		*val = ctrl->cur.val;
++		cur_to_user(c, ctrl);
+ 	}
+ 	v4l2_ctrl_unlock(master);
+ 	return ret;
+@@ -2260,10 +2244,14 @@ static int get_ctrl(struct v4l2_ctrl *ctrl, s32 *val)
+ int v4l2_g_ctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_control *control)
+ {
+ 	struct v4l2_ctrl *ctrl = v4l2_ctrl_find(hdl, control->id);
++	struct v4l2_ext_control c;
++	int ret;
+ 
+ 	if (ctrl == NULL || !type_is_int(ctrl))
+ 		return -EINVAL;
+-	return get_ctrl(ctrl, &control->value);
++	ret = get_ctrl(ctrl, &c);
++	control->value = c.value;
++	return ret;
+ }
+ EXPORT_SYMBOL(v4l2_g_ctrl);
+ 
+@@ -2275,15 +2263,28 @@ EXPORT_SYMBOL(v4l2_subdev_g_ctrl);
+ 
+ s32 v4l2_ctrl_g_ctrl(struct v4l2_ctrl *ctrl)
+ {
+-	s32 val = 0;
++	struct v4l2_ext_control c;
+ 
+ 	/* It's a driver bug if this happens. */
+ 	WARN_ON(!type_is_int(ctrl));
+-	get_ctrl(ctrl, &val);
+-	return val;
++	c.value = 0;
++	get_ctrl(ctrl, &c);
++	return c.value;
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_g_ctrl);
+ 
++s64 v4l2_ctrl_g_ctrl_int64(struct v4l2_ctrl *ctrl)
++{
++	struct v4l2_ext_control c;
++
++	/* It's a driver bug if this happens. */
++	WARN_ON(ctrl->type != V4L2_CTRL_TYPE_INTEGER64);
++	c.value = 0;
++	get_ctrl(ctrl, &c);
++	return c.value;
++}
++EXPORT_SYMBOL(v4l2_ctrl_g_ctrl_int64);
++
+ 
+ /* Core function that calls try/s_ctrl and ensures that the new value is
+    copied to the current value on a set.
+@@ -2499,13 +2500,21 @@ int v4l2_subdev_s_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs
+ EXPORT_SYMBOL(v4l2_subdev_s_ext_ctrls);
+ 
+ /* Helper function for VIDIOC_S_CTRL compatibility */
+-static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, s32 *val)
++static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl,
++		    struct v4l2_ext_control *c)
+ {
+ 	struct v4l2_ctrl *master = ctrl->cluster[0];
+ 	int ret;
+ 	int i;
+ 
+-	ret = validate_new_int(ctrl, val);
++	/* String controls are not supported. The user_to_new() and
++	 * cur_to_user() calls below would need to be fixed not to access
++	 * userspace memory.
++	 */
++	if (ctrl->type == V4L2_CTRL_TYPE_STRING)
++		return -EINVAL;
++
++	ret = validate_new(ctrl, c);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -2520,12 +2529,13 @@ static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, s32 *val)
+ 	   manual mode we have to update the current volatile values since
+ 	   those will become the initial manual values after such a switch. */
+ 	if (master->is_auto && master->has_volatiles && ctrl == master &&
+-	    !is_cur_manual(master) && *val == master->manual_mode_value)
++	    !is_cur_manual(master) && c->value == master->manual_mode_value)
+ 		update_from_auto_cluster(master);
+-	ctrl->val = *val;
+-	ctrl->is_new = 1;
++
++	user_to_new(c, ctrl);
+ 	ret = try_or_set_cluster(fh, master, true);
+-	*val = ctrl->cur.val;
++	cur_to_user(c, ctrl);
++
+ 	v4l2_ctrl_unlock(ctrl);
+ 	return ret;
+ }
+@@ -2534,6 +2544,8 @@ int v4l2_s_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 					struct v4l2_control *control)
+ {
+ 	struct v4l2_ctrl *ctrl = v4l2_ctrl_find(hdl, control->id);
++	struct v4l2_ext_control c;
++	int ret;
+ 
+ 	if (ctrl == NULL || !type_is_int(ctrl))
+ 		return -EINVAL;
+@@ -2541,7 +2553,10 @@ int v4l2_s_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 	if (ctrl->flags & V4L2_CTRL_FLAG_READ_ONLY)
+ 		return -EACCES;
+ 
+-	return set_ctrl(fh, ctrl, &control->value);
++	c.value = control->value;
++	ret = set_ctrl(fh, ctrl, &c);
++	control->value = c.value;
++	return ret;
+ }
+ EXPORT_SYMBOL(v4l2_s_ctrl);
+ 
+@@ -2553,12 +2568,26 @@ EXPORT_SYMBOL(v4l2_subdev_s_ctrl);
+ 
+ int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val)
+ {
++	struct v4l2_ext_control c;
++
+ 	/* It's a driver bug if this happens. */
+ 	WARN_ON(!type_is_int(ctrl));
+-	return set_ctrl(NULL, ctrl, &val);
++	c.value = val;
++	return set_ctrl(NULL, ctrl, &c);
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_s_ctrl);
+ 
++int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val)
++{
++	struct v4l2_ext_control c;
++
++	/* It's a driver bug if this happens. */
++	WARN_ON(ctrl->type != V4L2_CTRL_TYPE_INTEGER64);
++	c.value64 = val;
++	return set_ctrl(NULL, ctrl, &c);
++}
++EXPORT_SYMBOL(v4l2_ctrl_s_ctrl_int64);
++
+ static int v4l2_ctrl_add_event(struct v4l2_subscribed_event *sev, unsigned elems)
+ {
+ 	struct v4l2_ctrl *ctrl = v4l2_ctrl_find(sev->fh->ctrl_handler, sev->id);
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 776605f..7ef6b27 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -511,6 +511,29 @@ s32 v4l2_ctrl_g_ctrl(struct v4l2_ctrl *ctrl);
+   */
+ int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val);
+ 
++/** v4l2_ctrl_g_ctrl_int64() - Helper function to get a 64-bit control's value from within a driver.
++  * @ctrl:	The control.
++  *
++  * This returns the control's value safely by going through the control
++  * framework. This function will lock the control's handler, so it cannot be
++  * used from within the &v4l2_ctrl_ops functions.
++  *
++  * This function is for 64-bit integer type controls only.
++  */
++s64 v4l2_ctrl_g_ctrl_int64(struct v4l2_ctrl *ctrl);
++
++/** v4l2_ctrl_s_ctrl_int64() - Helper function to set a 64-bit control's value from within a driver.
++  * @ctrl:	The control.
++  * @val:	The new value.
++  *
++  * This set the control's new value safely by going through the control
++  * framework. This function will lock the control's handler, so it cannot be
++  * used from within the &v4l2_ctrl_ops functions.
++  *
++  * This function is for 64-bit integer type controls only.
++  */
++int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val);
++
+ /* Internal helper functions that deal with control events. */
+ extern const struct v4l2_subscribed_event_ops v4l2_ctrl_sub_ev_ops;
+ void v4l2_ctrl_replace(struct v4l2_event *old, const struct v4l2_event *new);
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
+
