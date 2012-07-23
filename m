@@ -1,43 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oyp.chewa.net ([91.121.6.101]:45455 "EHLO oyp.chewa.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754810Ab2GXUFL convert rfc822-to-8bit (ORCPT
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:56493 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752672Ab2GWMfP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jul 2012 16:05:11 -0400
-From: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: Media summit at the Kernel Summit - was: Fwd: Re: [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
-Date: Tue, 24 Jul 2012 23:05:06 +0300
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	workshop-2011@linuxtv.org
-References: <20120713173708.GB17109@thunk.org> <5005A14D.8000809@redhat.com>
-In-Reply-To: <5005A14D.8000809@redhat.com>
+	Mon, 23 Jul 2012 08:35:15 -0400
+Received: by vcbfk26 with SMTP id fk26so4643655vcb.19
+        for <linux-media@vger.kernel.org>; Mon, 23 Jul 2012 05:35:14 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201207242305.08220.remi@remlab.net>
+In-Reply-To: <201207201105.45303.hverkuil@xs4all.nl>
+References: <CAGzWAsg3hsGV5CPsCzxcKO4djG4iRZauEQvju=G=Zp4Rpqpz2g@mail.gmail.com>
+	<201207191606.21244.hverkuil@xs4all.nl>
+	<CAGzWAsjxOHkccZstHfiqNKhLNCNMRoCsswP8vNOEDeE-FSHVug@mail.gmail.com>
+	<201207201105.45303.hverkuil@xs4all.nl>
+Date: Mon, 23 Jul 2012 18:05:14 +0530
+Message-ID: <CAGzWAsg2fhmxDshtruGm90YAiVbHis7hEuE_BZRFBV_PPa-h7g@mail.gmail.com>
+Subject: Re: Supporting 3D formats in V4L2
+From: Soby Mathew <soby.linuxtv@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-	Hello,
+Hi Hans,
+ Thanks for the reply and I was going through the HDMI1.4 spec again.
+The 'active space' is part of the Vactive and Vactive is sum of active
+video and active space.
 
-Le mardi 17 juillet 2012 20:30:53 Mauro Carvalho Chehab, vous avez écrit :
-> As we did in 2012, we're planning to do a media summit again at KS/2012.
-> 
-> The KS/2012 will happen in San Diego, CA, US, between Aug 26-28, just
-> before the LinuxCon North America.
-> 
-> In order to do it, I'd like to know who is interested on participate,
-> and to get proposals about what subjects will be discussed there,
-> in order to start planning the agenda.
+> No, as I understand it active_space is just part of the active video. So the
+> timings struct is fine, it's just that the height parameter for e.g. 720p in
+> frame pack format is 2*720 + vfrontporch + vsync + vbackporch. That's the height
+> of the frame that will have to be DMAed from/to the receiver/transmitter.
 
-If it's of interest to anyone, I could probably present a bunch of issues with 
-V4L2 and DVB from userspace perspective.
+In this case (assuming frame packed) the total height should be 2*720
++ 30 +  vfrontporch + vsync + vbackporch.
 
-Regards,
+Sorry, but if I am understanding you correct, in case of 3D frame
+packed format, the height field can be 'active video + active space'.
+So the application need to treat the buffers appropriately according
+to the 3D format detected. Would this be a good solution?
 
--- 
-Rémi Denis-Courmont
-http://www.remlab.net/
-http://fi.linkedin.com/in/remidenis
+
+> I think the only thing that needs to be done is that the appropriate timings are
+> added to linux/v4l2-dv-timings.h.
+
+Yes , the standard 3 D timings need to be added to this file which can
+be taken up.
+
+> Regards,
+>
+>         Hans
+>
+
+
+Best Regards
+Soby Mathew
