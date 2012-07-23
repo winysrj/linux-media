@@ -1,59 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:57342 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752465Ab2GZLNp (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50310 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754410Ab2GWSfA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jul 2012 07:13:45 -0400
-Received: by mail-yw0-f46.google.com with SMTP id m54so1795176yhm.19
-        for <linux-media@vger.kernel.org>; Thu, 26 Jul 2012 04:13:44 -0700 (PDT)
-From: Hideki EIRAKU <hdk@igel.co.jp>
-To: Russell King <linux@arm.linux.org.uk>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
-	alsa-devel@alsa-project.org, Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v2 2/4] ALSA: pcm - Don't define ARCH_HAS_DMA_MMAP_COHERENT privately for ARM
-Date: Thu, 26 Jul 2012 20:13:09 +0900
-Message-Id: <1343301191-26001-3-git-send-email-hdk@igel.co.jp>
-In-Reply-To: <1343301191-26001-1-git-send-email-hdk@igel.co.jp>
-References: <1343301191-26001-1-git-send-email-hdk@igel.co.jp>
+	Mon, 23 Jul 2012 14:35:00 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH 4/4] mt9p031: Fix horizontal and vertical blanking configuration
+Date: Mon, 23 Jul 2012 20:35:02 +0200
+Message-Id: <1343068502-7431-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1343068502-7431-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1343068502-7431-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-The ARM architecture now defines ARCH_HAS_DMA_MMAP_COHERENT, there's no
-need to define it privately anymore.
+Compute the horizontal blanking value according to the datasheet. The
+value written to the hblank and vblank registers must be equal to the
+number of blank columns and rows minus one.
 
 Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- sound/core/pcm_native.c |    7 -------
- 1 files changed, 0 insertions(+), 7 deletions(-)
+ drivers/media/video/mt9p031.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/sound/core/pcm_native.c b/sound/core/pcm_native.c
-index 53b5ada..84ead60 100644
---- a/sound/core/pcm_native.c
-+++ b/sound/core/pcm_native.c
-@@ -3156,13 +3156,6 @@ static const struct vm_operations_struct snd_pcm_vm_ops_data_fault = {
- 	.fault =	snd_pcm_mmap_data_fault,
- };
+diff --git a/drivers/media/video/mt9p031.c b/drivers/media/video/mt9p031.c
+index 3be537e..2c0f407 100644
+--- a/drivers/media/video/mt9p031.c
++++ b/drivers/media/video/mt9p031.c
+@@ -55,9 +55,9 @@
+ #define		MT9P031_HORIZONTAL_BLANK_MIN		0
+ #define		MT9P031_HORIZONTAL_BLANK_MAX		4095
+ #define MT9P031_VERTICAL_BLANK				0x06
+-#define		MT9P031_VERTICAL_BLANK_MIN		0
+-#define		MT9P031_VERTICAL_BLANK_MAX		4095
+-#define		MT9P031_VERTICAL_BLANK_DEF		25
++#define		MT9P031_VERTICAL_BLANK_MIN		1
++#define		MT9P031_VERTICAL_BLANK_MAX		4096
++#define		MT9P031_VERTICAL_BLANK_DEF		26
+ #define MT9P031_OUTPUT_CONTROL				0x07
+ #define		MT9P031_OUTPUT_CONTROL_CEN		2
+ #define		MT9P031_OUTPUT_CONTROL_SYN		1
+@@ -368,13 +368,13 @@ static int mt9p031_set_params(struct mt9p031 *mt9p031)
+ 	/* Blanking - use minimum value for horizontal blanking and default
+ 	 * value for vertical blanking.
+ 	 */
+-	hblank = 346 * ybin + 64 + (80 >> max_t(unsigned int, xbin, 3));
++	hblank = 346 * ybin + 64 + (80 >> min_t(unsigned int, xbin, 3));
+ 	vblank = MT9P031_VERTICAL_BLANK_DEF;
  
--#ifndef ARCH_HAS_DMA_MMAP_COHERENT
--/* This should be defined / handled globally! */
--#ifdef CONFIG_ARM
--#define ARCH_HAS_DMA_MMAP_COHERENT
--#endif
--#endif
--
- /*
-  * mmap the DMA buffer on RAM
-  */
+-	ret = mt9p031_write(client, MT9P031_HORIZONTAL_BLANK, hblank);
++	ret = mt9p031_write(client, MT9P031_HORIZONTAL_BLANK, hblank - 1);
+ 	if (ret < 0)
+ 		return ret;
+-	ret = mt9p031_write(client, MT9P031_VERTICAL_BLANK, vblank);
++	ret = mt9p031_write(client, MT9P031_VERTICAL_BLANK, vblank - 1);
+ 	if (ret < 0)
+ 		return ret;
+ 
 -- 
-1.7.0.4
+1.7.8.6
 
