@@ -1,91 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:34700 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753627Ab2GPNc6 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50309 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754136Ab2GWSe7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jul 2012 09:32:58 -0400
-Received: by bkwj10 with SMTP id j10so4660971bkw.19
-        for <linux-media@vger.kernel.org>; Mon, 16 Jul 2012 06:32:57 -0700 (PDT)
-Message-ID: <50041806.7000406@googlemail.com>
-Date: Mon, 16 Jul 2012 15:32:54 +0200
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [Regression 3.1->3.2, bisected] UVC-webcam: kernel panic when
- starting capturing
-References: <4FFF208C.5030306@googlemail.com> <11675039.R7p149JEZD@avalon> <50031C83.7060703@googlemail.com> <1649650.cNT61xzOAf@avalon>
-In-Reply-To: <1649650.cNT61xzOAf@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+	Mon, 23 Jul 2012 14:34:59 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH 2/4] mt9v032: Provide pixel rate control
+Date: Mon, 23 Jul 2012 20:35:00 +0200
+Message-Id: <1343068502-7431-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1343068502-7431-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1343068502-7431-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 16.07.2012 01:24, schrieb Laurent Pinchart:
-> Hi Frank,
->
-> On Sunday 15 July 2012 21:39:47 Frank Schäfer wrote:
->> Am 15.07.2012 14:07, schrieb Laurent Pinchart:
->>> On Thursday 12 July 2012 21:07:56 Frank Schäfer wrote:
->>>> Hi,
->>>>
->>>> when I start capturing from the UVC-webcam 2232:1005 ("WebCam
->>>> SCB-0385N") of my netbook, I get a kernel panic.
->>>> You can find a screenshot of the backtrace here:
->>>>
->>>> http://imageshack.us/photo/my-images/9/img125km.jpg/
->>>>
->>>> This is a regression which has been introduced between kernel 3.2-rc2
->>>> and 3.2-rc3 with the following commit:
->>>>
->>>> 3afedb95858bcc117b207a7c0a6767fe891bdfe9 is the first bad commit
->>>> commit 3afedb95858bcc117b207a7c0a6767fe891bdfe9
->>>> Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>>> Date:   Thu Nov 3 07:24:34 2011 -0300
->>>>
->>>>     [media] uvcvideo: Don't skip erroneous payloads
->>>>     
->>>>     Instead of skipping the payload completely, which would make the
->>>>     resulting image corrupted anyway, store the payload normally and mark
->>>>     the buffer as erroneous. If the no_drop module parameter is set to 1
->>>>     the buffer will then be passed to userspace, and tt will then be up
->>>>     to the application to decide what to do with the buffer.
->>>>
->>>>     Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>>>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>> I'm puzzled. Your screenshot shows the uvc_video_stats_decode() function
->>> in the stack trace, but that function wasn't present in
->>> 3afedb95858bcc117b207a7c0a6767fe891bdfe9. Could you please send me a stack
->>> trace corresponding to 3afedb95858bcc117b207a7c0a6767fe891bdfe9 ?
->>>
->>> Your stack trace looks similar to the problem reported in
->>> https://bugzilla.redhat.com/show_bug.cgi?id=836742.
->>> 3afedb95858bcc117b207a7c0a6767fe891bdfe9 might have introduced a different
->>> bug, possibly fixed in a later commit.
->> Hmm... you're right.
->> The screenshot I've sent to you was made during the bisection process at
->> a commit somewhere between 3.2-rc7 and 3.2-rc8.
->> It seems that this one is slightly different from the others.
->>
->> This one is made at commit 3afedb95858bcc117b207a7c0a6767fe891bdfe9 (the
->> first bad commit):
->>
->> http://imageshack.us/photo/my-images/811/img130hv.jpg
->>
->> and this one is made at 3.5.rc6+:
->>
->> http://imageshack.us/photo/my-images/440/img127u.jpg
-> Thank you. Could you please try the patch I've attached to 
-> https://bugzilla.redhat.com/show_bug.cgi?id=836742 ?
->
+From: Sakari Ailus <sakari.ailus@iki.fi>
 
-Thank you Laurent, I can confirm that this patch fixes the bug !
-Don't forget to add CC-stable (and a comment that this should be applied
-to all kernels >=3.2 ?).
+Provide pixel rate control calculated from external clock and horizontal
+binning factor.
 
-Regards,
-Frank Schäfer
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/mt9v032.c |   27 +++++++++++++++++++++++++--
+ 1 files changed, 25 insertions(+), 2 deletions(-)
 
-
-
+diff --git a/drivers/media/video/mt9v032.c b/drivers/media/video/mt9v032.c
+index 4ba4884..2203a6f 100644
+--- a/drivers/media/video/mt9v032.c
++++ b/drivers/media/video/mt9v032.c
+@@ -122,6 +122,7 @@ struct mt9v032 {
+ 	struct v4l2_mbus_framefmt format;
+ 	struct v4l2_rect crop;
+ 
++	struct v4l2_ctrl *pixel_rate;
+ 	struct v4l2_ctrl_handler ctrls;
+ 
+ 	struct mutex power_lock;
+@@ -187,13 +188,15 @@ mt9v032_update_aec_agc(struct mt9v032 *mt9v032, u16 which, int enable)
+ 	return 0;
+ }
+ 
++#define EXT_CLK		25000000
++
+ static int mt9v032_power_on(struct mt9v032 *mt9v032)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
+ 	int ret;
+ 
+ 	if (mt9v032->pdata->set_clock) {
+-		mt9v032->pdata->set_clock(&mt9v032->subdev, 25000000);
++		mt9v032->pdata->set_clock(&mt9v032->subdev, EXT_CLK);
+ 		udelay(1);
+ 	}
+ 
+@@ -365,6 +368,17 @@ static int mt9v032_get_format(struct v4l2_subdev *subdev,
+ 	return 0;
+ }
+ 
++static void mt9v032_configure_pixel_rate(struct mt9v032 *mt9v032,
++					 unsigned int hratio)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
++	int ret;
++
++	ret = v4l2_ctrl_s_ctrl_int64(mt9v032->pixel_rate, EXT_CLK / hratio);
++	if (ret < 0)
++		dev_warn(&client->dev, "failed to set pixel rate (%d)\n", ret);
++}
++
+ static int mt9v032_set_format(struct v4l2_subdev *subdev,
+ 			      struct v4l2_subdev_fh *fh,
+ 			      struct v4l2_subdev_format *format)
+@@ -395,6 +409,8 @@ static int mt9v032_set_format(struct v4l2_subdev *subdev,
+ 					    format->which);
+ 	__format->width = __crop->width / hratio;
+ 	__format->height = __crop->height / vratio;
++	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
++		mt9v032_configure_pixel_rate(mt9v032, hratio);
+ 
+ 	format->format = *__format;
+ 
+@@ -450,6 +466,8 @@ static int mt9v032_set_crop(struct v4l2_subdev *subdev,
+ 						    crop->which);
+ 		__format->width = rect.width;
+ 		__format->height = rect.height;
++		if (crop->which == V4L2_SUBDEV_FORMAT_ACTIVE)
++			mt9v032_configure_pixel_rate(mt9v032, 1);
+ 	}
+ 
+ 	*__crop = rect;
+@@ -598,6 +616,8 @@ static int mt9v032_registered(struct v4l2_subdev *subdev)
+ 	dev_info(&client->dev, "MT9V032 detected at address 0x%02x\n",
+ 			client->addr);
+ 
++	mt9v032_configure_pixel_rate(mt9v032, 1);
++
+ 	return ret;
+ }
+ 
+@@ -681,7 +701,7 @@ static int mt9v032_probe(struct i2c_client *client,
+ 	mutex_init(&mt9v032->power_lock);
+ 	mt9v032->pdata = client->dev.platform_data;
+ 
+-	v4l2_ctrl_handler_init(&mt9v032->ctrls, ARRAY_SIZE(mt9v032_ctrls) + 4);
++	v4l2_ctrl_handler_init(&mt9v032->ctrls, ARRAY_SIZE(mt9v032_ctrls) + 5);
+ 
+ 	v4l2_ctrl_new_std(&mt9v032->ctrls, &mt9v032_ctrl_ops,
+ 			  V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
+@@ -695,6 +715,9 @@ static int mt9v032_probe(struct i2c_client *client,
+ 			  V4L2_CID_EXPOSURE, MT9V032_TOTAL_SHUTTER_WIDTH_MIN,
+ 			  MT9V032_TOTAL_SHUTTER_WIDTH_MAX, 1,
+ 			  MT9V032_TOTAL_SHUTTER_WIDTH_DEF);
++	mt9v032->pixel_rate =
++		v4l2_ctrl_new_std(&mt9v032->ctrls, &mt9v032_ctrl_ops,
++				  V4L2_CID_PIXEL_RATE, 0, 0, 1, 0);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(mt9v032_ctrls); ++i)
+ 		v4l2_ctrl_new_custom(&mt9v032->ctrls, &mt9v032_ctrls[i], NULL);
+-- 
+1.7.8.6
 
