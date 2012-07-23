@@ -1,85 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:39208 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752001Ab2GVUrh (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54453 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753784Ab2GWRMh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Jul 2012 16:47:37 -0400
-Subject: Re: [PATCH 2/2] kthread_worker: reimplement flush_kthread_work() to
- allow freeing the work item being executed
-From: Andy Walls <awalls@md.metrocast.net>
-To: Tejun Heo <tj@kernel.org>
-Cc: linux-kernel@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Avi Kivity <avi@redhat.com>, kvm@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	Grant Likely <grant.likely@secretlab.ca>,
-	spi-devel-general@lists.sourceforge.net,
-	Linus Torvalds <torvalds@linux-foundation.org>
-Date: Sun, 22 Jul 2012 16:46:54 -0400
-In-Reply-To: <20120722164953.GC5144@dhcp-172-17-108-109.mtv.corp.google.com>
-References: <20120719211510.GA32763@google.com>
-	 <20120719211629.GC32763@google.com>
-	 <1342894814.2504.31.camel@palomino.walls.org>
-	 <20120722164953.GC5144@dhcp-172-17-108-109.mtv.corp.google.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Message-ID: <1342990015.2487.19.camel@palomino.walls.org>
-Mime-Version: 1.0
+	Mon, 23 Jul 2012 13:12:37 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Michael Jones <michael.jones@matrix-vision.de>
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] Documentation: DocBook DRM framework documentation
+Date: Mon, 23 Jul 2012 19:12:42 +0200
+Message-ID: <70690010.zp9nLr8Ar9@avalon>
+In-Reply-To: <500D69EB.6000008@matrix-vision.de>
+References: <1342137623-7628-1-git-send-email-laurent.pinchart@ideasonboard.com> <500D69EB.6000008@matrix-vision.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2012-07-22 at 09:49 -0700, Tejun Heo wrote:
-> Hello,
+Hi Michael,
+
+Thank you for the review.
+
+On Monday 23 July 2012 17:12:43 Michael Jones wrote:
+> Hi Laurent,
 > 
-> On Sat, Jul 21, 2012 at 02:20:06PM -0400, Andy Walls wrote:
-> > > +	worker->current_work = work;
-> > >  	spin_unlock_irq(&worker->lock);
-> > >  
-> > >  	if (work) {
-> > >  		__set_current_state(TASK_RUNNING);
-> > >  		work->func(work);
-> > 
-> > If the call to 'work->func(work);' frees the memory pointed to by
-> > 'work', 'worker->current_work' points to deallocated memory.
-> > So 'worker->current_work' will only ever used as a unique 'work'
-> > identifier to handle, correct?
+> At a quick glance I noticed a couple of things:
 > 
-> Yeah.  flush_kthread_work(@work) which can only be called if @work is
-> known to be alive looks at the pointer to determine whether it's the
-> current work item on the worker.
+> On 07/13/2012 02:00 AM, Laurent Pinchart wrote:
+> 
+> [snip]
+> 
+> > +    <para>
+> > +      The <structname>drm_driver</structname> structure contains static
+> > +      information that describe the driver and features it supports, and
+> 
+> s/describe/describes/
 
-OK.  Thanks.
+Fixed.
 
-Hmmm, I didn't know about the constraint about 'known to be alive' in
-the other email I just sent.
+> > +      pointers to methods that the DRM core will call to implement the
+> > DRM API.
+> > +      We will first go through the <structname>drm_driver</structname>
+> > static
+> > +      information fields, and will then describe individual operations in
+> > +      details as they get used in later sections.
+> >       </para>
+> > -
+> >       <sect2>
+> > -      <title>Driver private &amp; performance counters</title>
+> > -      <para>
+> > -	The driver private hangs off the main drm_device structure and
+> > -	can be used for tracking various device-specific bits of
+> > -	information, like register offsets, command buffer status,
+> > -	register state for suspend/resume, etc.  At load time, a
+> > -	driver may simply allocate one and set drm_device.dev_priv
+> > -	appropriately; it should be freed and drm_device.dev_priv set
+> > -	to NULL when the driver is unloaded.
+> > -      </para>
+> > +      <title>Driver Information</title>
+> > +      <sect3>
+> > +        <title>Driver Features</title>
+> > +        <para>
+> > +          Drivers inform the DRM core about their requirements and
+> > supported
+> > +          features by setting appropriate flags in the
+> > +          <structfield>driver_features</structfield> field. Since those
+> > flags
+> > +          influence the DRM core behaviour since registration time, most
+> > of them
+>
+> Elsewhere you use the American spelling "behavior".
 
-That might make calling flush_kthread_work() hard for a user to use, if
-the user lets the work get freed by another thread executing the work.
+I've used "behavior" when copying sections from the existing documentation. 
+I'll unify that. Does kernel documentation favour one of the spellings ?
 
+> [snip]
+> 
+> > +      <sect3>
+> > +        <title>Major, Minor and Patchlevel</title>
+> > +        <synopsis>int major;
+> > +  int minor;
+> > +  int patchlevel;</synopsis>
+> 
+> In my browser, "int minor" and "int patchlevel" look indented, whereas
+> "int major" does not.  Looks like they _should_ be indented identically.
+> Don't know how you fix this or if you even see the same problem.
 
-> > >  void flush_kthread_work(struct kthread_work *work)
-> > >  {
-> > > -	int seq = work->queue_seq;
-> > > +	struct kthread_flush_work fwork = {
-> > > +		KTHREAD_WORK_INIT(fwork.work, kthread_flush_work_fn),
-> > > +		COMPLETION_INITIALIZER_ONSTACK(fwork.done),
-> > > +	};
-> > > +	struct kthread_worker *worker;
-> > > +	bool noop = false;
-> > > +
-> > 
-> > You might want a check for 'work == NULL' here, to gracefully handle
-> > code like the following:
+Fixed.
 
-> workqueue's flush_work() doesn't allow %NULL pointer.  I don't want to
-> make the behaviors deviate and don't see much point in changing
-> workqueue's behavior at this point.
+[snip]
 
-OK.  Fair enough.
-
-Thanks.
-
+-- 
 Regards,
-Andy
 
+Laurent Pinchart
 
