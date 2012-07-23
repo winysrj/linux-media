@@ -1,50 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60436 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751025Ab2GEUiq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 16:38:46 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH v2 4/9] ov772x: Don't access the device in the g_mbus_fmt operation
-Date: Thu,  5 Jul 2012 22:38:43 +0200
-Message-Id: <1341520728-2707-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1341520728-2707-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1341520728-2707-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4714 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750854Ab2GWLkA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jul 2012 07:40:00 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Javier Martin <javier.martin@vista-silicon.com>
+Subject: Re: [PATCH v7] media: coda: Add driver for Coda video codec.
+Date: Mon, 23 Jul 2012 13:38:05 +0200
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
+	mchehab@infradead.org, s.hauer@pengutronix.de,
+	p.zabel@pengutronix.de
+References: <1343043061-24327-1-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1343043061-24327-1-git-send-email-javier.martin@vista-silicon.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201207231338.05141.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The g_mbus_fmt operation only needs to return the current mbus frame
-format and doesn't need to configure the hardware to do so. Fix it to
-avoid requiring the chip to be powered on when calling the operation.
+On Mon July 23 2012 13:31:01 Javier Martin wrote:
+> Coda is a range of video codecs from Chips&Media that
+> support H.264, H.263, MPEG4 and other video standards.
+> 
+> Currently only support for the codadx6 included in the
+> i.MX27 SoC is added. H.264 and MPEG4 video encoding
+> are the only supported capabilities by now.
+> 
+> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+> ---
+> Changes since v6:
+>  - Cosmetic fixes pointed out by Sakari.
+>  - Now passes 'v4l2-compliance'.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/ov772x.c |    8 ++------
- 1 files changed, 2 insertions(+), 6 deletions(-)
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
-index 74e77d3..6d79b89 100644
---- a/drivers/media/video/ov772x.c
-+++ b/drivers/media/video/ov772x.c
-@@ -880,15 +880,11 @@ static int ov772x_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
- static int ov772x_g_fmt(struct v4l2_subdev *sd,
- 			struct v4l2_mbus_framefmt *mf)
- {
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
- 
- 	if (!priv->win || !priv->cfmt) {
--		u32 width = VGA_WIDTH, height = VGA_HEIGHT;
--		int ret = ov772x_set_params(client, &width, &height,
--					    V4L2_MBUS_FMT_YUYV8_2X8);
--		if (ret < 0)
--			return ret;
-+		priv->cfmt = &ov772x_cfmts[0];
-+		priv->win = ov772x_select_win(VGA_WIDTH, VGA_HEIGHT);
- 	}
- 
- 	mf->width	= priv->win->width;
--- 
-1.7.8.6
+Regards,
 
+	Hans
