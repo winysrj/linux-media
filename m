@@ -1,50 +1,214 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:37486 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932884Ab2GYGaQ (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:35389 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751691Ab2GWIjh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jul 2012 02:30:16 -0400
-Received: by mail-gg0-f174.google.com with SMTP id u4so348785ggl.19
-        for <linux-media@vger.kernel.org>; Tue, 24 Jul 2012 23:30:16 -0700 (PDT)
-From: Hideki EIRAKU <hdk@igel.co.jp>
-To: Russell King <linux@arm.linux.org.uk>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
-	Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Hideki EIRAKU <hdk@igel.co.jp>
-Subject: [PATCH 1/3] ARM: dma-mapping: define ARCH_HAS_DMA_MMAP_COHERENT
-Date: Wed, 25 Jul 2012 15:29:22 +0900
-Message-Id: <1343197764-13659-2-git-send-email-hdk@igel.co.jp>
-In-Reply-To: <1343197764-13659-1-git-send-email-hdk@igel.co.jp>
-References: <1343197764-13659-1-git-send-email-hdk@igel.co.jp>
+	Mon, 23 Jul 2012 04:39:37 -0400
+Received: by wibhm11 with SMTP id hm11so2627464wib.1
+        for <linux-media@vger.kernel.org>; Mon, 23 Jul 2012 01:39:35 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CACKLOr36MnD8fpiJDmDWGir=nWWZEQdrZjvVJTfEBORARMrmGA@mail.gmail.com>
+References: <1342782515-24992-1-git-send-email-javier.martin@vista-silicon.com>
+	<201207231020.58305.hverkuil@xs4all.nl>
+	<CACKLOr2tRXicxUzwPMe0Z3v43aX9dyRK4bFp-XKwXu9pJDJ=pA@mail.gmail.com>
+	<201207231036.21120.hverkuil@xs4all.nl>
+	<CACKLOr36MnD8fpiJDmDWGir=nWWZEQdrZjvVJTfEBORARMrmGA@mail.gmail.com>
+Date: Mon, 23 Jul 2012 10:39:31 +0200
+Message-ID: <CACKLOr1mdG1mxvPye08Yc=dpfZMxzY_iTioOoFo0Om1eMAB1Xw@mail.gmail.com>
+Subject: Fwd: [PATCH v6] media: coda: Add driver for Coda video codec.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.hauer@pengutronix.de, p.zabel@pengutronix.de
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ARCH_HAS_DMA_MMAP_COHERENT indicates that there is dma_mmap_coherent() API
-in this architecture.  The name is already defined in PowerPC.
+---------- Forwarded message ----------
+From: javier Martin <javier.martin@vista-silicon.com>
+Date: 23 July 2012 10:39
+Subject: Re: [PATCH v6] media: coda: Add driver for Coda video codec.
+To: Hans Verkuil <hverkuil@xs4all.nl>
 
-Signed-off-by: Hideki EIRAKU <hdk@igel.co.jp>
----
- arch/arm/include/asm/dma-mapping.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/include/asm/dma-mapping.h b/arch/arm/include/asm/dma-mapping.h
-index bbef15d..f41cd30 100644
---- a/arch/arm/include/asm/dma-mapping.h
-+++ b/arch/arm/include/asm/dma-mapping.h
-@@ -187,6 +187,7 @@ extern int arm_dma_mmap(struct device *dev, struct vm_area_struct *vma,
- 			struct dma_attrs *attrs);
- 
- #define dma_mmap_coherent(d, v, c, h, s) dma_mmap_attrs(d, v, c, h, s, NULL)
-+#define ARCH_HAS_DMA_MMAP_COHERENT
- 
- static inline int dma_mmap_attrs(struct device *dev, struct vm_area_struct *vma,
- 				  void *cpu_addr, dma_addr_t dma_addr,
+On 23 July 2012 10:36, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Mon July 23 2012 10:27:13 javier Martin wrote:
+>> On 23 July 2012 10:20, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> > On Mon July 23 2012 10:02:04 javier Martin wrote:
+>> >> Hi Hans,
+>> >>
+>> >> On 21 July 2012 11:50, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> >> > On Fri July 20 2012 13:08:35 Javier Martin wrote:
+>> >> >> Coda is a range of video codecs from Chips&Media that
+>> >> >> support H.264, H.263, MPEG4 and other video standards.
+>> >> >>
+>> >> >> Currently only support for the codadx6 included in the
+>> >> >> i.MX27 SoC is added. H.264 and MPEG4 video encoding
+>> >> >> are the only supported capabilities by now.
+>> >> >>
+>> >> >> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+>> >> >> Reviewed-by: Philipp Zabel<p.zabel@pengutronix.de>
+>> >> >> ---
+>> >> >> Changes since v5:
+>> >> >>  - Fixed some v4l2-compliance issues.
+>> >> >
+>> >> > Some or all? Can you give me the 'v4l2-compliance -v1' output?
+>> >>
+>> >> I've not corrected some mistakes that are pointed by v4l2-compliance
+>> >> that I consider bogus for my mem2mem video encoder.
+>> >>
+>> >> I don't mind helping you test the new m2m capabilities of
+>> >> 'v4l2-compliance' but I don't think delaying this driver to enter
+>> >> mainline for this merge window for this is reasonable. Please, find
+>> >> the output you requested below:
+>> >>
+>> >>
+>> >> Driver Info:
+>> >>         Driver name   : coda
+>> >>         Card type     : coda
+>> >>         Bus info      : coda
+>> >>         Driver version: 0.0.0
+>> >
+>> > ??? This should be set to the kernel version by v4l2-ioctl.c. What kernel
+>> > are you using?
+>> >
+>> >>         Capabilities  : 0x84000003
+>> >>                 Video Capture
+>> >>                 Video Output
+>> >>                 Streaming
+>> >>
+>> >> Compliance test for device /dev/video2 (not using libv4l2):
+>> >>
+>> >> Required ioctls:
+>> >>                 fail: v4l2-compliance.cpp(251): check_0(vcap.reserved,
+>> >> sizeof(vcap.reserved))
+>> >
+>> > This is very strange. Please investigate! vcap is zeroed in v4l2-ioctl.c before
+>> > calling vidioc_querycap in the driver, so why would reserved[] be non-zero?
+>> > Perhaps some memory overwrite?
+>> >
+>> >>         test VIDIOC_QUERYCAP: FAIL
+>> >>
+>> >> Allow for multiple opens:
+>> >>         test second video open: OK
+>> >>                 fail: v4l2-compliance.cpp(251): check_0(vcap.reserved,
+>> >> sizeof(vcap.reserved))
+>> >>         test VIDIOC_QUERYCAP: FAIL
+>> >>                 fail: v4l2-compliance.cpp(273): doioctl(node,
+>> >> VIDIOC_G_PRIORITY, &prio)
+>> >
+>> > Are you using the latest v4l2-compliance? You shouldn't see this fail for mem2mem
+>> > devices.
+>> >
+>> >>         test VIDIOC_G/S_PRIORITY: FAIL
+>> >>
+>> >> Debug ioctls:
+>> >>         test VIDIOC_DBG_G_CHIP_IDENT: FAIL
+>> >>                 fail: v4l2-test-debug.cpp(82): uid == 0 && ret
+>> >>         test VIDIOC_DBG_G/S_REGISTER: FAIL
+>> >>         test VIDIOC_LOG_STATUS: FAIL
+>> >
+>> > Weird as well. This suggests you are using this driver with an old kernel. The
+>> > return code for unimplemented ioctls changed from EINVAL to ENOTTY some kernel
+>> > versions ago. This may actually be the cause of the G_PRIO fail above.
+>> >
+>> >>
+>> >> Input ioctls:
+>> >>                 fail: v4l2-test-input-output.cpp(133): couldn't get tuner 0
+>> >>         test VIDIOC_G/S_TUNER: FAIL
+>> >>                 fail: v4l2-test-input-output.cpp(228): could get
+>> >> frequency for invalid tuner 0
+>> >>         test VIDIOC_G/S_FREQUENCY: FAIL
+>> >>                 fail: v4l2-test-input-output.cpp(358): could not
+>> >> enumerate audio input 0
+>> >>         test VIDIOC_ENUMAUDIO: FAIL
+>> >>                 fail: v4l2-test-input-output.cpp(290): could not get
+>> >> current input
+>> >>         test VIDIOC_G/S/ENUMINPUT: FAIL
+>> >>         test VIDIOC_G/S_AUDIO: Not Supported
+>> >>         Inputs: 0 Audio Inputs: 0 Tuners: 0
+>> >>
+>> >> Output ioctls:
+>> >>                 fail: v4l2-test-input-output.cpp(479): couldn't get modulator 0
+>> >>         test VIDIOC_G/S_MODULATOR: FAIL
+>> >>                 fail: v4l2-test-input-output.cpp(563): could get
+>> >> frequency for invalid modulator 0
+>> >>         test VIDIOC_G/S_FREQUENCY: FAIL
+>> >>                 fail: v4l2-test-input-output.cpp(682): could not
+>> >> enumerate audio output 0
+>> >>         test VIDIOC_ENUMAUDOUT: FAIL
+>> >>         test VIDIOC_G/S/ENUMOUTPUT: FAIL
+>> >>         test VIDIOC_G/S_AUDOUT: Not Supported
+>> >>         Outputs: 0 Audio Outputs: 0 Modulators: 0
+>> >>
+>> >> Control ioctls:
+>> >>         test VIDIOC_QUERYCTRL/MENU: OK
+>> >>         test VIDIOC_G/S_CTRL: OK
+>> >>                 fail: v4l2-test-controls.cpp(532): try_ext_ctrls did
+>> >> not check the read-only flag
+>> >>         test VIDIOC_G/S/TRY_EXT_CTRLS: FAIL
+>> >>         Standard Controls: 10 Private Controls: 0
+>> >>
+>> >> Input/Output configuration ioctls:
+>> >>         test VIDIOC_ENUM/G/S/QUERY_STD: Not Supported
+>> >>         test VIDIOC_ENUM/G/S/QUERY_DV_PRESETS: Not Supported
+>> >>         test VIDIOC_G/S_DV_TIMINGS: Not Supported
+>> >>
+>> >> Format ioctls:
+>> >>                 fail: v4l2-test-formats.cpp(138): expected EINVAL, but
+>> >> got 25 when enumerating framesize 0
+>> >>         test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: FAIL
+>> >>                 fail: v4l2-test-formats.cpp(327): expected EINVAL, but
+>> >> got 25 when getting framebuffer format
+>> >>         test VIDIOC_G_FBUF: FAIL
+>> >>                 fail: v4l2-test-formats.cpp(383): !pix.width || !pix.height
+>> >>         test VIDIOC_G_FMT: FAIL
+>> >>                 fail: v4l2-test-formats.cpp(509): ret && ret != EINVAL
+>> >> && sliced_type
+>> >>         test VIDIOC_G_SLICED_VBI_CAP: FAIL
+>> >> Total: 27 Succeeded: 8 Failed: 19 Warnings: 0
+>> >
+>> > It would be much more helpful if you can test this against a recent kernel.
+>> >
+>> > Regards,
+>> >
+>> >         Hans
+>>
+>> Hi Hans.
+>> I am using a recent version:
+>>
+>> Linux visstrim 3.5.0-rc5-00012-g0f6f3b0-dirty #283 PREEMPT Mon Jul 23
+>> 09:54:38 CEST 2012 armv5tejl GNU/Linux
+>
+> And is v4l2-compliance compiled from the master branch of
+> http://git.linuxtv.org/v4l-utils.git? I'm sure it isn't because I'm missing
+> tests that were added later.
+>
+> Regards,
+>
+>         Hans
+
++LIBV4L_VERSION = 7d88f06b257dd25db0592186d12e9e876eb4b301
++LIBV4L_SITE = git://linuxtv.org/v4l-utils.git
++LIBV4L_SITE_METHOD = git
+
+
+--
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
+
+
 -- 
-1.7.0.4
-
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
