@@ -1,114 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from forward5h.mail.yandex.net ([84.201.186.23]:52355 "EHLO
-	forward5h.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751615Ab2GNVuM (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3908 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751126Ab2GWKPO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Jul 2012 17:50:12 -0400
-Received: from web25h.yandex.ru (web25h.yandex.ru [84.201.187.159])
-	by forward5h.mail.yandex.net (Yandex) with ESMTP id C3778D020A1
-	for <linux-media@vger.kernel.org>; Sun, 15 Jul 2012 01:40:08 +0400 (MSK)
-From: CrazyCat <crazycat69@yandex.ru>
-To: linux-media@vger.kernel.org
-Subject: [PATCH]Omicom S2 PCI support
+	Mon, 23 Jul 2012 06:15:14 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: javier Martin <javier.martin@vista-silicon.com>
+Subject: Re: [PATCH v6] media: coda: Add driver for Coda video codec.
+Date: Mon, 23 Jul 2012 12:14:15 +0200
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.hauer@pengutronix.de, p.zabel@pengutronix.de
+References: <1342782515-24992-1-git-send-email-javier.martin@vista-silicon.com> <CACKLOr312a=KTrm9=N48=SHN5Z=0yTPceopG9MJBu8he_3yjrw@mail.gmail.com> <CACKLOr1RF2PLECz7Y9kFRnFqnCMfHQOcCTT0TgdFvNyFVynCpg@mail.gmail.com>
+In-Reply-To: <CACKLOr1RF2PLECz7Y9kFRnFqnCMfHQOcCTT0TgdFvNyFVynCpg@mail.gmail.com>
 MIME-Version: 1.0
-Message-Id: <1128921342302008@web25h.yandex.ru>
-Date: Sun, 15 Jul 2012 00:40:08 +0300
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain
+Message-Id: <201207231214.15835.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Support for yet another SAA7146-based budget card (very similar to TT S2-1600, but use LNBH23 instead ISL6423).
-diff --git a/drivers/media/dvb/ttpci/budget.c b/drivers/media/dvb/ttpci/budget.c
-index b21bcce..1774c53 100644
---- a/drivers/media/dvb/ttpci/budget.c
-+++ b/drivers/media/dvb/ttpci/budget.c
-@@ -50,6 +50,8 @@
- #include "stv6110x.h"
- #include "stv090x.h"
- #include "isl6423.h"
-+#include "lnbh24.h"
-+
- 
- static int diseqc_method;
- module_param(diseqc_method, int, 0444);
-@@ -679,6 +681,63 @@ static void frontend_init(struct budget *budget)
- 			}
- 		}
- 		break;
-+
-+	case 0x1020: { /* Omicom S2 */
-+			struct stv6110x_devctl *ctl;
-+			saa7146_setgpio(budget->dev, 2, SAA7146_GPIO_OUTLO);
-+			msleep(50);
-+			saa7146_setgpio(budget->dev, 2, SAA7146_GPIO_OUTHI);
-+			msleep(250);
-+
-+			budget->dvb_frontend = dvb_attach(stv090x_attach,
-+							  &tt1600_stv090x_config,
-+							  &budget->i2c_adap,
-+							  STV090x_DEMODULATOR_0);
-+
-+			if (budget->dvb_frontend) {
-+				printk(KERN_INFO "budget: Omicom S2 detected\n");
-+
-+				ctl = dvb_attach(stv6110x_attach,
-+						 budget->dvb_frontend,
-+						 &tt1600_stv6110x_config,
-+						 &budget->i2c_adap);
-+
-+				if (ctl) {
-+					tt1600_stv090x_config.tuner_init	  = ctl->tuner_init;
-+					tt1600_stv090x_config.tuner_sleep	  = ctl->tuner_sleep;
-+					tt1600_stv090x_config.tuner_set_mode	  = ctl->tuner_set_mode;
-+					tt1600_stv090x_config.tuner_set_frequency = ctl->tuner_set_frequency;
-+					tt1600_stv090x_config.tuner_get_frequency = ctl->tuner_get_frequency;
-+					tt1600_stv090x_config.tuner_set_bandwidth = ctl->tuner_set_bandwidth;
-+					tt1600_stv090x_config.tuner_get_bandwidth = ctl->tuner_get_bandwidth;
-+					tt1600_stv090x_config.tuner_set_bbgain	  = ctl->tuner_set_bbgain;
-+					tt1600_stv090x_config.tuner_get_bbgain	  = ctl->tuner_get_bbgain;
-+					tt1600_stv090x_config.tuner_set_refclk	  = ctl->tuner_set_refclk;
-+					tt1600_stv090x_config.tuner_get_status	  = ctl->tuner_get_status;
-+
-+					/* call the init function once to initialize
-+					   tuner's clock output divider and demod's
-+					   master clock */
-+					if (budget->dvb_frontend->ops.init)
-+						budget->dvb_frontend->ops.init(budget->dvb_frontend);
-+
-+					if (dvb_attach(lnbh24_attach,
-+							budget->dvb_frontend,
-+							&budget->i2c_adap,
-+							LNBH24_PCL | LNBH24_TTX,
-+							LNBH24_TEN, 0x14>>1) == NULL)
-+					{
-+						printk(KERN_ERR
-+						"No LNBH24 found!\n");
-+						goto error_out;
-+					}
-+				} else {
-+					printk(KERN_ERR "%s: No STV6110(A) Silicon Tuner found!\n", __func__);
-+					goto error_out;
-+				}
-+			}
-+		}
-+		break;
- 	}
- 
- 	if (budget->dvb_frontend == NULL) {
-@@ -759,6 +818,7 @@ MAKE_BUDGET_INFO(fsacs0, "Fujitsu Siemens Activy Budget-S PCI (rev GR/grundig fr
- MAKE_BUDGET_INFO(fsacs1, "Fujitsu Siemens Activy Budget-S PCI (rev AL/alps frontend)", BUDGET_FS_ACTIVY);
- MAKE_BUDGET_INFO(fsact,	 "Fujitsu Siemens Activy Budget-T PCI (rev GR/Grundig frontend)", BUDGET_FS_ACTIVY);
- MAKE_BUDGET_INFO(fsact1, "Fujitsu Siemens Activy Budget-T PCI (rev AL/ALPS TDHD1-204A)", BUDGET_FS_ACTIVY);
-+MAKE_BUDGET_INFO(omicom, "Omicom S2 PCI", BUDGET_TT);
- 
- static struct pci_device_id pci_tbl[] = {
- 	MAKE_EXTENSION_PCI(ttbs,  0x13c2, 0x1003),
-@@ -772,6 +832,7 @@ static struct pci_device_id pci_tbl[] = {
- 	MAKE_EXTENSION_PCI(fsacs0,0x1131, 0x4f61),
- 	MAKE_EXTENSION_PCI(fsact1, 0x1131, 0x5f60),
- 	MAKE_EXTENSION_PCI(fsact, 0x1131, 0x5f61),
-+	MAKE_EXTENSION_PCI(omicom, 0x14c4, 0x1020),
- 	{
- 		.vendor    = 0,
- 	}
+On Mon July 23 2012 12:00:30 javier Martin wrote:
+> On 23 July 2012 11:45, javier Martin <javier.martin@vista-silicon.com> wrote:
+> > Sorry, I had a problem with my buildroot environment. This is the
+> > v4l2-compliance output with the most recent version:
+> >
+> > # v4l2-compliance -d /dev/video2
+> > Driver Info:
+> >         Driver name   : coda
+> >         Card type     : coda
+> >         Bus info      : coda
+> >         Driver version: 0.0.0
+> >         Capabilities  : 0x84000003
+> >                 Video Capture
+> >                 Video Output
+> >                 Streaming
+> >                 Device Capabilities
+> >         Device Caps   : 0x04000003
+> >                 Video Capture
+> >                 Video Output
+> >                 Streaming
+> >
+> > Compliance test for device /dev/video2 (not using libv4l2):
+> >
+> > Required ioctls:
+> >                 fail: v4l2-compliance.cpp(270): (vcap.version >> 16) < 3
+> >         test VIDIOC_QUERYCAP: FAIL
+> >
+> 
+> This was related to a memset() that I did in QUERYCAP.
+> 
+> Now the output is cleaner.
+
+Ah, much better.
+
+> 
+> # v4l2-compliance -d /dev/video2
+> Driver Info:
+>         Driver name   : coda
+>         Card type     : coda
+>         Bus info      : coda
+>         Driver version: 3.5.0
+>         Capabilities  : 0x84000003
+>                 Video Capture
+>                 Video Output
+>                 Streaming
+>                 Device Capabilities
+>         Device Caps   : 0x04000003
+>                 Video Capture
+>                 Video Output
+>                 Streaming
+> 
+> Compliance test for device /dev/video2 (not using libv4l2):
+> 
+> Required ioctls:
+>         test VIDIOC_QUERYCAP: OK
+> 
+> Allow for multiple opens:
+>         test second video open: OK
+>         test VIDIOC_QUERYCAP: OK
+>         test VIDIOC_G/S_PRIORITY: OK
+> 
+> Debug ioctls:
+>         test VIDIOC_DBG_G_CHIP_IDENT: Not Supported
+>         test VIDIOC_DBG_G/S_REGISTER: Not Supported
+>         test VIDIOC_LOG_STATUS: Not Supported
+> 
+> Input ioctls:
+>         test VIDIOC_G/S_TUNER: Not Supported
+>         test VIDIOC_G/S_FREQUENCY: Not Supported
+>         test VIDIOC_S_HW_FREQ_SEEK: Not Supported
+>         test VIDIOC_ENUMAUDIO: Not Supported
+>         test VIDIOC_G/S/ENUMINPUT: Not Supported
+>         test VIDIOC_G/S_AUDIO: Not Supported
+>         Inputs: 0 Audio Inputs: 0 Tuners: 0
+> 
+> Output ioctls:
+>         test VIDIOC_G/S_MODULATOR: Not Supported
+>         test VIDIOC_G/S_FREQUENCY: Not Supported
+>         test VIDIOC_ENUMAUDOUT: Not Supported
+>         test VIDIOC_G/S/ENUMOUTPUT: Not Supported
+>         test VIDIOC_G/S_AUDOUT: Not Supported
+>         Outputs: 0 Audio Outputs: 0 Modulators: 0
+> 
+> Control ioctls:
+>         test VIDIOC_QUERYCTRL/MENU: OK
+>         test VIDIOC_G/S_CTRL: OK
+>                 fail: v4l2-test-controls.cpp(565): try_ext_ctrls did
+> not check the read-only flag
+
+Hmm, what's the reason for this one I wonder. Can you run with '-v2' and see
+for which control this fails?
+
+>         test VIDIOC_G/S/TRY_EXT_CTRLS: FAIL
+>                 fail: v4l2-test-controls.cpp(698): subscribe event for
+> control 'MPEG Encoder Controls' failed
+
+Known bug in v4l2-memtest.c. Fixed in my pending patch.
+
+>         test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
+>         test VIDIOC_G/S_JPEGCOMP: Not Supported
+>         Standard Controls: 10 Private Controls: 0
+> 
+> Input/Output configuration ioctls:
+>         test VIDIOC_ENUM/G/S/QUERY_STD: Not Supported
+>         test VIDIOC_ENUM/G/S/QUERY_DV_PRESETS: Not Supported
+>         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: Not Supported
+>         test VIDIOC_DV_TIMINGS_CAP: Not Supported
+> 
+> Format ioctls:
+>         test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+>                 fail: v4l2-test-formats.cpp(558): cap->readbuffers
+
+Fixed in pending patch for v4l2-ioctl.c
+
+>         test VIDIOC_G/S_PARM: FAIL
+>         test VIDIOC_G_FBUF: Not Supported
+>                 fail: v4l2-test-formats.cpp(382): !pix.width || !pix.height
+
+This isn't right and you should fix this. I did a similar fix for mem2mem_testdev:
+
+http://www.spinics.net/lists/linux-media/msg50487.html
+
+>         test VIDIOC_G_FMT: FAIL
+>         test VIDIOC_G_SLICED_VBI_CAP: Not Supported
+> Buffer ioctls:
+>         test VIDIOC_REQBUFS/CREATE_BUFS: OK
+>         test read/write: OK
+> Total: 34 Succeeded: 30 Failed: 4 Warnings: 2
+
+Two warnings... One warning is about a missing CREATE_BUFS which is OK, but what's
+the other warning? (-v1 will show the warnings as well).
+
+Regards,
+
+	Hans
