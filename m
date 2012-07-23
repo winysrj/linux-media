@@ -1,117 +1,333 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:45728 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754065Ab2GKXt4 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50308 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754410Ab2GWSe6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jul 2012 19:49:56 -0400
-Message-ID: <4FFE1120.4060408@gmail.com>
-Date: Thu, 12 Jul 2012 01:49:52 +0200
-From: Maarten Lankhorst <m.b.lankhorst@gmail.com>
-MIME-Version: 1.0
-To: Rob Clark <rob.clark@linaro.org>
-CC: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	linaro-mm-sig@lists.linaro.org, patches@linaro.org,
-	linux-kernel@vger.kernel.org, sumit.semwal@linaro.org,
-	daniel.vetter@ffwll.ch, Rob Clark <rob@ti.com>
-Subject: Re: [PATCH] dma-fence: dma-buf synchronization
-References: <1342045781-29351-1-git-send-email-rob.clark@linaro.org>
-In-Reply-To: <1342045781-29351-1-git-send-email-rob.clark@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Mon, 23 Jul 2012 14:34:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH 1/4] v4l2-ctrls: Add v4l2_ctrl_[gs]_ctrl_int64()
+Date: Mon, 23 Jul 2012 20:34:59 +0200
+Message-Id: <1343068502-7431-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1343068502-7431-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1343068502-7431-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Op 12-07-12 00:29, Rob Clark schreef:
-> From: Rob Clark <rob@ti.com>
->
-> A dma-fence can be attached to a buffer which is being filled or consumed
-> by hw, to allow userspace to pass the buffer without waiting to another
-> device.  For example, userspace can call page_flip ioctl to display the
-> next frame of graphics after kicking the GPU but while the GPU is still
-> rendering.  The display device sharing the buffer with the GPU would
-> attach a callback to get notified when the GPU's rendering-complete IRQ
-> fires, to update the scan-out address of the display, without having to
-> wake up userspace.
->
-> A dma-fence is transient, one-shot deal.  It is allocated and attached
-> to dma-buf's list of fences.  When the one that attached it is done,
-> with the pending operation, it can signal the fence removing it from the
-> dma-buf's list of fences:
->
->   + dma_buf_attach_fence()
->   + dma_fence_signal()
->
-> Other drivers can access the current fence on the dma-buf (if any),
-> which increment's the fences refcnt:
->
->   + dma_buf_get_fence()
->   + dma_fence_put()
->
-> The one pending on the fence can add an async callback (and optionally
-> cancel it.. for example, to recover from GPU hangs):
->
->   + dma_fence_add_callback()
->   + dma_fence_cancel_callback()
->
-> Or wait synchronously (optionally with timeout or from atomic context):
->
->   + dma_fence_wait()
-Waiting for an undefined time from atomic context is probably
-not a good idea. However just checking non-blocking if the fence
-has passed would be fine.
-> A default software-only implementation is provided, which can be used
-> by drivers attaching a fence to a buffer when they have no other means
-> for hw sync.  But a memory backed fence is also envisioned, because it
-> is common that GPU's can write to, or poll on some memory location for
-> synchronization.  For example:
->
->   fence = dma_buf_get_fence(dmabuf);
->   if (fence->ops == &mem_dma_fence_ops) {
->     dma_buf *fence_buf;
->     mem_dma_fence_get_buf(fence, &fence_buf, &offset);
->     ... tell the hw the memory location to wait on ...
->   } else {
->     /* fall-back to sw sync * /
->     dma_fence_add_callback(fence, my_cb);
->   }
-This will probably have to be done on dma-buf attach time instead,
-so drivers that support both know if an interrupt needs to be inserted
-in the command stream or not.
+These helper functions get and set a 64-bit control's value from within
+a driver. They are similar to v4l2_ctrl_[gs]_ctrl() but operate on
+64-bit integer controls instead of 32-bit controls.
 
-> The memory location is itself backed by dma-buf, to simplify mapping
-> to the device's address space, an idea borrowed from Maarten Lankhorst.
->
-> NOTE: the memory location fence is not implemented yet, the above is
-> just for explaining how it would work.
->
-> On SoC platforms, if some other hw mechanism is provided for synchronizing
-> between IP blocks, it could be supported as an alternate implementation
-> with it's own fence ops in a similar way.
->
-> The other non-sw implementations would wrap the add/cancel_callback and
-> wait fence ops, so that they can keep track if a device not supporting
-> hw sync is waiting on the fence, and in this case should arrange to
-Standardizing an errno in case the device already signalled the fence
-would be nice.
-> call dma_fence_signal() at some point after the condition has changed,
-> to notify other devices waiting on the fence.  If there are no sw
-> waiters, this can be skipped to avoid waking the CPU unnecessarily.
-Can this be done inside interrupt context? I could insert some
-semaphores into intel that would block execution, but I would
-save a context switch if intel could release the command blocking
-from inside irq context.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/v4l2-ctrls.c |  135 +++++++++++++++++++++++---------------
+ include/media/v4l2-ctrls.h       |   23 +++++++
+ 2 files changed, 105 insertions(+), 53 deletions(-)
 
-> The intention is to provide a userspace interface (presumably via eventfd)
-> later, to be used in conjunction with dma-buf's mmap support for sw access
-> to buffers (or for userspace apps that would prefer to do their own
-> synchronization).
-I'll have to look at this more in the morning but I see no barrier for
-this being used with dmabufmgr right now.
-
-The fence lock should probably not be static but shared with the
-dmabufmgr code, with _locked variants.
-Oh and in your example code I noticed inconsistent use of spin_lock
-and spin_lock_irqsave, do you intend it to be used in hardirq context?
-
-~Maarten
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 9abd9ab..9b9b825 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -1173,76 +1173,53 @@ static int cluster_changed(struct v4l2_ctrl *master)
+ 	return diff;
+ }
+ 
+-/* Validate integer-type control */
+-static int validate_new_int(const struct v4l2_ctrl *ctrl, s32 *pval)
++/* Validate a new control */
++static int validate_new(const struct v4l2_ctrl *ctrl,
++			struct v4l2_ext_control *c)
+ {
+-	s32 val = *pval;
++	size_t len;
+ 	u32 offset;
++	s32 val;
+ 
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_INTEGER:
+ 		/* Round towards the closest legal value */
+-		val += ctrl->step / 2;
+-		if (val < ctrl->minimum)
+-			val = ctrl->minimum;
+-		if (val > ctrl->maximum)
+-			val = ctrl->maximum;
++		val = c->value + ctrl->step / 2;
++		val = clamp(val, ctrl->minimum, ctrl->maximum);
+ 		offset = val - ctrl->minimum;
+ 		offset = ctrl->step * (offset / ctrl->step);
+-		val = ctrl->minimum + offset;
+-		*pval = val;
++		c->value = ctrl->minimum + offset;
+ 		return 0;
+ 
+ 	case V4L2_CTRL_TYPE_BOOLEAN:
+-		*pval = !!val;
++		c->value = !!c->value;
+ 		return 0;
+ 
+ 	case V4L2_CTRL_TYPE_MENU:
+ 	case V4L2_CTRL_TYPE_INTEGER_MENU:
+-		if (val < ctrl->minimum || val > ctrl->maximum)
++		if (c->value < ctrl->minimum || c->value > ctrl->maximum)
+ 			return -ERANGE;
+-		if (ctrl->menu_skip_mask & (1 << val))
++		if (ctrl->menu_skip_mask & (1 << c->value))
+ 			return -EINVAL;
+ 		if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
+-		    ctrl->qmenu[val][0] == '\0')
++		    ctrl->qmenu[c->value][0] == '\0')
+ 			return -EINVAL;
+ 		return 0;
+ 
+ 	case V4L2_CTRL_TYPE_BITMASK:
+-		*pval &= ctrl->maximum;
++		c->value &= ctrl->maximum;
+ 		return 0;
+ 
+ 	case V4L2_CTRL_TYPE_BUTTON:
+ 	case V4L2_CTRL_TYPE_CTRL_CLASS:
+-		*pval = 0;
++		c->value = 0;
+ 		return 0;
+ 
+-	default:
+-		return -EINVAL;
+-	}
+-}
+-
+-/* Validate a new control */
+-static int validate_new(const struct v4l2_ctrl *ctrl, struct v4l2_ext_control *c)
+-{
+-	char *s = c->string;
+-	size_t len;
+-
+-	switch (ctrl->type) {
+-	case V4L2_CTRL_TYPE_INTEGER:
+-	case V4L2_CTRL_TYPE_BOOLEAN:
+-	case V4L2_CTRL_TYPE_MENU:
+-	case V4L2_CTRL_TYPE_INTEGER_MENU:
+-	case V4L2_CTRL_TYPE_BITMASK:
+-	case V4L2_CTRL_TYPE_BUTTON:
+-	case V4L2_CTRL_TYPE_CTRL_CLASS:
+-		return validate_new_int(ctrl, &c->value);
+-
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+ 		return 0;
+ 
+ 	case V4L2_CTRL_TYPE_STRING:
+-		len = strlen(s);
++		len = strlen(c->string);
+ 		if (len < ctrl->minimum)
+ 			return -ERANGE;
+ 		if ((len - ctrl->minimum) % ctrl->step)
+@@ -2234,12 +2211,19 @@ int v4l2_subdev_g_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs
+ EXPORT_SYMBOL(v4l2_subdev_g_ext_ctrls);
+ 
+ /* Helper function to get a single control */
+-static int get_ctrl(struct v4l2_ctrl *ctrl, s32 *val)
++static int get_ctrl(struct v4l2_ctrl *ctrl, struct v4l2_ext_control *c)
+ {
+ 	struct v4l2_ctrl *master = ctrl->cluster[0];
+ 	int ret = 0;
+ 	int i;
+ 
++	/* String controls are not supported. The new_to_user() and
++	 * cur_to_user() calls below would need to be modified not to access
++	 * userspace memory when called from get_ctrl().
++	 */
++	if (ctrl->type == V4L2_CTRL_TYPE_STRING)
++		return -EINVAL;
++
+ 	if (ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
+ 		return -EACCES;
+ 
+@@ -2249,9 +2233,9 @@ static int get_ctrl(struct v4l2_ctrl *ctrl, s32 *val)
+ 		for (i = 0; i < master->ncontrols; i++)
+ 			cur_to_new(master->cluster[i]);
+ 		ret = call_op(master, g_volatile_ctrl);
+-		*val = ctrl->val;
++		new_to_user(c, ctrl);
+ 	} else {
+-		*val = ctrl->cur.val;
++		cur_to_user(c, ctrl);
+ 	}
+ 	v4l2_ctrl_unlock(master);
+ 	return ret;
+@@ -2260,10 +2244,14 @@ static int get_ctrl(struct v4l2_ctrl *ctrl, s32 *val)
+ int v4l2_g_ctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_control *control)
+ {
+ 	struct v4l2_ctrl *ctrl = v4l2_ctrl_find(hdl, control->id);
++	struct v4l2_ext_control c;
++	int ret;
+ 
+ 	if (ctrl == NULL || !type_is_int(ctrl))
+ 		return -EINVAL;
+-	return get_ctrl(ctrl, &control->value);
++	ret = get_ctrl(ctrl, &c);
++	control->value = c.value;
++	return ret;
+ }
+ EXPORT_SYMBOL(v4l2_g_ctrl);
+ 
+@@ -2275,15 +2263,28 @@ EXPORT_SYMBOL(v4l2_subdev_g_ctrl);
+ 
+ s32 v4l2_ctrl_g_ctrl(struct v4l2_ctrl *ctrl)
+ {
+-	s32 val = 0;
++	struct v4l2_ext_control c;
+ 
+ 	/* It's a driver bug if this happens. */
+ 	WARN_ON(!type_is_int(ctrl));
+-	get_ctrl(ctrl, &val);
+-	return val;
++	c.value = 0;
++	get_ctrl(ctrl, &c);
++	return c.value;
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_g_ctrl);
+ 
++s64 v4l2_ctrl_g_ctrl_int64(struct v4l2_ctrl *ctrl)
++{
++	struct v4l2_ext_control c;
++
++	/* It's a driver bug if this happens. */
++	WARN_ON(ctrl->type != V4L2_CTRL_TYPE_INTEGER64);
++	c.value = 0;
++	get_ctrl(ctrl, &c);
++	return c.value;
++}
++EXPORT_SYMBOL(v4l2_ctrl_g_ctrl_int64);
++
+ 
+ /* Core function that calls try/s_ctrl and ensures that the new value is
+    copied to the current value on a set.
+@@ -2499,13 +2500,21 @@ int v4l2_subdev_s_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs
+ EXPORT_SYMBOL(v4l2_subdev_s_ext_ctrls);
+ 
+ /* Helper function for VIDIOC_S_CTRL compatibility */
+-static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, s32 *val)
++static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl,
++		    struct v4l2_ext_control *c)
+ {
+ 	struct v4l2_ctrl *master = ctrl->cluster[0];
+ 	int ret;
+ 	int i;
+ 
+-	ret = validate_new_int(ctrl, val);
++	/* String controls are not supported. The user_to_new() and
++	 * cur_to_user() calls below would need to be modified not to access
++	 * userspace memory when called from set_ctrl().
++	 */
++	if (ctrl->type == V4L2_CTRL_TYPE_STRING)
++		return -EINVAL;
++
++	ret = validate_new(ctrl, c);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -2520,12 +2529,13 @@ static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, s32 *val)
+ 	   manual mode we have to update the current volatile values since
+ 	   those will become the initial manual values after such a switch. */
+ 	if (master->is_auto && master->has_volatiles && ctrl == master &&
+-	    !is_cur_manual(master) && *val == master->manual_mode_value)
++	    !is_cur_manual(master) && c->value == master->manual_mode_value)
+ 		update_from_auto_cluster(master);
+-	ctrl->val = *val;
+-	ctrl->is_new = 1;
++
++	user_to_new(c, ctrl);
+ 	ret = try_or_set_cluster(fh, master, true);
+-	*val = ctrl->cur.val;
++	cur_to_user(c, ctrl);
++
+ 	v4l2_ctrl_unlock(ctrl);
+ 	return ret;
+ }
+@@ -2534,6 +2544,8 @@ int v4l2_s_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 					struct v4l2_control *control)
+ {
+ 	struct v4l2_ctrl *ctrl = v4l2_ctrl_find(hdl, control->id);
++	struct v4l2_ext_control c;
++	int ret;
+ 
+ 	if (ctrl == NULL || !type_is_int(ctrl))
+ 		return -EINVAL;
+@@ -2541,7 +2553,10 @@ int v4l2_s_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 	if (ctrl->flags & V4L2_CTRL_FLAG_READ_ONLY)
+ 		return -EACCES;
+ 
+-	return set_ctrl(fh, ctrl, &control->value);
++	c.value = control->value;
++	ret = set_ctrl(fh, ctrl, &c);
++	control->value = c.value;
++	return ret;
+ }
+ EXPORT_SYMBOL(v4l2_s_ctrl);
+ 
+@@ -2553,12 +2568,26 @@ EXPORT_SYMBOL(v4l2_subdev_s_ctrl);
+ 
+ int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val)
+ {
++	struct v4l2_ext_control c;
++
+ 	/* It's a driver bug if this happens. */
+ 	WARN_ON(!type_is_int(ctrl));
+-	return set_ctrl(NULL, ctrl, &val);
++	c.value = val;
++	return set_ctrl(NULL, ctrl, &c);
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_s_ctrl);
+ 
++int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val)
++{
++	struct v4l2_ext_control c;
++
++	/* It's a driver bug if this happens. */
++	WARN_ON(ctrl->type != V4L2_CTRL_TYPE_INTEGER64);
++	c.value64 = val;
++	return set_ctrl(NULL, ctrl, &c);
++}
++EXPORT_SYMBOL(v4l2_ctrl_s_ctrl_int64);
++
+ static int v4l2_ctrl_add_event(struct v4l2_subscribed_event *sev, unsigned elems)
+ {
+ 	struct v4l2_ctrl *ctrl = v4l2_ctrl_find(sev->fh->ctrl_handler, sev->id);
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 776605f..7ef6b27 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -511,6 +511,29 @@ s32 v4l2_ctrl_g_ctrl(struct v4l2_ctrl *ctrl);
+   */
+ int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val);
+ 
++/** v4l2_ctrl_g_ctrl_int64() - Helper function to get a 64-bit control's value from within a driver.
++  * @ctrl:	The control.
++  *
++  * This returns the control's value safely by going through the control
++  * framework. This function will lock the control's handler, so it cannot be
++  * used from within the &v4l2_ctrl_ops functions.
++  *
++  * This function is for 64-bit integer type controls only.
++  */
++s64 v4l2_ctrl_g_ctrl_int64(struct v4l2_ctrl *ctrl);
++
++/** v4l2_ctrl_s_ctrl_int64() - Helper function to set a 64-bit control's value from within a driver.
++  * @ctrl:	The control.
++  * @val:	The new value.
++  *
++  * This set the control's new value safely by going through the control
++  * framework. This function will lock the control's handler, so it cannot be
++  * used from within the &v4l2_ctrl_ops functions.
++  *
++  * This function is for 64-bit integer type controls only.
++  */
++int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val);
++
+ /* Internal helper functions that deal with control events. */
+ extern const struct v4l2_subscribed_event_ops v4l2_ctrl_sub_ev_ops;
+ void v4l2_ctrl_replace(struct v4l2_event *old, const struct v4l2_event *new);
+-- 
+1.7.8.6
 
