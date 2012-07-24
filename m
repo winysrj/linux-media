@@ -1,73 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:47436 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030326Ab2GFMIZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Jul 2012 08:08:25 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1Sn7Kd-00069a-0K
-	for linux-media@vger.kernel.org; Fri, 06 Jul 2012 14:08:19 +0200
-Received: from btm70.neoplus.adsl.tpnet.pl ([83.29.158.70])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2012 14:08:18 +0200
-Received: from acc.for.news by btm70.neoplus.adsl.tpnet.pl with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2012 14:08:18 +0200
-To: linux-media@vger.kernel.org
-From: Marx <acc.for.news@gmail.com>
-Subject: Re: pctv452e
-Date: Fri, 06 Jul 2012 13:04:41 +0200
-Message-ID: <9btic9-vd5.ln1@wuwek.kopernik.gliwice.pl>
-References: <4FF4697C.8080602@nexusuk.org> <4FF46DC4.4070204@iki.fi> <4FF4911B.9090600@web.de> <4FF4931B.7000708@iki.fi> <gjggc9-dl4.ln1@wuwek.kopernik.gliwice.pl> <4FF5A350.9070509@iki.fi> <r8cic9-ht4.ln1@wuwek.kopernik.gliwice.pl> <4FF6B121.6010105@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:43423 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752662Ab2GXLSg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Jul 2012 07:18:36 -0400
+Subject: Re: [PATCH 2/2] kthread_worker: reimplement flush_kthread_work() to
+ allow freeing the work item being executed
+From: Andy Walls <awalls@md.metrocast.net>
+To: Tejun Heo <tj@kernel.org>
+Cc: linux-kernel@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Avi Kivity <avi@redhat.com>, kvm@vger.kernel.org,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
+	Grant Likely <grant.likely@secretlab.ca>,
+	spi-devel-general@lists.sourceforge.net,
+	Linus Torvalds <torvalds@linux-foundation.org>
+Date: Tue, 24 Jul 2012 07:17:45 -0400
+In-Reply-To: <20120723171215.GA5776@google.com>
+References: <20120719211510.GA32763@google.com>
+	 <20120719211629.GC32763@google.com>
+	 <1342894814.2504.31.camel@palomino.walls.org>
+	 <20120722164953.GC5144@dhcp-172-17-108-109.mtv.corp.google.com>
+	 <1342990015.2487.19.camel@palomino.walls.org>
+	 <20120723171215.GA5776@google.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <4FF6B121.6010105@iki.fi>
+Message-ID: <1343128667.2488.6.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06.07.2012 11:34, Antti Palosaari wrote:
-> Did I missed something? PCTV device does not support CI/CAM and thus no
-> support for encrypted channels. Is there still CI slot?
+On Mon, 2012-07-23 at 10:12 -0700, Tejun Heo wrote:
+> Hello,
+> 
+> On Sun, Jul 22, 2012 at 04:46:54PM -0400, Andy Walls wrote:
+> > Hmmm, I didn't know about the constraint about 'known to be alive' in
+> > the other email I just sent.
+> > 
+> > That might make calling flush_kthread_work() hard for a user to use, if
+> > the user lets the work get freed by another thread executing the work.
+> 
+> Umm... flushing a freed work item doesn't make any sense at all.  The
+> pointer itself loses the ability to identify anything.  What if it
+> gets recycled to another work item which happens to depend on the
+> flusher to make forward progress?  You now have a circular dependency
+> through a recycled memory area.  Good luck hunting that down.
+> 
+> For pretty much any API, allowing dangling pointers as argument is
+> insane.  If you want to flush self-freeing work items, flush the
+> kthread_worker.  That's how it is with workqueue and how it should be
+> with kthread_worker too.
 
-no, I simply use external reader with plugin in VDR. Unfortunetelly on 
-Hotbird there is no unencrypted HD channel I can use to test.
+Hi,
 
->> Anyway when using card logs are full of i2c errors
->
-> Argh! But this must be issue of earlier driver too.
+Ah.  My problem was that I mentally assigned the wrong rationale for why
+you reworked flush_kthread_work().
 
-yes, those errors were in logs earlier on previous driver. Hovewer 
-previous driver allowed to play only once or two time and then was 
-stopping work. And i've never played successfully HD channel on this card.
+Thank you for your patience and explanations.
+Sorry for the noise.
 
-> I debug it and it seems to be totally clueless implementation of
-> stb6100_read_reg() as it sets device address like "device address +
-> register address". This makes stb6100 I2C address of tuner set for that
-> request 0x66 whilst it should be 0x60. Is that code never tested...
->
-> pctv452e DVB USB driver behaves just correctly as it says this is not
-> valid and returns error.
->
-> Also pctv452e I2C adapter supports only I2C operations that are done
-> with repeated STOP condition - but I cannot see there is logic to sent
-> STOP after last message. I suspect it is not correct as logically but
-> will work - very common mistake with many I2C adapters we have.
+For patch 2/2:
 
-I have second card in this computer
-http://www.proftuners.com/prof8000.html
-which uses STB6100 (and also STV0903 and CX23885).
-I wasn't aware that both of this card uses the same chip (as I see from 
-http://www.linuxtv.org/wiki/index.php/TechnoTrend_TT-connect_S2-3650_CI 
-it uses STB6100 too).
-Can it be a problem? Anyway i will take off this second card a test again.
+Reviewed-by: Andy Walls <awalls@md.metrocast.net>
 
-> Regardless of those errors it still works?
-
-Thank you for help. I had only a few minutes at the morning to test it 
-and it partly worked. More test are planned tonight and I will write 
-here outcomes.
-
-Marx
+Regards,
+Andy
 
