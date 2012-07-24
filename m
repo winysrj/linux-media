@@ -1,139 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:12510 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751807Ab2GWKXb (ORCPT
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:37594 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754047Ab2GXVxs convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jul 2012 06:23:31 -0400
-Received: from eusync3.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M7L00E5KZJXR130@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 23 Jul 2012 11:23:58 +0100 (BST)
-Received: from [106.116.147.32] by eusync3.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0M7L00F2PZJ45M90@eusync3.samsung.com> for
- linux-media@vger.kernel.org; Mon, 23 Jul 2012 11:23:28 +0100 (BST)
-Message-id: <500D2595.7060009@samsung.com>
-Date: Mon, 23 Jul 2012 12:21:09 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: javier Martin <javier.martin@vista-silicon.com>,
-	linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, s.hauer@pengutronix.de,
-	p.zabel@pengutronix.de
-Subject: Re: [PATCH v6] media: coda: Add driver for Coda video codec.
-References: <1342782515-24992-1-git-send-email-javier.martin@vista-silicon.com>
- <CACKLOr312a=KTrm9=N48=SHN5Z=0yTPceopG9MJBu8he_3yjrw@mail.gmail.com>
- <CACKLOr1RF2PLECz7Y9kFRnFqnCMfHQOcCTT0TgdFvNyFVynCpg@mail.gmail.com>
- <201207231214.15835.hverkuil@xs4all.nl>
-In-reply-to: <201207231214.15835.hverkuil@xs4all.nl>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Tue, 24 Jul 2012 17:53:48 -0400
+Received: by vbbff1 with SMTP id ff1so49050vbb.19
+        for <linux-media@vger.kernel.org>; Tue, 24 Jul 2012 14:53:47 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <500F18A5.4010602@iki.fi>
+References: <20120713173708.GB17109@thunk.org>
+	<5005A14D.8000809@redhat.com>
+	<201207242305.08220.remi@remlab.net>
+	<CAGoCfiwE1pfCxuE3WS3FwOV2jnxMFxhnL6-+hTSfE+2PNnxk-g@mail.gmail.com>
+	<500F18A5.4010602@iki.fi>
+Date: Tue, 24 Jul 2012 17:53:47 -0400
+Message-ID: <CAHAyoxyFAAa9pkNz5khsyVpdvROduw7vYNDbDG_HcNK8iouwkw@mail.gmail.com>
+Subject: Re: [Workshop-2011] Media summit at the Kernel Summit - was: Fwd: Re:
+ [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	workshop-2011@linuxtv.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/23/2012 12:14 PM, Hans Verkuil wrote:
-> On Mon July 23 2012 12:00:30 javier Martin wrote:
->> On 23 July 2012 11:45, javier Martin <javier.martin@vista-silicon.com> wrote:
->>> Sorry, I had a problem with my buildroot environment. This is the
->>> v4l2-compliance output with the most recent version:
+On Tue, Jul 24, 2012 at 5:50 PM, Antti Palosaari <crope@iki.fi> wrote:
+> On 07/24/2012 11:11 PM, Devin Heitmueller wrote:
+>>
+>> On Tue, Jul 24, 2012 at 4:05 PM, Rémi Denis-Courmont <remi@remlab.net>
+>> wrote:
 >>>
->>> # v4l2-compliance -d /dev/video2
->>> Driver Info:
->>>         Driver name   : coda
->>>         Card type     : coda
->>>         Bus info      : coda
->>>         Driver version: 0.0.0
->>>         Capabilities  : 0x84000003
->>>                 Video Capture
->>>                 Video Output
->>>                 Streaming
->>>                 Device Capabilities
->>>         Device Caps   : 0x04000003
->>>                 Video Capture
->>>                 Video Output
->>>                 Streaming
->>>
->>> Compliance test for device /dev/video2 (not using libv4l2):
->>>
->>> Required ioctls:
->>>                 fail: v4l2-compliance.cpp(270): (vcap.version >> 16) < 3
->>>         test VIDIOC_QUERYCAP: FAIL
->>>
+>>> If it's of interest to anyone, I could probably present a bunch of issues
+>>> with
+>>> V4L2 and DVB from userspace perspective.
 >>
->> This was related to a memset() that I did in QUERYCAP.
 >>
->> Now the output is cleaner.
-> 
-> Ah, much better.
-> 
+>> Remi,
 >>
->> # v4l2-compliance -d /dev/video2
->> Driver Info:
->>         Driver name   : coda
->>         Card type     : coda
->>         Bus info      : coda
->>         Driver version: 3.5.0
->>         Capabilities  : 0x84000003
->>                 Video Capture
->>                 Video Output
->>                 Streaming
->>                 Device Capabilities
->>         Device Caps   : 0x04000003
->>                 Video Capture
->>                 Video Output
->>                 Streaming
 >>
->> Compliance test for device /dev/video2 (not using libv4l2):
->>
->> Required ioctls:
->>         test VIDIOC_QUERYCAP: OK
->>
->> Allow for multiple opens:
->>         test second video open: OK
->>         test VIDIOC_QUERYCAP: OK
->>         test VIDIOC_G/S_PRIORITY: OK
->>
->> Debug ioctls:
->>         test VIDIOC_DBG_G_CHIP_IDENT: Not Supported
->>         test VIDIOC_DBG_G/S_REGISTER: Not Supported
->>         test VIDIOC_LOG_STATUS: Not Supported
->>
->> Input ioctls:
->>         test VIDIOC_G/S_TUNER: Not Supported
->>         test VIDIOC_G/S_FREQUENCY: Not Supported
->>         test VIDIOC_S_HW_FREQ_SEEK: Not Supported
->>         test VIDIOC_ENUMAUDIO: Not Supported
->>         test VIDIOC_G/S/ENUMINPUT: Not Supported
->>         test VIDIOC_G/S_AUDIO: Not Supported
->>         Inputs: 0 Audio Inputs: 0 Tuners: 0
->>
->> Output ioctls:
->>         test VIDIOC_G/S_MODULATOR: Not Supported
->>         test VIDIOC_G/S_FREQUENCY: Not Supported
->>         test VIDIOC_ENUMAUDOUT: Not Supported
->>         test VIDIOC_G/S/ENUMOUTPUT: Not Supported
->>         test VIDIOC_G/S_AUDOUT: Not Supported
->>         Outputs: 0 Audio Outputs: 0 Modulators: 0
->>
->> Control ioctls:
->>         test VIDIOC_QUERYCTRL/MENU: OK
->>         test VIDIOC_G/S_CTRL: OK
->>                 fail: v4l2-test-controls.cpp(565): try_ext_ctrls did
->> not check the read-only flag
-> 
-> Hmm, what's the reason for this one I wonder. Can you run with '-v2' and see
-> for which control this fails?
+>> I would strongly be in favor of this.  One thing that we get far to
+>> little of is feedback from actual userland developers making use of
+>> the V4L and DVB interfaces (aside from the SoC vendors, which is a
+>> completely different target audience than the traditional V4L and DVB
+>> consumers)
+>
+>
+> I wonder if it is wise to merge both DVB and V4L2 APIs, add needed DVB stuff
+> to V4L2 API and finally remove whole DVB API. V4L2 API seems to be much more
+> feature rich, developed more actively and maybe has less problems than
+> current DVB API.
 
-This might be related to calling video_register_device() with null
-ctrl_handler or not setting V4L2_FL_USES_V4L2_FH flags at struct video_device.
-
---
-
-Regards,
-Sylwester
-
-
-
+lets never do that.
