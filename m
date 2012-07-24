@@ -1,108 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:36133 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750752Ab2GTGVK (ORCPT
+Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:46076 "EHLO
+	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754427Ab2GXPEV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jul 2012 02:21:10 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: 'Rob Clark' <rob.clark@linaro.org>, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org
-Cc: patches@linaro.org, linux@arm.linux.org.uk, arnd@arndb.de,
-	jesse.barker@linaro.org, daniel@ffwll.ch,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	sumit.semwal@ti.com, maarten.lankhorst@canonical.com,
-	'Rob Clark' <rob@ti.com>
-References: <1342715014-5316-1-git-send-email-rob.clark@linaro.org>
- <1342715014-5316-2-git-send-email-rob.clark@linaro.org>
-In-reply-to: <1342715014-5316-2-git-send-email-rob.clark@linaro.org>
-Subject: RE: [PATCH 1/2] device: add dma_params->max_segment_count
-Date: Fri, 20 Jul 2012 08:20:50 +0200
-Message-id: <018b01cd663f$d3a23c10$7ae6b430$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Tue, 24 Jul 2012 11:04:21 -0400
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: [PATCH, RESEND] az6007: fix incorrect memcpy
+To: linux-media@vger.kernel.org, akpm@linux-foundation.org
+Date: Tue, 24 Jul 2012 17:02:46 +0100
+Message-ID: <20120724160235.7031.21809.stgit@bluebook>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+From: Alan Cox <alan@linux.intel.com>
 
-On Thursday, July 19, 2012 6:24 PM Rob Clark wrote:
+Some parts of the C language are subtle and evil. This is one example.
 
-> From: Rob Clark <rob@ti.com>
-> 
-> For devices which have constraints about maximum number of segments
-> in an sglist.  For example, a device which could only deal with
-> contiguous buffers would set max_segment_count to 1.
-> 
-> The initial motivation is for devices sharing buffers via dma-buf,
-> to allow the buffer exporter to know the constraints of other
-> devices which have attached to the buffer.  The dma_mask and fields
-> in 'struct device_dma_parameters' tell the exporter everything else
-> that is needed, except whether the importer has constraints about
-> maximum number of segments.
-> 
-> Signed-off-by: Rob Clark <rob@ti.com>
+Reported-by: dcb314@hotmail.com
+Resolves-bug: https://bugzilla.kernel.org/show_bug.cgi?id=44041
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+---
 
-Yea, it is a really good idea to add this to struct device_dma_parameters.
-We only need to initialize it to '1' in platform startup code for all 
-devices relevant to buffer sharing.
+ drivers/media/dvb/dvb-usb/az6007.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-
-> ---
->  include/linux/device.h      |    1 +
->  include/linux/dma-mapping.h |   16 ++++++++++++++++
->  2 files changed, 17 insertions(+)
-> 
-> diff --git a/include/linux/device.h b/include/linux/device.h
-> index 161d962..3813735 100644
-> --- a/include/linux/device.h
-> +++ b/include/linux/device.h
-> @@ -568,6 +568,7 @@ struct device_dma_parameters {
->  	 * sg limitations.
->  	 */
->  	unsigned int max_segment_size;
-> +	unsigned int max_segment_count;    /* zero for unlimited */
->  	unsigned long segment_boundary_mask;
->  };
-> 
-> diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-> index dfc099e..f380f79 100644
-> --- a/include/linux/dma-mapping.h
-> +++ b/include/linux/dma-mapping.h
-> @@ -111,6 +111,22 @@ static inline unsigned int dma_set_max_seg_size(struct device *dev,
->  		return -EIO;
->  }
-> 
-> +static inline unsigned int dma_get_max_seg_count(struct device *dev)
-> +{
-> +	return dev->dma_parms ? dev->dma_parms->max_segment_count : 0;
-> +}
-> +
-> +static inline int dma_set_max_seg_count(struct device *dev,
-> +						unsigned int count)
-> +{
-> +	if (dev->dma_parms) {
-> +		dev->dma_parms->max_segment_count = count;
-> +		return 0;
-> +	} else
-> +		return -EIO;
-> +}
-> +
-> +
->  static inline unsigned long dma_get_seg_boundary(struct device *dev)
->  {
->  	return dev->dma_parms ?
-> --
-> 1.7.9.5
-
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+diff --git a/drivers/media/dvb/dvb-usb/az6007.c b/drivers/media/dvb/dvb-usb/az6007.c
+index 8ffcad0..86861e6 100644
+--- a/drivers/media/dvb/dvb-usb/az6007.c
++++ b/drivers/media/dvb/dvb-usb/az6007.c
+@@ -590,7 +590,7 @@ static int az6007_read_mac_addr(struct dvb_usb_device *d, u8 mac[6])
+ 	int ret;
+ 
+ 	ret = az6007_read(d, AZ6007_READ_DATA, 6, 0, st->data, 6);
+-	memcpy(mac, st->data, sizeof(mac));
++	memcpy(mac, st->data, 6);
+ 
+ 	if (ret > 0)
+ 		deb_info("%s: mac is %pM\n", __func__, mac);
 
