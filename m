@@ -1,147 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:60415 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752001Ab2GVUkN (ORCPT
+Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:46074 "EHLO
+	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753911Ab2GXPB4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Jul 2012 16:40:13 -0400
-Subject: Re: [PATCH 2/2] kthread_worker: reimplement flush_kthread_work() to
- allow freeing the work item being executed
-From: Andy Walls <awalls@md.metrocast.net>
-To: Tejun Heo <tj@kernel.org>
-Cc: linux-kernel@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Avi Kivity <avi@redhat.com>, kvm@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	Grant Likely <grant.likely@secretlab.ca>,
-	spi-devel-general@lists.sourceforge.net,
-	Linus Torvalds <torvalds@linux-foundation.org>
-Date: Sun, 22 Jul 2012 16:39:26 -0400
-References: <20120719211510.GA32763@google.com>
-	 <20120719211629.GC32763@google.com>
-Content-Type: text/plain; charset="UTF-8"
+	Tue, 24 Jul 2012 11:01:56 -0400
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: [PATCH, RESEND] cx25821,medusa: incorrect check on decoder type
+To: linux-media@vger.kernel.org, akpm@linux-foundation.org
+Date: Tue, 24 Jul 2012 17:00:24 +0100
+Message-ID: <20120724160011.6932.97726.stgit@bluebook>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-ID: <1342989568.2487.14.camel@palomino.walls.org>
-Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tejun,
+From: Alan Cox <alan@linux.intel.com>
 
-Thanks for responding to my previous questions.  I have one more.
+Unsupported requests should be ignored but in fact affected VDEC_A
 
-On Sat, 2012-07-21 at 14:20 -0400, Andy Walls wrote:
-> On Thu, 2012-07-19 at 14:16 -0700, Tejun Heo wrote:
-> > From 06f9a06f4aeecdb9d07014713ab41b548ae219b5 Mon Sep 17 00:00:00 2001
-> > From: Tejun Heo <tj@kernel.org>
-> > Date: Thu, 19 Jul 2012 13:52:53 -0700
-> > 
-> > kthread_worker provides minimalistic workqueue-like interface for
-> > users which need a dedicated worker thread (e.g. for realtime
-> > priority).  It has basic queue, flush_work, flush_worker operations
-> > which mostly match the workqueue counterparts; however, due to the way
-> > flush_work() is implemented, it has a noticeable difference of not
-> > allowing work items to be freed while being executed. 
+Reported-by: dcb314@hotmail.com
+Resolves-bug: https://bugzilla.kernel.org/show_bug.cgi?id=44051
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+---
 
-[snip]
+ drivers/media/video/cx25821/cx25821-medusa-video.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> > @@ -434,25 +430,35 @@ static void kthread_flush_work_fn(struct kthread_work *work)
-> >   */
-> >  void flush_kthread_work(struct kthread_work *work)
-> >  {
-> > -	int seq = work->queue_seq;
-> > +	struct kthread_flush_work fwork = {
-> > +		KTHREAD_WORK_INIT(fwork.work, kthread_flush_work_fn),
-> > +		COMPLETION_INITIALIZER_ONSTACK(fwork.done),
-> > +	};
-> > +	struct kthread_worker *worker;
-> > +	bool noop = false;
-> > +
-> 
-> You might want a check for 'work == NULL' here, to gracefully handle
-> code like the following:
-> 
-> void driver_work_handler(struct kthread_work *work)
-> {
-> 	...
-> 	kfree(work);
-> }
-> 
-> struct kthread_work *driver_queue_batch(void)
-> {
-> 	struct kthread_work *work = NULL;
-> 	...
-> 	while (driver_more_stuff_todo()) {
-> 		work = kzalloc(sizeof(struct kthread work), GFP_WHATEVER);
-> 		...
-> 		queue_kthread_work(&driver_worker, work);
-> 	}
-> 	return work;
-> }
-> 
-> void driver_foobar(void)
-> {
-> 	...
-> 	flush_kthread_work(driver_queue_batch());
-> 	...
-> }
-
-[snip]
-
-> > +retry:
-> > +	worker = work->worker;
-> > +	if (!worker)
-> > +		return;
-> >  
-> > -	atomic_inc(&work->flushing);
-> > +	spin_lock_irq(&worker->lock);
-> > +	if (work->worker != worker) {
-> > +		spin_unlock_irq(&worker->lock);
-> > +		goto retry;
-> > +	}
-> >  
-> > -	/*
-> > -	 * mb flush-b0 paired with worker-b1, to make sure either
-> > -	 * worker sees the above increment or we see done_seq update.
-> > -	 */
-> > -	smp_mb__after_atomic_inc();
-> > +	if (!list_empty(&work->node))
-> > +		insert_kthread_work(worker, &fwork.work, work->node.next);
-> > +	else if (worker->current_work == work)
-> > +		insert_kthread_work(worker, &fwork.work, worker->work_list.next);
-> > +	else
-> > +		noop = true;
-
-The objective is "allowing work items to be freed while being executed",
-to me, it does not seem safe to me to allow flush_kthread_work() to
-actually dereference the passed in work pointer.
-
-flush_kthread_work() could theoretically be executed after the work
-function was executed by the worker kthread which frees the 'work'
-object, and that the memory 'work' points to could theoretically already
-be reallocated for something else.  (I admit the above likely has very
-low probability of occuring.)  
-
-Is there a way to avoid dereferencing 'work' here?
-
-Regards,
-Andy
-
-> >  
-> > -	/* A - B <= 0 tests whether B is in front of A regardless of overflow */
-> > -	wait_event(work->done, seq - work->done_seq <= 0);
-> > -	atomic_dec(&work->flushing);
-> > +	spin_unlock_irq(&worker->lock);
-> >  
-> > -	/*
-> > -	 * rmb flush-b1 paired with worker-b0, to make sure our caller
-> > -	 * sees every change made by work->func().
-> > -	 */
-> > -	smp_mb__after_atomic_dec();
-> > +	if (!noop)
-> > +		wait_for_completion(&fwork.done);
-> >  }
-> >  EXPORT_SYMBOL_GPL(flush_kthread_work);
-> >  
-> 
-
+diff --git a/drivers/media/video/cx25821/cx25821-medusa-video.c b/drivers/media/video/cx25821/cx25821-medusa-video.c
+index 313fb20..6a92e5c 100644
+--- a/drivers/media/video/cx25821/cx25821-medusa-video.c
++++ b/drivers/media/video/cx25821/cx25821-medusa-video.c
+@@ -499,7 +499,7 @@ static void medusa_set_decoderduration(struct cx25821_dev *dev, int decoder,
+ 	mutex_lock(&dev->lock);
+ 
+ 	/* no support */
+-	if (decoder < VDEC_A && decoder > VDEC_H) {
++	if (decoder < VDEC_A || decoder > VDEC_H) {
+ 		mutex_unlock(&dev->lock);
+ 		return;
+ 	}
 
