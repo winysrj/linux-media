@@ -1,95 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:53064 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752118Ab2GVQt6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Jul 2012 12:49:58 -0400
-Date: Sun, 22 Jul 2012 09:49:53 -0700
-From: Tejun Heo <tj@kernel.org>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: linux-kernel@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Avi Kivity <avi@redhat.com>, kvm@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	Grant Likely <grant.likely@secretlab.ca>,
-	spi-devel-general@lists.sourceforge.net,
-	Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH 2/2] kthread_worker: reimplement flush_kthread_work()
- to allow freeing the work item being executed
-Message-ID: <20120722164953.GC5144@dhcp-172-17-108-109.mtv.corp.google.com>
-References: <20120719211510.GA32763@google.com>
- <20120719211629.GC32763@google.com>
- <1342894814.2504.31.camel@palomino.walls.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:49721 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753382Ab2GXVun (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Jul 2012 17:50:43 -0400
+Message-ID: <500F18A5.4010602@iki.fi>
+Date: Wed, 25 Jul 2012 00:50:29 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1342894814.2504.31.camel@palomino.walls.org>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: =?ISO-8859-1?Q?R=E9mi_Denis-Courmont?= <remi@remlab.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	workshop-2011@linuxtv.org
+Subject: Re: Media summit at the Kernel Summit - was: Fwd: Re: [Ksummit-2012-discuss]
+ Organising Mini Summits within the Kernel Summit
+References: <20120713173708.GB17109@thunk.org> <5005A14D.8000809@redhat.com> <201207242305.08220.remi@remlab.net> <CAGoCfiwE1pfCxuE3WS3FwOV2jnxMFxhnL6-+hTSfE+2PNnxk-g@mail.gmail.com>
+In-Reply-To: <CAGoCfiwE1pfCxuE3WS3FwOV2jnxMFxhnL6-+hTSfE+2PNnxk-g@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On 07/24/2012 11:11 PM, Devin Heitmueller wrote:
+> On Tue, Jul 24, 2012 at 4:05 PM, Rémi Denis-Courmont <remi@remlab.net> wrote:
+>> If it's of interest to anyone, I could probably present a bunch of issues with
+>> V4L2 and DVB from userspace perspective.
+>
+> Remi,
+>
+> I would strongly be in favor of this.  One thing that we get far to
+> little of is feedback from actual userland developers making use of
+> the V4L and DVB interfaces (aside from the SoC vendors, which is a
+> completely different target audience than the traditional V4L and DVB
+> consumers)
 
-On Sat, Jul 21, 2012 at 02:20:06PM -0400, Andy Walls wrote:
-> > +	worker->current_work = work;
-> >  	spin_unlock_irq(&worker->lock);
-> >  
-> >  	if (work) {
-> >  		__set_current_state(TASK_RUNNING);
-> >  		work->func(work);
-> 
-> If the call to 'work->func(work);' frees the memory pointed to by
-> 'work', 'worker->current_work' points to deallocated memory.
-> So 'worker->current_work' will only ever used as a unique 'work'
-> identifier to handle, correct?
+I wonder if it is wise to merge both DVB and V4L2 APIs, add needed DVB 
+stuff to V4L2 API and finally remove whole DVB API. V4L2 API seems to be 
+much more feature rich, developed more actively and maybe has less 
+problems than current DVB API.
 
-Yeah.  flush_kthread_work(@work) which can only be called if @work is
-known to be alive looks at the pointer to determine whether it's the
-current work item on the worker.
 
-> >  void flush_kthread_work(struct kthread_work *work)
-> >  {
-> > -	int seq = work->queue_seq;
-> > +	struct kthread_flush_work fwork = {
-> > +		KTHREAD_WORK_INIT(fwork.work, kthread_flush_work_fn),
-> > +		COMPLETION_INITIALIZER_ONSTACK(fwork.done),
-> > +	};
-> > +	struct kthread_worker *worker;
-> > +	bool noop = false;
-> > +
-> 
-> You might want a check for 'work == NULL' here, to gracefully handle
-> code like the following:
-> 
-> void driver_work_handler(struct kthread_work *work)
-> {
-> 	...
-> 	kfree(work);
-> }
-> 
-> struct kthread_work *driver_queue_batch(void)
-> {
-> 	struct kthread_work *work = NULL;
-> 	...
-> 	while (driver_more_stuff_todo()) {
-> 		work = kzalloc(sizeof(struct kthread work), GFP_WHATEVER);
-> 		...
-> 		queue_kthread_work(&driver_worker, work);
-> 	}
-> 	return work;
-> }
-> 
-> void driver_foobar(void)
-> {
-> 	...
-> 	flush_kthread_work(driver_queue_batch());
-> 	...
-> }
-
-workqueue's flush_work() doesn't allow %NULL pointer.  I don't want to
-make the behaviors deviate and don't see much point in changing
-workqueue's behavior at this point.
-
-Thanks.
+regards
+Antti
 
 -- 
-tejun
+http://palosaari.fi/
