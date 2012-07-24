@@ -1,52 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog107.obsmtp.com ([207.126.144.123]:48560 "HELO
-	eu1sys200aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753274Ab2GJJom (ORCPT
+Received: from oyp.chewa.net ([91.121.6.101]:45455 "EHLO oyp.chewa.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754810Ab2GXUFL convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jul 2012 05:44:42 -0400
-Received: by wibhq12 with SMTP id hq12so2777842wib.5
-        for <linux-media@vger.kernel.org>; Tue, 10 Jul 2012 02:44:40 -0700 (PDT)
-From: Dror Cohen <dror@liveu.tv>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, nsekhar@ti.com,
-	davinci-linux-open-source@linux.davincidsp.com,
-	Dror Cohen <dror@liveu.tv>
-Subject: [PATCH] media/video: vpif: fixed vpfe->vpif typo
-Date: Tue, 10 Jul 2012 12:43:22 +0300
-Message-Id: <1341913402-4439-2-git-send-email-dror@liveu.tv>
-In-Reply-To: <1341913402-4439-1-git-send-email-dror@liveu.tv>
-References: <1341913402-4439-1-git-send-email-dror@liveu.tv>
+	Tue, 24 Jul 2012 16:05:11 -0400
+From: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: Media summit at the Kernel Summit - was: Fwd: Re: [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
+Date: Tue, 24 Jul 2012 23:05:06 +0300
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	workshop-2011@linuxtv.org
+References: <20120713173708.GB17109@thunk.org> <5005A14D.8000809@redhat.com>
+In-Reply-To: <5005A14D.8000809@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201207242305.08220.remi@remlab.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+	Hello,
 
-Signed-off-by: Dror Cohen <dror@liveu.tv>
----
- drivers/media/video/davinci/vpif_capture.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Le mardi 17 juillet 2012 20:30:53 Mauro Carvalho Chehab, vous avez écrit :
+> As we did in 2012, we're planning to do a media summit again at KS/2012.
+> 
+> The KS/2012 will happen in San Diego, CA, US, between Aug 26-28, just
+> before the LinuxCon North America.
+> 
+> In order to do it, I'd like to know who is interested on participate,
+> and to get proposals about what subjects will be discussed there,
+> in order to start planning the agenda.
 
-diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
-index 9604695..ce334e2 100644
---- a/drivers/media/video/davinci/vpif_capture.c
-+++ b/drivers/media/video/davinci/vpif_capture.c
-@@ -703,7 +703,7 @@ static void vpif_config_addr(struct channel_obj *ch, int muxmode)
- }
- 
- /**
-- * vpfe_mmap : It is used to map kernel space buffers into user spaces
-+ * vpif_mmap : It is used to map kernel space buffers into user spaces
-  * @filep: file pointer
-  * @vma: ptr to vm_area_struct
-  */
-@@ -812,7 +812,7 @@ static int vpif_open(struct file *filep)
-  * vpif_release : function to clean up file close
-  * @filep: file pointer
-  *
-- * This function deletes buffer queue, frees the buffers and the vpfe file
-+ * This function deletes buffer queue, frees the buffers and the vpif file
-  * handle
-  */
- static int vpif_release(struct file *filep)
+If it's of interest to anyone, I could probably present a bunch of issues with 
+V4L2 and DVB from userspace perspective.
+
+Regards,
+
 -- 
-1.7.9.5
-
+Rémi Denis-Courmont
+http://www.remlab.net/
+http://fi.linkedin.com/in/remidenis
