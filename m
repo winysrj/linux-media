@@ -1,75 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f53.google.com ([209.85.216.53]:51555 "EHLO
-	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751250Ab2GAUP5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Jul 2012 16:15:57 -0400
-Received: by mail-qa0-f53.google.com with SMTP id s11so1561997qaa.19
-        for <linux-media@vger.kernel.org>; Sun, 01 Jul 2012 13:15:57 -0700 (PDT)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH 4/6] cx25840: fix vsrc/hsrc usage on cx23888 designs
-Date: Sun,  1 Jul 2012 16:15:12 -0400
-Message-Id: <1341173714-23627-5-git-send-email-dheitmueller@kernellabs.com>
-In-Reply-To: <1341173714-23627-1-git-send-email-dheitmueller@kernellabs.com>
-References: <1341173714-23627-1-git-send-email-dheitmueller@kernellabs.com>
+Received: from mail1-relais-roc.national.inria.fr ([192.134.164.82]:35994 "EHLO
+	mail1-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753911Ab2GXPGS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Jul 2012 11:06:18 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 1/2] drivers/staging/media/easycap/easycap_main.c: add missing usb_free_urb
+Date: Tue, 24 Jul 2012 17:06:09 +0200
+Message-Id: <1343142370-27876-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The location of the vsrc/hsrc registers moved in the cx23888, causing the
-s_mbus call to fail prematurely indicating that "720x480 is not a valid size".
-The function bailed out before many pertinent registers were set related to
-the scaler (causing unexpected results in video rendering when doing raw
-video capture).
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
-Use the correct registers for the cx23888.
+Add missing usb_free_urb on failure path after usb_alloc_urb.
 
-Validated with the following boards:
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
-HVR-1800 retail (0070:7801)
-HVR-1800 OEM (0070:7809)
-HVR-1850 retail (0070:8541)
+// <smpl>
+@km exists@
+local idexpression e;
+expression e1,e2,e3;
+type T,T1;
+identifier f;
+@@
 
-Thanks to Steven Toth and Hauppauge for	loaning	me various boards to
-regression test with.
+* e = usb_alloc_urb(...)
+... when any
+    when != e = e1
+    when != e1 = (T)e
+    when != e1(...,(T)e,...)
+    when != &e->f
+if(...) { ... when != e2(...,(T1)e,...)
+                 when != e3 = e
+                 when forall
+(
+             return <+...e...+>;
+|
+*             return ...;
+) }
+// </smpl>
 
-Reported-by: Jonathan <sitten74490@mypacks.net>
-Thanks-to: Steven Toth <stoth@kernellabs.com>
-Signed-off-by: Devin Heitmueler <dheitmueller@kernellabs.com>
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
 ---
- drivers/media/video/cx25840/cx25840-core.c |   18 ++++++++++++++----
- 1 files changed, 14 insertions(+), 4 deletions(-)
+ drivers/staging/media/easycap/easycap_main.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/video/cx25840/cx25840-core.c b/drivers/media/video/cx25840/cx25840-core.c
-index 7dc7bb1..d8eac3e 100644
---- a/drivers/media/video/cx25840/cx25840-core.c
-+++ b/drivers/media/video/cx25840/cx25840-core.c
-@@ -1380,11 +1380,21 @@ static int cx25840_s_mbus_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt
- 	fmt->field = V4L2_FIELD_INTERLACED;
- 	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
- 
--	Vsrc = (cx25840_read(client, 0x476) & 0x3f) << 4;
--	Vsrc |= (cx25840_read(client, 0x475) & 0xf0) >> 4;
-+	if (is_cx23888(state)) {
-+		Vsrc = (cx25840_read(client, 0x42a) & 0x3f) << 4;
-+		Vsrc |= (cx25840_read(client, 0x429) & 0xf0) >> 4;
-+	} else {
-+		Vsrc = (cx25840_read(client, 0x476) & 0x3f) << 4;
-+		Vsrc |= (cx25840_read(client, 0x475) & 0xf0) >> 4;
-+	}
- 
--	Hsrc = (cx25840_read(client, 0x472) & 0x3f) << 4;
--	Hsrc |= (cx25840_read(client, 0x471) & 0xf0) >> 4;
-+	if (is_cx23888(state)) {
-+		Hsrc = (cx25840_read(client, 0x426) & 0x3f) << 4;
-+		Hsrc |= (cx25840_read(client, 0x425) & 0xf0) >> 4;
-+	} else {
-+		Hsrc = (cx25840_read(client, 0x472) & 0x3f) << 4;
-+		Hsrc |= (cx25840_read(client, 0x471) & 0xf0) >> 4;
-+	}
- 
- 	Vlines = fmt->height + (is_50Hz ? 4 : 7);
- 
--- 
-1.7.1
+diff --git a/drivers/staging/media/easycap/easycap_main.c b/drivers/staging/media/easycap/easycap_main.c
+index a1c45e4..8269c77 100644
+--- a/drivers/staging/media/easycap/easycap_main.c
++++ b/drivers/staging/media/easycap/easycap_main.c
+@@ -3083,6 +3083,7 @@ static int create_video_urbs(struct easycap *peasycap)
+ 		peasycap->allocation_video_urb += 1;
+ 		pdata_urb = kzalloc(sizeof(struct data_urb), GFP_KERNEL);
+ 		if (!pdata_urb) {
++			usb_free_urb(purb);
+ 			SAM("ERROR: Could not allocate struct data_urb.\n");
+ 			return -ENOMEM;
+ 		}
 
