@@ -1,37 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:47754 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752202Ab2GJPvS (ORCPT
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:58101 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753619Ab2GXV74 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jul 2012 11:51:18 -0400
-Received: by bkwj10 with SMTP id j10so150975bkw.19
-        for <linux-media@vger.kernel.org>; Tue, 10 Jul 2012 08:51:16 -0700 (PDT)
-Message-ID: <4FFC4F71.4000809@gmail.com>
-Date: Tue, 10 Jul 2012 17:51:13 +0200
-From: poma <pomidorabelisima@gmail.com>
+	Tue, 24 Jul 2012 17:59:56 -0400
+Received: by gglu4 with SMTP id u4so58150ggl.19
+        for <linux-media@vger.kernel.org>; Tue, 24 Jul 2012 14:59:55 -0700 (PDT)
 MIME-Version: 1.0
-To: Marx <acc.for.news@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: pctv452e
-References: <4FF4697C.8080602@nexusuk.org> <4FF46DC4.4070204@iki.fi> <4FF4911B.9090600@web.de> <4FF4931B.7000708@iki.fi> <gjggc9-dl4.ln1@wuwek.kopernik.gliwice.pl> <4FF5A350.9070509@iki.fi> <r8cic9-ht4.ln1@wuwek.kopernik.gliwice.pl> <4FF6B121.6010105@iki.fi> <9btic9-vd5.ln1@wuwek.kopernik.gliwice.pl> <835kc9-7p4.ln1@wuwek.kopernik.gliwice.pl> <4FF77C1B.50406@iki.fi> <l2smc9-pj4.ln1@wuwek.kopernik.gliwice.pl> <4FF97DF8.4080208@iki.fi> <n1aqc9-sp4.ln1@wuwek.kopernik.gliwice.pl> <4FFA996D.9010206@iki.fi> <scerc9-bm6.ln1@wuwek.kopernik.gliwice.pl> <4FFB2129.2070301@gmail.com> <hhvsc9-pte.ln1@wuwek.kopernik.gliwice.pl>
-In-Reply-To: <hhvsc9-pte.ln1@wuwek.kopernik.gliwice.pl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <500F18A5.4010602@iki.fi>
+References: <20120713173708.GB17109@thunk.org>
+	<5005A14D.8000809@redhat.com>
+	<201207242305.08220.remi@remlab.net>
+	<CAGoCfiwE1pfCxuE3WS3FwOV2jnxMFxhnL6-+hTSfE+2PNnxk-g@mail.gmail.com>
+	<500F18A5.4010602@iki.fi>
+Date: Tue, 24 Jul 2012 17:59:55 -0400
+Message-ID: <CAGoCfiz4xVUe7Q_SKhi6fOcfa4Pay5DEz5DX=9KZNh56cP33Gg@mail.gmail.com>
+Subject: Re: Media summit at the Kernel Summit - was: Fwd: Re:
+ [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: =?ISO-8859-1?Q?R=E9mi_Denis=2DCourmont?= <remi@remlab.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	workshop-2011@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/10/2012 08:43 AM, Marx wrote:
-> I've attached stream analysis via ffmpeg in another post. I can upload
-> saved stream if needed. I simply don't know how to check if weak signal
-> is problem. Szap (or extended version szap-s2) gives me some numbers but
-> I don't know how to properly read them.
+On Tue, Jul 24, 2012 at 5:50 PM, Antti Palosaari <crope@iki.fi> wrote:
+> I wonder if it is wise to merge both DVB and V4L2 APIs, add needed DVB stuff
+> to V4L2 API and finally remove whole DVB API. V4L2 API seems to be much more
+> feature rich, developed more actively and maybe has less problems than
+> current DVB API.
 
-…ffprobe
-Play with a femon, dvbsnoop, …
-http://www.linuxtv.org/wiki/index.php/LinuxTV_dvb-apps
-http://www.linuxtv.org/wiki/index.php/Dvbsnoop
-Read a bit
-http://www.linuxtv.org/wiki/index.php/Testing_reception_quality
+This may just be a case of "the grass is always greener on the other
+side of the fence".  The V4L2 subsystem has more than it's share of
+problems - you just don't see them since you don't work with that code
+on a regular basis.
 
-> Is this pctv452e device known to have poor reception?
+Devin
 
-modinfo stb6100 | grep author ;)
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
