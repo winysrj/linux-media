@@ -1,78 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42467 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751138Ab2GJVcV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jul 2012 17:32:21 -0400
-Message-ID: <4FFC9F5B.9000800@iki.fi>
-Date: Wed, 11 Jul 2012 00:32:11 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:51827 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755615Ab2GXQ7X (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Jul 2012 12:59:23 -0400
 MIME-Version: 1.0
-To: Steve Kerrison <steve@stevekerrison.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: comments for DVB LNA API
-References: <4FFC5B4E.8080903@stevekerrison.com> <4FFC5B7A.5060708@stevekerrison.com>
-In-Reply-To: <4FFC5B7A.5060708@stevekerrison.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CALF0-+Uk-5hKMnwi4FO5CBSgH6+QNsz1n8faN5rQxXvgSWVGNg@mail.gmail.com>
+References: <CALF0-+UJamw8fiB-rcX0WdYRAFnAdYxPoPQtMzG=5E2T8wz2yw@mail.gmail.com>
+	<CALF0-+Uk-5hKMnwi4FO5CBSgH6+QNsz1n8faN5rQxXvgSWVGNg@mail.gmail.com>
+Date: Tue, 24 Jul 2012 13:59:22 -0300
+Message-ID: <CALF0-+Unvjo_SZom-x2b7X0kLg90GHeiQhXpQPh58fA=Dj5gpQ@mail.gmail.com>
+Subject: [PATCH for stable] cx25821: Remove bad strcpy to read-only char*
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: gregkh <gregkh@linuxfoundation.org>
+Cc: stable <stable@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>,
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/10/2012 07:42 PM, Steve Kerrison wrote:
-> On 10/07/12 17:20, Antti Palosaari wrote:
->> I am looking how to implement LNA support for the DVB API.
->>
->> What we need to be configurable at least is: OFF, ON, AUTO.
->>
->> There is LNAs that support variable gain and likely those will be
->> sooner or later. Actually I think there is already LNAs integrated to
->> the RF-tuner that offers adjustable gain. Also looking to NXP catalog
->> and you will see there is digital TV LNAs with adjustable gain.
->>
->> Coming from that requirements are:
->> adjustable gain 0-xxx dB
->> LNA OFF
->> LNA ON
->> LNA AUTO
->>
->> Setting LNA is easy but how to query capabilities of supported LNA
->> values? eg. this device has LNA which supports Gain=5dB, Gain=8dB, LNA
->> auto?
-> Without having a sample of device capabilities this question may be
-> irrelevant, but what if the gain is somewhat continuiously configurable
-> vs. discretized? For example can some be configured just for 5,8 and 11,
-> whilst some might have some 8-bit value that controls gain between 5 and
-> 11?
+Hi Greg,
 
-Yes.
-For example external DVB-T/C LNA NXP BGU7033. It does have 3 modes, 10 
-dB, 5 dB and bypass -2 dB.
+This patch is already in Linus' tree and I really think it should go into stable
+as well. You will find this bug in every kernel from the moment cx25821 went
+out of staging.
 
-LNAs offering more adjustable gain is called VGA (variable gain 
-amplifier). It could have control interface like 5-bits or some other 
-bus like I2C. Those are usually integrated to the silicon RF-tuner and 
-in that case configuration is possible via tuner registers. Usually it 
-is not needed to configure at all on run-time.
+I just read Documentation/stable_kernel_rules.txt, so I guess it was enough
+to add a tag "Cc: stable@vger.kernel.org" in the patch (right?).
+Now I know it :-)
 
->> LNA ON (bypass) could be replaced with Gain=0 and LNA ON with Gain>0,
->> Gain=-1 is for auto example.
->
-> How should the API handle differences between the specified gain and the
-> capabilities of the LNA? Round to nearest possible config if it's within
-> the operating range; return error if out of range?
+If I'm doing anything wrong, just yell at me.
 
-I think rounding is best approach.
+Thanks,
+Ezequiel.
 
-Maybe it is not necessary to read at all. Just allow user set LNA in 
-steps of one number, 0, 1, 2, 3, ..., 100 and let the driver detect 
-scale. In that case simple LNA having only one static gain value has 
-values: AUTO, 0, 1. LNA having 2 gain levels: AUTO, 0, 1, 2. VGA having 
-3 bit control: AUTO, 0, 1, 2, 3, 4, 5, 6, 7.
+>From 1859521e76226687e79e1452b040fd3e02c469d8 Mon Sep 17 00:00:00 2001
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+Date: Wed, 18 Jul 2012 10:05:26 -0300
+Subject: [PATCH] cx25821: Remove bad strcpy to read-only char*
 
-regards
-Antti
+The strcpy was being used to set the name of the board.
+Since the destination char* was read-only and the name
+is set statically at compile time; this was both
+wrong and redundant.
 
+The type of char* is changed to const char* to prevent
+future errors.
 
--- 
-http://palosaari.fi/
+Reported-by: Radek Masin <radek@masin.eu>
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/media/video/cx25821/cx25821-core.c |    3 ---
+ drivers/media/video/cx25821/cx25821.h      |    2 +-
+ 2 files changed, 1 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/media/video/cx25821/cx25821-core.c
+b/drivers/media/video/cx25821/cx25821-core.c
+index 7930ca5..235bf7d 100644
+--- a/drivers/media/video/cx25821/cx25821-core.c
++++ b/drivers/media/video/cx25821/cx25821-core.c
+@@ -912,9 +912,6 @@ static int cx25821_dev_setup(struct cx25821_dev *dev)
+        list_add_tail(&dev->devlist, &cx25821_devlist);
+        mutex_unlock(&cx25821_devlist_mutex);
 
+-       strcpy(cx25821_boards[UNKNOWN_BOARD].name, "unknown");
+-       strcpy(cx25821_boards[CX25821_BOARD].name, "cx25821");
+-
+        if (dev->pci->device != 0x8210) {
+                pr_info("%s(): Exiting. Incorrect Hardware device = 0x%02x\n",
+                        __func__, dev->pci->device);
+diff --git a/drivers/media/video/cx25821/cx25821.h
+b/drivers/media/video/cx25821/cx25821.h
+index b9aa801..029f293 100644
+--- a/drivers/media/video/cx25821/cx25821.h
++++ b/drivers/media/video/cx25821/cx25821.h
+@@ -187,7 +187,7 @@ enum port {
+ };
+
+ struct cx25821_board {
+-       char *name;
++       const char *name;
+        enum port porta;
+        enum port portb;
+        enum port portc;
+--
+1.7.8.6
