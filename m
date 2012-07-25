@@ -1,109 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60560 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755012Ab2GLPwb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jul 2012 11:52:31 -0400
-Message-ID: <4FFEF2E4.4010906@redhat.com>
-Date: Thu, 12 Jul 2012 17:53:08 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:49062 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750803Ab2GYVcl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Jul 2012 17:32:41 -0400
+Received: by bkwj10 with SMTP id j10so845039bkw.19
+        for <linux-media@vger.kernel.org>; Wed, 25 Jul 2012 14:32:40 -0700 (PDT)
+Message-ID: <501065F5.9060004@gmail.com>
+Date: Wed, 25 Jul 2012 23:32:37 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-To: halli manjunatha <hallimanju@gmail.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/5] v4l2: Add rangelow and rangehigh fields to the v4l2_hw_freq_seek
- struct
-References: <1342021658-27821-1-git-send-email-hdegoede@redhat.com> <1342021658-27821-2-git-send-email-hdegoede@redhat.com> <201207112001.18960.hverkuil@xs4all.nl> <CAMT6Pycuhe7OnP7D_FJy1yp2oFH780diTiHxEyTiPpyaaVX9Ug@mail.gmail.com>
-In-Reply-To: <CAMT6Pycuhe7OnP7D_FJy1yp2oFH780diTiHxEyTiPpyaaVX9Ug@mail.gmail.com>
+To: Shaik Ameer Basha <shaik.ameer@samsung.com>
+CC: linux-media@vger.kernel.org, sungchun.kang@samsung.com,
+	khw0178.kim@samsung.com, mchehab@infradead.org,
+	laurent.pinchart@ideasonboard.com, sy0816.kang@samsung.com,
+	s.nawrocki@samsung.com, posciak@google.com, alim.akhtar@gmail.com,
+	prashanth.g@samsung.com, joshi@samsung.com, shaik.samsung@gmail.com
+Subject: Re: [PATCH v3 5/5] media: gscaler: Add Makefile for G-Scaler Driver
+References: <1343219191-3969-1-git-send-email-shaik.ameer@samsung.com> <1343219191-3969-6-git-send-email-shaik.ameer@samsung.com>
+In-Reply-To: <1343219191-3969-6-git-send-email-shaik.ameer@samsung.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-On 07/11/2012 08:37 PM, halli manjunatha wrote:
-> On Wed, Jul 11, 2012 at 1:01 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> Hi Hans,
->>
->> Thanks for the patch.
->>
->> I've CC-ed Halli as well.
->>
->> On Wed July 11 2012 17:47:34 Hans de Goede wrote:
->>> To allow apps to limit a hw-freq-seek to a specific band, for further
->>> info see the documentation this patch adds for these new fields.
->>>
->>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->>> ---
->>>   .../DocBook/media/v4l/vidioc-s-hw-freq-seek.xml    |   44 ++++++++++++++++----
->>>   include/linux/videodev2.h                          |    5 ++-
->>>   2 files changed, 40 insertions(+), 9 deletions(-)
->>>
->>> diff --git a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
->>> index f4db44d..50dc9f8 100644
->>> --- a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
->>> +++ b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
->>> @@ -52,11 +52,21 @@
->>>       <para>Start a hardware frequency seek from the current frequency.
->>>   To do this applications initialize the <structfield>tuner</structfield>,
->>>   <structfield>type</structfield>, <structfield>seek_upward</structfield>,
->>> -<structfield>spacing</structfield> and
->>> -<structfield>wrap_around</structfield> fields, and zero out the
->>> -<structfield>reserved</structfield> array of a &v4l2-hw-freq-seek; and
->>> -call the <constant>VIDIOC_S_HW_FREQ_SEEK</constant> ioctl with a pointer
->>> -to this structure.</para>
->>> +<structfield>wrap_around</structfield>, <structfield>spacing</structfield>,
->>> +<structfield>rangelow</structfield> and <structfield>rangehigh</structfield>
->>> +fields, and zero out the <structfield>reserved</structfield> array of a
->>> +&v4l2-hw-freq-seek; and call the <constant>VIDIOC_S_HW_FREQ_SEEK</constant>
->>> +ioctl with a pointer to this structure.</para>
->>> +
->>> +    <para>The <structfield>rangelow</structfield> and
->>> +<structfield>rangehigh</structfield> fields can be set to a non-zero value to
->>> +tell the driver to search a specific band. If the &v4l2-tuner;
->>> +<structfield>capability</structfield> field has the
->>> +<constant>V4L2_TUNER_CAP_HWSEEK_PROG_LIM</constant> flag set, these values
->>> +must fall within one of the bands returned by &VIDIOC-ENUM-FREQ-BANDS;. If
->>> +the <constant>V4L2_TUNER_CAP_HWSEEK_PROG_LIM</constant> flag is not set,
->>> +then these values must exactly match those of one of the bands returned by
->>> +&VIDIOC-ENUM-FREQ-BANDS;.</para>
->>
->> OK, I have some questions here:
->>
->> 1) If you have a multiband tuner, what should happen if both low and high are
->> zero? Currently it is undefined, other than that the seek should start from
->> the current frequency until it reaches some limit.
->>
->> Halli, what does your hardware do? In particular, is the hwseek limited by the
->> US/Europe or Japan band range or can it do the full range? If I'm not mistaken
->> it is the former, right?
+On 07/25/2012 02:26 PM, Shaik Ameer Basha wrote:
+> This patch adds the Makefile for G-Scaler driver.
 >
-> You are right... my hardware seek is limited by the japan/US band range....
+> Signed-off-by: Shaik Ameer Basha<shaik.ameer@samsung.com>
+> ---
+>   drivers/media/video/Kconfig             |    8 ++++++++
+>   drivers/media/video/Makefile            |    2 ++
+>   drivers/media/video/exynos-gsc/Makefile |    3 +++
+>   3 files changed, 13 insertions(+), 0 deletions(-)
+>   create mode 100644 drivers/media/video/exynos-gsc/Makefile
 >
->> If it is the former, then you need to explicitly set low + high to ensure that
->> the hwseek uses the correct range because the driver can't guess which of the
->> overlapping bands to use.
+> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+> index 99937c9..47ec55a 100644
+> --- a/drivers/media/video/Kconfig
+> +++ b/drivers/media/video/Kconfig
+> @@ -1215,4 +1215,12 @@ config VIDEO_MX2_EMMAPRP
+>   	    memory to memory. Operations include resizing and format
+>   	    conversion.
 >
-> Yes in my driver I will take care of this :)....
+> +config VIDEO_SAMSUNG_EXYNOS_GSC
+> +        tristate "Samsung Exynos GSC driver"
 
-I think you misunderstood Hans here, not the driver but userspace will need
-to fill in the rangelow / rangehigh fields of struct v4l2_hw_freq_seek, because if
-the current freq is in the overlapping area of the bands, the driver cannot know
-which band to seek, so it will just have to guess, I think it is best to just leave
-the band at its current setting in that case.
+s/GSC/Gscaler ?
 
-The way the new API works (which was done this way to preserve backward compat)
-is that the bands returned from ENUM_BANDS are there as information only. userspace
-never explicitly sets a band, so an old app will just see the entire 76-108 MHZ range
-in the tuner struct and may do a S_FREQUENCY for any of those frequencies, and the
-driver must automatically switch bands when necessary.
 
-With S_HW_FREQ_SEEK we've the 2 new fields to indicate the band to seek for new apps,
-but with old apps these fields will be 0, and the driver needs to just pick a band
-to search on a best effort basis, for the si470x IE, if no band is specified
-in struct v4l2_hw_freq_seek,  I simply always switch to the "Japan wide" band
-of 76-108 Mhz as that includes all other bands supported by the si470x.
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+
+--
 
 Regards,
-
-Hans
+Sylwester
