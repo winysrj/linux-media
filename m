@@ -1,56 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52469 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753640Ab2GaWIF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 18:08:05 -0400
-Message-ID: <50185739.8090605@iki.fi>
-Date: Wed, 01 Aug 2012 01:07:53 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:46622 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933207Ab2GYOhA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Jul 2012 10:37:00 -0400
+Received: by yhmm54 with SMTP id m54so761035yhm.19
+        for <linux-media@vger.kernel.org>; Wed, 25 Jul 2012 07:37:00 -0700 (PDT)
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Reporting signal overload condition for tuners?
-References: <CAGoCfizvvq7C+axexewU_wrmhhggoiNJ7D5H3=SPfa3jaxpVcA@mail.gmail.com>
-In-Reply-To: <CAGoCfizvvq7C+axexewU_wrmhhggoiNJ7D5H3=SPfa3jaxpVcA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <500FF804.9050308@canonical.com>
+References: <1343222119-82246-1-git-send-email-tim.gardner@canonical.com>
+	<CAGoCfiziwAz0q2D_qKX=1nrAKQybeX+Ho5eu_gsERhd7QtsaDQ@mail.gmail.com>
+	<500FF804.9050308@canonical.com>
+Date: Wed, 25 Jul 2012 10:36:59 -0400
+Message-ID: <CAGoCfiyFxctHa13x4TKUgTa9gWrX5EQ_RCXK997iQhfiNoDNkQ@mail.gmail.com>
+Subject: Re: [PATCH] xc5000: Add MODULE_FIRMWARE statements
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Tim Gardner <tim.gardner@canonical.com>
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Michael Krufky <mkrufky@kernellabs.com>,
+	Eddi De Pieri <eddi@depieri.net>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/31/2012 10:56 PM, Devin Heitmueller wrote:
-> Quick question:  we don't currently have any way to report to userland
-> that a tuning is failing due to signal overload, right?
+On Wed, Jul 25, 2012 at 9:43 AM, Tim Gardner <tim.gardner@canonical.com> wrote:
+> Devin - Please have a closer look. XC5000A_FIRMWARE and XC5000C_FIRMWARE
+> are defined in the patch.
 
-right
+Yup, my bad.  I looked at the patch twice but for some reason didn't
+see the #define.
 
-I assume you speak issue where signal is too strong and tuner (or demod 
-too?) makes it broken / too noisy for demod.
+I'm not really taking a position on whether this approach is good or not.
 
-> There are some tuner chips out there which can detect this condition,
-> and being able to report it back to userland would make it much easier
-> to inform the user that he/she needs to stick an attenuator inline.
+Mauro, let me know if this should be accepted and if so I will stick
+it onto the end of my tree before sending it upstream this weekend.
 
-I have never seen such property.
+Thanks,
 
-Is that condition something like (RF?) gain control is set minimum but 
-signal strength meter is still maximum...
-
-> Has anybody given any thought to this before?  Perhaps use up the last
-> available bit in fe_status for DVB?
-
-I left other negative side of LNA integer unused, just thinking it could 
-be extended for attenuator. It does not fit for that case, but I have 
-seen such feature used by anysee Windows driver. There has been problems 
-with strong DVB-C signal in case of TDA10023 demod. I don't know how 
-this software attenuator is implemented but I could guess it is done by 
-tweaking some tuner or demod property a little bit wrong in order to 
-make signal weaker.
-
-And answer for the question is you should likely add new DVBv5 property 
-for reading that. I don't like idea of adding such info for frontend status.
-
-regards
-Antti
+Devin
 
 -- 
-http://palosaari.fi/
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
