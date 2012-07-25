@@ -1,77 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:14197 "EHLO mga14.intel.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:53034 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750748Ab2GOWYl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jul 2012 18:24:41 -0400
-Message-ID: <50034325.50006@linux.intel.com>
-Date: Mon, 16 Jul 2012 01:24:37 +0300
-From: David Cohen <david.a.cohen@linux.intel.com>
+	id S1753460Ab2GYAny (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Jul 2012 20:43:54 -0400
+Message-ID: <500F4140.1000202@iki.fi>
+Date: Wed, 25 Jul 2012 03:43:44 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 7/9] soc-camera: Continue the power off sequence if
- one of the steps fails
-References: <1341520728-2707-1-git-send-email-laurent.pinchart@ideasonboard.com> <1341520728-2707-8-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1341520728-2707-8-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Michael Krufky <mkrufky@linuxtv.org>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: tda18271 driver power consumption
+References: <500C5B9B.8000303@iki.fi> <CAOcJUbw-8zG-j7YobgKy7k5vp-k_trkaB5fYGz605KdUQHKTGQ@mail.gmail.com> <500F1DC5.1000608@iki.fi> <CAOcJUbzXoLx10o8oprxPM1TELFxyGE7_wodcWsBr8MX4OR0N_w@mail.gmail.com> <CAOcJUbzJjBBMcLmeaOCsJRz44KVPqZ_sGctG8+ai=n1W+9P9xA@mail.gmail.com>
+In-Reply-To: <CAOcJUbzJjBBMcLmeaOCsJRz44KVPqZ_sGctG8+ai=n1W+9P9xA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-Few comments below.
-
-On 07/05/2012 11:38 PM, Laurent Pinchart wrote:
-> Powering off a device is a "best effort" task: failure to execute one of
-> the steps should not prevent the next steps to be executed. For
-> instance, an I2C communication error when putting the chip in stand-by
-> mode should not prevent the more agressive next step of turning the
-> chip's power supply off.
+On 07/25/2012 03:15 AM, Michael Krufky wrote:
+> On Tue, Jul 24, 2012 at 6:17 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+>> On Tue, Jul 24, 2012 at 6:12 PM, Antti Palosaari <crope@iki.fi> wrote:
+>>> On 07/25/2012 12:55 AM, Michael Krufky wrote:
+>>>>
+>>>> On Sun, Jul 22, 2012 at 3:59 PM, Antti Palosaari <crope@iki.fi> wrote:
+>>>>>
+>>>>> Moi Michael,
+>>>>> I just realized tda18271 driver eats 160mA too much current after attach.
+>>>>> This means, there is power management bug.
+>>>>>
+>>>>> When I plug my nanoStick it eats total 240mA, after tda18271 sleep is
+>>>>> called
+>>>>> it eats only 80mA total which is reasonable. If I use Digital Devices
+>>>>> tda18271c2dd driver it is total 110mA after attach, which is also quite
+>>>>> OK.
+>>>>
+>>>>
+>>>> Thanks for the report -- I will take a look at it.
+>>>>
+>>>> ...patches are welcome, of course :-)
+>>>
+>>>
+>>> I suspect it does some tweaking on attach() and chip leaves powered (I saw
+>>> demod debugs at calls I2C-gate control quite many times thus this
+>>> suspicion). When chip is powered-up it is usually in some sleep state by
+>>> default. Also, on attach() there should be no I/O unless very good reason.
+>>> For example chip ID is allowed to read and download firmware in case it is
+>>> really needed to continue - like for tuner communication.
+>>>
+>>>
+>>> What I found quickly testing few DVB USB sticks there seems to be very much
+>>> power management problems... I am now waiting for new multimeter in order to
+>>> make better measurements and likely return fixing these issues later.
+>>
+>> The driver does some calibration during attach, some of which is a
+>> one-time initialization to determine a temperature differential for
+>> tune calculation later on, which can take some time on slower USB
+>> buses.  The "fix" for the power usage issue would just be to make sure
+>> to sleep the device before exiting the attach() function.
+>>
+>> I'm not looking to remove the calibration from the attach -- this was
+>> done on purpose.
+>>
 >
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->   drivers/media/video/soc_camera.c |    9 +++------
->   1 files changed, 3 insertions(+), 6 deletions(-)
+> Antti,
 >
-> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-> index 55b981f..bbd518f 100644
-> --- a/drivers/media/video/soc_camera.c
-> +++ b/drivers/media/video/soc_camera.c
-> @@ -89,18 +89,15 @@ static int soc_camera_power_off(struct soc_camera_device *icd,
->   				struct soc_camera_link *icl)
->   {
->   	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-> -	int ret = v4l2_subdev_call(sd, core, s_power, 0);
-> +	int ret;
+> After looking again, I realize that we are purposefully not sleeping
+> the device before we exit the attach() function.
 >
-> -	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
-> -		return ret;
-> +	v4l2_subdev_call(sd, core, s_power, 0);
-
-Fair enough. I agree we should not prevent power off because of failure
-in this step. But IMO we should not silently bypass it too. How about
-an error message?
-
+> The tda18271 is commonly found in multi-chip designs that may or may
+> not include an analog demodulator and / or other tda18271 tuners.  In
+> such designs, the chips tend to be daisy-chained to each other, using
+> the xtal output and loop-thru features of the tda18271.  We set the
+> required features in the attach-time configuration structure.
+> However, we must keep in mind that this is a hybrid tuner chip, and
+> the analog side of the bridge driver may actually come up before the
+> digital side.  Since the actual configuration tends to be done in the
+> digital bring-up, the analog side is brought up within tuner.ko using
+> the most generic one-size-fits all configuration, which gets
+> overridden when the digital side initializes.
 >
->   	if (icl->power) {
->   		ret = icl->power(icd->control, 0);
-> -		if (ret < 0) {
-> +		if (ret < 0)
->   			dev_err(icd->pdev,
->   				"Platform failed to power-off the camera.\n");
-> -			return ret;
-> -		}
->   	}
+> It is absolutely crucial that if we actually need the xtal output
+> feature enabled, that it must *never* be turned off, otherwise the i2c
+> bus may get wedged unrecoverably.  So, we make sure to leave this
+> feature enabled during the attach function, since we don't yet know at
+> that point whether there is another "instance" of this same tuner yet
+> to be initialized.  It is not safe to power off that feature until
+> after we are sure that the bridge has completely initialized.
 >
->   	ret = regulator_bulk_disable(icl->num_regulators,
+> In order to rectify this issue from within your driver, you should
+> call sleep after you complete the attach.  For instance, this is what
+> we do in the cx23885 driver:
+>
+> if (fe0->dvb.frontend->ops.analog_ops.standby)
+>                   fe0->dvb.frontend->ops.analog_ops.standby(fe0->dvb.frontend);
+>
+>
+> ...except you should call into the tuner_ops->sleep() function instead
+> of analog_demod_ops->standby()
+>
+> Does this clear things up for you?
 
-One more comment. Should this function's return value being based fully
-on last action? If any earlier error happened but this last step is
-fine, IMO we should not return 0.
+Surely this is possible and it will resolve power drain issue. But it is 
+not nice looking and causes more deviation compared to others.
 
-Kind regards,
+Could you add configuration option "bool do_not_powerdown_on_attach" ?
 
-David Cohen
+I have quite many tda18271 devices here and all those are DVB onlỵ (OK, 
+PCTV 520e is DVB + analog, but analog is not supported). Having 
+configuration parameter sounds like better plan.
 
+regards
+Antti
+
+-- 
+http://palosaari.fi/
