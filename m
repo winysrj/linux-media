@@ -1,45 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46200 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933241Ab2GEPxq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Jul 2012 11:53:46 -0400
-Message-ID: <4FF5B87E.4010702@redhat.com>
-Date: Thu, 05 Jul 2012 12:53:34 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58429 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751428Ab2GYXbT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Jul 2012 19:31:19 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	workshop-2011@linuxtv.org
+Subject: Re: Media summit at the Kernel Summit - was: Fwd: Re: [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
+Date: Thu, 26 Jul 2012 01:31:25 +0200
+Message-ID: <5670302.A0zC7l9lLX@avalon>
+In-Reply-To: <201207172132.22937.hverkuil@xs4all.nl>
+References: <20120713173708.GB17109@thunk.org> <5005A14D.8000809@redhat.com> <201207172132.22937.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Thomas Mair <thomas.mair86@googlemail.com>,
-	linux-media@vger.kernel.org, pomidorabelisima@gmail.com
-Subject: Re: [PATCH v5 1/5] rtl2832 ver. 0.5: support for RTL2832 demod
-References: <1> <1337366864-1256-1-git-send-email-thomas.mair86@googlemail.com> <1337366864-1256-2-git-send-email-thomas.mair86@googlemail.com> <4FF5A582.7070908@redhat.com> <4FF5A786.7020706@iki.fi>
-In-Reply-To: <4FF5A786.7020706@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 05-07-2012 11:41, Antti Palosaari escreveu:
-> On 07/05/2012 05:32 PM, Mauro Carvalho Chehab wrote:
->> Em 18-05-2012 15:47, Thomas Mair escreveu:
-> 
->>> +static int rtl2832_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
->>> +{
->>> +    *strength = 0;
->>> +    return 0;
->>> +}
->>
->> Why to implement the above, if they're doing nothing?
-> 
-> Other your findings were correct but for that I would like to comment.
-> 
-> Have you ever tested what happens you lest those without stub implementation?
-> IIRC ugly errors are seen for example zap and femon outputs. Some kind of DVB-core
-> changes are needed. And IIRC there was some error code defined too for API - but such 
-> code does not exists.
+Hi Hans,
 
-So, let's fix the dvb_core, and not fill drivers with stubs. With regards to userspace
-tools, they should be patched to accept the error code that signalizes that an ioctl
-was not implemented, and not try to fix an userpace issue in Kernel.
+On Tuesday 17 July 2012 21:32:22 Hans Verkuil wrote:
+> On Tue July 17 2012 19:30:53 Mauro Carvalho Chehab wrote:
+> > As we did in 2012, we're planning to do a media summit again at KS/2012.
+> > 
+> > The KS/2012 will happen in San Diego, CA, US, between Aug 26-28, just
+> > before the LinuxCon North America.
+> > 
+> > In order to do it, I'd like to know who is interested on participate,
+> > and to get proposals about what subjects will be discussed there,
+> > in order to start planning the agenda.
+> 
+> I'd like to have 30 minutes to discuss a few V4L2 API ambiguities or just
+> plain weirdness, just like I did last year.
 
+Another ambiguity for your list, should video output drivers fill the sequence 
+and timestamp fields when returning a v4l2_buffer from VIDIOC_DQBUF ?
+
+-- 
 Regards,
-Mauro
+
+Laurent Pinchart
+
