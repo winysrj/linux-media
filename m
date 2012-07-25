@@ -1,119 +1,269 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:60102 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752111Ab2GRJGw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jul 2012 05:06:52 -0400
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, device-drivers-devel@blackfin.uclinux.org
-Subject: [RFCv2 PATCH 4/7] v4l2-ctrls.c: add support for the new DV controls.
-Date: Wed, 18 Jul 2012 11:06:17 +0200
-Message-Id: <a1c22a652e85386faa4250fb7749bc5dad549331.1342601681.git.hans.verkuil@cisco.com>
-In-Reply-To: <1342602380-5854-1-git-send-email-hans.verkuil@cisco.com>
-References: <1342602380-5854-1-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <c9c25dde447e731e6f0925bd175550196c5612e0.1342601681.git.hans.verkuil@cisco.com>
-References: <c9c25dde447e731e6f0925bd175550196c5612e0.1342601681.git.hans.verkuil@cisco.com>
+Received: from eu1sys200aog106.obsmtp.com ([207.126.144.121]:45999 "EHLO
+	eu1sys200aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752367Ab2GYSSV convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Jul 2012 14:18:21 -0400
+From: Bhupesh SHARMA <bhupesh.sharma@st.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
+	"balbi@ti.com" <balbi@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
+Date: Thu, 26 Jul 2012 02:18:05 +0800
+Subject: RE: [PATCH 4/5] usb: gadget/uvc: Port UVC webcam gadget to use
+ videobuf2 framework
+Message-ID: <D5ECB3C7A6F99444980976A8C6D896384FABC58C8E@EAPEX1MAIL1.st.com>
+References: <cover.1338543124.git.bhupesh.sharma@st.com>
+ <2099637.B2epIePqJp@avalon>
+ <D5ECB3C7A6F99444980976A8C6D896384FAA6331E5@EAPEX1MAIL1.st.com>
+ <3936973.6L0tjEgaF6@avalon>
+In-Reply-To: <3936973.6L0tjEgaF6@avalon>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/v4l2-ctrls.c |   39 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+Hi Laurent,
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 9abd9ab..a664795 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -425,6 +425,18 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"Gray",
- 		NULL,
- 	};
-+	static const char * const dv_tx_mode[] = {
-+		"DVI-D",
-+		"HDMI",
-+		NULL,
-+	};
-+	static const char * const dv_rgb_range[] = {
-+		"Automatic",
-+		"RGB limited range (16-235)",
-+		"RGB full range (0-255)",
-+		NULL,
-+	};
-+
- 
- 	switch (id) {
- 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-@@ -502,6 +514,11 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		return mpeg4_profile;
- 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
- 		return jpeg_chroma_subsampling;
-+	case V4L2_CID_DV_TX_MODE:
-+		return dv_tx_mode;
-+	case V4L2_CID_DV_TX_RGB_RANGE:
-+	case V4L2_CID_DV_RX_RGB_RANGE:
-+		return dv_rgb_range;
- 
- 	default:
- 		return NULL;
-@@ -733,6 +750,16 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
- 	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
- 
-+	/* DV controls */
-+	case V4L2_CID_DV_CLASS:			return "Digital Video Controls";
-+	case V4L2_CID_DV_TX_HOTPLUG:		return "Hotplug Present";
-+	case V4L2_CID_DV_TX_RXSENSE:		return "RxSense Present";
-+	case V4L2_CID_DV_TX_EDID_PRESENT:	return "EDID Present";
-+	case V4L2_CID_DV_TX_MODE:		return "Transmit Mode";
-+	case V4L2_CID_DV_TX_RGB_RANGE:		return "Tx RGB Quantization Range";
-+	case V4L2_CID_DV_RX_POWER_PRESENT:	return "Power Present";
-+	case V4L2_CID_DV_RX_RGB_RANGE:		return "Rx RGB Quantization Range";
-+
- 	default:
- 		return NULL;
- 	}
-@@ -831,6 +858,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_ISO_SENSITIVITY_AUTO:
- 	case V4L2_CID_EXPOSURE_METERING:
- 	case V4L2_CID_SCENE_MODE:
-+	case V4L2_CID_DV_TX_MODE:
-+	case V4L2_CID_DV_TX_RGB_RANGE:
-+	case V4L2_CID_DV_RX_RGB_RANGE:
- 		*type = V4L2_CTRL_TYPE_MENU;
- 		break;
- 	case V4L2_CID_LINK_FREQ:
-@@ -852,6 +882,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_JPEG_CLASS:
- 	case V4L2_CID_IMAGE_SOURCE_CLASS:
- 	case V4L2_CID_IMAGE_PROC_CLASS:
-+	case V4L2_CID_DV_CLASS:
- 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
- 		/* You can neither read not write these */
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
-@@ -868,6 +899,10 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_JPEG_ACTIVE_MARKER:
- 	case V4L2_CID_3A_LOCK:
- 	case V4L2_CID_AUTO_FOCUS_STATUS:
-+	case V4L2_CID_DV_TX_HOTPLUG:
-+	case V4L2_CID_DV_TX_RXSENSE:
-+	case V4L2_CID_DV_TX_EDID_PRESENT:
-+	case V4L2_CID_DV_RX_POWER_PRESENT:
- 		*type = V4L2_CTRL_TYPE_BITMASK;
- 		break;
- 	case V4L2_CID_MIN_BUFFERS_FOR_CAPTURE:
-@@ -932,6 +967,10 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_FLASH_STROBE_STATUS:
- 	case V4L2_CID_AUTO_FOCUS_STATUS:
- 	case V4L2_CID_FLASH_READY:
-+	case V4L2_CID_DV_TX_HOTPLUG:
-+	case V4L2_CID_DV_TX_RXSENSE:
-+	case V4L2_CID_DV_TX_EDID_PRESENT:
-+	case V4L2_CID_DV_RX_POWER_PRESENT:
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
- 		break;
- 	}
--- 
-1.7.10
+Sorry for the delayed reply. I thought of performing some extensive tests
+before replying to your comments.
 
+> -----Original Message-----
+> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> Sent: Saturday, July 07, 2012 5:28 PM
+> To: Bhupesh SHARMA
+> Cc: linux-usb@vger.kernel.org; balbi@ti.com; linux-
+> media@vger.kernel.org; gregkh@linuxfoundation.org
+> Subject: Re: [PATCH 4/5] usb: gadget/uvc: Port UVC webcam gadget to use
+> videobuf2 framework
+> 
+> Hi Bhupesh,
+> 
+> On Tuesday 03 July 2012 23:42:59 Bhupesh SHARMA wrote:
+> > Hi Laurent,
+> >
+> > Thanks for your review and sorry for being late with my replies.
+> > I have a lot on my plate these days :)
+> 
+> No worries, I'm no less busy anyway :-)
+
+:)
+
+> > On Tuesday, June 19, 2012 4:19 AM Laurent Pinchart wrote:
+> > > On Friday 01 June 2012 15:08:57 Bhupesh Sharma wrote:
+> 
+> [snip]
+> 
+> > > > diff --git a/drivers/usb/gadget/uvc_queue.c
+> > > > b/drivers/usb/gadget/uvc_queue.c
+> > > > index 0cdf89d..907ece8 100644
+> > > > --- a/drivers/usb/gadget/uvc_queue.c
+> > > > +++ b/drivers/usb/gadget/uvc_queue.c
+> 
+> [snip]
+> 
+> > > > +static int uvc_buffer_prepare(struct vb2_buffer *vb)
+> > > >  {
+> 
+> [snip]
+> 
+> > > > +   buf->state = UVC_BUF_STATE_QUEUED;
+> > > > +   buf->mem = vb2_plane_vaddr(vb, 0);
+> > > > +   buf->length = vb2_plane_size(vb, 0);
+> > > > +   if (vb->v4l2_buf.type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> > > > +           buf->bytesused = 0;
+> > > > +   else
+> > > > +           buf->bytesused = vb2_get_plane_payload(vb, 0);
+> > >
+> > > The driver doesn't support the capture type at the moment so this
+> might be
+> > > a bit overkill, but I think it's a good idea to support capture in
+> the
+> > > queue imeplementation. I plan to try and merge the uvcvideo and
+> uvcgadget
+> > > queue implementations at some point.
+> >
+> > I am thinking now whether we really need to support UVC as a capture
+> type
+> > video device. The use cases that I can think of now, UVC always seems
+> to be
+> > a output device.
+> >
+> > Any use-case where you think UVC can be a capture device?
+> 
+> It could be useful for video output devices. I know of at least one UVC
+> output
+> device (albeit not Linux-based), which I used to implement and test
+> video
+> output in the UVC host driver. As the host driver supports video output
+> devices, supporting them in the gadget driver can be useful as well.
+
+Ok.
+
+> > > > +   return 0;
+> > > > +}
+> 
+> [snip]
+> 
+> > > >  static struct uvc_buffer *
+> > > >  uvc_queue_next_buffer(struct uvc_video_queue *queue, struct
+> uvc_buffer
+> > > > *buf)
+> 
+> [snip]
+> 
+> > > > -   buf->buf.sequence = queue->sequence++;
+> > > > -   do_gettimeofday(&buf->buf.timestamp);
+> > >
+> > > videobuf2 doesn't fill the sequence number or timestamp fields, so
+> you
+> > > either need to keep this here or move it to the caller.
+> >
+> > Yes I think these fields are only valid for video capture devices.
+> > As my use-case was only an output UVC video device, I didn't add the
+> same.
+> >
+> > Please let me know your views on the same.
+> 
+> Good point. The spec isn't clear about this, so I'd rather keep these
+> two
+> lines for now.
+
+Ok, sure.
+
+> > > > +   vb2_set_plane_payload(&buf->buf, 0, buf->bytesused);
+> > > > +   vb2_buffer_done(&buf->buf, VB2_BUF_STATE_DONE);
+> > > >
+> > > > -   wake_up(&buf->wait);
+> > > >
+> > > >     return nextbuf;
+> > > >  }
+> 
+> [snip]
+> 
+> > > > diff --git a/drivers/usb/gadget/uvc_v4l2.c
+> > > b/drivers/usb/gadget/uvc_v4l2.c
+> > > > index f6e083b..9c2b45b 100644
+> > > > --- a/drivers/usb/gadget/uvc_v4l2.c
+> > > > +++ b/drivers/usb/gadget/uvc_v4l2.c
+> > > > @@ -144,20 +144,23 @@ uvc_v4l2_release(struct file *file)
+> > > >
+> > > >     struct uvc_device *uvc = video_get_drvdata(vdev);
+> > > >     struct uvc_file_handle *handle = to_uvc_file_handle(file-
+> > > >
+> > > >private_data);
+> > > >
+> > > >     struct uvc_video *video = handle->device;
+> > > >
+> > > > +   int ret;
+> > > >
+> > > >     uvc_function_disconnect(uvc);
+> > > >
+> > > > -   uvc_video_enable(video, 0);
+> > > > -   mutex_lock(&video->queue.mutex);
+> > > > -   if (uvc_free_buffers(&video->queue) < 0)
+> > > > -           printk(KERN_ERR "uvc_v4l2_release: Unable to free "
+> > > > -                           "buffers.\n");
+> > > > -   mutex_unlock(&video->queue.mutex);
+> > > > +   ret = uvc_video_enable(video, 0);
+> > > > +   if (ret < 0) {
+> > > > +           printk(KERN_ERR "uvc_v4l2_release: uvc video disable
+> > >
+> > > failed\n");
+> > >
+> > > > +           return ret;
+> > > > +   }
+> > >
+> > > This shouldn't prevent uvc_v4l2_release() from succeeding. In
+> practive
+> > > uvc_video_enable(0) will never fail, so you can remove the error
+> check.
+> >
+> > To be honest, I saw once the 'uvc_video_enable(0)' failing that's why
+> I
+> > added this check. I don't remember the exact instance of the failure,
+> but
+> > I can try to check again and then will come back on the same.
+> 
+> The only reason I see for uvc_video_enable(video, 0) to fail is if the
+> video
+> endpoint hasn't been allocated. As the V4L2 device node is registered
+> after
+> allocating the endpoint, I'm surprised to hear that you saw it failing.
+> If you
+> can reproduce the problem I'd be curious to have more information.
+
+Yes. I tested and tested again, but could not reproduce this issue.
+Perhaps it was some initial incorrect test finding.
+
+> > > > +
+> > > > +   uvc_free_buffers(&video->queue);
+> > > >
+> > > >     file->private_data = NULL;
+> > > >     v4l2_fh_del(&handle->vfh);
+> > > >     v4l2_fh_exit(&handle->vfh);
+> > > >     kfree(handle);
+> > > > +
+> > > >     return 0;
+> > > >  }
+> 
+> [snip]
+> 
+> > > > diff --git a/drivers/usb/gadget/uvc_video.c
+> > > > b/drivers/usb/gadget/uvc_video.c
+> > > > index b0e53a8..195bbb6 100644
+> > > > --- a/drivers/usb/gadget/uvc_video.c
+> > > > +++ b/drivers/usb/gadget/uvc_video.c
+> > >
+> > > [snip]
+> > >
+> > > > @@ -161,6 +161,7 @@ static void
+> > > >
+> > > >  uvc_video_complete(struct usb_ep *ep, struct usb_request *req)
+> > > >  {
+> > > >     struct uvc_video *video = req->context;
+> > > > +   struct uvc_video_queue *queue = &video->queue;
+> > > >     struct uvc_buffer *buf;
+> > > >     unsigned long flags;
+> > > >     int ret;
+> > > > @@ -169,13 +170,15 @@ uvc_video_complete(struct usb_ep *ep,
+> struct
+> > > > usb_request *req) case 0:
+> > > >             break;
+> > > >
+> > > > -   case -ESHUTDOWN:
+> > > > +   case -ESHUTDOWN:        /* disconnect from host. */
+> > > >             printk(KERN_INFO "VS request cancelled.\n");
+> > > > +           uvc_queue_cancel(queue, 1);
+> > > >             goto requeue;
+> > > >
+> > > >     default:
+> > > >             printk(KERN_INFO "VS request completed with status
+> %d.\n",
+> > > >                     req->status);
+> > > >
+> > > > +           uvc_queue_cancel(queue, 0);
+> > >
+> > > I wonder why there was no uvc_queue_cancel() here already, it makes
+> me
+> > > a bit suspicious :-) Have you double-checked this ?
+> > >
+> > > >             goto requeue;
+> >
+> > Added only after burning my hands :)
+> > In case the buffer was queued at the UVC gadget and the USB cable was
+> > disconnected in the middle of frame transfer, I saw that the buffer
+> was
+> > never dequeued with error and the user-space application kept waiting
+> for
+> > this buffer transfer to be completed.
+> 
+> Good catch, thank you.
+
+I will soon send a V2 with your review comments.
+
+Regards,
+Bhupesh
