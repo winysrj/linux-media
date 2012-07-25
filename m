@@ -1,65 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:65304 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751974Ab2GEPS1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 11:18:27 -0400
-Received: by werb14 with SMTP id b14so5373398wer.19
-        for <linux-media@vger.kernel.org>; Thu, 05 Jul 2012 08:18:26 -0700 (PDT)
-From: Gianluca Gennari <gennarone@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@redhat.com
-Cc: hans.verkuil@cisco.com, Gianluca Gennari <gennarone@gmail.com>
-Subject: [PATCH] media_build: add backport patch for request_firmware_nowait() to kernels <= 2.6.32
-Date: Thu,  5 Jul 2012 17:18:15 +0200
-Message-Id: <1341501495-22729-1-git-send-email-gennarone@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48695 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752610Ab2GYQA4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Jul 2012 12:00:56 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hideki EIRAKU <hdk@igel.co.jp>
+Cc: Russell King <linux@arm.linux.org.uk>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	Katsuya MATSUBARA <matsu@igel.co.jp>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
+Subject: [PATCH] ALSA: pcm - Don't define ARCH_HAS_DMA_MMAP_COHERENT privately for ARM
+Date: Wed, 25 Jul 2012 18:01:00 +0200
+Message-Id: <1343232060-17851-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1343197764-13659-1-git-send-email-hdk@igel.co.jp>
+References: <1343197764-13659-1-git-send-email-hdk@igel.co.jp>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In kernel 2.6.33 request_firmware_nowait() gained a new parameter to set
-the memory allocation flags.
-We have to remove this parameter to make the drxk driver (the only user of
-request_firmware_nowait() so far) compilable again with kernels older
-than 2.6.33.
+The ARM architecture now defines ARCH_HAS_DMA_MMAP_COHERENT, there's no
+need to define it privately anymore.
 
-Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- backports/backports.txt                         |    1 +
- backports/v2.6.32_request_firmware_nowait.patch |   15 +++++++++++++++
- 2 files changed, 16 insertions(+), 0 deletions(-)
- create mode 100644 backports/v2.6.32_request_firmware_nowait.patch
+ sound/core/pcm_native.c |    7 -------
+ 1 files changed, 0 insertions(+), 7 deletions(-)
 
-diff --git a/backports/backports.txt b/backports/backports.txt
-index cc768d2..5554d9e 100644
---- a/backports/backports.txt
-+++ b/backports/backports.txt
-@@ -62,6 +62,7 @@ add v2.6.33_pvrusb2_sysfs.patch
+Hi Eiraku-san,
+
+Could you please add this cleanup patch to your "Use dma_mmap_coherent to
+support IOMMU mapper" series ?
+
+diff --git a/sound/core/pcm_native.c b/sound/core/pcm_native.c
+index 53b5ada..84ead60 100644
+--- a/sound/core/pcm_native.c
++++ b/sound/core/pcm_native.c
+@@ -3156,13 +3156,6 @@ static const struct vm_operations_struct snd_pcm_vm_ops_data_fault = {
+ 	.fault =	snd_pcm_mmap_data_fault,
+ };
  
- [2.6.32]
- add v2.6.32_kfifo.patch
-+add v2.6.32_request_firmware_nowait.patch
- 
- [2.6.31]
- add v2.6.31_nodename.patch
-diff --git a/backports/v2.6.32_request_firmware_nowait.patch b/backports/v2.6.32_request_firmware_nowait.patch
-new file mode 100644
-index 0000000..8483189
---- /dev/null
-+++ b/backports/v2.6.32_request_firmware_nowait.patch
-@@ -0,0 +1,15 @@
-+---
-+ drivers/media/dvb/frontends/drxk_hard.c |    1 -
-+ 1 files changed, 0 insertions(+), 1 deletions(-)
-+
-+--- a/drivers/media/dvb/frontends/drxk_hard.c
-++++ b/drivers/media/dvb/frontends/drxk_hard.c
-+@@ -6548,7 +6548,6 @@ struct dvb_frontend *drxk_attach(const struct drxk_config *config,
-+ 		status = request_firmware_nowait(THIS_MODULE, 1,
-+ 					      state->microcode_name,
-+ 					      state->i2c->dev.parent,
-+-					      GFP_KERNEL,
-+ 					      state, load_firmware_cb);
-+ 		if (status < 0) {
-+ 			printk(KERN_ERR
-+
+-#ifndef ARCH_HAS_DMA_MMAP_COHERENT
+-/* This should be defined / handled globally! */
+-#ifdef CONFIG_ARM
+-#define ARCH_HAS_DMA_MMAP_COHERENT
+-#endif
+-#endif
+-
+ /*
+  * mmap the DMA buffer on RAM
+  */
 -- 
-1.7.0.4
+Regards,
+
+Laurent Pinchart
 
