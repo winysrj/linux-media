@@ -1,93 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:34028 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752187Ab2GIITV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2012 04:19:21 -0400
-Subject: Re: [PATCH 2/3] media: coda: Add driver for Coda video codec.
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
-	shawn.guo@linaro.org, fabio.estevam@freescale.com,
-	richard.zhu@linaro.org, arnaud.patard@rtp-net.org,
-	kernel@pengutronix.de, mchehab@infradead.org
-In-Reply-To: <CACKLOr10RzcTQMJHrtd2K+imvhOcrvq3-vNFwqnKkyr1NSVqEQ@mail.gmail.com>
-References: <1341579471-25208-1-git-send-email-javier.martin@vista-silicon.com>
-	 <1341579471-25208-3-git-send-email-javier.martin@vista-silicon.com>
-	 <1341816350.2489.1.camel@pizza.hi.pengutronix.de>
-	 <CACKLOr10RzcTQMJHrtd2K+imvhOcrvq3-vNFwqnKkyr1NSVqEQ@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 09 Jul 2012 10:19:04 +0200
-Message-ID: <1341821944.2489.16.camel@pizza.hi.pengutronix.de>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:43601 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754130Ab2GYNYC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Jul 2012 09:24:02 -0400
+Received: by gglu4 with SMTP id u4so662829ggl.19
+        for <linux-media@vger.kernel.org>; Wed, 25 Jul 2012 06:24:01 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1343222119-82246-1-git-send-email-tim.gardner@canonical.com>
+References: <1343222119-82246-1-git-send-email-tim.gardner@canonical.com>
+Date: Wed, 25 Jul 2012 09:24:01 -0400
+Message-ID: <CAGoCfiziwAz0q2D_qKX=1nrAKQybeX+Ho5eu_gsERhd7QtsaDQ@mail.gmail.com>
+Subject: Re: [PATCH] xc5000: Add MODULE_FIRMWARE statements
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Tim Gardner <tim.gardner@canonical.com>
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Michael Krufky <mkrufky@kernellabs.com>,
+	Eddi De Pieri <eddi@depieri.net>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Montag, den 09.07.2012, 10:07 +0200 schrieb javier Martin:
-[...]
-> >> +static int vidioc_s_parm(struct file *file, void *priv, struct v4l2_streamparm *a)
-> >> +{
-> >> +     struct coda_ctx *ctx = fh_to_ctx(priv);
-> >> +
-> >> +     if (a->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-> >> +             if (a->parm.output.timeperframe.numerator != 1) {
-> >> +                     v4l2_err(&ctx->dev->v4l2_dev,
-> >> +                              "FPS numerator must be 1\n");
-> >> +                     return -EINVAL;
-> >> +             }
-> >> +             ctx->params.framerate =
-> >> +                                     a->parm.output.timeperframe.denominator;
-> >> +     } else {
-> >> +             v4l2_err(&ctx->dev->v4l2_dev,
-> >> +                      "Setting FPS is only possible for the output queue\n");
-> >> +             return -EINVAL;
-> >
-> > Why disallow setting timeperframe on the capture side? Shouldn't it
-> > rather succeed without setting anything and return the current context's
-> > frame rate instead?
-> >
-> >> +     }
-> >> +     return 0;
-> >> +}
-> >> +
-> >> +static int vidioc_g_parm(struct file *file, void *priv, struct v4l2_streamparm *a)
-> >> +{
-> >> +     struct coda_ctx *ctx = fh_to_ctx(priv);
-> >> +
-> >> +     if (a->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-> >> +             a->parm.output.timeperframe.denominator =
-> >> +                                     ctx->params.framerate;
-> >> +             a->parm.output.timeperframe.numerator = 1;
-> >> +     } else {
-> >> +             v4l2_err(&ctx->dev->v4l2_dev,
-> >> +                      "Getting FPS is only possible for the output queue\n");
-> >
-> > The nominal capture side timeperframe should match that of the output
-> > side.
-> >
-> > Actually, I'm not sure if this needs to be implemented at all, since
-> > V4L2_CAP_TIMEPERFRAME is not set and capture frame dropping / output
-> > frame duplication is not supported.
-> 
-> I am just following the steps of Samsung here:
-> 
-> http://lxr.linux.no/#linux+v3.4.4/drivers/media/video/s5p-mfc/s5p_mfc_enc.c#L1439
-> http://lxr.linux.no/#linux+v3.4.4/drivers/media/video/s5p-mfc/s5p_mfc_opr.c#L775
-> 
+On Wed, Jul 25, 2012 at 9:15 AM, Tim Gardner <tim.gardner@canonical.com> wrote:
+> This will make modinfo more useful with regard
+> to discovering necessary firmware files.
+>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: Michael Krufky <mkrufky@kernellabs.com>
+> Cc: Eddi De Pieri <eddi@depieri.net>
+> Cc: linux-media@vger.kernel.org
+> Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
+> ---
+>  drivers/media/common/tuners/xc5000.c |    8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
+> index dcca42c..4d33f86 100644
+> --- a/drivers/media/common/tuners/xc5000.c
+> +++ b/drivers/media/common/tuners/xc5000.c
+> @@ -210,13 +210,15 @@ struct xc5000_fw_cfg {
+>         u16 size;
+>  };
+>
+> +#define XC5000A_FIRMWARE "dvb-fe-xc5000-1.6.114.fw"
+>  static const struct xc5000_fw_cfg xc5000a_1_6_114 = {
+> -       .name = "dvb-fe-xc5000-1.6.114.fw",
+> +       .name = XC5000A_FIRMWARE,
+>         .size = 12401,
+>  };
+>
+> +#define XC5000C_FIRMWARE "dvb-fe-xc5000c-41.024.5.fw"
+>  static const struct xc5000_fw_cfg xc5000c_41_024_5 = {
+> -       .name = "dvb-fe-xc5000c-41.024.5.fw",
+> +       .name = XC5000C_FIRMWARE,
+>         .size = 16497,
+>  };
+>
+> @@ -1253,3 +1255,5 @@ EXPORT_SYMBOL(xc5000_attach);
+>  MODULE_AUTHOR("Steven Toth");
+>  MODULE_DESCRIPTION("Xceive xc5000 silicon tuner driver");
+>  MODULE_LICENSE("GPL");
+> +MODULE_FIRMWARE(XC5000A_FIRMWARE);
+> +MODULE_FIRMWARE(XC5000C_FIRMWARE);
+> --
 
-I don't think this is completely correct either. According to the V4L2
-spec, setting timeperframe from an application is meant to make the
-driver skip or duplicate frames to save bandwidth:
+Hi Tim,
 
-http://v4l2spec.bytesex.org/spec-single/v4l2.html#VIDIOC-G-PARM
+I'm just eyeballing the patch and I'm not familiar with this new
+functionality, but where are the new macros you're specifying actually
+defined?  You're swapping out the filename for XC5000A_FIRMWARE, but
+where is the actual reference to "dvb-fe-xc5000-1.6.114.fw"?
 
-So returning -EINVAL is not necessarily incorrect, as we can choose not
-to support this ioctl - but claiming support for the output side (and
-then doing nothing) but returning an error on the capture side seems a
-bit inconsistent to me.
+Also, Mauro, can I merge this into my tree first rather than you
+pulling it direct?  I've got a whole patch series for xc5000 that I'm
+slated to issue a PULL for this weekend, and I *really* don't want to
+rebase the series for a four line change (which will definitely cause
+a conflict).
 
-regards
-Philipp
+Devin
 
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
