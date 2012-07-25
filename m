@@ -1,119 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:40498 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757203Ab2GKLAd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jul 2012 07:00:33 -0400
-Received: by weyx8 with SMTP id x8so784429wey.19
-        for <linux-media@vger.kernel.org>; Wed, 11 Jul 2012 04:00:31 -0700 (PDT)
-From: Javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: fabio.estevam@freescale.com, laurent.pinchart@ideasonboard.com,
-	g.liakhovetski@gmx.de, mchehab@infradead.org,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH v6] media: mx2_camera: Fix mbus format handling
-Date: Wed, 11 Jul 2012 13:00:19 +0200
-Message-Id: <1342004419-24929-1-git-send-email-javier.martin@vista-silicon.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:43096 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754233Ab2GYKib (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Jul 2012 06:38:31 -0400
+Message-ID: <500FCC9C.7070609@iki.fi>
+Date: Wed, 25 Jul 2012 13:38:20 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Marko Ristola <marko.ristola@kolumbus.fi>
+CC: linux-media <linux-media@vger.kernel.org>,
+	htl10@users.sourceforge.net
+Subject: Re: DVB core enhancements - comments please?
+References: <4FEBA656.7060608@iki.fi> <4FEECA65.9090205@kolumbus.fi> <4FF0307E.50408@iki.fi> <4FF32A2B.7010607@kolumbus.fi> <500ADA89.6090508@iki.fi>
+In-Reply-To: <500ADA89.6090508@iki.fi>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Do not use MX2_CAMERA_SWAP16 and MX2_CAMERA_PACK_DIR_MSB flags.
-The driver must negotiate with the attached sensor whether the
-mbus format is UYUV or YUYV and set CSICR1 configuration
-accordingly.
+Marko,
 
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
----
- drivers/media/video/mx2_camera.c |   28 +++++++++++++++++++++++-----
- 1 file changed, 23 insertions(+), 5 deletions(-)
+On 07/21/2012 07:36 PM, Antti Palosaari wrote:
+> Morjens!
+>
+> I am now working with that suspend/resume/power-management, as I got LNA
+> issues resolved.
+>
+> On 07/03/2012 08:21 PM, Marko Ristola wrote:
+>>
+>> Moikka Antti.
+>>
+>>
+>> On 07/01/2012 02:11 PM, Antti Palosaari wrote:
+>>> Moikka Marko,
+>>>
+>> -- snip --
+>>>
+>>> Hmm, I did some initial suspend / resume changes for DVB USB when I
+>>> rewrote it recently. On suspend, it just kills all ongoing urbs used
+>>> for streaming. And on resume it resubmit those urbs in order to resume
+>>> streaming. It just works as it doesn't hang computer anymore. What I
+>>> tested applications continued to show same television channels on
+>>> resume.
+>>>
+>>> The problem for that solution is that it does not have any power
+>>> management as power management is DVB-core responsibility. So it
+>>> continues eating current because chips are not put sleep and due to
+>>> that those DVB-core changes are required.
+>>
+>> I think that runtime (RT) frontend power saving is a different thing.
+>> It isn't necessarily suspend/resume thing.
+>
+> Yes it is different thing (DVB-core runtime power-management). But as
+> there is currently implemented .init() and .sleep() callbacks both
+> frontend and tuner for power management I don't see why not to use those
+> for suspend and resume too.
+>
+>> I implemented runtime Frontend power saving in 2007 on that patch I
+>> referenced.
+>> I used dvb-core's existing functionality. Maybe this concept is
+>> applicable for you too.
+>>
+>> I added into Mantis bridge device initialization following functions:
+>> +                       mantis->fe->ops.tuner_ops.sleep =
+>> mantis_dvb_tuner_sleep;
+>> +                       mantis->fe->ops.tuner_ops.init =
+>> mantis_dvb_tuner_init;
+>> tuner_ops.{sleep,init} modification had to be the last one.
+>>
+>> I maintained in mantis->has_power the frontend's power status.
+>> Maybe I could have read the active status from PCI context too.
+>>
+>> The concept was something like:
+>> - dvb-core has responsibility to call tuner_ops.sleep() and
+>> tuner_ops.init() when applicable.
+>> - Mantis PCI Bridge driver (or specific USB driver) has responsibility
+>>    to provide sleep and init implementations for the specific device.
+>> - Mantis bridge device will do the whole task of frontend power
+>> management, by calling Frontend's
+>>    tear down / initialization functions when necessary.
+>
+> I looked it and reads your discussion too. That code seem never ended up
+> for Mantis.
+>
+> But the idea is just basically same: use existing sleep() calls to put
+> device sleep on suspend and on resume use init() to wake-up again. You
+> stored existing parameters inside driver state and retuned using those
+> when set_frontend() get NULL as a parameter. Things has changed a little
+> after that and now those parameters are stored already in dvb-frontend
+> cache - which means a little less work for driver.
+>
+>>>> - What changes encrypted channels need?
+>>>
+>>> I think none?
+>
+>
+>
+> So after all, what I think currently, is:
+> * bridge sets and forwards .suspend() callback to dvb-core
+> * bridge sets and forwards .resume() callback to dvb-core
+> * on suspend, dvb-core puts device sleep
+> * on resume, dvb-core wake-ups device and inits tune (parameters are in
+> cache already)
+>
+> Clearly, put hardware sleep similarly as in case frontend is in sleep,
+> but keep userland interface alive (frontend, demux, etc).
 
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index 11a9353..0f01e7b 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -118,6 +118,8 @@
- #define CSISR_ECC_INT		(1 << 1)
- #define CSISR_DRDY		(1 << 0)
- 
-+#define CSICR1_FMT_MASK	 (CSICR1_PACK_DIR | CSICR1_SWAP16_EN)
-+
- #define CSICR1			0x00
- #define CSICR2			0x04
- #define CSISR			(cpu_is_mx27() ? 0x08 : 0x18)
-@@ -230,6 +232,7 @@ struct mx2_prp_cfg {
- 	u32 src_pixel;
- 	u32 ch1_pixel;
- 	u32 irq_flags;
-+	u32 csicr1;
- };
- 
- /* prp resizing parameters */
-@@ -330,6 +333,7 @@ static struct mx2_fmt_cfg mx27_emma_prp_table[] = {
- 			.ch1_pixel	= 0x2ca00565, /* RGB565 */
- 			.irq_flags	= PRP_INTR_RDERR | PRP_INTR_CH1WERR |
- 						PRP_INTR_CH1FC | PRP_INTR_LBOVF,
-+			.csicr1		= 0,
- 		}
- 	},
- 	{
-@@ -343,6 +347,21 @@ static struct mx2_fmt_cfg mx27_emma_prp_table[] = {
- 			.irq_flags	= PRP_INTR_RDERR | PRP_INTR_CH2WERR |
- 					PRP_INTR_CH2FC | PRP_INTR_LBOVF |
- 					PRP_INTR_CH2OVF,
-+			.csicr1		= CSICR1_PACK_DIR,
-+		}
-+	},
-+	{
-+		.in_fmt		= V4L2_MBUS_FMT_UYVY8_2X8,
-+		.out_fmt	= V4L2_PIX_FMT_YUV420,
-+		.cfg		= {
-+			.channel	= 2,
-+			.in_fmt		= PRP_CNTL_DATA_IN_YUV422,
-+			.out_fmt	= PRP_CNTL_CH2_OUT_YUV420,
-+			.src_pixel	= 0x22000888, /* YUV422 (YUYV) */
-+			.irq_flags	= PRP_INTR_RDERR | PRP_INTR_CH2WERR |
-+					PRP_INTR_CH2FC | PRP_INTR_LBOVF |
-+					PRP_INTR_CH2OVF,
-+			.csicr1		= CSICR1_SWAP16_EN,
- 		}
- 	},
- };
-@@ -1018,14 +1037,14 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
- 		return ret;
- 	}
- 
-+	csicr1 = (csicr1 & ~CSICR1_FMT_MASK) | pcdev->emma_prp->cfg.csicr1;
-+
- 	if (common_flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
- 		csicr1 |= CSICR1_REDGE;
- 	if (common_flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
- 		csicr1 |= CSICR1_SOF_POL;
- 	if (common_flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
- 		csicr1 |= CSICR1_HSYNC_POL;
--	if (pcdev->platform_flags & MX2_CAMERA_SWAP16)
--		csicr1 |= CSICR1_SWAP16_EN;
- 	if (pcdev->platform_flags & MX2_CAMERA_EXT_VSYNC)
- 		csicr1 |= CSICR1_EXT_VSYNC;
- 	if (pcdev->platform_flags & MX2_CAMERA_CCIR)
-@@ -1036,8 +1055,6 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
- 		csicr1 |= CSICR1_GCLK_MODE;
- 	if (pcdev->platform_flags & MX2_CAMERA_INV_DATA)
- 		csicr1 |= CSICR1_INV_DATA;
--	if (pcdev->platform_flags & MX2_CAMERA_PACK_DIR_MSB)
--		csicr1 |= CSICR1_PACK_DIR;
- 
- 	pcdev->csicr1 = csicr1;
- 
-@@ -1112,7 +1129,8 @@ static int mx2_camera_get_formats(struct soc_camera_device *icd,
- 		return 0;
- 	}
- 
--	if (code == V4L2_MBUS_FMT_YUYV8_2X8) {
-+	if (code == V4L2_MBUS_FMT_YUYV8_2X8 ||
-+	    code == V4L2_MBUS_FMT_UYVY8_2X8) {
- 		formats++;
- 		if (xlate) {
- 			/*
+I ended-up still quite much DVB USB driven implementation. DVB-core 
+(frontend) is asked only to do retune on resume.
+
+http://git.linuxtv.org/anttip/media_tree.git/commit/4829b70d8acf8c815e783e55e13f57beb3609602
+http://git.linuxtv.org/anttip/media_tree.git/commit/ec99a11dc0c92df3c7f2b0b1f02fcddb23636391
+
+It still lacks LNB voltage and tone and LNA handling. But as those are 
+quite rare I decided to left those out for now. For LNB there is already 
+some logic inside dvb frontend which could be used...
+
+DVB frontend seems to be quite complex currently and due to that I don't 
+want to touch it much. There is all kind of quirks including APIv3 / 
+APIv5 conversions. I am almost sure half of frontend code could be 
+reduced if written from the scratch.
+
+regards
+Antti
+
 -- 
-1.7.9.5
-
+http://palosaari.fi/
