@@ -1,94 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnxt09252.conexant.com ([198.62.9.252]:7324 "EHLO
-	Cnxtsmtp1.conexant.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751481Ab2GaS4Y convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40572 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752250Ab2GZM4v (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 14:56:24 -0400
-From: "Palash Bandyopadhyay" <Palash.Bandyopadhyay@conexant.com>
-To: "Mauro Carvalho Chehab" <mchehab@redhat.com>,
-	"workshop-2011@linuxtv.org" <workshop-2011@linuxtv.org>,
-	"Linux Media Mailing List" <linux-media@vger.kernel.org>
-cc: "Sri Deevi" <Srinivasa.Deevi@conexant.com>
-Date: Tue, 31 Jul 2012 11:38:30 -0700
-Subject: RE: [Workshop-2011] Media summit/KS-2012 proposals
-Message-ID: <1591392f-f0c0-42a5-b3af-170d078b80ab@cnxthub2.bbnet.ad>
-References: <20120713173708.GB17109@thunk.org> <5005A14D.8000809@redhat.com>
- <50181CBF.102@redhat.com>
-In-Reply-To: <50181CBF.102@redhat.com>
-Content-Language: en-US
-Content-Type: text/plain;
- charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Thu, 26 Jul 2012 08:56:51 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH] mt9v032: Provide link frequency control
+Date: Thu, 26 Jul 2012 14:56:56 +0200
+Message-Id: <1343307416-23172-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/mt9v032.c |   48 ++++++++++++++++++++++++++++++++++++----
+ include/media/mt9v032.h       |    3 ++
+ 2 files changed, 46 insertions(+), 5 deletions(-)
 
-  Can you add Sri Deevi to the list too?
-
-Thanks,
-Palash
-
------Original Message-----
-From: workshop-2011-bounces@linuxtv.org [mailto:workshop-2011-bounces@linuxtv.org] On Behalf Of Mauro Carvalho Chehab
-Sent: Tuesday, July 31, 2012 10:58 AM
-To: workshop-2011@linuxtv.org; Linux Media Mailing List
-Subject: [Workshop-2011] Media summit/KS-2012 proposals
-
-In order to sum-up the discussions around the media summit, this is what we've got so far:
-
-Proposals									     	proposed by
-=====================================================================================|=========================================================================================
-Common device tree bindings for media devices						Sylvester Nawrocki / Guennadi Liakhovetski
-ALSA and V4L/Media Controller								Steven Toth / Laurent Pinchart
-ARM and needed features for V4L/DVB							Steven Toth
-Intel media SDK										Steven Toth
-V4L compiance tool									Hans Verkuil
-V4L2 API ambiguities									Hans Verkuil
-Media Controller library								Laurent Pincart / Sakari Ailus
-SoC Vendors feedback - how to help them to go upstream - Android's V4L2 cam library	Laurent Pincart / Guennadi Liakhovetski / Palash Bandyopadhyay / Naveen Krishnamurthy
-Synchronization, shared resource and optimizations					Pawel Osciak
-V4L2/DVB issues from userspace perspective						Rémi Denis-Courmont
-
-As we'll have only one day for the summit, we may need to remove some themes, or maybe to get an extra time during LPC for the remaining discussions.
-	
-Possible attendents:
-===================
-
-Guennadi Liakhovetski
-Laurent Pinchart
-Mauro Carvalho Chehab
-Michael Krufky
-Naveen Krishnamurthy
-+1 seat from ST (waiting Naveen to define who will be the other seat)
-Palash Bandyopadhyay
-Pawel Osciak
-Rémi Denis-Courmont
-Sakari Ailus
-Steven Toth
-Sylvester Nawrocki
-
-Am I missing something?
-
-Are there other proposals or people intending to participate?
-
+diff --git a/drivers/media/video/mt9v032.c b/drivers/media/video/mt9v032.c
+index 2203a6f..39217b8 100644
+--- a/drivers/media/video/mt9v032.c
++++ b/drivers/media/video/mt9v032.c
+@@ -29,6 +29,8 @@
+ #define MT9V032_PIXEL_ARRAY_HEIGHT			492
+ #define MT9V032_PIXEL_ARRAY_WIDTH			782
+ 
++#define MT9V032_SYSCLK_FREQ_DEF				26600000
++
+ #define MT9V032_CHIP_VERSION				0x00
+ #define		MT9V032_CHIP_ID_REV1			0x1311
+ #define		MT9V032_CHIP_ID_REV3			0x1313
+@@ -122,13 +124,18 @@ struct mt9v032 {
+ 	struct v4l2_mbus_framefmt format;
+ 	struct v4l2_rect crop;
+ 
+-	struct v4l2_ctrl *pixel_rate;
+ 	struct v4l2_ctrl_handler ctrls;
++	struct {
++		struct v4l2_ctrl *link_freq;
++		struct v4l2_ctrl *pixel_rate;
++	};
+ 
+ 	struct mutex power_lock;
+ 	int power_count;
+ 
+ 	struct mt9v032_platform_data *pdata;
++
++	u32 sysclk;
+ 	u16 chip_control;
+ 	u16 aec_agc;
+ };
+@@ -196,7 +203,7 @@ static int mt9v032_power_on(struct mt9v032 *mt9v032)
+ 	int ret;
+ 
+ 	if (mt9v032->pdata->set_clock) {
+-		mt9v032->pdata->set_clock(&mt9v032->subdev, EXT_CLK);
++		mt9v032->pdata->set_clock(&mt9v032->subdev, mt9v032->sysclk);
+ 		udelay(1);
+ 	}
+ 
+@@ -374,7 +381,8 @@ static void mt9v032_configure_pixel_rate(struct mt9v032 *mt9v032,
+ 	struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
+ 	int ret;
+ 
+-	ret = v4l2_ctrl_s_ctrl_int64(mt9v032->pixel_rate, EXT_CLK / hratio);
++	ret = v4l2_ctrl_s_ctrl_int64(mt9v032->pixel_rate,
++				     mt9v032->sysclk / hratio);
+ 	if (ret < 0)
+ 		dev_warn(&client->dev, "failed to set pixel rate (%d)\n", ret);
+ }
+@@ -487,6 +495,7 @@ static int mt9v032_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	struct mt9v032 *mt9v032 =
+ 			container_of(ctrl->handler, struct mt9v032, ctrls);
+ 	struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
++	u32 freq;
+ 	u16 data;
+ 
+ 	switch (ctrl->id) {
+@@ -505,6 +514,16 @@ static int mt9v032_s_ctrl(struct v4l2_ctrl *ctrl)
+ 		return mt9v032_write(client, MT9V032_TOTAL_SHUTTER_WIDTH,
+ 				     ctrl->val);
+ 
++	case V4L2_CID_PIXEL_RATE:
++	case V4L2_CID_LINK_FREQ:
++		if (mt9v032->link_freq == NULL)
++			break;
++
++		freq = mt9v032->pdata->link_freqs[mt9v032->link_freq->val];
++		mt9v032->pixel_rate->cur.val = freq;
++		mt9v032->sysclk = freq;
++		break;
++
+ 	case V4L2_CID_TEST_PATTERN:
+ 		switch (ctrl->val) {
+ 		case 0:
+@@ -683,6 +702,7 @@ static const struct v4l2_subdev_internal_ops mt9v032_subdev_internal_ops = {
+ static int mt9v032_probe(struct i2c_client *client,
+ 		const struct i2c_device_id *did)
+ {
++	struct mt9v032_platform_data *pdata = client->dev.platform_data;
+ 	struct mt9v032 *mt9v032;
+ 	unsigned int i;
+ 	int ret;
+@@ -699,9 +719,9 @@ static int mt9v032_probe(struct i2c_client *client,
+ 		return -ENOMEM;
+ 
+ 	mutex_init(&mt9v032->power_lock);
+-	mt9v032->pdata = client->dev.platform_data;
++	mt9v032->pdata = pdata;
+ 
+-	v4l2_ctrl_handler_init(&mt9v032->ctrls, ARRAY_SIZE(mt9v032_ctrls) + 5);
++	v4l2_ctrl_handler_init(&mt9v032->ctrls, ARRAY_SIZE(mt9v032_ctrls) + 6);
+ 
+ 	v4l2_ctrl_new_std(&mt9v032->ctrls, &mt9v032_ctrl_ops,
+ 			  V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
+@@ -715,10 +735,27 @@ static int mt9v032_probe(struct i2c_client *client,
+ 			  V4L2_CID_EXPOSURE, MT9V032_TOTAL_SHUTTER_WIDTH_MIN,
+ 			  MT9V032_TOTAL_SHUTTER_WIDTH_MAX, 1,
+ 			  MT9V032_TOTAL_SHUTTER_WIDTH_DEF);
++
+ 	mt9v032->pixel_rate =
+ 		v4l2_ctrl_new_std(&mt9v032->ctrls, &mt9v032_ctrl_ops,
+ 				  V4L2_CID_PIXEL_RATE, 0, 0, 1, 0);
+ 
++	if (pdata && pdata->link_freqs) {
++		unsigned int def = 0;
++
++		for (i = 0; pdata->link_freqs[i]; ++i) {
++			if (pdata->link_freqs[i] == pdata->link_def_freq)
++				def = i;
++		}
++
++		mt9v032->link_freq =
++			v4l2_ctrl_new_int_menu(&mt9v032->ctrls,
++					       &mt9v032_ctrl_ops,
++					       V4L2_CID_LINK_FREQ, i - 1, def,
++					       pdata->link_freqs);
++		v4l2_ctrl_cluster(2, &mt9v032->link_freq);
++	}
++
+ 	for (i = 0; i < ARRAY_SIZE(mt9v032_ctrls); ++i)
+ 		v4l2_ctrl_new_custom(&mt9v032->ctrls, &mt9v032_ctrls[i], NULL);
+ 
+@@ -740,6 +777,7 @@ static int mt9v032_probe(struct i2c_client *client,
+ 	mt9v032->format.colorspace = V4L2_COLORSPACE_SRGB;
+ 
+ 	mt9v032->aec_agc = MT9V032_AEC_ENABLE | MT9V032_AGC_ENABLE;
++	mt9v032->sysclk = MT9V032_SYSCLK_FREQ_DEF;
+ 
+ 	v4l2_i2c_subdev_init(&mt9v032->subdev, client, &mt9v032_subdev_ops);
+ 	mt9v032->subdev.internal_ops = &mt9v032_subdev_internal_ops;
+diff --git a/include/media/mt9v032.h b/include/media/mt9v032.h
+index 5e27f9b..78fd39e 100644
+--- a/include/media/mt9v032.h
++++ b/include/media/mt9v032.h
+@@ -7,6 +7,9 @@ struct mt9v032_platform_data {
+ 	unsigned int clk_pol:1;
+ 
+ 	void (*set_clock)(struct v4l2_subdev *subdev, unsigned int rate);
++
++	const s64 *link_freqs;
++	s64 link_def_freq;
+ };
+ 
+ #endif
+-- 
 Regards,
-Mauro
 
-
-_______________________________________________
-Workshop-2011 mailing list
-Workshop-2011@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/workshop-2011
-
-Conexant E-mail Firewall (Conexant.Com) made the following annotations
----------------------------------------------------------------------
-********************** Legal Disclaimer **************************** 
-
-"This email may contain confidential and privileged material for the sole use of the intended recipient. Any unauthorized review, use or distribution by others is strictly prohibited. If you have received the message in error, please advise the sender by reply email and delete the message. Thank you." 
-
-********************************************************************** 
-
----------------------------------------------------------------------
+Laurent Pinchart
 
