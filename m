@@ -1,176 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3917 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932158Ab2GEK0Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2012 06:26:16 -0400
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:31144 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751040Ab2GZOjX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Jul 2012 10:39:23 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	halli manjunatha <hallimanju@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 5/6] radio-cadet: fix RDS handling.
-Date: Thu,  5 Jul 2012 12:25:32 +0200
-Message-Id: <ab3562bbd84fe6635ff30a8c7372f7088107afb1.1341483687.git.hans.verkuil@cisco.com>
-In-Reply-To: <1341483933-9986-1-git-send-email-hverkuil@xs4all.nl>
-References: <1341483933-9986-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <9f434bb4733245d7342b1547f65e40dae1603cd5.1341483687.git.hans.verkuil@cisco.com>
-References: <9f434bb4733245d7342b1547f65e40dae1603cd5.1341483687.git.hans.verkuil@cisco.com>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: Re: [RFC PATCH 1/2] Initial version of the RDS-decoder library Signed-off-by: Konke Radlow <kradlow@cisco.com>
+Date: Thu, 26 Jul 2012 16:39:20 +0200
+Cc: Konke Radlow <kradlow@cisco.com>, linux-media@vger.kernel.org,
+	hdegoede@redhat.com
+References: <1343238241-26772-1-git-send-email-kradlow@cisco.com> <d4b6f91016e799647e929972c60c604f271fb188.1343237398.git.kradlow@cisco.com> <CALF0-+VbHH2APAMmsLw33xfrg1HVz-xVeAPJ8STtruBKpY5=tA@mail.gmail.com>
+In-Reply-To: <CALF0-+VbHH2APAMmsLw33xfrg1HVz-xVeAPJ8STtruBKpY5=tA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201207261639.20482.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thu 26 July 2012 16:28:20 Ezequiel Garcia wrote:
+> Hi Konke,
+> 
+> > +
+> > +libv4l2rds_la_SOURCES = libv4l2rds.c
+> > +libv4l2rds_la_CPPFLAGS = -fvisibility=hidden $(ENFORCE_LIBV4L_STATIC) -std=c99
+> > +libv4l2rds_la_LDFLAGS = -version-info 0 -lpthread $(DLOPEN_LIBS) $(ENFORCE_LIBV4L_STATIC)
+> > diff --git a/lib/libv4l2rds/libv4l2rds.c b/lib/libv4l2rds/libv4l2rds.c
+> > new file mode 100644
+> > index 0000000..0bacaa2
+> > --- /dev/null
+> > +++ b/lib/libv4l2rds/libv4l2rds.c
+> > @@ -0,0 +1,871 @@
+> > +/*
+> > + * Copyright 2012 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+> [snip]
+> > + * This program is free software; you can redistribute it and/or modify
+> 
+> Just a -probably silly- question...
+> 
+> How can it be "free software" yet claim "All rights reserved" ? Is this correct?
 
-The current RDS code suffered from bit rot. Clean it up and make it work again.
+Yeah, it's correct. I had the same question when I was told that this was the
+correct phrase to use. Check other copyright lines in the kernel and you'll see
+the same line.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/radio/radio-cadet.c |   56 ++++++++++++++++++++++++++-----------
- 1 file changed, 39 insertions(+), 17 deletions(-)
+Since it is covered by the LGPLv2 license there aren't many rights to reserve :-)
 
-diff --git a/drivers/media/radio/radio-cadet.c b/drivers/media/radio/radio-cadet.c
-index 93536b7..d1fb427 100644
---- a/drivers/media/radio/radio-cadet.c
-+++ b/drivers/media/radio/radio-cadet.c
-@@ -71,7 +71,7 @@ struct cadet {
- 	int sigstrength;
- 	wait_queue_head_t read_queue;
- 	struct timer_list readtimer;
--	__u8 rdsin, rdsout, rdsstat;
-+	u8 rdsin, rdsout, rdsstat;
- 	unsigned char rdsbuf[RDS_BUFFER];
- 	struct mutex lock;
- 	int reading;
-@@ -85,8 +85,8 @@ static struct cadet cadet_card;
-  * strength value.  These values are in microvolts of RF at the tuner's input.
-  */
- static __u16 sigtable[2][4] = {
--	{  5, 10, 30,  150 },
--	{ 28, 40, 63, 1000 }
-+	{ 2185, 4369, 13107, 65535 },
-+	{ 1835, 2621,  4128, 65535 }
- };
- 
- 
-@@ -240,10 +240,13 @@ static void cadet_setfreq(struct cadet *dev, unsigned freq)
- 		cadet_gettune(dev);
- 		if ((dev->tunestat & 0x40) == 0) {   /* Tuned */
- 			dev->sigstrength = sigtable[dev->curtuner][j];
--			return;
-+			goto reset_rds;
- 		}
- 	}
- 	dev->sigstrength = 0;
-+reset_rds:
-+	outb(3, dev->io);
-+	outb(inb(dev->io + 1) & 0x7f, dev->io + 1);
- }
- 
- 
-@@ -259,7 +262,7 @@ static void cadet_handler(unsigned long data)
- 		outb(0x80, dev->io);      /* Select RDS fifo */
- 		while ((inb(dev->io) & 0x80) != 0) {
- 			dev->rdsbuf[dev->rdsin] = inb(dev->io + 1);
--			if (dev->rdsin == dev->rdsout)
-+			if (dev->rdsin + 1 == dev->rdsout)
- 				printk(KERN_WARNING "cadet: RDS buffer overflow\n");
- 			else
- 				dev->rdsin++;
-@@ -278,11 +281,21 @@ static void cadet_handler(unsigned long data)
- 	 */
- 	init_timer(&dev->readtimer);
- 	dev->readtimer.function = cadet_handler;
--	dev->readtimer.data = (unsigned long)0;
-+	dev->readtimer.data = data;
- 	dev->readtimer.expires = jiffies + msecs_to_jiffies(50);
- 	add_timer(&dev->readtimer);
- }
- 
-+static void cadet_start_rds(struct cadet *dev)
-+{
-+	dev->rdsstat = 1;
-+	outb(0x80, dev->io);        /* Select RDS fifo */
-+	init_timer(&dev->readtimer);
-+	dev->readtimer.function = cadet_handler;
-+	dev->readtimer.data = (unsigned long)dev;
-+	dev->readtimer.expires = jiffies + msecs_to_jiffies(50);
-+	add_timer(&dev->readtimer);
-+}
- 
- static ssize_t cadet_read(struct file *file, char __user *data, size_t count, loff_t *ppos)
- {
-@@ -291,26 +304,21 @@ static ssize_t cadet_read(struct file *file, char __user *data, size_t count, lo
- 	int i = 0;
- 
- 	mutex_lock(&dev->lock);
--	if (dev->rdsstat == 0) {
--		dev->rdsstat = 1;
--		outb(0x80, dev->io);        /* Select RDS fifo */
--		init_timer(&dev->readtimer);
--		dev->readtimer.function = cadet_handler;
--		dev->readtimer.data = (unsigned long)dev;
--		dev->readtimer.expires = jiffies + msecs_to_jiffies(50);
--		add_timer(&dev->readtimer);
--	}
-+	if (dev->rdsstat == 0)
-+		cadet_start_rds(dev);
- 	if (dev->rdsin == dev->rdsout) {
- 		if (file->f_flags & O_NONBLOCK) {
- 			i = -EWOULDBLOCK;
- 			goto unlock;
- 		}
-+		mutex_unlock(&dev->lock);
- 		interruptible_sleep_on(&dev->read_queue);
-+		mutex_lock(&dev->lock);
- 	}
- 	while (i < count && dev->rdsin != dev->rdsout)
- 		readbuf[i++] = dev->rdsbuf[dev->rdsout++];
- 
--	if (copy_to_user(data, readbuf, i))
-+	if (i && copy_to_user(data, readbuf, i))
- 		i = -EFAULT;
- unlock:
- 	mutex_unlock(&dev->lock);
-@@ -345,7 +353,12 @@ static int vidioc_g_tuner(struct file *file, void *priv,
- 		v->rangehigh = 1728000;    /* 108.0 MHz */
- 		v->rxsubchans = cadet_getstereo(dev);
- 		v->audmode = V4L2_TUNER_MODE_STEREO;
--		v->rxsubchans |= V4L2_TUNER_SUB_RDS;
-+		outb(3, dev->io);
-+		outb(inb(dev->io + 1) & 0x7f, dev->io + 1);
-+		mdelay(100);
-+		outb(3, dev->io);
-+		if (inb(dev->io + 1) & 0x80)
-+			v->rxsubchans |= V4L2_TUNER_SUB_RDS;
- 		break;
- 	case 1:
- 		strlcpy(v->name, "AM", sizeof(v->name));
-@@ -455,9 +468,16 @@ static int cadet_release(struct file *file)
- static unsigned int cadet_poll(struct file *file, struct poll_table_struct *wait)
- {
- 	struct cadet *dev = video_drvdata(file);
-+	unsigned long req_events = poll_requested_events(wait);
- 	unsigned int res = v4l2_ctrl_poll(file, wait);
- 
- 	poll_wait(file, &dev->read_queue, wait);
-+	if (dev->rdsstat == 0 && (req_events & (POLLIN | POLLRDNORM))) {
-+		mutex_lock(&dev->lock);
-+		if (dev->rdsstat == 0)
-+			cadet_start_rds(dev);
-+		mutex_unlock(&dev->lock);
-+	}
- 	if (dev->rdsin != dev->rdsout)
- 		res |= POLLIN | POLLRDNORM;
- 	return res;
-@@ -628,6 +648,8 @@ static void __exit cadet_exit(void)
- 	video_unregister_device(&dev->vdev);
- 	v4l2_ctrl_handler_free(&dev->ctrl_handler);
- 	v4l2_device_unregister(&dev->v4l2_dev);
-+	outb(7, dev->io);	/* Mute */
-+	outb(0x00, dev->io + 1);
- 	release_region(dev->io, 2);
- 	pnp_unregister_driver(&cadet_pnp_driver);
- }
--- 
-1.7.10
+The only right there is in practice is the right to decide whether or not to
+allow other licenses as well.
 
+Regards,
+
+	Hans
