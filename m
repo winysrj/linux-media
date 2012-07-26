@@ -1,69 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50966 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932117Ab2GDTJF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Jul 2012 15:09:05 -0400
-Message-ID: <4FF494CB.5070001@iki.fi>
-Date: Wed, 04 Jul 2012 22:08:59 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:62335 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751345Ab2GZDqb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Jul 2012 23:46:31 -0400
+Received: by vcbfk26 with SMTP id fk26so1277246vcb.19
+        for <linux-media@vger.kernel.org>; Wed, 25 Jul 2012 20:46:31 -0700 (PDT)
 MIME-Version: 1.0
-To: pierigno <pierigno@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: AF9035 Twinstar has firmware errors
-References: <CAN7fRVviA=svPsrHUkXj7B_ZZO02XMAOFyXQz0Sa-DiWvjg1cQ@mail.gmail.com>
-In-Reply-To: <CAN7fRVviA=svPsrHUkXj7B_ZZO02XMAOFyXQz0Sa-DiWvjg1cQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <501065F5.9060004@gmail.com>
+References: <1343219191-3969-1-git-send-email-shaik.ameer@samsung.com>
+	<1343219191-3969-6-git-send-email-shaik.ameer@samsung.com>
+	<501065F5.9060004@gmail.com>
+Date: Thu, 26 Jul 2012 09:16:31 +0530
+Message-ID: <CAOD6ATpXTXQbGGJ2qpn5oeVJ4XKnqOXtFzTsHa9uz=gt+gGCFg@mail.gmail.com>
+Subject: Re: [PATCH v3 5/5] media: gscaler: Add Makefile for G-Scaler Driver
+From: Shaik Ameer Basha <shaik.samsung@gmail.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>,
+	linux-media@vger.kernel.org, sungchun.kang@samsung.com,
+	khw0178.kim@samsung.com, mchehab@infradead.org,
+	laurent.pinchart@ideasonboard.com, sy0816.kang@samsung.com,
+	s.nawrocki@samsung.com, posciak@google.com, alim.akhtar@gmail.com,
+	prashanth.g@samsung.com, joshi@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello and thank you for testing.
+Hi Sylwester,
 
-On 07/04/2012 09:55 PM, pierigno wrote:
-> hello,
+On Thu, Jul 26, 2012 at 3:02 AM, Sylwester Nawrocki
+<sylvester.nawrocki@gmail.com> wrote:
+> On 07/25/2012 02:26 PM, Shaik Ameer Basha wrote:
+>>
+>> This patch adds the Makefile for G-Scaler driver.
+>>
+>> Signed-off-by: Shaik Ameer Basha<shaik.ameer@samsung.com>
+>> ---
+>>   drivers/media/video/Kconfig             |    8 ++++++++
+>>   drivers/media/video/Makefile            |    2 ++
+>>   drivers/media/video/exynos-gsc/Makefile |    3 +++
+>>   3 files changed, 13 insertions(+), 0 deletions(-)
+>>   create mode 100644 drivers/media/video/exynos-gsc/Makefile
+>>
+>> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+>> index 99937c9..47ec55a 100644
+>> --- a/drivers/media/video/Kconfig
+>> +++ b/drivers/media/video/Kconfig
+>> @@ -1215,4 +1215,12 @@ config VIDEO_MX2_EMMAPRP
+>>             memory to memory. Operations include resizing and format
+>>             conversion.
+>>
+>> +config VIDEO_SAMSUNG_EXYNOS_GSC
+>> +        tristate "Samsung Exynos GSC driver"
 >
-> I've downloaded and compiled against karnel 3.0.0 and kernel 3.4.3 the
-> latest git tree from antii, branch dvb-usb-pull, and it doesn't
-> recognize my dual tuner Avermedia Twinstar (af9035 + mxl5007t)
-> anymore. Here's the logs from dmesg (the compiled modules do not have
-> any debug parameters to enable):
-
-It is uses new / current dynamic debugs.
-
-modprobe dvb_usbv2; echo -n 'module dvb_usbv2 +p' > 
-/sys/kernel/debug/dynamic_debug/control
-echo 'file drivers/media/dvb/dvb-usb/usb_urb.c line 30 -p' > 
-/sys/kernel/debug/dynamic_debug/control
-modprobe dvb_usb_af9035; echo -n 'module dvb_usb_af9035 +p' > 
-/sys/kernel/debug/dynamic_debug/control
-
-
-> [44919.820892] DVB: registering new adapter (AVerMedia Twinstar (A825))
-> [44919.826864] af9033: firmware version: LINK=11.5.9.0 OFDM=5.17.9.1
-> [44919.826875] DVB: registering adapter 0 frontend 0 (Afatech AF9033 (DVB-T))...
-> [44920.166089] mxl5007t 16-0060: creating new instance
-> [44920.166883] mxl5007t_get_chip_id: unknown rev (3f)
-> [44920.166891] mxl5007t_get_chip_id: MxL5007T detected @ 16-0060
-> [44920.178890] usb 2-1.2: dvb_usbv2: 'AVerMedia Twinstar (A825)' error
-> while loading driver (-22)
-
-hmm, -22 == -EINVAL. Should look where this is coming from...
-
-> How can I enable debug parameters in order to provide better
-> informations? I've compiled as usual using the following command
-> sequence:
 >
-> git clone git://linuxtv.org/media_build.git
-> cd media_build
-> ./build --git git://linuxtv.org/anttip/media_tree.git dvb_usb_pull
+> s/GSC/Gscaler ?
+>
 
-I wasn't even aware that is possible. Nice!
+Ok. As per you previous review comments I am following "G-Scaler". I
+will change that.
 
-regards
-Antti
+>
+> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>
+> --
+>
+> Regards,
+> Sylwester
 
-
--- 
-http://palosaari.fi/
-
-
+Regards,
+Shaik Ameer Basha
