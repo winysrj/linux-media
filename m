@@ -1,122 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25139 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757823Ab2GFTKc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Jul 2012 15:10:32 -0400
-Message-ID: <4FF73821.9010108@redhat.com>
-Date: Fri, 06 Jul 2012 16:10:25 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:60166 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750774Ab2GZDmi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Jul 2012 23:42:38 -0400
+Received: by vcbfk26 with SMTP id fk26so1275259vcb.19
+        for <linux-media@vger.kernel.org>; Wed, 25 Jul 2012 20:42:37 -0700 (PDT)
 MIME-Version: 1.0
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v3.5] S5P driver fixes
-References: <4FEC864D.5040608@samsung.com> <4FEDEE7C.7080105@samsung.com>
-In-Reply-To: <4FEDEE7C.7080105@samsung.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <50105C50.8020306@gmail.com>
+References: <1343219191-3969-1-git-send-email-shaik.ameer@samsung.com>
+	<50105C50.8020306@gmail.com>
+Date: Thu, 26 Jul 2012 09:12:37 +0530
+Message-ID: <CAOD6ATqoj6AbYHfE8OwE4GU99q2L+phF9==0rFHpyCm94bTMew@mail.gmail.com>
+Subject: Re: [PATCH v3 0/5] Add new driver for generic scaler
+From: Shaik Ameer Basha <shaik.samsung@gmail.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>,
+	linux-media@vger.kernel.org, sungchun.kang@samsung.com,
+	khw0178.kim@samsung.com, mchehab@infradead.org,
+	laurent.pinchart@ideasonboard.com, sy0816.kang@samsung.com,
+	s.nawrocki@samsung.com, posciak@google.com, alim.akhtar@gmail.com,
+	prashanth.g@samsung.com, joshi@samsung.com
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 29-06-2012 15:05, Sylwester Nawrocki escreveu:
-> Hi Mauro,
-> 
-> On 06/28/2012 06:29 PM, Sylwester Nawrocki wrote:
->>
->> The following changes since commit 433002d69888238b16f8ea9434447feaa1fc9bf0:
->>
->>    Merge remote-tracking branch 'party-public/v4l-fimc-fixes' into v4l-fixes
->> (2012-06-27 16:28:08 +0200)
->>
->> are available in the git repository at:
->>
->>
->>    git://git.infradead.org/users/kmpark/linux-samsung v4l-fixes
->>
->> for you to fetch changes up to f8a623efac978987be818a0a9d2d407791a066e4:
->>
->>    Revert "[media] V4L: JPEG class documentation corrections" (2012-06-27
->> 16:31:20 +0200)
->>
->> ----------------------------------------------------------------
->> Kamil Debski (1):
->>        s5p-mfc: Fixed setup of custom controls in decoder and encoder
->>
->> Sylwester Nawrocki (2):
->>        s5p-fimc: Add missing FIMC-LITE file operations locking
->>
->> This patch depends on my previous pull request:
->> http://patchwork.linuxtv.org/patch/11503
->>
->>        Revert "[media] V4L: JPEG class documentation corrections"
->>
->>   Documentation/DocBook/media/v4l/controls.xml           |    2 +-
->>   Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml |    7 -------
->>   drivers/media/video/s5p-fimc/fimc-lite.c               |   61
->> ++++++++++++++++++++++++++++++++++++++++++++-----------------
->>   drivers/media/video/s5p-mfc/s5p_mfc_dec.c              |    1 +
->>   drivers/media/video/s5p-mfc/s5p_mfc_enc.c              |    1 +
->>   5 files changed, 47 insertions(+), 25 deletions(-)
-> 
-> Sorry, I messed up this pull request by rebasing it onto wrong branch.
-> Here it is corrected, against staging/for_v3.5 and on top of merged
-> v4l-fimc-fixes branch, as per http://patchwork.linuxtv.org/patch/11503
-> 
-> 
-> The following changes since commit 96fc9f0f51d6b0d807aeb1f6e38485a3de429fd4:
-> 
->    s5p-fimc: Stop media entity pipeline if fimc_pipeline_validate fails (2012-06-05 13:28:25 +0200)
-> 
-> are available in the git repository at:
-> 
->    git://git.infradead.org/users/kmpark/linux-samsung v4l-fixes
-> 
-> for you to fetch changes up to c7de5370086a948c67cb7eeb5f25178c8979b0fe:
-> 
->    Revert "[media] V4L: JPEG class documentation corrections" (2012-06-29 16:00:33 +0200)
-> 
-> ----------------------------------------------------------------
-> Kamil Debski (1):
->        s5p-mfc: Fixed setup of custom controls in decoder and encoder
+Hi Sylwester,
 
-This patch applied OK.
+On Thu, Jul 26, 2012 at 2:21 AM, Sylwester Nawrocki
+<sylvester.nawrocki@gmail.com> wrote:
+>
+> Hi,
+>
+> On 07/25/2012 02:26 PM, Shaik Ameer Basha wrote:
+> > This patch adds support for the gscaler device which is a new device
+> > for scaling and color space conversion on EXYNOS5 SoCs.
+> >
+> > This device supports the followings as key feature.
+> >   1) Input image format
+> >     - RGB888/565, YUV422 1P/2P, YUV420 2P/3P, TILE
+> >   2) Output image format
+> >     - RGB888/565, YUV422 1P/2P, YUV420 2P/3P, YUV444
+> >   3) Input rotation
+> >     - 0/90/180/270 degree, X/Y Flip
+> >   4) Scale ratio
+> >     - 1/16 scale down to 8 scale up
+> >   5) CSC
+> >     - RGB to YUV / YUV to RGB
+> >   6) Size
+> >     - 2048 x 2048 for tile or rotation
+> >     - 4800 x 3344 other case
+> >
+> > changes since v2:
+> > - Rebased on latest media-tree git, branch staging/for_v3.6.
+> >       http://linuxtv.org/git/media_tree.git
+> > - Addressed review comments from Pawel Osciak and Sylwester Nawrocki
+> >       https://patchwork.kernel.org/patch/1159031/
+> > - Split the v2 patch into multiple patches
+> >
+> > Note: This patch set is based on the following two patches
+> >    1] "V4L: Remove "_ACTIVE" from the selection target name definitions"
+> >    2] "v4l: add fourcc definitions for new formats"
+> >
+> > Shaik Ameer Basha (2):
+> >    v4l: Add new YVU420 multi planar fourcc definition
+> >    media: gscaler: Add Makefile for G-Scaler Driver
+> >
+> > Sungchun Kang (3):
+> >    media: gscaler: Add new driver for generic scaler
+> >    media: gscaler: Add core functionality for the G-Scaler driver
+> >    media: gscaler: Add m2m functionality for the G-Scaler driver
+>
+> There is following build error after applying this patch series:
+>
+>  CC      drivers/media/video/exynos-gsc/gsc-core.o
+> In file included from drivers/media/video/exynos-gsc/gsc-core.c:30:0:
+> drivers/media/video/exynos-gsc/gsc-core.h: In function ‘is_tiled’:
+> drivers/media/video/exynos-gsc/gsc-core.h:430:29: error:
+> ‘V4L2_PIX_FMT_NV12MT_16X16’ undeclared (first use in this function)
+> drivers/media/video/exynos-gsc/gsc-core.h:430:29: note: each undeclared
+> identifier is reported only once for each function it appears in
+> drivers/media/video/exynos-gsc/gsc-core.c: At top level:
+> drivers/media/video/exynos-gsc/gsc-core.c:191:18: error:
+> ‘V4L2_PIX_FMT_NV12MT_16X16’ undeclared here (not in a function)
+> make[4]: *** [drivers/media/video/exynos-gsc/gsc-core.o] Error 1
+> make[3]: *** [drivers/media/video/exynos-gsc] Error 2
+> make[2]: *** [drivers/media/video] Error 2
+> make[1]: *** [drivers/media] Error 2
+> make: *** [drivers] Error 2
+>
+>
 
-> Sylwester Nawrocki (2):
->        s5p-fimc: Add missing FIMC-LITE file operations locking
+As mentioned above in "Note:" section,
+this patch is based on the following two patches...
+1] "V4L: Remove "_ACTIVE" from the selection target name definitions"
+2] "v4l: add fourcc definitions for new formats"
 
-This one didn't apply for v3.5:
+If you apply the second patch by "Arun Kumar K"
+[http://patchwork.linuxtv.org/patch/13317/]
+the build errors will be resolved.
 
-Applying patch patches/0016-s5p-fimc-Add-missing-FIMC-LITE-file-operations-locki.patch
-patching file drivers/media/video/s5p-fimc/fimc-lite.c
-Hunk #1 FAILED at 453.
-Hunk #2 succeeded at 492 (offset -2 lines).
-1 out of 2 hunks FAILED -- rejects in file drivers/media/video/s5p-fimc/fimc-lite.c
-Patch patches/0016-s5p-fimc-Add-missing-FIMC-LITE-file-operations-locki.patch does not apply (enforce with -f)
-Patch didn't apply. Aborting
-
-
->        Revert "[media] V4L: JPEG class documentation corrections"
-
-My scripts say that this patch were already applied.
-
-$ test_patch
-testing if patches/0017-Revert-media-V4L-JPEG-class-documentation-correction.patch applies
-patch -p1 -i patches/0017-Revert-media-V4L-JPEG-class-documentation-correction.patch --dry-run -t -N
-patching file Documentation/DocBook/media/v4l/controls.xml
-patching file Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
- Documentation/DocBook/media/v4l/controls.xml           |    2 +-
- Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml |    7 -------
- 2 files changed, 1 insertion(+), 8 deletions(-)
-Subject: Revert "[media] V4L: JPEG class documentation corrections"
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Date: Wed, 27 Jun 2012 15:12:31 +0200
-Patch applies OK
-total: 0 errors, 0 warnings, 21 lines checked
-
-patches/0017-Revert-media-V4L-JPEG-class-documentation-correction.patch has no obvious style problems and is ready for submission.
-Patch is likely applied
-
-So, from this series, I'll only apply the "s5p-fimc: Add missing FIMC-LITE file operations locking"
-patch.
+> >
+> >   Documentation/DocBook/media/v4l/pixfmt-yuv420m.xml |   97 ++-
+> >   drivers/media/video/Kconfig                        |    8 +
+> >   drivers/media/video/Makefile                       |    2 +
+> >   drivers/media/video/exynos-gsc/Makefile            |    3 +
+> >   drivers/media/video/exynos-gsc/gsc-core.c          | 1261
+> > ++++++++++++++++++++
+> >   drivers/media/video/exynos-gsc/gsc-core.h          |  537 +++++++++
+> >   drivers/media/video/exynos-gsc/gsc-m2m.c           |  781 ++++++++++++
+> >   drivers/media/video/exynos-gsc/gsc-regs.c          |  450 +++++++
+> >   drivers/media/video/exynos-gsc/gsc-regs.h          |  172 +++
+> >   include/linux/videodev2.h                          |    1 +
+> >   10 files changed, 3298 insertions(+), 14 deletions(-)
+> >   create mode 100644 drivers/media/video/exynos-gsc/Makefile
+> >   create mode 100644 drivers/media/video/exynos-gsc/gsc-core.c
+> >   create mode 100644 drivers/media/video/exynos-gsc/gsc-core.h
+> >   create mode 100644 drivers/media/video/exynos-gsc/gsc-m2m.c
+> >   create mode 100644 drivers/media/video/exynos-gsc/gsc-regs.c
+> >   create mode 100644 drivers/media/video/exynos-gsc/gsc-regs.h
+> >
+>
 
 Regards,
-Mauro
+Shaik Ameer Basha
+
+p.s: this message is resent because the previous message was not
+delivered to linux-media@vger.kernel.org
