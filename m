@@ -1,100 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52948 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34163 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751701Ab2GSLjH (ORCPT
+	with ESMTP id S1751814Ab2GZPV2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jul 2012 07:39:07 -0400
+	Thu, 26 Jul 2012 11:21:28 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>
-Subject: Re: [PATCH v4 1/2] media: add new mediabus format enums for dm365
-Date: Thu, 19 Jul 2012 13:39:12 +0200
-Message-ID: <1797465.0SHSipVErv@avalon>
-In-Reply-To: <E99FAA59F8D8D34D8A118DD37F7C8F753E93F90F@DBDE01.ent.ti.com>
-References: <1333102154-24657-1-git-send-email-manjunath.hadli@ti.com> <41958950.qGmmsSpAPM@avalon> <E99FAA59F8D8D34D8A118DD37F7C8F753E93F90F@DBDE01.ent.ti.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org, b.zolnierkie@samsung.com
+Subject: Re: [RFC/PATCH 09/13] media: s5k6aa: Add support for device tree based instantiation
+Date: Thu, 26 Jul 2012 17:21:36 +0200
+Message-ID: <1393020.I6XBuRyBXi@avalon>
+In-Reply-To: <1337975573-27117-9-git-send-email-s.nawrocki@samsung.com>
+References: <4FBFE1EC.9060209@samsung.com> <1337975573-27117-1-git-send-email-s.nawrocki@samsung.com> <1337975573-27117-9-git-send-email-s.nawrocki@samsung.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Manjunath,
+Hi Sylwester,
 
-On Thursday 19 July 2012 11:33:56 Hadli, Manjunath wrote:
-> On Wed, Jul 18, 2012 at 16:35:18, Laurent Pinchart wrote:
-> > On Tuesday 17 July 2012 12:22:42 Hadli, Manjunath wrote:
-> > > On Tue, Jul 17, 2012 at 17:25:42, Laurent Pinchart wrote:
-> > > > On Tuesday 17 July 2012 11:41:11 Hadli, Manjunath wrote:
-> > > > > On Tue, Jul 17, 2012 at 16:26:24, Laurent Pinchart wrote:
-> > > > > > On Friday 30 March 2012 10:09:13 Hadli, Manjunath wrote:
-> > > > > > > add new enum entries for supporting the media-bus formats on
-> > > > > > > dm365.
-> > > > > > > These include some bayer and some non-bayer formats.
-> > > > > > > V4L2_MBUS_FMT_YDYC8_1X16 and V4L2_MBUS_FMT_UV8_1X8 are used
-> > > > > > > internal to the hardware by the resizer.
-> > > > > > > V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8 represents the bayer ALAW format
-> > > > > > > that is supported by dm365 hardware.
-> > > > > > > 
-> > > > > > > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> > > > > > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > > > > > Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> > > > > > > Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> > > > > > > ---
-> > > > > > > 
-> > > > > > >  Documentation/DocBook/media/v4l/subdev-formats.xml |  171
-> > > > > > >  ++++++++++++
-> > > > > > >  include/linux/v4l2-mediabus.h                      |   10 +-
-> > > > > > >  2 files changed, 179 insertions(+), 2 deletions(-)
-> > > > > > > 
-> > > > > > > diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml
-> > > > > > > b/Documentation/DocBook/media/v4l/subdev-formats.xml index
-> > > > > > > 49c532e..48d92bb
-> > > > > > > 100644
-> > > > > > > --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-> > > > > > > +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-> > > > 
-> > > > [snip]
-> > > > 
-> > > > > > > @@ -965,6 +1036,56 @@
-> > > > > > > 
-> > > > > > >  	      <entry>y<subscript>1</subscript></entry>
-> > > > > > >  	      <entry>y<subscript>0</subscript></entry>
-> > > > > > >  	    
-> > > > > > >  	    </row>
-> > > > > > > 
-> > > > > > > +	    <row id="V4L2-MBUS-FMT-UV8-1X8">
-> > > > > > 
-> > > > > > That's a weird one. Just out of curiosity, what's the point of
-> > > > > > transferring chroma information without luma ?
-> > > > > 
-> > > > > DM365 supports this format.
-> > > > 
-> > > > Right, but what is it used for ?
-> > > 
-> > > Sorry about that. The Resizer in Dm365 can take only chroma and resize
-> > > the buffer. It can also take luma of course. In general it can take UV8,
-> > > Y8 and also UYVY.
-> > 
-> > So UV8 is used to resize an NV buffer in two passes (first Y8 then UV8) ?
+On Friday 25 May 2012 21:52:48 Sylwester Nawrocki wrote:
+> The driver initializes all board related properties except the s_power()
+> callback to board code. The platforms that require this callback are not
+> supported by this driver yet for CONFIG_OF=y.
 > 
-> No. The resizer can take has a capability to resize UV8 alone. Apart from
-> this I don't see any use case for UV8.
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  .../bindings/camera/samsung-s5k6aafx.txt           |   57 +++++++++
+>  drivers/media/video/s5k6aa.c                       |  129 ++++++++++++-----
+>  2 files changed, 146 insertions(+), 40 deletions(-)
+>  create mode 100644
+> Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt
+> b/Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt new file
+> mode 100644
+> index 0000000..6685a9c
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/camera/samsung-s5k6aafx.txt
+> @@ -0,0 +1,57 @@
+> +Samsung S5K6AAFX camera sensor
+> +------------------------------
+> +
+> +Required properties:
+> +
+> +- compatible : "samsung,s5k6aafx";
+> +- reg : base address of the device on I2C bus;
+> +- video-itu-601-bus : parallel bus with HSYNC and VSYNC - ITU-R BT.601;
+> +- vdd_core-supply : digital core voltage supply 1.5V (1.4V to 1.6V);
+> +- vdda-supply : analog power voltage supply 2.8V (2.6V to 3.0V);
+> +- vdd_reg-supply : regulator input power voltage supply 1.8V (1.7V to 1.9V)
+> +		   or 2.8V (2.6V to 3.0);
+> +- vddio-supply : I/O voltage supply 1.8V (1.65V to 1.95V)
+> +		 or 2.8V (2.5V to 3.1V);
+> +
+> +Optional properties:
+> +
+> +- clock-frequency : the IP's main (system bus) clock frequency in Hz, the
+> default 
 
-Right, but what is standalone UV8 useful for ? Y8 images make sense, but an 
-image made of UV8 data only doesn't sound very useful to me.
+Is that the input clock frequency ? Can't it vary ? Instead of accessing the 
+sensor clock frequency from the FIMC driver you should reference a clock in 
+the sensor DT node. That obviously requires generic clock support, which might 
+not be available for your platform yet (that's one of the reasons the OMAP3 
+ISP driver doesn't support DT yet).
 
-NV formats are made of a Y8 plane and a UV8 plane, so UV8 resizing could be 
-used to resize an NV image in two passes (resizing the Y8 plane first, then 
-the UV8 plane). That's the only use case I see, and in that case I wonder 
-whether the driver shouldn't expose NV resizing capabilities to userspace and 
-run the two passes internally.
-
-> (Hans, Sakari, Guennadi, any opinion on exposing UV8 to user?)
+> +		    value when this property is not specified is 24 MHz;
+> +- data-lanes : number of physical lanes used (default 2 if not specified);
+> +- gpio-stby : specifies the S5K6AA_STBY GPIO
+> +- gpio-rst : specifies the S5K6AA_RST GPIO
+> +- samsung,s5k6aa-inv-stby : set inverted S5K6AA_STBY GPIO level;
+> +- samsung,s5k6aa-inv-rst : set inverted S5K6AA_RST GPIO level;
+> +- samsung,s5k6aa-hflip : set the default horizontal image flipping;
+> +- samsung,s5k6aa-vflip : set the default vertical image flipping;
+> +
+> +
+> +Example:
+> +
+> +	gpl2: gpio-controller@0 {
+> +	};
+> +
+> +	reg0: regulator@0 {
+> +	};
+> +
+> +	reg1: regulator@1 {
+> +	};
+> +
+> +	reg2: regulator@2 {
+> +	};
+> +
+> +	reg3: regulator@3 {
+> +	};
+> +
+> +	s5k6aafx@3c {
+> +		compatible = "samsung,s5k6aafx";
+> +		reg = <0x3c>;
+> +		clock-frequency = <24000000>;
+> +		gpio-rst = <&gpl2 0 2 0 3>;
+> +		gpio-stby = <&gpl2 1 2 0 3>;
+> +		video-itu-601-bus;
+> +		vdd_core-supply = <&reg0>;
+> +		vdda-supply = <&reg1>;
+> +		vdd_reg-supply = <&reg2>;
+> +		vddio-supply = <&reg3>;
+> +	};
 
 -- 
 Regards,
