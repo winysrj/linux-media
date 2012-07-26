@@ -1,71 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40585 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752291Ab2GJMx7 convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58404 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752295Ab2GZN2j (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jul 2012 08:53:59 -0400
-From: "Lad, Prabhakar" <prabhakar.lad@ti.com>
-To: "'Mauro Carvalho Chehab'" <mchehab@redhat.com>
-CC: "'LMML'" <linux-media@vger.kernel.org>,
-	"'dlos'" <davinci-linux-open-source@linux.davincidsp.com>,
-	"Hadli, Manjunath" <manjunath.hadli@ti.com>
-Subject: [GIT PULL] Davinci VPIF feature enhancement and fixes for v3.5
-Date: Tue, 10 Jul 2012 12:53:52 +0000
-Message-ID: <4665BC9CC4253445B213A010E6DC7B35CE0035@DBDE01.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Thu, 26 Jul 2012 09:28:39 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi
+Subject: Re: [PATCH] mt9v032: Provide link frequency control
+Date: Thu, 26 Jul 2012 15:28:46 +0200
+Message-ID: <2673019.TNX5Epv3lK@avalon>
+In-Reply-To: <201207261516.04868.hverkuil@xs4all.nl>
+References: <1343307416-23172-1-git-send-email-laurent.pinchart@ideasonboard.com> <201207261516.04868.hverkuil@xs4all.nl>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Hans,
 
-Please pull the following VPIF driver feature enhancement and fixes for v3.5
+Thanks for the review.
 
-Thanks and Regards,
---Prabhakar Lad
+On Thursday 26 July 2012 15:16:04 Hans Verkuil wrote:
+> On Thu 26 July 2012 14:56:56 Laurent Pinchart wrote:
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  drivers/media/video/mt9v032.c |   48 ++++++++++++++++++++++++++++++++----
+> >  include/media/mt9v032.h       |    3 ++
+> >  2 files changed, 46 insertions(+), 5 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/mt9v032.c b/drivers/media/video/mt9v032.c
+> > index 2203a6f..39217b8 100644
+> > --- a/drivers/media/video/mt9v032.c
+> > +++ b/drivers/media/video/mt9v032.c
 
-The following changes since commit bd0a521e88aa7a06ae7aabaed7ae196ed4ad867a:
+[snip]
 
-  Linux 3.5-rc6 (2012-07-07 17:23:56 -0700)
+> > @@ -505,6 +514,16 @@ static int mt9v032_s_ctrl(struct v4l2_ctrl *ctrl)
+> >  		return mt9v032_write(client, MT9V032_TOTAL_SHUTTER_WIDTH,
+> >  				     ctrl->val);
+> > 
+> > +	case V4L2_CID_PIXEL_RATE:
+> > +	case V4L2_CID_LINK_FREQ:
+> > +		if (mt9v032->link_freq == NULL)
+> > +			break;
+> > +
+> > +		freq = mt9v032->pdata->link_freqs[mt9v032->link_freq->val];
+> > +		mt9v032->pixel_rate->cur.val = freq;
+> 
+> That should be 'mt9v032->pixel_rate->val = freq;'.
+> 
+> It used to be cur.val some time ago, but that was changed. You never set
+> cur.val anymore inside a s_ctrl handler.
 
-are available in the git repository at:
-  git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git pull_vpif
+Thanks. I'll fix that.
 
-Lad, Prabhakar (2):
-      davinci: vpif capture: migrate driver to videobuf2
-      davinci: vpif display: migrate driver to videobuf2
+-- 
+Regards,
 
-Manjunath Hadli (12):
-      davinci: vpif: add check for genuine interrupts in the isr
-      davinci: vpif: make generic changes to re-use the vpif drivers on da850/omap-l138 soc
-      davinci: vpif: make request_irq flags as shared
-      davinci: vpif: fix setting of data width in config_vpif_params() function
-      davinci: vpif display: size up the memory for the buffers from the buffer pool
-      davinci: vpif capture: size up the memory for the buffers from the buffer pool
-      davinci: vpif: add support for clipping on output data
-      davinci: vpif display: Add power management support
-      davinci: vpif capture:Add power management support
-      davinci: vpif: Add suspend/resume callbacks to vpif driver
-      davinci: vpif: add build configuration for vpif drivers
-      davinci: vpif: Enable selection of the ADV7343 and THS7303
-
- drivers/media/video/davinci/Kconfig        |   30 +-
- drivers/media/video/davinci/Makefile       |    8 +-
- drivers/media/video/davinci/vpif.c         |   45 ++-
- drivers/media/video/davinci/vpif.h         |   45 ++
- drivers/media/video/davinci/vpif_capture.c |  690 +++++++++++++++-------------
- drivers/media/video/davinci/vpif_capture.h |   16 +-
- drivers/media/video/davinci/vpif_display.c |  684 +++++++++++++++------------
- drivers/media/video/davinci/vpif_display.h |   23 +-
- include/media/davinci/vpif_types.h         |    2 +
- 9 files changed, 881 insertions(+), 662 deletions(-)
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-sage to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+Laurent Pinchart
 
