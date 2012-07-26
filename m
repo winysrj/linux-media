@@ -1,59 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36859 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752449Ab2GIIms (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Jul 2012 04:42:48 -0400
-Message-ID: <4FFA999B.7070000@redhat.com>
-Date: Mon, 09 Jul 2012 10:43:07 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: martin-eric.racine@iki.fi, 677533@bugs.debian.org,
-	linux-media@vger.kernel.org
-Subject: Re: video: USB webcam fails since kernel 3.2
-References: <20120614162609.4613.22122.reportbug@henna.lan> <20120614215359.GF3537@burratino> <CAPZXPQd9gNCxn7xGyqj_xymPaF5OxvRtxRFkt+SsLs942te4og@mail.gmail.com> <20120616044137.GB4076@burratino> <1339932233.20497.14.camel@henna.lan> <CAPZXPQegp7RA5M0H9Ofq4rJ9aj-rEdg=Ly9_1c6vAKi3COw50g@mail.gmail.com> <4FF9CA30.9050105@redhat.com> <20120708203303.26d13474@armhf>
-In-Reply-To: <20120708203303.26d13474@armhf>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:54179 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752435Ab2GZLNl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Jul 2012 07:13:41 -0400
+Received: by yhmm54 with SMTP id m54so1795177yhm.19
+        for <linux-media@vger.kernel.org>; Thu, 26 Jul 2012 04:13:41 -0700 (PDT)
+From: Hideki EIRAKU <hdk@igel.co.jp>
+To: Russell King <linux@arm.linux.org.uk>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	alsa-devel@alsa-project.org, Katsuya MATSUBARA <matsu@igel.co.jp>,
+	Hideki EIRAKU <hdk@igel.co.jp>
+Subject: [PATCH v2 1/4] ARM: dma-mapping: define ARCH_HAS_DMA_MMAP_COHERENT
+Date: Thu, 26 Jul 2012 20:13:08 +0900
+Message-Id: <1343301191-26001-2-git-send-email-hdk@igel.co.jp>
+In-Reply-To: <1343301191-26001-1-git-send-email-hdk@igel.co.jp>
+References: <1343301191-26001-1-git-send-email-hdk@igel.co.jp>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+ARCH_HAS_DMA_MMAP_COHERENT indicates that there is dma_mmap_coherent() API
+in this architecture.  The name is already defined in PowerPC.
 
-On 07/08/2012 08:33 PM, Jean-Francois Moine wrote:
-> On Sun, 08 Jul 2012 19:58:08 +0200
-> Hans de Goede <hdegoede@redhat.com> wrote:
->
->> Hmm, this is then likely caused by the new isoc bandwidth negotiation code
->> in 3.2, unfortunately the vc032x driver is one of the few gspca drivers
->> for which I don't have a cam to test with. Can you try to build your own
->> kernel from source?
->
-> Hi Martin-Éric,
->
-> Instead of re-building the gspca driver from a kernel source, you may
-> try the gspca test tarball from my web site
-> 	http://moinejf.free.fr/gspca-2.15.18.tar.gz
+Signed-off-by: Hideki EIRAKU <hdk@igel.co.jp>
+---
+ arch/arm/include/asm/dma-mapping.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-That is a good option too and easier then building a whole new kernel,
-but:
+diff --git a/arch/arm/include/asm/dma-mapping.h b/arch/arm/include/asm/dma-mapping.h
+index bbef15d..f41cd30 100644
+--- a/arch/arm/include/asm/dma-mapping.h
++++ b/arch/arm/include/asm/dma-mapping.h
+@@ -187,6 +187,7 @@ extern int arm_dma_mmap(struct device *dev, struct vm_area_struct *vma,
+ 			struct dma_attrs *attrs);
+ 
+ #define dma_mmap_coherent(d, v, c, h, s) dma_mmap_attrs(d, v, c, h, s, NULL)
++#define ARCH_HAS_DMA_MMAP_COHERENT
+ 
+ static inline int dma_mmap_attrs(struct device *dev, struct vm_area_struct *vma,
+ 				  void *cpu_addr, dma_addr_t dma_addr,
+-- 
+1.7.0.4
 
-> It contains most of the bug fixes, including the one about the
-> bandwidth problem.
-
-Right, but the problem with the vc032x driver is that there no bandwidth
-related bugfix for it yet, which is why I asked Martin-Éric, not only
-to build a new gspca driver from source, but also to try some modifications.
-
-Martin-Éric,
-
-Building the gspca test-tarbal also is a good way to test this:
-http://moinejf.free.fr/gspca-2.15.18.tar.gz
-
-But once you've confirmed the problem still happens with that version
-you will still need to try the changes I suggested to gspca.c to help
-us confirm that this is a bandwidth issue and try to come up with a fix.
-
-Thanks & Regards,
-
-Hans
