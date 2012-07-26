@@ -1,100 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43410 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755586Ab2GKSgh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jul 2012 14:36:37 -0400
-Message-ID: <4FFDC7DA.1090808@redhat.com>
-Date: Wed, 11 Jul 2012 20:37:14 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	halli manjunatha <hallimanju@gmail.com>
-Subject: Re: [PATCH 1/5] v4l2: Add rangelow and rangehigh fields to the v4l2_hw_freq_seek
- struct
-References: <1342021658-27821-1-git-send-email-hdegoede@redhat.com> <1342021658-27821-2-git-send-email-hdegoede@redhat.com> <201207112001.18960.hverkuil@xs4all.nl>
-In-Reply-To: <201207112001.18960.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail2.matrix-vision.com ([85.214.244.251]:45770 "EHLO
+	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752005Ab2GZP3L (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Jul 2012 11:29:11 -0400
+Received: from mail2.matrix-vision.com (localhost [127.0.0.1])
+	by mail2.matrix-vision.com (Postfix) with ESMTP id D277D3F669
+	for <linux-media@vger.kernel.org>; Thu, 26 Jul 2012 17:29:10 +0200 (CEST)
+Received: from erinome (g2.matrix-vision.com [80.152.136.245])
+	by mail2.matrix-vision.com (Postfix) with ESMTPA id ACF123F652
+	for <linux-media@vger.kernel.org>; Thu, 26 Jul 2012 17:29:10 +0200 (CEST)
+Received: from erinome (localhost [127.0.0.1])
+	by erinome (Postfix) with ESMTP id 57DE76F8A
+	for <linux-media@vger.kernel.org>; Thu, 26 Jul 2012 17:29:10 +0200 (CEST)
+Received: from ap437-joe.intern.matrix-vision.de (host65-86.intern.matrix-vision.de [192.168.65.86])
+	by erinome (Postfix) with ESMTPA id 29AEB6F8A
+	for <linux-media@vger.kernel.org>; Thu, 26 Jul 2012 17:29:10 +0200 (CEST)
+From: Michael Jones <michael.jones@matrix-vision.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] omap3isp: #include videodev2.h in omap3isp.h
+Date: Thu, 26 Jul 2012 17:31:51 +0200
+Message-Id: <1343316711-22196-1-git-send-email-michael.jones@matrix-vision.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+include/linux/omap3isp.h uses BASE_VIDIOC_PRIVATE from include/linux/videodev2.h
+but didn't include this file.
 
-On 07/11/2012 08:01 PM, Hans Verkuil wrote:
-> Hi Hans,
->
-> Thanks for the patch.
->
-> I've CC-ed Halli as well.
->
-> On Wed July 11 2012 17:47:34 Hans de Goede wrote:
->> To allow apps to limit a hw-freq-seek to a specific band, for further
->> info see the documentation this patch adds for these new fields.
->>
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->> ---
->>   .../DocBook/media/v4l/vidioc-s-hw-freq-seek.xml    |   44 ++++++++++++++++----
->>   include/linux/videodev2.h                          |    5 ++-
->>   2 files changed, 40 insertions(+), 9 deletions(-)
->>
->> diff --git a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
->> index f4db44d..50dc9f8 100644
->> --- a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
->> +++ b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
->> @@ -52,11 +52,21 @@
->>       <para>Start a hardware frequency seek from the current frequency.
->>   To do this applications initialize the <structfield>tuner</structfield>,
->>   <structfield>type</structfield>, <structfield>seek_upward</structfield>,
->> -<structfield>spacing</structfield> and
->> -<structfield>wrap_around</structfield> fields, and zero out the
->> -<structfield>reserved</structfield> array of a &v4l2-hw-freq-seek; and
->> -call the <constant>VIDIOC_S_HW_FREQ_SEEK</constant> ioctl with a pointer
->> -to this structure.</para>
->> +<structfield>wrap_around</structfield>, <structfield>spacing</structfield>,
->> +<structfield>rangelow</structfield> and <structfield>rangehigh</structfield>
->> +fields, and zero out the <structfield>reserved</structfield> array of a
->> +&v4l2-hw-freq-seek; and call the <constant>VIDIOC_S_HW_FREQ_SEEK</constant>
->> +ioctl with a pointer to this structure.</para>
->> +
->> +    <para>The <structfield>rangelow</structfield> and
->> +<structfield>rangehigh</structfield> fields can be set to a non-zero value to
->> +tell the driver to search a specific band. If the &v4l2-tuner;
->> +<structfield>capability</structfield> field has the
->> +<constant>V4L2_TUNER_CAP_HWSEEK_PROG_LIM</constant> flag set, these values
->> +must fall within one of the bands returned by &VIDIOC-ENUM-FREQ-BANDS;. If
->> +the <constant>V4L2_TUNER_CAP_HWSEEK_PROG_LIM</constant> flag is not set,
->> +then these values must exactly match those of one of the bands returned by
->> +&VIDIOC-ENUM-FREQ-BANDS;.</para>
->
-> OK, I have some questions here:
->
-> 1) If you have a multiband tuner, what should happen if both low and high are
-> zero? Currently it is undefined, other than that the seek should start from
-> the current frequency until it reaches some limit.
+Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+---
+ include/linux/omap3isp.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-That would be driver specific, we could add the same "If rangelow/high is zero
-a reasonable default value is used." language as used for the spacing. For
-example for the si470x if both are zero I simply switch to the "Japan wide"
-band which covers all frequencies handled by the other bands, but if there
-is no such covers all ranges band, then the logical thing todo would just keep
-the band as is (so as determined by the last s_freq).
+diff --git a/include/linux/omap3isp.h b/include/linux/omap3isp.h
+index c73a34c..e7a79db 100644
+--- a/include/linux/omap3isp.h
++++ b/include/linux/omap3isp.h
+@@ -28,6 +28,7 @@
+ #define OMAP3_ISP_USER_H
+ 
+ #include <linux/types.h>
++#include <linux/videodev2.h>
+ 
+ /*
+  * Private IOCTLs
+-- 
+1.7.4.1
 
-> Halli, what does your hardware do? In particular, is the hwseek limited by the
-> US/Europe or Japan band range or can it do the full range? If I'm not mistaken
-> it is the former, right?
->
-> If it is the former, then you need to explicitly set low + high to ensure that
-> the hwseek uses the correct range because the driver can't guess which of the
-> overlapping bands to use.
->
-> 2) What happens if the current frequency is outside the low/high range? The
-> hwseek spec says that the seek starts from the current frequency, so that might
-> mean that hwseek returns -ERANGE in this case.
 
-What the si470x code currently does is just clamp the frequency to the new
-range before seeking, but -ERANGE works for me too.
-
-Regards,
-
-Hans
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
