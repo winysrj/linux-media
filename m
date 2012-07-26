@@ -1,61 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.linuxtv.org ([130.149.80.248]:43714 "EHLO www.linuxtv.org"
+Received: from mail.tpi.com ([70.99.223.143]:2382 "EHLO mail.tpi.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751008Ab2GaEAI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 00:00:08 -0400
-Message-Id: <E1Sw3Ho-0006rL-E9@www.linuxtv.org>
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Date: Tue, 31 Jul 2012 04:46:53 +0200
-Subject: [git:v4l-dvb/for_v3.6] [media] tlg2300: Declare MODULE_FIRMWARE usage
-To: linuxtv-commits@linuxtv.org
-Cc: Kang Yong <kangyong@telegent.com>,
-	Huang Shijie <shijie8@gmail.com>, linux-media@vger.kernel.org,
-	Tim Gardner <tim.gardner@canonical.com>,
+	id S1751840Ab2GZS4i (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Jul 2012 14:56:38 -0400
+From: Tim Gardner <tim.gardner@canonical.com>
+To: linux-kernel@vger.kernel.org
+Cc: Tim Gardner <tim.gardner@canonical.com>,
+	Mike Isely <isely@pobox.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Zhang Xiaobing <xbzhang@telegent.com>
-Reply-to: linux-media@vger.kernel.org
+	linux-media@vger.kernel.org
+Subject: [PATCH] pvrusb2: Declare MODULE_FIRMWARE usage
+Date: Thu, 26 Jul 2012 12:57:07 -0600
+Message-Id: <1343329027-96369-1-git-send-email-tim.gardner@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an automatic generated email to let you know that the following patch were queued at the 
-http://git.linuxtv.org/media_tree.git tree:
-
-Subject: [media] tlg2300: Declare MODULE_FIRMWARE usage
-Author:  Tim Gardner <tim.gardner@canonical.com>
-Date:    Wed Jul 25 15:41:04 2012 -0300
-
-Cc: Huang Shijie <shijie8@gmail.com>
-Cc: Kang Yong <kangyong@telegent.com>
-Cc: Zhang Xiaobing <xbzhang@telegent.com>
+Cc: Mike Isely <isely@pobox.com>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Cc: linux-media@vger.kernel.org
 Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
-Acked-by: Huang Shijie <shijie8@gmail.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
- drivers/media/video/tlg2300/pd-main.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
-
 ---
+ drivers/media/video/pvrusb2/pvrusb2-devattr.c |   17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
-http://git.linuxtv.org/media_tree.git?a=commitdiff;h=4d98015eef6fa97b0cbba7310041ab75b223524b
+diff --git a/drivers/media/video/pvrusb2/pvrusb2-devattr.c b/drivers/media/video/pvrusb2/pvrusb2-devattr.c
+index d8c8982..adc501d3 100644
+--- a/drivers/media/video/pvrusb2/pvrusb2-devattr.c
++++ b/drivers/media/video/pvrusb2/pvrusb2-devattr.c
+@@ -54,8 +54,9 @@ static const struct pvr2_device_client_desc pvr2_cli_29xxx[] = {
+ 	{ .module_id = PVR2_CLIENT_ID_DEMOD },
+ };
+ 
++#define PVR2_FIRMWARE_29xxx "v4l-pvrusb2-29xxx-01.fw"
+ static const char *pvr2_fw1_names_29xxx[] = {
+-		"v4l-pvrusb2-29xxx-01.fw",
++		PVR2_FIRMWARE_29xxx,
+ };
+ 
+ static const struct pvr2_device_desc pvr2_device_29xxx = {
+@@ -87,8 +88,9 @@ static const struct pvr2_device_client_desc pvr2_cli_24xxx[] = {
+ 	{ .module_id = PVR2_CLIENT_ID_DEMOD },
+ };
+ 
++#define PVR2_FIRMWARE_24xxx "v4l-pvrusb2-24xxx-01.fw"
+ static const char *pvr2_fw1_names_24xxx[] = {
+-		"v4l-pvrusb2-24xxx-01.fw",
++		PVR2_FIRMWARE_24xxx,
+ };
+ 
+ static const struct pvr2_device_desc pvr2_device_24xxx = {
+@@ -369,8 +371,9 @@ static const struct pvr2_device_client_desc pvr2_cli_73xxx[] = {
+ 	  .i2c_address_list = "\x42"},
+ };
+ 
++#define PVR2_FIRMWARE_73xxx "v4l-pvrusb2-73xxx-01.fw"
+ static const char *pvr2_fw1_names_73xxx[] = {
+-		"v4l-pvrusb2-73xxx-01.fw",
++		PVR2_FIRMWARE_73xxx,
+ };
+ 
+ static const struct pvr2_device_desc pvr2_device_73xxx = {
+@@ -475,8 +478,9 @@ static const struct pvr2_dvb_props pvr2_751xx_dvb_props = {
+ };
+ #endif
+ 
++#define PVR2_FIRMWARE_75xxx "v4l-pvrusb2-73xxx-01.fw"
+ static const char *pvr2_fw1_names_75xxx[] = {
+-		"v4l-pvrusb2-73xxx-01.fw",
++		PVR2_FIRMWARE_75xxx,
+ };
+ 
+ static const struct pvr2_device_desc pvr2_device_750xx = {
+@@ -556,7 +560,10 @@ struct usb_device_id pvr2_device_table[] = {
+ };
+ 
+ MODULE_DEVICE_TABLE(usb, pvr2_device_table);
+-
++MODULE_FIRMWARE(PVR2_FIRMWARE_29xxx);
++MODULE_FIRMWARE(PVR2_FIRMWARE_24xxx);
++MODULE_FIRMWARE(PVR2_FIRMWARE_73xxx);
++MODULE_FIRMWARE(PVR2_FIRMWARE_75xxx);
+ 
+ /*
+   Stuff for Emacs to see, in order to encourage consistent editing style:
+-- 
+1.7.9.5
 
-diff --git a/drivers/media/video/tlg2300/pd-main.c b/drivers/media/video/tlg2300/pd-main.c
-index c096b3f..7b1f6eb 100644
---- a/drivers/media/video/tlg2300/pd-main.c
-+++ b/drivers/media/video/tlg2300/pd-main.c
-@@ -53,7 +53,8 @@ int debug_mode;
- module_param(debug_mode, int, 0644);
- MODULE_PARM_DESC(debug_mode, "0 = disable, 1 = enable, 2 = verbose");
- 
--static const char *firmware_name = "tlg2300_firmware.bin";
-+#define TLG2300_FIRMWARE "tlg2300_firmware.bin"
-+static const char *firmware_name = TLG2300_FIRMWARE;
- static struct usb_driver poseidon_driver;
- static LIST_HEAD(pd_device_list);
- 
-@@ -532,3 +533,4 @@ MODULE_AUTHOR("Telegent Systems");
- MODULE_DESCRIPTION("For tlg2300-based USB device ");
- MODULE_LICENSE("GPL");
- MODULE_VERSION("0.0.2");
-+MODULE_FIRMWARE(TLG2300_FIRMWARE);
