@@ -1,89 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53954 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751000Ab2GQLzi (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:36402 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752610Ab2GZUxg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Jul 2012 07:55:38 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v4 1/2] media: add new mediabus format enums for dm365
-Date: Tue, 17 Jul 2012 13:55:42 +0200
-Message-ID: <1521995.bdrhyBupKO@avalon>
-In-Reply-To: <E99FAA59F8D8D34D8A118DD37F7C8F753E93EDDE@DBDE01.ent.ti.com>
-References: <1333102154-24657-1-git-send-email-manjunath.hadli@ti.com> <9731012.hn1ecEuNnk@avalon> <E99FAA59F8D8D34D8A118DD37F7C8F753E93EDDE@DBDE01.ent.ti.com>
+	Thu, 26 Jul 2012 16:53:36 -0400
+Received: by weyx8 with SMTP id x8so1630757wey.19
+        for <linux-media@vger.kernel.org>; Thu, 26 Jul 2012 13:53:35 -0700 (PDT)
+Message-ID: <5011AE50.6080600@uni-bielefeld.de>
+Date: Thu, 26 Jul 2012 22:53:36 +0200
+From: Robert Abel <abel@uni-bielefeld.de>
+Reply-To: abel@uni-bielefeld.de
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: linux-media <linux-media@vger.kernel.org>
+Subject: Re: Advice on extending libv4l for media controller support
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Manjunath,
+Hi,
 
-On Tuesday 17 July 2012 11:41:11 Hadli, Manjunath wrote:
-> On Tue, Jul 17, 2012 at 16:26:24, Laurent Pinchart wrote:
-> > On Friday 30 March 2012 10:09:13 Hadli, Manjunath wrote:
-> > > add new enum entries for supporting the media-bus formats on dm365.
-> > > These include some bayer and some non-bayer formats.
-> > > V4L2_MBUS_FMT_YDYC8_1X16 and V4L2_MBUS_FMT_UV8_1X8 are used
-> > > internal to the hardware by the resizer.
-> > > V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8 represents the bayer ALAW format
-> > > that is supported by dm365 hardware.
-> > > 
-> > > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> > > Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> > > ---
-> > > 
-> > >  Documentation/DocBook/media/v4l/subdev-formats.xml |  171  ++++++++++++
-> > >  include/linux/v4l2-mediabus.h                      |   10 +-
-> > >  2 files changed, 179 insertions(+), 2 deletions(-)
-> > > 
-> > > diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml
-> > > b/Documentation/DocBook/media/v4l/subdev-formats.xml index
-> > > 49c532e..48d92bb
-> > > 100644
-> > > --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-> > > +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+Sorry to be late to the party... I wanted to follow up on this
+discussion, but forgot and haven't read anything about it since...
 
-[snip]
+On 10.05.2012 17:09, Ivan T. Ivanov wrote:
+> On Wed, May 9, 2012 at 7:08 PM, Sergio Aguirre
+> <sergio.a.aguirre@gmail.com> wrote:
+>> I want to create some sort of plugin with specific media
+>> controller configurations,
+>> to avoid userspace to worry about component names and specific
+>> usecases (use sensor resizer, or SoC ISP resizer, etc.).
+> Probably following links can help you. They have been tested
+> with the OMAP3 ISP.
+>
+> Regards,
+> iivanov
+>
+> [1] http://www.spinics.net/lists/linux-media/msg31901.html
+> [2]
+> http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/32704
 
-> > > @@ -965,6 +1036,56 @@
-> > >  	      <entry>y<subscript>1</subscript></entry>
-> > >  	      <entry>y<subscript>0</subscript></entry>
-> > >  	    </row>
-> > > +	    <row id="V4L2-MBUS-FMT-UV8-1X8">
-> > 
-> > That's a weird one. Just out of curiosity, what's the point of
-> > transferring chroma information without luma ?
-> 
-> DM365 supports this format.
+I recently extended Yordan Kamenov's libv4l-mcplugin to support multiple
+trees per device with extended configurations (-stolen from- inspired by
+media-ctl) not tied to specific device nodes (but to device names instead).
 
-Right, but what is it used for ?
+I uploaded the patches here
+<https://sites.google.com/site/rawbdagslair/libv4l-mcplugin.7z?attredirects=0&d=1>(16kB).
+Basically, I used Yordan's patches as a base and worked from there to
+fix up his source code and Makefile for cross-compiling using
+OpenEmbedded/Yocto.
 
-[snip]
+There are a ton of minor issues with this, starting with the fact that I
+did not put proper copyright notices in any of these files. Please
+advise if this poses a problem.
+Only integral frame size support and no support for native read() calls.
+There's a dummy read() function, because for some reason this is
+required in libv4l2 0.9.0-test though it's not mentioned anywhere. As
+the original plug-in by Yordan, there is currently no cleaning-up of the
+internal data structures.
 
-> > > @@ -2415,6 +2536,56 @@
-> > >  	      <entry>u<subscript>1</subscript></entry>
-> > >  	      <entry>u<subscript>0</subscript></entry>
-> > >  	    </row>
-> > > +	    <row id="V4L2-MBUS-FMT-YDYC8-1X16">
-> > 
-> > What is this beast ? We at least need a textual description, as I have no
-> > idea what the format corresponds to.
-> 
-> This was discussed earlier over here
-> http://patchwork.linuxtv.org/patch/8843/
+I used this in conjunction with the Gumstix CASPA FS (MT9V032) camera
+using some of Laurent's patches and some custom patches which add
+ENUM_FMT support to the driver.
 
-My bad, I should have remembered that. Please add a textual description of the 
-format, it's not clear from the name what D and C are.
+Basically, upon opening a given device, all trees are configured once to
+load the respective end-point's formats for emulation of setting and
+getting formats. Then regular format negotiation by the user application
+takes place.
 
--- 
 Regards,
 
-Laurent Pinchart
-
+Robert
