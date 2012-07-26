@@ -1,69 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53961 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751534Ab2GOMHM convert rfc822-to-8bit (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:61810 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752520Ab2GZLNu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jul 2012 08:07:12 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Frank =?ISO-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [Regression 3.1->3.2, bisected] UVC-webcam: kernel panic when starting capturing
-Date: Sun, 15 Jul 2012 14:07:15 +0200
-Message-ID: <11675039.R7p149JEZD@avalon>
-In-Reply-To: <4FFF208C.5030306@googlemail.com>
-References: <4FFF208C.5030306@googlemail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+	Thu, 26 Jul 2012 07:13:50 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rp8so3069482pbb.19
+        for <linux-media@vger.kernel.org>; Thu, 26 Jul 2012 04:13:50 -0700 (PDT)
+From: Hideki EIRAKU <hdk@igel.co.jp>
+To: Russell King <linux@arm.linux.org.uk>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	alsa-devel@alsa-project.org, Katsuya MATSUBARA <matsu@igel.co.jp>,
+	Hideki EIRAKU <hdk@igel.co.jp>
+Subject: [PATCH v2 4/4] fbdev: sh_mobile_lcdc: use dma_mmap_coherent if available
+Date: Thu, 26 Jul 2012 20:13:11 +0900
+Message-Id: <1343301191-26001-5-git-send-email-hdk@igel.co.jp>
+In-Reply-To: <1343301191-26001-1-git-send-email-hdk@igel.co.jp>
+References: <1343301191-26001-1-git-send-email-hdk@igel.co.jp>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Frank,
+fb_mmap() implemented in fbmem.c uses smem_start as the physical
+address of the frame buffer.  In the sh_mobile_lcdc driver, the
+smem_start is a dma_addr_t that is not a physical address when IOMMU is
+enabled.  dma_mmap_coherent() maps the address correctly.  It is
+available on ARM platforms.
 
-Thanks for the report.
+Signed-off-by: Hideki EIRAKU <hdk@igel.co.jp>
+---
+ drivers/video/sh_mobile_lcdcfb.c |   28 ++++++++++++++++++++++++++++
+ 1 files changed, 28 insertions(+), 0 deletions(-)
 
-On Thursday 12 July 2012 21:07:56 Frank Schäfer wrote:
-> Hi,
-> 
-> when I start capturing from the UVC-webcam 2232:1005 ("WebCam
-> SCB-0385N") of my netbook, I get a kernel panic.
-> You can find a screenshot of the backtrace here:
-> 
-> http://imageshack.us/photo/my-images/9/img125km.jpg/
-> 
-> 
-> This is a regression which has been introduced between kernel 3.2-rc2
-> and 3.2-rc3 with the following commit:
-> 
-> 
-> 3afedb95858bcc117b207a7c0a6767fe891bdfe9 is the first bad commit
-> commit 3afedb95858bcc117b207a7c0a6767fe891bdfe9
-> Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Date:   Thu Nov 3 07:24:34 2011 -0300
-> 
->     [media] uvcvideo: Don't skip erroneous payloads
-> 
->     Instead of skipping the payload completely, which would make the
->     resulting image corrupted anyway, store the payload normally and mark
->     the buffer as erroneous. If the no_drop module parameter is set to 1 the
-> buffer will then be passed to userspace, and tt will then be up to the
-> application to decide what to do with the buffer.
-> 
->     Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-I'm puzzled. Your screenshot shows the uvc_video_stats_decode() function in 
-the stack trace, but that function wasn't present in 
-3afedb95858bcc117b207a7c0a6767fe891bdfe9. Could you please send me a stack 
-trace corresponding to 3afedb95858bcc117b207a7c0a6767fe891bdfe9 ?
-
-Your stack trace looks similar to the problem reported in 
-https://bugzilla.redhat.com/show_bug.cgi?id=836742. 
-3afedb95858bcc117b207a7c0a6767fe891bdfe9 might have introduced a different 
-bug, possibly fixed in a later commit.
-
+diff --git a/drivers/video/sh_mobile_lcdcfb.c b/drivers/video/sh_mobile_lcdcfb.c
+index 8cb653b..c8cba7a 100644
+--- a/drivers/video/sh_mobile_lcdcfb.c
++++ b/drivers/video/sh_mobile_lcdcfb.c
+@@ -1614,6 +1614,17 @@ static int sh_mobile_lcdc_overlay_blank(int blank, struct fb_info *info)
+ 	return 1;
+ }
+ 
++#ifdef ARCH_HAS_DMA_MMAP_COHERENT
++static int
++sh_mobile_lcdc_overlay_mmap(struct fb_info *info, struct vm_area_struct *vma)
++{
++	struct sh_mobile_lcdc_overlay *ovl = info->par;
++
++	return dma_mmap_coherent(ovl->channel->lcdc->dev, vma, ovl->fb_mem,
++				 ovl->dma_handle, ovl->fb_size);
++}
++#endif
++
+ static struct fb_ops sh_mobile_lcdc_overlay_ops = {
+ 	.owner          = THIS_MODULE,
+ 	.fb_read        = fb_sys_read,
+@@ -1626,6 +1637,9 @@ static struct fb_ops sh_mobile_lcdc_overlay_ops = {
+ 	.fb_ioctl       = sh_mobile_lcdc_overlay_ioctl,
+ 	.fb_check_var	= sh_mobile_lcdc_overlay_check_var,
+ 	.fb_set_par	= sh_mobile_lcdc_overlay_set_par,
++#ifdef ARCH_HAS_DMA_MMAP_COHERENT
++	.fb_mmap	= sh_mobile_lcdc_overlay_mmap,
++#endif
+ };
+ 
+ static void
+@@ -2093,6 +2107,17 @@ static int sh_mobile_lcdc_blank(int blank, struct fb_info *info)
+ 	return 0;
+ }
+ 
++#ifdef ARCH_HAS_DMA_MMAP_COHERENT
++static int
++sh_mobile_lcdc_mmap(struct fb_info *info, struct vm_area_struct *vma)
++{
++	struct sh_mobile_lcdc_chan *ch = info->par;
++
++	return dma_mmap_coherent(ch->lcdc->dev, vma, ch->fb_mem,
++				 ch->dma_handle, ch->fb_size);
++}
++#endif
++
+ static struct fb_ops sh_mobile_lcdc_ops = {
+ 	.owner          = THIS_MODULE,
+ 	.fb_setcolreg	= sh_mobile_lcdc_setcolreg,
+@@ -2108,6 +2133,9 @@ static struct fb_ops sh_mobile_lcdc_ops = {
+ 	.fb_release	= sh_mobile_lcdc_release,
+ 	.fb_check_var	= sh_mobile_lcdc_check_var,
+ 	.fb_set_par	= sh_mobile_lcdc_set_par,
++#ifdef ARCH_HAS_DMA_MMAP_COHERENT
++	.fb_mmap	= sh_mobile_lcdc_mmap,
++#endif
+ };
+ 
+ static void
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.0.4
 
