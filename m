@@ -1,46 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58429 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751428Ab2GYXbT (ORCPT
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:42653 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751882Ab2GZJmS convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jul 2012 19:31:19 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	workshop-2011@linuxtv.org
-Subject: Re: Media summit at the Kernel Summit - was: Fwd: Re: [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
-Date: Thu, 26 Jul 2012 01:31:25 +0200
-Message-ID: <5670302.A0zC7l9lLX@avalon>
-In-Reply-To: <201207172132.22937.hverkuil@xs4all.nl>
-References: <20120713173708.GB17109@thunk.org> <5005A14D.8000809@redhat.com> <201207172132.22937.hverkuil@xs4all.nl>
+	Thu, 26 Jul 2012 05:42:18 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "=?utf-8?q?R=C3=A9mi?= Denis-Courmont" <remi@remlab.net>
+Subject: Re: [Workshop-2011] Media summit at the Kernel Summit - was: Fwd: Re: [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
+Date: Thu, 26 Jul 2012 11:42:15 +0200
+Cc: workshop-2011@linuxtv.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <20120713173708.GB17109@thunk.org> <201207250821.05685.hverkuil@xs4all.nl> <13f7183db0399807a539f1cfcd1c3810@chewa.net>
+In-Reply-To: <13f7183db0399807a539f1cfcd1c3810@chewa.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201207261142.15446.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Tuesday 17 July 2012 21:32:22 Hans Verkuil wrote:
-> On Tue July 17 2012 19:30:53 Mauro Carvalho Chehab wrote:
-> > As we did in 2012, we're planning to do a media summit again at KS/2012.
+On Thu 26 July 2012 11:32:56 Rémi Denis-Courmont wrote:
+> On Wed, 25 Jul 2012 08:21:05 +0200, Hans Verkuil <hverkuil@xs4all.nl>
+> wrote:
+> > On Tue July 24 2012 22:37:35 Rémi Denis-Courmont wrote:
+> >> Le mardi 24 juillet 2012 23:31:42 Andy Walls, vous avez écrit :
+> >> > >I would strongly be in favor of this.  One thing that we get far to
+> >> > >little of is feedback from actual userland developers making use of
+> >> > >the V4L and DVB interfaces (aside from the SoC vendors, which is a
+> >> > >completely different target audience than the traditional V4L and
+> DVB
+> >> > >consumers)
+> >> > >
+> >> > >Devin
+> >> > 
+> >> > Ditto.  Input from user application developers  is something that
+> >> > kernel
+> >> > developers need and value greatly.
+> >> > 
+> >> > Note, that I will not be at the workshop of Plumbers this year. :(
+> >> 
+> >> Is the media summit timed with LPC or the kernel summit? If I come, I
+> >> have
+> >> to leave on Thursday to catch the VideoLAN conference in Paris on the
+> >> next
+> >> week- end...
 > > 
-> > The KS/2012 will happen in San Diego, CA, US, between Aug 26-28, just
-> > before the LinuxCon North America.
-> > 
-> > In order to do it, I'd like to know who is interested on participate,
-> > and to get proposals about what subjects will be discussed there,
-> > in order to start planning the agenda.
+> > It's timed with the kernel summit and it will be on Tuesday. So you
+> should 
+> > have ample time.
 > 
-> I'd like to have 30 minutes to discuss a few V4L2 API ambiguities or just
-> plain weirdness, just like I did last year.
+> Oh? Is this firm yet? There's some pressure to book flights early here...
 
-Another ambiguity for your list, should video output drivers fill the sequence 
-and timestamp fields when returning a v4l2_buffer from VIDIOC_DQBUF ?
+Yes, that's firm.
 
--- 
 Regards,
 
-Laurent Pinchart
-
+	Hans
