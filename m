@@ -1,56 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:42763 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752712Ab2GZWWP (ORCPT
+Received: from mail2.matrix-vision.com ([85.214.244.251]:45588 "EHLO
+	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751024Ab2GZOTW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jul 2012 18:22:15 -0400
-Subject: Re: [PATCH] ivtv: Declare MODULE_FIRMWARE usage
-From: Andy Walls <awalls@md.metrocast.net>
-To: Tim Gardner <tim.gardner@canonical.com>
-Cc: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
-Date: Thu, 26 Jul 2012 18:21:35 -0400
-In-Reply-To: <1343327180-94759-1-git-send-email-tim.gardner@canonical.com>
-References: <1343327180-94759-1-git-send-email-tim.gardner@canonical.com>
-Content-Type: text/plain; charset="UTF-8"
+	Thu, 26 Jul 2012 10:19:22 -0400
+Message-ID: <50115299.6000201@matrix-vision.de>
+Date: Thu, 26 Jul 2012 16:22:17 +0200
+From: Michael Jones <michael.jones@matrix-vision.de>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [RFC] omap3-isp G_FMT & ENUM_FMT
+References: <1343303996-16025-1-git-send-email-michael.jones@matrix-vision.de> <4048543.KhXI4ynbrF@avalon>
+In-Reply-To: <4048543.KhXI4ynbrF@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-ID: <1343341295.2575.18.camel@palomino.walls.org>
-Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2012-07-26 at 12:26 -0600, Tim Gardner wrote:
-> Cc: Andy Walls <awalls@md.metrocast.net>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: ivtv-devel@ivtvdriver.org
-> Cc: linux-media@vger.kernel.org
-> Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
-> ---
->  drivers/media/video/ivtv/ivtv-firmware.c |    4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/drivers/media/video/ivtv/ivtv-firmware.c b/drivers/media/video/ivtv/ivtv-firmware.c
-> index 02c5ade..6ec7705 100644
-> --- a/drivers/media/video/ivtv/ivtv-firmware.c
-> +++ b/drivers/media/video/ivtv/ivtv-firmware.c
-> @@ -396,3 +396,7 @@ int ivtv_firmware_check(struct ivtv *itv, char *where)
->  
->  	return res;
->  }
-> +
-> +MODULE_FIRMWARE(CX2341X_FIRM_ENC_FILENAME);
-> +MODULE_FIRMWARE(CX2341X_FIRM_DEC_FILENAME);
-> +MODULE_FIRMWARE(IVTV_DECODE_INIT_MPEG_FILENAME);
+Hi Laurent,
 
-Only the PVR-350, based on the iTVC-15/CX23415 chip, needs the
-CX2341X_FIRM_DEC_FILENAME and IVTV_DECODE_INIT_MPEG_FILENAME.  (And even
-in the case of that card, not having the IVTV_DECODE_INIT_MPEG_FILENAME
-file is non-fatal.)
+Thanks for the reply.
 
-I would not want anything in user-space or kernel space preventing the
-ivtv module from loading, if some of those files don't exist.
+On 07/26/2012 04:05 PM, Laurent Pinchart wrote:
+> Hi Michael,
+>
+> On Thursday 26 July 2012 13:59:54 Michael Jones wrote:
+>> Hello,
+>>
+>> I would like to (re)submit a couple of patches to support V4L2 behavior at
+>> the V4L2 device nodes of the omap3-isp driver, but I'm guessing they require
+>> some discussion first.
+>
+> Indeed.
+>
+> The main reason why the OMAP3 ISP driver implements G_FMT/S_FMT as it does
+> today is to hack around a restriction in the V4L2 API. We needed a way to
+> preallocate and possibly prequeue buffers for snapshot, which wasn't possible
+> in a standard-compliant way back then.
+>
+> The situation has since changed, and we now have the VIDIOC_CREATE_BUFS and
+> VIDIOC_PREPARE_BUF ioctls. My plan is to
+>
+> - port the OMAP3 ISP driver to videobuf2
+> - implement support for CREATE_BUFS and PREPARE_BUF
+> - fix the G_FMT/S_FMT/ENUM_FMT behaviour
 
-Regards,
-Andy
+What will the G_FMT/S_FMT/ENUM_FMT behavior be then?  Can you contrast 
+it with the behavior of my patches?  If the behavior will be the same 
+for user space, and your proposed changes won't be in very soon, can we 
+use my patches until you make your changes?
 
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
