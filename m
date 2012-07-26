@@ -1,134 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59149 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754576Ab2GRN60 (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:55929 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752686Ab2GZWIN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jul 2012 09:58:26 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH v2 2/9] ov772x: Select the default format at probe time
-Date: Wed, 18 Jul 2012 15:58:19 +0200
-Message-Id: <1342619906-5820-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1342619906-5820-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1342619906-5820-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Thu, 26 Jul 2012 18:08:13 -0400
+Subject: Re: [PATCH] cx18: Declare MODULE_FIRMWARE usage
+From: Andy Walls <awalls@md.metrocast.net>
+To: Tim Gardner <tim.gardner@canonical.com>
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
+Date: Thu, 26 Jul 2012 18:07:31 -0400
+In-Reply-To: <1343322358-128310-1-git-send-email-tim.gardner@canonical.com>
+References: <1343322358-128310-1-git-send-email-tim.gardner@canonical.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <1343340453.2575.10.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The format and window size are only initialized during the first g_fmt
-call. This leaves the device in an inconsistent state after
-initialization, which will cause problems when implementing pad
-operations. Move the format and window size initialization to probe
-time.
+On Thu, 2012-07-26 at 11:05 -0600, Tim Gardner wrote:
+> Cc: Andy Walls <awalls@md.metrocast.net>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: ivtv-devel@ivtvdriver.org
+> Cc: linux-media@vger.kernel.org
+> Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/ov772x.c |   64 +++++++++++++++++++++---------------------
- 1 files changed, 32 insertions(+), 32 deletions(-)
+You missed v4l-cx23418-dig.fw, in cx18-av-firmware.c, which is required
+by all CX23418 devices.
 
-diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
-index 0fede50d..3f6e4bf 100644
---- a/drivers/media/video/ov772x.c
-+++ b/drivers/media/video/ov772x.c
-@@ -16,6 +16,7 @@
-  */
- 
- #include <linux/init.h>
-+#include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/i2c.h>
- #include <linux/slab.h>
-@@ -504,20 +505,20 @@ static const struct ov772x_color_format ov772x_cfmts[] = {
- #define MAX_WIDTH   VGA_WIDTH
- #define MAX_HEIGHT  VGA_HEIGHT
- 
--static const struct ov772x_win_size ov772x_win_vga = {
--	.name     = "VGA",
--	.width    = VGA_WIDTH,
--	.height   = VGA_HEIGHT,
--	.com7_bit = SLCT_VGA,
--	.regs     = ov772x_vga_regs,
--};
--
--static const struct ov772x_win_size ov772x_win_qvga = {
--	.name     = "QVGA",
--	.width    = QVGA_WIDTH,
--	.height   = QVGA_HEIGHT,
--	.com7_bit = SLCT_QVGA,
--	.regs     = ov772x_qvga_regs,
-+static const struct ov772x_win_size ov772x_win_sizes[] = {
-+	{
-+		.name     = "VGA",
-+		.width    = VGA_WIDTH,
-+		.height   = VGA_HEIGHT,
-+		.com7_bit = SLCT_VGA,
-+		.regs     = ov772x_vga_regs,
-+	}, {
-+		.name     = "QVGA",
-+		.width    = QVGA_WIDTH,
-+		.height   = QVGA_HEIGHT,
-+		.com7_bit = SLCT_QVGA,
-+		.regs     = ov772x_qvga_regs,
-+	},
- };
- 
- /*
-@@ -693,19 +694,18 @@ static int ov772x_s_power(struct v4l2_subdev *sd, int on)
- 
- static const struct ov772x_win_size *ov772x_select_win(u32 width, u32 height)
- {
--	__u32 diff;
--	const struct ov772x_win_size *win;
--
--	/* default is QVGA */
--	diff = abs(width - ov772x_win_qvga.width) +
--		abs(height - ov772x_win_qvga.height);
--	win = &ov772x_win_qvga;
--
--	/* VGA */
--	if (diff >
--	    abs(width  - ov772x_win_vga.width) +
--	    abs(height - ov772x_win_vga.height))
--		win = &ov772x_win_vga;
-+	const struct ov772x_win_size *win = &ov772x_win_sizes[0];
-+	u32 best_diff = UINT_MAX;
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(ov772x_win_sizes); ++i) {
-+		u32 diff = abs(width - ov772x_win_sizes[i].width)
-+			 + abs(height - ov772x_win_sizes[i].height);
-+		if (diff < best_diff) {
-+			best_diff = diff;
-+			win = &ov772x_win_sizes[i];
-+		}
-+	}
- 
- 	return win;
- }
-@@ -890,11 +890,6 @@ static int ov772x_g_fmt(struct v4l2_subdev *sd,
- {
- 	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
- 
--	if (!priv->win || !priv->cfmt) {
--		priv->cfmt = &ov772x_cfmts[0];
--		priv->win = ov772x_select_win(VGA_WIDTH, VGA_HEIGHT);
--	}
--
- 	mf->width	= priv->win->width;
- 	mf->height	= priv->win->height;
- 	mf->code	= priv->cfmt->code;
-@@ -1103,6 +1098,11 @@ static int ov772x_probe(struct i2c_client *client,
- 	}
- 
- 	ret = ov772x_video_probe(client);
-+	if (ret < 0)
-+		goto done;
-+
-+	priv->cfmt = &ov772x_cfmts[0];
-+	priv->win = &ov772x_win_sizes[0];
- 
- done:
- 	if (ret) {
--- 
-1.7.8.6
+You missed dvb-cx18-mpc718-mt352.fw, in cx18-dvb.c, which is only needed
+by certain variants of the Yuan MPC-718 mini-PCI card.
+
+In cx18, the dvb-cx18-mpc718-mt352.fw need not exist for all common
+CX23418 based cards.  I would not want anything in user space or the
+kernel to prevent module load, if this file does not exist.  This
+firmware file is especially a pain, since it has to be snipped out of a
+Windows driver binary.  Most users will not have it.
+
+Regards,
+Andy
+> ---
+>  drivers/media/video/cx18/cx18-driver.c   |    1 +
+>  drivers/media/video/cx18/cx18-firmware.c |   10 ++++++++--
+>  2 files changed, 9 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/video/cx18/cx18-driver.c b/drivers/media/video/cx18/cx18-driver.c
+> index 7e5ffd6..c67733d 100644
+> --- a/drivers/media/video/cx18/cx18-driver.c
+> +++ b/drivers/media/video/cx18/cx18-driver.c
+> @@ -1357,3 +1357,4 @@ static void __exit module_cleanup(void)
+>  
+>  module_init(module_start);
+>  module_exit(module_cleanup);
+> +MODULE_FIRMWARE(XC2028_DEFAULT_FIRMWARE);
+> diff --git a/drivers/media/video/cx18/cx18-firmware.c b/drivers/media/video/cx18/cx18-firmware.c
+> index b85c292..a1c1cec 100644
+> --- a/drivers/media/video/cx18/cx18-firmware.c
+> +++ b/drivers/media/video/cx18/cx18-firmware.c
+> @@ -376,6 +376,9 @@ void cx18_init_memory(struct cx18 *cx)
+>  	cx18_write_reg(cx, 0x00000101, CX18_WMB_CLIENT14);  /* AVO */
+>  }
+>  
+> +#define CX18_CPU_FIRMWARE "v4l-cx23418-cpu.fw"
+> +#define CX18_APU_FIRMWARE "v4l-cx23418-apu.fw"
+> +
+>  int cx18_firmware_init(struct cx18 *cx)
+>  {
+>  	u32 fw_entry_addr;
+> @@ -400,7 +403,7 @@ int cx18_firmware_init(struct cx18 *cx)
+>  	cx18_sw1_irq_enable(cx, IRQ_CPU_TO_EPU | IRQ_APU_TO_EPU);
+>  	cx18_sw2_irq_enable(cx, IRQ_CPU_TO_EPU_ACK | IRQ_APU_TO_EPU_ACK);
+>  
+> -	sz = load_cpu_fw_direct("v4l-cx23418-cpu.fw", cx->enc_mem, cx);
+> +	sz = load_cpu_fw_direct(CX18_CPU_FIRMWARE, cx->enc_mem, cx);
+>  	if (sz <= 0)
+>  		return sz;
+>  
+> @@ -408,7 +411,7 @@ int cx18_firmware_init(struct cx18 *cx)
+>  	cx18_init_scb(cx);
+>  
+>  	fw_entry_addr = 0;
+> -	sz = load_apu_fw_direct("v4l-cx23418-apu.fw", cx->enc_mem, cx,
+> +	sz = load_apu_fw_direct(CX18_APU_FIRMWARE, cx->enc_mem, cx,
+>  				&fw_entry_addr);
+>  	if (sz <= 0)
+>  		return sz;
+> @@ -451,3 +454,6 @@ int cx18_firmware_init(struct cx18 *cx)
+>  	cx18_write_reg_expect(cx, 0x14001400, 0xc78110, 0x00001400, 0x14001400);
+>  	return 0;
+>  }
+> +
+> +MODULE_FIRMWARE(CX18_CPU_FIRMWARE);
+> +MODULE_FIRMWARE(CX18_APU_FIRMWARE);
+
 
