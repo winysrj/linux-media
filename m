@@ -1,52 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:49853 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752296Ab2GIVt1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2012 17:49:27 -0400
-Received: by yhmm54 with SMTP id m54so11426736yhm.19
-        for <linux-media@vger.kernel.org>; Mon, 09 Jul 2012 14:49:26 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <9c03d233-e0dd-4754-a9c7-53be71ac959a@email.android.com>
-References: <CAOkj57_x0CoUTce5t7U-=2YdkjOQV-_tBFKRJj41rZNQrPU+Uw@mail.gmail.com>
-	<9c03d233-e0dd-4754-a9c7-53be71ac959a@email.android.com>
-Date: Mon, 9 Jul 2012 17:49:25 -0400
-Message-ID: <CAGoCfiyAOUY8XjnJpvg4Q7sFT=bYL0w-jqQ=80RPJm6dtxyMKw@mail.gmail.com>
-Subject: Re: Linux equivalent of Windows VBIScope?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Tim Stowell <stowellt@gmail.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail.tpi.com ([70.99.223.143]:1591 "EHLO mail.tpi.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752545Ab2GZRFo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Jul 2012 13:05:44 -0400
+From: Tim Gardner <tim.gardner@canonical.com>
+To: linux-kernel@vger.kernel.org
+Cc: Tim Gardner <tim.gardner@canonical.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
+Subject: [PATCH] cx18: Declare MODULE_FIRMWARE usage
+Date: Thu, 26 Jul 2012 11:05:58 -0600
+Message-Id: <1343322358-128310-1-git-send-email-tim.gardner@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 9, 2012 at 5:32 PM, Andy Walls <awalls@md.metrocast.net> wrote:
-> Tim Stowell <stowellt@gmail.com> wrote:
->
->>Hi all,
->>
->>I am using the em28xx driver and have been able to extract captions
->>using zvbi. I would like to visualize the waveform like the DirectShow
->>VBIScope filter on windows (unfortunately the Windows driver doesn't
->>expose any VBI pins). Does anyone know of anythings similar on Linux?
->>Thanks
->>--
->>To unsubscribe from this list: send the line "unsubscribe linux-media"
->>in
->>the body of a message to majordomo@vger.kernel.org
->>More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> 'osc' is a test utility that is part of the zvbi source distribution.  It probably does what you need.
->
-> Regards,
-> Andy
+Cc: Andy Walls <awalls@md.metrocast.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: ivtv-devel@ivtvdriver.org
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
+---
+ drivers/media/video/cx18/cx18-driver.c   |    1 +
+ drivers/media/video/cx18/cx18-firmware.c |   10 ++++++++--
+ 2 files changed, 9 insertions(+), 2 deletions(-)
 
-I'll second Andy's endorsement of osc.  It's a very handy little tool.
-
-Also, if you run into any VBI issues with em28xx, please let me know
-(I did the original driver support for it).
-
-Devin
-
+diff --git a/drivers/media/video/cx18/cx18-driver.c b/drivers/media/video/cx18/cx18-driver.c
+index 7e5ffd6..c67733d 100644
+--- a/drivers/media/video/cx18/cx18-driver.c
++++ b/drivers/media/video/cx18/cx18-driver.c
+@@ -1357,3 +1357,4 @@ static void __exit module_cleanup(void)
+ 
+ module_init(module_start);
+ module_exit(module_cleanup);
++MODULE_FIRMWARE(XC2028_DEFAULT_FIRMWARE);
+diff --git a/drivers/media/video/cx18/cx18-firmware.c b/drivers/media/video/cx18/cx18-firmware.c
+index b85c292..a1c1cec 100644
+--- a/drivers/media/video/cx18/cx18-firmware.c
++++ b/drivers/media/video/cx18/cx18-firmware.c
+@@ -376,6 +376,9 @@ void cx18_init_memory(struct cx18 *cx)
+ 	cx18_write_reg(cx, 0x00000101, CX18_WMB_CLIENT14);  /* AVO */
+ }
+ 
++#define CX18_CPU_FIRMWARE "v4l-cx23418-cpu.fw"
++#define CX18_APU_FIRMWARE "v4l-cx23418-apu.fw"
++
+ int cx18_firmware_init(struct cx18 *cx)
+ {
+ 	u32 fw_entry_addr;
+@@ -400,7 +403,7 @@ int cx18_firmware_init(struct cx18 *cx)
+ 	cx18_sw1_irq_enable(cx, IRQ_CPU_TO_EPU | IRQ_APU_TO_EPU);
+ 	cx18_sw2_irq_enable(cx, IRQ_CPU_TO_EPU_ACK | IRQ_APU_TO_EPU_ACK);
+ 
+-	sz = load_cpu_fw_direct("v4l-cx23418-cpu.fw", cx->enc_mem, cx);
++	sz = load_cpu_fw_direct(CX18_CPU_FIRMWARE, cx->enc_mem, cx);
+ 	if (sz <= 0)
+ 		return sz;
+ 
+@@ -408,7 +411,7 @@ int cx18_firmware_init(struct cx18 *cx)
+ 	cx18_init_scb(cx);
+ 
+ 	fw_entry_addr = 0;
+-	sz = load_apu_fw_direct("v4l-cx23418-apu.fw", cx->enc_mem, cx,
++	sz = load_apu_fw_direct(CX18_APU_FIRMWARE, cx->enc_mem, cx,
+ 				&fw_entry_addr);
+ 	if (sz <= 0)
+ 		return sz;
+@@ -451,3 +454,6 @@ int cx18_firmware_init(struct cx18 *cx)
+ 	cx18_write_reg_expect(cx, 0x14001400, 0xc78110, 0x00001400, 0x14001400);
+ 	return 0;
+ }
++
++MODULE_FIRMWARE(CX18_CPU_FIRMWARE);
++MODULE_FIRMWARE(CX18_APU_FIRMWARE);
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.9.5
+
