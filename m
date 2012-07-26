@@ -1,90 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnxt09252.conexant.com ([198.62.9.252]:9081 "EHLO
-	Cnxtsmtp1.conexant.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752557Ab2GaS7Y convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34141 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752911Ab2GZXB7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 14:59:24 -0400
-From: "Sri Deevi" <Srinivasa.Deevi@conexant.com>
-To: "Mauro Carvalho Chehab" <mchehab@redhat.com>,
-	"workshop-2011@linuxtv.org" <workshop-2011@linuxtv.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 31 Jul 2012 11:41:44 -0700
-Subject: RE: Media summit/KS-2012 proposals
-Message-ID: <34B38BE41EDBA046A4AFBB591FA31132050AFAE633@NBMBX01.bbnet.ad>
-References: <50181CBF.102@redhat.com> <50181D28.8020005@redhat.com>
-In-Reply-To: <50181D28.8020005@redhat.com>
-Content-Language: en-US
-Content-Type: text/plain;
- charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+	Thu, 26 Jul 2012 19:01:59 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] mt9v032: Export horizontal and vertical blanking as V4L2 controls
+Date: Fri, 27 Jul 2012 01:02:04 +0200
+Message-ID: <4375414.cY8huNNgj1@avalon>
+In-Reply-To: <20120726205401.GA26136@valkosipuli.retiisi.org.uk>
+References: <1343068502-7431-4-git-send-email-laurent.pinchart@ideasonboard.com> <1343085042-19695-1-git-send-email-laurent.pinchart@ideasonboard.com> <20120726205401.GA26136@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi 
+Hi Sakari,
 
-I would like to participate in the workshop. 
-Can you please add me to the list ? 
+On Thursday 26 July 2012 23:54:01 Sakari Ailus wrote:
+> On Tue, Jul 24, 2012 at 01:10:42AM +0200, Laurent Pinchart wrote:
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  drivers/media/video/mt9v032.c |   36 +++++++++++++++++++++++++++++++++---
+> >  1 files changed, 33 insertions(+), 3 deletions(-)
+> > 
+> > Changes since v1:
+> > 
+> > - Make sure the total horizontal time will not go below 660 when setting
+> >   the horizontal blanking control
+> > 
+> > - Restrict the vertical blanking value to 3000 as documented in the
+> >   datasheet. Increasing the exposure time actually extends vertical
+> >   blanking, as long as the user doesn't forget to turn auto-exposure
+> >   off...
+> 
+> Does binning either horizontally or vertically affect the blanking limits?
+> If the process is analogue then the answer is typically "yes".
 
-Thanks
-Sri
+The datasheet doesn't specify whether binning and blanking can influence each 
+other.
 
--------- Mensagem original --------
-Assunto: Media summit/KS-2012 proposals
-Data: Tue, 31 Jul 2012 14:58:23 -0300
-De: Mauro Carvalho Chehab <mchehab@redhat.com>
-Para: workshop-2011@linuxtv.org,  Linux Media Mailing List <linux-media@vger.kernel.org>
+> It's not directly related to this patch, but the effect of the driver just
+> exposing one sub-device really shows better now. Besides lacking the way to
+> specify binning as in the V4L2 subdev API (compose selection target), the
+> user also can't use the crop bounds selection target to get the size of the
+> pixel array.
+> 
+> We could either accept this for the time being and fix it later on of fix it
+> now.
+> 
+> I prefer fixing it right now but admit that this patch isn't breaking
+> anything, it rather is missing quite relevant functionality to control the
+> sensor in a generic way.
 
-In order to sum-up the discussions around the media summit, this is what we've got so far:
+I'd rather apply this patch first, as it doesn't break anything :-) Fixing the 
+problem will require discussions, and that will take time.
 
-Proposals									     	proposed by
-=====================================================================================|=========================================================================================
-Common device tree bindings for media devices						Sylvester Nawrocki / Guennadi Liakhovetski
-ALSA and V4L/Media Controller								Steven Toth / Laurent Pinchart
-ARM and needed features for V4L/DVB							Steven Toth
-Intel media SDK										Steven Toth
-V4L compiance tool									Hans Verkuil
-V4L2 API ambiguities									Hans Verkuil
-Media Controller library								Laurent Pincart / Sakari Ailus
-SoC Vendors feedback - how to help them to go upstream - Android's V4L2 cam library	Laurent Pincart / Guennadi Liakhovetski / Palash Bandyopadhyay / Naveen Krishnamurthy
-Synchronization, shared resource and optimizations					Pawel Osciak
-V4L2/DVB issues from userspace perspective						Rémi Denis-Courmont
+Binning/skipping is a pretty common feature in sensors. Exposing two sub-
+devices like the SMIA++ driver does is one way to fix the problem, but do we 
+really want to do that for the vast majority of sensors ?
 
-As we'll have only one day for the summit, we may need to remove some themes, or maybe to get an extra time during LPC for the remaining discussions.
-	
-Possible attendents:
-===================
-
-Guennadi Liakhovetski
-Laurent Pinchart
-Mauro Carvalho Chehab
-Michael Krufky
-Naveen Krishnamurthy
-+1 seat from ST (waiting Naveen to define who will be the other seat)
-Palash Bandyopadhyay
-Pawel Osciak
-Rémi Denis-Courmont
-Sakari Ailus
-Steven Toth
-Sylvester Nawrocki
-
-Am I missing something?
-
-Are there other proposals or people intending to participate?
-
+-- 
 Regards,
-Mauro
 
-
-
-
-Conexant E-mail Firewall (Conexant.Com) made the following annotations
----------------------------------------------------------------------
-********************** Legal Disclaimer **************************** 
-
-"This email may contain confidential and privileged material for the sole use of the intended recipient. Any unauthorized review, use or distribution by others is strictly prohibited. If you have received the message in error, please advise the sender by reply email and delete the message. Thank you." 
-
-********************************************************************** 
-
----------------------------------------------------------------------
+Laurent Pinchart
 
