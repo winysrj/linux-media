@@ -1,73 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:36250 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932876Ab2GYGaV (ORCPT
+Received: from mail-qa0-f53.google.com ([209.85.216.53]:40610 "EHLO
+	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751839Ab2GZCPi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jul 2012 02:30:21 -0400
-Received: by mail-pb0-f46.google.com with SMTP id rp8so905752pbb.19
-        for <linux-media@vger.kernel.org>; Tue, 24 Jul 2012 23:30:21 -0700 (PDT)
-From: Hideki EIRAKU <hdk@igel.co.jp>
-To: Russell King <linux@arm.linux.org.uk>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
+	Wed, 25 Jul 2012 22:15:38 -0400
+MIME-Version: 1.0
+In-Reply-To: <1343245264-23291-1-git-send-email-tim.gardner@canonical.com>
+References: <1343245264-23291-1-git-send-email-tim.gardner@canonical.com>
+Date: Thu, 26 Jul 2012 10:15:37 +0800
+Message-ID: <CAMiH66GLN02JBVg4MUZ3NXqLFY4zJqZubBhwxmJdhzMwHE0XQA@mail.gmail.com>
+Subject: Re: [PATCH] tlg2300: Declare MODULE_FIRMWARE usage
+From: Huang Shijie <shijie8@gmail.com>
+To: Tim Gardner <tim.gardner@canonical.com>
+Cc: linux-kernel@vger.kernel.org, Kang Yong <kangyong@telegent.com>,
+	Zhang Xiaobing <xbzhang@telegent.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
-	Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Hideki EIRAKU <hdk@igel.co.jp>
-Subject: [PATCH 3/3] fbdev: sh_mobile_lcdc: use dma_mmap_coherent if available
-Date: Wed, 25 Jul 2012 15:29:24 +0900
-Message-Id: <1343197764-13659-4-git-send-email-hdk@igel.co.jp>
-In-Reply-To: <1343197764-13659-1-git-send-email-hdk@igel.co.jp>
-References: <1343197764-13659-1-git-send-email-hdk@igel.co.jp>
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-fb_mmap() implemented in fbmem.c uses smem_start as the physical
-address of the frame buffer.  In the sh_mobile_lcdc driver, the
-smem_start is a dma_addr_t that is not a physical address when IOMMU is
-enabled.  dma_mmap_coherent() maps the address correctly.  It is
-available on ARM platforms.
+thanks.
 
-Signed-off-by: Hideki EIRAKU <hdk@igel.co.jp>
----
- drivers/video/sh_mobile_lcdcfb.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+Acked-by: Huang Shijie <shijie8@gmail.com>
 
-diff --git a/drivers/video/sh_mobile_lcdcfb.c b/drivers/video/sh_mobile_lcdcfb.c
-index e672698..65732c4 100644
---- a/drivers/video/sh_mobile_lcdcfb.c
-+++ b/drivers/video/sh_mobile_lcdcfb.c
-@@ -1393,6 +1393,17 @@ static int sh_mobile_lcdc_blank(int blank, struct fb_info *info)
- 	return 0;
- }
- 
-+#ifdef ARCH_HAS_DMA_MMAP_COHERENT
-+static int
-+sh_mobile_fb_mmap(struct fb_info *info, struct vm_area_struct *vma)
-+{
-+	struct sh_mobile_lcdc_chan *ch = info->par;
-+
-+	return dma_mmap_coherent(ch->lcdc->dev, vma, ch->fb_mem,
-+				 ch->dma_handle, ch->fb_size);
-+}
-+#endif
-+
- static struct fb_ops sh_mobile_lcdc_ops = {
- 	.owner          = THIS_MODULE,
- 	.fb_setcolreg	= sh_mobile_lcdc_setcolreg,
-@@ -1408,6 +1419,9 @@ static struct fb_ops sh_mobile_lcdc_ops = {
- 	.fb_release	= sh_mobile_release,
- 	.fb_check_var	= sh_mobile_check_var,
- 	.fb_set_par	= sh_mobile_set_par,
-+#ifdef ARCH_HAS_DMA_MMAP_COHERENT
-+	.fb_mmap	= sh_mobile_fb_mmap,
-+#endif
- };
- 
- static void
--- 
-1.7.0.4
-
+On Thu, Jul 26, 2012 at 3:41 AM, Tim Gardner <tim.gardner@canonical.com> wrote:
+> Cc: Huang Shijie <shijie8@gmail.com>
+> Cc: Kang Yong <kangyong@telegent.com>
+> Cc: Zhang Xiaobing <xbzhang@telegent.com>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: linux-media@vger.kernel.org
+> Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
+> ---
+>  drivers/media/video/tlg2300/pd-main.c |    4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/video/tlg2300/pd-main.c b/drivers/media/video/tlg2300/pd-main.c
+> index c096b3f..7b1f6eb 100644
+> --- a/drivers/media/video/tlg2300/pd-main.c
+> +++ b/drivers/media/video/tlg2300/pd-main.c
+> @@ -53,7 +53,8 @@ int debug_mode;
+>  module_param(debug_mode, int, 0644);
+>  MODULE_PARM_DESC(debug_mode, "0 = disable, 1 = enable, 2 = verbose");
+>
+> -static const char *firmware_name = "tlg2300_firmware.bin";
+> +#define TLG2300_FIRMWARE "tlg2300_firmware.bin"
+> +static const char *firmware_name = TLG2300_FIRMWARE;
+>  static struct usb_driver poseidon_driver;
+>  static LIST_HEAD(pd_device_list);
+>
+> @@ -532,3 +533,4 @@ MODULE_AUTHOR("Telegent Systems");
+>  MODULE_DESCRIPTION("For tlg2300-based USB device ");
+>  MODULE_LICENSE("GPL");
+>  MODULE_VERSION("0.0.2");
+> +MODULE_FIRMWARE(TLG2300_FIRMWARE);
+> --
+> 1.7.9.5
+>
