@@ -1,115 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:37837 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753331Ab2GRTxj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jul 2012 15:53:39 -0400
-Message-ID: <5007143E.8040807@gmail.com>
-Date: Wed, 18 Jul 2012 21:53:34 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org, b.zolnierkie@samsung.com,
-	Karol Lewandowski <k.lewandowsk@samsung.com>
-Subject: Re: [RFC/PATCH 05/13] media: s5p-fimc: Add device tree support for
- FIMC devices
-References: <4FBFE1EC.9060209@samsung.com> <1337975573-27117-1-git-send-email-s.nawrocki@samsung.com> <1337975573-27117-5-git-send-email-s.nawrocki@samsung.com> <Pine.LNX.4.64.1207161110430.12302@axis700.grange> <5005C7E4.3050908@gmail.com> <Pine.LNX.4.64.1207180958540.8472@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1207180958540.8472@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from skyboo.net ([82.160.187.4]:54176 "EHLO skyboo.net"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752349Ab2GZSjl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Jul 2012 14:39:41 -0400
+From: Mariusz Bialonczyk <manio@skyboo.net>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mariusz Bialonczyk <manio@skyboo.net>
+Date: Thu, 26 Jul 2012 20:08:43 +0200
+Message-Id: <1343326123-11882-1-git-send-email-manio@skyboo.net>
+Subject: [PATCH] Add support for Prof Revolution DVB-S2 8000 PCI-E card
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/18/2012 10:17 AM, Guennadi Liakhovetski wrote:
-> On Tue, 17 Jul 2012, Sylwester Nawrocki wrote:
->> On 07/16/2012 11:13 AM, Guennadi Liakhovetski wrote:
->>> On Fri, 25 May 2012, Sylwester Nawrocki wrote:
->>>
->>>> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
->>>> Signed-off-by: Karol Lewandowski<k.lewandowsk@samsung.com>
->>>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
->>>
->>>    From the documentation below I think, I understand what it does, but why
->>> is it needed? It doesn't describe your video subsystem topology, right?
->>> How various subdevices are connected. It just lists them all in one
->>> node... A description for this patch would be very welcome IMHO and,
->>> maybe, such a node can be completely avoided?
->>
->> Sorry, I'll provide better description in next iteration.
->> It's true it doesn't describe the topology in detail, as there are
->> multiple one-to many possible connections between sub-devices. An exact
->> topology is coded in the driver and can be changed through MC API.
->> The "samsung,camif-mux-id" and "video-bus-type" properties at "sensor"
->> nodes just specify to which physical SoC camera port an image sensor
->> is connected.
-> 
-> So, don't you think my media-link child nodes are a good solution for
-> this?
+The device is based on STV0903 demodulator, STB6100 tuner
+and CX23885 chipset; subsystem id: 8000:3034
 
-Not quite yet ;) It would be good to see some example implementation
-and how it actually works.
+Signed-off-by: Mariusz Bialonczyk <manio@skyboo.net>
+---
+ drivers/media/video/cx23885/Kconfig         |    1 +
+ drivers/media/video/cx23885/cx23885-cards.c |   10 +++++
+ drivers/media/video/cx23885/cx23885-dvb.c   |   56 +++++++++++++++++++++++++++
+ drivers/media/video/cx23885/cx23885.h       |    1 +
+ 4 files changed, 68 insertions(+)
 
->> Originally the all camera devices were supposed to land under common
->> 'camera' node. And a top level driver would be registering all platform
->> devices. With this approach it would be possible to better control PM
->> handling (which currently depends on an order of registering devices to
->> the driver core). But then we discovered that we couldn't use OF_DEV_AUXDATA
->> in such case, which was required to preserve platform device names, in order
->> for the clock API to work. So I've moved some sub-devices out of 'camera'
->> node and have added only a list of phandles to them in that node. This is
->> rather a cheap workaround..
->>
->> I think all camera sub-devices should be placed under common node, as there
->> are some properties that don't belong to any sub-node: GPIO config, clocks,
->> to name a few. Of course simpler devices might not need such a composite
->> node. I think we can treat the sub-device interdependencies as an issue
->> separate from a need for a common node.
->>
->> If some devices need to reflect the topology better, we probably could
->> include in some nodes (a list of) phandles to other nodes. This could ease
->> parsing the topology at the drivers, by using existing OF infrastructure.
-> 
-> Ok, I think you have some good ideas in your RFC's, an interesting
-> question now is - how to proceed. Do you think we'd be able to work out a
-> combined RFC? Or would you prefer to make two versions and then see what
-> others think? In either case it would be nice, I think, if you could try
-> to separate what you see as common V4L DT bindings, then we could discuss
-> that separately. Whereas what you think is private to your hardware, we
-> can also look at for common ideas, or maybe even some of those properties
-> we'll wake to make common too.
+diff --git a/drivers/media/video/cx23885/Kconfig b/drivers/media/video/cx23885/Kconfig
+index b391e9b..510adfe 100644
+--- a/drivers/media/video/cx23885/Kconfig
++++ b/drivers/media/video/cx23885/Kconfig
+@@ -21,6 +21,7 @@ config VIDEO_CX23885
+ 	select DVB_STV6110 if !DVB_FE_CUSTOMISE
+ 	select DVB_CX24116 if !DVB_FE_CUSTOMISE
+ 	select DVB_STV0900 if !DVB_FE_CUSTOMISE
++	select DVB_STV090x if !DVB_FE_CUSTOMISE
+ 	select DVB_DS3000 if !DVB_FE_CUSTOMISE
+ 	select DVB_STV0367 if !DVB_FE_CUSTOMISE
+ 	select MEDIA_TUNER_MT2131 if !MEDIA_TUNER_CUSTOMISE
+diff --git a/drivers/media/video/cx23885/cx23885-cards.c b/drivers/media/video/cx23885/cx23885-cards.c
+index 080e111..50fedff 100644
+--- a/drivers/media/video/cx23885/cx23885-cards.c
++++ b/drivers/media/video/cx23885/cx23885-cards.c
+@@ -564,6 +564,10 @@ struct cx23885_board cx23885_boards[] = {
+ 	[CX23885_BOARD_TEVII_S471] = {
+ 		.name		= "TeVii S471",
+ 		.portb		= CX23885_MPEG_DVB,
++	},
++	[CX23885_BOARD_PROF_8000] = {
++		.name		= "Prof Revolution DVB-S2 8000",
++		.portb		= CX23885_MPEG_DVB,
+ 	}
+ };
+ const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
+@@ -776,6 +780,10 @@ struct cx23885_subid cx23885_subids[] = {
+ 		.subvendor = 0xd471,
+ 		.subdevice = 0x9022,
+ 		.card      = CX23885_BOARD_TEVII_S471,
++	}, {
++		.subvendor = 0x8000,
++		.subdevice = 0x3034,
++		.card      = CX23885_BOARD_PROF_8000,
+ 	},
+ };
+ const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
+@@ -1155,6 +1163,7 @@ void cx23885_gpio_setup(struct cx23885_dev *dev)
+ 		cx_set(GP0_IO, 0x00040004);
+ 		break;
+ 	case CX23885_BOARD_TBS_6920:
++	case CX23885_BOARD_PROF_8000:
+ 		cx_write(MC417_CTL, 0x00000036);
+ 		cx_write(MC417_OEN, 0x00001000);
+ 		cx_set(MC417_RWD, 0x00000002);
+@@ -1536,6 +1545,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_TEVII_S470:
+ 	case CX23885_BOARD_TEVII_S471:
+ 	case CX23885_BOARD_DVBWORLD_2005:
++	case CX23885_BOARD_PROF_8000:
+ 		ts1->gen_ctrl_val  = 0x5; /* Parallel */
+ 		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
+ 		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
+diff --git a/drivers/media/video/cx23885/cx23885-dvb.c b/drivers/media/video/cx23885/cx23885-dvb.c
+index cd54268..ba046ea 100644
+--- a/drivers/media/video/cx23885/cx23885-dvb.c
++++ b/drivers/media/video/cx23885/cx23885-dvb.c
+@@ -63,6 +63,9 @@
+ #include "stv0367.h"
+ #include "drxk.h"
+ #include "mt2063.h"
++#include "stv090x.h"
++#include "stb6100.h"
++#include "stb6100_cfg.h"
+ 
+ static unsigned int debug;
+ 
+@@ -489,6 +492,42 @@ static struct xc5000_config mygica_x8506_xc5000_config = {
+ 	.if_khz = 5380,
+ };
+ 
++static struct stv090x_config prof_8000_stv090x_config = {
++        .device                 = STV0903,
++        .demod_mode             = STV090x_SINGLE,
++        .clk_mode               = STV090x_CLK_EXT,
++        .xtal                   = 27000000,
++        .address                = 0x6A,
++        .ts1_mode               = STV090x_TSMODE_PARALLEL_PUNCTURED,
++        .repeater_level         = STV090x_RPTLEVEL_64,
++        .adc1_range             = STV090x_ADC_2Vpp,
++        .diseqc_envelope_mode   = false,
++
++        .tuner_get_frequency    = stb6100_get_frequency,
++        .tuner_set_frequency    = stb6100_set_frequency,
++        .tuner_set_bandwidth    = stb6100_set_bandwidth,
++        .tuner_get_bandwidth    = stb6100_get_bandwidth,
++};
++
++static struct stb6100_config prof_8000_stb6100_config = {
++	.tuner_address = 0x60,
++	.refclock = 27000000,
++};
++
++static int p8000_set_voltage(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
++{
++	struct cx23885_tsport *port = fe->dvb->priv;
++	struct cx23885_dev *dev = port->dev;
++
++	if (voltage == SEC_VOLTAGE_18)
++		cx_write(MC417_RWD, 0x00001e00);
++	else if (voltage == SEC_VOLTAGE_13)
++		cx_write(MC417_RWD, 0x00001a00);
++	else
++		cx_write(MC417_RWD, 0x00001800);
++	return 0;
++}
++
+ static int cx23885_dvb_set_frontend(struct dvb_frontend *fe)
+ {
+ 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+@@ -1186,6 +1225,23 @@ static int dvb_register(struct cx23885_tsport *port)
+ 					&tevii_ds3000_config,
+ 					&i2c_bus->i2c_adap);
+ 		break;
++	case CX23885_BOARD_PROF_8000:
++		i2c_bus = &dev->i2c_bus[0];
++
++		fe0->dvb.frontend = dvb_attach(stv090x_attach,
++						&prof_8000_stv090x_config,
++						&i2c_bus->i2c_adap,
++						STV090x_DEMODULATOR_0);
++		if (fe0->dvb.frontend != NULL) {
++			if (!dvb_attach(stb6100_attach,
++					fe0->dvb.frontend,
++					&prof_8000_stb6100_config,
++					&i2c_bus->i2c_adap))
++				goto frontend_detach;
++
++			fe0->dvb.frontend->ops.set_voltage = p8000_set_voltage;
++		}
++		break;
+ 	default:
+ 		printk(KERN_INFO "%s: The frontend of your DVB/ATSC card "
+ 			" isn't supported yet\n",
+diff --git a/drivers/media/video/cx23885/cx23885.h b/drivers/media/video/cx23885/cx23885.h
+index 13c37ec..452ccec 100644
+--- a/drivers/media/video/cx23885/cx23885.h
++++ b/drivers/media/video/cx23885/cx23885.h
+@@ -91,6 +91,7 @@
+ #define CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL 34
+ #define CX23885_BOARD_TEVII_S471               35
+ #define CX23885_BOARD_HAUPPAUGE_HVR1255_22111  36
++#define CX23885_BOARD_PROF_8000                37
+ 
+ #define GPIO_0 0x00000001
+ #define GPIO_1 0x00000002
+-- 
+1.7.10
 
-I think we need a one combined RFC and continue discussions in one thread.
-Still, our proposals are quite different, but I believe we need something
-in between. I presume we should focus more to have common bindings for 
-subdevs that are reused among different host/ISP devices, i.e. sensors and 
-encoders. For simple host interfaces we can likely come up with common
-binding patterns, but more complex processing pipelines may require 
-a sort of individual approach.
-
-The suspend/resume handling is still something I don't have an idea
-on how the solution for might look like..
-Instantiating all devices from a top level driver could help, but it
-is only going to work when platforms are converted to the common clock
-framework and have their clocks instantiated from device tree.
-
-This week I'm out of office, and next one or two I have some pending
-assignments. So there might be some delay before I can dedicate some 
-reasonable amount of time to carry on with that topic.
-
-I unfortunately won't be attending KS this time.
-
-I'll try to prepare some summary with topics that appear common. And also 
-to restructure my RFC series to better separate new common features and 
-specific H/W support.
-
-In the meantime we could possibly continue discussions in your RFC thread.
-
---
-
-Regards,
-Sylwester
