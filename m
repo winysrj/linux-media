@@ -1,56 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:62295 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755651Ab2GDSey (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2012 14:34:54 -0400
-MIME-Version: 1.0
-From: Dharam Kumar <dharam.kumar.gupta@gmail.com>
-Date: Thu, 5 Jul 2012 00:04:32 +0530
-Message-ID: <CAOt5+pSrpsyvuyyT=kQj0k6u5m+KnJTH_+Q7hLhkkW0pNFSqpA@mail.gmail.com>
-Subject: Info on Remote controller keys like upper-right, upper-left ,
- lower-right, lower-left ,sub-picture etc.
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:61810 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752386Ab2GZLNi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Jul 2012 07:13:38 -0400
+Received: by pbbrp8 with SMTP id rp8so3069482pbb.19
+        for <linux-media@vger.kernel.org>; Thu, 26 Jul 2012 04:13:38 -0700 (PDT)
+From: Hideki EIRAKU <hdk@igel.co.jp>
+To: Russell King <linux@arm.linux.org.uk>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	alsa-devel@alsa-project.org, Katsuya MATSUBARA <matsu@igel.co.jp>,
+	Hideki EIRAKU <hdk@igel.co.jp>
+Subject: [PATCH v2 0/4] Use dma_mmap_coherent to support IOMMU mapper
+Date: Thu, 26 Jul 2012 20:13:07 +0900
+Message-Id: <1343301191-26001-1-git-send-email-hdk@igel.co.jp>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+There is a dma_mmap_coherent() API in some architectures.  This API
+provides a mmap function for memory allocated by dma_alloc_coherent().
+Some drivers mmap a dma_addr_t returned by dma_alloc_coherent() as a
+physical address.  But such drivers do not work correctly when IOMMU
+mapper is used.
 
-I've been working on a MHL( www.mhltech.org  ) transmitter driver
-which needs to receive/handle incoming Remote control keys.
+v2:
+- Rebase on fbdev-next branch of
+  git://github.com/schandinat/linux-2.6.git.
+- Initialize .fb_mmap in both sh_mobile_lcdc_overlay_ops and
+  sh_mobile_lcdc_ops.
+- Add Laurent's clean up patch.
 
-The specification tells me that other than normal keys[up,down,left,
-right etc.] there are certain remote control keys like Upper-right,
-Upper-left, Lower-right, Lower-left, Sub-picture etc.
+Hideki EIRAKU (3):
+  ARM: dma-mapping: define ARCH_HAS_DMA_MMAP_COHERENT
+  media: videobuf2-dma-contig: use dma_mmap_coherent if available
+  fbdev: sh_mobile_lcdc: use dma_mmap_coherent if available
 
-While creating a key map in the driver, I tried to find whether these
-keys has been defined in <linux/input.h> ,but I could not find such
-key definitions
-in the header file.
+Laurent Pinchart (1):
+  ALSA: pcm - Don't define ARCH_HAS_DMA_MMAP_COHERENT privately for ARM
 
-Please note that, although the Specs do define these Remote Controller
-keys, the driver will have the choice
-to support the key depending on the key-map.
+ arch/arm/include/asm/dma-mapping.h         |    1 +
+ drivers/media/video/videobuf2-dma-contig.c |   18 ++++++++++++++++++
+ drivers/video/sh_mobile_lcdcfb.c           |   28 ++++++++++++++++++++++++++++
+ sound/core/pcm_native.c                    |    7 -------
+ 4 files changed, 47 insertions(+), 7 deletions(-)
 
-Something like this:
-/* Key Map for the driver */
-  ....
- { KEY_UP, <supported> },
- { KEY_DOWN, <supported>},
- {KEY_UPPERRIGHT, <supported>},      /* No  definition for
-KEY_UPPERRIGHT in input.h  */
- {KEY_UPPERLEFT, <not-supported>},  /* No definition for KEY_UPPERLEFT
-in input.h, although this key is not supported by driver */
-....
-
-
-In other mailing lists[linux-input], it has been suggested that these
-keys are similar to Joystick keys.
-I've looked into drivers/input/joystick/analog.c file, but could not
-find any buttons/pads which are similar to the above one[Am I missing
-something here??]
-
-any pointers??
-
-Regards,
-Dharam
