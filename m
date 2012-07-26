@@ -1,45 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56676 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753370Ab2GDJRl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Jul 2012 05:17:41 -0400
-Message-ID: <4FF40A55.7080205@redhat.com>
-Date: Wed, 04 Jul 2012 11:18:13 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	halli manjunatha <hallimanju@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 1/6] videodev2.h: add VIDIOC_ENUM_FREQ_BANDS.
-References: <1341238512-17504-1-git-send-email-hverkuil@xs4all.nl> <201207031847.38946.hverkuil@xs4all.nl> <4FF357AA.2020109@redhat.com> <201207041035.43469.hverkuil@xs4all.nl>
-In-Reply-To: <201207041035.43469.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail1.matrix-vision.com ([78.47.19.71]:39139 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752343Ab2GZL5N (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Jul 2012 07:57:13 -0400
+From: Michael Jones <michael.jones@matrix-vision.de>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: [PATCH 1/2] [media] omap3isp: implement ENUM_FMT
+Date: Thu, 26 Jul 2012 13:59:55 +0200
+Message-Id: <1343303996-16025-2-git-send-email-michael.jones@matrix-vision.de>
+In-Reply-To: <1343303996-16025-1-git-send-email-michael.jones@matrix-vision.de>
+References: <1343303996-16025-1-git-send-email-michael.jones@matrix-vision.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+ENUM_FMT will not enumerate all formats that the ISP is capable of,
+it will only return the format which has been previously configured
+using the media controller, because this is the only format available
+to a V4L2 application which is unaware of the media controller.
 
-On 07/04/2012 10:35 AM, Hans Verkuil wrote:
+Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+---
+ drivers/media/video/omap3isp/ispvideo.c |   23 +++++++++++++++++++++++
+ 1 files changed, 23 insertions(+), 0 deletions(-)
 
-<snip snip>
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index b37379d..d1d2c14 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -678,6 +678,28 @@ isp_video_get_format(struct file *file, void *fh, struct v4l2_format *format)
+ }
+ 
+ static int
++isp_video_enum_format(struct file *file, void *fh, struct v4l2_fmtdesc *fmtdesc)
++{
++	struct isp_video_fh *vfh = to_isp_video_fh(fh);
++	struct isp_video *video = video_drvdata(file);
++
++	if (fmtdesc->index)
++		return -EINVAL;
++
++	if (fmtdesc->type != video->type)
++		return -EINVAL;
++
++	fmtdesc->flags = 0;
++	fmtdesc->description[0] = 0;
++
++	mutex_lock(&video->mutex);
++	fmtdesc->pixelformat = vfh->format.fmt.pix.pixelformat;
++	mutex_unlock(&video->mutex);
++
++	return 0;
++}
++
++static int
+ isp_video_set_format(struct file *file, void *fh, struct v4l2_format *format)
+ {
+ 	struct isp_video_fh *vfh = to_isp_video_fh(fh);
+@@ -1191,6 +1213,7 @@ isp_video_s_input(struct file *file, void *fh, unsigned int input)
+ 
+ static const struct v4l2_ioctl_ops isp_video_ioctl_ops = {
+ 	.vidioc_querycap		= isp_video_querycap,
++	.vidioc_enum_fmt_vid_cap	= isp_video_enum_format,
+ 	.vidioc_g_fmt_vid_cap		= isp_video_get_format,
+ 	.vidioc_s_fmt_vid_cap		= isp_video_set_format,
+ 	.vidioc_try_fmt_vid_cap		= isp_video_try_format,
+-- 
+1.7.4.1
 
-> Can we have a (hopefully short) irc discussion today? I'd really like to get this API
-> finalized.
 
-+1, I'm available the entire day (CET office hours + evening if needed that is)
-
-<snip snip>
-
-> So my current proposal is: use a bitfield in v4l2_frequency_band to describe possible
-> (de)modulators and add compat code to the v4l2-ioctl.c to automatically create a
-> vidioc_enum_freq_bands op if no such op was supplied, using the data from g_tuner or
-> g_modulator and which device node was used to fill in the fields.
-
-+1
-
-Regards,
-
-The other Hans :)
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
