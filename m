@@ -1,165 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm9-vm0.bullet.mail.ird.yahoo.com ([77.238.189.197]:38085 "HELO
-	nm9-vm0.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S932381Ab2GFLB2 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Jul 2012 07:01:28 -0400
-Message-ID: <1341572487.22318.YahooMailClassic@web29402.mail.ird.yahoo.com>
-Date: Fri, 6 Jul 2012 12:01:27 +0100 (BST)
-From: Hin-Tak Leung <hintak_leung@yahoo.co.uk>
-Subject: Re: media_build and Terratec Cinergy T Black.
-To: Antti Palosaari <crope@iki.fi>, mchehab@redhat.com
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <1341572070.43713.YahooMailClassic@web29402.mail.ird.yahoo.com>
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:29860 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751119Ab2GZNQJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Jul 2012 09:16:09 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] mt9v032: Provide link frequency control
+Date: Thu, 26 Jul 2012 15:16:04 +0200
+Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi
+References: <1343307416-23172-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1343307416-23172-1-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201207261516.04868.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-One more comment: blowing away /lib/modules/`uname -r`/kernel/drivers/ seems drastic?
-
-The compat-wireless people uses some clever tricks to get modprobe to preferentially load /lib/modules/`uname -r`/updates first. This way you can just remove that, run 'depmod -a' and go back to stock distro kernel behavior.
-
-Also it might be useful/quicker not to build the whole 500+ kernel modules...
-
---- On Fri, 6/7/12, Hin-Tak Leung <htl10@users.sourceforge.net> wrote:
-
-> From: Hin-Tak Leung <htl10@users.sourceforge.net>
-> Subject: media_build and Terratec Cinergy T Black.
-> To: "Antti Palosaari" <crope@iki.fi>, mchehab@redhat.com
-> Cc: linux-media@vger.kernel.org
-> Date: Friday, 6 July, 2012, 11:54
-> Firstly, the downloaded
-> linux-media.tar.bz2 has some simple typos, missing 3
-> brackets:
-> 
-> (please feel free to add my signed-off though this is
-> trivial).
-> 
-> -------------
+On Thu 26 July 2012 14:56:56 Laurent Pinchart wrote:
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 > ---
-> linux/drivers/media/video/v4l2-compat-ioctl32.c~   
-> 2012-07-06 04:45:17.000000000 +0100
-> +++
-> linux/drivers/media/video/v4l2-compat-ioctl32.c   
-> 2012-07-06 07:35:54.166512279 +0100
-> @@ -387,7 +387,7 @@
->         
-> get_user(kp->index, &up->index) ||
->          get_user(kp->type,
-> &up->type) ||
->         
-> get_user(kp->flags, &up->flags) ||
-> -       
-> get_user(kp->memory, &up->memory)
-> +       
-> get_user(kp->memory, &up->memory))
->             
-> return -EFAULT;
+>  drivers/media/video/mt9v032.c |   48 ++++++++++++++++++++++++++++++++++++----
+>  include/media/mt9v032.h       |    3 ++
+>  2 files changed, 46 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/video/mt9v032.c b/drivers/media/video/mt9v032.c
+> index 2203a6f..39217b8 100644
+> --- a/drivers/media/video/mt9v032.c
+> +++ b/drivers/media/video/mt9v032.c
+> @@ -29,6 +29,8 @@
+>  #define MT9V032_PIXEL_ARRAY_HEIGHT			492
+>  #define MT9V032_PIXEL_ARRAY_WIDTH			782
 >  
->      if (V4L2_TYPE_IS_OUTPUT(kp->type))
-> @@ -471,7 +471,7 @@
->         
-> put_user(kp->index, &up->index) ||
->          put_user(kp->type,
-> &up->type) ||
->         
-> put_user(kp->flags, &up->flags) ||
-> -       
-> put_user(kp->memory, &up->memory)
-> +       
-> put_user(kp->memory, &up->memory))
->             
-> return -EFAULT;
+> +#define MT9V032_SYSCLK_FREQ_DEF				26600000
+> +
+>  #define MT9V032_CHIP_VERSION				0x00
+>  #define		MT9V032_CHIP_ID_REV1			0x1311
+>  #define		MT9V032_CHIP_ID_REV3			0x1313
+> @@ -122,13 +124,18 @@ struct mt9v032 {
+>  	struct v4l2_mbus_framefmt format;
+>  	struct v4l2_rect crop;
 >  
->      if (put_user(kp->bytesused,
-> &up->bytesused) ||
-> @@ -481,7 +481,7 @@
->         
-> copy_to_user(&up->timecode, &kp->timecode,
-> sizeof(struct v4l2_timecode)) ||
->         
-> put_user(kp->sequence, &up->sequence) ||
->         
-> put_user(kp->reserved2, &up->reserved2) ||
-> -       
-> put_user(kp->reserved, &up->reserved)
-> +       
-> put_user(kp->reserved, &up->reserved))
->             
-> return -EFAULT;
+> -	struct v4l2_ctrl *pixel_rate;
+>  	struct v4l2_ctrl_handler ctrls;
+> +	struct {
+> +		struct v4l2_ctrl *link_freq;
+> +		struct v4l2_ctrl *pixel_rate;
+> +	};
 >  
->      if
-> (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
-> ------------
-> 
-> A few comments & issues:
-> 
-> - don't realy like the build script trying to clone
-> media_tree, etc had hard-coded remotes - if(0) out'ed the
-> whole git-on-the-fly block inside to make it use an existing
-> symlink'ed checkout - consider offering something similar?
-> 
-> - $ lsdvb seems to be doing garbage:(fedora 17's)
-> 
-> usb (-1975381336:62 64848224:32767) on PCI
-> Domain:-1965359032 Bus:62 Device:64848416 Function:32767
->     DEVICE:0 ADAPTER:0 FRONTEND:0 (Realtek
-> RTL2832 (DVB-T)) 
->          FE_OFDM
-> Fmin=174MHz Fmax=862MHz
-> 
-> lsdvb on mercury is only marginally better with the PCI
-> zero's, but the other numbers swapped:
-> 
-> usb (62:-1975379912 32767:-348245472) on PCI Domain:0 Bus:0
-> Device:0 Function:0
->     DEVICE:0 ADAPTER:0 FRONTEND:0 (Realtek
-> RTL2832 (DVB-T)) 
->          FE_OFDM
-> Fmin=174MHz Fmax=862MHz
-> 
-> - 'scandvb' segfault at the end on its own.
-> 
-> 
-> - "scandvb /usr/share/dvb/dvb-t/uk-SandyHeath" (supposedly
-> where I am) got a few "WARNING: >>> tuning
-> failed!!!" and no list.
-> 
-> - 'w_scan -G -c GB'
->   have a few curious
-> WARNING: received garbage data: crc = 0xcc93876c; expected
-> crc = 0xb81bb6c4
-> 
-> return a list of 26, with entries like (which seems to be
-> vaguely correct):
-> 
-> BBC
-> ONE;(null):522000:B8C23D0G32M64T8Y0:T:27500:101=2:102,106=eng:0:0:4173:9018:4173:0:100
-> 
-> So I just put it in ~/.mplayer:channels.conf
-> 
-> Took me a while to figure out that mplayer wants:
-> 
-> mplayer 'dvb://BBC ONE;(null)'
-> 
-> rather than anything else - curious about the ';(null)'
-> part.
-> 
-> --------
-> Playing dvb://BBC ONE;(null).
-> dvb_tune Freq: 522000
-> ERROR IN SETTING DMX_FILTER 9018 for fd 4: ERRNO: 22ERROR,
-> COULDN'T SET CHANNEL  8: Failed to open dvb://BBC
-> ONE;(null).
-> ----------
-> 
-> At this point I am lost :-).
-> 
-> 
-> 
-> 
-> 
-> 
+>  	struct mutex power_lock;
+>  	int power_count;
+>  
+>  	struct mt9v032_platform_data *pdata;
+> +
+> +	u32 sysclk;
+>  	u16 chip_control;
+>  	u16 aec_agc;
+>  };
+> @@ -196,7 +203,7 @@ static int mt9v032_power_on(struct mt9v032 *mt9v032)
+>  	int ret;
+>  
+>  	if (mt9v032->pdata->set_clock) {
+> -		mt9v032->pdata->set_clock(&mt9v032->subdev, EXT_CLK);
+> +		mt9v032->pdata->set_clock(&mt9v032->subdev, mt9v032->sysclk);
+>  		udelay(1);
+>  	}
+>  
+> @@ -374,7 +381,8 @@ static void mt9v032_configure_pixel_rate(struct mt9v032 *mt9v032,
+>  	struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
+>  	int ret;
+>  
+> -	ret = v4l2_ctrl_s_ctrl_int64(mt9v032->pixel_rate, EXT_CLK / hratio);
+> +	ret = v4l2_ctrl_s_ctrl_int64(mt9v032->pixel_rate,
+> +				     mt9v032->sysclk / hratio);
+>  	if (ret < 0)
+>  		dev_warn(&client->dev, "failed to set pixel rate (%d)\n", ret);
+>  }
+> @@ -487,6 +495,7 @@ static int mt9v032_s_ctrl(struct v4l2_ctrl *ctrl)
+>  	struct mt9v032 *mt9v032 =
+>  			container_of(ctrl->handler, struct mt9v032, ctrls);
+>  	struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
+> +	u32 freq;
+>  	u16 data;
+>  
+>  	switch (ctrl->id) {
+> @@ -505,6 +514,16 @@ static int mt9v032_s_ctrl(struct v4l2_ctrl *ctrl)
+>  		return mt9v032_write(client, MT9V032_TOTAL_SHUTTER_WIDTH,
+>  				     ctrl->val);
+>  
+> +	case V4L2_CID_PIXEL_RATE:
+> +	case V4L2_CID_LINK_FREQ:
+> +		if (mt9v032->link_freq == NULL)
+> +			break;
+> +
+> +		freq = mt9v032->pdata->link_freqs[mt9v032->link_freq->val];
+> +		mt9v032->pixel_rate->cur.val = freq;
+
+That should be 'mt9v032->pixel_rate->val = freq;'.
+
+It used to be cur.val some time ago, but that was changed. You never set cur.val
+anymore inside a s_ctrl handler.
+
+Regards,
+
+	Hans
+
+> +		mt9v032->sysclk = freq;
+> +		break;
+> +
+>  	case V4L2_CID_TEST_PATTERN:
+>  		switch (ctrl->val) {
+>  		case 0:
+> @@ -683,6 +702,7 @@ static const struct v4l2_subdev_internal_ops mt9v032_subdev_internal_ops = {
+>  static int mt9v032_probe(struct i2c_client *client,
+>  		const struct i2c_device_id *did)
+>  {
+> +	struct mt9v032_platform_data *pdata = client->dev.platform_data;
+>  	struct mt9v032 *mt9v032;
+>  	unsigned int i;
+>  	int ret;
+> @@ -699,9 +719,9 @@ static int mt9v032_probe(struct i2c_client *client,
+>  		return -ENOMEM;
+>  
+>  	mutex_init(&mt9v032->power_lock);
+> -	mt9v032->pdata = client->dev.platform_data;
+> +	mt9v032->pdata = pdata;
+>  
+> -	v4l2_ctrl_handler_init(&mt9v032->ctrls, ARRAY_SIZE(mt9v032_ctrls) + 5);
+> +	v4l2_ctrl_handler_init(&mt9v032->ctrls, ARRAY_SIZE(mt9v032_ctrls) + 6);
+>  
+>  	v4l2_ctrl_new_std(&mt9v032->ctrls, &mt9v032_ctrl_ops,
+>  			  V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
+> @@ -715,10 +735,27 @@ static int mt9v032_probe(struct i2c_client *client,
+>  			  V4L2_CID_EXPOSURE, MT9V032_TOTAL_SHUTTER_WIDTH_MIN,
+>  			  MT9V032_TOTAL_SHUTTER_WIDTH_MAX, 1,
+>  			  MT9V032_TOTAL_SHUTTER_WIDTH_DEF);
+> +
+>  	mt9v032->pixel_rate =
+>  		v4l2_ctrl_new_std(&mt9v032->ctrls, &mt9v032_ctrl_ops,
+>  				  V4L2_CID_PIXEL_RATE, 0, 0, 1, 0);
+>  
+> +	if (pdata && pdata->link_freqs) {
+> +		unsigned int def = 0;
+> +
+> +		for (i = 0; pdata->link_freqs[i]; ++i) {
+> +			if (pdata->link_freqs[i] == pdata->link_def_freq)
+> +				def = i;
+> +		}
+> +
+> +		mt9v032->link_freq =
+> +			v4l2_ctrl_new_int_menu(&mt9v032->ctrls,
+> +					       &mt9v032_ctrl_ops,
+> +					       V4L2_CID_LINK_FREQ, i - 1, def,
+> +					       pdata->link_freqs);
+> +		v4l2_ctrl_cluster(2, &mt9v032->link_freq);
+> +	}
+> +
+>  	for (i = 0; i < ARRAY_SIZE(mt9v032_ctrls); ++i)
+>  		v4l2_ctrl_new_custom(&mt9v032->ctrls, &mt9v032_ctrls[i], NULL);
+>  
+> @@ -740,6 +777,7 @@ static int mt9v032_probe(struct i2c_client *client,
+>  	mt9v032->format.colorspace = V4L2_COLORSPACE_SRGB;
+>  
+>  	mt9v032->aec_agc = MT9V032_AEC_ENABLE | MT9V032_AGC_ENABLE;
+> +	mt9v032->sysclk = MT9V032_SYSCLK_FREQ_DEF;
+>  
+>  	v4l2_i2c_subdev_init(&mt9v032->subdev, client, &mt9v032_subdev_ops);
+>  	mt9v032->subdev.internal_ops = &mt9v032_subdev_internal_ops;
+> diff --git a/include/media/mt9v032.h b/include/media/mt9v032.h
+> index 5e27f9b..78fd39e 100644
+> --- a/include/media/mt9v032.h
+> +++ b/include/media/mt9v032.h
+> @@ -7,6 +7,9 @@ struct mt9v032_platform_data {
+>  	unsigned int clk_pol:1;
+>  
+>  	void (*set_clock)(struct v4l2_subdev *subdev, unsigned int rate);
+> +
+> +	const s64 *link_freqs;
+> +	s64 link_def_freq;
+>  };
+>  
+>  #endif
 > 
