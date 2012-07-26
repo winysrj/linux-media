@@ -1,84 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:50465 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752029Ab2GNWgL (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:33121 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751999Ab2GZMGa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Jul 2012 18:36:11 -0400
-References: <CALzAhNVDnyjwNqcWDcgv2kgQ97Hr0gArk8=V_mL62J0cD0Ydag@mail.gmail.com>
-In-Reply-To: <CALzAhNVDnyjwNqcWDcgv2kgQ97Hr0gArk8=V_mL62J0cD0Ydag@mail.gmail.com>
+	Thu, 26 Jul 2012 08:06:30 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: Re: [PATCH for v3.6] v4l2-dev.c: Move video_put() after debug printk
+Date: Thu, 26 Jul 2012 14:06:26 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+References: <1343303944-2652-1-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1343303944-2652-1-git-send-email-elezegarcia@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: staging/for_v3.6 is currently broken
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Sat, 14 Jul 2012 18:36:07 -0400
-To: Steven Toth <stoth@kernellabs.com>,
-	Mauro Chehab <mchehab@infradead.org>
-CC: Linux-Media <linux-media@vger.kernel.org>
-Message-ID: <c8d61d57-0582-455b-9e24-7f1c5e6049c7@email.android.com>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201207261406.26725.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Steven Toth <stoth@kernellabs.com> wrote:
+On Thu 26 July 2012 13:59:04 Ezequiel Garcia wrote:
+> It is possible that video_put() releases video_device struct,
+> provoking a panic when debug printk wants to get video_device node name.
+> 
+> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
 
->Looks like the new union in v4l2_ioctl_info breaks things.
->
->-bash-4.1$ make -j6
->make[1]: Nothing to be done for `all'.
->  CHK     include/linux/version.h
->  CHK     include/generated/utsrelease.h
->  CALL    scripts/checksyscalls.sh
->  CHK     include/generated/compile.h
->  CC      drivers/media/video/v4l2-ioctl.o
->drivers/media/video/v4l2-ioctl.c:1848:517: error: unknown field ‘func’
->specified in initializer
->drivers/media/video/v4l2-ioctl.c:1848:517: warning: missing braces
->around initializer
->drivers/media/video/v4l2-ioctl.c:1848:517: warning: (near
->initialization for ‘v4l2_ioctls[0].<anonymous>’)
->drivers/media/video/v4l2-ioctl.c:1848:517: warning: initialization
->makes integer from pointer without a cast
->drivers/media/video/v4l2-ioctl.c:1849:644: error: unknown field ‘func’
->specified in initializer
->drivers/media/video/v4l2-ioctl.c:1849:644: warning: initialization
->makes integer from pointer without a cast
->
->Removing the union and the code compiles, although that probably
->wasn't the original authors intension.
->
->diff --git a/drivers/media/video/v4l2-ioctl.c
->b/drivers/media/video/v4l2-ioctl.c
->index 70e0efb..1f090c4 100644
->--- a/drivers/media/video/v4l2-ioctl.c
->+++ b/drivers/media/video/v4l2-ioctl.c
->@@ -1802,11 +1802,9 @@ struct v4l2_ioctl_info {
->        unsigned int ioctl;
->        u32 flags;
->        const char * const name;
->-       union {
->                u32 offset;
->                int (*func)(const struct v4l2_ioctl_ops *ops,
->                                struct file *file, void *fh, void *p);
->-       };
->        void (*debug)(const void *arg, bool write_only);
-> };
->
->FYI
->
->-- 
->Steven Toth - Kernel Labs
->http://www.kernellabs.com
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-
-I think Hans fixed it another way:
-
-http://www.spinics.net/lists/linux-media/msg50234.html
+Good catch!
 
 Regards,
-Andy
+
+	Hans
+
+> ---
+>  drivers/media/video/v4l2-dev.c |   12 ++++++------
+>  1 files changed, 6 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+> index af70f93..3210fd5 100644
+> --- a/drivers/media/video/v4l2-dev.c
+> +++ b/drivers/media/video/v4l2-dev.c
+> @@ -478,12 +478,12 @@ static int v4l2_open(struct inode *inode, struct file *filp)
+>  	}
+>  
+>  err:
+> -	/* decrease the refcount in case of an error */
+> -	if (ret)
+> -		video_put(vdev);
+>  	if (vdev->debug)
+>  		printk(KERN_DEBUG "%s: open (%d)\n",
+>  			video_device_node_name(vdev), ret);
+> +	/* decrease the refcount in case of an error */
+> +	if (ret)
+> +		video_put(vdev);
+>  	return ret;
+>  }
+>  
+> @@ -500,12 +500,12 @@ static int v4l2_release(struct inode *inode, struct file *filp)
+>  		if (test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags))
+>  			mutex_unlock(vdev->lock);
+>  	}
+> -	/* decrease the refcount unconditionally since the release()
+> -	   return value is ignored. */
+> -	video_put(vdev);
+>  	if (vdev->debug)
+>  		printk(KERN_DEBUG "%s: release\n",
+>  			video_device_node_name(vdev));
+> +	/* decrease the refcount unconditionally since the release()
+> +	   return value is ignored. */
+> +	video_put(vdev);
+>  	return ret;
+>  }
+>  
+> 
