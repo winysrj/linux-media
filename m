@@ -1,72 +1,60 @@
-Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
-Received: from mail.tu-berlin.de ([130.149.7.33])
-	by www.linuxtv.org with esmtp (Exim 4.72)
-	(envelope-from <sakthisam@gmail.com>) id 1SkTmq-0001rQ-Rs
-	for linux-dvb@linuxtv.org; Fri, 29 Jun 2012 07:30:57 +0200
-Received: from mail-lb0-f182.google.com ([209.85.217.182])
-	by mail.tu-berlin.de (exim-4.75/mailfrontend-4) with esmtps
-	[TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
-	id 1SkTmq-0000GS-BM; Fri, 29 Jun 2012 07:30:32 +0200
-Received: by lbon10 with SMTP id n10so4114602lbo.41
-	for <linux-dvb@linuxtv.org>; Thu, 28 Jun 2012 22:30:31 -0700 (PDT)
-MIME-Version: 1.0
-Date: Fri, 29 Jun 2012 11:00:31 +0530
-Message-ID: <CAEEcfUcdjcuoaWKSxAjFj-DwrxVQ8_d8U59M5wJyBmmEfmVGRA@mail.gmail.com>
-From: sam <sakthisam@gmail.com>
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] How to rectify PCR Jitter in multiplexer
-Reply-To: linux-media@vger.kernel.org
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0826585790=="
-Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
-List-ID: <linux-dvb@linuxtv.org>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:49924 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752428Ab2GZLUu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Jul 2012 07:20:50 -0400
+Received: by mail-we0-f174.google.com with SMTP id x8so1257392wey.19
+        for <linux-media@vger.kernel.org>; Thu, 26 Jul 2012 04:20:49 -0700 (PDT)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, fabio.estevam@freescale.com,
+	g.liakhovetski@gmx.de, sakari.ailus@maxwell.research.nokia.com,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	laurent.pinchart@ideasonboard.com, mchehab@infradead.org,
+	linux@arm.linux.org.uk, kernel@pengutronix.de,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH 1/4] i.MX27: Fix emma-prp and csi clocks.
+Date: Thu, 26 Jul 2012 13:20:34 +0200
+Message-Id: <1343301637-19676-2-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1343301637-19676-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1343301637-19676-1-git-send-email-javier.martin@vista-silicon.com>
+Sender: linux-media-owner@vger.kernel.org
+List-ID: <linux-media.vger.kernel.org>
 
---===============0826585790==
-Content-Type: multipart/alternative; boundary=f46d042c6b8d25f4cc04c395bf01
+Naming of emma-prp related clocks for the i.MX27 is not correct.
 
---f46d042c6b8d25f4cc04c395bf01
-Content-Type: text/plain; charset=ISO-8859-1
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+---
+ arch/arm/mach-imx/clk-imx27.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-*
-Hi All,
+diff --git a/arch/arm/mach-imx/clk-imx27.c b/arch/arm/mach-imx/clk-imx27.c
+index b1d343c..6e9cb02 100644
+--- a/arch/arm/mach-imx/clk-imx27.c
++++ b/arch/arm/mach-imx/clk-imx27.c
+@@ -223,7 +223,7 @@ int __init mx27_clocks_init(unsigned long fref)
+ 	clk_register_clkdev(clk[per3_gate], "per", "imx-fb.0");
+ 	clk_register_clkdev(clk[lcdc_ipg_gate], "ipg", "imx-fb.0");
+ 	clk_register_clkdev(clk[lcdc_ahb_gate], "ahb", "imx-fb.0");
+-	clk_register_clkdev(clk[csi_ahb_gate], NULL, "mx2-camera.0");
++	clk_register_clkdev(clk[csi_ahb_gate], "ahb", "mx2-camera.0");
+ 	clk_register_clkdev(clk[usb_div], "per", "fsl-usb2-udc");
+ 	clk_register_clkdev(clk[usb_ipg_gate], "ipg", "fsl-usb2-udc");
+ 	clk_register_clkdev(clk[usb_ahb_gate], "ahb", "fsl-usb2-udc");
+@@ -250,8 +250,10 @@ int __init mx27_clocks_init(unsigned long fref)
+ 	clk_register_clkdev(clk[i2c2_ipg_gate], NULL, "imx-i2c.1");
+ 	clk_register_clkdev(clk[owire_ipg_gate], NULL, "mxc_w1.0");
+ 	clk_register_clkdev(clk[kpp_ipg_gate], NULL, "imx-keypad");
+-	clk_register_clkdev(clk[emma_ahb_gate], "ahb", "imx-emma");
+-	clk_register_clkdev(clk[emma_ipg_gate], "ipg", "imx-emma");
++	clk_register_clkdev(clk[emma_ahb_gate], "emma-ahb", "mx2-camera.0");
++	clk_register_clkdev(clk[emma_ipg_gate], "emma-ipg", "mx2-camera.0");
++	clk_register_clkdev(clk[emma_ahb_gate], "ahb", "m2m-emmaprp.0");
++	clk_register_clkdev(clk[emma_ipg_gate], "ipg", "m2m-emmaprp.0");
+ 	clk_register_clkdev(clk[iim_ipg_gate], "iim", NULL);
+ 	clk_register_clkdev(clk[gpio_ipg_gate], "gpio", NULL);
+ 	clk_register_clkdev(clk[brom_ahb_gate], "brom", NULL);
+-- 
+1.7.9.5
 
-How to rectify PCR Jitter in multiplexer , I am using mplex software after
-muxing the TS , it was not able to play in any decoder like VLC Player , i
-felt PCR Jitter need to rectify , my muxer is x86 4 core processor , its
-not real time kernel or OS .
-
-Regards
-sakthi*
-
---f46d042c6b8d25f4cc04c395bf01
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-<i><br clear=3D"all">Hi All,<br><br>How to rectify PCR Jitter in multiplexe=
-r , I am using mplex software after muxing the TS , it was not able to play=
- in any decoder like VLC Player , i felt PCR Jitter need to rectify , my mu=
-xer is x86 4 core processor , its not real time kernel or OS .<br>
-<br>Regards<br>sakthi</i><br>
-
---f46d042c6b8d25f4cc04c395bf01--
-
-
---===============0826585790==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0826585790==--
