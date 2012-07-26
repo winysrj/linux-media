@@ -1,51 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52874 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751276Ab2GRNyE (ORCPT
+Received: from mail2.matrix-vision.com ([85.214.244.251]:45242 "EHLO
+	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752343Ab2GZL5K (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jul 2012 09:54:04 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH v3 4/9] ov772x: Don't access the device in the g_mbus_fmt operation
-Date: Wed, 18 Jul 2012 15:53:59 +0200
-Message-Id: <1342619644-5712-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1342619644-5712-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1342619644-5712-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Thu, 26 Jul 2012 07:57:10 -0400
+From: Michael Jones <michael.jones@matrix-vision.de>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: [RFC] omap3-isp G_FMT & ENUM_FMT
+Date: Thu, 26 Jul 2012 13:59:54 +0200
+Message-Id: <1343303996-16025-1-git-send-email-michael.jones@matrix-vision.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The g_mbus_fmt operation only needs to return the current mbus frame
-format and doesn't need to configure the hardware to do so. Fix it to
-avoid requiring the chip to be powered on when calling the operation.
+Hello,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/ov772x.c |    8 ++------
- 1 files changed, 2 insertions(+), 6 deletions(-)
+I would like to (re)submit a couple of patches to support V4L2 behavior at the
+V4L2 device nodes of the omap3-isp driver, but I'm guessing they require some
+discussion first.
 
-diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
-index 74e77d3..6d79b89 100644
---- a/drivers/media/video/ov772x.c
-+++ b/drivers/media/video/ov772x.c
-@@ -880,15 +880,11 @@ static int ov772x_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
- static int ov772x_g_fmt(struct v4l2_subdev *sd,
- 			struct v4l2_mbus_framefmt *mf)
- {
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
- 
- 	if (!priv->win || !priv->cfmt) {
--		u32 width = VGA_WIDTH, height = VGA_HEIGHT;
--		int ret = ov772x_set_params(client, &width, &height,
--					    V4L2_MBUS_FMT_YUYV8_2X8);
--		if (ret < 0)
--			return ret;
-+		priv->cfmt = &ov772x_cfmts[0];
-+		priv->win = ov772x_select_win(VGA_WIDTH, VGA_HEIGHT);
- 	}
- 
- 	mf->width	= priv->win->width;
+I've previously submitted one of them here [1] to support ENUM_FMT for the
+omap3-isp. This sparked some discussion, the result of which was that my patch
+probably made sense. Later [2], Laurent mentioned that there was some
+discussion/decision about adding "profiles" to the V4L2 specification, and the
+OMAP3 ISP would probably implement the "streaming" profile.  That was 7 months
+ago and I haven't seen any discussion of such profiles.  Can somebody bring me
+up to speed on this?
+
+The purpose of these two patches is for the V4L2 device nodes to support
+mandatory V4L2 ioctls G_FMT and ENUM_FMT, such that a pure V4L2 application,
+ignorant of the media controller, can still stream the images from the video
+nodes.  This presumes that the media controller would have been pre-configured.
+This approach is often seen on the mailing list using 'media-ctl' to configure
+the ISP, then 'yavta' to retrieve images.  Currently this works because yavta
+doesn't require ENUM_FMT (unlike Gstreamer), and only as long as one sets the
+same format with yavta as had already been set with media-ctl. I think yavta
+should be able to just do G_FMT to see what is configured.
+
+To be clear (as discussed in [1]), ENUM_FMT does not behave according to its
+original intent, because it cannot enumerate possible formats the ISP can
+deliver.  It will enumerate only one format: the one configured with the media
+controller.  In a sense this complies with the specification, because S_FMT
+wouldn't be able to change the format to anything else.
+
+I have tested these patches on v3.4, but I have rebased them to v3.5 here.
+I would remove the pr_debug() calls before submitting upstream, but they're
+useful for testing.
+
+[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg29640.html
+[2] http://www.mail-archive.com/linux-media@vger.kernel.org/msg40618.html
+
+Michael Jones (2):
+  [media] omap3isp: implement ENUM_FMT
+  [media] omap3isp: support G_FMT
+
+ drivers/media/video/omap3isp/ispvideo.c |   50 +++++++++++++++++++++++++++++++
+ 1 files changed, 50 insertions(+), 0 deletions(-)
+
 -- 
-1.7.8.6
+1.7.4.1
 
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
