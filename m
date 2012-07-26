@@ -1,42 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:33048 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756270Ab2GFOdj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 10:33:39 -0400
-Received: by gglu4 with SMTP id u4so8639493ggl.19
-        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2012 07:33:38 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38469 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751313Ab2GZAN2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Jul 2012 20:13:28 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: davinci-linux-open-source@linux.davincidsp.com
+Cc: "Hadli, Manjunath" <manjunath.hadli@ti.com>,
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Rob Landley <rob@landley.net>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] [media] davinci: vpfe: Add documentation
+Date: Thu, 26 Jul 2012 02:13:35 +0200
+Message-ID: <1481906.UllN3frJt5@avalon>
+In-Reply-To: <1918750.d6McV9yAhK@avalon>
+References: <1342021166-6092-1-git-send-email-manjunath.hadli@ti.com> <E99FAA59F8D8D34D8A118DD37F7C8F753E93ED8F@DBDE01.ent.ti.com> <1918750.d6McV9yAhK@avalon>
 MIME-Version: 1.0
-In-Reply-To: <CALF0-+X3=8kcyz30cqYAH7nunEZyKpvkq0gh70_TB-r-jbutig@mail.gmail.com>
-References: <1339509222-2714-1-git-send-email-elezegarcia@gmail.com>
-	<1339509222-2714-2-git-send-email-elezegarcia@gmail.com>
-	<4FF5C77C.7030500@redhat.com>
-	<CALF0-+XzNOiM+TA3rzY2NGSyXgFL8SuVU_yP0GTpcFMavQmNSg@mail.gmail.com>
-	<CALF0-+X3=8kcyz30cqYAH7nunEZyKpvkq0gh70_TB-r-jbutig@mail.gmail.com>
-Date: Fri, 6 Jul 2012 11:33:38 -0300
-Message-ID: <CALF0-+UqVy8PzgkNzqH3bdML1QWye+XMTx_-YrmnKGE0s_XepQ@mail.gmail.com>
-Subject: Re: [PATCH] em28xx: Remove useless runtime->private_data usage
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+Hi Manjunath,
 
-On Thu, Jul 5, 2012 at 2:22 PM, Ezequiel Garcia >> Are you sure that
-this can be removed? I think this is used internally
->> by the alsa API, but maybe something has changed and this is not
->> required anymore.
->
-> Yes, I'm sure.
->
+Please ignore the previous reply, I've hit the sent button too soon by 
+mistake.
 
-This should be: "I'm almost sure" :-)
-Anyway, probably the patch should have a more verbose commit
-message, right?
-
-Do you want to do drop it entirely?
-
+-- 
 Regards,
-Ezequiel.
+
+Laurent Pinchart
+
