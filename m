@@ -1,63 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:44028 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750910Ab2GCKG6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jul 2012 06:06:58 -0400
-Received: by gglu4 with SMTP id u4so5058798ggl.19
-        for <linux-media@vger.kernel.org>; Tue, 03 Jul 2012 03:06:57 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: andrzej.p@samsung.com, sachin.kamat@linaro.org,
-	mchehab@infradead.org, s.nawrocki@samsung.com, patches@linaro.org
-Subject: [PATCH 1/1] [media] s5p-jpeg: Use module_platform_driver in jpeg-core.c file
-Date: Tue,  3 Jul 2012 15:24:33 +0530
-Message-Id: <1341309273-1279-1-git-send-email-sachin.kamat@linaro.org>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:57342 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752465Ab2GZLNp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Jul 2012 07:13:45 -0400
+Received: by mail-yw0-f46.google.com with SMTP id m54so1795176yhm.19
+        for <linux-media@vger.kernel.org>; Thu, 26 Jul 2012 04:13:44 -0700 (PDT)
+From: Hideki EIRAKU <hdk@igel.co.jp>
+To: Russell King <linux@arm.linux.org.uk>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	alsa-devel@alsa-project.org, Katsuya MATSUBARA <matsu@igel.co.jp>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v2 2/4] ALSA: pcm - Don't define ARCH_HAS_DMA_MMAP_COHERENT privately for ARM
+Date: Thu, 26 Jul 2012 20:13:09 +0900
+Message-Id: <1343301191-26001-3-git-send-email-hdk@igel.co.jp>
+In-Reply-To: <1343301191-26001-1-git-send-email-hdk@igel.co.jp>
+References: <1343301191-26001-1-git-send-email-hdk@igel.co.jp>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-module_platform_driver makes the code simpler by eliminating module_init
-and module_exit calls.
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+The ARM architecture now defines ARCH_HAS_DMA_MMAP_COHERENT, there's no
+need to define it privately anymore.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/video/s5p-jpeg/jpeg-core.c |   24 +-----------------------
- 1 files changed, 1 insertions(+), 23 deletions(-)
+ sound/core/pcm_native.c |    7 -------
+ 1 files changed, 0 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/video/s5p-jpeg/jpeg-core.c b/drivers/media/video/s5p-jpeg/jpeg-core.c
-index 28b5225d..e40e79b 100644
---- a/drivers/media/video/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/video/s5p-jpeg/jpeg-core.c
-@@ -1503,29 +1503,7 @@ static struct platform_driver s5p_jpeg_driver = {
- 	},
+diff --git a/sound/core/pcm_native.c b/sound/core/pcm_native.c
+index 53b5ada..84ead60 100644
+--- a/sound/core/pcm_native.c
++++ b/sound/core/pcm_native.c
+@@ -3156,13 +3156,6 @@ static const struct vm_operations_struct snd_pcm_vm_ops_data_fault = {
+ 	.fault =	snd_pcm_mmap_data_fault,
  };
  
--static int __init
--s5p_jpeg_register(void)
--{
--	int ret;
+-#ifndef ARCH_HAS_DMA_MMAP_COHERENT
+-/* This should be defined / handled globally! */
+-#ifdef CONFIG_ARM
+-#define ARCH_HAS_DMA_MMAP_COHERENT
+-#endif
+-#endif
 -
--	pr_info("S5P JPEG V4L2 Driver, (c) 2011 Samsung Electronics\n");
--
--	ret = platform_driver_register(&s5p_jpeg_driver);
--
--	if (ret)
--		pr_err("%s: failed to register jpeg driver\n", __func__);
--
--	return ret;
--}
--
--static void __exit
--s5p_jpeg_unregister(void)
--{
--	platform_driver_unregister(&s5p_jpeg_driver);
--}
--
--module_init(s5p_jpeg_register);
--module_exit(s5p_jpeg_unregister);
-+module_platform_driver(s5p_jpeg_driver);
- 
- MODULE_AUTHOR("Andrzej Pietrasiewicz <andrzej.p@samsung.com>");
- MODULE_DESCRIPTION("Samsung JPEG codec driver");
+ /*
+  * mmap the DMA buffer on RAM
+  */
 -- 
-1.7.4.1
+1.7.0.4
 
