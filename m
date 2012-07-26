@@ -1,43 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:62397 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755379Ab2GLLkT (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:39194 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752428Ab2GZLUy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jul 2012 07:40:19 -0400
-Received: by pbbrp8 with SMTP id rp8so3611891pbb.19
-        for <linux-media@vger.kernel.org>; Thu, 12 Jul 2012 04:40:18 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
+	Thu, 26 Jul 2012 07:20:54 -0400
+Received: by mail-wg0-f44.google.com with SMTP id dr13so1708544wgb.1
+        for <linux-media@vger.kernel.org>; Thu, 26 Jul 2012 04:20:53 -0700 (PDT)
+From: Javier Martin <javier.martin@vista-silicon.com>
 To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, hans.verkuil@cisco.com,
-	sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH] [media] videobuf-dma-contig: Use NULL instead of plain integer
-Date: Thu, 12 Jul 2012 17:09:50 +0530
-Message-Id: <1342093190-18597-1-git-send-email-sachin.kamat@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, fabio.estevam@freescale.com,
+	g.liakhovetski@gmx.de, sakari.ailus@maxwell.research.nokia.com,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	laurent.pinchart@ideasonboard.com, mchehab@infradead.org,
+	linux@arm.linux.org.uk, kernel@pengutronix.de,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH 3/4] Schedule removal of i.MX25 support in mx2_camera.c
+Date: Thu, 26 Jul 2012 13:20:36 +0200
+Message-Id: <1343301637-19676-4-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1343301637-19676-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1343301637-19676-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes the following sparse warning:
-drivers/media/video/videobuf-dma-contig.c:59:46:
-warning: Using plain integer as NULL pointer
+Support for i.MX25 in mx2_camera.c has been broken
+for a year. Furthermore, i.MX25 video capture HW
+doesn't have much in common with i.MX27. A separate
+driver would be desirable.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
 ---
- drivers/media/video/videobuf-dma-contig.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ Documentation/feature-removal-schedule.txt |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/media/video/videobuf-dma-contig.c b/drivers/media/video/videobuf-dma-contig.c
-index 9b9a06f..a5af8b4 100644
---- a/drivers/media/video/videobuf-dma-contig.c
-+++ b/drivers/media/video/videobuf-dma-contig.c
-@@ -56,7 +56,7 @@ static int __videobuf_dc_alloc(struct device *dev,
- 				dev_err(dev, "dma_map_single failed\n");
+diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
+index 56000b3..6c50a17 100644
+--- a/Documentation/feature-removal-schedule.txt
++++ b/Documentation/feature-removal-schedule.txt
+@@ -6,6 +6,15 @@ be removed from this file.  The suggested deprecation period is 3 releases.
  
- 				free_pages_exact(mem->vaddr, mem->size);
--				mem->vaddr = 0;
-+				mem->vaddr = NULL;
- 				return err;
- 			}
- 		}
+ ---------------------------
+ 
++What:	support for i.mx25 in mx2_camera.c
++When:	v3.8
++Why:	it's been broken for a year. Furthermore, i.MX25 video capture
++	HW doesn't have much in common with i.MX27. A separate driver
++	will be needed for it.
++Who:	Javier Martin<javier.martin@vista-silicon.com>
++
++---------------------------
++
+ What:	ddebug_query="query" boot cmdline param
+ When:	v3.8
+ Why:	obsoleted by dyndbg="query" and module.dyndbg="query"
 -- 
-1.7.4.1
+1.7.9.5
 
