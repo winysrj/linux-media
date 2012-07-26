@@ -1,69 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:39747 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753067Ab2GRIfu (ORCPT
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:59240 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752388Ab2GZL7R (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jul 2012 04:35:50 -0400
-Subject: Re: [PATCH v3] media: coda: Add driver for Coda video codec.
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
-	mchehab@infradead.org, s.hauer@pengutronix.de
-In-Reply-To: <CACKLOr3rOPgwMCRdj3ARR+0655Qp=BfEXq0TsB7TU-hO4NSsqg@mail.gmail.com>
-References: <1342077100-8629-1-git-send-email-javier.martin@vista-silicon.com>
-	 <1342459273.2535.665.camel@pizza.hi.pengutronix.de>
-	 <CACKLOr3rOPgwMCRdj3ARR+0655Qp=BfEXq0TsB7TU-hO4NSsqg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 18 Jul 2012 10:35:46 +0200
-Message-ID: <1342600546.2542.101.camel@pizza.hi.pengutronix.de>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Thu, 26 Jul 2012 07:59:17 -0400
+Received: by ghrr11 with SMTP id r11so1849047ghr.19
+        for <linux-media@vger.kernel.org>; Thu, 26 Jul 2012 04:59:16 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, <linux-media@vger.kernel.org>,
+	Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: [PATCH for v3.6] v4l2-dev.c: Move video_put() after debug printk
+Date: Thu, 26 Jul 2012 08:59:04 -0300
+Message-Id: <1343303944-2652-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+It is possible that video_put() releases video_device struct,
+provoking a panic when debug printk wants to get video_device node name.
 
-Am Mittwoch, den 18.07.2012, 09:12 +0200 schrieb javier Martin:
-[...]
-> > I see there is a comment about the expected register setting not working
-> > for CODA_REG_BIT_STREAM_CTRL in start_streaming(). Could this be
-> > related?
-> 
-> I don't think so. This means that the following line:
-> 
-> coda_write(dev, (3 << 3), CODA_REG_BIT_STREAM_CTRL);
-> 
-> should be:
-> 
-> coda_write(dev, (CODADX6_STREAM_BUF_PIC_RESET |
-> CODADX6_STREAM_BUF_PIC_FLUSH), CODA_REG_BIT_STREAM_CTRL);
-> 
-> But the latter does not work.
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/media/video/v4l2-dev.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-Looks to me like (3 << 3) == (CODA7_STREAM_BUF_PIC_RESET |
-CODA7_STREAM_BUF_PIC_FLUSH) could be the explanation.
-
-Maybe the documentation about CODADX6_STREAM_BUF_PIC_RESET |
-CODADX6_STREAM_BUF_PIC_FLUSH was outdated?
-
-> > Also, I've missed two problems with platform device removal and module
-> > autoloading before, see below.
-> 
-> Fine.
-[...]
-> I will send a new v4 with the 'platform' and 'bytesused' issues fixed.
-> Regarding your i.MX53 problems I suppose they should be addressed
-> conditionally in a patch on top of this one where i.MX53 support is
-> added too.
-> What do you think?
-
-Agreed. After fixing the issues in vidioc_try_fmt, MODULE_DEVICE_TABLE,
-and coda_remove, feel free to add a
-Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
-
-regards
-Philipp
-
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index af70f93..3210fd5 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -478,12 +478,12 @@ static int v4l2_open(struct inode *inode, struct file *filp)
+ 	}
+ 
+ err:
+-	/* decrease the refcount in case of an error */
+-	if (ret)
+-		video_put(vdev);
+ 	if (vdev->debug)
+ 		printk(KERN_DEBUG "%s: open (%d)\n",
+ 			video_device_node_name(vdev), ret);
++	/* decrease the refcount in case of an error */
++	if (ret)
++		video_put(vdev);
+ 	return ret;
+ }
+ 
+@@ -500,12 +500,12 @@ static int v4l2_release(struct inode *inode, struct file *filp)
+ 		if (test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags))
+ 			mutex_unlock(vdev->lock);
+ 	}
+-	/* decrease the refcount unconditionally since the release()
+-	   return value is ignored. */
+-	video_put(vdev);
+ 	if (vdev->debug)
+ 		printk(KERN_DEBUG "%s: release\n",
+ 			video_device_node_name(vdev));
++	/* decrease the refcount unconditionally since the release()
++	   return value is ignored. */
++	video_put(vdev);
+ 	return ret;
+ }
+ 
+-- 
+1.7.4.4
 
