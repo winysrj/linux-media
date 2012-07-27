@@ -1,223 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:51489 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750801Ab2GZEPS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jul 2012 00:15:18 -0400
-Received: by vbbff1 with SMTP id ff1so1279321vbb.19
-        for <linux-media@vger.kernel.org>; Wed, 25 Jul 2012 21:15:17 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <50105A67.9010709@gmail.com>
-References: <1343219191-3969-1-git-send-email-shaik.ameer@samsung.com>
-	<1343219191-3969-2-git-send-email-shaik.ameer@samsung.com>
-	<50105A67.9010709@gmail.com>
-Date: Thu, 26 Jul 2012 09:45:17 +0530
-Message-ID: <CAOD6ATq=_mr1tEvC0_aVzHzcb-6DJXFytBhNiT+Gn+1XFTXiXw@mail.gmail.com>
-Subject: Re: [PATCH v3 1/5] v4l: Add new YVU420 multi planar fourcc definition
-From: Shaik Ameer Basha <shaik.samsung@gmail.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>,
-	linux-media@vger.kernel.org, sungchun.kang@samsung.com,
-	khw0178.kim@samsung.com, mchehab@infradead.org,
-	laurent.pinchart@ideasonboard.com, sy0816.kang@samsung.com,
-	s.nawrocki@samsung.com, posciak@google.com, alim.akhtar@gmail.com,
-	prashanth.g@samsung.com, joshi@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail.tpi.com ([70.99.223.143]:1228 "EHLO mail.tpi.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751131Ab2G0Qov (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Jul 2012 12:44:51 -0400
+From: Tim Gardner <tim.gardner@canonical.com>
+To: linux-kernel@vger.kernel.org
+Cc: Tim Gardner <tim.gardner@canonical.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
+Subject: [PATCH v3] cx18: Declare MODULE_FIRMWARE usage
+Date: Fri, 27 Jul 2012 10:45:21 -0600
+Message-Id: <1343407521-45720-1-git-send-email-tim.gardner@canonical.com>
+In-Reply-To: <1343340453.2575.10.camel@palomino.walls.org>
+References: <1343340453.2575.10.camel@palomino.walls.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 26, 2012 at 2:13 AM, Sylwester Nawrocki
-<sylvester.nawrocki@gmail.com> wrote:
-> Hi Shaik,
->
->
-> On 07/25/2012 02:26 PM, Shaik Ameer Basha wrote:
->>
->> This patch adds the following new fourcc definition.
->> For multiplanar YCrCb
->>          - V4L2_PIX_FMT_YVU420M - 'YVUM'
->>
->> Signed-off-by: Shaik Ameer Basha<shaik.ameer@samsung.com>
->> ---
->>   Documentation/DocBook/media/v4l/pixfmt-yuv420m.xml |   97
->> +++++++++++++++++---
->
->
-> Can you please add a new xml file for this new format, rather than
-> modifying this one ? I think it would be more clear this way.
->
+Cc: Andy Walls <awalls@md.metrocast.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: ivtv-devel@ivtvdriver.org
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
+---
+ drivers/media/video/cx18/cx18-av-firmware.c |    2 ++
+ drivers/media/video/cx18/cx18-driver.c      |    1 +
+ drivers/media/video/cx18/cx18-dvb.c         |    6 +++++-
+ drivers/media/video/cx18/cx18-firmware.c    |   10 ++++++++--
+ 4 files changed, 16 insertions(+), 3 deletions(-)
 
-Ok. No problem. I can create a new xml file for this format..
+diff --git a/drivers/media/video/cx18/cx18-av-firmware.c b/drivers/media/video/cx18/cx18-av-firmware.c
+index 280aa4d..a34fd08 100644
+--- a/drivers/media/video/cx18/cx18-av-firmware.c
++++ b/drivers/media/video/cx18/cx18-av-firmware.c
+@@ -221,3 +221,5 @@ int cx18_av_loadfw(struct cx18 *cx)
+ 	release_firmware(fw);
+ 	return 0;
+ }
++
++MODULE_FIRMWARE(FWFILE);
+diff --git a/drivers/media/video/cx18/cx18-driver.c b/drivers/media/video/cx18/cx18-driver.c
+index 7e5ffd6..c67733d 100644
+--- a/drivers/media/video/cx18/cx18-driver.c
++++ b/drivers/media/video/cx18/cx18-driver.c
+@@ -1357,3 +1357,4 @@ static void __exit module_cleanup(void)
+ 
+ module_init(module_start);
+ module_exit(module_cleanup);
++MODULE_FIRMWARE(XC2028_DEFAULT_FIRMWARE);
+diff --git a/drivers/media/video/cx18/cx18-dvb.c b/drivers/media/video/cx18/cx18-dvb.c
+index f41922b..3eac59c 100644
+--- a/drivers/media/video/cx18/cx18-dvb.c
++++ b/drivers/media/video/cx18/cx18-dvb.c
+@@ -40,6 +40,8 @@
+ 
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ 
++#define FWFILE "dvb-cx18-mpc718-mt352.fw"
++
+ #define CX18_REG_DMUX_NUM_PORT_0_CONTROL 0xd5a000
+ #define CX18_CLOCK_ENABLE2		 0xc71024
+ #define CX18_DMUX_CLK_MASK		 0x0080
+@@ -135,7 +137,7 @@ static int yuan_mpc718_mt352_reqfw(struct cx18_stream *stream,
+ 				   const struct firmware **fw)
+ {
+ 	struct cx18 *cx = stream->cx;
+-	const char *fn = "dvb-cx18-mpc718-mt352.fw";
++	const char *fn = FWFILE;
+ 	int ret;
+ 
+ 	ret = request_firmware(fw, fn, &cx->pci_dev->dev);
+@@ -603,3 +605,5 @@ static int dvb_register(struct cx18_stream *stream)
+ 
+ 	return ret;
+ }
++
++MODULE_FIRMWARE(FWFILE);
+diff --git a/drivers/media/video/cx18/cx18-firmware.c b/drivers/media/video/cx18/cx18-firmware.c
+index b85c292..a1c1cec 100644
+--- a/drivers/media/video/cx18/cx18-firmware.c
++++ b/drivers/media/video/cx18/cx18-firmware.c
+@@ -376,6 +376,9 @@ void cx18_init_memory(struct cx18 *cx)
+ 	cx18_write_reg(cx, 0x00000101, CX18_WMB_CLIENT14);  /* AVO */
+ }
+ 
++#define CX18_CPU_FIRMWARE "v4l-cx23418-cpu.fw"
++#define CX18_APU_FIRMWARE "v4l-cx23418-apu.fw"
++
+ int cx18_firmware_init(struct cx18 *cx)
+ {
+ 	u32 fw_entry_addr;
+@@ -400,7 +403,7 @@ int cx18_firmware_init(struct cx18 *cx)
+ 	cx18_sw1_irq_enable(cx, IRQ_CPU_TO_EPU | IRQ_APU_TO_EPU);
+ 	cx18_sw2_irq_enable(cx, IRQ_CPU_TO_EPU_ACK | IRQ_APU_TO_EPU_ACK);
+ 
+-	sz = load_cpu_fw_direct("v4l-cx23418-cpu.fw", cx->enc_mem, cx);
++	sz = load_cpu_fw_direct(CX18_CPU_FIRMWARE, cx->enc_mem, cx);
+ 	if (sz <= 0)
+ 		return sz;
+ 
+@@ -408,7 +411,7 @@ int cx18_firmware_init(struct cx18 *cx)
+ 	cx18_init_scb(cx);
+ 
+ 	fw_entry_addr = 0;
+-	sz = load_apu_fw_direct("v4l-cx23418-apu.fw", cx->enc_mem, cx,
++	sz = load_apu_fw_direct(CX18_APU_FIRMWARE, cx->enc_mem, cx,
+ 				&fw_entry_addr);
+ 	if (sz <= 0)
+ 		return sz;
+@@ -451,3 +454,6 @@ int cx18_firmware_init(struct cx18 *cx)
+ 	cx18_write_reg_expect(cx, 0x14001400, 0xc78110, 0x00001400, 0x14001400);
+ 	return 0;
+ }
++
++MODULE_FIRMWARE(CX18_CPU_FIRMWARE);
++MODULE_FIRMWARE(CX18_APU_FIRMWARE);
+-- 
+1.7.9.5
 
->>   include/linux/videodev2.h                          |    1 +
->>   2 files changed, 84 insertions(+), 14 deletions(-)
->>
->> diff --git a/Documentation/DocBook/media/v4l/pixfmt-yuv420m.xml
->> b/Documentation/DocBook/media/v4l/pixfmt-yuv420m.xml
->> index 60308f1..9fc9a2e 100644
->> --- a/Documentation/DocBook/media/v4l/pixfmt-yuv420m.xml
->> +++ b/Documentation/DocBook/media/v4l/pixfmt-yuv420m.xml
->> @@ -1,12 +1,14 @@
->> -<refentry id="V4L2-PIX-FMT-YUV420M">
->> +<refentry>
->>         <refmeta>
->> -       <refentrytitle>V4L2_PIX_FMT_YUV420M ('YM12')</refentrytitle>
->> +       <refentrytitle>V4L2_PIX_FMT_YUV420M ('YM12'), V4L2_PIX_FMT_YVU420M
->> ('YMUM')</refentrytitle>
->>         &manvol;
->>         </refmeta>
->>         <refnamediv>
->> -       <refname>  <constant>V4L2_PIX_FMT_YUV420M</constant></refname>
->> -       <refpurpose>Variation of<constant>V4L2_PIX_FMT_YUV420</constant>
->> -         with planes non contiguous in memory.</refpurpose>
->> +       <refname
->> id="V4L2_PIX_FMT_YUV420M"><constant>V4L2_PIX_FMT_YUV420M</constant></refname>
->> +       <refname
->> id="V4L2_PIX_FMT_YVU420M"><constant>V4L2_PIX_FMT_YVU420M</constant></refname>
->> +       <refpurpose>Variation of<constant>V4L2_PIX_FMT_YUV420</constant>,
->> +       <constant>V4L2_PIX_FMT_YVU420</constant>  respectively with planes
->> non contiguous in memory.
->> +               </refpurpose>
->>         </refnamediv>
->>
->>         <refsect1>
->> @@ -16,29 +18,34 @@
->>   The three components are separated into three sub- images or planes.
->>
->>   The Y plane is first. The Y plane has one byte per pixel. The Cb data
->> -constitutes the second plane which is half the width and half
->> -the height of the Y plane (and of the image). Each Cb belongs to four
->> +constitutes the second plane for<constant>V4L2_PIX_FMT_YUV420M</constant>
->> format
->> +and the third plane for<constant>V4L2_PIX_FMT_YVU420M</constant>  format,
->> +which is half the width and half the height of the Y plane (and of the
->> image).
->> +Each Cb belongs to four
->>   pixels, a two-by-two square of the image. For example,
->>   Cb<subscript>0</subscript>  belongs to Y'<subscript>00</subscript>,
->>   Y'<subscript>01</subscript>, Y'<subscript>10</subscript>, and
->> -Y'<subscript>11</subscript>. The Cr data, just like the Cb plane, is
->> -in the third plane.</para>
->> +Y'<subscript>11</subscript>. The Cr data, just like the Cb data,
->> constitutes
->> +the third plane for<constant>V4L2_PIX_FMT_YUV420M</constant>  format and
->> +the second plane for<constant>V4L2_PIX_FMT_YVU420M</constant>
->> format.</para>
->>
->>         <para>If the Y plane has pad bytes after each row, then the Cb
->>   and Cr planes have half as many pad bytes after their rows. In other
->> -words, two Cx rows (including padding) is exactly as long as one Y row
->> +words, two Cx rows (including padding) are exactly as long as one Y row
->>   (including padding).</para>
->>
->> -       <para><constant>V4L2_PIX_FMT_NV12M</constant>  is intended to be
->> +       <para><constant>V4L2_PIX_FMT_YUV420M</constant>,
->> +<constant>V4L2_PIX_FMT_YVU420M</constant>  are intended to be
->>   used only in drivers and applications that support the multi-planar API,
->>   described in<xref linkend="planar-apis"/>.</para>
->>
->>         <example>
->> -       <title><constant>V4L2_PIX_FMT_YVU420M</constant>  4&times; 4
->>
->> -pixel image</title>
->> +       <title><constant>V4L2_PIX_FMT_YUV420M</constant>,
->> +               <constant>V4L2_PIX_FMT_YVU420M</constant>  4&times; 4
->>
->> +               pixel image</title>
->>
->>         <formalpara>
->> -       <title>Byte Order.</title>
->> +       <title>Byte Order for V4L2_PIX_FMT_YUV420M.</title>
->>         <para>Each cell is one byte.
->>                 <informaltable frame="none">
->>                 <tgroup cols="5" align="center">
->> @@ -101,6 +108,68 @@ pixel image</title>
->>         </formalpara>
->>
->>         <formalpara>
->> +       <title>Byte Order for V4L2_PIX_FMT_YVU420M.</title>
->> +       <para>Each cell is one byte.
->> +               <informaltable frame="none">
->> +               <tgroup cols="5" align="center">
->> +               <colspec align="left" colwidth="2*" />
->> +               <tbody valign="top">
->> +               <row>
->> +               <entry>start0&nbsp;+&nbsp;0:</entry>
->> +               <entry>Y'<subscript>00</subscript></entry>
->> +               <entry>Y'<subscript>01</subscript></entry>
->> +               <entry>Y'<subscript>02</subscript></entry>
->> +               <entry>Y'<subscript>03</subscript></entry>
->> +               </row>
->> +               <row>
->> +               <entry>start0&nbsp;+&nbsp;4:</entry>
->> +               <entry>Y'<subscript>10</subscript></entry>
->> +               <entry>Y'<subscript>11</subscript></entry>
->> +               <entry>Y'<subscript>12</subscript></entry>
->> +               <entry>Y'<subscript>13</subscript></entry>
->> +               </row>
->> +               <row>
->> +               <entry>start0&nbsp;+&nbsp;8:</entry>
->> +               <entry>Y'<subscript>20</subscript></entry>
->> +               <entry>Y'<subscript>21</subscript></entry>
->> +               <entry>Y'<subscript>22</subscript></entry>
->> +               <entry>Y'<subscript>23</subscript></entry>
->> +               </row>
->> +               <row>
->> +               <entry>start0&nbsp;+&nbsp;12:</entry>
->> +               <entry>Y'<subscript>30</subscript></entry>
->> +               <entry>Y'<subscript>31</subscript></entry>
->> +               <entry>Y'<subscript>32</subscript></entry>
->> +               <entry>Y'<subscript>33</subscript></entry>
->> +               </row>
->> +               <row><entry></entry></row>
->> +               <row>
->> +               <entry>start1&nbsp;+&nbsp;0:</entry>
->> +               <entry>Cr<subscript>00</subscript></entry>
->> +               <entry>Cr<subscript>01</subscript></entry>
->> +               </row>
->> +               <row>
->> +               <entry>start1&nbsp;+&nbsp;2:</entry>
->> +               <entry>Cr<subscript>10</subscript></entry>
->> +               <entry>Cr<subscript>11</subscript></entry>
->> +               </row>
->> +               <row><entry></entry></row>
->> +               <row>
->> +               <entry>start2&nbsp;+&nbsp;0:</entry>
->> +               <entry>Cb<subscript>00</subscript></entry>
->> +               <entry>Cb<subscript>01</subscript></entry>
->> +               </row>
->> +               <row>
->> +               <entry>start2&nbsp;+&nbsp;2:</entry>
->> +               <entry>Cb<subscript>10</subscript></entry>
->> +               <entry>Cb<subscript>11</subscript></entry>
->> +               </row>
->> +               </tbody>
->> +               </tgroup>
->> +               </informaltable>
->> +       </para>
->> +       </formalpara>
->> +       <formalpara>
->>         <title>Color Sample Location.</title>
->>         <para>
->>                 <informaltable frame="none">
->> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
->> index dbf9d3a..80962b8 100644
->> --- a/include/linux/videodev2.h
->> +++ b/include/linux/videodev2.h
->> @@ -365,6 +365,7 @@ struct v4l2_pix_format {
->>
->>   /* three non contiguous planes - Y, Cb, Cr */
->>   #define V4L2_PIX_FMT_YUV420M v4l2_fourcc('Y', 'M', '1', '2') /* 12
->> YUV420 planar */
->> +#define V4L2_PIX_FMT_YVU420M v4l2_fourcc('Y', 'V', 'U', 'M') /* 12
->> YVU420 planar */
->>
->>   /* Bayer formats - see http://www.siliconimaging.com/RGB%20Bayer.htm */
->>   #define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B', 'A', '8', '1') /*  8
->> BGBG.. GRGR.. */
->
->
-> --
->
-> Thanks,
-> Sylwester
