@@ -1,133 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.meprolight.com ([194.90.149.17]:51263 "EHLO meprolight.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753026Ab2GaTUE convert rfc822-to-8bit (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:60504 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751200Ab2G0K7b (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 15:20:04 -0400
-From: Alex Gershgorin <alexg@meprolight.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"m.szyprowski@samsung.com" <m.szyprowski@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 31 Jul 2012 22:20:16 +0300
-Subject: RE: [PATCH] media: mx3_camera: buf_init() add buffer state check
-Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B2E31A0CA1B@MEP-EXCH.meprolight.com>
-References: <1343675227-9061-1-git-send-email-alexg@meprolight.com>,<Pine.LNX.4.64.1207310838110.27888@axis700.grange>
-	<4875438356E7CA4A8F2145FCD3E61C0B2E31A0CA18@MEP-EXCH.meprolight.com>,<Pine.LNX.4.64.1207311239030.27888@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1207311239030.27888@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Fri, 27 Jul 2012 06:59:31 -0400
+From: Prabhakar Lad <prabhakar.lad@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v7 2/2] v4l2: add new pixel formats supported on dm365
+Date: Fri, 27 Jul 2012 16:25:05 +0530
+Message-ID: <1343386505-8695-3-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1343386505-8695-1-git-send-email-prabhakar.lad@ti.com>
+References: <1343386505-8695-1-git-send-email-prabhakar.lad@ti.com>
 MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Manjunath Hadli <manjunath.hadli@ti.com>
 
+add new macro V4L2_PIX_FMT_SGRBG10ALAW8 and associated formats
+to represent Bayer format frames compressed by A-LAW algorithm,
+add V4L2_PIX_FMT_UV8 to represent storage of CbCr data (UV interleaved)
+only.
 
- > Hi Guennadi,
->
-> > On Mon, 30 Jul 2012, Alex Gershgorin wrote:
->
-> > This patch check the state of the buffer when calling buf_init() method.
-> > The thread http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/48587
-> > also includes report witch can show the problem. This patch solved the problem.
-> > Both MMAP and USERPTR methods was successfully tested.
-> >
-> > Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
-> > ---
-> >  drivers/media/video/mx3_camera.c |   12 +++++++-----
-> >  1 files changed, 7 insertions(+), 5 deletions(-)
-> >
-> > diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
-> > index f13643d..950a8fe 100644
-> > --- a/drivers/media/video/mx3_camera.c
-> > +++ b/drivers/media/video/mx3_camera.c
-> > @@ -405,13 +405,15 @@ static int mx3_videobuf_init(struct vb2_buffer *vb)
->
-> >> Sorry, don't understand. As we see in the thread, mentioned above, the
-> >> Oops happened in mx3_videobuf_release(). If my analysis was correct in
-> >> that thread, that Oops happened, when .buf_cleanup() was called without
-> >> .buf_init() being called. This your patch modifies mx3_videobuf_init().
-> >> which isn't even called in the problem case. How does this help?
->
-> Sorry for not quite a clear explanation, I will explain in more details.
-> if you divide the report into two parts:
-> 1) USERPTR method Oops happened as a result discontiguous memory allocation
-> 2) USERPTR method use framebuffer memory allocation video starting, but after a few seconds the video freezes.
->     if we consider the first part of the report, your analysis is absolutely
->    correct and unfortunately this patch does not solve the problems mentioned in the thread.
->    This patch solves a problem that is described in the second part of the report.
-
-> > Ok, I understand now what this patch fixes, but I still don't understand
-> > what the problem is and how this patch fixes it. AFAICS, there should be
-> > nothing wrong with calling mx3_videobuf_init() each time a buffer gets
-> > queued. 
-
-I only see the problem when the user implements USERPTR method :-)
-
-> > I suspect, it's just one of those 4 lines of code, that you put
-> > under "if (buf->state != CSI_BUF_PREPARED)", that breaks it. Could you
-
-I think the best way to make sure this solves the problem is to test it, and that is what I did :-) 
-
-> > please try to find out which exactly line it is? Just try to use your "if
-> > (...)" with each of them separately. My guess goes for
-
-        > > buf->state = CSI_BUF_NEEDS_INIT;
-
-> > but it would help if you could verify it.
-
-mx3_camera uses slave dma API of the dmaengine. 
-In MMAP and USERPTR methods, the buffer which had been prepared already 
-have a descriptor for transaction and does not need additional descriptor.
-If user implement  MMAP method,  there is no problem  because mx3_videobuf_init() happens at REQBUFS time
-and we have only one descriptor for transaction per video buffer.
- 
-As you mentioned, In case of USERPTR method mx3_videobuf_init() happens at QBUF time.
-In my opinion there are two problems:
- 
-1) During QBUF there is no need to get a new descriptor for the transaction if it has been already obtained.
- 
-2) The second problem derives from the first as the number of descriptors for each channel is limited and very quickly
-    we reach the maximum permitted number of descriptors. As a results of that, the video freezes.
-
-This patch solves the two problems.
-
-Regards,
-
-Alex
-  
-> >       struct mx3_camera_dev *mx3_cam = ici->priv;
-> >       struct mx3_camera_buffer *buf = to_mx3_vb(vb);
-> >
-> > -     /* This is for locking debugging only */
-> > -     INIT_LIST_HEAD(&buf->queue);
-> > -     sg_init_table(&buf->sg, 1);
-> > +     if (buf->state != CSI_BUF_PREPARED) {
-> > +             /* This is for locking debugging only */
-> > +             INIT_LIST_HEAD(&buf->queue);
-> > +             sg_init_table(&buf->sg, 1);
-> >
-> > -     buf->state = CSI_BUF_NEEDS_INIT;
-> > +             buf->state = CSI_BUF_NEEDS_INIT;
-> >
-> > -     mx3_cam->buf_total += vb2_plane_size(vb, 0);
-> > +             mx3_cam->buf_total += vb2_plane_size(vb, 0);
-> > +     }
-> >
-> >       return 0;
-> >  }
-> > --
-> > 1.7.0.4
-> >
->
-> Regards,
-> Alex
->
-
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ .../DocBook/media/v4l/pixfmt-srggb10alaw8.xml      |   34 +++++++++++
+ Documentation/DocBook/media/v4l/pixfmt-uv8.xml     |   62 ++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |    2 +
+ include/linux/videodev2.h                          |    8 +++
+ 4 files changed, 106 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-uv8.xml
+
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
+new file mode 100644
+index 0000000..c934192
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
+@@ -0,0 +1,34 @@
++	<refentry>
++	  <refmeta>
++	    <refentrytitle>
++	      V4L2_PIX_FMT_SBGGR10ALAW8 ('aBA8'),
++	      V4L2_PIX_FMT_SGBRG10ALAW8 ('aGA8'),
++	      V4L2_PIX_FMT_SGRBG10ALAW8 ('agA8'),
++	      V4L2_PIX_FMT_SRGGB10ALAW8 ('aRA8'),
++	    </refentrytitle>
++	    &manvol;
++	  </refmeta>
++	  <refnamediv>
++	    <refname id="V4L2-PIX-FMT-SBGGR10ALAW8">
++	      <constant>V4L2_PIX_FMT_SBGGR10ALAW8</constant>
++	    </refname>
++	    <refname id="V4L2-PIX-FMT-SGBRG10ALAW8">
++	      <constant>V4L2_PIX_FMT_SGBRG10ALAW8</constant>
++	    </refname>
++	    <refname id="V4L2-PIX-FMT-SGRBG10ALAW8">
++	      <constant>V4L2_PIX_FMT_SGRBG10ALAW8</constant>
++	    </refname>
++	    <refname id="V4L2-PIX-FMT-SRGGB10ALAW8">
++	      <constant>V4L2_PIX_FMT_SRGGB10ALAW8</constant>
++	    </refname>
++	    <refpurpose>10-bit Bayer formats compressed to 8 bits</refpurpose>
++	  </refnamediv>
++	  <refsect1>
++	    <title>Description</title>
++	    <para>The following four pixel formats are raw sRGB / Bayer
++	    formats with 10 bits per color compressed to 8 bits each,
++	    using the A-LAW algorithm. Each color component consumes 8
++	    bits of memory. In other respects this format is similar to
++	    <xref linkend="V4L2-PIX-FMT-SRGGB8">.</xref></para>
++	  </refsect1>
++	</refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-uv8.xml b/Documentation/DocBook/media/v4l/pixfmt-uv8.xml
+new file mode 100644
+index 0000000..c507c1f
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-uv8.xml
+@@ -0,0 +1,62 @@
++	<refentry id="V4L2-PIX-FMT-UV8">
++	  <refmeta>
++	    <refentrytitle>V4L2_PIX_FMT_UV8  ('UV8')</refentrytitle>
++	    &manvol;
++	  </refmeta>
++	  <refnamediv>
++	    <refname><constant>V4L2_PIX_FMT_UV8</constant></refname>
++	    <refpurpose>UV plane interleaved</refpurpose>
++	  </refnamediv>
++	  <refsect1>
++	    <title>Description</title>
++	    <para>In this format there is no Y plane, Only CbCr plane. ie
++	    (UV interleaved)</para>
++	    <example>
++	    <title>
++	      <constant>V4L2_PIX_FMT_UV8</constant>
++	       pixel image
++	    </title>
++
++	    <formalpara>
++	      <title>Byte Order.</title>
++	      <para>Each cell is one byte.
++	        <informaltable frame="none">
++	        <tgroup cols="5" align="center">
++		  <colspec align="left" colwidth="2*" />
++		  <tbody valign="top">
++		    <row>
++		      <entry>start&nbsp;+&nbsp;0:</entry>
++		      <entry>Cb<subscript>00</subscript></entry>
++		      <entry>Cr<subscript>00</subscript></entry>
++		      <entry>Cb<subscript>01</subscript></entry>
++		      <entry>Cr<subscript>01</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;4:</entry>
++		      <entry>Cb<subscript>10</subscript></entry>
++		      <entry>Cr<subscript>10</subscript></entry>
++		      <entry>Cb<subscript>11</subscript></entry>
++		      <entry>Cr<subscript>11</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;8:</entry>
++		      <entry>Cb<subscript>20</subscript></entry>
++		      <entry>Cr<subscript>20</subscript></entry>
++		      <entry>Cb<subscript>21</subscript></entry>
++		      <entry>Cr<subscript>21</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;12:</entry>
++		      <entry>Cb<subscript>30</subscript></entry>
++		      <entry>Cr<subscript>30</subscript></entry>
++		      <entry>Cb<subscript>31</subscript></entry>
++		      <entry>Cr<subscript>31</subscript></entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	      </formalpara>
++	    </example>
++	  </refsect1>
++	</refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index e58934c..930f55d 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -673,6 +673,7 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
+     &sub-srggb8;
+     &sub-sbggr16;
+     &sub-srggb10;
++    &sub-srggb10alaw8;
+     &sub-srggb10dpcm8;
+     &sub-srggb12;
+   </section>
+@@ -701,6 +702,7 @@ information.</para>
+     &sub-y12;
+     &sub-y10b;
+     &sub-y16;
++    &sub-uv8;
+     &sub-yuyv;
+     &sub-uyvy;
+     &sub-yvyu;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 5d78910..2cdf2c1 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -329,6 +329,9 @@ struct v4l2_pix_format {
+ /* Palette formats */
+ #define V4L2_PIX_FMT_PAL8    v4l2_fourcc('P', 'A', 'L', '8') /*  8  8-bit palette */
+ 
++/* Chrominance formats */
++#define V4L2_PIX_FMT_UV8      v4l2_fourcc('U', 'V', '8', ' ') /*  8  UV 4:4 */
++
+ /* Luminance+Chrominance formats */
+ #define V4L2_PIX_FMT_YVU410  v4l2_fourcc('Y', 'V', 'U', '9') /*  9  YVU 4:1:0     */
+ #define V4L2_PIX_FMT_YVU420  v4l2_fourcc('Y', 'V', '1', '2') /* 12  YVU 4:2:0     */
+@@ -378,6 +381,11 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_SGBRG12 v4l2_fourcc('G', 'B', '1', '2') /* 12  GBGB.. RGRG.. */
+ #define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
+ #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
++	/* 10bit raw bayer a-law compressed to 8 bits */
++#define V4L2_PIX_FMT_SBGGR10ALAW8 v4l2_fourcc('a', 'B', 'A', '8')
++#define V4L2_PIX_FMT_SGBRG10ALAW8 v4l2_fourcc('a', 'G', 'A', '8')
++#define V4L2_PIX_FMT_SGRBG10ALAW8 v4l2_fourcc('a', 'g', 'A', '8')
++#define V4L2_PIX_FMT_SRGGB10ALAW8 v4l2_fourcc('a', 'R', 'A', '8')
+ 	/* 10bit raw bayer DPCM compressed to 8 bits */
+ #define V4L2_PIX_FMT_SBGGR10DPCM8 v4l2_fourcc('b', 'B', 'A', '8')
+ #define V4L2_PIX_FMT_SGBRG10DPCM8 v4l2_fourcc('b', 'G', 'A', '8')
+-- 
+1.7.0.4
+
