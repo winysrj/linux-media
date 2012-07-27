@@ -1,76 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:58359 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933561Ab2GFLqE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 07:46:04 -0400
-Received: by wgbdr13 with SMTP id dr13so9242852wgb.1
-        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2012 04:46:02 -0700 (PDT)
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54003 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752430Ab2G0WBa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Jul 2012 18:01:30 -0400
+Date: Sat, 28 Jul 2012 01:01:24 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Prabhakar Lad <prabhakar.lad@ti.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v7 1/2] media: add new mediabus format enums for dm365
+Message-ID: <20120727220124.GC26642@valkosipuli.retiisi.org.uk>
+References: <1343386505-8695-1-git-send-email-prabhakar.lad@ti.com>
+ <1343386505-8695-2-git-send-email-prabhakar.lad@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1207061338170.29809@axis700.grange>
-References: <1338543105-20322-1-git-send-email-javier.martin@vista-silicon.com>
-	<CACKLOr0J1JjpCMRf4toJ5uBMDAFZT8VGdFuX6MpUpxpNaAO_SA@mail.gmail.com>
-	<Pine.LNX.4.64.1207061308300.29809@axis700.grange>
-	<CACKLOr0nwKoO4UL9MKZJmD9WN1uyJhpNzAybd7w7x-GnLtM5cw@mail.gmail.com>
-	<Pine.LNX.4.64.1207061338170.29809@axis700.grange>
-Date: Fri, 6 Jul 2012 13:46:02 +0200
-Message-ID: <CACKLOr1RKcwEqt9E90wbf5peB08erb7nOo+KVQ7m87BbsDJhbA@mail.gmail.com>
-Subject: Re: [PATCH v3][for_v3.5] media: mx2_camera: Fix mbus format handling
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	fabio.estevam@freescale.com, mchehab@infradead.org,
-	kernel@pengutronix.de
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1343386505-8695-2-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Prabhakar,
 
-On 6 July 2012 13:39, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> On Fri, 6 Jul 2012, javier Martin wrote:
->
->> Hi Guennadi,
->>
->> On 6 July 2012 13:09, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
->> > On Fri, 6 Jul 2012, javier Martin wrote:
->> >
->> >> Hi,
->> >> can this patch be applied please?
->> >>
->> >> It solves a BUG for 3.5. Guennadi, Fabio, could you give me an ack for this?
->> >
->> > Sorry? This patch has been applied and proven to break more, than it
->> > fixed, so, it has been reverted. Am I missing something?
->>
->> Patch v1 was the version that broke pass-through mode (which nobody
->> seems to be using/testing). It was applied, then it was reverted as
->> you requested in [1].
->>
->> Then I sent v2 that didn't break pass-through but was invalid too
->> because of a merge conflict [2].
->>
->> Finally, this is v3 which has the pass-through problem and the merge
->> problem fixed. It is currently marked as "Under review" and should be
->> applied as a fix to 3.5.
->
-> Ah, ok, then, don't you think, that expecting your patch to be applied
-> within 4 minutes of its submission is a bit... overoptimistic? Because
-> it's 4 minutes after your original patch, that you've sent your
-> "reminder"...
+Thanks for the patch, and my apologies for delayed answer!
 
-This patch was sent on '2012-06-01 09:31:45', which is more than a
-month ago. Look at patchwork:
-http://patchwork.linuxtv.org/patch/11559/
+On Fri, Jul 27, 2012 at 04:25:04PM +0530, Prabhakar Lad wrote:
+> From: Manjunath Hadli <manjunath.hadli@ti.com>
+> 
+> add new enum entries for supporting the media-bus formats on dm365.
+> These include some bayer and some non-bayer formats.
+> V4L2_MBUS_FMT_YDYUYDYV8_1X16 and V4L2_MBUS_FMT_UV8_1X8 are used
+> internal to the hardware by the resizer.
+> V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8 represents the bayer ALAW format
+> that is supported by dm365 hardware.
+> 
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+>  Documentation/DocBook/media/v4l/subdev-formats.xml |  250 +++++++++++++++++++-
+>  include/linux/v4l2-mediabus.h                      |   10 +-
+>  2 files changed, 252 insertions(+), 8 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+> index 49c532e..75dc275 100644
+> --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
+> +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+> @@ -353,9 +353,9 @@
+>  	<listitem><para>The number of bits per pixel component. All components are
+>  	transferred on the same number of bits. Common values are 8, 10 and 12.</para>
+>  	</listitem>
+> -	<listitem><para>If the pixel components are DPCM-compressed, a mention of the
+> -	DPCM compression and the number of bits per compressed pixel component.</para>
+> -	</listitem>
+> +	<listitem><para>The compression (optional). If the pixel components are
+> +	ALAW- or DPCM-compressed, a mention of the compression scheme and the
+> +	number of bits per compressed pixel component.</para></listitem>
+>  	<listitem><para>The number of bus samples per pixel. Pixels that are wider than
+>  	the bus width must be transferred in multiple samples. Common values are
+>  	1 and 2.</para></listitem>
+> @@ -504,6 +504,74 @@
+>  	      <entry>r<subscript>1</subscript></entry>
+>  	      <entry>r<subscript>0</subscript></entry>
+>  	    </row>
+> +	    <row id="V4L2-MBUS-FMT-SBGGR10-ALAW8-1X8">
+> +	      <entry>V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8</entry>
+> +	      <entry>0x3015</entry>
+> +	      <entry></entry>
+> +	      <entry>-</entry>
+> +	      <entry>-</entry>
+> +	      <entry>-</entry>
+> +	      <entry>-</entry>
+> +	      <entry>b<subscript>7</subscript></entry>
+> +	      <entry>b<subscript>6</subscript></entry>
+> +	      <entry>b<subscript>5</subscript></entry>
+> +	      <entry>b<subscript>4</subscript></entry>
+> +	      <entry>b<subscript>3</subscript></entry>
+> +	      <entry>b<subscript>2</subscript></entry>
+> +	      <entry>b<subscript>1</subscript></entry>
+> +	      <entry>b<subscript>0</subscript></entry>
+> +	    </row>
+> +	    <row id="V4L2-MBUS-FMT-SGBRG10-ALAW8-1X8">
+> +	      <entry>V4L2_MBUS_FMT_SGBRG10_ALAW8_1X8</entry>
+> +	      <entry>0x3016</entry>
+> +	      <entry></entry>
+> +	      <entry>-</entry>
+> +	      <entry>-</entry>
+> +	      <entry>-</entry>
+> +	      <entry>-</entry>
+> +	      <entry>g<subscript>7</subscript></entry>
+> +	      <entry>g<subscript>6</subscript></entry>
+> +	      <entry>g<subscript>5</subscript></entry>
+> +	      <entry>g<subscript>4</subscript></entry>
+> +	      <entry>g<subscript>3</subscript></entry>
+> +	      <entry>g<subscript>2</subscript></entry>
+> +	      <entry>g<subscript>1</subscript></entry>
+> +	      <entry>g<subscript>0</subscript></entry>
+> +	    </row>
+> +	    <row id="V4L2-MBUS-FMT-SGRBG10-ALAW8-1X8">
+> +	      <entry>V4L2_MBUS_FMT_SGRBG10_ALAW8_1X8</entry>
+> +	      <entry>0x3017</entry>
+> +	      <entry></entry>
+> +	      <entry>-</entry>
+> +	      <entry>-</entry>
+> +	      <entry>-</entry>
+> +	      <entry>-</entry>
+> +	      <entry>g<subscript>7</subscript></entry>
+> +	      <entry>g<subscript>6</subscript></entry>
+> +	      <entry>g<subscript>5</subscript></entry>
+> +	      <entry>g<subscript>4</subscript></entry>
+> +	      <entry>g<subscript>3</subscript></entry>
+> +	      <entry>g<subscript>2</subscript></entry>
+> +	      <entry>g<subscript>1</subscript></entry>
+> +	      <entry>g<subscript>0</subscript></entry>
+> +	    </row>
+> +	    <row id="V4L2-MBUS-FMT-SRGGB10-ALAW8-1X8">
+> +	      <entry>V4L2_MBUS_FMT_SRGGB10_ALAW8_1X8</entry>
+> +	      <entry>0x3018</entry>
+> +	      <entry></entry>
+> +	      <entry>-</entry>
+> +	      <entry>-</entry>
+> +	      <entry>-</entry>
+> +	      <entry>-</entry>
+> +	      <entry>r<subscript>7</subscript></entry>
+> +	      <entry>r<subscript>6</subscript></entry>
+> +	      <entry>r<subscript>5</subscript></entry>
+> +	      <entry>r<subscript>4</subscript></entry>
+> +	      <entry>r<subscript>3</subscript></entry>
+> +	      <entry>r<subscript>2</subscript></entry>
+> +	      <entry>r<subscript>1</subscript></entry>
+> +	      <entry>r<subscript>0</subscript></entry>
+> +	    </row>
+>  	    <row id="V4L2-MBUS-FMT-SBGGR10-DPCM8-1X8">
+>  	      <entry>V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8</entry>
+>  	      <entry>0x300b</entry>
+> @@ -853,10 +921,16 @@
+>        <title>Packed YUV Formats</title>
+>  
+>        <para>Those data formats transfer pixel data as (possibly downsampled) Y, U
+> -      and V components. The format code is made of the following information.
+> +      and V components. Some formats include dummy bits in some of their samples
+> +      and are collectively referred to as "YDYC" (Y-Dummy-Y-Chroma) formats.
+> +      One cannot rely on the values of these dummy bits as those are undefined.
+> +      </para>
+> +      <para>The format code is made of the following information.
+>        <itemizedlist>
+>  	<listitem><para>The Y, U and V components order code, as transferred on the
+> -	bus. Possible values are YUYV, UYVY, YVYU and VYUY.</para></listitem>
+> +	bus. Possible values are YUYV, UYVY, YVYU and VYUY for formats with no
+> +	dummy bit, and YDYUYDYV, YDYVYDYU, YUYDYVYD and YVYDYUYD for YDYC formats.
+> +	</para></listitem>
+>  	<listitem><para>The number of bits per pixel component. All components are
+>  	transferred on the same number of bits. Common values are 8, 10 and 12.</para>
+>  	</listitem>
 
-I think that a month is a reasonable period to send a reminder and I
-didn't mean to offend anyone with it.
+I dicussed dummy vs. padding (zeros) with Laurent and we concluded we should
+use zero padding instead. The difference is that when processing the pixels
+no extra operations are necessary to get rid of the dummy data when the
+dummy bits are actually zero --- which in practice always is the case.
 
-Regards.
+I'm not aware of hardware that would assign padding bits (in this very
+purpose) that are a part of writes the width of bus width something else
+than zeros. It wouldn't make much sense either.
+
+So I suggest that dummy is replaced by padding which is defined to be zero.
+
+The letter in the format name could be 'Z', for example.
+
+Hans: what do you think?
+
+Kind regards,
+
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
