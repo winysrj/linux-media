@@ -1,184 +1,218 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60067 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33460 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757494Ab2GFOe5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 10:34:57 -0400
+	with ESMTP id S1751082Ab2G0L0a (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Jul 2012 07:26:30 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 04/10] ov772x: Don't fail in s_fmt if the requested format isn't supported
-Date: Fri,  6 Jul 2012 16:34:55 +0200
-Message-Id: <1341585301-1003-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1341585301-1003-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1341585301-1003-1-git-send-email-laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Magnus Damm <magnus.damm@gmail.com>
+Subject: Re: [RFC] media DT bindings
+Date: Fri, 27 Jul 2012 13:26:36 +0200
+Message-ID: <9953438.iWQJfHsCs4@avalon>
+In-Reply-To: <201207172137.05928.hverkuil@xs4all.nl>
+References: <Pine.LNX.4.64.1207110854290.18999@axis700.grange> <201207172137.05928.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Select a default format instead.
+Hi Hans,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/ov772x.c |   83 ++++++++++++++++++++++--------------------
- 1 files changed, 43 insertions(+), 40 deletions(-)
+On Tuesday 17 July 2012 21:37:05 Hans Verkuil wrote:
+> On Wed July 11 2012 16:27:52 Guennadi Liakhovetski wrote:
+> > Hi all
+> > 
+> > Background
+> > ==========
+> > 
+> > With ARM adoption of flat Device Trees a need arises to move platform
+> > device descriptions and their data from platform files to DT. This has
+> > also to be done for media devices, e.g., video capture and output
+> > interfaces, data processing devices, camera sensors, TV decoders and
+> > encoders. This RFC is trying to spawn a discussion to define standard V4L
+> > DT bindings. The first version will concentrate on the capture path,
+> > mostly taking care of simple capture-interface - camera sensor / TV
+> > decoder configurations. Since the author is not working intensively yet
+> > with the Media Controller API, pad-level configuration, these topics might
+> > be underrepresented in this RFC. I hope others, actively working in these
+> > areas, will fill me in on them.
+> > 
+> > Overview
+> > ========
+> > 
+> > As mentioned above, typical configurations, that we'll be dealing with
+> > consist of a DMA data capture engine, one or more data sources like camera
+> > sensors, possibly some data processing units. Data capture and processing
+> > engines are usually platform devices, whereas data source devices are
+> > typically I2C slaves. Apart from defining each device we'll also describe
+> > connections between them as well as properties of those connections.
+> > 
+> > Capture devices
+> > ==============================
+> > 
+> > These are usually platform devices, integrated into respective SoCs. There
+> > also exist external image processing devices, but they are rare. Obvious
+> > differences between them and integrated devices include a different bus
+> > attribution and a need to explicitly describe the connection to the SoC.
+> > As far as capture devices are concerned, their configuration will
+> > typically include a few device-specific bindings, as well as standard
+> > ones. Standard bindings will include the usual "reg," "interrupts,"
+> > "clock-frequency" properties.
+> > 
+> > It is more complex to describe external links. We need to describe
+> > configurations, used with various devices, attached to various pads. It is
+> > proposed to describe such links as child nodes. Each such link will
+> > reference a client pad, a local pad and specify the bus configuration. The
+> > media bus can be either parallel or serial, e.g., MIPI CSI-2. It is
+> > proposed to describe both the bus-width in the parallel case and the
+> > number of lanes in the serial case, using the standard "bus-width"
+> > property.
+> > 
+> > On the parallel bus common properties include signal polarities, possibly
+> > data line shift (8 if lines 15:8 are used, 2 if 9:2, and 0 if lines 7:0),
+> > protocol (e.g., BT.656). Additionally device-specific properties can be
+> > defined.
+> > 
+> > A MIPI CSI-2 bus common properties would include, apart from the number of
+> > lanes, routed to that client, the clock frequency, a channel number,
+> > possibly CRC and ECC flags.
+> > 
+> > An sh-mobile CEU DT node could look like
+> > 
+> > 	ceu0@0xfe910000 = {
+> > 	
+> > 		compatible = "renesas,sh-mobile-ceu";
+> > 		reg = <0xfe910000 0xa0>;
+> > 		interrupts = <0x880>;
+> > 		bus-width = <16>;		/* #lines routed on the board */
+> > 		clock-frequency = <50000000>;	/* max clock */
+> > 		#address-cells = <1>;
+> > 		#size-cells = <0>;
+> > 		...
+> > 		ov772x-1 = {
+> > 		
+> > 			reg = <0>;
+> > 			client = <&ov772x@0x21-0>;
+> > 			local-pad = "parallel-sink";
+> > 			remote-pad = "parallel-source";
+> > 			bus-width = <8>;	/* used data lines */
+> > 			data-shift = <0>;	/* lines 7:0 are used */
+> > 			hsync-active = <1>;	/* active high */
+> > 			vsync-active = <1>;	/* active high */
+> > 			pclk-sample = <1>;	/* rising */
+> > 			clock-frequency = <24000000>;
+> > 		
+> > 		};
+> > 	
+> > 	};
+> > 
+> > Client devices
+> > ==============
+> > 
+> > Client nodes are children on their respective busses, e.g., i2c. This
+> > placement leads to these devices being possibly probed before respective
+> > host interfaces, which will fail due to known reasons. Therefore client
+> > drivers have to be adapted to request a delayed probing, as long as the
+> > respective video host hasn't probed.
+> > 
+> > Client nodes will include all the properties, usual for their busses.
+> > Additionally they will specify properties private to this device type and
+> > common for all V4L2 client devices - device global and per-link. I think,
+> > we should make it possible to define client devices, that can at run-time
+> > be connected to different sinks, even though such configurations might not
+> > be very frequent. To achieve this we also specify link information in
+> > child devices, similar to those in host nodes above. This also helps
+> > uniformity and will let us implement and use a universal link-binding
+> > parser. So, a node, that has been referenced above could look like
+> > 
+> > 	ov772x@0x21-0 = {
+> > 	
+> > 		compatible = "omnivision,ov772x";
+> > 		reg = <0x21>;
+> > 		vdd-supply = <&regulator>;
+> > 		bus-width = <10>;
+> > 		#address-cells = <1>;
+> > 		#size-cells = <0>;
+> > 		...
+> > 		ceu0-1 = {
+> > 		
+> > 			reg = <0>;
+> > 			media-parent = <&ceu0@0xfe910000>;
+> > 			bus-width = <8>;
+> > 			hsync-active = <1>;
+> > 			vsync-active = <0>;	/* who came up with an inverter here?... 
+*/
+> > 			pclk-sample = <1>;
+> > 		
+> > 		};
+> > 	
+> > 	};
+> > 
+> > Data processors
+> > ===============
+> > 
+> > Data processing modules include resizers, codecs, rotators, serialisers,
+> > etc. A node for an sh-mobile CSI-2 subdevice could look like
+> > 
+> > 	csi2@0xffc90000 = {
+> > 	
+> > 		compatible = "renesas,sh-mobile-csi2";
+> > 		reg = <0xffc90000 0x1000>;
+> > 		interrupts = <0x17a0>;
+> > 		bus-width = <4>;
+> > 		clock-frequency = <30000000>;
+> > 		...
+> > 		imx074-1 = {
+> > 		
+> > 			client = <&imx074@0x1a-0>;
+> > 			local-pad = "csi2-sink";
+> > 			remote-pad = "csi2-source";
+> > 			bus-width = <2>;
+> > 			clock-frequency = <25000000>;
+> > 			csi2-crc;
+> > 			csi2-ecc;
+> > 			sh-csi2,phy = <0>;
+> > 		
+> > 		};
+> > 		ceu0 = {
+> > 		
+> > 			media-parent = <&ceu0@0xfe910000>;
+> > 			immutable;
+> > 		
+> > 		};
+> > 	
+> > 	};
+> > 
+> > The respective child binding in the CEU node could then look like
+> > 
+> > 		csi2-1 = {
+> > 		
+> > 			reg = <1>;
+> > 			client = <&csi2@0xffc90000>;
+> > 			immutable;
+> > 		
+> > 		};
+> > 
+> > Comments welcome.
+> 
+> One thing that is missing, but that is quite important is that the
+> information from ENUMINPUT/ENUMOUTPUT needs to be part of the device tree
+> as well, since that is generally completely board specific. See for example
+> how the davinci vpif_capture.c and vpif_display.c do that now using
+> platform data. This would be solved much more elegantly using the device
+> tree.
+> 
+> This tends not to feature much when dealing with sensors, but any video
+> receiver or transmitter will need this.
 
-diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
-index 576780a..fcb338a 100644
---- a/drivers/media/video/ov772x.c
-+++ b/drivers/media/video/ov772x.c
-@@ -581,31 +581,33 @@ static const struct ov772x_win_size *ov772x_select_win(u32 width, u32 height)
- 	return win;
- }
- 
--static int ov772x_set_params(struct i2c_client *client, u32 *width, u32 *height,
--			     enum v4l2_mbus_pixelcode code)
-+static void ov772x_select_params(const struct v4l2_mbus_framefmt *mf,
-+				 const struct ov772x_color_format **cfmt,
-+				 const struct ov772x_win_size **win)
- {
--	struct ov772x_priv *priv = to_ov772x(client);
--	int ret = -EINVAL;
--	u8  val;
--	int i;
-+	unsigned int i;
-+
-+	/* Select the format format. */
-+	*cfmt = &ov772x_cfmts[0];
- 
--	/*
--	 * select format
--	 */
--	priv->cfmt = NULL;
- 	for (i = 0; i < ARRAY_SIZE(ov772x_cfmts); i++) {
--		if (code == ov772x_cfmts[i].code) {
--			priv->cfmt = ov772x_cfmts + i;
-+		if (mf->code == ov772x_cfmts[i].code) {
-+			*cfmt = &ov772x_cfmts[i];
- 			break;
- 		}
- 	}
--	if (!priv->cfmt)
--		goto ov772x_set_fmt_error;
- 
--	/*
--	 * select win
--	 */
--	priv->win = ov772x_select_win(*width, *height);
-+	/* Select the window size. */
-+	*win = ov772x_select_win(mf->width, mf->height);
-+}
-+
-+static int ov772x_set_params(struct ov772x_priv *priv,
-+			     const struct ov772x_color_format *cfmt,
-+			     const struct ov772x_win_size *win)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
-+	int ret;
-+	u8  val;
- 
- 	/*
- 	 * reset hardware
-@@ -662,14 +664,14 @@ static int ov772x_set_params(struct i2c_client *client, u32 *width, u32 *height,
- 	/*
- 	 * set size format
- 	 */
--	ret = ov772x_write_array(client, priv->win->regs);
-+	ret = ov772x_write_array(client, win->regs);
- 	if (ret < 0)
- 		goto ov772x_set_fmt_error;
- 
- 	/*
- 	 * set DSP_CTRL3
- 	 */
--	val = priv->cfmt->dsp3;
-+	val = cfmt->dsp3;
- 	if (val) {
- 		ret = ov772x_mask_set(client,
- 				      DSP_CTRL3, UV_MASK, val);
-@@ -680,7 +682,7 @@ static int ov772x_set_params(struct i2c_client *client, u32 *width, u32 *height,
- 	/*
- 	 * set COM3
- 	 */
--	val = priv->cfmt->com3;
-+	val = cfmt->com3;
- 	if (priv->info->flags & OV772X_FLAG_VFLIP)
- 		val |= VFLIP_IMG;
- 	if (priv->info->flags & OV772X_FLAG_HFLIP)
-@@ -698,7 +700,7 @@ static int ov772x_set_params(struct i2c_client *client, u32 *width, u32 *height,
- 	/*
- 	 * set COM7
- 	 */
--	val = priv->win->com7_bit | priv->cfmt->com7;
-+	val = win->com7_bit | cfmt->com7;
- 	ret = ov772x_mask_set(client,
- 			      COM7, SLCT_MASK | FMT_MASK | OFMT_MASK,
- 			      val);
-@@ -717,16 +719,11 @@ static int ov772x_set_params(struct i2c_client *client, u32 *width, u32 *height,
- 			goto ov772x_set_fmt_error;
- 	}
- 
--	*width = priv->win->width;
--	*height = priv->win->height;
--
- 	return ret;
- 
- ov772x_set_fmt_error:
- 
- 	ov772x_reset(client);
--	priv->win = NULL;
--	priv->cfmt = NULL;
- 
- 	return ret;
- }
-@@ -855,11 +852,6 @@ static int ov772x_s_stream(struct v4l2_subdev *sd, int enable)
- 		return 0;
- 	}
- 
--	if (!priv->win || !priv->cfmt) {
--		dev_err(&client->dev, "norm or win select error\n");
--		return -EPERM;
--	}
--
- 	ov772x_mask_set(client, COM2, SOFT_SLEEP_MODE, 0);
- 
- 	dev_dbg(&client->dev, "format %d, win %s\n",
-@@ -882,18 +874,29 @@ static int ov772x_g_fmt(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
--static int ov772x_s_fmt(struct v4l2_subdev *sd,
--			struct v4l2_mbus_framefmt *mf)
-+static int ov772x_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
- {
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
--	int ret = ov772x_set_params(client, &mf->width, &mf->height,
--				    mf->code);
-+	const struct ov772x_color_format *cfmt;
-+	const struct ov772x_win_size *win;
-+	int ret;
- 
--	if (!ret)
--		mf->colorspace = priv->cfmt->colorspace;
-+	ov772x_select_params(mf, &cfmt, &win);
- 
--	return ret;
-+	ret = ov772x_set_params(priv, cfmt, win);
-+	if (ret < 0)
-+		return ret;
-+
-+	priv->win = win;
-+	priv->cfmt = cfmt;
-+
-+	mf->code = cfmt->code;
-+	mf->width = win->width;
-+	mf->height = win->height;
-+	mf->field = V4L2_FIELD_NONE;
-+	mf->colorspace = cfmt->colorspace;
-+
-+	return 0;
- }
- 
- static int ov772x_try_fmt(struct v4l2_subdev *sd,
+What about just adding connector entities to the DT ?
+
 -- 
-1.7.8.6
+Regards,
+
+Laurent Pinchart
 
