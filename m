@@ -1,64 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from b-pb-sasl-quonix.pobox.com ([208.72.237.35]:35522 "EHLO
-	smtp.pobox.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752452Ab2GZPIA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jul 2012 11:08:00 -0400
-Message-ID: <50115D4E.6030701@pobox.com>
-Date: Thu, 26 Jul 2012 11:07:58 -0400
-From: Mark Lord <mlord@pobox.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: linux-media@vger.kernel.org, Jarod Wilson <jarod@wilsonet.com>,
-	Jiri Kosina <jkosina@suse.cz>,
-	USB list <linux-usb@vger.kernel.org>
-Subject: Re: [PATCH] mceusb: Add Twisted Melon USB IDs
-References: <4FFE03E8.5040404@pobox.com>
-In-Reply-To: <4FFE03E8.5040404@pobox.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from cnc.isely.net ([75.149.91.89]:55770 "EHLO cnc.isely.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752779Ab2G0Dap (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Jul 2012 23:30:45 -0400
+Date: Thu, 26 Jul 2012 22:25:11 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+Reply-To: Mike Isely at pobox <isely@pobox.com>
+To: Tim Gardner <tim.gardner@canonical.com>
+cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] pvrusb2: Declare MODULE_FIRMWARE usage
+In-Reply-To: <1343329027-96369-1-git-send-email-tim.gardner@canonical.com>
+Message-ID: <alpine.DEB.2.00.1207262224300.6058@ivanova.isely.net>
+References: <1343329027-96369-1-git-send-email-tim.gardner@canonical.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12-07-11 06:53 PM, Mark Lord wrote:
-> Add USB identifiers for MCE compatible I/R transceivers from Twisted Melon.
-> 
-> Signed-off-by: Mark Lord <mlord@pobox.com>
+
+Acked-By: Mike Isely <isely@pobox.com>
+
+  -Mike
+
+
+On Thu, 26 Jul 2012, Tim Gardner wrote:
+
+> Cc: Mike Isely <isely@pobox.com>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: linux-media@vger.kernel.org
+> Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
 > ---
-> Mauro, please queue this up for inclusion in linux-3.6.
-> Patch is also attached to bypass emailer mangling.
-> Thanks.
+>  drivers/media/video/pvrusb2/pvrusb2-devattr.c |   17 ++++++++++++-----
+>  1 file changed, 12 insertions(+), 5 deletions(-)
 > 
-> --- linux-3.5-rc6/drivers/media/rc/mceusb.c	2012-07-07 20:23:56.000000000 -0400
-> +++ new/drivers/media/rc/mceusb.c	2012-07-11 18:44:03.113727658 -0400
-> @@ -199,6 +199,7 @@
->  #define VENDOR_REALTEK		0x0bda
->  #define VENDOR_TIVO		0x105a
->  #define VENDOR_CONEXANT		0x0572
-> +#define VENDOR_TWISTEDMELON	0x2596
-> 
->  enum mceusb_model_type {
->  	MCE_GEN2 = 0,		/* Most boards */
-> @@ -391,6 +392,12 @@
->  	/* Conexant Hybrid TV RDU253S Polaris */
->  	{ USB_DEVICE(VENDOR_CONEXANT, 0x58a5),
->  	  .driver_info = CX_HYBRID_TV },
-> +	/* Twisted Melon Inc. - Manta Mini Receiver */
-> +	{ USB_DEVICE(VENDOR_TWISTEDMELON, 0x8008) },
-> +	/* Twisted Melon Inc. - Manta Pico Receiver */
-> +	{ USB_DEVICE(VENDOR_TWISTEDMELON, 0x8016) },
-> +	/* Twisted Melon Inc. - Manta Transceiver */
-> +	{ USB_DEVICE(VENDOR_TWISTEDMELON, 0x8042) },
->  	/* Terminating entry */
->  	{ }
+> diff --git a/drivers/media/video/pvrusb2/pvrusb2-devattr.c b/drivers/media/video/pvrusb2/pvrusb2-devattr.c
+> index d8c8982..adc501d3 100644
+> --- a/drivers/media/video/pvrusb2/pvrusb2-devattr.c
+> +++ b/drivers/media/video/pvrusb2/pvrusb2-devattr.c
+> @@ -54,8 +54,9 @@ static const struct pvr2_device_client_desc pvr2_cli_29xxx[] = {
+>  	{ .module_id = PVR2_CLIENT_ID_DEMOD },
 >  };
+>  
+> +#define PVR2_FIRMWARE_29xxx "v4l-pvrusb2-29xxx-01.fw"
+>  static const char *pvr2_fw1_names_29xxx[] = {
+> -		"v4l-pvrusb2-29xxx-01.fw",
+> +		PVR2_FIRMWARE_29xxx,
+>  };
+>  
+>  static const struct pvr2_device_desc pvr2_device_29xxx = {
+> @@ -87,8 +88,9 @@ static const struct pvr2_device_client_desc pvr2_cli_24xxx[] = {
+>  	{ .module_id = PVR2_CLIENT_ID_DEMOD },
+>  };
+>  
+> +#define PVR2_FIRMWARE_24xxx "v4l-pvrusb2-24xxx-01.fw"
+>  static const char *pvr2_fw1_names_24xxx[] = {
+> -		"v4l-pvrusb2-24xxx-01.fw",
+> +		PVR2_FIRMWARE_24xxx,
+>  };
+>  
+>  static const struct pvr2_device_desc pvr2_device_24xxx = {
+> @@ -369,8 +371,9 @@ static const struct pvr2_device_client_desc pvr2_cli_73xxx[] = {
+>  	  .i2c_address_list = "\x42"},
+>  };
+>  
+> +#define PVR2_FIRMWARE_73xxx "v4l-pvrusb2-73xxx-01.fw"
+>  static const char *pvr2_fw1_names_73xxx[] = {
+> -		"v4l-pvrusb2-73xxx-01.fw",
+> +		PVR2_FIRMWARE_73xxx,
+>  };
+>  
+>  static const struct pvr2_device_desc pvr2_device_73xxx = {
+> @@ -475,8 +478,9 @@ static const struct pvr2_dvb_props pvr2_751xx_dvb_props = {
+>  };
+>  #endif
+>  
+> +#define PVR2_FIRMWARE_75xxx "v4l-pvrusb2-73xxx-01.fw"
+>  static const char *pvr2_fw1_names_75xxx[] = {
+> -		"v4l-pvrusb2-73xxx-01.fw",
+> +		PVR2_FIRMWARE_75xxx,
+>  };
+>  
+>  static const struct pvr2_device_desc pvr2_device_750xx = {
+> @@ -556,7 +560,10 @@ struct usb_device_id pvr2_device_table[] = {
+>  };
+>  
+>  MODULE_DEVICE_TABLE(usb, pvr2_device_table);
+> -
+> +MODULE_FIRMWARE(PVR2_FIRMWARE_29xxx);
+> +MODULE_FIRMWARE(PVR2_FIRMWARE_24xxx);
+> +MODULE_FIRMWARE(PVR2_FIRMWARE_73xxx);
+> +MODULE_FIRMWARE(PVR2_FIRMWARE_75xxx);
+>  
+>  /*
+>    Stuff for Emacs to see, in order to encourage consistent editing style:
 > 
 
-Mauro, what is the status of this patch?
-Is it going upstream through your tree for Linux-3.6?
-If not, I'll send it directly to Linus.
-
-Thanks
 -- 
-Mark Lord
-Real-Time Remedies Inc.
-mlord@pobox.com
+
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
