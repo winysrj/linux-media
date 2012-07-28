@@ -1,73 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:55256 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754052Ab2GJK60 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45316 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753093Ab2G1U5H (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jul 2012 06:58:26 -0400
-From: Maarten Lankhorst <m.b.lankhorst@gmail.com>
-To: dri-devel@lists.freedesktop.org
-Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Subject: [RFC PATCH 4/8] nouveau: add nouveau_bo_vma_add_access
-Date: Tue, 10 Jul 2012 12:57:47 +0200
-Message-Id: <1341917871-2512-5-git-send-email-m.b.lankhorst@gmail.com>
-In-Reply-To: <1341917871-2512-1-git-send-email-m.b.lankhorst@gmail.com>
-References: <1341917871-2512-1-git-send-email-m.b.lankhorst@gmail.com>
+	Sat, 28 Jul 2012 16:57:07 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] mt9v032: Export horizontal and vertical blanking as V4L2 controls
+Date: Sat, 28 Jul 2012 21:09:23 +0200
+Message-ID: <1505124.16Oe9aIvIj@avalon>
+In-Reply-To: <20120727212723.GB26642@valkosipuli.retiisi.org.uk>
+References: <1343068502-7431-4-git-send-email-laurent.pinchart@ideasonboard.com> <4375414.cY8huNNgj1@avalon> <20120727212723.GB26642@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Hi Sakari,
 
-This is needed to allow creation of read-only vm mappings
-in fence objects.
+On Saturday 28 July 2012 00:27:23 Sakari Ailus wrote:
+> On Fri, Jul 27, 2012 at 01:02:04AM +0200, Laurent Pinchart wrote:
+> > On Thursday 26 July 2012 23:54:01 Sakari Ailus wrote:
+> > > On Tue, Jul 24, 2012 at 01:10:42AM +0200, Laurent Pinchart wrote:
+> > > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > > ---
+> > > > 
+> > > >  drivers/media/video/mt9v032.c |   36  ++++++++++++++++++++++++++++---
+> > > >  1 files changed, 33 insertions(+), 3 deletions(-)
+> > > > 
+> > > > Changes since v1:
+> > > > 
+> > > > - Make sure the total horizontal time will not go below 660 when
+> > > >   setting the horizontal blanking control
+> > > > 
+> > > > - Restrict the vertical blanking value to 3000 as documented in the
+> > > >   datasheet. Increasing the exposure time actually extends vertical
+> > > >   blanking, as long as the user doesn't forget to turn auto-exposure
+> > > >   off...
+> > > 
+> > > Does binning either horizontally or vertically affect the blanking
+> > > limits? If the process is analogue then the answer is typically "yes".
+> > 
+> > The datasheet doesn't specify whether binning and blanking can influence
+> > each other.
+> 
+> Vertical binning is often analogue since digital binning would require as
+> much temporary memory as the row holds pixels. This means the hardware
+> already does binning before a/d conversion and there's only need to actually
+> read half the number of rows, hence the effect on frame length.
 
-Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
----
- drivers/gpu/drm/nouveau/nouveau_bo.c  |    6 +++---
- drivers/gpu/drm/nouveau/nouveau_drv.h |    6 ++++--
- 2 files changed, 7 insertions(+), 5 deletions(-)
+That will affect the frame length, but why would it affect vertical blanking ?
 
-diff --git a/drivers/gpu/drm/nouveau/nouveau_bo.c b/drivers/gpu/drm/nouveau/nouveau_bo.c
-index 7f80ed5..4318320 100644
---- a/drivers/gpu/drm/nouveau/nouveau_bo.c
-+++ b/drivers/gpu/drm/nouveau/nouveau_bo.c
-@@ -1443,15 +1443,15 @@ nouveau_bo_vma_find(struct nouveau_bo *nvbo, struct nouveau_vm *vm)
- }
- 
- int
--nouveau_bo_vma_add(struct nouveau_bo *nvbo, struct nouveau_vm *vm,
--		   struct nouveau_vma *vma)
-+nouveau_bo_vma_add_access(struct nouveau_bo *nvbo, struct nouveau_vm *vm,
-+			  struct nouveau_vma *vma, u32 access)
- {
- 	const u32 size = nvbo->bo.mem.num_pages << PAGE_SHIFT;
- 	struct nouveau_mem *node = nvbo->bo.mem.mm_node;
- 	int ret;
- 
- 	ret = nouveau_vm_get(vm, size, nvbo->page_shift,
--			     NV_MEM_ACCESS_RW, vma);
-+			     access, vma);
- 	if (ret)
- 		return ret;
- 
-diff --git a/drivers/gpu/drm/nouveau/nouveau_drv.h b/drivers/gpu/drm/nouveau/nouveau_drv.h
-index 7c52eba..2c17989 100644
---- a/drivers/gpu/drm/nouveau/nouveau_drv.h
-+++ b/drivers/gpu/drm/nouveau/nouveau_drv.h
-@@ -1350,8 +1350,10 @@ extern int nouveau_bo_validate(struct nouveau_bo *, bool interruptible,
- 
- extern struct nouveau_vma *
- nouveau_bo_vma_find(struct nouveau_bo *, struct nouveau_vm *);
--extern int  nouveau_bo_vma_add(struct nouveau_bo *, struct nouveau_vm *,
--			       struct nouveau_vma *);
-+#define nouveau_bo_vma_add(nvbo, vm, vma) \
-+	nouveau_bo_vma_add_access((nvbo), (vm), (vma), NV_MEM_ACCESS_RW)
-+extern int nouveau_bo_vma_add_access(struct nouveau_bo *, struct nouveau_vm *,
-+				     struct nouveau_vma *, u32 access);
- extern void nouveau_bo_vma_del(struct nouveau_bo *, struct nouveau_vma *);
- 
- /* nouveau_gem.c */
+> > > It's not directly related to this patch, but the effect of the driver
+> > > just exposing one sub-device really shows better now. Besides lacking
+> > > the way to specify binning as in the V4L2 subdev API (compose selection
+> > > target), the user also can't use the crop bounds selection target to get
+> > > the size of the pixel array.
+> > > 
+> > > We could either accept this for the time being and fix it later on of
+> > > fix it now.
+> > > 
+> > > I prefer fixing it right now but admit that this patch isn't breaking
+> > > anything, it rather is missing quite relevant functionality to control
+> > > the sensor in a generic way.
+> > 
+> > I'd rather apply this patch first, as it doesn't break anything :-) Fixing
+> > the problem will require discussions, and that will take time.
+> 
+> How so? There's nothing special in this sensor as far as I can see.
+> 
+> > Binning/skipping is a pretty common feature in sensors. Exposing two sub-
+> > devices like the SMIA++ driver does is one way to fix the problem, but do
+> > we really want to do that for the vast majority of sensors ?
+> 
+> If we want to expose the sensor's functionality using the V4L2 subdev API
+> and not a sensor specific API, the answer is "yes". The bottom line is that
+> we have just one API to configure scaling and cropping and that API
+> (selections) is the same independently of where the operation is being
+> performed; whether it's the sensor or the ISP.
+
+If we want to expose two subdevices for every sensor we will need to get both 
+kernelspace (ISP drivers) and userspace ready for this. I'm not against the 
+idea, but we need to plan it properly.
+
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
