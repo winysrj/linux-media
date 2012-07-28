@@ -1,289 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1912 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750985Ab2GBOPx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2012 10:15:53 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	halli manjunatha <hallimanju@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 6/6] radio-cadet: implement frequency band enumeration.
-Date: Mon,  2 Jul 2012 16:15:12 +0200
-Message-Id: <258495c468f251f431d30ad10e5b5b926bc3afdc.1341237775.git.hans.verkuil@cisco.com>
-In-Reply-To: <1341238512-17504-1-git-send-email-hverkuil@xs4all.nl>
-References: <1341238512-17504-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <f8baa47c370e4d79309e126b56127df8a5edd11a.1341237775.git.hans.verkuil@cisco.com>
-References: <f8baa47c370e4d79309e126b56127df8a5edd11a.1341237775.git.hans.verkuil@cisco.com>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:57811 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752662Ab2G1Qxn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Jul 2012 12:53:43 -0400
+Subject: Re: [PATCH] ivtv: Declare MODULE_FIRMWARE usage
+From: Andy Walls <awalls@md.metrocast.net>
+To: Tim Gardner <tim.gardner@canonical.com>
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
+Date: Sat, 28 Jul 2012 12:52:59 -0400
+In-Reply-To: <5012B792.20400@canonical.com>
+References: <1343327180-94759-1-git-send-email-tim.gardner@canonical.com>
+	 <1343341295.2575.18.camel@palomino.walls.org>
+	 <5012B792.20400@canonical.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <1343494380.2476.12.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Fri, 2012-07-27 at 09:45 -0600, Tim Gardner wrote:
+> On 07/26/2012 04:21 PM, Andy Walls wrote:
+> > On Thu, 2012-07-26 at 12:26 -0600, Tim Gardner wrote:
+> >> Cc: Andy Walls <awalls@md.metrocast.net>
+> >> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> >> Cc: ivtv-devel@ivtvdriver.org
+> >> Cc: linux-media@vger.kernel.org
+> >> Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
+> >> ---
+> >>  drivers/media/video/ivtv/ivtv-firmware.c |    4 ++++
+> >>  1 file changed, 4 insertions(+)
+> >>
+> >> diff --git a/drivers/media/video/ivtv/ivtv-firmware.c b/drivers/media/video/ivtv/ivtv-firmware.c
+> >> index 02c5ade..6ec7705 100644
+> >> --- a/drivers/media/video/ivtv/ivtv-firmware.c
+> >> +++ b/drivers/media/video/ivtv/ivtv-firmware.c
+> >> @@ -396,3 +396,7 @@ int ivtv_firmware_check(struct ivtv *itv, char *where)
+> >>  
+> >>  	return res;
+> >>  }
+> >> +
+> >> +MODULE_FIRMWARE(CX2341X_FIRM_ENC_FILENAME);
+> >> +MODULE_FIRMWARE(CX2341X_FIRM_DEC_FILENAME);
+> >> +MODULE_FIRMWARE(IVTV_DECODE_INIT_MPEG_FILENAME);
+> > 
+> > Only the PVR-350, based on the iTVC-15/CX23415 chip, needs the
+> > CX2341X_FIRM_DEC_FILENAME and IVTV_DECODE_INIT_MPEG_FILENAME.  (And even
+> > in the case of that card, not having the IVTV_DECODE_INIT_MPEG_FILENAME
+> > file is non-fatal.)
+> > 
+> > I would not want anything in user-space or kernel space preventing the
+> > ivtv module from loading, if some of those files don't exist.
+> > 
+> > Regards,
+> > Andy
+> > 
+> 
+> MODULE_FIRMWARE is informational only and has no runtime impact.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/radio/radio-cadet.c |  129 +++++++++++++++++++++----------------
- 1 file changed, 72 insertions(+), 57 deletions(-)
+OK.
 
-diff --git a/drivers/media/radio/radio-cadet.c b/drivers/media/radio/radio-cadet.c
-index d1fb427..946a4d7 100644
---- a/drivers/media/radio/radio-cadet.c
-+++ b/drivers/media/radio/radio-cadet.c
-@@ -66,7 +66,8 @@ struct cadet {
- 	struct video_device vdev;
- 	struct v4l2_ctrl_handler ctrl_handler;
- 	int io;
--	int curtuner;
-+	bool is_fm_band;
-+	u32 curfreq;
- 	int tunestat;
- 	int sigstrength;
- 	wait_queue_head_t read_queue;
-@@ -84,9 +85,9 @@ static struct cadet cadet_card;
-  * The V4L API spec does not define any particular unit for the signal
-  * strength value.  These values are in microvolts of RF at the tuner's input.
-  */
--static __u16 sigtable[2][4] = {
-+static u16 sigtable[2][4] = {
-+	{ 1835, 2621,  4128, 65535 },
- 	{ 2185, 4369, 13107, 65535 },
--	{ 1835, 2621,  4128, 65535 }
- };
- 
- 
-@@ -94,7 +95,7 @@ static int cadet_getstereo(struct cadet *dev)
- {
- 	int ret = V4L2_TUNER_SUB_MONO;
- 
--	if (dev->curtuner != 0)	/* Only FM has stereo capability! */
-+	if (!dev->is_fm_band)	/* Only FM has stereo capability! */
- 		return V4L2_TUNER_SUB_MONO;
- 
- 	outb(7, dev->io);          /* Select tuner control */
-@@ -149,20 +150,18 @@ static unsigned cadet_getfreq(struct cadet *dev)
- 	/*
- 	 * Convert to actual frequency
- 	 */
--	if (dev->curtuner == 0) {    /* FM */
--		test = 12500;
--		for (i = 0; i < 14; i++) {
--			if ((fifo & 0x01) != 0)
--				freq += test;
--			test = test << 1;
--			fifo = fifo >> 1;
--		}
--		freq -= 10700000;           /* IF frequency is 10.7 MHz */
--		freq = (freq * 16) / 1000;   /* Make it 1/16 kHz */
-+	if (!dev->is_fm_band)    /* AM */
-+		return ((fifo & 0x7fff) - 2010) * 16;
-+
-+	test = 12500;
-+	for (i = 0; i < 14; i++) {
-+		if ((fifo & 0x01) != 0)
-+			freq += test;
-+		test = test << 1;
-+		fifo = fifo >> 1;
- 	}
--	if (dev->curtuner == 1)    /* AM */
--		freq = ((fifo & 0x7fff) - 2010) * 16;
--
-+	freq -= 10700000;           /* IF frequency is 10.7 MHz */
-+	freq = (freq * 16) / 1000;   /* Make it 1/16 kHz */
- 	return freq;
- }
- 
-@@ -197,11 +196,12 @@ static void cadet_setfreq(struct cadet *dev, unsigned freq)
- 	int i, j, test;
- 	int curvol;
- 
-+	dev->curfreq = freq;
- 	/*
- 	 * Formulate a fifo command
- 	 */
- 	fifo = 0;
--	if (dev->curtuner == 0) {    /* FM */
-+	if (dev->is_fm_band) {    /* FM */
- 		test = 102400;
- 		freq = freq / 16;       /* Make it kHz */
- 		freq += 10700;               /* IF is 10700 kHz */
-@@ -213,10 +213,9 @@ static void cadet_setfreq(struct cadet *dev, unsigned freq)
- 			}
- 			test = test >> 1;
- 		}
--	}
--	if (dev->curtuner == 1) {    /* AM */
--		fifo = (freq / 16) + 2010;            /* Make it kHz */
--		fifo |= 0x100000;            /* Select AM Band */
-+	} else {	/* AM */
-+		fifo = (freq / 16) + 450;	/* Make it kHz */
-+		fifo |= 0x100000;		/* Select AM Band */
- 	}
- 
- 	/*
-@@ -239,7 +238,7 @@ static void cadet_setfreq(struct cadet *dev, unsigned freq)
- 
- 		cadet_gettune(dev);
- 		if ((dev->tunestat & 0x40) == 0) {   /* Tuned */
--			dev->sigstrength = sigtable[dev->curtuner][j];
-+			dev->sigstrength = sigtable[dev->is_fm_band][j];
- 			goto reset_rds;
- 		}
- 	}
-@@ -338,39 +337,50 @@ static int vidioc_querycap(struct file *file, void *priv,
- 	return 0;
- }
- 
-+static const struct v4l2_frequency_band bands[] = {
-+	{
-+		.index = 0,
-+		.name = "AM MW",
-+		.capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_FREQ_BANDS,
-+		.rangelow = 8320,      /* 520 kHz */
-+		.rangehigh = 26400,    /* 1650 kHz */
-+	}, {
-+		.index = 1,
-+		.name = "FM",
-+		.capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS |
-+			V4L2_TUNER_CAP_RDS_BLOCK_IO | V4L2_TUNER_CAP_LOW |
-+			V4L2_TUNER_CAP_FREQ_BANDS,
-+		.rangelow = 1400000,   /* 87.5 MHz */
-+		.rangehigh = 1728000,  /* 108.0 MHz */
-+	},
-+};
-+
- static int vidioc_g_tuner(struct file *file, void *priv,
- 				struct v4l2_tuner *v)
- {
- 	struct cadet *dev = video_drvdata(file);
- 
-+	if (v->index)
-+		return -EINVAL;
- 	v->type = V4L2_TUNER_RADIO;
--	switch (v->index) {
--	case 0:
--		strlcpy(v->name, "FM", sizeof(v->name));
--		v->capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS |
--			V4L2_TUNER_CAP_RDS_BLOCK_IO | V4L2_TUNER_CAP_LOW;
--		v->rangelow = 1400000;     /* 87.5 MHz */
--		v->rangehigh = 1728000;    /* 108.0 MHz */
-+	strlcpy(v->name, "Radio", sizeof(v->name));
-+	v->capability = bands[0].capability | bands[1].capability;
-+	v->rangelow = bands[0].rangelow;	   /* 520 kHz (start of AM band) */
-+	v->rangehigh = bands[1].rangehigh;    /* 108.0 MHz (end of FM band) */
-+	if (dev->is_fm_band) {
- 		v->rxsubchans = cadet_getstereo(dev);
--		v->audmode = V4L2_TUNER_MODE_STEREO;
- 		outb(3, dev->io);
- 		outb(inb(dev->io + 1) & 0x7f, dev->io + 1);
- 		mdelay(100);
- 		outb(3, dev->io);
- 		if (inb(dev->io + 1) & 0x80)
- 			v->rxsubchans |= V4L2_TUNER_SUB_RDS;
--		break;
--	case 1:
--		strlcpy(v->name, "AM", sizeof(v->name));
--		v->capability = V4L2_TUNER_CAP_LOW;
-+	} else {
- 		v->rangelow = 8320;      /* 520 kHz */
- 		v->rangehigh = 26400;    /* 1650 kHz */
- 		v->rxsubchans = V4L2_TUNER_SUB_MONO;
--		v->audmode = V4L2_TUNER_MODE_MONO;
--		break;
--	default:
--		return -EINVAL;
- 	}
-+	v->audmode = V4L2_TUNER_MODE_STEREO;
- 	v->signal = dev->sigstrength; /* We might need to modify scaling of this */
- 	return 0;
- }
-@@ -378,8 +388,17 @@ static int vidioc_g_tuner(struct file *file, void *priv,
- static int vidioc_s_tuner(struct file *file, void *priv,
- 				struct v4l2_tuner *v)
- {
--	if (v->index != 0 && v->index != 1)
-+	return v->index ? -EINVAL : 0;
-+}
-+
-+static int vidioc_enum_freq_bands(struct file *file, void *priv,
-+				struct v4l2_frequency_band *band)
-+{
-+	if (band->tuner)
-+		return -EINVAL;
-+	if (band->index >= ARRAY_SIZE(bands))
- 		return -EINVAL;
-+	*band = bands[band->index];
- 	return 0;
- }
- 
-@@ -388,10 +407,10 @@ static int vidioc_g_frequency(struct file *file, void *priv,
- {
- 	struct cadet *dev = video_drvdata(file);
- 
--	if (f->tuner > 1)
-+	if (f->tuner)
- 		return -EINVAL;
- 	f->type = V4L2_TUNER_RADIO;
--	f->frequency = cadet_getfreq(dev);
-+	f->frequency = dev->curfreq;
- 	return 0;
- }
- 
-@@ -401,20 +420,12 @@ static int vidioc_s_frequency(struct file *file, void *priv,
- {
- 	struct cadet *dev = video_drvdata(file);
- 
--	if (f->type != V4L2_TUNER_RADIO)
--		return -EINVAL;
--	if (f->tuner == 0) {
--		if (f->frequency < 1400000)
--			f->frequency = 1400000;
--		else if (f->frequency > 1728000)
--			f->frequency = 1728000;
--	} else if (f->tuner == 1) {
--		if (f->frequency < 8320)
--			f->frequency = 8320;
--		else if (f->frequency > 26400)
--			f->frequency = 26400;
--	} else
-+	if (f->tuner)
- 		return -EINVAL;
-+	dev->is_fm_band =
-+		f->frequency >= (bands[0].rangehigh + bands[1].rangelow) / 2;
-+	clamp(f->frequency, bands[dev->is_fm_band].rangelow,
-+			    bands[dev->is_fm_band].rangehigh);
- 	cadet_setfreq(dev, f->frequency);
- 	return 0;
- }
-@@ -499,6 +510,7 @@ static const struct v4l2_ioctl_ops cadet_ioctl_ops = {
- 	.vidioc_s_tuner     = vidioc_s_tuner,
- 	.vidioc_g_frequency = vidioc_g_frequency,
- 	.vidioc_s_frequency = vidioc_s_frequency,
-+	.vidioc_enum_freq_bands = vidioc_enum_freq_bands,
- 	.vidioc_log_status  = v4l2_ctrl_log_status,
- 	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
- 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
-@@ -555,8 +567,8 @@ static void cadet_probe(struct cadet *dev)
- 	for (i = 0; i < 8; i++) {
- 		dev->io = iovals[i];
- 		if (request_region(dev->io, 2, "cadet-probe")) {
--			cadet_setfreq(dev, 1410);
--			if (cadet_getfreq(dev) == 1410) {
-+			cadet_setfreq(dev, bands[1].rangelow);
-+			if (cadet_getfreq(dev) == bands[1].rangelow) {
- 				release_region(dev->io, 2);
- 				return;
- 			}
-@@ -619,6 +631,9 @@ static int __init cadet_init(void)
- 		goto err_hdl;
- 	}
- 
-+	dev->is_fm_band = true;
-+	dev->curfreq = bands[dev->is_fm_band].rangelow;
-+	cadet_setfreq(dev, dev->curfreq);
- 	strlcpy(dev->vdev.name, v4l2_dev->name, sizeof(dev->vdev.name));
- 	dev->vdev.v4l2_dev = v4l2_dev;
- 	dev->vdev.fops = &cadet_fops;
--- 
-1.7.10
+Acked-by: Andy Walls <awalls@md.metrocast.net>
+
+Regards,
+Andy
+
+> 
+> rtg
+
 
