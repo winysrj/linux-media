@@ -1,388 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:57565 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933773Ab2GDIIm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2012 04:08:42 -0400
-From: "Du, Changbin" <changbin.du@gmail.com>
-To: <mchehab@infradead.org>
-Cc: <anssi.hannula@iki.fi>, <linux-media@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>
-Subject: [Resend PATCH] media: rc: ati_remote.c: code style and compile warning fixing
-Date: Wed, 4 Jul 2012 16:08:34 +0800
-Message-ID: <4ff3fa08.08de440a.41b5.2603@mx.google.com>
+Received: from mx1.redhat.com ([209.132.183.28]:23868 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751398Ab2G1Kld (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Jul 2012 06:41:33 -0400
+Message-ID: <5013C30B.7030600@redhat.com>
+Date: Sat, 28 Jul 2012 12:46:35 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
+To: abel@uni-bielefeld.de
+CC: "Ivan T. Ivanov" <iivanov@mm-sol.com>,
+	Sergio Aguirre <sergio.a.aguirre@gmail.com>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Atsuo Kuwahara <kuwahara@ti.com>,
+	Stefan Herbrechtsmeier <sherbrec@cit-ec.uni-bielefeld.de>
+Subject: Re: Advice on extending libv4l for media controller support
+References: <CAC-OdnBNiT35tc_50QAXvVp8+b5tWLMWqc5i1q3qWYTp5c360g@mail.gmail.com> <CAC-OdnCmXiz1wKST-YAambJFToeqNJhEaMVKYwz_FHV0N+sbyw@mail.gmail.com> <1336662597.15542.15.camel@iivanov-desktop> <5011AD6A.9040609@uni-bielefeld.de>
+In-Reply-To: <5011AD6A.9040609@uni-bielefeld.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Language: zh-cn
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-changes:
-	1. break some lines that are longer than 80 characters.
-	2. remove local function prototype declarations which do not
-	   need.
-	3. replace TAB character with a space character in function
-	   comments.
-	4. change the types of array init1[] and init2[] to
-	   "unsigned char" to avoid compile warning.
+Hi,
 
-Signed-off-by: Du, Changbin <changbin.du@gmail.com>
----
- drivers/media/rc/ati_remote.c |  139
-+++++++++++++++++++++++++----------------
- 1 file changed, 84 insertions(+), 55 deletions(-)
+On 07/26/2012 10:49 PM, Robert Abel wrote:
+> Hi,
+>
+> Sorry to be late to the party... I wanted to follow up on this discussion, but forgot and haven't read anything about it since...
+>
+> On 10.05.2012 17:09, Ivan T. Ivanov wrote:
+>> On Wed, May 9, 2012 at 7:08 PM, Sergio Aguirre
+>> <sergio.a.aguirre@gmail.com>  <mailto:sergio.a.aguirre@gmail.com>  wrote:
+>>> I want to create some sort of plugin with specific media
+>>> controller configurations,
+>>> to avoid userspace to worry about component names and specific
+>>> usecases (use sensor resizer, or SoC ISP resizer, etc.).
+>> Probably following links can help you. They have been tested
+>> with the OMAP3 ISP.
+>>
+>> Regards,
+>> iivanov
+>>
+>> [1]http://www.spinics.net/lists/linux-media/msg31901.html
+>> [2]
+>> http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/32704
+>
+> I recently extended Yordan Kamenov's libv4l-mcplugin to support multiple trees per device with extended configurations (-stolen from- inspired by media-ctl) not tied to specific device nodes (but to device names instead).
+>
+> I uploaded the patches here <https://sites.google.com/site/rawbdagslair/libv4l-mcplugin.7z?attredirects=0&d=1>(16kB). Basically, I used Yordan's patches as a base and worked from there to fix up his source code and Makefile for cross-compiling using OpenEmbedded/Yocto.
+>
+> There are a ton of minor issues with this, starting with the fact that I did not put proper copyright notices in any of these files. Please advise if this poses a problem.
+> Only integral frame size support and no support for native read() calls. There's a dummy read() function, because for some reason this is required in libv4l2 0.9.0-test though it's not mentioned anywhere. As the original plug-in by Yordan, there is currently no cleaning-up of the internal data structures.
+>
+> I used this in conjunction with the Gumstix CASPA FS (MT9V032) camera using some of Laurent's patches and some custom patches which add ENUM_FMT support to the driver.
+>
+> Basically, upon opening a given device, all trees are configured once to load the respective end-point's formats for emulation of setting and getting formats. Then regular format negotiation by the user application takes place.
 
-diff --git a/drivers/media/rc/ati_remote.c b/drivers/media/rc/ati_remote.c
-index 7be377f..0df66ac 100644
---- a/drivers/media/rc/ati_remote.c
-+++ b/drivers/media/rc/ati_remote.c
-@@ -23,6 +23,8 @@
-  *                Vincent Vanackere <vanackere@lif.univ-mrs.fr>
-  *            Added support for the "Lola" remote contributed by:
-  *                Seth Cohn <sethcohn@yahoo.com>
-+ *  Jul 2012: Du, Changbin <changbin.du@gmail.com>
-+ *            Code style and compile warning fixing
-  *
-  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-*
-  *
-@@ -147,7 +149,8 @@ static bool mouse = true;
- module_param(mouse, bool, 0444);
- MODULE_PARM_DESC(mouse, "Enable mouse device, default = yes");
- 
--#define dbginfo(dev, format, arg...) do { if (debug) dev_info(dev , format
-, ## arg); } while (0)
-+#define dbginfo(dev, format, arg...) \
-+	do { if (debug) dev_info(dev , format , ## arg); } while (0)
- #undef err
- #define err(format, arg...) printk(KERN_ERR format , ## arg)
- 
-@@ -191,17 +194,41 @@ static const char *get_medion_keymap(struct
-usb_interface *interface)
- 	return RC_MAP_MEDION_X10;
- }
- 
--static const struct ati_receiver_type type_ati		= { .default_keymap
-= RC_MAP_ATI_X10 };
--static const struct ati_receiver_type type_medion	= {
-.get_default_keymap = get_medion_keymap };
--static const struct ati_receiver_type type_firefly	= { .default_keymap
-= RC_MAP_SNAPSTREAM_FIREFLY };
-+static const struct ati_receiver_type type_ati		= {
-+	.default_keymap = RC_MAP_ATI_X10
-+};
-+static const struct ati_receiver_type type_medion	= {
-+	.get_default_keymap = get_medion_keymap
-+};
-+static const struct ati_receiver_type type_firefly	= {
-+	.default_keymap = RC_MAP_SNAPSTREAM_FIREFLY
-+};
- 
- static struct usb_device_id ati_remote_table[] = {
--	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, LOLA_REMOTE_PRODUCT_ID),
-.driver_info = (unsigned long)&type_ati },
--	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, LOLA2_REMOTE_PRODUCT_ID),
-.driver_info = (unsigned long)&type_ati },
--	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, ATI_REMOTE_PRODUCT_ID),
-.driver_info = (unsigned long)&type_ati },
--	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, NVIDIA_REMOTE_PRODUCT_ID),
-.driver_info = (unsigned long)&type_ati },
--	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, MEDION_REMOTE_PRODUCT_ID),
-.driver_info = (unsigned long)&type_medion },
--	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, FIREFLY_REMOTE_PRODUCT_ID),
-.driver_info = (unsigned long)&type_firefly },
-+	{
-+		USB_DEVICE(ATI_REMOTE_VENDOR_ID, LOLA_REMOTE_PRODUCT_ID),
-+		.driver_info = (unsigned long)&type_ati
-+	},
-+	{
-+		USB_DEVICE(ATI_REMOTE_VENDOR_ID, LOLA2_REMOTE_PRODUCT_ID),
-+		.driver_info = (unsigned long)&type_ati
-+	},
-+	{
-+		USB_DEVICE(ATI_REMOTE_VENDOR_ID, ATI_REMOTE_PRODUCT_ID),
-+		.driver_info = (unsigned long)&type_ati
-+	},
-+	{
-+		USB_DEVICE(ATI_REMOTE_VENDOR_ID, NVIDIA_REMOTE_PRODUCT_ID),
-+		.driver_info = (unsigned long)&type_ati
-+	},
-+	{
-+		USB_DEVICE(ATI_REMOTE_VENDOR_ID, MEDION_REMOTE_PRODUCT_ID),
-+		.driver_info = (unsigned long)&type_medion
-+	},
-+	{
-+		USB_DEVICE(ATI_REMOTE_VENDOR_ID, FIREFLY_REMOTE_PRODUCT_ID),
-+		.driver_info = (unsigned long)&type_firefly
-+	},
- 	{}	/* Terminating entry */
- };
- 
-@@ -215,8 +242,8 @@ MODULE_DEVICE_TABLE(usb, ati_remote_table);
- #define SEND_FLAG_COMPLETE	2
- 
- /* Device initialization strings */
--static char init1[] = { 0x01, 0x00, 0x20, 0x14 };
--static char init2[] = { 0x01, 0x00, 0x20, 0x14, 0x20, 0x20, 0x20 };
-+static unsigned char init1[] = { 0x01, 0x00, 0x20, 0x14 };
-+static unsigned char init2[] = { 0x01, 0x00, 0x20, 0x14, 0x20, 0x20, 0x20
-};
- 
- struct ati_remote {
- 	struct input_dev *idev;
-@@ -296,25 +323,8 @@ static const struct {
- 	{KIND_END, 0x00, EV_MAX + 1, 0, 0}
- };
- 
--/* Local function prototypes */
--static int ati_remote_sendpacket	(struct ati_remote *ati_remote, u16
-cmd, unsigned char *data);
--static void ati_remote_irq_out		(struct urb *urb);
--static void ati_remote_irq_in		(struct urb *urb);
--static void ati_remote_input_report	(struct urb *urb);
--static int ati_remote_initialize	(struct ati_remote *ati_remote);
--static int ati_remote_probe		(struct usb_interface *interface,
-const struct usb_device_id *id);
--static void ati_remote_disconnect	(struct usb_interface *interface);
--
--/* usb specific object to register with the usb subsystem */
--static struct usb_driver ati_remote_driver = {
--	.name         = "ati_remote",
--	.probe        = ati_remote_probe,
--	.disconnect   = ati_remote_disconnect,
--	.id_table     = ati_remote_table,
--};
--
- /*
-- *	ati_remote_dump_input
-+ * ati_remote_dump_input
-  */
- static void ati_remote_dump(struct device *dev, unsigned char *data,
- 			    unsigned int len)
-@@ -326,12 +336,14 @@ static void ati_remote_dump(struct device *dev,
-unsigned char *data,
- 		dev_warn(dev, "Weird key %02x %02x %02x %02x\n",
- 		     data[0], data[1], data[2], data[3]);
- 	else
--		dev_warn(dev, "Weird data, len=%d %02x %02x %02x %02x %02x
-%02x ...\n",
--		     len, data[0], data[1], data[2], data[3], data[4],
-data[5]);
-+		dev_warn(dev,
-+			"Weird data, len=%d %02x %02x %02x %02x %02x %02x
-...\n",
-+			len, data[0], data[1], data[2], data[3], data[4],
-+			data[5]);
- }
- 
- /*
-- *	ati_remote_open
-+ * ati_remote_open
-  */
- static int ati_remote_open(struct ati_remote *ati_remote)
- {
-@@ -355,7 +367,7 @@ out:	mutex_unlock(&ati_remote->open_mutex);
- }
- 
- /*
-- *	ati_remote_close
-+ * ati_remote_close
-  */
- static void ati_remote_close(struct ati_remote *ati_remote)
- {
-@@ -390,7 +402,7 @@ static void ati_remote_rc_close(struct rc_dev *rdev)
- }
- 
- /*
-- *		ati_remote_irq_out
-+ * ati_remote_irq_out
-  */
- static void ati_remote_irq_out(struct urb *urb)
- {
-@@ -408,11 +420,12 @@ static void ati_remote_irq_out(struct urb *urb)
- }
- 
- /*
-- *	ati_remote_sendpacket
-+ * ati_remote_sendpacket
-  *
-- *	Used to send device initialization strings
-+ * Used to send device initialization strings
-  */
--static int ati_remote_sendpacket(struct ati_remote *ati_remote, u16 cmd,
-unsigned char *data)
-+static int ati_remote_sendpacket(struct ati_remote *ati_remote, u16 cmd,
-+	unsigned char *data)
- {
- 	int retval = 0;
- 
-@@ -441,7 +454,7 @@ static int ati_remote_sendpacket(struct ati_remote
-*ati_remote, u16 cmd, unsigne
- }
- 
- /*
-- *	ati_remote_compute_accel
-+ * ati_remote_compute_accel
-  *
-  * Implements acceleration curve for directional control pad
-  * If elapsed time since last event is > 1/4 second, user "stopped",
-@@ -478,7 +491,7 @@ static int ati_remote_compute_accel(struct ati_remote
-*ati_remote)
- }
- 
- /*
-- *	ati_remote_report_input
-+ * ati_remote_report_input
-  */
- static void ati_remote_input_report(struct urb *urb)
- {
-@@ -518,7 +531,8 @@ static void ati_remote_input_report(struct urb *urb)
- 	remote_num = (data[3] >> 4) & 0x0f;
- 	if (channel_mask & (1 << (remote_num + 1))) {
- 		dbginfo(&ati_remote->interface->dev,
--			"Masked input from channel 0x%02x: data %02x,%02x,
-mask= 0x%02lx\n",
-+			"Masked input from channel 0x%02x: data %02x,%02x, "
-+			"mask= 0x%02lx\n",
- 			remote_num, data[1], data[2], channel_mask);
- 		return;
- 	}
-@@ -546,7 +560,9 @@ static void ati_remote_input_report(struct urb *urb)
- 		if (wheel_keycode == KEY_RESERVED) {
- 			/* scrollwheel was not mapped, assume mouse */
- 
--			/* Look up event code index in the mouse translation
-table. */
-+			/* Look up event code index in the mouse translation
-+			 * table.
-+			 */
- 			for (i = 0; ati_remote_tbl[i].kind != KIND_END; i++)
-{
- 				if (scancode == ati_remote_tbl[i].data) {
- 					index = i;
-@@ -630,9 +646,9 @@ static void ati_remote_input_report(struct urb *urb)
- 	} else {
- 
- 		/*
--		 * Other event kinds are from the directional control pad,
-and have an
--		 * acceleration factor applied to them.  Without this
-acceleration, the
--		 * control pad is mostly unusable.
-+		 * Other event kinds are from the directional control pad,
-and
-+		 * have an acceleration factor applied to them.  Without
-this
-+		 * acceleration, the control pad is mostly unusable.
- 		 */
- 		acc = ati_remote_compute_accel(ati_remote);
- 
-@@ -659,7 +675,8 @@ static void ati_remote_input_report(struct urb *urb)
- 			input_report_rel(dev, REL_Y, acc);
- 			break;
- 		default:
--			dev_dbg(&ati_remote->interface->dev, "ati_remote
-kind=%d\n",
-+			dev_dbg(&ati_remote->interface->dev,
-+				"ati_remote kind=%d\n",
- 				ati_remote_tbl[index].kind);
- 		}
- 		input_sync(dev);
-@@ -670,7 +687,7 @@ static void ati_remote_input_report(struct urb *urb)
- }
- 
- /*
-- *	ati_remote_irq_in
-+ * ati_remote_irq_in
-  */
- static void ati_remote_irq_in(struct urb *urb)
- {
-@@ -684,22 +701,25 @@ static void ati_remote_irq_in(struct urb *urb)
- 	case -ECONNRESET:	/* unlink */
- 	case -ENOENT:
- 	case -ESHUTDOWN:
--		dev_dbg(&ati_remote->interface->dev, "%s: urb error status,
-unlink? \n",
-+		dev_dbg(&ati_remote->interface->dev,
-+			"%s: urb error status, unlink?\n",
- 			__func__);
- 		return;
- 	default:		/* error */
--		dev_dbg(&ati_remote->interface->dev, "%s: Nonzero urb status
-%d\n",
-+		dev_dbg(&ati_remote->interface->dev,
-+			"%s: Nonzero urb status %d\n",
- 			__func__, urb->status);
- 	}
- 
- 	retval = usb_submit_urb(urb, GFP_ATOMIC);
- 	if (retval)
--		dev_err(&ati_remote->interface->dev, "%s:
-usb_submit_urb()=%d\n",
-+		dev_err(&ati_remote->interface->dev,
-+			"%s: usb_submit_urb()=%d\n",
- 			__func__, retval);
- }
- 
- /*
-- *	ati_remote_alloc_buffers
-+ * ati_remote_alloc_buffers
-  */
- static int ati_remote_alloc_buffers(struct usb_device *udev,
- 				    struct ati_remote *ati_remote)
-@@ -726,7 +746,7 @@ static int ati_remote_alloc_buffers(struct usb_device
-*udev,
- }
- 
- /*
-- *	ati_remote_free_buffers
-+ * ati_remote_free_buffers
-  */
- static void ati_remote_free_buffers(struct ati_remote *ati_remote)
- {
-@@ -825,9 +845,10 @@ static int ati_remote_initialize(struct ati_remote
-*ati_remote)
- }
- 
- /*
-- *	ati_remote_probe
-+ * ati_remote_probe
-  */
--static int ati_remote_probe(struct usb_interface *interface, const struct
-usb_device_id *id)
-+static int ati_remote_probe(struct usb_interface *interface,
-+	const struct usb_device_id *id)
- {
- 	struct usb_device *udev = interface_to_usbdev(interface);
- 	struct usb_host_interface *iface_host = interface->cur_altsetting;
-@@ -949,7 +970,7 @@ static int ati_remote_probe(struct usb_interface
-*interface, const struct usb_de
- }
- 
- /*
-- *	ati_remote_disconnect
-+ * ati_remote_disconnect
-  */
- static void ati_remote_disconnect(struct usb_interface *interface)
- {
-@@ -971,6 +992,14 @@ static void ati_remote_disconnect(struct usb_interface
-*interface)
- 	kfree(ati_remote);
- }
- 
-+/* usb specific object to register with the usb subsystem */
-+static struct usb_driver ati_remote_driver = {
-+	.name         = "ati_remote",
-+	.probe        = ati_remote_probe,
-+	.disconnect   = ati_remote_disconnect,
-+	.id_table     = ati_remote_table,
-+};
-+
- module_usb_driver(ati_remote_driver);
- 
- MODULE_AUTHOR(DRIVER_AUTHOR);
--- 
-1.7.9.5
+As discussed higher up in this thread, since the initial libv4l-mcplugin was done for
+the omap3, we've had several meetings on the topic of libv4l and media-controller using
+devices and we came to the following conclusions:
 
+1) The existing mediactl lib would be extended with a libmediactlvideo lib, which
+would be able to control media-ctrl video chains, ie it can:
+-give a list of possibly supported formats / sizes / framerates
+-setup the chain to deliver a requested format
+Since the optimal setup will be hardware specific the idea was to give this
+libs per soc plugins, and a generic plugin for simple socs / as fallback.
 
+2) A cmdline utility to set up a chain using libmediactlvideo, so that things
+can be tested using raw devices, ie without libv4l2 coming into play, just
+like apps like v4l2-ctl allow low level control mostly for testing purposes
+
+3) There would then be a libv4l2 plugin much like the above linked omap3 plugin,
+but then generic for any mediactl using video devices, which would use
+libmediactlvideo to do the work of setting up the chain (and which will fail to
+init when the to be opened device is not part of a mediactl controlled chain).
+
+And AFAIK some work was done in this direction. Sakari? Laurent?
+
+Eitherway it is about time someone started working on this, and I would
+greatly prefer the above plan to be implemented. Once we have this in place,
+then we can do a new v4l-utils release which officially supports the plugin
+API (which currently only lives in master, not in any releases).
+
+Regards,
+
+Hans
