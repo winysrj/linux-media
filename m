@@ -1,164 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:48205 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755242Ab2GAKQU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Jul 2012 06:16:20 -0400
-Received: by wibhm11 with SMTP id hm11so2277840wib.1
-        for <linux-media@vger.kernel.org>; Sun, 01 Jul 2012 03:16:19 -0700 (PDT)
-Message-ID: <1341137769.2510.21.camel@Route3278>
-Subject: Re: [PATCH] [TEST] Regarding m88rs2000 i2c gate operation, SNR, BER
- and others
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: "Igor M. Liplianin" <liplianin@me.by>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Date: Sun, 01 Jul 2012 11:16:09 +0100
-In-Reply-To: <1682436.JdK20qceHM@useri>
-References: <1682436.JdK20qceHM@useri>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:48651 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752275Ab2G1NBk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Jul 2012 09:01:40 -0400
+Received: by wgbdr13 with SMTP id dr13so3539971wgb.1
+        for <linux-media@vger.kernel.org>; Sat, 28 Jul 2012 06:01:39 -0700 (PDT)
+MIME-Version: 1.0
+Date: Sat, 28 Jul 2012 15:01:38 +0200
+Message-ID: <CAHZxpb8mp5Q=HYn5LF_Fp_fWbrkBn0wWahKH-TrjjoPrDW3W=A@mail.gmail.com>
+Subject: [PATCH] Add support for the Terratec Cinergy T Dual PCIe IR remote
+From: Djuri Baars <dsbaars@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2012-05-09 at 04:54 -0700, Igor M. Liplianin wrote:
-> Malcolm,
-> 
-> I made SNR, BER, UCB and signal level code for m88rc2000, but my cards show 
-> them correctly only if I made changes in m88rs2000_tuner_read function.
-> Analyzing USB logs I found that register 0x81 never set to 0x85 value.
-> It is always set to 0x84 regardless of read or write operation to tuner.
-> I was wondering is this my hardware specific? Can you test you cards with 
-> attached patch?
-> 
-> Igor
+The following patch adds support for the infrared remote included in
+the Terratec Cinergy T Dual PCIe card.
 
+By making a contribution to this project, I certify that:
 
-Hi Igor
+(a) The contribution was created in whole or in part by me and I
+    have the right to submit it under the open source license
+    indicated in the file; or
 
-I have no problems with patch, please could you add your signoff
+(b) The contribution is based upon previous work that, to the best
+    of my knowledge, is covered under an appropriate open source
+    license and I have the right under that license to submit that
+    work with modifications, whether created in whole or in part
+    by me, under the same open source license (unless I am
+    permitted to submit under a different license), as indicated
+    in the file; or
 
-I you and me have followed a typo error with m88rc2000 for m88rs2000 in
-the title.
+(c) The contribution was provided directly to me by some other
+    person who certified (a), (b) or (c) and I have not modified
+    it.
 
-This patch and patch 
+(d) I understand and agree that this project and the contribution
+    are public and that a record of the contribution (including all
+    personal information I submit with it, including my sign-off) is
+    maintained indefinitely and may be redistributed consistent with
+    this project or the open source license(s) involved.
 
-http://patchwork.linuxtv.org/patch/11235/
+Signed-off-by: Djuri Baars <dsbaars@gmail.com>
 
-can go upstream
+---
+ drivers/media/video/cx23885/cx23885-cards.c |    4 ++++
+ drivers/media/video/cx23885/cx23885-input.c |    9 +++++++++
+ 2 files changed, 13 insertions(+)
 
-Regards
-
-
-Malcolm
-
-
-
-> differences between files attachment (snrber.patch)
-> diff --git a/drivers/media/dvb/frontends/m88rs2000.c b/drivers/media/dvb/frontends/m88rs2000.c
-> index f6d6e39..f5ece59 100644
-> --- a/drivers/media/dvb/frontends/m88rs2000.c
-> +++ b/drivers/media/dvb/frontends/m88rs2000.c
-> @@ -143,7 +143,7 @@ static u8 m88rs2000_demod_read(struct m88rs2000_state *state, u8 reg)
->  
->  static u8 m88rs2000_tuner_read(struct m88rs2000_state *state, u8 reg)
->  {
-> -	m88rs2000_demod_write(state, 0x81, 0x85);
-> +	m88rs2000_demod_write(state, 0x81, 0x84);
->  	udelay(10);
->  	return m88rs2000_readreg(state, 0, reg);
->  }
-> @@ -492,33 +492,81 @@ static int m88rs2000_read_status(struct dvb_frontend *fe, fe_status_t *status)
->  	return 0;
->  }
->  
-> -/* Extact code for these unknown but lmedm04 driver uses interupt callbacks */
-> -
->  static int m88rs2000_read_ber(struct dvb_frontend *fe, u32 *ber)
->  {
-> -	deb_info("m88rs2000_read_ber %d\n", *ber);
-> -	*ber = 0;
-> +	struct m88rs2000_state *state = fe->demodulator_priv;
-> +	u8 tmp0, tmp1;
-> +
-> +	m88rs2000_demod_write(state, 0x9a, 0x30);
-> +	tmp0 = m88rs2000_demod_read(state, 0xd8);
-> +	if ((tmp0 & 0x10) != 0) {
-> +		m88rs2000_demod_write(state, 0x9a, 0xb0);
-> +		*ber = 0xffffffff;
-> +		return 0;
-> +	}
-> +
-> +	*ber = (m88rs2000_demod_read(state, 0xd7) << 8) |
-> +		m88rs2000_demod_read(state, 0xd6);
-> +
-> +	tmp1 = m88rs2000_demod_read(state, 0xd9);
-> +	m88rs2000_demod_write(state, 0xd9, (tmp1 & ~7) | 4);
-> +	/* needs twice */
-> +	m88rs2000_demod_write(state, 0xd8, (tmp0 & ~8) | 0x30);
-> +	m88rs2000_demod_write(state, 0xd8, (tmp0 & ~8) | 0x30);
-> +	m88rs2000_demod_write(state, 0x9a, 0xb0);
-> +
->  	return 0;
->  }
->  
->  static int m88rs2000_read_signal_strength(struct dvb_frontend *fe,
-> -	u16 *strength)
-> +						u16 *signal_strength)
->  {
-> -	*strength = 0;
-> +	struct m88rs2000_state *state = fe->demodulator_priv;
-> +	u8 rfg, bbg, gain, strength;
-> +
-> +	rfg = m88rs2000_tuner_read(state, 0x3d) & 0x1f;
-> +	bbg = m88rs2000_tuner_read(state, 0x21) & 0x1f;
-> +	gain = rfg * 2 + bbg * 3;
-> +
-> +	if (gain > 80)
-> +		strength = 0;
-> +	else if (gain > 65)
-> +		strength = 4 * (80 - gain);
-> +	else if (gain > 50)
-> +		strength = 65 + 4 * (65 - gain) / 3;
-> +	else
-> +		strength = 85 + 2 * (50 - gain) / 3;
-> +
-> +	*signal_strength = strength * 655;
-> +
-> +	deb_info("%s: rfg, bbg / gain = %d, %d, %d\n",
-> +		__func__, rfg, bbg, gain);
-> +
->  	return 0;
->  }
->  
->  static int m88rs2000_read_snr(struct dvb_frontend *fe, u16 *snr)
->  {
-> -	deb_info("m88rs2000_read_snr %d\n", *snr);
-> -	*snr = 0;
-> +	struct m88rs2000_state *state = fe->demodulator_priv;
-> +
-> +	*snr = 512 * m88rs2000_demod_read(state, 0x65);
-> +
->  	return 0;
->  }
->  
->  static int m88rs2000_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
->  {
-> -	deb_info("m88rs2000_read_ber %d\n", *ucblocks);
-> -	*ucblocks = 0;
-> +	struct m88rs2000_state *state = fe->demodulator_priv;
-> +	u8 tmp;
-> +
-> +	*ucblocks = (m88rs2000_demod_read(state, 0xd5) << 8) |
-> +			m88rs2000_demod_read(state, 0xd4);
-> +	tmp = m88rs2000_demod_read(state, 0xd8);
-> +	m88rs2000_demod_write(state, 0xd8, tmp & ~0x20);
-> +	/* needs two times */
-> +	m88rs2000_demod_write(state, 0xd8, tmp | 0x20);
-> +	m88rs2000_demod_write(state, 0xd8, tmp | 0x20);
-> +
->  	return 0;
->  }
->  
-
-
+diff --git a/drivers/media/video/cx23885/cx23885-cards.c
+b/drivers/media/video/cx23885/cx23885-cards.c
+index 76b7563..0b80cf0 100644
+--- a/drivers/media/video/cx23885/cx23885-cards.c
++++ b/drivers/media/video/cx23885/cx23885-cards.c
+@@ -46,6 +46,7 @@ MODULE_PARM_DESC(enable_885_ir,
+ 		 "Enable integrated IR controller for supported\n"
+ 		 "\t\t    CX2388[57] boards that are wired for it:\n"
+ 		 "\t\t\tHVR-1250 (reported safe)\n"
++		 "\t\t\tTerraTec Cinergy T PCIe Dual (not well tested, appears to be safe)\n"
+ 		 "\t\t\tTeVii S470 (reported unsafe)\n"
+ 		 "\t\t    This can cause an interrupt storm with some cards.\n"
+ 		 "\t\t    Default: 0 [Disabled]");
+@@ -1170,6 +1171,7 @@ int cx23885_ir_init(struct cx23885_dev *dev)
+ 		params.shutdown = true;
+ 		v4l2_subdev_call(dev->sd_ir, ir, tx_s_parameters, &params);
+ 		break;
++	case CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL:	
+ 	case CX23885_BOARD_TEVII_S470:
+ 		if (!enable_885_ir)
+ 			break;
+@@ -1210,6 +1212,7 @@ void cx23885_ir_fini(struct cx23885_dev *dev)
+ 		cx23888_ir_remove(dev);
+ 		dev->sd_ir = NULL;
+ 		break;
++	case CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL:	
+ 	case CX23885_BOARD_TEVII_S470:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1250:
+ 		cx23885_irq_remove(dev, PCI_MSK_AV_CORE);
+@@ -1253,6 +1256,7 @@ void cx23885_ir_pci_int_enable(struct cx23885_dev *dev)
+ 		if (dev->sd_ir)
+ 			cx23885_irq_add_enable(dev, PCI_MSK_IR);
+ 		break;
++	case CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL:	
+ 	case CX23885_BOARD_TEVII_S470:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1250:
+ 		if (dev->sd_ir)
+diff --git a/drivers/media/video/cx23885/cx23885-input.c
+b/drivers/media/video/cx23885/cx23885-input.c
+index ce765e3..bb1f7c8 100644
+--- a/drivers/media/video/cx23885/cx23885-input.c
++++ b/drivers/media/video/cx23885/cx23885-input.c
+@@ -85,6 +85,7 @@ void cx23885_input_rx_work_handler(struct
+cx23885_dev *dev, u32 events)
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1270:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1850:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1290:
++	case CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL:
+ 	case CX23885_BOARD_TEVII_S470:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1250:
+ 		/*
+@@ -162,6 +163,7 @@ static int cx23885_input_ir_start(struct cx23885_dev *dev)
+ 		 */
+ 		params.invert_level = true;
+ 		break;
++	case CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL:	
+ 	case CX23885_BOARD_TEVII_S470:
+ 		/*
+ 		 * The IR controller on this board only returns pulse widths.
+@@ -272,6 +274,13 @@ int cx23885_input_init(struct cx23885_dev *dev)
+ 		/* The grey Hauppauge RC-5 remote */
+ 		rc_map = RC_MAP_HAUPPAUGE;
+ 		break;
++	case CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL:
++		/* Integrated CX23885 IR controller */
++		driver_type = RC_DRIVER_IR_RAW;
++		allowed_protos = RC_TYPE_NEC;
++		/* The grey Terratec remote with orange buttons */
++		rc_map = RC_MAP_NEC_TERRATEC_CINERGY_XS;
++		break;
+ 	case CX23885_BOARD_TEVII_S470:
+ 		/* Integrated CX23885 IR controller */
+ 		driver_type = RC_DRIVER_IR_RAW;
