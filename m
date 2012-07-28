@@ -1,52 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:38551 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752249Ab2GVSKZ (ORCPT
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:53462 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752364Ab2G1WxB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Jul 2012 14:10:25 -0400
-Received: by wibhr14 with SMTP id hr14so2166788wib.1
-        for <linux-media@vger.kernel.org>; Sun, 22 Jul 2012 11:10:24 -0700 (PDT)
-Message-ID: <1342980610.2710.8.camel@router7789>
-Subject: Re: AVerMedia A373 PCIe MiniCard Dual DVB-T - ITE IT913x Tuners
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: John Layt <jlayt@kde.org>
-Cc: linux-media@vger.kernel.org
-Date: Sun, 22 Jul 2012 19:10:10 +0100
-In-Reply-To: <CAM1DM6m=WC4DjuhO6AkdZ6VjFphm9gvX41kYmcbykfoKvB3BMw@mail.gmail.com>
-References: <CAM1DM6m=WC4DjuhO6AkdZ6VjFphm9gvX41kYmcbykfoKvB3BMw@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
+	Sat, 28 Jul 2012 18:53:01 -0400
+From: Stefan Muenzel <stefanmuenzel@googlemail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org,
+	Stefan Muenzel <stefanmuenzel@googlemail.com>
+Subject: [PATCH 1/1] [media] uvcvideo: Add 10,12bit and alternate 8bit greyscale
+Date: Sat, 28 Jul 2012 18:49:14 -0400
+Message-Id: <1343515754-1043-1-git-send-email-stefanmuenzel@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2012-07-22 at 17:34 +0100, John Layt wrote:
-> Hi,
-> 
-> I have recently purchased an Acer Aspire Revo RL70 HTPC which comes
-> with a built-in "AVerMedia A373 MiniCard Dual DVB-T" which uses two
-> ITE T913x tuners.  This card is currently unsupported in Linux and I
-> have documented some details on the wiki at
-> http://linuxtv.org/wiki/index.php/AVerMedia_A373_MiniCard_Dual_DVB-T .
->  I have a photo that I can upload once approved, and I also have
-> Windows 7 installed on the machine so can provide details from there
-> if needed.  If anyone is interested in adding support I'd be happy to
-> help out where I can.
+Some cameras support 10bit and 12bit greyscale, or use the alternate "Y8
+" FOURCC for 8bit greyscale. Add support for these.
 
-Hi John
+Tested on a 12bit camera.
 
-It looks like the IT9137 is the Host Interface which is supported, the
-IT9133 is the slave.
+Signed-off-by: Stefan Muenzel <stefanmuenzel@googlemail.com>
+---
+ drivers/media/video/uvc/uvc_driver.c |   19 +++++++++++++++++--
+ drivers/media/video/uvc/uvcvideo.h   |    9 +++++++++
+ 2 files changed, 26 insertions(+), 2 deletions(-)
 
-The only problem I can see is the slave many not work correctly as
-another IT9137 is used as slave on other models.
-
-I will do a little patch shortly to add the ID to the it913x driver.
-
-Regards
-
-
-Malcolm
-
-
+diff --git a/drivers/media/video/uvc/uvc_driver.c b/drivers/media/video/uvc/uvc_driver.c
+index 1d13172..11db262 100644
+--- a/drivers/media/video/uvc/uvc_driver.c
++++ b/drivers/media/video/uvc/uvc_driver.c
+@@ -95,12 +95,27 @@ static struct uvc_format_desc uvc_fmts[] = {
+ 		.fcc		= V4L2_PIX_FMT_UYVY,
+ 	},
+ 	{
+-		.name		= "Greyscale (8-bit)",
++		.name		= "Greyscale 8-bit (Y800)",
+ 		.guid		= UVC_GUID_FORMAT_Y800,
+ 		.fcc		= V4L2_PIX_FMT_GREY,
+ 	},
+ 	{
+-		.name		= "Greyscale (16-bit)",
++		.name		= "Greyscale 8-bit (Y8  )",
++		.guid		= UVC_GUID_FORMAT_Y8,
++		.fcc		= V4L2_PIX_FMT_GREY,
++	},
++	{
++		.name		= "Greyscale 10-bit (Y10 )",
++		.guid		= UVC_GUID_FORMAT_Y10,
++		.fcc		= V4L2_PIX_FMT_Y10,
++	},
++	{
++		.name		= "Greyscale 12-bit (Y12 )",
++		.guid		= UVC_GUID_FORMAT_Y12,
++		.fcc		= V4L2_PIX_FMT_Y12,
++	},
++	{
++		.name		= "Greyscale 16-bit (Y16 )",
+ 		.guid		= UVC_GUID_FORMAT_Y16,
+ 		.fcc		= V4L2_PIX_FMT_Y16,
+ 	},
+diff --git a/drivers/media/video/uvc/uvcvideo.h b/drivers/media/video/uvc/uvcvideo.h
+index 7c3d082..3764040 100644
+--- a/drivers/media/video/uvc/uvcvideo.h
++++ b/drivers/media/video/uvc/uvcvideo.h
+@@ -79,6 +79,15 @@
+ #define UVC_GUID_FORMAT_Y800 \
+ 	{ 'Y',  '8',  '0',  '0', 0x00, 0x00, 0x10, 0x00, \
+ 	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_Y8 \
++	{ 'Y',  '8',  ' ',  ' ', 0x00, 0x00, 0x10, 0x00, \
++	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_Y10 \
++	{ 'Y',  '1',  '0',  ' ', 0x00, 0x00, 0x10, 0x00, \
++	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_Y12 \
++	{ 'Y',  '1',  '2',  ' ', 0x00, 0x00, 0x10, 0x00, \
++	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+ #define UVC_GUID_FORMAT_Y16 \
+ 	{ 'Y',  '1',  '6',  ' ', 0x00, 0x00, 0x10, 0x00, \
+ 	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+-- 
+1.7.10.4
 
