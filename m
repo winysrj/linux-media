@@ -1,88 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.meprolight.com ([194.90.149.17]:36545 "EHLO meprolight.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752171Ab2GaIzc convert rfc822-to-8bit (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:64881 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753278Ab2G2RHn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 04:55:32 -0400
-From: Alex Gershgorin <alexg@meprolight.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"m.szyprowski@samsung.com" <m.szyprowski@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 31 Jul 2012 11:51:04 +0300
-Subject: RE: [PATCH] media: mx3_camera: buf_init() add buffer state check
-Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B2E31A0CA18@MEP-EXCH.meprolight.com>
-References: <1343675227-9061-1-git-send-email-alexg@meprolight.com>,<Pine.LNX.4.64.1207310838110.27888@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1207310838110.27888@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Sun, 29 Jul 2012 13:07:43 -0400
+Received: by bkwj10 with SMTP id j10so2538894bkw.19
+        for <linux-media@vger.kernel.org>; Sun, 29 Jul 2012 10:07:42 -0700 (PDT)
+Message-ID: <50156DCD.5070205@googlemail.com>
+Date: Sun, 29 Jul 2012 19:07:25 +0200
+From: Gregor Jasny <gjasny@googlemail.com>
 MIME-Version: 1.0
+To: Konke Radlow <kradlow@cisco.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 0/2] Add support for RDS decoding
+References: <1343238241-26772-1-git-send-email-kradlow@cisco.com> <50118F6F.8030504@googlemail.com> <201207271427.40172.kradlow@cisco.com>
+In-Reply-To: <201207271427.40172.kradlow@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello Konke,
 
+On 7/27/12 4:27 PM, Konke Radlow wrote:
+> changing the condition in the library header from 
+>> #if __GNUC__ >= 4
+>> #define LIBV4L_PUBLIC __attribute__ ((visibility("default")))
+>> #else
+>> #define LIBV4L_PUBLIC
+>> #endif
+> 
+> to 
+>> #if HAVE_VISIBILITY
+>> #define LIBV4L_PUBLIC __attribute__ ((visibility("default")))
+>> #else
+>> #define LIBV4L_PUBLIC
+>> #endif
+> 
+> causes linker problems for me. The public library functions can no longer be 
+> found. I cannot figure out why it's working for programs using libv4l2.la but 
+> not for programs using libv4l2rds.la
 
-Hi Guennadi,
+You need to include <config.h> before including this file in the utility
+and library to get the HAVE_VISIBILITY definition activated.
+The other option would be switching from defining HAVE_VISIBILITY in
+config.h to a command line define.
 
-> On Mon, 30 Jul 2012, Alex Gershgorin wrote:
-
-> This patch check the state of the buffer when calling buf_init() method.
-> The thread http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/48587
-> also includes report witch can show the problem. This patch solved the problem.
-> Both MMAP and USERPTR methods was successfully tested.
->
-> Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
-> ---
->  drivers/media/video/mx3_camera.c |   12 +++++++-----
->  1 files changed, 7 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
-> index f13643d..950a8fe 100644
-> --- a/drivers/media/video/mx3_camera.c
-> +++ b/drivers/media/video/mx3_camera.c
-> @@ -405,13 +405,15 @@ static int mx3_videobuf_init(struct vb2_buffer *vb)
-
->> Sorry, don't understand. As we see in the thread, mentioned above, the
->> Oops happened in mx3_videobuf_release(). If my analysis was correct in
->> that thread, that Oops happened, when .buf_cleanup() was called without
->> .buf_init() being called. This your patch modifies mx3_videobuf_init().
->> which isn't even called in the problem case. How does this help?
-
-Sorry for not quite a clear explanation, I will explain in more details.
-if you divide the report into two parts:
-1) USERPTR method Oops happened as a result discontiguous memory allocation
-2) USERPTR method use framebuffer memory allocation video starting, but after a few seconds the video freezes.
-    if we consider the first part of the report, your analysis is absolutely 
-   correct and unfortunately this patch does not solve the problems mentioned in the thread.
-   This patch solves a problem that is described in the second part of the report.
-
->       struct mx3_camera_dev *mx3_cam = ici->priv;
->       struct mx3_camera_buffer *buf = to_mx3_vb(vb);
->
-> -     /* This is for locking debugging only */
-> -     INIT_LIST_HEAD(&buf->queue);
-> -     sg_init_table(&buf->sg, 1);
-> +     if (buf->state != CSI_BUF_PREPARED) {
-> +             /* This is for locking debugging only */
-> +             INIT_LIST_HEAD(&buf->queue);
-> +             sg_init_table(&buf->sg, 1);
->
-> -     buf->state = CSI_BUF_NEEDS_INIT;
-> +             buf->state = CSI_BUF_NEEDS_INIT;
->
-> -     mx3_cam->buf_total += vb2_plane_size(vb, 0);
-> +             mx3_cam->buf_total += vb2_plane_size(vb, 0);
-> +     }
->
->       return 0;
->  }
-> --
-> 1.7.0.4
->
-
-Regards,
-Alex
- 
+Thanks,
+Gregor
