@@ -1,326 +1,422 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4374 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750793Ab2GBOPx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2012 10:15:53 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:46302 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751555Ab2G2AP4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Jul 2012 20:15:56 -0400
+Received: by weyx8 with SMTP id x8so2864979wey.19
+        for <linux-media@vger.kernel.org>; Sat, 28 Jul 2012 17:15:54 -0700 (PDT)
+From: Ilyes Gouta <ilyes.gouta@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	halli manjunatha <hallimanju@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 3/6] v4l2 spec: add VIDIOC_ENUM_FREQ_BANDS documentation.
-Date: Mon,  2 Jul 2012 16:15:09 +0200
-Message-Id: <a8bb83c2f000f52998fbc6fcfaa9d7e73e2e1963.1341237775.git.hans.verkuil@cisco.com>
-In-Reply-To: <1341238512-17504-1-git-send-email-hverkuil@xs4all.nl>
-References: <1341238512-17504-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <f8baa47c370e4d79309e126b56127df8a5edd11a.1341237775.git.hans.verkuil@cisco.com>
-References: <f8baa47c370e4d79309e126b56127df8a5edd11a.1341237775.git.hans.verkuil@cisco.com>
+Cc: Ilyes Gouta <ilyes.gouta@st.com>,
+	Ilyes Gouta <ilyes.gouta@gmail.com>
+Subject: [PATCH RFC] v4l2: define V4L2_PIX_FMT_NV16M and V4L2_PIX_FMT_NV24M pixel formats
+Date: Sun, 29 Jul 2012 01:15:16 +0100
+Message-Id: <1343520916-18165-1-git-send-email-ilyes.gouta@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Define the two new V4L2_PIX_FMT_NV16M (4:2:2 two-buffers) and V4L2_PIX_FMT_NV24M (4:4:4 two-buffers)
+pixel formats, the non-contiguous variants of the existing V4L2_PIX_FMT_NV16 and V4L2_PIX_FMT_NV24 formats.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Existing h/w IPs, such as decoders, operate on such separate luma and chroma buffers.
+
+Signed-off-by: Ilyes Gouta <ilyes.gouta@gmail.com>
 ---
- Documentation/DocBook/media/v4l/compat.xml         |   12 ++
- Documentation/DocBook/media/v4l/v4l2.xml           |    6 +
- .../DocBook/media/v4l/vidioc-enum-freq-bands.xml   |  152 ++++++++++++++++++++
- .../DocBook/media/v4l/vidioc-g-frequency.xml       |    7 +-
- Documentation/DocBook/media/v4l/vidioc-g-tuner.xml |   26 +++-
- 5 files changed, 194 insertions(+), 9 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
+ Documentation/DocBook/media/v4l/pixfmt-nv16m.xml | 166 +++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt-nv24m.xml | 182 +++++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml       |   2 +
+ include/linux/videodev2.h                        |   2 +
+ 4 files changed, 352 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv24m.xml
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index ea42ef8..2ec8000 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2458,6 +2458,15 @@ details.</para>
-       </orderedlist>
-     </section>
- 
-+    <section>
-+      <title>V4L2 in Linux 3.6</title>
-+      <orderedlist>
-+        <listitem>
-+	  <para>Added support for frequency band enumerations: &VIDIOC-ENUM-FREQ-BANDS;.</para>
-+        </listitem>
-+      </orderedlist>
-+    </section>
-+
-     <section id="other">
-       <title>Relation of V4L2 to other Linux multimedia APIs</title>
- 
-@@ -2587,6 +2596,9 @@ ioctls.</para>
- 	  <para><link linkend="v4l2-auto-focus-area"><constant>
- 	  V4L2_CID_AUTO_FOCUS_AREA</constant></link> control.</para>
-         </listitem>
-+        <listitem>
-+	  <para>Support for frequency band enumeration: &VIDIOC-ENUM-FREQ-BANDS; ioctl.</para>
-+        </listitem>
-       </itemizedlist>
-     </section>
- 
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index 008c2d7..c6e307b 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -140,6 +140,11 @@ structs, ioctls) must be noted in more detail in the history chapter
- applications. -->
- 
-       <revision>
-+	<revnumber>3.6</revnumber>
-+	<date>2012-07-02</date>
-+	<authorinitials>hv</authorinitials>
-+	<revremark>Added VIDIOC_ENUM_FREQ_BANDS.
-+	</revremark>
- 	<revnumber>3.5</revnumber>
- 	<date>2012-05-07</date>
- 	<authorinitials>sa, sn</authorinitials>
-@@ -534,6 +539,7 @@ and discussions on the V4L mailing list.</revremark>
-     &sub-enum-fmt;
-     &sub-enum-framesizes;
-     &sub-enum-frameintervals;
-+    &sub-enum-freq-bands;
-     &sub-enuminput;
-     &sub-enumoutput;
-     &sub-enumstd;
-diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml b/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-nv16m.xml b/Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
 new file mode 100644
-index 0000000..27e264f
+index 0000000..76e48bf
 --- /dev/null
-+++ b/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
-@@ -0,0 +1,152 @@
-+<refentry id="vidioc-enum-freq-bands">
-+  <refmeta>
-+    <refentrytitle>ioctl VIDIOC_ENUM_FREQ_BANDS</refentrytitle>
-+    &manvol;
-+  </refmeta>
++++ b/Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
+@@ -0,0 +1,166 @@
++    <refentry id="V4L2-PIX-FMT-NV16M">
++      <refmeta>
++     <refentrytitle>V4L2_PIX_FMT_NV16M ('NM16')</refentrytitle>
++	&manvol;
++      </refmeta>
++      <refnamediv>
++     <refname> <constant>V4L2_PIX_FMT_NV16M</constant></refname>
++     <refpurpose>Variation of <constant>V4L2_PIX_FMT_NV16</constant> with planes
++	  non contiguous in memory. </refpurpose>
++      </refnamediv>
++      <refsect1>
++	<title>Description</title>
 +
-+  <refnamediv>
-+    <refname>VIDIOC_ENUM_FREQ_BANDS</refname>
-+    <refpurpose>Enumerate supported frequency bands</refpurpose>
-+  </refnamediv>
++     <para>This is a multi-planar, two-plane version of the YUV 4:2:2 format.
++The three components are separated into two sub-images or planes.
++<constant>V4L2_PIX_FMT_NV16M</constant> differs from <constant>V4L2_PIX_FMT_NV16
++</constant> in that the two planes are non-contiguous in memory, i.e. the chroma
++plane do not necessarily immediately follows the luma plane.
++The luminance data occupies the first plane. The Y plane has one byte per pixel.
++In the second plane there is a chrominance data with alternating chroma samples.
++The CbCr plane has the same width and height, in bytes, as the Y plane (and of the image).
++Each CbCr pair belongs to two pixels. For example,
++Cb<subscript>0</subscript>/Cr<subscript>0</subscript> belongs to
++Y<subscript>00</subscript>, Y'<subscript>01</subscript>. </para>
 +
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>struct v4l2_frequency_band
-+*<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
++     <para><constant>V4L2_PIX_FMT_NV16M</constant> is intended to be
++used only in drivers and applications that support the multi-planar API,
++described in <xref linkend="planar-apis"/>. </para>
 +
-+  <refsect1>
-+    <title>Arguments</title>
++	<para>If the Y plane has pad bytes after each row, then the
++CbCr plane has as many pad bytes after its rows.</para>
 +
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>&fd;</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>VIDIOC_ENUM_FREQ_BANDS</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
++	<example>
++       <title><constant>V4L2_PIX_FMT_NV16M</constant> 4 &times; 4 pixel image</title>
 +
-+  <refsect1>
-+    <title>Description</title>
++	  <formalpara>
++	    <title>Byte Order.</title>
++	    <para>Each cell is one byte.
++		<informaltable frame="none">
++		<tgroup cols="5" align="center">
++		  <colspec align="left" colwidth="2*" />
++		  <tbody valign="top">
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;0:</entry>
++		      <entry>Y'<subscript>00</subscript></entry>
++		      <entry>Y'<subscript>01</subscript></entry>
++		      <entry>Y'<subscript>02</subscript></entry>
++		      <entry>Y'<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;4:</entry>
++		      <entry>Y'<subscript>10</subscript></entry>
++		      <entry>Y'<subscript>11</subscript></entry>
++		      <entry>Y'<subscript>12</subscript></entry>
++		      <entry>Y'<subscript>13</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;8:</entry>
++		      <entry>Y'<subscript>20</subscript></entry>
++		      <entry>Y'<subscript>21</subscript></entry>
++		      <entry>Y'<subscript>22</subscript></entry>
++		      <entry>Y'<subscript>23</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;12:</entry>
++		      <entry>Y'<subscript>30</subscript></entry>
++		      <entry>Y'<subscript>31</subscript></entry>
++		      <entry>Y'<subscript>32</subscript></entry>
++		      <entry>Y'<subscript>33</subscript></entry>
++		    </row>
++		    <row>
++		      <entry></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;0:</entry>
++		      <entry>Cb<subscript>00</subscript></entry>
++		      <entry>Cr<subscript>00</subscript></entry>
++		      <entry>Cb<subscript>01</subscript></entry>
++		      <entry>Cr<subscript>01</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;4:</entry>
++		      <entry>Cb<subscript>10</subscript></entry>
++		      <entry>Cr<subscript>10</subscript></entry>
++		      <entry>Cb<subscript>11</subscript></entry>
++		      <entry>Cr<subscript>11</subscript></entry>
++		    </row>
++              <row>
++                <entry>start1&nbsp;+&nbsp;8:</entry>
++                <entry>Cb<subscript>20</subscript></entry>
++                <entry>Cr<subscript>20</subscript></entry>
++                <entry>Cb<subscript>21</subscript></entry>
++                <entry>Cr<subscript>21</subscript></entry>
++              </row>
++              <row>
++                <entry>start1&nbsp;+&nbsp;12:</entry>
++                <entry>Cb<subscript>30</subscript></entry>
++                <entry>Cr<subscript>30</subscript></entry>
++                <entry>Cb<subscript>31</subscript></entry>
++                <entry>Cr<subscript>31</subscript></entry>
++              </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
 +
-+    <note>
-+      <title>Experimental</title>
-+      <para>This is an <link linkend="experimental"> experimental </link>
-+      interface and may change in the future.</para>
-+    </note>
++	  <formalpara>
++	    <title>Color Sample Location.</title>
++	    <para>
++		<informaltable frame="none">
++		<tgroup cols="7" align="center">
++		  <tbody valign="top">
++		    <row>
++		      <entry></entry>
++		      <entry>0</entry><entry></entry><entry>1</entry><entry></entry>
++		      <entry>2</entry><entry></entry><entry>3</entry>
++		    </row>
++		    <row>
++		      <entry>0</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++		    <row>
++		      <entry></entry>
++		      <entry></entry><entry>C</entry><entry></entry><entry></entry>
++		      <entry></entry><entry>C</entry><entry></entry>
++		    </row>
++		    <row>
++		      <entry>1</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++              <row>
++                <entry></entry>
++                <entry></entry><entry>C</entry><entry></entry><entry></entry>
++                <entry></entry><entry>C</entry><entry></entry>
++              </row>
++		    <row>
++		      <entry>2</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++		    <row>
++		      <entry></entry>
++		      <entry></entry><entry>C</entry><entry></entry><entry></entry>
++		      <entry></entry><entry>C</entry><entry></entry>
++		    </row>
++		    <row>
++		      <entry>3</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++              <row>
++                <entry></entry>
++                <entry></entry><entry>C</entry><entry></entry><entry></entry>
++                <entry></entry><entry>C</entry><entry></entry>
++              </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++	</example>
++      </refsect1>
++    </refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-nv24m.xml b/Documentation/DocBook/media/v4l/pixfmt-nv24m.xml
+new file mode 100644
+index 0000000..51b06d1
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-nv24m.xml
+@@ -0,0 +1,182 @@
++    <refentry id="V4L2-PIX-FMT-NV24M">
++      <refmeta>
++     <refentrytitle>V4L2_PIX_FMT_NV24M ('NM24')</refentrytitle>
++	&manvol;
++      </refmeta>
++      <refnamediv>
++     <refname> <constant>V4L2_PIX_FMT_NV24M</constant></refname>
++     <refpurpose>Variation of <constant>V4L2_PIX_FMT_NV24</constant> with planes
++	  non contiguous in memory. </refpurpose>
++      </refnamediv>
++      <refsect1>
++	<title>Description</title>
 +
-+    <para>Enumerates the frequency bands that a tuner or modulator supports.
-+To do this applications initialize the <structfield>tuner</structfield>,
-+<structfield>type</structfield> and <structfield>index</structfield> fields,
-+and zero out the <structfield>reserved</structfield> array of a &v4l2-frequency-band; and
-+call the <constant>VIDIOC_ENUM_FREQ_BANDS</constant> ioctl with a pointer
-+to this structure.</para>
++     <para>This is a multi-planar, two-plane version of the YUV 4:4:4 format.
++The three components are separated into two sub-images or planes.
++<constant>V4L2_PIX_FMT_NV24M</constant> differs from <constant>V4L2_PIX_FMT_NV24
++</constant> in that the two planes are non-contiguous in memory, i.e. the chroma
++plane do not necessarily immediately follows the luma plane.
++The luminance data occupies the first plane. The Y plane has one byte per pixel.
++In the second plane there is a chrominance data with alternating chroma samples.
++The CbCr plane has the double of the width (in bytes) and the same height of the
++Y plane. Each CbCr pair belongs to one pixel. For example,
++Cb<subscript>0</subscript>/Cr<subscript>0</subscript> belongs to
++Y'<subscript>00</subscript>. </para>
 +
-+    <para>This ioctl is supported if the <constant>V4L2_TUNER_CAP_FREQ_BANDS</constant> capability
-+    of the corresponding tuner/modulator is set.</para>
++     <para><constant>V4L2_PIX_FMT_NV24M</constant> is intended to be
++used only in drivers and applications that support the multi-planar API,
++described in <xref linkend="planar-apis"/>. </para>
 +
-+    <table pgwide="1" frame="none" id="v4l2-frequency-band">
-+      <title>struct <structname>v4l2_frequency_band</structname></title>
-+      <tgroup cols="3">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>tuner</structfield></entry>
-+	    <entry>The tuner or modulator index number. This is the
-+same value as in the &v4l2-input; <structfield>tuner</structfield>
-+field and the &v4l2-tuner; <structfield>index</structfield> field, or
-+the &v4l2-output; <structfield>modulator</structfield> field and the
-+&v4l2-modulator; <structfield>index</structfield> field.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>type</structfield></entry>
-+	    <entry>The tuner type. This is the same value as in the
-+&v4l2-tuner; <structfield>type</structfield> field. The type must be set
-+to <constant>V4L2_TUNER_RADIO</constant> for <filename>/dev/radioX</filename>
-+device nodes, and to <constant>V4L2_TUNER_ANALOG_TV</constant>
-+for all others. Set this field to <constant>V4L2_TUNER_RADIO</constant> for
-+modulators (currently only radio modulators are supported).
-+See <xref linkend="v4l2-tuner-type" /></entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>index</structfield></entry>
-+	    <entry>Identifies the frequency band, set by the application.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>capability</structfield></entry>
-+	    <entry spanname="hspan">The tuner/modulator capability flags for
-+this frequency band, see <xref linkend="tuner-capability" />. The <constant>V4L2_TUNER_CAP_LOW</constant>
-+capability must be the same for all frequency bands of the selected tuner/modulator.
-+So either all bands have that capability set, or none of them have that capability.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>rangelow</structfield></entry>
-+	    <entry spanname="hspan">The lowest tunable frequency in
-+units of 62.5 kHz, or if the <structfield>capability</structfield>
-+flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
-+Hz, for this frequency band.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>rangehigh</structfield></entry>
-+	    <entry spanname="hspan">The highest tunable frequency in
-+units of 62.5 kHz, or if the <structfield>capability</structfield>
-+flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
-+Hz, for this frequency band.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u8</entry>
-+	    <entry><structfield>name</structfield>[32]</entry>
-+	    <entry spanname="hspan">The name of this frequency band. This name
-+can be used in user interfaces.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[6]</entry>
-+	    <entry>Reserved for future extensions. Applications and drivers
-+	    must set the array to zero.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+  </refsect1>
++	<para>If the Y plane has pad bytes after each row, then the
++CbCr plane has as many pad bytes after its rows.</para>
 +
-+  <refsect1>
-+    &return-value;
++	<example>
++       <title><constant>V4L2_PIX_FMT_NV24M</constant> 4 &times; 4 pixel image</title>
 +
-+    <variablelist>
-+      <varlistentry>
-+	<term><errorcode>EINVAL</errorcode></term>
-+	<listitem>
-+	  <para>The <structfield>tuner</structfield> or <structfield>index</structfield>
-+is out of bounds or the <structfield>type</structfield> field is wrong.</para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml b/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
-index 40e58a4..c7a1c46 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
-@@ -98,11 +98,12 @@ the &v4l2-output; <structfield>modulator</structfield> field and the
- 	    <entry>__u32</entry>
- 	    <entry><structfield>type</structfield></entry>
- 	    <entry>The tuner type. This is the same value as in the
--&v4l2-tuner; <structfield>type</structfield> field. See The type must be set
-+&v4l2-tuner; <structfield>type</structfield> field. The type must be set
- to <constant>V4L2_TUNER_RADIO</constant> for <filename>/dev/radioX</filename>
- device nodes, and to <constant>V4L2_TUNER_ANALOG_TV</constant>
--for all others. The field is not applicable to modulators, &ie; ignored
--by drivers. See <xref linkend="v4l2-tuner-type" /></entry>
-+for all others. Set this field to <constant>V4L2_TUNER_RADIO</constant> for
-+modulators (currently only radio modulators are supported).
-+See <xref linkend="v4l2-tuner-type" /></entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-index 95d5371..288b319 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-@@ -119,10 +119,14 @@ field is not quite clear.--></para></entry>
- <xref linkend="tuner-capability" />. Audio flags indicate the ability
- to decode audio subprograms. They will <emphasis>not</emphasis>
- change, for example with the current video standard.</para><para>When
--the structure refers to a radio tuner only the
--<constant>V4L2_TUNER_CAP_LOW</constant>,
--<constant>V4L2_TUNER_CAP_STEREO</constant> and
--<constant>V4L2_TUNER_CAP_RDS</constant> flags can be set.</para></entry>
-+the structure refers to a radio tuner the
-+<constant>V4L2_TUNER_CAP_LANG1</constant>,
-+<constant>V4L2_TUNER_CAP_LANG2</constant> and
-+<constant>V4L2_TUNER_CAP_NORM</constant> flags can't be used.</para>
-+<para>If multiple frequency bands are supported (<constant>V4L2_TUNER_CAP_FREQ_BANDS</constant>
-+is set), then <structfield>capability</structfield> is the union of all
-+<structfield>capability></structfield> fields of each &v4l2-frequency-band;.
-+</para></entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-@@ -130,7 +134,9 @@ the structure refers to a radio tuner only the
- 	    <entry spanname="hspan">The lowest tunable frequency in
- units of 62.5 kHz, or if the <structfield>capability</structfield>
- flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
--Hz.</entry>
-+Hz. If multiple frequency bands are supported (<constant>V4L2_TUNER_CAP_FREQ_BANDS</constant>
-+is set), then <structfield>rangelow</structfield> is the lowest frequency
-+of all the frequency bands.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-@@ -138,7 +144,9 @@ Hz.</entry>
- 	    <entry spanname="hspan">The highest tunable frequency in
- units of 62.5 kHz, or if the <structfield>capability</structfield>
- flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
--Hz.</entry>
-+Hz. If multiple frequency bands are supported (<constant>V4L2_TUNER_CAP_FREQ_BANDS</constant>
-+is set), then <structfield>rangehigh</structfield> is the highest frequency
-+of all the frequency bands.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-@@ -340,6 +348,12 @@ radio tuners.</entry>
- 	<entry>0x0200</entry>
- 	<entry>The RDS data is parsed by the hardware and set via controls.</entry>
- 	  </row>
-+	  <row>
-+	<entry><constant>V4L2_TUNER_CAP_FREQ_BANDS</constant></entry>
-+	<entry>0x0400</entry>
-+	<entry>There are multiple frequency bands and the &VIDIOC-ENUM-FREQ-BANDS;
-+	ioctl can be used to enumerate them.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
++	  <formalpara>
++	    <title>Byte Order.</title>
++	    <para>Each cell is one byte.
++		<informaltable frame="none">
++		<tgroup cols="5" align="center">
++		  <colspec align="left" colwidth="2*" />
++		  <tbody valign="top">
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;0:</entry>
++		      <entry>Y'<subscript>00</subscript></entry>
++		      <entry>Y'<subscript>01</subscript></entry>
++		      <entry>Y'<subscript>02</subscript></entry>
++		      <entry>Y'<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;4:</entry>
++		      <entry>Y'<subscript>10</subscript></entry>
++		      <entry>Y'<subscript>11</subscript></entry>
++		      <entry>Y'<subscript>12</subscript></entry>
++		      <entry>Y'<subscript>13</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;8:</entry>
++		      <entry>Y'<subscript>20</subscript></entry>
++		      <entry>Y'<subscript>21</subscript></entry>
++		      <entry>Y'<subscript>22</subscript></entry>
++		      <entry>Y'<subscript>23</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;12:</entry>
++		      <entry>Y'<subscript>30</subscript></entry>
++		      <entry>Y'<subscript>31</subscript></entry>
++		      <entry>Y'<subscript>32</subscript></entry>
++		      <entry>Y'<subscript>33</subscript></entry>
++		    </row>
++		    <row>
++		      <entry></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;0:</entry>
++		      <entry>Cb<subscript>00</subscript></entry>
++		      <entry>Cr<subscript>00</subscript></entry>
++		      <entry>Cb<subscript>01</subscript></entry>
++		      <entry>Cr<subscript>01</subscript></entry>
++                <entry>Cb<subscript>02</subscript></entry>
++                <entry>Cr<subscript>02</subscript></entry>
++                <entry>Cb<subscript>03</subscript></entry>
++                <entry>Cr<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++                <entry>start1&nbsp;+&nbsp;8:</entry>
++		      <entry>Cb<subscript>10</subscript></entry>
++		      <entry>Cr<subscript>10</subscript></entry>
++		      <entry>Cb<subscript>11</subscript></entry>
++		      <entry>Cr<subscript>11</subscript></entry>
++                <entry>Cb<subscript>12</subscript></entry>
++                <entry>Cr<subscript>12</subscript></entry>
++                <entry>Cb<subscript>13</subscript></entry>
++                <entry>Cr<subscript>13</subscript></entry>
++		    </row>
++              <row>
++                <entry>start1&nbsp;+&nbsp;16:</entry>
++                <entry>Cb<subscript>20</subscript></entry>
++                <entry>Cr<subscript>20</subscript></entry>
++                <entry>Cb<subscript>21</subscript></entry>
++                <entry>Cr<subscript>21</subscript></entry>
++                <entry>Cb<subscript>22</subscript></entry>
++                <entry>Cr<subscript>22</subscript></entry>
++                <entry>Cb<subscript>23</subscript></entry>
++                <entry>Cr<subscript>23</subscript></entry>
++              </row>
++              <row>
++                <entry>start1&nbsp;+&nbsp;24:</entry>
++                <entry>Cb<subscript>30</subscript></entry>
++                <entry>Cr<subscript>30</subscript></entry>
++                <entry>Cb<subscript>31</subscript></entry>
++                <entry>Cr<subscript>31</subscript></entry>
++                <entry>Cb<subscript>32</subscript></entry>
++                <entry>Cr<subscript>32</subscript></entry>
++                <entry>Cb<subscript>33</subscript></entry>
++                <entry>Cr<subscript>33</subscript></entry>
++              </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++
++	  <formalpara>
++	    <title>Color Sample Location.</title>
++	    <para>
++		<informaltable frame="none">
++		<tgroup cols="7" align="center">
++		  <tbody valign="top">
++		    <row>
++		      <entry></entry>
++		      <entry>0</entry><entry></entry><entry>1</entry><entry></entry>
++		      <entry>2</entry><entry></entry><entry>3</entry>
++		    </row>
++		    <row>
++		      <entry>0</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++		    <row>
++		      <entry></entry>
++                <entry>C</entry><entry></entry><entry>C</entry><entry></entry>
++                <entry>C</entry><entry></entry><entry>C</entry>
++		    </row>
++		    <row>
++		      <entry>1</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++              <row>
++                <entry></entry>
++                <entry>C</entry><entry></entry><entry>C</entry><entry></entry>
++                <entry>C</entry><entry></entry><entry>C</entry>
++              </row>
++		    <row>
++		      <entry>2</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++              <row>
++                <entry></entry>
++                <entry>C</entry><entry></entry><entry>C</entry><entry></entry>
++                <entry>C</entry><entry></entry><entry>C</entry>
++              </row>
++		    <row>
++		      <entry>3</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++              </row>
++              <row>
++                <entry></entry>
++                <entry>C</entry><entry></entry><entry>C</entry><entry></entry>
++                <entry>C</entry><entry></entry><entry>C</entry>
++              </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++	</example>
++      </refsect1>
++    </refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index e58934c..24e33db 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -713,6 +713,8 @@ information.</para>
+     &sub-yuv411p;
+     &sub-nv12;
+     &sub-nv12m;
++    &sub-nv16m;
++    &sub-nv24m;
+     &sub-nv12mt;
+     &sub-nv16;
+     &sub-nv24;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 5d78910..618bf50 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -360,6 +360,8 @@ struct v4l2_pix_format {
+ 
+ /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
+ #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
++#define V4L2_PIX_FMT_NV16M   v4l2_fourcc('N', 'M', '1', '6') /* 16  Y/CbCr 4:2:2  */
++#define V4L2_PIX_FMT_NV24M   v4l2_fourcc('N', 'M', '2', '4') /* 24  Y/CbCr 4:4:4  */
+ #define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 64x32 macroblocks */
+ 
+ /* three non contiguous planes - Y, Cb, Cr */
 -- 
-1.7.10
+1.7.11.2
 
