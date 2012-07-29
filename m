@@ -1,81 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:63220 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752440Ab2GJMeh (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48552 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751194Ab2G2F4w (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jul 2012 08:34:37 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: Re: [PATCH v4] media: Add stk1160 new driver
-Date: Tue, 10 Jul 2012 14:34:25 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	linux-media@vger.kernel.org
-References: <1340991243-2951-1-git-send-email-elezegarcia@gmail.com> <201207100839.32830.hverkuil@xs4all.nl> <CALF0-+VKNfp=_qUzoTKfJO_nsj_e+29pnNAt5Ze-BCewccBjJA@mail.gmail.com>
-In-Reply-To: <CALF0-+VKNfp=_qUzoTKfJO_nsj_e+29pnNAt5Ze-BCewccBjJA@mail.gmail.com>
+	Sun, 29 Jul 2012 01:56:52 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Stefan Muenzel <stefanmuenzel@googlemail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/1] [media] uvcvideo: Add 10,12bit and alternate 8bit greyscale
+Date: Sun, 29 Jul 2012 07:56:56 +0200
+Message-ID: <1537901.D4de3zSszL@avalon>
+In-Reply-To: <1343515754-1043-1-git-send-email-stefanmuenzel@googlemail.com>
+References: <1343515754-1043-1-git-send-email-stefanmuenzel@googlemail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201207101434.25254.hverkuil@xs4all.nl>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue 10 July 2012 14:26:11 Ezequiel Garcia wrote:
-> Hi Hans,
-> 
-> On Tue, Jul 10, 2012 at 3:39 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > On Tue July 10 2012 05:17:41 Ezequiel Garcia wrote:
-> >> Hey Mauro,
-> >>
-> >> On Fri, Jul 6, 2012 at 11:41 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
-> >> > On Thu, Jul 5, 2012 at 9:01 PM, Mauro Carvalho Chehab
-> >> > <mchehab@redhat.com> wrote:
-> >> >> Em 05-07-2012 19:36, Sylwester Nawrocki escreveu:
-> >> >>> On 07/06/2012 12:11 AM, Mauro Carvalho Chehab wrote:
-> >> >>>>> +static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *p)
-> >> >>>>> +{
-> >> >>>>> +   struct stk1160 *dev = video_drvdata(file);
-> >> >>>>> +
-> >> >>>>> +   if (!stk1160_is_owner(dev, file))
-> >> >>>>> +           return -EBUSY;
-> >> >>>>> +
-> >> >>>>> +   return vb2_dqbuf(&dev->vb_vidq, p, file->f_flags&  O_NONBLOCK);
-> >
-> > Take a look at the latest videobuf2-core.h: I've added helper functions
-> > that check the owner. You can probably simplify the driver code quite a bit
-> > by using those helpers.
-> 
-> Ok.
-> 
-> >
-> >> >>>>
-> >> >>>> Why to use O_NONBLOCK here? it should be doing whatever userspace wants.
-> >> >>>
-> >> >>> This is OK, since the third argument to vb2_dqbuf() is a boolean indicating
-> >> >>> whether this call should be blocking or not. And a "& O_NONBLOCK" masks this
-> >> >>> information out from file->f_flags.
-> >> >>
-> >> >> Ah! OK then.
-> >> >>
-> >> >> It might be better to initialize it during vb2 initialization, at open,
-> >> >> instead of requiring this argument every time vb_dqbuf() is called.
-> >
-> > You can't do this at open since the application can change the NONBLOCK mode
-> > after open. So the current approach is correct.
-> 
-> Yes, that sounds ok. Let's wait until Mauro returns from holiday to discuss this
-> with him.
-> 
-> Also, what do you think about current_norm usage?
+Hi Stefan,
 
-Don't use it. Implement g_std instead. current_norm really doesn't add anything
-useful, it is a bit too magical and it doesn't work if you have multiple nodes
-that share the same std (e.g. video and vbi).
+Thanks for the patch.
 
-I'm removing it from existing drivers whenever I have the chance, and it will
-eventually go away.
+On Saturday 28 July 2012 18:49:14 Stefan Muenzel wrote:
+> Some cameras support 10bit and 12bit greyscale, or use the alternate "Y8
+> " FOURCC for 8bit greyscale. Add support for these.
 
+Could you please tell me which camera(s) use those formats ?
+
+> Tested on a 12bit camera.
+> 
+> Signed-off-by: Stefan Muenzel <stefanmuenzel@googlemail.com>
+> ---
+>  drivers/media/video/uvc/uvc_driver.c |   19 +++++++++++++++++--
+>  drivers/media/video/uvc/uvcvideo.h   |    9 +++++++++
+>  2 files changed, 26 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/video/uvc/uvc_driver.c
+> b/drivers/media/video/uvc/uvc_driver.c index 1d13172..11db262 100644
+> --- a/drivers/media/video/uvc/uvc_driver.c
+> +++ b/drivers/media/video/uvc/uvc_driver.c
+> @@ -95,12 +95,27 @@ static struct uvc_format_desc uvc_fmts[] = {
+>  		.fcc		= V4L2_PIX_FMT_UYVY,
+>  	},
+>  	{
+> -		.name		= "Greyscale (8-bit)",
+> +		.name		= "Greyscale 8-bit (Y800)",
+>  		.guid		= UVC_GUID_FORMAT_Y800,
+>  		.fcc		= V4L2_PIX_FMT_GREY,
+>  	},
+>  	{
+> -		.name		= "Greyscale (16-bit)",
+> +		.name		= "Greyscale 8-bit (Y8  )",
+> +		.guid		= UVC_GUID_FORMAT_Y8,
+> +		.fcc		= V4L2_PIX_FMT_GREY,
+> +	},
+> +	{
+> +		.name		= "Greyscale 10-bit (Y10 )",
+> +		.guid		= UVC_GUID_FORMAT_Y10,
+> +		.fcc		= V4L2_PIX_FMT_Y10,
+> +	},
+> +	{
+> +		.name		= "Greyscale 12-bit (Y12 )",
+> +		.guid		= UVC_GUID_FORMAT_Y12,
+> +		.fcc		= V4L2_PIX_FMT_Y12,
+> +	},
+> +	{
+> +		.name		= "Greyscale 16-bit (Y16 )",
+>  		.guid		= UVC_GUID_FORMAT_Y16,
+>  		.fcc		= V4L2_PIX_FMT_Y16,
+>  	},
+> diff --git a/drivers/media/video/uvc/uvcvideo.h
+> b/drivers/media/video/uvc/uvcvideo.h index 7c3d082..3764040 100644
+> --- a/drivers/media/video/uvc/uvcvideo.h
+> +++ b/drivers/media/video/uvc/uvcvideo.h
+> @@ -79,6 +79,15 @@
+>  #define UVC_GUID_FORMAT_Y800 \
+>  	{ 'Y',  '8',  '0',  '0', 0x00, 0x00, 0x10, 0x00, \
+>  	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+> +#define UVC_GUID_FORMAT_Y8 \
+> +	{ 'Y',  '8',  ' ',  ' ', 0x00, 0x00, 0x10, 0x00, \
+> +	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+> +#define UVC_GUID_FORMAT_Y10 \
+> +	{ 'Y',  '1',  '0',  ' ', 0x00, 0x00, 0x10, 0x00, \
+> +	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+> +#define UVC_GUID_FORMAT_Y12 \
+> +	{ 'Y',  '1',  '2',  ' ', 0x00, 0x00, 0x10, 0x00, \
+> +	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+>  #define UVC_GUID_FORMAT_Y16 \
+>  	{ 'Y',  '1',  '6',  ' ', 0x00, 0x00, 0x10, 0x00, \
+>  	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
+
