@@ -1,58 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:36979 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751866Ab2GJGoJ (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:36562 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753586Ab2G2VVQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jul 2012 02:44:09 -0400
-From: Devendra Naga <devendra.aaru@gmail.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	H Hartley Sweeten <hsweeten@visionengravers.com>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Devendra Naga <devendra.aaru@gmail.com>
-Subject: [PATCH 4/6] staging/media/dt3155v4l: use module_pci_driver macro
-Date: Tue, 10 Jul 2012 12:13:48 +0530
-Message-Id: <1341902628-22465-1-git-send-email-devendra.aaru@gmail.com>
+	Sun, 29 Jul 2012 17:21:16 -0400
+Received: by weyx8 with SMTP id x8so3214038wey.19
+        for <linux-media@vger.kernel.org>; Sun, 29 Jul 2012 14:21:14 -0700 (PDT)
+Message-ID: <5015A947.4040005@gmail.com>
+Date: Sun, 29 Jul 2012 23:21:11 +0200
+From: poma <pomidorabelisima@gmail.com>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: GPIO interface between DVB sub-drivers (bridge, demod, tuner)
+References: <4FFF327A.9080300@iki.fi> <CALzAhNVwN3TJhn-3i9SDhKfk=tvZZ49RTKkUzWC8RZ_m=v=A+w@mail.gmail.com> <CALzAhNUmdcd7cE-fcMHJsNk1rTcKXoZR9Oyu+5XciNZQ57EBGQ@mail.gmail.com> <5008B7B0.1020602@iki.fi>
+In-Reply-To: <5008B7B0.1020602@iki.fi>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-the driver duplicates the module_pci_driver code,
-remove the duplicate code and use the module_pci_driver macro.
+On 07/20/2012 03:43 AM, Antti Palosaari wrote:
+> On 07/13/2012 12:07 AM, Steven Toth wrote:
+>> On Thu, Jul 12, 2012 at 4:49 PM, Steven Toth <stoth@kernellabs.com>
+>> wrote:
+>>> Nobody understands the relationship between the bridge and the
+>>> sub-component as well as the bridge driver. The current interfaces are
+>>> limiting in many ways. We solve that today with rather ugly 'attach'
+>>> structures that are inflexible, for example to set gpios to a default
+>>> state.
+>>> Then, once that interface is attached, the bridge effectively loses
+>>> most of
+>>> the control to the tuner and/or demod. The result is a large disconnect
+>>> between the bridge and subcomponents.
+>>>
+>>> Why limit any interface extension to GPIOs? Why not make something a
+>>> little more flexible so we can pass custom messages around?
+> 
+>>> What did you ever decide about the enable/disable of the LNA? And, how
+>>> would the bridge do that in your proposed solution? Via the proposed
+>>> GPIO
+>>> interface?
+> 
+> GPIO / LNA is ready, see following patches:
+> add LNA support for DVB API
+> cxd2820r: use Kernel GPIO for GPIO access
+> em28xx: implement FE set_lna() callback
+> 
+> from:
+> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/dvb_core
+> 
+> Kernel GPIOs were quite easy to implement and use - when needed
+> knowledge was gathered after all the testing and study. I wonder why
+> none was done that earlier for DVB...
+> 
+> It also offer nice debug/devel feature as you can mount those GPIOs via
+> sysfs and use directly.
+> 
 
-Signed-off-by: Devendra Naga <devendra.aaru@gmail.com>
----
- drivers/staging/media/dt3155v4l/dt3155v4l.c |   15 +--------------
- 1 file changed, 1 insertion(+), 14 deletions(-)
+Above mentioned GPIO functionality must be implemented in driver itself
+to use /sys/class/gpio/… sysfs interface, right?
+It is not enough to build kernel with CONFIG_GENERIC_GPIO=y,
+CONFIG_GPIOLIB=y, CONFIG_GPIO_SYSFS, right?
 
-diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.c b/drivers/staging/media/dt3155v4l/dt3155v4l.c
-index c365cdf..ebe5a27 100644
---- a/drivers/staging/media/dt3155v4l/dt3155v4l.c
-+++ b/drivers/staging/media/dt3155v4l/dt3155v4l.c
-@@ -971,20 +971,7 @@ static struct pci_driver pci_driver = {
- 	.remove = __devexit_p(dt3155_remove),
- };
- 
--static int __init
--dt3155_init_module(void)
--{
--	return pci_register_driver(&pci_driver);
--}
--
--static void __exit
--dt3155_exit_module(void)
--{
--	pci_unregister_driver(&pci_driver);
--}
--
--module_init(dt3155_init_module);
--module_exit(dt3155_exit_module);
-+module_pci_driver(pci_driver);
- 
- MODULE_DESCRIPTION("video4linux pci-driver for dt3155 frame grabber");
- MODULE_AUTHOR("Marin Mitov <mitov@issp.bas.bg>");
--- 
-1.7.9.5
+Cheers,
+poma
 
