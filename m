@@ -1,133 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3066 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752002Ab2GWKek (ORCPT
+Received: from mail.pripojeni.net ([178.22.112.14]:50449 "EHLO
+	smtp.pripojeni.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754528Ab2G3SJQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jul 2012 06:34:40 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v6] media: coda: Add driver for Coda video codec.
-Date: Mon, 23 Jul 2012 12:33:48 +0200
-Cc: javier Martin <javier.martin@vista-silicon.com>,
-	linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, s.hauer@pengutronix.de,
-	p.zabel@pengutronix.de
-References: <1342782515-24992-1-git-send-email-javier.martin@vista-silicon.com> <201207231214.15835.hverkuil@xs4all.nl> <500D2595.7060009@samsung.com>
-In-Reply-To: <500D2595.7060009@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201207231233.48300.hverkuil@xs4all.nl>
+	Mon, 30 Jul 2012 14:09:16 -0400
+From: Jiri Slaby <jslaby@suse.cz>
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, jirislaby@gmail.com,
+	linux-kernel@vger.kernel.org, Jiri Slaby <jslaby@suse.cz>,
+	Michael Krufky <mkrufky@linuxtv.org>
+Subject: [PATCH -resend] DVB: dib0700, remove double \n's from log
+Date: Mon, 30 Jul 2012 20:03:16 +0200
+Message-Id: <1343671396-2907-1-git-send-email-jslaby@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon July 23 2012 12:21:09 Sylwester Nawrocki wrote:
-> On 07/23/2012 12:14 PM, Hans Verkuil wrote:
-> > On Mon July 23 2012 12:00:30 javier Martin wrote:
-> >> On 23 July 2012 11:45, javier Martin <javier.martin@vista-silicon.com> wrote:
-> >>> Sorry, I had a problem with my buildroot environment. This is the
-> >>> v4l2-compliance output with the most recent version:
-> >>>
-> >>> # v4l2-compliance -d /dev/video2
-> >>> Driver Info:
-> >>>         Driver name   : coda
-> >>>         Card type     : coda
-> >>>         Bus info      : coda
-> >>>         Driver version: 0.0.0
-> >>>         Capabilities  : 0x84000003
-> >>>                 Video Capture
-> >>>                 Video Output
-> >>>                 Streaming
-> >>>                 Device Capabilities
-> >>>         Device Caps   : 0x04000003
-> >>>                 Video Capture
-> >>>                 Video Output
-> >>>                 Streaming
-> >>>
-> >>> Compliance test for device /dev/video2 (not using libv4l2):
-> >>>
-> >>> Required ioctls:
-> >>>                 fail: v4l2-compliance.cpp(270): (vcap.version >> 16) < 3
-> >>>         test VIDIOC_QUERYCAP: FAIL
-> >>>
-> >>
-> >> This was related to a memset() that I did in QUERYCAP.
-> >>
-> >> Now the output is cleaner.
-> > 
-> > Ah, much better.
-> > 
-> >>
-> >> # v4l2-compliance -d /dev/video2
-> >> Driver Info:
-> >>         Driver name   : coda
-> >>         Card type     : coda
-> >>         Bus info      : coda
-> >>         Driver version: 3.5.0
-> >>         Capabilities  : 0x84000003
-> >>                 Video Capture
-> >>                 Video Output
-> >>                 Streaming
-> >>                 Device Capabilities
-> >>         Device Caps   : 0x04000003
-> >>                 Video Capture
-> >>                 Video Output
-> >>                 Streaming
-> >>
-> >> Compliance test for device /dev/video2 (not using libv4l2):
-> >>
-> >> Required ioctls:
-> >>         test VIDIOC_QUERYCAP: OK
-> >>
-> >> Allow for multiple opens:
-> >>         test second video open: OK
-> >>         test VIDIOC_QUERYCAP: OK
-> >>         test VIDIOC_G/S_PRIORITY: OK
-> >>
-> >> Debug ioctls:
-> >>         test VIDIOC_DBG_G_CHIP_IDENT: Not Supported
-> >>         test VIDIOC_DBG_G/S_REGISTER: Not Supported
-> >>         test VIDIOC_LOG_STATUS: Not Supported
-> >>
-> >> Input ioctls:
-> >>         test VIDIOC_G/S_TUNER: Not Supported
-> >>         test VIDIOC_G/S_FREQUENCY: Not Supported
-> >>         test VIDIOC_S_HW_FREQ_SEEK: Not Supported
-> >>         test VIDIOC_ENUMAUDIO: Not Supported
-> >>         test VIDIOC_G/S/ENUMINPUT: Not Supported
-> >>         test VIDIOC_G/S_AUDIO: Not Supported
-> >>         Inputs: 0 Audio Inputs: 0 Tuners: 0
-> >>
-> >> Output ioctls:
-> >>         test VIDIOC_G/S_MODULATOR: Not Supported
-> >>         test VIDIOC_G/S_FREQUENCY: Not Supported
-> >>         test VIDIOC_ENUMAUDOUT: Not Supported
-> >>         test VIDIOC_G/S/ENUMOUTPUT: Not Supported
-> >>         test VIDIOC_G/S_AUDOUT: Not Supported
-> >>         Outputs: 0 Audio Outputs: 0 Modulators: 0
-> >>
-> >> Control ioctls:
-> >>         test VIDIOC_QUERYCTRL/MENU: OK
-> >>         test VIDIOC_G/S_CTRL: OK
-> >>                 fail: v4l2-test-controls.cpp(565): try_ext_ctrls did
-> >> not check the read-only flag
-> > 
-> > Hmm, what's the reason for this one I wonder. Can you run with '-v2' and see
-> > for which control this fails?
-> 
-> This might be related to calling video_register_device() with null
-> ctrl_handler or not setting V4L2_FL_USES_V4L2_FH flags at struct video_device.
+err() already adds \n to the end of the format string. So remove one
+more \n from formatting strings in the dib0700 driver.
 
-No, that isn't is. ctrl_handling is set in the open (it's a m2m device, so the
-controls are per-filehandle), and V4L2_FL_USES_V4L2_FH is set implicitly whenever
-you call v4l2_fh_init.
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Michael Krufky <mkrufky@linuxtv.org>
+---
+ drivers/media/dvb/dvb-usb/dib0700_core.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-But know I remember, it was a regression in v4l2-ioctl.c that's fixed here:
+diff --git a/drivers/media/dvb/dvb-usb/dib0700_core.c b/drivers/media/dvb/dvb-usb/dib0700_core.c
+index 7e9e00f..ef87229 100644
+--- a/drivers/media/dvb/dvb-usb/dib0700_core.c
++++ b/drivers/media/dvb/dvb-usb/dib0700_core.c
+@@ -768,13 +768,13 @@ int dib0700_rc_setup(struct dvb_usb_device *d)
+ 	/* Starting in firmware 1.20, the RC info is provided on a bulk pipe */
+ 	purb = usb_alloc_urb(0, GFP_KERNEL);
+ 	if (purb == NULL) {
+-		err("rc usb alloc urb failed\n");
++		err("rc usb alloc urb failed");
+ 		return -ENOMEM;
+ 	}
+ 
+ 	purb->transfer_buffer = kzalloc(RC_MSG_SIZE_V1_20, GFP_KERNEL);
+ 	if (purb->transfer_buffer == NULL) {
+-		err("rc kzalloc failed\n");
++		err("rc kzalloc failed");
+ 		usb_free_urb(purb);
+ 		return -ENOMEM;
+ 	}
+@@ -786,7 +786,7 @@ int dib0700_rc_setup(struct dvb_usb_device *d)
+ 
+ 	ret = usb_submit_urb(purb, GFP_ATOMIC);
+ 	if (ret) {
+-		err("rc submit urb failed\n");
++		err("rc submit urb failed");
+ 		kfree(purb->transfer_buffer);
+ 		usb_free_urb(purb);
+ 	}
+-- 
+1.7.10.4
 
-http://patchwork.linuxtv.org/patch/13377/
 
-Regards,
-
-	Hans
