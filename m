@@ -1,89 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:23868 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751398Ab2G1Kld (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Jul 2012 06:41:33 -0400
-Message-ID: <5013C30B.7030600@redhat.com>
-Date: Sat, 28 Jul 2012 12:46:35 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:1790 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751355Ab2G3Gop (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Jul 2012 02:44:45 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH] Fix VIDIOC_TRY_EXT_CTRLS regression
+Date: Mon, 30 Jul 2012 08:43:56 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Steven Toth <stoth@kernellabs.com>
+References: <201207181534.59499.hverkuil@xs4all.nl> <5015E2A6.4020809@redhat.com>
+In-Reply-To: <5015E2A6.4020809@redhat.com>
 MIME-Version: 1.0
-To: abel@uni-bielefeld.de
-CC: "Ivan T. Ivanov" <iivanov@mm-sol.com>,
-	Sergio Aguirre <sergio.a.aguirre@gmail.com>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Atsuo Kuwahara <kuwahara@ti.com>,
-	Stefan Herbrechtsmeier <sherbrec@cit-ec.uni-bielefeld.de>
-Subject: Re: Advice on extending libv4l for media controller support
-References: <CAC-OdnBNiT35tc_50QAXvVp8+b5tWLMWqc5i1q3qWYTp5c360g@mail.gmail.com> <CAC-OdnCmXiz1wKST-YAambJFToeqNJhEaMVKYwz_FHV0N+sbyw@mail.gmail.com> <1336662597.15542.15.camel@iivanov-desktop> <5011AD6A.9040609@uni-bielefeld.de>
-In-Reply-To: <5011AD6A.9040609@uni-bielefeld.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201207300843.56351.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Mon July 30 2012 03:25:58 Mauro Carvalho Chehab wrote:
+> Em 18-07-2012 10:34, Hans Verkuil escreveu:
+> > Hi all,
+> > 
+> > This patch fixes an omission in the new v4l2_ioctls table: VIDIOC_TRY_EXT_CTRLS
+> > must get the INFO_FL_CTRL flag, just like all the other control related ioctls.
+> > 
+> > Otherwise the ioctl core won't know it also has to check whether v4l2_fh->ctrl_handler
+> > is non-zero before it can decide that this ioctl is not implemented.
+> > 
+> > Caught by v4l2-compliance while I was testing the mem2mem_testdev driver.
+> 
+> Missing SOB. It seems Steven asked for this fix. Did he test? If so, it would be
+> nice to get his tested-by:.
 
-On 07/26/2012 10:49 PM, Robert Abel wrote:
-> Hi,
->
-> Sorry to be late to the party... I wanted to follow up on this discussion, but forgot and haven't read anything about it since...
->
-> On 10.05.2012 17:09, Ivan T. Ivanov wrote:
->> On Wed, May 9, 2012 at 7:08 PM, Sergio Aguirre
->> <sergio.a.aguirre@gmail.com>  <mailto:sergio.a.aguirre@gmail.com>  wrote:
->>> I want to create some sort of plugin with specific media
->>> controller configurations,
->>> to avoid userspace to worry about component names and specific
->>> usecases (use sensor resizer, or SoC ISP resizer, etc.).
->> Probably following links can help you. They have been tested
->> with the OMAP3 ISP.
->>
->> Regards,
->> iivanov
->>
->> [1]http://www.spinics.net/lists/linux-media/msg31901.html
->> [2]
->> http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/32704
->
-> I recently extended Yordan Kamenov's libv4l-mcplugin to support multiple trees per device with extended configurations (-stolen from- inspired by media-ctl) not tied to specific device nodes (but to device names instead).
->
-> I uploaded the patches here <https://sites.google.com/site/rawbdagslair/libv4l-mcplugin.7z?attredirects=0&d=1>(16kB). Basically, I used Yordan's patches as a base and worked from there to fix up his source code and Makefile for cross-compiling using OpenEmbedded/Yocto.
->
-> There are a ton of minor issues with this, starting with the fact that I did not put proper copyright notices in any of these files. Please advise if this poses a problem.
-> Only integral frame size support and no support for native read() calls. There's a dummy read() function, because for some reason this is required in libv4l2 0.9.0-test though it's not mentioned anywhere. As the original plug-in by Yordan, there is currently no cleaning-up of the internal data structures.
->
-> I used this in conjunction with the Gumstix CASPA FS (MT9V032) camera using some of Laurent's patches and some custom patches which add ENUM_FMT support to the driver.
->
-> Basically, upon opening a given device, all trees are configured once to load the respective end-point's formats for emulation of setting and getting formats. Then regular format negotiation by the user application takes place.
+Oops!
 
-As discussed higher up in this thread, since the initial libv4l-mcplugin was done for
-the omap3, we've had several meetings on the topic of libv4l and media-controller using
-devices and we came to the following conclusions:
+Here it is:
 
-1) The existing mediactl lib would be extended with a libmediactlvideo lib, which
-would be able to control media-ctrl video chains, ie it can:
--give a list of possibly supported formats / sizes / framerates
--setup the chain to deliver a requested format
-Since the optimal setup will be hardware specific the idea was to give this
-libs per soc plugins, and a generic plugin for simple socs / as fallback.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-2) A cmdline utility to set up a chain using libmediactlvideo, so that things
-can be tested using raw devices, ie without libv4l2 coming into play, just
-like apps like v4l2-ctl allow low level control mostly for testing purposes
-
-3) There would then be a libv4l2 plugin much like the above linked omap3 plugin,
-but then generic for any mediactl using video devices, which would use
-libmediactlvideo to do the work of setting up the chain (and which will fail to
-init when the to be opened device is not part of a mediactl controlled chain).
-
-And AFAIK some work was done in this direction. Sakari? Laurent?
-
-Eitherway it is about time someone started working on this, and I would
-greatly prefer the above plan to be implemented. Once we have this in place,
-then we can do a new v4l-utils release which officially supports the plugin
-API (which currently only lives in master, not in any releases).
+Welcome back!
 
 Regards,
 
-Hans
+	Hans
+
+> 
+> Regards,
+> Mauro
+> > 
+> > Regards,
+> > 
+> > 	Hans
+> > 
+> > diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+> > index 70e0efb..17dff31 100644
+> > --- a/drivers/media/video/v4l2-ioctl.c
+> > +++ b/drivers/media/video/v4l2-ioctl.c
+> > @@ -1900,7 +1900,7 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+> >   	IOCTL_INFO_FNC(VIDIOC_LOG_STATUS, v4l_log_status, v4l_print_newline, 0),
+> >   	IOCTL_INFO_FNC(VIDIOC_G_EXT_CTRLS, v4l_g_ext_ctrls, v4l_print_ext_controls, INFO_FL_CTRL),
+> >   	IOCTL_INFO_FNC(VIDIOC_S_EXT_CTRLS, v4l_s_ext_ctrls, v4l_print_ext_controls, INFO_FL_PRIO | INFO_FL_CTRL),
+> > -	IOCTL_INFO_FNC(VIDIOC_TRY_EXT_CTRLS, v4l_try_ext_ctrls, v4l_print_ext_controls, 0),
+> > +	IOCTL_INFO_FNC(VIDIOC_TRY_EXT_CTRLS, v4l_try_ext_ctrls, v4l_print_ext_controls, INFO_FL_CTRL),
+> >   	IOCTL_INFO_STD(VIDIOC_ENUM_FRAMESIZES, vidioc_enum_framesizes, v4l_print_frmsizeenum, INFO_FL_CLEAR(v4l2_frmsizeenum, pixel_format)),
+> >   	IOCTL_INFO_STD(VIDIOC_ENUM_FRAMEINTERVALS, vidioc_enum_frameintervals, v4l_print_frmivalenum, INFO_FL_CLEAR(v4l2_frmivalenum, height)),
+> >   	IOCTL_INFO_STD(VIDIOC_G_ENC_INDEX, vidioc_g_enc_index, v4l_print_enc_idx, 0),
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> 
