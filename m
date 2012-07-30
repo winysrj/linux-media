@@ -1,93 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38951 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751452Ab2GIRi7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Jul 2012 13:38:59 -0400
-Message-ID: <4FFB172A.2070009@iki.fi>
-Date: Mon, 09 Jul 2012 20:38:50 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from ftp.meprolight.com ([194.90.149.17]:37124 "EHLO meprolight.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754557Ab2G3PRO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Jul 2012 11:17:14 -0400
+From: Alex Gershgorin <alexg@meprolight.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: <g.liakhovetski@gmx.de>, <linux-media@vger.kernel.org>,
+	Alex Gershgorin <alexg@meprolight.com>
+Subject: [PATCH] mt9v022: Add support for mt9v024
+Date: Mon, 30 Jul 2012 18:00:57 +0300
+Message-ID: <1343660457-7238-1-git-send-email-alexg@meprolight.com>
 MIME-Version: 1.0
-To: Marx <acc.for.news@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: pctv452e
-References: <4FF4697C.8080602@nexusuk.org> <4FF46DC4.4070204@iki.fi> <4FF4911B.9090600@web.de> <4FF4931B.7000708@iki.fi> <gjggc9-dl4.ln1@wuwek.kopernik.gliwice.pl> <4FF5A350.9070509@iki.fi> <r8cic9-ht4.ln1@wuwek.kopernik.gliwice.pl> <4FF6B121.6010105@iki.fi> <9btic9-vd5.ln1@wuwek.kopernik.gliwice.pl> <835kc9-7p4.ln1@wuwek.kopernik.gliwice.pl> <4FF77C1B.50406@iki.fi> <l2smc9-pj4.ln1@wuwek.kopernik.gliwice.pl> <4FF97DF8.4080208@iki.fi> <n1aqc9-sp4.ln1@wuwek.kopernik.gliwice.pl> <4FFA996D.9010206@iki.fi> <scerc9-bm6.ln1@wuwek.kopernik.gliwice.pl>
-In-Reply-To: <scerc9-bm6.ln1@wuwek.kopernik.gliwice.pl>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/09/2012 07:44 PM, Marx wrote:
-> W dniu 2012-07-09 10:42, Antti Palosaari pisze:
->> On 07/09/2012 09:24 AM, Marx wrote:
->>> On 08.07.2012 14:32, Antti Palosaari wrote:
->>>> I suspect you stopped szap ?
->>>>
->>>> You cannot use dvbdate or dvbtraffic, nor read data from dvr0 unless
->>>> frontend is tuned. Leave szap running backround and try again.
->>>
->>> That way it works, and I can save stream. Hovewer it's strange because I
->>> shouldn't have to constatly tune channel to watch it, and on previous
->>> cards it was enough to tune once and then use other commands.
->>> I base my knowledge on
->>> http://www.linuxtv.org/wiki/index.php/Testing_your_DVB_device
->>> There is nothing about constant tuning channel to use it. Am I missing
->>> something?
->>
->> given wiki-page says:
->> "
->> 4. After you've tuned a frequency and program
->>
->> a) You could now start up your simple TV watching application and decode
->> the stream you have tuned.
->>
->> For example, while keeping {a,c,s,t}zap running in the first console
->> shell, open up another console and run
->> "
->>
->> Behavior have been always same, at least for the DVB USB.
->>
->> So you don't have problems at all?
->
-> ok, my fault
-> problem still exists
-> VDR doesn't play any channel, and while you asked me to abandon it, I
-> saved some data using
->   cat /dev/dvb/adapter0/dvr0 > /mnt/video/test3.ts
-> while tuning in the background.
->
-> Stream saved that way is unplayable (I play it using VLC for windows -
-> it played almost all proper TS strems in the past I had). I've tried all
-> software I have - to play this streams - no way.
->
-> So
-> - I can tune only 2/3 of channels
-> - TS stream saves with errors
-> - traditional tuner on the same (brand new) dish works ok
-> - i've exchanged cables between the two
->
-> is it possible that pctv device is less sensitive and the problem is
-> with too weak signal?
+This patch has been successfully tested
 
-If VDR does not work at all, but other tools are working, it could be 
-compatibility issue between VDR and Kernel.
+Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
+---
+ drivers/media/video/Kconfig   |    2 +-
+ drivers/media/video/mt9v022.c |   28 ++++++++++++++++++----------
+ 2 files changed, 19 insertions(+), 11 deletions(-)
 
-# tune to channel:
-szap -r "CHANNEL NAME"
-# dump channels from tuned multiplex (if you don't have that command 
-just skip):
-scandvb -c
-# save tuned channel to file (lets say 20 second):
-cat /dev/dvb/adapter0/dvr0 > test.ts
-# check if ffmpeg finds video and audio
-ffmpeg -i test.ts
-
-and post result here
-
-regards
-Antti
-
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 99937c9..38d6944 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -1013,7 +1013,7 @@ config SOC_CAMERA_MT9T112
+ 	  This driver supports MT9T112 cameras from Aptina.
+ 
+ config SOC_CAMERA_MT9V022
+-	tristate "mt9v022 support"
++	tristate "mt9v022 and mt9v024 support"
+ 	depends on SOC_CAMERA && I2C
+ 	select GPIO_PCA953X if MT9V022_PCA9536_SWITCH
+ 	help
+diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
+index bf63417..d2c1ab1 100644
+--- a/drivers/media/video/mt9v022.c
++++ b/drivers/media/video/mt9v022.c
+@@ -26,7 +26,7 @@
+  * The platform has to define ctruct i2c_board_info objects and link to them
+  * from struct soc_camera_link
+  */
+-
++static s32 chip_id;
+ static char *sensor_type;
+ module_param(sensor_type, charp, S_IRUGO);
+ MODULE_PARM_DESC(sensor_type, "Sensor type: \"colour\" or \"monochrome\"");
+@@ -57,6 +57,10 @@ MODULE_PARM_DESC(sensor_type, "Sensor type: \"colour\" or \"monochrome\"");
+ #define MT9V022_AEC_AGC_ENABLE		0xAF
+ #define MT9V022_MAX_TOTAL_SHUTTER_WIDTH	0xBD
+ 
++/* mt9v024 partial list register addresses changes with respect to mt9v022 */
++#define MT9V024_PIXCLK_FV_LV		0x72
++#define MT9V024_MAX_TOTAL_SHUTTER_WIDTH	0xAD
++
+ /* Progressive scan, master, defaults */
+ #define MT9V022_CHIP_CONTROL_DEFAULT	0x188
+ 
+@@ -185,7 +189,9 @@ static int mt9v022_init(struct i2c_client *client)
+ 	if (!ret)
+ 		ret = reg_write(client, MT9V022_TOTAL_SHUTTER_WIDTH, 480);
+ 	if (!ret)
+-		ret = reg_write(client, MT9V022_MAX_TOTAL_SHUTTER_WIDTH, 480);
++		ret = reg_write(client, (chip_id == 0x1324) ?
++				MT9V024_MAX_TOTAL_SHUTTER_WIDTH :
++				MT9V022_MAX_TOTAL_SHUTTER_WIDTH, 480);
+ 	if (!ret)
+ 		/* default - auto */
+ 		ret = reg_clear(client, MT9V022_BLACK_LEVEL_CALIB_CTRL, 1);
+@@ -238,8 +244,10 @@ static int mt9v022_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+ 	ret = reg_read(client, MT9V022_AEC_AGC_ENABLE);
+ 	if (ret >= 0) {
+ 		if (ret & 1) /* Autoexposure */
+-			ret = reg_write(client, MT9V022_MAX_TOTAL_SHUTTER_WIDTH,
+-					rect.height + mt9v022->y_skip_top + 43);
++			ret = reg_write(client, (chip_id == 0x1324) ?
++				MT9V024_MAX_TOTAL_SHUTTER_WIDTH :
++				MT9V022_MAX_TOTAL_SHUTTER_WIDTH,
++				rect.height + mt9v022->y_skip_top + 43);
+ 		else
+ 			ret = reg_write(client, MT9V022_TOTAL_SHUTTER_WIDTH,
+ 					rect.height + mt9v022->y_skip_top + 43);
+@@ -566,18 +574,17 @@ static int mt9v022_video_probe(struct i2c_client *client)
+ {
+ 	struct mt9v022 *mt9v022 = to_mt9v022(client);
+ 	struct soc_camera_link *icl = soc_camera_i2c_to_link(client);
+-	s32 data;
+ 	int ret;
+ 	unsigned long flags;
+ 
+ 	/* Read out the chip version register */
+-	data = reg_read(client, MT9V022_CHIP_VERSION);
++	chip_id = reg_read(client, MT9V022_CHIP_VERSION);
+ 
+ 	/* must be 0x1311 or 0x1313 */
+-	if (data != 0x1311 && data != 0x1313) {
++	if (chip_id != 0x1311 && chip_id != 0x1313 && chip_id != 0x1324) {
+ 		ret = -ENODEV;
+ 		dev_info(&client->dev, "No MT9V022 found, ID register 0x%x\n",
+-			 data);
++			 chip_id);
+ 		goto ei2c;
+ 	}
+ 
+@@ -632,7 +639,7 @@ static int mt9v022_video_probe(struct i2c_client *client)
+ 	mt9v022->fmt = &mt9v022->fmts[0];
+ 
+ 	dev_info(&client->dev, "Detected a MT9V022 chip ID %x, %s sensor\n",
+-		 data, mt9v022->model == V4L2_IDENT_MT9V022IX7ATM ?
++		 chip_id, mt9v022->model == V4L2_IDENT_MT9V022IX7ATM ?
+ 		 "monochrome" : "colour");
+ 
+ 	ret = mt9v022_init(client);
+@@ -728,7 +735,8 @@ static int mt9v022_s_mbus_config(struct v4l2_subdev *sd,
+ 	if (!(flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH))
+ 		pixclk |= 0x2;
+ 
+-	ret = reg_write(client, MT9V022_PIXCLK_FV_LV, pixclk);
++	ret = reg_write(client, (chip_id == 0x1324) ? MT9V024_PIXCLK_FV_LV :
++			MT9V022_PIXCLK_FV_LV, pixclk);
+ 	if (ret < 0)
+ 		return ret;
+ 
 -- 
-http://palosaari.fi/
-
+1.7.0.4
 
