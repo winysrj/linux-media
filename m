@@ -1,81 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:37561 "EHLO
-	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753932Ab2G3B4s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Jul 2012 21:56:48 -0400
-Message-ID: <1343613397.4642.63.camel@deadeye.wl.decadent.org.uk>
-Subject: Re: [PATCH for stable] cx25821: Remove bad strcpy to read-only char*
-From: Ben Hutchings <ben@decadent.org.uk>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: gregkh <gregkh@linuxfoundation.org>,
-	stable <stable@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>,
-	linux-kernel@vger.kernel.org
-Date: Mon, 30 Jul 2012 02:56:37 +0100
-In-Reply-To: <CALF0-+Unvjo_SZom-x2b7X0kLg90GHeiQhXpQPh58fA=Dj5gpQ@mail.gmail.com>
-References: <CALF0-+UJamw8fiB-rcX0WdYRAFnAdYxPoPQtMzG=5E2T8wz2yw@mail.gmail.com>
-	 <CALF0-+Uk-5hKMnwi4FO5CBSgH6+QNsz1n8faN5rQxXvgSWVGNg@mail.gmail.com>
-	 <CALF0-+Unvjo_SZom-x2b7X0kLg90GHeiQhXpQPh58fA=Dj5gpQ@mail.gmail.com>
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-ayX3cGZkrNfmXkqZb/WA"
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:11349 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752445Ab2G3QNY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Jul 2012 12:13:24 -0400
+Message-ID: <5016B29F.4080605@redhat.com>
+Date: Mon, 30 Jul 2012 13:13:19 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: =?ISO-8859-1?Q?Toralf_F=F6rster?= <toralf.foerster@gmx.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: set default protocol for  TerraTec Cinergy XXS  to "nec"
+References: <50047814.20701@gmx.de>
+In-Reply-To: <50047814.20701@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em 16-07-2012 17:22, Toralf Förster escreveu:
+> For a TerraTec Cinergy XXS USB stick (Bus 001 Device 008: ID 0ccd:00ab TerraTec Electronic GmbH )
+> I've to switch the protocol every time after plugin to get (at least few) keys working :
+> 
+> $> sudo ir-keytable --protocol=nec --sysdev=`ir-keytable 2>&1 | head -n 1 | cut -f5 -d'/'`
+> 
+> /me wonders whether "nec" should be set as the default for this key in kernel or not
 
---=-ayX3cGZkrNfmXkqZb/WA
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+It makes sense to patch it to use the nec protocol. If not all keys are working, it also makes
+sense to fix the kernel table to handle all codes, or to point to a new table where all
+Terratec keys are defined.
 
-On Tue, 2012-07-24 at 13:59 -0300, Ezequiel Garcia wrote:
-> Hi Greg,
->=20
-> This patch is already in Linus' tree and I really think it should go into=
- stable
-> as well. You will find this bug in every kernel from the moment cx25821 w=
-ent
-> out of staging.
->=20
-> I just read Documentation/stable_kernel_rules.txt, so I guess it was enou=
-gh
-> to add a tag "Cc: stable@vger.kernel.org" in the patch (right?).
-> Now I know it :-)
->=20
-> If I'm doing anything wrong, just yell at me.
-[...]
+Could you please write such patch?
 
-An upstream commit hash would have helped, but I found it anyway.
-Queued up for 3.2.y.
+Thank you!
+Mauro
 
-Ben.
+> 
+> 
+>  From the syslog :
+> 2012-07-16T22:12:53.357+02:00 n22 kernel: usb 1-1: new high-speed USB device number 7 using ehci_hcd
+> 2012-07-16T22:12:53.460+02:00 n22 kernel: ehci_hcd 0000:00:1a.7: dma_pool_free ehci_qh, f60cd4e0/fffff4e0 (bad dma)
+> 2012-07-16T22:12:53.471+02:00 n22 kernel: usb 1-1: New USB device found, idVendor=0ccd, idProduct=00ab
+> 2012-07-16T22:12:53.471+02:00 n22 kernel: usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+> 2012-07-16T22:12:53.471+02:00 n22 kernel: usb 1-1: Product: Cinergy T XXS
+> 2012-07-16T22:12:53.471+02:00 n22 kernel: usb 1-1: Manufacturer: TerraTec GmbH
+> 2012-07-16T22:12:53.471+02:00 n22 kernel: usb 1-1: SerialNumber: 0000000001
+> 2012-07-16T22:12:53.639+02:00 n22 kernel: dvb-usb: found a 'Terratec Cinergy T USB XXS (HD)/ T3' in cold state, will try to load a firmware
+> 2012-07-16T22:12:53.650+02:00 n22 kernel: dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
+> 2012-07-16T22:12:53.854+02:00 n22 kernel: dib0700: firmware started successfully.
+> 2012-07-16T22:12:54.355+02:00 n22 kernel: dvb-usb: found a 'Terratec Cinergy T USB XXS (HD)/ T3' in warm state.
+> 2012-07-16T22:12:54.355+02:00 n22 kernel: dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+> 2012-07-16T22:12:54.355+02:00 n22 kernel: DVB: registering new adapter (Terratec Cinergy T USB XXS (HD)/ T3)
+> 2012-07-16T22:12:54.560+02:00 n22 kernel: DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
+> 2012-07-16T22:12:54.763+02:00 n22 kernel: DiB0070: successfully identified
+> 2012-07-16T22:12:54.801+02:00 n22 kernel: Registered IR keymap rc-dib0700-rc5
+> 2012-07-16T22:12:54.801+02:00 n22 kernel: input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1a.7/usb1/1-1/rc/rc0/input15
+> 2012-07-16T22:12:54.801+02:00 n22 kernel: rc0: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1a.7/usb1/1-1/rc/rc0
+> 2012-07-16T22:12:54.801+02:00 n22 kernel: dvb-usb: schedule remote query interval to 50 msecs.
+> 2012-07-16T22:12:54.801+02:00 n22 kernel: dvb-usb: Terratec Cinergy T USB XXS (HD)/ T3 successfully initialized and connected.
+> 2012-07-16T22:12:54.801+02:00 n22 kernel: usbcore: registered new interface driver dvb_usb_dib0700
+> 2012-07-16T22:12:55.000+02:00 n22 sudo: tfoerste : TTY=pts/2 ; PWD=/home/tfoerste/tmp ; USER=root ; COMMAND=/usr/bin/ir-keytable --protocol=nec --sysdev=rc0
+> 
 
---=20
-Ben Hutchings
-It is impossible to make anything foolproof because fools are so ingenious.
-
---=-ayX3cGZkrNfmXkqZb/WA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIVAwUAUBXp1ee/yOyVhhEJAQqj6Q/9Gqje+4j7+SWS3dMqeIpSoADIQ5zI2ZM9
-saJcXeytSu+GyX66zDKesmT6Td6IHFukYCfFX5Q6EKoTEArnIlppy9iRuqF5w0oi
-2Uh4OWmi9U9yJjlA5CJbO6lTSMxte8fusaYR+RO4L2JcUG4s+9gttHD6jqg45sG7
-vAZoYQmGH03kw6ojn64B8QxgAsQFXtObnzSBRsRPztzjXw46euEHPXodDcDQ7v6t
-qgk5yZRvxWfqNk229yIIrisxdNt7tZSr29Ayc3WCUtPc3oDOUuphzHkVxvdPsxmz
-VKAe7CLRHCcCJmgKf6cloWDOQ06+XjD1ljmwklqWqnsmg86xzMlUgVs2E4KqLatS
-sQIWxxaTNb7G6ETgZ5tFYCzQ1wvb6i5Y4SZ5g0ObA1j3sK48uwA6RtmJSlgI1z1W
-rrUA5W/D+Dtqwg29DHJU2TevRiYlAKQCYEqJOGZomuTnmp9I6+g8R9m7kM4lUiuX
-oZhOVYqsL7d2MJ9kSXWZWR4dbJNQRBhPtVSgwrK974z15YFDQ7qWNQXluELMyCAx
-qWugXD/cUQppqG40dAteiURsymHXXPPdfvOWstyNMAEFhXry7OB0PaGRkIhQaWl7
-5heO/6haAnW+vN92A/0oEF/lRp0OUA9mrXBnMaIhnvaNRS/hR2TQUJXFtpbEmhxy
-INEMUtJ7scc=
-=oJmJ
------END PGP SIGNATURE-----
-
---=-ayX3cGZkrNfmXkqZb/WA--
