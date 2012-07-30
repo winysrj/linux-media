@@ -1,46 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:60243 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750935Ab2GOGAq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jul 2012 02:00:46 -0400
-Received: by yhmm54 with SMTP id m54so4733198yhm.19
-        for <linux-media@vger.kernel.org>; Sat, 14 Jul 2012 23:00:46 -0700 (PDT)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: <linux-media@vger.kernel.org>,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] pwc: Use vb2 queue mutex through a single name
-Date: Sun, 15 Jul 2012 03:00:33 -0300
-Message-Id: <1342332033-30250-1-git-send-email-elezegarcia@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:58076 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751075Ab2G3Wmr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Jul 2012 18:42:47 -0400
+Message-ID: <50170DE0.2030007@redhat.com>
+Date: Mon, 30 Jul 2012 19:42:40 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Javier Martin <javier.martin@vista-silicon.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: "[PULL] video_visstrim for 3.6"
+References: <1343295404-8931-1-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1343295404-8931-1-git-send-email-javier.martin@vista-silicon.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This lock was being taken using two different names
-(pointers) in the same function.
-Both names refer to the same lock,
-so this wasn't an error; but it looked very strange.
+Em 26-07-2012 06:36, Javier Martin escreveu:
+> Hi Mauro,
+> this pull request is composed of two series that provide support for two mem2mem devices:
+> - 'm2m-deinterlace' video deinterlacer
+> - 'coda video codec'
+> I've included platform support for them too.
+> 
+> 
+> The following changes since commit 6887a4131da3adaab011613776d865f4bcfb5678:
+> 
+>    Linux 3.5-rc5 (2012-06-30 16:08:57 -0700)
+> 
+> are available in the git repository at:
+> 
+>    https://github.com/jmartinc/video_visstrim.git for_3.6
+> 
+> for you to fetch changes up to 9bb10266da63ae7f8f198573e099580e9f98f4e8:
+> 
+>    i.MX27: Visstrim_M10: Add support for deinterlacing driver. (2012-07-26 10:57:30 +0200)
+> 
+> ----------------------------------------------------------------
+> Javier Martin (5):
+>        i.MX: coda: Add platform support for coda in i.MX27.
+>        media: coda: Add driver for Coda video codec.
+>        Visstrim M10: Add support for Coda.
+>        media: Add mem2mem deinterlacing driver.
+>        i.MX27: Visstrim_M10: Add support for deinterlacing driver.
+> 
+>   arch/arm/mach-imx/clk-imx27.c                   |    4 +-
+>   arch/arm/mach-imx/devices-imx27.h               |    4 +
+>   arch/arm/mach-imx/mach-imx27_visstrim_m10.c     |   49 +-
+>   arch/arm/plat-mxc/devices/Kconfig               |    6 +-
+>   arch/arm/plat-mxc/devices/Makefile              |    1 +
+>   arch/arm/plat-mxc/devices/platform-imx27-coda.c |   37 +
+>   arch/arm/plat-mxc/include/mach/devices-common.h |    8 +
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- drivers/media/video/pwc/pwc-if.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+I need ARM maintainer's ack for the patches that touch the above files.
 
-diff --git a/drivers/media/video/pwc/pwc-if.c b/drivers/media/video/pwc/pwc-if.c
-index de7c7ba..b5d0729 100644
---- a/drivers/media/video/pwc/pwc-if.c
-+++ b/drivers/media/video/pwc/pwc-if.c
-@@ -1127,7 +1127,7 @@ static void usb_pwc_disconnect(struct usb_interface *intf)
- 	v4l2_device_disconnect(&pdev->v4l2_dev);
- 	video_unregister_device(&pdev->vdev);
- 	mutex_unlock(&pdev->v4l2_lock);
--	mutex_unlock(pdev->vb_queue.lock);
-+	mutex_unlock(&pdev->vb_queue_lock);
- 
- #ifdef CONFIG_USB_PWC_INPUT_EVDEV
- 	if (pdev->button_dev)
--- 
-1.7.8.6
-
+Regards,
+Mauro
