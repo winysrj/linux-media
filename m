@@ -1,147 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36282 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756822Ab2GKKIQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jul 2012 06:08:16 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org, fabio.estevam@freescale.com,
-	g.liakhovetski@gmx.de, mchehab@infradead.org
-Subject: Re: [PATCH v5] media: mx2_camera: Fix mbus format handling
-Date: Wed, 11 Jul 2012 12:08:11 +0200
-Message-ID: <9798139.lz26YdKuPN@avalon>
-In-Reply-To: <1341993409-20870-1-git-send-email-javier.martin@vista-silicon.com>
-References: <1341993409-20870-1-git-send-email-javier.martin@vista-silicon.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:50801 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752314Ab2G3Hjv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Jul 2012 03:39:51 -0400
+Message-ID: <50163A3B.6080807@iki.fi>
+Date: Mon, 30 Jul 2012 10:39:39 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: poma <pomidorabelisima@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: GPIO interface between DVB sub-drivers (bridge, demod, tuner)
+References: <4FFF327A.9080300@iki.fi> <CALzAhNVwN3TJhn-3i9SDhKfk=tvZZ49RTKkUzWC8RZ_m=v=A+w@mail.gmail.com> <CALzAhNUmdcd7cE-fcMHJsNk1rTcKXoZR9Oyu+5XciNZQ57EBGQ@mail.gmail.com> <5008B7B0.1020602@iki.fi> <5015A947.4040005@gmail.com>
+In-Reply-To: <5015A947.4040005@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+On 07/30/2012 12:21 AM, poma wrote:
+> On 07/20/2012 03:43 AM, Antti Palosaari wrote:
+>> On 07/13/2012 12:07 AM, Steven Toth wrote:
+>>> On Thu, Jul 12, 2012 at 4:49 PM, Steven Toth <stoth@kernellabs.com>
+>>> wrote:
+>>>> Nobody understands the relationship between the bridge and the
+>>>> sub-component as well as the bridge driver. The current interfaces are
+>>>> limiting in many ways. We solve that today with rather ugly 'attach'
+>>>> structures that are inflexible, for example to set gpios to a default
+>>>> state.
+>>>> Then, once that interface is attached, the bridge effectively loses
+>>>> most of
+>>>> the control to the tuner and/or demod. The result is a large disconnect
+>>>> between the bridge and subcomponents.
+>>>>
+>>>> Why limit any interface extension to GPIOs? Why not make something a
+>>>> little more flexible so we can pass custom messages around?
+>>
+>>>> What did you ever decide about the enable/disable of the LNA? And, how
+>>>> would the bridge do that in your proposed solution? Via the proposed
+>>>> GPIO
+>>>> interface?
+>>
+>> GPIO / LNA is ready, see following patches:
+>> add LNA support for DVB API
+>> cxd2820r: use Kernel GPIO for GPIO access
+>> em28xx: implement FE set_lna() callback
+>>
+>> from:
+>> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/dvb_core
+>>
+>> Kernel GPIOs were quite easy to implement and use - when needed
+>> knowledge was gathered after all the testing and study. I wonder why
+>> none was done that earlier for DVB...
+>>
+>> It also offer nice debug/devel feature as you can mount those GPIOs via
+>> sysfs and use directly.
+>>
+>
+> Above mentioned GPIO functionality must be implemented in driver itself
+> to use /sys/class/gpio/… sysfs interface, right?
+> It is not enough to build kernel with CONFIG_GENERIC_GPIO=y,
+> CONFIG_GPIOLIB=y, CONFIG_GPIO_SYSFS, right?
 
-Thanks for the patch.
+You will need to implement callbacks for gpiolib. sysfs interface is 
+then get for free.
 
-On Wednesday 11 July 2012 09:56:49 Javier Martin wrote:
-> Remove MX2_CAMERA_SWAP16 and MX2_CAMERA_PACK_DIR_MSB flags
-> so that the driver can negotiate with the attached sensor
-> whether the mbus format needs convertion from UYUV to YUYV
-> or not.
+regards
+Antti
 
-The commit message doesn't really match the content of the patch anymore, as 
-you don't remove the MX2_CAMERA_SWAP16 and MX2_CAMERA_PACK_DIR_MSB flags but 
-just stop using them.
-
-Could you please fix the commit message, and submit a patch that removes the 
-flag from arch/arm/plat-mxc/include/mach/mx2_cam.h for v3.6 ?
-
-Please don't forget to add your SoB line.
-
-> ---
->  drivers/media/video/mx2_camera.c |   28 +++++++++++++++++++++++-----
->  1 file changed, 23 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/video/mx2_camera.c
-> b/drivers/media/video/mx2_camera.c index 11a9353..0f01e7b 100644
-> --- a/drivers/media/video/mx2_camera.c
-> +++ b/drivers/media/video/mx2_camera.c
-> @@ -118,6 +118,8 @@
->  #define CSISR_ECC_INT		(1 << 1)
->  #define CSISR_DRDY		(1 << 0)
-> 
-> +#define CSICR1_FMT_MASK	 (CSICR1_PACK_DIR | CSICR1_SWAP16_EN)
-> +
->  #define CSICR1			0x00
->  #define CSICR2			0x04
->  #define CSISR			(cpu_is_mx27() ? 0x08 : 0x18)
-> @@ -230,6 +232,7 @@ struct mx2_prp_cfg {
->  	u32 src_pixel;
->  	u32 ch1_pixel;
->  	u32 irq_flags;
-> +	u32 csicr1;
->  };
-> 
->  /* prp resizing parameters */
-> @@ -330,6 +333,7 @@ static struct mx2_fmt_cfg mx27_emma_prp_table[] = {
->  			.ch1_pixel	= 0x2ca00565, /* RGB565 */
->  			.irq_flags	= PRP_INTR_RDERR | PRP_INTR_CH1WERR |
->  						PRP_INTR_CH1FC | PRP_INTR_LBOVF,
-> +			.csicr1		= 0,
->  		}
->  	},
->  	{
-> @@ -343,6 +347,21 @@ static struct mx2_fmt_cfg mx27_emma_prp_table[] = {
->  			.irq_flags	= PRP_INTR_RDERR | PRP_INTR_CH2WERR |
->  					PRP_INTR_CH2FC | PRP_INTR_LBOVF |
->  					PRP_INTR_CH2OVF,
-> +			.csicr1		= CSICR1_PACK_DIR,
-> +		}
-> +	},
-> +	{
-> +		.in_fmt		= V4L2_MBUS_FMT_UYVY8_2X8,
-> +		.out_fmt	= V4L2_PIX_FMT_YUV420,
-> +		.cfg		= {
-> +			.channel	= 2,
-> +			.in_fmt		= PRP_CNTL_DATA_IN_YUV422,
-> +			.out_fmt	= PRP_CNTL_CH2_OUT_YUV420,
-> +			.src_pixel	= 0x22000888, /* YUV422 (YUYV) */
-> +			.irq_flags	= PRP_INTR_RDERR | PRP_INTR_CH2WERR |
-> +					PRP_INTR_CH2FC | PRP_INTR_LBOVF |
-> +					PRP_INTR_CH2OVF,
-> +			.csicr1		= CSICR1_SWAP16_EN,
->  		}
-
-Have you tested this patch with both YUYV8_2X8 and UYVY8_2X8 ? I'm not 
-familiar with the hardware, so I can't really comment on this specific hunk. 
-Knowing that it has been tested would be enough for me to ack the patch (after 
-fixing the commit message of course).
-
->  	},
->  };
-> @@ -1018,14 +1037,14 @@ static int mx2_camera_set_bus_param(struct
-> soc_camera_device *icd) return ret;
->  	}
-> 
-> +	csicr1 = (csicr1 & ~CSICR1_FMT_MASK) | pcdev->emma_prp->cfg.csicr1;
-> +
->  	if (common_flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
->  		csicr1 |= CSICR1_REDGE;
->  	if (common_flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
->  		csicr1 |= CSICR1_SOF_POL;
->  	if (common_flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
->  		csicr1 |= CSICR1_HSYNC_POL;
-
-This is a completely different issue (and thus v3.6 material, if needed), but 
-can common_flags change between invocations ? If so you should clear the 
-CSICR1_* flags before conditionally setting them.
-
-> -	if (pcdev->platform_flags & MX2_CAMERA_SWAP16)
-> -		csicr1 |= CSICR1_SWAP16_EN;
->  	if (pcdev->platform_flags & MX2_CAMERA_EXT_VSYNC)
->  		csicr1 |= CSICR1_EXT_VSYNC;
->  	if (pcdev->platform_flags & MX2_CAMERA_CCIR)
-> @@ -1036,8 +1055,6 @@ static int mx2_camera_set_bus_param(struct
-> soc_camera_device *icd) csicr1 |= CSICR1_GCLK_MODE;
->  	if (pcdev->platform_flags & MX2_CAMERA_INV_DATA)
->  		csicr1 |= CSICR1_INV_DATA;
-> -	if (pcdev->platform_flags & MX2_CAMERA_PACK_DIR_MSB)
-> -		csicr1 |= CSICR1_PACK_DIR;
-> 
->  	pcdev->csicr1 = csicr1;
-> 
-> @@ -1112,7 +1129,8 @@ static int mx2_camera_get_formats(struct
-> soc_camera_device *icd, return 0;
->  	}
-> 
-> -	if (code == V4L2_MBUS_FMT_YUYV8_2X8) {
-> +	if (code == V4L2_MBUS_FMT_YUYV8_2X8 ||
-> +	    code == V4L2_MBUS_FMT_UYVY8_2X8) {
->  		formats++;
->  		if (xlate) {
->  			/*
 -- 
-Regards,
-
-Laurent Pinchart
-
+http://palosaari.fi/
