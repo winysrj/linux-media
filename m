@@ -1,57 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:49062 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750803Ab2GYVcl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jul 2012 17:32:41 -0400
-Received: by bkwj10 with SMTP id j10so845039bkw.19
-        for <linux-media@vger.kernel.org>; Wed, 25 Jul 2012 14:32:40 -0700 (PDT)
-Message-ID: <501065F5.9060004@gmail.com>
-Date: Wed, 25 Jul 2012 23:32:37 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:55733 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755923Ab2GaSVq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Jul 2012 14:21:46 -0400
+Message-ID: <5018166D.8020608@redhat.com>
+Date: Tue, 31 Jul 2012 14:31:25 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Shaik Ameer Basha <shaik.ameer@samsung.com>
-CC: linux-media@vger.kernel.org, sungchun.kang@samsung.com,
-	khw0178.kim@samsung.com, mchehab@infradead.org,
-	laurent.pinchart@ideasonboard.com, sy0816.kang@samsung.com,
-	s.nawrocki@samsung.com, posciak@google.com, alim.akhtar@gmail.com,
-	prashanth.g@samsung.com, joshi@samsung.com, shaik.samsung@gmail.com
-Subject: Re: [PATCH v3 5/5] media: gscaler: Add Makefile for G-Scaler Driver
-References: <1343219191-3969-1-git-send-email-shaik.ameer@samsung.com> <1343219191-3969-6-git-send-email-shaik.ameer@samsung.com>
-In-Reply-To: <1343219191-3969-6-git-send-email-shaik.ameer@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: workshop-2011@linuxtv.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [Workshop-2011] Media summit at the Kernel Summit - was: Fwd:
+ Re: [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
+References: <20120713173708.GB17109@thunk.org> <5005A14D.8000809@redhat.com> <1442040.RXAGio1Eb8@avalon>
+In-Reply-To: <1442040.RXAGio1Eb8@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/25/2012 02:26 PM, Shaik Ameer Basha wrote:
-> This patch adds the Makefile for G-Scaler driver.
->
-> Signed-off-by: Shaik Ameer Basha<shaik.ameer@samsung.com>
-> ---
->   drivers/media/video/Kconfig             |    8 ++++++++
->   drivers/media/video/Makefile            |    2 ++
->   drivers/media/video/exynos-gsc/Makefile |    3 +++
->   3 files changed, 13 insertions(+), 0 deletions(-)
->   create mode 100644 drivers/media/video/exynos-gsc/Makefile
->
-> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> index 99937c9..47ec55a 100644
-> --- a/drivers/media/video/Kconfig
-> +++ b/drivers/media/video/Kconfig
-> @@ -1215,4 +1215,12 @@ config VIDEO_MX2_EMMAPRP
->   	    memory to memory. Operations include resizing and format
->   	    conversion.
->
-> +config VIDEO_SAMSUNG_EXYNOS_GSC
-> +        tristate "Samsung Exynos GSC driver"
+Em 17-07-2012 19:46, Laurent Pinchart escreveu:
+> Hi Mauro,
+> 
+> On Tuesday 17 July 2012 14:30:53 Mauro Carvalho Chehab wrote:
+>> As we did in 2012, we're planning to do a media summit again at KS/2012.
+> 
+> Great news!
+> 
+>> The KS/2012 will happen in San Diego, CA, US, between Aug 26-28, just before
+>> the LinuxCon North America.
+>>
+>> In order to do it, I'd like to know who is interested on participate, and to
+>> get proposals about what subjects will be discussed there, in order to start
+>> planning the agenda.
+> 
+> Sakari and I will spend time on the long-awaited media controller library in a 
+> couple of weeks, I hope to have results to present during the summit.
 
-s/GSC/Gscaler ?
+Great!
 
+> Depending on the audience, I would also be interested in getting feedback from 
+> SoC vendors who are not (yet) active in the V4L2 community on our approach and 
+> how we could best help them. This could include discussions about Android, as 
+> I believe we need to push V4L2 on that platform. Guennadi's recent work on an 
+> Android V4L2 camera library is a good first step in that direction.
 
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Excelent idea. I'll be adding it at the topics proposal summary.
 
---
+Thanks,
+Mauro
 
-Regards,
-Sylwester
