@@ -1,163 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34845 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751687Ab2GMPHs convert rfc822-to-8bit (ORCPT
+Received: from mail1-relais-roc.national.inria.fr ([192.134.164.82]:22475 "EHLO
+	mail1-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753526Ab2GaJVm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jul 2012 11:07:48 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: tony_nie@realsil.com.cn
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: calculate  maximum packet size of endpoint
-Date: Fri, 13 Jul 2012 17:07:49 +0200
-Message-ID: <1581435.miT8jWPryc@avalon>
-In-Reply-To: <4FFFDF29.1030706@realsil.com.cn>
-References: <1339040645-15554-1-git-send-email-tony_nie@realsil.com.cn> <4FFFDF29.1030706@realsil.com.cn>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="utf-8"
+	Tue, 31 Jul 2012 05:21:42 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 3/3] drivers/media/radio/radio-wl1273.c: use devm_ functions
+Date: Tue, 31 Jul 2012 11:21:35 +0200
+Message-Id: <1343726497-27379-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tony,
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
-On Friday 13 July 2012 16:41:13 Tony. Nie wrote:
-> Hi ALL,
-> 
-> I just found that Realtek's USB3.0 camera RTS5825 cannot work on usb3.0
-> mode, and find a issue in UVC driver.
-> 
-> USB group had changed the means of wMaxPacketSize of endpoint descriptor
-> from USB2.0 to USB3.0, Please refer to the section 9.6.6 of USB
-> specification(U2 and U3).
-> 
-> I think the method of calculating maximum packet size of usb3.0 isoc
-> endpoint should differ from usb2.0.
-> While in the lasted UVC driver, the algorism was according to usb2.0
-> spec in function uvc_init_video_isoc and
-> uvc_init_video. Is it wrong?
+The various devm_ functions allocate memory that is released when a driver
+detaches.  This patch uses these functions for data that is allocated in
+the probe function of a platform device and is only freed in the remove
+function.
 
-This can indeed be a problem. Could you please send me the lsusb -v output for 
-that device ?
+In two cases, the original memory allocation function was kmalloc, which
+has been changed to a zeroing allocation to benefit from the devm function.
 
-> -------- Original Message --------
-> Subject: 	[PATCH] uvcvideo:Support for Realtek USB3.0 WebCam
-> Date: 	Thu, 7 Jun 2012 11:44:05 +0800
-> From: 	聂江涛 <tony_nie@realsil.com.cn>
-> To: 	linux-media@vger.kernel.org <linux-media@vger.kernel.org>
-> CC: 	聂江涛 <tony_nie@realsil.com.cn>
-> 
-> From: Tony.Nie <tony_nie@realsil.com.cn>
-> 
-> The method of calculating max bandwidth of usb2.0 isoc endpoint differed
-> from usb3.0. The uvc_init_videio() and uvc_init_video_isoc() must be
-> re-implemented to get correct packet size.
-> 
-> Signed-off-by: Tony.Nie <tony_nie@realsil.com.cn>
-> ---
->  drivers/media/video/uvc/uvc_video.c |   47
-> +++++++++++++++++++++++++++++------ 1 files changed, 39 insertions(+), 8
-> deletions(-)
-> 
-> diff --git a/drivers/media/video/uvc/uvc_video.c
-> b/drivers/media/video/uvc/uvc_video.c index b76b0ac..5915377 100644
-> --- a/drivers/media/video/uvc/uvc_video.c
-> +++ b/drivers/media/video/uvc/uvc_video.c
-> @@ -1441,13 +1441,23 @@ static void uvc_uninit_video(struct uvc_streaming
-> *stream, int free_buffers) static int uvc_init_video_isoc(struct
-> uvc_streaming *stream,
->  	struct usb_host_endpoint *ep, gfp_t gfp_flags)
->  {
-> +	struct usb_interface *intf = stream->intf;
-> +	struct usb_device *udev = interface_to_usbdev(intf);
->  	struct urb *urb;
->  	unsigned int npackets, i, j;
->  	u16 psize;
->  	u32 size;
-> 
-> -	psize = le16_to_cpu(ep->desc.wMaxPacketSize);
-> -	psize = (psize & 0x07ff) * (1 + ((psize >> 11) & 3));
-> +	if (udev->speed == USB_SPEED_SUPER) {
-> +		int mult = (ep->ss_ep_comp.bmAttributes & 0X3) + 1;
-> +		int burst = ep->ss_ep_comp.bMaxBurst + 1;
-> +		psize = le16_to_cpu(ep->desc.wMaxPacketSize);
-> +		psize = psize * mult * burst;
-> +	} else {
-> +		psize = le16_to_cpu(ep->desc.wMaxPacketSize);
-> +		psize = (psize & 0x07ff) * (1 + ((psize >> 11) & 3));
-> +	}
-> +
->  	size = stream->ctrl.dwMaxVideoFrameSize;
-> 
->  	npackets = uvc_alloc_urb_buffers(stream, size, psize, gfp_flags);
-> @@ -1549,6 +1559,7 @@ static int uvc_init_video_bulk(struct uvc_streaming
-> *stream, static int uvc_init_video(struct uvc_streaming *stream, gfp_t
-> gfp_flags) {
->  	struct usb_interface *intf = stream->intf;
-> +	struct usb_device *udev = interface_to_usbdev(intf);
->  	struct usb_host_endpoint *ep;
->  	unsigned int i;
->  	int ret;
-> @@ -1580,6 +1591,8 @@ static int uvc_init_video(struct uvc_streaming
-> *stream, gfp_t gfp_flags) "B/frame bandwidth.\n", bandwidth);
->  		}
-> 
-> +		if (udev->speed == USB_SPEED_SUPER)
-> +			best_psize = 1024 * 16 * 3;
->  		for (i = 0; i < intf->num_altsetting; ++i) {
->  			struct usb_host_interface *alts;
->  			unsigned int psize;
-> @@ -1591,12 +1604,30 @@ static int uvc_init_video(struct uvc_streaming
-> *stream, gfp_t gfp_flags) continue;
-> 
->  			/* Check if the bandwidth is high enough. */
-> -			psize = le16_to_cpu(ep->desc.wMaxPacketSize);
-> -			psize = (psize & 0x07ff) * (1 + ((psize >> 11) & 3));
-> -			if (psize >= bandwidth && psize <= best_psize) {
-> -				altsetting = i;
-> -				best_psize = psize;
-> -				best_ep = ep;
-> +			if (udev->speed == USB_SPEED_HIGH) {
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-What about full speed devices ?
+---
+ drivers/media/radio/radio-wl1273.c |   23 +++++++----------------
+ 1 file changed, 7 insertions(+), 16 deletions(-)
 
-> +				psize = le16_to_cpu(ep->desc.wMaxPacketSize);
-> +				psize = (psize & 0x07ff) *
-> +					(1 + ((psize >> 11) & 3));
-> +				if (psize >= bandwidth && psize <= best_psize) {
-> +					altsetting = i;
-> +					best_psize = psize;
-> +					best_ep = ep;
-> +				}
-
-This test is copied in the next branch of the outer if and can be moved after 
-it.
-
-> +			} else if (udev->speed == USB_SPEED_SUPER) {
-> +				int mult = 1 +
-> +					(ep->ss_ep_comp.bmAttributes & 0x3);
-
-
-
-> +				int burst = ep->ss_ep_comp.bMaxBurst + 1;
-> +				psize = le16_to_cpu(ep->desc.wMaxPacketSize);
-> +				psize = psize * mult * burst;
-
-Shouldn't you use ep->ss_ep_comp.wBytesPerInterval instead ?
-
-> +				uvc_trace(UVC_TRACE_VIDEO,
-> +						"mult:%d burst:%d psize:%d\n",
-> +						mult, burst, psize);
-> +				if (psize >= bandwidth && psize <= best_psize) {
-> +					altsetting = i;
-> +					best_psize = psize;
-> +					best_ep = ep;
-> +				}
-> +
->  			}
->  		}
-
--- 
-Regards,
-
-Laurent Pinchart
+diff --git a/drivers/media/radio/radio-wl1273.c b/drivers/media/radio/radio-wl1273.c
+index e8428f5..a22ad1c 100644
+--- a/drivers/media/radio/radio-wl1273.c
++++ b/drivers/media/radio/radio-wl1273.c
+@@ -1983,9 +1983,6 @@ static int wl1273_fm_radio_remove(struct platform_device *pdev)
+ 	v4l2_ctrl_handler_free(&radio->ctrl_handler);
+ 	video_unregister_device(&radio->videodev);
+ 	v4l2_device_unregister(&radio->v4l2dev);
+-	kfree(radio->buffer);
+-	kfree(radio->write_buf);
+-	kfree(radio);
+ 
+ 	return 0;
+ }
+@@ -2005,7 +2002,7 @@ static int __devinit wl1273_fm_radio_probe(struct platform_device *pdev)
+ 		goto pdata_err;
+ 	}
+ 
+-	radio = kzalloc(sizeof(*radio), GFP_KERNEL);
++	radio = devm_kzalloc(&pdev->dev, sizeof(*radio), GFP_KERNEL);
+ 	if (!radio) {
+ 		r = -ENOMEM;
+ 		goto pdata_err;
+@@ -2013,11 +2010,11 @@ static int __devinit wl1273_fm_radio_probe(struct platform_device *pdev)
+ 
+ 	/* RDS buffer allocation */
+ 	radio->buf_size = rds_buf * RDS_BLOCK_SIZE;
+-	radio->buffer = kmalloc(radio->buf_size, GFP_KERNEL);
++	radio->buffer = devm_kzalloc(&pdev->dev, radio->buf_size, GFP_KERNEL);
+ 	if (!radio->buffer) {
+ 		pr_err("Cannot allocate memory for RDS buffer.\n");
+ 		r = -ENOMEM;
+-		goto err_kmalloc;
++		goto pdata_err;
+ 	}
+ 
+ 	radio->core = *core;
+@@ -2043,7 +2040,7 @@ static int __devinit wl1273_fm_radio_probe(struct platform_device *pdev)
+ 		if (r) {
+ 			dev_err(radio->dev, WL1273_FM_DRIVER_NAME
+ 				": Cannot get platform data\n");
+-			goto err_resources;
++			goto pdata_err;
+ 		}
+ 
+ 		dev_dbg(radio->dev, "irq: %d\n", radio->core->client->irq);
+@@ -2061,13 +2058,13 @@ static int __devinit wl1273_fm_radio_probe(struct platform_device *pdev)
+ 		dev_err(radio->dev, WL1273_FM_DRIVER_NAME ": Core WL1273 IRQ"
+ 			" not configured");
+ 		r = -EINVAL;
+-		goto err_resources;
++		goto pdata_err;
+ 	}
+ 
+ 	init_completion(&radio->busy);
+ 	init_waitqueue_head(&radio->read_queue);
+ 
+-	radio->write_buf = kmalloc(256, GFP_KERNEL);
++	radio->write_buf = devm_kzalloc(&pdev->dev, 256, GFP_KERNEL);
+ 	if (!radio->write_buf) {
+ 		r = -ENOMEM;
+ 		goto write_buf_err;
+@@ -2080,7 +2077,7 @@ static int __devinit wl1273_fm_radio_probe(struct platform_device *pdev)
+ 	r = v4l2_device_register(&pdev->dev, &radio->v4l2dev);
+ 	if (r) {
+ 		dev_err(&pdev->dev, "Cannot register v4l2_device.\n");
+-		goto device_register_err;
++		goto write_buf_err;
+ 	}
+ 
+ 	/* V4L2 configuration */
+@@ -2135,16 +2132,10 @@ static int __devinit wl1273_fm_radio_probe(struct platform_device *pdev)
+ handler_init_err:
+ 	v4l2_ctrl_handler_free(&radio->ctrl_handler);
+ 	v4l2_device_unregister(&radio->v4l2dev);
+-device_register_err:
+-	kfree(radio->write_buf);
+ write_buf_err:
+ 	free_irq(radio->core->client->irq, radio);
+ err_request_irq:
+ 	radio->core->pdata->free_resources();
+-err_resources:
+-	kfree(radio->buffer);
+-err_kmalloc:
+-	kfree(radio);
+ pdata_err:
+ 	return r;
+ }
 
