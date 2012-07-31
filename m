@@ -1,143 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:54936 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750789Ab2GaM0v (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:47220 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753870Ab2GaUNr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 08:26:51 -0400
-Date: Tue, 31 Jul 2012 14:26:46 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org, b.zolnierkie@samsung.com
-Subject: Re: [RFC/PATCH 09/13] media: s5k6aa: Add support for device tree
- based instantiation
-In-Reply-To: <7305269.IxTKyOjUBg@avalon>
-Message-ID: <Pine.LNX.4.64.1207311416160.27888@axis700.grange>
-References: <4FBFE1EC.9060209@samsung.com> <3336686.TMIyoLDix4@avalon>
- <Pine.LNX.4.64.1207311326250.27888@axis700.grange> <7305269.IxTKyOjUBg@avalon>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Tue, 31 Jul 2012 16:13:47 -0400
+From: Federico Vaga <federico.vaga@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: Update VIP to videobuf2 and control framework
+Date: Tue, 31 Jul 2012 22:17:06 +0200
+Message-Id: <1343765829-6006-1-git-send-email-federico.vaga@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 31 Jul 2012, Laurent Pinchart wrote:
+As suggested I moved the Video Buffer Input (VIP) of the STA2X11 board to the
+videobuf2. This patch series is an RFC.
 
-> Hi Guennadi,
-> 
-> On Tuesday 31 July 2012 13:29:55 Guennadi Liakhovetski wrote:
-> > On Tue, 31 Jul 2012, Laurent Pinchart wrote:
-> > > On Tuesday 31 July 2012 13:14:13 Guennadi Liakhovetski wrote:
-> > > > On Tue, 31 Jul 2012, Laurent Pinchart wrote:
-> > > > > On Tuesday 31 July 2012 11:56:44 Guennadi Liakhovetski wrote:
-> > > > > > On Thu, 26 Jul 2012, Laurent Pinchart wrote:
-> > > > > > > On Wednesday 18 July 2012 11:18:33 Sylwester Nawrocki wrote:
-> > > > > > > > On 07/16/2012 11:42 AM, Guennadi Liakhovetski wrote:
-> > > > > > > > > On Fri, 25 May 2012, Sylwester Nawrocki wrote:
-> > > > > > > > >> The driver initializes all board related properties except
-> > > > > > > > >> the s_power() callback to board code. The platforms that
-> > > > > > > > >> require this callback are not supported by this driver yet
-> > > > > > > > >> for CONFIG_OF=y.
-> > > > > > > > >> 
-> > > > > > > > >> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
-> > > > > > > > >> Signed-off-by: Bartlomiej
-> > > > > > > > >> Zolnierkiewicz<b.zolnierkie@samsung.com>
-> > > > > > > > >> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
-> > > > > > > > >> ---
-> > > > > > > > >> 
-> > > > > > > > >>   .../bindings/camera/samsung-s5k6aafx.txt           |   57
-> > > > > > > > >>   +++++++++
-> > > > > > > > >>   drivers/media/video/s5k6aa.c                       |  129
-> > > > > > > > >>   ++++++++++++++------ 2 files changed, 146 insertions(+), 40
-> > > > > > > > >>   deletions(-)
-> > > > > > > > >>   create mode 100644
-> > > > > > > > >>   Documentation/devicetree/bindings/camera/samsung-s5k6aafx.t
-> > > > > > > > >>   xt>>
-> > > > > > > > >> 
-> > > > > > > > >> diff --git
-> > > > > > > > >> a/Documentation/devicetree/bindings/camera/samsung-s5k6aafx.t
-> > > > > > > > >> xt
-> > > > > > > > >> b/Documentation/devicetree/bindings/camera/samsung-s5k6aafx.t
-> > > > > > > > >> xt
-> > > > > > > > >> new
-> > > > > > > > >> file
-> > > > > > > > >> mode 100644
-> > > > > > > > >> index 0000000..6685a9c
-> > > > > > > > >> --- /dev/null
-> > > > > > > > >> +++
-> > > > > > > > >> b/Documentation/devicetree/bindings/camera/samsung-s5k6aafx.t
-> > > > > > > > >> xt
-> > > > > > > > >> @@ -0,0 +1,57 @@
-> > > > > > > > >> +Samsung S5K6AAFX camera sensor
-> > > > > > > > >> +------------------------------
-> > > > > > > > >> +
-> > > > > > > > >> +Required properties:
-> > > > > > > > >> +
-> > > > > > > > >> +- compatible : "samsung,s5k6aafx";
-> > > > > > > > >> +- reg : base address of the device on I2C bus;
-> > > > > > > > > 
-> > > > > > > > > You said you ended up putting your sensors outside of I2C
-> > > > > > > > > busses, is this one of changes, that are present in your git-
-> > > > > > > > > tree but not in this series?
-> > > > > > > > 
-> > > > > > > > No, I must have been not clear enough on that. Our idea was to
-> > > > > > > > keep I2C slave device nodes as an I2C controller's child nodes,
-> > > > > > > > according to the current convention. The 'sensor' nodes (the
-> > > > > > > > 'camera''s children) would only contain a phandle to a
-> > > > > > > > respective I2C slave node.
-> > > > > > > > 
-> > > > > > > > This implies that we cannot access I2C bus in I2C client's
-> > > > > > > > device probe() callback. An actual H/W access could begin only
-> > > > > > > > from within and after invocation of v4l2_subdev .registered
-> > > > > > > > callback..
-> > > > > > > 
-> > > > > > > That's how I've envisioned the DT bindings for sensors as well,
-> > > > > > > this sounds good. The real challenge will be to get hold of the
-> > > > > > > subdev to register it without race conditions.
-> > > > > > 
-> > > > > > Hrm... That's how early pre-subdev versions of soc-camera used to
-> > > > > > work, that's where all the <device>_video_probe() functions come
-> > > > > > from. But then we switched to dynamic i2c device registration. Do we
-> > > > > > want to switch all drivers back now?... Couldn't we "temporarily"
-> > > > > > use references from subdevs to hosts until the clock API is
-> > > > > > available?
-> > > > > 
-> > > > > I don't think that requires a reference from subdevs to hosts in the
-> > > > > DT. The subdev will need the host to be probed before a clock can be
-> > > > > available so you won't be able to access the hardware in the probe()
-> > > > > function in the generic case. You will need to wait until the
-> > > > > registered() subdev operation is called, at which point the host can
-> > > > > be accessed through the v4l2_device.
-> > > > 
-> > > > Sure, I understand, but that's exactly what we wanted to avoid -
-> > > > succeeding client's i2c .probe() without even touching the hardware.
-> > > 
-> > > But should we allow host probe() to succeed if the sensor isn't present ?
-> > 
-> > I think we should, yes. The host hardware is there and functional -
-> > whether or not all or some of the clients are failing. Theoretically
-> > clients can also be hot-plugged. Whether and how many video device nodes
-> > we create, that's a different question.
-> 
-> I think I can agree with you on this (although I could change my mind if this 
-> architecture turns out to result in unsolvable technical issues). That will 
-> involve a lot of work though.
+The first patch is just an update to the adv7180 because the VIP (the only
+user) now use the control framework so query{g_|s_|ctrl} are not necessery.
 
-There's however at least one more gotcha that occurs to me with this 
-approach: if clients fail to probe, how do we find out about that and turn 
-clocks back off? One improvement to turning clocks on immediately in 
-host's probe() is to only do it in a BUS_NOTIFY_BIND_DRIVER notifier. But 
-how do we find out, that probing failed? No notifier is called in this 
-case. We could use a time-out, but that's ugly. I think, we could ever 
-request a new notifier for this case. We could also require client drivers 
-to call a V4L2 function in this case, but that's not very pretty either.
+The second patch adds a new memory allocator for the videobuf2. I name it
+videobuf2-dma-streaming but I think "streaming" is not the best choice, so
+suggestions are welcome. My inspiration for this buffer come from
+videobuf-dma-contig (cached) version. After I made this buffer I found the
+videobuf2-dma-nc made by Jonathan Corbet and I improve the allocator with
+some suggestions (http://patchwork.linuxtv.org/patch/7441/). The VIP doesn't
+work with videobu2-dma-contig and I think this solution is easier the sg.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+The third patch updates the VIP to videobuf2 and control framework. I made also
+some restyling to the driver and change some mechanism so I take the ownership
+of the driver and I add the copyright of ST Microelectronics. Some trivial
+code is unchanged. The patch probably needs some extra update.
+I add the control framework to the VIP but without any control. I add it to 
+inherit controls from adv7180.
+
