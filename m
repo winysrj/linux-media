@@ -1,71 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:60704 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751688Ab2GKKV4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jul 2012 06:21:56 -0400
-Received: by ghrr11 with SMTP id r11so1018180ghr.19
-        for <linux-media@vger.kernel.org>; Wed, 11 Jul 2012 03:21:55 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:39141 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755202Ab2GaCb5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Jul 2012 22:31:57 -0400
+Message-ID: <50174370.1020502@redhat.com>
+Date: Mon, 30 Jul 2012 23:31:12 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Reply-To: martin-eric.racine@iki.fi
-In-Reply-To: <20120711100436.2305b098@armhf>
-References: <20120614162609.4613.22122.reportbug@henna.lan>
-	<20120614215359.GF3537@burratino>
-	<CAPZXPQd9gNCxn7xGyqj_xymPaF5OxvRtxRFkt+SsLs942te4og@mail.gmail.com>
-	<20120616044137.GB4076@burratino>
-	<1339932233.20497.14.camel@henna.lan>
-	<CAPZXPQegp7RA5M0H9Ofq4rJ9aj-rEdg=Ly9_1c6vAKi3COw50g@mail.gmail.com>
-	<4FF9CA30.9050105@redhat.com>
-	<CAPZXPQd026xfKrAU0D7CLQGbdAs8U01u5vsHp+5-wbVofAwdqQ@mail.gmail.com>
-	<4FFAD8D9.8070203@redhat.com>
-	<20120709203929.GC17301@burratino>
-	<CAPZXPQcaEzW1zGXfGwp-JuOrfBu2xhoidaYjthD8jhYAFpWr7A@mail.gmail.com>
-	<20120710163645.04fb0af0@armhf>
-	<CAPZXPQehjGRDZ=rXWjGFPQvRqOMzRpeA2dpoSWc3XwuUkvvesg@mail.gmail.com>
-	<20120711100436.2305b098@armhf>
-Date: Wed, 11 Jul 2012 13:21:55 +0300
-Message-ID: <CAPZXPQdJC5yCYY6YRzuKj-ukFLzbY_yUzbogzbDx1S0bL1GrgQ@mail.gmail.com>
-Subject: Re: video: USB webcam fails since kernel 3.2
-From: =?UTF-8?Q?Martin=2D=C3=89ric_Racine?= <martin-eric.racine@iki.fi>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Jonathan Nieder <jrnieder@gmail.com>,
-	Hans de Goede <hdegoede@redhat.com>, 677533@bugs.debian.org,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Antti Palosaari <crope@iki.fi>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Tim Gardner <tim.gardner@canonical.com>,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Michael Krufky <mkrufky@kernellabs.com>,
+	Eddi De Pieri <eddi@depieri.net>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] xc5000: Add MODULE_FIRMWARE statements
+References: <1343222119-82246-1-git-send-email-tim.gardner@canonical.com> <CAGoCfiziwAz0q2D_qKX=1nrAKQybeX+Ho5eu_gsERhd7QtsaDQ@mail.gmail.com> <500FF930.8020900@iki.fi>
+In-Reply-To: <500FF930.8020900@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/7/11 Jean-Francois Moine <moinejf@free.fr>:
-> On Wed, 11 Jul 2012 10:02:27 +0300
-> Martin-Éric Racine <martin-eric.racine@iki.fi> wrote:
->         [snip]
->> >         wget http://moinejf.free.fr/gspca-2.15.18.tar.gz
->> >         tar -zxf gspca-2.15.18.tar.gz
->> >         cd gspca-2.15.18
->> >         make
+Em 25-07-2012 10:48, Antti Palosaari escreveu:
+> On 07/25/2012 04:24 PM, Devin Heitmueller wrote:
+>> On Wed, Jul 25, 2012 at 9:15 AM, Tim Gardner <tim.gardner@canonical.com> wrote:
+>>> This will make modinfo more useful with regard
+>>> to discovering necessary firmware files.
+>>>
+>>> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+>>> Cc: Michael Krufky <mkrufky@kernellabs.com>
+>>> Cc: Eddi De Pieri <eddi@depieri.net>
+>>> Cc: linux-media@vger.kernel.org
+>>> Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
+>>> ---
+>>>   drivers/media/common/tuners/xc5000.c |    8 ++++++--
+>>>   1 file changed, 6 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
+>>> index dcca42c..4d33f86 100644
+>>> --- a/drivers/media/common/tuners/xc5000.c
+>>> +++ b/drivers/media/common/tuners/xc5000.c
+>>> @@ -210,13 +210,15 @@ struct xc5000_fw_cfg {
+>>>          u16 size;
+>>>   };
+>>>
+>>> +#define XC5000A_FIRMWARE "dvb-fe-xc5000-1.6.114.fw"
+>>>   static const struct xc5000_fw_cfg xc5000a_1_6_114 = {
+>>> -       .name = "dvb-fe-xc5000-1.6.114.fw",
+>>> +       .name = XC5000A_FIRMWARE,
+>>>          .size = 12401,
+>>>   };
+>>>
+>>> +#define XC5000C_FIRMWARE "dvb-fe-xc5000c-41.024.5.fw"
+>>>   static const struct xc5000_fw_cfg xc5000c_41_024_5 = {
+>>> -       .name = "dvb-fe-xc5000c-41.024.5.fw",
+>>> +       .name = XC5000C_FIRMWARE,
+>>>          .size = 16497,
+>>>   };
+>>>
+>>> @@ -1253,3 +1255,5 @@ EXPORT_SYMBOL(xc5000_attach);
+>>>   MODULE_AUTHOR("Steven Toth");
+>>>   MODULE_DESCRIPTION("Xceive xc5000 silicon tuner driver");
+>>>   MODULE_LICENSE("GPL");
+>>> +MODULE_FIRMWARE(XC5000A_FIRMWARE);
+>>> +MODULE_FIRMWARE(XC5000C_FIRMWARE);
+>>> -- 
 >>
->> $ LC_ALL=C make
->> make -C /lib/modules/3.5.0-rc6+/build
->> M=/home/perkelix/gspca-2.15.18/build modules
->> make: *** /lib/modules/3.5.0-rc6+/build: No such file or directory.  Stop.
->> make: *** [modules] Error 2
->
-> You need the linux headers of your running kernel to compile the tarball.
+>> Hi Tim,
+>>
+>> I'm just eyeballing the patch and I'm not familiar with this new
+>> functionality, but where are the new macros you're specifying actually
+>> defined?  You're swapping out the filename for XC5000A_FIRMWARE, but
+>> where is the actual reference to "dvb-fe-xc5000-1.6.114.fw"?
+>>
+>> Also, Mauro, can I merge this into my tree first rather than you
+>> pulling it direct?  I've got a whole patch series for xc5000 that I'm
+>> slated to issue a PULL for this weekend, and I *really* don't want to
+>> rebase the series for a four line change (which will definitely cause
+>> a conflict).
 
-I installed them. That still doesn't fix it:
+Devin,
 
-$ LC_ALL=C make
-make -C /lib/modules/3.5.0-rc6+/build
-M=/home/perkelix/gspca-2.15.18/build modules
-make[1]: Entering directory `/usr/src/linux-headers-3.5.0-rc6+'
-/usr/src/linux-headers-3.5.0-rc6+/arch/x86/Makefile:39:
-/usr/src/linux-headers-3.5.0-rc6+/arch/x86/Makefile_32.cpu: No such
-file or directory
-make[1]: *** No rule to make target
-`/usr/src/linux-headers-3.5.0-rc6+/arch/x86/Makefile_32.cpu'.  Stop.
-make[1]: Leaving directory `/usr/src/linux-headers-3.5.0-rc6+'
-make: *** [modules] Error 2
+As you didn't send your pull request in time for 3.6, I'll add this one,
+as otherwise it will miss the 3.6 bus. 
 
--- 
-Martin-Éric
+You don't need to rebase your pull request due to that anyway, as, if a
+merge conflict happens, I'll fix it, as it should be trivial.
+
+I'm fixing trivial merge conflicts like that all the time. Just today, I
+fixed maybe dozens of similar ones.
+
+The conflicts that I ask developers to rework are the ones where the complex
+logic is modified by two different patches.
+
+>>
+>> Devin
+> 
+> Also this issue has been spoken earlier and nacked. It was 2009 when Ben Hutchings sends large patch serie adding MODULE_FIRMWARE for every Linux-Media driver. I am not sure if arguments are changed after that to allow it now.
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg11373.html
+
+On Ben's patchset, firmwares were added to the bridge driver. That's wrong.
+
+Adding it to the driver that actually uses the firmware looks OK on my eyes.
+
+> regards
+> Antti
+
+Regards,
+Mauro
+
