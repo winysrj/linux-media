@@ -1,77 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:33121 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751999Ab2GZMGa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jul 2012 08:06:30 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: Re: [PATCH for v3.6] v4l2-dev.c: Move video_put() after debug printk
-Date: Thu, 26 Jul 2012 14:06:26 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-References: <1343303944-2652-1-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1343303944-2652-1-git-send-email-elezegarcia@gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201207261406.26725.hverkuil@xs4all.nl>
+Received: from pequod.mess.org ([93.97.41.153]:34956 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755266Ab2GaKhg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Jul 2012 06:37:36 -0400
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
+Cc: lirc-list@lists.sourceforge.net, Sean Young <sean@mess.org>
+Subject: [PATCH] [media] nec-decoder: fix NEC decoding for Pioneer Laserdisc CU-700 remote
+Date: Tue, 31 Jul 2012 11:37:29 +0100
+Message-Id: <1343731049-9856-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 26 July 2012 13:59:04 Ezequiel Garcia wrote:
-> It is possible that video_put() releases video_device struct,
-> provoking a panic when debug printk wants to get video_device node name.
-> 
-> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+This remote sends a header pulse of 8150us followed by a space of 4000us.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/ir-nec-decoder.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Good catch!
+diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
+index 3c9431a..2ca509e 100644
+--- a/drivers/media/rc/ir-nec-decoder.c
++++ b/drivers/media/rc/ir-nec-decoder.c
+@@ -70,7 +70,7 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 		if (!ev.pulse)
+ 			break;
+ 
+-		if (eq_margin(ev.duration, NEC_HEADER_PULSE, NEC_UNIT / 2)) {
++		if (eq_margin(ev.duration, NEC_HEADER_PULSE, NEC_UNIT * 2)) {
+ 			data->is_nec_x = false;
+ 			data->necx_repeat = false;
+ 		} else if (eq_margin(ev.duration, NECX_HEADER_PULSE, NEC_UNIT / 2))
+@@ -86,7 +86,7 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 		if (ev.pulse)
+ 			break;
+ 
+-		if (eq_margin(ev.duration, NEC_HEADER_SPACE, NEC_UNIT / 2)) {
++		if (eq_margin(ev.duration, NEC_HEADER_SPACE, NEC_UNIT)) {
+ 			data->state = STATE_BIT_PULSE;
+ 			return 0;
+ 		} else if (eq_margin(ev.duration, NEC_REPEAT_SPACE, NEC_UNIT / 2)) {
+-- 
+1.7.11.2
 
-Regards,
-
-	Hans
-
-> ---
->  drivers/media/video/v4l2-dev.c |   12 ++++++------
->  1 files changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-> index af70f93..3210fd5 100644
-> --- a/drivers/media/video/v4l2-dev.c
-> +++ b/drivers/media/video/v4l2-dev.c
-> @@ -478,12 +478,12 @@ static int v4l2_open(struct inode *inode, struct file *filp)
->  	}
->  
->  err:
-> -	/* decrease the refcount in case of an error */
-> -	if (ret)
-> -		video_put(vdev);
->  	if (vdev->debug)
->  		printk(KERN_DEBUG "%s: open (%d)\n",
->  			video_device_node_name(vdev), ret);
-> +	/* decrease the refcount in case of an error */
-> +	if (ret)
-> +		video_put(vdev);
->  	return ret;
->  }
->  
-> @@ -500,12 +500,12 @@ static int v4l2_release(struct inode *inode, struct file *filp)
->  		if (test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags))
->  			mutex_unlock(vdev->lock);
->  	}
-> -	/* decrease the refcount unconditionally since the release()
-> -	   return value is ignored. */
-> -	video_put(vdev);
->  	if (vdev->debug)
->  		printk(KERN_DEBUG "%s: release\n",
->  			video_device_node_name(vdev));
-> +	/* decrease the refcount unconditionally since the release()
-> +	   return value is ignored. */
-> +	video_put(vdev);
->  	return ret;
->  }
->  
-> 
