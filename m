@@ -1,78 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:53078 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932632Ab2GFLjv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 07:39:51 -0400
-Date: Fri, 6 Jul 2012 13:39:32 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:54995 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754675Ab2GaNFX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Jul 2012 09:05:23 -0400
+Date: Tue, 31 Jul 2012 15:05:17 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
 To: javier Martin <javier.martin@vista-silicon.com>
-cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	fabio.estevam@freescale.com, mchehab@infradead.org,
-	kernel@pengutronix.de
-Subject: Re: [PATCH v3][for_v3.5] media: mx2_camera: Fix mbus format handling
-In-Reply-To: <CACKLOr0nwKoO4UL9MKZJmD9WN1uyJhpNzAybd7w7x-GnLtM5cw@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1207061338170.29809@axis700.grange>
-References: <1338543105-20322-1-git-send-email-javier.martin@vista-silicon.com>
- <CACKLOr0J1JjpCMRf4toJ5uBMDAFZT8VGdFuX6MpUpxpNaAO_SA@mail.gmail.com>
- <Pine.LNX.4.64.1207061308300.29809@axis700.grange>
- <CACKLOr0nwKoO4UL9MKZJmD9WN1uyJhpNzAybd7w7x-GnLtM5cw@mail.gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, Russell King <linux@arm.linux.org.uk>
+Subject: Re: "[PULL] video_visstrim for 3.6"
+Message-ID: <20120731130517.GS24458@pengutronix.de>
+References: <1343295404-8931-1-git-send-email-javier.martin@vista-silicon.com>
+ <50170DE0.2030007@redhat.com>
+ <CACKLOr2+y5emMuvKR0nLdQR=GtUOZ6Ms7j65bO5iXB8jJw0L4Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CACKLOr2+y5emMuvKR0nLdQR=GtUOZ6Ms7j65bO5iXB8jJw0L4Q@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 6 Jul 2012, javier Martin wrote:
-
-> Hi Guennadi,
-> 
-> On 6 July 2012 13:09, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> > On Fri, 6 Jul 2012, javier Martin wrote:
-> >
-> >> Hi,
-> >> can this patch be applied please?
+On Tue, Jul 31, 2012 at 08:13:59AM +0200, javier Martin wrote:
+> On 31 July 2012 00:42, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> > Em 26-07-2012 06:36, Javier Martin escreveu:
+> >> Hi Mauro,
+> >> this pull request is composed of two series that provide support for two mem2mem devices:
+> >> - 'm2m-deinterlace' video deinterlacer
+> >> - 'coda video codec'
+> >> I've included platform support for them too.
 > >>
-> >> It solves a BUG for 3.5. Guennadi, Fabio, could you give me an ack for this?
+> >>
+> >> The following changes since commit 6887a4131da3adaab011613776d865f4bcfb5678:
+> >>
+> >>    Linux 3.5-rc5 (2012-06-30 16:08:57 -0700)
+> >>
+> >> are available in the git repository at:
+> >>
+> >>    https://github.com/jmartinc/video_visstrim.git for_3.6
+> >>
+> >> for you to fetch changes up to 9bb10266da63ae7f8f198573e099580e9f98f4e8:
+> >>
+> >>    i.MX27: Visstrim_M10: Add support for deinterlacing driver. (2012-07-26 10:57:30 +0200)
+> >>
+> >> ----------------------------------------------------------------
+> >> Javier Martin (5):
+> >>        i.MX: coda: Add platform support for coda in i.MX27.
+> >>        media: coda: Add driver for Coda video codec.
+> >>        Visstrim M10: Add support for Coda.
+> >>        media: Add mem2mem deinterlacing driver.
+> >>        i.MX27: Visstrim_M10: Add support for deinterlacing driver.
+> >>
+> >>   arch/arm/mach-imx/clk-imx27.c                   |    4 +-
+> >>   arch/arm/mach-imx/devices-imx27.h               |    4 +
+> >>   arch/arm/mach-imx/mach-imx27_visstrim_m10.c     |   49 +-
+> >>   arch/arm/plat-mxc/devices/Kconfig               |    6 +-
+> >>   arch/arm/plat-mxc/devices/Makefile              |    1 +
+> >>   arch/arm/plat-mxc/devices/platform-imx27-coda.c |   37 +
+> >>   arch/arm/plat-mxc/include/mach/devices-common.h |    8 +
 > >
-> > Sorry? This patch has been applied and proven to break more, than it
-> > fixed, so, it has been reverted. Am I missing something?
-> 
-> Patch v1 was the version that broke pass-through mode (which nobody
-> seems to be using/testing). It was applied, then it was reverted as
-> you requested in [1].
-> 
-> Then I sent v2 that didn't break pass-through but was invalid too
-> because of a merge conflict [2].
-> 
-> Finally, this is v3 which has the pass-through problem and the merge
-> problem fixed. It is currently marked as "Under review" and should be
-> applied as a fix to 3.5.
+> > I need ARM maintainer's ack for the patches that touch the above files.
 
-Ah, ok, then, don't you think, that expecting your patch to be applied 
-within 4 minutes of its submission is a bit... overoptimistic? Because 
-it's 4 minutes after your original patch, that you've sent your 
-"reminder"...
+Generally:
 
-Thanks
-Guennadi
+Acked-by: Sascha Hauer <s.hauer@pengutronix.de>
 
-> It can be applied safely since the patch I stated previously is
-> already in 3.5-rc5 [4] (it was applied through the imx tree).
-> 
-> [1] http://patchwork.linuxtv.org/patch/11504/
-> [2] http://patchwork.linuxtv.org/patch/11558/
-> [3] http://patchwork.linuxtv.org/patch/11559/
-> [4] http://patchwork.linuxtv.org/patch/10483/
-> --
-> Javier Martin
-> Vista Silicon S.L.
-> CDTUC - FASE C - Oficina S-345
-> Avda de los Castros s/n
-> 39005- Santander. Cantabria. Spain
-> +34 942 25 32 60
-> www.vista-silicon.com
-> 
+I think that these are quite late for this merge window though. The pull
+request should have been out before the 3.5 Release.
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Sascha
+
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
