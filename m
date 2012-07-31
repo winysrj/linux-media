@@ -1,142 +1,244 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:40433 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750717Ab2GFT47 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 15:56:59 -0400
-Received: by bkwj10 with SMTP id j10so4712252bkw.19
-        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2012 12:56:57 -0700 (PDT)
-Message-ID: <4FF74306.2030000@gmail.com>
-Date: Fri, 06 Jul 2012 21:56:54 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from moutng.kundenserver.de ([212.227.126.171]:57622 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754837Ab2GaPPB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Jul 2012 11:15:01 -0400
+Date: Tue, 31 Jul 2012 17:14:25 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Javier Martin <javier.martin@vista-silicon.com>
+cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	fabio.estevam@freescale.com,
+	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
+	mchehab@infradead.org, linux@arm.linux.org.uk,
+	kernel@pengutronix.de
+Subject: Re: [PATCH 4/4] media: mx2_camera: Fix clock handling for i.MX27.
+In-Reply-To: <1343301637-19676-5-git-send-email-javier.martin@vista-silicon.com>
+Message-ID: <Pine.LNX.4.64.1207311644590.27888@axis700.grange>
+References: <1343301637-19676-1-git-send-email-javier.martin@vista-silicon.com>
+ <1343301637-19676-5-git-send-email-javier.martin@vista-silicon.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v3.5] S5P driver fixes
-References: <4FEC864D.5040608@samsung.com> <4FEDEE7C.7080105@samsung.com> <4FF73821.9010108@redhat.com>
-In-Reply-To: <4FF73821.9010108@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/06/2012 09:10 PM, Mauro Carvalho Chehab wrote:
-> Em 29-06-2012 15:05, Sylwester Nawrocki escreveu:
->> Hi Mauro,
->>
->> On 06/28/2012 06:29 PM, Sylwester Nawrocki wrote:
->>>
->>> The following changes since commit 433002d69888238b16f8ea9434447feaa1fc9bf0:
->>>
->>>     Merge remote-tracking branch 'party-public/v4l-fimc-fixes' into v4l-fixes
->>> (2012-06-27 16:28:08 +0200)
->>>
->>> are available in the git repository at:
->>>
->>>
->>>     git://git.infradead.org/users/kmpark/linux-samsung v4l-fixes
->>>
->>> for you to fetch changes up to f8a623efac978987be818a0a9d2d407791a066e4:
->>>
->>>     Revert "[media] V4L: JPEG class documentation corrections" (2012-06-27
->>> 16:31:20 +0200)
->>>
->>> ----------------------------------------------------------------
->>> Kamil Debski (1):
->>>         s5p-mfc: Fixed setup of custom controls in decoder and encoder
->>>
->>> Sylwester Nawrocki (2):
->>>         s5p-fimc: Add missing FIMC-LITE file operations locking
->>>
->>> This patch depends on my previous pull request:
->>> http://patchwork.linuxtv.org/patch/11503
->>>
->>>         Revert "[media] V4L: JPEG class documentation corrections"
->>>
->>>    Documentation/DocBook/media/v4l/controls.xml           |    2 +-
->>>    Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml |    7 -------
->>>    drivers/media/video/s5p-fimc/fimc-lite.c               |   61
->>> ++++++++++++++++++++++++++++++++++++++++++++-----------------
->>>    drivers/media/video/s5p-mfc/s5p_mfc_dec.c              |    1 +
->>>    drivers/media/video/s5p-mfc/s5p_mfc_enc.c              |    1 +
->>>    5 files changed, 47 insertions(+), 25 deletions(-)
->>
->> Sorry, I messed up this pull request by rebasing it onto wrong branch.
->> Here it is corrected, against staging/for_v3.5 and on top of merged
->> v4l-fimc-fixes branch, as per http://patchwork.linuxtv.org/patch/11503
->>
->>
->> The following changes since commit 96fc9f0f51d6b0d807aeb1f6e38485a3de429fd4:
->>
->>     s5p-fimc: Stop media entity pipeline if fimc_pipeline_validate fails (2012-06-05 13:28:25 +0200)
->>
->> are available in the git repository at:
->>
->>     git://git.infradead.org/users/kmpark/linux-samsung v4l-fixes
->>
->> for you to fetch changes up to c7de5370086a948c67cb7eeb5f25178c8979b0fe:
->>
->>     Revert "[media] V4L: JPEG class documentation corrections" (2012-06-29 16:00:33 +0200)
->>
->> ----------------------------------------------------------------
->> Kamil Debski (1):
->>         s5p-mfc: Fixed setup of custom controls in decoder and encoder
+Hi Javier
+
+Thanks for the patch. Let me try to understand what it is doing, please, 
+correct any my mistakes.
+
+On Thu, 26 Jul 2012, Javier Martin wrote:
+
+> This driver wasn't converted to the new clock framework
+> (e038ed50a4a767add205094c035b6943e7b30140).
 > 
-> This patch applied OK.
+> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+> ---
+>  drivers/media/video/mx2_camera.c |   67 ++++++++++++++++++++++----------------
+>  1 file changed, 39 insertions(+), 28 deletions(-)
 > 
->> Sylwester Nawrocki (2):
->>         s5p-fimc: Add missing FIMC-LITE file operations locking
-> 
-> This one didn't apply for v3.5:
+> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+> index 3c38b5f..88dcae6 100644
+> --- a/drivers/media/video/mx2_camera.c
+> +++ b/drivers/media/video/mx2_camera.c
+> @@ -273,7 +273,7 @@ struct mx2_camera_dev {
+>  	struct device		*dev;
+>  	struct soc_camera_host	soc_host;
+>  	struct soc_camera_device *icd;
+> -	struct clk		*clk_csi, *clk_emma;
+> +	struct clk		*clk_csi, *clk_emma_ahb, *clk_emma_ipg;
+>  
+>  	unsigned int		irq_csi, irq_emma;
+>  	void __iomem		*base_csi, *base_emma;
+> @@ -436,7 +436,8 @@ static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
+>  {
+>  	unsigned long flags;
+>  
+> -	clk_disable(pcdev->clk_csi);
+> +	if (cpu_is_mx27())
+> +		clk_disable_unprepare(pcdev->clk_csi);
 
-Hmm, perhaps because these previous fixes aren't applied yet
-http://patchwork.linuxtv.org/patch/11503 ?
+This tells me, there are already 2 things going on here:
 
-> Applying patch patches/0016-s5p-fimc-Add-missing-FIMC-LITE-file-operations-locki.patch
-> patching file drivers/media/video/s5p-fimc/fimc-lite.c
-> Hunk #1 FAILED at 453.
-> Hunk #2 succeeded at 492 (offset -2 lines).
-> 1 out of 2 hunks FAILED -- rejects in file drivers/media/video/s5p-fimc/fimc-lite.c
-> Patch patches/0016-s5p-fimc-Add-missing-FIMC-LITE-file-operations-locki.patch does not apply (enforce with -f)
-> Patch didn't apply. Aborting
-> 
-> 
->>         Revert "[media] V4L: JPEG class documentation corrections"
-> 
-> My scripts say that this patch were already applied.
-> 
-> $ test_patch
-> testing if patches/0017-Revert-media-V4L-JPEG-class-documentation-correction.patch applies
-> patch -p1 -i patches/0017-Revert-media-V4L-JPEG-class-documentation-correction.patch --dry-run -t -N
-> patching file Documentation/DocBook/media/v4l/controls.xml
-> patching file Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
->   Documentation/DocBook/media/v4l/controls.xml           |    2 +-
->   Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml |    7 -------
->   2 files changed, 1 insertion(+), 8 deletions(-)
-> Subject: Revert "[media] V4L: JPEG class documentation corrections"
-> From: Sylwester Nawrocki<s.nawrocki@samsung.com>
-> Date: Wed, 27 Jun 2012 15:12:31 +0200
-> Patch applies OK
-> total: 0 errors, 0 warnings, 21 lines checked
-> 
-> patches/0017-Revert-media-V4L-JPEG-class-documentation-correction.patch has no obvious style problems and is ready for submission.
-> Patch is likely applied
+1. add clock-(un)prepare operations to enable / disable. Is this a problem 
+atm? is the driver non-functional without this change or is it just an API 
+correctness change? I thought you replied to this already, but 
+unfortunately I couldn't find that your reply again, sorry.
 
-I'm not sure why it doesn't apply now, but the issue is still there, 
-two similar patches exist in v3.5:
+2. use clocks only on i.MX27
 
-http://git.linuxtv.org/linux-2.6.git/history/c4aed353b1b079eb4843e6a708fc68b4b28f72aa:/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+>  	writel(0, pcdev->base_csi + CSICR1);
+>  	if (cpu_is_mx27()) {
+>  		writel(0, pcdev->base_emma + PRP_CNTL);
+> @@ -464,9 +465,11 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
+>  	if (pcdev->icd)
+>  		return -EBUSY;
+>  
+> -	ret = clk_enable(pcdev->clk_csi);
+> -	if (ret < 0)
+> -		return ret;
+> +	if (cpu_is_mx27()) {
+> +		ret = clk_prepare_enable(pcdev->clk_csi);
+> +		if (ret < 0)
+> +			return ret;
+> +	}
 
-One of them just needs to be reverted. I described this issue previously:
-http://www.spinics.net/lists/linux-media/msg47879.html
+Same two as above.
 
-And then decided to send a reverting patch myself.
+>  
+>  	csicr1 = CSICR1_MCLKEN;
+>  
+> @@ -1675,23 +1678,12 @@ static int __devinit mx27_camera_emma_init(struct mx2_camera_dev *pcdev)
+>  		goto exit_iounmap;
+>  	}
+>  
+> -	pcdev->clk_emma = clk_get(NULL, "emma");
+> -	if (IS_ERR(pcdev->clk_emma)) {
+> -		err = PTR_ERR(pcdev->clk_emma);
+> -		goto exit_free_irq;
+> -	}
+> -
+> -	clk_enable(pcdev->clk_emma);
+> -
+>  	err = mx27_camera_emma_prp_reset(pcdev);
+>  	if (err)
+> -		goto exit_clk_emma_put;
+> +		goto exit_free_irq;
+>  
+>  	return err;
+>  
+> -exit_clk_emma_put:
+> -	clk_disable(pcdev->clk_emma);
+> -	clk_put(pcdev->clk_emma);
+>  exit_free_irq:
+>  	free_irq(pcdev->irq_emma, pcdev);
+>  exit_iounmap:
+> @@ -1714,6 +1706,7 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+>  
+>  	res_csi = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>  	irq_csi = platform_get_irq(pdev, 0);
+> +
+>  	if (res_csi == NULL || irq_csi < 0) {
+>  		dev_err(&pdev->dev, "Missing platform resources data\n");
+>  		err = -ENODEV;
+> @@ -1727,11 +1720,26 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+>  		goto exit;
+>  	}
+>  
+> -	pcdev->clk_csi = clk_get(&pdev->dev, NULL);
+> -	if (IS_ERR(pcdev->clk_csi)) {
+> -		dev_err(&pdev->dev, "Could not get csi clock\n");
+> -		err = PTR_ERR(pcdev->clk_csi);
+> -		goto exit_kfree;
+> +	if (cpu_is_mx27()) {
+> +		pcdev->clk_csi = devm_clk_get(&pdev->dev, "ahb");
+> +		if (IS_ERR(pcdev->clk_csi)) {
+> +			dev_err(&pdev->dev, "Could not get csi clock\n");
+> +			err = PTR_ERR(pcdev->clk_csi);
+> +			goto exit_kfree;
+> +		}
+> +		pcdev->clk_emma_ipg = devm_clk_get(&pdev->dev, "emma-ipg");
+> +		if (IS_ERR(pcdev->clk_emma_ipg)) {
+> +			err = PTR_ERR(pcdev->clk_emma_ipg);
+> +			goto exit_kfree;
+> +		}
+> +		pcdev->clk_emma_ahb = devm_clk_get(&pdev->dev, "emma-ahb");
+> +		if (IS_ERR(pcdev->clk_emma_ahb)) {
+> +			err = PTR_ERR(pcdev->clk_emma_ahb);
+> +			goto exit_kfree;
+> +		}
+> +		clk_prepare_enable(pcdev->clk_csi);
+> +		clk_prepare_enable(pcdev->clk_emma_ipg);
+> +		clk_prepare_enable(pcdev->clk_emma_ahb);
+>  	}
+>  
+>  	pcdev->res_csi = res_csi;
 
-I tried all three patches on latest Linus' tree and they applied cleanly
-(but I had applied fixups from v4l-fimc-fixes first).
+This does:
 
-> So, from this series, I'll only apply the "s5p-fimc: Add missing FIMC-LITE file operations locking"
-> patch.
+1. add clock-(un)prepare operations to enable / disable.
 
-Regards,
-Sylwester
+2. use clocks only on i.MX27
+
+3. switch to managed clock requesting
+
+4. groups clk_get(_devm)() and clk_prepare(_enable)() calls together
+
+> @@ -1827,8 +1835,8 @@ exit_free_emma:
+>  eallocctx:
+>  	if (cpu_is_mx27()) {
+>  		free_irq(pcdev->irq_emma, pcdev);
+> -		clk_disable(pcdev->clk_emma);
+> -		clk_put(pcdev->clk_emma);
+> +		clk_disable_unprepare(pcdev->clk_emma_ipg);
+> +		clk_disable_unprepare(pcdev->clk_emma_ahb);
+>  		iounmap(pcdev->base_emma);
+>  		release_mem_region(pcdev->res_emma->start, resource_size(pcdev->res_emma));
+>  	}
+> @@ -1840,7 +1848,11 @@ exit_iounmap:
+>  exit_release:
+>  	release_mem_region(res_csi->start, resource_size(res_csi));
+>  exit_dma_free:
+> -	clk_put(pcdev->clk_csi);
+> +	if (cpu_is_mx27()) {
+> +		clk_disable_unprepare(pcdev->clk_emma_ipg);
+> +		clk_disable_unprepare(pcdev->clk_emma_ahb);
+> +		clk_disable_unprepare(pcdev->clk_csi);
+> +	}
+>  exit_kfree:
+>  	kfree(pcdev);
+>  exit:
+> @@ -1854,7 +1866,6 @@ static int __devexit mx2_camera_remove(struct platform_device *pdev)
+>  			struct mx2_camera_dev, soc_host);
+>  	struct resource *res;
+>  
+> -	clk_put(pcdev->clk_csi);
+>  	if (cpu_is_mx25())
+>  		free_irq(pcdev->irq_csi, pcdev);
+>  	if (cpu_is_mx27())
+> @@ -1867,8 +1878,8 @@ static int __devexit mx2_camera_remove(struct platform_device *pdev)
+>  	iounmap(pcdev->base_csi);
+>  
+>  	if (cpu_is_mx27()) {
+> -		clk_disable(pcdev->clk_emma);
+> -		clk_put(pcdev->clk_emma);
+> +		clk_disable_unprepare(pcdev->clk_emma_ipg);
+> +		clk_disable_unprepare(pcdev->clk_emma_ahb);
+>  		iounmap(pcdev->base_emma);
+>  		res = pcdev->res_emma;
+>  		release_mem_region(res->start, resource_size(res));
+> -- 
+> 1.7.9.5
+
+The rest adds to the implementation of the above 4 points.
+
+So, if this is correct, my suggestion would be:
+
+1. Don't make the CSI clock i.MX27-specific. You can do
+
+-	pcdev->clk_csi = clk_get(&pdev->dev, NULL);
++	pcdev->clk_csi = clk_get(&pdev->dev, "ahb");
+
+If NULL connection ID worked for i.MX25 before, using any non-empty string 
+will work too.
+
+2. I would rather not re-group clock requesting. It is not too unlogical, 
+that mx27_camera_emma_init() allocates EMMA clocks. And keeping the CSI 
+clock where it is would anyway make your grouping look less symmetric than 
+in this version.
+
+3. identify the real bug-fix portion of this patch and separate it from 
+all other changes. Is the fix in using two separate "emma-ipg" and 
+"emma-ahb" clocks instead of just a single "emma?" Or is prepare / 
+unprepare also required? Please, make these to 1 or two _fix_ patches and 
+the rest you can put in a clean-up / feature / improvement patch.
+
+Does this make sense?
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
