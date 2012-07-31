@@ -1,63 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:63242 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752454Ab2GIHh0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2012 03:37:26 -0400
-Received: by weyx8 with SMTP id x8so972861wey.19
-        for <linux-media@vger.kernel.org>; Mon, 09 Jul 2012 00:37:25 -0700 (PDT)
+Received: from cnxt09252.conexant.com ([198.62.9.252]:7324 "EHLO
+	Cnxtsmtp1.conexant.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751481Ab2GaS4Y convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Jul 2012 14:56:24 -0400
+From: "Palash Bandyopadhyay" <Palash.Bandyopadhyay@conexant.com>
+To: "Mauro Carvalho Chehab" <mchehab@redhat.com>,
+	"workshop-2011@linuxtv.org" <workshop-2011@linuxtv.org>,
+	"Linux Media Mailing List" <linux-media@vger.kernel.org>
+cc: "Sri Deevi" <Srinivasa.Deevi@conexant.com>
+Date: Tue, 31 Jul 2012 11:38:30 -0700
+Subject: RE: [Workshop-2011] Media summit/KS-2012 proposals
+Message-ID: <1591392f-f0c0-42a5-b3af-170d078b80ab@cnxthub2.bbnet.ad>
+References: <20120713173708.GB17109@thunk.org> <5005A14D.8000809@redhat.com>
+ <50181CBF.102@redhat.com>
+In-Reply-To: <50181CBF.102@redhat.com>
+Content-Language: en-US
+Content-Type: text/plain;
+ charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <20120709072809.GP30009@pengutronix.de>
-References: <1341572162-29126-1-git-send-email-javier.martin@vista-silicon.com>
-	<20120709072809.GP30009@pengutronix.de>
-Date: Mon, 9 Jul 2012 09:37:25 +0200
-Message-ID: <CACKLOr25yb1Cx4XNriyPceBcqmc5T4jDpJXFpve9JCXpP7iMLg@mail.gmail.com>
-Subject: Re: [PATCH] [v3] i.MX27: Fix emma-prp clocks in mx2_camera.c
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: linux-media@vger.kernel.org, fabio.estevam@freescale.com,
-	linux-arm-kernel@lists.infradead.org,
-	laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
-	mchehab@infradead.org, kernel@pengutronix.de
-Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 9 July 2012 09:28, Sascha Hauer <s.hauer@pengutronix.de> wrote:
-> On Fri, Jul 06, 2012 at 12:56:02PM +0200, Javier Martin wrote:
->> This driver wasn't converted to the new clock changes
->> (clk_prepare_enable/clk_disable_unprepare). Also naming
->> of emma-prp related clocks for the i.MX27 was not correct.
->> ---
->> Enable clocks only for i.MX27.
->>
->
-> Indeed,
->
->>
->> -     pcdev->clk_csi = clk_get(&pdev->dev, NULL);
->> -     if (IS_ERR(pcdev->clk_csi)) {
->> -             dev_err(&pdev->dev, "Could not get csi clock\n");
->> -             err = PTR_ERR(pcdev->clk_csi);
->> -             goto exit_kfree;
->> +     if (cpu_is_mx27()) {
->> +             pcdev->clk_csi = devm_clk_get(&pdev->dev, "ahb");
->> +             if (IS_ERR(pcdev->clk_csi)) {
->> +                     dev_err(&pdev->dev, "Could not get csi clock\n");
->> +                     err = PTR_ERR(pcdev->clk_csi);
->> +                     goto exit_kfree;
->> +             }
->
-> but why? Now the i.MX25 won't get a clock anymore.
+Mauro,
 
-What are the clocks needed by i.MX25? csi only?
+  Can you add Sri Deevi to the list too?
 
-By the way, is anybody using this driver with i.MX25?
+Thanks,
+Palash
 
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+-----Original Message-----
+From: workshop-2011-bounces@linuxtv.org [mailto:workshop-2011-bounces@linuxtv.org] On Behalf Of Mauro Carvalho Chehab
+Sent: Tuesday, July 31, 2012 10:58 AM
+To: workshop-2011@linuxtv.org; Linux Media Mailing List
+Subject: [Workshop-2011] Media summit/KS-2012 proposals
+
+In order to sum-up the discussions around the media summit, this is what we've got so far:
+
+Proposals									     	proposed by
+=====================================================================================|=========================================================================================
+Common device tree bindings for media devices						Sylvester Nawrocki / Guennadi Liakhovetski
+ALSA and V4L/Media Controller								Steven Toth / Laurent Pinchart
+ARM and needed features for V4L/DVB							Steven Toth
+Intel media SDK										Steven Toth
+V4L compiance tool									Hans Verkuil
+V4L2 API ambiguities									Hans Verkuil
+Media Controller library								Laurent Pincart / Sakari Ailus
+SoC Vendors feedback - how to help them to go upstream - Android's V4L2 cam library	Laurent Pincart / Guennadi Liakhovetski / Palash Bandyopadhyay / Naveen Krishnamurthy
+Synchronization, shared resource and optimizations					Pawel Osciak
+V4L2/DVB issues from userspace perspective						Rémi Denis-Courmont
+
+As we'll have only one day for the summit, we may need to remove some themes, or maybe to get an extra time during LPC for the remaining discussions.
+	
+Possible attendents:
+===================
+
+Guennadi Liakhovetski
+Laurent Pinchart
+Mauro Carvalho Chehab
+Michael Krufky
+Naveen Krishnamurthy
++1 seat from ST (waiting Naveen to define who will be the other seat)
+Palash Bandyopadhyay
+Pawel Osciak
+Rémi Denis-Courmont
+Sakari Ailus
+Steven Toth
+Sylvester Nawrocki
+
+Am I missing something?
+
+Are there other proposals or people intending to participate?
+
+Regards,
+Mauro
+
+
+_______________________________________________
+Workshop-2011 mailing list
+Workshop-2011@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/workshop-2011
+
+Conexant E-mail Firewall (Conexant.Com) made the following annotations
+---------------------------------------------------------------------
+********************** Legal Disclaimer **************************** 
+
+"This email may contain confidential and privileged material for the sole use of the intended recipient. Any unauthorized review, use or distribution by others is strictly prohibited. If you have received the message in error, please advise the sender by reply email and delete the message. Thank you." 
+
+********************************************************************** 
+
+---------------------------------------------------------------------
+
