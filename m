@@ -1,185 +1,422 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59150 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754577Ab2GRN60 (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:49447 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751661Ab2GaTnT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jul 2012 09:58:26 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH v2 3/9] ov772x: Don't fail in s_fmt if the requested format isn't supported
-Date: Wed, 18 Jul 2012 15:58:20 +0200
-Message-Id: <1342619906-5820-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1342619906-5820-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1342619906-5820-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 31 Jul 2012 15:43:19 -0400
+Received: by mail-we0-f174.google.com with SMTP id x8so4602944wey.19
+        for <linux-media@vger.kernel.org>; Tue, 31 Jul 2012 12:43:19 -0700 (PDT)
+From: Ilyes Gouta <ilyes.gouta@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Ilyes Gouta <ilyes.gouta@gmail.com>,
+	Ilyes Gouta <ilyes.gouta@st.com>
+Subject: [RESEND,media] v4l2: define V4L2_PIX_FMT_NV16M and V4L2_PIX_FMT_NV24M pixel formats
+Date: Tue, 31 Jul 2012 20:23:36 +0100
+Message-Id: <1343762616-7295-1-git-send-email-ilyes.gouta@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Select a default format instead.
+Define the two new V4L2_PIX_FMT_NV16M (4:2:2 two-buffers) and V4L2_PIX_FMT_NV24M (4:4:4 two-buffers)
+pixel formats, the non-contiguous variants of the existing V4L2_PIX_FMT_NV16 and V4L2_PIX_FMT_NV24 formats.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Existing h/w IPs, such as decoders, operate on such separate luma and chroma buffers.
+
+Signed-off-by: Ilyes Gouta <ilyes.gouta@gmail.com>
 ---
- drivers/media/video/ov772x.c |   83 ++++++++++++++++++++++--------------------
- 1 files changed, 43 insertions(+), 40 deletions(-)
+ Documentation/DocBook/media/v4l/pixfmt-nv16m.xml | 166 +++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt-nv24m.xml | 182 +++++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml       |   2 +
+ include/linux/videodev2.h                        |   2 +
+ 4 files changed, 352 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv24m.xml
 
-diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
-index 3f6e4bf..c2bd087 100644
---- a/drivers/media/video/ov772x.c
-+++ b/drivers/media/video/ov772x.c
-@@ -581,11 +581,6 @@ static int ov772x_s_stream(struct v4l2_subdev *sd, int enable)
- 		return 0;
- 	}
- 
--	if (!priv->win || !priv->cfmt) {
--		dev_err(&client->dev, "norm or win select error\n");
--		return -EPERM;
--	}
--
- 	ov772x_mask_set(client, COM2, SOFT_SLEEP_MODE, 0);
- 
- 	dev_dbg(&client->dev, "format %d, win %s\n",
-@@ -710,31 +705,33 @@ static const struct ov772x_win_size *ov772x_select_win(u32 width, u32 height)
- 	return win;
- }
- 
--static int ov772x_set_params(struct i2c_client *client, u32 *width, u32 *height,
--			     enum v4l2_mbus_pixelcode code)
-+static void ov772x_select_params(const struct v4l2_mbus_framefmt *mf,
-+				 const struct ov772x_color_format **cfmt,
-+				 const struct ov772x_win_size **win)
- {
--	struct ov772x_priv *priv = to_ov772x(client);
--	int ret = -EINVAL;
--	u8  val;
--	int i;
-+	unsigned int i;
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-nv16m.xml b/Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
+new file mode 100644
+index 0000000..76e48bf
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
+@@ -0,0 +1,166 @@
++    <refentry id="V4L2-PIX-FMT-NV16M">
++      <refmeta>
++     <refentrytitle>V4L2_PIX_FMT_NV16M ('NM16')</refentrytitle>
++	&manvol;
++      </refmeta>
++      <refnamediv>
++     <refname> <constant>V4L2_PIX_FMT_NV16M</constant></refname>
++     <refpurpose>Variation of <constant>V4L2_PIX_FMT_NV16</constant> with planes
++	  non contiguous in memory. </refpurpose>
++      </refnamediv>
++      <refsect1>
++	<title>Description</title>
 +
-+	/* Select the format format. */
-+	*cfmt = &ov772x_cfmts[0];
- 
--	/*
--	 * select format
--	 */
--	priv->cfmt = NULL;
- 	for (i = 0; i < ARRAY_SIZE(ov772x_cfmts); i++) {
--		if (code == ov772x_cfmts[i].code) {
--			priv->cfmt = ov772x_cfmts + i;
-+		if (mf->code == ov772x_cfmts[i].code) {
-+			*cfmt = &ov772x_cfmts[i];
- 			break;
- 		}
- 	}
--	if (!priv->cfmt)
--		goto ov772x_set_fmt_error;
- 
--	/*
--	 * select win
--	 */
--	priv->win = ov772x_select_win(*width, *height);
-+	/* Select the window size. */
-+	*win = ov772x_select_win(mf->width, mf->height);
-+}
++     <para>This is a multi-planar, two-plane version of the YUV 4:2:2 format.
++The three components are separated into two sub-images or planes.
++<constant>V4L2_PIX_FMT_NV16M</constant> differs from <constant>V4L2_PIX_FMT_NV16
++</constant> in that the two planes are non-contiguous in memory, i.e. the chroma
++plane do not necessarily immediately follows the luma plane.
++The luminance data occupies the first plane. The Y plane has one byte per pixel.
++In the second plane there is a chrominance data with alternating chroma samples.
++The CbCr plane has the same width and height, in bytes, as the Y plane (and of the image).
++Each CbCr pair belongs to two pixels. For example,
++Cb<subscript>0</subscript>/Cr<subscript>0</subscript> belongs to
++Y<subscript>00</subscript>, Y'<subscript>01</subscript>. </para>
 +
-+static int ov772x_set_params(struct ov772x_priv *priv,
-+			     const struct ov772x_color_format *cfmt,
-+			     const struct ov772x_win_size *win)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
-+	int ret;
-+	u8  val;
- 
- 	/*
- 	 * reset hardware
-@@ -791,14 +788,14 @@ static int ov772x_set_params(struct i2c_client *client, u32 *width, u32 *height,
- 	/*
- 	 * set size format
- 	 */
--	ret = ov772x_write_array(client, priv->win->regs);
-+	ret = ov772x_write_array(client, win->regs);
- 	if (ret < 0)
- 		goto ov772x_set_fmt_error;
- 
- 	/*
- 	 * set DSP_CTRL3
- 	 */
--	val = priv->cfmt->dsp3;
-+	val = cfmt->dsp3;
- 	if (val) {
- 		ret = ov772x_mask_set(client,
- 				      DSP_CTRL3, UV_MASK, val);
-@@ -809,7 +806,7 @@ static int ov772x_set_params(struct i2c_client *client, u32 *width, u32 *height,
- 	/*
- 	 * set COM3
- 	 */
--	val = priv->cfmt->com3;
-+	val = cfmt->com3;
- 	if (priv->info->flags & OV772X_FLAG_VFLIP)
- 		val |= VFLIP_IMG;
- 	if (priv->info->flags & OV772X_FLAG_HFLIP)
-@@ -827,7 +824,7 @@ static int ov772x_set_params(struct i2c_client *client, u32 *width, u32 *height,
- 	/*
- 	 * set COM7
- 	 */
--	val = priv->win->com7_bit | priv->cfmt->com7;
-+	val = win->com7_bit | cfmt->com7;
- 	ret = ov772x_mask_set(client,
- 			      COM7, SLCT_MASK | FMT_MASK | OFMT_MASK,
- 			      val);
-@@ -846,16 +843,11 @@ static int ov772x_set_params(struct i2c_client *client, u32 *width, u32 *height,
- 			goto ov772x_set_fmt_error;
- 	}
- 
--	*width = priv->win->width;
--	*height = priv->win->height;
--
- 	return ret;
- 
- ov772x_set_fmt_error:
- 
- 	ov772x_reset(client);
--	priv->win = NULL;
--	priv->cfmt = NULL;
- 
- 	return ret;
- }
-@@ -899,18 +891,29 @@ static int ov772x_g_fmt(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
--static int ov772x_s_fmt(struct v4l2_subdev *sd,
--			struct v4l2_mbus_framefmt *mf)
-+static int ov772x_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
- {
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
--	int ret = ov772x_set_params(client, &mf->width, &mf->height,
--				    mf->code);
-+	const struct ov772x_color_format *cfmt;
-+	const struct ov772x_win_size *win;
-+	int ret;
- 
--	if (!ret)
--		mf->colorspace = priv->cfmt->colorspace;
-+	ov772x_select_params(mf, &cfmt, &win);
- 
--	return ret;
-+	ret = ov772x_set_params(priv, cfmt, win);
-+	if (ret < 0)
-+		return ret;
++     <para><constant>V4L2_PIX_FMT_NV16M</constant> is intended to be
++used only in drivers and applications that support the multi-planar API,
++described in <xref linkend="planar-apis"/>. </para>
 +
-+	priv->win = win;
-+	priv->cfmt = cfmt;
++	<para>If the Y plane has pad bytes after each row, then the
++CbCr plane has as many pad bytes after its rows.</para>
 +
-+	mf->code = cfmt->code;
-+	mf->width = win->width;
-+	mf->height = win->height;
-+	mf->field = V4L2_FIELD_NONE;
-+	mf->colorspace = cfmt->colorspace;
++	<example>
++       <title><constant>V4L2_PIX_FMT_NV16M</constant> 4 &times; 4 pixel image</title>
 +
-+	return 0;
- }
++	  <formalpara>
++	    <title>Byte Order.</title>
++	    <para>Each cell is one byte.
++		<informaltable frame="none">
++		<tgroup cols="5" align="center">
++		  <colspec align="left" colwidth="2*" />
++		  <tbody valign="top">
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;0:</entry>
++		      <entry>Y'<subscript>00</subscript></entry>
++		      <entry>Y'<subscript>01</subscript></entry>
++		      <entry>Y'<subscript>02</subscript></entry>
++		      <entry>Y'<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;4:</entry>
++		      <entry>Y'<subscript>10</subscript></entry>
++		      <entry>Y'<subscript>11</subscript></entry>
++		      <entry>Y'<subscript>12</subscript></entry>
++		      <entry>Y'<subscript>13</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;8:</entry>
++		      <entry>Y'<subscript>20</subscript></entry>
++		      <entry>Y'<subscript>21</subscript></entry>
++		      <entry>Y'<subscript>22</subscript></entry>
++		      <entry>Y'<subscript>23</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;12:</entry>
++		      <entry>Y'<subscript>30</subscript></entry>
++		      <entry>Y'<subscript>31</subscript></entry>
++		      <entry>Y'<subscript>32</subscript></entry>
++		      <entry>Y'<subscript>33</subscript></entry>
++		    </row>
++		    <row>
++		      <entry></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;0:</entry>
++		      <entry>Cb<subscript>00</subscript></entry>
++		      <entry>Cr<subscript>00</subscript></entry>
++		      <entry>Cb<subscript>01</subscript></entry>
++		      <entry>Cr<subscript>01</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;4:</entry>
++		      <entry>Cb<subscript>10</subscript></entry>
++		      <entry>Cr<subscript>10</subscript></entry>
++		      <entry>Cb<subscript>11</subscript></entry>
++		      <entry>Cr<subscript>11</subscript></entry>
++		    </row>
++              <row>
++                <entry>start1&nbsp;+&nbsp;8:</entry>
++                <entry>Cb<subscript>20</subscript></entry>
++                <entry>Cr<subscript>20</subscript></entry>
++                <entry>Cb<subscript>21</subscript></entry>
++                <entry>Cr<subscript>21</subscript></entry>
++              </row>
++              <row>
++                <entry>start1&nbsp;+&nbsp;12:</entry>
++                <entry>Cb<subscript>30</subscript></entry>
++                <entry>Cr<subscript>30</subscript></entry>
++                <entry>Cb<subscript>31</subscript></entry>
++                <entry>Cr<subscript>31</subscript></entry>
++              </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++
++	  <formalpara>
++	    <title>Color Sample Location.</title>
++	    <para>
++		<informaltable frame="none">
++		<tgroup cols="7" align="center">
++		  <tbody valign="top">
++		    <row>
++		      <entry></entry>
++		      <entry>0</entry><entry></entry><entry>1</entry><entry></entry>
++		      <entry>2</entry><entry></entry><entry>3</entry>
++		    </row>
++		    <row>
++		      <entry>0</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++		    <row>
++		      <entry></entry>
++		      <entry></entry><entry>C</entry><entry></entry><entry></entry>
++		      <entry></entry><entry>C</entry><entry></entry>
++		    </row>
++		    <row>
++		      <entry>1</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++              <row>
++                <entry></entry>
++                <entry></entry><entry>C</entry><entry></entry><entry></entry>
++                <entry></entry><entry>C</entry><entry></entry>
++              </row>
++		    <row>
++		      <entry>2</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++		    <row>
++		      <entry></entry>
++		      <entry></entry><entry>C</entry><entry></entry><entry></entry>
++		      <entry></entry><entry>C</entry><entry></entry>
++		    </row>
++		    <row>
++		      <entry>3</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++              <row>
++                <entry></entry>
++                <entry></entry><entry>C</entry><entry></entry><entry></entry>
++                <entry></entry><entry>C</entry><entry></entry>
++              </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++	</example>
++      </refsect1>
++    </refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-nv24m.xml b/Documentation/DocBook/media/v4l/pixfmt-nv24m.xml
+new file mode 100644
+index 0000000..51b06d1
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-nv24m.xml
+@@ -0,0 +1,182 @@
++    <refentry id="V4L2-PIX-FMT-NV24M">
++      <refmeta>
++     <refentrytitle>V4L2_PIX_FMT_NV24M ('NM24')</refentrytitle>
++	&manvol;
++      </refmeta>
++      <refnamediv>
++     <refname> <constant>V4L2_PIX_FMT_NV24M</constant></refname>
++     <refpurpose>Variation of <constant>V4L2_PIX_FMT_NV24</constant> with planes
++	  non contiguous in memory. </refpurpose>
++      </refnamediv>
++      <refsect1>
++	<title>Description</title>
++
++     <para>This is a multi-planar, two-plane version of the YUV 4:4:4 format.
++The three components are separated into two sub-images or planes.
++<constant>V4L2_PIX_FMT_NV24M</constant> differs from <constant>V4L2_PIX_FMT_NV24
++</constant> in that the two planes are non-contiguous in memory, i.e. the chroma
++plane do not necessarily immediately follows the luma plane.
++The luminance data occupies the first plane. The Y plane has one byte per pixel.
++In the second plane there is a chrominance data with alternating chroma samples.
++The CbCr plane has the double of the width (in bytes) and the same height of the
++Y plane. Each CbCr pair belongs to one pixel. For example,
++Cb<subscript>0</subscript>/Cr<subscript>0</subscript> belongs to
++Y'<subscript>00</subscript>. </para>
++
++     <para><constant>V4L2_PIX_FMT_NV24M</constant> is intended to be
++used only in drivers and applications that support the multi-planar API,
++described in <xref linkend="planar-apis"/>. </para>
++
++	<para>If the Y plane has pad bytes after each row, then the
++CbCr plane has as many pad bytes after its rows.</para>
++
++	<example>
++       <title><constant>V4L2_PIX_FMT_NV24M</constant> 4 &times; 4 pixel image</title>
++
++	  <formalpara>
++	    <title>Byte Order.</title>
++	    <para>Each cell is one byte.
++		<informaltable frame="none">
++		<tgroup cols="5" align="center">
++		  <colspec align="left" colwidth="2*" />
++		  <tbody valign="top">
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;0:</entry>
++		      <entry>Y'<subscript>00</subscript></entry>
++		      <entry>Y'<subscript>01</subscript></entry>
++		      <entry>Y'<subscript>02</subscript></entry>
++		      <entry>Y'<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;4:</entry>
++		      <entry>Y'<subscript>10</subscript></entry>
++		      <entry>Y'<subscript>11</subscript></entry>
++		      <entry>Y'<subscript>12</subscript></entry>
++		      <entry>Y'<subscript>13</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;8:</entry>
++		      <entry>Y'<subscript>20</subscript></entry>
++		      <entry>Y'<subscript>21</subscript></entry>
++		      <entry>Y'<subscript>22</subscript></entry>
++		      <entry>Y'<subscript>23</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;12:</entry>
++		      <entry>Y'<subscript>30</subscript></entry>
++		      <entry>Y'<subscript>31</subscript></entry>
++		      <entry>Y'<subscript>32</subscript></entry>
++		      <entry>Y'<subscript>33</subscript></entry>
++		    </row>
++		    <row>
++		      <entry></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;0:</entry>
++		      <entry>Cb<subscript>00</subscript></entry>
++		      <entry>Cr<subscript>00</subscript></entry>
++		      <entry>Cb<subscript>01</subscript></entry>
++		      <entry>Cr<subscript>01</subscript></entry>
++                <entry>Cb<subscript>02</subscript></entry>
++                <entry>Cr<subscript>02</subscript></entry>
++                <entry>Cb<subscript>03</subscript></entry>
++                <entry>Cr<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++                <entry>start1&nbsp;+&nbsp;8:</entry>
++		      <entry>Cb<subscript>10</subscript></entry>
++		      <entry>Cr<subscript>10</subscript></entry>
++		      <entry>Cb<subscript>11</subscript></entry>
++		      <entry>Cr<subscript>11</subscript></entry>
++                <entry>Cb<subscript>12</subscript></entry>
++                <entry>Cr<subscript>12</subscript></entry>
++                <entry>Cb<subscript>13</subscript></entry>
++                <entry>Cr<subscript>13</subscript></entry>
++		    </row>
++              <row>
++                <entry>start1&nbsp;+&nbsp;16:</entry>
++                <entry>Cb<subscript>20</subscript></entry>
++                <entry>Cr<subscript>20</subscript></entry>
++                <entry>Cb<subscript>21</subscript></entry>
++                <entry>Cr<subscript>21</subscript></entry>
++                <entry>Cb<subscript>22</subscript></entry>
++                <entry>Cr<subscript>22</subscript></entry>
++                <entry>Cb<subscript>23</subscript></entry>
++                <entry>Cr<subscript>23</subscript></entry>
++              </row>
++              <row>
++                <entry>start1&nbsp;+&nbsp;24:</entry>
++                <entry>Cb<subscript>30</subscript></entry>
++                <entry>Cr<subscript>30</subscript></entry>
++                <entry>Cb<subscript>31</subscript></entry>
++                <entry>Cr<subscript>31</subscript></entry>
++                <entry>Cb<subscript>32</subscript></entry>
++                <entry>Cr<subscript>32</subscript></entry>
++                <entry>Cb<subscript>33</subscript></entry>
++                <entry>Cr<subscript>33</subscript></entry>
++              </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++
++	  <formalpara>
++	    <title>Color Sample Location.</title>
++	    <para>
++		<informaltable frame="none">
++		<tgroup cols="7" align="center">
++		  <tbody valign="top">
++		    <row>
++		      <entry></entry>
++		      <entry>0</entry><entry></entry><entry>1</entry><entry></entry>
++		      <entry>2</entry><entry></entry><entry>3</entry>
++		    </row>
++		    <row>
++		      <entry>0</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++		    <row>
++		      <entry></entry>
++                <entry>C</entry><entry></entry><entry>C</entry><entry></entry>
++                <entry>C</entry><entry></entry><entry>C</entry>
++		    </row>
++		    <row>
++		      <entry>1</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++              <row>
++                <entry></entry>
++                <entry>C</entry><entry></entry><entry>C</entry><entry></entry>
++                <entry>C</entry><entry></entry><entry>C</entry>
++              </row>
++		    <row>
++		      <entry>2</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++              <row>
++                <entry></entry>
++                <entry>C</entry><entry></entry><entry>C</entry><entry></entry>
++                <entry>C</entry><entry></entry><entry>C</entry>
++              </row>
++		    <row>
++		      <entry>3</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++              </row>
++              <row>
++                <entry></entry>
++                <entry>C</entry><entry></entry><entry>C</entry><entry></entry>
++                <entry>C</entry><entry></entry><entry>C</entry>
++              </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++	</example>
++      </refsect1>
++    </refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index e58934c..24e33db 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -713,6 +713,8 @@ information.</para>
+     &sub-yuv411p;
+     &sub-nv12;
+     &sub-nv12m;
++    &sub-nv16m;
++    &sub-nv24m;
+     &sub-nv12mt;
+     &sub-nv16;
+     &sub-nv24;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 5d78910..618bf50 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -360,6 +360,8 @@ struct v4l2_pix_format {
  
- static int ov772x_try_fmt(struct v4l2_subdev *sd,
+ /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
+ #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
++#define V4L2_PIX_FMT_NV16M   v4l2_fourcc('N', 'M', '1', '6') /* 16  Y/CbCr 4:2:2  */
++#define V4L2_PIX_FMT_NV24M   v4l2_fourcc('N', 'M', '2', '4') /* 24  Y/CbCr 4:4:4  */
+ #define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 64x32 macroblocks */
+ 
+ /* three non contiguous planes - Y, Cb, Cr */
 -- 
-1.7.8.6
+1.7.11.2
 
