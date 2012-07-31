@@ -1,73 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60626 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932272Ab2GDStH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Jul 2012 14:49:07 -0400
-Message-ID: <4FF4901C.3010701@iki.fi>
-Date: Wed, 04 Jul 2012 21:49:00 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:34703 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755538Ab2GaX31 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Jul 2012 19:29:27 -0400
+Message-ID: <50186A54.3@wwwdotorg.org>
+Date: Tue, 31 Jul 2012 17:29:24 -0600
+From: Stephen Warren <swarren@wwwdotorg.org>
 MIME-Version: 1.0
-To: Dharam Kumar <dharam.kumar.gupta@gmail.com>
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: Info on Remote controller keys like upper-right, upper-left ,
- lower-right, lower-left ,sub-picture etc.
-References: <CAOt5+pSrpsyvuyyT=kQj0k6u5m+KnJTH_+Q7hLhkkW0pNFSqpA@mail.gmail.com>
-In-Reply-To: <CAOt5+pSrpsyvuyyT=kQj0k6u5m+KnJTH_+Q7hLhkkW0pNFSqpA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	devicetree-discuss <devicetree-discuss@lists.ozlabs.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC] media DT bindings
+References: <Pine.LNX.4.64.1207110854290.18999@axis700.grange> <2642313.6bQqiyFNFL@avalon> <Pine.LNX.4.64.1207311432590.27888@axis700.grange> <1853410.hC8HZhzZI6@avalon>
+In-Reply-To: <1853410.hC8HZhzZI6@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/04/2012 09:34 PM, Dharam Kumar wrote:
-> Hi All,
->
-> I've been working on a MHL( www.mhltech.org  ) transmitter driver
-> which needs to receive/handle incoming Remote control keys.
->
-> The specification tells me that other than normal keys[up,down,left,
-> right etc.] there are certain remote control keys like Upper-right,
-> Upper-left, Lower-right, Lower-left, Sub-picture etc.
->
-> While creating a key map in the driver, I tried to find whether these
-> keys has been defined in <linux/input.h> ,but I could not find such
-> key definitions
-> in the header file.
->
-> Please note that, although the Specs do define these Remote Controller
-> keys, the driver will have the choice
-> to support the key depending on the key-map.
->
-> Something like this:
-> /* Key Map for the driver */
->    ....
->   { KEY_UP, <supported> },
->   { KEY_DOWN, <supported>},
->   {KEY_UPPERRIGHT, <supported>},      /* No  definition for
-> KEY_UPPERRIGHT in input.h  */
->   {KEY_UPPERLEFT, <not-supported>},  /* No definition for KEY_UPPERLEFT
-> in input.h, although this key is not supported by driver */
-> ....
->
->
-> In other mailing lists[linux-input], it has been suggested that these
-> keys are similar to Joystick keys.
-> I've looked into drivers/input/joystick/analog.c file, but could not
-> find any buttons/pads which are similar to the above one[Am I missing
-> something here??]
->
-> any pointers??
+On 07/31/2012 03:22 PM, Laurent Pinchart wrote:
+> On Tuesday 31 July 2012 14:39:07 Guennadi Liakhovetski wrote:
+...
+>> Ok, then, how about
+>>
+>> 		#address-cells = <1>;
+>> 		#size-cells = <0>;
+>> 		...
+>> 		ov772x-1 = {
+>> 			reg = <1>;			/* local pad # */
+>> 			client = <&ov772x@0x21-0 0>;	/* remote phandle and pad */
+> 
+> The client property looks good, but isn't such a usage of the reg property an 
+> abuse ? Maybe the local pad # should be a device-specific property. Many hosts 
+> won't need it, and on others it would actually need to reference a subdev, not 
+> just a pad.
 
-Here is list of key bindings used for media device remote controllers 
-(television, radio, etc):
-http://linuxtv.org/wiki/index.php/Remote_Controllers
+That's a very odd syntax the the phandle; I assume that "&ov772x@0x21-0"
+is supposed to reference some other DT node. However, other nodes are
+either referenced by:
 
-But still no definitions like up-left etc.
+"&foo" where foo is a label, and the label name is unlikely to include
+the text "@0x21"; the @ symbol probably isn't even legal in label names.
 
-regards
-Antti
+"&{/path/to/node}" which might include the "@0x21" syntax since it might
+be part of the node's name, but your example didn't include {}.
 
+I'm not sure what "-0" is meant to be in that string - a math
+expression, or ...? If it's intended to represent some separate field
+relative to the node the phandle references, it needs to be just another
+cell.
 
--- 
-http://palosaari.fi/
+So overall, perhaps:
 
+/ {
+   ...
+   pad: something { ... };
+   ...
+   ov772x@1 = { /* @1 not -1 would be canonical syntax */
+     reg = <1>;
+     client = <&pad 0 0>;
+   ...
 
+I'm sorry I haven't followed the thread; I'm wondering why a client is a
+pad, which to me means a pin/pad/ball on an IC package, so I'm still not
+entirely sure if even this makes sense.
