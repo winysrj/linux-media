@@ -1,72 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:57776 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752524Ab2G3Vfl (ORCPT
+Received: from cnxt09252.conexant.com ([198.62.9.252]:9081 "EHLO
+	Cnxtsmtp1.conexant.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752557Ab2GaS7Y convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jul 2012 17:35:41 -0400
-Message-ID: <5016FE29.9020406@gmail.com>
-Date: Mon, 30 Jul 2012 23:35:37 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Tue, 31 Jul 2012 14:59:24 -0400
+From: "Sri Deevi" <Srinivasa.Deevi@conexant.com>
+To: "Mauro Carvalho Chehab" <mchehab@redhat.com>,
+	"workshop-2011@linuxtv.org" <workshop-2011@linuxtv.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 31 Jul 2012 11:41:44 -0700
+Subject: RE: Media summit/KS-2012 proposals
+Message-ID: <34B38BE41EDBA046A4AFBB591FA31132050AFAE633@NBMBX01.bbnet.ad>
+References: <50181CBF.102@redhat.com> <50181D28.8020005@redhat.com>
+In-Reply-To: <50181D28.8020005@redhat.com>
+Content-Language: en-US
+Content-Type: text/plain;
+ charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org, b.zolnierkie@samsung.com,
-	Karol Lewandowski <k.lewandowsk@samsung.com>
-Subject: Re: [RFC/PATCH 05/13] media: s5p-fimc: Add device tree support for
- FIMC devices
-References: <4FBFE1EC.9060209@samsung.com> <Pine.LNX.4.64.1207180958540.8472@axis700.grange> <5007143E.8040807@gmail.com> <3360710.ek62A7CVxd@avalon>
-In-Reply-To: <3360710.ek62A7CVxd@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi 
 
-On 07/26/2012 04:54 PM, Laurent Pinchart wrote:
-> On Wednesday 18 July 2012 21:53:34 Sylwester Nawrocki wrote:
->> I think we need a one combined RFC and continue discussions in one thread.
-> 
-> Agreed.
-> 
->> Still, our proposals are quite different, but I believe we need something
->> in between. I presume we should focus more to have common bindings for
->> subdevs that are reused among different host/ISP devices, i.e. sensors and
->> encoders. For simple host interfaces we can likely come up with common
->> binding patterns, but more complex processing pipelines may require
->> a sort of individual approach.
->>
->> The suspend/resume handling is still something I don't have an idea
->> on how the solution for might look like..
->> Instantiating all devices from a top level driver could help, but it
->> is only going to work when platforms are converted to the common clock
->> framework and have their clocks instantiated from device tree.
->>
->> This week I'm out of office, and next one or two I have some pending
->> assignments. So there might be some delay before I can dedicate some
->> reasonable amount of time to carry on with that topic.
->>
->> I unfortunately won't be attending KS this time.
-> 
-> That's bad news :-( I still think this topic should be discussed during KS, I
+I would like to participate in the workshop. 
+Can you please add me to the list ? 
 
-Yeah, shit happens.. :) I guess -ENOBUDGET this time... I didn't really 
-plan early to attend KS, I might be coming to ELCE though. However it's 
-a rather distant event and we'll probably get most things settled by 
-that time.
+Thanks
+Sri
 
-> expect several developers to be interested. The media workshop might not be
-> the best venue though, as we might need quite a lot of time.
->
-> Until KS let's continue the discussion by e-mail.
+-------- Mensagem original --------
+Assunto: Media summit/KS-2012 proposals
+Data: Tue, 31 Jul 2012 14:58:23 -0300
+De: Mauro Carvalho Chehab <mchehab@redhat.com>
+Para: workshop-2011@linuxtv.org,  Linux Media Mailing List <linux-media@vger.kernel.org>
 
-OK, thank you for taking time to review the RFCs.
+In order to sum-up the discussions around the media summit, this is what we've got so far:
 
---
+Proposals									     	proposed by
+=====================================================================================|=========================================================================================
+Common device tree bindings for media devices						Sylvester Nawrocki / Guennadi Liakhovetski
+ALSA and V4L/Media Controller								Steven Toth / Laurent Pinchart
+ARM and needed features for V4L/DVB							Steven Toth
+Intel media SDK										Steven Toth
+V4L compiance tool									Hans Verkuil
+V4L2 API ambiguities									Hans Verkuil
+Media Controller library								Laurent Pincart / Sakari Ailus
+SoC Vendors feedback - how to help them to go upstream - Android's V4L2 cam library	Laurent Pincart / Guennadi Liakhovetski / Palash Bandyopadhyay / Naveen Krishnamurthy
+Synchronization, shared resource and optimizations					Pawel Osciak
+V4L2/DVB issues from userspace perspective						Rémi Denis-Courmont
+
+As we'll have only one day for the summit, we may need to remove some themes, or maybe to get an extra time during LPC for the remaining discussions.
+	
+Possible attendents:
+===================
+
+Guennadi Liakhovetski
+Laurent Pinchart
+Mauro Carvalho Chehab
+Michael Krufky
+Naveen Krishnamurthy
++1 seat from ST (waiting Naveen to define who will be the other seat)
+Palash Bandyopadhyay
+Pawel Osciak
+Rémi Denis-Courmont
+Sakari Ailus
+Steven Toth
+Sylvester Nawrocki
+
+Am I missing something?
+
+Are there other proposals or people intending to participate?
 
 Regards,
-Sylwester
+Mauro
+
+
+
+
+Conexant E-mail Firewall (Conexant.Com) made the following annotations
+---------------------------------------------------------------------
+********************** Legal Disclaimer **************************** 
+
+"This email may contain confidential and privileged material for the sole use of the intended recipient. Any unauthorized review, use or distribution by others is strictly prohibited. If you have received the message in error, please advise the sender by reply email and delete the message. Thank you." 
+
+********************************************************************** 
+
+---------------------------------------------------------------------
+
