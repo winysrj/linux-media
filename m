@@ -1,50 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from scorpius.telkomsa.net ([196.25.211.121]:33111 "EHLO
-	scorpius.telkomsa.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751918Ab2GPAzS (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:56529 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756127Ab2GaMjN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jul 2012 20:55:18 -0400
-Date: Mon, 16 Jul 2012 02:55:13 +0200 (SAST)
-From: Western Union Office Annex <online2254114@telkomsa.net>
-Reply-To: Western Union Office Annex
-	  <westernunionofficeannex86@yahoo.com.hk>
-Message-ID: <191869671.841871.1342400113437.JavaMail.root@zimbra2-vm1.telkomsa.net>
-Subject: UN COMPENSATION PAYOUT
+	Tue, 31 Jul 2012 08:39:13 -0400
+Date: Tue, 31 Jul 2012 14:39:07 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	devicetree-discuss <devicetree-discuss@lists.ozlabs.org>
+Subject: Re: [RFC] media DT bindings
+In-Reply-To: <2642313.6bQqiyFNFL@avalon>
+Message-ID: <Pine.LNX.4.64.1207311432590.27888@axis700.grange>
+References: <Pine.LNX.4.64.1207110854290.18999@axis700.grange>
+ <1537713.eFPuk01afu@avalon> <Pine.LNX.4.64.1207311058140.27888@axis700.grange>
+ <2642313.6bQqiyFNFL@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-To: undisclosed-recipients:;
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
- 
-Hello, 
+On Tue, 31 Jul 2012, Laurent Pinchart wrote:
 
-  I write to inform you that we have already sent you $5000.00USD through Western Union as we have been given the mandate to transfer your full compensation payment of $1,800,000.00USD via Western Union Money Transfer by the United Nations (ECOWAS). This is because United Nations and (ECOWAS) are supporting individuals due to the worldwide economy meltdown. 
+> Hi Guennadi,
+> 
+> On Tuesday 31 July 2012 11:26:27 Guennadi Liakhovetski wrote:
+> > On Fri, 27 Jul 2012, Laurent Pinchart wrote:
+> > > Hi Sylwester,
+> > > 
+> > > On Wednesday 18 July 2012 19:00:15 Sylwester Nawrocki wrote:
+> > > > On 07/16/2012 01:41 PM, Guennadi Liakhovetski wrote:
+> > [snip]
+> > 
+> > > > >>> An sh-mobile CEU DT node could look like
+> > > > >>> 
+> > > > >>> 	ceu0@0xfe910000 = {
+> > > > >>> 	
+> > > > >>> 		compatible = "renesas,sh-mobile-ceu";
+> > > > >>> 		reg =<0xfe910000 0xa0>;
+> > > > >>> 		interrupts =<0x880>;
+> > > > >>> 		bus-width =<16>;		/* #lines routed on the board */
+> > > > >>> 		clock-frequency =<50000000>;	/* max clock */
+> > > > >>> 		#address-cells =<1>;
+> > > > >>> 		#size-cells =<0>;
+> > > > >>> 		...
+> > > > >>> 		ov772x-1 = {
+> > > > >>> 		
+> > > > >>> 			reg =<0>;
+> > > > 
+> > > > This property might be redundant, we already have the "client" phandle
+> > > > pointing to "ov772x@0x21-0", which has all interesting properties inside
+> > > > it. Other than there is probably no reasonable usage for it under
+> > > > "ceu0@0xfe910000" node ?
+> > > > 
+> > > > >>> 			client =<&ov772x@0x21-0>;
+> > > > >>> 			local-pad = "parallel-sink";
+> > > > >>> 			remote-pad = "parallel-source";
+> > > > >> 
+> > > > >> I'm not sure I like that. Is it really needed when we already have
+> > > > >> the child/parent properties around ?
+> > > > > 
+> > > > > I think it is. Both the host and the client can have multiple pads
+> > > > > (e.g.,
+> > > > > parallel / serial). These properties specify which pads are used and
+> > > > > make
+> > > > > the translation between DT data and our subdev / pad APIs simpler.
+> > > > 
+> > > > OK, sorry, but isn't it all about just specifying what sort of data bus
+> > > > is used ? :-)
+> > > 
+> > > In some (many/most ?) cases probably, but not in all of them.
+> > > 
+> > > What about merging the client and remote-pad properties ? The resulting
+> > > property would then reference a pad with <&ov772x@0x21-0 0>.
+> > 
+> > What would the "0" parameter mean then? Pad #0?
+> 
+> Yes.
+> 
+> > But aren't these numbers device specific? Maybe not a huge deal, but these
+> > numbers are defind by the driver, right? Not the DT itself. So, drivers then
+> > will have to take care not to change their pad numbering. Whereas using
+> > strings, we can fix strings in the common V4L DT spec and keep them standard
+> > across devices and drivers. Then drivers might be less likely to change
+> > these assignments randomly ;-)
+> 
+> Userspace applications usually rely on pad numbers as well, so I consider them 
+> as more or less part of the ABI. If we really need to, we could add a DT pad 
+> number -> media controller pad number conversion in the driver, that would be 
+> less expensive than pad name -> pad number conversion (especially since it 
+> would be skipped in most cases).
 
-  I would have requested for your phone number to give you the information through phone but internet hackers were many. So i decided to email you the MTCN and sender name so that you can pick up this $5000.00USD to enable us send another $5000.00USD by tomorrow as you know that we will be sending you only $5000.00USD per day.  The fund was send in the name which you use in opening your e-mail address. 
+Ok, then, how about
 
-Please pick up this information and rush to any western union to pick up the $5000.00USD and send us an email back to enable us send you another payment by tomorrow. 
-
-Email or call me once you picked up this $5000.00USD today. 
-
-
-Mr.Steven Colin 
-E-mail: westernunionofficeannex86@yahoo.com.hk 
-
-
-Here is the western union information to pick up the $5000.00USD, 
+		#address-cells = <1>;
+		#size-cells = <0>;
+		...
+		ov772x-1 = {
+			reg = <1>;			/* local pad # */
+			client = <&ov772x@0x21-0 0>;	/* remote phandle and pad */
 
 
-MTCN :___________________837-321-5034
-SENDER'S NAME:___________Lawrence Smith 
-TEXT QUESTION:___________HONEST 
-ANSWER:__________________TRUST 
-AMOUNT SENT______________$5000.00USD 
-COUNTRY:_________________Cambodia 
-
-
-I am waiting for your email  once you pick up the $5000.00USD, 
-
-Thanks 
-Mr.Steven Colin. 
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
