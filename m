@@ -1,620 +1,485 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:42256 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030355Ab2GKWf7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jul 2012 18:35:59 -0400
-MIME-Version: 1.0
-In-Reply-To: <1342045781-29351-1-git-send-email-rob.clark@linaro.org>
-References: <1342045781-29351-1-git-send-email-rob.clark@linaro.org>
-Date: Wed, 11 Jul 2012 17:35:58 -0500
-Message-ID: <CAF6AEGvhLSvmDH-DMNagzR+vpcpv=bXhObW23VBY8y20peUqZA@mail.gmail.com>
-Subject: Re: [RFC] dma-fence: dma-buf synchronization
-From: Rob Clark <rob@ti.com>
-To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: patches@linaro.org, linux-kernel@vger.kernel.org,
-	maarten.lankhorst@canonical.com, sumit.semwal@linaro.org,
-	daniel.vetter@ffwll.ch, Rob Clark <rob@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from pequod.mess.org ([93.97.41.153]:34963 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754257Ab2GaKho (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Jul 2012 06:37:44 -0400
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
+Cc: lirc-list@lists.sourceforge.net, Sean Young <sean@mess.org>
+Subject: [PATCH] [media] iguanair: various fixes
+Date: Tue, 31 Jul 2012 11:37:41 +0100
+Message-Id: <1343731061-9901-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-oh, btw, this should be an [RFC]
+This fixes:
+ - rx_overflow while holding down any down button on a nec remote
+ - suspend/resume
+ - stop receiver on rmmod
+ - advertise rx_resolution and timeout properly
+ - code simplify
+ - ignore unsupported firmware versions
 
-On Wed, Jul 11, 2012 at 5:29 PM, Rob Clark <rob.clark@linaro.org> wrote:
-> From: Rob Clark <rob@ti.com>
->
-> A dma-fence can be attached to a buffer which is being filled or consumed
-> by hw, to allow userspace to pass the buffer without waiting to another
-> device.  For example, userspace can call page_flip ioctl to display the
-> next frame of graphics after kicking the GPU but while the GPU is still
-> rendering.  The display device sharing the buffer with the GPU would
-> attach a callback to get notified when the GPU's rendering-complete IRQ
-> fires, to update the scan-out address of the display, without having to
-> wake up userspace.
->
-> A dma-fence is transient, one-shot deal.  It is allocated and attached
-> to dma-buf's list of fences.  When the one that attached it is done,
-> with the pending operation, it can signal the fence removing it from the
-> dma-buf's list of fences:
->
->   + dma_buf_attach_fence()
->   + dma_fence_signal()
->
-> Other drivers can access the current fence on the dma-buf (if any),
-> which increment's the fences refcnt:
->
->   + dma_buf_get_fence()
->   + dma_fence_put()
->
-> The one pending on the fence can add an async callback (and optionally
-> cancel it.. for example, to recover from GPU hangs):
->
->   + dma_fence_add_callback()
->   + dma_fence_cancel_callback()
->
-> Or wait synchronously (optionally with timeout or from atomic context):
->
->   + dma_fence_wait()
->
-> A default software-only implementation is provided, which can be used
-> by drivers attaching a fence to a buffer when they have no other means
-> for hw sync.  But a memory backed fence is also envisioned, because it
-> is common that GPU's can write to, or poll on some memory location for
-> synchronization.  For example:
->
->   fence = dma_buf_get_fence(dmabuf);
->   if (fence->ops == &mem_dma_fence_ops) {
->     dma_buf *fence_buf;
->     mem_dma_fence_get_buf(fence, &fence_buf, &offset);
->     ... tell the hw the memory location to wait on ...
->   } else {
->     /* fall-back to sw sync * /
->     dma_fence_add_callback(fence, my_cb);
->   }
->
-> The memory location is itself backed by dma-buf, to simplify mapping
-> to the device's address space, an idea borrowed from Maarten Lankhorst.
->
-> NOTE: the memory location fence is not implemented yet, the above is
-> just for explaining how it would work.
->
-> On SoC platforms, if some other hw mechanism is provided for synchronizing
-> between IP blocks, it could be supported as an alternate implementation
-> with it's own fence ops in a similar way.
->
-> The other non-sw implementations would wrap the add/cancel_callback and
-> wait fence ops, so that they can keep track if a device not supporting
-> hw sync is waiting on the fence, and in this case should arrange to
-> call dma_fence_signal() at some point after the condition has changed,
-> to notify other devices waiting on the fence.  If there are no sw
-> waiters, this can be skipped to avoid waking the CPU unnecessarily.
->
-> The intention is to provide a userspace interface (presumably via eventfd)
-> later, to be used in conjunction with dma-buf's mmap support for sw access
-> to buffers (or for userspace apps that would prefer to do their own
-> synchronization).
-> ---
->  drivers/base/Makefile     |    2 +-
->  drivers/base/dma-buf.c    |    3 +
->  drivers/base/dma-fence.c  |  325 +++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/dma-buf.h   |    3 +
->  include/linux/dma-fence.h |  118 ++++++++++++++++
->  5 files changed, 450 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/base/dma-fence.c
->  create mode 100644 include/linux/dma-fence.h
->
-> diff --git a/drivers/base/Makefile b/drivers/base/Makefile
-> index 5aa2d70..6e9f217 100644
-> --- a/drivers/base/Makefile
-> +++ b/drivers/base/Makefile
-> @@ -10,7 +10,7 @@ obj-$(CONFIG_CMA) += dma-contiguous.o
->  obj-y                  += power/
->  obj-$(CONFIG_HAS_DMA)  += dma-mapping.o
->  obj-$(CONFIG_HAVE_GENERIC_DMA_COHERENT) += dma-coherent.o
-> -obj-$(CONFIG_DMA_SHARED_BUFFER) += dma-buf.o
-> +obj-$(CONFIG_DMA_SHARED_BUFFER) += dma-buf.o dma-fence.o
->  obj-$(CONFIG_ISA)      += isa.o
->  obj-$(CONFIG_FW_LOADER)        += firmware_class.o
->  obj-$(CONFIG_NUMA)     += node.o
-> diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-> index 24e88fe..b053236 100644
-> --- a/drivers/base/dma-buf.c
-> +++ b/drivers/base/dma-buf.c
-> @@ -39,6 +39,8 @@ static int dma_buf_release(struct inode *inode, struct file *file)
->
->         dmabuf = file->private_data;
->
-> +       WARN_ON(!list_empty(&dmabuf->fence_list));
-> +
->         dmabuf->ops->release(dmabuf);
->         kfree(dmabuf);
->         return 0;
-> @@ -119,6 +121,7 @@ struct dma_buf *dma_buf_export(void *priv, const struct dma_buf_ops *ops,
->
->         mutex_init(&dmabuf->lock);
->         INIT_LIST_HEAD(&dmabuf->attachments);
-> +       INIT_LIST_HEAD(&dmabuf->fence_list);
->
->         return dmabuf;
->  }
-> diff --git a/drivers/base/dma-fence.c b/drivers/base/dma-fence.c
-> new file mode 100644
-> index 0000000..a94ed01
-> --- /dev/null
-> +++ b/drivers/base/dma-fence.c
-> @@ -0,0 +1,325 @@
-> +/*
-> + * Fence mechanism for dma-buf to allow for asynchronous dma access
-> + *
-> + * Copyright (C) 2012 Texas Instruments
-> + * Author: Rob Clark <rob.clark@linaro.org>
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of the GNU General Public License version 2 as published by
-> + * the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but WITHOUT
-> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-> + * more details.
-> + *
-> + * You should have received a copy of the GNU General Public License along with
-> + * this program.  If not, see <http://www.gnu.org/licenses/>.
-> + */
-> +
-> +#include <linux/slab.h>
-> +#include <linux/sched.h>
-> +#include <linux/export.h>
-> +#include <linux/dma-fence.h>
-> +
-> +static DEFINE_SPINLOCK(fence_lock);
-> +
-> +/**
-> + * dma_buf_attach_fence - Attach a fence to a dma-buf.
-> + *
-> + * @buf: the dma-buf to attach to
-> + * @fence: the fence to attach
-> + *
-> + * A fence can only be attached to a single dma-buf.  The dma-buf takes
-> + * ownership of the fence, which is unref'd when the fence is signaled.
-> + * The fence takes a reference to the dma-buf so the buffer will not be
-> + * freed while there is a pending fence.
-> + */
-> +int dma_buf_attach_fence(struct dma_buf *buf, struct dma_fence *fence)
-> +{
-> +       if (WARN_ON(!buf || !fence || fence->buf))
-> +               return -EINVAL;
-> +
-> +       spin_lock(&fence_lock);
-> +       get_dma_buf(buf);
-> +       fence->buf = buf;
-> +       list_add(&fence->list_node, &buf->fence_list);
-> +       spin_unlock(&fence_lock);
-> +
-> +       return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(dma_buf_attach_fence);
-> +
-> +/**
-> + * dma_fence_signal - Signal a fence.
-> + *
-> + * @fence:  The fence to signal
-> + *
-> + * All registered callbacks will be called directly (synchronously) and
-> + * all blocked waters will be awoken.
-> + */
-> +int dma_fence_signal(struct dma_fence *fence)
-> +{
-> +       unsigned long flags;
-> +       int ret;
-> +
-> +       if (WARN_ON(!fence || !fence->buf))
-> +               return -EINVAL;
-> +
-> +       spin_lock_irqsave(&fence_lock, flags);
-> +       list_del(&fence->list_node);
-> +       spin_unlock_irqrestore(&fence_lock, flags);
-> +
-> +       dma_buf_put(fence->buf);
-> +       fence->buf = NULL;
-> +
-> +       ret = fence->ops->signal(fence);
-> +
-> +       dma_fence_put(fence);
-> +
-> +       return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(dma_fence_signal);
-> +
-> +/**
-> + * dma_buf_get_fence - Get the most recent pending fence attached to the
-> + * dma-buf.
-> + *
-> + * @buf: the dma-buf whose fence to get
-> + *
-> + * If this returns NULL, there are no pending fences.  Otherwise this
-> + * takes a reference to the returned fence, so the caller must later
-> + * call dma_fence_put() to release the reference.
-> + */
-> +struct dma_fence *dma_buf_get_fence(struct dma_buf *buf)
-> +{
-> +       struct dma_fence *fence = NULL;
-> +
-> +       if (WARN_ON(!buf))
-> +               return ERR_PTR(-EINVAL);
-> +
-> +       spin_lock(&fence_lock);
-> +       if (!list_empty(&buf->fence_list)) {
-> +               fence = list_first_entry(&buf->fence_list,
-> +                               struct dma_fence, list_node);
-> +               dma_fence_get(fence);
-> +       }
-> +       spin_unlock(&fence_lock);
-> +
-> +       return fence;
-> +}
-> +EXPORT_SYMBOL_GPL(dma_buf_get_fence);
-> +
-> +static void release_fence(struct kref *kref)
-> +{
-> +       struct dma_fence *fence =
-> +                       container_of(kref, struct dma_fence, refcount);
-> +
-> +       WARN_ON(waitqueue_active(&fence->event_queue) || fence->buf);
-> +
-> +       kfree(fence);
-> +}
-> +
-> +/**
-> + * dma_fence_put - Release a reference to the fence.
-> + */
-> +void dma_fence_put(struct dma_fence *fence)
-> +{
-> +       WARN_ON(!fence);
-> +       kref_put(&fence->refcount, release_fence);
-> +}
-> +EXPORT_SYMBOL_GPL(dma_fence_put);
-> +
-> +/**
-> + * dma_fence_get - Take a reference to the fence.
-> + *
-> + * In most cases this is used only internally by dma-fence.
-> + */
-> +void dma_fence_get(struct dma_fence *fence)
-> +{
-> +       WARN_ON(!fence);
-> +       kref_get(&fence->refcount);
-> +}
-> +EXPORT_SYMBOL_GPL(dma_fence_get);
-> +
-> +/**
-> + * dma_fence_add_callback - Add a callback to be called when the fence
-> + * is signaled.
-> + *
-> + * @fence: The fence to wait on
-> + * @cb: The callback to register
-> + *
-> + * Any number of callbacks can be registered to a fence, but a callback
-> + * can only be registered to once fence at a time.
-> + *
-> + * Note that the callback can be called from an atomic context.  If
-> + * fence is already signaled, this function will return -EINVAL (and
-> + * *not* call the callback)
-> + */
-> +int dma_fence_add_callback(struct dma_fence *fence,
-> +               struct dma_fence_cb *cb)
-> +{
-> +       int ret = -EINVAL;
-> +
-> +       if (WARN_ON(!fence || !cb))
-> +               return -EINVAL;
-> +
-> +       spin_lock(&fence_lock);
-> +       if (fence->buf) {
-> +               dma_fence_get(fence);
-> +               cb->fence = fence;
-> +               ret = fence->ops->add_callback(fence, cb);
-> +       }
-> +       spin_unlock(&fence_lock);
-> +
-> +       return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(dma_fence_add_callback);
-> +
-> +/**
-> + * dma_fence_cancel_callback - Remove a previously registered callback.
-> + *
-> + * @cb: The callback to unregister
-> + *
-> + * The callback will not be called after this function returns, but could
-> + * be called before this function returns.
-> + */
-> +int dma_fence_cancel_callback(struct dma_fence_cb *cb)
-> +{
-> +       struct dma_fence *fence;
-> +       int ret = -EINVAL;
-> +
-> +       if (WARN_ON(!cb))
-> +               return -EINVAL;
-> +
-> +       fence = cb->fence;
-> +
-> +       spin_lock(&fence_lock);
-> +       if (fence) {
-> +               ret = fence->ops->cancel_callback(cb);
-> +               cb->fence = NULL;
-> +               dma_fence_put(fence);
-> +       }
-> +       spin_unlock(&fence_lock);
-> +
-> +       return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(dma_fence_cancel_callback);
-> +
-> +/**
-> + * dma_fence_wait - Wait for a fence to be signaled.
-> + *
-> + * @fence: The fence to wait on
-> + * @interruptible: if true, do an interruptible wait
-> + * @timeout: timeout, in jiffies
-> + */
-> +int dma_fence_wait(struct dma_fence *fence, bool interruptible, long timeout)
-> +{
-> +       if (WARN_ON(!fence))
-> +               return -EINVAL;
-> +
-> +       return fence->ops->wait(fence, interruptible, timeout);
-> +}
-> +EXPORT_SYMBOL_GPL(dma_fence_wait);
-> +
-> +int __dma_fence_wake_func(wait_queue_t *wait, unsigned mode,
-> +               int flags, void *key)
-> +{
-> +       struct dma_fence_cb *cb =
-> +                       container_of(wait, struct dma_fence_cb, base);
-> +       int ret;
-> +
-> +       ret = cb->func(cb, cb->fence);
-> +       dma_fence_put(cb->fence);
-> +       cb->fence = NULL;
-> +
-> +       return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(__dma_fence_wake_func);
-> +
-> +/*
-> + * Helpers intended to be used by the ops of the dma_fence implementation:
-> + *
-> + * NOTE: helpers and fxns intended to be used by other dma-fence
-> + * implementations are not exported..  I'm not really sure if it makes
-> + * sense to have a dma-fence implementation that is itself a module.
-> + */
-> +
-> +void __dma_fence_init(struct dma_fence *fence, struct dma_fence_ops *ops)
-> +{
-> +       WARN_ON(!ops || !ops->signal || !ops->add_callback ||
-> +                       !ops->cancel_callback || !ops->wait);
-> +
-> +       kref_init(&fence->refcount);
-> +       fence->ops = ops;
-> +       init_waitqueue_head(&fence->event_queue);
-> +}
-> +
-> +int dma_fence_helper_signal(struct dma_fence *fence)
-> +{
-> +       wake_up_all(&fence->event_queue);
-> +       return 0;
-> +}
-> +
-> +int dma_fence_helper_add_callback(struct dma_fence *fence,
-> +               struct dma_fence_cb *cb)
-> +{
-> +       add_wait_queue(&fence->event_queue, &cb->base);
-> +       return 0;
-> +}
-> +
-> +int dma_fence_helper_cancel_callback(struct dma_fence_cb *cb)
-> +{
-> +       struct dma_fence *fence = cb->fence;
-> +       remove_wait_queue(&fence->event_queue, &cb->base);
-> +       return 0;
-> +}
-> +
-> +int dma_fence_helper_wait(struct dma_fence *fence, bool interruptible,
-> +               long timeout)
-> +{
-> +       int ret;
-> +
-> +       if (interruptible) {
-> +               ret = wait_event_interruptible_timeout(fence->event_queue,
-> +                               !fence->buf, timeout);
-> +       } else {
-> +               ret = wait_event_timeout(fence->event_queue,
-> +                               !fence->buf, timeout);
-> +       }
-> +
-> +       return ret;
-> +}
-> +
-> +/*
-> + * Pure sw implementation for dma-fence.  The CPU always gets involved.
-> + */
-> +
-> +static struct dma_fence_ops sw_fence_ops = {
-> +               .signal          = dma_fence_helper_signal,
-> +               .add_callback    = dma_fence_helper_add_callback,
-> +               .cancel_callback = dma_fence_helper_cancel_callback,
-> +               .wait            = dma_fence_helper_wait,
-> +};
-> +
-> +/**
-> + * dma_fence_create - Create a simple sw-only fence.
-> + *
-> + * This fence only supports signaling from/to CPU.  Other implementations
-> + * of dma-fence can be used to support hardware to hardware signaling, if
-> + * supported by the hardware, and use the dma_fence_helper_* functions for
-> + * compatibility with other devices that only support sw signaling.
-> + */
-> +struct dma_fence *dma_fence_create(void)
-> +{
-> +       struct dma_fence *fence;
-> +
-> +       fence = kzalloc(sizeof(struct dma_fence), GFP_KERNEL);
-> +       if (!fence)
-> +               return ERR_PTR(-ENOMEM);
-> +
-> +       __dma_fence_init(fence, &sw_fence_ops);
-> +
-> +       return fence;
-> +}
-> +EXPORT_SYMBOL_GPL(dma_fence_create);
-> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-> index eb48f38..a0a0b64 100644
-> --- a/include/linux/dma-buf.h
-> +++ b/include/linux/dma-buf.h
-> @@ -29,6 +29,7 @@
->  #include <linux/scatterlist.h>
->  #include <linux/list.h>
->  #include <linux/dma-mapping.h>
-> +#include <linux/dma-fence.h>
->  #include <linux/fs.h>
->
->  struct device;
-> @@ -122,6 +123,8 @@ struct dma_buf {
->         /* mutex to serialize list manipulation and attach/detach */
->         struct mutex lock;
->         void *priv;
-> +       /* list of pending dma_fence's */
-> +       struct list_head fence_list;
->  };
->
->  /**
-> diff --git a/include/linux/dma-fence.h b/include/linux/dma-fence.h
-> new file mode 100644
-> index 0000000..ecda334
-> --- /dev/null
-> +++ b/include/linux/dma-fence.h
-> @@ -0,0 +1,118 @@
-> +/*
-> + * Fence mechanism for dma-buf to allow for asynchronous dma access
-> + *
-> + * Copyright (C) 2012 Texas Instruments
-> + * Author: Rob Clark <rob.clark@linaro.org>
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of the GNU General Public License version 2 as published by
-> + * the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but WITHOUT
-> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-> + * more details.
-> + *
-> + * You should have received a copy of the GNU General Public License along with
-> + * this program.  If not, see <http://www.gnu.org/licenses/>.
-> + */
-> +
-> +#ifndef __DMA_FENCE_H__
-> +#define __DMA_FENCE_H__
-> +
-> +#include <linux/err.h>
-> +#include <linux/list.h>
-> +#include <linux/wait.h>
-> +#include <linux/list.h>
-> +#include <linux/dma-buf.h>
-> +
-> +struct dma_fence;
-> +struct dma_fence_ops;
-> +struct dma_fence_cb;
-> +
-> +struct dma_fence {
-> +       struct kref refcount;
-> +       struct dma_fence_ops *ops;
-> +       wait_queue_head_t event_queue;
-> +       struct list_head list_node;   /* for dmabuf's fence_list */
-> +
-> +       /*
-> +        * This is initialized when the fence is attached to a dma-buf,
-> +        * and NULL'd before it is signaled.  A fence can be attached to
-> +        * at most one dma-buf at a time.
-> +        */
-> +       struct dma_buf *buf;
-> +};
-> +
-> +typedef int (*dma_fence_func_t)(struct dma_fence_cb *cb,
-> +               struct dma_fence *fence);
-> +
-> +struct dma_fence_ops {
-> +       int (*signal)(struct dma_fence *fence);
-> +       int (*add_callback)(struct dma_fence *fence, struct dma_fence_cb *cb);
-> +       int (*cancel_callback)(struct dma_fence_cb *cb);
-> +       int (*wait)(struct dma_fence *fence, bool interruptible, long timeout);
-> +};
-> +
-> +struct dma_fence_cb {
-> +       wait_queue_t base;
-> +       dma_fence_func_t func;
-> +
-> +       /*
-> +        * This is initialized when the cb is added, and NULL'd when it
-> +        * is canceled or expired, so can be used to for error checking
-> +        * if the cb is already pending.  A dma_fence_cb can be pending
-> +        * on at most one fence at a time.
-> +        */
-> +       struct dma_fence *fence;
-> +};
-> +
-> +int __dma_fence_wake_func(wait_queue_t *wait, unsigned mode,
-> +               int flags, void *key);
-> +
-> +#define DMA_FENCE_CB_INITIALIZER(cb_func) {                \
-> +               .base = { .func = __dma_fence_wake_func },  \
-> +               .func = (cb_func),                          \
-> +       }
-> +
-> +#define DECLARE_DMA_FENCE(name, cb_func)                   \
-> +               struct dma_fence_cb name = DMA_FENCE_CB_INITIALIZER(cb_func)
-> +
-> +
-> +/*
-> + * TODO does it make sense to be able to enable dma-fence without dma-buf,
-> + * or visa versa?
-> + */
-> +#ifdef CONFIG_DMA_SHARED_BUFFER
-> +
-> +int dma_buf_attach_fence(struct dma_buf *buf, struct dma_fence *fence);
-> +struct dma_fence *dma_buf_get_fence(struct dma_buf *buf);
-> +
-> +/* create a basic (pure sw) fence: */
-> +struct dma_fence *dma_fence_create(void);
-> +
-> +/* intended to be used by other dma_fence implementations: */
-> +void __dma_fence_init(struct dma_fence *fence, struct dma_fence_ops *ops);
-> +
-> +void dma_fence_get(struct dma_fence *fence);
-> +void dma_fence_put(struct dma_fence *fence);
-> +int dma_fence_signal(struct dma_fence *fence);
-> +
-> +int dma_fence_add_callback(struct dma_fence *fence,
-> +               struct dma_fence_cb *cb);
-> +int dma_fence_cancel_callback(struct dma_fence_cb *cb);
-> +int dma_fence_wait(struct dma_fence *fence, bool interruptible, long timeout);
-> +
-> +/* helpers intended to be used by the ops of the dma_fence implementation: */
-> +int dma_fence_helper_signal(struct dma_fence *fence);
-> +int dma_fence_helper_add_callback(struct dma_fence *fence,
-> +               struct dma_fence_cb *cb);
-> +int dma_fence_helper_cancel_callback(struct dma_fence_cb *cb);
-> +int dma_fence_helper_wait(struct dma_fence *fence, bool interruptible,
-> +               long timeout);
-> +
-> +#else
-> +// TODO
-> +#endif /* CONFIG_DMA_SHARED_BUFFER */
-> +
-> +#endif /* __DMA_FENCE_H__ */
-> --
-> 1.7.9.5
->
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/Kconfig    |   8 +-
+ drivers/media/rc/iguanair.c | 206 ++++++++++++++++++++++----------------------
+ 2 files changed, 107 insertions(+), 107 deletions(-)
+
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index 5180390..fa1745c 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -264,8 +264,12 @@ config IR_IGUANA
+ 	depends on RC_CORE
+ 	select USB
+ 	---help---
+-	   Say Y here if you want to use the IgaunaWorks USB IR Transceiver.
+-	   Both infrared receive and send are supported.
++	   Say Y here if you want to use the IguanaWorks USB IR Transceiver.
++	   Both infrared receive and send are supported. If you want to
++	   change the ID or the pin config, use the user space driver from
++	   IguanaWorks.
++
++	   Only firmware 0x0205 and later is supported.
+ 
+ 	   To compile this driver as a module, choose M here: the module will
+ 	   be called iguanair.
+diff --git a/drivers/media/rc/iguanair.c b/drivers/media/rc/iguanair.c
+index 5e2eaf8..aa7f34f 100644
+--- a/drivers/media/rc/iguanair.c
++++ b/drivers/media/rc/iguanair.c
+@@ -35,9 +35,9 @@ struct iguanair {
+ 	struct device *dev;
+ 	struct usb_device *udev;
+ 
+-	int pipe_in, pipe_out;
++	int pipe_out;
++	uint16_t version;
+ 	uint8_t bufsize;
+-	uint8_t version[2];
+ 
+ 	struct mutex lock;
+ 
+@@ -61,20 +61,21 @@ struct iguanair {
+ };
+ 
+ #define CMD_GET_VERSION		0x01
+-#define CMD_GET_BUFSIZE		0x11
+ #define CMD_GET_FEATURES	0x10
++#define CMD_GET_BUFSIZE		0x11
++#define CMD_RECEIVER_ON		0x12
++#define CMD_RECEIVER_OFF	0x14
+ #define CMD_SEND		0x15
+-#define CMD_EXECUTE		0x1f
++#define CMD_GET_ID		0x1f
+ #define CMD_RX_OVERFLOW		0x31
+ #define CMD_TX_OVERFLOW		0x32
+-#define CMD_RECEIVER_ON		0x12
+-#define CMD_RECEIVER_OFF	0x14
+ 
+ #define DIR_IN			0xdc
+ #define DIR_OUT			0xcd
+ 
+ #define MAX_PACKET_SIZE		8u
+ #define TIMEOUT			1000
++#define RX_RESOLUTION		21330
+ 
+ struct packet {
+ 	uint16_t start;
+@@ -82,11 +83,6 @@ struct packet {
+ 	uint8_t cmd;
+ };
+ 
+-struct response_packet {
+-	struct packet header;
+-	uint8_t data[4];
+-};
+-
+ struct send_packet {
+ 	struct packet header;
+ 	uint8_t length;
+@@ -96,10 +92,46 @@ struct send_packet {
+ 	uint8_t payload[0];
+ };
+ 
++/*
++ * The hardware advertises a polling interval of 10ms. This is far too
++ * slow and will cause regular rx overflows.
++ */
++static int int_urb_interval(struct usb_device *udev)
++{
++	switch (udev->speed) {
++	case USB_SPEED_HIGH:
++		return 4;
++	case USB_SPEED_LOW:
++		return 1;
++	case USB_SPEED_FULL:
++	default:
++		return 1;
++	}
++}
++
+ static void process_ir_data(struct iguanair *ir, unsigned len)
+ {
+ 	if (len >= 4 && ir->buf_in[0] == 0 && ir->buf_in[1] == 0) {
+ 		switch (ir->buf_in[3]) {
++		case CMD_GET_VERSION:
++			if (len == 6) {
++				ir->version = (ir->buf_in[5] << 8) |
++							ir->buf_in[4];
++				complete(&ir->completion);
++			}
++			break;
++		case CMD_GET_BUFSIZE:
++			if (len >= 5) {
++				ir->bufsize = ir->buf_in[4];
++				complete(&ir->completion);
++			}
++			break;
++		case CMD_GET_FEATURES:
++			if (len > 5) {
++				ir->cycle_overhead = ir->buf_in[5];
++				complete(&ir->completion);
++			}
++			break;
+ 		case CMD_TX_OVERFLOW:
+ 			ir->tx_overflow = true;
+ 		case CMD_RECEIVER_OFF:
+@@ -109,6 +141,7 @@ static void process_ir_data(struct iguanair *ir, unsigned len)
+ 			break;
+ 		case CMD_RX_OVERFLOW:
+ 			dev_warn(ir->dev, "receive overflow\n");
++			ir_raw_event_reset(ir->rc);
+ 			break;
+ 		default:
+ 			dev_warn(ir->dev, "control code %02x received\n",
+@@ -128,7 +161,7 @@ static void process_ir_data(struct iguanair *ir, unsigned len)
+ 			} else {
+ 				rawir.pulse = (ir->buf_in[i] & 0x80) == 0;
+ 				rawir.duration = ((ir->buf_in[i] & 0x7f) + 1) *
+-									 21330;
++								 RX_RESOLUTION;
+ 			}
+ 
+ 			ir_raw_event_store_with_filter(ir->rc, &rawir);
+@@ -141,6 +174,7 @@ static void process_ir_data(struct iguanair *ir, unsigned len)
+ static void iguanair_rx(struct urb *urb)
+ {
+ 	struct iguanair *ir;
++	int rc;
+ 
+ 	if (!urb)
+ 		return;
+@@ -166,34 +200,27 @@ static void iguanair_rx(struct urb *urb)
+ 		break;
+ 	}
+ 
+-	usb_submit_urb(urb, GFP_ATOMIC);
++	rc = usb_submit_urb(urb, GFP_ATOMIC);
++	if (rc && rc != -ENODEV)
++		dev_warn(ir->dev, "failed to resubmit urb: %d\n", rc);
+ }
+ 
+-static int iguanair_send(struct iguanair *ir, void *data, unsigned size,
+-			struct response_packet *response, unsigned *res_len)
++static int iguanair_send(struct iguanair *ir, void *data, unsigned size)
+ {
+-	unsigned offset, len;
+ 	int rc, transferred;
+ 
+-	for (offset = 0; offset < size; offset += MAX_PACKET_SIZE) {
+-		len = min(size - offset, MAX_PACKET_SIZE);
++	INIT_COMPLETION(ir->completion);
+ 
+-		if (ir->tx_overflow)
+-			return -EOVERFLOW;
++	rc = usb_interrupt_msg(ir->udev, ir->pipe_out, data, size,
++							&transferred, TIMEOUT);
++	if (rc)
++		return rc;
+ 
+-		rc = usb_interrupt_msg(ir->udev, ir->pipe_out, data + offset,
+-						len, &transferred, TIMEOUT);
+-		if (rc)
+-			return rc;
++	if (transferred != size)
++		return -EIO;
+ 
+-		if (transferred != len)
+-			return -EIO;
+-	}
+-
+-	if (response) {
+-		rc = usb_interrupt_msg(ir->udev, ir->pipe_in, response,
+-					sizeof(*response), res_len, TIMEOUT);
+-	}
++	if (wait_for_completion_timeout(&ir->completion, TIMEOUT) == 0)
++		return -ETIMEDOUT;
+ 
+ 	return rc;
+ }
+@@ -201,66 +228,43 @@ static int iguanair_send(struct iguanair *ir, void *data, unsigned size,
+ static int iguanair_get_features(struct iguanair *ir)
+ {
+ 	struct packet packet;
+-	struct response_packet response;
+-	int rc, len;
++	int rc;
+ 
+ 	packet.start = 0;
+ 	packet.direction = DIR_OUT;
+ 	packet.cmd = CMD_GET_VERSION;
+ 
+-	rc = iguanair_send(ir, &packet, sizeof(packet), &response, &len);
++	rc = iguanair_send(ir, &packet, sizeof(packet));
+ 	if (rc) {
+ 		dev_info(ir->dev, "failed to get version\n");
+ 		goto out;
+ 	}
+ 
+-	if (len != 6) {
+-		dev_info(ir->dev, "failed to get version\n");
+-		rc = -EIO;
++	if (ir->version < 0x205) {
++		dev_err(ir->dev, "firmware 0x%04x is too old\n", ir->version);
++		rc = -ENODEV;
+ 		goto out;
+ 	}
+ 
+-	ir->version[0] = response.data[0];
+-	ir->version[1] = response.data[1];
+ 	ir->bufsize = 150;
+ 	ir->cycle_overhead = 65;
+ 
+ 	packet.cmd = CMD_GET_BUFSIZE;
+ 
+-	rc = iguanair_send(ir, &packet, sizeof(packet), &response, &len);
++	rc = iguanair_send(ir, &packet, sizeof(packet));
+ 	if (rc) {
+ 		dev_info(ir->dev, "failed to get buffer size\n");
+ 		goto out;
+ 	}
+ 
+-	if (len != 5) {
+-		dev_info(ir->dev, "failed to get buffer size\n");
+-		rc = -EIO;
+-		goto out;
+-	}
+-
+-	ir->bufsize = response.data[0];
+-
+-	if (ir->version[0] == 0 || ir->version[1] == 0)
+-		goto out;
+-
+ 	packet.cmd = CMD_GET_FEATURES;
+ 
+-	rc = iguanair_send(ir, &packet, sizeof(packet), &response, &len);
++	rc = iguanair_send(ir, &packet, sizeof(packet));
+ 	if (rc) {
+ 		dev_info(ir->dev, "failed to get features\n");
+ 		goto out;
+ 	}
+ 
+-	if (len < 5) {
+-		dev_info(ir->dev, "failed to get features\n");
+-		rc = -EIO;
+-		goto out;
+-	}
+-
+-	if (len > 5 && ir->version[0] >= 4)
+-		ir->cycle_overhead = response.data[1];
+-
+ out:
+ 	return rc;
+ }
+@@ -269,17 +273,11 @@ static int iguanair_receiver(struct iguanair *ir, bool enable)
+ {
+ 	struct packet packet = { 0, DIR_OUT, enable ?
+ 				CMD_RECEIVER_ON : CMD_RECEIVER_OFF };
+-	int rc;
+-
+-	INIT_COMPLETION(ir->completion);
+-
+-	rc = iguanair_send(ir, &packet, sizeof(packet), NULL, NULL);
+-	if (rc)
+-		return rc;
+ 
+-	wait_for_completion_timeout(&ir->completion, TIMEOUT);
++	if (enable)
++		ir_raw_event_reset(ir->rc);
+ 
+-	return 0;
++	return iguanair_send(ir, &packet, sizeof(packet));
+ }
+ 
+ /*
+@@ -406,17 +404,10 @@ static int iguanair_tx(struct rc_dev *dev, unsigned *txbuf, unsigned count)
+ 
+ 	ir->tx_overflow = false;
+ 
+-	INIT_COMPLETION(ir->completion);
+-
+-	rc = iguanair_send(ir, packet, size + 8, NULL, NULL);
++	rc = iguanair_send(ir, packet, size + 8);
+ 
+-	if (rc == 0) {
+-		wait_for_completion_timeout(&ir->completion, TIMEOUT);
+-		if (ir->tx_overflow)
+-			rc = -EOVERFLOW;
+-	}
+-
+-	ir->tx_overflow = false;
++	if (rc == 0 && ir->tx_overflow)
++		rc = -EOVERFLOW;
+ 
+ 	if (ir->receiver_on) {
+ 		if (iguanair_receiver(ir, true))
+@@ -437,8 +428,6 @@ static int iguanair_open(struct rc_dev *rdev)
+ 
+ 	mutex_lock(&ir->lock);
+ 
+-	usb_submit_urb(ir->urb_in, GFP_KERNEL);
+-
+ 	BUG_ON(ir->receiver_on);
+ 
+ 	rc = iguanair_receiver(ir, true);
+@@ -459,11 +448,9 @@ static void iguanair_close(struct rc_dev *rdev)
+ 
+ 	rc = iguanair_receiver(ir, false);
+ 	ir->receiver_on = false;
+-	if (rc)
++	if (rc && rc != -ENODEV)
+ 		dev_warn(ir->dev, "failed to disable receiver: %d\n", rc);
+ 
+-	usb_kill_urb(ir->urb_in);
+-
+ 	mutex_unlock(&ir->lock);
+ }
+ 
+@@ -473,7 +460,7 @@ static int __devinit iguanair_probe(struct usb_interface *intf,
+ 	struct usb_device *udev = interface_to_usbdev(intf);
+ 	struct iguanair *ir;
+ 	struct rc_dev *rc;
+-	int ret;
++	int ret, pipein;
+ 	struct usb_host_interface *idesc;
+ 
+ 	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
+@@ -502,28 +489,29 @@ static int __devinit iguanair_probe(struct usb_interface *intf,
+ 	ir->rc = rc;
+ 	ir->dev = &intf->dev;
+ 	ir->udev = udev;
+-	ir->pipe_in = usb_rcvintpipe(udev,
+-				idesc->endpoint[0].desc.bEndpointAddress);
+ 	ir->pipe_out = usb_sndintpipe(udev,
+ 				idesc->endpoint[1].desc.bEndpointAddress);
+ 	mutex_init(&ir->lock);
+ 	init_completion(&ir->completion);
+ 
+-	ret = iguanair_get_features(ir);
++	pipein = usb_rcvintpipe(udev, idesc->endpoint[0].desc.bEndpointAddress);
++	usb_fill_int_urb(ir->urb_in, udev, pipein, ir->buf_in,
++		MAX_PACKET_SIZE, iguanair_rx, ir, int_urb_interval(udev));
++	ir->urb_in->transfer_dma = ir->dma_in;
++	ir->urb_in->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
++
++	ret = usb_submit_urb(ir->urb_in, GFP_KERNEL);
+ 	if (ret) {
+-		dev_warn(&intf->dev, "failed to get device features");
++		dev_warn(&intf->dev, "failed to submit urb: %d\n", ret);
+ 		goto out;
+ 	}
+ 
+-	usb_fill_int_urb(ir->urb_in, ir->udev, ir->pipe_in, ir->buf_in,
+-		MAX_PACKET_SIZE, iguanair_rx, ir,
+-		idesc->endpoint[0].desc.bInterval);
+-	ir->urb_in->transfer_dma = ir->dma_in;
+-	ir->urb_in->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
++	ret = iguanair_get_features(ir);
++	if (ret)
++		goto out2;
+ 
+ 	snprintf(ir->name, sizeof(ir->name),
+-		"IguanaWorks USB IR Transceiver version %d.%d",
+-		ir->version[0], ir->version[1]);
++		"IguanaWorks USB IR Transceiver version 0x%04x", ir->version);
+ 
+ 	usb_make_path(ir->udev, ir->phys, sizeof(ir->phys));
+ 
+@@ -540,21 +528,23 @@ static int __devinit iguanair_probe(struct usb_interface *intf,
+ 	rc->s_tx_carrier = iguanair_set_tx_carrier;
+ 	rc->tx_ir = iguanair_tx;
+ 	rc->driver_name = DRIVER_NAME;
+-	rc->map_name = RC_MAP_EMPTY;
++	rc->map_name = RC_MAP_RC6_MCE;
++	rc->timeout = MS_TO_NS(100);
++	rc->rx_resolution = RX_RESOLUTION;
+ 
+ 	iguanair_set_tx_carrier(rc, 38000);
+ 
+ 	ret = rc_register_device(rc);
+ 	if (ret < 0) {
+ 		dev_err(&intf->dev, "failed to register rc device %d", ret);
+-		goto out;
++		goto out2;
+ 	}
+ 
+ 	usb_set_intfdata(intf, ir);
+ 
+-	dev_info(&intf->dev, "Registered %s", ir->name);
+-
+ 	return 0;
++out2:
++	usb_kill_urb(ir->urb_in);
+ out:
+ 	if (ir) {
+ 		usb_free_urb(ir->urb_in);
+@@ -570,12 +560,11 @@ static void __devexit iguanair_disconnect(struct usb_interface *intf)
+ {
+ 	struct iguanair *ir = usb_get_intfdata(intf);
+ 
++	rc_unregister_device(ir->rc);
+ 	usb_set_intfdata(intf, NULL);
+-
+ 	usb_kill_urb(ir->urb_in);
+ 	usb_free_urb(ir->urb_in);
+ 	usb_free_coherent(ir->udev, MAX_PACKET_SIZE, ir->buf_in, ir->dma_in);
+-	rc_unregister_device(ir->rc);
+ 	kfree(ir);
+ }
+ 
+@@ -592,6 +581,8 @@ static int iguanair_suspend(struct usb_interface *intf, pm_message_t message)
+ 			dev_warn(ir->dev, "failed to disable receiver for suspend\n");
+ 	}
+ 
++	usb_kill_urb(ir->urb_in);
++
+ 	mutex_unlock(&ir->lock);
+ 
+ 	return rc;
+@@ -604,6 +595,10 @@ static int iguanair_resume(struct usb_interface *intf)
+ 
+ 	mutex_lock(&ir->lock);
+ 
++	rc = usb_submit_urb(ir->urb_in, GFP_KERNEL);
++	if (rc)
++		dev_warn(&intf->dev, "failed to submit urb: %d\n", rc);
++
+ 	if (ir->receiver_on) {
+ 		rc = iguanair_receiver(ir, true);
+ 		if (rc)
+@@ -627,7 +622,8 @@ static struct usb_driver iguanair_driver = {
+ 	.suspend = iguanair_suspend,
+ 	.resume = iguanair_resume,
+ 	.reset_resume = iguanair_resume,
+-	.id_table = iguanair_table
++	.id_table = iguanair_table,
++	.soft_unbind = 1	/* we want to disable receiver on unbind */
+ };
+ 
+ module_usb_driver(iguanair_driver);
+-- 
+1.7.11.2
+
