@@ -1,253 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:59375 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751486Ab2GDNwA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2012 09:52:00 -0400
-Received: by wgbdr13 with SMTP id dr13so7371855wgb.1
-        for <linux-media@vger.kernel.org>; Wed, 04 Jul 2012 06:51:58 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:52469 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753640Ab2GaWIF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Jul 2012 18:08:05 -0400
+Message-ID: <50185739.8090605@iki.fi>
+Date: Wed, 01 Aug 2012 01:07:53 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <CAD4Xxq8CpCMtNP=sPSMhsWs4K1qULXWBtGzbu1ENqs1pgBBs3Q@mail.gmail.com>
-References: <CAD4Xxq_s4zbRKBrjcQAfn4v5Dp0sytU=8_=XUViice98aQFysQ@mail.gmail.com>
-	<CAD4Xxq9LXGXQKRiNsU_tE8LcyJY64Wk5H4OFzEyhhXtsJJy3dw@mail.gmail.com>
-	<CAD4Xxq8c_SBbJsZc764oFwNjRDeGKuVEX_042ry=xeZBY_ZH-A@mail.gmail.com>
-	<CAD4Xxq8CpCMtNP=sPSMhsWs4K1qULXWBtGzbu1ENqs1pgBBs3Q@mail.gmail.com>
-Date: Wed, 4 Jul 2012 09:51:58 -0400
-Message-ID: <CADnq5_Nh_iFv36KuX-FvKK+BTRpcA1aXB1_nhDo6Aso=S_Ximw@mail.gmail.com>
-Subject: Re: ATI theatre 750 HD tuner USB stick
-From: Alex Deucher <alexdeucher@gmail.com>
-To: Fisher Grubb <fisher.grubb@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Reporting signal overload condition for tuners?
+References: <CAGoCfizvvq7C+axexewU_wrmhhggoiNJ7D5H3=SPfa3jaxpVcA@mail.gmail.com>
+In-Reply-To: <CAGoCfizvvq7C+axexewU_wrmhhggoiNJ7D5H3=SPfa3jaxpVcA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 4, 2012 at 9:27 AM, Fisher Grubb <fisher.grubb@gmail.com> wrote:
-> Hi all,
->
-> I was in contact with AMD today regarding this tuner haveing no
-> support on Linux and I was given a link for a feedback form and told
-> to get specific needs from www.linuxtv.org to help the cause and if
-> there were enough people, then the AMD developers may help.
->
-> Of course I wouldn't be surprised if people will have to reverse
-> engineer it from the windows drivers but I thought I would mention it.
->  I could not find any info on this 750 HD on www.linuxtv.org regarding
-> where it stands.  What help is needed for it?
+On 07/31/2012 10:56 PM, Devin Heitmueller wrote:
+> Quick question:  we don't currently have any way to report to userland
+> that a tuning is failing due to signal overload, right?
 
-Unfortunately, I don't think there is much AMD can do.  We sold our
-multimedia DTV division to Broadcom several years ago.  IANAL, so I
-don't know exactly what rights we retained for the IP.  You may need
-to talk to Broadcom now.
+right
 
-Alex
+I assume you speak issue where signal is too strong and tuner (or demod 
+too?) makes it broken / too noisy for demod.
 
->
-> Fisher
->
-> On Wed, Jul 4, 2012 at 11:21 PM, Fisher Grubb <fisher.grubb@gmail.com> wrote:
->> Hi all,
->>
->> My name is Fisher Grubb, I have an ATI (now AMD) theatre 750 HD based
->> TV tuner USB stick.  I don't think this ATI chipset is supported by
->> linuxTV and have had no joy search google as others also hit a dead
->> end.
->>
->> I have put USB bus dump for that device and the chip part numbers at the bottom.
->>
->> Please may I have a quick reply if someone looks at this, thanks.
->>
->> Model number is U5071, manufacturer site: http://www.geniatech.com/pa/u5071.asp
->>
->> I think this is a very impressive piece of hardware as it can do:
->> Analogue TV, DVB, AV capture and S video capture.  There is an IR
->> receiver on board and came with IR remote control.
->>
->> I'm happy to provide any info on it that you may want such as picture
->> of board & chips.  I'm almost finished my electronics degree and so
->> can do hardware probing if someone may give me something specific to
->> look for.  I'm also happy to run software or commands to dump stuff or
->> even help with dumping things from the windows drivers if I've given
->> directions etc.
->>
->> Thank you,
->>
->> Fisher
->>
->> lsusb: Bus 002 Device 021: ID 0438:ac14 Advanced Micro Devices, Inc.
->>
->> sudo lsusb -vd 0438:ac14
->>
->> Bus 002 Device 021: ID 0438:ac14 Advanced Micro Devices, Inc.
->> Device Descriptor:
->>   bLength                18
->>   bDescriptorType         1
->>   bcdUSB               2.00
->>   bDeviceClass            0 (Defined at Interface level)
->>   bDeviceSubClass         0
->>   bDeviceProtocol         0
->>   bMaxPacketSize0        64
->>   idVendor           0x0438 Advanced Micro Devices, Inc.
->>   idProduct          0xac14
->>   bcdDevice            1.00
->>   iManufacturer           1 AMD
->>   iProduct                2 Cali TV Card
->>   iSerial                 3 1234-5678
->>   bNumConfigurations      1
->>   Configuration Descriptor:
->>     bLength                 9
->>     bDescriptorType         2
->>     wTotalLength           97
->>     bNumInterfaces          1
->>     bConfigurationValue     1
->>     iConfiguration          0
->>     bmAttributes         0x80
->>       (Bus Powered)
->>     MaxPower              500mA
->>     Interface Descriptor:
->>       bLength                 9
->>       bDescriptorType         4
->>       bInterfaceNumber        0
->>       bAlternateSetting       0
->>       bNumEndpoints           5
->>       bInterfaceClass       255 Vendor Specific Class
->>       bInterfaceSubClass    255 Vendor Specific Subclass
->>       bInterfaceProtocol    255 Vendor Specific Protocol
->>       iInterface              0
->>       Endpoint Descriptor:
->>         bLength                 7
->>         bDescriptorType         5
->>         bEndpointAddress     0x81  EP 1 IN
->>         bmAttributes            2
->>           Transfer Type            Bulk
->>           Synch Type               None
->>           Usage Type               Data
->>         wMaxPacketSize     0x0200  1x 512 bytes
->>         bInterval               0
->>       Endpoint Descriptor:
->>         bLength                 7
->>         bDescriptorType         5
->>         bEndpointAddress     0x82  EP 2 IN
->>         bmAttributes            2
->>           Transfer Type            Bulk
->>           Synch Type               None
->>           Usage Type               Data
->>         wMaxPacketSize     0x0200  1x 512 bytes
->>         bInterval               0
->>       Endpoint Descriptor:
->>         bLength                 7
->>         bDescriptorType         5
->>         bEndpointAddress     0x03  EP 3 OUT
->>         bmAttributes            2
->>           Transfer Type            Bulk
->>           Synch Type               None
->>           Usage Type               Data
->>         wMaxPacketSize     0x0200  1x 512 bytes
->>         bInterval               3
->>       Endpoint Descriptor:
->>         bLength                 7
->>         bDescriptorType         5
->>         bEndpointAddress     0x84  EP 4 IN
->>         bmAttributes            2
->>           Transfer Type            Bulk
->>           Synch Type               None
->>           Usage Type               Data
->>         wMaxPacketSize     0x0200  1x 512 bytes
->>         bInterval               0
->>       Endpoint Descriptor:
->>         bLength                 7
->>         bDescriptorType         5
->>         bEndpointAddress     0x85  EP 5 IN
->>         bmAttributes            2
->>           Transfer Type            Bulk
->>           Synch Type               None
->>           Usage Type               Data
->>         wMaxPacketSize     0x0200  1x 512 bytes
->>         bInterval               0
->>     Interface Descriptor:
->>       bLength                 9
->>       bDescriptorType         4
->>       bInterfaceNumber        0
->>       bAlternateSetting       1
->>       bNumEndpoints           5
->>       bInterfaceClass       255 Vendor Specific Class
->>       bInterfaceSubClass    255 Vendor Specific Subclass
->>       bInterfaceProtocol    255 Vendor Specific Protocol
->>       iInterface              0
->>       Endpoint Descriptor:
->>         bLength                 7
->>         bDescriptorType         5
->>         bEndpointAddress     0x81  EP 1 IN
->>         bmAttributes            1
->>           Transfer Type            Isochronous
->>           Synch Type               None
->>           Usage Type               Data
->>         wMaxPacketSize     0x1400  3x 1024 bytes
->>         bInterval               1
->>       Endpoint Descriptor:
->>         bLength                 7
->>         bDescriptorType         5
->>         bEndpointAddress     0x82  EP 2 IN
->>         bmAttributes            2
->>           Transfer Type            Bulk
->>           Synch Type               None
->>           Usage Type               Data
->>         wMaxPacketSize     0x0200  1x 512 bytes
->>         bInterval               0
->>       Endpoint Descriptor:
->>         bLength                 7
->>         bDescriptorType         5
->>         bEndpointAddress     0x03  EP 3 OUT
->>         bmAttributes            2
->>           Transfer Type            Bulk
->>           Synch Type               None
->>           Usage Type               Data
->>         wMaxPacketSize     0x0200  1x 512 bytes
->>         bInterval               3
->>       Endpoint Descriptor:
->>         bLength                 7
->>         bDescriptorType         5
->>         bEndpointAddress     0x84  EP 4 IN
->>         bmAttributes            2
->>           Transfer Type            Bulk
->>           Synch Type               None
->>           Usage Type               Data
->>         wMaxPacketSize     0x0200  1x 512 bytes
->>         bInterval               0
->>       Endpoint Descriptor:
->>         bLength                 7
->>         bDescriptorType         5
->>         bEndpointAddress     0x85  EP 5 IN
->>         bmAttributes            2
->>           Transfer Type            Bulk
->>           Synch Type               None
->>           Usage Type               Data
->>         wMaxPacketSize     0x0200  1x 512 bytes
->>         bInterval               0
->> Device Qualifier (for other device speed):
->>   bLength                10
->>   bDescriptorType         6
->>   bcdUSB               2.00
->>   bDeviceClass            0 (Defined at Interface level)
->>   bDeviceSubClass         0
->>   bDeviceProtocol         0
->>   bMaxPacketSize0        64
->>   bNumConfigurations      1
->> Device Status:     0x0000
->>   (Bus Powered)
->>
->> Chips:
->> ATI:
->> T507
->> 0930
->> MADE IN TAIWAN
->> P0U493.00
->> 215-0692014
->>
->> NXP:
->> TDA18271HDC2
->> P3KN4 02
->> PG09361
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> There are some tuner chips out there which can detect this condition,
+> and being able to report it back to userland would make it much easier
+> to inform the user that he/she needs to stick an attenuator inline.
+
+I have never seen such property.
+
+Is that condition something like (RF?) gain control is set minimum but 
+signal strength meter is still maximum...
+
+> Has anybody given any thought to this before?  Perhaps use up the last
+> available bit in fe_status for DVB?
+
+I left other negative side of LNA integer unused, just thinking it could 
+be extended for attenuator. It does not fit for that case, but I have 
+seen such feature used by anysee Windows driver. There has been problems 
+with strong DVB-C signal in case of TDA10023 demod. I don't know how 
+this software attenuator is implemented but I could guess it is done by 
+tweaking some tuner or demod property a little bit wrong in order to 
+make signal weaker.
+
+And answer for the question is you should likely add new DVBv5 property 
+for reading that. I don't like idea of adding such info for frontend status.
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
