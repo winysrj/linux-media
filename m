@@ -1,158 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:45862 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753962Ab2GWICG (ORCPT
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:2860 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756012Ab2GaMLJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jul 2012 04:02:06 -0400
-Received: by wibhm11 with SMTP id hm11so2593387wib.1
-        for <linux-media@vger.kernel.org>; Mon, 23 Jul 2012 01:02:04 -0700 (PDT)
+	Tue, 31 Jul 2012 08:11:09 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCHv2 3/9] v4l: add buffer exporting via dmabuf
+Date: Tue, 31 Jul 2012 14:11:06 +0200
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
+	subashrp@gmail.com, mchehab@redhat.com, g.liakhovetski@gmx.de
+References: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com> <201207310833.56566.hverkuil@xs4all.nl> <36319543.mdnBULUSen@avalon>
+In-Reply-To: <36319543.mdnBULUSen@avalon>
 MIME-Version: 1.0
-In-Reply-To: <201207211150.15296.hverkuil@xs4all.nl>
-References: <1342782515-24992-1-git-send-email-javier.martin@vista-silicon.com>
-	<201207211150.15296.hverkuil@xs4all.nl>
-Date: Mon, 23 Jul 2012 10:02:04 +0200
-Message-ID: <CACKLOr3ZuAru9knFv4M=BWxRWP27ztoZdbACPXVHPrNLhzKPng@mail.gmail.com>
-Subject: Re: [PATCH v6] media: coda: Add driver for Coda video codec.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.hauer@pengutronix.de, p.zabel@pengutronix.de
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201207311411.06974.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Tue 31 July 2012 13:56:14 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Tuesday 31 July 2012 08:33:56 Hans Verkuil wrote:
+> > On Thu June 14 2012 16:32:23 Tomasz Stanislawski wrote:
+> > > +/**
+> > > + * struct v4l2_exportbuffer - export of video buffer as DMABUF file
+> > > descriptor + *
+> > > + * @fd:		file descriptor associated with DMABUF (set by driver)
+> > > + * @mem_offset:	buffer memory offset as returned by VIDIOC_QUERYBUF in
+> > > struct + *		v4l2_buffer::m.offset (for single-plane formats) or
+> > > + *		v4l2_plane::m.offset (for multi-planar formats)
+> > > + * @flags:	flags for newly created file, currently only O_CLOEXEC is
+> > > + *		supported, refer to manual of open syscall for more details
+> > > + *
+> > > + * Contains data used for exporting a video buffer as DMABUF file
+> > > descriptor. + * The buffer is identified by a 'cookie' returned by
+> > > VIDIOC_QUERYBUF + * (identical to the cookie used to mmap() the buffer to
+> > > userspace). All + * reserved fields must be set to zero. The field
+> > > reserved0 is expected to + * become a structure 'type' allowing an
+> > > alternative layout of the structure + * content. Therefore this field
+> > > should not be used for any other extensions. + */
+> > > +struct v4l2_exportbuffer {
+> > > +	__u32		fd;
+> > > +	__u32		reserved0;
+> > > +	__u32		mem_offset;
+> > 
+> > This should be a union identical to the m union in v4l2_plane, together with
+> > a u32 memory field. That way you can just copy memory and m from
+> > v4l2_plane/buffer and call expbuf. If new memory types are added in the
+> > future, then you don't need to change this struct.
+> 
+> OK, reserved0 could be replace by __u32 memory. Could we have other dma-buf 
+> export types in the future not corresponding to a memory type ? I don't see 
+> any use case right now though.
 
-On 21 July 2012 11:50, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Fri July 20 2012 13:08:35 Javier Martin wrote:
->> Coda is a range of video codecs from Chips&Media that
->> support H.264, H.263, MPEG4 and other video standards.
->>
->> Currently only support for the codadx6 included in the
->> i.MX27 SoC is added. H.264 and MPEG4 video encoding
->> are the only supported capabilities by now.
->>
->> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
->> Reviewed-by: Philipp Zabel<p.zabel@pengutronix.de>
->> ---
->> Changes since v5:
->>  - Fixed some v4l2-compliance issues.
->
-> Some or all? Can you give me the 'v4l2-compliance -v1' output?
+The memory type should be all you need. And the union is also needed since the
+userptr value is unsigned long, thus ensuring that you have 64-bits available
+for pointer types in the future. That's really my main point: the union should
+have the same size as the union in v4l2_buffer/plane, allowing for the same
+size pointers or whatever to be added in the future.
 
-I've not corrected some mistakes that are pointed by v4l2-compliance
-that I consider bogus for my mem2mem video encoder.
+> > For that matter, wouldn't it be useful to support exporting a userptr buffer
+> > at some point in the future?
+> 
+> Shouldn't USERPTR usage be discouraged once we get dma-buf support ?
 
-I don't mind helping you test the new m2m capabilities of
-'v4l2-compliance' but I don't think delaying this driver to enter
-mainline for this merge window for this is reasonable. Please, find
-the output you requested below:
+Why? It's perfectly fine to use it and it's not going away.
 
+I'm not saying that we should support exporting a userptr buffer as a dmabuf fd,
+but I'm just wondering if that is possible at all and how difficult it would be.
 
-Driver Info:
-        Driver name   : coda
-        Card type     : coda
-        Bus info      : coda
-        Driver version: 0.0.0
-        Capabilities  : 0x84000003
-                Video Capture
-                Video Output
-                Streaming
+Regards,
 
-Compliance test for device /dev/video2 (not using libv4l2):
+	Hans
 
-Required ioctls:
-                fail: v4l2-compliance.cpp(251): check_0(vcap.reserved,
-sizeof(vcap.reserved))
-        test VIDIOC_QUERYCAP: FAIL
-
-Allow for multiple opens:
-        test second video open: OK
-                fail: v4l2-compliance.cpp(251): check_0(vcap.reserved,
-sizeof(vcap.reserved))
-        test VIDIOC_QUERYCAP: FAIL
-                fail: v4l2-compliance.cpp(273): doioctl(node,
-VIDIOC_G_PRIORITY, &prio)
-        test VIDIOC_G/S_PRIORITY: FAIL
-
-Debug ioctls:
-        test VIDIOC_DBG_G_CHIP_IDENT: FAIL
-                fail: v4l2-test-debug.cpp(82): uid == 0 && ret
-        test VIDIOC_DBG_G/S_REGISTER: FAIL
-        test VIDIOC_LOG_STATUS: FAIL
-
-Input ioctls:
-                fail: v4l2-test-input-output.cpp(133): couldn't get tuner 0
-        test VIDIOC_G/S_TUNER: FAIL
-                fail: v4l2-test-input-output.cpp(228): could get
-frequency for invalid tuner 0
-        test VIDIOC_G/S_FREQUENCY: FAIL
-                fail: v4l2-test-input-output.cpp(358): could not
-enumerate audio input 0
-        test VIDIOC_ENUMAUDIO: FAIL
-                fail: v4l2-test-input-output.cpp(290): could not get
-current input
-        test VIDIOC_G/S/ENUMINPUT: FAIL
-        test VIDIOC_G/S_AUDIO: Not Supported
-        Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-                fail: v4l2-test-input-output.cpp(479): couldn't get modulator 0
-        test VIDIOC_G/S_MODULATOR: FAIL
-                fail: v4l2-test-input-output.cpp(563): could get
-frequency for invalid modulator 0
-        test VIDIOC_G/S_FREQUENCY: FAIL
-                fail: v4l2-test-input-output.cpp(682): could not
-enumerate audio output 0
-        test VIDIOC_ENUMAUDOUT: FAIL
-        test VIDIOC_G/S/ENUMOUTPUT: FAIL
-        test VIDIOC_G/S_AUDOUT: Not Supported
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Control ioctls:
-        test VIDIOC_QUERYCTRL/MENU: OK
-        test VIDIOC_G/S_CTRL: OK
-                fail: v4l2-test-controls.cpp(532): try_ext_ctrls did
-not check the read-only flag
-        test VIDIOC_G/S/TRY_EXT_CTRLS: FAIL
-        Standard Controls: 10 Private Controls: 0
-
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: Not Supported
-        test VIDIOC_ENUM/G/S/QUERY_DV_PRESETS: Not Supported
-        test VIDIOC_G/S_DV_TIMINGS: Not Supported
-
-Format ioctls:
-                fail: v4l2-test-formats.cpp(138): expected EINVAL, but
-got 25 when enumerating framesize 0
-        test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: FAIL
-                fail: v4l2-test-formats.cpp(327): expected EINVAL, but
-got 25 when getting framebuffer format
-        test VIDIOC_G_FBUF: FAIL
-                fail: v4l2-test-formats.cpp(383): !pix.width || !pix.height
-        test VIDIOC_G_FMT: FAIL
-                fail: v4l2-test-formats.cpp(509): ret && ret != EINVAL
-&& sliced_type
-        test VIDIOC_G_SLICED_VBI_CAP: FAIL
-Total: 27 Succeeded: 8 Failed: 19 Warnings: 0
-
-
-> Regards,
->
->         Hans
->
->>  - Attended most of Sylwester's tips.
-
-
-Regards.
-
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+> 
+> > BTW, this patch series needs to be rebased to the latest for_v3.6. Quite a
+> > few core things have changed when it comes to adding new ioctls.
+> 
+> 
