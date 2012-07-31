@@ -1,75 +1,230 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25197 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753457Ab2GINMo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Jul 2012 09:12:44 -0400
-Message-ID: <4FFAD8D9.8070203@redhat.com>
-Date: Mon, 09 Jul 2012 15:12:57 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: martin-eric.racine@iki.fi
-CC: =?UTF-8?B?SmVhbi1GcmFuw6dvaXMgTW9pbmU=?= <moinejf@free.fr>,
-	677533@bugs.debian.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: video: USB webcam fails since kernel 3.2
-References: <20120614162609.4613.22122.reportbug@henna.lan> <20120614215359.GF3537@burratino> <CAPZXPQd9gNCxn7xGyqj_xymPaF5OxvRtxRFkt+SsLs942te4og@mail.gmail.com> <20120616044137.GB4076@burratino> <1339932233.20497.14.camel@henna.lan> <CAPZXPQegp7RA5M0H9Ofq4rJ9aj-rEdg=Ly9_1c6vAKi3COw50g@mail.gmail.com> <4FF9CA30.9050105@redhat.com> <CAPZXPQd026xfKrAU0D7CLQGbdAs8U01u5vsHp+5-wbVofAwdqQ@mail.gmail.com>
-In-Reply-To: <CAPZXPQd026xfKrAU0D7CLQGbdAs8U01u5vsHp+5-wbVofAwdqQ@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mailout4.samsung.com ([203.254.224.34]:30402 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756006Ab2GaL5G (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Jul 2012 07:57:06 -0400
+Received: from epcpsbgm2.samsung.com (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M8000D8HX74Q5W0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 31 Jul 2012 20:57:04 +0900 (KST)
+Received: from localhost.localdomain ([107.108.73.106])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0M8000CIRX6VNU20@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 31 Jul 2012 20:57:04 +0900 (KST)
+From: Shaik Ameer Basha <shaik.ameer@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: sungchun.kang@samsung.com, khw0178.kim@samsung.com,
+	mchehab@infradead.org, laurent.pinchart@ideasonboard.com,
+	sy0816.kang@samsung.com, s.nawrocki@samsung.com,
+	posciak@google.com, alim.akhtar@gmail.com, prashanth.g@samsung.com,
+	joshi@samsung.com, shaik.samsung@gmail.com, shaik.ameer@samsung.com
+Subject: [PATCH v4 1/5] v4l: Add new YVU420 multi planar fourcc definition
+Date: Tue, 31 Jul 2012 17:42:29 +0530
+Message-id: <1343736753-18454-2-git-send-email-shaik.ameer@samsung.com>
+In-reply-to: <1343736753-18454-1-git-send-email-shaik.ameer@samsung.com>
+References: <1343736753-18454-1-git-send-email-shaik.ameer@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This patch adds the following new fourcc definition.
+For multiplanar YCrCb
+        - V4L2_PIX_FMT_YVU420M - 'YM21'
 
-On 07/09/2012 01:33 PM, Martin-Éric Racine wrote:
+Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+---
+ Documentation/DocBook/media/v4l/pixfmt-yvu420m.xml |  154 ++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |    1 +
+ include/linux/videodev2.h                          |    1 +
+ 3 files changed, 156 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-yvu420m.xml
 
-<snip>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-yvu420m.xml b/Documentation/DocBook/media/v4l/pixfmt-yvu420m.xml
+new file mode 100644
+index 0000000..2330667
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-yvu420m.xml
+@@ -0,0 +1,154 @@
++    <refentry id="V4L2-PIX-FMT-YVU420M">
++      <refmeta>
++	<refentrytitle>V4L2_PIX_FMT_YVU420M ('YM21')</refentrytitle>
++	&manvol;
++      </refmeta>
++      <refnamediv>
++	<refname> <constant>V4L2_PIX_FMT_YVU420M</constant></refname>
++	<refpurpose>Variation of <constant>V4L2_PIX_FMT_YVU420</constant>
++	  with planes non contiguous in memory. </refpurpose>
++      </refnamediv>
++
++      <refsect1>
++	<title>Description</title>
++
++	<para>This is a multi-planar format, as opposed to a packed format.
++The three components are separated into three sub-images or planes.
++
++The Y plane is first. The Y plane has one byte per pixel. The Cr data
++constitutes the second plane which is half the width and half
++the height of the Y plane (and of the image). Each Cr belongs to four
++pixels, a two-by-two square of the image. For example,
++Cr<subscript>0</subscript> belongs to Y'<subscript>00</subscript>,
++Y'<subscript>01</subscript>, Y'<subscript>10</subscript>, and
++Y'<subscript>11</subscript>. The Cb data, just like the Cr plane, constitutes
++the third plane. </para>
++
++	<para>If the Y plane has pad bytes after each row, then the Cr
++and Cb planes have half as many pad bytes after their rows. In other
++words, two Cx rows (including padding) is exactly as long as one Y row
++(including padding).</para>
++
++	<para><constant>V4L2_PIX_FMT_YVU420M</constant> is intended to be
++used only in drivers and applications that support the multi-planar API,
++described in <xref linkend="planar-apis"/>. </para>
++
++	<example>
++	  <title><constant>V4L2_PIX_FMT_YVU420M</constant> 4 &times; 4
++pixel image</title>
++
++	  <formalpara>
++	    <title>Byte Order.</title>
++	    <para>Each cell is one byte.
++		<informaltable frame="none">
++		<tgroup cols="5" align="center">
++		  <colspec align="left" colwidth="2*" />
++		  <tbody valign="top">
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;0:</entry>
++		      <entry>Y'<subscript>00</subscript></entry>
++		      <entry>Y'<subscript>01</subscript></entry>
++		      <entry>Y'<subscript>02</subscript></entry>
++		      <entry>Y'<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;4:</entry>
++		      <entry>Y'<subscript>10</subscript></entry>
++		      <entry>Y'<subscript>11</subscript></entry>
++		      <entry>Y'<subscript>12</subscript></entry>
++		      <entry>Y'<subscript>13</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;8:</entry>
++		      <entry>Y'<subscript>20</subscript></entry>
++		      <entry>Y'<subscript>21</subscript></entry>
++		      <entry>Y'<subscript>22</subscript></entry>
++		      <entry>Y'<subscript>23</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;12:</entry>
++		      <entry>Y'<subscript>30</subscript></entry>
++		      <entry>Y'<subscript>31</subscript></entry>
++		      <entry>Y'<subscript>32</subscript></entry>
++		      <entry>Y'<subscript>33</subscript></entry>
++		    </row>
++		    <row><entry></entry></row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;0:</entry>
++		      <entry>Cr<subscript>00</subscript></entry>
++		      <entry>Cr<subscript>01</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;2:</entry>
++		      <entry>Cr<subscript>10</subscript></entry>
++		      <entry>Cr<subscript>11</subscript></entry>
++		    </row>
++		    <row><entry></entry></row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;0:</entry>
++		      <entry>Cb<subscript>00</subscript></entry>
++		      <entry>Cb<subscript>01</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;2:</entry>
++		      <entry>Cb<subscript>10</subscript></entry>
++		      <entry>Cb<subscript>11</subscript></entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++
++	  <formalpara>
++	    <title>Color Sample Location.</title>
++	    <para>
++		<informaltable frame="none">
++		<tgroup cols="7" align="center">
++		  <tbody valign="top">
++		    <row>
++		      <entry></entry>
++		      <entry>0</entry><entry></entry><entry>1</entry><entry></entry>
++		      <entry>2</entry><entry></entry><entry>3</entry>
++		    </row>
++		    <row>
++		      <entry>0</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++		    <row>
++		      <entry></entry>
++		      <entry></entry><entry>C</entry><entry></entry><entry></entry>
++		      <entry></entry><entry>C</entry><entry></entry>
++		    </row>
++		    <row>
++		      <entry>1</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++		    <row>
++		      <entry></entry>
++		    </row>
++		    <row>
++		      <entry>2</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++		    <row>
++		      <entry></entry>
++		      <entry></entry><entry>C</entry><entry></entry><entry></entry>
++		      <entry></entry><entry>C</entry><entry></entry>
++		    </row>
++		    <row>
++		      <entry>3</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++	</example>
++      </refsect1>
++    </refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index e58934c..1ddbfab 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -708,6 +708,7 @@ information.</para>
+     &sub-y41p;
+     &sub-yuv420;
+     &sub-yuv420m;
++    &sub-yvu420m;
+     &sub-yuv410;
+     &sub-yuv422p;
+     &sub-yuv411p;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index dbf9d3a..e7c2662 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -365,6 +365,7 @@ struct v4l2_pix_format {
+ 
+ /* three non contiguous planes - Y, Cb, Cr */
+ #define V4L2_PIX_FMT_YUV420M v4l2_fourcc('Y', 'M', '1', '2') /* 12  YUV420 planar */
++#define V4L2_PIX_FMT_YVU420M v4l2_fourcc('Y', 'M', '2', '1') /* 12  YVU420 planar */
+ 
+ /* Bayer formats - see http://www.siliconimaging.com/RGB%20Bayer.htm */
+ #define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B', 'A', '8', '1') /*  8  BGBG.. GRGR.. */
+-- 
+1.7.0.4
 
->> Hmm, this is then likely caused by the new isoc bandwidth negotiation code
->> in 3.2, unfortunately the vc032x driver is one of the few gspca drivers
->> for which I don't have a cam to test with. Can you try to build your own
->> kernel from source?
->>
->> Boot into your own kernel, and verify the regression is still there,
->> then edit drivers/media/video/gspca/gspca.c and go to the which_bandwidth
->> function, and at the beginning of this function add the following line:
->>
->> return 2000 * 2000 * 120;
->>
->> Then rebuild and re-install the kernel and try again.
->>
->> If that helps, remove the added
->> return 2000 * 2000 * 120;
->> line, and also remove the following lines from which_bandwidth:
->>
->>          /* if the image is compressed, estimate its mean size */
->>          if (!gspca_dev->cam.needs_full_bandwidth &&
->>              bandwidth < gspca_dev->cam.cam_mode[i].width *
->>                                  gspca_dev->cam.cam_mode[i].height)
->>                  bandwidth = bandwidth * 3 / 8;  /* 0.375 */
->>
->> And try again if things still work this way.
->>
->> Once you've tested this I can try to write a fix for this.
->
-> Hans,
->
-> Thank you for your reply.
->
-> Just to eliminate the possibility of mistakes on my part while trying
-> to perform the above changes, could you send me a patch against Linux
-> 3.2.21 that I could apply as-is, before building myself a test kernel
-> package?
-
-Erm, that is quite a bit of work from my side for something which you
-can easily do yourself, edit gspca.c, search for which_bandwidth
-and then under the following lines:
-         u32 bandwidth;
-         int i;
-
-Add a line like this:
-	return 2000 * 2000 * 120;
-
-Regards,
-
-Hans
