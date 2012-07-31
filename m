@@ -1,48 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:22669 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932521Ab2GKODG (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:42422 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755438Ab2GaL5D (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jul 2012 10:03:06 -0400
-Received: from epcpsbgm1.samsung.com (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
+	Tue, 31 Jul 2012 07:57:03 -0400
+Received: from epcpsbgm1.samsung.com (mailout2.samsung.com [203.254.224.25])
+ by mailout2.samsung.com
  (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M70005DU1OU3ZJ0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Wed, 11 Jul 2012 23:03:05 +0900 (KST)
+ 17 2011)) with ESMTP id <0M80000GTX6V8DW0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 31 Jul 2012 20:57:02 +0900 (KST)
 Received: from localhost.localdomain ([107.108.73.106])
  by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
  (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M7000LFC1OYVM10@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 11 Jul 2012 23:03:04 +0900 (KST)
-From: Arun Kumar K <arun.kk@samsung.com>
+ with ESMTPA id <0M8000CIRX6VNU20@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 31 Jul 2012 20:57:01 +0900 (KST)
+From: Shaik Ameer Basha <shaik.ameer@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: jtp.park@samsung.com, janghyuck.kim@samsung.com,
-	jaeryul.oh@samsung.com, ch.naveen@samsung.com, arun.kk@samsung.com,
-	m.szyprowski@samsung.com, k.debski@samsung.com,
-	s.nawrocki@samsung.com, hverkuil@xs4all.nl, mchehab@infradead.org,
-	kmpark@infradead.org, joshi@samsung.com
-Subject: [PATCH v1 0/2] Add new fourcc definitions and H264 codec controls
-Date: Wed, 11 Jul 2012 19:47:08 +0530
-Message-id: <1342016230-14278-1-git-send-email-arun.kk@samsung.com>
+Cc: sungchun.kang@samsung.com, khw0178.kim@samsung.com,
+	mchehab@infradead.org, laurent.pinchart@ideasonboard.com,
+	sy0816.kang@samsung.com, s.nawrocki@samsung.com,
+	posciak@google.com, alim.akhtar@gmail.com, prashanth.g@samsung.com,
+	joshi@samsung.com, shaik.samsung@gmail.com, shaik.ameer@samsung.com
+Subject: [PATCH v4 0/5] Add new driver for generic scaler
+Date: Tue, 31 Jul 2012 17:42:28 +0530
+Message-id: <1343736753-18454-1-git-send-email-shaik.ameer@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch set adds new control and fourcc definitions which will be
-used by samsung s5p-mfc driver.
-Patch 1 adds new fourcc definitions for YCbCr and compressed formats.
-Patch 2 adds control definitions for new H264 encoder features.
-The review comments given in [1] are addressed.
+This patch adds support for the gscaler device which is a new device
+for scaling and color space conversion on EXYNOS5 SoCs.
 
-[1] http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/45197
+This device supports the followings as key feature.
+ 1) Input image format
+   - RGB888/565, YUV422 1P/2P, YUV420 2P/3P, TILE
+ 2) Output image format
+   - RGB888/565, YUV422 1P/2P, YUV420 2P/3P, YUV444
+ 3) Input rotation
+   - 0/90/180/270 degree, X/Y Flip
+ 4) Scale ratio
+   - 1/16 scale down to 8 scale up
+ 5) CSC
+   - RGB to YUV / YUV to RGB
+ 6) Size
+   - 2048 x 2048 for tile or rotation
+   - 4800 x 3344 other case
 
-Jeongtae Park (2):
-  [media] v4l: Add fourcc definitions for new formats
-  [media] v4l: Add control definitions for new H264 encoder features
+changes since v3:
+- Rebased on latest media-tree git, branch staging/for_v3.6.
+        http://linuxtv.org/git/media_tree.git
+- Addressed review comments from Sylwester Nawrocki
+        http://patchwork.linuxtv.org/patch/13465/
+	http://patchwork.linuxtv.org/patch/13469/
+	http://patchwork.linuxtv.org/patch/13479/
+	http://patchwork.linuxtv.org/patch/13467/
+	http://patchwork.linuxtv.org/patch/13468/
 
- Documentation/DocBook/media/v4l/controls.xml     |  268 +++++++++++++++++++++-
- Documentation/DocBook/media/v4l/pixfmt-nv12m.xml |   17 +-
- Documentation/DocBook/media/v4l/pixfmt.xml       |   10 +
- drivers/media/video/v4l2-ctrls.c                 |   42 ++++
- include/linux/videodev2.h                        |   45 ++++
- 5 files changed, 376 insertions(+), 6 deletions(-)
+Note: This patch set is based on the following two patches
+  1] "V4L: Remove "_ACTIVE" from the selection target name definitions"
+  2] "v4l: add fourcc definitions for new formats"
+
+Shaik Ameer Basha (2):
+  v4l: Add new YVU420 multi planar fourcc definition
+  media: gscaler: Add Makefile for G-Scaler Driver
+
+Sungchun Kang (3):
+  media: gscaler: Add new driver for generic scaler
+  media: gscaler: Add core functionality for the G-Scaler driver
+  media: gscaler: Add m2m functionality for the G-Scaler driver
+
+ Documentation/DocBook/media/v4l/pixfmt-yvu420m.xml |  154 +++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |    1 +
+ drivers/media/video/Kconfig                        |    8 +
+ drivers/media/video/Makefile                       |    2 +
+ drivers/media/video/exynos-gsc/Makefile            |    3 +
+ drivers/media/video/exynos-gsc/gsc-core.c          | 1263 ++++++++++++++++++++
+ drivers/media/video/exynos-gsc/gsc-core.h          |  537 +++++++++
+ drivers/media/video/exynos-gsc/gsc-m2m.c           |  772 ++++++++++++
+ drivers/media/video/exynos-gsc/gsc-regs.c          |  431 +++++++
+ drivers/media/video/exynos-gsc/gsc-regs.h          |  172 +++
+ include/linux/videodev2.h                          |    1 +
+ 11 files changed, 3344 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-yvu420m.xml
+ create mode 100644 drivers/media/video/exynos-gsc/Makefile
+ create mode 100644 drivers/media/video/exynos-gsc/gsc-core.c
+ create mode 100644 drivers/media/video/exynos-gsc/gsc-core.h
+ create mode 100644 drivers/media/video/exynos-gsc/gsc-m2m.c
+ create mode 100644 drivers/media/video/exynos-gsc/gsc-regs.c
+ create mode 100644 drivers/media/video/exynos-gsc/gsc-regs.h
 
