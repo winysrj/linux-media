@@ -1,83 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:38105 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932995Ab2GBKyq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2012 06:54:46 -0400
-Date: Mon, 2 Jul 2012 12:54:27 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: Shawn Guo <shawn.guo@linaro.org>, fabio.estevam@freescale.com,
-	dirk.behme@googlemail.com, r.schwebel@pengutronix.de,
-	kernel@pengutronix.de, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC] Support for 'Coda' video codec IP.
-Message-ID: <20120702105427.GP2698@pengutronix.de>
-References: <1340115094-859-1-git-send-email-javier.martin@vista-silicon.com>
- <20120619181717.GE28394@pengutronix.de>
- <CACKLOr1zCp2NfLjBrHjtXpmsFMHqhoHFPpghN=Tyf3YAcyRrYg@mail.gmail.com>
- <20120620090126.GO28394@pengutronix.de>
- <20120620100015.GA30243@sirena.org.uk>
- <20120620130941.GB2253@S2101-09.ap.freescale.net>
- <CACKLOr28vm9n08VSOim=riB54os665be1CHdUqFXk+3MqPqtWQ@mail.gmail.com>
- <20120620143336.GE2253@S2101-09.ap.freescale.net>
- <CACKLOr1oZZPZBNv+p9p3Vf5oY4K8K65_dJ5qkJO6NqeP2=2unw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CACKLOr1oZZPZBNv+p9p3Vf5oY4K8K65_dJ5qkJO6NqeP2=2unw@mail.gmail.com>
+Received: from mailout4.samsung.com ([203.254.224.34]:51281 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752876Ab2GaN24 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Jul 2012 09:28:56 -0400
+Received: from epcpsbgm2.samsung.com (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M8100EQY1FQ79X0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 31 Jul 2012 22:28:55 +0900 (KST)
+Received: from localhost.localdomain ([107.108.73.106])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0M8100ALP1FF8G60@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 31 Jul 2012 22:28:55 +0900 (KST)
+From: Shaik Ameer Basha <shaik.ameer@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: sungchun.kang@samsung.com, khw0178.kim@samsung.com,
+	mchehab@infradead.org, laurent.pinchart@ideasonboard.com,
+	sy0816.kang@samsung.com, s.nawrocki@samsung.com,
+	posciak@google.com, hverkuil@xs4all.nl, alim.akhtar@gmail.com,
+	prashanth.g@samsung.com, joshi@samsung.com,
+	shaik.samsung@gmail.com, shaik.ameer@samsung.com
+Subject: [PATCH v5 5/5] media: gscaler: Add Makefile for G-Scaler Driver
+Date: Tue, 31 Jul 2012 19:14:06 +0530
+Message-id: <1343742246-27579-6-git-send-email-shaik.ameer@samsung.com>
+In-reply-to: <1343742246-27579-1-git-send-email-shaik.ameer@samsung.com>
+References: <1343742246-27579-1-git-send-email-shaik.ameer@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 02, 2012 at 12:36:46PM +0200, javier Martin wrote:
-> Hi Sascha,
-> I almost have a final version ready which includes multi-instance
-> support (not tested though) [1]. As I stated, we assumed the extra
-> effort of looking at your code in [2] in order to provide a mechanism
-> that preserves compatibility between VPUs in i.MX21, i.MX51 and
-> i.MX53. This is the only thing left in order to send the driver for
-> mainline submission.
-> 
-> While I was reading your code I found out that you keep the following
-> formats for v1 (codadx6-i.MX27) codec:
-> 
-> static int vpu_v1_codecs[VPU_CODEC_MAX] = {
-> 	[VPU_CODEC_AVC_DEC] = 2,
-> 	[VPU_CODEC_VC1_DEC] = -1,
-> 	[VPU_CODEC_MP2_DEC] = -1,
-> 	[VPU_CODEC_DV3_DEC] = -1,
-> 	[VPU_CODEC_RV_DEC] = -1,
-> 	[VPU_CODEC_MJPG_DEC] = 0x82,
-> 	[VPU_CODEC_AVC_ENC] = 3,
-> 	[VPU_CODEC_MP4_ENC] = 1,
-> 	[VPU_CODEC_MJPG_ENC] = 0x83,
-> };
-> 
-> As I understand, this means the following operations are supported:
-> 
-> 1- H264 decoding.
-> 2- H264 encoding
-> 3- MP4 encoding.
-> 4- MJPG  decoding.
-> 5- MJPG encoding.
-> 
-> I totally agree with MP4 and H264 formats but, are you sure about
-> MJPG? I have a i.MX27 v1 codec (codadx6) but I didn't know that this
-> codec supported MJPG. Have you tested this code with an i.MX27 and
-> MJPG? Where did you find out that it supports this format?
+This patch adds the Makefile for G-Scaler driver.
 
-We haven't tested MJPG on the i.MX27. The table above is from the
-original Freescale code, so I assume it's correct and I assume that
-the coda dx6 can do MJPEG.
+Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/video/Kconfig             |    8 ++++++++
+ drivers/media/video/Makefile            |    2 ++
+ drivers/media/video/exynos-gsc/Makefile |    3 +++
+ 3 files changed, 13 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/exynos-gsc/Makefile
 
-> Are you
-> using firmware version 2.2.4 for v1 codecs?
-
-No, 2.2.5
-
-Sascha
-
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index c128fac..9cf143a 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -1260,4 +1260,12 @@ config VIDEO_MX2_EMMAPRP
+ 	    memory to memory. Operations include resizing and format
+ 	    conversion.
+ 
++config VIDEO_SAMSUNG_EXYNOS_GSC
++        tristate "Samsung Exynos G-Scaler driver"
++        depends on VIDEO_DEV && VIDEO_V4L2 && PLAT_S5P
++        select VIDEOBUF2_DMA_CONTIG
++        select V4L2_MEM2MEM_DEV
++        help
++            This is v4l2 based G-Scaler driver for EXYNOS5
++
+ endif # V4L_MEM2MEM_DRIVERS
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index b7da9fa..3954f28 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -196,6 +196,8 @@ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_TV)	+= s5p-tv/
+ 
+ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_G2D)	+= s5p-g2d/
+ 
++obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC)	+= exynos-gsc/
++
+ obj-$(CONFIG_BLACKFIN)                  += blackfin/
+ 
+ obj-$(CONFIG_ARCH_DAVINCI)		+= davinci/
+diff --git a/drivers/media/video/exynos-gsc/Makefile b/drivers/media/video/exynos-gsc/Makefile
+new file mode 100644
+index 0000000..e9d7f8a
+--- /dev/null
++++ b/drivers/media/video/exynos-gsc/Makefile
+@@ -0,0 +1,3 @@
++gsc-objs := gsc-core.o gsc-m2m.o gsc-regs.o
++
++obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC)	+= gsc.o
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+1.7.0.4
+
