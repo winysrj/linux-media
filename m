@@ -1,68 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:43423 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752662Ab2GXLSg (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54837 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756026Ab2GaMRI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jul 2012 07:18:36 -0400
-Subject: Re: [PATCH 2/2] kthread_worker: reimplement flush_kthread_work() to
- allow freeing the work item being executed
-From: Andy Walls <awalls@md.metrocast.net>
-To: Tejun Heo <tj@kernel.org>
-Cc: linux-kernel@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Avi Kivity <avi@redhat.com>, kvm@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	Grant Likely <grant.likely@secretlab.ca>,
-	spi-devel-general@lists.sourceforge.net,
-	Linus Torvalds <torvalds@linux-foundation.org>
-Date: Tue, 24 Jul 2012 07:17:45 -0400
-In-Reply-To: <20120723171215.GA5776@google.com>
-References: <20120719211510.GA32763@google.com>
-	 <20120719211629.GC32763@google.com>
-	 <1342894814.2504.31.camel@palomino.walls.org>
-	 <20120722164953.GC5144@dhcp-172-17-108-109.mtv.corp.google.com>
-	 <1342990015.2487.19.camel@palomino.walls.org>
-	 <20120723171215.GA5776@google.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Message-ID: <1343128667.2488.6.camel@palomino.walls.org>
-Mime-Version: 1.0
+	Tue, 31 Jul 2012 08:17:08 -0400
+Date: Tue, 31 Jul 2012 15:17:04 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [media-ctl PATCH 1/1] libv4l2subdev: Add
+ v4l2_subdev_enum_mbus_code()
+Message-ID: <20120731121704.GJ26642@valkosipuli.retiisi.org.uk>
+References: <1343686560-31983-1-git-send-email-sakari.ailus@iki.fi>
+ <1370725.tme9eTgAke@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1370725.tme9eTgAke@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2012-07-23 at 10:12 -0700, Tejun Heo wrote:
-> Hello,
-> 
-> On Sun, Jul 22, 2012 at 04:46:54PM -0400, Andy Walls wrote:
-> > Hmmm, I didn't know about the constraint about 'known to be alive' in
-> > the other email I just sent.
+Hi Laurent,
+
+On Tue, Jul 31, 2012 at 01:38:41PM +0200, Laurent Pinchart wrote:
+> Thanks for the patch.
+
+Thanks for the comments!
+
+> On Tuesday 31 July 2012 01:16:00 Sakari Ailus wrote:
+> > v4l2_subdev_enum_mbus_code() enumerates over supported media bus formats on
+> > a pad.
 > > 
-> > That might make calling flush_kthread_work() hard for a user to use, if
-> > the user lets the work get freed by another thread executing the work.
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > ---
+> >  src/v4l2subdev.c |   23 +++++++++++++++++++++++
+> >  src/v4l2subdev.h |   14 ++++++++++++++
+> >  2 files changed, 37 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/src/v4l2subdev.c b/src/v4l2subdev.c
+> > index d60bd7e..6b6df0a 100644
+> > --- a/src/v4l2subdev.c
+> > +++ b/src/v4l2subdev.c
+> > @@ -58,6 +58,29 @@ void v4l2_subdev_close(struct media_entity *entity)
+> >  	entity->fd = -1;
+> >  }
+> > 
+> > +int v4l2_subdev_enum_mbus_code(struct media_entity *entity,
+> > +			       uint32_t *code, uint32_t pad, uint32_t index)
 > 
-> Umm... flushing a freed work item doesn't make any sense at all.  The
-> pointer itself loses the ability to identify anything.  What if it
-> gets recycled to another work item which happens to depend on the
-> flusher to make forward progress?  You now have a circular dependency
-> through a recycled memory area.  Good luck hunting that down.
+> I would use unsigned int for the pad and index arguments to match the other 
+> functions. We could then fix all of them in one go to use stdint types to 
+> match the kernel API types.
+
+I'm fine with that.
+
+> > +{
+> > +	struct v4l2_subdev_mbus_code_enum c;
+> > +	int ret;
+> > +
+> > +	ret = v4l2_subdev_open(entity);
+> > +	if (ret < 0)
+> > +		return ret;
+> > +
+> > +	memset(&c, 0, sizeof(c));
+> > +	c.pad = pad;
+> > +	c.index = index;
+> > +
+> > +	ret = ioctl(entity->fd, VIDIOC_SUBDEV_ENUM_MBUS_CODE, &c);
+> > +	if (ret < 0)
+> > +		return -errno;
+> > +
+> > +	*code = c.code;
+> > +
+> > +	return 0;
+> > +}
 > 
-> For pretty much any API, allowing dangling pointers as argument is
-> insane.  If you want to flush self-freeing work items, flush the
-> kthread_worker.  That's how it is with workqueue and how it should be
-> with kthread_worker too.
+> What about a higher-level API that would enumerate all formats and return a 
+> list/array ?
 
-Hi,
+The information could be stored to media entities. We could add a V4L2
+subdev pointer to media entities, and have the information stored there the
+first time this function is called. How about that?
 
-Ah.  My problem was that I mentally assigned the wrong rationale for why
-you reworked flush_kthread_work().
+On source pads the pixel code is obviously possibly dependent on the pixel
+code on the sink pad so I need to store mappings from sink pad pixel code to
+a list of source pad pixel code, but can it have other dependencies? None
+come to mind right now, though.
 
-Thank you for your patience and explanations.
-Sorry for the noise.
+Cheers,
 
-For patch 2/2:
-
-Reviewed-by: Andy Walls <awalls@md.metrocast.net>
-
-Regards,
-Andy
-
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
