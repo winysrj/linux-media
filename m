@@ -1,233 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:41075 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751333Ab2GIGrn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2012 02:47:43 -0400
-Received: by weyx8 with SMTP id x8so946556wey.19
-        for <linux-media@vger.kernel.org>; Sun, 08 Jul 2012 23:47:42 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54260 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752145Ab2GaVuq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Jul 2012 17:50:46 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [media-ctl PATCH 1/1] libv4l2subdev: Add v4l2_subdev_enum_mbus_code()
+Date: Tue, 31 Jul 2012 23:50:53 +0200
+Message-ID: <2005128.VGn1ZReBNM@avalon>
+In-Reply-To: <20120731121704.GJ26642@valkosipuli.retiisi.org.uk>
+References: <1343686560-31983-1-git-send-email-sakari.ailus@iki.fi> <1370725.tme9eTgAke@avalon> <20120731121704.GJ26642@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1207061439090.29809@axis700.grange>
-References: <1338543105-20322-1-git-send-email-javier.martin@vista-silicon.com>
-	<Pine.LNX.4.64.1207061439090.29809@axis700.grange>
-Date: Mon, 9 Jul 2012 08:47:41 +0200
-Message-ID: <CACKLOr099-UCDfcaiFuW4WLUUxEqr1cayMw4MeKy4BXBw_-38Q@mail.gmail.com>
-Subject: Re: [PATCH v3][for_v3.5] media: mx2_camera: Fix mbus format handling
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	fabio.estevam@freescale.com, mchehab@infradead.org,
-	kernel@pengutronix.de
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 6 July 2012 14:55, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> Hi Javier
->
-> Thanks for the patch, and sorry for delay. I was away first 10 days of
-> June and still haven't come round to cleaning up my todo list since
-> then...
->
-> On Fri, 1 Jun 2012, Javier Martin wrote:
->
->> Remove MX2_CAMERA_SWAP16 and MX2_CAMERA_PACK_DIR_MSB flags
->> so that the driver can negotiate with the attached sensor
->> whether the mbus format needs convertion from UYUV to YUYV
->> or not.
->>
->> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
->> ---
->> Fix pass-through mode as requested by Guennadi.
->> Also a merge conflict has been addressed.
->>
->> This patch should be applied to for_v3.5 since Guennadi
->> has requested Mauro to remove the old version:
->>
->> [PATCH] Revert "[media] media: mx2_camera: Fix mbus format handling"
->>
->> This patch is part of the following series:
->>
->> media: tvp5150: Fix mbus format.
->> i.MX27: visstrim_m10: Remove use of MX2_CAMERA_SWAP16.
->> media: mx2_camera: Fix mbus format handling.
->> ---
->>  arch/arm/plat-mxc/include/mach/mx2_cam.h |    2 -
->>  drivers/media/video/mx2_camera.c         |   50 +++++++++++++++++++++++++++---
->>  2 files changed, 45 insertions(+), 7 deletions(-)
->>
->> diff --git a/arch/arm/plat-mxc/include/mach/mx2_cam.h b/arch/arm/plat-mxc/include/mach/mx2_cam.h
->> index 3c080a3..7ded6f1 100644
->> --- a/arch/arm/plat-mxc/include/mach/mx2_cam.h
->> +++ b/arch/arm/plat-mxc/include/mach/mx2_cam.h
->> @@ -23,7 +23,6 @@
->>  #ifndef __MACH_MX2_CAM_H_
->>  #define __MACH_MX2_CAM_H_
->>
->> -#define MX2_CAMERA_SWAP16            (1 << 0)
->>  #define MX2_CAMERA_EXT_VSYNC         (1 << 1)
->>  #define MX2_CAMERA_CCIR                      (1 << 2)
->>  #define MX2_CAMERA_CCIR_INTERLACE    (1 << 3)
->> @@ -31,7 +30,6 @@
->>  #define MX2_CAMERA_GATED_CLOCK               (1 << 5)
->>  #define MX2_CAMERA_INV_DATA          (1 << 6)
->>  #define MX2_CAMERA_PCLK_SAMPLE_RISING        (1 << 7)
->> -#define MX2_CAMERA_PACK_DIR_MSB              (1 << 8)
->>
->>  /**
->>   * struct mx2_camera_platform_data - optional platform data for mx2_camera
->> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
->> index 18afaee..b30ebe5 100644
->> --- a/drivers/media/video/mx2_camera.c
->> +++ b/drivers/media/video/mx2_camera.c
->> @@ -344,6 +344,19 @@ static struct mx2_fmt_cfg mx27_emma_prp_table[] = {
->>                                       PRP_INTR_CH2OVF,
->>               }
->>       },
->> +     {
->> +             .in_fmt         = V4L2_MBUS_FMT_UYVY8_2X8,
->> +             .out_fmt        = V4L2_PIX_FMT_YUV420,
->> +             .cfg            = {
->> +                     .channel        = 2,
->> +                     .in_fmt         = PRP_CNTL_DATA_IN_YUV422,
->> +                     .out_fmt        = PRP_CNTL_CH2_OUT_YUV420,
->> +                     .src_pixel      = 0x22000888, /* YUV422 (YUYV) */
->> +                     .irq_flags      = PRP_INTR_RDERR | PRP_INTR_CH2WERR |
->> +                                     PRP_INTR_CH2FC | PRP_INTR_LBOVF |
->> +                                     PRP_INTR_CH2OVF,
->> +             }
->> +     },
->
-> IIUC, this adds one more conversion from V4L2_MBUS_FMT_UYVY8_2X8 to
-> V4L2_PIX_FMT_YUV420.
+Hi Sakari,
 
-Yes, that's exactly what this does.
+On Tuesday 31 July 2012 15:17:04 Sakari Ailus wrote:
+> On Tue, Jul 31, 2012 at 01:38:41PM +0200, Laurent Pinchart wrote:
+> > On Tuesday 31 July 2012 01:16:00 Sakari Ailus wrote:
+> > > v4l2_subdev_enum_mbus_code() enumerates over supported media bus formats
+> > > on a pad.
+> > > 
+> > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > > ---
+> > > 
+> > >  src/v4l2subdev.c |   23 +++++++++++++++++++++++
+> > >  src/v4l2subdev.h |   14 ++++++++++++++
+> > >  2 files changed, 37 insertions(+), 0 deletions(-)
+> > > 
+> > > diff --git a/src/v4l2subdev.c b/src/v4l2subdev.c
+> > > index d60bd7e..6b6df0a 100644
+> > > --- a/src/v4l2subdev.c
+> > > +++ b/src/v4l2subdev.c
+> > > @@ -58,6 +58,29 @@ void v4l2_subdev_close(struct media_entity *entity)
+> > > 
+> > >  	entity->fd = -1;
+> > >  
+> > >  }
+> > > 
+> > > +int v4l2_subdev_enum_mbus_code(struct media_entity *entity,
+> > > +			       uint32_t *code, uint32_t pad, uint32_t index)
+> > 
+> > I would use unsigned int for the pad and index arguments to match the
+> > other functions. We could then fix all of them in one go to use stdint
+> > types to match the kernel API types.
+> 
+> I'm fine with that.
+> 
+> > > +{
+> > > +	struct v4l2_subdev_mbus_code_enum c;
+> > > +	int ret;
+> > > +
+> > > +	ret = v4l2_subdev_open(entity);
+> > > +	if (ret < 0)
+> > > +		return ret;
+> > > +
+> > > +	memset(&c, 0, sizeof(c));
+> > > +	c.pad = pad;
+> > > +	c.index = index;
+> > > +
+> > > +	ret = ioctl(entity->fd, VIDIOC_SUBDEV_ENUM_MBUS_CODE, &c);
+> > > +	if (ret < 0)
+> > > +		return -errno;
+> > > +
+> > > +	*code = c.code;
+> > > +
+> > > +	return 0;
+> > > +}
+> > 
+> > What about a higher-level API that would enumerate all formats and return
+> > a list/array ?
+> 
+> The information could be stored to media entities. We could add a V4L2
+> subdev pointer to media entities, and have the information stored there the
+> first time this function is called. How about that?
+> 
+> On source pads the pixel code is obviously possibly dependent on the pixel
+> code on the sink pad so I need to store mappings from sink pad pixel code to
+> a list of source pad pixel code, but can it have other dependencies? None
+> come to mind right now, though.
 
->>  };
->>
->>  static struct mx2_fmt_cfg *mx27_emma_prp_get_format(
->> @@ -980,6 +993,8 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
->>       struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
->>       struct mx2_camera_dev *pcdev = ici->priv;
->>       struct v4l2_mbus_config cfg = {.type = V4L2_MBUS_PARALLEL,};
->> +     const struct soc_camera_format_xlate *xlate;
->> +     u32 pixfmt = icd->current_fmt->host_fmt->fourcc;
->>       unsigned long common_flags;
->>       int ret;
->>       int bytesperline;
->> @@ -1024,14 +1039,28 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
->>               return ret;
->>       }
->>
->> +     xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
->> +     if (!xlate) {
->> +             dev_warn(icd->parent, "Format %x not found\n", pixfmt);
->> +             return -EINVAL;
->> +     }
->> +
->> +     if (xlate->code == V4L2_MBUS_FMT_YUYV8_2X8) {
->> +             csicr1 |= CSICR1_PACK_DIR;
->> +             csicr1 &= ~CSICR1_SWAP16_EN;
->> +             dev_dbg(icd->parent, "already yuyv format, don't convert\n");
->> +     } else if (xlate->code == V4L2_MBUS_FMT_UYVY8_2X8) {
->> +             csicr1 &= ~CSICR1_PACK_DIR;
->> +             csicr1 |= CSICR1_SWAP16_EN;
->> +             dev_dbg(icd->parent, "convert uyvy mbus format into yuyv\n");
->> +     }
->> +
->>       if (common_flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
->>               csicr1 |= CSICR1_REDGE;
->>       if (common_flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
->>               csicr1 |= CSICR1_SOF_POL;
->>       if (common_flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
->>               csicr1 |= CSICR1_HSYNC_POL;
->> -     if (pcdev->platform_flags & MX2_CAMERA_SWAP16)
->> -             csicr1 |= CSICR1_SWAP16_EN;
->>       if (pcdev->platform_flags & MX2_CAMERA_EXT_VSYNC)
->>               csicr1 |= CSICR1_EXT_VSYNC;
->>       if (pcdev->platform_flags & MX2_CAMERA_CCIR)
->> @@ -1042,8 +1071,6 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
->>               csicr1 |= CSICR1_GCLK_MODE;
->>       if (pcdev->platform_flags & MX2_CAMERA_INV_DATA)
->>               csicr1 |= CSICR1_INV_DATA;
->> -     if (pcdev->platform_flags & MX2_CAMERA_PACK_DIR_MSB)
->> -             csicr1 |= CSICR1_PACK_DIR;
->>
->>       pcdev->csicr1 = csicr1;
->>
->> @@ -1118,7 +1145,8 @@ static int mx2_camera_get_formats(struct soc_camera_device *icd,
->>               return 0;
->>       }
->>
->> -     if (code == V4L2_MBUS_FMT_YUYV8_2X8) {
->> +     if (code == V4L2_MBUS_FMT_YUYV8_2X8 ||
->> +         code == V4L2_MBUS_FMT_UYVY8_2X8) {
->
-> This tells us, that from V4L2_MBUS_FMT_UYVY8_2X8 we also can get
-> V4L2_PIX_FMT_YUV420 - as provided by the mbus_fmt[] table in
-> soc_mediabus.c, this translation implements your above addition to the
-> mx27_emma_prp_table[] table.
-
-You are right.
-
->>               formats++;
->>               if (xlate) {
->>                       /*
->> @@ -1134,6 +1162,18 @@ static int mx2_camera_get_formats(struct soc_camera_device *icd,
->>               }
->>       }
->>
->> +     if (code == V4L2_MBUS_FMT_UYVY8_2X8) {
->> +             formats++;
->> +             if (xlate) {
->> +                     xlate->host_fmt =
->> +                             soc_mbus_get_fmtdesc(V4L2_MBUS_FMT_YUYV8_2X8);
->> +                     xlate->code     = code;
->> +                     dev_dbg(dev, "Providing host format %s for sensor code %d\n",
->> +                             xlate->host_fmt->name, code);
->> +                     xlate++;
->> +             }
->> +     }
->
-> This is telling us, that V4L2_MBUS_FMT_UYVY8_2X8 can also be converted to
-> V4L2_PIX_FMT_YUYV. Since there is no explicit entry in
-> mx27_emma_prp_table[] for this conversion, it will also be handled by the
-> top 1-to-1 entry.
-
-Correct.
-
->> +
->>       /* Generic pass-trough */
->>       formats++;
->>       if (xlate) {
->
-> And the pass-through adds a third conversion for V4L2_MBUS_FMT_UYVY8_2X8 -
-> to V4L2_PIX_FMT_UYVY, which is served by the first generic 1-to-1 entry in
-> mx27_emma_prp_table[].
-
-With pass-through you can always get at the output the same format as
-at the input.
-
-> So, maybe the above is correct, just wanted to make sure once more: is
-> this really what you were trying to achieve? In case of the
-> V4L2_MBUS_FMT_UYVY8_2X8 format you can produce 3 output formats, of which
-> these two:
->
-> V4L2_MBUS_FMT_YUYV8_2X8 and
-> V4L2_PIX_FMT_UYVY
->
-> are produced by the same pass-through entry of the mx27_emma_prp_table[]
-> table. The difference between those two formats is only produced in
-> mx2_camera_set_bus_param() in the way you set CSICR1 PACK_DIR and
-> SWAP16_EN flags?
-
-Yes.
-
+I would make this function store the enumerated mbus codes in the media 
+entity, as the codes on a source pad could depend on the selected code on a 
+sink pad. I would instead make the function allocate an array, fill it with 
+media bus codes and return it. The caller would be responsible for freeing it 
+(possibly later, after storing it).
 
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Regards,
+
+Laurent Pinchart
+
