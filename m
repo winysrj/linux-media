@@ -1,156 +1,326 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:64700 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932738Ab2GKQKH (ORCPT
+Received: from smtp25.services.sfr.fr ([93.17.128.120]:62244 "EHLO
+	smtp25.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752123Ab2GaToc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jul 2012 12:10:07 -0400
-Date: Wed, 11 Jul 2012 18:10:05 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] V4L: soc-camera: add selection API host operations
-In-Reply-To: <2010732.dj1mZZWrvn@avalon>
-Message-ID: <Pine.LNX.4.64.1207111755180.18999@axis700.grange>
-References: <Pine.LNX.4.64.1206221749190.17552@axis700.grange>
- <2010732.dj1mZZWrvn@avalon>
+	Tue, 31 Jul 2012 15:44:32 -0400
+Message-ID: <50183345.1040008@sfr.fr>
+Date: Tue, 31 Jul 2012 21:34:29 +0200
+From: Patrice Chotard <patrice.chotard@sfr.fr>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 2/2 RESEND] [media] ngene: add support for Terratec Cynergy
+ 2400i, Dual DVB-T
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent
+[media] ngene: add support for Terratec Cynergy 2400i Dual DVB-T
 
-On Fri, 6 Jul 2012, Laurent Pinchart wrote:
+This code is based on ngene initial check-in (dae52d009fc950b5c209260d50fcc000f5becd3c)
 
-> Hi Guennadi,
-> 
-> Thanks for the patch.
-> 
-> On Friday 22 June 2012 18:40:08 Guennadi Liakhovetski wrote:
-> > Add .get_selection() and .set_selection() soc-camera host driver
-> > operations. Additionally check, that the user is not trying to change the
-> > output sizes during a running capture.
-> 
-> How will that interact with the crop operations ? The goal is to move away 
-> from crop operations to selection operations, so we need to establish clear 
-> rules.
-
-Nicely:-) My understanding is, that the V4L2 core now is doing a large 
-part (all of?) compatibility / conversion work? As you know, soc-camera is 
-a kind of a glue layer between the V4L2 core and host drivers with some 
-helper functionality for client drivers. All V4L2 API calls go via the 
-soc-camera core and most of them are passed, possibly after some 
-preprocessing, to host drivers. Same holds for cropping and selection 
-calls. They are passed on to host drivers. As long as drivers use the 
-cropping API, the soc-camera core has to support it. Only after all host 
-drivers have been ported over, the soc-camera core can abandon it too. I 
-don't see another way out, do you?
-
-Thanks
-Guennadi
-
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > ---
-> > diff --git a/drivers/media/video/soc_camera.c
-> > b/drivers/media/video/soc_camera.c index 0421bf9..72798d2 100644
-> > --- a/drivers/media/video/soc_camera.c
-> > +++ b/drivers/media/video/soc_camera.c
-> > @@ -902,6 +902,65 @@ static int soc_camera_s_crop(struct file *file, void
-> > *fh, return ret;
-> >  }
-> > 
-> > +static int soc_camera_g_selection(struct file *file, void *fh,
-> > +				  struct v4l2_selection *s)
-> > +{
-> > +	struct soc_camera_device *icd = file->private_data;
-> > +	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-> > +
-> > +	/* With a wrong type no need to try to fall back to cropping */
-> > +	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> > +		return -EINVAL;
-> > +
-> > +	if (!ici->ops->get_selection)
-> > +		return -ENOTTY;
-> > +
-> > +	return ici->ops->get_selection(icd, s);
-> > +}
-> > +
-> > +static int soc_camera_s_selection(struct file *file, void *fh,
-> > +				  struct v4l2_selection *s)
-> > +{
-> > +	struct soc_camera_device *icd = file->private_data;
-> > +	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-> > +	int ret;
-> > +
-> > +	/* In all these cases cropping emulation will not help */
-> > +	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE ||
-> > +	    (s->target != V4L2_SEL_TGT_COMPOSE_ACTIVE &&
-> > +	     s->target != V4L2_SEL_TGT_CROP_ACTIVE))
-> > +		return -EINVAL;
-> > +
-> > +	if (s->target == V4L2_SEL_TGT_COMPOSE_ACTIVE) {
-> > +		/* No output size change during a running capture! */
-> > +		if (is_streaming(ici, icd) &&
-> > +		    (icd->user_width != s->r.width ||
-> > +		     icd->user_height != s->r.height))
-> > +			return -EBUSY;
-> > +
-> > +		/*
-> > +		 * Only one user is allowed to change the output format, touch
-> > +		 * buffers, start / stop streaming, poll for data
-> > +		 */
-> > +		if (icd->streamer && icd->streamer != file)
-> > +			return -EBUSY;
-> > +	}
-> > +
-> > +	if (!ici->ops->set_selection)
-> > +		return -ENOTTY;
-> > +
-> > +	ret = ici->ops->set_selection(icd, s);
-> > +	if (!ret &&
-> > +	    s->target == V4L2_SEL_TGT_COMPOSE_ACTIVE) {
-> > +		icd->user_width = s->r.width;
-> > +		icd->user_height = s->r.height;
-> > +		if (!icd->streamer)
-> > +			icd->streamer = file;
-> > +	}
-> > +
-> > +	return ret;
-> > +}
-> > +
-> >  static int soc_camera_g_parm(struct file *file, void *fh,
-> >  			     struct v4l2_streamparm *a)
-> >  {
-> > @@ -1405,6 +1464,8 @@ static const struct v4l2_ioctl_ops
-> > soc_camera_ioctl_ops = { .vidioc_cropcap		 = soc_camera_cropcap,
-> >  	.vidioc_g_crop		 = soc_camera_g_crop,
-> >  	.vidioc_s_crop		 = soc_camera_s_crop,
-> > +	.vidioc_g_selection	 = soc_camera_g_selection,
-> > +	.vidioc_s_selection	 = soc_camera_s_selection,
-> >  	.vidioc_g_parm		 = soc_camera_g_parm,
-> >  	.vidioc_s_parm		 = soc_camera_s_parm,
-> >  	.vidioc_g_chip_ident     = soc_camera_g_chip_ident,
-> > diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-> > index d865dcf..f997d6a 100644
-> > --- a/include/media/soc_camera.h
-> > +++ b/include/media/soc_camera.h
-> > @@ -86,6 +86,8 @@ struct soc_camera_host_ops {
-> >  	int (*cropcap)(struct soc_camera_device *, struct v4l2_cropcap *);
-> >  	int (*get_crop)(struct soc_camera_device *, struct v4l2_crop *);
-> >  	int (*set_crop)(struct soc_camera_device *, struct v4l2_crop *);
-> > +	int (*get_selection)(struct soc_camera_device *, struct v4l2_selection 
-> *);
-> > +	int (*set_selection)(struct soc_camera_device *, struct v4l2_selection
-> > *); /*
-> >  	 * The difference to .set_crop() is, that .set_livecrop is not allowed
-> >  	 * to change the output sizes
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-
+Signed-off-by: Patrice Chotard <patricechotard@free.fr>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/dvb/ngene/ngene-cards.c |  263 +++++++++++++++++++++++++++++++++
+ 1 files changed, 263 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/dvb/ngene/ngene-cards.c b/drivers/media/dvb/ngene/ngene-cards.c
+index 7539a5d..08c610f 100644
+--- a/drivers/media/dvb/ngene/ngene-cards.c
++++ b/drivers/media/dvb/ngene/ngene-cards.c
+@@ -42,6 +42,8 @@
+ #include "mt2131.h"
+ #include "tda18271c2dd.h"
+ #include "drxk.h"
++#include "drxd.h"
++#include "dvb-pll.h"
+ 
+ 
+ /****************************************************************************/
+@@ -312,6 +314,235 @@ static int demod_attach_lg330x(struct ngene_channel *chan)
+ 	return (chan->fe) ? 0 : -ENODEV;
+ }
+ 
++static int demod_attach_drxd(struct ngene_channel *chan)
++{
++	struct drxd_config *feconf;
++
++	feconf = chan->dev->card_info->fe_config[chan->number];
++
++	chan->fe = dvb_attach(drxd_attach, feconf, chan,
++			&chan->i2c_adapter, &chan->dev->pci_dev->dev);
++	if (!chan->fe) {
++		pr_err("No DRXD found!\n");
++		return -ENODEV;
++	}
++
++	if (!dvb_attach(dvb_pll_attach, chan->fe, feconf->pll_address,
++			&chan->i2c_adapter,
++			feconf->pll_type)) {
++		pr_err("No pll(%d) found!\n", feconf->pll_type);
++		return -ENODEV;
++	}
++	return 0;
++}
++
++/****************************************************************************/
++/* EEPROM TAGS **************************************************************/
++/****************************************************************************/
++
++#define MICNG_EE_START      0x0100
++#define MICNG_EE_END        0x0FF0
++
++#define MICNG_EETAG_END0    0x0000
++#define MICNG_EETAG_END1    0xFFFF
++
++/* 0x0001 - 0x000F reserved for housekeeping */
++/* 0xFFFF - 0xFFFE reserved for housekeeping */
++
++/* Micronas assigned tags
++   EEProm tags for hardware support */
++
++#define MICNG_EETAG_DRXD1_OSCDEVIATION  0x1000  /* 2 Bytes data */
++#define MICNG_EETAG_DRXD2_OSCDEVIATION  0x1001  /* 2 Bytes data */
++
++#define MICNG_EETAG_MT2060_1_1STIF      0x1100  /* 2 Bytes data */
++#define MICNG_EETAG_MT2060_2_1STIF      0x1101  /* 2 Bytes data */
++
++/* Tag range for OEMs */
++
++#define MICNG_EETAG_OEM_FIRST  0xC000
++#define MICNG_EETAG_OEM_LAST   0xFFEF
++
++static int i2c_write_eeprom(struct i2c_adapter *adapter,
++			    u8 adr, u16 reg, u8 data)
++{
++	u8 m[3] = {(reg >> 8), (reg & 0xff), data};
++	struct i2c_msg msg = {.addr = adr, .flags = 0, .buf = m,
++			      .len = sizeof(m)};
++
++	if (i2c_transfer(adapter, &msg, 1) != 1) {
++		pr_err(DEVICE_NAME ": Error writing EEPROM!\n");
++		return -EIO;
++	}
++	return 0;
++}
++
++static int i2c_read_eeprom(struct i2c_adapter *adapter,
++			   u8 adr, u16 reg, u8 *data, int len)
++{
++	u8 msg[2] = {(reg >> 8), (reg & 0xff)};
++	struct i2c_msg msgs[2] = {{.addr = adr, .flags = 0,
++				   .buf = msg, .len = 2 },
++				  {.addr = adr, .flags = I2C_M_RD,
++				   .buf = data, .len = len} };
++
++	if (i2c_transfer(adapter, msgs, 2) != 2) {
++		pr_err(DEVICE_NAME ": Error reading EEPROM\n");
++		return -EIO;
++	}
++	return 0;
++}
++
++static int ReadEEProm(struct i2c_adapter *adapter,
++		      u16 Tag, u32 MaxLen, u8 *data, u32 *pLength)
++{
++	int status = 0;
++	u16 Addr = MICNG_EE_START, Length, tag = 0;
++	u8  EETag[3];
++
++	while (Addr + sizeof(u16) + 1 < MICNG_EE_END) {
++		if (i2c_read_eeprom(adapter, 0x50, Addr, EETag, sizeof(EETag)))
++			return -1;
++		tag = (EETag[0] << 8) | EETag[1];
++		if (tag == MICNG_EETAG_END0 || tag == MICNG_EETAG_END1)
++			return -1;
++		if (tag == Tag)
++			break;
++		Addr += sizeof(u16) + 1 + EETag[2];
++	}
++	if (Addr + sizeof(u16) + 1 + EETag[2] > MICNG_EE_END) {
++		pr_err(DEVICE_NAME
++		       ": Reached EOEE @ Tag = %04x Length = %3d\n",
++		       tag, EETag[2]);
++		return -1;
++	}
++	Length = EETag[2];
++	if (Length > MaxLen)
++		Length = (u16) MaxLen;
++	if (Length > 0) {
++		Addr += sizeof(u16) + 1;
++		status = i2c_read_eeprom(adapter, 0x50, Addr, data, Length);
++		if (!status) {
++			*pLength = EETag[2];
++			if (Length < EETag[2])
++				; /*status=STATUS_BUFFER_OVERFLOW; */
++		}
++	}
++	return status;
++}
++
++static int WriteEEProm(struct i2c_adapter *adapter,
++		       u16 Tag, u32 Length, u8 *data)
++{
++	int status = 0;
++	u16 Addr = MICNG_EE_START;
++	u8 EETag[3];
++	u16 tag = 0;
++	int retry, i;
++
++	while (Addr + sizeof(u16) + 1 < MICNG_EE_END) {
++		if (i2c_read_eeprom(adapter, 0x50, Addr, EETag, sizeof(EETag)))
++			return -1;
++		tag = (EETag[0] << 8) | EETag[1];
++		if (tag == MICNG_EETAG_END0 || tag == MICNG_EETAG_END1)
++			return -1;
++		if (tag == Tag)
++			break;
++		Addr += sizeof(u16) + 1 + EETag[2];
++	}
++	if (Addr + sizeof(u16) + 1 + EETag[2] > MICNG_EE_END) {
++		pr_err(DEVICE_NAME
++		       ": Reached EOEE @ Tag = %04x Length = %3d\n",
++		       tag, EETag[2]);
++		return -1;
++	}
++
++	if (Length > EETag[2])
++		return -EINVAL;
++	/* Note: We write the data one byte at a time to avoid
++	   issues with page sizes. (which are different for
++	   each manufacture and eeprom size)
++	 */
++	Addr += sizeof(u16) + 1;
++	for (i = 0; i < Length; i++, Addr++) {
++		status = i2c_write_eeprom(adapter, 0x50, Addr, data[i]);
++
++		if (status)
++			break;
++
++		/* Poll for finishing write cycle */
++		retry = 10;
++		while (retry) {
++			u8 Tmp;
++
++			msleep(50);
++			status = i2c_read_eeprom(adapter, 0x50, Addr, &Tmp, 1);
++			if (status)
++				break;
++			if (Tmp != data[i])
++				pr_err(DEVICE_NAME
++				       "eeprom write error\n");
++			retry -= 1;
++		}
++		if (status) {
++			pr_err(DEVICE_NAME
++			       ": Timeout polling eeprom\n");
++			break;
++		}
++	}
++	return status;
++}
++
++static int eeprom_read_ushort(struct i2c_adapter *adapter, u16 tag, u16 *data)
++{
++	int stat;
++	u8 buf[2];
++	u32 len = 0;
++
++	stat = ReadEEProm(adapter, tag, 2, buf, &len);
++	if (stat)
++		return stat;
++	if (len != 2)
++		return -EINVAL;
++
++	*data = (buf[0] << 8) | buf[1];
++	return 0;
++}
++
++static int eeprom_write_ushort(struct i2c_adapter *adapter, u16 tag, u16 data)
++{
++	int stat;
++	u8 buf[2];
++
++	buf[0] = data >> 8;
++	buf[1] = data & 0xff;
++	stat = WriteEEProm(adapter, tag, 2, buf);
++	if (stat)
++		return stat;
++	return 0;
++}
++
++static s16 osc_deviation(void *priv, s16 deviation, int flag)
++{
++	struct ngene_channel *chan = priv;
++	struct i2c_adapter *adap = &chan->i2c_adapter;
++	u16 data = 0;
++
++	if (flag) {
++		data = (u16) deviation;
++		pr_info(DEVICE_NAME ": write deviation %d\n",
++		       deviation);
++		eeprom_write_ushort(adap, 0x1000 + chan->number, data);
++	} else {
++		if (eeprom_read_ushort(adap, 0x1000 + chan->number, &data))
++			data = 0;
++		pr_info(DEVICE_NAME ": read deviation %d\n",
++		       (s16) data);
++	}
++
++	return (s16) data;
++}
++
+ /****************************************************************************/
+ /* Switch control (I2C gates, etc.) *****************************************/
+ /****************************************************************************/
+@@ -463,6 +694,37 @@ static struct ngene_info ngene_info_m780 = {
+ 	.fw_version	= 15,
+ };
+ 
++static struct drxd_config fe_terratec_dvbt_0 = {
++	.index          = 0,
++	.demod_address  = 0x70,
++	.demod_revision = 0xa2,
++	.demoda_address = 0x00,
++	.pll_address    = 0x60,
++	.pll_type       = DVB_PLL_THOMSON_DTT7520X,
++	.clock          = 20000,
++	.osc_deviation  = osc_deviation,
++};
++
++static struct drxd_config fe_terratec_dvbt_1 = {
++	.index          = 1,
++	.demod_address  = 0x71,
++	.demod_revision = 0xa2,
++	.demoda_address = 0x00,
++	.pll_address    = 0x60,
++	.pll_type       = DVB_PLL_THOMSON_DTT7520X,
++	.clock          = 20000,
++	.osc_deviation  = osc_deviation,
++};
++
++static struct ngene_info ngene_info_terratec = {
++	.type           = NGENE_TERRATEC,
++	.name           = "Terratec Integra/Cinergy2400i Dual DVB-T",
++	.io_type        = {NGENE_IO_TSIN, NGENE_IO_TSIN},
++	.demod_attach   = {demod_attach_drxd, demod_attach_drxd},
++	.fe_config      = {&fe_terratec_dvbt_0, &fe_terratec_dvbt_1},
++	.i2c_access     = 1,
++};
++
+ /****************************************************************************/
+ 
+ 
+@@ -487,6 +749,7 @@ static const struct pci_device_id ngene_id_tbl[] __devinitdata = {
+ 	NGENE_ID(0x18c3, 0xdd10, ngene_info_duoFlex),
+ 	NGENE_ID(0x18c3, 0xdd20, ngene_info_duoFlex),
+ 	NGENE_ID(0x1461, 0x062e, ngene_info_m780),
++	NGENE_ID(0x153b, 0x1167, ngene_info_terratec),
+ 	{0}
+ };
+ MODULE_DEVICE_TABLE(pci, ngene_id_tbl);
+-- 
+1.7.9.1
+
