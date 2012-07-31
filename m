@@ -1,158 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60067 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757488Ab2GFOe7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 10:34:59 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 08/10] ov772x: Add support for SBGGR10 format
-Date: Fri,  6 Jul 2012 16:34:59 +0200
-Message-Id: <1341585301-1003-9-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1341585301-1003-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1341585301-1003-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from smtp25.services.sfr.fr ([93.17.128.120]:33975 "EHLO
+	smtp25.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751233Ab2GaTjc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Jul 2012 15:39:32 -0400
+Message-ID: <50183288.4030801@sfr.fr>
+Date: Tue, 31 Jul 2012 21:31:20 +0200
+From: Patrice Chotard <patrice.chotard@sfr.fr>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 1/2 RESEND] [media] dvb: add support for Thomson DTT7520X
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+[media] dvb: add support for Thomson DTT7520X
+
+Add support for Thomson DTT7520X pll needed by
+ngene card Terratec Cynergy 2400i DT
+
+Signed-off-by: Patrice Chotard <patricechotard@free.fr>
 ---
- drivers/media/video/ov772x.c |   43 +++++++++++++++++++++++++++++++++++------
- 1 files changed, 36 insertions(+), 7 deletions(-)
+ drivers/media/dvb/frontends/dvb-pll.c |   26 ++++++++++++++++++++++++++
+ drivers/media/dvb/frontends/dvb-pll.h |    1 +
+ 2 files changed, 27 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
-index 67c385b..07ff709 100644
---- a/drivers/media/video/ov772x.c
-+++ b/drivers/media/video/ov772x.c
-@@ -274,6 +274,7 @@
- #define SLCT_VGA        0x00	/*   0 : VGA */
- #define SLCT_QVGA       0x40	/*   1 : QVGA */
- #define ITU656_ON_OFF   0x20	/* ITU656 protocol ON/OFF selection */
-+#define SENSOR_RAW	0x10	/* Sensor RAW */
- 				/* RGB output format control */
- #define FMT_MASK        0x0c	/*      Mask of color format */
- #define FMT_GBR422      0x00	/*      00 : GBR 4:2:2 */
-@@ -337,6 +338,12 @@
- #define CBAR_ON         0x20	/*   ON */
- #define CBAR_OFF        0x00	/*   OFF */
- 
-+/* DSP_CTRL4 */
-+#define DSP_OFMT_YUV	0x00
-+#define DSP_OFMT_RGB	0x00
-+#define DSP_OFMT_RAW8	0x02
-+#define DSP_OFMT_RAW10	0x03
-+
- /* HSTART */
- #define HST_VGA         0x23
- #define HST_QVGA        0x3F
-@@ -388,6 +395,7 @@ struct ov772x_color_format {
- 	enum v4l2_mbus_pixelcode code;
- 	enum v4l2_colorspace colorspace;
- 	u8 dsp3;
-+	u8 dsp4;
- 	u8 com3;
- 	u8 com7;
+diff --git a/drivers/media/dvb/frontends/dvb-pll.c
+b/drivers/media/dvb/frontends/dvb-pll.c
+index 1ab3483..6d8fe88 100644
+--- a/drivers/media/dvb/frontends/dvb-pll.c
++++ b/drivers/media/dvb/frontends/dvb-pll.c
+@@ -116,6 +116,31 @@ static struct dvb_pll_desc dvb_pll_thomson_dtt759x = {
+ 	},
  };
-@@ -498,6 +506,7 @@ static const struct ov772x_color_format ov772x_cfmts[] = {
- 		.code		= V4L2_MBUS_FMT_YUYV8_2X8,
- 		.colorspace	= V4L2_COLORSPACE_JPEG,
- 		.dsp3		= 0x0,
-+		.dsp4		= DSP_OFMT_YUV,
- 		.com3		= SWAP_YUV,
- 		.com7		= OFMT_YUV,
- 	},
-@@ -505,6 +514,7 @@ static const struct ov772x_color_format ov772x_cfmts[] = {
- 		.code		= V4L2_MBUS_FMT_YVYU8_2X8,
- 		.colorspace	= V4L2_COLORSPACE_JPEG,
- 		.dsp3		= UV_ON,
-+		.dsp4		= DSP_OFMT_YUV,
- 		.com3		= SWAP_YUV,
- 		.com7		= OFMT_YUV,
- 	},
-@@ -512,6 +522,7 @@ static const struct ov772x_color_format ov772x_cfmts[] = {
- 		.code		= V4L2_MBUS_FMT_UYVY8_2X8,
- 		.colorspace	= V4L2_COLORSPACE_JPEG,
- 		.dsp3		= 0x0,
-+		.dsp4		= DSP_OFMT_YUV,
- 		.com3		= 0x0,
- 		.com7		= OFMT_YUV,
- 	},
-@@ -519,6 +530,7 @@ static const struct ov772x_color_format ov772x_cfmts[] = {
- 		.code		= V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
- 		.colorspace	= V4L2_COLORSPACE_SRGB,
- 		.dsp3		= 0x0,
-+		.dsp4		= DSP_OFMT_YUV,
- 		.com3		= SWAP_RGB,
- 		.com7		= FMT_RGB555 | OFMT_RGB,
- 	},
-@@ -526,6 +538,7 @@ static const struct ov772x_color_format ov772x_cfmts[] = {
- 		.code		= V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
- 		.colorspace	= V4L2_COLORSPACE_SRGB,
- 		.dsp3		= 0x0,
-+		.dsp4		= DSP_OFMT_YUV,
- 		.com3		= 0x0,
- 		.com7		= FMT_RGB555 | OFMT_RGB,
- 	},
-@@ -533,6 +546,7 @@ static const struct ov772x_color_format ov772x_cfmts[] = {
- 		.code		= V4L2_MBUS_FMT_RGB565_2X8_LE,
- 		.colorspace	= V4L2_COLORSPACE_SRGB,
- 		.dsp3		= 0x0,
-+		.dsp4		= DSP_OFMT_YUV,
- 		.com3		= SWAP_RGB,
- 		.com7		= FMT_RGB565 | OFMT_RGB,
- 	},
-@@ -540,9 +554,22 @@ static const struct ov772x_color_format ov772x_cfmts[] = {
- 		.code		= V4L2_MBUS_FMT_RGB565_2X8_BE,
- 		.colorspace	= V4L2_COLORSPACE_SRGB,
- 		.dsp3		= 0x0,
-+		.dsp4		= DSP_OFMT_YUV,
- 		.com3		= 0x0,
- 		.com7		= FMT_RGB565 | OFMT_RGB,
- 	},
-+	{
-+		/* Setting DSP4 to DSP_OFMT_RAW8 still gives 10-bit output,
-+		 * regardless of the COM7 value. We can thus only support 10-bit
-+		 * Bayer until someone figures it out.
-+		 */
-+		.code		= V4L2_MBUS_FMT_SBGGR10_1X10,
-+		.colorspace	= V4L2_COLORSPACE_SRGB,
-+		.dsp3		= 0x0,
-+		.dsp4		= DSP_OFMT_RAW10,
-+		.com3		= 0x0,
-+		.com7		= SENSOR_RAW | OFMT_BRAW,
+
++static void thomson_dtt7520x_bw(struct dvb_frontend *fe, u8 *buf)
++{
++	u32 bw = fe->dtv_property_cache.bandwidth_hz;
++	if (bw == 8000000)
++		buf[3] ^= 0x10;
++}
++
++static struct dvb_pll_desc dvb_pll_thomson_dtt7520x = {
++	.name  = "Thomson dtt7520x",
++	.min   = 185000000,
++	.max   = 900000000,
++	.set   = thomson_dtt7520x_bw,
++	.iffreq = 36166667,
++	.count = 7,
++	.entries = {
++		{  305000000, 166667, 0xb4, 0x12 },
++		{  405000000, 166667, 0xbc, 0x12 },
++		{  445000000, 166667, 0xbc, 0x12 },
++		{  465000000, 166667, 0xf4, 0x18 },
++		{  735000000, 166667, 0xfc, 0x18 },
++		{  835000000, 166667, 0xbc, 0x18 },
++		{  999999999, 166667, 0xfc, 0x18 },
 +	},
- };
- 
- #define VGA_WIDTH   640
-@@ -684,6 +711,13 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 			goto ov772x_set_fmt_error;
- 	}
- 
-+	/* DSP_CTRL4: AEC reference point and DSP output format. */
-+	if (cfmt->dsp4) {
-+		ret = ov772x_write(client, DSP_CTRL4, cfmt->dsp4);
-+		if (ret < 0)
-+			goto ov772x_set_fmt_error;
-+	}
++};
 +
- 	/*
- 	 * set COM3
- 	 */
-@@ -702,13 +736,8 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 	if (ret < 0)
- 		goto ov772x_set_fmt_error;
- 
--	/*
--	 * set COM7
--	 */
--	val = win->com7_bit | cfmt->com7;
--	ret = ov772x_mask_set(client,
--			      COM7, SLCT_MASK | FMT_MASK | OFMT_MASK,
--			      val);
-+	/* COM7: Sensor resolution and output format control. */
-+	ret = ov772x_write(client, COM7, win->com7_bit | cfmt->com7);
- 	if (ret < 0)
- 		goto ov772x_set_fmt_error;
- 
--- 
-1.7.8.6
+ static struct dvb_pll_desc dvb_pll_lg_z201 = {
+ 	.name  = "LG z201",
+ 	.min   = 174000000,
+@@ -513,6 +538,7 @@ static struct dvb_pll_desc *pll_list[] = {
+ 	[DVB_PLL_UNDEFINED]              = NULL,
+ 	[DVB_PLL_THOMSON_DTT7579]        = &dvb_pll_thomson_dtt7579,
+ 	[DVB_PLL_THOMSON_DTT759X]        = &dvb_pll_thomson_dtt759x,
++	[DVB_PLL_THOMSON_DTT7520X]       = &dvb_pll_thomson_dtt7520x,
+ 	[DVB_PLL_LG_Z201]                = &dvb_pll_lg_z201,
+ 	[DVB_PLL_UNKNOWN_1]              = &dvb_pll_unknown_1,
+ 	[DVB_PLL_TUA6010XS]              = &dvb_pll_tua6010xs,
+diff --git a/drivers/media/dvb/frontends/dvb-pll.h
+b/drivers/media/dvb/frontends/dvb-pll.h
+index 0869643..4de754f 100644
+--- a/drivers/media/dvb/frontends/dvb-pll.h
++++ b/drivers/media/dvb/frontends/dvb-pll.h
+@@ -27,6 +27,7 @@
+ #define DVB_PLL_SAMSUNG_TBDU18132      16
+ #define DVB_PLL_SAMSUNG_TBMU24112      17
+ #define DVB_PLL_TDEE4		       18
++#define DVB_PLL_THOMSON_DTT7520X       19
 
+ /**
+  * Attach a dvb-pll to the supplied frontend structure.
+-- 1.7.9.1
