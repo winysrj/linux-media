@@ -1,24 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:46729 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753075Ab2GJDTe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2012 23:19:34 -0400
-Received: by ghrr11 with SMTP id r11so10843214ghr.19
-        for <linux-media@vger.kernel.org>; Mon, 09 Jul 2012 20:19:33 -0700 (PDT)
+Received: from oyp.chewa.net ([91.121.6.101]:36486 "EHLO oyp.chewa.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752368Ab2GaSjp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Jul 2012 14:39:45 -0400
+From: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCHv2 3/9] v4l: add buffer exporting via dmabuf
+Date: Tue, 31 Jul 2012 21:39:40 +0300
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de
+References: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com> <201207311639.02693.remi@remlab.net> <26877422.izWOc7eKQo@avalon>
+In-Reply-To: <26877422.izWOc7eKQo@avalon>
 MIME-Version: 1.0
-Date: Mon, 9 Jul 2012 21:19:33 -0600
-Message-ID: <CAOkj578ou_hTpEhMwwk05T97_SCZ-+mP346KXH-rbGusLWCvGg@mail.gmail.com>
-Subject: Any program that creates captions from pixel data?
-From: Tim Stowell <stowellt@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Message-Id: <201207312139.42818.remi@remlab.net>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Le mardi 31 juillet 2012 19:28:12 Laurent Pinchart, vous avez écrit :
+> Hi Rémi,
+> 
+> On Tuesday 31 July 2012 16:39:00 Rémi Denis-Courmont wrote:
+> > Le mardi 31 juillet 2012 14:56:14 Laurent Pinchart, vous avez écrit :
+> > > > For that matter, wouldn't it be useful to support exporting a userptr
+> > > > buffer at some point in the future?
+> > > 
+> > > Shouldn't USERPTR usage be discouraged once we get dma-buf support ?
+> > 
+> > USERPTR, where available, is currently the only way to perform zero-copy
+> > from kernel to userspace. READWRITE does not support zero-copy at all.
+> > MMAP only supports zero-copy if userspace knows a boundary on the number
+> > of concurrent buffers *and* the device can deal with that number of
+> > buffers; in general, MMAP requires memory copying.
+> 
+> Could you please share your use case(s) with us ?
 
-I'm trying to create a bitmap image such that when output via a
-composite port it will translate into captions, very similar to this:
-http://al.robotfuzz.com/generating-teletext-in-software/ except NTSC.
-I have some ideas but wanted to check if anyone had tried something
-similar as Google didn't turn up much, thanks!
+I want to receive the video buffers in user space for processing. Typically 
+"processing" is software encoding or conversion. That's what virtually any V4L 
+application does on the desktop...
+
+-- 
+Rémi Denis-Courmont
+http://www.remlab.net/
+http://fi.linkedin.com/in/remidenis
