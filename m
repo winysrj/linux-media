@@ -1,66 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:35457 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754357Ab2GXWRl (ORCPT
+Received: from oyp.chewa.net ([91.121.6.101]:56566 "EHLO oyp.chewa.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751133Ab2GaOSI convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jul 2012 18:17:41 -0400
-Received: by weyx8 with SMTP id x8so52910wey.19
-        for <linux-media@vger.kernel.org>; Tue, 24 Jul 2012 15:17:40 -0700 (PDT)
+	Tue, 31 Jul 2012 10:18:08 -0400
+From: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>
+To: Rob Clark <rob.clark@linaro.org>
+Subject: Re: [PATCHv2 3/9] v4l: add buffer exporting via dmabuf
+Date: Tue, 31 Jul 2012 17:18:02 +0300
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de
+References: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com> <201207311639.02693.remi@remlab.net> <CAF6AEGvZnz=1XEX9tuk_ZcfS14LXmnjeZGvOunWvi8aZ3sER5Q@mail.gmail.com>
+In-Reply-To: <CAF6AEGvZnz=1XEX9tuk_ZcfS14LXmnjeZGvOunWvi8aZ3sER5Q@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <500F1DC5.1000608@iki.fi>
-References: <500C5B9B.8000303@iki.fi>
-	<CAOcJUbw-8zG-j7YobgKy7k5vp-k_trkaB5fYGz605KdUQHKTGQ@mail.gmail.com>
-	<500F1DC5.1000608@iki.fi>
-Date: Tue, 24 Jul 2012 18:17:39 -0400
-Message-ID: <CAOcJUbzXoLx10o8oprxPM1TELFxyGE7_wodcWsBr8MX4OR0N_w@mail.gmail.com>
-Subject: Re: tda18271 driver power consumption
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201207311718.05738.remi@remlab.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 24, 2012 at 6:12 PM, Antti Palosaari <crope@iki.fi> wrote:
-> On 07/25/2012 12:55 AM, Michael Krufky wrote:
->>
->> On Sun, Jul 22, 2012 at 3:59 PM, Antti Palosaari <crope@iki.fi> wrote:
->>>
->>> Moi Michael,
->>> I just realized tda18271 driver eats 160mA too much current after attach.
->>> This means, there is power management bug.
->>>
->>> When I plug my nanoStick it eats total 240mA, after tda18271 sleep is
->>> called
->>> it eats only 80mA total which is reasonable. If I use Digital Devices
->>> tda18271c2dd driver it is total 110mA after attach, which is also quite
->>> OK.
->>
->>
->> Thanks for the report -- I will take a look at it.
->>
->> ...patches are welcome, of course :-)
->
->
-> I suspect it does some tweaking on attach() and chip leaves powered (I saw
-> demod debugs at calls I2C-gate control quite many times thus this
-> suspicion). When chip is powered-up it is usually in some sleep state by
-> default. Also, on attach() there should be no I/O unless very good reason.
-> For example chip ID is allowed to read and download firmware in case it is
-> really needed to continue - like for tuner communication.
->
->
-> What I found quickly testing few DVB USB sticks there seems to be very much
-> power management problems... I am now waiting for new multimeter in order to
-> make better measurements and likely return fixing these issues later.
+Le mardi 31 juillet 2012 17:03:52 Rob Clark, vous avez écrit :
+> On Tue, Jul 31, 2012 at 8:39 AM, Rémi Denis-Courmont <remi@remlab.net> 
+wrote:
+> > Le mardi 31 juillet 2012 14:56:14 Laurent Pinchart, vous avez écrit :
+> >> > For that matter, wouldn't it be useful to support exporting a userptr
+> >> > buffer at some point in the future?
+> >> 
+> >> Shouldn't USERPTR usage be discouraged once we get dma-buf support ?
+> > 
+> > USERPTR, where available, is currently the only way to perform zero-copy
+> > from kernel to userspace. READWRITE does not support zero-copy at all.
+> > MMAP only supports zero-copy if userspace knows a boundary on the number
+> > of concurrent buffers *and* the device can deal with that number of
+> > buffers; in general, MMAP requires memory copying.
+> 
+> hmm, this sounds like the problem is device pre-allocating buffers?
 
-The driver does some calibration during attach, some of which is a
-one-time initialization to determine a temperature differential for
-tune calculation later on, which can take some time on slower USB
-buses.  The "fix" for the power usage issue would just be to make sure
-to sleep the device before exiting the attach() function.
+Basically, yes.
 
-I'm not looking to remove the calibration from the attach -- this was
-done on purpose.
+> Anyways, last time I looked, the vb2 core supported changing dmabuf fd
+> each time you QBUF, in a similar way to what you can do w/ userptr.
+> So that seems to get you the advantages you miss w/ mmap without the
+> pitfalls of userptr.
 
--Mike
+It might work albeit with a higher system calls count overhead.
+
+But what about libv4l2 transparent format conversion? Emulated USERBUF, with  
+MMAP in the back-end would provide by far the least overhead. I don't see how 
+DMABUF would work there.
+
+-- 
+Rémi Denis-Courmont
+http://www.remlab.net/
+http://fi.linkedin.com/in/remidenis
