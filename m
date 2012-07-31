@@ -1,59 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aotearoadigitalarts.org.nz ([72.14.179.101]:57872 "EHLO
-	linode.halo.gen.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750956Ab2GGD2I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2012 23:28:08 -0400
-Message-ID: <4FF7ACBD.1040609@paradise.net.nz>
-Date: Sat, 07 Jul 2012 15:27:57 +1200
-From: Douglas Bagnall <douglas@paradise.net.nz>
+Received: from mx1.redhat.com ([209.132.183.28]:3645 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756154Ab2GaSnt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Jul 2012 14:43:49 -0400
+Message-ID: <50181AAB.5050100@redhat.com>
+Date: Tue, 31 Jul 2012 14:49:31 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] Avoid sysfs oops when an rc_dev's raw device is absent
-References: <4FE7AA34.8090304@paradise.net.nz> <4FF64C60.1070804@redhat.com>
-In-Reply-To: <4FF64C60.1070804@redhat.com>
-Content-Type: text/plain; charset=UTF-8
+To: Naveen KRISHNAMURTHY <naveen.krishnamurthy@st.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"workshop-2011@linuxtv.org" <workshop-2011@linuxtv.org>
+Subject: Re: [Workshop-2011] Media summit at the Kernel Summit - was: Fwd:
+ Re: [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
+References: <20120713173708.GB17109@thunk.org> <5005A14D.8000809@redhat.com> <507CA1C5BFF45D429225893E9D464308311959BAD6@SAFEX1MAIL2.st.com>
+In-Reply-To: <507CA1C5BFF45D429225893E9D464308311959BAD6@SAFEX1MAIL2.st.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For some reason, when the lirc daemon learns that a usb remote control
-has been unplugged, it wants to read the sysfs attributes of the
-disappearing device. This is useful for uncovering transient
-inconsistencies, but less so for keeping the system running when such
-inconsistencies exist.
+Em 24-07-2012 21:17, Naveen KRISHNAMURTHY escreveu:
+> Hello Mauro,
+> 
+> We would like to participate in the media summit at San Diego. Can you please reserve 2 seats for us. 
 
-Under some circumstances (like every time I unplug my dvb stick from
-my laptop), lirc catches an rc_dev whose raw event handler has been
-removed (presumably by ir_raw_event_unregister), and proceeds to
-interrogate the raw protocols supported by the NULL pointer.
+Who are you planning to send to the media summit?
 
-This patch avoids the NULL dereference, and ignores the issue of how
-this state of affairs came about in the first place.
+> If possible we would like to reserve a session to present how we have used the linuxTV to model our 
+> devices and support our use cases. We will also consolidate and pass on a list of questions related 
+> to spec ambiguities and hope to get it clarified during the summit!
+> 
+> Can you please confirm back on the feasibility of our attendance?
 
-Version 2 incorporates changes recommended by Mauro Carvalho Chehab
-(-ENODEV instead of -EINVAL, and a signed-off-by).
+I'll be doing it along this week.
 
-Signed-off-by: Douglas Bagnall <douglas@paradise.net.nz>
----
- drivers/media/rc/rc-main.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 6e16b09..9880926 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -775,10 +775,12 @@ static ssize_t show_protocols(struct device *device,
- 	if (dev->driver_type == RC_DRIVER_SCANCODE) {
- 		enabled = dev->rc_map.rc_type;
- 		allowed = dev->allowed_protos;
--	} else {
-+	} else if (dev->raw) {
- 		enabled = dev->raw->enabled_protocols;
- 		allowed = ir_raw_get_allowed_protocols();
- 	}
-+	else
-+		return -ENODEV;
- 
- 	IR_dprintk(1, "allowed - 0x%llx, enabled - 0x%llx\n",
- 		   (long long)allowed,
+Regards,
+Mauro
