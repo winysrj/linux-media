@@ -1,68 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51806 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46815 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753828Ab2GWRPz (ORCPT
+	with ESMTP id S1754370Ab2GaVqk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jul 2012 13:15:55 -0400
+	Tue, 31 Jul 2012 17:46:40 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] v4l2-ctrls: Add v4l2_ctrl_[gs]_ctrl_int64()
-Date: Mon, 23 Jul 2012 19:16:03 +0200
-Message-ID: <3976016.Ryl9sFuTOd@avalon>
-In-Reply-To: <201207231705.35789.hverkuil@xs4all.nl>
-References: <1343052160-24229-1-git-send-email-laurent.pinchart@ideasonboard.com> <201207231705.35789.hverkuil@xs4all.nl>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org, b.zolnierkie@samsung.com
+Subject: Re: [RFC/PATCH 09/13] media: s5k6aa: Add support for device tree based instantiation
+Date: Tue, 31 Jul 2012 23:46:46 +0200
+Message-ID: <5948378.3Gs2pPiBLX@avalon>
+In-Reply-To: <5017DD94.8040100@samsung.com>
+References: <4FBFE1EC.9060209@samsung.com> <Pine.LNX.4.64.1207311452180.27888@axis700.grange> <5017DD94.8040100@samsung.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Sylwester,
 
-On Monday 23 July 2012 17:05:35 Hans Verkuil wrote:
-> On Mon July 23 2012 16:02:40 Laurent Pinchart wrote:
-> > These helper functions get and set a 64-bit control's value from within
-> > a driver. They are similar to v4l2_ctrl_[gs]_ctrl() but operate on
-> > 64-bit integer controls instead of 32-bit controls.
+On Tuesday 31 July 2012 15:28:52 Sylwester Nawrocki wrote:
+> On 07/31/2012 02:59 PM, Guennadi Liakhovetski wrote:
+> > On Tue, 31 Jul 2012, Sylwester Nawrocki wrote:
+> >> On 07/31/2012 02:26 PM, Guennadi Liakhovetski wrote:
+> >>>>>> But should we allow host probe() to succeed if the sensor isn't
+> >>>>>> present ?
+> >>>>> 
+> >>>>> I think we should, yes. The host hardware is there and functional -
+> >>>>> whether or not all or some of the clients are failing. Theoretically
+> >>>>> clients can also be hot-plugged. Whether and how many video device
+> >>>>> nodes
+> >>>>> we create, that's a different question.
+> >>>> 
+> >>>> I think I can agree with you on this (although I could change my mind
+> >>>> if this architecture turns out to result in unsolvable technical
+> >>>> issues). That will involve a lot of work though.
+> >>> 
+> >>> There's however at least one more gotcha that occurs to me with this
+> >>> approach: if clients fail to probe, how do we find out about that and
+> >>> turn
+> >>> clocks back off? One improvement to turning clocks on immediately in
+> >> 
+> >> Hmm, wouldn't it be the client that turns a clock on/off when needed ?
+> >> I'd like to preserve this functionality, so client drivers can have
+> >> full control on the power up/down sequences. While we are trying to
+> >> improve the current situation...
 > > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-[snip]
-
-> > -static int get_ctrl(struct v4l2_ctrl *ctrl, s32 *val)
-> > +static int get_ctrl(struct v4l2_ctrl *ctrl, struct v4l2_ext_control *c)
-> > 
-> >  {
-> >  
-> >  	struct v4l2_ctrl *master = ctrl->cluster[0];
-> >  	int ret = 0;
-> >  	int i;
-> > 
-> > +	/* String controls are not supported. The new_to_user() and
-> > +	 * cur_to_user() calls below would need to be fixed not to access
-> > +	 * userspace memory.
+> > Eventually, when the clock API is available - yes, the client would just
+> > call clk_enable() / clk_disable(). But for now isn't it host's job to do
+> > that? Or you want to add new API for that?
 > 
-> Just one small suggestion: change this comment to:
+> Indeed, looking at existing drivers, the clocks' handling is now mostly
+> done in the host drivers. Only the omap3isp appears to do the right thing,
+> i.e. delegating control over the clock to client drivers, but it does it
+> with platform_data callbacks.
 > 
-> 	/* String controls are not supported. The new_to_user() and
-> 	 * cur_to_user() calls below would need to be modified not to access
-> 	 * userspace memory when called from get_ctrl().
-> 	 */
+> We've already discussed adding a new API for that,
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg35359.html
 > 
-> And a similar change in the comment with set_ctrl.
+> However using common clock API and binding a clock to client device
+> (either DT based or not) sounds like a best approach to me.
 > 
-> The word 'fixed' suggested that new_to_user etc. were broken, which isn't
-> the case. We are just using it in a special situation.
+> Waiting for the common clock API to be generally available maybe we
+> could add some clock ops at the v4l2_device ? Just a humble suggestion,
+> I'm not sure whether it is really good and needed or not.
 
-OK. Fixed.
-
-> With the above change to get/set_ctrl you can add my
-> 
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Thank you. I'll resubmit the patch (along with a driver patch that uses it). 
-Would you like to push it through your tree ?
+I'm fine with that (or something similar) as an interim solution.
 
 -- 
 Regards,
