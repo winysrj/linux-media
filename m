@@ -1,108 +1,295 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:61578 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752827Ab2GaJ0e (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:39464 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756339Ab2GaUPZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 05:26:34 -0400
-Date: Tue, 31 Jul 2012 11:26:27 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	devicetree-discuss <devicetree-discuss@lists.ozlabs.org>
-Subject: Re: [RFC] media DT bindings
-In-Reply-To: <1537713.eFPuk01afu@avalon>
-Message-ID: <Pine.LNX.4.64.1207311058140.27888@axis700.grange>
-References: <Pine.LNX.4.64.1207110854290.18999@axis700.grange>
- <Pine.LNX.4.64.1207161257590.18978@axis700.grange> <5006EB9F.5010408@gmail.com>
- <1537713.eFPuk01afu@avalon>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Tue, 31 Jul 2012 16:15:25 -0400
+From: Federico Vaga <federico.vaga@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jonathan Corbet <corbet@lwn.net>,
+	Federico Vaga <federico.vaga@gmail.com>
+Subject: [PATCH 2/3] [media] videobuf2-dma-streaming: new videobuf2 memory allocator
+Date: Tue, 31 Jul 2012 22:17:08 +0200
+Message-Id: <1343765829-6006-3-git-send-email-federico.vaga@gmail.com>
+In-Reply-To: <1343765829-6006-1-git-send-email-federico.vaga@gmail.com>
+References: <1343765829-6006-1-git-send-email-federico.vaga@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 27 Jul 2012, Laurent Pinchart wrote:
-
-> Hi Sylwester,
-> 
-> On Wednesday 18 July 2012 19:00:15 Sylwester Nawrocki wrote:
-> > On 07/16/2012 01:41 PM, Guennadi Liakhovetski wrote:
-
-[snip]
-
-> > >>> An sh-mobile CEU DT node could look like
-> > >>> 
-> > >>> 	ceu0@0xfe910000 = {
-> > >>> 	
-> > >>> 		compatible = "renesas,sh-mobile-ceu";
-> > >>> 		reg =<0xfe910000 0xa0>;
-> > >>> 		interrupts =<0x880>;
-> > >>> 		bus-width =<16>;		/* #lines routed on the board */
-> > >>> 		clock-frequency =<50000000>;	/* max clock */
-> > >>> 		#address-cells =<1>;
-> > >>> 		#size-cells =<0>;
-> > >>> 		...
-> > >>> 		ov772x-1 = {
-> > >>> 		
-> > >>> 			reg =<0>;
-> > 
-> > This property might be redundant, we already have the "client" phandle
-> > pointing to "ov772x@0x21-0", which has all interesting properties inside
-> > it. Other than there is probably no reasonable usage for it under
-> > "ceu0@0xfe910000" node ?
-> > 
-> > >>> 			client =<&ov772x@0x21-0>;
-> > >>> 			local-pad = "parallel-sink";
-> > >>> 			remote-pad = "parallel-source";
-> > >> 
-> > >> I'm not sure I like that. Is it really needed when we already have
-> > >> the child/parent properties around ?
-> > > 
-> > > I think it is. Both the host and the client can have multiple pads (e.g.,
-> > > parallel / serial). These properties specify which pads are used and make
-> > > the translation between DT data and our subdev / pad APIs simpler.
-> > 
-> > OK, sorry, but isn't it all about just specifying what sort of data bus
-> > is used ? :-)
-> 
-> In some (many/most ?) cases probably, but not in all of them.
-> 
-> What about merging the client and remote-pad properties ? The resulting 
-> property would then reference a pad with <&ov772x@0x21-0 0>.
-
-What would the "0" parameter mean then? Pad #0? But aren't these numbers 
-device specific? Maybe not a huge deal, but these numbers are defind by 
-the driver, right? Not the DT itself. So, drivers then will have to take 
-care not to change their pad numbering. Whereas using strings, we can fix 
-strings in the common V4L DT spec and keep them standard across devices 
-and drivers. Then drivers might be less likely to change these assignments 
-randomly;-)
-
-[snip]
-
-> > I'd like just to point one detail here, as sensor subdev drivers control
-> > their voltage regulators and RESET/STANDBY (gpio) signals, they should
-> > also be able to control the master clock. In order to ensure proper power
-> > up/down sequences. It is a bad practice to enable clocks before voltage
-> > supplies are switched on and we shouldn't have that as a general
-> > assumption at the kernel frameworks.
-> > 
-> > One possible solution would be to have host/bridge drivers to register
-> > a clkdev entry for I2C client device, so it can acquire the clock through
-> > just clk_get(). We would have to ensure the clock is not tried to be
-> > accessed before it is registered by a bridge. This would require to add
-> > clock handling code to all sensor/encoder subdev drivers though..
-> 
-> I thik it's a good practice to add clock management to subdevs anyway, and the 
-> common clock framework should make that easy (or at least not too difficult). 
-> We can migrate subdevs one by one as we add DT support for them.
-
-Yes, this would be good.
-
-Thanks
-Guennadi
+Signed-off-by: Federico Vaga <federico.vaga@gmail.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/Kconfig                   |   6 +-
+ drivers/media/video/Makefile                  |   1 +
+ drivers/media/video/videobuf2-dma-streaming.c | 187 ++++++++++++++++++++++++++
+ include/media/videobuf2-dma-streaming.h       |  24 ++++
+ 4 file modificati, 217 inserzioni(+). 1 rimozione(-)
+ create mode 100644 drivers/media/video/videobuf2-dma-streaming.c
+ create mode 100644 include/media/videobuf2-dma-streaming.h
+
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index be6d718..6c60b59 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -59,6 +59,10 @@ config VIDEOBUF2_DMA_NC
+ 	select VIDEOBUF2_CORE
+ 	select VIDEOBUF2_MEMOPS
+ 	tristate
++config VIDEOBUF2_DMA_STREAMING
++	select VIDEOBUF2_CORE
++	select VIDEOBUF2_MEMOPS
++	tristate
+ 
+ config VIDEOBUF2_VMALLOC
+ 	select VIDEOBUF2_CORE
+@@ -844,7 +848,7 @@ config STA2X11_VIP
+ 	tristate "STA2X11 VIP Video For Linux"
+ 	depends on STA2X11
+ 	select VIDEO_ADV7180 if VIDEO_HELPER_CHIPS_AUTO
+-	select VIDEOBUF_DMA_CONTIG
++	select VIDEOBUF2_DMA_STREAMING
+ 	depends on PCI && VIDEO_V4L2 && VIRT_TO_BUS
+ 	help
+ 	  Say Y for support for STA2X11 VIP (Video Input Port) capture
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index 30234af..c1a08b9e 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -140,6 +140,7 @@ obj-$(CONFIG_VIDEOBUF2_VMALLOC)		+= videobuf2-vmalloc.o
+ obj-$(CONFIG_VIDEOBUF2_DMA_CONTIG)	+= videobuf2-dma-contig.o
+ obj-$(CONFIG_VIDEOBUF2_DMA_SG)		+= videobuf2-dma-sg.o
+ obj-$(CONFIG_VIDEOBUF2_DMA_NC)		+= videobuf2-dma-nc.o
++obj-$(CONFIG_VIDEOBUF2_DMA_STREAMING)	+= videobuf2-dma-streaming.o
+ 
+ obj-$(CONFIG_V4L2_MEM2MEM_DEV) += v4l2-mem2mem.o
+ 
+diff --git a/drivers/media/video/videobuf2-dma-streaming.c b/drivers/media/video/videobuf2-dma-streaming.c
+new file mode 100644
+index 0000000..d96d3d9
+--- /dev/null
++++ b/drivers/media/video/videobuf2-dma-streaming.c
+@@ -0,0 +1,187 @@
++/*
++ * videobuf2-dma-streaming.c - DMA streaming memory allocator for videobuf2
++ *
++ * Copyright (C) 2012 Federico Vaga <federico.vaga@gmail.com>
++ * *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/pagemap.h>
++#include <linux/dma-mapping.h>
++
++#include <media/videobuf2-core.h>
++#include <media/videobuf2-dma-streaming.h>
++#include <media/videobuf2-memops.h>
++
++struct vb2_streaming_conf {
++	struct device			*dev;
++};
++struct vb2_streaming_buf {
++	struct vb2_streaming_conf	*conf;
++	void				*vaddr;
++
++	dma_addr_t			dma_handle;
++
++	unsigned long			size;
++	struct vm_area_struct		*vma;
++
++	atomic_t			refcount;
++	struct vb2_vmarea_handler	handler;
++};
++
++static void vb2_dma_streaming_put(void *buf_priv)
++{
++	struct vb2_streaming_buf *buf = buf_priv;
++
++	if (atomic_dec_and_test(&buf->refcount)) {
++		dma_unmap_single(buf->conf->dev, buf->dma_handle, buf->size,
++				 DMA_FROM_DEVICE);
++		free_pages_exact(buf->vaddr, buf->size);
++		kfree(buf);
++	}
++
++}
++
++static void *vb2_dma_streaming_alloc(void *alloc_ctx, unsigned long size)
++{
++	struct vb2_streaming_conf *conf = alloc_ctx;
++	struct vb2_streaming_buf *buf;
++	int err;
++
++	buf = kzalloc(sizeof *buf, GFP_KERNEL);
++	if (!buf)
++		return ERR_PTR(-ENOMEM);
++	buf->vaddr = alloc_pages_exact(size, GFP_KERNEL | GFP_DMA);
++	if (!buf->vaddr) {
++		err = -ENOMEM;
++		goto out;
++	}
++	buf->dma_handle = dma_map_single(conf->dev, buf->vaddr, size,
++					 DMA_FROM_DEVICE);
++	err = dma_mapping_error(conf->dev, buf->dma_handle);
++	if (err) {
++		dev_err(conf->dev, "dma_map_single failed\n");
++
++		free_pages_exact(buf->vaddr, size);
++		buf->vaddr = NULL;
++		goto out_pages;
++	}
++	buf->conf = conf;
++	buf->size = size;
++	buf->handler.refcount = &buf->refcount;
++	buf->handler.put = vb2_dma_streaming_put;
++	buf->handler.arg = buf;
++
++	atomic_inc(&buf->refcount);
++	return buf;
++
++out_pages:
++	free_pages_exact(buf->vaddr, buf->size);
++out:
++	kfree(buf);
++	return ERR_PTR(err);
++}
++
++static void *vb2_dma_streaming_cookie(void *buf_priv)
++{
++	struct vb2_streaming_buf *buf = buf_priv;
++
++	return (void *)buf->dma_handle;
++}
++
++static void *vb2_dma_streaming_vaddr(void *buf_priv)
++{
++	struct vb2_streaming_buf *buf = buf_priv;
++
++	if (!buf)
++		return NULL;
++	return buf->vaddr;
++}
++
++static unsigned int vb2_dma_streaming_num_users(void *buf_priv)
++{
++	struct vb2_streaming_buf *buf = buf_priv;
++
++	return atomic_read(&buf->refcount);
++}
++
++static int vb2_dma_streaming_mmap(void *buf_priv, struct vm_area_struct *vma)
++{
++	struct vb2_streaming_buf *buf = buf_priv;
++	unsigned long pos, start = vma->vm_start;
++	unsigned long size;
++	struct page *page;
++	int err;
++
++	/* Try to remap memory */
++	size = vma->vm_end - vma->vm_start;
++	size = (size < buf->size) ? size : buf->size;
++	pos = (unsigned long)buf->vaddr;
++
++	while (size > 0) {
++		page = virt_to_page((void *)pos);
++		if (!page) {
++			dev_err(buf->conf->dev, "mmap: virt_to_page failed\n");
++			return -ENOMEM;
++		}
++		err = vm_insert_page(vma, start, page);
++		if (err) {
++			dev_err(buf->conf->dev, "mmap: insert failed %d\n", err);
++			return -ENOMEM;
++		}
++		start += PAGE_SIZE;
++		pos += PAGE_SIZE;
++
++		if (size > PAGE_SIZE)
++			size -= PAGE_SIZE;
++		else
++			size = 0;
++	}
++
++
++	vma->vm_ops = &vb2_common_vm_ops;
++	vma->vm_flags |= VM_DONTEXPAND;
++	vma->vm_private_data = &buf->handler;
++
++	vma->vm_ops->open(vma);
++
++	return 0;
++}
++
++const struct vb2_mem_ops vb2_dma_streaming_memops = {
++	.alloc		= vb2_dma_streaming_alloc,
++	.put		= vb2_dma_streaming_put,
++	.cookie		= vb2_dma_streaming_cookie,
++	.vaddr		= vb2_dma_streaming_vaddr,
++	.mmap		= vb2_dma_streaming_mmap,
++	.num_users	= vb2_dma_streaming_num_users,
++};
++EXPORT_SYMBOL_GPL(vb2_dma_streaming_memops);
++
++void *vb2_dma_streaming_init_ctx(struct device *dev)
++{
++	struct vb2_streaming_conf *conf;
++
++	conf = kmalloc(sizeof *conf, GFP_KERNEL);
++	if (!conf)
++		return ERR_PTR(-ENOMEM);
++
++	conf->dev = dev;
++
++	return conf;
++}
++EXPORT_SYMBOL_GPL(vb2_dma_streaming_init_ctx);
++
++void vb2_dma_streaming_cleanup_ctx(void *alloc_ctx)
++{
++	kfree(alloc_ctx);
++}
++EXPORT_SYMBOL_GPL(vb2_dma_streaming_cleanup_ctx);
++
++MODULE_DESCRIPTION("DMA-streaming memory allocator for videobuf2");
++MODULE_AUTHOR("Federico Vaga <federico.vaga@gmail.com>");
++MODULE_LICENSE("GPL v2");
+diff --git a/include/media/videobuf2-dma-streaming.h b/include/media/videobuf2-dma-streaming.h
+new file mode 100644
+index 0000000..89cbd06
+--- /dev/null
++++ b/include/media/videobuf2-dma-streaming.h
+@@ -0,0 +1,24 @@
++/*
++ * videobuf2-dma-streaming.h - DMA steaming memory allocator for videobuf2
++ *
++ * Copyright (C) 2012 Federico Vaga
++ *
++ * Author: Federico Vaga <federico.vaga@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation.
++ */
++
++#ifndef _MEDIA_VIDEOBUF2_DMA_STREAMING_H
++#define _MEDIA_VIDEOBUF2_DMA_STREAMING_H
++
++#include <media/videobuf2-core.h>
++#include <linux/dma-mapping.h>
++
++void *vb2_dma_streaming_init_ctx(struct device *dev);
++void vb2_dma_streaming_cleanup_ctx(void *alloc_ctx);
++
++extern const struct vb2_mem_ops vb2_dma_streaming_memops;
++
++#endif
+-- 
+1.7.11.2
+
