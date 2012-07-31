@@ -1,110 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1-relais-roc.national.inria.fr ([192.134.164.82]:16113 "EHLO
-	mail1-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751788Ab2GOJZ1 (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:52559 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754623Ab2GaH64 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jul 2012 05:25:27 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] drivers/media/dvb/siano/smscoreapi.c: use list_for_each_entry
-Date: Sun, 15 Jul 2012 11:25:22 +0200
-Message-Id: <1342344322-11122-1-git-send-email-Julia.Lawall@lip6.fr>
+	Tue, 31 Jul 2012 03:58:56 -0400
+Date: Tue, 31 Jul 2012 09:58:51 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Alex Gershgorin <alexg@meprolight.com>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] mt9v022: Add support for mt9v024
+In-Reply-To: <1343660457-7238-1-git-send-email-alexg@meprolight.com>
+Message-ID: <Pine.LNX.4.64.1207310937170.27888@axis700.grange>
+References: <1343660457-7238-1-git-send-email-alexg@meprolight.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Julia Lawall <Julia.Lawall@lip6.fr>
+Hi Alex
 
-Use list_for_each_entry and perform some other induced simplifications.
+Thanks for the patch, comments below.
 
-The semantic match that finds the opportunity for this reorganization is as
-follows: (http://coccinelle.lip6.fr/)
+On Mon, 30 Jul 2012, Alex Gershgorin wrote:
 
-// <smpl>
-@@
-struct list_head *pos;
-struct list_head *head;
-statement S;
-@@
+> This patch has been successfully tested
+> 
+> Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
+> ---
+>  drivers/media/video/Kconfig   |    2 +-
+>  drivers/media/video/mt9v022.c |   28 ++++++++++++++++++----------
+>  2 files changed, 19 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+> index 99937c9..38d6944 100644
+> --- a/drivers/media/video/Kconfig
+> +++ b/drivers/media/video/Kconfig
+> @@ -1013,7 +1013,7 @@ config SOC_CAMERA_MT9T112
+>  	  This driver supports MT9T112 cameras from Aptina.
+>  
+>  config SOC_CAMERA_MT9V022
+> -	tristate "mt9v022 support"
+> +	tristate "mt9v022 and mt9v024 support"
+>  	depends on SOC_CAMERA && I2C
+>  	select GPIO_PCA953X if MT9V022_PCA9536_SWITCH
+>  	help
+> diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
+> index bf63417..d2c1ab1 100644
+> --- a/drivers/media/video/mt9v022.c
+> +++ b/drivers/media/video/mt9v022.c
+> @@ -26,7 +26,7 @@
+>   * The platform has to define ctruct i2c_board_info objects and link to them
+>   * from struct soc_camera_link
+>   */
+> -
+> +static s32 chip_id;
 
-*for (pos = (head)->next; pos != (head); pos = pos->next)
-S
-// </smpl>
+No, this should be per instance. Please, add it to struct mt9v022.
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+>  static char *sensor_type;
+>  module_param(sensor_type, charp, S_IRUGO);
+>  MODULE_PARM_DESC(sensor_type, "Sensor type: \"colour\" or \"monochrome\"");
+> @@ -57,6 +57,10 @@ MODULE_PARM_DESC(sensor_type, "Sensor type: \"colour\" or \"monochrome\"");
+>  #define MT9V022_AEC_AGC_ENABLE		0xAF
+>  #define MT9V022_MAX_TOTAL_SHUTTER_WIDTH	0xBD
+>  
+> +/* mt9v024 partial list register addresses changes with respect to mt9v022 */
+> +#define MT9V024_PIXCLK_FV_LV		0x72
+> +#define MT9V024_MAX_TOTAL_SHUTTER_WIDTH	0xAD
+> +
+>  /* Progressive scan, master, defaults */
+>  #define MT9V022_CHIP_CONTROL_DEFAULT	0x188
+>  
+> @@ -185,7 +189,9 @@ static int mt9v022_init(struct i2c_client *client)
+>  	if (!ret)
+>  		ret = reg_write(client, MT9V022_TOTAL_SHUTTER_WIDTH, 480);
+>  	if (!ret)
+> -		ret = reg_write(client, MT9V022_MAX_TOTAL_SHUTTER_WIDTH, 480);
+> +		ret = reg_write(client, (chip_id == 0x1324) ?
 
+I would use a macro something like
+
+#define is_mt9v024(p) (p->chip_id == 0x1324)
+
+same everywhere below
+
+> +				MT9V024_MAX_TOTAL_SHUTTER_WIDTH :
+> +				MT9V022_MAX_TOTAL_SHUTTER_WIDTH, 480);
+
+Hm, with just 2 registers different it almost isn't worth it, but still... 
+(1) if someone uses this driver as a template, or (2) if we add more 
+sensors or more registers, whose addresses also are different, I think, we 
+better do it properly. How about
+
+/* only registers with different addresses on different mt9v02x sensors */
+struct mt9v02x_register {
+	u8	max_total_shutter_width;
+	u8	pixclk_fv_lv;
+};
+
+static const struct mt9v02x_register mt9v022_register = {
+	.max_total_shutter_width	= MT9V022_MAX_TOTAL_SHUTTER_WIDTH,
+	.pixclk_fv_lv			= MT9V022_PIXCLK_FV_LV,
+};
+
+static const struct mt9v02x_register mt9v024_register = {
+	.max_total_shutter_width	= MT9V024_MAX_TOTAL_SHUTTER_WIDTH,
+	.pixclk_fv_lv			= MT9V024_PIXCLK_FV_LV,
+};
+
+struct mt9v022 {
+	...
+	const struct mt9v02x_register *reg;
+	...
+};
+
+and then in this case just do
+
++		ret = reg_write(client, mt9v022->reg->max_total_shutter_width, 480);
+
+etc.?
+
+>  	if (!ret)
+>  		/* default - auto */
+>  		ret = reg_clear(client, MT9V022_BLACK_LEVEL_CALIB_CTRL, 1);
+> @@ -238,8 +244,10 @@ static int mt9v022_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+>  	ret = reg_read(client, MT9V022_AEC_AGC_ENABLE);
+>  	if (ret >= 0) {
+>  		if (ret & 1) /* Autoexposure */
+> -			ret = reg_write(client, MT9V022_MAX_TOTAL_SHUTTER_WIDTH,
+> -					rect.height + mt9v022->y_skip_top + 43);
+> +			ret = reg_write(client, (chip_id == 0x1324) ?
+> +				MT9V024_MAX_TOTAL_SHUTTER_WIDTH :
+> +				MT9V022_MAX_TOTAL_SHUTTER_WIDTH,
+> +				rect.height + mt9v022->y_skip_top + 43);
+>  		else
+>  			ret = reg_write(client, MT9V022_TOTAL_SHUTTER_WIDTH,
+>  					rect.height + mt9v022->y_skip_top + 43);
+> @@ -566,18 +574,17 @@ static int mt9v022_video_probe(struct i2c_client *client)
+>  {
+>  	struct mt9v022 *mt9v022 = to_mt9v022(client);
+>  	struct soc_camera_link *icl = soc_camera_i2c_to_link(client);
+> -	s32 data;
+>  	int ret;
+>  	unsigned long flags;
+>  
+>  	/* Read out the chip version register */
+> -	data = reg_read(client, MT9V022_CHIP_VERSION);
+> +	chip_id = reg_read(client, MT9V022_CHIP_VERSION);
+>  
+>  	/* must be 0x1311 or 0x1313 */
+> -	if (data != 0x1311 && data != 0x1313) {
+> +	if (chip_id != 0x1311 && chip_id != 0x1313 && chip_id != 0x1324) {
+>  		ret = -ENODEV;
+>  		dev_info(&client->dev, "No MT9V022 found, ID register 0x%x\n",
+> -			 data);
+> +			 chip_id);
+>  		goto ei2c;
+>  	}
+>  
+> @@ -632,7 +639,7 @@ static int mt9v022_video_probe(struct i2c_client *client)
+>  	mt9v022->fmt = &mt9v022->fmts[0];
+>  
+>  	dev_info(&client->dev, "Detected a MT9V022 chip ID %x, %s sensor\n",
+> -		 data, mt9v022->model == V4L2_IDENT_MT9V022IX7ATM ?
+> +		 chip_id, mt9v022->model == V4L2_IDENT_MT9V022IX7ATM ?
+>  		 "monochrome" : "colour");
+>  
+>  	ret = mt9v022_init(client);
+> @@ -728,7 +735,8 @@ static int mt9v022_s_mbus_config(struct v4l2_subdev *sd,
+>  	if (!(flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH))
+>  		pixclk |= 0x2;
+>  
+> -	ret = reg_write(client, MT9V022_PIXCLK_FV_LV, pixclk);
+> +	ret = reg_write(client, (chip_id == 0x1324) ? MT9V024_PIXCLK_FV_LV :
+> +			MT9V022_PIXCLK_FV_LV, pixclk);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> -- 
+> 1.7.0.4
+
+Thanks
+Guennadi
 ---
-Not tested.
-
- drivers/media/dvb/siano/smscoreapi.c |   39 ++++++++++++++---------------------
- 1 file changed, 16 insertions(+), 23 deletions(-)
-
-diff --git a/drivers/media/dvb/siano/smscoreapi.c b/drivers/media/dvb/siano/smscoreapi.c
-index 7331e84..9cc5554 100644
---- a/drivers/media/dvb/siano/smscoreapi.c
-+++ b/drivers/media/dvb/siano/smscoreapi.c
-@@ -276,16 +276,13 @@ static void smscore_notify_clients(struct smscore_device_t *coredev)
- static int smscore_notify_callbacks(struct smscore_device_t *coredev,
- 				    struct device *device, int arrival)
- {
--	struct list_head *next, *first;
-+	struct smscore_device_notifyee_t *elem;
- 	int rc = 0;
- 
- 	/* note: must be called under g_deviceslock */
- 
--	first = &g_smscore_notifyees;
--
--	for (next = first->next; next != first; next = next->next) {
--		rc = ((struct smscore_device_notifyee_t *) next)->
--				hotplug(coredev, device, arrival);
-+	list_for_each_entry(elem, &g_smscore_notifyees, entry) {
-+		rc = elem->hotplug(coredev, device, arrival);
- 		if (rc < 0)
- 			break;
- 	}
-@@ -940,29 +937,25 @@ static struct
- smscore_client_t *smscore_find_client(struct smscore_device_t *coredev,
- 				      int data_type, int id)
- {
--	struct smscore_client_t *client = NULL;
--	struct list_head *next, *first;
-+	struct list_head *first;
-+	struct smscore_client_t *client;
- 	unsigned long flags;
--	struct list_head *firstid, *nextid;
--
-+	struct list_head *firstid;
-+	struct smscore_idlist_t *client_id;
- 
- 	spin_lock_irqsave(&coredev->clientslock, flags);
- 	first = &coredev->clients;
--	for (next = first->next;
--	     (next != first) && !client;
--	     next = next->next) {
--		firstid = &((struct smscore_client_t *)next)->idlist;
--		for (nextid = firstid->next;
--		     nextid != firstid;
--		     nextid = nextid->next) {
--			if ((((struct smscore_idlist_t *)nextid)->id == id) &&
--			    (((struct smscore_idlist_t *)nextid)->data_type == data_type ||
--			    (((struct smscore_idlist_t *)nextid)->data_type == 0))) {
--				client = (struct smscore_client_t *) next;
--				break;
--			}
-+	list_for_each_entry(client, first, entry) {
-+		firstid = &client->idlist;
-+		list_for_each_entry(client_id, firstid, entry) {
-+			if ((client_id->id == id) &&
-+			    (client_id->data_type == data_type ||
-+			    (client_id->data_type == 0)))
-+				goto found;
- 		}
- 	}
-+	client = NULL;
-+found:
- 	spin_unlock_irqrestore(&coredev->clientslock, flags);
- 	return client;
- }
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
