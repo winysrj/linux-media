@@ -1,376 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:53162 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753033Ab2HNPfc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 11:35:32 -0400
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de, dmitriyz@google.com,
-	s.nawrocki@samsung.com, k.debski@samsung.com,
-	linux-doc@vger.kernel.org
-Subject: [PATCHv8 02/26] Documentation: media: description of DMABUF importing
- in V4L2
-Date: Tue, 14 Aug 2012 17:34:32 +0200
-Message-id: <1344958496-9373-3-git-send-email-t.stanislaws@samsung.com>
-In-reply-to: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
-References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51320 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751858Ab2HAIKa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2012 04:10:30 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, airlied@redhat.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
+	robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
+	subashrp@gmail.com, mchehab@redhat.com, g.liakhovetski@gmx.de
+Subject: Re: [PATCHv2 3/9] v4l: add buffer exporting via dmabuf
+Date: Wed, 01 Aug 2012 10:10:37 +0200
+Message-ID: <1358387.SbSfAAadBb@avalon>
+In-Reply-To: <5018E269.5060200@samsung.com>
+References: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com> <201207311411.06974.hverkuil@xs4all.nl> <5018E269.5060200@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds description and usage examples for importing
-DMABUF file descriptor in V4L2.
+Hi Tomasz,
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-CC: linux-doc@vger.kernel.org
----
- Documentation/DocBook/media/v4l/compat.xml         |    4 +
- Documentation/DocBook/media/v4l/io.xml             |  180 ++++++++++++++++++++
- .../DocBook/media/v4l/vidioc-create-bufs.xml       |    3 +-
- Documentation/DocBook/media/v4l/vidioc-qbuf.xml    |   15 ++
- Documentation/DocBook/media/v4l/vidioc-reqbufs.xml |   47 ++---
- 5 files changed, 226 insertions(+), 23 deletions(-)
+On Wednesday 01 August 2012 10:01:45 Tomasz Stanislawski wrote:
+> On 07/31/2012 02:11 PM, Hans Verkuil wrote:
+> > On Tue 31 July 2012 13:56:14 Laurent Pinchart wrote:
+> >> On Tuesday 31 July 2012 08:33:56 Hans Verkuil wrote:
+> >>> On Thu June 14 2012 16:32:23 Tomasz Stanislawski wrote:
+> >>>> +/**
+> >>>> + * struct v4l2_exportbuffer - export of video buffer as DMABUF file
+> >>>> descriptor + *
+> >>>> + * @fd:		file descriptor associated with DMABUF (set by driver)
+> >>>> + * @mem_offset:	buffer memory offset as returned by VIDIOC_QUERYBUF 
+in
+> >>>> struct + *		v4l2_buffer::m.offset (for single-plane formats) or
+> >>>> + *		v4l2_plane::m.offset (for multi-planar formats)
+> >>>> + * @flags:	flags for newly created file, currently only O_CLOEXEC is
+> >>>> + *		supported, refer to manual of open syscall for more details
+> >>>> + *
+> >>>> + * Contains data used for exporting a video buffer as DMABUF file
+> >>>> descriptor. + * The buffer is identified by a 'cookie' returned by
+> >>>> VIDIOC_QUERYBUF + * (identical to the cookie used to mmap() the buffer
+> >>>> to
+> >>>> userspace). All + * reserved fields must be set to zero. The field
+> >>>> reserved0 is expected to + * become a structure 'type' allowing an
+> >>>> alternative layout of the structure + * content. Therefore this field
+> >>>> should not be used for any other extensions. + */
+> >>>> +struct v4l2_exportbuffer {
+> >>>> +	__u32		fd;
+> >>>> +	__u32		reserved0;
+> >>>> +	__u32		mem_offset;
+> >>> 
+> >>> This should be a union identical to the m union in v4l2_plane, together
+> >>> with a u32 memory field. That way you can just copy memory and m from
+> >>> v4l2_plane/buffer and call expbuf. If new memory types are added in the
+> >>> future, then you don't need to change this struct.
+> >> 
+> >> OK, reserved0 could be replace by __u32 memory. Could we have other
+> >> dma-buf
+> >> export types in the future not corresponding to a memory type ? I don't
+> >> see
+> >> any use case right now though.
+> > 
+> > The memory type should be all you need. And the union is also needed since
+> > the userptr value is unsigned long, thus ensuring that you have 64-bits
+> > available for pointer types in the future. That's really my main point:
+> > the union should have the same size as the union in v4l2_buffer/plane,
+> > allowing for the same size pointers or whatever to be added in the
+> > future.
+> 
+> I do not see any good point in using v4l2_plane. What would be the meaning
+> of bytesused, length, data_offset in case of DMABUF exporting?
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index 98e8d08..ff45330 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2605,6 +2605,10 @@ ioctls.</para>
-         <listitem>
- 	  <para>Support for frequency band enumeration: &VIDIOC-ENUM-FREQ-BANDS; ioctl.</para>
-         </listitem>
-+        <listitem>
-+	  <para>Importing DMABUF file descriptors as a new IO method described
-+	  in <xref linkend="dmabuf" />.</para>
-+        </listitem>
-       </itemizedlist>
-     </section>
- 
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index 1885cc0..98253ee 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -472,6 +472,163 @@ rest should be evident.</para>
-       </footnote></para>
-   </section>
- 
-+  <section id="dmabuf">
-+    <title>Streaming I/O (DMA buffer importing)</title>
-+
-+    <note>
-+      <title>Experimental</title>
-+      <para>This is an <link linkend="experimental"> experimental </link>
-+      interface and may change in the future.</para>
-+    </note>
-+
-+<para>The DMABUF framework provides a generic mean for sharing buffers between
-+ multiple devices. Device drivers that support DMABUF can export a DMA buffer
-+to userspace as a file descriptor (known as the exporter role), import a DMA
-+buffer from userspace using a file descriptor previously exported for a
-+different or the same device (known as the importer role), or both. This
-+section describes the DMABUF importer role API in V4L2.</para>
-+
-+<para>Input and output devices support the streaming I/O method when the
-+<constant>V4L2_CAP_STREAMING</constant> flag in the
-+<structfield>capabilities</structfield> field of &v4l2-capability; returned by
-+the &VIDIOC-QUERYCAP; ioctl is set. Whether importing DMA buffers through
-+DMABUF file descriptors is supported is determined by calling the
-+&VIDIOC-REQBUFS; ioctl with the memory type set to
-+<constant>V4L2_MEMORY_DMABUF</constant>.</para>
-+
-+    <para>This I/O method is dedicated for sharing DMA buffers between V4L and
-+other APIs.  Buffers (planes) are allocated by a driver on behalf of the
-+application, and exported to the application as file descriptors using an API
-+specific to the allocator driver.  Only those file descriptor are exchanged,
-+these files and meta-information are passed in &v4l2-buffer; (or in
-+&v4l2-plane; in the multi-planar API case).  The driver must be switched into
-+DMABUF I/O mode by calling the &VIDIOC-REQBUFS; with the desired buffer type.
-+No buffers (planes) are allocated beforehand, consequently they are not indexed
-+and cannot be queried like mapped buffers with the
-+<constant>VIDIOC_QUERYBUF</constant> ioctl.</para>
-+
-+    <example>
-+      <title>Initiating streaming I/O with DMABUF file descriptors</title>
-+
-+      <programlisting>
-+&v4l2-requestbuffers; reqbuf;
-+
-+memset (&amp;reqbuf, 0, sizeof (reqbuf));
-+reqbuf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+reqbuf.memory = V4L2_MEMORY_DMABUF;
-+reqbuf.count = 1;
-+
-+if (ioctl (fd, &VIDIOC-REQBUFS;, &amp;reqbuf) == -1) {
-+	if (errno == EINVAL)
-+		printf ("Video capturing or DMABUF streaming is not supported\n");
-+	else
-+		perror ("VIDIOC_REQBUFS");
-+
-+	exit (EXIT_FAILURE);
-+}
-+      </programlisting>
-+    </example>
-+
-+    <para>Buffer (plane) file descriptor is passed on the fly with the
-+&VIDIOC-QBUF; ioctl. In case of multiplanar buffers, every plane can be
-+associated with a different DMABUF descriptor. Although buffers are commonly
-+cycled, applications can pass a different DMABUF descriptor at each
-+<constant>VIDIOC_QBUF</constant> call.</para>
-+
-+    <example>
-+      <title>Queueing DMABUF using single plane API</title>
-+
-+      <programlisting>
-+int buffer_queue(int v4lfd, int index, int dmafd)
-+{
-+	&v4l2-buffer; buf;
-+
-+	memset(&amp;buf, 0, sizeof buf);
-+	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	buf.memory = V4L2_MEMORY_DMABUF;
-+	buf.index = index;
-+	buf.m.fd = dmafd;
-+
-+	if (ioctl (v4lfd, &VIDIOC-QBUF;, &amp;buf) == -1) {
-+		perror ("VIDIOC_QBUF");
-+		return -1;
-+	}
-+
-+	return 0;
-+}
-+      </programlisting>
-+    </example>
-+
-+    <example>
-+      <title>Queueing DMABUF using multi plane API</title>
-+
-+      <programlisting>
-+int buffer_queue_mp(int v4lfd, int index, int dmafd[], int n_planes)
-+{
-+	&v4l2-buffer; buf;
-+	&v4l2-plane; planes[VIDEO_MAX_PLANES];
-+	int i;
-+
-+	memset(&amp;buf, 0, sizeof buf);
-+	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-+	buf.memory = V4L2_MEMORY_DMABUF;
-+	buf.index = index;
-+	buf.m.planes = planes;
-+	buf.length = n_planes;
-+
-+	memset(&amp;planes, 0, sizeof planes);
-+
-+	for (i = 0; i &lt; n_planes; ++i)
-+		buf.m.planes[i].m.fd = dmafd[i];
-+
-+	if (ioctl (v4lfd, &VIDIOC-QBUF;, &amp;buf) == -1) {
-+		perror ("VIDIOC_QBUF");
-+		return -1;
-+	}
-+
-+	return 0;
-+}
-+      </programlisting>
-+    </example>
-+
-+    <para>Filled or displayed buffers are dequeued with the
-+&VIDIOC-DQBUF; ioctl. The driver can unlock the buffer at any
-+time between the completion of the DMA and this ioctl. The memory is
-+also unlocked when &VIDIOC-STREAMOFF; is called, &VIDIOC-REQBUFS;, or
-+when the device is closed.</para>
-+
-+    <para>For capturing applications it is customary to enqueue a
-+number of empty buffers, to start capturing and enter the read loop.
-+Here the application waits until a filled buffer can be dequeued, and
-+re-enqueues the buffer when the data is no longer needed. Output
-+applications fill and enqueue buffers, when enough buffers are stacked
-+up output is started. In the write loop, when the application
-+runs out of free buffers it must wait until an empty buffer can be
-+dequeued and reused. Two methods exist to suspend execution of the
-+application until one or more buffers can be dequeued. By default
-+<constant>VIDIOC_DQBUF</constant> blocks when no buffer is in the
-+outgoing queue. When the <constant>O_NONBLOCK</constant> flag was
-+given to the &func-open; function, <constant>VIDIOC_DQBUF</constant>
-+returns immediately with an &EAGAIN; when no buffer is available. The
-+&func-select; or &func-poll; function are always available.</para>
-+
-+    <para>To start and stop capturing or output applications call the
-+&VIDIOC-STREAMON; and &VIDIOC-STREAMOFF; ioctls. Note that
-+<constant>VIDIOC_STREAMOFF</constant> removes all buffers from both queues and
-+unlocks all buffers as a side effect. Since there is no notion of doing
-+anything "now" on a multitasking system, if an application needs to synchronize
-+with another event it should examine the &v4l2-buffer;
-+<structfield>timestamp</structfield> of captured buffers, or set the field
-+before enqueuing buffers for output.</para>
-+
-+    <para>Drivers implementing DMABUF importing I/O must support the
-+<constant>VIDIOC_REQBUFS</constant>, <constant>VIDIOC_QBUF</constant>,
-+<constant>VIDIOC_DQBUF</constant>, <constant>VIDIOC_STREAMON</constant> and
-+<constant>VIDIOC_STREAMOFF</constant> ioctls, and the
-+<function>select()</function> and <function>poll()</function> functions.</para>
-+
-+  </section>
-+
-   <section id="async">
-     <title>Asynchronous I/O</title>
- 
-@@ -673,6 +830,14 @@ memory, set by the application. See <xref linkend="userp" /> for details.
- 	    <structname>v4l2_buffer</structname> structure.</entry>
- 	  </row>
- 	  <row>
-+	    <entry></entry>
-+	    <entry>int</entry>
-+	    <entry><structfield>fd</structfield></entry>
-+	    <entry>For the single-plane API and when
-+<structfield>memory</structfield> is <constant>V4L2_MEMORY_DMABUF</constant> this
-+is the file descriptor associated with a DMABUF buffer.</entry>
-+	  </row>
-+	  <row>
- 	    <entry>__u32</entry>
- 	    <entry><structfield>length</structfield></entry>
- 	    <entry></entry>
-@@ -746,6 +911,15 @@ should set this to 0.</entry>
- 	      </entry>
- 	  </row>
- 	  <row>
-+	    <entry></entry>
-+	    <entry>int</entry>
-+	    <entry><structfield>fd</structfield></entry>
-+	    <entry>When the memory type in the containing &v4l2-buffer; is
-+		<constant>V4L2_MEMORY_DMABUF</constant>, this is a file
-+		descriptor associated with a DMABUF buffer, similar to the
-+		<structfield>fd</structfield> field in &v4l2-buffer;.</entry>
-+	  </row>
-+	  <row>
- 	    <entry>__u32</entry>
- 	    <entry><structfield>data_offset</structfield></entry>
- 	    <entry></entry>
-@@ -973,6 +1147,12 @@ pointer</link> I/O.</entry>
- 	    <entry>3</entry>
- 	    <entry>[to do]</entry>
- 	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_MEMORY_DMABUF</constant></entry>
-+	    <entry>4</entry>
-+	    <entry>The buffer is used for <link linkend="dmabuf">DMA shared
-+buffer</link> I/O.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-index a8cda1a..1125468 100644
---- a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-@@ -109,7 +109,8 @@ information.</para>
- 	    <entry>__u32</entry>
- 	    <entry><structfield>memory</structfield></entry>
- 	    <entry>Applications set this field to
--<constant>V4L2_MEMORY_MMAP</constant> or
-+<constant>V4L2_MEMORY_MMAP</constant>,
-+<constant>V4L2_MEMORY_DMABUF</constant> or
- <constant>V4L2_MEMORY_USERPTR</constant>. See <xref linkend="v4l2-memory"
- /></entry>
- 	  </row>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
-index 77ff5be..436d21c 100644
---- a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
-@@ -109,6 +109,21 @@ they cannot be swapped out to disk. Buffers remain locked until
- dequeued, until the &VIDIOC-STREAMOFF; or &VIDIOC-REQBUFS; ioctl is
- called, or until the device is closed.</para>
- 
-+    <para>To enqueue a <link linkend="dmabuf">DMABUF</link> buffer applications
-+set the <structfield>memory</structfield> field to
-+<constant>V4L2_MEMORY_DMABUF</constant> and the <structfield>m.fd</structfield>
-+field to a file descriptor associated with a DMABUF buffer. When the
-+multi-planar API is used <structfield>m.fd</structfield> of the passed array of
-+&v4l2-plane; have to be used instead. When <constant>VIDIOC_QBUF</constant> is
-+called with a pointer to this structure the driver sets the
-+<constant>V4L2_BUF_FLAG_QUEUED</constant> flag and clears the
-+<constant>V4L2_BUF_FLAG_MAPPED</constant> and
-+<constant>V4L2_BUF_FLAG_DONE</constant> flags in the
-+<structfield>flags</structfield> field, or it returns an error code.  This
-+ioctl locks the buffer. Buffers remain locked until dequeued, until the
-+&VIDIOC-STREAMOFF; or &VIDIOC-REQBUFS; ioctl is called, or until the device is
-+closed.</para>
-+
-     <para>Applications call the <constant>VIDIOC_DQBUF</constant>
- ioctl to dequeue a filled (capturing) or displayed (output) buffer
- from the driver's outgoing queue. They just set the
-diff --git a/Documentation/DocBook/media/v4l/vidioc-reqbufs.xml b/Documentation/DocBook/media/v4l/vidioc-reqbufs.xml
-index d7c9505..20f4323 100644
---- a/Documentation/DocBook/media/v4l/vidioc-reqbufs.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-reqbufs.xml
-@@ -48,28 +48,30 @@
-   <refsect1>
-     <title>Description</title>
- 
--    <para>This ioctl is used to initiate <link linkend="mmap">memory
--mapped</link> or <link linkend="userp">user pointer</link>
--I/O. Memory mapped buffers are located in device memory and must be
--allocated with this ioctl before they can be mapped into the
--application's address space. User buffers are allocated by
--applications themselves, and this ioctl is merely used to switch the
--driver into user pointer I/O mode and to setup some internal structures.</para>
-+<para>This ioctl is used to initiate <link linkend="mmap">memory mapped</link>,
-+<link linkend="userp">user pointer</link> or <link
-+linkend="dmabuf">DMABUF</link> based I/O.  Memory mapped buffers are located in
-+device memory and must be allocated with this ioctl before they can be mapped
-+into the application's address space. User buffers are allocated by
-+applications themselves, and this ioctl is merely used to switch the driver
-+into user pointer I/O mode and to setup some internal structures.
-+Similarly, DMABUF buffers are allocated by applications through a device
-+driver, and this ioctl only configures the driver into DMABUF I/O mode without
-+performing any direct allocation.</para>
- 
--    <para>To allocate device buffers applications initialize all
--fields of the <structname>v4l2_requestbuffers</structname> structure.
--They set the <structfield>type</structfield> field to the respective
--stream or buffer type, the <structfield>count</structfield> field to
--the desired number of buffers, <structfield>memory</structfield>
--must be set to the requested I/O method and the <structfield>reserved</structfield> array
--must be zeroed. When the ioctl
--is called with a pointer to this structure the driver will attempt to allocate
--the requested number of buffers and it stores the actual number
--allocated in the <structfield>count</structfield> field. It can be
--smaller than the number requested, even zero, when the driver runs out
--of free memory. A larger number is also possible when the driver requires
--more buffers to function correctly. For example video output requires at least two buffers,
--one displayed and one filled by the application.</para>
-+    <para>To allocate device buffers applications initialize all fields of the
-+<structname>v4l2_requestbuffers</structname> structure.  They set the
-+<structfield>type</structfield> field to the respective stream or buffer type,
-+the <structfield>count</structfield> field to the desired number of buffers,
-+<structfield>memory</structfield> must be set to the requested I/O method and
-+the <structfield>reserved</structfield> array must be zeroed. When the ioctl is
-+called with a pointer to this structure the driver will attempt to allocate the
-+requested number of buffers and it stores the actual number allocated in the
-+<structfield>count</structfield> field. It can be smaller than the number
-+requested, even zero, when the driver runs out of free memory. A larger number
-+is also possible when the driver requires more buffers to function correctly.
-+For example video output requires at least two buffers, one displayed and one
-+filled by the application.</para>
-     <para>When the I/O method is not supported the ioctl
- returns an &EINVAL;.</para>
- 
-@@ -102,7 +104,8 @@ as the &v4l2-format; <structfield>type</structfield> field. See <xref
- 	    <entry>__u32</entry>
- 	    <entry><structfield>memory</structfield></entry>
- 	    <entry>Applications set this field to
--<constant>V4L2_MEMORY_MMAP</constant> or
-+<constant>V4L2_MEMORY_MMAP</constant>,
-+<constant>V4L2_MEMORY_DMABUF</constant> or
- <constant>V4L2_MEMORY_USERPTR</constant>. See <xref linkend="v4l2-memory"
- />.</entry>
- 	  </row>
+I don't think Hans meant using v4l2_plane directly, but to use the same union 
+as in v4l2_plane.
+
+> The field reserved0 was introduced to be replaced by __u32 memory if other
+> means of buffer description would be needed. The reserved fields at the end
+> of the structure could be used for auxiliary parameters other then offset
+> and flags. The flags field is expected to be used by all exporting types
+> therefore the layout could be reorganized to:
+> 
+> struct v4l2_exportbuffers {
+> 	__u32	fd;
+> 	__u32	flags;
+> 	__u32	reserved0[2]; /* place for '__u32 memory' + forcing 64 bit 
+alignment
+> */ __u32	mem_offset; /* what do you thing about using 64-bit field? */
+> __u32	reserved1[11];
+> };
+> 
+> What is your opinion about this idea?
+> 
+> >>> For that matter, wouldn't it be useful to support exporting a userptr
+> >>> buffer at some point in the future?
+> >> 
+> >> Shouldn't USERPTR usage be discouraged once we get dma-buf support ?
+> > 
+> > Why? It's perfectly fine to use it and it's not going away.
+> > 
+> > I'm not saying that we should support exporting a userptr buffer as a
+> > dmabuf fd, but I'm just wondering if that is possible at all and how
+> > difficult it would be.
+> It would be difficult. Currently there is no safe/portable way to transform
+> a userptr into a scatterlist mappable for other devices. The most trouble
+> some examples are userspace-mapping of IO memory like framebuffers.
+> How reference management is going to work if there are no struct pages
+> describing mapped memory?
+> 
+> The VB2 uses a workaround by keeping a copy of vma that is used to call
+> open/close callbacks. I am not sure how reliable this solution is.
+> 
+> Who knows, maybe in future someone will introduce a mechanism for creation
+> of DMABUF descriptor from a userptr without any help of client APIs.
+> In such a case, it will be the part of DMABUF api not V4L2 :).
+
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
