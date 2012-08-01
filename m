@@ -1,62 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57027 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756101Ab2HFMcl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Aug 2012 08:32:41 -0400
-Message-ID: <501FB95E.3010602@redhat.com>
-Date: Mon, 06 Aug 2012 09:32:30 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48858 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756297Ab2HAT1K (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2012 15:27:10 -0400
+Received: from avalon.localnet (unknown [194.136.87.226])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 4AE3835995
+	for <linux-media@vger.kernel.org>; Wed,  1 Aug 2012 21:27:09 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.6] uvcvideo fixes
+Date: Wed, 01 Aug 2012 21:27:16 +0200
+Message-ID: <20386270.Pi24L6Y92g@avalon>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 0/5] Convert az6007 to dvb-usb-v2
-References: <1344137411-27948-1-git-send-email-mchehab@redhat.com> <501F985D.4040308@iki.fi>
-In-Reply-To: <501F985D.4040308@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 06-08-2012 07:11, Antti Palosaari escreveu:
-> On 08/05/2012 06:30 AM, Mauro Carvalho Chehab wrote:
->> Now that dvb-usb-v2 patches got merged, convert az6007 to use it, as,
->> in thesis, several core bugs at dvb-usb were fixed.
->>
->> Also, driver became a little more simple than before, as the number of
->> lines reduced a little bit.
->>
->> No noticeable changes should be noticed... I hope ;)
->>
->> Mauro Carvalho Chehab (5):
->>    [media] dvb-usb-v2: Fix cypress firmware compilation
->>    [media] dvb-usb-v2: Don't ask user to select Cypress firmware module
->>    [media] az6007: convert it to use dvb-usb-v2
->>    [media] az6007: fix the I2C W+R logic
->>    [media] az6007: Fix the number of parameters for QAM setup
->>
->>   drivers/media/dvb/dvb-usb-v2/Kconfig               |  17 +-
->>   drivers/media/dvb/dvb-usb-v2/Makefile              |   6 +-
->>   drivers/media/dvb/{dvb-usb => dvb-usb-v2}/az6007.c | 385 +++++++++------------
->>   drivers/media/dvb/dvb-usb/Kconfig                  |   8 -
->>   drivers/media/dvb/dvb-usb/Makefile                 |   3 -
->>   5 files changed, 178 insertions(+), 241 deletions(-)
->>   rename drivers/media/dvb/{dvb-usb => dvb-usb-v2}/az6007.c (64%)
->>
-> 
-> Whole patch set looks correct for my eyes.
-> Feel free to add tag(s) if you wish to those you want.
-> Acked-by: Antti Palosaari <crope@iki.fi>
-> Reviewed-by: Antti Palosaari <crope@iki.fi>
+Hi Mauro,
 
-Thanks for reviewing it! Patches applied.
+Resending the pull request, without changing the git request-pull text this 
+time.
 
-> One comment still about those log writings. Documentation says it should be used dev_* logging instead
-> of pr_* in case of device driver. But I don't see that error should be fixed when that kind of 
-> conversion is done.
+The following changes since commit 931efdf58bd83af8d0578a6cc53421675daf6d41:
 
-We'll likely need to do some janitor's task with printk's inside the entire
-subsystem: there are a mix of solutions used there; each driver does its
-own way for it.
+  Merge branch 'v4l_for_linus' into staging/for_v3.6 (2012-07-14 15:45:44 
+-0300)
 
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-next
+
+Jayakrishnan Memana (1):
+      uvcvideo: Reset the bytesused field when recycling an erroneous buffer
+
+ drivers/media/video/uvc/uvc_queue.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+-- 
 Regards,
-Mauro
+
+Laurent Pinchart
