@@ -1,59 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:61413 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755811Ab2HFMqN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 08:46:13 -0400
-Received: by ghrr11 with SMTP id r11so2403215ghr.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 05:46:13 -0700 (PDT)
+Received: from oyp.chewa.net ([91.121.6.101]:58330 "EHLO oyp.chewa.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752815Ab2HAUuD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2012 16:50:03 -0400
+From: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCHv2 3/9] v4l: add buffer exporting via dmabuf
+Date: Wed, 1 Aug 2012 23:49:57 +0300
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de
+References: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com> <60c9f6aa1a35c476f6d3493aa24438ad@chewa.net> <1390726.ZQ58TDe5fq@avalon>
+In-Reply-To: <1390726.ZQ58TDe5fq@avalon>
 MIME-Version: 1.0
-In-Reply-To: <501FBBB1.1030802@redhat.com>
-References: <1343485133-11090-1-git-send-email-elezegarcia@gmail.com>
-	<CALF0-+XEStNrfdqYecKQHr=qkcFPtC5CyDC4DWWy_7+_oA0h=g@mail.gmail.com>
-	<501FBBB1.1030802@redhat.com>
-Date: Mon, 6 Aug 2012 09:46:12 -0300
-Message-ID: <CALF0-+Woc9s7_TFKyw74SAusg+YCmnFOeViP6kT0QthP4LN9zw@mail.gmail.com>
-Subject: Re: [PATCH v7] media: Add stk1160 new driver
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: alsa-devel@alsa-project.org, linux-media@vger.kernel.org,
-	Takashi Iwai <tiwai@suse.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201208012350.00207.remi@remlab.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 6, 2012 at 9:42 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em 06-08-2012 09:28, Ezequiel Garcia escreveu:
->> Hi Mauro,
->>
->> On Sat, Jul 28, 2012 at 11:18 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
->>> This driver adds support for stk1160 usb bridge as used in some
->>> video/audio usb capture devices.
->>> It is a complete rewrite of staging/media/easycap driver and
->>> it's expected as a future replacement.
->>>
->>> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
->>> Cc: Takashi Iwai <tiwai@suse.de>
->>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
->>> Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
->>> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
->>> ---
->>>
->>
->> Did you take a look at this?
->
-> Patchwork didn't get it[1]. Maybe the patch got mangled?
-> If so, could you please re-post?
->
-> [1] http://patchwork.linuxtv.org/project/linux-media/list/?state=*&q=stk1160
->
+Le mercredi 1 août 2012 14:35:03 Laurent Pinchart, vous avez écrit :
+> > But in general, the V4L element in the pipeline does not know how fast
+> > the downstream element(s) will consume the buffers. Thus it has to copy
+> > from the MMAP buffers into anonymous user memory pending processing.
+> > Then any dequeued buffer can be requeued as soon as possible. In theory,
+> > it might also be that, even though the latency is known, the number of
+> > required buffers exceeds the maximum MMAP buffers count of the V4L
+> > device. Either way, user space ends up doing memory copy from MMAP to
+> > custom buffers.
+> > 
+> > This problem does not exist with USERBUF - the V4L2 element can simply
+> > allocate a new buffer for each dequeued buffer.
+> 
+> What about using the CREATE_BUFS ioctl to add new MMAP buffers at runtime ?
 
-Yes, I noticed. I sent a v5, v6 and v7; and none of them where noticed
-by patchwork.
-I can re-send, but I think perhaps it was due to patch size?
+Does CREATE_BUFS always work while already streaming has already started? If 
+it depends on the driver, it's kinda helpless.
 
-(alsa-devel list bounced it, for instance).
+What's the guaranteed minimum buffer count? It seems in any case, MMAP has a 
+hard limit of 32 buffers (at least videobuf2 has), though one might argue this 
+should be more than enough.
 
-Ezequiel.
+-- 
+Rémi Denis-Courmont
+http://www.remlab.net/
+http://fi.linkedin.com/in/remidenis
