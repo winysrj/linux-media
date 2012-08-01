@@ -1,80 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1685 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751486Ab2HBHIj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2012 03:08:39 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>
-Subject: Re: [PATCHv2 3/9] v4l: add buffer exporting via dmabuf
-Date: Thu, 2 Aug 2012 09:08:18 +0200
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de
-References: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com> <201208020835.58332.hverkuil@xs4all.nl> <201208020956.45291.remi@remlab.net>
-In-Reply-To: <201208020956.45291.remi@remlab.net>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:36299 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752412Ab2HAGRI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2012 02:17:08 -0400
+Received: by weyx8 with SMTP id x8so4858841wey.19
+        for <linux-media@vger.kernel.org>; Tue, 31 Jul 2012 23:17:07 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201208020908.18512.hverkuil@xs4all.nl>
+In-Reply-To: <20120731130517.GS24458@pengutronix.de>
+References: <1343295404-8931-1-git-send-email-javier.martin@vista-silicon.com>
+	<50170DE0.2030007@redhat.com>
+	<CACKLOr2+y5emMuvKR0nLdQR=GtUOZ6Ms7j65bO5iXB8jJw0L4Q@mail.gmail.com>
+	<20120731130517.GS24458@pengutronix.de>
+Date: Wed, 1 Aug 2012 08:17:07 +0200
+Message-ID: <CACKLOr1kY13vyZ_qfVbKfi9vb1kbUZv-M0qdbx_dDEo_5KUcvw@mail.gmail.com>
+Subject: Re: "[PULL] video_visstrim for 3.6"
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, Russell King <linux@arm.linux.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu August 2 2012 08:56:43 Rémi Denis-Courmont wrote:
-> Le jeudi 2 août 2012 09:35:58 Hans Verkuil, vous avez écrit :
-> > On Wed August 1 2012 22:49:57 Rémi Denis-Courmont wrote:
-> > > > What about using the CREATE_BUFS ioctl to add new MMAP buffers at
-> > > > runtime ?
-> > > 
-> > > Does CREATE_BUFS always work while already streaming has already started?
-> > > If it depends on the driver, it's kinda helpless.
-> > 
-> > Yes, it does. It's one of the reasons it exists in the first place. But
-> > there are currently only a handful of drivers that implement it. I hope
-> > that as more and more drivers are converted to vb2 that the availability
-> > of create_bufs will increase.
-> 
-> That's contradictory. If most drivers do not support it, then it won't work 
-> during streaming.
+On 31 July 2012 15:05, Sascha Hauer <s.hauer@pengutronix.de> wrote:
+> On Tue, Jul 31, 2012 at 08:13:59AM +0200, javier Martin wrote:
+>> On 31 July 2012 00:42, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+>> > Em 26-07-2012 06:36, Javier Martin escreveu:
+>> >> Hi Mauro,
+>> >> this pull request is composed of two series that provide support for two mem2mem devices:
+>> >> - 'm2m-deinterlace' video deinterlacer
+>> >> - 'coda video codec'
+>> >> I've included platform support for them too.
+>> >>
+>> >>
+>> >> The following changes since commit 6887a4131da3adaab011613776d865f4bcfb5678:
+>> >>
+>> >>    Linux 3.5-rc5 (2012-06-30 16:08:57 -0700)
+>> >>
+>> >> are available in the git repository at:
+>> >>
+>> >>    https://github.com/jmartinc/video_visstrim.git for_3.6
+>> >>
+>> >> for you to fetch changes up to 9bb10266da63ae7f8f198573e099580e9f98f4e8:
+>> >>
+>> >>    i.MX27: Visstrim_M10: Add support for deinterlacing driver. (2012-07-26 10:57:30 +0200)
+>> >>
+>> >> ----------------------------------------------------------------
+>> >> Javier Martin (5):
+>> >>        i.MX: coda: Add platform support for coda in i.MX27.
+>> >>        media: coda: Add driver for Coda video codec.
+>> >>        Visstrim M10: Add support for Coda.
+>> >>        media: Add mem2mem deinterlacing driver.
+>> >>        i.MX27: Visstrim_M10: Add support for deinterlacing driver.
+>> >>
+>> >>   arch/arm/mach-imx/clk-imx27.c                   |    4 +-
+>> >>   arch/arm/mach-imx/devices-imx27.h               |    4 +
+>> >>   arch/arm/mach-imx/mach-imx27_visstrim_m10.c     |   49 +-
+>> >>   arch/arm/plat-mxc/devices/Kconfig               |    6 +-
+>> >>   arch/arm/plat-mxc/devices/Makefile              |    1 +
+>> >>   arch/arm/plat-mxc/devices/platform-imx27-coda.c |   37 +
+>> >>   arch/arm/plat-mxc/include/mach/devices-common.h |    8 +
+>> >
+>> > I need ARM maintainer's ack for the patches that touch the above files.
+>
+> Generally:
+>
+> Acked-by: Sascha Hauer <s.hauer@pengutronix.de>
+>
+> I think that these are quite late for this merge window though. The pull
+> request should have been out before the 3.5 Release.
 
-IF create_bufs is implemented in the driver, THEN you can use it during streaming.
-I.e., it will never return EBUSY as an error due to the fact that streaming is in
-progress.
+Hi,
+these patches have been publicly discussed for 4 weeks, since July the
+4th. The pull request is only meant to make things easier for Mauro.
 
-Obviously it won't work if the driver didn't implement it in the first place.
-
-> 
-> > > What's the guaranteed minimum buffer count? It seems in any case, MMAP
-> > > has a hard limit of 32 buffers (at least videobuf2 has), though one
-> > > might argue this should be more than enough.
-> > 
-> > Minimum or maximum? The maximum is 32, that's hardcoded in the V4L2 core.
-> > Although drivers may force a lower maximum if they want. I have no idea
-> > whether there are drivers that do that. There probably are.
-> 
-> The smallest of the maxima of all drivers.
-
-I've no idea. Most will probably abide by the 32 maximum, but without analyzing
-all drivers I can't guarantee it.
-
-> > The minimum is usually between 1 and 3, depending on hardware limitations.
-> 
-> And that's clearly insufficient without memory copy to userspace buffers.
-> 
-> It does not seem to me that CREATE_BUFS+MMAP is a useful replacement for 
-> REQBUFS+USERBUF then.
-
-Just to put your mind at rest: USERPTR mode will *not* disappear or be deprecated
-in any way. It's been there for a long time, it's in heavy use, it's easy to use
-and it will not be turned into a second class citizen, because it isn't. Just
-because there is a new dmabuf mode available doesn't mean that everything should
-be done as a mmap+dmabuf thing.
-
-Regards,
-
-	Hans
+Regards.
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
