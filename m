@@ -1,68 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:34491 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751818Ab2HWGUX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Aug 2012 02:20:23 -0400
-Received: by wgbdr13 with SMTP id dr13so332245wgb.1
-        for <linux-media@vger.kernel.org>; Wed, 22 Aug 2012 23:20:22 -0700 (PDT)
+Received: from eu1sys200aog117.obsmtp.com ([207.126.144.143]:49597 "EHLO
+	eu1sys200aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753517Ab2HAGZy convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Aug 2012 02:25:54 -0400
+From: Bhupesh SHARMA <bhupesh.sharma@st.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 1 Aug 2012 14:25:36 +0800
+Subject: 
+Message-ID: <D5ECB3C7A6F99444980976A8C6D896384FABF0D73F@EAPEX1MAIL1.st.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <1345669220-21052-2-git-send-email-sylvester.nawrocki@gmail.com>
-References: <1345669220-21052-1-git-send-email-sylvester.nawrocki@gmail.com>
-	<1345669220-21052-2-git-send-email-sylvester.nawrocki@gmail.com>
-Date: Thu, 23 Aug 2012 08:20:22 +0200
-Message-ID: <CACKLOr3_FbfUYFanG0XtbpVexfETy_cgcHtai_ob-FuWteGi1A@mail.gmail.com>
-Subject: Re: [PATCH] m2m-deinterlace: Add V4L2_CAP_VIDEO_M2M capability flag
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 22 August 2012 23:00, Sylwester Nawrocki
-<sylvester.nawrocki@gmail.com> wrote:
-> New mem-to-mem video drivers should use V4L2_CAP_VIDEO_M2M capability, rather
-> than ORed V4L2_CAP_VIDEO_CAPTURE and V4L2_CAP_VIDEO_OUTPUT flags, as outlined
-> in commit a1367f1b260d29e9b9fb20d8e2f39f1e74fa6c3b.
->
-> Cc: Javier Martin <javier.martin@vista-silicon.com>
-> Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-> ---
->  drivers/media/platform/m2m-deinterlace.c |    9 +++++++--
->  1 files changed, 7 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/platform/m2m-deinterlace.c b/drivers/media/platform/m2m-deinterlace.c
-> index a38c152..5c7df67 100644
-> --- a/drivers/media/platform/m2m-deinterlace.c
-> +++ b/drivers/media/platform/m2m-deinterlace.c
-> @@ -456,8 +456,13 @@ static int vidioc_querycap(struct file *file, void *priv,
->         strlcpy(cap->driver, MEM2MEM_NAME, sizeof(cap->driver));
->         strlcpy(cap->card, MEM2MEM_NAME, sizeof(cap->card));
->         strlcpy(cap->bus_info, MEM2MEM_NAME, sizeof(cap->card));
-> -       cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT
-> -                         | V4L2_CAP_STREAMING;
-> +       /*
-> +        * This is only a mem-to-mem video device. The capture and output
-> +        * device capability flags are left only for backward compatibility
-> +        * and are scheduled for removal.
-> +        */
-> +       cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT |
-> +                          V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
->         cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
->
->         return 0;
-> --
-> 1.7.4.1
->
+Hi Laurent,
 
-Acked-by: Javier Martin <javier.martin@vista-silicon.com>
+I have a query for you regarding the support and testing of MJPEG frame type in the UVC webcam gadget.
 
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+I see that in the webcam.c gadget, the 720p and VGA MJPEG uvc formats are supported. I was trying the same
+out and got confused because the data arriving from a real video capture video supporting JPEG will have no
+fixed size. We will have the JPEG defined Start-of-Frame and End-of-Frame markers defining the boundary
+of the JPEG frame.
+
+But for almost all JPEG video capture devices even if we have kept a frame size of VGA initially, the final
+frame size will be a compressed version (with the compression depending on the nature of the scene, so a flat
+scene will have high compression and hence less frame size) of VGA and will not be equal to 640 * 480.
+
+So I couldn't exactly get why the dwMaxVideoFrameBufferSize is kept as 614400 in webcam.c (see [1]).
+
+Can you please let me know your opinions and how you tested the UVC gadget's MJPEG frame format.
+
+[1] http://lxr.linux.no/linux+v3.5/drivers/usb/gadget/webcam.c#L232
+
+Thanks,
+Bhupesh
