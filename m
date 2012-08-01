@@ -1,82 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.matrix-vision.com ([78.47.19.71]:53397 "EHLO
-	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751065Ab2HOH3X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Aug 2012 03:29:23 -0400
-Message-ID: <502B50AE.5080000@matrix-vision.de>
-Date: Wed, 15 Aug 2012 09:33:02 +0200
-From: Michael Jones <michael.jones@matrix-vision.de>
+Received: from ftp.meprolight.com ([194.90.149.17]:37015 "EHLO meprolight.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752421Ab2HAO1S convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2012 10:27:18 -0400
+From: Alex Gershgorin <alexg@meprolight.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"m.szyprowski@samsung.com" <m.szyprowski@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 1 Aug 2012 17:27:24 +0300
+Subject: RE: [PATCH v2] media: mx3_camera: buf_init() add buffer state check
+Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B2E31A0CA1D@MEP-EXCH.meprolight.com>
+References: <1343675227-9061-1-git-send-email-alexg@meprolight.com>,<Pine.LNX.4.64.1208011002020.5406@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1208011002020.5406@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	Silvester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: Re: Patches submitted via linux-media ML that are at patchwork.linuxtv.org
-References: <502A4CD1.1020108@redhat.com> <201208141546.19560.hverkuil@xs4all.nl> <502A6075.6070606@redhat.com> <1834028.kSBHul9iXV@avalon>
-In-Reply-To: <1834028.kSBHul9iXV@avalon>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/14/2012 05:21 PM, Laurent Pinchart wrote:
-> Hi Mauro,
->
-> On Tuesday 14 August 2012 11:28:05 Mauro Carvalho Chehab wrote:
->> Em 14-08-2012 10:46, Hans Verkuil escreveu:
->> That would work if the others would be doing the same. Unfortunately, other
->> usual developers don't do that: they send all patches under discussions as
->> "PATCH", making really hard to track what's ready for maintainer's review
->> and what isn't. As not-so-frequent contributors (trivial fixes people; users
->> submitting their bug fix patches; first time contributors) send their patch
->> as "PATCH". Those patches aren't typically picked by driver maintainers, so
->> the task of reviewing them is, unfortunately, typically done only by me.
->>
->>> So if I post a [PATCH] as opposed to an [RFC PATCH], then that means that
->>> I believe that the [PATCH] is ready for merging. If I should no longer
->>> do that, but make a pull request instead, then that needs to be stated
->>> very explicitly by you. Otherwise things will get very confusing.
->>
->> Yes, please post them as [RFC PATCH].
->>
->> Maybe the patches that are about to be sent though a pull request could
->> use something like [RFC FINAL] or [PATCH FINAL], but maybe doing that
->> would be just overkill.
->
-> I post patches that I believe to be ready to be merged as "[PATCH]", even if I
-> plan to push them through my tree later. "RFC" usually has a different
-> meaning, I understand it as a work in progress on which comments would be
-> appreciated.
->
-> As new developers just post patches as "[PATCH]" (probably because that's
-> git's default) we can't really change the meaning of that tag. We could ask
-> developers who maintain their own git tree to use a different tag (something
-> like "[PATCH FOR REVIEW]" for instance), but that won't work well if we need
-> to cross-post to other mailing lists that follow a different standard.
 
-As one of the "not-so-frequent" contributors, it's obvious to me why we 
-(incorrectly?) use just [PATCH] for initial submissions. Partly because 
-it's git's default. Partly because Documentation/SubmittingPatches 
-describes this. The LinuxTV Wiki says to [1] ("RFC" is nowhere on this 
-page). There are many parts of protocol here that may just be obvious to 
-the regulars, but documentation-by-mailing-list is a frustrating and 
-error-prone way to have to glean the guidelines before submission. If 
-this thread leads to new agreed-upon guidelines, could someone please 
-update [1] to reflect whatever the consensus is?  It would be 
-appropriate to at least mention 'git send-email' there, too.
+From: Alex Gershgorin <alexg@meprolight.com>
 
--Michael
+This patch check the state of the buffer when calling buf_init() method.
+The thread http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/48587
+also includes report witch can show the problem. This patch solved the problem.
+Both MMAP and USERPTR methods was successfully tested.
 
-[1] http://linuxtv.org/wiki/index.php/Development:_How_to_submit_patches
+Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
+[g.liakhovetski@gmx.de: remove mx3_camera_buffer::state completely]
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
+> > Hi Alex
 
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
+> > Thanks for your explanation. Please, check whether this version of your
+> > patch also fixes the problem and works in both MMAP and USERPTR modes.
+
+> > Thanks
+> > Guennadi
+
+Hi Guennadi,
+
+This is a good upgrade :-)
+ I tested both modes, it works fine without any problems.
+
+Sincerely,
+Alex
+
+diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
+index 02d54a0..0af24d0 100644
+--- a/drivers/media/video/mx3_camera.c
++++ b/drivers/media/video/mx3_camera.c
+@@ -61,15 +61,9 @@
+
+ #define MAX_VIDEO_MEM 16
+
+-enum csi_buffer_state {
+-       CSI_BUF_NEEDS_INIT,
+-       CSI_BUF_PREPARED,
+-};
+-
+ struct mx3_camera_buffer {
+        /* common v4l buffer stuff -- must be first */
+        struct vb2_buffer                       vb;
+-       enum csi_buffer_state                   state;
+        struct list_head                        queue;
+
+        /* One descriptot per scatterlist (per frame) */
+@@ -285,7 +279,7 @@ static void mx3_videobuf_queue(struct vb2_buffer *vb)
+                goto error;
+        }
+
+-       if (buf->state == CSI_BUF_NEEDS_INIT) {
++       if (!buf->txd) {
+                sg_dma_address(sg)      = vb2_dma_contig_plane_dma_addr(vb, 0);
+                sg_dma_len(sg)          = new_size;
+
+@@ -298,7 +292,6 @@ static void mx3_videobuf_queue(struct vb2_buffer *vb)
+                txd->callback_param     = txd;
+                txd->callback           = mx3_cam_dma_done;
+
+-               buf->state              = CSI_BUF_PREPARED;
+                buf->txd                = txd;
+        } else {
+                txd = buf->txd;
+@@ -385,7 +378,6 @@ static void mx3_videobuf_release(struct vb2_buffer *vb)
+
+        /* Doesn't hurt also if the list is empty */
+        list_del_init(&buf->queue);
+-       buf->state = CSI_BUF_NEEDS_INIT;
+
+        if (txd) {
+                buf->txd = NULL;
+@@ -405,13 +397,13 @@ static int mx3_videobuf_init(struct vb2_buffer *vb)
+        struct mx3_camera_dev *mx3_cam = ici->priv;
+        struct mx3_camera_buffer *buf = to_mx3_vb(vb);
+
+-       /* This is for locking debugging only */
+-       INIT_LIST_HEAD(&buf->queue);
+-       sg_init_table(&buf->sg, 1);
++       if (!buf->txd) {
++               /* This is for locking debugging only */
++               INIT_LIST_HEAD(&buf->queue);
++               sg_init_table(&buf->sg, 1);
+
+-       buf->state = CSI_BUF_NEEDS_INIT;
+-
+-       mx3_cam->buf_total += vb2_plane_size(vb, 0);
++               mx3_cam->buf_total += vb2_plane_size(vb, 0);
++       }
+
+        return 0;
+ }
