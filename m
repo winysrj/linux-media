@@ -1,39 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([93.97.41.153]:41197 "EHLO pequod.mess.org"
+Received: from mx1.redhat.com ([209.132.183.28]:43377 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755136Ab2HWVSb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Aug 2012 17:18:31 -0400
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
-Cc: Guenter Roeck <linux@roeck-us.net>
-Subject: [PATCH] [media] ttusbir: Add USB dependency
-Date: Thu, 23 Aug 2012 22:18:30 +0100
-Message-Id: <1345756710-17609-1-git-send-email-sean@mess.org>
+	id S1754933Ab2HATRT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Aug 2012 15:17:19 -0400
+Message-ID: <501980B3.8040809@redhat.com>
+Date: Wed, 01 Aug 2012 16:17:07 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: KS2012 <ksummit-2012-discuss@lists.linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	media workshop ML <workshop-2011@linuxtv.org>
+Subject: [MINI SUMMIT] media mini-summit at KS/2012
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixes the error:
-ERROR: "usb_speed_string" [drivers/usb/core/usbcore.ko] undefined!
+After the discussions around the media mini-summit, this is the
+consolidated list of topics.
 
-Reported-by: Guenter Roeck <linux@roeck-us.net>
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+We tried to give a fair time for each topic. 
 
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index 4682a5a..83e8b71 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -276,6 +276,7 @@ config IR_IGUANA
- 
- config IR_TTUSBIR
- 	tristate "TechnoTrend USB IR Receiver"
-+	depends on USB_ARCH_HAS_HCD
- 	depends on RC_CORE
- 	select USB
- 	select NEW_LEDS
--- 
-1.7.11.4
+With regards to the proposed topic "Intel media SDK", nobody
+volunteered to give such a talk. So, if there is anyone interested
+to talk about it, it can either be part of SoC vendor's feedback
+(if it won't take too long), or it could be handled as a topic
+during LPC. So, let's put this one in the fridge.
 
+Topics for the media mini-summit
+================================
+
+    - morning:
+           V4L2 API ambiguities + v4l2 compliance tool: 60 min
+           Media Controller library: 30 min
+           ALSA and V4L/Media Controller: 30 min
+           ARM and needed features for V4L/DVB: 30 min
+    - after lunch: 
+           SoC Vendors feedback – how to help them to go upstream: 45 min
+           V4L2/DVB issues from userspace perspective: 45 min
+           Android's V4L2 cam library: 30 min
+           HDMI CEC: 30 min
+           Synchronization, shared resource and optimizations: 30 min
+
+The DT discussions will likely require more time and maybe a different
+audience. So, it seems better to handle it as either as a separate/LPC
+section or at DT mini-summit:
+          Common device tree bindings for media devices: 45 min
+
+Attendants
+==========
+
+Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Hans Verkuil <hans.verkuil@xs4all.nl>
+Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Mauro Carvalho Chehab <mchehab@redhat.com>
+Michael Krufky <mkrufky@linuxtv.org>
+Naveen Krishnamurthy <naveen.krishnamurthy@st.com>
+Palash Bandyopadhyay <Palash.Bandyopadhyay@conexant.com>
+Pawel Osciak <pawel@osciak.com>
+Rémi Denis-Courmont <remi@remlab.net>
+Sakari Ailus <sakari.ailus@iki.fi>
+Sri Deevi <Srinivasa.Deevi@conexant.com>
+Steven Toth <stoth@kernellabs.com>
+Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Marek Szyprowski <m.szyprowski@samsung.com>
+Kamil Debski <k.debski@samsung.com>
+
+Naveen also asked another seat for ST, but didn't provide us yet
+the name of the other interested party.
+
+For the cross-system topics, it is important to have people from the
+other subsystems there. So, we're proposing to have some people
+there, but we need to double-check if they can really be there for
+the discussions. Of course, other Kernel developers from KS/LPC 
+that work on those subsystems are welcome.
+
+The names that came up during our discussions for those panels are:
+
+	Rob Clark <rob.clark@linaro.org> (HDMI CEC, ALSA, ARM)
+	Takashi Iwai <tiwai@suse.de> (ALSA)
+	Catalin Marinas <catalin.marinas@arm.com> (ARM)
+	Mark Brown <broonie@opensource.wolfsonmicro.com> (DT)
+
+Not sure if they all will be there or if they'll have some time
+to discuss those things with us. We hope they will ;)
+
+Thanks,
+Mauro Carvalho Chehab
+Hans Verkuil
