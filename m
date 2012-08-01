@@ -1,179 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2092 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752455Ab2H3O6H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Aug 2012 10:58:07 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: Re: [PATCH v2] media: v4l2-ctrls: add control for dpcm predictor
-Date: Thu, 30 Aug 2012 07:57:44 -0700
-Cc: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-kernel@vger.kernel.org,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-References: <1346313496-3652-1-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1346313496-3652-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mx1.redhat.com ([209.132.183.28]:54718 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754281Ab2HARjG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Aug 2012 13:39:06 -0400
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q71HcvPL023492
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 1 Aug 2012 13:39:06 -0400
+Received: from [10.97.5.124] (vpn1-5-124.gru2.redhat.com [10.97.5.124])
+	by int-mx12.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id q71GgoRi002326
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 1 Aug 2012 12:42:51 -0400
+Message-ID: <50195C89.5090808@redhat.com>
+Date: Wed, 01 Aug 2012 13:42:49 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [ANNOUNCE] patchwork notifications
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201208300757.44775.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar!
+Hi Developers,
 
-I've got some documentation review comments below...
+Just to let you know, I finally made patchwork notifications to work.
 
-On Thu August 30 2012 00:58:16 Prabhakar Lad wrote:
-> From: Lad, Prabhakar <prabhakar.lad@ti.com>
-> 
-> add V4L2_CID_DPCM_PREDICTOR control of type menu, which
-> determines the dpcm predictor. The predictor can be either
-> simple or advanced.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Hans de Goede <hdegoede@redhat.com>
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
-> This patches has one checkpatch warning for line over
-> 80 characters altough it can be avoided I have kept it
-> for consistency.
-> 
-> Changes for v2: 
-> 1: Added documentaion in controls.xml pointed by Sylwester.
-> 2: Chnaged V4L2_DPCM_PREDICTOR_ADVANCE to V4L2_DPCM_PREDICTOR_ADVANCED
->    pointed by Sakari.
-> 
->  Documentation/DocBook/media/v4l/controls.xml |   25 ++++++++++++++++++++++++-
->  drivers/media/v4l2-core/v4l2-ctrls.c         |    9 +++++++++
->  include/linux/videodev2.h                    |    5 +++++
->  3 files changed, 38 insertions(+), 1 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-> index 93b9c68..84746d0 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -4267,7 +4267,30 @@ interface and may change in the future.</para>
->  	    pixels / second.
->  	    </entry>
->  	  </row>
-> -	  <row><entry></entry></row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_DPCM_PREDICTOR</constant></entry>
-> +	    <entry>menu</entry>
-> +	  </row>
-> +	  <row id="v4l2-dpcm-predictor">
-> +	    <entry spanname="descr"> DPCM Predictor: depicts what type of prediction
-> +	    is used simple or advanced.
+With this change, every time a patch (or a group of patches) have their
+status changed, an email will be sent to the patch author, similar to this one:
 
-This is not useful information. It basically just rephrases the name of the
-define without actually telling me anything.
+	The following patches (submitted by you) have been updated in patchwork:
 
-I would expect to see here at least the following:
+	 * [43/47,media] mt2063: add some useful info for the dvb callback calls
+	     - http://patchwork.linuxtv.org/patch/9332/
+	    was: New
+	    now: RFC
 
-- what the DPCM abbreviation stands for
-- a link or bibliography reference to the relevant standard (if there is any)
-- a high-level explanation of what this do and what the difference is between
- simple and advanced.
+	 * [2/4,media] DocBook/dvbproperty.xml: Fix ISDB-T delivery system parameters
+	     - http://patchwork.linuxtv.org/patch/9557/
+	    was: New
+	    now: Accepted
 
-If this is part of a video compression standard, then this control would probably
-belong to the MPEG control class as well.
+	 * [13/35,media] az6007: need to define drivers name before including dvb-usb.h
+	     - http://patchwork.linuxtv.org/patch/9593/
+	    was: New
+	    now: Accepted
+
+...
+
+Developers that don't want this feature can opt-out, using this link:
+	 http://patchwork.linuxtv.org/mail/
+
+Still, I suggest you to don't to that ;)
+
+As a reminder, the policy I'm using to handle patches is:
+
+New patches are marked there as 'New'.
+
+When I'm expecting someone (typically, the driver's author) to review a patch, the
+status is changed to 'Under review'. Unfortunately, patchwork doesn't have a field
+to indicate to whom, so I'm currently this information on a separate file on my local
+machine.
+
+When the same patch is sent twice, or a new version of the same patch and I am
+able to identify it, the old patch is marked as  'superseded'.
+
+When someone asks for changes at the patch, the patch is marked as 'changes requested'.
+
+When the patch is wrong or doesn't apply, it is marked as 'rejected'. Most of the
+time, 'rejected' and 'changes requested' means the same thing for the developer:
+he'll need to re-work on the patch.
+
+Patches that aren't meant to be applicable at the media-tree.git are typically
+marked as 'not applicable' [1].
+
+Finally, when everything is ok and it got applied either at the main tree or at
+the fixes tree, the patch is marked as 'accepted'.
+
+Of course, as we're all humans (and patchwork status is changed manually by me),
+errors may happen. Feel free to ping me on irc or via email on such cases.
+
+[1] Just to make my life easier, patches for a few other random trees that I
+maintain/partially maintain, like media-build tree, are generally marked as 
+'Accepted' as well, when I am the one applying it, as it saves me time ;)
+
+I hope you'll find this new tool useful.
 
 Regards,
-
-    Hans
-
-
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entrytbl spanname="descr" cols="2">
-> +	      <tbody valign="top">
-> +	        <row>
-> +	         <entry><constant>V4L2_DPCM_PREDICTOR_SIMPLE</constant></entry>
-> +	          <entry>Predictor type is simple</entry>
-> +	        </row>
-> +	        <row>
-> +	          <entry><constant>V4L2_DPCM_PREDICTOR_ADVANCED</constant></entry>
-> +	          <entry>Predictor type is advanced</entry>
-> +	        </row>
-> +	      </tbody>
-> +	    </entrytbl>
-> +	  </row>
-> +	<row><entry></entry></row>
->  	</tbody>
->        </tgroup>
->        </table>
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index b6a2ee7..2d7bc15 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -425,6 +425,11 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->  		"Gray",
->  		NULL,
->  	};
-> +	static const char * const dpcm_predictor[] = {
-> +		"Simple Predictor",
-> +		"Advanced Predictor",
-> +		NULL,
-> +	};
->  
->  	switch (id) {
->  	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-> @@ -502,6 +507,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->  		return mpeg4_profile;
->  	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
->  		return jpeg_chroma_subsampling;
-> +	case V4L2_CID_DPCM_PREDICTOR:
-> +		return dpcm_predictor;
->  
->  	default:
->  		return NULL;
-> @@ -732,6 +739,7 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_IMAGE_PROC_CLASS:		return "Image Processing Controls";
->  	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
->  	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
-> +	case V4L2_CID_DPCM_PREDICTOR:		return "DPCM Predictor";
->  
->  	default:
->  		return NULL;
-> @@ -832,6 +840,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->  	case V4L2_CID_ISO_SENSITIVITY_AUTO:
->  	case V4L2_CID_EXPOSURE_METERING:
->  	case V4L2_CID_SCENE_MODE:
-> +	case V4L2_CID_DPCM_PREDICTOR:
->  		*type = V4L2_CTRL_TYPE_MENU;
->  		break;
->  	case V4L2_CID_LINK_FREQ:
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 6d6dfa7..ca9fb78 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -2000,6 +2000,11 @@ enum v4l2_jpeg_chroma_subsampling {
->  
->  #define V4L2_CID_LINK_FREQ			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 1)
->  #define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
-> +#define V4L2_CID_DPCM_PREDICTOR			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 3)
-> +enum v4l2_dpcm_predictor {
-> +	V4L2_DPCM_PREDICTOR_SIMPLE	= 0,
-> +	V4L2_DPCM_PREDICTOR_ADVANCED	= 1,
-> +};
->  
->  /*
->   *	T U N I N G
-> 
+Mauro
