@@ -1,52 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:64644 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750705Ab2HEEEp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Aug 2012 00:04:45 -0400
-Received: by vcbfk26 with SMTP id fk26so1823665vcb.19
-        for <linux-media@vger.kernel.org>; Sat, 04 Aug 2012 21:04:44 -0700 (PDT)
+Received: from moutng.kundenserver.de ([212.227.126.187]:53721 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752412Ab2HAHDB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2012 03:03:01 -0400
+Date: Wed, 1 Aug 2012 09:02:52 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+cc: Javier Martin <javier.martin@vista-silicon.com>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	fabio.estevam@freescale.com,
+	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
+	mchehab@infradead.org, linux@arm.linux.org.uk,
+	kernel@pengutronix.de
+Subject: Re: [PATCH 4/4] media: mx2_camera: Fix clock handling for i.MX27.
+In-Reply-To: <20120731174901.GD30009@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.1208010850110.5406@axis700.grange>
+References: <1343301637-19676-1-git-send-email-javier.martin@vista-silicon.com>
+ <1343301637-19676-5-git-send-email-javier.martin@vista-silicon.com>
+ <Pine.LNX.4.64.1207311644590.27888@axis700.grange> <20120731174901.GD30009@pengutronix.de>
 MIME-Version: 1.0
-In-Reply-To: <CALF0-+VHfxhjzc-yBQYrXL7-gscfqt2tZmxx+Tpe8qE+cPXzWA@mail.gmail.com>
-References: <1344103941-23047-1-git-send-email-develkernel412222@gmail.com>
-	<CALF0-+VHfxhjzc-yBQYrXL7-gscfqt2tZmxx+Tpe8qE+cPXzWA@mail.gmail.com>
-Date: Sun, 5 Aug 2012 09:49:44 +0545
-Message-ID: <CA+C2MxQn1OR_2ONEKuGc7HfX+aZos0RUGdr9e-7vP5iNduMn6Q@mail.gmail.com>
-Subject: Re: [PATCH 2/2] staging: media: cxd2099: use kzalloc to allocate ci
- pointer of type struct cxd in cxd2099_attach
-From: Devendra Naga <develkernel412222@gmail.com>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Ezequiel,
+Hi Sascha
 
-On Sun, Aug 5, 2012 at 12:24 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
-> Hi Devendra,
->
-> On Sat, Aug 4, 2012 at 3:12 PM, Devendra Naga
-> <develkernel412222@gmail.com> wrote:
->>
->>         mutex_init(&ci->lock);
->>         memcpy(&ci->cfg, cfg, sizeof(struct cxd2099_cfg));
->
-> While you're still looking at this driver, perhaps you can change the memcpy
-> with a plain struct assignment (if you feel like).
-> It's really pointless to use a memcpy here.
->
-> Something like this:
->
-> -       memcpy(&ci->cfg, cfg, sizeof(struct cxd2099_cfg));
-> +       ci->cfg = *cfg;
->
-Correct, and also one more thing like this is
+On Tue, 31 Jul 2012, Sascha Hauer wrote:
 
--           memcpy(&ci->en, &en_templ, sizeof(en_templ));
-+          ci->en = en_templ;
+> Hi Guennadi,
+> 
+> On Tue, Jul 31, 2012 at 05:14:25PM +0200, Guennadi Liakhovetski wrote:
+> > Hi Javier
+> > 
+> > > @@ -436,7 +436,8 @@ static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
+> > >  {
+> > >  	unsigned long flags;
+> > >  
+> > > -	clk_disable(pcdev->clk_csi);
+> > > +	if (cpu_is_mx27())
+> > > +		clk_disable_unprepare(pcdev->clk_csi);
+> > 
+> > This tells me, there are already 2 things going on here:
+> > 
+> > 1. add clock-(un)prepare operations to enable / disable. Is this a problem 
+> > atm? is the driver non-functional without this change or is it just an API 
+> > correctness change? I thought you replied to this already, but 
+> > unfortunately I couldn't find that your reply again, sorry.
+> 
+> Since the common clock framework clk_prepare is mandatory.
 
-Is it ok if i change ci->cfg and ci->en?
-> Regards,
-> Ezequiel.
+Good, thanks for the clarification. So, this is not a functional, but a 
+correctness fix. I think, such fixes are acceptable after -rc1 until 
+something like -rc5, but maybe not after that. So, I'd try to push this 
+some time within the next couple of weeks, once I get this fix as a 
+separate patch.
 
-Thanks,
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
