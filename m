@@ -1,52 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:47761 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751642Ab2HQGY4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Aug 2012 02:24:56 -0400
-Received: by pbbrr13 with SMTP id rr13so2828980pbb.19
-        for <linux-media@vger.kernel.org>; Thu, 16 Aug 2012 23:24:55 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, k.debski@samsung.com,
-	s.nawrocki@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH-Trivial] [media] s5p-mfc: Add missing braces around sizeof
-Date: Fri, 17 Aug 2012 11:52:55 +0530
-Message-Id: <1345184575-14035-1-git-send-email-sachin.kamat@linaro.org>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:31381 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751710Ab2HAI2m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2012 04:28:42 -0400
+Received: from eusync2.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M8200I6QI8JDE60@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 01 Aug 2012 09:29:07 +0100 (BST)
+Received: from [106.116.147.32] by eusync2.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0M8200M1PI7QE290@eusync2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 01 Aug 2012 09:28:40 +0100 (BST)
+Message-id: <5018E8B5.4050708@samsung.com>
+Date: Wed, 01 Aug 2012 10:28:37 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: sungchun.kang@samsung.com
+Cc: 'Shaik Ameer Basha' <shaik.ameer@samsung.com>,
+	linux-media@vger.kernel.org, khw0178.kim@samsung.com,
+	mchehab@infradead.org, laurent.pinchart@ideasonboard.com,
+	sy0816.kang@samsung.com, posciak@google.com, hverkuil@xs4all.nl,
+	alim.akhtar@gmail.com, prashanth.g@samsung.com, joshi@samsung.com,
+	shaik.samsung@gmail.com
+Subject: Re: [PATCH v5 0/5] Add new driver for generic scaler
+References: <1343742246-27579-1-git-send-email-shaik.ameer@samsung.com>
+ <008301cd6fb8$38f1f8e0$aad5eaa0$%kang@samsung.com>
+In-reply-to: <008301cd6fb8$38f1f8e0$aad5eaa0$%kang@samsung.com>
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Silences the following warnings:
-WARNING: sizeof *ctx should be sizeof(*ctx)
-WARNING: sizeof *dev should be sizeof(*dev)
+On 08/01/2012 09:35 AM, Sungchun Kang wrote:
+> I'm sorry to be so late.
+> Basically, I wonder important one thing.
+> What would you implement a device driver connected with gscaler.
+> For example, fimc-lite, mipi-csis.
+> As you know Exynos5 has local-path with gscaler
+> MIPI-CSIS => Fimc-lite => Gscaler
+> And, you should use media control framework.
+> So, We made exynos folder, and implement drivers with mc.
+> We use mdev that is virtual device driver for connecting gscaler, fimc-lite, mipi-csis with MC.
+> This is camera path. 
+> There are not only camera path but also rendering path.
+> Gscaler => FIMD or TV
+> Rendering path use mdev-0,
+> Camera path use mdev-1.
+> In conclusion, because we use to connect each other devices with MC, we made exynos folder.
+> 
+> And how you make to implement devices with MC?
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+As you may know, these patches only add mem-to-mem functionality,
+which can be used together with the Exynos multi-format video codec.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index e3e616d..815affe 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -649,7 +649,7 @@ static int s5p_mfc_open(struct file *file)
- 		return -ERESTARTSYS;
- 	dev->num_inst++;	/* It is guarded by mfc_mutex in vfd */
- 	/* Allocate memory for context */
--	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
-+	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
- 	if (!ctx) {
- 		mfc_err("Not enough memory\n");
- 		ret = -ENOMEM;
-@@ -961,7 +961,7 @@ static int s5p_mfc_probe(struct platform_device *pdev)
- 	int ret;
+Remaining features, as you listed, are planned to be added later,
+in subsequent steps, after discussing it here on the mailing list.
 
- 	pr_debug("%s++\n", __func__);
--	dev = devm_kzalloc(&pdev->dev, sizeof *dev, GFP_KERNEL);
-+	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
- 	if (!dev) {
- 		dev_err(&pdev->dev, "Not enough memory for MFC device\n");
- 		return -ENOMEM;
---
-1.7.4.1
+I think it's much better approach, than coming up with a complete huge
+driver with many API compliance issues. Especially that some drivers,
+like MIPI-CSIS or FIMC-LITE are already in the mainline kernel.
 
+As for the driver directory name, IMHO drivers/media/exynos is too
+generic, s5p-fimc, s5p-jpeg, s5p-tv also cover some Exynos SoCs.
+
+I don't think having drivers/media/exynos directory would be helpful
+in anything.
+
+Regards,
+Sylwester
