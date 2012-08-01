@@ -1,179 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:24511 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752986Ab2HPJqe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Aug 2012 05:46:34 -0400
-Received: from epcpsbgm1.samsung.com (mailout4.samsung.com [203.254.224.34])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M8U00D8EDTLHB90@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Thu, 16 Aug 2012 18:46:33 +0900 (KST)
-Received: from amdc248.digital.local ([106.116.147.32])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M8U00AV0DT26T80@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 16 Aug 2012 18:46:30 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36448 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753095Ab2HAH73 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2012 03:59:29 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH 4/4] s5p-fimc: Don't allocate fimc-m2m video device dynamically
-Date: Thu, 16 Aug 2012 11:46:12 +0200
-Message-id: <1345110372-11874-4-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1345110372-11874-1-git-send-email-s.nawrocki@samsung.com>
-References: <1345110372-11874-1-git-send-email-s.nawrocki@samsung.com>
+Cc: sakari.ailus@iki.fi, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v2] mt9v032: Provide link frequency control
+Date: Wed,  1 Aug 2012 09:59:34 +0200
+Message-Id: <1343807974-4038-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is no need to to dynamically allocate struct video_device
-for the M2M devices, so embed it instead in driver's private
-data structure as it is done in case of fimc-capture and fimc-lite,
-where it solves some bugs on cleanup paths.
-
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/s5p-fimc/fimc-capture.c |    3 ++
- drivers/media/platform/s5p-fimc/fimc-core.h    |    2 +-
- drivers/media/platform/s5p-fimc/fimc-m2m.c     |   40 ++++++++----------------
- 3 files changed, 17 insertions(+), 28 deletions(-)
+ drivers/media/video/mt9v032.c |   48 ++++++++++++++++++++++++++++++++++++----
+ include/media/mt9v032.h       |    3 ++
+ 2 files changed, 46 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c b/drivers/media/platform/s5p-fimc/fimc-capture.c
-index 5d3a70f..4092388 100644
---- a/drivers/media/platform/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
-@@ -1663,6 +1663,9 @@ static int fimc_capture_subdev_registered(struct v4l2_subdev *sd)
- 	struct fimc_dev *fimc = v4l2_get_subdevdata(sd);
+Changes compared to v1:
+
+- Assign pixel_rate->val64 instead of pixel_rate->cur.val
+
+diff --git a/drivers/media/video/mt9v032.c b/drivers/media/video/mt9v032.c
+index 2203a6f..bf591b8 100644
+--- a/drivers/media/video/mt9v032.c
++++ b/drivers/media/video/mt9v032.c
+@@ -29,6 +29,8 @@
+ #define MT9V032_PIXEL_ARRAY_HEIGHT			492
+ #define MT9V032_PIXEL_ARRAY_WIDTH			782
+ 
++#define MT9V032_SYSCLK_FREQ_DEF				26600000
++
+ #define MT9V032_CHIP_VERSION				0x00
+ #define		MT9V032_CHIP_ID_REV1			0x1311
+ #define		MT9V032_CHIP_ID_REV3			0x1313
+@@ -122,13 +124,18 @@ struct mt9v032 {
+ 	struct v4l2_mbus_framefmt format;
+ 	struct v4l2_rect crop;
+ 
+-	struct v4l2_ctrl *pixel_rate;
+ 	struct v4l2_ctrl_handler ctrls;
++	struct {
++		struct v4l2_ctrl *link_freq;
++		struct v4l2_ctrl *pixel_rate;
++	};
+ 
+ 	struct mutex power_lock;
+ 	int power_count;
+ 
+ 	struct mt9v032_platform_data *pdata;
++
++	u32 sysclk;
+ 	u16 chip_control;
+ 	u16 aec_agc;
+ };
+@@ -196,7 +203,7 @@ static int mt9v032_power_on(struct mt9v032 *mt9v032)
  	int ret;
  
-+	if (fimc == NULL)
-+		return -ENXIO;
+ 	if (mt9v032->pdata->set_clock) {
+-		mt9v032->pdata->set_clock(&mt9v032->subdev, EXT_CLK);
++		mt9v032->pdata->set_clock(&mt9v032->subdev, mt9v032->sysclk);
+ 		udelay(1);
+ 	}
+ 
+@@ -374,7 +381,8 @@ static void mt9v032_configure_pixel_rate(struct mt9v032 *mt9v032,
+ 	struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
+ 	int ret;
+ 
+-	ret = v4l2_ctrl_s_ctrl_int64(mt9v032->pixel_rate, EXT_CLK / hratio);
++	ret = v4l2_ctrl_s_ctrl_int64(mt9v032->pixel_rate,
++				     mt9v032->sysclk / hratio);
+ 	if (ret < 0)
+ 		dev_warn(&client->dev, "failed to set pixel rate (%d)\n", ret);
+ }
+@@ -487,6 +495,7 @@ static int mt9v032_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	struct mt9v032 *mt9v032 =
+ 			container_of(ctrl->handler, struct mt9v032, ctrls);
+ 	struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
++	u32 freq;
+ 	u16 data;
+ 
+ 	switch (ctrl->id) {
+@@ -505,6 +514,16 @@ static int mt9v032_s_ctrl(struct v4l2_ctrl *ctrl)
+ 		return mt9v032_write(client, MT9V032_TOTAL_SHUTTER_WIDTH,
+ 				     ctrl->val);
+ 
++	case V4L2_CID_PIXEL_RATE:
++	case V4L2_CID_LINK_FREQ:
++		if (mt9v032->link_freq == NULL)
++			break;
 +
- 	ret = fimc_register_m2m_device(fimc, sd->v4l2_dev);
- 	if (ret)
- 		return ret;
-diff --git a/drivers/media/platform/s5p-fimc/fimc-core.h b/drivers/media/platform/s5p-fimc/fimc-core.h
-index 30f93f2..d3a3a00 100644
---- a/drivers/media/platform/s5p-fimc/fimc-core.h
-+++ b/drivers/media/platform/s5p-fimc/fimc-core.h
-@@ -287,7 +287,7 @@ struct fimc_frame {
-  * @refcnt: the reference counter
-  */
- struct fimc_m2m_device {
--	struct video_device	*vfd;
-+	struct video_device	vfd;
- 	struct v4l2_m2m_dev	*m2m_dev;
- 	struct fimc_ctx		*ctx;
- 	int			refcnt;
-diff --git a/drivers/media/platform/s5p-fimc/fimc-m2m.c b/drivers/media/platform/s5p-fimc/fimc-m2m.c
-index c587011..293e602 100644
---- a/drivers/media/platform/s5p-fimc/fimc-m2m.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-m2m.c
-@@ -370,7 +370,7 @@ static int fimc_m2m_s_fmt_mplane(struct file *file, void *fh,
- 	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
- 
- 	if (vb2_is_busy(vq)) {
--		v4l2_err(fimc->m2m.vfd, "queue (%d) busy\n", f->type);
-+		v4l2_err(&fimc->m2m.vfd, "queue (%d) busy\n", f->type);
- 		return -EBUSY;
- 	}
- 
-@@ -507,7 +507,7 @@ static int fimc_m2m_try_crop(struct fimc_ctx *ctx, struct v4l2_crop *cr)
- 	int i;
- 
- 	if (cr->c.top < 0 || cr->c.left < 0) {
--		v4l2_err(fimc->m2m.vfd,
-+		v4l2_err(&fimc->m2m.vfd,
- 			"doesn't support negative values for top & left\n");
- 		return -EINVAL;
- 	}
-@@ -577,7 +577,7 @@ static int fimc_m2m_s_crop(struct file *file, void *fh, struct v4l2_crop *cr)
- 					cr->c.height, ctx->rotation);
- 		}
- 		if (ret) {
--			v4l2_err(fimc->m2m.vfd, "Out of scaler range\n");
-+			v4l2_err(&fimc->m2m.vfd, "Out of scaler range\n");
- 			return -EINVAL;
- 		}
- 	}
-@@ -666,7 +666,7 @@ static int fimc_m2m_open(struct file *file)
- 		ret = -ENOMEM;
- 		goto unlock;
- 	}
--	v4l2_fh_init(&ctx->fh, fimc->m2m.vfd);
-+	v4l2_fh_init(&ctx->fh, &fimc->m2m.vfd);
- 	ctx->fimc_dev = fimc;
- 
- 	/* Default color format */
-@@ -784,38 +784,26 @@ static struct v4l2_m2m_ops m2m_ops = {
- int fimc_register_m2m_device(struct fimc_dev *fimc,
- 			     struct v4l2_device *v4l2_dev)
++		freq = mt9v032->pdata->link_freqs[mt9v032->link_freq->val];
++		mt9v032->pixel_rate->val64 = freq;
++		mt9v032->sysclk = freq;
++		break;
++
+ 	case V4L2_CID_TEST_PATTERN:
+ 		switch (ctrl->val) {
+ 		case 0:
+@@ -683,6 +702,7 @@ static const struct v4l2_subdev_internal_ops mt9v032_subdev_internal_ops = {
+ static int mt9v032_probe(struct i2c_client *client,
+ 		const struct i2c_device_id *did)
  {
--	struct video_device *vfd;
--	struct platform_device *pdev;
--	int ret = 0;
--
--	if (!fimc)
--		return -ENODEV;
-+	struct video_device *vfd = &fimc->m2m.vfd;
-+	int ret;
++	struct mt9v032_platform_data *pdata = client->dev.platform_data;
+ 	struct mt9v032 *mt9v032;
+ 	unsigned int i;
+ 	int ret;
+@@ -699,9 +719,9 @@ static int mt9v032_probe(struct i2c_client *client,
+ 		return -ENOMEM;
  
--	pdev = fimc->pdev;
- 	fimc->v4l2_dev = v4l2_dev;
+ 	mutex_init(&mt9v032->power_lock);
+-	mt9v032->pdata = client->dev.platform_data;
++	mt9v032->pdata = pdata;
  
--	vfd = video_device_alloc();
--	if (!vfd) {
--		v4l2_err(v4l2_dev, "Failed to allocate video device\n");
--		return -ENOMEM;
--	}
--
-+	memset(vfd, 0, sizeof(*vfd));
- 	vfd->fops = &fimc_m2m_fops;
- 	vfd->ioctl_ops = &fimc_m2m_ioctl_ops;
- 	vfd->v4l2_dev = v4l2_dev;
- 	vfd->minor = -1;
--	vfd->release = video_device_release;
-+	vfd->release = video_device_release_empty;
- 	vfd->lock = &fimc->lock;
+-	v4l2_ctrl_handler_init(&mt9v032->ctrls, ARRAY_SIZE(mt9v032_ctrls) + 5);
++	v4l2_ctrl_handler_init(&mt9v032->ctrls, ARRAY_SIZE(mt9v032_ctrls) + 6);
  
- 	snprintf(vfd->name, sizeof(vfd->name), "fimc.%d.m2m", fimc->id);
- 	video_set_drvdata(vfd, fimc);
- 
--	fimc->m2m.vfd = vfd;
- 	fimc->m2m.m2m_dev = v4l2_m2m_init(&m2m_ops);
- 	if (IS_ERR(fimc->m2m.m2m_dev)) {
- 		v4l2_err(v4l2_dev, "failed to initialize v4l2-m2m device\n");
--		ret = PTR_ERR(fimc->m2m.m2m_dev);
--		goto err_init;
-+		return PTR_ERR(fimc->m2m.m2m_dev);
- 	}
- 
- 	ret = media_entity_init(&vfd->entity, 0, NULL, 0);
-@@ -834,8 +822,6 @@ err_vd:
- 	media_entity_cleanup(&vfd->entity);
- err_me:
- 	v4l2_m2m_release(fimc->m2m.m2m_dev);
--err_init:
--	video_device_release(fimc->m2m.vfd);
- 	return ret;
- }
- 
-@@ -846,9 +832,9 @@ void fimc_unregister_m2m_device(struct fimc_dev *fimc)
- 
- 	if (fimc->m2m.m2m_dev)
- 		v4l2_m2m_release(fimc->m2m.m2m_dev);
--	if (fimc->m2m.vfd) {
--		media_entity_cleanup(&fimc->m2m.vfd->entity);
--		/* Can also be called if video device wasn't registered */
--		video_unregister_device(fimc->m2m.vfd);
+ 	v4l2_ctrl_new_std(&mt9v032->ctrls, &mt9v032_ctrl_ops,
+ 			  V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
+@@ -715,10 +735,27 @@ static int mt9v032_probe(struct i2c_client *client,
+ 			  V4L2_CID_EXPOSURE, MT9V032_TOTAL_SHUTTER_WIDTH_MIN,
+ 			  MT9V032_TOTAL_SHUTTER_WIDTH_MAX, 1,
+ 			  MT9V032_TOTAL_SHUTTER_WIDTH_DEF);
 +
-+	if (video_is_registered(&fimc->m2m.vfd)) {
-+		video_unregister_device(&fimc->m2m.vfd);
-+		media_entity_cleanup(&fimc->m2m.vfd.entity);
- 	}
- }
+ 	mt9v032->pixel_rate =
+ 		v4l2_ctrl_new_std(&mt9v032->ctrls, &mt9v032_ctrl_ops,
+ 				  V4L2_CID_PIXEL_RATE, 0, 0, 1, 0);
+ 
++	if (pdata && pdata->link_freqs) {
++		unsigned int def = 0;
++
++		for (i = 0; pdata->link_freqs[i]; ++i) {
++			if (pdata->link_freqs[i] == pdata->link_def_freq)
++				def = i;
++		}
++
++		mt9v032->link_freq =
++			v4l2_ctrl_new_int_menu(&mt9v032->ctrls,
++					       &mt9v032_ctrl_ops,
++					       V4L2_CID_LINK_FREQ, i - 1, def,
++					       pdata->link_freqs);
++		v4l2_ctrl_cluster(2, &mt9v032->link_freq);
++	}
++
+ 	for (i = 0; i < ARRAY_SIZE(mt9v032_ctrls); ++i)
+ 		v4l2_ctrl_new_custom(&mt9v032->ctrls, &mt9v032_ctrls[i], NULL);
+ 
+@@ -740,6 +777,7 @@ static int mt9v032_probe(struct i2c_client *client,
+ 	mt9v032->format.colorspace = V4L2_COLORSPACE_SRGB;
+ 
+ 	mt9v032->aec_agc = MT9V032_AEC_ENABLE | MT9V032_AGC_ENABLE;
++	mt9v032->sysclk = MT9V032_SYSCLK_FREQ_DEF;
+ 
+ 	v4l2_i2c_subdev_init(&mt9v032->subdev, client, &mt9v032_subdev_ops);
+ 	mt9v032->subdev.internal_ops = &mt9v032_subdev_internal_ops;
+diff --git a/include/media/mt9v032.h b/include/media/mt9v032.h
+index 5e27f9b..78fd39e 100644
+--- a/include/media/mt9v032.h
++++ b/include/media/mt9v032.h
+@@ -7,6 +7,9 @@ struct mt9v032_platform_data {
+ 	unsigned int clk_pol:1;
+ 
+ 	void (*set_clock)(struct v4l2_subdev *subdev, unsigned int rate);
++
++	const s64 *link_freqs;
++	s64 link_def_freq;
+ };
+ 
+ #endif
 -- 
-1.7.10
+Regards,
+
+Laurent Pinchart
 
