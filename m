@@ -1,111 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:16395 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752622Ab2HVMJW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Aug 2012 08:09:22 -0400
-Received: from eusync4.samsung.com (mailout3.w1.samsung.com [210.118.77.13])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M9500DPCOGHR270@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 22 Aug 2012 13:09:53 +0100 (BST)
-Received: from [106.116.147.108] by eusync4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTPA id <0M9500LBVOFJDR60@eusync4.samsung.com> for
- linux-media@vger.kernel.org; Wed, 22 Aug 2012 13:09:20 +0100 (BST)
-Message-id: <5034CBEE.1020700@samsung.com>
-Date: Wed, 22 Aug 2012 14:09:18 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-MIME-version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
-	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
-	robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
-	subashrp@gmail.com, mchehab@redhat.com, g.liakhovetski@gmx.de,
-	dmitriyz@google.com, s.nawrocki@samsung.com, k.debski@samsung.com,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: Re: [PATCHv8 01/26] v4l: Add DMABUF as a memory type
-References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
- <1344958496-9373-2-git-send-email-t.stanislaws@samsung.com>
- <201208221227.52900.hverkuil@xs4all.nl>
-In-reply-to: <201208221227.52900.hverkuil@xs4all.nl>
-Content-type: text/plain; charset=ISO-8859-15
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2191 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752412Ab2HAGmI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2012 02:42:08 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Federico Vaga <federico.vaga@gmail.com>
+Subject: Re: Update VIP to videobuf2 and control framework
+Date: Wed, 1 Aug 2012 08:41:56 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jonathan Corbet <corbet@lwn.net>
+References: <1343765829-6006-1-git-send-email-federico.vaga@gmail.com>
+In-Reply-To: <1343765829-6006-1-git-send-email-federico.vaga@gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201208010841.56941.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-Thank your for the review.
-Please refer to the comments below.
+On Tue July 31 2012 22:17:06 Federico Vaga wrote:
+> As suggested I moved the Video Buffer Input (VIP) of the STA2X11 board to the
+> videobuf2. This patch series is an RFC.
 
-On 08/22/2012 12:27 PM, Hans Verkuil wrote:
-> On Tue August 14 2012 17:34:31 Tomasz Stanislawski wrote:
->> From: Sumit Semwal <sumit.semwal@ti.com>
->>
->> Adds DMABUF memory type to v4l framework. Also adds the related file
->> descriptor in v4l2_plane and v4l2_buffer.
->>
->> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
->>    [original work in the PoC for buffer sharing]
->> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
->> Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
->> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> ---
->>  drivers/media/video/v4l2-compat-ioctl32.c |   18 ++++++++++++++++++
->>  drivers/media/video/v4l2-ioctl.c          |    1 +
->>  include/linux/videodev2.h                 |    7 +++++++
->>  3 files changed, 26 insertions(+)
->>
->> diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
->> index 9ebd5c5..a2e0549 100644
->> --- a/drivers/media/video/v4l2-compat-ioctl32.c
->> +++ b/drivers/media/video/v4l2-compat-ioctl32.c
->> @@ -304,6 +304,7 @@ struct v4l2_plane32 {
->>  	union {
->>  		__u32		mem_offset;
->>  		compat_long_t	userptr;
->> +		__u32		fd;
-> 
-> Shouldn't this be int?
-> 
+Thank you very much for working on this! Much appreciated!
 
-Notice that this field should be consistent with fd field used in
-'struct v4l2_exportbuffer'. Therefore I prefer to use fixed-size types.
-One could use __s32 here but notice that file descriptors are defined
-as small, nonnegative integers according to POSIX spec. The type __u32
-suits well for this purpose. The negative values returned by open
-syscall are used only to indicate failures.
+> The first patch is just an update to the adv7180 because the VIP (the only
+> user) now use the control framework so query{g_|s_|ctrl} are not necessery.
 
-On the other hand, using __s32 may help to avoid compiler warning while
-building userspace apps due to 'signed-vs-unsigned comparisons'.
+For this patch:
 
-However, I do not have any strong opinion about 'int vs __u32' issue :).
-Do you think that using __s32 for both QUERYBUF and EXPBUF is a good
-compromise?
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
->>  	} m;
->>  	__u32			data_offset;
->>  	__u32			reserved[11];
->> @@ -325,6 +326,7 @@ struct v4l2_buffer32 {
->>  		__u32           offset;
->>  		compat_long_t   userptr;
->>  		compat_caddr_t  planes;
->> +		__u32		fd;
-> 
-> Ditto.
-> 
->>  	} m;
->>  	__u32			length;
->>  	__u32			reserved2;
+> The second patch adds a new memory allocator for the videobuf2. I name it
+> videobuf2-dma-streaming but I think "streaming" is not the best choice, so
+> suggestions are welcome. My inspiration for this buffer come from
+> videobuf-dma-contig (cached) version. After I made this buffer I found the
+> videobuf2-dma-nc made by Jonathan Corbet and I improve the allocator with
+> some suggestions (http://patchwork.linuxtv.org/patch/7441/). The VIP doesn't
+> work with videobu2-dma-contig and I think this solution is easier the sg.
 
-> Regards,
-> 
-> 	Hans
-> 
+I leave this to the vb2 experts. It's not obvious to me why we would need
+a fourth memory allocator.
+
+> The third patch updates the VIP to videobuf2 and control framework. I made also
+> some restyling to the driver and change some mechanism so I take the ownership
+> of the driver and I add the copyright of ST Microelectronics. Some trivial
+> code is unchanged. The patch probably needs some extra update.
+> I add the control framework to the VIP but without any control. I add it to 
+> inherit controls from adv7180.
+
+Did you run the latest v4l2-compliance tool from the v4l-utils.git repository
+over your driver? I'm sure you didn't since VIP is missing support for control
+events and v4l2-compliance would certainly complain about that.
+
+Always check with v4l2-compliance whenever you make changes! It's continuously
+improved as well, so a periodic check wouldn't hurt.
+
+Also take a look at the new vb2 helper functions in media/videobuf2-core.h:
+it is likely that you can use those to simplify your driver. They are used in
+e.g. vivi, so take a look there.
 
 Regards,
 
-	Tomasz
+	Hans
