@@ -1,69 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oproxy12-pub.bluehost.com ([50.87.16.10]:48965 "HELO
-	oproxy12-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750993Ab2HGEnl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2012 00:43:41 -0400
-Message-ID: <501CA0B2.7010500@xenotime.net>
-Date: Fri, 03 Aug 2012 21:10:26 -0700
-From: Randy Dunlap <rdunlap@xenotime.net>
+Received: from moutng.kundenserver.de ([212.227.17.9]:60147 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750824Ab2HAGrZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2012 02:47:25 -0400
+Date: Wed, 1 Aug 2012 08:47:20 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	devicetree-discuss <devicetree-discuss@lists.ozlabs.org>
+Subject: Re: [RFC] media DT bindings
+In-Reply-To: <1853410.hC8HZhzZI6@avalon>
+Message-ID: <Pine.LNX.4.64.1208010828030.5406@axis700.grange>
+References: <Pine.LNX.4.64.1207110854290.18999@axis700.grange>
+ <2642313.6bQqiyFNFL@avalon> <Pine.LNX.4.64.1207311432590.27888@axis700.grange>
+ <1853410.hC8HZhzZI6@avalon>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [git:v4l-dvb/for_v3.6] edac: add a new per-dimm API and make
- the old per-virtual-rank API obsolete
-References: <E1SxTx2-0003Gt-4b@www.linuxtv.org>
-In-Reply-To: <E1SxTx2-0003Gt-4b@www.linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/11/2012 09:23 AM, Mauro Carvalho Chehab wrote:
+On Tue, 31 Jul 2012, Laurent Pinchart wrote:
 
-> This is an automatic generated email to let you know that the following patch were queued at the 
-> http://git.linuxtv.org/media_tree.git tree:
+> Hi Guennadi,
+> 
+> On Tuesday 31 July 2012 14:39:07 Guennadi Liakhovetski wrote:
+> > On Tue, 31 Jul 2012, Laurent Pinchart wrote:
+> > > On Tuesday 31 July 2012 11:26:27 Guennadi Liakhovetski wrote:
+> > > > On Fri, 27 Jul 2012, Laurent Pinchart wrote:
+> > > > > On Wednesday 18 July 2012 19:00:15 Sylwester Nawrocki wrote:
+> > > > > > On 07/16/2012 01:41 PM, Guennadi Liakhovetski wrote:
+> > > > [snip]
+> > > > 
+> > > > > > >>> An sh-mobile CEU DT node could look like
+> > > > > > >>> 
+> > > > > > >>> 	ceu0@0xfe910000 = {
+> > > > > > >>> 	
+> > > > > > >>> 		compatible = "renesas,sh-mobile-ceu";
+> > > > > > >>> 		reg =<0xfe910000 0xa0>;
+> > > > > > >>> 		interrupts =<0x880>;
+> > > > > > >>> 		bus-width =<16>;		/* #lines routed on the board */
+> > > > > > >>> 		clock-frequency =<50000000>;	/* max clock */
+> > > > > > >>> 		#address-cells =<1>;
+> > > > > > >>> 		#size-cells =<0>;
+> > > > > > >>> 		...
+> > > > > > >>> 		ov772x-1 = {
+> > > > > > >>> 		
+> > > > > > >>> 			reg =<0>;
+> > > > > > 
+> > > > > > This property might be redundant, we already have the "client"
+> > > > > > phandle pointing to "ov772x@0x21-0", which has all interesting
+> > > > > > properties inside it. Other than there is probably no reasonable
+> > > > > > usage for it under "ceu0@0xfe910000" node ?
+> > > > > > 
+> > > > > > >>> 			client =<&ov772x@0x21-0>;
+> > > > > > >>> 			local-pad = "parallel-sink";
+> > > > > > >>> 			remote-pad = "parallel-source";
+> > > > > > >> 
+> > > > > > >> I'm not sure I like that. Is it really needed when we already
+> > > > > > >> have the child/parent properties around ?
+> > > > > > > 
+> > > > > > > I think it is. Both the host and the client can have multiple pads
+> > > > > > > (e.g., parallel / serial). These properties specify which pads are
+> > > > > > > used and make the translation between DT data and our subdev / pad
+> > > > > > > APIs simpler.
+> > > > > > 
+> > > > > > OK, sorry, but isn't it all about just specifying what sort of data
+> > > > > > bus is used ? :-)
+> > > > > 
+> > > > > In some (many/most ?) cases probably, but not in all of them.
+> > > > > 
+> > > > > What about merging the client and remote-pad properties ? The
+> > > > > resulting property would then reference a pad with <&ov772x@0x21-0 0>.
+> > > > 
+> > > > What would the "0" parameter mean then? Pad #0?
+> > > 
+> > > Yes.
+> > > 
+> > > > But aren't these numbers device specific? Maybe not a huge deal, but
+> > > > these numbers are defind by the driver, right? Not the DT itself. So,
+> > > > drivers then will have to take care not to change their pad numbering.
+> > > > Whereas using strings, we can fix strings in the common V4L DT spec and
+> > > > keep them standard across devices and drivers. Then drivers might be
+> > > > less likely to change these assignments randomly ;-)
+> > > 
+> > > Userspace applications usually rely on pad numbers as well, so I consider
+> > > them as more or less part of the ABI. If we really need to, we could add
+> > > a DT pad number -> media controller pad number conversion in the driver,
+> > > that would be less expensive than pad name -> pad number conversion
+> > > (especially since it would be skipped in most cases).
+> > 
+> > Ok, then, how about
+> > 
+> > 		#address-cells = <1>;
+> > 		#size-cells = <0>;
+> > 		...
+> > 		ov772x-1 = {
+> > 			reg = <1>;			/* local pad # */
+> > 			client = <&ov772x@0x21-0 0>;	/* remote phandle and pad */
+> 
+> The client property looks good, but isn't such a usage of the reg property an 
+> abuse ?
 
+Don't know, is it?
 
-Wrong git tree ?????
+> Maybe the local pad # should be a device-specific property. Many hosts 
+> won't need it, and on others it would actually need to reference a subdev, not 
+> just a pad.
 
+Wait, the correspondence cannot be one pad to many subdevs, right? So, we 
+always can assign at least 1 pad to each subdev. Hm, or you mean subdevs 
+like flash, that don't access data, in which case they don't need pads? 
+but then we also don't need links to them. Those child nodes are links, 
+and links always run between 2 pads, right? So, in the above 
+representation child devices are pads of the parent node, to which other 
+entities are linked.
 
-> Subject: edac: add a new per-dimm API and make the old per-virtual-rank API obsolete
-> Author:  Mauro Carvalho Chehab <mchehab@redhat.com>
-> Date:    Wed Mar 21 17:06:53 2012 -0300
-> 
-> The old EDAC API is broken. It only works fine for systems manufatured
-> before 2005 and for AMD 64. The reason is that it forces all memory
-> controller drivers to discover rank info.
-> 
-> Also, it doesn't allow grouping the several ranks into a DIMM.
-> 
-> So, what almost all modern drivers do is to create a fake virtual-rank
-> information, and use it to cheat the EDAC core to accept the driver.
-> 
-> While this works if the user has enough time to discover what DIMM slot
-> corresponds to each "virtual-rank" information, it prevents EDAC usage
-> for users with less available time. It also makes life hard for vendors
-> that may want to provide a table with their motherboards to the userspace
-> tool (edac-utils) as each driver has its own logic for the virtual
-> mapping.
-> 
-> So, the old API should be removed, in favor of a more flexible API that
-> allows newer drivers to not lie to the EDAC core.
-> 
-> Reviewed-by: Aristeu Rozanski <arozansk@redhat.com>
-> Cc: Doug Thompson <norsk5@yahoo.com>
-> Cc: Borislav Petkov <borislav.petkov@amd.com>
-> Cc: Randy Dunlap <rdunlap@xenotime.net>
-> Cc: Josh Boyer <jwboyer@redhat.com>
-> Cc: Hui Wang <jason77.wang@gmail.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
->  drivers/edac/Kconfig         |    8 ++
->  drivers/edac/edac_mc_sysfs.c |  165 +++++++++++++++++++++++++++++++++++++++++-
->  2 files changed, 172 insertions(+), 1 deletions(-)
-> 
-> ---
+But while writing this, another question occurred to me: what if several 
+entities are connected to one pad (activated selectively by a switch)? We 
+cannot have several child nodes with the same address. But in such a case 
+we could use
 
+	#address-cells = <2>;
+	...
+	subdev1 = {
+		reg = <1 1>; /* first client on pad 1 */
+	};
 
--- 
-~Randy
+	subdev2 = {
+		reg = <1 2>; /* second client on pad 1 */
+	};
+
+But I'm not particularly attached to this idea. If we decide, that it's an 
+abuse, we can switch back to some property.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
