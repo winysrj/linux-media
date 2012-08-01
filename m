@@ -1,80 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:12806 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753048Ab2HTUN3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Aug 2012 16:13:29 -0400
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q7KKDTaS001086
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 20 Aug 2012 16:13:29 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] [media] flexcop: Show the item to enable debug after the driver
-Date: Mon, 20 Aug 2012 17:13:25 -0300
-Message-Id: <1345493605-29205-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from eu1sys200aog112.obsmtp.com ([207.126.144.133]:34541 "EHLO
+	eu1sys200aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753517Ab2HAG0s convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Aug 2012 02:26:48 -0400
+From: Bhupesh SHARMA <bhupesh.sharma@st.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 1 Aug 2012 14:26:33 +0800
+Subject: Query regarding the support and testing of MJPEG frame type in the
+ UVC webcam gadget
+Message-ID: <D5ECB3C7A6F99444980976A8C6D896384FABF0D740@EAPEX1MAIL1.st.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of showing the option to show debug at the end, show
-it after each driver.
+Hi Laurent,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/b2c2/Kconfig | 7 ++-----
- drivers/media/pci/b2c2/Kconfig    | 8 ++++++++
- drivers/media/usb/b2c2/Kconfig    | 8 ++++++++
- 3 files changed, 18 insertions(+), 5 deletions(-)
+I have a query for you regarding the support and testing of MJPEG frame type in the UVC webcam gadget.
 
-diff --git a/drivers/media/common/b2c2/Kconfig b/drivers/media/common/b2c2/Kconfig
-index 29149de..1df9e57 100644
---- a/drivers/media/common/b2c2/Kconfig
-+++ b/drivers/media/common/b2c2/Kconfig
-@@ -23,9 +23,6 @@ config DVB_B2C2_FLEXCOP
- 
- 	  Say Y if you own such a device and want to use it.
- 
-+# Selected via the PCI or USB flexcop drivers
- config DVB_B2C2_FLEXCOP_DEBUG
--	bool "Enable debug for the B2C2 FlexCop drivers"
--	depends on DVB_B2C2_FLEXCOP
--	help
--	  Say Y if you want to enable the module option to control debug messages
--	  of all B2C2 FlexCop drivers.
-+	bool
-diff --git a/drivers/media/pci/b2c2/Kconfig b/drivers/media/pci/b2c2/Kconfig
-index aaa1f30..78ced47 100644
---- a/drivers/media/pci/b2c2/Kconfig
-+++ b/drivers/media/pci/b2c2/Kconfig
-@@ -4,3 +4,11 @@ config DVB_B2C2_FLEXCOP_PCI
- 	  Support for the Air/Sky/CableStar2 PCI card (DVB/ATSC) by Technisat/B2C2.
- 
- 	  Say Y if you own such a device and want to use it.
-+
-+config DVB_B2C2_FLEXCOP_PCI_DEBUG
-+	bool "Enable debug for the B2C2 FlexCop drivers"
-+	depends on DVB_B2C2_FLEXCOP_PCI
-+	select DVB_B2C2_FLEXCOP_DEBUG
-+	help
-+	Say Y if you want to enable the module option to control debug messages
-+	of all B2C2 FlexCop drivers.
-diff --git a/drivers/media/usb/b2c2/Kconfig b/drivers/media/usb/b2c2/Kconfig
-index 3af7c41..ba16583 100644
---- a/drivers/media/usb/b2c2/Kconfig
-+++ b/drivers/media/usb/b2c2/Kconfig
-@@ -4,3 +4,11 @@ config DVB_B2C2_FLEXCOP_USB
- 	  Support for the Air/Sky/Cable2PC USB1.1 box (DVB/ATSC) by Technisat/B2C2,
- 
- 	  Say Y if you own such a device and want to use it.
-+
-+config DVB_B2C2_FLEXCOP_USB_DEBUG
-+	bool "Enable debug for the B2C2 FlexCop drivers"
-+	depends on DVB_B2C2_FLEXCOP_USB
-+	select DVB_B2C2_FLEXCOP_DEBUG
-+	   help
-+	Say Y if you want to enable the module option to control debug messages
-+	of all B2C2 FlexCop drivers.
--- 
-1.7.11.4
+I see that in the webcam.c gadget, the 720p and VGA MJPEG uvc formats are supported. I was trying the same
+out and got confused because the data arriving from a real video capture video supporting JPEG will have no
+fixed size. We will have the JPEG defined Start-of-Frame and End-of-Frame markers defining the boundary
+of the JPEG frame.
 
+But for almost all JPEG video capture devices even if we have kept a frame size of VGA initially, the final
+frame size will be a compressed version (with the compression depending on the nature of the scene, so a flat
+scene will have high compression and hence less frame size) of VGA and will not be equal to 640 * 480.
+
+So I couldn't exactly get why the dwMaxVideoFrameBufferSize is kept as 614400 in webcam.c (see [1]).
+
+Can you please let me know your opinions and how you tested the UVC gadget's MJPEG frame format.
+
+[1] http://lxr.linux.no/linux+v3.5/drivers/usb/gadget/webcam.c#L232
+
+Thanks,
+Bhupesh
