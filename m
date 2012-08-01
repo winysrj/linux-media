@@ -1,68 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:7996 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756175Ab2HPJ0j (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Aug 2012 05:26:39 -0400
-Message-ID: <502CBCC4.6010603@redhat.com>
-Date: Thu, 16 Aug 2012 06:26:28 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48598 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753933Ab2HALe5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2012 07:34:57 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: =?ISO-8859-1?Q?R=E9mi?= Denis-Courmont <remi@remlab.net>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de
+Subject: Re: [PATCHv2 3/9] v4l: add buffer exporting via dmabuf
+Date: Wed, 01 Aug 2012 13:35:03 +0200
+Message-ID: <1390726.ZQ58TDe5fq@avalon>
+In-Reply-To: <60c9f6aa1a35c476f6d3493aa24438ad@chewa.net>
+References: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com> <1376487.cHbjGZJEZg@avalon> <60c9f6aa1a35c476f6d3493aa24438ad@chewa.net>
 MIME-Version: 1.0
-To: Alexey Khoroshilov <khoroshilov@ispras.ru>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	ldv-project@ispras.ru
-Subject: Re: [PATCH] [media] ddbridge: fix error handling in module_init_ddbridge()
-References: <1345063345-31131-1-git-send-email-khoroshilov@ispras.ru>
-In-Reply-To: <1345063345-31131-1-git-send-email-khoroshilov@ispras.ru>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 15-08-2012 17:42, Alexey Khoroshilov escreveu:
-> If pci_register_driver() failed, resources allocated in
-> ddb_class_create() are leaked. The patch fixes it.
+Hi Rémi,
+
+On Wednesday 01 August 2012 10:37:02 Rémi Denis-Courmont wrote:
+> On Tue, 31 Jul 2012 23:52:35 +0200, Laurent Pinchart wrote:
+> >> I want to receive the video buffers in user space for processing.
+> >> Typically "processing" is software encoding or conversion. That's what
+> >> virtually any V4L application does on the desktop...
+> > 
+> > But what prevents you from using MMAP ?
 > 
-> Found by Linux Driver Verification project (linuxtesting.org).
+> As I wrote several times earlier, MMAP uses fixed number of buffers. In
+> some tightly controlled media pipeline with low latency, it might work.
+
+Sorry about making you repeat.
+
+> But in general, the V4L element in the pipeline does not know how fast the
+> downstream element(s) will consume the buffers. Thus it has to copy from
+> the MMAP buffers into anonymous user memory pending processing. Then any
+> dequeued buffer can be requeued as soon as possible. In theory, it might
+> also be that, even though the latency is known, the number of required
+> buffers exceeds the maximum MMAP buffers count of the V4L device. Either
+> way, user space ends up doing memory copy from MMAP to custom buffers.
 > 
-> Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
-> ---
->  drivers/media/dvb/ddbridge/ddbridge-core.c |    6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/dvb/ddbridge/ddbridge-core.c b/drivers/media/dvb/ddbridge/ddbridge-core.c
-> index ebf3f05..36aa4e4 100644
-> --- a/drivers/media/dvb/ddbridge/ddbridge-core.c
-> +++ b/drivers/media/dvb/ddbridge/ddbridge-core.c
-> @@ -1705,7 +1705,11 @@ static __init int module_init_ddbridge(void)
->  	       "Copyright (C) 2010-11 Digital Devices GmbH\n");
->  	if (ddb_class_create())
->  		return -1;
+> This problem does not exist with USERBUF - the V4L2 element can simply
+> allocate a new buffer for each dequeued buffer.
 
-This is not right. It should be returning a proper error code.
+What about using the CREATE_BUFS ioctl to add new MMAP buffers at runtime ?
 
-Could you please patch ddb_class_create() in order to make it to
-return the retuned value from IS_ERR() as the error code, and return
-it back to the init code?
+> By the way, this was already discussed a few months ago for the exact same
+> DMABUF patch series...
 
-Ok, I noticed that other parts of the driver are also returning wrong
-error codes, but let's fix at least module_init_ddbridge() while you're
-looking into this.
+-- 
+Regards,
 
-> -	return pci_register_driver(&ddb_pci_driver);
-> +	if (pci_register_driver(&ddb_pci_driver) < 0) {
-> +		ddb_class_destroy();
-> +		return -1;
+Laurent Pinchart
 
-The correct here would be to store the error on a temp register
-and return it, instead of returning -1.
-
-> +	}
-> +	return 0;
->  }
->  
->  static __exit void module_exit_ddbridge(void)
-> 
-
-Thank you!
-Mauro
