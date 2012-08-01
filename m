@@ -1,101 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60990 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752952Ab2HFJTr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Aug 2012 05:19:47 -0400
-Message-ID: <501F8C20.9090802@iki.fi>
-Date: Mon, 06 Aug 2012 12:19:28 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4669 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752390Ab2HATwt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2012 15:52:49 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id q71Jqkj7074521
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Wed, 1 Aug 2012 21:52:48 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.localnet (tschai.lan [192.168.1.186])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 2496846A011C
+	for <linux-media@vger.kernel.org>; Wed,  1 Aug 2012 21:52:47 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [PATCH for v3.6] VIDIOC_ENUM_FREQ_BANDS fix
+Date: Wed, 1 Aug 2012 21:52:46 +0200
 MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: James <bjlockie@lockie.ca>,
-	linux-media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: boot slow down
-References: <501D4535.8080404@lockie.ca> <f1bd5aea-00cd-4b3f-9562-d25153f8cef3@email.android.com> <501DA203.7070800@lockie.ca> <e2182b8d-a2fe-4a72-aa58-40995e92cf2d@email.android.com>
-In-Reply-To: <e2182b8d-a2fe-4a72-aa58-40995e92cf2d@email.android.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201208012152.46310.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/06/2012 11:37 AM, Andy Walls wrote:
-> James <bjlockie@lockie.ca> wrote:
->
->> On 08/04/12 13:42, Andy Walls wrote:
->>> James <bjlockie@lockie.ca> wrote:
->>>
->>>> There's a big pause before the 'unable'
->>>>
->>>> [    2.243856] usb 4-1: Manufacturer: Logitech
->>>> [   62.739097] cx25840 6-0044: unable to open firmware
->>>> v4l-cx23885-avcore-01.fw
->>>>
->>>>
->>>> I have a cx23885
->>>> cx23885[0]: registered device video0 [v4l2]
->>>>
->>>> Is there any way to stop it from trying to load the firmware?
->>>> What is the firmware for, analog tv? Digital works fine and analog
->> is
->>>> useless to me.
->>>> I assume it is timing out there.
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe
->> linux-media"
->>>> in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>> The firmware is for the analog broadcast audio standard (e.g. BTSC)
->> detection microcontroller.
->>>
->>> The A/V core of the CX23885/7/8 chips is for analog vidoe and audio
->> processing (broadcast, CVBS, SVideo, audio L/R in).
->>>
->>> The A/V core of the CX23885 provides the IR unit and the Video PLL
->> provides the timing for the IR unit.
->>>
->>> The A/V core of the CX23888 provides the Video PLL which is the
->> timing for the IR unit in the CX23888.
->>>
->>> Just grab the firmware and be done with it.  Don't waste time with
->> trying to make the cx23885 working properly but halfway.
->>>
->>> Regards,
->>> Andy
->>
->> I already have the firmware.
->> # ls -l /lib/firmware/v4l-cx23885-avcore-01.fw
->> -rw-r--r-- 1 root root 16382 Oct 15  2011
->> /lib/firmware/v4l-cx23885-avcore-01.fw
->>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media"
->> in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
-> Hmm.  The firmware file size and location look right.
->
-> The 60 second delay is the default kernel delay waiting for the userspace firmware loader to fetch th file amd provide it to the kernel via sysfs.
->
-> That doesn't appear to be happening.  I know udev runs some script to accomplish that.  I'm away from my development system, so I can't investigate further.
->
-> Regards,
-> Andy
+When VIDIOC_ENUM_FREQ_BANDS is called for a driver that doesn't supply an
+enum_freq_bands op, then it will fall back to reporting a single freq band
+based on information from g_tuner or g_modulator.
 
-I suspect it could be the firmware download issue with udev. Recent udev 
-versions doesn't allow firmware download during module init path as 
-module init should not be blocked such long period.
+Due to a bug this is an infinite list since the index field wasn't tested.
 
-I did quite much work for resolving that issue for the dvb usb by 
-deferring device init in probe using work-queue. It is not good looking 
-solution and Mauro is still trying to found out more general solution.
+This patch fixes this and returns -EINVAL if index != 0.
 
-regards
-Antti
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
--- 
-http://palosaari.fi/
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index c3b7b5f..54f4ac6 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -1853,6 +1853,8 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
+ 			.type = type,
+ 		};
+ 
++		if (p->index)
++			return -EINVAL;
+ 		err = ops->vidioc_g_tuner(file, fh, &t);
+ 		if (err)
+ 			return err;
+@@ -1870,6 +1872,8 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
+ 
+ 		if (type != V4L2_TUNER_RADIO)
+ 			return -EINVAL;
++		if (p->index)
++			return -EINVAL;
+ 		err = ops->vidioc_g_modulator(file, fh, &m);
+ 		if (err)
+ 			return err;
