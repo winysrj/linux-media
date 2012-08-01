@@ -1,110 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34604 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754308Ab2HTVmy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Aug 2012 17:42:54 -0400
-Message-ID: <5032AF55.5030208@redhat.com>
-Date: Mon, 20 Aug 2012 18:42:45 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2573 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753869Ab2HAHcg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2012 03:32:36 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id q717WXPe057811
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Wed, 1 Aug 2012 09:32:34 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.localnet (tschai.lan [192.168.1.186])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 7A0C746A0001
+	for <linux-media@vger.kernel.org>; Wed,  1 Aug 2012 09:32:33 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [PATCH for v3.6] Fix mem2mem_testdev querycap regression
+Date: Wed, 1 Aug 2012 09:32:33 +0200
 MIME-Version: 1.0
-To: Randy Dunlap <rdunlap@xenotime.net>
-CC: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	linux-media <linux-media@vger.kernel.org>,
-	Steven Toth <stoth@kernellabs.com>
-Subject: Re: linux-next: Tree for Aug 20 (media: saa7164)
-References: <20120820192336.1be51b225ce2883bdcad5b15@canb.auug.org.au> <503260D9.4030208@xenotime.net>
-In-Reply-To: <503260D9.4030208@xenotime.net>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201208010932.33074.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 20-08-2012 13:07, Randy Dunlap escreveu:
-> (part of/due to kconfig menu restructuring?)
+Trival but important patch.
 
-Yes.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Probably, there was an implicit dependency with the old Kconfig arrangement.
-
-Now that we're storing both analog and digital TV drivers at the same place,
-those dependencies need to be explicit.
-
-Thanks!
-Mauro
-
-> on i386:
-> 
-> drivers/built-in.o: In function `fops_open':
-> saa7164-encoder.c:(.text+0x68ed6f): undefined reference to `video_devdata'
-...
-
--
-
-[media] saa7164: Add dependency for V4L2 core
-
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-As Reported by Randy:
-
-> drivers/built-in.o: In function `fops_open':
-> saa7164-encoder.c:(.text+0x68ed6f): undefined reference to `video_devdata'
-> drivers/built-in.o: In function `fill_queryctrl.clone.4':
-> saa7164-encoder.c:(.text+0x68f657): undefined reference to `v4l2_ctrl_query_fill'
-> saa7164-encoder.c:(.text+0x68f6a9): undefined reference to `v4l2_ctrl_query_fill'
-> saa7164-encoder.c:(.text+0x68f6e0): undefined reference to `v4l2_ctrl_query_fill'
-> saa7164-encoder.c:(.text+0x68f71a): undefined reference to `v4l2_ctrl_query_fill'
-> saa7164-encoder.c:(.text+0x68f73a): undefined reference to `v4l2_ctrl_query_fill'
-> drivers/built-in.o:saa7164-encoder.c:(.text+0x68f757): more undefined references to `v4l2_ctrl_query_fill' follow
-> drivers/built-in.o: In function `saa7164_encoder_register':
-> (.text+0x68fff7): undefined reference to `video_device_alloc'
-> drivers/built-in.o: In function `saa7164_encoder_register':
-> (.text+0x690073): undefined reference to `video_device_release'
-> drivers/built-in.o: In function `saa7164_encoder_register':
-> (.text+0x6900a1): undefined reference to `__video_register_device'
-> drivers/built-in.o: In function `saa7164_encoder_unregister':
-> (.text+0x690243): undefined reference to `video_unregister_device'
-> drivers/built-in.o: In function `saa7164_encoder_unregister':
-> (.text+0x690269): undefined reference to `video_device_release'
-> drivers/built-in.o: In function `fops_open':
-> saa7164-vbi.c:(.text+0x69125f): undefined reference to `video_devdata'
-> drivers/built-in.o: In function `fill_queryctrl.clone.4':
-> saa7164-vbi.c:(.text+0x6919b4): undefined reference to `v4l2_ctrl_query_fill'
-> saa7164-vbi.c:(.text+0x6919ee): undefined reference to `v4l2_ctrl_query_fill'
-> saa7164-vbi.c:(.text+0x691a23): undefined reference to `v4l2_ctrl_query_fill'
-> saa7164-vbi.c:(.text+0x691a47): undefined reference to `v4l2_ctrl_query_fill'
-> saa7164-vbi.c:(.text+0x691a6a): undefined reference to `v4l2_ctrl_query_fill'
-> drivers/built-in.o:saa7164-vbi.c:(.text+0x691a87): more undefined references to `v4l2_ctrl_query_fill' follow
-> drivers/built-in.o: In function `saa7164_vbi_register':
-> (.text+0x69220e): undefined reference to `video_device_alloc'
-> drivers/built-in.o: In function `saa7164_vbi_register':
-> (.text+0x69228a): undefined reference to `video_device_release'
-> drivers/built-in.o: In function `saa7164_vbi_register':
-> (.text+0x6922bb): undefined reference to `__video_register_device'
-> drivers/built-in.o: In function `saa7164_vbi_unregister':
-> (.text+0x6923de): undefined reference to `video_unregister_device'
-> drivers/built-in.o: In function `saa7164_vbi_unregister':
-> (.text+0x6923f9): undefined reference to `video_device_release'
-> drivers/built-in.o:(.rodata+0xb1054): undefined reference to `video_ioctl2'
-> drivers/built-in.o:(.rodata+0xb17d4): undefined reference to `video_ioctl2'
-
-That's due to the lack of an explicit Kconfig dependency for the V4L2 core.
-
-Reported-by: Randy Dunlap <rdunlap@xenotime.net>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/pci/saa7164/Kconfig b/drivers/media/pci/saa7164/Kconfig
-index 3532637..d0b92fe 100644
---- a/drivers/media/pci/saa7164/Kconfig
-+++ b/drivers/media/pci/saa7164/Kconfig
-@@ -1,6 +1,6 @@
- config VIDEO_SAA7164
- 	tristate "NXP SAA7164 support"
--	depends on DVB_CORE && PCI && I2C
-+	depends on DVB_CORE && VIDEO_DEV && PCI && I2C
- 	select I2C_ALGOBIT
- 	select FW_LOADER
- 	select VIDEO_TUNER
-
-
-
+diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
+index 7efe9ad..0b91a5c 100644
+--- a/drivers/media/video/mem2mem_testdev.c
++++ b/drivers/media/video/mem2mem_testdev.c
+@@ -431,7 +431,7 @@ static int vidioc_querycap(struct file *file, void *priv,
+ 	strncpy(cap->driver, MEM2MEM_NAME, sizeof(cap->driver) - 1);
+ 	strncpy(cap->card, MEM2MEM_NAME, sizeof(cap->card) - 1);
+ 	strlcpy(cap->bus_info, MEM2MEM_NAME, sizeof(cap->bus_info));
+-	cap->capabilities = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
++	cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
