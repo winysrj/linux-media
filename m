@@ -1,82 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:46877 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751361Ab2HAKqH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2012 06:46:07 -0400
-MIME-version: 1.0
-Content-type: text/plain; charset=windows-1252
-Received: from eusync3.samsung.com (mailout4.w1.samsung.com [210.118.77.14])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M820084OOLW0K90@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 01 Aug 2012 11:46:44 +0100 (BST)
-Content-transfer-encoding: 8BIT
-Received: from [106.116.147.32] by eusync3.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0M8200D1SOKTDH40@eusync3.samsung.com> for
- linux-media@vger.kernel.org; Wed, 01 Aug 2012 11:46:05 +0100 (BST)
-Message-id: <501908EC.4040605@samsung.com>
-Date: Wed, 01 Aug 2012 12:46:04 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: workshop-2011@linuxtv.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: Media summit/KS-2012 proposals
-References: <20120713173708.GB17109@thunk.org> <5005A14D.8000809@redhat.com>
- <50181CBF.102@redhat.com>
-In-reply-to: <50181CBF.102@redhat.com>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:46244 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751427Ab2HBJxc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Aug 2012 05:53:32 -0400
+References: <50186040.1050908@lockie.ca> <c5ac2603-cc98-4688-b50c-b9166cada8f0@email.android.com> <5019EE10.1000207@lockie.ca>
+In-Reply-To: <5019EE10.1000207@lockie.ca>
+MIME-Version: 1.0
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: Re: 3.5 kernel options for Hauppauge_WinTV-HVR-1250
+From: Andy Walls <awalls@md.metrocast.net>
+Date: Thu, 02 Aug 2012 05:53:41 -0400
+To: James <bjlockie@lockie.ca>
+CC: linux-media Mailing List <linux-media@vger.kernel.org>
+Message-ID: <bdafbcab-4074-4557-b108-a76f00ab8b3e@email.android.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+James <bjlockie@lockie.ca> wrote:
 
-On 07/31/2012 07:58 PM, Mauro Carvalho Chehab wrote:
-> In order to sum-up the discussions around the media summit,
-> this is what we've got so far:
-> 
-> Proposals									     	proposed by
-> =====================================================================================|=========================================================================================
-> Common device tree bindings for media devices						Sylvester Nawrocki / Guennadi Liakhovetski
-> ALSA and V4L/Media Controller								Steven Toth / Laurent Pinchart
-> ARM and needed features for V4L/DVB							Steven Toth
-> Intel media SDK										Steven Toth
-> V4L compiance tool									Hans Verkuil
-> V4L2 API ambiguities									Hans Verkuil
-> Media Controller library								Laurent Pincart / Sakari Ailus
-> SoC Vendors feedback – how to help them to go upstream – Android's V4L2 cam library	Laurent Pincart / Guennadi Liakhovetski / Palash Bandyopadhyay / Naveen Krishnamurthy
-> Synchronization, shared resource and optimizations					Pawel Osciak
-> V4L2/DVB issues from userspace perspective						Rémi Denis-Courmont
-> 
-> As we'll have only one day for the summit, we may need to remove some
-> themes, or maybe to get an extra time during LPC for the remaining
-> discussions.
-> 	
-> Possible attendents:
-> ===================
-> 
-> Guennadi Liakhovetski
-> Laurent Pinchart
-> Mauro Carvalho Chehab
-> Michael Krufky
-> Naveen Krishnamurthy
-> +1 seat from ST (waiting Naveen to define who will be the other seat)
-> Palash Bandyopadhyay
-> Pawel Osciak
-> Rémi Denis-Courmont
-> Sakari Ailus
-> Steven Toth
-> Sylvester Nawrocki
-> 
-> Am I missing something?
-> 
-> Are there other proposals or people intending to participate?
+>On 08/01/12 07:07, Andy Walls wrote:
+>> James <bjlockie@lockie.ca> wrote:
+>> 
+>>> I got the latest kernel from git and I can't find the kernel options
+>>> for my tv card.
+>>>
+>>> I have: http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-1250
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe
+>linux-media"
+>>> in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> 
+>> /sbin/modinfo cx23885
+>> 
+>> Regards,
+>> Andy
+>> 
+>
+>I don't build any modules.
+>
+>In case anyone else has trouble getting to work (the kernel makes
+>options invisible unless dependencies are met).
+>
+>1. Turn on expert mode (to be able to select frontends to build).
+>General setup/Configure standard kernel features (expert users)
+>
+>2. Device Drivers/Multimedia support
+>
+>3. Analog TV support
+>
+>4. Digital TV support
+>
+>5. Remote Controller support
+>
+>6. Customize analog and hybrid tuner modules to build
+>   Customize TV tuners  ---> Microtune MT2131 silicon tuner
+>
+>7. V4L PCI(e) devices/Conexant cx23885 (2388x successor) support
+>
+>8. DVB/ATSC adapters  ---> Customise the frontend modules to
+>build/Customise DVB Frontends/Samsung S5H1409 based
+>
+>I think that is it but I did other stuff so I may be missing a step or
+>2.
+>
+>
+>
+>Can I make the make menuconfig show all the options an when I select
+>something, it selects all the dependencies?
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media"
+>in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Unfortunately I won't be attending the media summit this time.
-Instead, my colleagues: Bartlomiej Zolnierkiewicz and Marek Szyprowski
-could cover the topic I proposed. Can you please add them to the
-list of attendants instead of me ?
+No, the Kconfig system can't help.
 
-Best regards,
-Sylwester
+You can 'grep MODULE_ drivers/media/video/cx23885/* drivers/media/video/cx25840/* ' and other relevant directories under drivers/media/{dvb, common} to find all the parameter options for all the drivers involved in making a HVR_1250 work.
+
+Regards,
+Andy
