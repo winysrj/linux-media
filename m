@@ -1,115 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from forward1.mail.yandex.net ([77.88.46.6]:37179 "EHLO
-	forward1.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751998Ab2HKWsR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Aug 2012 18:48:17 -0400
-From: CrazyCat <crazycat69@yandex.ru>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <50258B49.8010504@redhat.com>
-References: <1128921342302008@web25h.yandex.ru> <50258B49.8010504@redhat.com>
-Subject: Re: [PATCH]Omicom S2 PCI support
+Received: from mail.meprolight.com ([194.90.149.17]:32115 "EHLO meprolight.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752281Ab2HBPl4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Aug 2012 11:41:56 -0400
+From: Alex Gershgorin <alexg@meprolight.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: <g.liakhovetski@gmx.de>, <linux-media@vger.kernel.org>,
+	Alex Gershgorin <alexg@meprolight.com>
+Subject: [PATCH v3] mt9v022: Add support for mt9v024
+Date: Thu, 2 Aug 2012 18:32:41 +0300
+Message-ID: <1343921561-671-1-git-send-email-alexg@meprolight.com>
 MIME-Version: 1.0
-Message-Id: <1872301344725294@web28d.yandex.ru>
-Date: Sun, 12 Aug 2012 01:48:14 +0300
-Content-Transfer-Encoding: 7bit
 Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ok, fixed patch.
+Driver for mt9v022 camera sensor is fully compatible for mt9v024 camera sensor
+with the exception of several registers which have been changed addresses.
+mt9v024 also has improved and additional features, but they are currently not in use.
 
-Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
-diff --git a/drivers/media/dvb/ttpci/budget.c b/drivers/media/dvb/ttpci/budget.c
-index b21bcce..7e6e43a 100644
---- a/drivers/media/dvb/ttpci/budget.c
-+++ b/drivers/media/dvb/ttpci/budget.c
-@@ -50,6 +50,8 @@
- #include "stv6110x.h"
- #include "stv090x.h"
- #include "isl6423.h"
-+#include "lnbh24.h"
-+
+Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
+---
+ drivers/media/video/Kconfig   |    2 +-
+ drivers/media/video/mt9v022.c |   36 +++++++++++++++++++++++++++++++-----
+ 2 files changed, 32 insertions(+), 6 deletions(-)
+
+Changes for v2:
+         Fixed comment from Guennadi.
+
+Changes for v3:
+         Added patch descriptions.
+
+
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index c128fac..3ce905c 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -1058,7 +1058,7 @@ config SOC_CAMERA_MT9T112
+ 	  This driver supports MT9T112 cameras from Aptina.
  
- static int diseqc_method;
- module_param(diseqc_method, int, 0444);
-@@ -679,6 +681,62 @@ static void frontend_init(struct budget *budget)
- 			}
- 		}
- 		break;
+ config SOC_CAMERA_MT9V022
+-	tristate "mt9v022 support"
++	tristate "mt9v022 and mt9v024 support"
+ 	depends on SOC_CAMERA && I2C
+ 	select GPIO_PCA953X if MT9V022_PCA9536_SWITCH
+ 	help
+diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
+index 7247924..b67ce7f 100644
+--- a/drivers/media/video/mt9v022.c
++++ b/drivers/media/video/mt9v022.c
+@@ -57,6 +57,10 @@ MODULE_PARM_DESC(sensor_type, "Sensor type: \"colour\" or \"monochrome\"");
+ #define MT9V022_AEC_AGC_ENABLE		0xAF
+ #define MT9V022_MAX_TOTAL_SHUTTER_WIDTH	0xBD
+ 
++/* mt9v024 partial list register addresses changes with respect to mt9v022 */
++#define MT9V024_PIXCLK_FV_LV		0x72
++#define MT9V024_MAX_TOTAL_SHUTTER_WIDTH	0xAD
 +
-+	case 0x1020: { /* Omicom S2 */
-+			struct stv6110x_devctl *ctl;
-+			saa7146_setgpio(budget->dev, 2, SAA7146_GPIO_OUTLO);
-+			msleep(50);
-+			saa7146_setgpio(budget->dev, 2, SAA7146_GPIO_OUTHI);
-+			msleep(250);
+ /* Progressive scan, master, defaults */
+ #define MT9V022_CHIP_CONTROL_DEFAULT	0x188
+ 
+@@ -67,6 +71,8 @@ MODULE_PARM_DESC(sensor_type, "Sensor type: \"colour\" or \"monochrome\"");
+ #define MT9V022_COLUMN_SKIP		1
+ #define MT9V022_ROW_SKIP		4
+ 
++#define is_mt9v024(id) (id == 0x1324)
 +
-+			budget->dvb_frontend = dvb_attach(stv090x_attach,
-+							  &tt1600_stv090x_config,
-+							  &budget->i2c_adap,
-+							  STV090x_DEMODULATOR_0);
+ /* MT9V022 has only one fixed colorspace per pixelcode */
+ struct mt9v022_datafmt {
+ 	enum v4l2_mbus_pixelcode	code;
+@@ -101,6 +107,22 @@ static const struct mt9v022_datafmt mt9v022_monochrome_fmts[] = {
+ 	{V4L2_MBUS_FMT_Y8_1X8, V4L2_COLORSPACE_JPEG},
+ };
+ 
++/* only registers with different addresses on different mt9v02x sensors */
++struct mt9v02x_register {
++	u8	max_total_shutter_width;
++	u8	pixclk_fv_lv;
++};
 +
-+			if (budget->dvb_frontend) {
-+				printk(KERN_INFO "budget: Omicom S2 detected\n");
++static const struct mt9v02x_register mt9v022_register = {
++	.max_total_shutter_width	= MT9V022_MAX_TOTAL_SHUTTER_WIDTH,
++	.pixclk_fv_lv			= MT9V022_PIXCLK_FV_LV,
++};
 +
-+				ctl = dvb_attach(stv6110x_attach,
-+						 budget->dvb_frontend,
-+						 &tt1600_stv6110x_config,
-+						 &budget->i2c_adap);
++static const struct mt9v02x_register mt9v024_register = {
++	.max_total_shutter_width	= MT9V024_MAX_TOTAL_SHUTTER_WIDTH,
++	.pixclk_fv_lv			= MT9V024_PIXCLK_FV_LV,
++};
 +
-+				if (ctl) {
-+					tt1600_stv090x_config.tuner_init	  = ctl->tuner_init;
-+					tt1600_stv090x_config.tuner_sleep	  = ctl->tuner_sleep;
-+					tt1600_stv090x_config.tuner_set_mode	  = ctl->tuner_set_mode;
-+					tt1600_stv090x_config.tuner_set_frequency = ctl->tuner_set_frequency;
-+					tt1600_stv090x_config.tuner_get_frequency = ctl->tuner_get_frequency;
-+					tt1600_stv090x_config.tuner_set_bandwidth = ctl->tuner_set_bandwidth;
-+					tt1600_stv090x_config.tuner_get_bandwidth = ctl->tuner_get_bandwidth;
-+					tt1600_stv090x_config.tuner_set_bbgain	  = ctl->tuner_set_bbgain;
-+					tt1600_stv090x_config.tuner_get_bbgain	  = ctl->tuner_get_bbgain;
-+					tt1600_stv090x_config.tuner_set_refclk	  = ctl->tuner_set_refclk;
-+					tt1600_stv090x_config.tuner_get_status	  = ctl->tuner_get_status;
-+
-+					/* call the init function once to initialize
-+					   tuner's clock output divider and demod's
-+					   master clock */
-+					if (budget->dvb_frontend->ops.init)
-+						budget->dvb_frontend->ops.init(budget->dvb_frontend);
-+
-+					if (dvb_attach(lnbh24_attach,
-+							budget->dvb_frontend,
-+							&budget->i2c_adap,
-+							LNBH24_PCL | LNBH24_TTX,
-+							LNBH24_TEN, 0x14>>1) == NULL) {
-+						printk(KERN_ERR
-+						"No LNBH24 found!\n");
-+						goto error_out;
-+					}
-+				} else {
-+					printk(KERN_ERR "%s: No STV6110(A) Silicon Tuner found!\n", __func__);
-+					goto error_out;
-+				}
-+			}
-+		}
-+		break;
+ struct mt9v022 {
+ 	struct v4l2_subdev subdev;
+ 	struct v4l2_ctrl_handler hdl;
+@@ -117,6 +139,7 @@ struct mt9v022 {
+ 	struct v4l2_rect rect;	/* Sensor window */
+ 	const struct mt9v022_datafmt *fmt;
+ 	const struct mt9v022_datafmt *fmts;
++	const struct mt9v02x_register *reg;
+ 	int num_fmts;
+ 	int model;	/* V4L2_IDENT_MT9V022* codes from v4l2-chip-ident.h */
+ 	u16 chip_control;
+@@ -185,7 +208,7 @@ static int mt9v022_init(struct i2c_client *client)
+ 	if (!ret)
+ 		ret = reg_write(client, MT9V022_TOTAL_SHUTTER_WIDTH, 480);
+ 	if (!ret)
+-		ret = reg_write(client, MT9V022_MAX_TOTAL_SHUTTER_WIDTH, 480);
++		ret = reg_write(client, mt9v022->reg->max_total_shutter_width, 480);
+ 	if (!ret)
+ 		/* default - auto */
+ 		ret = reg_clear(client, MT9V022_BLACK_LEVEL_CALIB_CTRL, 1);
+@@ -238,7 +261,7 @@ static int mt9v022_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+ 	ret = reg_read(client, MT9V022_AEC_AGC_ENABLE);
+ 	if (ret >= 0) {
+ 		if (ret & 1) /* Autoexposure */
+-			ret = reg_write(client, MT9V022_MAX_TOTAL_SHUTTER_WIDTH,
++			ret = reg_write(client, mt9v022->reg->max_total_shutter_width,
+ 					rect.height + mt9v022->y_skip_top + 43);
+ 		else
+ 			ret = reg_write(client, MT9V022_TOTAL_SHUTTER_WIDTH,
+@@ -573,14 +596,17 @@ static int mt9v022_video_probe(struct i2c_client *client)
+ 	/* Read out the chip version register */
+ 	data = reg_read(client, MT9V022_CHIP_VERSION);
+ 
+-	/* must be 0x1311 or 0x1313 */
+-	if (data != 0x1311 && data != 0x1313) {
++	/* must be 0x1311, 0x1313 or 0x1324 */
++	if (data != 0x1311 && data != 0x1313 && data != 0x1324) {
+ 		ret = -ENODEV;
+ 		dev_info(&client->dev, "No MT9V022 found, ID register 0x%x\n",
+ 			 data);
+ 		goto ei2c;
  	}
  
- 	if (budget->dvb_frontend == NULL) {
-@@ -759,6 +817,7 @@ MAKE_BUDGET_INFO(fsacs0, "Fujitsu Siemens Activy Budget-S PCI (rev GR/grundig fr
- MAKE_BUDGET_INFO(fsacs1, "Fujitsu Siemens Activy Budget-S PCI (rev AL/alps frontend)", BUDGET_FS_ACTIVY);
- MAKE_BUDGET_INFO(fsact,	 "Fujitsu Siemens Activy Budget-T PCI (rev GR/Grundig frontend)", BUDGET_FS_ACTIVY);
- MAKE_BUDGET_INFO(fsact1, "Fujitsu Siemens Activy Budget-T PCI (rev AL/ALPS TDHD1-204A)", BUDGET_FS_ACTIVY);
-+MAKE_BUDGET_INFO(omicom, "Omicom S2 PCI", BUDGET_TT);
++	mt9v022->reg = is_mt9v024(data) ? &mt9v024_register :
++			&mt9v022_register;
++
+ 	/* Soft reset */
+ 	ret = reg_write(client, MT9V022_RESET, 1);
+ 	if (ret < 0)
+@@ -728,7 +754,7 @@ static int mt9v022_s_mbus_config(struct v4l2_subdev *sd,
+ 	if (!(flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH))
+ 		pixclk |= 0x2;
  
- static struct pci_device_id pci_tbl[] = {
- 	MAKE_EXTENSION_PCI(ttbs,  0x13c2, 0x1003),
-@@ -772,6 +831,7 @@ static struct pci_device_id pci_tbl[] = {
- 	MAKE_EXTENSION_PCI(fsacs0,0x1131, 0x4f61),
- 	MAKE_EXTENSION_PCI(fsact1, 0x1131, 0x5f60),
- 	MAKE_EXTENSION_PCI(fsact, 0x1131, 0x5f61),
-+	MAKE_EXTENSION_PCI(omicom, 0x14c4, 0x1020),
- 	{
- 		.vendor    = 0,
- 	}
+-	ret = reg_write(client, MT9V022_PIXCLK_FV_LV, pixclk);
++	ret = reg_write(client, mt9v022->reg->pixclk_fv_lv, pixclk);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-- 
+1.7.0.4
+
