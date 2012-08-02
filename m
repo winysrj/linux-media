@@ -1,197 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:46051 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753167Ab2HUIQL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Aug 2012 04:16:11 -0400
-Message-ID: <503343B9.1070104@iki.fi>
-Date: Tue, 21 Aug 2012 11:15:53 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp.nexicom.net ([216.168.96.13]:50209 "EHLO smtp.nexicom.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751747Ab2HBQew (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Aug 2012 12:34:52 -0400
+Received: from mail.lockie.ca (dyn-dsl-mb-216-168-121-135.nexicom.net [216.168.121.135])
+	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id q72GYpB6021993
+	for <linux-media@vger.kernel.org>; Thu, 2 Aug 2012 12:34:51 -0400
+Message-ID: <7381e4d38b045460f0ff32e0905f079e.squirrel@lockie.ca>
+In-Reply-To: <CAGoCfiwN=h708e65DmZi7m6gcRMmcRbRZGJvpJ6ZzUk9Cm22dQ@mail.gmail.com>
+References: <50186040.1050908@lockie.ca>
+    <c5ac2603-cc98-4688-b50c-b9166cada8f0@email.android.com>
+    <5019EE10.1000207@lockie.ca>
+    <bdafbcab-4074-4557-b108-a76f00ab8b3e@email.android.com>
+    <CAGoCfiwN=h708e65DmZi7m6gcRMmcRbRZGJvpJ6ZzUk9Cm22dQ@mail.gmail.com>
+Date: Thu, 2 Aug 2012 12:34:49 -0400
+Subject: Re: 3.5 kernel options for Hauppauge_WinTV-HVR-1250
+From: bjlockie@lockie.ca
+To: "Devin Heitmueller" <dheitmueller@kernellabs.com>
+Cc: "Andy Walls" <awalls@md.metrocast.net>,
+	"linux-media Mailing List" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-To: Hiroshi Doyu <hdoyu@nvidia.com>
-CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
-	"htl10@users.sourceforge.net" <htl10@users.sourceforge.net>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"joe@perches.com" <joe@perches.com>,
-	"linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
-Subject: Re: [PATCH 1/1] driver-core: Shut up dev_dbg_reatelimited() without
- DEBUG
-References: <502EDDCC.200@iki.fi><20120820.141454.449841061737873578.hdoyu@nvidia.com><5032AC3E.5080402@iki.fi> <20120821.100204.446226016699627525.hdoyu@nvidia.com>
-In-Reply-To: <20120821.100204.446226016699627525.hdoyu@nvidia.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hiroshi,
+> On Thu, Aug 2, 2012 at 5:53 AM, Andy Walls <awalls@md.metrocast.net>
+> wrote:
+>> You can 'grep MODULE_ drivers/media/video/cx23885/*
+>> drivers/media/video/cx25840/* ' and other relevant directories under
+>> drivers/media/{dvb, common} to find all the parameter options for all
+>> the drivers involved in making a HVR_1250 work.
+>
+> Or just build with everything enabled until you know it is working,
+> and then optimize the list of modules later.
 
-On 08/21/2012 10:02 AM, Hiroshi Doyu wrote:
-> Antti Palosaari <crope@iki.fi> wrote @ Mon, 20 Aug 2012 23:29:34 +0200:
->
->> On 08/20/2012 02:14 PM, Hiroshi Doyu wrote:
->>> Hi Antti,
->>>
->>> Antti Palosaari <crope@iki.fi> wrote @ Sat, 18 Aug 2012 02:11:56 +0200:
->>>
->>>> On 08/17/2012 09:04 AM, Hiroshi Doyu wrote:
->>>>> dev_dbg_reatelimited() without DEBUG printed "217078 callbacks
->>>>> suppressed". This shouldn't print anything without DEBUG.
->>>>>
->>>>> Signed-off-by: Hiroshi Doyu <hdoyu@nvidia.com>
->>>>> Reported-by: Antti Palosaari <crope@iki.fi>
->>>>> ---
->>>>>     include/linux/device.h |    6 +++++-
->>>>>     1 files changed, 5 insertions(+), 1 deletions(-)
->>>>>
->>>>> diff --git a/include/linux/device.h b/include/linux/device.h
->>>>> index eb945e1..d4dc26e 100644
->>>>> --- a/include/linux/device.h
->>>>> +++ b/include/linux/device.h
->>>>> @@ -962,9 +962,13 @@ do {									\
->>>>>     	dev_level_ratelimited(dev_notice, dev, fmt, ##__VA_ARGS__)
->>>>>     #define dev_info_ratelimited(dev, fmt, ...)				\
->>>>>     	dev_level_ratelimited(dev_info, dev, fmt, ##__VA_ARGS__)
->>>>> +#if defined(DEBUG)
->>>>>     #define dev_dbg_ratelimited(dev, fmt, ...)				\
->>>>>     	dev_level_ratelimited(dev_dbg, dev, fmt, ##__VA_ARGS__)
->>>>> -
->>>>> +#else
->>>>> +#define dev_dbg_ratelimited(dev, fmt, ...)			\
->>>>> +	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
->>>>> +#endif
->>>>>     /*
->>>>>      * Stupid hackaround for existing uses of non-printk uses dev_info
->>>>>      *
->>>>>
->>>>
->>>> NACK. I don't think that's correct behavior. After that patch it kills
->>>> all output of dev_dbg_ratelimited(). If I use dynamic debugs and order
->>>> debugs, I expect to see debugs as earlier.
->>>
->>> You are right. I attached the update patch, just moving *_ratelimited
->>> functions after dev_dbg() definitions.
->>>
->>> With DEBUG defined/undefined in your "test.ko", it works fine. With
->>> CONFIG_DYNAMIC_DEBUG, it works with "+p", but with "-p", still
->>> "..callbacks suppressed" is printed.
->>
->> I am using dynamic debugs and behavior is now just same as it was when
->> reported that bug. OK, likely for static debug it is now correct.
->
-> The following patch can also refrain "..callbacks suppressed" with
-> "-p". I think that it's ok for all cases.
->
->>From b4c6aa9160f03b61ed17975c73db36c983a48927 Mon Sep 17 00:00:00 2001
-> From: Hiroshi Doyu <hdoyu@nvidia.com>
-> Date: Mon, 20 Aug 2012 13:49:19 +0300
-> Subject: [v3 1/1] driver-core: Shut up dev_dbg_reatelimited() without DEBUG
->
-> dev_dbg_reatelimited() without DEBUG printed "217078 callbacks
-> suppressed". This shouldn't print anything without DEBUG.
->
-> With CONFIG_DYNAMIC_DEBUG, the print should be configured as expected.
->
-> Signed-off-by: Hiroshi Doyu <hdoyu@nvidia.com>
-> Reported-by: Antti Palosaari <crope@iki.fi>
-> ---
->   include/linux/device.h |   62 +++++++++++++++++++++++++++++------------------
->   1 files changed, 38 insertions(+), 24 deletions(-)
->
-> diff --git a/include/linux/device.h b/include/linux/device.h
-> index 9648331..bb6ffcb 100644
-> --- a/include/linux/device.h
-> +++ b/include/linux/device.h
-> @@ -932,6 +932,32 @@ int _dev_info(const struct device *dev, const char *fmt, ...)
->
->   #endif
->
-> +/*
-> + * Stupid hackaround for existing uses of non-printk uses dev_info
-> + *
-> + * Note that the definition of dev_info below is actually _dev_info
-> + * and a macro is used to avoid redefining dev_info
-> + */
-> +
-> +#define dev_info(dev, fmt, arg...) _dev_info(dev, fmt, ##arg)
-> +
-> +#if defined(CONFIG_DYNAMIC_DEBUG)
-> +#define dev_dbg(dev, format, ...)		     \
-> +do {						     \
-> +	dynamic_dev_dbg(dev, format, ##__VA_ARGS__); \
-> +} while (0)
-> +#elif defined(DEBUG)
-> +#define dev_dbg(dev, format, arg...)		\
-> +	dev_printk(KERN_DEBUG, dev, format, ##arg)
-> +#else
-> +#define dev_dbg(dev, format, arg...)				\
-> +({								\
-> +	if (0)							\
-> +		dev_printk(KERN_DEBUG, dev, format, ##arg);	\
-> +	0;							\
-> +})
-> +#endif
-> +
->   #define dev_level_ratelimited(dev_level, dev, fmt, ...)			\
->   do {									\
->   	static DEFINE_RATELIMIT_STATE(_rs,				\
-> @@ -955,33 +981,21 @@ do {									\
->   	dev_level_ratelimited(dev_notice, dev, fmt, ##__VA_ARGS__)
->   #define dev_info_ratelimited(dev, fmt, ...)				\
->   	dev_level_ratelimited(dev_info, dev, fmt, ##__VA_ARGS__)
-> +#if defined(CONFIG_DYNAMIC_DEBUG) || defined(DEBUG)
->   #define dev_dbg_ratelimited(dev, fmt, ...)				\
-> -	dev_level_ratelimited(dev_dbg, dev, fmt, ##__VA_ARGS__)
-> -
-> -/*
-> - * Stupid hackaround for existing uses of non-printk uses dev_info
-> - *
-> - * Note that the definition of dev_info below is actually _dev_info
-> - * and a macro is used to avoid redefining dev_info
-> - */
-> -
-> -#define dev_info(dev, fmt, arg...) _dev_info(dev, fmt, ##arg)
-> -
-> -#if defined(CONFIG_DYNAMIC_DEBUG)
-> -#define dev_dbg(dev, format, ...)		     \
-> -do {						     \
-> -	dynamic_dev_dbg(dev, format, ##__VA_ARGS__); \
-> +do {									\
-> +	static DEFINE_RATELIMIT_STATE(_rs,				\
-> +				      DEFAULT_RATELIMIT_INTERVAL,	\
-> +				      DEFAULT_RATELIMIT_BURST);		\
-> +	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);			\
-> +	if (unlikely(descriptor.flags & _DPRINTK_FLAGS_PRINT) &&	\
-> +	    __ratelimit(&_rs))						\
-> +		__dynamic_pr_debug(&descriptor, pr_fmt(fmt),		\
-> +				   ##__VA_ARGS__);			\
->   } while (0)
-> -#elif defined(DEBUG)
-> -#define dev_dbg(dev, format, arg...)		\
-> -	dev_printk(KERN_DEBUG, dev, format, ##arg)
->   #else
-> -#define dev_dbg(dev, format, arg...)				\
-> -({								\
-> -	if (0)							\
-> -		dev_printk(KERN_DEBUG, dev, format, ##arg);	\
-> -	0;							\
-> -})
-> +#define dev_dbg_ratelimited(dev, fmt, ...)			\
-> +	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
->   #endif
->
->   #ifdef VERBOSE_DEBUG
+It should have been easier, select the card and it builds all the drivers
+it needs. :-)
+Is there a script somewhere that lets me select a card and automatically
+modifies the kernel config?
 
-That seems to work correctly now. I tested it using dynamic debugs. It 
-was Hin-Tak who originally reported that bug for me after I added few 
-ratelimited debugs for DVB stack. Thank you!
+>
+> Also, the 1250 is broken for analog until very recently (patches went
+> upstream for 3.5/3.6 a few days ago).
 
-Reported-by: Hin-Tak Leung <htl10@users.sourceforge.net>
-Tested-by: Antti Palosaari <crope@iki.fi>
+North American OTA is all digital so I have no way to test it.
+
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
 
-regards
-Antti
-
--- 
-http://palosaari.fi/
