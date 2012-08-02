@@ -1,51 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:32261 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753388Ab2HAJTg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2012 05:19:36 -0400
-Received: from eusync4.samsung.com (mailout4.w1.samsung.com [210.118.77.14])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M8200E56KLOAR70@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 01 Aug 2012 10:20:12 +0100 (BST)
-Received: from [106.116.147.32] by eusync4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTPA id <0M8200G5SKKLSD50@eusync4.samsung.com> for
- linux-media@vger.kernel.org; Wed, 01 Aug 2012 10:19:34 +0100 (BST)
-Message-id: <5018F4A5.2000200@samsung.com>
-Date: Wed, 01 Aug 2012 11:19:33 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH for v3.6] Fix mem2mem_testdev querycap regression
-References: <201208010932.33074.hverkuil@xs4all.nl>
-In-reply-to: <201208010932.33074.hverkuil@xs4all.nl>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1366 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753902Ab2HBG0A convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2012 02:26:00 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>
+Subject: Re: [PATCH for v3.6] VIDIOC_ENUM_FREQ_BANDS fix
+Date: Thu, 2 Aug 2012 08:25:20 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>
+References: <201208012152.46310.hverkuil@xs4all.nl> <201208012341.16986.remi@remlab.net>
+In-Reply-To: <201208012341.16986.remi@remlab.net>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201208020825.21008.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/01/2012 09:32 AM, Hans Verkuil wrote:
-> Trival but important patch.
+On Wed August 1 2012 22:41:16 Rémi Denis-Courmont wrote:
+> Le mercredi 1 août 2012 22:52:46 Hans Verkuil, vous avez écrit :
+> > When VIDIOC_ENUM_FREQ_BANDS is called for a driver that doesn't supply an
+> > enum_freq_bands op, then it will fall back to reporting a single freq band
+> > based on information from g_tuner or g_modulator.
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> By the way...
 > 
-> diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
-> index 7efe9ad..0b91a5c 100644
-> --- a/drivers/media/video/mem2mem_testdev.c
-> +++ b/drivers/media/video/mem2mem_testdev.c
-> @@ -431,7 +431,7 @@ static int vidioc_querycap(struct file *file, void *priv,
->  	strncpy(cap->driver, MEM2MEM_NAME, sizeof(cap->driver) - 1);
->  	strncpy(cap->card, MEM2MEM_NAME, sizeof(cap->card) - 1);
->  	strlcpy(cap->bus_info, MEM2MEM_NAME, sizeof(cap->bus_info));
-> -	cap->capabilities = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
-> +	cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
->  	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
->  	return 0;
->  }
+> Isn't V4L2_TUNER_CAP_FREQ_BANDS expected to tell whether the driver can 
+> enumerate bands?
 
-Oops, my bad. Thanks for fixing this Hans!
+Yes. And it is set as well in this fallback case.
+
+> Why is there a need for fallback implementation?
+
+The main reason is that struct v4l2_frequency_band also returns the modulation
+of the frequency band. For all existing drivers (except radio-cadet, which
+now implements enum_freq_bands) this can be deduced by the type of device node
+that's used (/dev/radioX means FM, /dev/videoX or vbiX means VSB). While the
+application could do the same we decided it was more consistent if the V4L2
+core does that for the application. It was trivial to implement.
+
+So apps will benefit, and only drivers that actually have more than one
+frequency band need to go to the trouble of implementing enum_freq_bands.
 
 Regards,
-Sylwester
+
+	Hans
