@@ -1,65 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:3233 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751320Ab2HNNXO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 09:23:14 -0400
-Message-ID: <502A5139.8080402@redhat.com>
-Date: Tue, 14 Aug 2012 10:23:05 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52295 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753024Ab2HBVZk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2012 17:25:40 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Manju <manjunath.hadli@ti.com>
+Cc: "davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	LMML <linux-media@vger.kernel.org>,
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Rob Landley <rob@landley.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	David Cohen <david.a.cohen@linux.intel.com>
+Subject: Re: [PATCH] [media] davinci: vpfe: Add documentation
+Date: Thu, 02 Aug 2012 23:25:43 +0200
+Message-ID: <8508926.WDmbUJmVgK@avalon>
+In-Reply-To: <50178D17.8030504@ti.com>
+References: <1342021166-6092-1-git-send-email-manjunath.hadli@ti.com> <1461029.ufNJEg1MSf@avalon> <50178D17.8030504@ti.com>
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: "Igor M. Liplianin" <liplianin@me.by>, linux-media@vger.kernel.org,
-	linuxtv-commits@linuxtv.org
-Subject: Re: [git:v4l-dvb/for_v3.7] [media] mantis: Terratec Cinergy C PCI
- HD (CI)
-References: <E1SzvhW-0005hd-1S@www.linuxtv.org> <CAHFNz9Ju7dB-iz0mcGuNMLDwibFXZqGe73jpBk7RPqG_w+MmXg@mail.gmail.com> <5029548E.90901@redhat.com> <CAHFNz9+qWXYkvJXeZfSu2DgAQ3BrsX591TS5x+XeEOVji3Hx2g@mail.gmail.com>
-In-Reply-To: <CAHFNz9+qWXYkvJXeZfSu2DgAQ3BrsX591TS5x+XeEOVji3Hx2g@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 14-08-2012 04:45, Manu Abraham escreveu:
-> On Tue, Aug 14, 2012 at 12:55 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> Em 10-08-2012 20:55, Manu Abraham escreveu:
->>> Mauro,
->>>
->>> Please revert this patch. Patch is incorrect. There is the VP-20300,
->>> VP-20330, VP-2040, with differences in tuner types TDA10021, TDA10023,
->>> MK-I, MK-II and MK-III. I have detailed this issue in an earlier mail.
->>> Terratec Cinregy C is VP-2033 and not VP-2040.
->>
->> Well, as I don't have this board, you think that it is a VP-2033 while
->> Igor thinks it is a VP-2040, I can't tell who is right on that.
+Hi Manjunath,
+
+On Tuesday 31 July 2012 13:15:27 Manju wrote:
+> On Friday 27 July 2012 04:19 PM, Laurent Pinchart wrote:
+> > On Friday 27 July 2012 05:49:24 Hadli, Manjunath wrote:
+> >> On Thu, Jul 26, 2012 at 05:55:31, Laurent Pinchart wrote:
+> >>> On Tuesday 17 July 2012 10:43:54 Hadli, Manjunath wrote:
+> >>>> On Sun, Jul 15, 2012 at 18:16:25, Laurent Pinchart wrote:
+> >>>>> On Wednesday 11 July 2012 21:09:26 Manjunath Hadli wrote:
+> >>>>>> Add documentation on the Davinci VPFE driver. Document the subdevs,
+> >>>>>> and private IOTCLs the driver implements
+> >>>>>> 
+> >>>>>> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> >>>>>> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> >>> 
+> >>> [snip]
+> >>> 
+> >>>>>> +Private IOCTLs
+> >>>>>> +==============
+> >>>>>> +
+> >>>>>> +The Davinci Video processing Front End (VPFE) driver supports
+> >>>>>> standard V4L2
+> >>>>>> +IOCTLs and controls where possible and practical. Much of the
+> >>>>>> functions provided
+> >>>>>> +by the VPFE, however, does not fall under the standard IOCTLs.
+> >>>>>> +
+> >>>>>> +In general, there is a private ioctl for configuring each of the
+> >>>>>> blocks
+> >>>>>> +containing hardware-dependent functions.
+> >>>>>> +
+> >>>>>> +The following private IOCTLs are supported:
+> >>>>>> +
+> >>>>>> +1: IOCTL: PREV_S_PARAM/PREV_G_PARAM
+> >>>>>> +Description:
+> >>>>>> +	Sets/Gets the parameters required by the previewer module
+> >>>>>> +Parameter:
+> >>>>>> +	/**
+> >>>>>> +	 * struct prev_module_param- structure to configure preview
+> >>>>>> modules
+> >>>>>> +	 * @version: Version of the preview module
+> >>>>> 
+> >>>>> Who is responsible for filling this field, the application or the
+> >>>>> driver ?
+> >>>> 
+> >>>> The application is responsible for filling this info. He would
+> >>>> enumerate the capabilities first and  set them using S_PARAM/G_PARAM.
+> >>> 
+> >>> And what's the point of the application setting the version field ? How
+> >>> does the driver use it ?
+> >> 
+> >> The version may not be required. Will remove it.
+> >> 
+> >>>>>> +	 * @len: Length of the module config structure
+> >>>>>> +	 * @module_id: Module id
+> >>>>>> +	 * @param: pointer to module config parameter.
+> >>>>> 
+> >>>>> What is module_id for ? What does param point to ?
+> >>>> 
+> >>>> There are a lot of tiny modules in the previewer/resizer which are
+> >>>> enumerated as individual modules. The param points to the parameter set
+> >>>> that the module expects to be set.
+> >>> 
+> >>> Why don't you implement something similar to
+> >>> VPFE_CMD_S_CCDC_RAW_PARAMS/VPFE_CMD_G_CCDC_RAW_PARAMS instead ?
+> >> 
+> >> I feel if we implement direct IOCTLS there might be many of them. To make
+> >> sure than independent of the number of internal modules present, having
+> >> the
+> >> same IOCTL used for all modules is a good idea.
+> > 
+> > You can set several parameters using a single ioctl, much like
+> > VPFE_CMD_S_CCDC_RAW_PARAMS does. You don't need one ioctl per parameter.
+> > 
+> > PREV_ENUM_CAP, PREV_[GS]_PARAM and PREV_[GS]_CONFIG are essentially
+> > reinventing V4L2 controls, and I don't think that's a good idea.
 > 
-> You don't need all the cards to apply changes, that's how the Linux
-> patchland works.
+> Ok. I looked into this, and found that the structure needed to pass
+> all the parameters is going to be huge. just to avoid a big structure
+> from the user space, I propose:
 > 
-> I have "all" Mantis based devices here. So I can say with clarity that
-> Terratec Cinergy C is VP-2033. I authored the whole driver for the
-> chipset manufacturer and the card manufacturer and still in touch with
-> all of them and pretty sure what is what.
->
-> Any idiot can send any patch, that's why you need to ask the persons
-> who added particular changes in that area.
+> Having a union of structures and a parameter identifying the structure.
+> 
+> In that way, we will remove the enumeration and all the other
+> things except for a SET and GET, much like the CCDC_RAW_PARAMS
+> like you suggested. So essentially we will have only 2 IOCTLS for setting
+> the private params/configs and remove the rest.  I hope that was your
+> point and this proposal will solve it?
 
-Yes, you authored the driver, but that doesn't necessarily means that
-you'll have all clones of VP-2033/VP-2040.
+What about something like the following structure, from the OMAP3 ISP driver ?
 
-> Do you want me to add
-> myself to MAINTAINERS to make it a bit more clearer, if that's what
-> you prefer ?
+struct omap3isp_prev_update_config {
+        __u32 update;
+        __u32 flag;
+        __u32 shading_shift;
+        struct omap3isp_prev_luma __user *luma;
+        struct omap3isp_prev_hmed __user *hmed;
+        struct omap3isp_prev_cfa __user *cfa;
+        struct omap3isp_prev_csup __user *csup;
+        struct omap3isp_prev_wbal __user *wbal;
+        struct omap3isp_prev_blkadj __user *blkadj;
+        struct omap3isp_prev_rgbtorgb __user *rgb2rgb;
+        struct omap3isp_prev_csc __user *csc;
+        struct omap3isp_prev_yclimit __user *yclimit;
+        struct omap3isp_prev_dcor __user *dcor;
+        struct omap3isp_prev_nf __user *nf;
+        struct omap3isp_prev_gtables __user *gamma;
+};
 
-If you're wiling to maintain it, not holding patches for more than the
-few days required for their review, then YES!!! 
+I'll probably have more comments when I'll see the complete list of parameters 
+you need to expose.
 
-Please add yourself to the MAINTAINERS for the drivers you're willing
-to maintain and submit me such patch for upstream merging.
+> >>>>>> +	 */
+> >>>>>> +	struct prev_module_param {
+> >>>>>> +		char version[IMP_MAX_NAME_SIZE];
+> >>>>> 
+> >>>>> Is there a need to express the version as a string instead of an
+> >>>>> integer ?
+> >>>> 
+> >>>> It could be integer. It is generally a fixed point num, and easy to
+> >>>> read
+> >>>> it as a string than an integer. Can I keep it as a string?
+> >>> 
+> >>> Let's first decide whether a version field is needed at all :-)
+> >> 
+> >> Will remove.
+> >> 
+> >>>>>> +		unsigned short len;
+> >>>>>> +		unsigned short module_id;
+> >>>>>> +		void *param;
+> >>>>>> +	};
 
-> Please revert this change.
-
-I'll do.
-
+-- 
 Regards,
-Mauro
+
+Laurent Pinchart
+
