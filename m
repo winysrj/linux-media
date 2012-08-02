@@ -1,69 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:50606 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756007Ab2HXGWg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 02:22:36 -0400
-Received: by wibhr14 with SMTP id hr14so489830wib.1
-        for <linux-media@vger.kernel.org>; Thu, 23 Aug 2012 23:22:35 -0700 (PDT)
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:64572 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750904Ab2HBSVH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2012 14:21:07 -0400
+Received: by ghrr11 with SMTP id r11so2586297ghr.19
+        for <linux-media@vger.kernel.org>; Thu, 02 Aug 2012 11:21:06 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1345727311-27478-7-git-send-email-elezegarcia@gmail.com>
-References: <1345727311-27478-1-git-send-email-elezegarcia@gmail.com>
-	<1345727311-27478-7-git-send-email-elezegarcia@gmail.com>
-Date: Fri, 24 Aug 2012 08:22:35 +0200
-Message-ID: <CACKLOr0-1QncE17Ufr1m0zn47ZOZoG6dtOusNq+_hO+D8SOLhg@mail.gmail.com>
-Subject: Re: [PATCH 07/10] mem2mem-emmaprp: Remove unneeded struct vb2_queue
- clear on queue_init()
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
+In-Reply-To: <7381e4d38b045460f0ff32e0905f079e.squirrel@lockie.ca>
+References: <50186040.1050908@lockie.ca>
+	<c5ac2603-cc98-4688-b50c-b9166cada8f0@email.android.com>
+	<5019EE10.1000207@lockie.ca>
+	<bdafbcab-4074-4557-b108-a76f00ab8b3e@email.android.com>
+	<CAGoCfiwN=h708e65DmZi7m6gcRMmcRbRZGJvpJ6ZzUk9Cm22dQ@mail.gmail.com>
+	<7381e4d38b045460f0ff32e0905f079e.squirrel@lockie.ca>
+Date: Thu, 2 Aug 2012 14:21:06 -0400
+Message-ID: <CAGoCfiyo_1e5iA4jZ=44=DqQFcPf3+pUFrQ1h=LHg=O-r_nPQA@mail.gmail.com>
+Subject: Re: 3.5 kernel options for Hauppauge_WinTV-HVR-1250
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: bjlockie@lockie.ca
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	linux-media Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23 August 2012 15:08, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
-> queue_init() is always called by v4l2_m2m_ctx_init(), which allocates
-> a context struct v4l2_m2m_ctx with kzalloc.
-> Therefore, there is no need to clear vb2_queue src/dst structs.
->
-> Cc: Javier Martin <javier.martin@vista-silicon.com>
-> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
-> ---
->  drivers/media/platform/mx2_emmaprp.c |    2 --
->  1 files changed, 0 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
-> index dab380a..59aaca4 100644
-> --- a/drivers/media/platform/mx2_emmaprp.c
-> +++ b/drivers/media/platform/mx2_emmaprp.c
-> @@ -757,7 +757,6 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
->         struct emmaprp_ctx *ctx = priv;
->         int ret;
->
-> -       memset(src_vq, 0, sizeof(*src_vq));
->         src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
->         src_vq->io_modes = VB2_MMAP | VB2_USERPTR;
->         src_vq->drv_priv = ctx;
-> @@ -769,7 +768,6 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
->         if (ret)
->                 return ret;
->
-> -       memset(dst_vq, 0, sizeof(*dst_vq));
->         dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
->         dst_vq->io_modes = VB2_MMAP | VB2_USERPTR;
->         dst_vq->drv_priv = ctx;
-> --
-> 1.7.8.6
->
+On Thu, Aug 2, 2012 at 12:34 PM,  <bjlockie@lockie.ca> wrote:
+> It should have been easier, select the card and it builds all the drivers
+> it needs. :-)
+> Is there a script somewhere that lets me select a card and automatically
+> modifies the kernel config?
 
-Acked-By: Javier Martin <javier.martin@vista-silicon.com>
+Yeah, that isn't really practical.  There are *hundreds* of boards,
+and having one config option isn't practical given the number of
+different bridge/demod/tuner combinations there are.
+
+Heck, even for the 1250 there are eight or ten different versions, so
+most users wouldn't even know the right one to choose.
+
+The reality is that the kernel config isn't optimized for this use
+case, and given the overhead in administration combined with the
+*EXTREME* unlikelihood that any real users would use it, it just isn't
+worth the effort.
+
+If you're hacking the kernel config to include support for a single
+board as opposed to the whole media subsystem, you're 0.001% of the
+user base, and your use case isn't worth the developer effort that
+would be required.
+
+In short, we barely have the manpower to make this stuff work at all.
+Wasted effort to optimize for really obscure use cases is better spent
+on expanding the set of supported products.
+
+>> Also, the 1250 is broken for analog until very recently (patches went
+>> upstream for 3.5/3.6 a few days ago).
+>
+> North American OTA is all digital so I have no way to test it.
+
+That's fine.  I was just trying to make clear that if you wanted
+analog functionality then you need the latest code.
+
+Devin
 
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
