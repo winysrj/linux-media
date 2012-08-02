@@ -1,179 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:49782 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758122Ab2HJOQN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Aug 2012 10:16:13 -0400
-Received: by mail-ey0-f174.google.com with SMTP id c11so519125eaa.19
-        for <linux-media@vger.kernel.org>; Fri, 10 Aug 2012 07:16:12 -0700 (PDT)
-From: Sangwook Lee <sangwook.lee@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@maxwell.research.nokia.com, suapapa@insignal.co.kr,
-	quartz.jang@samsung.com, linaro-dev@lists.linaro.org,
-	patches@linaro.org, usman.ahmad@linaro.org,
-	Sangwook Lee <sangwook.lee@linaro.org>
-Subject: [PATCH v4 1/2] v4l: Add factory register values form S5K4ECGX sensor
-Date: Fri, 10 Aug 2012 15:14:55 +0100
-Message-Id: <1344608096-22059-2-git-send-email-sangwook.lee@linaro.org>
-In-Reply-To: <1344608096-22059-1-git-send-email-sangwook.lee@linaro.org>
-References: <1344608096-22059-1-git-send-email-sangwook.lee@linaro.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46907 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752876Ab2HBVuZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2012 17:50:25 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: =?ISO-8859-1?Q?R=E9mi?= Denis-Courmont <remi@remlab.net>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de
+Subject: Re: [PATCHv2 3/9] v4l: add buffer exporting via dmabuf
+Date: Thu, 02 Aug 2012 23:50:31 +0200
+Message-ID: <1530169.bCmcyqEdys@avalon>
+In-Reply-To: <201208020908.18512.hverkuil@xs4all.nl>
+References: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com> <201208020956.45291.remi@remlab.net> <201208020908.18512.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add preview default settings for S5K4ECGX sensor registers,
-which was copied from the reference code of Samsung S.LSI.
+Hi Hans,
 
-Signed-off-by: Sangwook Lee <sangwook.lee@linaro.org>
----
- drivers/media/video/s5k4ecgx_regs.h |  138 +++++++++++++++++++++++++++++++++++
- 1 file changed, 138 insertions(+)
- create mode 100644 drivers/media/video/s5k4ecgx_regs.h
+On Thursday 02 August 2012 09:08:18 Hans Verkuil wrote:
+> On Thu August 2 2012 08:56:43 Rémi Denis-Courmont wrote:
+> > Le jeudi 2 août 2012 09:35:58 Hans Verkuil, vous avez écrit :
+> > > On Wed August 1 2012 22:49:57 Rémi Denis-Courmont wrote:
+> > > > > What about using the CREATE_BUFS ioctl to add new MMAP buffers at
+> > > > > runtime ?
+> > > > 
+> > > > Does CREATE_BUFS always work while already streaming has already
+> > > > started? If it depends on the driver, it's kinda helpless.
+> > > 
+> > > Yes, it does. It's one of the reasons it exists in the first place. But
+> > > there are currently only a handful of drivers that implement it. I hope
+> > > that as more and more drivers are converted to vb2 that the availability
+> > > of create_bufs will increase.
+> > 
+> > That's contradictory. If most drivers do not support it, then it won't
+> > work during streaming.
+> 
+> IF create_bufs is implemented in the driver, THEN you can use it during
+> streaming. I.e., it will never return EBUSY as an error due to the fact
+> that streaming is in progress.
+> 
+> Obviously it won't work if the driver didn't implement it in the first
+> place.
+>
+> > > > What's the guaranteed minimum buffer count? It seems in any case, MMAP
+> > > > has a hard limit of 32 buffers (at least videobuf2 has), though one
+> > > > might argue this should be more than enough.
+> > > 
+> > > Minimum or maximum? The maximum is 32, that's hardcoded in the V4L2
+> > > core. Although drivers may force a lower maximum if they want. I have no
+> > > idea whether there are drivers that do that. There probably are.
+> > 
+> > The smallest of the maxima of all drivers.
+> 
+> I've no idea. Most will probably abide by the 32 maximum, but without
+> analyzing all drivers I can't guarantee it.
+> 
+> > > The minimum is usually between 1 and 3, depending on hardware
+> > > limitations.
+> > 
+> > And that's clearly insufficient without memory copy to userspace buffers.
+> > 
+> > It does not seem to me that CREATE_BUFS+MMAP is a useful replacement for
+> > REQBUFS+USERBUF then.
+> 
+> Just to put your mind at rest: USERPTR mode will *not* disappear or be
+> deprecated in any way. It's been there for a long time, it's in heavy use,
+> it's easy to use and it will not be turned into a second class citizen,
+> because it isn't. Just because there is a new dmabuf mode available doesn't
+> mean that everything should be done as a mmap+dmabuf thing.
 
-diff --git a/drivers/media/video/s5k4ecgx_regs.h b/drivers/media/video/s5k4ecgx_regs.h
-new file mode 100644
-index 0000000..e99b0e6
---- /dev/null
-+++ b/drivers/media/video/s5k4ecgx_regs.h
-@@ -0,0 +1,138 @@
-+/*
-+ * Samsung S5K4ECGX register tables for default values
-+ *
-+ * Copyright (C) 2012 Linaro
-+ * Copyright (C) 2012 Insignal Co,. Ltd
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef __DRIVERS_MEDIA_VIDEO_S5K4ECGX_H__
-+#define __DRIVERS_MEDIA_VIDEO_S5K4ECGX_H__
-+
-+struct regval_list {
-+	u32	addr;
-+	u16	val;
-+};
-+
-+/* Configure 720x480 preview size */
-+static const struct regval_list s5k4ecgx_720_prev[] = {
-+	{ 0x70000250, 0x0a00 },
-+	{ 0x70000252, 0x06a8 },
-+	{ 0x70000254, 0x0010 },
-+	{ 0x70000256, 0x0078 },
-+	{ 0x70000258, 0x0a00 },
-+	{ 0x7000025a, 0x06a8 },
-+	{ 0x7000025c, 0x0010 },
-+	{ 0x7000025e, 0x0078 },
-+	{ 0x70000494, 0x0a00 },
-+
-+	/*
-+	 * FIXME: according to the datasheet,
-+	 * 0x70000496~ 0x7000049c seems to be only for capture mode,
-+	 * but without these value, it doesn't work with preview mode.
-+	 */
-+	{ 0x70000496, 0x06a8 },
-+	{ 0x70000498, 0x0000 },
-+	{ 0x7000049a, 0x0000 },
-+	{ 0x7000049c, 0x0a00 },
-+
-+	{ 0x7000049e, 0x06a8 },
-+	{ 0x700002a6, 0x02d0 },
-+	{ 0x700002a8, 0x01e0 },
-+	{ 0xffffffff, 0x0000 },	/* End token */
-+};
-+
-+/* Configure 640x480 preview size */
-+static const struct regval_list s5k4ecgx_640_prev[] = {
-+	{ 0x70000250, 0x0a00 },
-+	{ 0x70000252, 0x0780 },
-+	{ 0x70000254, 0x0010 },
-+	{ 0x70000256, 0x000c },
-+	{ 0x70000258, 0x0a00 },
-+	{ 0x7000025a, 0x0780 },
-+	{ 0x7000025c, 0x0010 },
-+	{ 0x7000025e, 0x000c },
-+	{ 0x70000494, 0x0a00 },
-+	{ 0x70000496, 0x0780 },
-+	{ 0x70000498, 0x0000 },
-+	{ 0x7000049a, 0x0000 },
-+	{ 0x7000049c, 0x0a00 },
-+	{ 0x7000049e, 0x0780 },
-+	{ 0x700002a6, 0x0280 },
-+	{ 0x700002a8, 0x01e0 },
-+	{ 0xffffffff, 0x0000 }, /* End token */
-+};
-+
-+/* Configure 352x288 preview size */
-+static const struct regval_list s5k4ecgx_352_prev[] = {
-+	{ 0x70000250, 0x0928 },
-+	{ 0x70000252, 0x0780 },
-+	{ 0x70000254, 0x007c },
-+	{ 0x70000256, 0x000c },
-+	{ 0x70000258, 0x0928 },
-+	{ 0x7000025a, 0x0780 },
-+	{ 0x7000025c, 0x007c },
-+	{ 0x7000025e, 0x000c },
-+	{ 0x70000494, 0x0928 },
-+	{ 0x70000496, 0x0780 },
-+	{ 0x70000498, 0x0000 },
-+	{ 0x7000049a, 0x0000 },
-+	{ 0x7000049c, 0x0928 },
-+	{ 0x7000049e, 0x0780 },
-+	{ 0x700002a6, 0x0160 },
-+	{ 0x700002a8, 0x0120 },
-+	{ 0xffffffff, 0x0000 }, /* End token */
-+};
-+
-+/* Configure 176x144 preview size */
-+static const struct regval_list s5k4ecgx_176_prev[] = {
-+	{ 0x70000250, 0x0928 },
-+	{ 0x70000252, 0x0780 },
-+	{ 0x70000254, 0x007c },
-+	{ 0x70000256, 0x000c },
-+	{ 0x70000258, 0x0928 },
-+	{ 0x7000025a, 0x0780 },
-+	{ 0x7000025c, 0x007c },
-+	{ 0x7000025e, 0x000c },
-+	{ 0x70000494, 0x0928 },
-+	{ 0x70000496, 0x0780 },
-+	{ 0x70000498, 0x0000 },
-+	{ 0x7000049a, 0x0000 },
-+	{ 0x7000049c, 0x0928 },
-+	{ 0x7000049e, 0x0780 },
-+	{ 0x700002a6, 0x00b0 },
-+	{ 0x700002a8, 0x0090 },
-+	{ 0xffffffff, 0x0000 }, /* End token */
-+};
-+
-+/* Common setting 1 for preview */
-+static const struct regval_list s5k4ecgx_com1_prev[] = {
-+	{ 0x700004a0, 0x0000 },
-+	{ 0x700004a2, 0x0000 },
-+	{ 0x70000262, 0x0001 },
-+	{ 0x70000a1e, 0x0028 },
-+	{ 0x70000ad4, 0x003c },
-+	{ 0xffffffff, 0x0000 }, /* End token */
-+};
-+
-+/* Common setting 2 for preview */
-+static const struct regval_list s5k4ecgx_com2_prev[] = {
-+	{ 0x700002aa, 0x0005 },
-+	{ 0x700002b4, 0x0052 },
-+	{ 0x700002be, 0x0000 },
-+	{ 0x700002c0, 0x0001 },
-+	{ 0x700002c2, 0x029a },
-+	{ 0x700002c4, 0x014d },
-+	{ 0x700002d0, 0x0000 },
-+	{ 0x700002d2, 0x0000 },
-+	{ 0x70000266, 0x0000 },
-+	{ 0x7000026a, 0x0001 },
-+	{ 0x7000024e, 0x0001 },
-+	{ 0x70000268, 0x0001 },
-+	{ 0xffffffff, 0x0000 }, /* End token */
-+};
-+
-+#endif	/* __DRIVERS_MEDIA_VIDEO_S5K4ECGX_H__ */
+I disagree with this. Not everything should obviously be done with MMAP + 
+DMABUF, but for buffer sharing between devices, we should encourage 
+application developers to use DMABUF instead of USERPTR.
+
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
