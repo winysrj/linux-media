@@ -1,204 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47155 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758202Ab2HHNfh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2012 09:35:37 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linaro-mm-sig@lists.linaro.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
-	Pawel Osciak <pawel@osciak.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jerome Glisse <jglisse@redhat.com>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Rob Landley <rob@landley.net>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Alex Deucher <alexander.deucher@amd.com>,
-	Rob Clark <rob@ti.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] dma-buf: add reference counting for exporter module
-Date: Wed, 08 Aug 2012 15:35:47 +0200
-Message-ID: <1404275.atroogfRqe@avalon>
-In-Reply-To: <50223CC5.9060007@samsung.com>
-References: <50223CC5.9060007@samsung.com>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:34526 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751639Ab2HBSW4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Aug 2012 14:22:56 -0400
+References: <50186040.1050908@lockie.ca> <c5ac2603-cc98-4688-b50c-b9166cada8f0@email.android.com> <5019EE10.1000207@lockie.ca> <bdafbcab-4074-4557-b108-a76f00ab8b3e@email.android.com> <CAGoCfiwN=h708e65DmZi7m6gcRMmcRbRZGJvpJ6ZzUk9Cm22dQ@mail.gmail.com> <7381e4d38b045460f0ff32e0905f079e.squirrel@lockie.ca>
+In-Reply-To: <7381e4d38b045460f0ff32e0905f079e.squirrel@lockie.ca>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: Re: 3.5 kernel options for Hauppauge_WinTV-HVR-1250
+From: Andy Walls <awalls@md.metrocast.net>
+Date: Thu, 02 Aug 2012 14:22:59 -0400
+To: bjlockie@lockie.ca, Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux-media Mailing List <linux-media@vger.kernel.org>
+Message-ID: <751dab30-8c09-4f1d-a540-78851caa3904@email.android.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+bjlockie@lockie.ca wrote:
 
-Thanks for the patch.
+>> On Thu, Aug 2, 2012 at 5:53 AM, Andy Walls <awalls@md.metrocast.net>
+>> wrote:
+>>> You can 'grep MODULE_ drivers/media/video/cx23885/*
+>>> drivers/media/video/cx25840/* ' and other relevant directories under
+>>> drivers/media/{dvb, common} to find all the parameter options for
+>all
+>>> the drivers involved in making a HVR_1250 work.
+>>
+>> Or just build with everything enabled until you know it is working,
+>> and then optimize the list of modules later.
+>
+>It should have been easier, select the card and it builds all the
+>drivers
+>it needs. :-)
+>Is there a script somewhere that lets me select a card and
+>automatically
+>modifies the kernel config?
+>
+>>
+>> Also, the 1250 is broken for analog until very recently (patches went
+>> upstream for 3.5/3.6 a few days ago).
+>
+>North American OTA is all digital so I have no way to test it.
+>
+>>
+>> Devin
+>>
+>> --
+>> Devin J. Heitmueller - Kernel Labs
+>> http://www.kernellabs.com
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe
+>linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
 
-On Wednesday 08 August 2012 12:17:41 Tomasz Stanislawski wrote:
-> This patch adds reference counting on a module that exports dma-buf and
-> implements its operations. This prevents the module from being unloaded
-> while DMABUF file is in use.
-> 
-> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> ---
->  Documentation/dma-buf-sharing.txt          |    3 ++-
->  drivers/base/dma-buf.c                     |   10 +++++++++-
->  drivers/gpu/drm/exynos/exynos_drm_dmabuf.c |    1 +
->  drivers/gpu/drm/i915/i915_gem_dmabuf.c     |    1 +
->  drivers/gpu/drm/nouveau/nouveau_prime.c    |    1 +
->  drivers/gpu/drm/radeon/radeon_prime.c      |    1 +
->  drivers/staging/omapdrm/omap_gem_dmabuf.c  |    1 +
->  include/linux/dma-buf.h                    |    2 ++
->  8 files changed, 18 insertions(+), 2 deletions(-)
-> 
-> diff --git a/Documentation/dma-buf-sharing.txt
-> b/Documentation/dma-buf-sharing.txt index ad86fb8..2613057 100644
-> --- a/Documentation/dma-buf-sharing.txt
-> +++ b/Documentation/dma-buf-sharing.txt
-> @@ -49,7 +49,8 @@ The dma_buf buffer sharing API usage contains the
-> following steps: The buffer exporter announces its wish to export a buffer.
-> In this, it connects its own private buffer data, provides implementation
-> for operations that can be performed on the exported dma_buf, and flags for
-> the file
-> -   associated with this buffer.
-> +   associated with this buffer. The operations structure has owner field.
-> +   You should initialize this to THIS_MODULE in most cases.
-> 
->     Interface:
->        struct dma_buf *dma_buf_export(void *priv, struct dma_buf_ops *ops,
-> diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-> index c30f3e1..d14b2f5 100644
-> --- a/drivers/base/dma-buf.c
-> +++ b/drivers/base/dma-buf.c
-> @@ -27,6 +27,7 @@
->  #include <linux/dma-buf.h>
->  #include <linux/anon_inodes.h>
->  #include <linux/export.h>
-> +#include <linux/module.h>
-> 
->  static inline int is_dma_buf_file(struct file *);
-> 
-> @@ -40,6 +41,7 @@ static int dma_buf_release(struct inode *inode, struct
-> file *file) dmabuf = file->private_data;
-> 
->  	dmabuf->ops->release(dmabuf);
-> +	module_put(dmabuf->ops->owner);
->  	kfree(dmabuf);
->  	return 0;
->  }
-> @@ -96,6 +98,7 @@ struct dma_buf *dma_buf_export(void *priv, const struct
-> dma_buf_ops *ops, struct file *file;
-> 
->  	if (WARN_ON(!priv || !ops
-> +			  || !ops->owner
+There are too many different card models and variants supported by bridge drivers to list every one in the kconfig system.
 
-THIS_MODULE is defined as ((struct module *)0) when the driver is built-in, 
-this check should thus be removed.
+There are several variants of the 1250 itself with different chips on board.  You have no guarantee that two retail boxes labeled HVR-1250 both contain identical hardware.
+ 
+IMO, trying to winnow down the supporting drivers you compile just sets yourself for more work in the future if you add a second card.
 
->  			  || !ops->map_dma_buf
->  			  || !ops->unmap_dma_buf
->  			  || !ops->release
-> 
-> @@ -105,9 +108,14 @@ struct dma_buf *dma_buf_export(void *priv, const struct
-> dma_buf_ops *ops, return ERR_PTR(-EINVAL);
->  	}
-> 
-> +	if (!try_module_get(ops->owner))
-> +		return ERR_PTR(-ENOENT);
-> +
->  	dmabuf = kzalloc(sizeof(struct dma_buf), GFP_KERNEL);
-> -	if (dmabuf == NULL)
-> +	if (dmabuf == NULL) {
-> +		module_put(ops->owner);
->  		return ERR_PTR(-ENOMEM);
-> +	}
-> 
->  	dmabuf->priv = priv;
->  	dmabuf->ops = ops;
-> diff --git a/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
-> b/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c index 613bf8a..cf3bc6d 100644
-> --- a/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
-> +++ b/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
-> @@ -164,6 +164,7 @@ static void exynos_gem_dmabuf_kunmap(struct dma_buf
-> *dma_buf, }
-> 
->  static struct dma_buf_ops exynos_dmabuf_ops = {
-> +	.owner			= THIS_MODULE,
->  	.map_dma_buf		= exynos_gem_map_dma_buf,
->  	.unmap_dma_buf		= exynos_gem_unmap_dma_buf,
->  	.kmap			= exynos_gem_dmabuf_kmap,
-> diff --git a/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-> b/drivers/gpu/drm/i915/i915_gem_dmabuf.c index aa308e1..07ff03b 100644
-> --- a/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-> +++ b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-> @@ -152,6 +152,7 @@ static int i915_gem_dmabuf_mmap(struct dma_buf *dma_buf,
-> struct vm_area_struct * }
-> 
->  static const struct dma_buf_ops i915_dmabuf_ops =  {
-> +	.owner = THIS_MODULE,
->  	.map_dma_buf = i915_gem_map_dma_buf,
->  	.unmap_dma_buf = i915_gem_unmap_dma_buf,
->  	.release = i915_gem_dmabuf_release,
-> diff --git a/drivers/gpu/drm/nouveau/nouveau_prime.c
-> b/drivers/gpu/drm/nouveau/nouveau_prime.c index a25cf2c..8605033 100644
-> --- a/drivers/gpu/drm/nouveau/nouveau_prime.c
-> +++ b/drivers/gpu/drm/nouveau/nouveau_prime.c
-> @@ -127,6 +127,7 @@ static void nouveau_gem_prime_vunmap(struct dma_buf
-> *dma_buf, void *vaddr) }
-> 
->  static const struct dma_buf_ops nouveau_dmabuf_ops =  {
-> +	.owner = THIS_MODULE,
->  	.map_dma_buf = nouveau_gem_map_dma_buf,
->  	.unmap_dma_buf = nouveau_gem_unmap_dma_buf,
->  	.release = nouveau_gem_dmabuf_release,
-> diff --git a/drivers/gpu/drm/radeon/radeon_prime.c
-> b/drivers/gpu/drm/radeon/radeon_prime.c index 6bef46a..4061fd3 100644
-> --- a/drivers/gpu/drm/radeon/radeon_prime.c
-> +++ b/drivers/gpu/drm/radeon/radeon_prime.c
-> @@ -127,6 +127,7 @@ static void radeon_gem_prime_vunmap(struct dma_buf
-> *dma_buf, void *vaddr) mutex_unlock(&dev->struct_mutex);
->  }
->  const static struct dma_buf_ops radeon_dmabuf_ops =  {
-> +	.owner = THIS_MODULE,
->  	.map_dma_buf = radeon_gem_map_dma_buf,
->  	.unmap_dma_buf = radeon_gem_unmap_dma_buf,
->  	.release = radeon_gem_dmabuf_release,
-> diff --git a/drivers/staging/omapdrm/omap_gem_dmabuf.c
-> b/drivers/staging/omapdrm/omap_gem_dmabuf.c index 42728e0..6a4dd67 100644
-> --- a/drivers/staging/omapdrm/omap_gem_dmabuf.c
-> +++ b/drivers/staging/omapdrm/omap_gem_dmabuf.c
-> @@ -179,6 +179,7 @@ out_unlock:
->  }
-> 
->  struct dma_buf_ops omap_dmabuf_ops = {
-> +		.owner = THIS_MODULE,
->  		.map_dma_buf = omap_gem_map_dma_buf,
->  		.unmap_dma_buf = omap_gem_unmap_dma_buf,
->  		.release = omap_gem_dmabuf_release,
-> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-> index eb48f38..22953de 100644
-> --- a/include/linux/dma-buf.h
-> +++ b/include/linux/dma-buf.h
-> @@ -37,6 +37,7 @@ struct dma_buf_attachment;
-> 
->  /**
->   * struct dma_buf_ops - operations possible on struct dma_buf
-> + * @owner: the module that implements dma_buf operations
->   * @attach: [optional] allows different devices to 'attach' themselves to
-> the *	    given buffer. It might return -EBUSY to signal that backing
-> storage *	    is already allocated and incompatible with the requirements
-> @@ -70,6 +71,7 @@ struct dma_buf_attachment;
->   * @vunmap: [optional] unmaps a vmap from the buffer
->   */
->  struct dma_buf_ops {
-> +	struct module *owner;
->  	int (*attach)(struct dma_buf *, struct device *,
->  			struct dma_buf_attachment *);
-
--- 
 Regards,
+Andy
 
-Laurent Pinchart
 
