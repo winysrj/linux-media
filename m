@@ -1,48 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:36073 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753016Ab2HGSYH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2012 14:24:07 -0400
-Received: by qcro28 with SMTP id o28so2701254qcr.19
-        for <linux-media@vger.kernel.org>; Tue, 07 Aug 2012 11:24:06 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:52947 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751547Ab2HBTtF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Aug 2012 15:49:05 -0400
+Message-ID: <501AD9A3.8050301@iki.fi>
+Date: Thu, 02 Aug 2012 22:48:51 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-From: Partha Guha Roy <partha.guha.roy@gmail.com>
-Date: Wed, 8 Aug 2012 00:23:46 +0600
-Message-ID: <CADTwmX8-yf3iNhrOozQGFnHg=H+rq6rti8AO=uRBzsj+OHEdyQ@mail.gmail.com>
-Subject: Philips saa7134 IR remote problem with linux kernel v2.6.35
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: bjlockie@lockie.ca
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: 3.5 kernel options for Hauppauge_WinTV-HVR-1250
+References: <50186040.1050908@lockie.ca>    <c5ac2603-cc98-4688-b50c-b9166cada8f0@email.android.com>    <5019EE10.1000207@lockie.ca>    <bdafbcab-4074-4557-b108-a76f00ab8b3e@email.android.com>    <CAGoCfiwN=h708e65DmZi7m6gcRMmcRbRZGJvpJ6ZzUk9Cm22dQ@mail.gmail.com>    <7381e4d38b045460f0ff32e0905f079e.squirrel@lockie.ca>    <CAGoCfiyo_1e5iA4jZ=44=DqQFcPf3+pUFrQ1h=LHg=O-r_nPQA@mail.gmail.com> <dbb5a626e07a4a4f4db40094c35fbd96.squirrel@lockie.ca>
+In-Reply-To: <dbb5a626e07a4a4f4db40094c35fbd96.squirrel@lockie.ca>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 08/02/2012 10:41 PM, bjlockie@lockie.ca wrote:
+>
+>> Heck, even for the 1250 there are eight or ten different versions, so
+>> most users wouldn't even know the right one to choose.
+>
+> Do you mean boards that use different chips?
+> I hate it when manufacturers do that (ie. with routers).
 
-I have a saa7134 analog tv card (Avermedia PCI pure m135a) with an IR
-remote. The IR remote is recognized by a standard keyboard and lirc
-used to work fine with this. However, from kernel v2.6.35, the IR
-remote does not work properly. The major problem is that every
-keystroke is registered after the next keystroke. So, if I press the
-sequence "123" on the remote, it actually comes up with only "12". If
-I then if I wait for 5 seconds, the "3" gets lost.
+That happens quite often. Few weeks back someone sends mail saying he 
+has got new version of Terratec Cinergy T Stick Dual RC. Old version 
+uses Afatech AF9015 chips whilst new revision is ITE Technologies IT9135 
+and USB ID is same. Those are quite different chips and having different 
+drivers. In such cases it could be quite challenging to get it working 
+as both drivers are thinking it is for me according to USB ID.
 
-Now I tried to bisect the kernel and it lead to the following commit:
+regards
+Antti
 
-commit e40b1127f994a427568319d1be9b9e5ab1f58dd1
-Author: David Härdeman <david@hardeman.nu>
-Date:   Thu Apr 15 18:46:00 2010 -0300
 
-    V4L/DVB: ir-core: change duration to be coded as a u32 integer
-
-    This patch implements the agreed upon 1:31 integer encoded pulse/duration
-    struct for ir-core raw decoders. All decoders have been tested after the
-    change. Comments are welcome.
-
-    Signed-off-by: David Härdeman <david@hardeman.nu>
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-I am willing to test patches if needed.
-
-Thanks and regards.
-
-/Partha Roy
+-- 
+http://palosaari.fi/
