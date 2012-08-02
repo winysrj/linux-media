@@ -1,120 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:38519 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752663Ab2HGMMY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Aug 2012 08:12:24 -0400
-Received: by lagy9 with SMTP id y9so1319263lag.19
-        for <linux-media@vger.kernel.org>; Tue, 07 Aug 2012 05:12:22 -0700 (PDT)
-Message-ID: <50210619.7030408@iki.fi>
-Date: Tue, 07 Aug 2012 15:12:09 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1685 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751486Ab2HBHIj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2012 03:08:39 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>
+Subject: Re: [PATCHv2 3/9] v4l: add buffer exporting via dmabuf
+Date: Thu, 2 Aug 2012 09:08:18 +0200
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de
+References: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com> <201208020835.58332.hverkuil@xs4all.nl> <201208020956.45291.remi@remlab.net>
+In-Reply-To: <201208020956.45291.remi@remlab.net>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 3/3] [media] az6007: handle CI during suspend/resume
-References: <1344188679-8247-1-git-send-email-mchehab@redhat.com> <1344188679-8247-4-git-send-email-mchehab@redhat.com> <501FB6DC.3040200@iki.fi> <5020FED2.2040109@redhat.com>
-In-Reply-To: <5020FED2.2040109@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201208020908.18512.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/07/2012 02:41 PM, Mauro Carvalho Chehab wrote:
-> Em 06-08-2012 09:21, Antti Palosaari escreveu:
->> On 08/05/2012 08:44 PM, Mauro Carvalho Chehab wrote:
->>> The dvb-usb-v2 core doesn't know anything about CI. So, the
->>> driver needs to handle it by hand. This patch stops CI just
->>> before stopping URB's/RC, and restarts it before URB/RC start.
->>>
->>> It should be noticed that suspend/resume is not yet working properly,
->>> as the PM model requires the implementation of reset_resume:
->>>      dvb_usb_az6007 1-6:1.0: no reset_resume for driver dvb_usb_az6007?
->>> But this is not implemented there at dvb-usb-v2 yet.
->>
->> That is true, but it is coming:
->> http://blog.palosaari.fi/2012/07/dvb-power-management-on-suspend.html
->> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/dvb_core3
->>
->> At the time I added initial suspend/resume support for dvb-usb-v2 I left those out purposely as I saw some study and changes are needed for DVB-core/frontend.
->>
->> Normally suspend keeps USB-device powered and calls .resume() on resume. But on certain conditions USB device could lose power
->> during suspend and on that case reset_resume() is called, and if there is no reset_resume() is calls disconnect() (and probe() after that).
->
-> This should depend on BIOS settings, and what of the following type of suspend[1]
-> was done:
-> 	S1: All processor caches are flushed, and the CPU(s) stops executing instructions.
-> 	    Power to the CPU(s) and RAM is maintained; devices that do not indicate they
-> 	    must remain on may be powered down.
-> 	S2: CPU powered off. Dirty cache is flushed to RAM.
-> 	S3: Commonly referred to as Standby, Sleep, or Suspend to RAM. RAM remains powered
-> 	S4: Hibernation or Suspend to Disk. All content of main memory is saved to non-volatile
-> 	    memory such as a hard drive, and is powered down.
->
-> [1] http://en.wikipedia.org/wiki/Advanced_Configuration_and_Power_Interface
+On Thu August 2 2012 08:56:43 R�mi Denis-Courmont wrote:
+> Le jeudi 2 ao�t 2012 09:35:58 Hans Verkuil, vous avez �crit :
+> > On Wed August 1 2012 22:49:57 R�mi Denis-Courmont wrote:
+> > > > What about using the CREATE_BUFS ioctl to add new MMAP buffers at
+> > > > runtime ?
+> > > 
+> > > Does CREATE_BUFS always work while already streaming has already started?
+> > > If it depends on the driver, it's kinda helpless.
+> > 
+> > Yes, it does. It's one of the reasons it exists in the first place. But
+> > there are currently only a handful of drivers that implement it. I hope
+> > that as more and more drivers are converted to vb2 that the availability
+> > of create_bufs will increase.
+> 
+> That's contradictory. If most drivers do not support it, then it won't work 
+> during streaming.
 
-That was something I was already aware. There is even S5 and S4b 
-mentioned by Kernel documentation. But in real life you have to care only:
-S3, Suspend, suspend to ram
-S4, Hibernation, suspend to disk
+IF create_bufs is implemented in the driver, THEN you can use it during streaming.
+I.e., it will never return EBUSY as an error due to the fact that streaming is in
+progress.
 
-And from the USB-driver point of view those are covered by there three 
-callbacks:
-.suspend()
-.resume()
-.reset_resume()
-* if reset_resume() does not exits .disconnect() + .probe() is called 
-instead
+Obviously it won't work if the driver didn't implement it in the first place.
 
-What is my current understanding S3 level leaves USB/PCI powered 
-normally, but device driver should drop device to low power state. In 
-case of DVB -device this means all sub-drivers should put sleep.
+> 
+> > > What's the guaranteed minimum buffer count? It seems in any case, MMAP
+> > > has a hard limit of 32 buffers (at least videobuf2 has), though one
+> > > might argue this should be more than enough.
+> > 
+> > Minimum or maximum? The maximum is 32, that's hardcoded in the V4L2 core.
+> > Although drivers may force a lower maximum if they want. I have no idea
+> > whether there are drivers that do that. There probably are.
+> 
+> The smallest of the maxima of all drivers.
 
-S4 naturally powers everything off. Also worth to mention laptops will 
-switch from S3 to S4 if battery drains empty during S3.
+I've no idea. Most will probably abide by the 32 maximum, but without analyzing
+all drivers I can't guarantee it.
 
-> There are also some per-device sysfs nodes that control how PM will work for them.
-> See:
->
->   $ tree /sys/devices/pci0000:00/0000:00:1d.7/usb1/1-8/dvb/dvb0.frontend0
-> /sys/devices/pci0000:00/0000:00:1d.7/usb1/1-8/dvb/dvb0.frontend0
-> ├── dev
-> ├── device -> ../../../1-8
-> ├── power
-> │   ├── async
-> │   ├── autosuspend_delay_ms
-> │   ├── control
-> │   ├── runtime_active_kids
-> │   ├── runtime_active_time
-> │   ├── runtime_enabled
-> │   ├── runtime_status
-> │   ├── runtime_suspended_time
-> │   └── runtime_usage
-> ├── subsystem -> ../../../../../../../class/dvb
-> └── uevent
->
-> There are a number of pm functions that can change the power management behavior
-> as well.
->
-> Not sure how to control it, but, IMHO, for a media device, it only makes sense
-> to keep it powered on suspend if the device has IR and if the power button of
-> the IR could be used to wake up the hardware. Otherwise, the better is to just
-> power it off, to save battery (for notebooks).
+> > The minimum is usually between 1 and 3, depending on hardware limitations.
+> 
+> And that's clearly insufficient without memory copy to userspace buffers.
+> 
+> It does not seem to me that CREATE_BUFS+MMAP is a useful replacement for 
+> REQBUFS+USERBUF then.
 
-yeah, and it was already done.
+Just to put your mind at rest: USERPTR mode will *not* disappear or be deprecated
+in any way. It's been there for a long time, it's in heavy use, it's easy to use
+and it will not be turned into a second class citizen, because it isn't. Just
+because there is a new dmabuf mode available doesn't mean that everything should
+be done as a mmap+dmabuf thing.
 
-> Maybe it makes sense to talk with Raphael Wysocki to be sure that it will cover
-> all possible cases: auto-suspend, S1/S2/S3/S4 and "wake on IR").
+Regards,
 
-That IR was something I wasn't noticed at all. Currently it stops IR 
-polling too. If that kind of functionality is needed it is surely some 
-more work as you cannot stop IR-polling. Maybe I will skip it that time 
-as I don't have time for it currently :) If someone wish to learn how 
-USB polling remote could be used for wake-up computer then feel free to 
-do that.
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
+	Hans
