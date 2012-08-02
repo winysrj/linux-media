@@ -1,90 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:44826 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752496Ab2HCTCm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2012 15:02:42 -0400
-Received: by ggnl2 with SMTP id l2so1224662ggn.19
-        for <linux-media@vger.kernel.org>; Fri, 03 Aug 2012 12:02:41 -0700 (PDT)
+Received: from dell.nexicom.net ([216.168.96.13]:58232 "EHLO smtp.nexicom.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752398Ab2HBTl5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Aug 2012 15:41:57 -0400
+Received: from mail.lockie.ca (dyn-dsl-mb-216-168-121-135.nexicom.net [216.168.121.135])
+	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id q72Jfr7D003636
+	for <linux-media@vger.kernel.org>; Thu, 2 Aug 2012 15:41:54 -0400
+Message-ID: <dbb5a626e07a4a4f4db40094c35fbd96.squirrel@lockie.ca>
+In-Reply-To: <CAGoCfiyo_1e5iA4jZ=44=DqQFcPf3+pUFrQ1h=LHg=O-r_nPQA@mail.gmail.com>
+References: <50186040.1050908@lockie.ca>
+    <c5ac2603-cc98-4688-b50c-b9166cada8f0@email.android.com>
+    <5019EE10.1000207@lockie.ca>
+    <bdafbcab-4074-4557-b108-a76f00ab8b3e@email.android.com>
+    <CAGoCfiwN=h708e65DmZi7m6gcRMmcRbRZGJvpJ6ZzUk9Cm22dQ@mail.gmail.com>
+    <7381e4d38b045460f0ff32e0905f079e.squirrel@lockie.ca>
+    <CAGoCfiyo_1e5iA4jZ=44=DqQFcPf3+pUFrQ1h=LHg=O-r_nPQA@mail.gmail.com>
+Date: Thu, 2 Aug 2012 15:41:51 -0400
+Subject: Re: 3.5 kernel options for Hauppauge_WinTV-HVR-1250
+From: bjlockie@lockie.ca
+To: "Devin Heitmueller" <dheitmueller@kernellabs.com>
+Cc: "linux-media Mailing List" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <CAGoCfizFYYtA2HHE6TO9eW6UF6FaxOhOyrsu6gCRi5kCGCO4zA@mail.gmail.com>
-References: <1344016352-20302-1-git-send-email-elezegarcia@gmail.com>
-	<CALF0-+UdxdawZMeniA-tia3qKARbX_+u2k8PnbhA_FhDKUMv3Q@mail.gmail.com>
-	<CAGoCfiyaO5xhjUCVW5QfeLDoh=a6WE73aiAOXX5ZkOiM=efOfQ@mail.gmail.com>
-	<CALF0-+Vhng3=GUJs5k9fiktkE6mEtDNEzKfP8+zjTSmCCRez8w@mail.gmail.com>
-	<CAGoCfizFYYtA2HHE6TO9eW6UF6FaxOhOyrsu6gCRi5kCGCO4zA@mail.gmail.com>
-Date: Fri, 3 Aug 2012 16:02:41 -0300
-Message-ID: <CALF0-+XR6Utov445E54Uu++ETc6QrivMK-ZR0TfVLpNAtRbVgQ@mail.gmail.com>
-Subject: Re: [PATCH] em28xx: Fix height setting on non-progressive captures
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 3, 2012 at 3:55 PM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> On Fri, Aug 3, 2012 at 2:42 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
->> Wait a minute, unless I completely misunderstood the bug (which is possible),
->> I think this patch is straightforward.
->>
->> By the look of this hunk on commit c2a6b54a:
->>
->> ---------------------------------8<--------------------------
->> diff --git a/drivers/media/video/em28xx/em28xx-core.c
->> b/drivers/media/video/em28xx/em28xx-core.c
->> index 5b78e19..339fffd 100644
->> --- a/drivers/media/video/em28xx/em28xx-core.c
->> +++ b/drivers/media/video/em28xx/em28xx-core.c
->> @@ -720,7 +720,10 @@ int em28xx_resolution_set(struct em28xx *dev)
->>  {
->>         int width, height;
->>         width = norm_maxw(dev);
->> -       height = norm_maxh(dev) >> 1;
->> +       height = norm_maxh(dev);
->> +
->> +       if (!dev->progressive)
->> +               height >>= norm_maxh(dev);
->>
->> --------------------------------->8--------------------------
->>
->> It seems to me that for non-progressive the height should just be
->>
->>   height = height / 2 (or height = height >> 1)
->>
->> as was before, and as my patch is doing. It seems to driver will
->> "merge" the interlaced
->> frames and so the "expected" height is half the real height.
->> I hope I got it right.
->>
->> That said and no matter how straightforward may be, which I'm not sure,
->> I also want the patch to get tested before being accepted.
->
-> So my concern here is that I don't actually know what that code does
-> on x86 (what does height end up being equal to?).  On ARM it results
-> in height being zero, but on x86 I don't know what it will do (and the
-> fact that it works on x86 despite the change makes me worry about a
-> regression being introduced).
->
-> In other words, it might be working just out of dumb luck and making
-> the code behave like it does on ARM may cause problems for devices
-> other than the one I tested with.
->
-> I guess I'm worried that the broken code might be a no-op on x86 and
-> the height ends up still being 480 (or 576 for PAL), in which case
-> cutting the size of the accumulator window in half may introduce
-> problems not being seen before.
->
 
-I agree with you. It's very odd that is working as it is.
+> Heck, even for the 1250 there are eight or ten different versions, so
+> most users wouldn't even know the right one to choose.
 
-As a final word, I believe you confused this patch affecting
-progressive capture,
-when actually it only affects non-progressive (interlaced) capture devices,
-so perhaps you could give it a try yourself.
+Do you mean boards that use different chips?
+I hate it when manufacturers do that (ie. with routers).
 
-That is: *if* I got you right, and *if* you're not too busy.
 
-Thanks,
-Ezequiel.
