@@ -1,174 +1,247 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43980 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933100Ab2HVSS7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Aug 2012 14:18:59 -0400
-Message-ID: <50352285.8070703@redhat.com>
-Date: Wed, 22 Aug 2012 15:18:45 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Sakari Ailus <sakari.ailus@iki.fi>,
-	linux-media <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC API] Renumber subdev ioctls
-References: <201208201030.30590.hverkuil@xs4all.nl> <201208210839.53924.hverkuil@xs4all.nl> <20120821104415.GF721@valkosipuli.retiisi.org.uk> <201208221052.02338.hverkuil@xs4all.nl>
-In-Reply-To: <201208221052.02338.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-we0-f174.google.com ([74.125.82.174]:33459 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753639Ab2HBXcD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2012 19:32:03 -0400
+Received: by weyx8 with SMTP id x8so53303wey.19
+        for <linux-media@vger.kernel.org>; Thu, 02 Aug 2012 16:32:02 -0700 (PDT)
+Message-ID: <1343950313.11458.10.camel@router7789>
+Subject: [PATCH] [BUG] Re: dvb_usb_lmedm04 crash Kernel (rs2000)
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media <linux-media@vger.kernel.org>
+Date: Fri, 03 Aug 2012 00:31:53 +0100
+In-Reply-To: <501AE90E.2020201@iki.fi>
+References: <501AE90E.2020201@iki.fi>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 22-08-2012 05:52, Hans Verkuil escreveu:
-> On Tue August 21 2012 12:44:15 Sakari Ailus wrote:
->> Hi Hans,
->>
->> On Tue, Aug 21, 2012 at 08:39:53AM +0200, Hans Verkuil wrote:
->>> On Mon August 20 2012 22:46:04 Sakari Ailus wrote:
->>>> Hi Mauro and Hans,
->>>>
->>>> On Mon, Aug 20, 2012 at 04:05:03PM -0300, Mauro Carvalho Chehab wrote:
->>>>> Em 20-08-2012 05:30, Hans Verkuil escreveu:
->>>>>> Hi all!
->>>>>>
->>>>>> Recently I had to add two new ioctls for the subdev API (include/linux/v4l2-subdev.h)
->>>>>> and I noticed that the numbering of the ioctls was somewhat random.
->>>>>>
->>>>>> In most cases the ioctl number was the same as the V4L2 API counterpart, but for
->>>>>> subdev-specific ioctls no rule exists.
->>>>>>
->>>>>> There are a few problems with this: because of the lack of rules there is a chance
->>>>>> that in the future a subdev ioctl may end up to be identical to an existing V4L2
->>>>>> ioctl. Also, because the numbering isn't nicely increasing it makes it hard to create
->>>>>> a lookup table as was done for the V4L2 ioctls. Well, you could do it, but it would
->>>>>> be a very sparse array, wasting a lot of memory.
->>>>>>
->>>>>> Lookup tables have proven to be very useful, so we might want to introduce them for
->>>>>> the subdev core code as well in the future.
->>>>>>
->>>>>> Since the subdev API is still marked experimental, I propose to renumber the ioctls
->>>>>> and use the letter 'v' instead of 'V'. 'v' was used for V4L1, and so it is now
->>>>>> available for reuse.
->>>>>
->>>>> 'v' is already used (mainly by fs):
->>>>>
->>>>> 'v'	00-1F	linux/ext2_fs.h		conflict!
->>>>> 'v'	00-1F	linux/fs.h		conflict!
->>>>> 'v'	00-0F	linux/sonypi.h		conflict!
->>>>> 'v'	C0-FF	linux/meye.h		conflict!
->>>>>
->>>>> Reusing the ioctl numbering is a bad thing, as tracing code like strace will likely
->>>>> say that a different type of ioctl was called.
->>>>>
->>>>> (Yeah, unfortunately, this end by merging with duplicated stuff :< )
->>>>>
->>>>> Also, I don't like the idea of deprecating it just because of that: interfaces are
->>>>> supposed to be stable.
->>>>>
->>>>> It should be noticed that there are very few ioctls there. So,
->>>>> using a lookup table is overkill.
->>>>>
->>>>> IMO, the better is to sort the ioctl's there at the header file, in order to
->>>>> avoid ioctl duplicaton.
->>>>
->>>> Many of the V4L2 IOCTLs are being used on subdevs, too, to the extent that
->>>> subdev_do_ioctl() in drivers/media/v4l2-core/v4l2-subdev.c has a switch
->>>> statement with over 20 cases. We'll get rid of two once the old crop IOCTLs
->>>> are removed but we've still got over 20, and the number is likely to grow in
->>>> the future. Still it's just a fraction of what V4L2 has.
->>>>
->>>> We decided to use 'V' also for subdev IOCTLs for a reason I no longer
->>>> remember. It's true there can be clashes with regular V4L2 IOCTLs in terms
->>>> of IOCTL codes if the size of the argument struct matches. One of the
->>>> reasons to use 'V' might have been that then some of the IOCTLs on a device
->>>> would have different type (the letter in question) which wasn't considered
->>>> pretty. 'V' is for V4L2 after all, and V4L2 subdev interface is part of the
->>>> V4L2.
->>>>
->>>> The numbering is based on using V4L2 IOCTLs as such if they were applicable
->>>> to subdevs as such (controls) in which case they're defined in videodev2.h,
->>>> and if there was even a loosely corresponding IOCTL in V4L2 then use the
->>>> same number (e.g. formats vs. media bus pixel codes) and otherwise something
->>>> else. The "something else" case hasn't happened yet.
->>>>
->>>> It might have made sense to use a different type for the IOCTLs that aren't
->>>> V4L2 IOCTLs (i.e. are subdev IOCTLs) for clarity but it's quite late for
->>>> such a change. However if we think we definitely should do it then it should
->>>> be done now or not at all...
->>>>
->>>> If we want to just improve the efficiency of the switch statement in
->>>> subdev_do_ioctl() we could divide the IOCTLs based on e.g. a few last bits
->>>> of the IOCTL number into buckets.
->>>
->>> It's not so much the switch efficiency. In practice there will be no measurable
->>> speed difference. But a lookup table allows one to easily look up information
->>> about the ioctl.
->>>
->>> But the main goal would be to guarantee that subdev ioctls and V4L2 ioctls
->>> will never clash, since both types of ioctls can be used with a subdev node.
->>
->> It's indeed possible to have clashes between the IOCTL codes but that does
->> not matter so much: all IOCTLs related to buffers belong to V4L2 and
->> anything related to pads belongs to subdevs only.
->>
->> As long as a little care is taken when choosing the IOCTL number we
->> shouldn't have issues any more we have now. Well, that said, the IOCTLs
->> belonging to the something else category are more difficult to number in a
->> good way. Perhaps starting from highest IOCTL numbers before the private
->> IOCTLs would be one option.
+On Thu, 2012-08-02 at 23:54 +0300, Antti Palosaari wrote:
+> Moi Malcolm,
+> Any idea why this seems to crash Kernel just when device is plugged?
 > 
-> Currently I've decided to use ioctl numbers that are unused in V4L2 (there are
-> quite a few holes in the ioctl numbering).
-> 
->>>> I don't have a strong opinion on this either way, but unless there's a
->>>> concrete problem related to it I'd keep it as-is. We will definitely pick a
->>>> new type for the property API when once we get that far. ;-)
->>>>
->>>> Could you elaborate what you were about to add? Something that would fall
->>>> into the "something else" category perhaps?
->>>
->>> Yes indeed. It's two new ioctls for setting/getting the EDID.
->>
->> Do these IOCTLs have (or should they have) corresponding IOCTLs in V4L2?
-> 
-> No. These are unique to the subdevs.
-> 
->>> Currently I've chosen ioctl numbers that are not used by V4L2 (there are a
->>> number of 'holes' in the ioctl list).
->>>
->>> If people think it is not worth the effort, then so be it. But if we do want
->>> to do this, then we can't wait any longer.
->>
->> One option would be to start using a new type for the new IOCTLs but leave
->> the existing ones as they are. The end result would be less elegant since
->> the subdev IOCTLs would use two different types but OTOH the V4L2 IOCTLs are
->> being used on subdevs as-is, too. This would at least prevent future clashes
->> in IOCTL codes between V4L2 and subdev interfaces.
-> 
-> I don't really like that idea.
-> 
-> I thought that Laurent's proposal of creating SUBDEV aliases of reused V4L2
-> ioctls had merit. That way v4l2-subdev.h would give a nice overview of
-> which V4L2 ioctls are supported by the subdev API. Currently no such overview
-> exists to my knowledge.
+Hi Antti
 
-Adding aliases just for documenting purposes doesn't seem nice, IMHO.
+Yes, there missing error handling when no firmware file found.
 
-Again, this is one case where profiles help: we need a profile for devices
-that implement subdev's, telling what is allowed and what is forbidden
-there.
+It seems that this is more of a problem with udev-182+.
 
-> With regards to adding pad fields to the existing control structs: that won't
-> work with queryctrl: the reserved fields are output fields only, there is no
-> requirement that apps have to zero them, so you can't use them to enumerate
-> controls for a particular pad.
+However, so far udev-182 is only a problem on first ever plug.
+
+Regards
+
+
+Malcolm 
+
+
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+---
+ drivers/media/dvb/dvb-usb/lmedm04.c |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/media/dvb/dvb-usb/lmedm04.c b/drivers/media/dvb/dvb-usb/lmedm04.c
+index 25d1031..26ba5bc 100644
+--- a/drivers/media/dvb/dvb-usb/lmedm04.c
++++ b/drivers/media/dvb/dvb-usb/lmedm04.c
+@@ -878,6 +878,10 @@ static int lme_firmware_switch(struct usb_device *udev, int cold)
+ 		fw_lme = fw_c_rs2000;
+ 		ret = request_firmware(&fw, fw_lme, &udev->dev);
+ 		dvb_usb_lme2510_firmware = TUNER_RS2000;
++		if (ret == 0)
++			break;
++		info("FRM No Firmware Found - please install");
++		cold_fw = 0;
+ 		break;
+ 	default:
+ 		fw_lme = fw_c_s7395;
+-- 
+1.7.9.5
+
+
+
+
 > 
-> A new queryctrl ioctl would have to be created for that. So if we need this
-> functionality, then I believe it is better to combine that with a new
-> queryctrl ioctl.
+> [crope@localhost linux]$ uname -a
+> Linux localhost.localdomain 3.4.6-2.fc17.x86_64 #1 SMP Thu Jul 19 
+> 22:54:16 UTC 2012 x86_64 x86_64 x86_64 GNU/Linux
+> [crope@localhost linux]$ modinfo dvb_usb_lmedm04
+> filename: 
+> /lib/modules/3.4.6-2.fc17.x86_64/kernel/drivers/media/dvb/dvb-usb/dvb-usb-lmedm04.ko
+> license:        GPL
+> version:        1.99
+> description:    LME2510(C) DVB-S USB2.0
+> author:         Malcolm Priestley <tvboxspy@gmail.com>
+> srcversion:     59949851F3132870B974EE7
+> alias:          usb:v3344p22F0d*dc*dsc*dp*ic*isc*ip*
+> alias:          usb:v3344p1120d*dc*dsc*dp*ic*isc*ip*
+> alias:          usb:v3344p1122d*dc*dsc*dp*ic*isc*ip*
+> depends:        dvb-usb,dvb-core,rc-core
+> intree:         Y
+> vermagic:       3.4.6-2.fc17.x86_64 SMP mod_unload
+> parm:           debug:set debugging level (1=info (or-able)). (debugging 
+> is not enabled) (int)
+> parm:           firmware:set default firmware 0=Sharp7395 1=LG (int)
+> parm:           pid:set default 0=default 1=off 2=on (int)
+> parm:           adapter_nr:DVB adapter numbers (array of short)
+> [crope@localhost linux]$
 > 
-> Regards,
 > 
-> 	Hans
+> Aug  2 23:46:19 localhost kernel: [  211.527886] usb 1-2.2: new 
+> high-speed USB device number 7 using ehci_hcd
+> Aug  2 23:46:19 localhost kernel: [  211.601817] usb 1-2.2: config 1 
+> interface 0 altsetting 1 bulk endpoint 0x81 has invalid maxpacket 64
+> Aug  2 23:46:19 localhost kernel: [  211.601829] usb 1-2.2: config 1 
+> interface 0 altsetting 1 bulk endpoint 0x1 has invalid maxpacket 64
+> Aug  2 23:46:19 localhost kernel: [  211.601837] usb 1-2.2: config 1 
+> interface 0 altsetting 1 bulk endpoint 0x2 has invalid maxpacket 64
+> Aug  2 23:46:19 localhost kernel: [  211.601845] usb 1-2.2: config 1 
+> interface 0 altsetting 1 bulk endpoint 0x8A has invalid maxpacket 64
+> Aug  2 23:46:19 localhost kernel: [  211.602073] usb 1-2.2: New USB 
+> device found, idVendor=3344, idProduct=22f0
+> Aug  2 23:46:19 localhost kernel: [  211.602083] usb 1-2.2: New USB 
+> device strings: Mfr=0, Product=0, SerialNumber=3
+> Aug  2 23:46:19 localhost kernel: [  211.602093] usb 1-2.2: 
+> SerialNumber: 䥈児
+> Aug  2 23:46:19 localhost mtp-probe: checking bus 1, device 7: 
+> "/sys/devices/pci0000:00/0000:00:12.2/usb1/1-2/1-2.2"
+> Aug  2 23:46:19 localhost mtp-probe: bus: 1, device: 7 was not an MTP device
+> Aug  2 23:46:19 localhost kernel: [  211.628508] LME2510(C): Firmware 
+> Status: 6 (44)
+> Aug  2 23:46:19 localhost kernel: [  211.629545] LME2510(C): FRM Loading 
+> dvb-usb-lme2510c-rs2000.fw file
+> Aug  2 23:46:19 localhost kernel: [  211.629551] LME2510(C): FRM 
+> Starting Firmware Download
+> Aug  2 23:46:19 localhost kernel: [  211.629574] BUG: unable to handle 
+> kernel NULL pointer dereference at 0000000000000008
+> Aug  2 23:46:19 localhost kernel: [  211.629739] IP: 
+> [<ffffffffa03ac116>] lme_firmware_switch+0x526/0x800 [dvb_usb_lmedm04]
+> Aug  2 23:46:19 localhost kernel: [  211.629900] PGD 0
+> Aug  2 23:46:19 localhost kernel: [  211.629947] Oops: 0000 [#1] SMP
+> Aug  2 23:46:19 localhost kernel: [  211.630019] CPU 3
+> Aug  2 23:46:19 localhost kernel: [  211.630058] Modules linked in: 
+> dvb_usb_lmedm04(+) dvb_usb fuse tpm_bios rfcomm bnep ip6t_REJECT 
+> nf_conntrack_ipv6 nf_defrag_ipv6 nf_conntrack_ipv4 nf_defrag_ipv4 
+> xt_state nf_conntrack ip6table_filter ip6_tables snd_hda_codec_hdmi 
+> ppdev sp5100_tco snd_hda_codec_via btusb bluetooth i2c_piix4 8139too 
+> microcode 8139cp serio_raw snd_hda_intel edac_core edac_mce_amd k10temp 
+> snd_hda_codec snd_hwdep rfkill r8169 mii cx23885 altera_ci tda18271 
+> altera_stapl cx2341x btcx_risc videobuf_dvb dvb_core snd_pcm 
+> snd_page_alloc snd_timer snd soundcore tveeprom videobuf_dma_sg 
+> videobuf_core v4l2_common videodev media rc_core shpchp parport_pc 
+> parport asus_atk0110 uinput xts gf128mul hid_logitech_dj ata_generic 
+> pata_acpi dm_crypt pata_atiixp wmi radeon i2c_algo_bit drm_kms_helper 
+> ttm drm i2c_core [last unloaded: scsi_wait_scan]
+> Aug  2 23:46:19 localhost kernel: [  211.631729]
+> Aug  2 23:46:19 localhost kernel: [  211.631762] Pid: 528, comm: udevd 
+> Not tainted 3.4.6-2.fc17.x86_64 #1 System manufacturer System Product 
+> Name/M5A78L-M/USB3
+> Aug  2 23:46:19 localhost kernel: [  211.631981] RIP: 
+> 0010:[<ffffffffa03ac116>]  [<ffffffffa03ac116>] 
+> lme_firmware_switch+0x526/0x800 [dvb_usb_lmedm04]
+> Aug  2 23:46:19 localhost kernel: [  211.632183] RSP: 
+> 0018:ffff88030b097ae8  EFLAGS: 00010286
+> Aug  2 23:46:19 localhost kernel: [  211.632282] RAX: 0000000000000000 
+> RBX: 0000000000000000 RCX: 0000000000000000
+> Aug  2 23:46:19 localhost kernel: [  211.632414] RDX: 0000000000000008 
+> RSI: 0000000000000046 RDI: 0000000000000246
+> Aug  2 23:46:19 localhost kernel: [  211.632552] RBP: ffff88030b097c28 
+> R08: 000000000000000a R09: 0000000000000000
+> Aug  2 23:46:19 localhost kernel: [  211.632702] R10: 0000000000000000 
+> R11: ffff8802f8255c02 R12: 0000000000000000
+> Aug  2 23:46:19 localhost kernel: [  211.632833] R13: ffff8802f8255c00 
+> R14: ffff8802f8255c02 R15: 00000000ffffffff
+> Aug  2 23:46:19 localhost kernel: [  211.632967] FS: 
+> 00007f023fe01840(0000) GS:ffff88031fcc0000(0000) knlGS:0000000000000000
+> Aug  2 23:46:19 localhost kernel: [  211.633115] CS:  0010 DS: 0000 ES: 
+> 0000 CR0: 000000008005003b
+> Aug  2 23:46:19 localhost kernel: [  211.633222] CR2: 0000000000000008 
+> CR3: 000000030b092000 CR4: 00000000000007e0
+> Aug  2 23:46:19 localhost kernel: [  211.633353] DR0: 0000000000000000 
+> DR1: 0000000000000000 DR2: 0000000000000000
+> Aug  2 23:46:19 localhost kernel: [  211.633484] DR3: 0000000000000000 
+> DR6: 00000000ffff0ff0 DR7: 0000000000000400
+> Aug  2 23:46:19 localhost kernel: [  211.633616] Process udevd (pid: 
+> 528, threadinfo ffff88030b096000, task ffff88030b072e20)
+> Aug  2 23:46:19 localhost kernel: [  211.633763] Stack:
+> Aug  2 23:46:19 localhost kernel: [  211.633803]  0000000000000000 
+> ffffffff81e69c63 ffffffff81e69c87 ffff88030b097b6d
+> Aug  2 23:46:19 localhost kernel: [  211.633960]  ffff88030b097b6d 
+> 0000000000000003 ffff88030b097bd5 0000000000000000
+> Aug  2 23:46:19 localhost kernel: [  211.634115]  0000020000000000 
+> 0000000000000008 0200018100000000 ffff88030c228000
+> Aug  2 23:46:19 localhost kernel: [  211.634269] Call Trace:
+> Aug  2 23:46:19 localhost kernel: [  211.634327]  [<ffffffffa03ad843>] 
+> lme2510_probe+0x173/0x1c8 [dvb_usb_lmedm04]
+> Aug  2 23:46:19 localhost kernel: [  211.634466]  [<ffffffff8141e987>] 
+> usb_probe_interface+0x107/0x240
+> Aug  2 23:46:19 localhost kernel: [  211.634584]  [<ffffffff811f1fe3>] ? 
+> sysfs_create_link+0x13/0x20
+> Aug  2 23:46:19 localhost kernel: [  211.634698]  [<ffffffff813a3f32>] 
+> driver_probe_device+0x92/0x390
+> Aug  2 23:46:19 localhost kernel: [  211.634811]  [<ffffffff813a42db>] 
+> __driver_attach+0xab/0xb0
+> Aug  2 23:46:19 localhost kernel: [  211.634919]  [<ffffffff813a4230>] ? 
+> driver_probe_device+0x390/0x390
+> Aug  2 23:46:19 localhost kernel: [  211.635039]  [<ffffffff813a1fb5>] 
+> bus_for_each_dev+0x55/0x90
+> Aug  2 23:46:19 localhost kernel: [  211.635146]  [<ffffffff813a37ce>] 
+> driver_attach+0x1e/0x20
+> Aug  2 23:46:19 localhost kernel: [  211.635249]  [<ffffffff813a34d8>] 
+> bus_add_driver+0x1a8/0x2a0
+> Aug  2 23:46:19 localhost kernel: [  211.635357]  [<ffffffff813a49a7>] 
+> driver_register+0x77/0x150
+> Aug  2 23:46:19 localhost kernel: [  211.635466]  [<ffffffff8141d46d>] 
+> usb_register_driver+0x8d/0x160
+> Aug  2 23:46:19 localhost kernel: [  211.635586]  [<ffffffffa03b4000>] ? 
+> 0xffffffffa03b3fff
+> Aug  2 23:46:19 localhost kernel: [  211.635689]  [<ffffffffa03b401e>] 
+> lme2510_driver_init+0x1e/0x1000 [dvb_usb_lmedm04]
+> Aug  2 23:46:19 localhost kernel: [  211.635835]  [<ffffffff8100212a>] 
+> do_one_initcall+0x12a/0x180
+> Aug  2 23:46:19 localhost kernel: [  211.635946]  [<ffffffff810b6d36>] 
+> sys_init_module+0x10f6/0x20c0
+> Aug  2 23:46:19 localhost kernel: [  211.636062]  [<ffffffff815fcce9>] 
+> system_call_fastpath+0x16/0x1b
+> Aug  2 23:46:19 localhost kernel: [  211.636174] Code: 15 ff ff ff 83 ea 
+> 01 41 89 d4 41 29 dc 45 89 e7 41 89 dc 83 c8 80 88 85 14 ff ff ff 48 8b 
+> 95 08 ff ff ff 41 0f b7 cc 41 0f b7 c4 <48> 03 0a 8b 95 04 ff ff ff 29 
+> c2 83 fa 31 0f 8e b6 01 00 00 0f
+> Aug  2 23:46:19 localhost kernel: [  211.636858] RIP 
+> [<ffffffffa03ac116>] lme_firmware_switch+0x526/0x800 [dvb_usb_lmedm04]
+> Aug  2 23:46:19 localhost kernel: [  211.637021]  RSP <ffff88030b097ae8>
+> Aug  2 23:46:19 localhost kernel: [  211.637089] CR2: 0000000000000008
+> Aug  2 23:46:19 localhost kernel: [  211.678968] ---[ end trace 
+> 043f228f268ca25f ]---
+> Aug  2 23:46:19 localhost udevd[429]: worker [528] terminated by signal 
+> 9 (Killed)
+> Aug  2 23:46:19 localhost udevd[429]: worker [528] failed while handling 
+> '/devices/pci0000:00/0000:00:12.2/usb1/1-2/1-2.2/1-2.2:1.0'
+> Aug  2 23:46:20 localhost sh[674]: abrt-dump-oops: Found oopses: 1
+> Aug  2 23:46:20 localhost sh[674]: abrt-dump-oops: Creating dump directories
+> Aug  2 23:46:20 localhost abrtd: Directory 
+> 'oops-2012-08-02-23:46:20-1452-0' creation detected
+> Aug  2 23:46:20 localhost abrt-dump-oops: Reported 1 kernel oopses to Abrt
+> Aug  2 23:46:20 localhost abrtd: Can't open file 
+> '/var/spool/abrt/oops-2012-08-02-23:46:20-1452-0/uid': No such file or 
+> directory
+> Aug  2 23:46:20 localhost abrtd: Duplicate: UUID
+> Aug  2 23:46:20 localhost abrtd: DUP_OF_DIR: 
+> /var/spool/abrt/oops-2012-06-06-05:16:05-594-0
+> Aug  2 23:46:20 localhost abrtd: Problem directory is a duplicate of 
+> /var/spool/abrt/oops-2012-06-06-05:16:05-594-0
+> Aug  2 23:46:20 localhost abrtd: Deleting problem directory 
+> oops-2012-08-02-23:46:20-1452-0 (dup of oops-2012-06-06-05:16:05-594-0)
+> Aug  2 23:46:20 localhost abrtd: Can't open file 
+> '/var/spool/abrt/oops-2012-06-06-05:16:05-594-0/uid': No such file or 
+> directory
 > 
+> 
+> 
+> regards
+> Antti
+> 
+
 
