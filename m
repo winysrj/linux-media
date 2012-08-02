@@ -1,38 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:50204 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750971Ab2H0Sbt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Aug 2012 14:31:49 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1T646F-0006jX-Nx
-	for linux-media@vger.kernel.org; Mon, 27 Aug 2012 20:31:48 +0200
-Received: from CPEbcc810001412-CMbcc81000140f.cpe.net.cable.rogers.com ([99.235.166.16])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 27 Aug 2012 20:31:47 +0200
-Received: from sambul7165 by CPEbcc810001412-CMbcc81000140f.cpe.net.cable.rogers.com with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 27 Aug 2012 20:31:47 +0200
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:49705 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750698Ab2HBMtA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2012 08:49:00 -0400
+Received: by eeil10 with SMTP id l10so2367052eei.19
+        for <linux-media@vger.kernel.org>; Thu, 02 Aug 2012 05:48:59 -0700 (PDT)
+Message-ID: <1343911731.4113.5.camel@edge>
+Subject: s5p-fimc capturing interlaced BT656
+From: Mike Dyer <mike.dyer@md-soft.co.uk>
 To: linux-media@vger.kernel.org
-From: Sam Bulka <sambul7165@gmail.com>
-Subject: Re: [Bug] =?utf-8?b?Z3NwY2FfemMzeHg=?= v.2.14.0 Auto Gain is OFF
-Date: Mon, 27 Aug 2012 18:31:33 +0000 (UTC)
-Message-ID: <loom.20120827T202542-412@post.gmane.org>
-References: <op.wjndk6b6w3grbt@weboffice> <op.wjney4rpw3grbt@weboffice>
+Date: Thu, 02 Aug 2012 13:48:51 +0100
+Content-Type: text/plain; charset="UTF-8"
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Just wanted to add, in previous driver version 2.13.0 Auto Gain was 
-switchable ON / OFF, but when switched ON, was activated all the time regardless 
-of lighting conditions, resulting in overexposed images during a day light with 
-only silhouettes visible. But in current version its impossible to switch Auto 
-Gain 
-ON, or its default settings are wrong so it just doesn't work at all.
+Hi All,
 
-There are long term and current driver maintainers frequent here, pls fix the 
-issue. :)
+I'm using the S5PV210 camera IF and capturing BT656 video from a TVP5150
+video decoder.
+
+I notice that the capture driver ignores the field interlace flags
+reported by the 'sensor' and always uses 'V4L2_FIELD_NONE'.  It also
+seems each field ends up in it's own frame, using only half the height.
+
+What would need to be done to store both fields in a single frame, for
+example in a V4L2_FIELD_INTERLACE_TB/BT format? 
+
+Cheers,
+Mike
 
