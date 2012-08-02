@@ -1,161 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:15693 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755175Ab2HJWMs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Aug 2012 18:12:48 -0400
-Message-ID: <50258758.8050902@redhat.com>
-Date: Fri, 10 Aug 2012 19:12:40 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:32772 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752296Ab2HBIAi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2012 04:00:38 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id q7280aJe032732
+	for <linux-media@vger.kernel.org>; Thu, 2 Aug 2012 03:00:37 -0500
+From: Prabhakar Lad <prabhakar.lad@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: [PATCH v8 0/2] add dm365 specific media formats
+Date: Thu, 2 Aug 2012 13:30:08 +0530
+Message-ID: <1343894410-16829-1-git-send-email-prabhakar.lad@ti.com>
 MIME-Version: 1.0
-To: CrazyCat <crazycat69@yandex.ru>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Manu Abraham <manu@linuxtv.org>
-Subject: Re: [PATCH] DVB-S2 multistream support
-References: <59951342221302@web18g.yandex.ru>
-In-Reply-To: <59951342221302@web18g.yandex.ru>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 13-07-2012 20:15, CrazyCat escreveu:
-> Now present DTV_DVBT2_PLP_ID property for DVB-T2, so i add alias DTV_DVBS2_MIS_ID (same feature for advanced DVB-S2). Now DVB-S2 multistream filtration supported for current STV090x demod cut 3.0, so i implement support for stv090x demod driver. Additional fe-caps FE_CAN_MULTISTREAM also added.
-> 
-> 
-> frontend-mis.patch
+add mediabus formats and pixel formats supported
+as part of dm365 vpfe device.
+The device supports media formats(transfer and storage)
+which include-
+1: ALAW compressed bayer.
+2: UV interleaved without Y (for resizer).
+3: YDYU
 
-Please provide your Signed-off-by: (with your real name).
+Changes for v8:
+1: Fixed a comment from Sakari, removed extra space.
 
-> 
-> 
-> diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
-> index f50d405..f625f8d 100644
-> --- a/include/linux/dvb/frontend.h
-> +++ b/include/linux/dvb/frontend.h
-> @@ -62,6 +62,7 @@ typedef enum fe_caps {
->  	FE_CAN_8VSB			= 0x200000,
->  	FE_CAN_16VSB			= 0x400000,
->  	FE_HAS_EXTENDED_CAPS		= 0x800000,   /* We need more bitspace for newer APIs, indicate this. */
-> +	FE_CAN_MULTISTREAM		= 0x4000000,  /* frontend supports DVB-S2 multistream filtering */
+Changes for v7:
+1: Fixed a comment from Laurent, removed subscript for
+   dummy tags.
+2: Fixed a comment from Sakari, used the same order for
+   ALAW pix fmt according to Documentation/video4linux/4CCs.txt.
 
-Not sure if this is really needed. Are there any DVB-S2 frontends that
-don't support MIS, or they don't implement it just because this weren't
-defined yet? In the latter case, it would be better to not adding an
-special flag for it.
+Changes for v6:
+1: Fixed a comment from Hans, replaced "YUYDYDYV and YVYDYDYU"
+   to "YUYDYVYD and YVYDYUYD".
 
->  	FE_CAN_TURBO_FEC		= 0x8000000,  /* frontend supports "turbo fec modulation" */
->  	FE_CAN_2G_MODULATION		= 0x10000000, /* frontend supports "2nd generation modulation" (DVB-S2) */
->  	FE_NEEDS_BENDING		= 0x20000000, /* not supported anymore, don't use (frontend requires frequency bending) */
-> @@ -317,6 +318,7 @@ struct dvb_frontend_event {
->  #define DTV_ISDBS_TS_ID		42
->  
->  #define DTV_DVBT2_PLP_ID	43
-> +#define DTV_DVBS2_MIS_ID	43
+Changes for v5:
+1: Fixed comment from Laurent, moved ALAW format above DPCM
+   format to keep the alphabetically sorted, grouped textual
+   description for ALAW and DPCM compression, as they're mutally
+   exclusive, Changed V4L2_MBUS_FMT_YDYC8_1X16 to
+   V4L2_MBUS_FMT_YDYUYDYV8_1X16.
 
-It would be better to define it as:
+Changes for v4:
+1: Rebased the patch set on Sakari's branch
+(http://git.linuxtv.org/sailus/media_tree.git/shortlog/refs/heads/media-for-3.4)
+   mainly because of this patch
+   <URL:http://www.spinics.net/lists/linux-media/msg44871.html>
+2: Fixed comments from Sakari, changed description for
+   UV8, and re-arranged &sub-uv8; in
+   Documentation/DocBook/media/v4l/pixfmt.xml file.
 
-#define DTV_DVBS2_MIS_ID	DTV_DVBT2_PLP_ID
+Changes for v3:
+1: Added 4cc code for A-law compressed format as per
+  specified in documentation,
+  http://www.spinics.net/lists/linux-media/msg43890.html
 
-Even better, we should instead find a better name that would cover both
-DVB-T2 and DVB-S2 program ID fields, like:
+Changes for v2:
+1: Added entries in subdev-formats.xml for
+ V4L2_MBUS_FMT_YDYC8_1X16, V4L2_MBUS_FMT_UV8_1X8,
+ V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8,
+ V4L2_MBUS_FMT_SGBRG10_ALAW8_1X8,
+ V4L2_MBUS_FMT_SGRBG10_ALAW8_1X8,
+ V4L2_MBUS_FMT_SRGGB10_ALAW8_1X8.
+2: Added documentation of ALAW and UV8 pix format.
 
-#define DTV_DVB_MULT		43
-#define DTV_DVBT2_PLP_ID	DTV_DVB_MULT
+Manjunath Hadli (2):
+  media: add new mediabus format enums for dm365
+  v4l2: add new pixel formats supported on dm365
 
-And use the new symbol for both DVB-S2 and DVB-T2, deprecating the
-legacy symbol.
+ .../DocBook/media/v4l/pixfmt-srggb10alaw8.xml      |   34 +++
+ Documentation/DocBook/media/v4l/pixfmt-uv8.xml     |   62 +++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |    2 +
+ Documentation/DocBook/media/v4l/subdev-formats.xml |  250 +++++++++++++++++++-
+ include/linux/v4l2-mediabus.h                      |   10 +-
+ include/linux/videodev2.h                          |    8 +
+ 6 files changed, 358 insertions(+), 8 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-uv8.xml
 
-Also, DocBook needs to be changed to reflect this change.
-
->  
->  #define DTV_ENUM_DELSYS		44
->  
-> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-> index aebcdf2..83e51f9 100644
-> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-> @@ -947,7 +947,7 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
->  	}
->  
->  	c->isdbs_ts_id = 0;
-> -	c->dvbt2_plp_id = 0;
-> +	c->dvbt2_plp_id = -1;
->  
->  	switch (c->delivery_system) {
->  	case SYS_DVBS:
-> diff --git a/drivers/media/dvb/frontends/stv090x.c b/drivers/media/dvb/frontends/stv090x.c
-> index ea86a56..eb6f1cf 100644
-> --- a/drivers/media/dvb/frontends/stv090x.c
-> +++ b/drivers/media/dvb/frontends/stv090x.c
-> @@ -3425,6 +3425,33 @@ err:
->  	return -1;
->  }
->  
-> +static int stv090x_set_mis(struct stv090x_state *state, int mis)
-> +{
-> +	u32 reg;
-> +
-> +	if (mis<0 || mis>255) {
-
-You should be checking your patch using scripts/checkpatch.pl.
-Due to Documentation/CodingStyle, the above should be written, instead, as:
-	if (mis < 0 || mis > 255) {
-
-
-> +		dprintk(FE_DEBUG, 1, "Disable MIS filtering");
-> +		reg = STV090x_READ_DEMOD(state, PDELCTRL1);
-> +		STV090x_SETFIELD_Px(reg, FILTER_EN_FIELD, 0x00);
-> +		if (STV090x_WRITE_DEMOD(state, PDELCTRL1, reg) < 0)
-> +			goto err;
-> +	} else {
-> +		dprintk(FE_DEBUG, 1, "Enable MIS filtering - %d", mis);
-> +		reg = STV090x_READ_DEMOD(state, PDELCTRL1);
-> +		STV090x_SETFIELD_Px(reg, FILTER_EN_FIELD, 0x01);
-> +		if (STV090x_WRITE_DEMOD(state, PDELCTRL1, reg) < 0)
-> +			goto err;
-> +		if (STV090x_WRITE_DEMOD(state, ISIENTRY, mis) < 0)
-> +			goto err;
-> +		if (STV090x_WRITE_DEMOD(state, ISIBITENA, 0xff) < 0)
-> +			goto err;
-> +	}
-> +	return 0;
-> +err:
-> +	dprintk(FE_ERROR, 1, "I/O error");
-> +	return -1;
-> +}
-> +
->  static enum dvbfe_search stv090x_search(struct dvb_frontend *fe)
->  {
->  	struct stv090x_state *state = fe->demodulator_priv;
-> @@ -3433,6 +3460,8 @@ static enum dvbfe_search stv090x_search(struct dvb_frontend *fe)
->  	if (props->frequency == 0)
->  		return DVBFE_ALGO_SEARCH_INVALID;
->  
-> +	stv090x_set_mis(state,props->dvbt2_plp_id);
-> +
->  	state->delsys = props->delivery_system;
->  	state->frequency = props->frequency;
->  	state->srate = props->symbol_rate;
-> @@ -3447,6 +3476,8 @@ static enum dvbfe_search stv090x_search(struct dvb_frontend *fe)
->  		state->search_range = 5000000;
->  	}
->  
-> +	stv090x_set_mis(state,props->dvbt2_plp_id);
-> +
->  	if (stv090x_algo(state) == STV090x_RANGEOK) {
->  		dprintk(FE_DEBUG, 1, "Search success!");
->  		return DVBFE_ALGO_SEARCH_SUCCESS;
-> @@ -4798,6 +4829,9 @@ struct dvb_frontend *stv090x_attach(const struct stv090x_config *config,
->  		}
->  	}
->  
-> +	if (state->internal->dev_ver>=0x30)
-> +	    state->frontend.ops.info.caps |= FE_CAN_MULTISTREAM;
-> +
->  	/* workaround for stuck DiSEqC output */
->  	if (config->diseqc_envelope_mode)
->  		stv090x_send_diseqc_burst(&state->frontend, SEC_MINI_A);
-> 
-
-Regards,
-Mauro
