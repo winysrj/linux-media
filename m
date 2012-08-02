@@ -1,337 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3476 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753110Ab2HVLYQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Aug 2012 07:24:16 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCHv8 17/26] Documentation: media: description of DMABUF exporting in V4L2
-Date: Wed, 22 Aug 2012 13:23:52 +0200
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
-	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
-	robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
-	subashrp@gmail.com, mchehab@redhat.com, g.liakhovetski@gmx.de,
-	dmitriyz@google.com, s.nawrocki@samsung.com, k.debski@samsung.com,
-	linux-doc@vger.kernel.org
-References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com> <1344958496-9373-18-git-send-email-t.stanislaws@samsung.com>
-In-Reply-To: <1344958496-9373-18-git-send-email-t.stanislaws@samsung.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50429 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751303Ab2HBIB0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Aug 2012 04:01:26 -0400
+From: Prabhakar Lad <prabhakar.lad@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v8 2/2] v4l2: add new pixel formats supported on dm365
+Date: Thu, 2 Aug 2012 13:30:10 +0530
+Message-ID: <1343894410-16829-3-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1343894410-16829-1-git-send-email-prabhakar.lad@ti.com>
+References: <1343894410-16829-1-git-send-email-prabhakar.lad@ti.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201208221323.52405.hverkuil@xs4all.nl>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue August 14 2012 17:34:47 Tomasz Stanislawski wrote:
-> This patch adds description and usage examples for exporting
-> DMABUF file descriptor in V4L2.
-> 
-> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> CC: linux-doc@vger.kernel.org
-> ---
->  Documentation/DocBook/media/v4l/compat.xml        |    3 +
->  Documentation/DocBook/media/v4l/io.xml            |    3 +
->  Documentation/DocBook/media/v4l/v4l2.xml          |    1 +
->  Documentation/DocBook/media/v4l/vidioc-expbuf.xml |  223 +++++++++++++++++++++
->  4 files changed, 230 insertions(+)
->  create mode 100644 Documentation/DocBook/media/v4l/vidioc-expbuf.xml
-> 
-> diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-> index ff45330..802c1ab 100644
-> --- a/Documentation/DocBook/media/v4l/compat.xml
-> +++ b/Documentation/DocBook/media/v4l/compat.xml
-> @@ -2609,6 +2609,9 @@ ioctls.</para>
->  	  <para>Importing DMABUF file descriptors as a new IO method described
->  	  in <xref linkend="dmabuf" />.</para>
->          </listitem>
-> +        <listitem>
-> +	  <para>Exporting DMABUF files using &VIDIOC-EXPBUF; ioctl.</para>
-> +        </listitem>
->        </itemizedlist>
->      </section>
->  
-> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-> index 98253ee..c27e59b 100644
-> --- a/Documentation/DocBook/media/v4l/io.xml
-> +++ b/Documentation/DocBook/media/v4l/io.xml
-> @@ -488,6 +488,9 @@ buffer from userspace using a file descriptor previously exported for a
->  different or the same device (known as the importer role), or both. This
->  section describes the DMABUF importer role API in V4L2.</para>
->  
-> +    <para>Refer to <link linked="vidioc-expbuf"> DMABUF exporting </link> for
-> +details about exporting a V4L2 buffers as DMABUF file descriptors.</para>
-> +
->  <para>Input and output devices support the streaming I/O method when the
->  <constant>V4L2_CAP_STREAMING</constant> flag in the
->  <structfield>capabilities</structfield> field of &v4l2-capability; returned by
-> diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-> index 0292ed1..874c085 100644
-> --- a/Documentation/DocBook/media/v4l/v4l2.xml
-> +++ b/Documentation/DocBook/media/v4l/v4l2.xml
-> @@ -568,6 +568,7 @@ and discussions on the V4L mailing list.</revremark>
->      &sub-overlay;
->      &sub-prepare-buf;
->      &sub-qbuf;
-> +    &sub-expbuf;
+From: Manjunath Hadli <manjunath.hadli@ti.com>
 
-This list is sorted alphabetically, so sub-expbuf should go after sub-enumstd.
+add new macro V4L2_PIX_FMT_SGRBG10ALAW8 and associated formats
+to represent Bayer format frames compressed by A-LAW algorithm,
+add V4L2_PIX_FMT_UV8 to represent storage of CbCr data (UV interleaved)
+only.
 
->      &sub-querybuf;
->      &sub-querycap;
->      &sub-queryctrl;
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-expbuf.xml b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
-> new file mode 100644
-> index 0000000..30ebf67
-> --- /dev/null
-> +++ b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
-> @@ -0,0 +1,223 @@
-> +<refentry id="vidioc-expbuf">
-> +
-> +  <refmeta>
-> +    <refentrytitle>ioctl VIDIOC_EXPBUF</refentrytitle>
-> +    &manvol;
-> +  </refmeta>
-> +
-> +  <refnamediv>
-> +    <refname>VIDIOC_EXPBUF</refname>
-> +    <refpurpose>Export a buffer as a DMABUF file descriptor.</refpurpose>
-> +  </refnamediv>
-> +
-> +  <refsynopsisdiv>
-> +    <funcsynopsis>
-> +      <funcprototype>
-> +	<funcdef>int <function>ioctl</function></funcdef>
-> +	<paramdef>int <parameter>fd</parameter></paramdef>
-> +	<paramdef>int <parameter>request</parameter></paramdef>
-> +	<paramdef>struct v4l2_exportbuffer *<parameter>argp</parameter></paramdef>
-> +      </funcprototype>
-> +    </funcsynopsis>
-> +  </refsynopsisdiv>
-> +
-> +  <refsect1>
-> +    <title>Arguments</title>
-> +
-> +    <variablelist>
-> +      <varlistentry>
-> +	<term><parameter>fd</parameter></term>
-> +	<listitem>
-> +	  <para>&fd;</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><parameter>request</parameter></term>
-> +	<listitem>
-> +	  <para>VIDIOC_EXPBUF</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><parameter>argp</parameter></term>
-> +	<listitem>
-> +	  <para></para>
-> +	</listitem>
-> +      </varlistentry>
-> +    </variablelist>
-> +  </refsect1>
-> +
-> +  <refsect1>
-> +    <title>Description</title>
-> +
-> +    <note>
-> +      <title>Experimental</title>
-> +      <para>This is an <link linkend="experimental"> experimental </link>
-> +      interface and may change in the future.</para>
-> +    </note>
-> +
-> +<para>This ioctl is an extension to the <link linkend="mmap">memory
-> +mapping</link> I/O method therefore it is available only for
-> +<constant>V4L2_MEMORY_MMAP</constant> buffers.  It can be used to export a
-> +buffer as DMABUF file at any time after buffers have been allocated with the
-> +&VIDIOC-REQBUFS; ioctl.</para>
-> +
-> +<para>Prior to exporting an application calls <link
-> +linkend="vidioc-querybuf">VIDIOC_QUERYBUF</link> to obtain memory offsets. When
-> +using the <link linkend="planar-apis">multi-planar API</link> every plane has
-> +own offset.</para>
-> +
-> +<para>To export a buffer, the application fills &v4l2-exportbuffer;.  The
-> +<structfield> mem_offset </structfield> field is set to the offset obtained
-> +from <constant> VIDIOC_QUERYBUF </constant>.  Additional flags may be posted in
-> +the <structfield> flags </structfield> field.  Refer to manual for open syscall
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ .../DocBook/media/v4l/pixfmt-srggb10alaw8.xml      |   34 +++++++++++
+ Documentation/DocBook/media/v4l/pixfmt-uv8.xml     |   62 ++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |    2 +
+ include/linux/videodev2.h                          |    8 +++
+ 4 files changed, 106 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-uv8.xml
 
-Better IMHO: 'Refer to the manual for open()'
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
+new file mode 100644
+index 0000000..c934192
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
+@@ -0,0 +1,34 @@
++	<refentry>
++	  <refmeta>
++	    <refentrytitle>
++	      V4L2_PIX_FMT_SBGGR10ALAW8 ('aBA8'),
++	      V4L2_PIX_FMT_SGBRG10ALAW8 ('aGA8'),
++	      V4L2_PIX_FMT_SGRBG10ALAW8 ('agA8'),
++	      V4L2_PIX_FMT_SRGGB10ALAW8 ('aRA8'),
++	    </refentrytitle>
++	    &manvol;
++	  </refmeta>
++	  <refnamediv>
++	    <refname id="V4L2-PIX-FMT-SBGGR10ALAW8">
++	      <constant>V4L2_PIX_FMT_SBGGR10ALAW8</constant>
++	    </refname>
++	    <refname id="V4L2-PIX-FMT-SGBRG10ALAW8">
++	      <constant>V4L2_PIX_FMT_SGBRG10ALAW8</constant>
++	    </refname>
++	    <refname id="V4L2-PIX-FMT-SGRBG10ALAW8">
++	      <constant>V4L2_PIX_FMT_SGRBG10ALAW8</constant>
++	    </refname>
++	    <refname id="V4L2-PIX-FMT-SRGGB10ALAW8">
++	      <constant>V4L2_PIX_FMT_SRGGB10ALAW8</constant>
++	    </refname>
++	    <refpurpose>10-bit Bayer formats compressed to 8 bits</refpurpose>
++	  </refnamediv>
++	  <refsect1>
++	    <title>Description</title>
++	    <para>The following four pixel formats are raw sRGB / Bayer
++	    formats with 10 bits per color compressed to 8 bits each,
++	    using the A-LAW algorithm. Each color component consumes 8
++	    bits of memory. In other respects this format is similar to
++	    <xref linkend="V4L2-PIX-FMT-SRGGB8">.</xref></para>
++	  </refsect1>
++	</refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-uv8.xml b/Documentation/DocBook/media/v4l/pixfmt-uv8.xml
+new file mode 100644
+index 0000000..c507c1f
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-uv8.xml
+@@ -0,0 +1,62 @@
++	<refentry id="V4L2-PIX-FMT-UV8">
++	  <refmeta>
++	    <refentrytitle>V4L2_PIX_FMT_UV8  ('UV8')</refentrytitle>
++	    &manvol;
++	  </refmeta>
++	  <refnamediv>
++	    <refname><constant>V4L2_PIX_FMT_UV8</constant></refname>
++	    <refpurpose>UV plane interleaved</refpurpose>
++	  </refnamediv>
++	  <refsect1>
++	    <title>Description</title>
++	    <para>In this format there is no Y plane, Only CbCr plane. ie
++	    (UV interleaved)</para>
++	    <example>
++	    <title>
++	      <constant>V4L2_PIX_FMT_UV8</constant>
++	       pixel image
++	    </title>
++
++	    <formalpara>
++	      <title>Byte Order.</title>
++	      <para>Each cell is one byte.
++	        <informaltable frame="none">
++	        <tgroup cols="5" align="center">
++		  <colspec align="left" colwidth="2*" />
++		  <tbody valign="top">
++		    <row>
++		      <entry>start&nbsp;+&nbsp;0:</entry>
++		      <entry>Cb<subscript>00</subscript></entry>
++		      <entry>Cr<subscript>00</subscript></entry>
++		      <entry>Cb<subscript>01</subscript></entry>
++		      <entry>Cr<subscript>01</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;4:</entry>
++		      <entry>Cb<subscript>10</subscript></entry>
++		      <entry>Cr<subscript>10</subscript></entry>
++		      <entry>Cb<subscript>11</subscript></entry>
++		      <entry>Cr<subscript>11</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;8:</entry>
++		      <entry>Cb<subscript>20</subscript></entry>
++		      <entry>Cr<subscript>20</subscript></entry>
++		      <entry>Cb<subscript>21</subscript></entry>
++		      <entry>Cr<subscript>21</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;12:</entry>
++		      <entry>Cb<subscript>30</subscript></entry>
++		      <entry>Cr<subscript>30</subscript></entry>
++		      <entry>Cb<subscript>31</subscript></entry>
++		      <entry>Cr<subscript>31</subscript></entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	      </formalpara>
++	    </example>
++	  </refsect1>
++	</refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index e58934c..930f55d 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -673,6 +673,7 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
+     &sub-srggb8;
+     &sub-sbggr16;
+     &sub-srggb10;
++    &sub-srggb10alaw8;
+     &sub-srggb10dpcm8;
+     &sub-srggb12;
+   </section>
+@@ -701,6 +702,7 @@ information.</para>
+     &sub-y12;
+     &sub-y10b;
+     &sub-y16;
++    &sub-uv8;
+     &sub-yuyv;
+     &sub-uyvy;
+     &sub-yvyu;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 5d78910..ccee71e 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -329,6 +329,9 @@ struct v4l2_pix_format {
+ /* Palette formats */
+ #define V4L2_PIX_FMT_PAL8    v4l2_fourcc('P', 'A', 'L', '8') /*  8  8-bit palette */
+ 
++/* Chrominance formats */
++#define V4L2_PIX_FMT_UV8     v4l2_fourcc('U', 'V', '8', ' ') /*  8  UV 4:4 */
++
+ /* Luminance+Chrominance formats */
+ #define V4L2_PIX_FMT_YVU410  v4l2_fourcc('Y', 'V', 'U', '9') /*  9  YVU 4:1:0     */
+ #define V4L2_PIX_FMT_YVU420  v4l2_fourcc('Y', 'V', '1', '2') /* 12  YVU 4:2:0     */
+@@ -378,6 +381,11 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_SGBRG12 v4l2_fourcc('G', 'B', '1', '2') /* 12  GBGB.. RGRG.. */
+ #define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
+ #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
++	/* 10bit raw bayer a-law compressed to 8 bits */
++#define V4L2_PIX_FMT_SBGGR10ALAW8 v4l2_fourcc('a', 'B', 'A', '8')
++#define V4L2_PIX_FMT_SGBRG10ALAW8 v4l2_fourcc('a', 'G', 'A', '8')
++#define V4L2_PIX_FMT_SGRBG10ALAW8 v4l2_fourcc('a', 'g', 'A', '8')
++#define V4L2_PIX_FMT_SRGGB10ALAW8 v4l2_fourcc('a', 'R', 'A', '8')
+ 	/* 10bit raw bayer DPCM compressed to 8 bits */
+ #define V4L2_PIX_FMT_SBGGR10DPCM8 v4l2_fourcc('b', 'B', 'A', '8')
+ #define V4L2_PIX_FMT_SGBRG10DPCM8 v4l2_fourcc('b', 'G', 'A', '8')
+-- 
+1.7.0.4
 
-> +for details. Currently only O_CLOEXEC is guaranteed to be supported.  All other
-> +fields must be set to zero.  In a case of multi-planar API, every plane is
-> +exported separately using multiple <constant> VIDIOC_EXPBUF </constant>
-> +calls.</para>
-> +
-> +<para> After calling <constant>VIDIOC_EXPBUF</constant> the <structfield> fd
-> +</structfield> field will be set by a driver.  This is a DMABUF file
-> +descriptor. The application may pass it to other API. Refer to <link
-> +linkend="dmabuf">DMABUF importing</link> for details about importing DMABUF
-> +files into V4L2 nodes. A developer is encouraged to close a DMABUF file when it
-> +is no longer used.  </para>
-
-Some explanation of why this is recommended would be useful.
-
-> +
-> +  </refsect1>
-> +  <refsect1>
-> +   <section>
-> +      <title>Examples</title>
-> +
-> +      <example>
-> +	<title>Exporting a buffer.</title>
-> +	<programlisting>
-> +int buffer_export(int v4lfd, &v4l2-buf-type; bt, int index, int *dmafd)
-> +{
-> +	&v4l2-buffer; buf;
-> +	&v4l2-exportbuffer; expbuf;
-> +
-> +	memset(&amp;buf, 0, sizeof buf);
-> +	buf.type = bt;
-> +	buf.memory = V4L2_MEMORY_MMAP;
-> +	buf.index = index;
-> +
-> +	if (ioctl (v4lfd, &VIDIOC-QUERYBUF;, &amp;buf) == -1) {
-> +		perror ("VIDIOC_QUERYBUF");
-> +		return -1;
-> +	}
-> +
-> +	memset(&amp;expbuf, 0, sizeof expbuf);
-> +	expbuf.mem_offset = buf.m.offset;
-> +	if (ioctl (v4lfd, &VIDIOC-EXPBUF;, &amp;expbuf) == -1) {
-> +		perror ("VIDIOC_EXPBUF");
-> +		return -1;
-> +	}
-
-Same as in the review of the previous documentation patch: use the kernel
-coding style in these examples, so no space before '('.
-
-> +
-> +	*dmafd = expbuf.fd;
-> +
-> +	return 0;
-> +}
-> +        </programlisting>
-> +      </example>
-> +
-> +      <example>
-> +	<title>Exporting a buffer using multi plane API.</title>
-> +	<programlisting>
-> +int buffer_export_mp(int v4lfd, &v4l2-buf-type; bt, int index,
-> +	int dmafd[], int n_planes)
-> +{
-> +	&v4l2-buffer; buf;
-> +	&v4l2-plane; planes[VIDEO_MAX_PLANES];
-> +	int i;
-> +
-> +	memset(&amp;buf, 0, sizeof buf);
-> +	buf.type = bt;
-> +	buf.memory = V4L2_MEMORY_MMAP;
-> +	buf.index = index;
-> +	buf.m.planes = planes;
-> +	buf.length = n_planes;
-> +	memset(&amp;planes, 0, sizeof planes);
-> +
-> +	if (ioctl (v4lfd, &VIDIOC-QUERYBUF;, &amp;buf) == -1) {
-> +		perror ("VIDIOC_QUERYBUF");
-> +		return -1;
-> +	}
-> +
-> +	for (i = 0; i &lt; n_planes; ++i) {
-> +		&v4l2-exportbuffer; expbuf;
-> +
-> +		memset(&amp;expbuf, 0, sizeof expbuf);
-> +		expbuf.mem_offset = plane[i].m.offset;
-> +		if (ioctl (v4lfd, &VIDIOC-EXPBUF;, &amp;expbuf) == -1) {
-> +			perror ("VIDIOC_EXPBUF");
-> +			while (i)
-> +				close(dmafd[--i]);
-> +			return -1;
-> +		}
-> +		dmafd[i] = expbuf.fd;
-> +	}
-> +
-> +	return 0;
-> +}
-> +        </programlisting>
-> +      </example>
-> +   </section>
-> +  </refsect1>
-> +
-> +  <refsect1>
-> +    <table pgwide="1" frame="none" id="v4l2-exportbuffer">
-> +      <title>struct <structname>v4l2_exportbuffer</structname></title>
-> +      <tgroup cols="3">
-> +	&cs-str;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>fd</structfield></entry>
-> +	    <entry>The DMABUF file descriptor associated with a buffer. Set by
-> +		a driver.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>reserved0</structfield></entry>
-> +	    <entry>Reserved field for future use. Must be set to zero.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>mem_offset</structfield></entry>
-> +	    <entry>Buffer memory offset as returned by <constant>
-> +VIDIOC_QUERYBUF </constant> in &v4l2-buffer;<structfield> ::m.offset
-> +</structfield> (for single-plane formats) or &v4l2-plane;<structfield>
-> +::m.offset </structfield> (for multi-planar formats)</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>flags</structfield></entry>
-> +	    <entry>Flags for newly created file, currently only <constant>
-> +O_CLOEXEC </constant> is supported, refer to manual of open syscall for more
-
-'to the manual of open() for more'
-
-> +details.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>reserved[12]</structfield></entry>
-> +	    <entry>Reserved field for future use. Must be set to zero.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +  </refsect1>
-> +
-> +  <refsect1>
-> +    &return-value;
-> +    <variablelist>
-> +      <varlistentry>
-> +	<term><errorcode>EINVAL</errorcode></term>
-> +	<listitem>
-> +	  <para>A queue is not in MMAP mode or DMABUF exporting is not
-> +supported or <structfield> flag </structfield> or <structfield> mem_offset
-
-flag -> flags
-
-> +</structfield> fields are invalid.</para>
-> +	</listitem>
-> +      </varlistentry>
-> +    </variablelist>
-> +  </refsect1>
-> +
-> +</refentry>
-> 
-
-Regards,
-
-	Hans
