@@ -1,87 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49039 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933165Ab2HQBf5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Aug 2012 21:35:57 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hin-Tak Leung <htl10@users.sourceforge.net>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 6/6] DVB API: LNA documentation
-Date: Fri, 17 Aug 2012 04:35:10 +0300
-Message-Id: <1345167310-8738-7-git-send-email-crope@iki.fi>
-In-Reply-To: <1345167310-8738-1-git-send-email-crope@iki.fi>
-References: <1345167310-8738-1-git-send-email-crope@iki.fi>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:42815 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752689Ab2HCORh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2012 10:17:37 -0400
+Date: Fri, 3 Aug 2012 16:17:33 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Javier Martin <javier.martin@vista-silicon.com>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
+	mchehab@infradead.org, kernel@pengutronix.de
+Subject: Re: [PATCH 2/2 v2] i.MX27: Visstrim_M10: Add support for
+ deinterlacing driver.
+Message-ID: <20120803141733.GW1451@pengutronix.de>
+References: <1342092929-31590-1-git-send-email-javier.martin@vista-silicon.com>
+ <1342092929-31590-2-git-send-email-javier.martin@vista-silicon.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1342092929-31590-2-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- Documentation/DocBook/media/dvb/dvbproperty.xml | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+On Thu, Jul 12, 2012 at 01:35:29PM +0200, Javier Martin wrote:
+> Visstrim_M10 have a tvp5150 whose video output must be deinterlaced.
+> The new mem2mem deinterlacing driver is very useful for that purpose.
+> 
+> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+> ---
+> Changes since v1:
+>  - Removed commented out code.
+> 
+> ---
+>  arch/arm/mach-imx/mach-imx27_visstrim_m10.c |   27 ++++++++++++++++++++++++++-
+>  1 file changed, 26 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/mach-imx/mach-imx27_visstrim_m10.c b/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
+> index 214e4ff..dbef59d 100644
+> --- a/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
+> +++ b/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
+> @@ -232,7 +232,7 @@ static void __init visstrim_camera_init(void)
+>  static void __init visstrim_reserve(void)
+>  {
+>  	/* reserve 4 MiB for mx2-camera */
+> -	mx2_camera_base = arm_memblock_steal(2 * MX2_CAMERA_BUF_SIZE,
+> +	mx2_camera_base = arm_memblock_steal(3 * MX2_CAMERA_BUF_SIZE,
+>  			MX2_CAMERA_BUF_SIZE);
+>  }
+>  
+> @@ -419,6 +419,30 @@ static void __init visstrim_coda_init(void)
+>  		return;
+>  }
+>  
+> +/* DMA deinterlace */
+> +static struct platform_device visstrim_deinterlace = {
+> +	.name = "m2m-deinterlace",
+> +	.id = 0,
+> +};
+> +
+> +static void __init visstrim_deinterlace_init(void)
+> +{
+> +	int ret = -ENOMEM;
+> +	struct platform_device *pdev = &visstrim_deinterlace;
+> +	int dma;
+> +
+> +	ret = platform_device_register(pdev);
 
-diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
-index d188be9..2dfa6a0 100644
---- a/Documentation/DocBook/media/dvb/dvbproperty.xml
-+++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
-@@ -827,6 +827,17 @@ enum fe_interleaving {
- };
- 	</programlisting>
- 	</section>
-+	<section id="DTV-LNA">
-+	<title><constant>DTV_LNA</constant></title>
-+	<para>Low-noise amplifier.</para>
-+	<para>Hardware might offer controllable LNA which can be set manually
-+		using that parameter. Usually LNA could be found only from
-+		terrestrial devices if at all.</para>
-+	<para>Possible values: 0, 1, INT_MIN</para>
-+	<para>0, LNA off</para>
-+	<para>1, LNA on</para>
-+	<para>INT_MIN, LNA auto</para>
-+	</section>
- </section>
- 	<section id="frontend-property-terrestrial-systems">
- 	<title>Properties used on terrestrial delivery systems</title>
-@@ -847,6 +858,7 @@ enum fe_interleaving {
- 				<listitem><para><link linkend="DTV-GUARD-INTERVAL"><constant>DTV_GUARD_INTERVAL</constant></link></para></listitem>
- 				<listitem><para><link linkend="DTV-TRANSMISSION-MODE"><constant>DTV_TRANSMISSION_MODE</constant></link></para></listitem>
- 				<listitem><para><link linkend="DTV-HIERARCHY"><constant>DTV_HIERARCHY</constant></link></para></listitem>
-+				<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
- 			</itemizedlist>
- 		</section>
- 		<section id="dvbt2-params">
-@@ -870,6 +882,7 @@ enum fe_interleaving {
- 			<listitem><para><link linkend="DTV-TRANSMISSION-MODE"><constant>DTV_TRANSMISSION_MODE</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-HIERARCHY"><constant>DTV_HIERARCHY</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-DVBT2-PLP-ID"><constant>DTV_DVBT2_PLP_ID</constant></link></para></listitem>
-+			<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
- 		</itemizedlist>
- 		</section>
- 		<section id="isdbt">
-@@ -981,6 +994,7 @@ enum fe_interleaving {
- 				<listitem><para><link linkend="DTV-GUARD-INTERVAL"><constant>DTV_GUARD_INTERVAL</constant></link></para></listitem>
- 				<listitem><para><link linkend="DTV-TRANSMISSION-MODE"><constant>DTV_TRANSMISSION_MODE</constant></link></para></listitem>
- 				<listitem><para><link linkend="DTV-INTERLEAVING"><constant>DTV_INTERLEAVING</constant></link></para></listitem>
-+				<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
- 			</itemizedlist>
- 		</section>
- 	</section>
-@@ -1001,6 +1015,7 @@ enum fe_interleaving {
- 			<listitem><para><link linkend="DTV-INVERSION"><constant>DTV_INVERSION</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-SYMBOL-RATE"><constant>DTV_SYMBOL_RATE</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-INNER-FEC"><constant>DTV_INNER_FEC</constant></link></para></listitem>
-+			<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
- 		</itemizedlist>
- 	</section>
- 	<section id="dvbc-annex-b-params">
-@@ -1015,6 +1030,7 @@ enum fe_interleaving {
- 			<listitem><para><link linkend="DTV-FREQUENCY"><constant>DTV_FREQUENCY</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-MODULATION"><constant>DTV_MODULATION</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-INVERSION"><constant>DTV_INVERSION</constant></link></para></listitem>
-+			<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
- 		</itemizedlist>
- 	</section>
- 	</section>
+ret is unused.
+
+Better use platform_device_register_simple().
+
+> +
+> +	dma = dma_declare_coherent_memory(&pdev->dev,
+> +					  mx2_camera_base + 2 * MX2_CAMERA_BUF_SIZE,
+> +					  mx2_camera_base + 2 * MX2_CAMERA_BUF_SIZE,
+> +					  MX2_CAMERA_BUF_SIZE,
+> +					  DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
+
+Shouldn't this be done before registering the device?
+
+> +	if (!(dma & DMA_MEMORY_MAP))
+> +		return;
+> +}
+
+if (!flag) return; else return ?
+
+Sascha
+
+
 -- 
-1.7.11.2
-
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
