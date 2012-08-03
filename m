@@ -1,131 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:52727 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932575Ab2HGCsG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 22:48:06 -0400
-Received: by mail-vc0-f174.google.com with SMTP id fk26so3432709vcb.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 19:48:06 -0700 (PDT)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH 19/24] xc5000: add support for firmware load check and init status
-Date: Mon,  6 Aug 2012 22:47:09 -0400
-Message-Id: <1344307634-11673-20-git-send-email-dheitmueller@kernellabs.com>
-In-Reply-To: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
-References: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2416 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751846Ab2HCIt4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2012 04:49:56 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Richard Zhao <richard.zhao@freescale.com>
+Subject: Re: [v7] media: coda: Add driver for Coda video codec.
+Date: Fri, 3 Aug 2012 10:47:01 +0200
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
+	mchehab@infradead.org, s.hauer@pengutronix.de,
+	p.zabel@pengutronix.de, linuxzsc@gmail.com, shawn.guo@linaro.org
+References: <1343043061-24327-1-git-send-email-javier.martin@vista-silicon.com> <20120803082442.GE29944@b20223-02.ap.freescale.net>
+In-Reply-To: <20120803082442.GE29944@b20223-02.ap.freescale.net>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201208031047.01174.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The xc5000c and newer versions of the xc5000a firmware need minor revisions
-to their initialization process.  Add support for validating the firmware
-was properly loaded, as well as checking the init status after initialization.
+On Fri August 3 2012 10:24:43 Richard Zhao wrote:
+> Hi Javier,
+> 
+> Glad to see the vpu patch. I'd like to try it on imx6. What else
+> do I need to do besides add vpu devices in dts? Do you have a gst
+> plugin or any other test program to test it?
+> 
+> Please also see below comments.
+> 
+> On Mon, Jul 23, 2012 at 11:31:01AM +0000, Javier Martin wrote:
+> > Coda is a range of video codecs from Chips&Media that
+> > support H.264, H.263, MPEG4 and other video standards.
+> > 
+> > Currently only support for the codadx6 included in the
+> > i.MX27 SoC is added. H.264 and MPEG4 video encoding
+> > are the only supported capabilities by now.
+> > 
+> > Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> > 
+> > ---
+> > Changes since v6:
+> >  - Cosmetic fixes pointed out by Sakari.
+> >  - Now passes 'v4l2-compliance'.
+> > 
+> > ---
+> >  drivers/media/video/Kconfig  |    9 +
+> >  drivers/media/video/Makefile |    1 +
+> >  drivers/media/video/coda.c   | 1848 ++++++++++++++++++++++++++++++++++++++++++
+> >  drivers/media/video/coda.h   |  216 +++++
+> >  4 files changed, 2074 insertions(+)
+> >  create mode 100644 drivers/media/video/coda.c
+> >  create mode 100644 drivers/media/video/coda.h
+> > 
+> 
+> [...]
+> 
+> > +static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+> > +{
+> > +	struct coda_ctx *ctx = vb2_get_drv_priv(q);
+> > +	struct v4l2_device *v4l2_dev = &ctx->dev->v4l2_dev;
+> > +	u32 bitstream_buf, bitstream_size;
+> > +	struct coda_dev *dev = ctx->dev;
+> > +	struct coda_q_data *q_data_src, *q_data_dst;
+> > +	u32 dst_fourcc;
+> > +	struct vb2_buffer *buf;
+> > +	struct vb2_queue *src_vq;
+> > +	u32 value;
+> > +	int i = 0;
+> > +
+> > +	if (count < 1)
+> > +		return -EINVAL;
+> > +
+> > +	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> > +		ctx->rawstreamon = 1;
+> > +	else
+> > +		ctx->compstreamon = 1;
+> > +
+> > +	/* Don't start the coda unless both queues are on */
+> > +	if (!(ctx->rawstreamon & ctx->compstreamon))
+> > +		return 0;
+> > +		
+> Remove spaces above.
+> > +	ctx->gopcounter = ctx->params.gop_size - 1;
+> > +
+> > +	q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+> > +	buf = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
+> > +	bitstream_buf = vb2_dma_contig_plane_dma_addr(buf, 0);
+> > +	q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
+> > +	bitstream_size = q_data_dst->sizeimage;
+> > +	dst_fourcc = q_data_dst->fmt->fourcc;
+> > +
+> > +	/* Find out whether coda must encode or decode */
+> > +	if (q_data_src->fmt->type == CODA_FMT_RAW &&
+> > +	    q_data_dst->fmt->type == CODA_FMT_ENC) {
+> > +		ctx->inst_type = CODA_INST_ENCODER;
+> > +	} else if (q_data_src->fmt->type == CODA_FMT_ENC &&
+> > +		   q_data_dst->fmt->type == CODA_FMT_RAW) {
+> > +		ctx->inst_type = CODA_INST_DECODER;
+> > +		v4l2_err(v4l2_dev, "decoding not supported.\n");
+> > +		return -EINVAL;
+> > +	} else {
+> > +		v4l2_err(v4l2_dev, "couldn't tell instance type.\n");
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	if (!coda_is_initialized(dev)) {
+> > +		v4l2_err(v4l2_dev, "coda is not initialized.\n");
+> > +		return -EFAULT;
+> > +	}
+> > +	coda_write(dev, ctx->parabuf.paddr, CODA_REG_BIT_PARA_BUF_ADDR);
+> > +	coda_write(dev, bitstream_buf, CODA_REG_BIT_RD_PTR(ctx->idx));
+> > +	coda_write(dev, bitstream_buf, CODA_REG_BIT_WR_PTR(ctx->idx));
+> > +	switch (dev->devtype->product) {
+> > +	case CODA_DX6:
+> > +		coda_write(dev, CODADX6_STREAM_BUF_DYNALLOC_EN |
+> > +			CODADX6_STREAM_BUF_PIC_RESET, CODA_REG_BIT_STREAM_CTRL);
+> > +		break;
+> > +	default:
+> > +		coda_write(dev, CODA7_STREAM_BUF_DYNALLOC_EN |
+> > +			CODA7_STREAM_BUF_PIC_RESET, CODA_REG_BIT_STREAM_CTRL);
+> > +	}
+> > +
+> > +	/* Configure the coda */
+> > +	coda_write(dev, 0xffff4c00, CODA_REG_BIT_SEARCH_RAM_BASE_ADDR);
+> > +
+> > +	/* Could set rotation here if needed */
+> > +	switch (dev->devtype->product) {
+> > +	case CODA_DX6:
+> > +		value = (q_data_src->width & CODADX6_PICWIDTH_MASK) << CODADX6_PICWIDTH_OFFSET;
+> longer than 80 characters. Could you run checkpatch to do further check?
 
-Based on advice from CrestaTech support as well as xc5000 datasheet v2.3.
+This is a checkpatch warning, not an error. One should use one's own judgement whether
+to take action or not. It is more important that the code is readable than that it fits
+within 80 characters, although long lines can be an indication of poor readability.
 
-Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
----
- drivers/media/common/tuners/xc5000.c |   39 ++++++++++++++++++++++++++++++++++
- 1 files changed, 39 insertions(+), 0 deletions(-)
+In this case I personally don't think it will be easier to read if this line is split up.
 
-diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
-index 7c36465..3e5f8cd 100644
---- a/drivers/media/common/tuners/xc5000.c
-+++ b/drivers/media/common/tuners/xc5000.c
-@@ -63,6 +63,8 @@ struct xc5000_priv {
- 
- 	int chip_id;
- 	u16 pll_register_no;
-+	u8 init_status_supported;
-+	u8 fw_checksum_supported;
- };
- 
- /* Misc Defines */
-@@ -113,6 +115,8 @@ struct xc5000_priv {
- #define XREG_BUSY         0x09
- #define XREG_BUILD        0x0D
- #define XREG_TOTALGAIN    0x0F
-+#define XREG_FW_CHECKSUM  0x12
-+#define XREG_INIT_STATUS  0x13
- 
- /*
-    Basic firmware description. This will remain with
-@@ -211,6 +215,8 @@ struct xc5000_fw_cfg {
- 	char *name;
- 	u16 size;
- 	u16 pll_reg;
-+	u8 init_status_supported;
-+	u8 fw_checksum_supported;
- };
- 
- static const struct xc5000_fw_cfg xc5000a_1_6_114 = {
-@@ -223,6 +229,8 @@ static const struct xc5000_fw_cfg xc5000c_41_024_5 = {
- 	.name = "dvb-fe-xc5000c-41.024.5.fw",
- 	.size = 16497,
- 	.pll_reg = 0x13,
-+	.init_status_supported = 1,
-+	.fw_checksum_supported = 1,
- };
- 
- static inline const struct xc5000_fw_cfg *xc5000_assign_firmware(int chip_id)
-@@ -622,6 +630,8 @@ static int xc5000_fwupload(struct dvb_frontend *fe)
- 	const struct xc5000_fw_cfg *desired_fw =
- 		xc5000_assign_firmware(priv->chip_id);
- 	priv->pll_register_no = desired_fw->pll_reg;
-+	priv->init_status_supported = desired_fw->init_status_supported;
-+	priv->fw_checksum_supported = desired_fw->fw_checksum_supported;
- 
- 	/* request the firmware, this will block and timeout */
- 	printk(KERN_INFO "xc5000: waiting for firmware upload (%s)...\n",
-@@ -1082,6 +1092,7 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe, int force)
- 	struct xc5000_priv *priv = fe->tuner_priv;
- 	int ret = XC_RESULT_SUCCESS;
- 	u16 pll_lock_status;
-+	u16 fw_ck;
- 
- 	if (force || xc5000_is_firmware_loaded(fe) != XC_RESULT_SUCCESS) {
- 
-@@ -1093,6 +1104,21 @@ fw_retry:
- 
- 		msleep(20);
- 
-+		if (priv->fw_checksum_supported) {
-+			if (xc5000_readreg(priv, XREG_FW_CHECKSUM, &fw_ck)
-+			    != XC_RESULT_SUCCESS) {
-+				dprintk(1, "%s() FW checksum reading failed.\n",
-+					__func__);
-+				goto fw_retry;
-+			}
-+
-+			if (fw_ck == 0) {
-+				dprintk(1, "%s() FW checksum failed = 0x%04x\n",
-+					__func__, fw_ck);
-+				goto fw_retry;
-+			}
-+		}
-+
- 		/* Start the tuner self-calibration process */
- 		ret |= xc_initialize(priv);
- 
-@@ -1106,6 +1132,19 @@ fw_retry:
- 		 */
- 		xc_wait(100);
- 
-+		if (priv->init_status_supported) {
-+			if (xc5000_readreg(priv, XREG_INIT_STATUS, &fw_ck) != XC_RESULT_SUCCESS) {
-+				dprintk(1, "%s() FW failed reading init status.\n",
-+					__func__);
-+				goto fw_retry;
-+			}
-+
-+			if (fw_ck == 0) {
-+				dprintk(1, "%s() FW init status failed = 0x%04x\n", __func__, fw_ck);
-+				goto fw_retry;
-+			}
-+		}
-+
- 		if (priv->pll_register_no) {
- 			xc5000_readreg(priv, priv->pll_register_no,
- 				       &pll_lock_status);
--- 
-1.7.1
+Regards,
 
+	Hans
