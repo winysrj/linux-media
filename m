@@ -1,61 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:38737 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753230Ab2HCK1m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2012 06:27:42 -0400
-Received: by wibhm11 with SMTP id hm11so6042475wib.1
-        for <linux-media@vger.kernel.org>; Fri, 03 Aug 2012 03:27:41 -0700 (PDT)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 3/6] libdvbv5: dvb_dmx_open nonblocking
-Date: Fri,  3 Aug 2012 12:26:56 +0200
-Message-Id: <1343989619-12928-3-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1343989619-12928-1-git-send-email-neolynx@gmail.com>
-References: <1343989619-12928-1-git-send-email-neolynx@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60178 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750784Ab2HCIOz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2012 04:14:55 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Bhupesh SHARMA <bhupesh.sharma@st.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Query regarding the support and testing of MJPEG frame type in the UVC webcam gadget
+Date: Fri, 03 Aug 2012 10:15:02 +0200
+Message-ID: <1479304.PR7OAbvLrR@avalon>
+In-Reply-To: <D5ECB3C7A6F99444980976A8C6D896384FABF0D865@EAPEX1MAIL1.st.com>
+References: <D5ECB3C7A6F99444980976A8C6D896384FABF0D740@EAPEX1MAIL1.st.com> <3577370.FUYPT1zGjj@avalon> <D5ECB3C7A6F99444980976A8C6D896384FABF0D865@EAPEX1MAIL1.st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: André Roth <neolynx@gmail.com>
----
- lib/include/dvb-demux.h  |    2 +-
- lib/libdvbv5/dvb-demux.c |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+Hi Bhupesh,
 
-diff --git a/lib/include/dvb-demux.h b/lib/include/dvb-demux.h
-index 25cd56c..afd6840 100644
---- a/lib/include/dvb-demux.h
-+++ b/lib/include/dvb-demux.h
-@@ -35,7 +35,7 @@
- extern "C" {
- #endif
- 
--int dvb_dmx_open(int adapter, int demux, unsigned verbose);
-+int dvb_dmx_open(int adapter, int demux);
- void dvb_dmx_close(int dmx_fd);
- 
- int dvb_set_pesfilter(int dmxfd, int pid, dmx_pes_type_t type, dmx_output_t output, int buffersize);
-diff --git a/lib/libdvbv5/dvb-demux.c b/lib/libdvbv5/dvb-demux.c
-index 138b58a..d07e6cf 100644
---- a/lib/libdvbv5/dvb-demux.c
-+++ b/lib/libdvbv5/dvb-demux.c
-@@ -40,11 +40,11 @@
- 
- #include "dvb-demux.h"
- 
--int dvb_dmx_open(int adapter, int demux, unsigned verbose)
-+int dvb_dmx_open(int adapter, int demux)
- {
-   char* demux_name = NULL;
-   asprintf(&demux_name, "/dev/dvb/adapter%i/demux%i", adapter, demux );
--  int fd_demux = open( demux_name, O_RDWR );
-+  int fd_demux = open( demux_name, O_RDWR | O_NONBLOCK );
-   free( demux_name );
-   return fd_demux;
- }
+On Wednesday 01 August 2012 21:29:30 Bhupesh SHARMA wrote:
+> On Wednesday, August 01, 2012 6:46 PM Laurent Pinchart wrote:
+> > On Wednesday 01 August 2012 14:26:33 Bhupesh SHARMA wrote:
+> > > Hi Laurent,
+> > > 
+> > > I have a query for you regarding the support and testing of MJPEG
+> > > frame type in the UVC webcam gadget.
+> > > 
+> > > I see that in the webcam.c gadget, the 720p and VGA MJPEG uvc formats
+> > > are supported. I was trying the same out and got confused because the
+> > > data arriving from a real video capture video supporting JPEG will have
+> > > no fixed size. We will have the JPEG defined Start-of-Frame and End-of-
+> > > Frame markers defining the boundary of the JPEG frame.
+> > > 
+> > > But for almost all JPEG video capture devices even if we have kept a
+> > > frame size of VGA initially, the final frame size will be a compressed
+> > > version (with the compression depending on the nature of the scene, so a
+> > > flat scene will have high compression and hence less frame size) of VGA
+> > > and will not be equal to 640 * 480.
+> > > 
+> > > So I couldn't exactly get why the dwMaxVideoFrameBufferSize is kept
+> > > as 614400 in webcam.c (see [1]).
+> > 
+> > The dwMaxVideoFrameBufferSize value must be larger than or equal to the
+> > largest MJPEG frame size. As I have no idea what that value is, I've
+> > kept the same size as for uncompressed frames, which should be big enough
+> > (and most probably too big).
+> 
+> .. Yes, so that means that the user-space application should set the length
+> of the buffer being queued at the UVC side equal to the length of the buffer
+> dequeued from the V4L2 side, to ensure that varying length JPEG frames are
+> correctly handled.
+
+You should copy the bytesused field from the captured v4l2_buffer to the 
+output v4l2_buffer. The length field stores the total buffer size, not the 
+number of bytes used.
+
+> I will try with these changes in the user-space daemon.
+
 -- 
-1.7.2.5
+Regards,
+
+Laurent Pinchart
 
