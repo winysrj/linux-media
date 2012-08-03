@@ -1,72 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:40668 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932508Ab2HHJhn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Aug 2012 05:37:43 -0400
-Received: by lagy9 with SMTP id y9so283560lag.19
-        for <linux-media@vger.kernel.org>; Wed, 08 Aug 2012 02:37:39 -0700 (PDT)
-Message-ID: <50223357.1020203@iki.fi>
-Date: Wed, 08 Aug 2012 12:37:27 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:64352 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751527Ab2HCSmY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2012 14:42:24 -0400
+Received: by ghrr11 with SMTP id r11so1199310ghr.19
+        for <linux-media@vger.kernel.org>; Fri, 03 Aug 2012 11:42:24 -0700 (PDT)
 MIME-Version: 1.0
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-CC: linux-media@vger.kernel.org,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH 2/2] dvb_usb_v2: use %*ph to dump usb xfer debugs
-References: <1344380196-9488-1-git-send-email-crope@iki.fi> <1344380196-9488-2-git-send-email-crope@iki.fi> <CAHp75Vd=EiGvgWh=t22DTOx0=3x8EjC2wbcgXKba56YtSr22_w@mail.gmail.com>
-In-Reply-To: <CAHp75Vd=EiGvgWh=t22DTOx0=3x8EjC2wbcgXKba56YtSr22_w@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAGoCfiyaO5xhjUCVW5QfeLDoh=a6WE73aiAOXX5ZkOiM=efOfQ@mail.gmail.com>
+References: <1344016352-20302-1-git-send-email-elezegarcia@gmail.com>
+	<CALF0-+UdxdawZMeniA-tia3qKARbX_+u2k8PnbhA_FhDKUMv3Q@mail.gmail.com>
+	<CAGoCfiyaO5xhjUCVW5QfeLDoh=a6WE73aiAOXX5ZkOiM=efOfQ@mail.gmail.com>
+Date: Fri, 3 Aug 2012 15:42:23 -0300
+Message-ID: <CALF0-+Vhng3=GUJs5k9fiktkE6mEtDNEzKfP8+zjTSmCCRez8w@mail.gmail.com>
+Subject: Re: [PATCH] em28xx: Fix height setting on non-progressive captures
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/08/2012 07:16 AM, Andy Shevchenko wrote:
-> On Wed, Aug 8, 2012 at 1:56 AM, Antti Palosaari <crope@iki.fi> wrote:
->> diff --git a/drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c b/drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c
->> index 5f5bdd0..0431bee 100644
->> --- a/drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c
->> +++ b/drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c
+Hi Devin,
+
+Thanks for answering.
+
+On Fri, Aug 3, 2012 at 3:26 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> On Fri, Aug 3, 2012 at 2:11 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+>> On Fri, Aug 3, 2012 at 2:52 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+>>> This was introduced on commit c2a6b54a9:
+>>> "em28xx: fix: don't do image interlacing on webcams"
+>>> It is a known bug that has already been reported several times
+>>> and confirmed by Mauro.
+>>> Tested by compilation only.
+>>>
+>>
+>> I wonder if it's possible to get an Ack or a Tested-By from any of the
+>> em28xx owners?
 >
->> @@ -37,10 +36,8 @@ int dvb_usbv2_generic_rw(struct dvb_usb_device *d, u8 *wbuf, u16 wlen, u8 *rbuf,
->>          if (ret < 0)
->>                  return ret;
+> This shouldn't be accepted upstream without testing at least on x86.
+> I did make such a change to make it work in my ARM tree, but I don't
+> fully understand the nature of the change and I'm not completely
+> confident it's correct for x86 (based on my reading of the datasheet
+> and how the accumulator field is structured in the em28xx chip).
+> Also, I actually don't have any progressive devices (I've got probably
+> a dozen em28xx devices, but they are all interlaced capture), which
+> made me particularly hesitant to submit this patch.
+>
+
+Wait a minute, unless I completely misunderstood the bug (which is possible),
+I think this patch is straightforward.
+
+By the look of this hunk on commit c2a6b54a:
+
+---------------------------------8<--------------------------
+diff --git a/drivers/media/video/em28xx/em28xx-core.c
+b/drivers/media/video/em28xx/em28xx-core.c
+index 5b78e19..339fffd 100644
+--- a/drivers/media/video/em28xx/em28xx-core.c
++++ b/drivers/media/video/em28xx/em28xx-core.c
+@@ -720,7 +720,10 @@ int em28xx_resolution_set(struct em28xx *dev)
+ {
+        int width, height;
+        width = norm_maxw(dev);
+-       height = norm_maxh(dev) >> 1;
++       height = norm_maxh(dev);
++
++       if (!dev->progressive)
++               height >>= norm_maxh(dev);
+
+--------------------------------->8--------------------------
+
+It seems to me that for non-progressive the height should just be
+
+  height = height / 2 (or height = height >> 1)
+
+as was before, and as my patch is doing. It seems to driver will
+"merge" the interlaced
+frames and so the "expected" height is half the real height.
+I hope I got it right.
+
+That said and no matter how straightforward may be, which I'm not sure,
+I also want the patch to get tested before being accepted.
+
+
+
+>> Also, Devin: you mentioned in an old mail [1] you had some patches for em28xx,
+>> but you had no time to put them into shape for submission.
 >>
->> -#ifdef DVB_USB_XFER_DEBUG
->> -       print_hex_dump(KERN_DEBUG, KBUILD_MODNAME ": >>> ", DUMP_PREFIX_NONE,
->> -                       32, 1, wbuf, wlen, 0);
->> -#endif
->> +       dev_dbg(&d->udev->dev, "%s: >>> %*ph\n", __func__, wlen, wbuf);
->> +
->>          ret = usb_bulk_msg(d->udev, usb_sndbulkpipe(d->udev,
->>                          d->props->generic_bulk_ctrl_endpoint), wbuf, wlen,
->>                          &actual_length, 2000);
->> @@ -64,11 +61,8 @@ int dvb_usbv2_generic_rw(struct dvb_usb_device *d, u8 *wbuf, u16 wlen, u8 *rbuf,
->>                          dev_err(&d->udev->dev, "%s: 2nd usb_bulk_msg() " \
->>                                          "failed=%d\n", KBUILD_MODNAME, ret);
->>
->> -#ifdef DVB_USB_XFER_DEBUG
->> -               print_hex_dump(KERN_DEBUG, KBUILD_MODNAME ": <<< ",
->> -                               DUMP_PREFIX_NONE, 32, 1, rbuf, actual_length,
->> -                               0);
->> -#endif
->> +               dev_dbg(&d->udev->dev, "%s: <<< %*ph\n", __func__,
->> +                               actual_length, rbuf);
->>          }
->>
-> Antti, I didn't check how long buffer could be in above cases, but be
-> aware that %*ph prints up to 64 bytes only. Is it enough here?
+>> If you want to, send then to me (or the full em28xx tree) and I can
+>> try to submit
+>> the patches.
+>
+> Yeah, probably not a bad idea.  I've been sitting on the tree because
+> they haven't been tested on any other platforms and some of them are
+> not necessarily generally suitable for the mainline kernel.  And of
+> course the tree needs to be parsed out into an actual patch series,
+> and each patch has to be individually validated across multiple
+> devices to ensure they don't cause breakage (they were tested on an
+> em2863, but I have no idea if they cause problems on other chips such
+> as the em2820 or em2880).
+>
+> All that said, I'm not really sure what the benefit would be in
+> sending you the tree if you don't actually have any hardware to test
+> with.  The last thing we need is more crap being sent upstream that is
+> "compile tested only" since that's where many of the regressions come
+> from (well meaning people sending completely untested 'cleanup
+> patches' can cause more harm than good).
+>
 
-It is correct behavior. I saw from the LKML patch limit was selected 
-using min_t() not causing any other side effect than cut print length.
+Mmm, you're right. I was rather thinking in patches that fixes "obvious"
+(whatever that may be) things and assuming these patches could get some
+community testing.
 
-For some cases it could be more than 64 here, likely for the firmware 
-download packed. I suspect, situation where control message is longer 
-than 64 byte does not exist in real life as USB1.1 BULK max is 64. And 
-even such case exists, we are not interested those not printed bytes.
+So: never mind, bad idea. I've sent enough zero-test patches, which
+only means more work for Mauro :-(
 
-regards
-Antti
-
--- 
-http://palosaari.fi/
+Thanks,
+Ezequiel.
