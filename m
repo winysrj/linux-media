@@ -1,52 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:9624 "EHLO mx1.redhat.com"
+Received: from mail.tpi.com ([70.99.223.143]:1866 "EHLO mail.tpi.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752896Ab2HMVzN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Aug 2012 17:55:13 -0400
-Message-ID: <502977B8.8030201@redhat.com>
-Date: Mon, 13 Aug 2012 18:55:04 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Walter Van Eetvelt <walter@van.eetvelt.be>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>,
-	workshop-2011@linuxtv.org
-Subject: Re: RFC: V4L2 API ambiguities
-References: <201208131427.56961.hverkuil@xs4all.nl> <8ed2a79057a0cc80ba058cebd97fd69d@mail.eetvelt.be> <CAGoCfiwJOt8LQYyGu0G=iJ-fAMyB82Y2jyZc4TS72QHOE9ZmnQ@mail.gmail.com> <50297418.4030906@redhat.com> <CAGoCfiyi9SRfz=wE18O6mO4z2G0=UVJgfrkx2O+tZ4nwBiARAA@mail.gmail.com>
-In-Reply-To: <CAGoCfiyi9SRfz=wE18O6mO4z2G0=UVJgfrkx2O+tZ4nwBiARAA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1751527Ab2HCRjJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Aug 2012 13:39:09 -0400
+From: Tim Gardner <tim.gardner@canonical.com>
+To: linux-kernel@vger.kernel.org
+Cc: Tim Gardner <tim.gardner@canonical.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH] cpia2: Declare MODULE_FIRMWARE usage
+Date: Fri,  3 Aug 2012 11:39:28 -0600
+Message-Id: <1344015568-125316-1-git-send-email-tim.gardner@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 13-08-2012 18:42, Devin Heitmueller escreveu:
-> On Mon, Aug 13, 2012 at 5:39 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> No, it is not out of scope. The thing is that none of the developers
->> that are going to be there proposed a DVB-specific themes, unfortunately.
->>
->> Yet, there are two themes there that are not V4L only: the userspace
->> discussions and the SoC discussions. I expect that it will focus at
->> the media API's as a hole, and not just V4L API.
-> 
-> I'm talking specifically about a discussion of "V4L2 API Ambiguities",
-> which is the topic of this thread and the meeting in question.
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
+---
+ drivers/media/video/cpia2/cpia2_core.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-OK. With that regards, you're right.
+diff --git a/drivers/media/video/cpia2/cpia2_core.c b/drivers/media/video/cpia2/cpia2_core.c
+index 17188e2..187012c 100644
+--- a/drivers/media/video/cpia2/cpia2_core.c
++++ b/drivers/media/video/cpia2/cpia2_core.c
+@@ -31,11 +31,15 @@
+ 
+ #include "cpia2.h"
+ 
++#include <linux/module.h>
+ #include <linux/slab.h>
+ #include <linux/mm.h>
+ #include <linux/vmalloc.h>
+ #include <linux/firmware.h>
+ 
++#define FIRMWARE "cpia2/stv0672_vp4.bin"
++MODULE_FIRMWARE(FIRMWARE);
++
+ /* #define _CPIA2_DEBUG_ */
+ 
+ #ifdef _CPIA2_DEBUG_
+@@ -898,7 +902,7 @@ static int cpia2_send_onebyte_command(struct camera_data *cam,
+ static int apply_vp_patch(struct camera_data *cam)
+ {
+ 	const struct firmware *fw;
+-	const char fw_name[] = "cpia2/stv0672_vp4.bin";
++	const char fw_name[] = FIRMWARE;
+ 	int i, ret;
+ 	struct cpia2_command cmd;
+ 
+-- 
+1.7.9.5
 
-> I
-> realize other parts of the conference include DVB.  If you want me to
-> start piling onto this thread will all the problems/deficiencies
-> related to our DVB API, we can certainly do that.  However, none of
-> the people on this thread will have any real insight into them given
-> those individuals focus entirely on V4L2.
-
-Yeah, but anyway we can try to cover the points that Walter
-made during the DVB topics.
-
-I suspect, however, that we need an RFC with a proposal for CI
-decoupled from the demux, in order to be able to discuss it.
-
-Regards,
-Mauro
