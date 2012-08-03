@@ -1,45 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:52727 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932303Ab2HGCsL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 22:48:11 -0400
-Received: by mail-vc0-f174.google.com with SMTP id fk26so3432709vcb.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 19:48:11 -0700 (PDT)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:38737 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753230Ab2HCK1m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2012 06:27:42 -0400
+Received: by wibhm11 with SMTP id hm11so6042475wib.1
+        for <linux-media@vger.kernel.org>; Fri, 03 Aug 2012 03:27:41 -0700 (PDT)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH 23/24] au0828: make xc5000 firmware speedup apply to the xc5000c as well
-Date: Mon,  6 Aug 2012 22:47:13 -0400
-Message-Id: <1344307634-11673-24-git-send-email-dheitmueller@kernellabs.com>
-In-Reply-To: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
-References: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 3/6] libdvbv5: dvb_dmx_open nonblocking
+Date: Fri,  3 Aug 2012 12:26:56 +0200
+Message-Id: <1343989619-12928-3-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1343989619-12928-1-git-send-email-neolynx@gmail.com>
+References: <1343989619-12928-1-git-send-email-neolynx@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make the firmware speedup work for the 5000c as well as the original
-xc5000.  This cuts firmware load time in half.
-
-Thanks to John Casey at Hauppauge for loaning me a board for testing.
-
-Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+Signed-off-by: André Roth <neolynx@gmail.com>
 ---
- drivers/media/video/au0828/au0828-i2c.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ lib/include/dvb-demux.h  |    2 +-
+ lib/libdvbv5/dvb-demux.c |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/video/au0828/au0828-i2c.c b/drivers/media/video/au0828/au0828-i2c.c
-index 3bc76df..4ded17f 100644
---- a/drivers/media/video/au0828/au0828-i2c.c
-+++ b/drivers/media/video/au0828/au0828-i2c.c
-@@ -147,7 +147,8 @@ static int i2c_sendbytes(struct i2c_adapter *i2c_adap,
- 	au0828_write(dev, AU0828_I2C_MULTIBYTE_MODE_2FF, 0x01);
+diff --git a/lib/include/dvb-demux.h b/lib/include/dvb-demux.h
+index 25cd56c..afd6840 100644
+--- a/lib/include/dvb-demux.h
++++ b/lib/include/dvb-demux.h
+@@ -35,7 +35,7 @@
+ extern "C" {
+ #endif
  
- 	/* Set the I2C clock */
--	if ((dev->board.tuner_type == TUNER_XC5000) &&
-+	if (((dev->board.tuner_type == TUNER_XC5000) ||
-+	     (dev->board.tuner_type == TUNER_XC5000C)) &&
- 	    (dev->board.tuner_addr == msg->addr) &&
- 	    (msg->len == 64)) {
- 		/* Hack to speed up firmware load.  The xc5000 lets us do up
+-int dvb_dmx_open(int adapter, int demux, unsigned verbose);
++int dvb_dmx_open(int adapter, int demux);
+ void dvb_dmx_close(int dmx_fd);
+ 
+ int dvb_set_pesfilter(int dmxfd, int pid, dmx_pes_type_t type, dmx_output_t output, int buffersize);
+diff --git a/lib/libdvbv5/dvb-demux.c b/lib/libdvbv5/dvb-demux.c
+index 138b58a..d07e6cf 100644
+--- a/lib/libdvbv5/dvb-demux.c
++++ b/lib/libdvbv5/dvb-demux.c
+@@ -40,11 +40,11 @@
+ 
+ #include "dvb-demux.h"
+ 
+-int dvb_dmx_open(int adapter, int demux, unsigned verbose)
++int dvb_dmx_open(int adapter, int demux)
+ {
+   char* demux_name = NULL;
+   asprintf(&demux_name, "/dev/dvb/adapter%i/demux%i", adapter, demux );
+-  int fd_demux = open( demux_name, O_RDWR );
++  int fd_demux = open( demux_name, O_RDWR | O_NONBLOCK );
+   free( demux_name );
+   return fd_demux;
+ }
 -- 
-1.7.1
+1.7.2.5
 
