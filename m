@@ -1,62 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:56186 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755154Ab2HPApq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Aug 2012 20:45:46 -0400
-Received: by lbbgj3 with SMTP id gj3so1197147lbb.19
-        for <linux-media@vger.kernel.org>; Wed, 15 Aug 2012 17:45:45 -0700 (PDT)
-Message-ID: <502C42A9.40009@iki.fi>
-Date: Thu, 16 Aug 2012 03:45:29 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:60294 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753119Ab2HCK1o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2012 06:27:44 -0400
+Received: by weyx8 with SMTP id x8so310698wey.19
+        for <linux-media@vger.kernel.org>; Fri, 03 Aug 2012 03:27:42 -0700 (PDT)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 5/6] libdvbv5: added abort flag
+Date: Fri,  3 Aug 2012 12:26:58 +0200
+Message-Id: <1343989619-12928-5-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1343989619-12928-1-git-send-email-neolynx@gmail.com>
+References: <1343989619-12928-1-git-send-email-neolynx@gmail.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org,
-	Hin-Tak Leung <htl10@users.sourceforge.net>
-Subject: Re: [PATCH 0/5] dvb-frontend statistic IOCTL validation
-References: <1345076921-9773-1-git-send-email-crope@iki.fi>
-In-Reply-To: <1345076921-9773-1-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/16/2012 03:28 AM, Antti Palosaari wrote:
-> Take two.
->
-> I added some logic to prevent statistic queries in case demodulator is clearly in state statistic query is invalid. Currently there could be checks in device driver but usually not. Gar
-> bage is usually returned and in some cases even I/O errors are generated as demod is put sleep and cannot answer any request.
->
-> I changed error code EPERM to EAGAIN. What I looked existing demodulator drivers there was multiple error codes used. EAGAIN was one, at least DRX-K uses it.
+Signed-off-by: André Roth <neolynx@gmail.com>
+---
+ lib/include/dvb-fe.h  |    1 +
+ lib/libdvbv5/dvb-fe.c |    1 +
+ 2 files changed, 2 insertions(+), 0 deletions(-)
 
-oops, this could be understood wrong. Originally no standardized error 
-code at all, it was responsibility of each driver to return what they 
-wish - and surely they did it :]
-
-EPERM was used first version of that patch series, but got feedback from 
-Mauro it is not suitable as it is documented:
-"Permission denied. Can be returned if the device needs write 
-permission, or some special capabilities is needed (e. g. root)"
-
-Thus EAGAIN. Hope this is now better.
-
-
->
-> Also documentation is updated according to new situation.
->
-> Antti Palosaari (5):
->    dvb_frontend: use Kernel dev_* logging
->    dvb_frontend: return -ENOTTY for unimplement IOCTL
->    dvb_frontend: do not allow statistic IOCTLs when sleeping
->    DocBook: update ioctl error codes EAGAIN, ENOSYS, EOPNOTSUPP
->    rtl2832: remove dummy callback implementations
->
->   Documentation/DocBook/media/v4l/gen-errors.xml |  12 +-
->   drivers/media/dvb-core/dvb_frontend.c          | 266 +++++++++++++------------
->   drivers/media/dvb-frontends/rtl2832.c          |  29 ---
->   3 files changed, 151 insertions(+), 156 deletions(-)
->
-
-
+diff --git a/lib/include/dvb-fe.h b/lib/include/dvb-fe.h
+index 8b795cb..b2c3587 100644
+--- a/lib/include/dvb-fe.h
++++ b/lib/include/dvb-fe.h
+@@ -88,6 +88,7 @@ struct dvb_v5_fe_parms {
+ 	unsigned			diseqc_wait;
+ 	unsigned			freq_offset;
+ 
++	int				abort;
+         dvb_logfunc                     logfunc;
+ };
+ 
+diff --git a/lib/libdvbv5/dvb-fe.c b/lib/libdvbv5/dvb-fe.c
+index 1636948..8ed73b6 100644
+--- a/lib/libdvbv5/dvb-fe.c
++++ b/lib/libdvbv5/dvb-fe.c
+@@ -69,6 +69,7 @@ struct dvb_v5_fe_parms *dvb_fe_open2(int adapter, int frontend, unsigned verbose
+ 	parms->verbose = verbose;
+ 	parms->fd = fd;
+ 	parms->sat_number = -1;
++        parms->abort = 0;
+         parms->logfunc = logfunc;
+ 
+ 	if (ioctl(fd, FE_GET_INFO, &parms->info) == -1) {
 -- 
-http://palosaari.fi/
+1.7.2.5
+
