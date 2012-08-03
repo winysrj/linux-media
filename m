@@ -1,147 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:40614 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754119Ab2HJO5s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Aug 2012 10:57:48 -0400
-Subject: [PATCH 1/4] dma-buf: remove fallback for !CONFIG_DMA_SHARED_BUFFER
-To: sumit.semwal@linaro.org, rob.clark@linaro.org
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	patches@linaro.org
-Date: Fri, 10 Aug 2012 16:57:43 +0200
-Message-ID: <20120810145728.5490.44707.stgit@patser.local>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:41272 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753112Ab2HCK1n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2012 06:27:43 -0400
+Received: by wgbdr13 with SMTP id dr13so517484wgb.1
+        for <linux-media@vger.kernel.org>; Fri, 03 Aug 2012 03:27:42 -0700 (PDT)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 4/6] libdvbv5: added dmx stop function
+Date: Fri,  3 Aug 2012 12:26:57 +0200
+Message-Id: <1343989619-12928-4-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1343989619-12928-1-git-send-email-neolynx@gmail.com>
+References: <1343989619-12928-1-git-send-email-neolynx@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Documentation says that code requiring dma-buf should add it to
-select, so inline fallbacks are not going to be used. A link error
-will make it obvious what went wrong, instead of silently doing
-nothing at runtime.
-
-Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Signed-off-by: André Roth <neolynx@gmail.com>
 ---
- include/linux/dma-buf.h |   99 -----------------------------------------------
- 1 file changed, 99 deletions(-)
+ lib/include/dvb-demux.h  |    1 +
+ lib/libdvbv5/dvb-demux.c |    5 +++++
+ 2 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index eb48f38..bd2e52c 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -156,7 +156,6 @@ static inline void get_dma_buf(struct dma_buf *dmabuf)
- 	get_file(dmabuf->file);
+diff --git a/lib/include/dvb-demux.h b/lib/include/dvb-demux.h
+index afd6840..923016e 100644
+--- a/lib/include/dvb-demux.h
++++ b/lib/include/dvb-demux.h
+@@ -37,6 +37,7 @@ extern "C" {
+ 
+ int dvb_dmx_open(int adapter, int demux);
+ void dvb_dmx_close(int dmx_fd);
++void dvb_dmx_stop(int dmx_fd);
+ 
+ int dvb_set_pesfilter(int dmxfd, int pid, dmx_pes_type_t type, dmx_output_t output, int buffersize);
+ 
+diff --git a/lib/libdvbv5/dvb-demux.c b/lib/libdvbv5/dvb-demux.c
+index d07e6cf..6ed2dcd 100644
+--- a/lib/libdvbv5/dvb-demux.c
++++ b/lib/libdvbv5/dvb-demux.c
+@@ -55,6 +55,11 @@ void dvb_dmx_close(int dmx_fd)
+   close( dmx_fd);
  }
  
--#ifdef CONFIG_DMA_SHARED_BUFFER
- struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
- 							struct device *dev);
- void dma_buf_detach(struct dma_buf *dmabuf,
-@@ -184,103 +183,5 @@ int dma_buf_mmap(struct dma_buf *, struct vm_area_struct *,
- 		 unsigned long);
- void *dma_buf_vmap(struct dma_buf *);
- void dma_buf_vunmap(struct dma_buf *, void *vaddr);
--#else
--
--static inline struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
--							struct device *dev)
--{
--	return ERR_PTR(-ENODEV);
--}
--
--static inline void dma_buf_detach(struct dma_buf *dmabuf,
--				  struct dma_buf_attachment *dmabuf_attach)
--{
--	return;
--}
--
--static inline struct dma_buf *dma_buf_export(void *priv,
--					     const struct dma_buf_ops *ops,
--					     size_t size, int flags)
--{
--	return ERR_PTR(-ENODEV);
--}
--
--static inline int dma_buf_fd(struct dma_buf *dmabuf, int flags)
--{
--	return -ENODEV;
--}
--
--static inline struct dma_buf *dma_buf_get(int fd)
--{
--	return ERR_PTR(-ENODEV);
--}
--
--static inline void dma_buf_put(struct dma_buf *dmabuf)
--{
--	return;
--}
--
--static inline struct sg_table *dma_buf_map_attachment(
--	struct dma_buf_attachment *attach, enum dma_data_direction write)
--{
--	return ERR_PTR(-ENODEV);
--}
--
--static inline void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
--			struct sg_table *sg, enum dma_data_direction dir)
--{
--	return;
--}
--
--static inline int dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
--					   size_t start, size_t len,
--					   enum dma_data_direction dir)
--{
--	return -ENODEV;
--}
--
--static inline void dma_buf_end_cpu_access(struct dma_buf *dmabuf,
--					  size_t start, size_t len,
--					  enum dma_data_direction dir)
--{
--}
--
--static inline void *dma_buf_kmap_atomic(struct dma_buf *dmabuf,
--					unsigned long pnum)
--{
--	return NULL;
--}
--
--static inline void dma_buf_kunmap_atomic(struct dma_buf *dmabuf,
--					 unsigned long pnum, void *vaddr)
--{
--}
--
--static inline void *dma_buf_kmap(struct dma_buf *dmabuf, unsigned long pnum)
--{
--	return NULL;
--}
--
--static inline void dma_buf_kunmap(struct dma_buf *dmabuf,
--				  unsigned long pnum, void *vaddr)
--{
--}
--
--static inline int dma_buf_mmap(struct dma_buf *dmabuf,
--			       struct vm_area_struct *vma,
--			       unsigned long pgoff)
--{
--	return -ENODEV;
--}
--
--static inline void *dma_buf_vmap(struct dma_buf *dmabuf)
--{
--	return NULL;
--}
--
--static inline void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
--{
--}
--#endif /* CONFIG_DMA_SHARED_BUFFER */
- 
- #endif /* __DMA_BUF_H__ */
++void dvb_dmx_stop(int dmx_fd)
++{
++  (void) ioctl( dmx_fd, DMX_STOP);
++}
++
+ int dvb_set_pesfilter(int dmxfd, int pid, dmx_pes_type_t type, dmx_output_t output, int buffersize)
+ {
+ 	struct dmx_pes_filter_params pesfilter;
+-- 
+1.7.2.5
 
