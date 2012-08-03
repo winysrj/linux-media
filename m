@@ -1,46 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:33372 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030188Ab2HIOXv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2012 10:23:51 -0400
-Received: by pbbrr13 with SMTP id rr13so982879pbb.19
-        for <linux-media@vger.kernel.org>; Thu, 09 Aug 2012 07:23:51 -0700 (PDT)
-Date: Thu, 9 Aug 2012 07:23:46 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
-	sumit.semwal@linaro.org, inki.dae@samsung.com,
-	daniel.vetter@ffwll.ch, rob@ti.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
-	jy0922.shim@samsung.com, sw0312.kim@samsung.com,
-	dan.j.williams@intel.com, linux-doc@vger.kernel.org
-Subject: Re: [PATCH v2 1/2] dma-buf: add reference counting for exporter
- module
-Message-ID: <20120809142346.GA17402@kroah.com>
-References: <1344504982-30415-1-git-send-email-t.stanislaws@samsung.com>
- <1344504982-30415-2-git-send-email-t.stanislaws@samsung.com>
+Received: from eu1sys200aog111.obsmtp.com ([207.126.144.131]:39524 "EHLO
+	eu1sys200aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750817Ab2HCEvE convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Aug 2012 00:51:04 -0400
+From: Naveen KRISHNAMURTHY <naveen.krishnamurthy@st.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"workshop-2011@linuxtv.org" <workshop-2011@linuxtv.org>
+Date: Fri, 3 Aug 2012 06:50:19 +0200
+Subject: RE: [Workshop-2011] Media summit at the Kernel Summit - was: Fwd:
+ Re: [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
+Message-ID: <507CA1C5BFF45D429225893E9D464308311A561C03@SAFEX1MAIL2.st.com>
+References: <20120713173708.GB17109@thunk.org> <5005A14D.8000809@redhat.com>
+ <507CA1C5BFF45D429225893E9D464308311959BAD6@SAFEX1MAIL2.st.com>
+ <50181AAB.5050100@redhat.com>
+In-Reply-To: <50181AAB.5050100@redhat.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1344504982-30415-2-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Aug 09, 2012 at 11:36:21AM +0200, Tomasz Stanislawski wrote:
-> This patch adds reference counting on a module that exported dma-buf and
-> implements its operations. This prevents the module from being unloaded while
-> DMABUF file is in use.
+Hi Mauro,
 
-Why force all of the modules to be changed "by hand", and not just do
-this automatically by changing the register function to include the
-THIS_MODULE macro in it?  Much like the pci_register_driver() function
-is implemented in include/linux/pci.h?
+For the summit this time it is be just me who would be attending. The another person who was slated to  join me cannot make it this time.
 
-That makes it impossible for driver authors to get it wrong, which is
-always a good sign of a correct api.
+Sorry for the delay in response.
 
-thanks,
+Regards
+Naveen
 
-greg k-h
+-----Original Message-----
+From: Mauro Carvalho Chehab [mailto:mchehab@redhat.com] 
+Sent: Tuesday, July 31, 2012 10:50 AM
+To: Naveen KRISHNAMURTHY
+Cc: Linux Media Mailing List; workshop-2011@linuxtv.org
+Subject: Re: [Workshop-2011] Media summit at the Kernel Summit - was: Fwd: Re: [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
+
+Em 24-07-2012 21:17, Naveen KRISHNAMURTHY escreveu:
+> Hello Mauro,
+> 
+> We would like to participate in the media summit at San Diego. Can you please reserve 2 seats for us. 
+
+Who are you planning to send to the media summit?
+
+> If possible we would like to reserve a session to present how we have used the linuxTV to model our 
+> devices and support our use cases. We will also consolidate and pass on a list of questions related 
+> to spec ambiguities and hope to get it clarified during the summit!
+> 
+> Can you please confirm back on the feasibility of our attendance?
+
+I'll be doing it along this week.
+
+Regards,
+Mauro
