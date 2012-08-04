@@ -1,214 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34709 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754923Ab2HONsZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Aug 2012 09:48:25 -0400
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q7FDmPbi004119
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 15 Aug 2012 09:48:25 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 06/12] [media] move the remaining PCI devices to drivers/media/pci
-Date: Wed, 15 Aug 2012 10:48:14 -0300
-Message-Id: <1345038500-28734-7-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1345038500-28734-1-git-send-email-mchehab@redhat.com>
-References: <502AC079.50902@gmail.com>
- <1345038500-28734-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:59079 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752676Ab2HDBsQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Aug 2012 21:48:16 -0400
+Subject: Re: Asus PVR-416
+From: Andy Walls <awalls@md.metrocast.net>
+To: Jerry Haggard <xen2xen1@gmail.com>
+Cc: linux-media@vger.kernel.org
+Date: Fri, 03 Aug 2012 21:48:13 -0400
+In-Reply-To: <CAK4QoGu=uTn_YQoPZq2+jMD+JEmvREhgCYkfLoVfD8TxiMxFvg@mail.gmail.com>
+References: <501668B2.3050107@gmail.com>
+	 <1343686247.2486.8.camel@palomino.walls.org>
+	 <CAK4QoGtQnwug=65j8ZxyUhVBKoXhdb7YAV6g9rMPP06NhVSCeQ@mail.gmail.com>
+	 <CAK4QoGtiN7jRnT2MzUAwogukvpnmdVdk9OrxpfOVAGBYR+v7Wg@mail.gmail.com>
+	 <CAK4QoGu=uTn_YQoPZq2+jMD+JEmvREhgCYkfLoVfD8TxiMxFvg@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <1344044894.2574.17.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move meye and sta2x11_vip into the drivers/media/pci subdirs.
+On Wed, 2012-08-01 at 07:40 -0400, Jerry Haggard wrote:
+> I swapped PCI slots (there's 2), blew it and no change.  I put it back
+> to the firmware from atrpms, and nothing has changed.  Is the checksum
+> mismatch from what's loaded onto the card or is it the checksum of
+> what's on the disk?  I've been obsessed with getting the right
+> firmware since I assume the checksum was from what's on the disc.  Is
+> that wrong? 
+> 
+> 
+> And again, thanks for the help.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/pci/Kconfig                          |  6 +++
- drivers/media/pci/Makefile                         |  2 +
- drivers/media/pci/meye/Kconfig                     | 13 +++++++
- drivers/media/pci/meye/Makefile                    |  1 +
- drivers/media/{video => pci/meye}/meye.c           |  0
- drivers/media/{video => pci/meye}/meye.h           |  0
- drivers/media/pci/sta2x11/Kconfig                  | 12 ++++++
- drivers/media/pci/sta2x11/Makefile                 |  1 +
- drivers/media/{video => pci/sta2x11}/sta2x11_vip.c |  0
- drivers/media/{video => pci/sta2x11}/sta2x11_vip.h |  0
- drivers/media/video/Kconfig                        | 45 ----------------------
- drivers/media/video/Makefile                       |  2 -
- 12 files changed, 35 insertions(+), 47 deletions(-)
- create mode 100644 drivers/media/pci/meye/Kconfig
- create mode 100644 drivers/media/pci/meye/Makefile
- rename drivers/media/{video => pci/meye}/meye.c (100%)
- rename drivers/media/{video => pci/meye}/meye.h (100%)
- create mode 100644 drivers/media/pci/sta2x11/Kconfig
- create mode 100644 drivers/media/pci/sta2x11/Makefile
- rename drivers/media/{video => pci/sta2x11}/sta2x11_vip.c (100%)
- rename drivers/media/{video => pci/sta2x11}/sta2x11_vip.h (100%)
+The MPEG encoder firmware used for the blackbird designs (GPIO connected
+CX23416 or CX23417) should be the same one used with ivtv (PCI connected
+CX23415 or CX23416) - it's the same hardware.
 
-diff --git a/drivers/media/pci/Kconfig b/drivers/media/pci/Kconfig
-index e1a9e1a..4243d5d 100644
---- a/drivers/media/pci/Kconfig
-+++ b/drivers/media/pci/Kconfig
-@@ -5,6 +5,12 @@
- menu "Media PCI Adapters"
- 	visible if PCI && MEDIA_SUPPORT
- 
-+if MEDIA_CAMERA_SUPPORT
-+	comment "Media capture support"
-+source "drivers/media/pci/meye/Kconfig"
-+source "drivers/media/pci/sta2x11/Kconfig"
-+endif
-+
- if MEDIA_ANALOG_TV_SUPPORT
- 	comment "Media capture/analog TV support"
- source "drivers/media/pci/ivtv/Kconfig"
-diff --git a/drivers/media/pci/Makefile b/drivers/media/pci/Makefile
-index bb71e30..c8dc6c7 100644
---- a/drivers/media/pci/Makefile
-+++ b/drivers/media/pci/Makefile
-@@ -22,3 +22,5 @@ obj-$(CONFIG_VIDEO_CX88) += cx88/
- obj-$(CONFIG_VIDEO_BT848) += bt8xx/
- obj-$(CONFIG_VIDEO_SAA7134) += saa7134/
- obj-$(CONFIG_VIDEO_SAA7164) += saa7164/
-+obj-$(CONFIG_VIDEO_MEYE) += meye/
-+obj-$(CONFIG_STA2X11_VIP) += sta2x11/
-diff --git a/drivers/media/pci/meye/Kconfig b/drivers/media/pci/meye/Kconfig
-new file mode 100644
-index 0000000..b4bf848
---- /dev/null
-+++ b/drivers/media/pci/meye/Kconfig
-@@ -0,0 +1,13 @@
-+config VIDEO_MEYE
-+	tristate "Sony Vaio Picturebook Motion Eye Video For Linux"
-+	depends on PCI && SONY_LAPTOP && VIDEO_V4L2
-+	---help---
-+	  This is the video4linux driver for the Motion Eye camera found
-+	  in the Vaio Picturebook laptops. Please read the material in
-+	  <file:Documentation/video4linux/meye.txt> for more information.
-+
-+	  If you say Y or M here, you need to say Y or M to "Sony Laptop
-+	  Extras" in the misc device section.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called meye.
-diff --git a/drivers/media/pci/meye/Makefile b/drivers/media/pci/meye/Makefile
-new file mode 100644
-index 0000000..4938851
---- /dev/null
-+++ b/drivers/media/pci/meye/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_VIDEO_MEYE) += meye.o
-diff --git a/drivers/media/video/meye.c b/drivers/media/pci/meye/meye.c
-similarity index 100%
-rename from drivers/media/video/meye.c
-rename to drivers/media/pci/meye/meye.c
-diff --git a/drivers/media/video/meye.h b/drivers/media/pci/meye/meye.h
-similarity index 100%
-rename from drivers/media/video/meye.h
-rename to drivers/media/pci/meye/meye.h
-diff --git a/drivers/media/pci/sta2x11/Kconfig b/drivers/media/pci/sta2x11/Kconfig
-new file mode 100644
-index 0000000..04a82cb
---- /dev/null
-+++ b/drivers/media/pci/sta2x11/Kconfig
-@@ -0,0 +1,12 @@
-+config STA2X11_VIP
-+	tristate "STA2X11 VIP Video For Linux"
-+	depends on STA2X11
-+	select VIDEO_ADV7180 if VIDEO_HELPER_CHIPS_AUTO
-+	select VIDEOBUF_DMA_CONTIG
-+	depends on PCI && VIDEO_V4L2 && VIRT_TO_BUS
-+	help
-+	  Say Y for support for STA2X11 VIP (Video Input Port) capture
-+	  device.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called sta2x11_vip.
-diff --git a/drivers/media/pci/sta2x11/Makefile b/drivers/media/pci/sta2x11/Makefile
-new file mode 100644
-index 0000000..d6c471d
---- /dev/null
-+++ b/drivers/media/pci/sta2x11/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_STA2X11_VIP) += sta2x11_vip.o
-diff --git a/drivers/media/video/sta2x11_vip.c b/drivers/media/pci/sta2x11/sta2x11_vip.c
-similarity index 100%
-rename from drivers/media/video/sta2x11_vip.c
-rename to drivers/media/pci/sta2x11/sta2x11_vip.c
-diff --git a/drivers/media/video/sta2x11_vip.h b/drivers/media/pci/sta2x11/sta2x11_vip.h
-similarity index 100%
-rename from drivers/media/video/sta2x11_vip.h
-rename to drivers/media/pci/sta2x11/sta2x11_vip.h
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 4d79dfd..d545d93 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -606,51 +606,6 @@ config VIDEO_VIVI
- 	  In doubt, say N.
- 
- #
--# PCI drivers configuration - No devices here are for webcams
--#
--
--menuconfig V4L_PCI_DRIVERS
--	bool "V4L PCI(e) devices"
--	depends on PCI
--	depends on MEDIA_ANALOG_TV_SUPPORT
--	default y
--	---help---
--	  Say Y here to enable support for these PCI(e) drivers.
--
--if V4L_PCI_DRIVERS
--
--config VIDEO_MEYE
--	tristate "Sony Vaio Picturebook Motion Eye Video For Linux"
--	depends on PCI && SONY_LAPTOP && VIDEO_V4L2
--	---help---
--	  This is the video4linux driver for the Motion Eye camera found
--	  in the Vaio Picturebook laptops. Please read the material in
--	  <file:Documentation/video4linux/meye.txt> for more information.
--
--	  If you say Y or M here, you need to say Y or M to "Sony Laptop
--	  Extras" in the misc device section.
--
--	  To compile this driver as a module, choose M here: the
--	  module will be called meye.
--
--
--
--config STA2X11_VIP
--	tristate "STA2X11 VIP Video For Linux"
--	depends on STA2X11
--	select VIDEO_ADV7180 if VIDEO_HELPER_CHIPS_AUTO
--	select VIDEOBUF_DMA_CONTIG
--	depends on PCI && VIDEO_V4L2 && VIRT_TO_BUS
--	help
--	  Say Y for support for STA2X11 VIP (Video Input Port) capture
--	  device.
--
--	  To compile this driver as a module, choose M here: the
--	  module will be called sta2x11_vip.
--
--endif # V4L_PCI_DRIVERS
--
--#
- # ISA & parallel port drivers configuration
- #	All devices here are webcam or grabber devices
- #
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index 8df694d..f212af3 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -92,8 +92,6 @@ obj-$(CONFIG_VIDEO_BWQCAM) += bw-qcam.o
- obj-$(CONFIG_VIDEO_W9966) += w9966.o
- obj-$(CONFIG_VIDEO_PMS) += pms.o
- obj-$(CONFIG_VIDEO_VINO) += vino.o
--obj-$(CONFIG_VIDEO_MEYE) += meye.o
--obj-$(CONFIG_STA2X11_VIP) += sta2x11_vip.o
- obj-$(CONFIG_VIDEO_TIMBERDALE)	+= timblogiw.o
- 
- obj-$(CONFIG_VIDEO_BTCX)  += btcx-risc.o
--- 
-1.7.11.2
+The firmware I happen to have on my machine:
+$ ls -al /lib/firmware/v4l-cx2341x-enc.fw 
+-rwxr-xr-x. 1 root root 376836 Feb 17  2007 /lib/firmware/v4l-cx2341x-enc.fw
+
+$ sha256sum -b /lib/firmware/v4l-cx2341x-enc.fw
+56530c3884feaf587500d42fce47099f9f3af222e3c18f1a9f3d7f0fa916630a */lib/firmware/v4l-cx2341x-enc.fw
+
+
+Which has a size that agrees with the cx88 driver here:
+http://git.linuxtv.org/media_tree.git/blob/staging/for_v3.6:/drivers/media/video/cx88/cx88-blackbird.c#l62
+
+
+The checksum being done by the cx88 driver is here:
+http://git.linuxtv.org/media_tree.git/blob/staging/for_v3.6:/drivers/media/video/cx88/cx88-blackbird.c#l471
+A 2's complement sum of the 1's complement of the data in the file, is
+compared to the sum of the data read back from the device.
+
+If you have a *single* PCI bus error in the memory_read() or
+memory_write() functions, you're done/dead:
+http://git.linuxtv.org/media_tree.git/blob/staging/for_v3.6:/drivers/media/video/cx88/cx88-blackbird.c#l250
+
+A failed PCI read will return 0xFFFFFFFF according to the PCI
+specifications.
+
+I hope that helps you understand what might be going on, and where you
+might need to ivestiagte further.
+
+Regards,
+Andy
+
+> On Wed, Aug 1, 2012 at 7:16 AM, Jerry Haggard <xen2xen1@gmail.com>
+> wrote:
+>         I've played with it a bit more.  I cut the firmware out of the
+>         driver as suggested here:
+>         
+>         
+>         http://www.mythtv.org/wiki/AVerMedia_M150-D 
+>         
+>         
+>         What I get is:
+>         
+>         
+>         cx88[0]/2-bb: Firmware and/or mailbox pointer not initialized
+>         or corrupted
+>         cx88-mpeg driver manager 0000:01:01.2: firmware: requesting
+>         v4l-cx2341x-enc.fw
+>         cx88[0]/2-bb: ERROR: Firmware size mismatch (have 262144,
+>         expected 376836)
+>         
+>         
+>         What I always got before was:
+>         
+>         
+>         cx88[0]: subsystem: 1043:4823, board: ASUS PVR-416
+>         [card=12,autodetected], frontend(s): 0
+>         cx88[0]: TV tuner type 43, Radio tuner type -1
+>         IR RC5(x) protocol handler initialized
+>         IR RC6 protocol handler initialized
+>         All bytes are equal. It is not a TEA5767
+>         tuner 15-0060: Tuner -1 found with type(s) Radio TV.
+>         IR JVC protocol handler initialized
+>         IR Sony protocol handler initialized
+>         tda9887 15-0043: creating new instance
+>         tda9887 15-0043: tda988[5/6/7] found
+>         tuner 15-0043: Tuner 74 found with type(s) Radio TV.
+>         IR SANYO protocol handler initialized
+>         IR MCE Keyboard/mouse protocol handler initialized
+>         lirc_dev: IR Remote Control driver registered, major 248
+>         IR LIRC bridge handler initialized
+>         tuner-simple 15-0060: creating new instance
+>         tuner-simple 15-0060: type set to 43 (Philips NTSC MK3
+>         (FM1236MK3 or FM1236/F))
+>         cx88[0]/0: found at 0000:01:01.0, rev: 5, irq: 21, latency:
+>         64, mmio: 0xdd000000
+>         IRQ 21/cx88[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+>         cx88[0]/0: registered device video0 [v4l2]
+>         cx88[0]/0: registered device vbi0
+>         cx88[0]/0: registered device radio0
+>         cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.9 loaded
+>         cx88[0]/2: cx2388x 8802 Driver Manager
+>         cx88-mpeg driver manager 0000:01:01.2: PCI INT A -> GSI 21
+>         (level, low) -> IRQ 21
+>         cx88[0]/2: found at 0000:01:01.2, rev: 5, irq: 21, latency:
+>         64, mmio: 0xde000000
+>         IRQ 21/cx88[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+>         cx2388x blackbird driver version 0.0.9 loaded
+>         cx88/2: registering cx8802 driver, type: blackbird access:
+>         shared
+>         cx88[0]/2: subsystem: 1043:4823, board: ASUS PVR-416 [card=12]
+>         cx88[0]/2: cx23416 based mpeg encoder (blackbird reference
+>         design)
+>         cx88[0]/2-bb: Firmware and/or mailbox pointer not initialized
+>         or corrupted
+>         cx88-mpeg driver manager 0000:01:01.2: firmware: requesting
+>         v4l-cx2341x-enc.fw
+>         parport_pc 00:06: reported by Plug and Play ACPI
+>         parport0: PC-style at 0x378 (0x778), irq 7
+>         [PCSPP,TRISTATE,EPP]
+>         ppdev: user-space parallel port driver
+>         cx88[0]/2-bb: ERROR: Firmware load failed (checksum mismatch).
+>         cx88[0]/2: registered device video1 [mpeg]
+>         cx88[0]/2-bb: Firmware and/or mailbox pointer not initialized
+>         or corrupted
+>         cx88-mpeg driver manager 0000:01:01.2: firmware: requesting
+>         v4l-cx2341x-enc.fw
+>         cx88[0]/2-bb: ERROR: Firmware load failed (checksum mismatch).
+>         
+>         
+>         It appears that when I give it the correct firmware it
+>         complains?
+>         
+
+
+
+>                 
+>                 
+>                 On Mon, Jul 30, 2012 at 6:10 PM, Andy Walls
+>                 <awalls@md.metrocast.net> wrote:
+>                         On Mon, 2012-07-30 at 06:57 -0400, Jerry
+>                         Haggard wrote:
+>                         > I've been trying to get an ASUS PVR-416 card
+>                         to work with MythTV .25 on
+>                         > Scientific Linux 6.  I have a bttv card
+>                         working, my setup works in
+>                         > general, etc, and the driver attempts to
+>                         load.  But when I check dmesg,
+>                         > I keep getting firmware load errors and
+>                         checksum errors. I've tried
+>                         > every firmware I could find.  I've used the
+>                         one from Atrpms, I've
+>                         > downloaded the correctly named firmware from
+>                         ivtv, but no luck.  Anyone
+>                         > know anything about this card?  I've tried
+>                         cutting the drivers myself
+>                         > like it says in the direcitons at
+>                         mythtv.org. This is supposed to be a
+>                         > supported card, does anyone have any
+>                         experience with it?
+>                         
+>                         
+>                         No experience with it.  It is supposedly a
+>                         Blackbird design supported by
+>                         the cx88 driver.
+>                         
+>                         My standard response for legacy PCI cards that
+>                         are responding somewhat,
+>                         but aren't working properly, is to
+>                         
+>                         1. remove all the legacy PCI cards from all
+>                         the slots
+>                         2. blow the dust out of all the slots
+>                         3. if feasible, reseat only the 1 card and
+>                         test again
+>                         4. reseat all the cards and test again
+>                         
+>                         Since legacy PCI uses reflected wave
+>                         switching, dust in any one slot can
+>                         cause problems.  It's a troubleshooting step
+>                         that's easy enough to do.
+>                         
+>                         If that doesn't work, we would need to see the
+>                         output of dmesg
+>                         and/or /var/log/messages when the module is
+>                         being loaded and the
+>                         firmware loaded.  If providing logs, please
+>                         don't just grep on the
+>                         'cx88' lines, since other modules are involved
+>                         in getting the card
+>                         working.
+
+
+
+
 
