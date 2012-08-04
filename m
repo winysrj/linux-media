@@ -1,110 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:48400 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752042Ab2H1KyN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Aug 2012 06:54:13 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 11/14] media: coda: add horizontal / vertical flipping support
-Date: Tue, 28 Aug 2012 12:53:58 +0200
-Message-Id: <1346151241-10449-12-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1346151241-10449-1-git-send-email-p.zabel@pengutronix.de>
-References: <1346151241-10449-1-git-send-email-p.zabel@pengutronix.de>
+Received: from smtp.nexicom.net ([216.168.96.13]:42428 "EHLO smtp.nexicom.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753875Ab2HDWVl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 4 Aug 2012 18:21:41 -0400
+Received: from mail.lockie.ca (dyn-dsl-mb-216-168-121-135.nexicom.net [216.168.121.135])
+	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id q74MLcpX009574
+	for <linux-media@vger.kernel.org>; Sat, 4 Aug 2012 18:21:39 -0400
+Message-ID: <501DA071.9000705@lockie.ca>
+Date: Sat, 04 Aug 2012 18:21:37 -0400
+From: James <bjlockie@lockie.ca>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Andy Walls <awalls@md.metrocast.net>
+CC: linux-media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: boot slow down
+References: <501D4535.8080404@lockie.ca> <f1bd5aea-00cd-4b3f-9562-d25153f8cef3@email.android.com>
+In-Reply-To: <f1bd5aea-00cd-4b3f-9562-d25153f8cef3@email.android.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The hardware can also rotate in 90° steps, but there is no
-corresponding V4L2_CID defined yet.
-
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/video/coda.c |   19 ++++++++++++++++++-
- drivers/media/video/coda.h |    9 +++++++++
- 2 files changed, 27 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/video/coda.c b/drivers/media/video/coda.c
-index 791e702..3123260 100644
---- a/drivers/media/video/coda.c
-+++ b/drivers/media/video/coda.c
-@@ -142,6 +142,7 @@ struct coda_dev {
- };
- 
- struct coda_params {
-+	u8			rot_mode;
- 	u8			h264_intra_qp;
- 	u8			h264_inter_qp;
- 	u8			mpeg4_intra_qp;
-@@ -696,7 +697,7 @@ static void coda_device_run(void *m2m_priv)
- 	}
- 
- 	/* submit */
--	coda_write(dev, 0, CODA_CMD_ENC_PIC_ROT_MODE);
-+	coda_write(dev, CODA_ROT_MIR_ENABLE | ctx->params.rot_mode, CODA_CMD_ENC_PIC_ROT_MODE);
- 	coda_write(dev, quant_param, CODA_CMD_ENC_PIC_QS);
- 
- 
-@@ -1270,6 +1271,18 @@ static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
- 		 "s_ctrl: id = %d, val = %d\n", ctrl->id, ctrl->val);
- 
- 	switch (ctrl->id) {
-+	case V4L2_CID_HFLIP:
-+		if (ctrl->val)
-+			ctx->params.rot_mode |= CODA_MIR_HOR;
-+		else
-+			ctx->params.rot_mode &= ~CODA_MIR_HOR;
-+		break;
-+	case V4L2_CID_VFLIP:
-+		if (ctrl->val)
-+			ctx->params.rot_mode |= CODA_MIR_VER;
-+		else
-+			ctx->params.rot_mode &= ~CODA_MIR_VER;
-+		break;
- 	case V4L2_CID_MPEG_VIDEO_BITRATE:
- 		ctx->params.bitrate = ctrl->val / 1000;
- 		break;
-@@ -1315,6 +1328,10 @@ static int coda_ctrls_setup(struct coda_ctx *ctx)
- 	v4l2_ctrl_handler_init(&ctx->ctrls, 9);
- 
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
-+		V4L2_CID_HFLIP, 0, 1, 1, 0);
-+	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
-+		V4L2_CID_VFLIP, 0, 1, 1, 0);
-+	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_BITRATE, 0, 32767000, 1, 0);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_GOP_SIZE, 1, 60, 1, 16);
-diff --git a/drivers/media/video/coda.h b/drivers/media/video/coda.h
-index fffeaf0..180ff5b 100644
---- a/drivers/media/video/coda.h
-+++ b/drivers/media/video/coda.h
-@@ -188,6 +188,15 @@
- #define CODA_CMD_ENC_PIC_SRC_ADDR_CR	0x188
- #define CODA_CMD_ENC_PIC_QS		0x18c
- #define CODA_CMD_ENC_PIC_ROT_MODE	0x190
-+#define		CODA_ROT_MIR_ENABLE				(1 << 4)
-+#define		CODA_ROT_0					(0x0 << 0)
-+#define		CODA_ROT_90					(0x1 << 0)
-+#define		CODA_ROT_180					(0x2 << 0)
-+#define		CODA_ROT_270					(0x3 << 0)
-+#define		CODA_MIR_NONE					(0x0 << 2)
-+#define		CODA_MIR_VER					(0x1 << 2)
-+#define		CODA_MIR_HOR					(0x2 << 2)
-+#define		CODA_MIR_VER_HOR				(0x3 << 2)
- #define CODA_CMD_ENC_PIC_OPTION	0x194
- #define CODA_CMD_ENC_PIC_BB_START	0x198
- #define CODA_CMD_ENC_PIC_BB_SIZE	0x19c
--- 
-1.7.10.4
-
+On 08/04/12 13:42, Andy Walls wrote:
+> James <bjlockie@lockie.ca> wrote:
+> 
+>> There's a big pause before the 'unable'
+>>
+>> [    2.243856] usb 4-1: Manufacturer: Logitech
+>> [   62.739097] cx25840 6-0044: unable to open firmware
+>> v4l-cx23885-avcore-01.fw
+>>
+>>
+>> I have a cx23885
+>> cx23885[0]: registered device video0 [v4l2]
+>>
+>> Is there any way to stop it from trying to load the firmware?
+>> What is the firmware for, analog tv? Digital works fine and analog is
+>> useless to me.
+>> I assume it is timing out there.
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>> in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> The firmware is for the analog broadcast audio standard (e.g. BTSC) detection microcontroller.
+> 
+> The A/V core of the CX23885/7/8 chips is for analog vidoe and audio processing (broadcast, CVBS, SVideo, audio L/R in).
+> 
+> The A/V core of the CX23885 provides the IR unit and the Video PLL provides the timing for the IR unit.
+> 
+> The A/V core of the CX23888 provides the Video PLL which is the timing for the IR unit in the CX23888.
+> 
+> Just grab the firmware and be done with it.  Don't waste time with trying to make the cx23885 working properly but halfway.
+> 
+> Regards,
+> Andy
+> 
+I will do that.
+It has been available since 2011 but there was no slowdown before.
