@@ -1,147 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:57872 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755341Ab2HPSLp (ORCPT
+Received: from mail4-relais-sop.national.inria.fr ([192.134.164.105]:10436
+	"EHLO mail4-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753780Ab2HDSXb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Aug 2012 14:11:45 -0400
-Received: by lagy9 with SMTP id y9so1630281lag.19
-        for <linux-media@vger.kernel.org>; Thu, 16 Aug 2012 11:11:43 -0700 (PDT)
-Message-ID: <502D37CF.7030608@iki.fi>
-Date: Thu, 16 Aug 2012 21:11:27 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: CrazyCat <crazycat69@yandex.ru>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] dvb_frontend: Multistream support
-References: <53381345139167@web11e.yandex.ru>
-In-Reply-To: <53381345139167@web11e.yandex.ru>
-Content-Type: text/plain; charset=KOI8-R; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sat, 4 Aug 2012 14:23:31 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] drivers/media/video/mx2_emmaprp.c: use devm_kzalloc and devm_clk_get
+Date: Sat,  4 Aug 2012 20:23:27 +0200
+Message-Id: <1344104607-18805-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/16/2012 08:46 PM, CrazyCat wrote:
-> DTV_ISDBS_TS_ID replaced with DTV_STREAM_ID.
-> Aliases DTV_ISDBS_TS_ID, DTV_DVBS2_MIS_ID for DTV_STREAM_ID.
-> DTV_DVBT2_PLP_ID marked as legacy.
->
-> Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
-> diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
-> index f50d405..3444dda 100644
-> --- a/include/linux/dvb/frontend.h
-> +++ b/include/linux/dvb/frontend.h
-> @@ -62,6 +62,7 @@ typedef enum fe_caps {
->           FE_CAN_8VSB = 0x200000,
->           FE_CAN_16VSB = 0x400000,
->           FE_HAS_EXTENDED_CAPS = 0x800000,   /* We need more bitspace for newer APIs, indicate this. */
-> + FE_CAN_MULTISTREAM = 0x4000000,  /* frontend supports DVB-S2 multistream filtering */
->           FE_CAN_TURBO_FEC = 0x8000000,  /* frontend supports "turbo fec modulation" */
->           FE_CAN_2G_MODULATION = 0x10000000, /* frontend supports "2nd generation modulation" (DVB-S2) */
->           FE_NEEDS_BENDING = 0x20000000, /* not supported anymore, don't use (frontend requires frequency bending) */
-> @@ -314,9 +315,11 @@ struct dvb_frontend_event {
->
->   #define DTV_ISDBT_LAYER_ENABLED 41
->
-> -#define DTV_ISDBS_TS_ID 42
-> +#define DTV_STREAM_ID 42
-> +#define DTV_ISDBS_TS_ID DTV_STREAM_ID
-> +#define DTV_DVBS2_MIS_ID DTV_STREAM_ID
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
-@Mauro, should we rename also DTV_ISDBS_TS_ID to DTV_ISDBS_TS_ID_LEGACY 
-to remind users ?
+Using devm_kzalloc and devm_clk_get simplifies the code and ensures that
+the use of devm_request_irq is safe.  When kzalloc and kfree were used, the
+interrupt could be triggered after the handler's data argument had been
+freed.
 
-> -#define DTV_DVBT2_PLP_ID 43
-> +#define DTV_DVBT2_PLP_ID_LEGACY 43
->
->   #define DTV_ENUM_DELSYS 44
->
-> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h b/drivers/media/dvb/dvb-core/dvb_frontend.h
-> index 7c64c09..bec0cda 100644
-> --- a/drivers/media/dvb/dvb-core/dvb_frontend.h
-> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
-> @@ -368,11 +368,8 @@ struct dtv_frontend_properties {
->               u8 interleaving;
->           } layer[3];
->
-> - /* ISDB-T specifics */
-> - u32 isdbs_ts_id;
-> -
-> - /* DVB-T2 specifics */
-> - u32                     dvbt2_plp_id;
-> + /* Multistream specifics */
-> + u32 stream_id;
+The problem of a free after a devm_request_irq was found using the
+following semantic match (http://coccinelle.lip6.fr/)
 
-u32 == 32 bit long unsigned number. See next comment.
+// <smpl>
+@r exists@
+expression e1,e2,x,a,b,c,d;
+identifier free;
+position p1,p2;
+@@
 
->
->           /* ATSC-MH specifics */
->           u8 atscmh_fic_ver;
-> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-> index aebcdf2..bccd245 100644
-> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-> @@ -946,8 +946,7 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
->                   c->layer[i].segment_count = 0;
->           }
->
-> - c->isdbs_ts_id = 0;
-> - c->dvbt2_plp_id = 0;
-> + c->stream_id = -1;
+  devm_request_irq@p1(e1,e2,...,x)
+  ... when any
+      when != e2 = a
+      when != x = b
+  if (...) {
+    ... when != e2 = c
+        when != x = d
+    free@p2(...,x,...);
+    ...
+    return ...;
+  }
+// </smpl>
 
-unsigned number cannot be -1. It can be only 0 or bigger. Due to that 
-this is wrong.
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
->
->           switch (c->delivery_system) {
->           case SYS_DVBS:
-> @@ -1017,8 +1016,8 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
->           _DTV_CMD(DTV_ISDBT_LAYERC_SEGMENT_COUNT, 1, 0),
->           _DTV_CMD(DTV_ISDBT_LAYERC_TIME_INTERLEAVING, 1, 0),
->
-> - _DTV_CMD(DTV_ISDBS_TS_ID, 1, 0),
-> - _DTV_CMD(DTV_DVBT2_PLP_ID, 1, 0),
-> + _DTV_CMD(DTV_STREAM_ID, 1, 0),
-> + _DTV_CMD(DTV_DVBT2_PLP_ID_LEGACY, 1, 0),
->
->           /* Get */
->           _DTV_CMD(DTV_DISEQC_SLAVE_REPLY, 0, 1),
-> @@ -1382,11 +1381,10 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
->           case DTV_ISDBT_LAYERC_TIME_INTERLEAVING:
->                   tvp->u.data = c->layer[2].interleaving;
->                   break;
-> - case DTV_ISDBS_TS_ID:
-> - tvp->u.data = c->isdbs_ts_id;
-> - break;
-> - case DTV_DVBT2_PLP_ID:
-> - tvp->u.data = c->dvbt2_plp_id;
-> +
-> + case DTV_STREAM_ID:
-> + case DTV_DVBT2_PLP_ID_LEGACY:
-> + tvp->u.data = c->stream_id;
->                   break;
->
->           /* ATSC-MH */
-> @@ -1771,11 +1769,10 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
->           case DTV_ISDBT_LAYERC_TIME_INTERLEAVING:
->                   c->layer[2].interleaving = tvp->u.data;
->                   break;
-> - case DTV_ISDBS_TS_ID:
-> - c->isdbs_ts_id = tvp->u.data;
-> - break;
-> - case DTV_DVBT2_PLP_ID:
-> - c->dvbt2_plp_id = tvp->u.data;
-> +
-> + case DTV_STREAM_ID:
-> + case DTV_DVBT2_PLP_ID_LEGACY:
-> + c->stream_id = tvp->u.data;
->                   break;
->
->           /* ATSC-MH */
+---
+ drivers/media/video/mx2_emmaprp.c |   25 ++++++-------------------
+ 1 file changed, 6 insertions(+), 19 deletions(-)
 
-regards
-Antti
+diff --git a/drivers/media/video/mx2_emmaprp.c b/drivers/media/video/mx2_emmaprp.c
+index 5f8a6f5..78c5dc9 100644
+--- a/drivers/media/video/mx2_emmaprp.c
++++ b/drivers/media/video/mx2_emmaprp.c
+@@ -874,29 +874,27 @@ static int emmaprp_probe(struct platform_device *pdev)
+ 	int irq_emma;
+ 	int ret;
+ 
+-	pcdev = kzalloc(sizeof *pcdev, GFP_KERNEL);
++	pcdev = devm_kzalloc(&pdev->dev, sizeof(*pcdev), GFP_KERNEL);
+ 	if (!pcdev)
+ 		return -ENOMEM;
+ 
+ 	spin_lock_init(&pcdev->irqlock);
+ 
+-	pcdev->clk_emma = clk_get(&pdev->dev, NULL);
++	pcdev->clk_emma = devm_clk_get(&pdev->dev, NULL);
+ 	if (IS_ERR(pcdev->clk_emma)) {
+-		ret = PTR_ERR(pcdev->clk_emma);
+-		goto free_dev;
++		return PTR_ERR(pcdev->clk_emma);
+ 	}
+ 
+ 	irq_emma = platform_get_irq(pdev, 0);
+ 	res_emma = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (irq_emma < 0 || res_emma == NULL) {
+ 		dev_err(&pdev->dev, "Missing platform resources data\n");
+-		ret = -ENODEV;
+-		goto free_clk;
++		return -ENODEV;
+ 	}
+ 
+ 	ret = v4l2_device_register(&pdev->dev, &pcdev->v4l2_dev);
+ 	if (ret)
+-		goto free_clk;
++		return ret;
+ 
+ 	mutex_init(&pcdev->dev_mutex);
+ 
+@@ -922,12 +920,7 @@ static int emmaprp_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, pcdev);
+ 
+-	if (devm_request_mem_region(&pdev->dev, res_emma->start,
+-	    resource_size(res_emma), MEM2MEM_NAME) == NULL)
+-		goto rel_vdev;
+-
+-	pcdev->base_emma = devm_ioremap(&pdev->dev, res_emma->start,
+-					resource_size(res_emma));
++	pcdev->base_emma = devm_request_and_ioremap(&pdev->dev, res_emma);
+ 	if (!pcdev->base_emma)
+ 		goto rel_vdev;
+ 
+@@ -969,10 +962,6 @@ rel_vdev:
+ 	video_device_release(vfd);
+ unreg_dev:
+ 	v4l2_device_unregister(&pcdev->v4l2_dev);
+-free_clk:
+-	clk_put(pcdev->clk_emma);
+-free_dev:
+-	kfree(pcdev);
+ 
+ 	return ret;
+ }
+@@ -987,8 +976,6 @@ static int emmaprp_remove(struct platform_device *pdev)
+ 	v4l2_m2m_release(pcdev->m2m_dev);
+ 	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
+ 	v4l2_device_unregister(&pcdev->v4l2_dev);
+-	clk_put(pcdev->clk_emma);
+-	kfree(pcdev);
+ 
+ 	return 0;
+ }
 
-
--- 
-http://palosaari.fi/
