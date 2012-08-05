@@ -1,36 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57486 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751069Ab2HUNJO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Aug 2012 09:09:14 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] gl861: reset_resume support
-Date: Tue, 21 Aug 2012 16:08:51 +0300
-Message-Id: <1345554531-31715-1-git-send-email-crope@iki.fi>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:64644 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750705Ab2HEEEp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Aug 2012 00:04:45 -0400
+Received: by vcbfk26 with SMTP id fk26so1823665vcb.19
+        for <linux-media@vger.kernel.org>; Sat, 04 Aug 2012 21:04:44 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CALF0-+VHfxhjzc-yBQYrXL7-gscfqt2tZmxx+Tpe8qE+cPXzWA@mail.gmail.com>
+References: <1344103941-23047-1-git-send-email-develkernel412222@gmail.com>
+	<CALF0-+VHfxhjzc-yBQYrXL7-gscfqt2tZmxx+Tpe8qE+cPXzWA@mail.gmail.com>
+Date: Sun, 5 Aug 2012 09:49:44 +0545
+Message-ID: <CA+C2MxQn1OR_2ONEKuGc7HfX+aZos0RUGdr9e-7vP5iNduMn6Q@mail.gmail.com>
+Subject: Re: [PATCH 2/2] staging: media: cxd2099: use kzalloc to allocate ci
+ pointer of type struct cxd in cxd2099_attach
+From: Devendra Naga <develkernel412222@gmail.com>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It survives now on reset_resume.
+Hello Ezequiel,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/gl861.c | 1 +
- 1 file changed, 1 insertion(+)
+On Sun, Aug 5, 2012 at 12:24 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+> Hi Devendra,
+>
+> On Sat, Aug 4, 2012 at 3:12 PM, Devendra Naga
+> <develkernel412222@gmail.com> wrote:
+>>
+>>         mutex_init(&ci->lock);
+>>         memcpy(&ci->cfg, cfg, sizeof(struct cxd2099_cfg));
+>
+> While you're still looking at this driver, perhaps you can change the memcpy
+> with a plain struct assignment (if you feel like).
+> It's really pointless to use a memcpy here.
+>
+> Something like this:
+>
+> -       memcpy(&ci->cfg, cfg, sizeof(struct cxd2099_cfg));
+> +       ci->cfg = *cfg;
+>
+Correct, and also one more thing like this is
 
-diff --git a/drivers/media/usb/dvb-usb-v2/gl861.c b/drivers/media/usb/dvb-usb-v2/gl861.c
-index cf29f43..df78811 100644
---- a/drivers/media/usb/dvb-usb-v2/gl861.c
-+++ b/drivers/media/usb/dvb-usb-v2/gl861.c
-@@ -163,6 +163,7 @@ static struct usb_driver gl861_usb_driver = {
- 	.disconnect = dvb_usbv2_disconnect,
- 	.suspend = dvb_usbv2_suspend,
- 	.resume = dvb_usbv2_resume,
-+	.reset_resume = dvb_usbv2_reset_resume,
- 	.no_dynamic_id = 1,
- 	.soft_unbind = 1,
- };
--- 
-1.7.11.4
+-           memcpy(&ci->en, &en_templ, sizeof(en_templ));
++          ci->en = en_templ;
 
+Is it ok if i change ci->cfg and ci->en?
+> Regards,
+> Ezequiel.
+
+Thanks,
