@@ -1,54 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:47914 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751635Ab2HWNJE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Aug 2012 09:09:04 -0400
-Received: by yenl14 with SMTP id l14so168915yen.19
-        for <linux-media@vger.kernel.org>; Thu, 23 Aug 2012 06:09:04 -0700 (PDT)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	<linux-media@vger.kernel.org>
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH 05/10] coda: Remove unneeded struct vb2_queue clear on queue_init()
-Date: Thu, 23 Aug 2012 10:08:26 -0300
-Message-Id: <1345727311-27478-5-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1345727311-27478-1-git-send-email-elezegarcia@gmail.com>
-References: <1345727311-27478-1-git-send-email-elezegarcia@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:63726 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753823Ab2HEXLI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Aug 2012 19:11:08 -0400
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q75NB8Fj013080
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 5 Aug 2012 19:11:08 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] [media] move dvb-usb-ids.h to dvb-core
+Date: Sun,  5 Aug 2012 20:11:03 -0300
+Message-Id: <1344208263-7305-1-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1344207197-26468-1-git-send-email-mchehab@redhat.com>
+References: <1344207197-26468-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-queue_init() is always called by v4l2_m2m_ctx_init(), which allocates
-a context struct v4l2_m2m_ctx with kzalloc.
-Therefore, there is no need to clear vb2_queue src/dst structs.
+While this header were meant to be used just by dvb-usb driver, it
+is now being used also by dvb-usb-v2 and cx231xx. So, move it to a
+better place.
 
-Cc: Javier Martin <javier.martin@vista-silicon.com>
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/platform/coda.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 6908514..3ea822f 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -1249,7 +1249,6 @@ static int coda_queue_init(void *priv, struct vb2_queue *src_vq,
- 	struct coda_ctx *ctx = priv;
- 	int ret;
+This fixes dvb-usb-v2 build at the out-of-tree media_tree.git.
+
+V.2: Send it with git -M, to better show the changes at dvb-usb-ids.h
+(E. g., no changes there ;) )
+
+ drivers/media/dvb/{dvb-usb => dvb-core}/dvb-usb-ids.h | 0
+ drivers/media/dvb/dvb-usb-v2/dvb_usb.h                | 2 +-
+ drivers/media/dvb/dvb-usb/Makefile                    | 1 -
+ drivers/media/video/cx231xx/Makefile                  | 1 -
+ 4 files changed, 1 insertion(+), 3 deletions(-)
+ rename drivers/media/dvb/{dvb-usb => dvb-core}/dvb-usb-ids.h (100%)
+
+diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h b/drivers/media/dvb/dvb-core/dvb-usb-ids.h
+similarity index 100%
+rename from drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+rename to drivers/media/dvb/dvb-core/dvb-usb-ids.h
+diff --git a/drivers/media/dvb/dvb-usb-v2/dvb_usb.h b/drivers/media/dvb/dvb-usb-v2/dvb_usb.h
+index 4db591b..773817b 100644
+--- a/drivers/media/dvb/dvb-usb-v2/dvb_usb.h
++++ b/drivers/media/dvb/dvb-usb-v2/dvb_usb.h
+@@ -30,7 +30,7 @@
+ #include "dvb_demux.h"
+ #include "dvb_net.h"
+ #include "dmxdev.h"
+-#include "../dvb-usb/dvb-usb-ids.h"
++#include "dvb-usb-ids.h"
  
--	memset(src_vq, 0, sizeof(*src_vq));
- 	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
- 	src_vq->io_modes = VB2_MMAP;
- 	src_vq->drv_priv = ctx;
-@@ -1261,7 +1260,6 @@ static int coda_queue_init(void *priv, struct vb2_queue *src_vq,
- 	if (ret)
- 		return ret;
+ /*
+  * device file: /dev/dvb/adapter[0-1]/frontend[0-2]
+diff --git a/drivers/media/dvb/dvb-usb/Makefile b/drivers/media/dvb/dvb-usb/Makefile
+index 29fa0f0..4b70599 100644
+--- a/drivers/media/dvb/dvb-usb/Makefile
++++ b/drivers/media/dvb/dvb-usb/Makefile
+@@ -92,4 +92,3 @@ ccflags-y += -I$(srctree)/drivers/media/dvb/frontends/
+ # due to tuner-xc3028
+ ccflags-y += -I$(srctree)/drivers/media/common/tuners
+ ccflags-y += -I$(srctree)/drivers/media/dvb/ttpci
+-
+diff --git a/drivers/media/video/cx231xx/Makefile b/drivers/media/video/cx231xx/Makefile
+index b334897..cb06b02 100644
+--- a/drivers/media/video/cx231xx/Makefile
++++ b/drivers/media/video/cx231xx/Makefile
+@@ -12,5 +12,4 @@ ccflags-y += -Idrivers/media/video
+ ccflags-y += -Idrivers/media/common/tuners
+ ccflags-y += -Idrivers/media/dvb/dvb-core
+ ccflags-y += -Idrivers/media/dvb/frontends
+-ccflags-y += -Idrivers/media/dvb/dvb-usb
  
--	memset(dst_vq, 0, sizeof(*dst_vq));
- 	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 	dst_vq->io_modes = VB2_MMAP;
- 	dst_vq->drv_priv = ctx;
 -- 
-1.7.8.6
+1.7.11.2
 
