@@ -1,48 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:44612 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752891Ab2HBSNi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Aug 2012 14:13:38 -0400
-References: <50186040.1050908@lockie.ca> <c5ac2603-cc98-4688-b50c-b9166cada8f0@email.android.com> <5019EE10.1000207@lockie.ca> <bdafbcab-4074-4557-b108-a76f00ab8b3e@email.android.com> <CAGoCfiwN=h708e65DmZi7m6gcRMmcRbRZGJvpJ6ZzUk9Cm22dQ@mail.gmail.com>
-In-Reply-To: <CAGoCfiwN=h708e65DmZi7m6gcRMmcRbRZGJvpJ6ZzUk9Cm22dQ@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:22942 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754513Ab2HEOgS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Aug 2012 10:36:18 -0400
+Message-ID: <501E84D6.1040402@redhat.com>
+Date: Sun, 05 Aug 2012 11:36:06 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: 3.5 kernel options for Hauppauge_WinTV-HVR-1250
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Thu, 02 Aug 2012 14:13:45 -0400
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: James <bjlockie@lockie.ca>,
-	linux-media Mailing List <linux-media@vger.kernel.org>
-Message-ID: <78067ada-2e91-40ff-bfd4-c22210861918@email.android.com>
+To: Malcolm Priestley <tvboxspy@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCH] lmedm04 v2.05 conversion to dvb-usb-v2
+References: <1344175824.18047.7.camel@router7789>
+In-Reply-To: <1344175824.18047.7.camel@router7789>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
+Em 05-08-2012 11:10, Malcolm Priestley escreveu:
+> Conversion of lmedm04 to dvb-usb-v2
+> 
+> functional changes are that callbacks have been moved to fe_ioctl_override.
 
->On Thu, Aug 2, 2012 at 5:53 AM, Andy Walls <awalls@md.metrocast.net>
->wrote:
->> You can 'grep MODULE_ drivers/media/video/cx23885/*
->drivers/media/video/cx25840/* ' and other relevant directories under
->drivers/media/{dvb, common} to find all the parameter options for all
->the drivers involved in making a HVR_1250 work.
->
->Or just build with everything enabled until you know it is working,
->and then optimize the list of modules later.
->
->Also, the 1250 is broken for analog until very recently (patches went
->upstream for 3.5/3.6 a few days ago).
->
->Devin
->
->-- 
->Devin J. Heitmueller - Kernel Labs
->http://www.kernellabs.com
+Don't do that: fe_ioctl_override has a broken design and only handles DVBv3
+ioctl's. So, if userspace is using DVBv5, this will cause a regression.
 
-Oh, James meant kernel *build* options, not kernel *commandline/module* options.
+Antti,
 
-Then what I offered won't help at all.
+IMO, the best thing to do is to either remove fe_ioctl_override or to print
+a warning when a driver calls it, in order to warn developers that they're
+using a legacy callback that could cause the driver to not work properly.
 
--Andy
+Regards,
+Mauro
+
