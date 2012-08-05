@@ -1,73 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:43592 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752336Ab2HTBYk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Aug 2012 21:24:40 -0400
-Received: by yenl14 with SMTP id l14so4806062yen.19
-        for <linux-media@vger.kernel.org>; Sun, 19 Aug 2012 18:24:40 -0700 (PDT)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: [PATCH 4/4] stk1160: Stop device and unqueue buffers when start_streaming() fails
-Date: Sun, 19 Aug 2012 22:23:46 -0300
-Message-Id: <1345425826-13429-4-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1345425826-13429-1-git-send-email-elezegarcia@gmail.com>
-References: <1345425826-13429-1-git-send-email-elezegarcia@gmail.com>
+Received: from dell.nexicom.net ([216.168.96.13]:37186 "EHLO smtp.nexicom.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754535Ab2HEP1V (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Aug 2012 11:27:21 -0400
+Received: from mail.lockie.ca (dyn-dsl-mb-216-168-121-226.nexicom.net [216.168.121.226])
+	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id q75FR4Z7002164
+	for <linux-media@vger.kernel.org>; Sun, 5 Aug 2012 11:27:10 -0400
+Received: from [127.0.0.1] (unknown [IPv6:::1])
+	by mail.lockie.ca (Postfix) with ESMTP id 3F5CB1E010D
+	for <linux-media@vger.kernel.org>; Sun,  5 Aug 2012 11:27:04 -0400 (EDT)
+Message-ID: <501E90C8.1000906@lockie.ca>
+Date: Sun, 05 Aug 2012 11:27:04 -0400
+From: James <bjlockie@lockie.ca>
+MIME-Version: 1.0
+To: linux-media Mailing List <linux-media@vger.kernel.org>
+Subject: firmware directory
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If start_streaming() fails (e.g. out of memory) the driver needs to
-rewind the start procedure. This implies possibly stopping the device
-and clearing the buffer queue.
+[   62.739097] cx25840 6-0044: unable to open firmware v4l-cx23885-avcore-01.fw
 
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- drivers/media/usb/stk1160/stk1160-v4l.c |   16 ++++++++++++----
- 1 files changed, 12 insertions(+), 4 deletions(-)
+Did the firmware directory change recently?
 
-diff --git a/drivers/media/usb/stk1160/stk1160-v4l.c b/drivers/media/usb/stk1160/stk1160-v4l.c
-index 63c5832..cc5a95f 100644
---- a/drivers/media/usb/stk1160/stk1160-v4l.c
-+++ b/drivers/media/usb/stk1160/stk1160-v4l.c
-@@ -184,7 +184,7 @@ static int stk1160_start_streaming(struct stk1160 *dev)
- 	if (!dev->isoc_ctl.num_bufs || new_pkt_size) {
- 		rc = stk1160_alloc_isoc(dev);
- 		if (rc < 0)
--			goto out_unlock;
-+			goto out_stop_hw;
- 	}
- 
- 	/* submit urbs and enables IRQ */
-@@ -192,8 +192,7 @@ static int stk1160_start_streaming(struct stk1160 *dev)
- 		rc = usb_submit_urb(dev->isoc_ctl.urb[i], GFP_KERNEL);
- 		if (rc) {
- 			stk1160_err("cannot submit urb[%d] (%d)\n", i, rc);
--			stk1160_uninit_isoc(dev);
--			goto out_unlock;
-+			goto out_uninit;
- 		}
- 	}
- 
-@@ -206,7 +205,16 @@ static int stk1160_start_streaming(struct stk1160 *dev)
- 
- 	stk1160_dbg("streaming started\n");
- 
--out_unlock:
-+	mutex_unlock(&dev->v4l_lock);
-+
-+	return 0;
-+
-+out_uninit:
-+	stk1160_uninit_isoc(dev);
-+out_stop_hw:
-+	usb_set_interface(dev->udev, 0, 0);
-+	stk1160_clear_queue(dev);
-+
- 	mutex_unlock(&dev->v4l_lock);
- 
- 	return rc;
--- 
-1.7.8.6
-
+# ls -l /lib/firmware/v4l-cx23885-avcore-01.fw 
+-rw-r--r-- 1 root root 16382 Oct 15  2011 /lib/firmware/v4l-cx23885-avcore-01.fw
