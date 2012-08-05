@@ -1,68 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:32810 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932566Ab2HGCsH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 22:48:07 -0400
-Received: by mail-vc0-f174.google.com with SMTP id fk26so3432645vcb.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 19:48:07 -0700 (PDT)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH 20/24] au0828: tweak workaround for i2c clock stretching bug
-Date: Mon,  6 Aug 2012 22:47:10 -0400
-Message-Id: <1344307634-11673-21-git-send-email-dheitmueller@kernellabs.com>
-In-Reply-To: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
-References: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:43741 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753759Ab2HESMK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Aug 2012 14:12:10 -0400
+Received: by obbuo13 with SMTP id uo13so4562082obb.19
+        for <linux-media@vger.kernel.org>; Sun, 05 Aug 2012 11:12:09 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CA+C2MxQn1OR_2ONEKuGc7HfX+aZos0RUGdr9e-7vP5iNduMn6Q@mail.gmail.com>
+References: <1344103941-23047-1-git-send-email-develkernel412222@gmail.com>
+	<CALF0-+VHfxhjzc-yBQYrXL7-gscfqt2tZmxx+Tpe8qE+cPXzWA@mail.gmail.com>
+	<CA+C2MxQn1OR_2ONEKuGc7HfX+aZos0RUGdr9e-7vP5iNduMn6Q@mail.gmail.com>
+Date: Sun, 5 Aug 2012 15:12:09 -0300
+Message-ID: <CALF0-+WuPQcyvyYz9hVGwP6prS6Y5A0Q64Va3BtCn=QKwxAWGQ@mail.gmail.com>
+Subject: Re: [PATCH 2/2] staging: media: cxd2099: use kzalloc to allocate ci
+ pointer of type struct cxd in cxd2099_attach
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Devendra Naga <develkernel412222@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The hack I put in a couple of years ago to avoid clock stretching issues
-when talking to the xc5000 worked fine for writes, but intermittently fails
-for register reads, because the xc5000 may stretch the clock for longer
-between bytes (I was seeing cases of 21 us on the analyzer).
+Hi Devendra,
 
-The problem manifested itself as the xc5000 firmware version and PLL lock
-register intermittently showing garbage values.
+On Sun, Aug 5, 2012 at 1:04 AM, Devendra Naga
+<develkernel412222@gmail.com> wrote:
+> Hello Ezequiel,
+>
+> On Sun, Aug 5, 2012 at 12:24 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+>> Hi Devendra,
+>>
+>> On Sat, Aug 4, 2012 at 3:12 PM, Devendra Naga
+>> <develkernel412222@gmail.com> wrote:
+>>>
+>>>         mutex_init(&ci->lock);
+>>>         memcpy(&ci->cfg, cfg, sizeof(struct cxd2099_cfg));
+>>
+>> While you're still looking at this driver, perhaps you can change the memcpy
+>> with a plain struct assignment (if you feel like).
+>> It's really pointless to use a memcpy here.
+>>
+>> Something like this:
+>>
+>> -       memcpy(&ci->cfg, cfg, sizeof(struct cxd2099_cfg));
+>> +       ci->cfg = *cfg;
+>>
+> Correct, and also one more thing like this is
+>
+> -           memcpy(&ci->en, &en_templ, sizeof(en_templ));
+> +          ci->en = en_templ;
+>
+> Is it ok if i change ci->cfg and ci->en?
 
-Slow down the i2c bus from 30 KHz to 20 KHz to accommodate.
+Yes, I believe it is ok.
 
-Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
----
- drivers/media/video/au0828/au0828-cards.c |    4 ++--
- drivers/media/video/au0828/au0828-reg.h   |    1 +
- 2 files changed, 3 insertions(+), 2 deletions(-)
+A few more remarks I would like to add.
 
-diff --git a/drivers/media/video/au0828/au0828-cards.c b/drivers/media/video/au0828/au0828-cards.c
-index 1c6015a..4a09b0e 100644
---- a/drivers/media/video/au0828/au0828-cards.c
-+++ b/drivers/media/video/au0828/au0828-cards.c
-@@ -46,7 +46,7 @@ struct au0828_board au0828_boards[] = {
- 		.name	= "Hauppauge HVR850",
- 		.tuner_type = TUNER_XC5000,
- 		.tuner_addr = 0x61,
--		.i2c_clk_divider = AU0828_I2C_CLK_30KHZ,
-+		.i2c_clk_divider = AU0828_I2C_CLK_20KHZ,
- 		.input = {
- 			{
- 				.type = AU0828_VMUX_TELEVISION,
-@@ -77,7 +77,7 @@ struct au0828_board au0828_boards[] = {
- 		   stretch fits inside of a normal clock cycle, or else the
- 		   au0828 fails to set the STOP bit.  A 30 KHz clock puts the
- 		   clock pulse width at 18us */
--		.i2c_clk_divider = AU0828_I2C_CLK_30KHZ,
-+		.i2c_clk_divider = AU0828_I2C_CLK_20KHZ,
- 		.input = {
- 			{
- 				.type = AU0828_VMUX_TELEVISION,
-diff --git a/drivers/media/video/au0828/au0828-reg.h b/drivers/media/video/au0828/au0828-reg.h
-index c39f3d2..2140f4c 100644
---- a/drivers/media/video/au0828/au0828-reg.h
-+++ b/drivers/media/video/au0828/au0828-reg.h
-@@ -63,3 +63,4 @@
- #define AU0828_I2C_CLK_250KHZ 0x07
- #define AU0828_I2C_CLK_100KHZ 0x14
- #define AU0828_I2C_CLK_30KHZ  0x40
-+#define AU0828_I2C_CLK_20KHZ  0x60
--- 
-1.7.1
+1. When sending patches for staging/media, it's not necessary to put
+staging list/maintainer
+(Greg) on Cc. I guess, it doesn't hurt, though.
+But it's media list / Mauro who will decide on the patches.
 
+2. You could also change the order in "struct cxd".
+Currently it's like this
+
+struct cxd {
+        struct dvb_ca_en50221 en;
+        struct i2c_adapter *i2c;
+        struct cxd2099_cfg cfg;
+
+But it would be better to put it like this
+
+struct cxd {
+        struct i2c_adapter *i2c;
+        struct cxd2099_cfg cfg;
+        struct dvb_ca_en50221 en;
+
+It's more logical, and ci->i2c and ci->cfg are used more frequently, so it makes
+sense to put it near the top of the struct.
+(You may think I'm being too paranoid: I am).
+
+3. You don't have hw to test, uh?
+In that case, don't forget to always add a "Tested by compilation only"
+inside the commit message. That way the maintainer (Mauro) are free to
+_not_ pick
+the patch, if he feels it's not safe/clear enough.
+
+Hope this helps and thanks for your work,
+Ezequiel.
