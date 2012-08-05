@@ -1,75 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog119.obsmtp.com ([207.126.144.147]:33891 "EHLO
-	eu1sys200aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751123Ab2HaJLu convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Aug 2012 05:11:50 -0400
-From: Nicolas THERY <nicolas.thery@st.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	devicetree-discuss <devicetree-discuss@lists.ozlabs.org>,
-	"linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Benjamin GAIGNARD <benjamin.gaignard@st.com>,
-	Willy POISSON <willy.poisson@st.com>,
-	Jean-Marc VOLLE <jean-marc.volle@st.com>,
-	Pierre-yves TALOUD <pierre-yves.taloud@st.com>
-Date: Fri, 31 Aug 2012 11:11:15 +0200
-Subject: Re: [RFC v4] V4L DT bindings
-Message-ID: <50407FB3.3050209@st.com>
-References: <Pine.LNX.4.64.1208242356051.20710@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1208242356051.20710@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:46889 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755131Ab2HEVvq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Aug 2012 17:51:46 -0400
+Received: by obbuo13 with SMTP id uo13so4819976obb.19
+        for <linux-media@vger.kernel.org>; Sun, 05 Aug 2012 14:51:46 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <1344199202-15744-1-git-send-email-develkernel412222@gmail.com>
+References: <1344199202-15744-1-git-send-email-develkernel412222@gmail.com>
+Date: Sun, 5 Aug 2012 18:51:45 -0300
+Message-ID: <CALF0-+UHQ_TdAL-wdRLEjoi33UiFBVMUCZLbaMh9oZ5qsDOA_A@mail.gmail.com>
+Subject: Re: [PATCH] staging: media: cxd2099: remove memcpy of similar
+ structure variables
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Devendra Naga <develkernel412222@gmail.com>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Devendra,
 
-On 2012-08-25 01:27, Guennadi Liakhovetski wrote:
+Thanks for the patch,
 
-[snip]
+On Sun, Aug 5, 2012 at 5:40 PM, Devendra Naga
+<develkernel412222@gmail.com> wrote:
+> structure variables can be assigned, no memcpy needed,
+> remove the memcpy and use assignment for the cfg and en variables.
+>
+> Tested by Compilation Only
+>
+> Suggested-by: Ezequiel Garcia <elezegarcia@gmail.com>
 
-> 	csi2: csi2@0xffc90000 {
-> 		compatible = "renesas,sh-mobile-csi2";
-> 		reg = <0xffc90000 0x1000>;
-> 		interrupts = <0x17a0>;
-> 		#address-cells = <1>;
-> 		#size-cells = <0>;
-> 
-> 		/* Ok to have them global? */
-> 		clock-lanes = <0>;
-> 		data-lanes = <2>, <1>;
-> 
-> 		...
-> 		imx074_1: videolink@1 {
-> 			reg = <1>;
-> 			client = <&imx074 0>;
-> 			bus-width = <2>;
-> 
-> 			csi2-ecc;
-> 			csi2-crc;
-> 
-> 			renesas,csi2-phy = <0>;
-> 		};
-> 		ceu0: videolink@0 {
-> 			reg = <0>;
-> 			immutable;
-> 		};
-> 	};
+I'm not sure this is completely valid or useful.
 
-videolink@1 makes the description of the CSI-2 rx board-specific.  Would it be
-possible to keep the description of the SoC nodes board-agnostic to ease reuse
-of the SoC description in multiple board DTs?
+If you read Documentation/SubmittingPatches (which you should)
+you will find references to Acked-by, Reported-by, Tested-by,
+but not this one.
 
-Would this be as simple as replacing &imx074 with a generic well-known name
-defined in the board part of the DT?
+You don't need to give me credit for the patch:
+it's *your* patch, all I did was a very simple suggestion :-)
 
-Best regards,
-Nicolas
+Plus, there was some discussion called "Kernel Komedians" [1] where
+some developer expressed their concern on the number of weird signatures
+that have recently appeared.
+
+Regards,
+Ezequiel.
+
+[1] http://lwn.net/Articles/503829/
