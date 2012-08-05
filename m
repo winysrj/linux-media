@@ -1,58 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([93.97.41.153]:38064 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755483Ab2HXX00 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 19:26:26 -0400
-Date: Sat, 25 Aug 2012 00:26:25 +0100
-From: Sean Young <sean@mess.org>
-To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] rc: do not sleep when the driver blocks on IR
- completion
-Message-ID: <20120824232625.GA24562@pequod.mess.org>
-References: <1345756715-17643-1-git-send-email-sean@mess.org>
- <20120824220518.GA19354@hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20120824220518.GA19354@hardeman.nu>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:54146 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751298Ab2HEMbO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Aug 2012 08:31:14 -0400
+From: Emil Goode <emilgoode@gmail.com>
+To: hdegoede@redhat.com, mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
+	Emil Goode <emilgoode@gmail.com>
+Subject: [PATCH] [media] gspca: dubious one-bit signed bitfield
+Date: Sun,  5 Aug 2012 14:34:26 +0200
+Message-Id: <1344170066-19727-1-git-send-email-emilgoode@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Aug 25, 2012 at 12:05:18AM +0200, David Härdeman wrote:
-> On Thu, Aug 23, 2012 at 10:18:35PM +0100, Sean Young wrote:
-> >Some drivers wait for the IR device to complete sending before
-> >returning, so sleeping should not be done.
-> 
-> I'm not quite sure what the purpose is. Even if a driver waits for TX to
-> finish, the lirc imposed sleep isn't harmful in any way.
+This patch changes some signed integers to unsigned because
+they are not intended for negative values and sparse
+is making noise about it.
 
-Due to rounding errors, clock skew and different start times, the sleep 
-might be waiting for a different amount of time than the hardware took 
-to send it. The sleep is a bit of a kludge, let alone if the driver
-can wait for the hardware to tell you when it's done.
+Sparse gives eight of these errors:
+drivers/media/video/gspca/ov519.c:144:29: error: dubious one-bit signed bitfield
 
-Also, your change calculates the amount of us to sleep after transmission, 
-so if the transmission buffer was modified by the driver, the calculated 
-sleep might not make sense. Both winbond-cir and iguanair do this.
+Signed-off-by: Emil Goode <emilgoode@gmail.com>
+---
+ drivers/media/video/gspca/ov519.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-> As far as I can tell, the iguanair driver waits for the usb packet to be
-> submitted, not for IR TX to finish.
+diff --git a/drivers/media/video/gspca/ov519.c b/drivers/media/video/gspca/ov519.c
+index bfc7cef..c1a21bf 100644
+--- a/drivers/media/video/gspca/ov519.c
++++ b/drivers/media/video/gspca/ov519.c
+@@ -141,14 +141,14 @@ enum sensors {
+ 
+ /* table of the disabled controls */
+ struct ctrl_valid {
+-	int has_brightness:1;
+-	int has_contrast:1;
+-	int has_exposure:1;
+-	int has_autogain:1;
+-	int has_sat:1;
+-	int has_hvflip:1;
+-	int has_autobright:1;
+-	int has_freq:1;
++	unsigned int has_brightness:1;
++	unsigned int has_contrast:1;
++	unsigned int has_exposure:1;
++	unsigned int has_autogain:1;
++	unsigned int has_sat:1;
++	unsigned int has_hvflip:1;
++	unsigned int has_autobright:1;
++	unsigned int has_freq:1;
+ };
+ 
+ static const struct ctrl_valid valid_controls[] = {
+-- 
+1.7.10.4
 
-The iguanair driver waits for the ack from the device (which is an urb
-you receive from the device), which is sent once the IR has been 
-transmitted. The firmware source code is available.
-
-> As for winbond-cir, it would be simple enough to change it so that it
-> doesn't wait for TX to finish (which seems to be a better solution).
->
-> Having the TX methods as asynchronous as possible is probably a better
-> way to go...as I expect a future TX API to be asynchronous.
-
-I agree that a future TX API should be asynchronous and I like your
-ideas around that; however that won't be ready for v3.7.
-
-
-Sean
