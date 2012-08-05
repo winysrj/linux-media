@@ -1,67 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36403 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:25039 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751032Ab2HLPbB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Aug 2012 11:31:01 -0400
-Message-ID: <5027CC2A.1060608@redhat.com>
-Date: Sun, 12 Aug 2012 12:30:50 -0300
+	id S1753759Ab2HESQe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Aug 2012 14:16:34 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q75IGYos022145
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 5 Aug 2012 14:16:34 -0400
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH RFC 2/3] dvb_frontend: return -ENOTTY for unimplement
- IOCTL
-References: <1344551101-16700-1-git-send-email-crope@iki.fi> <1344551101-16700-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1344551101-16700-3-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 0/2] get rid of fe_ioctl_override()
+Date: Sun,  5 Aug 2012 15:16:28 -0300
+Message-Id: <1344190590-10863-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 09-08-2012 19:25, Antti Palosaari escreveu:
-> Earlier it was returning -EOPNOTSUPP.
+There's just one driver using fe_ioctl_override(), and it can be
+replaced at tuner_attach call. This callback is evil, as only DVBv3
+calls are handled.
 
-This change makes all sense to me. We just need to be sure that this won't
-cause any regressions on userspace apps.
+Removing it is also a nice cleanup, as about 90 lines of code are
+removed.
 
-Regards,
-Mauro
-> 
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  drivers/media/dvb/dvb-core/dvb_frontend.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-> index 4548fc9..4fc11eb 100644
-> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-> @@ -1830,7 +1830,7 @@ static int dvb_frontend_ioctl(struct file *file,
->  	struct dvb_frontend *fe = dvbdev->priv;
->  	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->  	struct dvb_frontend_private *fepriv = fe->frontend_priv;
-> -	int err = -EOPNOTSUPP;
-> +	int err = -ENOTTY;
->  
->  	dev_dbg(fe->dvb->device, "%s: (%d)\n", __func__, _IOC_NR(cmd));
->  	if (fepriv->exit != DVB_FE_NO_EXIT)
-> @@ -1948,7 +1948,7 @@ static int dvb_frontend_ioctl_properties(struct file *file,
->  		}
->  
->  	} else
-> -		err = -EOPNOTSUPP;
-> +		err = -ENOTTY;
->  
->  out:
->  	kfree(tvp);
-> @@ -2081,7 +2081,7 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
->  	struct dvb_frontend *fe = dvbdev->priv;
->  	struct dvb_frontend_private *fepriv = fe->frontend_priv;
->  	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-> -	int cb_err, err = -EOPNOTSUPP;
-> +	int cb_err, err = -ENOTTY;
->  
->  	if (fe->dvb->fe_ioctl_override) {
->  		cb_err = fe->dvb->fe_ioctl_override(fe, cmd, parg,
-> 
+Get rid of it!
+
+Mauro Carvalho Chehab (2):
+  [media] dvb core: remove support for post FE legacy ioctl intercept
+  [media] dvb: get rid of fe_ioctl_override callback
+
+ drivers/media/dvb/dvb-core/dvb_frontend.c   | 20 +----------------
+ drivers/media/dvb/dvb-core/dvbdev.h         | 26 ----------------------
+ drivers/media/dvb/dvb-usb-v2/dvb_usb.h      |  3 ---
+ drivers/media/dvb/dvb-usb-v2/dvb_usb_core.c |  2 --
+ drivers/media/dvb/dvb-usb-v2/mxl111sf.c     | 34 +----------------------------
+ drivers/media/dvb/dvb-usb/dvb-usb-dvb.c     |  1 -
+ drivers/media/dvb/dvb-usb/dvb-usb.h         |  2 --
+ drivers/media/video/cx23885/cx23885-dvb.c   |  3 +--
+ drivers/media/video/cx88/cx88-dvb.c         |  2 +-
+ drivers/media/video/saa7134/saa7134-dvb.c   |  2 +-
+ drivers/media/video/videobuf-dvb.c          | 11 +++-------
+ include/media/videobuf-dvb.h                |  4 +---
+ 12 files changed, 9 insertions(+), 101 deletions(-)
+
+-- 
+1.7.11.2
 
