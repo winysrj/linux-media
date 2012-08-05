@@ -1,79 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:58310 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753051Ab2HVS5m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Aug 2012 14:57:42 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Guenter Roeck <linux@roeck-us.net>
-Subject: Re: [PATCH] media/radio/shark2: Fix build error caused by missing dependencies
-Date: Wed, 22 Aug 2012 18:57:01 +0000
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-kernel@vger.kernel.org
-References: <1345648585-5176-1-git-send-email-linux@roeck-us.net> <5034F932.4000405@redhat.com> <20120822152922.GA6177@roeck-us.net>
-In-Reply-To: <20120822152922.GA6177@roeck-us.net>
+Received: from mx1.redhat.com ([209.132.183.28]:49639 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751914Ab2HEVbJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Aug 2012 17:31:09 -0400
+Message-ID: <501EE61A.2060804@redhat.com>
+Date: Sun, 05 Aug 2012 18:31:06 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 0/2] get rid of fe_ioctl_override()
+References: <1344190590-10863-1-git-send-email-mchehab@redhat.com> <CAGoCfizhL6=WhV9-9RMx9PX8ctV2Ao+GyMzPL8T67g4y5nBWAw@mail.gmail.com>
+In-Reply-To: <CAGoCfizhL6=WhV9-9RMx9PX8ctV2Ao+GyMzPL8T67g4y5nBWAw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201208221857.01527.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 22 August 2012, Guenter Roeck wrote:
-> On Wed, Aug 22, 2012 at 05:22:26PM +0200, Hans de Goede wrote:
-> > Hi,
-> > 
-> > I've a better fix for this here:
-> > http://git.linuxtv.org/hgoede/gspca.git/shortlog/refs/heads/media-for_v3.6
-> > 
-> > I already send a pull-req for this to Mauro a while ago, Mauro?
-> > 
-> Looks like it found its way into mainline in the last couple of days.
-> Should have updated my tree first. Sorry for the noise.
+Em 05-08-2012 15:44, Devin Heitmueller escreveu:
+> On Sun, Aug 5, 2012 at 2:16 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> There's just one driver using fe_ioctl_override(), and it can be
+>> replaced at tuner_attach call. This callback is evil, as only DVBv3
+>> calls are handled.
+>>
+>> Removing it is also a nice cleanup, as about 90 lines of code are
+>> removed.
+>>
+>> Get rid of it!
 > 
+> Did you consult with anyone about this?  Did you talk to the
+> maintainer for the driver that uses this functionality (he's not on
+> the CC: for this patch series).  Did you actually do any testing to
+> validate that it didn't break anything?
+> 
+> This might indeed be a piece of functionality that can possibly be
+> removed, assuming you can answer yes to all three of the questions
+> above.
 
-I found another issue with the shark driver while doing randconfig tests.
-Here is my semi-automated log file for the problem. Has this also made
-it in already?
+This is not how it works. Patches are posted at the ML and developers can
+review and comment about them. Does those patches break something? If not, 
+please stop flaming.
 
-	Arnd
+With regards to Cc the driver maintainer (mkrufky), the patch also got
+forwarded to him, in priv (it were supposed to be sent via git send-email, 
+but, as it wasn't, the patch was manually forwarded for him to review,
+just after the patchbomb).
 
----
-Without this patch, building rand-0y2jSKT results in:
+In any case, my intention is to wait for a couple days before merging
+the patches I posted today, as the dvb-usb-v2 is too new, and it is good
+to hear some comments about it.
 
-WARNING: drivers/usb/musb/musb_hdrc.o(.devinit.text+0x9b8): Section mismatch in reference from the function musb_init_controller() to the function .init.text:dma_controller_create()
-The function __devinit musb_init_controller() references
-a function __init dma_controller_create().
-If dma_controller_create is only used by musb_init_controller then
-annotate dma_controller_create with a matching annotation.
-
-ERROR: "snd_tea575x_init" [drivers/media/radio/radio-shark.ko] undefined!
-ERROR: "snd_tea575x_exit" [drivers/media/radio/radio-shark.ko] undefined!
-make[2]: *** [__modpost] Error 1
-make[1]: *** [modules] Error 2
-make: *** [sub-make] Error 2
-
----
- sound/pci/Kconfig |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/sound/pci/Kconfig b/sound/pci/Kconfig
-index ff3af6e..f99fa25 100644
---- a/sound/pci/Kconfig
-+++ b/sound/pci/Kconfig
-@@ -2,8 +2,8 @@
- 
- config SND_TEA575X
- 	tristate
--	depends on SND_FM801_TEA575X_BOOL || SND_ES1968_RADIO || RADIO_SF16FMR2 || RADIO_MAXIRADIO
--	default SND_FM801 || SND_ES1968 || RADIO_SF16FMR2 || RADIO_MAXIRADIO
-+	depends on SND_FM801_TEA575X_BOOL || SND_ES1968_RADIO || RADIO_SF16FMR2 || RADIO_MAXIRADIO || RADIO_SHARK
-+	default SND_FM801 || SND_ES1968 || RADIO_SF16FMR2 || RADIO_MAXIRADIO || RADIO_SHARK
- 
- menuconfig SND_PCI
- 	bool "PCI sound devices"
--- 
-1.7.10
-
+Regards,
+Mauro
