@@ -1,89 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out.inet.fi ([195.156.147.13]:51185 "EHLO jenni1.inet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752021Ab2HJKQm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Aug 2012 06:16:42 -0400
-From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Cc: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Subject: [PATCHv2 2/2] ARM: mach-omap2: board-rx51-peripherals: Add lirc-rx51 data
-Date: Fri, 10 Aug 2012 13:16:37 +0300
-Message-Id: <1344593797-15819-3-git-send-email-timo.t.kokkonen@iki.fi>
-In-Reply-To: <1344593797-15819-1-git-send-email-timo.t.kokkonen@iki.fi>
-References: <1344593797-15819-1-git-send-email-timo.t.kokkonen@iki.fi>
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:62815 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755680Ab2HEXvD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Aug 2012 19:51:03 -0400
+Received: by ggnl2 with SMTP id l2so1990567ggn.19
+        for <linux-media@vger.kernel.org>; Sun, 05 Aug 2012 16:51:02 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <501EE61A.2060804@redhat.com>
+References: <1344190590-10863-1-git-send-email-mchehab@redhat.com>
+	<CAGoCfizhL6=WhV9-9RMx9PX8ctV2Ao+GyMzPL8T67g4y5nBWAw@mail.gmail.com>
+	<501EE61A.2060804@redhat.com>
+Date: Sun, 5 Aug 2012 19:51:01 -0400
+Message-ID: <CAGoCfiyXJNJDBJ5JXJ29zEE9S3Z4wycpdFJgkFcFgFPc4_+LFg@mail.gmail.com>
+Subject: Re: [PATCH 0/2] get rid of fe_ioctl_override()
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The IR diode on the RX51 is connected to the GPT9. This data is needed
-for the IR driver to function.
+On Sun, Aug 5, 2012 at 5:31 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> This is not how it works. Patches are posted at the ML and developers can
+> review and comment about them. Does those patches break something? If not,
+> please stop flaming.
 
-Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
----
- arch/arm/mach-omap2/board-rx51-peripherals.c |   30 ++++++++++++++++++++++++++
- 1 files changed, 30 insertions(+), 0 deletions(-)
+I'm confused why you think this email was a flame.  It's asked three
+very straight-forward questions that could have easily have been asked
+of any submitter who failed to cc: the maintainer for a particular
+driver in the patch submission.
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index df2534d..ca07264 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -34,6 +34,7 @@
- #include <plat/gpmc.h>
- #include <plat/onenand.h>
- #include <plat/gpmc-smc91x.h>
-+#include <plat/omap-pm.h>
- 
- #include <mach/board-rx51.h>
- 
-@@ -46,6 +47,10 @@
- #include <../drivers/staging/iio/light/tsl2563.h>
- #include <linux/lis3lv02d.h>
- 
-+#if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
-+#include <media/ir-rx51.h>
-+#endif
-+
- #include "mux.h"
- #include "hsmmc.h"
- #include "common-board-devices.h"
-@@ -1220,6 +1225,30 @@ static void __init rx51_init_tsc2005(void)
- 				gpio_to_irq(RX51_TSC2005_IRQ_GPIO);
- }
- 
-+#if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
-+static struct lirc_rx51_platform_data rx51_lirc_data = {
-+	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
-+	.pwm_timer = 9, /* Use GPT 9 for CIR */
-+};
-+
-+static struct platform_device rx51_lirc_device = {
-+	.name           = "lirc_rx51",
-+	.id             = -1,
-+	.dev            = {
-+		.platform_data = &rx51_lirc_data,
-+	},
-+};
-+
-+static void __init rx51_init_lirc(void)
-+{
-+	platform_device_register(&rx51_lirc_device);
-+}
-+#else
-+static void __init rx51_init_lirc(void)
-+{
-+}
-+#endif
-+
- void __init rx51_peripherals_init(void)
- {
- 	rx51_i2c_init();
-@@ -1230,6 +1259,7 @@ void __init rx51_peripherals_init(void)
- 	rx51_init_wl1251();
- 	rx51_init_tsc2005();
- 	rx51_init_si4713();
-+	rx51_init_lirc();
- 	spi_register_board_info(rx51_peripherals_spi_board_info,
- 				ARRAY_SIZE(rx51_peripherals_spi_board_info));
- 
+> With regards to Cc the driver maintainer (mkrufky), the patch also got
+> forwarded to him, in priv (it were supposed to be sent via git send-email,
+> but, as it wasn't, the patch was manually forwarded for him to review,
+> just after the patchbomb).
+
+Stating that a clerical error had been made during the git send-email
+and thus you forwarded it to him in private would have been a
+perfectly reasonable answer to my question.
+
+No need to create drama where there isn't any.
+
+Devin
+
 -- 
-1.7.8.6
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
