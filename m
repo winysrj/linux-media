@@ -1,71 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50954 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753131Ab2HBVlZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2012 17:41:25 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: =?ISO-8859-1?Q?R=E9mi?= Denis-Courmont <remi@remlab.net>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de
-Subject: Re: [PATCHv2 3/9] v4l: add buffer exporting via dmabuf
-Date: Thu, 02 Aug 2012 23:41:31 +0200
-Message-ID: <191994915.iXxuxlMUSc@avalon>
-In-Reply-To: <201208020956.45291.remi@remlab.net>
-References: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com> <201208020835.58332.hverkuil@xs4all.nl> <201208020956.45291.remi@remlab.net>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Received: from mx1.redhat.com ([209.132.183.28]:27319 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754742Ab2HERon (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Aug 2012 13:44:43 -0400
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q75HihvR006028
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 5 Aug 2012 13:44:43 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 1/3] [media] az6007: rename "st" to "state" at az6007_power_ctrl()
+Date: Sun,  5 Aug 2012 14:44:37 -0300
+Message-Id: <1344188679-8247-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1344188679-8247-1-git-send-email-mchehab@redhat.com>
+References: <1344188679-8247-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rémi,
+On all other parts, this var is called state. So, use the same
+name here, to be consistent.
 
-On Thursday 02 August 2012 09:56:43 Rémi Denis-Courmont wrote:
-> Le jeudi 2 août 2012 09:35:58 Hans Verkuil, vous avez écrit :
-> > On Wed August 1 2012 22:49:57 Rémi Denis-Courmont wrote:
-> > > > What about using the CREATE_BUFS ioctl to add new MMAP buffers at
-> > > > runtime ?
-> > > 
-> > > Does CREATE_BUFS always work while already streaming has already
-> > > started?
-> > > If it depends on the driver, it's kinda helpless.
-> > 
-> > Yes, it does. It's one of the reasons it exists in the first place. But
-> > there are currently only a handful of drivers that implement it. I hope
-> > that as more and more drivers are converted to vb2 that the availability
-> > of create_bufs will increase.
-> 
-> That's contradictory. If most drivers do not support it, then it won't work
-> during streaming.
-> 
-> > > What's the guaranteed minimum buffer count? It seems in any case, MMAP
-> > > has a hard limit of 32 buffers (at least videobuf2 has), though one
-> > > might argue this should be more than enough.
-> > 
-> > Minimum or maximum? The maximum is 32, that's hardcoded in the V4L2 core.
-> > Although drivers may force a lower maximum if they want. I have no idea
-> > whether there are drivers that do that. There probably are.
-> 
-> The smallest of the maxima of all drivers.
-> 
-> > The minimum is usually between 1 and 3, depending on hardware limitations.
-> 
-> And that's clearly insufficient without memory copy to userspace buffers.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/dvb-usb-v2/az6007.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-That's the minimum number of buffers *required* by the hardware. You can add 
-up to 32 buffers, I'm not aware of any driver that would prevent that.
-
-> It does not seem to me that CREATE_BUFS+MMAP is a useful replacement for
-> REQBUFS+USERBUF then.
-
+diff --git a/drivers/media/dvb/dvb-usb-v2/az6007.c b/drivers/media/dvb/dvb-usb-v2/az6007.c
+index 4671eaa..bb7f61d 100644
+--- a/drivers/media/dvb/dvb-usb-v2/az6007.c
++++ b/drivers/media/dvb/dvb-usb-v2/az6007.c
+@@ -637,13 +637,13 @@ static int az6007_tuner_attach(struct dvb_usb_adapter *adap)
+ 
+ int az6007_power_ctrl(struct dvb_usb_device *d, int onoff)
+ {
+-	struct az6007_device_state *st = d_to_priv(d);
++	struct az6007_device_state *state = d_to_priv(d);
+ 	int ret;
+ 
+ 	pr_debug("%s()\n", __func__);
+ 
+-	if (!st->warm) {
+-		mutex_init(&st->mutex);
++	if (!state->warm) {
++		mutex_init(&state->mutex);
+ 
+ 		ret = az6007_write(d, AZ6007_POWER, 0, 2, NULL, 0);
+ 		if (ret < 0)
+@@ -674,7 +674,7 @@ int az6007_power_ctrl(struct dvb_usb_device *d, int onoff)
+ 		if (ret < 0)
+ 			return ret;
+ 
+-		st->warm = true;
++		state->warm = true;
+ 
+ 		return 0;
+ 	}
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.11.2
 
