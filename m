@@ -1,42 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:9968 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:34872 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752696Ab2HMVjq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Aug 2012 17:39:46 -0400
-Message-ID: <50297418.4030906@redhat.com>
-Date: Mon, 13 Aug 2012 18:39:36 -0300
+	id S1754742Ab2HERo7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Aug 2012 13:44:59 -0400
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q75HixjD015382
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 5 Aug 2012 13:44:59 -0400
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Walter Van Eetvelt <walter@van.eetvelt.be>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>,
-	workshop-2011@linuxtv.org
-Subject: Re: RFC: V4L2 API ambiguities
-References: <201208131427.56961.hverkuil@xs4all.nl> <8ed2a79057a0cc80ba058cebd97fd69d@mail.eetvelt.be> <CAGoCfiwJOt8LQYyGu0G=iJ-fAMyB82Y2jyZc4TS72QHOE9ZmnQ@mail.gmail.com>
-In-Reply-To: <CAGoCfiwJOt8LQYyGu0G=iJ-fAMyB82Y2jyZc4TS72QHOE9ZmnQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] [media] az6007: Update copyright
+Date: Sun,  5 Aug 2012 14:44:55 -0300
+Message-Id: <1344188695-9558-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 13-08-2012 18:31, Devin Heitmueller escreveu:
-> On Mon, Aug 13, 2012 at 4:27 PM, Walter Van Eetvelt
-> <walter@van.eetvelt.be> wrote:
->> For me there is a an issue in the V4L specs for the support of DVB-S/C/T
->> devices where the CI device is decoupled from the Tuners.
->> At the moment there is no standard solution on which device drivers
->> implementers and Application programmers can fall back.
-> 
-> DVB isn't part of the V4L spec.  There are *tons* of problems with
-> DVB, none of which are being discussed in this meeting (out of scope).
+Update copyright comments after dvb-usb-v2 conversion.
 
-No, it is not out of scope. The thing is that none of the developers
-that are going to be there proposed a DVB-specific themes, unfortunately.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/dvb-usb-v2/az6007.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Yet, there are two themes there that are not V4L only: the userspace
-discussions and the SoC discussions. I expect that it will focus at
-the media API's as a hole, and not just V4L API.
+diff --git a/drivers/media/dvb/dvb-usb-v2/az6007.c b/drivers/media/dvb/dvb-usb-v2/az6007.c
+index 420cb62..54f1221 100644
+--- a/drivers/media/dvb/dvb-usb-v2/az6007.c
++++ b/drivers/media/dvb/dvb-usb-v2/az6007.c
+@@ -7,9 +7,9 @@
+  *	http://linux.terratec.de/files/TERRATEC_H7/20110323_TERRATEC_H7_Linux.tar.gz
+  * The original driver's license is GPL, as declared with MODULE_LICENSE()
+  *
+- * Copyright (c) 2010-2011 Mauro Carvalho Chehab <mchehab@redhat.com>
++ * Copyright (c) 2010-2012 Mauro Carvalho Chehab <mchehab@redhat.com>
+  *	Driver modified by in order to work with upstream drxk driver, and
+- *	tons of bugs got fixed.
++ *	tons of bugs got fixed, and converted to use dvb-usb-v2.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+-- 
+1.7.11.2
 
-Regards,
-Mauro
