@@ -1,112 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:40014 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757066Ab2HNSlM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 14:41:12 -0400
-Message-ID: <502A9BB7.8020204@iki.fi>
-Date: Tue, 14 Aug 2012 21:40:55 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Randy Dunlap <rdunlap@xenotime.net>
-CC: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: linux-next: Tree for Aug 14 (media/dvb/dvb-usb-v2/anysee)
-References: <20120814135506.b6b86e3c8cb9da1eefb7bbd6@canb.auug.org.au> <502A90EC.40201@xenotime.net>
-In-Reply-To: <502A90EC.40201@xenotime.net>
-Content-Type: multipart/mixed;
- boundary="------------060805000901090407040600"
+Received: from mx1.redhat.com ([209.132.183.28]:8530 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754725Ab2HERon (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Aug 2012 13:44:43 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q75HihJZ007113
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 5 Aug 2012 13:44:43 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/3] [media] az6007: make all functions static
+Date: Sun,  5 Aug 2012 14:44:38 -0300
+Message-Id: <1344188679-8247-3-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1344188679-8247-1-git-send-email-mchehab@redhat.com>
+References: <1344188679-8247-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------060805000901090407040600
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+There's no reason why those functions shouldn't be static.
 
-On 08/14/2012 08:54 PM, Randy Dunlap wrote:
-> On 08/13/2012 08:55 PM, Stephen Rothwell wrote:
->
->> Hi all,
->>
->> Changes since 20120813:
->>
->
->
->
-> on x86_64:
->
-> In file included from drivers/media/dvb/dvb-usb-v2/anysee.c:34:0:
-> drivers/media/dvb/dvb-usb-v2/anysee.h:51:0: warning: "debug_dump" redefined
-> drivers/media/dvb/dvb-usb-v2/anysee.h:47:0: note: this is the location of the previous definition
-
-Thank you Randy for the report. Attached patch fix it.
-
-Unfortunately it will not apply for current next as Mauro reorganized 
-drivers/media/ today and this one is top of that. I will make another 
-patch to change whole driver to use Kernel dev_* debugging and sent 
-those linus-media. I hope those are in next quite soon.
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
-
---------------060805000901090407040600
-Content-Type: text/x-patch;
- name="0001-anysee-fix-compiler-warning.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="0001-anysee-fix-compiler-warning.patch"
-
->From cbd18c187db27686f2fd14348255713defe1d90a Mon Sep 17 00:00:00 2001
-From: Antti Palosaari <crope@iki.fi>
-Date: Tue, 14 Aug 2012 21:23:01 +0300
-Subject: [PATCH] anysee: fix compiler warning
-
-debug_dump macro was defined twice when CONFIG_DVB_USB_DEBUG was
-not set. Move debug_dump macro to correct place.
-
-Reported-by: Randy Dunlap <rdunlap@xenotime.net>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/usb/dvb-usb-v2/anysee.h | 13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ drivers/media/dvb/dvb-usb-v2/az6007.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/anysee.h b/drivers/media/usb/dvb-usb-v2/anysee.h
-index dc40dcf..834dc12 100644
---- a/drivers/media/usb/dvb-usb-v2/anysee.h
-+++ b/drivers/media/usb/dvb-usb-v2/anysee.h
-@@ -41,19 +41,18 @@
- #ifdef CONFIG_DVB_USB_DEBUG
- #define dprintk(var, level, args...) \
- 	do { if ((var & level)) printk(args); } while (0)
--#define DVB_USB_DEBUG_STATUS
--#else
--#define dprintk(args...)
--#define debug_dump(b, l, func)
--#define DVB_USB_DEBUG_STATUS " (debugging is not enabled)"
--#endif
--
- #define debug_dump(b, l, func) {\
- 	int loop_; \
- 	for (loop_ = 0; loop_ < l; loop_++) \
- 		func("%02x ", b[loop_]); \
- 	func("\n");\
+diff --git a/drivers/media/dvb/dvb-usb-v2/az6007.c b/drivers/media/dvb/dvb-usb-v2/az6007.c
+index bb7f61d..4a0ee64 100644
+--- a/drivers/media/dvb/dvb-usb-v2/az6007.c
++++ b/drivers/media/dvb/dvb-usb-v2/az6007.c
+@@ -635,7 +635,7 @@ static int az6007_tuner_attach(struct dvb_usb_adapter *adap)
+ 	return 0;
  }
-+#define DVB_USB_DEBUG_STATUS
-+#else
-+#define dprintk(args...)
-+#define debug_dump(b, l, func)
-+#define DVB_USB_DEBUG_STATUS " (debugging is not enabled)"
-+#endif
  
- #define deb_info(args...) dprintk(dvb_usb_anysee_debug, 0x01, args)
- #define deb_xfer(args...) dprintk(dvb_usb_anysee_debug, 0x02, args)
+-int az6007_power_ctrl(struct dvb_usb_device *d, int onoff)
++static int az6007_power_ctrl(struct dvb_usb_device *d, int onoff)
+ {
+ 	struct az6007_device_state *state = d_to_priv(d);
+ 	int ret;
+@@ -784,7 +784,7 @@ static struct i2c_algorithm az6007_i2c_algo = {
+ 	.functionality = az6007_i2c_func,
+ };
+ 
+-int az6007_identify_state(struct dvb_usb_device *d, const char **name)
++static int az6007_identify_state(struct dvb_usb_device *d, const char **name)
+ {
+ 	int ret;
+ 	u8 *mac;
 -- 
 1.7.11.2
 
-
---------------060805000901090407040600--
