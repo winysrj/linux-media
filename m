@@ -1,54 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hqemgate04.nvidia.com ([216.228.121.35]:6299 "EHLO
-	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754386Ab2HQGEj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Aug 2012 02:04:39 -0400
-From: Hiroshi Doyu <hdoyu@nvidia.com>
-To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-CC: Antti Palosaari <crope@iki.fi>,
-	"htl10@users.sourceforge.net" <htl10@users.sourceforge.net>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"joe@perches.com" <joe@perches.com>,
-	"linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
-Date: Fri, 17 Aug 2012 08:04:16 +0200
-Subject: [PATCH 1/1] driver-core: Shut up dev_dbg_reatelimited() without
- DEBUG
-Message-ID: <20120817.090416.563933713934615530.hdoyu@nvidia.com>
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:58083 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755991Ab2HFUhn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 16:37:43 -0400
+Received: by wgbdr13 with SMTP id dr13so3157595wgb.1
+        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 13:37:42 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <4FF5F4C4.7080904@redhat.com>
+References: <1341497792-6066-1-git-send-email-mchehab@redhat.com>
+	<1341497792-6066-3-git-send-email-mchehab@redhat.com>
+	<4FF5AD40.3070707@iki.fi>
+	<CAKJOob9KBQRHXWTrOM_=hmF5OSoovhPWY4aGCbhhsbLKTk5NgQ@mail.gmail.com>
+	<4FF5F4C4.7080904@redhat.com>
+Date: Tue, 7 Aug 2012 02:07:41 +0530
+Message-ID: <CAHFNz9+zRw_Wgxk6u5oi0VxTFKG6QPufqtfPrzW8+qHYi7xVXA@mail.gmail.com>
+Subject: Re: [PATCH 3/3] [media] tuner, xc2028: add support for get_afc()
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Bert Massop <bert.massop@gmail.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-dev_dbg_reatelimited() without DEBUG printed "217078 callbacks
-suppressed". This shouldn't print anything without DEBUG.
+On Fri, Jul 6, 2012 at 1:40 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em 05-07-2012 14:37, Bert Massop escreveu:
+>> On Thu, Jul 5, 2012 at 5:05 PM, Antti Palosaari <crope@iki.fi> wrote:
+>>>
+>>> On 07/05/2012 05:16 PM, Mauro Carvalho Chehab wrote:
+>>>>
+>>>> Implement API support to return AFC frequency shift, as this device
+>>>> supports it. The only other driver that implements it is tda9887,
+>>>> and the frequency there is reported in Hz. So, use Hz also for this
+>>>> tuner.
+>>>
+>>>
+>>> What is AFC and why it is needed?
+>>>
+>>
+>> AFC is short for Automatic Frequency Control, by which a tuner
+>> automatically fine-tunes the frequency for the best reception,
+>> compensating for small offsets and oscillator frequency drift.
+>> This is however done automatically on the tuner, so its configuration
+>> is read-only. Aside from being a "nice to know" statistic, getting
+>> hold of the AFC frequency shift does as far as I know not have any
+>> practical uses related to properly operating the tuner.
+>
+> AFC might be useful on a few situations. For example, my CATV operator
+> still broadcasts some channels in both analog and digital.
 
-Signed-off-by: Hiroshi Doyu <hdoyu@nvidia.com>
-Reported-by: Antti Palosaari <crope@iki.fi>
----
- include/linux/device.h |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
 
-diff --git a/include/linux/device.h b/include/linux/device.h
-index eb945e1..d4dc26e 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -962,9 +962,13 @@ do {									\
- 	dev_level_ratelimited(dev_notice, dev, fmt, ##__VA_ARGS__)
- #define dev_info_ratelimited(dev, fmt, ...)				\
- 	dev_level_ratelimited(dev_info, dev, fmt, ##__VA_ARGS__)
-+#if defined(DEBUG)
- #define dev_dbg_ratelimited(dev, fmt, ...)				\
- 	dev_level_ratelimited(dev_dbg, dev, fmt, ##__VA_ARGS__)
--
-+#else
-+#define dev_dbg_ratelimited(dev, fmt, ...)			\
-+	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
-+#endif
- /*
-  * Stupid hackaround for existing uses of non-printk uses dev_info
-  *
--- 
-1.7.5.4
+If you have really have hardware that does AFC "Automatic Frequency Control",
+then you shouldn't be exposing this value to userspace. It should be
+held in the
+driver alone.
+
+Technically, hardware that do not have AFC alone should expose this value to
+userspace, so that applications can control the dumb piece of hardware, that
+doesn't lock to Fc aka "Center frequency". All decent tuners do lock onto the
+center of the step size in any given case, these days.
+
+When the driver knows the offset, it needs to compute the offset and sum it
+to the resultant, so that get_frequency() retrieves the recomputed value.
+
+
+Manu
