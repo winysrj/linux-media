@@ -1,41 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:37543 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754722Ab2HGQm7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Aug 2012 12:42:59 -0400
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH 10/11] saa7127: use %*ph to print small buffers
-Date: Tue,  7 Aug 2012 19:43:10 +0300
-Message-Id: <1344357792-18202-10-git-send-email-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <1344357792-18202-1-git-send-email-andriy.shevchenko@linux.intel.com>
-References: <1344357792-18202-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:33788 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753630Ab2HFIQp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 04:16:45 -0400
+From: Federico Vaga <federico.vaga@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: Re: Update VIP to videobuf2 and control framework
+Date: Mon, 06 Aug 2012 10:20:26 +0200
+Message-ID: <6057415.g6SXonzdhM@harkonnen>
+In-Reply-To: <201208060936.29244.hverkuil@xs4all.nl>
+References: <1343765829-6006-1-git-send-email-federico.vaga@gmail.com> <4296967.xtOULN4YkB@harkonnen> <201208060936.29244.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/media/video/saa7127.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+> In that case I need to see your latest version of the source code to
+> see why it doesn't work.
 
-diff --git a/drivers/media/video/saa7127.c b/drivers/media/video/saa7127.c
-index 39c90b0..8ecb656 100644
---- a/drivers/media/video/saa7127.c
-+++ b/drivers/media/video/saa7127.c
-@@ -364,10 +364,7 @@ static int saa7127_set_vps(struct v4l2_subdev *sd, const struct v4l2_sliced_vbi_
- 	state->vps_data[2] = data->data[9];
- 	state->vps_data[3] = data->data[10];
- 	state->vps_data[4] = data->data[11];
--	v4l2_dbg(1, debug, sd, "Set VPS data %02x %02x %02x %02x %02x\n",
--		state->vps_data[0], state->vps_data[1],
--		state->vps_data[2], state->vps_data[3],
--		state->vps_data[4]);
-+	v4l2_dbg(1, debug, sd, "Set VPS data %*ph\n", 5, state->vps_data);
- 	saa7127_write(sd, 0x55, state->vps_data[0]);
- 	saa7127_write(sd, 0x56, state->vps_data[1]);
- 	saa7127_write(sd, 0x57, state->vps_data[2]);
+I send it as patch v2 of the previous one
+
 -- 
-1.7.10.4
-
+Federico Vaga
