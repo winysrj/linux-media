@@ -1,48 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:60654 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754723Ab2HGQm7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Aug 2012 12:42:59 -0400
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH 11/11] au0828: use %*ph to dump small buffers
-Date: Tue,  7 Aug 2012 19:43:11 +0300
-Message-Id: <1344357792-18202-11-git-send-email-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <1344357792-18202-1-git-send-email-andriy.shevchenko@linux.intel.com>
-References: <1344357792-18202-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Received: from acsinet15.oracle.com ([141.146.126.227]:49623 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756550Ab2HFOXv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 10:23:51 -0400
+Date: Mon, 6 Aug 2012 17:23:23 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] drivers/media/video/mx2_emmaprp.c: use devm_kzalloc and
+ devm_clk_get
+Message-ID: <20120806142323.GO4352@mwanda>
+References: <1344104607-18805-1-git-send-email-Julia.Lawall@lip6.fr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1344104607-18805-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/media/video/au0828/au0828-core.c |   12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+On Sat, Aug 04, 2012 at 08:23:27PM +0200, Julia Lawall wrote:
+> @@ -922,12 +920,7 @@ static int emmaprp_probe(struct platform_device *pdev)
+>  
+>  	platform_set_drvdata(pdev, pcdev);
+>  
+> -	if (devm_request_mem_region(&pdev->dev, res_emma->start,
+> -	    resource_size(res_emma), MEM2MEM_NAME) == NULL)
+> -		goto rel_vdev;
+> -
+> -	pcdev->base_emma = devm_ioremap(&pdev->dev, res_emma->start,
+> -					resource_size(res_emma));
+> +	pcdev->base_emma = devm_request_and_ioremap(&pdev->dev, res_emma);
+>  	if (!pcdev->base_emma)
+>  		goto rel_vdev;
 
-diff --git a/drivers/media/video/au0828/au0828-core.c b/drivers/media/video/au0828/au0828-core.c
-index 1e4ce50..49e0e92 100644
---- a/drivers/media/video/au0828/au0828-core.c
-+++ b/drivers/media/video/au0828/au0828-core.c
-@@ -73,17 +73,7 @@ static void cmd_msg_dump(struct au0828_dev *dev)
- 	int i;
- 
- 	for (i = 0; i < sizeof(dev->ctrlmsg); i += 16)
--		dprintk(2, "%s() %02x %02x %02x %02x %02x %02x %02x %02x "
--				"%02x %02x %02x %02x %02x %02x %02x %02x\n",
--			__func__,
--			dev->ctrlmsg[i+0], dev->ctrlmsg[i+1],
--			dev->ctrlmsg[i+2], dev->ctrlmsg[i+3],
--			dev->ctrlmsg[i+4], dev->ctrlmsg[i+5],
--			dev->ctrlmsg[i+6], dev->ctrlmsg[i+7],
--			dev->ctrlmsg[i+8], dev->ctrlmsg[i+9],
--			dev->ctrlmsg[i+10], dev->ctrlmsg[i+11],
--			dev->ctrlmsg[i+12], dev->ctrlmsg[i+13],
--			dev->ctrlmsg[i+14], dev->ctrlmsg[i+15]);
-+		dprintk(2, "%s() %*ph\n", __func__, 16, dev->ctrlmsg + i);
- }
- 
- static int send_control_msg(struct au0828_dev *dev, u16 request, u32 value,
--- 
-1.7.10.4
+This was in the original code, but there is a "ret = -ENOMEM;"
+missing here, and again a couple lines down in the original code.
+
+regards,
+dan carpenter
+
 
