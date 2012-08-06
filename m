@@ -1,73 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:53687 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755630Ab2HNPhJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 11:37:09 -0400
-Received: from epcpsbgm1.samsung.com (mailout4.samsung.com [203.254.224.34])
- by mailout4.samsung.com
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:63605 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751316Ab2HFNUP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 09:20:15 -0400
+Received: from eusync3.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
  (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M8R000FS4PW3Z20@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:37:08 +0900 (KST)
-Received: from mcdsrvbld02.digital.local ([106.116.37.23])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M8R004J44MBC810@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:37:08 +0900 (KST)
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de, dmitriyz@google.com,
-	s.nawrocki@samsung.com, k.debski@samsung.com
-Subject: [PATCHv8 15/26] v4l: s5p-fimc: support for dmabuf importing
-Date: Tue, 14 Aug 2012 17:34:45 +0200
-Message-id: <1344958496-9373-16-git-send-email-t.stanislaws@samsung.com>
-In-reply-to: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
-References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
+ 17 2011)) with ESMTP id <0M8C0095S52HST70@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 06 Aug 2012 14:20:41 +0100 (BST)
+Received: from AMDN157 ([106.116.147.102])
+ by eusync3.samsung.com (Oracle Communications Messaging Server 7u4-23.01
+ (7.0.4.23.0) 64bit (built Aug 10 2011))
+ with ESMTPA id <0M8C00NOJ51L5880@eusync3.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 06 Aug 2012 14:20:13 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Arun Kumar K' <arun.kk@samsung.com>, linux-media@vger.kernel.org
+Cc: jtp.park@samsung.com, janghyuck.kim@samsung.com,
+	jaeryul.oh@samsung.com, ch.naveen@samsung.com,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	kmpark@infradead.org, joshi@samsung.com
+References: <1343046557-25353-1-git-send-email-arun.kk@samsung.com>
+ <1343046557-25353-2-git-send-email-arun.kk@samsung.com>
+In-reply-to: <1343046557-25353-2-git-send-email-arun.kk@samsung.com>
+Subject: RE: [PATCH v3 1/4] [media] s5p-mfc: update MFC v4l2 driver to support
+ MFC6.x
+Date: Mon, 06 Aug 2012 15:20:12 +0200
+Message-id: <00f201cd73d6$36371eb0$a2a55c10$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: en-gb
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch enhances s5p-fimc with support for DMABUF importing via
-V4L2_MEMORY_DMABUF memory type.
+Hi Arun,
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/video/s5p-fimc/Kconfig        |    1 +
- drivers/media/video/s5p-fimc/fimc-capture.c |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+Please find my comments below.
 
-diff --git a/drivers/media/video/s5p-fimc/Kconfig b/drivers/media/video/s5p-fimc/Kconfig
-index a564f7e..3106026 100644
---- a/drivers/media/video/s5p-fimc/Kconfig
-+++ b/drivers/media/video/s5p-fimc/Kconfig
-@@ -14,6 +14,7 @@ config VIDEO_S5P_FIMC
- 	depends on I2C
- 	select VIDEOBUF2_DMA_CONTIG
- 	select V4L2_MEM2MEM_DEV
-+	select DMA_SHARED_BUFFER
- 	help
- 	  This is a V4L2 driver for Samsung S5P and EXYNOS4 SoC camera host
- 	  interface and video postprocessor (FIMC and FIMC-LITE) devices.
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 8e413dd..3fcaf7d 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -1634,7 +1634,7 @@ static int fimc_register_capture_device(struct fimc_dev *fimc,
- 	q = &fimc->vid_cap.vbq;
- 	memset(q, 0, sizeof(*q));
- 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
--	q->io_modes = VB2_MMAP | VB2_USERPTR;
-+	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
- 	q->drv_priv = fimc->vid_cap.ctx;
- 	q->ops = &fimc_capture_qops;
- 	q->mem_ops = &vb2_dma_contig_memops;
--- 
-1.7.9.5
+Best wishes,
+--
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
+
+
+> From: Arun Kumar K [mailto:arun.kk@samsung.com]
+> Sent: 23 July 2012 14:29
+> 
+> From: Jeongtae Park <jtp.park@samsung.com>
+> 
+> Multi Format Codec 6.x is a hardware video coding acceleration
+> module fount in new Exynos5 SoC series.
+> It is capable of handling a range of video codecs and this driver
+> provides a V4L2 interface for video decoding and encoding.
+> 
+> This is the first patch in the series for MFCv6 support. The major
+> changes done in this patch is for MFCv5 and MFCv6 co-existence
+> in the same kernel image.
+> 
+> Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
+> Singed-off-by: Janghyuck Kim <janghyuck.kim@samsung.com>
+> Singed-off-by: Jaeryul Oh <jaeryul.oh@samsung.com>
+> Signed-off-by: Naveen Krishna Chatradhi <ch.naveen@samsung.com>
+> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+> Cc: Kamil Debski <k.debski@samsung.com>
+> ---
+>  drivers/media/video/Kconfig                  |    4 +-
+>  drivers/media/video/s5p-mfc/Makefile         |    7 +-
+>  drivers/media/video/s5p-mfc/regs-mfc.h       |   33 +-
+>  drivers/media/video/s5p-mfc/s5p_mfc.c        |  225 +++--
+>  drivers/media/video/s5p-mfc/s5p_mfc_cmd.c    |   98 +--
+>  drivers/media/video/s5p-mfc/s5p_mfc_cmd.h    |   13 +
+>  drivers/media/video/s5p-mfc/s5p_mfc_common.h |  153 +++-
+>  drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c   |  198 +++--
+>  drivers/media/video/s5p-mfc/s5p_mfc_ctrl.h   |    1 +
+>  drivers/media/video/s5p-mfc/s5p_mfc_intr.c   |   11 +-
+>  drivers/media/video/s5p-mfc/s5p_mfc_opr.c    | 1402
++++-----------------------
+>  drivers/media/video/s5p-mfc/s5p_mfc_opr.h    |  179 +++--
+>  drivers/media/video/s5p-mfc/s5p_mfc_pm.c     |    8 +-
+>  drivers/media/video/s5p-mfc/s5p_mfc_shm.c    |   47 -
+>  drivers/media/video/s5p-mfc/s5p_mfc_shm.h    |   90 --
+>  15 files changed, 756 insertions(+), 1713 deletions(-)
+>  delete mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_shm.c
+>  delete mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_shm.h
+> 
+
+[snip]
+
+> diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_cmd.h
+> b/drivers/media/video/s5p-mfc/s5p_mfc_cmd.h
+> index 5ceebfe..2be0b64 100644
+> --- a/drivers/media/video/s5p-mfc/s5p_mfc_cmd.h
+> +++ b/drivers/media/video/s5p-mfc/s5p_mfc_cmd.h
+> @@ -21,10 +21,23 @@ struct s5p_mfc_cmd_args {
+>  	unsigned int	arg[MAX_H2R_ARG];
+
+After applying all the patches MAX_H2R_ARG is defined in 3 places and
+I think only the one in s5p_mfc_cmd.h is used. 
+
+>  };
+
+[snip]
+
+> diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_opr.c
+> b/drivers/media/video/s5p-mfc/s5p_mfc_opr.c
+> index e6217cb..8afda8d 100644
+> --- a/drivers/media/video/s5p-mfc/s5p_mfc_opr.c
+> +++ b/drivers/media/video/s5p-mfc/s5p_mfc_opr.c
+> @@ -12,1386 +12,276 @@
+
+[snip]
+
+> 
+> -	s5p_mfc_set_dec_stream_buffer(ctx, 0, 0, 0);
+> -	dev->curr_ctx = ctx->num;
+> -	s5p_mfc_clean_ctx_int_flags(ctx);
+> -	s5p_mfc_decode_one_frame(ctx, MFC_DEC_RES_CHANGE);
+> +int s5p_mfc_get_warn_start(struct s5p_mfc_dev *dev)
+> +{
+> +	return s5p_mfc_ops->s5p_mfc_get_warn_start(dev);
+>  }
+
+I think that a callback is not necessary, a simple integer variable should
+do the job. 
+
+[snip]
 
