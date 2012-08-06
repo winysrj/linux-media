@@ -1,54 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:42332 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751100Ab2HTKjf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Aug 2012 06:39:35 -0400
-Received: by bkwj10 with SMTP id j10so1806064bkw.19
-        for <linux-media@vger.kernel.org>; Mon, 20 Aug 2012 03:39:33 -0700 (PDT)
-Message-ID: <503213F8.6060101@googlemail.com>
-Date: Mon, 20 Aug 2012 12:39:52 +0200
-From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3271 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752973Ab2HFH04 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 03:26:56 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Federico Vaga <federico.vaga@gmail.com>
+Subject: Re: Update VIP to videobuf2 and control framework
+Date: Mon, 6 Aug 2012 09:26:40 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jonathan Corbet <corbet@lwn.net>
+References: <1343765829-6006-1-git-send-email-federico.vaga@gmail.com> <201208010841.56941.hverkuil@xs4all.nl> <5055608.KkUHWr6mgc@harkonnen>
+In-Reply-To: <5055608.KkUHWr6mgc@harkonnen>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: How to add new chip ids to v4l2-chip-ident.h ?
-References: <502FA46E.3050500@googlemail.com> <201208181706.03257.hverkuil@xs4all.nl>
-In-Reply-To: <201208181706.03257.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201208060926.40164.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 18.08.2012 17:06, schrieb Hans Verkuil:
-> On Sat August 18 2012 16:19:26 Frank Schäfer wrote:
->> Hi,
->>
->> I would like to know how to add new chip ids to v4l2-chip-ident.h. Ist
->> there a kind of policy for choosing numbers ?
-> Using numbers that match the chip number is recommended, but if that can't
-> be done due to clashes, then pick some other, related, number (e.g. 12700
-> instead of 2700) or create a range of number for all possible models of that
-> chip series.
+On Sun August 5 2012 19:11:19 Federico Vaga wrote:
+> Hi Hans,
+>  
+> > Did you run the latest v4l2-compliance tool from the v4l-utils.git
+> > repository over your driver? I'm sure you didn't since VIP is missing
+> > support for control events and v4l2-compliance would certainly
+> > complain about that.
+> > 
+> > Always check with v4l2-compliance whenever you make changes! It's
+> > continuously improved as well, so a periodic check wouldn't hurt.
+> 
+> I applied all your suggestions, and some extra simplification; now I'm 
+> running v4l2-compliance but I have this error:
+> 
+> 
+> Allow for multiple opens:
+>         test second video open: OK
+>         test VIDIOC_QUERYCAP: OK
+>                 fail: v4l2-compliance.cpp(322): doioctl(node, 
+> VIDIOC_G_PRIORITY, &prio)
+>         test VIDIOC_G/S_PRIORITY: FAIL
+> 
+> 
+> which I don't undestand. I don't have vidio_{g|s}_priority functions in 
+> my implementation. And I'm using the V4L2_FL_USE_FH_PRIO flag as 
+> suggested in the documentation:
+> 
+> ---------------
+> - flags: optional. Set to V4L2_FL_USE_FH_PRIO if you want to let the 
+> framework handle the VIDIOC_G/S_PRIORITY ioctls. This requires that you 
+> use struct v4l2_fh.
 
-Ok. And I guess a comment should be added that reserves a certain range
-of values, if similar chips exist.
+  ^^^^^^^^^^^^^^^^^^
 
->
->> Which numbers would be approriate for the em25xx/em26xx/em27xx/em28xx
->> chips ?
->> Unfortunately 2700 is already used by V4L2_IDENT_VP27SMPX...
-> Please note that adding an identifier to v4l2-chip-ident.h is only needed
-> if the VIDIOC_DBG_* ioctls are implemented. If those are not implemented,
-> then there is no need for an ID either.
-
-Sure ;-) Thanks !
+Are you using struct v4l2_fh? The version you posted didn't. You need this
+anyway to implement control events.
 
 Regards,
-Frank Schäfer
 
->
-> Regards,
->
-> 	Hans
+	Hans
 
+> Eventually this flag will disappear once all drivers 
+> use the core priority handling. But for now it has to be set explicitly.
+> --------------
+> 
+> 
