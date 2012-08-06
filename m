@@ -1,49 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:62815 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755680Ab2HEXvD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Aug 2012 19:51:03 -0400
-Received: by ggnl2 with SMTP id l2so1990567ggn.19
-        for <linux-media@vger.kernel.org>; Sun, 05 Aug 2012 16:51:02 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <501EE61A.2060804@redhat.com>
-References: <1344190590-10863-1-git-send-email-mchehab@redhat.com>
-	<CAGoCfizhL6=WhV9-9RMx9PX8ctV2Ao+GyMzPL8T67g4y5nBWAw@mail.gmail.com>
-	<501EE61A.2060804@redhat.com>
-Date: Sun, 5 Aug 2012 19:51:01 -0400
-Message-ID: <CAGoCfiyXJNJDBJ5JXJ29zEE9S3Z4wycpdFJgkFcFgFPc4_+LFg@mail.gmail.com>
-Subject: Re: [PATCH 0/2] get rid of fe_ioctl_override()
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4326 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756459Ab2HFOTe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 10:19:34 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: Re: [PATCH v8] media: Add stk1160 new driver
+Date: Mon, 6 Aug 2012 16:18:56 +0200
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Takashi Iwai <tiwai@suse.de>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+References: <1344260302-28849-1-git-send-email-elezegarcia@gmail.com> <CALF0-+Xwa6qNH3pEOgJq9f07C+ArNco6nxQcjGWoy5kwyQeScA@mail.gmail.com> <501FCFE1.7010802@redhat.com>
+In-Reply-To: <501FCFE1.7010802@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201208061618.56479.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Aug 5, 2012 at 5:31 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> This is not how it works. Patches are posted at the ML and developers can
-> review and comment about them. Does those patches break something? If not,
-> please stop flaming.
+On Mon August 6 2012 16:08:33 Mauro Carvalho Chehab wrote:
+> Em 06-08-2012 10:58, Ezequiel Garcia escreveu:
+> > Hi Mauro,
+> > 
+> > On Mon, Aug 6, 2012 at 10:38 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+> >> This driver adds support for stk1160 usb bridge as used in some
+> >> video/audio usb capture devices.
+> >> It is a complete rewrite of staging/media/easycap driver and
+> >> it's expected as a replacement.
+> >> ---
+> >>
+> > 
+> > I just sent v8, but it looks it wasn't received by patchwork either.
+> > 
+> > What's going on?
+> 
+> The patch didn't arrive at linux-media ML.
+> 
+> Not sure why it got rejected at vger. I suggest you to ping vger admin
+> to see why your patches are being rejected there.
+> 
+> I tested parsing this patch manually and patchwork accepted. So, once
+> the issue with vger is solved, other patches should be properly
+> handled there.
 
-I'm confused why you think this email was a flame.  It's asked three
-very straight-forward questions that could have easily have been asked
-of any submitter who failed to cc: the maintainer for a particular
-driver in the patch submission.
+Could it be related to the fact that a gmail account is used? Konke Radlow
+had a similar issue recently when he posted a patch from a gmail account. It
+worked fine when posted from a company account.
 
-> With regards to Cc the driver maintainer (mkrufky), the patch also got
-> forwarded to him, in priv (it were supposed to be sent via git send-email,
-> but, as it wasn't, the patch was manually forwarded for him to review,
-> just after the patchbomb).
+Regards,
 
-Stating that a clerical error had been made during the git send-email
-and thus you forwarded it to him in private would have been a
-perfectly reasonable answer to my question.
-
-No need to create drama where there isn't any.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+	Hans
