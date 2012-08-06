@@ -1,41 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([93.97.41.153]:47016 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751519Ab2HMM7z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Aug 2012 08:59:55 -0400
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Stefan Macher <st_maker-lirc@yahoo.de>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 11/13] [media] rc: transmit on device which does not support it should fail
-Date: Mon, 13 Aug 2012 13:59:49 +0100
-Message-Id: <1344862791-30352-11-git-send-email-sean@mess.org>
-In-Reply-To: <1344862791-30352-1-git-send-email-sean@mess.org>
-References: <1344862791-30352-1-git-send-email-sean@mess.org>
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:51718 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932380Ab2HFTNw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 15:13:52 -0400
+Received: by ggnl2 with SMTP id l2so2874503ggn.19
+        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 12:13:52 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CALF0-+UkH7o=mopJJSjRMBF-+60q+-6L=LdfJsWt17oJ0ij0Lw@mail.gmail.com>
+References: <1344260302-28849-1-git-send-email-elezegarcia@gmail.com>
+	<CALF0-+Xwa6qNH3pEOgJq9f07C+ArNco6nxQcjGWoy5kwyQeScA@mail.gmail.com>
+	<501FCFE1.7010802@redhat.com>
+	<201208061618.56479.hverkuil@xs4all.nl>
+	<CALF0-+U7DYEgRFMaJx4kRpNb4aeeUaTywBVDkmw99azozG_0nQ@mail.gmail.com>
+	<CALF0-+UkH7o=mopJJSjRMBF-+60q+-6L=LdfJsWt17oJ0ij0Lw@mail.gmail.com>
+Date: Mon, 6 Aug 2012 16:13:51 -0300
+Message-ID: <CALF0-+WmqJdEprO+ShJDDVfxvE70hWaW1iXAb=9zxOYajRgStw@mail.gmail.com>
+Subject: Re: [alsa-devel] [PATCH v8] media: Add stk1160 new driver
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Takashi Iwai <tiwai@suse.de>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	alsa-devel@alsa-project.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently write() will return 0 if an IR device does not support sending.
+Hello,
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/ir-lirc-codec.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Mon, Aug 6, 2012 at 12:42 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+> Hi Mauro,
+>
+> On Mon, Aug 6, 2012 at 12:21 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+>> On Mon, Aug 6, 2012 at 11:18 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>> On Mon August 6 2012 16:08:33 Mauro Carvalho Chehab wrote:
+>>>> Em 06-08-2012 10:58, Ezequiel Garcia escreveu:
+>>>> > Hi Mauro,
+>>>> >
+>>>> > On Mon, Aug 6, 2012 at 10:38 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+>>>> >> This driver adds support for stk1160 usb bridge as used in some
+>>>> >> video/audio usb capture devices.
+>>>> >> It is a complete rewrite of staging/media/easycap driver and
+>>>> >> it's expected as a replacement.
+>>>> >> ---
+>>>> >>
+>>>> >
+>>>> > I just sent v8, but it looks it wasn't received by patchwork either.
+>>>> >
+>>>> > What's going on?
+>>>>
+>>>> The patch didn't arrive at linux-media ML.
+>>>>
+>>>> Not sure why it got rejected at vger. I suggest you to ping vger admin
+>>>> to see why your patches are being rejected there.
+>>>>
+>>>> I tested parsing this patch manually and patchwork accepted. So, once
+>>>> the issue with vger is solved, other patches should be properly
+>>>> handled there.
+>>>
+>>> Could it be related to the fact that a gmail account is used? Konke Radlow
+>>> had a similar issue recently when he posted a patch from a gmail account. It
+>>> worked fine when posted from a company account.
+>>>
+>>
+>> FWIW, I've always sent my patches from git-send-email through my gmail account.
+>> Don't know if this is an issue, but it never seemed to.
+>>
+>
+> On a second thought, perhaps it makes sense to have a git repo (on linuxtv.org)
+> for me to work on stk1160.
+> That way I could simply send "git pull" requests instead of patches.
+>
+> I'm not sure if this is a better workflow and/or would allow for
+> easier reviewing.
+>
 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index 5faba2a..d2fd064 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -105,7 +105,7 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 	struct lirc_codec *lirc;
- 	struct rc_dev *dev;
- 	unsigned int *txbuf; /* buffer with values to transmit */
--	ssize_t ret = 0;
-+	ssize_t ret = -EINVAL;
- 	size_t count;
- 
- 	lirc = lirc_get_pdata(file);
--- 
-1.7.11.2
+Well, I just got an answer from vger administrator. He told me the
+patch was exceeding
+the allowed limit. Which I later discovered it was documented here:
 
+http://vger.kernel.org/majordomo-info.html
+
+Apparently, there is a 100, 000 characters limit.
+
+So, how do we proceed?
+
+Regards,
+Ezequiel.
