@@ -1,46 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from snt0-omc2-s19.snt0.hotmail.com ([65.55.90.94]:22565 "EHLO
-	snt0-omc2-s19.snt0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751360Ab2HAHA1 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Aug 2012 03:00:27 -0400
-Message-ID: <SNT129-W19D484C737EA5675A1D9C3E5C40@phx.gbl>
-From: Peter Tilley <peter_tilley13@hotmail.com>
-To: <linux-media@vger.kernel.org>
-CC: <pboettcher@kernellabs.com>
-Subject: RE: stk7700d problem
-Date: Wed, 1 Aug 2012 07:00:25 +0000
-In-Reply-To: <SNT129-W5399C49185699FB7ADC909E5C40@phx.gbl>
-References: <SNT129-W5399C49185699FB7ADC909E5C40@phx.gbl>
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mx1.redhat.com ([209.132.183.28]:57027 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756101Ab2HFMcl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Aug 2012 08:32:41 -0400
+Message-ID: <501FB95E.3010602@redhat.com>
+Date: Mon, 06 Aug 2012 09:32:30 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 0/5] Convert az6007 to dvb-usb-v2
+References: <1344137411-27948-1-git-send-email-mchehab@redhat.com> <501F985D.4040308@iki.fi>
+In-Reply-To: <501F985D.4040308@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em 06-08-2012 07:11, Antti Palosaari escreveu:
+> On 08/05/2012 06:30 AM, Mauro Carvalho Chehab wrote:
+>> Now that dvb-usb-v2 patches got merged, convert az6007 to use it, as,
+>> in thesis, several core bugs at dvb-usb were fixed.
+>>
+>> Also, driver became a little more simple than before, as the number of
+>> lines reduced a little bit.
+>>
+>> No noticeable changes should be noticed... I hope ;)
+>>
+>> Mauro Carvalho Chehab (5):
+>>    [media] dvb-usb-v2: Fix cypress firmware compilation
+>>    [media] dvb-usb-v2: Don't ask user to select Cypress firmware module
+>>    [media] az6007: convert it to use dvb-usb-v2
+>>    [media] az6007: fix the I2C W+R logic
+>>    [media] az6007: Fix the number of parameters for QAM setup
+>>
+>>   drivers/media/dvb/dvb-usb-v2/Kconfig               |  17 +-
+>>   drivers/media/dvb/dvb-usb-v2/Makefile              |   6 +-
+>>   drivers/media/dvb/{dvb-usb => dvb-usb-v2}/az6007.c | 385 +++++++++------------
+>>   drivers/media/dvb/dvb-usb/Kconfig                  |   8 -
+>>   drivers/media/dvb/dvb-usb/Makefile                 |   3 -
+>>   5 files changed, 178 insertions(+), 241 deletions(-)
+>>   rename drivers/media/dvb/{dvb-usb => dvb-usb-v2}/az6007.c (64%)
+>>
+> 
+> Whole patch set looks correct for my eyes.
+> Feel free to add tag(s) if you wish to those you want.
+> Acked-by: Antti Palosaari <crope@iki.fi>
+> Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-Apologies for resending.   Mailing list bounced the email the first time becuase it wasn't plain text format.
+Thanks for reviewing it! Patches applied.
 
-********************************
+> One comment still about those log writings. Documentation says it should be used dev_* logging instead
+> of pr_* in case of device driver. But I don't see that error should be fixed when that kind of 
+> conversion is done.
 
+We'll likely need to do some janitor's task with printk's inside the entire
+subsystem: there are a mix of solutions used there; each driver does its
+own way for it.
 
-I have a dual USB DVB-T tuner which is sold under the brand Kaiser Baas KBA 01004 but under the hood looks pretty much the same as the Emtec s830 http://linuxtv.org/wiki/index.php/Emtec_S830
- 
-Whilst the device is recognised and seems to load ok, locally the only station that it seems to be able to tune is the a community TV station which transmits on QPSK. All the other TV stations are detected but the BER is too high which to me would imply that the devices LNA is proably not being turned on correctly.
- 
-In heading down that path I have sat and captured the USB communications both under windows and Linux with the intent to compare the two and work out which gpio is being used to turn on the LNA under windows and then duplicate that under Linux. Well that was the intent but the behaviour I am seeing under Linux is a bit strange and I think resolving that might explain why the device has not worked in the past.
- 
-Specifically, the device is identified as 1164:1e8c and within dib0700_devices.c proceeds to do a stk7700d_frontend_attach. This tries to set GPIOs 6,9,4 and 7 to 1, then it tries to set GPIO10 to 0 before resetting it to 1 and then finally tries to set GPIO 0 to 1. The driver reports no problem doing this but when you drill deeper you find that it does not seem to be doing what it is supposed to. That is, irrespective of which GPIO is set to 1 or 0 the same message is sent to the device over the USB interface. Specifically the USB message as seen in wireshark is 40 0C 00 00 00 00 03 00 00 00 00.
- 
-Drilling further still I can see that stk7700d_front_end_attach calls dib0700_set_gpio within dib0700_core.c. Within dib0700_set_gpio the main data seems to be loaded into st->buf. The contents of st->buf seem to be ok. That is, when setting any of the GPIOs st->buf[0] is always 0x0C, st->buf[1] follows the GPIOs eg GPIO6=8, GPIO9=14, GPIO4=5, GPIO7=10, GPIO10=15 and GPIO0=0 and finally st->buf[3] is 0x80 when setting GPIO10 to 0 and 0xC0 when setting any of the GPIOs to 1.
- 
-dib0700_set_gpio subsequently calls dib0700_ctrl_wr within dib0700_core.c but it was at this point I decided that surely this part of the code is pretty robust as it seems to be common for a number of devices and a problem would have been spotted long ago.
- 
-My question is whether any one has any ideas why I am seeing the same USB message irrespective of which GPIO is being set/reset?
- 
-Patrick, I have CC'd you specifically as your fingerprints seem to be all over the Dibcom code and presumably you are very familiar with it.
- 
-Happy to run additional tests and captures as required.
- 
-Regards
-Pete 		 	   		  
+Regards,
+Mauro
