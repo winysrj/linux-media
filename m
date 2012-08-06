@@ -1,73 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:39683 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751063Ab2HPLbY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Aug 2012 07:31:24 -0400
-Received: by pbbrr13 with SMTP id rr13so1450458pbb.19
-        for <linux-media@vger.kernel.org>; Thu, 16 Aug 2012 04:31:24 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, sakari.ailus@iki.fi,
-	sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH] smiapp: Use devm_kzalloc() in smiapp-core.c file
-Date: Thu, 16 Aug 2012 16:59:30 +0530
-Message-Id: <1345116570-27335-1-git-send-email-sachin.kamat@linaro.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:45527 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753546Ab2HFMBA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Aug 2012 08:01:00 -0400
+Message-ID: <501FB1EC.5070905@iki.fi>
+Date: Mon, 06 Aug 2012 15:00:44 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 0/2] get rid of fe_ioctl_override()
+References: <1344190590-10863-1-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1344190590-10863-1-git-send-email-mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-devm_kzalloc is a device managed function and makes code a bit
-smaller and cleaner.
+On 08/05/2012 09:16 PM, Mauro Carvalho Chehab wrote:
+> There's just one driver using fe_ioctl_override(), and it can be
+> replaced at tuner_attach call. This callback is evil, as only DVBv3
+> calls are handled.
+>
+> Removing it is also a nice cleanup, as about 90 lines of code are
+> removed.
+>
+> Get rid of it!
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
-This patch is based on Mauro's re-organized tree
-(media_tree staging/for_v3.7) and is compile tested.
----
- drivers/media/i2c/smiapp/smiapp-core.c |   11 ++---------
- 1 files changed, 2 insertions(+), 9 deletions(-)
+I totally agree that! Only mxl111sf.c uses it and it was overriding 
+signal strength meter which could be overridden by simply replacing fe 
+default demod callback by one from tuner.
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 1cf914d..7d4280e 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2801,12 +2801,11 @@ static int smiapp_probe(struct i2c_client *client,
- 			const struct i2c_device_id *devid)
- {
- 	struct smiapp_sensor *sensor;
--	int rval;
- 
- 	if (client->dev.platform_data == NULL)
- 		return -ENODEV;
- 
--	sensor = kzalloc(sizeof(*sensor), GFP_KERNEL);
-+	sensor = devm_kzalloc(&client->dev, sizeof(*sensor), GFP_KERNEL);
- 	if (sensor == NULL)
- 		return -ENOMEM;
- 
-@@ -2821,12 +2820,8 @@ static int smiapp_probe(struct i2c_client *client,
- 	sensor->src->sensor = sensor;
- 
- 	sensor->src->pads[0].flags = MEDIA_PAD_FL_SOURCE;
--	rval = media_entity_init(&sensor->src->sd.entity, 2,
-+	return media_entity_init(&sensor->src->sd.entity, 2,
- 				 sensor->src->pads, 0);
--	if (rval < 0)
--		kfree(sensor);
--
--	return rval;
- }
- 
- static int __exit smiapp_remove(struct i2c_client *client)
-@@ -2862,8 +2857,6 @@ static int __exit smiapp_remove(struct i2c_client *client)
- 	if (sensor->vana)
- 		regulator_put(sensor->vana);
- 
--	kfree(sensor);
--
- 	return 0;
- }
- 
+Actually it was very near I removed support for it from dvb-usb-v2 
+totally but still decided to leave as I converted mxl111sf driver. You 
+likely saw my comments to avoid using it in dvb_usb.h :)
+
+> Mauro Carvalho Chehab (2):
+>    [media] dvb core: remove support for post FE legacy ioctl intercept
+>    [media] dvb: get rid of fe_ioctl_override callback
+>
+>   drivers/media/dvb/dvb-core/dvb_frontend.c   | 20 +----------------
+>   drivers/media/dvb/dvb-core/dvbdev.h         | 26 ----------------------
+>   drivers/media/dvb/dvb-usb-v2/dvb_usb.h      |  3 ---
+>   drivers/media/dvb/dvb-usb-v2/dvb_usb_core.c |  2 --
+>   drivers/media/dvb/dvb-usb-v2/mxl111sf.c     | 34 +----------------------------
+>   drivers/media/dvb/dvb-usb/dvb-usb-dvb.c     |  1 -
+>   drivers/media/dvb/dvb-usb/dvb-usb.h         |  2 --
+>   drivers/media/video/cx23885/cx23885-dvb.c   |  3 +--
+>   drivers/media/video/cx88/cx88-dvb.c         |  2 +-
+>   drivers/media/video/saa7134/saa7134-dvb.c   |  2 +-
+>   drivers/media/video/videobuf-dvb.c          | 11 +++-------
+>   include/media/videobuf-dvb.h                |  4 +---
+>   12 files changed, 9 insertions(+), 101 deletions(-)
+
+regards
+Antti
+
 -- 
-1.7.4.1
-
+http://palosaari.fi/
