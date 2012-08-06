@@ -1,133 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:1202 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752391Ab2HNNJL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 09:09:11 -0400
-Message-ID: <502A4DEE.4000506@redhat.com>
-Date: Tue, 14 Aug 2012 10:09:02 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Hans de Goede <hdegoede@redhat.com>,
-	"Igor M. Liplianin" <liplianin@me.by>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Copyright issues, do not copy code and add your own copyrights
-References: <CAHFNz9+H9=NJSB6FY7i5bJPhXQL-eCpmomBCqi14hca2q-wVvg@mail.gmail.com> <502A1890.2050803@redhat.com> <CAHFNz9+b2sJVhrhcQVDLG7ZE=PQLUKE58c2raUz9oCBVzucWrQ@mail.gmail.com> <502A4615.1070600@redhat.com>
-In-Reply-To: <502A4615.1070600@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:57109 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752789Ab2HFMmd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 08:42:33 -0400
+Message-id: <501FBBB4.6000109@samsung.com>
+Date: Mon, 06 Aug 2012 14:42:28 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+MIME-version: 1.0
+To: Michal Nazarewicz <mina86@mina86.com>
+Cc: Rob Clark <rob.clark@linaro.org>, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, patches@linaro.org,
+	linux@arm.linux.org.uk, arnd@arndb.de, jesse.barker@linaro.org,
+	m.szyprowski@samsung.com, daniel@ffwll.ch, sumit.semwal@ti.com,
+	maarten.lankhorst@canonical.com, Rob Clark <rob@ti.com>
+Subject: Re: [PATCH 2/2] dma-buf: add helpers for attacher dma-parms
+References: <1342715014-5316-1-git-send-email-rob.clark@linaro.org>
+ <1342715014-5316-3-git-send-email-rob.clark@linaro.org>
+ <501F9C8E.4080002@samsung.com> <xa1tobmoxmdz.fsf@mina86.com>
+In-reply-to: <xa1tobmoxmdz.fsf@mina86.com>
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 14-08-2012 09:35, Hans de Goede escreveu:
-> Hi,
+On 08/06/2012 01:58 PM, Michal Nazarewicz wrote:
 > 
-> On 08/14/2012 11:42 AM, Manu Abraham wrote:
->> Hi,
+> Tomasz Stanislawski <t.stanislaws@samsung.com> writes:
+>> I recommend to change the semantics for unlimited number of segments
+>> from 'value 0' to:
 >>
->> On Tue, Aug 14, 2012 at 2:51 PM, Hans de Goede <hdegoede@redhat.com> wrote:
->>> Hi,
->>>
->>>
->>> On 08/14/2012 11:10 AM, Manu Abraham wrote:
->>>>
->>>> Hi,
->>>>
->>>> The subject line says it.
->>>>
->>>> Please fix the offending Copyright header.
->>>>
->>>> Offending one.
->>>>
->>>> http://git.linuxtv.org/media_tree.git/blob/staging/for_v3.7:/drivers/media/dvb-frontends/stb6100_proc.h
->>>>
->>>> Original one.
->>>>
->>>> http://git.linuxtv.org/media_tree.git/blob/staging/for_v3.7:/drivers/media/dvb-frontends/stb6100_cfg.h
+>> #define DMA_SEGMENTS_COUNT_UNLIMITED ((unsigned long)INT_MAX)
 
-Yeah, they look pretty much the same code.
+Sorry. It should be:
+#define DMA_SEGMENTS_COUNT_UNLIMITED ((unsigned int)INT_MAX)
 
->>>
->>>
->>> Or even better, get rid of the offending one and add a i2c_gate_ctrl
->>> parameters to the inline
->>> functions defined in stb6100_cfg.h, as this seems a typical case of
->>> unnecessary code-duplication.
 >>
->>
->> i2c_gate_ctrl is not provided by stb6100 hardware, but by the demodulator
->> used in conjunction such as a stb0899 as can be seen.
+>> Using INT_MAX will allow using safe conversions between signed and
+>> unsigned integers.
 > 
-> Right, I was merely pointing out that the only difference between the
-> original function wrappers in stb6100_cfg.h and the ones in stb6100_proc.h,
-> is the calling of the i2c_gate_ctrl frontend-op if defined. So the 2 files
-> could be merged into one, with the wrappers getting an extra boolean parameter
-> making them call the frontend-op when that parameter is true.
-> 
-> Note that if the i2c_gate_ctrl frontend-op should always be called when
-> present then the extra parameter could be omitted.
-
-It is up to the attach logic to fill i2c_gate_ctrl() callback or not.
-So, it is safe to keep it there, as it will work with both drivers
-that need and the ones that don't.
-
-Manu,
-
-Please write a patch merging them and fixing the copyright.
-
-Thanks,
-Mauro
-
-
-> 
-> <snip>
-> 
->>> I would also like to point out that things like these are pretty much wrong:
->>>
->>>    27         if (&fe->ops)
->>>    28                 frontend_ops = &fe->ops;
->>>    29         if (&frontend_ops->tuner_ops)
->>>    30                 tuner_ops = &frontend_ops->tuner_ops;
->>>    31         if (tuner_ops->get_state) {
->>>
->>> The last check de-references tuner_ops, which only is non-NULL if
->>> fe-ops and fe->ops->tuner_ops are non NULL. So either the last check
->>> needs to be:
->>>               if (tuner_ops && tuner_ops->get_state) {
->>>
->>> Or we assume that fe-ops and fe->ops->tuner_ops are always non NULL
->>> when this helper gets called and all the previous checks can be removed.
->>
->>
->> fe->ops is not NULL in any case, when we reach here, but that conditionality
->> check causes a slight additional delay. The additional check you proposed
->> presents no harm, though not bringing any new advantage/disadvantage.
-> 
-> Well if we know that fe->ops and fe->ops->tuner_ops are never NULL, then the
-> if (&fe->ops) and if (&frontend_ops->tuner_ops) are superfluous and should be
-> removed, on the other hand if we don't know that, then the get_state check should
-> be:
->                if (tuner_ops && tuner_ops->get_state) {
-> 
-> Either know fe->ops and fe->ops->tuner_ops are never NULL and then all checks
-> should be removed, or we don't know and we should check them in *all* places
-> where they are used. What we've now is somewhat of the former, and then some of
-> the latter, which makes no sense at all.
-> 
-> Regards,
-> 
-> Hans
+> LONG_MAX seems cleaner regardless.
 > 
 > 
 > 
-> 
->>
->> Regards,
->>
->> Manu
->>
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
