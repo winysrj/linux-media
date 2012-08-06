@@ -1,134 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:17583 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1030446Ab2HXVGi (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:56469 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755723Ab2HFK5I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 17:06:38 -0400
-Date: Fri, 24 Aug 2012 13:39:58 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Timo Kokkonen <timo.t.kokkonen@iki.fi>,
-	Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCHv2 7/8] ir-rx51: Convert latency constraints to PM QoS
- API
-Message-ID: <20120824203957.GC1303@atomide.com>
-References: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
- <1345820986-4597-8-git-send-email-timo.t.kokkonen@iki.fi>
+	Mon, 6 Aug 2012 06:57:08 -0400
+References: <501D4535.8080404@lockie.ca> <f1bd5aea-00cd-4b3f-9562-d25153f8cef3@email.android.com> <501DA203.7070800@lockie.ca> <e2182b8d-a2fe-4a72-aa58-40995e92cf2d@email.android.com> <501F8C20.9090802@iki.fi>
+In-Reply-To: <501F8C20.9090802@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1345820986-4597-8-git-send-email-timo.t.kokkonen@iki.fi>
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: Re: boot slow down
+From: Andy Walls <awalls@md.metrocast.net>
+Date: Mon, 06 Aug 2012 06:57:04 -0400
+To: Antti Palosaari <crope@iki.fi>
+CC: James <bjlockie@lockie.ca>,
+	linux-media Mailing List <linux-media@vger.kernel.org>
+Message-ID: <8a09e594-04b7-41b7-88a7-9877fb20810d@email.android.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Timo Kokkonen <timo.t.kokkonen@iki.fi> [120824 08:11]:
-> Convert the driver from the obsolete omap_pm_set_max_mpu_wakeup_lat
-> API to the new PM QoS API. This allows the callback to be removed from
-> the platform data structure.
-> 
-> The latency requirements are also adjusted to prevent the MPU from
-> going into sleep mode. This is needed as the GP timers have no means
-> to wake up the MPU once it has gone into sleep. The "side effect" is
-> that from now on the driver actually works even if there is no
-> background load keeping the MPU awake.
-> 
-> Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Antti Palosaari <crope@iki.fi> wrote:
 
-This should get acked by Kevin ideally. Other than that:
+>On 08/06/2012 11:37 AM, Andy Walls wrote:
+>> James <bjlockie@lockie.ca> wrote:
+>>
+>>> On 08/04/12 13:42, Andy Walls wrote:
+>>>> James <bjlockie@lockie.ca> wrote:
+>>>>
+>>>>> There's a big pause before the 'unable'
+>>>>>
+>>>>> [    2.243856] usb 4-1: Manufacturer: Logitech
+>>>>> [   62.739097] cx25840 6-0044: unable to open firmware
+>>>>> v4l-cx23885-avcore-01.fw
+>>>>>
+>>>>>
+>>>>> I have a cx23885
+>>>>> cx23885[0]: registered device video0 [v4l2]
+>>>>>
+>>>>> Is there any way to stop it from trying to load the firmware?
+>>>>> What is the firmware for, analog tv? Digital works fine and analog
+>>> is
+>>>>> useless to me.
+>>>>> I assume it is timing out there.
+>>>>> --
+>>>>> To unsubscribe from this list: send the line "unsubscribe
+>>> linux-media"
+>>>>> in
+>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>
+>>>> The firmware is for the analog broadcast audio standard (e.g. BTSC)
+>>> detection microcontroller.
+>>>>
+>>>> The A/V core of the CX23885/7/8 chips is for analog vidoe and audio
+>>> processing (broadcast, CVBS, SVideo, audio L/R in).
+>>>>
+>>>> The A/V core of the CX23885 provides the IR unit and the Video PLL
+>>> provides the timing for the IR unit.
+>>>>
+>>>> The A/V core of the CX23888 provides the Video PLL which is the
+>>> timing for the IR unit in the CX23888.
+>>>>
+>>>> Just grab the firmware and be done with it.  Don't waste time with
+>>> trying to make the cx23885 working properly but halfway.
+>>>>
+>>>> Regards,
+>>>> Andy
+>>>
+>>> I already have the firmware.
+>>> # ls -l /lib/firmware/v4l-cx23885-avcore-01.fw
+>>> -rw-r--r-- 1 root root 16382 Oct 15  2011
+>>> /lib/firmware/v4l-cx23885-avcore-01.fw
+>>>
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe
+>linux-media"
+>>> in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>> Hmm.  The firmware file size and location look right.
+>>
+>> The 60 second delay is the default kernel delay waiting for the
+>userspace firmware loader to fetch th file amd provide it to the kernel
+>via sysfs.
+>>
+>> That doesn't appear to be happening.  I know udev runs some script to
+>accomplish that.  I'm away from my development system, so I can't
+>investigate further.
+>>
+>> Regards,
+>> Andy
+>
+>I suspect it could be the firmware download issue with udev. Recent
+>udev 
+>versions doesn't allow firmware download during module init path as 
+>module init should not be blocked such long period.
+>
+>I did quite much work for resolving that issue for the dvb usb by 
+>deferring device init in probe using work-queue. It is not good looking
+>
+>solution and Mauro is still trying to found out more general solution.
+>
+>regards
+>Antti
+>
+>-- 
+>http://palosaari.fi/
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+So the cx25840 module scheduling the firmware load to be done by a worker thread is not enough to satisfy the new udev rule?
 
-> ---
->  arch/arm/mach-omap2/board-rx51-peripherals.c |  2 --
->  drivers/media/rc/ir-rx51.c                   | 15 ++++++++++-----
->  include/media/ir-rx51.h                      |  2 --
->  3 files changed, 10 insertions(+), 9 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> index ca07264..e0750cb 100644
-> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> @@ -34,7 +34,6 @@
->  #include <plat/gpmc.h>
->  #include <plat/onenand.h>
->  #include <plat/gpmc-smc91x.h>
-> -#include <plat/omap-pm.h>
->  
->  #include <mach/board-rx51.h>
->  
-> @@ -1227,7 +1226,6 @@ static void __init rx51_init_tsc2005(void)
->  
->  #if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
->  static struct lirc_rx51_platform_data rx51_lirc_data = {
-> -	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
->  	.pwm_timer = 9, /* Use GPT 9 for CIR */
->  };
->  
-> diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-> index 6e1ffa6..008cdab 100644
-> --- a/drivers/media/rc/ir-rx51.c
-> +++ b/drivers/media/rc/ir-rx51.c
-> @@ -25,6 +25,7 @@
->  #include <linux/platform_device.h>
->  #include <linux/sched.h>
->  #include <linux/wait.h>
-> +#include <linux/pm_qos.h>
->  
->  #include <plat/dmtimer.h>
->  #include <plat/clock.h>
-> @@ -49,6 +50,7 @@ struct lirc_rx51 {
->  	struct omap_dm_timer *pulse_timer;
->  	struct device	     *dev;
->  	struct lirc_rx51_platform_data *pdata;
-> +	struct pm_qos_request	pm_qos_request;
->  	wait_queue_head_t     wqueue;
->  
->  	unsigned long	fclk_khz;
-> @@ -268,10 +270,14 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
->  		lirc_rx51->wbuf[count] = -1; /* Insert termination mark */
->  
->  	/*
-> -	 * Adjust latency requirements so the device doesn't go in too
-> -	 * deep sleep states
-> +	 * If the MPU is going into too deep sleep state while we are
-> +	 * transmitting the IR code, timers will not be able to wake
-> +	 * up the MPU. Thus, we need to set a strict enough latency
-> +	 * requirement in order to ensure the interrupts come though
-> +	 * properly.
->  	 */
-> -	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, 50);
-> +	pm_qos_add_request(&lirc_rx51->pm_qos_request,
-> +			PM_QOS_CPU_DMA_LATENCY,	10);
->  
->  	lirc_rx51_on(lirc_rx51);
->  	lirc_rx51->wbuf_index = 1;
-> @@ -292,8 +298,7 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
->  	 */
->  	lirc_rx51_stop_tx(lirc_rx51);
->  
-> -	/* We can sleep again */
-> -	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, -1);
-> +	pm_qos_remove_request(&lirc_rx51->pm_qos_request);
->  
->  	return n;
->  }
-> diff --git a/include/media/ir-rx51.h b/include/media/ir-rx51.h
-> index 104aa89..57523f2 100644
-> --- a/include/media/ir-rx51.h
-> +++ b/include/media/ir-rx51.h
-> @@ -3,8 +3,6 @@
->  
->  struct lirc_rx51_platform_data {
->  	int pwm_timer;
-> -
-> -	int(*set_max_mpu_wakeup_lat)(struct device *dev, long t);
->  };
->  
->  #endif
-> -- 
-> 1.7.12
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+http://git.linuxtv.org/media_tree.git/blob/staging/for_v3.7:/drivers/media/video/cx25840/cx25840-core.c#l628
+
+Regards,
+Andy
