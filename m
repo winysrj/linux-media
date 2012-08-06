@@ -1,76 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:26156 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752715Ab2HVIcf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Aug 2012 04:32:35 -0400
-Received: from eusync4.samsung.com (mailout4.w1.samsung.com [210.118.77.14])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M95008QYEF92030@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 22 Aug 2012 09:33:09 +0100 (BST)
-Received: from [106.116.147.32] by eusync4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTPA id <0M9500EUFEE8V770@eusync4.samsung.com> for
- linux-media@vger.kernel.org; Wed, 22 Aug 2012 09:32:32 +0100 (BST)
-Message-id: <5034991F.5040403@samsung.com>
-Date: Wed, 22 Aug 2012 10:32:31 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Kamil Debski <k.debski@samsung.com>
-Subject: [GIT PATCHES FOR v3.6] Samsung media driver fixes
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:37732 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753600Ab2HFIVH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Aug 2012 04:21:07 -0400
+Message-ID: <501F7E8F.1090809@redhat.com>
+Date: Mon, 06 Aug 2012 10:21:35 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Emil Goode <emilgoode@gmail.com>
+CC: mchehab@infradead.org, linux-media@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH] [media] gspca: dubious one-bit signed bitfield
+References: <1344170066-19727-1-git-send-email-emilgoode@gmail.com>
+In-Reply-To: <1344170066-19727-1-git-send-email-emilgoode@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi,
 
-The following changes since commit f9cd49033b349b8be3bb1f01b39eed837853d880:
+On 08/05/2012 02:34 PM, Emil Goode wrote:
+> This patch changes some signed integers to unsigned because
+> they are not intended for negative values and sparse
+> is making noise about it.
+>
+> Sparse gives eight of these errors:
+> drivers/media/video/gspca/ov519.c:144:29: error: dubious one-bit signed bitfield
+>
+> Signed-off-by: Emil Goode <emilgoode@gmail.com>
 
-  Merge tag 'v3.6-rc1' into staging/for_v3.6 (2012-08-03 22:41:33 -0300)
+Thanks, I'll add this to my gspca tree.
 
-are available in the git repository at:
+Regards,
 
-
-  git://git.infradead.org/users/kmpark/linux-samsung v4l-fixes
-
-for you to fetch changes up to 0e59db054e30658c6955d6e27b0a252cef9bfafc:
-
-  s5p-mfc: Fix second memory bank alignment (2012-08-16 19:12:19 +0200)
-
-----------------------------------------------------------------
-Kamil Debski (1):
-      s5p-mfc: Fix second memory bank alignment
-
-Sylwester Nawrocki (7):
-      s5p-fimc: Enable FIMC-LITE driver only for SOC_EXYNOS4x12
-      s5p-fimc: Don't allocate fimc-lite video device structure dynamically
-      s5p-fimc: Don't allocate fimc-capture video device dynamically
-      s5p-fimc: Don't allocate fimc-m2m video device dynamically
-      m5mols: Add missing free_irq() on error path
-      m5mols: Fix cast warnings from m5mols_[set/get]_ctrl_mode
-      s5p-fimc: Fix setup of initial links to FIMC entities
-
- drivers/media/video/m5mols/m5mols.h          |  4 +--
- drivers/media/video/m5mols/m5mols_controls.c |  4 +--
- drivers/media/video/m5mols/m5mols_core.c     |  4 ++-
- drivers/media/video/s5p-fimc/Kconfig         |  2 +-
- drivers/media/video/s5p-fimc/fimc-capture.c  | 31 +++++++-----------
- drivers/media/video/s5p-fimc/fimc-core.h     |  4 +--
- drivers/media/video/s5p-fimc/fimc-lite-reg.c |  2 +-
- drivers/media/video/s5p-fimc/fimc-lite.c     | 42 ++++++++++---------------
- drivers/media/video/s5p-fimc/fimc-lite.h     |  2 +-
- drivers/media/video/s5p-fimc/fimc-m2m.c      | 40 ++++++++---------------
- drivers/media/video/s5p-fimc/fimc-mdevice.c  |  9 ++++--
- drivers/media/video/s5p-fimc/fimc-mdevice.h  |  6 ++--
- drivers/media/video/s5p-fimc/fimc-reg.c      |  6 ++--
- drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c   |  2 +-
- 14 files changed, 65 insertions(+), 93 deletions(-)
-
----
-
-Thanks,
-Sylwester
+Hans
