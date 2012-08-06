@@ -1,56 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:17673 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757850Ab2HIL1c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Aug 2012 07:27:32 -0400
-Message-ID: <50239EDC.9010105@redhat.com>
-Date: Thu, 09 Aug 2012 13:28:28 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] pwc: Use vb2 queue mutex through a single name
-References: <1342332033-30250-1-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1342332033-30250-1-git-send-email-elezegarcia@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:64887 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755691Ab2HFJ4R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 05:56:17 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rr13so2350022pbb.19
+        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 02:56:17 -0700 (PDT)
+From: Hideki EIRAKU <hdk@igel.co.jp>
+To: Russell King <linux@arm.linux.org.uk>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	alsa-devel@alsa-project.org, Katsuya MATSUBARA <matsu@igel.co.jp>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v3 2/4] ALSA: pcm - Don't define ARCH_HAS_DMA_MMAP_COHERENT privately for ARM
+Date: Mon,  6 Aug 2012 18:55:22 +0900
+Message-Id: <1344246924-32620-3-git-send-email-hdk@igel.co.jp>
+In-Reply-To: <1344246924-32620-1-git-send-email-hdk@igel.co.jp>
+References: <1344246924-32620-1-git-send-email-hdk@igel.co.jp>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Thanks for the patch, I've added it to my tree for 3.7:
-http://git.linuxtv.org/hgoede/gspca.git/shortlog/refs/heads/media-for_v3.7-wip
+The ARM architecture now defines ARCH_HAS_DMA_MMAP_COHERENT, there's no
+need to define it privately anymore.
 
-Regards,
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ sound/core/pcm_native.c |    7 -------
+ 1 files changed, 0 insertions(+), 7 deletions(-)
 
-Hans
+diff --git a/sound/core/pcm_native.c b/sound/core/pcm_native.c
+index 53b5ada..84ead60 100644
+--- a/sound/core/pcm_native.c
++++ b/sound/core/pcm_native.c
+@@ -3156,13 +3156,6 @@ static const struct vm_operations_struct snd_pcm_vm_ops_data_fault = {
+ 	.fault =	snd_pcm_mmap_data_fault,
+ };
+ 
+-#ifndef ARCH_HAS_DMA_MMAP_COHERENT
+-/* This should be defined / handled globally! */
+-#ifdef CONFIG_ARM
+-#define ARCH_HAS_DMA_MMAP_COHERENT
+-#endif
+-#endif
+-
+ /*
+  * mmap the DMA buffer on RAM
+  */
+-- 
+1.7.0.4
 
-
-On 07/15/2012 08:00 AM, Ezequiel Garcia wrote:
-> This lock was being taken using two different names
-> (pointers) in the same function.
-> Both names refer to the same lock,
-> so this wasn't an error; but it looked very strange.
->
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
-> ---
->   drivers/media/video/pwc/pwc-if.c |    2 +-
->   1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/media/video/pwc/pwc-if.c b/drivers/media/video/pwc/pwc-if.c
-> index de7c7ba..b5d0729 100644
-> --- a/drivers/media/video/pwc/pwc-if.c
-> +++ b/drivers/media/video/pwc/pwc-if.c
-> @@ -1127,7 +1127,7 @@ static void usb_pwc_disconnect(struct usb_interface *intf)
->   	v4l2_device_disconnect(&pdev->v4l2_dev);
->   	video_unregister_device(&pdev->vdev);
->   	mutex_unlock(&pdev->v4l2_lock);
-> -	mutex_unlock(pdev->vb_queue.lock);
-> +	mutex_unlock(&pdev->vb_queue_lock);
->
->   #ifdef CONFIG_USB_PWC_INPUT_EVDEV
->   	if (pdev->button_dev)
->
