@@ -1,99 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:49232 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751056Ab2HCFhO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2012 01:37:14 -0400
-Received: by yenl2 with SMTP id l2so397145yen.19
-        for <linux-media@vger.kernel.org>; Thu, 02 Aug 2012 22:37:14 -0700 (PDT)
+Received: from smtp.nexicom.net ([216.168.96.13]:57898 "EHLO smtp.nexicom.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750978Ab2HFEiw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Aug 2012 00:38:52 -0400
+Received: from mail.lockie.ca (dyn-dsl-mb-216-168-121-226.nexicom.net [216.168.121.226])
+	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id q764cpFU022292
+	for <linux-media@vger.kernel.org>; Mon, 6 Aug 2012 00:38:52 -0400
+Message-ID: <501F4A5B.1000608@lockie.ca>
+Date: Mon, 06 Aug 2012 00:38:51 -0400
+From: James <bjlockie@lockie.ca>
 MIME-Version: 1.0
-In-Reply-To: <201208011111.12597.hverkuil@xs4all.nl>
-References: <20120713173708.GB17109@thunk.org>
-	<5005A14D.8000809@redhat.com>
-	<50181CBF.102@redhat.com>
-	<201208011111.12597.hverkuil@xs4all.nl>
-Date: Fri, 3 Aug 2012 13:37:13 +0800
-Message-ID: <CAGA24MJuUdX=d8aEtExNF=Tn86czLh=Vaqyts7V7g6g6YDRyUg@mail.gmail.com>
-Subject: Re: [Workshop-2011] Media summit/KS-2012 proposals
-From: Jun Nie <niej0001@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: workshop-2011@linuxtv.org, Rob Clark <rob.clark@linaro.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Andy Walls <awalls@md.metrocast.net>,
+	linux-media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: boot slow down
+References: <501D4535.8080404@lockie.ca> <f1bd5aea-00cd-4b3f-9562-d25153f8cef3@email.android.com> <501DA203.7070800@lockie.ca> <20120805212054.GA29636@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20120805212054.GA29636@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/8/1 Hans Verkuil <hverkuil@xs4all.nl>:
-> On Tue 31 July 2012 19:58:23 Mauro Carvalho Chehab wrote:
->> In order to sum-up the discussions around the media summit,
->> this is what we've got so far:
+On 08/05/12 17:20, Sakari Ailus wrote:
+> Hi Andy and James,
+> 
+> On Sat, Aug 04, 2012 at 06:28:19PM -0400, James wrote:
+>> On 08/04/12 13:42, Andy Walls wrote:
+>>> James <bjlockie@lockie.ca> wrote:
+>>>
+>>>> There's a big pause before the 'unable'
+>>>>
+>>>> [    2.243856] usb 4-1: Manufacturer: Logitech
+>>>> [   62.739097] cx25840 6-0044: unable to open firmware
+>>>> v4l-cx23885-avcore-01.fw
+>>>>
+>>>>
+>>>> I have a cx23885
+>>>> cx23885[0]: registered device video0 [v4l2]
+>>>>
+>>>> Is there any way to stop it from trying to load the firmware?
+>>>> What is the firmware for, analog tv? Digital works fine and analog is
+>>>> useless to me.
+>>>> I assume it is timing out there.
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>>>> in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>> The firmware is for the analog broadcast audio standard (e.g. BTSC) detection microcontroller.
+>>>
+>>> The A/V core of the CX23885/7/8 chips is for analog vidoe and audio processing (broadcast, CVBS, SVideo, audio L/R in).
+>>>
+>>> The A/V core of the CX23885 provides the IR unit and the Video PLL provides the timing for the IR unit.
+>>>
+>>> The A/V core of the CX23888 provides the Video PLL which is the timing for the IR unit in the CX23888.
+>>>
+>>> Just grab the firmware and be done with it.  Don't waste time with trying to make the cx23885 working properly but halfway.
+>>>
+>>> Regards,
+>>> Andy
 >>
->> Proposals                                                                             proposed by
->> =====================================================================================|=========================================================================================
->> Common device tree bindings for media devices                                         Sylvester Nawrocki / Guennadi Liakhovetski
->> ALSA and V4L/Media Controller                                                         Steven Toth / Laurent Pinchart
->> ARM and needed features for V4L/DVB                                                   Steven Toth
->> Intel media SDK                                                                               Steven Toth
->> V4L compiance tool                                                                    Hans Verkuil
->> V4L2 API ambiguities                                                                  Hans Verkuil
->> Media Controller library                                                              Laurent Pincart / Sakari Ailus
->> SoC Vendors feedback – how to help them to go upstream – Android's V4L2 cam library   Laurent Pincart / Guennadi Liakhovetski / Palash Bandyopadhyay / Naveen Krishnamurthy
->> Synchronization, shared resource and optimizations                                    Pawel Osciak
->> V4L2/DVB issues from userspace perspective                                            Rémi Denis-Courmont
->>
->> As we'll have only one day for the summit, we may need to remove some
->> themes, or maybe to get an extra time during LPC for the remaining
->> discussions.
->>
->> Possible attendents:
->> ===================
->>
->> Guennadi Liakhovetski
->> Laurent Pinchart
->> Mauro Carvalho Chehab
->> Michael Krufky
->> Naveen Krishnamurthy
->> +1 seat from ST (waiting Naveen to define who will be the other seat)
->> Palash Bandyopadhyay
->> Pawel Osciak
->> Rémi Denis-Courmont
->> Sakari Ailus
->> Steven Toth
->> Sylvester Nawrocki
->>
->> Am I missing something?
->>
->> Are there other proposals or people intending to participate?
->
-> Yes: I would like to discuss how to add support for HDMI CEC to the kernel.
-> In particularly I need some feedback from the GPU driver developers on what
-> their ideas are, since CEC is something that touches both V4L2 and GPU.
->
-I am not familiar with CEC implementation in GPU. But CEC should be
-independent in functionality with audio/video though it is A/V
-related. I prefer to support only CEC frame TX/RX in kernel. CEC
-include different category features that need parsing and may need
-application interaction. Venders may also configure some features as
-not supported.  If kernel support more than TX/RX, policy may be
-separated to user space part and kernel space part. The kernel
-interface also becomes complex, maybe ambiguous too. An user space
-library is more suitable for this task to interact with OS/media
-player/audio control/etc.
+>> I already have the firmware.
+>> # ls -l /lib/firmware/v4l-cx23885-avcore-01.fw 
+>> -rw-r--r-- 1 root root 16382 Oct 15  2011 /lib/firmware/v4l-cx23885-avcore-01.fw
+> 
+> The timeout if for allowing the user space helper enough time to provide the
+> driver with the firmware, but it seems the helper isn't around as the
+> timeout expires. Is udev running around the time of the first line? Is the
+> driver linked directly into the kernel or is it a module?
+> 
+> Kind regards,
+> 
+I have this set so the firmware is in the kernel.
 
-> I'm not sure what the best place is to do this, it's a fairly specialized
-> topic. It might be better suited to just get a few interested devs together
-> in the evening or during some other suitable time and just see if we can
-> hammer out some scheme. I'll have a presentation on the topic ready.
->
-> Rob, what are your ideas on this?
->
-> Who else might be interested in this?
->
-> Regards,
->
->         Hans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Symbol: FIRMWARE_IN_KERNEL [=y]
+
