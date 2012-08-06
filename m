@@ -1,48 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45417 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751317Ab2HJK1I (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Aug 2012 06:27:08 -0400
-Message-ID: <5024E1E9.6090605@iki.fi>
-Date: Fri, 10 Aug 2012 13:26:49 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Dan Carpenter <dan.carpenter@oracle.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] qt1010: signedness bug in qt1010_init_meas1()
-References: <20120810092502.GD26875@elgon.mountain>
-In-Reply-To: <20120810092502.GD26875@elgon.mountain>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:43381 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755756Ab2HFJ4Y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 05:56:24 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rr13so2350021pbb.19
+        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 02:56:24 -0700 (PDT)
+From: Hideki EIRAKU <hdk@igel.co.jp>
+To: Russell King <linux@arm.linux.org.uk>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	alsa-devel@alsa-project.org, Katsuya MATSUBARA <matsu@igel.co.jp>,
+	Hideki EIRAKU <hdk@igel.co.jp>
+Subject: [PATCH v3 4/4] fbdev: sh_mobile_lcdc: use dma_mmap_coherent if available
+Date: Mon,  6 Aug 2012 18:55:24 +0900
+Message-Id: <1344246924-32620-5-git-send-email-hdk@igel.co.jp>
+In-Reply-To: <1344246924-32620-1-git-send-email-hdk@igel.co.jp>
+References: <1344246924-32620-1-git-send-email-hdk@igel.co.jp>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/10/2012 12:25 PM, Dan Carpenter wrote:
-> qt1010_init_meas2() returns zero on success and negative error codes on
-> failure so the return type should be int instead of u8.
->
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+fb_mmap() implemented in fbmem.c uses smem_start as the physical
+address of the frame buffer.  In the sh_mobile_lcdc driver, the
+smem_start is a dma_addr_t that is not a physical address when IOMMU is
+enabled.  dma_mmap_coherent() maps the address correctly.  It is
+available on ARM platforms.
 
-Acked-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Hideki EIRAKU <hdk@igel.co.jp>
+---
+ drivers/video/sh_mobile_lcdcfb.c |   28 ++++++++++++++++++++++++++++
+ 1 files changed, 28 insertions(+), 0 deletions(-)
 
-
->
-> diff --git a/drivers/media/common/tuners/qt1010.c b/drivers/media/common/tuners/qt1010.c
-> index 2d79b1f..bdc39e1 100644
-> --- a/drivers/media/common/tuners/qt1010.c
-> +++ b/drivers/media/common/tuners/qt1010.c
-> @@ -288,7 +288,7 @@ static int qt1010_init_meas1(struct qt1010_priv *priv,
->   	return qt1010_writereg(priv, 0x1e, 0x00);
->   }
->
-> -static u8 qt1010_init_meas2(struct qt1010_priv *priv,
-> +static int qt1010_init_meas2(struct qt1010_priv *priv,
->   			    u8 reg_init_val, u8 *retval)
->   {
->   	u8 i, val;
->
-
-
+diff --git a/drivers/video/sh_mobile_lcdcfb.c b/drivers/video/sh_mobile_lcdcfb.c
+index 8cb653b..c8cba7a 100644
+--- a/drivers/video/sh_mobile_lcdcfb.c
++++ b/drivers/video/sh_mobile_lcdcfb.c
+@@ -1614,6 +1614,17 @@ static int sh_mobile_lcdc_overlay_blank(int blank, struct fb_info *info)
+ 	return 1;
+ }
+ 
++#ifdef ARCH_HAS_DMA_MMAP_COHERENT
++static int
++sh_mobile_lcdc_overlay_mmap(struct fb_info *info, struct vm_area_struct *vma)
++{
++	struct sh_mobile_lcdc_overlay *ovl = info->par;
++
++	return dma_mmap_coherent(ovl->channel->lcdc->dev, vma, ovl->fb_mem,
++				 ovl->dma_handle, ovl->fb_size);
++}
++#endif
++
+ static struct fb_ops sh_mobile_lcdc_overlay_ops = {
+ 	.owner          = THIS_MODULE,
+ 	.fb_read        = fb_sys_read,
+@@ -1626,6 +1637,9 @@ static struct fb_ops sh_mobile_lcdc_overlay_ops = {
+ 	.fb_ioctl       = sh_mobile_lcdc_overlay_ioctl,
+ 	.fb_check_var	= sh_mobile_lcdc_overlay_check_var,
+ 	.fb_set_par	= sh_mobile_lcdc_overlay_set_par,
++#ifdef ARCH_HAS_DMA_MMAP_COHERENT
++	.fb_mmap	= sh_mobile_lcdc_overlay_mmap,
++#endif
+ };
+ 
+ static void
+@@ -2093,6 +2107,17 @@ static int sh_mobile_lcdc_blank(int blank, struct fb_info *info)
+ 	return 0;
+ }
+ 
++#ifdef ARCH_HAS_DMA_MMAP_COHERENT
++static int
++sh_mobile_lcdc_mmap(struct fb_info *info, struct vm_area_struct *vma)
++{
++	struct sh_mobile_lcdc_chan *ch = info->par;
++
++	return dma_mmap_coherent(ch->lcdc->dev, vma, ch->fb_mem,
++				 ch->dma_handle, ch->fb_size);
++}
++#endif
++
+ static struct fb_ops sh_mobile_lcdc_ops = {
+ 	.owner          = THIS_MODULE,
+ 	.fb_setcolreg	= sh_mobile_lcdc_setcolreg,
+@@ -2108,6 +2133,9 @@ static struct fb_ops sh_mobile_lcdc_ops = {
+ 	.fb_release	= sh_mobile_lcdc_release,
+ 	.fb_check_var	= sh_mobile_lcdc_check_var,
+ 	.fb_set_par	= sh_mobile_lcdc_set_par,
++#ifdef ARCH_HAS_DMA_MMAP_COHERENT
++	.fb_mmap	= sh_mobile_lcdc_mmap,
++#endif
+ };
+ 
+ static void
 -- 
-http://palosaari.fi/
+1.7.0.4
+
