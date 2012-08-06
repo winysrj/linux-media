@@ -1,95 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:48381 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751269Ab2H1KyM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Aug 2012 06:54:12 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 07/14] media: coda: stop all queues in case of lockup
-Date: Tue, 28 Aug 2012 12:53:54 +0200
-Message-Id: <1346151241-10449-8-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1346151241-10449-1-git-send-email-p.zabel@pengutronix.de>
-References: <1346151241-10449-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:40958 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756256Ab2HFPnA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 11:43:00 -0400
+Received: by weyx8 with SMTP id x8so2039291wey.19
+        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 08:42:58 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CALF0-+U7DYEgRFMaJx4kRpNb4aeeUaTywBVDkmw99azozG_0nQ@mail.gmail.com>
+References: <1344260302-28849-1-git-send-email-elezegarcia@gmail.com>
+	<CALF0-+Xwa6qNH3pEOgJq9f07C+ArNco6nxQcjGWoy5kwyQeScA@mail.gmail.com>
+	<501FCFE1.7010802@redhat.com>
+	<201208061618.56479.hverkuil@xs4all.nl>
+	<CALF0-+U7DYEgRFMaJx4kRpNb4aeeUaTywBVDkmw99azozG_0nQ@mail.gmail.com>
+Date: Mon, 6 Aug 2012 12:42:57 -0300
+Message-ID: <CALF0-+UkH7o=mopJJSjRMBF-+60q+-6L=LdfJsWt17oJ0ij0Lw@mail.gmail.com>
+Subject: Re: [alsa-devel] [PATCH v8] media: Add stk1160 new driver
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Takashi Iwai <tiwai@suse.de>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	alsa-devel@alsa-project.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a 1 second timeout for each PIC_RUN command to the CODA. In
-case it locks up, stop all queues and dequeue remaining buffers.
+Hi Mauro,
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/video/coda.c |   21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+On Mon, Aug 6, 2012 at 12:21 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+> On Mon, Aug 6, 2012 at 11:18 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On Mon August 6 2012 16:08:33 Mauro Carvalho Chehab wrote:
+>>> Em 06-08-2012 10:58, Ezequiel Garcia escreveu:
+>>> > Hi Mauro,
+>>> >
+>>> > On Mon, Aug 6, 2012 at 10:38 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+>>> >> This driver adds support for stk1160 usb bridge as used in some
+>>> >> video/audio usb capture devices.
+>>> >> It is a complete rewrite of staging/media/easycap driver and
+>>> >> it's expected as a replacement.
+>>> >> ---
+>>> >>
+>>> >
+>>> > I just sent v8, but it looks it wasn't received by patchwork either.
+>>> >
+>>> > What's going on?
+>>>
+>>> The patch didn't arrive at linux-media ML.
+>>>
+>>> Not sure why it got rejected at vger. I suggest you to ping vger admin
+>>> to see why your patches are being rejected there.
+>>>
+>>> I tested parsing this patch manually and patchwork accepted. So, once
+>>> the issue with vger is solved, other patches should be properly
+>>> handled there.
+>>
+>> Could it be related to the fact that a gmail account is used? Konke Radlow
+>> had a similar issue recently when he posted a patch from a gmail account. It
+>> worked fine when posted from a company account.
+>>
+>
+> FWIW, I've always sent my patches from git-send-email through my gmail account.
+> Don't know if this is an issue, but it never seemed to.
+>
 
-diff --git a/drivers/media/video/coda.c b/drivers/media/video/coda.c
-index aea8d17..a67a52a 100644
---- a/drivers/media/video/coda.c
-+++ b/drivers/media/video/coda.c
-@@ -137,6 +137,7 @@ struct coda_dev {
- 	struct vb2_alloc_ctx	*alloc_ctx;
- 	struct list_head	instances;
- 	unsigned long		instance_mask;
-+	struct delayed_work	timeout;
- };
- 
- struct coda_params {
-@@ -723,6 +724,9 @@ static void coda_device_run(void *m2m_priv)
- 				CODA7_REG_BIT_AXI_SRAM_USE);
- 	}
- 
-+	/* 1 second timeout in case CODA locks up */
-+	schedule_delayed_work(&dev->timeout, HZ);
-+
- 	coda_command_async(ctx, CODA_COMMAND_PIC_RUN);
- }
- 
-@@ -1493,6 +1497,8 @@ static irqreturn_t coda_irq_handler(int irq, void *data)
- 	u32 wr_ptr, start_ptr;
- 	struct coda_ctx *ctx;
- 
-+	__cancel_delayed_work(&dev->timeout);
-+
- 	/* read status register to attend the IRQ */
- 	coda_read(dev, CODA_REG_BIT_INT_STATUS);
- 	coda_write(dev, CODA_REG_BIT_INT_CLEAR_SET,
-@@ -1565,6 +1571,20 @@ static irqreturn_t coda_irq_handler(int irq, void *data)
- 	return IRQ_HANDLED;
- }
- 
-+void coda_timeout(struct work_struct *work)
-+{
-+	struct coda_ctx *ctx;
-+	struct coda_dev *dev = container_of(to_delayed_work(work),
-+					    struct coda_dev, timeout);
-+
-+	v4l2_err(&dev->v4l2_dev, "CODA PIC_RUN timeout, stopping all streams\n");
-+
-+	list_for_each_entry(ctx, &dev->instances, list) {
-+		v4l2_m2m_streamoff(NULL, ctx->m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
-+		v4l2_m2m_streamoff(NULL, ctx->m2m_ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
-+	}
-+}
-+
- static u32 coda_supported_firmwares[] = {
- 	CODA_FIRMWARE_VERNUM(CODA_DX6, 2, 2, 5),
- 	CODA_FIRMWARE_VERNUM(CODA_7541, 13, 4, 29),
-@@ -1836,6 +1856,7 @@ static int __devinit coda_probe(struct platform_device *pdev)
- 
- 	spin_lock_init(&dev->irqlock);
- 	INIT_LIST_HEAD(&dev->instances);
-+	INIT_DELAYED_WORK(&dev->timeout, coda_timeout);
- 
- 	dev->plat_dev = pdev;
- 	dev->clk_per = devm_clk_get(&pdev->dev, "per");
--- 
-1.7.10.4
+On a second thought, perhaps it makes sense to have a git repo (on linuxtv.org)
+for me to work on stk1160.
+That way I could simply send "git pull" requests instead of patches.
 
+I'm not sure if this is a better workflow and/or would allow for
+easier reviewing.
+
+Thanks,
+Ezequiel.
