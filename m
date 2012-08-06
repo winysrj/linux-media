@@ -1,117 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([93.97.41.153]:46985 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750975Ab2HMM7x (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Aug 2012 08:59:53 -0400
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Stefan Macher <st_maker-lirc@yahoo.de>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 02/13] [media] iguanair: ignore unsupported firmware versions
-Date: Mon, 13 Aug 2012 13:59:40 +0100
-Message-Id: <1344862791-30352-2-git-send-email-sean@mess.org>
-In-Reply-To: <1344862791-30352-1-git-send-email-sean@mess.org>
-References: <1344862791-30352-1-git-send-email-sean@mess.org>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:56738 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932187Ab2HFPVH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 11:21:07 -0400
+Received: by yenl2 with SMTP id l2so2588692yen.19
+        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 08:21:06 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201208061618.56479.hverkuil@xs4all.nl>
+References: <1344260302-28849-1-git-send-email-elezegarcia@gmail.com>
+	<CALF0-+Xwa6qNH3pEOgJq9f07C+ArNco6nxQcjGWoy5kwyQeScA@mail.gmail.com>
+	<501FCFE1.7010802@redhat.com>
+	<201208061618.56479.hverkuil@xs4all.nl>
+Date: Mon, 6 Aug 2012 12:21:05 -0300
+Message-ID: <CALF0-+U7DYEgRFMaJx4kRpNb4aeeUaTywBVDkmw99azozG_0nQ@mail.gmail.com>
+Subject: Re: [alsa-devel] [PATCH v8] media: Add stk1160 new driver
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Takashi Iwai <tiwai@suse.de>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	alsa-devel@alsa-project.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Firmware versions lower than 0x0205 use a different interface which is not
-supported. Also report the firmware version in the standard format.
+On Mon, Aug 6, 2012 at 11:18 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Mon August 6 2012 16:08:33 Mauro Carvalho Chehab wrote:
+>> Em 06-08-2012 10:58, Ezequiel Garcia escreveu:
+>> > Hi Mauro,
+>> >
+>> > On Mon, Aug 6, 2012 at 10:38 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+>> >> This driver adds support for stk1160 usb bridge as used in some
+>> >> video/audio usb capture devices.
+>> >> It is a complete rewrite of staging/media/easycap driver and
+>> >> it's expected as a replacement.
+>> >> ---
+>> >>
+>> >
+>> > I just sent v8, but it looks it wasn't received by patchwork either.
+>> >
+>> > What's going on?
+>>
+>> The patch didn't arrive at linux-media ML.
+>>
+>> Not sure why it got rejected at vger. I suggest you to ping vger admin
+>> to see why your patches are being rejected there.
+>>
+>> I tested parsing this patch manually and patchwork accepted. So, once
+>> the issue with vger is solved, other patches should be properly
+>> handled there.
+>
+> Could it be related to the fact that a gmail account is used? Konke Radlow
+> had a similar issue recently when he posted a patch from a gmail account. It
+> worked fine when posted from a company account.
+>
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/Kconfig    |  8 ++++++--
- drivers/media/rc/iguanair.c | 21 +++++++++++----------
- 2 files changed, 17 insertions(+), 12 deletions(-)
+FWIW, I've always sent my patches from git-send-email through my gmail account.
+Don't know if this is an issue, but it never seemed to.
 
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index 5180390..2e91e66 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -264,8 +264,12 @@ config IR_IGUANA
- 	depends on RC_CORE
- 	select USB
- 	---help---
--	   Say Y here if you want to use the IgaunaWorks USB IR Transceiver.
--	   Both infrared receive and send are supported.
-+	   Say Y here if you want to use the IguanaWorks USB IR Transceiver.
-+	   Both infrared receive and send are supported. If you want to
-+	   change the ID or the pin config, use the user space driver from
-+	   IguanaWorks.
-+
-+	   Only firmware 0x0205 and later is supported.
- 
- 	   To compile this driver as a module, choose M here: the module will
- 	   be called iguanair.
-diff --git a/drivers/media/rc/iguanair.c b/drivers/media/rc/iguanair.c
-index bdd526d..5885400 100644
---- a/drivers/media/rc/iguanair.c
-+++ b/drivers/media/rc/iguanair.c
-@@ -36,8 +36,8 @@ struct iguanair {
- 	struct usb_device *udev;
- 
- 	int pipe_out;
-+	uint16_t version;
- 	uint8_t bufsize;
--	uint8_t version[2];
- 
- 	struct mutex lock;
- 
-@@ -97,8 +97,8 @@ static void process_ir_data(struct iguanair *ir, unsigned len)
- 		switch (ir->buf_in[3]) {
- 		case CMD_GET_VERSION:
- 			if (len == 6) {
--				ir->version[0] = ir->buf_in[4];
--				ir->version[1] = ir->buf_in[5];
-+				ir->version = (ir->buf_in[5] << 8) |
-+							ir->buf_in[4];
- 				complete(&ir->completion);
- 			}
- 			break;
-@@ -110,8 +110,7 @@ static void process_ir_data(struct iguanair *ir, unsigned len)
- 			break;
- 		case CMD_GET_FEATURES:
- 			if (len > 5) {
--				if (ir->version[0] >= 4)
--					ir->cycle_overhead = ir->buf_in[5];
-+				ir->cycle_overhead = ir->buf_in[5];
- 				complete(&ir->completion);
- 			}
- 			break;
-@@ -219,6 +218,12 @@ static int iguanair_get_features(struct iguanair *ir)
- 		goto out;
- 	}
- 
-+	if (ir->version < 0x205) {
-+		dev_err(ir->dev, "firmware 0x%04x is too old\n", ir->version);
-+		rc = -ENODEV;
-+		goto out;
-+	}
-+
- 	ir->bufsize = 150;
- 	ir->cycle_overhead = 65;
- 
-@@ -230,9 +235,6 @@ static int iguanair_get_features(struct iguanair *ir)
- 		goto out;
- 	}
- 
--	if (ir->version[0] == 0 || ir->version[1] == 0)
--		goto out;
--
- 	packet.cmd = CMD_GET_FEATURES;
- 
- 	rc = iguanair_send(ir, &packet, sizeof(packet));
-@@ -485,8 +487,7 @@ static int __devinit iguanair_probe(struct usb_interface *intf,
- 		goto out2;
- 
- 	snprintf(ir->name, sizeof(ir->name),
--		"IguanaWorks USB IR Transceiver version %d.%d",
--		ir->version[0], ir->version[1]);
-+		"IguanaWorks USB IR Transceiver version 0x%04x", ir->version);
- 
- 	usb_make_path(ir->udev, ir->phys, sizeof(ir->phys));
- 
--- 
-1.7.11.2
-
+Regards,
+Ezequiel.
