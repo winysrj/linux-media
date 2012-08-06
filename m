@@ -1,89 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46907 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752876Ab2HBVuZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2012 17:50:25 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: =?ISO-8859-1?Q?R=E9mi?= Denis-Courmont <remi@remlab.net>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de
-Subject: Re: [PATCHv2 3/9] v4l: add buffer exporting via dmabuf
-Date: Thu, 02 Aug 2012 23:50:31 +0200
-Message-ID: <1530169.bCmcyqEdys@avalon>
-In-Reply-To: <201208020908.18512.hverkuil@xs4all.nl>
-References: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com> <201208020956.45291.remi@remlab.net> <201208020908.18512.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:43381 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755732Ab2HFJ4V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 05:56:21 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rr13so2350021pbb.19
+        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 02:56:20 -0700 (PDT)
+From: Hideki EIRAKU <hdk@igel.co.jp>
+To: Russell King <linux@arm.linux.org.uk>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	alsa-devel@alsa-project.org, Katsuya MATSUBARA <matsu@igel.co.jp>,
+	Hideki EIRAKU <hdk@igel.co.jp>
+Subject: [PATCH v3 3/4] media: videobuf2-dma-contig: use dma_mmap_coherent if available
+Date: Mon,  6 Aug 2012 18:55:23 +0900
+Message-Id: <1344246924-32620-4-git-send-email-hdk@igel.co.jp>
+In-Reply-To: <1344246924-32620-1-git-send-email-hdk@igel.co.jp>
+References: <1344246924-32620-1-git-send-email-hdk@igel.co.jp>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Previously the vb2_dma_contig_mmap() function was using a dma_addr_t as a
+physical address.  The two addressses are not necessarily the same.
+For example, when using the IOMMU funtion on certain platforms, dma_addr_t
+addresses are not directly mappable physical address.
+dma_mmap_coherent() maps the address correctly.
+It is available on ARM platforms.
 
-On Thursday 02 August 2012 09:08:18 Hans Verkuil wrote:
-> On Thu August 2 2012 08:56:43 Rémi Denis-Courmont wrote:
-> > Le jeudi 2 août 2012 09:35:58 Hans Verkuil, vous avez écrit :
-> > > On Wed August 1 2012 22:49:57 Rémi Denis-Courmont wrote:
-> > > > > What about using the CREATE_BUFS ioctl to add new MMAP buffers at
-> > > > > runtime ?
-> > > > 
-> > > > Does CREATE_BUFS always work while already streaming has already
-> > > > started? If it depends on the driver, it's kinda helpless.
-> > > 
-> > > Yes, it does. It's one of the reasons it exists in the first place. But
-> > > there are currently only a handful of drivers that implement it. I hope
-> > > that as more and more drivers are converted to vb2 that the availability
-> > > of create_bufs will increase.
-> > 
-> > That's contradictory. If most drivers do not support it, then it won't
-> > work during streaming.
-> 
-> IF create_bufs is implemented in the driver, THEN you can use it during
-> streaming. I.e., it will never return EBUSY as an error due to the fact
-> that streaming is in progress.
-> 
-> Obviously it won't work if the driver didn't implement it in the first
-> place.
->
-> > > > What's the guaranteed minimum buffer count? It seems in any case, MMAP
-> > > > has a hard limit of 32 buffers (at least videobuf2 has), though one
-> > > > might argue this should be more than enough.
-> > > 
-> > > Minimum or maximum? The maximum is 32, that's hardcoded in the V4L2
-> > > core. Although drivers may force a lower maximum if they want. I have no
-> > > idea whether there are drivers that do that. There probably are.
-> > 
-> > The smallest of the maxima of all drivers.
-> 
-> I've no idea. Most will probably abide by the 32 maximum, but without
-> analyzing all drivers I can't guarantee it.
-> 
-> > > The minimum is usually between 1 and 3, depending on hardware
-> > > limitations.
-> > 
-> > And that's clearly insufficient without memory copy to userspace buffers.
-> > 
-> > It does not seem to me that CREATE_BUFS+MMAP is a useful replacement for
-> > REQBUFS+USERBUF then.
-> 
-> Just to put your mind at rest: USERPTR mode will *not* disappear or be
-> deprecated in any way. It's been there for a long time, it's in heavy use,
-> it's easy to use and it will not be turned into a second class citizen,
-> because it isn't. Just because there is a new dmabuf mode available doesn't
-> mean that everything should be done as a mmap+dmabuf thing.
+Signed-off-by: Hideki EIRAKU <hdk@igel.co.jp>
+---
+ drivers/media/video/videobuf2-dma-contig.c |   17 +++++++++++++++++
+ 1 files changed, 17 insertions(+), 0 deletions(-)
 
-I disagree with this. Not everything should obviously be done with MMAP + 
-DMABUF, but for buffer sharing between devices, we should encourage 
-application developers to use DMABUF instead of USERPTR.
-
+diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
+index 4b71326..7eee9c5 100644
+--- a/drivers/media/video/videobuf2-dma-contig.c
++++ b/drivers/media/video/videobuf2-dma-contig.c
+@@ -101,14 +101,31 @@ static unsigned int vb2_dma_contig_num_users(void *buf_priv)
+ static int vb2_dma_contig_mmap(void *buf_priv, struct vm_area_struct *vma)
+ {
+ 	struct vb2_dc_buf *buf = buf_priv;
++#ifdef ARCH_HAS_DMA_MMAP_COHERENT
++	int ret;
++#endif
+ 
+ 	if (!buf) {
+ 		printk(KERN_ERR "No buffer to map\n");
+ 		return -EINVAL;
+ 	}
+ 
++#ifdef ARCH_HAS_DMA_MMAP_COHERENT
++	ret = dma_mmap_coherent(buf->conf->dev, vma, buf->vaddr, buf->dma_addr,
++				buf->size);
++	if (ret) {
++		pr_err("Remapping memory failed, error: %d\n", ret);
++		return ret;
++	}
++	vma->vm_flags |= VM_DONTEXPAND | VM_RESERVED;
++	vma->vm_private_data = &buf->handler;
++	vma->vm_ops = &vb2_common_vm_ops;
++	vma->vm_ops->open(vma);
++	return 0;
++#else
+ 	return vb2_mmap_pfn_range(vma, buf->dma_addr, buf->size,
+ 				  &vb2_common_vm_ops, &buf->handler);
++#endif
+ }
+ 
+ static void *vb2_dma_contig_get_userptr(void *alloc_ctx, unsigned long vaddr,
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.0.4
 
