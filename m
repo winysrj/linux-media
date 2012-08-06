@@ -1,94 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:53118 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751151Ab2H1JfZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Aug 2012 05:35:25 -0400
-Date: Tue, 28 Aug 2012 11:35:17 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-arm-kernel@lists.infradead.org, mchehab@redhat.com,
-	linux@arm.linux.org.uk, kernel@pengutronix.de,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] media: mx2_camera: Remove MX2_CAMERA_SWAP16 and
- MX2_CAMERA_PACK_DIR_MSB flags.
-Message-ID: <20120828093517.GH26594@pengutronix.de>
-References: <1342083809-19921-1-git-send-email-javier.martin@vista-silicon.com>
- <Pine.LNX.4.64.1207201330240.27906@axis700.grange>
- <CACKLOr2sKVWCk3we_cP5MvnR6-WsaFwA9AC=fgp3iLm8B6mfEA@mail.gmail.com>
- <Pine.LNX.4.64.1207301718510.28003@axis700.grange>
- <CACKLOr3OmRUACO8QaJnYA6E=YZMCrrOq1pAXb1wTv4Udg+u8bQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CACKLOr3OmRUACO8QaJnYA6E=YZMCrrOq1pAXb1wTv4Udg+u8bQ@mail.gmail.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:39532 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754894Ab2HFJ4L (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 05:56:11 -0400
+Received: by pbbrr13 with SMTP id rr13so2350020pbb.19
+        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 02:56:11 -0700 (PDT)
+From: Hideki EIRAKU <hdk@igel.co.jp>
+To: Russell King <linux@arm.linux.org.uk>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	alsa-devel@alsa-project.org, Katsuya MATSUBARA <matsu@igel.co.jp>,
+	Hideki EIRAKU <hdk@igel.co.jp>
+Subject: [PATCH v3 0/4] Use dma_mmap_coherent to support IOMMU mapper
+Date: Mon,  6 Aug 2012 18:55:20 +0900
+Message-Id: <1344246924-32620-1-git-send-email-hdk@igel.co.jp>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 20, 2012 at 10:08:39AM +0200, javier Martin wrote:
-> Hi,
-> 
-> On 30 July 2012 17:33, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> > Hi Javier
-> >
-> > On Mon, 30 Jul 2012, javier Martin wrote:
-> >
-> >> Hi,
-> >> thank you for yor ACKs.
-> >>
-> >> On 20 July 2012 13:31, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> >> > On Thu, 12 Jul 2012, Javier Martin wrote:
-> >> >
-> >> >> These flags are not used any longer and can be safely removed
-> >> >> since the following patch:
-> >> >> http://www.spinics.net/lists/linux-media/msg50165.html
-> >> >>
-> >> >> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
-> >> >
-> >> > For the ARM tree:
-> >> >
-> >> > Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> >>
-> >> forgive my ignorance on the matter. Could you please point me to the
-> >> git repository this patch should be merged?
-> >
-> > Sorry, my "for the ARM tree" comment was probably not clear enough. This
-> > patch should certainly go via the ARM (SoC) tree, since it only touches
-> > arch/arm. So, the maintainer (Sascha - added to CC), that will be
-> > forwarding this patch to Linus can thereby add my "acked-by" to this
-> > patch, if he feels like it.
-> >
-> 
-> Sascha, do you have any comments on this one? I can't find it in
-> arm-soc, did you already merge it?
+There is a dma_mmap_coherent() API in some architectures.  This API
+provides a mmap function for memory allocated by dma_alloc_coherent().
+Some drivers mmap a dma_addr_t returned by dma_alloc_coherent() as a
+physical address.  But such drivers do not work correctly when IOMMU
+mapper is used.
 
-Applied, thanks. I have rewritten the commit message as follows:
+v3:
+- Remove an unnecessary line which sets page protection bits.
+v2:
+- Rebase on fbdev-next branch of
+  git://github.com/schandinat/linux-2.6.git.
+- Initialize .fb_mmap in both sh_mobile_lcdc_overlay_ops and
+  sh_mobile_lcdc_ops.
+- Add Laurent's clean up patch.
 
-Author: Javier Martin <javier.martin@vista-silicon.com>
-Date:   Thu Jul 12 11:03:29 2012 +0200
+Hideki EIRAKU (3):
+  ARM: dma-mapping: define ARCH_HAS_DMA_MMAP_COHERENT
+  media: videobuf2-dma-contig: use dma_mmap_coherent if available
+  fbdev: sh_mobile_lcdc: use dma_mmap_coherent if available
 
-    ARM i.MX mx2_camera: Remove MX2_CAMERA_SWAP16 and MX2_CAMERA_PACK_DIR_MSB flags.
-    
-    These flags are not used any longer and can be safely removed
-    since:
-    
-    | commit 8a76e5383fb5f58868fdd3a2fe1f4b95988f10a8
-    | Author: Javier Martin <javier.martin@vista-silicon.com>
-    | Date:   Wed Jul 11 17:34:54 2012 +0200
-    |
-    |    media: mx2_camera: Fix mbus format handling
-    
-    Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
-    Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-    Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-    Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Laurent Pinchart (1):
+  ALSA: pcm - Don't define ARCH_HAS_DMA_MMAP_COHERENT privately for ARM
 
-Sascha
+ arch/arm/include/asm/dma-mapping.h         |    1 +
+ drivers/media/video/videobuf2-dma-contig.c |   17 +++++++++++++++++
+ drivers/video/sh_mobile_lcdcfb.c           |   28 ++++++++++++++++++++++++++++
+ sound/core/pcm_native.c                    |    7 -------
+ 4 files changed, 46 insertions(+), 7 deletions(-)
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
