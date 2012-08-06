@@ -1,958 +1,1716 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:40846 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754119Ab2HJO6M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Aug 2012 10:58:12 -0400
-Subject: [PATCH 4/4] dma-buf-mgr: multiple dma-buf synchronization (v3)
-To: sumit.semwal@linaro.org, rob.clark@linaro.org
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	patches@linaro.org
-Date: Fri, 10 Aug 2012 16:58:06 +0200
-Message-ID: <20120810145804.5490.14858.stgit@patser.local>
-In-Reply-To: <20120810145728.5490.44707.stgit@patser.local>
-References: <20120810145728.5490.44707.stgit@patser.local>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:60151 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753523Ab2HFIPD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 04:15:03 -0400
+From: Federico Vaga <federico.vaga@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jonathan Corbet <corbet@lwn.net>,
+	Federico Vaga <federico.vaga@gmail.com>
+Subject: [PATCH 3/3 v2] [media] sta2x11_vip: convert to videobuf2 and control framework
+Date: Mon,  6 Aug 2012 10:17:39 +0200
+Message-Id: <1344241059-15271-1-git-send-email-federico.vaga@gmail.com>
+In-Reply-To: <1343765829-6006-4-git-send-email-federico.vaga@gmail.com>
+References: <1343765829-6006-4-git-send-email-federico.vaga@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Signed-off-by: Federico Vaga <federico.vaga@gmail.com>
+Acked-by: Giancarlo Asnaghi <giancarlo.asnaghi@st.com>
 
-dma-buf-mgr handles the case of reserving single or multiple dma-bufs
-while trying to prevent deadlocks from buffers being reserved
-simultaneously. For this to happen extra functions have been introduced:
-
-  + dma_buf_reserve()
-  + dma_buf_unreserve()
-  + dma_buf_wait_unreserved()
-
-Reserve a single buffer, optionally with a sequence to indicate this
-is part of a multi-dmabuf reservation. This function will return
--EDEADLK and return immediately if reserving would cause a deadlock.
-In case a single buffer is being reserved, no sequence is needed,
-otherwise please use the dmabufmgr calls.
-
-If you want to attach a exclusive dma-fence, you have to wait
-until all shared fences have signalled completion. If there are none,
-or if a shared fence has to be attached, wait until last exclusive
-fence has signalled completion.
-
-The new fence has to be attached before unreserving the buffer,
-and in exclusive mode all previous fences will have be removed
-from the buffer, and unreffed when done with it.
-
-dmabufmgr methods:
-
-  + dmabufmgr_validate_init()
-This function inits a dmabufmgr_validate structure and appends
-it to the tail of the list, with refcount set to 1.
-  + dmabufmgr_validate_put()
-Convenience function to unref and free a dmabufmgr_validate
-structure. However if it's used for custom callback signalling,
-a custom function should be implemented.
-
-  + dmabufmgr_reserve_buffers()
-This function takes a linked list of dmabufmgr_validate's, each one
-requires the following members to be set by the caller:
-- validate->head, list head
-- validate->bo, must be set to the dma-buf to reserve.
-- validate->shared, set to true if opened in shared mode.
-- validate->priv, can be used by the caller to identify this buffer.
-
-This function will then set the following members on succesful completion:
-
-- validate->num_fences, amount of valid fences to wait on before this
-  buffer can be accessed. This can be 0.
-- validate->fences[0...num_fences-1] fences to wait on
-
-  + dmabufmgr_backoff_reservation()
-This can be used when the caller encounters an error between reservation
-and usage. No new fence will be attached and all reservations will be
-undone without side effects.
-
-  + dmabufmgr_fence_buffer_objects
-Upon successful completion a new fence will have to be attached.
-This function releases old fences and attaches the new one.
-
-  + dmabufmgr_wait_completed_cpu
-A simple cpu waiter convenience function. Waits until all fences have
-signalled completion before returning.
-
-The rationale of refcounting dmabufmgr_validate lies in the wait
-dma_fence_cb wait member. Before calling dma_fence_add_callback
-you should increase the refcount on dmabufmgr_validate with
-dmabufmgr_validate_get, and on signal completion you should call
-kref_put(&val->refcount, custom_free_signal); after all callbacks
-have added you drop the refcount by 1 also, when refcount drops to
-0 all callbacks have been signalled, and dmabufmgr_validate
-has been waited on and can be freed. Since this will require
-atomic spinlocks to unlink the list and signal completion, a
-deadlock could occur if you try to call add_callback otherwise,
-so the refcount is used as a means of preventing this from
-occuring by having your custom free function take a device specific
-lock, removing from list and freeing the data. The nice/evil part
-about this is that this will also guarantee no memory leaks can occur
-behind your back. This allows delays completion by moving the
-dmabufmgr_validate list to be a part of the committed reservation.
-
-v1: Original version
-v2: Use dma-fence
-v3: Added refcounting to dmabufmgr-validate
-v4: Fixed dmabufmgr_wait_completed_cpu prototype, added more
-    documentation and added Documentation/dma-buf-synchronization.txt
 ---
- Documentation/DocBook/device-drivers.tmpl |    2 
- Documentation/dma-buf-synchronization.txt |  197 +++++++++++++++++++++
- drivers/base/Makefile                     |    2 
- drivers/base/dma-buf-mgr.c                |  277 +++++++++++++++++++++++++++++
- drivers/base/dma-buf.c                    |  114 ++++++++++++
- include/linux/dma-buf-mgr.h               |  121 +++++++++++++
- include/linux/dma-buf.h                   |   24 +++
- 7 files changed, 736 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/dma-buf-synchronization.txt
- create mode 100644 drivers/base/dma-buf-mgr.c
- create mode 100644 include/linux/dma-buf-mgr.h
+ drivers/media/video/sta2x11_vip.c | 1239 +++++++++++++------------------------
+ 1 file modificato, 414 inserzioni(+), 825 rimozioni(-)
 
-diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
-index 36252ac..2fc050c 100644
---- a/Documentation/DocBook/device-drivers.tmpl
-+++ b/Documentation/DocBook/device-drivers.tmpl
-@@ -128,6 +128,8 @@ X!Edrivers/base/interface.c
- !Edrivers/base/dma-buf.c
- !Edrivers/base/dma-fence.c
- !Iinclude/linux/dma-fence.h
-+!Edrivers/base/dma-buf-mgr.c
-+!Iinclude/linux/dma-buf-mgr.h
- !Edrivers/base/dma-coherent.c
- !Edrivers/base/dma-mapping.c
-      </sect1>
-diff --git a/Documentation/dma-buf-synchronization.txt b/Documentation/dma-buf-synchronization.txt
-new file mode 100644
-index 0000000..dd4685e
---- /dev/null
-+++ b/Documentation/dma-buf-synchronization.txt
-@@ -0,0 +1,197 @@
-+                    DMA Buffer Synchronization API Guide
-+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+                            Maarten Lankhorst
-+                    <maarten.lankhorst@canonical.com>
-+                        <m.b.lankhorst@gmail.com>
-+
-+This is a followup to dma-buf-sharing.txt, which should be read first.
-+Unless you're dealing with the most simplest of cases, you're going to need
-+synchronization. This is done with the help of dma-fence and dma-buf-mgr.
-+
-+
-+dma-fence
-+---------
-+
-+dma-fence is simply a synchronization primitive used mostly by dma-buf-mgr.
-+In general, driver writers would not need to implement their own kind of
-+dma-fence, but re-use the existing types. The possibility is left open for
-+platforms which support alternate means of hardware synchronization between
-+IP blocks to provide their own implementation shared by the drivers on that
-+platform.
-+
-+The base dma-fence is sufficient for software based signaling. Ie. when the
-+signaling driver gets an irq, calls dma_fence_signal() which wakes other
-+driver(s) that are waiting for the fence to be signaled.
-+
-+But to support cases where no CPU involvement is required in the buffer
-+handoff between two devices, different fence implementations can be used. By
-+comparing the ops pointer with known ops, it is possible to see if the fence
-+you are waiting on works in a special way known to your driver, and act
-+differently based upon that. For example dma_seqno_fence allows hardware
-+waiting until the condition is met:
-+
-+    (s32)((sync_buf)[seqno_ofs] - seqno) >= 0
-+
-+But all dma-fences should have a software fallback, for the driver creating
-+the fence does not know if the driver waiting on the fence supports hardware
-+signaling.  The enable_signaling() callback is to notify the fence
-+implementation (or possibly the creator of the fence) that some other driver
-+is waiting for software notification and dma_fence_signal() must be called
-+once the fence is passed.  This could be used to enable some irq that would
-+not normally be enabled, etc, so that the CPU is woken once the fence condition
-+has arrived.
-+
-+
-+dma-buf-mgr overview
-+--------------------
-+
-+dma-buf-mgr is a reservation manager, and it is used to handle the case where
-+multiple devices want to access multiple dma-bufs in an arbitrary order, it
-+uses dma-fences for synchronization. There are 3 steps that are important here:
-+
-+1. Reservation of all dma-buf buffers with dma-buf-mgr
-+  - Create a struct dmabufmgr_validate for each one with a call to
-+    dmabufmgr_validate_init()
-+  - Reserve the list with dmabufmgr_reserve_buffers()
-+2. Queueing waits and allocating a new dma-fence
-+  - dmabufmgr_wait_completed_cpu or custom implementation.
-+    * Custom implementation can use dma_fence_wait, dma_fence_add_callback
-+      or a custom method that would depend on the fence type.
-+    * An implementation that uses dma_fence_add_callback can use the
-+      refcounting of dmabufmgr_validate to do signal completion, when
-+      the original list head is empty, all fences would have been signaled,
-+      and the command sequence can start running. This requires a custom put.
-+  - dma_fence_create, dma_seqno_fence_init or custom implementation
-+    that calls __dma_fence_init.
-+3. Committing with the new dma-fence.
-+  - dmabufmgr_fence_buffer_objects
-+  - reduce refcount of list by 1 with dmabufmgr_validate_put or custom put.
-+
-+The waits queued in step 2 don't have to be completed before commit, this
-+allows users of dma-buf-mgr to prevent stalls for as long as possible.
-+
-+
-+dma-fence operations
-+--------------------
-+
-+dma_fence_get() increments the refcount on a dma-fence by 1.
-+dma_fence_put() decrements the refcount by 1.
-+    Each dma-buf the dma-fence is attached to will also hold a reference to the
-+    dma-fence, but this can will be removed by dma-buf-mgr upon committing a
-+    reservation.
-+
-+dma_fence_ops.enable_signaling()
-+    Indicates dma_fence_signal will have to be called, any error code returned
-+    will cause the fence to be signaled. On success, if the dma_fence creator
-+    didn't already hold a refcount, it should increase the refcount, and
-+    decrease it after calling dma_fence_signal.
-+
-+dma_fence_ops.release()
-+    Can be NULL, this function allows additional commands to run on destruction
-+    of the dma_fence.
-+
-+dma_fence_signal()
-+    Signal completion for software callbacks on a dma-fence, this will unblock
-+    dma_fence_wait() calls and run all the callbacks added with
-+    dma_fence_add_callback().
-+
-+dma_fence_wait()
-+    Do a synchronous wait on this dma-fence. It is assumed the caller directly
-+    or indirectly (dma-buf-mgr between reservation and committing) holds a
-+    reference to the dma-fence, otherwise the dma-fence might be freed
-+    before return, resulting in undefined behavior.
-+
-+dma_fence_add_callback()
-+    Add a software callback to the dma-fence. Same restrictions apply to
-+    refcount as it does to dma_fence_wait, however the caller doesn't need to
-+    keep a refcount to dma-fence afterwards: when software access is enabled,
-+    the creator of the dma-fence is required to keep the fence alive until
-+    after it signals with dma_fence_signal. The callback itself can be called
-+    from irq context.
-+
-+    This function returns -EINVAL if an input parameter is NULL, or -ENOENT
-+    if the fence was already signaled.
-+
-+    *WARNING*:
-+    Cancelling a callback should only be done if you really know what you're
-+    doing, since deadlocks and race conditions could occur all too easily. For
-+    this reason, it should only ever be done on hardware lockup recovery.
-+
-+dma_fence_create()
-+    Create a software only fence, the creator must keep its reference until
-+    after it calls dma_fence_signal.
-+
-+__dma_fence_init()
-+    Initializes an allocated fence, the caller doesn't have to keep its
-+    refcount after committing with this fence, but it will need to hold a
-+    refcount again if dma_fence_ops.enable_signaling gets called. This can
-+    be used for other implementing other types of dma_fence.
-+
-+dma_seqno_fence_init()
-+    Initializes a dma_seqno_fence, the caller will need to be able to
-+    enable software completion, but it also completes when
-+    (s32)((sync_buf)[seqno_ofs] - seqno) >= 0 is true.
-+
-+    The dma_seqno_fence will take a refcount on sync_buf until it's destroyed.
-+
-+    Certain hardware have instructions to insert this type of wait condition
-+    in the command stream, so no intervention from software would be needed.
-+    This type of fence can be destroyed before completed, however a reference
-+    on the sync_buf dma-buf can be taken. It is encouraged to re-use the same
-+    dma-buf, since mapping or unmapping the sync_buf to the device's vm can be
-+    expensive.
-+
-+
-+dma-buf-mgr operations
-+----------------------
-+
-+dmabufmgr_validate_init()
-+    Initialize a struct dmabufmgr_validate for use with dmabufmgr methods, and
-+    appends it to the list.
-+
-+dmabufmgr_validate_get()
-+dmabufmgr_validate_put()
-+    Decrease or increase a reference to a dmabufmgr_validate, these are
-+    convenience functions and don't have to be used. The dmabufmgr commands
-+    below will never touch the refcount.
-+
-+dmabufmgr_reserve_buffers()
-+    Attempts to reserve a list of dmabufmgr_validate. This function does not
-+    decrease or increase refcount on dmabufmgr_validate.
-+
-+    When this command returns 0 (success), the following
-+    dmabufmgr_validate members become valid:
-+    num_fences, fences[0...num_fences)
-+
-+    The caller will have to queue waits on those fences before calling
-+    dmabufmgr_fence_buffer_objects, dma_fence_add_callback will keep
-+    the fence alive until it is signaled.
-+
-+    As such, by incrementing refcount on dmabufmgr_validate before calling
-+    dma_fence_add_callback, and making the callback decrement refcount on
-+    dmabufmgr_validate, or releasing refcount if dma_fence_add_callback
-+    failed, the dmabufmgr_validate would be freed when all the fences
-+    have been signaled, and only after the last ref is released, which should
-+    be after dmabufmgr_fence_buffer_objects. With proper locking, when the
-+    list_head holding the list of dmabufmgr_validate's becomes empty it
-+    indicates all fences for all dma-bufs have been signaled.
-+
-+dmabufmgr_backoff_reservation()
-+    Unreserves a list of dmabufmgr_validate's, after dmabufmgr_reserve_buffers
-+    was called. This function does not decrease or increase refcount on
-+    dmabufmgr_validate.
-+
-+dmabufmgr_fence_buffer_objects()
-+    Commits the list of dmabufmgr_validate's with the dma-fence specified.
-+    This should be done after dmabufmgr_reserve_buffers was called succesfully.
-+    dmabufmgr_backoff_reservation doesn't need to be called after this.
-+    This function does not decrease or increase refcount on dmabufmgr_validate.
-+
-+dmabufmgr_wait_completed_cpu()
-+    Will block until all dmabufmgr_validate's have been completed, a signal
-+    has been received, or the wait timed out. This is a convenience function
-+    to speed up initial implementations, however since this blocks
-+    synchronously this is not the best way to wait.
-+    Can be called after dmabufmgr_reserve_buffers returned, but before
-+    dmabufmgr_backoff_reservation or dmabufmgr_fence_buffer_objects.
-diff --git a/drivers/base/Makefile b/drivers/base/Makefile
-index 6e9f217..f11d40f 100644
---- a/drivers/base/Makefile
-+++ b/drivers/base/Makefile
-@@ -10,7 +10,7 @@ obj-$(CONFIG_CMA) += dma-contiguous.o
- obj-y			+= power/
- obj-$(CONFIG_HAS_DMA)	+= dma-mapping.o
- obj-$(CONFIG_HAVE_GENERIC_DMA_COHERENT) += dma-coherent.o
--obj-$(CONFIG_DMA_SHARED_BUFFER) += dma-buf.o dma-fence.o
-+obj-$(CONFIG_DMA_SHARED_BUFFER) += dma-buf.o dma-fence.o dma-buf-mgr.o
- obj-$(CONFIG_ISA)	+= isa.o
- obj-$(CONFIG_FW_LOADER)	+= firmware_class.o
- obj-$(CONFIG_NUMA)	+= node.o
-diff --git a/drivers/base/dma-buf-mgr.c b/drivers/base/dma-buf-mgr.c
-new file mode 100644
-index 0000000..899a99b
---- /dev/null
-+++ b/drivers/base/dma-buf-mgr.c
-@@ -0,0 +1,277 @@
-+/*
-+ * Copyright (C) 2012 Canonical Ltd
-+ *
-+ * Based on ttm_bo.c which bears the following copyright notice,
-+ * but is dual licensed:
-+ *
-+ * Copyright (c) 2006-2009 VMware, Inc., Palo Alto, CA., USA
-+ * All Rights Reserved.
-+ *
-+ * Permission is hereby granted, free of charge, to any person obtaining a
-+ * copy of this software and associated documentation files (the
-+ * "Software"), to deal in the Software without restriction, including
-+ * without limitation the rights to use, copy, modify, merge, publish,
-+ * distribute, sub license, and/or sell copies of the Software, and to
-+ * permit persons to whom the Software is furnished to do so, subject to
-+ * the following conditions:
-+ *
-+ * The above copyright notice and this permission notice (including the
-+ * next paragraph) shall be included in all copies or substantial portions
-+ * of the Software.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-+ * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL
-+ * THE COPYRIGHT HOLDERS, AUTHORS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM,
-+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-+ * USE OR OTHER DEALINGS IN THE SOFTWARE.
-+ *
-+ **************************************************************************/
-+/*
-+ * Authors: Thomas Hellstrom <thellstrom-at-vmware-dot-com>
-+ */
-+
-+
-+#include <linux/dma-buf-mgr.h>
-+#include <linux/export.h>
-+#include <linux/sched.h>
-+#include <linux/slab.h>
-+
-+static void dmabufmgr_backoff_reservation_locked(struct list_head *list)
-+{
-+	struct dmabufmgr_validate *entry;
-+
-+	list_for_each_entry(entry, list, head) {
-+		struct dma_buf *bo = entry->bo;
-+		if (!entry->reserved)
-+			continue;
-+		entry->reserved = false;
-+
-+		entry->num_fences = 0;
-+
-+		atomic_set(&bo->reserved, 0);
-+		wake_up_all(&bo->event_queue);
-+	}
-+}
-+
-+static int
-+dmabufmgr_wait_unreserved_locked(struct list_head *list,
-+				    struct dma_buf *bo)
-+{
-+	int ret;
-+
-+	spin_unlock(&dma_buf_reserve_lock);
-+	ret = dma_buf_wait_unreserved(bo, true);
-+	spin_lock(&dma_buf_reserve_lock);
-+	if (unlikely(ret != 0))
-+		dmabufmgr_backoff_reservation_locked(list);
-+	return ret;
-+}
-+
-+/**
-+ * dmabufmgr_backoff_reservation - cancel a reservation
-+ * @list:	[in]	a linked list of struct dmabufmgr_validate
-+ *
-+ * This function cancels a previous reservation done by
-+ * dmabufmgr_reserve_buffers. This is useful in case something
-+ * goes wrong between reservation and committing.
-+ *
-+ * Please read Documentation/dma-buf-synchronization.txt
-+ */
-+void
-+dmabufmgr_backoff_reservation(struct list_head *list)
-+{
-+	if (list_empty(list))
-+		return;
-+
-+	spin_lock(&dma_buf_reserve_lock);
-+	dmabufmgr_backoff_reservation_locked(list);
-+	spin_unlock(&dma_buf_reserve_lock);
-+}
-+EXPORT_SYMBOL_GPL(dmabufmgr_backoff_reservation);
-+
-+/**
-+ * dmabufmgr_reserve_buffers - reserve a list of dmabufmgr_validate
-+ * @list:	[in]	a linked list of struct dmabufmgr_validate
-+ *
-+ * Please read Documentation/dma-buf-synchronization.txt
-+ */
-+int
-+dmabufmgr_reserve_buffers(struct list_head *list)
-+{
-+	struct dmabufmgr_validate *entry;
-+	int ret;
-+	u32 val_seq;
-+
-+	if (list_empty(list))
-+		return 0;
-+
-+	list_for_each_entry(entry, list, head) {
-+		entry->reserved = false;
-+		entry->num_fences = 0;
-+	}
-+
-+retry:
-+	spin_lock(&dma_buf_reserve_lock);
-+	val_seq = atomic_inc_return(&dma_buf_reserve_counter);
-+
-+	list_for_each_entry(entry, list, head) {
-+		struct dma_buf *bo = entry->bo;
-+
-+retry_this_bo:
-+		ret = dma_buf_reserve_locked(bo, true, true, true, val_seq);
-+		switch (ret) {
-+		case 0:
-+			break;
-+		case -EBUSY:
-+			ret = dmabufmgr_wait_unreserved_locked(list, bo);
-+			if (unlikely(ret != 0)) {
-+				spin_unlock(&dma_buf_reserve_lock);
-+				return ret;
-+			}
-+			goto retry_this_bo;
-+		case -EAGAIN:
-+			dmabufmgr_backoff_reservation_locked(list);
-+			spin_unlock(&dma_buf_reserve_lock);
-+			ret = dma_buf_wait_unreserved(bo, true);
-+			if (unlikely(ret != 0))
-+				return ret;
-+			goto retry;
-+		default:
-+			dmabufmgr_backoff_reservation_locked(list);
-+			spin_unlock(&dma_buf_reserve_lock);
-+			return ret;
-+		}
-+
-+		entry->reserved = true;
-+
-+		if (entry->shared &&
-+		    bo->fence_shared_count == DMA_BUF_MAX_SHARED_FENCE) {
-+			WARN_ON_ONCE(1);
-+			dmabufmgr_backoff_reservation_locked(list);
-+			spin_unlock(&dma_buf_reserve_lock);
-+			return -EINVAL;
-+		}
-+
-+		if (!entry->shared && bo->fence_shared_count) {
-+			entry->num_fences = bo->fence_shared_count;
-+
-+			BUILD_BUG_ON(sizeof(entry->fences) !=
-+				     sizeof(bo->fence_shared));
-+
-+			memcpy(entry->fences, bo->fence_shared,
-+			       sizeof(bo->fence_shared));
-+		} else if (bo->fence_excl) {
-+			entry->num_fences = 1;
-+			entry->fences[0] = bo->fence_excl;
-+		} else
-+			entry->num_fences = 0;
-+	}
-+	spin_unlock(&dma_buf_reserve_lock);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(dmabufmgr_reserve_buffers);
-+
-+/**
-+ * dmabufmgr_wait_completed_cpu - wait synchronously for completion on cpu
-+ * @list:	[in]	a linked list of struct dmabufmgr_validate
-+ * @intr:	[in]	perform an interruptible wait
-+ * @timeout:	[in]	absolute timeout in jiffies
-+ *
-+ * Since this function waits synchronously it is meant mostly for cases where
-+ * stalling is unimportant, or to speed up initial implementations.
-+ */
-+int
-+dmabufmgr_wait_completed_cpu(struct list_head *list, bool intr,
-+			     unsigned long timeout)
-+{
-+	struct dmabufmgr_validate *entry;
-+	int i, ret = 0;
-+
-+	list_for_each_entry(entry, list, head) {
-+		for (i = 0; i < entry->num_fences && !ret; i++)
-+			ret = dma_fence_wait(entry->fences[i], intr, timeout);
-+
-+		if (ret && ret != -ERESTARTSYS)
-+			pr_err("waiting returns %i\n", ret);
-+		if (ret)
-+			return ret;
-+	}
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(dmabufmgr_wait_completed_cpu);
-+
-+/**
-+ * dmabufmgr_fence_buffer_objects - commit a reservation with a new fence
-+ * @fence:	[in]	the fence that indicates completion
-+ * @list:	[in]	a linked list of struct dmabufmgr_validate
-+ *
-+ * This function should be called after a hardware command submission is
-+ * completed succesfully. The fence is used to indicate completion of
-+ * those commands.
-+ *
-+ * Please read Documentation/dma-buf-synchronization.txt
-+ */
-+void
-+dmabufmgr_fence_buffer_objects(struct dma_fence *fence, struct list_head *list)
-+{
-+	struct dmabufmgr_validate *entry;
-+	struct dma_buf *bo;
-+
-+	if (list_empty(list) || WARN_ON(!fence))
-+		return;
-+
-+	/* Until deferred fput hits mainline, release old things here */
-+	list_for_each_entry(entry, list, head) {
-+		bo = entry->bo;
-+
-+		if (!entry->shared) {
-+			int i;
-+			for (i = 0; i < bo->fence_shared_count; ++i) {
-+				dma_fence_put(bo->fence_shared[i]);
-+				bo->fence_shared[i] = NULL;
-+			}
-+			bo->fence_shared_count = 0;
-+			if (bo->fence_excl) {
-+				dma_fence_put(bo->fence_excl);
-+				bo->fence_excl = NULL;
-+			}
-+		}
-+
-+		entry->reserved = false;
-+	}
-+
-+	spin_lock(&dma_buf_reserve_lock);
-+
-+	list_for_each_entry(entry, list, head) {
-+		bo = entry->bo;
-+
-+		dma_fence_get(fence);
-+		if (entry->shared)
-+			bo->fence_shared[bo->fence_shared_count++] = fence;
-+		else
-+			bo->fence_excl = fence;
-+
-+		dma_buf_unreserve_locked(bo);
-+	}
-+
-+	spin_unlock(&dma_buf_reserve_lock);
-+}
-+EXPORT_SYMBOL_GPL(dmabufmgr_fence_buffer_objects);
-+
-+/**
-+ * dmabufmgr_validate_free - simple free function for dmabufmgr_validate
-+ * @ref:	[in]	pointer to dmabufmgr_validate::refcount to free
-+ *
-+ * Can be called when refcount drops to 0, but isn't required to be used.
-+ */
-+void dmabufmgr_validate_free(struct kref *ref)
-+{
-+	struct dmabufmgr_validate *val;
-+	val = container_of(ref, struct dmabufmgr_validate, refcount);
-+	list_del(&val->head);
-+	kfree(val);
-+}
-+EXPORT_SYMBOL_GPL(dmabufmgr_validate_free);
-diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-index 24e88fe..a19a518 100644
---- a/drivers/base/dma-buf.c
-+++ b/drivers/base/dma-buf.c
-@@ -25,14 +25,20 @@
- #include <linux/fs.h>
- #include <linux/slab.h>
- #include <linux/dma-buf.h>
-+#include <linux/dma-fence.h>
- #include <linux/anon_inodes.h>
- #include <linux/export.h>
-+#include <linux/sched.h>
-+
-+atomic_t dma_buf_reserve_counter = ATOMIC_INIT(1);
-+DEFINE_SPINLOCK(dma_buf_reserve_lock);
+diff --git a/drivers/media/video/sta2x11_vip.c b/drivers/media/video/sta2x11_vip.c
+index 4c10205..ffd9f0a 100644
+--- a/drivers/media/video/sta2x11_vip.c
++++ b/drivers/media/video/sta2x11_vip.c
+@@ -1,6 +1,7 @@
+ /*
+  * This is the driver for the STA2x11 Video Input Port.
+  *
++ * Copyright (C) 2012       ST Microelectronics
+  * Copyright (C) 2010       WindRiver Systems, Inc.
+  *
+  * This program is free software; you can redistribute it and/or modify it
+@@ -19,36 +20,30 @@
+  * The full GNU General Public License is included in this distribution in
+  * the file called "COPYING".
+  *
+- * Author: Andreas Kies <andreas.kies@windriver.com>
+- *		Vlad Lungu <vlad.lungu@windriver.com>
+- *
+  */
  
- static inline int is_dma_buf_file(struct file *);
+ #include <linux/types.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
+-#include <linux/vmalloc.h>
+-
+ #include <linux/videodev2.h>
+-
+ #include <linux/kmod.h>
+-
+ #include <linux/pci.h>
+ #include <linux/interrupt.h>
+-#include <linux/mutex.h>
+ #include <linux/io.h>
+ #include <linux/gpio.h>
+ #include <linux/i2c.h>
+ #include <linux/delay.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-device.h>
++#include <media/v4l2-ctrls.h>
+ #include <media/v4l2-ioctl.h>
+-#include <media/videobuf-dma-contig.h>
++#include <media/v4l2-fh.h>
++#include <media/v4l2-event.h>
++#include <media/videobuf2-dma-streaming.h>
  
- static int dma_buf_release(struct inode *inode, struct file *file)
- {
- 	struct dma_buf *dmabuf;
-+	int i;
+ #include "sta2x11_vip.h"
  
- 	if (!is_dma_buf_file(file))
- 		return -EINVAL;
-@@ -40,6 +46,15 @@ static int dma_buf_release(struct inode *inode, struct file *file)
- 	dmabuf = file->private_data;
+-#define DRV_NAME "sta2x11_vip"
+ #define DRV_VERSION "1.3"
  
- 	dmabuf->ops->release(dmabuf);
-+
-+	BUG_ON(waitqueue_active(&dmabuf->event_queue));
-+	BUG_ON(atomic_read(&dmabuf->reserved));
-+
-+	if (dmabuf->fence_excl)
-+		dma_fence_put(dmabuf->fence_excl);
-+	for (i = 0; i < dmabuf->fence_shared_count; ++i)
-+		dma_fence_put(dmabuf->fence_shared[i]);
-+
- 	kfree(dmabuf);
- 	return 0;
- }
-@@ -119,6 +134,7 @@ struct dma_buf *dma_buf_export(void *priv, const struct dma_buf_ops *ops,
+ #ifndef PCI_DEVICE_ID_STMICRO_VIP
+@@ -63,8 +58,8 @@
+ #define DVP_TFS		0x08
+ #define DVP_BFO		0x0C
+ #define DVP_BFS		0x10
+-#define DVP_VTP         0x14
+-#define DVP_VBP         0x18
++#define DVP_VTP		0x14
++#define DVP_VBP		0x18
+ #define DVP_VMP		0x1C
+ #define DVP_ITM		0x98
+ #define DVP_ITS		0x9C
+@@ -84,44 +79,24 @@
  
- 	mutex_init(&dmabuf->lock);
- 	INIT_LIST_HEAD(&dmabuf->attachments);
-+	init_waitqueue_head(&dmabuf->event_queue);
+ #define DVP_HLFLN_SD	0x00000001
  
- 	return dmabuf;
- }
-@@ -503,3 +519,101 @@ void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
- 		dmabuf->ops->vunmap(dmabuf, vaddr);
- }
- EXPORT_SYMBOL_GPL(dma_buf_vunmap);
-+
-+int
-+dma_buf_reserve_locked(struct dma_buf *dmabuf, bool interruptible,
-+		       bool no_wait, bool use_sequence, u32 sequence)
-+{
-+	int ret;
-+
-+	while (unlikely(atomic_cmpxchg(&dmabuf->reserved, 0, 1) != 0)) {
-+		/**
-+		 * Deadlock avoidance for multi-dmabuf reserving.
-+		 */
-+		if (use_sequence && dmabuf->seq_valid) {
-+			/**
-+			 * We've already reserved this one.
-+			 */
-+			if (unlikely(sequence == dmabuf->val_seq))
-+				return -EDEADLK;
-+			/**
-+			 * Already reserved by a thread that will not back
-+			 * off for us. We need to back off.
-+			 */
-+			if (unlikely(sequence - dmabuf->val_seq < (1 << 31)))
-+				return -EAGAIN;
-+		}
-+
-+		if (no_wait)
-+			return -EBUSY;
-+
-+		spin_unlock(&dma_buf_reserve_lock);
-+		ret = dma_buf_wait_unreserved(dmabuf, interruptible);
-+		spin_lock(&dma_buf_reserve_lock);
-+
-+		if (unlikely(ret))
-+			return ret;
-+	}
-+
-+	if (use_sequence) {
-+		/**
-+		 * Wake up waiters that may need to recheck for deadlock,
-+		 * if we decreased the sequence number.
-+		 */
-+		if (unlikely((dmabuf->val_seq - sequence < (1 << 31))
-+			     || !dmabuf->seq_valid))
-+			wake_up_all(&dmabuf->event_queue);
-+
-+		dmabuf->val_seq = sequence;
-+		dmabuf->seq_valid = true;
-+	} else {
-+		dmabuf->seq_valid = false;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(dma_buf_reserve_locked);
-+
-+int
-+dma_buf_reserve(struct dma_buf *dmabuf, bool interruptible, bool no_wait,
-+		bool use_sequence, u32 sequence)
-+{
-+	int ret;
-+
-+	spin_lock(&dma_buf_reserve_lock);
-+	ret = dma_buf_reserve_locked(dmabuf, interruptible, no_wait,
-+				     use_sequence, sequence);
-+	spin_unlock(&dma_buf_reserve_lock);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(dma_buf_reserve);
-+
-+int
-+dma_buf_wait_unreserved(struct dma_buf *dmabuf, bool interruptible)
-+{
-+	if (interruptible) {
-+		return wait_event_interruptible(dmabuf->event_queue,
-+				atomic_read(&dmabuf->reserved) == 0);
-+	} else {
-+		wait_event(dmabuf->event_queue,
-+			   atomic_read(&dmabuf->reserved) == 0);
-+		return 0;
-+	}
-+}
-+EXPORT_SYMBOL_GPL(dma_buf_wait_unreserved);
-+
-+void dma_buf_unreserve_locked(struct dma_buf *dmabuf)
-+{
-+	atomic_set(&dmabuf->reserved, 0);
-+	wake_up_all(&dmabuf->event_queue);
-+}
-+EXPORT_SYMBOL_GPL(dma_buf_unreserve_locked);
-+
-+void dma_buf_unreserve(struct dma_buf *dmabuf)
-+{
-+	spin_lock(&dma_buf_reserve_lock);
-+	dma_buf_unreserve_locked(dmabuf);
-+	spin_unlock(&dma_buf_reserve_lock);
-+}
-+EXPORT_SYMBOL_GPL(dma_buf_unreserve);
-diff --git a/include/linux/dma-buf-mgr.h b/include/linux/dma-buf-mgr.h
-new file mode 100644
-index 0000000..df30ee4
---- /dev/null
-+++ b/include/linux/dma-buf-mgr.h
-@@ -0,0 +1,121 @@
-+/*
-+ * Header file for dma buffer sharing framework.
-+ *
-+ * Copyright(C) 2011 Linaro Limited. All rights reserved.
-+ * Author: Sumit Semwal <sumit.semwal@ti.com>
-+ *
-+ * Many thanks to linaro-mm-sig list, and specially
-+ * Arnd Bergmann <arnd@arndb.de>, Rob Clark <rob@ti.com> and
-+ * Daniel Vetter <daniel@ffwll.ch> for their support in creation and
-+ * refining of this idea.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+#ifndef __DMA_BUF_MGR_H__
-+#define __DMA_BUF_MGR_H__
-+
-+#include <linux/dma-buf.h>
-+#include <linux/dma-fence.h>
-+#include <linux/list.h>
-+
-+/**
-+ * struct dmabufmgr_validate - reservation structure for a dma-buf
-+ * @head:	list entry
-+ * @refcount:	refcount
-+ * @reserved:	internal use: signals if reservation is succesful
-+ * @shared:	whether shared or exclusive access was requested
-+ * @bo:		pointer to a dma-buf to reserve
-+ * @priv:	pointer to user-specific data
-+ * @num_fences:	number of fences to wait on
-+ * @num_waits:	amount of waits queued
-+ * @fences:	fences to wait on
-+ * @wait:	dma_fence_cb that can be passed to dma_fence_add_callback
-+ *
-+ * Based on struct ttm_validate_buffer, but unrecognisably modified.
-+ * num_fences and fences are only valid after dmabufmgr_reserve_buffers
-+ * is called.
-+ */
-+struct dmabufmgr_validate {
-+	struct list_head head;
-+	struct kref refcount;
-+
-+	bool reserved;
-+	bool shared;
-+	struct dma_buf *bo;
-+	void *priv;
-+
-+	unsigned num_fences, num_waits;
-+	struct dma_fence *fences[DMA_BUF_MAX_SHARED_FENCE];
-+	struct dma_fence_cb wait[DMA_BUF_MAX_SHARED_FENCE];
+-#define REG_WRITE(vip, reg, value) iowrite32((value), (vip->iomem)+(reg))
+-#define REG_READ(vip, reg) ioread32((vip->iomem)+(reg))
+-
+ #define SAVE_COUNT 8
+ #define AUX_COUNT 3
+ #define IRQ_COUNT 1
+ 
+-/**
+- * struct sta2x11_vip - All internal data for one instance of device
+- * @v4l2_dev: device registered in v4l layer
+- * @video_dev: properties of our device
+- * @pdev: PCI device
+- * @adapter: contains I2C adapter information
+- * @register_save_area: All relevant register are saved here during suspend
+- * @decoder: contains information about video DAC
+- * @format: pixel format, fixed UYVY
+- * @std: video standard (e.g. PAL/NTSC)
+- * @input: input line for video signal ( 0 or 1 )
+- * @users: Number of open of device ( max. 1 )
+- * @disabled: Device is in power down state
+- * @mutex: ensures exclusive opening of device
+- * @slock: for excluse acces of registers
+- * @vb_vidq: queue maintained by videobuf layer
+- * @capture: linked list of capture buffer
+- * @active: struct videobuf_buffer currently beingg filled
+- * @started: device is ready to capture frame
+- * @closing: device will be shut down
+- * @tcount: Number of top frames
+- * @bcount: Number of bottom frames
+- * @overflow: Number of FIFO overflows
+- * @mem_spare: small buffer of unused frame
+- * @dma_spare: dma addres of mem_spare
+- * @iomem: hardware base address
+- * @config: I2C and gpio config from platform
+- *
+- * All non-local data is accessed via this structure.
+- */
+ 
++struct vip_buffer {
++	struct vb2_buffer	vb;
++	struct list_head	list;
++	dma_addr_t		dma;
 +};
-+
-+/**
-+ * dmabufmgr_validate_init - initialize a dmabufmgr_validate struct
-+ * @val:	[in]	pointer to dmabufmgr_validate
-+ * @list:	[in]	pointer to list to append val to
-+ * @bo:		[in]	pointer to dma-buf
-+ * @priv:	[in]	pointer to user-specific data
-+ * @shared:	[in]	request shared or exclusive access
-+ */
-+static inline void
-+dmabufmgr_validate_init(struct dmabufmgr_validate *val,
-+			struct list_head *list, struct dma_buf *bo,
-+			void *priv, bool shared)
++static inline struct vip_buffer *to_vip_buffer(struct vb2_buffer *vb2)
 +{
-+	kref_init(&val->refcount);
-+	list_add_tail(&val->head, list);
-+	val->bo = bo;
-+	val->priv = priv;
-+	val->shared = shared;
++	return container_of(vb2, struct vip_buffer, vb);
 +}
 +
-+extern void dmabufmgr_validate_free(struct kref *ref);
++struct sta2x11_vip_fh {
++	struct v4l2_fh fh;
++};
+ struct sta2x11_vip {
+ 	struct v4l2_device v4l2_dev;
+ 	struct video_device *video_dev;
+@@ -129,21 +104,27 @@ struct sta2x11_vip {
+ 	struct i2c_adapter *adapter;
+ 	unsigned int register_save_area[IRQ_COUNT + SAVE_COUNT + AUX_COUNT];
+ 	struct v4l2_subdev *decoder;
+-	struct v4l2_pix_format format;
+-	v4l2_std_id std;
+-	unsigned int input;
+-	int users;
+-	int disabled;
+-	struct mutex mutex;	/* exclusive access during open */
+-	spinlock_t slock;	/* spin lock for hardware and queue access */
+-	struct videobuf_queue vb_vidq;
+-	struct list_head capture;
+-	struct videobuf_buffer *active;
+-	int started, closing, tcount, bcount;
++	struct v4l2_ctrl_handler ctrl_hdl;
 +
-+/**
-+ * dmabufmgr_validate_get - increase refcount on a dmabufmgr_validate
-+ * @val:	[in]	pointer to dmabufmgr_validate
-+ */
-+static inline struct dmabufmgr_validate *
-+dmabufmgr_validate_get(struct dmabufmgr_validate *val)
-+{
-+	kref_get(&val->refcount);
-+	return val;
-+}
 +
-+/**
-+ * dmabufmgr_validate_put - decrease refcount on a dmabufmgr_validate
-+ * @val:	[in]	pointer to dmabufmgr_validate
-+ *
-+ * Returns true if the caller removed last refcount on val,
-+ * false otherwise.
-+ */
-+static inline bool
-+dmabufmgr_validate_put(struct dmabufmgr_validate *val)
-+{
-+	return kref_put(&val->refcount, dmabufmgr_validate_free);
-+}
++	struct v4l2_pix_format format;	/* pixel format, fixed UYVY */
++	v4l2_std_id std;	/* Video standard (PAL/NTSC)*/
++	unsigned int input;	/* Input line (0 or 1) */
++	int disabled; /* 1 disabled 0 enabled */
++	spinlock_t slock; /* spin lock for hardware */
 +
-+extern int
-+dmabufmgr_reserve_buffers(struct list_head *list);
++	struct vb2_alloc_ctx *alloc_ctx;
++	struct vb2_queue vb_vidq; /* queue maintaned by videobuf2 */
++	struct list_head buffer_list; /* list of buffers */
++	unsigned int sequence;
++	struct vip_buffer *active; /* current active buffer */
++	spinlock_t lock; /* Used in videobuf2 callback */
 +
-+extern void
-+dmabufmgr_backoff_reservation(struct list_head *list);
++	/* Interrupt counters */
++	int tcount, bcount;
+ 	int overflow;
+-	void *mem_spare;
+-	dma_addr_t dma_spare;
+-	void *iomem;
 +
-+extern void
-+dmabufmgr_fence_buffer_objects(struct dma_fence *fence, struct list_head *list);
-+
-+extern int
-+dmabufmgr_wait_completed_cpu(struct list_head *list, bool intr,
-+			     unsigned long timeout);
-+
-+#endif /* __DMA_BUF_MGR_H__ */
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index bd2e52c..8b14103 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -35,6 +35,11 @@ struct device;
- struct dma_buf;
- struct dma_buf_attachment;
- 
-+extern atomic_t dma_buf_reserve_counter;
-+extern spinlock_t dma_buf_reserve_lock;
-+
-+#define DMA_BUF_MAX_SHARED_FENCE 8
-+
- /**
-  * struct dma_buf_ops - operations possible on struct dma_buf
-  * @attach: [optional] allows different devices to 'attach' themselves to the
-@@ -122,6 +127,18 @@ struct dma_buf {
- 	/* mutex to serialize list manipulation and attach/detach */
- 	struct mutex lock;
- 	void *priv;
-+
-+	/** event queue for waking up when this dmabuf becomes unreserved */
-+	wait_queue_head_t event_queue;
-+
-+	atomic_t reserved;
-+
-+	/** These require dma_buf_reserve to be called before modification */
-+	bool seq_valid;
-+	u32 val_seq;
-+	struct dma_fence *fence_excl;
-+	struct dma_fence *fence_shared[DMA_BUF_MAX_SHARED_FENCE];
-+	u32 fence_shared_count;
++	void *iomem;	/* I/O Memory */
+ 	struct vip_config *config;
  };
  
- /**
-@@ -183,5 +200,12 @@ int dma_buf_mmap(struct dma_buf *, struct vm_area_struct *,
- 		 unsigned long);
- void *dma_buf_vmap(struct dma_buf *);
- void dma_buf_vunmap(struct dma_buf *, void *vaddr);
-+int dma_buf_reserve_locked(struct dma_buf *, bool intr, bool no_wait,
-+			   bool use_seq, u32 seq);
-+int dma_buf_reserve(struct dma_buf *, bool intr, bool no_wait,
-+		    bool use_seq, u32 seq);
-+int dma_buf_wait_unreserved(struct dma_buf *, bool interruptible);
-+void dma_buf_unreserve_locked(struct dma_buf *);
-+void dma_buf_unreserve(struct dma_buf *);
+@@ -206,360 +187,221 @@ static struct v4l2_pix_format formats_60[] = {
+ 	 .colorspace = V4L2_COLORSPACE_SMPTE170M},
+ };
  
- #endif /* __DMA_BUF_H__ */
+-/**
+- * buf_setup - Get size and number of video buffer
+- * @vq: queue in videobuf
+- * @count: Number of buffers (1..MAX_FRAMES).
+- *		0 use default value.
+- * @size:  size of buffer in bytes
+- *
+- * returns size and number of buffers
+- * a preset value of 0 returns the default number.
+- * return value: 0, always succesfull.
+- */
+-static int buf_setup(struct videobuf_queue *vq, unsigned int *count,
+-		     unsigned int *size)
++/* Write VIP register */
++static inline void reg_write(struct sta2x11_vip *vip, unsigned int reg, u32 val)
+ {
+-	struct sta2x11_vip *vip = vq->priv_data;
+-
+-	*size = vip->format.width * vip->format.height * 2;
+-	if (0 == *count || MAX_FRAMES < *count)
+-		*count = MAX_FRAMES;
+-	return 0;
+-};
+-
+-/**
+- * buf_prepare - prepare buffer for usage
+- * @vq: queue in videobuf layer
+- * @vb: buffer to be prepared
+- * @field: type of video data (interlaced/non-interlaced)
+- *
+- * Allocate or realloc buffer
+- * return value: 0, successful.
+- *
+- * -EINVAL, supplied buffer is too small.
+- *
+- *  other, buffer could not be locked.
+- */
+-static int buf_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
+-		       enum v4l2_field field)
++	iowrite32((val), (vip->iomem)+(reg));
++}
++/* Read VIP register */
++static inline u32 reg_read(struct sta2x11_vip *vip, unsigned int reg)
+ {
+-	struct sta2x11_vip *vip = vq->priv_data;
+-	int ret;
+-
+-	vb->size = vip->format.width * vip->format.height * 2;
+-	if ((0 != vb->baddr) && (vb->bsize < vb->size))
+-		return -EINVAL;
+-	vb->width = vip->format.width;
+-	vb->height = vip->format.height;
+-	vb->field = field;
+-
+-	if (VIDEOBUF_NEEDS_INIT == vb->state) {
+-		ret = videobuf_iolock(vq, vb, NULL);
+-		if (ret)
+-			goto fail;
+-	}
+-	vb->state = VIDEOBUF_PREPARED;
+-	return 0;
+-fail:
+-	videobuf_dma_contig_free(vq, vb);
+-	vb->state = VIDEOBUF_NEEDS_INIT;
+-	return ret;
++	return  ioread32((vip->iomem)+(reg));
+ }
+-
+-/**
+- * buf_queu - queue buffer for filling
+- * @vq: queue in videobuf layer
+- * @vb: buffer to be queued
+- *
+- * if capturing is already running, the buffer will be queued. Otherwise
+- * capture is started and the buffer is used directly.
+- */
+-static void buf_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
++/* Start DMA acquisition */
++static void start_dma(struct sta2x11_vip *vip, struct vip_buffer *vip_buf)
+ {
+-	struct sta2x11_vip *vip = vq->priv_data;
+-	u32 dma;
++	unsigned long offset = 0;
+ 
+-	vb->state = VIDEOBUF_QUEUED;
++	if (vip->format.field == V4L2_FIELD_INTERLACED)
++		offset = vip->format.width * 2;
+ 
+-	if (vip->active) {
+-		list_add_tail(&vb->queue, &vip->capture);
++	spin_lock_irq(&vip->slock);
++	/* Enable acquisition */
++	reg_write(vip, DVP_CTL, reg_read(vip, DVP_CTL) | DVP_CTL_ENA);
++	/* Set Top and Bottom Field memory address */
++	reg_write(vip, DVP_VTP, (u32)vip_buf->dma);
++	reg_write(vip, DVP_VBP, (u32)vip_buf->dma + offset);
++	spin_unlock_irq(&vip->slock);
++}
++
++/* Fetch the next buffer to activate */
++static void vip_active_buf_next(struct sta2x11_vip *vip)
++{
++	/* Get the next buffer */
++	spin_lock(&vip->lock);
++	if (list_empty(&vip->buffer_list)) {/* No available buffer */
++		spin_unlock(&vip->lock);
+ 		return;
+ 	}
+-
+-	vip->started = 1;
++	vip->active = list_first_entry(&vip->buffer_list,
++				       struct vip_buffer,
++				       list);
++	/* Reset Top and Bottom counter */
+ 	vip->tcount = 0;
+ 	vip->bcount = 0;
+-	vip->active = vb;
+-	vb->state = VIDEOBUF_ACTIVE;
++	spin_unlock(&vip->lock);
++	if (vb2_is_streaming(&vip->vb_vidq)) {	/* streaming is on */
++		start_dma(vip, vip->active);	/* start dma capture */
++	}
++}
+ 
+-	dma = videobuf_to_dma_contig(vb);
+ 
+-	REG_WRITE(vip, DVP_TFO, (0 << 16) | (0));
+-	/* despite of interlace mode, upper and lower frames start at zero */
+-	REG_WRITE(vip, DVP_BFO, (0 << 16) | (0));
++/* Videobuf2 Operations */
++static int queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
++		       unsigned int *nbuffers, unsigned int *nplanes,
++		       unsigned int sizes[], void *alloc_ctxs[])
++{
++	struct sta2x11_vip *vip = vb2_get_drv_priv(vq);
+ 
+-	switch (vip->format.field) {
+-	case V4L2_FIELD_INTERLACED:
+-		REG_WRITE(vip, DVP_TFS,
+-			  ((vip->format.height / 2 - 1) << 16) |
+-			  (2 * vip->format.width - 1));
+-		REG_WRITE(vip, DVP_BFS, ((vip->format.height / 2 - 1) << 16) |
+-			  (2 * vip->format.width - 1));
+-		REG_WRITE(vip, DVP_VTP, dma);
+-		REG_WRITE(vip, DVP_VBP, dma + vip->format.width * 2);
+-		REG_WRITE(vip, DVP_VMP, 4 * vip->format.width);
+-		break;
+-	case V4L2_FIELD_TOP:
+-		REG_WRITE(vip, DVP_TFS,
+-			  ((vip->format.height - 1) << 16) |
+-			  (2 * vip->format.width - 1));
+-		REG_WRITE(vip, DVP_BFS, ((0) << 16) |
+-			  (2 * vip->format.width - 1));
+-		REG_WRITE(vip, DVP_VTP, dma);
+-		REG_WRITE(vip, DVP_VBP, dma);
+-		REG_WRITE(vip, DVP_VMP, 2 * vip->format.width);
+-		break;
+-	case V4L2_FIELD_BOTTOM:
+-		REG_WRITE(vip, DVP_TFS, ((0) << 16) |
+-			  (2 * vip->format.width - 1));
+-		REG_WRITE(vip, DVP_BFS,
+-			  ((vip->format.height) << 16) |
+-			  (2 * vip->format.width - 1));
+-		REG_WRITE(vip, DVP_VTP, dma);
+-		REG_WRITE(vip, DVP_VBP, dma);
+-		REG_WRITE(vip, DVP_VMP, 2 * vip->format.width);
+-		break;
++	if (!(*nbuffers) || *nbuffers < MAX_FRAMES)
++		*nbuffers = MAX_FRAMES;
+ 
+-	default:
+-		pr_warning("VIP: unknown field format\n");
+-		return;
+-	}
++	*nplanes = 1;
++	sizes[0] = vip->format.sizeimage;
++	alloc_ctxs[0] = vip->alloc_ctx;
+ 
+-	REG_WRITE(vip, DVP_CTL, DVP_CTL_ENA);
+-}
++	vip->sequence = 0;
++	vip->active = NULL;
++	vip->tcount = 0;
++	vip->bcount = 0;
+ 
+-/**
+- * buff_release - release buffer
+- * @vq: queue in videobuf layer
+- * @vb: buffer to be released
+- *
+- * release buffer in videobuf layer
+- */
+-static void buf_release(struct videobuf_queue *vq, struct videobuf_buffer *vb)
++	return 0;
++};
++static int buffer_init(struct vb2_buffer *vb)
+ {
++	struct vip_buffer *vip_buf = to_vip_buffer(vb);
+ 
+-	videobuf_dma_contig_free(vq, vb);
+-	vb->state = VIDEOBUF_NEEDS_INIT;
++	vip_buf->dma = (dma_addr_t)vb2_plane_cookie(vb, 0);
++	INIT_LIST_HEAD(&vip_buf->list);
++	return 0;
+ }
+ 
+-static struct videobuf_queue_ops vip_qops = {
+-	.buf_setup = buf_setup,
+-	.buf_prepare = buf_prepare,
+-	.buf_queue = buf_queue,
+-	.buf_release = buf_release,
+-};
+-
+-/**
+- * vip_open - open video device
+- * @file: descriptor of device
+- *
+- * open device, make sure it is only opened once.
+- * return value: 0, no error.
+- *
+- * -EBUSY, device is already opened
+- *
+- * -ENOMEM, no memory for auxiliary DMA buffer
+- */
+-static int vip_open(struct file *file)
++static int buffer_prepare(struct vb2_buffer *vb)
+ {
+-	struct video_device *dev = video_devdata(file);
+-	struct sta2x11_vip *vip = video_get_drvdata(dev);
++	struct sta2x11_vip *vip = vb2_get_drv_priv(vb->vb2_queue);
++	struct vip_buffer *vip_buf = to_vip_buffer(vb);
++	unsigned long size;
++
++	size = vip->format.sizeimage;
++	if (vb2_plane_size(vb, 0) < size) {
++		v4l2_err(&vip->v4l2_dev, "buffer too small (%lu < %lu)\n",
++			 vb2_plane_size(vb, 0), size);
++		return -EINVAL;
++	}
+ 
+-	mutex_lock(&vip->mutex);
+-	vip->users++;
++	vb2_set_plane_payload(&vip_buf->vb, 0, size);
+ 
+-	if (vip->users > 1) {
+-		vip->users--;
+-		mutex_unlock(&vip->mutex);
+-		return -EBUSY;
++	return 0;
++}
++static void buffer_queue(struct vb2_buffer *vb)
++{
++	struct sta2x11_vip *vip = vb2_get_drv_priv(vb->vb2_queue);
++	struct vip_buffer *vip_buf = to_vip_buffer(vb);
++	unsigned long size;
++
++	size = vip->format.sizeimage;
++	dma_sync_single_for_device(&vip->pdev->dev, vip_buf->dma,
++				size, DMA_FROM_DEVICE);
++	spin_lock(&vip->lock);
++	list_add_tail(&vip_buf->list, &vip->buffer_list);
++	if (!vip->active) {	/* No active buffer, active the first one */
++		vip->active = list_first_entry(&vip->buffer_list,
++					       struct vip_buffer,
++					       list);
++		if (vb2_is_streaming(&vip->vb_vidq))	/* streaming is on */
++			start_dma(vip, vip_buf);	/* start dma capture */
+ 	}
++	spin_unlock(&vip->lock);
++}
++static int buffer_finish(struct vb2_buffer *vb)
++{
++	struct sta2x11_vip *vip = vb2_get_drv_priv(vb->vb2_queue);
++	struct vip_buffer *vip_buf = to_vip_buffer(vb);
++	unsigned long size;
+ 
+-	file->private_data = dev;
+-	vip->overflow = 0;
+-	vip->started = 0;
+-	vip->closing = 0;
+-	vip->active = NULL;
++	/* Buffer handled, remove it from the list */
++	spin_lock(&vip->lock);
++	list_del_init(&vip_buf->list);
++	spin_unlock(&vip->lock);
++	/* DMA sync */
++	size = vip->format.sizeimage;
++	dma_sync_single_for_cpu(&vip->pdev->dev, vip_buf->dma,
++				   size, DMA_FROM_DEVICE);
+ 
+-	INIT_LIST_HEAD(&vip->capture);
+-	vip->mem_spare = dma_alloc_coherent(&vip->pdev->dev, 64,
+-					    &vip->dma_spare, GFP_KERNEL);
+-	if (!vip->mem_spare) {
+-		vip->users--;
+-		mutex_unlock(&vip->mutex);
+-		return -ENOMEM;
+-	}
++	vip_active_buf_next(vip);
+ 
+-	mutex_unlock(&vip->mutex);
+-	videobuf_queue_dma_contig_init_cached(&vip->vb_vidq,
+-					      &vip_qops,
+-					      &vip->pdev->dev,
+-					      &vip->slock,
+-					      V4L2_BUF_TYPE_VIDEO_CAPTURE,
+-					      V4L2_FIELD_INTERLACED,
+-					      sizeof(struct videobuf_buffer),
+-					      vip, NULL);
+-	REG_READ(vip, DVP_ITS);
+-	REG_WRITE(vip, DVP_HLFLN, DVP_HLFLN_SD);
+-	REG_WRITE(vip, DVP_ITM, DVP_IT_VSB | DVP_IT_VST);
+-	REG_WRITE(vip, DVP_CTL, DVP_CTL_RST);
+-	REG_WRITE(vip, DVP_CTL, 0);
+-	REG_READ(vip, DVP_ITS);
+ 	return 0;
+ }
+ 
+-/**
+- * vip_close - close video device
+- * @file: descriptor of device
+- *
+- * close video device, wait until all pending operations are finished
+- * ( maximum FRAME_MAX buffers pending )
+- * Turn off interrupts.
+- *
+- * return value: 0, always succesful.
+- */
+-static int vip_close(struct file *file)
++static int start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+-	struct video_device *dev = video_devdata(file);
+-	struct sta2x11_vip *vip = video_get_drvdata(dev);
++	struct sta2x11_vip *vip = vb2_get_drv_priv(vq);
+ 
+-	vip->closing = 1;
+-	if (vip->active)
+-		videobuf_waiton(&vip->vb_vidq, vip->active, 0, 0);
+ 	spin_lock_irq(&vip->slock);
+-
+-	REG_WRITE(vip, DVP_ITM, 0);
+-	REG_WRITE(vip, DVP_CTL, DVP_CTL_RST);
+-	REG_WRITE(vip, DVP_CTL, 0);
+-	REG_READ(vip, DVP_ITS);
+-
+-	vip->started = 0;
+-	vip->active = NULL;
+-
++	/* Enable interrupt VSYNC Top and Bottom*/
++	reg_write(vip, DVP_ITM, DVP_IT_VSB | DVP_IT_VST);
+ 	spin_unlock_irq(&vip->slock);
+ 
+-	videobuf_stop(&vip->vb_vidq);
+-	videobuf_mmap_free(&vip->vb_vidq);
++	if (count)
++		start_dma(vip, vip->active);
+ 
+-	dma_free_coherent(&vip->pdev->dev, 64, vip->mem_spare, vip->dma_spare);
+-	file->private_data = NULL;
+-	mutex_lock(&vip->mutex);
+-	vip->users--;
+-	mutex_unlock(&vip->mutex);
+ 	return 0;
+ }
+ 
+-/**
+- * vip_read - read from video input
+- * @file: descriptor of device
+- * @data: user buffer
+- * @count: number of bytes to be read
+- * @ppos: position within stream
+- *
+- * read video data from video device.
+- * handling is done in generic videobuf layer
+- * return value: provided by videobuf layer
+- */
+-static ssize_t vip_read(struct file *file, char __user *data,
+-			size_t count, loff_t *ppos)
++/* abort streaming and wait for last buffer */
++static int stop_streaming(struct vb2_queue *vq)
+ {
+-	struct video_device *dev = file->private_data;
+-	struct sta2x11_vip *vip = video_get_drvdata(dev);
+-
+-	return videobuf_read_stream(&vip->vb_vidq, data, count, ppos, 0,
+-				    file->f_flags & O_NONBLOCK);
++	struct sta2x11_vip *vip = vb2_get_drv_priv(vq);
++	struct vip_buffer *vip_buf, *node;
++
++	/* Disable acquisition */
++	reg_write(vip, DVP_CTL, reg_read(vip, DVP_CTL) & ~DVP_CTL_ENA);
++	/* Disable all interrupts */
++	reg_write(vip, DVP_ITM, 0);
++
++	/* Release all active buffers */
++	spin_lock(&vip->lock);
++	list_for_each_entry_safe(vip_buf, node, &vip->buffer_list, list) {
++		vb2_buffer_done(&vip_buf->vb, VB2_BUF_STATE_ERROR);
++		list_del(&vip_buf->list);
++	}
++	spin_unlock(&vip->lock);
++	return 0;
+ }
+ 
+-/**
+- * vip_mmap - map user buffer
+- * @file: descriptor of device
+- * @vma: user buffer
+- *
+- * map user space buffer into kernel mode, including DMA address.
+- * handling is done in generic videobuf layer.
+- * return value: provided by videobuf layer
+- */
+-static int vip_mmap(struct file *file, struct vm_area_struct *vma)
+-{
+-	struct video_device *dev = file->private_data;
+-	struct sta2x11_vip *vip = video_get_drvdata(dev);
++static struct vb2_ops vip_video_qops = {
++	.queue_setup		= queue_setup,
++	.buf_init		= buffer_init,
++	.buf_prepare		= buffer_prepare,
++	.buf_finish		= buffer_finish,
++	.buf_queue		= buffer_queue,
++	.start_streaming	= start_streaming,
++	.stop_streaming		= stop_streaming,
++};
+ 
+-	return videobuf_mmap_mapper(&vip->vb_vidq, vma);
+-}
+ 
+-/**
+- * vip_poll - poll for event
+- * @file: descriptor of device
+- * @wait: contains events to be waited for
+- *
+- * wait for event related to video device.
+- * handling is done in generic videobuf layer.
+- * return value: provided by videobuf layer
+- */
+-static unsigned int vip_poll(struct file *file, struct poll_table_struct *wait)
+-{
+-	struct video_device *dev = file->private_data;
+-	struct sta2x11_vip *vip = video_get_drvdata(dev);
++/* File Operations */
++static const struct v4l2_file_operations vip_fops = {
++	.owner = THIS_MODULE,
++	.open = v4l2_fh_open,
++	.release = vb2_fop_release,
++	.unlocked_ioctl = video_ioctl2,
++	.read = vb2_fop_read,
++	.mmap = vb2_fop_mmap,
++	.poll = vb2_fop_poll
++};
+ 
+-	return videobuf_poll_stream(file, &vip->vb_vidq, wait);
+-}
+ 
+-/**
+- * vidioc_querycap - return capabilities of device
+- * @file: descriptor of device (not used)
+- * @priv: points to current videodevice
+- * @cap: contains return values
+- *
+- * the capabilities of the device are returned
+- *
+- * return value: 0, no error.
+- */
++/* V4L2 ioctl Operations */
+ static int vidioc_querycap(struct file *file, void *priv,
+ 			   struct v4l2_capability *cap)
+ {
+-	struct video_device *dev = priv;
+-	struct sta2x11_vip *vip = video_get_drvdata(dev);
++	struct sta2x11_vip *vip = video_drvdata(file);
+ 
+-	memset(cap, 0, sizeof(struct v4l2_capability));
+-	strcpy(cap->driver, DRV_NAME);
+-	strcpy(cap->card, DRV_NAME);
+-	cap->version = 0;
++	strcpy(cap->driver, KBUILD_MODNAME);
++	strcpy(cap->card, KBUILD_MODNAME);
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info), "PCI:%s",
+ 		 pci_name(vip->pdev));
+-	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_READWRITE |
+-	    V4L2_CAP_STREAMING;
++	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_READWRITE |
++			   V4L2_CAP_STREAMING;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 
+ 	return 0;
+ }
+ 
+-/**
+- * vidioc_s_std - set video standard
+- * @file: descriptor of device (not used)
+- * @priv: points to current videodevice
+- * @std: contains standard to be set
+- *
+- * the video standard is set
+- *
+- * return value: 0, no error.
+- *
+- * -EIO, no input signal detected
+- *
+- * other, returned from video DAC.
+- */
+ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *std)
+ {
+-	struct video_device *dev = priv;
+-	struct sta2x11_vip *vip = video_get_drvdata(dev);
++	struct sta2x11_vip *vip = video_drvdata(file);
+ 	v4l2_std_id oldstd = vip->std, newstd;
+ 	int status;
+ 
+@@ -590,110 +432,22 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *std)
+ 	return v4l2_subdev_call(vip->decoder, core, s_std, *std);
+ }
+ 
+-/**
+- * vidioc_g_std - get video standard
+- * @file: descriptor of device (not used)
+- * @priv: points to current videodevice
+- * @std: contains return values
+- *
+- * the current video standard is returned
+- *
+- * return value: 0, no error.
+- */
+ static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *std)
+ {
+-	struct video_device *dev = priv;
+-	struct sta2x11_vip *vip = video_get_drvdata(dev);
++	struct sta2x11_vip *vip = video_drvdata(file);
+ 
+ 	*std = vip->std;
+ 	return 0;
+ }
+ 
+-/**
+- * vidioc_querystd - get possible video standards
+- * @file: descriptor of device (not used)
+- * @priv: points to current videodevice
+- * @std: contains return values
+- *
+- * all possible video standards are returned
+- *
+- * return value: delivered by video DAC routine.
+- */
+ static int vidioc_querystd(struct file *file, void *priv, v4l2_std_id *std)
+ {
+-	struct video_device *dev = priv;
+-	struct sta2x11_vip *vip = video_get_drvdata(dev);
++	struct sta2x11_vip *vip = video_drvdata(file);
+ 
+ 	return v4l2_subdev_call(vip->decoder, video, querystd, std);
+ 
+ }
+ 
+-/**
+- * vidioc_queryctl - get possible control settings
+- * @file: descriptor of device (not used)
+- * @priv: points to current videodevice
+- * @ctrl: contains return values
+- *
+- * return possible values for a control
+- * return value: delivered by video DAC routine.
+- */
+-static int vidioc_queryctrl(struct file *file, void *priv,
+-			    struct v4l2_queryctrl *ctrl)
+-{
+-	struct video_device *dev = priv;
+-	struct sta2x11_vip *vip = video_get_drvdata(dev);
+-
+-	return v4l2_subdev_call(vip->decoder, core, queryctrl, ctrl);
+-}
+-
+-/**
+- * vidioc_g_ctl - get control value
+- * @file: descriptor of device (not used)
+- * @priv: points to current videodevice
+- * @ctrl: contains return values
+- *
+- * return setting for a control value
+- * return value: delivered by video DAC routine.
+- */
+-static int vidioc_g_ctrl(struct file *file, void *priv,
+-			 struct v4l2_control *ctrl)
+-{
+-	struct video_device *dev = priv;
+-	struct sta2x11_vip *vip = video_get_drvdata(dev);
+-
+-	return v4l2_subdev_call(vip->decoder, core, g_ctrl, ctrl);
+-}
+-
+-/**
+- * vidioc_s_ctl - set control value
+- * @file: descriptor of device (not used)
+- * @priv: points to current videodevice
+- * @ctrl: contains value to be set
+- *
+- * set value for a specific control
+- * return value: delivered by video DAC routine.
+- */
+-static int vidioc_s_ctrl(struct file *file, void *priv,
+-			 struct v4l2_control *ctrl)
+-{
+-	struct video_device *dev = priv;
+-	struct sta2x11_vip *vip = video_get_drvdata(dev);
+-
+-	return v4l2_subdev_call(vip->decoder, core, s_ctrl, ctrl);
+-}
+-
+-/**
+- * vidioc_enum_input - return name of input line
+- * @file: descriptor of device (not used)
+- * @priv: points to current videodevice
+- * @inp: contains return values
+- *
+- * the user friendly name of the input line is returned
+- *
+- * return value: 0, no error.
+- *
+- * -EINVAL, input line number out of range
+- */
+ static int vidioc_enum_input(struct file *file, void *priv,
+ 			     struct v4l2_input *inp)
+ {
+@@ -707,22 +461,9 @@ static int vidioc_enum_input(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-/**
+- * vidioc_s_input - set input line
+- * @file: descriptor of device ( not used)
+- * @priv: points to current videodevice
+- * @i: new input line number
+- *
+- * the current active input line is set
+- *
+- * return value: 0, no error.
+- *
+- * -EINVAL, line number out of range
+- */
+ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
+ {
+-	struct video_device *dev = priv;
+-	struct sta2x11_vip *vip = video_get_drvdata(dev);
++	struct sta2x11_vip *vip = video_drvdata(file);
+ 	int ret;
+ 
+ 	if (i > 1)
+@@ -735,36 +476,14 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
+ 	return 0;
+ }
+ 
+-/**
+- * vidioc_g_input - return input line
+- * @file: descriptor of device ( not used)
+- * @priv: points to current videodevice
+- * @i: returned input line number
+- *
+- * the current active input line is returned
+- *
+- * return value: always 0.
+- */
+ static int vidioc_g_input(struct file *file, void *priv, unsigned int *i)
+ {
+-	struct video_device *dev = priv;
+-	struct sta2x11_vip *vip = video_get_drvdata(dev);
++	struct sta2x11_vip *vip = video_drvdata(file);
+ 
+ 	*i = vip->input;
+ 	return 0;
+ }
+ 
+-/**
+- * vidioc_enum_fmt_vid_cap - return video capture format
+- * @file: descriptor of device ( not used)
+- * @priv: points to current videodevice
+- * @f: returned format information
+- *
+- * returns name and format of video capture
+- * Only UYVY is supported by hardware.
+- *
+- * return value: always 0.
+- */
+ static int vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
+ 				   struct v4l2_fmtdesc *f)
+ {
+@@ -778,32 +497,12 @@ static int vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-/**
+- * vidioc_try_fmt_vid_cap - set video capture format
+- * @file: descriptor of device ( not used)
+- * @priv: points to current videodevice
+- * @f: new format
+- *
+- * new video format is set which includes width and
+- * field type. width is fixed to 720, no scaling.
+- * Only UYVY is supported by this hardware.
+- * the minimum height is 200, the maximum is 576 (PAL)
+- *
+- * return value: 0, no error
+- *
+- * -EINVAL, pixel or field format not supported
+- *
+- */
+ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+ 				  struct v4l2_format *f)
+ {
+-	struct video_device *dev = priv;
+-	struct sta2x11_vip *vip = video_get_drvdata(dev);
++	struct sta2x11_vip *vip = video_drvdata(file);
+ 	int interlace_lim;
+ 
+-	if (V4L2_PIX_FMT_UYVY != f->fmt.pix.pixelformat)
+-		return -EINVAL;
+-
+ 	if (V4L2_STD_525_60 & vip->std)
+ 		interlace_lim = 240;
+ 	else
+@@ -827,6 +526,8 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+ 		return -EINVAL;
+ 	}
+ 
++	/* It is the only supported format */
++	f->fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
+ 	f->fmt.pix.height &= ~1;
+ 	if (2 * interlace_lim < f->fmt.pix.height)
+ 		f->fmt.pix.height = 2 * interlace_lim;
+@@ -840,304 +541,222 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-/**
+- * vidioc_s_fmt_vid_cap - set current video format parameters
+- * @file: descriptor of device ( not used)
+- * @priv: points to current videodevice
+- * @f: returned format information
+- *
+- * set new capture format
+- * return value: 0, no error
+- *
+- * other, delivered by video DAC routine.
+- */
+ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+ 				struct v4l2_format *f)
+ {
+-	struct video_device *dev = priv;
+-	struct sta2x11_vip *vip = video_get_drvdata(dev);
++	struct sta2x11_vip *vip = video_drvdata(file);
++	unsigned int t_stop, b_stop, pitch;
+ 	int ret;
+ 
+ 	ret = vidioc_try_fmt_vid_cap(file, priv, f);
+ 	if (ret)
+ 		return ret;
+ 
++	if (vb2_is_busy(&vip->vb_vidq)) {
++		/* Can't change format during acquisition */
++		v4l2_err(&vip->v4l2_dev, "device busy\n");
++		return -EBUSY;
++	}
++
+ 	memcpy(&vip->format, &f->fmt.pix, sizeof(struct v4l2_pix_format));
++	switch (vip->format.field) {
++	case V4L2_FIELD_INTERLACED:
++		t_stop = ((vip->format.height / 2 - 1) << 16) |
++			 (2 * vip->format.width - 1);
++		b_stop = t_stop;
++		pitch = 4 * vip->format.width;
++		break;
++	case V4L2_FIELD_TOP:
++		t_stop = ((vip->format.height - 1) << 16) |
++			 (2 * vip->format.width - 1);
++		b_stop = (0 << 16) | (2 * vip->format.width - 1);
++		pitch = 2 * vip->format.width;
++		break;
++	case V4L2_FIELD_BOTTOM:
++		t_stop = (0 << 16) | (2 * vip->format.width - 1);
++		b_stop = (vip->format.height << 16) |
++			 (2 * vip->format.width - 1);
++		pitch = 2 * vip->format.width;
++		break;
++	default:
++		v4l2_err(&vip->v4l2_dev, "unknown field format\n");
++		return -EINVAL;
++	}
++
++	spin_lock_irq(&vip->slock);
++	/* Y-X Top Field Offset */
++	reg_write(vip, DVP_TFO, 0);
++	/* Y-X Bottom Field Offset */
++	reg_write(vip, DVP_BFO, 0);
++	/* Y-X Top Field Stop*/
++	reg_write(vip, DVP_TFS, t_stop);
++	/* Y-X Bottom Field Stop */
++	reg_write(vip, DVP_BFS, b_stop);
++	/* Video Memory Pitch */
++	reg_write(vip, DVP_VMP, pitch);
++	spin_unlock_irq(&vip->slock);
++
+ 	return 0;
+ }
+ 
+-/**
+- * vidioc_g_fmt_vid_cap - get current video format parameters
+- * @file: descriptor of device ( not used)
+- * @priv: points to current videodevice
+- * @f: contains format information
+- *
+- * returns current video format parameters
+- *
+- * return value: 0, always successful
+- */
+ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+ 				struct v4l2_format *f)
+ {
+-	struct video_device *dev = priv;
+-	struct sta2x11_vip *vip = video_get_drvdata(dev);
++	struct sta2x11_vip *vip = video_drvdata(file);
+ 
+ 	memcpy(&f->fmt.pix, &vip->format, sizeof(struct v4l2_pix_format));
+ 	return 0;
+ }
+ 
+-/**
+- * vidioc_reqfs - request buffer
+- * @file: descriptor of device ( not used)
+- * @priv: points to current videodevice
+- * @p: video buffer
+- *
+- * Handling is done in generic videobuf layer.
+- */
+-static int vidioc_reqbufs(struct file *file, void *priv,
+-			  struct v4l2_requestbuffers *p)
+-{
+-	struct video_device *dev = priv;
+-	struct sta2x11_vip *vip = video_get_drvdata(dev);
+-
+-	return videobuf_reqbufs(&vip->vb_vidq, p);
+-}
+-
+-/**
+- * vidioc_querybuf - query buffer
+- * @file: descriptor of device ( not used)
+- * @priv: points to current videodevice
+- * @p: video buffer
+- *
+- * query buffer state.
+- * Handling is done in generic videobuf layer.
+- */
+-static int vidioc_querybuf(struct file *file, void *priv, struct v4l2_buffer *p)
+-{
+-	struct video_device *dev = priv;
+-	struct sta2x11_vip *vip = video_get_drvdata(dev);
+-
+-	return videobuf_querybuf(&vip->vb_vidq, p);
+-}
+-
+-/**
+- * vidioc_qbuf - queue a buffer
+- * @file: descriptor of device ( not used)
+- * @priv: points to current videodevice
+- * @p: video buffer
+- *
+- * Handling is done in generic videobuf layer.
+- */
+-static int vidioc_qbuf(struct file *file, void *priv, struct v4l2_buffer *p)
+-{
+-	struct video_device *dev = priv;
+-	struct sta2x11_vip *vip = video_get_drvdata(dev);
+-
+-	return videobuf_qbuf(&vip->vb_vidq, p);
+-}
+-
+-/**
+- * vidioc_dqbuf - dequeue a buffer
+- * @file: descriptor of device ( not used)
+- * @priv: points to current videodevice
+- * @p: video buffer
+- *
+- * Handling is done in generic videobuf layer.
+- */
+-static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *p)
+-{
+-	struct video_device *dev = priv;
+-	struct sta2x11_vip *vip = video_get_drvdata(dev);
+-
+-	return videobuf_dqbuf(&vip->vb_vidq, p, file->f_flags & O_NONBLOCK);
+-}
+-
+-/**
+- * vidioc_streamon - turn on streaming
+- * @file: descriptor of device ( not used)
+- * @priv: points to current videodevice
+- * @type: type of capture
+- *
+- * turn on streaming.
+- * Handling is done in generic videobuf layer.
+- */
+-static int vidioc_streamon(struct file *file, void *priv,
+-			   enum v4l2_buf_type type)
+-{
+-	struct video_device *dev = priv;
+-	struct sta2x11_vip *vip = video_get_drvdata(dev);
+-
+-	return videobuf_streamon(&vip->vb_vidq);
+-}
+-
+-/**
+- * vidioc_streamoff - turn off streaming
+- * @file: descriptor of device ( not used)
+- * @priv: points to current videodevice
+- * @type: type of capture
+- *
+- * turn off streaming.
+- * Handling is done in generic videobuf layer.
+- */
+-static int vidioc_streamoff(struct file *file, void *priv,
+-			    enum v4l2_buf_type type)
+-{
+-	struct video_device *dev = priv;
+-	struct sta2x11_vip *vip = video_get_drvdata(dev);
+-
+-	return videobuf_streamoff(&vip->vb_vidq);
+-}
+-
+-static const struct v4l2_file_operations vip_fops = {
+-	.owner = THIS_MODULE,
+-	.open = vip_open,
+-	.release = vip_close,
+-	.ioctl = video_ioctl2,
+-	.read = vip_read,
+-	.mmap = vip_mmap,
+-	.poll = vip_poll
+-};
+-
+ static const struct v4l2_ioctl_ops vip_ioctl_ops = {
+ 	.vidioc_querycap = vidioc_querycap,
+-	.vidioc_s_std = vidioc_s_std,
++	/* FMT handling */
++	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
++	.vidioc_g_fmt_vid_cap = vidioc_g_fmt_vid_cap,
++	.vidioc_s_fmt_vid_cap = vidioc_s_fmt_vid_cap,
++	.vidioc_try_fmt_vid_cap = vidioc_try_fmt_vid_cap,
++	/* Buffer handlers */
++	.vidioc_reqbufs = vb2_ioctl_reqbufs,
++	.vidioc_querybuf = vb2_ioctl_querybuf,
++	.vidioc_qbuf = vb2_ioctl_qbuf,
++	.vidioc_dqbuf = vb2_ioctl_dqbuf,
++	.vidioc_create_bufs = vb2_ioctl_create_bufs,
++	/* Stream on/off */
++	.vidioc_streamon = vb2_ioctl_streamon,
++	.vidioc_streamoff = vb2_ioctl_streamoff,
++	/* Standard handling */
+ 	.vidioc_g_std = vidioc_g_std,
++	.vidioc_s_std = vidioc_s_std,
+ 	.vidioc_querystd = vidioc_querystd,
+-	.vidioc_queryctrl = vidioc_queryctrl,
+-	.vidioc_g_ctrl = vidioc_g_ctrl,
+-	.vidioc_s_ctrl = vidioc_s_ctrl,
++	/* Input handling */
+ 	.vidioc_enum_input = vidioc_enum_input,
+-	.vidioc_try_fmt_vid_cap = vidioc_try_fmt_vid_cap,
+-	.vidioc_s_input = vidioc_s_input,
+ 	.vidioc_g_input = vidioc_g_input,
+-	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
+-	.vidioc_s_fmt_vid_cap = vidioc_s_fmt_vid_cap,
+-	.vidioc_g_fmt_vid_cap = vidioc_g_fmt_vid_cap,
+-	.vidioc_reqbufs = vidioc_reqbufs,
+-	.vidioc_querybuf = vidioc_querybuf,
+-	.vidioc_qbuf = vidioc_qbuf,
+-	.vidioc_dqbuf = vidioc_dqbuf,
+-	.vidioc_streamon = vidioc_streamon,
+-	.vidioc_streamoff = vidioc_streamoff,
++	.vidioc_s_input = vidioc_s_input,
++	/* Log status ioctl */
++	.vidioc_log_status = v4l2_ctrl_log_status,
++	/* Event handling */
++	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
++	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
+ 
+ static struct video_device video_dev_template = {
+-	.name = DRV_NAME,
++	.name = KBUILD_MODNAME,
+ 	.release = video_device_release,
+ 	.fops = &vip_fops,
+ 	.ioctl_ops = &vip_ioctl_ops,
+ 	.tvnorms = V4L2_STD_ALL,
+ };
+ 
+-/**
+- * vip_irq - interrupt routine
+- * @irq: Number of interrupt ( not used, correct number is assumed )
+- * @vip: local data structure containing all information
+- *
+- * check for both frame interrupts set ( top and bottom ).
+- * check FIFO overflow, but limit number of log messages after open.
+- * signal a complete buffer if done.
+- * dequeue a new buffer if available.
+- * disable VIP if no buffer available.
+- *
+- * return value: IRQ_NONE, interrupt was not generated by VIP
+- *
+- * IRQ_HANDLED, interrupt done.
+- */
++
+ static irqreturn_t vip_irq(int irq, struct sta2x11_vip *vip)
+ {
+-	u32 status, dma;
+-	unsigned long flags;
+-	struct videobuf_buffer *vb;
++	unsigned int status;
+ 
+-	status = REG_READ(vip, DVP_ITS);
++	status = reg_read(vip, DVP_ITS);
+ 
+-	if (!status) {
+-		pr_debug("VIP: irq ignored\n");
++	if (!status)		/* No interrupt to handle */
+ 		return IRQ_NONE;
+-	}
+ 
+-	if (!vip->started)
+-		return IRQ_HANDLED;
+-
+-	if (status & DVP_IT_VSB)
+-		vip->bcount++;
+-
+-	if (status & DVP_IT_VST)
+-		vip->tcount++;
++	if (status & DVP_IT_FIFO)
++		if (vip->overflow++ > 5)
++			pr_info("VIP: fifo overflow\n");
+ 
+-	if ((DVP_IT_VSB | DVP_IT_VST) == (status & (DVP_IT_VST | DVP_IT_VSB))) {
++	if ((status & DVP_IT_VST) && (status & DVP_IT_VSB)) {
+ 		/* this is bad, we are too slow, hope the condition is gone
+ 		 * on the next frame */
+-		pr_info("VIP: both irqs\n");
+ 		return IRQ_HANDLED;
+ 	}
+ 
+-	if (status & DVP_IT_FIFO) {
+-		if (5 > vip->overflow++)
+-			pr_info("VIP: fifo overflow\n");
+-	}
+-
+-	if (2 > vip->tcount)
++	if (status & DVP_IT_VST)
++		if ((++vip->tcount) < 2)
++			return IRQ_HANDLED;
++	if (status & DVP_IT_VSB) {
++		vip->bcount++;
+ 		return IRQ_HANDLED;
++	}
+ 
+-	if (status & DVP_IT_VSB)
+-		return IRQ_HANDLED;
++	if (vip->active) { /* Acquisition is over on this buffer */
++		/* Disable acquisition */
++		reg_write(vip, DVP_CTL, reg_read(vip, DVP_CTL) & ~DVP_CTL_ENA);
++		/* Remove the active buffer from the list */
++		do_gettimeofday(&vip->active->vb.v4l2_buf.timestamp);
++		vip->active->vb.v4l2_buf.sequence = vip->sequence++;
++		vb2_buffer_done(&vip->active->vb, VB2_BUF_STATE_DONE);
++	}
+ 
+-	spin_lock_irqsave(&vip->slock, flags);
++	return IRQ_HANDLED;
++}
+ 
+-	REG_WRITE(vip, DVP_CTL, REG_READ(vip, DVP_CTL) & ~DVP_CTL_ENA);
+-	if (vip->active) {
+-		do_gettimeofday(&vip->active->ts);
+-		vip->active->field_count++;
+-		vip->active->state = VIDEOBUF_DONE;
+-		wake_up(&vip->active->done);
+-		vip->active = NULL;
++static void sta2x11_vip_init_register(struct sta2x11_vip *vip)
++{
++	/* Register initialization */
++	spin_lock_irq(&vip->slock);
++	/* Clean interrupt */
++	reg_read(vip, DVP_ITS);
++	/* Enable Half Line per vertical */
++	reg_write(vip, DVP_HLFLN, DVP_HLFLN_SD);
++	/* Reset VIP control */
++	reg_write(vip, DVP_CTL, DVP_CTL_RST);
++	/* Clear VIP control */
++	reg_write(vip, DVP_CTL, 0);
++	spin_unlock_irq(&vip->slock);
++}
++static void sta2x11_vip_clear_register(struct sta2x11_vip *vip)
++{
++	spin_lock_irq(&vip->slock);
++	/* Disable interrupt */
++	reg_write(vip, DVP_ITM, 0);
++	/* Reset VIP Control */
++	reg_write(vip, DVP_CTL, DVP_CTL_RST);
++	/* Clear VIP Control */
++	reg_write(vip, DVP_CTL, 0);
++	/* Clean VIP Interrupt */
++	reg_read(vip, DVP_ITS);
++	spin_unlock_irq(&vip->slock);
++}
++static int sta2x11_vip_init_buffer(struct sta2x11_vip *vip)
++{
++	memset(&vip->vb_vidq, 0, sizeof(struct vb2_queue));
++	vip->vb_vidq.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	vip->vb_vidq.io_modes = VB2_MMAP | VB2_READ;
++	vip->vb_vidq.drv_priv = vip;
++	vip->vb_vidq.buf_struct_size = sizeof(struct vip_buffer);
++	vip->vb_vidq.ops = &vip_video_qops;
++	vip->vb_vidq.mem_ops = &vb2_dma_streaming_memops;
++	vb2_queue_init(&vip->vb_vidq);
++	INIT_LIST_HEAD(&vip->buffer_list);
++	spin_lock_init(&vip->lock);
++
++	vip->alloc_ctx = vb2_dma_streaming_init_ctx(&vip->pdev->dev);
++	if (IS_ERR(vip->alloc_ctx)) {
++		v4l2_err(&vip->v4l2_dev, "Can't allocate buffer context");
++		return PTR_ERR(vip->alloc_ctx);
+ 	}
+-	if (!vip->closing) {
+-		if (list_empty(&vip->capture))
+-			goto done;
+-
+-		vb = list_first_entry(&vip->capture, struct videobuf_buffer,
+-				      queue);
+-		if (NULL == vb) {
+-			pr_info("VIP: no buffer\n");
+-			goto done;
+-		}
+-		vb->state = VIDEOBUF_ACTIVE;
+-		list_del(&vb->queue);
+-		vip->active = vb;
+-		dma = videobuf_to_dma_contig(vb);
+-		switch (vip->format.field) {
+-		case V4L2_FIELD_INTERLACED:
+-			REG_WRITE(vip, DVP_VTP, dma);
+-			REG_WRITE(vip, DVP_VBP, dma + vip->format.width * 2);
+-			break;
+-		case V4L2_FIELD_TOP:
+-		case V4L2_FIELD_BOTTOM:
+-			REG_WRITE(vip, DVP_VTP, dma);
+-			REG_WRITE(vip, DVP_VBP, dma);
+-			break;
+-		default:
+-			pr_warning("VIP: unknown field format\n");
+-			goto done;
+-			break;
+-		}
+-		REG_WRITE(vip, DVP_CTL, REG_READ(vip, DVP_CTL) | DVP_CTL_ENA);
++	return 0;
++}
++static void sta2x11_vip_release_buffer(struct sta2x11_vip *vip)
++{
++	vb2_dma_streaming_cleanup_ctx(vip->alloc_ctx);
++}
++static int sta2x11_vip_init_controls(struct sta2x11_vip *vip)
++{
++	/*
++	 * Inititialize an empty control so VIP can inerithing controls
++	 * from ADV7180
++	 */
++	v4l2_ctrl_handler_init(&vip->ctrl_hdl, 0);
++
++	vip->v4l2_dev.ctrl_handler = &vip->ctrl_hdl;
++	if (vip->ctrl_hdl.error) {
++		int err = vip->ctrl_hdl.error;
++
++		v4l2_ctrl_handler_free(&vip->ctrl_hdl);
++		return err;
+ 	}
+-done:
+-	spin_unlock_irqrestore(&vip->slock, flags);
+-	return IRQ_HANDLED;
++
++	return 0;
+ }
+ 
+-/**
+- * vip_gpio_reserve - reserve gpio pin
+- * @dev: device
+- * @pin: GPIO pin number
+- * @dir: direction, input or output
+- * @name: GPIO pin name
+- *
+- */
+ static int vip_gpio_reserve(struct device *dev, int pin, int dir,
+ 			    const char *name)
+ {
+@@ -1170,13 +789,6 @@ static int vip_gpio_reserve(struct device *dev, int pin, int dir,
+ 	return 0;
+ }
+ 
+-/**
+- * vip_gpio_release - release gpio pin
+- * @dev: device
+- * @pin: GPIO pin number
+- * @name: GPIO pin name
+- *
+- */
+ static void vip_gpio_release(struct device *dev, int pin, const char *name)
+ {
+ 	if (pin != -1) {
+@@ -1186,25 +798,6 @@ static void vip_gpio_release(struct device *dev, int pin, const char *name)
+ 	}
+ }
+ 
+-/**
+- * sta2x11_vip_init_one - init one instance of video device
+- * @pdev: PCI device
+- * @ent: (not used)
+- *
+- * allocate reset pins for DAC.
+- * Reset video DAC, this is done via reset line.
+- * allocate memory for managing device
+- * request interrupt
+- * map IO region
+- * register device
+- * find and initialize video DAC
+- *
+- * return value: 0, no error
+- *
+- * -ENOMEM, no memory
+- *
+- * -ENODEV, device could not be detected or registered
+- */
+ static int __devinit sta2x11_vip_init_one(struct pci_dev *pdev,
+ 					  const struct pci_device_id *ent)
+ {
+@@ -1212,10 +805,17 @@ static int __devinit sta2x11_vip_init_one(struct pci_dev *pdev,
+ 	struct sta2x11_vip *vip;
+ 	struct vip_config *config;
+ 
++	/* Check if hardware support 26-bit DMA */
++	if (dma_set_mask(&pdev->dev, DMA_BIT_MASK(26))) {
++		dev_err(&pdev->dev, "26-bit DMA addressing not available\n");
++		return -EINVAL;
++	}
++	/* Enable PCI */
+ 	ret = pci_enable_device(pdev);
+ 	if (ret)
+ 		return ret;
+ 
++	/* Get VIP platform data */
+ 	config = dev_get_platdata(&pdev->dev);
+ 	if (!config) {
+ 		dev_info(&pdev->dev, "VIP slot disabled\n");
+@@ -1223,6 +823,7 @@ static int __devinit sta2x11_vip_init_one(struct pci_dev *pdev,
+ 		goto disable;
+ 	}
+ 
++	/* Power configuration */
+ 	ret = vip_gpio_reserve(&pdev->dev, config->pwr_pin, 0,
+ 			       config->pwr_name);
+ 	if (ret)
+@@ -1237,7 +838,6 @@ static int __devinit sta2x11_vip_init_one(struct pci_dev *pdev,
+ 			goto disable;
+ 		}
+ 	}
+-
+ 	if (config->pwr_pin != -1) {
+ 		/* Datasheet says 5ms between PWR and RST */
+ 		usleep_range(5000, 25000);
+@@ -1251,17 +851,20 @@ static int __devinit sta2x11_vip_init_one(struct pci_dev *pdev,
+ 	}
+ 	usleep_range(5000, 25000);
+ 
++	/* Allocate a new VIP instance */
+ 	vip = kzalloc(sizeof(struct sta2x11_vip), GFP_KERNEL);
+ 	if (!vip) {
+ 		ret = -ENOMEM;
+ 		goto release_gpios;
+ 	}
+-
+ 	vip->pdev = pdev;
+ 	vip->std = V4L2_STD_PAL;
+ 	vip->format = formats_50[0];
+ 	vip->config = config;
+ 
++	ret = sta2x11_vip_init_controls(vip);
++	if (ret)
++		goto free_mem;
+ 	if (v4l2_device_register(&pdev->dev, &vip->v4l2_dev))
+ 		goto free_mem;
+ 
+@@ -1271,46 +874,52 @@ static int __devinit sta2x11_vip_init_one(struct pci_dev *pdev,
+ 
+ 	pci_set_master(pdev);
+ 
+-	ret = pci_request_regions(pdev, DRV_NAME);
++	ret = pci_request_regions(pdev, KBUILD_MODNAME);
+ 	if (ret)
+ 		goto unreg;
+ 
+ 	vip->iomem = pci_iomap(pdev, 0, 0x100);
+ 	if (!vip->iomem) {
+-		ret = -ENOMEM; /* FIXME */
++		ret = -ENOMEM;
+ 		goto release;
+ 	}
+ 
+ 	pci_enable_msi(pdev);
+ 
+-	INIT_LIST_HEAD(&vip->capture);
++	/* Initialize buffer */
++	ret = sta2x11_vip_init_buffer(vip);
++	if (ret)
++		goto unmap;
++
+ 	spin_lock_init(&vip->slock);
+-	mutex_init(&vip->mutex);
+-	vip->started = 0;
+-	vip->disabled = 0;
+ 
+ 	ret = request_irq(pdev->irq,
+ 			  (irq_handler_t) vip_irq,
+-			  IRQF_SHARED, DRV_NAME, vip);
++			  IRQF_SHARED, KBUILD_MODNAME, vip);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "request_irq failed\n");
+ 		ret = -ENODEV;
+-		goto unmap;
++		goto release_buf;
+ 	}
+ 
++	/* Alloc, initialize and register video device */
+ 	vip->video_dev = video_device_alloc();
+ 	if (!vip->video_dev) {
+ 		ret = -ENOMEM;
+ 		goto release_irq;
+ 	}
+ 
+-	*(vip->video_dev) = video_dev_template;
++	vip->video_dev = &video_dev_template;
++	vip->video_dev->v4l2_dev = &vip->v4l2_dev;
++	vip->video_dev->queue = &vip->vb_vidq;
++	vip->video_dev->flags |= V4L2_FL_USES_V4L2_FH | V4L2_FL_USE_FH_PRIO;
+ 	video_set_drvdata(vip->video_dev, vip);
+ 
+ 	ret = video_register_device(vip->video_dev, VFL_TYPE_GRABBER, -1);
+ 	if (ret)
+ 		goto vrelease;
+ 
++	/* Get ADV7180 subdevice */
+ 	vip->adapter = i2c_get_adapter(vip->config->i2c_id);
+ 	if (!vip->adapter) {
+ 		ret = -ENODEV;
+@@ -1328,10 +937,11 @@ static int __devinit sta2x11_vip_init_one(struct pci_dev *pdev,
+ 	}
+ 
+ 	i2c_put_adapter(vip->adapter);
+-
+ 	v4l2_subdev_call(vip->decoder, core, init, 0);
+ 
+-	pr_info("STA2X11 Video Input Port (VIP) loaded\n");
++	sta2x11_vip_init_register(vip);
++
++	dev_info(&pdev->dev, "STA2X11 Video Input Port (VIP) loaded\n");
+ 	return 0;
+ 
+ vunreg:
+@@ -1343,10 +953,12 @@ vrelease:
+ 		video_device_release(vip->video_dev);
+ release_irq:
+ 	free_irq(pdev->irq, vip);
++release_buf:
++	sta2x11_vip_release_buffer(vip);
+ 	pci_disable_msi(pdev);
+ unmap:
++	vb2_queue_release(&vip->vb_vidq);
+ 	pci_iounmap(pdev, vip->iomem);
+-	mutex_destroy(&vip->mutex);
+ release:
+ 	pci_release_regions(pdev);
+ unreg:
+@@ -1364,34 +976,24 @@ disable:
+ 	return ret;
+ }
+ 
+-/**
+- * sta2x11_vip_remove_one - release device
+- * @pdev: PCI device
+- *
+- * Undo everything done in .._init_one
+- *
+- * unregister video device
+- * free interrupt
+- * unmap ioadresses
+- * free memory
+- * free GPIO pins
+- */
+ static void __devexit sta2x11_vip_remove_one(struct pci_dev *pdev)
+ {
+ 	struct v4l2_device *v4l2_dev = pci_get_drvdata(pdev);
+ 	struct sta2x11_vip *vip =
+ 	    container_of(v4l2_dev, struct sta2x11_vip, v4l2_dev);
+ 
++	sta2x11_vip_clear_register(vip);
++
+ 	video_set_drvdata(vip->video_dev, NULL);
+ 	video_unregister_device(vip->video_dev);
+ 	/*do not call video_device_release() here, is already done */
+ 	free_irq(pdev->irq, vip);
+ 	pci_disable_msi(pdev);
++	vb2_queue_release(&vip->vb_vidq);
+ 	pci_iounmap(pdev, vip->iomem);
+ 	pci_release_regions(pdev);
+ 
+ 	v4l2_device_unregister(&vip->v4l2_dev);
+-	mutex_destroy(&vip->mutex);
+ 
+ 	vip_gpio_release(&pdev->dev, vip->config->pwr_pin,
+ 			 vip->config->pwr_name);
+@@ -1407,18 +1009,12 @@ static void __devexit sta2x11_vip_remove_one(struct pci_dev *pdev)
+ 
+ #ifdef CONFIG_PM
+ 
+-/**
+- * sta2x11_vip_suspend - set device into power save mode
+- * @pdev: PCI device
+- * @state: new state of device
++/*
+  *
+  * all relevant registers are saved and an attempt to set a new state is made.
+  *
+  * return value: 0 always indicate success,
+  * even if device could not be disabled. (workaround for hardware problem)
+- *
+- * reurn value : 0, always succesful, even if hardware does not not support
+- * power down mode.
+  */
+ static int sta2x11_vip_suspend(struct pci_dev *pdev, pm_message_t state)
+ {
+@@ -1429,15 +1025,15 @@ static int sta2x11_vip_suspend(struct pci_dev *pdev, pm_message_t state)
+ 	int i;
+ 
+ 	spin_lock_irqsave(&vip->slock, flags);
+-	vip->register_save_area[0] = REG_READ(vip, DVP_CTL);
+-	REG_WRITE(vip, DVP_CTL, vip->register_save_area[0] & DVP_CTL_DIS);
+-	vip->register_save_area[SAVE_COUNT] = REG_READ(vip, DVP_ITM);
+-	REG_WRITE(vip, DVP_ITM, 0);
++	vip->register_save_area[0] = reg_read(vip, DVP_CTL);
++	reg_write(vip, DVP_CTL, vip->register_save_area[0] & DVP_CTL_DIS);
++	vip->register_save_area[SAVE_COUNT] = reg_read(vip, DVP_ITM);
++	reg_write(vip, DVP_ITM, 0);
+ 	for (i = 1; i < SAVE_COUNT; i++)
+-		vip->register_save_area[i] = REG_READ(vip, 4 * i);
++		vip->register_save_area[i] = reg_read(vip, 4 * i);
+ 	for (i = 0; i < AUX_COUNT; i++)
+ 		vip->register_save_area[SAVE_COUNT + IRQ_COUNT + i] =
+-		    REG_READ(vip, registers_to_save[i]);
++		    reg_read(vip, registers_to_save[i]);
+ 	spin_unlock_irqrestore(&vip->slock, flags);
+ 	/* save pci state */
+ 	pci_save_state(pdev);
+@@ -1453,16 +1049,9 @@ static int sta2x11_vip_suspend(struct pci_dev *pdev, pm_message_t state)
+ 	return 0;
+ }
+ 
+-/**
+- * sta2x11_vip_resume - resume device operation
+- * @pdev : PCI device
+- *
++/*
+  * re-enable device, set PCI state to powered and restore registers.
+  * resume normal device operation afterwards.
+- *
+- * return value: 0, no error.
+- *
+- * other, could not set device to power on state.
+  */
+ static int sta2x11_vip_resume(struct pci_dev *pdev)
+ {
+@@ -1497,12 +1086,12 @@ static int sta2x11_vip_resume(struct pci_dev *pdev)
+ 
+ 	spin_lock_irqsave(&vip->slock, flags);
+ 	for (i = 1; i < SAVE_COUNT; i++)
+-		REG_WRITE(vip, 4 * i, vip->register_save_area[i]);
++		reg_write(vip, 4 * i, vip->register_save_area[i]);
+ 	for (i = 0; i < AUX_COUNT; i++)
+-		REG_WRITE(vip, registers_to_save[i],
++		reg_write(vip, registers_to_save[i],
+ 			  vip->register_save_area[SAVE_COUNT + IRQ_COUNT + i]);
+-	REG_WRITE(vip, DVP_CTL, vip->register_save_area[0]);
+-	REG_WRITE(vip, DVP_ITM, vip->register_save_area[SAVE_COUNT]);
++	reg_write(vip, DVP_CTL, vip->register_save_area[0]);
++	reg_write(vip, DVP_ITM, vip->register_save_area[SAVE_COUNT]);
+ 	spin_unlock_irqrestore(&vip->slock, flags);
+ 	return 0;
+ }
+@@ -1515,7 +1104,7 @@ static DEFINE_PCI_DEVICE_TABLE(sta2x11_vip_pci_tbl) = {
+ };
+ 
+ static struct pci_driver sta2x11_vip_driver = {
+-	.name = DRV_NAME,
++	.name = KBUILD_MODNAME,
+ 	.probe = sta2x11_vip_init_one,
+ 	.remove = __devexit_p(sta2x11_vip_remove_one),
+ 	.id_table = sta2x11_vip_pci_tbl,
+@@ -1543,7 +1132,7 @@ late_initcall_sync(sta2x11_vip_init_module);
+ #endif
+ 
+ MODULE_DESCRIPTION("STA2X11 Video Input Port driver");
+-MODULE_AUTHOR("Wind River");
++MODULE_AUTHOR("Federico Vaga <federico.vaga@gmail.com>");
+ MODULE_LICENSE("GPL v2");
+ MODULE_SUPPORTED_DEVICE("sta2x11 video input");
+ MODULE_VERSION(DRV_VERSION);
+-- 
+1.7.11.2
 
