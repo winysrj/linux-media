@@ -1,71 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:47453 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752336Ab2HTBYM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Aug 2012 21:24:12 -0400
-Received: by ghrr11 with SMTP id r11so4807916ghr.19
-        for <linux-media@vger.kernel.org>; Sun, 19 Aug 2012 18:24:11 -0700 (PDT)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: [PATCH 1/4] stk1160: Make kill/free urb debug message more verbose
-Date: Sun, 19 Aug 2012 22:23:43 -0300
-Message-Id: <1345425826-13429-1-git-send-email-elezegarcia@gmail.com>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:55053 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751209Ab2HFUHn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 16:07:43 -0400
+Received: by wibhm11 with SMTP id hm11so2103141wib.1
+        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 13:07:42 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1344279745-13024-1-git-send-email-mchehab@redhat.com>
+References: <1344279745-13024-1-git-send-email-mchehab@redhat.com>
+Date: Tue, 7 Aug 2012 01:37:42 +0530
+Message-ID: <CAHFNz9Jz5x8i7-ip9BOdwC06tYR1SETctvvTpA4V=mbezhRoAw@mail.gmail.com>
+Subject: Re: [PATCH] [media] mantis: merge both vp2033 and vp2040 drivers
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is just a cleaning patch to produce more useful
-debug messages.
+On Tue, Aug 7, 2012 at 12:32 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> As noticed at:
+>         http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/48034
+>
+> Both drivers are identical, except for the name. So, there's no
+> sense on keeping both. Instead of forking the entire code, just
+> fork the vp3033_config struct, saving some space, and cleaning
+> up the Kernel.
 
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- drivers/media/usb/stk1160/stk1160-video.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+>
+> Reported-by: Igor M. Liplianin <liplianin@me.by>
+> Cc: Manu Abraham <abraham.manu@gmail.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-diff --git a/drivers/media/usb/stk1160/stk1160-video.c b/drivers/media/usb/stk1160/stk1160-video.c
-index 3785269..022092a 100644
---- a/drivers/media/usb/stk1160/stk1160-video.c
-+++ b/drivers/media/usb/stk1160/stk1160-video.c
-@@ -342,18 +342,18 @@ static void stk1160_isoc_irq(struct urb *urb)
-  */
- void stk1160_cancel_isoc(struct stk1160 *dev)
- {
--	int i;
-+	int i, num_bufs = dev->isoc_ctl.num_bufs;
- 
- 	/*
- 	 * This check is not necessary, but we add it
- 	 * to avoid a spurious debug message
- 	 */
--	if (!dev->isoc_ctl.num_bufs)
-+	if (!num_bufs)
- 		return;
- 
--	stk1160_dbg("killing urbs...\n");
-+	stk1160_dbg("killing %d urbs...\n", num_bufs);
- 
--	for (i = 0; i < dev->isoc_ctl.num_bufs; i++) {
-+	for (i = 0; i < num_bufs; i++) {
- 
- 		/*
- 		 * To kill urbs we can't be in atomic context.
-@@ -373,11 +373,11 @@ void stk1160_cancel_isoc(struct stk1160 *dev)
- void stk1160_free_isoc(struct stk1160 *dev)
- {
- 	struct urb *urb;
--	int i;
-+	int i, num_bufs = dev->isoc_ctl.num_bufs;
- 
--	stk1160_dbg("freeing urb buffers...\n");
-+	stk1160_dbg("freeing %d urb buffers...\n", num_bufs);
- 
--	for (i = 0; i < dev->isoc_ctl.num_bufs; i++) {
-+	for (i = 0; i < num_bufs; i++) {
- 
- 		urb = dev->isoc_ctl.urb[i];
- 		if (urb) {
--- 
-1.7.8.6
+Nack.
 
+VP-2033 and 2040 are both different in terms of hardware. If someone
+wants to add
+in additional frontend characteristic differences, he shouldn't have
+to add in this code
+again.
