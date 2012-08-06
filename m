@@ -1,120 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:37131 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751679Ab2HaILl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Aug 2012 04:11:41 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 02/16] media: coda: add i.MX53 / CODA7541 platform support
-Date: Fri, 31 Aug 2012 10:10:56 +0200
-Message-Id: <1346400670-16002-3-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
-References: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:11508 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751316Ab2HFNUM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 09:20:12 -0400
+Received: from eusync3.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M8C00FNC52D6J60@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 06 Aug 2012 14:20:37 +0100 (BST)
+Received: from AMDN157 ([106.116.147.102])
+ by eusync3.samsung.com (Oracle Communications Messaging Server 7u4-23.01
+ (7.0.4.23.0) 64bit (built Aug 10 2011))
+ with ESMTPA id <0M8C00NOJ51L5880@eusync3.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 06 Aug 2012 14:20:10 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Arun Kumar K' <arun.kk@samsung.com>, linux-media@vger.kernel.org
+Cc: jtp.park@samsung.com, janghyuck.kim@samsung.com,
+	jaeryul.oh@samsung.com, ch.naveen@samsung.com,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	kmpark@infradead.org, joshi@samsung.com
+References: <1343046557-25353-1-git-send-email-arun.kk@samsung.com>
+In-reply-to: <1343046557-25353-1-git-send-email-arun.kk@samsung.com>
+Subject: RE: [PATCH v3 0/4] update MFC v4l2 driver to support MFC6.x
+Date: Mon, 06 Aug 2012 15:20:09 +0200
+Message-id: <00f001cd73d6$3468a040$9d39e0c0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: en-gb
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c |   31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+Hi Arun,
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index d4a5dd0..8ec2ff4 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -84,6 +84,7 @@ enum coda_inst_type {
- 
- enum coda_product {
- 	CODA_DX6 = 0xf001,
-+	CODA_7541 = 0xf012,
- };
- 
- struct coda_fmt {
-@@ -261,6 +262,24 @@ static struct coda_fmt codadx6_formats[] = {
- 	},
- };
- 
-+static struct coda_fmt coda7_formats[] = {
-+	{
-+		.name = "YUV 4:2:0 Planar",
-+		.fourcc = V4L2_PIX_FMT_YUV420,
-+		.type = CODA_FMT_RAW,
-+	},
-+	{
-+		.name = "H264 Encoded Stream",
-+		.fourcc = V4L2_PIX_FMT_H264,
-+		.type = CODA_FMT_ENC,
-+	},
-+	{
-+		.name = "MPEG4 Encoded Stream",
-+		.fourcc = V4L2_PIX_FMT_MPEG4,
-+		.type = CODA_FMT_ENC,
-+	},
-+};
-+
- static struct coda_fmt *find_format(struct coda_dev *dev, struct v4l2_format *f)
- {
- 	struct coda_fmt *formats = dev->devtype->formats;
-@@ -1485,6 +1504,7 @@ static irqreturn_t coda_irq_handler(int irq, void *data)
- 
- static u32 coda_supported_firmwares[] = {
- 	CODA_FIRMWARE_VERNUM(CODA_DX6, 2, 2, 5),
-+	CODA_FIRMWARE_VERNUM(CODA_7541, 13, 4, 29),
- };
- 
- static bool coda_firmware_supported(u32 vernum)
-@@ -1504,6 +1524,8 @@ static char *coda_product_name(int product)
- 	switch (product) {
- 	case CODA_DX6:
- 		return "CodaDx6";
-+	case CODA_7541:
-+		return "CODA7541";
- 	default:
- 		snprintf(buf, sizeof(buf), "(0x%04x)", product);
- 		return buf;
-@@ -1695,6 +1717,7 @@ static int coda_firmware_request(struct coda_dev *dev)
- 
- enum coda_platform {
- 	CODA_IMX27,
-+	CODA_IMX53,
- };
- 
- static const struct coda_devtype coda_devdata[] = {
-@@ -1704,10 +1727,17 @@ static const struct coda_devtype coda_devdata[] = {
- 		.formats     = codadx6_formats,
- 		.num_formats = ARRAY_SIZE(codadx6_formats),
- 	},
-+	[CODA_IMX53] = {
-+		.firmware    = "v4l-coda7541-imx53.bin",
-+		.product     = CODA_7541,
-+		.formats     = coda7_formats,
-+		.num_formats = ARRAY_SIZE(coda7_formats),
-+	},
- };
- 
- static struct platform_device_id coda_platform_ids[] = {
- 	{ .name = "coda-imx27", .driver_data = CODA_IMX27 },
-+	{ .name = "coda-imx53", .driver_data = CODA_7541 },
- 	{ /* sentinel */ }
- };
- MODULE_DEVICE_TABLE(platform, coda_platform_ids);
-@@ -1715,6 +1745,7 @@ MODULE_DEVICE_TABLE(platform, coda_platform_ids);
- #ifdef CONFIG_OF
- static const struct of_device_id coda_dt_ids[] = {
- 	{ .compatible = "fsl,imx27-vpu", .data = &coda_platform_ids[CODA_IMX27] },
-+	{ .compatible = "fsl,imx53-vpu", .data = &coda_devdata[CODA_IMX53] },
- 	{ /* sentinel */ }
- };
- MODULE_DEVICE_TABLE(of, coda_dt_ids);
--- 
-1.7.10.4
+First and very important remark. When you split your changes into multiple
+patches please make sure that after applying every patch the kernel compiles.
+It is important for such tools as git bisect.
+
+When I apply "s5p-mfc: update MFC v4l2 driver to support MFC6.x" the kernel no
+longer compiles. If you look at the patches it can be seen that the order is
+wrong. First Kconfig is modified and it requires files added in further
+patches.
+
+More comments in reply to specific patches.
+
+Best wishes,
+--
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
+
+
+> -----Original Message-----
+> From: Arun Kumar K [mailto:arun.kk@samsung.com]
+> Sent: 23 July 2012 14:29
+> To: linux-media@vger.kernel.org
+> Cc: jtp.park@samsung.com; janghyuck.kim@samsung.com; jaeryul.oh@samsung.com;
+> ch.naveen@samsung.com; arun.kk@samsung.com; m.szyprowski@samsung.com;
+> k.debski@samsung.com; kmpark@infradead.org; joshi@samsung.com
+> Subject: [PATCH v3 0/4] update MFC v4l2 driver to support MFC6.x
+> 
+> The patchset adds support for MFCv6 firmware in s5p-mfc driver.
+> The original patch is split into 4 patches for easy review.
+> This patchset have to be applied on patches [1] and [2] posted
+> earlier which adds the required v4l2 controls.
+> 
+> Changelog
+> - Supports MFCv5 and v6 co-existence.
+> - Tested for encoding & decoding in MFCv5.
+> - Supports only decoding in MFCv6 now.
+> - Can be compiled with kernel image and as module.
+> - Config macros for MFC version selection removed.
+> - All previous review comments addressed.
+> 
+> [1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg48972.html
+> [2] http://www.mail-archive.com/linux-media@vger.kernel.org/msg48973.html
+> 
+> Jeongtae Park (4):
+>   [media] s5p-mfc: update MFC v4l2 driver to support MFC6.x
+>   [media] s5p-mfc: Decoder and encoder common files
+>   [media] s5p-mfc: Modified command and opr files for MFCv5
+>   [media] s5p-mfc: New files for MFCv6 support
+> 
+>  drivers/media/video/Kconfig                  |    4 +-
+>  drivers/media/video/s5p-mfc/Makefile         |    7 +-
+>  drivers/media/video/s5p-mfc/regs-mfc-v6.h    |  392 ++++++
+>  drivers/media/video/s5p-mfc/regs-mfc.h       |   33 +-
+>  drivers/media/video/s5p-mfc/s5p_mfc.c        |  225 ++--
+>  drivers/media/video/s5p-mfc/s5p_mfc_cmd.c    |   98 +--
+>  drivers/media/video/s5p-mfc/s5p_mfc_cmd.h    |   13 +
+>  drivers/media/video/s5p-mfc/s5p_mfc_cmd_v5.c |  164 +++
+>  drivers/media/video/s5p-mfc/s5p_mfc_cmd_v5.h |   22 +
+>  drivers/media/video/s5p-mfc/s5p_mfc_cmd_v6.c |  155 +++
+>  drivers/media/video/s5p-mfc/s5p_mfc_cmd_v6.h |   22 +
+>  drivers/media/video/s5p-mfc/s5p_mfc_common.h |  153 ++-
+>  drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c   |  198 ++-
+>  drivers/media/video/s5p-mfc/s5p_mfc_ctrl.h   |    1 +
+>  drivers/media/video/s5p-mfc/s5p_mfc_dec.c    |  223 ++-
+>  drivers/media/video/s5p-mfc/s5p_mfc_dec.h    |    1 +
+>  drivers/media/video/s5p-mfc/s5p_mfc_enc.c    |  200 ++--
+>  drivers/media/video/s5p-mfc/s5p_mfc_enc.h    |    1 +
+>  drivers/media/video/s5p-mfc/s5p_mfc_intr.c   |   11 +-
+>  drivers/media/video/s5p-mfc/s5p_mfc_opr.c    | 1402 ++-----------------
+>  drivers/media/video/s5p-mfc/s5p_mfc_opr.h    |  179 ++-
+>  drivers/media/video/s5p-mfc/s5p_mfc_opr_v5.c | 1767 +++++++++++++++++++++++
+>  drivers/media/video/s5p-mfc/s5p_mfc_opr_v5.h |   85 ++
+>  drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.c | 1921
+++++++++++++++++++++++++++
+>  drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.h |   50 +
+>  drivers/media/video/s5p-mfc/s5p_mfc_pm.c     |    8 +-
+>  drivers/media/video/s5p-mfc/s5p_mfc_shm.c    |   47 -
+>  drivers/media/video/s5p-mfc/s5p_mfc_shm.h    |   90 --
+>  28 files changed, 5605 insertions(+), 1867 deletions(-)
+>  create mode 100644 drivers/media/video/s5p-mfc/regs-mfc-v6.h
+>  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_cmd_v5.c
+>  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_cmd_v5.h
+>  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_cmd_v6.c
+>  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_cmd_v6.h
+>  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr_v5.c
+>  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr_v5.h
+>  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.c
+>  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.h
+>  delete mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_shm.c
+>  delete mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_shm.h
 
