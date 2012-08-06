@@ -1,133 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:42155 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753014Ab2HGNxI (ORCPT
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:35642 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755529Ab2HFP2f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Aug 2012 09:53:08 -0400
-References: <501D4535.8080404@lockie.ca> <f1bd5aea-00cd-4b3f-9562-d25153f8cef3@email.android.com> <501DA203.7070800@lockie.ca> <20120805212054.GA29636@valkosipuli.retiisi.org.uk> <501F4A5B.1000608@lockie.ca> <20120807112742.GB29636@valkosipuli.retiisi.org.uk> <6ef5338940a90b4c8000594d546bf479.squirrel@lockie.ca>
-In-Reply-To: <6ef5338940a90b4c8000594d546bf479.squirrel@lockie.ca>
+	Mon, 6 Aug 2012 11:28:35 -0400
+Received: by lagy9 with SMTP id y9so806277lag.19
+        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 08:28:32 -0700 (PDT)
+Message-ID: <501FE29D.7040303@gmail.com>
+Date: Mon, 06 Aug 2012 17:28:29 +0200
+From: =?ISO-8859-1?Q?Roger_M=E5rtensson?= <roger.martensson@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: boot slow down
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Tue, 07 Aug 2012 09:53:08 -0400
-To: bjlockie@lockie.ca, Sakari Ailus <sakari.ailus@iki.fi>
-CC: linux-media Mailing List <linux-media@vger.kernel.org>
-Message-ID: <32d7859a-ceda-442d-be67-f4f682a6e3b9@email.android.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 0/3] Some additional az6007 cleanup patches
+References: <1344188679-8247-1-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1344188679-8247-1-git-send-email-mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-bjlockie@lockie.ca wrote:
-
->> Hi James,
->>
->> On Mon, Aug 06, 2012 at 12:38:51AM -0400, James wrote:
->>> On 08/05/12 17:20, Sakari Ailus wrote:
->>> > Hi Andy and James,
->>> >
->>> > On Sat, Aug 04, 2012 at 06:28:19PM -0400, James wrote:
->>> >> On 08/04/12 13:42, Andy Walls wrote:
->>> >>> James <bjlockie@lockie.ca> wrote:
->>> >>>
->>> >>>> There's a big pause before the 'unable'
->>> >>>>
->>> >>>> [    2.243856] usb 4-1: Manufacturer: Logitech
->>> >>>> [   62.739097] cx25840 6-0044: unable to open firmware
->>> >>>> v4l-cx23885-avcore-01.fw
->>> >>>>
->>> >>>>
->>> >>>> I have a cx23885
->>> >>>> cx23885[0]: registered device video0 [v4l2]
->>> >>>>
->>> >>>> Is there any way to stop it from trying to load the firmware?
->>> >>>> What is the firmware for, analog tv? Digital works fine and
->analog
->>> is
->>> >>>> useless to me.
->>> >>>> I assume it is timing out there.
->>> >>>> --
->>> >>>> To unsubscribe from this list: send the line "unsubscribe
->>> linux-media"
->>> >>>> in
->>> >>>> the body of a message to majordomo@vger.kernel.org
->>> >>>> More majordomo info at 
->http://vger.kernel.org/majordomo-info.html
->>> >>>
->>> >>> The firmware is for the analog broadcast audio standard (e.g.
->BTSC)
->>> detection microcontroller.
->>> >>>
->>> >>> The A/V core of the CX23885/7/8 chips is for analog vidoe and
->audio
->>> processing (broadcast, CVBS, SVideo, audio L/R in).
->>> >>>
->>> >>> The A/V core of the CX23885 provides the IR unit and the Video
->PLL
->>> provides the timing for the IR unit.
->>> >>>
->>> >>> The A/V core of the CX23888 provides the Video PLL which is the
->>> timing for the IR unit in the CX23888.
->>> >>>
->>> >>> Just grab the firmware and be done with it.  Don't waste time
->with
->>> trying to make the cx23885 working properly but halfway.
->>> >>>
->>> >>> Regards,
->>> >>> Andy
->>> >>
->>> >> I already have the firmware.
->>> >> # ls -l /lib/firmware/v4l-cx23885-avcore-01.fw
->>> >> -rw-r--r-- 1 root root 16382 Oct 15  2011
->>> /lib/firmware/v4l-cx23885-avcore-01.fw
->>> >
->>> > The timeout if for allowing the user space helper enough time to
->>> provide the
->>> > driver with the firmware, but it seems the helper isn't around as
->the
->>> > timeout expires. Is udev running around the time of the first
->line? Is
->>> the
->>> > driver linked directly into the kernel or is it a module?
->>> >
->>> > Kind regards,
->>> >
->>> I have this set so the firmware is in the kernel.
->>>
->>> Symbol: FIRMWARE_IN_KERNEL [=y]
->>
->> I don't know about that driver, but if the udev would have to provide
->the
->> firmware, and it's not running, the delay is expected. Two seconds
->after
->> kernel startup is so early that the user space, including udev, might
->not
->> yet be running.
->>
->> Kind regards,
->>
->> --
->> Sakari Ailus
->> e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Mauro Carvalho Chehab skrev 2012-08-05 19:44:
+> Those are mostly cleanup patches. With regards to suspend/resume,
+> this is not working properly yet. I suspect that it is due to the lack
+> of dvb-usb-v2 support for reset_resume. So, document it.
 >
->Doesn't that kernel option mean the firmware is put into the kernel at
->kernel build time?
+> Mauro Carvalho Chehab (3):
+>    [media] az6007: rename "st" to "state" at az6007_power_ctrl()
+>    [media] az6007: make all functions static
+>    [media] az6007: handle CI during suspend/resume
 >
->If I build the module, is there a module option to skip the delay?
+>   drivers/media/dvb/dvb-usb-v2/az6007.c | 37 +++++++++++++++++++++++++++--------
+>   1 file changed, 29 insertions(+), 8 deletions(-)
+>
 
-
-Hi,
-
-The CX2388x firmware is _never_ built into the kernel.  I'm not sure what that particular kernel config option is for.
-
-The kernel delay waiting for userspace to load firmware is settable using a node under /sys somewhere. The default is 60 seconds.  You will have to change it in very early boot, or fix the hardcoded constant in the kernel and recompile your kernel.
-
-Shortening the delay may not get you entirely acceptable results.  If udev is not, or is refusing to load firmware for the cx25840 module, then that module will not properly initialize the CX23885/7/8 A/V core hardware and will likely return with failure.  I'm not sure if the cx23885 driver will happily continue on, if that happens.
-
-If you still have a modular kernel build around, you may wish to test with it.  Blacklist the cx23885 module in /etc/modprobe.conf and the use udevadm to investigate what is going on with udev when you later modprobe the cx23885 driver. 
-
-If building the video card driver into the kernel is causing you all the problems, then I simply recommend not doing that.
-
-Regards,
-Andy
+Will all the latest patches also fix the problem with not being able to 
+tune to a new encrypted channel? (Terratec H7, DVB-C. Can watch an 
+encrypted channel i Kaffeine but not tune to another. Have to restart 
+Kaffeine. Can tune to an unencrypted channel.)
