@@ -1,89 +1,438 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([93.97.41.153]:41204 "EHLO pequod.mess.org"
+Received: from mx1.redhat.com ([209.132.183.28]:12248 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756822Ab2HWVSh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Aug 2012 17:18:37 -0400
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
-Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Subject: [PATCH] [media] rc: do not sleep when the driver blocks on IR completion
-Date: Thu, 23 Aug 2012 22:18:35 +0100
-Message-Id: <1345756715-17643-1-git-send-email-sean@mess.org>
+	id S932163Ab2HFPW3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Aug 2012 11:22:29 -0400
+Message-ID: <501FE131.8020200@redhat.com>
+Date: Mon, 06 Aug 2012 12:22:25 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/3] ds3000: remove ts2020 tuner related code
+References: <CAF0Ff2k6s3nt16_v5eacwHLr3PueYaMYGoy_XAmGwbfBjHh_fA@mail.gmail.com>
+In-Reply-To: <CAF0Ff2k6s3nt16_v5eacwHLr3PueYaMYGoy_XAmGwbfBjHh_fA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some drivers wait for the IR device to complete sending before
-returning, so sleeping should not be done.
+Hi Konstantin,
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/iguanair.c      | 1 +
- drivers/media/rc/ir-lirc-codec.c | 5 +++++
- drivers/media/rc/winbond-cir.c   | 1 +
- include/media/rc-core.h          | 2 ++
- 4 files changed, 9 insertions(+)
+Thanks for the patch. 
 
-diff --git a/drivers/media/rc/iguanair.c b/drivers/media/rc/iguanair.c
-index 66ba237..7f1941d 100644
---- a/drivers/media/rc/iguanair.c
-+++ b/drivers/media/rc/iguanair.c
-@@ -519,6 +519,7 @@ static int __devinit iguanair_probe(struct usb_interface *intf,
- 	rc->s_tx_mask = iguanair_set_tx_mask;
- 	rc->s_tx_carrier = iguanair_set_tx_carrier;
- 	rc->tx_ir = iguanair_tx;
-+	rc->tx_ir_drains = 1;
- 	rc->driver_name = DRIVER_NAME;
- 	rc->map_name = RC_MAP_RC6_MCE;
- 	rc->timeout = MS_TO_NS(100);
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index 569124b..dd21917 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -144,6 +144,11 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 	if (ret < 0)
- 		goto out;
- 
-+	if (dev->tx_ir_drains) {
-+		ret *= sizeof(unsigned int);
-+		goto out;
-+	}
-+
- 	for (i = 0; i < ret; i++)
- 		duration += txbuf[i];
- 
-diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
-index 54ee348..b1b6d34 100644
---- a/drivers/media/rc/winbond-cir.c
-+++ b/drivers/media/rc/winbond-cir.c
-@@ -1029,6 +1029,7 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
- 	data->dev->s_idle = wbcir_idle_rx;
- 	data->dev->s_tx_mask = wbcir_txmask;
- 	data->dev->s_tx_carrier = wbcir_txcarrier;
-+	data->dev->tx_ir_drains = 1;
- 	data->dev->tx_ir = wbcir_tx;
- 	data->dev->priv = data;
- 	data->dev->dev.parent = &device->dev;
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index b0c494a..fc2318c 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -64,6 +64,7 @@ enum rc_driver_type {
-  * @last_keycode: keycode of last keypress
-  * @last_scancode: scancode of last keypress
-  * @last_toggle: toggle value of last command
-+ * @tx_ir_drains: tx_ir returns after IR has been sent
-  * @timeout: optional time after which device stops sending data
-  * @min_timeout: minimum timeout supported by device
-  * @max_timeout: maximum timeout supported by device
-@@ -108,6 +109,7 @@ struct rc_dev {
- 	u32				last_keycode;
- 	u32				last_scancode;
- 	u8				last_toggle;
-+	unsigned			tx_ir_drains:1;
- 	u32				timeout;
- 	u32				min_timeout;
- 	u32				max_timeout;
--- 
-1.7.11.4
+Em 06-05-2012 18:19, Konstantin Dimitrov escreveu:
+> remove ts2020 tuner related code from ds3000 driver
+> prepare ds3000 driver for using external tuner driver
+> 
+> Signed-off-by: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+> 
+> --- a/linux/drivers/media/dvb/frontends/ds3000.h	2011-02-27
+> 06:45:21.000000000 +0200
+> +++ b/linux/drivers/media/dvb/frontends/ds3000.h	2012-05-07
+> 00:44:19.188554007 +0300
 
+This got line-wrapped, so I had to manually fix it and re-insert at patchwork.
+
+Next time, please be sure that your emailer won't break long lines.
+
+> @@ -1,8 +1,8 @@
+>  /*
+> -    Montage Technology DS3000/TS2020 - DVBS/S2 Satellite demod/tuner driver
+> -    Copyright (C) 2009 Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+> +    Montage Technology DS3000 - DVBS/S2 Demodulator driver
+> +    Copyright (C) 2009-2012 Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+> 
+> -    Copyright (C) 2009 TurboSight.com
+> +    Copyright (C) 2009-2012 TurboSight.com
+> 
+>      This program is free software; you can redistribute it and/or modify
+>      it under the terms of the GNU General Public License as published by
+> @@ -17,7 +17,7 @@
+>      You should have received a copy of the GNU General Public License
+>      along with this program; if not, write to the Free Software
+>      Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> -*/
+> + */
+> 
+>  #ifndef DS3000_H
+>  #define DS3000_H
+> @@ -30,6 +30,8 @@
+>  	u8 ci_mode;
+>  	/* Set device param to start dma */
+>  	int (*set_ts_params)(struct dvb_frontend *fe, int is_punctured);
+> +	int (*tuner_set_frequency) (struct dvb_frontend *fe, u32 frequency);
+> +	int (*tuner_get_frequency) (struct dvb_frontend *fe, u32 *frequency);
+
+Why do you need that? There are already tuner callbacks defined for it:
+
+	fe->ops.tuner_ops.set_params(fe);
+	fe->ops.tuner_ops.get_frequency(fe, &freq);
+
+>  };
+> 
+>  #if defined(CONFIG_DVB_DS3000) || \
+> --- a/linux/drivers/media/dvb/frontends/ds3000.c	2012-01-19
+> 06:45:32.000000000 +0200
+> +++ b/linux/drivers/media/dvb/frontends/ds3000.c	2012-05-07
+> 00:40:39.856556762 +0300
+> @@ -1,8 +1,8 @@
+>  /*
+> -    Montage Technology DS3000/TS2020 - DVBS/S2 Demodulator/Tuner driver
+> -    Copyright (C) 2009 Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+> +    Montage Technology DS3000 - DVBS/S2 Demodulator driver
+> +    Copyright (C) 2009-2012 Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+> 
+> -    Copyright (C) 2009 TurboSight.com
+> +    Copyright (C) 2009-2012 TurboSight.com
+> 
+>      This program is free software; you can redistribute it and/or modify
+>      it under the terms of the GNU General Public License as published by
+> @@ -42,7 +42,6 @@
+>  #define DS3000_DEFAULT_FIRMWARE "dvb-fe-ds3000.fw"
+> 
+>  #define DS3000_SAMPLE_RATE 96000 /* in kHz */
+> -#define DS3000_XTAL_FREQ   27000 /* in kHz */
+> 
+>  /* Register values to initialise the demod in DVB-S mode */
+>  static u8 ds3000_dvbs_init_tab[] = {
+> @@ -257,22 +256,14 @@
+>  	return 0;
+>  }
+> 
+> -static int ds3000_tuner_writereg(struct ds3000_state *state, int reg, int data)
+> +static int ds3000_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
+>  {
+> -	u8 buf[] = { reg, data };
+> -	struct i2c_msg msg = { .addr = 0x60,
+> -		.flags = 0, .buf = buf, .len = 2 };
+> -	int err;
+> -
+> -	dprintk("%s: write reg 0x%02x, value 0x%02x\n", __func__, reg, data);
+> +	struct ds3000_state *state = fe->demodulator_priv;
+> 
+> -	ds3000_writereg(state, 0x03, 0x11);
+> -	err = i2c_transfer(state->i2c, &msg, 1);
+> -	if (err != 1) {
+> -		printk("%s: writereg error(err == %i, reg == 0x%02x,"
+> -			 " value == 0x%02x)\n", __func__, err, reg, data);
+> -		return -EREMOTEIO;
+> -	}
+> +	if (enable)
+> +		ds3000_writereg(state, 0x03, 0x12);
+> +	else
+> +		ds3000_writereg(state, 0x03, 0x02);
+> 
+>  	return 0;
+>  }
+> @@ -349,38 +340,6 @@
+>  	return b1[0];
+>  }
+> 
+> -static int ds3000_tuner_readreg(struct ds3000_state *state, u8 reg)
+> -{
+> -	int ret;
+> -	u8 b0[] = { reg };
+> -	u8 b1[] = { 0 };
+> -	struct i2c_msg msg[] = {
+> -		{
+> -			.addr = 0x60,
+> -			.flags = 0,
+> -			.buf = b0,
+> -			.len = 1
+> -		}, {
+> -			.addr = 0x60,
+> -			.flags = I2C_M_RD,
+> -			.buf = b1,
+> -			.len = 1
+> -		}
+> -	};
+> -
+> -	ds3000_writereg(state, 0x03, 0x12);
+> -	ret = i2c_transfer(state->i2c, msg, 2);
+> -
+> -	if (ret != 2) {
+> -		printk(KERN_ERR "%s: reg=0x%x(error=%d)\n", __func__, reg, ret);
+> -		return ret;
+> -	}
+> -
+> -	dprintk("%s: read reg 0x%02x, value 0x%02x\n", __func__, reg, b1[0]);
+> -
+> -	return b1[0];
+> -}
+> -
+>  static int ds3000_load_firmware(struct dvb_frontend *fe,
+>  					const struct firmware *fw);
+> 
+> @@ -580,29 +539,8 @@
+>  static int ds3000_read_signal_strength(struct dvb_frontend *fe,
+>  						u16 *signal_strength)
+>  {
+> -	struct ds3000_state *state = fe->demodulator_priv;
+> -	u16 sig_reading, sig_strength;
+> -	u8 rfgain, bbgain;
+> -
+> -	dprintk("%s()\n", __func__);
+> -
+> -	rfgain = ds3000_tuner_readreg(state, 0x3d) & 0x1f;
+> -	bbgain = ds3000_tuner_readreg(state, 0x21) & 0x1f;
+> -
+> -	if (rfgain > 15)
+> -		rfgain = 15;
+> -	if (bbgain > 13)
+> -		bbgain = 13;
+> -
+> -	sig_reading = rfgain * 2 + bbgain * 3;
+> -
+> -	sig_strength = 40 + (64 - sig_reading) * 50 / 64 ;
+> -
+> -	/* cook the value to be suitable for szap-s2 human readable output */
+> -	*signal_strength = sig_strength * 1000;
+> -
+> -	dprintk("%s: raw / cooked = 0x%04x / 0x%04x\n", __func__,
+> -			sig_reading, *signal_strength);
+> +	/* temporary disabled until seperate ts2020 tuner driver is merged */
+> +	*signal_strength = 0xffff;
+> 
+>  	return 0;
+>  }
+> @@ -960,133 +898,16 @@
+> 
+>  	int i;
+>  	fe_status_t status;
+> -	u8 mlpf, mlpf_new, mlpf_max, mlpf_min, nlpf, div4;
+> -	s32 offset_khz;
+> -	u16 value, ndiv;
+> -	u32 f3db;
+> +	s32 offset_khz, frequency;
+> +	u16 value;
+> 
+>  	dprintk("%s() ", __func__);
+> 
+>  	if (state->config->set_ts_params)
+>  		state->config->set_ts_params(fe, 0);
+>  	/* Tune */
+> -	/* unknown */
+> -	ds3000_tuner_writereg(state, 0x07, 0x02);
+> -	ds3000_tuner_writereg(state, 0x10, 0x00);
+> -	ds3000_tuner_writereg(state, 0x60, 0x79);
+> -	ds3000_tuner_writereg(state, 0x08, 0x01);
+> -	ds3000_tuner_writereg(state, 0x00, 0x01);
+> -	div4 = 0;
+> -
+> -	/* calculate and set freq divider */
+> -	if (c->frequency < 1146000) {
+> -		ds3000_tuner_writereg(state, 0x10, 0x11);
+> -		div4 = 1;
+> -		ndiv = ((c->frequency * (6 + 8) * 4) +
+> -				(DS3000_XTAL_FREQ / 2)) /
+> -				DS3000_XTAL_FREQ - 1024;
+> -	} else {
+> -		ds3000_tuner_writereg(state, 0x10, 0x01);
+> -		ndiv = ((c->frequency * (6 + 8) * 2) +
+> -				(DS3000_XTAL_FREQ / 2)) /
+> -				DS3000_XTAL_FREQ - 1024;
+> -	}
+> -
+> -	ds3000_tuner_writereg(state, 0x01, (ndiv & 0x0f00) >> 8);
+> -	ds3000_tuner_writereg(state, 0x02, ndiv & 0x00ff);
+> -
+> -	/* set pll */
+> -	ds3000_tuner_writereg(state, 0x03, 0x06);
+> -	ds3000_tuner_writereg(state, 0x51, 0x0f);
+> -	ds3000_tuner_writereg(state, 0x51, 0x1f);
+> -	ds3000_tuner_writereg(state, 0x50, 0x10);
+> -	ds3000_tuner_writereg(state, 0x50, 0x00);
+> -	msleep(5);
+> -
+> -	/* unknown */
+> -	ds3000_tuner_writereg(state, 0x51, 0x17);
+> -	ds3000_tuner_writereg(state, 0x51, 0x1f);
+> -	ds3000_tuner_writereg(state, 0x50, 0x08);
+> -	ds3000_tuner_writereg(state, 0x50, 0x00);
+> -	msleep(5);
+> -
+> -	value = ds3000_tuner_readreg(state, 0x3d);
+> -	value &= 0x0f;
+> -	if ((value > 4) && (value < 15)) {
+> -		value -= 3;
+> -		if (value < 4)
+> -			value = 4;
+> -		value = ((value << 3) | 0x01) & 0x79;
+> -	}
+> -
+> -	ds3000_tuner_writereg(state, 0x60, value);
+> -	ds3000_tuner_writereg(state, 0x51, 0x17);
+> -	ds3000_tuner_writereg(state, 0x51, 0x1f);
+> -	ds3000_tuner_writereg(state, 0x50, 0x08);
+> -	ds3000_tuner_writereg(state, 0x50, 0x00);
+> -
+> -	/* set low-pass filter period */
+> -	ds3000_tuner_writereg(state, 0x04, 0x2e);
+> -	ds3000_tuner_writereg(state, 0x51, 0x1b);
+> -	ds3000_tuner_writereg(state, 0x51, 0x1f);
+> -	ds3000_tuner_writereg(state, 0x50, 0x04);
+> -	ds3000_tuner_writereg(state, 0x50, 0x00);
+> -	msleep(5);
+> -
+> -	f3db = ((c->symbol_rate / 1000) << 2) / 5 + 2000;
+> -	if ((c->symbol_rate / 1000) < 5000)
+> -		f3db += 3000;
+> -	if (f3db < 7000)
+> -		f3db = 7000;
+> -	if (f3db > 40000)
+> -		f3db = 40000;
+> -
+> -	/* set low-pass filter baseband */
+> -	value = ds3000_tuner_readreg(state, 0x26);
+> -	mlpf = 0x2e * 207 / ((value << 1) + 151);
+> -	mlpf_max = mlpf * 135 / 100;
+> -	mlpf_min = mlpf * 78 / 100;
+> -	if (mlpf_max > 63)
+> -		mlpf_max = 63;
+> -
+> -	/* rounded to the closest integer */
+> -	nlpf = ((mlpf * f3db * 1000) + (2766 * DS3000_XTAL_FREQ / 2))
+> -			/ (2766 * DS3000_XTAL_FREQ);
+> -	if (nlpf > 23)
+> -		nlpf = 23;
+> -	if (nlpf < 1)
+> -		nlpf = 1;
+> -
+> -	/* rounded to the closest integer */
+> -	mlpf_new = ((DS3000_XTAL_FREQ * nlpf * 2766) +
+> -			(1000 * f3db / 2)) / (1000 * f3db);
+> -
+> -	if (mlpf_new < mlpf_min) {
+> -		nlpf++;
+> -		mlpf_new = ((DS3000_XTAL_FREQ * nlpf * 2766) +
+> -				(1000 * f3db / 2)) / (1000 * f3db);
+> -	}
+> -
+> -	if (mlpf_new > mlpf_max)
+> -		mlpf_new = mlpf_max;
+> -
+> -	ds3000_tuner_writereg(state, 0x04, mlpf_new);
+> -	ds3000_tuner_writereg(state, 0x06, nlpf);
+> -	ds3000_tuner_writereg(state, 0x51, 0x1b);
+> -	ds3000_tuner_writereg(state, 0x51, 0x1f);
+> -	ds3000_tuner_writereg(state, 0x50, 0x04);
+> -	ds3000_tuner_writereg(state, 0x50, 0x00);
+> -	msleep(5);
+> -
+> -	/* unknown */
+> -	ds3000_tuner_writereg(state, 0x51, 0x1e);
+> -	ds3000_tuner_writereg(state, 0x51, 0x1f);
+> -	ds3000_tuner_writereg(state, 0x50, 0x01);
+> -	ds3000_tuner_writereg(state, 0x50, 0x00);
+> -	msleep(60);
+> -
+> -	offset_khz = (ndiv - ndiv % 2 + 1024) * DS3000_XTAL_FREQ
+> -		/ (6 + 8) / (div4 + 1) / 2 - c->frequency;
+> +	if (state->config->tuner_set_frequency)
+> +		state->config->tuner_set_frequency(fe, c->frequency);
+
+Instead, call tuner_ops->set_parms(fe).
+
+> 
+>  	/* ds3000 global reset */
+>  	ds3000_writereg(state, 0x07, 0x80);
+> @@ -1191,7 +1012,11 @@
+>  	/* start ds3000 build-in uC */
+>  	ds3000_writereg(state, 0xb2, 0x00);
+> 
+> -	ds3000_set_carrier_offset(fe, offset_khz);
+> +	if (state->config->tuner_get_frequency) {
+> +		offset_khz = state->config->tuner_get_frequency(fe, &frequency);
+> +		offset_khz = frequency - c->frequency;
+> +		ds3000_set_carrier_offset(fe, offset_khz);
+
+Is this to get the IF frequency or the tuned frequency? For the
+tuned frequency, set_parms() is allowed to change the fe properties. So,
+you don't need any explicit call.
+
+For IF, there is a get_if_frequency tuner callback.
+
+> +	}
+> 
+>  	for (i = 0; i < 30 ; i++) {
+>  		ds3000_read_status(fe, &status);
+> @@ -1221,6 +1046,15 @@
+>  	return ds3000_read_status(fe, status);
+>  }
+> 
+> +static int ds3000_get_frontend(struct dvb_frontend *fe)
+> +{
+> +	/* struct dtv_frontend_properties *c = &fe->dtv_property_cache; */
+> +
+> +	/* FIXME: for optimal performance get the SR from the silicon */
+> +
+> +	return 0;
+> +}
+
+Please don't implement it, if your driver is not reading it from the hardware.
+The DVB core already returns what's there at dtv_property_cache.
+
+> +
+>  static enum dvbfe_algo ds3000_get_algo(struct dvb_frontend *fe)
+>  {
+>  	dprintk("%s()\n", __func__);
+> @@ -1242,10 +1076,6 @@
+>  	ds3000_writereg(state, 0x08, 0x01 | ds3000_readreg(state, 0x08));
+>  	msleep(1);
+> 
+> -	/* TS2020 init */
+> -	ds3000_tuner_writereg(state, 0x42, 0x73);
+> -	ds3000_tuner_writereg(state, 0x05, 0x01);
+> -	ds3000_tuner_writereg(state, 0x62, 0xf5);
+>  	/* Load the firmware if required */
+>  	ret = ds3000_firmware_ondemand(fe);
+>  	if (ret != 0) {
+> @@ -1264,9 +1094,9 @@
+>  }
+> 
+>  static struct dvb_frontend_ops ds3000_ops = {
+> -	.delsys = { SYS_DVBS, SYS_DVBS2},
+> +	.delsys = { SYS_DVBS, SYS_DVBS2 },
+>  	.info = {
+> -		.name = "Montage Technology DS3000/TS2020",
+> +		.name = "Montage Technology DS3000",
+>  		.frequency_min = 950000,
+>  		.frequency_max = 2150000,
+>  		.frequency_stepsize = 1011, /* kHz for QPSK frontends */
+> @@ -1285,6 +1115,7 @@
+> 
+>  	.init = ds3000_initfe,
+>  	.sleep = ds3000_sleep,
+> +	.i2c_gate_ctrl = ds3000_i2c_gate_ctrl,
+>  	.read_status = ds3000_read_status,
+>  	.read_ber = ds3000_read_ber,
+>  	.read_signal_strength = ds3000_read_signal_strength,
+> @@ -1295,6 +1126,7 @@
+>  	.diseqc_send_master_cmd = ds3000_send_diseqc_msg,
+>  	.diseqc_send_burst = ds3000_diseqc_send_burst,
+>  	.get_frontend_algo = ds3000_get_algo,
+> +	.get_frontend = ds3000_get_frontend,
+> 
+>  	.set_frontend = ds3000_set_frontend,
+>  	.tune = ds3000_tune,
+> @@ -1304,6 +1136,6 @@
+>  MODULE_PARM_DESC(debug, "Activates frontend debugging (default:0)");
+> 
+>  MODULE_DESCRIPTION("DVB Frontend module for Montage Technology "
+> -			"DS3000/TS2020 hardware");
+> -MODULE_AUTHOR("Konstantin Dimitrov");
+> +			"DS3000 hardware");
+> +MODULE_AUTHOR("Konstantin Dimitrov <kosio.dimitrov@gmail.com>");
+>  MODULE_LICENSE("GPL");
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+You'll need to change patches 2 and 3 due to the requested changes above,
+so I'll mark all 3 with changes requested at patchwork.
+
+Thanks,
+Mauro
