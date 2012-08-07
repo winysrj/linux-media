@@ -1,71 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:38721 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753383Ab2HCS0d (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2012 14:26:33 -0400
-Received: by yhmm54 with SMTP id m54so1172237yhm.19
-        for <linux-media@vger.kernel.org>; Fri, 03 Aug 2012 11:26:33 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CALF0-+UdxdawZMeniA-tia3qKARbX_+u2k8PnbhA_FhDKUMv3Q@mail.gmail.com>
-References: <1344016352-20302-1-git-send-email-elezegarcia@gmail.com>
-	<CALF0-+UdxdawZMeniA-tia3qKARbX_+u2k8PnbhA_FhDKUMv3Q@mail.gmail.com>
-Date: Fri, 3 Aug 2012 14:26:32 -0400
-Message-ID: <CAGoCfiyaO5xhjUCVW5QfeLDoh=a6WE73aiAOXX5ZkOiM=efOfQ@mail.gmail.com>
-Subject: Re: [PATCH] em28xx: Fix height setting on non-progressive captures
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mga01.intel.com ([192.55.52.88]:60654 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751210Ab2HGQmz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Aug 2012 12:42:55 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 04/11] dvb-usb: use %*ph to dump small buffers
+Date: Tue,  7 Aug 2012 19:43:04 +0300
+Message-Id: <1344357792-18202-4-git-send-email-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <1344357792-18202-1-git-send-email-andriy.shevchenko@linux.intel.com>
+References: <1344357792-18202-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 3, 2012 at 2:11 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
-> On Fri, Aug 3, 2012 at 2:52 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
->> This was introduced on commit c2a6b54a9:
->> "em28xx: fix: don't do image interlacing on webcams"
->> It is a known bug that has already been reported several times
->> and confirmed by Mauro.
->> Tested by compilation only.
->>
->
-> I wonder if it's possible to get an Ack or a Tested-By from any of the
-> em28xx owners?
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb/dvb-usb/af9015.c   |    3 +--
+ drivers/media/dvb/dvb-usb/af9035.c   |    3 +--
+ drivers/media/dvb/dvb-usb/pctv452e.c |    7 +++----
+ 3 files changed, 5 insertions(+), 8 deletions(-)
 
-This shouldn't be accepted upstream without testing at least on x86.
-I did make such a change to make it work in my ARM tree, but I don't
-fully understand the nature of the change and I'm not completely
-confident it's correct for x86 (based on my reading of the datasheet
-and how the accumulator field is structured in the em28xx chip).
-Also, I actually don't have any progressive devices (I've got probably
-a dozen em28xx devices, but they are all interlaced capture), which
-made me particularly hesitant to submit this patch.
-
-> Also, Devin: you mentioned in an old mail [1] you had some patches for em28xx,
-> but you had no time to put them into shape for submission.
->
-> If you want to, send then to me (or the full em28xx tree) and I can
-> try to submit
-> the patches.
-
-Yeah, probably not a bad idea.  I've been sitting on the tree because
-they haven't been tested on any other platforms and some of them are
-not necessarily generally suitable for the mainline kernel.  And of
-course the tree needs to be parsed out into an actual patch series,
-and each patch has to be individually validated across multiple
-devices to ensure they don't cause breakage (they were tested on an
-em2863, but I have no idea if they cause problems on other chips such
-as the em2820 or em2880).
-
-All that said, I'm not really sure what the benefit would be in
-sending you the tree if you don't actually have any hardware to test
-with.  The last thing we need is more crap being sent upstream that is
-"compile tested only" since that's where many of the regressions come
-from (well meaning people sending completely untested 'cleanup
-patches' can cause more harm than good).
-
-Devin
-
+diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
+index 677fed7..ae1a01b 100644
+--- a/drivers/media/dvb/dvb-usb/af9015.c
++++ b/drivers/media/dvb/dvb-usb/af9015.c
+@@ -1053,8 +1053,7 @@ static int af9015_rc_query(struct dvb_usb_device *d)
+ 
+ 	/* Only process key if canary killed */
+ 	if (buf[16] != 0xff && buf[0] != 0x01) {
+-		deb_rc("%s: key pressed %02x %02x %02x %02x\n", __func__,
+-			buf[12], buf[13], buf[14], buf[15]);
++		deb_rc("%s: key pressed %*ph\n", __func__, 4, buf + 12);
+ 
+ 		/* Reset the canary */
+ 		ret = af9015_write_reg(d, 0x98e9, 0xff);
+diff --git a/drivers/media/dvb/dvb-usb/af9035.c b/drivers/media/dvb/dvb-usb/af9035.c
+index e83b39d..01e3321 100644
+--- a/drivers/media/dvb/dvb-usb/af9035.c
++++ b/drivers/media/dvb/dvb-usb/af9035.c
+@@ -393,8 +393,7 @@ static int af9035_identify_state(struct usb_device *udev,
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	pr_debug("%s: reply=%02x %02x %02x %02x\n", __func__,
+-		rbuf[0], rbuf[1], rbuf[2], rbuf[3]);
++	pr_debug("%s: reply=%*ph\n", __func__, 4, rbuf);
+ 	if (rbuf[0] || rbuf[1] || rbuf[2] || rbuf[3])
+ 		*cold = 0;
+ 	else
+diff --git a/drivers/media/dvb/dvb-usb/pctv452e.c b/drivers/media/dvb/dvb-usb/pctv452e.c
+index f526eb0..02e8785 100644
+--- a/drivers/media/dvb/dvb-usb/pctv452e.c
++++ b/drivers/media/dvb/dvb-usb/pctv452e.c
+@@ -136,8 +136,8 @@ static int tt3650_ci_msg(struct dvb_usb_device *d, u8 cmd, u8 *data,
+ 	return 0;
+ 
+ failed:
+-	err("CI error %d; %02X %02X %02X -> %02X %02X %02X.",
+-	     ret, SYNC_BYTE_OUT, id, cmd, buf[0], buf[1], buf[2]);
++	err("CI error %d; %02X %02X %02X -> %*ph.",
++	     ret, SYNC_BYTE_OUT, id, cmd, 3, buf);
+ 
+ 	return ret;
+ }
+@@ -556,8 +556,7 @@ static int pctv452e_rc_query(struct dvb_usb_device *d)
+ 		return ret;
+ 
+ 	if (debug > 3) {
+-		info("%s: read: %2d: %02x %02x %02x: ", __func__,
+-				ret, rx[0], rx[1], rx[2]);
++		info("%s: read: %2d: %*ph: ", __func__, ret, 3, rx);
+ 		for (i = 0; (i < rx[3]) && ((i+3) < PCTV_ANSWER_LEN); i++)
+ 			info(" %02x", rx[i+3]);
+ 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.10.4
+
