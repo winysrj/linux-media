@@ -1,172 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:59735 "EHLO
-	na3sys009aog127.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750953Ab2HFGiM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Aug 2012 02:38:12 -0400
-Received: by yhpp34 with SMTP id p34so2666592yhp.18
-        for <linux-media@vger.kernel.org>; Sun, 05 Aug 2012 23:38:11 -0700 (PDT)
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:48844 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751673Ab2HGQ2q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2012 12:28:46 -0400
+Received: by lboi8 with SMTP id i8so210054lbo.19
+        for <linux-media@vger.kernel.org>; Tue, 07 Aug 2012 09:28:45 -0700 (PDT)
+Message-ID: <5021422F.6080601@iki.fi>
+Date: Tue, 07 Aug 2012 19:28:31 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <CAF6AEGs2evpga=h1+0L0sz+vG1czHff83z13WxdBv+xvcxQKxw@mail.gmail.com>
-References: <1342715014-5316-1-git-send-email-rob.clark@linaro.org>
- <1342715014-5316-3-git-send-email-rob.clark@linaro.org> <CAF6AEGs2evpga=h1+0L0sz+vG1czHff83z13WxdBv+xvcxQKxw@mail.gmail.com>
-From: "Semwal, Sumit" <sumit.semwal@ti.com>
-Date: Mon, 6 Aug 2012 12:07:50 +0530
-Message-ID: <CAB2ybb-jWWgxNMwRBCOA5W4=y4Q9U-xQHeu+CtNp-eRteA4jxQ@mail.gmail.com>
-Subject: Re: [PATCH 2/2] dma-buf: add helpers for attacher dma-parms
-To: Rob Clark <rob.clark@linaro.org>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	patches@linaro.org, linux@arm.linux.org.uk, arnd@arndb.de,
-	jesse.barker@linaro.org, m.szyprowski@samsung.com, daniel@ffwll.ch,
-	t.stanislaws@samsung.com, maarten.lankhorst@canonical.com,
-	Rob Clark <rob@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Malcolm Priestley <tvboxspy@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH] lmedm04 2.06 conversion to dvb-usb-v2 version 2
+References: <1344284500.12234.12.camel@router7789>
+In-Reply-To: <1344284500.12234.12.camel@router7789>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 20, 2012 at 10:09 PM, Rob Clark <rob.clark@linaro.org> wrote:
-> Fyi, Daniel Vetter had suggested on IRC that it would be cleaner to
-> have a single helper fxn that most-restrictive union of all attached
-> device's dma_parms.  Really this should include dma_mask and
-> coherent_dma_mask, I think.  But that touches a lot of other places in
-> the code.  If no one objects to the cleanup of moving
-> dma_mask/coherent_dma_mask into dma_parms, I'll do this first.
+On 08/06/2012 11:21 PM, Malcolm Priestley wrote:
+> Conversion of lmedm04 to dvb-usb-v2
 >
-> So anyways, don't consider this patch yet for inclusion, I'll make an
-> updated one based on dma_parms..
-Hi Rob,
-Any news on this patch-set?
+> Functional changes m88rs2000 tuner now uses all callbacks.
+> TODO migrate other tuners to the callbacks.
 >
-> BR,
-> -R
-BR,
-~Sumit.
+> This patch is applied on top of [BUG] Re: dvb_usb_lmedm04 crash Kernel (rs2000)
+> http://patchwork.linuxtv.org/patch/13584/
 >
-> On Thu, Jul 19, 2012 at 11:23 AM, Rob Clark <rob.clark@linaro.org> wrote:
->> From: Rob Clark <rob@ti.com>
->>
->> Add some helpers to iterate through all attachers and get the most
->> restrictive segment size/count/boundary.
->>
->> Signed-off-by: Rob Clark <rob@ti.com>
->> ---
->>  drivers/base/dma-buf.c  |   63 +++++++++++++++++++++++++++++++++++++++++++++++
->>  include/linux/dma-buf.h |   19 ++++++++++++++
->>  2 files changed, 82 insertions(+)
->>
->> diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
->> index 24e88fe..757ee20 100644
->> --- a/drivers/base/dma-buf.c
->> +++ b/drivers/base/dma-buf.c
->> @@ -192,6 +192,69 @@ void dma_buf_put(struct dma_buf *dmabuf)
->>  EXPORT_SYMBOL_GPL(dma_buf_put);
->>
->>  /**
->> + * dma_buf_max_seg_size - helper for exporters to get the minimum of
->> + * all attached device's max segment size
->> + */
->> +unsigned int dma_buf_max_seg_size(struct dma_buf *dmabuf)
->> +{
->> +       struct dma_buf_attachment *attach;
->> +       unsigned int max = (unsigned int)-1;
->> +
->> +       if (WARN_ON(!dmabuf))
->> +               return 0;
->> +
->> +       mutex_lock(&dmabuf->lock);
->> +       list_for_each_entry(attach, &dmabuf->attachments, node)
->> +               max = min(max, dma_get_max_seg_size(attach->dev));
->> +       mutex_unlock(&dmabuf->lock);
->> +
->> +       return max;
->> +}
->> +EXPORT_SYMBOL_GPL(dma_buf_max_seg_size);
->> +
->> +/**
->> + * dma_buf_max_seg_count - helper for exporters to get the minimum of
->> + * all attached device's max segment count
->> + */
->> +unsigned int dma_buf_max_seg_count(struct dma_buf *dmabuf)
->> +{
->> +       struct dma_buf_attachment *attach;
->> +       unsigned int max = (unsigned int)-1;
->> +
->> +       if (WARN_ON(!dmabuf))
->> +               return 0;
->> +
->> +       mutex_lock(&dmabuf->lock);
->> +       list_for_each_entry(attach, &dmabuf->attachments, node)
->> +               max = min(max, dma_get_max_seg_count(attach->dev));
->> +       mutex_unlock(&dmabuf->lock);
->> +
->> +       return max;
->> +}
->> +EXPORT_SYMBOL_GPL(dma_buf_max_seg_count);
->> +
->> +/**
->> + * dma_buf_get_seg_boundary - helper for exporters to get the most
->> + * restrictive segment alignment of all the attached devices
->> + */
->> +unsigned int dma_buf_get_seg_boundary(struct dma_buf *dmabuf)
->> +{
->> +       struct dma_buf_attachment *attach;
->> +       unsigned int mask = (unsigned int)-1;
->> +
->> +       if (WARN_ON(!dmabuf))
->> +               return 0;
->> +
->> +       mutex_lock(&dmabuf->lock);
->> +       list_for_each_entry(attach, &dmabuf->attachments, node)
->> +               mask &= dma_get_seg_boundary(attach->dev);
->> +       mutex_unlock(&dmabuf->lock);
->> +
->> +       return mask;
->> +}
->> +EXPORT_SYMBOL_GPL(dma_buf_get_seg_boundary);
->> +
->> +/**
->>   * dma_buf_attach - Add the device to dma_buf's attachments list; optionally,
->>   * calls attach() of dma_buf_ops to allow device-specific attach functionality
->>   * @dmabuf:    [in]    buffer to attach device to.
->> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
->> index eb48f38..9533b9b 100644
->> --- a/include/linux/dma-buf.h
->> +++ b/include/linux/dma-buf.h
->> @@ -167,6 +167,10 @@ int dma_buf_fd(struct dma_buf *dmabuf, int flags);
->>  struct dma_buf *dma_buf_get(int fd);
->>  void dma_buf_put(struct dma_buf *dmabuf);
->>
->> +unsigned int dma_buf_max_seg_size(struct dma_buf *dmabuf);
->> +unsigned int dma_buf_max_seg_count(struct dma_buf *dmabuf);
->> +unsigned int dma_buf_get_seg_boundary(struct dma_buf *dmabuf);
->> +
->>  struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *,
->>                                         enum dma_data_direction);
->>  void dma_buf_unmap_attachment(struct dma_buf_attachment *, struct sg_table *,
->> @@ -220,6 +224,21 @@ static inline void dma_buf_put(struct dma_buf *dmabuf)
->>         return;
->>  }
->>
->> +static inline unsigned int dma_buf_max_seg_size(struct dma_buf *dmabuf)
->> +{
->> +       return 0;
->> +}
->> +
->> +static inline unsigned int dma_buf_max_seg_count(struct dma_buf *dmabuf)
->> +{
->> +       return 0;
->> +}
->> +
->> +static inline unsigned int dma_buf_get_seg_boundary(struct dma_buf *dmabuf)
->> +{
->> +       return 0;
->> +}
->> +
->>  static inline struct sg_table *dma_buf_map_attachment(
->>         struct dma_buf_attachment *attach, enum dma_data_direction write)
->>  {
->> --
->> 1.7.9.5
->>
+>
+> Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+
+Could you try to make this driver more generic?
+
+You use some internals of dvb-usb directly and most likely those are 
+without a reason. For example data streaming, lme2510_kill_urb() kills 
+directly urbs allocated and submitted by dvb-usb. Guess that driver is 
+broken just after someone changes dvb-usb streaming code.
+
+lme2510_usb_talk() could be replaced by generic dvb_usbv2_generic_rw().
+
+What is function of lme2510_int_read() ? I see you use own low level URB 
+routines for here too. It starts "polling", reads remote, tuner, demod, 
+etc, and updates state. You would better to implement I2C-adapter 
+correctly and then start Kernel work-queue, which reads same information 
+using I2C-adapter. Or you could even abuse remote controller polling 
+function provided by dvb-usb.
+
+lme2510_get_stream_config() enables pid-filter again over the dvb-usb, 
+but I can live with it because there is no dynamic configuration for 
+that. Anyhow, is that really needed?
+
+I can live with the pid-filter "abuse", but killing stream URBs on 
+behalf of DVB-USB is something I don't like to see. If you have very 
+good explanation and I cannot fix DVB USB to meet it I could consider 
+that kind of hack. And it should be documented clearly adding necessary 
+comments to code.
+
+Re-implementing that driver to use 100% DVB-USB services will reduce 
+around 50% of code or more.
+
+regards
+Antti
+
+
+-- 
+http://palosaari.fi/
