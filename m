@@ -1,71 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:31381 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751710Ab2HAI2m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2012 04:28:42 -0400
-Received: from eusync2.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M8200I6QI8JDE60@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 01 Aug 2012 09:29:07 +0100 (BST)
-Received: from [106.116.147.32] by eusync2.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0M8200M1PI7QE290@eusync2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 01 Aug 2012 09:28:40 +0100 (BST)
-Message-id: <5018E8B5.4050708@samsung.com>
-Date: Wed, 01 Aug 2012 10:28:37 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: sungchun.kang@samsung.com
-Cc: 'Shaik Ameer Basha' <shaik.ameer@samsung.com>,
-	linux-media@vger.kernel.org, khw0178.kim@samsung.com,
-	mchehab@infradead.org, laurent.pinchart@ideasonboard.com,
-	sy0816.kang@samsung.com, posciak@google.com, hverkuil@xs4all.nl,
-	alim.akhtar@gmail.com, prashanth.g@samsung.com, joshi@samsung.com,
-	shaik.samsung@gmail.com
-Subject: Re: [PATCH v5 0/5] Add new driver for generic scaler
-References: <1343742246-27579-1-git-send-email-shaik.ameer@samsung.com>
- <008301cd6fb8$38f1f8e0$aad5eaa0$%kang@samsung.com>
-In-reply-to: <008301cd6fb8$38f1f8e0$aad5eaa0$%kang@samsung.com>
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7bit
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:16872 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751324Ab2HGNNA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2012 09:13:00 -0400
+From: Konke Radlow <kradlow@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, hdegoede@redhat.com, koradlow@gmail.com
+Subject: [RFC PATCH 0/2] Add support for RDS decoding (updated) 
+Date: Tue,  7 Aug 2012 15:11:53 +0000
+Message-Id: <1344352315-1184-1-git-send-email-kradlow@cisco.com>
+In-Reply-To: <[RFC PATCH 0/2] Add support for RDS decoding>
+References: <[RFC PATCH 0/2] Add support for RDS decoding>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/01/2012 09:35 AM, Sungchun Kang wrote:
-> I'm sorry to be so late.
-> Basically, I wonder important one thing.
-> What would you implement a device driver connected with gscaler.
-> For example, fimc-lite, mipi-csis.
-> As you know Exynos5 has local-path with gscaler
-> MIPI-CSIS => Fimc-lite => Gscaler
-> And, you should use media control framework.
-> So, We made exynos folder, and implement drivers with mc.
-> We use mdev that is virtual device driver for connecting gscaler, fimc-lite, mipi-csis with MC.
-> This is camera path. 
-> There are not only camera path but also rendering path.
-> Gscaler => FIMD or TV
-> Rendering path use mdev-0,
-> Camera path use mdev-1.
-> In conclusion, because we use to connect each other devices with MC, we made exynos folder.
-> 
-> And how you make to implement devices with MC?
+Hello,
+first of all: thank you for the comments to my previous RFC for the
+libv4l2rds library and the rds-ctl control & testing tool.
+The proposed changes have been implemented, and the code has been     
+further improved after a thorough code review by Hans Verkuil.
 
-As you may know, these patches only add mem-to-mem functionality,
-which can be used together with the Exynos multi-format video codec.
+Changes:
+  -the code is rebased on the latest v4l-utils code (as of today 07.08)
+  -added feature: time/date decoding
+  -implementing proposed changes
+  -code cleanup
+  -extended comments
 
-Remaining features, as you listed, are planned to be added later,
-in subsequent steps, after discussing it here on the mailing list.
+Status:
+>From my point of view the RDS decoding is now almost feature complete.
+There are some obscure RDS features like paging that are not supported,
+but they do not seem to used anywhere. 
+So in the near future no features will be added and the goal is to get 
+the library and control tool merged into the v4l-utils codebase.
 
-I think it's much better approach, than coming up with a complete huge
-driver with many API compliance issues. Especially that some drivers,
-like MIPI-CSIS or FIMC-LITE are already in the mainline kernel.
-
-As for the driver directory name, IMHO drivers/media/exynos is too
-generic, s5p-fimc, s5p-jpeg, s5p-tv also cover some Exynos SoCs.
-
-I don't think having drivers/media/exynos directory would be helpful
-in anything.
+Upcoming:
+Work on RDS-TMC decoding is going well and is being done in a seperate 
+branch. It will be the subject of a future RFC, once it has reached a 
+mature stage. But TMC is not a core feature of RDS but an addition.
 
 Regards,
-Sylwester
+Konke
+
