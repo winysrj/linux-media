@@ -1,160 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from co1ehsobe001.messaging.microsoft.com ([216.32.180.184]:8545
-	"EHLO co1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751361Ab2HCJDp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Aug 2012 05:03:45 -0400
-Date: Fri, 3 Aug 2012 17:03:30 +0800
-From: Richard Zhao <richard.zhao@freescale.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Javier Martin <javier.martin@vista-silicon.com>,
-	<linux-media@vger.kernel.org>,
-	<sakari.ailus@maxwell.research.nokia.com>,
-	<kyungmin.park@samsung.com>, <s.nawrocki@samsung.com>,
-	<laurent.pinchart@ideasonboard.com>, <mchehab@infradead.org>,
-	<s.hauer@pengutronix.de>, <p.zabel@pengutronix.de>,
-	<linuxzsc@gmail.com>, <shawn.guo@linaro.org>
-Subject: Re: [v7] media: coda: Add driver for Coda video codec.
-Message-ID: <20120803090329.GA15809@b20223-02.ap.freescale.net>
-References: <1343043061-24327-1-git-send-email-javier.martin@vista-silicon.com>
- <20120803082442.GE29944@b20223-02.ap.freescale.net>
- <201208031047.01174.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <201208031047.01174.hverkuil@xs4all.nl>
+Received: from mga11.intel.com ([192.55.52.93]:6113 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754725Ab2HGQnD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Aug 2012 12:43:03 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH 08/11] dvb: use %*ph to hexdump small buffers
+Date: Tue,  7 Aug 2012 19:43:08 +0300
+Message-Id: <1344357792-18202-8-git-send-email-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <1344357792-18202-1-git-send-email-andriy.shevchenko@linux.intel.com>
+References: <1344357792-18202-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 03, 2012 at 10:47:01AM +0200, Hans Verkuil wrote:
-> On Fri August 3 2012 10:24:43 Richard Zhao wrote:
-> > Hi Javier,
-> > 
-> > Glad to see the vpu patch. I'd like to try it on imx6. What else
-> > do I need to do besides add vpu devices in dts? Do you have a gst
-> > plugin or any other test program to test it?
-> > 
-> > Please also see below comments.
-> > 
-> > On Mon, Jul 23, 2012 at 11:31:01AM +0000, Javier Martin wrote:
-> > > Coda is a range of video codecs from Chips&Media that
-> > > support H.264, H.263, MPEG4 and other video standards.
-> > > 
-> > > Currently only support for the codadx6 included in the
-> > > i.MX27 SoC is added. H.264 and MPEG4 video encoding
-> > > are the only supported capabilities by now.
-> > > 
-> > > Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
-> > > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > > Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> > > 
-> > > ---
-> > > Changes since v6:
-> > >  - Cosmetic fixes pointed out by Sakari.
-> > >  - Now passes 'v4l2-compliance'.
-> > > 
-> > > ---
-> > >  drivers/media/video/Kconfig  |    9 +
-> > >  drivers/media/video/Makefile |    1 +
-> > >  drivers/media/video/coda.c   | 1848 ++++++++++++++++++++++++++++++++++++++++++
-> > >  drivers/media/video/coda.h   |  216 +++++
-> > >  4 files changed, 2074 insertions(+)
-> > >  create mode 100644 drivers/media/video/coda.c
-> > >  create mode 100644 drivers/media/video/coda.h
-> > > 
-> > 
-> > [...]
-> > 
-> > > +static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
-> > > +{
-> > > +	struct coda_ctx *ctx = vb2_get_drv_priv(q);
-> > > +	struct v4l2_device *v4l2_dev = &ctx->dev->v4l2_dev;
-> > > +	u32 bitstream_buf, bitstream_size;
-> > > +	struct coda_dev *dev = ctx->dev;
-> > > +	struct coda_q_data *q_data_src, *q_data_dst;
-> > > +	u32 dst_fourcc;
-> > > +	struct vb2_buffer *buf;
-> > > +	struct vb2_queue *src_vq;
-> > > +	u32 value;
-> > > +	int i = 0;
-> > > +
-> > > +	if (count < 1)
-> > > +		return -EINVAL;
-> > > +
-> > > +	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-> > > +		ctx->rawstreamon = 1;
-> > > +	else
-> > > +		ctx->compstreamon = 1;
-> > > +
-> > > +	/* Don't start the coda unless both queues are on */
-> > > +	if (!(ctx->rawstreamon & ctx->compstreamon))
-> > > +		return 0;
-> > > +		
-> > Remove spaces above.
-> > > +	ctx->gopcounter = ctx->params.gop_size - 1;
-> > > +
-> > > +	q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
-> > > +	buf = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
-> > > +	bitstream_buf = vb2_dma_contig_plane_dma_addr(buf, 0);
-> > > +	q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
-> > > +	bitstream_size = q_data_dst->sizeimage;
-> > > +	dst_fourcc = q_data_dst->fmt->fourcc;
-> > > +
-> > > +	/* Find out whether coda must encode or decode */
-> > > +	if (q_data_src->fmt->type == CODA_FMT_RAW &&
-> > > +	    q_data_dst->fmt->type == CODA_FMT_ENC) {
-> > > +		ctx->inst_type = CODA_INST_ENCODER;
-> > > +	} else if (q_data_src->fmt->type == CODA_FMT_ENC &&
-> > > +		   q_data_dst->fmt->type == CODA_FMT_RAW) {
-> > > +		ctx->inst_type = CODA_INST_DECODER;
-> > > +		v4l2_err(v4l2_dev, "decoding not supported.\n");
-> > > +		return -EINVAL;
-> > > +	} else {
-> > > +		v4l2_err(v4l2_dev, "couldn't tell instance type.\n");
-> > > +		return -EINVAL;
-> > > +	}
-> > > +
-> > > +	if (!coda_is_initialized(dev)) {
-> > > +		v4l2_err(v4l2_dev, "coda is not initialized.\n");
-> > > +		return -EFAULT;
-> > > +	}
-> > > +	coda_write(dev, ctx->parabuf.paddr, CODA_REG_BIT_PARA_BUF_ADDR);
-> > > +	coda_write(dev, bitstream_buf, CODA_REG_BIT_RD_PTR(ctx->idx));
-> > > +	coda_write(dev, bitstream_buf, CODA_REG_BIT_WR_PTR(ctx->idx));
-> > > +	switch (dev->devtype->product) {
-> > > +	case CODA_DX6:
-> > > +		coda_write(dev, CODADX6_STREAM_BUF_DYNALLOC_EN |
-> > > +			CODADX6_STREAM_BUF_PIC_RESET, CODA_REG_BIT_STREAM_CTRL);
-> > > +		break;
-> > > +	default:
-> > > +		coda_write(dev, CODA7_STREAM_BUF_DYNALLOC_EN |
-> > > +			CODA7_STREAM_BUF_PIC_RESET, CODA_REG_BIT_STREAM_CTRL);
-> > > +	}
-> > > +
-> > > +	/* Configure the coda */
-> > > +	coda_write(dev, 0xffff4c00, CODA_REG_BIT_SEARCH_RAM_BASE_ADDR);
-> > > +
-> > > +	/* Could set rotation here if needed */
-> > > +	switch (dev->devtype->product) {
-> > > +	case CODA_DX6:
-> > > +		value = (q_data_src->width & CODADX6_PICWIDTH_MASK) << CODADX6_PICWIDTH_OFFSET;
-> > longer than 80 characters. Could you run checkpatch to do further check?
-> 
-> This is a checkpatch warning, not an error. One should use one's own judgement whether
-> to take action or not. It is more important that the code is readable than that it fits
-> within 80 characters, although long lines can be an indication of poor readability.
-Yes, you are right. I don't insist but I like cut it off except for
-files like register definition with aligned lines.
-> 
-> In this case I personally don't think it will be easier to read if this line is split up.
-My point here is checkpatch.
-total: 2 errors, 30 warnings, 2086 lines checked
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/media/dvb/b2c2/flexcop-usb.c |    5 +----
+ drivers/media/dvb/bt8xx/dst_ca.c     |    3 ++-
+ drivers/media/dvb/dvb-core/dmxdev.c  |    4 +---
+ drivers/media/dvb/ngene/ngene-core.c |   14 ++++----------
+ 4 files changed, 8 insertions(+), 18 deletions(-)
 
-Thanks
-Richard
-> 
-> Regards,
-> 
-> 	Hans
-> 
+diff --git a/drivers/media/dvb/b2c2/flexcop-usb.c b/drivers/media/dvb/b2c2/flexcop-usb.c
+index 26c666d..8b6275f 100644
+--- a/drivers/media/dvb/b2c2/flexcop-usb.c
++++ b/drivers/media/dvb/b2c2/flexcop-usb.c
+@@ -324,10 +324,7 @@ static void flexcop_usb_process_frame(struct flexcop_usb *fc_usb,
+ 					flexcop_pass_dmx_packets(
+ 							fc_usb->fc_dev, b+2, 1);
+ 				else
+-					deb_ts(
+-					"not ts packet %02x %02x %02x %02x \n",
+-						*(b+2), *(b+3),
+-						*(b+4), *(b+5));
++					deb_ts("not ts packet %*ph\n", 4, b+2);
+ 				b += 190;
+ 				l -= 190;
+ 				break;
+diff --git a/drivers/media/dvb/bt8xx/dst_ca.c b/drivers/media/dvb/bt8xx/dst_ca.c
+index 66f52f1..ee3884f 100644
+--- a/drivers/media/dvb/bt8xx/dst_ca.c
++++ b/drivers/media/dvb/bt8xx/dst_ca.c
+@@ -321,7 +321,8 @@ static int ca_get_message(struct dst_state *state, struct ca_msg *p_ca_message,
+ 		return -EFAULT;
+ 
+ 	if (p_ca_message->msg) {
+-		dprintk(verbose, DST_CA_NOTICE, 1, " Message = [%02x %02x %02x]", p_ca_message->msg[0], p_ca_message->msg[1], p_ca_message->msg[2]);
++		dprintk(verbose, DST_CA_NOTICE, 1, " Message = [%*ph]",
++			3, p_ca_message->msg);
+ 
+ 		for (i = 0; i < 3; i++) {
+ 			command = command | p_ca_message->msg[i];
+diff --git a/drivers/media/dvb/dvb-core/dmxdev.c b/drivers/media/dvb/dvb-core/dmxdev.c
+index 73970cd..889c9c1 100644
+--- a/drivers/media/dvb/dvb-core/dmxdev.c
++++ b/drivers/media/dvb/dvb-core/dmxdev.c
+@@ -370,9 +370,7 @@ static int dvb_dmxdev_section_callback(const u8 *buffer1, size_t buffer1_len,
+ 		return 0;
+ 	}
+ 	del_timer(&dmxdevfilter->timer);
+-	dprintk("dmxdev: section callback %02x %02x %02x %02x %02x %02x\n",
+-		buffer1[0], buffer1[1],
+-		buffer1[2], buffer1[3], buffer1[4], buffer1[5]);
++	dprintk("dmxdev: section callback %*ph\n", 6, buffer1);
+ 	ret = dvb_dmxdev_buffer_write(&dmxdevfilter->buffer, buffer1,
+ 				      buffer1_len);
+ 	if (ret == buffer1_len) {
+diff --git a/drivers/media/dvb/ngene/ngene-core.c b/drivers/media/dvb/ngene/ngene-core.c
+index 3985738..c8e0d5b 100644
+--- a/drivers/media/dvb/ngene/ngene-core.c
++++ b/drivers/media/dvb/ngene/ngene-core.c
+@@ -258,22 +258,16 @@ static void dump_command_io(struct ngene *dev)
+ 	u8 buf[8], *b;
+ 
+ 	ngcpyfrom(buf, HOST_TO_NGENE, 8);
+-	printk(KERN_ERR "host_to_ngene (%04x): %02x %02x %02x %02x %02x %02x %02x %02x\n",
+-		HOST_TO_NGENE, buf[0], buf[1], buf[2], buf[3],
+-		buf[4], buf[5], buf[6], buf[7]);
++	printk(KERN_ERR "host_to_ngene (%04x): %*ph\n", HOST_TO_NGENE, 8, buf);
+ 
+ 	ngcpyfrom(buf, NGENE_TO_HOST, 8);
+-	printk(KERN_ERR "ngene_to_host (%04x): %02x %02x %02x %02x %02x %02x %02x %02x\n",
+-		NGENE_TO_HOST, buf[0], buf[1], buf[2], buf[3],
+-		buf[4], buf[5], buf[6], buf[7]);
++	printk(KERN_ERR "ngene_to_host (%04x): %*ph\n", NGENE_TO_HOST, 8, buf);
+ 
+ 	b = dev->hosttongene;
+-	printk(KERN_ERR "dev->hosttongene (%p): %02x %02x %02x %02x %02x %02x %02x %02x\n",
+-		b, b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7]);
++	printk(KERN_ERR "dev->hosttongene (%p): %*ph\n", b, 8, b);
+ 
+ 	b = dev->ngenetohost;
+-	printk(KERN_ERR "dev->ngenetohost (%p): %02x %02x %02x %02x %02x %02x %02x %02x\n",
+-		b, b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7]);
++	printk(KERN_ERR "dev->ngenetohost (%p): %*ph\n", b, 8, b);
+ }
+ 
+ static int ngene_command_mutex(struct ngene *dev, struct ngene_command *com)
+-- 
+1.7.10.4
 
