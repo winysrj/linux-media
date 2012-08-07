@@ -1,69 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55499 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751813Ab2HUOTW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Aug 2012 10:19:22 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 2/2] qt1010: remove debug register dump
-Date: Tue, 21 Aug 2012 17:18:59 +0300
-Message-Id: <1345558739-12562-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1345558739-12562-1-git-send-email-crope@iki.fi>
-References: <1345558739-12562-1-git-send-email-crope@iki.fi>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57046 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754014Ab2HGL1s (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Aug 2012 07:27:48 -0400
+Date: Tue, 7 Aug 2012 14:27:43 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: James <bjlockie@lockie.ca>
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	linux-media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: boot slow down
+Message-ID: <20120807112742.GB29636@valkosipuli.retiisi.org.uk>
+References: <501D4535.8080404@lockie.ca>
+ <f1bd5aea-00cd-4b3f-9562-d25153f8cef3@email.android.com>
+ <501DA203.7070800@lockie.ca>
+ <20120805212054.GA29636@valkosipuli.retiisi.org.uk>
+ <501F4A5B.1000608@lockie.ca>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <501F4A5B.1000608@lockie.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I didn't found easy way to handle register dump only when needed so
-remove it totally. It is quite useless and trivial function, every
-developer could write new one in few minutes when needed.
+Hi James,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/qt1010.c | 23 -----------------------
- 1 file changed, 23 deletions(-)
+On Mon, Aug 06, 2012 at 12:38:51AM -0400, James wrote:
+> On 08/05/12 17:20, Sakari Ailus wrote:
+> > Hi Andy and James,
+> > 
+> > On Sat, Aug 04, 2012 at 06:28:19PM -0400, James wrote:
+> >> On 08/04/12 13:42, Andy Walls wrote:
+> >>> James <bjlockie@lockie.ca> wrote:
+> >>>
+> >>>> There's a big pause before the 'unable'
+> >>>>
+> >>>> [    2.243856] usb 4-1: Manufacturer: Logitech
+> >>>> [   62.739097] cx25840 6-0044: unable to open firmware
+> >>>> v4l-cx23885-avcore-01.fw
+> >>>>
+> >>>>
+> >>>> I have a cx23885
+> >>>> cx23885[0]: registered device video0 [v4l2]
+> >>>>
+> >>>> Is there any way to stop it from trying to load the firmware?
+> >>>> What is the firmware for, analog tv? Digital works fine and analog is
+> >>>> useless to me.
+> >>>> I assume it is timing out there.
+> >>>> --
+> >>>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> >>>> in
+> >>>> the body of a message to majordomo@vger.kernel.org
+> >>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>>
+> >>> The firmware is for the analog broadcast audio standard (e.g. BTSC) detection microcontroller.
+> >>>
+> >>> The A/V core of the CX23885/7/8 chips is for analog vidoe and audio processing (broadcast, CVBS, SVideo, audio L/R in).
+> >>>
+> >>> The A/V core of the CX23885 provides the IR unit and the Video PLL provides the timing for the IR unit.
+> >>>
+> >>> The A/V core of the CX23888 provides the Video PLL which is the timing for the IR unit in the CX23888.
+> >>>
+> >>> Just grab the firmware and be done with it.  Don't waste time with trying to make the cx23885 working properly but halfway.
+> >>>
+> >>> Regards,
+> >>> Andy
+> >>
+> >> I already have the firmware.
+> >> # ls -l /lib/firmware/v4l-cx23885-avcore-01.fw 
+> >> -rw-r--r-- 1 root root 16382 Oct 15  2011 /lib/firmware/v4l-cx23885-avcore-01.fw
+> > 
+> > The timeout if for allowing the user space helper enough time to provide the
+> > driver with the firmware, but it seems the helper isn't around as the
+> > timeout expires. Is udev running around the time of the first line? Is the
+> > driver linked directly into the kernel or is it a module?
+> > 
+> > Kind regards,
+> > 
+> I have this set so the firmware is in the kernel.
+> 
+> Symbol: FIRMWARE_IN_KERNEL [=y]
 
-diff --git a/drivers/media/tuners/qt1010.c b/drivers/media/tuners/qt1010.c
-index 5fab622..bc419f8 100644
---- a/drivers/media/tuners/qt1010.c
-+++ b/drivers/media/tuners/qt1010.c
-@@ -54,27 +54,6 @@ static int qt1010_writereg(struct qt1010_priv *priv, u8 reg, u8 val)
- 	return 0;
- }
- 
--/* dump all registers */
--static void qt1010_dump_regs(struct qt1010_priv *priv)
--{
--	u8 reg, val;
--
--	for (reg = 0; ; reg++) {
--		if (reg % 16 == 0) {
--			if (reg)
--				printk(KERN_CONT "\n");
--			printk(KERN_DEBUG "%02x:", reg);
--		}
--		if (qt1010_readreg(priv, reg, &val) == 0)
--			printk(KERN_CONT " %02x", val);
--		else
--			printk(KERN_CONT " --");
--		if (reg == 0x2f)
--			break;
--	}
--	printk(KERN_CONT "\n");
--}
--
- static int qt1010_set_params(struct dvb_frontend *fe)
- {
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-@@ -240,8 +219,6 @@ static int qt1010_set_params(struct dvb_frontend *fe)
- 		if (err) return err;
- 	}
- 
--	qt1010_dump_regs(priv);
--
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 0); /* close i2c_gate */
- 
+I don't know about that driver, but if the udev would have to provide the
+firmware, and it's not running, the delay is expected. Two seconds after
+kernel startup is so early that the user space, including udev, might not
+yet be running.
+
+Kind regards,
+
 -- 
-1.7.11.4
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
