@@ -1,63 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nexicom.net ([216.168.96.13]:42591 "EHLO smtp.nexicom.net"
+Received: from mga03.intel.com ([143.182.124.21]:28874 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753875Ab2HDW2V (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 4 Aug 2012 18:28:21 -0400
-Received: from mail.lockie.ca (dyn-dsl-mb-216-168-121-135.nexicom.net [216.168.121.135])
-	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id q74MSJmK009715
-	for <linux-media@vger.kernel.org>; Sat, 4 Aug 2012 18:28:20 -0400
-Message-ID: <501DA203.7070800@lockie.ca>
-Date: Sat, 04 Aug 2012 18:28:19 -0400
-From: James <bjlockie@lockie.ca>
-MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: linux-media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: boot slow down
-References: <501D4535.8080404@lockie.ca> <f1bd5aea-00cd-4b3f-9562-d25153f8cef3@email.android.com>
-In-Reply-To: <f1bd5aea-00cd-4b3f-9562-d25153f8cef3@email.android.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1753513Ab2HGQm4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Aug 2012 12:42:56 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH 06/11] radio-shark2: use %*ph to print small buffers
+Date: Tue,  7 Aug 2012 19:43:06 +0300
+Message-Id: <1344357792-18202-6-git-send-email-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <1344357792-18202-1-git-send-email-andriy.shevchenko@linux.intel.com>
+References: <1344357792-18202-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/04/12 13:42, Andy Walls wrote:
-> James <bjlockie@lockie.ca> wrote:
-> 
->> There's a big pause before the 'unable'
->>
->> [    2.243856] usb 4-1: Manufacturer: Logitech
->> [   62.739097] cx25840 6-0044: unable to open firmware
->> v4l-cx23885-avcore-01.fw
->>
->>
->> I have a cx23885
->> cx23885[0]: registered device video0 [v4l2]
->>
->> Is there any way to stop it from trying to load the firmware?
->> What is the firmware for, analog tv? Digital works fine and analog is
->> useless to me.
->> I assume it is timing out there.
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media"
->> in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> The firmware is for the analog broadcast audio standard (e.g. BTSC) detection microcontroller.
-> 
-> The A/V core of the CX23885/7/8 chips is for analog vidoe and audio processing (broadcast, CVBS, SVideo, audio L/R in).
-> 
-> The A/V core of the CX23885 provides the IR unit and the Video PLL provides the timing for the IR unit.
-> 
-> The A/V core of the CX23888 provides the Video PLL which is the timing for the IR unit in the CX23888.
-> 
-> Just grab the firmware and be done with it.  Don't waste time with trying to make the cx23885 working properly but halfway.
-> 
-> Regards,
-> Andy
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/media/radio/radio-shark2.c |   13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-I already have the firmware.
-# ls -l /lib/firmware/v4l-cx23885-avcore-01.fw 
--rw-r--r-- 1 root root 16382 Oct 15  2011 /lib/firmware/v4l-cx23885-avcore-01.fw
-
+diff --git a/drivers/media/radio/radio-shark2.c b/drivers/media/radio/radio-shark2.c
+index b9575de..90aecfb 100644
+--- a/drivers/media/radio/radio-shark2.c
++++ b/drivers/media/radio/radio-shark2.c
+@@ -100,12 +100,8 @@ static int shark_write_reg(struct radio_tea5777 *tea, u64 reg)
+ 	for (i = 0; i < 6; i++)
+ 		shark->transfer_buffer[i + 1] = (reg >> (40 - i * 8)) & 0xff;
+ 
+-	v4l2_dbg(1, debug, tea->v4l2_dev,
+-		 "shark2-write: %02x %02x %02x %02x %02x %02x %02x\n",
+-		 shark->transfer_buffer[0], shark->transfer_buffer[1],
+-		 shark->transfer_buffer[2], shark->transfer_buffer[3],
+-		 shark->transfer_buffer[4], shark->transfer_buffer[5],
+-		 shark->transfer_buffer[6]);
++	v4l2_dbg(1, debug, tea->v4l2_dev, "shark2-write: %*ph\n",
++		 7, shark->transfer_buffer);
+ 
+ 	res = usb_interrupt_msg(shark->usbdev,
+ 				usb_sndintpipe(shark->usbdev, SHARK_OUT_EP),
+@@ -148,9 +144,8 @@ static int shark_read_reg(struct radio_tea5777 *tea, u32 *reg_ret)
+ 	for (i = 0; i < 3; i++)
+ 		reg |= shark->transfer_buffer[i] << (16 - i * 8);
+ 
+-	v4l2_dbg(1, debug, tea->v4l2_dev, "shark2-read: %02x %02x %02x\n",
+-		 shark->transfer_buffer[0], shark->transfer_buffer[1],
+-		 shark->transfer_buffer[2]);
++	v4l2_dbg(1, debug, tea->v4l2_dev, "shark2-read: %*ph\n",
++		 3, shark->transfer_buffer);
+ 
+ 	*reg_ret = reg;
+ 	return 0;
+-- 
+1.7.10.4
 
