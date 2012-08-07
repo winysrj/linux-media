@@ -1,92 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:47512 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751477Ab2HIKMY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2012 06:12:24 -0400
-Received: from epcpsbgm2.samsung.com (mailout2.samsung.com [203.254.224.25])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M8H009YNGC8K5X0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 09 Aug 2012 19:12:22 +0900 (KST)
-Received: from localhost.localdomain ([107.108.73.106])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M8H00MGUGCES850@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 09 Aug 2012 19:12:22 +0900 (KST)
-From: Arun Kumar K <arun.kk@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:45497 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1031079Ab2HGW5L (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Aug 2012 18:57:11 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: jtp.park@samsung.com, janghyuck.kim@samsung.com,
-	jaeryul.oh@samsung.com, ch.naveen@samsung.com, arun.kk@samsung.com,
-	m.szyprowski@samsung.com, k.debski@samsung.com,
-	kmpark@infradead.org, joshi@samsung.com
-Subject: [PATCH v4 0/4] Update MFC v4l2 driver to support MFC6.x
-Date: Thu, 09 Aug 2012 15:58:26 +0530
-Message-id: <1344508110-16945-1-git-send-email-arun.kk@samsung.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH 2/2] dvb_usb_v2: use %*ph to dump usb xfer debugs
+Date: Wed,  8 Aug 2012 01:56:36 +0300
+Message-Id: <1344380196-9488-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1344380196-9488-1-git-send-email-crope@iki.fi>
+References: <1344380196-9488-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The patchset adds support for MFCv6 firmware in s5p-mfc driver.
-The first two patches will update the existing MFCv5 driver framework
-for making it suitable for supporting co-existence with a newer
-hardware version. The last two patches add support for MFCv6 firmware.
-This patchset have to be applied on patches [1] and [2] posted
-earlier which adds the required v4l2 controls.
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c | 14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
-Changelog:
-- Separate patch for callback based architecture.
-- Patches divided to enable incremental compilation.
-- Working MFCv6 encoder and decoder.
-- Addressed review comments given for v3 patchset.
-
-[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg48972.html
-[2] http://www.mail-archive.com/linux-media@vger.kernel.org/msg48973.html
-
-Arun Kumar K (1):
-  [media] s5p-mfc: Update MFCv5 driver for callback based architecture
-
-Jeongtae Park (3):
-  [media] s5p-mfc: Add MFC variant data to device context
-  [media] s5p-mfc: MFCv6 register definitions
-  [media] s5p-mfc: Update MFC v4l2 driver to support MFC6.x
-
- drivers/media/video/Kconfig                  |    4 +-
- drivers/media/video/s5p-mfc/Makefile         |    7 +-
- drivers/media/video/s5p-mfc/regs-mfc-v6.h    |  429 ++++++
- drivers/media/video/s5p-mfc/regs-mfc.h       |   29 +
- drivers/media/video/s5p-mfc/s5p_mfc.c        |  224 ++--
- drivers/media/video/s5p-mfc/s5p_mfc_cmd.c    |   98 +-
- drivers/media/video/s5p-mfc/s5p_mfc_cmd.h    |   13 +
- drivers/media/video/s5p-mfc/s5p_mfc_cmd_v5.c |  164 +++
- drivers/media/video/s5p-mfc/s5p_mfc_cmd_v5.h |   20 +
- drivers/media/video/s5p-mfc/s5p_mfc_cmd_v6.c |  155 ++
- drivers/media/video/s5p-mfc/s5p_mfc_cmd_v6.h |   20 +
- drivers/media/video/s5p-mfc/s5p_mfc_common.h |  156 ++-
- drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c   |  188 ++-
- drivers/media/video/s5p-mfc/s5p_mfc_ctrl.h   |    1 +
- drivers/media/video/s5p-mfc/s5p_mfc_dec.c    |  223 ++-
- drivers/media/video/s5p-mfc/s5p_mfc_dec.h    |    1 +
- drivers/media/video/s5p-mfc/s5p_mfc_enc.c    |  205 ++--
- drivers/media/video/s5p-mfc/s5p_mfc_enc.h    |    1 +
- drivers/media/video/s5p-mfc/s5p_mfc_intr.c   |   11 +-
- drivers/media/video/s5p-mfc/s5p_mfc_opr.c    | 1405 ++-----------------
- drivers/media/video/s5p-mfc/s5p_mfc_opr.h    |  178 ++-
- drivers/media/video/s5p-mfc/s5p_mfc_opr_v5.c | 1761 +++++++++++++++++++++++
- drivers/media/video/s5p-mfc/s5p_mfc_opr_v5.h |   85 ++
- drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.c | 1944 ++++++++++++++++++++++++++
- drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.h |   50 +
- drivers/media/video/s5p-mfc/s5p_mfc_pm.c     |    3 +-
- drivers/media/video/s5p-mfc/s5p_mfc_shm.c    |   47 -
- drivers/media/video/s5p-mfc/s5p_mfc_shm.h    |   90 --
- 28 files changed, 5645 insertions(+), 1867 deletions(-)
- create mode 100644 drivers/media/video/s5p-mfc/regs-mfc-v6.h
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_cmd_v5.c
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_cmd_v5.h
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_cmd_v6.c
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_cmd_v6.h
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr_v5.c
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr_v5.h
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.c
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.h
- delete mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_shm.c
- delete mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_shm.h
+diff --git a/drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c b/drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c
+index 5f5bdd0..0431bee 100644
+--- a/drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c
++++ b/drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c
+@@ -21,7 +21,6 @@
+ 
+ #include "dvb_usb_common.h"
+ 
+-#undef DVB_USB_XFER_DEBUG
+ int dvb_usbv2_generic_rw(struct dvb_usb_device *d, u8 *wbuf, u16 wlen, u8 *rbuf,
+ 		u16 rlen)
+ {
+@@ -37,10 +36,8 @@ int dvb_usbv2_generic_rw(struct dvb_usb_device *d, u8 *wbuf, u16 wlen, u8 *rbuf,
+ 	if (ret < 0)
+ 		return ret;
+ 
+-#ifdef DVB_USB_XFER_DEBUG
+-	print_hex_dump(KERN_DEBUG, KBUILD_MODNAME ": >>> ", DUMP_PREFIX_NONE,
+-			32, 1, wbuf, wlen, 0);
+-#endif
++	dev_dbg(&d->udev->dev, "%s: >>> %*ph\n", __func__, wlen, wbuf);
++
+ 	ret = usb_bulk_msg(d->udev, usb_sndbulkpipe(d->udev,
+ 			d->props->generic_bulk_ctrl_endpoint), wbuf, wlen,
+ 			&actual_length, 2000);
+@@ -64,11 +61,8 @@ int dvb_usbv2_generic_rw(struct dvb_usb_device *d, u8 *wbuf, u16 wlen, u8 *rbuf,
+ 			dev_err(&d->udev->dev, "%s: 2nd usb_bulk_msg() " \
+ 					"failed=%d\n", KBUILD_MODNAME, ret);
+ 
+-#ifdef DVB_USB_XFER_DEBUG
+-		print_hex_dump(KERN_DEBUG, KBUILD_MODNAME ": <<< ",
+-				DUMP_PREFIX_NONE, 32, 1, rbuf, actual_length,
+-				0);
+-#endif
++		dev_dbg(&d->udev->dev, "%s: <<< %*ph\n", __func__,
++				actual_length, rbuf);
+ 	}
+ 
+ 	mutex_unlock(&d->usb_mutex);
+-- 
+1.7.11.2
 
