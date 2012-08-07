@@ -1,92 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:64231 "EHLO mx1.redhat.com"
+Received: from mga09.intel.com ([134.134.136.24]:49633 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751905Ab2HNL7q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 07:59:46 -0400
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q7EBxkoM028431
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 14 Aug 2012 07:59:46 -0400
-Received: from [10.97.6.21] (vpn1-6-21.gru2.redhat.com [10.97.6.21])
-	by int-mx11.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id q7EBxiZO028778
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 14 Aug 2012 07:59:45 -0400
-Message-ID: <502A3DAF.6080301@redhat.com>
-Date: Tue, 14 Aug 2012 08:59:43 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [ANNOUNCE] tree renaming patches part 1 applied
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1753340Ab2HGQmz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Aug 2012 12:42:55 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 05/11] dvb: frontends: use %*ph to dump small buffers
+Date: Tue,  7 Aug 2012 19:43:05 +0300
+Message-Id: <1344357792-18202-5-git-send-email-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <1344357792-18202-1-git-send-email-andriy.shevchenko@linux.intel.com>
+References: <1344357792-18202-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Yesterday, I finally applied the first part of the renaming patches:
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb/frontends/cxd2820r_t.c |    3 +--
+ drivers/media/dvb/frontends/nxt200x.c    |    8 +++-----
+ drivers/media/dvb/frontends/rtl2830.c    |    2 +-
+ 3 files changed, 5 insertions(+), 8 deletions(-)
 
- * [RFC,10/10,media] break siano into mmc and usb directories
-     - http://patchwork.linuxtv.org/patch/11755/
+diff --git a/drivers/media/dvb/frontends/cxd2820r_t.c b/drivers/media/dvb/frontends/cxd2820r_t.c
+index 1a02623..e5dd22b 100644
+--- a/drivers/media/dvb/frontends/cxd2820r_t.c
++++ b/drivers/media/dvb/frontends/cxd2820r_t.c
+@@ -389,8 +389,7 @@ int cxd2820r_read_status_t(struct dvb_frontend *fe, fe_status_t *status)
+ 		}
+ 	}
+ 
+-	dbg("%s: lock=%02x %02x %02x %02x", __func__,
+-		buf[0], buf[1], buf[2], buf[3]);
++	dbg("%s: lock=%*ph", __func__, 4, buf);
+ 
+ 	return ret;
+ error:
+diff --git a/drivers/media/dvb/frontends/nxt200x.c b/drivers/media/dvb/frontends/nxt200x.c
+index 03af52e..8e28894 100644
+--- a/drivers/media/dvb/frontends/nxt200x.c
++++ b/drivers/media/dvb/frontends/nxt200x.c
+@@ -331,7 +331,7 @@ static int nxt200x_writetuner (struct nxt200x_state* state, u8* data)
+ 
+ 	dprintk("%s\n", __func__);
+ 
+-	dprintk("Tuner Bytes: %02X %02X %02X %02X\n", data[1], data[2], data[3], data[4]);
++	dprintk("Tuner Bytes: %*ph\n", 4, data + 1);
+ 
+ 	/* if NXT2004, write directly to tuner. if NXT2002, write through NXT chip.
+ 	 * direct write is required for Philips TUV1236D and ALPS TDHU2 */
+@@ -1161,8 +1161,7 @@ struct dvb_frontend* nxt200x_attach(const struct nxt200x_config* config,
+ 
+ 	/* read card id */
+ 	nxt200x_readbytes(state, 0x00, buf, 5);
+-	dprintk("NXT info: %02X %02X %02X %02X %02X\n",
+-		buf[0], buf[1], buf[2],	buf[3], buf[4]);
++	dprintk("NXT info: %*ph\n", 5, buf);
+ 
+ 	/* set demod chip */
+ 	switch (buf[0]) {
+@@ -1201,8 +1200,7 @@ struct dvb_frontend* nxt200x_attach(const struct nxt200x_config* config,
+ 
+ error:
+ 	kfree(state);
+-	printk("Unknown/Unsupported NXT chip: %02X %02X %02X %02X %02X\n",
+-		buf[0], buf[1], buf[2], buf[3], buf[4]);
++	pr_err("Unknown/Unsupported NXT chip: %*ph\n", 5, buf);
+ 	return NULL;
+ }
+ 
+diff --git a/drivers/media/dvb/frontends/rtl2830.c b/drivers/media/dvb/frontends/rtl2830.c
+index 93612eb..8fa8b08 100644
+--- a/drivers/media/dvb/frontends/rtl2830.c
++++ b/drivers/media/dvb/frontends/rtl2830.c
+@@ -392,7 +392,7 @@ static int rtl2830_get_frontend(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
+-	dbg("%s: TPS=%02x %02x %02x", __func__, buf[0], buf[1], buf[2]);
++	dbg("%s: TPS=%*ph", __func__, 3, buf);
+ 
+ 	switch ((buf[0] >> 2) & 3) {
+ 	case 0:
+-- 
+1.7.10.4
 
- * [RFC,09/10,media] saa7146: Move it to its own directory
-     - http://patchwork.linuxtv.org/patch/11750/
-
- * [RFC,07/10,media] b2c2: break it into common/pci/usb directories
-     - http://patchwork.linuxtv.org/patch/11754/
-
- * [RFC,03/10,media] move the dvb/frontends to drivers/media/dvb-frontends
-     - http://patchwork.linuxtv.org/patch/11752/
-
- * [RFC,05/10,media] dvb-usb: move it to drivers/media/usb/dvb-usb
-     - http://patchwork.linuxtv.org/patch/11751/
-
- * [RFC,06/10,media] Rename media/dvb as media/pci
-     - http://patchwork.linuxtv.org/patch/11753/
-
- * [RFC,04/10,media] firewire: move it one level up
-     - http://patchwork.linuxtv.org/patch/11746/
-
- * [RFC,02/10,media] dvb: move the dvb core one level up
-     - http://patchwork.linuxtv.org/patch/11747/
-
- * [RFC,08/10,media] common: move media/common/tuners to media/tuners
-     - http://patchwork.linuxtv.org/patch/11748/
-
- * [RFC,01/10,media] v4l: move v4l2 core into a separate directory
-     - http://patchwork.linuxtv.org/patch/11749/
-
-As discussed when that patch series got submitted, the target there is to
-better organize the drivers, in order to make easier for developers to
-know where the things are, and for users to help them to find their
-needed drivers.
-
-I'll be working today with the remaining patches to complete the renaming,
-as it is better to apply them sooner than later, and we're early at the
-development cycle.
-
-Before applying this patch series, I applied almost all pending patches
-at the tree, in order to reduce the need for patch changes. I also
-reminded on IRC some developers that I was aware that they would be
-having pending work.
-
-Anyway, in order to help people that might still have patches against
-the old structure, I created a small script and added them at the
-media_build tree:
-	http://git.linuxtv.org/media_build.git/blob/HEAD:/devel_scripts/rename_patch.sh
-
-(in fact, I created an script that auto-generated it ;) )
-
-To use it, all you need to do is:
-
-	$ ./rename_patch.sh your_patch
-
-As usual, if you want to change several patches, you could do:
-	$ git format_patch some_reference_cs
-
-and apply the rename_patch.sh to the generated 0*.patch files, like
-	$ for i in 0*.patch; do ./rename_patch.sh $i; done
-
-More details about that are at the readme file:
-	http://git.linuxtv.org/media_build.git/blob/HEAD:/devel_scripts/README
-
-Regards,
-Mauro
