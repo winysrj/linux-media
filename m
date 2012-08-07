@@ -1,59 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1-relais-roc.national.inria.fr ([192.134.164.82]:61443 "EHLO
-	mail1-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752656Ab2HRV0V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Aug 2012 17:26:21 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 2/5] drivers/media/video/mt9m032.c: introduce missing initialization
-Date: Sat, 18 Aug 2012 23:25:56 +0200
-Message-Id: <1345325159-7365-2-git-send-email-Julia.Lawall@lip6.fr>
+Received: from mailout2.samsung.com ([203.254.224.25]:53310 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751370Ab2HGPWT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2012 11:22:19 -0400
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: 'Hideki EIRAKU' <hdk@igel.co.jp>,
+	'Russell King' <linux@arm.linux.org.uk>,
+	'Pawel Osciak' <pawel@osciak.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Mauro Carvalho Chehab' <mchehab@infradead.org>,
+	'Florian Tobias Schandinat' <FlorianSchandinat@gmx.de>,
+	'Jaroslav Kysela' <perex@perex.cz>,
+	'Takashi Iwai' <tiwai@suse.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	alsa-devel@alsa-project.org, 'Katsuya MATSUBARA' <matsu@igel.co.jp>
+References: <1344246924-32620-1-git-send-email-hdk@igel.co.jp>
+ <1344246924-32620-2-git-send-email-hdk@igel.co.jp>
+In-reply-to: <1344246924-32620-2-git-send-email-hdk@igel.co.jp>
+Subject: RE: [PATCH v3 1/4] ARM: dma-mapping: define ARCH_HAS_DMA_MMAP_COHERENT
+Date: Tue, 07 Aug 2012 17:22:02 +0200
+Message-id: <013301cd74b0$691eba60$3b5c2f20$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Julia Lawall <Julia.Lawall@lip6.fr>
+Hi Hideki,
 
-The result of one call to a function is tested, and then at the second call
-to the same function, the previous result, and not the current result, is
-tested again.
+On Monday, August 06, 2012 11:55 AM Hideki EIRAKU wrote:
 
-The semantic match that finds this problem is as follows:
-(http://coccinelle.lip6.fr/)
+> ARCH_HAS_DMA_MMAP_COHERENT indicates that there is dma_mmap_coherent() API
+> in this architecture.  The name is already defined in PowerPC.
+> 
+> Signed-off-by: Hideki EIRAKU <hdk@igel.co.jp>
+> ---
+>  arch/arm/include/asm/dma-mapping.h |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/include/asm/dma-mapping.h b/arch/arm/include/asm/dma-mapping.h
+> index bbef15d..f41cd30 100644
+> --- a/arch/arm/include/asm/dma-mapping.h
+> +++ b/arch/arm/include/asm/dma-mapping.h
+> @@ -187,6 +187,7 @@ extern int arm_dma_mmap(struct device *dev, struct vm_area_struct *vma,
+>  			struct dma_attrs *attrs);
+> 
+>  #define dma_mmap_coherent(d, v, c, h, s) dma_mmap_attrs(d, v, c, h, s, NULL)
+> +#define ARCH_HAS_DMA_MMAP_COHERENT
+> 
+>  static inline int dma_mmap_attrs(struct device *dev, struct vm_area_struct *vma,
+>  				  void *cpu_addr, dma_addr_t dma_addr,
+> --
+> 1.7.0.4
 
-// <smpl>
-@@
-expression ret;
-identifier f;
-statement S1,S2;
-@@
+I will take this patch to my dma-mapping kernel tree, to the fixes branch.
 
-*ret = f(...);
-if (\(ret != 0\|ret < 0\|ret == NULL\)) S1
-... when any
-*f(...);
-if (\(ret != 0\|ret < 0\|ret == NULL\)) S2
-// </smpl>
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
----
- drivers/media/video/mt9m032.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/video/mt9m032.c b/drivers/media/video/mt9m032.c
-index 445359c..f80c1d7 100644
---- a/drivers/media/video/mt9m032.c
-+++ b/drivers/media/video/mt9m032.c
-@@ -781,7 +781,7 @@ static int mt9m032_probe(struct i2c_client *client,
- 	ret = mt9m032_write(client, MT9M032_RESET, 1);	/* reset on */
- 	if (ret < 0)
- 		goto error_entity;
--	mt9m032_write(client, MT9M032_RESET, 0);	/* reset off */
-+	ret = mt9m032_write(client, MT9M032_RESET, 0);	/* reset off */
- 	if (ret < 0)
- 		goto error_entity;
- 
 
