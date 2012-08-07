@@ -1,75 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:45280 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751627Ab2HTIIl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Aug 2012 04:08:41 -0400
-Received: by wicr5 with SMTP id r5so3463371wic.1
-        for <linux-media@vger.kernel.org>; Mon, 20 Aug 2012 01:08:40 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1207301718510.28003@axis700.grange>
-References: <1342083809-19921-1-git-send-email-javier.martin@vista-silicon.com>
-	<Pine.LNX.4.64.1207201330240.27906@axis700.grange>
-	<CACKLOr2sKVWCk3we_cP5MvnR6-WsaFwA9AC=fgp3iLm8B6mfEA@mail.gmail.com>
-	<Pine.LNX.4.64.1207301718510.28003@axis700.grange>
-Date: Mon, 20 Aug 2012 10:08:39 +0200
-Message-ID: <CACKLOr3OmRUACO8QaJnYA6E=YZMCrrOq1pAXb1wTv4Udg+u8bQ@mail.gmail.com>
-Subject: Re: [PATCH] media: mx2_camera: Remove MX2_CAMERA_SWAP16 and
- MX2_CAMERA_PACK_DIR_MSB flags.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-arm-kernel@lists.infradead.org, mchehab@redhat.com,
-	linux@arm.linux.org.uk, kernel@pengutronix.de,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:52727 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932575Ab2HGCsG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 22:48:06 -0400
+Received: by mail-vc0-f174.google.com with SMTP id fk26so3432709vcb.19
+        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 19:48:06 -0700 (PDT)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: linux-media@vger.kernel.org
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: [PATCH 19/24] xc5000: add support for firmware load check and init status
+Date: Mon,  6 Aug 2012 22:47:09 -0400
+Message-Id: <1344307634-11673-20-git-send-email-dheitmueller@kernellabs.com>
+In-Reply-To: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
+References: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The xc5000c and newer versions of the xc5000a firmware need minor revisions
+to their initialization process.  Add support for validating the firmware
+was properly loaded, as well as checking the init status after initialization.
 
-On 30 July 2012 17:33, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> Hi Javier
->
-> On Mon, 30 Jul 2012, javier Martin wrote:
->
->> Hi,
->> thank you for yor ACKs.
->>
->> On 20 July 2012 13:31, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
->> > On Thu, 12 Jul 2012, Javier Martin wrote:
->> >
->> >> These flags are not used any longer and can be safely removed
->> >> since the following patch:
->> >> http://www.spinics.net/lists/linux-media/msg50165.html
->> >>
->> >> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
->> >
->> > For the ARM tree:
->> >
->> > Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->>
->> forgive my ignorance on the matter. Could you please point me to the
->> git repository this patch should be merged?
->
-> Sorry, my "for the ARM tree" comment was probably not clear enough. This
-> patch should certainly go via the ARM (SoC) tree, since it only touches
-> arch/arm. So, the maintainer (Sascha - added to CC), that will be
-> forwarding this patch to Linus can thereby add my "acked-by" to this
-> patch, if he feels like it.
->
+Based on advice from CrestaTech support as well as xc5000 datasheet v2.3.
 
-Sascha, do you have any comments on this one? I can't find it in
-arm-soc, did you already merge it?
+Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+---
+ drivers/media/common/tuners/xc5000.c |   39 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 39 insertions(+), 0 deletions(-)
 
-Regards.
-
+diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
+index 7c36465..3e5f8cd 100644
+--- a/drivers/media/common/tuners/xc5000.c
++++ b/drivers/media/common/tuners/xc5000.c
+@@ -63,6 +63,8 @@ struct xc5000_priv {
+ 
+ 	int chip_id;
+ 	u16 pll_register_no;
++	u8 init_status_supported;
++	u8 fw_checksum_supported;
+ };
+ 
+ /* Misc Defines */
+@@ -113,6 +115,8 @@ struct xc5000_priv {
+ #define XREG_BUSY         0x09
+ #define XREG_BUILD        0x0D
+ #define XREG_TOTALGAIN    0x0F
++#define XREG_FW_CHECKSUM  0x12
++#define XREG_INIT_STATUS  0x13
+ 
+ /*
+    Basic firmware description. This will remain with
+@@ -211,6 +215,8 @@ struct xc5000_fw_cfg {
+ 	char *name;
+ 	u16 size;
+ 	u16 pll_reg;
++	u8 init_status_supported;
++	u8 fw_checksum_supported;
+ };
+ 
+ static const struct xc5000_fw_cfg xc5000a_1_6_114 = {
+@@ -223,6 +229,8 @@ static const struct xc5000_fw_cfg xc5000c_41_024_5 = {
+ 	.name = "dvb-fe-xc5000c-41.024.5.fw",
+ 	.size = 16497,
+ 	.pll_reg = 0x13,
++	.init_status_supported = 1,
++	.fw_checksum_supported = 1,
+ };
+ 
+ static inline const struct xc5000_fw_cfg *xc5000_assign_firmware(int chip_id)
+@@ -622,6 +630,8 @@ static int xc5000_fwupload(struct dvb_frontend *fe)
+ 	const struct xc5000_fw_cfg *desired_fw =
+ 		xc5000_assign_firmware(priv->chip_id);
+ 	priv->pll_register_no = desired_fw->pll_reg;
++	priv->init_status_supported = desired_fw->init_status_supported;
++	priv->fw_checksum_supported = desired_fw->fw_checksum_supported;
+ 
+ 	/* request the firmware, this will block and timeout */
+ 	printk(KERN_INFO "xc5000: waiting for firmware upload (%s)...\n",
+@@ -1082,6 +1092,7 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe, int force)
+ 	struct xc5000_priv *priv = fe->tuner_priv;
+ 	int ret = XC_RESULT_SUCCESS;
+ 	u16 pll_lock_status;
++	u16 fw_ck;
+ 
+ 	if (force || xc5000_is_firmware_loaded(fe) != XC_RESULT_SUCCESS) {
+ 
+@@ -1093,6 +1104,21 @@ fw_retry:
+ 
+ 		msleep(20);
+ 
++		if (priv->fw_checksum_supported) {
++			if (xc5000_readreg(priv, XREG_FW_CHECKSUM, &fw_ck)
++			    != XC_RESULT_SUCCESS) {
++				dprintk(1, "%s() FW checksum reading failed.\n",
++					__func__);
++				goto fw_retry;
++			}
++
++			if (fw_ck == 0) {
++				dprintk(1, "%s() FW checksum failed = 0x%04x\n",
++					__func__, fw_ck);
++				goto fw_retry;
++			}
++		}
++
+ 		/* Start the tuner self-calibration process */
+ 		ret |= xc_initialize(priv);
+ 
+@@ -1106,6 +1132,19 @@ fw_retry:
+ 		 */
+ 		xc_wait(100);
+ 
++		if (priv->init_status_supported) {
++			if (xc5000_readreg(priv, XREG_INIT_STATUS, &fw_ck) != XC_RESULT_SUCCESS) {
++				dprintk(1, "%s() FW failed reading init status.\n",
++					__func__);
++				goto fw_retry;
++			}
++
++			if (fw_ck == 0) {
++				dprintk(1, "%s() FW init status failed = 0x%04x\n", __func__, fw_ck);
++				goto fw_retry;
++			}
++		}
++
+ 		if (priv->pll_register_no) {
+ 			xc5000_readreg(priv, priv->pll_register_no,
+ 				       &pll_lock_status);
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+1.7.1
+
