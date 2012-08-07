@@ -1,48 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:5904 "EHLO mx1.redhat.com"
+Received: from mga09.intel.com ([134.134.136.24]:49633 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753148Ab2HNIMq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 04:12:46 -0400
-Message-ID: <502A08B7.2090704@redhat.com>
-Date: Tue, 14 Aug 2012 10:13:43 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>,
-	workshop-2011@linuxtv.org
-Subject: Re: [Workshop-2011] RFC: V4L2 API ambiguities
-References: <201208131427.56961.hverkuil@xs4all.nl> <5028FD7E.1010402@redhat.com> <5029526E.7020605@gmail.com>
-In-Reply-To: <5029526E.7020605@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1753611Ab2HGQm6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Aug 2012 12:42:58 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Anssi Hannula <anssi.hannula@iki.fi>
+Subject: [PATCH 09/11] ati_remote: use %*ph to dump small buffers
+Date: Tue,  7 Aug 2012 19:43:09 +0300
+Message-Id: <1344357792-18202-9-git-send-email-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <1344357792-18202-1-git-send-email-andriy.shevchenko@linux.intel.com>
+References: <1344357792-18202-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Anssi Hannula <anssi.hannula@iki.fi>
+---
+ drivers/media/rc/ati_remote.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-On 08/13/2012 09:15 PM, Sylwester Nawrocki wrote:
-<snip>
+diff --git a/drivers/media/rc/ati_remote.c b/drivers/media/rc/ati_remote.c
+index 8fa72e2..08aede5 100644
+--- a/drivers/media/rc/ati_remote.c
++++ b/drivers/media/rc/ati_remote.c
+@@ -331,13 +331,9 @@ static void ati_remote_dump(struct device *dev, unsigned char *data,
+ 		if (data[0] != (unsigned char)0xff && data[0] != 0x00)
+ 			dev_warn(dev, "Weird byte 0x%02x\n", data[0]);
+ 	} else if (len == 4)
+-		dev_warn(dev, "Weird key %02x %02x %02x %02x\n",
+-		     data[0], data[1], data[2], data[3]);
++		dev_warn(dev, "Weird key %*ph\n", 4, data);
+ 	else
+-		dev_warn(dev,
+-			"Weird data, len=%d %02x %02x %02x %02x %02x %02x ...\n",
+-			len, data[0], data[1], data[2], data[3], data[4],
+-			data[5]);
++		dev_warn(dev, "Weird data, len=%d %*ph ...\n", len, 6, data);
+ }
+ 
+ /*
+@@ -519,8 +515,7 @@ static void ati_remote_input_report(struct urb *urb)
+ 
+ 	if (data[1] != ((data[2] + data[3] + 0xd5) & 0xff)) {
+ 		dbginfo(&ati_remote->interface->dev,
+-			"wrong checksum in input: %02x %02x %02x %02x\n",
+-			data[0], data[1], data[2], data[3]);
++			"wrong checksum in input: %*ph\n", 4, data);
+ 		return;
+ 	}
+ 
+-- 
+1.7.10.4
 
->>> And if a driver also supports
->>> single-plane formats in addition to >1 plane formats, should
->>> V4L2_CAP_VIDEO_CAPTURE be compulsary?
->>
->> Yes, so that non multi-plane aware apps keep working.
->
-> There is the multi-planar API and there are multi-planar formats. Single-
-> and multi-planar formats can be handled with the multi-planar API. So if
-> a driver supports single- and multi-planar formats by means on multi-planar
-> APIs, there shouldn't be a need for signalling V4L2_CAP_VIDEO_CAPTURE,
-> which normally indicates single-planar API. The driver may choose to not
-> support it, in order to handle single-planar formats. Thus, in my opinion
-> making V4L2_CAP_VIDEO_CAPTURE compulsory wouldn't make sense. Unless the
-> driver supports both types of ioctls (_mplane and regular versions), we
-> shouldn't flag V4L2_CAP_VIDEO_CAPTURE.
->
-
-Ok.
-
-Regards,
-
-Hans
