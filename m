@@ -1,165 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:48090 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752562Ab2HJA5n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2012 20:57:43 -0400
-Received: by obbuo13 with SMTP id uo13so1442211obb.19
-        for <linux-media@vger.kernel.org>; Thu, 09 Aug 2012 17:57:42 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44118 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750977Ab2HGMBe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2012 08:01:34 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hideki EIRAKU <hdk@igel.co.jp>
+Cc: Russell King <linux@arm.linux.org.uk>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	alsa-devel@alsa-project.org, Katsuya MATSUBARA <matsu@igel.co.jp>
+Subject: Re: [PATCH v3 4/4] fbdev: sh_mobile_lcdc: use dma_mmap_coherent if available
+Date: Tue, 07 Aug 2012 14:01:43 +0200
+Message-ID: <1854100.yBXTHaXkcr@avalon>
+In-Reply-To: <1344246924-32620-5-git-send-email-hdk@igel.co.jp>
+References: <1344246924-32620-1-git-send-email-hdk@igel.co.jp> <1344246924-32620-5-git-send-email-hdk@igel.co.jp>
 MIME-Version: 1.0
-In-Reply-To: <50244C42.8070303@redhat.com>
-References: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
-	<1344307634-11673-18-git-send-email-dheitmueller@kernellabs.com>
-	<50244C42.8070303@redhat.com>
-Date: Thu, 9 Aug 2012 20:57:42 -0400
-Message-ID: <CAGoCfixzAbLDr3CA_UgvdS8t9ZzcODZTHu7J-FRm0BBQqzPP_Q@mail.gmail.com>
-Subject: Re: [PATCH 17/24] au0828: fix possible race condition in usage of dev->ctrlmsg
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Aug 9, 2012 at 7:48 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em 06-08-2012 23:47, Devin Heitmueller escreveu:
->> The register read function is referencing the dev->ctrlmsg structure outside
->> of the dev->mutex lock, which can cause corruption of the value if multiple
->> callers are invoking au0828_readreg() simultaneously.
->>
->> Use a stack variable to hold the result, and copy the buffer returned by
->> usb_control_msg() to that variable.
->
-> It is NOT OK to use stack to send and/or receive control messages. The USB core
-> uses DMA transfers for sending/receiving data via USB; the memory used by stack
-> is not warranted to be at the DMA-able area. This problem is more frequent on
-> ARM-based machines, but even on Intel, the urb_control_msg() may fail.
->
->>
->> In reality, the whole recv_control_msg() function can probably be collapsed
->> into au0288_readreg() since it is the only caller.
->>
->> Also get rid of cmd_msg_dump() since the only case in which the function is
->> ever called only is ever passed a single byte for the response (and it is
->> already logged).
->>
->> Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
->> ---
->>   drivers/media/video/au0828/au0828-core.c |   40 +++++++++---------------------
->>   1 files changed, 12 insertions(+), 28 deletions(-)
->>
->> diff --git a/drivers/media/video/au0828/au0828-core.c b/drivers/media/video/au0828/au0828-core.c
->> index 65914bc..745a80a 100644
->> --- a/drivers/media/video/au0828/au0828-core.c
->> +++ b/drivers/media/video/au0828/au0828-core.c
->> @@ -56,9 +56,12 @@ static int recv_control_msg(struct au0828_dev *dev, u16 request, u32 value,
->>
->>   u32 au0828_readreg(struct au0828_dev *dev, u16 reg)
->>   {
->> -     recv_control_msg(dev, CMD_REQUEST_IN, 0, reg, dev->ctrlmsg, 1);
->> -     dprintk(8, "%s(0x%04x) = 0x%02x\n", __func__, reg, dev->ctrlmsg[0]);
->> -     return dev->ctrlmsg[0];
->> +     u8 result = 0;
->> +
->> +     recv_control_msg(dev, CMD_REQUEST_IN, 0, reg, &result, 1);
->
-> As explained above, this won't work, as result is at stack, not warranted to be at the
-> DMA-able area. So, either you could lock this function, or you'll need to allocate
-> it with kmalloc() and free it after using the data.
->
->> +     dprintk(8, "%s(0x%04x) = 0x%02x\n", __func__, reg, result);
->> +
->> +     return result;
->>   }
->>
->>   u32 au0828_writereg(struct au0828_dev *dev, u16 reg, u32 val)
->> @@ -67,24 +70,6 @@ u32 au0828_writereg(struct au0828_dev *dev, u16 reg, u32 val)
->>       return send_control_msg(dev, CMD_REQUEST_OUT, val, reg);
->>   }
->>
->> -static void cmd_msg_dump(struct au0828_dev *dev)
->> -{
->> -     int i;
->> -
->> -     for (i = 0; i < sizeof(dev->ctrlmsg); i += 16)
->> -             dprintk(2, "%s() %02x %02x %02x %02x %02x %02x %02x %02x "
->> -                             "%02x %02x %02x %02x %02x %02x %02x %02x\n",
->> -                     __func__,
->> -                     dev->ctrlmsg[i+0], dev->ctrlmsg[i+1],
->> -                     dev->ctrlmsg[i+2], dev->ctrlmsg[i+3],
->> -                     dev->ctrlmsg[i+4], dev->ctrlmsg[i+5],
->> -                     dev->ctrlmsg[i+6], dev->ctrlmsg[i+7],
->> -                     dev->ctrlmsg[i+8], dev->ctrlmsg[i+9],
->> -                     dev->ctrlmsg[i+10], dev->ctrlmsg[i+11],
->> -                     dev->ctrlmsg[i+12], dev->ctrlmsg[i+13],
->> -                     dev->ctrlmsg[i+14], dev->ctrlmsg[i+15]);
->> -}
->> -
->>   static int send_control_msg(struct au0828_dev *dev, u16 request, u32 value,
->>       u16 index)
->>   {
->> @@ -118,24 +103,23 @@ static int recv_control_msg(struct au0828_dev *dev, u16 request, u32 value,
->>       int status = -ENODEV;
->>       mutex_lock(&dev->mutex);
->>       if (dev->usbdev) {
->> -
->> -             memset(dev->ctrlmsg, 0, sizeof(dev->ctrlmsg));
->> -
->> -             /* cp must be memory that has been allocated by kmalloc */
->>               status = usb_control_msg(dev->usbdev,
->>                               usb_rcvctrlpipe(dev->usbdev, 0),
->>                               request,
->>                               USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
->>                               value, index,
->> -                             cp, size, 1000);
->> +                             dev->ctrlmsg, size, 1000);
->>
->>               status = min(status, 0);
->>
->>               if (status < 0) {
->>                       printk(KERN_ERR "%s() Failed receiving control message, error %d.\n",
->>                               __func__, status);
->> -             } else
->> -                     cmd_msg_dump(dev);
->> +             }
->> +
->> +             /* the host controller requires heap allocated memory, which
->> +                is why we didn't just pass "cp" into usb_control_msg */
->> +             memcpy(cp, dev->ctrlmsg, size);
->>       }
->>       mutex_unlock(&dev->mutex);
->>       return status;
->>
->
-> Regards,
-> Mauro
+Hi Eiraku-san,
 
-Hi Mauro,
+On Monday 06 August 2012 18:55:24 Hideki EIRAKU wrote:
+> fb_mmap() implemented in fbmem.c uses smem_start as the physical
+> address of the frame buffer.  In the sh_mobile_lcdc driver, the
+> smem_start is a dma_addr_t that is not a physical address when IOMMU is
+> enabled.  dma_mmap_coherent() maps the address correctly.  It is
+> available on ARM platforms.
+> 
+> Signed-off-by: Hideki EIRAKU <hdk@igel.co.jp>
 
-You seem to have misinterpreted the patch description.  The actual
-call to usb_control_msg() does use a heap allocated memory region.
-However we copy the result to a stack variable after the call to
-usb_control_msg.  This is done so that dev->ctrlmsg[] is used
-exclusively inside of the mutex (and not accessed after the mutex is
-unlocked).
+Acked-by: Hideki EIRAKU <hdk@igel.co.jp>
 
-The change basically goes from:
+As this patch doesn't depend on any other patch in your series 
+(ARCH_HAS_DMA_MMAP_COHERENT will not be defined without 1/4, so this patch 
+will be a no-op until then), I've applied it to my tree and will push it to 
+avoid merge conflicts, unless you would prefer to push it yourself.
 
-au0828_readreg() -> recv_control_msg(heap) -> usb_control_msg(heap)
-
-to:
-
-au0828_readreg() -> recv_control_msg(stack) -> usb_control_msg(heap)
-
-In both cases the call into the USB stack provides heap allocated memory.
-
-Please review the implementation of the static recv_control_msg()
-function, and if you have any further questions let me know.
-
-Thanks,
-
-Devin
+> ---
+>  drivers/video/sh_mobile_lcdcfb.c |   28 ++++++++++++++++++++++++++++
+>  1 files changed, 28 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/video/sh_mobile_lcdcfb.c
+> b/drivers/video/sh_mobile_lcdcfb.c index 8cb653b..c8cba7a 100644
+> --- a/drivers/video/sh_mobile_lcdcfb.c
+> +++ b/drivers/video/sh_mobile_lcdcfb.c
+> @@ -1614,6 +1614,17 @@ static int sh_mobile_lcdc_overlay_blank(int blank,
+> struct fb_info *info) return 1;
+>  }
+> 
+> +#ifdef ARCH_HAS_DMA_MMAP_COHERENT
+> +static int
+> +sh_mobile_lcdc_overlay_mmap(struct fb_info *info, struct vm_area_struct
+> *vma) +{
+> +	struct sh_mobile_lcdc_overlay *ovl = info->par;
+> +
+> +	return dma_mmap_coherent(ovl->channel->lcdc->dev, vma, ovl->fb_mem,
+> +				 ovl->dma_handle, ovl->fb_size);
+> +}
+> +#endif
+> +
+>  static struct fb_ops sh_mobile_lcdc_overlay_ops = {
+>  	.owner          = THIS_MODULE,
+>  	.fb_read        = fb_sys_read,
+> @@ -1626,6 +1637,9 @@ static struct fb_ops sh_mobile_lcdc_overlay_ops = {
+>  	.fb_ioctl       = sh_mobile_lcdc_overlay_ioctl,
+>  	.fb_check_var	= sh_mobile_lcdc_overlay_check_var,
+>  	.fb_set_par	= sh_mobile_lcdc_overlay_set_par,
+> +#ifdef ARCH_HAS_DMA_MMAP_COHERENT
+> +	.fb_mmap	= sh_mobile_lcdc_overlay_mmap,
+> +#endif
+>  };
+> 
+>  static void
+> @@ -2093,6 +2107,17 @@ static int sh_mobile_lcdc_blank(int blank, struct
+> fb_info *info) return 0;
+>  }
+> 
+> +#ifdef ARCH_HAS_DMA_MMAP_COHERENT
+> +static int
+> +sh_mobile_lcdc_mmap(struct fb_info *info, struct vm_area_struct *vma)
+> +{
+> +	struct sh_mobile_lcdc_chan *ch = info->par;
+> +
+> +	return dma_mmap_coherent(ch->lcdc->dev, vma, ch->fb_mem,
+> +				 ch->dma_handle, ch->fb_size);
+> +}
+> +#endif
+> +
+>  static struct fb_ops sh_mobile_lcdc_ops = {
+>  	.owner          = THIS_MODULE,
+>  	.fb_setcolreg	= sh_mobile_lcdc_setcolreg,
+> @@ -2108,6 +2133,9 @@ static struct fb_ops sh_mobile_lcdc_ops = {
+>  	.fb_release	= sh_mobile_lcdc_release,
+>  	.fb_check_var	= sh_mobile_lcdc_check_var,
+>  	.fb_set_par	= sh_mobile_lcdc_set_par,
+> +#ifdef ARCH_HAS_DMA_MMAP_COHERENT
+> +	.fb_mmap	= sh_mobile_lcdc_mmap,
+> +#endif
+>  };
+> 
+>  static void
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Regards,
+
+Laurent Pinchart
+
