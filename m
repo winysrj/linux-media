@@ -1,107 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:64032 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756616Ab2HNPH6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 11:07:58 -0400
-Received: by wibhr14 with SMTP id hr14so502977wib.1
-        for <linux-media@vger.kernel.org>; Tue, 14 Aug 2012 08:07:57 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <50293B36.4060109@redhat.com>
-References: <CALzAhNVEXexQELbbXzpzxeiUat-oXqhxQ1kiA7K1ibXTm8X+YQ@mail.gmail.com>
-	<201208131604.28675.hverkuil@xs4all.nl>
-	<CALzAhNVFSH0+y9XU39EzzBhH4rAAC2RStZKA3hzTfexzCKBHRQ@mail.gmail.com>
-	<201208131749.27701.hverkuil@xs4all.nl>
-	<50293B36.4060109@redhat.com>
-Date: Tue, 14 Aug 2012 11:07:55 -0400
-Message-ID: <CALzAhNV2A_CWp=dg0S-B2Ts50u+SjuuE-o48OzuaynNw86v-Dw@mail.gmail.com>
-Subject: Re: [GIT PULL] ViewCast O820E capture support added
-From: Steven Toth <stoth@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Mauro Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout4.samsung.com ([203.254.224.34]:52659 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751036Ab2HGFO2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2012 01:14:28 -0400
+Received: from epcpsbge8.samsung.com (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M8D00I4KD7QL1N0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 07 Aug 2012 14:14:26 +0900 (KST)
+Date: Tue, 07 Aug 2012 05:14:26 +0000 (GMT)
+From: Arun Kumar K <arun.kk@samsung.com>
+Subject: RE: [PATCH v3 4/4] [media] s5p-mfc: New files for MFCv6 support
+To: Kamil Debski <k.debski@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Jeongtae Park <jtp.park@samsung.com>,
+	Jang-Hyuck Kim <janghyuck.kim@samsung.com>,
+	peter Oh <jaeryul.oh@samsung.com>,
+	NAVEEN KRISHNA CHATRADHI <ch.naveen@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	"kmpark@infradead.org" <kmpark@infradead.org>,
+	SUNIL JOSHI <joshi@samsung.com>
+Reply-to: arun.kk@samsung.com
+MIME-version: 1.0
+Content-transfer-encoding: base64
+Content-type: text/plain; charset=windows-1252
+MIME-version: 1.0
+Message-id: <2634175.982171344316466480.JavaMail.weblogic@epml12>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 13, 2012 at 1:36 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em 13-08-2012 12:49, Hans Verkuil escreveu:
->> On Mon August 13 2012 16:46:45 Steven Toth wrote:
->>> Hans,
->>>
->>> Thanks for your feedback.
->>>
->>> Oh dear. I don't think you're going to like my response, but I think
->>> we know each other well enough to realize that neither of us are
->>> trying to antagonize or upset either other. We're simply stating our
->>> positions. Please read on.
->>
->> I didn't think you'd like my response either :-)
->
-> You probably won't like my answer too, yet I'm also simply
-> stating my positions.
+SGkgS2FtaWwsDQpUaGFua3MgZm9yIHRoZSByZXZpZXcgY29tbWVudHMuDQpJIHdpbGwgYWRkcmVz
+cyBhbGwgdGhlIGNvbW1lbnRzIGFuZCB3aWxsIHBvc3QgdjQgdmVyc2lvbi4NCg0KUmVnYXJkcw0K
+QXJ1bg0KDQotLS0tLS0tIE9yaWdpbmFsIE1lc3NhZ2UgLS0tLS0tLQ0KU2VuZGVyIDogS2FtaWwg
+RGVic2tpPGsuZGVic2tpQHNhbXN1bmcuY29tPiAgU29mdHdhcmUgRW5naW5lZXIvU1BSQy1MaW51
+eCBQbGF0Zm9ybSAoU1NEKS9TYW1zdW5nIEVsZWN0cm9uaWNzDQpEYXRlICAgOiBBdWcgMDYsIDIw
+MTIgMTg6NTAgKEdNVCswNTozMCkNClRpdGxlICA6IFJFOiBbUEFUQ0ggdjMgNC80XSBbbWVkaWFd
+IHM1cC1tZmM6IE5ldyBmaWxlcyBmb3IgTUZDdjYgc3VwcG9ydA0KDQpIaSBBcnVuLA0KDQpQbGVh
+c2UgZmluZCBteSBjb21tZW50cyBiZWxvdy4NCg0KQmVzdCB3aXNoZXMsDQotLQ0KS2FtaWwgRGVi
+c2tpDQpMaW51eCBQbGF0Zm9ybSBHcm91cA0KU2Ftc3VuZyBQb2xhbmQgUiZEIENlbnRlcg0KDQoN
+Cj4gRnJvbTogQXJ1biBLdW1hciBLIFttYWlsdG86YXJ1bi5ra0BzYW1zdW5nLmNvbV0NCj4gU2Vu
+dDogMjMgSnVseSAyMDEyIDE0OjI5DQo+IA0KPiBGcm9tOiBKZW9uZ3RhZSBQYXJrIDxqdHAucGFy
+a0BzYW1zdW5nLmNvbT4NCj4gDQo+IE5ldyByZWdpc3RlciBkZWZpbml0aW9ucywgY29tbWFuZHMg
+YW5kIGhhcmR3YXJlIG9wZXJhdGlvbnMNCj4gZmlsZSBmb3IgTUZDdjYgc3VwcG9ydC4NCj4gDQo+
+IFNpZ25lZC1vZmYtYnk6IEplb25ndGFlIFBhcmsgPGp0cC5wYXJrQHNhbXN1bmcuY29tPg0KPiBT
+aW5nZWQtb2ZmLWJ5OiBKYW5naHl1Y2sgS2ltIDxqYW5naHl1Y2sua2ltQHNhbXN1bmcuY29tPg0K
+PiBTaW5nZWQtb2ZmLWJ5OiBKYWVyeXVsIE9oIDxqYWVyeXVsLm9oQHNhbXN1bmcuY29tPg0KPiBT
+aWduZWQtb2ZmLWJ5OiBOYXZlZW4gS3Jpc2huYSBDaGF0cmFkaGkgPGNoLm5hdmVlbkBzYW1zdW5n
+LmNvbT4NCj4gU2lnbmVkLW9mZi1ieTogQXJ1biBLdW1hciBLIDxhcnVuLmtrQHNhbXN1bmcuY29t
+Pg0KPiAtLS0NCj4gIGRyaXZlcnMvbWVkaWEvdmlkZW8vczVwLW1mYy9yZWdzLW1mYy12Ni5oICAg
+IHwgIDM5MiArKysrKysNCj4gIGRyaXZlcnMvbWVkaWEvdmlkZW8vczVwLW1mYy9zNXBfbWZjX2Nt
+ZF92Ni5jIHwgIDE1NSArKysNCj4gIGRyaXZlcnMvbWVkaWEvdmlkZW8vczVwLW1mYy9zNXBfbWZj
+X2NtZF92Ni5oIHwgICAyMiArDQo+ICBkcml2ZXJzL21lZGlhL3ZpZGVvL3M1cC1tZmMvczVwX21m
+Y19vcHJfdjYuYyB8IDE5MjENCisrKysrKysrKysrKysrKysrKysrKysrKysrDQo+ICBkcml2ZXJz
+L21lZGlhL3ZpZGVvL3M1cC1tZmMvczVwX21mY19vcHJfdjYuaCB8ICAgNTAgKw0KPiAgNSBmaWxl
+cyBjaGFuZ2VkLCAyNTQwIGluc2VydGlvbnMoKyksIDAgZGVsZXRpb25zKC0pDQo+ICBjcmVhdGUg
+bW9kZSAxMDA2NDQgZHJpdmVycy9tZWRpYS92aWRlby9zNXAtbWZjL3JlZ3MtbWZjLXY2LmgNCj4g
+IGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL21lZGlhL3ZpZGVvL3M1cC1tZmMvczVwX21mY19j
+bWRfdjYuYw0KPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvbWVkaWEvdmlkZW8vczVwLW1m
+Yy9zNXBfbWZjX2NtZF92Ni5oDQo+ICBjcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9tZWRpYS92
+aWRlby9zNXAtbWZjL3M1cF9tZmNfb3ByX3Y2LmMNCj4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2
+ZXJzL21lZGlhL3ZpZGVvL3M1cC1tZmMvczVwX21mY19vcHJfdjYuaA0KPiANCg0KW3NuaXBdDQoN
+Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vczVwLW1mYy9zNXBfbWZjX29wcl92
+Ni5jDQo+IGIvZHJpdmVycy9tZWRpYS92aWRlby9zNXAtbWZjL3M1cF9tZmNfb3ByX3Y2LmMNCj4g
+bmV3IGZpbGUgbW9kZSAxMDA2NDQNCj4gaW5kZXggMDAwMDAwMC4uODZjODY0NQ0KPiAtLS0gL2Rl
+di9udWxsDQo+ICsrKyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vczVwLW1mYy9zNXBfbWZjX29wcl92
+Ni5jDQo+IEBAIC0wLDAgKzEsMTkyMSBAQA0KDQpbc25pcF0NCg0KPiArDQo+ICsvKiBBbGxvY2F0
+ZSBjb2RlYyBidWZmZXJzICovDQo+ICtpbnQgczVwX21mY19hbGxvY19jb2RlY19idWZmZXJzX3Y2
+KHN0cnVjdCBzNXBfbWZjX2N0eCAqY3R4KQ0KPiArew0KPiArCXN0cnVjdCBzNXBfbWZjX2RldiAq
+ZGV2ID0gY3R4LT5kZXY7DQo+ICsJdW5zaWduZWQgaW50IG1iX3dpZHRoLCBtYl9oZWlnaHQ7DQo+
+ICsNCj4gKwltYl93aWR0aCA9IG1iX3dpZHRoKGN0eC0+aW1nX3dpZHRoKTsNCj4gKwltYl9oZWln
+aHQgPSBtYl9oZWlnaHQoY3R4LT5pbWdfaGVpZ2h0KTsNCj4gKw0KPiArCWlmIChjdHgtPnR5cGUg
+PT0gTUZDSU5TVF9ERUNPREVSKSB7DQo+ICsJCW1mY19kZWJ1ZygyLCAiTHVtYSBzaXplOiVkIENo
+cm9tYSBzaXplOiVkIE1WIHNpemU6JWQNCiIsDQo+ICsJCQkgIGN0eC0+bHVtYV9zaXplLCBjdHgt
+PmNocm9tYV9zaXplLCBjdHgtPm12X3NpemUpOw0KPiArCQltZmNfZGVidWcoMiwgIlRvdGFscyBi
+dWZzOiAlZA0KIiwgY3R4LT50b3RhbF9kcGJfY291bnQpOw0KPiArCX0gZWxzZSBpZiAoY3R4LT50
+eXBlID09IE1GQ0lOU1RfRU5DT0RFUikgew0KPiArCQljdHgtPnRtdl9idWZmZXJfc2l6ZSA9IDIg
+KiBBTElHTigobWJfd2lkdGggKyAxKSAqDQo+ICsJCQkJKG1iX2hlaWdodCArIDEpICogOCwgMTYp
+Ow0KPiArCQljdHgtPmx1bWFfZHBiX3NpemUgPSBBTElHTigobWJfd2lkdGggKiBtYl9oZWlnaHQp
+ICogMjU2LCAyNTYpOw0KPiArCQljdHgtPmNocm9tYV9kcGJfc2l6ZSA9IEFMSUdOKChtYl93aWR0
+aCAqIG1iX2hlaWdodCkgKiAxMjgsDQoyNTYpOw0KPiArCQljdHgtPm1lX2J1ZmZlcl9zaXplID0g
+QUxJR04oKCgoKGN0eC0+aW1nX3dpZHRoKzYzKS82NCkgKiAxNikgKg0KPiArCQkJKCgoY3R4LT5p
+bWdfaGVpZ2h0KzYzKS82NCkgKiAxNikpICsNCj4gKwkJCSAoKCgobWJfd2lkdGgqbWJfaGVpZ2h0
+KSszMSkvMzIpICogMTYpLCAyNTYpOw0KDQpMZXQncyBzdG9wIHJpZ2h0IGhlcmUuIFRoZXJlIGFy
+ZSB0b28gbWFueSBtYWdpYyBudW1iZXJzLCBhbGwgb2YgdGhlbQ0KbmVlZCBhIG5pY2UgI2RlZmlu
+ZSBuYW1lLg0KDQo+ICsNCj4gKwkJbWZjX2RlYnVnKDIsICJyZWNvbiBsdW1hIHNpemU6ICVkIGNo
+cm9tYSBzaXplOiAlZA0KIiwNCj4gKwkJCSAgY3R4LT5sdW1hX2RwYl9zaXplLCBjdHgtPmNocm9t
+YV9kcGJfc2l6ZSk7DQo+ICsJfSBlbHNlIHsNCj4gKwkJcmV0dXJuIC1FSU5WQUw7DQo+ICsJfQ0K
+PiArDQo+ICsJLyogQ29kZWNzIGhhdmUgZGlmZmVyZW50IG1lbW9yeSByZXF1aXJlbWVudHMgKi8N
+Cj4gKwlzd2l0Y2ggKGN0eC0+Y29kZWNfbW9kZSkgew0KPiArCWNhc2UgUzVQX01GQ19DT0RFQ19I
+MjY0X0RFQzoNCj4gKwljYXNlIFM1UF9NRkNfQ09ERUNfSDI2NF9NVkNfREVDOg0KPiArCQljdHgt
+PnNjcmF0Y2hfYnVmX3NpemUgPSAobWJfd2lkdGggKiAxOTIpICsgNjQ7DQo+ICsJCWN0eC0+c2Ny
+YXRjaF9idWZfc2l6ZSA9IEFMSUdOKGN0eC0+c2NyYXRjaF9idWZfc2l6ZSwgMjU2KTsNCj4gKwkJ
+Y3R4LT5iYW5rMV9zaXplID0NCj4gKwkJCWN0eC0+c2NyYXRjaF9idWZfc2l6ZSArDQo+ICsJCQko
+Y3R4LT5tdl9jb3VudCAqIGN0eC0+bXZfc2l6ZSk7DQo+ICsJCWJyZWFrOw0KPiArCWNhc2UgUzVQ
+X01GQ19DT0RFQ19NUEVHNF9ERUM6DQo+ICsJCS8qIG1iX3dpZHRoICogKG1iX2hlaWdodCAqIDY0
+ICsgMTQ0KSArIDgxOTIgKiBtYl9oZWlnaHQgKw0KPiArCQkgKiA0MTA4OCAqLw0KPiArCQljdHgt
+PnNjcmF0Y2hfYnVmX3NpemUgPSBtYl93aWR0aCAqIChtYl9oZWlnaHQgKiA2NCArIDE0NCkgKw0K
+PiArCQkJKCgyMDQ4ICsgMTUpLzE2ICogbWJfaGVpZ2h0ICogNjQpICsNCj4gKwkJCSgoMjA0OCAr
+IDE1KS8xNiAqIDI1NiArIDgzMjApOw0KPiArCQljdHgtPnNjcmF0Y2hfYnVmX3NpemUgPSBBTElH
+TihjdHgtPnNjcmF0Y2hfYnVmX3NpemUsIDI1Nik7DQo+ICsJCWN0eC0+YmFuazFfc2l6ZSA9IGN0
+eC0+c2NyYXRjaF9idWZfc2l6ZTsNCj4gKwkJYnJlYWs7DQo+ICsJY2FzZSBTNVBfTUZDX0NPREVD
+X1ZDMVJDVl9ERUM6DQo+ICsJY2FzZSBTNVBfTUZDX0NPREVDX1ZDMV9ERUM6DQo+ICsJCWN0eC0+
+c2NyYXRjaF9idWZfc2l6ZSA9IDIwOTYgKiAobWJfd2lkdGggKyBtYl9oZWlnaHQgKyAxKTsNCj4g
+KwkJY3R4LT5zY3JhdGNoX2J1Zl9zaXplID0gQUxJR04oY3R4LT5zY3JhdGNoX2J1Zl9zaXplLCAy
+NTYpOw0KPiArCQljdHgtPmJhbmsxX3NpemUgPSBjdHgtPnNjcmF0Y2hfYnVmX3NpemU7DQo+ICsJ
+CWJyZWFrOw0KPiArCWNhc2UgUzVQX01GQ19DT0RFQ19NUEVHMl9ERUM6DQo+ICsJCWN0eC0+YmFu
+azFfc2l6ZSA9IDA7DQo+ICsJCWN0eC0+YmFuazJfc2l6ZSA9IDA7DQo+ICsJCWJyZWFrOw0KPiAr
+CWNhc2UgUzVQX01GQ19DT0RFQ19IMjYzX0RFQzoNCj4gKwkJY3R4LT5zY3JhdGNoX2J1Zl9zaXpl
+ID0gbWJfd2lkdGggKiA0MDA7DQo+ICsJCWN0eC0+c2NyYXRjaF9idWZfc2l6ZSA9IEFMSUdOKGN0
+eC0+c2NyYXRjaF9idWZfc2l6ZSwgMjU2KTsNCj4gKwkJY3R4LT5iYW5rMV9zaXplID0gY3R4LT5z
+Y3JhdGNoX2J1Zl9zaXplOw0KPiArCQlicmVhazsNCj4gKwljYXNlIFM1UF9NRkNfQ09ERUNfVlA4
+X0RFQzoNCj4gKwkJY3R4LT5zY3JhdGNoX2J1Zl9zaXplID0gbWJfd2lkdGggKiAzMiArIG1iX2hl
+aWdodCAqIDEyOCArDQozNDgxNjsNCj4gKwkJY3R4LT5zY3JhdGNoX2J1Zl9zaXplID0gQUxJR04o
+Y3R4LT5zY3JhdGNoX2J1Zl9zaXplLCAyNTYpOw0KPiArCQljdHgtPmJhbmsxX3NpemUgPSBjdHgt
+PnNjcmF0Y2hfYnVmX3NpemU7DQo+ICsJCWJyZWFrOw0KPiArCWNhc2UgUzVQX01GQ19DT0RFQ19I
+MjY0X0VOQzoNCj4gKwkJY3R4LT5zY3JhdGNoX2J1Zl9zaXplID0gKG1iX3dpZHRoICogNjQpICsN
+Cj4gKwkJCSgobWJfd2lkdGggKyAxKSAqIDE2KSArICg0MDk2ICogMTYpOw0KPiArCQljdHgtPnNj
+cmF0Y2hfYnVmX3NpemUgPSBBTElHTihjdHgtPnNjcmF0Y2hfYnVmX3NpemUsIDI1Nik7DQo+ICsJ
+CWN0eC0+YmFuazFfc2l6ZSA9DQo+ICsJCQljdHgtPnNjcmF0Y2hfYnVmX3NpemUgKyBjdHgtPnRt
+dl9idWZmZXJfc2l6ZSArDQo+ICsJCQkoY3R4LT5kcGJfY291bnQgKiAoY3R4LT5sdW1hX2RwYl9z
+aXplICsNCj4gKwkJCWN0eC0+Y2hyb21hX2RwYl9zaXplICsgY3R4LT5tZV9idWZmZXJfc2l6ZSkp
+Ow0KPiArCQljdHgtPmJhbmsyX3NpemUgPSAwOw0KPiArCQlicmVhazsNCj4gKwljYXNlIFM1UF9N
+RkNfQ09ERUNfTVBFRzRfRU5DOg0KPiArCWNhc2UgUzVQX01GQ19DT0RFQ19IMjYzX0VOQzoNCj4g
+KwkJY3R4LT5zY3JhdGNoX2J1Zl9zaXplID0gKG1iX3dpZHRoICogMTYpICsgKChtYl93aWR0aCAr
+IDEpICoNCjE2KTsNCj4gKwkJY3R4LT5zY3JhdGNoX2J1Zl9zaXplID0gQUxJR04oY3R4LT5zY3Jh
+dGNoX2J1Zl9zaXplLCAyNTYpOw0KPiArCQljdHgtPmJhbmsxX3NpemUgPQ0KPiArCQkJY3R4LT5z
+Y3JhdGNoX2J1Zl9zaXplICsgY3R4LT50bXZfYnVmZmVyX3NpemUgKw0KPiArCQkJKGN0eC0+ZHBi
+X2NvdW50ICogKGN0eC0+bHVtYV9kcGJfc2l6ZSArDQo+ICsJCQljdHgtPmNocm9tYV9kcGJfc2l6
+ZSArIGN0eC0+bWVfYnVmZmVyX3NpemUpKTsNCj4gKwkJY3R4LT5iYW5rMl9zaXplID0gMDsNCj4g
+KwkJYnJlYWs7DQo+ICsJZGVmYXVsdDoNCj4gKwkJYnJlYWs7DQo+ICsJfQ0KPiArDQo+ICsJLyog
+QWxsb2NhdGUgb25seSBpZiBtZW1vcnkgZnJvbSBiYW5rIDEgaXMgbmVjZXNzYXJ5ICovDQo+ICsJ
+aWYgKGN0eC0+YmFuazFfc2l6ZSA+IDApIHsNCj4gKwkJY3R4LT5iYW5rMV9idWYgPSB2YjJfZG1h
+X2NvbnRpZ19tZW1vcHMuYWxsb2MoDQo+ICsJCWRldi0+YWxsb2NfY3R4W01GQ19CQU5LMV9BTExP
+Q19DVFhdLCBjdHgtPmJhbmsxX3NpemUpOw0KPiArCQlpZiAoSVNfRVJSKGN0eC0+YmFuazFfYnVm
+KSkgew0KPiArCQkJY3R4LT5iYW5rMV9idWYgPSAwOw0KPiArCQkJcHJfZXJyKCJCdWYgYWxsb2Mg
+Zm9yIGRlY29kaW5nIGZhaWxlZCAocG9ydCBBKQ0KIik7DQo+ICsJCQlyZXR1cm4gLUVOT01FTTsN
+Cj4gKwkJfQ0KPiArCQljdHgtPmJhbmsxX3BoeXMgPSBzNXBfbWZjX21lbV9jb29raWUoDQo+ICsJ
+CQlkZXYtPmFsbG9jX2N0eFtNRkNfQkFOSzFfQUxMT0NfQ1RYXSwgY3R4LT5iYW5rMV9idWYpOw0K
+PiArCQlCVUdfT04oY3R4LT5iYW5rMV9waHlzICYgKCgxIDw8IE1GQ19CQU5LMV9BTElHTl9PUkRF
+UikgLSAxKSk7DQo+ICsJfQ0KPiArDQo+ICsJcmV0dXJuIDA7DQo+ICt9DQo+ICsNCg0KW3NuaXBd
+DQoNCj4gKw0KPiArc3RhdGljIGludCBjYWxjX3BsYW5lKGludCB3aWR0aCwgaW50IGhlaWdodCkN
+Cj4gK3sNCj4gKwlpbnQgbWJYLCBtYlk7DQo+ICsNCj4gKwltYlggPSAod2lkdGggKyAxNSkvMTY7
+DQo+ICsJbWJZID0gKGhlaWdodCArIDE1KS8xNjsNCj4gKw0KPiArCWlmICh3aWR0aCAqIGhlaWdo
+dCA8IDIwNDggKiAxMDI0KQ0KPiArCQltYlkgPSAobWJZICsgMSkgLyAyICogMjsNCj4gKw0KPiAr
+CXJldHVybiAobWJYICogMTYpICogKG1iWSAqIDE2KTsNCj4gK30NCg0KVGhlIG1hZ2ljIG51bWJl
+cnMgYWJvdmUgc2hvdWxkIGJlIGRlZmluZWQgaW4gdGhlIGhlYWRlcnMgZmlsZSBhbmQNCmhhdmUg
+cmVhZGFibGUgYW5kIGRlc2NyaXB0aXZlIG5hbWVzLg0KDQpbc25pcF0NCg0KPiArLyogRGVjb2Rl
+IGEgc2luZ2xlIGZyYW1lICovDQo+ICtpbnQgczVwX21mY19kZWNvZGVfb25lX2ZyYW1lX3Y2KHN0
+cnVjdCBzNXBfbWZjX2N0eCAqY3R4LA0KPiArCQkJZW51bSBzNXBfbWZjX2RlY29kZV9hcmcgbGFz
+dF9mcmFtZSkNCj4gK3sNCj4gKwlzdHJ1Y3QgczVwX21mY19kZXYgKmRldiA9IGN0eC0+ZGV2Ow0K
+PiArDQo+ICsJV1JJVEVMKDB4ZmZmZmZmZmYsIFM1UF9GSU1WX0RfQVZBSUxBQkxFX0RQQl9GTEFH
+X0xPV0VSX1Y2KTsNCj4gKwlXUklURUwoMHhmZmZmZmZmZiwgUzVQX0ZJTVZfRF9BVkFJTEFCTEVf
+RFBCX0ZMQUdfVVBQRVJfVjYpOw0KDQpUaGlzIGNhbm5vdCBiZSBkb25lIHRoaXMgd2F5LiBDb21l
+IG9uLCB0aGUgc3lzdGVtIG9mIG1hcmtpbmcgd2hpY2ggYnVmZmVyDQppcyBxdWV1ZWQgYnkgdGhl
+IGFwcGxpY2F0aW9uIGlzIGFscmVhZHkgaW4gcGxhY2UgKGxvb2sgYXQgdGhlDQpzNXBfbWZjX29w
+cl92NS5jIGZpbGUpLiBJZiBhbGwgYnVmZmVycyBhcmUgbWFya2VkIGFjY2Vzc2libGUgdG8gTUZD
+IGhhcmR3YXJlDQp0aGVuIHRoZXJlIGlzIG5vIGd1YXJhbnRlZSB0aGF0IGJ1ZmZlcnMgZGVxdWV1
+ZWQgYW5kIHVzZWQgYnkgdXNlciBzcGFjZQ0KYXJlIG5vdCBvdmVyd3JpdHRlbi4NCg0KPiArCVdS
+SVRFTChjdHgtPnNsaWNlX2ludGVyZmFjZSAmIDB4MSwgUzVQX0ZJTVZfRF9TTElDRV9JRl9FTkFC
+TEVfVjYpOw0KPiArDQo+ICsJV1JJVEVMKGN0eC0+aW5zdF9ubywgUzVQX0ZJTVZfSU5TVEFOQ0Vf
+SURfVjYpOw0KPiArCS8qIElzc3VlIGRpZmZlcmVudCBjb21tYW5kcyB0byBpbnN0YW5jZSBiYXNp
+bmcgb24gd2hldGhlciBpdA0KPiArCSAqIGlzIHRoZSBsYXN0IGZyYW1lIG9yIG5vdC4gKi8NCj4g
+Kwlzd2l0Y2ggKGxhc3RfZnJhbWUpIHsNCj4gKwljYXNlIDA6DQo+ICsJCXM1cF9tZmNfY21kX2hv
+c3QycmlzYyhkZXYsIFM1UF9GSU1WX0NIX0ZSQU1FX1NUQVJUX1Y2LCBOVUxMKTsNCj4gKwkJYnJl
+YWs7DQo+ICsJY2FzZSAxOg0KPiArCQlzNXBfbWZjX2NtZF9ob3N0MnJpc2MoZGV2LCBTNVBfRklN
+Vl9DSF9MQVNUX0ZSQU1FX1Y2LCBOVUxMKTsNCj4gKwkJYnJlYWs7DQo+ICsJZGVmYXVsdDoNCj4g
+KwkJbWZjX2VycigiVW5zdXBwb3J0ZWQgbGFzdCBmcmFtZSBhcmcuDQoiKTsNCj4gKwkJcmV0dXJu
+IC1FSU5WQUw7DQo+ICsJfQ0KPiArDQo+ICsJbWZjX2RlYnVnKDIsICJEZWNvZGluZyBhIHVzdWFs
+IGZyYW1lLg0KIik7DQo+ICsJcmV0dXJuIDA7DQo+ICt9DQo+ICsNCg0KW3NuaXBdDQoNCjxwPiZu
+YnNwOzwvcD48cD4mbmJzcDs8L3A+
 
-Hans / Mauro, thank you for your comments and review, very good
-feedback and technical discussion. Truly, thank you. :)
 
-While I don't necessarily agree with Mauro that adoption of subdev is
-"MANDATORY" (in the larger sense of the kernel driver development -
-and common practices throughout the entire source base), I do hear and
-value your comments and concerns from a peer review perspective.
-
-1) A handful of simple improvements have been suggested, Eg.
-ioctl_unlocked, double-checking v4l2-compliance, try_fmt, /proc
-removal, firmware loading etc
-
-Ack. I have no objections. Items like this are fairly trivial, easy to
-address, I can absorb this and provide new patches quickly and easily.
-I'll go back over the detailed comments this weekend and prepare
-additional patches (and retest).
-
-2) ... and some larger discussion items have been raised, Eg.
-Absorbing more of the V4L2 kernel infrastructure into the vc8x0 driver
-vs a fairly self-contained driver with very limited opportunities for
-future breakage.
-
-Are you really willing to say that all drivers, with unique and new
-pieces of silicon, need to be split out into independent modules,
-adopting a subdev type interfaces or mainline merge is refused? It's
-not that I'm asking you to merge duplicate functionality, duplicate
-driver code, replicating functionality for new hardware or for an
-existing modules (tuner/demod/whatever). (Like has already happened in
-the past - 18271 for example).
-
-If the answer is Yes, then my second questions is:
-
-Assuming the comments / issues mentioned in #1 are addressed, are you
-really willing to stand up in front of the world-wide Kernel
-development community and justify why a driver that passes user-facing
-v4l2-compliance tests, is fairly clean, passes 99% of the reasonable
-checkpatch rules, is fully operational, cannot be merged? Really? Is
-this truly an illegal or inappropriate driver implementation that
-would prohibit mainline merge?
-
-The ViewCast 820 is a (circa) $1800 video capture card. It's not the
-kind of hardware that everyone has laying around for regression
-testing purposes. If I 1) split this up and people begin to absorb
-ad7441 functionality into other designs, and start patching it and 2)
-adopt the subdev framework for that matter... then nobody is able to
-regression test the impact to the 820. That puts an incredible amount
-of burden on me. I'm attempting to mitigate all of this risk, but also
-provide a GPL driver so everyone can benefit - without creating a
-future maintenance / regression problem, by relying on subsystems the
-driver simply doesn't need.
-
-As always, I do welcome and appreciate your comments and thoughts, no
-flames from me. I do find the 'MANDATORY' comments worthy of
-discussion, or perhaps I've miss-understood something.
-
-Regards,
-
-- Steve
-
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
