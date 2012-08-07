@@ -1,88 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57398 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755409Ab2HUJXO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Aug 2012 05:23:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	Bryan Wu <bryan.wu@canonical.com>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
-	Sumit Semwal <sumit.semwal@ti.com>,
-	Archit Taneja <archit@ti.com>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	Inki Dae <inki.dae@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [RFC 0/5] Generic panel framework
-Date: Tue, 21 Aug 2012 11:23:34 +0200
-Message-ID: <3648908.jA5PYymWxV@avalon>
-In-Reply-To: <1345528197.15491.8.camel@lappyti>
-References: <1345164583-18924-1-git-send-email-laurent.pinchart@ideasonboard.com> <3937256.gcqPRVoNWN@avalon> <1345528197.15491.8.camel@lappyti>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:40674 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753997Ab2HGMup (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2012 08:50:45 -0400
+Received: by lboi8 with SMTP id i8so76985lbo.19
+        for <linux-media@vger.kernel.org>; Tue, 07 Aug 2012 05:50:43 -0700 (PDT)
+Message-ID: <50210F15.4060407@iki.fi>
+Date: Tue, 07 Aug 2012 15:50:29 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: linux-media <linux-media@vger.kernel.org>
+Subject: help me, Kconfig problem
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomi,
+I added Kernel GPIO interface for cxd2820r driver. What I understand I 
+should select GPIOLIB in order to compile cxd2820r now. I am not sure if 
+that problem comes from recent Media Kconfig re-arrangement or not, but 
+for some reason I didn't saw it earlier.
 
-On Tuesday 21 August 2012 08:49:57 Tomi Valkeinen wrote:
-> On Tue, 2012-08-21 at 01:29 +0200, Laurent Pinchart wrote:
-> > On Monday 20 August 2012 14:39:30 Tomi Valkeinen wrote:
-> > > On Sat, 2012-08-18 at 03:16 +0200, Laurent Pinchart wrote:
-> > > > Hi Tomi,
-> > > > 
-> > > > mipi-dbi-bus might not belong to include/video/panel/ though, as it
-> > > > can be used for non-panel devices (at least in theory). The future
-> > > > mipi-dsi-bus certainly will.
-> > > 
-> > > They are both display busses. So while they could be used for anything,
-> > > I find it quite unlikely as there are much better alternatives for
-> > > generic bus needs.
-> > 
-> > My point is that they could be used for display devices other than panels.
-> > This is especially true for DSI, as there are DSI to HDMI converters.
-> > Technically speaking that's also true for DBI, as DBI chips convert from
-> > DBI to DPI, but we can group both the DBI-to-DPI chip and the panel in a
-> > single panel object.
-> 
-> Ah, ok. I thought "panels" would include these buffer/converter chips.
-> 
-> I think we should have one driver for one indivisible hardware entity.
-> So if you've got a panel module that contains DBI receiver, buffer
-> memory and a DPI panel, let's just have one "DBI panel" driver for it.
-> 
-> If we get lots of different panel modules containing the same DBI RX IP,
-> we could have the DBI IP part as a common library, but still have one
-> panel driver per panel module.
+What I should put for Kconfig in order to prevent these errors?
 
-Sounds good to me.
+config DVB_CXD2820R
+	tristate "Sony CXD2820R"
+	depends on DVB_CORE && I2C && GPIOLIB
+	default m if DVB_FE_CUSTOMISE
+	help
+	  Say Y when you want to support this frontend.
 
-> But how do you see the case for separate converter/buffer chips? Are
-> they part of the generic panel framework? I guess they kinda have to be.
-> On one side they use the "panel" API control the bus they are connected
-> to, and on the other they offer an API for the connected panel to use
-> the bus they provide.
+[crope@localhost linux]$ make silentoldconfig
+scripts/kconfig/conf --silentoldconfig Kconfig
+warning: (VIDEO_EM28XX_DVB && DVB_USB_ANYSEE) selects DVB_CXD2820R which 
+has unmet direct dependencies (MEDIA_SUPPORT && DVB_CAPTURE_DRIVERS && 
+DVB_CORE && I2C && GPIOLIB)
+warning: (VIDEO_EM28XX_DVB && DVB_USB_ANYSEE) selects DVB_CXD2820R which 
+has unmet direct dependencies (MEDIA_SUPPORT && DVB_CAPTURE_DRIVERS && 
+DVB_CORE && I2C && GPIOLIB)
 
-The DBI/DSI APIs will not be panel-specific (they won't contain any reference 
-to "panel") I'm thus thinking of moving them from drivers/video/panel/ to 
-drivers/video/.
+***************************************
 
-Furthermore, a DSI-to-HDMI converter chip is not a panel, but needs to expose 
-display-related operations in a way similar to panels. I was thus wondering if 
-we shouldn't replace the panel structure with some kind of video entity 
-structure that would expose operations similar to panels. We could then extend 
-that structure with converter-specific operations later. The framework would 
-become a bit more generic, while remaining display-specific.
+config DVB_CXD2820R
+	tristate "Sony CXD2820R"
+	depends on DVB_CORE && I2C
+	select GPIOLIB
+	default m if DVB_FE_CUSTOMISE
+	help
+	  Say Y when you want to support this frontend.
 
-> Did you just mean we should have a separate directory for them, while
-> still part of the same framework, or...?
+[crope@localhost linux]$ make silentoldconfig
+scripts/kconfig/conf --silentoldconfig Kconfig
+drivers/usb/Kconfig:88:error: recursive dependency detected!
+drivers/usb/Kconfig:88:	symbol USB is selected by MOUSE_APPLETOUCH
+drivers/input/mouse/Kconfig:152:	symbol MOUSE_APPLETOUCH depends on 
+USB_ARCH_HAS_HCD
+drivers/usb/Kconfig:78:	symbol USB_ARCH_HAS_HCD depends on USB_ARCH_HAS_OHCI
+drivers/usb/Kconfig:17:	symbol USB_ARCH_HAS_OHCI depends on MFD_TC6393XB
+drivers/mfd/Kconfig:396:	symbol MFD_TC6393XB depends on GPIOLIB
+drivers/gpio/Kconfig:35:	symbol GPIOLIB is selected by DVB_CXD2820R
+drivers/media/dvb/frontends/Kconfig:422:	symbol DVB_CXD2820R is selected 
+by VIDEO_EM28XX_DVB
+drivers/media/video/em28xx/Kconfig:33:	symbol VIDEO_EM28XX_DVB depends 
+on V4L_USB_DRIVERS
+drivers/media/video/Kconfig:668:	symbol V4L_USB_DRIVERS depends on USB
+#
+# configuration written to .config
+#
+
+regards
+Antti
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+http://palosaari.fi/
