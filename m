@@ -1,54 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:47914 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758878Ab2HWNJN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Aug 2012 09:09:13 -0400
-Received: by mail-yx0-f174.google.com with SMTP id l14so168915yen.19
-        for <linux-media@vger.kernel.org>; Thu, 23 Aug 2012 06:09:13 -0700 (PDT)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	<linux-media@vger.kernel.org>
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 08/10] s5p-fimc: Remove unneeded struct vb2_queue clear on queue_init()
-Date: Thu, 23 Aug 2012 10:08:29 -0300
-Message-Id: <1345727311-27478-8-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1345727311-27478-1-git-send-email-elezegarcia@gmail.com>
-References: <1345727311-27478-1-git-send-email-elezegarcia@gmail.com>
+Received: from eu1sys200aog113.obsmtp.com ([207.126.144.135]:57018 "EHLO
+	eu1sys200aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753350Ab2HGJZF convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Aug 2012 05:25:05 -0400
+Received: from zeta.dmz-eu.st.com (zeta.dmz-eu.st.com [164.129.230.9])
+	by beta.dmz-eu.st.com (STMicroelectronics) with ESMTP id 8FD8A121
+	for <linux-media@vger.kernel.org>; Tue,  7 Aug 2012 09:25:02 +0000 (GMT)
+Received: from Webmail-eu.st.com (safex1hubcas1.st.com [10.75.90.14])
+	by zeta.dmz-eu.st.com (STMicroelectronics) with ESMTP id 37AFF2904
+	for <linux-media@vger.kernel.org>; Tue,  7 Aug 2012 09:25:02 +0000 (GMT)
+From: Nicolas THERY <nicolas.thery@st.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 7 Aug 2012 11:24:59 +0200
+Subject: [PATCH] media: fix MEDIA_IOC_DEVICE_INFO return code
+Message-ID: <5020DEEB.60901@st.com>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-queue_init() is always called by v4l2_m2m_ctx_init(), which allocates
-a context struct v4l2_m2m_ctx with kzalloc.
-Therefore, there is no need to clear vb2_queue src/dst structs.
+The MEDIA_IOC_DEVICE_INFO ioctl was returning a positive value rather
+than a negative error code when failing to copy output parameter to
+user-space.
 
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+Tested by compilation only.
+
+Signed-off-by: Nicolas Thery <nicolas.thery@st.com>
 ---
- drivers/media/platform/s5p-fimc/fimc-m2m.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+ drivers/media/media-device.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-m2m.c b/drivers/media/platform/s5p-fimc/fimc-m2m.c
-index c587011..ab4c15a 100644
---- a/drivers/media/platform/s5p-fimc/fimc-m2m.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-m2m.c
-@@ -620,7 +620,6 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	struct fimc_ctx *ctx = priv;
- 	int ret;
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 6f9eb94..d01fcb7 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -59,7 +59,9 @@ static int media_device_get_info(struct media_device *dev,
+ 	info.hw_revision = dev->hw_revision;
+ 	info.driver_version = dev->driver_version;
  
--	memset(src_vq, 0, sizeof(*src_vq));
- 	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
- 	src_vq->io_modes = VB2_MMAP | VB2_USERPTR;
- 	src_vq->drv_priv = ctx;
-@@ -632,7 +631,6 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	if (ret)
- 		return ret;
+-	return copy_to_user(__info, &info, sizeof(*__info));
++	if (copy_to_user(__info, &info, sizeof(*__info)))
++		return -EFAULT;
++	return 0;
+ }
  
--	memset(dst_vq, 0, sizeof(*dst_vq));
- 	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
- 	dst_vq->io_modes = VB2_MMAP | VB2_USERPTR;
- 	dst_vq->drv_priv = ctx;
+ static struct media_entity *find_entity(struct media_device *mdev, u32 id)
 -- 
-1.7.8.6
+1.7.11.3
 
