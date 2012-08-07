@@ -1,63 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:44969 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754749Ab2HYDJ0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 23:09:26 -0400
-Received: by mail-gg0-f174.google.com with SMTP id k6so581646ggd.19
-        for <linux-media@vger.kernel.org>; Fri, 24 Aug 2012 20:09:25 -0700 (PDT)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: [PATCH 9/9] videobuf2-core: Change vb2_queue_init return type to void
-Date: Sat, 25 Aug 2012 00:09:06 -0300
-Message-Id: <1345864146-2207-9-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1345864146-2207-1-git-send-email-elezegarcia@gmail.com>
-References: <1345864146-2207-1-git-send-email-elezegarcia@gmail.com>
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:56950 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754059Ab2HGMsl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2012 08:48:41 -0400
+Received: by ghrr11 with SMTP id r11so3601313ghr.19
+        for <linux-media@vger.kernel.org>; Tue, 07 Aug 2012 05:48:41 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201208070826.20796.hverkuil@xs4all.nl>
+References: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
+	<201208070826.20796.hverkuil@xs4all.nl>
+Date: Tue, 7 Aug 2012 08:48:41 -0400
+Message-ID: <CAGoCfizCV4Qp+a-Ay298CxZPcRmQ+BZ+0MjizHHFheo2qx1-mg@mail.gmail.com>
+Subject: Re: [PATCH 00/24] Various HVR-950q and xc5000 fixes
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- drivers/media/v4l2-core/videobuf2-core.c |    3 +--
- include/media/videobuf2-core.h           |    2 +-
- 2 files changed, 2 insertions(+), 3 deletions(-)
+On Tue, Aug 7, 2012 at 2:26 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Since you're working on the au0828 would it perhaps be possible to have that
+> driver use unlocked_ioctl instead of ioctl? It would be really nice if we
+> can get rid of the ioctl v4l2_operation at some point in the future.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 4da3df6..ea45842 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1736,7 +1736,7 @@ EXPORT_SYMBOL_GPL(vb2_poll);
-  * to the struct vb2_queue description in include/media/videobuf2-core.h
-  * for more information.
-  */
--int vb2_queue_init(struct vb2_queue *q)
-+void vb2_queue_init(struct vb2_queue *q)
- {
- 	BUG_ON(!q);
- 	BUG_ON(!q->ops);
-@@ -1755,7 +1755,6 @@ int vb2_queue_init(struct vb2_queue *q)
- 	if (q->buf_struct_size == 0)
- 		q->buf_struct_size = sizeof(struct vb2_buffer);
- 
--	return 0;
- }
- EXPORT_SYMBOL_GPL(vb2_queue_init);
- 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 8dd9b6c..ed6854a 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -324,7 +324,7 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req);
- int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create);
- int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b);
- 
--int vb2_queue_init(struct vb2_queue *q);
-+void vb2_queue_init(struct vb2_queue *q);
- 
- void vb2_queue_release(struct vb2_queue *q);
- 
+Hi Hans,
+
+I'm pretty sure that actually got done implicitly by patch #8 as a
+result of a fix for a race condition at startup.  Please take a look
+and let me know if I missed anything:
+
+[PATCH 08/24] au0828: fix race condition that causes xc5000 to not
+bind for digital
+
+Thanks,
+
+Devin
+
 -- 
-1.7.8.6
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
