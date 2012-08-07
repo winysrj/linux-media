@@ -1,88 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:38428 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752588Ab2HJLzZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Aug 2012 07:55:25 -0400
-Received: by mail-pb0-f46.google.com with SMTP id rr13so2611852pbb.19
-        for <linux-media@vger.kernel.org>; Fri, 10 Aug 2012 04:55:25 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: t.stanislaws@samsung.com, mchehab@infradead.org,
-	sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH 2/2] [media] s5p-tv: Use devm_* functions in sii9234_drv.c file
-Date: Fri, 10 Aug 2012 17:23:46 +0530
-Message-Id: <1344599626-21881-2-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1344599626-21881-1-git-send-email-sachin.kamat@linaro.org>
-References: <1344599626-21881-1-git-send-email-sachin.kamat@linaro.org>
+Received: from adelie.canonical.com ([91.189.90.139]:33632 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755953Ab2HGRyL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2012 13:54:11 -0400
+Subject: [PATCH 2/3] dma-bikeshed-fence: Hardware dma-buf implementation of
+ fencing
+To: Sumit Semwal <sumit.semwal@linaro.org>, rob.clark@linaro.org
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	patches@linaro.org
+Date: Tue, 07 Aug 2012 19:54:07 +0200
+Message-ID: <20120807175355.18745.37828.stgit@patser.local>
+In-Reply-To: <20120807175330.18745.81293.stgit@patser.local>
+References: <20120807175330.18745.81293.stgit@patser.local>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-devm_* functions are device managed functions and make error handling
-and cleanup cleaner and simpler.
+This type of fence can be used with hardware synchronization for simple
+hardware that can block execution until the condition
+dma_buf[offset] >= value has been met, accounting for wraparound.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+A software fallback still has to be provided in case the fence is used
+with a device that doesn't support this mechanism. It is useful to expose
+this for graphics cards that have an op to support this.
+
+Some cards like i915 can export those, but don't have an option to wait,
+so they need the software fallback.
+
+I extended the original patch by Rob Clark.
+
+Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 ---
- drivers/media/video/s5p-tv/sii9234_drv.c |   17 ++++-------------
- 1 files changed, 4 insertions(+), 13 deletions(-)
+ drivers/base/Makefile              |    2 -
+ drivers/base/dma-bikeshed-fence.c  |   44 +++++++++++++++++
+ include/linux/dma-bikeshed-fence.h |   92 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 137 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/base/dma-bikeshed-fence.c
+ create mode 100644 include/linux/dma-bikeshed-fence.h
 
-diff --git a/drivers/media/video/s5p-tv/sii9234_drv.c b/drivers/media/video/s5p-tv/sii9234_drv.c
-index 6d348f9..716d484 100644
---- a/drivers/media/video/s5p-tv/sii9234_drv.c
-+++ b/drivers/media/video/s5p-tv/sii9234_drv.c
-@@ -323,7 +323,7 @@ static int __devinit sii9234_probe(struct i2c_client *client,
- 	struct sii9234_context *ctx;
- 	int ret;
- 
--	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
-+	ctx = devm_kzalloc(&client->dev, sizeof(*ctx), GFP_KERNEL);
- 	if (!ctx) {
- 		dev_err(dev, "out of memory\n");
- 		ret = -ENOMEM;
-@@ -331,18 +331,17 @@ static int __devinit sii9234_probe(struct i2c_client *client,
- 	}
- 	ctx->client = client;
- 
--	ctx->power = regulator_get(dev, "hdmi-en");
-+	ctx->power = devm_regulator_get(dev, "hdmi-en");
- 	if (IS_ERR(ctx->power)) {
- 		dev_err(dev, "failed to acquire regulator hdmi-en\n");
--		ret = PTR_ERR(ctx->power);
--		goto fail_ctx;
-+		return PTR_ERR(ctx->power);
- 	}
- 
- 	ctx->gpio_n_reset = pdata->gpio_n_reset;
- 	ret = gpio_request(ctx->gpio_n_reset, "MHL_RST");
- 	if (ret) {
- 		dev_err(dev, "failed to acquire MHL_RST gpio\n");
--		goto fail_power;
-+		return ret;
- 	}
- 
- 	v4l2_i2c_subdev_init(&ctx->sd, client, &sii9234_ops);
-@@ -373,12 +372,6 @@ fail_pm:
- 	pm_runtime_disable(dev);
- 	gpio_free(ctx->gpio_n_reset);
- 
--fail_power:
--	regulator_put(ctx->power);
--
--fail_ctx:
--	kfree(ctx);
--
- fail:
- 	dev_err(dev, "probe failed\n");
- 
-@@ -393,8 +386,6 @@ static int __devexit sii9234_remove(struct i2c_client *client)
- 
- 	pm_runtime_disable(dev);
- 	gpio_free(ctx->gpio_n_reset);
--	regulator_put(ctx->power);
--	kfree(ctx);
- 
- 	dev_info(dev, "remove successful\n");
- 
--- 
-1.7.4.1
+diff --git a/drivers/base/Makefile b/drivers/base/Makefile
+index 6e9f217..1e7723b 100644
+--- a/drivers/base/Makefile
++++ b/drivers/base/Makefile
+@@ -10,7 +10,7 @@ obj-$(CONFIG_CMA) += dma-contiguous.o
+ obj-y			+= power/
+ obj-$(CONFIG_HAS_DMA)	+= dma-mapping.o
+ obj-$(CONFIG_HAVE_GENERIC_DMA_COHERENT) += dma-coherent.o
+-obj-$(CONFIG_DMA_SHARED_BUFFER) += dma-buf.o dma-fence.o
++obj-$(CONFIG_DMA_SHARED_BUFFER) += dma-buf.o dma-fence.o dma-bikeshed-fence.o
+ obj-$(CONFIG_ISA)	+= isa.o
+ obj-$(CONFIG_FW_LOADER)	+= firmware_class.o
+ obj-$(CONFIG_NUMA)	+= node.o
+diff --git a/drivers/base/dma-bikeshed-fence.c b/drivers/base/dma-bikeshed-fence.c
+new file mode 100644
+index 0000000..fa063e8
+--- /dev/null
++++ b/drivers/base/dma-bikeshed-fence.c
+@@ -0,0 +1,44 @@
++/*
++ * dma-fence implementation that supports hw synchronization via hw
++ * read/write of memory semaphore
++ *
++ * Copyright (C) 2012 Texas Instruments
++ * Author: Rob Clark <rob.clark@linaro.org>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/export.h>
++#include <linux/slab.h>
++#include <linux/dma-bikeshed-fence.h>
++
++static int enable_signaling(struct dma_fence *fence)
++{
++	struct dma_bikeshed_fence *bikeshed_fence = to_bikeshed_fence(fence);
++	return bikeshed_fence->enable_signaling(bikeshed_fence);
++}
++
++static void bikeshed_release(struct dma_fence *fence)
++{
++	struct dma_bikeshed_fence *f = to_bikeshed_fence(fence);
++
++	if (f->release)
++		f->release(f);
++	dma_buf_put(f->sync_buf);
++}
++
++struct dma_fence_ops dma_bikeshed_fence_ops = {
++	.enable_signaling = enable_signaling,
++	.release = bikeshed_release
++};
++EXPORT_SYMBOL_GPL(dma_bikeshed_fence_ops);
+diff --git a/include/linux/dma-bikeshed-fence.h b/include/linux/dma-bikeshed-fence.h
+new file mode 100644
+index 0000000..4f19801
+--- /dev/null
++++ b/include/linux/dma-bikeshed-fence.h
+@@ -0,0 +1,92 @@
++/*
++ * dma-fence implementation that supports hw synchronization via hw
++ * read/write of memory semaphore
++ *
++ * Copyright (C) 2012 Texas Instruments
++ * Author: Rob Clark <rob.clark@linaro.org>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef __DMA_BIKESHED_FENCE_H__
++#define __DMA_BIKESHED_FENCE_H__
++
++#include <linux/types.h>
++#include <linux/dma-fence.h>
++#include <linux/dma-buf.h>
++
++struct dma_bikeshed_fence {
++	struct dma_fence base;
++
++	struct dma_buf *sync_buf;
++	uint32_t seqno_ofs;
++	uint32_t seqno;
++
++	int (*enable_signaling)(struct dma_bikeshed_fence *fence);
++	void (*release)(struct dma_bikeshed_fence *fence);
++};
++
++/*
++ * TODO does it make sense to be able to enable dma-fence without dma-buf,
++ * or visa versa?
++ */
++#ifdef CONFIG_DMA_SHARED_BUFFER
++
++extern struct dma_fence_ops dma_bikeshed_fence_ops;
++
++static inline bool is_bikeshed_fence(struct dma_fence *fence)
++{
++	return fence->ops == &dma_bikeshed_fence_ops;
++}
++
++static inline struct dma_bikeshed_fence *to_bikeshed_fence(struct dma_fence *fence)
++{
++	if (WARN_ON(!is_bikeshed_fence(fence)))
++		return NULL;
++	return container_of(fence, struct dma_bikeshed_fence, base);
++}
++
++/**
++ * dma_bikeshed_fence_init - Initialize a fence
++ *
++ * @fence: dma_bikeshed_fence to initialize
++ * @sync_buf: buffer containing the memory location to signal on
++ * @seqno_ofs: the offset within @sync_buf
++ * @seqno: the sequence # to signal on
++ * @priv: value of priv member
++ * @enable_signaling: callback which is called when some other device is
++ *    waiting for sw notification of fence
++ * @release: callback called during destruction before object is freed.
++ */
++static inline void dma_bikeshed_fence_init(struct dma_bikeshed_fence *fence,
++		struct dma_buf *sync_buf,
++		uint32_t seqno_ofs, uint32_t seqno, void *priv,
++		int (*enable_signaling)(struct dma_bikeshed_fence *fence),
++		void (*release)(struct dma_bikeshed_fence *fence))
++{
++	BUG_ON(!fence || !sync_buf || !enable_signaling);
++
++	__dma_fence_init(&fence->base, &dma_bikeshed_fence_ops, priv);
++
++	get_dma_buf(sync_buf);
++	fence->sync_buf = sync_buf;
++	fence->seqno_ofs = seqno_ofs;
++	fence->seqno = seqno;
++	fence->enable_signaling = enable_signaling;
++}
++
++#else
++// TODO
++#endif /* CONFIG_DMA_SHARED_BUFFER */
++
++#endif /* __DMA_BIKESHED_FENCE_H__ */
 
