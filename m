@@ -1,71 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37430 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757060Ab2HXMag convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 08:30:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: workshop-2011@linuxtv.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [Workshop-2011] Media summit at the Kernel Summit - was: Fwd: Re: [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
-Date: Fri, 24 Aug 2012 14:30:59 +0200
-Message-ID: <1833523.h2Fu1nApC7@avalon>
-In-Reply-To: <Pine.LNX.4.64.1208241406010.20710@axis700.grange>
-References: <20120713173708.GB17109@thunk.org> <503759F7.8040907@redhat.com> <Pine.LNX.4.64.1208241406010.20710@axis700.grange>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:32810 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932471Ab2HGCrq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 22:47:46 -0400
+Received: by mail-vc0-f174.google.com with SMTP id fk26so3432645vcb.19
+        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 19:47:46 -0700 (PDT)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: linux-media@vger.kernel.org
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: [PATCH 01/24] au8522: fix intermittent lockup of analog video decoder
+Date: Mon,  6 Aug 2012 22:46:51 -0400
+Message-Id: <1344307634-11673-2-git-send-email-dheitmueller@kernellabs.com>
+In-Reply-To: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
+References: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+It turns up the autodetection for the video standard in the au8522 is prone
+to hanging the chip until a reset is performed.  This condition is trivial
+to reproduce simply by tuning to a station and then rapidly unplugging/
+replugging the coax feed.
 
-On Friday 24 August 2012 14:11:58 Guennadi Liakhovetski wrote:
-> On Fri, 24 Aug 2012, Mauro Carvalho Chehab wrote:
-> > Em 22-08-2012 18:39, Naveen KRISHNAMURTHY escreveu:
-> > > Hi Mauro,
-> > > 
-> > > Can you please provide the schedule for the linuxTV discussions this
-> > > time at San Diego? Which day will it be on? If you have a detailed
-> > > schedule, please pass on. I am planning to be in only on that day as I
-> > > cannot stay back more than that this time around.> 
-> >
-> > The media workshop will be at Tuesday, August 28th, with the following
-> > agenda, for the ones that got the invitation:
-> >     morning:
-> >            V4L2 API ambiguities + v4l2 compliance tool: 60 min
-> >            Media Controller library: 30 min
-> >            ALSA and V4L/Media Controller: 30 min
-> >            ARM and needed features for V4L/DVB: 30 min
-> >     
-> >     - after lunch:
-> >            SoC Vendors feedback – how to help them to go upstream: 45 min
-> >            V4L2/DVB issues from userspace perspective: 45 min
-> >            Android's V4L2 cam library: 30 min
-> 
-> Wow, this is interesting... Have I proposed this? :-) Or is anyone else
-> working on an alternative solution?... I don't mind talking about this, if
-> indeed my work is meant, just really cannot remember discussing taking
-> this topic to the KS... I might have forgotten though... /me confused :-)
-> 
-> >            HDMI CEC: 30 min
-> >            Synchronization, shared resource and optimizations: 30 min
-> 
-> What happened to the V4L DT topic? I believe, Sylwester and I have been
-> discussing this pretty intensively over the last couple of weeks and,
-> hopefully, are just about to submit an example V4L .dts fragment.
+Because we've never claimed to support anything other than NTSC-M, just
+disable the video-standard autodetection logic and force it to always be
+NTSC-M.
 
-I believe it was deemed to be a too complex topic that would take too much 
-time to fit in the schedule. I will be free on Monday to discuss this, should 
-we organize a (informal) meeting ?
+Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+---
+ drivers/media/dvb/frontends/au8522_decoder.c |    6 +++-
+ drivers/media/dvb/frontends/au8522_priv.h    |   28 +++++++++++++++++++++++--
+ 2 files changed, 29 insertions(+), 5 deletions(-)
 
-> > On Wednesday, August 29th, there will be open plenary sections, together
-> > with the other Kernel Summit participants.
-
+diff --git a/drivers/media/dvb/frontends/au8522_decoder.c b/drivers/media/dvb/frontends/au8522_decoder.c
+index 55b6390..f2e786b 100644
+--- a/drivers/media/dvb/frontends/au8522_decoder.c
++++ b/drivers/media/dvb/frontends/au8522_decoder.c
+@@ -257,9 +257,11 @@ static void setup_decoder_defaults(struct au8522_state *state, u8 input_mode)
+ 	au8522_writereg(state, AU8522_TVDED_DBG_MODE_REG060H,
+ 			AU8522_TVDED_DBG_MODE_REG060H_CVBS);
+ 	au8522_writereg(state, AU8522_TVDEC_FORMAT_CTRL1_REG061H,
+-			AU8522_TVDEC_FORMAT_CTRL1_REG061H_CVBS13);
++			AU8522_TVDEC_FORMAT_CTRL1_REG061H_FIELD_LEN_525 |
++			AU8522_TVDEC_FORMAT_CTRL1_REG061H_LINE_LEN_63_492 |
++			AU8522_TVDEC_FORMAT_CTRL1_REG061H_SUBCARRIER_NTSC_MN);
+ 	au8522_writereg(state, AU8522_TVDEC_FORMAT_CTRL2_REG062H,
+-			AU8522_TVDEC_FORMAT_CTRL2_REG062H_CVBS13);
++			AU8522_TVDEC_FORMAT_CTRL2_REG062H_STD_NTSC);
+ 	au8522_writereg(state, AU8522_TVDEC_VCR_DET_LLIM_REG063H,
+ 			AU8522_TVDEC_VCR_DET_LLIM_REG063H_CVBS);
+ 	au8522_writereg(state, AU8522_TVDEC_VCR_DET_HLIM_REG064H,
+diff --git a/drivers/media/dvb/frontends/au8522_priv.h b/drivers/media/dvb/frontends/au8522_priv.h
+index 6e4a438..9f44a7b 100644
+--- a/drivers/media/dvb/frontends/au8522_priv.h
++++ b/drivers/media/dvb/frontends/au8522_priv.h
+@@ -325,6 +325,31 @@ int au8522_led_ctrl(struct au8522_state *state, int led);
+ 
+ /**************************************************************/
+ 
++/* Format control 1 */
++
++/* VCR Mode 7-6 */
++#define AU8522_TVDEC_FORMAT_CTRL1_REG061H_VCR_MODE_YES		0x80
++#define AU8522_TVDEC_FORMAT_CTRL1_REG061H_VCR_MODE_NO		0x40
++#define AU8522_TVDEC_FORMAT_CTRL1_REG061H_VCR_MODE_AUTO		0x00
++/* Field len 5-4 */
++#define AU8522_TVDEC_FORMAT_CTRL1_REG061H_FIELD_LEN_625		0x20
++#define AU8522_TVDEC_FORMAT_CTRL1_REG061H_FIELD_LEN_525		0x10
++#define AU8522_TVDEC_FORMAT_CTRL1_REG061H_FIELD_LEN_AUTO	0x00
++/* Line len (us) 3-2 */
++#define AU8522_TVDEC_FORMAT_CTRL1_REG061H_LINE_LEN_64_000	0x0b
++#define AU8522_TVDEC_FORMAT_CTRL1_REG061H_LINE_LEN_63_492	0x08
++#define AU8522_TVDEC_FORMAT_CTRL1_REG061H_LINE_LEN_63_556	0x04
++/* Subcarrier freq 1-0 */
++#define AU8522_TVDEC_FORMAT_CTRL1_REG061H_SUBCARRIER_NTSC_AUTO	0x03
++#define AU8522_TVDEC_FORMAT_CTRL1_REG061H_SUBCARRIER_NTSC_443	0x02
++#define AU8522_TVDEC_FORMAT_CTRL1_REG061H_SUBCARRIER_NTSC_MN	0x01
++#define AU8522_TVDEC_FORMAT_CTRL1_REG061H_SUBCARRIER_NTSC_50	0x00
++
++/* Format control 2 */
++#define AU8522_TVDEC_FORMAT_CTRL2_REG062H_STD_AUTODETECT	0x00
++#define AU8522_TVDEC_FORMAT_CTRL2_REG062H_STD_NTSC		0x01
++
++
+ #define AU8522_INPUT_CONTROL_REG081H_ATSC               	0xC4
+ #define AU8522_INPUT_CONTROL_REG081H_ATVRF			0xC4
+ #define AU8522_INPUT_CONTROL_REG081H_ATVRF13			0xC4
+@@ -385,9 +410,6 @@ int au8522_led_ctrl(struct au8522_state *state, int led);
+ #define AU8522_TVDEC_COMB_MODE_REG015H_CVBS			0x00
+ #define AU8522_REG016H_CVBS					0x00
+ #define AU8522_TVDED_DBG_MODE_REG060H_CVBS			0x00
+-#define AU8522_TVDEC_FORMAT_CTRL1_REG061H_CVBS			0x0B
+-#define AU8522_TVDEC_FORMAT_CTRL1_REG061H_CVBS13		0x03
+-#define AU8522_TVDEC_FORMAT_CTRL2_REG062H_CVBS13		0x00
+ #define AU8522_TVDEC_VCR_DET_LLIM_REG063H_CVBS			0x19
+ #define AU8522_REG0F9H_AUDIO					0x20
+ #define AU8522_TVDEC_VCR_DET_HLIM_REG064H_CVBS			0xA7
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.1
 
