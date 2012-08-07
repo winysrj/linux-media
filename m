@@ -1,72 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:62689 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751785Ab2HNPgy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 11:36:54 -0400
-Received: from epcpsbgm1.samsung.com (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M8R003Y94PHBPE0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:36:53 +0900 (KST)
-Received: from mcdsrvbld02.digital.local ([106.116.37.23])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M8R004J44MBC810@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:36:53 +0900 (KST)
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de, dmitriyz@google.com,
-	s.nawrocki@samsung.com, k.debski@samsung.com
-Subject: [PATCHv8 13/26] v4l: vivi: support for dmabuf importing
-Date: Tue, 14 Aug 2012 17:34:43 +0200
-Message-id: <1344958496-9373-14-git-send-email-t.stanislaws@samsung.com>
-In-reply-to: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
-References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42921 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753998Ab2HGMO5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2012 08:14:57 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hideki EIRAKU <hdk@igel.co.jp>
+Cc: Russell King <linux@arm.linux.org.uk>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	alsa-devel@alsa-project.org, Katsuya MATSUBARA <matsu@igel.co.jp>
+Subject: Re: [PATCH v3 4/4] fbdev: sh_mobile_lcdc: use dma_mmap_coherent if available
+Date: Tue, 07 Aug 2012 14:15:06 +0200
+Message-ID: <3107106.PmlicBoqLd@avalon>
+In-Reply-To: <1854100.yBXTHaXkcr@avalon>
+References: <1344246924-32620-1-git-send-email-hdk@igel.co.jp> <1344246924-32620-5-git-send-email-hdk@igel.co.jp> <1854100.yBXTHaXkcr@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch enhances VIVI driver with a support for importing a buffer
-from DMABUF file descriptors.
+On Tuesday 07 August 2012 14:01:43 Laurent Pinchart wrote:
+> Hi Eiraku-san,
+> 
+> On Monday 06 August 2012 18:55:24 Hideki EIRAKU wrote:
+> > fb_mmap() implemented in fbmem.c uses smem_start as the physical
+> > address of the frame buffer.  In the sh_mobile_lcdc driver, the
+> > smem_start is a dma_addr_t that is not a physical address when IOMMU is
+> > enabled.  dma_mmap_coherent() maps the address correctly.  It is
+> > available on ARM platforms.
+> > 
+> > Signed-off-by: Hideki EIRAKU <hdk@igel.co.jp>
+> 
+> Acked-by: Hideki EIRAKU <hdk@igel.co.jp>
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/Kconfig |    1 +
- drivers/media/video/vivi.c  |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+I obviously meant
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 966954d..8fa81be 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -653,6 +653,7 @@ config VIDEO_VIVI
- 	depends on FRAMEBUFFER_CONSOLE || STI_CONSOLE
- 	select FONT_8x16
- 	select VIDEOBUF2_VMALLOC
-+	select DMA_SHARED_BUFFER
- 	default n
- 	---help---
- 	  Enables a virtual video driver. This device shows a color bar
-diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-index a6351c4..37d8fd4 100644
---- a/drivers/media/video/vivi.c
-+++ b/drivers/media/video/vivi.c
-@@ -1308,7 +1308,7 @@ static int __init vivi_create_instance(int inst)
- 	q = &dev->vb_vidq;
- 	memset(q, 0, sizeof(dev->vb_vidq));
- 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
--	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
-+	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
- 	q->drv_priv = dev;
- 	q->buf_struct_size = sizeof(struct vivi_buffer);
- 	q->ops = &vivi_video_qops;
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> As this patch doesn't depend on any other patch in your series
+> (ARCH_HAS_DMA_MMAP_COHERENT will not be defined without 1/4, so this patch
+> will be a no-op until then), I've applied it to my tree and will push it to
+> avoid merge conflicts, unless you would prefer to push it yourself.
+> 
+> > ---
+> > 
+> >  drivers/video/sh_mobile_lcdcfb.c |   28 ++++++++++++++++++++++++++++
+> >  1 files changed, 28 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/video/sh_mobile_lcdcfb.c
+> > b/drivers/video/sh_mobile_lcdcfb.c index 8cb653b..c8cba7a 100644
+> > --- a/drivers/video/sh_mobile_lcdcfb.c
+> > +++ b/drivers/video/sh_mobile_lcdcfb.c
+> > @@ -1614,6 +1614,17 @@ static int sh_mobile_lcdc_overlay_blank(int blank,
+> > struct fb_info *info) return 1;
+> > 
+> >  }
+> > 
+> > +#ifdef ARCH_HAS_DMA_MMAP_COHERENT
+> > +static int
+> > +sh_mobile_lcdc_overlay_mmap(struct fb_info *info, struct vm_area_struct
+> > *vma) +{
+> > +	struct sh_mobile_lcdc_overlay *ovl = info->par;
+> > +
+> > +	return dma_mmap_coherent(ovl->channel->lcdc->dev, vma, ovl->fb_mem,
+> > +				 ovl->dma_handle, ovl->fb_size);
+> > +}
+> > +#endif
+> > +
+> > 
+> >  static struct fb_ops sh_mobile_lcdc_overlay_ops = {
+> >  
+> >  	.owner          = THIS_MODULE,
+> >  	.fb_read        = fb_sys_read,
+> > 
+> > @@ -1626,6 +1637,9 @@ static struct fb_ops sh_mobile_lcdc_overlay_ops = {
+> > 
+> >  	.fb_ioctl       = sh_mobile_lcdc_overlay_ioctl,
+> >  	.fb_check_var	= sh_mobile_lcdc_overlay_check_var,
+> >  	.fb_set_par	= sh_mobile_lcdc_overlay_set_par,
+> > 
+> > +#ifdef ARCH_HAS_DMA_MMAP_COHERENT
+> > +	.fb_mmap	= sh_mobile_lcdc_overlay_mmap,
+> > +#endif
+> > 
+> >  };
+> >  
+> >  static void
+> > 
+> > @@ -2093,6 +2107,17 @@ static int sh_mobile_lcdc_blank(int blank, struct
+> > fb_info *info) return 0;
+> > 
+> >  }
+> > 
+> > +#ifdef ARCH_HAS_DMA_MMAP_COHERENT
+> > +static int
+> > +sh_mobile_lcdc_mmap(struct fb_info *info, struct vm_area_struct *vma)
+> > +{
+> > +	struct sh_mobile_lcdc_chan *ch = info->par;
+> > +
+> > +	return dma_mmap_coherent(ch->lcdc->dev, vma, ch->fb_mem,
+> > +				 ch->dma_handle, ch->fb_size);
+> > +}
+> > +#endif
+> > +
+> > 
+> >  static struct fb_ops sh_mobile_lcdc_ops = {
+> >  
+> >  	.owner          = THIS_MODULE,
+> >  	.fb_setcolreg	= sh_mobile_lcdc_setcolreg,
+> > 
+> > @@ -2108,6 +2133,9 @@ static struct fb_ops sh_mobile_lcdc_ops = {
+> > 
+> >  	.fb_release	= sh_mobile_lcdc_release,
+> >  	.fb_check_var	= sh_mobile_lcdc_check_var,
+> >  	.fb_set_par	= sh_mobile_lcdc_set_par,
+> > 
+> > +#ifdef ARCH_HAS_DMA_MMAP_COHERENT
+> > +	.fb_mmap	= sh_mobile_lcdc_mmap,
+> > +#endif
+> > 
+> >  };
+> >  
+> >  static void
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
