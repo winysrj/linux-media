@@ -1,87 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40217 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754641Ab2HGTMr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Aug 2012 15:12:47 -0400
-Message-ID: <502168A2.6020503@redhat.com>
-Date: Tue, 07 Aug 2012 16:12:34 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Malcolm Priestley <tvboxspy@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] lmedm04 2.06 conversion to dvb-usb-v2 version 2
-References: <1344284500.12234.12.camel@router7789> <5021422F.6080601@iki.fi>
-In-Reply-To: <5021422F.6080601@iki.fi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from smtp3.clear.net.nz ([203.97.33.64]:40967 "EHLO
+	smtp3.clear.net.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756079Ab2HGWFR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2012 18:05:17 -0400
+Date: Wed, 08 Aug 2012 10:05:10 +1200
+From: Douglas Bagnall <douglas@paradise.net.nz>
+Subject: [PATCH] [media] Unlock the rc_dev lock when the raw device is missing
+In-reply-to: <20120807161013.GC3922@herton-Z68MA-D2H-B3>
+To: Herton Ronaldo Krzesinski <herton.krzesinski@canonical.com>
+Cc: Ben Hutchings <ben@decadent.org.uk>, stable@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Message-id: <50219116.6070103@paradise.net.nz>
+MIME-version: 1.0
+Content-type: multipart/mixed; boundary=------------010307000605070405010405
+References: <20120806173851.GE2979@herton-Z68MA-D2H-B3>
+ <1344304698.13142.154.camel@deadeye.wl.decadent.org.uk>
+ <5020CAB4.2080607@paradise.net.nz> <20120807161013.GC3922@herton-Z68MA-D2H-B3>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 07-08-2012 13:28, Antti Palosaari escreveu:
-> On 08/06/2012 11:21 PM, Malcolm Priestley wrote:
->> Conversion of lmedm04 to dvb-usb-v2
->>
->> Functional changes m88rs2000 tuner now uses all callbacks.
->> TODO migrate other tuners to the callbacks.
->>
->> This patch is applied on top of [BUG] Re: dvb_usb_lmedm04 crash Kernel (rs2000)
->> http://patchwork.linuxtv.org/patch/13584/
->>
->>
->> Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
-> 
-> Could you try to make this driver more generic?
-> 
-> You use some internals of dvb-usb directly and most likely those are without a reason.
-> For example data streaming, lme2510_kill_urb() kills directly urbs allocated
-> and submitted by dvb-usb. Guess that driver is broken just after someone changes
->  dvb-usb streaming code.
+This is a multi-part message in MIME format.
+--------------010307000605070405010405
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Yeah, it is better to replace it by the dvb-usb-v2 solution (usb_clear_halt),
-as some special treatment there might be needed due to suspend/resume.
+On 08/08/12 04:10, Herton Ronaldo Krzesinski wrote:
+> As it's desired for stable, this could also have
+> "Cc: stable@vger.kernel.org" when applied, so it's picked up
+> "automatically" when lands in mainline. Also nitpicking some more,
+> may be the patch could have a Reported-by line added.
 
-> lme2510_usb_talk() could be replaced by generic dvb_usbv2_generic_rw().
-> 
-> What is function of lme2510_int_read() ? I see you use own low level URB routines for here too. 
-> It starts "polling", reads remote, tuner, demod, etc, and updates state. You would better to 
-> implement I2C-adapter correctly and then start Kernel work-queue, which reads same information 
-> using I2C-adapter. Or you could even abuse remote controller polling function provided by dvb-usb.
+OK. Here it is again, with CC: stable, Reported-by Ben, and Herton's
+Acked-by.
 
-While I don't know any technical details about this device, this looks
-similar to what dib0700_core does.
+thanks,
 
-Instead of polling IR, with is expensive, it sets an special endpoint
-to receive IR data, and sends an URB request. That URB request will
-be pending until someone kicks the IR. If nothing is pressed, no URB
-is received. This is a way better than polling, as no traffic
-happens while a key is not pressed.
+Douglas
 
->From what I saw at the driver, the mpeg stream is at endpoint 0x08, and
-it uses bulk transfer; for IR data, it uses endpoint 0x0a, and interrupt
-URB.
 
-So, this extra control is needed. It may make sense to move part of this
-code to the dvb-usb-v2 core (the part that starts/stops the URB handling),
-in order to properly handle device suspend/resume, as, depending on the
-suspend level, you might need to stop it, restarting at resume.
+--------------010307000605070405010405
+Content-Type: text/x-patch;
+ name="0001-Unlock-the-rc_dev-lock-when-the-raw-device-is-missin.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="0001-Unlock-the-rc_dev-lock-when-the-raw-device-is-missin.pa";
+ filename*1="tch"
 
-The payload handling should be driver-specific, of course.
+>From 47aadfdaa5a6e5c3d8f1bf2b5be4c4a4156085ee Mon Sep 17 00:00:00 2001
+From: Douglas Bagnall <douglas@paradise.net.nz>
+Date: Tue, 7 Aug 2012 19:30:36 +1200
+Subject: [PATCH] Unlock the rc_dev lock when the raw device is missing
 
-So, in summary, that seems to be OK, for the current dvb-usb-v2 core,
-requiring further changes for suspend/resume to work properly.
+As pointed out by Ben Hutchings, after commit 720bb6436, the lock was
+being taken and not released when an rc_dev has a NULL raw device.
 
-> 
-> lme2510_get_stream_config() enables pid-filter again over the dvb-usb, but I can live with it because there is no dynamic configuration for that. Anyhow, is that really needed?
-> 
-> I can live with the pid-filter "abuse", but killing stream URBs on behalf of DVB-USB is something I don't like to see. If you have very good explanation and I cannot fix DVB USB to meet it I could consider that kind of hack. And it should be documented clearly adding necessary comments to code.
-> 
-> Re-implementing that driver to use 100% DVB-USB services will reduce around 50% of code or more.
+Cc: <stable@vger.kernel.org>
+Reported-by: Ben Hutchings <ben@decadent.org.uk>
+Signed-off-by: Douglas Bagnall <douglas@paradise.net.nz>
+Acked-by: Herton R. Krzesinski <herton.krzesinski@canonical.com>
+---
+ drivers/media/rc/rc-main.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-The thing that bother me at the code is the implementation of a device-specific
-set_voltage() callback. This should be part of dvb-usb-v2 core, and, during
-suspend, it makes sense to set voltage to OFF, returning it to its original
-state during resume.
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index cabc19c..dcd45d0 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -778,9 +778,10 @@ static ssize_t show_protocols(struct device *device,
+ 	} else if (dev->raw) {
+ 		enabled = dev->raw->enabled_protocols;
+ 		allowed = ir_raw_get_allowed_protocols();
+-	} else
++	} else {
++		mutex_unlock(&dev->lock);
+ 		return -ENODEV;
+-
++	}
+ 	IR_dprintk(1, "allowed - 0x%llx, enabled - 0x%llx\n",
+ 		   (long long)allowed,
+ 		   (long long)enabled);
+-- 
+1.7.9.5
 
-Regards,
-Mauro
+
+
+--------------010307000605070405010405--
