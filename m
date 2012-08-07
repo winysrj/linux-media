@@ -1,79 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:65301 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752537Ab2HTTFJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Aug 2012 15:05:09 -0400
-Message-ID: <50328A5F.20303@redhat.com>
-Date: Mon, 20 Aug 2012 16:05:03 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC API] Renumber subdev ioctls
-References: <201208201030.30590.hverkuil@xs4all.nl>
-In-Reply-To: <201208201030.30590.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:52727 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932570Ab2HGCsE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 22:48:04 -0400
+Received: by mail-vc0-f174.google.com with SMTP id fk26so3432709vcb.19
+        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 19:48:03 -0700 (PDT)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: linux-media@vger.kernel.org
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: [PATCH 17/24] au0828: fix possible race condition in usage of dev->ctrlmsg
+Date: Mon,  6 Aug 2012 22:47:07 -0400
+Message-Id: <1344307634-11673-18-git-send-email-dheitmueller@kernellabs.com>
+In-Reply-To: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
+References: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 20-08-2012 05:30, Hans Verkuil escreveu:
-> Hi all!
-> 
-> Recently I had to add two new ioctls for the subdev API (include/linux/v4l2-subdev.h)
-> and I noticed that the numbering of the ioctls was somewhat random.
-> 
-> In most cases the ioctl number was the same as the V4L2 API counterpart, but for
-> subdev-specific ioctls no rule exists.
-> 
-> There are a few problems with this: because of the lack of rules there is a chance
-> that in the future a subdev ioctl may end up to be identical to an existing V4L2
-> ioctl. Also, because the numbering isn't nicely increasing it makes it hard to create
-> a lookup table as was done for the V4L2 ioctls. Well, you could do it, but it would
-> be a very sparse array, wasting a lot of memory.
-> 
-> Lookup tables have proven to be very useful, so we might want to introduce them for
-> the subdev core code as well in the future.
-> 
-> Since the subdev API is still marked experimental, I propose to renumber the ioctls
-> and use the letter 'v' instead of 'V'. 'v' was used for V4L1, and so it is now
-> available for reuse.
+The register read function is referencing the dev->ctrlmsg structure outside
+of the dev->mutex lock, which can cause corruption of the value if multiple
+callers are invoking au0828_readreg() simultaneously.
 
-'v' is already used (mainly by fs):
+Use a stack variable to hold the result, and copy the buffer returned by
+usb_control_msg() to that variable.
 
-'v'	00-1F	linux/ext2_fs.h		conflict!
-'v'	00-1F	linux/fs.h		conflict!
-'v'	00-0F	linux/sonypi.h		conflict!
-'v'	C0-FF	linux/meye.h		conflict!
+In reality, the whole recv_control_msg() function can probably be collapsed
+into au0288_readreg() since it is the only caller.
 
-Reusing the ioctl numbering is a bad thing, as tracing code like strace will likely
-say that a different type of ioctl was called.
+Also get rid of cmd_msg_dump() since the only case in which the function is
+ever called only is ever passed a single byte for the response (and it is
+already logged).
 
-(Yeah, unfortunately, this end by merging with duplicated stuff :< )
+Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+---
+ drivers/media/video/au0828/au0828-core.c |   40 +++++++++---------------------
+ 1 files changed, 12 insertions(+), 28 deletions(-)
 
-Also, I don't like the idea of deprecating it just because of that: interfaces are
-supposed to be stable.
-
-It should be noticed that there are very few ioctls there. So,
-using a lookup table is overkill.
-
-IMO, the better is to sort the ioctl's there at the header file, in order to
-avoid ioctl duplicaton.
-
-
-> We keep the old ioctls around for a few kernel cycles, and remove them some time
-> next year.
-> 
-> Note that some V4L2 ioctls are also available for use in the subdev API (control
-> ioctls in particular). By using a different letter for the ioctls this will make
-> it easy as well to decide what lookup table to use should we decide to introduce
-> that in the subdev core code in the future.
-> 
-> Comments?
-> 
-> Regards,
-> 
-> 	Hans
-> 
+diff --git a/drivers/media/video/au0828/au0828-core.c b/drivers/media/video/au0828/au0828-core.c
+index 65914bc..745a80a 100644
+--- a/drivers/media/video/au0828/au0828-core.c
++++ b/drivers/media/video/au0828/au0828-core.c
+@@ -56,9 +56,12 @@ static int recv_control_msg(struct au0828_dev *dev, u16 request, u32 value,
+ 
+ u32 au0828_readreg(struct au0828_dev *dev, u16 reg)
+ {
+-	recv_control_msg(dev, CMD_REQUEST_IN, 0, reg, dev->ctrlmsg, 1);
+-	dprintk(8, "%s(0x%04x) = 0x%02x\n", __func__, reg, dev->ctrlmsg[0]);
+-	return dev->ctrlmsg[0];
++	u8 result = 0;
++
++	recv_control_msg(dev, CMD_REQUEST_IN, 0, reg, &result, 1);
++	dprintk(8, "%s(0x%04x) = 0x%02x\n", __func__, reg, result);
++
++	return result;
+ }
+ 
+ u32 au0828_writereg(struct au0828_dev *dev, u16 reg, u32 val)
+@@ -67,24 +70,6 @@ u32 au0828_writereg(struct au0828_dev *dev, u16 reg, u32 val)
+ 	return send_control_msg(dev, CMD_REQUEST_OUT, val, reg);
+ }
+ 
+-static void cmd_msg_dump(struct au0828_dev *dev)
+-{
+-	int i;
+-
+-	for (i = 0; i < sizeof(dev->ctrlmsg); i += 16)
+-		dprintk(2, "%s() %02x %02x %02x %02x %02x %02x %02x %02x "
+-				"%02x %02x %02x %02x %02x %02x %02x %02x\n",
+-			__func__,
+-			dev->ctrlmsg[i+0], dev->ctrlmsg[i+1],
+-			dev->ctrlmsg[i+2], dev->ctrlmsg[i+3],
+-			dev->ctrlmsg[i+4], dev->ctrlmsg[i+5],
+-			dev->ctrlmsg[i+6], dev->ctrlmsg[i+7],
+-			dev->ctrlmsg[i+8], dev->ctrlmsg[i+9],
+-			dev->ctrlmsg[i+10], dev->ctrlmsg[i+11],
+-			dev->ctrlmsg[i+12], dev->ctrlmsg[i+13],
+-			dev->ctrlmsg[i+14], dev->ctrlmsg[i+15]);
+-}
+-
+ static int send_control_msg(struct au0828_dev *dev, u16 request, u32 value,
+ 	u16 index)
+ {
+@@ -118,24 +103,23 @@ static int recv_control_msg(struct au0828_dev *dev, u16 request, u32 value,
+ 	int status = -ENODEV;
+ 	mutex_lock(&dev->mutex);
+ 	if (dev->usbdev) {
+-
+-		memset(dev->ctrlmsg, 0, sizeof(dev->ctrlmsg));
+-
+-		/* cp must be memory that has been allocated by kmalloc */
+ 		status = usb_control_msg(dev->usbdev,
+ 				usb_rcvctrlpipe(dev->usbdev, 0),
+ 				request,
+ 				USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+ 				value, index,
+-				cp, size, 1000);
++				dev->ctrlmsg, size, 1000);
+ 
+ 		status = min(status, 0);
+ 
+ 		if (status < 0) {
+ 			printk(KERN_ERR "%s() Failed receiving control message, error %d.\n",
+ 				__func__, status);
+-		} else
+-			cmd_msg_dump(dev);
++		}
++
++		/* the host controller requires heap allocated memory, which
++		   is why we didn't just pass "cp" into usb_control_msg */
++		memcpy(cp, dev->ctrlmsg, size);
+ 	}
+ 	mutex_unlock(&dev->mutex);
+ 	return status;
+-- 
+1.7.1
 
