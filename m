@@ -1,85 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out.inet.fi ([195.156.147.13]:47175 "EHLO jenni2.inet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752051Ab2H3Rye (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Aug 2012 13:54:34 -0400
-From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCHv3 3/9] ir-rx51: Trivial fixes
-Date: Thu, 30 Aug 2012 20:54:25 +0300
-Message-Id: <1346349271-28073-4-git-send-email-timo.t.kokkonen@iki.fi>
-In-Reply-To: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
-References: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
+Received: from mailout1.samsung.com ([203.254.224.24]:48012 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751546Ab2HGI7K (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2012 04:59:10 -0400
+Received: from epcpsbgm1.samsung.com (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M8D005SYNL14I40@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 07 Aug 2012 17:58:57 +0900 (KST)
+Received: from amdc248.digital.local ([106.116.147.32])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0M8D004FYNLXN810@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 07 Aug 2012 17:58:57 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: sw0312.kim@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Heungjun Kim <riverful.kim@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH] m5mols: Fix cast warnings from m5mols_[set/get]_ctrl_mode
+Date: Tue, 07 Aug 2012 10:58:35 +0200
+Message-id: <1344329915-4647-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
--Fix typo
+Fixes following warnings on 64-bit architectures:
 
--Change pwm_timer_num type to match type in platform data
+m5mols.h: In function 'm5mols_set_ctrl_mode':
+m5mols.h:326:15: warning: cast to pointer from integer of different
+size [-Wint-to-pointer-cast]
 
--Remove extra parenthesis
+m5mols.h: In function 'm5mols_get_ctrl_mode':
+m5mols.h:331:9: warning: cast from pointer to integer of different
+size [-Wpointer-to-int-cast]
 
--Replace magic constant with proper bit defintions
+drivers/media/video/m5mols/m5mols_controls.c:466:2: warning: cast
+from pointer to integer of different size
 
--Remove duplicate exit pointer
-
-Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Cc: Heungjun Kim <riverful.kim@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/rc/Kconfig   |  2 +-
- drivers/media/rc/ir-rx51.c | 10 ++++++----
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ drivers/media/video/m5mols/m5mols.h          |    4 ++--
+ drivers/media/video/m5mols/m5mols_controls.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index 093982b..4a68014 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -278,7 +278,7 @@ config IR_RX51
- 	   Say Y or M here if you want to enable support for the IR
- 	   transmitter diode built in the Nokia N900 (RX51) device.
- 
--	   The driver uses omap DM timers for gereating the carrier
-+	   The driver uses omap DM timers for generating the carrier
- 	   wave and pulses.
- 
- config RC_LOOPBACK
-diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-index e2db94e..125d4c3 100644
---- a/drivers/media/rc/ir-rx51.c
-+++ b/drivers/media/rc/ir-rx51.c
-@@ -59,7 +59,7 @@ struct lirc_rx51 {
- 	int		wbuf[WBUF_LEN];
- 	int		wbuf_index;
- 	unsigned long	device_is_open;
--	unsigned int	pwm_timer_num;
-+	int		pwm_timer_num;
- };
- 
- static void lirc_rx51_on(struct lirc_rx51 *lirc_rx51)
-@@ -138,11 +138,14 @@ static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
- 	if (!retval)
- 		return IRQ_NONE;
- 
--	if ((retval & ~OMAP_TIMER_INT_MATCH))
-+	if (retval & ~OMAP_TIMER_INT_MATCH)
- 		dev_err_ratelimited(lirc_rx51->dev,
- 				": Unexpected interrupt source: %x\n", retval);
- 
--	omap_dm_timer_write_status(lirc_rx51->pulse_timer, 7);
-+	omap_dm_timer_write_status(lirc_rx51->pulse_timer,
-+				OMAP_TIMER_INT_MATCH	|
-+				OMAP_TIMER_INT_OVERFLOW	|
-+				OMAP_TIMER_INT_CAPTURE);
- 	if (lirc_rx51->wbuf_index < 0) {
- 		dev_err_ratelimited(lirc_rx51->dev,
- 				": BUG wbuf_index has value of %i\n",
-@@ -489,7 +492,6 @@ struct platform_driver lirc_rx51_platform_driver = {
- 	.remove		= __exit_p(lirc_rx51_remove),
- 	.suspend	= lirc_rx51_suspend,
- 	.resume		= lirc_rx51_resume,
--	.remove		= __exit_p(lirc_rx51_remove),
- 	.driver		= {
- 		.name	= DRIVER_NAME,
- 		.owner	= THIS_MODULE,
--- 
-1.7.12
+diff --git a/drivers/media/video/m5mols/m5mols.h b/drivers/media/video/m5mols/m5mols.h
+index bb58991..527e7b2 100644
+--- a/drivers/media/video/m5mols/m5mols.h
++++ b/drivers/media/video/m5mols/m5mols.h
+@@ -323,12 +323,12 @@ static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
+ static inline void m5mols_set_ctrl_mode(struct v4l2_ctrl *ctrl,
+ 					unsigned int mode)
+ {
+-	ctrl->priv = (void *)mode;
++	ctrl->priv = (void *)(uintptr_t)mode;
+ }
+
+ static inline unsigned int m5mols_get_ctrl_mode(struct v4l2_ctrl *ctrl)
+ {
+-	return (unsigned int)ctrl->priv;
++	return (unsigned int)(uintptr_t)ctrl->priv;
+ }
+
+ #endif	/* M5MOLS_H */
+diff --git a/drivers/media/video/m5mols/m5mols_controls.c b/drivers/media/video/m5mols/m5mols_controls.c
+index fdbc205..f34429e 100644
+--- a/drivers/media/video/m5mols/m5mols_controls.c
++++ b/drivers/media/video/m5mols/m5mols_controls.c
+@@ -463,8 +463,8 @@ static int m5mols_s_ctrl(struct v4l2_ctrl *ctrl)
+ 		return 0;
+ 	}
+
+-	v4l2_dbg(1, m5mols_debug, sd, "%s: %s, val: %d, priv: %#x\n",
+-		 __func__, ctrl->name, ctrl->val, (int)ctrl->priv);
++	v4l2_dbg(1, m5mols_debug, sd, "%s: %s, val: %d, priv: %p\n",
++		 __func__, ctrl->name, ctrl->val, ctrl->priv);
+
+ 	if (ctrl_mode && ctrl_mode != info->mode) {
+ 		ret = m5mols_set_mode(info, ctrl_mode);
+--
+1.7.10
 
