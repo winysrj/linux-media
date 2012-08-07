@@ -1,171 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:47852 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750793Ab2HQEu7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Aug 2012 00:50:59 -0400
-Received: by pbbrr13 with SMTP id rr13so2715040pbb.19
-        for <linux-media@vger.kernel.org>; Thu, 16 Aug 2012 21:50:59 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:52414 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1031112Ab2HGW5F (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Aug 2012 18:57:05 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, sakari.ailus@iki.fi,
-	sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH v2] smiapp: Use devm_* functions in smiapp-core.c file
-Date: Fri, 17 Aug 2012 10:19:02 +0530
-Message-Id: <1345178942-6771-1-git-send-email-sachin.kamat@linaro.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/2] dvb-usb: use %*ph to dump small buffers
+Date: Wed,  8 Aug 2012 01:56:35 +0300
+Message-Id: <1344380196-9488-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-devm_* functions are device managed functions and make code a bit
-smaller and cleaner.
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+[crope@iki.fi: fix trivial merge conflict]
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
-Changes since v1:
-Used devm_kzalloc for sensor->nvm.
-Used devm_clk_get and devm_regulator_get functions.
+ drivers/media/dvb/dvb-usb-v2/af9015.c | 3 +--
+ drivers/media/dvb/dvb-usb-v2/af9035.c | 3 +--
+ drivers/media/dvb/dvb-usb/pctv452e.c  | 7 +++----
+ 3 files changed, 5 insertions(+), 8 deletions(-)
 
-This patch is based on Mauro's re-organized tree
-(media_tree staging/for_v3.7) and is compile tested.
----
- drivers/media/i2c/smiapp/smiapp-core.c |   47 +++++++------------------------
- 1 files changed, 11 insertions(+), 36 deletions(-)
-
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 1cf914d..4f1c8d6 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2355,20 +2355,19 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
- 	unsigned int i;
- 	int rval;
+diff --git a/drivers/media/dvb/dvb-usb-v2/af9015.c b/drivers/media/dvb/dvb-usb-v2/af9015.c
+index 10363f6..e77429b 100644
+--- a/drivers/media/dvb/dvb-usb-v2/af9015.c
++++ b/drivers/media/dvb/dvb-usb-v2/af9015.c
+@@ -1199,8 +1199,7 @@ static int af9015_rc_query(struct dvb_usb_device *d)
  
--	sensor->vana = regulator_get(&client->dev, "VANA");
-+	sensor->vana = devm_regulator_get(&client->dev, "VANA");
- 	if (IS_ERR(sensor->vana)) {
- 		dev_err(&client->dev, "could not get regulator for vana\n");
- 		return -ENODEV;
- 	}
+ 	/* Only process key if canary killed */
+ 	if (buf[16] != 0xff && buf[0] != 0x01) {
+-		deb_rc("%s: key pressed %02x %02x %02x %02x\n", __func__,
+-			buf[12], buf[13], buf[14], buf[15]);
++		deb_rc("%s: key pressed %*ph\n", __func__, 4, buf + 12);
  
- 	if (!sensor->platform_data->set_xclk) {
--		sensor->ext_clk = clk_get(&client->dev,
--					  sensor->platform_data->ext_clk_name);
-+		sensor->ext_clk = devm_clk_get(&client->dev,
-+					sensor->platform_data->ext_clk_name);
- 		if (IS_ERR(sensor->ext_clk)) {
- 			dev_err(&client->dev, "could not get clock %s\n",
- 				sensor->platform_data->ext_clk_name);
--			rval = -ENODEV;
--			goto out_clk_get;
-+			return -ENODEV;
- 		}
+ 		/* Reset the canary */
+ 		ret = af9015_write_reg(d, 0x98e9, 0xff);
+diff --git a/drivers/media/dvb/dvb-usb-v2/af9035.c b/drivers/media/dvb/dvb-usb-v2/af9035.c
+index 79197f4..bb90b87 100644
+--- a/drivers/media/dvb/dvb-usb-v2/af9035.c
++++ b/drivers/media/dvb/dvb-usb-v2/af9035.c
+@@ -290,8 +290,7 @@ static int af9035_identify_state(struct dvb_usb_device *d, const char **name)
+ 	if (ret < 0)
+ 		goto err;
  
- 		rval = clk_set_rate(sensor->ext_clk,
-@@ -2378,8 +2377,7 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
- 				"unable to set clock %s freq to %u\n",
- 				sensor->platform_data->ext_clk_name,
- 				sensor->platform_data->ext_clk);
--			rval = -ENODEV;
--			goto out_clk_set_rate;
-+			return -ENODEV;
- 		}
- 	}
- 
-@@ -2389,8 +2387,7 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
- 			dev_err(&client->dev,
- 				"unable to acquire reset gpio %d\n",
- 				sensor->platform_data->xshutdown);
--			rval = -ENODEV;
--			goto out_clk_set_rate;
-+			return -ENODEV;
- 		}
- 	}
- 
-@@ -2470,8 +2467,8 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
- 	 * when it is first requested by userspace.
- 	 */
- 	if (sensor->minfo.smiapp_version && sensor->platform_data->nvm_size) {
--		sensor->nvm = kzalloc(sensor->platform_data->nvm_size,
--				      GFP_KERNEL);
-+		sensor->nvm = devm_kzalloc(&client->dev,
-+				sensor->platform_data->nvm_size, GFP_KERNEL);
- 		if (sensor->nvm == NULL) {
- 			dev_err(&client->dev, "nvm buf allocation failed\n");
- 			rval = -ENOMEM;
-@@ -2637,21 +2634,12 @@ out_nvm_release:
- 	device_remove_file(&client->dev, &dev_attr_nvm);
- 
- out_power_off:
--	kfree(sensor->nvm);
--	sensor->nvm = NULL;
- 	smiapp_power_off(sensor);
- 
- out_smiapp_power_on:
- 	if (sensor->platform_data->xshutdown != SMIAPP_NO_XSHUTDOWN)
- 		gpio_free(sensor->platform_data->xshutdown);
- 
--out_clk_set_rate:
--	clk_put(sensor->ext_clk);
--	sensor->ext_clk = NULL;
--
--out_clk_get:
--	regulator_put(sensor->vana);
--	sensor->vana = NULL;
- 	return rval;
- }
- 
-@@ -2801,12 +2789,11 @@ static int smiapp_probe(struct i2c_client *client,
- 			const struct i2c_device_id *devid)
- {
- 	struct smiapp_sensor *sensor;
--	int rval;
- 
- 	if (client->dev.platform_data == NULL)
- 		return -ENODEV;
- 
--	sensor = kzalloc(sizeof(*sensor), GFP_KERNEL);
-+	sensor = devm_kzalloc(&client->dev, sizeof(*sensor), GFP_KERNEL);
- 	if (sensor == NULL)
- 		return -ENOMEM;
- 
-@@ -2821,12 +2808,8 @@ static int smiapp_probe(struct i2c_client *client,
- 	sensor->src->sensor = sensor;
- 
- 	sensor->src->pads[0].flags = MEDIA_PAD_FL_SOURCE;
--	rval = media_entity_init(&sensor->src->sd.entity, 2,
-+	return media_entity_init(&sensor->src->sd.entity, 2,
- 				 sensor->src->pads, 0);
--	if (rval < 0)
--		kfree(sensor);
--
--	return rval;
- }
- 
- static int __exit smiapp_remove(struct i2c_client *client)
-@@ -2845,10 +2828,8 @@ static int __exit smiapp_remove(struct i2c_client *client)
- 		sensor->power_count = 0;
- 	}
- 
--	if (sensor->nvm) {
-+	if (sensor->nvm)
- 		device_remove_file(&client->dev, &dev_attr_nvm);
--		kfree(sensor->nvm);
--	}
- 
- 	for (i = 0; i < sensor->ssds_used; i++) {
- 		media_entity_cleanup(&sensor->ssds[i].sd.entity);
-@@ -2857,12 +2838,6 @@ static int __exit smiapp_remove(struct i2c_client *client)
- 	smiapp_free_controls(sensor);
- 	if (sensor->platform_data->xshutdown != SMIAPP_NO_XSHUTDOWN)
- 		gpio_free(sensor->platform_data->xshutdown);
--	if (sensor->ext_clk)
--		clk_put(sensor->ext_clk);
--	if (sensor->vana)
--		regulator_put(sensor->vana);
--
--	kfree(sensor);
- 
+-	pr_debug("%s: reply=%02x %02x %02x %02x\n", __func__,
+-		rbuf[0], rbuf[1], rbuf[2], rbuf[3]);
++	pr_debug("%s: reply=%*ph\n", __func__, 4, rbuf);
+ 	if (rbuf[0] || rbuf[1] || rbuf[2] || rbuf[3])
+ 		ret = WARM;
+ 	else
+diff --git a/drivers/media/dvb/dvb-usb/pctv452e.c b/drivers/media/dvb/dvb-usb/pctv452e.c
+index f526eb0..02e8785 100644
+--- a/drivers/media/dvb/dvb-usb/pctv452e.c
++++ b/drivers/media/dvb/dvb-usb/pctv452e.c
+@@ -136,8 +136,8 @@ static int tt3650_ci_msg(struct dvb_usb_device *d, u8 cmd, u8 *data,
  	return 0;
+ 
+ failed:
+-	err("CI error %d; %02X %02X %02X -> %02X %02X %02X.",
+-	     ret, SYNC_BYTE_OUT, id, cmd, buf[0], buf[1], buf[2]);
++	err("CI error %d; %02X %02X %02X -> %*ph.",
++	     ret, SYNC_BYTE_OUT, id, cmd, 3, buf);
+ 
+ 	return ret;
  }
+@@ -556,8 +556,7 @@ static int pctv452e_rc_query(struct dvb_usb_device *d)
+ 		return ret;
+ 
+ 	if (debug > 3) {
+-		info("%s: read: %2d: %02x %02x %02x: ", __func__,
+-				ret, rx[0], rx[1], rx[2]);
++		info("%s: read: %2d: %*ph: ", __func__, ret, 3, rx);
+ 		for (i = 0; (i < rx[3]) && ((i+3) < PCTV_ANSWER_LEN); i++)
+ 			info(" %02x", rx[i+3]);
+ 
 -- 
-1.7.4.1
+1.7.11.2
 
