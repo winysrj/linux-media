@@ -1,324 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([93.97.41.153]:46980 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750963Ab2HMM7x (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Aug 2012 08:59:53 -0400
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Stefan Macher <st_maker-lirc@yahoo.de>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 01/13] [media] iguanair: reuse existing urb callback for command responses
-Date: Mon, 13 Aug 2012 13:59:39 +0100
-Message-Id: <1344862791-30352-1-git-send-email-sean@mess.org>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:52727 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932526Ab2HGCr5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 22:47:57 -0400
+Received: by mail-vc0-f174.google.com with SMTP id fk26so3432709vcb.19
+        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 19:47:57 -0700 (PDT)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: linux-media@vger.kernel.org
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: [PATCH 11/24] xc5000: don't invoke auto calibration unless we really did reset tuner
+Date: Mon,  6 Aug 2012 22:47:01 -0400
+Message-Id: <1344307634-11673-12-git-send-email-dheitmueller@kernellabs.com>
+In-Reply-To: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
+References: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rather than using usb_interrupt_msg() to receive responses, reuse the
-urb callback we already have in place.
+The current code invokes the auto calibration of the tuner whenever the
+init routine is called (whenever the DVB frontend opens the device).
+However we should really only be invoking the calibration if we actually
+did reset the device and reload the firmware.
 
-Signed-off-by: Sean Young <sean@mess.org>
+Rework the routine to only do calibration if reset and firmware load was
+performed.  Also because the called function is now a no-op if the firmware
+is already loaded, the caller no longer needs to invoke is_firmware_loaded().
+
+Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
 ---
- drivers/media/rc/iguanair.c | 147 +++++++++++++++++---------------------------
- 1 file changed, 56 insertions(+), 91 deletions(-)
+ drivers/media/common/tuners/xc5000.c |   40 +++++++++++++++------------------
+ 1 files changed, 18 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/media/rc/iguanair.c b/drivers/media/rc/iguanair.c
-index 5e2eaf8..bdd526d 100644
---- a/drivers/media/rc/iguanair.c
-+++ b/drivers/media/rc/iguanair.c
-@@ -35,7 +35,7 @@ struct iguanair {
- 	struct device *dev;
- 	struct usb_device *udev;
+diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
+index a7fa17e..1cfaa7c 100644
+--- a/drivers/media/common/tuners/xc5000.c
++++ b/drivers/media/common/tuners/xc5000.c
+@@ -715,11 +715,9 @@ static int xc5000_set_params(struct dvb_frontend *fe)
+ 	u32 freq = fe->dtv_property_cache.frequency;
+ 	u32 delsys  = fe->dtv_property_cache.delivery_system;
  
--	int pipe_in, pipe_out;
-+	int pipe_out;
- 	uint8_t bufsize;
- 	uint8_t version[2];
- 
-@@ -82,11 +82,6 @@ struct packet {
- 	uint8_t cmd;
- };
- 
--struct response_packet {
--	struct packet header;
--	uint8_t data[4];
--};
--
- struct send_packet {
- 	struct packet header;
- 	uint8_t length;
-@@ -100,6 +95,26 @@ static void process_ir_data(struct iguanair *ir, unsigned len)
- {
- 	if (len >= 4 && ir->buf_in[0] == 0 && ir->buf_in[1] == 0) {
- 		switch (ir->buf_in[3]) {
-+		case CMD_GET_VERSION:
-+			if (len == 6) {
-+				ir->version[0] = ir->buf_in[4];
-+				ir->version[1] = ir->buf_in[5];
-+				complete(&ir->completion);
-+			}
-+			break;
-+		case CMD_GET_BUFSIZE:
-+			if (len >= 5) {
-+				ir->bufsize = ir->buf_in[4];
-+				complete(&ir->completion);
-+			}
-+			break;
-+		case CMD_GET_FEATURES:
-+			if (len > 5) {
-+				if (ir->version[0] >= 4)
-+					ir->cycle_overhead = ir->buf_in[5];
-+				complete(&ir->completion);
-+			}
-+			break;
- 		case CMD_TX_OVERFLOW:
- 			ir->tx_overflow = true;
- 		case CMD_RECEIVER_OFF:
-@@ -169,31 +184,22 @@ static void iguanair_rx(struct urb *urb)
- 	usb_submit_urb(urb, GFP_ATOMIC);
- }
- 
--static int iguanair_send(struct iguanair *ir, void *data, unsigned size,
--			struct response_packet *response, unsigned *res_len)
-+static int iguanair_send(struct iguanair *ir, void *data, unsigned size)
- {
--	unsigned offset, len;
- 	int rc, transferred;
- 
--	for (offset = 0; offset < size; offset += MAX_PACKET_SIZE) {
--		len = min(size - offset, MAX_PACKET_SIZE);
--
--		if (ir->tx_overflow)
--			return -EOVERFLOW;
-+	INIT_COMPLETION(ir->completion);
- 
--		rc = usb_interrupt_msg(ir->udev, ir->pipe_out, data + offset,
--						len, &transferred, TIMEOUT);
--		if (rc)
--			return rc;
-+	rc = usb_interrupt_msg(ir->udev, ir->pipe_out, data, size,
-+							&transferred, TIMEOUT);
-+	if (rc)
-+		return rc;
- 
--		if (transferred != len)
--			return -EIO;
--	}
-+	if (transferred != size)
-+		return -EIO;
- 
--	if (response) {
--		rc = usb_interrupt_msg(ir->udev, ir->pipe_in, response,
--					sizeof(*response), res_len, TIMEOUT);
--	}
-+	if (wait_for_completion_timeout(&ir->completion, TIMEOUT) == 0)
-+		return -ETIMEDOUT;
- 
- 	return rc;
- }
-@@ -201,66 +207,40 @@ static int iguanair_send(struct iguanair *ir, void *data, unsigned size,
- static int iguanair_get_features(struct iguanair *ir)
- {
- 	struct packet packet;
--	struct response_packet response;
--	int rc, len;
-+	int rc;
- 
- 	packet.start = 0;
- 	packet.direction = DIR_OUT;
- 	packet.cmd = CMD_GET_VERSION;
- 
--	rc = iguanair_send(ir, &packet, sizeof(packet), &response, &len);
-+	rc = iguanair_send(ir, &packet, sizeof(packet));
- 	if (rc) {
- 		dev_info(ir->dev, "failed to get version\n");
- 		goto out;
+-	if (xc5000_is_firmware_loaded(fe) != XC_RESULT_SUCCESS) {
+-		if (xc_load_fw_and_init_tuner(fe) != XC_RESULT_SUCCESS) {
+-			dprintk(1, "Unable to load firmware and init tuner\n");
+-			return -EINVAL;
+-		}
++	if (xc_load_fw_and_init_tuner(fe) != XC_RESULT_SUCCESS) {
++		dprintk(1, "Unable to load firmware and init tuner\n");
++		return -EINVAL;
  	}
  
--	if (len != 6) {
--		dev_info(ir->dev, "failed to get version\n");
--		rc = -EIO;
--		goto out;
--	}
--
--	ir->version[0] = response.data[0];
--	ir->version[1] = response.data[1];
- 	ir->bufsize = 150;
- 	ir->cycle_overhead = 65;
+ 	dprintk(1, "%s() frequency=%d (Hz)\n", __func__, freq);
+@@ -994,11 +992,9 @@ static int xc5000_set_analog_params(struct dvb_frontend *fe,
+ 	if (priv->i2c_props.adap == NULL)
+ 		return -EINVAL;
  
- 	packet.cmd = CMD_GET_BUFSIZE;
- 
--	rc = iguanair_send(ir, &packet, sizeof(packet), &response, &len);
-+	rc = iguanair_send(ir, &packet, sizeof(packet));
- 	if (rc) {
- 		dev_info(ir->dev, "failed to get buffer size\n");
- 		goto out;
+-	if (xc5000_is_firmware_loaded(fe) != XC_RESULT_SUCCESS) {
+-		if (xc_load_fw_and_init_tuner(fe) != XC_RESULT_SUCCESS) {
+-			dprintk(1, "Unable to load firmware and init tuner\n");
+-			return -EINVAL;
+-		}
++	if (xc_load_fw_and_init_tuner(fe) != XC_RESULT_SUCCESS) {
++		dprintk(1, "Unable to load firmware and init tuner\n");
++		return -EINVAL;
  	}
  
--	if (len != 5) {
--		dev_info(ir->dev, "failed to get buffer size\n");
--		rc = -EIO;
--		goto out;
--	}
--
--	ir->bufsize = response.data[0];
--
- 	if (ir->version[0] == 0 || ir->version[1] == 0)
- 		goto out;
- 
- 	packet.cmd = CMD_GET_FEATURES;
- 
--	rc = iguanair_send(ir, &packet, sizeof(packet), &response, &len);
-+	rc = iguanair_send(ir, &packet, sizeof(packet));
- 	if (rc) {
- 		dev_info(ir->dev, "failed to get features\n");
- 		goto out;
- 	}
- 
--	if (len < 5) {
--		dev_info(ir->dev, "failed to get features\n");
--		rc = -EIO;
--		goto out;
--	}
--
--	if (len > 5 && ir->version[0] >= 4)
--		ir->cycle_overhead = response.data[1];
--
- out:
- 	return rc;
- }
-@@ -269,17 +249,8 @@ static int iguanair_receiver(struct iguanair *ir, bool enable)
+ 	switch (params->mode) {
+@@ -1057,26 +1053,26 @@ static int xc5000_get_status(struct dvb_frontend *fe, u32 *status)
+ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe)
  {
- 	struct packet packet = { 0, DIR_OUT, enable ?
- 				CMD_RECEIVER_ON : CMD_RECEIVER_OFF };
--	int rc;
--
--	INIT_COMPLETION(ir->completion);
--
--	rc = iguanair_send(ir, &packet, sizeof(packet), NULL, NULL);
--	if (rc)
--		return rc;
--
--	wait_for_completion_timeout(&ir->completion, TIMEOUT);
+ 	struct xc5000_priv *priv = fe->tuner_priv;
+-	int ret = 0;
++	int ret = XC_RESULT_SUCCESS;
  
--	return 0;
-+	return iguanair_send(ir, &packet, sizeof(packet));
- }
- 
- /*
-@@ -406,17 +377,10 @@ static int iguanair_tx(struct rc_dev *dev, unsigned *txbuf, unsigned count)
- 
- 	ir->tx_overflow = false;
- 
--	INIT_COMPLETION(ir->completion);
--
--	rc = iguanair_send(ir, packet, size + 8, NULL, NULL);
-+	rc = iguanair_send(ir, packet, size + 8);
- 
--	if (rc == 0) {
--		wait_for_completion_timeout(&ir->completion, TIMEOUT);
--		if (ir->tx_overflow)
--			rc = -EOVERFLOW;
+ 	if (xc5000_is_firmware_loaded(fe) != XC_RESULT_SUCCESS) {
+ 		ret = xc5000_fwupload(fe);
+ 		if (ret != XC_RESULT_SUCCESS)
+ 			return ret;
 -	}
--
--	ir->tx_overflow = false;
-+	if (rc == 0 && ir->tx_overflow)
-+		rc = -EOVERFLOW;
  
- 	if (ir->receiver_on) {
- 		if (iguanair_receiver(ir, true))
-@@ -437,8 +401,6 @@ static int iguanair_open(struct rc_dev *rdev)
+-	/* Start the tuner self-calibration process */
+-	ret |= xc_initialize(priv);
++		/* Start the tuner self-calibration process */
++		ret |= xc_initialize(priv);
  
- 	mutex_lock(&ir->lock);
+-	/* Wait for calibration to complete.
+-	 * We could continue but XC5000 will clock stretch subsequent
+-	 * I2C transactions until calibration is complete.  This way we
+-	 * don't have to rely on clock stretching working.
+-	 */
+-	xc_wait(100);
++		/* Wait for calibration to complete.
++		 * We could continue but XC5000 will clock stretch subsequent
++		 * I2C transactions until calibration is complete.  This way we
++		 * don't have to rely on clock stretching working.
++		 */
++		xc_wait(100);
  
--	usb_submit_urb(ir->urb_in, GFP_KERNEL);
--
- 	BUG_ON(ir->receiver_on);
- 
- 	rc = iguanair_receiver(ir, true);
-@@ -462,8 +424,6 @@ static void iguanair_close(struct rc_dev *rdev)
- 	if (rc)
- 		dev_warn(ir->dev, "failed to disable receiver: %d\n", rc);
- 
--	usb_kill_urb(ir->urb_in);
--
- 	mutex_unlock(&ir->lock);
- }
- 
-@@ -473,7 +433,7 @@ static int __devinit iguanair_probe(struct usb_interface *intf,
- 	struct usb_device *udev = interface_to_usbdev(intf);
- 	struct iguanair *ir;
- 	struct rc_dev *rc;
--	int ret;
-+	int ret, pipein;
- 	struct usb_host_interface *idesc;
- 
- 	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
-@@ -483,7 +443,7 @@ static int __devinit iguanair_probe(struct usb_interface *intf,
- 		goto out;
- 	}
- 
--	ir->buf_in = usb_alloc_coherent(udev, MAX_PACKET_SIZE, GFP_ATOMIC,
-+	ir->buf_in = usb_alloc_coherent(udev, MAX_PACKET_SIZE, GFP_KERNEL,
- 								&ir->dma_in);
- 	ir->urb_in = usb_alloc_urb(0, GFP_KERNEL);
- 
-@@ -502,25 +462,28 @@ static int __devinit iguanair_probe(struct usb_interface *intf,
- 	ir->rc = rc;
- 	ir->dev = &intf->dev;
- 	ir->udev = udev;
--	ir->pipe_in = usb_rcvintpipe(udev,
--				idesc->endpoint[0].desc.bEndpointAddress);
- 	ir->pipe_out = usb_sndintpipe(udev,
- 				idesc->endpoint[1].desc.bEndpointAddress);
- 	mutex_init(&ir->lock);
- 	init_completion(&ir->completion);
- 
--	ret = iguanair_get_features(ir);
--	if (ret) {
--		dev_warn(&intf->dev, "failed to get device features");
--		goto out;
--	}
--
--	usb_fill_int_urb(ir->urb_in, ir->udev, ir->pipe_in, ir->buf_in,
-+	pipein = usb_rcvintpipe(udev, idesc->endpoint[0].desc.bEndpointAddress);
-+	usb_fill_int_urb(ir->urb_in, udev, pipein, ir->buf_in,
- 		MAX_PACKET_SIZE, iguanair_rx, ir,
- 		idesc->endpoint[0].desc.bInterval);
- 	ir->urb_in->transfer_dma = ir->dma_in;
- 	ir->urb_in->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
- 
-+	ret = usb_submit_urb(ir->urb_in, GFP_KERNEL);
-+	if (ret) {
-+		dev_warn(&intf->dev, "failed to submit urb: %d\n", ret);
-+		goto out;
+-	/* Default to "CABLE" mode */
+-	ret |= xc_write_reg(priv, XREG_SIGNALSOURCE, XC_RF_MODE_CABLE);
++		/* Default to "CABLE" mode */
++		ret |= xc_write_reg(priv, XREG_SIGNALSOURCE, XC_RF_MODE_CABLE);
 +	}
-+
-+	ret = iguanair_get_features(ir);
-+	if (ret)
-+		goto out2;
-+
- 	snprintf(ir->name, sizeof(ir->name),
- 		"IguanaWorks USB IR Transceiver version %d.%d",
- 		ir->version[0], ir->version[1]);
-@@ -547,7 +510,7 @@ static int __devinit iguanair_probe(struct usb_interface *intf,
- 	ret = rc_register_device(rc);
- 	if (ret < 0) {
- 		dev_err(&intf->dev, "failed to register rc device %d", ret);
--		goto out;
-+		goto out2;
- 	}
  
- 	usb_set_intfdata(intf, ir);
-@@ -555,6 +518,8 @@ static int __devinit iguanair_probe(struct usb_interface *intf,
- 	dev_info(&intf->dev, "Registered %s", ir->name);
- 
- 	return 0;
-+out2:
-+	usb_kill_urb(ir->urb_in);
- out:
- 	if (ir) {
- 		usb_free_urb(ir->urb_in);
+ 	return ret;
+ }
 -- 
-1.7.11.2
+1.7.1
 
