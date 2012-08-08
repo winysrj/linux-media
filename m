@@ -1,52 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:32647 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751275Ab2HNCxV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Aug 2012 22:53:21 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q7E2rKwC012891
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 13 Aug 2012 22:53:20 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] [media] b2c2: frontends/tuners are not needed at the bridge binding
-Date: Mon, 13 Aug 2012 23:53:16 -0300
-Message-Id: <1344912796-9555-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47911 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932217Ab2HHPas (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2012 11:30:48 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH] omap3isp: Mark the resizer output video node as the default video node
+Date: Wed,  8 Aug 2012 17:30:57 +0200
+Message-Id: <1344439857-7858-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The frontends/tuners are used inside the common part of the driver.
+The resizer can output YUYV and UYVY in a wide range of sizes, making it
+the best video node for regular V4L2 applications.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/pci/b2c2/Makefile | 2 --
- drivers/media/usb/b2c2/Makefile | 2 --
- 2 files changed, 4 deletions(-)
+ drivers/media/video/omap3isp/ispresizer.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/pci/b2c2/Makefile b/drivers/media/pci/b2c2/Makefile
-index e90e236..aedcac1 100644
---- a/drivers/media/pci/b2c2/Makefile
-+++ b/drivers/media/pci/b2c2/Makefile
-@@ -6,6 +6,4 @@ b2c2-flexcop-pci-objs = flexcop-pci.o
- obj-$(CONFIG_DVB_B2C2_FLEXCOP_PCI) += b2c2-flexcop-pci.o
+diff --git a/drivers/media/video/omap3isp/ispresizer.c b/drivers/media/video/omap3isp/ispresizer.c
+index ae17d91..a9bfd0a 100644
+--- a/drivers/media/video/omap3isp/ispresizer.c
++++ b/drivers/media/video/omap3isp/ispresizer.c
+@@ -1730,6 +1730,8 @@ static int resizer_init_entities(struct isp_res_device *res)
+ 	if (ret < 0)
+ 		goto error_video_out;
  
- ccflags-y += -Idrivers/media/dvb-core/
--ccflags-y += -Idrivers/media/dvb-frontends/
--ccflags-y += -Idrivers/media/common/tuners/
- ccflags-y += -Idrivers/media/common/b2c2/
-diff --git a/drivers/media/usb/b2c2/Makefile b/drivers/media/usb/b2c2/Makefile
-index 2f7ee5c..ace9d76 100644
---- a/drivers/media/usb/b2c2/Makefile
-+++ b/drivers/media/usb/b2c2/Makefile
-@@ -2,6 +2,4 @@ b2c2-flexcop-usb-objs = flexcop-usb.o
- obj-$(CONFIG_DVB_B2C2_FLEXCOP_USB) += b2c2-flexcop-usb.o
- 
- ccflags-y += -Idrivers/media/dvb-core/
--ccflags-y += -Idrivers/media/dvb-frontends/
--ccflags-y += -Idrivers/media/tuners/
- ccflags-y += -Idrivers/media/common/b2c2/
++	res->video_out.video.entity.flags |= MEDIA_ENT_FL_DEFAULT;
++
+ 	/* Connect the video nodes to the resizer subdev. */
+ 	ret = media_entity_create_link(&res->video_in.video.entity, 0,
+ 			&res->subdev.entity, RESZ_PAD_SINK, 0);
 -- 
-1.7.11.2
+Regards,
+
+Laurent Pinchart
 
