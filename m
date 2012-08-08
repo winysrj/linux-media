@@ -1,54 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:58732 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754283Ab2HNXvr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 19:51:47 -0400
-Received: by lbbgj3 with SMTP id gj3so565590lbb.19
-        for <linux-media@vger.kernel.org>; Tue, 14 Aug 2012 16:51:46 -0700 (PDT)
-Message-ID: <502AE483.6000001@iki.fi>
-Date: Wed, 15 Aug 2012 02:51:31 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:57391 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757486Ab2HHMD7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2012 08:03:59 -0400
+Received: by yhmm54 with SMTP id m54so638465yhm.19
+        for <linux-media@vger.kernel.org>; Wed, 08 Aug 2012 05:03:58 -0700 (PDT)
 MIME-Version: 1.0
-To: htl10@users.sourceforge.net
-CC: linux-media@vger.kernel.org
-Subject: Re: small regression in mediatree/for_v3.7-3 - media_build
-References: <1344987576.21425.YahooMailClassic@web29406.mail.ird.yahoo.com>
-In-Reply-To: <1344987576.21425.YahooMailClassic@web29406.mail.ird.yahoo.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1344352315-1184-1-git-send-email-kradlow@cisco.com>
+References: <1344352315-1184-1-git-send-email-kradlow@cisco.com>
+Date: Wed, 8 Aug 2012 12:03:58 +0000
+Message-ID: <CAFomkUBdFMJsrKLR1vbeg82dgQbPktcOKhKUy2qo9eGeeLsPAA@mail.gmail.com>
+Subject: Re: [RFC PATCH 0/2] Add support for RDS decoding (updated)
+From: Konke Radlow <koradlow@googlemail.com>
+To: Konke Radlow <kradlow@cisco.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	hdegoede@redhat.com, koradlow@gmail.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/15/2012 02:39 AM, Hin-Tak Leung wrote:
-> There seems to be a small regression on mediatree/for_v3.7-3
-> - dmesg/klog get flooded with these:
+just for the record, these patches are:
+
+Signed-off-by: Konke Radlow <kradlow@cisco.com>
+
+Regards,
+Konke
+
+On Tue, Aug 7, 2012 at 3:11 PM, Konke Radlow <kradlow@cisco.com> wrote:
+> Hello,
+> first of all: thank you for the comments to my previous RFC for the
+> libv4l2rds library and the rds-ctl control & testing tool.
+> The proposed changes have been implemented, and the code has been
+> further improved after a thorough code review by Hans Verkuil.
 >
-> [201145.140260] dvb_frontend_poll: 15 callbacks suppressed
-> [201145.586405] usb_urb_complete: 88 callbacks suppressed
-> [201150.587308] usb_urb_complete: 3456 callbacks suppressed
+> Changes:
+>   -the code is rebased on the latest v4l-utils code (as of today 07.08)
+>   -added feature: time/date decoding
+>   -implementing proposed changes
+>   -code cleanup
+>   -extended comments
 >
-> [201468.630197] usb_urb_complete: 3315 callbacks suppressed
-> [201473.632978] usb_urb_complete: 3529 callbacks suppressed
-> [201478.635400] usb_urb_complete: 3574 callbacks suppressed
+> Status:
+> From my point of view the RDS decoding is now almost feature complete.
+> There are some obscure RDS features like paging that are not supported,
+> but they do not seem to used anywhere.
+> So in the near future no features will be added and the goal is to get
+> the library and control tool merged into the v4l-utils codebase.
 >
-> It seems to be every 5 seconds, but I think that's just klog skipping repeats and collapsing duplicate entries. This does not happen the last time I tried playing with the TV stick :-).
-
-That's because you has dynamic debugs enabled!
-modprobe dvb_core; echo -n 'module dvb_core +p' > 
-/sys/kernel/debug/dynamic_debug/control
-modprobe dvb_usbv2; echo -n 'module dvb_usbv2 +p' > 
-/sys/kernel/debug/dynamic_debug/control
-
-If you don't add dvb_core and dvb_usbv2 modules to 
-/sys/kernel/debug/dynamic_debug/control you will not see those.
-
-I have added ratelimited version for those few debugs that are flooded 
-normally. This suppressed is coming from ratelimit - it does not print 
-all those similar debugs.
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
+> Upcoming:
+> Work on RDS-TMC decoding is going well and is being done in a seperate
+> branch. It will be the subject of a future RFC, once it has reached a
+> mature stage. But TMC is not a core feature of RDS but an addition.
+>
+> Regards,
+> Konke
+>
