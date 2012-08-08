@@ -1,170 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:60144 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752605Ab2HKXXH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Aug 2012 19:23:07 -0400
-Subject: Re: HVR 1600 - Analog goes south again
-From: Andy Walls <awalls@md.metrocast.net>
-To: Bob Lightfoot <boblfoot@mymail.coop>
-Cc: linux-media@vger.kernel.org
-Date: Sat, 11 Aug 2012 19:22:57 -0400
-In-Reply-To: <5025857E.2030109@mymail.coop>
-References: <5025857E.2030109@mymail.coop>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Message-ID: <1344727381.2468.18.camel@palomino.walls.org>
-Mime-Version: 1.0
+Received: from comal.ext.ti.com ([198.47.26.152]:41561 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758087Ab2HHMb5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Aug 2012 08:31:57 -0400
+From: Prabhakar Lad <prabhakar.lad@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	LAK <linux-arm-kernel@lists.infradead.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hansverk@cisco.com>,
+	<linux-kernel@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>
+Subject: [PATCH 2/2] ths7303: enable THS7303 for HD modes
+Date: Wed, 8 Aug 2012 18:00:20 +0530
+Message-ID: <1344429020-27616-3-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1344429020-27616-1-git-send-email-prabhakar.lad@ti.com>
+References: <1344429020-27616-1-git-send-email-prabhakar.lad@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2012-08-10 at 18:04 -0400, Bob Lightfoot wrote:
-> Dear Media List Members:
->     I have been using my Hauppage HVR1600 on Centos 6 for some time
-> and getting good analog reception.  Now the other day for a reason I
-> have not been able to determine the Analog quit working and I have not
-> had success restoring it.  I'm looking for the usual helpful
-> suggestions I've gotten from this group in the past. Here has been my
-> troubleshooting to date.
-> 1.  Verified that analog signal is present in cable by hooking a TV to
-> cable.
-> 2.  Reinstalled all latest v4l and v4l2 drivers from atrpms.net
-> packages.  These are what has worked in past.
+From: Manjunath Hadli <manjunath.hadli@ti.com>
 
+add filter settings for high def modes like 1080i,
+1080p,720p and others and implementing dv_timings.
 
-Please try to use a DVD player or camera on the S-Video or CVBS analog
-video input and L/R line in audio input, instead of the tuner.  (Use
-'v4l2-ctl' on /dev/videoN to set the input.)  That will narrow down
-whether or not this is an analog tuner problem.
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+---
+ drivers/media/video/ths7303.c |  107 ++++++++++++++++++++++++++++++++++------
+ 1 files changed, 91 insertions(+), 16 deletions(-)
 
-Obviously check cables and connectors for breaks, including inspecting,
-as best you can, the connector on the HVR-1600 itself.
-
-With analog problems, I always encourgae people to double-check their
-cable plant:
-http://ivtvdriver.org/index.php/Howto:Improve_signal_quality
-
-Also as a temporary test, you may want to run a line from the analog
-source straight to the HVR-1600 with no splits, to see if things start
-to work.
-
-> v4l2-ctl --log-status shows video signal not present
-> > Status Log:
-> > 
-> > cx18-0: =================  START STATUS CARD #0  ================= 
-> > cx18-0: Version: 1.5.1  Card: Hauppauge HVR-1600
-
->  tveeprom 4-0050: Hauppauge model 74041, rev C6B2, serial# 5267091
->  tveeprom 4-0050: MAC address is 00:0d:fe:50:5e:93
->  tveeprom 4-0050: tuner model is TCL M2523_5N_E (idx 112, type 50)
->  tveeprom 4-0050: TV standards NTSC(M) (eeprom 0x08)
->  tveeprom 4-0050: audio processor is CX23418 (idx 38)
->  tveeprom 4-0050: decoder processor is CX23418 (idx 31) 
-> > tveeprom 4-0050: has no radio, has IR receiver, has IR transmitter 
-> > cx18-0 843: Video signal:              not present
-> > cx18-0 843: Detected format:           NTSC-M
->   cx18-0 843: Specified standard: NTSC-M
->   cx18-0 843: Specified video input:     Composite 7
->   cx18-0 843: Specified audioclock freq: 48000 Hz
->   cx18-0 843: Detected audio mode:       mono
->   cx18-0 843: Detected audio standard:   no detected audio standard
->   cx18-0 843: Audio muted:               yes
->   cx18-0 843: Audio microcontroller:     running
->   cx18-0 843: Configured audio standard: automatic detection
->   cx18-0 843: Configured audio system:   BTSC
->   cx18-0 843: Specified audio input:     Tuner (In8) 
-> > cx18-0 843: Preferred audio mode:      stereo cx18-0
-> > gpio-reset-ctrl: GPIO:  direction 0x00003001, value 0x00003001 
-> > tuner 5-0061: Tuner mode:      analog TV
->   tuner 5-0061: Frequency:       67.25 MHz
-
-67.25 MHz is US analog broadcast channel 4 (the default channel to which
-the cx18 driver sets the tuner upon module load).  Make sure you have an
-analog signal on channel 4.
-
-Otherwise tune the channel freq using 'ivtv-ctl' or 'v4l2-ctl'
-on /dev/videoN.  If using 'v4l2-ctl', analog frequency tables for North
-America are here:
-
-http://en.wikipedia.org/wiki/North_American_broadcast_television_frequencies
-http://en.wikipedia.org/wiki/North_American_cable_television_frequencies
-
->   tuner 5-0061: Standard:        0x00001000
->   cs5345 4-004c: Input:  1
->   cs5345 4-004c: Volume: 0 dB
->   cx18-0: Video Input: Tuner 1 
-> > cx18-0: Audio Input: Tuner 1
->   cx18-0: GPIO:  direction 0x00003001, value 0x00003001
->   cx18-0: Tuner: TV
->   cx18-0: Stream Type: MPEG-2 Program Stream
->   cx18-0: Stream VBI Format: No VBI
->   cx18-0: Audio Sampling Frequency: 48 kHz cx18-0: Audio Encoding: MPEG-1/2 Layer
-> > II cx18-0: Audio Layer II Bitrate: 224 kbps cx18-0: Audio Stereo
-> > Mode: Stereo cx18-0: Audio Stereo Mode Extension: Bound 4 inactive 
-> > cx18-0: Audio Emphasis: No Emphasis cx18-0: Audio CRC: No CRC 
-> > cx18-0: Audio Mute: false cx18-0: Video Encoding: MPEG-2 cx18-0:
-> > Video Aspect: 4x3 cx18-0: Video B Frames: 2 cx18-0: Video GOP Size:
-> > 15 cx18-0: Video GOP Closure: true cx18-0: Video Bitrate Mode:
-> > Variable Bitrate cx18-0: Video Bitrate: 6000000 cx18-0: Video Peak
-> > Bitrate: 8000000 cx18-0: Video Temporal Decimation: 0 cx18-0: Video
-> > Mute: false cx18-0: Video Mute YUV: 32896 cx18-0: Spatial Filter
-> > Mode: Manual cx18-0: Spatial Filter: 0 cx18-0: Spatial Luma Filter
-> > Type: 1D Horizontal cx18-0: Spatial Chroma Filter Type: 1D
-> > Horizontal cx18-0: Temporal Filter Mode: Manual cx18-0: Temporal
-> > Filter: 8 cx18-0: Median Filter Type: Off cx18-0: Median Luma
-> > Filter Minimum: 0 inactive cx18-0: Median Luma Filter Maximum: 255
-> > inactive cx18-0: Median Chroma Filter Minimum: 0 inactive cx18-0:
-> > Median Chroma Filter Maximum: 255 inactive cx18-0: Insert
-> > Navigation Packets: false cx18-0: Status flags: 0x00200001 cx18-0:
-> > Stream encoder MPEG: status 0x0000, 0% of 2048 KiB (64 buffers) in
-> > use cx18-0: Stream encoder YUV: status 0x0000, 0% of 2025 KiB (20
-> > buffers) in use cx18-0: Stream encoder VBI: status 0x0000, 0% of
-> > 1015 KiB (20 buffers) in use cx18-0: Stream encoder PCM audio:
-> > status 0x0000, 0% of 1024 KiB (256 buffers) in use cx18-0: Read
-> > MPEG/VBI: 0/0 bytes cx18-0: ==================  END STATUS CARD #0
-> > ==================
-> 
-> I have been modprobing the cx18 in /etc/rc.local > # This section is
-> added to make the HVR1600 Analog Audio Work
-> > # service mythbackend stop modprobe -vv cx18 modprobe -v cx18_alsa 
-> > # service mythbackend start
-
-Be advised, for a delayed load of the cx18 module, you must blacklist it
-in /etc/modprobe.d/*, otherwise it will get loaded for you anyway.
-
-There is no need to modprobe cx18-alsa, the cx18 driver should
-request/cause that to load automatically if it exists.
-
-Regards,
-Andy
-
-> Even disabling the mythbackend so that it doesn't affect things until
-> this is sorted out.
-> > [root@mythbox bob]# lspci -s 01:00.0 -vv 01:00.0 Multimedia video
-> > controller: Conexant Systems, Inc. CX23418 Single-Chip MPEG-2
-> > Encoder with Integrated Analog Video/Broadcast Audio Decoder 
-> > Subsystem: Hauppauge computer works Inc. WinTV HVR-1600 Control:
-> > I/O- Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr-
-> > Stepping- SERR- FastB2B- DisINTx- Status: Cap+ 66MHz- UDF- FastB2B+
-> > ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-> > INTx- Latency: 64 (500ns min, 50000ns max), Cache Line Size: 32
-> > bytes Interrupt: pin A routed to IRQ 17 Region 0: Memory at
-> > f4000000 (32-bit, non-prefetchable) [size=64M] Capabilities: [44]
-> > Vital Product Data pcilib: sysfs_read_vpd: read failed: Connection
-> > timed out Not readable Capabilities: [4c] Power Management version
-> > 2 Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
-> > PME(D0-,D1-,D2-,D3hot-,D3cold-) Status: D0 NoSoftRst- PME-Enable-
-> > DSel=0 DScale=0 PME- Kernel driver in use: cx18 Kernel modules:
-> > cx18
-> > 
-> 
-> Not sure where to look/try next.
-> 
-> Bob Lightfoot
-> lspci confirms that it is using cx18 as always
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+diff --git a/drivers/media/video/ths7303.c b/drivers/media/video/ths7303.c
+index e5c0eed..d997583 100644
+--- a/drivers/media/video/ths7303.c
++++ b/drivers/media/video/ths7303.c
+@@ -28,6 +28,18 @@
+ #include <media/v4l2-subdev.h>
+ #include <media/v4l2-chip-ident.h>
+ 
++#define THS7303_CHANNEL_1	1
++#define THS7303_CHANNEL_2	2
++#define THS7303_CHANNEL_3	3
++
++enum ths7303_filter_mode {
++	THS7303_FILTER_MODE_480I_576I,
++	THS7303_FILTER_MODE_480P_576P,
++	THS7303_FILTER_MODE_720P_1080I,
++	THS7303_FILTER_MODE_1080P,
++	THS7303_FILTER_MODE_DISABLE
++};
++
+ MODULE_DESCRIPTION("TI THS7303 video amplifier driver");
+ MODULE_AUTHOR("Chaithrika U S");
+ MODULE_LICENSE("GPL");
+@@ -37,35 +49,97 @@ module_param(debug, int, 0644);
+ MODULE_PARM_DESC(debug, "Debug level 0-1");
+ 
+ /* following function is used to set ths7303 */
+-static int ths7303_setvalue(struct v4l2_subdev *sd, v4l2_std_id std)
++int ths7303_setval(struct v4l2_subdev *sd, enum ths7303_filter_mode mode)
+ {
++	u8 input_bias_chroma = 3;
++	u8 input_bias_luma = 3;
++	int disable = 0;
+ 	int err = 0;
+-	u8 val;
+-	struct i2c_client *client;
++	u8 val = 0;
++	u8 temp;
+ 
+-	client = v4l2_get_subdevdata(sd);
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 
+-	if (std & (V4L2_STD_ALL & ~V4L2_STD_SECAM)) {
+-		val = 0x02;
+-		v4l2_dbg(1, debug, sd, "setting value for SDTV format\n");
+-	} else {
+-		val = 0x00;
+-		v4l2_dbg(1, debug, sd, "disabling all channels\n");
++	if (!client)
++		return -EINVAL;
++
++
++	switch (mode) {
++	case THS7303_FILTER_MODE_1080P:
++		val = (3 << 6);
++		val |= (3 << 3);
++		break;
++	case THS7303_FILTER_MODE_720P_1080I:
++		val = (2 << 6);
++		val |= (2 << 3);
++		break;
++	case THS7303_FILTER_MODE_480P_576P:
++		val = (1 << 6);
++		val |= (1 << 3);
++		break;
++	case THS7303_FILTER_MODE_480I_576I:
++		break;
++	case THS7303_FILTER_MODE_DISABLE:
++		pr_info("mode disabled\n");
++		/* disable all channels */
++		disable = 1;
++	default:
++		/* disable all channels */
++		disable = 1;
+ 	}
++	/* Setup channel 2 - Luma - Green */
++	temp = val;
++	if (!disable)
++		val |= input_bias_luma;
++	err = i2c_smbus_write_byte_data(client, THS7303_CHANNEL_2, val);
++	if (err)
++		goto out;
+ 
+-	err |= i2c_smbus_write_byte_data(client, 0x01, val);
+-	err |= i2c_smbus_write_byte_data(client, 0x02, val);
+-	err |= i2c_smbus_write_byte_data(client, 0x03, val);
++	/* setup two chroma channels */
++	if (!disable)
++		temp |= input_bias_chroma;
+ 
++	err = i2c_smbus_write_byte_data(client, THS7303_CHANNEL_1, temp);
+ 	if (err)
+-		v4l2_err(sd, "write failed\n");
++		goto out;
+ 
++	err = i2c_smbus_write_byte_data(client, THS7303_CHANNEL_3, temp);
++	if (err)
++		goto out;
++	return err;
++out:
++	pr_info("write byte data failed\n");
+ 	return err;
+ }
+ 
+ static int ths7303_s_std_output(struct v4l2_subdev *sd, v4l2_std_id norm)
+ {
+-	return ths7303_setvalue(sd, norm);
++	if (norm & (V4L2_STD_ALL & ~V4L2_STD_SECAM))
++		return ths7303_setval(sd, THS7303_FILTER_MODE_480I_576I);
++	else
++		return ths7303_setval(sd, THS7303_FILTER_MODE_DISABLE);
++}
++
++/* for setting filter for HD output */
++static int ths7303_s_dv_timings(struct v4l2_subdev *sd,
++			       struct v4l2_dv_timings *dv_timings)
++{
++	u32 height = dv_timings->bt.height;
++	int interlaced = dv_timings->bt.interlaced;
++	int res = 0;
++
++	if (height == 1080 && !interlaced)
++		res = ths7303_setval(sd, THS7303_FILTER_MODE_1080P);
++	else if ((height == 720 && !interlaced) ||
++			(height == 1080 && interlaced))
++		res = ths7303_setval(sd, THS7303_FILTER_MODE_720P_1080I);
++	else if ((height == 480 || height == 576) && !interlaced)
++		res = ths7303_setval(sd, THS7303_FILTER_MODE_480P_576P);
++	else
++		/* disable all channels */
++		res = ths7303_setval(sd, THS7303_FILTER_MODE_DISABLE);
++
++	return res;
+ }
+ 
+ static int ths7303_g_chip_ident(struct v4l2_subdev *sd,
+@@ -78,6 +152,7 @@ static int ths7303_g_chip_ident(struct v4l2_subdev *sd,
+ 
+ static const struct v4l2_subdev_video_ops ths7303_video_ops = {
+ 	.s_std_output	= ths7303_s_std_output,
++	.s_dv_timings    = ths7303_s_dv_timings,
+ };
+ 
+ static const struct v4l2_subdev_core_ops ths7303_core_ops = {
+@@ -107,7 +182,7 @@ static int ths7303_probe(struct i2c_client *client,
+ 
+ 	v4l2_i2c_subdev_init(sd, client, &ths7303_ops);
+ 
+-	return ths7303_setvalue(sd, std_id);
++	return ths7303_s_std_output(sd, std_id);
+ }
+ 
+ static int ths7303_remove(struct i2c_client *client)
+-- 
+1.7.0.4
 
