@@ -1,53 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2889 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758769Ab2HVIGz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Aug 2012 04:06:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Volokh Konstantin <volokh84@gmail.com>
-Subject: Re: [PATCH 04/10] staging: media: go7007: Add IDENT for TW2802/2804
-Date: Wed, 22 Aug 2012 10:05:18 +0200
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org, volokh@telros.ru
-References: <1345632319-23224-1-git-send-email-volokh84@gmail.com> <1345632319-23224-4-git-send-email-volokh84@gmail.com>
-In-Reply-To: <1345632319-23224-4-git-send-email-volokh84@gmail.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:34119 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750875Ab2HHEQo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2012 00:16:44 -0400
+Received: by eeil10 with SMTP id l10so74322eei.19
+        for <linux-media@vger.kernel.org>; Tue, 07 Aug 2012 21:16:43 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201208221005.18039.hverkuil@xs4all.nl>
+In-Reply-To: <1344380196-9488-2-git-send-email-crope@iki.fi>
+References: <1344380196-9488-1-git-send-email-crope@iki.fi>
+	<1344380196-9488-2-git-send-email-crope@iki.fi>
+Date: Wed, 8 Aug 2012 07:16:43 +0300
+Message-ID: <CAHp75Vd=EiGvgWh=t22DTOx0=3x8EjC2wbcgXKba56YtSr22_w@mail.gmail.com>
+Subject: Re: [PATCH 2/2] dvb_usb_v2: use %*ph to dump usb xfer debugs
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed August 22 2012 12:45:13 Volokh Konstantin wrote:
-> Signed-off-by: Volokh Konstantin <volokh84@gmail.com>
-> ---
->  include/media/v4l2-chip-ident.h |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
-> 
-> diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
-> index 7395c81..5395495 100644
-> --- a/include/media/v4l2-chip-ident.h
-> +++ b/include/media/v4l2-chip-ident.h
-> @@ -113,6 +113,10 @@ enum {
->  	/* module vp27smpx: just ident 2700 */
->  	V4L2_IDENT_VP27SMPX = 2700,
->  
-> +	/* module wis-tw2804: 2802/2804 */
-> +	V4L2_IDENT_TW2802 = 2802,
-> +	V4L2_IDENT_TW2804 = 2804,
+On Wed, Aug 8, 2012 at 1:56 AM, Antti Palosaari <crope@iki.fi> wrote:
+> diff --git a/drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c b/drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c
+> index 5f5bdd0..0431bee 100644
+> --- a/drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c
+> +++ b/drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c
+
+> @@ -37,10 +36,8 @@ int dvb_usbv2_generic_rw(struct dvb_usb_device *d, u8 *wbuf, u16 wlen, u8 *rbuf,
+>         if (ret < 0)
+>                 return ret;
+>
+> -#ifdef DVB_USB_XFER_DEBUG
+> -       print_hex_dump(KERN_DEBUG, KBUILD_MODNAME ": >>> ", DUMP_PREFIX_NONE,
+> -                       32, 1, wbuf, wlen, 0);
+> -#endif
+> +       dev_dbg(&d->udev->dev, "%s: >>> %*ph\n", __func__, wlen, wbuf);
 > +
->  	/* module vpx3220: reserved range: 3210-3229 */
->  	V4L2_IDENT_VPX3214C = 3214,
->  	V4L2_IDENT_VPX3216B = 3216,
-> 
+>         ret = usb_bulk_msg(d->udev, usb_sndbulkpipe(d->udev,
+>                         d->props->generic_bulk_ctrl_endpoint), wbuf, wlen,
+>                         &actual_length, 2000);
+> @@ -64,11 +61,8 @@ int dvb_usbv2_generic_rw(struct dvb_usb_device *d, u8 *wbuf, u16 wlen, u8 *rbuf,
+>                         dev_err(&d->udev->dev, "%s: 2nd usb_bulk_msg() " \
+>                                         "failed=%d\n", KBUILD_MODNAME, ret);
+>
+> -#ifdef DVB_USB_XFER_DEBUG
+> -               print_hex_dump(KERN_DEBUG, KBUILD_MODNAME ": <<< ",
+> -                               DUMP_PREFIX_NONE, 32, 1, rbuf, actual_length,
+> -                               0);
+> -#endif
+> +               dev_dbg(&d->udev->dev, "%s: <<< %*ph\n", __func__,
+> +                               actual_length, rbuf);
+>         }
+>
+Antti, I didn't check how long buffer could be in above cases, but be
+aware that %*ph prints up to 64 bytes only. Is it enough here?
 
-There is no need to add this, unless the g/s_register or g_chip_ident ops
-are also implemented.
-
-In this case I'd just drop this patch.
-
-Regards,
-
-	Hans
+-- 
+With Best Regards,
+Andy Shevchenko
