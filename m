@@ -1,146 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:62844 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755414Ab2HNPhk (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57479 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932436Ab2HHIYN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 11:37:40 -0400
-Received: from epcpsbgm2.samsung.com (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M8R005TS4QR2TE0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:37:39 +0900 (KST)
-Received: from mcdsrvbld02.digital.local ([106.116.37.23])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M8R004J44MBC810@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:37:39 +0900 (KST)
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de, dmitriyz@google.com,
-	s.nawrocki@samsung.com, k.debski@samsung.com
-Subject: [PATCHv8 19/26] v4l: vb2: add buffer exporting via dmabuf
-Date: Tue, 14 Aug 2012 17:34:49 +0200
-Message-id: <1344958496-9373-20-git-send-email-t.stanislaws@samsung.com>
-In-reply-to: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
-References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
+	Wed, 8 Aug 2012 04:24:13 -0400
+Date: Wed, 8 Aug 2012 11:24:08 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: James <bjlockie@lockie.ca>
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	linux-media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: boot slow down
+Message-ID: <20120808082408.GE29636@valkosipuli.retiisi.org.uk>
+References: <501D4535.8080404@lockie.ca>
+ <f1bd5aea-00cd-4b3f-9562-d25153f8cef3@email.android.com>
+ <501DA203.7070800@lockie.ca>
+ <20120805212054.GA29636@valkosipuli.retiisi.org.uk>
+ <501F4A5B.1000608@lockie.ca>
+ <20120807112742.GB29636@valkosipuli.retiisi.org.uk>
+ <6ef5338940a90b4c8000594d546bf479.squirrel@lockie.ca>
+ <32d7859a-ceda-442d-be67-f4f682a6e3b9@email.android.com>
+ <48430fdf908e6481ae55103bd11b7cfe.squirrel@lockie.ca>
+ <50218BD8.8040207@lockie.ca>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <50218BD8.8040207@lockie.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds extension to videobuf2-core. It allow to export a mmap buffer
-as a file descriptor.
+Hi James,
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/videobuf2-core.c |   67 ++++++++++++++++++++++++++++++++++
- include/media/videobuf2-core.h       |    2 +
- 2 files changed, 69 insertions(+)
+On Tue, Aug 07, 2012 at 05:42:48PM -0400, James wrote:
+...
+> This is what I tried before.
+> It implies that I shouldn't need user space.
+> 
+>   ???????????????????????????????????? Include in-kernel firmware blobs in kernel binary ????????????????????????????????????
+>   ??? CONFIG_FIRMWARE_IN_KERNEL:                                              ???  
+>   ???                                                                         ???  
+>   ??? The kernel source tree includes a number of firmware 'blobs'            ???  
+>   ??? that are used by various drivers. The recommended way to                ???  
+>   ??? use these is to run "make firmware_install", which, after               ???  
+>   ??? converting ihex files to binary, copies all of the needed               ???  
+>   ??? binary files in firmware/ to /lib/firmware/ on your system so           ???  
+>   ??? that they can be loaded by userspace helpers on request.                ???  
+>   ???                                                                         ???  
+>   ??? Enabling this option will build each required firmware blob             ???  
+>   ??? into the kernel directly, where request_firmware() will find            ???  
+>   ??? them without having to call out to userspace. This may be               ???  
+>   ??? useful if your root file system requires a device that uses             ???  
+>   ??? such firmware and do not wish to use an initrd.                         ???  
+>   ???                                                                         ???  
+>   ??? This single option controls the inclusion of firmware for               ???  
+>   ??? every driver that uses request_firmware() and ships its                 ???  
+>   ??? firmware in the kernel source tree, which avoids a                      ???  
+>   ??? proliferation of 'Include firmware for xxx device' options.             ???  
+>   ???                                                                         ???  
+>   ??? Say 'N' and let firmware be loaded from userspace.
 
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index aed21e4..61354ec 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -1743,6 +1743,73 @@ static int __find_plane_by_offset(struct vb2_queue *q, unsigned long off,
- }
- 
- /**
-+ * vb2_expbuf() - Export a buffer as a file descriptor
-+ * @q:		videobuf2 queue
-+ * @eb:		export buffer structure passed from userspace to vidioc_expbuf
-+ *		handler in driver
-+ *
-+ * The return values from this function are intended to be directly returned
-+ * from vidioc_expbuf handler in driver.
-+ */
-+int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb)
-+{
-+	struct vb2_buffer *vb = NULL;
-+	struct vb2_plane *vb_plane;
-+	unsigned int buffer, plane;
-+	int ret;
-+	struct dma_buf *dbuf;
-+
-+	if (q->memory != V4L2_MEMORY_MMAP) {
-+		dprintk(1, "Queue is not currently set up for mmap\n");
-+		return -EINVAL;
-+	}
-+
-+	if (!q->mem_ops->get_dmabuf) {
-+		dprintk(1, "Queue does not support DMA buffer exporting\n");
-+		return -EINVAL;
-+	}
-+
-+	if (eb->flags & ~O_CLOEXEC) {
-+		dprintk(1, "Queue does support only O_CLOEXEC flag\n");
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * Find the plane corresponding to the offset passed by userspace.
-+	 */
-+	ret = __find_plane_by_offset(q, eb->mem_offset, &buffer, &plane);
-+	if (ret) {
-+		dprintk(1, "invalid offset %u\n", eb->mem_offset);
-+		return ret;
-+	}
-+
-+	vb = q->bufs[buffer];
-+	vb_plane = &vb->planes[plane];
-+
-+	dbuf = call_memop(q, get_dmabuf, vb_plane->mem_priv);
-+	if (IS_ERR_OR_NULL(dbuf)) {
-+		dprintk(1, "Failed to export buffer %d, plane %d\n",
-+			buffer, plane);
-+		return -EINVAL;
-+	}
-+
-+	ret = dma_buf_fd(dbuf, eb->flags);
-+	if (ret < 0) {
-+		dprintk(3, "buffer %d, plane %d failed to export (%d)\n",
-+			buffer, plane, ret);
-+		dma_buf_put(dbuf);
-+		return ret;
-+	}
-+
-+	dprintk(3, "buffer %d, plane %d exported as %d descriptor\n",
-+		buffer, plane, ret);
-+	eb->fd = ret;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(vb2_expbuf);
-+
-+/**
-  * vb2_mmap() - map video buffers into application address space
-  * @q:		videobuf2 queue
-  * @vma:	vma passed to the mmap file operation handler in the driver
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index c306fec..b034424 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -81,6 +81,7 @@ struct vb2_fileio_data;
- struct vb2_mem_ops {
- 	void		*(*alloc)(void *alloc_ctx, unsigned long size);
- 	void		(*put)(void *buf_priv);
-+	struct dma_buf *(*get_dmabuf)(void *buf_priv);
- 
- 	void		*(*get_userptr)(void *alloc_ctx, unsigned long vaddr,
- 					unsigned long size, int write);
-@@ -363,6 +364,7 @@ int vb2_queue_init(struct vb2_queue *q);
- void vb2_queue_release(struct vb2_queue *q);
- 
- int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b);
-+int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb);
- int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking);
- 
- int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type);
+I guess this only applies to firmware blobs which are part of the kernel.
+Not all of them are.
+
+Regards,
+
 -- 
-1.7.9.5
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
