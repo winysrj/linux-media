@@ -1,159 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:41892 "EHLO
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:40668 "EHLO
 	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932391Ab2HPStG (ORCPT
+	by vger.kernel.org with ESMTP id S932508Ab2HHJhn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Aug 2012 14:49:06 -0400
-Received: by lagy9 with SMTP id y9so1651152lag.19
-        for <linux-media@vger.kernel.org>; Thu, 16 Aug 2012 11:49:04 -0700 (PDT)
-Message-ID: <502D408F.9080102@iki.fi>
-Date: Thu, 16 Aug 2012 21:48:47 +0300
+	Wed, 8 Aug 2012 05:37:43 -0400
+Received: by lagy9 with SMTP id y9so283560lag.19
+        for <linux-media@vger.kernel.org>; Wed, 08 Aug 2012 02:37:39 -0700 (PDT)
+Message-ID: <50223357.1020203@iki.fi>
+Date: Wed, 08 Aug 2012 12:37:27 +0300
 From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: dvb-usb-v2 change broke s2250-loader compilation
-References: <201208161233.43618.hverkuil@xs4all.nl> <502CE527.2070006@iki.fi> <502CF98B.1060700@iki.fi> <201208161607.03380.hverkuil@xs4all.nl> <502D03B6.8030708@iki.fi> <502D24DF.8090503@redhat.com> <502D3C6F.6010507@iki.fi> <502D3D35.7020107@redhat.com>
-In-Reply-To: <502D3D35.7020107@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+CC: linux-media@vger.kernel.org,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH 2/2] dvb_usb_v2: use %*ph to dump usb xfer debugs
+References: <1344380196-9488-1-git-send-email-crope@iki.fi> <1344380196-9488-2-git-send-email-crope@iki.fi> <CAHp75Vd=EiGvgWh=t22DTOx0=3x8EjC2wbcgXKba56YtSr22_w@mail.gmail.com>
+In-Reply-To: <CAHp75Vd=EiGvgWh=t22DTOx0=3x8EjC2wbcgXKba56YtSr22_w@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/16/2012 09:34 PM, Mauro Carvalho Chehab wrote:
-> Em 16-08-2012 15:31, Antti Palosaari escreveu:
->> On 08/16/2012 07:50 PM, Mauro Carvalho Chehab wrote:
->>> Em 16-08-2012 11:29, Antti Palosaari escreveu:
->>>> On 08/16/2012 05:07 PM, Hans Verkuil wrote:
->>>>> On Thu August 16 2012 15:45:47 Antti Palosaari wrote:
->>>>>> On 08/16/2012 03:18 PM, Antti Palosaari wrote:
->>>>>>> On 08/16/2012 01:33 PM, Hans Verkuil wrote:
->>>>>>>> Building the kernel with the Sensoray 2250/2251 staging go7007 driver
->>>>>>>> enabled
->>>>>>>> fails with this link error:
->>>>>>>>
->>>>>>>> ERROR: "usb_cypress_load_firmware"
->>>>>>>> [drivers/staging/media/go7007/s2250-loader.ko] undefined!
->>>>>>>>
->>>>>>>> As far as I can tell this is related to the dvb-usb-v2 changes.
->>>>>>>>
->>>>>>>> Can someone take a look at this?
->>>>>>>>
->>>>>>>> Thanks!
->>>>>>>>
->>>>>>>>        Hans
->>>>>>>
->>>>>>> Yes it is dvb usb v2 related. I wasn't even aware that someone took that
->>>>>>> module use in few days after it was added for the dvb-usb-v2.
->>>>>>>
->>>>>>> Maybe it is worth to make it even more common and move out of dvb-usb-v2...
->>>>>>>
->>>>>>> regards
->>>>>>> Antti
->>>>>>
->>>>>> And after looking it twice I cannot see the reason. I split that Cypress
->>>>>> firmware download to own module called dvb_usb_cypress_firmware which
->>>>>> offer routine usbv2_cypress_load_firmware(). Old DVB USB is left
->>>>>> untouched. I can confirm it fails to compile for s2250, but there is
->>>>>> still old dvb_usb_cxusb that is compiling without a error.
->>>>>>
->>>>>> Makefile paths seems to be correct also, no idea whats wrong....
->>>>>
->>>>> drivers/media/usb/Makefile uses := instead of += for the dvb-usb(-v2) directories,
->>>>> and that prevents dvb-usb from being build. I think that's the cause of the link
->>>>> error.
->>>>
->>>> For that I cannot say as I don't understand situation enough.
->>>>
->>>>> In addition I noticed that in usb/dvb-usb there is a dvb_usb_dvb.c and a
->>>>> dvb-usb-dvb.c file: there's a mixup with _ and -.
->>>>
->>>> These files seems to be my fault. Original patch series removes those,
->>>> but I was forced to rebase whole set and in that rebased set those are left unremoved.
->>>> Likely due to some rebase conflict. I will send new patch to remove those.
->>>
->>> If you remove the _, they'll conflict with dvb-usb at media-build.git.
->>>
->>> The better is to add a _v2 (or -v2) on all dvb-usb-v2 files
->>> (or to convert the remaining dvb-usb drivers to dvb-usb-v2).
->>
->> hmm, now I am quite out what you mean.
->>
->> This is from my first PULL-request:
->> http://git.linuxtv.org/anttip/media_tree.git/commit/c60c6d44111be2b2fd9ef9b716ea50bd87493893
->>
->> And this is same patch after large rebase:
->> http://git.linuxtv.org/anttip/media_tree.git/commit/ac97c6f722aafb5b562ef04062b543147399dff8
->>
->> Why removing those wrong files will cause conflict in media_build.git ?
+On 08/08/2012 07:16 AM, Andy Shevchenko wrote:
+> On Wed, Aug 8, 2012 at 1:56 AM, Antti Palosaari <crope@iki.fi> wrote:
+>> diff --git a/drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c b/drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c
+>> index 5f5bdd0..0431bee 100644
+>> --- a/drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c
+>> +++ b/drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c
 >
-> Because, at the media-build, all files are linked into the "/v4l" dir. If there are two different
-> modules with the same name, one will override the other.
+>> @@ -37,10 +36,8 @@ int dvb_usbv2_generic_rw(struct dvb_usb_device *d, u8 *wbuf, u16 wlen, u8 *rbuf,
+>>          if (ret < 0)
+>>                  return ret;
+>>
+>> -#ifdef DVB_USB_XFER_DEBUG
+>> -       print_hex_dump(KERN_DEBUG, KBUILD_MODNAME ": >>> ", DUMP_PREFIX_NONE,
+>> -                       32, 1, wbuf, wlen, 0);
+>> -#endif
+>> +       dev_dbg(&d->udev->dev, "%s: >>> %*ph\n", __func__, wlen, wbuf);
+>> +
+>>          ret = usb_bulk_msg(d->udev, usb_sndbulkpipe(d->udev,
+>>                          d->props->generic_bulk_ctrl_endpoint), wbuf, wlen,
+>>                          &actual_length, 2000);
+>> @@ -64,11 +61,8 @@ int dvb_usbv2_generic_rw(struct dvb_usb_device *d, u8 *wbuf, u16 wlen, u8 *rbuf,
+>>                          dev_err(&d->udev->dev, "%s: 2nd usb_bulk_msg() " \
+>>                                          "failed=%d\n", KBUILD_MODNAME, ret);
+>>
+>> -#ifdef DVB_USB_XFER_DEBUG
+>> -               print_hex_dump(KERN_DEBUG, KBUILD_MODNAME ": <<< ",
+>> -                               DUMP_PREFIX_NONE, 32, 1, rbuf, actual_length,
+>> -                               0);
+>> -#endif
+>> +               dev_dbg(&d->udev->dev, "%s: <<< %*ph\n", __func__,
+>> +                               actual_length, rbuf);
+>>          }
+>>
+> Antti, I didn't check how long buffer could be in above cases, but be
+> aware that %*ph prints up to 64 bytes only. Is it enough here?
 
-But there should not be same names what I know.
-Here is the list of DVB USB related files:
+It is correct behavior. I saw from the LKML patch limit was selected 
+using min_t() not causing any other side effect than cut print length.
 
-DVB USB v1:
-***********
-dvb-usb/dvb-usb-firmware.c
-dvb-usb/dvb-usb.h
-dvb-usb/dvb-usb-common.h
-dvb-usb/dvb_usb_dvb.c *** not needed
-dvb-usb/dvb-usb-dvb.c
-dvb-usb/dvb-usb-i2c.c
-dvb-usb/dvb-usb-init.c
-dvb-usb/dvb_usb_remote.c *** not needed
-dvb-usb/dvb-usb-remote.c
-dvb-usb/dvb-usb-urb.c
-dvb-usb/usb-urb.c
-dvb-usb/dvb-usb.ko
-
-DVB USB v2:
-***********
-dvb-usb-v2/cypress_firmware.c
-dvb-usb-v2/cypress_firmware.h
-dvb-usb-v2/dvb_usb.h
-dvb-usb-v2/dvb_usb_common.h
-dvb-usb-v2/dvb_usb_core.c
-dvb-usb-v2/dvb_usb_urb.c
-dvb-usb-v2/usb_urb.c
-dvb-usb-v2/dvb_usb_cypress_firmware.ko
-dvb-usb-v2/dvb_usbv2.ko
-
+For some cases it could be more than 64 here, likely for the firmware 
+download packed. I suspect, situation where control message is longer 
+than 64 byte does not exist in real life as USB1.1 BULK max is 64. And 
+even such case exists, we are not interested those not printed bytes.
 
 regards
 Antti
-
-
->>
->>
->>
->> OK, those are just wasting space nothing more. But there was that original problem too which breaks s2250-loader compilation.
->>
->> regards
->> Antti
->>
->>>
->>> Regards,
->>> Mauro
->>>
->>>>
->>>>> Mauro, did that happen during the reorganization?
->>>>>
->>>>> Regards,
->>>>>
->>>>>       Hans
->>>>>
->>>>
->>>> regards
->>>> Antti
->>>>
->>>
->>
->>
->
-
 
 -- 
 http://palosaari.fi/
