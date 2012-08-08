@@ -1,71 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:13777 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751106Ab2HPKkR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Aug 2012 06:40:17 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: 'Hideki EIRAKU' <hdk@igel.co.jp>
-Cc: laurent.pinchart@ideasonboard.com, linux@arm.linux.org.uk,
-	pawel@osciak.com, kyungmin.park@samsung.com, mchehab@infradead.org,
-	FlorianSchandinat@gmx.de, perex@perex.cz, tiwai@suse.de,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
-	alsa-devel@alsa-project.org, matsu@igel.co.jp, dhobsong@igel.co.jp
-References: <1344246924-32620-1-git-send-email-hdk@igel.co.jp>
- <1344246924-32620-4-git-send-email-hdk@igel.co.jp>
- <012701cd74ac$6a617060$3f245120$%szyprowski@samsung.com>
- <20120816.191358.127675610.hdk@igel.co.jp>
-In-reply-to: <20120816.191358.127675610.hdk@igel.co.jp>
-Subject: RE: [PATCH v3 3/4] media: videobuf2-dma-contig: use dma_mmap_coherent
- if available
-Date: Thu, 16 Aug 2012 12:39:57 +0200
-Message-id: <015b01cd7b9b$8010e2b0$8032a810$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:39538 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758678Ab2HHXJs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2012 19:09:48 -0400
+Received: by ggdk6 with SMTP id k6so694176ggd.19
+        for <linux-media@vger.kernel.org>; Wed, 08 Aug 2012 16:09:47 -0700 (PDT)
+MIME-Version: 1.0
+From: Ilyes Gouta <ilyes.gouta@gmail.com>
+Date: Thu, 9 Aug 2012 00:09:26 +0100
+Message-ID: <CAL4m05UsCZfJtHGybXH47_=e-Ph+T4mw=Ei0nY5ofgBXF=dBdg@mail.gmail.com>
+Subject: About switching between V4L2_BUF_TYPE_VIDEO_CAPTURE and
+ V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE capture buffers in v4l2-mem2mem, across instances
+To: linux-media@vger.kernel.org
+Cc: ilyes.gouta@st.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi,
 
-On Thursday, August 16, 2012 12:14 PM Hideki EIRAKU wrote:
+I'm using the v4l2-mem2mem infrastructure for a driver I'm writing and
+I'm looking if it's possible to have the capture vb2_queue to take
+both V4L2_BUF_TYPE_VIDEO_CAPTURE and
+V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE buffers, across instances.
 
-> From: Marek Szyprowski <m.szyprowski@samsung.com>
-> Subject: RE: [PATCH v3 3/4] media: videobuf2-dma-contig: use dma_mmap_coherent if available
-> Date: Tue, 07 Aug 2012 16:53:25 +0200
-> 
-> > I'm sorry for bringing this issue now, once you have already created v3 of your
-> > patches, but similar patch has been already proposed some time ago. It is already
-> > processed together with general videobuf2-dma-contig redesign and dma-buf extensions
-> > by Tomasz Stanislawski.
-> >
-> > See post http://thread.gmane.org/gmane.comp.video.dri.devel/70402/focus=49461 and
-> > http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/49438
-> >
-> > It doesn't use conditional code inside videobuf2 allocator and rely entirely on
-> > dma-mapping subsystem to provide a working dma_mmap_coherent/writecombine/attrs()
-> > function. When it was posted, it relied on the dma-mapping extensions, which now
-> > have been finally merged to v3.6-rc1. Now I wonder if there are any architectures,
-> > which don't use dma_map_ops based dma-mapping framework, which might use
-> > videobuf2-dma-conting module.
-> 
-> Thank you for telling me about videobuf2-dma-contig and v3.6-rc1.  The
-> videobuf2-dma-contig patch I sent is now unnecessary.  So I will
-> remove the patch.  I will remove the patch defining
-> ARCH_HAS_DMA_MMAP_COHERENT too because the v3.6-rc1 kernel has generic
-> dma_mmap_coherent() API for every architecture.
+The IP I'm writing the driver for, handles
+V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE natively (NV1xM buffers), but I'd
+also need to support V4L2_BUF_TYPE_VIDEO_CAPTURE as this type is also
+standard and more application friendly (NV12 and NV16 buffers).
 
-Just to let you know - Tomasz has posted an updated version of the dma-buf/vb2-dma-contig
-patches:
+In v4l2-mem2mem, v4l2_m2m_ctx_init(), usually called in the device
+driver's v4l2_file_operations::open() handler, is used to setup
+(statically) both the output and capture queues of a v4l2-mem2mem
+device.
 
-http://www.spinics.net/lists/linux-media/msg51768.html
+Setting up the queues types (output and capture) in open() isn't
+practical for my case, as we can't signal yet the desired type of the
+capture buffer at that stage. The only way I could find is to call
+v4l2_m2m_ctx_init() during v4l2_ioctl_ops::vidioc_reqbufs() instead;
+where depending on the v4l2_requestbuffers::type, I could initialize a
+mem2mem context with a V4L2_BUF_TYPE_VIDEO_CAPTURE or a
+V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE capture buffer.
 
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
+The problem is that for the context to be correctly created, userspace
+has to issue a reqbufs() for the capture buffers first, and then for
+the output buffers. Doing it for the output buffers first, would yield
+a call to v4l2_m2m_ctx_init() with an incomplete information about the
+capture buffers type. Once buffers are requested for a certain type,
+they remain of that type until the instance is closed, or
+vidioc_reqbufs() is called w/ v4l2_requestbuffers::count == 0.
 
+I could get vidioc_reqbufs() to enforce this logic and only succeed if
+capture buffers are requested before output buffers; but still this
+limitation sounds like an artificial and unnecessary.
 
+Do you guys think that this is worth fixing in v4l2-mem2mem? If not,
+is there another proper way to handle both V4L2_BUF_TYPE_VIDEO_CAPTURE
+and V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE capture buffers in capable
+v4l2-mem2mem devices?
+
+Regards,
+
+-Ilyes
