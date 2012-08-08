@@ -1,55 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4220 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753052Ab2HCOVh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2012 10:21:37 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id q73ELYGS096954
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 3 Aug 2012 16:21:36 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from tschai.localnet (tschai.lan [192.168.1.186])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 8444746A0181
-	for <linux-media@vger.kernel.org>; Fri,  3 Aug 2012 16:21:32 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.6] One DocBook fix and a few si470x v4l2-compliance fixes
-Date: Fri, 3 Aug 2012 16:21:33 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201208031621.33976.hverkuil@xs4all.nl>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:15843 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030267Ab2HHNxP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2012 09:53:15 -0400
+Message-id: <50226F46.3080800@samsung.com>
+Date: Wed, 08 Aug 2012 15:53:10 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+MIME-version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	devel@driverdev.osuosl.org, Pawel Osciak <pawel@osciak.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jerome Glisse <jglisse@redhat.com>,
+	Vinod Koul <vinod.koul@intel.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Rob Landley <rob@landley.net>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Alex Deucher <alexander.deucher@amd.com>,
+	Rob Clark <rob@ti.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] dma-buf: add reference counting for exporter module
+References: <50223CC5.9060007@samsung.com> <1404275.atroogfRqe@avalon>
+In-reply-to: <1404275.atroogfRqe@avalon>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Two trivial fixes for 3.6.
+Hi Laurent,
+
+On 08/08/2012 03:35 PM, Laurent Pinchart wrote:
+> Hi Tomasz,
+> 
+> Thanks for the patch.
+> 
+> On Wednesday 08 August 2012 12:17:41 Tomasz Stanislawski wrote:
+>> This patch adds reference counting on a module that exports dma-buf and
+>> implements its operations. This prevents the module from being unloaded
+>> while DMABUF file is in use.
+>>
+>> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+>> ---
+>>  Documentation/dma-buf-sharing.txt          |    3 ++-
+>>  drivers/base/dma-buf.c                     |   10 +++++++++-
+>>  drivers/gpu/drm/exynos/exynos_drm_dmabuf.c |    1 +
+>>  drivers/gpu/drm/i915/i915_gem_dmabuf.c     |    1 +
+>>  drivers/gpu/drm/nouveau/nouveau_prime.c    |    1 +
+>>  drivers/gpu/drm/radeon/radeon_prime.c      |    1 +
+>>  drivers/staging/omapdrm/omap_gem_dmabuf.c  |    1 +
+>>  include/linux/dma-buf.h                    |    2 ++
+>>  8 files changed, 18 insertions(+), 2 deletions(-)
+>>
+[snip]
+
+>> @@ -96,6 +98,7 @@ struct dma_buf *dma_buf_export(void *priv, const struct
+>> dma_buf_ops *ops, struct file *file;
+>>
+>>  	if (WARN_ON(!priv || !ops
+>> +			  || !ops->owner
+
+Thank you for spotting this.
+I didn'y know that try_get_module returned true is module was NULL.
+
+BTW. Is it worth to add ".owner = THIS_MODULE," to all dma_buf
+exporters in this patch?
 
 Regards,
+Tomasz Stanislawski
 
-	Hans
+> 
+> THIS_MODULE is defined as ((struct module *)0) when the driver is built-in, 
+> this check should thus be removed.
+> 
+>>  			  || !ops->map_dma_buf
+>>  			  || !ops->unmap_dma_buf
+>>  			  || !ops->release
+>>
 
-The following changes since commit 24ed693da0cefede7382d498dd5e9a83f0a21c38:
-
-  [media] DVB: dib0700, remove double \n's from log (2012-07-31 00:36:03 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git sifixes
-
-for you to fetch changes up to f4b0bd3f7230c3be81a410a25487baddda6417b6:
-
-  si470x: v4l2-compliance fixes. (2012-08-03 16:16:59 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (2):
-      DocBook: Remove a spurious character.
-      si470x: v4l2-compliance fixes.
-
- Documentation/DocBook/media/v4l/vidioc-g-tuner.xml |    2 +-
- drivers/media/radio/si470x/radio-si470x-common.c   |    3 +++
- drivers/media/radio/si470x/radio-si470x-i2c.c      |    5 +++--
- drivers/media/radio/si470x/radio-si470x-usb.c      |    2 +-
- 4 files changed, 8 insertions(+), 4 deletions(-)
