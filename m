@@ -1,72 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:57595 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754285Ab2H2Rt3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Aug 2012 13:49:29 -0400
-MIME-Version: 1.0
-In-Reply-To: <20120810145750.5490.5639.stgit@patser.local>
-References: <20120810145728.5490.44707.stgit@patser.local>
-	<20120810145750.5490.5639.stgit@patser.local>
-Date: Wed, 29 Aug 2012 19:49:27 +0200
-Message-ID: <CAOau3s8hCrvcA7=p5v=SgnGziH5=mAA1wR6r9nvpcDt_1KbhWA@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCH 2/4] dma-fence: dma-buf synchronization
- (v8 )
-From: Francesco Lavra <francescolavra.fl@gmail.com>
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: sumit.semwal@linaro.org, rob.clark@linaro.org,
-	linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout4.samsung.com ([203.254.224.34]:16782 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751495Ab2HIJgh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2012 05:36:37 -0400
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@linaro.org,
+	inki.dae@samsung.com, daniel.vetter@ffwll.ch, rob@ti.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org,
+	jy0922.shim@samsung.com, sw0312.kim@samsung.com,
+	dan.j.williams@intel.com
+Subject: [PATCH v2 0/2] Enhance DMABUF with reference counting for exporter
+ module
+Date: Thu, 09 Aug 2012 11:36:20 +0200
+Message-id: <1344504982-30415-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hello,
+This patchset adds reference counting for an exporter module to DMABUF
+framework.  Moreover, it adds setup of an owner field for exporters in DRM
+subsystem.
 
-On Fri, Aug 10, 2012 at 4:57 PM, Maarten Lankhorst
-<maarten.lankhorst@canonical.com> wrote:
-
-[Snip]
-
-> diff --git a/include/linux/dma-fence.h b/include/linux/dma-fence.h
-> new file mode 100644
-> index 0000000..e0ceddd
-> --- /dev/null
-> +++ b/include/linux/dma-fence.h
-> @@ -0,0 +1,124 @@
-> +/*
-> + * Fence mechanism for dma-buf to allow for asynchronous dma access
-> + *
-> + * Copyright (C) 2012 Texas Instruments
-> + * Author: Rob Clark <rob.clark@linaro.org>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> it
-> + * under the terms of the GNU General Public License version 2 as
-> published by
-> + * the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> WITHOUT
-> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-> for
-> + * more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> along with
-> + * this program.  If not, see <http://www.gnu.org/licenses/>.
-> + */
-> +
-> +#ifndef __DMA_FENCE_H__
-> +#define __DMA_FENCE_H__
-> +
-> +#include <linux/err.h>
-> +#include <linux/list.h>
-> +#include <linux/wait.h>
-> +#include <linux/list.h>
-
-Duplicated include.
+v1: Original
+v2:
+  - split patch into DMABUF and DRM part
+  - allow owner to be NULL
 
 Regards,
-Francesco
+Tomasz Stanislawski
+
+Tomasz Stanislawski (2):
+  dma-buf: add reference counting for exporter module
+  drm: set owner field to for all DMABUF exporters
+
+ Documentation/dma-buf-sharing.txt          |    3 ++-
+ drivers/base/dma-buf.c                     |    9 ++++++++-
+ drivers/gpu/drm/exynos/exynos_drm_dmabuf.c |    1 +
+ drivers/gpu/drm/i915/i915_gem_dmabuf.c     |    1 +
+ drivers/gpu/drm/nouveau/nouveau_prime.c    |    1 +
+ drivers/gpu/drm/radeon/radeon_prime.c      |    1 +
+ drivers/staging/omapdrm/omap_gem_dmabuf.c  |    1 +
+ include/linux/dma-buf.h                    |    2 ++
+ 8 files changed, 17 insertions(+), 2 deletions(-)
+
+-- 
+1.7.9.5
+
