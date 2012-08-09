@@ -1,63 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:44236 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030267Ab2HHNxr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2012 09:53:47 -0400
-Received: by weyx8 with SMTP id x8so465711wey.19
-        for <linux-media@vger.kernel.org>; Wed, 08 Aug 2012 06:53:45 -0700 (PDT)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 7/8] libdvbv5: renamed registration descriptor
-Date: Wed,  8 Aug 2012 15:53:16 +0200
-Message-Id: <1344433997-9832-1-git-send-email-neolynx@gmail.com>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1724 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755071Ab2HIH3z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2012 03:29:55 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: build docs fails: parser error : Failure to process entity sub-enum-freq-bands
+Date: Thu, 9 Aug 2012 09:29:41 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"linux-media" <linux-media@vger.kernel.org>
+References: <5022F3A5.2030507@iki.fi>
+In-Reply-To: <5022F3A5.2030507@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201208090929.41126.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: André Roth <neolynx@gmail.com>
----
- lib/include/descriptors.h  |    2 +-
- lib/libdvbv5/descriptors.c |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+It works for me.
 
-diff --git a/lib/include/descriptors.h b/lib/include/descriptors.h
-index 9e3d49b..b1a8e84 100644
---- a/lib/include/descriptors.h
-+++ b/lib/include/descriptors.h
-@@ -109,7 +109,7 @@ enum descriptors {
- 	video_stream_descriptor				= 0x02,
- 	audio_stream_descriptor				= 0x03,
- 	hierarchy_descriptor				= 0x04,
--	dvbpsi_registration_descriptor			= 0x05,
-+	registration_descriptor				= 0x05,
- 	ds_alignment_descriptor				= 0x06,
- 	target_background_grid_descriptor		= 0x07,
- 	video_window_descriptor				= 0x08,
-diff --git a/lib/libdvbv5/descriptors.c b/lib/libdvbv5/descriptors.c
-index d4fab9a..10a61a3 100644
---- a/lib/libdvbv5/descriptors.c
-+++ b/lib/libdvbv5/descriptors.c
-@@ -137,7 +137,7 @@ const struct dvb_descriptor dvb_descriptors[] = {
- 	[video_stream_descriptor] = { "video_stream_descriptor", NULL, NULL, NULL },
- 	[audio_stream_descriptor] = { "audio_stream_descriptor", NULL, NULL, NULL },
- 	[hierarchy_descriptor] = { "hierarchy_descriptor", NULL, NULL, NULL },
--	[dvbpsi_registration_descriptor] = { "dvbpsi_registration_descriptor", NULL, NULL, NULL },
-+	[registration_descriptor] = { "registration_descriptor", NULL, NULL, NULL },
- 	[ds_alignment_descriptor] = { "ds_alignment_descriptor", NULL, NULL, NULL },
- 	[target_background_grid_descriptor] = { "target_background_grid_descriptor", NULL, NULL, NULL },
- 	[video_window_descriptor] = { "video_window_descriptor", NULL, NULL, NULL },
-@@ -1041,7 +1041,7 @@ void hexdump(struct dvb_v5_fe_parms *parms, const char *prefix, const unsigned c
- /* TODO: remove those stuff */
- 
- case ds_alignment_descriptor:
--case dvbpsi_registration_descriptor:
-+case registration_descriptor:
- case service_list_descriptor:
- case stuffing_descriptor:
- case VBI_data_descriptor:
--- 
-1.7.2.5
+make DOCBOOKS=media_api.xml htmldocs
 
+Perhaps you need to do a make cleandocs first?
+
+Regards,
+
+	Hans
+
+On Thu August 9 2012 01:17:57 Antti Palosaari wrote:
+> That is from current "staging/for_v3.7"
+> 
+> [crope@localhost linux]$ make htmldocs
+>    HTML    Documentation/DocBook/media_api.html
+> warning: failed to load external entity 
+> "/home/crope/linuxtv/code/linux/Documentation/DocBook/vidioc-enum-freq-bands.xml"
+> /home/crope/linuxtv/code/linux/Documentation/DocBook/v4l2.xml:542: 
+> parser error : Failure to process entity sub-enum-freq-bands
+>      &sub-enum-freq-bands;
+>                           ^
+> /home/crope/linuxtv/code/linux/Documentation/DocBook/v4l2.xml:542: 
+> parser error : Entity 'sub-enum-freq-bands' not defined
+>      &sub-enum-freq-bands;
+>                           ^
+> warning: failed to load external entity 
+> "/home/crope/linuxtv/code/linux/Documentation/DocBook/selections-common.xml"
+> /home/crope/linuxtv/code/linux/Documentation/DocBook/v4l2.xml:600: 
+> parser error : Failure to process entity sub-selections-common
+>        &sub-selections-common;
+>                               ^
+> /home/crope/linuxtv/code/linux/Documentation/DocBook/v4l2.xml:600: 
+> parser error : Entity 'sub-selections-common' not defined
+>        &sub-selections-common;
+>                               ^
+> /home/crope/linuxtv/code/linux/Documentation/DocBook/v4l2.xml:625: 
+> parser error : chunk is not well balanced
+> 
+> ^
+> /home/crope/linuxtv/code/linux/Documentation/DocBook/media_api.xml:73: 
+> parser error : Failure to process entity sub-v4l2
+> &sub-v4l2;
+>            ^
+> /home/crope/linuxtv/code/linux/Documentation/DocBook/media_api.xml:73: 
+> parser error : Entity 'sub-v4l2' not defined
+> &sub-v4l2;
+>            ^
+> unable to parse 
+> /home/crope/linuxtv/code/linux/Documentation/DocBook/media_api.xml
+> /usr/bin/cp: cannot stat `*.*htm*': No such file or directory
+> make[1]: *** [Documentation/DocBook/media_api.html] Error 1
+> make: *** [htmldocs] Error 2
+> [crope@localhost linux]$
+> 
+> regards
+> Antti
+> 
+> 
