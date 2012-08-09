@@ -1,90 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43377 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:61655 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754933Ab2HATRT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Aug 2012 15:17:19 -0400
-Message-ID: <501980B3.8040809@redhat.com>
-Date: Wed, 01 Aug 2012 16:17:07 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S932306Ab2HIL7K (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Aug 2012 07:59:10 -0400
+Message-ID: <5023A645.40308@redhat.com>
+Date: Thu, 09 Aug 2012 14:00:05 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: KS2012 <ksummit-2012-discuss@lists.linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	media workshop ML <workshop-2011@linuxtv.org>
-Subject: [MINI SUMMIT] media mini-summit at KS/2012
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: David Rientjes <rientjes@google.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [GIT PULL for 3.6-rc1] media updates part 2
+References: <5017F674.80404@redhat.com> <alpine.DEB.2.00.1208081526320.11542@chino.kir.corp.google.com> <5023A11C.50502@redhat.com>
+In-Reply-To: <5023A11C.50502@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After the discussions around the media mini-summit, this is the
-consolidated list of topics.
+Hi,
 
-We tried to give a fair time for each topic. 
+My bad, sorry about this. Mauro's patch looks good. An alternative fix
+would be to #ifdefify the led code in the drivers themselves.
 
-With regards to the proposed topic "Intel media SDK", nobody
-volunteered to give such a talk. So, if there is anyone interested
-to talk about it, it can either be part of SoC vendor's feedback
-(if it won't take too long), or it could be handled as a topic
-during LPC. So, let's put this one in the fridge.
+Regards,
 
-Topics for the media mini-summit
-================================
+Hans
 
-    - morning:
-           V4L2 API ambiguities + v4l2 compliance tool: 60 min
-           Media Controller library: 30 min
-           ALSA and V4L/Media Controller: 30 min
-           ARM and needed features for V4L/DVB: 30 min
-    - after lunch: 
-           SoC Vendors feedback – how to help them to go upstream: 45 min
-           V4L2/DVB issues from userspace perspective: 45 min
-           Android's V4L2 cam library: 30 min
-           HDMI CEC: 30 min
-           Synchronization, shared resource and optimizations: 30 min
 
-The DT discussions will likely require more time and maybe a different
-audience. So, it seems better to handle it as either as a separate/LPC
-section or at DT mini-summit:
-          Common device tree bindings for media devices: 45 min
-
-Attendants
-==========
-
-Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Hans Verkuil <hans.verkuil@xs4all.nl>
-Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Mauro Carvalho Chehab <mchehab@redhat.com>
-Michael Krufky <mkrufky@linuxtv.org>
-Naveen Krishnamurthy <naveen.krishnamurthy@st.com>
-Palash Bandyopadhyay <Palash.Bandyopadhyay@conexant.com>
-Pawel Osciak <pawel@osciak.com>
-Rémi Denis-Courmont <remi@remlab.net>
-Sakari Ailus <sakari.ailus@iki.fi>
-Sri Deevi <Srinivasa.Deevi@conexant.com>
-Steven Toth <stoth@kernellabs.com>
-Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Marek Szyprowski <m.szyprowski@samsung.com>
-Kamil Debski <k.debski@samsung.com>
-
-Naveen also asked another seat for ST, but didn't provide us yet
-the name of the other interested party.
-
-For the cross-system topics, it is important to have people from the
-other subsystems there. So, we're proposing to have some people
-there, but we need to double-check if they can really be there for
-the discussions. Of course, other Kernel developers from KS/LPC 
-that work on those subsystems are welcome.
-
-The names that came up during our discussions for those panels are:
-
-	Rob Clark <rob.clark@linaro.org> (HDMI CEC, ALSA, ARM)
-	Takashi Iwai <tiwai@suse.de> (ALSA)
-	Catalin Marinas <catalin.marinas@arm.com> (ARM)
-	Mark Brown <broonie@opensource.wolfsonmicro.com> (DT)
-
-Not sure if they all will be there or if they'll have some time
-to discuss those things with us. We hope they will ;)
-
-Thanks,
-Mauro Carvalho Chehab
-Hans Verkuil
+On 08/09/2012 01:38 PM, Mauro Carvalho Chehab wrote:
+> Em 08-08-2012 19:28, David Rientjes escreveu:
+>> On Tue, 31 Jul 2012, Mauro Carvalho Chehab wrote:
+>>
+>>>         [media] radio-shark: New driver for the Griffin radioSHARK USB radio receiver
+>>
+>> This one gives me a build warning if CONFIG_LEDS_CLASS is disabled:
+>>
+>> ERROR: "led_classdev_register" [drivers/media/radio/shark2.ko] undefined!
+>> ERROR: "led_classdev_unregister" [drivers/media/radio/shark2.ko] undefined!
+>>
+>
+> Could you please test the enclosed patch?
+>
+> Thanks!
+> Mauro
+>
+> -
+>
+> [media] radio-shark: make sure LEDS_CLASS is selected
+>
+> As reported by David:
+> 	> ERROR: "led_classdev_register" [drivers/media/radio/shark2.ko] undefined!
+> 	> ERROR: "led_classdev_unregister" [drivers/media/radio/shark2.ko] undefined!
+>
+> Reported-by: Dadiv Rientjes <rientjes@google.com>
+> Cc: Hans de Goede <hdegoede@redhat.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>
+>
+> diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+> index 8090b87..be68ec2 100644
+> --- a/drivers/media/radio/Kconfig
+> +++ b/drivers/media/radio/Kconfig
+> @@ -60,6 +60,7 @@ config RADIO_MAXIRADIO
+>   config RADIO_SHARK
+>   	tristate "Griffin radioSHARK USB radio receiver"
+>   	depends on USB && SND
+> +	select LEDS_CLASS
+>   	---help---
+>   	  Choose Y here if you have this radio receiver.
+>
+> @@ -77,6 +78,7 @@ config RADIO_SHARK
+>   config RADIO_SHARK2
+>   	tristate "Griffin radioSHARK2 USB radio receiver"
+>   	depends on USB
+> +	select LEDS_CLASS
+>   	---help---
+>   	  Choose Y here if you have this radio receiver.
+>
+>
