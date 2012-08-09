@@ -1,43 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:52727 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932505Ab2HGCrv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 22:47:51 -0400
-Received: by mail-vc0-f174.google.com with SMTP id fk26so3432709vcb.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 19:47:50 -0700 (PDT)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH 05/24] xc5000: properly show quality register values
-Date: Mon,  6 Aug 2012 22:46:55 -0400
-Message-Id: <1344307634-11673-6-git-send-email-dheitmueller@kernellabs.com>
-In-Reply-To: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
-References: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
+Received: from mx1.redhat.com ([209.132.183.28]:16196 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757847Ab2HILiJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Aug 2012 07:38:09 -0400
+Message-ID: <5023A11C.50502@redhat.com>
+Date: Thu, 09 Aug 2012 08:38:04 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: David Rientjes <rientjes@google.com>
+CC: Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [GIT PULL for 3.6-rc1] media updates part 2
+References: <5017F674.80404@redhat.com> <alpine.DEB.2.00.1208081526320.11542@chino.kir.corp.google.com>
+In-Reply-To: <alpine.DEB.2.00.1208081526320.11542@chino.kir.corp.google.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The quality register only has relevant data in bits 2-0, so discard the
-other bits (which results in a value being printed that is consistent with
-the expected 0-7 range).
+Em 08-08-2012 19:28, David Rientjes escreveu:
+> On Tue, 31 Jul 2012, Mauro Carvalho Chehab wrote:
+> 
+>>        [media] radio-shark: New driver for the Griffin radioSHARK USB radio receiver
+> 
+> This one gives me a build warning if CONFIG_LEDS_CLASS is disabled:
+> 
+> ERROR: "led_classdev_register" [drivers/media/radio/shark2.ko] undefined!
+> ERROR: "led_classdev_unregister" [drivers/media/radio/shark2.ko] undefined!
+> 
 
-Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
----
- drivers/media/common/tuners/xc5000.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Could you please test the enclosed patch?
 
-diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
-index dcca42c..c41f2b9 100644
---- a/drivers/media/common/tuners/xc5000.c
-+++ b/drivers/media/common/tuners/xc5000.c
-@@ -684,7 +684,7 @@ static void xc_debug_dump(struct xc5000_priv *priv)
- 	dprintk(1, "*** Frame lines = %d\n", frame_lines);
+Thanks!
+Mauro
+
+-
+
+[media] radio-shark: make sure LEDS_CLASS is selected
+
+As reported by David:
+	> ERROR: "led_classdev_register" [drivers/media/radio/shark2.ko] undefined!
+	> ERROR: "led_classdev_unregister" [drivers/media/radio/shark2.ko] undefined!
+
+Reported-by: Dadiv Rientjes <rientjes@google.com>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+
+diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+index 8090b87..be68ec2 100644
+--- a/drivers/media/radio/Kconfig
++++ b/drivers/media/radio/Kconfig
+@@ -60,6 +60,7 @@ config RADIO_MAXIRADIO
+ config RADIO_SHARK
+ 	tristate "Griffin radioSHARK USB radio receiver"
+ 	depends on USB && SND
++	select LEDS_CLASS
+ 	---help---
+ 	  Choose Y here if you have this radio receiver.
  
- 	xc_get_quality(priv,  &quality);
--	dprintk(1, "*** Quality (0:<8dB, 7:>56dB) = %d\n", quality);
-+	dprintk(1, "*** Quality (0:<8dB, 7:>56dB) = %d\n", quality & 0x07);
- }
+@@ -77,6 +78,7 @@ config RADIO_SHARK
+ config RADIO_SHARK2
+ 	tristate "Griffin radioSHARK2 USB radio receiver"
+ 	depends on USB
++	select LEDS_CLASS
+ 	---help---
+ 	  Choose Y here if you have this radio receiver.
  
- static int xc5000_set_params(struct dvb_frontend *fe)
--- 
-1.7.1
 
