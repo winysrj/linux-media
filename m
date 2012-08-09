@@ -1,125 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:9318 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751785Ab2HNPgr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 11:36:47 -0400
-Received: from epcpsbgm1.samsung.com (mailout2.samsung.com [203.254.224.25])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M8R00BPG4PAGBC0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:36:46 +0900 (KST)
-Received: from mcdsrvbld02.digital.local ([106.116.37.23])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M8R004J44MBC810@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:36:46 +0900 (KST)
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de, dmitriyz@google.com,
-	s.nawrocki@samsung.com, k.debski@samsung.com
-Subject: [PATCHv8 12/26] v4l: vb2-vmalloc: add support for dmabuf importing
-Date: Tue, 14 Aug 2012 17:34:42 +0200
-Message-id: <1344958496-9373-13-git-send-email-t.stanislaws@samsung.com>
-In-reply-to: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
-References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:39748 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754052Ab2HIOMN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2012 10:12:13 -0400
+Received: by qcro28 with SMTP id o28so248793qcr.19
+        for <linux-media@vger.kernel.org>; Thu, 09 Aug 2012 07:12:13 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <5023652D.4010508@googlemail.com>
+References: <1344352315-1184-1-git-send-email-kradlow@cisco.com>
+	<bce8b8118e9a8bcc7fd528d8b8d1a0732a9c8954.1344352285.git.kradlow@cisco.com>
+	<5023652D.4010508@googlemail.com>
+Date: Thu, 9 Aug 2012 14:12:12 +0000
+Message-ID: <CAFomkUD6YHjdOZN3pMXAnpDEUTc86TWF_dAxqa2y9ZDZR6YEYQ@mail.gmail.com>
+Subject: Re: [RFC PATCH 1/2] Add libv4l2rds library (with changes proposed in RFC)
+From: Konke Radlow <koradlow@googlemail.com>
+To: Gregor Jasny <gjasny@googlemail.com>
+Cc: Konke Radlow <kradlow@cisco.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for importing DMABUF files for
-vmalloc allocator in Videobuf2.
+they are gone.
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/videobuf2-vmalloc.c |   56 +++++++++++++++++++++++++++++++
- 1 file changed, 56 insertions(+)
+And btw: I'm sorry for fiddling with your build environment in such a
+way. I have to
+admit that the additions I made were based more on copying from
+existing libraries than
+really understanding the effects of each command.
 
-diff --git a/drivers/media/video/videobuf2-vmalloc.c b/drivers/media/video/videobuf2-vmalloc.c
-index 94efa04..a47fd4f 100644
---- a/drivers/media/video/videobuf2-vmalloc.c
-+++ b/drivers/media/video/videobuf2-vmalloc.c
-@@ -30,6 +30,7 @@ struct vb2_vmalloc_buf {
- 	unsigned int			n_pages;
- 	atomic_t			refcount;
- 	struct vb2_vmarea_handler	handler;
-+	struct dma_buf			*dbuf;
- };
- 
- static void vb2_vmalloc_put(void *buf_priv);
-@@ -207,11 +208,66 @@ static int vb2_vmalloc_mmap(void *buf_priv, struct vm_area_struct *vma)
- 	return 0;
- }
- 
-+/*********************************************/
-+/*       callbacks for DMABUF buffers        */
-+/*********************************************/
-+
-+static int vb2_vmalloc_map_dmabuf(void *mem_priv)
-+{
-+	struct vb2_vmalloc_buf *buf = mem_priv;
-+
-+	buf->vaddr = dma_buf_vmap(buf->dbuf);
-+
-+	return buf->vaddr ? 0 : -EFAULT;
-+}
-+
-+static void vb2_vmalloc_unmap_dmabuf(void *mem_priv)
-+{
-+	struct vb2_vmalloc_buf *buf = mem_priv;
-+
-+	dma_buf_vunmap(buf->dbuf, buf->vaddr);
-+	buf->vaddr = NULL;
-+}
-+
-+static void vb2_vmalloc_detach_dmabuf(void *mem_priv)
-+{
-+	struct vb2_vmalloc_buf *buf = mem_priv;
-+
-+	if (buf->vaddr)
-+		dma_buf_vunmap(buf->dbuf, buf->vaddr);
-+
-+	kfree(buf);
-+}
-+
-+static void *vb2_vmalloc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
-+	unsigned long size, int write)
-+{
-+	struct vb2_vmalloc_buf *buf;
-+
-+	if (dbuf->size < size)
-+		return ERR_PTR(-EFAULT);
-+
-+	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
-+	if (!buf)
-+		return ERR_PTR(-ENOMEM);
-+
-+	buf->dbuf = dbuf;
-+	buf->write = write;
-+	buf->size = size;
-+
-+	return buf;
-+}
-+
-+
- const struct vb2_mem_ops vb2_vmalloc_memops = {
- 	.alloc		= vb2_vmalloc_alloc,
- 	.put		= vb2_vmalloc_put,
- 	.get_userptr	= vb2_vmalloc_get_userptr,
- 	.put_userptr	= vb2_vmalloc_put_userptr,
-+	.map_dmabuf	= vb2_vmalloc_map_dmabuf,
-+	.unmap_dmabuf	= vb2_vmalloc_unmap_dmabuf,
-+	.attach_dmabuf	= vb2_vmalloc_attach_dmabuf,
-+	.detach_dmabuf	= vb2_vmalloc_detach_dmabuf,
- 	.vaddr		= vb2_vmalloc_vaddr,
- 	.mmap		= vb2_vmalloc_mmap,
- 	.num_users	= vb2_vmalloc_num_users,
--- 
-1.7.9.5
+Regards,
+Konke
 
+On Thu, Aug 9, 2012 at 7:22 AM, Gregor Jasny <gjasny@googlemail.com> wrote:
+> Hello Konke,
+>
+>
+> On 8/7/12 5:11 PM, Konke Radlow wrote:
+>>
+>> diff --git a/configure.ac b/configure.ac
+>> index 8ddcc9d..1109c4d 100644
+>> --- a/configure.ac
+>> +++ b/configure.ac
+>> @@ -146,9 +148,12 @@ AC_ARG_WITH(libv4l2subdir,
+>> AS_HELP_STRING(--with-libv4l2subdir=DIR,set libv4l2 l
+>>   AC_ARG_WITH(libv4lconvertsubdir,
+>> AS_HELP_STRING(--with-libv4lconvertsubdir=DIR,set libv4lconvert library
+>> subdir [default=libv4l]),
+>>      libv4lconvertsubdir=$withval, libv4lconvertsubdir="libv4l")
+>>
+>> +AC_ARG_WITH(libv4l2rdssubdir,
+>> AS_HELP_STRING(--with-libv4l2rdssubdir=DIR,set libv4l2rds library subdir
+>> [default=libv4l]),
+>> +   libv4l2rdssubdir=$withval, libv4l2rdssubdir="libv4l")
+>> +
+>>   AC_ARG_WITH(udevdir, AS_HELP_STRING(--with-udevdir=DIR,set udev
+>> directory [default=/lib/udev]),
+>>      udevdir=$withval, udevdir="/lib/udev")
+>> -
+>> +
+>>   libv4l1privdir="$libdir/$libv4l1subdir"
+>>   libv4l2privdir="$libdir/$libv4l2subdir"
+>>   libv4l2plugindir="$libv4l2privdir/plugins"
+>
+>
+> please remove these changes. They are not needed for the RDS library.
+>
+> Thanks,
+> Gregor
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
