@@ -1,40 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:49168 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756364Ab2HFN6g (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 09:58:36 -0400
-Received: by mail-yw0-f46.google.com with SMTP id m54so2476284yhm.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 06:58:36 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1344260302-28849-1-git-send-email-elezegarcia@gmail.com>
-References: <1344260302-28849-1-git-send-email-elezegarcia@gmail.com>
-Date: Mon, 6 Aug 2012 10:58:36 -0300
-Message-ID: <CALF0-+Xwa6qNH3pEOgJq9f07C+ArNco6nxQcjGWoy5kwyQeScA@mail.gmail.com>
-Subject: Re: [PATCH v8] media: Add stk1160 new driver
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
-	Takashi Iwai <tiwai@suse.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from plane.gmane.org ([80.91.229.3]:58509 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751804Ab2HIQNx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Aug 2012 12:13:53 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1SzVMs-00040M-DM
+	for linux-media@vger.kernel.org; Thu, 09 Aug 2012 18:13:50 +0200
+Received: from kantebeen10.demon.nl ([83.162.19.42])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 09 Aug 2012 18:13:50 +0200
+Received: from pimkantebeen by kantebeen10.demon.nl with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 09 Aug 2012 18:13:50 +0200
+To: linux-media@vger.kernel.org
+From: Dutchdude <pimkantebeen@gmail.com>
+Subject: Re: support for Elgato eyetv one
+Date: Thu, 9 Aug 2012 16:13:31 +0000 (UTC)
+Message-ID: <loom.20120809T181144-815@post.gmane.org>
+References: <CAMDQy-QorVx445S9xh3bjynMKdxPXYKEWUP2C5pNJ970MyydJQ@mail.gmail.com> <CAMDQy-Qq6471ZxwBQz9CU6Yzow+u64r5oBYO0URb-c1ztcJhcg@mail.gmail.com> <CAGoCfiyLFCfDiqzy0mSce4qtA_hthyOnPVhzmwXxpyP8FvYJhg@mail.gmail.com> <loom.20120802T092349-823@post.gmane.org> <CAGoCfixz0rCjz80OFcyfCvWRMV8pKSwRqzXEs4T_9tQJZQCg0g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Thanks for the reply! I had no idea that it would be that complex.
 
-On Mon, Aug 6, 2012 at 10:38 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
-> This driver adds support for stk1160 usb bridge as used in some
-> video/audio usb capture devices.
-> It is a complete rewrite of staging/media/easycap driver and
-> it's expected as a replacement.
-> ---
->
+>From the moment I joined this mailing board in order to add the information 
+above, I received no less than 193 e-mails! It's great to see that are that many 
+people working on linux drivers! Good luck and keep up the good work!
 
-I just sent v8, but it looks it wasn't received by patchwork either.
-
-What's going on?
-
-Regards,
-Ezequiel.
