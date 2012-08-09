@@ -1,61 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:61360 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751817Ab2HUKSZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Aug 2012 06:18:25 -0400
-Message-ID: <50336069.4030402@redhat.com>
-Date: Tue, 21 Aug 2012 07:18:17 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:39259 "EHLO
+	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030945Ab2HIPf4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2012 11:35:56 -0400
+Received: from [194.168.151.111] (earthlight.etchedpixels.co.uk [81.2.110.250])
+	by lxorguk.ukuu.org.uk (8.14.5/8.14.1) with ESMTP id q79G8vNJ010420
+	for <linux-media@vger.kernel.org>; Thu, 9 Aug 2012 17:09:03 +0100
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: [PATCH] mantis: fix silly crash case
+To: linux-media@vger.kernel.org
+Date: Thu, 09 Aug 2012 17:33:52 +0100
+Message-ID: <20120809163327.3072.31345.stgit@bluebook>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR v3.7] uvcvideo patches
-References: <2583529.5y4fYzNJ2T@avalon> <1561599.3DnS2US7L9@avalon>
-In-Reply-To: <1561599.3DnS2US7L9@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 21-08-2012 06:13, Laurent Pinchart escreveu:
-> Hi Mauro,
-> 
-> On Sunday 12 August 2012 17:25:05 Laurent Pinchart wrote:
->> Hi Mauro,
->>
->> The following changes since commit 518c267f4ca4c45cc51bd582b4aef9f0b9f01eba:
->>
->>   [media] saa7164: use native print_hex_dump() instead of custom one
->> (2012-08-12 07:58:54 -0300)
->>
->> are available in the git repository at:
->>   git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-next
->>
->> Jayakrishnan Memana (1):
->>       uvcvideo: Reset the bytesused field when recycling an erroneous buffer
-> 
-> This patch made it to your media-next tree, but not to the main media tree, 
-> while the other three patches in this pull request did. Is there a specific 
-> reason for that ?
+From: Alan Cox <alan@linux.intel.com>
 
-This one is on my queue for 3.6. I should be sending the pull request for it
-likely today. Due to the tree reorg, the -next pull from my tree failed
-last week.
+If we set mantis->fe to NULL on an error its not a good idea to then try
+passing NULL to the unregister paths and oopsing really.
 
-Regards,
-Mauro
-> 
->> Laurent Pinchart (2):
->>       uvcvideo: Support super speed endpoints
->>       uvcvideo: Add support for Ophir Optronics SPCAM 620U cameras
->>
->> Stefan Muenzel (1):
->>       uvcvideo: Support 10bit, 12bit and alternate 8bit greyscale formats
->>
->>  drivers/media/video/uvc/uvc_driver.c |   28 ++++++++++++++++++++++++++--
->>  drivers/media/video/uvc/uvc_queue.c  |    1 +
->>  drivers/media/video/uvc/uvc_video.c  |   30 ++++++++++++++++++++++++------
->>  drivers/media/video/uvc/uvcvideo.h   |    9 +++++++++
->>  4 files changed, 60 insertions(+), 8 deletions(-)
-> 
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Resolves-bug: https://bugzilla.kernel.org/show_bug.cgi?id=16473
+---
+
+ drivers/media/dvb/mantis/mantis_dvb.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/dvb/mantis/mantis_dvb.c b/drivers/media/dvb/mantis/mantis_dvb.c
+index e5180e4..5d15c6b 100644
+--- a/drivers/media/dvb/mantis/mantis_dvb.c
++++ b/drivers/media/dvb/mantis/mantis_dvb.c
+@@ -248,8 +248,10 @@ int __devinit mantis_dvb_init(struct mantis_pci *mantis)
+ err5:
+ 	tasklet_kill(&mantis->tasklet);
+ 	dvb_net_release(&mantis->dvbnet);
+-	dvb_unregister_frontend(mantis->fe);
+-	dvb_frontend_detach(mantis->fe);
++	if (mantis->fe) {
++		dvb_unregister_frontend(mantis->fe);
++		dvb_frontend_detach(mantis->fe);
++	}
+ err4:
+ 	mantis->demux.dmx.remove_frontend(&mantis->demux.dmx, &mantis->fe_mem);
+ 
 
