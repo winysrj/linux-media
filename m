@@ -1,90 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:43741 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753759Ab2HESMK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Aug 2012 14:12:10 -0400
-Received: by obbuo13 with SMTP id uo13so4562082obb.19
-        for <linux-media@vger.kernel.org>; Sun, 05 Aug 2012 11:12:09 -0700 (PDT)
+Received: from tx2ehsobe003.messaging.microsoft.com ([65.55.88.13]:11853 "EHLO
+	tx2outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932262Ab2HIMzQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Aug 2012 08:55:16 -0400
+Received: from mail260-tx2 (localhost [127.0.0.1])	by
+ mail260-tx2-R.bigfish.com (Postfix) with ESMTP id D822B1F00116	for
+ <linux-media@vger.kernel.org>; Thu,  9 Aug 2012 12:55:14 +0000 (UTC)
+Received: from TX2EHSMHS040.bigfish.com (unknown [10.9.14.254])	by
+ mail260-tx2.bigfish.com (Postfix) with ESMTP id 1A73A19C0046	for
+ <linux-media@vger.kernel.org>; Thu,  9 Aug 2012 12:55:12 +0000 (UTC)
+Received: from b20223-02.ap.freescale.net (b20223-02.ap.freescale.net
+ [10.192.242.124])	by az84smr01.freescale.net (8.14.3/8.14.0) with ESMTP id
+ q79Ct9HF014524	for <linux-media@vger.kernel.org>; Thu, 9 Aug 2012 05:55:10
+ -0700
+Date: Thu, 9 Aug 2012 20:55:02 +0800
+From: Richard Zhao <richard.zhao@freescale.com>
+To: <linux-media@vger.kernel.org>
+Subject: __video_register_device: warning cannot be reached if
+ warn_if_nr_in_use
+Message-ID: <20120809125501.GD3824@b20223-02.ap.freescale.net>
 MIME-Version: 1.0
-In-Reply-To: <CA+C2MxQn1OR_2ONEKuGc7HfX+aZos0RUGdr9e-7vP5iNduMn6Q@mail.gmail.com>
-References: <1344103941-23047-1-git-send-email-develkernel412222@gmail.com>
-	<CALF0-+VHfxhjzc-yBQYrXL7-gscfqt2tZmxx+Tpe8qE+cPXzWA@mail.gmail.com>
-	<CA+C2MxQn1OR_2ONEKuGc7HfX+aZos0RUGdr9e-7vP5iNduMn6Q@mail.gmail.com>
-Date: Sun, 5 Aug 2012 15:12:09 -0300
-Message-ID: <CALF0-+WuPQcyvyYz9hVGwP6prS6Y5A0Q64Va3BtCn=QKwxAWGQ@mail.gmail.com>
-Subject: Re: [PATCH 2/2] staging: media: cxd2099: use kzalloc to allocate ci
- pointer of type struct cxd in cxd2099_attach
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Devendra Naga <develkernel412222@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Devendra,
+In file drivers/media/video/v4l2-dev.c
 
-On Sun, Aug 5, 2012 at 1:04 AM, Devendra Naga
-<develkernel412222@gmail.com> wrote:
-> Hello Ezequiel,
->
-> On Sun, Aug 5, 2012 at 12:24 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
->> Hi Devendra,
->>
->> On Sat, Aug 4, 2012 at 3:12 PM, Devendra Naga
->> <develkernel412222@gmail.com> wrote:
->>>
->>>         mutex_init(&ci->lock);
->>>         memcpy(&ci->cfg, cfg, sizeof(struct cxd2099_cfg));
->>
->> While you're still looking at this driver, perhaps you can change the memcpy
->> with a plain struct assignment (if you feel like).
->> It's really pointless to use a memcpy here.
->>
->> Something like this:
->>
->> -       memcpy(&ci->cfg, cfg, sizeof(struct cxd2099_cfg));
->> +       ci->cfg = *cfg;
->>
-> Correct, and also one more thing like this is
->
-> -           memcpy(&ci->en, &en_templ, sizeof(en_templ));
-> +          ci->en = en_templ;
->
-> Is it ok if i change ci->cfg and ci->en?
+int __video_register_device(struct video_device *vdev, int type, int nr,
+		int warn_if_nr_in_use, struct module *owner)
+{
+[...]
+	vdev->minor = i + minor_offset;
+878:	vdev->num = nr;
 
-Yes, I believe it is ok.
+vdev->num is set to nr here. 
+[...]
+	if (nr != -1 && nr != vdev->num && warn_if_nr_in_use)
+		printk(KERN_WARNING "%s: requested %s%d, got %s\n", __func__,
+			name_base, nr, video_device_node_name(vdev));
 
-A few more remarks I would like to add.
+so nr != vdev->num is always false. The warning can never be printed.
 
-1. When sending patches for staging/media, it's not necessary to put
-staging list/maintainer
-(Greg) on Cc. I guess, it doesn't hurt, though.
-But it's media list / Mauro who will decide on the patches.
+Thanks
+Richard
 
-2. You could also change the order in "struct cxd".
-Currently it's like this
-
-struct cxd {
-        struct dvb_ca_en50221 en;
-        struct i2c_adapter *i2c;
-        struct cxd2099_cfg cfg;
-
-But it would be better to put it like this
-
-struct cxd {
-        struct i2c_adapter *i2c;
-        struct cxd2099_cfg cfg;
-        struct dvb_ca_en50221 en;
-
-It's more logical, and ci->i2c and ci->cfg are used more frequently, so it makes
-sense to put it near the top of the struct.
-(You may think I'm being too paranoid: I am).
-
-3. You don't have hw to test, uh?
-In that case, don't forget to always add a "Tested by compilation only"
-inside the commit message. That way the maintainer (Mauro) are free to
-_not_ pick
-the patch, if he feels it's not safe/clear enough.
-
-Hope this helps and thanks for your work,
-Ezequiel.
