@@ -1,44 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:58404 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932473Ab2HFTZu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 15:25:50 -0400
-Received: by lbbgm6 with SMTP id gm6so3022336lbb.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 12:25:49 -0700 (PDT)
-Message-ID: <50201A31.7000607@iki.fi>
-Date: Mon, 06 Aug 2012 22:25:37 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2887 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752310Ab2HINT0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2012 09:19:26 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Richard Zhao <richard.zhao@freescale.com>
+Subject: Re: __video_register_device: warning cannot be reached if warn_if_nr_in_use
+Date: Thu, 9 Aug 2012 15:19:19 +0200
+Cc: linux-media@vger.kernel.org
+References: <20120809125501.GD3824@b20223-02.ap.freescale.net>
+In-Reply-To: <20120809125501.GD3824@b20223-02.ap.freescale.net>
 MIME-Version: 1.0
-To: Malcolm Priestley <tvboxspy@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] lmedm04 v2.05 conversion to dvb-usb-v2
-References: <1344175824.18047.7.camel@router7789>
-In-Reply-To: <1344175824.18047.7.camel@router7789>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201208091519.19254.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/05/2012 05:10 PM, Malcolm Priestley wrote:
-> Conversion of lmedm04 to dvb-usb-v2
->
-> functional changes are that callbacks have been moved to fe_ioctl_override.
->
-> This patch is applied on top of [BUG] Re: dvb_usb_lmedm04 crash Kernel (rs2000)
-> http://patchwork.linuxtv.org/patch/13584/
->
->
-> Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+On Thu August 9 2012 14:55:02 Richard Zhao wrote:
+> In file drivers/media/video/v4l2-dev.c
+> 
+> int __video_register_device(struct video_device *vdev, int type, int nr,
+> 		int warn_if_nr_in_use, struct module *owner)
+> {
+> [...]
+> 	vdev->minor = i + minor_offset;
+> 878:	vdev->num = nr;
+> 
+> vdev->num is set to nr here. 
+> [...]
+> 	if (nr != -1 && nr != vdev->num && warn_if_nr_in_use)
+> 		printk(KERN_WARNING "%s: requested %s%d, got %s\n", __func__,
+> 			name_base, nr, video_device_node_name(vdev));
+> 
+> so nr != vdev->num is always false. The warning can never be printed.
 
-I reviewed it quickly and didn't see any dvb-usb-v2 issues. Anyhow, that 
-driver look quite complex overall and maybe there is room for cleaning. 
-There is even own urb handling routines for both data streaming and 
-control messages, why? (due to that it is not possible to use dvb-usb 
-power-management)
+Hmm, true. The question is, should we just fix this, or drop the warning altogether?
+Clearly nobody missed that warning.
 
-regards
-Antti
+I'm inclined to drop the warning altogether and so also the video_register_device_no_warn
+inline function.
 
--- 
-http://palosaari.fi/
+What do others think?
+
+	Hans
