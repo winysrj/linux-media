@@ -1,88 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:51718 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932380Ab2HFTNw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 15:13:52 -0400
-Received: by ggnl2 with SMTP id l2so2874503ggn.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 12:13:52 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CALF0-+UkH7o=mopJJSjRMBF-+60q+-6L=LdfJsWt17oJ0ij0Lw@mail.gmail.com>
-References: <1344260302-28849-1-git-send-email-elezegarcia@gmail.com>
-	<CALF0-+Xwa6qNH3pEOgJq9f07C+ArNco6nxQcjGWoy5kwyQeScA@mail.gmail.com>
-	<501FCFE1.7010802@redhat.com>
-	<201208061618.56479.hverkuil@xs4all.nl>
-	<CALF0-+U7DYEgRFMaJx4kRpNb4aeeUaTywBVDkmw99azozG_0nQ@mail.gmail.com>
-	<CALF0-+UkH7o=mopJJSjRMBF-+60q+-6L=LdfJsWt17oJ0ij0Lw@mail.gmail.com>
-Date: Mon, 6 Aug 2012 16:13:51 -0300
-Message-ID: <CALF0-+WmqJdEprO+ShJDDVfxvE70hWaW1iXAb=9zxOYajRgStw@mail.gmail.com>
-Subject: Re: [alsa-devel] [PATCH v8] media: Add stk1160 new driver
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Takashi Iwai <tiwai@suse.de>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	alsa-devel@alsa-project.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from eu1sys200aog107.obsmtp.com ([207.126.144.123]:57042 "HELO
+	eu1sys200aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751831Ab2HIGeO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Aug 2012 02:34:14 -0400
+Received: by wgbdr13 with SMTP id dr13so60205wgb.13
+        for <linux-media@vger.kernel.org>; Wed, 08 Aug 2012 23:34:12 -0700 (PDT)
+From: Dror Cohen <dror@liveu.tv>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, nsekhar@ti.com,
+	davinci-linux-open-source@linux.davincidsp.com,
+	Dror Cohen <dror@liveu.tv>
+Subject: [PATCH 0/1 v2] media/video: vpif: fixing function name start to vpif_config_params
+Date: Thu,  9 Aug 2012 09:33:36 +0300
+Message-Id: <1344494017-18099-1-git-send-email-dror@liveu.tv>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+This patch address the issue that a function named config_vpif_params should
+be vpif_config_params. However this name is shared with two structures defined
+already. So I changed the structures to config_vpif_params (origin was
+vpif_config_params)
 
-On Mon, Aug 6, 2012 at 12:42 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
-> Hi Mauro,
->
-> On Mon, Aug 6, 2012 at 12:21 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
->> On Mon, Aug 6, 2012 at 11:18 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>> On Mon August 6 2012 16:08:33 Mauro Carvalho Chehab wrote:
->>>> Em 06-08-2012 10:58, Ezequiel Garcia escreveu:
->>>> > Hi Mauro,
->>>> >
->>>> > On Mon, Aug 6, 2012 at 10:38 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
->>>> >> This driver adds support for stk1160 usb bridge as used in some
->>>> >> video/audio usb capture devices.
->>>> >> It is a complete rewrite of staging/media/easycap driver and
->>>> >> it's expected as a replacement.
->>>> >> ---
->>>> >>
->>>> >
->>>> > I just sent v8, but it looks it wasn't received by patchwork either.
->>>> >
->>>> > What's going on?
->>>>
->>>> The patch didn't arrive at linux-media ML.
->>>>
->>>> Not sure why it got rejected at vger. I suggest you to ping vger admin
->>>> to see why your patches are being rejected there.
->>>>
->>>> I tested parsing this patch manually and patchwork accepted. So, once
->>>> the issue with vger is solved, other patches should be properly
->>>> handled there.
->>>
->>> Could it be related to the fact that a gmail account is used? Konke Radlow
->>> had a similar issue recently when he posted a patch from a gmail account. It
->>> worked fine when posted from a company account.
->>>
->>
->> FWIW, I've always sent my patches from git-send-email through my gmail account.
->> Don't know if this is an issue, but it never seemed to.
->>
->
-> On a second thought, perhaps it makes sense to have a git repo (on linuxtv.org)
-> for me to work on stk1160.
-> That way I could simply send "git pull" requests instead of patches.
->
-> I'm not sure if this is a better workflow and/or would allow for
-> easier reviewing.
->
+v2 changes: softer wording in description and the structs are now
+defined without _t
 
-Well, I just got an answer from vger administrator. He told me the
-patch was exceeding
-the allowed limit. Which I later discovered it was documented here:
+Dror Cohen (1):
+  fixing function name start to vpif_config_params
 
-http://vger.kernel.org/majordomo-info.html
+ drivers/media/video/davinci/vpif.c         |    6 +++---
+ drivers/media/video/davinci/vpif_capture.c |    2 +-
+ drivers/media/video/davinci/vpif_capture.h |    2 +-
+ drivers/media/video/davinci/vpif_display.c |    2 +-
+ drivers/media/video/davinci/vpif_display.h |    2 +-
+ 5 files changed, 7 insertions(+), 7 deletions(-)
 
-Apparently, there is a 100, 000 characters limit.
+-- 
+1.7.5.4
 
-So, how do we proceed?
-
-Regards,
-Ezequiel.
