@@ -1,65 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45497 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:17673 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1031079Ab2HGW5L (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Aug 2012 18:57:11 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH 2/2] dvb_usb_v2: use %*ph to dump usb xfer debugs
-Date: Wed,  8 Aug 2012 01:56:36 +0300
-Message-Id: <1344380196-9488-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1344380196-9488-1-git-send-email-crope@iki.fi>
-References: <1344380196-9488-1-git-send-email-crope@iki.fi>
+	id S1757850Ab2HIL1c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Aug 2012 07:27:32 -0400
+Message-ID: <50239EDC.9010105@redhat.com>
+Date: Thu, 09 Aug 2012 13:28:28 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] pwc: Use vb2 queue mutex through a single name
+References: <1342332033-30250-1-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1342332033-30250-1-git-send-email-elezegarcia@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c | 14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
+Hi,
 
-diff --git a/drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c b/drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c
-index 5f5bdd0..0431bee 100644
---- a/drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c
-+++ b/drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c
-@@ -21,7 +21,6 @@
- 
- #include "dvb_usb_common.h"
- 
--#undef DVB_USB_XFER_DEBUG
- int dvb_usbv2_generic_rw(struct dvb_usb_device *d, u8 *wbuf, u16 wlen, u8 *rbuf,
- 		u16 rlen)
- {
-@@ -37,10 +36,8 @@ int dvb_usbv2_generic_rw(struct dvb_usb_device *d, u8 *wbuf, u16 wlen, u8 *rbuf,
- 	if (ret < 0)
- 		return ret;
- 
--#ifdef DVB_USB_XFER_DEBUG
--	print_hex_dump(KERN_DEBUG, KBUILD_MODNAME ": >>> ", DUMP_PREFIX_NONE,
--			32, 1, wbuf, wlen, 0);
--#endif
-+	dev_dbg(&d->udev->dev, "%s: >>> %*ph\n", __func__, wlen, wbuf);
-+
- 	ret = usb_bulk_msg(d->udev, usb_sndbulkpipe(d->udev,
- 			d->props->generic_bulk_ctrl_endpoint), wbuf, wlen,
- 			&actual_length, 2000);
-@@ -64,11 +61,8 @@ int dvb_usbv2_generic_rw(struct dvb_usb_device *d, u8 *wbuf, u16 wlen, u8 *rbuf,
- 			dev_err(&d->udev->dev, "%s: 2nd usb_bulk_msg() " \
- 					"failed=%d\n", KBUILD_MODNAME, ret);
- 
--#ifdef DVB_USB_XFER_DEBUG
--		print_hex_dump(KERN_DEBUG, KBUILD_MODNAME ": <<< ",
--				DUMP_PREFIX_NONE, 32, 1, rbuf, actual_length,
--				0);
--#endif
-+		dev_dbg(&d->udev->dev, "%s: <<< %*ph\n", __func__,
-+				actual_length, rbuf);
- 	}
- 
- 	mutex_unlock(&d->usb_mutex);
--- 
-1.7.11.2
+Thanks for the patch, I've added it to my tree for 3.7:
+http://git.linuxtv.org/hgoede/gspca.git/shortlog/refs/heads/media-for_v3.7-wip
 
+Regards,
+
+Hans
+
+
+On 07/15/2012 08:00 AM, Ezequiel Garcia wrote:
+> This lock was being taken using two different names
+> (pointers) in the same function.
+> Both names refer to the same lock,
+> so this wasn't an error; but it looked very strange.
+>
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+> ---
+>   drivers/media/video/pwc/pwc-if.c |    2 +-
+>   1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/media/video/pwc/pwc-if.c b/drivers/media/video/pwc/pwc-if.c
+> index de7c7ba..b5d0729 100644
+> --- a/drivers/media/video/pwc/pwc-if.c
+> +++ b/drivers/media/video/pwc/pwc-if.c
+> @@ -1127,7 +1127,7 @@ static void usb_pwc_disconnect(struct usb_interface *intf)
+>   	v4l2_device_disconnect(&pdev->v4l2_dev);
+>   	video_unregister_device(&pdev->vdev);
+>   	mutex_unlock(&pdev->v4l2_lock);
+> -	mutex_unlock(pdev->vb_queue.lock);
+> +	mutex_unlock(&pdev->vb_queue_lock);
+>
+>   #ifdef CONFIG_USB_PWC_INPUT_EVDEV
+>   	if (pdev->button_dev)
+>
