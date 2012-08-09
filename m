@@ -1,85 +1,438 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:48012 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751546Ab2HGI7K (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2012 04:59:10 -0400
-Received: from epcpsbgm1.samsung.com (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M8D005SYNL14I40@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 07 Aug 2012 17:58:57 +0900 (KST)
-Received: from amdc248.digital.local ([106.116.147.32])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M8D004FYNLXN810@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 07 Aug 2012 17:58:57 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: sw0312.kim@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Heungjun Kim <riverful.kim@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH] m5mols: Fix cast warnings from m5mols_[set/get]_ctrl_mode
-Date: Tue, 07 Aug 2012 10:58:35 +0200
-Message-id: <1344329915-4647-1-git-send-email-s.nawrocki@samsung.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:34821 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753893Ab2HIDot (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2012 23:44:49 -0400
+Message-ID: <502331F8.3050503@ti.com>
+Date: Thu, 9 Aug 2012 09:13:52 +0530
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	<linux-doc@vger.kernel.org>, Rob Landley <rob@landley.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	<laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] [media] davinci: vpfe: Add documentation
+References: <1342021166-6092-1-git-send-email-manjunath.hadli@ti.com> <20120802000756.GM26642@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20120802000756.GM26642@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes following warnings on 64-bit architectures:
+Hi Sakari,
+ 
+ Thank you for the comments.
 
-m5mols.h: In function 'm5mols_set_ctrl_mode':
-m5mols.h:326:15: warning: cast to pointer from integer of different
-size [-Wint-to-pointer-cast]
+On Thursday 02 August 2012 05:37 AM, Sakari Ailus wrote:
+> Hi Manju,
+>
+> Thanks for the patch.
+>
+> Please make sure these patches reach linux-media next time. If they do
+> not,
+> it severely limits the number of potential reviewers. I don't know
+> why, but
+> the original patch isn't on linux-media even if the list was cc'd.
+>
+> Dropping linux-kernel from cc.
+>
+> Manjunath Hadli wrote:
+>> Add documentation on the Davinci VPFE driver. Document the subdevs,
+>> and private IOTCLs the driver implements
+>>
+>> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+>> ---
+>>   Documentation/video4linux/davinci-vpfe-mc.txt |  263
+>> +++++++++++++++++++++++++
+>>   1 files changed, 263 insertions(+), 0 deletions(-)
+>>   create mode 100644 Documentation/video4linux/davinci-vpfe-mc.txt
+>>
+>> diff --git a/Documentation/video4linux/davinci-vpfe-mc.txt
+>> b/Documentation/video4linux/davinci-vpfe-mc.txt
+>> new file mode 100644
+>> index 0000000..968194f
+>> --- /dev/null
+>> +++ b/Documentation/video4linux/davinci-vpfe-mc.txt
+>> @@ -0,0 +1,263 @@
+>> +Davinci Video processing Front End (VPFE) driver
+>> +
+>> +Copyright (C) 2012 Texas Instruments Inc
+>> +
+>> +Contacts: Manjunath Hadli <manjunath.hadli@ti.com>
+>> +
+>> +Introduction
+>> +============
+>> +
+>> +This file documents the Texas Instruments Davinci Video processing
+>> Front End
+>> +(VPFE) driver located under drivers/media/video/davinci. The
+>> original driver
+>> +exists for Davinci VPFE, which is now being changed to Media Controller
+>> +Framework.
+>> +
+>> +Currently the driver has been successfully used on the following
+>> version of Davinci:
+>> +
+>> +    DM365/DM368
+>> +
+>> +The driver implements V4L2, Media controller and v4l2_subdev
+>> interfaces.
+>> +Sensor, lens and flash drivers using the v4l2_subdev interface in
+>> the kernel
+>> +are supported.
+>> +
+>> +
+>> +Split to subdevs
+>> +================
+>> +
+>> +The Davinic VPFE is split into V4L2 subdevs, each of the blocks
+>> inside the VPFE
+>> +having one subdev to represent it. Each of the subdevs provide a
+>> V4L2 subdev
+>> +interface to userspace.
+>> +
+>> +    DAVINCI CCDC
+>> +    DAVINCI PREVIEWER
+>> +    DAVINCI RESIZER
+>> +    DAVINCI AEW
+>> +    DAVINCI AF
+>> +
+>> +Each possible link in the VPFE is modeled by a link in the Media
+>> controller
+>> +interface. For an example program see [1].
+>> +
+>> +
+>> +Private IOCTLs
+>> +==============
+>> +
+>> +The Davinci Video processing Front End (VPFE) driver supports
+>> standard V4L2
+>> +IOCTLs and controls where possible and practical. Much of the
+>> functions provided
+>> +by the VPFE, however, does not fall under the standard IOCTLs.
+>> +
+>> +In general, there is a private ioctl for configuring each of the blocks
+>> +containing hardware-dependent functions.
+>> +
+>> +The following private IOCTLs are supported:
+>> +
+>> +1: IOCTL: PREV_S_PARAM/PREV_G_PARAM
+>> +Description:
+>> +    Sets/Gets the parameters required by the previewer module
+>> +Parameter:
+>> +    /**
+>> +     * struct prev_module_param- structure to configure preview modules
+>> +     * @version: Version of the preview module
+>> +     * @len: Length of the module config structure
+>> +     * @module_id: Module id
+>> +     * @param: pointer to module config parameter.
+>> +     */
+>> +    struct prev_module_param {
+>> +        char version[IMP_MAX_NAME_SIZE];
+>> +        unsigned short len;
+>> +        unsigned short module_id;
+>> +        void *param;
+>> +    };
+>
+> In addition to what Laurent commented on this, could the version
+> information be passed in struct media_entity_desc instead?
+I plan to leave out the version.
+>
+> As a general comment, it's a bad idea to design an API that allows
+> passing
+> blobs, especially when the expected size of the blobs isn't known. That
+> really equals to asking for trouble.
+>
+> That said, I know this is an area where complete documentation is acarce,
+> but I think that at least the memory layout of the current blob pointers
+> should be visible in the struct definitions whenever possible. See
+> e.g. the
+> OMAP 3 ISP driver.
+I have proposed using a union of structures instead of the void  blob. 
+I also saw the OMAP implementation, and they are pointers (but not void). 
+To me the union approach looks better as it keeps the architecture
+intact and does not necessitate an
+explicit copy_from_user. Which of these ways do you suggest?
+>
+>> +2: IOCTL: PREV_S_CONFIG/PREV_G_CONFIG
+>> +Description:
+>> +    Sets/Gets the configuration required by the previewer channel
+>> +Parameter:
+>> +    /**
+>> +     * struct prev_channel_config - structure for configuring the
+>> previewer channel
+>> +     * @len: Length of the user configuration
+>> +     * @config: pointer to either single shot config or continuous
+>> +     */
+>> +    struct prev_channel_config {
+>> +        unsigned short len;
+>> +        void *config;
+>> +    };
+>> +
+>> +3: IOCTL: PREV_ENUM_CAP
+>> +Description:
+>> +    Queries the modules available in the image processor for preview
+>> the
+>> +    input image.
+>> +Parameter:
+>> +    /**
+>> +     * struct prev_cap - structure to enumerate capabilities of
+>> previewer
+>> +     * @index: application use this to iterate over the available
+>> modules
+>> +     * @version: version of the preview module
+>> +     * @module_id: module id
+>> +     * @control: control operation allowed in continuous mode? 1 -
+>> allowed, 0 - not allowed
+>> +     * @path: path on which the module is sitting
+>> +     * @module_name: module name
+>> +     */
+>> +    struct prev_cap {
+>> +        unsigned short index;
+>> +        char version[IMP_MAX_NAME_SIZE];
+>> +        unsigned short module_id;
+>
+> Huh? How many sub-modules do the preview modules have in different DM
+> series
+> chips, and which ones have the same?
+>
+> The user still has to know quite lot about the hardware; I'd give the
+> responsibility of knowing the hardware to the user also here --- the user
+> has to know this exactly anyway.
+I am going to remove this IOCTL as agreed. Will keep only a SET and a
+GET IOTCL.
+>
+>> +        char control;
+>> +        enum imp_data_paths path;
+>> +        char module_name[IMP_MAX_NAME_SIZE];
+>> +    };
+>> +
+>> +4: IOCTL: RSZ_S_CONFIG/RSZ_G_CONFIG
+>> +Description:
+>> +    Sets/Gets the configuration required by the resizer channel
+>> +Parameter:
+>> +    /**
+>> +     * struct rsz_channel_config - structure for configuring the
+>> resizer channel
+>> +     * @chain: chain this resizer at the previewer output
+>> +     * @len: length of the user configuration
+>> +     * @config: pointer to either single shot config or continuous
+>> +     */
+>> +    struct rsz_channel_config {
+>> +        unsigned char chain;
+>
+> How many resizers do you have? Wouldn't the Media controller link
+> configuration be the right way to configure this?
+Yes. The Media controller links the entities to act as single shot or
+continuous.
+The above variable can be removed. There are two resizers.
+>
+> A media-ctl --print-dot graph on the device layout would be
+> appreciated if
+> the driver is in a state where it can be easily produced.
+Sure will send it.
+>
+>> +        unsigned short len;
+>> +        void *config;
+>> +    };
+>> +
+>> +5: IOCTL: VPFE_CMD_S_CCDC_RAW_PARAMS/VPFE_CMD_G_CCDC_RAW_PARAMS
+>> +Description:
+>> +    Sets/Gets the CCDC parameter
+>> +Parameter:
+>> +    /**
+>> +     * struct ccdc_config_params_raw - structure for configuring
+>> ccdc params
+>> +     * @linearize: linearization parameters for image sensor data input
+>> +     * @df_csc: data formatter or CSC
+>> +     * @dfc: defect Pixel Correction (DFC) configuration
+>> +     * @bclamp: Black/Digital Clamp configuration
+>> +     * @gain_offset: Gain, offset adjustments
+>> +     * @culling: Culling
+>> +     * @pred: predictor for DPCM compression
+>> +     * @horz_offset: horizontal offset for Gain/LSC/DFC
+>> +     * @vert_offset: vertical offset for Gain/LSC/DFC
+>> +     * @col_pat_field0: color pattern for field 0
+>> +     * @col_pat_field1: color pattern for field 1
+>> +     * @data_size: data size from 8 to 16 bits
+>> +     * @data_shift: data shift applied before storing to SDRAM
+>> +     * @test_pat_gen: enable input test pattern generation
+>> +     */
+>> +    struct ccdc_config_params_raw {
+>> +        struct ccdc_linearize linearize;
+>> +        struct ccdc_df_csc df_csc;
+>> +        struct ccdc_dfc dfc;
+>> +        struct ccdc_black_clamp bclamp;
+>> +        struct ccdc_gain_offsets_adj gain_offset;
+>> +        struct ccdc_cul culling;
+>> +        enum ccdc_dpcm_predictor pred;
+>> +        unsigned short horz_offset;
+>> +        unsigned short vert_offset;
+>> +        struct ccdc_col_pat col_pat_field0;
+>> +        struct ccdc_col_pat col_pat_field1;
+>> +        enum ccdc_data_size data_size;
+>> +        enum ccdc_datasft data_shift;
+>> +        unsigned char test_pat_gen;
+>
+> Are the struct definitions available somewhere? I bet more than the test
+> pattern Laurent suggested might be implementable as controls. The dpcm
+> predictor, for example.
+I will check on the DPSM test pattern. The definitions are available
+at:http://davinci-linux-open-source.1494791.n2.nabble.com/RESEND-RFC-PATCH-v4-00-15-RFC-for-Media-Controller-capture-driver-for-DM365-td7003648.html
 
-m5mols.h: In function 'm5mols_get_ctrl_mode':
-m5mols.h:331:9: warning: cast from pointer to integer of different
-size [-Wpointer-to-int-cast]
-
-drivers/media/video/m5mols/m5mols_controls.c:466:2: warning: cast
-from pointer to integer of different size
-
-Cc: Heungjun Kim <riverful.kim@samsung.com>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/m5mols/m5mols.h          |    4 ++--
- drivers/media/video/m5mols/m5mols_controls.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/video/m5mols/m5mols.h b/drivers/media/video/m5mols/m5mols.h
-index bb58991..527e7b2 100644
---- a/drivers/media/video/m5mols/m5mols.h
-+++ b/drivers/media/video/m5mols/m5mols.h
-@@ -323,12 +323,12 @@ static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
- static inline void m5mols_set_ctrl_mode(struct v4l2_ctrl *ctrl,
- 					unsigned int mode)
- {
--	ctrl->priv = (void *)mode;
-+	ctrl->priv = (void *)(uintptr_t)mode;
- }
-
- static inline unsigned int m5mols_get_ctrl_mode(struct v4l2_ctrl *ctrl)
- {
--	return (unsigned int)ctrl->priv;
-+	return (unsigned int)(uintptr_t)ctrl->priv;
- }
-
- #endif	/* M5MOLS_H */
-diff --git a/drivers/media/video/m5mols/m5mols_controls.c b/drivers/media/video/m5mols/m5mols_controls.c
-index fdbc205..f34429e 100644
---- a/drivers/media/video/m5mols/m5mols_controls.c
-+++ b/drivers/media/video/m5mols/m5mols_controls.c
-@@ -463,8 +463,8 @@ static int m5mols_s_ctrl(struct v4l2_ctrl *ctrl)
- 		return 0;
- 	}
-
--	v4l2_dbg(1, m5mols_debug, sd, "%s: %s, val: %d, priv: %#x\n",
--		 __func__, ctrl->name, ctrl->val, (int)ctrl->priv);
-+	v4l2_dbg(1, m5mols_debug, sd, "%s: %s, val: %d, priv: %p\n",
-+		 __func__, ctrl->name, ctrl->val, ctrl->priv);
-
- 	if (ctrl_mode && ctrl_mode != info->mode) {
- 		ret = m5mols_set_mode(info, ctrl_mode);
---
-1.7.10
-
+>
+>> +    };
+>> +
+>> +6: IOCTL: AF_S_PARAM/AF_G_PARAM
+>> +Description:
+>> +    AF_S_PARAM performs the hardware setup and sets the parameter for
+>> +    AF engine.AF_G_PARAM gets the parameter setup in AF engine
+>> +Parameter:
+>> +    /**
+>> +     * struct af_configuration - struct to configure parameters of
+>> AF engine
+>> +     * @alaw_enable: ALAW status
+>> +     * @fv_sel: focus value selection
+>> +     * @hmf_config: HMF configurations
+>> +     * @rgb_pos: RGB Positions. Only applicable with AF_HFV_ONLY
+>> selection
+>> +     * @iir_config: IIR filter configurations
+>> +     * @fir_config: FIR filter configuration
+>> +     * @paxel_config: Paxel parameters
+>> +     * @mode: accumulator mode
+>> +     */
+>> +    struct af_configuration {
+>> +        enum af_enable_flag alaw_enable;
+>
+> What does alaw_enable do? Is it set by the user?
+This will be removed. We will take it from mbus format.
+>
+> It'd be nice to see what's behind these enums and structs.
+Please see the above link.
+>
+>> +        enum af_focus_val_sel fv_sel;
+>> +        struct af_hmf hmf_config;
+>> +        enum rgbpos rgb_pos;
+>> +        struct af_iir iir_config;
+>> +        struct af_fir fir_config;
+>> +        struct af_paxel paxel_config;
+>> +        enum af_mode mode;
+>> +    };
+>> +
+>> +7: IOCTL: AF_GET_STAT
+>> +Description:
+>> +    Copy the entire statistics located in application buffer
+>> +    to user space from the AF engine
+>> +Parameter:
+>> +    /**
+>> +     * struct af_statdata - structure to get statistics from AF engine
+>> +     * @buffer: pointer to buffer
+>> +     * @buf_length: length of buffer
+>> +     */
+>> +    struct af_statdata {
+>> +        void *buffer;
+>> +        int buf_length;
+>> +    };
+>
+> I think the proper way to pass statistics to the user space has been
+> discussed for years, but AFAIR --- please correct if I'm mistaken --- the
+> agreement was to implement statistics as video buffer queue. It is, after
+> all, very similar to regular image data in how it's handled by the
+> hardware
+> and when it's needed by the user and even some of the statistics can
+> be even
+> considered images themselves.
+Depending on which statistics we are talking about, the data size might
+vary, and
+in general much saller than a image that it is based on. I am not sure
+if we need a 
+full fledged buffer exchange mechanism to exchange statistics data.
+Anyway, can you
+point me to the discussion?
+>
+> So, this should be done using video buffers instead. I know the OMAP 3
+> ISP
+> doesn't, but at the time of the implementation this was seen otherwise.
+> You'll save a lot of trouble by using video buffers since you won't
+> need to
+> implement the same functionality that already exists in videobuf2 for the
+> statistics.
+Is there any driver which uses video buffers for statistics data 
+exchange using video buffers? If so can you point me to it? If it is a
+quickie, I lan to make the changes. Else I will plan to get this driver
+into the mainline without AF/AEW and add patches later.
+>
+>> +8: IOCTL: AEW_S_PARAM/AEW_G_PARAM
+>> +Description:
+>> +    AEW_S_PARAM performs the hardware setup and sets the parameter for
+>> +    AEW engine.AEW_G_PARAM gets the parameter setup in AEW engine
+>> +Parameter:
+>> +    /**
+>> +     * struct aew_configuration -  struct to configure parameters of
+>> AEW engine
+>> +     * @alaw_enable: A-law status
+>> +     * @format: AE/AWB output format
+>> +     * @sum_shift: AW/AWB right shift value for sum of pixels
+>> +     * @saturation_limit: Saturation Limit
+>> +     * @hmf_config: HMF configurations
+>> +     * @window_config: Window for AEW Engine
+>> +     * @blackwindow_config: Black Window
+>> +     */
+>> +    struct aew_configuration {
+>> +        enum aew_enable_flag alaw_enable;
+>> +        enum aew_output_format out_format;
+>> +        char sum_shift;
+>> +        int saturation_limit;
+>> +        struct aew_hmf hmf_config;
+>> +        struct aew_window window_config;
+>> +        struct aew_black_window blackwindow_config;
+>> +    };
+>> +
+>> +9: IOCTL: AEW_GET_STAT
+>> +Description:
+>> +    Copy the entire statistics located in application buffer
+>> +    to user space from the AEW engine
+>> +Parameter:
+>> +    /**
+>> +     * struct aew_statdata - structure to get statistics from AEW
+>> engine
+>> +     * @buffer: pointer to buffer
+>> +     * @buf_length: length of buffer
+>> +     */
+>> +    struct aew_statdata {
+>> +        void *buffer;
+>> +        int buf_length;
+>> +    };
+>
+> Same as for AF.
+>
+>> +
+>> +
+>> +Technical reference manuals (TRMs) and other documentation
+>> +==========================================================
+>> +
+>> +Davinci DM365 TRM:
+>> +<URL:http://www.ti.com/lit/ds/sprs457e/sprs457e.pdf>
+>> +Referenced MARCH 2009-REVISED JUNE 2011
+>> +
+>> +Davinci DM368 TRM:
+>> +<URL:http://www.ti.com/lit/ds/sprs668c/sprs668c.pdf>
+>> +Referenced APRIL 2010-REVISED JUNE 2011
+>> +
+>> +Davinci Video Processing Front End (VPFE) DM36x
+>> +<URL:http://www.ti.com/lit/ug/sprufg8c/sprufg8c.pdf>
+>> +
+>> +
+>> +References
+>> +==========
+>> +
+>> +[1] http://git.ideasonboard.org/?p=media-ctl.git;a=summary
+>>
+>
+> Kind regards,
+>
+Thanks and Regards,
+-Manju
