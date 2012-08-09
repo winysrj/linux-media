@@ -1,113 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59143 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753741Ab2HIMjY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Aug 2012 08:39:24 -0400
-Message-ID: <5023AF3A.9050206@redhat.com>
-Date: Thu, 09 Aug 2012 09:38:18 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:45102 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753417Ab2HIMYU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2012 08:24:20 -0400
+Received: by ghrr11 with SMTP id r11so334731ghr.19
+        for <linux-media@vger.kernel.org>; Thu, 09 Aug 2012 05:24:20 -0700 (PDT)
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: David Rientjes <rientjes@google.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [GIT PULL for 3.6-rc1] media updates part 2
-References: <5017F674.80404@redhat.com> <alpine.DEB.2.00.1208081526320.11542@chino.kir.corp.google.com> <5023A11C.50502@redhat.com> <5023A645.40308@redhat.com>
-In-Reply-To: <5023A645.40308@redhat.com>
+In-Reply-To: <CALF0-+WmqJdEprO+ShJDDVfxvE70hWaW1iXAb=9zxOYajRgStw@mail.gmail.com>
+References: <1344260302-28849-1-git-send-email-elezegarcia@gmail.com>
+	<CALF0-+Xwa6qNH3pEOgJq9f07C+ArNco6nxQcjGWoy5kwyQeScA@mail.gmail.com>
+	<501FCFE1.7010802@redhat.com>
+	<201208061618.56479.hverkuil@xs4all.nl>
+	<CALF0-+U7DYEgRFMaJx4kRpNb4aeeUaTywBVDkmw99azozG_0nQ@mail.gmail.com>
+	<CALF0-+UkH7o=mopJJSjRMBF-+60q+-6L=LdfJsWt17oJ0ij0Lw@mail.gmail.com>
+	<CALF0-+WmqJdEprO+ShJDDVfxvE70hWaW1iXAb=9zxOYajRgStw@mail.gmail.com>
+Date: Thu, 9 Aug 2012 09:24:19 -0300
+Message-ID: <CALF0-+UqJUeCCakr73yHFjUvRVm6ZJ371wtTDKPmAXSWUB-57g@mail.gmail.com>
+Subject: Re: [alsa-devel] [PATCH v8] media: Add stk1160 new driver
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Takashi Iwai <tiwai@suse.de>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	alsa-devel@alsa-project.org, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 09-08-2012 09:00, Hans de Goede escreveu:
-> Hi,
-> 
-> My bad, sorry about this. Mauro's patch looks good.
+Hi Mauro,
 
-Hmm...
-
-menuconfig NEW_LEDS
-	bool "LED Support"
-	help
-	  Say Y to enable Linux LED support.  This allows control of supported
-	  LEDs from both userspace and optionally, by kernel events (triggers).
-
-	  This is not related to standard keyboard LEDs which are controlled
-	  via the input system.
-
-if NEW_LEDS
-
-config LEDS_CLASS
-...
-
-
-It seems that the patch also need to select or depend on NEW_LEDS.
-
-> An alternative fix
-> would be to #ifdefify the led code in the drivers themselves.
-
-Yeah, that would work as well, although the code would look uglier.
-IMHO, using select/depend is better.
-
-Regards,
-Mauro
-
-> 
-> Regards,
-> 
-> Hans
-> 
-> 
-> On 08/09/2012 01:38 PM, Mauro Carvalho Chehab wrote:
->> Em 08-08-2012 19:28, David Rientjes escreveu:
->>> On Tue, 31 Jul 2012, Mauro Carvalho Chehab wrote:
->>>
->>>>         [media] radio-shark: New driver for the Griffin radioSHARK USB radio receiver
->>>
->>> This one gives me a build warning if CONFIG_LEDS_CLASS is disabled:
->>>
->>> ERROR: "led_classdev_register" [drivers/media/radio/shark2.ko] undefined!
->>> ERROR: "led_classdev_unregister" [drivers/media/radio/shark2.ko] undefined!
->>>
+On Mon, Aug 6, 2012 at 4:13 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
 >>
->> Could you please test the enclosed patch?
+>> On a second thought, perhaps it makes sense to have a git repo (on linuxtv.org)
+>> for me to work on stk1160.
+>> That way I could simply send "git pull" requests instead of patches.
 >>
->> Thanks!
->> Mauro
+>> I'm not sure if this is a better workflow and/or would allow for
+>> easier reviewing.
 >>
->> -
->>
->> [media] radio-shark: make sure LEDS_CLASS is selected
->>
->> As reported by David:
->>     > ERROR: "led_classdev_register" [drivers/media/radio/shark2.ko] undefined!
->>     > ERROR: "led_classdev_unregister" [drivers/media/radio/shark2.ko] undefined!
->>
->> Reported-by: Dadiv Rientjes <rientjes@google.com>
->> Cc: Hans de Goede <hdegoede@redhat.com>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>
->>
->> diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
->> index 8090b87..be68ec2 100644
->> --- a/drivers/media/radio/Kconfig
->> +++ b/drivers/media/radio/Kconfig
->> @@ -60,6 +60,7 @@ config RADIO_MAXIRADIO
->>   config RADIO_SHARK
->>       tristate "Griffin radioSHARK USB radio receiver"
->>       depends on USB && SND
->> +    select LEDS_CLASS
->>       ---help---
->>         Choose Y here if you have this radio receiver.
->>
->> @@ -77,6 +78,7 @@ config RADIO_SHARK
->>   config RADIO_SHARK2
->>       tristate "Griffin radioSHARK2 USB radio receiver"
->>       depends on USB
->> +    select LEDS_CLASS
->>       ---help---
->>         Choose Y here if you have this radio receiver.
->>
->>
+>
+> Well, I just got an answer from vger administrator. He told me the
+> patch was exceeding
+> the allowed limit. Which I later discovered it was documented here:
+>
+> http://vger.kernel.org/majordomo-info.html
+>
+> Apparently, there is a 100, 000 characters limit.
+>
+> So, how do we proceed?
+>
 
+Ping! Could you take a look at this?
+I'd like to solve the pending issues (see previous mails),
+in order to know if the driver will need further work.
+
+... or perhaps we can leave this for after the merge window, when
+you (and everyone) are be less busy.
+
+I *really* hope I'm not spamming. In that case, feel free to say so.
+Thanks,
+Ezequiel.
