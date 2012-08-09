@@ -1,68 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oproxy6-pub.bluehost.com ([67.222.54.6]:53463 "HELO
-	oproxy6-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755831Ab2HXPy3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 11:54:29 -0400
-From: Federico Fuga <fuga@studiofuga.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org, Federico Fuga <fuga@studiofuga.com>
-Subject: [PATCH] Corrected Oops on omap_vout when no manager is connected
-Date: Fri, 24 Aug 2012 17:54:11 +0200
-Message-Id: <1345823651-19800-1-git-send-email-fuga@studiofuga.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:43798 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759861Ab2HIWit (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Aug 2012 18:38:49 -0400
+Received: from dyn3-82-128-186-179.psoas.suomi.net ([82.128.186.179] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1SzbNP-0008FY-SR
+	for linux-media@vger.kernel.org; Fri, 10 Aug 2012 01:38:47 +0300
+Message-ID: <50243BEC.3020101@iki.fi>
+Date: Fri, 10 Aug 2012 01:38:36 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: [PATCH RFC] add LNA support for DVB API
+References: <1342055041-18377-1-git-send-email-crope@iki.fi>
+In-Reply-To: <1342055041-18377-1-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If no manager is connected to the vout device, the omapvid_init() function
-fails. No error condition is checked, and the device is started. Later on,
-when irq is serviced, a NULL pointer dereference occurs.
-Also, the isr routine must be registered only if no error occurs, otherwise
-the isr triggers without the proper setup, and the kernel oops again.
-To prevent this, the error condition is checked, and the streamon function
-exits with error. Also the isr registration call is moved after the setup
-procedure is completed.
----
- drivers/media/video/omap/omap_vout.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+On 07/12/2012 04:04 AM, Antti Palosaari wrote:
 
-diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
-index 15c5f4d..f456587 100644
---- a/drivers/media/video/omap/omap_vout.c
-+++ b/drivers/media/video/omap/omap_vout.c
-@@ -650,9 +650,12 @@ static void omap_vout_isr(void *arg, unsigned int irqstatus)
- 
- 	/* First save the configuration in ovelray structure */
- 	ret = omapvid_init(vout, addr);
--	if (ret)
-+	if (ret) {
- 		printk(KERN_ERR VOUT_NAME
- 			"failed to set overlay info\n");
-+		goto vout_isr_err;
-+	}
-+
- 	/* Enable the pipeline and set the Go bit */
- 	ret = omapvid_apply_changes(vout);
- 	if (ret)
-@@ -1678,13 +1681,16 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
- 	mask = DISPC_IRQ_VSYNC | DISPC_IRQ_EVSYNC_EVEN | DISPC_IRQ_EVSYNC_ODD
- 		| DISPC_IRQ_VSYNC2;
- 
--	omap_dispc_register_isr(omap_vout_isr, vout, mask);
--
- 	/* First save the configuration in ovelray structure */
- 	ret = omapvid_init(vout, addr);
--	if (ret)
-+	if (ret) {
- 		v4l2_err(&vout->vid_dev->v4l2_dev,
- 				"failed to set overlay info\n");
-+		goto streamon_err1;
-+	}
-+
-+	omap_dispc_register_isr(omap_vout_isr, vout, mask);
-+
- 	/* Enable the pipeline and set the Go bit */
- 	ret = omapvid_apply_changes(vout);
- 	if (ret)
+Any comment about that?
+Should I store value to cache?
+Should I offer get too?
+Should I offer way to query possible values?
+
+I think that implementation is quite simply and safe to add. Lets extend 
+later if really needed...
+
+
+regards
+Antti
+
+
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>   drivers/media/dvb/dvb-core/dvb_frontend.c |    5 +++++
+>   drivers/media/dvb/dvb-core/dvb_frontend.h |    1 +
+>   include/linux/dvb/frontend.h              |    4 +++-
+>   3 files changed, 9 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> index b54c297..fe22aaa 100644
+> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> @@ -1020,6 +1020,7 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
+>
+>   	_DTV_CMD(DTV_ISDBS_TS_ID, 1, 0),
+>   	_DTV_CMD(DTV_DVBT2_PLP_ID, 1, 0),
+> +	_DTV_CMD(DTV_LNA, 1, 0),
+>
+>   	/* Get */
+>   	_DTV_CMD(DTV_DISEQC_SLAVE_REPLY, 0, 1),
+> @@ -1723,6 +1724,10 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
+>   	case DTV_INTERLEAVING:
+>   		c->interleaving = tvp->u.data;
+>   		break;
+> +	case DTV_LNA:
+> +		if (fe->ops.set_lna)
+> +			r = fe->ops.set_lna(fe, tvp->u.data);
+> +		break;
+>
+>   	/* ISDB-T Support here */
+>   	case DTV_ISDBT_PARTIAL_RECEPTION:
+> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h b/drivers/media/dvb/dvb-core/dvb_frontend.h
+> index 31a3d1c..628a821 100644
+> --- a/drivers/media/dvb/dvb-core/dvb_frontend.h
+> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
+> @@ -302,6 +302,7 @@ struct dvb_frontend_ops {
+>   	int (*dishnetwork_send_legacy_command)(struct dvb_frontend* fe, unsigned long cmd);
+>   	int (*i2c_gate_ctrl)(struct dvb_frontend* fe, int enable);
+>   	int (*ts_bus_ctrl)(struct dvb_frontend* fe, int acquire);
+> +	int (*set_lna)(struct dvb_frontend *, int);
+>
+>   	/* These callbacks are for devices that implement their own
+>   	 * tuning algorithms, rather than a simple swzigzag
+> diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
+> index 2dd5823..e28802a 100644
+> --- a/include/linux/dvb/frontend.h
+> +++ b/include/linux/dvb/frontend.h
+> @@ -350,8 +350,9 @@ struct dvb_frontend_event {
+>   #define DTV_ATSCMH_SCCC_CODE_MODE_D	59
+>
+>   #define DTV_INTERLEAVING			60
+> +#define DTV_LNA					61
+>
+> -#define DTV_MAX_COMMAND				DTV_INTERLEAVING
+> +#define DTV_MAX_COMMAND				DTV_LNA
+>
+>   typedef enum fe_pilot {
+>   	PILOT_ON,
+> @@ -424,6 +425,7 @@ enum atscmh_rs_code_mode {
+>   	ATSCMH_RSCODE_RES        = 3,
+>   };
+>
+> +#define LNA_AUTO INT_MIN
+>
+>   struct dtv_cmds_h {
+>   	char	*name;		/* A display name for debugging purposes */
+>
+
+
 -- 
-1.7.9.5
-
+http://palosaari.fi/
