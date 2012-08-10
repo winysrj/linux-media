@@ -1,86 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:49633 "EHLO mga09.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:18994 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753528Ab2HGQm5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Aug 2012 12:42:57 -0400
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 07/11] gspca: use %*ph to print small buffers
-Date: Tue,  7 Aug 2012 19:43:07 +0300
-Message-Id: <1344357792-18202-7-git-send-email-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <1344357792-18202-1-git-send-email-andriy.shevchenko@linux.intel.com>
-References: <1344357792-18202-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	id S1753621Ab2HJUPx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Aug 2012 16:15:53 -0400
+Message-ID: <50256BF5.7090704@redhat.com>
+Date: Fri, 10 Aug 2012 17:15:49 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	David Rientjes <rientjes@google.com>,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/2] radio-shark: Only compile led support when CONFIG_LED_CLASS
+ is set
+References: <1344628686-10482-1-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1344628686-10482-1-git-send-email-hdegoede@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Hans de Goede <hdegoede@redhat.com>
----
- drivers/media/video/gspca/sq905c.c |    7 ++-----
- drivers/media/video/gspca/sq930x.c |   10 +---------
- drivers/media/video/gspca/vc032x.c |    7 ++-----
- 3 files changed, 5 insertions(+), 19 deletions(-)
+Em 10-08-2012 16:58, Hans de Goede escreveu:
+> Reported-by: Dadiv Rientjes <rientjes@google.com>
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  drivers/media/radio/radio-shark.c | 26 ++++++++++++++++++++++++--
+>  1 file changed, 24 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/radio/radio-shark.c b/drivers/media/radio/radio-shark.c
+> index c2ead23..f746ed0 100644
+> --- a/drivers/media/radio/radio-shark.c
+> +++ b/drivers/media/radio/radio-shark.c
+> @@ -27,7 +27,6 @@
+>  
+>  #include <linux/init.h>
+>  #include <linux/kernel.h>
+> -#include <linux/leds.h>
+>  #include <linux/module.h>
+>  #include <linux/slab.h>
+>  #include <linux/usb.h>
+> @@ -35,6 +34,12 @@
+>  #include <media/v4l2-device.h>
+>  #include <sound/tea575x-tuner.h>
+>  
+> +#if defined(CONFIG_LEDS_CLASS) || \
+> +    (defined(CONFIG_LEDS_CLASS_MODULE) && defined(CONFIG_RADIO_SHARK_MODULE))
+> +#include <linux/leds.h>
 
-diff --git a/drivers/media/video/gspca/sq905c.c b/drivers/media/video/gspca/sq905c.c
-index 2c2f3d2..70fae69 100644
---- a/drivers/media/video/gspca/sq905c.c
-+++ b/drivers/media/video/gspca/sq905c.c
-@@ -228,11 +228,8 @@ static int sd_config(struct gspca_dev *gspca_dev,
- 	}
- 	/* Note we leave out the usb id and the manufacturing date */
- 	PDEBUG(D_PROBE,
--	       "SQ9050 ID string: %02x - %02x %02x %02x %02x %02x %02x",
--		gspca_dev->usb_buf[3],
--		gspca_dev->usb_buf[14], gspca_dev->usb_buf[15],
--		gspca_dev->usb_buf[16], gspca_dev->usb_buf[17],
--		gspca_dev->usb_buf[18], gspca_dev->usb_buf[19]);
-+	       "SQ9050 ID string: %02x - %*ph",
-+		gspca_dev->usb_buf[3], 6, gspca_dev->usb_buf + 14);
- 
- 	cam->cam_mode = sq905c_mode;
- 	cam->nmodes = 2;
-diff --git a/drivers/media/video/gspca/sq930x.c b/drivers/media/video/gspca/sq930x.c
-index 3e1e486..7e8748b 100644
---- a/drivers/media/video/gspca/sq930x.c
-+++ b/drivers/media/video/gspca/sq930x.c
-@@ -863,15 +863,7 @@ static int sd_init(struct gspca_dev *gspca_dev)
-  * 6: c8 / c9 / ca / cf = mode webcam?, sensor? webcam?
-  * 7: 00
-  */
--	PDEBUG(D_PROBE, "info: %02x %02x %02x %02x %02x %02x %02x %02x",
--			gspca_dev->usb_buf[0],
--			gspca_dev->usb_buf[1],
--			gspca_dev->usb_buf[2],
--			gspca_dev->usb_buf[3],
--			gspca_dev->usb_buf[4],
--			gspca_dev->usb_buf[5],
--			gspca_dev->usb_buf[6],
--			gspca_dev->usb_buf[7]);
-+	PDEBUG(D_PROBE, "info: %*ph", 8, gspca_dev->usb_buf);
- 
- 	bridge_init(sd);
- 
-diff --git a/drivers/media/video/gspca/vc032x.c b/drivers/media/video/gspca/vc032x.c
-index f21fd16..e500795 100644
---- a/drivers/media/video/gspca/vc032x.c
-+++ b/drivers/media/video/gspca/vc032x.c
-@@ -2934,11 +2934,8 @@ static void reg_r(struct gspca_dev *gspca_dev,
- 		PDEBUG(D_USBI, "GET %02x 0001 %04x %02x", req, index,
- 				gspca_dev->usb_buf[0]);
- 	else
--		PDEBUG(D_USBI, "GET %02x 0001 %04x %02x %02x %02x",
--				req, index,
--				gspca_dev->usb_buf[0],
--				gspca_dev->usb_buf[1],
--				gspca_dev->usb_buf[2]);
-+		PDEBUG(D_USBI, "GET %02x 0001 %04x %*ph",
-+				req, index, 3, gspca_dev->usb_buf);
- #endif
- }
- 
--- 
-1.7.10.4
+Conditionally including headers is not a good thing.
 
+...
+>  static void usb_shark_disconnect(struct usb_interface *intf)
+>  {
+>  	struct v4l2_device *v4l2_dev = usb_get_intfdata(intf);
+>  	struct shark_device *shark = v4l2_dev_to_shark(v4l2_dev);
+> +#ifdef SHARK_USE_LEDS
+>  	int i;
+> +#endif
+>  
+>  	mutex_lock(&shark->tea.mutex);
+>  	v4l2_device_disconnect(&shark->v4l2_dev);
+>  	snd_tea575x_exit(&shark->tea);
+>  	mutex_unlock(&shark->tea.mutex);
+>  
+> +#ifdef SHARK_USE_LEDS
+>  	for (i = 0; i < NO_LEDS; i++)
+>  		led_classdev_unregister(&shark->leds[i]);
+> +#endif
+>  
+>  	v4l2_device_put(&shark->v4l2_dev);
+>  }
+
+That looks ugly. Maybe you could code it on a different way.
+
+You could be move all shark_use_leds together into the same place at
+the code, like:
+
+#if defined(CONFIG_LEDS_CLASS) || \
+    (defined(CONFIG_LEDS_CLASS_MODULE) && defined(CONFIG_RADIO_SHARK_MODULE))
+
+ static void shark_led_set_blue(struct led_classdev *led_cdev,
+...
+ 		.brightness_set = shark_led_set_red,
+ 	},
+ };
+
+static void shark_led_disconnect(...)
+{
+...
+}
+
+static void shark_led_release(...)
+{
+...
+}
+
+static void shark_led_register(...)
+{
+...
+}
+#else
+static inline void shark_led_disconnect(...) { };
+static inline void shark_led_release(...) { };
+static inline void shark_led_register(...)
+{
+	printk(KERN_WARN "radio-shark: CONFIG_LED_CLASS not enabled. LEDs won't work\n");
+}
+#endif
+
+And let the rest of the code to call the shark_led functions, as if LEDS aren't enabled,
+the function stubs won't produce any code (well, except for the above error notice).
+
+The same comment also applies to patch 2.
+
+Regards,
+Mauro
