@@ -1,105 +1,216 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:36990 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751151Ab2HJLVc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Aug 2012 07:21:32 -0400
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: marbugge@cisco.com, Soby Mathew <soby.mathew@st.com>,
-	mats.randgaard@cisco.com, manjunath.hadli@ti.com,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	dri-devel@lists.freedesktop.org
-Subject: [RFCv3 PATCH 1/8] v4l2 core: add the missing pieces to support DVI/HDMI/DisplayPort.
-Date: Fri, 10 Aug 2012 13:21:17 +0200
-Message-Id: <bf682233fde61ca77ed4512ba77271f6daeedb31.1344592468.git.hans.verkuil@cisco.com>
-In-Reply-To: <1344597684-8413-1-git-send-email-hans.verkuil@cisco.com>
-References: <1344597684-8413-1-git-send-email-hans.verkuil@cisco.com>
+Received: from pequod.mess.org ([93.97.41.153]:46448 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752867Ab2HJT2M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Aug 2012 15:28:12 -0400
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Greg Kroah-Hartman <greg@kroah.com>,
+	Stefan Macher <st_maker-lirc@yahoo.de>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 4/6] [media] rc: do not wake up rc thread unless there is something to do
+Date: Fri, 10 Aug 2012 20:28:06 +0100
+Message-Id: <1344626888-10536-4-git-send-email-sean@mess.org>
+In-Reply-To: <1344626888-10536-1-git-send-email-sean@mess.org>
+References: <1344626888-10536-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These new controls and two new ioctls make it possible to properly support
-VGA, DVI-A/D/I, HDMI and DisplayPort connectors. All these controls and the
-ioctls are all at the sub-device level. They are meant for V4L2 bridge/platform
-drivers or to be accessed on embedded systems through /dev/v4l-subdev* device
-nodes.
+The TechnoTrend USB IR Receiver sends 125 ISO URBs per second, even when
+there is no IR activity. Reduce the number of wake ups from the other
+drivers too.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+This saves about 0.25ms per second on a 2.4GHz Core 2 according to
+powertop.
+
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- include/linux/v4l2-subdev.h |   10 ++++++++++
- include/linux/videodev2.h   |   23 +++++++++++++++++++++++
- 2 files changed, 33 insertions(+)
+ drivers/media/rc/fintek-cir.c | 11 ++++++++---
+ drivers/media/rc/iguanair.c   |  7 +++++--
+ drivers/media/rc/ir-raw.c     |  6 ++++--
+ drivers/media/rc/mceusb.c     | 10 +++++++---
+ drivers/media/rc/ttusbir.c    | 19 +++++++++++++------
+ 5 files changed, 37 insertions(+), 16 deletions(-)
 
-diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
-index 8c57ee9..a426a78 100644
---- a/include/linux/v4l2-subdev.h
-+++ b/include/linux/v4l2-subdev.h
-@@ -148,6 +148,14 @@ struct v4l2_subdev_selection {
- 	__u32 reserved[8];
- };
+diff --git a/drivers/media/rc/fintek-cir.c b/drivers/media/rc/fintek-cir.c
+index 6aabf7a..3b4e465 100644
+--- a/drivers/media/rc/fintek-cir.c
++++ b/drivers/media/rc/fintek-cir.c
+@@ -291,6 +291,7 @@ static void fintek_process_rx_ir_data(struct fintek_dev *fintek)
+ {
+ 	DEFINE_IR_RAW_EVENT(rawir);
+ 	u8 sample;
++	bool event = false;
+ 	int i;
  
-+struct v4l2_subdev_edid {
-+	__u32 pad;
-+	__u32 start_block;
-+	__u32 blocks;
-+	__u32 reserved[5];
-+	__u8 __user *edid;
-+};
-+
- #define VIDIOC_SUBDEV_G_FMT	_IOWR('V',  4, struct v4l2_subdev_format)
- #define VIDIOC_SUBDEV_S_FMT	_IOWR('V',  5, struct v4l2_subdev_format)
- #define VIDIOC_SUBDEV_G_FRAME_INTERVAL \
-@@ -166,5 +174,7 @@ struct v4l2_subdev_selection {
- 	_IOWR('V', 61, struct v4l2_subdev_selection)
- #define VIDIOC_SUBDEV_S_SELECTION \
- 	_IOWR('V', 62, struct v4l2_subdev_selection)
-+#define VIDIOC_SUBDEV_G_EDID	_IOWR('V', 63, struct v4l2_subdev_edid)
-+#define VIDIOC_SUBDEV_S_EDID	_IOWR('V', 64, struct v4l2_subdev_edid)
+ 	for (i = 0; i < fintek->pkts; i++) {
+@@ -328,7 +329,9 @@ static void fintek_process_rx_ir_data(struct fintek_dev *fintek)
+ 			fit_dbg("Storing %s with duration %d",
+ 				rawir.pulse ? "pulse" : "space",
+ 				rawir.duration);
+-			ir_raw_event_store_with_filter(fintek->rdev, &rawir);
++			if (ir_raw_event_store_with_filter(fintek->rdev,
++									&rawir))
++				event = true;
+ 			break;
+ 		}
  
- #endif
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 7a147c8..91939a7 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1250,6 +1250,7 @@ struct v4l2_ext_controls {
- #define V4L2_CTRL_CLASS_JPEG 0x009d0000		/* JPEG-compression controls */
- #define V4L2_CTRL_CLASS_IMAGE_SOURCE 0x009e0000	/* Image source controls */
- #define V4L2_CTRL_CLASS_IMAGE_PROC 0x009f0000	/* Image processing controls */
-+#define V4L2_CTRL_CLASS_DV 0x00a00000		/* Digital Video controls */
+@@ -338,8 +341,10 @@ static void fintek_process_rx_ir_data(struct fintek_dev *fintek)
  
- #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
- #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-@@ -1993,6 +1994,28 @@ enum v4l2_jpeg_chroma_subsampling {
- #define V4L2_CID_LINK_FREQ			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 1)
- #define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
+ 	fintek->pkts = 0;
  
-+/*  DV-class control IDs defined by V4L2 */
-+#define V4L2_CID_DV_CLASS_BASE			(V4L2_CTRL_CLASS_DV | 0x900)
-+#define V4L2_CID_DV_CLASS			(V4L2_CTRL_CLASS_DV | 1)
-+
-+#define	V4L2_CID_DV_TX_HOTPLUG			(V4L2_CID_DV_CLASS_BASE + 1)
-+#define	V4L2_CID_DV_TX_RXSENSE			(V4L2_CID_DV_CLASS_BASE + 2)
-+#define	V4L2_CID_DV_TX_EDID_PRESENT		(V4L2_CID_DV_CLASS_BASE + 3)
-+#define	V4L2_CID_DV_TX_MODE			(V4L2_CID_DV_CLASS_BASE + 4)
-+enum v4l2_dv_tx_mode {
-+	V4L2_DV_TX_MODE_DVI_D	= 0,
-+	V4L2_DV_TX_MODE_HDMI	= 1,
-+};
-+#define V4L2_CID_DV_TX_RGB_RANGE		(V4L2_CID_DV_CLASS_BASE + 5)
-+enum v4l2_dv_rgb_range {
-+	V4L2_DV_RGB_RANGE_AUTO	  = 0,
-+	V4L2_DV_RGB_RANGE_LIMITED = 1,
-+	V4L2_DV_RGB_RANGE_FULL	  = 2,
-+};
-+
-+#define	V4L2_CID_DV_RX_POWER_PRESENT		(V4L2_CID_DV_CLASS_BASE + 100)
-+#define V4L2_CID_DV_RX_RGB_RANGE		(V4L2_CID_DV_CLASS_BASE + 101)
-+
- /*
-  *	T U N I N G
+-	fit_dbg("Calling ir_raw_event_handle");
+-	ir_raw_event_handle(fintek->rdev);
++	if (event) {
++		fit_dbg("Calling ir_raw_event_handle");
++		ir_raw_event_handle(fintek->rdev);
++	}
+ }
+ 
+ /* copy data from hardware rx register into driver buffer */
+diff --git a/drivers/media/rc/iguanair.c b/drivers/media/rc/iguanair.c
+index 437aa42..4ef7ea9 100644
+--- a/drivers/media/rc/iguanair.c
++++ b/drivers/media/rc/iguanair.c
+@@ -151,6 +151,7 @@ static void process_ir_data(struct iguanair *ir, unsigned len)
+ 	} else if (len >= 7) {
+ 		DEFINE_IR_RAW_EVENT(rawir);
+ 		unsigned i;
++		bool event = false;
+ 
+ 		init_ir_raw_event(&rawir);
+ 
+@@ -164,10 +165,12 @@ static void process_ir_data(struct iguanair *ir, unsigned len)
+ 								 RX_RESOLUTION;
+ 			}
+ 
+-			ir_raw_event_store_with_filter(ir->rc, &rawir);
++			if (ir_raw_event_store_with_filter(ir->rc, &rawir))
++				event = true;
+ 		}
+ 
+-		ir_raw_event_handle(ir->rc);
++		if (event)
++			ir_raw_event_handle(ir->rc);
+ 	}
+ }
+ 
+diff --git a/drivers/media/rc/ir-raw.c b/drivers/media/rc/ir-raw.c
+index a820251..97dc8d1 100644
+--- a/drivers/media/rc/ir-raw.c
++++ b/drivers/media/rc/ir-raw.c
+@@ -157,7 +157,9 @@ EXPORT_SYMBOL_GPL(ir_raw_event_store_edge);
+  * This routine (which may be called from an interrupt context) works
+  * in similar manner to ir_raw_event_store_edge.
+  * This routine is intended for devices with limited internal buffer
+- * It automerges samples of same type, and handles timeouts
++ * It automerges samples of same type, and handles timeouts. Returns non-zero
++ * if the event was added, and zero if the event was ignored due to idle
++ * processing.
   */
+ int ir_raw_event_store_with_filter(struct rc_dev *dev, struct ir_raw_event *ev)
+ {
+@@ -184,7 +186,7 @@ int ir_raw_event_store_with_filter(struct rc_dev *dev, struct ir_raw_event *ev)
+ 	    dev->raw->this_ev.duration >= dev->timeout)
+ 		ir_raw_event_set_idle(dev, true);
+ 
+-	return 0;
++	return 1;
+ }
+ EXPORT_SYMBOL_GPL(ir_raw_event_store_with_filter);
+ 
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index 84e06d3..573c174 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -969,6 +969,7 @@ static void mceusb_handle_command(struct mceusb_dev *ir, int index)
+ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
+ {
+ 	DEFINE_IR_RAW_EVENT(rawir);
++	bool event = false;
+ 	int i = 0;
+ 
+ 	/* skip meaningless 0xb1 0x60 header bytes on orig receiver */
+@@ -999,7 +1000,8 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
+ 				rawir.pulse ? "pulse" : "space",
+ 				rawir.duration);
+ 
+-			ir_raw_event_store_with_filter(ir->rc, &rawir);
++			if (ir_raw_event_store_with_filter(ir->rc, &rawir))
++				event = true;
+ 			break;
+ 		case CMD_DATA:
+ 			ir->rem--;
+@@ -1027,8 +1029,10 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
+ 		if (ir->parser_state != CMD_HEADER && !ir->rem)
+ 			ir->parser_state = CMD_HEADER;
+ 	}
+-	mce_dbg(ir->dev, "processed IR data, calling ir_raw_event_handle\n");
+-	ir_raw_event_handle(ir->rc);
++	if (event) {
++		mce_dbg(ir->dev, "processed IR data, calling ir_raw_event_handle\n");
++		ir_raw_event_handle(ir->rc);
++	}
+ }
+ 
+ static void mceusb_dev_recv(struct urb *urb, struct pt_regs *regs)
+diff --git a/drivers/media/rc/ttusbir.c b/drivers/media/rc/ttusbir.c
+index 71f03ac..1aee57f 100644
+--- a/drivers/media/rc/ttusbir.c
++++ b/drivers/media/rc/ttusbir.c
+@@ -121,8 +121,9 @@ static void ttusbir_bulk_complete(struct urb *urb)
+  */
+ static void ttusbir_process_ir_data(struct ttusbir *tt, uint8_t *buf)
+ {
++	struct ir_raw_event rawir;
+ 	unsigned i, v, b;
+-	DEFINE_IR_RAW_EVENT(rawir);
++	bool event = false;
+ 
+ 	init_ir_raw_event(&rawir);
+ 
+@@ -132,12 +133,14 @@ static void ttusbir_process_ir_data(struct ttusbir *tt, uint8_t *buf)
+ 		case 0xfe:
+ 			rawir.pulse = false;
+ 			rawir.duration = NS_PER_BYTE;
+-			ir_raw_event_store_with_filter(tt->rc, &rawir);
++			if (ir_raw_event_store_with_filter(tt->rc, &rawir))
++				event = true;
+ 			break;
+ 		case 0:
+ 			rawir.pulse = true;
+ 			rawir.duration = NS_PER_BYTE;
+-			ir_raw_event_store_with_filter(tt->rc, &rawir);
++			if (ir_raw_event_store_with_filter(tt->rc, &rawir))
++				event = true;
+ 			break;
+ 		default:
+ 			/* one edge per byte */
+@@ -150,16 +153,20 @@ static void ttusbir_process_ir_data(struct ttusbir *tt, uint8_t *buf)
+ 			}
+ 
+ 			rawir.duration = NS_PER_BIT * (8 - b);
+-			ir_raw_event_store_with_filter(tt->rc, &rawir);
++			if (ir_raw_event_store_with_filter(tt->rc, &rawir))
++				event = true;
+ 
+ 			rawir.pulse = !rawir.pulse;
+ 			rawir.duration = NS_PER_BIT * b;
+-			ir_raw_event_store_with_filter(tt->rc, &rawir);
++			if (ir_raw_event_store_with_filter(tt->rc, &rawir))
++				event = true;
+ 			break;
+ 		}
+ 	}
+ 
+-	ir_raw_event_handle(tt->rc);
++	/* don't wakeup when there's nothing to do */
++	if (event)
++		ir_raw_event_handle(tt->rc);
+ }
+ 
+ static void ttusbir_urb_complete(struct urb *urb)
 -- 
-1.7.10.4
+1.7.11.2
 
