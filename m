@@ -1,167 +1,396 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1676 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753195Ab2HVIwR (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:24932 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752254Ab2HJLVg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Aug 2012 04:52:17 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [RFC API] Renumber subdev ioctls
-Date: Wed, 22 Aug 2012 10:52:02 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"linux-media" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <201208201030.30590.hverkuil@xs4all.nl> <201208210839.53924.hverkuil@xs4all.nl> <20120821104415.GF721@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20120821104415.GF721@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201208221052.02338.hverkuil@xs4all.nl>
+	Fri, 10 Aug 2012 07:21:36 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: marbugge@cisco.com, Soby Mathew <soby.mathew@st.com>,
+	mats.randgaard@cisco.com, manjunath.hadli@ti.com,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	dri-devel@lists.freedesktop.org
+Subject: [RFCv3 PATCH 6/8] v4l2-common: add CVT and GTF detection functions.
+Date: Fri, 10 Aug 2012 13:21:22 +0200
+Message-Id: <d483c439ee5959b8c2c1684bc7126b2875c30a10.1344592468.git.hans.verkuil@cisco.com>
+In-Reply-To: <1344597684-8413-1-git-send-email-hans.verkuil@cisco.com>
+References: <1344597684-8413-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <bf682233fde61ca77ed4512ba77271f6daeedb31.1344592468.git.hans.verkuil@cisco.com>
+References: <bf682233fde61ca77ed4512ba77271f6daeedb31.1344592468.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue August 21 2012 12:44:15 Sakari Ailus wrote:
-> Hi Hans,
-> 
-> On Tue, Aug 21, 2012 at 08:39:53AM +0200, Hans Verkuil wrote:
-> > On Mon August 20 2012 22:46:04 Sakari Ailus wrote:
-> > > Hi Mauro and Hans,
-> > > 
-> > > On Mon, Aug 20, 2012 at 04:05:03PM -0300, Mauro Carvalho Chehab wrote:
-> > > > Em 20-08-2012 05:30, Hans Verkuil escreveu:
-> > > > > Hi all!
-> > > > > 
-> > > > > Recently I had to add two new ioctls for the subdev API (include/linux/v4l2-subdev.h)
-> > > > > and I noticed that the numbering of the ioctls was somewhat random.
-> > > > > 
-> > > > > In most cases the ioctl number was the same as the V4L2 API counterpart, but for
-> > > > > subdev-specific ioctls no rule exists.
-> > > > > 
-> > > > > There are a few problems with this: because of the lack of rules there is a chance
-> > > > > that in the future a subdev ioctl may end up to be identical to an existing V4L2
-> > > > > ioctl. Also, because the numbering isn't nicely increasing it makes it hard to create
-> > > > > a lookup table as was done for the V4L2 ioctls. Well, you could do it, but it would
-> > > > > be a very sparse array, wasting a lot of memory.
-> > > > > 
-> > > > > Lookup tables have proven to be very useful, so we might want to introduce them for
-> > > > > the subdev core code as well in the future.
-> > > > > 
-> > > > > Since the subdev API is still marked experimental, I propose to renumber the ioctls
-> > > > > and use the letter 'v' instead of 'V'. 'v' was used for V4L1, and so it is now
-> > > > > available for reuse.
-> > > > 
-> > > > 'v' is already used (mainly by fs):
-> > > > 
-> > > > 'v'	00-1F	linux/ext2_fs.h		conflict!
-> > > > 'v'	00-1F	linux/fs.h		conflict!
-> > > > 'v'	00-0F	linux/sonypi.h		conflict!
-> > > > 'v'	C0-FF	linux/meye.h		conflict!
-> > > > 
-> > > > Reusing the ioctl numbering is a bad thing, as tracing code like strace will likely
-> > > > say that a different type of ioctl was called.
-> > > > 
-> > > > (Yeah, unfortunately, this end by merging with duplicated stuff :< )
-> > > > 
-> > > > Also, I don't like the idea of deprecating it just because of that: interfaces are
-> > > > supposed to be stable.
-> > > > 
-> > > > It should be noticed that there are very few ioctls there. So,
-> > > > using a lookup table is overkill.
-> > > > 
-> > > > IMO, the better is to sort the ioctl's there at the header file, in order to
-> > > > avoid ioctl duplicaton.
-> > > 
-> > > Many of the V4L2 IOCTLs are being used on subdevs, too, to the extent that
-> > > subdev_do_ioctl() in drivers/media/v4l2-core/v4l2-subdev.c has a switch
-> > > statement with over 20 cases. We'll get rid of two once the old crop IOCTLs
-> > > are removed but we've still got over 20, and the number is likely to grow in
-> > > the future. Still it's just a fraction of what V4L2 has.
-> > > 
-> > > We decided to use 'V' also for subdev IOCTLs for a reason I no longer
-> > > remember. It's true there can be clashes with regular V4L2 IOCTLs in terms
-> > > of IOCTL codes if the size of the argument struct matches. One of the
-> > > reasons to use 'V' might have been that then some of the IOCTLs on a device
-> > > would have different type (the letter in question) which wasn't considered
-> > > pretty. 'V' is for V4L2 after all, and V4L2 subdev interface is part of the
-> > > V4L2.
-> > > 
-> > > The numbering is based on using V4L2 IOCTLs as such if they were applicable
-> > > to subdevs as such (controls) in which case they're defined in videodev2.h,
-> > > and if there was even a loosely corresponding IOCTL in V4L2 then use the
-> > > same number (e.g. formats vs. media bus pixel codes) and otherwise something
-> > > else. The "something else" case hasn't happened yet.
-> > > 
-> > > It might have made sense to use a different type for the IOCTLs that aren't
-> > > V4L2 IOCTLs (i.e. are subdev IOCTLs) for clarity but it's quite late for
-> > > such a change. However if we think we definitely should do it then it should
-> > > be done now or not at all...
-> > > 
-> > > If we want to just improve the efficiency of the switch statement in
-> > > subdev_do_ioctl() we could divide the IOCTLs based on e.g. a few last bits
-> > > of the IOCTL number into buckets.
-> > 
-> > It's not so much the switch efficiency. In practice there will be no measurable
-> > speed difference. But a lookup table allows one to easily look up information
-> > about the ioctl.
-> > 
-> > But the main goal would be to guarantee that subdev ioctls and V4L2 ioctls
-> > will never clash, since both types of ioctls can be used with a subdev node.
-> 
-> It's indeed possible to have clashes between the IOCTL codes but that does
-> not matter so much: all IOCTLs related to buffers belong to V4L2 and
-> anything related to pads belongs to subdevs only.
-> 
-> As long as a little care is taken when choosing the IOCTL number we
-> shouldn't have issues any more we have now. Well, that said, the IOCTLs
-> belonging to the something else category are more difficult to number in a
-> good way. Perhaps starting from highest IOCTL numbers before the private
-> IOCTLs would be one option.
+These two helper functions detect whether the analog video timings detected
+by the video receiver match the VESA CVT or GTF standards.
 
-Currently I've decided to use ioctl numbers that are unused in V4L2 (there are
-quite a few holes in the ioctl numbering).
+They basically do the inverse of the CVT and GTF modeline calculations.
 
-> > > I don't have a strong opinion on this either way, but unless there's a
-> > > concrete problem related to it I'd keep it as-is. We will definitely pick a
-> > > new type for the property API when once we get that far. ;-)
-> > > 
-> > > Could you elaborate what you were about to add? Something that would fall
-> > > into the "something else" category perhaps?
-> > 
-> > Yes indeed. It's two new ioctls for setting/getting the EDID.
-> 
-> Do these IOCTLs have (or should they have) corresponding IOCTLs in V4L2?
+This patch also adds a helper function that will determine the aspect ratio
+based on the provided EDID values. This aspect ratio can be given to the GTF
+helper function.
 
-No. These are unique to the subdevs.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/v4l2-common.c |  325 +++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-common.h       |    9 +
+ 2 files changed, 334 insertions(+)
 
-> > Currently I've chosen ioctl numbers that are not used by V4L2 (there are a
-> > number of 'holes' in the ioctl list).
-> > 
-> > If people think it is not worth the effort, then so be it. But if we do want
-> > to do this, then we can't wait any longer.
-> 
-> One option would be to start using a new type for the new IOCTLs but leave
-> the existing ones as they are. The end result would be less elegant since
-> the subdev IOCTLs would use two different types but OTOH the V4L2 IOCTLs are
-> being used on subdevs as-is, too. This would at least prevent future clashes
-> in IOCTL codes between V4L2 and subdev interfaces.
+diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
+index 38da47c..33e57d8 100644
+--- a/drivers/media/video/v4l2-common.c
++++ b/drivers/media/video/v4l2-common.c
+@@ -630,6 +630,331 @@ bool v4l_match_dv_timings(const struct v4l2_dv_timings *t1,
+ }
+ EXPORT_SYMBOL_GPL(v4l_match_dv_timings);
+ 
++/*
++ * CVT defines
++ * Based on Coordinated Video Timings Standard
++ * version 1.1 September 10, 2003
++ */
++
++#define CVT_PXL_CLK_GRAN	250000	/* pixel clock granularity */
++
++/* Normal blanking */
++#define CVT_MIN_V_BPORCH	7	/* lines */
++#define CVT_MIN_V_PORCH_RND	3	/* lines */
++#define CVT_MIN_VSYNC_BP	550	/* min time of vsync + back porch (us) */
++
++/* Normal blanking for CVT uses GTF to calculate horizontal blanking */
++#define CVT_CELL_GRAN		8	/* character cell granularity */
++#define CVT_M			600	/* blanking formula gradient */
++#define CVT_C			40	/* blanking formula offset */
++#define CVT_K			128	/* blanking formula scaling factor */
++#define CVT_J			20	/* blanking formula scaling factor */
++#define CVT_C_PRIME (((CVT_C - CVT_J) * CVT_K / 256) + CVT_J)
++#define CVT_M_PRIME (CVT_K * CVT_M / 256)
++
++/* Reduced Blanking */
++#define CVT_RB_MIN_V_BPORCH    7       /* lines  */
++#define CVT_RB_V_FPORCH        3       /* lines  */
++#define CVT_RB_MIN_V_BLANK   460     /* us     */
++#define CVT_RB_H_SYNC         32       /* pixels */
++#define CVT_RB_H_BPORCH       80       /* pixels */
++#define CVT_RB_H_BLANK       160       /* pixels */
++
++/** v4l2_detect_cvt - detect if the given timings follow the CVT standard
++ * @frame_height - the total height of the frame (including blanking) in lines.
++ * @hfreq - the horizontal frequency in Hz.
++ * @vsync - the height of the vertical sync in lines.
++ * @polarities - the horizontal and vertical polarities (same as struct
++ *		v4l2_bt_timings polarities).
++ * @fmt - the resulting timings.
++ *
++ * This function will attempt to detect if the given values correspond to a
++ * valid CVT format. If so, then it will return true, and fmt will be filled
++ * in with the found CVT timings.
++ */
++bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
++		u32 polarities, struct v4l2_dv_timings *fmt)
++{
++	int  v_fp, v_bp, h_fp, h_bp, hsync;
++	int  frame_width, image_height, image_width;
++	bool reduced_blanking;
++	unsigned pix_clk;
++
++	if (vsync < 4 || vsync > 7)
++		return false;
++
++	if (polarities == V4L2_DV_VSYNC_POS_POL)
++		reduced_blanking = false;
++	else if (polarities == V4L2_DV_HSYNC_POS_POL)
++		reduced_blanking = true;
++	else
++		return false;
++
++	/* Vertical */
++	if (reduced_blanking) {
++		v_fp = CVT_RB_V_FPORCH;
++		v_bp = (CVT_RB_MIN_V_BLANK * hfreq + 999999) / 1000000;
++		v_bp -= vsync + v_fp;
++
++		if (v_bp < CVT_RB_MIN_V_BPORCH)
++			v_bp = CVT_RB_MIN_V_BPORCH;
++	} else {
++		v_fp = CVT_MIN_V_PORCH_RND;
++		v_bp = (CVT_MIN_VSYNC_BP * hfreq + 999999) / 1000000 - vsync;
++
++		if (v_bp < CVT_MIN_V_BPORCH)
++			v_bp = CVT_MIN_V_BPORCH;
++	}
++	image_height = (frame_height - v_fp - vsync - v_bp + 1) & ~0x1;
++
++	/* Aspect ratio based on vsync */
++	switch (vsync) {
++	case 4:
++		image_width = (image_height * 4) / 3;
++		break;
++	case 5:
++		image_width = (image_height * 16) / 9;
++		break;
++	case 6:
++		image_width = (image_height * 16) / 10;
++		break;
++	case 7:
++		/* special case */
++		if (image_height == 1024)
++			image_width = (image_height * 5) / 4;
++		else if (image_height == 768)
++			image_width = (image_height * 15) / 9;
++		else
++			return false;
++		break;
++	default:
++		return false;
++	}
++
++	image_width = image_width & ~7;
++
++	/* Horizontal */
++	if (reduced_blanking) {
++		pix_clk = (image_width + CVT_RB_H_BLANK) * hfreq;
++		pix_clk = (pix_clk / CVT_PXL_CLK_GRAN) * CVT_PXL_CLK_GRAN;
++
++		h_bp = CVT_RB_H_BPORCH;
++		hsync = CVT_RB_H_SYNC;
++		h_fp = CVT_RB_H_BLANK - h_bp - hsync;
++
++		frame_width = image_width + CVT_RB_H_BLANK;
++	} else {
++		int h_blank;
++		unsigned ideal_duty_cycle = CVT_C_PRIME - (CVT_M_PRIME * 1000) / hfreq;
++
++		h_blank = (image_width * ideal_duty_cycle + (100 - ideal_duty_cycle) / 2) /
++						(100 - ideal_duty_cycle);
++		h_blank = h_blank - h_blank % (2 * CVT_CELL_GRAN);
++
++		if (h_blank * 100 / image_width < 20) {
++			h_blank = image_width / 5;
++			h_blank = (h_blank + 0x7) & ~0x7;
++		}
++
++		pix_clk = (image_width + h_blank) * hfreq;
++		pix_clk = (pix_clk / CVT_PXL_CLK_GRAN) * CVT_PXL_CLK_GRAN;
++
++		h_bp = h_blank / 2;
++		frame_width = image_width + h_blank;
++
++		hsync = (frame_width * 8 + 50) / 100;
++		hsync = hsync - hsync % CVT_CELL_GRAN;
++		h_fp = h_blank - hsync - h_bp;
++	}
++
++	fmt->bt.polarities = polarities;
++	fmt->bt.width = image_width;
++	fmt->bt.height = image_height;
++	fmt->bt.hfrontporch = h_fp;
++	fmt->bt.vfrontporch = v_fp;
++	fmt->bt.hsync = hsync;
++	fmt->bt.vsync = vsync;
++	fmt->bt.hbackporch = frame_width - image_width - h_fp - hsync;
++	fmt->bt.vbackporch = frame_height - image_height - v_fp - vsync;
++	fmt->bt.pixelclock = pix_clk;
++	fmt->bt.standards = V4L2_DV_BT_STD_CVT;
++	if (reduced_blanking)
++		fmt->bt.flags |= V4L2_DV_FL_REDUCED_BLANKING;
++	return true;
++}
++EXPORT_SYMBOL_GPL(v4l2_detect_cvt);
++
++/*
++ * GTF defines
++ * Based on Generalized Timing Formula Standard
++ * Version 1.1 September 2, 1999
++ */
++
++#define GTF_PXL_CLK_GRAN	250000	/* pixel clock granularity */
++
++#define GTF_MIN_VSYNC_BP	550	/* min time of vsync + back porch (us) */
++#define GTF_V_FP		1	/* vertical front porch (lines) */
++#define GTF_CELL_GRAN		8	/* character cell granularity */
++
++/* Default */
++#define GTF_D_M			600	/* blanking formula gradient */
++#define GTF_D_C			40	/* blanking formula offset */
++#define GTF_D_K			128	/* blanking formula scaling factor */
++#define GTF_D_J			20	/* blanking formula scaling factor */
++#define GTF_D_C_PRIME ((((GTF_D_C - GTF_D_J) * GTF_D_K) / 256) + GTF_D_J)
++#define GTF_D_M_PRIME ((GTF_D_K * GTF_D_M) / 256)
++
++/* Secondary */
++#define GTF_S_M			3600	/* blanking formula gradient */
++#define GTF_S_C			40	/* blanking formula offset */
++#define GTF_S_K			128	/* blanking formula scaling factor */
++#define GTF_S_J			35	/* blanking formula scaling factor */
++#define GTF_S_C_PRIME ((((GTF_S_C - GTF_S_J) * GTF_S_K) / 256) + GTF_S_J)
++#define GTF_S_M_PRIME ((GTF_S_K * GTF_S_M) / 256)
++
++/** v4l2_detect_gtf - detect if the given timings follow the GTF standard
++ * @frame_height - the total height of the frame (including blanking) in lines.
++ * @hfreq - the horizontal frequency in Hz.
++ * @vsync - the height of the vertical sync in lines.
++ * @polarities - the horizontal and vertical polarities (same as struct
++ *		v4l2_bt_timings polarities).
++ * @aspect - preferred aspect ratio. GTF has no method of determining the
++ *		aspect ratio in order to derive the image width from the
++ *		image height, so it has to be passed explicitly. Usually
++ *		the native screen aspect ratio is used for this. If it
++ *		is not filled in correctly, then 16:9 will be assumed.
++ * @fmt - the resulting timings.
++ *
++ * This function will attempt to detect if the given values correspond to a
++ * valid GTF format. If so, then it will return true, and fmt will be filled
++ * in with the found GTF timings.
++ */
++bool v4l2_detect_gtf(unsigned frame_height,
++		unsigned hfreq,
++		unsigned vsync,
++		u32 polarities,
++		struct v4l2_fract aspect,
++		struct v4l2_dv_timings *fmt)
++{
++	int pix_clk;
++	int  v_fp, v_bp, h_fp, h_bp, hsync;
++	int frame_width, image_height, image_width;
++	bool default_gtf;
++	int h_blank;
++
++	if (vsync != 3)
++		return false;
++
++	if (polarities == V4L2_DV_VSYNC_POS_POL)
++		default_gtf = true;
++	else if (polarities == V4L2_DV_HSYNC_POS_POL)
++		default_gtf = false;
++	else
++		return false;
++
++	/* Vertical */
++	v_fp = GTF_V_FP;
++	v_bp = (GTF_MIN_VSYNC_BP * hfreq + 999999) / 1000000 - vsync;
++	image_height = (frame_height - v_fp - vsync - v_bp + 1) & ~0x1;
++
++	if (aspect.numerator == 0 || aspect.denominator == 0) {
++		aspect.numerator = 16;
++		aspect.denominator = 9;
++	}
++	image_width = ((image_height * aspect.numerator) / aspect.denominator);
++
++	/* Horizontal */
++	if (default_gtf)
++		h_blank = ((image_width * GTF_D_C_PRIME * hfreq) -
++					(image_width * GTF_D_M_PRIME * 1000) +
++			(hfreq * (100 - GTF_D_C_PRIME) + GTF_D_M_PRIME * 1000) / 2) /
++			(hfreq * (100 - GTF_D_C_PRIME) + GTF_D_M_PRIME * 1000);
++	else
++		h_blank = ((image_width * GTF_S_C_PRIME * hfreq) -
++					(image_width * GTF_S_M_PRIME * 1000) +
++			(hfreq * (100 - GTF_S_C_PRIME) + GTF_S_M_PRIME * 1000) / 2) /
++			(hfreq * (100 - GTF_S_C_PRIME) + GTF_S_M_PRIME * 1000);
++
++	h_blank = h_blank - h_blank % (2 * GTF_CELL_GRAN);
++	frame_width = image_width + h_blank;
++
++	pix_clk = (image_width + h_blank) * hfreq;
++	pix_clk = pix_clk / GTF_PXL_CLK_GRAN * GTF_PXL_CLK_GRAN;
++
++	hsync = (frame_width * 8 + 50) / 100;
++	hsync = hsync - hsync % GTF_CELL_GRAN;
++
++	h_fp = h_blank / 2 - hsync;
++	h_bp = h_blank / 2;
++
++	fmt->bt.polarities = polarities;
++	fmt->bt.width = image_width;
++	fmt->bt.height = image_height;
++	fmt->bt.hfrontporch = h_fp;
++	fmt->bt.vfrontporch = v_fp;
++	fmt->bt.hsync = hsync;
++	fmt->bt.vsync = vsync;
++	fmt->bt.hbackporch = frame_width - image_width - h_fp - hsync;
++	fmt->bt.vbackporch = frame_height - image_height - v_fp - vsync;
++	fmt->bt.pixelclock = pix_clk;
++	fmt->bt.standards = V4L2_DV_BT_STD_GTF;
++	if (!default_gtf)
++		fmt->bt.flags |= V4L2_DV_FL_REDUCED_BLANKING;
++	return true;
++}
++EXPORT_SYMBOL_GPL(v4l2_detect_gtf);
++
++/** v4l2_calc_aspect_ratio - calculate the aspect ratio based on bytes
++ *	0x15 and 0x16 from the EDID.
++ * @hor_landscape - byte 0x15 from the EDID.
++ * @vert_portrait - byte 0x16 from the EDID.
++ *
++ * Determines the aspect ratio from the EDID.
++ * See VESA Enhanced EDID standard, release A, rev 2, section 3.6.2:
++ * "Horizontal and Vertical Screen Size or Aspect Ratio"
++ */
++struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait)
++{
++	struct v4l2_fract aspect = { 16, 9 };
++	u32 tmp;
++	u8 ratio;
++
++	/* Nothing filled in, fallback to 16:9 */
++	if (!hor_landscape && !vert_portrait)
++		return aspect;
++	/* Both filled in, so they are interpreted as the screen size in cm */
++	if (hor_landscape && vert_portrait) {
++		aspect.numerator = hor_landscape;
++		aspect.denominator = vert_portrait;
++		return aspect;
++	}
++	/* Only one is filled in, so interpret them as a ratio:
++	   (val + 99) / 100 */
++	ratio = hor_landscape | vert_portrait;
++	/* Change some rounded values into the exact aspect ratio */
++	if (ratio == 79) {
++		aspect.numerator = 16;
++		aspect.denominator = 9;
++	} else if (ratio == 34) {
++		aspect.numerator = 4;
++		aspect.numerator = 3;
++	} else if (ratio == 68) {
++		aspect.numerator = 15;
++		aspect.numerator = 9;
++	} else {
++		aspect.numerator = hor_landscape + 99;
++		aspect.denominator = 100;
++	}
++	if (hor_landscape)
++		return aspect;
++	/* The aspect ratio is for portrait, so swap numerator and denominator */
++	tmp = aspect.denominator;
++	aspect.denominator = aspect.numerator;
++	aspect.numerator = tmp;
++	return aspect;
++}
++EXPORT_SYMBOL_GPL(v4l2_calc_aspect_ratio);
++
+ const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
+ 		const struct v4l2_discrete_probe *probe,
+ 		s32 width, s32 height)
+diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+index b43b968..6df9554 100644
+--- a/include/media/v4l2-common.h
++++ b/include/media/v4l2-common.h
+@@ -216,4 +216,13 @@ bool v4l_match_dv_timings(const struct v4l2_dv_timings *t1,
+ 			  const struct v4l2_dv_timings *t2,
+ 			  unsigned pclock_delta);
+ 
++bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
++		u32 polarities, struct v4l2_dv_timings *fmt);
++
++bool v4l2_detect_gtf(unsigned frame_height, unsigned hfreq, unsigned vsync,
++		u32 polarities, struct v4l2_fract aspect,
++		struct v4l2_dv_timings *fmt);
++
++struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait);
++
+ #endif /* V4L2_COMMON_H_ */
+-- 
+1.7.10.4
 
-I don't really like that idea.
-
-I thought that Laurent's proposal of creating SUBDEV aliases of reused V4L2
-ioctls had merit. That way v4l2-subdev.h would give a nice overview of
-which V4L2 ioctls are supported by the subdev API. Currently no such overview
-exists to my knowledge.
-
-With regards to adding pad fields to the existing control structs: that won't
-work with queryctrl: the reserved fields are output fields only, there is no
-requirement that apps have to zero them, so you can't use them to enumerate
-controls for a particular pad.
-
-A new queryctrl ioctl would have to be created for that. So if we need this
-functionality, then I believe it is better to combine that with a new
-queryctrl ioctl.
-
-Regards,
-
-	Hans
