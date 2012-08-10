@@ -1,76 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog119.obsmtp.com ([207.126.144.147]:45428 "EHLO
-	eu1sys200aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753630Ab2HVVjd convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Aug 2012 17:39:33 -0400
-From: Naveen KRISHNAMURTHY <naveen.krishnamurthy@st.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: "workshop-2011@linuxtv.org" <workshop-2011@linuxtv.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Wed, 22 Aug 2012 23:39:03 +0200
-Subject: RE: [Workshop-2011] Media summit at the Kernel Summit - was: Fwd:
- Re: [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
-Message-ID: <507CA1C5BFF45D429225893E9D464308311B7BDC80@SAFEX1MAIL2.st.com>
-References: <20120713173708.GB17109@thunk.org> <5005A14D.8000809@redhat.com>
-	<Pine.LNX.4.64.1207172149440.30937@axis700.grange>
-	<Pine.LNX.4.64.1207210705240.13887@axis700.grange>
- <5018148C.5020009@redhat.com>
-In-Reply-To: <5018148C.5020009@redhat.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:54756 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757841Ab2HJITX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Aug 2012 04:19:23 -0400
+Message-ID: <5024C443.9040802@redhat.com>
+Date: Fri, 10 Aug 2012 10:20:19 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Konke Radlow <kradlow@cisco.com>, linux-media@vger.kernel.org,
+	koradlow@gmail.com
+Subject: Re: [RFC PATCH 1/2] Add libv4l2rds library (with changes proposed
+ in RFC)
+References: <[RFC PATCH 0/2] Add support for RDS decoding> <201208091414.11249.hverkuil@xs4all.nl> <5024B552.7090205@redhat.com> <201208100936.59213.hverkuil@xs4all.nl>
+In-Reply-To: <201208100936.59213.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi,
 
-Can you please provide the schedule for the linuxTV discussions this time at San Diego? Which day will it be on? If you have a detailed schedule, please pass on. I am planning to be in only on that day as I cannot stay back more than that this time around.
-
-Regards
-Naveen
-
------Original Message-----
-From: workshop-2011-bounces@linuxtv.org [mailto:workshop-2011-bounces@linuxtv.org] On Behalf Of Mauro Carvalho Chehab
-Sent: Tuesday, July 31, 2012 10:23 AM
-To: Guennadi Liakhovetski
-Cc: workshop-2011@linuxtv.org; Linux Media Mailing List
-Subject: Re: [Workshop-2011] Media summit at the Kernel Summit - was: Fwd: Re: [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
-
-Em 21-07-2012 02:06, Guennadi Liakhovetski escreveu:
-> Hi Mauro
-> 
-> On Tue, 17 Jul 2012, Guennadi Liakhovetski wrote:
-> 
->> Hi Mauro
+On 08/10/2012 09:36 AM, Hans Verkuil wrote:
+> On Fri 10 August 2012 09:16:34 Hans de Goede wrote:
+>> Hi,
 >>
->> On Tue, 17 Jul 2012, Mauro Carvalho Chehab wrote:
->>
->>> As we did in 2012, we're planning to do a media summit again at KS/2012.
+>> On 08/09/2012 02:14 PM, Hans Verkuil wrote:
+>>> On Thu August 9 2012 13:58:07 Hans de Goede wrote:
+>>>> Hi Konke,
+>>>>
+>>>> As Gregor already mentioned there is no need to define libv4l2rdssubdir in configure.ac ,
+>>>> so please drop that.
+>>>>
+>>>> Other then that I've some minor remarks (comments inline), with all those
+>>>> fixed, this one is could to go. So hopefully the next version can be added
+>>>> to git master!
+>>>>
+>>>> On 08/07/2012 05:11 PM, Konke Radlow wrote:
+>>>>> ---
+>>>>>     Makefile.am                     |    3 +-
+>>>>>     configure.ac                    |    7 +-
+>>>>>     lib/include/libv4l2rds.h        |  228 ++++++++++
+>>>>>     lib/libv4l2rds/Makefile.am      |   11 +
+>>>>>     lib/libv4l2rds/libv4l2rds.c     |  953 +++++++++++++++++++++++++++++++++++++++
+>>>>>     lib/libv4l2rds/libv4l2rds.pc.in |   11 +
+>>>>>     6 files changed, 1211 insertions(+), 2 deletions(-)
+>>>>>     create mode 100644 lib/include/libv4l2rds.h
+>>>>>     create mode 100644 lib/libv4l2rds/Makefile.am
+>>>>>     create mode 100644 lib/libv4l2rds/libv4l2rds.c
+>>>>>     create mode 100644 lib/libv4l2rds/libv4l2rds.pc.in
+>>>>>
+>>>>
+>>>> <snip>
+>>>>
+>>>>> diff --git a/lib/include/libv4l2rds.h b/lib/include/libv4l2rds.h
+>>>>> new file mode 100644
+>>>>> index 0000000..4aa8593
+>>>>> --- /dev/null
+>>>>> +++ b/lib/include/libv4l2rds.h
+>>>>> @@ -0,0 +1,228 @@
+>>>>> +/*
+>>>>> + * Copyright 2012 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+>>>>> + * Author: Konke Radlow <koradlow@gmail.com>
+>>>>> + *
+>>>>> + * This program is free software; you can redistribute it and/or modify
+>>>>> + * it under the terms of the GNU Lesser General Public License as published by
+>>>>> + * the Free Software Foundation; either version 2.1 of the License, or
+>>>>> + * (at your option) any later version.
+>>>>> + *
+>>>>> + * This program is distributed in the hope that it will be useful,
+>>>>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>>>>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>>>>> + * GNU General Public License for more details.
+>>>>> + *
+>>>>> + * You should have received a copy of the GNU General Public License
+>>>>> + * along with this program; if not, write to the Free Software
+>>>>> + * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA  02110-1335  USA
+>>>>> + */
+>>>>> +
+>>>>> +#ifndef __LIBV4L2RDS
+>>>>> +#define __LIBV4L2RDS
+>>>>> +
+>>>>> +#include <errno.h>
+>>>>> +#include <stdio.h>
+>>>>> +#include <stdlib.h>
+>>>>> +#include <string.h>
+>>>>> +#include <stdbool.h>
+>>>>> +#include <unistd.h>
+>>>>> +#include <stdint.h>
+>>>>> +#include <time.h>
+>>>>> +#include <sys/types.h>
+>>>>> +#include <sys/mman.h>
+>>>>> +#include <config.h>
+>>>>
+>>>> You should never include config.h in a public header, also
+>>>> are all the headers really needed for the prototypes in this header?
+>>>>
+>>>> I don't think so! Please move all the unneeded ones to the libv4l2rds.c
+>>>> file!
+>>>>
+>>>>> +
+>>>>> +#include <linux/videodev2.h>
+>>>>> +
+>>>>> +#ifdef __cplusplus
+>>>>> +extern "C" {
+>>>>> +#endif /* __cplusplus */
+>>>>> +
+>>>>> +#if HAVE_VISIBILITY
+>>>>> +#define LIBV4L_PUBLIC __attribute__ ((visibility("default")))
+>>>>> +#else
+>>>>> +#define LIBV4L_PUBLIC
+>>>>> +#endif
+>>>>> +
+>>>>> +/* used to define the current version (version field) of the v4l2_rds struct */
+>>>>> +#define V4L2_RDS_VERSION (1)
+>>>>> +
+>>>>
+>>>> What is the purpose of this field? Once we've released a v4l-utils with this
+>>>> library we are stuck to the API we've defined, having a version field & changing it,
+>>>> won't stop us from breaking existing apps, so once we've an official release we
+>>>> simply cannot make ABI breaking changes, which is why most of my review sofar
+>>>> has concentrated on the API side :)
+>>>>
+>>>> I suggest dropping this define and the version field from the struct.
 >>>
->>> The KS/2012 will happen in San Diego, CA, US, between Aug 26-28, just
->>> before the LinuxCon North America.
->>>
->>> In order to do it, I'd like to know who is interested on participate,
->>> and to get proposals about what subjects will be discussed there,
->>> in order to start planning the agenda.
+>>> I think it is useful, actually. The v4l2_rds struct is allocated by the v4l2_rds_create
+>>> so at least in theory it is possible to extend the struct in the future without breaking
+>>> existing apps, provided you have a version number to check.
 >>
->> I'd love to attend, especially since, as you have seen, I've started doing 
->> some work on V4L DT bindings, but so far it very much looks like I won't 
->> be able to do so unfortunately.
-> 
-> Things change and sometimes also to the better:-) Looks like I'll be able 
-> to attend actually. So, please add me to the list.
+>> I disagree, if it gets extended only, then existing apps will just work, if an apps gets
+>> compiled against a newer version with the extension then it is safe to assume it will run
+>> against that newer version. The only reason I can see a version define being useful is
+>> to make a newer app compile with an older version of the librarry, but that only requires
+>> a version define, not a version field in the struct.
+>
+> That's true, you only need the define, not the version field.
+>
+> So let's keep the define and ditch the version field. I think that
+> should do it.
 
-Great to know!
+Ack.
 
 Regards,
-Mauro
 
-
-_______________________________________________
-Workshop-2011 mailing list
-Workshop-2011@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/workshop-2011
+Hans
