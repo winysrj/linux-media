@@ -1,50 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:50365 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755672Ab2HFJ4P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 05:56:15 -0400
-Received: by yenl2 with SMTP id l2so2273407yen.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 02:56:14 -0700 (PDT)
-From: Hideki EIRAKU <hdk@igel.co.jp>
-To: Russell King <linux@arm.linux.org.uk>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
-	alsa-devel@alsa-project.org, Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Hideki EIRAKU <hdk@igel.co.jp>
-Subject: [PATCH v3 1/4] ARM: dma-mapping: define ARCH_HAS_DMA_MMAP_COHERENT
-Date: Mon,  6 Aug 2012 18:55:21 +0900
-Message-Id: <1344246924-32620-2-git-send-email-hdk@igel.co.jp>
-In-Reply-To: <1344246924-32620-1-git-send-email-hdk@igel.co.jp>
-References: <1344246924-32620-1-git-send-email-hdk@igel.co.jp>
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:63966 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751776Ab2HJLVe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Aug 2012 07:21:34 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: marbugge@cisco.com, Soby Mathew <soby.mathew@st.com>,
+	mats.randgaard@cisco.com, manjunath.hadli@ti.com,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	dri-devel@lists.freedesktop.org
+Subject: [RFCv3 PATCH 4/8] v4l2-ctrls.c: add support for the new DV controls.
+Date: Fri, 10 Aug 2012 13:21:20 +0200
+Message-Id: <d349804d4366abc957966169f39f9bdbfce1cd78.1344592468.git.hans.verkuil@cisco.com>
+In-Reply-To: <1344597684-8413-1-git-send-email-hans.verkuil@cisco.com>
+References: <1344597684-8413-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <bf682233fde61ca77ed4512ba77271f6daeedb31.1344592468.git.hans.verkuil@cisco.com>
+References: <bf682233fde61ca77ed4512ba77271f6daeedb31.1344592468.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ARCH_HAS_DMA_MMAP_COHERENT indicates that there is dma_mmap_coherent() API
-in this architecture.  The name is already defined in PowerPC.
-
-Signed-off-by: Hideki EIRAKU <hdk@igel.co.jp>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- arch/arm/include/asm/dma-mapping.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/media/video/v4l2-ctrls.c |   39 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
-diff --git a/arch/arm/include/asm/dma-mapping.h b/arch/arm/include/asm/dma-mapping.h
-index bbef15d..f41cd30 100644
---- a/arch/arm/include/asm/dma-mapping.h
-+++ b/arch/arm/include/asm/dma-mapping.h
-@@ -187,6 +187,7 @@ extern int arm_dma_mmap(struct device *dev, struct vm_area_struct *vma,
- 			struct dma_attrs *attrs);
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index b6a2ee7..6a34c30 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -425,6 +425,18 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"Gray",
+ 		NULL,
+ 	};
++	static const char * const dv_tx_mode[] = {
++		"DVI-D",
++		"HDMI",
++		NULL,
++	};
++	static const char * const dv_rgb_range[] = {
++		"Automatic",
++		"RGB limited range (16-235)",
++		"RGB full range (0-255)",
++		NULL,
++	};
++
  
- #define dma_mmap_coherent(d, v, c, h, s) dma_mmap_attrs(d, v, c, h, s, NULL)
-+#define ARCH_HAS_DMA_MMAP_COHERENT
+ 	switch (id) {
+ 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+@@ -502,6 +514,11 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		return mpeg4_profile;
+ 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
+ 		return jpeg_chroma_subsampling;
++	case V4L2_CID_DV_TX_MODE:
++		return dv_tx_mode;
++	case V4L2_CID_DV_TX_RGB_RANGE:
++	case V4L2_CID_DV_RX_RGB_RANGE:
++		return dv_rgb_range;
  
- static inline int dma_mmap_attrs(struct device *dev, struct vm_area_struct *vma,
- 				  void *cpu_addr, dma_addr_t dma_addr,
+ 	default:
+ 		return NULL;
+@@ -733,6 +750,16 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
+ 	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
+ 
++	/* DV controls */
++	case V4L2_CID_DV_CLASS:			return "Digital Video Controls";
++	case V4L2_CID_DV_TX_HOTPLUG:		return "Hotplug Present";
++	case V4L2_CID_DV_TX_RXSENSE:		return "RxSense Present";
++	case V4L2_CID_DV_TX_EDID_PRESENT:	return "EDID Present";
++	case V4L2_CID_DV_TX_MODE:		return "Transmit Mode";
++	case V4L2_CID_DV_TX_RGB_RANGE:		return "Tx RGB Quantization Range";
++	case V4L2_CID_DV_RX_POWER_PRESENT:	return "Power Present";
++	case V4L2_CID_DV_RX_RGB_RANGE:		return "Rx RGB Quantization Range";
++
+ 	default:
+ 		return NULL;
+ 	}
+@@ -832,6 +859,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_ISO_SENSITIVITY_AUTO:
+ 	case V4L2_CID_EXPOSURE_METERING:
+ 	case V4L2_CID_SCENE_MODE:
++	case V4L2_CID_DV_TX_MODE:
++	case V4L2_CID_DV_TX_RGB_RANGE:
++	case V4L2_CID_DV_RX_RGB_RANGE:
+ 		*type = V4L2_CTRL_TYPE_MENU;
+ 		break;
+ 	case V4L2_CID_LINK_FREQ:
+@@ -853,6 +883,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_JPEG_CLASS:
+ 	case V4L2_CID_IMAGE_SOURCE_CLASS:
+ 	case V4L2_CID_IMAGE_PROC_CLASS:
++	case V4L2_CID_DV_CLASS:
+ 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
+ 		/* You can neither read not write these */
+ 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
+@@ -869,6 +900,10 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_JPEG_ACTIVE_MARKER:
+ 	case V4L2_CID_3A_LOCK:
+ 	case V4L2_CID_AUTO_FOCUS_STATUS:
++	case V4L2_CID_DV_TX_HOTPLUG:
++	case V4L2_CID_DV_TX_RXSENSE:
++	case V4L2_CID_DV_TX_EDID_PRESENT:
++	case V4L2_CID_DV_RX_POWER_PRESENT:
+ 		*type = V4L2_CTRL_TYPE_BITMASK;
+ 		break;
+ 	case V4L2_CID_MIN_BUFFERS_FOR_CAPTURE:
+@@ -933,6 +968,10 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_FLASH_STROBE_STATUS:
+ 	case V4L2_CID_AUTO_FOCUS_STATUS:
+ 	case V4L2_CID_FLASH_READY:
++	case V4L2_CID_DV_TX_HOTPLUG:
++	case V4L2_CID_DV_TX_RXSENSE:
++	case V4L2_CID_DV_TX_EDID_PRESENT:
++	case V4L2_CID_DV_RX_POWER_PRESENT:
+ 		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 		break;
+ 	}
 -- 
-1.7.0.4
+1.7.10.4
 
