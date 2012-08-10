@@ -1,2470 +1,2235 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oproxy11-pub.bluehost.com ([173.254.64.10]:52723 "HELO
-	oproxy11-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750980Ab2HTPhV (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:44946 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752512Ab2HJLVk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Aug 2012 11:37:21 -0400
-Message-ID: <503259AD.40602@xenotime.net>
-Date: Mon, 20 Aug 2012 08:37:17 -0700
-From: Randy Dunlap <rdunlap@xenotime.net>
-MIME-Version: 1.0
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-CC: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	Patrick Boettcher <patrick.boettcher@desy.de>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: linux-next: Tree for Aug 20 (media: flexcop)
-References: <20120820192336.1be51b225ce2883bdcad5b15@canb.auug.org.au>
-In-Reply-To: <20120820192336.1be51b225ce2883bdcad5b15@canb.auug.org.au>
-Content-Type: multipart/mixed;
- boundary="------------060600070106030303040603"
+	Fri, 10 Aug 2012 07:21:40 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: marbugge@cisco.com, Soby Mathew <soby.mathew@st.com>,
+	mats.randgaard@cisco.com, manjunath.hadli@ti.com,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	dri-devel@lists.freedesktop.org
+Subject: [RFCv3 PATCH 7/8] adv7604: driver for the Analog Devices ADV7604 video decoder.
+Date: Fri, 10 Aug 2012 13:21:23 +0200
+Message-Id: <0b06d93890482bbeff41ce19b993f0929cf4197b.1344592468.git.hans.verkuil@cisco.com>
+In-Reply-To: <1344597684-8413-1-git-send-email-hans.verkuil@cisco.com>
+References: <1344597684-8413-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <bf682233fde61ca77ed4512ba77271f6daeedb31.1344592468.git.hans.verkuil@cisco.com>
+References: <bf682233fde61ca77ed4512ba77271f6daeedb31.1344592468.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------060600070106030303040603
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Initial version of this driver.
 
-On 08/20/12 02:23, Stephen Rothwell wrote:
+The full datasheets are available from the Analog Devices website:
 
-> Hi all,
-> 
-> Changes since 20120817:
-> 
-> The v4l-dvb tree lost its build failure.
-> 
+  http://ez.analog.com/docs/DOC-1545
 
+Not all features of the receiver are supported by this driver for various
+reasons. Most notably:
 
+- No CEC support (the CEC API needs a lot more discussion)
+- Only port A of the four HDMI input ports is implemented (our hardware only
+  uses that port)
+- No HDCP repeater support (we don't use that either)
 
-on x86_64:
+And since there are some 600-odd pages of datasheet for this single device,
+I'm sure that there are many more things missing, but this driver does work
+well for our hardware.
 
-flexcop-pci.c:(.text+0x19af63): undefined reference to `flexcop_device_exit'
-flexcop-pci.c:(.text+0x19af77): undefined reference to `flexcop_device_kfree'
-flexcop-pci.c:(.text+0x19b10f): undefined reference to `flexcop_pass_dmx_packets'
-flexcop-pci.c:(.text+0x19b182): undefined reference to `flexcop_pass_dmx_data'
-flexcop-pci.c:(.text+0x19b1ae): undefined reference to `flexcop_pass_dmx_data'
-flexcop-pci.c:(.text+0x19b1f8): undefined reference to `flexcop_device_kmalloc'
-flexcop-pci.c:(.text+0x19b256): undefined reference to `flexcop_i2c_request'
-flexcop-pci.c:(.text+0x19b261): undefined reference to `flexcop_eeprom_check_mac_addr'
-flexcop-pci.c:(.text+0x19b2c6): undefined reference to `flexcop_device_initialize'
-flexcop-pci.c:(.text+0x19b332): undefined reference to `flexcop_sram_set_dest'
-flexcop-pci.c:(.text+0x19b348): undefined reference to `flexcop_sram_set_dest'
-flexcop-pci.c:(.text+0x19b3f8): undefined reference to `flexcop_device_exit'
-flexcop-pci.c:(.text+0x19b408): undefined reference to `flexcop_device_kfree'
-flexcop-pci.c:(.text+0x19b4a2): undefined reference to `flexcop_pid_feed_control'
-flexcop-pci.c:(.text+0x19b4d7): undefined reference to `flexcop_pid_feed_control'
+Note that I am using the register addresses instead of register names: the
+datasheet containing the register descriptions is organized by register
+address. Using names would make the datasheet lookup very hard. An attempt
+was made to try and document what is being done when registers are used
+instead.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/Kconfig     |   12 +
+ drivers/media/video/Makefile    |    1 +
+ drivers/media/video/adv7604.c   | 1959 +++++++++++++++++++++++++++++++++++++++
+ include/media/adv7604.h         |  153 +++
+ include/media/v4l2-chip-ident.h |    3 +
+ 5 files changed, 2128 insertions(+)
+ create mode 100644 drivers/media/video/adv7604.c
+ create mode 100644 include/media/adv7604.h
 
-
-since it is possible to enable DVB_B2C2_FLEXCOP_PCI
-when CONFIG_I2C is not enabled, but then DVB_B2C2_FLEXCOP
-is not enabled because I2C is not enabled.
-
-
-Full randconfig file is attached.
-
-
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index d5df1fd..6d92d2d 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -284,6 +284,18 @@ config VIDEO_ADV7183
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called adv7183.
+ 
++config VIDEO_ADV7604
++	tristate "Analog Devices ADV7604 decoder"
++	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
++	---help---
++	  Support for the Analog Devices ADV7604 video decoder.
++
++	  This is a Analog Devices Component/Graphics Digitizer
++	  with 4:1 Multiplexed HDMI Receiver.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called adv7604.
++
+ config VIDEO_BT819
+ 	tristate "BT819A VideoStream decoder"
+ 	depends on VIDEO_V4L2 && I2C
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index b7ada61..133dd9b 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -46,6 +46,7 @@ obj-$(CONFIG_VIDEO_ADV7180) += adv7180.o
+ obj-$(CONFIG_VIDEO_ADV7183) += adv7183.o
+ obj-$(CONFIG_VIDEO_ADV7343) += adv7343.o
+ obj-$(CONFIG_VIDEO_ADV7393) += adv7393.o
++obj-$(CONFIG_VIDEO_ADV7604) += adv7604.o
+ obj-$(CONFIG_VIDEO_VPX3220) += vpx3220.o
+ obj-$(CONFIG_VIDEO_VS6624)  += vs6624.o
+ obj-$(CONFIG_VIDEO_BT819) += bt819.o
+diff --git a/drivers/media/video/adv7604.c b/drivers/media/video/adv7604.c
+new file mode 100644
+index 0000000..109bc9b
+--- /dev/null
++++ b/drivers/media/video/adv7604.c
+@@ -0,0 +1,1959 @@
++/*
++ * adv7604 - Analog Devices ADV7604 video decoder driver
++ *
++ * Copyright 2012 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
++ *
++ * This program is free software; you may redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ *
++ */
++
++/*
++ * References (c = chapter, p = page):
++ * REF_01 - Analog devices, ADV7604, Register Settings Recommendations,
++ *		Revision 2.5, June 2010
++ * REF_02 - Analog devices, Register map documentation, Documentation of
++ *		the register maps, Software manual, Rev. F, June 2010
++ * REF_03 - Analog devices, ADV7604, Hardware Manual, Rev. F, August 2010
++ */
++
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/i2c.h>
++#include <linux/delay.h>
++#include <linux/videodev2.h>
++#include <linux/workqueue.h>
++#include <linux/v4l2-dv-timings.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-chip-ident.h>
++#include <media/adv7604.h>
++
++static int debug;
++module_param(debug, int, 0644);
++MODULE_PARM_DESC(debug, "debug level (0-2)");
++
++MODULE_DESCRIPTION("Analog Devices ADV7604 video decoder driver");
++MODULE_AUTHOR("Hans Verkuil <hans.verkuil@cisco.com>");
++MODULE_AUTHOR("Mats Randgaard <mats.randgaard@cisco.com>");
++MODULE_LICENSE("GPL");
++
++/* ADV7604 system clock frequency */
++#define ADV7604_fsc (28636360)
++
++#define DIGITAL_INPUT ((state->prim_mode == ADV7604_PRIM_MODE_HDMI_COMP) || \
++			(state->prim_mode == ADV7604_PRIM_MODE_HDMI_GR))
++
++/*
++ **********************************************************************
++ *
++ *  Arrays with configuration parameters for the ADV7604
++ *
++ **********************************************************************
++ */
++struct adv7604_state {
++	struct adv7604_platform_data pdata;
++	struct v4l2_subdev sd;
++	struct media_pad pad;
++	struct v4l2_ctrl_handler hdl;
++	enum adv7604_prim_mode prim_mode;
++	struct v4l2_dv_timings timings;
++	u8 edid[256];
++	unsigned edid_blocks;
++	struct v4l2_fract aspect_ratio;
++	u32 rgb_quantization_range;
++	struct workqueue_struct *work_queues;
++	struct delayed_work delayed_work_enable_hotplug;
++	bool connector_hdmi;
++
++	/* i2c clients */
++	struct i2c_client *i2c_avlink;
++	struct i2c_client *i2c_cec;
++	struct i2c_client *i2c_infoframe;
++	struct i2c_client *i2c_esdp;
++	struct i2c_client *i2c_dpp;
++	struct i2c_client *i2c_afe;
++	struct i2c_client *i2c_repeater;
++	struct i2c_client *i2c_edid;
++	struct i2c_client *i2c_hdmi;
++	struct i2c_client *i2c_test;
++	struct i2c_client *i2c_cp;
++	struct i2c_client *i2c_vdp;
++
++	/* controls */
++	struct v4l2_ctrl *detect_tx_5v_ctrl;
++	struct v4l2_ctrl *analog_sampling_phase_ctrl;
++	struct v4l2_ctrl *free_run_color_manual_ctrl;
++	struct v4l2_ctrl *free_run_color_ctrl;
++	struct v4l2_ctrl *rgb_quantization_range_ctrl;
++};
++
++/* Supported CEA and DMT timings */
++static const struct v4l2_dv_timings adv7604_timings[] = {
++	V4L2_DV_BT_CEA_720X480P59_94,
++	V4L2_DV_BT_CEA_720X576P50,
++	V4L2_DV_BT_CEA_1280X720P24,
++	V4L2_DV_BT_CEA_1280X720P25,
++	V4L2_DV_BT_CEA_1280X720P30,
++	V4L2_DV_BT_CEA_1280X720P50,
++	V4L2_DV_BT_CEA_1280X720P60,
++	V4L2_DV_BT_CEA_1920X1080P24,
++	V4L2_DV_BT_CEA_1920X1080P25,
++	V4L2_DV_BT_CEA_1920X1080P30,
++	V4L2_DV_BT_CEA_1920X1080P50,
++	V4L2_DV_BT_CEA_1920X1080P60,
++
++	V4L2_DV_BT_DMT_640X350P85,
++	V4L2_DV_BT_DMT_640X400P85,
++	V4L2_DV_BT_DMT_720X400P85,
++	V4L2_DV_BT_DMT_640X480P60,
++	V4L2_DV_BT_DMT_640X480P72,
++	V4L2_DV_BT_DMT_640X480P75,
++	V4L2_DV_BT_DMT_640X480P85,
++	V4L2_DV_BT_DMT_800X600P56,
++	V4L2_DV_BT_DMT_800X600P60,
++	V4L2_DV_BT_DMT_800X600P72,
++	V4L2_DV_BT_DMT_800X600P75,
++	V4L2_DV_BT_DMT_800X600P85,
++	V4L2_DV_BT_DMT_848X480P60,
++	V4L2_DV_BT_DMT_1024X768P60,
++	V4L2_DV_BT_DMT_1024X768P70,
++	V4L2_DV_BT_DMT_1024X768P75,
++	V4L2_DV_BT_DMT_1024X768P85,
++	V4L2_DV_BT_DMT_1152X864P75,
++	V4L2_DV_BT_DMT_1280X768P60_RB,
++	V4L2_DV_BT_DMT_1280X768P60,
++	V4L2_DV_BT_DMT_1280X768P75,
++	V4L2_DV_BT_DMT_1280X768P85,
++	V4L2_DV_BT_DMT_1280X800P60_RB,
++	V4L2_DV_BT_DMT_1280X800P60,
++	V4L2_DV_BT_DMT_1280X800P75,
++	V4L2_DV_BT_DMT_1280X800P85,
++	V4L2_DV_BT_DMT_1280X960P60,
++	V4L2_DV_BT_DMT_1280X960P85,
++	V4L2_DV_BT_DMT_1280X1024P60,
++	V4L2_DV_BT_DMT_1280X1024P75,
++	V4L2_DV_BT_DMT_1280X1024P85,
++	V4L2_DV_BT_DMT_1360X768P60,
++	V4L2_DV_BT_DMT_1400X1050P60_RB,
++	V4L2_DV_BT_DMT_1400X1050P60,
++	V4L2_DV_BT_DMT_1400X1050P75,
++	V4L2_DV_BT_DMT_1400X1050P85,
++	V4L2_DV_BT_DMT_1440X900P60_RB,
++	V4L2_DV_BT_DMT_1440X900P60,
++	V4L2_DV_BT_DMT_1600X1200P60,
++	V4L2_DV_BT_DMT_1680X1050P60_RB,
++	V4L2_DV_BT_DMT_1680X1050P60,
++	V4L2_DV_BT_DMT_1792X1344P60,
++	V4L2_DV_BT_DMT_1856X1392P60,
++	V4L2_DV_BT_DMT_1920X1200P60_RB,
++	V4L2_DV_BT_DMT_1366X768P60,
++	V4L2_DV_BT_DMT_1920X1080P60,
++	{ },
++};
++
++/* ----------------------------------------------------------------------- */
++
++static inline struct adv7604_state *to_state(struct v4l2_subdev *sd)
++{
++	return container_of(sd, struct adv7604_state, sd);
++}
++
++static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
++{
++	return &container_of(ctrl->handler, struct adv7604_state, hdl)->sd;
++}
++
++static inline unsigned hblanking(const struct v4l2_bt_timings *t)
++{
++	return t->hfrontporch + t->hsync + t->hbackporch;
++}
++
++static inline unsigned htotal(const struct v4l2_bt_timings *t)
++{
++	return t->width + t->hfrontporch + t->hsync + t->hbackporch;
++}
++
++static inline unsigned vblanking(const struct v4l2_bt_timings *t)
++{
++	return t->vfrontporch + t->vsync + t->vbackporch;
++}
++
++static inline unsigned vtotal(const struct v4l2_bt_timings *t)
++{
++	return t->height + t->vfrontporch + t->vsync + t->vbackporch;
++}
++
++/* ----------------------------------------------------------------------- */
++
++static s32 adv_smbus_read_byte_data_check(struct i2c_client *client,
++		u8 command, bool check)
++{
++	union i2c_smbus_data data;
++
++	if (!i2c_smbus_xfer(client->adapter, client->addr, client->flags,
++			I2C_SMBUS_READ, command,
++			I2C_SMBUS_BYTE_DATA, &data))
++		return data.byte;
++	if (check)
++		v4l_err(client, "error reading %02x, %02x\n",
++				client->addr, command);
++	return -EIO;
++}
++
++static s32 adv_smbus_read_byte_data(struct i2c_client *client, u8 command)
++{
++	return adv_smbus_read_byte_data_check(client, command, true);
++}
++
++static s32 adv_smbus_write_byte_data(struct i2c_client *client,
++					u8 command, u8 value)
++{
++	union i2c_smbus_data data;
++	int err;
++	int i;
++
++	data.byte = value;
++	for (i = 0; i < 3; i++) {
++		err = i2c_smbus_xfer(client->adapter, client->addr,
++				client->flags,
++				I2C_SMBUS_WRITE, command,
++				I2C_SMBUS_BYTE_DATA, &data);
++		if (!err)
++			break;
++	}
++	if (err < 0)
++		v4l_err(client, "error writing %02x, %02x, %02x\n",
++				client->addr, command, value);
++	return err;
++}
++
++static s32 adv_smbus_write_i2c_block_data(struct i2c_client *client,
++	       u8 command, unsigned length, const u8 *values)
++{
++	union i2c_smbus_data data;
++
++	if (length > I2C_SMBUS_BLOCK_MAX)
++		length = I2C_SMBUS_BLOCK_MAX;
++	data.block[0] = length;
++	memcpy(data.block + 1, values, length);
++	return i2c_smbus_xfer(client->adapter, client->addr, client->flags,
++			      I2C_SMBUS_WRITE, command,
++			      I2C_SMBUS_I2C_BLOCK_DATA, &data);
++}
++
++/* ----------------------------------------------------------------------- */
++
++static inline int io_read(struct v4l2_subdev *sd, u8 reg)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++
++	return adv_smbus_read_byte_data(client, reg);
++}
++
++static inline int io_write(struct v4l2_subdev *sd, u8 reg, u8 val)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++
++	return adv_smbus_write_byte_data(client, reg, val);
++}
++
++static inline int io_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
++{
++	return io_write(sd, reg, (io_read(sd, reg) & mask) | val);
++}
++
++static inline int avlink_read(struct v4l2_subdev *sd, u8 reg)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	return adv_smbus_read_byte_data(state->i2c_avlink, reg);
++}
++
++static inline int avlink_write(struct v4l2_subdev *sd, u8 reg, u8 val)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	return adv_smbus_write_byte_data(state->i2c_avlink, reg, val);
++}
++
++static inline int cec_read(struct v4l2_subdev *sd, u8 reg)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	return adv_smbus_read_byte_data(state->i2c_cec, reg);
++}
++
++static inline int cec_write(struct v4l2_subdev *sd, u8 reg, u8 val)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	return adv_smbus_write_byte_data(state->i2c_cec, reg, val);
++}
++
++static inline int cec_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
++{
++	return cec_write(sd, reg, (cec_read(sd, reg) & mask) | val);
++}
++
++static inline int infoframe_read(struct v4l2_subdev *sd, u8 reg)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	return adv_smbus_read_byte_data(state->i2c_infoframe, reg);
++}
++
++static inline int infoframe_write(struct v4l2_subdev *sd, u8 reg, u8 val)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	return adv_smbus_write_byte_data(state->i2c_infoframe, reg, val);
++}
++
++static inline int esdp_read(struct v4l2_subdev *sd, u8 reg)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	return adv_smbus_read_byte_data(state->i2c_esdp, reg);
++}
++
++static inline int esdp_write(struct v4l2_subdev *sd, u8 reg, u8 val)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	return adv_smbus_write_byte_data(state->i2c_esdp, reg, val);
++}
++
++static inline int dpp_read(struct v4l2_subdev *sd, u8 reg)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	return adv_smbus_read_byte_data(state->i2c_dpp, reg);
++}
++
++static inline int dpp_write(struct v4l2_subdev *sd, u8 reg, u8 val)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	return adv_smbus_write_byte_data(state->i2c_dpp, reg, val);
++}
++
++static inline int afe_read(struct v4l2_subdev *sd, u8 reg)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	return adv_smbus_read_byte_data(state->i2c_afe, reg);
++}
++
++static inline int afe_write(struct v4l2_subdev *sd, u8 reg, u8 val)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	return adv_smbus_write_byte_data(state->i2c_afe, reg, val);
++}
++
++static inline int rep_read(struct v4l2_subdev *sd, u8 reg)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	return adv_smbus_read_byte_data(state->i2c_repeater, reg);
++}
++
++static inline int rep_write(struct v4l2_subdev *sd, u8 reg, u8 val)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	return adv_smbus_write_byte_data(state->i2c_repeater, reg, val);
++}
++
++static inline int rep_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
++{
++	return rep_write(sd, reg, (rep_read(sd, reg) & mask) | val);
++}
++
++static inline int edid_read(struct v4l2_subdev *sd, u8 reg)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	return adv_smbus_read_byte_data(state->i2c_edid, reg);
++}
++
++static inline int edid_write(struct v4l2_subdev *sd, u8 reg, u8 val)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	return adv_smbus_write_byte_data(state->i2c_edid, reg, val);
++}
++
++static inline int edid_read_block(struct v4l2_subdev *sd, unsigned len, u8 *val)
++{
++	struct adv7604_state *state = to_state(sd);
++	struct i2c_client *client = state->i2c_edid;
++	u8 msgbuf0[1] = { 0 };
++	u8 msgbuf1[256];
++	struct i2c_msg msg[2] = { { client->addr, 0, 1, msgbuf0 },
++				  { client->addr, 0 | I2C_M_RD, len, msgbuf1 }
++				};
++
++	if (i2c_transfer(client->adapter, msg, 2) < 0)
++		return -EIO;
++	memcpy(val, msgbuf1, len);
++	return 0;
++}
++
++static void adv7604_delayed_work_enable_hotplug(struct work_struct *work)
++{
++	struct delayed_work *dwork = to_delayed_work(work);
++	struct adv7604_state *state = container_of(dwork, struct adv7604_state,
++						delayed_work_enable_hotplug);
++	struct v4l2_subdev *sd = &state->sd;
++
++	v4l2_dbg(2, debug, sd, "%s: enable hotplug\n", __func__);
++
++	v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)1);
++}
++
++static inline int edid_write_block(struct v4l2_subdev *sd,
++					unsigned len, const u8 *val)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct adv7604_state *state = to_state(sd);
++	int err = 0;
++	int i;
++
++	v4l2_dbg(2, debug, sd, "%s: write EDID block (%d byte)\n", __func__, len);
++
++	v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)0);
++
++	/* Disables I2C access to internal EDID ram from DDC port */
++	rep_write_and_or(sd, 0x77, 0xf0, 0x0);
++
++	for (i = 0; !err && i < len; i += I2C_SMBUS_BLOCK_MAX)
++		err = adv_smbus_write_i2c_block_data(state->i2c_edid, i,
++				I2C_SMBUS_BLOCK_MAX, val + i);
++	if (err)
++		return err;
++
++	/* adv7604 calculates the checksums and enables I2C access to internal
++	   EDID ram from DDC port. */
++	rep_write_and_or(sd, 0x77, 0xf0, 0x1);
++
++	for (i = 0; i < 1000; i++) {
++		if (rep_read(sd, 0x7d) & 1)
++			break;
++		mdelay(1);
++	}
++	if (i == 1000) {
++		v4l_err(client, "error enabling edid\n");
++		return -EIO;
++	}
++
++	/* enable hotplug after 100 ms */
++	queue_delayed_work(state->work_queues,
++			&state->delayed_work_enable_hotplug, HZ / 10);
++	return 0;
++}
++
++static inline int hdmi_read(struct v4l2_subdev *sd, u8 reg)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	return adv_smbus_read_byte_data(state->i2c_hdmi, reg);
++}
++
++static inline int hdmi_write(struct v4l2_subdev *sd, u8 reg, u8 val)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	return adv_smbus_write_byte_data(state->i2c_hdmi, reg, val);
++}
++
++static inline int test_read(struct v4l2_subdev *sd, u8 reg)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	return adv_smbus_read_byte_data(state->i2c_test, reg);
++}
++
++static inline int test_write(struct v4l2_subdev *sd, u8 reg, u8 val)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	return adv_smbus_write_byte_data(state->i2c_test, reg, val);
++}
++
++static inline int cp_read(struct v4l2_subdev *sd, u8 reg)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	return adv_smbus_read_byte_data(state->i2c_cp, reg);
++}
++
++static inline int cp_write(struct v4l2_subdev *sd, u8 reg, u8 val)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	return adv_smbus_write_byte_data(state->i2c_cp, reg, val);
++}
++
++static inline int cp_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
++{
++	return cp_write(sd, reg, (cp_read(sd, reg) & mask) | val);
++}
++
++static inline int vdp_read(struct v4l2_subdev *sd, u8 reg)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	return adv_smbus_read_byte_data(state->i2c_vdp, reg);
++}
++
++static inline int vdp_write(struct v4l2_subdev *sd, u8 reg, u8 val)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	return adv_smbus_write_byte_data(state->i2c_vdp, reg, val);
++}
++
++/* ----------------------------------------------------------------------- */
++
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++static void adv7604_inv_register(struct v4l2_subdev *sd)
++{
++	v4l2_info(sd, "0x000-0x0ff: IO Map\n");
++	v4l2_info(sd, "0x100-0x1ff: AVLink Map\n");
++	v4l2_info(sd, "0x200-0x2ff: CEC Map\n");
++	v4l2_info(sd, "0x300-0x3ff: InfoFrame Map\n");
++	v4l2_info(sd, "0x400-0x4ff: ESDP Map\n");
++	v4l2_info(sd, "0x500-0x5ff: DPP Map\n");
++	v4l2_info(sd, "0x600-0x6ff: AFE Map\n");
++	v4l2_info(sd, "0x700-0x7ff: Repeater Map\n");
++	v4l2_info(sd, "0x800-0x8ff: EDID Map\n");
++	v4l2_info(sd, "0x900-0x9ff: HDMI Map\n");
++	v4l2_info(sd, "0xa00-0xaff: Test Map\n");
++	v4l2_info(sd, "0xb00-0xbff: CP Map\n");
++	v4l2_info(sd, "0xc00-0xcff: VDP Map\n");
++}
++
++static int adv7604_g_register(struct v4l2_subdev *sd,
++					struct v4l2_dbg_register *reg)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++
++	if (!v4l2_chip_match_i2c_client(client, &reg->match))
++		return -EINVAL;
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
++	reg->size = 1;
++	switch (reg->reg >> 8) {
++	case 0:
++		reg->val = io_read(sd, reg->reg & 0xff);
++		break;
++	case 1:
++		reg->val = avlink_read(sd, reg->reg & 0xff);
++		break;
++	case 2:
++		reg->val = cec_read(sd, reg->reg & 0xff);
++		break;
++	case 3:
++		reg->val = infoframe_read(sd, reg->reg & 0xff);
++		break;
++	case 4:
++		reg->val = esdp_read(sd, reg->reg & 0xff);
++		break;
++	case 5:
++		reg->val = dpp_read(sd, reg->reg & 0xff);
++		break;
++	case 6:
++		reg->val = afe_read(sd, reg->reg & 0xff);
++		break;
++	case 7:
++		reg->val = rep_read(sd, reg->reg & 0xff);
++		break;
++	case 8:
++		reg->val = edid_read(sd, reg->reg & 0xff);
++		break;
++	case 9:
++		reg->val = hdmi_read(sd, reg->reg & 0xff);
++		break;
++	case 0xa:
++		reg->val = test_read(sd, reg->reg & 0xff);
++		break;
++	case 0xb:
++		reg->val = cp_read(sd, reg->reg & 0xff);
++		break;
++	case 0xc:
++		reg->val = vdp_read(sd, reg->reg & 0xff);
++		break;
++	default:
++		v4l2_info(sd, "Register %03llx not supported\n", reg->reg);
++		adv7604_inv_register(sd);
++		break;
++	}
++	return 0;
++}
++
++static int adv7604_s_register(struct v4l2_subdev *sd,
++					struct v4l2_dbg_register *reg)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++
++	if (!v4l2_chip_match_i2c_client(client, &reg->match))
++		return -EINVAL;
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
++	switch (reg->reg >> 8) {
++	case 0:
++		io_write(sd, reg->reg & 0xff, reg->val & 0xff);
++		break;
++	case 1:
++		avlink_write(sd, reg->reg & 0xff, reg->val & 0xff);
++		break;
++	case 2:
++		cec_write(sd, reg->reg & 0xff, reg->val & 0xff);
++		break;
++	case 3:
++		infoframe_write(sd, reg->reg & 0xff, reg->val & 0xff);
++		break;
++	case 4:
++		esdp_write(sd, reg->reg & 0xff, reg->val & 0xff);
++		break;
++	case 5:
++		dpp_write(sd, reg->reg & 0xff, reg->val & 0xff);
++		break;
++	case 6:
++		afe_write(sd, reg->reg & 0xff, reg->val & 0xff);
++		break;
++	case 7:
++		rep_write(sd, reg->reg & 0xff, reg->val & 0xff);
++		break;
++	case 8:
++		edid_write(sd, reg->reg & 0xff, reg->val & 0xff);
++		break;
++	case 9:
++		hdmi_write(sd, reg->reg & 0xff, reg->val & 0xff);
++		break;
++	case 0xa:
++		test_write(sd, reg->reg & 0xff, reg->val & 0xff);
++		break;
++	case 0xb:
++		cp_write(sd, reg->reg & 0xff, reg->val & 0xff);
++		break;
++	case 0xc:
++		vdp_write(sd, reg->reg & 0xff, reg->val & 0xff);
++		break;
++	default:
++		v4l2_info(sd, "Register %03llx not supported\n", reg->reg);
++		adv7604_inv_register(sd);
++		break;
++	}
++	return 0;
++}
++#endif
++
++static int adv7604_s_detect_tx_5v_ctrl(struct v4l2_subdev *sd)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	/* port A only */
++	return v4l2_ctrl_s_ctrl(state->detect_tx_5v_ctrl,
++				((io_read(sd, 0x6f) & 0x10) >> 4));
++}
++
++static void configure_free_run(struct v4l2_subdev *sd, const struct v4l2_bt_timings *timings)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	u32 width = htotal(timings);
++	u32 height = vtotal(timings);
++	u16 ch1_fr_ll = (((u32)timings->pixelclock / 100) > 0) ?
++		((width * (ADV7604_fsc / 100)) / ((u32)timings->pixelclock / 100)) : 0;
++
++	v4l2_dbg(2, debug, sd, "%s\n", __func__);
++
++	cp_write(sd, 0x8f, (ch1_fr_ll >> 8) & 0x7);	/* CH1_FR_LL */
++	cp_write(sd, 0x90, ch1_fr_ll & 0xff);		/* CH1_FR_LL */
++	cp_write(sd, 0xab, (height >> 4) & 0xff); /* CP_LCOUNT_MAX */
++	cp_write(sd, 0xac, (height & 0x0f) << 4); /* CP_LCOUNT_MAX */
++	/* TODO support interlaced */
++	cp_write(sd, 0x91, 0x10);	/* INTERLACED */
++
++	/* Should only be set in auto-graphics mode [REF_02 p. 91-92] */
++	if ((io_read(sd, 0x00) == 0x07) && (io_read(sd, 0x01) == 0x02)) {
++		u16 cp_start_sav, cp_start_eav, cp_start_vbi, cp_end_vbi;
++		const u8 pll[2] = {
++			(0xc0 | ((width >> 8) & 0x1f)),
++			(width & 0xff)
++		};
++
++		/* setup PLL_DIV_MAN_EN and PLL_DIV_RATIO */
++		/* IO-map reg. 0x16 and 0x17 should be written in sequence */
++		if (adv_smbus_write_i2c_block_data(client, 0x16, 2, pll)) {
++			v4l2_err(sd, "writing to reg 0x16 and 0x17 failed\n");
++			return;
++		}
++
++		/* active video - horizontal timing */
++		cp_start_sav = timings->hsync + timings->hbackporch - 4;
++		cp_start_eav = width - timings->hfrontporch;
++		cp_write(sd, 0xa2, (cp_start_sav >> 4) & 0xff);
++		cp_write(sd, 0xa3, ((cp_start_sav & 0x0f) << 4) | ((cp_start_eav >> 8) & 0x0f));
++		cp_write(sd, 0xa4, cp_start_eav & 0xff);
++
++		/* active video - vertical timing */
++		cp_start_vbi = height - timings->vfrontporch;
++		cp_end_vbi = timings->vsync + timings->vbackporch;
++		cp_write(sd, 0xa5, (cp_start_vbi >> 4) & 0xff);
++		cp_write(sd, 0xa6, ((cp_start_vbi & 0xf) << 4) | ((cp_end_vbi >> 8) & 0xf));
++		cp_write(sd, 0xa7, cp_end_vbi & 0xff);
++	} else {
++		/* reset to default values */
++		io_write(sd, 0x16, 0x43);
++		io_write(sd, 0x17, 0x5a);
++		cp_write(sd, 0xa2, 0x00);
++		cp_write(sd, 0xa3, 0x00);
++		cp_write(sd, 0xa4, 0x00);
++		cp_write(sd, 0xa5, 0x00);
++		cp_write(sd, 0xa6, 0x00);
++		cp_write(sd, 0xa7, 0x00);
++	}
++}
++
++
++static void set_rgb_quantization_range(struct v4l2_subdev *sd)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	switch (state->rgb_quantization_range) {
++	case V4L2_DV_RGB_RANGE_AUTO:
++		/* automatic */
++		if ((hdmi_read(sd, 0x05) & 0x80) ||
++				(state->prim_mode == ADV7604_PRIM_MODE_COMP) ||
++				(state->prim_mode == ADV7604_PRIM_MODE_RGB)) {
++			/* receiving HDMI or analog signal */
++			io_write_and_or(sd, 0x02, 0x0f, 0xf0);
++		} else {
++			/* receiving DVI-D signal */
++
++			/* ADV7604 selects RGB limited range regardless of
++			   input format (CE/IT) in automatic mode */
++			if (state->timings.bt.standards & V4L2_DV_BT_STD_CEA861) {
++				/* RGB limited range (16-235) */
++				io_write_and_or(sd, 0x02, 0x0f, 0x00);
++
++			} else {
++				/* RGB full range (0-255) */
++				io_write_and_or(sd, 0x02, 0x0f, 0x10);
++			}
++		}
++		break;
++	case V4L2_DV_RGB_RANGE_LIMITED:
++		/* RGB limited range (16-235) */
++		io_write_and_or(sd, 0x02, 0x0f, 0x00);
++		break;
++	case V4L2_DV_RGB_RANGE_FULL:
++		/* RGB full range (0-255) */
++		io_write_and_or(sd, 0x02, 0x0f, 0x10);
++		break;
++	}
++}
++
++
++static int adv7604_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct v4l2_subdev *sd = to_sd(ctrl);
++	struct adv7604_state *state = to_state(sd);
++
++	switch (ctrl->id) {
++	case V4L2_CID_BRIGHTNESS:
++		cp_write(sd, 0x3c, ctrl->val);
++		return 0;
++	case V4L2_CID_CONTRAST:
++		cp_write(sd, 0x3a, ctrl->val);
++		return 0;
++	case V4L2_CID_SATURATION:
++		cp_write(sd, 0x3b, ctrl->val);
++		return 0;
++	case V4L2_CID_HUE:
++		cp_write(sd, 0x3d, ctrl->val);
++		return 0;
++	case  V4L2_CID_DV_RX_RGB_RANGE:
++		state->rgb_quantization_range = ctrl->val;
++		set_rgb_quantization_range(sd);
++		return 0;
++	case V4L2_CID_ADV_RX_ANALOG_SAMPLING_PHASE:
++		/* Set the analog sampling phase. This is needed to find the
++		   best sampling phase for analog video: an application or
++		   driver has to try a number of phases and analyze the picture
++		   quality before settling on the best performing phase. */
++		afe_write(sd, 0xc8, ctrl->val);
++		return 0;
++	case V4L2_CID_ADV_RX_FREE_RUN_COLOR_MANUAL:
++		/* Use the default blue color for free running mode,
++		   or supply your own. */
++		cp_write_and_or(sd, 0xbf, ~0x04, (ctrl->val << 2));
++		return 0;
++	case V4L2_CID_ADV_RX_FREE_RUN_COLOR:
++		cp_write(sd, 0xc0, (ctrl->val & 0xff0000) >> 16);
++		cp_write(sd, 0xc1, (ctrl->val & 0x00ff00) >> 8);
++		cp_write(sd, 0xc2, (u8)(ctrl->val & 0x0000ff));
++		return 0;
++	}
++	return -EINVAL;
++}
++
++static int adv7604_g_chip_ident(struct v4l2_subdev *sd,
++					struct v4l2_dbg_chip_ident *chip)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++
++	return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_ADV7604, 0);
++}
++
++/* ----------------------------------------------------------------------- */
++
++static inline bool no_power(struct v4l2_subdev *sd)
++{
++	/* Entire chip or CP powered off */
++	return io_read(sd, 0x0c) & 0x24;
++}
++
++static inline bool no_signal_tmds(struct v4l2_subdev *sd)
++{
++	/* TODO port B, C and D */
++	return !(io_read(sd, 0x6a) & 0x10);
++}
++
++static inline bool no_lock_tmds(struct v4l2_subdev *sd)
++{
++	return (io_read(sd, 0x6a) & 0xe0) != 0xe0;
++}
++
++static inline bool no_lock_sspd(struct v4l2_subdev *sd)
++{
++	/* TODO channel 2 */
++	return ((cp_read(sd, 0xb5) & 0xd0) != 0xd0);
++}
++
++static inline bool no_lock_stdi(struct v4l2_subdev *sd)
++{
++	/* TODO channel 2 */
++	return !(cp_read(sd, 0xb1) & 0x80);
++}
++
++static inline bool no_signal(struct v4l2_subdev *sd)
++{
++	struct adv7604_state *state = to_state(sd);
++	bool ret;
++
++	ret = no_power(sd);
++
++	ret |= no_lock_stdi(sd);
++	ret |= no_lock_sspd(sd);
++
++	if (DIGITAL_INPUT) {
++		ret |= no_lock_tmds(sd);
++		ret |= no_signal_tmds(sd);
++	}
++
++	return ret;
++}
++
++static inline bool no_lock_cp(struct v4l2_subdev *sd)
++{
++	/* CP has detected a non standard number of lines on the incoming
++	   video compared to what it is configured to receive by s_dv_timings */
++	return io_read(sd, 0x12) & 0x01;
++}
++
++static int adv7604_g_input_status(struct v4l2_subdev *sd, u32 *status)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	*status = 0;
++	*status |= no_power(sd) ? V4L2_IN_ST_NO_POWER : 0;
++	*status |= no_signal(sd) ? V4L2_IN_ST_NO_SIGNAL : 0;
++	if (no_lock_cp(sd))
++		*status |= DIGITAL_INPUT ? V4L2_IN_ST_NO_SYNC : V4L2_IN_ST_NO_H_LOCK;
++
++	v4l2_dbg(1, debug, sd, "%s: status = 0x%x\n", __func__, *status);
++
++	return 0;
++}
++
++/* ----------------------------------------------------------------------- */
++
++static void adv7604_print_timings(struct v4l2_subdev *sd,
++	struct v4l2_dv_timings *timings, const char *txt, bool detailed)
++{
++	struct v4l2_bt_timings *bt = &timings->bt;
++	u32 htot, vtot;
++
++	if (timings->type != V4L2_DV_BT_656_1120)
++		return;
++
++	htot = htotal(bt);
++	vtot = vtotal(bt);
++
++	v4l2_info(sd, "%s %dx%d%s%d (%dx%d)",
++			txt, bt->width, bt->height, bt->interlaced ? "i" : "p",
++			(htot * vtot) > 0 ? ((u32)bt->pixelclock /
++				(htot * vtot)) : 0,
++			htot, vtot);
++
++	if (detailed) {
++		v4l2_info(sd, "    horizontal: fp = %d, %ssync = %d, bp = %d\n",
++				bt->hfrontporch,
++				(bt->polarities & V4L2_DV_HSYNC_POS_POL) ? "+" : "-",
++				bt->hsync, bt->hbackporch);
++		v4l2_info(sd, "    vertical: fp = %d, %ssync = %d, bp = %d\n",
++				bt->vfrontporch,
++				(bt->polarities & V4L2_DV_VSYNC_POS_POL) ? "+" : "-",
++				bt->vsync, bt->vbackporch);
++		v4l2_info(sd, "    pixelclock: %lld, flags: 0x%x, standards: 0x%x\n",
++				bt->pixelclock, bt->flags, bt->standards);
++	}
++}
++
++struct stdi_readback {
++	u16 bl, lcf, lcvs;
++	u8 hs_pol, vs_pol;
++	bool interlaced;
++};
++
++static int stdi2dv_timings(struct v4l2_subdev *sd,
++		struct stdi_readback *stdi,
++		struct v4l2_dv_timings *timings)
++{
++	struct adv7604_state *state = to_state(sd);
++	u32 hfreq = (ADV7604_fsc * 8) / stdi->bl;
++	u32 pix_clk;
++	int i;
++
++	for (i = 0; adv7604_timings[i].bt.height; i++) {
++		if (vtotal(&adv7604_timings[i].bt) != stdi->lcf + 1)
++			continue;
++		if (adv7604_timings[i].bt.vsync != stdi->lcvs)
++			continue;
++
++		pix_clk = hfreq * htotal(&adv7604_timings[i].bt);
++
++		if ((pix_clk < adv7604_timings[i].bt.pixelclock + 1000000) &&
++		    (pix_clk > adv7604_timings[i].bt.pixelclock - 1000000)) {
++			*timings = adv7604_timings[i];
++			return 0;
++		}
++	}
++
++	if (v4l2_detect_cvt(stdi->lcf + 1, hfreq, stdi->lcvs,
++			(stdi->hs_pol == '+' ? V4L2_DV_HSYNC_POS_POL : 0) |
++			(stdi->vs_pol == '+' ? V4L2_DV_VSYNC_POS_POL : 0),
++			timings))
++		return 0;
++	if (v4l2_detect_gtf(stdi->lcf + 1, hfreq, stdi->lcvs,
++			(stdi->hs_pol == '+' ? V4L2_DV_HSYNC_POS_POL : 0) |
++			(stdi->vs_pol == '+' ? V4L2_DV_VSYNC_POS_POL : 0),
++			state->aspect_ratio, timings))
++		return 0;
++
++	v4l2_dbg(2, debug, sd, "%s: No format candidate found for lcf=%d, bl = %d\n",
++			__func__, stdi->lcf, stdi->bl);
++	return -1;
++}
++
++static int read_stdi(struct v4l2_subdev *sd, struct stdi_readback *stdi)
++{
++	if (no_lock_stdi(sd) || no_lock_sspd(sd)) {
++		v4l2_dbg(2, debug, sd, "%s: STDI and/or SSPD not locked\n", __func__);
++		return -1;
++	}
++
++	/* read STDI */
++	stdi->bl = ((cp_read(sd, 0xb1) & 0x3f) << 8) | cp_read(sd, 0xb2);
++	stdi->lcf = ((cp_read(sd, 0xb3) & 0x7) << 8) | cp_read(sd, 0xb4);
++	stdi->lcvs = cp_read(sd, 0xb3) >> 3;
++	stdi->interlaced = io_read(sd, 0x12) & 0x10;
++
++	/* read SSPD */
++	if ((cp_read(sd, 0xb5) & 0x03) == 0x01) {
++		stdi->hs_pol = ((cp_read(sd, 0xb5) & 0x10) ?
++				((cp_read(sd, 0xb5) & 0x08) ? '+' : '-') : 'x');
++		stdi->vs_pol = ((cp_read(sd, 0xb5) & 0x40) ?
++				((cp_read(sd, 0xb5) & 0x20) ? '+' : '-') : 'x');
++	} else {
++		stdi->hs_pol = 'x';
++		stdi->vs_pol = 'x';
++	}
++
++	if (no_lock_stdi(sd) || no_lock_sspd(sd)) {
++		v4l2_dbg(2, debug, sd,
++			"%s: signal lost during readout of STDI/SSPD\n", __func__);
++		return -1;
++	}
++
++	if (stdi->lcf < 239 || stdi->bl < 8 || stdi->bl == 0x3fff) {
++		v4l2_dbg(2, debug, sd, "%s: invalid signal\n", __func__);
++		memset(stdi, 0, sizeof(struct stdi_readback));
++		return -1;
++	}
++
++	v4l2_dbg(2, debug, sd,
++		"%s: lcf (frame height - 1) = %d, bl = %d, lcvs (vsync) = %d, %chsync, %cvsync, %s\n",
++		__func__, stdi->lcf, stdi->bl, stdi->lcvs,
++		stdi->hs_pol, stdi->vs_pol,
++		stdi->interlaced ? "interlaced" : "progressive");
++
++	return 0;
++}
++
++static int adv7604_enum_dv_timings(struct v4l2_subdev *sd,
++			struct v4l2_enum_dv_timings *timings)
++{
++	if (timings->index >= ARRAY_SIZE(adv7604_timings) - 1)
++		return -EINVAL;
++	memset(timings->reserved, 0, sizeof(timings->reserved));
++	timings->timings = adv7604_timings[timings->index];
++	return 0;
++}
++
++static int adv7604_dv_timings_cap(struct v4l2_subdev *sd,
++			struct v4l2_dv_timings_cap *cap)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	cap->type = V4L2_DV_BT_656_1120;
++	cap->bt.max_width = 1920;
++	cap->bt.max_height = 1200;
++	cap->bt.min_pixelclock = 27000000;
++	if (DIGITAL_INPUT)
++		cap->bt.max_pixelclock = 225000000;
++	else
++		cap->bt.max_pixelclock = 170000000;
++	cap->bt.standards = V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_DMT |
++			 V4L2_DV_BT_STD_GTF | V4L2_DV_BT_STD_CVT;
++	cap->bt.capabilities = V4L2_DV_BT_CAP_PROGRESSIVE |
++		V4L2_DV_BT_CAP_REDUCED_BLANKING | V4L2_DV_BT_CAP_CUSTOM;
++	return 0;
++}
++
++/* Fill the optional fields .standards and .flags in struct v4l2_dv_timings
++   if the format is listed in adv7604_timings[] */
++static void adv7604_fill_optional_dv_timings_fields(struct v4l2_subdev *sd,
++		struct v4l2_dv_timings *timings)
++{
++	struct adv7604_state *state = to_state(sd);
++	int i;
++
++	for (i = 0; adv7604_timings[i].bt.width; i++) {
++		if (v4l_match_dv_timings(timings, &adv7604_timings[i],
++					DIGITAL_INPUT ? 250000 : 1000000)) {
++			*timings = adv7604_timings[i];
++			break;
++		}
++	}
++}
++
++static int adv7604_query_dv_timings(struct v4l2_subdev *sd,
++			struct v4l2_dv_timings *timings)
++{
++	struct adv7604_state *state = to_state(sd);
++	struct v4l2_bt_timings *bt = &timings->bt;
++	struct stdi_readback stdi;
++
++	if (!timings)
++		return -EINVAL;
++
++	memset(timings, 0, sizeof(struct v4l2_dv_timings));
++
++	if (no_signal(sd)) {
++		v4l2_dbg(1, debug, sd, "%s: no valid signal\n", __func__);
++		return -ENOLINK;
++	}
++
++	/* read STDI */
++	if (read_stdi(sd, &stdi)) {
++		v4l2_dbg(1, debug, sd, "%s: STDI/SSPD not locked\n", __func__);
++		return -ENOLINK;
++	}
++	bt->interlaced = stdi.interlaced ?
++		V4L2_DV_INTERLACED : V4L2_DV_PROGRESSIVE;
++
++	if (DIGITAL_INPUT) {
++		timings->type = V4L2_DV_BT_656_1120;
++
++		bt->width = (hdmi_read(sd, 0x07) & 0x0f) * 256 + hdmi_read(sd, 0x08);
++		bt->height = (hdmi_read(sd, 0x09) & 0x0f) * 256 + hdmi_read(sd, 0x0a);
++		bt->pixelclock = (hdmi_read(sd, 0x06) * 1000000) +
++			((hdmi_read(sd, 0x3b) & 0x30) >> 4) * 250000;
++		bt->hfrontporch = (hdmi_read(sd, 0x20) & 0x03) * 256 +
++			hdmi_read(sd, 0x21);
++		bt->hsync = (hdmi_read(sd, 0x22) & 0x03) * 256 +
++			hdmi_read(sd, 0x23);
++		bt->hbackporch = (hdmi_read(sd, 0x24) & 0x03) * 256 +
++			hdmi_read(sd, 0x25);
++		bt->vfrontporch = ((hdmi_read(sd, 0x2a) & 0x1f) * 256 +
++			hdmi_read(sd, 0x2b)) / 2;
++		bt->vsync = ((hdmi_read(sd, 0x2e) & 0x1f) * 256 +
++			hdmi_read(sd, 0x2f)) / 2;
++		bt->vbackporch = ((hdmi_read(sd, 0x32) & 0x1f) * 256 +
++			hdmi_read(sd, 0x33)) / 2;
++		bt->polarities = ((hdmi_read(sd, 0x05) & 0x10) ? V4L2_DV_VSYNC_POS_POL : 0) |
++			((hdmi_read(sd, 0x05) & 0x20) ? V4L2_DV_HSYNC_POS_POL : 0);
++		if (bt->interlaced == V4L2_DV_INTERLACED) {
++			bt->height += (hdmi_read(sd, 0x0b) & 0x0f) * 256 +
++					hdmi_read(sd, 0x0c);
++			bt->il_vfrontporch = ((hdmi_read(sd, 0x2c) & 0x1f) * 256 +
++					hdmi_read(sd, 0x2d)) / 2;
++			bt->il_vsync = ((hdmi_read(sd, 0x30) & 0x1f) * 256 +
++					hdmi_read(sd, 0x31)) / 2;
++			bt->vbackporch = ((hdmi_read(sd, 0x34) & 0x1f) * 256 +
++					hdmi_read(sd, 0x35)) / 2;
++		}
++		adv7604_fill_optional_dv_timings_fields(sd, timings);
++	} else {
++		/* find format
++		 * Since LCVS values are inaccurate (REF_03, page 275-276),
++		 * stdi2dv_timings() is called with lcvs +-1 if the first attempt fails.
++		 */
++		if (!stdi2dv_timings(sd, &stdi, timings))
++			goto found;
++		stdi.lcvs += 1;
++		v4l2_dbg(1, debug, sd, "%s: lcvs + 1 = %d\n", __func__, stdi.lcvs);
++		if (!stdi2dv_timings(sd, &stdi, timings))
++			goto found;
++		stdi.lcvs -= 2;
++		v4l2_dbg(1, debug, sd, "%s: lcvs - 1 = %d\n", __func__, stdi.lcvs);
++		if (stdi2dv_timings(sd, &stdi, timings)) {
++			v4l2_dbg(1, debug, sd, "%s: format not supported\n", __func__);
++			return -ERANGE;
++		}
++	}
++found:
++
++	if (no_signal(sd)) {
++		v4l2_dbg(1, debug, sd, "%s: signal lost during readout\n", __func__);
++		memset(timings, 0, sizeof(struct v4l2_dv_timings));
++		return -ENOLINK;
++	}
++
++	if ((!DIGITAL_INPUT && bt->pixelclock > 170000000) ||
++			(DIGITAL_INPUT && bt->pixelclock > 225000000)) {
++		v4l2_dbg(1, debug, sd, "%s: pixelclock out of range %d\n",
++				__func__, (u32)bt->pixelclock);
++		return -ERANGE;
++	}
++
++	if (debug > 1)
++		adv7604_print_timings(sd, timings,
++				"adv7604_query_dv_timings:", true);
++
++	return 0;
++}
++
++static int adv7604_s_dv_timings(struct v4l2_subdev *sd,
++		struct v4l2_dv_timings *timings)
++{
++	struct adv7604_state *state = to_state(sd);
++	struct v4l2_bt_timings *bt;
++
++	if (!timings)
++		return -EINVAL;
++
++	bt = &timings->bt;
++
++	if ((!DIGITAL_INPUT && bt->pixelclock > 170000000) ||
++			(DIGITAL_INPUT && bt->pixelclock > 225000000)) {
++		v4l2_dbg(1, debug, sd, "%s: pixelclock out of range %d\n",
++				__func__, (u32)bt->pixelclock);
++		return -ERANGE;
++	}
++	adv7604_fill_optional_dv_timings_fields(sd, timings);
++
++	state->timings = *timings;
++
++	/* freerun */
++	configure_free_run(sd, bt);
++
++	set_rgb_quantization_range(sd);
++
++
++	if (debug > 1)
++		adv7604_print_timings(sd, timings,
++				"adv7604_s_dv_timings:", true);
++	return 0;
++}
++
++static int adv7604_g_dv_timings(struct v4l2_subdev *sd,
++		struct v4l2_dv_timings *timings)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	*timings = state->timings;
++	return 0;
++}
++
++static void enable_input(struct v4l2_subdev *sd, enum adv7604_prim_mode prim_mode)
++{
++	switch (prim_mode) {
++	case ADV7604_PRIM_MODE_COMP:
++	case ADV7604_PRIM_MODE_RGB:
++		/* enable */
++		io_write(sd, 0x15, 0xb0);   /* Disable Tristate of Pins (no audio) */
++		break;
++	case ADV7604_PRIM_MODE_HDMI_COMP:
++	case ADV7604_PRIM_MODE_HDMI_GR:
++		/* enable */
++		hdmi_write(sd, 0x1a, 0x0a); /* Unmute audio */
++		hdmi_write(sd, 0x01, 0x00); /* Enable HDMI clock terminators */
++		io_write(sd, 0x15, 0xa0);   /* Disable Tristate of Pins */
++		break;
++	default:
++		v4l2_err(sd, "%s: reserved primary mode 0x%0x\n",
++				__func__, prim_mode);
++		break;
++	}
++}
++
++static void disable_input(struct v4l2_subdev *sd)
++{
++	/* disable */
++	io_write(sd, 0x15, 0xbe);   /* Tristate all outputs from video core */
++	hdmi_write(sd, 0x1a, 0x1a); /* Mute audio */
++	hdmi_write(sd, 0x01, 0x78); /* Disable HDMI clock terminators */
++}
++
++static void select_input(struct v4l2_subdev *sd, enum adv7604_prim_mode prim_mode)
++{
++	switch (prim_mode) {
++	case ADV7604_PRIM_MODE_COMP:
++	case ADV7604_PRIM_MODE_RGB:
++		/* set mode and select free run resolution */
++		io_write(sd, 0x00, 0x07); /* video std */
++		io_write(sd, 0x01, 0x02); /* prim mode */
++		/* enable embedded syncs for auto graphics mode */
++		cp_write_and_or(sd, 0x81, 0xef, 0x10);
++
++		/* reset ADI recommended settings for HDMI: */
++		/* "ADV7604 Register Settings Recommendations (rev. 2.5, June 2010)" p. 4. */
++		hdmi_write(sd, 0x0d, 0x04); /* HDMI filter optimization */
++		hdmi_write(sd, 0x3d, 0x00); /* DDC bus active pull-up control */
++		hdmi_write(sd, 0x3e, 0x74); /* TMDS PLL optimization */
++		hdmi_write(sd, 0x4e, 0x3b); /* TMDS PLL optimization */
++		hdmi_write(sd, 0x57, 0x74); /* TMDS PLL optimization */
++		hdmi_write(sd, 0x58, 0x63); /* TMDS PLL optimization */
++		hdmi_write(sd, 0x8d, 0x18); /* equaliser */
++		hdmi_write(sd, 0x8e, 0x34); /* equaliser */
++		hdmi_write(sd, 0x93, 0x88); /* equaliser */
++		hdmi_write(sd, 0x94, 0x2e); /* equaliser */
++		hdmi_write(sd, 0x96, 0x00); /* enable automatic EQ changing */
++
++		afe_write(sd, 0x00, 0x08); /* power up ADC */
++		afe_write(sd, 0x01, 0x06); /* power up Analog Front End */
++		afe_write(sd, 0xc8, 0x00); /* phase control */
++
++		/* set ADI recommended settings for digitizer */
++		/* "ADV7604 Register Settings Recommendations (rev. 2.5, June 2010)" p. 17. */
++		afe_write(sd, 0x12, 0x7b); /* ADC noise shaping filter controls */
++		afe_write(sd, 0x0c, 0x1f); /* CP core gain controls */
++		cp_write(sd, 0x3e, 0x04); /* CP core pre-gain control */
++		cp_write(sd, 0xc3, 0x39); /* CP coast control. Graphics mode */
++		cp_write(sd, 0x40, 0x5c); /* CP core pre-gain control. Graphics mode */
++		break;
++
++	case ADV7604_PRIM_MODE_HDMI_COMP:
++	case ADV7604_PRIM_MODE_HDMI_GR:
++		/* set mode and select free run resolution */
++		/* video std */
++		io_write(sd, 0x00,
++			(prim_mode == ADV7604_PRIM_MODE_HDMI_GR) ? 0x02 : 0x1e);
++		io_write(sd, 0x01, prim_mode); /* prim mode */
++		/* disable embedded syncs for auto graphics mode */
++		cp_write_and_or(sd, 0x81, 0xef, 0x00);
++
++		/* set ADI recommended settings for HDMI: */
++		/* "ADV7604 Register Settings Recommendations (rev. 2.5, June 2010)" p. 4. */
++		hdmi_write(sd, 0x0d, 0x84); /* HDMI filter optimization */
++		hdmi_write(sd, 0x3d, 0x10); /* DDC bus active pull-up control */
++		hdmi_write(sd, 0x3e, 0x39); /* TMDS PLL optimization */
++		hdmi_write(sd, 0x4e, 0x3b); /* TMDS PLL optimization */
++		hdmi_write(sd, 0x57, 0xb6); /* TMDS PLL optimization */
++		hdmi_write(sd, 0x58, 0x03); /* TMDS PLL optimization */
++		hdmi_write(sd, 0x8d, 0x18); /* equaliser */
++		hdmi_write(sd, 0x8e, 0x34); /* equaliser */
++		hdmi_write(sd, 0x93, 0x8b); /* equaliser */
++		hdmi_write(sd, 0x94, 0x2d); /* equaliser */
++		hdmi_write(sd, 0x96, 0x01); /* enable automatic EQ changing */
++
++		afe_write(sd, 0x00, 0xff); /* power down ADC */
++		afe_write(sd, 0x01, 0xfe); /* power down Analog Front End */
++		afe_write(sd, 0xc8, 0x40); /* phase control */
++
++		/* reset ADI recommended settings for digitizer */
++		/* "ADV7604 Register Settings Recommendations (rev. 2.5, June 2010)" p. 17. */
++		afe_write(sd, 0x12, 0xfb); /* ADC noise shaping filter controls */
++		afe_write(sd, 0x0c, 0x0d); /* CP core gain controls */
++		cp_write(sd, 0x3e, 0x00); /* CP core pre-gain control */
++		cp_write(sd, 0xc3, 0x39); /* CP coast control. Graphics mode */
++		cp_write(sd, 0x40, 0x80); /* CP core pre-gain control. Graphics mode */
++
++		break;
++	default:
++		v4l2_err(sd, "%s: reserved primary mode 0x%0x\n", __func__, prim_mode);
++		break;
++	}
++}
++
++static int adv7604_s_routing(struct v4l2_subdev *sd,
++		u32 input, u32 output, u32 config)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	v4l2_dbg(2, debug, sd, "%s: input %d", __func__, input);
++
++	switch (input) {
++	case 0:
++		/* TODO select HDMI_COMP or HDMI_GR */
++		state->prim_mode = ADV7604_PRIM_MODE_HDMI_COMP;
++		break;
++	case 1:
++		state->prim_mode = ADV7604_PRIM_MODE_RGB;
++		break;
++	case 2:
++		state->prim_mode = ADV7604_PRIM_MODE_COMP;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	disable_input(sd);
++
++	select_input(sd, state->prim_mode);
++
++	enable_input(sd, state->prim_mode);
++
++	return 0;
++}
++
++static int adv7604_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned int index,
++			     enum v4l2_mbus_pixelcode *code)
++{
++	if (index)
++		return -EINVAL;
++	/* Good enough for now */
++	*code = V4L2_MBUS_FMT_FIXED;
++	return 0;
++}
++
++static int adv7604_g_mbus_fmt(struct v4l2_subdev *sd,
++		struct v4l2_mbus_framefmt *fmt)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	fmt->width = state->timings.bt.width;
++	fmt->height = state->timings.bt.height;
++	fmt->code = V4L2_MBUS_FMT_FIXED;
++	fmt->field = V4L2_FIELD_NONE;
++	if (state->timings.bt.standards & V4L2_DV_BT_STD_CEA861) {
++		fmt->colorspace = (state->timings.bt.height <= 576) ?
++			V4L2_COLORSPACE_SMPTE170M : V4L2_COLORSPACE_REC709;
++	}
++	return 0;
++}
++
++static int adv7604_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
++{
++	struct adv7604_state *state = to_state(sd);
++	u8 fmt_change, fmt_change_digital, tx_5v;
++
++	/* format change */
++	fmt_change = io_read(sd, 0x43) & 0x98;
++	if (fmt_change)
++		io_write(sd, 0x44, fmt_change);
++	fmt_change_digital = DIGITAL_INPUT ? (io_read(sd, 0x6b) & 0xc0) : 0;
++	if (fmt_change_digital)
++		io_write(sd, 0x6c, fmt_change_digital);
++	if (fmt_change || fmt_change_digital) {
++		v4l2_dbg(1, debug, sd,
++			"%s: ADV7604_FMT_CHANGE, fmt_change = 0x%x, fmt_change_digital = 0x%x\n",
++			__func__, fmt_change, fmt_change_digital);
++		v4l2_subdev_notify(sd, ADV7604_FMT_CHANGE, NULL);
++		if (handled)
++			*handled = true;
++	}
++	/* tx 5v detect */
++	tx_5v = io_read(sd, 0x70) & 0x10;
++	if (tx_5v) {
++		v4l2_dbg(1, debug, sd, "%s: tx_5v: 0x%x\n", __func__, tx_5v);
++		io_write(sd, 0x71, tx_5v);
++		adv7604_s_detect_tx_5v_ctrl(sd);
++		if (handled)
++			*handled = true;
++	}
++	return 0;
++}
++
++static int adv7604_get_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	if (edid->pad != 0)
++		return -EINVAL;
++	if (edid->blocks == 0)
++		return -EINVAL;
++	if (edid->start_block >= state->edid_blocks)
++		return -EINVAL;
++	if (edid->start_block + edid->blocks > state->edid_blocks)
++		edid->blocks = state->edid_blocks - edid->start_block;
++	if (!edid->edid)
++		return -EINVAL;
++	memcpy(edid->edid + edid->start_block * 128,
++	       state->edid + edid->start_block * 128,
++	       edid->blocks * 128);
++	return 0;
++}
++
++static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid)
++{
++	struct adv7604_state *state = to_state(sd);
++	int err;
++
++	if (edid->pad != 0)
++		return -EINVAL;
++	if (edid->start_block != 0)
++		return -EINVAL;
++	if (edid->blocks == 0) {
++		/* Pull down the hotplug pin */
++		v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)0);
++		/* Disables I2C access to internal EDID ram from DDC port */
++		rep_write_and_or(sd, 0x77, 0xf0, 0x0);
++		state->edid_blocks = 0;
++		/* Fall back to a 16:9 aspect ratio */
++		state->aspect_ratio.numerator = 16;
++		state->aspect_ratio.denominator = 9;
++		return 0;
++	}
++	if (edid->blocks > 2)
++		return -E2BIG;
++	if (!edid->edid)
++		return -EINVAL;
++	memcpy(state->edid, edid->edid, 128 * edid->blocks);
++	state->edid_blocks = edid->blocks;
++	state->aspect_ratio = v4l2_calc_aspect_ratio(edid->edid[0x15],
++			edid->edid[0x16]);
++	err = edid_write_block(sd, 128 * edid->blocks, state->edid);
++	if (err < 0)
++		v4l2_err(sd, "error %d writing edid\n", err);
++	return err;
++}
++
++/*********** avi info frame CEA-861-E **************/
++
++static void print_avi_infoframe(struct v4l2_subdev *sd)
++{
++	int i;
++	u8 buf[14];
++	u8 avi_len;
++	u8 avi_ver;
++
++	if (!(hdmi_read(sd, 0x05) & 0x80)) {
++		v4l2_info(sd, "receive DVI-D signal (AVI infoframe not supported)\n");
++		return;
++	}
++	if (!(io_read(sd, 0x60) & 0x01)) {
++		v4l2_info(sd, "AVI infoframe not received\n");
++		return;
++	}
++
++	if (io_read(sd, 0x83) & 0x01) {
++		v4l2_info(sd, "AVI infoframe checksum error has occurred earlier\n");
++		io_write(sd, 0x85, 0x01); /* clear AVI_INF_CKS_ERR_RAW */
++		if (io_read(sd, 0x83) & 0x01) {
++			v4l2_info(sd, "AVI infoframe checksum error still present\n");
++			io_write(sd, 0x85, 0x01); /* clear AVI_INF_CKS_ERR_RAW */
++		}
++	}
++
++	avi_len = infoframe_read(sd, 0xe2);
++	avi_ver = infoframe_read(sd, 0xe1);
++	v4l2_info(sd, "AVI infoframe version %d (%d byte)\n",
++			avi_ver, avi_len);
++
++	if (avi_ver != 0x02)
++		return;
++
++	for (i = 0; i < 14; i++)
++		buf[i] = infoframe_read(sd, i);
++
++	v4l2_info(sd,
++		"\t%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
++		buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7],
++		buf[8], buf[9], buf[10], buf[11], buf[12], buf[13]);
++}
++
++static int adv7604_log_status(struct v4l2_subdev *sd)
++{
++	struct adv7604_state *state = to_state(sd);
++	struct v4l2_dv_timings timings;
++	struct stdi_readback stdi;
++	u8 reg_io_0x02 = io_read(sd, 0x02);
++
++	char *csc_coeff_sel_rb[16] = {
++		"bypassed", "YPbPr601 -> RGB", "reserved", "YPbPr709 -> RGB",
++		"reserved", "RGB -> YPbPr601", "reserved", "RGB -> YPbPr709",
++		"reserved", "YPbPr709 -> YPbPr601", "YPbPr601 -> YPbPr709",
++		"reserved", "reserved", "reserved", "reserved", "manual"
++	};
++	char *input_color_space_txt[16] = {
++		"RGB limited range (16-235)", "RGB full range (0-255)",
++		"YCbCr Bt.601 (16-235)", "YCbCr Bt.709 (16-235)",
++		"XvYCC Bt.601", "XvYCC Bt.709",
++		"YCbCr Bt.601 (0-255)", "YCbCr Bt.709 (0-255)",
++		"invalid", "invalid", "invalid", "invalid", "invalid",
++		"invalid", "invalid", "automatic"
++	};
++	char *rgb_quantization_range_txt[] = {
++		"Automatic",
++		"RGB limited range (16-235)",
++		"RGB full range (0-255)",
++	};
++
++	v4l2_info(sd, "-----Chip status-----\n");
++	v4l2_info(sd, "Chip power: %s\n", no_power(sd) ? "off" : "on");
++	v4l2_info(sd, "Connector type: %s\n", state->connector_hdmi ?
++			"HDMI" : (DIGITAL_INPUT ? "DVI-D" : "DVI-A"));
++	v4l2_info(sd, "EDID: %s\n", ((rep_read(sd, 0x7d) & 0x01) &&
++			(rep_read(sd, 0x77) & 0x01)) ? "enabled" : "disabled ");
++	v4l2_info(sd, "CEC: %s\n", !!(cec_read(sd, 0x2a) & 0x01) ?
++			"enabled" : "disabled");
++
++	v4l2_info(sd, "-----Signal status-----\n");
++	v4l2_info(sd, "Cable detected (+5V power): %s\n",
++			(io_read(sd, 0x6f) & 0x10) ? "true" : "false");
++	v4l2_info(sd, "TMDS signal detected: %s\n",
++			no_signal_tmds(sd) ? "false" : "true");
++	v4l2_info(sd, "TMDS signal locked: %s\n",
++			no_lock_tmds(sd) ? "false" : "true");
++	v4l2_info(sd, "SSPD locked: %s\n", no_lock_sspd(sd) ? "false" : "true");
++	v4l2_info(sd, "STDI locked: %s\n", no_lock_stdi(sd) ? "false" : "true");
++	v4l2_info(sd, "CP locked: %s\n", no_lock_cp(sd) ? "false" : "true");
++	v4l2_info(sd, "CP free run: %s\n",
++			(!!(cp_read(sd, 0xff) & 0x10) ? "on" : "off"));
++	v4l2_info(sd, "Prim-mode = 0x%x, video std = 0x%x\n",
++			io_read(sd, 0x01) & 0x0f, io_read(sd, 0x00) & 0x3f);
++
++	v4l2_info(sd, "-----Video Timings-----\n");
++	if (read_stdi(sd, &stdi))
++		v4l2_info(sd, "STDI: not locked\n");
++	else
++		v4l2_info(sd, "STDI: lcf (frame height - 1) = %d, bl = %d, lcvs (vsync) = %d, %s, %chsync, %cvsync\n",
++				stdi.lcf, stdi.bl, stdi.lcvs,
++				stdi.interlaced ? "interlaced" : "progressive",
++				stdi.hs_pol, stdi.vs_pol);
++	if (adv7604_query_dv_timings(sd, &timings))
++		v4l2_info(sd, "No video detected\n");
++	else
++		adv7604_print_timings(sd, &timings, "Detected format:", true);
++	adv7604_print_timings(sd, &state->timings, "Configured format:", true);
++
++	v4l2_info(sd, "-----Color space-----\n");
++	v4l2_info(sd, "RGB quantization range ctrl: %s\n",
++			rgb_quantization_range_txt[state->rgb_quantization_range]);
++	v4l2_info(sd, "Input color space: %s\n",
++			input_color_space_txt[reg_io_0x02 >> 4]);
++	v4l2_info(sd, "Output color space: %s %s, saturator %s\n",
++			(reg_io_0x02 & 0x02) ? "RGB" : "YCbCr",
++			(reg_io_0x02 & 0x04) ? "(16-235)" : "(0-255)",
++			((reg_io_0x02 & 0x04) ^ (reg_io_0x02 & 0x01)) ?
++					"enabled" : "disabled");
++	v4l2_info(sd, "Color space conversion: %s\n",
++			csc_coeff_sel_rb[cp_read(sd, 0xfc) >> 4]);
++
++	/* Digital video */
++	if (DIGITAL_INPUT) {
++		v4l2_info(sd, "-----HDMI status-----\n");
++		v4l2_info(sd, "HDCP encrypted content: %s\n",
++				hdmi_read(sd, 0x05) & 0x40 ? "true" : "false");
++
++		print_avi_infoframe(sd);
++	}
++
++	return 0;
++}
++
++/* ----------------------------------------------------------------------- */
++
++static const struct v4l2_ctrl_ops adv7604_ctrl_ops = {
++	.s_ctrl = adv7604_s_ctrl,
++};
++
++static const struct v4l2_subdev_core_ops adv7604_core_ops = {
++	.log_status = adv7604_log_status,
++	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
++	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
++	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
++	.g_ctrl = v4l2_subdev_g_ctrl,
++	.s_ctrl = v4l2_subdev_s_ctrl,
++	.queryctrl = v4l2_subdev_queryctrl,
++	.querymenu = v4l2_subdev_querymenu,
++	.g_chip_ident = adv7604_g_chip_ident,
++	.interrupt_service_routine = adv7604_isr,
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++	.g_register = adv7604_g_register,
++	.s_register = adv7604_s_register,
++#endif
++};
++
++static const struct v4l2_subdev_video_ops adv7604_video_ops = {
++	.s_routing = adv7604_s_routing,
++	.g_input_status = adv7604_g_input_status,
++	.s_dv_timings = adv7604_s_dv_timings,
++	.g_dv_timings = adv7604_g_dv_timings,
++	.query_dv_timings = adv7604_query_dv_timings,
++	.enum_dv_timings = adv7604_enum_dv_timings,
++	.dv_timings_cap = adv7604_dv_timings_cap,
++	.enum_mbus_fmt = adv7604_enum_mbus_fmt,
++	.g_mbus_fmt = adv7604_g_mbus_fmt,
++	.try_mbus_fmt = adv7604_g_mbus_fmt,
++	.s_mbus_fmt = adv7604_g_mbus_fmt,
++};
++
++static const struct v4l2_subdev_pad_ops adv7604_pad_ops = {
++	.get_edid = adv7604_get_edid,
++	.set_edid = adv7604_set_edid,
++};
++
++static const struct v4l2_subdev_ops adv7604_ops = {
++	.core = &adv7604_core_ops,
++	.video = &adv7604_video_ops,
++	.pad = &adv7604_pad_ops,
++};
++
++/* -------------------------- custom ctrls ---------------------------------- */
++
++static const struct v4l2_ctrl_config adv7604_ctrl_analog_sampling_phase = {
++	.ops = &adv7604_ctrl_ops,
++	.id = V4L2_CID_ADV_RX_ANALOG_SAMPLING_PHASE,
++	.name = "Analog Sampling Phase",
++	.type = V4L2_CTRL_TYPE_INTEGER,
++	.min = 0,
++	.max = 0x1f,
++	.step = 1,
++	.def = 0,
++};
++
++static const struct v4l2_ctrl_config adv7604_ctrl_free_run_color_manual = {
++	.ops = &adv7604_ctrl_ops,
++	.id = V4L2_CID_ADV_RX_FREE_RUN_COLOR_MANUAL,
++	.name = "Free Running Color, Manual",
++	.type = V4L2_CTRL_TYPE_BOOLEAN,
++	.min = false,
++	.max = true,
++	.step = 1,
++	.def = false,
++};
++
++static const struct v4l2_ctrl_config adv7604_ctrl_free_run_color = {
++	.ops = &adv7604_ctrl_ops,
++	.id = V4L2_CID_ADV_RX_FREE_RUN_COLOR,
++	.name = "Free Running Color",
++	.type = V4L2_CTRL_TYPE_INTEGER,
++	.min = 0x0,
++	.max = 0xffffff,
++	.step = 0x1,
++	.def = 0x0,
++};
++
++/* ----------------------------------------------------------------------- */
++
++static int adv7604_core_init(struct v4l2_subdev *sd)
++{
++	struct adv7604_state *state = to_state(sd);
++	struct adv7604_platform_data *pdata = &state->pdata;
++
++	hdmi_write(sd, 0x48,
++		(pdata->disable_pwrdnb ? 0x80 : 0) |
++		(pdata->disable_cable_det_rst ? 0x40 : 0));
++
++	disable_input(sd);
++
++	/* power */
++	io_write(sd, 0x0c, 0x42);   /* Power up part and power down VDP */
++	io_write(sd, 0x0b, 0x44);   /* Power down ESDP block */
++	cp_write(sd, 0xcf, 0x01);   /* Power down macrovision */
++
++	/* video format */
++	io_write_and_or(sd, 0x02, 0xf0,
++			pdata->alt_gamma << 3 |
++			pdata->op_656_range << 2 |
++			pdata->rgb_out << 1 |
++			pdata->alt_data_sat << 0);
++	io_write(sd, 0x03, pdata->op_format_sel);
++	io_write_and_or(sd, 0x04, 0x1f, pdata->op_ch_sel << 5);
++	io_write_and_or(sd, 0x05, 0xf0, pdata->blank_data << 3 |
++					pdata->insert_av_codes << 2 |
++					pdata->replicate_av_codes << 1 |
++					pdata->invert_cbcr << 0);
++
++	/* TODO from platform data */
++	cp_write(sd, 0x69, 0x30);   /* Enable CP CSC */
++	io_write(sd, 0x06, 0xa6);   /* positive VS and HS */
++	io_write(sd, 0x14, 0x7f);   /* Drive strength adjusted to max */
++	cp_write(sd, 0xba, (pdata->hdmi_free_run_mode << 1) | 0x01); /* HDMI free run */
++	cp_write(sd, 0xf3, 0xdc); /* Low threshold to enter/exit free run mode */
++	cp_write(sd, 0xf9, 0x23); /*  STDI ch. 1 - LCVS change threshold -
++				      ADI recommended setting [REF_01 c. 2.3.3] */
++	cp_write(sd, 0x45, 0x23); /*  STDI ch. 2 - LCVS change threshold -
++				      ADI recommended setting [REF_01 c. 2.3.3] */
++	cp_write(sd, 0xc9, 0x2d); /* use prim_mode and vid_std as free run resolution
++				     for digital formats */
++
++	/* TODO from platform data */
++	afe_write(sd, 0xb5, 0x01);  /* Setting MCLK to 256Fs */
++
++	afe_write(sd, 0x02, pdata->ain_sel); /* Select analog input muxing mode */
++	io_write_and_or(sd, 0x30, ~(1 << 4), pdata->output_bus_lsb_to_msb << 4);
++
++	state->prim_mode = pdata->prim_mode;
++	select_input(sd, pdata->prim_mode);
++
++	enable_input(sd, pdata->prim_mode);
++
++	/* interrupts */
++	io_write(sd, 0x40, 0xc2); /* Configure INT1 */
++	io_write(sd, 0x41, 0xd7); /* STDI irq for any change, disable INT2 */
++	io_write(sd, 0x46, 0x98); /* Enable SSPD, STDI and CP unlocked interrupts */
++	io_write(sd, 0x6e, 0xc0); /* Enable V_LOCKED and DE_REGEN_LCK interrupts */
++	io_write(sd, 0x73, 0x10); /* Enable CABLE_DET_A_ST (+5v) interrupt */
++
++	return v4l2_ctrl_handler_setup(sd->ctrl_handler);
++}
++
++static void adv7604_unregister_clients(struct adv7604_state *state)
++{
++	if (state->i2c_avlink)
++		i2c_unregister_device(state->i2c_avlink);
++	if (state->i2c_cec)
++		i2c_unregister_device(state->i2c_cec);
++	if (state->i2c_infoframe)
++		i2c_unregister_device(state->i2c_infoframe);
++	if (state->i2c_esdp)
++		i2c_unregister_device(state->i2c_esdp);
++	if (state->i2c_dpp)
++		i2c_unregister_device(state->i2c_dpp);
++	if (state->i2c_afe)
++		i2c_unregister_device(state->i2c_afe);
++	if (state->i2c_repeater)
++		i2c_unregister_device(state->i2c_repeater);
++	if (state->i2c_edid)
++		i2c_unregister_device(state->i2c_edid);
++	if (state->i2c_hdmi)
++		i2c_unregister_device(state->i2c_hdmi);
++	if (state->i2c_test)
++		i2c_unregister_device(state->i2c_test);
++	if (state->i2c_cp)
++		i2c_unregister_device(state->i2c_cp);
++	if (state->i2c_vdp)
++		i2c_unregister_device(state->i2c_vdp);
++}
++
++static struct i2c_client *adv7604_dummy_client(struct v4l2_subdev *sd,
++							u8 addr, u8 io_reg)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++
++	if (addr)
++		io_write(sd, io_reg, addr << 1);
++	return i2c_new_dummy(client->adapter, io_read(sd, io_reg) >> 1);
++}
++
++static int adv7604_probe(struct i2c_client *client,
++			 const struct i2c_device_id *id)
++{
++	struct adv7604_state *state;
++	struct adv7604_platform_data *pdata = client->dev.platform_data;
++	struct v4l2_ctrl_handler *hdl;
++	struct v4l2_subdev *sd;
++	int err;
++
++	/* Check if the adapter supports the needed features */
++	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
++		return -EIO;
++	v4l_dbg(1, debug, client, "detecting adv7604 client on address 0x%x\n",
++			client->addr << 1);
++
++	state = kzalloc(sizeof(struct adv7604_state), GFP_KERNEL);
++	if (!state) {
++		v4l_err(client, "Could not allocate adv7604_state memory!\n");
++		return -ENOMEM;
++	}
++
++	/* platform data */
++	if (!pdata) {
++		v4l_err(client, "No platform data!\n");
++		err = -ENODEV;
++		goto err_state;
++	}
++	memcpy(&state->pdata, pdata, sizeof(state->pdata));
++
++	sd = &state->sd;
++	v4l2_i2c_subdev_init(sd, client, &adv7604_ops);
++	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	state->connector_hdmi = pdata->connector_hdmi;
++
++	/* i2c access to adv7604? */
++	if (adv_smbus_read_byte_data_check(client, 0xfb, false) != 0x68) {
++		v4l2_info(sd, "not an adv7604 on address 0x%x\n",
++				client->addr << 1);
++		err = -ENODEV;
++		goto err_state;
++	}
++
++	/* control handlers */
++	hdl = &state->hdl;
++	v4l2_ctrl_handler_init(hdl, 9);
++
++	v4l2_ctrl_new_std(hdl, &adv7604_ctrl_ops,
++			V4L2_CID_BRIGHTNESS, -128, 127, 1, 0);
++	v4l2_ctrl_new_std(hdl, &adv7604_ctrl_ops,
++			V4L2_CID_CONTRAST, 0, 255, 1, 128);
++	v4l2_ctrl_new_std(hdl, &adv7604_ctrl_ops,
++			V4L2_CID_SATURATION, 0, 255, 1, 128);
++	v4l2_ctrl_new_std(hdl, &adv7604_ctrl_ops,
++			V4L2_CID_HUE, 0, 128, 1, 0);
++
++	/* private controls */
++	state->detect_tx_5v_ctrl = v4l2_ctrl_new_std(hdl, NULL,
++			V4L2_CID_DV_RX_POWER_PRESENT, 0, 1, 0, 0);
++	state->detect_tx_5v_ctrl->is_private = true;
++	state->rgb_quantization_range_ctrl =
++		v4l2_ctrl_new_std_menu(hdl, &adv7604_ctrl_ops,
++			V4L2_CID_DV_RX_RGB_RANGE, V4L2_DV_RGB_RANGE_FULL,
++			0, V4L2_DV_RGB_RANGE_AUTO);
++	state->rgb_quantization_range_ctrl->is_private = true;
++
++	/* custom controls */
++	state->analog_sampling_phase_ctrl =
++		v4l2_ctrl_new_custom(hdl, &adv7604_ctrl_analog_sampling_phase, NULL);
++	state->analog_sampling_phase_ctrl->is_private = true;
++	state->free_run_color_manual_ctrl =
++		v4l2_ctrl_new_custom(hdl, &adv7604_ctrl_free_run_color_manual, NULL);
++	state->free_run_color_manual_ctrl->is_private = true;
++	state->free_run_color_ctrl =
++		v4l2_ctrl_new_custom(hdl, &adv7604_ctrl_free_run_color, NULL);
++	state->free_run_color_ctrl->is_private = true;
++
++	sd->ctrl_handler = hdl;
++	if (hdl->error) {
++		err = hdl->error;
++		goto err_hdl;
++	}
++	if (adv7604_s_detect_tx_5v_ctrl(sd)) {
++		err = -ENODEV;
++		goto err_hdl;
++	}
++
++	state->i2c_avlink = adv7604_dummy_client(sd, pdata->i2c_avlink, 0xf3);
++	state->i2c_cec = adv7604_dummy_client(sd, pdata->i2c_cec, 0xf4);
++	state->i2c_infoframe = adv7604_dummy_client(sd, pdata->i2c_infoframe, 0xf5);
++	state->i2c_esdp = adv7604_dummy_client(sd, pdata->i2c_esdp, 0xf6);
++	state->i2c_dpp = adv7604_dummy_client(sd, pdata->i2c_dpp, 0xf7);
++	state->i2c_afe = adv7604_dummy_client(sd, pdata->i2c_afe, 0xf8);
++	state->i2c_repeater = adv7604_dummy_client(sd, pdata->i2c_repeater, 0xf9);
++	state->i2c_edid = adv7604_dummy_client(sd, pdata->i2c_edid, 0xfa);
++	state->i2c_hdmi = adv7604_dummy_client(sd, pdata->i2c_hdmi, 0xfb);
++	state->i2c_test = adv7604_dummy_client(sd, pdata->i2c_test, 0xfc);
++	state->i2c_cp = adv7604_dummy_client(sd, pdata->i2c_cp, 0xfd);
++	state->i2c_vdp = adv7604_dummy_client(sd, pdata->i2c_vdp, 0xfe);
++	if (!state->i2c_avlink || !state->i2c_cec || !state->i2c_infoframe ||
++	    !state->i2c_esdp || !state->i2c_dpp || !state->i2c_afe ||
++	    !state->i2c_repeater || !state->i2c_edid || !state->i2c_hdmi ||
++	    !state->i2c_test || !state->i2c_cp || !state->i2c_vdp) {
++		err = -ENOMEM;
++		v4l2_err(sd, "failed to create all i2c clients\n");
++		goto err_i2c;
++	}
++
++	/* work queues */
++	state->work_queues = create_singlethread_workqueue(client->name);
++	if (!state->work_queues) {
++		v4l2_err(sd, "Could not create work queue\n");
++		err = -ENOMEM;
++		goto err_i2c;
++	}
++
++	INIT_DELAYED_WORK(&state->delayed_work_enable_hotplug,
++			adv7604_delayed_work_enable_hotplug);
++
++	state->pad.flags = MEDIA_PAD_FL_SOURCE;
++	err = media_entity_init(&sd->entity, 1, &state->pad, 0);
++	if (err)
++		goto err_work_queues;
++
++	err = adv7604_core_init(sd);
++	if (err)
++		goto err_entity;
++	v4l2_info(sd, "%s found @ 0x%x (%s)\n", client->name,
++			client->addr << 1, client->adapter->name);
++	return 0;
++
++err_entity:
++	media_entity_cleanup(&sd->entity);
++err_work_queues:
++	cancel_delayed_work(&state->delayed_work_enable_hotplug);
++	destroy_workqueue(state->work_queues);
++err_i2c:
++	adv7604_unregister_clients(state);
++err_hdl:
++	v4l2_ctrl_handler_free(hdl);
++err_state:
++	kfree(state);
++	return err;
++}
++
++/* ----------------------------------------------------------------------- */
++
++static int adv7604_remove(struct i2c_client *client)
++{
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct adv7604_state *state = to_state(sd);
++
++	cancel_delayed_work(&state->delayed_work_enable_hotplug);
++	destroy_workqueue(state->work_queues);
++	v4l2_device_unregister_subdev(sd);
++	media_entity_cleanup(&sd->entity);
++	adv7604_unregister_clients(to_state(sd));
++	v4l2_ctrl_handler_free(sd->ctrl_handler);
++	kfree(to_state(sd));
++	return 0;
++}
++
++/* ----------------------------------------------------------------------- */
++
++static struct i2c_device_id adv7604_id[] = {
++	{ "adv7604", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, adv7604_id);
++
++static struct i2c_driver adv7604_driver = {
++	.driver = {
++		.owner = THIS_MODULE,
++		.name = "adv7604",
++	},
++	.probe = adv7604_probe,
++	.remove = adv7604_remove,
++	.id_table = adv7604_id,
++};
++
++module_i2c_driver(adv7604_driver);
+diff --git a/include/media/adv7604.h b/include/media/adv7604.h
+new file mode 100644
+index 0000000..171b957
+--- /dev/null
++++ b/include/media/adv7604.h
+@@ -0,0 +1,153 @@
++/*
++ * adv7604 - Analog Devices ADV7604 video decoder driver
++ *
++ * Copyright 2012 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
++ *
++ * This program is free software; you may redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ *
++ */
++
++#ifndef _ADV7604_
++#define _ADV7604_
++
++/* Analog input muxing modes (AFE register 0x02, [2:0]) */
++enum adv7604_ain_sel {
++	ADV7604_AIN1_2_3_NC_SYNC_1_2 = 0,
++	ADV7604_AIN4_5_6_NC_SYNC_2_1 = 1,
++	ADV7604_AIN7_8_9_NC_SYNC_3_1 = 2,
++	ADV7604_AIN10_11_12_NC_SYNC_4_1 = 3,
++	ADV7604_AIN9_4_5_6_SYNC_2_1 = 4,
++};
++
++/* Bus rotation and reordering (IO register 0x04, [7:5]) */
++enum adv7604_op_ch_sel {
++	ADV7604_OP_CH_SEL_GBR = 0,
++	ADV7604_OP_CH_SEL_GRB = 1,
++	ADV7604_OP_CH_SEL_BGR = 2,
++	ADV7604_OP_CH_SEL_RGB = 3,
++	ADV7604_OP_CH_SEL_BRG = 4,
++	ADV7604_OP_CH_SEL_RBG = 5,
++};
++
++/* Primary mode (IO register 0x01, [3:0]) */
++enum adv7604_prim_mode {
++	ADV7604_PRIM_MODE_COMP = 1,
++	ADV7604_PRIM_MODE_RGB = 2,
++	ADV7604_PRIM_MODE_HDMI_COMP = 5,
++	ADV7604_PRIM_MODE_HDMI_GR = 6,
++};
++
++/* Input Color Space (IO register 0x02, [7:4]) */
++enum adv7604_inp_color_space {
++	ADV7604_INP_COLOR_SPACE_LIM_RGB = 0,
++	ADV7604_INP_COLOR_SPACE_FULL_RGB = 1,
++	ADV7604_INP_COLOR_SPACE_LIM_YCbCr_601 = 2,
++	ADV7604_INP_COLOR_SPACE_LIM_YCbCr_709 = 3,
++	ADV7604_INP_COLOR_SPACE_XVYCC_601 = 4,
++	ADV7604_INP_COLOR_SPACE_XVYCC_709 = 5,
++	ADV7604_INP_COLOR_SPACE_FULL_YCbCr_601 = 6,
++	ADV7604_INP_COLOR_SPACE_FULL_YCbCr_709 = 7,
++	ADV7604_INP_COLOR_SPACE_AUTO = 0xf,
++};
++
++/* Select output format (IO register 0x03, [7:0]) */
++enum adv7604_op_format_sel {
++	ADV7604_OP_FORMAT_SEL_SDR_ITU656_8 = 0x00,
++	ADV7604_OP_FORMAT_SEL_SDR_ITU656_10 = 0x01,
++	ADV7604_OP_FORMAT_SEL_SDR_ITU656_12_MODE0 = 0x02,
++	ADV7604_OP_FORMAT_SEL_SDR_ITU656_12_MODE1 = 0x06,
++	ADV7604_OP_FORMAT_SEL_SDR_ITU656_12_MODE2 = 0x0a,
++	ADV7604_OP_FORMAT_SEL_DDR_422_8 = 0x20,
++	ADV7604_OP_FORMAT_SEL_DDR_422_10 = 0x21,
++	ADV7604_OP_FORMAT_SEL_DDR_422_12_MODE0 = 0x22,
++	ADV7604_OP_FORMAT_SEL_DDR_422_12_MODE1 = 0x23,
++	ADV7604_OP_FORMAT_SEL_DDR_422_12_MODE2 = 0x24,
++	ADV7604_OP_FORMAT_SEL_SDR_444_24 = 0x40,
++	ADV7604_OP_FORMAT_SEL_SDR_444_30 = 0x41,
++	ADV7604_OP_FORMAT_SEL_SDR_444_36_MODE0 = 0x42,
++	ADV7604_OP_FORMAT_SEL_DDR_444_24 = 0x60,
++	ADV7604_OP_FORMAT_SEL_DDR_444_30 = 0x61,
++	ADV7604_OP_FORMAT_SEL_DDR_444_36 = 0x62,
++	ADV7604_OP_FORMAT_SEL_SDR_ITU656_16 = 0x80,
++	ADV7604_OP_FORMAT_SEL_SDR_ITU656_20 = 0x81,
++	ADV7604_OP_FORMAT_SEL_SDR_ITU656_24_MODE0 = 0x82,
++	ADV7604_OP_FORMAT_SEL_SDR_ITU656_24_MODE1 = 0x86,
++	ADV7604_OP_FORMAT_SEL_SDR_ITU656_24_MODE2 = 0x8a,
++};
++
++/* Platform dependent definition */
++struct adv7604_platform_data {
++	/* connector - HDMI or DVI? */
++	unsigned connector_hdmi:1;
++
++	/* DIS_PWRDNB: 1 if the PWRDNB pin is unused and unconnected */
++	unsigned disable_pwrdnb:1;
++
++	/* DIS_CABLE_DET_RST: 1 if the 5V pins are unused and unconnected */
++	unsigned disable_cable_det_rst:1;
++
++	/* Analog input muxing mode */
++	enum adv7604_ain_sel ain_sel;
++
++	/* Bus rotation and reordering */
++	enum adv7604_op_ch_sel op_ch_sel;
++
++	/* Primary mode */
++	enum adv7604_prim_mode prim_mode;
++
++	/* Select output format */
++	enum adv7604_op_format_sel op_format_sel;
++
++	/* IO register 0x02 */
++	unsigned alt_gamma:1;
++	unsigned op_656_range:1;
++	unsigned rgb_out:1;
++	unsigned alt_data_sat:1;
++
++	/* IO register 0x05 */
++	unsigned blank_data:1;
++	unsigned insert_av_codes:1;
++	unsigned replicate_av_codes:1;
++	unsigned invert_cbcr:1;
++
++	/* IO register 0x30 */
++	unsigned output_bus_lsb_to_msb:1;
++
++	/* Free run */
++	unsigned hdmi_free_run_mode;
++
++	/* i2c addresses: 0 == use default */
++	u8 i2c_avlink;
++	u8 i2c_cec;
++	u8 i2c_infoframe;
++	u8 i2c_esdp;
++	u8 i2c_dpp;
++	u8 i2c_afe;
++	u8 i2c_repeater;
++	u8 i2c_edid;
++	u8 i2c_hdmi;
++	u8 i2c_test;
++	u8 i2c_cp;
++	u8 i2c_vdp;
++};
++
++#define V4L2_CID_ADV_RX_ANALOG_SAMPLING_PHASE	(V4L2_CID_DV_CLASS_BASE + 0x1000)
++#define V4L2_CID_ADV_RX_FREE_RUN_COLOR_MANUAL	(V4L2_CID_DV_CLASS_BASE + 0x1001)
++#define V4L2_CID_ADV_RX_FREE_RUN_COLOR		(V4L2_CID_DV_CLASS_BASE + 0x1002)
++
++/* notify events */
++#define ADV7604_HOTPLUG		1
++#define ADV7604_FMT_CHANGE	2
++
++#endif
+diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
+index 58f914a..6adb360e 100644
+--- a/include/media/v4l2-chip-ident.h
++++ b/include/media/v4l2-chip-ident.h
+@@ -183,6 +183,9 @@ enum {
+ 	/* module adv7393: just ident 7393 */
+ 	V4L2_IDENT_ADV7393 = 7393,
+ 
++	/* module adv7604: just ident 7604 */
++	V4L2_IDENT_ADV7604 = 7604,
++
+ 	/* module saa7706h: just ident 7706 */
+ 	V4L2_IDENT_SAA7706H = 7706,
+ 
 -- 
-~Randy
+1.7.10.4
 
---------------060600070106030303040603
-Content-Type: text/plain;
- name="config-r7246"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="config-r7246"
-
-#
-# Automatically generated file; DO NOT EDIT.
-# Linux/x86_64 3.6.0-rc2 Kernel Configuration
-#
-CONFIG_64BIT=y
-# CONFIG_X86_32 is not set
-CONFIG_X86_64=y
-CONFIG_X86=y
-CONFIG_INSTRUCTION_DECODER=y
-CONFIG_OUTPUT_FORMAT="elf64-x86-64"
-CONFIG_ARCH_DEFCONFIG="arch/x86/configs/x86_64_defconfig"
-CONFIG_LOCKDEP_SUPPORT=y
-CONFIG_STACKTRACE_SUPPORT=y
-CONFIG_HAVE_LATENCYTOP_SUPPORT=y
-CONFIG_MMU=y
-CONFIG_NEED_DMA_MAP_STATE=y
-CONFIG_NEED_SG_DMA_LENGTH=y
-CONFIG_GENERIC_ISA_DMA=y
-CONFIG_GENERIC_BUG=y
-CONFIG_GENERIC_BUG_RELATIVE_POINTERS=y
-CONFIG_GENERIC_HWEIGHT=y
-CONFIG_GENERIC_GPIO=y
-CONFIG_ARCH_MAY_HAVE_PC_FDC=y
-# CONFIG_RWSEM_GENERIC_SPINLOCK is not set
-CONFIG_RWSEM_XCHGADD_ALGORITHM=y
-CONFIG_GENERIC_CALIBRATE_DELAY=y
-CONFIG_ARCH_HAS_CPU_RELAX=y
-CONFIG_ARCH_HAS_DEFAULT_IDLE=y
-CONFIG_ARCH_HAS_CACHE_LINE_SIZE=y
-CONFIG_ARCH_HAS_CPU_AUTOPROBE=y
-CONFIG_HAVE_SETUP_PER_CPU_AREA=y
-CONFIG_NEED_PER_CPU_EMBED_FIRST_CHUNK=y
-CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK=y
-CONFIG_ARCH_HIBERNATION_POSSIBLE=y
-CONFIG_ARCH_SUSPEND_POSSIBLE=y
-CONFIG_ZONE_DMA32=y
-CONFIG_AUDIT_ARCH=y
-CONFIG_ARCH_SUPPORTS_OPTIMIZED_INLINING=y
-CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC=y
-CONFIG_HAVE_INTEL_TXT=y
-CONFIG_X86_64_SMP=y
-CONFIG_X86_HT=y
-CONFIG_ARCH_HWEIGHT_CFLAGS="-fcall-saved-rdi -fcall-saved-rsi -fcall-saved-rdx -fcall-saved-rcx -fcall-saved-r8 -fcall-saved-r9 -fcall-saved-r10 -fcall-saved-r11"
-CONFIG_ARCH_CPU_PROBE_RELEASE=y
-CONFIG_ARCH_SUPPORTS_UPROBES=y
-CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
-CONFIG_CONSTRUCTORS=y
-CONFIG_HAVE_IRQ_WORK=y
-CONFIG_IRQ_WORK=y
-CONFIG_BUILDTIME_EXTABLE_SORT=y
-
-#
-# General setup
-#
-CONFIG_EXPERIMENTAL=y
-CONFIG_INIT_ENV_ARG_LIMIT=32
-CONFIG_CROSS_COMPILE=""
-CONFIG_LOCALVERSION=""
-# CONFIG_LOCALVERSION_AUTO is not set
-CONFIG_HAVE_KERNEL_GZIP=y
-CONFIG_HAVE_KERNEL_BZIP2=y
-CONFIG_HAVE_KERNEL_LZMA=y
-CONFIG_HAVE_KERNEL_XZ=y
-CONFIG_HAVE_KERNEL_LZO=y
-# CONFIG_KERNEL_GZIP is not set
-CONFIG_KERNEL_BZIP2=y
-# CONFIG_KERNEL_LZMA is not set
-# CONFIG_KERNEL_XZ is not set
-# CONFIG_KERNEL_LZO is not set
-CONFIG_DEFAULT_HOSTNAME="(none)"
-# CONFIG_SYSVIPC is not set
-# CONFIG_POSIX_MQUEUE is not set
-CONFIG_BSD_PROCESS_ACCT=y
-# CONFIG_BSD_PROCESS_ACCT_V3 is not set
-# CONFIG_FHANDLE is not set
-CONFIG_TASKSTATS=y
-CONFIG_TASK_DELAY_ACCT=y
-CONFIG_TASK_XACCT=y
-# CONFIG_TASK_IO_ACCOUNTING is not set
-CONFIG_AUDIT=y
-CONFIG_AUDITSYSCALL=y
-CONFIG_AUDIT_WATCH=y
-CONFIG_AUDIT_TREE=y
-# CONFIG_AUDIT_LOGINUID_IMMUTABLE is not set
-CONFIG_HAVE_GENERIC_HARDIRQS=y
-
-#
-# IRQ subsystem
-#
-CONFIG_GENERIC_HARDIRQS=y
-CONFIG_GENERIC_IRQ_PROBE=y
-CONFIG_GENERIC_IRQ_SHOW=y
-CONFIG_GENERIC_PENDING_IRQ=y
-CONFIG_GENERIC_IRQ_CHIP=y
-CONFIG_IRQ_DOMAIN=y
-CONFIG_IRQ_DOMAIN_DEBUG=y
-CONFIG_IRQ_FORCED_THREADING=y
-CONFIG_SPARSE_IRQ=y
-CONFIG_CLOCKSOURCE_WATCHDOG=y
-CONFIG_ARCH_CLOCKSOURCE_DATA=y
-CONFIG_GENERIC_TIME_VSYSCALL=y
-CONFIG_GENERIC_CLOCKEVENTS=y
-CONFIG_GENERIC_CLOCKEVENTS_BUILD=y
-CONFIG_GENERIC_CLOCKEVENTS_BROADCAST=y
-CONFIG_GENERIC_CLOCKEVENTS_MIN_ADJUST=y
-CONFIG_GENERIC_CMOS_UPDATE=y
-
-#
-# Timers subsystem
-#
-CONFIG_TICK_ONESHOT=y
-# CONFIG_NO_HZ is not set
-CONFIG_HIGH_RES_TIMERS=y
-
-#
-# RCU Subsystem
-#
-CONFIG_TREE_RCU=y
-# CONFIG_PREEMPT_RCU is not set
-# CONFIG_RCU_USER_QS is not set
-CONFIG_RCU_FANOUT=64
-CONFIG_RCU_FANOUT_LEAF=16
-# CONFIG_RCU_FANOUT_EXACT is not set
-# CONFIG_TREE_RCU_TRACE is not set
-# CONFIG_IKCONFIG is not set
-CONFIG_LOG_BUF_SHIFT=17
-CONFIG_HAVE_UNSTABLE_SCHED_CLOCK=y
-CONFIG_CHECKPOINT_RESTORE=y
-CONFIG_NAMESPACES=y
-CONFIG_UTS_NS=y
-# CONFIG_PID_NS is not set
-# CONFIG_NET_NS is not set
-# CONFIG_SCHED_AUTOGROUP is not set
-# CONFIG_SYSFS_DEPRECATED is not set
-# CONFIG_RELAY is not set
-# CONFIG_BLK_DEV_INITRD is not set
-CONFIG_CC_OPTIMIZE_FOR_SIZE=y
-CONFIG_SYSCTL=y
-CONFIG_ANON_INODES=y
-CONFIG_EXPERT=y
-# CONFIG_SYSCTL_SYSCALL is not set
-CONFIG_KALLSYMS=y
-CONFIG_KALLSYMS_ALL=y
-CONFIG_HOTPLUG=y
-CONFIG_PRINTK=y
-CONFIG_BUG=y
-# CONFIG_ELF_CORE is not set
-CONFIG_PCSPKR_PLATFORM=y
-CONFIG_HAVE_PCSPKR_PLATFORM=y
-CONFIG_BASE_FULL=y
-CONFIG_FUTEX=y
-CONFIG_EPOLL=y
-CONFIG_SIGNALFD=y
-CONFIG_TIMERFD=y
-# CONFIG_EVENTFD is not set
-CONFIG_SHMEM=y
-CONFIG_AIO=y
-CONFIG_EMBEDDED=y
-CONFIG_HAVE_PERF_EVENTS=y
-CONFIG_PERF_USE_VMALLOC=y
-
-#
-# Kernel Performance Events And Counters
-#
-CONFIG_PERF_EVENTS=y
-CONFIG_DEBUG_PERF_USE_VMALLOC=y
-CONFIG_VM_EVENT_COUNTERS=y
-CONFIG_PCI_QUIRKS=y
-# CONFIG_SLUB_DEBUG is not set
-# CONFIG_COMPAT_BRK is not set
-# CONFIG_SLAB is not set
-CONFIG_SLUB=y
-# CONFIG_SLOB is not set
-CONFIG_PROFILING=y
-CONFIG_TRACEPOINTS=y
-# CONFIG_OPROFILE is not set
-CONFIG_HAVE_OPROFILE=y
-CONFIG_OPROFILE_NMI_TIMER=y
-CONFIG_JUMP_LABEL=y
-CONFIG_UPROBES=y
-CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS=y
-CONFIG_HAVE_IOREMAP_PROT=y
-CONFIG_HAVE_KPROBES=y
-CONFIG_HAVE_KRETPROBES=y
-CONFIG_HAVE_OPTPROBES=y
-CONFIG_HAVE_ARCH_TRACEHOOK=y
-CONFIG_HAVE_DMA_ATTRS=y
-CONFIG_USE_GENERIC_SMP_HELPERS=y
-CONFIG_GENERIC_SMP_IDLE_THREAD=y
-CONFIG_HAVE_REGS_AND_STACK_ACCESS_API=y
-CONFIG_HAVE_DMA_API_DEBUG=y
-CONFIG_HAVE_HW_BREAKPOINT=y
-CONFIG_HAVE_MIXED_BREAKPOINTS_REGS=y
-CONFIG_HAVE_USER_RETURN_NOTIFIER=y
-CONFIG_HAVE_PERF_EVENTS_NMI=y
-CONFIG_HAVE_ARCH_JUMP_LABEL=y
-CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG=y
-CONFIG_HAVE_ALIGNED_STRUCT_PAGE=y
-CONFIG_HAVE_CMPXCHG_LOCAL=y
-CONFIG_HAVE_CMPXCHG_DOUBLE=y
-CONFIG_HAVE_ARCH_SECCOMP_FILTER=y
-CONFIG_SECCOMP_FILTER=y
-CONFIG_MODULES_USE_ELF_RELA=y
-CONFIG_HAVE_RCU_USER_QS=y
-
-#
-# GCOV-based kernel profiling
-#
-CONFIG_GCOV_KERNEL=y
-# CONFIG_GCOV_PROFILE_ALL is not set
-# CONFIG_HAVE_GENERIC_DMA_COHERENT is not set
-CONFIG_RT_MUTEXES=y
-CONFIG_BASE_SMALL=0
-# CONFIG_MODULES is not set
-CONFIG_STOP_MACHINE=y
-# CONFIG_BLOCK is not set
-# CONFIG_INLINE_SPIN_TRYLOCK is not set
-# CONFIG_INLINE_SPIN_TRYLOCK_BH is not set
-# CONFIG_INLINE_SPIN_LOCK is not set
-# CONFIG_INLINE_SPIN_LOCK_BH is not set
-# CONFIG_INLINE_SPIN_LOCK_IRQ is not set
-# CONFIG_INLINE_SPIN_LOCK_IRQSAVE is not set
-CONFIG_UNINLINE_SPIN_UNLOCK=y
-# CONFIG_INLINE_SPIN_UNLOCK_BH is not set
-# CONFIG_INLINE_SPIN_UNLOCK_IRQ is not set
-# CONFIG_INLINE_SPIN_UNLOCK_IRQRESTORE is not set
-# CONFIG_INLINE_READ_TRYLOCK is not set
-# CONFIG_INLINE_READ_LOCK is not set
-# CONFIG_INLINE_READ_LOCK_BH is not set
-# CONFIG_INLINE_READ_LOCK_IRQ is not set
-# CONFIG_INLINE_READ_LOCK_IRQSAVE is not set
-# CONFIG_INLINE_READ_UNLOCK is not set
-# CONFIG_INLINE_READ_UNLOCK_BH is not set
-# CONFIG_INLINE_READ_UNLOCK_IRQ is not set
-# CONFIG_INLINE_READ_UNLOCK_IRQRESTORE is not set
-# CONFIG_INLINE_WRITE_TRYLOCK is not set
-# CONFIG_INLINE_WRITE_LOCK is not set
-# CONFIG_INLINE_WRITE_LOCK_BH is not set
-# CONFIG_INLINE_WRITE_LOCK_IRQ is not set
-# CONFIG_INLINE_WRITE_LOCK_IRQSAVE is not set
-# CONFIG_INLINE_WRITE_UNLOCK is not set
-# CONFIG_INLINE_WRITE_UNLOCK_BH is not set
-# CONFIG_INLINE_WRITE_UNLOCK_IRQ is not set
-# CONFIG_INLINE_WRITE_UNLOCK_IRQRESTORE is not set
-# CONFIG_MUTEX_SPIN_ON_OWNER is not set
-CONFIG_FREEZER=y
-
-#
-# Processor type and features
-#
-CONFIG_ZONE_DMA=y
-CONFIG_SMP=y
-CONFIG_X86_X2APIC=y
-CONFIG_X86_MPPARSE=y
-CONFIG_X86_EXTENDED_PLATFORM=y
-CONFIG_X86_NUMACHIP=y
-# CONFIG_X86_VSMP is not set
-CONFIG_X86_UV=y
-CONFIG_X86_SUPPORTS_MEMORY_FAILURE=y
-# CONFIG_SCHED_OMIT_FRAME_POINTER is not set
-# CONFIG_KVMTOOL_TEST_ENABLE is not set
-CONFIG_PARAVIRT_GUEST=y
-# CONFIG_PARAVIRT_TIME_ACCOUNTING is not set
-CONFIG_XEN=y
-CONFIG_XEN_DOM0=y
-CONFIG_XEN_PRIVILEGED_GUEST=y
-CONFIG_XEN_PVHVM=y
-CONFIG_XEN_MAX_DOMAIN_MEMORY=500
-CONFIG_XEN_SAVE_RESTORE=y
-CONFIG_XEN_DEBUG_FS=y
-# CONFIG_KVM_CLOCK is not set
-# CONFIG_KVM_GUEST is not set
-CONFIG_PARAVIRT=y
-# CONFIG_PARAVIRT_SPINLOCKS is not set
-CONFIG_PARAVIRT_CLOCK=y
-CONFIG_PARAVIRT_DEBUG=y
-CONFIG_NO_BOOTMEM=y
-CONFIG_MEMTEST=y
-# CONFIG_MK8 is not set
-# CONFIG_MPSC is not set
-# CONFIG_MCORE2 is not set
-# CONFIG_MATOM is not set
-CONFIG_GENERIC_CPU=y
-CONFIG_X86_INTERNODE_CACHE_SHIFT=6
-CONFIG_X86_CMPXCHG=y
-CONFIG_X86_L1_CACHE_SHIFT=6
-CONFIG_X86_XADD=y
-CONFIG_X86_WP_WORKS_OK=y
-CONFIG_X86_TSC=y
-CONFIG_X86_CMPXCHG64=y
-CONFIG_X86_CMOV=y
-CONFIG_X86_MINIMUM_CPU_FAMILY=64
-CONFIG_X86_DEBUGCTLMSR=y
-# CONFIG_PROCESSOR_SELECT is not set
-CONFIG_CPU_SUP_INTEL=y
-CONFIG_CPU_SUP_AMD=y
-CONFIG_CPU_SUP_CENTAUR=y
-CONFIG_HPET_TIMER=y
-CONFIG_DMI=y
-CONFIG_GART_IOMMU=y
-# CONFIG_CALGARY_IOMMU is not set
-CONFIG_SWIOTLB=y
-CONFIG_IOMMU_HELPER=y
-# CONFIG_MAXSMP is not set
-CONFIG_NR_CPUS=8
-# CONFIG_SCHED_SMT is not set
-# CONFIG_SCHED_MC is not set
-# CONFIG_IRQ_TIME_ACCOUNTING is not set
-CONFIG_PREEMPT_NONE=y
-# CONFIG_PREEMPT_VOLUNTARY is not set
-# CONFIG_PREEMPT is not set
-CONFIG_PREEMPT_COUNT=y
-CONFIG_X86_LOCAL_APIC=y
-CONFIG_X86_IO_APIC=y
-CONFIG_X86_REROUTE_FOR_BROKEN_BOOT_IRQS=y
-CONFIG_X86_MCE=y
-CONFIG_X86_MCE_INTEL=y
-CONFIG_X86_MCE_AMD=y
-CONFIG_X86_MCE_THRESHOLD=y
-# CONFIG_X86_MCE_INJECT is not set
-CONFIG_X86_THERMAL_VECTOR=y
-CONFIG_I8K=y
-# CONFIG_MICROCODE is not set
-# CONFIG_X86_MSR is not set
-# CONFIG_X86_CPUID is not set
-CONFIG_ARCH_PHYS_ADDR_T_64BIT=y
-CONFIG_ARCH_DMA_ADDR_T_64BIT=y
-# CONFIG_DIRECT_GBPAGES is not set
-CONFIG_NUMA=y
-# CONFIG_AMD_NUMA is not set
-CONFIG_X86_64_ACPI_NUMA=y
-CONFIG_NODES_SPAN_OTHER_NODES=y
-# CONFIG_NUMA_EMU is not set
-CONFIG_NODES_SHIFT=6
-CONFIG_ARCH_SPARSEMEM_ENABLE=y
-CONFIG_ARCH_SPARSEMEM_DEFAULT=y
-CONFIG_ARCH_SELECT_MEMORY_MODEL=y
-CONFIG_ILLEGAL_POINTER_VALUE=0xdead000000000000
-CONFIG_SELECT_MEMORY_MODEL=y
-CONFIG_SPARSEMEM_MANUAL=y
-CONFIG_SPARSEMEM=y
-CONFIG_NEED_MULTIPLE_NODES=y
-CONFIG_HAVE_MEMORY_PRESENT=y
-CONFIG_SPARSEMEM_EXTREME=y
-CONFIG_SPARSEMEM_VMEMMAP_ENABLE=y
-CONFIG_SPARSEMEM_ALLOC_MEM_MAP_TOGETHER=y
-CONFIG_SPARSEMEM_VMEMMAP=y
-CONFIG_HAVE_MEMBLOCK=y
-CONFIG_HAVE_MEMBLOCK_NODE_MAP=y
-CONFIG_ARCH_DISCARD_MEMBLOCK=y
-CONFIG_MEMORY_ISOLATION=y
-# CONFIG_MEMORY_HOTPLUG is not set
-CONFIG_PAGEFLAGS_EXTENDED=y
-CONFIG_SPLIT_PTLOCK_CPUS=999999
-CONFIG_COMPACTION=y
-CONFIG_MIGRATION=y
-CONFIG_PHYS_ADDR_T_64BIT=y
-CONFIG_ZONE_DMA_FLAG=1
-CONFIG_VIRT_TO_BUS=y
-CONFIG_MMU_NOTIFIER=y
-# CONFIG_KSM is not set
-CONFIG_DEFAULT_MMAP_MIN_ADDR=4096
-CONFIG_ARCH_SUPPORTS_MEMORY_FAILURE=y
-CONFIG_MEMORY_FAILURE=y
-# CONFIG_HWPOISON_INJECT is not set
-CONFIG_TRANSPARENT_HUGEPAGE=y
-# CONFIG_TRANSPARENT_HUGEPAGE_ALWAYS is not set
-CONFIG_TRANSPARENT_HUGEPAGE_MADVISE=y
-CONFIG_CROSS_MEMORY_ATTACH=y
-# CONFIG_CLEANCACHE is not set
-# CONFIG_X86_CHECK_BIOS_CORRUPTION is not set
-CONFIG_X86_RESERVE_LOW=64
-CONFIG_MTRR=y
-CONFIG_MTRR_SANITIZER=y
-CONFIG_MTRR_SANITIZER_ENABLE_DEFAULT=0
-CONFIG_MTRR_SANITIZER_SPARE_REG_NR_DEFAULT=1
-CONFIG_X86_PAT=y
-CONFIG_ARCH_USES_PG_UNCACHED=y
-# CONFIG_ARCH_RANDOM is not set
-CONFIG_EFI=y
-# CONFIG_EFI_STUB is not set
-CONFIG_SECCOMP=y
-CONFIG_CC_STACKPROTECTOR=y
-# CONFIG_HZ_100 is not set
-CONFIG_HZ_250=y
-# CONFIG_HZ_300 is not set
-# CONFIG_HZ_1000 is not set
-CONFIG_HZ=250
-CONFIG_SCHED_HRTICK=y
-CONFIG_KEXEC=y
-# CONFIG_CRASH_DUMP is not set
-CONFIG_PHYSICAL_START=0x1000000
-CONFIG_RELOCATABLE=y
-CONFIG_PHYSICAL_ALIGN=0x1000000
-CONFIG_HOTPLUG_CPU=y
-# CONFIG_CMDLINE_BOOL is not set
-CONFIG_ARCH_ENABLE_MEMORY_HOTPLUG=y
-CONFIG_USE_PERCPU_NUMA_NODE_ID=y
-
-#
-# Power management and ACPI options
-#
-CONFIG_SUSPEND=y
-CONFIG_SUSPEND_FREEZER=y
-CONFIG_HIBERNATE_CALLBACKS=y
-CONFIG_PM_SLEEP=y
-CONFIG_PM_SLEEP_SMP=y
-# CONFIG_PM_AUTOSLEEP is not set
-# CONFIG_PM_WAKELOCKS is not set
-# CONFIG_PM_RUNTIME is not set
-CONFIG_PM=y
-# CONFIG_PM_DEBUG is not set
-CONFIG_ACPI=y
-CONFIG_ACPI_SLEEP=y
-# CONFIG_ACPI_PROCFS is not set
-# CONFIG_ACPI_PROCFS_POWER is not set
-CONFIG_ACPI_EC_DEBUGFS=y
-CONFIG_ACPI_PROC_EVENT=y
-# CONFIG_ACPI_AC is not set
-# CONFIG_ACPI_BATTERY is not set
-CONFIG_ACPI_BUTTON=y
-CONFIG_ACPI_VIDEO=y
-# CONFIG_ACPI_FAN is not set
-CONFIG_ACPI_DOCK=y
-CONFIG_ACPI_PROCESSOR=y
-CONFIG_ACPI_IPMI=y
-CONFIG_ACPI_HOTPLUG_CPU=y
-# CONFIG_ACPI_PROCESSOR_AGGREGATOR is not set
-CONFIG_ACPI_THERMAL=y
-CONFIG_ACPI_NUMA=y
-# CONFIG_ACPI_CUSTOM_DSDT is not set
-CONFIG_ACPI_BLACKLIST_YEAR=0
-# CONFIG_ACPI_DEBUG is not set
-# CONFIG_ACPI_PCI_SLOT is not set
-CONFIG_X86_PM_TIMER=y
-CONFIG_ACPI_CONTAINER=y
-# CONFIG_ACPI_SBS is not set
-# CONFIG_ACPI_HED is not set
-CONFIG_ACPI_CUSTOM_METHOD=y
-# CONFIG_ACPI_BGRT is not set
-# CONFIG_ACPI_APEI is not set
-CONFIG_SFI=y
-
-#
-# CPU Frequency scaling
-#
-CONFIG_CPU_FREQ=y
-CONFIG_CPU_FREQ_TABLE=y
-CONFIG_CPU_FREQ_STAT=y
-# CONFIG_CPU_FREQ_STAT_DETAILS is not set
-# CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE is not set
-# CONFIG_CPU_FREQ_DEFAULT_GOV_POWERSAVE is not set
-# CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE is not set
-CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND=y
-# CONFIG_CPU_FREQ_DEFAULT_GOV_CONSERVATIVE is not set
-CONFIG_CPU_FREQ_GOV_PERFORMANCE=y
-CONFIG_CPU_FREQ_GOV_POWERSAVE=y
-CONFIG_CPU_FREQ_GOV_USERSPACE=y
-CONFIG_CPU_FREQ_GOV_ONDEMAND=y
-CONFIG_CPU_FREQ_GOV_CONSERVATIVE=y
-
-#
-# x86 CPU frequency scaling drivers
-#
-CONFIG_X86_PCC_CPUFREQ=y
-# CONFIG_X86_ACPI_CPUFREQ is not set
-CONFIG_X86_POWERNOW_K8=y
-# CONFIG_X86_SPEEDSTEP_CENTRINO is not set
-CONFIG_X86_P4_CLOCKMOD=y
-
-#
-# shared options
-#
-CONFIG_X86_SPEEDSTEP_LIB=y
-CONFIG_CPU_IDLE=y
-CONFIG_CPU_IDLE_GOV_LADDER=y
-# CONFIG_ARCH_NEEDS_CPU_IDLE_COUPLED is not set
-CONFIG_INTEL_IDLE=y
-
-#
-# Memory power savings
-#
-# CONFIG_I7300_IDLE is not set
-
-#
-# Bus options (PCI etc.)
-#
-CONFIG_PCI=y
-CONFIG_PCI_DIRECT=y
-# CONFIG_PCI_MMCONFIG is not set
-CONFIG_PCI_XEN=y
-CONFIG_PCI_DOMAINS=y
-CONFIG_PCI_CNB20LE_QUIRK=y
-CONFIG_PCIEPORTBUS=y
-# CONFIG_HOTPLUG_PCI_PCIE is not set
-CONFIG_PCIEAER=y
-CONFIG_PCIE_ECRC=y
-# CONFIG_PCIEAER_INJECT is not set
-CONFIG_PCIEASPM=y
-# CONFIG_PCIEASPM_DEBUG is not set
-# CONFIG_PCIEASPM_DEFAULT is not set
-# CONFIG_PCIEASPM_POWERSAVE is not set
-CONFIG_PCIEASPM_PERFORMANCE=y
-CONFIG_ARCH_SUPPORTS_MSI=y
-CONFIG_PCI_MSI=y
-# CONFIG_PCI_DEBUG is not set
-# CONFIG_PCI_REALLOC_ENABLE_AUTO is not set
-CONFIG_PCI_STUB=y
-# CONFIG_XEN_PCIDEV_FRONTEND is not set
-# CONFIG_HT_IRQ is not set
-CONFIG_PCI_ATS=y
-CONFIG_PCI_IOV=y
-CONFIG_PCI_PRI=y
-CONFIG_PCI_PASID=y
-# CONFIG_PCI_IOAPIC is not set
-CONFIG_PCI_LABEL=y
-CONFIG_ISA_DMA_API=y
-CONFIG_AMD_NB=y
-CONFIG_PCCARD=y
-# CONFIG_PCMCIA is not set
-# CONFIG_CARDBUS is not set
-
-#
-# PC-card bridges
-#
-CONFIG_YENTA=y
-CONFIG_YENTA_O2=y
-# CONFIG_YENTA_RICOH is not set
-CONFIG_YENTA_TI=y
-CONFIG_YENTA_TOSHIBA=y
-CONFIG_HOTPLUG_PCI=y
-# CONFIG_HOTPLUG_PCI_FAKE is not set
-CONFIG_HOTPLUG_PCI_ACPI=y
-# CONFIG_HOTPLUG_PCI_ACPI_IBM is not set
-CONFIG_HOTPLUG_PCI_CPCI=y
-# CONFIG_HOTPLUG_PCI_CPCI_ZT5550 is not set
-CONFIG_HOTPLUG_PCI_CPCI_GENERIC=y
-# CONFIG_HOTPLUG_PCI_SHPC is not set
-# CONFIG_RAPIDIO is not set
-
-#
-# Executable file formats / Emulations
-#
-CONFIG_BINFMT_ELF=y
-CONFIG_ARCH_BINFMT_ELF_RANDOMIZE_PIE=y
-# CONFIG_HAVE_AOUT is not set
-# CONFIG_BINFMT_MISC is not set
-# CONFIG_IA32_EMULATION is not set
-# CONFIG_COMPAT_FOR_U64_ALIGNMENT is not set
-CONFIG_HAVE_TEXT_POKE_SMP=y
-CONFIG_X86_DEV_DMA_OPS=y
-CONFIG_NET=y
-
-#
-# Networking options
-#
-CONFIG_PACKET=y
-# CONFIG_PACKET_DIAG is not set
-# CONFIG_UNIX is not set
-# CONFIG_NET_KEY is not set
-# CONFIG_INET is not set
-# CONFIG_NETWORK_SECMARK is not set
-# CONFIG_NETWORK_PHY_TIMESTAMPING is not set
-CONFIG_NETFILTER=y
-CONFIG_NETFILTER_DEBUG=y
-# CONFIG_NETFILTER_ADVANCED is not set
-CONFIG_ATM=y
-CONFIG_ATM_LANE=y
-CONFIG_STP=y
-CONFIG_GARP=y
-# CONFIG_BRIDGE is not set
-CONFIG_VLAN_8021Q=y
-CONFIG_VLAN_8021Q_GVRP=y
-CONFIG_DECNET=y
-# CONFIG_DECNET_ROUTER is not set
-CONFIG_LLC=y
-# CONFIG_LLC2 is not set
-# CONFIG_IPX is not set
-CONFIG_ATALK=y
-# CONFIG_DEV_APPLETALK is not set
-CONFIG_X25=y
-CONFIG_LAPB=y
-CONFIG_WAN_ROUTER=y
-CONFIG_PHONET=y
-# CONFIG_IEEE802154 is not set
-# CONFIG_NET_SCHED is not set
-CONFIG_DCB=y
-CONFIG_DNS_RESOLVER=y
-CONFIG_BATMAN_ADV=y
-# CONFIG_BATMAN_ADV_DEBUG is not set
-# CONFIG_OPENVSWITCH is not set
-CONFIG_RPS=y
-CONFIG_RFS_ACCEL=y
-CONFIG_XPS=y
-CONFIG_BQL=y
-
-#
-# Network testing
-#
-CONFIG_NET_PKTGEN=y
-CONFIG_HAMRADIO=y
-
-#
-# Packet Radio protocols
-#
-# CONFIG_AX25 is not set
-# CONFIG_CAN is not set
-# CONFIG_IRDA is not set
-# CONFIG_BT is not set
-CONFIG_WIRELESS=y
-CONFIG_CFG80211=y
-# CONFIG_NL80211_TESTMODE is not set
-CONFIG_CFG80211_DEVELOPER_WARNINGS=y
-CONFIG_CFG80211_REG_DEBUG=y
-# CONFIG_CFG80211_CERTIFICATION_ONUS is not set
-# CONFIG_CFG80211_DEFAULT_PS is not set
-# CONFIG_CFG80211_DEBUGFS is not set
-CONFIG_CFG80211_INTERNAL_REGDB=y
-# CONFIG_CFG80211_WEXT is not set
-# CONFIG_LIB80211 is not set
-# CONFIG_MAC80211 is not set
-CONFIG_WIMAX=y
-CONFIG_WIMAX_DEBUG_LEVEL=8
-# CONFIG_RFKILL is not set
-CONFIG_RFKILL_REGULATOR=y
-# CONFIG_NET_9P is not set
-# CONFIG_CAIF is not set
-CONFIG_NFC=y
-# CONFIG_NFC_NCI is not set
-CONFIG_NFC_HCI=y
-CONFIG_NFC_SHDLC=y
-CONFIG_NFC_LLCP=y
-
-#
-# Near Field Communication (NFC) devices
-#
-CONFIG_NFC_PN533=y
-CONFIG_HAVE_BPF_JIT=y
-
-#
-# Device Drivers
-#
-
-#
-# Generic Driver Options
-#
-CONFIG_UEVENT_HELPER_PATH=""
-# CONFIG_DEVTMPFS is not set
-CONFIG_STANDALONE=y
-CONFIG_PREVENT_FIRMWARE_BUILD=y
-CONFIG_FW_LOADER=y
-CONFIG_FIRMWARE_IN_KERNEL=y
-CONFIG_EXTRA_FIRMWARE=""
-# CONFIG_DEBUG_DRIVER is not set
-# CONFIG_DEBUG_DEVRES is not set
-# CONFIG_SYS_HYPERVISOR is not set
-# CONFIG_GENERIC_CPU_DEVICES is not set
-# CONFIG_DMA_SHARED_BUFFER is not set
-# CONFIG_CONNECTOR is not set
-# CONFIG_MTD is not set
-CONFIG_PARPORT=y
-CONFIG_PARPORT_PC=y
-# CONFIG_PARPORT_SERIAL is not set
-# CONFIG_PARPORT_PC_FIFO is not set
-# CONFIG_PARPORT_PC_SUPERIO is not set
-# CONFIG_PARPORT_GSC is not set
-# CONFIG_PARPORT_AX88796 is not set
-# CONFIG_PARPORT_1284 is not set
-CONFIG_PARPORT_NOT_PC=y
-CONFIG_PNP=y
-# CONFIG_PNP_DEBUG_MESSAGES is not set
-
-#
-# Protocols
-#
-CONFIG_PNPACPI=y
-
-#
-# Misc devices
-#
-CONFIG_SENSORS_LIS3LV02D=y
-CONFIG_IBM_ASM=y
-CONFIG_PHANTOM=y
-# CONFIG_INTEL_MID_PTI is not set
-CONFIG_SGI_IOC4=y
-CONFIG_TIFM_CORE=y
-# CONFIG_TIFM_7XX1 is not set
-CONFIG_ENCLOSURE_SERVICES=y
-# CONFIG_SGI_XP is not set
-# CONFIG_CS5535_MFGPT is not set
-# CONFIG_HP_ILO is not set
-# CONFIG_SGI_GRU is not set
-CONFIG_VMWARE_BALLOON=y
-CONFIG_PCH_PHUB=y
-# CONFIG_C2PORT is not set
-
-#
-# EEPROM support
-#
-CONFIG_EEPROM_93CX6=y
-CONFIG_CB710_CORE=y
-CONFIG_CB710_DEBUG=y
-CONFIG_CB710_DEBUG_ASSUMPTIONS=y
-
-#
-# Texas Instruments shared transport line discipline
-#
-# CONFIG_TI_ST is not set
-
-#
-# Altera FPGA firmware download module
-#
-CONFIG_INTEL_MEI=y
-CONFIG_HAVE_IDE=y
-
-#
-# SCSI device support
-#
-CONFIG_SCSI_MOD=y
-# CONFIG_SCSI_DMA is not set
-# CONFIG_SCSI_NETLINK is not set
-CONFIG_FUSION=y
-CONFIG_FUSION_MAX_SGE=128
-CONFIG_FUSION_LOGGING=y
-
-#
-# IEEE 1394 (FireWire) support
-#
-CONFIG_FIREWIRE=y
-# CONFIG_FIREWIRE_OHCI is not set
-CONFIG_FIREWIRE_NOSY=y
-CONFIG_I2O=y
-CONFIG_I2O_LCT_NOTIFY_ON_CHANGES=y
-# CONFIG_I2O_EXT_ADAPTEC is not set
-# CONFIG_I2O_CONFIG is not set
-# CONFIG_I2O_BUS is not set
-CONFIG_I2O_PROC=y
-# CONFIG_MACINTOSH_DRIVERS is not set
-# CONFIG_NETDEVICES is not set
-CONFIG_ISDN=y
-CONFIG_ISDN_I4L=y
-CONFIG_ISDN_AUDIO=y
-CONFIG_ISDN_TTY_FAX=y
-CONFIG_ISDN_X25=y
-
-#
-# ISDN feature submodules
-#
-# CONFIG_ISDN_DIVERSION is not set
-
-#
-# ISDN4Linux hardware drivers
-#
-
-#
-# Passive cards
-#
-CONFIG_ISDN_DRV_HISAX=y
-
-#
-# D-channel protocol features
-#
-CONFIG_HISAX_EURO=y
-# CONFIG_DE_AOC is not set
-CONFIG_HISAX_NO_SENDCOMPLETE=y
-CONFIG_HISAX_NO_LLC=y
-# CONFIG_HISAX_NO_KEYPAD is not set
-CONFIG_HISAX_1TR6=y
-CONFIG_HISAX_NI1=y
-CONFIG_HISAX_MAX_CARDS=8
-
-#
-# HiSax supported cards
-#
-# CONFIG_HISAX_16_3 is not set
-# CONFIG_HISAX_TELESPCI is not set
-CONFIG_HISAX_S0BOX=y
-CONFIG_HISAX_FRITZPCI=y
-CONFIG_HISAX_AVM_A1_PCMCIA=y
-CONFIG_HISAX_ELSA=y
-CONFIG_HISAX_DIEHLDIVA=y
-CONFIG_HISAX_SEDLBAUER=y
-CONFIG_HISAX_NETJET=y
-# CONFIG_HISAX_NETJET_U is not set
-# CONFIG_HISAX_NICCY is not set
-CONFIG_HISAX_BKM_A4T=y
-# CONFIG_HISAX_SCT_QUADRO is not set
-# CONFIG_HISAX_GAZEL is not set
-# CONFIG_HISAX_HFC_PCI is not set
-# CONFIG_HISAX_W6692 is not set
-CONFIG_HISAX_HFC_SX=y
-CONFIG_HISAX_ENTERNOW_PCI=y
-# CONFIG_HISAX_DEBUG is not set
-
-#
-# HiSax PCMCIA card service modules
-#
-
-#
-# HiSax sub driver modules
-#
-CONFIG_HISAX_ST5481=y
-# CONFIG_HISAX_HFCUSB is not set
-CONFIG_HISAX_HFC4S8S=y
-# CONFIG_HISAX_FRITZ_PCIPNP is not set
-
-#
-# Active cards
-#
-CONFIG_ISDN_CAPI=y
-# CONFIG_ISDN_DRV_AVMB1_VERBOSE_REASON is not set
-CONFIG_CAPI_TRACE=y
-CONFIG_ISDN_CAPI_MIDDLEWARE=y
-CONFIG_ISDN_CAPI_CAPI20=y
-CONFIG_ISDN_CAPI_CAPIDRV=y
-
-#
-# CAPI hardware drivers
-#
-# CONFIG_CAPI_AVM is not set
-# CONFIG_CAPI_EICON is not set
-# CONFIG_ISDN_DRV_GIGASET is not set
-# CONFIG_MISDN is not set
-CONFIG_ISDN_HDLC=y
-
-#
-# Input device support
-#
-CONFIG_INPUT=y
-# CONFIG_INPUT_FF_MEMLESS is not set
-CONFIG_INPUT_POLLDEV=y
-CONFIG_INPUT_SPARSEKMAP=y
-CONFIG_INPUT_MATRIXKMAP=y
-
-#
-# Userland interfaces
-#
-# CONFIG_INPUT_MOUSEDEV is not set
-CONFIG_INPUT_JOYDEV=y
-CONFIG_INPUT_EVDEV=y
-CONFIG_INPUT_EVBUG=y
-
-#
-# Input Device Drivers
-#
-CONFIG_INPUT_KEYBOARD=y
-CONFIG_KEYBOARD_ATKBD=y
-CONFIG_KEYBOARD_LKKBD=y
-CONFIG_KEYBOARD_GPIO=y
-# CONFIG_KEYBOARD_GPIO_POLLED is not set
-CONFIG_KEYBOARD_MATRIX=y
-# CONFIG_KEYBOARD_NEWTON is not set
-# CONFIG_KEYBOARD_OPENCORES is not set
-# CONFIG_KEYBOARD_STOWAWAY is not set
-CONFIG_KEYBOARD_SUNKBD=y
-# CONFIG_KEYBOARD_OMAP4 is not set
-CONFIG_KEYBOARD_XTKBD=y
-# CONFIG_INPUT_MOUSE is not set
-# CONFIG_INPUT_JOYSTICK is not set
-CONFIG_INPUT_TABLET=y
-CONFIG_TABLET_USB_ACECAD=y
-# CONFIG_TABLET_USB_AIPTEK is not set
-# CONFIG_TABLET_USB_GTCO is not set
-# CONFIG_TABLET_USB_HANWANG is not set
-CONFIG_TABLET_USB_KBTAB=y
-# CONFIG_TABLET_USB_WACOM is not set
-CONFIG_INPUT_TOUCHSCREEN=y
-# CONFIG_TOUCHSCREEN_AD7879 is not set
-# CONFIG_TOUCHSCREEN_CYTTSP_CORE is not set
-CONFIG_TOUCHSCREEN_DYNAPRO=y
-CONFIG_TOUCHSCREEN_HAMPSHIRE=y
-CONFIG_TOUCHSCREEN_FUJITSU=y
-# CONFIG_TOUCHSCREEN_GUNZE is not set
-CONFIG_TOUCHSCREEN_ELO=y
-CONFIG_TOUCHSCREEN_WACOM_W8001=y
-CONFIG_TOUCHSCREEN_MTOUCH=y
-# CONFIG_TOUCHSCREEN_INEXIO is not set
-# CONFIG_TOUCHSCREEN_MK712 is not set
-# CONFIG_TOUCHSCREEN_PENMOUNT is not set
-# CONFIG_TOUCHSCREEN_TOUCHRIGHT is not set
-# CONFIG_TOUCHSCREEN_TOUCHWIN is not set
-CONFIG_TOUCHSCREEN_USB_COMPOSITE=y
-# CONFIG_TOUCHSCREEN_USB_EGALAX is not set
-# CONFIG_TOUCHSCREEN_USB_PANJIT is not set
-# CONFIG_TOUCHSCREEN_USB_3M is not set
-# CONFIG_TOUCHSCREEN_USB_ITM is not set
-# CONFIG_TOUCHSCREEN_USB_ETURBO is not set
-# CONFIG_TOUCHSCREEN_USB_GUNZE is not set
-# CONFIG_TOUCHSCREEN_USB_DMC_TSC10 is not set
-CONFIG_TOUCHSCREEN_USB_IRTOUCH=y
-CONFIG_TOUCHSCREEN_USB_IDEALTEK=y
-CONFIG_TOUCHSCREEN_USB_GENERAL_TOUCH=y
-# CONFIG_TOUCHSCREEN_USB_GOTOP is not set
-CONFIG_TOUCHSCREEN_USB_JASTEC=y
-CONFIG_TOUCHSCREEN_USB_ELO=y
-# CONFIG_TOUCHSCREEN_USB_E2I is not set
-CONFIG_TOUCHSCREEN_USB_ZYTRONIC=y
-# CONFIG_TOUCHSCREEN_USB_ETT_TC45USB is not set
-# CONFIG_TOUCHSCREEN_USB_NEXIO is not set
-CONFIG_TOUCHSCREEN_USB_EASYTOUCH=y
-CONFIG_TOUCHSCREEN_TOUCHIT213=y
-CONFIG_TOUCHSCREEN_TSC_SERIO=y
-CONFIG_INPUT_MISC=y
-# CONFIG_INPUT_AD714X is not set
-CONFIG_INPUT_PCSPKR=y
-CONFIG_INPUT_GPIO_TILT_POLLED=y
-CONFIG_INPUT_ATLAS_BTNS=y
-CONFIG_INPUT_ATI_REMOTE2=y
-CONFIG_INPUT_KEYSPAN_REMOTE=y
-CONFIG_INPUT_POWERMATE=y
-# CONFIG_INPUT_YEALINK is not set
-# CONFIG_INPUT_CM109 is not set
-CONFIG_INPUT_UINPUT=y
-# CONFIG_INPUT_GPIO_ROTARY_ENCODER is not set
-# CONFIG_INPUT_ADXL34X is not set
-# CONFIG_INPUT_CMA3000 is not set
-# CONFIG_INPUT_XEN_KBDDEV_FRONTEND is not set
-
-#
-# Hardware I/O ports
-#
-CONFIG_SERIO=y
-CONFIG_SERIO_I8042=y
-CONFIG_SERIO_SERPORT=y
-CONFIG_SERIO_CT82C710=y
-# CONFIG_SERIO_PARKBD is not set
-# CONFIG_SERIO_PCIPS2 is not set
-CONFIG_SERIO_LIBPS2=y
-CONFIG_SERIO_RAW=y
-CONFIG_SERIO_ALTERA_PS2=y
-# CONFIG_SERIO_PS2MULT is not set
-CONFIG_GAMEPORT=y
-# CONFIG_GAMEPORT_NS558 is not set
-CONFIG_GAMEPORT_L4=y
-# CONFIG_GAMEPORT_EMU10K1 is not set
-# CONFIG_GAMEPORT_FM801 is not set
-
-#
-# Character devices
-#
-# CONFIG_VT is not set
-# CONFIG_UNIX98_PTYS is not set
-CONFIG_LEGACY_PTYS=y
-CONFIG_LEGACY_PTY_COUNT=256
-CONFIG_SERIAL_NONSTANDARD=y
-CONFIG_ROCKETPORT=y
-# CONFIG_CYCLADES is not set
-# CONFIG_MOXA_INTELLIO is not set
-# CONFIG_MOXA_SMARTIO is not set
-CONFIG_SYNCLINK=y
-CONFIG_SYNCLINKMP=y
-CONFIG_SYNCLINK_GT=y
-# CONFIG_NOZOMI is not set
-CONFIG_ISI=y
-CONFIG_N_HDLC=y
-# CONFIG_N_GSM is not set
-# CONFIG_TRACE_ROUTER is not set
-CONFIG_TRACE_SINK=y
-CONFIG_DEVKMEM=y
-# CONFIG_STALDRV is not set
-
-#
-# Serial drivers
-#
-CONFIG_SERIAL_8250=y
-CONFIG_SERIAL_8250_CONSOLE=y
-CONFIG_FIX_EARLYCON_MEM=y
-CONFIG_SERIAL_8250_PCI=y
-# CONFIG_SERIAL_8250_PNP is not set
-CONFIG_SERIAL_8250_NR_UARTS=4
-CONFIG_SERIAL_8250_RUNTIME_UARTS=4
-# CONFIG_SERIAL_8250_EXTENDED is not set
-
-#
-# Non-8250 serial port support
-#
-# CONFIG_SERIAL_MFD_HSU is not set
-CONFIG_SERIAL_CORE=y
-CONFIG_SERIAL_CORE_CONSOLE=y
-CONFIG_CONSOLE_POLL=y
-CONFIG_SERIAL_JSM=y
-# CONFIG_SERIAL_TIMBERDALE is not set
-CONFIG_SERIAL_ALTERA_JTAGUART=y
-# CONFIG_SERIAL_ALTERA_JTAGUART_CONSOLE is not set
-CONFIG_SERIAL_ALTERA_UART=y
-CONFIG_SERIAL_ALTERA_UART_MAXPORTS=4
-CONFIG_SERIAL_ALTERA_UART_BAUDRATE=115200
-# CONFIG_SERIAL_ALTERA_UART_CONSOLE is not set
-CONFIG_SERIAL_PCH_UART=y
-CONFIG_SERIAL_PCH_UART_CONSOLE=y
-# CONFIG_SERIAL_XILINX_PS_UART is not set
-# CONFIG_TTY_PRINTK is not set
-# CONFIG_PRINTER is not set
-CONFIG_PPDEV=y
-CONFIG_HVC_DRIVER=y
-# CONFIG_HVC_XEN is not set
-CONFIG_VIRTIO_CONSOLE=y
-CONFIG_IPMI_HANDLER=y
-# CONFIG_IPMI_PANIC_EVENT is not set
-# CONFIG_IPMI_DEVICE_INTERFACE is not set
-CONFIG_IPMI_SI=y
-# CONFIG_IPMI_WATCHDOG is not set
-# CONFIG_IPMI_POWEROFF is not set
-CONFIG_HW_RANDOM=y
-CONFIG_HW_RANDOM_TIMERIOMEM=y
-CONFIG_HW_RANDOM_INTEL=y
-# CONFIG_HW_RANDOM_AMD is not set
-# CONFIG_HW_RANDOM_VIA is not set
-# CONFIG_HW_RANDOM_VIRTIO is not set
-CONFIG_NVRAM=y
-# CONFIG_R3964 is not set
-# CONFIG_APPLICOM is not set
-# CONFIG_MWAVE is not set
-CONFIG_HPET=y
-CONFIG_HPET_MMAP=y
-# CONFIG_HANGCHECK_TIMER is not set
-CONFIG_UV_MMTIMER=y
-CONFIG_TCG_TPM=y
-CONFIG_TCG_TIS=y
-CONFIG_TCG_NSC=y
-# CONFIG_TCG_ATMEL is not set
-# CONFIG_TCG_INFINEON is not set
-# CONFIG_TELCLOCK is not set
-CONFIG_DEVPORT=y
-# CONFIG_I2C is not set
-# CONFIG_SPI is not set
-CONFIG_HSI=y
-CONFIG_HSI_BOARDINFO=y
-
-#
-# HSI clients
-#
-CONFIG_HSI_CHAR=y
-
-#
-# PPS support
-#
-# CONFIG_PPS is not set
-
-#
-# PPS generators support
-#
-
-#
-# PTP clock support
-#
-
-#
-# Enable Device Drivers -> PPS to see the PTP clock options.
-#
-CONFIG_ARCH_WANT_OPTIONAL_GPIOLIB=y
-CONFIG_GPIOLIB=y
-CONFIG_DEBUG_GPIO=y
-# CONFIG_GPIO_SYSFS is not set
-CONFIG_GPIO_GENERIC=y
-
-#
-# Memory mapped GPIO drivers:
-#
-CONFIG_GPIO_GENERIC_PLATFORM=y
-# CONFIG_GPIO_IT8761E is not set
-# CONFIG_GPIO_SCH is not set
-CONFIG_GPIO_ICH=y
-# CONFIG_GPIO_VX855 is not set
-
-#
-# I2C GPIO expanders:
-#
-
-#
-# PCI GPIO expanders:
-#
-# CONFIG_GPIO_CS5535 is not set
-# CONFIG_GPIO_BT8XX is not set
-CONFIG_GPIO_AMD8111=y
-CONFIG_GPIO_LANGWELL=y
-CONFIG_GPIO_PCH=y
-CONFIG_GPIO_ML_IOH=y
-# CONFIG_GPIO_RDC321X is not set
-
-#
-# SPI GPIO expanders:
-#
-
-#
-# AC97 GPIO expanders:
-#
-
-#
-# MODULbus GPIO expanders:
-#
-CONFIG_GPIO_JANZ_TTL=y
-# CONFIG_W1 is not set
-CONFIG_POWER_SUPPLY=y
-CONFIG_POWER_SUPPLY_DEBUG=y
-# CONFIG_PDA_POWER is not set
-CONFIG_TEST_POWER=y
-# CONFIG_BATTERY_DS2780 is not set
-# CONFIG_BATTERY_DS2781 is not set
-CONFIG_BATTERY_BQ27x00=y
-# CONFIG_BATTERY_BQ27X00_PLATFORM is not set
-CONFIG_CHARGER_MAX8903=y
-CONFIG_CHARGER_GPIO=y
-# CONFIG_CHARGER_MANAGER is not set
-# CONFIG_POWER_AVS is not set
-CONFIG_HWMON=y
-CONFIG_HWMON_VID=y
-CONFIG_HWMON_DEBUG_CHIP=y
-
-#
-# Native drivers
-#
-# CONFIG_SENSORS_ABITUGURU is not set
-# CONFIG_SENSORS_ABITUGURU3 is not set
-CONFIG_SENSORS_K8TEMP=y
-# CONFIG_SENSORS_K10TEMP is not set
-# CONFIG_SENSORS_FAM15H_POWER is not set
-CONFIG_SENSORS_I5K_AMB=y
-CONFIG_SENSORS_F71805F=y
-# CONFIG_SENSORS_F71882FG is not set
-# CONFIG_SENSORS_GPIO_FAN is not set
-# CONFIG_SENSORS_CORETEMP is not set
-CONFIG_SENSORS_IBMAEM=y
-# CONFIG_SENSORS_IBMPEX is not set
-CONFIG_SENSORS_IT87=y
-# CONFIG_SENSORS_NTC_THERMISTOR is not set
-# CONFIG_SENSORS_PC87360 is not set
-# CONFIG_SENSORS_PC87427 is not set
-# CONFIG_SENSORS_SHT15 is not set
-CONFIG_SENSORS_SIS5595=y
-# CONFIG_SENSORS_SMSC47M1 is not set
-CONFIG_SENSORS_SMSC47B397=y
-# CONFIG_SENSORS_SCH56XX_COMMON is not set
-# CONFIG_SENSORS_SCH5627 is not set
-# CONFIG_SENSORS_SCH5636 is not set
-# CONFIG_SENSORS_VIA_CPUTEMP is not set
-CONFIG_SENSORS_VIA686A=y
-CONFIG_SENSORS_VT1211=y
-# CONFIG_SENSORS_VT8231 is not set
-# CONFIG_SENSORS_W83627HF is not set
-# CONFIG_SENSORS_W83627EHF is not set
-# CONFIG_SENSORS_APPLESMC is not set
-
-#
-# ACPI drivers
-#
-# CONFIG_SENSORS_ACPI_POWER is not set
-CONFIG_SENSORS_ATK0110=y
-CONFIG_THERMAL=y
-CONFIG_THERMAL_HWMON=y
-CONFIG_CPU_THERMAL=y
-CONFIG_WATCHDOG=y
-CONFIG_WATCHDOG_CORE=y
-# CONFIG_WATCHDOG_NOWAYOUT is not set
-
-#
-# Watchdog Device Drivers
-#
-CONFIG_SOFT_WATCHDOG=y
-# CONFIG_ACQUIRE_WDT is not set
-# CONFIG_ADVANTECH_WDT is not set
-CONFIG_ALIM1535_WDT=y
-CONFIG_ALIM7101_WDT=y
-# CONFIG_F71808E_WDT is not set
-# CONFIG_SP5100_TCO is not set
-CONFIG_SC520_WDT=y
-# CONFIG_SBC_FITPC2_WATCHDOG is not set
-# CONFIG_EUROTECH_WDT is not set
-# CONFIG_IB700_WDT is not set
-CONFIG_IBMASR=y
-CONFIG_WAFER_WDT=y
-CONFIG_I6300ESB_WDT=y
-CONFIG_IE6XX_WDT=y
-# CONFIG_ITCO_WDT is not set
-# CONFIG_IT8712F_WDT is not set
-CONFIG_IT87_WDT=y
-# CONFIG_HP_WATCHDOG is not set
-# CONFIG_SC1200_WDT is not set
-# CONFIG_PC87413_WDT is not set
-CONFIG_NV_TCO=y
-CONFIG_60XX_WDT=y
-# CONFIG_SBC8360_WDT is not set
-# CONFIG_CPU5_WDT is not set
-# CONFIG_SMSC_SCH311X_WDT is not set
-CONFIG_SMSC37B787_WDT=y
-CONFIG_VIA_WDT=y
-# CONFIG_W83627HF_WDT is not set
-CONFIG_W83697HF_WDT=y
-# CONFIG_W83697UG_WDT is not set
-CONFIG_W83877F_WDT=y
-CONFIG_W83977F_WDT=y
-# CONFIG_MACHZ_WDT is not set
-CONFIG_SBC_EPX_C3_WATCHDOG=y
-# CONFIG_XEN_WDT is not set
-
-#
-# PCI-based Watchdog Cards
-#
-CONFIG_PCIPCWATCHDOG=y
-# CONFIG_WDTPCI is not set
-
-#
-# USB-based Watchdog Cards
-#
-# CONFIG_USBPCWATCHDOG is not set
-CONFIG_SSB_POSSIBLE=y
-
-#
-# Sonics Silicon Backplane
-#
-# CONFIG_SSB is not set
-CONFIG_BCMA_POSSIBLE=y
-
-#
-# Broadcom specific AMBA
-#
-CONFIG_BCMA=y
-CONFIG_BCMA_HOST_PCI_POSSIBLE=y
-# CONFIG_BCMA_HOST_PCI is not set
-CONFIG_BCMA_DRIVER_GMAC_CMN=y
-CONFIG_BCMA_DEBUG=y
-
-#
-# Multifunction device drivers
-#
-CONFIG_MFD_CORE=y
-CONFIG_MFD_SM501=y
-# CONFIG_MFD_SM501_GPIO is not set
-CONFIG_HTC_PASIC3=y
-# CONFIG_MFD_TMIO is not set
-CONFIG_ABX500_CORE=y
-CONFIG_MFD_CS5535=y
-# CONFIG_MFD_TIMBERDALE is not set
-CONFIG_LPC_SCH=y
-CONFIG_LPC_ICH=y
-CONFIG_MFD_RDC321X=y
-CONFIG_MFD_JANZ_CMODIO=y
-# CONFIG_MFD_VX855 is not set
-CONFIG_REGULATOR=y
-# CONFIG_REGULATOR_DEBUG is not set
-CONFIG_REGULATOR_DUMMY=y
-# CONFIG_REGULATOR_FIXED_VOLTAGE is not set
-CONFIG_REGULATOR_VIRTUAL_CONSUMER=y
-CONFIG_REGULATOR_USERSPACE_CONSUMER=y
-# CONFIG_REGULATOR_GPIO is not set
-CONFIG_MEDIA_SUPPORT=y
-
-#
-# Multimedia core support
-#
-CONFIG_MEDIA_CAMERA_SUPPORT=y
-CONFIG_MEDIA_ANALOG_TV_SUPPORT=y
-CONFIG_MEDIA_DIGITAL_TV_SUPPORT=y
-# CONFIG_MEDIA_RADIO_SUPPORT is not set
-# CONFIG_MEDIA_RC_SUPPORT is not set
-CONFIG_MEDIA_CONTROLLER=y
-CONFIG_VIDEO_DEV=y
-CONFIG_VIDEO_V4L2_COMMON=y
-CONFIG_VIDEO_V4L2_SUBDEV_API=y
-CONFIG_VIDEO_ADV_DEBUG=y
-# CONFIG_VIDEO_FIXED_MINOR_RANGES is not set
-CONFIG_VIDEO_V4L2=y
-CONFIG_VIDEOBUF_GEN=y
-CONFIG_VIDEOBUF_VMALLOC=y
-CONFIG_V4L2_MEM2MEM_DEV=y
-CONFIG_VIDEOBUF2_CORE=y
-CONFIG_VIDEOBUF2_MEMOPS=y
-CONFIG_VIDEOBUF2_DMA_CONTIG=y
-CONFIG_DVB_CORE=y
-CONFIG_DVB_MAX_ADAPTERS=8
-# CONFIG_DVB_DYNAMIC_MINORS is not set
-
-#
-# Media drivers
-#
-# CONFIG_VIDEO_HELPER_CHIPS_AUTO is not set
-
-#
-# Encoders, decoders, sensors and other helper chips
-#
-
-#
-# Audio decoders, processors and mixers
-#
-
-#
-# RDS decoders
-#
-
-#
-# Video decoders
-#
-
-#
-# Video and audio decoders
-#
-
-#
-# MPEG video encoders
-#
-CONFIG_VIDEO_CX2341X=y
-
-#
-# Video encoders
-#
-
-#
-# Camera sensor devices
-#
-
-#
-# Flash devices
-#
-
-#
-# Video improvement chips
-#
-
-#
-# Miscelaneous helper chips
-#
-# CONFIG_V4L_PLATFORM_DRIVERS is not set
-CONFIG_V4L_MEM2MEM_DRIVERS=y
-# CONFIG_VIDEO_MEM2MEM_TESTDEV is not set
-CONFIG_VIDEO_CODA=y
-
-#
-# Media PCI Adapters
-#
-
-#
-# Media capture support
-#
-
-#
-# Media capture/analog TV support
-#
-
-#
-# Media capture/analog/hybrid TV support
-#
-
-#
-# Media digital TV PCI Adapters
-#
-CONFIG_DVB_B2C2_FLEXCOP_PCI=y
-
-#
-# Media USB Adapters
-#
-
-#
-# Webcam devices
-#
-# CONFIG_USB_VIDEO_CLASS is not set
-# CONFIG_USB_GSPCA is not set
-# CONFIG_USB_PWC is not set
-# CONFIG_VIDEO_CPIA2 is not set
-CONFIG_USB_ZR364XX=y
-# CONFIG_USB_STKWEBCAM is not set
-CONFIG_USB_S2255=y
-# CONFIG_USB_SN9C102 is not set
-
-#
-# Analog TV USB devices
-#
-CONFIG_VIDEO_HDPVR=y
-
-#
-# Analog/digital TV USB devices
-#
-
-#
-# Webcam, TV (analog/digital) USB devices
-#
-
-#
-# Supported MMC/SDIO adapters
-#
-
-#
-# V4L ISA and parallel port devices
-#
-CONFIG_VIDEO_BWQCAM=y
-# CONFIG_VIDEO_CQCAM is not set
-
-#
-# Supported FireWire (IEEE 1394) Adapters
-#
-# CONFIG_DVB_FIREDTV is not set
-
-#
-# Supported DVB Frontends
-#
-CONFIG_DVB_FE_CUSTOMISE=y
-
-#
-# Customise DVB Frontends
-#
-
-#
-# Multistandard (satellite) frontends
-#
-
-#
-# Multistandard (cable + terrestrial) frontends
-#
-
-#
-# DVB-S (satellite) frontends
-#
-
-#
-# DVB-T (terrestrial) frontends
-#
-
-#
-# DVB-C (cable) frontends
-#
-
-#
-# ATSC (North American/Korean Terrestrial/Cable DTV) frontends
-#
-
-#
-# ISDB-T (terrestrial) frontends
-#
-
-#
-# Digital terrestrial only tuners/PLL
-#
-
-#
-# SEC control devices for DVB-S
-#
-
-#
-# Tools to develop new frontends
-#
-CONFIG_DVB_DUMMY_FE=y
-
-#
-# Graphics support
-#
-CONFIG_AGP=y
-CONFIG_AGP_AMD64=y
-# CONFIG_AGP_INTEL is not set
-# CONFIG_AGP_SIS is not set
-# CONFIG_AGP_VIA is not set
-# CONFIG_VGA_ARB is not set
-# CONFIG_VGA_SWITCHEROO is not set
-# CONFIG_DRM is not set
-CONFIG_STUB_POULSBO=y
-# CONFIG_VGASTATE is not set
-CONFIG_VIDEO_OUTPUT_CONTROL=y
-# CONFIG_FB is not set
-CONFIG_EXYNOS_VIDEO=y
-# CONFIG_BACKLIGHT_LCD_SUPPORT is not set
-CONFIG_BACKLIGHT_CLASS_DEVICE=y
-# CONFIG_SOUND is not set
-
-#
-# HID support
-#
-CONFIG_HID=y
-CONFIG_HID_BATTERY_STRENGTH=y
-CONFIG_HIDRAW=y
-# CONFIG_UHID is not set
-CONFIG_HID_GENERIC=y
-
-#
-# Special HID drivers
-#
-
-#
-# USB HID support
-#
-# CONFIG_USB_HID is not set
-# CONFIG_HID_PID is not set
-
-#
-# USB HID Boot Protocol drivers
-#
-CONFIG_USB_KBD=y
-CONFIG_USB_MOUSE=y
-CONFIG_USB_ARCH_HAS_OHCI=y
-CONFIG_USB_ARCH_HAS_EHCI=y
-CONFIG_USB_ARCH_HAS_XHCI=y
-CONFIG_USB_SUPPORT=y
-CONFIG_USB_COMMON=y
-CONFIG_USB_ARCH_HAS_HCD=y
-CONFIG_USB=y
-CONFIG_USB_DEBUG=y
-# CONFIG_USB_ANNOUNCE_NEW_DEVICES is not set
-
-#
-# Miscellaneous USB options
-#
-CONFIG_USB_DYNAMIC_MINORS=y
-# CONFIG_USB_OTG_WHITELIST is not set
-# CONFIG_USB_OTG_BLACKLIST_HUB is not set
-CONFIG_USB_MON=y
-CONFIG_USB_WUSB=y
-# CONFIG_USB_WUSB_CBAF is not set
-
-#
-# USB Host Controller Drivers
-#
-# CONFIG_USB_C67X00_HCD is not set
-CONFIG_USB_XHCI_HCD=y
-CONFIG_USB_XHCI_HCD_DEBUGGING=y
-# CONFIG_USB_EHCI_HCD is not set
-# CONFIG_USB_OXU210HP_HCD is not set
-# CONFIG_USB_ISP116X_HCD is not set
-CONFIG_USB_ISP1760_HCD=y
-CONFIG_USB_ISP1362_HCD=y
-CONFIG_USB_OHCI_HCD=y
-# CONFIG_USB_OHCI_HCD_PLATFORM is not set
-# CONFIG_USB_OHCI_BIG_ENDIAN_DESC is not set
-# CONFIG_USB_OHCI_BIG_ENDIAN_MMIO is not set
-CONFIG_USB_OHCI_LITTLE_ENDIAN=y
-CONFIG_USB_UHCI_HCD=y
-CONFIG_USB_SL811_HCD=y
-# CONFIG_USB_SL811_HCD_ISO is not set
-# CONFIG_USB_R8A66597_HCD is not set
-# CONFIG_USB_WHCI_HCD is not set
-CONFIG_USB_HWA_HCD=y
-# CONFIG_USB_HCD_BCMA is not set
-# CONFIG_USB_CHIPIDEA is not set
-
-#
-# USB Device Class drivers
-#
-# CONFIG_USB_ACM is not set
-# CONFIG_USB_PRINTER is not set
-CONFIG_USB_WDM=y
-# CONFIG_USB_TMC is not set
-
-#
-# NOTE: USB_STORAGE depends on SCSI but BLK_DEV_SD may
-#
-
-#
-# also be needed; see USB_STORAGE Help for more info
-#
-CONFIG_USB_LIBUSUAL=y
-
-#
-# USB Imaging devices
-#
-CONFIG_USB_MDC800=y
-
-#
-# USB port drivers
-#
-CONFIG_USB_USS720=y
-CONFIG_USB_SERIAL=y
-CONFIG_USB_SERIAL_CONSOLE=y
-CONFIG_USB_EZUSB=y
-CONFIG_USB_SERIAL_GENERIC=y
-# CONFIG_USB_SERIAL_AIRCABLE is not set
-CONFIG_USB_SERIAL_ARK3116=y
-# CONFIG_USB_SERIAL_BELKIN is not set
-# CONFIG_USB_SERIAL_CH341 is not set
-CONFIG_USB_SERIAL_WHITEHEAT=y
-CONFIG_USB_SERIAL_DIGI_ACCELEPORT=y
-# CONFIG_USB_SERIAL_CP210X is not set
-CONFIG_USB_SERIAL_CYPRESS_M8=y
-# CONFIG_USB_SERIAL_EMPEG is not set
-CONFIG_USB_SERIAL_FTDI_SIO=y
-CONFIG_USB_SERIAL_FUNSOFT=y
-CONFIG_USB_SERIAL_VISOR=y
-# CONFIG_USB_SERIAL_IPAQ is not set
-CONFIG_USB_SERIAL_IR=y
-CONFIG_USB_SERIAL_EDGEPORT=y
-# CONFIG_USB_SERIAL_EDGEPORT_TI is not set
-# CONFIG_USB_SERIAL_F81232 is not set
-CONFIG_USB_SERIAL_GARMIN=y
-CONFIG_USB_SERIAL_IPW=y
-# CONFIG_USB_SERIAL_IUU is not set
-# CONFIG_USB_SERIAL_KEYSPAN_PDA is not set
-# CONFIG_USB_SERIAL_KEYSPAN is not set
-# CONFIG_USB_SERIAL_KLSI is not set
-# CONFIG_USB_SERIAL_KOBIL_SCT is not set
-# CONFIG_USB_SERIAL_MCT_U232 is not set
-# CONFIG_USB_SERIAL_METRO is not set
-CONFIG_USB_SERIAL_MOS7720=y
-CONFIG_USB_SERIAL_MOS7715_PARPORT=y
-CONFIG_USB_SERIAL_MOS7840=y
-CONFIG_USB_SERIAL_MOTOROLA=y
-# CONFIG_USB_SERIAL_NAVMAN is not set
-CONFIG_USB_SERIAL_PL2303=y
-# CONFIG_USB_SERIAL_OTI6858 is not set
-CONFIG_USB_SERIAL_QCAUX=y
-CONFIG_USB_SERIAL_QUALCOMM=y
-CONFIG_USB_SERIAL_SPCP8X5=y
-CONFIG_USB_SERIAL_HP4X=y
-# CONFIG_USB_SERIAL_SAFE is not set
-CONFIG_USB_SERIAL_SIEMENS_MPI=y
-CONFIG_USB_SERIAL_SIERRAWIRELESS=y
-CONFIG_USB_SERIAL_SYMBOL=y
-CONFIG_USB_SERIAL_TI=y
-# CONFIG_USB_SERIAL_CYBERJACK is not set
-CONFIG_USB_SERIAL_XIRCOM=y
-CONFIG_USB_SERIAL_WWAN=y
-CONFIG_USB_SERIAL_OPTION=y
-CONFIG_USB_SERIAL_OMNINET=y
-# CONFIG_USB_SERIAL_OPTICON is not set
-CONFIG_USB_SERIAL_VIVOPAY_SERIAL=y
-# CONFIG_USB_SERIAL_ZIO is not set
-CONFIG_USB_SERIAL_SSU100=y
-CONFIG_USB_SERIAL_QT2=y
-CONFIG_USB_SERIAL_DEBUG=y
-
-#
-# USB Miscellaneous drivers
-#
-CONFIG_USB_EMI62=y
-# CONFIG_USB_EMI26 is not set
-CONFIG_USB_ADUTUX=y
-# CONFIG_USB_SEVSEG is not set
-CONFIG_USB_RIO500=y
-CONFIG_USB_LEGOTOWER=y
-# CONFIG_USB_LCD is not set
-# CONFIG_USB_LED is not set
-CONFIG_USB_CYPRESS_CY7C63=y
-CONFIG_USB_CYTHERM=y
-CONFIG_USB_IDMOUSE=y
-# CONFIG_USB_FTDI_ELAN is not set
-# CONFIG_USB_APPLEDISPLAY is not set
-CONFIG_USB_LD=y
-CONFIG_USB_TRANCEVIBRATOR=y
-CONFIG_USB_IOWARRIOR=y
-# CONFIG_USB_TEST is not set
-CONFIG_USB_ISIGHTFW=y
-CONFIG_USB_YUREX=y
-
-#
-# USB Physical Layer drivers
-#
-CONFIG_USB_ATM=y
-# CONFIG_USB_SPEEDTOUCH is not set
-CONFIG_USB_CXACRU=y
-# CONFIG_USB_UEAGLEATM is not set
-CONFIG_USB_XUSBATM=y
-# CONFIG_USB_GADGET is not set
-
-#
-# OTG and related infrastructure
-#
-# CONFIG_USB_GPIO_VBUS is not set
-# CONFIG_NOP_USB_XCEIV is not set
-CONFIG_UWB=y
-CONFIG_UWB_HWA=y
-# CONFIG_UWB_WHCI is not set
-# CONFIG_UWB_I1480U is not set
-# CONFIG_MMC is not set
-CONFIG_MEMSTICK=y
-CONFIG_MEMSTICK_DEBUG=y
-
-#
-# MemoryStick drivers
-#
-# CONFIG_MEMSTICK_UNSAFE_RESUME is not set
-
-#
-# MemoryStick Host Controller Drivers
-#
-CONFIG_MEMSTICK_TIFM_MS=y
-# CONFIG_MEMSTICK_JMICRON_38X is not set
-# CONFIG_MEMSTICK_R592 is not set
-CONFIG_NEW_LEDS=y
-CONFIG_LEDS_CLASS=y
-
-#
-# LED drivers
-#
-CONFIG_LEDS_GPIO=y
-CONFIG_LEDS_CLEVO_MAIL=y
-# CONFIG_LEDS_REGULATOR is not set
-# CONFIG_LEDS_INTEL_SS4200 is not set
-CONFIG_LEDS_LT3593=y
-# CONFIG_LEDS_OT200 is not set
-CONFIG_LEDS_TRIGGERS=y
-
-#
-# LED Triggers
-#
-CONFIG_LEDS_TRIGGER_TIMER=y
-# CONFIG_LEDS_TRIGGER_ONESHOT is not set
-# CONFIG_LEDS_TRIGGER_HEARTBEAT is not set
-# CONFIG_LEDS_TRIGGER_BACKLIGHT is not set
-# CONFIG_LEDS_TRIGGER_CPU is not set
-CONFIG_LEDS_TRIGGER_GPIO=y
-# CONFIG_LEDS_TRIGGER_DEFAULT_ON is not set
-
-#
-# iptables trigger is under Netfilter config (LED target)
-#
-CONFIG_LEDS_TRIGGER_TRANSIENT=y
-# CONFIG_ACCESSIBILITY is not set
-CONFIG_INFINIBAND=y
-CONFIG_INFINIBAND_USER_MAD=y
-# CONFIG_INFINIBAND_USER_ACCESS is not set
-# CONFIG_INFINIBAND_MTHCA is not set
-CONFIG_INFINIBAND_QIB=y
-# CONFIG_EDAC is not set
-CONFIG_RTC_LIB=y
-CONFIG_RTC_CLASS=y
-# CONFIG_RTC_HCTOSYS is not set
-# CONFIG_RTC_DEBUG is not set
-
-#
-# RTC interfaces
-#
-CONFIG_RTC_INTF_SYSFS=y
-# CONFIG_RTC_INTF_PROC is not set
-CONFIG_RTC_INTF_DEV=y
-# CONFIG_RTC_INTF_DEV_UIE_EMUL is not set
-CONFIG_RTC_DRV_TEST=y
-
-#
-# SPI RTC drivers
-#
-
-#
-# Platform RTC drivers
-#
-# CONFIG_RTC_DRV_CMOS is not set
-# CONFIG_RTC_DRV_DS1286 is not set
-CONFIG_RTC_DRV_DS1511=y
-# CONFIG_RTC_DRV_DS1553 is not set
-CONFIG_RTC_DRV_DS1742=y
-CONFIG_RTC_DRV_STK17TA8=y
-CONFIG_RTC_DRV_M48T86=y
-CONFIG_RTC_DRV_M48T35=y
-CONFIG_RTC_DRV_M48T59=y
-CONFIG_RTC_DRV_MSM6242=y
-# CONFIG_RTC_DRV_BQ4802 is not set
-CONFIG_RTC_DRV_RP5C01=y
-# CONFIG_RTC_DRV_V3020 is not set
-
-#
-# on-CPU RTC drivers
-#
-# CONFIG_DMADEVICES is not set
-CONFIG_AUXDISPLAY=y
-# CONFIG_KS0108 is not set
-# CONFIG_UIO is not set
-CONFIG_VFIO_IOMMU_TYPE1=y
-CONFIG_VFIO=y
-CONFIG_VIRTIO=y
-CONFIG_VIRTIO_RING=y
-
-#
-# Virtio drivers
-#
-# CONFIG_VIRTIO_PCI is not set
-CONFIG_VIRTIO_BALLOON=y
-# CONFIG_VIRTIO_MMIO is not set
-
-#
-# Microsoft Hyper-V guest support
-#
-# CONFIG_HYPERV is not set
-
-#
-# Xen driver support
-#
-CONFIG_XEN_BALLOON=y
-# CONFIG_XEN_SCRUB_PAGES is not set
-CONFIG_XEN_DEV_EVTCHN=y
-CONFIG_XEN_BACKEND=y
-# CONFIG_XENFS is not set
-# CONFIG_XEN_SYS_HYPERVISOR is not set
-# CONFIG_XEN_GNTDEV is not set
-CONFIG_XEN_GRANT_DEV_ALLOC=y
-CONFIG_SWIOTLB_XEN=y
-# CONFIG_XEN_PCIDEV_BACKEND is not set
-CONFIG_XEN_PRIVCMD=y
-# CONFIG_XEN_ACPI_PROCESSOR is not set
-# CONFIG_XEN_MCE_LOG is not set
-CONFIG_STAGING=y
-# CONFIG_SLICOSS is not set
-# CONFIG_USBIP_CORE is not set
-# CONFIG_ECHO is not set
-# CONFIG_ASUS_OLED is not set
-CONFIG_PANEL=y
-CONFIG_PANEL_PARPORT=0
-CONFIG_PANEL_PROFILE=5
-CONFIG_PANEL_CHANGE_MESSAGE=y
-CONFIG_PANEL_BOOT_MESSAGE=""
-# CONFIG_TRANZPORT is not set
-# CONFIG_USB_SERIAL_QUATECH2 is not set
-CONFIG_DX_SEP=y
-CONFIG_ZSMALLOC=y
-CONFIG_CRYSTALHD=y
-# CONFIG_ACPI_QUICKSTART is not set
-CONFIG_BCM_WIMAX=y
-CONFIG_FT1000=y
-# CONFIG_FT1000_USB is not set
-
-#
-# Speakup console speech
-#
-CONFIG_STAGING_MEDIA=y
-# CONFIG_VIDEO_DT3155 is not set
-
-#
-# Android
-#
-CONFIG_ANDROID=y
-CONFIG_ANDROID_BINDER_IPC=y
-CONFIG_ASHMEM=y
-# CONFIG_ANDROID_LOGGER is not set
-CONFIG_ANDROID_TIMED_OUTPUT=y
-CONFIG_ANDROID_TIMED_GPIO=y
-# CONFIG_ANDROID_LOW_MEMORY_KILLER is not set
-CONFIG_ANDROID_INTF_ALARM_DEV=y
-CONFIG_PHONE=y
-# CONFIG_PHONE_IXJ is not set
-# CONFIG_USB_WPAN_HCD is not set
-# CONFIG_IPACK_BUS is not set
-CONFIG_WIMAX_GDM72XX=y
-# CONFIG_WIMAX_GDM72XX_QOS is not set
-# CONFIG_WIMAX_GDM72XX_K_MODE is not set
-CONFIG_WIMAX_GDM72XX_WIMAX2=y
-CONFIG_WIMAX_GDM72XX_USB=y
-CONFIG_X86_PLATFORM_DEVICES=y
-# CONFIG_ACERHDF is not set
-# CONFIG_ASUS_LAPTOP is not set
-# CONFIG_FUJITSU_LAPTOP is not set
-CONFIG_FUJITSU_TABLET=y
-CONFIG_HP_ACCEL=y
-CONFIG_PANASONIC_LAPTOP=y
-# CONFIG_THINKPAD_ACPI is not set
-CONFIG_SENSORS_HDAPS=y
-# CONFIG_INTEL_MENLOW is not set
-CONFIG_EEEPC_LAPTOP=y
-# CONFIG_ACPI_WMI is not set
-# CONFIG_TOPSTAR_LAPTOP is not set
-CONFIG_TOSHIBA_BT_RFKILL=y
-# CONFIG_ACPI_CMPC is not set
-# CONFIG_INTEL_IPS is not set
-CONFIG_IBM_RTL=y
-CONFIG_XO15_EBOOK=y
-CONFIG_SAMSUNG_LAPTOP=y
-CONFIG_SAMSUNG_Q10=y
-# CONFIG_APPLE_GMUX is not set
-
-#
-# Hardware Spinlock drivers
-#
-CONFIG_CLKEVT_I8253=y
-CONFIG_I8253_LOCK=y
-CONFIG_CLKBLD_I8253=y
-CONFIG_IOMMU_API=y
-CONFIG_IOMMU_SUPPORT=y
-CONFIG_AMD_IOMMU=y
-CONFIG_AMD_IOMMU_STATS=y
-CONFIG_AMD_IOMMU_V2=y
-CONFIG_DMAR_TABLE=y
-CONFIG_INTEL_IOMMU=y
-# CONFIG_INTEL_IOMMU_DEFAULT_ON is not set
-CONFIG_INTEL_IOMMU_FLOPPY_WA=y
-CONFIG_IRQ_REMAP=y
-
-#
-# Remoteproc drivers (EXPERIMENTAL)
-#
-
-#
-# Rpmsg drivers (EXPERIMENTAL)
-#
-# CONFIG_VIRT_DRIVERS is not set
-CONFIG_PM_DEVFREQ=y
-
-#
-# DEVFREQ Governors
-#
-CONFIG_DEVFREQ_GOV_SIMPLE_ONDEMAND=y
-CONFIG_DEVFREQ_GOV_PERFORMANCE=y
-CONFIG_DEVFREQ_GOV_POWERSAVE=y
-# CONFIG_DEVFREQ_GOV_USERSPACE is not set
-
-#
-# DEVFREQ Drivers
-#
-CONFIG_EXTCON=y
-
-#
-# Extcon Device Drivers
-#
-CONFIG_EXTCON_GPIO=y
-# CONFIG_MEMORY is not set
-# CONFIG_IIO is not set
-CONFIG_VME_BUS=y
-
-#
-# VME Bridge Drivers
-#
-# CONFIG_VME_CA91CX42 is not set
-CONFIG_VME_TSI148=y
-
-#
-# VME Board Drivers
-#
-CONFIG_VMIVME_7805=y
-
-#
-# VME Device Drivers
-#
-# CONFIG_VME_USER is not set
-CONFIG_VME_PIO2=y
-CONFIG_PWM=y
-
-#
-# Firmware Drivers
-#
-CONFIG_EDD=y
-# CONFIG_EDD_OFF is not set
-# CONFIG_FIRMWARE_MEMMAP is not set
-CONFIG_EFI_VARS=y
-CONFIG_DELL_RBU=y
-# CONFIG_DCDBAS is not set
-# CONFIG_DMIID is not set
-CONFIG_DMI_SYSFS=y
-CONFIG_ISCSI_IBFT_FIND=y
-# CONFIG_GOOGLE_FIRMWARE is not set
-
-#
-# File systems
-#
-CONFIG_DCACHE_WORD_ACCESS=y
-CONFIG_FS_POSIX_ACL=y
-# CONFIG_FILE_LOCKING is not set
-CONFIG_FSNOTIFY=y
-CONFIG_DNOTIFY=y
-# CONFIG_INOTIFY_USER is not set
-CONFIG_FANOTIFY=y
-# CONFIG_FANOTIFY_ACCESS_PERMISSIONS is not set
-CONFIG_QUOTA=y
-# CONFIG_QUOTA_NETLINK_INTERFACE is not set
-CONFIG_PRINT_QUOTA_WARNING=y
-# CONFIG_QUOTA_DEBUG is not set
-CONFIG_QUOTA_TREE=y
-CONFIG_QFMT_V1=y
-CONFIG_QFMT_V2=y
-CONFIG_QUOTACTL=y
-# CONFIG_AUTOFS4_FS is not set
-# CONFIG_FUSE_FS is not set
-CONFIG_GENERIC_ACL=y
-
-#
-# Caches
-#
-CONFIG_FSCACHE=y
-CONFIG_FSCACHE_STATS=y
-CONFIG_FSCACHE_HISTOGRAM=y
-CONFIG_FSCACHE_DEBUG=y
-CONFIG_FSCACHE_OBJECT_LIST=y
-
-#
-# Pseudo filesystems
-#
-CONFIG_PROC_FS=y
-# CONFIG_PROC_KCORE is not set
-CONFIG_PROC_SYSCTL=y
-# CONFIG_PROC_PAGE_MONITOR is not set
-CONFIG_SYSFS=y
-CONFIG_TMPFS=y
-CONFIG_TMPFS_POSIX_ACL=y
-CONFIG_TMPFS_XATTR=y
-# CONFIG_HUGETLBFS is not set
-# CONFIG_HUGETLB_PAGE is not set
-CONFIG_CONFIGFS_FS=y
-CONFIG_MISC_FILESYSTEMS=y
-CONFIG_ECRYPT_FS=y
-CONFIG_PSTORE=y
-# CONFIG_PSTORE_CONSOLE is not set
-# CONFIG_PSTORE_FTRACE is not set
-# CONFIG_PSTORE_RAM is not set
-CONFIG_NETWORK_FILESYSTEMS=y
-CONFIG_NLS=y
-CONFIG_NLS_DEFAULT="iso8859-1"
-CONFIG_NLS_CODEPAGE_437=y
-# CONFIG_NLS_CODEPAGE_737 is not set
-CONFIG_NLS_CODEPAGE_775=y
-CONFIG_NLS_CODEPAGE_850=y
-CONFIG_NLS_CODEPAGE_852=y
-CONFIG_NLS_CODEPAGE_855=y
-# CONFIG_NLS_CODEPAGE_857 is not set
-# CONFIG_NLS_CODEPAGE_860 is not set
-# CONFIG_NLS_CODEPAGE_861 is not set
-CONFIG_NLS_CODEPAGE_862=y
-CONFIG_NLS_CODEPAGE_863=y
-# CONFIG_NLS_CODEPAGE_864 is not set
-CONFIG_NLS_CODEPAGE_865=y
-# CONFIG_NLS_CODEPAGE_866 is not set
-CONFIG_NLS_CODEPAGE_869=y
-CONFIG_NLS_CODEPAGE_936=y
-# CONFIG_NLS_CODEPAGE_950 is not set
-# CONFIG_NLS_CODEPAGE_932 is not set
-# CONFIG_NLS_CODEPAGE_949 is not set
-# CONFIG_NLS_CODEPAGE_874 is not set
-CONFIG_NLS_ISO8859_8=y
-# CONFIG_NLS_CODEPAGE_1250 is not set
-CONFIG_NLS_CODEPAGE_1251=y
-# CONFIG_NLS_ASCII is not set
-# CONFIG_NLS_ISO8859_1 is not set
-# CONFIG_NLS_ISO8859_2 is not set
-# CONFIG_NLS_ISO8859_3 is not set
-CONFIG_NLS_ISO8859_4=y
-# CONFIG_NLS_ISO8859_5 is not set
-# CONFIG_NLS_ISO8859_6 is not set
-# CONFIG_NLS_ISO8859_7 is not set
-CONFIG_NLS_ISO8859_9=y
-CONFIG_NLS_ISO8859_13=y
-# CONFIG_NLS_ISO8859_14 is not set
-CONFIG_NLS_ISO8859_15=y
-# CONFIG_NLS_KOI8_R is not set
-CONFIG_NLS_KOI8_U=y
-# CONFIG_NLS_MAC_ROMAN is not set
-# CONFIG_NLS_MAC_CELTIC is not set
-# CONFIG_NLS_MAC_CENTEURO is not set
-CONFIG_NLS_MAC_CROATIAN=y
-# CONFIG_NLS_MAC_CYRILLIC is not set
-CONFIG_NLS_MAC_GAELIC=y
-CONFIG_NLS_MAC_GREEK=y
-# CONFIG_NLS_MAC_ICELAND is not set
-# CONFIG_NLS_MAC_INUIT is not set
-CONFIG_NLS_MAC_ROMANIAN=y
-CONFIG_NLS_MAC_TURKISH=y
-CONFIG_NLS_UTF8=y
-
-#
-# Kernel hacking
-#
-CONFIG_TRACE_IRQFLAGS_SUPPORT=y
-CONFIG_PRINTK_TIME=y
-CONFIG_DEFAULT_MESSAGE_LOGLEVEL=4
-CONFIG_ENABLE_WARN_DEPRECATED=y
-# CONFIG_ENABLE_MUST_CHECK is not set
-CONFIG_FRAME_WARN=2048
-CONFIG_MAGIC_SYSRQ=y
-# CONFIG_STRIP_ASM_SYMS is not set
-CONFIG_READABLE_ASM=y
-# CONFIG_UNUSED_SYMBOLS is not set
-CONFIG_DEBUG_FS=y
-# CONFIG_HEADERS_CHECK is not set
-CONFIG_DEBUG_SECTION_MISMATCH=y
-CONFIG_DEBUG_KERNEL=y
-# CONFIG_DEBUG_SHIRQ is not set
-# CONFIG_LOCKUP_DETECTOR is not set
-# CONFIG_HARDLOCKUP_DETECTOR is not set
-CONFIG_PANIC_ON_OOPS=y
-CONFIG_PANIC_ON_OOPS_VALUE=1
-CONFIG_DETECT_HUNG_TASK=y
-CONFIG_DEFAULT_HUNG_TASK_TIMEOUT=120
-# CONFIG_BOOTPARAM_HUNG_TASK_PANIC is not set
-CONFIG_BOOTPARAM_HUNG_TASK_PANIC_VALUE=0
-CONFIG_SCHED_DEBUG=y
-CONFIG_SCHEDSTATS=y
-# CONFIG_TIMER_STATS is not set
-CONFIG_DEBUG_OBJECTS=y
-CONFIG_DEBUG_OBJECTS_SELFTEST=y
-CONFIG_DEBUG_OBJECTS_FREE=y
-CONFIG_DEBUG_OBJECTS_TIMERS=y
-CONFIG_DEBUG_OBJECTS_WORK=y
-# CONFIG_DEBUG_OBJECTS_RCU_HEAD is not set
-CONFIG_DEBUG_OBJECTS_PERCPU_COUNTER=y
-CONFIG_DEBUG_OBJECTS_ENABLE_DEFAULT=1
-CONFIG_SLUB_STATS=y
-# CONFIG_DEBUG_KMEMLEAK is not set
-CONFIG_DEBUG_RT_MUTEXES=y
-CONFIG_DEBUG_PI_LIST=y
-CONFIG_RT_MUTEX_TESTER=y
-CONFIG_DEBUG_SPINLOCK=y
-CONFIG_DEBUG_MUTEXES=y
-CONFIG_DEBUG_LOCK_ALLOC=y
-CONFIG_PROVE_LOCKING=y
-# CONFIG_PROVE_RCU is not set
-# CONFIG_SPARSE_RCU_POINTER is not set
-CONFIG_LOCKDEP=y
-# CONFIG_LOCK_STAT is not set
-CONFIG_DEBUG_LOCKDEP=y
-CONFIG_TRACE_IRQFLAGS=y
-CONFIG_DEBUG_ATOMIC_SLEEP=y
-# CONFIG_DEBUG_LOCKING_API_SELFTESTS is not set
-CONFIG_STACKTRACE=y
-CONFIG_DEBUG_STACK_USAGE=y
-# CONFIG_DEBUG_KOBJECT is not set
-# CONFIG_DEBUG_BUGVERBOSE is not set
-# CONFIG_DEBUG_INFO is not set
-# CONFIG_DEBUG_VM is not set
-# CONFIG_DEBUG_VIRTUAL is not set
-CONFIG_DEBUG_WRITECOUNT=y
-CONFIG_DEBUG_MEMORY_INIT=y
-# CONFIG_DEBUG_LIST is not set
-CONFIG_TEST_LIST_SORT=y
-# CONFIG_DEBUG_SG is not set
-# CONFIG_DEBUG_NOTIFIERS is not set
-CONFIG_DEBUG_CREDENTIALS=y
-CONFIG_ARCH_WANT_FRAME_POINTERS=y
-CONFIG_FRAME_POINTER=y
-CONFIG_BOOT_PRINTK_DELAY=y
-CONFIG_RCU_TORTURE_TEST=y
-# CONFIG_RCU_TORTURE_TEST_RUNNABLE is not set
-CONFIG_RCU_CPU_STALL_TIMEOUT=60
-# CONFIG_RCU_CPU_STALL_INFO is not set
-# CONFIG_RCU_TRACE is not set
-CONFIG_BACKTRACE_SELF_TEST=y
-CONFIG_DEBUG_FORCE_WEAK_PER_CPU=y
-CONFIG_DEBUG_PER_CPU_MAPS=y
-CONFIG_NOTIFIER_ERROR_INJECTION=y
-CONFIG_CPU_NOTIFIER_ERROR_INJECT=y
-# CONFIG_PM_NOTIFIER_ERROR_INJECT is not set
-CONFIG_FAULT_INJECTION=y
-# CONFIG_FAILSLAB is not set
-CONFIG_FAIL_PAGE_ALLOC=y
-# CONFIG_FAULT_INJECTION_DEBUG_FS is not set
-CONFIG_LATENCYTOP=y
-CONFIG_DEBUG_PAGEALLOC=y
-CONFIG_WANT_PAGE_DEBUG_FLAGS=y
-CONFIG_PAGE_GUARD=y
-CONFIG_USER_STACKTRACE_SUPPORT=y
-CONFIG_NOP_TRACER=y
-CONFIG_HAVE_FUNCTION_TRACER=y
-CONFIG_HAVE_FUNCTION_GRAPH_TRACER=y
-CONFIG_HAVE_FUNCTION_GRAPH_FP_TEST=y
-CONFIG_HAVE_FUNCTION_TRACE_MCOUNT_TEST=y
-CONFIG_HAVE_DYNAMIC_FTRACE=y
-CONFIG_HAVE_FTRACE_MCOUNT_RECORD=y
-CONFIG_HAVE_SYSCALL_TRACEPOINTS=y
-CONFIG_HAVE_C_RECORDMCOUNT=y
-CONFIG_TRACER_MAX_TRACE=y
-CONFIG_RING_BUFFER=y
-CONFIG_EVENT_TRACING=y
-CONFIG_EVENT_POWER_TRACING_DEPRECATED=y
-CONFIG_CONTEXT_SWITCH_TRACER=y
-CONFIG_RING_BUFFER_ALLOW_SWAP=y
-CONFIG_TRACING=y
-CONFIG_GENERIC_TRACER=y
-CONFIG_TRACING_SUPPORT=y
-CONFIG_FTRACE=y
-CONFIG_FUNCTION_TRACER=y
-# CONFIG_FUNCTION_GRAPH_TRACER is not set
-CONFIG_IRQSOFF_TRACER=y
-CONFIG_SCHED_TRACER=y
-CONFIG_FTRACE_SYSCALLS=y
-CONFIG_BRANCH_PROFILE_NONE=y
-# CONFIG_PROFILE_ANNOTATED_BRANCHES is not set
-# CONFIG_PROFILE_ALL_BRANCHES is not set
-CONFIG_STACK_TRACER=y
-CONFIG_UPROBE_EVENT=y
-CONFIG_PROBE_EVENTS=y
-CONFIG_DYNAMIC_FTRACE=y
-# CONFIG_FUNCTION_PROFILER is not set
-CONFIG_FTRACE_MCOUNT_RECORD=y
-CONFIG_FTRACE_SELFTEST=y
-CONFIG_FTRACE_STARTUP_TEST=y
-# CONFIG_EVENT_TRACE_TEST_SYSCALLS is not set
-# CONFIG_MMIOTRACE is not set
-# CONFIG_RING_BUFFER_BENCHMARK is not set
-CONFIG_PROVIDE_OHCI1394_DMA_INIT=y
-# CONFIG_DYNAMIC_DEBUG is not set
-CONFIG_DMA_API_DEBUG=y
-CONFIG_ATOMIC64_SELFTEST=y
-CONFIG_SAMPLES=y
-CONFIG_HAVE_ARCH_KGDB=y
-CONFIG_KGDB=y
-CONFIG_KGDB_SERIAL_CONSOLE=y
-# CONFIG_KGDB_TESTS is not set
-# CONFIG_KGDB_LOW_LEVEL_TRAP is not set
-# CONFIG_KGDB_KDB is not set
-CONFIG_HAVE_ARCH_KMEMCHECK=y
-CONFIG_TEST_KSTRTOX=y
-CONFIG_STRICT_DEVMEM=y
-# CONFIG_X86_VERBOSE_BOOTUP is not set
-# CONFIG_EARLY_PRINTK is not set
-CONFIG_DEBUG_STACKOVERFLOW=y
-CONFIG_X86_PTDUMP=y
-# CONFIG_DEBUG_RODATA is not set
-# CONFIG_DEBUG_TLBFLUSH is not set
-# CONFIG_IOMMU_DEBUG is not set
-CONFIG_IOMMU_STRESS=y
-CONFIG_HAVE_MMIOTRACE_SUPPORT=y
-CONFIG_IO_DELAY_TYPE_0X80=0
-CONFIG_IO_DELAY_TYPE_0XED=1
-CONFIG_IO_DELAY_TYPE_UDELAY=2
-CONFIG_IO_DELAY_TYPE_NONE=3
-# CONFIG_IO_DELAY_0X80 is not set
-# CONFIG_IO_DELAY_0XED is not set
-# CONFIG_IO_DELAY_UDELAY is not set
-CONFIG_IO_DELAY_NONE=y
-CONFIG_DEFAULT_IO_DELAY_TYPE=3
-CONFIG_DEBUG_BOOT_PARAMS=y
-CONFIG_CPA_DEBUG=y
-# CONFIG_OPTIMIZE_INLINING is not set
-# CONFIG_DEBUG_STRICT_USER_COPY_CHECKS is not set
-# CONFIG_DEBUG_NMI_SELFTEST is not set
-
-#
-# Security options
-#
-CONFIG_KEYS=y
-CONFIG_TRUSTED_KEYS=y
-CONFIG_ENCRYPTED_KEYS=y
-CONFIG_KEYS_DEBUG_PROC_KEYS=y
-CONFIG_SECURITY_DMESG_RESTRICT=y
-CONFIG_SECURITY=y
-CONFIG_SECURITYFS=y
-CONFIG_SECURITY_NETWORK=y
-# CONFIG_SECURITY_PATH is not set
-CONFIG_INTEL_TXT=y
-# CONFIG_SECURITY_TOMOYO is not set
-# CONFIG_SECURITY_APPARMOR is not set
-# CONFIG_SECURITY_YAMA is not set
-# CONFIG_IMA is not set
-# CONFIG_EVM is not set
-CONFIG_DEFAULT_SECURITY_DAC=y
-CONFIG_DEFAULT_SECURITY=""
-CONFIG_CRYPTO=y
-
-#
-# Crypto core or helper
-#
-CONFIG_CRYPTO_ALGAPI=y
-CONFIG_CRYPTO_ALGAPI2=y
-CONFIG_CRYPTO_AEAD=y
-CONFIG_CRYPTO_AEAD2=y
-CONFIG_CRYPTO_BLKCIPHER=y
-CONFIG_CRYPTO_BLKCIPHER2=y
-CONFIG_CRYPTO_HASH=y
-CONFIG_CRYPTO_HASH2=y
-CONFIG_CRYPTO_RNG=y
-CONFIG_CRYPTO_RNG2=y
-CONFIG_CRYPTO_PCOMP2=y
-CONFIG_CRYPTO_MANAGER=y
-CONFIG_CRYPTO_MANAGER2=y
-CONFIG_CRYPTO_USER=y
-CONFIG_CRYPTO_MANAGER_DISABLE_TESTS=y
-CONFIG_CRYPTO_GF128MUL=y
-CONFIG_CRYPTO_NULL=y
-# CONFIG_CRYPTO_PCRYPT is not set
-CONFIG_CRYPTO_WORKQUEUE=y
-CONFIG_CRYPTO_CRYPTD=y
-# CONFIG_CRYPTO_AUTHENC is not set
-CONFIG_CRYPTO_ABLK_HELPER_X86=y
-CONFIG_CRYPTO_GLUE_HELPER_X86=y
-
-#
-# Authenticated Encryption with Associated Data
-#
-# CONFIG_CRYPTO_CCM is not set
-# CONFIG_CRYPTO_GCM is not set
-CONFIG_CRYPTO_SEQIV=y
-
-#
-# Block modes
-#
-CONFIG_CRYPTO_CBC=y
-CONFIG_CRYPTO_CTR=y
-# CONFIG_CRYPTO_CTS is not set
-CONFIG_CRYPTO_ECB=y
-CONFIG_CRYPTO_LRW=y
-CONFIG_CRYPTO_PCBC=y
-CONFIG_CRYPTO_XTS=y
-
-#
-# Hash modes
-#
-CONFIG_CRYPTO_HMAC=y
-# CONFIG_CRYPTO_XCBC is not set
-CONFIG_CRYPTO_VMAC=y
-
-#
-# Digest
-#
-CONFIG_CRYPTO_CRC32C=y
-# CONFIG_CRYPTO_CRC32C_INTEL is not set
-# CONFIG_CRYPTO_GHASH is not set
-CONFIG_CRYPTO_MD4=y
-CONFIG_CRYPTO_MD5=y
-# CONFIG_CRYPTO_MICHAEL_MIC is not set
-CONFIG_CRYPTO_RMD128=y
-CONFIG_CRYPTO_RMD160=y
-# CONFIG_CRYPTO_RMD256 is not set
-# CONFIG_CRYPTO_RMD320 is not set
-CONFIG_CRYPTO_SHA1=y
-# CONFIG_CRYPTO_SHA1_SSSE3 is not set
-CONFIG_CRYPTO_SHA256=y
-CONFIG_CRYPTO_SHA512=y
-# CONFIG_CRYPTO_TGR192 is not set
-# CONFIG_CRYPTO_WP512 is not set
-# CONFIG_CRYPTO_GHASH_CLMUL_NI_INTEL is not set
-
-#
-# Ciphers
-#
-CONFIG_CRYPTO_AES=y
-# CONFIG_CRYPTO_AES_X86_64 is not set
-# CONFIG_CRYPTO_AES_NI_INTEL is not set
-CONFIG_CRYPTO_ANUBIS=y
-CONFIG_CRYPTO_ARC4=y
-# CONFIG_CRYPTO_BLOWFISH is not set
-CONFIG_CRYPTO_BLOWFISH_COMMON=y
-CONFIG_CRYPTO_BLOWFISH_X86_64=y
-# CONFIG_CRYPTO_CAMELLIA is not set
-# CONFIG_CRYPTO_CAMELLIA_X86_64 is not set
-# CONFIG_CRYPTO_CAST5 is not set
-# CONFIG_CRYPTO_CAST5_AVX_X86_64 is not set
-# CONFIG_CRYPTO_CAST6 is not set
-# CONFIG_CRYPTO_CAST6_AVX_X86_64 is not set
-CONFIG_CRYPTO_DES=y
-# CONFIG_CRYPTO_FCRYPT is not set
-# CONFIG_CRYPTO_KHAZAD is not set
-CONFIG_CRYPTO_SALSA20=y
-# CONFIG_CRYPTO_SALSA20_X86_64 is not set
-CONFIG_CRYPTO_SEED=y
-CONFIG_CRYPTO_SERPENT=y
-# CONFIG_CRYPTO_SERPENT_SSE2_X86_64 is not set
-CONFIG_CRYPTO_SERPENT_AVX_X86_64=y
-CONFIG_CRYPTO_TEA=y
-CONFIG_CRYPTO_TWOFISH=y
-CONFIG_CRYPTO_TWOFISH_COMMON=y
-CONFIG_CRYPTO_TWOFISH_X86_64=y
-# CONFIG_CRYPTO_TWOFISH_X86_64_3WAY is not set
-# CONFIG_CRYPTO_TWOFISH_AVX_X86_64 is not set
-
-#
-# Compression
-#
-CONFIG_CRYPTO_DEFLATE=y
-# CONFIG_CRYPTO_ZLIB is not set
-CONFIG_CRYPTO_LZO=y
-
-#
-# Random Number Generation
-#
-# CONFIG_CRYPTO_ANSI_CPRNG is not set
-# CONFIG_CRYPTO_USER_API_HASH is not set
-# CONFIG_CRYPTO_USER_API_SKCIPHER is not set
-CONFIG_CRYPTO_HW=y
-CONFIG_CRYPTO_DEV_PADLOCK=y
-CONFIG_CRYPTO_DEV_PADLOCK_AES=y
-# CONFIG_CRYPTO_DEV_PADLOCK_SHA is not set
-CONFIG_HAVE_KVM=y
-CONFIG_VIRTUALIZATION=y
-# CONFIG_KVM is not set
-CONFIG_BINARY_PRINTF=y
-
-#
-# Library routines
-#
-CONFIG_BITREVERSE=y
-CONFIG_GENERIC_STRNCPY_FROM_USER=y
-CONFIG_GENERIC_STRNLEN_USER=y
-CONFIG_GENERIC_FIND_FIRST_BIT=y
-CONFIG_GENERIC_PCI_IOMAP=y
-CONFIG_GENERIC_IOMAP=y
-CONFIG_GENERIC_IO=y
-CONFIG_CRC_CCITT=y
-CONFIG_CRC16=y
-# CONFIG_CRC_T10DIF is not set
-CONFIG_CRC_ITU_T=y
-CONFIG_CRC32=y
-# CONFIG_CRC32_SELFTEST is not set
-# CONFIG_CRC32_SLICEBY8 is not set
-# CONFIG_CRC32_SLICEBY4 is not set
-CONFIG_CRC32_SARWATE=y
-# CONFIG_CRC32_BIT is not set
-# CONFIG_CRC7 is not set
-CONFIG_LIBCRC32C=y
-# CONFIG_CRC8 is not set
-CONFIG_ZLIB_INFLATE=y
-CONFIG_ZLIB_DEFLATE=y
-CONFIG_LZO_COMPRESS=y
-CONFIG_LZO_DECOMPRESS=y
-# CONFIG_XZ_DEC is not set
-# CONFIG_XZ_DEC_BCJ is not set
-CONFIG_HAS_IOMEM=y
-CONFIG_HAS_IOPORT=y
-CONFIG_HAS_DMA=y
-# CONFIG_CPUMASK_OFFSTACK is not set
-CONFIG_CPU_RMAP=y
-CONFIG_DQL=y
-CONFIG_NLATTR=y
-CONFIG_ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE=y
-CONFIG_AVERAGE=y
-CONFIG_CORDIC=y
-CONFIG_DDR=y
-
---------------060600070106030303040603--
