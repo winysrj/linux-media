@@ -1,729 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from impaqm1.telefonica.net ([213.4.138.17]:12486 "EHLO
-	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750908Ab2H1MEq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Aug 2012 08:04:46 -0400
-From: Jose Alberto Reguero <jareguero@telefonica.net>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org, Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: [PATCH] v2 Add support to Avermedia Twinstar double tuner in af9035
-Date: Tue, 28 Aug 2012 14:04:30 +0200
-Message-ID: <2490852.daGJbz3TlS@jar7.dominio>
-In-Reply-To: <503C1C8B.8010502@iki.fi>
-References: <21730276.nBhNp4UZ8D@jar7.dominio> <503C1C8B.8010502@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Received: from pequod.mess.org ([93.97.41.153]:46456 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753344Ab2HJT2M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Aug 2012 15:28:12 -0400
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Greg Kroah-Hartman <greg@kroah.com>,
+	Stefan Macher <st_maker-lirc@yahoo.de>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 6/6] [staging] lirc: lirc_ene0100.h is not referenced anywhere
+Date: Fri, 10 Aug 2012 20:28:08 +0100
+Message-Id: <1344626888-10536-6-git-send-email-sean@mess.org>
+In-Reply-To: <1344626888-10536-1-git-send-email-sean@mess.org>
+References: <1344626888-10536-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Martes, 28 de agosto de 2012 04:19:07 Antti Palosaari escribió:
-> Hello
-> this is not final review, as there was more things to check I was first
-> thinking. I have to look it tomorrow too. But few comments still.
-> 
-> On 08/27/2012 01:25 AM, Jose Alberto Reguero wrote:
-> > This patch add support to the Avermedia Twinstar double tuner in the
-> > af9035
-> > driver. Version 2 of the patch with suggestions of Antti.
-> > 
-> > Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
-> > 
-> > Jose Alberto
-> > 
-> > diff -upr linux/drivers/media/dvb-frontends/af9033.c
-> > linux.new/drivers/media/dvb-frontends/af9033.c ---
-> > linux/drivers/media/dvb-frontends/af9033.c	2012-08-14 05:45:22.000000000
-> > +0200 +++ linux.new/drivers/media/dvb-frontends/af9033.c	2012-08-26
-> > 23:38:10.527070150 +0200 @@ -51,6 +51,8 @@ static int
-> > af9033_wr_regs(struct af9033_
-> > 
-> >   	};
-> >   	
-> >   	buf[0] = (reg >> 16) & 0xff;
-> > 
-> > +	if (state->cfg.ts_mode == AF9033_TS_MODE_SERIAL)
-> > +		buf[0] |= 0x10;
-> > 
-> >   	buf[1] = (reg >>  8) & 0xff;
-> >   	buf[2] = (reg >>  0) & 0xff;
-> >   	memcpy(&buf[3], val, len);
-> > 
-> > @@ -87,6 +89,9 @@ static int af9033_rd_regs(struct af9033_
-> > 
-> >   		}
-> >   	
-> >   	};
-> > 
-> > +	if (state->cfg.ts_mode == AF9033_TS_MODE_SERIAL)
-> > +		buf[0] |= 0x10;
-> > +
-> 
-> I don't like that if TS mode serial then tweak address bytes.
-> 
-> I looked those from the sniff and it looks like that bit is used as a
-> mail box pointing out if chip is on secondary bus. Imagine it as a
-> situation there is two I2C bus, 1st demod is on bus#0 and 2nd demod is
-> on bus#1. Such kind of info does not belong here - correct place is
-> I2C-adapter or even register multiple adapters.
-> 
+There is a proper ene0100 driver anyway.
 
-If I understand correctly, the logic must be made in af9035_i2c_master_xfer.
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/staging/media/lirc/lirc_ene0100.h | 169 ------------------------------
+ 1 file changed, 169 deletions(-)
+ delete mode 100644 drivers/staging/media/lirc/lirc_ene0100.h
 
+diff --git a/drivers/staging/media/lirc/lirc_ene0100.h b/drivers/staging/media/lirc/lirc_ene0100.h
+deleted file mode 100644
+index 06bebd6..0000000
+--- a/drivers/staging/media/lirc/lirc_ene0100.h
++++ /dev/null
+@@ -1,169 +0,0 @@
+-/*
+- * driver for ENE KB3926 B/C/D CIR (also known as ENE0100)
+- *
+- * Copyright (C) 2009 Maxim Levitsky <maximlevitsky@gmail.com>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation; either version 2 of the
+- * License, or (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+- * USA
+- */
+-
+-#include <media/lirc.h>
+-#include <media/lirc_dev.h>
+-
+-/* hardware address */
+-#define ENE_STATUS		0	 /* hardware status - unused */
+-#define ENE_ADDR_HI		1	 /* hi byte of register address */
+-#define ENE_ADDR_LO		2	 /* low byte of register address */
+-#define ENE_IO			3	 /* read/write window */
+-#define ENE_MAX_IO		4
+-
+-/* 8 bytes of samples, divided in 2 halfs*/
+-#define ENE_SAMPLE_BUFFER	0xF8F0	 /* regular sample buffer */
+-#define ENE_SAMPLE_SPC_MASK	(1 << 7) /* sample is space */
+-#define ENE_SAMPLE_VALUE_MASK	0x7F
+-#define ENE_SAMPLE_OVERFLOW	0x7F
+-#define ENE_SAMPLES_SIZE	4
+-
+-/* fan input sample buffer */
+-#define ENE_SAMPLE_BUFFER_FAN	0xF8FB	 /* this buffer holds high byte of */
+-					 /* each sample of normal buffer */
+-
+-#define ENE_FAN_SMPL_PULS_MSK	0x8000	 /* this bit of combined sample */
+-					 /* if set, says that sample is pulse */
+-#define ENE_FAN_VALUE_MASK	0x0FFF   /* mask for valid bits of the value */
+-
+-/* first firmware register */
+-#define ENE_FW1			0xF8F8
+-#define	ENE_FW1_ENABLE		(1 << 0) /* enable fw processing */
+-#define ENE_FW1_TXIRQ		(1 << 1) /* TX interrupt pending */
+-#define ENE_FW1_WAKE		(1 << 6) /* enable wake from S3 */
+-#define ENE_FW1_IRQ		(1 << 7) /* enable interrupt */
+-
+-/* second firmware register */
+-#define ENE_FW2			0xF8F9
+-#define ENE_FW2_BUF_HIGH	(1 << 0) /* which half of the buffer to read */
+-#define ENE_FW2_IRQ_CLR		(1 << 2) /* clear this on IRQ */
+-#define ENE_FW2_GP40_AS_LEARN	(1 << 4) /* normal input is used as */
+-					 /* learning input */
+-#define ENE_FW2_FAN_AS_NRML_IN	(1 << 6) /* fan is used as normal input */
+-#define ENE_FW2_LEARNING	(1 << 7) /* hardware supports learning and TX */
+-
+-/* fan as input settings - only if learning capable */
+-#define ENE_FAN_AS_IN1		0xFE30   /* fan init reg 1 */
+-#define ENE_FAN_AS_IN1_EN	0xCD
+-#define ENE_FAN_AS_IN2		0xFE31   /* fan init reg 2 */
+-#define ENE_FAN_AS_IN2_EN	0x03
+-#define ENE_SAMPLE_PERIOD_FAN   61	 /* fan input has fixed sample period */
+-
+-/* IRQ registers block (for revision B) */
+-#define ENEB_IRQ		0xFD09	 /* IRQ number */
+-#define ENEB_IRQ_UNK1		0xFD17	 /* unknown setting = 1 */
+-#define ENEB_IRQ_STATUS		0xFD80	 /* irq status */
+-#define ENEB_IRQ_STATUS_IR	(1 << 5) /* IR irq */
+-
+-/* IRQ registers block (for revision C,D) */
+-#define ENEC_IRQ		0xFE9B	 /* new irq settings register */
+-#define ENEC_IRQ_MASK		0x0F	 /* irq number mask */
+-#define ENEC_IRQ_UNK_EN		(1 << 4) /* always enabled */
+-#define ENEC_IRQ_STATUS		(1 << 5) /* irq status and ACK */
+-
+-/* CIR block settings */
+-#define ENE_CIR_CONF1		0xFEC0
+-#define ENE_CIR_CONF1_ADC_ON	0x7	 /* receiver on gpio40 enabled */
+-#define ENE_CIR_CONF1_LEARN1	(1 << 3) /* enabled on learning mode */
+-#define ENE_CIR_CONF1_TX_ON	0x30	 /* enabled on transmit */
+-#define ENE_CIR_CONF1_TX_CARR	(1 << 7) /* send TX carrier or not */
+-
+-#define ENE_CIR_CONF2		0xFEC1	 /* unknown setting = 0 */
+-#define ENE_CIR_CONF2_LEARN2	(1 << 4) /* set on enable learning */
+-#define ENE_CIR_CONF2_GPIO40DIS	(1 << 5) /* disable normal input via gpio40 */
+-
+-#define ENE_CIR_SAMPLE_PERIOD	0xFEC8	 /* sample period in us */
+-#define ENE_CIR_SAMPLE_OVERFLOW	(1 << 7) /* interrupt on overflows if set */
+-
+-
+-/* transmitter - not implemented yet */
+-/* KB3926C and higher */
+-/* transmission is very similar to receiving, a byte is written to */
+-/* ENE_TX_INPUT, in same manner as it is read from sample buffer */
+-/* sample period is fixed*/
+-
+-
+-/* transmitter ports */
+-#define ENE_TX_PORT1		0xFC01	 /* this enables one or both */
+-#define ENE_TX_PORT1_EN		(1 << 5) /* TX ports */
+-#define ENE_TX_PORT2		0xFC08
+-#define ENE_TX_PORT2_EN		(1 << 1)
+-
+-#define ENE_TX_INPUT		0xFEC9	 /* next byte to transmit */
+-#define ENE_TX_SPC_MASK		(1 << 7) /* Transmitted sample is space */
+-#define ENE_TX_UNK1		0xFECB	 /* set to 0x63 */
+-#define ENE_TX_SMPL_PERIOD	50	 /* transmit sample period */
+-
+-
+-#define ENE_TX_CARRIER		0xFECE	 /* TX carrier * 2 (khz) */
+-#define ENE_TX_CARRIER_UNKBIT	0x80	 /* This bit set on transmit */
+-#define ENE_TX_CARRIER_LOW	0xFECF	 /* TX carrier / 2 */
+-
+-/* Hardware versions */
+-#define ENE_HW_VERSION		0xFF00	 /* hardware revision */
+-#define ENE_HW_UNK		0xFF1D
+-#define ENE_HW_UNK_CLR		(1 << 2)
+-#define ENE_HW_VER_MAJOR	0xFF1E	 /* chip version */
+-#define ENE_HW_VER_MINOR	0xFF1F
+-#define ENE_HW_VER_OLD		0xFD00
+-
+-#define same_sign(a, b) ((((a) > 0) && (b) > 0) || ((a) < 0 && (b) < 0))
+-
+-#define ENE_DRIVER_NAME		"enecir"
+-#define ENE_MAXGAP		250000	 /* this is amount of time we wait
+-					 before turning the sampler, chosen
+-					 arbitry */
+-
+-#define space(len)	       (-(len))	 /* add a space */
+-
+-/* software defines */
+-#define ENE_IRQ_RX		1
+-#define ENE_IRQ_TX		2
+-
+-#define  ENE_HW_B		1	/* 3926B */
+-#define  ENE_HW_C		2	/* 3926C */
+-#define  ENE_HW_D		3	/* 3926D */
+-
+-#define ene_printk(level, text, ...) \
+-	printk(level ENE_DRIVER_NAME ": " text, ## __VA_ARGS__)
+-
+-struct ene_device {
+-	struct pnp_dev *pnp_dev;
+-	struct lirc_driver *lirc_driver;
+-
+-	/* hw settings */
+-	unsigned long hw_io;
+-	int irq;
+-
+-	int hw_revision;			/* hardware revision */
+-	int hw_learning_and_tx_capable;		/* learning capable */
+-	int hw_gpio40_learning;			/* gpio40 is learning */
+-	int hw_fan_as_normal_input;	/* fan input is used as regular input */
+-
+-	/* device data */
+-	int idle;
+-	int fan_input_inuse;
+-
+-	int sample;
+-	int in_use;
+-
+-	struct timeval gap_start;
+-};
+-- 
+1.7.11.2
 
-> >   	ret = i2c_transfer(state->i2c, msg, 2);
-> >   	if (ret == 2) {
-> >   	
-> >   		ret = 0;
-> > 
-> > @@ -325,6 +330,18 @@ static int af9033_init(struct dvb_fronte
-> > 
-> >   		if (ret < 0)
-> >   		
-> >   			goto err;
-> >   	
-> >   	}
-> > 
-> > +
-> > +	if (state->cfg.ts_mode == AF9033_TS_MODE_SERIAL) {
-> > +		ret = af9033_wr_reg_mask(state, 0x00d91c, 0x01, 0x01);
-> > +		if (ret < 0)
-> > +			goto err;
-> > +		ret = af9033_wr_reg_mask(state, 0x00d917, 0x00, 0x01);
-> > +		if (ret < 0)
-> > +			goto err;
-> > +		ret = af9033_wr_reg_mask(state, 0x00d916, 0x00, 0x01);
-> > +		if (ret < 0)
-> > +			goto err;
-> > +	}
-> 
-> Haven't looked these yet.
-
-	These are in the old driver, and without that the second tuner don't work.
-
-> 
-> >   	state->bandwidth_hz = 0; /* force to program all parameters */
-> > 
-> > diff -upr linux/drivers/media/tuners/mxl5007t.c
-> > linux.new/drivers/media/tuners/mxl5007t.c ---
-> > linux/drivers/media/tuners/mxl5007t.c	2012-08-14 05:45:22.000000000 +0200
-> > +++ linux.new/drivers/media/tuners/mxl5007t.c	2012-08-25
-> > 19:36:44.689924518 +0200 @@ -374,7 +374,6 @@ static struct reg_pair_t
-> > *mxl5007t_calc_
-> > 
-> >   	mxl5007t_set_if_freq_bits(state, cfg->if_freq_hz, cfg->invert_if);
-> >   	mxl5007t_set_xtal_freq_bits(state, cfg->xtal_freq_hz);
-> > 
-> > -	set_reg_bits(state->tab_init, 0x04, 0x01, cfg->loop_thru_enable);
-> > 
-> >   	set_reg_bits(state->tab_init, 0x03, 0x08, cfg->clk_out_enable << 3);
-> >   	set_reg_bits(state->tab_init, 0x03, 0x07, cfg->clk_out_amp);
-> > 
-> > @@ -531,9 +530,11 @@ static int mxl5007t_tuner_init(struct mx
-> > 
-> >   	struct reg_pair_t *init_regs;
-> >   	int ret;
-> > 
-> > -	ret = mxl5007t_soft_reset(state);
-> > -	if (mxl_fail(ret))
-> > -		goto fail;
-> > +	if (!state->config->no_reset) {
-> > +	 	ret = mxl5007t_soft_reset(state);
-> > + 		if (mxl_fail(ret))
-> > + 			goto fail;
-> > +	}
-> 
-> What happens if you do soft reset as normally?
-> 
-> I would like to mention that AF9035/AF9033/MXL5007T was supported even
-> earlier that given patch in question and I can guess it has been
-> working. So why you are changing it now ?
-> 
-> If you do these changes because what you see is different compared to
-> windows sniff then you are on wrong way. Windows and Linux drivers are
-> not needed to do 100% similar USB commands.
-> 
-
-These are not because the windows driver. With the hardware I have, when one 
-tuner do reset, the other tuner has errors in the image. I was using this 
-logic with the old driver also.
-Other solution was to do the reset in the mxl5007t_init only, not with every 
-tuning.
-The tuner works well without the reset.
-
-
-> >   	/* calculate initialization reg array */
-> >   	init_regs = mxl5007t_calc_init_regs(state, mode);
-> > 
-> > @@ -887,7 +888,10 @@ struct dvb_frontend *mxl5007t_attach(str
-> > 
-> >   		if (fe->ops.i2c_gate_ctrl)
-> >   		
-> >   			fe->ops.i2c_gate_ctrl(fe, 1);
-> > 
-> > -		ret = mxl5007t_get_chip_id(state);
-> > +		if (!state->config->no_probe)
-> > +			ret = mxl5007t_get_chip_id(state);
-> 
-> Same here. AF9015 firmware does not support reading for MXL5007T. Due to
-> that, it outputs something like unknown chip revision detected but works
-> as it should. Similar case here as AF9015 ?
->
-
-The problem is not the read result, but that i2c transfers don't work after 
-the i2c read. I2c read works well with a old hardware revision, but with the 
-hardware I have now, don't work. I will made another test to be sure.
- 
-> > +
-> > +		ret = mxl5007t_write_reg(state, 0x04, state->config-
->loop_thru_enable);
-> > 
-> >   		if (fe->ops.i2c_gate_ctrl)
-> >   		
-> >   			fe->ops.i2c_gate_ctrl(fe, 0);
-> > 
-> > diff -upr linux/drivers/media/tuners/mxl5007t.h
-> > linux.new/drivers/media/tuners/mxl5007t.h ---
-> > linux/drivers/media/tuners/mxl5007t.h	2012-08-14 05:45:22.000000000 +0200
-> > +++ linux.new/drivers/media/tuners/mxl5007t.h	2012-08-25
-> > 19:38:19.990920623 +0200 @@ -73,8 +73,10 @@ struct mxl5007t_config {
-> > 
-> >   	enum mxl5007t_xtal_freq xtal_freq_hz;
-> >   	enum mxl5007t_if_freq if_freq_hz;
-> >   	unsigned int invert_if:1;
-> > 
-> > -	unsigned int loop_thru_enable:1;
-> > +	unsigned int loop_thru_enable:2;
-> > 
-> >   	unsigned int clk_out_enable:1;
-> > 
-> > +	unsigned int no_probe:1;
-> > +	unsigned int no_reset:1;
-> > 
-> >   };
-> >   
-> >   #if defined(CONFIG_MEDIA_TUNER_MXL5007T) ||
-> >   (defined(CONFIG_MEDIA_TUNER_MXL5007T_MODULE) && defined(MODULE))> 
-> > diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.c
-> > linux.new/drivers/media/usb/dvb-usb-v2/af9035.c ---
-> > linux/drivers/media/usb/dvb-usb-v2/af9035.c	2012-08-16 05:45:24.000000000
-> > +0200 +++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.c	2012-08-26
-> > 23:46:10.702070148 +0200 @@ -209,7 +209,8 @@ static int
-> > af9035_i2c_master_xfer(struct
-> > 
-> >   		if (msg[0].len > 40 || msg[1].len > 40) {
-> >   		
-> >   			/* TODO: correct limits > 40 */
-> >   			ret = -EOPNOTSUPP;
-> > 
-> > -		} else if (msg[0].addr == state->af9033_config[0].i2c_addr) {
-> > +		} else if ((msg[0].addr == state->af9033_config[0].i2c_addr) ||
-> > +			   (msg[0].addr == state->af9033_config[1].i2c_addr)) {
-> > 
-> >   			/* integrated demod */
-> >   			u32 reg = msg[0].buf[0] << 16 | msg[0].buf[1] << 8 |
-> >   			
-> >   					msg[0].buf[2];
-> > 
-> > @@ -220,6 +221,11 @@ static int af9035_i2c_master_xfer(struct
-> > 
-> >   			u8 buf[5 + msg[0].len];
-> >   			struct usb_req req = { CMD_I2C_RD, 0, sizeof(buf),
-> >   			
-> >   					buf, msg[1].len, msg[1].buf };
-> > 
-> > +			if (msg[0].addr == state->tuner_address[1]) {
-> > +				req.mbox += 0x10;
-> > +				msg[0].addr -= 1;
-> > +
-> > +			}
-> > 
-> >   			buf[0] = msg[1].len;
-> >   			buf[1] = msg[0].addr << 1;
-> >   			buf[2] = 0x00; /* reg addr len */
-> > 
-> > @@ -232,7 +238,8 @@ static int af9035_i2c_master_xfer(struct
-> > 
-> >   		if (msg[0].len > 40) {
-> >   		
-> >   			/* TODO: correct limits > 40 */
-> >   			ret = -EOPNOTSUPP;
-> > 
-> > -		} else if (msg[0].addr == state->af9033_config[0].i2c_addr) {
-> > +		} else if ((msg[0].addr == state->af9033_config[0].i2c_addr) ||
-> > +			   (msg[0].addr == state->af9033_config[1].i2c_addr)) {
-> > 
-> >   			/* integrated demod */
-> >   			u32 reg = msg[0].buf[0] << 16 | msg[0].buf[1] << 8 |
-> >   			
-> >   					msg[0].buf[2];
-> > 
-> > @@ -243,6 +250,10 @@ static int af9035_i2c_master_xfer(struct
-> > 
-> >   			u8 buf[5 + msg[0].len];
-> >   			struct usb_req req = { CMD_I2C_WR, 0, sizeof(buf), buf,
-> >   			
-> >   					0, NULL };
-> > 
-> > +			if (msg[0].addr == state->tuner_address[1]) {
-> > +				req.mbox += 0x10;
-> > +				msg[0].addr -= 1;
-> > +			}
-> > 
-> >   			buf[0] = msg[0].len;
-> >   			buf[1] = msg[0].addr << 1;
-> >   			buf[2] = 0x00; /* reg addr len */
-> 
-> It took somehow a quite long time to realize what all this is. First I
-> was looking tuner commands from the sniff searching 0xc2 (0x61 << 1) and
-> didn't find. After that I realized 0x61 was a fake address and that
-> logic is done for handling it. Ugly hacks without any commends...
-> 
-> I am quite sure original I2C-adapter logic is about 99% correct. But as
-> I saw from the sniff that bit 4 from 2nd byte was used as a mail box to
-> select 2nd I2C-adapter or multiplexing I2C in firmware I  admit
-> something should be done in order to handle it. That is much better
-> situation than was for AF9015 where was no way to select used
-> I2C-adapter other than demod I2C-gate.
-> 
-> Lets put here:
-> 
-> both demodulators
-> 001957:  OUT: 000000 ms 057146 ms BULK[00002] >>> 0b 80 00 2b 01 02 00
-> 00 f9 99 b9 05
-> 001977:  OUT: 000002 ms 057164 ms BULK[00002] >>> 0b 90 00 35 01 02 00
-> 00 f9 99 9f 05
-> 
-> both tuners:
-> 002069:  OUT: 000001 ms 058016 ms BULK[00002] >>> 0b 00 03 63 01 c0 01
-> 00 04 00 dc f6
-> 002087:  OUT: 000002 ms 058045 ms BULK[00002] >>> 0b 10 03 6c 01 c0 01
-> 00 04 03 c0 f6
-> 
-> bit4 from 2nd byte does selection between I2C-adapter as can be seen easily.
-> 
-> Most elegant way is to implement two I2C-adapters, one for each tuner.
-> But as it is some more code I encourage to some other "abused" solution.
-> I2C-addresses are 7bit long, but 8bit (or even more as 10bit addresses)
-> could be used. I see best solution to use that one extra bit to carry
-> info about used I2C-bus. Then that adapter hackish code will be much
-> more shorter. Just add MSB bit from I2C-address to req.mbox, req.mbox +=
-> ((msg[0].addr & 0x80) >> 3) and thats it. And please comment it too.
->
-
-I like the idea.
-Another problem with the mxl5007t driver is that there can't be two instances 
-with the same i2c address.
-
- 
-> > @@ -283,9 +294,30 @@ static int af9035_identify_state(struct
-> > 
-> >   	int ret;
-> >   	u8 wbuf[1] = { 1 };
-> >   	u8 rbuf[4];
-> > 
-> > +	u8 tmp;
-> > 
-> >   	struct usb_req req = { CMD_FW_QUERYINFO, 0, sizeof(wbuf), wbuf,
-> >   	
-> >   			sizeof(rbuf), rbuf };
-> > 
-> > +	/* check if there is dual tuners */
-> > +	ret = af9035_rd_reg(d, EEPROM_DUAL_MODE, &tmp);
-> > +	if (ret < 0)
-> > +		goto err;
-> > +
-> > +	if (tmp) {
-> > +		/* read 2nd demodulator I2C address */
-> > +		ret = af9035_rd_reg(d, EEPROM_2WIREADDR, &tmp);
-> > +		if (ret < 0)
-> > +			goto err;
-> > +
-> > +		ret = af9035_wr_reg(d, 0x00417f, tmp);
-> > +		if (ret < 0)
-> > +			goto err;
-> > +
-> > +		ret = af9035_wr_reg(d, 0x00d81a, 1);
-> > +		if (ret < 0)
-> > +			goto err;
-> > +	}
-> 
-> That is already done in af9035_read_config(). You are not allowed to
-> abuse af9035_identify_state() unless very good reason. Leave
-> af9035_identify_state() alone and hack with af9035_read_config().
->
-
-That is a needed hack. That need to be done before the firmware load or the 
-second demod don't work. I don't know how to do it in another place.
-
-> > +
-> > 
-> >   	ret = af9035_ctrl_msg(d, &req);
-> >   	if (ret < 0)
-> >   	
-> >   		goto err;
-> > 
-> > @@ -492,7 +524,14 @@ static int af9035_read_config(struct dvb
-> > 
-> >   	state->dual_mode = tmp;
-> >   	pr_debug("%s: dual mode=%d\n", __func__, state->dual_mode);
-> > 
-> > -
-> > +	if (state->dual_mode) {
-> > +		/* read 2nd demodulator I2C address */
-> > +		ret = af9035_rd_reg(d, EEPROM_2WIREADDR, &tmp);
-> > +		if (ret < 0)
-> > +			goto err;
-> > +		state->af9033_config[1].i2c_addr = tmp;
-> > +		pr_debug("%s: 2nd demod I2C addr:%02x\n", __func__, tmp);
-> > +	}
-> 
-> Why this is again here?
->
-
-Here is to store the second demod i2c address.
- 
-> >   	for (i = 0; i < state->dual_mode + 1; i++) {
-> >   	
-> >   		/* tuner */
-> >   		ret = af9035_rd_reg(d, EEPROM_1_TUNER_ID + eeprom_shift, &tmp);
-> > 
-> > @@ -671,6 +710,12 @@ static int af9035_frontend_callback(void
-> > 
-> >   	return -EINVAL;
-> >   
-> >   }
-> > 
-> > +static int af9035_get_adapter_count(struct dvb_usb_device *d)
-> > +{
-> > +	struct state *state = d_to_priv(d);
-> > +	return state->dual_mode + 1;
-> > +}
-> > +
-> > 
-> >   static int af9035_frontend_attach(struct dvb_usb_adapter *adap)
-> >   {
-> >   
-> >   	struct state *state = adap_to_priv(adap);
-> > 
-> > @@ -726,13 +771,26 @@ static const struct fc0011_config af9035
-> > 
-> >   	.i2c_address = 0x60,
-> >   
-> >   };
-> > 
-> > -static struct mxl5007t_config af9035_mxl5007t_config = {
-> > -	.xtal_freq_hz = MxL_XTAL_24_MHZ,
-> > -	.if_freq_hz = MxL_IF_4_57_MHZ,
-> > -	.invert_if = 0,
-> > -	.loop_thru_enable = 0,
-> > -	.clk_out_enable = 0,
-> > -	.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
-> > +static struct mxl5007t_config af9035_mxl5007t_config[] = {
-> > +	{
-> > +		.xtal_freq_hz = MxL_XTAL_24_MHZ,
-> > +		.if_freq_hz = MxL_IF_4_57_MHZ,
-> > +		.invert_if = 0,
-> > +		.loop_thru_enable = 0,
-> > +		.clk_out_enable = 0,
-> > +		.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
-> > +		.no_probe = 1,
-> > +		.no_reset = 1,
-> > +	},{
-> > +		.xtal_freq_hz = MxL_XTAL_24_MHZ,
-> > +		.if_freq_hz = MxL_IF_4_57_MHZ,
-> > +		.invert_if = 0,
-> > +		.loop_thru_enable = 3,
-> > +		.clk_out_enable = 1,
-> > +		.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
-> > +		.no_probe = 1,
-> > +		.no_reset = 1,
-> > +	}
-> > 
-> >   };
-> >   
-> >   static struct tda18218_config af9035_tda18218_config = {
-> > 
-> > @@ -795,46 +853,50 @@ static int af9035_tuner_attach(struct dv
-> > 
-> >   				&d->i2c_adap, &af9035_fc0011_config);
-> >   		
-> >   		break;
-> >   	
-> >   	case AF9033_TUNER_MXL5007T:
-> > -		ret = af9035_wr_reg(d, 0x00d8e0, 1);
-> > -		if (ret < 0)
-> > -			goto err;
-> > -		ret = af9035_wr_reg(d, 0x00d8e1, 1);
-> > -		if (ret < 0)
-> > -			goto err;
-> > -		ret = af9035_wr_reg(d, 0x00d8df, 0);
-> > -		if (ret < 0)
-> > -			goto err;
-> > +		state->tuner_address[adap->id] = 0x60;
-> > +		state->tuner_address[adap->id] += adap->id;
-> 
-> Better to use MSB bit to mark 2nd bus.
-> 
-> Like that:
-> state->tuner_address[adap->id] = (1 << 7) | 0x60; /* hack, use b[7] to
-> carry used I2C-bus */
-
-Ok.
-
-> 
-> > +		if (adap->id == 0) {
-> > +			ret = af9035_wr_reg(d, 0x00d8e0, 1);
-> > +			if (ret < 0)
-> > +				goto err;
-> > +			ret = af9035_wr_reg(d, 0x00d8e1, 1);
-> > +			if (ret < 0)
-> > +				goto err;
-> > +			ret = af9035_wr_reg(d, 0x00d8df, 0);
-> > +			if (ret < 0)
-> > +				goto err;
-> > 
-> > -		msleep(30);
-> > +			msleep(30);
-> > 
-> > -		ret = af9035_wr_reg(d, 0x00d8df, 1);
-> > -		if (ret < 0)
-> > -			goto err;
-> > +			ret = af9035_wr_reg(d, 0x00d8df, 1);
-> > +			if (ret < 0)
-> > +				goto err;
-> > 
-> > -		msleep(300);
-> > +			msleep(300);
-> 
-> 300ms is like 10 years in time to wait tuner to wake up from reset. I
-> guess it is reset as *no comments at all*. OK, it has been earlier there
-> too...
-> 
-
-That was from windows sniff.
-
-> > -		ret = af9035_wr_reg(d, 0x00d8c0, 1);
-> > -		if (ret < 0)
-> > -			goto err;
-> > -		ret = af9035_wr_reg(d, 0x00d8c1, 1);
-> > -		if (ret < 0)
-> > -			goto err;
-> > -		ret = af9035_wr_reg(d, 0x00d8bf, 0);
-> > -		if (ret < 0)
-> > -			goto err;
-> > -		ret = af9035_wr_reg(d, 0x00d8b4, 1);
-> > -		if (ret < 0)
-> > -			goto err;
-> > -		ret = af9035_wr_reg(d, 0x00d8b5, 1);
-> > -		if (ret < 0)
-> > -			goto err;
-> > -		ret = af9035_wr_reg(d, 0x00d8b3, 1);
-> > -		if (ret < 0)
-> > -			goto err;
-> > +			ret = af9035_wr_reg(d, 0x00d8c0, 1);
-> > +			if (ret < 0)
-> > +				goto err;
-> > +			ret = af9035_wr_reg(d, 0x00d8c1, 1);
-> > +			if (ret < 0)
-> > +				goto err;
-> > +			ret = af9035_wr_reg(d, 0x00d8bf, 0);
-> > +			if (ret < 0)
-> > +				goto err;
-> > +			ret = af9035_wr_reg(d, 0x00d8b4, 1);
-> > +			if (ret < 0)
-> > +				goto err;
-> > +			ret = af9035_wr_reg(d, 0x00d8b5, 1);
-> > +			if (ret < 0)
-> > +				goto err;
-> > +			ret = af9035_wr_reg(d, 0x00d8b3, 1);
-> > +			if (ret < 0)
-> > +				goto err;
-> > +		}
-> 
-> Could you add description which GPIOs are which. Which one demod, which
-> for tuner, which for reset, which for standby etc.
-
-The gpios was from windows usb sniff and from try and error. If I can remember 
-gpioh12 was for the tuners(s). gpioh3 and gpioh4 combination was the only one 
-that both tuners work.
-
-> 
-> >   		/* attach tuner */
-> >   		fe = dvb_attach(mxl5007t_attach, adap->fe[0],
-> > 
-> > -				&d->i2c_adap, 0x60, &af9035_mxl5007t_config);
-> > +				&d->i2c_adap, state->tuner_address[adap->id],
-> > &af9035_mxl5007t_config[adap->id]);> 
-> >   		break;
-> >   	
-> >   	case AF9033_TUNER_TDA18218:
-> >   		/* attach tuner */
-> > 
-> > @@ -879,8 +941,8 @@ static int af9035_init(struct dvb_usb_de
-> > 
-> >   		{ 0x00dd8a, (frame_size >> 0) & 0xff, 0xff},
-> >   		{ 0x00dd8b, (frame_size >> 8) & 0xff, 0xff},
-> >   		{ 0x00dd0d, packet_size, 0xff },
-> > 
-> > -		{ 0x80f9a3, 0x00, 0x01 },
-> > -		{ 0x80f9cd, 0x00, 0x01 },
-> > +		{ 0x80f9a3, state->dual_mode, 0x01 },
-> > +		{ 0x80f9cd, state->dual_mode, 0x01 },
-> > 
-> >   		{ 0x80f99d, 0x00, 0x01 },
-> >   		{ 0x80f9a4, 0x00, 0x01 },
-> >   	
-> >   	};
-> > 
-> > @@ -1001,7 +1063,7 @@ static const struct dvb_usb_device_prope
-> > 
-> >   	.init = af9035_init,
-> >   	.get_rc_config = af9035_get_rc_config,
-> > 
-> > -	.num_adapters = 1,
-> > +	.get_adapter_count = af9035_get_adapter_count,
-> > 
-> >   	.adapter = {
-> >   	
-> >   		{
-> >   		
-> >   			.stream = DVB_USB_STREAM_BULK(0x84, 6, 87 * 188),
-> > 
-> > diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.h
-> > linux.new/drivers/media/usb/dvb-usb-v2/af9035.h ---
-> > linux/drivers/media/usb/dvb-usb-v2/af9035.h	2012-08-14 05:45:22.000000000
-> > +0200 +++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.h	2012-08-26
-> > 23:45:08.774070150 +0200 @@ -54,6 +54,8 @@ struct state {
-> > 
-> >   	bool dual_mode;
-> >   	
-> >   	struct af9033_config af9033_config[2];
-> > 
-> > +
-> > +	u8 tuner_address[2];
-> > 
-> >   };
-> >   
-> >   u32 clock_lut[] = {
-> > 
-> > @@ -87,6 +89,7 @@ u32 clock_lut_it9135[] = {
-> > 
-> >   /* EEPROM locations */
-> >   #define EEPROM_IR_MODE            0x430d
-> >   #define EEPROM_DUAL_MODE          0x4326
-> > 
-> > +#define EEPROM_2WIREADDR          0x4327
-> > 
-> >   #define EEPROM_IR_TYPE            0x4329
-> >   #define EEPROM_1_IFFREQ_L         0x432d
-> >   #define EEPROM_1_IFFREQ_H         0x432e
-> 
-> And I saw these errors too when imported that patch to my local git tree:
-> 
-> [crope@localhost linux]$ wget -O -
-> http://patchwork.linuxtv.org/patch/14067/mbox/ | git am -s
-> --2012-08-28 02:17:55--  http://patchwork.linuxtv.org/patch/14067/mbox/
-> Resolving patchwork.linuxtv.org... 130.149.80.248
-> Connecting to patchwork.linuxtv.org|130.149.80.248|:80... connected.
-> HTTP request sent, awaiting response... 200 OK
-> Length: unspecified [text/plain]
-> Saving to: `STDOUT'
-> 
->      [ <=>
-> 
->         ] 12,017      --.-K/s   in 0.06s
-> 
-> 2012-08-28 02:17:55 (206 KB/s) - written to stdout [12017]
-> 
-> Applying: v2 Add support to Avermedia Twinstar double tuner in af9035
-> /home/crope/linuxtv/code/linux/.git/rebase-apply/patch:66: space before
-> tab in indent.
-> 	 	ret = mxl5007t_soft_reset(state);
-> /home/crope/linuxtv/code/linux/.git/rebase-apply/patch:67: space before
-> tab in indent.
->   		if (mxl_fail(ret))
-> /home/crope/linuxtv/code/linux/.git/rebase-apply/patch:68: space before
-> tab in indent.
->   			goto fail;
-> /home/crope/linuxtv/code/linux/.git/rebase-apply/patch:164: trailing
-> whitespace.
-> 
-> warning: 4 lines add whitespace errors.
-> [crope@localhost linux]$
-> [crope@localhost linux]$ git show --pretty=email | ./scripts/checkpatch.pl -
-> ERROR: code indent should use tabs where possible
-> #76: FILE: drivers/media/tuners/mxl5007t.c:534:
-> +^I ^Iret = mxl5007t_soft_reset(state);$
-> 
-> WARNING: please, no space before tabs
-> #76: FILE: drivers/media/tuners/mxl5007t.c:534:
-> +^I ^Iret = mxl5007t_soft_reset(state);$
-> 
-> ERROR: code indent should use tabs where possible
-> #77: FILE: drivers/media/tuners/mxl5007t.c:535:
-> + ^I^Iif (mxl_fail(ret))$
-> 
-> WARNING: please, no space before tabs
-> #77: FILE: drivers/media/tuners/mxl5007t.c:535:
-> + ^I^Iif (mxl_fail(ret))$
-> 
-> WARNING: please, no spaces at the start of a line
-> #77: FILE: drivers/media/tuners/mxl5007t.c:535:
-> + ^I^Iif (mxl_fail(ret))$
-> 
-> ERROR: code indent should use tabs where possible
-> #78: FILE: drivers/media/tuners/mxl5007t.c:536:
-> + ^I^I^Igoto fail;$
-> 
-> WARNING: please, no space before tabs
-> #78: FILE: drivers/media/tuners/mxl5007t.c:536:
-> + ^I^I^Igoto fail;$
-> 
-> WARNING: please, no spaces at the start of a line
-> #78: FILE: drivers/media/tuners/mxl5007t.c:536:
-> + ^I^I^Igoto fail;$
-> 
-> WARNING: line over 80 characters
-> #91: FILE: drivers/media/tuners/mxl5007t.c:894:
-> +		ret = mxl5007t_write_reg(state, 0x04, state->config-
->loop_thru_enable);
-> 
-> ERROR: trailing whitespace
-> #176: FILE: drivers/media/usb/dvb-usb-v2/af9035.c:311:
-> +^I$
-> 
-> ERROR: space required after that ',' (ctx:VxV)
-> #239: FILE: drivers/media/usb/dvb-usb-v2/af9035.c:784:
-> +	},{
->   	 ^
-> 
-> WARNING: line over 80 characters
-> #332: FILE: drivers/media/usb/dvb-usb-v2/af9035.c:899:
-> +				&d->i2c_adap, state->tuner_address[adap->id],
-> &af9035_mxl5007t_config[adap->id]);
-> 
-> total: 5 errors, 7 warnings, 323 lines checked
-> 
-> NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
->        scripts/cleanfile
-> 
-> Your patch has style problems, please review.
-> 
-> If any of these errors are false positives, please report
-> them to the maintainer, see CHECKPATCH in MAINTAINERS.
-> [crope@localhost linux]$
-> 
-> 
-> I think it is quite OK when these findings are fixed or you explain
-> better alternative.
-> 
-> regards
-> Antti
-
-I will use checkpatch.pl.
-
-Thanks for reviewing.
-
-Jose Alberto
