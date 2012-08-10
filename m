@@ -1,87 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:45615 "EHLO
-	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751127Ab2HSVZM (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:49782 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758122Ab2HJOQH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Aug 2012 17:25:12 -0400
-Message-ID: <1345411489.22400.76.camel@deadeye.wl.decadent.org.uk>
-Subject: [PATCH] [media] rc: ite-cir: Initialise ite_dev::rdev earlier
-From: Ben Hutchings <ben@decadent.org.uk>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: YunQiang Su <wzssyqa@gmail.com>, 684441@bugs.debian.org,
-	Jarod Wilson <jarod@redhat.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Luis Henriques <luis.henriques@canonical.com>
-Date: Sun, 19 Aug 2012 22:24:49 +0100
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-q4+KuiOpLt1AvsOwceik"
-Mime-Version: 1.0
+	Fri, 10 Aug 2012 10:16:07 -0400
+Received: by eaac11 with SMTP id c11so519125eaa.19
+        for <linux-media@vger.kernel.org>; Fri, 10 Aug 2012 07:16:06 -0700 (PDT)
+From: Sangwook Lee <sangwook.lee@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@maxwell.research.nokia.com, suapapa@insignal.co.kr,
+	quartz.jang@samsung.com, linaro-dev@lists.linaro.org,
+	patches@linaro.org, usman.ahmad@linaro.org,
+	Sangwook Lee <sangwook.lee@linaro.org>
+Subject: [PATCH v4 0/2] Add v4l2 subdev driver for S5K4ECGX sensor with embedded SoC ISP 
+Date: Fri, 10 Aug 2012 15:14:54 +0100
+Message-Id: <1344608096-22059-1-git-send-email-sangwook.lee@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The following 2 patches add driver for S5K4ECGX sensor with embedded ISP SoC,
+and minor v4l2 control API enhancement. S5K4ECGX is 5M CMOS Image sensor from Samsung
 
---=-q4+KuiOpLt1AvsOwceik
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Changes since v3:
+- used request_firmware to configure initial settings
+- added parsing functions to read initial settings
+- updated regulator API
+- reduced preview setting tables by experiment 
 
-ite_dev::rdev is currently initialised in ite_probe() after
-rc_register_device() returns.  If a newly registered device is opened
-quickly enough, we may enable interrupts and try to use ite_dev::rdev
-before it has been initialised.  Move it up to the earliest point we
-can, right after calling rc_allocate_device().
+Changes since v2:
+- added GPIO (reset/stby) and regulators
+- updated I2C read/write, based on s5k6aa datasheet
+- fixed set_fmt errors
+- reduced register tables a bit
+- removed vmalloc
 
-References: http://bugs.debian.org/684441
-Reported-and-tested-by: YunQiang Su <wzssyqa@gmail.com>
-Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
-Cc: stable@vger.kernel.org
----
- drivers/media/rc/ite-cir.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Changes since v1:
+- fixed s_stream(0) when it called twice
+- changed mutex_X position to be used when strictly necessary
+- add additional s_power(0) in case that error happens
+- update more accurate debugging statements
+- remove dummy else
 
-diff --git a/drivers/media/rc/ite-cir.c b/drivers/media/rc/ite-cir.c
-index 0e49c99..c06992e 100644
---- a/drivers/media/rc/ite-cir.c
-+++ b/drivers/media/rc/ite-cir.c
-@@ -1473,6 +1473,7 @@ static int ite_probe(struct pnp_dev *pdev, const stru=
-ct pnp_device_id
- 	rdev =3D rc_allocate_device();
- 	if (!rdev)
- 		goto failure;
-+	itdev->rdev =3D rdev;
-=20
- 	ret =3D -ENODEV;
-=20
-@@ -1604,7 +1605,6 @@ static int ite_probe(struct pnp_dev *pdev, const stru=
-ct pnp_device_id
- 	if (ret)
- 		goto failure;
-=20
--	itdev->rdev =3D rdev;
- 	ite_pr(KERN_NOTICE, "driver has been successfully loaded\n");
-=20
- 	return 0;
+Sangwook Lee (2):
+  v4l: Add factory register values form S5K4ECGX sensor
+  v4l: Add v4l2 subdev driver for S5K4ECGX sensor
 
+ drivers/media/video/Kconfig         |    8 +
+ drivers/media/video/Makefile        |    1 +
+ drivers/media/video/s5k4ecgx.c      |  941 +++++++++++++++++++++++++++++++++++
+ drivers/media/video/s5k4ecgx_regs.h |  138 +++++
+ include/media/s5k4ecgx.h            |   37 ++
+ 5 files changed, 1125 insertions(+)
+ create mode 100644 drivers/media/video/s5k4ecgx.c
+ create mode 100644 drivers/media/video/s5k4ecgx_regs.h
+ create mode 100644 include/media/s5k4ecgx.h
 
---=-q4+KuiOpLt1AvsOwceik
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+-- 
+1.7.9.5
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIVAwUAUDFZoee/yOyVhhEJAQobpg//dXxyhLOgDEwbQwz6qhcGspFpu4qf4IoM
-ih6Ra1+JJzAXgY34TiNOLy/7KU2mguVVADJr7fXwNaOeI7bzkiXl24/Zp7CimPf+
-LqB/RMHL5qXdXduis1Ytt37777IcJMFJSfntFJ9Da10zjfRA8MkTnQQeZ+oB9rVV
-G1SWoxjvjsrCqLS20kokRom0AbzJRzw95n0GVoIf+4TMvAQIOZzubFMFB7OZca3K
-RxfCxlmGFVr8mU8yZE1Nguhln413DuyqLw2hxPYzGKF3LUZjcCWfki6+Gl96QIXK
-SFeYZZTaq6/jo0FI/veNZafEQJwykXXdacg7s+3WO6wD9K0FQTRtWVP7z1mEeDt7
-DzSdHx78Wc18Zg+rNeb2Y58jtqrveuncx6H9IajJJmypR5RzOtg9a9xtrs+ys34R
-tfR2vCvryIXvIHNi98BSwQFWT9xy6OVxVUA/3H1wzefHjkgDfczIeSTZJQybLEql
-k/aWPjBYL/xh9CfzACnENLNneVmYes6pnid8NON9Q7ygizAmG8njLJEtalt0ebWK
-T4+6es6rFJzEvJmKOhLIf4Zo0RVzmqcLXF89YA4XtSNYtbV1uoGQr3Isxag+XGBc
-OvNmNozfa+LHwlccCvcJCEH3vSEgvNGv+zwWNXRZyyifcslzAetRio2PvIi/utNy
-BdJQWfQoQ5k=
-=RnRc
------END PGP SIGNATURE-----
-
---=-q4+KuiOpLt1AvsOwceik--
