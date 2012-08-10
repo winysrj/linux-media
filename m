@@ -1,63 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:16455 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753232Ab2HNLGO (ORCPT
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:49973 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756465Ab2HJHhE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 07:06:14 -0400
-Date: Tue, 14 Aug 2012 14:05:46 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Gianluca Gennari <gennarone@gmail.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] em28xx: use after free in em28xx_v4l2_close()
-Message-ID: <20120814110546.GD4559@mwanda>
-References: <20120814065814.GB4791@elgon.mountain>
- <CALF0-+UU8dGBdihLgm==d0gCE4aHKdAbEVfe54U1LDjBHss8XQ@mail.gmail.com>
+	Fri, 10 Aug 2012 03:37:04 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [RFC PATCH 1/2] Add libv4l2rds library (with changes proposed in RFC)
+Date: Fri, 10 Aug 2012 09:36:59 +0200
+Cc: Konke Radlow <kradlow@cisco.com>, linux-media@vger.kernel.org,
+	koradlow@gmail.com
+References: <[RFC PATCH 0/2] Add support for RDS decoding> <201208091414.11249.hverkuil@xs4all.nl> <5024B552.7090205@redhat.com>
+In-Reply-To: <5024B552.7090205@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CALF0-+UU8dGBdihLgm==d0gCE4aHKdAbEVfe54U1LDjBHss8XQ@mail.gmail.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201208100936.59213.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 14, 2012 at 07:50:12AM -0300, Ezequiel Garcia wrote:
-> Hi Dan,
+On Fri 10 August 2012 09:16:34 Hans de Goede wrote:
+> Hi,
 > 
-> On Tue, Aug 14, 2012 at 3:58 AM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
-> > We need to move the unlock before the kfree(dev);
+> On 08/09/2012 02:14 PM, Hans Verkuil wrote:
+> > On Thu August 9 2012 13:58:07 Hans de Goede wrote:
+> >> Hi Konke,
+> >>
+> >> As Gregor already mentioned there is no need to define libv4l2rdssubdir in configure.ac ,
+> >> so please drop that.
+> >>
+> >> Other then that I've some minor remarks (comments inline), with all those
+> >> fixed, this one is could to go. So hopefully the next version can be added
+> >> to git master!
+> >>
+> >> On 08/07/2012 05:11 PM, Konke Radlow wrote:
+> >>> ---
+> >>>    Makefile.am                     |    3 +-
+> >>>    configure.ac                    |    7 +-
+> >>>    lib/include/libv4l2rds.h        |  228 ++++++++++
+> >>>    lib/libv4l2rds/Makefile.am      |   11 +
+> >>>    lib/libv4l2rds/libv4l2rds.c     |  953 +++++++++++++++++++++++++++++++++++++++
+> >>>    lib/libv4l2rds/libv4l2rds.pc.in |   11 +
+> >>>    6 files changed, 1211 insertions(+), 2 deletions(-)
+> >>>    create mode 100644 lib/include/libv4l2rds.h
+> >>>    create mode 100644 lib/libv4l2rds/Makefile.am
+> >>>    create mode 100644 lib/libv4l2rds/libv4l2rds.c
+> >>>    create mode 100644 lib/libv4l2rds/libv4l2rds.pc.in
+> >>>
+> >>
+> >> <snip>
+> >>
+> >>> diff --git a/lib/include/libv4l2rds.h b/lib/include/libv4l2rds.h
+> >>> new file mode 100644
+> >>> index 0000000..4aa8593
+> >>> --- /dev/null
+> >>> +++ b/lib/include/libv4l2rds.h
+> >>> @@ -0,0 +1,228 @@
+> >>> +/*
+> >>> + * Copyright 2012 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+> >>> + * Author: Konke Radlow <koradlow@gmail.com>
+> >>> + *
+> >>> + * This program is free software; you can redistribute it and/or modify
+> >>> + * it under the terms of the GNU Lesser General Public License as published by
+> >>> + * the Free Software Foundation; either version 2.1 of the License, or
+> >>> + * (at your option) any later version.
+> >>> + *
+> >>> + * This program is distributed in the hope that it will be useful,
+> >>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> >>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> >>> + * GNU General Public License for more details.
+> >>> + *
+> >>> + * You should have received a copy of the GNU General Public License
+> >>> + * along with this program; if not, write to the Free Software
+> >>> + * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA  02110-1335  USA
+> >>> + */
+> >>> +
+> >>> +#ifndef __LIBV4L2RDS
+> >>> +#define __LIBV4L2RDS
+> >>> +
+> >>> +#include <errno.h>
+> >>> +#include <stdio.h>
+> >>> +#include <stdlib.h>
+> >>> +#include <string.h>
+> >>> +#include <stdbool.h>
+> >>> +#include <unistd.h>
+> >>> +#include <stdint.h>
+> >>> +#include <time.h>
+> >>> +#include <sys/types.h>
+> >>> +#include <sys/mman.h>
+> >>> +#include <config.h>
+> >>
+> >> You should never include config.h in a public header, also
+> >> are all the headers really needed for the prototypes in this header?
+> >>
+> >> I don't think so! Please move all the unneeded ones to the libv4l2rds.c
+> >> file!
+> >>
+> >>> +
+> >>> +#include <linux/videodev2.h>
+> >>> +
+> >>> +#ifdef __cplusplus
+> >>> +extern "C" {
+> >>> +#endif /* __cplusplus */
+> >>> +
+> >>> +#if HAVE_VISIBILITY
+> >>> +#define LIBV4L_PUBLIC __attribute__ ((visibility("default")))
+> >>> +#else
+> >>> +#define LIBV4L_PUBLIC
+> >>> +#endif
+> >>> +
+> >>> +/* used to define the current version (version field) of the v4l2_rds struct */
+> >>> +#define V4L2_RDS_VERSION (1)
+> >>> +
+> >>
+> >> What is the purpose of this field? Once we've released a v4l-utils with this
+> >> library we are stuck to the API we've defined, having a version field & changing it,
+> >> won't stop us from breaking existing apps, so once we've an official release we
+> >> simply cannot make ABI breaking changes, which is why most of my review sofar
+> >> has concentrated on the API side :)
+> >>
+> >> I suggest dropping this define and the version field from the struct.
 > >
-> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> > ---
-> > Applies to linux-next.
-> >
-> > diff --git a/drivers/media/video/em28xx/em28xx-video.c b/drivers/media/video/em28xx/em28xx-video.c
-> > index ecb23df..78d6ebd 100644
-> > --- a/drivers/media/video/em28xx/em28xx-video.c
-> > +++ b/drivers/media/video/em28xx/em28xx-video.c
-> > @@ -2264,9 +2264,9 @@ static int em28xx_v4l2_close(struct file *filp)
-> >                 if (dev->state & DEV_DISCONNECTED) {
-> >                         em28xx_release_resources(dev);
+> > I think it is useful, actually. The v4l2_rds struct is allocated by the v4l2_rds_create
+> > so at least in theory it is possible to extend the struct in the future without breaking
+> > existing apps, provided you have a version number to check.
 > 
-> Why not unlocking here?
+> I disagree, if it gets extended only, then existing apps will just work, if an apps gets
+> compiled against a newer version with the extension then it is safe to assume it will run
+> against that newer version. The only reason I can see a version define being useful is
+> to make a newer app compile with an older version of the librarry, but that only requires
+> a version define, not a version field in the struct.
 
-I don't see a reason to prefer one over the other.
+That's true, you only need the define, not the version field.
 
-regards,
-dan carpenter
+So let's keep the define and ditch the version field. I think that
+should do it.
 
-> 
-> >                         kfree(dev->alt_max_pkt_size);
-> > +                       mutex_unlock(&dev->lock);
-> >                         kfree(dev);
-> >                         kfree(fh);
-> > -                       mutex_unlock(&dev->lock);
-> 
-> Thanks,
-> Ezequiel.
-> --
-> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+
+	Hans
