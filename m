@@ -1,89 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:49633 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753340Ab2HGQmz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Aug 2012 12:42:55 -0400
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 05/11] dvb: frontends: use %*ph to dump small buffers
-Date: Tue,  7 Aug 2012 19:43:05 +0300
-Message-Id: <1344357792-18202-5-git-send-email-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <1344357792-18202-1-git-send-email-andriy.shevchenko@linux.intel.com>
-References: <1344357792-18202-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:36990 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751151Ab2HJLVc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Aug 2012 07:21:32 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: marbugge@cisco.com, Soby Mathew <soby.mathew@st.com>,
+	mats.randgaard@cisco.com, manjunath.hadli@ti.com,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	dri-devel@lists.freedesktop.org
+Subject: [RFCv3 PATCH 1/8] v4l2 core: add the missing pieces to support DVI/HDMI/DisplayPort.
+Date: Fri, 10 Aug 2012 13:21:17 +0200
+Message-Id: <bf682233fde61ca77ed4512ba77271f6daeedb31.1344592468.git.hans.verkuil@cisco.com>
+In-Reply-To: <1344597684-8413-1-git-send-email-hans.verkuil@cisco.com>
+References: <1344597684-8413-1-git-send-email-hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb/frontends/cxd2820r_t.c |    3 +--
- drivers/media/dvb/frontends/nxt200x.c    |    8 +++-----
- drivers/media/dvb/frontends/rtl2830.c    |    2 +-
- 3 files changed, 5 insertions(+), 8 deletions(-)
+These new controls and two new ioctls make it possible to properly support
+VGA, DVI-A/D/I, HDMI and DisplayPort connectors. All these controls and the
+ioctls are all at the sub-device level. They are meant for V4L2 bridge/platform
+drivers or to be accessed on embedded systems through /dev/v4l-subdev* device
+nodes.
 
-diff --git a/drivers/media/dvb/frontends/cxd2820r_t.c b/drivers/media/dvb/frontends/cxd2820r_t.c
-index 1a02623..e5dd22b 100644
---- a/drivers/media/dvb/frontends/cxd2820r_t.c
-+++ b/drivers/media/dvb/frontends/cxd2820r_t.c
-@@ -389,8 +389,7 @@ int cxd2820r_read_status_t(struct dvb_frontend *fe, fe_status_t *status)
- 		}
- 	}
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/linux/v4l2-subdev.h |   10 ++++++++++
+ include/linux/videodev2.h   |   23 +++++++++++++++++++++++
+ 2 files changed, 33 insertions(+)
+
+diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
+index 8c57ee9..a426a78 100644
+--- a/include/linux/v4l2-subdev.h
++++ b/include/linux/v4l2-subdev.h
+@@ -148,6 +148,14 @@ struct v4l2_subdev_selection {
+ 	__u32 reserved[8];
+ };
  
--	dbg("%s: lock=%02x %02x %02x %02x", __func__,
--		buf[0], buf[1], buf[2], buf[3]);
-+	dbg("%s: lock=%*ph", __func__, 4, buf);
++struct v4l2_subdev_edid {
++	__u32 pad;
++	__u32 start_block;
++	__u32 blocks;
++	__u32 reserved[5];
++	__u8 __user *edid;
++};
++
+ #define VIDIOC_SUBDEV_G_FMT	_IOWR('V',  4, struct v4l2_subdev_format)
+ #define VIDIOC_SUBDEV_S_FMT	_IOWR('V',  5, struct v4l2_subdev_format)
+ #define VIDIOC_SUBDEV_G_FRAME_INTERVAL \
+@@ -166,5 +174,7 @@ struct v4l2_subdev_selection {
+ 	_IOWR('V', 61, struct v4l2_subdev_selection)
+ #define VIDIOC_SUBDEV_S_SELECTION \
+ 	_IOWR('V', 62, struct v4l2_subdev_selection)
++#define VIDIOC_SUBDEV_G_EDID	_IOWR('V', 63, struct v4l2_subdev_edid)
++#define VIDIOC_SUBDEV_S_EDID	_IOWR('V', 64, struct v4l2_subdev_edid)
  
- 	return ret;
- error:
-diff --git a/drivers/media/dvb/frontends/nxt200x.c b/drivers/media/dvb/frontends/nxt200x.c
-index 03af52e..8e28894 100644
---- a/drivers/media/dvb/frontends/nxt200x.c
-+++ b/drivers/media/dvb/frontends/nxt200x.c
-@@ -331,7 +331,7 @@ static int nxt200x_writetuner (struct nxt200x_state* state, u8* data)
+ #endif
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 7a147c8..91939a7 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1250,6 +1250,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_CLASS_JPEG 0x009d0000		/* JPEG-compression controls */
+ #define V4L2_CTRL_CLASS_IMAGE_SOURCE 0x009e0000	/* Image source controls */
+ #define V4L2_CTRL_CLASS_IMAGE_PROC 0x009f0000	/* Image processing controls */
++#define V4L2_CTRL_CLASS_DV 0x00a00000		/* Digital Video controls */
  
- 	dprintk("%s\n", __func__);
+ #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+ #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+@@ -1993,6 +1994,28 @@ enum v4l2_jpeg_chroma_subsampling {
+ #define V4L2_CID_LINK_FREQ			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 1)
+ #define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
  
--	dprintk("Tuner Bytes: %02X %02X %02X %02X\n", data[1], data[2], data[3], data[4]);
-+	dprintk("Tuner Bytes: %*ph\n", 4, data + 1);
- 
- 	/* if NXT2004, write directly to tuner. if NXT2002, write through NXT chip.
- 	 * direct write is required for Philips TUV1236D and ALPS TDHU2 */
-@@ -1161,8 +1161,7 @@ struct dvb_frontend* nxt200x_attach(const struct nxt200x_config* config,
- 
- 	/* read card id */
- 	nxt200x_readbytes(state, 0x00, buf, 5);
--	dprintk("NXT info: %02X %02X %02X %02X %02X\n",
--		buf[0], buf[1], buf[2],	buf[3], buf[4]);
-+	dprintk("NXT info: %*ph\n", 5, buf);
- 
- 	/* set demod chip */
- 	switch (buf[0]) {
-@@ -1201,8 +1200,7 @@ struct dvb_frontend* nxt200x_attach(const struct nxt200x_config* config,
- 
- error:
- 	kfree(state);
--	printk("Unknown/Unsupported NXT chip: %02X %02X %02X %02X %02X\n",
--		buf[0], buf[1], buf[2], buf[3], buf[4]);
-+	pr_err("Unknown/Unsupported NXT chip: %*ph\n", 5, buf);
- 	return NULL;
- }
- 
-diff --git a/drivers/media/dvb/frontends/rtl2830.c b/drivers/media/dvb/frontends/rtl2830.c
-index 93612eb..8fa8b08 100644
---- a/drivers/media/dvb/frontends/rtl2830.c
-+++ b/drivers/media/dvb/frontends/rtl2830.c
-@@ -392,7 +392,7 @@ static int rtl2830_get_frontend(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	dbg("%s: TPS=%02x %02x %02x", __func__, buf[0], buf[1], buf[2]);
-+	dbg("%s: TPS=%*ph", __func__, 3, buf);
- 
- 	switch ((buf[0] >> 2) & 3) {
- 	case 0:
++/*  DV-class control IDs defined by V4L2 */
++#define V4L2_CID_DV_CLASS_BASE			(V4L2_CTRL_CLASS_DV | 0x900)
++#define V4L2_CID_DV_CLASS			(V4L2_CTRL_CLASS_DV | 1)
++
++#define	V4L2_CID_DV_TX_HOTPLUG			(V4L2_CID_DV_CLASS_BASE + 1)
++#define	V4L2_CID_DV_TX_RXSENSE			(V4L2_CID_DV_CLASS_BASE + 2)
++#define	V4L2_CID_DV_TX_EDID_PRESENT		(V4L2_CID_DV_CLASS_BASE + 3)
++#define	V4L2_CID_DV_TX_MODE			(V4L2_CID_DV_CLASS_BASE + 4)
++enum v4l2_dv_tx_mode {
++	V4L2_DV_TX_MODE_DVI_D	= 0,
++	V4L2_DV_TX_MODE_HDMI	= 1,
++};
++#define V4L2_CID_DV_TX_RGB_RANGE		(V4L2_CID_DV_CLASS_BASE + 5)
++enum v4l2_dv_rgb_range {
++	V4L2_DV_RGB_RANGE_AUTO	  = 0,
++	V4L2_DV_RGB_RANGE_LIMITED = 1,
++	V4L2_DV_RGB_RANGE_FULL	  = 2,
++};
++
++#define	V4L2_CID_DV_RX_POWER_PRESENT		(V4L2_CID_DV_CLASS_BASE + 100)
++#define V4L2_CID_DV_RX_RGB_RANGE		(V4L2_CID_DV_CLASS_BASE + 101)
++
+ /*
+  *	T U N I N G
+  */
 -- 
 1.7.10.4
 
