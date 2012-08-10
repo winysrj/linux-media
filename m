@@ -1,98 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog102.obsmtp.com ([207.126.144.113]:39208 "EHLO
-	eu1sys200aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752681Ab2HAN3m convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Aug 2012 09:29:42 -0400
-From: Bhupesh SHARMA <bhupesh.sharma@st.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Wed, 1 Aug 2012 21:29:30 +0800
-Subject: RE: Query regarding the support and testing of MJPEG frame type in
- the UVC webcam gadget
-Message-ID: <D5ECB3C7A6F99444980976A8C6D896384FABF0D865@EAPEX1MAIL1.st.com>
-References: <D5ECB3C7A6F99444980976A8C6D896384FABF0D740@EAPEX1MAIL1.st.com>
- <3577370.FUYPT1zGjj@avalon>
-In-Reply-To: <3577370.FUYPT1zGjj@avalon>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:60060 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758879Ab2HJW3c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Aug 2012 18:29:32 -0400
+Message-ID: <50258B49.8010504@redhat.com>
+Date: Fri, 10 Aug 2012 19:29:29 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
+To: CrazyCat <crazycat69@yandex.ru>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH]Omicom S2 PCI support
+References: <1128921342302008@web25h.yandex.ru>
+In-Reply-To: <1128921342302008@web25h.yandex.ru>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Em 14-07-2012 18:40, CrazyCat escreveu:
+> Support for yet another SAA7146-based budget card (very similar to TT S2-1600, but use LNBH23 instead ISL6423).
+> diff --git a/drivers/media/dvb/ttpci/budget.c b/drivers/media/dvb/ttpci/budget.c
 
-Thanks for clearing this doubt..
+...
+WARNING: Prefer pr_err(... to printk(KERN_ERR, ...
+#86: FILE: drivers/media/dvb/ttpci/budget.c:735:
++					printk(KERN_ERR "%s: No STV6110(A) Silicon Tuner found!\n", __func__);
 
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Wednesday, August 01, 2012 6:46 PM
-> To: Bhupesh SHARMA
-> Cc: linux-usb@vger.kernel.org; linux-media@vger.kernel.org
-> Subject: Re: Query regarding the support and testing of MJPEG frame
-> type in the UVC webcam gadget
-> 
-> Hi Bhupesh,
-> 
-> On Wednesday 01 August 2012 14:26:33 Bhupesh SHARMA wrote:
-> > Hi Laurent,
-> >
-> > I have a query for you regarding the support and testing of MJPEG
-> frame type
-> > in the UVC webcam gadget.
-> >
-> > I see that in the webcam.c gadget, the 720p and VGA MJPEG uvc formats
-> are
-> > supported. I was trying the same out and got confused because the
-> data
-> > arriving from a real video capture video supporting JPEG will have no
-> fixed
-> > size. We will have the JPEG defined Start-of-Frame and End-of-Frame
-> markers
-> > defining the boundary of the JPEG frame.
-> >
-> > But for almost all JPEG video capture devices even if we have kept a
-> frame
-> > size of VGA initially, the final frame size will be a compressed
-> version
-> > (with the compression depending on the nature of the scene, so a flat
-> scene
-> > will have high compression and hence less frame size) of VGA and will
-> not
-> > be equal to 640 * 480.
-> >
-> > So I couldn't exactly get why the dwMaxVideoFrameBufferSize is kept
-> as
-> > 614400 in webcam.c (see [1]).
-> 
-> The dwMaxVideoFrameBufferSize value must be larger than or equal to the
-> largest MJPEG frame size. As I have no idea what that value is, I've
-> kept the
-> same size as for uncompressed frames, which should be big enough (and
-> most
-> probably too big).
+ERROR: Missing Signed-off-by: line(s)
 
-.. Yes, so that means that the user-space application should set the length
-of the buffer being queued at the UVC side equal to the length of the buffer
-dequeued from the V4L2 side, to ensure that varying length JPEG frames are
-correctly handled.
+total: 2 errors, 21 warnings, 85 lines checked
 
-I will try with these changes in the user-space daemon.
+Again, missing to check it against checkpatch and to add your SOB.
 
-Thanks for your help,
 Regards,
-Bhupesh
+Mauro
 
-> > Can you please let me know your opinions and how you tested the UVC
-> gadget's
-> > MJPEG frame format.
-> >
-> > [1] http://lxr.linux.no/linux+v3.5/drivers/usb/gadget/webcam.c#L232
-> 
+> index b21bcce..1774c53 100644
+> --- a/drivers/media/dvb/ttpci/budget.c
+> +++ b/drivers/media/dvb/ttpci/budget.c
+> @@ -50,6 +50,8 @@
+>  #include "stv6110x.h"
+>  #include "stv090x.h"
+>  #include "isl6423.h"
+> +#include "lnbh24.h"
+> +
+>  
+>  static int diseqc_method;
+>  module_param(diseqc_method, int, 0444);
+> @@ -679,6 +681,63 @@ static void frontend_init(struct budget *budget)
+>  			}
+>  		}
+>  		break;
+> +
+> +	case 0x1020: { /* Omicom S2 */
+> +			struct stv6110x_devctl *ctl;
+> +			saa7146_setgpio(budget->dev, 2, SAA7146_GPIO_OUTLO);
+> +			msleep(50);
+> +			saa7146_setgpio(budget->dev, 2, SAA7146_GPIO_OUTHI);
+> +			msleep(250);
+> +
+> +			budget->dvb_frontend = dvb_attach(stv090x_attach,
+> +							  &tt1600_stv090x_config,
+> +							  &budget->i2c_adap,
+> +							  STV090x_DEMODULATOR_0);
+> +
+> +			if (budget->dvb_frontend) {
+> +				printk(KERN_INFO "budget: Omicom S2 detected\n");
+> +
+> +				ctl = dvb_attach(stv6110x_attach,
+> +						 budget->dvb_frontend,
+> +						 &tt1600_stv6110x_config,
+> +						 &budget->i2c_adap);
+> +
+> +				if (ctl) {
+> +					tt1600_stv090x_config.tuner_init	  = ctl->tuner_init;
+> +					tt1600_stv090x_config.tuner_sleep	  = ctl->tuner_sleep;
+> +					tt1600_stv090x_config.tuner_set_mode	  = ctl->tuner_set_mode;
+> +					tt1600_stv090x_config.tuner_set_frequency = ctl->tuner_set_frequency;
+> +					tt1600_stv090x_config.tuner_get_frequency = ctl->tuner_get_frequency;
+> +					tt1600_stv090x_config.tuner_set_bandwidth = ctl->tuner_set_bandwidth;
+> +					tt1600_stv090x_config.tuner_get_bandwidth = ctl->tuner_get_bandwidth;
+> +					tt1600_stv090x_config.tuner_set_bbgain	  = ctl->tuner_set_bbgain;
+> +					tt1600_stv090x_config.tuner_get_bbgain	  = ctl->tuner_get_bbgain;
+> +					tt1600_stv090x_config.tuner_set_refclk	  = ctl->tuner_set_refclk;
+> +					tt1600_stv090x_config.tuner_get_status	  = ctl->tuner_get_status;
+> +
+> +					/* call the init function once to initialize
+> +					   tuner's clock output divider and demod's
+> +					   master clock */
+> +					if (budget->dvb_frontend->ops.init)
+> +						budget->dvb_frontend->ops.init(budget->dvb_frontend);
+> +
+> +					if (dvb_attach(lnbh24_attach,
+> +							budget->dvb_frontend,
+> +							&budget->i2c_adap,
+> +							LNBH24_PCL | LNBH24_TTX,
+> +							LNBH24_TEN, 0x14>>1) == NULL)
+> +					{
+> +						printk(KERN_ERR
+> +						"No LNBH24 found!\n");
+> +						goto error_out;
+> +					}
+> +				} else {
+> +					printk(KERN_ERR "%s: No STV6110(A) Silicon Tuner found!\n", __func__);
+> +					goto error_out;
+> +				}
+> +			}
+> +		}
+> +		break;
+>  	}
+>  
+>  	if (budget->dvb_frontend == NULL) {
+> @@ -759,6 +818,7 @@ MAKE_BUDGET_INFO(fsacs0, "Fujitsu Siemens Activy Budget-S PCI (rev GR/grundig fr
+>  MAKE_BUDGET_INFO(fsacs1, "Fujitsu Siemens Activy Budget-S PCI (rev AL/alps frontend)", BUDGET_FS_ACTIVY);
+>  MAKE_BUDGET_INFO(fsact,	 "Fujitsu Siemens Activy Budget-T PCI (rev GR/Grundig frontend)", BUDGET_FS_ACTIVY);
+>  MAKE_BUDGET_INFO(fsact1, "Fujitsu Siemens Activy Budget-T PCI (rev AL/ALPS TDHD1-204A)", BUDGET_FS_ACTIVY);
+> +MAKE_BUDGET_INFO(omicom, "Omicom S2 PCI", BUDGET_TT);
+>  
+>  static struct pci_device_id pci_tbl[] = {
+>  	MAKE_EXTENSION_PCI(ttbs,  0x13c2, 0x1003),
+> @@ -772,6 +832,7 @@ static struct pci_device_id pci_tbl[] = {
+>  	MAKE_EXTENSION_PCI(fsacs0,0x1131, 0x4f61),
+>  	MAKE_EXTENSION_PCI(fsact1, 0x1131, 0x5f60),
+>  	MAKE_EXTENSION_PCI(fsact, 0x1131, 0x5f61),
+> +	MAKE_EXTENSION_PCI(omicom, 0x14c4, 0x1020),
+>  	{
+>  		.vendor    = 0,
+>  	}
 > --
-> Regards,
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> Laurent Pinchart
 
