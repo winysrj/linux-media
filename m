@@ -1,187 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52968 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:34403 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932226Ab2HQCFA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Aug 2012 22:05:00 -0400
+	id S1752562Ab2HJAwy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Aug 2012 20:52:54 -0400
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Hin-Tak Leung <htl10@users.sourceforge.net>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 1/4] dvb_frontend: add routine for DVB-T parameter validation
-Date: Fri, 17 Aug 2012 05:03:39 +0300
-Message-Id: <1345169022-10221-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1345169022-10221-1-git-send-email-crope@iki.fi>
-References: <1345169022-10221-1-git-send-email-crope@iki.fi>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/3] tda18212: use Kernel dev_* logging
+Date: Fri, 10 Aug 2012 03:50:36 +0300
+Message-Id: <1344559837-6365-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1344559837-6365-1-git-send-email-crope@iki.fi>
+References: <1344559837-6365-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Common routine for use of dvb-core, demodulator and tuner for check
-given DVB-T parameters correctness.
-
 Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/dvb-core/dvb_frontend.c | 136 ++++++++++++++++++++++++++++++++++
- drivers/media/dvb-core/dvb_frontend.h |   2 +
- 2 files changed, 138 insertions(+)
+ drivers/media/common/tuners/tda18212.c | 35 ++++++++++++++--------------------
+ 1 file changed, 14 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index d29d41a..4abb648 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -2505,6 +2505,142 @@ int dvb_frontend_resume(struct dvb_frontend *fe)
+diff --git a/drivers/media/common/tuners/tda18212.c b/drivers/media/common/tuners/tda18212.c
+index a14e8b6..5d9f028 100644
+--- a/drivers/media/common/tuners/tda18212.c
++++ b/drivers/media/common/tuners/tda18212.c
+@@ -18,8 +18,6 @@
+  *    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+  */
+ 
+-#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+-
+ #include "tda18212.h"
+ 
+ struct tda18212_priv {
+@@ -29,16 +27,6 @@ struct tda18212_priv {
+ 	u32 if_frequency;
+ };
+ 
+-#define dbg(fmt, arg...)					\
+-do {								\
+-	if (debug)						\
+-		pr_info("%s: " fmt, __func__, ##arg);		\
+-} while (0)
+-
+-static int debug;
+-module_param(debug, int, 0644);
+-MODULE_PARM_DESC(debug, "Turn on/off debugging (default:off).");
+-
+ /* write multiple registers */
+ static int tda18212_wr_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
+ 	int len)
+@@ -61,8 +49,8 @@ static int tda18212_wr_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
+ 	if (ret == 1) {
+ 		ret = 0;
+ 	} else {
+-		pr_warn("i2c wr failed ret:%d reg:%02x len:%d\n",
+-			ret, reg, len);
++		dev_warn(&priv->i2c->dev, "%s: i2c wr failed=%d reg=%02x " \
++				"len=%d\n", KBUILD_MODNAME, ret, reg, len);
+ 		ret = -EREMOTEIO;
+ 	}
+ 	return ret;
+@@ -93,8 +81,8 @@ static int tda18212_rd_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
+ 		memcpy(val, buf, len);
+ 		ret = 0;
+ 	} else {
+-		pr_warn("i2c rd failed ret:%d reg:%02x len:%d\n",
+-			ret, reg, len);
++		dev_warn(&priv->i2c->dev, "%s: i2c rd failed=%d reg=%02x " \
++				"len=%d\n", KBUILD_MODNAME, ret, reg, len);
+ 		ret = -EREMOTEIO;
+ 	}
+ 
+@@ -157,8 +145,10 @@ static int tda18212_set_params(struct dvb_frontend *fe)
+ 		[DVBC_8]  = { 0x92, 0x53, 0x03 },
+ 	};
+ 
+-	dbg("delsys=%d RF=%d BW=%d\n",
+-	    c->delivery_system, c->frequency, c->bandwidth_hz);
++	dev_dbg(&priv->i2c->dev,
++			"%s: delivery_system=%d frequency=%d bandwidth_hz=%d\n",
++			__func__, c->delivery_system, c->frequency,
++			c->bandwidth_hz);
+ 
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 1); /* open I2C-gate */
+@@ -247,7 +237,7 @@ exit:
+ 	return ret;
+ 
+ error:
+-	dbg("failed:%d\n", ret);
++	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
+ 	goto exit;
  }
- EXPORT_SYMBOL(dvb_frontend_resume);
  
-+int dvb_validate_params_dvbt(struct dvb_frontend *fe)
-+{
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+
-+	dev_dbg(fe->dvb->device, "%s:\n", __func__);
-+
-+	switch (c->delivery_system) {
-+	case SYS_DVBT:
-+		break;
-+	default:
-+		dev_dbg(fe->dvb->device, "%s: delivery_system=%d\n", __func__,
-+				c->delivery_system);
-+		return -EINVAL;
-+	}
-+
-+	if (c->frequency >= 174000000 && c->frequency <= 230000000) {
-+		;
-+	} else if (c->frequency >= 470000000 && c->frequency <= 862000000) {
-+		;
-+	} else {
-+		dev_dbg(fe->dvb->device, "%s: frequency=%d\n", __func__,
-+				c->frequency);
-+		return -EINVAL;
-+	}
-+
-+	switch (c->bandwidth_hz) {
-+	case 6000000:
-+	case 7000000:
-+	case 8000000:
-+		break;
-+	default:
-+		dev_dbg(fe->dvb->device, "%s: bandwidth_hz=%d\n", __func__,
-+				c->bandwidth_hz);
-+		return -EINVAL;
-+	}
-+
-+	switch (c->transmission_mode) {
-+	case TRANSMISSION_MODE_AUTO:
-+	case TRANSMISSION_MODE_2K:
-+	case TRANSMISSION_MODE_8K:
-+		break;
-+	default:
-+		dev_dbg(fe->dvb->device, "%s: transmission_mode=%d\n", __func__,
-+				c->transmission_mode);
-+		return -EINVAL;
-+	}
-+
-+	switch (c->modulation) {
-+	case QAM_AUTO:
-+	case QPSK:
-+	case QAM_16:
-+	case QAM_64:
-+		break;
-+	default:
-+		dev_dbg(fe->dvb->device, "%s: modulation=%d\n", __func__,
-+				c->modulation);
-+		return -EINVAL;
-+	}
-+
-+	switch (c->guard_interval) {
-+	case GUARD_INTERVAL_AUTO:
-+	case GUARD_INTERVAL_1_32:
-+	case GUARD_INTERVAL_1_16:
-+	case GUARD_INTERVAL_1_8:
-+	case GUARD_INTERVAL_1_4:
-+		break;
-+	default:
-+		dev_dbg(fe->dvb->device, "%s: guard_interval=%d\n", __func__,
-+				c->guard_interval);
-+		return -EINVAL;
-+	}
-+
-+	switch (c->hierarchy) {
-+	case HIERARCHY_NONE:
-+	case HIERARCHY_AUTO:
-+	case HIERARCHY_1:
-+	case HIERARCHY_2:
-+	case HIERARCHY_4:
-+		break;
-+	default:
-+		dev_dbg(fe->dvb->device, "%s: hierarchy=%d\n", __func__,
-+				c->hierarchy);
-+		return -EINVAL;
-+	}
-+
-+	switch (c->code_rate_HP) {
-+	case FEC_AUTO:
-+	case FEC_1_2:
-+	case FEC_2_3:
-+	case FEC_3_4:
-+	case FEC_5_6:
-+	case FEC_7_8:
-+		break;
-+	default:
-+		dev_dbg(fe->dvb->device, "%s: code_rate_HP=%d\n", __func__,
-+				c->code_rate_HP);
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * code_rate_LP is used only with hierarchical coding
-+	 */
-+	if (c->hierarchy == HIERARCHY_NONE) {
-+		switch (c->code_rate_LP) {
-+		case FEC_NONE:
-+		/*
-+		 * TODO: FEC_AUTO here is wrong, but for some reason
-+		 * dtv_set_frontend() forces it.
-+		 */
-+		case FEC_AUTO:
-+			break;
-+		default:
-+			dev_dbg(fe->dvb->device, "%s: code_rate_LP=%d\n",
-+					__func__, c->code_rate_LP);
-+			return -EINVAL;
-+		}
-+	} else {
-+		switch (c->code_rate_LP) {
-+		case FEC_AUTO:
-+		case FEC_1_2:
-+		case FEC_2_3:
-+		case FEC_3_4:
-+		case FEC_5_6:
-+		case FEC_7_8:
-+			break;
-+		default:
-+			dev_dbg(fe->dvb->device, "%s: code_rate_LP=%d\n",
-+					__func__, c->code_rate_LP);
-+			return -EINVAL;
-+		}
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(dvb_validate_params_dvbt);
-+
- int dvb_register_frontend(struct dvb_adapter* dvb,
- 			  struct dvb_frontend* fe)
- {
-diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
-index 74ba563..6df0c44 100644
---- a/drivers/media/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb-core/dvb_frontend.h
-@@ -425,4 +425,6 @@ extern int dvb_frontend_resume(struct dvb_frontend *fe);
- extern void dvb_frontend_sleep_until(struct timeval *waketime, u32 add_usec);
- extern s32 timeval_usec_diff(struct timeval lasttime, struct timeval curtime);
+@@ -306,13 +296,16 @@ struct dvb_frontend *tda18212_attach(struct dvb_frontend *fe,
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
  
-+extern int dvb_validate_params_dvbt(struct dvb_frontend *fe);
-+
- #endif
+-	dbg("ret:%d chip ID:%02x\n", ret, val);
++	dev_dbg(&priv->i2c->dev, "%s: ret=%d chip id=%02x\n", __func__, ret,
++			val);
+ 	if (ret || val != 0xc7) {
+ 		kfree(priv);
+ 		return NULL;
+ 	}
+ 
+-	pr_info("NXP TDA18212HN successfully identified\n");
++	dev_info(&priv->i2c->dev,
++			"%s: NXP TDA18212HN successfully identified\n",
++			KBUILD_MODNAME);
+ 
+ 	memcpy(&fe->ops.tuner_ops, &tda18212_tuner_ops,
+ 		sizeof(struct dvb_tuner_ops));
 -- 
 1.7.11.2
 
