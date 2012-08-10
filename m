@@ -1,101 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:19526 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758145Ab2HWJwM (ORCPT
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:41639 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751481Ab2HJT5a (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Aug 2012 05:52:12 -0400
-Received: from epcpsbgm1.samsung.com (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M9700EG3CQH07Z0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 23 Aug 2012 18:52:11 +0900 (KST)
-Received: from amdc248.digital.local ([106.116.147.32])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M9700GHMCQHII60@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 23 Aug 2012 18:52:11 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	sakari.ailus@iki.fi, g.liakhovetski@gmx.de,
-	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC 1/4] V4L: Add V4L2_CID_FRAMESIZE image source class control
-Date: Thu, 23 Aug 2012 11:51:26 +0200
-Message-id: <1345715489-30158-2-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1345715489-30158-1-git-send-email-s.nawrocki@samsung.com>
-References: <1345715489-30158-1-git-send-email-s.nawrocki@samsung.com>
+	Fri, 10 Aug 2012 15:57:30 -0400
+Received: by wibhq12 with SMTP id hq12so1442096wib.1
+        for <linux-media@vger.kernel.org>; Fri, 10 Aug 2012 12:57:29 -0700 (PDT)
+Date: Fri, 10 Aug 2012 21:57:49 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: sumit.semwal@linaro.org, rob.clark@linaro.org,
+	linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Subject: Re: [Linaro-mm-sig] [PATCH 3/4] dma-seqno-fence: Hardware dma-buf
+ implementation of fencing (v2)
+Message-ID: <20120810195749.GH5738@phenom.ffwll.local>
+References: <20120810145728.5490.44707.stgit@patser.local>
+ <20120810145758.5490.62372.stgit@patser.local>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20120810145758.5490.62372.stgit@patser.local>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2_CID_FRAMESIZE control determines maximum number
-of media bus samples transmitted within a single data frame.
-It is useful for determining size of data buffer at the
-receiver side.
+On Fri, Aug 10, 2012 at 04:57:58PM +0200, Maarten Lankhorst wrote:
+> This type of fence can be used with hardware synchronization for simple
+> hardware that can block execution until the condition
+> (dma_buf[offset] - value) >= 0 has been met.
+> 
+> A software fallback still has to be provided in case the fence is used
+> with a device that doesn't support this mechanism. It is useful to expose
+> this for graphics cards that have an op to support this.
+> 
+> Some cards like i915 can export those, but don't have an option to wait,
+> so they need the software fallback.
+> 
+> I extended the original patch by Rob Clark.
+> 
+> v1: Original
+> v2: Renamed from bikeshed to seqno, moved into dma-fence.c since
+>     not much was left of the file. Lots of documentation added.
+> 
+> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- Documentation/DocBook/media/v4l/controls.xml | 12 ++++++++++++
- drivers/media/v4l2-core/v4l2-ctrls.c         |  2 ++
- include/linux/videodev2.h                    |  1 +
- 3 files changed, 15 insertions(+)
+Patch looks good, two bikesheds inline. Either way
+Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 93b9c68..ad5d4e5 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -4184,6 +4184,18 @@ interface and may change in the future.</para>
- 	    conversion.
- 	    </entry>
- 	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_FRAMESIZE</constant></entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">Maximum size of a data frame in media bus
-+	      sample units. This control determines maximum number of samples
-+	      transmitted per single compressed data frame. For generic raw
-+	      pixel formats the value of this control is undefined. This is
-+	      a read-only control.
-+	    </entry>
-+	  </row>
- 	  <row><entry></entry></row>
- 	</tbody>
-       </tgroup>
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index b6a2ee7..0043fd2 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -727,6 +727,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_VBLANK:			return "Vertical Blanking";
- 	case V4L2_CID_HBLANK:			return "Horizontal Blanking";
- 	case V4L2_CID_ANALOGUE_GAIN:		return "Analogue Gain";
-+	case V4L2_CID_FRAMESIZE:		return "Maximum Frame Size";
- 
- 	/* Image processing controls */
- 	case V4L2_CID_IMAGE_PROC_CLASS:		return "Image Processing Controls";
-@@ -933,6 +934,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_FLASH_STROBE_STATUS:
- 	case V4L2_CID_AUTO_FOCUS_STATUS:
- 	case V4L2_CID_FLASH_READY:
-+	case V4L2_CID_FRAMESIZE:
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
- 		break;
- 	}
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 7a147c8..d3fd19f 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1985,6 +1985,7 @@ enum v4l2_jpeg_chroma_subsampling {
- #define V4L2_CID_VBLANK				(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 1)
- #define V4L2_CID_HBLANK				(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 2)
- #define V4L2_CID_ANALOGUE_GAIN			(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 3)
-+#define V4L2_CID_FRAMESIZE			(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 4)
- 
- /* Image processing controls */
- #define V4L2_CID_IMAGE_PROC_CLASS_BASE		(V4L2_CTRL_CLASS_IMAGE_PROC | 0x900)
+> ---
+>  drivers/base/dma-fence.c  |   21 +++++++++++++++
+>  include/linux/dma-fence.h |   61 +++++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 82 insertions(+)
+> 
+> diff --git a/drivers/base/dma-fence.c b/drivers/base/dma-fence.c
+> index 93448e4..4092a58 100644
+> --- a/drivers/base/dma-fence.c
+> +++ b/drivers/base/dma-fence.c
+> @@ -266,3 +266,24 @@ struct dma_fence *dma_fence_create(void *priv)
+>  	return fence;
+>  }
+>  EXPORT_SYMBOL_GPL(dma_fence_create);
+> +
+> +static int seqno_enable_signaling(struct dma_fence *fence)
+> +{
+> +	struct dma_seqno_fence *seqno_fence = to_seqno_fence(fence);
+> +	return seqno_fence->enable_signaling(seqno_fence);
+> +}
+> +
+> +static void seqno_release(struct dma_fence *fence)
+> +{
+> +	struct dma_seqno_fence *f = to_seqno_fence(fence);
+> +
+> +	if (f->release)
+> +		f->release(f);
+> +	dma_buf_put(f->sync_buf);
+> +}
+> +
+> +const struct dma_fence_ops dma_seqno_fence_ops = {
+> +	.enable_signaling = seqno_enable_signaling,
+> +	.release = seqno_release
+> +};
+> +EXPORT_SYMBOL_GPL(dma_seqno_fence_ops);
+> diff --git a/include/linux/dma-fence.h b/include/linux/dma-fence.h
+> index e0ceddd..3ef0da0 100644
+> --- a/include/linux/dma-fence.h
+> +++ b/include/linux/dma-fence.h
+> @@ -91,6 +91,19 @@ struct dma_fence_ops {
+>  	void (*release)(struct dma_fence *fence);
+>  };
+>  
+> +struct dma_seqno_fence {
+> +	struct dma_fence base;
+> +
+> +	struct dma_buf *sync_buf;
+> +	uint32_t seqno_ofs;
+> +	uint32_t seqno;
+> +
+> +	int (*enable_signaling)(struct dma_seqno_fence *fence);
+> +	void (*release)(struct dma_seqno_fence *fence);
+
+I think using dma_fence_ops here is the better color. We lose type-safety
+at compile-time, but still keep type-safety at runtime (thanks to
+to_dma_seqno_fence). In addition people seem to like to constify function
+pointers, we'd save a pointer and if we extend the sw dma_fence interface.
+
+> +};
+> +
+> +extern const struct dma_fence_ops dma_seqno_fence_ops;
+> +
+>  struct dma_fence *dma_fence_create(void *priv);
+>  
+>  /**
+> @@ -121,4 +134,52 @@ int dma_fence_wait(struct dma_fence *fence, bool intr, unsigned long timeout);
+>  int dma_fence_add_callback(struct dma_fence *fence, struct dma_fence_cb *cb,
+>  			   dma_fence_func_t func, void *priv);
+>  
+> +/**
+> + * to_seqno_fence - cast a dma_fence to a dma_seqno_fence
+> + * @fence: dma_fence to cast to a dma_seqno_fence
+> + *
+> + * Returns NULL if the dma_fence is not a dma_seqno_fence,
+> + * or the dma_seqno_fence otherwise.
+> + */
+> +static inline struct dma_seqno_fence *
+> +to_seqno_fence(struct dma_fence *fence)
+> +{
+> +	if (fence->ops != &dma_seqno_fence_ops)
+> +		return NULL;
+> +	return container_of(fence, struct dma_seqno_fence, base);
+> +}
+
+I think adding an is_dma_seqno_fence would be nice ...
+
+> +
+> +/**
+> + * dma_seqno_fence_init - initialize a seqno fence
+> + * @fence: dma_seqno_fence to initialize
+> + * @sync_buf: buffer containing the memory location to signal on
+> + * @seqno_ofs: the offset within @sync_buf
+> + * @seqno: the sequence # to signal on
+> + * @priv: value of priv member
+> + * @enable_signaling: callback which is called when some other device is
+> + *    waiting for sw notification of fence
+> + * @release: callback called during destruction before object is freed.
+> + *
+> + * This function initializes a struct dma_seqno_fence with passed parameters,
+> + * and takes a reference on sync_buf which is released on fence destruction.
+> + */
+> +static inline void
+> +dma_seqno_fence_init(struct dma_seqno_fence *fence,
+> +			struct dma_buf *sync_buf,
+> +			uint32_t seqno_ofs, uint32_t seqno, void *priv,
+> +			int (*enable_signaling)(struct dma_seqno_fence *),
+> +			void (*release)(struct dma_seqno_fence *))
+> +{
+> +	BUG_ON(!fence || !sync_buf || !enable_signaling);
+> +
+> +	__dma_fence_init(&fence->base, &dma_seqno_fence_ops, priv);
+> +
+> +	get_dma_buf(sync_buf);
+> +	fence->sync_buf = sync_buf;
+> +	fence->seqno_ofs = seqno_ofs;
+> +	fence->seqno = seqno;
+> +	fence->enable_signaling = enable_signaling;
+> +	fence->release = release;
+> +}
+> +
+>  #endif /* __DMA_FENCE_H__ */
+> 
+> 
+> _______________________________________________
+> Linaro-mm-sig mailing list
+> Linaro-mm-sig@lists.linaro.org
+> http://lists.linaro.org/mailman/listinfo/linaro-mm-sig
+
 -- 
-1.7.11.3
-
+Daniel Vetter
+Mail: daniel@ffwll.ch
+Mobile: +41 (0)79 365 57 48
