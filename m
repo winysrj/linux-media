@@ -1,205 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([93.97.41.153]:46456 "EHLO pequod.mess.org"
+Received: from mx1.redhat.com ([209.132.183.28]:15693 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753344Ab2HJT2M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Aug 2012 15:28:12 -0400
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Greg Kroah-Hartman <greg@kroah.com>,
-	Stefan Macher <st_maker-lirc@yahoo.de>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 6/6] [staging] lirc: lirc_ene0100.h is not referenced anywhere
-Date: Fri, 10 Aug 2012 20:28:08 +0100
-Message-Id: <1344626888-10536-6-git-send-email-sean@mess.org>
-In-Reply-To: <1344626888-10536-1-git-send-email-sean@mess.org>
-References: <1344626888-10536-1-git-send-email-sean@mess.org>
+	id S1755175Ab2HJWMs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Aug 2012 18:12:48 -0400
+Message-ID: <50258758.8050902@redhat.com>
+Date: Fri, 10 Aug 2012 19:12:40 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: CrazyCat <crazycat69@yandex.ru>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Manu Abraham <manu@linuxtv.org>
+Subject: Re: [PATCH] DVB-S2 multistream support
+References: <59951342221302@web18g.yandex.ru>
+In-Reply-To: <59951342221302@web18g.yandex.ru>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is a proper ene0100 driver anyway.
+Em 13-07-2012 20:15, CrazyCat escreveu:
+> Now present DTV_DVBT2_PLP_ID property for DVB-T2, so i add alias DTV_DVBS2_MIS_ID (same feature for advanced DVB-S2). Now DVB-S2 multistream filtration supported for current STV090x demod cut 3.0, so i implement support for stv090x demod driver. Additional fe-caps FE_CAN_MULTISTREAM also added.
+> 
+> 
+> frontend-mis.patch
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/staging/media/lirc/lirc_ene0100.h | 169 ------------------------------
- 1 file changed, 169 deletions(-)
- delete mode 100644 drivers/staging/media/lirc/lirc_ene0100.h
+Please provide your Signed-off-by: (with your real name).
 
-diff --git a/drivers/staging/media/lirc/lirc_ene0100.h b/drivers/staging/media/lirc/lirc_ene0100.h
-deleted file mode 100644
-index 06bebd6..0000000
---- a/drivers/staging/media/lirc/lirc_ene0100.h
-+++ /dev/null
-@@ -1,169 +0,0 @@
--/*
-- * driver for ENE KB3926 B/C/D CIR (also known as ENE0100)
-- *
-- * Copyright (C) 2009 Maxim Levitsky <maximlevitsky@gmail.com>
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License as
-- * published by the Free Software Foundation; either version 2 of the
-- * License, or (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
-- * USA
-- */
--
--#include <media/lirc.h>
--#include <media/lirc_dev.h>
--
--/* hardware address */
--#define ENE_STATUS		0	 /* hardware status - unused */
--#define ENE_ADDR_HI		1	 /* hi byte of register address */
--#define ENE_ADDR_LO		2	 /* low byte of register address */
--#define ENE_IO			3	 /* read/write window */
--#define ENE_MAX_IO		4
--
--/* 8 bytes of samples, divided in 2 halfs*/
--#define ENE_SAMPLE_BUFFER	0xF8F0	 /* regular sample buffer */
--#define ENE_SAMPLE_SPC_MASK	(1 << 7) /* sample is space */
--#define ENE_SAMPLE_VALUE_MASK	0x7F
--#define ENE_SAMPLE_OVERFLOW	0x7F
--#define ENE_SAMPLES_SIZE	4
--
--/* fan input sample buffer */
--#define ENE_SAMPLE_BUFFER_FAN	0xF8FB	 /* this buffer holds high byte of */
--					 /* each sample of normal buffer */
--
--#define ENE_FAN_SMPL_PULS_MSK	0x8000	 /* this bit of combined sample */
--					 /* if set, says that sample is pulse */
--#define ENE_FAN_VALUE_MASK	0x0FFF   /* mask for valid bits of the value */
--
--/* first firmware register */
--#define ENE_FW1			0xF8F8
--#define	ENE_FW1_ENABLE		(1 << 0) /* enable fw processing */
--#define ENE_FW1_TXIRQ		(1 << 1) /* TX interrupt pending */
--#define ENE_FW1_WAKE		(1 << 6) /* enable wake from S3 */
--#define ENE_FW1_IRQ		(1 << 7) /* enable interrupt */
--
--/* second firmware register */
--#define ENE_FW2			0xF8F9
--#define ENE_FW2_BUF_HIGH	(1 << 0) /* which half of the buffer to read */
--#define ENE_FW2_IRQ_CLR		(1 << 2) /* clear this on IRQ */
--#define ENE_FW2_GP40_AS_LEARN	(1 << 4) /* normal input is used as */
--					 /* learning input */
--#define ENE_FW2_FAN_AS_NRML_IN	(1 << 6) /* fan is used as normal input */
--#define ENE_FW2_LEARNING	(1 << 7) /* hardware supports learning and TX */
--
--/* fan as input settings - only if learning capable */
--#define ENE_FAN_AS_IN1		0xFE30   /* fan init reg 1 */
--#define ENE_FAN_AS_IN1_EN	0xCD
--#define ENE_FAN_AS_IN2		0xFE31   /* fan init reg 2 */
--#define ENE_FAN_AS_IN2_EN	0x03
--#define ENE_SAMPLE_PERIOD_FAN   61	 /* fan input has fixed sample period */
--
--/* IRQ registers block (for revision B) */
--#define ENEB_IRQ		0xFD09	 /* IRQ number */
--#define ENEB_IRQ_UNK1		0xFD17	 /* unknown setting = 1 */
--#define ENEB_IRQ_STATUS		0xFD80	 /* irq status */
--#define ENEB_IRQ_STATUS_IR	(1 << 5) /* IR irq */
--
--/* IRQ registers block (for revision C,D) */
--#define ENEC_IRQ		0xFE9B	 /* new irq settings register */
--#define ENEC_IRQ_MASK		0x0F	 /* irq number mask */
--#define ENEC_IRQ_UNK_EN		(1 << 4) /* always enabled */
--#define ENEC_IRQ_STATUS		(1 << 5) /* irq status and ACK */
--
--/* CIR block settings */
--#define ENE_CIR_CONF1		0xFEC0
--#define ENE_CIR_CONF1_ADC_ON	0x7	 /* receiver on gpio40 enabled */
--#define ENE_CIR_CONF1_LEARN1	(1 << 3) /* enabled on learning mode */
--#define ENE_CIR_CONF1_TX_ON	0x30	 /* enabled on transmit */
--#define ENE_CIR_CONF1_TX_CARR	(1 << 7) /* send TX carrier or not */
--
--#define ENE_CIR_CONF2		0xFEC1	 /* unknown setting = 0 */
--#define ENE_CIR_CONF2_LEARN2	(1 << 4) /* set on enable learning */
--#define ENE_CIR_CONF2_GPIO40DIS	(1 << 5) /* disable normal input via gpio40 */
--
--#define ENE_CIR_SAMPLE_PERIOD	0xFEC8	 /* sample period in us */
--#define ENE_CIR_SAMPLE_OVERFLOW	(1 << 7) /* interrupt on overflows if set */
--
--
--/* transmitter - not implemented yet */
--/* KB3926C and higher */
--/* transmission is very similar to receiving, a byte is written to */
--/* ENE_TX_INPUT, in same manner as it is read from sample buffer */
--/* sample period is fixed*/
--
--
--/* transmitter ports */
--#define ENE_TX_PORT1		0xFC01	 /* this enables one or both */
--#define ENE_TX_PORT1_EN		(1 << 5) /* TX ports */
--#define ENE_TX_PORT2		0xFC08
--#define ENE_TX_PORT2_EN		(1 << 1)
--
--#define ENE_TX_INPUT		0xFEC9	 /* next byte to transmit */
--#define ENE_TX_SPC_MASK		(1 << 7) /* Transmitted sample is space */
--#define ENE_TX_UNK1		0xFECB	 /* set to 0x63 */
--#define ENE_TX_SMPL_PERIOD	50	 /* transmit sample period */
--
--
--#define ENE_TX_CARRIER		0xFECE	 /* TX carrier * 2 (khz) */
--#define ENE_TX_CARRIER_UNKBIT	0x80	 /* This bit set on transmit */
--#define ENE_TX_CARRIER_LOW	0xFECF	 /* TX carrier / 2 */
--
--/* Hardware versions */
--#define ENE_HW_VERSION		0xFF00	 /* hardware revision */
--#define ENE_HW_UNK		0xFF1D
--#define ENE_HW_UNK_CLR		(1 << 2)
--#define ENE_HW_VER_MAJOR	0xFF1E	 /* chip version */
--#define ENE_HW_VER_MINOR	0xFF1F
--#define ENE_HW_VER_OLD		0xFD00
--
--#define same_sign(a, b) ((((a) > 0) && (b) > 0) || ((a) < 0 && (b) < 0))
--
--#define ENE_DRIVER_NAME		"enecir"
--#define ENE_MAXGAP		250000	 /* this is amount of time we wait
--					 before turning the sampler, chosen
--					 arbitry */
--
--#define space(len)	       (-(len))	 /* add a space */
--
--/* software defines */
--#define ENE_IRQ_RX		1
--#define ENE_IRQ_TX		2
--
--#define  ENE_HW_B		1	/* 3926B */
--#define  ENE_HW_C		2	/* 3926C */
--#define  ENE_HW_D		3	/* 3926D */
--
--#define ene_printk(level, text, ...) \
--	printk(level ENE_DRIVER_NAME ": " text, ## __VA_ARGS__)
--
--struct ene_device {
--	struct pnp_dev *pnp_dev;
--	struct lirc_driver *lirc_driver;
--
--	/* hw settings */
--	unsigned long hw_io;
--	int irq;
--
--	int hw_revision;			/* hardware revision */
--	int hw_learning_and_tx_capable;		/* learning capable */
--	int hw_gpio40_learning;			/* gpio40 is learning */
--	int hw_fan_as_normal_input;	/* fan input is used as regular input */
--
--	/* device data */
--	int idle;
--	int fan_input_inuse;
--
--	int sample;
--	int in_use;
--
--	struct timeval gap_start;
--};
--- 
-1.7.11.2
+> 
+> 
+> diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
+> index f50d405..f625f8d 100644
+> --- a/include/linux/dvb/frontend.h
+> +++ b/include/linux/dvb/frontend.h
+> @@ -62,6 +62,7 @@ typedef enum fe_caps {
+>  	FE_CAN_8VSB			= 0x200000,
+>  	FE_CAN_16VSB			= 0x400000,
+>  	FE_HAS_EXTENDED_CAPS		= 0x800000,   /* We need more bitspace for newer APIs, indicate this. */
+> +	FE_CAN_MULTISTREAM		= 0x4000000,  /* frontend supports DVB-S2 multistream filtering */
 
+Not sure if this is really needed. Are there any DVB-S2 frontends that
+don't support MIS, or they don't implement it just because this weren't
+defined yet? In the latter case, it would be better to not adding an
+special flag for it.
+
+>  	FE_CAN_TURBO_FEC		= 0x8000000,  /* frontend supports "turbo fec modulation" */
+>  	FE_CAN_2G_MODULATION		= 0x10000000, /* frontend supports "2nd generation modulation" (DVB-S2) */
+>  	FE_NEEDS_BENDING		= 0x20000000, /* not supported anymore, don't use (frontend requires frequency bending) */
+> @@ -317,6 +318,7 @@ struct dvb_frontend_event {
+>  #define DTV_ISDBS_TS_ID		42
+>  
+>  #define DTV_DVBT2_PLP_ID	43
+> +#define DTV_DVBS2_MIS_ID	43
+
+It would be better to define it as:
+
+#define DTV_DVBS2_MIS_ID	DTV_DVBT2_PLP_ID
+
+Even better, we should instead find a better name that would cover both
+DVB-T2 and DVB-S2 program ID fields, like:
+
+#define DTV_DVB_MULT		43
+#define DTV_DVBT2_PLP_ID	DTV_DVB_MULT
+
+And use the new symbol for both DVB-S2 and DVB-T2, deprecating the
+legacy symbol.
+
+Also, DocBook needs to be changed to reflect this change.
+
+>  
+>  #define DTV_ENUM_DELSYS		44
+>  
+> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> index aebcdf2..83e51f9 100644
+> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> @@ -947,7 +947,7 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
+>  	}
+>  
+>  	c->isdbs_ts_id = 0;
+> -	c->dvbt2_plp_id = 0;
+> +	c->dvbt2_plp_id = -1;
+>  
+>  	switch (c->delivery_system) {
+>  	case SYS_DVBS:
+> diff --git a/drivers/media/dvb/frontends/stv090x.c b/drivers/media/dvb/frontends/stv090x.c
+> index ea86a56..eb6f1cf 100644
+> --- a/drivers/media/dvb/frontends/stv090x.c
+> +++ b/drivers/media/dvb/frontends/stv090x.c
+> @@ -3425,6 +3425,33 @@ err:
+>  	return -1;
+>  }
+>  
+> +static int stv090x_set_mis(struct stv090x_state *state, int mis)
+> +{
+> +	u32 reg;
+> +
+> +	if (mis<0 || mis>255) {
+
+You should be checking your patch using scripts/checkpatch.pl.
+Due to Documentation/CodingStyle, the above should be written, instead, as:
+	if (mis < 0 || mis > 255) {
+
+
+> +		dprintk(FE_DEBUG, 1, "Disable MIS filtering");
+> +		reg = STV090x_READ_DEMOD(state, PDELCTRL1);
+> +		STV090x_SETFIELD_Px(reg, FILTER_EN_FIELD, 0x00);
+> +		if (STV090x_WRITE_DEMOD(state, PDELCTRL1, reg) < 0)
+> +			goto err;
+> +	} else {
+> +		dprintk(FE_DEBUG, 1, "Enable MIS filtering - %d", mis);
+> +		reg = STV090x_READ_DEMOD(state, PDELCTRL1);
+> +		STV090x_SETFIELD_Px(reg, FILTER_EN_FIELD, 0x01);
+> +		if (STV090x_WRITE_DEMOD(state, PDELCTRL1, reg) < 0)
+> +			goto err;
+> +		if (STV090x_WRITE_DEMOD(state, ISIENTRY, mis) < 0)
+> +			goto err;
+> +		if (STV090x_WRITE_DEMOD(state, ISIBITENA, 0xff) < 0)
+> +			goto err;
+> +	}
+> +	return 0;
+> +err:
+> +	dprintk(FE_ERROR, 1, "I/O error");
+> +	return -1;
+> +}
+> +
+>  static enum dvbfe_search stv090x_search(struct dvb_frontend *fe)
+>  {
+>  	struct stv090x_state *state = fe->demodulator_priv;
+> @@ -3433,6 +3460,8 @@ static enum dvbfe_search stv090x_search(struct dvb_frontend *fe)
+>  	if (props->frequency == 0)
+>  		return DVBFE_ALGO_SEARCH_INVALID;
+>  
+> +	stv090x_set_mis(state,props->dvbt2_plp_id);
+> +
+>  	state->delsys = props->delivery_system;
+>  	state->frequency = props->frequency;
+>  	state->srate = props->symbol_rate;
+> @@ -3447,6 +3476,8 @@ static enum dvbfe_search stv090x_search(struct dvb_frontend *fe)
+>  		state->search_range = 5000000;
+>  	}
+>  
+> +	stv090x_set_mis(state,props->dvbt2_plp_id);
+> +
+>  	if (stv090x_algo(state) == STV090x_RANGEOK) {
+>  		dprintk(FE_DEBUG, 1, "Search success!");
+>  		return DVBFE_ALGO_SEARCH_SUCCESS;
+> @@ -4798,6 +4829,9 @@ struct dvb_frontend *stv090x_attach(const struct stv090x_config *config,
+>  		}
+>  	}
+>  
+> +	if (state->internal->dev_ver>=0x30)
+> +	    state->frontend.ops.info.caps |= FE_CAN_MULTISTREAM;
+> +
+>  	/* workaround for stuck DiSEqC output */
+>  	if (config->diseqc_envelope_mode)
+>  		stv090x_send_diseqc_burst(&state->frontend, SEC_MINI_A);
+> 
+
+Regards,
+Mauro
