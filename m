@@ -1,231 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:54889 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754575Ab2HXX1a (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:49782 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758122Ab2HJOQN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 19:27:30 -0400
-Date: Sat, 25 Aug 2012 01:27:16 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	devicetree-discuss <devicetree-discuss@lists.ozlabs.org>,
-	linux-sh@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Stephen Warren <swarren@wwwdotorg.org>
-Subject: [RFC v4] V4L DT bindings
-Message-ID: <Pine.LNX.4.64.1208242356051.20710@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Fri, 10 Aug 2012 10:16:13 -0400
+Received: by mail-ey0-f174.google.com with SMTP id c11so519125eaa.19
+        for <linux-media@vger.kernel.org>; Fri, 10 Aug 2012 07:16:12 -0700 (PDT)
+From: Sangwook Lee <sangwook.lee@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@maxwell.research.nokia.com, suapapa@insignal.co.kr,
+	quartz.jang@samsung.com, linaro-dev@lists.linaro.org,
+	patches@linaro.org, usman.ahmad@linaro.org,
+	Sangwook Lee <sangwook.lee@linaro.org>
+Subject: [PATCH v4 1/2] v4l: Add factory register values form S5K4ECGX sensor
+Date: Fri, 10 Aug 2012 15:14:55 +0100
+Message-Id: <1344608096-22059-2-git-send-email-sangwook.lee@linaro.org>
+In-Reply-To: <1344608096-22059-1-git-send-email-sangwook.lee@linaro.org>
+References: <1344608096-22059-1-git-send-email-sangwook.lee@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all
+Add preview default settings for S5K4ECGX sensor registers,
+which was copied from the reference code of Samsung S.LSI.
 
-After an initial RFC [1] and taking into consideration an even earlier 
-patch-set [2], Sylwester and I have spent some time discussing V4L DT 
-bindings, below is a result of those discussions.
-
-We have chosen to try to design a DT example, documentation and 
-implementation should follow. I'll try to bring together just several most 
-important points, that might not be immediately obvious from the example.
-
-1. Sylwester has initially designed his patches around a concept of a 
-central "video" node, that contains (references to) all video devices on 
-the system. This might make finding all relevant components easier and 
-should make power management more readily available. In the below example 
-such a node is missing. For now we decided not to require one, but systems 
-may choose to use them. Support for them might be added to the V4L DT 
-subsystem later.
-
-2. The below example contains the following 4 components:
-   (a) an SoC bridge (CEU node "ceu0@0xfe910000"), note, that the bridge 
-       is also providing a master clock "mclk: master_clock" to sensors
-   (b) a CSI-2 interface "csi2: csi2@0xffc90000", that can be used with 
-       the above bridge
-   (c) an I2C parallel camera sensor "ov772x_1: ov772x@0x21"
-   (d) an I2C serial (MIPI CSI-2) camera sensor "imx074: imx074@0x1a"
-
-3. Linking of various components follows the V4L2 MC concept: each video 
-node can contain "xxx: videolink@x" child nodes. These nodes specify the 
-opposite end of the link and a local pad configuration. This is required, 
-because two linked pads might require different configuration. E.g., if 
-the board contains an inverter in the camera vertical sync line, 
-respective pads have to be configured with opposite vsync polarities.
-
-4. In the below example the following links are defined:
-   (a) "ov772x_1_1: videolink@1" is a child of the CEU node, it links the 
-       CEU with the ov772x sensor.
-   (b) "csi2_0: videolink@0" is also child of the CEU node, it links the 
-       CEU with the CSI-2 module. Note, that this link might not be 
-       necessary, since this is an SoC internal connection and drivers 
-       will know themselves how to configure it
-   (c) "ceu0_1: videolink@0" is a chile of the OV772x node
-   (d) "csi2_0_1: videolink@0" is a child of the IMX074 camera sensor node
-   (e) "imx074_1: videolink@1" is a child of the CSI-2 node
-   (f) "ceu0: videolink@0" is a child of the CSI-2 node - also might not 
-       be required
-
-5. Remote node references in videolinks are unidirectional. I.e., 
-videolink nodes on downstream devices (e.g., the bridge) reference 
-phandles of upstream nodes (e.g., sensors), but not the other way round. 
-This should be sufficient for the proposed probing method:
-   (a) external subdevices like sensors are children on their respective 
-       busses (e.g., I2C) and can be probed before the bridge. In this 
-       case probing can fail, because the master clock is not supplied 
-       yet. Therefore the sensor driver will have to request deferred 
-       probing.
-   (b) the bridge device is probed, the driver instantiates the clock, 
-       before returning the driver registers a notifier (in this case on 
-       the I2C bus)
-   (c) sensor .probe() is tried again, this time the clock is available, 
-       so, this time probing succeeds
-   (d) the bridge driver notifier is called, it scans videolink child 
-       nodes, finds a match, gets a link to the subdevice
-
-6. In the below example we are using the "reg" property to enumerate 
-videolink child nodes. Doubts have been expressed previous in thread [1] 
-about validity of such use. If it's proven, that "reg" shouldn't be used 
-in this case, a new property shall be introduced.
-
-7. Concerning data lines. We have chosen to use "bus-width" and 
-"data-shift" for parallel busses and new properties "data-lanes" and 
-"clock-lanes" to describe pin assignment on MIPI CSI-2 devices and 
-additionally a "bus-width" property per videolink child of CSI-2 
-controllers to specify how many data lanes are actually used for this 
-link.
-
-Any comments welcome.
-
-It's been a pleasure working on this together with Sylwester, it is a pity 
-he won't be coming to the KS this time, hopefully, we'll continue this 
-cooperation during upcoming discussion and implementation phases.
-
-[1] http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/50755
-[2] http://thread.gmane.org/gmane.linux.kernel.samsung-soc/11143
-
-Thanks
-Guennadi
+Signed-off-by: Sangwook Lee <sangwook.lee@linaro.org>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/s5k4ecgx_regs.h |  138 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 138 insertions(+)
+ create mode 100644 drivers/media/video/s5k4ecgx_regs.h
 
-// Describe an imaginary configuration: a CEU serving either a parallel ov7725
-// sensor, or a serial imx074 sensor, connected over a CSI-2 SoC interface
-//
-// Any vendor-specific properties here are only provided as examples. The
-// emphasis is on common media properties. If any of mentioned here vendor-
-// specific properties seem to be common enough, they can be promoted to
-// generic ones.
+diff --git a/drivers/media/video/s5k4ecgx_regs.h b/drivers/media/video/s5k4ecgx_regs.h
+new file mode 100644
+index 0000000..e99b0e6
+--- /dev/null
++++ b/drivers/media/video/s5k4ecgx_regs.h
+@@ -0,0 +1,138 @@
++/*
++ * Samsung S5K4ECGX register tables for default values
++ *
++ * Copyright (C) 2012 Linaro
++ * Copyright (C) 2012 Insignal Co,. Ltd
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef __DRIVERS_MEDIA_VIDEO_S5K4ECGX_H__
++#define __DRIVERS_MEDIA_VIDEO_S5K4ECGX_H__
++
++struct regval_list {
++	u32	addr;
++	u16	val;
++};
++
++/* Configure 720x480 preview size */
++static const struct regval_list s5k4ecgx_720_prev[] = {
++	{ 0x70000250, 0x0a00 },
++	{ 0x70000252, 0x06a8 },
++	{ 0x70000254, 0x0010 },
++	{ 0x70000256, 0x0078 },
++	{ 0x70000258, 0x0a00 },
++	{ 0x7000025a, 0x06a8 },
++	{ 0x7000025c, 0x0010 },
++	{ 0x7000025e, 0x0078 },
++	{ 0x70000494, 0x0a00 },
++
++	/*
++	 * FIXME: according to the datasheet,
++	 * 0x70000496~ 0x7000049c seems to be only for capture mode,
++	 * but without these value, it doesn't work with preview mode.
++	 */
++	{ 0x70000496, 0x06a8 },
++	{ 0x70000498, 0x0000 },
++	{ 0x7000049a, 0x0000 },
++	{ 0x7000049c, 0x0a00 },
++
++	{ 0x7000049e, 0x06a8 },
++	{ 0x700002a6, 0x02d0 },
++	{ 0x700002a8, 0x01e0 },
++	{ 0xffffffff, 0x0000 },	/* End token */
++};
++
++/* Configure 640x480 preview size */
++static const struct regval_list s5k4ecgx_640_prev[] = {
++	{ 0x70000250, 0x0a00 },
++	{ 0x70000252, 0x0780 },
++	{ 0x70000254, 0x0010 },
++	{ 0x70000256, 0x000c },
++	{ 0x70000258, 0x0a00 },
++	{ 0x7000025a, 0x0780 },
++	{ 0x7000025c, 0x0010 },
++	{ 0x7000025e, 0x000c },
++	{ 0x70000494, 0x0a00 },
++	{ 0x70000496, 0x0780 },
++	{ 0x70000498, 0x0000 },
++	{ 0x7000049a, 0x0000 },
++	{ 0x7000049c, 0x0a00 },
++	{ 0x7000049e, 0x0780 },
++	{ 0x700002a6, 0x0280 },
++	{ 0x700002a8, 0x01e0 },
++	{ 0xffffffff, 0x0000 }, /* End token */
++};
++
++/* Configure 352x288 preview size */
++static const struct regval_list s5k4ecgx_352_prev[] = {
++	{ 0x70000250, 0x0928 },
++	{ 0x70000252, 0x0780 },
++	{ 0x70000254, 0x007c },
++	{ 0x70000256, 0x000c },
++	{ 0x70000258, 0x0928 },
++	{ 0x7000025a, 0x0780 },
++	{ 0x7000025c, 0x007c },
++	{ 0x7000025e, 0x000c },
++	{ 0x70000494, 0x0928 },
++	{ 0x70000496, 0x0780 },
++	{ 0x70000498, 0x0000 },
++	{ 0x7000049a, 0x0000 },
++	{ 0x7000049c, 0x0928 },
++	{ 0x7000049e, 0x0780 },
++	{ 0x700002a6, 0x0160 },
++	{ 0x700002a8, 0x0120 },
++	{ 0xffffffff, 0x0000 }, /* End token */
++};
++
++/* Configure 176x144 preview size */
++static const struct regval_list s5k4ecgx_176_prev[] = {
++	{ 0x70000250, 0x0928 },
++	{ 0x70000252, 0x0780 },
++	{ 0x70000254, 0x007c },
++	{ 0x70000256, 0x000c },
++	{ 0x70000258, 0x0928 },
++	{ 0x7000025a, 0x0780 },
++	{ 0x7000025c, 0x007c },
++	{ 0x7000025e, 0x000c },
++	{ 0x70000494, 0x0928 },
++	{ 0x70000496, 0x0780 },
++	{ 0x70000498, 0x0000 },
++	{ 0x7000049a, 0x0000 },
++	{ 0x7000049c, 0x0928 },
++	{ 0x7000049e, 0x0780 },
++	{ 0x700002a6, 0x00b0 },
++	{ 0x700002a8, 0x0090 },
++	{ 0xffffffff, 0x0000 }, /* End token */
++};
++
++/* Common setting 1 for preview */
++static const struct regval_list s5k4ecgx_com1_prev[] = {
++	{ 0x700004a0, 0x0000 },
++	{ 0x700004a2, 0x0000 },
++	{ 0x70000262, 0x0001 },
++	{ 0x70000a1e, 0x0028 },
++	{ 0x70000ad4, 0x003c },
++	{ 0xffffffff, 0x0000 }, /* End token */
++};
++
++/* Common setting 2 for preview */
++static const struct regval_list s5k4ecgx_com2_prev[] = {
++	{ 0x700002aa, 0x0005 },
++	{ 0x700002b4, 0x0052 },
++	{ 0x700002be, 0x0000 },
++	{ 0x700002c0, 0x0001 },
++	{ 0x700002c2, 0x029a },
++	{ 0x700002c4, 0x014d },
++	{ 0x700002d0, 0x0000 },
++	{ 0x700002d2, 0x0000 },
++	{ 0x70000266, 0x0000 },
++	{ 0x7000026a, 0x0001 },
++	{ 0x7000024e, 0x0001 },
++	{ 0x70000268, 0x0001 },
++	{ 0xffffffff, 0x0000 }, /* End token */
++};
++
++#endif	/* __DRIVERS_MEDIA_VIDEO_S5K4ECGX_H__ */
+-- 
+1.7.9.5
 
-	ceu0@0xfe910000 {
-		compatible = "renesas,sh-mobile-ceu";
-		reg = <0xfe910000 0xa0>;
-		interrupts = <0x880>;
-		bus-width = <16>;		/* #lines routed on the board */
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		mclk: master_clock {
-			compatible = "renesas,ceu-clock";
-			#clock-cells = <1>;
-			clock-frequency = <50000000>;	/* max clock frequency */
-			clock-output-names = "mclk";
-		};
-
-		...
-		ov772x_1_1: videolink@1 {
-			reg = <1>;		/* local pad # */
-			client = <&ov772x_1 0>; /* remote phandle and pad # */
-			bus-width = <8>;	/* used data lines */
-			data-shift = <0>;	/* lines 7:0 are used */
-
-			/* If [hv]sync-active are missing, embedded bt.605 sync is used */
-			hsync-active = <1>;	/* active high */
-			vsync-active = <1>;	/* active high */
-			pclk-sample = <1>;	/* rising */
-		};
-		csi2_0: videolink@0 {
-			reg = <0>;
-			client = <&csi2 0>;
-			immutable;
-		};
-	};
-
-	i2c0: i2c@0xfff20000 {
-		...
-		ov772x_1: ov772x@0x21 {
-			compatible = "omnivision,ov772x";
-			reg = <0x21>;
-			vddio-supply = <&regulator1>;
-			vddcore-supply = <&regulator2>;
-			bus-width = <10>;
-
-			clock-frequency = <20000000>;
-			clocks = <&mclk 0>;
-			clock-names = "mclk"            
-
-			#address-cells = <1>;
-			#size-cells = <0>;
-			...
-			ceu0_1: videolink@0 {
-				reg = <0>;		/* link configuration to local pad #0 */
-				bus-width = <8>;
-				hsync-active = <1>;
-				hsync-active = <0>;	/* who came up with an inverter here?... */
-				pclk-sample = <1>;
-			};
-		};
-
-		imx074: imx074@0x1a {
-			compatible = "sony,imx074";
-			reg = <0x1a>;
-			vddio-supply = <&regulator1>;
-			vddcore-supply = <&regulator2>;
-			clock-lanes = <0>;
-			data-lanes = <1>, <2>;
-
-			clock-frequency = <30000000>;	/* shared clock with ov772x_1 */
-			clocks = <&mclk 0>;
-			clock-names = "mclk"            
-
-			#address-cells = <1>;
-			#size-cells = <0>;
-			...
-			csi2_0_1: videolink@0 {
-				reg = <0>;		/* link configuration to local pad #0 */
-				bus-width = <2>;	/* 2 lanes, fixed roles, also described above */
-			};
-		};
-		...
-	};
-
-	csi2: csi2@0xffc90000 {
-		compatible = "renesas,sh-mobile-csi2";
-		reg = <0xffc90000 0x1000>;
-		interrupts = <0x17a0>;
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		/* Ok to have them global? */
-		clock-lanes = <0>;
-		data-lanes = <2>, <1>;
-
-		...
-		imx074_1: videolink@1 {
-			reg = <1>;
-			client = <&imx074 0>;
-			bus-width = <2>;
-
-			csi2-ecc;
-			csi2-crc;
-
-			renesas,csi2-phy = <0>;
-		};
-		ceu0: videolink@0 {
-			reg = <0>;
-			immutable;
-		};
-	};
