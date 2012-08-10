@@ -1,46 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.ispras.ru ([83.149.198.202]:54952 "EHLO smtp.ispras.ru"
+Received: from mx1.redhat.com ([209.132.183.28]:13137 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754152Ab2HOUm3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Aug 2012 16:42:29 -0400
-From: Alexey Khoroshilov <khoroshilov@ispras.ru>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	ldv-project@ispras.ru
-Subject: [PATCH] [media] ddbridge: fix error handling in module_init_ddbridge()
-Date: Thu, 16 Aug 2012 00:42:25 +0400
-Message-Id: <1345063345-31131-1-git-send-email-khoroshilov@ispras.ru>
+	id S1754718Ab2HJHMo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Aug 2012 03:12:44 -0400
+Message-ID: <5024B4A5.9090309@redhat.com>
+Date: Fri, 10 Aug 2012 09:13:41 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: David Rientjes <rientjes@google.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [GIT PULL for 3.6-rc1] media updates part 2
+References: <5017F674.80404@redhat.com> <alpine.DEB.2.00.1208081526320.11542@chino.kir.corp.google.com> <5023A11C.50502@redhat.com> <5023A645.40308@redhat.com> <5023AF3A.9050206@redhat.com> <alpine.DEB.2.00.1208091302220.12942@chino.kir.corp.google.com>
+In-Reply-To: <alpine.DEB.2.00.1208091302220.12942@chino.kir.corp.google.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If pci_register_driver() failed, resources allocated in
-ddb_class_create() are leaked. The patch fixes it.
+Hi,
 
-Found by Linux Driver Verification project (linuxtesting.org).
+On 08/09/2012 10:03 PM, David Rientjes wrote:
+> On Thu, 9 Aug 2012, Mauro Carvalho Chehab wrote:
+>
+>> Yeah, that would work as well, although the code would look uglier.
+>> IMHO, using select/depend is better.
+>>
+>
+> Agreed, I think it should be "depends on LEDS_CLASS" rather than select
+> it if there is a hard dependency that cannot be fixed with extracting the
+> led support in the driver to #ifdef CONFIG_LEDS_CLASS code.
 
-Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
----
- drivers/media/dvb/ddbridge/ddbridge-core.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+The led support could be #ifdef CONFIG_LEDS_CLASS, the problem with that
+approach is the whole module versus build-in thing:
 
-diff --git a/drivers/media/dvb/ddbridge/ddbridge-core.c b/drivers/media/dvb/ddbridge/ddbridge-core.c
-index ebf3f05..36aa4e4 100644
---- a/drivers/media/dvb/ddbridge/ddbridge-core.c
-+++ b/drivers/media/dvb/ddbridge/ddbridge-core.c
-@@ -1705,7 +1705,11 @@ static __init int module_init_ddbridge(void)
- 	       "Copyright (C) 2010-11 Digital Devices GmbH\n");
- 	if (ddb_class_create())
- 		return -1;
--	return pci_register_driver(&ddb_pci_driver);
-+	if (pci_register_driver(&ddb_pci_driver) < 0) {
-+		ddb_class_destroy();
-+		return -1;
-+	}
-+	return 0;
- }
- 
- static __exit void module_exit_ddbridge(void)
--- 
-1.7.9.5
+led-class	shark		enable-led-support
+build-in	build-in	yes
+build-in	module		yes
+module		build-in	no
+module		module		yes
 
+Now this can be coded into #ifdef magic, but it won't be pretty,
+of course we only need the non pretty version once at the top
+to set a SHARK_USE_LEDS define, but still.
+
+I'm fine with either solution (depends or ifdef magic), although
+I think that people will get unpleasantly surprised if they want
+to use the shark driver and they don't get to see it in the
+menu because they don't have leds enabled.
+
+Regards,
+
+Hans
