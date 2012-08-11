@@ -1,135 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48506 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:57145 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755632Ab2HJHPh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Aug 2012 03:15:37 -0400
-Message-ID: <5024B552.7090205@redhat.com>
-Date: Fri, 10 Aug 2012 09:16:34 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1752151Ab2HKBH6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Aug 2012 21:07:58 -0400
+Message-ID: <5025B05F.8090809@iki.fi>
+Date: Sat, 11 Aug 2012 04:07:43 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Konke Radlow <kradlow@cisco.com>, linux-media@vger.kernel.org,
-	koradlow@gmail.com
-Subject: Re: [RFC PATCH 1/2] Add libv4l2rds library (with changes proposed
- in RFC)
-References: <[RFC PATCH 0/2] Add support for RDS decoding> <bce8b8118e9a8bcc7fd528d8b8d1a0732a9c8954.1344352285.git.kradlow@cisco.com> <5023A5CF.3020702@redhat.com> <201208091414.11249.hverkuil@xs4all.nl>
-In-Reply-To: <201208091414.11249.hverkuil@xs4all.nl>
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	CrazyCat <crazycat69@yandex.ru>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Manu Abraham <manu@linuxtv.org>
+Subject: Re: [PATCH] DVB-S2 multistream support
+References: <59951342221302@web18g.yandex.ru> <50258758.8050902@redhat.com> <5025A3FD.8020001@iki.fi> <CAHFNz9KA1pHgxyjX5KdKgsy8nWgREkVFTVg38cox1TFNGJVqew@mail.gmail.com>
+In-Reply-To: <CAHFNz9KA1pHgxyjX5KdKgsy8nWgREkVFTVg38cox1TFNGJVqew@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-On 08/09/2012 02:14 PM, Hans Verkuil wrote:
-> On Thu August 9 2012 13:58:07 Hans de Goede wrote:
->> Hi Konke,
->>
->> As Gregor already mentioned there is no need to define libv4l2rdssubdir in configure.ac ,
->> so please drop that.
->>
->> Other then that I've some minor remarks (comments inline), with all those
->> fixed, this one is could to go. So hopefully the next version can be added
->> to git master!
->>
->> On 08/07/2012 05:11 PM, Konke Radlow wrote:
->>> ---
->>>    Makefile.am                     |    3 +-
->>>    configure.ac                    |    7 +-
->>>    lib/include/libv4l2rds.h        |  228 ++++++++++
->>>    lib/libv4l2rds/Makefile.am      |   11 +
->>>    lib/libv4l2rds/libv4l2rds.c     |  953 +++++++++++++++++++++++++++++++++++++++
->>>    lib/libv4l2rds/libv4l2rds.pc.in |   11 +
->>>    6 files changed, 1211 insertions(+), 2 deletions(-)
->>>    create mode 100644 lib/include/libv4l2rds.h
->>>    create mode 100644 lib/libv4l2rds/Makefile.am
->>>    create mode 100644 lib/libv4l2rds/libv4l2rds.c
->>>    create mode 100644 lib/libv4l2rds/libv4l2rds.pc.in
+On 08/11/2012 03:31 AM, Manu Abraham wrote:
+> On Sat, Aug 11, 2012 at 5:44 AM, Antti Palosaari <crope@iki.fi> wrote:
+>> On 08/11/2012 01:12 AM, Mauro Carvalho Chehab wrote:
 >>>
+>>> Em 13-07-2012 20:15, CrazyCat escreveu:
 >>
->> <snip>
 >>
->>> diff --git a/lib/include/libv4l2rds.h b/lib/include/libv4l2rds.h
->>> new file mode 100644
->>> index 0000000..4aa8593
->>> --- /dev/null
->>> +++ b/lib/include/libv4l2rds.h
->>> @@ -0,0 +1,228 @@
->>> +/*
->>> + * Copyright 2012 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
->>> + * Author: Konke Radlow <koradlow@gmail.com>
->>> + *
->>> + * This program is free software; you can redistribute it and/or modify
->>> + * it under the terms of the GNU Lesser General Public License as published by
->>> + * the Free Software Foundation; either version 2.1 of the License, or
->>> + * (at your option) any later version.
->>> + *
->>> + * This program is distributed in the hope that it will be useful,
->>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->>> + * GNU General Public License for more details.
->>> + *
->>> + * You should have received a copy of the GNU General Public License
->>> + * along with this program; if not, write to the Free Software
->>> + * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA  02110-1335  USA
->>> + */
->>> +
->>> +#ifndef __LIBV4L2RDS
->>> +#define __LIBV4L2RDS
->>> +
->>> +#include <errno.h>
->>> +#include <stdio.h>
->>> +#include <stdlib.h>
->>> +#include <string.h>
->>> +#include <stdbool.h>
->>> +#include <unistd.h>
->>> +#include <stdint.h>
->>> +#include <time.h>
->>> +#include <sys/types.h>
->>> +#include <sys/mman.h>
->>> +#include <config.h>
+>>>>    #define DTV_ISDBS_TS_ID               42
+>>>>
+>>>>    #define DTV_DVBT2_PLP_ID      43
+>>>> +#define DTV_DVBS2_MIS_ID       43
+>>>
+>>>
+>>> It would be better to define it as:
+>>>
+>>> #define DTV_DVBS2_MIS_ID        DTV_DVBT2_PLP_ID
+>>>
+>>> Even better, we should instead find a better name that would cover both
+>>> DVB-T2 and DVB-S2 program ID fields, like:
+>>>
+>>> #define DTV_DVB_MULT            43
+>>> #define DTV_DVBT2_PLP_ID        DTV_DVB_MULT
+>>>
+>>> And use the new symbol for both DVB-S2 and DVB-T2, deprecating the
+>>> legacy symbol.
 >>
->> You should never include config.h in a public header, also
->> are all the headers really needed for the prototypes in this header?
 >>
->> I don't think so! Please move all the unneeded ones to the libv4l2rds.c
->> file!
->>
->>> +
->>> +#include <linux/videodev2.h>
->>> +
->>> +#ifdef __cplusplus
->>> +extern "C" {
->>> +#endif /* __cplusplus */
->>> +
->>> +#if HAVE_VISIBILITY
->>> +#define LIBV4L_PUBLIC __attribute__ ((visibility("default")))
->>> +#else
->>> +#define LIBV4L_PUBLIC
->>> +#endif
->>> +
->>> +/* used to define the current version (version field) of the v4l2_rds struct */
->>> +#define V4L2_RDS_VERSION (1)
->>> +
->>
->> What is the purpose of this field? Once we've released a v4l-utils with this
->> library we are stuck to the API we've defined, having a version field & changing it,
->> won't stop us from breaking existing apps, so once we've an official release we
->> simply cannot make ABI breaking changes, which is why most of my review sofar
->> has concentrated on the API side :)
->>
->> I suggest dropping this define and the version field from the struct.
+>> Also DTV_ISDBS_TS_ID means same. All these three DTV_ISDBS_TS_ID,
+>> DTV_DVBT2_PLP_ID and DTV_DVBS2_MIS_ID are same thing - just named
+>> differently between standards. I vote for common name TS ID (I have said
+>> that already enough many times...).
 >
-> I think it is useful, actually. The v4l2_rds struct is allocated by the v4l2_rds_create
-> so at least in theory it is possible to extend the struct in the future without breaking
-> existing apps, provided you have a version number to check.
+> I agree, but a still more generic term like STREAM_ID would be more
+> appropriate,
 
-I disagree, if it gets extended only, then existing apps will just work, if an apps gets
-compiled against a newer version with the extension then it is safe to assume it will run
-against that newer version. The only reason I can see a version define being useful is
-to make a newer app compile with an older version of the librarry, but that only requires
-a version define, not a version field in the struct.
+Ack. Since this stream could be something else than MPEG2-TS better to 
+give more generic name.
 
-Regards,
+> as it happens at different layers for different delivery
+> systems.DVB-S2 additionally
+> provides BBHEADER at Physical Layer. In any case setting PLP_ID for DVB-S2
+> is completely confusing.
+>
+> Anyway, the demuxer part is also missing ..
 
-Hans
+Demuxer for MIS? I am not any familiar with MIS but I know there is 
+"raw" demux payload used already for ATSC-M/H. It just passes all the 
+data coming from demod "TS".
+
+> If you look a bit more deeper, you will see that the framing structure
+> with ISDB-T
+> is exactly the same as with ISDB-S, which makes ISDB-T also no different, just
+> that the frontend userspace header is just fucked up with junk.
+>
+> The major chunk for the ISDB-T stuff in the frontend header is
+> completely redundant.
+>
+> Regards,
+> Manu
+>
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
