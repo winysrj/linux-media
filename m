@@ -1,55 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:13488 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754967Ab2HTVKd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Aug 2012 17:10:33 -0400
-Message-ID: <5032A7C3.3020108@redhat.com>
-Date: Mon, 20 Aug 2012 18:10:27 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:37238 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752121Ab2HKUuh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Aug 2012 16:50:37 -0400
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	linux-media@vger.kernel.org, mchehab@infradead.org
-Subject: Re: How to add support for the em2765 webcam Speedlink VAD Laplace
- to the kernel ?
-References: <5032225A.9080305@googlemail.com> <50323559.7040107@redhat.com> <50328E22.4090805@redhat.com> <5032A236.7000105@redhat.com>
-In-Reply-To: <5032A236.7000105@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20120811192247.GB5132@phenom.ffwll.local>
+References: <20120810145728.5490.44707.stgit@patser.local>
+	<20120810145750.5490.5639.stgit@patser.local>
+	<20120810202916.GI5738@phenom.ffwll.local>
+	<CAF6AEGvzaJmVmnZmEp0QBfja8Vzb0mpLa_2J6bdUZj=fgDAHVg@mail.gmail.com>
+	<20120811192247.GB5132@phenom.ffwll.local>
+Date: Sat, 11 Aug 2012 15:50:36 -0500
+Message-ID: <CAF6AEGsgDSzk6_PqwRON+-LaYpA4aBTg1dM4BZvT10Y6uwQwvw@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 2/4] dma-fence: dma-buf synchronization
+ (v8 )
+From: Rob Clark <rob.clark@linaro.org>
+To: Rob Clark <rob.clark@linaro.org>,
+	Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	sumit.semwal@linaro.org, linaro-mm-sig@lists.linaro.org,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 20-08-2012 17:46, Hans de Goede escreveu:
-> Hi,
-> 
-> On 08/20/2012 09:21 PM, Mauro Carvalho Chehab wrote:
->> Em 20-08-2012 10:02, Hans de Goede escreveu:
-> 
-> <snip>
-> 
->>> Note that luckily these devices do use a unique USB id and not one of the
->>> generic em28xx ids so from that pov having a specialized driver for them
->>> is not an issue.
+On Sat, Aug 11, 2012 at 2:22 PM, Daniel Vetter <daniel@ffwll.ch> wrote:
+>> >> +
+>> >> +/**
+>> >> + * dma_fence_wait - wait for a fence to be signaled
+>> >> + *
+>> >> + * @fence:   [in]    The fence to wait on
+>> >> + * @intr:    [in]    if true, do an interruptible wait
+>> >> + * @timeout: [in]    absolute time for timeout, in jiffies.
+>> >
+>> > I don't quite like this, I think we should keep the styl of all other
+>> > wait_*_timeout functions and pass the arg as timeout in jiffies (and also
+>> > the same return semantics). Otherwise well have funny code that needs to
+>> > handle return values differently depending upon whether it waits upon a
+>> > dma_fence or a native object (where it would us the wait_*_timeout
+>> > functions directly).
 >>
->> Hans,
->>
->> Not sure if all em2765 cameras will have unique USB id's: at em28xx,
->> the known em2710/em2750 cameras that don't have unique ID's; detecting
->> between them requires to probe for the type of sensor.
-> 
-> Right, like the one I gave to Douglas and you or Douglas (don't remember) added
-> support for.
+>> We did start out this way, but there was an ugly jiffies roll-over
+>> problem that was difficult to deal with properly.  Using an absolute
+>> time avoided the problem.
+>
+> Well, as-is the api works differently than all the other _timeout apis
+> I've seen in the kernel, which makes it confusing. Also, I don't quite see
+> what jiffies wraparound issue there is?
 
-Yes. There are also some other similar cameras, including some special
-ones (orthodontist usage, afaikt), that worked with the same driver, but
-with a different sensor.
+iirc, the problem was in dmabufmgr, in
+dmabufmgr_wait_completed_cpu().. with an absolute timeout, it could
+loop over all the fences without having to adjust the timeout for the
+elapsed time.  Otherwise it had to adjust the timeout and keep track
+of when the timeout elapsed without confusing itself via rollover.
 
-> But that one was a "regular" em28xx using camera, and this one
-> appears to be a bit funky in places...
-> 
-> I'll let Frank answer your other remarks.
-
-Yep. Let's see his findings before taking any decision on that.
-
-Regards,
-Mauro
+BR,
+-R
