@@ -1,118 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:39835 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752108Ab2HXWQJ (ORCPT
+Received: from forward20.mail.yandex.net ([95.108.253.145]:40857 "EHLO
+	forward20.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752605Ab2HKWzr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 18:16:09 -0400
-Date: Sat, 25 Aug 2012 00:16:04 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Sean Young <sean@mess.org>
-Cc: Jarod Wilson <jwilson@redhat.com>, linux-media@vger.kernel.org
-Subject: Re: [media] rc-core: move timeout and checks to lirc
-Message-ID: <20120824221604.GC19354@hardeman.nu>
-References: <20120816221514.GA26546@pequod.mess.org>
+	Sat, 11 Aug 2012 18:55:47 -0400
+From: CrazyCat <crazycat69@yandex.ru>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Manu Abraham <manu@linuxtv.org>
+In-Reply-To: <50258758.8050902@redhat.com>
+References: <59951342221302@web18g.yandex.ru> <50258758.8050902@redhat.com>
+Subject: Re: [PATCH] DVB-S2 multistream support
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20120816221514.GA26546@pequod.mess.org>
+Message-Id: <1981451344725742@web18g.yandex.ru>
+Date: Sun, 12 Aug 2012 01:55:42 +0300
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Aug 16, 2012 at 11:15:14PM +0100, Sean Young wrote:
-> 
->> The lirc TX functionality expects the process which writes (TX) data to
->> the lirc dev to sleep until the actual data has been transmitted by the
->> hardware.
->> 
->> Since the same timeout calculation is duplicated in more than one driver
->> (and would have to be duplicated in even more drivers as they gain TX
->> support), it makes sense to move this timeout calculation to the lirc
->> layer instead.
->> 
->> At the same time, centralize some of the sanity checks.
->> 
->> Signed-off-by: David Härdeman <david@hardeman.nu>
->> Cc: Jarod Wilson <jwilson@redhat.com>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->> ---
->>  drivers/media/rc/ir-lirc-codec.c | 33 +++++++++++++++++++++++++++++----
->>  drivers/media/rc/mceusb.c        | 18 ------------------
->>  drivers/media/rc/rc-loopback.c   | 12 ------------
->>  3 files changed, 29 insertions(+), 34 deletions(-)
->> 
->> diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
->> index d2fd064..6ad4a07 100644
->> --- a/drivers/media/rc/ir-lirc-codec.c
->> +++ b/drivers/media/rc/ir-lirc-codec.c
->> @@ -107,6 +107,12 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
->>  	unsigned int *txbuf; /* buffer with values to transmit */
->>  	ssize_t ret = -EINVAL;
->>  	size_t count;
->> +	ktime_t start;
->> +	s64 towait;
->> +	unsigned int duration = 0; /* signal duration in us */
->> +	int i;
->> +
->> +	start = ktime_get();
->>  
->>  	lirc = lirc_get_pdata(file);
->>  	if (!lirc)
->> @@ -129,11 +135,30 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
->>  		goto out;
->>  	}
->>  
->> -	if (dev->tx_ir)
->> -		ret = dev->tx_ir(dev, txbuf, count);
->> +	if (!dev->tx_ir) {
->> +		ret = -ENOSYS;
->> +		goto out;
->> +	}
->> +
->> +	ret = dev->tx_ir(dev, txbuf, (u32)n);
->> +	if (ret < 0)
->> +		goto out;
->> +
->> +	for (i = 0; i < ret; i++)
->> +		duration += txbuf[i];
->>  
->> -	if (ret > 0)
->> -		ret *= sizeof(unsigned);
->> +	ret *= sizeof(unsigned int);
->> +
->> +	/*
->> +	 * The lircd gap calculation expects the write function to
->> +	 * wait for the actual IR signal to be transmitted before
->> +	 * returning.
->> +	 */
->> +	towait = ktime_us_delta(ktime_add_us(start, duration), ktime_get());
->> +	if (towait > 0) {
->> +		set_current_state(TASK_INTERRUPTIBLE);
->> +		schedule_timeout(usecs_to_jiffies(towait));
->> +	}
->>  
->>  out:
->
->You've moved the sleeping out of the drivers to ir-lirc-codec, which makes
->sense for some devices. However you haven't updated winbond-cir.c which
->does two things:
->
->1) Modifies the txbuf (which is now used after transmit)
->2) Does the sleeping already since it blocks on the device to complete.
+Fixed patch.
 
-I'm not sure what issue 1) is?
-
-Note that txstate is checked in wbcir_tx() at the beginning and the end.
-The buf shouldn't be used after transmit...
-
->Surely if the driver can block on the device to complete then that is 
->better than sleeping; there might some difference due to rounding and 
->clock skew.
-
-As noted in other mails, I actually think an asynchronous method is
-better since it permits different approaches while a blocking TX method
-forces that behavior.
-
-Regards,
-David
-
+Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+index aebcdf2..7813165 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -948,6 +948,7 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
+ 
+ 	c->isdbs_ts_id = 0;
+ 	c->dvbt2_plp_id = 0;
++	c->dvbs2_mis_id = -1;
+ 
+ 	switch (c->delivery_system) {
+ 	case SYS_DVBS:
+@@ -1049,6 +1050,8 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
+ 	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_B, 0, 0),
+ 	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_C, 0, 0),
+ 	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_D, 0, 0),
++
++	_DTV_CMD(DTV_DVBS2_MIS_ID, 1, 0),
+ };
+ 
+ static void dtv_property_dump(struct dtv_property *tvp)
+@@ -1436,6 +1439,10 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
+ 		tvp->u.data = fe->dtv_property_cache.atscmh_sccc_code_mode_d;
+ 		break;
+ 
++	case DTV_DVBS2_MIS_ID:
++		tvp->u.data = c->dvbs2_mis_id;
++		break;
++
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -1786,6 +1793,10 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
+ 		fe->dtv_property_cache.atscmh_rs_frame_ensemble = tvp->u.data;
+ 		break;
+ 
++	case DTV_DVBS2_MIS_ID:
++		c->dvbs2_mis_id = tvp->u.data;
++		break;
++
+ 	default:
+ 		return -EINVAL;
+ 	}
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h b/drivers/media/dvb/dvb-core/dvb_frontend.h
+index 7c64c09..cf10b05 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
+@@ -374,6 +374,9 @@ struct dtv_frontend_properties {
+ 	/* DVB-T2 specifics */
+ 	u32                     dvbt2_plp_id;
+ 
++	/* DVB-S2 specifics */
++	u32                     dvbs2_mis_id;
++
+ 	/* ATSC-MH specifics */
+ 	u8			atscmh_fic_ver;
+ 	u8			atscmh_parade_id;
+diff --git a/drivers/media/dvb/frontends/stv090x.c b/drivers/media/dvb/frontends/stv090x.c
+index ea86a56..a9c2bc5 100644
+--- a/drivers/media/dvb/frontends/stv090x.c
++++ b/drivers/media/dvb/frontends/stv090x.c
+@@ -3425,6 +3425,33 @@ err:
+ 	return -1;
+ }
+ 
++static int stv090x_set_mis(struct stv090x_state *state, int mis)
++{
++	u32 reg;
++
++	if (mis < 0 || mis > 255) {
++		dprintk(FE_DEBUG, 1, "Disable MIS filtering");
++		reg = STV090x_READ_DEMOD(state, PDELCTRL1);
++		STV090x_SETFIELD_Px(reg, FILTER_EN_FIELD, 0x00);
++		if (STV090x_WRITE_DEMOD(state, PDELCTRL1, reg) < 0)
++			goto err;
++	} else {
++		dprintk(FE_DEBUG, 1, "Enable MIS filtering - %d", mis);
++		reg = STV090x_READ_DEMOD(state, PDELCTRL1);
++		STV090x_SETFIELD_Px(reg, FILTER_EN_FIELD, 0x01);
++		if (STV090x_WRITE_DEMOD(state, PDELCTRL1, reg) < 0)
++			goto err;
++		if (STV090x_WRITE_DEMOD(state, ISIENTRY, mis) < 0)
++			goto err;
++		if (STV090x_WRITE_DEMOD(state, ISIBITENA, 0xff) < 0)
++			goto err;
++	}
++	return 0;
++err:
++	dprintk(FE_ERROR, 1, "I/O error");
++	return -1;
++}
++
+ static enum dvbfe_search stv090x_search(struct dvb_frontend *fe)
+ {
+ 	struct stv090x_state *state = fe->demodulator_priv;
+@@ -3447,6 +3474,8 @@ static enum dvbfe_search stv090x_search(struct dvb_frontend *fe)
+ 		state->search_range = 5000000;
+ 	}
+ 
++	stv090x_set_mis(state, props->dvbs2_mis_id);
++
+ 	if (stv090x_algo(state) == STV090x_RANGEOK) {
+ 		dprintk(FE_DEBUG, 1, "Search success!");
+ 		return DVBFE_ALGO_SEARCH_SUCCESS;
+@@ -4798,6 +4827,9 @@ struct dvb_frontend *stv090x_attach(const struct stv090x_config *config,
+ 		}
+ 	}
+ 
++	if (state->internal->dev_ver >= 0x30)
++		state->frontend.ops.info.caps |= FE_CAN_MULTISTREAM;
++
+ 	/* workaround for stuck DiSEqC output */
+ 	if (config->diseqc_envelope_mode)
+ 		stv090x_send_diseqc_burst(&state->frontend, SEC_MINI_A);
+diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
+index f50d405..b37996e 100644
+--- a/include/linux/dvb/frontend.h
++++ b/include/linux/dvb/frontend.h
+@@ -62,6 +62,7 @@ typedef enum fe_caps {
+ 	FE_CAN_8VSB			= 0x200000,
+ 	FE_CAN_16VSB			= 0x400000,
+ 	FE_HAS_EXTENDED_CAPS		= 0x800000,   /* We need more bitspace for newer APIs, indicate this. */
++	FE_CAN_MULTISTREAM		= 0x4000000,  /* frontend supports DVB-S2 multistream filtering */
+ 	FE_CAN_TURBO_FEC		= 0x8000000,  /* frontend supports "turbo fec modulation" */
+ 	FE_CAN_2G_MODULATION		= 0x10000000, /* frontend supports "2nd generation modulation" (DVB-S2) */
+ 	FE_NEEDS_BENDING		= 0x20000000, /* not supported anymore, don't use (frontend requires frequency bending) */
+@@ -337,7 +338,9 @@ struct dvb_frontend_event {
+ #define DTV_ATSCMH_SCCC_CODE_MODE_C	58
+ #define DTV_ATSCMH_SCCC_CODE_MODE_D	59
+ 
+-#define DTV_MAX_COMMAND				DTV_ATSCMH_SCCC_CODE_MODE_D
++#define DTV_DVBS2_MIS_ID	60
++
++#define DTV_MAX_COMMAND				DTV_DVBS2_MIS_ID
+ 
+ typedef enum fe_pilot {
+ 	PILOT_ON,
