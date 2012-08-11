@@ -1,49 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.10]:50082 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751597Ab2HRLpo (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:41358 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752320Ab2HKTW1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Aug 2012 07:45:44 -0400
-From: Anatolij Gustschin <agust@denx.de>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] V4L: soc_camera: allow reading from video device if supported
-Date: Sat, 18 Aug 2012 13:45:35 +0200
-Message-Id: <1345290335-12980-1-git-send-email-agust@denx.de>
+	Sat, 11 Aug 2012 15:22:27 -0400
+Received: by wicr5 with SMTP id r5so1384703wic.1
+        for <linux-media@vger.kernel.org>; Sat, 11 Aug 2012 12:22:26 -0700 (PDT)
+Date: Sat, 11 Aug 2012 21:22:47 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Rob Clark <rob.clark@linaro.org>
+Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	sumit.semwal@linaro.org, linaro-mm-sig@lists.linaro.org,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org
+Subject: Re: [Linaro-mm-sig] [PATCH 2/4] dma-fence: dma-buf synchronization
+ (v8 )
+Message-ID: <20120811192247.GB5132@phenom.ffwll.local>
+References: <20120810145728.5490.44707.stgit@patser.local>
+ <20120810145750.5490.5639.stgit@patser.local>
+ <20120810202916.GI5738@phenom.ffwll.local>
+ <CAF6AEGvzaJmVmnZmEp0QBfja8Vzb0mpLa_2J6bdUZj=fgDAHVg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAF6AEGvzaJmVmnZmEp0QBfja8Vzb0mpLa_2J6bdUZj=fgDAHVg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Try reading on video device. If the camera bus driver supports reading
-we can try it and return the result. Also add a debug line.
+On Sat, Aug 11, 2012 at 10:14:40AM -0500, Rob Clark wrote:
+> On Fri, Aug 10, 2012 at 3:29 PM, Daniel Vetter <daniel@ffwll.ch> wrote:
+> > On Fri, Aug 10, 2012 at 04:57:52PM +0200, Maarten Lankhorst wrote:
+> >> +
+> >> +     if (!ret) {
+> >> +             cb->base.flags = 0;
+> >> +             cb->base.func = __dma_fence_wake_func;
+> >> +             cb->base.private = priv;
+> >> +             cb->fence = fence;
+> >> +             cb->func = func;
+> >> +             __add_wait_queue(&fence->event_queue, &cb->base);
+> >> +     }
+> >> +     spin_unlock_irqrestore(&fence->event_queue.lock, flags);
+> >> +
+> >> +     return ret;
+> >> +}
+> >> +EXPORT_SYMBOL_GPL(dma_fence_add_callback);
+> >
+> > I think for api completenes we should also have a
+> > dma_fence_remove_callback function.
+> 
+> We did originally but Maarten found it was difficult to deal with
+> properly when the gpu's hang.  I think his alternative was just to
+> require the hung driver to signal the fence.  I had kicked around the
+> idea of a dma_fence_cancel() alternative to signal that could pass an
+> error thru to the waiting driver.. although not sure if the other
+> driver could really do anything differently at that point.
 
-Signed-off-by: Anatolij Gustschin <agust@denx.de>
----
- drivers/media/platform/soc_camera.c |    9 ++++++++-
- 1 files changed, 8 insertions(+), 1 deletions(-)
+Well, the idea is not to cancel all callbacks, but just a single one, in
+case a driver wants to somehow abort the wait. E.g. when the own gpu dies
+I guess we should clear all these fence callbacks so that they can't
+clobber the hw state after the reset.
 
-diff --git a/drivers/media/platform/soc_camera.c b/drivers/media/platform/soc_camera.c
-index 10b57f8..d591a42 100644
---- a/drivers/media/platform/soc_camera.c
-+++ b/drivers/media/platform/soc_camera.c
-@@ -645,9 +645,16 @@ static ssize_t soc_camera_read(struct file *file, char __user *buf,
- 			       size_t count, loff_t *ppos)
- {
- 	struct soc_camera_device *icd = file->private_data;
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	int err = -EINVAL;
- 
--	dev_err(icd->pdev, "camera device read not implemented\n");
-+	dev_dbg(icd->pdev, "read called, buf %p\n", buf);
-+
-+	if (ici->ops->init_videobuf2 && icd->vb2_vidq.io_modes & VB2_READ)
-+		err = vb2_read(&icd->vb2_vidq, buf, count, ppos,
-+				file->f_flags & O_NONBLOCK);
-+	else
-+		dev_err(icd->pdev, "camera device read not implemented\n");
- 
- 	return err;
- }
+> >> +
+> >> +/**
+> >> + * dma_fence_wait - wait for a fence to be signaled
+> >> + *
+> >> + * @fence:   [in]    The fence to wait on
+> >> + * @intr:    [in]    if true, do an interruptible wait
+> >> + * @timeout: [in]    absolute time for timeout, in jiffies.
+> >
+> > I don't quite like this, I think we should keep the styl of all other
+> > wait_*_timeout functions and pass the arg as timeout in jiffies (and also
+> > the same return semantics). Otherwise well have funny code that needs to
+> > handle return values differently depending upon whether it waits upon a
+> > dma_fence or a native object (where it would us the wait_*_timeout
+> > functions directly).
+> 
+> We did start out this way, but there was an ugly jiffies roll-over
+> problem that was difficult to deal with properly.  Using an absolute
+> time avoided the problem.
+
+Well, as-is the api works differently than all the other _timeout apis
+I've seen in the kernel, which makes it confusing. Also, I don't quite see
+what jiffies wraparound issue there is?
+
+> > Also, I think we should add the non-_timeout variants, too, just for
+> > completeness.
+
+This request here has the same reasons, essentially: If we offer a
+dma_fence wait api that matches the usual wait apis closely, it's harder
+to get their usage wrong. I know that i915 has some major cludge for a
+wait_seqno interface internally, but that's no reason to copy that
+approach ;-)
+
+Cheers, Daniel
 -- 
-1.7.1
-
+Daniel Vetter
+Mail: daniel@ffwll.ch
+Mobile: +41 (0)79 365 57 48
