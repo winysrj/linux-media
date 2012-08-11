@@ -1,52 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx.fr.smartjog.net ([95.81.144.3]:36357 "EHLO
-	mx.fr.smartjog.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751281Ab2H3JqR (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58684 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751656Ab2HKPUF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Aug 2012 05:46:17 -0400
-From: =?UTF-8?q?R=C3=A9mi=20Cardona?= <remi.cardona@smartjog.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 2/2] [media] ds3000: properly report firmware loading issues
-Date: Thu, 30 Aug 2012 11:36:31 +0200
-Message-Id: <1346319391-19015-3-git-send-email-remi.cardona@smartjog.com>
-In-Reply-To: <1346319391-19015-1-git-send-email-remi.cardona@smartjog.com>
-References: <1346319391-19015-1-git-send-email-remi.cardona@smartjog.com>
+	Sat, 11 Aug 2012 11:20:05 -0400
+Date: Sat, 11 Aug 2012 18:20:00 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: bjlockie@lockie.ca
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	linux-media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: boot slow down
+Message-ID: <20120811151959.GL29636@valkosipuli.retiisi.org.uk>
+References: <501DA203.7070800@lockie.ca>
+ <20120805212054.GA29636@valkosipuli.retiisi.org.uk>
+ <501F4A5B.1000608@lockie.ca>
+ <20120807112742.GB29636@valkosipuli.retiisi.org.uk>
+ <6ef5338940a90b4c8000594d546bf479.squirrel@lockie.ca>
+ <32d7859a-ceda-442d-be67-f4f682a6e3b9@email.android.com>
+ <48430fdf908e6481ae55103bd11b7cfe.squirrel@lockie.ca>
+ <50218BD8.8040207@lockie.ca>
+ <20120808082408.GE29636@valkosipuli.retiisi.org.uk>
+ <18c22f6605c5aefbab8a42c4c0d3eca2.squirrel@lockie.ca>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <18c22f6605c5aefbab8a42c4c0d3eca2.squirrel@lockie.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ds3000_readreg() returns negative values in case of i2c failures. The
-old code would simply return 0 when failing to read the 0xb2 register,
-misleading ds3000_initfe() into believing that the firmware had been
-correctly loaded.
+On Wed, Aug 08, 2012 at 01:18:33PM -0400, bjlockie@lockie.ca wrote:
+> 
+> How hard would it be to get an official kernel option not to load firmware
+> OR be able to set the timeout?
 
-Signed-off-by: Rémi Cardona <remi.cardona@smartjog.com>
----
- drivers/media/dvb/frontends/ds3000.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+I think the right solution is that the failure of the user space program
+that is expected to load the firmware is considered as such, so the error
+could be returned by request_firmware() immediately. There could be reasons
+why it behaves the way it does currently as I don't know the details.
 
-diff --git a/drivers/media/dvb/frontends/ds3000.c b/drivers/media/dvb/frontends/ds3000.c
-index 066870a..4c774c4 100644
---- a/drivers/media/dvb/frontends/ds3000.c
-+++ b/drivers/media/dvb/frontends/ds3000.c
-@@ -391,8 +391,14 @@ static int ds3000_firmware_ondemand(struct dvb_frontend *fe)
- 
- 	dprintk("%s()\n", __func__);
- 
--	if (ds3000_readreg(state, 0xb2) <= 0)
-+	ret = ds3000_readreg(state, 0xb2);
-+	if (ret == 0) {
-+		printk(KERN_INFO "%s: Firmware already uploaded, skipping\n",
-+			__func__);
- 		return ret;
-+	} else if (ret < 0) {
-+		return ret;
-+	}
- 
- 	/* Load firmware */
- 	/* request the firmware, this will block until someone uploads it */
+Kind regards,
+
 -- 
-1.7.10.4
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
