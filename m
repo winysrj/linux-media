@@ -1,95 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45524 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755615Ab2HNLPG (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:46483 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752541Ab2HKAHk convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 07:15:06 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: workshop-2011@linuxtv.org,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [Workshop-2011] RFC: V4L2 API ambiguities
-Date: Tue, 14 Aug 2012 13:15:21 +0200
-Message-ID: <1961858.59LqqANPqn@avalon>
-In-Reply-To: <201208141311.49268.hverkuil@xs4all.nl>
-References: <201208131427.56961.hverkuil@xs4all.nl> <2777231.LqxP1P2FHv@avalon> <201208141311.49268.hverkuil@xs4all.nl>
+	Fri, 10 Aug 2012 20:07:40 -0400
+Received: by wicr5 with SMTP id r5so889726wic.1
+        for <linux-media@vger.kernel.org>; Fri, 10 Aug 2012 17:07:38 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <50258758.8050902@redhat.com>
+References: <59951342221302@web18g.yandex.ru>
+	<50258758.8050902@redhat.com>
+Date: Sat, 11 Aug 2012 05:37:38 +0530
+Message-ID: <CAHFNz9+4vuiCsPJYbt+UhfD_L4Gi5S4Df-9KdmG=YkdvPha1LQ@mail.gmail.com>
+Subject: Re: [PATCH] DVB-S2 multistream support
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: CrazyCat <crazycat69@yandex.ru>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Manu Abraham <manu@linuxtv.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Sat, Aug 11, 2012 at 3:42 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em 13-07-2012 20:15, CrazyCat escreveu:
+>> Now present DTV_DVBT2_PLP_ID property for DVB-T2, so i add alias DTV_DVBS2_MIS_ID (same feature for advanced DVB-S2). Now DVB-S2 multistream filtration supported for current STV090x demod cut 3.0, so i implement support for stv090x demod driver. Additional fe-caps FE_CAN_MULTISTREAM also added.
+>>
+>>
+>> frontend-mis.patch
+>
+> Please provide your Signed-off-by: (with your real name).
+>
+>>
+>>
+>> diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
+>> index f50d405..f625f8d 100644
+>> --- a/include/linux/dvb/frontend.h
+>> +++ b/include/linux/dvb/frontend.h
+>> @@ -62,6 +62,7 @@ typedef enum fe_caps {
+>>       FE_CAN_8VSB                     = 0x200000,
+>>       FE_CAN_16VSB                    = 0x400000,
+>>       FE_HAS_EXTENDED_CAPS            = 0x800000,   /* We need more bitspace for newer APIs, indicate this. */
+>> +     FE_CAN_MULTISTREAM              = 0x4000000,  /* frontend supports DVB-S2 multistream filtering */
+>
+> Not sure if this is really needed. Are there any DVB-S2 frontends that
+> don't support MIS, or they don't implement it just because this weren't
+> defined yet? In the latter case, it would be better to not adding an
+> special flag for it.
 
-On Tuesday 14 August 2012 13:11:49 Hans Verkuil wrote:
-> On Tue August 14 2012 13:06:46 Laurent Pinchart wrote:
-> > On Tuesday 14 August 2012 12:54:34 Hans Verkuil wrote:
-> > > On Tue August 14 2012 01:54:16 Laurent Pinchart wrote:
-> > > > On Monday 13 August 2012 14:27:56 Hans Verkuil wrote:
-> > > > [snip]
-> > > > 
-> > > > > 4) What should a driver return in TRY_FMT/S_FMT if the requested
-> > > > > format is not supported (possible behaviours include returning the
-> > > > > currently selected format or a default format).
-> > > > > 
-> > > > > The spec says this: "Drivers should not return an error code unless
-> > > > > the input is ambiguous", but it does not explain what constitutes an
-> > > > > ambiguous input. Frankly, I can't think of any and in my opinion
-> > > > > TRY/S_FMT should never return an error other than EINVAL (if the
-> > > > > buffer type is unsupported)or EBUSY (for S_FMT if streaming is in
-> > > > > progress).
-> > > > > 
-> > > > > Returning an error for any other reason doesn't help the application
-> > > > > since the app will have no way of knowing what to do next.
-> > > > 
-> > > > That wasn't my point. Drivers should obviously not return an error.
-> > > > Let's consider the case of a driver supporting YUYV and MJPEG. If the
-> > > > user calls TRY_FMT or S_FMT with the pixel format set to RGB565,
-> > > > should the driver return a hardcoded default format (one of YUYV or
-> > > > MJPEG), or the currently selected format ? In other words, should the
-> > > > pixel format returned by TRY_FMT or S_FMT when the requested pixel
-> > > > format is not valid be a fixed default pixel format, or should it
-> > > > depend on the currently selected pixel format ?
-> > > 
-> > > Actually, in this case I would probably choose a YUYV format that is
-> > > closest to the requested size. If a driver supports both compressed and
-> > > uncompressed formats, then it should only select a compressed format if
-> > > the application explicitly asked for it. Handling compressed formats is
-> > > more complex than uncompressed formats, so that seems a sensible rule.
-> > 
-> > That wasn't my point either :-) YUYV/MJPEG was just an example. You can
-> > replace MJPEG with UYVY or NV12 above. What I want to know is whether
-> > TRY_FMT and S_FMT must, when given a non-supported format, return a fixed
-> > supported format or return a supported format that can depend on the
-> > currently selected format.
-> > 
-> > > The next heuristic I would apply is to choose a format that is closest
-> > > to the requested size.
-> > > 
-> > > So I guess my guidelines would be:
-> > > 
-> > > 1) If the pixelformat is not supported, then choose an uncompressed
-> > > format (if possible) instead.
-> > > 2) Next choose a format closest to, but smaller than (if possible) the
-> > > requested size.
-> > > 
-> > > But this would be a guideline only, and in the end it should be up to
-> > > the driver. Just as long TRY/S_FMT always returns a format.
-> 
-> Well, the currently selected format is irrelevant. The user is obviously
-> requesting something else and the driver should attempt to return something
-> that is at least somewhat close to what it requested. If that's impossible,
-> then falling back to some default format is a good choice.
-> 
-> Does that answer the question?
+There are some demods that do not support Advanced Modes ..
 
-Yes it does, and I agree with that. Some drivers return the currently selected 
-format when a non-supported format is requested. I think the spec should be 
-clarified to make it mandatory to return a fixed default format independent of 
-the currently selected format, and non-compliant drivers should be fixed.
+>
+>>       FE_CAN_TURBO_FEC                = 0x8000000,  /* frontend supports "turbo fec modulation" */
+>>       FE_CAN_2G_MODULATION            = 0x10000000, /* frontend supports "2nd generation modulation" (DVB-S2) */
+>>       FE_NEEDS_BENDING                = 0x20000000, /* not supported anymore, don't use (frontend requires frequency bending) */
+>> @@ -317,6 +318,7 @@ struct dvb_frontend_event {
+>>  #define DTV_ISDBS_TS_ID              42
+>>
+>>  #define DTV_DVBT2_PLP_ID     43
+>> +#define DTV_DVBS2_MIS_ID     43
+>
+> It would be better to define it as:
+>
+> #define DTV_DVBS2_MIS_ID        DTV_DVBT2_PLP_ID
+>
+> Even better, we should instead find a better name that would cover both
+> DVB-T2 and DVB-S2 program ID fields, like:
+>
+> #define DTV_DVB_MULT            43
+> #define DTV_DVBT2_PLP_ID        DTV_DVB_MULT
 
--- 
+
+In fact that is also incorrect.
+
+DVB-S2 uses TS ID at Link Layer
+at Physical layer there is BBHEADER.
+
+DVB-T2 uses PLP ID at Physical Layer
+
+ISDB-S uses Stream ID
+
+ISDB-T uses Layer A, LayerB, Layer C
+
+
+>
+> And use the new symbol for both DVB-S2 and DVB-T2, deprecating the
+> legacy symbol.
+>
+> Also, DocBook needs to be changed to reflect this change.
+>
+>>
+>>  #define DTV_ENUM_DELSYS              44
+>>
+>> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+>> index aebcdf2..83e51f9 100644
+>> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
+>> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+>> @@ -947,7 +947,7 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
+>>       }
+>>
+>>       c->isdbs_ts_id = 0;
+>> -     c->dvbt2_plp_id = 0;
+>> +     c->dvbt2_plp_id = -1;
+>>
+>>       switch (c->delivery_system) {
+>>       case SYS_DVBS:
+>> diff --git a/drivers/media/dvb/frontends/stv090x.c b/drivers/media/dvb/frontends/stv090x.c
+>> index ea86a56..eb6f1cf 100644
+>> --- a/drivers/media/dvb/frontends/stv090x.c
+>> +++ b/drivers/media/dvb/frontends/stv090x.c
+>> @@ -3425,6 +3425,33 @@ err:
+>>       return -1;
+>>  }
+>>
+>> +static int stv090x_set_mis(struct stv090x_state *state, int mis)
+>> +{
+>> +     u32 reg;
+>> +
+>> +     if (mis<0 || mis>255) {
+>
+> You should be checking your patch using scripts/checkpatch.pl.
+> Due to Documentation/CodingStyle, the above should be written, instead, as:
+>         if (mis < 0 || mis > 255) {
+>
+>
+>> +             dprintk(FE_DEBUG, 1, "Disable MIS filtering");
+>> +             reg = STV090x_READ_DEMOD(state, PDELCTRL1);
+>> +             STV090x_SETFIELD_Px(reg, FILTER_EN_FIELD, 0x00);
+>> +             if (STV090x_WRITE_DEMOD(state, PDELCTRL1, reg) < 0)
+>> +                     goto err;
+>> +     } else {
+>> +             dprintk(FE_DEBUG, 1, "Enable MIS filtering - %d", mis);
+>> +             reg = STV090x_READ_DEMOD(state, PDELCTRL1);
+>> +             STV090x_SETFIELD_Px(reg, FILTER_EN_FIELD, 0x01);
+>> +             if (STV090x_WRITE_DEMOD(state, PDELCTRL1, reg) < 0)
+>> +                     goto err;
+>> +             if (STV090x_WRITE_DEMOD(state, ISIENTRY, mis) < 0)
+>> +                     goto err;
+>> +             if (STV090x_WRITE_DEMOD(state, ISIBITENA, 0xff) < 0)
+>> +                     goto err;
+>> +     }
+>> +     return 0;
+>> +err:
+>> +     dprintk(FE_ERROR, 1, "I/O error");
+>> +     return -1;
+>> +}
+>> +
+>>  static enum dvbfe_search stv090x_search(struct dvb_frontend *fe)
+>>  {
+>>       struct stv090x_state *state = fe->demodulator_priv;
+>> @@ -3433,6 +3460,8 @@ static enum dvbfe_search stv090x_search(struct dvb_frontend *fe)
+>>       if (props->frequency == 0)
+>>               return DVBFE_ALGO_SEARCH_INVALID;
+>>
+>> +     stv090x_set_mis(state,props->dvbt2_plp_id);
+>> +
+>>       state->delsys = props->delivery_system;
+>>       state->frequency = props->frequency;
+>>       state->srate = props->symbol_rate;
+>> @@ -3447,6 +3476,8 @@ static enum dvbfe_search stv090x_search(struct dvb_frontend *fe)
+>>               state->search_range = 5000000;
+>>       }
+>>
+>> +     stv090x_set_mis(state,props->dvbt2_plp_id);
+>> +
+>>       if (stv090x_algo(state) == STV090x_RANGEOK) {
+>>               dprintk(FE_DEBUG, 1, "Search success!");
+>>               return DVBFE_ALGO_SEARCH_SUCCESS;
+>> @@ -4798,6 +4829,9 @@ struct dvb_frontend *stv090x_attach(const struct stv090x_config *config,
+>>               }
+>>       }
+>>
+>> +     if (state->internal->dev_ver>=0x30)
+>> +         state->frontend.ops.info.caps |= FE_CAN_MULTISTREAM;
+>> +
+
+
+Which chipset have you tested it on ? The AAC or the BAC and what
+silicon cut version, 3 or 4 ?
+
+Additionally, support is needed at the demuxer for handling  GS
+(Generic Streams),
+MS (Multiple Streams additionally) and BBHEADER. We don't have that yet in here.
+
+Did you try the MIS with a saa716x based bridge ?
+
 Regards,
-
-Laurent Pinchart
-
+Manu
