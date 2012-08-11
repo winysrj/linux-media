@@ -1,412 +1,234 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4481 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759036Ab2HXPfn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 11:35:43 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: RFC: Core + Radio profile
-Date: Fri, 24 Aug 2012 17:35:29 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	Mike Isely <isely@pobox.com>,
-	Andy Walls <awalls@md.metrocast.net>
-References: <201208221140.25656.hverkuil@xs4all.nl> <201208241431.04984.hverkuil@xs4all.nl> <5037950C.6060003@redhat.com>
-In-Reply-To: <5037950C.6060003@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201208241735.29189.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:40364 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750995Ab2HKKeF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Aug 2012 06:34:05 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	David Rientjes <rientjes@google.com>,
+	linux-kernel@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 4/4] radio-shark2: Only compile led support when CONFIG_LED_CLASS is set
+Date: Sat, 11 Aug 2012 12:34:55 +0200
+Message-Id: <1344681295-2485-5-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1344681295-2485-1-git-send-email-hdegoede@redhat.com>
+References: <1344681295-2485-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri August 24 2012 16:51:56 Mauro Carvalho Chehab wrote:
-> Em 24-08-2012 09:31, Hans Verkuil escreveu:
-> > Hi Mauro,
-> > 
-> > Thanks for your review!
-> > 
-> > On Wed August 22 2012 15:42:26 Mauro Carvalho Chehab wrote:
-> >> Em 22-08-2012 07:11, Hans Verkuil escreveu:
-> >>> I've added some more core profile requirements.
-> >>>
-> >>> Regards,
-> >>>
-> >>> 	Hans
-> >>>
-> >>> On Wed August 22 2012 11:40:25 Hans Verkuil wrote:
-> >>>> Hi all!
-> >>>>
-> >>>> The v4l2-compliance utility checks whether device drivers follows the V4L2
-> >>>> specification. What is missing are 'profiles' detailing what device drivers
-> >>>> should and shouldn't implement for particular device classes.
-> >>>>
-> >>>> This has been discussed several times, but until now no attempt was made to
-> >>>> actually write this down.
-> >>>>
-> >>>> This RFC is my attempt to start this process by describing three profiles:
-> >>>> the core profile that all drivers must adhere to, a profile for a radio
-> >>>> receiver and a profile for a radio transmitter.
-> >>>>
-> >>>> Missing in this RFC is a description of how tuner ownership is handled if a
-> >>>> tuner is shared between a radio and video driver. This will be discussed
-> >>>> during the workshop next week.
-> >>
-> >> DVB x V4L2 tunership discussion is also needed. It also makes sense to 
-> >> document it somewhere.
-> > 
-> > Absolutely. But as I know nothing about DVB someone will have to help with
-> > that.
-> 
-> Sure.
-> 
-> >>>> I am not certain where these profile descriptions should go. Should we add
-> >>>> this to DocBook, or describe it in Documentation/video4linux? Or perhaps
-> >>>> somehow add it to v4l2-compliance, since that tool effectively verifies
-> >>>> the profile.
-> >>
-> >> The strongest document we have, IMO, is the DocBook API one, as both Kernel
-> >> and userspace developers use it. As we want userspace apps to be aware and
-> >> benefit of the profiles, this should be there at DocBook.
-> > 
-> > Sounds reasonable.
-> > 
-> >>>> Also note that the core profile description is more strict than the spec.
-> >>
-> >> IMO, that's the right approach: The specs should define the several API
-> >> aspects; the profile should mandate what's optional and what's mandatory.
-> >>
-> >>>> For example, G/S_PRIORITY are currently optional,
-> >>
-> >> After putting the profiles there, we should remove "optional" tags elsewhere,
-> >> as the profiles section will tell what's mandatory and what is optional, as
-> >> different profiles require different mandatory arguments.
-> >>
-> >>>> but I feel that all new drivers should implement this, especially since it
-> >>>> is very easy to add provided you use struct v4l2_fh. 
-> >>
-> >> I agree on making G/S_PRIORITY mandatory.
-> >>
-> >>>> Similar with respect to the control requirements which
-> >>>> assume you use the control framework.
-> >>
-> >> IMO, we should split the internal API requirements (use the control framework)
-> >> from the external API ones, as they're addressed to different audiences, e. g.
-> >> external API requirements are needed by all application developers, while
-> >> the internal ones are only for Kernel hackers.
-> >>
-> >> The internal API requirements should be together with the internal API descriptions,
-> >> so Documentation/video4linux is probably the best place for them.
-> >>
-> >>>> Note that these profiles are primarily meant for driver developers. The V4L2
-> >>>> specification is leading for application developers.
-> >>
-> >> This is where we diverge ;) We need profiles primary for application developers,
-> >> for them to know what is expected to be there on any media driver of a certain
-> >> kind.
-> >>
-> >> Ok, internal driver-developer profiles is also needed, in order for them to
-> >> use the right internal API's and internal core functions.
-> > 
-> > Well, it is all very nice to just say e.g. 'G/S_PRIORITY is mandatory' in the
-> > profile section, but the reality is that it is hit and miss whether or not it
-> > is implemented. Even if we manage to convert all drivers to implement G/S_PRIO,
-> > then it is still not something an app developer can rely on because many users
-> > use older kernel versions.
-> 
-> It is up to the application developers to decide it. Imagining applications
-> that is G/S_PRIO-aware, some of them may require only newer kernels; other may
-> have some fallback code, based on V4L2 version. It is up to the application
-> developer to decide.
-> 
-> > Which is why IMHO the spec should be leading for app development. The profile
-> > sections are a handy summary of what you can expect from drivers for specific
-> > types of hardware, but it can't be leading except when it comes to new driver
-> > development or driver changes in areas covered by the profile(s).
-> 
-> Well, drivers that aren't compliant with a profile already fails, or they will fail
-> sooner or later with some applications, as they don't behave like the other drivers.
-> 
-> We need to be sure, of course, that the profile will state what's already
-> implemented by the vast majority (if not all) of the drivers.
-> 
-> So, in this particular case, IMO, we should state that the prio ioctl's are
-> not mandatory, updating it later when we finish the porting of all drivers to
-> use it.
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/media/radio/radio-shark2.c | 122 ++++++++++++++++++++++---------------
+ 1 file changed, 73 insertions(+), 49 deletions(-)
 
-I would phrase it something like this:
+diff --git a/drivers/media/radio/radio-shark2.c b/drivers/media/radio/radio-shark2.c
+index 217483c..7b4efdf 100644
+--- a/drivers/media/radio/radio-shark2.c
++++ b/drivers/media/radio/radio-shark2.c
+@@ -35,6 +35,11 @@
+ #include <media/v4l2-device.h>
+ #include "radio-tea5777.h"
+ 
++#if defined(CONFIG_LEDS_CLASS) || \
++    (defined(CONFIG_LEDS_CLASS_MODULE) && defined(CONFIG_RADIO_SHARK2_MODULE))
++#define SHARK_USE_LEDS 1
++#endif
++
+ MODULE_AUTHOR("Hans de Goede <hdegoede@redhat.com>");
+ MODULE_DESCRIPTION("Griffin radioSHARK2, USB radio receiver driver");
+ MODULE_LICENSE("GPL");
+@@ -43,7 +48,6 @@ static int debug;
+ module_param(debug, int, 0);
+ MODULE_PARM_DESC(debug, "Debug level (0-1)");
+ 
+-
+ #define SHARK_IN_EP		0x83
+ #define SHARK_OUT_EP		0x05
+ 
+@@ -54,36 +58,18 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
+ 
+ enum { BLUE_LED, RED_LED, NO_LEDS };
+ 
+-static void shark_led_set_blue(struct led_classdev *led_cdev,
+-			       enum led_brightness value);
+-static void shark_led_set_red(struct led_classdev *led_cdev,
+-			      enum led_brightness value);
+-
+-static const struct led_classdev shark_led_templates[NO_LEDS] = {
+-	[BLUE_LED] = {
+-		.name		= "%s:blue:",
+-		.brightness	= LED_OFF,
+-		.max_brightness = 127,
+-		.brightness_set = shark_led_set_blue,
+-	},
+-	[RED_LED] = {
+-		.name		= "%s:red:",
+-		.brightness	= LED_OFF,
+-		.max_brightness = 1,
+-		.brightness_set = shark_led_set_red,
+-	},
+-};
+-
+ struct shark_device {
+ 	struct usb_device *usbdev;
+ 	struct v4l2_device v4l2_dev;
+ 	struct radio_tea5777 tea;
+ 
++#ifdef SHARK_USE_LEDS
+ 	struct work_struct led_work;
+ 	struct led_classdev leds[NO_LEDS];
+ 	char led_names[NO_LEDS][32];
+ 	atomic_t brightness[NO_LEDS];
+ 	unsigned long brightness_new;
++#endif
+ 
+ 	u8 *transfer_buffer;
+ };
+@@ -161,6 +147,7 @@ static struct radio_tea5777_ops shark_tea_ops = {
+ 	.read_reg  = shark_read_reg,
+ };
+ 
++#ifdef SHARK_USE_LEDS
+ static void shark_led_work(struct work_struct *work)
+ {
+ 	struct shark_device *shark =
+@@ -208,21 +195,72 @@ static void shark_led_set_red(struct led_classdev *led_cdev,
+ 	schedule_work(&shark->led_work);
+ }
+ 
++static const struct led_classdev shark_led_templates[NO_LEDS] = {
++	[BLUE_LED] = {
++		.name		= "%s:blue:",
++		.brightness	= LED_OFF,
++		.max_brightness = 127,
++		.brightness_set = shark_led_set_blue,
++	},
++	[RED_LED] = {
++		.name		= "%s:red:",
++		.brightness	= LED_OFF,
++		.max_brightness = 1,
++		.brightness_set = shark_led_set_red,
++	},
++};
++
++static int shark_register_leds(struct shark_device *shark, struct device *dev)
++{
++	int i, retval;
++
++	INIT_WORK(&shark->led_work, shark_led_work);
++	for (i = 0; i < NO_LEDS; i++) {
++		shark->leds[i] = shark_led_templates[i];
++		snprintf(shark->led_names[i], sizeof(shark->led_names[0]),
++			 shark->leds[i].name, shark->v4l2_dev.name);
++		shark->leds[i].name = shark->led_names[i];
++		retval = led_classdev_register(dev, &shark->leds[i]);
++		if (retval) {
++			v4l2_err(&shark->v4l2_dev,
++				 "couldn't register led: %s\n",
++				 shark->led_names[i]);
++			return retval;
++		}
++	}
++	return 0;
++}
++
++static void shark_unregister_leds(struct shark_device *shark)
++{
++	int i;
++
++	for (i = 0; i < NO_LEDS; i++)
++		led_classdev_unregister(&shark->leds[i]);
++
++	cancel_work_sync(&shark->led_work);
++}
++#else
++static int shark_register_leds(struct shark_device *shark, struct device *dev)
++{
++	v4l2_warn(&shark->v4l2_dev,
++		  "CONFIG_LED_CLASS not enabled, LED support disabled\n");
++	return 0;
++}
++static inline void shark_unregister_leds(struct shark_device *shark) { }
++#endif
++
+ static void usb_shark_disconnect(struct usb_interface *intf)
+ {
+ 	struct v4l2_device *v4l2_dev = usb_get_intfdata(intf);
+ 	struct shark_device *shark = v4l2_dev_to_shark(v4l2_dev);
+-	int i;
+ 
+ 	mutex_lock(&shark->tea.mutex);
+ 	v4l2_device_disconnect(&shark->v4l2_dev);
+ 	radio_tea5777_exit(&shark->tea);
+ 	mutex_unlock(&shark->tea.mutex);
+ 
+-	for (i = 0; i < NO_LEDS; i++)
+-		led_classdev_unregister(&shark->leds[i]);
+-
+-	cancel_work_sync(&shark->led_work);
++	shark_unregister_leds(shark);
+ 
+ 	v4l2_device_put(&shark->v4l2_dev);
+ }
+@@ -240,7 +278,7 @@ static int usb_shark_probe(struct usb_interface *intf,
+ 			   const struct usb_device_id *id)
+ {
+ 	struct shark_device *shark;
+-	int i, retval = -ENOMEM;
++	int retval = -ENOMEM;
+ 
+ 	shark = kzalloc(sizeof(struct shark_device), GFP_KERNEL);
+ 	if (!shark)
+@@ -250,8 +288,13 @@ static int usb_shark_probe(struct usb_interface *intf,
+ 	if (!shark->transfer_buffer)
+ 		goto err_alloc_buffer;
+ 
+-	shark->v4l2_dev.release = usb_shark_release;
+ 	v4l2_device_set_name(&shark->v4l2_dev, DRV_NAME, &shark_instance);
++
++	retval = shark_register_leds(shark, &intf->dev);
++	if (retval)
++		goto err_reg_leds;
++
++	shark->v4l2_dev.release = usb_shark_release;
+ 	retval = v4l2_device_register(&intf->dev, &shark->v4l2_dev);
+ 	if (retval) {
+ 		v4l2_err(&shark->v4l2_dev, "couldn't register v4l2_device\n");
+@@ -275,32 +318,13 @@ static int usb_shark_probe(struct usb_interface *intf,
+ 		goto err_init_tea;
+ 	}
+ 
+-	INIT_WORK(&shark->led_work, shark_led_work);
+-	for (i = 0; i < NO_LEDS; i++) {
+-		shark->leds[i] = shark_led_templates[i];
+-		snprintf(shark->led_names[i], sizeof(shark->led_names[0]),
+-			 shark->leds[i].name, shark->v4l2_dev.name);
+-		shark->leds[i].name = shark->led_names[i];
+-		/*
+-		 * We don't fail the probe if we fail to register the leds,
+-		 * because once we've called radio_tea5777_init, the /dev/radio0
+-		 * node may be opened from userspace holding a reference to us!
+-		 *
+-		 * Note we cannot register the leds first instead as
+-		 * shark_led_work depends on the v4l2 mutex and registered bit.
+-		 */
+-		retval = led_classdev_register(&intf->dev, &shark->leds[i]);
+-		if (retval)
+-			v4l2_err(&shark->v4l2_dev,
+-				 "couldn't register led: %s\n",
+-				 shark->led_names[i]);
+-	}
+-
+ 	return 0;
+ 
+ err_init_tea:
+ 	v4l2_device_unregister(&shark->v4l2_dev);
+ err_reg_dev:
++	shark_unregister_leds(shark);
++err_reg_leds:
+ 	kfree(shark->transfer_buffer);
+ err_alloc_buffer:
+ 	kfree(shark);
+-- 
+1.7.11.4
 
-'The VIDIOC_G/S_PRIORITY ioctls are mandatory. However, not all drivers are
-compliant. Until all drivers have been made to comply application developers
-should be aware that these ioctls may be missing.'
-
-It comes down to what you want to achieve with profiles. My intention is that
-profiles describe what should and what shouldn't be implemented for various
-classes of video/radio hardware. And v4l2-compliance is the tool that verifies
-the profile. In addition, it makes a very clear set of guidelines for driver
-developers to follow.
-
-As long as there are many drivers that do not yet comply we should add notes
-to the profiles describing where theory and reality differ, so application
-developers are aware of the pitfalls they have to work around.
-
-Hopefully over time these notes can be removed one by one as existing drivers
-are fixed. But that's going to take a *long* time.
-
-If the profile would just state what drivers do today, then that doesn't add
-much to what the current spec already does. IMHO.
-
-> >>>> While writing down these profiles I noticed one thing that was very much
-> >>>> missing for radio devices: there is no capability bit to tell the application
-> >>>> whether there is an associated ALSA device or whether the audio goes through
-> >>>> a line-in/out. Personally I think that this should be fixed.
-> >>
-> >> Yes, this is one bit that it is missing. Well, this is currently handled this
-> >> at xawtv3 "radio" aplication by using the libmedia_dev API there.
-> >>
-> >> It likely makes sense, for a version 2 of the profiles (e. g. after we finish
-> >> merging the basic stuff there), to add a chapter at  the profiles section 
-> >> recommending the usage of the libraries provided by v4l-utils, with some 
-> >> description or code examples.
-> > 
-> > Good idea.
-> > 
-> >>>>
-> >>>> Comments are welcome!
-> >>>>
-> >>>> Regards,
-> >>>>
-> >>>> 	Hans
-> >>>>
-> >>>>
-> >>>> Core Profile
-> >>>> ============
-> >>>>
-> >>>> All V4L2 device nodes must support the core profile.
-> >>>>
-> >>>> VIDIOC_QUERYCAP must be supported and must set the device_caps field.
-> >>>> bus_info must be a unique string and must not be empty (pending result of
-> >>>> the upcoming workshop).
-> >>>>
-> >>>> VIDIOC_G/S_PRIORITY must be supported.
-> >>>>
-> >>>> If you have controls then both the VIDIOC_G/S_CTRL and the VIDIOC_G/S/TRY_EXT_CTRLS
-> >>>> ioctls must be supported, together with poll(), VIDIOC_DQEVENT and
-> >>>> VIDIOC_(UN)SUBSCRIBE_EVENT to handle control events. 
-> >>
-> >>>> Use the control framework to implement this.
-> >>
-> >> Now looking at the concrete case, I don't see any troubles on adding it to
-> >> the V4L2 API, but writing it as:
-> >>
-> >> 	"Driver developers must use the control framework to implement this."
-> > 
-> > I wrote this profile fairly quickly, so it is quite concise and needs to be
-> > expanded. It's just an RFC to get a discussion started :-)
-> 
-> I don't mind adding a concise chapter ;) It can be later expanded, but the
-> better is to commit something as soon as possible, and keep improving it as
-> we find some time and need for that.
-> 
-> > 
-> >>>> VIDIOC_LOG_STATUS is optional, but recommended for complex drivers.
-> >>>>
-> >>>> VIDIOC_DBG_G_CHIP_IDENT, VIDIOC_DBG_G/S_REGISTER are optional and are
-> >>>> primarily used to debug drivers.
-> >>
-> >> The above ones require a note for application developers:
-> >>
-> >> 	"Applications must not use VIDIOC_LOG_STATUS during its normal behaviour;
-> >> 	 this is reserved for driver's debug/test.
-> >>
-> >> 	 The usage of VIDIOC_DBG_G_CHIP_IDENT and VIDIOC_DBG_G/S_REGISTER is solely 
-> >> 	 for driver's debug. Applications should never use it."
-> >>
-> >>>> Video, Radio and VBI nodes are for input or output only. 
-> >>
-> >> Hmm... didn't look clear to me. I would change the first phase to something like:
-> >>
-> >> 	"Each video, radio or vbi node should be used by just one input or
-> >> 	output streaming engine."
-> >>
-> >>>> The only exception
-> >>>> are video nodes that have the V4L2_CAP_VIDEO_M2M(_MPLANE) capability set.
-> >>
-> >> Again, not clear what it should be expected on a device with the M2M capabilities.
-> >>
-> >> Better to write it like:
-> >>
-> >> 	"Video nodes with memory to memory capabilities (V4L2_CAP_VIDEO_M2M and
-> >> V4L2_CAP_VIDEO_M2M_MPLANE) must implement both one input streaming engine and
-> >> one output streaming engine at the same node."
-> >>
-> >>>> Video nodes only control video, radio nodes only control radio and RDS, vbi
-> >>>> nodes only control VBI (raw and/or sliced).
-> >>
-> >> I would use "must" word for everything mandatory at the profiles section (
-> >> and "may" for optional ones), like:
-> >>
-> >> 	"Video nodes must only control the video functionality.
-> >>
-> >> 	 Radio nodes must only control the radio functionality.
-> >>
-> >> 	 VBI nodes must only control the Vertical Blank Interface functionality. The
-> >> 	 same VBI node must be used by raw VBI and sliced VBI api's, when both are
-> >> 	 supported."
-> >>
-> >>>>
-> >>>> Streaming I/O is not supported by radio nodes.
-> >>
-> >> 	Hmm... pvrusb2/ivtv? Ok, it makes sense to move it to use the alsa
-> >> mpeg API there. If we're enforcing it, we should deprecate the current way
-> >> there, and make it use ALSA.
-> >>
-> >> (more comments about it below)
-> >>
-> >>> It should be possible to open device nodes more than once. Just opening a
-> >>> node and querying information from the driver should not change the state
-> >>> of the driver.
-> >>
-> >> Hmm... locking between DVB and V4L should likely be added here: e. g. is it
-> >> allowed to open both DVB and V4L nodes for the same tuner/streaming engine?
-> >>
-> >> Currently, this is not allowed. There are also known issues when applications
-> >> change too fast between them (open/close V4L, then open/close dvb or vice-versa).
-> > 
-> > As mentioned above, I will need help here from people who actually use and
-> > understand DVB.
-> 
-> Maybe we can discuss it a little bit next week, if we have some time for that.
-> 
-> >>> The file handle that called VIDIOC_REQBUFS, VIDIOC_CREATE_BUFS, read/write
-> >>> or select (for reading or writing) first is the only one that can do I/O.
-> >>> Attempts by other file handles to call these ioctls/file operations will
-> >>> get an EBUSY error.
-> >>>
-> >>> This file handle remains the owner of the I/O until the file handle is
-> >>> closed, or until VIDIOC_REQBUFS is called with count == 0.
-> >>
-> >> Please change it to use "must". Also, I think that doing s/called/calls/
-> >> is better.
-> >>
-> >> It is likely better to say it as:
-> >>
-> >> 	The streaming engine ownership must be taken by the first handle that calls
-> >> 	VIDIOC_REQBUFS, VIDIOC_CREATE_BUFS, read/write or select (for reading or writing).
-> >>
-> >> 	Only such file handler must do streaming I/O. Any attempts by other file handlers
-> >> 	to do I/O must return EBUSY.
-> >>
-> >> 	The I/O streaming ownership must be released when the file handler is closed
-> >> 	or when VIDIOC_REQBUFS is called with count equal to zero.
-> >>
-> >>>>
-> >>>> Radio Receiver Profile
-> >>>> ======================
-> >>>>
-> >>>> Radio devices have a tuner and (usually) a demodulator. The audio is either
-> >>>> send out to a line-out connector or uses ALSA to stream the audio.
-> >>
-> >> Hmm... are there anything mandatory here, or are you just defining what a radio is?
-> >> In the latter, the above text looks ok.
-> > 
-> > What I tried to achieve here is to limit the number of possible methods of getting
-> > the audio to just two: line-out or ALSA. This is to prevent future pvrusb2/ivtv
-> > non-standard methods of getting the audio.
-> > 
-> >>>>
-> >>>> It implements VIDIOC_G/S_TUNER, VIDIOC_G/S_FREQUENCY and VIDIOC_ENUM_FREQ_BANDS.
-> >>
-> >> 	In addition to the mandatory items at the core profile (I would add an hyperlink here),
-> >> 	all drivers must implement VIDIOC_G/S_TUNER, VIDIOC_G/S_FREQUENCY and VIDIOC_ENUM_FREQ_BANDS.
-> >>
-> >>>> If hardware seek is supported, then VIDIOC_S_HW_FREQ_SEEK is implemented.
-> >>
-> >> 	A radio device may implement VIDIOC_S_HW_FREQ_SEEK, when audio station seek is
-> >> 	supported by radio.
-> >>
-> >>>> It does *not* implement VIDIOC_ENUM/G/S_INPUT or VIDIOC_ENUM/G/S_AUDIO.
-> >>
-> >> A radio node must *not* implement VIDIOC_ENUM/G/S_INPUT or VIDIOC_ENUM/G/S_AUDIO.
-> >>
-> >>>> If RDS_BLOCK_IO is supported, then read() and poll() are implemented as well.
-> >>
-> >> Radio drivers that support RDS must report RDS_BLOCK_IO. In this case, radio
-> >> nodes must implement read()/poll() syscalls.
-> >>
-> >>>> If a mute control exists and the audio is output using a line-out, then the
-> >>>> audio must be muted on driver load and unload.
-> >>>>
-> >>>> On driver load the frequency must be initialized to a valid frequency.
-> >>
-> >> This is not nice, and not always possible: devices with xc3028 tuner (and other
-> >> Xceive tuners) have firmwares for radio and for TV. Initializing for radio
-> >> makes TV uninitialized, and vice-versa. Also, some devices take up to 30 seconds
-> >> to load a firmware (tm6000).
-> >>
-> >> I think you're likely trying to say that the initial frequency should be
-> >> a valid value. If so, please prepend it with a "driver developer's note".
-> > 
-> > Yes, that's what I tried to say :-)
-> 
-> Yeah, I figured out ;)
-> > 
-> > I've seen drivers where G_FREQUENCY would return 0 after the initial module
-> > load, which is something that should be avoided.
-> 
-> Sure.
-> 
-> >>>>
-> >>>> Note: There are a few drivers that use a radio (pvrusb2) or video (ivtv)
-> >>>> node to stream the audio. These are legacy exceptions to the rule.
-> >>
-> >> What an application developer should do with that???
-> > 
-> > Nothing. A generic application cannot support audio for these devices.
-> > You need specialized apps for that.
-> 
-> We actually need to fix those drivers to do the right thing, or to add this
-> possibility to the standard.
-> 
-> >> If this should not be supported anymore, then we need instead to either
-> >> fix the drivers that aren't compliant with the specs or move them to
-> >> staging, in order to let them to be either fixed or dropped, if none
-> >> cares enough to fix.
-> > 
-> > Well, the problem is that people are actually using the existing, nonstandard,
-> > APIs for ivtv (and probably pvrusb2 as well).
-> > 
-> > For ivtv it is probably not too difficult to add ALSA support.
-> > 
-> > Andy, I know you implemented ALSA support for cx18, do you know how much work
-> > it would be to do the same for ivtv?
-> > 
-> > If Andy has absolutely no time, then I can try to find time to add ALSA support
-> > to ivtv. But the existing API should probably remain (if possible).
-> > 
-> > It's probably more work to fix this for pvrusb2, though.
-> 
-> As I said, the API should be mandatory for all drivers under drivers/media.
-> So, either the API specs should add support for the ivtv/pvrusb2 way, or they 
-> need to be moved to staging.
-> 
-> Of course, dropping support for mpeg audio-only on radio/video nodes require
-> it to follow the features to be deprecated. But all drivers should at least
-> implement everything that it is mandatory at the API profiles, and for sure,
-> the way audio IN/OUT will be provided should be properly documented.
-
-Let's wait a year or two before we start taking such drastic measures. For
-now the vast majority of drivers fails horribly on v4l2-compliance. It is
-even hard to keep vivi compliant! Each time I add new tests to v4l2-compliance
-I often uncover a new bug in vivi. Even the new test for the
-VIDIOC_G_ENC_INDEX ioctl failed when tested with ivtv: and ivtv is what I
-used to design and test this ioctl at the time, and yet is still didn't comply
-to the spec I wrote myself! :-)
-
-So things really need to be in better shape all around before we start to
-take drastic measures for non-conforming drivers (or parts of drivers).
-
-Regards,
-
-	Hans
