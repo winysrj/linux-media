@@ -1,66 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:35039 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751132Ab2HPLZc convert rfc822-to-8bit (ORCPT
+Received: from forward1.mail.yandex.net ([77.88.46.6]:37179 "EHLO
+	forward1.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751998Ab2HKWsR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Aug 2012 07:25:32 -0400
-From: Federico Vaga <federico.vaga@gmail.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: Update VIP to videobuf2 and control framework
-Date: Thu, 16 Aug 2012 13:29:11 +0200
-Message-ID: <1501953.eRLcjlTouV@harkonnen>
-In-Reply-To: <20120801070418.51885637@lwn.net>
-References: <1343765829-6006-1-git-send-email-federico.vaga@gmail.com> <201208010841.56941.hverkuil@xs4all.nl> <20120801070418.51885637@lwn.net>
+	Sat, 11 Aug 2012 18:48:17 -0400
+From: CrazyCat <crazycat69@yandex.ru>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <50258B49.8010504@redhat.com>
+References: <1128921342302008@web25h.yandex.ru> <50258B49.8010504@redhat.com>
+Subject: Re: [PATCH]Omicom S2 PCI support
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Message-Id: <1872301344725294@web28d.yandex.ru>
+Date: Sun, 12 Aug 2012 01:48:14 +0300
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In data mercoledì 1 agosto 2012 07:04:18, Jonathan Corbet ha scritto:
-> On Wed, 1 Aug 2012 08:41:56 +0200
-> 
-> Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > > The second patch adds a new memory allocator for the videobuf2. I
-> > > name it videobuf2-dma-streaming but I think "streaming" is not
-> > > the best choice, so suggestions are welcome. My inspiration for
-> > > this buffer come from videobuf-dma-contig (cached) version. After
-> > > I made this buffer I found the videobuf2-dma-nc made by Jonathan
-> > > Corbet and I improve the allocator with some suggestions
-> > > (http://patchwork.linuxtv.org/patch/7441/). The VIP doesn't work
-> > > with videobu2-dma-contig and I think this solution is easier the
-> > > sg.> 
-> > I leave this to the vb2 experts. It's not obvious to me why we would
-> > need a fourth memory allocator.
-> 
-> I first wrote my version after observing that performance dropped by a
-> factor of three on the OLPC XO 1.75 when using contiguous, coherent
-> memory.  If the architecture needs to turn off caching, things really
-> slow down, to the point that it's unusable.  There's no real reason
-> why a V4L2 device shouldn't be able to use streaming mappings in this
-> situation; it performs better and doesn't eat into the limited
-> amounts of coherent DMA space available on some systems.
-> 
-> I never got my version into a mergeable state only because I finally
-> figured out how to bludgeon the hardware into doing s/g DMA and didn't
-> need it anymore.  But I think it's a worthwhile functionality to
-> have, and, with CMA, it could be the preferred mode for a number of
-> devices.
-> 
-> jon
+Ok, fixed patch.
 
-I think that the memory allocator is the most questionable patch, but if 
-there are not any other comments I will send my three patches for the 
-inclusion. It is summer, time for vacation, so I'll wait for another 
-week or two for critical comments and then I will send patches.
-
-
--- 
-Federico Vaga
+Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
+diff --git a/drivers/media/dvb/ttpci/budget.c b/drivers/media/dvb/ttpci/budget.c
+index b21bcce..7e6e43a 100644
+--- a/drivers/media/dvb/ttpci/budget.c
++++ b/drivers/media/dvb/ttpci/budget.c
+@@ -50,6 +50,8 @@
+ #include "stv6110x.h"
+ #include "stv090x.h"
+ #include "isl6423.h"
++#include "lnbh24.h"
++
+ 
+ static int diseqc_method;
+ module_param(diseqc_method, int, 0444);
+@@ -679,6 +681,62 @@ static void frontend_init(struct budget *budget)
+ 			}
+ 		}
+ 		break;
++
++	case 0x1020: { /* Omicom S2 */
++			struct stv6110x_devctl *ctl;
++			saa7146_setgpio(budget->dev, 2, SAA7146_GPIO_OUTLO);
++			msleep(50);
++			saa7146_setgpio(budget->dev, 2, SAA7146_GPIO_OUTHI);
++			msleep(250);
++
++			budget->dvb_frontend = dvb_attach(stv090x_attach,
++							  &tt1600_stv090x_config,
++							  &budget->i2c_adap,
++							  STV090x_DEMODULATOR_0);
++
++			if (budget->dvb_frontend) {
++				printk(KERN_INFO "budget: Omicom S2 detected\n");
++
++				ctl = dvb_attach(stv6110x_attach,
++						 budget->dvb_frontend,
++						 &tt1600_stv6110x_config,
++						 &budget->i2c_adap);
++
++				if (ctl) {
++					tt1600_stv090x_config.tuner_init	  = ctl->tuner_init;
++					tt1600_stv090x_config.tuner_sleep	  = ctl->tuner_sleep;
++					tt1600_stv090x_config.tuner_set_mode	  = ctl->tuner_set_mode;
++					tt1600_stv090x_config.tuner_set_frequency = ctl->tuner_set_frequency;
++					tt1600_stv090x_config.tuner_get_frequency = ctl->tuner_get_frequency;
++					tt1600_stv090x_config.tuner_set_bandwidth = ctl->tuner_set_bandwidth;
++					tt1600_stv090x_config.tuner_get_bandwidth = ctl->tuner_get_bandwidth;
++					tt1600_stv090x_config.tuner_set_bbgain	  = ctl->tuner_set_bbgain;
++					tt1600_stv090x_config.tuner_get_bbgain	  = ctl->tuner_get_bbgain;
++					tt1600_stv090x_config.tuner_set_refclk	  = ctl->tuner_set_refclk;
++					tt1600_stv090x_config.tuner_get_status	  = ctl->tuner_get_status;
++
++					/* call the init function once to initialize
++					   tuner's clock output divider and demod's
++					   master clock */
++					if (budget->dvb_frontend->ops.init)
++						budget->dvb_frontend->ops.init(budget->dvb_frontend);
++
++					if (dvb_attach(lnbh24_attach,
++							budget->dvb_frontend,
++							&budget->i2c_adap,
++							LNBH24_PCL | LNBH24_TTX,
++							LNBH24_TEN, 0x14>>1) == NULL) {
++						printk(KERN_ERR
++						"No LNBH24 found!\n");
++						goto error_out;
++					}
++				} else {
++					printk(KERN_ERR "%s: No STV6110(A) Silicon Tuner found!\n", __func__);
++					goto error_out;
++				}
++			}
++		}
++		break;
+ 	}
+ 
+ 	if (budget->dvb_frontend == NULL) {
+@@ -759,6 +817,7 @@ MAKE_BUDGET_INFO(fsacs0, "Fujitsu Siemens Activy Budget-S PCI (rev GR/grundig fr
+ MAKE_BUDGET_INFO(fsacs1, "Fujitsu Siemens Activy Budget-S PCI (rev AL/alps frontend)", BUDGET_FS_ACTIVY);
+ MAKE_BUDGET_INFO(fsact,	 "Fujitsu Siemens Activy Budget-T PCI (rev GR/Grundig frontend)", BUDGET_FS_ACTIVY);
+ MAKE_BUDGET_INFO(fsact1, "Fujitsu Siemens Activy Budget-T PCI (rev AL/ALPS TDHD1-204A)", BUDGET_FS_ACTIVY);
++MAKE_BUDGET_INFO(omicom, "Omicom S2 PCI", BUDGET_TT);
+ 
+ static struct pci_device_id pci_tbl[] = {
+ 	MAKE_EXTENSION_PCI(ttbs,  0x13c2, 0x1003),
+@@ -772,6 +831,7 @@ static struct pci_device_id pci_tbl[] = {
+ 	MAKE_EXTENSION_PCI(fsacs0,0x1131, 0x4f61),
+ 	MAKE_EXTENSION_PCI(fsact1, 0x1131, 0x5f60),
+ 	MAKE_EXTENSION_PCI(fsact, 0x1131, 0x5f61),
++	MAKE_EXTENSION_PCI(omicom, 0x14c4, 0x1020),
+ 	{
+ 		.vendor    = 0,
+ 	}
