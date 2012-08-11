@@ -1,117 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:18994 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:52298 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753621Ab2HJUPx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Aug 2012 16:15:53 -0400
-Message-ID: <50256BF5.7090704@redhat.com>
-Date: Fri, 10 Aug 2012 17:15:49 -0300
+	id S1751683Ab2HKStE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Aug 2012 14:49:04 -0400
+Message-ID: <5026A8ED.9000102@redhat.com>
+Date: Sat, 11 Aug 2012 15:48:13 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	David Rientjes <rientjes@google.com>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/2] radio-shark: Only compile led support when CONFIG_LED_CLASS
- is set
-References: <1344628686-10482-1-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1344628686-10482-1-git-send-email-hdegoede@redhat.com>
+To: Prabhakar Lad <prabhakar.lad@ti.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [GIT PULL FOR v3.6-rc1] Mediabus And Pixel format supported by
+ DM365
+References: <501F6F13.8090401@ti.com> <501F903A.3070700@ti.com>
+In-Reply-To: <501F903A.3070700@ti.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 10-08-2012 16:58, Hans de Goede escreveu:
-> Reported-by: Dadiv Rientjes <rientjes@google.com>
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  drivers/media/radio/radio-shark.c | 26 ++++++++++++++++++++++++--
->  1 file changed, 24 insertions(+), 2 deletions(-)
+Em 06-08-2012 06:36, Prabhakar Lad escreveu:
+> Hi Mauro,
 > 
-> diff --git a/drivers/media/radio/radio-shark.c b/drivers/media/radio/radio-shark.c
-> index c2ead23..f746ed0 100644
-> --- a/drivers/media/radio/radio-shark.c
-> +++ b/drivers/media/radio/radio-shark.c
-> @@ -27,7 +27,6 @@
->  
->  #include <linux/init.h>
->  #include <linux/kernel.h>
-> -#include <linux/leds.h>
->  #include <linux/module.h>
->  #include <linux/slab.h>
->  #include <linux/usb.h>
-> @@ -35,6 +34,12 @@
->  #include <media/v4l2-device.h>
->  #include <sound/tea575x-tuner.h>
->  
-> +#if defined(CONFIG_LEDS_CLASS) || \
-> +    (defined(CONFIG_LEDS_CLASS_MODULE) && defined(CONFIG_RADIO_SHARK_MODULE))
-> +#include <linux/leds.h>
+> Sorry, the subject of course should have been "GIT PULL FOR v3.7"
 
-Conditionally including headers is not a good thing.
+Hi Prabhakar,
 
-...
->  static void usb_shark_disconnect(struct usb_interface *intf)
->  {
->  	struct v4l2_device *v4l2_dev = usb_get_intfdata(intf);
->  	struct shark_device *shark = v4l2_dev_to_shark(v4l2_dev);
-> +#ifdef SHARK_USE_LEDS
->  	int i;
-> +#endif
->  
->  	mutex_lock(&shark->tea.mutex);
->  	v4l2_device_disconnect(&shark->v4l2_dev);
->  	snd_tea575x_exit(&shark->tea);
->  	mutex_unlock(&shark->tea.mutex);
->  
-> +#ifdef SHARK_USE_LEDS
->  	for (i = 0; i < NO_LEDS; i++)
->  		led_classdev_unregister(&shark->leds[i]);
-> +#endif
->  
->  	v4l2_device_put(&shark->v4l2_dev);
->  }
+Please only send patches for the API together with the drivers that
+require it, e. g. with dm365 patches.
 
-That looks ugly. Maybe you could code it on a different way.
-
-You could be move all shark_use_leds together into the same place at
-the code, like:
-
-#if defined(CONFIG_LEDS_CLASS) || \
-    (defined(CONFIG_LEDS_CLASS_MODULE) && defined(CONFIG_RADIO_SHARK_MODULE))
-
- static void shark_led_set_blue(struct led_classdev *led_cdev,
-...
- 		.brightness_set = shark_led_set_red,
- 	},
- };
-
-static void shark_led_disconnect(...)
-{
-...
-}
-
-static void shark_led_release(...)
-{
-...
-}
-
-static void shark_led_register(...)
-{
-...
-}
-#else
-static inline void shark_led_disconnect(...) { };
-static inline void shark_led_release(...) { };
-static inline void shark_led_register(...)
-{
-	printk(KERN_WARN "radio-shark: CONFIG_LED_CLASS not enabled. LEDs won't work\n");
-}
-#endif
-
-And let the rest of the code to call the shark_led functions, as if LEDS aren't enabled,
-the function stubs won't produce any code (well, except for the above error notice).
-
-The same comment also applies to patch 2.
-
-Regards,
+Thanks!
 Mauro
+
+> 
+> Thx,
+> --Prabhakar
+> 
+> On Monday 06 August 2012 12:45 PM, Prabhakar Lad wrote:
+>> Hi Mauro,
+>>
+>> Can you please pull the following patches, which add medibus and pixel
+>> format supported by DM365.
+>>
+>> Thanks and Regards,
+>> --Prabhakar Lad
+>>
+>>
+>> The following changes since commit 0d7614f09c1ebdbaa1599a5aba7593f147bf96ee:
+>>
+>>   Linux 3.6-rc1 (2012-08-02 16:38:10 -0700)
+>>
+>> are available in the git repository at:
+>>   git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git mc_dm365_mbus_fmt
+>>
+>> Manjunath Hadli (2):
+>>       media: add new mediabus format enums for dm365
+>>       v4l2: add new pixel formats supported on dm365
+>>
+>>  .../DocBook/media/v4l/pixfmt-srggb10alaw8.xml      |   34 +++
+>>  Documentation/DocBook/media/v4l/pixfmt-uv8.xml     |   62 +++++
+>>  Documentation/DocBook/media/v4l/pixfmt.xml         |    2 +
+>>  Documentation/DocBook/media/v4l/subdev-formats.xml |  250
+>> +++++++++++++++++++-
+>>  include/linux/v4l2-mediabus.h                      |   10 +-
+>>  include/linux/videodev2.h                          |    8 +
+>>  6 files changed, 358 insertions(+), 8 deletions(-)
+>>  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
+>>  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-uv8.xml
+>> _______________________________________________
+>> Davinci-linux-open-source mailing list
+>> Davinci-linux-open-source@linux.davincidsp.com
+>> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
+>>
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
