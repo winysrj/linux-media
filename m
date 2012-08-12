@@ -1,37 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:31560 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:63896 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754930Ab2HONsZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Aug 2012 09:48:25 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q7FDmP20019196
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 15 Aug 2012 09:48:25 -0400
+	id S1751032Ab2HLPha (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Aug 2012 11:37:30 -0400
+Message-ID: <5027CDB0.6000903@redhat.com>
+Date: Sun, 12 Aug 2012 12:37:20 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 08/12] [media] mmc/Kconfig: Improve driver name for siano mmc/sdio driver
-Date: Wed, 15 Aug 2012 10:48:16 -0300
-Message-Id: <1345038500-28734-9-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1345038500-28734-1-git-send-email-mchehab@redhat.com>
-References: <502AC079.50902@gmail.com>
- <1345038500-28734-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH RFC 1/3] dvb_frontend: use Kernel dev_* logging
+References: <1344551101-16700-1-git-send-email-crope@iki.fi> <1344551101-16700-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1344551101-16700-2-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/mmc/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+Em 09-08-2012 19:24, Antti Palosaari escreveu:
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
 
-diff --git a/drivers/media/mmc/Kconfig b/drivers/media/mmc/Kconfig
-index 0f2a957..8c30ada 100644
---- a/drivers/media/mmc/Kconfig
-+++ b/drivers/media/mmc/Kconfig
-@@ -1 +1,2 @@
-+comment "Supported MMC/SDIO adapters"
- source "drivers/media/mmc/siano/Kconfig"
--- 
-1.7.11.2
+That looks ok for me.
 
+> ---
+>  drivers/media/dvb/dvb-core/dvb_frontend.c | 226 +++++++++++++++---------------
+>  1 file changed, 116 insertions(+), 110 deletions(-)
+> 
+> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> index 13cf4d2..4548fc9 100644
+> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> @@ -66,8 +66,6 @@ MODULE_PARM_DESC(dvb_powerdown_on_sleep, "0: do not power down, 1: turn LNB volt
+>  module_param(dvb_mfe_wait_time, int, 0644);
+>  MODULE_PARM_DESC(dvb_mfe_wait_time, "Wait up to <mfe_wait_time> seconds on open() for multi-frontend to become available (default:5 seconds)");
+>  
+> -#define dprintk if (dvb_frontend_debug) printk
+> -
+>  #define FESTATE_IDLE 1
+>  #define FESTATE_RETUNE 2
+>  #define FESTATE_TUNING_FAST 4
+> @@ -207,7 +205,7 @@ static void dvb_frontend_add_event(struct dvb_frontend *fe, fe_status_t status)
+>  	struct dvb_frontend_event *e;
+>  	int wp;
+>  
+> -	dprintk ("%s\n", __func__);
+> +	dev_dbg(fe->dvb->device, "%s:\n", __func__);
+
+Just one small issue that it might have... some of those core printk facilities
+add a \n at the end. Can't remember if dev_*() are the ones that do it. If so,
+you'll need to remove the \n from each line.
+
+Regards,
+Mauro
