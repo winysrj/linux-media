@@ -1,58 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:64887 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755691Ab2HFJ4R (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 05:56:17 -0400
-Received: by mail-pb0-f46.google.com with SMTP id rr13so2350022pbb.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 02:56:17 -0700 (PDT)
-From: Hideki EIRAKU <hdk@igel.co.jp>
-To: Russell King <linux@arm.linux.org.uk>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
-	alsa-devel@alsa-project.org, Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v3 2/4] ALSA: pcm - Don't define ARCH_HAS_DMA_MMAP_COHERENT privately for ARM
-Date: Mon,  6 Aug 2012 18:55:22 +0900
-Message-Id: <1344246924-32620-3-git-send-email-hdk@igel.co.jp>
-In-Reply-To: <1344246924-32620-1-git-send-email-hdk@igel.co.jp>
-References: <1344246924-32620-1-git-send-email-hdk@igel.co.jp>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:54553 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751105Ab2HLQ3A (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Aug 2012 12:29:00 -0400
+Received: by lbbgj3 with SMTP id gj3so968131lbb.19
+        for <linux-media@vger.kernel.org>; Sun, 12 Aug 2012 09:28:58 -0700 (PDT)
+Message-ID: <5027D9BD.9020108@iki.fi>
+Date: Sun, 12 Aug 2012 19:28:45 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH RFC 3/3] dvb_frontend: do not allow statistic IOCTLs when
+ sleeping
+References: <1344551101-16700-1-git-send-email-crope@iki.fi> <1344551101-16700-4-git-send-email-crope@iki.fi> <5027CB8A.1020204@redhat.com>
+In-Reply-To: <5027CB8A.1020204@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+On 08/12/2012 06:28 PM, Mauro Carvalho Chehab wrote:
+> Em 09-08-2012 19:25, Antti Palosaari escreveu:
+>> Demodulator cannot perform statistic IOCTLs when it is not tuned.
+>> Return -EPERM in such case.
+>
+> While, in general, doing it makes sense, -EPERM is a very bad return code.
+> It is used to indicate when accessing some resources would require root access.
 
-The ARM architecture now defines ARCH_HAS_DMA_MMAP_COHERENT, there's no
-need to define it privately anymore.
+OK, makes sense. As I mentioned in coder letter I selected that due to 
+V4L2 usage to keep consistent.
+VIDIOC_DECODER_CMD, VIDIOC_TRY_DECODER_CMD
+VIDIOC_ENCODER_CMD, VIDIOC_TRY_ENCODER_CMD
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- sound/core/pcm_native.c |    7 -------
- 1 files changed, 0 insertions(+), 7 deletions(-)
+Cover letter also lists all the other error codes I found suitable. 
+Which one you prefer?
 
-diff --git a/sound/core/pcm_native.c b/sound/core/pcm_native.c
-index 53b5ada..84ead60 100644
---- a/sound/core/pcm_native.c
-+++ b/sound/core/pcm_native.c
-@@ -3156,13 +3156,6 @@ static const struct vm_operations_struct snd_pcm_vm_ops_data_fault = {
- 	.fault =	snd_pcm_mmap_data_fault,
- };
- 
--#ifndef ARCH_HAS_DMA_MMAP_COHERENT
--/* This should be defined / handled globally! */
--#ifdef CONFIG_ARM
--#define ARCH_HAS_DMA_MMAP_COHERENT
--#endif
--#endif
--
- /*
-  * mmap the DMA buffer on RAM
-  */
+
+>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>> ---
+>>   drivers/media/dvb/dvb-core/dvb_frontend.c | 34 +++++++++++++++++++++++--------
+>>   1 file changed, 25 insertions(+), 9 deletions(-)
+>>
+>> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+>> index 4fc11eb..40efcde 100644
+>> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
+>> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+>> @@ -2157,27 +2157,43 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
+>>   			err = fe->ops.read_status(fe, status);
+>>   		break;
+>>   	}
+>> +
+>>   	case FE_READ_BER:
+>> -		if (fe->ops.read_ber)
+>> -			err = fe->ops.read_ber(fe, (__u32*) parg);
+>> +		if (fe->ops.read_ber) {
+>> +			if (fepriv->thread)
+>> +				err = fe->ops.read_ber(fe, (__u32 *) parg);
+>> +			else
+>> +				err = -EPERM;
+>> +		}
+>>   		break;
+>>
+>>   	case FE_READ_SIGNAL_STRENGTH:
+>> -		if (fe->ops.read_signal_strength)
+>> -			err = fe->ops.read_signal_strength(fe, (__u16*) parg);
+>> +		if (fe->ops.read_signal_strength) {
+>> +			if (fepriv->thread)
+>> +				err = fe->ops.read_signal_strength(fe, (__u16 *) parg);
+>> +			else
+>> +				err = -EPERM;
+>> +		}
+>>   		break;
+>
+> Signal strength can still be available even without locking.
+
+So it is correct. :)
+It checks if frontend thread is running, not demodulator lock flags.
+
+Actually, my original plan was to use demod lock flags but after looking 
+various demod drivers I ended-up conclusion it is not wise. Many demod 
+drivers just set all flags at the same time when there is full lock 
+gained and never provide more accurate info - all or nothing.
+
+Anyhow, that solution prevents I/O errors when demod is so deep sleep 
+state (like reset) it cannot even answer at all.
+
+
+>>   	case FE_READ_SNR:
+>> -		if (fe->ops.read_snr)
+>> -			err = fe->ops.read_snr(fe, (__u16*) parg);
+>> +		if (fe->ops.read_snr) {
+>> +			if (fepriv->thread)
+>> +				err = fe->ops.read_snr(fe, (__u16 *) parg);
+>> +			else
+>> +				err = -EPERM;
+>> +		}
+>>   		break;
+>>
+>>   	case FE_READ_UNCORRECTED_BLOCKS:
+>> -		if (fe->ops.read_ucblocks)
+>> -			err = fe->ops.read_ucblocks(fe, (__u32*) parg);
+>> +		if (fe->ops.read_ucblocks) {
+>> +			if (fepriv->thread)
+>> +				err = fe->ops.read_ucblocks(fe, (__u32 *) parg);
+>> +			else
+>> +				err = -EPERM;
+>> +		}
+>>   		break;
+>>
+>> -
+>>   	case FE_DISEQC_RESET_OVERLOAD:
+>>   		if (fe->ops.diseqc_reset_overload) {
+>>   			err = fe->ops.diseqc_reset_overload(fe);
+>>
+>
+> Regards,
+> Mauro
+
+regards
+Antti
+
+
 -- 
-1.7.0.4
-
+http://palosaari.fi/
