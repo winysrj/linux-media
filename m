@@ -1,90 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:33322 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753657Ab2HQU7j (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Aug 2012 16:59:39 -0400
-Received: by lagy9 with SMTP id y9so2344190lag.19
-        for <linux-media@vger.kernel.org>; Fri, 17 Aug 2012 13:59:37 -0700 (PDT)
-Message-ID: <502EB0A9.4090501@iki.fi>
-Date: Fri, 17 Aug 2012 23:59:21 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mx1.redhat.com ([209.132.183.28]:32875 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751954Ab2HLRP6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Aug 2012 13:15:58 -0400
+Message-ID: <5027E4CB.4030902@redhat.com>
+Date: Sun, 12 Aug 2012 14:15:55 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Hans Petter Selasky <hselasky@c2i.net>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Strong pairing cam doesn't work with CT-3650 driver (ttusb2)
-References: <201208172135.17623.hselasky@c2i.net>
-In-Reply-To: <201208172135.17623.hselasky@c2i.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Ilyes Gouta <ilyes.gouta@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Patchwork notifications for '[RESEND,media] v4l2: define V4L2_PIX_FMT_NV16M
+ and V4L2_PIX_FMT_NV24M pixel formats'
+References: <CAL4m05X11YPqzA+4+V_Uo4BUJ2RdyX2L95FEKcocT-Xdbj0UyQ@mail.gmail.com>
+In-Reply-To: <CAL4m05X11YPqzA+4+V_Uo4BUJ2RdyX2L95FEKcocT-Xdbj0UyQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/17/2012 10:35 PM, Hans Petter Selasky wrote:
+Em 12-08-2012 08:55, Ilyes Gouta escreveu:
 > Hi,
->
-> Have anyone out there tested the CT-3650 USB driver in the Linux kernel with a
-> "strong pairing cam".
+> 
+> On Sun, Aug 12, 2012 at 2:58 AM, Patchwork <patchwork@linuxtv.org> wrote:
+>> Hello,
+>>
+>> The following patches (submitted by you) have been updated in patchwork:
+>>
+>>  * [RESEND,media] v4l2: define V4L2_PIX_FMT_NV16M and V4L2_PIX_FMT_NV24M pixel formats
+>>      - http://patchwork.linuxtv.org/patch/13555/
+>>     was: New
+>>     now: Superseded
+>>
+>>  * [RESEND,media] v4l2: define V4L2_PIX_FMT_NV16M and V4L2_PIX_FMT_NV24M pixel formats
+>>      - http://patchwork.linuxtv.org/patch/13556/
+>>     was: New
+>>     now: Changes Requested
+> 
+> Patchwork has moved my V4L2_PIX_FMT_NV16M and V4L2_PIX_FMT_NV24M
+> definitions  patch (http://patchwork.linuxtv.org/patch/13556) from New
+> to Changes Requested, but I couldn't look-up what changes need to be
+> made.
+> 
+> Where can I find such feedback?
+> 
+> Just for the record, in a previous conversation with Mauro, he
+> suggested that new pixel formats don't get defined in the kernel
+> unless a v4l2 device driver is actually using them (so suggesting to
+> also upstream the driver, which isn't immediately possible).
 
-Likely that means CI+ with some pairing features enabled.
+Yes, that's the "changes requested": to submit it together with the
+driver, when you're ready for that.
 
-> According to some web-forums, the hardware should support that given using the
-> vendor provided DVB WinXXX software.
->
-> drivers/media/dvb/dvb-usb/ttusb2.c
->
-> Any clues how to debug or what can be wrong?
+While "changes requested" is not an exact match for "postpone submission",
+it fits a little better than rejected/accepted/under review/rfc/obsoleted/...
 
-Take USB traffic capture from working Windows setup and analyze what is 
-done differently.
+Keeping it as "new" doesn't make sense, as I need to cleanup my pending
+queue.
 
-> When inserting the CAM, VDR says that a CAM is present, but then after a while
-> no CAM is present.
->
-> Log:
->
-> ttusb2: tt3650_ci_slot_reset 0
-> ttusb2: tt3650_ci_read_attribute_mem 0000 -> 0 0x00
-> ttusb2: tt3650_ci_read_attribute_mem 0002 -> 0 0x00
-> TUPLE type:0x0 length:0
-> dvb_ca adapter 0: Invalid PC card inserted :(
-> dvb_ca_en50221_io_open
-> dvb_ca_en50221_thread_wakeup
-> dvb_ca_en50221_io_do_ioctl
-> dvb_ca_en50221_io_do_ioctl
-> dvb_ca_en50221_slot_shutdown
-> ttusb2: tt3650_ci_set_video_port 0 0
-> Slot 0 shutdown
-> dvb_ca_en50221_thread_wakeup
-> dvb_ca_en50221_io_poll
-> ttusb2: tt3650_ci_slot_reset 0
-> dvb_ca_en50221_io_do_ioctl
-> dvb_ca_en50221_io_poll
-> dvb_ca_en50221_io_poll
-> dvb_ca_en50221_io_poll
-> dvb_ca_en50221_io_poll
-> dvb_ca_en50221_io_poll
-> dvb_ca_en50221_io_poll
-> dvb_ca_en50221_io_poll
-> dvb_ca_en50221_io_poll
-> dvb_ca_en50221_io_poll
-> dvb_ca_en50221_io_poll
-> ttusb2: tt3650_ci_read_attribute_mem 0000 -> 0 0x1d
-> ttusb2: tt3650_ci_read_attribute_mem 0002 -> 0 0x04
-> TUPLE type:0x1d length:4
-> ttusb2: tt3650_ci_read_attribute_mem 0004 -> 0 0x00
->    0x00: 0x00 .
-> ttusb2: tt3650_ci_read_attribute_mem 0006 -> 0 0xdb
->    0x01: 0xdb .
-> ttusb2: tt3650_ci_read_attribute_mem 0008 -> 0 0x08
->    0x02: 0x08 .
-> ttusb2: tt3650_ci_read_attribute_mem 000a -> 0 0xff
->    0x03: 0xff .
-> dvb_ca adapter 0: Invalid PC card inserted :(
-> dvb_ca_en50221_io_do_ioctl
+I might have created yet-another-status-tag for patchwork for this case,
+but having a lot of status is confusing for everybody.
 
-regards
-Antti
+Also, at the time you'll be re-submitting it, you may need to rebase the
+patch, as it might conflict with some other changes. So, changes may be
+needed anyway.
 
--- 
-http://palosaari.fi/
+So, what I do is, when someone, including me, requests any type of action 
+from the driver's author (in this case, to put it together with the patches
+that require those API additions, when you're done), I mark it as
+"changes requested".
+
+Regards,
+Mauro
+
+PS.: I'm following this logic since when we started with patchwork; the
+only thing that changed is that patchwork is now posting e-mails to
+help developers to track on what's the merging status of their work. 
+
+> 
+> -Ilyes
+> 
+>> This email is a notification only - you do not need to respond.
+>>
+>> -
+>>
+>> Patches submitted to linux-media@vger.kernel.org have the following
+>> possible states:
+>>
+>> New: Patches not yet reviewed (typically new patches);
+>>
+>> Under review: When it is expected that someone is reviewing it (typically,
+>>               the driver's author or maintainer). Unfortunately, patchwork
+>>               doesn't have a field to indicate who is the driver maintainer.
+>>               If in doubt about who is the driver maintainer please check the
+>>               MAINTAINERS file or ask at the ML;
+>>
+>> Superseded: when the same patch is sent twice, or a new version of the
+>>             same patch is sent, and the maintainer identified it, the first
+>>             version is marked as such;
+>>
+>> Obsoleted: patch doesn't apply anymore, because the modified code doesn't
+>>            exist anymore.
+>>
+>> Changes requested: when someone requests changes at the patch;
+>>
+>> Rejected: When the patch is wrong or doesn't apply. Most of the
+>>           time, 'rejected' and 'changes requested' means the same thing
+>>           for the developer: he'll need to re-work on the patch.
+>>
+>> RFC: patches marked as such and other patches that are also RFC, but the
+>>      patch author was not nice enough to mark them as such. That includes:
+>>         - patches sent by a driver's maintainer who send patches
+>>           via git pull requests;
+>>         - patches with a very active community (typically from developers
+>>           working with embedded devices), where lots of versions are
+>>           needed for the driver maintainer and/or the community to be
+>>           happy with.
+>>
+>> Not Applicable: for patches that aren't meant to be applicable via
+>>                 the media-tree.git.
+>>
+>> Accepted: when some driver maintainer says that the patch will be applied
+>>           via his tree, or when everything is ok and it got applied
+>>           either at the main tree or via some other tree (fixes tree;
+>>           some other maintainer's tree - when it belongs to other subsystems,
+>>           etc);
+>>
+>> If you think any status change is a mistake, please send an email to the ML.
+>>
+>> -
+>>
+>> This is an automated mail sent by the patchwork system at
+>> patchwork.linuxtv.org. To stop receiving these notifications, edit
+>> your mail settings at:
+>>   http://patchwork.linuxtv.org/mail/
+
