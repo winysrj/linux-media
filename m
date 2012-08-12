@@ -1,111 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35354 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751288Ab2HQFhx (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:37957 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753708Ab2HLDGu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Aug 2012 01:37:53 -0400
-Message-ID: <502DD889.3040306@ti.com>
-Date: Fri, 17 Aug 2012 11:07:13 +0530
-From: Sekhar Nori <nsekhar@ti.com>
+	Sat, 11 Aug 2012 23:06:50 -0400
+Received: by obbuo13 with SMTP id uo13so4693707obb.19
+        for <linux-media@vger.kernel.org>; Sat, 11 Aug 2012 20:06:49 -0700 (PDT)
 MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.lad@ti.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	<linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] media: davinci: vpif: add check for NULL handler
-References: <1345125720-24059-1-git-send-email-prabhakar.lad@ti.com> <1435592.88fOxbvhY7@avalon> <502DD4C9.2030105@ti.com>
-In-Reply-To: <502DD4C9.2030105@ti.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <502711BE.4020701@redhat.com>
+References: <20120731222216.GA36603@triton8.kn-bremen.de>
+	<502711BE.4020701@redhat.com>
+Date: Sat, 11 Aug 2012 23:06:49 -0400
+Message-ID: <CAGoCfiyBZNkFkvhCqsbwxVaANZcp+1df-0eAmzrpzfavD6A+dQ@mail.gmail.com>
+Subject: Re: [PATCH, RFC] Fix DVB ioctls failing if frontend open/closed too fast
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Juergen Lock <nox@jelal.kn-bremen.de>, hselasky@c2i.net
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 8/17/2012 10:51 AM, Prabhakar Lad wrote:
-> Hi Laurent,
-> 
-> Thanks for the review.
-> 
-> On Thursday 16 August 2012 08:43 PM, Laurent Pinchart wrote:
->> Hi Prabhakar,
->>
->> Thanks for the patch.
->>
->> On Thursday 16 August 2012 19:32:00 Prabhakar Lad wrote:
->>> From: Lad, Prabhakar <prabhakar.lad@ti.com>
->>>
->>> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
->>> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
->>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->>> ---
->>>  drivers/media/video/davinci/vpif_capture.c |   12 +++++++-----
->>>  drivers/media/video/davinci/vpif_display.c |   14 ++++++++------
->>>  2 files changed, 15 insertions(+), 11 deletions(-)
->>>
->>> diff --git a/drivers/media/video/davinci/vpif_capture.c
->>> b/drivers/media/video/davinci/vpif_capture.c index 266025e..a87b7a5 100644
->>> --- a/drivers/media/video/davinci/vpif_capture.c
->>> +++ b/drivers/media/video/davinci/vpif_capture.c
->>> @@ -311,12 +311,14 @@ static int vpif_start_streaming(struct vb2_queue *vq,
->>> unsigned int count) }
->>>
->>>  	/* configure 1 or 2 channel mode */
->>> -	ret = vpif_config_data->setup_input_channel_mode
->>> -					(vpif->std_info.ycmux_mode);
->>> +	if (vpif_config_data->setup_input_channel_mode) {
->>> +		ret = vpif_config_data->setup_input_channel_mode
->>> +						(vpif->std_info.ycmux_mode);
->>>
->>> -	if (ret < 0) {
->>> -		vpif_dbg(1, debug, "can't set vpif channel mode\n");
->>> -		return ret;
->>> +		if (ret < 0) {
->>> +			vpif_dbg(1, debug, "can't set vpif channel mode\n");
->>> +			return ret;
->>> +		}
->>
->> This change looks good to me. However, note that you will need to get rid of 
->> board code callbacks at some point to implement device tree support. It would 
->> be worth thinking about how to do so now.
->>
-> Currently VPIF driver is only used by dm646x, and the handlers for this
-> in the the board code are not null. This patch is intended for da850
-> where this handlers will be null.
-> 
->>>  	}
->>>
->>>  	/* Call vpif_set_params function to set the parameters and addresses */
->>> diff --git a/drivers/media/video/davinci/vpif_display.c
->>> b/drivers/media/video/davinci/vpif_display.c index e129c98..1e35f92 100644
->>> --- a/drivers/media/video/davinci/vpif_display.c
->>> +++ b/drivers/media/video/davinci/vpif_display.c
->>> @@ -280,12 +280,14 @@ static int vpif_start_streaming(struct vb2_queue *vq,
->>> unsigned int count) }
->>>
->>>  	/* clock settings */
->>> -	ret =
->>> -	    vpif_config_data->set_clock(ch->vpifparams.std_info.ycmux_mode,
->>> -					ch->vpifparams.std_info.hd_sd);
->>> -	if (ret < 0) {
->>> -		vpif_err("can't set clock\n");
->>> -		return ret;
->>> +	if (vpif_config_data->set_clock) {
->>
->> Does the DaVinci platform use the common clock framework ? If so, a better fix 
->> for this would be to pass a clock name through platform data instead of using 
->> a callback function.
->>
-> Currently DaVinci is not using the common clock framework.
-> 
-> Can you ACK this patch?
+On Sat, Aug 11, 2012 at 10:15 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Devin/Antti,
+>
+> As Juergen mentioned your help on this patch, do you mind helping reviewing
+> and testing it?
 
-Yes, DaVinci has not migrated to common clock framework (yet). However,
-even without that it should be possible to use clock API in driver code.
-Using a callback to enable clocks or even passing the clock name from
-platform data would be bypassing an existing framework. Clock name
-should be IP specific, so it should be possible to use that in driver.
+I guided Juergen through the creation of the patch via #linuxtv a
+couple of weeks ago.  While I'm generally confident that it should
+work (and it does address his basic issue), I hadn't had the time to
+stare at the code long enough to see what other side effects it might
+produce.
 
-Thanks,
-Sekhar
+I'm tied up in other projects right now and am not confident I will
+have cycles to look at this closer.  Antti, if you want to give it
+some cycles, this would be a good fix to get upstream (and you've
+already been looking at dvb_frontend.c for quite a while, so I believe
+you would be able to spot a problem if one exists).
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
