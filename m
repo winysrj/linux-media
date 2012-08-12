@@ -1,52 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1181 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753082Ab2HaBCx (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:61888 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752178Ab2HLTM4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Aug 2012 21:02:53 -0400
-Date: Thu, 30 Aug 2012 17:59:24 -0700
-Subject: Re: V4L DT @ plumbers (was Re: [RFC v4] V4L DT bindings)
-Message-ID: <le0u47eut2t0gh4pxyuu5vse.1346374764563@email.android.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Nicolas THERY <nicolas.thery@st.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	devicetree-discuss <devicetree-discuss@lists.ozlabs.org>,
-	"linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Benjamin GAIGNARD <benjamin.gaignard@st.com>,
-	Willy POISSON <willy.poisson@st.com>,
-	Jean-Marc VOLLE <jean-marc.volle@st.com>,
-	Pierre-yves TALOUD <pierre-yves.taloud@st.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
+	Sun, 12 Aug 2012 15:12:56 -0400
+Received: by wicr5 with SMTP id r5so1932907wic.1
+        for <linux-media@vger.kernel.org>; Sun, 12 Aug 2012 12:12:55 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+In-Reply-To: <5027FAF5.7060106@iki.fi>
+References: <59951342221302@web18g.yandex.ru>
+	<50258758.8050902@redhat.com>
+	<1981451344725742@web18g.yandex.ru>
+	<5026F209.4030604@iki.fi>
+	<2171791344796403@web4d.yandex.ru>
+	<5027FAF5.7060106@iki.fi>
+Date: Mon, 13 Aug 2012 00:42:54 +0530
+Message-ID: <CAHFNz9+LSzO-Zzgk4SqGS+FZ+S8e_Ecf+VhK6MoAQrRVbcNXfw@mail.gmail.com>
+Subject: Re: [PATCH] DVB-S2 multistream support
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: CrazyCat <crazycat69@yandex.ru>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Manu Abraham <manu@linuxtv.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-RmluZSBieSBtZSEKCiAgICAgIEhhbnMKCkd1ZW5uYWRpIExpYWtob3ZldHNraSA8Zy5saWFraG92
-ZXRza2lAZ214LmRlPiB3cm90ZToKCj5PbiBGcmksIDMxIEF1ZyAyMDEyLCBMYXVyZW50IFBpbmNo
-YXJ0IHdyb3RlOgo+Cj4+IEhpIEd1ZW5uYWRpLAo+PiAKPj4gT24gVGh1cnNkYXkgMzAgQXVndXN0
-IDIwMTIgMjI6NTg6MTcgR3Vlbm5hZGkgTGlha2hvdmV0c2tpIHdyb3RlOgo+PiA+IEhpIGFsbAo+
-PiA+IAo+PiA+IERvIHdlIHN0aWxsIHdhbnQgdG8gdHJ5IHRvIG9yZ2FuaXNlIGEgc2hvcnQgZGlz
-Y3Vzc2lvbiBvZiB0aGlzIHdoaWxlIGF0Cj4+ID4gcGx1bWJlcnM/IE1heWJlIHRvbW9ycm93IGR1
-cmluZyBvciBhcm91bmQgbHVuY2g/IE9yIGFueSBvdGhlciB0aW1lIGZvcgo+PiA+IHRoYXQgbWF0
-dGVyPwo+PiAKPj4gSSdtIGNlcnRhaW5seSBpbnRlcmVzdGVkLiBJIGhhdmUgYSBtZWV0aW5nIHRv
-bW9ycm93IGF0IGEgc3RpbGwgdW5rbm93biB0eXBlLCAKPj4gYXBhcnQgZnJvbSB0aGF0IEknbSBm
-cmVlLgo+Cj5Ib3cgYWJvdXQgYmVnaW5uaW5nIHRvbW9ycm93IGF0IDExOjU1IChOYXV0aWx1cyAz
-ICYgNCBhcmUgc3RpbGwgZnJlZSAKPmFjY29yZGluZyB0byB0aGUgc2NoZWR1bGUpIGFuZCB0aGVu
-IGNvbnRpbnVpbmcgYWZ0ZXIgdGhlIGx1bmNoIGZvciBhbm90aGVyIAo+aG91ciBpZiBuZWVkZWQg
-KGZpcnN0IHRhbGsgaW4gdGhlIGFmdGVybm9vbiB0b21vcnJvdyBpcyBhdCAxNDoxMCkuCj4KPlRo
-YW5rcwo+R3Vlbm5hZGkKPi0tLQo+R3Vlbm5hZGkgTGlha2hvdmV0c2tpLCBQaC5ELgo+RnJlZWxh
-bmNlIE9wZW4tU291cmNlIFNvZnR3YXJlIERldmVsb3Blcgo+aHR0cDovL3d3dy5vcGVuLXRlY2hu
-b2xvZ3kuZGUvCj4tLQo+VG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxp
-bmUgInVuc3Vic2NyaWJlIGxpbnV4LW1lZGlhIiBpbgo+dGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRv
-IG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcKPk1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6
-Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbAo=
+On Mon, Aug 13, 2012 at 12:20 AM, Antti Palosaari <crope@iki.fi> wrote:
+> On 08/12/2012 09:33 PM, CrazyCat wrote:
+>>
+>> Ok, done :) Look like DTV_DVBT2_PLP_ID not implemented for CXD2820r ?
+>
+>
+> yes, true. It uses always PLP 0. I didn't have signal source that uses
+> multiple PLPs. I didn't even add that PLP ID to API.
 
+CXD2820 works only with PLP Type 1 or Type A in some other terminology.
+PLP Type Common and PLP Type 2 are not supported by the hardware.
+ie, it fails to acquire a LOCK with anything else.
+
+Issue confirmed by Sony as well.
+
+Regards,
+Manu
