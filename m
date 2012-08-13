@@ -1,249 +1,624 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49501 "EHLO mail.kapsi.fi"
+Received: from pequod.mess.org ([93.97.41.153]:37209 "EHLO pequod.mess.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751876Ab2HBB1S (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Aug 2012 21:27:18 -0400
-Message-ID: <5019D768.3000105@iki.fi>
-Date: Thu, 02 Aug 2012 04:27:04 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S1751938Ab2HMSgt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Aug 2012 14:36:49 -0400
+Date: Mon, 13 Aug 2012 19:36:47 +0100
+From: Sean Young <sean@mess.org>
+To: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCHv2 1/2] media: rc: Introduce RX51 IR transmitter driver
+Message-ID: <20120813183647.GA32660@pequod.mess.org>
+References: <1344593797-15819-1-git-send-email-timo.t.kokkonen@iki.fi>
+ <1344593797-15819-2-git-send-email-timo.t.kokkonen@iki.fi>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v3.6] DVB USB v2
-References: <4FF19D3C.6070506@iki.fi> <4FF36865.1090808@iki.fi> <4FF7651A.7020907@redhat.com> <4FFB27D1.9070204@iki.fi> <5016F2AA.9000602@redhat.com> <50171E4D.9080306@iki.fi>
-In-Reply-To: <50171E4D.9080306@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1344593797-15819-2-git-send-email-timo.t.kokkonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/31/2012 02:52 AM, Antti Palosaari wrote:
-> On 07/30/2012 11:46 PM, Mauro Carvalho Chehab wrote:
->> Em 09-07-2012 15:49, Antti Palosaari escreveu:
->>> On 07/07/2012 01:22 AM, Mauro Carvalho Chehab wrote:
->>>> Em 03-07-2012 18:47, Antti Palosaari escreveu:
->>>>> On 07/02/2012 04:08 PM, Antti Palosaari wrote:
->>>>>> Here it is finally - quite totally rewritten DVB-USB-framework. I
->>>>>> haven't got almost any feedback so far...
->>>>>
->>>>> I rebased it in order to fix compilation issues coming from Kconfig.
->>>>>
->>>>>
->>>>>> regards
->>>>>> Antti
->>>>>>
->>>>>>
->>>>>> The following changes since commit
->>>>>> 6887a4131da3adaab011613776d865f4bcfb5678:
->>>>>>
->>>>>>      Linux 3.5-rc5 (2012-06-30 16:08:57 -0700)
->>>>>>
->>>>>> are available in the git repository at:
->>>>>>
->>>>>>      git://linuxtv.org/anttip/media_tree.git dvb_usb_pull
->>>>>>
->>>>>> for you to fetch changes up to
->>>>>> 747abaa1e0ee4415e67026c119cb73e6277f4898:
->>>>>>
->>>>>>      dvb_usb_v2: remove usb_clear_halt() from stream (2012-07-02
->>>>>> 15:54:29
->>>>>> +0300)
->>>>>>
->>>>>> ----------------------------------------------------------------
->>>>>> Antti Palosaari (103):
->>>>>>          dvb_usb_v2: copy current dvb_usb as a starting point
->>>>
->>>> Naming the DVB USB v2 as dvb_usb, instead of dvb-usb is very very ugly.
->>>> It took me some time to discover what happened.
->>>>
->>>> You should have named it as dvb-usb-v2 instead, or to store it into
->>>> a separate directory.
->>>>
->>>> This is even worse as it seems that this series doesn't change all
->>>> drivers to use dvb usb v2. So, it will be harder to discover what
->>>> drivers are at V1 and what are at V2.
->>>>
->>>> I won't merge it as-is at staging/for_v3.6. I may eventually create
->>>> a separate topic branch and add them there, while the namespace mess
->>>> is not corrected, if I still have some time today. Otherwise, I'll only
->>>> handle that after returning from vacations.
->>>
->>> I moved it to the dvb-usb-v2 directory. Same location only added
->>> patch top of that.
->>>
->>> Surely I can convert all drivers and use old directory, but IMHO it
->>> is simply too risky. We have already too much problems coming from
->>> that kind of big changes.
->>>
->>> And what goes to file naming hyphen (-) vs. underscore (_),
->>> underscore seems to be much more common inside Kernel. Anyhow, I keep
->>> directory name as dvb-usb-v2 to follow old naming.
->>>
->>> $ find ./ -type f -printf "%f\n" | grep "_" | wc -l
->>> 21465
->>> $ find ./ -type f -printf "%f\n" | grep "-" | wc -l
->>> 13927
->>
->> The above works for me, but unfortunately, the tree can't be applied.
->>
->> The fact is that there are lots of duplicated symbols between dvb-usb
->> and dvb-usb-v2.
->> They'll fail if someone would compile everything bultin (make
->> allyesconfig).
->>
->> I tried to remove the Kconfig/Makefile changes from the initial patch,
->> moving it to
->> happen just before the first driver using dvb-usb-v2. See:
->>
->>     http://git.linuxtv.org/mchehab/experimental.git/shortlog/refs/heads/dvb-usb-v2
->>
->>
->>
->> The patch that adds it to the build system is enclosed. It is
->> basically what's there at
->> the initial patch, plus the changes done at the intermediate patches
->> at the Makefile.
->>
->> The result is shown below:
->>
->> # make ARCH=i386 allyesconfig
->> ...
->> $ make ARCH=i386 CONFIG_DEBUG_SECTION_MISMATCH=y M=drivers/media
->> drivers/media/dvb/dvb-usb/dvb_usbv2.o: In function
->> `_GLOBAL__sub_I_65535_0_dvb_usb_download_firmware':
->> /home/v4l/v4l/patchwork/include/linux/usb.h:197: multiple definition
->> of `dvb_usb_disable_rc_polling'
->> drivers/media/dvb/dvb-usb/dvb-usb.o:/home/v4l/v4l/patchwork/include/linux/usb.h:1570:
->> first defined here
->> drivers/media/dvb/dvb-usb/dvb_usbv2.o: In function `usb_urb_init':
->> /home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/usb_urb.c:310:
->> multiple definition of `usb_urb_init'
->> drivers/media/dvb/dvb-usb/dvb-usb.o:/home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/usb-urb.c:213:
->> first defined here
->> drivers/media/dvb/dvb-usb/dvb_usbv2.o: In function
->> `dvb_usb_adapter_frontend_init':
->> /home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/dvb_usb_dvb.c:332:
->> multiple definition of `dvb_usb_adapter_frontend_init'
->> drivers/media/dvb/dvb-usb/dvb-usb.o:/home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c:221:
->> first defined here
->> drivers/media/dvb/dvb-usb/dvb_usbv2.o: In function
->> `dvb_usb_adapter_dvb_exit':
->> /home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/dvb_usb_dvb.c:260:
->> multiple definition of `dvb_usb_adapter_dvb_exit'
->> drivers/media/dvb/dvb-usb/dvb-usb.o:/home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c:164:
->> first defined here
->> drivers/media/dvb/dvb-usb/dvb_usbv2.o: In function
->> `dvb_usb_adapter_dvb_init':
->> /home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/dvb_usb_dvb.c:191:
->> multiple definition of `dvb_usb_adapter_dvb_init'
->> drivers/media/dvb/dvb-usb/dvb-usb.o:/home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c:98:
->> first defined here
->> drivers/media/dvb/dvb-usb/dvb_usbv2.o: In function
->> `dvb_usb_device_power_ctrl':
->> /home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/dvb_usb_init.c:254:
->> multiple definition of `dvb_usb_device_power_ctrl'
->> drivers/media/dvb/dvb-usb/dvb-usb.o:/home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/dvb-usb-init.c:216:
->> first defined here
->> drivers/media/dvb/dvb-usb/dvb_usbv2.o: In function `dvb_usb_remote_init':
->> /home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/dvb_usb_remote.c:42:
->> multiple definition of `dvb_usb_remote_init'
->> drivers/media/dvb/dvb-usb/dvb-usb.o:/home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/dvb-usb-remote.c:308:
->> first defined here
->> drivers/media/dvb/dvb-usb/dvb_usbv2.o: In function `usb_urb_kill':
->> /home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/usb_urb.c:76:
->> multiple definition of `usb_urb_kill'
->> drivers/media/dvb/dvb-usb/dvb-usb.o:/home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/usb-urb.c:66:
->> first defined here
->> drivers/media/dvb/dvb-usb/dvb_usbv2.o: In function
->> `dvb_usb_adapter_frontend_exit':
->> /home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/dvb_usb_dvb.c:401:
->> multiple definition of `dvb_usb_adapter_frontend_exit'
->> drivers/media/dvb/dvb-usb/dvb-usb.o:/home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c:276:
->> first defined here
->> drivers/media/dvb/dvb-usb/dvb_usbv2.o: In function `dvb_usb_i2c_init':
->> /home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/dvb_usb_init.c:72:
->> multiple definition of `dvb_usb_i2c_init'
->> drivers/media/dvb/dvb-usb/dvb-usb.o:/home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/dvb-usb-i2c.c:11:
->> first defined here
->> drivers/media/dvb/dvb-usb/dvb_usbv2.o: In function
->> `dvb_usb_adapter_stream_init':
->> /home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/dvb_usb_dvb.c:36:
->> multiple definition of `dvb_usb_adapter_stream_init'
->> drivers/media/dvb/dvb-usb/dvb-usb.o:/home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/dvb-usb-urb.c:92:
->> first defined here
->> drivers/media/dvb/dvb-usb/dvb_usbv2.o: In function `usb_urb_exit':
->> /home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/usb_urb.c:351:
->> multiple definition of `usb_urb_exit'
->> drivers/media/dvb/dvb-usb/dvb-usb.o:/home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/usb-urb.c:238:
->> first defined here
->> drivers/media/dvb/dvb-usb/dvb_usbv2.o: In function
->> `dvb_usb_download_firmware':
->> /home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/dvb_usb_init.c:28:
->> multiple definition of `dvb_usb_download_firmware'
->> drivers/media/dvb/dvb-usb/dvb-usb.o:/home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/dvb-usb-firmware.c:79:
->> first defined here
->> drivers/media/dvb/dvb-usb/dvb_usbv2.o: In function `dvb_usb_remote_exit':
->> /home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/dvb_usb_remote.c:108: multiple
->> definition of `dvb_usb_remote_exit'
->> drivers/media/dvb/dvb-usb/dvb-usb.o:/home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/dvb-usb-remote.c:341:
->> first defined here
->> drivers/media/dvb/dvb-usb/dvb_usbv2.o: In function
->> `dvb_usb_adapter_stream_exit':
->> /home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/dvb_usb_dvb.c:60:
->> multiple definition of `dvb_usb_adapter_stream_exit'
->> drivers/media/dvb/dvb-usb/dvb-usb.o:/home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/dvb-usb-urb.c:116:
->> first defined here
->> drivers/media/dvb/dvb-usb/dvb_usbv2.o: In function `usb_urb_submit':
->> /home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/usb_urb.c:89:
->> multiple definition of `usb_urb_submit'
->> drivers/media/dvb/dvb-usb/dvb-usb.o:/home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/usb-urb.c:79:
->> first defined here
->> drivers/media/dvb/dvb-usb/dvb_usbv2.o: In function `dvb_usb_i2c_exit':
->> /home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/dvb_usb_init.c:95:
->> multiple definition of `dvb_usb_i2c_exit'
->> drivers/media/dvb/dvb-usb/dvb-usb.o:/home/v4l/v4l/patchwork/drivers/media/dvb/dvb-usb/dvb-usb-i2c.c:38:
->> first defined here
->> make[3]: *** [drivers/media/dvb/dvb-usb/built-in.o] Error 1
->> make[2]: *** [drivers/media/dvb/dvb-usb] Error 2
->> make[1]: *** [drivers/media/dvb] Error 2
->>
->>
->> Please fix it, in order to allow me to merge the changes. Please base
->> your patches
->> on my experimental tree, as this will save me the time to review the
->> patches that
->> are already there (and that are ok, on my eyes).
->
-> I think I have to do quite big rebase :s It could take day or two as I
-> should start learning how to fix that kind of issues...
->
-> regards
-> Antti
+On Fri, Aug 10, 2012 at 01:16:36PM +0300, Timo Kokkonen wrote:
+> This is the driver for the IR transmitter diode found on the Nokia
+> N900 (also known as RX51) device. The driver is mostly the same as
+> found in the original 2.6.28 based kernel that comes with the device.
+> 
+> The following modifications have been made compared to the original
+> driver version:
+> 
+> - Adopt to the changes that has happen in the kernel during the past
+>   five years, such as the change in the include paths
+> 
+> - The OMAP DM-timers require much more care nowadays. The timers need
+>   to be enabled and disabled or otherwise many actions fail. Timers
+>   must not be freed without first stopping them or otherwise the timer
+>   cannot be requested again.
+> 
+> The code has been tested with sending IR codes with N900 device
+> running Debian userland. The device receiving the codes was Anysee
+> DVB-C USB receiver.
+> 
+> Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+> ---
+>  drivers/media/rc/Kconfig   |   10 +
+>  drivers/media/rc/Makefile  |    1 +
+>  drivers/media/rc/ir-rx51.c |  496 ++++++++++++++++++++++++++++++++++++++++++++
+>  include/media/ir-rx51.h    |   10 +
+>  4 files changed, 517 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/rc/ir-rx51.c
+>  create mode 100644 include/media/ir-rx51.h
+> 
+> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+> index 5180390..ab35d2e 100644
+> --- a/drivers/media/rc/Kconfig
+> +++ b/drivers/media/rc/Kconfig
+> @@ -270,6 +270,16 @@ config IR_IGUANA
+>  	   To compile this driver as a module, choose M here: the module will
+>  	   be called iguanair.
+>  
+> +config IR_RX51
+> +	tristate "Nokia N900 IR transmitter diode
+> +	depends on MACH_NOKIA_RX51 && OMAP_DM_TIMER
+> +	---help---
+> +	   Say Y or M here if you want to enable support for the IR
+> +	   transmitter diode built in the Nokia N900 (RX51) device.
+> +
+> +	   The driver uses omap DM timers for gereating the carrier
+> +	   wave and pulses.
+> +
+>  config RC_LOOPBACK
+>  	tristate "Remote Control Loopback Driver"
+>  	depends on RC_CORE
+> diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+> index f871d19..d384f30 100644
+> --- a/drivers/media/rc/Makefile
+> +++ b/drivers/media/rc/Makefile
+> @@ -23,6 +23,7 @@ obj-$(CONFIG_IR_FINTEK) += fintek-cir.o
+>  obj-$(CONFIG_IR_NUVOTON) += nuvoton-cir.o
+>  obj-$(CONFIG_IR_ENE) += ene_ir.o
+>  obj-$(CONFIG_IR_REDRAT3) += redrat3.o
+> +obj-$(CONFIG_IR_RX51) += ir-rx51.o
+>  obj-$(CONFIG_IR_STREAMZAP) += streamzap.o
+>  obj-$(CONFIG_IR_WINBOND_CIR) += winbond-cir.o
+>  obj-$(CONFIG_RC_LOOPBACK) += rc-loopback.o
+> diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+> new file mode 100644
+> index 0000000..9487dd3
+> --- /dev/null
+> +++ b/drivers/media/rc/ir-rx51.c
+> @@ -0,0 +1,496 @@
+> +/*
+> + *  Copyright (C) 2008 Nokia Corporation
+> + *
+> + *  Based on lirc_serial.c
+> + *
+> + *  This program is free software; you can redistribute it and/or modify
+> + *  it under the terms of the GNU General Public License as published by
+> + *  the Free Software Foundation; either version 2 of the License, or
+> + *  (at your option) any later version.
+> + *
+> + *  This program is distributed in the hope that it will be useful,
+> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *  GNU General Public License for more details.
+> + *
+> + *  You should have received a copy of the GNU General Public License
+> + *  along with this program; if not, write to the Free Software
+> + *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+> + *
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/uaccess.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/sched.h>
+> +#include <linux/wait.h>
+> +
+> +#include <plat/dmtimer.h>
+> +#include <plat/clock.h>
+> +#include <plat/omap-pm.h>
+> +
+> +#include <media/lirc.h>
+> +#include <media/lirc_dev.h>
+> +#include <media/ir-rx51.h>
+> +
+> +#define LIRC_RX51_DRIVER_FEATURES (LIRC_CAN_SET_SEND_DUTY_CYCLE |	\
+> +				   LIRC_CAN_SET_SEND_CARRIER |		\
+> +				   LIRC_CAN_SEND_PULSE)
+> +
+> +#define DRIVER_NAME "lirc_rx51"
+> +
+> +#define WBUF_LEN 256
+> +
+> +#define TIMER_MAX_VALUE 0xffffffff
+> +
+> +struct lirc_rx51 {
+> +	struct omap_dm_timer *pwm_timer;
+> +	struct omap_dm_timer *pulse_timer;
+> +	struct device	     *dev;
+> +	struct lirc_rx51_platform_data *pdata;
+> +	wait_queue_head_t     wqueue;
+> +
+> +	unsigned long	fclk_khz;
+> +	unsigned int	freq;		/* carrier frequency */
+> +	unsigned int	duty_cycle;	/* carrier duty cycle */
+> +	unsigned int	irq_num;
+> +	unsigned int	match;
+> +	int		wbuf[WBUF_LEN];
+> +	int		wbuf_index;
+> +	unsigned long	device_is_open;
+> +	unsigned int	pwm_timer_num;
+> +};
+> +
+> +static void lirc_rx51_on(struct lirc_rx51 *lirc_rx51)
+> +{
+> +	omap_dm_timer_set_pwm(lirc_rx51->pwm_timer, 0, 1,
+> +			      OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE);
+> +}
+> +
+> +static void lirc_rx51_off(struct lirc_rx51 *lirc_rx51)
+> +{
+> +	omap_dm_timer_set_pwm(lirc_rx51->pwm_timer, 0, 1,
+> +			      OMAP_TIMER_TRIGGER_NONE);
+> +}
+> +
+> +static int init_timing_params(struct lirc_rx51 *lirc_rx51)
+> +{
+> +	u32 load, match;
+> +
+> +	load = -(lirc_rx51->fclk_khz * 1000 / lirc_rx51->freq);
+> +	match = -(lirc_rx51->duty_cycle * -load / 100);
+> +	omap_dm_timer_set_load(lirc_rx51->pwm_timer, 1, load);
+> +	omap_dm_timer_set_match(lirc_rx51->pwm_timer, 1, match);
+> +	omap_dm_timer_write_counter(lirc_rx51->pwm_timer, TIMER_MAX_VALUE - 2);
+> +	omap_dm_timer_start(lirc_rx51->pwm_timer);
+> +	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
+> +	omap_dm_timer_start(lirc_rx51->pulse_timer);
+> +
+> +	lirc_rx51->match = 0;
+> +
+> +	return 0;
+> +}
+> +
+> +#define tics_after(a, b) ((long)(b) - (long)(a) < 0)
+> +
+> +static int pulse_timer_set_timeout(struct lirc_rx51 *lirc_rx51, int usec)
+> +{
+> +	int counter;
+> +
+> +	BUG_ON(usec < 0);
+> +
+> +	if (lirc_rx51->match == 0)
+> +		counter = omap_dm_timer_read_counter(lirc_rx51->pulse_timer);
+> +	else
+> +		counter = lirc_rx51->match;
+> +
+> +	counter += (u32)(lirc_rx51->fclk_khz * usec / (1000));
+> +	omap_dm_timer_set_match(lirc_rx51->pulse_timer, 1, counter);
+> +	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer,
+> +				     OMAP_TIMER_INT_MATCH);
+> +	if (tics_after(omap_dm_timer_read_counter(lirc_rx51->pulse_timer),
+> +		       counter)) {
+> +		return 1;
+> +	}
+> +	return 0;
+> +}
+> +
+> +static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
+> +{
+> +	unsigned int retval;
+> +	struct lirc_rx51 *lirc_rx51 = ptr;
+> +
+> +	retval = omap_dm_timer_read_status(lirc_rx51->pulse_timer);
+> +	if (!retval)
+> +		return IRQ_NONE;
+> +
+> +	if ((retval & ~OMAP_TIMER_INT_MATCH))
+> +		dev_err_ratelimited(lirc_rx51->dev,
+> +				": Unexpected interrupt source: %x\n", retval);
+> +
+> +	omap_dm_timer_write_status(lirc_rx51->pulse_timer, 7);
+> +	if (lirc_rx51->wbuf_index < 0) {
+> +		dev_err_ratelimited(lirc_rx51->dev,
+> +				": BUG wbuf_index has value of %i\n",
+> +				lirc_rx51->wbuf_index);
+> +		goto end;
+> +	}
+> +
+> +	/*
+> +	 * If we happen to hit an odd latency spike, loop through the
+> +	 * pulses until we catch up.
+> +	 */
+> +	do {
+> +		if (lirc_rx51->wbuf_index >= WBUF_LEN)
+> +			goto end;
+> +		if (lirc_rx51->wbuf[lirc_rx51->wbuf_index] == -1)
+> +			goto end;
+> +
+> +		if (lirc_rx51->wbuf_index % 2)
+> +			lirc_rx51_off(lirc_rx51);
+> +		else
+> +			lirc_rx51_on(lirc_rx51);
+> +
+> +		retval = pulse_timer_set_timeout(lirc_rx51,
+> +					lirc_rx51->wbuf[lirc_rx51->wbuf_index]);
+> +		lirc_rx51->wbuf_index++;
+> +
+> +	} while (retval);
+> +
+> +	return IRQ_HANDLED;
+> +end:
+> +	/* Stop TX here */
+> +	lirc_rx51_off(lirc_rx51);
+> +	lirc_rx51->wbuf_index = -1;
+> +	omap_dm_timer_stop(lirc_rx51->pwm_timer);
+> +	omap_dm_timer_stop(lirc_rx51->pulse_timer);
+> +	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
+> +	wake_up_interruptible(&lirc_rx51->wqueue);
+> +
+> +	return IRQ_HANDLED;
+> +}
+> +
+> +static int lirc_rx51_init_port(struct lirc_rx51 *lirc_rx51)
+> +{
+> +	struct clk *clk_fclk;
+> +	int retval, pwm_timer = lirc_rx51->pwm_timer_num;
+> +
+> +	lirc_rx51->pwm_timer = omap_dm_timer_request_specific(pwm_timer);
+> +	if (lirc_rx51->pwm_timer == NULL) {
+> +		dev_err(lirc_rx51->dev, ": Error requesting GPT%d timer\n",
+> +			pwm_timer);
+> +		return -EBUSY;
+> +	}
+> +
+> +	lirc_rx51->pulse_timer = omap_dm_timer_request();
+> +	if (lirc_rx51->pulse_timer == NULL) {
+> +		dev_err(lirc_rx51->dev, ": Error requesting pulse timer\n");
+> +		retval = -EBUSY;
+> +		goto err1;
+> +	}
+> +
+> +	omap_dm_timer_set_source(lirc_rx51->pwm_timer, OMAP_TIMER_SRC_SYS_CLK);
+> +	omap_dm_timer_set_source(lirc_rx51->pulse_timer,
+> +				OMAP_TIMER_SRC_SYS_CLK);
+> +
+> +	omap_dm_timer_enable(lirc_rx51->pwm_timer);
+> +	omap_dm_timer_enable(lirc_rx51->pulse_timer);
+> +
+> +	lirc_rx51->irq_num = omap_dm_timer_get_irq(lirc_rx51->pulse_timer);
+> +	retval = request_irq(lirc_rx51->irq_num, lirc_rx51_interrupt_handler,
+> +			     IRQF_DISABLED | IRQF_SHARED,
+> +			     "lirc_pulse_timer", lirc_rx51);
+> +	if (retval) {
+> +		dev_err(lirc_rx51->dev, ": Failed to request interrupt line\n");
+> +		goto err2;
+> +	}
+> +
+> +	clk_fclk = omap_dm_timer_get_fclk(lirc_rx51->pwm_timer);
+> +	lirc_rx51->fclk_khz = clk_fclk->rate / 1000;
+> +
+> +	return 0;
+> +
+> +err2:
+> +	omap_dm_timer_free(lirc_rx51->pulse_timer);
+> +err1:
+> +	omap_dm_timer_free(lirc_rx51->pwm_timer);
+> +
+> +	return retval;
+> +}
+> +
+> +static int lirc_rx51_free_port(struct lirc_rx51 *lirc_rx51)
+> +{
+> +	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
+> +	free_irq(lirc_rx51->irq_num, lirc_rx51);
+> +	lirc_rx51_off(lirc_rx51);
+> +	omap_dm_timer_disable(lirc_rx51->pwm_timer);
+> +	omap_dm_timer_disable(lirc_rx51->pulse_timer);
+> +	omap_dm_timer_free(lirc_rx51->pwm_timer);
+> +	omap_dm_timer_free(lirc_rx51->pulse_timer);
+> +	lirc_rx51->wbuf_index = -1;
+> +
+> +	return 0;
+> +}
+> +
+> +static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+> +			  size_t n, loff_t *ppos)
+> +{
+> +	int count, i;
+> +	struct lirc_rx51 *lirc_rx51 = file->private_data;
+> +
+> +	if (n % sizeof(int))
+> +		return -EINVAL;
+> +
+> +	count = n / sizeof(int);
+> +	if ((count > WBUF_LEN) || (count % 2 == 0))
+> +		return -EINVAL;
+> +
+> +	/* Wait any pending transfers to finish */
+> +	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
 
-Here you are:
+If a signal arrives then this could return ERESTARTSYS and the condition
+might not have evaluated to true.
 
-http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/dvb_usb_pull_3
+> +
+> +	if (copy_from_user(lirc_rx51->wbuf, buf, n))
+> +		return -EFAULT;
+> +
+> +	/* Sanity check the input pulses */
+> +	for (i = 0; i < count; i++)
+> +		if (lirc_rx51->wbuf[i] < 0)
+> +			return -EINVAL;
+> +
+> +	init_timing_params(lirc_rx51);
+> +	if (count < WBUF_LEN)
+> +		lirc_rx51->wbuf[count] = -1; /* Insert termination mark */
+> +
+> +	/*
+> +	 * Adjust latency requirements so the device doesn't go in too
+> +	 * deep sleep states
+> +	 */
+> +	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, 50);
+> +
+> +	lirc_rx51_on(lirc_rx51);
+> +	lirc_rx51->wbuf_index = 1;
+> +	pulse_timer_set_timeout(lirc_rx51, lirc_rx51->wbuf[0]);
+> +
+> +	/*
+> +	 * Don't return back to the userspace until the transfer has
+> +	 * finished
+> +	 */
+> +	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
 
+same here.
 
-And after all it was *huge* workload to rebase this large patch set! It 
-does not sound very wise to waste development fixing rare corner case 
-that could happen when someone is hunting bugs using git bisect.
+BTW so the semantics for lirc write() are that they complete when the 
+data has been transmitted. This doesn't play well with signals, polling 
+or non-blocking I/O. Is this deliberate or historical?
 
-OK, next time it is easier than git rebase tricks are more familiar...
+I guess a lirc write() handler should ignore signals completely.
 
+> +
+> +	/* We can sleep again */
+> +	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, -1);
+> +
+> +	return n;
+> +}
+> +
+> +static long lirc_rx51_ioctl(struct file *filep,
+> +			unsigned int cmd, unsigned long arg)
+> +{
+> +	int result;
+> +	unsigned long value;
+> +	unsigned int ivalue;
+> +	struct lirc_rx51 *lirc_rx51 = filep->private_data;
+> +
+> +	switch (cmd) {
+> +	case LIRC_GET_SEND_MODE:
+> +		result = put_user(LIRC_MODE_PULSE, (unsigned long *)arg);
+> +		if (result)
+> +			return result;
+> +		break;
+> +
+> +	case LIRC_SET_SEND_MODE:
+> +		result = get_user(value, (unsigned long *)arg);
+> +		if (result)
+> +			return result;
+> +
+> +		/* only LIRC_MODE_PULSE supported */
+> +		if (value != LIRC_MODE_PULSE)
+> +			return -ENOSYS;
+> +		break;
+> +
+> +	case LIRC_GET_REC_MODE:
+> +		result = put_user(0, (unsigned long *) arg);
+> +		if (result)
+> +			return result;
+> +		break;
+> +
+> +	case LIRC_GET_LENGTH:
+> +		return -ENOSYS;
+> +		break;
+> +
+> +	case LIRC_SET_SEND_DUTY_CYCLE:
+> +		result = get_user(ivalue, (unsigned int *) arg);
+> +		if (result)
+> +			return result;
+> +
+> +		if (ivalue <= 0 || ivalue > 100) {
+> +			dev_err(lirc_rx51->dev, ": invalid duty cycle %d\n",
+> +				ivalue);
+> +			return -EINVAL;
+> +		}
+> +
+> +		lirc_rx51->duty_cycle = ivalue;
+> +		break;
+> +
+> +	case LIRC_SET_SEND_CARRIER:
+> +		result = get_user(ivalue, (unsigned int *) arg);
+> +		if (result)
+> +			return result;
+> +
+> +		if (ivalue > 500000 || ivalue < 20000) {
+> +			dev_err(lirc_rx51->dev, ": invalid carrier freq %d\n",
+> +				ivalue);
+> +			return -EINVAL;
+> +		}
+> +
+> +		lirc_rx51->freq = ivalue;
+> +		break;
+> +
+> +	case LIRC_GET_FEATURES:
+> +		result = put_user(LIRC_RX51_DRIVER_FEATURES,
+> +				  (unsigned long *) arg);
+> +		if (result)
+> +			return result;
+> +		break;
+> +
+> +	default:
+> +		return -ENOIOCTLCMD;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int lirc_rx51_open(struct inode *inode, struct file *file)
+> +{
+> +	struct lirc_rx51 *lirc_rx51 = lirc_get_pdata(file);
+> +	BUG_ON(!lirc_rx51);
+> +
+> +	file->private_data = lirc_rx51;
+> +
+> +	if (test_and_set_bit(1, &lirc_rx51->device_is_open))
+> +		return -EBUSY;
+> +
+> +	return lirc_rx51_init_port(lirc_rx51);
+> +}
+> +
+> +static int lirc_rx51_release(struct inode *inode, struct file *file)
+> +{
+> +	struct lirc_rx51 *lirc_rx51 = file->private_data;
+> +
+> +	lirc_rx51_free_port(lirc_rx51);
+> +
+> +	clear_bit(1, &lirc_rx51->device_is_open);
+> +
+> +	return 0;
+> +}
+> +
+> +static struct lirc_rx51 lirc_rx51 = {
+> +	.freq		= 38000,
+> +	.duty_cycle	= 50,
+> +	.wbuf_index	= -1,
+> +};
+> +
+> +static const struct file_operations lirc_fops = {
+> +	.owner		= THIS_MODULE,
+> +	.write		= lirc_rx51_write,
+> +	.unlocked_ioctl	= lirc_rx51_ioctl,
+> +	.read		= lirc_dev_fop_read,
+> +	.poll		= lirc_dev_fop_poll,
+> +	.open		= lirc_rx51_open,
+> +	.release	= lirc_rx51_release,
+> +};
+> +
+> +static struct lirc_driver lirc_rx51_driver = {
+> +	.name		= DRIVER_NAME,
+> +	.minor		= -1,
+> +	.code_length	= 1,
+> +	.data		= &lirc_rx51,
+> +	.fops		= &lirc_fops,
+> +	.owner		= THIS_MODULE,
+> +};
+> +
+> +#ifdef CONFIG_PM
+> +
+> +static int lirc_rx51_suspend(struct platform_device *dev, pm_message_t state)
+> +{
+> +	/*
+> +	 * In case the device is still open, do not suspend. Normally
+> +	 * this should not be a problem as lircd only keeps the device
+> +	 * open only for short periods of time. We also don't want to
+> +	 * get involved with race conditions that might happen if we
+> +	 * were in a middle of a transmit. Thus, we defer any suspend
+> +	 * actions until transmit has completed.
+> +	 */
+> +	if (test_and_set_bit(1, &lirc_rx51.device_is_open))
+> +		return -EAGAIN;
+> +
+> +	clear_bit(1, &lirc_rx51.device_is_open);
+> +
+> +	return 0;
+> +}
+> +
+> +static int lirc_rx51_resume(struct platform_device *dev)
+> +{
+> +	return 0;
+> +}
+> +
+> +#else
+> +
+> +#define lirc_rx51_suspend	NULL
+> +#define lirc_rx51_resume	NULL
+> +
+> +#endif /* CONFIG_PM */
+> +
+> +static int __devinit lirc_rx51_probe(struct platform_device *dev)
+> +{
+> +	lirc_rx51_driver.features = LIRC_RX51_DRIVER_FEATURES;
+> +	lirc_rx51.pdata = dev->dev.platform_data;
+> +	lirc_rx51.pwm_timer_num = lirc_rx51.pdata->pwm_timer;
+> +	lirc_rx51.dev = &dev->dev;
+> +	lirc_rx51_driver.dev = &dev->dev;
+> +	lirc_rx51_driver.minor = lirc_register_driver(&lirc_rx51_driver);
+> +	init_waitqueue_head(&lirc_rx51.wqueue);
+> +
+> +	if (lirc_rx51_driver.minor < 0) {
+> +		dev_err(lirc_rx51.dev, ": lirc_register_driver failed: %d\n",
+> +		       lirc_rx51_driver.minor);
+> +		return lirc_rx51_driver.minor;
+> +	}
+> +	dev_info(lirc_rx51.dev, "registration ok, minor: %d, pwm: %d\n",
+> +		 lirc_rx51_driver.minor, lirc_rx51.pwm_timer_num);
+> +
+> +	return 0;
+> +}
+> +
+> +static int __exit lirc_rx51_remove(struct platform_device *dev)
+> +{
+> +	return lirc_unregister_driver(lirc_rx51_driver.minor);
+> +}
+> +
+> +struct platform_driver lirc_rx51_platform_driver = {
+> +	.probe		= lirc_rx51_probe,
+> +	.remove		= __exit_p(lirc_rx51_remove),
+> +	.suspend	= lirc_rx51_suspend,
+> +	.resume		= lirc_rx51_resume,
+> +	.remove		= __exit_p(lirc_rx51_remove),
 
-Also your experimental tree is top of quite old Linus tree - which makes 
-me quite impossible to test as there seems to be some keytable but which 
-prevents me mount dm-crypted disks... So compile tested only and diffed 
-against original.
+.remove is here twice.
 
-Is that possible you update/rebase linux-media development tree more 
-often, like once per week for Linus rc tree? At that way it is possible 
-to ran latest rc and latest linux-media same time.
-
-regards
-Antti
-
-
--- 
-http://palosaari.fi/
+> +	.driver		= {
+> +		.name	= DRIVER_NAME,
+> +		.owner	= THIS_MODULE,
+> +	},
+> +};
+> +
+> +static int __init lirc_rx51_init(void)
+> +{
+> +	return platform_driver_register(&lirc_rx51_platform_driver);
+> +}
+> +module_init(lirc_rx51_init);
+> +
+> +static void __exit lirc_rx51_exit(void)
+> +{
+> +	platform_driver_unregister(&lirc_rx51_platform_driver);
+> +}
+> +module_exit(lirc_rx51_exit);
+> +
+> +MODULE_DESCRIPTION("LIRC TX driver for Nokia RX51");
+> +MODULE_AUTHOR("Nokia Corporation");
+> +MODULE_LICENSE("GPL");
+> diff --git a/include/media/ir-rx51.h b/include/media/ir-rx51.h
+> new file mode 100644
+> index 0000000..104aa89
+> --- /dev/null
+> +++ b/include/media/ir-rx51.h
+> @@ -0,0 +1,10 @@
+> +#ifndef _LIRC_RX51_H
+> +#define _LIRC_RX51_H
+> +
+> +struct lirc_rx51_platform_data {
+> +	int pwm_timer;
+> +
+> +	int(*set_max_mpu_wakeup_lat)(struct device *dev, long t);
+> +};
+> +
+> +#endif
+> -- 
+> 1.7.8.6
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
