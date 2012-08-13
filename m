@@ -1,116 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34530 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751126Ab2HQFVe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Aug 2012 01:21:34 -0400
-Message-ID: <502DD4C9.2030105@ti.com>
-Date: Fri, 17 Aug 2012 10:51:13 +0530
-From: Prabhakar Lad <prabhakar.lad@ti.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: <davinci-linux-open-source@linux.davincidsp.com>,
-	LMML <linux-media@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: Re: [PATCH] media: davinci: vpif: add check for NULL handler
-References: <1345125720-24059-1-git-send-email-prabhakar.lad@ti.com> <1435592.88fOxbvhY7@avalon>
-In-Reply-To: <1435592.88fOxbvhY7@avalon>
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:28411 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754199Ab2HMWdr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Aug 2012 18:33:47 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q7DMXlhP009889
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 13 Aug 2012 18:33:47 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] [media] dvb: frontend API: Add a flag to indicate that get_frontend() can be called
+Date: Mon, 13 Aug 2012 19:33:38 -0300
+Message-Id: <1344897218-28307-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+get_frontend() can't be called too early, as the device may not have it
+yet. Yet, get_frontend() on OFDM standards can happen before FE_HAS_LOCK,
+as the TMCC carriers (ISDB-T) or the TPS carriers (DVB-T) require a very
+low signal to noise relation to be detected. The other carriers use
 
-Thanks for the review.
+different modulations, so they require a higher SNR.
 
-On Thursday 16 August 2012 08:43 PM, Laurent Pinchart wrote:
-> Hi Prabhakar,
-> 
-> Thanks for the patch.
-> 
-> On Thursday 16 August 2012 19:32:00 Prabhakar Lad wrote:
->> From: Lad, Prabhakar <prabhakar.lad@ti.com>
->>
->> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
->> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  drivers/media/video/davinci/vpif_capture.c |   12 +++++++-----
->>  drivers/media/video/davinci/vpif_display.c |   14 ++++++++------
->>  2 files changed, 15 insertions(+), 11 deletions(-)
->>
->> diff --git a/drivers/media/video/davinci/vpif_capture.c
->> b/drivers/media/video/davinci/vpif_capture.c index 266025e..a87b7a5 100644
->> --- a/drivers/media/video/davinci/vpif_capture.c
->> +++ b/drivers/media/video/davinci/vpif_capture.c
->> @@ -311,12 +311,14 @@ static int vpif_start_streaming(struct vb2_queue *vq,
->> unsigned int count) }
->>
->>  	/* configure 1 or 2 channel mode */
->> -	ret = vpif_config_data->setup_input_channel_mode
->> -					(vpif->std_info.ycmux_mode);
->> +	if (vpif_config_data->setup_input_channel_mode) {
->> +		ret = vpif_config_data->setup_input_channel_mode
->> +						(vpif->std_info.ycmux_mode);
->>
->> -	if (ret < 0) {
->> -		vpif_dbg(1, debug, "can't set vpif channel mode\n");
->> -		return ret;
->> +		if (ret < 0) {
->> +			vpif_dbg(1, debug, "can't set vpif channel mode\n");
->> +			return ret;
->> +		}
-> 
-> This change looks good to me. However, note that you will need to get rid of 
-> board code callbacks at some point to implement device tree support. It would 
-> be worth thinking about how to do so now.
-> 
-Currently VPIF driver is only used by dm646x, and the handlers for this
-in the the board code are not null. This patch is intended for da850
-where this handlers will be null.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
->>  	}
->>
->>  	/* Call vpif_set_params function to set the parameters and addresses */
->> diff --git a/drivers/media/video/davinci/vpif_display.c
->> b/drivers/media/video/davinci/vpif_display.c index e129c98..1e35f92 100644
->> --- a/drivers/media/video/davinci/vpif_display.c
->> +++ b/drivers/media/video/davinci/vpif_display.c
->> @@ -280,12 +280,14 @@ static int vpif_start_streaming(struct vb2_queue *vq,
->> unsigned int count) }
->>
->>  	/* clock settings */
->> -	ret =
->> -	    vpif_config_data->set_clock(ch->vpifparams.std_info.ycmux_mode,
->> -					ch->vpifparams.std_info.hd_sd);
->> -	if (ret < 0) {
->> -		vpif_err("can't set clock\n");
->> -		return ret;
->> +	if (vpif_config_data->set_clock) {
-> 
-> Does the DaVinci platform use the common clock framework ? If so, a better fix 
-> for this would be to pass a clock name through platform data instead of using 
-> a callback function.
-> 
-Currently DaVinci is not using the common clock framework.
+---
 
-Can you ACK this patch?
+v2: rebase for patch at http://patchwork.linuxtv.org/patch/9562
+---
+ Documentation/DocBook/media/dvb/frontend.xml | 13 ++++++++++++-
+ include/linux/dvb/frontend.h                 |  4 ++++
+ 2 files changed, 16 insertions(+), 1 deletion(-)
 
-Thanks and Regards,
---Prabhakar
-
->> +		ret =
->> +		vpif_config_data->set_clock(ch->vpifparams.std_info.ycmux_mode,
->> +						ch->vpifparams.std_info.hd_sd);
->> +		if (ret < 0) {
->> +			vpif_err("can't set clock\n");
->> +			return ret;
->> +		}
->>  	}
->>
->>  	/* set the parameters and addresses */
+diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
+index 1ab2e1a..3c2b8c0 100644
+--- a/Documentation/DocBook/media/dvb/frontend.xml
++++ b/Documentation/DocBook/media/dvb/frontend.xml
+@@ -215,6 +215,7 @@ typedef enum fe_status {
+ 	FE_HAS_LOCK		= 0x10,
+ 	FE_TIMEDOUT		= 0x20,
+ 	FE_REINIT		= 0x40,
++	FE_HAS_PARAMETERS	= 0x80,
+ } fe_status_t;
+ </programlisting>
+ <para>to indicate the current state and/or state changes of the frontend hardware:
+@@ -243,7 +244,17 @@ typedef enum fe_status {
+ <entry align="char">FE_REINIT</entry>
+ <entry align="char">The frontend was reinitialized, application is
+ recommended to reset DiSEqC, tone and parameters</entry>
+-</row>
++</row><row>
++<entry align="char">FE_HAS_PARAMETERS</entry>
++<entry align="char"><link linkend="FE_GET_SET_PROPERTY">
++<constant>FE_GET_PROPERTY/FE_SET_PROPERTY</constant></link> or
++<link linkend="FE_GET_FRONTEND"><constant>FE_GET_FRONTEND</constant></link> can now be
++called to provide the detected network parameters.
++This should be risen for example when the DVB-T TPS/ISDB-T TMCC is locked.
++This status can be risen before FE_HAS_SYNC, as the SNR required for
++parameters detection is lower than the requirement for the other
++carriers on the OFDM delivery systems.
++</entry></row>
+ </tbody></tgroup></informaltable>
+ 
+ </section>
+diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
+index bb51edf..8ff49c6 100644
+--- a/include/linux/dvb/frontend.h
++++ b/include/linux/dvb/frontend.h
+@@ -131,6 +131,9 @@ typedef enum fe_sec_mini_cmd {
+  * @FE_TIMEDOUT:	no lock within the last ~2 seconds
+  * @FE_REINIT:		frontend was reinitialized, application is recommended
+  *			to reset DiSEqC, tone and parameters
++ * @FE_HAS_PARAMETERS:	get_frontend() can now be called to provide the
++ *			detected network parameters. This should be risen
++ *			for example when the DVB-T TPS/ISDB-T TMCC is locked.
+  */
+ 
+ typedef enum fe_status {
+@@ -141,6 +144,7 @@ typedef enum fe_status {
+ 	FE_HAS_LOCK		= 0x10,
+ 	FE_TIMEDOUT		= 0x20,
+ 	FE_REINIT		= 0x40,
++	FE_HAS_PARAMETERS	= 0x80,
+ } fe_status_t;
+ 
+ typedef enum fe_spectral_inversion {
+-- 
+1.7.11.2
 
