@@ -1,77 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:42094 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964832Ab2HQHeV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Aug 2012 03:34:21 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: 'Dan Carpenter' <dan.carpenter@oracle.com>,
-	'Mauro Carvalho Chehab' <mchehab@infradead.org>
-Cc: 'Hans Verkuil' <hans.verkuil@cisco.com>,
-	=?iso-8859-2?Q?'Tomasz_Mo=F1'?= <desowin@gmail.com>,
-	'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-References: <20120814065856.GC4791@elgon.mountain>
-In-reply-to: <20120814065856.GC4791@elgon.mountain>
-Subject: RE: [patch] [media] mem2mem_testdev: unlock and return error code
- properly
-Date: Fri, 17 Aug 2012 09:34:07 +0200
-Message-id: <01eb01cd7c4a$b271a9b0$1754fd10$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=iso-8859-2
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from mta-out.inet.fi ([195.156.147.13]:46292 "EHLO jenni1.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752167Ab2HMTlR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Aug 2012 15:41:17 -0400
+Message-ID: <50295855.3020707@iki.fi>
+Date: Mon, 13 Aug 2012 22:41:09 +0300
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+MIME-Version: 1.0
+To: Sean Young <sean@mess.org>
+CC: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCHv2 1/2] media: rc: Introduce RX51 IR transmitter driver
+References: <1344593797-15819-1-git-send-email-timo.t.kokkonen@iki.fi> <1344593797-15819-2-git-send-email-timo.t.kokkonen@iki.fi> <20120813183647.GA32660@pequod.mess.org>
+In-Reply-To: <20120813183647.GA32660@pequod.mess.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dan,
-
-On Tuesday, August 14, 2012 8:59 AM Dan Carpenter wrote:
-
-> We recently added locking to this function, but there was an error path
-> which accidentally returned holding a lock.  Also we returned zero on
-> failure on some paths instead of the error code.
+On 08/13/12 21:36, Sean Young wrote:
+> On Fri, Aug 10, 2012 at 01:16:36PM +0300, Timo Kokkonen wrote:
+>> +static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+>> +			  size_t n, loff_t *ppos)
+>> +{
+>> +	int count, i;
+>> +	struct lirc_rx51 *lirc_rx51 = file->private_data;
+>> +
+>> +	if (n % sizeof(int))
+>> +		return -EINVAL;
+>> +
+>> +	count = n / sizeof(int);
+>> +	if ((count > WBUF_LEN) || (count % 2 == 0))
+>> +		return -EINVAL;
+>> +
+>> +	/* Wait any pending transfers to finish */
+>> +	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
 > 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> If a signal arrives then this could return ERESTARTSYS and the condition
+> might not have evaluated to true.
 
-Thanks for the patch!
+hmm.. The whole point of it is to wait if for any possibly pending
+transfers to finish. However, we don't allow the device to be opened
+more than once and parallel access doesn't make much sense here anyway.
+Only way we can end up waiting here is that the process is having
+multiple threads writing to the same file descriptor (or has inherited
+it from its parent), which doesn't make any sense.
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+I think we could simply return -EBUSY in case previous transfer is still
+going on. I don't see any reason why we should wait here.
 
-> ---
-> Applies to linux-next.
 > 
-> diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
-> index 0aa8c47..0b496f3 100644
-> --- a/drivers/media/video/mem2mem_testdev.c
-> +++ b/drivers/media/video/mem2mem_testdev.c
-> @@ -911,10 +911,9 @@ static int m2mtest_open(struct file *file)
->  	v4l2_ctrl_new_custom(hdl, &m2mtest_ctrl_trans_time_msec, NULL);
->  	v4l2_ctrl_new_custom(hdl, &m2mtest_ctrl_trans_num_bufs, NULL);
->  	if (hdl->error) {
-> -		int err = hdl->error;
-> -
-> +		rc = hdl->error;
->  		v4l2_ctrl_handler_free(hdl);
-> -		return err;
-> +		goto open_unlock;
->  	}
->  	ctx->fh.ctrl_handler = hdl;
->  	v4l2_ctrl_handler_setup(hdl);
-> @@ -946,7 +945,7 @@ static int m2mtest_open(struct file *file)
+>> +
+>> +	if (copy_from_user(lirc_rx51->wbuf, buf, n))
+>> +		return -EFAULT;
+>> +
+>> +	/* Sanity check the input pulses */
+>> +	for (i = 0; i < count; i++)
+>> +		if (lirc_rx51->wbuf[i] < 0)
+>> +			return -EINVAL;
+>> +
+>> +	init_timing_params(lirc_rx51);
+>> +	if (count < WBUF_LEN)
+>> +		lirc_rx51->wbuf[count] = -1; /* Insert termination mark */
+>> +
+>> +	/*
+>> +	 * Adjust latency requirements so the device doesn't go in too
+>> +	 * deep sleep states
+>> +	 */
+>> +	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, 50);
+>> +
+>> +	lirc_rx51_on(lirc_rx51);
+>> +	lirc_rx51->wbuf_index = 1;
+>> +	pulse_timer_set_timeout(lirc_rx51, lirc_rx51->wbuf[0]);
+>> +
+>> +	/*
+>> +	 * Don't return back to the userspace until the transfer has
+>> +	 * finished
+>> +	 */
+>> +	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
 > 
->  open_unlock:
->  	mutex_unlock(&dev->dev_mutex);
-> -	return 0;
-> +	return rc;
->  }
+> same here.
 > 
->  static int m2mtest_release(struct file *file)
+> BTW so the semantics for lirc write() are that they complete when the 
+> data has been transmitted. This doesn't play well with signals, polling 
+> or non-blocking I/O. Is this deliberate or historical?
+> 
+> I guess a lirc write() handler should ignore signals completely.
+> 
 
+I'll change it to wait_event_timeout instead.
 
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
+>> +
+>> +struct platform_driver lirc_rx51_platform_driver = {
+>> +	.probe		= lirc_rx51_probe,
+>> +	.remove		= __exit_p(lirc_rx51_remove),
+>> +	.suspend	= lirc_rx51_suspend,
+>> +	.resume		= lirc_rx51_resume,
+>> +	.remove		= __exit_p(lirc_rx51_remove),
+> 
+> .remove is here twice.
 
+hehe.. I remember I was supposed to write a patch for that five years
+ago but I was busy :) Thanks for your review. Will send round three.
+
+-Timo
 
