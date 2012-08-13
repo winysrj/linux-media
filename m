@@ -1,89 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3.clear.net.nz ([203.97.33.64]:40967 "EHLO
-	smtp3.clear.net.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756079Ab2HGWFR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2012 18:05:17 -0400
-Date: Wed, 08 Aug 2012 10:05:10 +1200
-From: Douglas Bagnall <douglas@paradise.net.nz>
-Subject: [PATCH] [media] Unlock the rc_dev lock when the raw device is missing
-In-reply-to: <20120807161013.GC3922@herton-Z68MA-D2H-B3>
-To: Herton Ronaldo Krzesinski <herton.krzesinski@canonical.com>
-Cc: Ben Hutchings <ben@decadent.org.uk>, stable@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
+Received: from pequod.mess.org ([93.97.41.153]:47020 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751543Ab2HMM74 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Aug 2012 08:59:56 -0400
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Stefan Macher <st_maker-lirc@yahoo.de>,
 	linux-media@vger.kernel.org
-Message-id: <50219116.6070103@paradise.net.nz>
-MIME-version: 1.0
-Content-type: multipart/mixed; boundary=------------010307000605070405010405
-References: <20120806173851.GE2979@herton-Z68MA-D2H-B3>
- <1344304698.13142.154.camel@deadeye.wl.decadent.org.uk>
- <5020CAB4.2080607@paradise.net.nz> <20120807161013.GC3922@herton-Z68MA-D2H-B3>
+Subject: [PATCH 13/13] [staging] lirc: lirc_ene0100.h is not referenced anywhere
+Date: Mon, 13 Aug 2012 13:59:51 +0100
+Message-Id: <1344862791-30352-13-git-send-email-sean@mess.org>
+In-Reply-To: <1344862791-30352-1-git-send-email-sean@mess.org>
+References: <1344862791-30352-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------010307000605070405010405
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+There is a proper ene0100 driver anyway.
 
-On 08/08/12 04:10, Herton Ronaldo Krzesinski wrote:
-> As it's desired for stable, this could also have
-> "Cc: stable@vger.kernel.org" when applied, so it's picked up
-> "automatically" when lands in mainline. Also nitpicking some more,
-> may be the patch could have a Reported-by line added.
-
-OK. Here it is again, with CC: stable, Reported-by Ben, and Herton's
-Acked-by.
-
-thanks,
-
-Douglas
-
-
---------------010307000605070405010405
-Content-Type: text/x-patch;
- name="0001-Unlock-the-rc_dev-lock-when-the-raw-device-is-missin.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="0001-Unlock-the-rc_dev-lock-when-the-raw-device-is-missin.pa";
- filename*1="tch"
-
->From 47aadfdaa5a6e5c3d8f1bf2b5be4c4a4156085ee Mon Sep 17 00:00:00 2001
-From: Douglas Bagnall <douglas@paradise.net.nz>
-Date: Tue, 7 Aug 2012 19:30:36 +1200
-Subject: [PATCH] Unlock the rc_dev lock when the raw device is missing
-
-As pointed out by Ben Hutchings, after commit 720bb6436, the lock was
-being taken and not released when an rc_dev has a NULL raw device.
-
-Cc: <stable@vger.kernel.org>
-Reported-by: Ben Hutchings <ben@decadent.org.uk>
-Signed-off-by: Douglas Bagnall <douglas@paradise.net.nz>
-Acked-by: Herton R. Krzesinski <herton.krzesinski@canonical.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- drivers/media/rc/rc-main.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/staging/media/lirc/lirc_ene0100.h | 169 ------------------------------
+ 1 file changed, 169 deletions(-)
+ delete mode 100644 drivers/staging/media/lirc/lirc_ene0100.h
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index cabc19c..dcd45d0 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -778,9 +778,10 @@ static ssize_t show_protocols(struct device *device,
- 	} else if (dev->raw) {
- 		enabled = dev->raw->enabled_protocols;
- 		allowed = ir_raw_get_allowed_protocols();
--	} else
-+	} else {
-+		mutex_unlock(&dev->lock);
- 		return -ENODEV;
+diff --git a/drivers/staging/media/lirc/lirc_ene0100.h b/drivers/staging/media/lirc/lirc_ene0100.h
+deleted file mode 100644
+index 06bebd6..0000000
+--- a/drivers/staging/media/lirc/lirc_ene0100.h
++++ /dev/null
+@@ -1,169 +0,0 @@
+-/*
+- * driver for ENE KB3926 B/C/D CIR (also known as ENE0100)
+- *
+- * Copyright (C) 2009 Maxim Levitsky <maximlevitsky@gmail.com>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation; either version 2 of the
+- * License, or (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+- * USA
+- */
 -
-+	}
- 	IR_dprintk(1, "allowed - 0x%llx, enabled - 0x%llx\n",
- 		   (long long)allowed,
- 		   (long long)enabled);
+-#include <media/lirc.h>
+-#include <media/lirc_dev.h>
+-
+-/* hardware address */
+-#define ENE_STATUS		0	 /* hardware status - unused */
+-#define ENE_ADDR_HI		1	 /* hi byte of register address */
+-#define ENE_ADDR_LO		2	 /* low byte of register address */
+-#define ENE_IO			3	 /* read/write window */
+-#define ENE_MAX_IO		4
+-
+-/* 8 bytes of samples, divided in 2 halfs*/
+-#define ENE_SAMPLE_BUFFER	0xF8F0	 /* regular sample buffer */
+-#define ENE_SAMPLE_SPC_MASK	(1 << 7) /* sample is space */
+-#define ENE_SAMPLE_VALUE_MASK	0x7F
+-#define ENE_SAMPLE_OVERFLOW	0x7F
+-#define ENE_SAMPLES_SIZE	4
+-
+-/* fan input sample buffer */
+-#define ENE_SAMPLE_BUFFER_FAN	0xF8FB	 /* this buffer holds high byte of */
+-					 /* each sample of normal buffer */
+-
+-#define ENE_FAN_SMPL_PULS_MSK	0x8000	 /* this bit of combined sample */
+-					 /* if set, says that sample is pulse */
+-#define ENE_FAN_VALUE_MASK	0x0FFF   /* mask for valid bits of the value */
+-
+-/* first firmware register */
+-#define ENE_FW1			0xF8F8
+-#define	ENE_FW1_ENABLE		(1 << 0) /* enable fw processing */
+-#define ENE_FW1_TXIRQ		(1 << 1) /* TX interrupt pending */
+-#define ENE_FW1_WAKE		(1 << 6) /* enable wake from S3 */
+-#define ENE_FW1_IRQ		(1 << 7) /* enable interrupt */
+-
+-/* second firmware register */
+-#define ENE_FW2			0xF8F9
+-#define ENE_FW2_BUF_HIGH	(1 << 0) /* which half of the buffer to read */
+-#define ENE_FW2_IRQ_CLR		(1 << 2) /* clear this on IRQ */
+-#define ENE_FW2_GP40_AS_LEARN	(1 << 4) /* normal input is used as */
+-					 /* learning input */
+-#define ENE_FW2_FAN_AS_NRML_IN	(1 << 6) /* fan is used as normal input */
+-#define ENE_FW2_LEARNING	(1 << 7) /* hardware supports learning and TX */
+-
+-/* fan as input settings - only if learning capable */
+-#define ENE_FAN_AS_IN1		0xFE30   /* fan init reg 1 */
+-#define ENE_FAN_AS_IN1_EN	0xCD
+-#define ENE_FAN_AS_IN2		0xFE31   /* fan init reg 2 */
+-#define ENE_FAN_AS_IN2_EN	0x03
+-#define ENE_SAMPLE_PERIOD_FAN   61	 /* fan input has fixed sample period */
+-
+-/* IRQ registers block (for revision B) */
+-#define ENEB_IRQ		0xFD09	 /* IRQ number */
+-#define ENEB_IRQ_UNK1		0xFD17	 /* unknown setting = 1 */
+-#define ENEB_IRQ_STATUS		0xFD80	 /* irq status */
+-#define ENEB_IRQ_STATUS_IR	(1 << 5) /* IR irq */
+-
+-/* IRQ registers block (for revision C,D) */
+-#define ENEC_IRQ		0xFE9B	 /* new irq settings register */
+-#define ENEC_IRQ_MASK		0x0F	 /* irq number mask */
+-#define ENEC_IRQ_UNK_EN		(1 << 4) /* always enabled */
+-#define ENEC_IRQ_STATUS		(1 << 5) /* irq status and ACK */
+-
+-/* CIR block settings */
+-#define ENE_CIR_CONF1		0xFEC0
+-#define ENE_CIR_CONF1_ADC_ON	0x7	 /* receiver on gpio40 enabled */
+-#define ENE_CIR_CONF1_LEARN1	(1 << 3) /* enabled on learning mode */
+-#define ENE_CIR_CONF1_TX_ON	0x30	 /* enabled on transmit */
+-#define ENE_CIR_CONF1_TX_CARR	(1 << 7) /* send TX carrier or not */
+-
+-#define ENE_CIR_CONF2		0xFEC1	 /* unknown setting = 0 */
+-#define ENE_CIR_CONF2_LEARN2	(1 << 4) /* set on enable learning */
+-#define ENE_CIR_CONF2_GPIO40DIS	(1 << 5) /* disable normal input via gpio40 */
+-
+-#define ENE_CIR_SAMPLE_PERIOD	0xFEC8	 /* sample period in us */
+-#define ENE_CIR_SAMPLE_OVERFLOW	(1 << 7) /* interrupt on overflows if set */
+-
+-
+-/* transmitter - not implemented yet */
+-/* KB3926C and higher */
+-/* transmission is very similar to receiving, a byte is written to */
+-/* ENE_TX_INPUT, in same manner as it is read from sample buffer */
+-/* sample period is fixed*/
+-
+-
+-/* transmitter ports */
+-#define ENE_TX_PORT1		0xFC01	 /* this enables one or both */
+-#define ENE_TX_PORT1_EN		(1 << 5) /* TX ports */
+-#define ENE_TX_PORT2		0xFC08
+-#define ENE_TX_PORT2_EN		(1 << 1)
+-
+-#define ENE_TX_INPUT		0xFEC9	 /* next byte to transmit */
+-#define ENE_TX_SPC_MASK		(1 << 7) /* Transmitted sample is space */
+-#define ENE_TX_UNK1		0xFECB	 /* set to 0x63 */
+-#define ENE_TX_SMPL_PERIOD	50	 /* transmit sample period */
+-
+-
+-#define ENE_TX_CARRIER		0xFECE	 /* TX carrier * 2 (khz) */
+-#define ENE_TX_CARRIER_UNKBIT	0x80	 /* This bit set on transmit */
+-#define ENE_TX_CARRIER_LOW	0xFECF	 /* TX carrier / 2 */
+-
+-/* Hardware versions */
+-#define ENE_HW_VERSION		0xFF00	 /* hardware revision */
+-#define ENE_HW_UNK		0xFF1D
+-#define ENE_HW_UNK_CLR		(1 << 2)
+-#define ENE_HW_VER_MAJOR	0xFF1E	 /* chip version */
+-#define ENE_HW_VER_MINOR	0xFF1F
+-#define ENE_HW_VER_OLD		0xFD00
+-
+-#define same_sign(a, b) ((((a) > 0) && (b) > 0) || ((a) < 0 && (b) < 0))
+-
+-#define ENE_DRIVER_NAME		"enecir"
+-#define ENE_MAXGAP		250000	 /* this is amount of time we wait
+-					 before turning the sampler, chosen
+-					 arbitry */
+-
+-#define space(len)	       (-(len))	 /* add a space */
+-
+-/* software defines */
+-#define ENE_IRQ_RX		1
+-#define ENE_IRQ_TX		2
+-
+-#define  ENE_HW_B		1	/* 3926B */
+-#define  ENE_HW_C		2	/* 3926C */
+-#define  ENE_HW_D		3	/* 3926D */
+-
+-#define ene_printk(level, text, ...) \
+-	printk(level ENE_DRIVER_NAME ": " text, ## __VA_ARGS__)
+-
+-struct ene_device {
+-	struct pnp_dev *pnp_dev;
+-	struct lirc_driver *lirc_driver;
+-
+-	/* hw settings */
+-	unsigned long hw_io;
+-	int irq;
+-
+-	int hw_revision;			/* hardware revision */
+-	int hw_learning_and_tx_capable;		/* learning capable */
+-	int hw_gpio40_learning;			/* gpio40 is learning */
+-	int hw_fan_as_normal_input;	/* fan input is used as regular input */
+-
+-	/* device data */
+-	int idle;
+-	int fan_input_inuse;
+-
+-	int sample;
+-	int in_use;
+-
+-	struct timeval gap_start;
+-};
 -- 
-1.7.9.5
+1.7.11.2
 
-
-
---------------010307000605070405010405--
