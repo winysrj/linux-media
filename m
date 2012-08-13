@@ -1,70 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:48774 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751977Ab2HRNAB (ORCPT
+Received: from rcsinet15.oracle.com ([148.87.113.117]:43217 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752610Ab2HMQ6W (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Aug 2012 09:00:01 -0400
-Message-ID: <502F91CD.4070507@gmx.de>
-Date: Sat, 18 Aug 2012 14:59:57 +0200
-From: Reinhard Nissl <rnissl@gmx.de>
+	Mon, 13 Aug 2012 12:58:22 -0400
+Date: Mon, 13 Aug 2012 19:58:11 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org
+Subject: re: [media] lmedm04: fix build
+Message-ID: <20120813165811.GB5363@elgon.mountain>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Manu Abraham <abraham.manu@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: STV0299: reading property DTV_FREQUENCY -- what am I expected
- to get?
-References: <502A1221.8020804@gmx.de> <CAHFNz9KnwKuATLKwhH22znmWa8QP5tZN0KJHFu4fuf7RGES1Gw@mail.gmail.com> <502AB1D2.3070209@gmx.de> <502C1E53.4090103@redhat.com>
-In-Reply-To: <502C1E53.4090103@redhat.com>
-Content-Type: multipart/mixed;
- boundary="------------080604050603090206010500"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------080604050603090206010500
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hello Mauro Carvalho Chehab,
 
-Hi,
+The patch db6651a9ebb3: "[media] lmedm04: fix build" from Aug 12, 
+2012, leads to the following warning:
+drivers/media/dvb/dvb-usb-v2/lmedm04.c:769 lme2510_download_firmware()
+	 error: usb_control_msg() 'data' too small (128 vs 265)
 
-Am 16.08.2012 00:10, schrieb Mauro Carvalho Chehab:
-> The patch seems to be working. Anyway, for it to be merged, you'll
-> need to be sending it together with your SOB (Signed-off-by),
-> and using the -p1 format e. g. something like:
->
-> --- a/drivers/media/dvb/frontends/stb0899_drv.c	2012-08-14 21:59:59.000000000 +0200
-> +++ b/drivers/media/dvb/frontends/stb0899_drv.c	2012-08-14 21:29:17.000000000 +0200
->
-> as otherwise developer's scripts won't get it right.
+   737          data = kzalloc(128, GFP_KERNEL);
+                               ^^^
+data is 128 bytes.
 
-I hope I got it right this time ;-)
+   738          if (!data) {
+   739                  info("FRM Could not start Firmware Download"\
+   740                          "(Buffer allocation failed)");
+   741                  return -ENOMEM;
+   742          }
+   743  
 
-Bye.
--- 
-Dipl.-Inform. (FH) Reinhard Nissl
-mailto:rnissl@gmx.de
+[snip]
 
---------------080604050603090206010500
-Content-Type: text/x-patch;
- name="stb0899_drv-report-internal-freq-via-get_frontend-git.diff"
-Content-Transfer-Encoding: 8bit
-Content-Disposition: attachment;
- filename*0="stb0899_drv-report-internal-freq-via-get_frontend-git.diff"
+   768  
+   769          usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0),
+   770                          0x06, 0x80, 0x0200, 0x00, data, 0x0109, 1000);
+                                                                ^^^^^^
 
-stb0899: return internally tuned frequency via get_frontend.
+Smatch expects this parameter to equal to sizeof(data) or smaller
+instead of 265.
 
-Signed-off-by: Reinhard Nißl <rnissl@gmx.de>
+regards,
+dan carpenter
 
-diff --git a/drivers/media/dvb-frontends/stb0899_drv.c b/drivers/media/dvb-frontends/stb0899_drv.c
-index 5d7f8a9..79e29de 100644
---- a/drivers/media/dvb-frontends/stb0899_drv.c
-+++ b/drivers/media/dvb-frontends/stb0899_drv.c
-@@ -1563,6 +1563,7 @@ static int stb0899_get_frontend(struct dvb_frontend *fe)
- 
- 	dprintk(state->verbose, FE_DEBUG, 1, "Get params");
- 	p->symbol_rate = internal->srate;
-+	p->frequency = internal->freq;
- 
- 	return 0;
- }
-
---------------080604050603090206010500--
