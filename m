@@ -1,85 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:61239 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752456Ab2H2QCf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Aug 2012 12:02:35 -0400
-Date: Wed, 29 Aug 2012 18:02:18 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-cc: Josh Wu <josh.wu@atmel.com>, linux-media@vger.kernel.org,
-	nicolas.ferre@atmel.com, mchehab@redhat.com,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH] [media] atmel_isi: allocate memory to store the isi
- platform data.
-In-Reply-To: <503E323A.8060409@samsung.com>
-Message-ID: <alpine.DEB.2.00.1208291755220.3095@axis700.grange>
-References: <1346235093-28613-1-git-send-email-josh.wu@atmel.com> <503E323A.8060409@samsung.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mx1.redhat.com ([209.132.183.28]:5378 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754093Ab2HMV6g (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Aug 2012 17:58:36 -0400
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q7DLwZgl018315
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 13 Aug 2012 17:58:35 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] [media] frontend.h, Docbook: Improve status documentation
+Date: Mon, 13 Aug 2012 18:58:32 -0300
+Message-Id: <1344895112-32539-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 29 Aug 2012, Sylwester Nawrocki wrote:
+No functional changes. It just improves the description of the frontend
+status, using Documentation/kernel-doc-nano-HOWTO.txt for the status
+enumeration, and a table inside the DocBook.
 
-> Hi,
-> 
-> On 08/29/2012 12:11 PM, Josh Wu wrote:
-> > This patch fix the bug: ISI driver's platform data became invalid 
-> > when isi platform data's attribution is __initdata.
-> > 
-> > If the isi platform data is passed as __initdata. Then we need store
-> > it in driver allocated memory. otherwise when we use it out of the 
-> > probe() function, then the isi platform data is invalid.
-> > 
-> > Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> > ---
-> >  drivers/media/platform/soc_camera/atmel-isi.c |   12 +++++++++++-
-> >  1 file changed, 11 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-> > index ec3f6a0..dc0fdec 100644
-> > --- a/drivers/media/platform/soc_camera/atmel-isi.c
-> > +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> > @@ -926,6 +926,7 @@ static int __devexit atmel_isi_remove(struct platform_device *pdev)
-> >  	clk_put(isi->mck);
-> >  	clk_unprepare(isi->pclk);
-> >  	clk_put(isi->pclk);
-> > +	kfree(isi->pdata);
-> >  	kfree(isi);
-> >  
-> >  	return 0;
-> > @@ -968,8 +969,15 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
-> >  		goto err_alloc_isi;
-> >  	}
-> >  
-> > +	isi->pdata = kzalloc(sizeof(struct isi_platform_data), GFP_KERNEL);
-> > +	if (!isi->pdata) {
-> > +		ret = -ENOMEM;
-> > +		dev_err(&pdev->dev, "Can't allocate isi platform data!\n");
-> > +		goto err_alloc_isi_pdata;
-> > +	}
-> > +	memcpy(isi->pdata, pdata, sizeof(struct isi_platform_data));
-> > +
-> 
-> Why not just embed struct isi_platform_data in struct atmel_isi and drop this
-> another kzalloc() ?
-> Then you could simply do isi->pdata = *pdata.
-> 
-> Also, is this going to work when this driver is build and as a module
-> and its loading is deferred past system booting ? At that time the driver's
-> platform data may be well discarded.
-
-Right, it will be gone, I think.
-
-> You may wan't to duplicate it on the
-> running boards in board code with kmemdup() or something.
-
-How about removing __initdata from board code?
-
-Thanks
-Guennadi
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ Documentation/DocBook/media/dvb/frontend.xml | 48 +++++++++++++++++++++-------
+ include/linux/dvb/frontend.h                 | 29 +++++++++++------
+ 2 files changed, 57 insertions(+), 20 deletions(-)
+
+diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
+index 81082fb..1ab2e1a 100644
+--- a/Documentation/DocBook/media/dvb/frontend.xml
++++ b/Documentation/DocBook/media/dvb/frontend.xml
+@@ -207,18 +207,44 @@ spec.</para>
+ <para>Several functions of the frontend device use the fe_status data type defined
+ by</para>
+ <programlisting>
+- typedef enum fe_status {
+-	 FE_HAS_SIGNAL     = 0x01,   /&#x22C6;  found something above the noise level &#x22C6;/
+-	 FE_HAS_CARRIER    = 0x02,   /&#x22C6;  found a DVB signal  &#x22C6;/
+-	 FE_HAS_VITERBI    = 0x04,   /&#x22C6;  FEC is stable  &#x22C6;/
+-	 FE_HAS_SYNC       = 0x08,   /&#x22C6;  found sync bytes  &#x22C6;/
+-	 FE_HAS_LOCK       = 0x10,   /&#x22C6;  everything's working... &#x22C6;/
+-	 FE_TIMEDOUT       = 0x20,   /&#x22C6;  no lock within the last ~2 seconds &#x22C6;/
+-	 FE_REINIT         = 0x40    /&#x22C6;  frontend was reinitialized,  &#x22C6;/
+- } fe_status_t;                      /&#x22C6;  application is recommned to reset &#x22C6;/
++typedef enum fe_status {
++	FE_HAS_SIGNAL		= 0x01,
++	FE_HAS_CARRIER		= 0x02,
++	FE_HAS_VITERBI		= 0x04,
++	FE_HAS_SYNC		= 0x08,
++	FE_HAS_LOCK		= 0x10,
++	FE_TIMEDOUT		= 0x20,
++	FE_REINIT		= 0x40,
++} fe_status_t;
+ </programlisting>
+-<para>to indicate the current state and/or state changes of the frontend hardware.
+-</para>
++<para>to indicate the current state and/or state changes of the frontend hardware:
++</para>
++
++<informaltable><tgroup cols="2"><tbody>
++<row>
++<entry align="char">FE_HAS_SIGNAL</entry>
++<entry align="char">The frontend has found something above the noise level</entry>
++</row><row>
++<entry align="char">FE_HAS_CARRIER</entry>
++<entry align="char">The frontend has found a DVB signal</entry>
++</row><row>
++<entry align="char">FE_HAS_VITERBI</entry>
++<entry align="char">The frontend FEC code is stable</entry>
++</row><row>
++<entry align="char">FE_HAS_SYNC</entry>
++<entry align="char">Syncronization bytes was found</entry>
++</row><row>
++<entry align="char">FE_HAS_LOCK</entry>
++<entry align="char">The DVB were locked and everything is working</entry>
++</row><row>
++<entry align="char">FE_TIMEDOUT</entry>
++<entry align="char">no lock within the last about 2 seconds</entry>
++</row><row>
++<entry align="char">FE_REINIT</entry>
++<entry align="char">The frontend was reinitialized, application is
++recommended to reset DiSEqC, tone and parameters</entry>
++</row>
++</tbody></tgroup></informaltable>
+ 
+ </section>
+ 
+diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
+index c92b4d6..bb51edf 100644
+--- a/include/linux/dvb/frontend.h
++++ b/include/linux/dvb/frontend.h
+@@ -121,16 +121,27 @@ typedef enum fe_sec_mini_cmd {
+ } fe_sec_mini_cmd_t;
+ 
+ 
++/**
++ * enum fe_status - enumerates the possible frontend status
++ * @FE_HAS_SIGNAL:	found something above the noise level
++ * @FE_HAS_CARRIER:	found a DVB signal
++ * @FE_HAS_VITERBI:	FEC is stable
++ * @FE_HAS_SYNC:	found sync bytes
++ * @FE_HAS_LOCK:	everything's working
++ * @FE_TIMEDOUT:	no lock within the last ~2 seconds
++ * @FE_REINIT:		frontend was reinitialized, application is recommended
++ *			to reset DiSEqC, tone and parameters
++ */
++
+ typedef enum fe_status {
+-	FE_HAS_SIGNAL	= 0x01,   /* found something above the noise level */
+-	FE_HAS_CARRIER	= 0x02,   /* found a DVB signal  */
+-	FE_HAS_VITERBI	= 0x04,   /* FEC is stable  */
+-	FE_HAS_SYNC	= 0x08,   /* found sync bytes  */
+-	FE_HAS_LOCK	= 0x10,   /* everything's working... */
+-	FE_TIMEDOUT	= 0x20,   /* no lock within the last ~2 seconds */
+-	FE_REINIT	= 0x40    /* frontend was reinitialized,  */
+-} fe_status_t;			  /* application is recommended to reset */
+-				  /* DiSEqC, tone and parameters */
++	FE_HAS_SIGNAL		= 0x01,
++	FE_HAS_CARRIER		= 0x02,
++	FE_HAS_VITERBI		= 0x04,
++	FE_HAS_SYNC		= 0x08,
++	FE_HAS_LOCK		= 0x10,
++	FE_TIMEDOUT		= 0x20,
++	FE_REINIT		= 0x40,
++} fe_status_t;
+ 
+ typedef enum fe_spectral_inversion {
+ 	INVERSION_OFF,
+-- 
+1.7.11.2
+
