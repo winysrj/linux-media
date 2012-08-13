@@ -1,51 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:43894 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757093Ab2HYTGh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Aug 2012 15:06:37 -0400
-Received: by wgbdr13 with SMTP id dr13so2433095wgb.1
-        for <linux-media@vger.kernel.org>; Sat, 25 Aug 2012 12:06:36 -0700 (PDT)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: Compiling v4l-dvb.git-modules for stock kernel without media_build
-Date: Sat, 25 Aug 2012 21:06:33 +0200
+Received: from mx1.redhat.com ([209.132.183.28]:57063 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751661Ab2HMO53 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Aug 2012 10:57:29 -0400
+Message-ID: <50291613.1090101@redhat.com>
+Date: Mon, 13 Aug 2012 16:58:27 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media <linux-media@vger.kernel.org>,
+	workshop-2011@linuxtv.org
+Subject: Re: [Workshop-2011] RFC: V4L2 API ambiguities
+References: <201208131427.56961.hverkuil@xs4all.nl> <5028FD7E.1010402@redhat.com> <201208131652.11182.hverkuil@xs4all.nl>
+In-Reply-To: <201208131652.11182.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201208252106.33528.pboettcher@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi list,
+Hi,
 
-Not so long ago I used a special version of v4l-dvb.git (v3,2 + a patch) on 
-my system together with a debian stock kernel. It worked. Now I update my 
-system and thus the kernel and what I did last time doesn't seem to work any 
-longer:
+On 08/13/2012 04:52 PM, Hans Verkuil wrote:
+> On Mon August 13 2012 15:13:34 Hans de Goede wrote:
+>> Hi,
+>>
+>> <snip>
+>>
+>>> 5) How to handle tuner ownership if both a video and radio node share the same
+>>>      tuner?
+>>>
+>>>      Obvious rules:
+>>>
+>>>      - Calling S_FREQ, S_TUNER, S_MODULATOR or S_HW_FREQ_SEEK will change owner
+>>>        or return EBUSY if streaming is in progress.
+>>
+>> That won't work, as there is no such thing as streaming from a radio node,
+>
+> There is, actually: read() for RDS data and alsa streaming (although that might
+> be hard to detect in the case of USB audio).
+>
+>> I suggest we go with the simple approach we discussed at our last meeting in
+>> your Dutch House: Calling S_FREQ, S_TUNER, S_MODULATOR or S_HW_FREQ_SEEK will
+>> make an app the tuner-owner, and *closing* the device handle makes an app
+>> release its tuner ownership. If an other app already is the tuner owner
+>> -EBUSY is returned.
+>
+> So the ownership is associated with a filehandle?
 
-1) checkout v3.2 of v4l-dvb.git and apply my path
-2) get .config, .kernelvariables and Module.symvers from linux-
-headers-3.2.0-3-amd64 (which corresponds to my running kernel)
-3) make oldconfig modules_prepare  in v4l-dvb.git
-4) make M=drivers/media
-5) install all the .ko into /lib/modules
-6) depmod -a
-7) reboot
+Yes, that is how it works for videobuf streams too, right? The only difference
+being that with videobuf streams there is an expilict way to release the ownership,
+where as for tuner ownership there is none, so the ownership is released on device
+close.
 
-Now I have the following symptoms:
-a) for the 3 PCI-cards I have the b2c2-flexcop-pci charged automatically but 
-it fails to initialize the devices and bails out with -22
-b) the USB-device is not triggering the loading of its driver and upon a 
-modprobe it doesn't get claimed.
+>
+>>
+>>>      - Ditto for STREAMON, read/write and polling for read/write.
+>>
+>> No, streaming and tuning are 2 different things, if an app does both, it
+>> will likely tune before streaming, but in some cases a user may use a streaming
+>> only app together with say v4l2-ctl to do the actual tuning. I think keeping
+>> things simple here is key. Lets just treat the "tuner" and "stream" as 2 separate
+>> entities with a separate ownership.
+>
+> That would work provided the ownership is associated with a filehandle.
 
-Something is wrong, but I don't know what.
+Right.
 
-Could it be the symbol versions? 
+>
+>>
+>>>      - Ditto for ioctls that expect a valid tuner configuration like QUERYSTD.
+>>
+>> QUERY is a read only ioctl, so it should not be influenced by any ownership, nor
+>> imply ownership.
+>
+> It is definitely influenced by ownership, since if the tuner is in radio mode,
+> then it can't detect a standard. Neither is this necessarily a passive call as
+> some (mostly older) drivers need to switch the receiver to different modes in
+> order to try and detect the current standard.
 
-Thanks for any hints.
+Hmm, then I guess that this call should fail with EBUSY if:
+The tuner is owned by another app *and*
+1) The tuner is in radio mode; or
+2) The tuner is in tv mode *and* doing QUERYSTD requires "prodding" the device
 
---
-Patrick.
+<snip>
 
+Regards,
+
+Hans
