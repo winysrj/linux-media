@@ -1,99 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:41358 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752320Ab2HKTW1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Aug 2012 15:22:27 -0400
-Received: by wicr5 with SMTP id r5so1384703wic.1
-        for <linux-media@vger.kernel.org>; Sat, 11 Aug 2012 12:22:26 -0700 (PDT)
-Date: Sat, 11 Aug 2012 21:22:47 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Rob Clark <rob.clark@linaro.org>
-Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	sumit.semwal@linaro.org, linaro-mm-sig@lists.linaro.org,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org
-Subject: Re: [Linaro-mm-sig] [PATCH 2/4] dma-fence: dma-buf synchronization
- (v8 )
-Message-ID: <20120811192247.GB5132@phenom.ffwll.local>
-References: <20120810145728.5490.44707.stgit@patser.local>
- <20120810145750.5490.5639.stgit@patser.local>
- <20120810202916.GI5738@phenom.ffwll.local>
- <CAF6AEGvzaJmVmnZmEp0QBfja8Vzb0mpLa_2J6bdUZj=fgDAHVg@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:9968 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752696Ab2HMVjq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Aug 2012 17:39:46 -0400
+Message-ID: <50297418.4030906@redhat.com>
+Date: Mon, 13 Aug 2012 18:39:36 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAF6AEGvzaJmVmnZmEp0QBfja8Vzb0mpLa_2J6bdUZj=fgDAHVg@mail.gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Walter Van Eetvelt <walter@van.eetvelt.be>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>,
+	workshop-2011@linuxtv.org
+Subject: Re: RFC: V4L2 API ambiguities
+References: <201208131427.56961.hverkuil@xs4all.nl> <8ed2a79057a0cc80ba058cebd97fd69d@mail.eetvelt.be> <CAGoCfiwJOt8LQYyGu0G=iJ-fAMyB82Y2jyZc4TS72QHOE9ZmnQ@mail.gmail.com>
+In-Reply-To: <CAGoCfiwJOt8LQYyGu0G=iJ-fAMyB82Y2jyZc4TS72QHOE9ZmnQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Aug 11, 2012 at 10:14:40AM -0500, Rob Clark wrote:
-> On Fri, Aug 10, 2012 at 3:29 PM, Daniel Vetter <daniel@ffwll.ch> wrote:
-> > On Fri, Aug 10, 2012 at 04:57:52PM +0200, Maarten Lankhorst wrote:
-> >> +
-> >> +     if (!ret) {
-> >> +             cb->base.flags = 0;
-> >> +             cb->base.func = __dma_fence_wake_func;
-> >> +             cb->base.private = priv;
-> >> +             cb->fence = fence;
-> >> +             cb->func = func;
-> >> +             __add_wait_queue(&fence->event_queue, &cb->base);
-> >> +     }
-> >> +     spin_unlock_irqrestore(&fence->event_queue.lock, flags);
-> >> +
-> >> +     return ret;
-> >> +}
-> >> +EXPORT_SYMBOL_GPL(dma_fence_add_callback);
-> >
-> > I think for api completenes we should also have a
-> > dma_fence_remove_callback function.
+Em 13-08-2012 18:31, Devin Heitmueller escreveu:
+> On Mon, Aug 13, 2012 at 4:27 PM, Walter Van Eetvelt
+> <walter@van.eetvelt.be> wrote:
+>> For me there is a an issue in the V4L specs for the support of DVB-S/C/T
+>> devices where the CI device is decoupled from the Tuners.
+>> At the moment there is no standard solution on which device drivers
+>> implementers and Application programmers can fall back.
 > 
-> We did originally but Maarten found it was difficult to deal with
-> properly when the gpu's hang.  I think his alternative was just to
-> require the hung driver to signal the fence.  I had kicked around the
-> idea of a dma_fence_cancel() alternative to signal that could pass an
-> error thru to the waiting driver.. although not sure if the other
-> driver could really do anything differently at that point.
+> DVB isn't part of the V4L spec.  There are *tons* of problems with
+> DVB, none of which are being discussed in this meeting (out of scope).
 
-Well, the idea is not to cancel all callbacks, but just a single one, in
-case a driver wants to somehow abort the wait. E.g. when the own gpu dies
-I guess we should clear all these fence callbacks so that they can't
-clobber the hw state after the reset.
+No, it is not out of scope. The thing is that none of the developers
+that are going to be there proposed a DVB-specific themes, unfortunately.
 
-> >> +
-> >> +/**
-> >> + * dma_fence_wait - wait for a fence to be signaled
-> >> + *
-> >> + * @fence:   [in]    The fence to wait on
-> >> + * @intr:    [in]    if true, do an interruptible wait
-> >> + * @timeout: [in]    absolute time for timeout, in jiffies.
-> >
-> > I don't quite like this, I think we should keep the styl of all other
-> > wait_*_timeout functions and pass the arg as timeout in jiffies (and also
-> > the same return semantics). Otherwise well have funny code that needs to
-> > handle return values differently depending upon whether it waits upon a
-> > dma_fence or a native object (where it would us the wait_*_timeout
-> > functions directly).
-> 
-> We did start out this way, but there was an ugly jiffies roll-over
-> problem that was difficult to deal with properly.  Using an absolute
-> time avoided the problem.
+Yet, there are two themes there that are not V4L only: the userspace
+discussions and the SoC discussions. I expect that it will focus at
+the media API's as a hole, and not just V4L API.
 
-Well, as-is the api works differently than all the other _timeout apis
-I've seen in the kernel, which makes it confusing. Also, I don't quite see
-what jiffies wraparound issue there is?
-
-> > Also, I think we should add the non-_timeout variants, too, just for
-> > completeness.
-
-This request here has the same reasons, essentially: If we offer a
-dma_fence wait api that matches the usual wait apis closely, it's harder
-to get their usage wrong. I know that i915 has some major cludge for a
-wait_seqno interface internally, but that's no reason to copy that
-approach ;-)
-
-Cheers, Daniel
--- 
-Daniel Vetter
-Mail: daniel@ffwll.ch
-Mobile: +41 (0)79 365 57 48
+Regards,
+Mauro
