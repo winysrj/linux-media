@@ -1,80 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:55907 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756055Ab2HFL6o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 07:58:44 -0400
-Received: by eaac11 with SMTP id c11so795989eaa.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 04:58:42 -0700 (PDT)
-From: Michal Nazarewicz <mina86@mina86.com>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Rob Clark <rob.clark@linaro.org>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	patches@linaro.org, linux@arm.linux.org.uk, arnd@arndb.de,
-	jesse.barker@linaro.org, m.szyprowski@samsung.com, daniel@ffwll.ch,
-	sumit.semwal@ti.com, maarten.lankhorst@canonical.com,
-	Rob Clark <rob@ti.com>
-Subject: Re: [PATCH 2/2] dma-buf: add helpers for attacher dma-parms
-In-Reply-To: <501F9C8E.4080002@samsung.com>
-References: <1342715014-5316-1-git-send-email-rob.clark@linaro.org> <1342715014-5316-3-git-send-email-rob.clark@linaro.org> <501F9C8E.4080002@samsung.com>
-Date: Mon, 06 Aug 2012 13:58:32 +0200
-Message-ID: <xa1tobmoxmdz.fsf@mina86.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:52071 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751046Ab2HMMnG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Aug 2012 08:43:06 -0400
+Message-ID: <5028F657.8020504@canonical.com>
+Date: Mon, 13 Aug 2012 14:43:03 +0200
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-=-="
+To: Rob Clark <rob.clark@linaro.org>, linaro-mm-sig@lists.linaro.org,
+	linux-media@vger.kernel.org, sumit.semwal@linaro.org,
+	dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Subject: Re: [Linaro-mm-sig] [PATCH 2/4] dma-fence: dma-buf synchronization
+ (v8 )
+References: <20120810145728.5490.44707.stgit@patser.local> <20120810145750.5490.5639.stgit@patser.local> <20120810202916.GI5738@phenom.ffwll.local> <CAF6AEGvzaJmVmnZmEp0QBfja8Vzb0mpLa_2J6bdUZj=fgDAHVg@mail.gmail.com> <502681AE.9030507@canonical.com> <20120811193954.GC5132@phenom.ffwll.local>
+In-Reply-To: <20120811193954.GC5132@phenom.ffwll.local>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---=-=-=
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Hey,
 
+Op 11-08-12 21:39, Daniel Vetter schreef:
+>>>>> +
+>>>>> +     if (!ret) {
+>>>>> +             cb->base.flags = 0;
+>>>>> +             cb->base.func = __dma_fence_wake_func;
+>>>>> +             cb->base.private = priv;
+>>>>> +             cb->fence = fence;
+>>>>> +             cb->func = func;
+>>>>> +             __add_wait_queue(&fence->event_queue, &cb->base);
+>>>>> +     }
+>>>>> +     spin_unlock_irqrestore(&fence->event_queue.lock, flags);
+>>>>> +
+>>>>> +     return ret;
+>>>>> +}
+>>>>> +EXPORT_SYMBOL_GPL(dma_fence_add_callback);
+>>>> I think for api completenes we should also have a
+>>>> dma_fence_remove_callback function.
+>>> We did originally but Maarten found it was difficult to deal with
+>>> properly when the gpu's hang.  I think his alternative was just to
+>>> require the hung driver to signal the fence.  I had kicked around the
+>>> idea of a dma_fence_cancel() alternative to signal that could pass an
+>>> error thru to the waiting driver.. although not sure if the other
+>>> driver could really do anything differently at that point.
+>> No, there is a very real reason I removed dma_fence_remove_callback. It is
+>> absolutely non-trivial to cancel it once added, since you have to deal with
+>> all kinds of race conditions.. See i915_gem_reset_requests in my git tree:
+>> http://cgit.freedesktop.org/~mlankhorst/linux/commit/?id=673c4b2550bc63ec134bca47a95dabd617a689ce
+> I don't see the point in that code ... Why can't we drop the kref
+> _outside_ of the critical section protected by event_queue_lock? Then you
+> pretty much have an open-coded version of dma_fence_callback_cancel in
+> there.
 
-Tomasz Stanislawski <t.stanislaws@samsung.com> writes:
-> I recommend to change the semantics for unlimited number of segments
-> from 'value 0' to:
+The event_queue_lock protects 2 things:
+1. Refcount to dma_fence won't drop to 0 if val->fences[i] != NULL
+Creator is supposed to keep a refcount until after dma_fence_signal
+returns. Adding a refcount you release in the callback won't help
+you here much.
+
+2. Integrity of request->prime_list
+The list_del's are otherwise not serialized, leaving a corrupted
+list if 2 fences signal at the same time. kref_put in the non-free'ing
+case is simply an atomic decrement, so there's no measurable penalty
+for keeping it in the lock.
+
+So no, you could remove it from the kref_put, but val->fences[i] = NULL
+assignment would still need it, so there's no real penalty left for
+putting kref_put in the spinlock to also protect the second case
+without dropping/retaking lock.
+
+I'll add dma_fence_remove_callback that returns a bool of whether
+the callback was removed or not. In the latter case the fence already
+fired. However, if you call dma_fence_remove_callback twice, on the
+wrong fence, or without ever calling dma_fence_add_callback you'd
+undefined behavior, and there's no guarantee I could detech such
+situation, but with those constraints I think it could be useful to
+have.
+
+It sucks but prime_rm_lock is the inner lock so the only way not to
+deadlock is doing what I'm doing there, or not getting the hardware
+locked in the first place.
+
 >
-> #define DMA_SEGMENTS_COUNT_UNLIMITED ((unsigned long)INT_MAX)
+>> This is the only way to do it completely deadlock/memory corruption free
+>> since you essentially have a locking inversion to avoid. I had it wrong
+>> the first 2 times too, even when I knew about a lot of the locking
+>> complications. If you want to do it, in most cases it will likely be easier
+>> to just eat the signal and ignore it instead of canceling.
+>>
+>>>>> +
+>>>>> +/**
+>>>>> + * dma_fence_wait - wait for a fence to be signaled
+>>>>> + *
+>>>>> + * @fence:   [in]    The fence to wait on
+>>>>> + * @intr:    [in]    if true, do an interruptible wait
+>>>>> + * @timeout: [in]    absolute time for timeout, in jiffies.
+>>>> I don't quite like this, I think we should keep the styl of all other
+>>>> wait_*_timeout functions and pass the arg as timeout in jiffies (and also
+>>>> the same return semantics). Otherwise well have funny code that needs to
+>>>> handle return values differently depending upon whether it waits upon a
+>>>> dma_fence or a native object (where it would us the wait_*_timeout
+>>>> functions directly).
+>>> We did start out this way, but there was an ugly jiffies roll-over
+>>> problem that was difficult to deal with properly.  Using an absolute
+>>> time avoided the problem.
+>> Yeah, this makes it easier to wait on multiple fences, instead of
+>> resetting the timeout over and over and over again, or manually
+>> recalculating.
+> I don't see how updating the jiffies_left timeout is that onerous, and in
+> any case we can easily wrap that up into a little helper function, passing
+> in an array of dma_fence pointers.
 >
-> Using INT_MAX will allow using safe conversions between signed and
-> unsigned integers.
+> Creating interfaces that differ from established kernel api patterns otoh
+> isn't good imo. I.e. I want dma_fence_wait_bla to be a drop-in replacement
+> for the corresponding wait_event_bla function/macro, which the same
+> semantics for the timeout and return values.
+>
+> Differing in such things only leads to confusion when reading patches imo.
+>
+Ok, I'll see if I can make a set of functions that follow the normal rules
+for these types of functions.
 
-LONG_MAX seems cleaner regardless.
-
---=20
-Best regards,                                         _     _
-.o. | Liege of Serenely Enlightened Majesty of      o' \,=3D./ `o
-..o | Computer Science,  Micha=C5=82 =E2=80=9Cmina86=E2=80=9D Nazarewicz   =
- (o o)
-ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
---=-=-=
-Content-Type: multipart/signed; boundary="==-=-=";
-	micalg=pgp-sha1; protocol="application/pgp-signature"
-
---==-=-=
-Content-Type: text/plain
-
-
---==-=-=
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQH7FoAAoJECBgQBJQdR/0Bp8P/1JRasCO7JTR74Tp7r6IRZsh
-EX2hh1vYKHtXIvD/inKsnOdnm6NFO+kzwnSS3ozkQZkIuhvTYkZyKcXJ7tHYHOZb
-Y9x/4VaG8bPi4AzPs2a5WuCnyP6ex5MwZTfPYir2CmWFicTNwYCtveNwcxIiI8w5
-D24UmHDwi2C23rCP57vepsyMDQk6NpukgqCe5u2FW+ep2Uu2ai6tW/GgP7V6xD2j
-jdLKcA0H5YMjzYLuWX3HYGLRbpOWV7KBp4O4bYn+7RlrSUQNRv92Erse+zitFLxt
-8l6ULsb64gsixV1YpKte6ofhWf9Y8Zk+fmXkA0WQnaaRTskTN5XIgAvohnjZX9cT
-G68NVPa/XhXt9YmWvHave1BOMNFMcfcmBXNwtQDfB6v8UNQoUqeGFBhDye7vmJXx
-yu41FUrFAh4JrYTt4dpSWqG4mU50YM17BF7JIq+F8bVuH4asIXlM+rcdid0t+slt
-ujotZ6ElWxqaGB5KCsanofSuNd8KgNjGLpgYR7z89VlSrgTocafZjZgTAnR9GU3h
-kqszsTuUg+Gr98Gf7rSiqhVRSSAwi6TazZVD+DuWnuhPtzKpBhj0tTidfDufClgM
-V99Zmu6Oc+qRKdv0M3kaA8xYZWk+TpNSQsHSGqmzeDAwicLej5qP/5EEklKEz6RO
-IS4s+j0jiXCjVTxtXhTm
-=l0/5
------END PGP SIGNATURE-----
---==-=-=--
-
---=-=-=--
+~Maarten
