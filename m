@@ -1,60 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:60343 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759566Ab2HXOdB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 10:33:01 -0400
-Date: Fri, 24 Aug 2012 16:32:57 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Anatolij Gustschin <agust@denx.de>
-cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>, dzu@denx.de
-Subject: Re: [PATCH 2/3] mt9v022: fix the V4L2_CID_EXPOSURE control
-In-Reply-To: <20120824161756.5cedec79@wker>
-Message-ID: <Pine.LNX.4.64.1208241632130.20710@axis700.grange>
-References: <1345799431-29426-1-git-send-email-agust@denx.de>
- <1345799431-29426-3-git-send-email-agust@denx.de>
- <Pine.LNX.4.64.1208241320330.20710@axis700.grange> <20120824161756.5cedec79@wker>
+Received: from mx1.redhat.com ([209.132.183.28]:9624 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752896Ab2HMVzN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Aug 2012 17:55:13 -0400
+Message-ID: <502977B8.8030201@redhat.com>
+Date: Mon, 13 Aug 2012 18:55:04 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Walter Van Eetvelt <walter@van.eetvelt.be>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>,
+	workshop-2011@linuxtv.org
+Subject: Re: RFC: V4L2 API ambiguities
+References: <201208131427.56961.hverkuil@xs4all.nl> <8ed2a79057a0cc80ba058cebd97fd69d@mail.eetvelt.be> <CAGoCfiwJOt8LQYyGu0G=iJ-fAMyB82Y2jyZc4TS72QHOE9ZmnQ@mail.gmail.com> <50297418.4030906@redhat.com> <CAGoCfiyi9SRfz=wE18O6mO4z2G0=UVJgfrkx2O+tZ4nwBiARAA@mail.gmail.com>
+In-Reply-To: <CAGoCfiyi9SRfz=wE18O6mO4z2G0=UVJgfrkx2O+tZ4nwBiARAA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 24 Aug 2012, Anatolij Gustschin wrote:
-
-> Hi Guennadi,
+Em 13-08-2012 18:42, Devin Heitmueller escreveu:
+> On Mon, Aug 13, 2012 at 5:39 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> No, it is not out of scope. The thing is that none of the developers
+>> that are going to be there proposed a DVB-specific themes, unfortunately.
+>>
+>> Yet, there are two themes there that are not V4L only: the userspace
+>> discussions and the SoC discussions. I expect that it will focus at
+>> the media API's as a hole, and not just V4L API.
 > 
-> On Fri, 24 Aug 2012 13:22:18 +0200 (CEST)
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> ...
-> > > --- a/drivers/media/i2c/soc_camera/mt9v022.c
-> > > +++ b/drivers/media/i2c/soc_camera/mt9v022.c
-> > > @@ -274,9 +274,9 @@ static int mt9v022_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
-> > >  		if (ret & 1) /* Autoexposure */
-> > >  			ret = reg_write(client, mt9v022->reg->max_total_shutter_width,
-> > >  					rect.height + mt9v022->y_skip_top + 43);
-> > > -		else
-> > > -			ret = reg_write(client, MT9V022_TOTAL_SHUTTER_WIDTH,
-> > > -					rect.height + mt9v022->y_skip_top + 43);
-> > > +		else /* Set to the manually controlled value */
-> > > +			ret = v4l2_ctrl_s_ctrl(mt9v022->exposure,
-> > > +					       mt9v022->exposure->val);
-> > 
-> > But why do we have to write it here at all then? Autoexposure can be off 
-> > only if the user has set exposure manually, using V4L2_CID_EXPOSURE_AUTO. 
-> > In this case MT9V022_TOTAL_SHUTTER_WIDTH already contains the correct 
-> > value. Why do we have to set it again? Maybe just adding a comment, 
-> > explaining the above, would suffice?
-> 
-> Actually we do not have to write it here, yes. Should I remove the shutter
-> register setting here entirely? And add a comment explaining, why?
+> I'm talking specifically about a discussion of "V4L2 API Ambiguities",
+> which is the topic of this thread and the meeting in question.
 
-Remove it from the "else" clause, yes, please. And a comment would be 
-good!
+OK. With that regards, you're right.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+> I
+> realize other parts of the conference include DVB.  If you want me to
+> start piling onto this thread will all the problems/deficiencies
+> related to our DVB API, we can certainly do that.  However, none of
+> the people on this thread will have any real insight into them given
+> those individuals focus entirely on V4L2.
+
+Yeah, but anyway we can try to cover the points that Walter
+made during the DVB topics.
+
+I suspect, however, that we need an RFC with a proposal for CI
+decoupled from the demux, in order to be able to discuss it.
+
+Regards,
+Mauro
