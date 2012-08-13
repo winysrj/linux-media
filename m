@@ -1,52 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:41512 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751661Ab2HKPRD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Aug 2012 11:17:03 -0400
-MIME-Version: 1.0
-In-Reply-To: <20120810193210.GG5738@phenom.ffwll.local>
-References: <20120810145728.5490.44707.stgit@patser.local>
-	<20120810193210.GG5738@phenom.ffwll.local>
-Date: Sat, 11 Aug 2012 10:17:02 -0500
-Message-ID: <CAF6AEGs8AzrQBhw523kFrJp-C_y3-TdL7HWy5FfYVUO2U-poOA@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCH 1/4] dma-buf: remove fallback for !CONFIG_DMA_SHARED_BUFFER
-From: Rob Clark <rob.clark@linaro.org>
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	sumit.semwal@linaro.org, rob.clark@linaro.org,
-	linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from pequod.mess.org ([93.97.41.153]:46994 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750963Ab2HMM7y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Aug 2012 08:59:54 -0400
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Stefan Macher <st_maker-lirc@yahoo.de>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 05/13] [media] iguanair: support suspend and resume
+Date: Mon, 13 Aug 2012 13:59:43 +0100
+Message-Id: <1344862791-30352-5-git-send-email-sean@mess.org>
+In-Reply-To: <1344862791-30352-1-git-send-email-sean@mess.org>
+References: <1344862791-30352-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 10, 2012 at 2:32 PM, Daniel Vetter <daniel@ffwll.ch> wrote:
-> On Fri, Aug 10, 2012 at 04:57:43PM +0200, Maarten Lankhorst wrote:
->> Documentation says that code requiring dma-buf should add it to
->> select, so inline fallbacks are not going to be used. A link error
->> will make it obvious what went wrong, instead of silently doing
->> nothing at runtime.
->>
->> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
->
-> I've botched it more than once to update these when creating new dma-buf
-> code. Hence
->
-> Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Now unbind also stops the receiver.
 
-yeah, I think the fallbacks date back to when it was a user
-configurable option, rather than something select'd by drivers using
-dmabuf, and we just never went back to clean up.  Let's drop the
-fallbacks.
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/iguanair.c | 21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
-Reviewed-by: Rob Clark <rob.clark@linaro.org>
+diff --git a/drivers/media/rc/iguanair.c b/drivers/media/rc/iguanair.c
+index 4525107..a6a19eb 100644
+--- a/drivers/media/rc/iguanair.c
++++ b/drivers/media/rc/iguanair.c
+@@ -156,6 +156,7 @@ static void process_ir_data(struct iguanair *ir, unsigned len)
+ static void iguanair_rx(struct urb *urb)
+ {
+ 	struct iguanair *ir;
++	int rc;
+ 
+ 	if (!urb)
+ 		return;
+@@ -181,7 +182,9 @@ static void iguanair_rx(struct urb *urb)
+ 		break;
+ 	}
+ 
+-	usb_submit_urb(urb, GFP_ATOMIC);
++	rc = usb_submit_urb(urb, GFP_ATOMIC);
++	if (rc && rc != -ENODEV)
++		dev_warn(ir->dev, "failed to resubmit urb: %d\n", rc);
+ }
+ 
+ static int iguanair_send(struct iguanair *ir, void *data, unsigned size)
+@@ -430,7 +433,7 @@ static void iguanair_close(struct rc_dev *rdev)
+ 
+ 	rc = iguanair_receiver(ir, false);
+ 	ir->receiver_on = false;
+-	if (rc)
++	if (rc && rc != -ENODEV)
+ 		dev_warn(ir->dev, "failed to disable receiver: %d\n", rc);
+ 
+ 	mutex_unlock(&ir->lock);
+@@ -525,8 +528,6 @@ static int __devinit iguanair_probe(struct usb_interface *intf,
+ 
+ 	usb_set_intfdata(intf, ir);
+ 
+-	dev_info(&intf->dev, "Registered %s", ir->name);
+-
+ 	return 0;
+ out2:
+ 	usb_kill_urb(ir->urb_in);
+@@ -545,12 +546,11 @@ static void __devexit iguanair_disconnect(struct usb_interface *intf)
+ {
+ 	struct iguanair *ir = usb_get_intfdata(intf);
+ 
++	rc_unregister_device(ir->rc);
+ 	usb_set_intfdata(intf, NULL);
+-
+ 	usb_kill_urb(ir->urb_in);
+ 	usb_free_urb(ir->urb_in);
+ 	usb_free_coherent(ir->udev, MAX_PACKET_SIZE, ir->buf_in, ir->dma_in);
+-	rc_unregister_device(ir->rc);
+ 	kfree(ir);
+ }
+ 
+@@ -567,6 +567,8 @@ static int iguanair_suspend(struct usb_interface *intf, pm_message_t message)
+ 			dev_warn(ir->dev, "failed to disable receiver for suspend\n");
+ 	}
+ 
++	usb_kill_urb(ir->urb_in);
++
+ 	mutex_unlock(&ir->lock);
+ 
+ 	return rc;
+@@ -579,6 +581,10 @@ static int iguanair_resume(struct usb_interface *intf)
+ 
+ 	mutex_lock(&ir->lock);
+ 
++	rc = usb_submit_urb(ir->urb_in, GFP_KERNEL);
++	if (rc)
++		dev_warn(&intf->dev, "failed to submit urb: %d\n", rc);
++
+ 	if (ir->receiver_on) {
+ 		rc = iguanair_receiver(ir, true);
+ 		if (rc)
+@@ -602,7 +608,8 @@ static struct usb_driver iguanair_driver = {
+ 	.suspend = iguanair_suspend,
+ 	.resume = iguanair_resume,
+ 	.reset_resume = iguanair_resume,
+-	.id_table = iguanair_table
++	.id_table = iguanair_table,
++	.soft_unbind = 1	/* we want to disable receiver on unbind */
+ };
+ 
+ module_usb_driver(iguanair_driver);
+-- 
+1.7.11.2
 
-
-> --
-> Daniel Vetter
-> Mail: daniel@ffwll.ch
-> Mobile: +41 (0)79 365 57 48
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
