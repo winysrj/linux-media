@@ -1,85 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:8076 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756752Ab2HULBF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Aug 2012 07:01:05 -0400
-Message-ID: <50336A6D.8030106@redhat.com>
-Date: Tue, 21 Aug 2012 08:01:01 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2720 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751938Ab2HMSf5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Aug 2012 14:35:57 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH] DocBook validation fixes
+Date: Mon, 13 Aug 2012 20:35:50 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>
+References: <201208121402.37719.hverkuil@xs4all.nl> <5029414E.7000809@redhat.com>
+In-Reply-To: <5029414E.7000809@redhat.com>
 MIME-Version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 4/6] [media] Cleanup media Kconfig files
-References: <1345486935-18002-1-git-send-email-mchehab@redhat.com> <1345486935-18002-5-git-send-email-mchehab@redhat.com> <CAK9yfHzbL0QKoEx9YWdRSczN3jPCzUzpDnoOXN7tFmogL0HpLg@mail.gmail.com>
-In-Reply-To: <CAK9yfHzbL0QKoEx9YWdRSczN3jPCzUzpDnoOXN7tFmogL0HpLg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201208132035.50308.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 21-08-2012 00:41, Sachin Kamat escreveu:
-> Hi Mauro,
+On Mon August 13 2012 20:02:54 Mauro Carvalho Chehab wrote:
+> Em 12-08-2012 09:02, Hans Verkuil escreveu:
+> > More validation fixes as reported by xmllint.
+> > 
+> > There are still three xmllint errors remaining after this patch regarding SVG file support.
 > 
-> On 20 August 2012 23:52, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
->> - get rid of ridden V4L2_COMMON symbol
->>
->>   This symbol is not needed anymore; it can be folded with V4L2
->>   one, simplifying the Kconfig a little bit;
->>
->> - Comment why some Kconfig items are needed;
->>
->> - Remove if test for MEDIA_CAMERA_SUPPORT, replacing it by
->>   depends on.
->>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->> ---
->>  drivers/media/Kconfig            |  5 -----
->>  drivers/media/i2c/Kconfig        |  2 +-
->>  drivers/media/platform/Kconfig   |  6 ++----
->>  drivers/media/v4l2-core/Kconfig  | 27 ++++++++++++++++-----------
->>  drivers/media/v4l2-core/Makefile |  2 +-
->>  5 files changed, 20 insertions(+), 22 deletions(-)
->>
->> diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
->> index d5b4e72..9c3698a 100644
->> --- a/drivers/media/Kconfig
->> +++ b/drivers/media/Kconfig
->> @@ -99,11 +99,6 @@ config VIDEO_DEV
->>         depends on MEDIA_CAMERA_SUPPORT || MEDIA_ANALOG_TV_SUPPORT || MEDIA_RADIO_SUPPORT
->>         default y
->>
->> -config VIDEO_V4L2_COMMON
->> -       tristate
->> -       depends on (I2C || I2C=n) && VIDEO_DEV
->> -       default (I2C || I2C=n) && VIDEO_DEV
->> -
->>  config VIDEO_V4L2_SUBDEV_API
->>         bool "V4L2 sub-device userspace API (EXPERIMENTAL)"
->>         depends on VIDEO_DEV && MEDIA_CONTROLLER && EXPERIMENTAL
->> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
->> index 7fe4acf..ad2c9de 100644
->> --- a/drivers/media/i2c/Kconfig
->> +++ b/drivers/media/i2c/Kconfig
->> @@ -322,7 +322,7 @@ comment "MPEG video encoders"
->>
->>  config VIDEO_CX2341X
->>         tristate "Conexant CX2341x MPEG encoders"
->> -       depends on VIDEO_V4L2 && VIDEO_V4L2_COMMON
->> +       depends on VIDEO_V4L2 && VIDEO_V4L2
-> 
-> VIDEO_V4L2 is duplicated.
+> How are you running xmllint? It could be useful to have a make target
+> (if it doesn't have it yet), in order for developers (and for me, when
+> checking patches) to run it.
 
-Indeed. That's the problem with scripted patches ;)
+I use this script to build the documentation:
 
-Well, the original statement there sucks, as, before this patch,
-VIDEO_V4L2_COMMON was a requirement for VIDEO_V4L2.
+====== gitdocs.sh ==========
+#!/bin/sh
 
-I suspect that there are lots of duplicated dependencies like
-the above all over the Kconfigs.
+make DOCBOOKS=media_api.xml htmldocs
+xmllint --noent --postvalid "/home/hans/work/src/v4l/media-git/Documentation/DocBook/media_api.xml" >/tmp/x.xml 2>/dev/null
+xmllint --noent --postvalid --noout /tmp/x.xml
+xmlto html-nochunks -m Documentation/DocBook/stylesheet.xsl -o Documentation/DocBook/media Documentation/DocBook/media_api.xml --skip-validation
 
-For example, I suspect it is possible to get merge both VIDEO_DEV
-and VIDEO_V4L2, but cleaning those Kconfig symbols will
-require some time and patience.
+echo file:///home/hans/work/src/v4l/media-git/Documentation/DocBook/media/media_api.html
+====== gitdocs.sh ==========
+
+I use this to build the documentation in one large file (that's what the daily
+build does as well). I prefer that to the 'chunky' version and the validation works
+better as well.
+
+If you run xmlto without the --skip-validation at the end, then xmlto will run
+xmllint by itself. Unfortunately, the file and line numbers it report are all out
+of sync and they make it next to impossible to track down where an error occurs.
+
+So I finally figured out this weekend how to run xmllint separately in such a way
+that I can related the line numbers to actual docbook code.
+
+That's why you see the first xmllint call generating a /tmp/x.xml file, and the
+second is parsing it.
+
+The last 'echo' is just to print where the generated doc is so I can easily open
+it with my browser :-)
 
 Regards,
-Mauro
+
+	Hans
