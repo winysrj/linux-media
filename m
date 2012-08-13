@@ -1,54 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35514 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752962Ab2HUX46 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Aug 2012 19:56:58 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>,
-	Thomas Mair <thomas.mair86@googlemail.com>
-Subject: [PATCH 2/5] rtl28xxu: fix rtl2832u module reload fails bug
-Date: Wed, 22 Aug 2012 02:56:19 +0300
-Message-Id: <1345593382-11367-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1345593382-11367-1-git-send-email-crope@iki.fi>
-References: <1345593382-11367-1-git-send-email-crope@iki.fi>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:38878 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751908Ab2HMTQD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Aug 2012 15:16:03 -0400
+Received: by bkwj10 with SMTP id j10so1457114bkw.19
+        for <linux-media@vger.kernel.org>; Mon, 13 Aug 2012 12:16:01 -0700 (PDT)
+Message-ID: <5029526E.7020605@gmail.com>
+Date: Mon, 13 Aug 2012 21:15:58 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Hans de Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media <linux-media@vger.kernel.org>,
+	workshop-2011@linuxtv.org
+Subject: Re: [Workshop-2011] RFC: V4L2 API ambiguities
+References: <201208131427.56961.hverkuil@xs4all.nl> <5028FD7E.1010402@redhat.com>
+In-Reply-To: <5028FD7E.1010402@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is workaround / partial fix.
+Hi!
 
-rtl2832u_power_ctrl() and rtl2832u_frontend_attach() needs to
-be go through carefully and fix properly. There is clearly
-some logical errors when handling power-management ang GPIOs...
+On 08/13/2012 03:13 PM, Hans de Goede wrote:
+>> 2) If a driver supports only formats with more than one plane, should
+>> V4L2_CAP_VIDEO_CAPTURE still be defined?
+> 
+> No
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
-Cc: Thomas Mair <thomas.mair86@googlemail.com>
----
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 11 -----------
- 1 file changed, 11 deletions(-)
+Agreed.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index 1ccb99b..c246c50 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -946,17 +946,6 @@ static int rtl2832u_power_ctrl(struct dvb_usb_device *d, int onoff)
- 		if (ret)
- 			goto err;
- 
--		/* demod HW reset */
--		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL, &val);
--		if (ret)
--			goto err;
--		/* bit 5 to 0 */
--		val &= 0xdf;
--
--		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL, val);
--		if (ret)
--			goto err;
--
- 		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL, &val);
- 		if (ret)
- 			goto err;
--- 
-1.7.11.4
+>> And if a driver also supports
+>> single-plane formats in addition to >1 plane formats, should
+>> V4L2_CAP_VIDEO_CAPTURE be compulsary?
+> 
+> Yes, so that non multi-plane aware apps keep working.
 
+There is the multi-planar API and there are multi-planar formats. Single- 
+and multi-planar formats can be handled with the multi-planar API. So if 
+a driver supports single- and multi-planar formats by means on multi-planar
+APIs, there shouldn't be a need for signalling V4L2_CAP_VIDEO_CAPTURE, 
+which normally indicates single-planar API. The driver may choose to not 
+support it, in order to handle single-planar formats. Thus, in my opinion 
+making V4L2_CAP_VIDEO_CAPTURE compulsory wouldn't make sense. Unless the 
+driver supports both types of ioctls (_mplane and regular versions), we 
+shouldn't flag V4L2_CAP_VIDEO_CAPTURE. 
+
+Regards,
+Sylwester
