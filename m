@@ -1,69 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:48844 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751673Ab2HGQ2q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2012 12:28:46 -0400
-Received: by lboi8 with SMTP id i8so210054lbo.19
-        for <linux-media@vger.kernel.org>; Tue, 07 Aug 2012 09:28:45 -0700 (PDT)
-Message-ID: <5021422F.6080601@iki.fi>
-Date: Tue, 07 Aug 2012 19:28:31 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4411 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751673Ab2HMOGD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Aug 2012 10:06:03 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Steven Toth <stoth@kernellabs.com>
+Subject: Re: [GIT PULL] ViewCast O820E capture support added
+Date: Mon, 13 Aug 2012 16:04:28 +0200
+Cc: "Linux-Media" <linux-media@vger.kernel.org>,
+	Mauro Chehab <mchehab@infradead.org>
+References: <CALzAhNVEXexQELbbXzpzxeiUat-oXqhxQ1kiA7K1ibXTm8X+YQ@mail.gmail.com>
+In-Reply-To: <CALzAhNVEXexQELbbXzpzxeiUat-oXqhxQ1kiA7K1ibXTm8X+YQ@mail.gmail.com>
 MIME-Version: 1.0
-To: Malcolm Priestley <tvboxspy@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] lmedm04 2.06 conversion to dvb-usb-v2 version 2
-References: <1344284500.12234.12.camel@router7789>
-In-Reply-To: <1344284500.12234.12.camel@router7789>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201208131604.28675.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/06/2012 11:21 PM, Malcolm Priestley wrote:
-> Conversion of lmedm04 to dvb-usb-v2
->
-> Functional changes m88rs2000 tuner now uses all callbacks.
-> TODO migrate other tuners to the callbacks.
->
-> This patch is applied on top of [BUG] Re: dvb_usb_lmedm04 crash Kernel (rs2000)
-> http://patchwork.linuxtv.org/patch/13584/
->
->
-> Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+Hi Steve!
 
-Could you try to make this driver more generic?
+On Mon August 13 2012 01:16:30 Steven Toth wrote:
+> Hi Mauro,
+> 
+> A new PCIe bridge driver below. It was released a couple of months ago
+> to the public, probably about time
+> we got this into the request queue. I'll review the linux-firmware
+> additions shortly, I have a firmware blob
+> and flexible license for the distros.
 
-You use some internals of dvb-usb directly and most likely those are 
-without a reason. For example data streaming, lme2510_kill_urb() kills 
-directly urbs allocated and submitted by dvb-usb. Guess that driver is 
-broken just after someone changes dvb-usb streaming code.
+I went through this driver from a high-level point of view, and I'm afraid I
+have quite a number of issues with this driver.
 
-lme2510_usb_talk() could be replaced by generic dvb_usbv2_generic_rw().
+One of the bigger ones is that vc8x0-ad7441.c should be implemented as
+a subdevice. I have two other AD drivers in my queue (adv7604 and ad9389b),
+so you can look at those for comparison.
 
-What is function of lme2510_int_read() ? I see you use own low level URB 
-routines for here too. It starts "polling", reads remote, tuner, demod, 
-etc, and updates state. You would better to implement I2C-adapter 
-correctly and then start Kernel work-queue, which reads same information 
-using I2C-adapter. Or you could even abuse remote controller polling 
-function provided by dvb-usb.
+See: http://www.spinics.net/lists/linux-media/msg51501.html
 
-lme2510_get_stream_config() enables pid-filter again over the dvb-usb, 
-but I can live with it because there is no dynamic configuration for 
-that. Anyhow, is that really needed?
+These Analog Devices chips are quite complex, and you really want to be able
+to reuse drivers.
 
-I can live with the pid-filter "abuse", but killing stream URBs on 
-behalf of DVB-USB is something I don't like to see. If you have very 
-good explanation and I cannot fix DVB USB to meet it I could consider 
-that kind of hack. And it should be documented clearly adding necessary 
-comments to code.
+Some of the other issues are:
 
-Re-implementing that driver to use 100% DVB-USB services will reduce 
-around 50% of code or more.
+- Please use the control framework. All new drivers must use it, unless there
+  are very, very good reasons not to. I'm gradually converting all drivers to
+  the control framework, so I really don't want to introduce new drivers to
+  that list.
 
-regards
-Antti
+- TRY_FMT can actually set the format, something that should never happen.
 
+- Use the new DV_TIMINGS ioctls for the HDTV formats. S_FMT should not be used
+  to select the HDTV format!
 
--- 
-http://palosaari.fi/
+- The procfs additions seem unnecessary to me. VIDIOC_LOG_STATUS or perhaps
+  debugfs are probably much more suitable.
+
+- Using videobuf2 is very much recommended.
+
+- Please run v4l2-compliance and fix any reported issues!
+
+It's a pretty big driver, so I only looked skimmed the patch, but these are
+IMHO fairly major issues. As it stands it is only suitable to be merged in
+drivers/staging/media.
+
+Regards,
+
+	Hans
+
+> 
+> The following changes since commit da2cd767f537082be0a02d83f87e0da4270e25b2:
+> 
+>   [media] ttpci: add support for Omicom S2 PCI (2012-08-12 14:41:26 -0300)
+> 
+> are available in the git repository at:
+>   git://git.kernellabs.com/stoth/media_tree.git o820e
+> 
+> Steven Toth (1):
+>       [media] vc8x0: Add support for the ViewCast O820E card.
+> 
+>  drivers/media/video/Kconfig                 |    2 +
+>  drivers/media/video/Makefile                |    1 +
+>  drivers/media/video/vc8x0/Kconfig           |   14 +
+>  drivers/media/video/vc8x0/Makefile          |   10 +
+>  drivers/media/video/vc8x0/vc8x0-ad7441.c    | 3057 +++++++++++++++++++++++++++
+>  drivers/media/video/vc8x0/vc8x0-audio.c     |  736 +++++++
+>  drivers/media/video/vc8x0/vc8x0-buffer.c    |  338 +++
+>  drivers/media/video/vc8x0/vc8x0-cards.c     |  138 ++
+>  drivers/media/video/vc8x0/vc8x0-channel.c   |  934 ++++++++
+>  drivers/media/video/vc8x0/vc8x0-core.c      |  887 ++++++++
+>  drivers/media/video/vc8x0/vc8x0-display.c   | 1359 ++++++++++++
+>  drivers/media/video/vc8x0/vc8x0-dma.c       | 2677 +++++++++++++++++++++++
+>  drivers/media/video/vc8x0/vc8x0-eeprom.c    |   71 +
+>  drivers/media/video/vc8x0/vc8x0-fw.c        |  429 ++++
+>  drivers/media/video/vc8x0/vc8x0-i2c.c       |  290 +++
+>  drivers/media/video/vc8x0/vc8x0-pcm3052.c   |  192 ++
+>  drivers/media/video/vc8x0/vc8x0-reg.h       |  214 ++
+>  drivers/media/video/vc8x0/vc8x0-timestamp.c |  156 ++
+>  drivers/media/video/vc8x0/vc8x0-vga.c       |  430 ++++
+>  drivers/media/video/vc8x0/vc8x0-video.c     | 2650 +++++++++++++++++++++++
+>  drivers/media/video/vc8x0/vc8x0.h           |  995 +++++++++
+>  21 files changed, 15580 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/video/vc8x0/Kconfig
+>  create mode 100644 drivers/media/video/vc8x0/Makefile
+>  create mode 100644 drivers/media/video/vc8x0/vc8x0-ad7441.c
+>  create mode 100644 drivers/media/video/vc8x0/vc8x0-audio.c
+>  create mode 100644 drivers/media/video/vc8x0/vc8x0-buffer.c
+>  create mode 100644 drivers/media/video/vc8x0/vc8x0-cards.c
+>  create mode 100644 drivers/media/video/vc8x0/vc8x0-channel.c
+>  create mode 100644 drivers/media/video/vc8x0/vc8x0-core.c
+>  create mode 100644 drivers/media/video/vc8x0/vc8x0-display.c
+>  create mode 100644 drivers/media/video/vc8x0/vc8x0-dma.c
+>  create mode 100644 drivers/media/video/vc8x0/vc8x0-eeprom.c
+>  create mode 100644 drivers/media/video/vc8x0/vc8x0-fw.c
+>  create mode 100644 drivers/media/video/vc8x0/vc8x0-i2c.c
+>  create mode 100644 drivers/media/video/vc8x0/vc8x0-pcm3052.c
+>  create mode 100644 drivers/media/video/vc8x0/vc8x0-reg.h
+>  create mode 100644 drivers/media/video/vc8x0/vc8x0-timestamp.c
+>  create mode 100644 drivers/media/video/vc8x0/vc8x0-vga.c
+>  create mode 100644 drivers/media/video/vc8x0/vc8x0-video.c
+>  create mode 100644 drivers/media/video/vc8x0/vc8x0.h
+> 
+> Regards,
+> 
+> - Steve
+> 
+> 
