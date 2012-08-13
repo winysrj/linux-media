@@ -1,58 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:35424 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751998Ab2HKScb (ORCPT
+Received: from mail4-relais-sop.national.inria.fr ([192.134.164.105]:21536
+	"EHLO mail4-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753318Ab2HMUUT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Aug 2012 14:32:31 -0400
-Received: by obbuo13 with SMTP id uo13so4144121obb.19
-        for <linux-media@vger.kernel.org>; Sat, 11 Aug 2012 11:32:30 -0700 (PDT)
+	Mon, 13 Aug 2012 16:20:19 -0400
+Date: Mon, 13 Aug 2012 22:20:16 +0200 (CEST)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+cc: Lars-Peter Clausen <lars@metafoo.de>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] drivers/media/video/mx2_emmaprp.c: use devm_kzalloc and
+ devm_clk_get
+In-Reply-To: <50295A43.30305@redhat.com>
+Message-ID: <alpine.DEB.2.02.1208132219060.2355@localhost6.localdomain6>
+References: <1344104607-18805-1-git-send-email-Julia.Lawall@lip6.fr> <20120806142323.GO4352@mwanda> <20120806142650.GT4403@mwanda> <501FD69D.7070702@metafoo.de> <alpine.DEB.2.02.1208101558100.2011@hadrien> <50295A43.30305@redhat.com>
 MIME-Version: 1.0
-Date: Sat, 11 Aug 2012 15:32:30 -0300
-Message-ID: <CALF0-+XgUONGHF+TTch42vDHyLNOdVu6yjZ-N55xU-PWiB8Bpg@mail.gmail.com>
-Subject: [PATCH 0/2] media: Replace easycap driver with stk1160
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
-Here's the stk1160 inclusion patch, splitted as two patches
-(easycap removal and stk1160 add) as requested by Mauro.
+Using devm_kzalloc simplifies the code and ensures that the use of
+devm_request_irq is safe.  When kzalloc and kfree were used, the interrupt
+could be triggered after the handler's data argument had been freed.
 
-I'd like to thanks Hans, Sylwester, Takashi and Mauro
-(and everyone else) for their reviewing and their help.
+This also introduces some missing initializations of the return variable
+ret, and uses devm_request_and_ioremap instead of the combination of
+devm_request_mem_region and devm_ioremap.
 
-Regards,
-Ezequiel.
+The problem of a free after a devm_request_irq was found using the
+following semantic match (http://coccinelle.lip6.fr/)
 
-Ezequiel Garcia (2):
- staging: media: Remove easycap driver
- media: Add stk1160 new driver (easycap replacement)
+// <smpl>
+@r exists@
+expression e1,e2,x,a,b,c,d;
+identifier free;
+position p1,p2;
+@@
 
- drivers/media/video/Kconfig                      |    2 +
- drivers/media/video/Makefile                     |    1 +
- drivers/media/video/stk1160/Kconfig              |   20 +
- drivers/media/video/stk1160/Makefile             |   11 +
- drivers/media/video/stk1160/stk1160-ac97.c       |  153 +
- drivers/media/video/stk1160/stk1160-core.c       |  432 +++
- drivers/media/video/stk1160/stk1160-i2c.c        |  294 ++
- drivers/media/video/stk1160/stk1160-reg.h        |   93 +
- drivers/media/video/stk1160/stk1160-v4l.c        |  738 ++++
- drivers/media/video/stk1160/stk1160-video.c      |  518 +++
- drivers/media/video/stk1160/stk1160.h            |  208 ++
- drivers/staging/media/Kconfig                    |    2 -
- drivers/staging/media/Makefile                   |    1 -
- drivers/staging/media/easycap/Kconfig            |   30 -
- drivers/staging/media/easycap/Makefile           |   10 -
- drivers/staging/media/easycap/README             |  141 -
- drivers/staging/media/easycap/easycap.h          |  567 ---
- drivers/staging/media/easycap/easycap_ioctl.c    | 2443 -------------
- drivers/staging/media/easycap/easycap_low.c      |  968 -----
- drivers/staging/media/easycap/easycap_main.c     | 4239 ----------------------
- drivers/staging/media/easycap/easycap_settings.c |  696 ----
- drivers/staging/media/easycap/easycap_sound.c    |  750 ----
- drivers/staging/media/easycap/easycap_testcard.c |  155 -
- 23 files changed, 2470 insertions(+), 10002 deletions(-)
+   devm_request_irq@p1(e1,e2,...,x)
+   ... when any
+       when != e2 = a
+       when != x = b
+   if (...) {
+     ... when != e2 = c
+         when != x = d
+     free@p2(...,x,...);
+     ...
+     return ...;
+   }
+// </smpl>
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
+---
+v3: due to a conflict with another patch
+
+  drivers/media/video/mx2_emmaprp.c |   31 ++++++++++++-------------------
+  1 file changed, 12 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/media/video/mx2_emmaprp.c b/drivers/media/video/mx2_emmaprp.c
+index 2810015..dab380a 100644
+--- a/drivers/media/video/mx2_emmaprp.c
++++ b/drivers/media/video/mx2_emmaprp.c
+@@ -896,7 +896,7 @@ static int emmaprp_probe(struct platform_device *pdev)
+  	int irq_emma;
+  	int ret;
+
+-	pcdev = kzalloc(sizeof *pcdev, GFP_KERNEL);
++	pcdev = devm_kzalloc(&pdev->dev, sizeof(*pcdev), GFP_KERNEL);
+  	if (!pcdev)
+  		return -ENOMEM;
+
+@@ -904,27 +904,24 @@ static int emmaprp_probe(struct platform_device *pdev)
+
+  	pcdev->clk_emma_ipg = devm_clk_get(&pdev->dev, "ipg");
+  	if (IS_ERR(pcdev->clk_emma_ipg)) {
+-		ret = PTR_ERR(pcdev->clk_emma_ipg);
+-		goto free_dev;
++		return PTR_ERR(pcdev->clk_emma_ipg);
+  	}
+
+  	pcdev->clk_emma_ahb = devm_clk_get(&pdev->dev, "ahb");
+  	if (IS_ERR(pcdev->clk_emma_ipg)) {
+-		ret = PTR_ERR(pcdev->clk_emma_ahb);
+-		goto free_dev;
++		return PTR_ERR(pcdev->clk_emma_ahb);
+  	}
+
+  	irq_emma = platform_get_irq(pdev, 0);
+  	res_emma = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+  	if (irq_emma < 0 || res_emma == NULL) {
+  		dev_err(&pdev->dev, "Missing platform resources data\n");
+-		ret = -ENODEV;
+-		goto free_dev;
++		return -ENODEV;
+  	}
+
+  	ret = v4l2_device_register(&pdev->dev, &pcdev->v4l2_dev);
+  	if (ret)
+-		goto free_dev;
++		return ret;
+
+  	mutex_init(&pcdev->dev_mutex);
+
+@@ -946,21 +943,20 @@ static int emmaprp_probe(struct platform_device *pdev)
+
+  	platform_set_drvdata(pdev, pcdev);
+
+-	if (devm_request_mem_region(&pdev->dev, res_emma->start,
+-	    resource_size(res_emma), MEM2MEM_NAME) == NULL)
+-		goto rel_vdev;
+-
+-	pcdev->base_emma = devm_ioremap(&pdev->dev, res_emma->start,
+-					resource_size(res_emma));
+-	if (!pcdev->base_emma)
++	pcdev->base_emma = devm_request_and_ioremap(&pdev->dev, res_emma);
++	if (!pcdev->base_emma) {
++		ret = -ENXIO;
+  		goto rel_vdev;
++	}
+
+  	pcdev->irq_emma = irq_emma;
+  	pcdev->res_emma = res_emma;
+
+  	if (devm_request_irq(&pdev->dev, pcdev->irq_emma, emmaprp_irq,
+-			     0, MEM2MEM_NAME, pcdev) < 0)
++			     0, MEM2MEM_NAME, pcdev) < 0) {
++		ret = -ENODEV;
+  		goto rel_vdev;
++	}
+
+  	pcdev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+  	if (IS_ERR(pcdev->alloc_ctx)) {
+@@ -993,8 +989,6 @@ rel_vdev:
+  	video_device_release(vfd);
+  unreg_dev:
+  	v4l2_device_unregister(&pcdev->v4l2_dev);
+-free_dev:
+-	kfree(pcdev);
+
+  	return ret;
+  }
+@@ -1009,7 +1003,6 @@ static int emmaprp_remove(struct platform_device *pdev)
+  	v4l2_m2m_release(pcdev->m2m_dev);
+  	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
+  	v4l2_device_unregister(&pcdev->v4l2_dev);
+-	kfree(pcdev);
+
+  	return 0;
+  }
+
