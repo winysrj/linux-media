@@ -1,89 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:51012 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753234Ab2HNPgn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 11:36:43 -0400
-Received: from epcpsbgm1.samsung.com (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M8R00IQ94OUO320@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:36:31 +0900 (KST)
-Received: from mcdsrvbld02.digital.local ([106.116.37.23])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M8R004J44MBC810@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:36:30 +0900 (KST)
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de, dmitriyz@google.com,
-	s.nawrocki@samsung.com, k.debski@samsung.com
-Subject: [PATCHv8 10/26] v4l: vb2-dma-contig: add prepare/finish to dma-contig
- allocator
-Date: Tue, 14 Aug 2012 17:34:40 +0200
-Message-id: <1344958496-9373-11-git-send-email-t.stanislaws@samsung.com>
-In-reply-to: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
-References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
+Received: from bruce.bmat.com ([176.9.54.181]:39296 "EHLO bruce.bmat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751817Ab2HMOPh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Aug 2012 10:15:37 -0400
+Message-ID: <50290BFF.6070503@bmat.es>
+Date: Mon, 13 Aug 2012 16:15:27 +0200
+From: =?ISO-8859-1?Q?Marc_Bol=F3s?= <mark@bmat.es>
+Reply-To: mark@bmat.es
+MIME-Version: 1.0
+To: Steven Toth <stoth@kernellabs.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Question Hauppauge Nova-S-Plus.
+References: <5028CC8C.3060907@bmat.es> <CALzAhNXim6t=w-49+TmzKr5sGu6uwgisc6O3oqVkUShYpu+PJQ@mail.gmail.com>
+In-Reply-To: <CALzAhNXim6t=w-49+TmzKr5sGu6uwgisc6O3oqVkUShYpu+PJQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Marek Szyprowski <m.szyprowski@samsung.com>
+Thanks for your reply Steven. I'll reply inline also.
 
-Add prepare/finish callbacks to vb2-dma-contig allocator.
+El 13/08/12 15:20, Steven Toth escribió:
+>> I've been working for some time with those devices, and recently I have
+>> a problem which I've never seen before. The point is that I tune
+>> properly frequency and I start watching all channels, but after some
+>> time  one or 2 tuners stops, and you cannot tune again any frequency
+>> until you reboot all server.
+> Interesting. If it was previously working fine, and very reliably,
+> then what has changed in your software stack or environment?
+>
+> What happens if you rmmod and modprobe the driver? Does this help?
+I tryed 2 times and it didn't work. I did some tests, the most 
+interesting part is that sometimes, it recovers with a restart script 
+that I have. maybe at this point it's better that I explain full 
+situation with details, so you know better.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/video/videobuf2-dma-contig.c |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+I have a lot of linux systems working arround world for TV recording. 
+Some of them are for DVB-S recording. I'm using this cards for sometime 
+now and it's the first time that I see this problem, and only in one 
+country. For example we say that we have 2 countries, A and B. The point 
+here is that country A, which I live, I have this system working for 2 
+years, and I never saw this problem (it works with kernel drivers and 
+debian squeeze amd64). On the other side, country B , I had this cards 
+working fine before with another operating system (fedora 64). We 
+switched some time ago operating system and now we have debian on all 
+countries. Now in country B and debian kernel drivers, is the first time 
+I see this problem (kernel them are using is exactly same .deb package 
+which I compiled to allow more than 16 dvb adapters to be pluged on a 
+system). I've replaced physical cards for new ones, and the problem 
+still persists. After introducing a little hardware and operating system 
+now I start explaining more detailed the problem.
 
-diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
-index 8486e06..494a824 100644
---- a/drivers/media/video/videobuf2-dma-contig.c
-+++ b/drivers/media/video/videobuf2-dma-contig.c
-@@ -103,6 +103,28 @@ static unsigned int vb2_dc_num_users(void *buf_priv)
- 	return atomic_read(&buf->refcount);
- }
- 
-+static void vb2_dc_prepare(void *buf_priv)
-+{
-+	struct vb2_dc_buf *buf = buf_priv;
-+	struct sg_table *sgt = buf->dma_sgt;
-+
-+	if (!sgt)
-+		return;
-+
-+	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-+}
-+
-+static void vb2_dc_finish(void *buf_priv)
-+{
-+	struct vb2_dc_buf *buf = buf_priv;
-+	struct sg_table *sgt = buf->dma_sgt;
-+
-+	if (!sgt)
-+		return;
-+
-+	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-+}
-+
- /*********************************************/
- /*        callbacks for MMAP buffers         */
- /*********************************************/
-@@ -366,6 +388,8 @@ const struct vb2_mem_ops vb2_dma_contig_memops = {
- 	.mmap		= vb2_dc_mmap,
- 	.get_userptr	= vb2_dc_get_userptr,
- 	.put_userptr	= vb2_dc_put_userptr,
-+	.prepare	= vb2_dc_prepare,
-+	.finish		= vb2_dc_finish,
- 	.num_users	= vb2_dc_num_users,
- };
- EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
--- 
-1.7.9.5
+Right now in digital systems, we use one app to tune and demultiplex and 
+other to record files. When you start the system, it tunes everything 
+OK, and it starts recording. After some time (always random), some 
+tuners leave working (always same transponders, it happens also trying 
+on another card), then my record software detects it and restarts the 
+tuning instance. I think the main problem (when stops working) is that 
+sometimes there is little loss in signal, but it should recover normal 
+on aplication restart. But there are 2 transponders that can't restart 
+normally. it tryes for some attemps, but you allways have the same 
+results. No lock, no carrier, no signal. The interesting point here, is 
+that if I restart full server, it works again (but I don't want to have 
+a server rebooting 3 or 5 times a day...).
 
+I've checked syslog, dmesg, kernel log and there isn't any trace about 
+any hardware or software issue :(
+
+The problem is cronic, is allways there. And the only recover solution 
+that I found is to reboot server.
+
+Also I tryed last git drivers, compiling myself, but doesn't work with 
+this card and debian OS.
+>> One thing very strange there is that always are the same tuners which
+>> fails. Signal is OK.
+> Do you mean it's always the same physical card that fails, or any of
+> your nova-s-plus cards fail in the same way?
+>
+>> I don't have any error on syslog nor dmesg. And once you reboot it works
+>> again.
+>>
+>> Have anyone seen this problem before and can help me please?
+> I haven't seen this before.
+>
+>
