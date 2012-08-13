@@ -1,123 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([93.97.41.153]:34654 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751644Ab2HYLBr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Aug 2012 07:01:47 -0400
-From: Sean Young <sean@mess.org>
-To: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
-Subject: [PATCH] [media] iguanair: do not modify transmit buffer
-Date: Sat, 25 Aug 2012 12:01:45 +0100
-Message-Id: <1345892505-27049-1-git-send-email-sean@mess.org>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:41247 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752429Ab2HMSmm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Aug 2012 14:42:42 -0400
+Received: by wicr5 with SMTP id r5so2902606wic.1
+        for <linux-media@vger.kernel.org>; Mon, 13 Aug 2012 11:42:40 -0700 (PDT)
+Message-ID: <1344883337.3041.0.camel@router7789>
+Subject: [PATCH] re: [media] lmedm04: fix build
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: linux-media@vger.kernel.org
+Date: Mon, 13 Aug 2012 19:42:17 +0100
+In-Reply-To: <20120813165811.GB5363@elgon.mountain>
+References: <20120813165811.GB5363@elgon.mountain>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since commit "[media] rc-core: move timeout and checks to lirc", the
-incoming buffer is used after the driver transmits.
+On Mon, 2012-08-13 at 19:58 +0300, Dan Carpenter wrote:
+> Hello Mauro Carvalho Chehab,
+> 
+> The patch db6651a9ebb3: "[media] lmedm04: fix build" from Aug 12, 
+> 2012, leads to the following warning:
+> drivers/media/dvb/dvb-usb-v2/lmedm04.c:769 lme2510_download_firmware()
+> 	 error: usb_control_msg() 'data' too small (128 vs 265)
+> 
+>    737          data = kzalloc(128, GFP_KERNEL);
+>                                ^^^
+> data is 128 bytes.
+Hi All
 
-Signed-off-by: Sean Young <sean@mess.org>
+Control isn't used, so remove it.
+
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+
 ---
- drivers/media/rc/iguanair.c | 51 +++++++++++++++++++--------------------------
- 1 file changed, 21 insertions(+), 30 deletions(-)
+ drivers/media/dvb/dvb-usb-v2/lmedm04.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/drivers/media/rc/iguanair.c b/drivers/media/rc/iguanair.c
-index 66ba237..1e4c68a 100644
---- a/drivers/media/rc/iguanair.c
-+++ b/drivers/media/rc/iguanair.c
-@@ -334,21 +334,34 @@ static int iguanair_set_tx_mask(struct rc_dev *dev, uint32_t mask)
- static int iguanair_tx(struct rc_dev *dev, unsigned *txbuf, unsigned count)
- {
- 	struct iguanair *ir = dev->priv;
--	uint8_t space, *payload;
--	unsigned i, size, rc, bytes;
-+	uint8_t space;
-+	unsigned i, size, periods, bytes;
-+	int rc;
- 	struct send_packet *packet;
- 
- 	mutex_lock(&ir->lock);
- 
-+	packet = kmalloc(sizeof(*packet) + ir->bufsize, GFP_KERNEL);
-+	if (!packet) {
-+		rc = -ENOMEM;
-+		goto out;
-+	}
-+
- 	/* convert from us to carrier periods */
--	for (i = size = 0; i < count; i++) {
--		txbuf[i] = DIV_ROUND_CLOSEST(txbuf[i] * ir->carrier, 1000000);
--		bytes = (txbuf[i] + 126) / 127;
-+	for (i = space = size = 0; i < count; i++) {
-+		periods = DIV_ROUND_CLOSEST(txbuf[i] * ir->carrier, 1000000);
-+		bytes = DIV_ROUND_UP(periods, 127);
- 		if (size + bytes > ir->bufsize) {
- 			count = i;
- 			break;
- 		}
--		size += bytes;
-+		while (periods > 127) {
-+			packet->payload[size++] = 127 | space;
-+			periods -= 127;
-+		}
-+
-+		packet->payload[size++] = periods | space;
-+		space ^= 0x80;
- 	}
- 
- 	if (count == 0) {
-@@ -356,12 +369,6 @@ static int iguanair_tx(struct rc_dev *dev, unsigned *txbuf, unsigned count)
- 		goto out;
- 	}
- 
--	packet = kmalloc(sizeof(*packet) + size, GFP_KERNEL);
--	if (!packet) {
--		rc = -ENOMEM;
--		goto out;
--	}
--
- 	packet->header.start = 0;
- 	packet->header.direction = DIR_OUT;
- 	packet->header.cmd = CMD_SEND;
-@@ -370,26 +377,11 @@ static int iguanair_tx(struct rc_dev *dev, unsigned *txbuf, unsigned count)
- 	packet->busy7 = ir->busy7;
- 	packet->busy4 = ir->busy4;
- 
--	space = 0;
--	payload = packet->payload;
--
--	for (i = 0; i < count; i++) {
--		unsigned periods = txbuf[i];
--
--		while (periods > 127) {
--			*payload++ = 127 | space;
--			periods -= 127;
--		}
--
--		*payload++ = periods | space;
--		space ^= 0x80;
--	}
--
- 	if (ir->receiver_on) {
- 		rc = iguanair_receiver(ir, false);
- 		if (rc) {
- 			dev_warn(ir->dev, "disable receiver before transmit failed\n");
--			goto out_kfree;
-+			goto out;
+diff --git a/drivers/media/dvb/dvb-usb-v2/lmedm04.c b/drivers/media/dvb/dvb-usb-v2/lmedm04.c
+index c6bc1b8..c41d9d9 100644
+--- a/drivers/media/dvb/dvb-usb-v2/lmedm04.c
++++ b/drivers/media/dvb/dvb-usb-v2/lmedm04.c
+@@ -766,10 +766,6 @@ static int lme2510_download_firmware(struct dvb_usb_device *d,
  		}
  	}
  
-@@ -405,9 +397,8 @@ static int iguanair_tx(struct rc_dev *dev, unsigned *txbuf, unsigned count)
- 			dev_warn(ir->dev, "re-enable receiver after transmit failed\n");
- 	}
- 
--out_kfree:
--	kfree(packet);
- out:
-+	kfree(packet);
- 	mutex_unlock(&ir->lock);
- 
- 	return rc ? rc : count;
+-	usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0),
+-			0x06, 0x80, 0x0200, 0x00, data, 0x0109, 1000);
+-
+-
+ 	data[0] = 0x8a;
+ 	len_in = 1;
+ 	msleep(2000);
 -- 
-1.7.11.4
+1.7.9.5
+
+
+
 
