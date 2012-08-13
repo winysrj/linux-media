@@ -1,115 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52901 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757672Ab2HQBfy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Aug 2012 21:35:54 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hin-Tak Leung <htl10@users.sourceforge.net>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 5/6] cxd2820r: GPIO when GPIOLIB is undefined
-Date: Fri, 17 Aug 2012 04:35:09 +0300
-Message-Id: <1345167310-8738-6-git-send-email-crope@iki.fi>
-In-Reply-To: <1345167310-8738-1-git-send-email-crope@iki.fi>
-References: <1345167310-8738-1-git-send-email-crope@iki.fi>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59044 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751368Ab2HMOSZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Aug 2012 10:18:25 -0400
+Date: Mon, 13 Aug 2012 17:18:20 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] mt9v032: Export horizontal and vertical blanking as
+ V4L2 controls
+Message-ID: <20120813141805.GP29636@valkosipuli.retiisi.org.uk>
+References: <1343068502-7431-4-git-send-email-laurent.pinchart@ideasonboard.com>
+ <4375414.cY8huNNgj1@avalon>
+ <20120727212723.GB26642@valkosipuli.retiisi.org.uk>
+ <1505124.16Oe9aIvIj@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <1505124.16Oe9aIvIj@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use static GPIO config when GPIOLIB is undefined.
-It is fallback condition as GPIOLIB seems to be disabled by default.
-Better solution is needed, maybe GPIOLIB could be enabled by default?
+Hi Laurent,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/cxd2820r_core.c | 29 ++++++++++++++++++++---------
- drivers/media/usb/em28xx/em28xx-dvb.c       |  2 ++
- 2 files changed, 22 insertions(+), 9 deletions(-)
+Laurent Pinchart wrote:
+> On Saturday 28 July 2012 00:27:23 Sakari Ailus wrote:
+>> On Fri, Jul 27, 2012 at 01:02:04AM +0200, Laurent Pinchart wrote:
+>>> On Thursday 26 July 2012 23:54:01 Sakari Ailus wrote:
+>>>> On Tue, Jul 24, 2012 at 01:10:42AM +0200, Laurent Pinchart wrote:
+>>>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>>>> ---
+>>>>>
+>>>>>   drivers/media/video/mt9v032.c |   36  ++++++++++++++++++++++++++++---
+>>>>>   1 files changed, 33 insertions(+), 3 deletions(-)
+>>>>>
+>>>>> Changes since v1:
+>>>>>
+>>>>> - Make sure the total horizontal time will not go below 660 when
+>>>>>    setting the horizontal blanking control
+>>>>>
+>>>>> - Restrict the vertical blanking value to 3000 as documented in the
+>>>>>    datasheet. Increasing the exposure time actually extends vertical
+>>>>>    blanking, as long as the user doesn't forget to turn auto-exposure
+>>>>>    off...
+>>>>
+>>>> Does binning either horizontally or vertically affect the blanking
+>>>> limits? If the process is analogue then the answer is typically "yes".
+>>>
+>>> The datasheet doesn't specify whether binning and blanking can influence
+>>> each other.
+>>
+>> Vertical binning is often analogue since digital binning would require as
+>> much temporary memory as the row holds pixels. This means the hardware
+>> already does binning before a/d conversion and there's only need to actually
+>> read half the number of rows, hence the effect on frame length.
+>
+> That will affect the frame length, but why would it affect vertical blanking ?
 
-diff --git a/drivers/media/dvb-frontends/cxd2820r_core.c b/drivers/media/dvb-frontends/cxd2820r_core.c
-index 4bd42f2..4264864 100644
---- a/drivers/media/dvb-frontends/cxd2820r_core.c
-+++ b/drivers/media/dvb-frontends/cxd2820r_core.c
-@@ -567,7 +567,7 @@ static int cxd2820r_get_frontend_algo(struct dvb_frontend *fe)
- static void cxd2820r_release(struct dvb_frontend *fe)
- {
- 	struct cxd2820r_priv *priv = fe->demodulator_priv;
--	int ret;
-+	int uninitialized_var(ret); /* silence compiler warning */
- 
- 	dev_dbg(&priv->i2c->dev, "%s\n", __func__);
- 
-@@ -688,9 +688,9 @@ struct dvb_frontend *cxd2820r_attach(const struct cxd2820r_config *cfg,
- {
- 	struct cxd2820r_priv *priv;
- 	int ret;
--	u8 tmp;
-+	u8 tmp, gpio[GPIO_COUNT];
- 
--	priv = kzalloc(sizeof (struct cxd2820r_priv), GFP_KERNEL);
-+	priv = kzalloc(sizeof(struct cxd2820r_priv), GFP_KERNEL);
- 	if (!priv) {
- 		ret = -ENOMEM;
- 		dev_err(&i2c->dev, "%s: kzalloc() failed\n",
-@@ -699,7 +699,9 @@ struct dvb_frontend *cxd2820r_attach(const struct cxd2820r_config *cfg,
- 	}
- 
- 	priv->i2c = i2c;
--	memcpy(&priv->cfg, cfg, sizeof (struct cxd2820r_config));
-+	memcpy(&priv->cfg, cfg, sizeof(struct cxd2820r_config));
-+	memcpy(&priv->fe.ops, &cxd2820r_ops, sizeof(struct dvb_frontend_ops));
-+	priv->fe.demodulator_priv = priv;
- 
- 	priv->bank[0] = priv->bank[1] = 0xff;
- 	ret = cxd2820r_rd_reg(priv, 0x000fd, &tmp);
-@@ -707,9 +709,9 @@ struct dvb_frontend *cxd2820r_attach(const struct cxd2820r_config *cfg,
- 	if (ret || tmp != 0xe1)
- 		goto error;
- 
--#ifdef CONFIG_GPIOLIB
--	/* add GPIOs */
- 	if (gpio_chip_base) {
-+#ifdef CONFIG_GPIOLIB
-+		/* add GPIOs */
- 		priv->gpio_chip.label = KBUILD_MODNAME;
- 		priv->gpio_chip.dev = &priv->i2c->dev;
- 		priv->gpio_chip.owner = THIS_MODULE;
-@@ -728,11 +730,20 @@ struct dvb_frontend *cxd2820r_attach(const struct cxd2820r_config *cfg,
- 				priv->gpio_chip.base);
- 
- 		*gpio_chip_base = priv->gpio_chip.base;
--	}
-+#else
-+		/*
-+		 * Use static GPIO configuration if GPIOLIB is undefined.
-+		 * This is fallback condition.
-+		 */
-+		gpio[0] = (*gpio_chip_base >> 0) & 0x07;
-+		gpio[1] = (*gpio_chip_base >> 3) & 0x07;
-+		gpio[2] = 0;
-+		ret = cxd2820r_gpio(&priv->fe, gpio);
-+		if (ret)
-+			goto error;
- #endif
-+	}
- 
--	memcpy(&priv->fe.ops, &cxd2820r_ops, sizeof (struct dvb_frontend_ops));
--	priv->fe.demodulator_priv = priv;
- 	return &priv->fe;
- error:
- 	dev_dbg(&i2c->dev, "%s: failed=%d\n", __func__, ret);
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index 75f907a..e0128b3 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -983,6 +983,8 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 				   &dev->i2c_adap, &kworld_a340_config);
- 		break;
- 	case EM28174_BOARD_PCTV_290E:
-+		/* set default GPIO0 for LNA, used if GPIOLIB is undefined */
-+		dvb->gpio = CXD2820R_GPIO_E | CXD2820R_GPIO_O | CXD2820R_GPIO_L;
- 		dvb->fe[0] = dvb_attach(cxd2820r_attach,
- 					&em28xx_cxd2820r_config,
- 					&dev->i2c_adap,
+Frame length == image height + vertical blanking.
+
+The SMIA++ driver (at least) associates the blanking controls to the 
+pixel array subdev. They might be more naturally placed to the source 
+(either binner or scaler) but the width and height (to calculate the 
+frame and line length) are related to the dimensions of the pixel array 
+crop rectangle.
+
+So when the binning configuration changes, that changes the limits for 
+blanking and thus possibly also blanking itself.
+
+>>>> It's not directly related to this patch, but the effect of the driver
+>>>> just exposing one sub-device really shows better now. Besides lacking
+>>>> the way to specify binning as in the V4L2 subdev API (compose selection
+>>>> target), the user also can't use the crop bounds selection target to get
+>>>> the size of the pixel array.
+>>>>
+>>>> We could either accept this for the time being and fix it later on of
+>>>> fix it now.
+>>>>
+>>>> I prefer fixing it right now but admit that this patch isn't breaking
+>>>> anything, it rather is missing quite relevant functionality to control
+>>>> the sensor in a generic way.
+>>>
+>>> I'd rather apply this patch first, as it doesn't break anything :-) Fixing
+>>> the problem will require discussions, and that will take time.
+>>
+>> How so? There's nothing special in this sensor as far as I can see.
+>>
+>>> Binning/skipping is a pretty common feature in sensors. Exposing two sub-
+>>> devices like the SMIA++ driver does is one way to fix the problem, but do
+>>> we really want to do that for the vast majority of sensors ?
+>>
+>> If we want to expose the sensor's functionality using the V4L2 subdev API
+>> and not a sensor specific API, the answer is "yes". The bottom line is that
+>> we have just one API to configure scaling and cropping and that API
+>> (selections) is the same independently of where the operation is being
+>> performed; whether it's the sensor or the ISP.
+>
+> If we want to expose two subdevices for every sensor we will need to get both
+> kernelspace (ISP drivers) and userspace ready for this. I'm not against the
+> idea, but we need to plan it properly.
+
+I fully agree that this has to be planned properly; e.g. libv4l support for
+controlling low level devices required by this is completely missing right
+now.
+
+Cheers,
+
 -- 
-1.7.11.2
-
+Sakari Ailus
+sakari.ailus@iki.fi
