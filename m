@@ -1,64 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:11340 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:56213 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757554Ab2HVPWB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Aug 2012 11:22:01 -0400
-Message-ID: <5034F932.4000405@redhat.com>
-Date: Wed, 22 Aug 2012 17:22:26 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Guenter Roeck <linux@roeck-us.net>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media/radio/shark2: Fix build error caused by missing
- dependencies
-References: <1345648585-5176-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1345648585-5176-1-git-send-email-linux@roeck-us.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1752278Ab2HMCeD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Aug 2012 22:34:03 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/2] DVB API: add INTERLEAVING_AUTO
+Date: Mon, 13 Aug 2012 05:33:22 +0300
+Message-Id: <1344825202-2296-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1344825202-2296-1-git-send-email-crope@iki.fi>
+References: <1344825202-2296-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+After thinking twice, I ended up adding own value for AUTO
+interleaving instead of using NONE.
 
-I've a better fix for this here:
-http://git.linuxtv.org/hgoede/gspca.git/shortlog/refs/heads/media-for_v3.6
+API minor number is not needed to increase as that patch should
+be the same Kernel as interleaving parameter is initially added.
 
-I already send a pull-req for this to Mauro a while ago, Mauro?
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ Documentation/DocBook/media/dvb/dvbproperty.xml | 1 +
+ include/linux/dvb/frontend.h                    | 1 +
+ 2 files changed, 2 insertions(+)
 
-Regards,
+diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
+index 5aea35e..eddfe6f 100644
+--- a/Documentation/DocBook/media/dvb/dvbproperty.xml
++++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
+@@ -821,6 +821,7 @@ typedef enum fe_hierarchy {
+ 	<programlisting>
+ enum fe_interleaving {
+ 	INTERLEAVING_NONE,
++	INTERLEAVING_AUTO,
+ 	INTERLEAVING_240,
+ 	INTERLEAVING_720,
+ };
+diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
+index 2dd5823..c92b4d6 100644
+--- a/include/linux/dvb/frontend.h
++++ b/include/linux/dvb/frontend.h
+@@ -222,6 +222,7 @@ typedef enum fe_hierarchy {
+ 
+ enum fe_interleaving {
+ 	INTERLEAVING_NONE,
++	INTERLEAVING_AUTO,
+ 	INTERLEAVING_240,
+ 	INTERLEAVING_720,
+ };
+-- 
+1.7.11.2
 
-Hans
-
-On 08/22/2012 05:16 PM, Guenter Roeck wrote:
-> Fix build error:
->
-> ERROR: "led_classdev_register" [drivers/media/radio/shark2.ko] undefined!
-> ERROR: "led_classdev_unregister" [drivers/media/radio/shark2.ko] undefined!
->
-> which is seen if RADIO_SHARK2 is enabled, but LEDS_CLASS is not.
->
-> Since RADIO_SHARK2 depends on NEW_LEDS and LEDS_CLASS, select both if
-> it is enabled.
->
-> Cc: Hans de Goede <hdegoede@redhat.com>
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->   drivers/media/radio/Kconfig |    2 ++
->   1 file changed, 2 insertions(+)
->
-> diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-> index 8090b87..bee4bee 100644
-> --- a/drivers/media/radio/Kconfig
-> +++ b/drivers/media/radio/Kconfig
-> @@ -77,6 +77,8 @@ config RADIO_SHARK
->   config RADIO_SHARK2
->   	tristate "Griffin radioSHARK2 USB radio receiver"
->   	depends on USB
-> +	select NEW_LEDS
-> +	select LEDS_CLASS
->   	---help---
->   	  Choose Y here if you have this radio receiver.
->
->
