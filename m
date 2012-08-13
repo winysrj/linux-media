@@ -1,401 +1,342 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:19599 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933719Ab2HWJwZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Aug 2012 05:52:25 -0400
-Received: from epcpsbgm1.samsung.com (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M9700EG3CQH07Z0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 23 Aug 2012 18:52:23 +0900 (KST)
-Received: from amdc248.digital.local ([106.116.147.32])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M9700GHMCQHII60@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 23 Aug 2012 18:52:23 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	sakari.ailus@iki.fi, g.liakhovetski@gmx.de,
-	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC 4/4] s5p-fimc: Add support for V4L2_PIX_FMT_S5C_UYVY_JPG
- fourcc
-Date: Thu, 23 Aug 2012 11:51:29 +0200
-Message-id: <1345715489-30158-5-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1345715489-30158-1-git-send-email-s.nawrocki@samsung.com>
-References: <1345715489-30158-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:4183 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750861Ab2HMRhZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Aug 2012 13:37:25 -0400
+Message-ID: <50293B36.4060109@redhat.com>
+Date: Mon, 13 Aug 2012 14:36:54 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Steven Toth <stoth@kernellabs.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Mauro Chehab <mchehab@infradead.org>
+Subject: Re: [GIT PULL] ViewCast O820E capture support added
+References: <CALzAhNVEXexQELbbXzpzxeiUat-oXqhxQ1kiA7K1ibXTm8X+YQ@mail.gmail.com> <201208131604.28675.hverkuil@xs4all.nl> <CALzAhNVFSH0+y9XU39EzzBhH4rAAC2RStZKA3hzTfexzCKBHRQ@mail.gmail.com> <201208131749.27701.hverkuil@xs4all.nl>
+In-Reply-To: <201208131749.27701.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for the interleaved JPEG/UYVY
-V4L2_PIX_FMT_S5C_UYVY_JPG image format.
+Em 13-08-2012 12:49, Hans Verkuil escreveu:
+> On Mon August 13 2012 16:46:45 Steven Toth wrote:
+>> Hans,
+>>
+>> Thanks for your feedback.
+>>
+>> Oh dear. I don't think you're going to like my response, but I think
+>> we know each other well enough to realize that neither of us are
+>> trying to antagonize or upset either other. We're simply stating our
+>> positions. Please read on.
+> 
+> I didn't think you'd like my response either :-)
 
-To ensure the size of allocated buffers is correct for a subdev
-configuration during VIDIOC_STREAMON ioctl, an additional check
-is added the video at the data pipeline validation routine.
+You probably won't like my answer too, yet I'm also simply 
+stating my positions.
 
-Flag FMT_FLAGS_COMPRESSED indicates the buffer size must be
-retrieved from a sensor subdev, by means of V4L2_CID_FRAMESIZE
-control.
+> 
+>>> I went through this driver from a high-level point of view, and I'm afraid I
+>>> have quite a number of issues with this driver.
+>>>
+>>> One of the bigger ones is that vc8x0-ad7441.c should be implemented as
+>>> a subdevice. I have two other AD drivers in my queue (adv7604 and ad9389b),
+>>> so you can look at those for comparison.
+>>>
+>>> See: http://www.spinics.net/lists/linux-media/msg51501.html
+>>
+>> Oh, I understand how to write video decoder drivers. I just chose
+>> specifically not to do it. This was intensional on my part. If when
+>> another card comes along with an ad7441 when they are welcome to split
+>> the code and/or create the subdevs. It's extra engineering today that
+>> does't improve the support for the 820 card and doesn't benefit any
+>> other known product. It's a feature that's exclusive to the 820.
+>> Future developers are welcome to fork, slice and/or copy the code.
+>> Today, the driver is tuned exactly for the card, it works very nicely
+>> for end users and the code is easy to read, simple to debug and relies
+>> on only a handful of v4l2 framework apis.
+> 
+> The problem is that it is very hard, if not impossible, to split something
+> up after the fact. There are almost no drivers left that still have an
+> integral i2c driver as opposed to a separate i2c driver. I only know of
+> a few old ones and at least one in staging (not counting reverse
+> engineered drivers such as in gspca where there is no choice).
+> 
+> The main advantage is that it is much easier to extend the functionality
+> of your driver, particularly for devices with a lot of functionality like
+> those ADV drivers.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-fimc/fimc-capture.c | 86 ++++++++++++++++++++------
- drivers/media/platform/s5p-fimc/fimc-core.c    | 16 ++++-
- drivers/media/platform/s5p-fimc/fimc-core.h    | 26 ++++++--
- drivers/media/platform/s5p-fimc/fimc-reg.c     |  3 +-
- drivers/media/platform/s5p-fimc/mipi-csis.c    |  6 +-
- 5 files changed, 111 insertions(+), 26 deletions(-)
+Agreed. I also noticed that the I2C code there is currently
+highly-coupled with the bridge one. For example, you're setting the DV 
+timings via a direct call to vc8x0_ad7441_set_format(), which is a
+method of the I2C ad7441 driver (with, btw, is not an independent driver,
+but it is part of the same driver).
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c b/drivers/media/platform/s5p-fimc/fimc-capture.c
-index 8e413dd..ab062f3 100644
---- a/drivers/media/platform/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
-@@ -349,6 +349,8 @@ static int queue_setup(struct vb2_queue *vq, const struct v4l2_format *pfmt,
- 		unsigned int size = (wh * fmt->depth[i]) / 8;
- 		if (pixm)
- 			sizes[i] = max(size, pixm->plane_fmt[i].sizeimage);
-+		else if (fimc_fmt_is_user_defined(fmt->color))
-+			sizes[i] = frame->payload[i];
- 		else
- 			sizes[i] = max_t(u32, size, frame->payload[i]);
- 
-@@ -608,10 +610,10 @@ static struct fimc_fmt *fimc_capture_try_format(struct fimc_ctx *ctx,
- 	u32 mask = FMT_FLAGS_CAM;
- 	struct fimc_fmt *ffmt;
- 
--	/* Color conversion from/to JPEG is not supported */
-+	/* Conversion from/to JPEG or User Defined format is not supported */
- 	if (code && ctx->s_frame.fmt && pad == FIMC_SD_PAD_SOURCE &&
--	    fimc_fmt_is_jpeg(ctx->s_frame.fmt->color))
--		*code = V4L2_MBUS_FMT_JPEG_1X8;
-+	    fimc_fmt_is_user_defined(ctx->s_frame.fmt->color))
-+		*code = ctx->s_frame.fmt->mbus_code;
- 
- 	if (fourcc && *fourcc != V4L2_PIX_FMT_JPEG && pad != FIMC_SD_PAD_SINK)
- 		mask |= FMT_FLAGS_M2M;
-@@ -625,18 +627,19 @@ static struct fimc_fmt *fimc_capture_try_format(struct fimc_ctx *ctx,
- 		*fourcc = ffmt->fourcc;
- 
- 	if (pad == FIMC_SD_PAD_SINK) {
--		max_w = fimc_fmt_is_jpeg(ffmt->color) ?
-+		max_w = fimc_fmt_is_user_defined(ffmt->color) ?
- 			pl->scaler_dis_w : pl->scaler_en_w;
- 		/* Apply the camera input interface pixel constraints */
- 		v4l_bound_align_image(width, max_t(u32, *width, 32), max_w, 4,
- 				      height, max_t(u32, *height, 32),
- 				      FIMC_CAMIF_MAX_HEIGHT,
--				      fimc_fmt_is_jpeg(ffmt->color) ? 3 : 1,
-+				      fimc_fmt_is_user_defined(ffmt->color) ?
-+				      3 : 1,
- 				      0);
- 		return ffmt;
- 	}
- 	/* Can't scale or crop in transparent (JPEG) transfer mode */
--	if (fimc_fmt_is_jpeg(ffmt->color)) {
-+	if (fimc_fmt_is_user_defined(ffmt->color)) {
- 		*width  = ctx->s_frame.f_width;
- 		*height = ctx->s_frame.f_height;
- 		return ffmt;
-@@ -681,7 +684,7 @@ static void fimc_capture_try_selection(struct fimc_ctx *ctx,
- 	u32 max_sc_h, max_sc_v;
- 
- 	/* In JPEG transparent transfer mode cropping is not supported */
--	if (fimc_fmt_is_jpeg(ctx->d_frame.fmt->color)) {
-+	if (fimc_fmt_is_user_defined(ctx->d_frame.fmt->color)) {
- 		r->width  = sink->f_width;
- 		r->height = sink->f_height;
- 		r->left   = r->top = 0;
-@@ -844,6 +847,23 @@ static int fimc_pipeline_try_format(struct fimc_ctx *ctx,
- 	return 0;
- }
- 
-+static int get_sensor_frame_size(struct v4l2_subdev *sensor, __u32 *size)
-+{
-+	struct v4l2_ctrl *ctrl;
-+
-+	ctrl = v4l2_ctrl_find(sensor->ctrl_handler, V4L2_CID_FRAMESIZE);
-+	if (ctrl == NULL)
-+		return -ENXIO;
-+
-+	*size = v4l2_ctrl_g_ctrl(ctrl);
-+
-+	if (*size <= FIMC_MAX_JPEG_BUF_SIZE)
-+		return 0;
-+
-+	v4l2_err(sensor->v4l2_dev, "Unsupported buffer size: %u\n", *size);
-+	return -EINVAL;
-+}
-+
- static int fimc_cap_g_fmt_mplane(struct file *file, void *fh,
- 				 struct v4l2_format *f)
- {
-@@ -862,7 +882,7 @@ static int fimc_cap_try_fmt_mplane(struct file *file, void *fh,
- 	struct v4l2_mbus_framefmt mf;
- 	struct fimc_fmt *ffmt = NULL;
- 
--	if (pix->pixelformat == V4L2_PIX_FMT_JPEG) {
-+	if (fimc_jpeg_fourcc(pix->pixelformat)) {
- 		fimc_capture_try_format(ctx, &pix->width, &pix->height,
- 					NULL, &pix->pixelformat,
- 					FIMC_SD_PAD_SINK);
-@@ -876,25 +896,32 @@ static int fimc_cap_try_fmt_mplane(struct file *file, void *fh,
- 		return -EINVAL;
- 
- 	if (!fimc->vid_cap.user_subdev_api) {
--		mf.width  = pix->width;
-+		mf.width = pix->width;
- 		mf.height = pix->height;
--		mf.code   = ffmt->mbus_code;
-+		mf.code = ffmt->mbus_code;
- 		fimc_md_graph_lock(fimc);
- 		fimc_pipeline_try_format(ctx, &mf, &ffmt, false);
- 		fimc_md_graph_unlock(fimc);
--
--		pix->width	 = mf.width;
--		pix->height	 = mf.height;
-+		pix->width = mf.width;
-+		pix->height = mf.height;
- 		if (ffmt)
- 			pix->pixelformat = ffmt->fourcc;
- 	}
- 
- 	fimc_adjust_mplane_format(ffmt, pix->width, pix->height, pix);
-+
-+	if (ffmt->flags & FMT_FLAGS_COMPRESSED)
-+		get_sensor_frame_size(fimc->pipeline.subdevs[IDX_SENSOR],
-+				      &pix->plane_fmt[0].sizeimage);
-+
- 	return 0;
- }
- 
--static void fimc_capture_mark_jpeg_xfer(struct fimc_ctx *ctx, bool jpeg)
-+static void fimc_capture_mark_jpeg_xfer(struct fimc_ctx *ctx,
-+					enum fimc_color_fmt color)
- {
-+	bool jpeg = fimc_fmt_is_user_defined(color);
-+
- 	ctx->scaler.enabled = !jpeg;
- 	fimc_ctrls_activate(ctx, !jpeg);
- 
-@@ -917,7 +944,7 @@ static int fimc_capture_set_format(struct fimc_dev *fimc, struct v4l2_format *f)
- 		return -EBUSY;
- 
- 	/* Pre-configure format at camera interface input, for JPEG only */
--	if (pix->pixelformat == V4L2_PIX_FMT_JPEG) {
-+	if (fimc_jpeg_fourcc(pix->pixelformat)) {
- 		fimc_capture_try_format(ctx, &pix->width, &pix->height,
- 					NULL, &pix->pixelformat,
- 					FIMC_SD_PAD_SINK);
-@@ -950,7 +977,15 @@ static int fimc_capture_set_format(struct fimc_dev *fimc, struct v4l2_format *f)
- 	}
- 
- 	fimc_adjust_mplane_format(ff->fmt, pix->width, pix->height, pix);
--	for (i = 0; i < ff->fmt->colplanes; i++)
-+
-+	if (ff->fmt->flags & FMT_FLAGS_COMPRESSED) {
-+		ret = get_sensor_frame_size(fimc->pipeline.subdevs[IDX_SENSOR],
-+					    &pix->plane_fmt[0].sizeimage);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	for (i = 0; i < ff->fmt->memplanes; i++)
- 		ff->payload[i] = pix->plane_fmt[i].sizeimage;
- 
- 	set_frame_bounds(ff, pix->width, pix->height);
-@@ -958,7 +993,7 @@ static int fimc_capture_set_format(struct fimc_dev *fimc, struct v4l2_format *f)
- 	if (!(ctx->state & FIMC_COMPOSE))
- 		set_frame_crop(ff, 0, 0, pix->width, pix->height);
- 
--	fimc_capture_mark_jpeg_xfer(ctx, fimc_fmt_is_jpeg(ff->fmt->color));
-+	fimc_capture_mark_jpeg_xfer(ctx, ff->fmt->color);
- 
- 	/* Reset cropping and set format at the camera interface input */
- 	if (!fimc->vid_cap.user_subdev_api) {
-@@ -1060,6 +1095,21 @@ static int fimc_pipeline_validate(struct fimc_dev *fimc)
- 		    src_fmt.format.height != sink_fmt.format.height ||
- 		    src_fmt.format.code != sink_fmt.format.code)
- 			return -EPIPE;
-+
-+		if (sd == fimc->pipeline.subdevs[IDX_SENSOR] &&
-+		    fimc_user_defined_mbus_fmt(src_fmt.format.code)) {
-+			struct v4l2_plane_pix_format plane_fmt[FIMC_MAX_PLANES];
-+			struct fimc_frame *frame = &vid_cap->ctx->d_frame;
-+			unsigned int i;
-+
-+			ret = get_sensor_frame_size(sd, &plane_fmt[0].sizeimage);
-+			if (ret < 0)
-+				return -EPIPE;
-+			for (i = 0; i < frame->fmt->memplanes; i++) {
-+				if (frame->payload[i] < plane_fmt[i].sizeimage)
-+					return -EPIPE;
-+			}
-+		}
- 	}
- 	return 0;
- }
-@@ -1421,7 +1471,7 @@ static int fimc_subdev_set_fmt(struct v4l2_subdev *sd,
- 	/* Update RGB Alpha control state and value range */
- 	fimc_alpha_ctrl_update(ctx);
- 
--	fimc_capture_mark_jpeg_xfer(ctx, fimc_fmt_is_jpeg(ffmt->color));
-+	fimc_capture_mark_jpeg_xfer(ctx, ffmt->color);
- 
- 	ff = fmt->pad == FIMC_SD_PAD_SINK ?
- 		&ctx->s_frame : &ctx->d_frame;
-diff --git a/drivers/media/platform/s5p-fimc/fimc-core.c b/drivers/media/platform/s5p-fimc/fimc-core.c
-index 1a44540..b3249b1 100644
---- a/drivers/media/platform/s5p-fimc/fimc-core.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-core.c
-@@ -184,7 +184,16 @@ static struct fimc_fmt fimc_formats[] = {
- 		.memplanes	= 1,
- 		.colplanes	= 1,
- 		.mbus_code	= V4L2_MBUS_FMT_JPEG_1X8,
--		.flags		= FMT_FLAGS_CAM,
-+		.flags		= FMT_FLAGS_CAM | FMT_FLAGS_COMPRESSED,
-+	}, {
-+		.name		= "S5C73MX interleaved JPEG/YUYV",
-+		.fourcc		= V4L2_PIX_FMT_S5C_UYVY_JPG,
-+		.color		= FIMC_FMT_UYVY_JPEG,
-+		.depth		= { 8 },
-+		.memplanes	= 1,
-+		.colplanes	= 1,
-+		.mbus_code	= V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8,
-+		.flags		= FMT_FLAGS_CAM | FMT_FLAGS_COMPRESSED,
- 	},
- };
- 
-@@ -698,6 +707,11 @@ int fimc_fill_format(struct fimc_frame *frame, struct v4l2_format *f)
- 		if (frame->fmt->colplanes == 1) /* packed formats */
- 			bpl = (bpl * frame->fmt->depth[0]) / 8;
- 		pixm->plane_fmt[i].bytesperline = bpl;
-+
-+		if (frame->fmt->flags & FMT_FLAGS_COMPRESSED) {
-+			pixm->plane_fmt[i].sizeimage = frame->payload[i];
-+			continue;
-+		}
- 		pixm->plane_fmt[i].sizeimage = (frame->o_width *
- 			frame->o_height * frame->fmt->depth[i]) / 8;
- 	}
-diff --git a/drivers/media/platform/s5p-fimc/fimc-core.h b/drivers/media/platform/s5p-fimc/fimc-core.h
-index 808ccc6..8e1a9e8 100644
---- a/drivers/media/platform/s5p-fimc/fimc-core.h
-+++ b/drivers/media/platform/s5p-fimc/fimc-core.h
-@@ -40,6 +40,8 @@
- #define SCALER_MAX_VRATIO	64
- #define DMA_MIN_SIZE		8
- #define FIMC_CAMIF_MAX_HEIGHT	0x2000
-+#define FIMC_MAX_JPEG_BUF_SIZE	SZ_8M
-+#define FIMC_MAX_PLANES		3
- 
- /* indices to the clocks array */
- enum {
-@@ -83,7 +85,7 @@ enum fimc_datapath {
- };
- 
- enum fimc_color_fmt {
--	FIMC_FMT_RGB444 = 0x10,
-+	FIMC_FMT_RGB444	= 0x10,
- 	FIMC_FMT_RGB555,
- 	FIMC_FMT_RGB565,
- 	FIMC_FMT_RGB666,
-@@ -95,14 +97,15 @@ enum fimc_color_fmt {
- 	FIMC_FMT_CBYCRY422,
- 	FIMC_FMT_CRYCBY422,
- 	FIMC_FMT_YCBCR444_LOCAL,
--	FIMC_FMT_JPEG = 0x40,
--	FIMC_FMT_RAW8 = 0x80,
-+	FIMC_FMT_RAW8 = 0x40,
- 	FIMC_FMT_RAW10,
- 	FIMC_FMT_RAW12,
-+	FIMC_FMT_JPEG = 0x80,
-+	FIMC_FMT_UYVY_JPEG = 0x100,
- };
- 
-+#define fimc_fmt_is_user_defined(x) (!!((x) & 0x180))
- #define fimc_fmt_is_rgb(x) (!!((x) & 0x10))
--#define fimc_fmt_is_jpeg(x) (!!((x) & 0x40))
- 
- #define IS_M2M(__strt) ((__strt) == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE || \
- 			__strt == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-@@ -155,6 +158,7 @@ struct fimc_fmt {
- #define FMT_FLAGS_M2M_OUT	(1 << 2)
- #define FMT_FLAGS_M2M		(1 << 1 | 1 << 2)
- #define FMT_HAS_ALPHA		(1 << 3)
-+#define FMT_FLAGS_COMPRESSED	(1 << 4)
- };
- 
- /**
-@@ -272,7 +276,7 @@ struct fimc_frame {
- 	u32	offs_v;
- 	u32	width;
- 	u32	height;
--	unsigned long		payload[VIDEO_MAX_PLANES];
-+	unsigned int		payload[VIDEO_MAX_PLANES];
- 	struct fimc_addr	paddr;
- 	struct fimc_dma_offset	dma_offset;
- 	struct fimc_fmt		*fmt;
-@@ -576,6 +580,18 @@ static inline int tiled_fmt(struct fimc_fmt *fmt)
- 	return fmt->fourcc == V4L2_PIX_FMT_NV12MT;
- }
- 
-+static inline bool fimc_jpeg_fourcc(u32 pixelformat)
-+{
-+	return (pixelformat == V4L2_PIX_FMT_JPEG ||
-+		pixelformat == V4L2_PIX_FMT_S5C_UYVY_JPG);
-+}
-+
-+static inline bool fimc_user_defined_mbus_fmt(u32 code)
-+{
-+	return (code == V4L2_MBUS_FMT_JPEG_1X8 ||
-+		code == V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8);
-+}
-+
- /* Return the alpha component bit mask */
- static inline int fimc_get_alpha_mask(struct fimc_fmt *fmt)
- {
-diff --git a/drivers/media/platform/s5p-fimc/fimc-reg.c b/drivers/media/platform/s5p-fimc/fimc-reg.c
-index 0e3eb9c..db03152 100644
---- a/drivers/media/platform/s5p-fimc/fimc-reg.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-reg.c
-@@ -625,7 +625,7 @@ int fimc_hw_set_camera_source(struct fimc_dev *fimc,
- 				cfg |= FIMC_REG_CISRCFMT_ITU601_16BIT;
- 		} /* else defaults to ITU-R BT.656 8-bit */
- 	} else if (cam->bus_type == FIMC_MIPI_CSI2) {
--		if (fimc_fmt_is_jpeg(f->fmt->color))
-+		if (fimc_fmt_is_user_defined(f->fmt->color))
- 			cfg |= FIMC_REG_CISRCFMT_ITU601_8BIT;
- 	}
- 
-@@ -680,6 +680,7 @@ int fimc_hw_set_camera_type(struct fimc_dev *fimc,
- 			tmp = FIMC_REG_CSIIMGFMT_YCBCR422_8BIT;
- 			break;
- 		case V4L2_MBUS_FMT_JPEG_1X8:
-+		case V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8:
- 			tmp = FIMC_REG_CSIIMGFMT_USER(1);
- 			cfg |= FIMC_REG_CIGCTRL_CAM_JPEG;
- 			break;
-diff --git a/drivers/media/platform/s5p-fimc/mipi-csis.c b/drivers/media/platform/s5p-fimc/mipi-csis.c
-index 2f73d9e..e479fe0 100644
---- a/drivers/media/platform/s5p-fimc/mipi-csis.c
-+++ b/drivers/media/platform/s5p-fimc/mipi-csis.c
-@@ -145,7 +145,11 @@ static const struct csis_pix_format s5pcsis_formats[] = {
- 		.code = V4L2_MBUS_FMT_JPEG_1X8,
- 		.fmt_reg = S5PCSIS_CFG_FMT_USER(1),
- 		.data_alignment = 32,
--	},
-+	}, {
-+		.code = V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8,
-+		.fmt_reg = S5PCSIS_CFG_FMT_USER(1),
-+		.data_alignment = 32,
-+	}
- };
- 
- #define s5pcsis_write(__csis, __r, __v) writel(__v, __csis->regs + __r)
--- 
-1.7.11.3
+We only allow such kind of designs as a temporary measure, for drivers
+under drivers/staging/media, where the developer is going to fix them
+in order to fully use the V4L core, as highly coupled designs like that
+are really hard to review, as the interactions between the drivers
+aren't at the usual/expected places.
+
+>> Today, the driver is tuned exactly for the card, it works very nicely
+>> for end users and the code is easy to read, simple to debug and relies
+>> on only a handful of v4l2 framework apis.
+
+It looks easy to read for you, not for me, and likely not for the
+others:
+
+ 21 files changed, 15580 insertions(+)
+
+A 15000+ lines driver is not easy to read/understand. Having it highly
+coupled and not using the core API's, but using something else makes
+even harder to understand it.
+
+>> The subdev framework (in my opinion) has become
+>> unwieldily and difficult to debug, based on my recent experience
+>> dealing with some cx23885 issues. I'm intensionally trying not to use
+>> it.
+> 
+> In what respect does the subdev framework make debugging hard? I'd like to
+> know about it so we can try and improve it.
+> 
+> The subdev framework was made to make reuse possible. If everyone refuses
+> to use it, then we're back to the bad old times where you get 20
+> almost-but-not-quite identical i2c driver implementations.
+
+>> I should be clear, my comments are not mean to antagonize or inflame,
+>> I'm simply pointing out that when at all possible I chose not to use
+>> the subdev framework because if it's delays and difficulties when it
+>> comes to debugging.
+>>
+>> When did the subdev framework become a mandatory requirement for any
+>> driver merge?
+
+This was always a requirement: complex drivers should be broken into
+per-component drivers, in order to make easier to review and to re-use
+the code. Even the drivers at Kernel 2.5.x followed that idea, and
+we're working hard to simplify drivers code by making them modular
+and loosely coupled.
+
+With modular, loosely coupled drivers, a complex logic is broken into
+smaller and easier to understand logic.
+
+> It is certainly highly recommended, and in my opinion there should be
+> very good reasons for not doing it. In the end it is Mauro who decides,
+> although I personally would be in favor of mandating it. Not to pester
+> people, but it is so much harder to split it up after the fact. Just like
+> the fact that documentation is now required if a new API is added, because
+> nobody ever writes documentation afterwards.
+
+I agree. Of course exceptions might apply, if there are really very
+good and well accepted reasons for not doing that.
+
+>>> These Analog Devices chips are quite complex, and you really want to be able
+>>> to reuse drivers.
+>>
+>> I am certainly more than willing to discuss re-use, when re-use make
+>> sense. Right now we have no-practical re-use for this part to speak
+>> of. The code is targeted towards the 820, in the use case that end
+>> users need. If someone would like to build a ad7441 subdevice and use
+>> that in their driver then they are welcome to the code. In practise,
+>> sharing complex video decoders across driver designs leads to massive
+>> regressions, as witnessed on the list this year.
+
+Regressions happen even if no re-use is done: core, other parts of the
+Kernel and userspace apps changes all the times, causing regressions.
+That's called bitrotten[1].
+
+[1] http://en.wikipedia.org/wiki/Bit_rot
+
+One good example is with regards to firmware loading: today's userspace
+requirement is that firmware load can't happen during driver's probe. 
+All drivers that do that (almost all media drivers with firmware) are
+broken (or only loads after timeout - 120 seconds?) with newer udev's,
+even if you run an old kernel.
+
+Side note: your Viewcast 0820E driver also suffers from request_firmware()
+regression, as it doesn't use request_firmware_nowait() and tries to load
+the firmware during device probe.
+
+The only way to be sure that regressions aren't introduced is to run
+a testbench on every new kernel release.
+
+>> I am also aware that the cx25840 driver is complex, and the end result
+>> was that driver maintainers effectively forked the cx25840 and brought
+>> the codebase back into their core drivers (cx18 for example), to avoid
+>> issues where regression testing was troublesome across so many cards.
+> 
+> I don't think the cx18 ever used the cx25840 codebase: while the cx23418
+> uses a similar IP as the cx25840 there were too many differences to allow
+> us (actually, I think it was me who wrote it initially for the cx18) to
+> reuse the cx25840.
+> 
+> That's a general problem, BTW: reuse works well for the exact same chip.
+> But when you get variants of the chip (or it gets integrated in another chip
+> as an IP block), then at some point keeping track of those differences and
+> preventing regressions becomes harder than it would be if they were done as
+> separate drivers.
+> 
+> Where that boundary is is not always clear, and for the cx25840 we probably
+> exceeded it.
+
+Agreed.
+
+> But sharing a subdevice driver for a single chip among different boards has
+> never been much of a problem in my experience. I'm not saying we never got
+> regressions, but not many and they were generally quickly caught.
+> 
+>> If I had the time and/or energy, we'd do the same with the cx25840.
+>> Keeping complex code close to the PCI/PCIe bridge bring big dividends
+>> when debugging complex problems and mitigating issues where code is
+>> re-used across multiple products (growing any regression test
+>> requirements).
+>>
+>> The entire driver was intensionally written to be self-enclosed,
+>> highly portable between 2.6.3x and v3.x kernels without subdev
+>> breakages and/or api changes. With a small external Makefile it even
+>> builds very nicely outside of the kernel on any kernel you like, that
+>> shipped in the last 2-3 years.
+> 
+> ??? We have the media_build system for that, so why care about older kernels?
+> 
+>>>
+>>> Some of the other issues are:
+>>>
+>>> - Please use the control framework. All new drivers must use it, unless there
+>>>   are very, very good reasons not to. I'm gradually converting all drivers to
+>>>   the control framework, so I really don't want to introduce new drivers to
+>>>   that list.
+>>
+>> I think the control framework is a great design, it's just too
+>> difficult to debug and when I go near it - it breaks, or I spend an
+>> hour trying to understand why my subdev call doesn't reach the subdev
+>> device. My comments are not designed to inflame or upset you, I'm
+>> simply pointing out that any work I've done recently (on two new PCIe
+>> bridges - unreleased code) I've decided not to use it.
+> 
+> Ask me if there are problems with the control framework! I'm happy to help out.
+> 
+> I can't fix it, improve it, etc. if I don't here about it.
+> 
+> The reason why all drivers should use it is that is behaves the same for all
+> drivers, and apps can start to rely on that behavior. If something doesn't work,
+> and you can't figure it out, then I am more than happy to help.
+> 
+> But I will NACK this driver unless it is using the control framework. Otherwise
+> I just have to do that later, and I really don't want to. There aren't many
+> controls in this driver so it should be pretty quick to do it.
+> 
+> In addition, the control framework will make it easy to implement control events,
+> another thing that should be rolled out to all drivers.
+> 
+>> Again, I specifically chosen to isolate this driver from certain key
+>> areas of the (now enormous) v4l2 infrastructure.
+> 
+> There is a reason for that infrastructure, you know. Consistent behavior from
+> the point of view of applications is the most important one. And it actually
+> takes a lot of work off your hands. Again, if there are questions, then I'm
+> happy to help out (and possible improve the code or documentation).
+> 
+>>
+>>>
+>>> - TRY_FMT can actually set the format, something that should never happen.
+>>
+>> I can check, but I think gstreamer or tvtime actually relies on that behavior.
+> 
+> Highly unlikely. TRY_FMT should *never* change the actual format. It's been like
+> that since the very beginning.
+
+I doubt tvtime or gstreamer would be relying on that: API is clear that try_* doesn't
+change it, and drivers don't change format on try_fmt.
+
+If your driver is working with those apps, It is probably pretty much the reverse: 
+the applications are either not using try_fmt, or doing an s_fmt before streaming,
+reverting any changes that might be happening with try_fmt.
+
+>>> - Use the new DV_TIMINGS ioctls for the HDTV formats. S_FMT should not be used
+>>>   to select the HDTV format!
+>>
+>> gstreamer on 2.6.37 and better didn't support DVTIMINGs. I would
+>> certainly like to discuss adding better timing support once
+>> applications are fully aware and can control the hardware using it.
+>> The lack of a good timin API (and adoption by the application
+>> developers) forced my hand to use S_FMT.
+> 
+> You said that it was in your queue for some time, so it may be that it wasn't
+> available when you started out. The problem is, the API is now available, and
+> if drivers do not implement it, then there is also no reason for applications
+> to use it, isn't it? Chicken and egg.
+> 
+> I will NACK if the driver doesn't add support for it. Otherwise we end up with
+> some drivers that implement it correctly, and others that use a different
+> method. No application writer will ever thank us for that.
+> 
+> Also, I didn't go through all the hard work of designing and adding an API and
+> then see it being ignored in favor of a non-standard solution.
+> 
+>> Right now the driver works today, on old and new systems, for hardware
+>> that's shipping. It satisfies end user needs.
+>>
+>>>
+>>> - The procfs additions seem unnecessary to me. VIDIOC_LOG_STATUS or perhaps
+>>>   debugfs are probably much more suitable.
+>>
+>> I agree. It can probably be removed altogether.
+>>
+>>>
+>>> - Using videobuf2 is very much recommended.
+>>
+>> I went with what I know to be honest. I neither agree nor disagree
+>> with your comments. If videobuf2 is supported on 2.6.3x then this is
+>> good news.
+> 
+> If you use media_build to compile your driver, then everything including vb2
+> is supported from 2.6.31 onwards (the oldest kernel supported by media_build).
+
+Btw, 2.6.31 limit is just because none cares to have it supported on older
+releases. Once I needed to test a driver on 2.6.28, and it was not hard to
+add the very few missing bits for that driver to work there.
+
+>>
+>>>
+>>> - Please run v4l2-compliance and fix any reported issues!
+>>>
+>>> It's a pretty big driver, so I only looked skimmed the patch, but these are
+>>> IMHO fairly major issues. As it stands it is only suitable to be merged in
+>>> drivers/staging/media.
+>>
+>> I'm not sure I agree. I think I don't agree in general that subdev and
+>> the control framework is mandatory for any driver. I think they are
+>> accelerator frameworks designed to help. I my case I don't think they
+>> do. So I avoided using them.
+>>
+>> I guess Mauro has the final decision.
+> 
+> Of course.
+
+I would accept it only if you have very strong technical reasons why not
+using the existing infrastructure, e. g. you need to clearly explain
+what makes your driver so different that the v4l infrastructure won't work
+and can't be fixed to work with?
+
+If you're willing to change it to fulfill the requirements, the driver
+could be merged into staging, if think you'll take more than 4-5 weeks
+to address the pointed issues.
+
+> BTW, I saw another thing that must be changed: you use the .ioctl file
+> operation instead of unlocked_ioctl. This is no longer allowed for new
+> drivers since the removal of the BKL. The v4l2 core implementation of
+> .ioctl attempts to simulate the old BKL and is very inefficient, in
+> particular for drivers like this that do not use struct v4l2_device.
+> If you have multiple ViewCast cards, then all v4l2 ioctls will go through
+> a single V4L2 core lock, leading to substantial latencies.
+> 
+> See also the comment in v4l2_ioctl() in v4l2_dev.c.
+> 
+> New drivers must use unlocked_ioctl. I am in the (very slow, but steady)
+> process of fixing any old drivers that still use .ioctl and once all are
+> converted .ioctl will be removed altogether.
+
+Regards,
+Mauro
 
