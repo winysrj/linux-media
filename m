@@ -1,88 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59424 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754206Ab2HNMrB (ORCPT
+Received: from oyp.chewa.net ([91.121.6.101]:35086 "EHLO oyp.chewa.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751971Ab2HMQJe convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 08:47:01 -0400
-Message-ID: <502A48C2.9000400@iki.fi>
-Date: Tue, 14 Aug 2012 15:46:58 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Mon, 13 Aug 2012 12:09:34 -0400
+From: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>
+To: workshop-2011@linuxtv.org
+Subject: Re: [Workshop-2011] RFC: V4L2 API ambiguities
+Date: Mon, 13 Aug 2012 19:09:31 +0300
+Cc: "linux-media" <linux-media@vger.kernel.org>
+References: <201208131427.56961.hverkuil@xs4all.nl>
+In-Reply-To: <201208131427.56961.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] mt9v032: Export horizontal and vertical blanking as
- V4L2 controls
-References: <1343068502-7431-4-git-send-email-laurent.pinchart@ideasonboard.com> <1505124.16Oe9aIvIj@avalon> <20120813141805.GP29636@valkosipuli.retiisi.org.uk> <1433360.QycaYFLEyB@avalon>
-In-Reply-To: <1433360.QycaYFLEyB@avalon>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201208131909.31834.remi@remlab.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart wrote:
-> Hi Sakari,
->
-> On Monday 13 August 2012 17:18:20 Sakari Ailus wrote:
->> Laurent Pinchart wrote:
->>> On Saturday 28 July 2012 00:27:23 Sakari Ailus wrote:
->>>> On Fri, Jul 27, 2012 at 01:02:04AM +0200, Laurent Pinchart wrote:
->>>>> On Thursday 26 July 2012 23:54:01 Sakari Ailus wrote:
->>>>>> On Tue, Jul 24, 2012 at 01:10:42AM +0200, Laurent Pinchart wrote:
->>>>>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>>>>>> ---
->>>>>>>
->>>>>>>    drivers/media/video/mt9v032.c |   36
->>>>>>>    ++++++++++++++++++++++++++++---
->>>>>>>    1 files changed, 33 insertions(+), 3 deletions(-)
->>>>>>>
->>>>>>> Changes since v1:
->>>>>>>
->>>>>>> - Make sure the total horizontal time will not go below 660 when
->>>>>>>     setting the horizontal blanking control
->>>>>>>
->>>>>>> - Restrict the vertical blanking value to 3000 as documented in the
->>>>>>>     datasheet. Increasing the exposure time actually extends vertical
->>>>>>>     blanking, as long as the user doesn't forget to turn auto-exposure
->>>>>>>     off...
->>>>>>
->>>>>> Does binning either horizontally or vertically affect the blanking
->>>>>> limits? If the process is analogue then the answer is typically "yes".
->>>>>
->>>>> The datasheet doesn't specify whether binning and blanking can influence
->>>>> each other.
->>>>
->>>> Vertical binning is often analogue since digital binning would require as
->>>> much temporary memory as the row holds pixels. This means the hardware
->>>> already does binning before a/d conversion and there's only need to
->>>> actually read half the number of rows, hence the effect on frame length.
->>>
->>> That will affect the frame length, but why would it affect vertical
->>> blanking ?
->>
->> Frame length == image height + vertical blanking.
->>
->> The SMIA++ driver (at least) associates the blanking controls to the
->> pixel array subdev. They might be more naturally placed to the source
->> (either binner or scaler) but the width and height (to calculate the
->> frame and line length) are related to the dimensions of the pixel array
->> crop rectangle.
->>
->> So when the binning configuration changes, that changes the limits for
->> blanking and thus possibly also blanking itself.
->
-> Do the blanking controls expose blanking after binning or before binning ? In
-> the later case I don't see how binning would influence them.
+Le lundi 13 août 2012 15:27:56 Hans Verkuil, vous avez écrit :
+> 1) What is the right/best way to set the timestamp? The spec says
+> gettimeofday, but is it my understanding that ktime_get_ts is much more
+> efficient.
+> 
+>    Some drivers are already using ktime_get_ts.
+> 
+>    Options:
+> 
+>    a) all drivers must comply to the spec and use gettimeofday
 
-Some sensors control the blanking in pixel array directly whereas some, 
-like the SMIA++, control the frame length in the source (scaler or 
-binner) source instead.
+gettimeofday() is wrong for use other than getting the wall clock time.
+In particular, it breaks if the real-time clock gets adjusted while streaming.
 
-So it is up to the sensor hardware --- I think it's still better to keep 
-all the controls in a single subdev. Otherwise it'd be quite difficult 
-for the user to figure out how to calculate the frame rate.
+Practically all modern multimedia applications on Linux use the monotonic 
+POSIX clock in a way or another.
 
-Kind regards,
+>    b) we change the spec and all drivers must use the more efficient
+> ktime_get_ts
+
+Unfortunately, that would not be enough to be immediately useful. Userspace 
+needs a way to know that it can (finally!) trust the timestamps. Currently, 
+since different drivers use different clocks, the only reasonable option for 
+user space consists of ignoring the V4L2 timestamp. Thus userspace has to fall 
+back to the current clock time after ioctl(DQBUF) returns, as an 
+approximation.
+
+> c) we add a buffer flag V4L2_BUF_FLAG_MONOTONIC to tell
+> userspace that a monotonic clock like ktime_get_ts is used and all drivers
+> that use ktime_get_ts should set that flag.
+
+Yes, either a buffer or a capability flag ought to work.
+
+>    If we go for c, then we should add a recommendation to use one or the
+> other as the preferred timestamp for new drivers.
+
+IMHO, all drivers should be adapted to the new specification as far as 
+possible.
+
+
+Of course, that will break any user space application that would have trusted 
+V4L2 to return valid CLOCK_REALTIME timestamps so far. I'd argue such an 
+application was already broken in practice even if it conformed to the letter 
+of the V4L2 specification.
 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Rémi Denis-Courmont
+C/C++ software engineer looking for a job
+http://www.linkedin.com/in/remidenis
