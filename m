@@ -1,40 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:36718 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750971Ab2H0SuG (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:45026 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752420Ab2HNPSS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Aug 2012 14:50:06 -0400
-Received: by bkwj10 with SMTP id j10so1364491bkw.19
-        for <linux-media@vger.kernel.org>; Mon, 27 Aug 2012 11:50:04 -0700 (PDT)
-Message-ID: <503BC159.7060106@gmail.com>
-Date: Mon, 27 Aug 2012 20:50:01 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-CC: Arun Kumar K <arun.kk@samsung.com>, linux-media@vger.kernel.org,
-	jtp.park@samsung.com, janghyuck.kim@samsung.com,
-	jaeryul.oh@samsung.com, ch.naveen@samsung.com,
-	m.szyprowski@samsung.com, k.debski@samsung.com,
-	kmpark@infradead.org, joshi@samsung.com
-Subject: Re: [PATCH v5 0/4] Update MFC v4l2 driver to support MFC6.x
-References: <1346068683-31610-1-git-send-email-arun.kk@samsung.com> <CAK9yfHwit2G3LpDZKx5yZ+zFGBkw3R3Jz+6YHDL-S7aCdnH_xw@mail.gmail.com>
-In-Reply-To: <CAK9yfHwit2G3LpDZKx5yZ+zFGBkw3R3Jz+6YHDL-S7aCdnH_xw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Tue, 14 Aug 2012 11:18:18 -0400
+Received: from eusync4.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M8R003QB3V6K900@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 14 Aug 2012 16:18:42 +0100 (BST)
+Received: from [106.116.147.32] by eusync4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0M8R00CL43UGXQ20@eusync4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 14 Aug 2012 16:18:16 +0100 (BST)
+Message-id: <502A6C37.8070809@samsung.com>
+Date: Tue, 14 Aug 2012 17:18:15 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Sangwook Lee <sangwook.lee@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: Patches submitted via linux-media ML that are at
+ patchwork.linuxtv.org
+References: <502A4CD1.1020108@redhat.com> <502A6A67.9020506@samsung.com>
+In-reply-to: <502A6A67.9020506@samsung.com>
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/27/2012 11:31 AM, Sachin Kamat wrote:
-> Hi Arun,
->
-> The media tree has been re-organized recently.
-> It would be useful to re-base your patches against the latest media
-> tree (or linux-next).
-> MFC driver is now located at "drivers/media/platform/s5p-mfc/"
+On 08/14/2012 05:10 PM, Sylwester Nawrocki wrote:
+> On 08/14/2012 03:04 PM, Mauro Carvalho Chehab wrote:
+>> 		== Silvester Nawrocki <sylvester.nawrocki@gmail.com> == 
+>>
+>> Aug, 2 2012: [PATH,v3,1/2] v4l: Add factory register values form S5K4ECGX sensor    http://patchwork.linuxtv.org/patch/13580  Sangwook Lee <sangwook.lee@linaro.org>
+>> Aug, 2 2012: [PATH,v3,2/2] v4l: Add v4l2 subdev driver for S5K4ECGX sensor          http://patchwork.linuxtv.org/patch/13581  Sangwook Lee <sangwook.lee@linaro.org>
+> 
+> These two are superseded by v4, which is currently under review. We're going
+> to send a pull request when these works are completed. Sangwook, could you
+> mark any subsequent iterations in future as "PATCH" ?
+                                              ^^^^^^^
+oops, sorry, of course it's supposed to be "RFC PATCH".
 
-And you can find some guidelines in this post:
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg50498.html
-
---
-Regards,
+Thanks,
 Sylwester
