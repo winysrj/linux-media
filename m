@@ -1,96 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:63962 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754678Ab2HYDJW (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45461 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754152Ab2HNLmY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 23:09:22 -0400
-Received: by mail-yw0-f46.google.com with SMTP id m54so582622yhm.19
-        for <linux-media@vger.kernel.org>; Fri, 24 Aug 2012 20:09:22 -0700 (PDT)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: [PATCH 7/9] stk1160: Don't check vb2_queue_init() return
-Date: Sat, 25 Aug 2012 00:09:04 -0300
-Message-Id: <1345864146-2207-7-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1345864146-2207-1-git-send-email-elezegarcia@gmail.com>
-References: <1345864146-2207-1-git-send-email-elezegarcia@gmail.com>
+	Tue, 14 Aug 2012 07:42:24 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: workshop-2011@linuxtv.org,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [Workshop-2011] RFC: V4L2 API ambiguities
+Date: Tue, 14 Aug 2012 13:42:38 +0200
+Message-ID: <1500199.h7o1oFIasO@avalon>
+In-Reply-To: <201208141332.43254.hverkuil@xs4all.nl>
+References: <201208131427.56961.hverkuil@xs4all.nl> <1961858.59LqqANPqn@avalon> <201208141332.43254.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Right now vb2_queue_init() returns always 0
-and it will be changed to return void.
+On Tuesday 14 August 2012 13:32:43 Hans Verkuil wrote:
+> On Tue August 14 2012 13:15:21 Laurent Pinchart wrote:
+> > On Tuesday 14 August 2012 13:11:49 Hans Verkuil wrote:
+> > > On Tue August 14 2012 13:06:46 Laurent Pinchart wrote:
+> > > > On Tuesday 14 August 2012 12:54:34 Hans Verkuil wrote:
+> > > > > On Tue August 14 2012 01:54:16 Laurent Pinchart wrote:
+> > > > > > On Monday 13 August 2012 14:27:56 Hans Verkuil wrote:
+> > > > > > [snip]
+> > > > > > 
+> > > > > > > 4) What should a driver return in TRY_FMT/S_FMT if the requested
+> > > > > > > format is not supported (possible behaviours include returning
+> > > > > > > the currently selected format or a default format).
+> > > > > > > 
+> > > > > > > The spec says this: "Drivers should not return an error code
+> > > > > > > unless the input is ambiguous", but it does not explain what
+> > > > > > > constitutes an ambiguous input. Frankly, I can't think of any
+> > > > > > > and in my opinion TRY/S_FMT should never return an error other
+> > > > > > > than EINVAL (if the buffer type is unsupported)or EBUSY (for
+> > > > > > > S_FMT if streaming is in progress).
+> > > > > > > 
+> > > > > > > Returning an error for any other reason doesn't help the
+> > > > > > > application since the app will have no way of knowing what to do
+> > > > > > > next.
+> > > > > > 
+> > > > > > That wasn't my point. Drivers should obviously not return an
+> > > > > > error. Let's consider the case of a driver supporting YUYV and
+> > > > > > MJPEG. If the user calls TRY_FMT or S_FMT with the pixel format
+> > > > > > set to RGB565, should the driver return a hardcoded default format
+> > > > > > (one of YUYV or MJPEG), or the currently selected format ? In
+> > > > > > other words, should the pixel format returned by TRY_FMT or S_FMT
+> > > > > > when the requested pixel format is not valid be a fixed default
+> > > > > > pixel format, or should it depend on the currently selected pixel
+> > > > > > format ?
+> > > > > 
+> > > > > Actually, in this case I would probably choose a YUYV format that is
+> > > > > closest to the requested size. If a driver supports both compressed
+> > > > > and uncompressed formats, then it should only select a compressed
+> > > > > format if the application explicitly asked for it. Handling
+> > > > > compressed formats is more complex than uncompressed formats, so
+> > > > > that seems a sensible rule.
+> > > > 
+> > > > That wasn't my point either :-) YUYV/MJPEG was just an example. You
+> > > > can replace MJPEG with UYVY or NV12 above. What I want to know is
+> > > > whether TRY_FMT and S_FMT must, when given a non-supported format,
+> > > > return a fixed supported format or return a supported format that can
+> > > > depend on the currently selected format.
+> > > > 
+> > > > > The next heuristic I would apply is to choose a format that is
+> > > > > closest to the requested size.
+> > > > > 
+> > > > > So I guess my guidelines would be:
+> > > > > 
+> > > > > 1) If the pixelformat is not supported, then choose an uncompressed
+> > > > > format (if possible) instead.
+> > > > > 2) Next choose a format closest to, but smaller than (if possible)
+> > > > > the requested size.
+> > > > > 
+> > > > > But this would be a guideline only, and in the end it should be up
+> > > > > to the driver. Just as long TRY/S_FMT always returns a format.
+> > > 
+> > > Well, the currently selected format is irrelevant. The user is obviously
+> > > requesting something else and the driver should attempt to return
+> > > something that is at least somewhat close to what it requested. If
+> > > that's impossible, then falling back to some default format is a good
+> > > choice.
+> > > 
+> > > Does that answer the question?
+> > 
+> > Yes it does, and I agree with that. Some drivers return the currently
+> > selected format when a non-supported format is requested. I think the
+> > spec should be clarified to make it mandatory to return a fixed default
+> > format independent of the currently selected format, and non-compliant
+> > drivers should be fixed.
+>
+> I don't know whether it should be mandated. In the end it doesn't matter to
+> the application: that just wants to get some format that is valid.
+> 
+> It's a good recommendation for drivers, but I do not think that there is
+> anything wrong as such with drivers that return the current format.
+> 
+> Am I missing something here? Is there any particular advantage of returning
+> a default fallback format from the point of view of an application?
 
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- drivers/media/usb/stk1160/stk1160-core.c |    4 +---
- drivers/media/usb/stk1160/stk1160-v4l.c  |   12 +++---------
- drivers/media/usb/stk1160/stk1160.h      |    2 +-
- 3 files changed, 5 insertions(+), 13 deletions(-)
+Mostly consistency. I find returning different results for TRY_FMT calls with 
+the exact same parameters confusing, both for applications and users.
 
-diff --git a/drivers/media/usb/stk1160/stk1160-core.c b/drivers/media/usb/stk1160/stk1160-core.c
-index 74236fd..0af08e7 100644
---- a/drivers/media/usb/stk1160/stk1160-core.c
-+++ b/drivers/media/usb/stk1160/stk1160-core.c
-@@ -306,9 +306,7 @@ static int stk1160_probe(struct usb_interface *interface,
- 	usb_set_intfdata(interface, dev);
- 
- 	/* initialize videobuf2 stuff */
--	rc = stk1160_vb2_setup(dev);
--	if (rc < 0)
--		goto free_err;
-+	stk1160_vb2_setup(dev);
- 
- 	/*
- 	 * There is no need to take any locks here in probe
-diff --git a/drivers/media/usb/stk1160/stk1160-v4l.c b/drivers/media/usb/stk1160/stk1160-v4l.c
-index fe6e857..abb933d 100644
---- a/drivers/media/usb/stk1160/stk1160-v4l.c
-+++ b/drivers/media/usb/stk1160/stk1160-v4l.c
-@@ -670,12 +670,10 @@ void stk1160_clear_queue(struct stk1160 *dev)
- 	spin_unlock_irqrestore(&dev->buf_lock, flags);
- }
- 
--int stk1160_vb2_setup(struct stk1160 *dev)
-+void stk1160_vb2_setup(struct stk1160 *dev)
- {
--	int rc;
--	struct vb2_queue *q;
-+	struct vb2_queue *q = &dev->vb_vidq;
- 
--	q = &dev->vb_vidq;
- 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 	q->io_modes = VB2_READ | VB2_MMAP | VB2_USERPTR;
- 	q->drv_priv = dev;
-@@ -683,14 +681,10 @@ int stk1160_vb2_setup(struct stk1160 *dev)
- 	q->ops = &stk1160_video_qops;
- 	q->mem_ops = &vb2_vmalloc_memops;
- 
--	rc = vb2_queue_init(q);
--	if (rc < 0)
--		return rc;
-+	vb2_queue_init(q);
- 
- 	/* initialize video dma queue */
- 	INIT_LIST_HEAD(&dev->avail_bufs);
--
--	return 0;
- }
- 
- int stk1160_video_register(struct stk1160 *dev)
-diff --git a/drivers/media/usb/stk1160/stk1160.h b/drivers/media/usb/stk1160/stk1160.h
-index 3feba00..3618481 100644
---- a/drivers/media/usb/stk1160/stk1160.h
-+++ b/drivers/media/usb/stk1160/stk1160.h
-@@ -173,7 +173,7 @@ struct regval {
- };
- 
- /* Provided by stk1160-v4l.c */
--int stk1160_vb2_setup(struct stk1160 *dev);
-+void stk1160_vb2_setup(struct stk1160 *dev);
- int stk1160_video_register(struct stk1160 *dev);
- void stk1160_video_unregister(struct stk1160 *dev);
- void stk1160_clear_queue(struct stk1160 *dev);
 -- 
-1.7.8.6
+Regards,
+
+Laurent Pinchart
 
