@@ -1,55 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4326 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756459Ab2HFOTe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 10:19:34 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail4-relais-sop.national.inria.fr ([192.134.164.105]:12782
+	"EHLO mail4-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750911Ab2HNNXI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 09:23:08 -0400
+Date: Tue, 14 Aug 2012 15:23:06 +0200 (CEST)
+From: Julia Lawall <julia.lawall@lip6.fr>
 To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH v8] media: Add stk1160 new driver
-Date: Mon, 6 Aug 2012 16:18:56 +0200
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Takashi Iwai <tiwai@suse.de>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-References: <1344260302-28849-1-git-send-email-elezegarcia@gmail.com> <CALF0-+Xwa6qNH3pEOgJq9f07C+ArNco6nxQcjGWoy5kwyQeScA@mail.gmail.com> <501FCFE1.7010802@redhat.com>
-In-Reply-To: <501FCFE1.7010802@redhat.com>
+cc: Julia Lawall <julia.lawall@lip6.fr>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] drivers/media/video/mx2_emmaprp.c: use devm_kzalloc and
+ devm_clk_get
+In-Reply-To: <502A2057.3000401@redhat.com>
+Message-ID: <alpine.DEB.2.02.1208141520430.1908@hadrien>
+References: <1344104607-18805-1-git-send-email-Julia.Lawall@lip6.fr> <20120806142323.GO4352@mwanda> <20120806142650.GT4403@mwanda> <501FD69D.7070702@metafoo.de> <alpine.DEB.2.02.1208101558100.2011@hadrien> <50295A43.30305@redhat.com>
+ <alpine.DEB.2.02.1208132219060.2355@localhost6.localdomain6> <5029AC92.2060408@redhat.com> <alpine.DEB.2.02.1208140819400.1973@localhost6.localdomain6> <502A2057.3000401@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201208061618.56479.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon August 6 2012 16:08:33 Mauro Carvalho Chehab wrote:
-> Em 06-08-2012 10:58, Ezequiel Garcia escreveu:
-> > Hi Mauro,
-> > 
-> > On Mon, Aug 6, 2012 at 10:38 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
-> >> This driver adds support for stk1160 usb bridge as used in some
-> >> video/audio usb capture devices.
-> >> It is a complete rewrite of staging/media/easycap driver and
-> >> it's expected as a replacement.
-> >> ---
-> >>
-> > 
-> > I just sent v8, but it looks it wasn't received by patchwork either.
-> > 
-> > What's going on?
-> 
-> The patch didn't arrive at linux-media ML.
-> 
-> Not sure why it got rejected at vger. I suggest you to ping vger admin
-> to see why your patches are being rejected there.
-> 
-> I tested parsing this patch manually and patchwork accepted. So, once
-> the issue with vger is solved, other patches should be properly
-> handled there.
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
-Could it be related to the fact that a gmail account is used? Konke Radlow
-had a similar issue recently when he posted a patch from a gmail account. It
-worked fine when posted from a company account.
+Using devm_kzalloc simplifies the code and ensures that the use of
+devm_request_irq is safe.  When kzalloc and kfree were used, the interrupt
+could be triggered after the handler's data argument had been freed.
 
-Regards,
+This also introduces some missing initializations of the return variable
+ret, and uses devm_request_and_ioremap instead of the combination of
+devm_request_mem_region and devm_ioremap.
 
-	Hans
+The problem of a free after a devm_request_irq was found using the
+following semantic match (http://coccinelle.lip6.fr/)
+
+// <smpl>
+@r exists@
+expression e1,e2,x,a,b,c,d;
+identifier free;
+position p1,p2;
+@@
+
+  devm_request_irq@p1(e1,e2,...,x)
+  ... when any
+      when != e2 = a
+      when != x = b
+  if (...) {
+    ... when != e2 = c
+        when != x = d
+    free@p2(...,x,...);
+    ...
+    return ...;
+  }
+// </smpl>
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
+---
+This is the same patch I sent before.  I had no trouble applying it after
+cloning the staging/for_v3.7 branch.
+
+ drivers/media/video/mx2_emmaprp.c |   31 ++++++++++++-------------------
+ 1 file changed, 12 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/media/video/mx2_emmaprp.c b/drivers/media/video/mx2_emmaprp.c
+index 2810015..dab380a 100644
+--- a/drivers/media/video/mx2_emmaprp.c
++++ b/drivers/media/video/mx2_emmaprp.c
+@@ -896,7 +896,7 @@ static int emmaprp_probe(struct platform_device *pdev)
+ 	int irq_emma;
+ 	int ret;
+
+-	pcdev = kzalloc(sizeof *pcdev, GFP_KERNEL);
++	pcdev = devm_kzalloc(&pdev->dev, sizeof(*pcdev), GFP_KERNEL);
+ 	if (!pcdev)
+ 		return -ENOMEM;
+
+@@ -904,27 +904,24 @@ static int emmaprp_probe(struct platform_device *pdev)
+
+ 	pcdev->clk_emma_ipg = devm_clk_get(&pdev->dev, "ipg");
+ 	if (IS_ERR(pcdev->clk_emma_ipg)) {
+-		ret = PTR_ERR(pcdev->clk_emma_ipg);
+-		goto free_dev;
++		return PTR_ERR(pcdev->clk_emma_ipg);
+ 	}
+
+ 	pcdev->clk_emma_ahb = devm_clk_get(&pdev->dev, "ahb");
+ 	if (IS_ERR(pcdev->clk_emma_ipg)) {
+-		ret = PTR_ERR(pcdev->clk_emma_ahb);
+-		goto free_dev;
++		return PTR_ERR(pcdev->clk_emma_ahb);
+ 	}
+
+ 	irq_emma = platform_get_irq(pdev, 0);
+ 	res_emma = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (irq_emma < 0 || res_emma == NULL) {
+ 		dev_err(&pdev->dev, "Missing platform resources data\n");
+-		ret = -ENODEV;
+-		goto free_dev;
++		return -ENODEV;
+ 	}
+
+ 	ret = v4l2_device_register(&pdev->dev, &pcdev->v4l2_dev);
+ 	if (ret)
+-		goto free_dev;
++		return ret;
+
+ 	mutex_init(&pcdev->dev_mutex);
+
+@@ -946,21 +943,20 @@ static int emmaprp_probe(struct platform_device *pdev)
+
+ 	platform_set_drvdata(pdev, pcdev);
+
+-	if (devm_request_mem_region(&pdev->dev, res_emma->start,
+-	    resource_size(res_emma), MEM2MEM_NAME) == NULL)
+-		goto rel_vdev;
+-
+-	pcdev->base_emma = devm_ioremap(&pdev->dev, res_emma->start,
+-					resource_size(res_emma));
+-	if (!pcdev->base_emma)
++	pcdev->base_emma = devm_request_and_ioremap(&pdev->dev, res_emma);
++	if (!pcdev->base_emma) {
++		ret = -ENXIO;
+ 		goto rel_vdev;
++	}
+
+ 	pcdev->irq_emma = irq_emma;
+ 	pcdev->res_emma = res_emma;
+
+ 	if (devm_request_irq(&pdev->dev, pcdev->irq_emma, emmaprp_irq,
+-			     0, MEM2MEM_NAME, pcdev) < 0)
++			     0, MEM2MEM_NAME, pcdev) < 0) {
++		ret = -ENODEV;
+ 		goto rel_vdev;
++	}
+
+ 	pcdev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+ 	if (IS_ERR(pcdev->alloc_ctx)) {
+@@ -993,8 +989,6 @@ rel_vdev:
+ 	video_device_release(vfd);
+ unreg_dev:
+ 	v4l2_device_unregister(&pcdev->v4l2_dev);
+-free_dev:
+-	kfree(pcdev);
+
+ 	return ret;
+ }
+@@ -1009,7 +1003,6 @@ static int emmaprp_remove(struct platform_device *pdev)
+ 	v4l2_m2m_release(pcdev->m2m_dev);
+ 	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
+ 	v4l2_device_unregister(&pcdev->v4l2_dev);
+-	kfree(pcdev);
+
+ 	return 0;
+ }
+
