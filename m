@@ -1,72 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:57567 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752093Ab2HSV3s (ORCPT
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:54413 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752610Ab2HNLKx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Aug 2012 17:29:48 -0400
-Received: by weyx8 with SMTP id x8so3544784wey.19
-        for <linux-media@vger.kernel.org>; Sun, 19 Aug 2012 14:29:46 -0700 (PDT)
-Message-ID: <50315AC8.5060100@gmail.com>
-Date: Sun, 19 Aug 2012 23:29:44 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Tue, 14 Aug 2012 07:10:53 -0400
+Received: by lbbgj3 with SMTP id gj3so163969lbb.19
+        for <linux-media@vger.kernel.org>; Tue, 14 Aug 2012 04:10:51 -0700 (PDT)
+Message-ID: <502A322D.2060900@iki.fi>
+Date: Tue, 14 Aug 2012 14:10:37 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Sangwook Lee <sangwook.lee@linaro.org>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@maxwell.research.nokia.com, suapapa@insignal.co.kr,
-	quartz.jang@samsung.com, linaro-dev@lists.linaro.org,
-	patches@linaro.org, usman.ahmad@linaro.org
-Subject: Re: [PATH v3 0/2] Add v4l2 subdev driver for S5K4ECGX sensor with
- embedded SoC ISP
-References: <1343914971-23007-1-git-send-email-sangwook.lee@linaro.org> <501ADEF6.1080901@gmail.com> <CADPsn1b6TxhmWVzzH1u-wr0UZs6D3cif4+r1S9OOROx1iXCXUQ@mail.gmail.com>
-In-Reply-To: <CADPsn1b6TxhmWVzzH1u-wr0UZs6D3cif4+r1S9OOROx1iXCXUQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Reinhard Nissl <rnissl@gmx.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: STV0299: reading property DTV_FREQUENCY -- what am I expected
+ to get?
+References: <502A1221.8020804@gmx.de>
+In-Reply-To: <502A1221.8020804@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sangwook,
+On 08/14/2012 11:53 AM, Reinhard Nissl wrote:
+> Hi,
+>
+> it seems that my 9 years old LNBs got some drift over time, as tuning
+> takes quite a while until I get a lock. So I thought I could compensate
+> this offset by adjusting VDR's diseqc.conf.
+>
+> Therefore I first hacked some logging into VDR's tuner code to read and
+> output the above mentioned property once it got a lock after tuning. As
+> VDR's EPG scanner travels over all transponders when idle, I get offset
+> values for all transponders and can then try to find some average offset
+> to put into diseqc.conf.
+>
+> So here are several "travel" results for a single transponder ordered by
+> Delta:
+>
+> Sat.    Pol.    Band    Freq (MHz) Set    Freq (MHz) Get    Delta (MHz)
+> S13,0E    H    H    11938    11930,528    -7,472
+> S13,0E    H    H    11938    11936,294    -1,706
+> S13,0E    H    H    11938    11938,917    0,917
+> S13,0E    H    H    11938    11939,158    1,158
+> S13,0E    H    H    11938    11939,906    1,906
+> S13,0E    H    H    11938    11939,965    1,965
+> S13,0E    H    H    11938    11940,029    2,029
+> S13,0E    H    H    11938    11940,032    2,032
+> S13,0E    H    H    11938    11940,103    2,103
+> S13,0E    H    H    11938    11940,112    2,112
+> S13,0E    H    H    11938    11940,167    2,167
+> S13,0E    H    H    11938    11941,736    3,736
+> S13,0E    H    H    11938    11941,736    3,736
+> S13,0E    H    H    11938    11941,736    3,736
+> S13,0E    H    H    11938    11942,412    4,412
+> S13,0E    H    H    11938    11943,604    5,604
+> S13,0E    H    H    11938    11943,604    5,604
+> S13,0E    H    H    11938    11943,604    5,604
+> S13,0E    H    H    11938    11945,472    7,472
+> S13,0E    H    H    11938    11945,472    7,472
+> S13,0E    H    H    11938    11945,472    7,472
+> S13,0E    H    H    11938    11945,472    7,472
+> S13,0E    H    H    11938    11945,472    7,472
+> S13,0E    H    H    11938    11945,472    7,472
+> S13,0E    H    H    11938    11945,472    7,472
+> S13,0E    H    H    11938    11945,777    7,777
+> S13,0E    H    H    11938    11945,777    7,777
+> S13,0E    H    H    11938    11945,777    7,777
+> S13,0E    H    H    11938    11945,777    7,777
+>
+> I really wonder why Delta varies that much, and there are other
+> transponders in the same band which have no larger deltas then 3 MHz.
+>
+> So is it at all possible to determine LNB drift in that way?
+>
+> My other device, a STB0899, always reports the set frequency. So it
+> seems driver dependent whether it reports the actually locked frequency
+> found by the zig-zag-algorithm or just the set frequency to tune to.
 
-On 08/03/2012 04:24 PM, Sangwook Lee wrote:
-> I was thinking about this, but this seems to be is a bit time-consuming because
-> I have to do this just due to lack of s5k4ecgx hardware information.
-> let me try it later once
-> this patch is accepted.
+That is tricky part. I recently explained that too when Mauro added 
+get_afc() callback:
+http://www.spinics.net/lists/linux-media/msg51308.html
 
-I've converted this driver to use function calls instead of the register
-arrays. It can be pulled, along with a couple of minor fixes/improvements, 
-from following git tree:
+It should return actual frequency frontend is tuned (I am not sure about 
+DVB-S as there is IF/LNB). But the way DVBv5 API is implemented, using 
+cache, you never know if it is same value you set or some real value 
+tuner is listening. You can never trust APIv5 get values - those are 1) 
+just same you have set or 2) those could be values updated by driver.
 
-	git://linuxtv.org/snawrocki/media.git s5k4ecgx
-	(gitweb: http://git.linuxtv.org/snawrocki/media.git/s5k4ecgx)
+>
+> Thanks in advance for any replies.
+>
+> Bye.
 
-I don't own any Origen board thus it's untested. Could you give it a try ?
-The register write sequence should be identical as in the case of using
-the arrays. 
+regards
+Antti
 
-Regarding support for still (JPEG) capture features of S5K4ECGX, it should 
-be possible to make this work with the mainline s5p-fimc driver, it supports 
-V4L2_PIX_FMT_JPEG/V4L2_MBUS_FMT_JPEG_1X8 formats. There is only missing 
-an API for preallocating proper memory buffer for the snapshot frame. 
-Currently s5p-fimc calculates buffer's size from pixel resolution, using some 
-fixed coefficient.
 
-I'm planning on adding new V4L2_CID_FRAMESIZE control that could be 
-a replacement for V4L2_CID_CAM_JPEG_MEMSIZE, as found in this driver:
-https://android.googlesource.com/kernel/samsung.git/+/3b0c5d2887fca99cab7dd506817b1049d38198a1/drivers/media/video/s5k4ecgx.c
-
-Except that, there would be needed a new V4L2_CID_SNAPSHOT control in place 
-of custom V4L2_CID_CAM_CAPTURE. I might try to add that and document in near 
-future.
-
-You won't find much regarding the face detection features in V4L2, 
-unfortunately. _Maybe_ I'll try to address this as well on some day, for 
-now private controls might be your only solution. Unless you feel like 
-adding face detection features support to V4L2.. ;)
-
-BTW, are your requirements to support both EVT1.0 and EVT1.1 S5K4ECGX 
-revisions ?
-
---
-
-Regards,
-Sylwester
+-- 
+http://palosaari.fi/
