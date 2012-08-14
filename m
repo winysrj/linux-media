@@ -1,41 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48223 "EHLO mail.kapsi.fi"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59697 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752930Ab2HUX4y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Aug 2012 19:56:54 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 1/5] rtl28xxu: stream did not start after stop on USB3.0
-Date: Wed, 22 Aug 2012 02:56:18 +0300
-Message-Id: <1345593382-11367-1-git-send-email-crope@iki.fi>
+	id S1751849Ab2HNFXt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 01:23:49 -0400
+From: Prabhakar Lad <prabhakar.lad@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	<linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v2] media: davinci: fix section mismatch warnings
+Date: Tue, 14 Aug 2012 10:53:09 +0530
+Message-ID: <1344921789-16647-1-git-send-email-prabhakar.lad@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stream did not start anymore after stream was stopped once.
+From: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-Following error can be seen, xhci_hcd
-WARN Set TR Deq Ptr cmd failed due to incorrect slot or ep state.
+This patch fixes section mismatch warnings for
+davinci video drivers.
 
-usb_clear_halt for streaming endpoint helps.
-
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
 ---
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 1 +
- 1 file changed, 1 insertion(+)
+ Changes for v2:
+ 1: Annotate probe with __devinit.
+ 2: Fixed the commit message.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index d2b1505..1ccb99b 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -834,6 +834,7 @@ static int rtl28xxu_streaming_ctrl(struct dvb_frontend *fe , int onoff)
- 	if (onoff) {
- 		buf[0] = 0x00;
- 		buf[1] = 0x00;
-+		usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x81));
- 	} else {
- 		buf[0] = 0x10; /* stall EPA */
- 		buf[1] = 0x02; /* reset EPA */
+ drivers/media/video/davinci/dm355_ccdc.c   |    2 +-
+ drivers/media/video/davinci/dm644x_ccdc.c  |    2 +-
+ drivers/media/video/davinci/isif.c         |    2 +-
+ drivers/media/video/davinci/vpfe_capture.c |    2 +-
+ drivers/media/video/davinci/vpif.c         |    2 +-
+ drivers/media/video/davinci/vpss.c         |    2 +-
+ 6 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/video/davinci/dm355_ccdc.c b/drivers/media/video/davinci/dm355_ccdc.c
+index 5b68847..ce0e413 100644
+--- a/drivers/media/video/davinci/dm355_ccdc.c
++++ b/drivers/media/video/davinci/dm355_ccdc.c
+@@ -965,7 +965,7 @@ static struct ccdc_hw_device ccdc_hw_dev = {
+ 	},
+ };
+ 
+-static int __init dm355_ccdc_probe(struct platform_device *pdev)
++static int __devinit dm355_ccdc_probe(struct platform_device *pdev)
+ {
+ 	void (*setup_pinmux)(void);
+ 	struct resource	*res;
+diff --git a/drivers/media/video/davinci/dm644x_ccdc.c b/drivers/media/video/davinci/dm644x_ccdc.c
+index 9303fe5..ee7942b 100644
+--- a/drivers/media/video/davinci/dm644x_ccdc.c
++++ b/drivers/media/video/davinci/dm644x_ccdc.c
+@@ -957,7 +957,7 @@ static struct ccdc_hw_device ccdc_hw_dev = {
+ 	},
+ };
+ 
+-static int __init dm644x_ccdc_probe(struct platform_device *pdev)
++static int __devinit dm644x_ccdc_probe(struct platform_device *pdev)
+ {
+ 	struct resource	*res;
+ 	int status = 0;
+diff --git a/drivers/media/video/davinci/isif.c b/drivers/media/video/davinci/isif.c
+index 5278fe7..b99d542 100644
+--- a/drivers/media/video/davinci/isif.c
++++ b/drivers/media/video/davinci/isif.c
+@@ -1032,7 +1032,7 @@ static struct ccdc_hw_device isif_hw_dev = {
+ 	},
+ };
+ 
+-static int __init isif_probe(struct platform_device *pdev)
++static int __devinit isif_probe(struct platform_device *pdev)
+ {
+ 	void (*setup_pinmux)(void);
+ 	struct resource	*res;
+diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
+index 49a845f..843b138 100644
+--- a/drivers/media/video/davinci/vpfe_capture.c
++++ b/drivers/media/video/davinci/vpfe_capture.c
+@@ -1829,7 +1829,7 @@ static struct vpfe_device *vpfe_initialize(void)
+  * itself to the V4L2 driver and initializes fields of each
+  * device objects
+  */
+-static __init int vpfe_probe(struct platform_device *pdev)
++static __devinit int vpfe_probe(struct platform_device *pdev)
+ {
+ 	struct vpfe_subdev_info *sdinfo;
+ 	struct vpfe_config *vpfe_cfg;
+diff --git a/drivers/media/video/davinci/vpif.c b/drivers/media/video/davinci/vpif.c
+index b3637af..9bd3caa 100644
+--- a/drivers/media/video/davinci/vpif.c
++++ b/drivers/media/video/davinci/vpif.c
+@@ -417,7 +417,7 @@ int vpif_channel_getfid(u8 channel_id)
+ }
+ EXPORT_SYMBOL(vpif_channel_getfid);
+ 
+-static int __init vpif_probe(struct platform_device *pdev)
++static int __devinit vpif_probe(struct platform_device *pdev)
+ {
+ 	int status = 0;
+ 
+diff --git a/drivers/media/video/davinci/vpss.c b/drivers/media/video/davinci/vpss.c
+index 3e5cf27..146e4b0 100644
+--- a/drivers/media/video/davinci/vpss.c
++++ b/drivers/media/video/davinci/vpss.c
+@@ -357,7 +357,7 @@ void dm365_vpss_set_pg_frame_size(struct vpss_pg_frame_size frame_size)
+ }
+ EXPORT_SYMBOL(dm365_vpss_set_pg_frame_size);
+ 
+-static int __init vpss_probe(struct platform_device *pdev)
++static int __devinit vpss_probe(struct platform_device *pdev)
+ {
+ 	struct resource		*r1, *r2;
+ 	char *platform_name;
 -- 
-1.7.11.4
+1.7.0.4
 
