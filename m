@@ -1,116 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:52727 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932570Ab2HGCsE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 22:48:04 -0400
-Received: by mail-vc0-f174.google.com with SMTP id fk26so3432709vcb.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 19:48:03 -0700 (PDT)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH 17/24] au0828: fix possible race condition in usage of dev->ctrlmsg
-Date: Mon,  6 Aug 2012 22:47:07 -0400
-Message-Id: <1344307634-11673-18-git-send-email-dheitmueller@kernellabs.com>
-In-Reply-To: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
-References: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3614 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752767Ab2HNKyi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 06:54:38 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [Workshop-2011] RFC: V4L2 API ambiguities
+Date: Tue, 14 Aug 2012 12:54:34 +0200
+Cc: workshop-2011@linuxtv.org,
+	"linux-media" <linux-media@vger.kernel.org>
+References: <201208131427.56961.hverkuil@xs4all.nl> <2697809.QgTso8NvEE@avalon>
+In-Reply-To: <2697809.QgTso8NvEE@avalon>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201208141254.34095.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The register read function is referencing the dev->ctrlmsg structure outside
-of the dev->mutex lock, which can cause corruption of the value if multiple
-callers are invoking au0828_readreg() simultaneously.
+On Tue August 14 2012 01:54:16 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Monday 13 August 2012 14:27:56 Hans Verkuil wrote:
+> > Hi all!
+> > 
+> > As part of the 2012 Kernel Summit V4L2 workshop I will be discussing a bunch
+> > of V4L2 ambiguities/improvements.
+> > 
+> > I've made a list of all the V4L2 issues and put them in two categories:
+> > issues that I think are easy to resolve (within a few minutes at most), and
+> > those that are harder.
+> > 
+> > If you think I put something in the easy category that you believe is
+> > actually hard, then please let me know.
+> > 
+> > If you attend the workshop, then please read through this and think about it
+> > a bit, particularly for the second category.
+> > 
+> > If something is unclear, or you think another topic should be added, then
+> > let me know as well.
+> > 
+> > Easy:
+> 
+> [snip]
+> 
+> > 4) What should a driver return in TRY_FMT/S_FMT if the requested format is
+> > not supported (possible behaviours include returning the currently selected
+> > format or a default format).
+> > 
+> >    The spec says this: "Drivers should not return an error code unless the
+> > input is ambiguous", but it does not explain what constitutes an ambiguous
+> > input. Frankly, I can't think of any and in my opinion TRY/S_FMT should
+> > never return an error other than EINVAL (if the buffer type is unsupported)
+> > or EBUSY (for S_FMT if streaming is in progress).
+> > 
+> >    Returning an error for any other reason doesn't help the application
+> > since the app will have no way of knowing what to do next.
+> 
+> That wasn't my point. Drivers should obviously not return an error. Let's 
+> consider the case of a driver supporting YUYV and MJPEG. If the user calls 
+> TRY_FMT or S_FMT with the pixel format set to RGB565, should the driver return 
+> a hardcoded default format (one of YUYV or MJPEG), or the currently selected 
+> format ? In other words, should the pixel format returned by TRY_FMT or S_FMT 
+> when the requested pixel format is not valid be a fixed default pixel format, 
+> or should it depend on the currently selected pixel format ?
 
-Use a stack variable to hold the result, and copy the buffer returned by
-usb_control_msg() to that variable.
+Actually, in this case I would probably choose a YUYV format that is closest
+to the requested size. If a driver supports both compressed and uncompressed
+formats, then it should only select a compressed format if the application
+explicitly asked for it. Handling compressed formats is more complex than
+uncompressed formats, so that seems a sensible rule.
 
-In reality, the whole recv_control_msg() function can probably be collapsed
-into au0288_readreg() since it is the only caller.
+The next heuristic I would apply is to choose a format that is closest to the
+requested size.
 
-Also get rid of cmd_msg_dump() since the only case in which the function is
-ever called only is ever passed a single byte for the response (and it is
-already logged).
+So I guess my guidelines would be:
 
-Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
----
- drivers/media/video/au0828/au0828-core.c |   40 +++++++++---------------------
- 1 files changed, 12 insertions(+), 28 deletions(-)
+1) If the pixelformat is not supported, then choose an uncompressed format
+(if possible) instead.
+2) Next choose a format closest to, but smaller than (if possible) the
+requested size.
 
-diff --git a/drivers/media/video/au0828/au0828-core.c b/drivers/media/video/au0828/au0828-core.c
-index 65914bc..745a80a 100644
---- a/drivers/media/video/au0828/au0828-core.c
-+++ b/drivers/media/video/au0828/au0828-core.c
-@@ -56,9 +56,12 @@ static int recv_control_msg(struct au0828_dev *dev, u16 request, u32 value,
- 
- u32 au0828_readreg(struct au0828_dev *dev, u16 reg)
- {
--	recv_control_msg(dev, CMD_REQUEST_IN, 0, reg, dev->ctrlmsg, 1);
--	dprintk(8, "%s(0x%04x) = 0x%02x\n", __func__, reg, dev->ctrlmsg[0]);
--	return dev->ctrlmsg[0];
-+	u8 result = 0;
-+
-+	recv_control_msg(dev, CMD_REQUEST_IN, 0, reg, &result, 1);
-+	dprintk(8, "%s(0x%04x) = 0x%02x\n", __func__, reg, result);
-+
-+	return result;
- }
- 
- u32 au0828_writereg(struct au0828_dev *dev, u16 reg, u32 val)
-@@ -67,24 +70,6 @@ u32 au0828_writereg(struct au0828_dev *dev, u16 reg, u32 val)
- 	return send_control_msg(dev, CMD_REQUEST_OUT, val, reg);
- }
- 
--static void cmd_msg_dump(struct au0828_dev *dev)
--{
--	int i;
--
--	for (i = 0; i < sizeof(dev->ctrlmsg); i += 16)
--		dprintk(2, "%s() %02x %02x %02x %02x %02x %02x %02x %02x "
--				"%02x %02x %02x %02x %02x %02x %02x %02x\n",
--			__func__,
--			dev->ctrlmsg[i+0], dev->ctrlmsg[i+1],
--			dev->ctrlmsg[i+2], dev->ctrlmsg[i+3],
--			dev->ctrlmsg[i+4], dev->ctrlmsg[i+5],
--			dev->ctrlmsg[i+6], dev->ctrlmsg[i+7],
--			dev->ctrlmsg[i+8], dev->ctrlmsg[i+9],
--			dev->ctrlmsg[i+10], dev->ctrlmsg[i+11],
--			dev->ctrlmsg[i+12], dev->ctrlmsg[i+13],
--			dev->ctrlmsg[i+14], dev->ctrlmsg[i+15]);
--}
--
- static int send_control_msg(struct au0828_dev *dev, u16 request, u32 value,
- 	u16 index)
- {
-@@ -118,24 +103,23 @@ static int recv_control_msg(struct au0828_dev *dev, u16 request, u32 value,
- 	int status = -ENODEV;
- 	mutex_lock(&dev->mutex);
- 	if (dev->usbdev) {
--
--		memset(dev->ctrlmsg, 0, sizeof(dev->ctrlmsg));
--
--		/* cp must be memory that has been allocated by kmalloc */
- 		status = usb_control_msg(dev->usbdev,
- 				usb_rcvctrlpipe(dev->usbdev, 0),
- 				request,
- 				USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
- 				value, index,
--				cp, size, 1000);
-+				dev->ctrlmsg, size, 1000);
- 
- 		status = min(status, 0);
- 
- 		if (status < 0) {
- 			printk(KERN_ERR "%s() Failed receiving control message, error %d.\n",
- 				__func__, status);
--		} else
--			cmd_msg_dump(dev);
-+		}
-+
-+		/* the host controller requires heap allocated memory, which
-+		   is why we didn't just pass "cp" into usb_control_msg */
-+		memcpy(cp, dev->ctrlmsg, size);
- 	}
- 	mutex_unlock(&dev->mutex);
- 	return status;
--- 
-1.7.1
+But this would be a guideline only, and in the end it should be up to the
+driver. Just as long TRY/S_FMT always returns a format.
 
+Regards,
+
+	Hans
