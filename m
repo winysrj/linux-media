@@ -1,54 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:49346 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759811Ab2HXQSL (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:10633 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753059Ab2HNKhO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 12:18:11 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@linaro.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 11/12] ARM i.MX5: Fix CODA7 clock lookup for device tree on i.MX51 and i.MX53
-Date: Fri, 24 Aug 2012 18:17:57 +0200
-Message-Id: <1345825078-3688-12-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1345825078-3688-1-git-send-email-p.zabel@pengutronix.de>
-References: <1345825078-3688-1-git-send-email-p.zabel@pengutronix.de>
+	Tue, 14 Aug 2012 06:37:14 -0400
+Received: from eusync2.samsung.com (mailout3.w1.samsung.com [210.118.77.13])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M8Q00IW4QUYQA70@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 14 Aug 2012 11:37:46 +0100 (BST)
+Received: from AMDN157 ([106.116.147.102])
+ by eusync2.samsung.com (Oracle Communications Messaging Server 7u4-23.01
+ (7.0.4.23.0) 64bit (built Aug 10 2011))
+ with ESMTPA id <0M8Q00MVDQU06M50@eusync2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 14 Aug 2012 11:37:12 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: Andrzej Hajda <a.hajda@samsung.com>, linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>
+References: <1344936573-8164-1-git-send-email-a.hajda@samsung.com>
+In-reply-to: <1344936573-8164-1-git-send-email-a.hajda@samsung.com>
+Subject: RE: [PATCH] v4l/s5p-mfc: added DMABUF support for encoder
+Date: Tue, 14 Aug 2012 12:37:12 +0200
+Message-id: <00b501cd7a08$c3b5efe0$4b21cfa0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: en-gb
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- arch/arm/mach-imx/clk-imx51-imx53.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Hi Andrzej,
 
-diff --git a/arch/arm/mach-imx/clk-imx51-imx53.c b/arch/arm/mach-imx/clk-imx51-imx53.c
-index a2200c7..887ede9 100644
---- a/arch/arm/mach-imx/clk-imx51-imx53.c
-+++ b/arch/arm/mach-imx/clk-imx51-imx53.c
-@@ -334,7 +334,7 @@ int __init mx51_clocks_init(unsigned long rate_ckil, unsigned long rate_osc,
- 
- 	clk_register_clkdev(clk[hsi2c_gate], NULL, "imx-i2c.2");
- 	clk_register_clkdev(clk[mx51_mipi], "mipi_hsp", NULL);
--	clk_register_clkdev(clk[vpu_gate], NULL, "imx51-vpu.0");
-+	clk_register_clkdev(clk[vpu_gate], NULL, "83ff4000.vpu");
- 	clk_register_clkdev(clk[fec_gate], NULL, "imx27-fec.0");
- 	clk_register_clkdev(clk[gpc_dvfs], "gpc_dvfs", NULL);
- 	clk_register_clkdev(clk[ipu_gate], "bus", "imx51-ipu");
-@@ -422,7 +422,7 @@ int __init mx53_clocks_init(unsigned long rate_ckil, unsigned long rate_osc,
- 
- 	mx5_clocks_common_init(rate_ckil, rate_osc, rate_ckih1, rate_ckih2);
- 
--	clk_register_clkdev(clk[vpu_gate], NULL, "imx53-vpu.0");
-+	clk_register_clkdev(clk[vpu_gate], NULL, "63ff4000.vpu");
- 	clk_register_clkdev(clk[i2c3_gate], NULL, "imx-i2c.2");
- 	clk_register_clkdev(clk[fec_gate], NULL, "imx25-fec.0");
- 	clk_register_clkdev(clk[ipu_gate], "bus", "imx53-ipu");
--- 
-1.7.10.4
+Thank you for your patch.
+
+Best wishes,
+--
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
+
+
+> From: Andrzej Hajda [mailto:a.hajda@samsung.com]
+> Sent: 14 August 2012 11:30
+> 
+> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+
+Acked-by: Kamil Debski <k.debski@samsung.com>
+
+> ---
+> Patch cleanly applies after patch
+> http://patchwork.linuxtv.org/patch/13797/
+> ---
+>  drivers/media/video/s5p-mfc/s5p_mfc.c     |    4 ++--
+>  drivers/media/video/s5p-mfc/s5p_mfc_enc.c |    3 ++-
+>  2 files changed, 4 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/video/s5p-mfc/s5p_mfc.c
+b/drivers/media/video/s5p-
+> mfc/s5p_mfc.c
+> index e5c2b80..ab7b74c 100644
+> --- a/drivers/media/video/s5p-mfc/s5p_mfc.c
+> +++ b/drivers/media/video/s5p-mfc/s5p_mfc.c
+> @@ -801,7 +801,7 @@ static int s5p_mfc_open(struct file *file)
+>  		q->io_modes = VB2_MMAP;
+>  		q->ops = get_dec_queue_ops();
+>  	} else if (s5p_mfc_get_node_type(file) == MFCNODE_ENCODER) {
+> -		q->io_modes = VB2_MMAP | VB2_USERPTR;
+> +		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
+>  		q->ops = get_enc_queue_ops();
+>  	} else {
+>  		ret = -ENOENT;
+> @@ -822,7 +822,7 @@ static int s5p_mfc_open(struct file *file)
+>  		q->io_modes = VB2_MMAP;
+>  		q->ops = get_dec_queue_ops();
+>  	} else if (s5p_mfc_get_node_type(file) == MFCNODE_ENCODER) {
+> -		q->io_modes = VB2_MMAP | VB2_USERPTR;
+> +		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
+>  		q->ops = get_enc_queue_ops();
+>  	} else {
+>  		ret = -ENOENT;
+> diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+> b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+> index 53c305d..b1a5f85 100644
+> --- a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+> +++ b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+> @@ -1028,7 +1028,8 @@ static int vidioc_reqbufs(struct file *file, void
+*priv,
+> 
+>  	/* if memory is not mmp or userptr return error */
+>  	if ((reqbufs->memory != V4L2_MEMORY_MMAP) &&
+> -		(reqbufs->memory != V4L2_MEMORY_USERPTR))
+> +		(reqbufs->memory != V4L2_MEMORY_USERPTR) &&
+> +		(reqbufs->memory != V4L2_MEMORY_DMABUF))
+>  		return -EINVAL;
+>  	if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+>  		if (ctx->capture_state != QUEUE_FREE) {
+> --
+> 1.7.0.4
 
