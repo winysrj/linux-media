@@ -1,425 +1,257 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4880 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751964Ab2HVKru (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Aug 2012 06:47:50 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCHv8 02/26] Documentation: media: description of DMABUF importing in V4L2
-Date: Wed, 22 Aug 2012 12:47:36 +0200
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
-	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
-	robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
-	subashrp@gmail.com, mchehab@redhat.com, g.liakhovetski@gmx.de,
-	dmitriyz@google.com, s.nawrocki@samsung.com, k.debski@samsung.com,
-	linux-doc@vger.kernel.org
-References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com> <1344958496-9373-3-git-send-email-t.stanislaws@samsung.com>
-In-Reply-To: <1344958496-9373-3-git-send-email-t.stanislaws@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201208221247.36471.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:38915 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751305Ab2HNEMw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 00:12:52 -0400
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q7E4CqLr020209
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 14 Aug 2012 00:12:52 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 3/3] [media] move the remaining USB drivers to drivers/media/usb
+Date: Tue, 14 Aug 2012 01:12:45 -0300
+Message-Id: <1344917565-22396-4-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1344917565-22396-1-git-send-email-mchehab@redhat.com>
+References: <1344917565-22396-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue August 14 2012 17:34:32 Tomasz Stanislawski wrote:
-> This patch adds description and usage examples for importing
-> DMABUF file descriptor in V4L2.
-> 
-> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> CC: linux-doc@vger.kernel.org
-> ---
->  Documentation/DocBook/media/v4l/compat.xml         |    4 +
->  Documentation/DocBook/media/v4l/io.xml             |  180 ++++++++++++++++++++
->  .../DocBook/media/v4l/vidioc-create-bufs.xml       |    3 +-
->  Documentation/DocBook/media/v4l/vidioc-qbuf.xml    |   15 ++
->  Documentation/DocBook/media/v4l/vidioc-reqbufs.xml |   47 ++---
->  5 files changed, 226 insertions(+), 23 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-> index 98e8d08..ff45330 100644
-> --- a/Documentation/DocBook/media/v4l/compat.xml
-> +++ b/Documentation/DocBook/media/v4l/compat.xml
-> @@ -2605,6 +2605,10 @@ ioctls.</para>
->          <listitem>
->  	  <para>Support for frequency band enumeration: &VIDIOC-ENUM-FREQ-BANDS; ioctl.</para>
->          </listitem>
-> +        <listitem>
-> +	  <para>Importing DMABUF file descriptors as a new IO method described
-> +	  in <xref linkend="dmabuf" />.</para>
-> +        </listitem>
->        </itemizedlist>
->      </section>
->  
-> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-> index 1885cc0..98253ee 100644
-> --- a/Documentation/DocBook/media/v4l/io.xml
-> +++ b/Documentation/DocBook/media/v4l/io.xml
-> @@ -472,6 +472,163 @@ rest should be evident.</para>
->        </footnote></para>
->    </section>
->  
-> +  <section id="dmabuf">
-> +    <title>Streaming I/O (DMA buffer importing)</title>
-> +
-> +    <note>
-> +      <title>Experimental</title>
-> +      <para>This is an <link linkend="experimental"> experimental </link>
-> +      interface and may change in the future.</para>
-> +    </note>
-> +
-> +<para>The DMABUF framework provides a generic mean for sharing buffers between
+Move the 3 remaining usb drivers to their proper space.
 
-s/mean/method/
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ MAINTAINERS                                        |  2 +-
+ drivers/media/usb/Kconfig                          |  3 ++
+ drivers/media/usb/Makefile                         |  2 +
+ drivers/media/{video => usb/s2255}/s2255drv.c      |  0
+ drivers/media/usb/stkwebcam/Kconfig                | 13 ++++++
+ drivers/media/usb/stkwebcam/Makefile               |  4 ++
+ .../media/{video => usb/stkwebcam}/stk-sensor.c    |  0
+ .../media/{video => usb/stkwebcam}/stk-webcam.c    |  0
+ .../media/{video => usb/stkwebcam}/stk-webcam.h    |  0
+ drivers/media/usb/zr364xx/Kconfig                  | 14 ++++++
+ drivers/media/usb/zr364xx/Makefile                 |  2 +
+ drivers/media/{video => usb/zr364xx}/zr364xx.c     |  0
+ drivers/media/video/Kconfig                        | 50 ----------------------
+ drivers/media/video/Makefile                       |  8 ----
+ 14 files changed, 39 insertions(+), 59 deletions(-)
+ rename drivers/media/{video => usb/s2255}/s2255drv.c (100%)
+ create mode 100644 drivers/media/usb/stkwebcam/Kconfig
+ create mode 100644 drivers/media/usb/stkwebcam/Makefile
+ rename drivers/media/{video => usb/stkwebcam}/stk-sensor.c (100%)
+ rename drivers/media/{video => usb/stkwebcam}/stk-webcam.c (100%)
+ rename drivers/media/{video => usb/stkwebcam}/stk-webcam.h (100%)
+ create mode 100644 drivers/media/usb/zr364xx/Kconfig
+ create mode 100644 drivers/media/usb/zr364xx/Makefile
+ rename drivers/media/{video => usb/zr364xx}/zr364xx.c (100%)
 
-> + multiple devices. Device drivers that support DMABUF can export a DMA buffer
-> +to userspace as a file descriptor (known as the exporter role), import a DMA
-> +buffer from userspace using a file descriptor previously exported for a
-> +different or the same device (known as the importer role), or both. This
-> +section describes the DMABUF importer role API in V4L2.</para>
-> +
-> +<para>Input and output devices support the streaming I/O method when the
-> +<constant>V4L2_CAP_STREAMING</constant> flag in the
-> +<structfield>capabilities</structfield> field of &v4l2-capability; returned by
-> +the &VIDIOC-QUERYCAP; ioctl is set. Whether importing DMA buffers through
-> +DMABUF file descriptors is supported is determined by calling the
-> +&VIDIOC-REQBUFS; ioctl with the memory type set to
-> +<constant>V4L2_MEMORY_DMABUF</constant>.</para>
-> +
-> +    <para>This I/O method is dedicated for sharing DMA buffers between V4L and
-> +other APIs.  Buffers (planes) are allocated by a driver on behalf of the
-> +application, and exported to the application as file descriptors using an API
-> +specific to the allocator driver.  Only those file descriptor are exchanged,
-> +these files and meta-information are passed in &v4l2-buffer; (or in
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 13fd97f..99a930d 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -7371,7 +7371,7 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
+ W:	http://royale.zerezo.com/zr364xx/
+ S:	Maintained
+ F:	Documentation/video4linux/zr364xx.txt
+-F:	drivers/media/video/zr364xx.c
++F:	drivers/media/usb/zr364xx.c
+ 
+ USER-MODE LINUX (UML)
+ M:	Jeff Dike <jdike@addtoit.com>
+diff --git a/drivers/media/usb/Kconfig b/drivers/media/usb/Kconfig
+index e1cb51f..2719198 100644
+--- a/drivers/media/usb/Kconfig
++++ b/drivers/media/usb/Kconfig
+@@ -11,6 +11,9 @@ source "drivers/media/usb/uvc/Kconfig"
+ source "drivers/media/usb/gspca/Kconfig"
+ source "drivers/media/usb/pwc/Kconfig"
+ source "drivers/media/usb/cpia2/Kconfig"
++source "drivers/media/usb/zr364xx/Kconfig"
++source "drivers/media/usb/stkwebcam/Kconfig"
++source "drivers/media/usb/s2255/Kconfig"
+ source "drivers/media/usb/sn9c102/Kconfig"
+ endif
+ 
+diff --git a/drivers/media/usb/Makefile b/drivers/media/usb/Makefile
+index 428827a..63e37bb 100644
+--- a/drivers/media/usb/Makefile
++++ b/drivers/media/usb/Makefile
+@@ -4,6 +4,8 @@
+ 
+ # DVB USB-only drivers
+ obj-y := ttusb-dec/ ttusb-budget/ dvb-usb/ dvb-usb-v2/ siano/ b2c2/
++obj-y := zr364xx/ stkwebcam/ s2255/
++
+ obj-$(CONFIG_USB_VIDEO_CLASS)	+= uvc/
+ obj-$(CONFIG_USB_GSPCA)         += gspca/
+ obj-$(CONFIG_USB_PWC)           += pwc/
+diff --git a/drivers/media/video/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
+similarity index 100%
+rename from drivers/media/video/s2255drv.c
+rename to drivers/media/usb/s2255/s2255drv.c
+diff --git a/drivers/media/usb/stkwebcam/Kconfig b/drivers/media/usb/stkwebcam/Kconfig
+new file mode 100644
+index 0000000..2fb0c2b
+--- /dev/null
++++ b/drivers/media/usb/stkwebcam/Kconfig
+@@ -0,0 +1,13 @@
++config USB_STKWEBCAM
++	tristate "USB Syntek DC1125 Camera support"
++	depends on VIDEO_V4L2 && EXPERIMENTAL
++	---help---
++	  Say Y here if you want to use this type of camera.
++	  Supported devices are typically found in some Asus laptops,
++	  with USB id 174f:a311 and 05e1:0501. Other Syntek cameras
++	  may be supported by the stk11xx driver, from which this is
++	  derived, see <http://sourceforge.net/projects/syntekdriver/>
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called stkwebcam.
++
+diff --git a/drivers/media/usb/stkwebcam/Makefile b/drivers/media/usb/stkwebcam/Makefile
+new file mode 100644
+index 0000000..20ef8a4
+--- /dev/null
++++ b/drivers/media/usb/stkwebcam/Makefile
+@@ -0,0 +1,4 @@
++stkwebcam-objs	:=	stk-webcam.o stk-sensor.o
++
++obj-$(CONFIG_USB_STKWEBCAM)     += stkwebcam.o
++
+diff --git a/drivers/media/video/stk-sensor.c b/drivers/media/usb/stkwebcam/stk-sensor.c
+similarity index 100%
+rename from drivers/media/video/stk-sensor.c
+rename to drivers/media/usb/stkwebcam/stk-sensor.c
+diff --git a/drivers/media/video/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
+similarity index 100%
+rename from drivers/media/video/stk-webcam.c
+rename to drivers/media/usb/stkwebcam/stk-webcam.c
+diff --git a/drivers/media/video/stk-webcam.h b/drivers/media/usb/stkwebcam/stk-webcam.h
+similarity index 100%
+rename from drivers/media/video/stk-webcam.h
+rename to drivers/media/usb/stkwebcam/stk-webcam.h
+diff --git a/drivers/media/usb/zr364xx/Kconfig b/drivers/media/usb/zr364xx/Kconfig
+new file mode 100644
+index 0000000..0f58566
+--- /dev/null
++++ b/drivers/media/usb/zr364xx/Kconfig
+@@ -0,0 +1,14 @@
++config USB_ZR364XX
++	tristate "USB ZR364XX Camera support"
++	depends on VIDEO_V4L2
++	select VIDEOBUF_GEN
++	select VIDEOBUF_VMALLOC
++	---help---
++	  Say Y here if you want to connect this type of camera to your
++	  computer's USB port.
++	  See <file:Documentation/video4linux/zr364xx.txt> for more info
++	  and list of supported cameras.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called zr364xx.
++
+diff --git a/drivers/media/usb/zr364xx/Makefile b/drivers/media/usb/zr364xx/Makefile
+new file mode 100644
+index 0000000..a577788
+--- /dev/null
++++ b/drivers/media/usb/zr364xx/Makefile
+@@ -0,0 +1,2 @@
++obj-$(CONFIG_USB_ZR364XX)       += zr364xx.o
++
+diff --git a/drivers/media/video/zr364xx.c b/drivers/media/usb/zr364xx/zr364xx.c
+similarity index 100%
+rename from drivers/media/video/zr364xx.c
+rename to drivers/media/usb/zr364xx/zr364xx.c
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 097b17ce..f527992 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -606,56 +606,6 @@ config VIDEO_VIVI
+ 	  In doubt, say N.
+ 
+ #
+-# USB Multimedia device configuration
+-#
+-
+-menuconfig V4L_USB_DRIVERS
+-	bool "V4L USB devices"
+-	depends on USB
+-	default y
+-
+-if V4L_USB_DRIVERS && MEDIA_CAMERA_SUPPORT
+-
+-config USB_ZR364XX
+-	tristate "USB ZR364XX Camera support"
+-	depends on VIDEO_V4L2
+-	select VIDEOBUF_GEN
+-	select VIDEOBUF_VMALLOC
+-	---help---
+-	  Say Y here if you want to connect this type of camera to your
+-	  computer's USB port.
+-	  See <file:Documentation/video4linux/zr364xx.txt> for more info
+-	  and list of supported cameras.
+-
+-	  To compile this driver as a module, choose M here: the
+-	  module will be called zr364xx.
+-
+-config USB_STKWEBCAM
+-	tristate "USB Syntek DC1125 Camera support"
+-	depends on VIDEO_V4L2 && EXPERIMENTAL
+-	---help---
+-	  Say Y here if you want to use this type of camera.
+-	  Supported devices are typically found in some Asus laptops,
+-	  with USB id 174f:a311 and 05e1:0501. Other Syntek cameras
+-	  may be supported by the stk11xx driver, from which this is
+-	  derived, see <http://sourceforge.net/projects/syntekdriver/>
+-
+-	  To compile this driver as a module, choose M here: the
+-	  module will be called stkwebcam.
+-
+-config USB_S2255
+-	tristate "USB Sensoray 2255 video capture device"
+-	depends on VIDEO_V4L2
+-	select VIDEOBUF_VMALLOC
+-	default n
+-	help
+-	  Say Y here if you want support for the Sensoray 2255 USB device.
+-	  This driver can be compiled as a module, called s2255drv.
+-
+-
+-endif # V4L_USB_DRIVERS && MEDIA_CAMERA_SUPPORT
+-
+-#
+ # PCI drivers configuration - No devices here are for webcams
+ #
+ 
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index a22a258..4ad5bd9 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -4,8 +4,6 @@
+ 
+ msp3400-objs	:=	msp3400-driver.o msp3400-kthreads.o
+ 
+-stkwebcam-objs	:=	stk-webcam.o stk-sensor.o
+-
+ omap2cam-objs	:=	omap24xxcam.o omap24xxcam-dma.o
+ 
+ # Helper modules
+@@ -119,12 +117,6 @@ obj-$(CONFIG_VIDEO_VIA_CAMERA) += via-camera.o
+ 
+ obj-$(CONFIG_VIDEO_OMAP3)	+= omap3isp/
+ 
+-obj-$(CONFIG_USB_ZR364XX)       += zr364xx.o
+-obj-$(CONFIG_USB_STKWEBCAM)     += stkwebcam.o
+-
+-
+-obj-$(CONFIG_USB_S2255)		+= s2255drv.o
+-
+ obj-$(CONFIG_VIDEO_IVTV) += ivtv/
+ obj-$(CONFIG_VIDEO_CX18) += cx18/
+ 
+-- 
+1.7.11.2
 
-This sentence doesn't work well. It's unclear what is meant by 'these files'. Do
-you mean 'these file descriptors'?
-
-> +&v4l2-plane; in the multi-planar API case).  The driver must be switched into
-> +DMABUF I/O mode by calling the &VIDIOC-REQBUFS; with the desired buffer type.
-> +No buffers (planes) are allocated beforehand, consequently they are not indexed
-> +and cannot be queried like mapped buffers with the
-> +<constant>VIDIOC_QUERYBUF</constant> ioctl.</para>
-
-I disagree with that. Userptr buffers can use QUERYBUF just fine. Even for the
-userptr you still have to fill in the buffer index when calling QBUF.
-
-So I see no reason why you couldn't use QUERYBUF in the DMABUF case. The only
-difference is that the fd field is undefined (set to -1 perhaps?) if the bufffer
-isn't queued.
-
-QUERYBUF can be very useful for debugging, for example to see what the status
-is of each buffer and how many are queued.
-
-> +
-> +    <example>
-> +      <title>Initiating streaming I/O with DMABUF file descriptors</title>
-> +
-> +      <programlisting>
-> +&v4l2-requestbuffers; reqbuf;
-> +
-> +memset (&amp;reqbuf, 0, sizeof (reqbuf));
-> +reqbuf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +reqbuf.memory = V4L2_MEMORY_DMABUF;
-> +reqbuf.count = 1;
-> +
-> +if (ioctl (fd, &VIDIOC-REQBUFS;, &amp;reqbuf) == -1) {
-> +	if (errno == EINVAL)
-> +		printf ("Video capturing or DMABUF streaming is not supported\n");
-> +	else
-> +		perror ("VIDIOC_REQBUFS");
-> +
-> +	exit (EXIT_FAILURE);
-
-Let's stick to the kernel coding style, so no ' ' before '(' in function calls.
-Same for the other program examples below.
-
-> +}
-> +      </programlisting>
-> +    </example>
-> +
-> +    <para>Buffer (plane) file descriptor is passed on the fly with the
-
-s/Buffer/The buffer/
-
-> +&VIDIOC-QBUF; ioctl. In case of multiplanar buffers, every plane can be
-
-'Can be', 'should be' or 'must be'? Does it ever make sense to have the same
-fd for different planes? Do we have restrictions on this in the userptr case?
-
-> +associated with a different DMABUF descriptor. Although buffers are commonly
-> +cycled, applications can pass a different DMABUF descriptor at each
-> +<constant>VIDIOC_QBUF</constant> call.</para>
-> +
-> +    <example>
-> +      <title>Queueing DMABUF using single plane API</title>
-> +
-> +      <programlisting>
-> +int buffer_queue(int v4lfd, int index, int dmafd)
-> +{
-> +	&v4l2-buffer; buf;
-> +
-> +	memset(&amp;buf, 0, sizeof buf);
-> +	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +	buf.memory = V4L2_MEMORY_DMABUF;
-> +	buf.index = index;
-> +	buf.m.fd = dmafd;
-> +
-> +	if (ioctl (v4lfd, &VIDIOC-QBUF;, &amp;buf) == -1) {
-> +		perror ("VIDIOC_QBUF");
-> +		return -1;
-> +	}
-> +
-> +	return 0;
-> +}
-> +      </programlisting>
-> +    </example>
-> +
-> +    <example>
-> +      <title>Queueing DMABUF using multi plane API</title>
-> +
-> +      <programlisting>
-> +int buffer_queue_mp(int v4lfd, int index, int dmafd[], int n_planes)
-> +{
-> +	&v4l2-buffer; buf;
-> +	&v4l2-plane; planes[VIDEO_MAX_PLANES];
-> +	int i;
-> +
-> +	memset(&amp;buf, 0, sizeof buf);
-> +	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-> +	buf.memory = V4L2_MEMORY_DMABUF;
-> +	buf.index = index;
-> +	buf.m.planes = planes;
-> +	buf.length = n_planes;
-> +
-> +	memset(&amp;planes, 0, sizeof planes);
-> +
-> +	for (i = 0; i &lt; n_planes; ++i)
-> +		buf.m.planes[i].m.fd = dmafd[i];
-> +
-> +	if (ioctl (v4lfd, &VIDIOC-QBUF;, &amp;buf) == -1) {
-> +		perror ("VIDIOC_QBUF");
-> +		return -1;
-> +	}
-> +
-> +	return 0;
-> +}
-> +      </programlisting>
-> +    </example>
-> +
-> +    <para>Filled or displayed buffers are dequeued with the
-> +&VIDIOC-DQBUF; ioctl. The driver can unlock the buffer at any
-> +time between the completion of the DMA and this ioctl. The memory is
-> +also unlocked when &VIDIOC-STREAMOFF; is called, &VIDIOC-REQBUFS;, or
-> +when the device is closed.</para>
-> +
-> +    <para>For capturing applications it is customary to enqueue a
-> +number of empty buffers, to start capturing and enter the read loop.
-> +Here the application waits until a filled buffer can be dequeued, and
-> +re-enqueues the buffer when the data is no longer needed. Output
-> +applications fill and enqueue buffers, when enough buffers are stacked
-> +up output is started. In the write loop, when the application
-> +runs out of free buffers it must wait until an empty buffer can be
-> +dequeued and reused. Two methods exist to suspend execution of the
-> +application until one or more buffers can be dequeued. By default
-> +<constant>VIDIOC_DQBUF</constant> blocks when no buffer is in the
-> +outgoing queue. When the <constant>O_NONBLOCK</constant> flag was
-> +given to the &func-open; function, <constant>VIDIOC_DQBUF</constant>
-> +returns immediately with an &EAGAIN; when no buffer is available. The
-> +&func-select; or &func-poll; function are always available.</para>
-
-s/function/functions/
-
-> +
-> +    <para>To start and stop capturing or output applications call the
-> +&VIDIOC-STREAMON; and &VIDIOC-STREAMOFF; ioctls. Note that
-> +<constant>VIDIOC_STREAMOFF</constant> removes all buffers from both queues and
-> +unlocks all buffers as a side effect. Since there is no notion of doing
-> +anything "now" on a multitasking system, if an application needs to synchronize
-> +with another event it should examine the &v4l2-buffer;
-> +<structfield>timestamp</structfield> of captured buffers, or set the field
-> +before enqueuing buffers for output.</para>
-> +
-> +    <para>Drivers implementing DMABUF importing I/O must support the
-> +<constant>VIDIOC_REQBUFS</constant>, <constant>VIDIOC_QBUF</constant>,
-> +<constant>VIDIOC_DQBUF</constant>, <constant>VIDIOC_STREAMON</constant> and
-> +<constant>VIDIOC_STREAMOFF</constant> ioctls, and the
-> +<function>select()</function> and <function>poll()</function> functions.</para>
-> +
-> +  </section>
-> +
->    <section id="async">
->      <title>Asynchronous I/O</title>
->  
-> @@ -673,6 +830,14 @@ memory, set by the application. See <xref linkend="userp" /> for details.
->  	    <structname>v4l2_buffer</structname> structure.</entry>
->  	  </row>
->  	  <row>
-> +	    <entry></entry>
-> +	    <entry>int</entry>
-> +	    <entry><structfield>fd</structfield></entry>
-> +	    <entry>For the single-plane API and when
-> +<structfield>memory</structfield> is <constant>V4L2_MEMORY_DMABUF</constant> this
-> +is the file descriptor associated with a DMABUF buffer.</entry>
-> +	  </row>
-> +	  <row>
->  	    <entry>__u32</entry>
->  	    <entry><structfield>length</structfield></entry>
->  	    <entry></entry>
-> @@ -746,6 +911,15 @@ should set this to 0.</entry>
->  	      </entry>
->  	  </row>
->  	  <row>
-> +	    <entry></entry>
-> +	    <entry>int</entry>
-> +	    <entry><structfield>fd</structfield></entry>
-> +	    <entry>When the memory type in the containing &v4l2-buffer; is
-> +		<constant>V4L2_MEMORY_DMABUF</constant>, this is a file
-> +		descriptor associated with a DMABUF buffer, similar to the
-> +		<structfield>fd</structfield> field in &v4l2-buffer;.</entry>
-> +	  </row>
-> +	  <row>
->  	    <entry>__u32</entry>
->  	    <entry><structfield>data_offset</structfield></entry>
->  	    <entry></entry>
-> @@ -973,6 +1147,12 @@ pointer</link> I/O.</entry>
->  	    <entry>3</entry>
->  	    <entry>[to do]</entry>
->  	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_MEMORY_DMABUF</constant></entry>
-> +	    <entry>4</entry>
-> +	    <entry>The buffer is used for <link linkend="dmabuf">DMA shared
-> +buffer</link> I/O.</entry>
-> +	  </row>
->  	</tbody>
->        </tgroup>
->      </table>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-> index a8cda1a..1125468 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-> @@ -109,7 +109,8 @@ information.</para>
->  	    <entry>__u32</entry>
->  	    <entry><structfield>memory</structfield></entry>
->  	    <entry>Applications set this field to
-> -<constant>V4L2_MEMORY_MMAP</constant> or
-> +<constant>V4L2_MEMORY_MMAP</constant>,
-> +<constant>V4L2_MEMORY_DMABUF</constant> or
->  <constant>V4L2_MEMORY_USERPTR</constant>. See <xref linkend="v4l2-memory"
->  /></entry>
->  	  </row>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
-> index 77ff5be..436d21c 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
-> @@ -109,6 +109,21 @@ they cannot be swapped out to disk. Buffers remain locked until
->  dequeued, until the &VIDIOC-STREAMOFF; or &VIDIOC-REQBUFS; ioctl is
->  called, or until the device is closed.</para>
->  
-> +    <para>To enqueue a <link linkend="dmabuf">DMABUF</link> buffer applications
-> +set the <structfield>memory</structfield> field to
-> +<constant>V4L2_MEMORY_DMABUF</constant> and the <structfield>m.fd</structfield>
-> +field to a file descriptor associated with a DMABUF buffer. When the
-> +multi-planar API is used <structfield>m.fd</structfield> of the passed array of
-
-multi-planar API is used the <structfield>m.fd</structfield> fields of the passed array of
-
-> +&v4l2-plane; have to be used instead. When <constant>VIDIOC_QBUF</constant> is
-> +called with a pointer to this structure the driver sets the
-> +<constant>V4L2_BUF_FLAG_QUEUED</constant> flag and clears the
-> +<constant>V4L2_BUF_FLAG_MAPPED</constant> and
-> +<constant>V4L2_BUF_FLAG_DONE</constant> flags in the
-> +<structfield>flags</structfield> field, or it returns an error code.  This
-> +ioctl locks the buffer. Buffers remain locked until dequeued, until the
-> +&VIDIOC-STREAMOFF; or &VIDIOC-REQBUFS; ioctl is called, or until the device is
-> +closed.</para>
-
-You need to explain what a 'locked buffer' means.
-
-> +
->      <para>Applications call the <constant>VIDIOC_DQBUF</constant>
->  ioctl to dequeue a filled (capturing) or displayed (output) buffer
->  from the driver's outgoing queue. They just set the
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-reqbufs.xml b/Documentation/DocBook/media/v4l/vidioc-reqbufs.xml
-> index d7c9505..20f4323 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-reqbufs.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-reqbufs.xml
-> @@ -48,28 +48,30 @@
->    <refsect1>
->      <title>Description</title>
->  
-> -    <para>This ioctl is used to initiate <link linkend="mmap">memory
-> -mapped</link> or <link linkend="userp">user pointer</link>
-> -I/O. Memory mapped buffers are located in device memory and must be
-> -allocated with this ioctl before they can be mapped into the
-> -application's address space. User buffers are allocated by
-> -applications themselves, and this ioctl is merely used to switch the
-> -driver into user pointer I/O mode and to setup some internal structures.</para>
-> +<para>This ioctl is used to initiate <link linkend="mmap">memory mapped</link>,
-> +<link linkend="userp">user pointer</link> or <link
-> +linkend="dmabuf">DMABUF</link> based I/O.  Memory mapped buffers are located in
-> +device memory and must be allocated with this ioctl before they can be mapped
-> +into the application's address space. User buffers are allocated by
-> +applications themselves, and this ioctl is merely used to switch the driver
-> +into user pointer I/O mode and to setup some internal structures.
-> +Similarly, DMABUF buffers are allocated by applications through a device
-> +driver, and this ioctl only configures the driver into DMABUF I/O mode without
-> +performing any direct allocation.</para>
->  
-> -    <para>To allocate device buffers applications initialize all
-> -fields of the <structname>v4l2_requestbuffers</structname> structure.
-> -They set the <structfield>type</structfield> field to the respective
-> -stream or buffer type, the <structfield>count</structfield> field to
-> -the desired number of buffers, <structfield>memory</structfield>
-> -must be set to the requested I/O method and the <structfield>reserved</structfield> array
-> -must be zeroed. When the ioctl
-> -is called with a pointer to this structure the driver will attempt to allocate
-> -the requested number of buffers and it stores the actual number
-> -allocated in the <structfield>count</structfield> field. It can be
-> -smaller than the number requested, even zero, when the driver runs out
-> -of free memory. A larger number is also possible when the driver requires
-> -more buffers to function correctly. For example video output requires at least two buffers,
-> -one displayed and one filled by the application.</para>
-> +    <para>To allocate device buffers applications initialize all fields of the
-> +<structname>v4l2_requestbuffers</structname> structure.  They set the
-> +<structfield>type</structfield> field to the respective stream or buffer type,
-> +the <structfield>count</structfield> field to the desired number of buffers,
-> +<structfield>memory</structfield> must be set to the requested I/O method and
-> +the <structfield>reserved</structfield> array must be zeroed. When the ioctl is
-> +called with a pointer to this structure the driver will attempt to allocate the
-> +requested number of buffers and it stores the actual number allocated in the
-> +<structfield>count</structfield> field. It can be smaller than the number
-> +requested, even zero, when the driver runs out of free memory. A larger number
-> +is also possible when the driver requires more buffers to function correctly.
-> +For example video output requires at least two buffers, one displayed and one
-> +filled by the application.</para>
->      <para>When the I/O method is not supported the ioctl
->  returns an &EINVAL;.</para>
->  
-> @@ -102,7 +104,8 @@ as the &v4l2-format; <structfield>type</structfield> field. See <xref
->  	    <entry>__u32</entry>
->  	    <entry><structfield>memory</structfield></entry>
->  	    <entry>Applications set this field to
-> -<constant>V4L2_MEMORY_MMAP</constant> or
-> +<constant>V4L2_MEMORY_MMAP</constant>,
-> +<constant>V4L2_MEMORY_DMABUF</constant> or
->  <constant>V4L2_MEMORY_USERPTR</constant>. See <xref linkend="v4l2-memory"
->  />.</entry>
->  	  </row>
-> 
-
-You also have to update the VIDIOC_CREATE_BUFS ioctl documentation!
-
-I think the VIDIOC_PREPARE_BUF ioctl documentation is OK, but you might want to
-check that yourself, just in case.
-
-Regards,
-
-	Hans
