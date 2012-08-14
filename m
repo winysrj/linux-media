@@ -1,105 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25520 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751595Ab2HKUUg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Aug 2012 16:20:36 -0400
-Message-ID: <5026BE78.80902@redhat.com>
-Date: Sat, 11 Aug 2012 17:20:08 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
-CC: Sean Young <sean@mess.org>, Jarod Wilson <jarod@wilsonet.com>,
-	Alan Cox <alan@linux.intel.com>, linux-media@vger.kernel.org,
-	linux-serial@vger.kernel.org, lirc-list@lists.sourceforge.net
-Subject: Re: [PATCH] [media] winbond-cir: Fix initialization
-References: <1343731023-9822-1-git-send-email-sean@mess.org>
-In-Reply-To: <1343731023-9822-1-git-send-email-sean@mess.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:45176 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751035Ab2HNExt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 00:53:49 -0400
+Received: by ghrr11 with SMTP id r11so3939086ghr.19
+        for <linux-media@vger.kernel.org>; Mon, 13 Aug 2012 21:53:48 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com, mchehab@infradead.org,
+	sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH] [media] s5p-fimc: Make FIMC-Lite dependent on S5P-FIMC
+Date: Tue, 14 Aug 2012 10:22:03 +0530
+Message-Id: <1344919923-16764-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi David,
+FIMC-Lite driver accesses functions which are defined in files
+attached to S5P_FIMC. Without this patch, if only FIMC-Lite is
+selected, following errors are observed for missing symbols:
 
-Em 31-07-2012 07:37, Sean Young escreveu:
-> The serial driver will detect the winbond cir device as a serial port,
-> since it looks exactly like a serial port unless you know what it is
-> from the PNP ID.
-> 
-> Winbond CIR 00:04: Region 0x2f8-0x2ff already in use!
-> Winbond CIR 00:04: disabled
-> Winbond CIR: probe of 00:04 failed with error -16
+drivers/built-in.o: In function `fimc_md_create_links':
+fimc-mdevice.c:641: undefined reference to `fimc_sensor_notify'
+drivers/built-in.o: In function `fimc_md_link_notify':
+fimc-mdevice.c:838: undefined reference to `fimc_ctrls_delete'
+fimc-mdevice.c:854: undefined reference to `fimc_capture_ctrls_create'
+drivers/built-in.o: In function `fimc_md_init':
+fimc-mdevice.c:1018: undefined reference to `fimc_register_driver'
+drivers/built-in.o: In function `fimc_md_exit':
+fimc-mdevice.c:1028: undefined reference to `fimc_unregister_driver'
+make: *** [vmlinux] Error 1
 
-Please review this patch.
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/video/s5p-fimc/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-> 
-> Signed-off-by: Sean Young <sean@mess.org>
-> ---
->  drivers/media/rc/winbond-cir.c | 21 ++++++++++++++++++++-
->  drivers/tty/serial/8250/8250.c |  1 +
->  2 files changed, 21 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
-> index 54ee348..20a0bbb 100644
-> --- a/drivers/media/rc/winbond-cir.c
-> +++ b/drivers/media/rc/winbond-cir.c
-> @@ -55,6 +55,7 @@
->  #include <linux/slab.h>
->  #include <linux/wait.h>
->  #include <linux/sched.h>
-> +#include <linux/serial_8250.h>
->  #include <media/rc-core.h>
->  
->  #define DRVNAME "winbond-cir"
-> @@ -957,6 +958,7 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
->  	struct device *dev = &device->dev;
->  	struct wbcir_data *data;
->  	int err;
-> +	struct resource *io;
->  
->  	if (!(pnp_port_len(device, 0) == EHFUNC_IOMEM_LEN &&
->  	      pnp_port_len(device, 1) == WAKEUP_IOMEM_LEN &&
-> @@ -1049,7 +1051,24 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
->  		goto exit_release_wbase;
->  	}
->  
-> -	if (!request_region(data->sbase, SP_IOMEM_LEN, DRVNAME)) {
-> +	io = request_region(data->sbase, SP_IOMEM_LEN, DRVNAME);
-> +
-> +	/*
-> +	 * The winbond cir device looks exactly like an NS16550A serial port
-> +	 * unless you know what it is. We've got here via the PNP ID.
-> +	 */
-> +#ifdef CONFIG_SERIAL_8250
-> +	if (!io) {
-> +		struct uart_port port = { .iobase = data->sbase };
-> +		int line = serial8250_find_port(&port);
-> +		if (line >= 0) {
-> +			serial8250_unregister_port(line);
-
-Hmm... Not sure if it makes sense, but perhaps the unregistering code
-should be reverting serial8250_unregister_port(line).
-
-> +
-> +			io = request_region(data->sbase, SP_IOMEM_LEN, DRVNAME);
-> +		}
-> +	}
-> +#endif
-> +	if (!io) {
->  		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
->  			data->sbase, data->sbase + SP_IOMEM_LEN - 1);
->  		err = -EBUSY;
-> diff --git a/drivers/tty/serial/8250/8250.c b/drivers/tty/serial/8250/8250.c
-> index 5c27f7e..d38615f 100644
-> --- a/drivers/tty/serial/8250/8250.c
-> +++ b/drivers/tty/serial/8250/8250.c
-> @@ -2914,6 +2914,7 @@ int serial8250_find_port(struct uart_port *p)
->  	}
->  	return -ENODEV;
->  }
-> +EXPORT_SYMBOL(serial8250_find_port);
->  
->  #define SERIAL8250_CONSOLE	&serial8250_console
->  #else
-> 
+diff --git a/drivers/media/video/s5p-fimc/Kconfig b/drivers/media/video/s5p-fimc/Kconfig
+index a564f7e..17a1f8d 100644
+--- a/drivers/media/video/s5p-fimc/Kconfig
++++ b/drivers/media/video/s5p-fimc/Kconfig
+@@ -35,7 +35,7 @@ if ARCH_EXYNOS
+ 
+ config VIDEO_EXYNOS_FIMC_LITE
+ 	tristate "EXYNOS FIMC-LITE camera interface driver"
+-	depends on I2C
++	depends on I2C && VIDEO_S5P_FIMC
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	help
+ 	  This is a V4L2 driver for Samsung EXYNOS4/5 SoC FIMC-LITE camera
+-- 
+1.7.4.1
 
