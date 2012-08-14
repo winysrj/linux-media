@@ -1,64 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25627 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:36091 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752044Ab2HKUbX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Aug 2012 16:31:23 -0400
-Message-ID: <5026C10F.6010600@redhat.com>
-Date: Sat, 11 Aug 2012 17:31:11 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1752311Ab2HNIPB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 04:15:01 -0400
+Message-ID: <502A093F.9040608@redhat.com>
+Date: Tue, 14 Aug 2012 10:15:59 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Sean Young <sean@mess.org>
-CC: Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org,
-	lirc-list@lists.sourceforge.net
-Subject: Re: [PATCH] [media] nec-decoder: fix NEC decoding for Pioneer Laserdisc
- CU-700 remote
-References: <1343731049-9856-1-git-send-email-sean@mess.org>
-In-Reply-To: <1343731049-9856-1-git-send-email-sean@mess.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: workshop-2011@linuxtv.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [Workshop-2011] RFC: V4L2 API ambiguities
+References: <201208131427.56961.hverkuil@xs4all.nl> <5028FD7E.1010402@redhat.com> <5403829.BeBAZV71c8@avalon>
+In-Reply-To: <5403829.BeBAZV71c8@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 31-07-2012 07:37, Sean Young escreveu:
-> This remote sends a header pulse of 8150us followed by a space of 4000us.
+Hi,
 
- 
-> Signed-off-by: Sean Young <sean@mess.org>
-> ---
->  drivers/media/rc/ir-nec-decoder.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
-> index 3c9431a..2ca509e 100644
-> --- a/drivers/media/rc/ir-nec-decoder.c
-> +++ b/drivers/media/rc/ir-nec-decoder.c
-> @@ -70,7 +70,7 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
->  		if (!ev.pulse)
->  			break;
->  
-> -		if (eq_margin(ev.duration, NEC_HEADER_PULSE, NEC_UNIT / 2)) {
-> +		if (eq_margin(ev.duration, NEC_HEADER_PULSE, NEC_UNIT * 2)) {
->  			data->is_nec_x = false;
->  			data->necx_repeat = false;
->  		} else if (eq_margin(ev.duration, NECX_HEADER_PULSE, NEC_UNIT / 2))
-> @@ -86,7 +86,7 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
->  		if (ev.pulse)
->  			break;
->  
-> -		if (eq_margin(ev.duration, NEC_HEADER_SPACE, NEC_UNIT / 2)) {
-> +		if (eq_margin(ev.duration, NEC_HEADER_SPACE, NEC_UNIT)) {
->  			data->state = STATE_BIT_PULSE;
->  			return 0;
->  		} else if (eq_margin(ev.duration, NEC_REPEAT_SPACE, NEC_UNIT / 2)) {
-> 
+On 08/14/2012 02:00 AM, Laurent Pinchart wrote:
+> Hi Hans,
+>
+> On Monday 13 August 2012 15:13:34 Hans de Goede wrote:
+>
+> [snip]
+>
+>>> 4) What should a driver return in TRY_FMT/S_FMT if the requested format is
+>>>      not supported (possible behaviours include returning the currently
+>>>      selected format or a default format).
+>>>
+>>>      The spec says this: "Drivers should not return an error code unless
+>>>      the input is ambiguous", but it does not explain what constitutes an
+>>>      ambiguous input. Frankly, I can't think of any and in my opinion
+>>>      TRY/S_FMT should never return an error other than EINVAL (if the
+>>>      buffer type is unsupported) or EBUSY (for S_FMT if streaming is in
+>>>      progress).
+>>>
+>>>      Returning an error for any other reason doesn't help the application
+>>>      since the app will have no way of knowing what to do next.
+>>
+>> Ack on not returning an error for requesting an unavailable format. As for
+>> what the driver should do (default versus current format) I've no
+>> preference, I vote for letting this be decided by the driver
+>> implementation.
+>
+> That's exactly the point that I wanted to clarify :-) I don't see a good
+> reason to let the driver decide on this, and would prefer returning a default
+> format
 
-The timings above are adjusted for 9000us/4500us, with a tolerance of 281,250us.
-You're changing the pulse tolerance to 1125us for pulse, and 562,5us for space.
+I see.
 
-I double-checked: this shouldn't interfere with the other decoders, so it could
-be possible to apply it, without causing regressions.
+> as TRY_FMT would then always return the same result for a given input
+> format regardless of the currently selected format.
 
-I'll apply it.
+That argument makes sense, so ack from me on always returning a default format.
 
 Regards,
-Mauro
+
+Hans
