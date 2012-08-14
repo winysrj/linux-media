@@ -1,71 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.10]:54657 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754116Ab2HXN2o (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:43563 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752335Ab2HNJ3r (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 09:28:44 -0400
-Date: Fri, 24 Aug 2012 15:28:39 +0200
-From: Anatolij Gustschin <agust@denx.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>, dzu@denx.de
-Subject: Re: [PATCH 1/3] mt9v022: add v4l2 controls for blanking and other
- register settings
-Message-ID: <20120824152839.62ef31e9@wker>
-In-Reply-To: <Pine.LNX.4.64.1208241227140.20710@axis700.grange>
-References: <1345799431-29426-1-git-send-email-agust@denx.de>
-	<1345799431-29426-2-git-send-email-agust@denx.de>
-	<Pine.LNX.4.64.1208241227140.20710@axis700.grange>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Tue, 14 Aug 2012 05:29:47 -0400
+Received: from eusync3.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M8Q00F23NQD0X70@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 14 Aug 2012 10:30:13 +0100 (BST)
+Received: from localhost.localdomain ([106.116.147.88])
+ by eusync3.samsung.com (Oracle Communications Messaging Server 7u4-23.01
+ (7.0.4.23.0) 64bit (built Aug 10 2011))
+ with ESMTPA id <0M8Q00EHONPECH60@eusync3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 14 Aug 2012 10:29:45 +0100 (BST)
+From: Andrzej Hajda <a.hajda@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH] v4l/s5p-mfc: added DMABUF support for encoder
+Date: Tue, 14 Aug 2012 11:29:33 +0200
+Message-id: <1344936573-8164-1-git-send-email-a.hajda@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+Patch cleanly applies after patch
+http://patchwork.linuxtv.org/patch/13797/
+---
+ drivers/media/video/s5p-mfc/s5p_mfc.c     |    4 ++--
+ drivers/media/video/s5p-mfc/s5p_mfc_enc.c |    3 ++-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-On Fri, 24 Aug 2012 13:08:52 +0200 (CEST)
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-...
-> > +#define MT9V022_HORIZONTAL_BLANKING_MIN	43
-> > +#define MT9V022_HORIZONTAL_BLANKING_MAX	1023
-> > +#define MT9V022_HORIZONTAL_BLANKING_DEF	94
-> > +#define MT9V022_VERTICAL_BLANKING_MIN	2
-> 
-> Interesting, in my datasheet min is 4. Maybe 4 would be a safer bet then.
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc.c b/drivers/media/video/s5p-mfc/s5p_mfc.c
+index e5c2b80..ab7b74c 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc.c
+@@ -801,7 +801,7 @@ static int s5p_mfc_open(struct file *file)
+ 		q->io_modes = VB2_MMAP;
+ 		q->ops = get_dec_queue_ops();
+ 	} else if (s5p_mfc_get_node_type(file) == MFCNODE_ENCODER) {
+-		q->io_modes = VB2_MMAP | VB2_USERPTR;
++		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
+ 		q->ops = get_enc_queue_ops();
+ 	} else {
+ 		ret = -ENOENT;
+@@ -822,7 +822,7 @@ static int s5p_mfc_open(struct file *file)
+ 		q->io_modes = VB2_MMAP;
+ 		q->ops = get_dec_queue_ops();
+ 	} else if (s5p_mfc_get_node_type(file) == MFCNODE_ENCODER) {
+-		q->io_modes = VB2_MMAP | VB2_USERPTR;
++		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
+ 		q->ops = get_enc_queue_ops();
+ 	} else {
+ 		ret = -ENOENT;
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+index 53c305d..b1a5f85 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+@@ -1028,7 +1028,8 @@ static int vidioc_reqbufs(struct file *file, void *priv,
+ 
+ 	/* if memory is not mmp or userptr return error */
+ 	if ((reqbufs->memory != V4L2_MEMORY_MMAP) &&
+-		(reqbufs->memory != V4L2_MEMORY_USERPTR))
++		(reqbufs->memory != V4L2_MEMORY_USERPTR) &&
++		(reqbufs->memory != V4L2_MEMORY_DMABUF))
+ 		return -EINVAL;
+ 	if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+ 		if (ctx->capture_state != QUEUE_FREE) {
+-- 
+1.7.0.4
 
-The legal range in the datasheet here is 2-3000. The datasheet
-states that the minimal value must be 4 only if "show dark rows"
-control bit is set (it is unset by default).
-
-...
-> > +#define V4L2_CID_REG32			(V4L2_CTRL_CLASS_CAMERA | 0x1001)
-> > +#define V4L2_CID_ANALOG_CONTROLS	(V4L2_CTRL_CLASS_CAMERA | 0x1002)
-> 
-> Sorry, no again. The MT9V022_ANALOG_CONTROL register contains two fields: 
-> anti-eclipse and "anti-eclipse reference voltage control," don't think 
-> they should be set as a single control value. IIUC, controls are supposed 
-> to control logical parameters of the system. In this case you could 
-> introduce an "anti-eclipse reference voltage" control with values in the 
-> range between 0 and 2250mV, setting it to anything below 1900mV would turn 
-> the enable bit off. Would such a control make sense? Then you might want 
-> to ask on the ML, whether this control would make sense as a generic one, 
-> not mt9v022 specific.
-
-It probably makes sense since other sensors also have anti-eclipse control
-registers.
-
-...
-> >  	if (mt9v022->hdl.error) {
-> >  		int err = mt9v022->hdl.error;
-> >  
-> > +		dev_err(&client->dev, "hdl init err %d\n", err);
-> 
-> That's not very clear IMHO. "hdl" isn't too specific, just "control 
-> initialisation?"
-
-Ok, I'll fix it.
-
-Thanks,
-
-Anatolij
