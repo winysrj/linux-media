@@ -1,48 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out.inet.fi ([195.156.147.13]:49745 "EHLO jenni1.inet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752337Ab2HVTuo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Aug 2012 15:50:44 -0400
-From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH 6/8] ir-rx51: Replace module_{init,exit} macros with module_platform_driver
-Date: Wed, 22 Aug 2012 22:50:39 +0300
-Message-Id: <1345665041-15211-7-git-send-email-timo.t.kokkonen@iki.fi>
-In-Reply-To: <1345665041-15211-1-git-send-email-timo.t.kokkonen@iki.fi>
-References: <1345665041-15211-1-git-send-email-timo.t.kokkonen@iki.fi>
+Received: from rcsinet15.oracle.com ([148.87.113.117]:26639 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752391Ab2HNG7P (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 02:59:15 -0400
+Date: Tue, 14 Aug 2012 09:58:56 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Tomasz =?utf-8?Q?Mo=C5=84?= <desowin@gmail.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] [media] mem2mem_testdev: unlock and return error code
+ properly
+Message-ID: <20120814065856.GC4791@elgon.mountain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No reason to avoid using the existing helpers.
+We recently added locking to this function, but there was an error path
+which accidentally returned holding a lock.  Also we returned zero on
+failure on some paths instead of the error code.
 
-Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 ---
- drivers/media/rc/ir-rx51.c | 12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+Applies to linux-next.
 
-diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-index 46628c0..7eed541 100644
---- a/drivers/media/rc/ir-rx51.c
-+++ b/drivers/media/rc/ir-rx51.c
-@@ -495,17 +495,7 @@ struct platform_driver lirc_rx51_platform_driver = {
- 	},
- };
- 
--static int __init lirc_rx51_init(void)
--{
--	return platform_driver_register(&lirc_rx51_platform_driver);
--}
--module_init(lirc_rx51_init);
+diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
+index 0aa8c47..0b496f3 100644
+--- a/drivers/media/video/mem2mem_testdev.c
++++ b/drivers/media/video/mem2mem_testdev.c
+@@ -911,10 +911,9 @@ static int m2mtest_open(struct file *file)
+ 	v4l2_ctrl_new_custom(hdl, &m2mtest_ctrl_trans_time_msec, NULL);
+ 	v4l2_ctrl_new_custom(hdl, &m2mtest_ctrl_trans_num_bufs, NULL);
+ 	if (hdl->error) {
+-		int err = hdl->error;
 -
--static void __exit lirc_rx51_exit(void)
--{
--	platform_driver_unregister(&lirc_rx51_platform_driver);
--}
--module_exit(lirc_rx51_exit);
-+module_platform_driver(lirc_rx51_platform_driver);
++		rc = hdl->error;
+ 		v4l2_ctrl_handler_free(hdl);
+-		return err;
++		goto open_unlock;
+ 	}
+ 	ctx->fh.ctrl_handler = hdl;
+ 	v4l2_ctrl_handler_setup(hdl);
+@@ -946,7 +945,7 @@ static int m2mtest_open(struct file *file)
  
- MODULE_DESCRIPTION("LIRC TX driver for Nokia RX51");
- MODULE_AUTHOR("Nokia Corporation");
--- 
-1.7.12
-
+ open_unlock:
+ 	mutex_unlock(&dev->dev_mutex);
+-	return 0;
++	return rc;
+ }
+ 
+ static int m2mtest_release(struct file *file)
