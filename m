@@ -1,42 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:59000 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751728Ab2HFGlq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 02:41:46 -0400
-Received: by vcbfk26 with SMTP id fk26so2330733vcb.19
-        for <linux-media@vger.kernel.org>; Sun, 05 Aug 2012 23:41:46 -0700 (PDT)
+Received: from nm10.bullet.mail.ird.yahoo.com ([77.238.189.39]:45653 "HELO
+	nm10.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751931Ab2HNXji convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 19:39:38 -0400
+Message-ID: <1344987576.21425.YahooMailClassic@web29406.mail.ird.yahoo.com>
+Date: Wed, 15 Aug 2012 00:39:36 +0100 (BST)
+From: Hin-Tak Leung <htl10@users.sourceforge.net>
+Reply-To: htl10@users.sourceforge.net
+Subject: small regression in mediatree/for_v3.7-3 - media_build
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
 MIME-Version: 1.0
-In-Reply-To: <20120727133952.2036.61330.stgit@patser.local>
-References: <20120727133952.2036.61330.stgit@patser.local>
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Mon, 6 Aug 2012 12:11:25 +0530
-Message-ID: <CAO_48GGBdb4D+YMS4NYVPxxhUrHLcQdZEpi_rmypoGPXYtAyrg@mail.gmail.com>
-Subject: Re: [RFC PATCH 1/3] dma-fence: dma-buf synchronization (v5)
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: linaro-mm-sig@lists.linaro.org, rob.clark@linaro.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	patches@linaro.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maarten,
-On 27 July 2012 19:09, Maarten Lankhorst
-<maarten.lankhorst@canonical.com> wrote:
-> A dma-fence can be attached to a buffer which is being filled or consumed
-> by hw, to allow userspace to pass the buffer without waiting to another
-> device.  For example, userspace can call page_flip ioctl to display the
-> next frame of graphics after kicking the GPU but while the GPU is still
-> rendering.  The display device sharing the buffer with the GPU would
-> attach a callback to get notified when the GPU's rendering-complete IRQ
-> fires, to update the scan-out address of the display, without having to
-> wake up userspace.
-Since Rob is the original author of this (and I the next?), may I
-request you to re-submit with his "From:" bit?
+There seems to be a small regression on mediatree/for_v3.7-3
+- dmesg/klog get flooded with these:
 
-Rob / Daniel: comments on this series will help me line it up in
-for-next, and maybe even for 3.7-rc.
+[201145.140260] dvb_frontend_poll: 15 callbacks suppressed
+[201145.586405] usb_urb_complete: 88 callbacks suppressed
+[201150.587308] usb_urb_complete: 3456 callbacks suppressed
 
-Best regards,
-~Sumit.
-<snip>
+[201468.630197] usb_urb_complete: 3315 callbacks suppressed
+[201473.632978] usb_urb_complete: 3529 callbacks suppressed
+[201478.635400] usb_urb_complete: 3574 callbacks suppressed
+
+It seems to be every 5 seconds, but I think that's just klog skipping repeats and collapsing duplicate entries. This does not happen the last time I tried playing with the TV stick :-).
