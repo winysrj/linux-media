@@ -1,47 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.10]:51039 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757828Ab2HXJKi (ORCPT
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:58732 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754283Ab2HNXvr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 05:10:38 -0400
-From: Anatolij Gustschin <agust@denx.de>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>, dzu@denx.de
-Subject: [PATCH 3/3] mt9v022: set y_skip_top field to zero
-Date: Fri, 24 Aug 2012 11:10:31 +0200
-Message-Id: <1345799431-29426-4-git-send-email-agust@denx.de>
-In-Reply-To: <1345799431-29426-1-git-send-email-agust@denx.de>
-References: <1345799431-29426-1-git-send-email-agust@denx.de>
+	Tue, 14 Aug 2012 19:51:47 -0400
+Received: by lbbgj3 with SMTP id gj3so565590lbb.19
+        for <linux-media@vger.kernel.org>; Tue, 14 Aug 2012 16:51:46 -0700 (PDT)
+Message-ID: <502AE483.6000001@iki.fi>
+Date: Wed, 15 Aug 2012 02:51:31 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: htl10@users.sourceforge.net
+CC: linux-media@vger.kernel.org
+Subject: Re: small regression in mediatree/for_v3.7-3 - media_build
+References: <1344987576.21425.YahooMailClassic@web29406.mail.ird.yahoo.com>
+In-Reply-To: <1344987576.21425.YahooMailClassic@web29406.mail.ird.yahoo.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Set "y_skip_top" to zero and remove comment as I do not see this
-line corruption on two different mt9v022 setups. The first read-out
-line is perfectly fine.
+On 08/15/2012 02:39 AM, Hin-Tak Leung wrote:
+> There seems to be a small regression on mediatree/for_v3.7-3
+> - dmesg/klog get flooded with these:
+>
+> [201145.140260] dvb_frontend_poll: 15 callbacks suppressed
+> [201145.586405] usb_urb_complete: 88 callbacks suppressed
+> [201150.587308] usb_urb_complete: 3456 callbacks suppressed
+>
+> [201468.630197] usb_urb_complete: 3315 callbacks suppressed
+> [201473.632978] usb_urb_complete: 3529 callbacks suppressed
+> [201478.635400] usb_urb_complete: 3574 callbacks suppressed
+>
+> It seems to be every 5 seconds, but I think that's just klog skipping repeats and collapsing duplicate entries. This does not happen the last time I tried playing with the TV stick :-).
 
-Signed-off-by: Anatolij Gustschin <agust@denx.de>
----
- drivers/media/i2c/soc_camera/mt9v022.c |    6 +-----
- 1 files changed, 1 insertions(+), 5 deletions(-)
+That's because you has dynamic debugs enabled!
+modprobe dvb_core; echo -n 'module dvb_core +p' > 
+/sys/kernel/debug/dynamic_debug/control
+modprobe dvb_usbv2; echo -n 'module dvb_usbv2 +p' > 
+/sys/kernel/debug/dynamic_debug/control
 
-diff --git a/drivers/media/i2c/soc_camera/mt9v022.c b/drivers/media/i2c/soc_camera/mt9v022.c
-index d26c071..e41d738 100644
---- a/drivers/media/i2c/soc_camera/mt9v022.c
-+++ b/drivers/media/i2c/soc_camera/mt9v022.c
-@@ -960,11 +960,7 @@ static int mt9v022_probe(struct i2c_client *client,
- 
- 	mt9v022->chip_control = MT9V022_CHIP_CONTROL_DEFAULT;
- 
--	/*
--	 * MT9V022 _really_ corrupts the first read out line.
--	 * TODO: verify on i.MX31
--	 */
--	mt9v022->y_skip_top	= 1;
-+	mt9v022->y_skip_top	= 0;
- 	mt9v022->rect.left	= MT9V022_COLUMN_SKIP;
- 	mt9v022->rect.top	= MT9V022_ROW_SKIP;
- 	mt9v022->rect.width	= MT9V022_MAX_WIDTH;
+If you don't add dvb_core and dvb_usbv2 modules to 
+/sys/kernel/debug/dynamic_debug/control you will not see those.
+
+I have added ratelimited version for those few debugs that are flooded 
+normally. This suppressed is coming from ratelimit - it does not print 
+all those similar debugs.
+
+regards
+Antti
+
 -- 
-1.7.1
-
+http://palosaari.fi/
