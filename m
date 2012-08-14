@@ -1,66 +1,249 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:32810 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932548Ab2HGCsB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 22:48:01 -0400
-Received: by mail-vc0-f174.google.com with SMTP id fk26so3432645vcb.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 19:48:00 -0700 (PDT)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH 14/24] au0828: speed up i2c clock when doing xc5000 firmware load
-Date: Mon,  6 Aug 2012 22:47:04 -0400
-Message-Id: <1344307634-11673-15-git-send-email-dheitmueller@kernellabs.com>
-In-Reply-To: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
-References: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:41077 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757556Ab2HNVRt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 17:17:49 -0400
+Received: by wibhr14 with SMTP id hr14so825772wib.1
+        for <linux-media@vger.kernel.org>; Tue, 14 Aug 2012 14:17:48 -0700 (PDT)
+Message-ID: <502AC079.50902@gmail.com>
+Date: Tue, 14 Aug 2012 23:17:45 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 00/12] media tree reorganization part 2 (second version)
+References: <1344977727-16319-1-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1344977727-16319-1-git-send-email-mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Put a hack in place to speed up the firmware load in the case that the
-xc5000 has just been reset.  The chip can safely do 400 KHz in this mode,
-while in normal operation it can only do 100 KHz.
+On 08/14/2012 10:55 PM, Mauro Carvalho Chehab wrote:
+> Ok, it is now everything almost done... there are of course
+> cleanups that may happen, and there are still some things
+> to do at drivers/media/platform, but most of the things are
+> there.
+>
+> If there isn't any big problem, I'll be merging them tomorrow.
 
-This reduces the firmware load time from 6.9 seconds to 4.2.
+Briefly looking didn't spot any issues. However it could be a bit easier
+to review if patches were created with -M option to git-format patch,
+for example patch 05/12 looks much smaller then:
 
-Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+8<---------------------------------------------------------------------
+
+ From 83d249058179c26af9b34ecf077d133fb5696153 Mon Sep 17 00:00:00 2001
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Date: Tue, 14 Aug 2012 12:53:09 -0300
+Subject: [PATCH 05/12] [media] move analog PCI saa7146 drivers to its 
+own dir
+
+Instead of having them under drivers/media/video, move them
+to their own directory.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/video/au0828/au0828-i2c.c |   16 +++++++++++++---
- 1 files changed, 13 insertions(+), 3 deletions(-)
+  drivers/media/pci/Kconfig                          |    2 +
+  drivers/media/pci/Makefile                         |    3 +-
+  drivers/media/pci/saa7146/Kconfig                  |   38 
+++++++++++++++++++++
+  drivers/media/pci/saa7146/Makefile                 |    5 +++
+  .../media/{video => pci/saa7146}/hexium_gemini.c   |    0
+  .../media/{video => pci/saa7146}/hexium_orion.c    |    0
+  drivers/media/{video => pci/saa7146}/mxb.c         |    0
+  drivers/media/video/Kconfig                        |   38 
+--------------------
+  drivers/media/video/Makefile                       |    3 --
+  9 files changed, 47 insertions(+), 42 deletions(-)
+  create mode 100644 drivers/media/pci/saa7146/Kconfig
+  create mode 100644 drivers/media/pci/saa7146/Makefile
+  rename drivers/media/{video => pci/saa7146}/hexium_gemini.c (100%)
+  rename drivers/media/{video => pci/saa7146}/hexium_orion.c (100%)
+  rename drivers/media/{video => pci/saa7146}/mxb.c (100%)
 
-diff --git a/drivers/media/video/au0828/au0828-i2c.c b/drivers/media/video/au0828/au0828-i2c.c
-index 05c299f..d454555 100644
---- a/drivers/media/video/au0828/au0828-i2c.c
-+++ b/drivers/media/video/au0828/au0828-i2c.c
-@@ -26,7 +26,7 @@
- #include <linux/io.h>
- 
- #include "au0828.h"
+diff --git a/drivers/media/pci/Kconfig b/drivers/media/pci/Kconfig
+index b69cb12..e1a9e1a 100644
+--- a/drivers/media/pci/Kconfig
++++ b/drivers/media/pci/Kconfig
+@@ -9,6 +9,7 @@ if MEDIA_ANALOG_TV_SUPPORT
+  	comment "Media capture/analog TV support"
+  source "drivers/media/pci/ivtv/Kconfig"
+  source "drivers/media/pci/zoran/Kconfig"
++source "drivers/media/pci/saa7146/Kconfig"
+  endif
+
+  if MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT
+@@ -20,6 +21,7 @@ source "drivers/media/pci/cx88/Kconfig"
+  source "drivers/media/pci/bt8xx/Kconfig"
+  source "drivers/media/pci/saa7134/Kconfig"
+  source "drivers/media/pci/saa7164/Kconfig"
++
+  endif
+
+  if MEDIA_DIGITAL_TV_SUPPORT
+diff --git a/drivers/media/pci/Makefile b/drivers/media/pci/Makefile
+index d47c222..bb71e30 100644
+--- a/drivers/media/pci/Makefile
++++ b/drivers/media/pci/Makefile
+@@ -10,7 +10,8 @@ obj-y        :=	ttpci/		\
+  		mantis/		\
+  		ngene/		\
+  		ddbridge/	\
+-		b2c2/
++		b2c2/		\
++		saa7146/
+
+  obj-$(CONFIG_VIDEO_IVTV) += ivtv/
+  obj-$(CONFIG_VIDEO_ZORAN) += zoran/
+diff --git a/drivers/media/pci/saa7146/Kconfig 
+b/drivers/media/pci/saa7146/Kconfig
+new file mode 100644
+index 0000000..8923b76
+--- /dev/null
++++ b/drivers/media/pci/saa7146/Kconfig
+@@ -0,0 +1,38 @@
++config VIDEO_HEXIUM_GEMINI
++	tristate "Hexium Gemini frame grabber"
++	depends on PCI && VIDEO_V4L2 && I2C
++	select VIDEO_SAA7146_VV
++	---help---
++	  This is a video4linux driver for the Hexium Gemini frame
++	  grabber card by Hexium. Please note that the Gemini Dual
++	  card is *not* fully supported.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called hexium_gemini.
++
++config VIDEO_HEXIUM_ORION
++	tristate "Hexium HV-PCI6 and Orion frame grabber"
++	depends on PCI && VIDEO_V4L2 && I2C
++	select VIDEO_SAA7146_VV
++	---help---
++	  This is a video4linux driver for the Hexium HV-PCI6 and
++	  Orion frame grabber cards by Hexium.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called hexium_orion.
++
++config VIDEO_MXB
++	tristate "Siemens-Nixdorf 'Multimedia eXtension Board'"
++	depends on PCI && VIDEO_V4L2 && I2C
++	select VIDEO_SAA7146_VV
++	select VIDEO_TUNER
++	select VIDEO_SAA711X if VIDEO_HELPER_CHIPS_AUTO
++	select VIDEO_TDA9840 if VIDEO_HELPER_CHIPS_AUTO
++	select VIDEO_TEA6415C if VIDEO_HELPER_CHIPS_AUTO
++	select VIDEO_TEA6420 if VIDEO_HELPER_CHIPS_AUTO
++	---help---
++	  This is a video4linux driver for the 'Multimedia eXtension Board'
++	  TV card by Siemens-Nixdorf.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called mxb.
+diff --git a/drivers/media/pci/saa7146/Makefile 
+b/drivers/media/pci/saa7146/Makefile
+new file mode 100644
+index 0000000..362a38b
+--- /dev/null
++++ b/drivers/media/pci/saa7146/Makefile
+@@ -0,0 +1,5 @@
++obj-$(CONFIG_VIDEO_MXB) += mxb.o
++obj-$(CONFIG_VIDEO_HEXIUM_ORION) += hexium_orion.o
++obj-$(CONFIG_VIDEO_HEXIUM_GEMINI) += hexium_gemini.o
++
++ccflags-y += -I$(srctree)/drivers/media/video
+diff --git a/drivers/media/video/hexium_gemini.c 
+b/drivers/media/pci/saa7146/hexium_gemini.c
+similarity index 100%
+rename from drivers/media/video/hexium_gemini.c
+rename to drivers/media/pci/saa7146/hexium_gemini.c
+diff --git a/drivers/media/video/hexium_orion.c 
+b/drivers/media/pci/saa7146/hexium_orion.c
+similarity index 100%
+rename from drivers/media/video/hexium_orion.c
+rename to drivers/media/pci/saa7146/hexium_orion.c
+diff --git a/drivers/media/video/mxb.c b/drivers/media/pci/saa7146/mxb.c
+similarity index 100%
+rename from drivers/media/video/mxb.c
+rename to drivers/media/pci/saa7146/mxb.c
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index a837194..4d79dfd 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -619,29 +619,6 @@ menuconfig V4L_PCI_DRIVERS
+
+  if V4L_PCI_DRIVERS
+
+-config VIDEO_HEXIUM_GEMINI
+-	tristate "Hexium Gemini frame grabber"
+-	depends on PCI && VIDEO_V4L2 && I2C
+-	---help---
+-	  This is a video4linux driver for the Hexium Gemini frame
+-	  grabber card by Hexium. Please note that the Gemini Dual
+-	  card is *not* fully supported.
 -
-+#include "media/tuner.h"
- #include <media/v4l2-common.h>
- 
- static int i2c_scan;
-@@ -147,8 +147,18 @@ static int i2c_sendbytes(struct i2c_adapter *i2c_adap,
- 	au0828_write(dev, AU0828_I2C_MULTIBYTE_MODE_2FF, 0x01);
- 
- 	/* Set the I2C clock */
--	au0828_write(dev, AU0828_I2C_CLK_DIVIDER_202,
--		     dev->board.i2c_clk_divider);
-+	if ((dev->board.tuner_type == TUNER_XC5000) &&
-+	    (dev->board.tuner_addr == msg->addr) &&
-+	    (msg->len == 64)) {
-+		/* Hack to speed up firmware load.  The xc5000 lets us do up
-+		   to 400 KHz when in firmware download mode */
-+		au0828_write(dev, AU0828_I2C_CLK_DIVIDER_202,
-+			     AU0828_I2C_CLK_250KHZ);
-+	} else {
-+		/* Use the i2c clock speed in the board configuration */
-+		au0828_write(dev, AU0828_I2C_CLK_DIVIDER_202,
-+			     dev->board.i2c_clk_divider);
-+	}
- 
- 	/* Hardware needs 8 bit addresses */
- 	au0828_write(dev, AU0828_I2C_DEST_ADDR_203, msg->addr << 1);
--- 
-1.7.1
+-	  To compile this driver as a module, choose M here: the
+-	  module will be called hexium_gemini.
+-
+-config VIDEO_HEXIUM_ORION
+-	tristate "Hexium HV-PCI6 and Orion frame grabber"
+-	depends on PCI && VIDEO_V4L2 && I2C
+-	select VIDEO_SAA7146_VV
+-	---help---
+-	  This is a video4linux driver for the Hexium HV-PCI6 and
+-	  Orion frame grabber cards by Hexium.
+-
+-	  To compile this driver as a module, choose M here: the
+-	  module will be called hexium_orion.
+-
+  config VIDEO_MEYE
+  	tristate "Sony Vaio Picturebook Motion Eye Video For Linux"
+  	depends on PCI && SONY_LAPTOP && VIDEO_V4L2
+@@ -656,21 +633,6 @@ config VIDEO_MEYE
+  	  To compile this driver as a module, choose M here: the
+  	  module will be called meye.
 
+-config VIDEO_MXB
+-	tristate "Siemens-Nixdorf 'Multimedia eXtension Board'"
+-	depends on PCI && VIDEO_V4L2 && I2C
+-	select VIDEO_SAA7146_VV
+-	select VIDEO_TUNER
+-	select VIDEO_SAA711X if VIDEO_HELPER_CHIPS_AUTO
+-	select VIDEO_TDA9840 if VIDEO_HELPER_CHIPS_AUTO
+-	select VIDEO_TEA6415C if VIDEO_HELPER_CHIPS_AUTO
+-	select VIDEO_TEA6420 if VIDEO_HELPER_CHIPS_AUTO
+-	---help---
+-	  This is a video4linux driver for the 'Multimedia eXtension Board'
+-	  TV card by Siemens-Nixdorf.
+-
+-	  To compile this driver as a module, choose M here: the
+-	  module will be called mxb.
+
+
+  config STA2X11_VIP
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index 322a159..8df694d 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -93,9 +93,6 @@ obj-$(CONFIG_VIDEO_W9966) += w9966.o
+  obj-$(CONFIG_VIDEO_PMS) += pms.o
+  obj-$(CONFIG_VIDEO_VINO) += vino.o
+  obj-$(CONFIG_VIDEO_MEYE) += meye.o
+-obj-$(CONFIG_VIDEO_MXB) += mxb.o
+-obj-$(CONFIG_VIDEO_HEXIUM_ORION) += hexium_orion.o
+-obj-$(CONFIG_VIDEO_HEXIUM_GEMINI) += hexium_gemini.o
+  obj-$(CONFIG_STA2X11_VIP) += sta2x11_vip.o
+  obj-$(CONFIG_VIDEO_TIMBERDALE)	+= timblogiw.o
+
+-- 
+1.7.4.1
+8<---------------------------------------------------------------------
+
+I think that might be more a hint for the future though. :)
+
+--
+
+Regards,
+Sylwester
