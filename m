@@ -1,67 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:40446 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752421Ab2HJRlo (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39252 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753179Ab2HNLGd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Aug 2012 13:41:44 -0400
-Received: by qafi31 with SMTP id i31so284550qaf.19
-        for <linux-media@vger.kernel.org>; Fri, 10 Aug 2012 10:41:44 -0700 (PDT)
+	Tue, 14 Aug 2012 07:06:33 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: workshop-2011@linuxtv.org,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [Workshop-2011] RFC: V4L2 API ambiguities
+Date: Tue, 14 Aug 2012 13:06:46 +0200
+Message-ID: <2777231.LqxP1P2FHv@avalon>
+In-Reply-To: <201208141254.34095.hverkuil@xs4all.nl>
+References: <201208131427.56961.hverkuil@xs4all.nl> <2697809.QgTso8NvEE@avalon> <201208141254.34095.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20120810094758.GA18223@pequod.mess.org>
-References: <CADTwmX8-yf3iNhrOozQGFnHg=H+rq6rti8AO=uRBzsj+OHEdyQ@mail.gmail.com>
- <20120810094758.GA18223@pequod.mess.org>
-From: Partha Guha Roy <partha.guha.roy@gmail.com>
-Date: Fri, 10 Aug 2012 23:41:23 +0600
-Message-ID: <CADTwmX-odw+=GXuYAo9y3E6=7-TLuW0U5GSU2dnpWYtm4RXGLA@mail.gmail.com>
-Subject: Re: Philips saa7134 IR remote problem with linux kernel v2.6.35
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sean,
+Hi Hans,
 
-I am not an expert on the kernel. So please excuse me if I give the
-wrong answer somewhere.
+On Tuesday 14 August 2012 12:54:34 Hans Verkuil wrote:
+> On Tue August 14 2012 01:54:16 Laurent Pinchart wrote:
+> > On Monday 13 August 2012 14:27:56 Hans Verkuil wrote:
+> > > Hi all!
+> > > 
+> > > As part of the 2012 Kernel Summit V4L2 workshop I will be discussing a
+> > > bunch of V4L2 ambiguities/improvements.
+> > > 
+> > > I've made a list of all the V4L2 issues and put them in two categories:
+> > > issues that I think are easy to resolve (within a few minutes at most),
+> > > and those that are harder.
+> > > 
+> > > If you think I put something in the easy category that you believe is
+> > > actually hard, then please let me know.
+> > > 
+> > > If you attend the workshop, then please read through this and think
+> > > about it a bit, particularly for the second category.
+> > > 
+> > > If something is unclear, or you think another topic should be added,
+> > > then let me know as well.
+> > 
+> > > Easy:
+> > [snip]
+> > 
+> > > 4) What should a driver return in TRY_FMT/S_FMT if the requested format
+> > > is not supported (possible behaviours include returning the currently
+> > > selected format or a default format).
+> > > 
+> > > The spec says this: "Drivers should not return an error code unless
+> > > the input is ambiguous", but it does not explain what constitutes an
+> > > ambiguous input. Frankly, I can't think of any and in my opinion
+> > > TRY/S_FMT should never return an error other than EINVAL (if the buffer
+> > > type is unsupported)or EBUSY (for S_FMT if streaming is in progress).
+> > > 
+> > > Returning an error for any other reason doesn't help the application
+> > > since the app will have no way of knowing what to do next.
+> > 
+> > That wasn't my point. Drivers should obviously not return an error. Let's
+> > consider the case of a driver supporting YUYV and MJPEG. If the user calls
+> > TRY_FMT or S_FMT with the pixel format set to RGB565, should the driver
+> > return a hardcoded default format (one of YUYV or MJPEG), or the
+> > currently selected format ? In other words, should the pixel format
+> > returned by TRY_FMT or S_FMT when the requested pixel format is not valid
+> > be a fixed default pixel format, or should it depend on the currently
+> > selected pixel format ?
+> 
+> Actually, in this case I would probably choose a YUYV format that is closest
+> to the requested size. If a driver supports both compressed and
+> uncompressed formats, then it should only select a compressed format if the
+> application explicitly asked for it. Handling compressed formats is more
+> complex than uncompressed formats, so that seems a sensible rule.
 
-On Fri, Aug 10, 2012 at 3:47 PM, Sean Young <sean@mess.org> wrote:
->
-> Are you runnning the lircd user space process for input or relying on
-> the in-kernel decoders?
+That wasn't my point either :-) YUYV/MJPEG was just an example. You can 
+replace MJPEG with UYVY or NV12 above. What I want to know is whether TRY_FMT 
+and S_FMT must, when given a non-supported format, return a fixed supported 
+format or return a supported format that can depend on the currently selected 
+format.
 
-For my testing, I booted the vanilla kernel into ubuntu recovery mode
-and just pressed a few keys on the remote. No lircd process was
-running at that point. So, I am guessing that I used the in-kernel
-decoders.
+> The next heuristic I would apply is to choose a format that is closest to
+> the requested size.
+> 
+> So I guess my guidelines would be:
+> 
+> 1) If the pixelformat is not supported, then choose an uncompressed format
+> (if possible) instead.
+> 2) Next choose a format closest to, but smaller than (if possible) the
+> requested size.
+> 
+> But this would be a guideline only, and in the end it should be up to the
+> driver. Just as long TRY/S_FMT always returns a format.
 
-> Also what remote are you using (or more
-> specifically, what IR protocol does it use)?
->
+-- 
+Regards,
 
-The remove came with the analog TV card (avermedia pci pure m135a). I
-am not sure what protocol the remote uses. I'd really appreciate it if
-you could let me know how I can find that out.
+Laurent Pinchart
 
-> Can you reproduce the issue on a more contemporary kernel?
->
-
-Yes. The buggy behavior is present in Ubuntu 12.04 (IIRC, kernel
-v3.2.*). I also know that the buggy behavior is present at v3.4.x of
-the kernel. I haven't tested more recent kernels.
-
-> Note that the commit only affects kernel space IR decoders so it should
-> not affect lircd.
->
-
-Ok. But as I mentioned, I think I am using kernel space decoders.
-
-> I wouldn't be surprised if the 15ms delay for processing in
-> saa7134_raw_decode_irq (bottom of saa7134-input.c) needs increasing.
->
-
-Thank you very much for your feedback.
-
-Regards.
-
-/Partha Roy
