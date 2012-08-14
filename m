@@ -1,104 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2408 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755974Ab2HNLcw (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:53252 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755192Ab2HNPfr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 07:32:52 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [Workshop-2011] RFC: V4L2 API ambiguities
-Date: Tue, 14 Aug 2012 13:32:43 +0200
-Cc: workshop-2011@linuxtv.org,
-	"linux-media" <linux-media@vger.kernel.org>
-References: <201208131427.56961.hverkuil@xs4all.nl> <201208141311.49268.hverkuil@xs4all.nl> <1961858.59LqqANPqn@avalon>
-In-Reply-To: <1961858.59LqqANPqn@avalon>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201208141332.43254.hverkuil@xs4all.nl>
+	Tue, 14 Aug 2012 11:35:47 -0400
+Received: from epcpsbgm1.samsung.com (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M8R000ED4NM3Z20@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:35:46 +0900 (KST)
+Received: from mcdsrvbld02.digital.local ([106.116.37.23])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0M8R004J44MBC810@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:35:46 +0900 (KST)
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de, dmitriyz@google.com,
+	s.nawrocki@samsung.com, k.debski@samsung.com
+Subject: [PATCHv8 04/26] v4l: vb: remove warnings about MEMORY_DMABUF
+Date: Tue, 14 Aug 2012 17:34:34 +0200
+Message-id: <1344958496-9373-5-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
+References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue August 14 2012 13:15:21 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Tuesday 14 August 2012 13:11:49 Hans Verkuil wrote:
-> > On Tue August 14 2012 13:06:46 Laurent Pinchart wrote:
-> > > On Tuesday 14 August 2012 12:54:34 Hans Verkuil wrote:
-> > > > On Tue August 14 2012 01:54:16 Laurent Pinchart wrote:
-> > > > > On Monday 13 August 2012 14:27:56 Hans Verkuil wrote:
-> > > > > [snip]
-> > > > > 
-> > > > > > 4) What should a driver return in TRY_FMT/S_FMT if the requested
-> > > > > > format is not supported (possible behaviours include returning the
-> > > > > > currently selected format or a default format).
-> > > > > > 
-> > > > > > The spec says this: "Drivers should not return an error code unless
-> > > > > > the input is ambiguous", but it does not explain what constitutes an
-> > > > > > ambiguous input. Frankly, I can't think of any and in my opinion
-> > > > > > TRY/S_FMT should never return an error other than EINVAL (if the
-> > > > > > buffer type is unsupported)or EBUSY (for S_FMT if streaming is in
-> > > > > > progress).
-> > > > > > 
-> > > > > > Returning an error for any other reason doesn't help the application
-> > > > > > since the app will have no way of knowing what to do next.
-> > > > > 
-> > > > > That wasn't my point. Drivers should obviously not return an error.
-> > > > > Let's consider the case of a driver supporting YUYV and MJPEG. If the
-> > > > > user calls TRY_FMT or S_FMT with the pixel format set to RGB565,
-> > > > > should the driver return a hardcoded default format (one of YUYV or
-> > > > > MJPEG), or the currently selected format ? In other words, should the
-> > > > > pixel format returned by TRY_FMT or S_FMT when the requested pixel
-> > > > > format is not valid be a fixed default pixel format, or should it
-> > > > > depend on the currently selected pixel format ?
-> > > > 
-> > > > Actually, in this case I would probably choose a YUYV format that is
-> > > > closest to the requested size. If a driver supports both compressed and
-> > > > uncompressed formats, then it should only select a compressed format if
-> > > > the application explicitly asked for it. Handling compressed formats is
-> > > > more complex than uncompressed formats, so that seems a sensible rule.
-> > > 
-> > > That wasn't my point either :-) YUYV/MJPEG was just an example. You can
-> > > replace MJPEG with UYVY or NV12 above. What I want to know is whether
-> > > TRY_FMT and S_FMT must, when given a non-supported format, return a fixed
-> > > supported format or return a supported format that can depend on the
-> > > currently selected format.
-> > > 
-> > > > The next heuristic I would apply is to choose a format that is closest
-> > > > to the requested size.
-> > > > 
-> > > > So I guess my guidelines would be:
-> > > > 
-> > > > 1) If the pixelformat is not supported, then choose an uncompressed
-> > > > format (if possible) instead.
-> > > > 2) Next choose a format closest to, but smaller than (if possible) the
-> > > > requested size.
-> > > > 
-> > > > But this would be a guideline only, and in the end it should be up to
-> > > > the driver. Just as long TRY/S_FMT always returns a format.
-> > 
-> > Well, the currently selected format is irrelevant. The user is obviously
-> > requesting something else and the driver should attempt to return something
-> > that is at least somewhat close to what it requested. If that's impossible,
-> > then falling back to some default format is a good choice.
-> > 
-> > Does that answer the question?
-> 
-> Yes it does, and I agree with that. Some drivers return the currently selected 
-> format when a non-supported format is requested. I think the spec should be 
-> clarified to make it mandatory to return a fixed default format independent of 
-> the currently selected format, and non-compliant drivers should be fixed.
+From: Sumit Semwal <sumit.semwal@ti.com>
 
-I don't know whether it should be mandated. In the end it doesn't matter to the
-application: that just wants to get some format that is valid.
+Adding DMABUF memory type causes videobuf to complain about not using it
+in some switch cases. This patch removes these warnings.
 
-It's a good recommendation for drivers, but I do not think that there is anything
-wrong as such with drivers that return the current format.
+Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/videobuf-core.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-Am I missing something here? Is there any particular advantage of returning a
-default fallback format from the point of view of an application?
+diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
+index bf7a326..5449e8a 100644
+--- a/drivers/media/video/videobuf-core.c
++++ b/drivers/media/video/videobuf-core.c
+@@ -335,6 +335,9 @@ static void videobuf_status(struct videobuf_queue *q, struct v4l2_buffer *b,
+ 	case V4L2_MEMORY_OVERLAY:
+ 		b->m.offset  = vb->boff;
+ 		break;
++	case V4L2_MEMORY_DMABUF:
++		/* DMABUF is not handled in videobuf framework */
++		break;
+ 	}
+ 
+ 	b->flags    = 0;
+@@ -405,6 +408,7 @@ int __videobuf_mmap_setup(struct videobuf_queue *q,
+ 			break;
+ 		case V4L2_MEMORY_USERPTR:
+ 		case V4L2_MEMORY_OVERLAY:
++		case V4L2_MEMORY_DMABUF:
+ 			/* nothing */
+ 			break;
+ 		}
+-- 
+1.7.9.5
 
-Regards,
-
-	Hans
