@@ -1,117 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1345 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755544Ab2HWGuz (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.22]:37527 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1756854Ab2HNUPS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Aug 2012 02:50:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCHv8 18/26] v4l: add buffer exporting via dmabuf
-Date: Thu, 23 Aug 2012 08:50:37 +0200
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
-	subashrp@gmail.com, mchehab@redhat.com, g.liakhovetski@gmx.de,
-	dmitriyz@google.com, s.nawrocki@samsung.com, k.debski@samsung.com
-References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com> <201208221341.06056.hverkuil@xs4all.nl> <1482826.kal9EJjByd@avalon>
-In-Reply-To: <1482826.kal9EJjByd@avalon>
+	Tue, 14 Aug 2012 16:15:18 -0400
+Message-ID: <502AB1D2.3070209@gmx.de>
+Date: Tue, 14 Aug 2012 22:15:14 +0200
+From: Reinhard Nissl <rnissl@gmx.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201208230850.37066.hverkuil@xs4all.nl>
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: STV0299: reading property DTV_FREQUENCY -- what am I expected
+ to get?
+References: <502A1221.8020804@gmx.de> <CAHFNz9KnwKuATLKwhH22znmWa8QP5tZN0KJHFu4fuf7RGES1Gw@mail.gmail.com>
+In-Reply-To: <CAHFNz9KnwKuATLKwhH22znmWa8QP5tZN0KJHFu4fuf7RGES1Gw@mail.gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------020608060607040005010107"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu August 23 2012 01:39:34 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Wednesday 22 August 2012 13:41:05 Hans Verkuil wrote:
-> > On Tue August 14 2012 17:34:48 Tomasz Stanislawski wrote:
-> > > This patch adds extension to V4L2 api. It allow to export a mmap buffer as
-> > > file descriptor. New ioctl VIDIOC_EXPBUF is added. It takes a buffer
-> > > offset used by mmap and return a file descriptor on success.
-> > > 
-> > > Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> > > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> 
-> [snip]
-> 
-> > > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > > index 7f918dc..b5d058b 100644
-> > > --- a/include/linux/videodev2.h
-> > > +++ b/include/linux/videodev2.h
-> > > @@ -688,6 +688,31 @@ struct v4l2_buffer {
-> > > 
-> > >  #define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
-> > >  #define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x1000
-> > > 
-> > > +/**
-> > > + * struct v4l2_exportbuffer - export of video buffer as DMABUF file
-> > > descriptor + *
-> > > + * @fd:		file descriptor associated with DMABUF (set by driver)
-> > > + * @mem_offset:	buffer memory offset as returned by VIDIOC_QUERYBUF in
-> > > struct + *		v4l2_buffer::m.offset (for single-plane formats) or
-> > > + *		v4l2_plane::m.offset (for multi-planar formats)
-> > > + * @flags:	flags for newly created file, currently only O_CLOEXEC is
-> > > + *		supported, refer to manual of open syscall for more details
-> > > + *
-> > > + * Contains data used for exporting a video buffer as DMABUF file
-> > > descriptor. + * The buffer is identified by a 'cookie' returned by
-> > > VIDIOC_QUERYBUF + * (identical to the cookie used to mmap() the buffer to
-> > > userspace). All + * reserved fields must be set to zero. The field
-> > > reserved0 is expected to + * become a structure 'type' allowing an
-> > > alternative layout of the structure + * content. Therefore this field
-> > > should not be used for any other extensions. + */
-> > > +struct v4l2_exportbuffer {
-> > > +	__u32		fd;
-> > > +	__u32		reserved0;
-> > > +	__u32		mem_offset;
-> > > +	__u32		flags;
-> > > +	__u32		reserved[12];
-> > > +};
-> > 
-> > OK, I realized that we also need a type field here: you need the type field
-> > (same as in v4l2_buffer) to know which queue the mem_offset refers to. For
-> > M2M devices you have two queues, so you need this information.
-> > 
-> > Is there any reason not to use __u32 memory instead of __u32 reserved0?
-> > I really dislike 'reserved0'. It's also very inconsistent with the other
-> > buffer ioctls which all have type+memory fields.
-> 
-> I'm concerned that we might need to export buffers in the future based on 
-> something else than the memory type. That's probably an irrational fear 
-> though.
+This is a multi-part message in MIME format.
+--------------020608060607040005010107
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-We're exporting buffers from the V4L2 core. The only method of creating such
-buffers is through REQBUFS/CREATE_BUFS, both of which use the memory field.
-Even if we need something else in the future, then there is nothing preventing
-us from extending the memory enum.
+Hi,
 
-> > Regarding mem_offset: I would prefer a union (possibly anonymous):
-> > 
-> >         union {
-> >                 __u32           mem_offset;
-> >                 unsigned long   reserved;
-> >         } m;
-> > 
-> > Again, it's more consistent with the existing buffer ioctls, and it prepares
-> > the API for future pointer values. 'reserved' in the union above could even
-> > safely be renamed to userptr, even though userptr isn't supported at the
-> > moment.
-> 
-> Once again I would really want to see compeling use cases before we export a 
-> userptr buffer as a dmabuf object. As Mauro previously stated, userptr for 
-> buffer sharing was a hack in the first place (although a pretty successful one 
-> so far).
+Am 14.08.2012 14:05, schrieb Manu Abraham:
 
-I don't want to export a userptr, I want to make sure we *can* export a
-pointer-sized thing in the future. Which is why in my proposal above I'm
-calling it reserved and not userptr.
+>> My other device, a STB0899, always reports the set frequency. So it seems
+>> driver dependent whether it reports the actually locked frequency found by
+>> the zig-zag-algorithm or just the set frequency to tune to.
+>
+> The STV0299 blindly sets the value based on a software zigzag (due to simpler
+> hardware), but this might not be accurate enough. On the other hand, the
+> STB0899 internally does zig-zag in hardware for DVB-S2, and partly in
+> software for DVB-S.
+>
+> In any event, the get_frontend callback should return the value that is read
+> from the demodulator registers, rather than the cached original value that
+> which was requested to be tuned.
+>
+> The stb0899 returns only the cached value IIRC. Maybe I will fix this soon,
+> or maybe you can send a patch.
 
-Regards,
+See the attached patch.
 
-	Hans
+This is what I get after the patch:
+
+Sat.	Pol.	Band	Freq (MHz) Set	Freq (MHz) Get	Delta (MHz)
+S19,2E	H	L	10744	10748,474	4,474
+S19,2E	H	L	10773	10777,944	4,944
+S19,2E	H	L	10832	10836,953	4,953
+S19,2E	H	L	10861	10868,774	7,774
+S19,2E	H	L	10920	10924,312	4,312
+S19,2E	H	L	11023	11026,827	3,827
+S19,2E	H	L	11170	11175,423	5,423
+S19,2E	H	L	11243	11248,452	5,452
+S19,2E	H	L	11302	11307,371	5,371
+S19,2E	H	L	11361	11366,427	5,427
+S19,2E	H	L	11420	11425,473	5,473
+S19,2E	H	L	11464	11468,876	4,876
+S19,2E	H	L	11493	11498,421	5,421
+S19,2E	H	L	11523	11529,080	6,080
+S19,2E	H	L	11582	11586,942	4,942
+S19,2E	H	L	11611	11618,785	7,785
+S19,2E	H	L	11641	11645,951	4,951
+S19,2E	H	L	11670	11675,450	5,450
+S19,2E	H	H	11719	11724,970	5,970
+S19,2E	H	H	11758	11763,975	5,975
+S19,2E	H	H	11797	11802,978	5,978
+S19,2E	H	H	11836	11841,972	5,972
+S19,2E	H	H	11875	11880,951	5,951
+
+I'll have to let VDR "travel" across the transponders several 
+times to see whether I get similar results for the previously 
+mentioned transponder on the stv0299 device.
+
+Bye.
+-- 
+Dipl.-Inform. (FH) Reinhard Nissl
+mailto:rnissl@gmx.de
+
+--------------020608060607040005010107
+Content-Type: text/x-patch;
+ name="stb0899_drv-report-internal-freq-via-get_frontend.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="stb0899_drv-report-internal-freq-via-get_frontend.diff"
+
+--- /usr/src/linux-3.1.10-1.16/drivers/media/dvb/frontends/stb0899_drv.c	2012-08-14 21:59:59.000000000 +0200
++++ stb0899_drv.c	2012-08-14 21:29:17.000000000 +0200
+@@ -1596,6 +1596,7 @@ static int stb0899_get_frontend(struct d
+ 
+ 	dprintk(state->verbose, FE_DEBUG, 1, "Get params");
+ 	p->u.qpsk.symbol_rate = internal->srate;
++	p->frequency = internal->freq;
+ 
+ 	return 0;
+ }
+
+--------------020608060607040005010107--
