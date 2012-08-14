@@ -1,198 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([93.97.41.153]:54832 "EHLO pequod.mess.org"
+Received: from mx1.redhat.com ([209.132.183.28]:39720 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755395Ab2HPWPQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Aug 2012 18:15:16 -0400
-Date: Thu, 16 Aug 2012 23:15:14 +0100
-From: Sean Young <sean@mess.org>
-To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: Jarod Wilson <jwilson@redhat.com>, linux-media@vger.kernel.org
-Subject: Re: [media] rc-core: move timeout and checks to lirc
-Message-ID: <20120816221514.GA26546@pequod.mess.org>
+	id S1754206Ab2HNMmg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 08:42:36 -0400
+Message-ID: <502A47F5.5050008@redhat.com>
+Date: Tue, 14 Aug 2012 14:43:33 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	workshop-2011@linuxtv.org,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [Workshop-2011] RFC: V4L2 API ambiguities
+References: <201208131427.56961.hverkuil@xs4all.nl> <2697809.QgTso8NvEE@avalon> <201208141254.34095.hverkuil@xs4all.nl>
+In-Reply-To: <201208141254.34095.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
- 
-> The lirc TX functionality expects the process which writes (TX) data to
-> the lirc dev to sleep until the actual data has been transmitted by the
-> hardware.
-> 
-> Since the same timeout calculation is duplicated in more than one driver
-> (and would have to be duplicated in even more drivers as they gain TX
-> support), it makes sense to move this timeout calculation to the lirc
-> layer instead.
-> 
-> At the same time, centralize some of the sanity checks.
-> 
-> Signed-off-by: David Härdeman <david@hardeman.nu>
-> Cc: Jarod Wilson <jwilson@redhat.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> ---
->  drivers/media/rc/ir-lirc-codec.c | 33 +++++++++++++++++++++++++++++----
->  drivers/media/rc/mceusb.c        | 18 ------------------
->  drivers/media/rc/rc-loopback.c   | 12 ------------
->  3 files changed, 29 insertions(+), 34 deletions(-)
-> 
-> diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-> index d2fd064..6ad4a07 100644
-> --- a/drivers/media/rc/ir-lirc-codec.c
-> +++ b/drivers/media/rc/ir-lirc-codec.c
-> @@ -107,6 +107,12 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
->  	unsigned int *txbuf; /* buffer with values to transmit */
->  	ssize_t ret = -EINVAL;
->  	size_t count;
-> +	ktime_t start;
-> +	s64 towait;
-> +	unsigned int duration = 0; /* signal duration in us */
-> +	int i;
-> +
-> +	start = ktime_get();
->  
->  	lirc = lirc_get_pdata(file);
->  	if (!lirc)
-> @@ -129,11 +135,30 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
->  		goto out;
->  	}
->  
-> -	if (dev->tx_ir)
-> -		ret = dev->tx_ir(dev, txbuf, count);
-> +	if (!dev->tx_ir) {
-> +		ret = -ENOSYS;
-> +		goto out;
-> +	}
-> +
-> +	ret = dev->tx_ir(dev, txbuf, (u32)n);
-> +	if (ret < 0)
-> +		goto out;
-> +
-> +	for (i = 0; i < ret; i++)
-> +		duration += txbuf[i];
->  
-> -	if (ret > 0)
-> -		ret *= sizeof(unsigned);
-> +	ret *= sizeof(unsigned int);
-> +
-> +	/*
-> +	 * The lircd gap calculation expects the write function to
-> +	 * wait for the actual IR signal to be transmitted before
-> +	 * returning.
-> +	 */
-> +	towait = ktime_us_delta(ktime_add_us(start, duration), ktime_get());
-> +	if (towait > 0) {
-> +		set_current_state(TASK_INTERRUPTIBLE);
-> +		schedule_timeout(usecs_to_jiffies(towait));
-> +	}
->  
->  out:
+Hi,
 
-You've moved the sleeping out of the drivers to ir-lirc-codec, which makes
-sense for some devices. However you haven't updated winbond-cir.c which
-does two things:
+On 08/14/2012 12:54 PM, Hans Verkuil wrote:
+> On Tue August 14 2012 01:54:16 Laurent Pinchart wrote:
+>> Hi Hans,
+>>
+>> On Monday 13 August 2012 14:27:56 Hans Verkuil wrote:
+>>> Hi all!
+>>>
+>>> As part of the 2012 Kernel Summit V4L2 workshop I will be discussing a bunch
+>>> of V4L2 ambiguities/improvements.
+>>>
+>>> I've made a list of all the V4L2 issues and put them in two categories:
+>>> issues that I think are easy to resolve (within a few minutes at most), and
+>>> those that are harder.
+>>>
+>>> If you think I put something in the easy category that you believe is
+>>> actually hard, then please let me know.
+>>>
+>>> If you attend the workshop, then please read through this and think about it
+>>> a bit, particularly for the second category.
+>>>
+>>> If something is unclear, or you think another topic should be added, then
+>>> let me know as well.
+>>>
+>>> Easy:
+>>
+>> [snip]
+>>
+>>> 4) What should a driver return in TRY_FMT/S_FMT if the requested format is
+>>> not supported (possible behaviours include returning the currently selected
+>>> format or a default format).
+>>>
+>>>     The spec says this: "Drivers should not return an error code unless the
+>>> input is ambiguous", but it does not explain what constitutes an ambiguous
+>>> input. Frankly, I can't think of any and in my opinion TRY/S_FMT should
+>>> never return an error other than EINVAL (if the buffer type is unsupported)
+>>> or EBUSY (for S_FMT if streaming is in progress).
+>>>
+>>>     Returning an error for any other reason doesn't help the application
+>>> since the app will have no way of knowing what to do next.
+>>
+>> That wasn't my point. Drivers should obviously not return an error. Let's
+>> consider the case of a driver supporting YUYV and MJPEG. If the user calls
+>> TRY_FMT or S_FMT with the pixel format set to RGB565, should the driver return
+>> a hardcoded default format (one of YUYV or MJPEG), or the currently selected
+>> format ? In other words, should the pixel format returned by TRY_FMT or S_FMT
+>> when the requested pixel format is not valid be a fixed default pixel format,
+>> or should it depend on the currently selected pixel format ?
+>
+> Actually, in this case I would probably choose a YUYV format that is closest
+> to the requested size. If a driver supports both compressed and uncompressed
+> formats, then it should only select a compressed format if the application
+> explicitly asked for it. Handling compressed formats is more complex than
+> uncompressed formats, so that seems a sensible rule.
+>
+> The next heuristic I would apply is to choose a format that is closest to the
+> requested size.
 
-1) Modifies the txbuf (which is now used after transmit)
-2) Does the sleeping already since it blocks on the device to complete.
+Size as in resolution or size as in bpp?
 
-Surely if the driver can block on the device to complete then that is 
-better than sleeping; there might some difference due to rounding and 
-clock skew.
+> So I guess my guidelines would be:
+>
+> 1) If the pixelformat is not supported, then choose an uncompressed format
+> (if possible) instead.
+> 2) Next choose a format closest to, but smaller than (if possible) the
+> requested size.
+>
+> But this would be a guideline only, and in the end it should be up to the
+> driver. Just as long TRY/S_FMT always returns a format.
 
-In addition to winbond-cir, iguanair suffer from the same problem. There
-might be others.
+I think we're making this way too complicated. I agree that TRY/S_FMT should
+always returns a format and not EINVAL, but other then that lets just document
+that if the driver does not know the passed in format it should return a default
+format and not make this dependent on the passed in fmt, esp. since otherwise
+the driver would need to know about all formats it does not support to best map
+that to a one which it does support, which is just crazy.
 
-Could we have a flag in rc_dev to signify whether a driver blocks on
-completion of a transmit and only sleep here if it is not set?
+So I suggest adding the following to the spec:
 
-e.g. rc_dev.tx_blocks_until_complete
+When a driver receives an unsupported pixfmt as input on a TRY/S_FMT call it
+should replace this with a default pixfmt, independent of input pixfmt and
+current driver state. Preferably a driver uses a well known uncompressed
+pixfmt as its default.
 
-The wording could be improved.
+Regards,
 
-Another alternative would be if the drivers provided a 
-"wait_for_tx_to_complete()" function. If they can provided that; using 
-that it would be possible to implement O_NONBLOCK and sync.
-
->  	kfree(txbuf);
-> diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-> index d289fd4..a5c6c1c 100644
-> --- a/drivers/media/rc/mceusb.c
-> +++ b/drivers/media/rc/mceusb.c
-> @@ -791,10 +791,6 @@ static int mceusb_tx_ir(struct rc_dev *dev, unsigned *txbuf, unsigned count)
->  	int i, ret = 0;
->  	int cmdcount = 0;
->  	unsigned char *cmdbuf; /* MCE command buffer */
-> -	long signal_duration = 0; /* Singnal length in us */
-> -	struct timeval start_time, end_time;
-> -
-> -	do_gettimeofday(&start_time);
->  
->  	cmdbuf = kzalloc(sizeof(unsigned) * MCE_CMDBUF_SIZE, GFP_KERNEL);
->  	if (!cmdbuf)
-> @@ -807,7 +803,6 @@ static int mceusb_tx_ir(struct rc_dev *dev, unsigned *txbuf, unsigned count)
->  
->  	/* Generate mce packet data */
->  	for (i = 0; (i < count) && (cmdcount < MCE_CMDBUF_SIZE); i++) {
-> -		signal_duration += txbuf[i];
->  		txbuf[i] = txbuf[i] / MCE_TIME_UNIT;
->  
->  		do { /* loop to support long pulses/spaces > 127*50us=6.35ms */
-> @@ -850,19 +845,6 @@ static int mceusb_tx_ir(struct rc_dev *dev, unsigned *txbuf, unsigned count)
->  	/* Transmit the command to the mce device */
->  	mce_async_out(ir, cmdbuf, cmdcount);
->  
-> -	/*
-> -	 * The lircd gap calculation expects the write function to
-> -	 * wait the time it takes for the ircommand to be sent before
-> -	 * it returns.
-> -	 */
-> -	do_gettimeofday(&end_time);
-> -	signal_duration -= (end_time.tv_usec - start_time.tv_usec) +
-> -			   (end_time.tv_sec - start_time.tv_sec) * 1000000;
-> -
-> -	/* delay with the closest number of ticks */
-> -	set_current_state(TASK_INTERRUPTIBLE);
-> -	schedule_timeout(usecs_to_jiffies(signal_duration));
-> -
->  out:
->  	kfree(cmdbuf);
->  	return ret ? ret : count;
-> diff --git a/drivers/media/rc/rc-loopback.c b/drivers/media/rc/rc-loopback.c
-> index fae1615..f9be681 100644
-> --- a/drivers/media/rc/rc-loopback.c
-> +++ b/drivers/media/rc/rc-loopback.c
-> @@ -105,18 +105,9 @@ static int loop_tx_ir(struct rc_dev *dev, unsigned *txbuf, unsigned count)
->  {
->  	struct loopback_dev *lodev = dev->priv;
->  	u32 rxmask;
-> -	unsigned total_duration = 0;
->  	unsigned i;
->  	DEFINE_IR_RAW_EVENT(rawir);
->  
-> -	for (i = 0; i < count; i++)
-> -		total_duration += abs(txbuf[i]);
-> -
-> -	if (total_duration == 0) {
-> -		dprintk("invalid tx data, total duration zero\n");
-> -		return -EINVAL;
-> -	}
-> -
->  	if (lodev->txcarrier < lodev->rxcarriermin ||
->  	    lodev->txcarrier > lodev->rxcarriermax) {
->  		dprintk("ignoring tx, carrier out of range\n");
-> @@ -148,9 +139,6 @@ static int loop_tx_ir(struct rc_dev *dev, unsigned *txbuf, unsigned count)
->  	ir_raw_event_handle(dev);
->  
->  out:
-> -	/* Lirc expects this function to take as long as the total duration */
-> -	set_current_state(TASK_INTERRUPTIBLE);
-> -	schedule_timeout(usecs_to_jiffies(total_duration));
->  	return count;
->  }
->  
-> -- 
-> 1.7.11.2
-> 
-
-Sean
+Hans
