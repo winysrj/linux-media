@@ -1,87 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:37040 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751522Ab2HaIL3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Aug 2012 04:11:29 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 16/16] media: coda: support >1024 px height on CODA7, set max frame size to 1080p
-Date: Fri, 31 Aug 2012 10:11:10 +0200
-Message-Id: <1346400670-16002-17-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
-References: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mx1.redhat.com ([209.132.183.28]:21819 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757496Ab2HNUzh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 16:55:37 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q7EKtb5X030001
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 14 Aug 2012 16:55:37 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 08/12] [media] mmc/Kconfig: Improve driver name for siano mmc/sdio driver
+Date: Tue, 14 Aug 2012 17:55:23 -0300
+Message-Id: <1344977727-16319-9-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1344977727-16319-1-git-send-email-mchehab@redhat.com>
+References: <1344977727-16319-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Increases the maximum encoded frame buffer size to 1 MiB.
-
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/platform/coda.c |   11 +++++------
- drivers/media/platform/coda.h |    3 ++-
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/media/mmc/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index f106e61..a404088 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -47,16 +47,14 @@
- 
- #define CODA_MAX_FRAMEBUFFERS	2
- 
--#define MAX_W		720
--#define MAX_H		576
--#define CODA_MAX_FRAME_SIZE	0x90000
-+#define MAX_W		1920
-+#define MAX_H		1080
-+#define CODA_MAX_FRAME_SIZE	0x100000
- #define FMO_SLICE_SAVE_BUF_SIZE         (32)
- #define CODA_DEFAULT_GAMMA		4096
- 
- #define MIN_W 176
- #define MIN_H 144
--#define MAX_W 720
--#define MAX_H 576
- 
- #define S_ALIGN		1 /* multiple of 2 */
- #define W_ALIGN		1 /* multiple of 2 */
-@@ -1017,11 +1015,12 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
- 	switch (dev->devtype->product) {
- 	case CODA_DX6:
- 		value = (q_data_src->width & CODADX6_PICWIDTH_MASK) << CODADX6_PICWIDTH_OFFSET;
-+		value |= (q_data_src->height & CODADX6_PICHEIGHT_MASK) << CODA_PICHEIGHT_OFFSET;
- 		break;
- 	default:
- 		value = (q_data_src->width & CODA7_PICWIDTH_MASK) << CODA7_PICWIDTH_OFFSET;
-+		value |= (q_data_src->height & CODA7_PICHEIGHT_MASK) << CODA_PICHEIGHT_OFFSET;
- 	}
--	value |= (q_data_src->height & CODA_PICHEIGHT_MASK) << CODA_PICHEIGHT_OFFSET;
- 	coda_write(dev, value, CODA_CMD_ENC_SEQ_SRC_SIZE);
- 	coda_write(dev, ctx->params.framerate,
- 		   CODA_CMD_ENC_SEQ_SRC_F_RATE);
-diff --git a/drivers/media/platform/coda.h b/drivers/media/platform/coda.h
-index f3f5e43..60338c3 100644
---- a/drivers/media/platform/coda.h
-+++ b/drivers/media/platform/coda.h
-@@ -117,7 +117,8 @@
- #define		CODADX6_PICWIDTH_OFFSET				10
- #define		CODADX6_PICWIDTH_MASK				0x3ff
- #define		CODA_PICHEIGHT_OFFSET				0
--#define		CODA_PICHEIGHT_MASK				0x3ff
-+#define		CODADX6_PICHEIGHT_MASK				0x3ff
-+#define		CODA7_PICHEIGHT_MASK				0xffff
- #define CODA_CMD_ENC_SEQ_SRC_F_RATE				0x194
- #define CODA_CMD_ENC_SEQ_MP4_PARA				0x198
- #define		CODA_MP4PARAM_VERID_OFFSET			6
+diff --git a/drivers/media/mmc/Kconfig b/drivers/media/mmc/Kconfig
+index 0f2a957..8c30ada 100644
+--- a/drivers/media/mmc/Kconfig
++++ b/drivers/media/mmc/Kconfig
+@@ -1 +1,2 @@
++comment "Supported MMC/SDIO adapters"
+ source "drivers/media/mmc/siano/Kconfig"
 -- 
-1.7.10.4
+1.7.11.2
 
