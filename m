@@ -1,161 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46727 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752909Ab2HQAtb (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.23]:41951 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755162Ab2HNIx5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Aug 2012 20:49:31 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-leds@vger.kernel.org
-Cc: linux-media@vger.kernel.org, Bryan Wu <bryan.wu@canonical.com>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
-	Sumit Semwal <sumit.semwal@ti.com>,
-	Archit Taneja <archit@ti.com>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	Inki Dae <inki.dae@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [RFC 0/5] Generic panel framework
-Date: Fri, 17 Aug 2012 02:49:38 +0200
-Message-Id: <1345164583-18924-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 14 Aug 2012 04:53:57 -0400
+Message-ID: <502A1221.8020804@gmx.de>
+Date: Tue, 14 Aug 2012 10:53:53 +0200
+From: Reinhard Nissl <rnissl@gmx.de>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: STV0299: reading property DTV_FREQUENCY -- what am I expected to
+ get?
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everybody,
+Hi,
 
-While working on DT bindings for the Renesas Mobile SoC display controller
-(a.k.a. LCDC) I quickly realized that display panel implementation based on
-board code callbacks would need to be replaced by a driver-based panel
-framework.
+it seems that my 9 years old LNBs got some drift over time, as 
+tuning takes quite a while until I get a lock. So I thought I 
+could compensate this offset by adjusting VDR's diseqc.conf.
 
-Several driver-based panel support solution already exist in the kernel.
+Therefore I first hacked some logging into VDR's tuner code to 
+read and output the above mentioned property once it got a lock 
+after tuning. As VDR's EPG scanner travels over all transponders 
+when idle, I get offset values for all transponders and can then 
+try to find some average offset to put into diseqc.conf.
 
-- The LCD device class is implemented in drivers/video/backlight/lcd.c and
-  exposes a kernel API in include/linux/lcd.h. That API is tied to the FBDEV
-  API for historical reason, uses board code callback for reset and power
-  management, and doesn't include support for standard features available in
-  today's "smart panels".
+So here are several "travel" results for a single transponder 
+ordered by Delta:
 
-- OMAP2+ based systems use custom panel drivers available in
-  drivers/video/omap2/displays. Those drivers are based on OMAP DSS (display
-  controller) specific APIs.
+Sat.	Pol.	Band	Freq (MHz) Set	Freq (MHz) Get	Delta (MHz)
+S13,0E	H	H	11938	11930,528	-7,472
+S13,0E	H	H	11938	11936,294	-1,706
+S13,0E	H	H	11938	11938,917	0,917
+S13,0E	H	H	11938	11939,158	1,158
+S13,0E	H	H	11938	11939,906	1,906
+S13,0E	H	H	11938	11939,965	1,965
+S13,0E	H	H	11938	11940,029	2,029
+S13,0E	H	H	11938	11940,032	2,032
+S13,0E	H	H	11938	11940,103	2,103
+S13,0E	H	H	11938	11940,112	2,112
+S13,0E	H	H	11938	11940,167	2,167
+S13,0E	H	H	11938	11941,736	3,736
+S13,0E	H	H	11938	11941,736	3,736
+S13,0E	H	H	11938	11941,736	3,736
+S13,0E	H	H	11938	11942,412	4,412
+S13,0E	H	H	11938	11943,604	5,604
+S13,0E	H	H	11938	11943,604	5,604
+S13,0E	H	H	11938	11943,604	5,604
+S13,0E	H	H	11938	11945,472	7,472
+S13,0E	H	H	11938	11945,472	7,472
+S13,0E	H	H	11938	11945,472	7,472
+S13,0E	H	H	11938	11945,472	7,472
+S13,0E	H	H	11938	11945,472	7,472
+S13,0E	H	H	11938	11945,472	7,472
+S13,0E	H	H	11938	11945,472	7,472
+S13,0E	H	H	11938	11945,777	7,777
+S13,0E	H	H	11938	11945,777	7,777
+S13,0E	H	H	11938	11945,777	7,777
+S13,0E	H	H	11938	11945,777	7,777
 
-- Similarly, Exynos based systems use custom panel drivers available in
-  drivers/video/exynos. Only a single driver (s6e8ax0) is currently available.
-  That driver is based on Exynos display controller specific APIs and on the
-  LCD device class API.
+I really wonder why Delta varies that much, and there are other 
+transponders in the same band which have no larger deltas then 3 MHz.
 
-I've brought up the issue with Tomi Valkeinen (OMAP DSS maintainer) and Marcus
-Lorentzon (working on panel support for ST/Linaro), and we agreed that a
-generic panel framework for display devices is needed. These patches implement
-a first proof of concept.
+So is it at all possible to determine LNB drift in that way?
 
-One of the main reasons for creating a new panel framework instead of adding
-missing features to the LCD framework is to avoid being tied to the FBDEV
-framework. Panels will be used by DRM drivers as well, and their API should
-thus be subsystem-agnostic. Note that the panel framework used the
-fb_videomode structure in its API, this will be replaced by a common video
-mode structure shared across subsystems (there's only so many hours per day).
+My other device, a STB0899, always reports the set frequency. So 
+it seems driver dependent whether it reports the actually locked 
+frequency found by the zig-zag-algorithm or just the set 
+frequency to tune to.
 
-Panels, as used in these patches, are defined as physical devices combining a
-matrix of pixels and a controller capable of driving that matrix.
+Thanks in advance for any replies.
 
-Panel physical devices are registered as children of the control bus the panel
-controller is connected to (depending on the panel type, we can find platform
-devices for dummy panels with no control bus, or I2C, SPI, DBI, DSI, ...
-devices). The generic panel framework matches registered panel devices with
-panel drivers and call the panel drivers probe method, as done by other device
-classes in the kernel. The driver probe() method is responsible for
-instantiating a struct panel instance and registering it with the generic
-panel framework.
-
-Display drivers are panel consumers. They register a panel notifier with the
-framework, which then calls the notifier when a matching panel is registered.
-The reason for this asynchronous mode of operation, compared to how drivers
-acquire regulator or clock resources, is that the panel can use resources
-provided by the display driver. For instance a panel can be a child of the DBI
-or DSI bus controlled by the display device, or use a clock provided by that
-device. We can't defer the display device probe until the panel is registered
-and also defer the panel device probe until the display is registered. As
-most display drivers need to handle output devices hotplug (HDMI monitors for
-instance), handling panel through a notification system seemed to be the
-easiest solution.
-
-Note that this brings a different issue after registration, as display and
-panel drivers would take a reference to each other. Those circular references
-would make driver unloading impossible. I haven't found a good solution for
-that problem yet (hence the RFC state of those patches), and I would
-appreciate your input here. This might also be a hint that the framework
-design is wrong to start with. I guess I can't get everything right on the
-first try ;-)
-
-Getting hold of the panel is the most complex part. Once done, display drivers
-can call abstract operations provided by panel drivers to control the panel
-operation. These patches implement three of those operations (enable, start
-transfer and get modes). More operations will be needed, and those three
-operations will likely get modified during review. Most of the panels on
-devices I own are dumb panels with no control bus, and are thus not the best
-candidates to design a framework that needs to take complex panels' needs into
-account.
-
-In addition to the generic panel core, I've implemented MIPI DBI (Display Bus
-Interface, a parallel bus for panels that supports read/write transfers of
-commands and data) bus support, as well as three panel drivers (dummy panels
-with no control bus, and Renesas R61505- and R61517-based panels, both using
-DBI as their control bus). Only the dummy panel driver has been tested as I
-lack hardware for the two other drivers.
-
-I will appreciate all reviews, comments, criticisms, ideas, remarks, ... If
-you can find a clever way to solve the cyclic references issue described above
-I'll buy you a beer at the next conference we will both attend. If you think
-the proposed solution is too complex, or too simple, I'm all ears. I
-personally already feel that we might need something even more generic to
-support other kinds of external devices connected to display controllers, such
-as external DSI to HDMI converters for instance. Some kind of video entity
-exposing abstract operations like the panels do would make sense, in which
-case panels would "inherit" from that video entity.
-
-Speaking of conferences, I will attend the KS/LPC in San Diego in a bit more
-than a week, and would be happy to discuss this topic face to face there.
-
-Laurent Pinchart (5):
-  video: Add generic display panel core
-  video: panel: Add dummy panel support
-  video: panel: Add MIPI DBI bus support
-  video: panel: Add R61505 panel support
-  video: panel: Add R61517 panel support
-
- drivers/video/Kconfig              |    1 +
- drivers/video/Makefile             |    1 +
- drivers/video/panel/Kconfig        |   37 +++
- drivers/video/panel/Makefile       |    5 +
- drivers/video/panel/panel-dbi.c    |  217 +++++++++++++++
- drivers/video/panel/panel-dummy.c  |  103 +++++++
- drivers/video/panel/panel-r61505.c |  520 ++++++++++++++++++++++++++++++++++++
- drivers/video/panel/panel-r61517.c |  408 ++++++++++++++++++++++++++++
- drivers/video/panel/panel.c        |  269 +++++++++++++++++++
- include/video/panel-dbi.h          |   92 +++++++
- include/video/panel-dummy.h        |   25 ++
- include/video/panel-r61505.h       |   27 ++
- include/video/panel-r61517.h       |   28 ++
- include/video/panel.h              |  111 ++++++++
- 14 files changed, 1844 insertions(+), 0 deletions(-)
- create mode 100644 drivers/video/panel/Kconfig
- create mode 100644 drivers/video/panel/Makefile
- create mode 100644 drivers/video/panel/panel-dbi.c
- create mode 100644 drivers/video/panel/panel-dummy.c
- create mode 100644 drivers/video/panel/panel-r61505.c
- create mode 100644 drivers/video/panel/panel-r61517.c
- create mode 100644 drivers/video/panel/panel.c
- create mode 100644 include/video/panel-dbi.h
- create mode 100644 include/video/panel-dummy.h
- create mode 100644 include/video/panel-r61505.h
- create mode 100644 include/video/panel-r61517.h
- create mode 100644 include/video/panel.h
-
+Bye.
 -- 
-Regards,
-
-Laurent Pinchart
-
+Dipl.-Inform. (FH) Reinhard Nissl
+mailto:rnissl@gmx.de
