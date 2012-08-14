@@ -1,101 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:16984 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756475Ab2HIJgu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2012 05:36:50 -0400
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@linaro.org,
-	inki.dae@samsung.com, daniel.vetter@ffwll.ch, rob@ti.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org,
-	jy0922.shim@samsung.com, sw0312.kim@samsung.com,
-	dan.j.williams@intel.com
-Subject: [PATCH v2 2/2] drm: set owner field to for all DMABUF exporters
-Date: Thu, 09 Aug 2012 11:36:22 +0200
-Message-id: <1344504982-30415-3-git-send-email-t.stanislaws@samsung.com>
-In-reply-to: <1344504982-30415-1-git-send-email-t.stanislaws@samsung.com>
-References: <1344504982-30415-1-git-send-email-t.stanislaws@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:1202 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752391Ab2HNNJL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 09:09:11 -0400
+Message-ID: <502A4DEE.4000506@redhat.com>
+Date: Tue, 14 Aug 2012 10:09:02 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Hans de Goede <hdegoede@redhat.com>,
+	"Igor M. Liplianin" <liplianin@me.by>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Copyright issues, do not copy code and add your own copyrights
+References: <CAHFNz9+H9=NJSB6FY7i5bJPhXQL-eCpmomBCqi14hca2q-wVvg@mail.gmail.com> <502A1890.2050803@redhat.com> <CAHFNz9+b2sJVhrhcQVDLG7ZE=PQLUKE58c2raUz9oCBVzucWrQ@mail.gmail.com> <502A4615.1070600@redhat.com>
+In-Reply-To: <502A4615.1070600@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch sets owner field in DMABUF operations for all DMABUF exporters in
-DRM subsystem.  This prevents an exporting module from being unloaded while
-exported DMABUF descriptor is in use.
+Em 14-08-2012 09:35, Hans de Goede escreveu:
+> Hi,
+> 
+> On 08/14/2012 11:42 AM, Manu Abraham wrote:
+>> Hi,
+>>
+>> On Tue, Aug 14, 2012 at 2:51 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+>>> Hi,
+>>>
+>>>
+>>> On 08/14/2012 11:10 AM, Manu Abraham wrote:
+>>>>
+>>>> Hi,
+>>>>
+>>>> The subject line says it.
+>>>>
+>>>> Please fix the offending Copyright header.
+>>>>
+>>>> Offending one.
+>>>>
+>>>> http://git.linuxtv.org/media_tree.git/blob/staging/for_v3.7:/drivers/media/dvb-frontends/stb6100_proc.h
+>>>>
+>>>> Original one.
+>>>>
+>>>> http://git.linuxtv.org/media_tree.git/blob/staging/for_v3.7:/drivers/media/dvb-frontends/stb6100_cfg.h
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Acked-by: Sumit Semwal <sumit.semwal@linaro.org>
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
----
- drivers/gpu/drm/exynos/exynos_drm_dmabuf.c |    1 +
- drivers/gpu/drm/i915/i915_gem_dmabuf.c     |    1 +
- drivers/gpu/drm/nouveau/nouveau_prime.c    |    1 +
- drivers/gpu/drm/radeon/radeon_prime.c      |    1 +
- drivers/staging/omapdrm/omap_gem_dmabuf.c  |    1 +
- 5 files changed, 5 insertions(+)
+Yeah, they look pretty much the same code.
 
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c b/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
-index 613bf8a..cf3bc6d 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
-@@ -164,6 +164,7 @@ static void exynos_gem_dmabuf_kunmap(struct dma_buf *dma_buf,
- }
- 
- static struct dma_buf_ops exynos_dmabuf_ops = {
-+	.owner			= THIS_MODULE,
- 	.map_dma_buf		= exynos_gem_map_dma_buf,
- 	.unmap_dma_buf		= exynos_gem_unmap_dma_buf,
- 	.kmap			= exynos_gem_dmabuf_kmap,
-diff --git a/drivers/gpu/drm/i915/i915_gem_dmabuf.c b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-index aa308e1..07ff03b 100644
---- a/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-+++ b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-@@ -152,6 +152,7 @@ static int i915_gem_dmabuf_mmap(struct dma_buf *dma_buf, struct vm_area_struct *
- }
- 
- static const struct dma_buf_ops i915_dmabuf_ops =  {
-+	.owner = THIS_MODULE,
- 	.map_dma_buf = i915_gem_map_dma_buf,
- 	.unmap_dma_buf = i915_gem_unmap_dma_buf,
- 	.release = i915_gem_dmabuf_release,
-diff --git a/drivers/gpu/drm/nouveau/nouveau_prime.c b/drivers/gpu/drm/nouveau/nouveau_prime.c
-index a25cf2c..8605033 100644
---- a/drivers/gpu/drm/nouveau/nouveau_prime.c
-+++ b/drivers/gpu/drm/nouveau/nouveau_prime.c
-@@ -127,6 +127,7 @@ static void nouveau_gem_prime_vunmap(struct dma_buf *dma_buf, void *vaddr)
- }
- 
- static const struct dma_buf_ops nouveau_dmabuf_ops =  {
-+	.owner = THIS_MODULE,
- 	.map_dma_buf = nouveau_gem_map_dma_buf,
- 	.unmap_dma_buf = nouveau_gem_unmap_dma_buf,
- 	.release = nouveau_gem_dmabuf_release,
-diff --git a/drivers/gpu/drm/radeon/radeon_prime.c b/drivers/gpu/drm/radeon/radeon_prime.c
-index 6bef46a..4061fd3 100644
---- a/drivers/gpu/drm/radeon/radeon_prime.c
-+++ b/drivers/gpu/drm/radeon/radeon_prime.c
-@@ -127,6 +127,7 @@ static void radeon_gem_prime_vunmap(struct dma_buf *dma_buf, void *vaddr)
- 	mutex_unlock(&dev->struct_mutex);
- }
- const static struct dma_buf_ops radeon_dmabuf_ops =  {
-+	.owner = THIS_MODULE,
- 	.map_dma_buf = radeon_gem_map_dma_buf,
- 	.unmap_dma_buf = radeon_gem_unmap_dma_buf,
- 	.release = radeon_gem_dmabuf_release,
-diff --git a/drivers/staging/omapdrm/omap_gem_dmabuf.c b/drivers/staging/omapdrm/omap_gem_dmabuf.c
-index 42728e0..6a4dd67 100644
---- a/drivers/staging/omapdrm/omap_gem_dmabuf.c
-+++ b/drivers/staging/omapdrm/omap_gem_dmabuf.c
-@@ -179,6 +179,7 @@ out_unlock:
- }
- 
- struct dma_buf_ops omap_dmabuf_ops = {
-+		.owner = THIS_MODULE,
- 		.map_dma_buf = omap_gem_map_dma_buf,
- 		.unmap_dma_buf = omap_gem_unmap_dma_buf,
- 		.release = omap_gem_dmabuf_release,
--- 
-1.7.9.5
+>>>
+>>>
+>>> Or even better, get rid of the offending one and add a i2c_gate_ctrl
+>>> parameters to the inline
+>>> functions defined in stb6100_cfg.h, as this seems a typical case of
+>>> unnecessary code-duplication.
+>>
+>>
+>> i2c_gate_ctrl is not provided by stb6100 hardware, but by the demodulator
+>> used in conjunction such as a stb0899 as can be seen.
+> 
+> Right, I was merely pointing out that the only difference between the
+> original function wrappers in stb6100_cfg.h and the ones in stb6100_proc.h,
+> is the calling of the i2c_gate_ctrl frontend-op if defined. So the 2 files
+> could be merged into one, with the wrappers getting an extra boolean parameter
+> making them call the frontend-op when that parameter is true.
+> 
+> Note that if the i2c_gate_ctrl frontend-op should always be called when
+> present then the extra parameter could be omitted.
+
+It is up to the attach logic to fill i2c_gate_ctrl() callback or not.
+So, it is safe to keep it there, as it will work with both drivers
+that need and the ones that don't.
+
+Manu,
+
+Please write a patch merging them and fixing the copyright.
+
+Thanks,
+Mauro
+
+
+> 
+> <snip>
+> 
+>>> I would also like to point out that things like these are pretty much wrong:
+>>>
+>>>    27         if (&fe->ops)
+>>>    28                 frontend_ops = &fe->ops;
+>>>    29         if (&frontend_ops->tuner_ops)
+>>>    30                 tuner_ops = &frontend_ops->tuner_ops;
+>>>    31         if (tuner_ops->get_state) {
+>>>
+>>> The last check de-references tuner_ops, which only is non-NULL if
+>>> fe-ops and fe->ops->tuner_ops are non NULL. So either the last check
+>>> needs to be:
+>>>               if (tuner_ops && tuner_ops->get_state) {
+>>>
+>>> Or we assume that fe-ops and fe->ops->tuner_ops are always non NULL
+>>> when this helper gets called and all the previous checks can be removed.
+>>
+>>
+>> fe->ops is not NULL in any case, when we reach here, but that conditionality
+>> check causes a slight additional delay. The additional check you proposed
+>> presents no harm, though not bringing any new advantage/disadvantage.
+> 
+> Well if we know that fe->ops and fe->ops->tuner_ops are never NULL, then the
+> if (&fe->ops) and if (&frontend_ops->tuner_ops) are superfluous and should be
+> removed, on the other hand if we don't know that, then the get_state check should
+> be:
+>                if (tuner_ops && tuner_ops->get_state) {
+> 
+> Either know fe->ops and fe->ops->tuner_ops are never NULL and then all checks
+> should be removed, or we don't know and we should check them in *all* places
+> where they are used. What we've now is somewhat of the former, and then some of
+> the latter, which makes no sense at all.
+> 
+> Regards,
+> 
+> Hans
+> 
+> 
+> 
+> 
+>>
+>> Regards,
+>>
+>> Manu
+>>
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
