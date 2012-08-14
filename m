@@ -1,36 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:51229 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752238Ab2HATnD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2012 15:43:03 -0400
-Date: Wed, 1 Aug 2012 20:42:59 +0100
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: KS2012 <ksummit-2012-discuss@lists.linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	media workshop ML <workshop-2011@linuxtv.org>
-Subject: Re: [Ksummit-2012-discuss] [MINI SUMMIT] media mini-summit at
- KS/2012
-Message-ID: <20120801194259.GB4103@sirena.org.uk>
-References: <501980B3.8040809@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <501980B3.8040809@redhat.com>
+Received: from mailout1.samsung.com ([203.254.224.24]:62689 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751785Ab2HNPgy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 11:36:54 -0400
+Received: from epcpsbgm1.samsung.com (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M8R003Y94PHBPE0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:36:53 +0900 (KST)
+Received: from mcdsrvbld02.digital.local ([106.116.37.23])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0M8R004J44MBC810@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:36:53 +0900 (KST)
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de, dmitriyz@google.com,
+	s.nawrocki@samsung.com, k.debski@samsung.com
+Subject: [PATCHv8 13/26] v4l: vivi: support for dmabuf importing
+Date: Tue, 14 Aug 2012 17:34:43 +0200
+Message-id: <1344958496-9373-14-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
+References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 01, 2012 at 04:17:07PM -0300, Mauro Carvalho Chehab wrote:
+This patch enhances VIVI driver with a support for importing a buffer
+from DMABUF file descriptors.
 
-> The names that came up during our discussions for those panels are:
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/Kconfig |    1 +
+ drivers/media/video/vivi.c  |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-> 	Rob Clark <rob.clark@linaro.org> (HDMI CEC, ALSA, ARM)
-> 	Takashi Iwai <tiwai@suse.de> (ALSA)
-> 	Catalin Marinas <catalin.marinas@arm.com> (ARM)
-> 	Mark Brown <broonie@opensource.wolfsonmicro.com> (DT)
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 966954d..8fa81be 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -653,6 +653,7 @@ config VIDEO_VIVI
+ 	depends on FRAMEBUFFER_CONSOLE || STI_CONSOLE
+ 	select FONT_8x16
+ 	select VIDEOBUF2_VMALLOC
++	select DMA_SHARED_BUFFER
+ 	default n
+ 	---help---
+ 	  Enables a virtual video driver. This device shows a color bar
+diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
+index a6351c4..37d8fd4 100644
+--- a/drivers/media/video/vivi.c
++++ b/drivers/media/video/vivi.c
+@@ -1308,7 +1308,7 @@ static int __init vivi_create_instance(int inst)
+ 	q = &dev->vb_vidq;
+ 	memset(q, 0, sizeof(dev->vb_vidq));
+ 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
++	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
+ 	q->drv_priv = dev;
+ 	q->buf_struct_size = sizeof(struct vivi_buffer);
+ 	q->ops = &vivi_video_qops;
+-- 
+1.7.9.5
 
-> Not sure if they all will be there or if they'll have some time
-> to discuss those things with us. We hope they will ;)
-
-I'll be around, though potentially otherwise engaged (depending on when
-tis is schedled for).  I'm also pretty familiar with ARM and ALSA.
