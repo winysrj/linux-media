@@ -1,121 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60531 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753196Ab2HUOHX (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:39164 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752809Ab2HNP1Q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Aug 2012 10:07:23 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
-	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com,
-	g.liakhovetski@gmx.de, dmitriyz@google.com, s.nawrocki@samsung.com,
-	k.debski@samsung.com
-Subject: Re: [PATCHv8 20/26] v4l: vb2-dma-contig: add support for DMABUF exporting
-Date: Tue, 21 Aug 2012 16:07:43 +0200
-Message-ID: <1855841.AYe7JyTi2E@avalon>
-In-Reply-To: <50339161.9010209@samsung.com>
-References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com> <1972504.ZFxOnMN9eT@avalon> <50339161.9010209@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Tue, 14 Aug 2012 11:27:16 -0400
+Received: from eusync4.samsung.com (mailout4.w1.samsung.com [210.118.77.14])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M8R00B7U4AG9J10@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 14 Aug 2012 16:27:52 +0100 (BST)
+Received: from [106.116.147.32] by eusync4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0M8R00KJS49DLE10@eusync4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 14 Aug 2012 16:27:14 +0100 (BST)
+Message-id: <502A6E51.3000203@samsung.com>
+Date: Tue, 14 Aug 2012 17:27:13 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	"Tomasz Stanislawski/Poland R&D Center-Linux (MSS)/./????"
+	<t.stanislaws@samsung.com>
+Subject: [GIT PATCHES FOR 3.7] s5p-tv driver updates
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+Hi Mauro,
 
-On Tuesday 21 August 2012 15:47:13 Tomasz Stanislawski wrote:
-> On 08/21/2012 12:03 PM, Laurent Pinchart wrote:
-> > On Tuesday 14 August 2012 17:34:50 Tomasz Stanislawski wrote:
-> >> This patch adds support for exporting a dma-contig buffer using
-> >> DMABUF interface.
-> >> 
-> >> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> >> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> >> ---
-> >> 
-> >>  drivers/media/video/videobuf2-dma-contig.c |  204 ++++++++++++++++++++++
-> >>  1 file changed, 204 insertions(+)
-> >> 
-> >> diff --git a/drivers/media/video/videobuf2-dma-contig.c
-> >> b/drivers/media/video/videobuf2-dma-contig.c index 7fc71a0..bb2b4ac8
-> >> 100644
-> >> --- a/drivers/media/video/videobuf2-dma-contig.c
-> >> +++ b/drivers/media/video/videobuf2-dma-contig.c
-> > 
-> > [snip]
-> > 
-> >> +static struct sg_table *vb2_dc_dmabuf_ops_map(
-> >> +	struct dma_buf_attachment *db_attach, enum dma_data_direction dir)
-> >> +{
-> >> +	struct vb2_dc_attachment *attach = db_attach->priv;
-> >> +	/* stealing dmabuf mutex to serialize map/unmap operations */
-> > 
-> > Why isn't this operation serialized by the dma-buf core itself ?
-> 
-> Indeed, it is a very good question. The lock was introduced in RFCv3 of
-> DMABUF patches. It was dedicated to serialize attach/detach calls.
-> No requirements for map/unmap serialization were stated so serialization
-> was delegated to an exporter.
-> 
-> A deadlock could occur if dma_map_attachment is called from inside
-> of attach ops. IMO, such an operation is invalid because an attachment
-> list is not in a valid state while attach ops is being processed.
-> 
-> Do you think that stealing a lock from dma-buf internals is too hacky?
+The following changes since commit 1511288620bd4ea794bae08871f9e108ca034b2d:
 
-No, I would be OK with that, but I'd like to make sure that it won't bite us 
-back later. If there's a specific reason why the lock is not taken by the 
-dmabuf core around map/unmap calls, stealing the same lock might cause 
-unforeseen problems. That's why I would like to understand why the core 
-doesn't perform locking on its own.
+  ioctl-number.txt: Remove legacy private ioctl's from media drivers (2012-08-14 00:07:39 -0300)
 
-> I prefer not to introduce any extra locks in dma-contig allocator
+are available in the git repository at:
 
-Agreed.
+  git://git.infradead.org/users/kmpark/linux-samsung v4l_samsung_for_v3.7
 
-> but it is not a big deal to add it.
-> 
-> >> +	struct mutex *lock = &db_attach->dmabuf->lock;
-> >> +	struct sg_table *sgt;
-> >> +	int ret;
-> >> +
-> >> +	mutex_lock(lock);
-> >> +
-> >> +	sgt = &attach->sgt;
-> >> +	/* return previously mapped sg table */
-> >> +	if (attach->dir == dir) {
-> >> +		mutex_unlock(lock);
-> >> +		return sgt;
-> >> +	}
-> >> +
-> >> +	/* release any previous cache */
-> >> +	if (attach->dir != DMA_NONE) {
-> >> +		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
-> >> +			attach->dir);
-> >> +		attach->dir = DMA_NONE;
-> >> +	}
-> >> +
-> >> +	/* mapping to the client with new direction */
-> >> +	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dir);
-> >> +	if (ret <= 0) {
-> >> +		pr_err("failed to map scatterlist\n");
-> >> +		mutex_unlock(lock);
-> >> +		return ERR_PTR(-EIO);
-> >> +	}
-> >> +
-> >> +	attach->dir = dir;
-> >> +
-> >> +	mutex_unlock(lock);
-> >> +
-> >> +	return sgt;
-> >> +}
+for you to fetch changes up to 768ce5950059f98ef1e390a1ec2bb98a3104c943:
 
+  s5p-tv: Use devm_* functions in sii9234_drv.c file (2012-08-14 16:37:55 +0200)
+
+----------------------------------------------------------------
+Sachin Kamat (3):
+      s5p-tv: Use devm_regulator_get() in sdo_drv.c file
+      s5p-tv: Replace printk with pr_* functions
+      s5p-tv: Use devm_* functions in sii9234_drv.c file
+
+ drivers/media/video/s5p-tv/hdmi_drv.c    |    6 ++++--
+ drivers/media/video/s5p-tv/mixer_drv.c   |    6 +++---
+ drivers/media/video/s5p-tv/mixer_video.c |    4 +++-
+ drivers/media/video/s5p-tv/sdo_drv.c     |   10 +++-------
+ drivers/media/video/s5p-tv/sii9234_drv.c |   17 ++++-------------
+ 5 files changed, 17 insertions(+), 26 deletions(-)
+
+I'll post a separate pull request including some fixup patches this week.
+
+
+Thanks,
 -- 
-Regards,
-
-Laurent Pinchart
-
+Sylwester Nawrocki
+Samsung Poland R&D Center
