@@ -1,58 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43505 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752381Ab2HUJNc (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59424 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754206Ab2HNMrB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Aug 2012 05:13:32 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR v3.7] uvcvideo patches
-Date: Tue, 21 Aug 2012 11:13:52 +0200
-Message-ID: <1561599.3DnS2US7L9@avalon>
-In-Reply-To: <2583529.5y4fYzNJ2T@avalon>
-References: <2583529.5y4fYzNJ2T@avalon>
+	Tue, 14 Aug 2012 08:47:01 -0400
+Message-ID: <502A48C2.9000400@iki.fi>
+Date: Tue, 14 Aug 2012 15:46:58 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] mt9v032: Export horizontal and vertical blanking as
+ V4L2 controls
+References: <1343068502-7431-4-git-send-email-laurent.pinchart@ideasonboard.com> <1505124.16Oe9aIvIj@avalon> <20120813141805.GP29636@valkosipuli.retiisi.org.uk> <1433360.QycaYFLEyB@avalon>
+In-Reply-To: <1433360.QycaYFLEyB@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Laurent Pinchart wrote:
+> Hi Sakari,
+>
+> On Monday 13 August 2012 17:18:20 Sakari Ailus wrote:
+>> Laurent Pinchart wrote:
+>>> On Saturday 28 July 2012 00:27:23 Sakari Ailus wrote:
+>>>> On Fri, Jul 27, 2012 at 01:02:04AM +0200, Laurent Pinchart wrote:
+>>>>> On Thursday 26 July 2012 23:54:01 Sakari Ailus wrote:
+>>>>>> On Tue, Jul 24, 2012 at 01:10:42AM +0200, Laurent Pinchart wrote:
+>>>>>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>>>>>> ---
+>>>>>>>
+>>>>>>>    drivers/media/video/mt9v032.c |   36
+>>>>>>>    ++++++++++++++++++++++++++++---
+>>>>>>>    1 files changed, 33 insertions(+), 3 deletions(-)
+>>>>>>>
+>>>>>>> Changes since v1:
+>>>>>>>
+>>>>>>> - Make sure the total horizontal time will not go below 660 when
+>>>>>>>     setting the horizontal blanking control
+>>>>>>>
+>>>>>>> - Restrict the vertical blanking value to 3000 as documented in the
+>>>>>>>     datasheet. Increasing the exposure time actually extends vertical
+>>>>>>>     blanking, as long as the user doesn't forget to turn auto-exposure
+>>>>>>>     off...
+>>>>>>
+>>>>>> Does binning either horizontally or vertically affect the blanking
+>>>>>> limits? If the process is analogue then the answer is typically "yes".
+>>>>>
+>>>>> The datasheet doesn't specify whether binning and blanking can influence
+>>>>> each other.
+>>>>
+>>>> Vertical binning is often analogue since digital binning would require as
+>>>> much temporary memory as the row holds pixels. This means the hardware
+>>>> already does binning before a/d conversion and there's only need to
+>>>> actually read half the number of rows, hence the effect on frame length.
+>>>
+>>> That will affect the frame length, but why would it affect vertical
+>>> blanking ?
+>>
+>> Frame length == image height + vertical blanking.
+>>
+>> The SMIA++ driver (at least) associates the blanking controls to the
+>> pixel array subdev. They might be more naturally placed to the source
+>> (either binner or scaler) but the width and height (to calculate the
+>> frame and line length) are related to the dimensions of the pixel array
+>> crop rectangle.
+>>
+>> So when the binning configuration changes, that changes the limits for
+>> blanking and thus possibly also blanking itself.
+>
+> Do the blanking controls expose blanking after binning or before binning ? In
+> the later case I don't see how binning would influence them.
 
-On Sunday 12 August 2012 17:25:05 Laurent Pinchart wrote:
-> Hi Mauro,
-> 
-> The following changes since commit 518c267f4ca4c45cc51bd582b4aef9f0b9f01eba:
-> 
->   [media] saa7164: use native print_hex_dump() instead of custom one
-> (2012-08-12 07:58:54 -0300)
-> 
-> are available in the git repository at:
->   git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-next
-> 
-> Jayakrishnan Memana (1):
->       uvcvideo: Reset the bytesused field when recycling an erroneous buffer
+Some sensors control the blanking in pixel array directly whereas some, 
+like the SMIA++, control the frame length in the source (scaler or 
+binner) source instead.
 
-This patch made it to your media-next tree, but not to the main media tree, 
-while the other three patches in this pull request did. Is there a specific 
-reason for that ?
+So it is up to the sensor hardware --- I think it's still better to keep 
+all the controls in a single subdev. Otherwise it'd be quite difficult 
+for the user to figure out how to calculate the frame rate.
 
-> Laurent Pinchart (2):
->       uvcvideo: Support super speed endpoints
->       uvcvideo: Add support for Ophir Optronics SPCAM 620U cameras
-> 
-> Stefan Muenzel (1):
->       uvcvideo: Support 10bit, 12bit and alternate 8bit greyscale formats
-> 
->  drivers/media/video/uvc/uvc_driver.c |   28 ++++++++++++++++++++++++++--
->  drivers/media/video/uvc/uvc_queue.c  |    1 +
->  drivers/media/video/uvc/uvc_video.c  |   30 ++++++++++++++++++++++++------
->  drivers/media/video/uvc/uvcvideo.h   |    9 +++++++++
->  4 files changed, 60 insertions(+), 8 deletions(-)
+Kind regards,
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Sakari Ailus
+sakari.ailus@iki.fi
