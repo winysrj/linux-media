@@ -1,250 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm25-vm1.bullet.mail.ukl.yahoo.com ([217.146.177.23]:28765 "HELO
-	nm25-vm1.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753249Ab2HVODZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Aug 2012 10:03:25 -0400
-Message-ID: <5034E532.8090207@users.sourceforge.net>
-Date: Wed, 22 Aug 2012 14:57:06 +0100
-From: Hin-Tak Leung <htl10@users.sourceforge.net>
+Received: from mx1.redhat.com ([209.132.183.28]:11941 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751141Ab2HNNbp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 09:31:45 -0400
+Message-ID: <502A533A.7030606@redhat.com>
+Date: Tue, 14 Aug 2012 10:31:38 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Hiroshi Doyu <hdoyu@nvidia.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"joe@perches.com" <joe@perches.com>,
-	"linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
-Subject: Re: [PATCH 1/1] driver-core: Shut up dev_dbg_reatelimited() without
- DEBUG
-References: <502EDDCC.200@iki.fi><20120820.141454.449841061737873578.hdoyu@nvidia.com><5032AC3E.5080402@iki.fi> <20120821.100204.446226016699627525.hdoyu@nvidia.com> <503343B9.1070104@iki.fi>
-In-Reply-To: <503343B9.1070104@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: "Igor M. Liplianin" <liplianin@me.by>, linux-media@vger.kernel.org,
+	linuxtv-commits@linuxtv.org
+Subject: Re: [git:v4l-dvb/for_v3.7] [media] mantis: Terratec Cinergy C PCI
+ HD (CI)
+References: <E1SzvhW-0005hd-1S@www.linuxtv.org> <CAHFNz9Ju7dB-iz0mcGuNMLDwibFXZqGe73jpBk7RPqG_w+MmXg@mail.gmail.com> <5029548E.90901@redhat.com> <CAHFNz9+qWXYkvJXeZfSu2DgAQ3BrsX591TS5x+XeEOVji3Hx2g@mail.gmail.com> <502A5139.8080402@redhat.com>
+In-Reply-To: <502A5139.8080402@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Antti Palosaari wrote:
-> Hello Hiroshi,
->
-> On 08/21/2012 10:02 AM, Hiroshi Doyu wrote:
->> Antti Palosaari <crope@iki.fi> wrote @ Mon, 20 Aug 2012 23:29:34 +0200:
->>
->>> On 08/20/2012 02:14 PM, Hiroshi Doyu wrote:
->>>> Hi Antti,
+Em 14-08-2012 10:23, Mauro Carvalho Chehab escreveu:
+> Em 14-08-2012 04:45, Manu Abraham escreveu:
+>> On Tue, Aug 14, 2012 at 12:55 AM, Mauro Carvalho Chehab
+>> <mchehab@redhat.com> wrote:
+>>> Em 10-08-2012 20:55, Manu Abraham escreveu:
+>>>> Mauro,
 >>>>
->>>> Antti Palosaari <crope@iki.fi> wrote @ Sat, 18 Aug 2012 02:11:56 +0200:
->>>>
->>>>> On 08/17/2012 09:04 AM, Hiroshi Doyu wrote:
->>>>>> dev_dbg_reatelimited() without DEBUG printed "217078 callbacks
->>>>>> suppressed". This shouldn't print anything without DEBUG.
->>>>>>
->>>>>> Signed-off-by: Hiroshi Doyu <hdoyu@nvidia.com>
->>>>>> Reported-by: Antti Palosaari <crope@iki.fi>
->>>>>> ---
->>>>>>     include/linux/device.h |    6 +++++-
->>>>>>     1 files changed, 5 insertions(+), 1 deletions(-)
->>>>>>
->>>>>> diff --git a/include/linux/device.h b/include/linux/device.h
->>>>>> index eb945e1..d4dc26e 100644
->>>>>> --- a/include/linux/device.h
->>>>>> +++ b/include/linux/device.h
->>>>>> @@ -962,9 +962,13 @@ do {                                    \
->>>>>>         dev_level_ratelimited(dev_notice, dev, fmt, ##__VA_ARGS__)
->>>>>>     #define dev_info_ratelimited(dev, fmt, ...)                \
->>>>>>         dev_level_ratelimited(dev_info, dev, fmt, ##__VA_ARGS__)
->>>>>> +#if defined(DEBUG)
->>>>>>     #define dev_dbg_ratelimited(dev, fmt, ...)                \
->>>>>>         dev_level_ratelimited(dev_dbg, dev, fmt, ##__VA_ARGS__)
->>>>>> -
->>>>>> +#else
->>>>>> +#define dev_dbg_ratelimited(dev, fmt, ...)            \
->>>>>> +    no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
->>>>>> +#endif
->>>>>>     /*
->>>>>>      * Stupid hackaround for existing uses of non-printk uses dev_info
->>>>>>      *
->>>>>>
->>>>>
->>>>> NACK. I don't think that's correct behavior. After that patch it kills
->>>>> all output of dev_dbg_ratelimited(). If I use dynamic debugs and order
->>>>> debugs, I expect to see debugs as earlier.
->>>>
->>>> You are right. I attached the update patch, just moving *_ratelimited
->>>> functions after dev_dbg() definitions.
->>>>
->>>> With DEBUG defined/undefined in your "test.ko", it works fine. With
->>>> CONFIG_DYNAMIC_DEBUG, it works with "+p", but with "-p", still
->>>> "..callbacks suppressed" is printed.
+>>>> Please revert this patch. Patch is incorrect. There is the VP-20300,
+>>>> VP-20330, VP-2040, with differences in tuner types TDA10021, TDA10023,
+>>>> MK-I, MK-II and MK-III. I have detailed this issue in an earlier mail.
+>>>> Terratec Cinregy C is VP-2033 and not VP-2040.
 >>>
->>> I am using dynamic debugs and behavior is now just same as it was when
->>> reported that bug. OK, likely for static debug it is now correct.
+>>> Well, as I don't have this board, you think that it is a VP-2033 while
+>>> Igor thinks it is a VP-2040, I can't tell who is right on that.
 >>
->> The following patch can also refrain "..callbacks suppressed" with
->> "-p". I think that it's ok for all cases.
+>> You don't need all the cards to apply changes, that's how the Linux
+>> patchland works.
 >>
->>> From b4c6aa9160f03b61ed17975c73db36c983a48927 Mon Sep 17 00:00:00 2001
->> From: Hiroshi Doyu <hdoyu@nvidia.com>
->> Date: Mon, 20 Aug 2012 13:49:19 +0300
->> Subject: [v3 1/1] driver-core: Shut up dev_dbg_reatelimited() without DEBUG
+>> I have "all" Mantis based devices here. So I can say with clarity that
+>> Terratec Cinergy C is VP-2033. I authored the whole driver for the
+>> chipset manufacturer and the card manufacturer and still in touch with
+>> all of them and pretty sure what is what.
 >>
->> dev_dbg_reatelimited() without DEBUG printed "217078 callbacks
->> suppressed". This shouldn't print anything without DEBUG.
->>
->> With CONFIG_DYNAMIC_DEBUG, the print should be configured as expected.
->>
->> Signed-off-by: Hiroshi Doyu <hdoyu@nvidia.com>
->> Reported-by: Antti Palosaari <crope@iki.fi>
->> ---
->>   include/linux/device.h |   62 +++++++++++++++++++++++++++++------------------
->>   1 files changed, 38 insertions(+), 24 deletions(-)
->>
->> diff --git a/include/linux/device.h b/include/linux/device.h
->> index 9648331..bb6ffcb 100644
->> --- a/include/linux/device.h
->> +++ b/include/linux/device.h
->> @@ -932,6 +932,32 @@ int _dev_info(const struct device *dev, const char *fmt,
->> ...)
->>
->>   #endif
->>
->> +/*
->> + * Stupid hackaround for existing uses of non-printk uses dev_info
->> + *
->> + * Note that the definition of dev_info below is actually _dev_info
->> + * and a macro is used to avoid redefining dev_info
->> + */
->> +
->> +#define dev_info(dev, fmt, arg...) _dev_info(dev, fmt, ##arg)
->> +
->> +#if defined(CONFIG_DYNAMIC_DEBUG)
->> +#define dev_dbg(dev, format, ...)             \
->> +do {                             \
->> +    dynamic_dev_dbg(dev, format, ##__VA_ARGS__); \
->> +} while (0)
->> +#elif defined(DEBUG)
->> +#define dev_dbg(dev, format, arg...)        \
->> +    dev_printk(KERN_DEBUG, dev, format, ##arg)
->> +#else
->> +#define dev_dbg(dev, format, arg...)                \
->> +({                                \
->> +    if (0)                            \
->> +        dev_printk(KERN_DEBUG, dev, format, ##arg);    \
->> +    0;                            \
->> +})
->> +#endif
->> +
->>   #define dev_level_ratelimited(dev_level, dev, fmt, ...)            \
->>   do {                                    \
->>       static DEFINE_RATELIMIT_STATE(_rs,                \
->> @@ -955,33 +981,21 @@ do {                                    \
->>       dev_level_ratelimited(dev_notice, dev, fmt, ##__VA_ARGS__)
->>   #define dev_info_ratelimited(dev, fmt, ...)                \
->>       dev_level_ratelimited(dev_info, dev, fmt, ##__VA_ARGS__)
->> +#if defined(CONFIG_DYNAMIC_DEBUG) || defined(DEBUG)
->>   #define dev_dbg_ratelimited(dev, fmt, ...)                \
->> -    dev_level_ratelimited(dev_dbg, dev, fmt, ##__VA_ARGS__)
->> -
->> -/*
->> - * Stupid hackaround for existing uses of non-printk uses dev_info
->> - *
->> - * Note that the definition of dev_info below is actually _dev_info
->> - * and a macro is used to avoid redefining dev_info
->> - */
->> -
->> -#define dev_info(dev, fmt, arg...) _dev_info(dev, fmt, ##arg)
->> -
->> -#if defined(CONFIG_DYNAMIC_DEBUG)
->> -#define dev_dbg(dev, format, ...)             \
->> -do {                             \
->> -    dynamic_dev_dbg(dev, format, ##__VA_ARGS__); \
->> +do {                                    \
->> +    static DEFINE_RATELIMIT_STATE(_rs,                \
->> +                      DEFAULT_RATELIMIT_INTERVAL,    \
->> +                      DEFAULT_RATELIMIT_BURST);        \
->> +    DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);            \
->> +    if (unlikely(descriptor.flags & _DPRINTK_FLAGS_PRINT) &&    \
->> +        __ratelimit(&_rs))                        \
->> +        __dynamic_pr_debug(&descriptor, pr_fmt(fmt),        \
->> +                   ##__VA_ARGS__);            \
->>   } while (0)
->> -#elif defined(DEBUG)
->> -#define dev_dbg(dev, format, arg...)        \
->> -    dev_printk(KERN_DEBUG, dev, format, ##arg)
->>   #else
->> -#define dev_dbg(dev, format, arg...)                \
->> -({                                \
->> -    if (0)                            \
->> -        dev_printk(KERN_DEBUG, dev, format, ##arg);    \
->> -    0;                            \
->> -})
->> +#define dev_dbg_ratelimited(dev, fmt, ...)            \
->> +    no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
->>   #endif
->>
->>   #ifdef VERBOSE_DEBUG
->
-> That seems to work correctly now. I tested it using dynamic debugs. It was
-> Hin-Tak who originally reported that bug for me after I added few ratelimited
-> debugs for DVB stack. Thank you!
->
-> Reported-by: Hin-Tak Leung <htl10@users.sourceforge.net>
-> Tested-by: Antti Palosaari <crope@iki.fi>
->
->
-> regards
-> Antti
->
+>> Any idiot can send any patch, that's why you need to ask the persons
+>> who added particular changes in that area.
+> 
+> Yes, you authored the driver, but that doesn't necessarily means that
+> you'll have all clones of VP-2033/VP-2040.
+> 
+>> Do you want me to add
+>> myself to MAINTAINERS to make it a bit more clearer, if that's what
+>> you prefer ?
+> 
+> If you're wiling to maintain it, not holding patches for more than the
+> few days required for their review, then YES!!! 
+> 
+> Please add yourself to the MAINTAINERS for the drivers you're willing
+> to maintain and submit me such patch for upstream merging.
+> 
+>> Please revert this change.
+> 
+> I'll do.
 
-This is with mediatree/for_v3.7-8 , playing DVB-T video with mplayer.
 
-echo 'file ...media_build/v4l/usb_urb.c +p' > 
-/sys/kernel/debug/dynamic_debug/control
+Hmm... there's something wrong: this would be the revert patch, as produced
+by git revert:
 
-With +p
+diff --git a/drivers/media/pci/mantis/mantis_cards.c b/drivers/media/pci/mantis/mantis_cards.c
+index 0207d1f..095cf3a 100644
+--- a/drivers/media/pci/mantis/mantis_cards.c
++++ b/drivers/media/pci/mantis/mantis_cards.c
+@@ -275,7 +275,7 @@ static struct pci_device_id mantis_pci_table[] = {
+ 	MAKE_ENTRY(TWINHAN_TECHNOLOGIES, MANTIS_VP_2033_DVB_C, &vp2033_config),
+ 	MAKE_ENTRY(TWINHAN_TECHNOLOGIES, MANTIS_VP_2040_DVB_C, &vp2040_config),
+ 	MAKE_ENTRY(TECHNISAT, CABLESTAR_HD2, &vp2040_config),
+-	MAKE_ENTRY(TERRATEC, CINERGY_C, &vp2040_config),
++	MAKE_ENTRY(TERRATEC, CINERGY_C, &vp2033_config),
+ 	MAKE_ENTRY(TWINHAN_TECHNOLOGIES, MANTIS_VP_3030_DVB_T, &vp3030_config),
+ 	{ }
+ };
+diff --git a/drivers/media/pci/mantis/mantis_core.c b/drivers/media/pci/mantis/mantis_core.c
+index 684d906..22524a8 100644
+--- a/drivers/media/pci/mantis/mantis_core.c
++++ b/drivers/media/pci/mantis/mantis_core.c
+@@ -121,7 +121,7 @@ static void mantis_load_config(struct mantis_pci *mantis)
+ 		mantis->hwconfig = &vp2033_mantis_config;
+ 		break;
+ 	case MANTIS_VP_2040_DVB_C:	/* VP-2040 */
+-	case CINERGY_C:	/* VP-2040 clone */
++	case TERRATEC_CINERGY_C_PCI:	/* VP-2040 clone */
+ 	case TECHNISAT_CABLESTAR_HD2:
+ 		mantis->hwconfig = &vp2040_mantis_config;
+ 		break;
 
-[137749.698202] usb 1-3: usb_urb_complete: bulk urb completed status=0 
-length=4096/4096 pack_num=0 errors=0
-[137749.699449] usb 1-3: usb_urb_complete: bulk urb completed status=0 
-length=4096/4096 pack_num=0 errors=0
-[137749.700825] usb 1-3: usb_urb_complete: bulk urb completed status=0 
-length=4096/4096 pack_num=0 errors=0
-[137754.690862] usb_urb_complete: 3570 callbacks suppressed
-[137754.690888] usb 1-3: usb_urb_complete: bulk urb completed status=0 
-length=4096/4096 pack_num=0 errors=0
-[137754.692489] usb 1-3: usb_urb_complete: bulk urb completed status=0 
-length=4096/4096 pack_num=0 errors=0
-[137754.693745] usb 1-3: usb_urb_complete: bulk urb completed status=0 
-length=4096/4096 pack_num=0 errors=0
-[137754.694882] usb 1-3: usb_urb_complete: bulk urb completed status=0 
-length=4096/4096 pack_num=0 errors=0
-[137754.696240] usb 1-3: usb_urb_complete: bulk urb completed status=0 
-length=4096/4096 pack_num=0 errors=0
-[137754.697483] usb 1-3: usb_urb_complete: bulk urb completed status=0 
-length=4096/4096 pack_num=0 errors=0
-[137754.699002] usb 1-3: usb_urb_complete: bulk urb completed status=0 
-length=4096/4096 pack_num=0 errors=0
-[137754.700884] usb 1-3: usb_urb_complete: bulk urb completed status=0 
-length=4096/4096 pack_num=0 errors=0
-[137754.701613] usb 1-3: usb_urb_complete: bulk urb completed status=0 
-length=4096/4096 pack_num=0 errors=0
-[137754.702986] usb 1-3: usb_urb_complete: bulk urb completed status=0 
-length=4096/4096 pack_num=0 errors=0
-[137759.695906] usb_urb_complete: 3595 callbacks suppressed
-[137759.695934] usb 1-3: usb_urb_complete: bulk urb completed status=0 
-length=4096/4096 pack_num=0 errors=0
-[137759.697788] usb 1-3: usb_urb_complete: bulk urb completed status=0 
-length=4096/4096 pack_num=0 errors=0
-[137759.698772] usb 1-3: usb_urb_complete: bulk urb completed status=0 
-length=4096/4096 pack_num=0 errors=0
+There's something wrong there: the comments at "mantis_core", before this
+patch, is saying that TERRATEC_CINERGY_C_PCI is a VP-2040 clone.
 
-with -p
+That doesn't look right: this card is either a VP-2033 clone (as stated on
+mantis_cards), or a VP-2040 (as stated on mantis_core).
 
-[137814.730303] usb_urb_complete: 3555 callbacks suppressed
-[137819.740698] usb_urb_complete: 3519 callbacks suppressed
-[137824.744857] usb_urb_complete: 3443 callbacks suppressed
-[137829.746023] usb_urb_complete: 3345 callbacks suppressed
-[137834.749931] usb_urb_complete: 3558 callbacks suppressed
-[137839.753102] usb_urb_complete: 3465 callbacks suppressed
-[137844.755521] usb_urb_complete: 3438 callbacks suppressed
+So, please write me a patch syncing both places with the correct information.
 
+Thanks!
+Mauro
