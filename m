@@ -1,489 +1,441 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:14680 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755980Ab2HIMEI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Aug 2012 08:04:08 -0400
-Message-ID: <5023A770.5080604@redhat.com>
-Date: Thu, 09 Aug 2012 14:05:04 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Konke Radlow <kradlow@cisco.com>
-CC: linux-media@vger.kernel.org, hverkuil@xs4all.nl, koradlow@gmail.com
-Subject: Re: [RFC PATCH 2/2] Add rds-ctl tool (with changes proposed in RFC)
-References: <[RFC PATCH 0/2] Add support for RDS decoding> <1344352315-1184-1-git-send-email-kradlow@cisco.com> <3bb2b81ed5c186756c83b9136b5aa43005d728a2.1344352285.git.kradlow@cisco.com>
-In-Reply-To: <3bb2b81ed5c186756c83b9136b5aa43005d728a2.1344352285.git.kradlow@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.samsung.com ([203.254.224.24]:62337 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753132Ab2HNPfk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 11:35:40 -0400
+Received: from epcpsbgm1.samsung.com (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M8R003WT4N6BPE0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:35:39 +0900 (KST)
+Received: from mcdsrvbld02.digital.local ([106.116.37.23])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0M8R004J44MBC810@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:35:39 +0900 (KST)
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de, dmitriyz@google.com,
+	s.nawrocki@samsung.com, k.debski@samsung.com,
+	Sumit Semwal <sumit.semwal@linaro.org>
+Subject: [PATCHv8 03/26] v4l: vb2: add support for shared buffer (dma_buf)
+Date: Tue, 14 Aug 2012 17:34:33 +0200
+Message-id: <1344958496-9373-4-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
+References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Sumit Semwal <sumit.semwal@ti.com>
 
-Comments inline.
+This patch adds support for DMABUF memory type in videobuf2. It calls relevant
+APIs of dma_buf for v4l reqbuf / qbuf / dqbuf operations.
 
-On 08/07/2012 05:11 PM, Konke Radlow wrote:
-> ---
->   Makefile.am               |    3 +-
->   configure.ac              |    1 +
->   utils/rds-ctl/Makefile.am |    5 +
->   utils/rds-ctl/rds-ctl.cpp |  959 +++++++++++++++++++++++++++++++++++++++++++++
->   4 files changed, 967 insertions(+), 1 deletion(-)
->   create mode 100644 utils/rds-ctl/Makefile.am
->   create mode 100644 utils/rds-ctl/rds-ctl.cpp
->
-> diff --git a/Makefile.am b/Makefile.am
-> index 621d8d9..8ef0d00 100644
-> --- a/Makefile.am
-> +++ b/Makefile.am
+For this version, the support is for videobuf2 as a user of the shared buffer;
+so the allocation of the buffer is done outside of V4L2. [A sample allocator of
+dma-buf shared buffer is given at [1]]
 
-<Snip>
+[1]: Rob Clark's DRM:
+   https://github.com/robclark/kernel-omap4/commits/drmplane-dmabuf
 
-> +static void print_rds_data(const struct v4l2_rds *handle, uint32_t updated_fields)
-> +{
-> +	if (params.options[OptPrintBlock])
-> +		updated_fields = 0xffffffff;
-> +
-> +	if ((updated_fields & V4L2_RDS_PI) &&
-> +			(handle->valid_fields & V4L2_RDS_PI)) {
-> +		printf("\nPI: %04x", handle->pi);
-> +		print_rds_pi(handle);
-> +	}
-> +
-> +	if (updated_fields & V4L2_RDS_PS &&
-> +			handle->valid_fields & V4L2_RDS_PS) {
-> +		printf("\nPS: ");
-> +		for (int i = 0; i < 8; ++i) {
-> +			/* filter out special characters */
-> +			if (handle->ps[i] >= 0x20 && handle->ps[i] <= 0x7E)
-> +				printf("%lc",handle->ps[i]);
-> +			else
-> +				printf(" ");
-> +		}
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+   [original work in the PoC for buffer sharing]
+Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/videobuf2-core.c |  197 +++++++++++++++++++++++++++++++++-
+ include/media/videobuf2-core.h       |   27 +++++
+ 2 files changed, 221 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index 4da3df6..a5d5081 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -109,6 +109,36 @@ static void __vb2_buf_userptr_put(struct vb2_buffer *vb)
+ }
+ 
+ /**
++ * __vb2_plane_dmabuf_put() - release memory associated with
++ * a DMABUF shared plane
++ */
++static void __vb2_plane_dmabuf_put(struct vb2_queue *q, struct vb2_plane *p)
++{
++	if (!p->mem_priv)
++		return;
++
++	if (p->dbuf_mapped)
++		call_memop(q, unmap_dmabuf, p->mem_priv);
++
++	call_memop(q, detach_dmabuf, p->mem_priv);
++	dma_buf_put(p->dbuf);
++	memset(p, 0, sizeof(*p));
++}
++
++/**
++ * __vb2_buf_dmabuf_put() - release memory associated with
++ * a DMABUF shared buffer
++ */
++static void __vb2_buf_dmabuf_put(struct vb2_buffer *vb)
++{
++	struct vb2_queue *q = vb->vb2_queue;
++	unsigned int plane;
++
++	for (plane = 0; plane < vb->num_planes; ++plane)
++		__vb2_plane_dmabuf_put(q, &vb->planes[plane]);
++}
++
++/**
+  * __setup_offsets() - setup unique offsets ("cookies") for every plane in
+  * every buffer on the queue
+  */
+@@ -230,6 +260,8 @@ static void __vb2_free_mem(struct vb2_queue *q, unsigned int buffers)
+ 		/* Free MMAP buffers or release USERPTR buffers */
+ 		if (q->memory == V4L2_MEMORY_MMAP)
+ 			__vb2_buf_mem_free(vb);
++		else if (q->memory == V4L2_MEMORY_DMABUF)
++			__vb2_buf_dmabuf_put(vb);
+ 		else
+ 			__vb2_buf_userptr_put(vb);
+ 	}
+@@ -352,6 +384,12 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+ 		 */
+ 		memcpy(b->m.planes, vb->v4l2_planes,
+ 			b->length * sizeof(struct v4l2_plane));
++
++		if (q->memory == V4L2_MEMORY_DMABUF) {
++			unsigned int plane;
++			for (plane = 0; plane < vb->num_planes; ++plane)
++				b->m.planes[plane].m.fd = 0;
++		}
+ 	} else {
+ 		/*
+ 		 * We use length and offset in v4l2_planes array even for
+@@ -363,6 +401,8 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+ 			b->m.offset = vb->v4l2_planes[0].m.mem_offset;
+ 		else if (q->memory == V4L2_MEMORY_USERPTR)
+ 			b->m.userptr = vb->v4l2_planes[0].m.userptr;
++		else if (q->memory == V4L2_MEMORY_DMABUF)
++			b->m.fd = 0;
+ 	}
+ 
+ 	/*
+@@ -454,13 +494,28 @@ static int __verify_mmap_ops(struct vb2_queue *q)
+ }
+ 
+ /**
++ * __verify_dmabuf_ops() - verify that all memory operations required for
++ * DMABUF queue type have been provided
++ */
++static int __verify_dmabuf_ops(struct vb2_queue *q)
++{
++	if (!(q->io_modes & VB2_DMABUF) || !q->mem_ops->attach_dmabuf ||
++	    !q->mem_ops->detach_dmabuf  || !q->mem_ops->map_dmabuf ||
++	    !q->mem_ops->unmap_dmabuf)
++		return -EINVAL;
++
++	return 0;
++}
++
++/**
+  * __verify_memory_type() - Check whether the memory type and buffer type
+  * passed to a buffer operation are compatible with the queue.
+  */
+ static int __verify_memory_type(struct vb2_queue *q,
+ 		enum v4l2_memory memory, enum v4l2_buf_type type)
+ {
+-	if (memory != V4L2_MEMORY_MMAP && memory != V4L2_MEMORY_USERPTR) {
++	if (memory != V4L2_MEMORY_MMAP && memory != V4L2_MEMORY_USERPTR &&
++	    memory != V4L2_MEMORY_DMABUF) {
+ 		dprintk(1, "reqbufs: unsupported memory type\n");
+ 		return -EINVAL;
+ 	}
+@@ -484,6 +539,11 @@ static int __verify_memory_type(struct vb2_queue *q,
+ 		return -EINVAL;
+ 	}
+ 
++	if (memory == V4L2_MEMORY_DMABUF && __verify_dmabuf_ops(q)) {
++		dprintk(1, "reqbufs: DMABUF for current setup unsupported\n");
++		return -EINVAL;
++	}
++
+ 	/*
+ 	 * Place the busy tests at the end: -EBUSY can be ignored when
+ 	 * create_bufs is called with count == 0, but count == 0 should still
+@@ -853,6 +913,11 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b,
+ 					b->m.planes[plane].length;
+ 			}
+ 		}
++		if (b->memory == V4L2_MEMORY_DMABUF) {
++			for (plane = 0; plane < vb->num_planes; ++plane)
++				v4l2_planes[plane].m.fd =
++					b->m.planes[plane].m.fd;
++		}
+ 	} else {
+ 		/*
+ 		 * Single-planar buffers do not use planes array,
+@@ -867,6 +932,10 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b,
+ 			v4l2_planes[0].m.userptr = b->m.userptr;
+ 			v4l2_planes[0].length = b->length;
+ 		}
++
++		if (b->memory == V4L2_MEMORY_DMABUF)
++			v4l2_planes[0].m.fd = b->m.fd;
++
+ 	}
+ 
+ 	vb->v4l2_buf.field = b->field;
+@@ -970,6 +1039,100 @@ static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ }
+ 
+ /**
++ * __qbuf_dmabuf() - handle qbuf of a DMABUF buffer
++ */
++static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
++{
++	struct v4l2_plane planes[VIDEO_MAX_PLANES];
++	struct vb2_queue *q = vb->vb2_queue;
++	void *mem_priv;
++	unsigned int plane;
++	int ret;
++	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
++
++	/* Verify and copy relevant information provided by the userspace */
++	ret = __fill_vb2_buffer(vb, b, planes);
++	if (ret)
++		return ret;
++
++	for (plane = 0; plane < vb->num_planes; ++plane) {
++		struct dma_buf *dbuf = dma_buf_get(planes[plane].m.fd);
++
++		if (IS_ERR_OR_NULL(dbuf)) {
++			dprintk(1, "qbuf: invalid dmabuf fd for plane %d\n",
++				plane);
++			ret = -EINVAL;
++			goto err;
++		}
++
++		/* use dmabuf's size as a plane length */
++		planes[plane].length = dbuf->size;
++
++		/* Skip the plane if already verified */
++		if (dbuf == vb->planes[plane].dbuf) {
++			dma_buf_put(dbuf);
++			continue;
++		}
++
++		dprintk(1, "qbuf: buffer for plane %d changed\n", plane);
++
++		/* Release previously acquired memory if present */
++		__vb2_plane_dmabuf_put(q, &vb->planes[plane]);
++
++		/* Acquire each plane's memory */
++		mem_priv = call_memop(q, attach_dmabuf, q->alloc_ctx[plane],
++			dbuf, q->plane_sizes[plane], write);
++		if (IS_ERR(mem_priv)) {
++			dprintk(1, "qbuf: failed to attach dmabuf\n");
++			ret = PTR_ERR(mem_priv);
++			dma_buf_put(dbuf);
++			goto err;
++		}
++
++		vb->planes[plane].dbuf = dbuf;
++		vb->planes[plane].mem_priv = mem_priv;
++	}
++
++	/* TODO: This pins the buffer(s) with  dma_buf_map_attachment()).. but
++	 * really we want to do this just before the DMA, not while queueing
++	 * the buffer(s)..
++	 */
++	for (plane = 0; plane < vb->num_planes; ++plane) {
++		ret = call_memop(q, map_dmabuf, vb->planes[plane].mem_priv);
++		if (ret) {
++			dprintk(1, "qbuf: failed to map dmabuf for plane %d\n",
++				plane);
++			goto err;
++		}
++		vb->planes[plane].dbuf_mapped = 1;
++	}
++
++	/*
++	 * Call driver-specific initialization on the newly acquired buffer,
++	 * if provided.
++	 */
++	ret = call_qop(q, buf_init, vb);
++	if (ret) {
++		dprintk(1, "qbuf: buffer initialization failed\n");
++		goto err;
++	}
++
++	/*
++	 * Now that everything is in order, copy relevant information
++	 * provided by userspace.
++	 */
++	for (plane = 0; plane < vb->num_planes; ++plane)
++		vb->v4l2_planes[plane] = planes[plane];
++
++	return 0;
++err:
++	/* In case of errors, release planes that were already acquired */
++	__vb2_buf_dmabuf_put(vb);
++
++	return ret;
++}
++
++/**
+  * __enqueue_in_driver() - enqueue a vb2_buffer in driver for processing
+  */
+ static void __enqueue_in_driver(struct vb2_buffer *vb)
+@@ -993,6 +1156,9 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 	case V4L2_MEMORY_USERPTR:
+ 		ret = __qbuf_userptr(vb, b);
+ 		break;
++	case V4L2_MEMORY_DMABUF:
++		ret = __qbuf_dmabuf(vb, b);
++		break;
+ 	default:
+ 		WARN(1, "Invalid queue type\n");
+ 		ret = -EINVAL;
+@@ -1301,6 +1467,30 @@ int vb2_wait_for_all_buffers(struct vb2_queue *q)
+ EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
+ 
+ /**
++ * __vb2_dqbuf() - bring back the buffer to the DEQUEUED state
++ */
++static void __vb2_dqbuf(struct vb2_buffer *vb)
++{
++	struct vb2_queue *q = vb->vb2_queue;
++	unsigned int i;
++
++	/* nothing to do if the buffer is already dequeued */
++	if (vb->state == VB2_BUF_STATE_DEQUEUED)
++		return;
++
++	vb->state = VB2_BUF_STATE_DEQUEUED;
++
++	/* unmap DMABUF buffer */
++	if (q->memory == V4L2_MEMORY_DMABUF)
++		for (i = 0; i < vb->num_planes; ++i) {
++			if (!vb->planes[i].dbuf_mapped)
++				continue;
++			call_memop(q, unmap_dmabuf, vb->planes[i].mem_priv);
++			vb->planes[i].dbuf_mapped = 0;
++		}
++}
++
++/**
+  * vb2_dqbuf() - Dequeue a buffer to the userspace
+  * @q:		videobuf2 queue
+  * @b:		buffer structure passed from userspace to vidioc_dqbuf handler
+@@ -1364,11 +1554,12 @@ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
+ 	__fill_v4l2_buffer(vb, b);
+ 	/* Remove from videobuf queue */
+ 	list_del(&vb->queued_entry);
++	/* go back to dequeued state */
++	__vb2_dqbuf(vb);
+ 
+ 	dprintk(1, "dqbuf of buffer %d, with state %d\n",
+ 			vb->v4l2_buf.index, vb->state);
+ 
+-	vb->state = VB2_BUF_STATE_DEQUEUED;
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(vb2_dqbuf);
+@@ -1407,7 +1598,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+ 	 * Reinitialize all buffers for next use.
+ 	 */
+ 	for (i = 0; i < q->num_buffers; ++i)
+-		q->bufs[i]->state = VB2_BUF_STATE_DEQUEUED;
++		__vb2_dqbuf(q->bufs[i]);
+ }
+ 
+ /**
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 8dd9b6c..84f11f2 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -16,6 +16,7 @@
+ #include <linux/mutex.h>
+ #include <linux/poll.h>
+ #include <linux/videodev2.h>
++#include <linux/dma-buf.h>
+ 
+ struct vb2_alloc_ctx;
+ struct vb2_fileio_data;
+@@ -41,6 +42,20 @@ struct vb2_fileio_data;
+  *		 argument to other ops in this structure
+  * @put_userptr: inform the allocator that a USERPTR buffer will no longer
+  *		 be used
++ * @attach_dmabuf: attach a shared struct dma_buf for a hardware operation;
++ *		   used for DMABUF memory types; alloc_ctx is the alloc context
++ *		   dbuf is the shared dma_buf; returns NULL on failure;
++ *		   allocator private per-buffer structure on success;
++ *		   this needs to be used for further accesses to the buffer
++ * @detach_dmabuf: inform the exporter of the buffer that the current DMABUF
++ *		   buffer is no longer used; the buf_priv argument is the
++ *		   allocator private per-buffer structure previously returned
++ *		   from the attach_dmabuf callback
++ * @map_dmabuf: request for access to the dmabuf from allocator; the allocator
++ *		of dmabuf is informed that this driver is going to use the
++ *		dmabuf
++ * @unmap_dmabuf: releases access control to the dmabuf - allocator is notified
++ *		  that this driver is done using the dmabuf for now
+  * @vaddr:	return a kernel virtual address to a given memory buffer
+  *		associated with the passed private structure or NULL if no
+  *		such mapping exists
+@@ -56,6 +71,8 @@ struct vb2_fileio_data;
+  * Required ops for USERPTR types: get_userptr, put_userptr.
+  * Required ops for MMAP types: alloc, put, num_users, mmap.
+  * Required ops for read/write access types: alloc, put, num_users, vaddr
++ * Required ops for DMABUF types: attach_dmabuf, detach_dmabuf, map_dmabuf,
++ *				  unmap_dmabuf.
+  */
+ struct vb2_mem_ops {
+ 	void		*(*alloc)(void *alloc_ctx, unsigned long size);
+@@ -65,6 +82,12 @@ struct vb2_mem_ops {
+ 					unsigned long size, int write);
+ 	void		(*put_userptr)(void *buf_priv);
+ 
++	void		*(*attach_dmabuf)(void *alloc_ctx, struct dma_buf *dbuf,
++				unsigned long size, int write);
++	void		(*detach_dmabuf)(void *buf_priv);
++	int		(*map_dmabuf)(void *buf_priv);
++	void		(*unmap_dmabuf)(void *buf_priv);
++
+ 	void		*(*vaddr)(void *buf_priv);
+ 	void		*(*cookie)(void *buf_priv);
+ 
+@@ -75,6 +98,8 @@ struct vb2_mem_ops {
+ 
+ struct vb2_plane {
+ 	void			*mem_priv;
++	struct dma_buf		*dbuf;
++	unsigned int		dbuf_mapped;
+ };
+ 
+ /**
+@@ -83,12 +108,14 @@ struct vb2_plane {
+  * @VB2_USERPTR:	driver supports USERPTR with streaming API
+  * @VB2_READ:		driver supports read() style access
+  * @VB2_WRITE:		driver supports write() style access
++ * @VB2_DMABUF:		driver supports DMABUF with streaming API
+  */
+ enum vb2_io_modes {
+ 	VB2_MMAP	= (1 << 0),
+ 	VB2_USERPTR	= (1 << 1),
+ 	VB2_READ	= (1 << 2),
+ 	VB2_WRITE	= (1 << 3),
++	VB2_DMABUF	= (1 << 4),
+ };
+ 
+ /**
+-- 
+1.7.9.5
 
-Since ps now is a 0 terminated UTF-8 string you should be able to just do:
-		printf("\nPS: %s", handle->ps);
-
-And likewise for the other strings.
-
-> +	}
-> +
-> +	if (updated_fields & V4L2_RDS_PTY && handle->valid_fields & V4L2_RDS_PTY)
-> +		printf("\nPTY: %0u -> %s",handle->pty, v4l2_rds_get_pty_str(handle));
-> +
-> +	if (updated_fields & V4L2_RDS_PTYN && handle->valid_fields & V4L2_RDS_PTYN) {
-> +		printf("\nPTYN: ");
-> +		for (int i = 0; i < 8; ++i) {
-> +			/* filter out special characters */
-> +			if (handle->ptyn[i] >= 0x20 && handle->ptyn[i] <= 0x7E)
-> +				printf("%lc",handle->ptyn[i]);
-> +			else
-> +				printf(" ");
-> +		}
-
-Likewise.
-
-> +	}
-> +
-> +	if (updated_fields & V4L2_RDS_TIME) {
-> +		printf("\nTime: %s", ctime(&handle->time));
-> +	}
-> +	if (updated_fields & V4L2_RDS_RT && handle->valid_fields & V4L2_RDS_RT) {
-> +		printf("\nRT: ");
-> +		for (int i = 0; i < handle->rt_length; ++i) {
-> +			/* filter out special characters */
-> +			if (handle->rt[i] >= 0x20 && handle->rt[i] <= 0x7E)
-> +				printf("%lc",handle->rt[i]);
-> +			else
-> +				printf(" ");
-> +		}
-
-Likewise.
-
-> +	}
-> +
-> +	if (updated_fields & V4L2_RDS_TP && handle->valid_fields & V4L2_RDS_TP)
-> +		printf("\nTP: %s  TA: %s", (handle->tp)? "yes":"no",
-> +			handle->ta? "yes":"no");
-> +	if (updated_fields & V4L2_RDS_MS && handle->valid_fields & V4L2_RDS_MS)
-> +		printf("\nMS Flag: %s", (handle->ms)? "Music" : "Speech");
-> +	if (updated_fields & V4L2_RDS_ECC && handle->valid_fields & V4L2_RDS_ECC)
-> +		printf("\nECC: %X%x, Country: %u -> %s",
-> +		handle->ecc >> 4, handle->ecc & 0x0f, handle->pi >> 12,
-> +		v4l2_rds_get_country_str(handle));
-> +	if (updated_fields & V4L2_RDS_LC && handle->valid_fields & V4L2_RDS_LC)
-> +		printf("\nLanguage: %u -> %s ", handle->lc,
-> +		v4l2_rds_get_language_str(handle));
-> +	if (updated_fields & V4L2_RDS_DI && handle->valid_fields & V4L2_RDS_DI)
-> +		print_decoder_info(handle->di);
-> +	if (updated_fields & V4L2_RDS_ODA &&
-> +			handle->decode_information & V4L2_RDS_ODA) {
-> +		for (int i = 0; i < handle->rds_oda.size; ++i)
-> +			printf("\nODA Group: %02u%c, AID: %08x",handle->rds_oda.oda[i].group_id,
-> +			handle->rds_oda.oda[i].group_version, handle->rds_oda.oda[i].aid);
-> +	}
-> +	if (updated_fields & V4L2_RDS_AF && handle->valid_fields & V4L2_RDS_AF)
-> +		print_rds_af(&handle->rds_af);
-> +	if (params.options[OptPrintBlock])
-> +		printf("\n");
-> +}
-> +
-> +static void read_rds(struct v4l2_rds *handle, const int fd, const int wait_limit)
-> +{
-> +	int byte_cnt = 0;
-> +	int error_cnt = 0;
-> +	uint32_t updated_fields = 0x00;
-> +	struct v4l2_rds_data rds_data; /* read buffer for rds blocks */
-> +
-> +	while (!params.terminate_decoding) {
-> +		memset(&rds_data, 0, sizeof(rds_data));
-> +		if ((byte_cnt=read(fd, &rds_data, 3)) != 3) {
-> +			if (byte_cnt == 0) {
-> +				printf("\nEnd of input file reached \n");
-> +				break;
-> +			} else if(++error_cnt > 2) {
-> +				fprintf(stderr, "\nError reading from "
-> +					"device (no RDS data available)\n");
-> +				break;
-> +			}
-> +			/* wait for new data to arrive: transmission of 1
-> +			 * group takes ~88.7ms */
-> +			usleep(wait_limit * 1000);
-> +		}
-> +		else if (byte_cnt == 3) {
-> +			error_cnt = 0;
-> +			/* true if a new group was decoded */
-> +			if ((updated_fields = v4l2_rds_add(handle, &rds_data))) {
-> +				print_rds_data(handle, updated_fields);
-> +				if (params.options[OptVerbose])
-> +					 print_rds_group(v4l2_rds_get_group(handle));
-> +			}
-> +		}
-> +	}
-> +	/* print a summary of all valid RDS-fields before exiting */
-> +	printf("\nSummary of valid RDS-fields:");
-> +	print_rds_data(handle, 0xFFFFFFFF);
-> +}
-> +
-> +static void read_rds_from_fd(const int fd)
-> +{
-> +	struct v4l2_rds *rds_handle;
-> +
-> +	/* create an rds handle for the current device */
-> +	if (!(rds_handle = v4l2_rds_create(true))) {
-> +		fprintf(stderr, "Failed to init RDS lib: %s\n", strerror(errno));
-> +		exit(1);
-> +	}
-> +
-> +	/* try to receive and decode RDS data */
-> +	read_rds(rds_handle, fd, params.wait_limit);
-> +	print_rds_statistics(&rds_handle->rds_statistics);
-> +
-> +	v4l2_rds_destroy(rds_handle);
-> +}
-> +
-> +static int parse_cl(int argc, char **argv)
-> +{
-> +	int i = 0;
-> +	int idx = 0;
-> +	int opt = 0;
-> +	/* 26 letters in the alphabet, case sensitive = 26 * 2 possible
-> +	 * short options, where each option requires at most two chars
-> +	 * {option, optional argument} */
-> +	char short_options[26 * 2 * 2 + 1];
-> +
-> +	if (argc == 1) {
-> +		usage_hint();
-> +		exit(1);
-> +	}
-> +	for (i = 0; long_options[i].name; i++) {
-> +		if (!isalpha(long_options[i].val))
-> +			continue;
-> +		short_options[idx++] = long_options[i].val;
-> +		if (long_options[i].has_arg == required_argument)
-> +			short_options[idx++] = ':';
-> +	}
-> +	while (1) {
-> +		int option_index = 0;
-> +
-> +		short_options[idx] = 0;
-> +		opt = getopt_long(argc, argv, short_options,
-> +				 long_options, &option_index);
-> +		if (opt == -1)
-> +			break;
-> +
-> +		params.options[(int)opt] = 1;
-> +		switch (opt) {
-> +		case OptSetDevice:
-> +			strncpy(params.fd_name, optarg, 80);
-> +			if (isdigit(optarg[0]) && optarg[1] == 0) {
-> +				char newdev[20];
-> +				sprintf(newdev, "/dev/radio%c", optarg[0]);
-> +				strncpy(params.fd_name, newdev, 20);
-> +			}
-> +			break;
-> +		case OptSetFreq:
-> +			params.freq = strtod(optarg, NULL);
-> +			break;
-> +		case OptListDevices:
-> +			print_devices(list_devices());
-> +			break;
-> +		case OptFreqSeek:
-> +			parse_freq_seek(optarg, params.freq_seek);
-> +			break;
-> +		case OptTunerIndex:
-> +			params.tuner_index = strtoul(optarg, NULL, 0);
-> +			break;
-> +		case OptOpenFile:
-> +		{
-> +			if (access(optarg, F_OK) != -1) {
-> +				params.filemode_active = true;
-> +				strncpy(params.fd_name, optarg, 80);
-> +			} else {
-> +				fprintf(stderr, "Unable to open file: %s\n", optarg);
-> +				return -1;
-> +			}
-> +			/* enable the read-rds option by default for convenience */
-> +			params.options[OptReadRds] = 1;
-> +			break;
-> +		}
-> +		case OptWaitLimit:
-> +			params.wait_limit = strtoul(optarg, NULL, 0);
-> +			break;
-> +		case ':':
-> +			fprintf(stderr, "Option '%s' requires a value\n",
-> +				argv[optind]);
-> +			usage_hint();
-> +			return 1;
-> +		case '?':
-> +			if (argv[optind])
-> +				fprintf(stderr, "Unknown argument '%s'\n", argv[optind]);
-> +			usage_hint();
-> +			return 1;
-> +		}
-> +	}
-> +	if (optind < argc) {
-> +		printf("unknown arguments: ");
-> +		while (optind < argc)
-> +			printf("%s ", argv[optind++]);
-> +		printf("\n");
-> +		usage_hint();
-> +		return 1;
-> +	}
-> +	if (params.options[OptAll]) {
-> +		params.options[OptGetDriverInfo] = 1;
-> +		params.options[OptGetFreq] = 1;
-> +		params.options[OptGetTuner] = 1;
-> +		params.options[OptSilent] = 1;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static void print_driver_info(const struct v4l2_capability *vcap)
-> +{
-> +
-> +	printf("Driver Info (%susing libv4l2):\n",
-> +			params.options[OptUseWrapper] ? "" : "not ");
-> +	printf("\tDriver name   : %s\n", vcap->driver);
-> +	printf("\tCard type     : %s\n", vcap->card);
-> +	printf("\tBus info      : %s\n", vcap->bus_info);
-> +	printf("\tDriver version: %d.%d.%d\n",
-> +			vcap->version >> 16,
-> +			(vcap->version >> 8) & 0xff,
-> +			vcap->version & 0xff);
-> +	printf("\tCapabilities  : 0x%08X\n", vcap->capabilities);
-> +	printf("%s", cap2s(vcap->capabilities).c_str());
-> +	if (vcap->capabilities & V4L2_CAP_DEVICE_CAPS) {
-> +		printf("\tDevice Caps   : 0x%08X\n", vcap->device_caps);
-> +		printf("%s", cap2s(vcap->device_caps).c_str());
-> +	}
-> +}
-> +
-> +static void set_options(const int fd, const int capabilities, struct v4l2_frequency *vf,
-> +			struct v4l2_tuner *tuner)
-> +{
-> +	int mode = -1;			/* set audio mode */
-> +	double fac = 16;		/* factor for frequency division */
-> +
-> +	if (params.options[OptSetFreq]) {
-> +		vf->type = V4L2_TUNER_RADIO;
-> +		tuner->index = params.tuner_index;
-> +		if (doioctl(fd, VIDIOC_G_TUNER, tuner) == 0) {
-> +			fac = (tuner->capability & V4L2_TUNER_CAP_LOW) ? 16000 : 16;
-> +			vf->type = tuner->type;
-> +		}
-> +
-> +		vf->tuner = params.tuner_index;
-> +		vf->frequency = __u32(params.freq * fac);
-> +		if (doioctl(fd, VIDIOC_S_FREQUENCY, vf) == 0)
-> +			printf("Frequency for tuner %d set to %d (%f MHz)\n",
-> +				vf->tuner, vf->frequency, vf->frequency / fac);
-> +	}
-> +
-> +	if (params.options[OptSetTuner]) {
-> +		struct v4l2_tuner vt;
-> +
-> +		memset(&vt, 0, sizeof(struct v4l2_tuner));
-> +		vt.index = params.tuner_index;
-> +		if (doioctl(fd, VIDIOC_G_TUNER, &vt) == 0) {
-> +			if (mode != -1)
-> +				vt.audmode = mode;
-> +			doioctl(fd, VIDIOC_S_TUNER, &vt);
-> +		}
-> +	}
-> +
-> +	if (params.options[OptFreqSeek]) {
-> +		params.freq_seek.tuner = params.tuner_index;
-> +		params.freq_seek.type = V4L2_TUNER_RADIO;
-> +		doioctl(fd, VIDIOC_S_HW_FREQ_SEEK, &params.freq_seek);
-> +	}
-> +}
-> +
-> +static void get_options(const int fd, const int capabilities, struct v4l2_frequency *vf,
-> +			struct v4l2_tuner *tuner)
-> +{
-> +	double fac = 16;		/* factor for frequency division */
-> +
-> +	if (params.options[OptGetFreq]) {
-> +		vf->type = V4L2_TUNER_RADIO;
-> +		tuner->index = params.tuner_index;
-> +		if (doioctl(fd, VIDIOC_G_TUNER, tuner) == 0) {
-> +			fac = (tuner->capability & V4L2_TUNER_CAP_LOW) ? 16000 : 16;
-> +			vf->type = tuner->type;
-> +		}
-> +		vf->tuner = params.tuner_index;
-> +		if (doioctl(fd, VIDIOC_G_FREQUENCY, vf) == 0)
-> +			printf("Frequency for tuner %d: %d (%f MHz)\n",
-> +				   vf->tuner, vf->frequency, vf->frequency / fac);
-> +	}
-> +
-> +	if (params.options[OptGetTuner]) {
-> +		struct v4l2_tuner vt;
-> +
-> +		memset(&vt, 0, sizeof(struct v4l2_tuner));
-> +		vt.index = params.tuner_index;
-> +		if (doioctl(fd, VIDIOC_G_TUNER, &vt) == 0) {
-> +			printf("Tuner %d:\n", vt.index);
-> +			printf("\tName                 : %s\n", vt.name);
-> +			printf("\tCapabilities         : %s\n",
-> +				tcap2s(vt.capability).c_str());
-> +			if (vt.capability & V4L2_TUNER_CAP_LOW)
-> +				printf("\tFrequency range      : %.1f MHz - %.1f MHz\n",
-> +					 vt.rangelow / 16000.0, vt.rangehigh / 16000.0);
-> +			else
-> +				printf("\tFrequency range      : %.1f MHz - %.1f MHz\n",
-> +					 vt.rangelow / 16.0, vt.rangehigh / 16.0);
-> +			printf("\tSignal strength/AFC  : %d%%/%d\n",
-> +				(int)((vt.signal / 655.35)+0.5), vt.afc);
-> +			printf("\tCurrent audio mode   : %s\n", audmode2s(vt.audmode));
-> +			printf("\tAvailable subchannels: %s\n",
-> +					rxsubchans2s(vt.rxsubchans).c_str());
-> +		}
-> +	}
-> +
-> +	if (params.options[OptListFreqBands]) {
-> +		struct v4l2_frequency_band band;
-> +
-> +		memset(&band, 0, sizeof(band));
-> +		band.tuner = params.tuner_index;
-> +		band.type = V4L2_TUNER_RADIO;
-> +		band.index = 0;
-> +		printf("ioctl: VIDIOC_ENUM_FREQ_BANDS\n");
-> +		while (test_ioctl(fd, VIDIOC_ENUM_FREQ_BANDS, &band) >= 0) {
-> +			if (band.index)
-> +				printf("\n");
-> +			printf("\tIndex          : %d\n", band.index);
-> +			printf("\tModulation     : %s\n", modulation2s(band.modulation).c_str());
-> +			printf("\tCapability     : %s\n", tcap2s(band.capability).c_str());
-> +			if (band.capability & V4L2_TUNER_CAP_LOW)
-> +				printf("\tFrequency Range: %.3f MHz - %.3f MHz\n",
-> +				     band.rangelow / 16000.0, band.rangehigh / 16000.0);
-> +			else
-> +				printf("\tFrequency Range: %.3f MHz - %.3f MHz\n",
-> +				     band.rangelow / 16.0, band.rangehigh / 16.0);
-> +			band.index++;
-> +		}
-> +	}
-> +}
-> +
-> +int main(int argc, char **argv)
-> +{
-> +	int fd = -1;
-> +
-> +	/* command args */
-> +	struct v4l2_tuner tuner;	/* set_freq/get_freq */
-> +	struct v4l2_capability vcap;	/* list_cap */
-> +	struct v4l2_frequency vf;	/* get_freq/set_freq */
-> +
-> +	memset(&tuner, 0, sizeof(tuner));
-> +	memset(&vcap, 0, sizeof(vcap));
-> +	memset(&vf, 0, sizeof(vf));
-> +	strcpy(params.fd_name, "/dev/radio0");
-> +
-> +	/* define locale for unicode support */
-> +	if (!setlocale(LC_CTYPE, "")) {
-> +		fprintf(stderr, "Can't set the specified locale!\n");
-> +		return 1;
-> +	}
-> +	/* register signal handler for interrupt signal, to exit gracefully */
-> +	signal(SIGINT, signal_handler_interrupt);
-> +
-> +	/* try to parse the command line */
-> +	parse_cl(argc, argv);
-> +	if (params.options[OptHelp]) {
-> +		usage();
-> +		exit(0);
-> +	}
-> +
-> +	/* File Mode: disables all other features, except for RDS decoding */
-> +	if (params.filemode_active) {
-> +		if ((fd = open(params.fd_name, O_RDONLY|O_NONBLOCK)) < 0){
-> +			perror("error opening file");
-> +			exit(1);
-> +		}
-> +		read_rds_from_fd(fd);
-> +		test_close(fd);
-> +		exit(0);
-> +	}
-> +
-> +	/* Device Mode: open the radio device as read-only and non-blocking */
-> +	if (!params.options[OptSetDevice]) {
-> +		/* check the system for RDS capable devices */
-> +		dev_vec devices = list_devices();
-> +		if (devices.size() == 0) {
-> +			fprintf(stderr, "No RDS-capable device found\n");
-> +			exit(1);
-> +		}
-> +		strncpy(params.fd_name, devices[0].c_str(), 80);
-> +		printf("Using device: %s\n", params.fd_name);
-> +	}
-> +	if ((fd = test_open(params.fd_name, O_RDONLY | O_NONBLOCK)) < 0) {
-> +		fprintf(stderr, "Failed to open %s: %s\n", params.fd_name,
-> +			strerror(errno));
-> +		exit(1);
-> +	}
-> +	doioctl(fd, VIDIOC_QUERYCAP, &vcap);
-> +
-> +	/* Info options */
-> +	if (params.options[OptGetDriverInfo])
-> +		print_driver_info(&vcap);
-> +	/* Set options */
-> +	set_options(fd, vcap.capabilities, &vf, &tuner);
-> +	/* Get options */
-> +	get_options(fd, vcap.capabilities, &vf, &tuner);
-> +	/* RDS decoding */
-> +	if (params.options[OptReadRds])
-> +		read_rds_from_fd(fd);
-> +
-> +	test_close(fd);
-> +	exit(app_result);
-> +}
->
-
-
-Other then that this looks good to me.
-
-Regards,
-
-Hans
