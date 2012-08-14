@@ -1,94 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28910 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752821Ab2HUXu4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Aug 2012 19:50:56 -0400
-Message-ID: <50341EDA.5080109@redhat.com>
-Date: Tue, 21 Aug 2012 20:50:50 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Linus Torvalds <torvalds@linux-foundation.org>
-CC: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for v3.6-rc3] media fixes
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.samsung.com ([203.254.224.25]:9734 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756703Ab2HNPic (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 11:38:32 -0400
+Received: from epcpsbgm1.samsung.com (mailout2.samsung.com [203.254.224.25])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M8R00J7V4S0DVJ0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:38:31 +0900 (KST)
+Received: from mcdsrvbld02.digital.local ([106.116.37.23])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0M8R004J44MBC810@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:38:31 +0900 (KST)
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de, dmitriyz@google.com,
+	s.nawrocki@samsung.com, k.debski@samsung.com
+Subject: [PATCHv8 26/26] v4l: s5p-mfc: support for dmabuf exporting
+Date: Tue, 14 Aug 2012 17:34:56 +0200
+Message-id: <1344958496-9373-27-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
+References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+This patch enhances s5p-mfc with support for DMABUF exporting via
+VIDIOC_EXPBUF ioctl.
 
-Please pull from:
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Kamil Debski <k.debski@samsung.com>
+---
+ drivers/media/video/s5p-mfc/s5p_mfc_dec.c |   18 ++++++++++++++++++
+ drivers/media/video/s5p-mfc/s5p_mfc_enc.c |   18 ++++++++++++++++++
+ 2 files changed, 36 insertions(+)
 
-For bug fixes, at soc_camera, si470x, uvcvideo, iguanaworks IR driver, 
-radio_shark Kbuild fixes, and at the V4L2 core (radio fixes).
-
-Thank you!
-Mauro
-
--
-
-The following changes since commit 8762541f067d371320731510669e27f5cc40af38:
-
-  Merge branch 'v4l_for_linus' of git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media (2012-07-31 18:47:44 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
-
-for you to fetch changes up to 991b3137f21e13db4711f313edbe67d49bed795b:
-
-  [media] media: soc_camera: don't clear pix->sizeimage in JPEG mode (2012-08-15 19:24:28 -0300)
-
-----------------------------------------------------------------
-Albert Wang (1):
-      [media] media: soc_camera: don't clear pix->sizeimage in JPEG mode
-
-Alex Gershgorin (1):
-      [media] media: mx3_camera: buf_init() add buffer state check
-
-Fabio Estevam (2):
-      [media] video: mx1_camera: Use clk_prepare_enable/clk_disable_unprepare
-      [media] video: mx2_camera: Use clk_prepare_enable/clk_disable_unprepare
-
-Guenter Roeck (1):
-      [media] Add USB dependency for IguanaWorks USB IR Transceiver
-
-Hans Verkuil (5):
-      [media] DocBook: Remove a spurious character
-      [media] si470x: v4l2-compliance fixes
-      [media] mem2mem_testdev: fix querycap regression
-      [media] VIDIOC_ENUM_FREQ_BANDS fix
-      [media] Add missing logging for rangelow/high of hwseek
-
-Hans de Goede (4):
-      [media] radio-shark*: Remove work-around for dangling pointer in usb intfdata
-      [media] radio-shark*: Call cancel_work_sync from disconnect rather then release
-      [media] radio-shark: Only compile led support when CONFIG_LED_CLASS is set
-      [media] radio-shark2: Only compile led support when CONFIG_LED_CLASS is set
-
-Javier Martin (1):
-      [media] media: mx2_camera: Fix clock handling for i.MX27
-
-Jayakrishnan Memana (1):
-      [media] uvcvideo: Reset the bytesused field when recycling an erroneous buffer
-
- Documentation/DocBook/media/v4l/vidioc-g-tuner.xml |   2 +-
- drivers/media/radio/radio-shark.c                  | 151 +++++++++++----------
- drivers/media/radio/radio-shark2.c                 | 137 ++++++++++---------
- drivers/media/radio/si470x/radio-si470x-common.c   |   3 +
- drivers/media/radio/si470x/radio-si470x-i2c.c      |   5 +-
- drivers/media/radio/si470x/radio-si470x-usb.c      |   2 +-
- drivers/media/rc/Kconfig                           |   1 +
- drivers/media/video/mem2mem_testdev.c              |   2 +-
- drivers/media/video/mx1_camera.c                   |   4 +-
- drivers/media/video/mx2_camera.c                   |  47 ++++---
- drivers/media/video/mx3_camera.c                   |  22 +--
- drivers/media/video/soc_camera.c                   |   3 +-
- drivers/media/video/soc_mediabus.c                 |   6 +
- drivers/media/video/uvc/uvc_queue.c                |   1 +
- drivers/media/video/v4l2-ioctl.c                   |  10 +-
- 15 files changed, 217 insertions(+), 179 deletions(-)
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
+index c5d567f..b375209 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
+@@ -570,6 +570,23 @@ static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+ 	return -EINVAL;
+ }
+ 
++/* Export DMA buffer */
++static int vidioc_expbuf(struct file *file, void *priv,
++	struct v4l2_exportbuffer *eb)
++{
++	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
++	int ret;
++
++	if (eb->mem_offset < DST_QUEUE_OFF_BASE)
++		return vb2_expbuf(&ctx->vq_src, eb);
++
++	eb->mem_offset -= DST_QUEUE_OFF_BASE;
++	ret = vb2_expbuf(&ctx->vq_dst, eb);
++	eb->mem_offset += DST_QUEUE_OFF_BASE;
++
++	return ret;
++}
++
+ /* Stream on */
+ static int vidioc_streamon(struct file *file, void *priv,
+ 			   enum v4l2_buf_type type)
+@@ -745,6 +762,7 @@ static const struct v4l2_ioctl_ops s5p_mfc_dec_ioctl_ops = {
+ 	.vidioc_querybuf = vidioc_querybuf,
+ 	.vidioc_qbuf = vidioc_qbuf,
+ 	.vidioc_dqbuf = vidioc_dqbuf,
++	.vidioc_expbuf = vidioc_expbuf,
+ 	.vidioc_streamon = vidioc_streamon,
+ 	.vidioc_streamoff = vidioc_streamoff,
+ 	.vidioc_g_crop = vidioc_g_crop,
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+index aa1c244..df3da50 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+@@ -1142,6 +1142,23 @@ static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+ 	return -EINVAL;
+ }
+ 
++/* Export DMA buffer */
++static int vidioc_expbuf(struct file *file, void *priv,
++	struct v4l2_exportbuffer *eb)
++{
++	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
++	int ret;
++
++	if (eb->mem_offset < DST_QUEUE_OFF_BASE)
++		return vb2_expbuf(&ctx->vq_src, eb);
++
++	eb->mem_offset -= DST_QUEUE_OFF_BASE;
++	ret = vb2_expbuf(&ctx->vq_dst, eb);
++	eb->mem_offset += DST_QUEUE_OFF_BASE;
++
++	return ret;
++}
++
+ /* Stream on */
+ static int vidioc_streamon(struct file *file, void *priv,
+ 			   enum v4l2_buf_type type)
+@@ -1487,6 +1504,7 @@ static const struct v4l2_ioctl_ops s5p_mfc_enc_ioctl_ops = {
+ 	.vidioc_querybuf = vidioc_querybuf,
+ 	.vidioc_qbuf = vidioc_qbuf,
+ 	.vidioc_dqbuf = vidioc_dqbuf,
++	.vidioc_expbuf = vidioc_expbuf,
+ 	.vidioc_streamon = vidioc_streamon,
+ 	.vidioc_streamoff = vidioc_streamoff,
+ 	.vidioc_s_parm = vidioc_s_parm,
+-- 
+1.7.9.5
 
