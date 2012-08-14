@@ -1,39 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nexicom.net ([216.168.96.13]:49720 "EHLO smtp.nexicom.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030476Ab2HHRSh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Aug 2012 13:18:37 -0400
-Received: from mail.lockie.ca (dyn-dsl-mb-216-168-121-226.nexicom.net [216.168.121.226])
-	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id q78HIZeu000804
-	for <linux-media@vger.kernel.org>; Wed, 8 Aug 2012 13:18:36 -0400
-Message-ID: <18c22f6605c5aefbab8a42c4c0d3eca2.squirrel@lockie.ca>
-In-Reply-To: <20120808082408.GE29636@valkosipuli.retiisi.org.uk>
-References: <501D4535.8080404@lockie.ca>
-    <f1bd5aea-00cd-4b3f-9562-d25153f8cef3@email.android.com>
-    <501DA203.7070800@lockie.ca>
-    <20120805212054.GA29636@valkosipuli.retiisi.org.uk>
-    <501F4A5B.1000608@lockie.ca>
-    <20120807112742.GB29636@valkosipuli.retiisi.org.uk>
-    <6ef5338940a90b4c8000594d546bf479.squirrel@lockie.ca>
-    <32d7859a-ceda-442d-be67-f4f682a6e3b9@email.android.com>
-    <48430fdf908e6481ae55103bd11b7cfe.squirrel@lockie.ca>
-    <50218BD8.8040207@lockie.ca>
-    <20120808082408.GE29636@valkosipuli.retiisi.org.uk>
-Date: Wed, 8 Aug 2012 13:18:33 -0400
-Subject: Re: boot slow down
-From: bjlockie@lockie.ca
-To: "Sakari Ailus" <sakari.ailus@iki.fi>
-Cc: "James" <bjlockie@lockie.ca>,
-	"Andy Walls" <awalls@md.metrocast.net>,
-	"linux-media Mailing List" <linux-media@vger.kernel.org>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:41774 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752767Ab2HNKzT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 06:55:19 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+In-Reply-To: <20120814065814.GB4791@elgon.mountain>
+References: <20120814065814.GB4791@elgon.mountain>
+Date: Tue, 14 Aug 2012 07:50:12 -0300
+Message-ID: <CALF0-+UU8dGBdihLgm==d0gCE4aHKdAbEVfe54U1LDjBHss8XQ@mail.gmail.com>
+Subject: Re: [patch] [media] em28xx: use after free in em28xx_v4l2_close()
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Gianluca Gennari <gennarone@gmail.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Dan,
 
-How hard would it be to get an official kernel option not to load firmware
-OR be able to set the timeout?
+On Tue, Aug 14, 2012 at 3:58 AM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
+> We need to move the unlock before the kfree(dev);
+>
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> ---
+> Applies to linux-next.
+>
+> diff --git a/drivers/media/video/em28xx/em28xx-video.c b/drivers/media/video/em28xx/em28xx-video.c
+> index ecb23df..78d6ebd 100644
+> --- a/drivers/media/video/em28xx/em28xx-video.c
+> +++ b/drivers/media/video/em28xx/em28xx-video.c
+> @@ -2264,9 +2264,9 @@ static int em28xx_v4l2_close(struct file *filp)
+>                 if (dev->state & DEV_DISCONNECTED) {
+>                         em28xx_release_resources(dev);
 
+Why not unlocking here?
 
+>                         kfree(dev->alt_max_pkt_size);
+> +                       mutex_unlock(&dev->lock);
+>                         kfree(dev);
+>                         kfree(fh);
+> -                       mutex_unlock(&dev->lock);
+
+Thanks,
+Ezequiel.
