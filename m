@@ -1,67 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:64766 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751802Ab2HCPJa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2012 11:09:30 -0400
-Date: Fri, 3 Aug 2012 17:09:15 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Subject: Re: Vacations.
-In-Reply-To: <CACKLOr1Q6_xVhaaoWiy-kf9hViTW98aSa6hd5M2z7ogL-uwNVQ@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1208031708200.5170@axis700.grange>
-References: <CACKLOr1Q6_xVhaaoWiy-kf9hViTW98aSa6hd5M2z7ogL-uwNVQ@mail.gmail.com>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:40246 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751164Ab2HNJKi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 05:10:38 -0400
+Received: by wicr5 with SMTP id r5so3452131wic.1
+        for <linux-media@vger.kernel.org>; Tue, 14 Aug 2012 02:10:37 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Date: Tue, 14 Aug 2012 14:40:37 +0530
+Message-ID: <CAHFNz9+H9=NJSB6FY7i5bJPhXQL-eCpmomBCqi14hca2q-wVvg@mail.gmail.com>
+Subject: Copyright issues, do not copy code and add your own copyrights
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"Igor M. Liplianin" <liplianin@me.by>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier
+Hi,
 
-On Fri, 3 Aug 2012, javier Martin wrote:
+The subject line says it.
 
-> Hi,
-> I will be out of the office until August the 19th.
-> 
-> I just wanted to send a reminder of some patches that I have pending.
-> 
-> For Mauro 3.7:
-> 
-> [PULL] video_visstrim for 3.6
-> [PATCH] media: i.MX27: Fix mx2_emmaprp mem2mem driver clocks.
-> 
-> For Guennadi:
-> 
-> [PATCH 1/4] i.MX27: Fix emma-prp and csi clocks.
+Please fix the offending Copyright header.
 
-As I mentioned several times, the above patch is not for me. Have a nice 
-vacation.
+Offending one.
+http://git.linuxtv.org/media_tree.git/blob/staging/for_v3.7:/drivers/media/dvb-frontends/stb6100_proc.h
 
-Thanks
-Guennadi
+Original one.
+http://git.linuxtv.org/media_tree.git/blob/staging/for_v3.7:/drivers/media/dvb-frontends/stb6100_cfg.h
 
-> [PATCH 2/4] media: mx2_camera: Mark i.MX25 support as BROKEN.
-> [PATCH 3/4] Schedule removal of i.MX25 support in mx2_camera.c
-> [PATCH v2] media: mx2_camera: Fix clock handling for i.MX27.
-> 
-> For Sascha:
-> 
-> [PATCH v2] Visstrim SM10: Use mo_version to decide board video mode.
-> 
-> Regards.
-> -- 
-> Javier Martin
-> Vista Silicon S.L.
-> CDTUC - FASE C - Oficina S-345
-> Avda de los Castros s/n
-> 39005- Santander. Cantabria. Spain
-> +34 942 25 32 60
-> www.vista-silicon.com
-> 
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Regards,
+Manu
