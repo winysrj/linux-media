@@ -1,126 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail4-relais-sop.national.inria.fr ([192.134.164.105]:10436
-	"EHLO mail4-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753780Ab2HDSXb (ORCPT
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:40014 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757066Ab2HNSlM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 4 Aug 2012 14:23:31 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] drivers/media/video/mx2_emmaprp.c: use devm_kzalloc and devm_clk_get
-Date: Sat,  4 Aug 2012 20:23:27 +0200
-Message-Id: <1344104607-18805-1-git-send-email-Julia.Lawall@lip6.fr>
+	Tue, 14 Aug 2012 14:41:12 -0400
+Message-ID: <502A9BB7.8020204@iki.fi>
+Date: Tue, 14 Aug 2012 21:40:55 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Randy Dunlap <rdunlap@xenotime.net>
+CC: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: linux-next: Tree for Aug 14 (media/dvb/dvb-usb-v2/anysee)
+References: <20120814135506.b6b86e3c8cb9da1eefb7bbd6@canb.auug.org.au> <502A90EC.40201@xenotime.net>
+In-Reply-To: <502A90EC.40201@xenotime.net>
+Content-Type: multipart/mixed;
+ boundary="------------060805000901090407040600"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Julia Lawall <Julia.Lawall@lip6.fr>
+This is a multi-part message in MIME format.
+--------------060805000901090407040600
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Using devm_kzalloc and devm_clk_get simplifies the code and ensures that
-the use of devm_request_irq is safe.  When kzalloc and kfree were used, the
-interrupt could be triggered after the handler's data argument had been
-freed.
+On 08/14/2012 08:54 PM, Randy Dunlap wrote:
+> On 08/13/2012 08:55 PM, Stephen Rothwell wrote:
+>
+>> Hi all,
+>>
+>> Changes since 20120813:
+>>
+>
+>
+>
+> on x86_64:
+>
+> In file included from drivers/media/dvb/dvb-usb-v2/anysee.c:34:0:
+> drivers/media/dvb/dvb-usb-v2/anysee.h:51:0: warning: "debug_dump" redefined
+> drivers/media/dvb/dvb-usb-v2/anysee.h:47:0: note: this is the location of the previous definition
 
-The problem of a free after a devm_request_irq was found using the
-following semantic match (http://coccinelle.lip6.fr/)
+Thank you Randy for the report. Attached patch fix it.
 
-// <smpl>
-@r exists@
-expression e1,e2,x,a,b,c,d;
-identifier free;
-position p1,p2;
-@@
+Unfortunately it will not apply for current next as Mauro reorganized 
+drivers/media/ today and this one is top of that. I will make another 
+patch to change whole driver to use Kernel dev_* debugging and sent 
+those linus-media. I hope those are in next quite soon.
 
-  devm_request_irq@p1(e1,e2,...,x)
-  ... when any
-      when != e2 = a
-      when != x = b
-  if (...) {
-    ... when != e2 = c
-        when != x = d
-    free@p2(...,x,...);
-    ...
-    return ...;
-  }
-// </smpl>
+regards
+Antti
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+-- 
+http://palosaari.fi/
 
+--------------060805000901090407040600
+Content-Type: text/x-patch;
+ name="0001-anysee-fix-compiler-warning.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="0001-anysee-fix-compiler-warning.patch"
+
+>From cbd18c187db27686f2fd14348255713defe1d90a Mon Sep 17 00:00:00 2001
+From: Antti Palosaari <crope@iki.fi>
+Date: Tue, 14 Aug 2012 21:23:01 +0300
+Subject: [PATCH] anysee: fix compiler warning
+
+debug_dump macro was defined twice when CONFIG_DVB_USB_DEBUG was
+not set. Move debug_dump macro to correct place.
+
+Reported-by: Randy Dunlap <rdunlap@xenotime.net>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/video/mx2_emmaprp.c |   25 ++++++-------------------
- 1 file changed, 6 insertions(+), 19 deletions(-)
+ drivers/media/usb/dvb-usb-v2/anysee.h | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/video/mx2_emmaprp.c b/drivers/media/video/mx2_emmaprp.c
-index 5f8a6f5..78c5dc9 100644
---- a/drivers/media/video/mx2_emmaprp.c
-+++ b/drivers/media/video/mx2_emmaprp.c
-@@ -874,29 +874,27 @@ static int emmaprp_probe(struct platform_device *pdev)
- 	int irq_emma;
- 	int ret;
- 
--	pcdev = kzalloc(sizeof *pcdev, GFP_KERNEL);
-+	pcdev = devm_kzalloc(&pdev->dev, sizeof(*pcdev), GFP_KERNEL);
- 	if (!pcdev)
- 		return -ENOMEM;
- 
- 	spin_lock_init(&pcdev->irqlock);
- 
--	pcdev->clk_emma = clk_get(&pdev->dev, NULL);
-+	pcdev->clk_emma = devm_clk_get(&pdev->dev, NULL);
- 	if (IS_ERR(pcdev->clk_emma)) {
--		ret = PTR_ERR(pcdev->clk_emma);
--		goto free_dev;
-+		return PTR_ERR(pcdev->clk_emma);
- 	}
- 
- 	irq_emma = platform_get_irq(pdev, 0);
- 	res_emma = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (irq_emma < 0 || res_emma == NULL) {
- 		dev_err(&pdev->dev, "Missing platform resources data\n");
--		ret = -ENODEV;
--		goto free_clk;
-+		return -ENODEV;
- 	}
- 
- 	ret = v4l2_device_register(&pdev->dev, &pcdev->v4l2_dev);
- 	if (ret)
--		goto free_clk;
-+		return ret;
- 
- 	mutex_init(&pcdev->dev_mutex);
- 
-@@ -922,12 +920,7 @@ static int emmaprp_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, pcdev);
- 
--	if (devm_request_mem_region(&pdev->dev, res_emma->start,
--	    resource_size(res_emma), MEM2MEM_NAME) == NULL)
--		goto rel_vdev;
+diff --git a/drivers/media/usb/dvb-usb-v2/anysee.h b/drivers/media/usb/dvb-usb-v2/anysee.h
+index dc40dcf..834dc12 100644
+--- a/drivers/media/usb/dvb-usb-v2/anysee.h
++++ b/drivers/media/usb/dvb-usb-v2/anysee.h
+@@ -41,19 +41,18 @@
+ #ifdef CONFIG_DVB_USB_DEBUG
+ #define dprintk(var, level, args...) \
+ 	do { if ((var & level)) printk(args); } while (0)
+-#define DVB_USB_DEBUG_STATUS
+-#else
+-#define dprintk(args...)
+-#define debug_dump(b, l, func)
+-#define DVB_USB_DEBUG_STATUS " (debugging is not enabled)"
+-#endif
 -
--	pcdev->base_emma = devm_ioremap(&pdev->dev, res_emma->start,
--					resource_size(res_emma));
-+	pcdev->base_emma = devm_request_and_ioremap(&pdev->dev, res_emma);
- 	if (!pcdev->base_emma)
- 		goto rel_vdev;
- 
-@@ -969,10 +962,6 @@ rel_vdev:
- 	video_device_release(vfd);
- unreg_dev:
- 	v4l2_device_unregister(&pcdev->v4l2_dev);
--free_clk:
--	clk_put(pcdev->clk_emma);
--free_dev:
--	kfree(pcdev);
- 
- 	return ret;
+ #define debug_dump(b, l, func) {\
+ 	int loop_; \
+ 	for (loop_ = 0; loop_ < l; loop_++) \
+ 		func("%02x ", b[loop_]); \
+ 	func("\n");\
  }
-@@ -987,8 +976,6 @@ static int emmaprp_remove(struct platform_device *pdev)
- 	v4l2_m2m_release(pcdev->m2m_dev);
- 	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
- 	v4l2_device_unregister(&pcdev->v4l2_dev);
--	clk_put(pcdev->clk_emma);
--	kfree(pcdev);
++#define DVB_USB_DEBUG_STATUS
++#else
++#define dprintk(args...)
++#define debug_dump(b, l, func)
++#define DVB_USB_DEBUG_STATUS " (debugging is not enabled)"
++#endif
  
- 	return 0;
- }
+ #define deb_info(args...) dprintk(dvb_usb_anysee_debug, 0x01, args)
+ #define deb_xfer(args...) dprintk(dvb_usb_anysee_debug, 0x02, args)
+-- 
+1.7.11.2
 
+
+--------------060805000901090407040600--
