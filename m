@@ -1,240 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:26436 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:4101 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750869Ab2HKKeE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Aug 2012 06:34:04 -0400
+	id S1752292Ab2HNMeh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 08:34:37 -0400
+Message-ID: <502A4615.1070600@redhat.com>
+Date: Tue, 14 Aug 2012 14:35:33 +0200
 From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David Rientjes <rientjes@google.com>,
-	linux-kernel@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 3/4] radio-shark: Only compile led support when CONFIG_LED_CLASS is set
-Date: Sat, 11 Aug 2012 12:34:54 +0200
-Message-Id: <1344681295-2485-4-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1344681295-2485-1-git-send-email-hdegoede@redhat.com>
-References: <1344681295-2485-1-git-send-email-hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"Igor M. Liplianin" <liplianin@me.by>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Copyright issues, do not copy code and add your own copyrights
+References: <CAHFNz9+H9=NJSB6FY7i5bJPhXQL-eCpmomBCqi14hca2q-wVvg@mail.gmail.com> <502A1890.2050803@redhat.com> <CAHFNz9+b2sJVhrhcQVDLG7ZE=PQLUKE58c2raUz9oCBVzucWrQ@mail.gmail.com>
+In-Reply-To: <CAHFNz9+b2sJVhrhcQVDLG7ZE=PQLUKE58c2raUz9oCBVzucWrQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/media/radio/radio-shark.c | 135 ++++++++++++++++++++++----------------
- 1 file changed, 79 insertions(+), 56 deletions(-)
+Hi,
 
-diff --git a/drivers/media/radio/radio-shark.c b/drivers/media/radio/radio-shark.c
-index 05e12bf..e1970bf 100644
---- a/drivers/media/radio/radio-shark.c
-+++ b/drivers/media/radio/radio-shark.c
-@@ -35,6 +35,11 @@
- #include <media/v4l2-device.h>
- #include <sound/tea575x-tuner.h>
- 
-+#if defined(CONFIG_LEDS_CLASS) || \
-+    (defined(CONFIG_LEDS_CLASS_MODULE) && defined(CONFIG_RADIO_SHARK_MODULE))
-+#define SHARK_USE_LEDS 1
-+#endif
-+
- /*
-  * Version Information
-  */
-@@ -56,44 +61,18 @@ MODULE_LICENSE("GPL");
- 
- enum { BLUE_LED, BLUE_PULSE_LED, RED_LED, NO_LEDS };
- 
--static void shark_led_set_blue(struct led_classdev *led_cdev,
--			       enum led_brightness value);
--static void shark_led_set_blue_pulse(struct led_classdev *led_cdev,
--				     enum led_brightness value);
--static void shark_led_set_red(struct led_classdev *led_cdev,
--			      enum led_brightness value);
--
--static const struct led_classdev shark_led_templates[NO_LEDS] = {
--	[BLUE_LED] = {
--		.name		= "%s:blue:",
--		.brightness	= LED_OFF,
--		.max_brightness = 127,
--		.brightness_set = shark_led_set_blue,
--	},
--	[BLUE_PULSE_LED] = {
--		.name		= "%s:blue-pulse:",
--		.brightness	= LED_OFF,
--		.max_brightness = 255,
--		.brightness_set = shark_led_set_blue_pulse,
--	},
--	[RED_LED] = {
--		.name		= "%s:red:",
--		.brightness	= LED_OFF,
--		.max_brightness = 1,
--		.brightness_set = shark_led_set_red,
--	},
--};
--
- struct shark_device {
- 	struct usb_device *usbdev;
- 	struct v4l2_device v4l2_dev;
- 	struct snd_tea575x tea;
- 
-+#ifdef SHARK_USE_LEDS
- 	struct work_struct led_work;
- 	struct led_classdev leds[NO_LEDS];
- 	char led_names[NO_LEDS][32];
- 	atomic_t brightness[NO_LEDS];
- 	unsigned long brightness_new;
-+#endif
- 
- 	u8 *transfer_buffer;
- 	u32 last_val;
-@@ -175,6 +154,7 @@ static struct snd_tea575x_ops shark_tea_ops = {
- 	.read_val  = shark_read_val,
- };
- 
-+#ifdef SHARK_USE_LEDS
- static void shark_led_work(struct work_struct *work)
- {
- 	struct shark_device *shark =
-@@ -235,21 +215,78 @@ static void shark_led_set_red(struct led_classdev *led_cdev,
- 	schedule_work(&shark->led_work);
- }
- 
-+static const struct led_classdev shark_led_templates[NO_LEDS] = {
-+	[BLUE_LED] = {
-+		.name		= "%s:blue:",
-+		.brightness	= LED_OFF,
-+		.max_brightness = 127,
-+		.brightness_set = shark_led_set_blue,
-+	},
-+	[BLUE_PULSE_LED] = {
-+		.name		= "%s:blue-pulse:",
-+		.brightness	= LED_OFF,
-+		.max_brightness = 255,
-+		.brightness_set = shark_led_set_blue_pulse,
-+	},
-+	[RED_LED] = {
-+		.name		= "%s:red:",
-+		.brightness	= LED_OFF,
-+		.max_brightness = 1,
-+		.brightness_set = shark_led_set_red,
-+	},
-+};
-+
-+static int shark_register_leds(struct shark_device *shark, struct device *dev)
-+{
-+	int i, retval;
-+
-+	INIT_WORK(&shark->led_work, shark_led_work);
-+	for (i = 0; i < NO_LEDS; i++) {
-+		shark->leds[i] = shark_led_templates[i];
-+		snprintf(shark->led_names[i], sizeof(shark->led_names[0]),
-+			 shark->leds[i].name, shark->v4l2_dev.name);
-+		shark->leds[i].name = shark->led_names[i];
-+		retval = led_classdev_register(dev, &shark->leds[i]);
-+		if (retval) {
-+			v4l2_err(&shark->v4l2_dev,
-+				 "couldn't register led: %s\n",
-+				 shark->led_names[i]);
-+			return retval;
-+		}
-+	}
-+	return 0;
-+}
-+
-+static void shark_unregister_leds(struct shark_device *shark)
-+{
-+	int i;
-+
-+	for (i = 0; i < NO_LEDS; i++)
-+		led_classdev_unregister(&shark->leds[i]);
-+
-+	cancel_work_sync(&shark->led_work);
-+}
-+#else
-+static int shark_register_leds(struct shark_device *shark, struct device *dev)
-+{
-+	v4l2_warn(&shark->v4l2_dev,
-+		  "CONFIG_LED_CLASS not enabled, LED support disabled\n");
-+	return 0;
-+}
-+static inline void shark_unregister_leds(struct shark_device *shark) { }
-+#endif
-+
- static void usb_shark_disconnect(struct usb_interface *intf)
- {
- 	struct v4l2_device *v4l2_dev = usb_get_intfdata(intf);
- 	struct shark_device *shark = v4l2_dev_to_shark(v4l2_dev);
--	int i;
- 
- 	mutex_lock(&shark->tea.mutex);
- 	v4l2_device_disconnect(&shark->v4l2_dev);
- 	snd_tea575x_exit(&shark->tea);
- 	mutex_unlock(&shark->tea.mutex);
- 
--	for (i = 0; i < NO_LEDS; i++)
--		led_classdev_unregister(&shark->leds[i]);
--
--	cancel_work_sync(&shark->led_work);
-+	shark_unregister_leds(shark);
- 
- 	v4l2_device_put(&shark->v4l2_dev);
- }
-@@ -267,7 +304,7 @@ static int usb_shark_probe(struct usb_interface *intf,
- 			   const struct usb_device_id *id)
- {
- 	struct shark_device *shark;
--	int i, retval = -ENOMEM;
-+	int retval = -ENOMEM;
- 
- 	shark = kzalloc(sizeof(struct shark_device), GFP_KERNEL);
- 	if (!shark)
-@@ -277,8 +314,13 @@ static int usb_shark_probe(struct usb_interface *intf,
- 	if (!shark->transfer_buffer)
- 		goto err_alloc_buffer;
- 
--	shark->v4l2_dev.release = usb_shark_release;
- 	v4l2_device_set_name(&shark->v4l2_dev, DRV_NAME, &shark_instance);
-+
-+	retval = shark_register_leds(shark, &intf->dev);
-+	if (retval)
-+		goto err_reg_leds;
-+
-+	shark->v4l2_dev.release = usb_shark_release;
- 	retval = v4l2_device_register(&intf->dev, &shark->v4l2_dev);
- 	if (retval) {
- 		v4l2_err(&shark->v4l2_dev, "couldn't register v4l2_device\n");
-@@ -303,32 +345,13 @@ static int usb_shark_probe(struct usb_interface *intf,
- 		goto err_init_tea;
- 	}
- 
--	INIT_WORK(&shark->led_work, shark_led_work);
--	for (i = 0; i < NO_LEDS; i++) {
--		shark->leds[i] = shark_led_templates[i];
--		snprintf(shark->led_names[i], sizeof(shark->led_names[0]),
--			 shark->leds[i].name, shark->v4l2_dev.name);
--		shark->leds[i].name = shark->led_names[i];
--		/*
--		 * We don't fail the probe if we fail to register the leds,
--		 * because once we've called snd_tea575x_init, the /dev/radio0
--		 * node may be opened from userspace holding a reference to us!
--		 *
--		 * Note we cannot register the leds first instead as
--		 * shark_led_work depends on the v4l2 mutex and registered bit.
--		 */
--		retval = led_classdev_register(&intf->dev, &shark->leds[i]);
--		if (retval)
--			v4l2_err(&shark->v4l2_dev,
--				 "couldn't register led: %s\n",
--				 shark->led_names[i]);
--	}
--
- 	return 0;
- 
- err_init_tea:
- 	v4l2_device_unregister(&shark->v4l2_dev);
- err_reg_dev:
-+	shark_unregister_leds(shark);
-+err_reg_leds:
- 	kfree(shark->transfer_buffer);
- err_alloc_buffer:
- 	kfree(shark);
--- 
-1.7.11.4
+On 08/14/2012 11:42 AM, Manu Abraham wrote:
+> Hi,
+>
+> On Tue, Aug 14, 2012 at 2:51 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+>> Hi,
+>>
+>>
+>> On 08/14/2012 11:10 AM, Manu Abraham wrote:
+>>>
+>>> Hi,
+>>>
+>>> The subject line says it.
+>>>
+>>> Please fix the offending Copyright header.
+>>>
+>>> Offending one.
+>>>
+>>> http://git.linuxtv.org/media_tree.git/blob/staging/for_v3.7:/drivers/media/dvb-frontends/stb6100_proc.h
+>>>
+>>> Original one.
+>>>
+>>> http://git.linuxtv.org/media_tree.git/blob/staging/for_v3.7:/drivers/media/dvb-frontends/stb6100_cfg.h
+>>
+>>
+>> Or even better, get rid of the offending one and add a i2c_gate_ctrl
+>> parameters to the inline
+>> functions defined in stb6100_cfg.h, as this seems a typical case of
+>> unnecessary code-duplication.
+>
+>
+> i2c_gate_ctrl is not provided by stb6100 hardware, but by the demodulator
+> used in conjunction such as a stb0899 as can be seen.
 
+Right, I was merely pointing out that the only difference between the
+original function wrappers in stb6100_cfg.h and the ones in stb6100_proc.h,
+is the calling of the i2c_gate_ctrl frontend-op if defined. So the 2 files
+could be merged into one, with the wrappers getting an extra boolean parameter
+making them call the frontend-op when that parameter is true.
+
+Note that if the i2c_gate_ctrl frontend-op should always be called when
+present then the extra parameter could be omitted.
+
+<snip>
+
+>> I would also like to point out that things like these are pretty much wrong:
+>>
+>>    27         if (&fe->ops)
+>>    28                 frontend_ops = &fe->ops;
+>>    29         if (&frontend_ops->tuner_ops)
+>>    30                 tuner_ops = &frontend_ops->tuner_ops;
+>>    31         if (tuner_ops->get_state) {
+>>
+>> The last check de-references tuner_ops, which only is non-NULL if
+>> fe-ops and fe->ops->tuner_ops are non NULL. So either the last check
+>> needs to be:
+>>               if (tuner_ops && tuner_ops->get_state) {
+>>
+>> Or we assume that fe-ops and fe->ops->tuner_ops are always non NULL
+>> when this helper gets called and all the previous checks can be removed.
+>
+>
+> fe->ops is not NULL in any case, when we reach here, but that conditionality
+> check causes a slight additional delay. The additional check you proposed
+> presents no harm, though not bringing any new advantage/disadvantage.
+
+Well if we know that fe->ops and fe->ops->tuner_ops are never NULL, then the
+if (&fe->ops) and if (&frontend_ops->tuner_ops) are superfluous and should be
+removed, on the other hand if we don't know that, then the get_state check should
+be:
+                if (tuner_ops && tuner_ops->get_state) {
+
+Either know fe->ops and fe->ops->tuner_ops are never NULL and then all checks
+should be removed, or we don't know and we should check them in *all* places
+where they are used. What we've now is somewhat of the former, and then some of
+the latter, which makes no sense at all.
+
+Regards,
+
+Hans
+
+
+
+
+>
+> Regards,
+>
+> Manu
+>
