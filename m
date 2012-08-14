@@ -1,131 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:24251 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753857Ab2HGMkN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Aug 2012 08:40:13 -0400
-Message-ID: <50210CA2.3060507@redhat.com>
-Date: Tue, 07 Aug 2012 09:40:02 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47708 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751004Ab2HNWK3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 18:10:29 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, workshop-2011@linuxtv.org,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [Workshop-2011] RFC: V4L2 API ambiguities
+Date: Wed, 15 Aug 2012 00:10:42 +0200
+Message-ID: <4180212.LCTVQUSHPk@avalon>
+In-Reply-To: <Pine.LNX.4.64.1208142255110.8464@axis700.grange>
+References: <201208131427.56961.hverkuil@xs4all.nl> <1500199.h7o1oFIasO@avalon> <Pine.LNX.4.64.1208142255110.8464@axis700.grange>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 3/3] [media] az6007: handle CI during suspend/resume
-References: <1344188679-8247-1-git-send-email-mchehab@redhat.com> <1344188679-8247-4-git-send-email-mchehab@redhat.com> <501FB6DC.3040200@iki.fi> <5020FED2.2040109@redhat.com> <50210619.7030408@iki.fi>
-In-Reply-To: <50210619.7030408@iki.fi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 07-08-2012 09:12, Antti Palosaari escreveu:
-> On 08/07/2012 02:41 PM, Mauro Carvalho Chehab wrote:
->> Em 06-08-2012 09:21, Antti Palosaari escreveu:
->>> On 08/05/2012 08:44 PM, Mauro Carvalho Chehab wrote:
->>>> The dvb-usb-v2 core doesn't know anything about CI. So, the
->>>> driver needs to handle it by hand. This patch stops CI just
->>>> before stopping URB's/RC, and restarts it before URB/RC start.
->>>>
->>>> It should be noticed that suspend/resume is not yet working properly,
->>>> as the PM model requires the implementation of reset_resume:
->>>>      dvb_usb_az6007 1-6:1.0: no reset_resume for driver dvb_usb_az6007?
->>>> But this is not implemented there at dvb-usb-v2 yet.
->>>
->>> That is true, but it is coming:
->>> http://blog.palosaari.fi/2012/07/dvb-power-management-on-suspend.html
->>> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/dvb_core3
->>>
->>> At the time I added initial suspend/resume support for dvb-usb-v2 I left those out purposely as I saw some study and changes are needed for DVB-core/frontend.
->>>
->>> Normally suspend keeps USB-device powered and calls .resume() on resume. But on certain conditions USB device could lose power
->>> during suspend and on that case reset_resume() is called, and if there is no reset_resume() is calls disconnect() (and probe() after that).
->>
->> This should depend on BIOS settings, and what of the following type of suspend[1]
->> was done:
->>     S1: All processor caches are flushed, and the CPU(s) stops executing instructions.
->>         Power to the CPU(s) and RAM is maintained; devices that do not indicate they
->>         must remain on may be powered down.
->>     S2: CPU powered off. Dirty cache is flushed to RAM.
->>     S3: Commonly referred to as Standby, Sleep, or Suspend to RAM. RAM remains powered
->>     S4: Hibernation or Suspend to Disk. All content of main memory is saved to non-volatile
->>         memory such as a hard drive, and is powered down.
->>
->> [1] http://en.wikipedia.org/wiki/Advanced_Configuration_and_Power_Interface
+Hi Guennadi,
+
+On Tuesday 14 August 2012 23:14:18 Guennadi Liakhovetski wrote:
+> On Tue, 14 Aug 2012, Laurent Pinchart wrote:
+> > On Tuesday 14 August 2012 13:32:43 Hans Verkuil wrote:
+> > > On Tue August 14 2012 13:15:21 Laurent Pinchart wrote:
+> > > > On Tuesday 14 August 2012 13:11:49 Hans Verkuil wrote:
+> > > > > On Tue August 14 2012 13:06:46 Laurent Pinchart wrote:
+> > > > > > On Tuesday 14 August 2012 12:54:34 Hans Verkuil wrote:
+> > > > > > > On Tue August 14 2012 01:54:16 Laurent Pinchart wrote:
+> > > > > > > > On Monday 13 August 2012 14:27:56 Hans Verkuil wrote:
+> > > > > > > > [snip]
+> > > > > > > > 
+> > > > > > > > > 4) What should a driver return in TRY_FMT/S_FMT if the
+> > > > > > > > > requested format is not supported (possible behaviours
+> > > > > > > > > include returning the currently selected format or a default
+> > > > > > > > > format).
+> > > > > > > > > 
+> > > > > > > > > The spec says this: "Drivers should not return an error code
+> > > > > > > > > unless the input is ambiguous", but it does not explain what
+> > > > > > > > > constitutes an ambiguous input. Frankly, I can't think of
+> > > > > > > > > any and in my opinion TRY/S_FMT should never return an error
+> > > > > > > > > other than EINVAL (if the buffer type is unsupported)or
+> > > > > > > > > EBUSY (for S_FMT if streaming is in progress).
+> > > > > > > > > 
+> > > > > > > > > Returning an error for any other reason doesn't help the
+> > > > > > > > > application since the app will have no way of knowing what
+> > > > > > > > > to do next.
+> > > > > > > > 
+> > > > > > > > That wasn't my point. Drivers should obviously not return an
+> > > > > > > > error. Let's consider the case of a driver supporting YUYV and
+> > > > > > > > MJPEG. If the user calls TRY_FMT or S_FMT with the pixel
+> > > > > > > > format set to RGB565, should the driver return a hardcoded
+> > > > > > > > default format (one of YUYV or MJPEG), or the currently
+> > > > > > > > selected format ? In other words, should the pixel format
+> > > > > > > > returned by TRY_FMT or S_FMT when the requested pixel format
+> > > > > > > > is not valid be a fixed default pixel format, or should it
+> > > > > > > > depend on the currently selected pixel format ?
+> > > > > > > 
+> > > > > > > Actually, in this case I would probably choose a YUYV format
+> > > > > > > that is closest to the requested size. If a driver supports both
+> > > > > > > compressed and uncompressed formats, then it should only select
+> > > > > > > a compressed format if the application explicitly asked for it.
+> > > > > > > Handling compressed formats is more complex than uncompressed
+> > > > > > > formats, so that seems a sensible rule.
+> > > > > > 
+> > > > > > That wasn't my point either :-) YUYV/MJPEG was just an example.
+> > > > > > You can replace MJPEG with UYVY or NV12 above. What I want to know
+> > > > > > is whether TRY_FMT and S_FMT must, when given a non-supported
+> > > > > > format, return a fixed supported format or return a supported
+> > > > > > format that can depend on the currently selected format.
+> > > > > > 
+> > > > > > > The next heuristic I would apply is to choose a format that is
+> > > > > > > closest to the requested size.
+> > > > > > > 
+> > > > > > > So I guess my guidelines would be:
+> > > > > > > 
+> > > > > > > 1) If the pixelformat is not supported, then choose an
+> > > > > > > uncompressed format (if possible) instead.
+> > > > > > > 2) Next choose a format closest to, but smaller than (if
+> > > > > > > possible) the requested size.
+> > > > > > > 
+> > > > > > > But this would be a guideline only, and in the end it should be
+> > > > > > > up to the driver. Just as long TRY/S_FMT always returns a
+> > > > > > > format.
+> > > > > 
+> > > > > Well, the currently selected format is irrelevant. The user is
+> > > > > obviously requesting something else and the driver should attempt to
+> > > > > return something that is at least somewhat close to what it
+> > > > > requested. If that's impossible, then falling back to some default
+> > > > > format is a good choice.
+> > > > > 
+> > > > > Does that answer the question?
+> > > > 
+> > > > Yes it does, and I agree with that. Some drivers return the currently
+> > > > selected format when a non-supported format is requested. I think the
+> > > > spec should be clarified to make it mandatory to return a fixed
+> > > > default format independent of the currently selected format, and non-
+> > > > compliant drivers should be fixed.
+> > > 
+> > > I don't know whether it should be mandated. In the end it doesn't matter
+> > > to the application: that just wants to get some format that is valid.
+> > > 
+> > > It's a good recommendation for drivers, but I do not think that there is
+> > > anything wrong as such with drivers that return the current format.
+> > > 
+> > > Am I missing something here? Is there any particular advantage of
+> > > returning a default fallback format from the point of view of an
+> > > application?
+> > 
+> > Mostly consistency. I find returning different results for TRY_FMT calls
+> > with the exact same parameters confusing, both for applications and
+> > users.
+>
+> We've discussed this issue privately with Laurent before, and my opinion
+> was rather to go with the currently configured format. The advantage of
+> this would be, that situations, when a user has configured some format and
+> then is trying to switch to an unsupported format, and instead the driver
+> switches to a 3rd format, instead of keeping the current one, would be
+> avoided.
 > 
-> That was something I was already aware. There is even S5 and S4b mentioned by Kernel documentation. But in real life you have to care only:
-> S3, Suspend, suspend to ram
-> S4, Hibernation, suspend to disk
+> OTOH, it seems a good idea to whenever possible return the same result in
+> reply to the same request, in this case to TRY_FMT. And it also seems
+> logical to have S_FMT do the same thing as TRY_FMT... So, this argument
+> seems stronger than my original one... Just one request - don't insist on
+> immediate conversion of existing drivers;-)
 
-At least on some of my machines, BIOS allow to select between S1 and S3 for suspend.
-Not sure how USB PM suspend works for either case.
+I'll consider "please submit a patch" as a very valid answer to any conversion 
+request in the near future :-)
 
-> And from the USB-driver point of view those are covered by there three callbacks:
-> .suspend()
-> .resume()
-> .reset_resume()
-> * if reset_resume() does not exits .disconnect() + .probe() is called instead
-> 
-> What is my current understanding S3 level leaves USB/PCI powered normally, but device 
-> driver should drop device to low power state. In case of DVB -device this means all 
-> sub-drivers should put sleep.
-
-Yes. It might make sense to keep IR working (maybe at a lower polling rate, for non-
-interrupt based drivers), in order to wake machine up, if the power button is pressed,
-but this would be an additional feature, and I've no idea how this would be implemented.
-
-> S4 naturally powers everything off. Also worth to mention laptops will switch from S3 to S4 if battery drains empty during S3.
-
-I'm not a PM expert, but as BIOS may support features like wake on LAN, it would make
-sense to keep USB power, at least on those devices that may wake up the device (hid
-and network devices, for example).
-
-> 
->> There are also some per-device sysfs nodes that control how PM will work for them.
->> See:
->>
->>   $ tree /sys/devices/pci0000:00/0000:00:1d.7/usb1/1-8/dvb/dvb0.frontend0
->> /sys/devices/pci0000:00/0000:00:1d.7/usb1/1-8/dvb/dvb0.frontend0
->> ├── dev
->> ├── device -> ../../../1-8
->> ├── power
->> │   ├── async
->> │   ├── autosuspend_delay_ms
->> │   ├── control
->> │   ├── runtime_active_kids
->> │   ├── runtime_active_time
->> │   ├── runtime_enabled
->> │   ├── runtime_status
->> │   ├── runtime_suspended_time
->> │   └── runtime_usage
->> ├── subsystem -> ../../../../../../../class/dvb
->> └── uevent
->>
->> There are a number of pm functions that can change the power management behavior
->> as well.
->>
->> Not sure how to control it, but, IMHO, for a media device, it only makes sense
->> to keep it powered on suspend if the device has IR and if the power button of
->> the IR could be used to wake up the hardware. Otherwise, the better is to just
->> power it off, to save battery (for notebooks).
-> 
-> yeah, and it was already done.
-> 
->> Maybe it makes sense to talk with Raphael Wysocki to be sure that it will cover
->> all possible cases: auto-suspend, S1/S2/S3/S4 and "wake on IR").
-> 
-> That IR was something I wasn't noticed at all. Currently it stops IR polling too.
-> If that kind of functionality is needed it is surely some more work as you cannot 
-> stop IR-polling. 
-
-Yes. There's also an addidional case: dib0700, for example, doesn't do IR polling. 
-Instead, they send an URB on a separate endpoint. When a key is pressed, the device
-answers to that pending URB request with the keypress.
-
-> Maybe I will skip it that time as I don't have time for it currently :) 
-> If someone wish to learn how USB polling remote could be used for wake-up computer 
-> then feel free to do that.
-
-This is likely important for people working with embedded devices, and for people
-who use softwares like mythtv to do their media centers.
-
+-- 
 Regards,
-Mauro
+
+Laurent Pinchart
+
