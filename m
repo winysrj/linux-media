@@ -1,59 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:53404 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754825Ab2HFKLy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Aug 2012 06:11:54 -0400
-Message-ID: <501F985D.4040308@iki.fi>
-Date: Mon, 06 Aug 2012 13:11:41 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 0/5] Convert az6007 to dvb-usb-v2
-References: <1344137411-27948-1-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1344137411-27948-1-git-send-email-mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.samsung.com ([203.254.224.33]:51012 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753234Ab2HNPgn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 11:36:43 -0400
+Received: from epcpsbgm1.samsung.com (mailout3.samsung.com [203.254.224.33])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M8R00IQ94OUO320@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:36:31 +0900 (KST)
+Received: from mcdsrvbld02.digital.local ([106.116.37.23])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0M8R004J44MBC810@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:36:30 +0900 (KST)
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de, dmitriyz@google.com,
+	s.nawrocki@samsung.com, k.debski@samsung.com
+Subject: [PATCHv8 10/26] v4l: vb2-dma-contig: add prepare/finish to dma-contig
+ allocator
+Date: Tue, 14 Aug 2012 17:34:40 +0200
+Message-id: <1344958496-9373-11-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
+References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/05/2012 06:30 AM, Mauro Carvalho Chehab wrote:
-> Now that dvb-usb-v2 patches got merged, convert az6007 to use it, as,
-> in thesis, several core bugs at dvb-usb were fixed.
->
-> Also, driver became a little more simple than before, as the number of
-> lines reduced a little bit.
->
-> No noticeable changes should be noticed... I hope ;)
->
-> Mauro Carvalho Chehab (5):
->    [media] dvb-usb-v2: Fix cypress firmware compilation
->    [media] dvb-usb-v2: Don't ask user to select Cypress firmware module
->    [media] az6007: convert it to use dvb-usb-v2
->    [media] az6007: fix the I2C W+R logic
->    [media] az6007: Fix the number of parameters for QAM setup
->
->   drivers/media/dvb/dvb-usb-v2/Kconfig               |  17 +-
->   drivers/media/dvb/dvb-usb-v2/Makefile              |   6 +-
->   drivers/media/dvb/{dvb-usb => dvb-usb-v2}/az6007.c | 385 +++++++++------------
->   drivers/media/dvb/dvb-usb/Kconfig                  |   8 -
->   drivers/media/dvb/dvb-usb/Makefile                 |   3 -
->   5 files changed, 178 insertions(+), 241 deletions(-)
->   rename drivers/media/dvb/{dvb-usb => dvb-usb-v2}/az6007.c (64%)
->
+From: Marek Szyprowski <m.szyprowski@samsung.com>
 
-Whole patch set looks correct for my eyes.
-Feel free to add tag(s) if you wish to those you want.
-Acked-by: Antti Palosaari <crope@iki.fi>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+Add prepare/finish callbacks to vb2-dma-contig allocator.
 
-One comment still about those log writings. Documentation says it should 
-be used dev_* logging instead of pr_* in case of device driver. But I 
-don't see that error should be fixed when that kind of conversion is done.
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/media/video/videobuf2-dma-contig.c |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-
-regards
-Antti
-
+diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
+index 8486e06..494a824 100644
+--- a/drivers/media/video/videobuf2-dma-contig.c
++++ b/drivers/media/video/videobuf2-dma-contig.c
+@@ -103,6 +103,28 @@ static unsigned int vb2_dc_num_users(void *buf_priv)
+ 	return atomic_read(&buf->refcount);
+ }
+ 
++static void vb2_dc_prepare(void *buf_priv)
++{
++	struct vb2_dc_buf *buf = buf_priv;
++	struct sg_table *sgt = buf->dma_sgt;
++
++	if (!sgt)
++		return;
++
++	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
++}
++
++static void vb2_dc_finish(void *buf_priv)
++{
++	struct vb2_dc_buf *buf = buf_priv;
++	struct sg_table *sgt = buf->dma_sgt;
++
++	if (!sgt)
++		return;
++
++	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
++}
++
+ /*********************************************/
+ /*        callbacks for MMAP buffers         */
+ /*********************************************/
+@@ -366,6 +388,8 @@ const struct vb2_mem_ops vb2_dma_contig_memops = {
+ 	.mmap		= vb2_dc_mmap,
+ 	.get_userptr	= vb2_dc_get_userptr,
+ 	.put_userptr	= vb2_dc_put_userptr,
++	.prepare	= vb2_dc_prepare,
++	.finish		= vb2_dc_finish,
+ 	.num_users	= vb2_dc_num_users,
+ };
+ EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
 -- 
-http://palosaari.fi/
+1.7.9.5
+
