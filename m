@@ -1,93 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1611 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030208Ab2HQIBr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Aug 2012 04:01:47 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id q7H81i7V086126
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 17 Aug 2012 10:01:46 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from tschai.localnet (tschai.lan [192.168.1.186])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id DB5B035E00A5
-	for <linux-media@vger.kernel.org>; Fri, 17 Aug 2012 10:01:42 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.7] V4L2: add missing pieces to support HDMI et al and add adv7604/ad9389b drivers
-Date: Fri, 17 Aug 2012 10:01:43 +0200
+Received: from mx1.redhat.com ([209.132.183.28]:64231 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751905Ab2HNL7q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 07:59:46 -0400
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q7EBxkoM028431
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 14 Aug 2012 07:59:46 -0400
+Received: from [10.97.6.21] (vpn1-6-21.gru2.redhat.com [10.97.6.21])
+	by int-mx11.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id q7EBxiZO028778
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 14 Aug 2012 07:59:45 -0400
+Message-ID: <502A3DAF.6080301@redhat.com>
+Date: Tue, 14 Aug 2012 08:59:43 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [ANNOUNCE] tree renaming patches part 1 applied
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201208171001.43445.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Yesterday, I finally applied the first part of the renaming patches:
 
-There have been no comments since RFCv3 of this patch series, so this is the
-final pull request.
+ * [RFC,10/10,media] break siano into mmc and usb directories
+     - http://patchwork.linuxtv.org/patch/11755/
 
-RFCv3 is here:
+ * [RFC,09/10,media] saa7146: Move it to its own directory
+     - http://patchwork.linuxtv.org/patch/11750/
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg50265.html
+ * [RFC,07/10,media] b2c2: break it into common/pci/usb directories
+     - http://patchwork.linuxtv.org/patch/11754/
 
-Changes since RFCv3:
+ * [RFC,03/10,media] move the dvb/frontends to drivers/media/dvb-frontends
+     - http://patchwork.linuxtv.org/patch/11752/
 
-Changed the ioctl numbers for the SUBDEV_G/S_EDID ioctls to unused numbers from
-videodev2.h to prevent potential clashes.
+ * [RFC,05/10,media] dvb-usb: move it to drivers/media/usb/dvb-usb
+     - http://patchwork.linuxtv.org/patch/11751/
+
+ * [RFC,06/10,media] Rename media/dvb as media/pci
+     - http://patchwork.linuxtv.org/patch/11753/
+
+ * [RFC,04/10,media] firewire: move it one level up
+     - http://patchwork.linuxtv.org/patch/11746/
+
+ * [RFC,02/10,media] dvb: move the dvb core one level up
+     - http://patchwork.linuxtv.org/patch/11747/
+
+ * [RFC,08/10,media] common: move media/common/tuners to media/tuners
+     - http://patchwork.linuxtv.org/patch/11748/
+
+ * [RFC,01/10,media] v4l: move v4l2 core into a separate directory
+     - http://patchwork.linuxtv.org/patch/11749/
+
+As discussed when that patch series got submitted, the target there is to
+better organize the drivers, in order to make easier for developers to
+know where the things are, and for users to help them to find their
+needed drivers.
+
+I'll be working today with the remaining patches to complete the renaming,
+as it is better to apply them sooner than later, and we're early at the
+development cycle.
+
+Before applying this patch series, I applied almost all pending patches
+at the tree, in order to reduce the need for patch changes. I also
+reminded on IRC some developers that I was aware that they would be
+having pending work.
+
+Anyway, in order to help people that might still have patches against
+the old structure, I created a small script and added them at the
+media_build tree:
+	http://git.linuxtv.org/media_build.git/blob/HEAD:/devel_scripts/rename_patch.sh
+
+(in fact, I created an script that auto-generated it ;) )
+
+To use it, all you need to do is:
+
+	$ ./rename_patch.sh your_patch
+
+As usual, if you want to change several patches, you could do:
+	$ git format_patch some_reference_cs
+
+and apply the rename_patch.sh to the generated 0*.patch files, like
+	$ for i in 0*.patch; do ./rename_patch.sh $i; done
+
+More details about that are at the readme file:
+	http://git.linuxtv.org/media_build.git/blob/HEAD:/devel_scripts/README
 
 Regards,
-
-	Hans
-
-The following changes since commit 88f8472c9fc6c08f5113887471f1f4aabf7b2929:
-
-  [media] Fix some Makefile rules (2012-08-16 19:55:03 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git hdmi3
-
-for you to fetch changes up to eed20bebd69e227595ccda188826d016a26bb7aa:
-
-  ad9389b: driver for the Analog Devices AD9389B video encoder. (2012-08-17 09:55:54 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (8):
-      v4l2 core: add the missing pieces to support DVI/HDMI/DisplayPort.
-      V4L2 spec: document the new DV controls and ioctls.
-      v4l2-subdev: add support for the new edid ioctls.
-      v4l2-ctrls.c: add support for the new DV controls.
-      v4l2-common: add v4l_match_dv_timings.
-      v4l2-common: add CVT and GTF detection functions.
-      adv7604: driver for the Analog Devices ADV7604 video decoder.
-      ad9389b: driver for the Analog Devices AD9389B video encoder.
-
- Documentation/DocBook/media/v4l/biblio.xml    |   40 ++
- Documentation/DocBook/media/v4l/controls.xml  |  161 +++++++
- Documentation/DocBook/media/v4l/v4l2.xml      |    1 +
- drivers/media/i2c/Kconfig                     |   23 +
- drivers/media/i2c/Makefile                    |    2 +
- drivers/media/i2c/ad9389b.c                   | 1328 +++++++++++++++++++++++++++++++++++++++++++++++++++++                           
- drivers/media/i2c/adv7604.c                   | 1959 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
- drivers/media/v4l2-core/v4l2-common.c         |  358 +++++++++++++++                                                                 
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c |   57 +++                                                                             
- drivers/media/v4l2-core/v4l2-ctrls.c          |   39 ++                                                                              
- drivers/media/v4l2-core/v4l2-ioctl.c          |   13 +                                                                               
- drivers/media/v4l2-core/v4l2-subdev.c         |    6 +                                                                               
- include/linux/v4l2-subdev.h                   |   10 +                                                                               
- include/linux/videodev2.h                     |   23 +                                                                               
- include/media/ad9389b.h                       |   49 ++                                                                              
- include/media/adv7604.h                       |  153 +++++++                                                                         
- include/media/v4l2-chip-ident.h               |    6 +                                                                               
- include/media/v4l2-common.h                   |   13 +                                                                               
- include/media/v4l2-subdev.h                   |    2 +                                                                               
- 19 files changed, 4243 insertions(+)                                                                                                 
- create mode 100644 drivers/media/i2c/ad9389b.c                                                                                       
- create mode 100644 drivers/media/i2c/adv7604.c                                                                                       
- create mode 100644 include/media/ad9389b.h                                                                                           
- create mode 100644 include/media/adv7604.h
+Mauro
