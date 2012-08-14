@@ -1,32 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:41867 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751456Ab2HRPPD (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:35048 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755919Ab2HNOGz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Aug 2012 11:15:03 -0400
-Received: by ialo24 with SMTP id o24so1286077ial.19
-        for <linux-media@vger.kernel.org>; Sat, 18 Aug 2012 08:15:02 -0700 (PDT)
-MIME-Version: 1.0
-Date: Sat, 18 Aug 2012 12:15:02 -0300
-Message-ID: <CALF0-+WBKGNqamC2__ohKMDqs9bFvBQ9BY0VqrUrHu8rwBgR9w@mail.gmail.com>
-Subject: [Q] videbuf2 behavior when start_streaming fails
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 14 Aug 2012 10:06:55 -0400
+Received: from eusync1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M8R006SQ0K7TP00@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 14 Aug 2012 15:07:19 +0100 (BST)
+Received: from [106.116.147.32] by eusync1.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0M8R008S20JHY820@eusync1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 14 Aug 2012 15:06:53 +0100 (BST)
+Message-id: <502A5B7C.4070700@samsung.com>
+Date: Tue, 14 Aug 2012 16:06:52 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: linux-media@vger.kernel.org, t.stanislaws@samsung.com,
+	k.debski@samsung.com, kyungmin.park@samsung.com,
+	mchehab@infradead.org, patches@linaro.org
+Subject: Re: [PATCH 1/3] [media] s5p-tv: Replace printk with pr_* functions
+References: <1339409634-13657-1-git-send-email-sachin.kamat@linaro.org>
+In-reply-to: <1339409634-13657-1-git-send-email-sachin.kamat@linaro.org>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On 06/11/2012 12:13 PM, Sachin Kamat wrote:
+> Replace printk with pr_* functions to silence checkpatch warnings.
+> 
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 
-I was trying to debug a bug in stk1160, triggered by a low memory situation.
-After some struggling I found out that I'm suppose to clear the queued buffers
-if start_streaming() fails (which I wasn't doing).
-
-This seems most awkward since I didn't queue the buffers in start_streaming,
-but of course in buf_queue. So, it looks like a mixup to me.
-
-Am I missing something? Was this documented anywhere?
-Does this look odd to anyone, or is it just me being awfully newbie?
-
-Thanks!
-Ezequiel.
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
