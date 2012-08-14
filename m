@@ -1,36 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.active-venture.com ([67.228.131.205]:50201 "EHLO
-	mail.active-venture.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932671Ab2HVP3S (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:51146 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755750Ab2HNPhR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Aug 2012 11:29:18 -0400
-Date: Wed, 22 Aug 2012 08:29:22 -0700
-From: Guenter Roeck <linux@roeck-us.net>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media/radio/shark2: Fix build error caused by missing
- dependencies
-Message-ID: <20120822152922.GA6177@roeck-us.net>
-References: <1345648585-5176-1-git-send-email-linux@roeck-us.net>
- <5034F932.4000405@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5034F932.4000405@redhat.com>
+	Tue, 14 Aug 2012 11:37:17 -0400
+Received: from epcpsbgm2.samsung.com (mailout3.samsung.com [203.254.224.33])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M8R00IQW4Q4O320@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:37:16 +0900 (KST)
+Received: from mcdsrvbld02.digital.local ([106.116.37.23])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0M8R004J44MBC810@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:37:16 +0900 (KST)
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de, dmitriyz@google.com,
+	s.nawrocki@samsung.com, k.debski@samsung.com
+Subject: [PATCHv8 16/26] v4l: vb2-dma-contig: let mmap method to use
+ dma_mmap_coherent call
+Date: Tue, 14 Aug 2012 17:34:46 +0200
+Message-id: <1344958496-9373-17-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
+References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 22, 2012 at 05:22:26PM +0200, Hans de Goede wrote:
-> Hi,
-> 
-> I've a better fix for this here:
-> http://git.linuxtv.org/hgoede/gspca.git/shortlog/refs/heads/media-for_v3.6
-> 
-> I already send a pull-req for this to Mauro a while ago, Mauro?
-> 
-Looks like it found its way into mainline in the last couple of days.
-Should have updated my tree first. Sorry for the noise.
+From: Marek Szyprowski <m.szyprowski@samsung.com>
 
-Guenter
+Let mmap method to use dma_mmap_coherent call.  Moreover, this patch removes
+vb2_mmap_pfn_range from videobuf2 helpers as it was suggested by Laurent
+Pinchart.  The function is no longer used in vb2 code.
+
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/videobuf2-dma-contig.c |   28 +++++++++++++++++--
+ drivers/media/video/videobuf2-memops.c     |   40 ----------------------------
+ include/media/videobuf2-memops.h           |    5 ----
+ 3 files changed, 26 insertions(+), 47 deletions(-)
+
+diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
+index a5804cf..7fc71a0 100644
+--- a/drivers/media/video/videobuf2-dma-contig.c
++++ b/drivers/media/video/videobuf2-dma-contig.c
+@@ -178,14 +178,38 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
+ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
+ {
+ 	struct vb2_dc_buf *buf = buf_priv;
++	int ret;
+ 
+ 	if (!buf) {
+ 		printk(KERN_ERR "No buffer to map\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	return vb2_mmap_pfn_range(vma, buf->dma_addr, buf->size,
+-				  &vb2_common_vm_ops, &buf->handler);
++	/*
++	 * dma_mmap_* uses vm_pgoff as in-buffer offset, but we want to
++	 * map whole buffer
++	 */
++	vma->vm_pgoff = 0;
++
++	ret = dma_mmap_coherent(buf->dev, vma, buf->vaddr,
++		buf->dma_addr, buf->size);
++
++	if (ret) {
++		pr_err("Remapping memory failed, error: %d\n", ret);
++		return ret;
++	}
++
++	vma->vm_flags		|= VM_DONTEXPAND | VM_DONTDUMP;
++	vma->vm_private_data	= &buf->handler;
++	vma->vm_ops		= &vb2_common_vm_ops;
++
++	vma->vm_ops->open(vma);
++
++	pr_debug("%s: mapped dma addr 0x%08lx at 0x%08lx, size %ld\n",
++		__func__, (unsigned long)buf->dma_addr, vma->vm_start,
++		buf->size);
++
++	return 0;
+ }
+ 
+ /*********************************************/
+diff --git a/drivers/media/video/videobuf2-memops.c b/drivers/media/video/videobuf2-memops.c
+index 051ea35..81c1ad8 100644
+--- a/drivers/media/video/videobuf2-memops.c
++++ b/drivers/media/video/videobuf2-memops.c
+@@ -137,46 +137,6 @@ int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
+ EXPORT_SYMBOL_GPL(vb2_get_contig_userptr);
+ 
+ /**
+- * vb2_mmap_pfn_range() - map physical pages to userspace
+- * @vma:	virtual memory region for the mapping
+- * @paddr:	starting physical address of the memory to be mapped
+- * @size:	size of the memory to be mapped
+- * @vm_ops:	vm operations to be assigned to the created area
+- * @priv:	private data to be associated with the area
+- *
+- * Returns 0 on success.
+- */
+-int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
+-				unsigned long size,
+-				const struct vm_operations_struct *vm_ops,
+-				void *priv)
+-{
+-	int ret;
+-
+-	size = min_t(unsigned long, vma->vm_end - vma->vm_start, size);
+-
+-	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+-	ret = remap_pfn_range(vma, vma->vm_start, paddr >> PAGE_SHIFT,
+-				size, vma->vm_page_prot);
+-	if (ret) {
+-		printk(KERN_ERR "Remapping memory failed, error: %d\n", ret);
+-		return ret;
+-	}
+-
+-	vma->vm_flags		|= VM_DONTEXPAND | VM_DONTDUMP;
+-	vma->vm_private_data	= priv;
+-	vma->vm_ops		= vm_ops;
+-
+-	vma->vm_ops->open(vma);
+-
+-	pr_debug("%s: mapped paddr 0x%08lx at 0x%08lx, size %ld\n",
+-			__func__, paddr, vma->vm_start, size);
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(vb2_mmap_pfn_range);
+-
+-/**
+  * vb2_common_vm_open() - increase refcount of the vma
+  * @vma:	virtual memory region for the mapping
+  *
+diff --git a/include/media/videobuf2-memops.h b/include/media/videobuf2-memops.h
+index 84e1f6c..f05444c 100644
+--- a/include/media/videobuf2-memops.h
++++ b/include/media/videobuf2-memops.h
+@@ -33,11 +33,6 @@ extern const struct vm_operations_struct vb2_common_vm_ops;
+ int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
+ 			   struct vm_area_struct **res_vma, dma_addr_t *res_pa);
+ 
+-int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
+-				unsigned long size,
+-				const struct vm_operations_struct *vm_ops,
+-				void *priv);
+-
+ struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma);
+ void vb2_put_vma(struct vm_area_struct *vma);
+ 
+-- 
+1.7.9.5
+
