@@ -1,61 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([93.97.41.153]:45345 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750787Ab2HYKNx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Aug 2012 06:13:53 -0400
-Date: Sat, 25 Aug 2012 11:13:51 +0100
-From: Sean Young <sean@mess.org>
-To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] rc: do not sleep when the driver blocks on IR
- completion
-Message-ID: <20120825101351.GA26760@pequod.mess.org>
-References: <1345756715-17643-1-git-send-email-sean@mess.org>
- <20120824220518.GA19354@hardeman.nu>
- <20120824232625.GA24562@pequod.mess.org>
- <20120825092526.GA4285@hardeman.nu>
+Received: from moutng.kundenserver.de ([212.227.126.186]:51699 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757646Ab2HNVOZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 17:14:25 -0400
+Date: Tue, 14 Aug 2012 23:14:18 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Hans Verkuil <hverkuil@xs4all.nl>, workshop-2011@linuxtv.org,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [Workshop-2011] RFC: V4L2 API ambiguities
+In-Reply-To: <1500199.h7o1oFIasO@avalon>
+Message-ID: <Pine.LNX.4.64.1208142255110.8464@axis700.grange>
+References: <201208131427.56961.hverkuil@xs4all.nl> <1961858.59LqqANPqn@avalon>
+ <201208141332.43254.hverkuil@xs4all.nl> <1500199.h7o1oFIasO@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20120825092526.GA4285@hardeman.nu>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Aug 25, 2012 at 11:25:26AM +0200, David Härdeman wrote:
-> On Sat, Aug 25, 2012 at 12:26:25AM +0100, Sean Young wrote:
-> >On Sat, Aug 25, 2012 at 12:05:18AM +0200, David Härdeman wrote:
-> >> On Thu, Aug 23, 2012 at 10:18:35PM +0100, Sean Young wrote:
-> >> >Some drivers wait for the IR device to complete sending before
-> >> >returning, so sleeping should not be done.
-> >> 
-> >> I'm not quite sure what the purpose is. Even if a driver waits for TX to
-> >> finish, the lirc imposed sleep isn't harmful in any way.
+On Tue, 14 Aug 2012, Laurent Pinchart wrote:
+
+> On Tuesday 14 August 2012 13:32:43 Hans Verkuil wrote:
+> > On Tue August 14 2012 13:15:21 Laurent Pinchart wrote:
+> > > On Tuesday 14 August 2012 13:11:49 Hans Verkuil wrote:
+> > > > On Tue August 14 2012 13:06:46 Laurent Pinchart wrote:
+> > > > > On Tuesday 14 August 2012 12:54:34 Hans Verkuil wrote:
+> > > > > > On Tue August 14 2012 01:54:16 Laurent Pinchart wrote:
+> > > > > > > On Monday 13 August 2012 14:27:56 Hans Verkuil wrote:
+> > > > > > > [snip]
+> > > > > > > 
+> > > > > > > > 4) What should a driver return in TRY_FMT/S_FMT if the requested
+> > > > > > > > format is not supported (possible behaviours include returning
+> > > > > > > > the currently selected format or a default format).
+> > > > > > > > 
+> > > > > > > > The spec says this: "Drivers should not return an error code
+> > > > > > > > unless the input is ambiguous", but it does not explain what
+> > > > > > > > constitutes an ambiguous input. Frankly, I can't think of any
+> > > > > > > > and in my opinion TRY/S_FMT should never return an error other
+> > > > > > > > than EINVAL (if the buffer type is unsupported)or EBUSY (for
+> > > > > > > > S_FMT if streaming is in progress).
+> > > > > > > > 
+> > > > > > > > Returning an error for any other reason doesn't help the
+> > > > > > > > application since the app will have no way of knowing what to do
+> > > > > > > > next.
+> > > > > > > 
+> > > > > > > That wasn't my point. Drivers should obviously not return an
+> > > > > > > error. Let's consider the case of a driver supporting YUYV and
+> > > > > > > MJPEG. If the user calls TRY_FMT or S_FMT with the pixel format
+> > > > > > > set to RGB565, should the driver return a hardcoded default format
+> > > > > > > (one of YUYV or MJPEG), or the currently selected format ? In
+> > > > > > > other words, should the pixel format returned by TRY_FMT or S_FMT
+> > > > > > > when the requested pixel format is not valid be a fixed default
+> > > > > > > pixel format, or should it depend on the currently selected pixel
+> > > > > > > format ?
+> > > > > > 
+> > > > > > Actually, in this case I would probably choose a YUYV format that is
+> > > > > > closest to the requested size. If a driver supports both compressed
+> > > > > > and uncompressed formats, then it should only select a compressed
+> > > > > > format if the application explicitly asked for it. Handling
+> > > > > > compressed formats is more complex than uncompressed formats, so
+> > > > > > that seems a sensible rule.
+> > > > > 
+> > > > > That wasn't my point either :-) YUYV/MJPEG was just an example. You
+> > > > > can replace MJPEG with UYVY or NV12 above. What I want to know is
+> > > > > whether TRY_FMT and S_FMT must, when given a non-supported format,
+> > > > > return a fixed supported format or return a supported format that can
+> > > > > depend on the currently selected format.
+> > > > > 
+> > > > > > The next heuristic I would apply is to choose a format that is
+> > > > > > closest to the requested size.
+> > > > > > 
+> > > > > > So I guess my guidelines would be:
+> > > > > > 
+> > > > > > 1) If the pixelformat is not supported, then choose an uncompressed
+> > > > > > format (if possible) instead.
+> > > > > > 2) Next choose a format closest to, but smaller than (if possible)
+> > > > > > the requested size.
+> > > > > > 
+> > > > > > But this would be a guideline only, and in the end it should be up
+> > > > > > to the driver. Just as long TRY/S_FMT always returns a format.
+> > > > 
+> > > > Well, the currently selected format is irrelevant. The user is obviously
+> > > > requesting something else and the driver should attempt to return
+> > > > something that is at least somewhat close to what it requested. If
+> > > > that's impossible, then falling back to some default format is a good
+> > > > choice.
+> > > > 
+> > > > Does that answer the question?
+> > > 
+> > > Yes it does, and I agree with that. Some drivers return the currently
+> > > selected format when a non-supported format is requested. I think the
+> > > spec should be clarified to make it mandatory to return a fixed default
+> > > format independent of the currently selected format, and non-compliant
+> > > drivers should be fixed.
 > >
-> >Due to rounding errors, clock skew and different start times, the sleep 
-> >might be waiting for a different amount of time than the hardware took 
-> >to send it. The sleep is a bit of a kludge, let alone if the driver
-> >can wait for the hardware to tell you when it's done.
+> > I don't know whether it should be mandated. In the end it doesn't matter to
+> > the application: that just wants to get some format that is valid.
+> > 
+> > It's a good recommendation for drivers, but I do not think that there is
+> > anything wrong as such with drivers that return the current format.
+> > 
+> > Am I missing something here? Is there any particular advantage of returning
+> > a default fallback format from the point of view of an application?
 > 
-> I don't see the sleep as much of a problem right now. Whether the
-> hardware says its done or if we simulate the same thing in the lirc
-> layer, the entire concept is a bit of a kludge :)
+> Mostly consistency. I find returning different results for TRY_FMT calls with 
+> the exact same parameters confusing, both for applications and users.
 
-It's not making it any better.
+We've discussed this issue privately with Laurent before, and my opinion 
+was rather to go with the currently configured format. The advantage of 
+this would be, that situations, when a user has configured some format and 
+then is trying to switch to an unsupported format, and instead the driver 
+switches to a 3rd format, instead of keeping the current one, would be 
+avoided.
 
-> >Also, your change calculates the amount of us to sleep after transmission, 
-> >so if the transmission buffer was modified by the driver, the calculated 
-> >sleep might not make sense. Both winbond-cir and iguanair do this.
-> 
-> Oh, right, I'd overlooked this. I have written patches for winbond-cir
-> (which makes it asynchronous and leaves the txbuffer alone) and iguanair
-> (to leave the txbuffer alone). I'll post them sometime today when I've
-> done some more tests.
+OTOH, it seems a good idea to whenever possible return the same result in 
+reply to the same request, in this case to TRY_FMT. And it also seems 
+logical to have S_FMT do the same thing as TRY_FMT... So, this argument 
+seems stronger than my original one... Just one request - don't insist on 
+immediate conversion of existing drivers;-)
 
-If this is the solution we're going for, then I've got a patch for iguanair
-which leaves the txbuffer alone and is ready and tested. I'll send it out
-in the next half hour.
-
-
-Sean
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
