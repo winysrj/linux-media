@@ -1,106 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ppsw-43.csi.cam.ac.uk ([131.111.8.143]:39476 "EHLO
-	ppsw-43.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751206Ab2HUQNr (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2408 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755974Ab2HNLcw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Aug 2012 12:13:47 -0400
-From: "M. Fletcher" <mpf30@cam.ac.uk>
-To: "'Antti Palosaari'" <crope@iki.fi>
-Cc: <linux-media@vger.kernel.org>
-References: <00f301cd7fb1$b596f2c0$20c4d840$@cam.ac.uk> <5033A9C3.7090501@iki.fi> <00f401cd7fb2$d402c530$7c084f90$@cam.ac.uk> <5033AC22.608@iki.fi>
-In-Reply-To: <5033AC22.608@iki.fi>
-Subject: RE: Unable to load dvb-usb-rtl2832u driver in Ubuntu 12.04
-Date: Tue, 21 Aug 2012 17:13:59 +0100
-Message-ID: <00f501cd7fb7$f93fc0a0$ebbf41e0$@cam.ac.uk>
+	Tue, 14 Aug 2012 07:32:52 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [Workshop-2011] RFC: V4L2 API ambiguities
+Date: Tue, 14 Aug 2012 13:32:43 +0200
+Cc: workshop-2011@linuxtv.org,
+	"linux-media" <linux-media@vger.kernel.org>
+References: <201208131427.56961.hverkuil@xs4all.nl> <201208141311.49268.hverkuil@xs4all.nl> <1961858.59LqqANPqn@avalon>
+In-Reply-To: <1961858.59LqqANPqn@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Content-Language: en-gb
+Message-Id: <201208141332.43254.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->Open the rtl28xxu.c file and find line:
->	{ DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_NOXON_DAB_STICK, replace
-it:
->	{ DVB_USB_DEVICE(0x185b, 0x0680,
+On Tue August 14 2012 13:15:21 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Tuesday 14 August 2012 13:11:49 Hans Verkuil wrote:
+> > On Tue August 14 2012 13:06:46 Laurent Pinchart wrote:
+> > > On Tuesday 14 August 2012 12:54:34 Hans Verkuil wrote:
+> > > > On Tue August 14 2012 01:54:16 Laurent Pinchart wrote:
+> > > > > On Monday 13 August 2012 14:27:56 Hans Verkuil wrote:
+> > > > > [snip]
+> > > > > 
+> > > > > > 4) What should a driver return in TRY_FMT/S_FMT if the requested
+> > > > > > format is not supported (possible behaviours include returning the
+> > > > > > currently selected format or a default format).
+> > > > > > 
+> > > > > > The spec says this: "Drivers should not return an error code unless
+> > > > > > the input is ambiguous", but it does not explain what constitutes an
+> > > > > > ambiguous input. Frankly, I can't think of any and in my opinion
+> > > > > > TRY/S_FMT should never return an error other than EINVAL (if the
+> > > > > > buffer type is unsupported)or EBUSY (for S_FMT if streaming is in
+> > > > > > progress).
+> > > > > > 
+> > > > > > Returning an error for any other reason doesn't help the application
+> > > > > > since the app will have no way of knowing what to do next.
+> > > > > 
+> > > > > That wasn't my point. Drivers should obviously not return an error.
+> > > > > Let's consider the case of a driver supporting YUYV and MJPEG. If the
+> > > > > user calls TRY_FMT or S_FMT with the pixel format set to RGB565,
+> > > > > should the driver return a hardcoded default format (one of YUYV or
+> > > > > MJPEG), or the currently selected format ? In other words, should the
+> > > > > pixel format returned by TRY_FMT or S_FMT when the requested pixel
+> > > > > format is not valid be a fixed default pixel format, or should it
+> > > > > depend on the currently selected pixel format ?
+> > > > 
+> > > > Actually, in this case I would probably choose a YUYV format that is
+> > > > closest to the requested size. If a driver supports both compressed and
+> > > > uncompressed formats, then it should only select a compressed format if
+> > > > the application explicitly asked for it. Handling compressed formats is
+> > > > more complex than uncompressed formats, so that seems a sensible rule.
+> > > 
+> > > That wasn't my point either :-) YUYV/MJPEG was just an example. You can
+> > > replace MJPEG with UYVY or NV12 above. What I want to know is whether
+> > > TRY_FMT and S_FMT must, when given a non-supported format, return a fixed
+> > > supported format or return a supported format that can depend on the
+> > > currently selected format.
+> > > 
+> > > > The next heuristic I would apply is to choose a format that is closest
+> > > > to the requested size.
+> > > > 
+> > > > So I guess my guidelines would be:
+> > > > 
+> > > > 1) If the pixelformat is not supported, then choose an uncompressed
+> > > > format (if possible) instead.
+> > > > 2) Next choose a format closest to, but smaller than (if possible) the
+> > > > requested size.
+> > > > 
+> > > > But this would be a guideline only, and in the end it should be up to
+> > > > the driver. Just as long TRY/S_FMT always returns a format.
+> > 
+> > Well, the currently selected format is irrelevant. The user is obviously
+> > requesting something else and the driver should attempt to return something
+> > that is at least somewhat close to what it requested. If that's impossible,
+> > then falling back to some default format is a good choice.
+> > 
+> > Does that answer the question?
+> 
+> Yes it does, and I agree with that. Some drivers return the currently selected 
+> format when a non-supported format is requested. I think the spec should be 
+> clarified to make it mandatory to return a fixed default format independent of 
+> the currently selected format, and non-compliant drivers should be fixed.
 
-Line changed as follows:
+I don't know whether it should be mandated. In the end it doesn't matter to the
+application: that just wants to get some format that is valid.
 
-//{ DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_NOXON_DAB_STICK,
-{ DVB_USB_DEVICE(0x185b, 0x0680,
-	&rtl2832u_props, "NOXON DAB/DAB+ USB dongle", NULL) },
+It's a good recommendation for drivers, but I do not think that there is anything
+wrong as such with drivers that return the current format.
 
->Compile and install.
+Am I missing something here? Is there any particular advantage of returning a
+default fallback format from the point of view of an application?
 
-Successful.
+Regards,
 
->Enable debugs:
->#modprobe dvb_usb_rtl28xxu; echo -n 'module dvb_usb_rtl28xxu +p' >
-/sys/kernel/debug/dynamic_debug/control
-
-Executing this entire line produced:
-bash: /sys/kernel/debug/dynamic_debug/control: No such file or directory
-
-Succesfully executed:
-modprobe dvb_usb_rtl28xxu
-
-Module loaded:
-root@DCTbox:/# lsmod | grep dvb
-dvb_usb_rtl28xxu       18522  0 
-dvb_usbv2              23726  1 dvb_usb_rtl28xxu
-rc_core                26343  2 dvb_usb_rtl28xxu,dvb_usbv2
-rtl2830                18340  1 dvb_usb_rtl28xxu
-dvb_core              110590  2 dvb_usbv2,rtl2830
-
->plug stick in and look what dmesg says. With a good luck there is supported
-RF-tuner and it works, but most likely there is some RF-tuner which is >not
-supported and it does not work.
-
-root@DCTbox:/home/dct# dmesg
-[  136.285497] usb 5-2: new high-speed USB device number 4 using xhci_hcd
-[  136.319609] usb 5-2: ep 0x81 - rounding interval to 32768 microframes, ep
-desc says 0 microframes
-[  136.367747] WARNING: You are using an experimental version of the media
-stack.
-[  136.367748] 	As the driver is backported to an older kernel, it doesn't
-offer
-[  136.367749] 	enough quality for its usage in production.
-[  136.367750] 	Use it with care.
-[  136.367750] Latest git patches (needed if you report a bug to
-linux-media@vger.kernel.org):
-[  136.367751] 	9b78c5a3007e10a172d4e83bea18509fdff2e8e3 [media] b2c2:
-export b2c2_flexcop_debug symbol
-[  136.367752] 	88f8472c9fc6c08f5113887471f1f4aabf7b2929 [media] Fix some
-Makefile rules
-[  136.367753] 	893430558e5bf116179915de2d3d119ad25c01cf [media]
-cx23885-cards: fix netup card default revision
-[  136.389963] WARNING: You are using an experimental version of the media
-stack.
-[  136.389964] 	As the driver is backported to an older kernel, it doesn't
-offer
-[  136.389965] 	enough quality for its usage in production.
-[  136.389965] 	Use it with care.
-[  136.389966] Latest git patches (needed if you report a bug to
-linux-media@vger.kernel.org):
-[  136.389966] 	9b78c5a3007e10a172d4e83bea18509fdff2e8e3 [media] b2c2:
-export b2c2_flexcop_debug symbol
-[  136.389967] 	88f8472c9fc6c08f5113887471f1f4aabf7b2929 [media] Fix some
-Makefile rules
-[  136.389968] 	893430558e5bf116179915de2d3d119ad25c01cf [media]
-cx23885-cards: fix netup card default revision
-[  136.407633] usb 5-2: dvb_usbv2: found a 'NOXON DAB/DAB+ USB dongle' in
-warm state
-[  136.407655] usbcore: registered new interface driver dvb_usb_rtl28xxu
-[  136.434729] usb 5-2: dvb_usbv2: will pass the complete MPEG2 transport
-stream to the software demuxer
-[  136.434796] DVB: registering new adapter (NOXON DAB/DAB+ USB dongle)
-[  136.470930] usb 5-2: dvb_usb_rtl28xxu: E4000 tuner found
-[  136.482557] usb 5-2: dvb_usbv2: 'NOXON DAB/DAB+ USB dongle' error while
-loading driver (-19)
-[  136.483313] usb 5-2: dvb_usbv2: 'NOXON DAB/DAB+ USB dongle' successfully
-deinitialized and disconnected
-
-If this is an unsupported tuner do I need to get a different usb device or
-can I try a different rtl driver?
-
+	Hans
