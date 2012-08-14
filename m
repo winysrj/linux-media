@@ -1,48 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out.inet.fi ([195.156.147.13]:47180 "EHLO jenni2.inet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752534Ab2H3Ryf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Aug 2012 13:54:35 -0400
-From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCHv3 6/9] ir-rx51: Replace module_{init,exit} macros with module_platform_driver
-Date: Thu, 30 Aug 2012 20:54:28 +0300
-Message-Id: <1346349271-28073-7-git-send-email-timo.t.kokkonen@iki.fi>
-In-Reply-To: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
-References: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
+Received: from oproxy5-pub.bluehost.com ([67.222.38.55]:44081 "HELO
+	oproxy5-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1756901Ab2HNR4V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 13:56:21 -0400
+Message-ID: <502A90EC.40201@xenotime.net>
+Date: Tue, 14 Aug 2012 10:54:52 -0700
+From: Randy Dunlap <rdunlap@xenotime.net>
+MIME-Version: 1.0
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+CC: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	linux-media <linux-media@vger.kernel.org>,
+	Antti Palosaari <crope@iki.fi>
+Subject: Re: linux-next: Tree for Aug 14 (media/dvb/dvb-usb-v2/anysee)
+References: <20120814135506.b6b86e3c8cb9da1eefb7bbd6@canb.auug.org.au>
+In-Reply-To: <20120814135506.b6b86e3c8cb9da1eefb7bbd6@canb.auug.org.au>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No reason to avoid using the existing helpers.
+On 08/13/2012 08:55 PM, Stephen Rothwell wrote:
 
-Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
----
- drivers/media/rc/ir-rx51.c | 12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+> Hi all,
+> 
+> Changes since 20120813:
+> 
 
-diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-index 16b3c1f..6e1ffa6 100644
---- a/drivers/media/rc/ir-rx51.c
-+++ b/drivers/media/rc/ir-rx51.c
-@@ -495,17 +495,7 @@ struct platform_driver lirc_rx51_platform_driver = {
- 	},
- };
- 
--static int __init lirc_rx51_init(void)
--{
--	return platform_driver_register(&lirc_rx51_platform_driver);
--}
--module_init(lirc_rx51_init);
--
--static void __exit lirc_rx51_exit(void)
--{
--	platform_driver_unregister(&lirc_rx51_platform_driver);
--}
--module_exit(lirc_rx51_exit);
-+module_platform_driver(lirc_rx51_platform_driver);
- 
- MODULE_DESCRIPTION("LIRC TX driver for Nokia RX51");
- MODULE_AUTHOR("Nokia Corporation");
+
+
+on x86_64:
+
+In file included from drivers/media/dvb/dvb-usb-v2/anysee.c:34:0:
+drivers/media/dvb/dvb-usb-v2/anysee.h:51:0: warning: "debug_dump" redefined
+drivers/media/dvb/dvb-usb-v2/anysee.h:47:0: note: this is the location of the previous definition
+
+
+
 -- 
-1.7.12
-
+~Randy
