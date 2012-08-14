@@ -1,49 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57530 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752556Ab2HHJfo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Aug 2012 05:35:44 -0400
-Date: Wed, 8 Aug 2012 12:35:38 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: =?iso-8859-1?Q?R=E9mi?= Denis-Courmont <remi@remlab.net>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de
-Subject: Re: [PATCHv2 3/9] v4l: add buffer exporting via dmabuf
-Message-ID: <20120808093538.GF29636@valkosipuli.retiisi.org.uk>
-References: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com>
- <1390726.ZQ58TDe5fq@avalon>
- <201208012350.00207.remi@remlab.net>
- <201208020835.58332.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <201208020835.58332.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:2420 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750762Ab2HNEMv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 00:12:51 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q7E4CpGj022283
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 14 Aug 2012 00:12:51 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 1/3] ioctl-number.txt: Remove legacy private ioctl's from media drivers
+Date: Tue, 14 Aug 2012 01:12:43 -0300
+Message-Id: <1344917565-22396-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1344917565-22396-1-git-send-email-mchehab@redhat.com>
+References: <1344917565-22396-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans and Rémi,
+None of those drivers use private ioctl's, as they all got converted
+to the standard V4L2 ones.
 
-On Thu, Aug 02, 2012 at 08:35:58AM +0200, Hans Verkuil wrote:
-...
-> Minimum or maximum? The maximum is 32, that's hardcoded in the V4L2 core.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ Documentation/ioctl/ioctl-number.txt | 5 -----
+ 1 file changed, 5 deletions(-)
 
-As far as I understand, V4L1 did have that limitation, as well as videobuf1
-and 2 and a number of other drivers, but it's not found in the V4L2 core
-itself. While I'm not aware of a driver that'd allow creating more buffers
-than that the changes required to support more would be likely limited to
-videobuf2.
-
-Regards,
-
+diff --git a/Documentation/ioctl/ioctl-number.txt b/Documentation/ioctl/ioctl-number.txt
+index 849b771..2152b0e 100644
+--- a/Documentation/ioctl/ioctl-number.txt
++++ b/Documentation/ioctl/ioctl-number.txt
+@@ -178,7 +178,6 @@ Code  Seq#(hex)	Include File		Comments
+ 'V'	C0	linux/ivtv.h		conflict!
+ 'V'	C0	media/davinci/vpfe_capture.h	conflict!
+ 'V'	C0	media/si4713.h		conflict!
+-'V'	C0-CF	drivers/media/video/mxb.h	conflict!
+ 'W'	00-1F	linux/watchdog.h	conflict!
+ 'W'	00-1F	linux/wanrouter.h	conflict!
+ 'W'	00-3F	sound/asound.h		conflict!
+@@ -204,8 +203,6 @@ Code  Seq#(hex)	Include File		Comments
+ 'c'	A0-AF   arch/x86/include/asm/msr.h	conflict!
+ 'd'	00-FF	linux/char/drm/drm/h	conflict!
+ 'd'	02-40	pcmcia/ds.h		conflict!
+-'d'	10-3F	drivers/media/video/dabusb.h	conflict!
+-'d'	C0-CF	drivers/media/video/saa7191.h	conflict!
+ 'd'	F0-FF	linux/digi1.h
+ 'e'	all	linux/digi1.h		conflict!
+ 'e'	00-1F	drivers/net/irda/irtty-sir.h	conflict!
+@@ -267,9 +264,7 @@ Code  Seq#(hex)	Include File		Comments
+ 'v'	00-1F	linux/ext2_fs.h		conflict!
+ 'v'	00-1F	linux/fs.h		conflict!
+ 'v'	00-0F	linux/sonypi.h		conflict!
+-'v'	C0-DF	media/pwc-ioctl.h	conflict!
+ 'v'	C0-FF	linux/meye.h		conflict!
+-'v'	D0-DF	drivers/media/video/cpia2/cpia2dev.h	conflict!
+ 'w'	all				CERN SCI driver
+ 'y'	00-1F				packet based user level communications
+ 					<mailto:zapman@interlan.net>
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.11.2
+
