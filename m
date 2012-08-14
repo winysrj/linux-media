@@ -1,87 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:61731 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932273Ab2HFSqQ (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:59732 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755514Ab2HNLPd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Aug 2012 14:46:16 -0400
-Received: by lagy9 with SMTP id y9so920792lag.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 11:46:15 -0700 (PDT)
-Message-ID: <502010EB.7050003@iki.fi>
-Date: Mon, 06 Aug 2012 21:46:03 +0300
-From: Antti Palosaari <crope@iki.fi>
+	Tue, 14 Aug 2012 07:15:33 -0400
 MIME-Version: 1.0
-To: Malcolm Priestley <tvboxspy@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] [BUG] Re: dvb_usb_lmedm04 crash Kernel (rs2000)
-References: <501AE90E.2020201@iki.fi> <1343950313.11458.10.camel@router7789>
-In-Reply-To: <1343950313.11458.10.camel@router7789>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20120814110546.GD4559@mwanda>
+References: <20120814065814.GB4791@elgon.mountain>
+	<CALF0-+UU8dGBdihLgm==d0gCE4aHKdAbEVfe54U1LDjBHss8XQ@mail.gmail.com>
+	<20120814110546.GD4559@mwanda>
+Date: Tue, 14 Aug 2012 08:15:32 -0300
+Message-ID: <CALF0-+XVpGhtODTfeayov1aayQhCihF7FG=vo60XYeHbDhW6Vw@mail.gmail.com>
+Subject: Re: [patch] [media] em28xx: use after free in em28xx_v4l2_close()
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Gianluca Gennari <gennarone@gmail.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/03/2012 02:31 AM, Malcolm Priestley wrote:
-> On Thu, 2012-08-02 at 23:54 +0300, Antti Palosaari wrote:
->> Moi Malcolm,
->> Any idea why this seems to crash Kernel just when device is plugged?
+On Tue, Aug 14, 2012 at 8:05 AM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
+> On Tue, Aug 14, 2012 at 07:50:12AM -0300, Ezequiel Garcia wrote:
+>> Hi Dan,
 >>
-> Hi Antti
+>> On Tue, Aug 14, 2012 at 3:58 AM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
+>> > We need to move the unlock before the kfree(dev);
+>> >
+>> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+>> > ---
+>> > Applies to linux-next.
+>> >
+>> > diff --git a/drivers/media/video/em28xx/em28xx-video.c b/drivers/media/video/em28xx/em28xx-video.c
+>> > index ecb23df..78d6ebd 100644
+>> > --- a/drivers/media/video/em28xx/em28xx-video.c
+>> > +++ b/drivers/media/video/em28xx/em28xx-video.c
+>> > @@ -2264,9 +2264,9 @@ static int em28xx_v4l2_close(struct file *filp)
+>> >                 if (dev->state & DEV_DISCONNECTED) {
+>> >                         em28xx_release_resources(dev);
+>>
+>> Why not unlocking here?
 >
-> Yes, there missing error handling when no firmware file found.
->
-> It seems that this is more of a problem with udev-182+.
->
-> However, so far udev-182 is only a problem on first ever plug.
->
-> Regards
->
->
-> Malcolm
-
-
-Aug  6 20:56:34 localhost kernel: [19094.248540] LME2510(C): Firmware 
-Status: 6 (44)
-Aug  6 20:56:34 localhost kernel: [19094.251541] LME2510(C): FRM No 
-Firmware Found - please install
-Aug  6 20:56:34 localhost kernel: [19094.251559] usbcore: registered new 
-interface driver LME2510C_DVB-S
-
-It is good to print needed fw name. I found it from the documentation,
-Documentation/dvb/lmedm04.txt.
-
-Could you drop me that firmware privately as I don't wish to install 
-Windows drivers in order to extract it.
-
-
-Tested-by: Antti Palosaari <crope@iki.fi>
-
-> Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
-> ---
->   drivers/media/dvb/dvb-usb/lmedm04.c |    4 ++++
->   1 file changed, 4 insertions(+)
->
-> diff --git a/drivers/media/dvb/dvb-usb/lmedm04.c b/drivers/media/dvb/dvb-usb/lmedm04.c
-> index 25d1031..26ba5bc 100644
-> --- a/drivers/media/dvb/dvb-usb/lmedm04.c
-> +++ b/drivers/media/dvb/dvb-usb/lmedm04.c
-> @@ -878,6 +878,10 @@ static int lme_firmware_switch(struct usb_device *udev, int cold)
->   		fw_lme = fw_c_rs2000;
->   		ret = request_firmware(&fw, fw_lme, &udev->dev);
->   		dvb_usb_lme2510_firmware = TUNER_RS2000;
-> +		if (ret == 0)
-> +			break;
-> +		info("FRM No Firmware Found - please install");
-> +		cold_fw = 0;
->   		break;
->   	default:
->   		fw_lme = fw_c_s7395;
+> I don't see a reason to prefer one over the other.
 >
 
+Mmm, I see now what you mean,
 
-regards
-Antti
-
-
-
--- 
-http://palosaari.fi/
+Thanks and sorry for dumb question,
+Ezequiel.
