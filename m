@@ -1,51 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:61772 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752304Ab2HMNUr (ORCPT
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:46834 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752122Ab2HNVlX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Aug 2012 09:20:47 -0400
-Received: by qcro28 with SMTP id o28so2176361qcr.19
-        for <linux-media@vger.kernel.org>; Mon, 13 Aug 2012 06:20:46 -0700 (PDT)
+	Tue, 14 Aug 2012 17:41:23 -0400
+From: Emil Goode <emilgoode@gmail.com>
+To: mchehab@infradead.org, s.nawrocki@samsung.com,
+	p.zabel@pengutronix.de, javier.martin@vista-silicon.com,
+	hans.verkuil@cisco.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org, Emil Goode <emilgoode@gmail.com>
+Subject: [PATCH] [media] media: coda: add const qualifiers
+Date: Tue, 14 Aug 2012 23:44:42 +0200
+Message-Id: <1344980682-23075-1-git-send-email-emilgoode@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <5028CC8C.3060907@bmat.es>
-References: <5028CC8C.3060907@bmat.es>
-Date: Mon, 13 Aug 2012 09:20:46 -0400
-Message-ID: <CALzAhNXim6t=w-49+TmzKr5sGu6uwgisc6O3oqVkUShYpu+PJQ@mail.gmail.com>
-Subject: Re: Question Hauppauge Nova-S-Plus.
-From: Steven Toth <stoth@kernellabs.com>
-To: mark@bmat.es
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> I've been working for some time with those devices, and recently I have
-> a problem which I've never seen before. The point is that I tune
-> properly frequency and I start watching all channels, but after some
-> time  one or 2 tuners stops, and you cannot tune again any frequency
-> until you reboot all server.
+The commit 98d7bbb9 changed *of_device_id.data to const
+which introduced warnings in various places that have mostly
+been fixed. This patch fixes one such warning by introducing
+two const qualifiers.
 
-Interesting. If it was previously working fine, and very reliably,
-then what has changed in your software stack or environment?
+GCC warning:
+drivers/media/video/coda.c:1785:16: warning:
+        assignment discards ‘const’ qualifier
+        from pointer target type [enabled by default]
 
-What happens if you rmmod and modprobe the driver? Does this help?
+Signed-off-by: Emil Goode <emilgoode@gmail.com>
+---
+ drivers/media/video/coda.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
->
-> One thing very strange there is that always are the same tuners which
-> fails. Signal is OK.
-
-Do you mean it's always the same physical card that fails, or any of
-your nova-s-plus cards fail in the same way?
-
->
-> I don't have any error on syslog nor dmesg. And once you reboot it works
-> again.
->
-> Have anyone seen this problem before and can help me please?
-
-I haven't seen this before.
-
-
+diff --git a/drivers/media/video/coda.c b/drivers/media/video/coda.c
+index 0d6e0a0..6908514 100644
+--- a/drivers/media/video/coda.c
++++ b/drivers/media/video/coda.c
+@@ -118,7 +118,7 @@ struct coda_dev {
+ 	struct v4l2_device	v4l2_dev;
+ 	struct video_device	vfd;
+ 	struct platform_device	*plat_dev;
+-	struct coda_devtype	*devtype;
++	const struct coda_devtype *devtype;
+ 
+ 	void __iomem		*regs_base;
+ 	struct clk		*clk_per;
+@@ -1687,7 +1687,7 @@ enum coda_platform {
+ 	CODA_IMX27,
+ };
+ 
+-static struct coda_devtype coda_devdata[] = {
++static const struct coda_devtype coda_devdata[] = {
+ 	[CODA_IMX27] = {
+ 		.firmware    = "v4l-codadx6-imx27.bin",
+ 		.product     = CODA_DX6,
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+1.7.10.4
+
