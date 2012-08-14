@@ -1,65 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45159 "EHLO bear.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:14205 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753923Ab2HVEvG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Aug 2012 00:51:06 -0400
-Message-ID: <50346534.4030107@ti.com>
-Date: Wed, 22 Aug 2012 10:21:00 +0530
-From: Prabhakar Lad <prabhakar.lad@ti.com>
+	id S1752394Ab2HNJyz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 05:54:55 -0400
+Message-ID: <502A2057.3000401@redhat.com>
+Date: Tue, 14 Aug 2012 06:54:31 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Gregor Jasny <gjasny@googlemail.com>
-CC: <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] libdvbv5: Fix byte swapping for embedded toolchains
-References: <1345575502-3779-1-git-send-email-gjasny@googlemail.com> <1345575502-3779-2-git-send-email-gjasny@googlemail.com>
-In-Reply-To: <1345575502-3779-2-git-send-email-gjasny@googlemail.com>
-Content-Type: text/plain; charset="ISO-8859-1"
+To: Julia Lawall <julia.lawall@lip6.fr>
+CC: Lars-Peter Clausen <lars@metafoo.de>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] drivers/media/video/mx2_emmaprp.c: use devm_kzalloc and
+ devm_clk_get
+References: <1344104607-18805-1-git-send-email-Julia.Lawall@lip6.fr> <20120806142323.GO4352@mwanda> <20120806142650.GT4403@mwanda> <501FD69D.7070702@metafoo.de> <alpine.DEB.2.02.1208101558100.2011@hadrien> <50295A43.30305@redhat.com> <alpine.DEB.2.02.1208132219060.2355@localhost6.localdomain6> <5029AC92.2060408@redhat.com> <alpine.DEB.2.02.1208140819400.1973@localhost6.localdomain6>
+In-Reply-To: <alpine.DEB.2.02.1208140819400.1973@localhost6.localdomain6>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gregor,
-
-Thanks for the patch.
-
-On Wednesday 22 August 2012 12:28 AM, Gregor Jasny wrote:
-> Reported-by: "Lad, Prabhakar" <prabhakar.lad@ti.com>
-> Signed-off-by: Gregor Jasny <gjasny@googlemail.com>
-
-  Acked-by: Prabhakar Lad <prabhakar.lad@ti.com>
-
-Thx,
---Prabhakar
-
-> ---
->  lib/include/descriptors.h |    6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
+Em 14-08-2012 03:30, Julia Lawall escreveu:
+>> Well, I've massively applied hundreds of patches today, but not much
+>> on this driver. Maybe it is better for you to wait for a couple of
+>> days for these to be at -next, or use, instead, our tree as the basis for
+>> it:
+>>     git://linuxtv.org/media_tree.git staging/for_v3.7
 > 
-> diff --git a/lib/include/descriptors.h b/lib/include/descriptors.h
-> index 9039014..a64370c 100644
-> --- a/lib/include/descriptors.h
-> +++ b/lib/include/descriptors.h
-> @@ -25,7 +25,7 @@
->  #ifndef _DESCRIPTORS_H
->  #define _DESCRIPTORS_H
->  
-> -#include <endian.h>
-> +#include <arpa/inet.h>
->  #include <unistd.h>
->  #include <stdint.h>
->  
-> @@ -46,11 +46,11 @@ extern char *default_charset;
->  extern char *output_charset;
->  
->  #define bswap16(b) do {\
-> -	b = be16toh(b); \
-> +	b = ntohs(b); \
->  } while (0)
->  
->  #define bswap32(b) do {\
-> -	b = be32toh(b); \
-> +	b = ntohl(b); \
->  } while (0)
->  
->  struct dvb_desc {
+> I cloned this, but it doesn't seem to contain the file:
 > 
+>> :~: cd staging/for_v3.7/
+
+staging/for_v3.7 is the name of the branch ;)
+
+So, you need to use "--branch staging/for_v3.7" on your git
+clone command.
+
+>> :for_v3.7: ls drivers/media/video/mx2_emmaprp.c
+> ls: cannot access drivers/media/video/mx2_emmaprp.c: No such file or directory
+
+PS.: I started yesterday to apply a major reorganization of the drivers
+along drivers/media/. This driver is still there at the same path, but it
+will be moving soon to another place.
 
