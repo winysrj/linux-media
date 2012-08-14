@@ -1,58 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:49790 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753472Ab2HYDJQ (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:53930 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755726Ab2HNPiD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 23:09:16 -0400
-Received: by ghrr11 with SMTP id r11so586536ghr.19
-        for <linux-media@vger.kernel.org>; Fri, 24 Aug 2012 20:09:15 -0700 (PDT)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH 4/9] mem2mem-deinterlace: Don't check vb2_queue_init() return value
-Date: Sat, 25 Aug 2012 00:09:01 -0300
-Message-Id: <1345864146-2207-4-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1345864146-2207-1-git-send-email-elezegarcia@gmail.com>
-References: <1345864146-2207-1-git-send-email-elezegarcia@gmail.com>
+	Tue, 14 Aug 2012 11:38:03 -0400
+Received: from epcpsbgm1.samsung.com (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M8R00MQW4RD8F20@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:38:02 +0900 (KST)
+Received: from mcdsrvbld02.digital.local ([106.116.37.23])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0M8R004J44MBC810@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:38:01 +0900 (KST)
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de, dmitriyz@google.com,
+	s.nawrocki@samsung.com, k.debski@samsung.com
+Subject: [PATCHv8 22/26] media: vb2: fail if user ptr buffer is not correctly
+ aligned
+Date: Tue, 14 Aug 2012 17:34:52 +0200
+Message-id: <1344958496-9373-23-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
+References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Right now vb2_queue_init() returns always 0
-and it will be changed to return void.
+From: Marek Szyprowski <m.szyprowski@samsung.com>
 
-Cc: Javier Martin <javier.martin@vista-silicon.com>
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/media/platform/m2m-deinterlace.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+ drivers/media/video/videobuf2-dma-contig.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/drivers/media/platform/m2m-deinterlace.c b/drivers/media/platform/m2m-deinterlace.c
-index 9afd930..591e1b8 100644
---- a/drivers/media/platform/m2m-deinterlace.c
-+++ b/drivers/media/platform/m2m-deinterlace.c
-@@ -873,9 +873,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	q_data[V4L2_M2M_SRC].sizeimage = (640 * 480 * 3) / 2;
- 	q_data[V4L2_M2M_SRC].field = V4L2_FIELD_SEQ_TB;
+diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
+index d44766e..11f4a46 100644
+--- a/drivers/media/video/videobuf2-dma-contig.c
++++ b/drivers/media/video/videobuf2-dma-contig.c
+@@ -498,6 +498,16 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	struct vm_area_struct *vma;
+ 	struct sg_table *sgt;
+ 	unsigned long contig_size;
++	unsigned long dma_align = dma_get_cache_alignment();
++
++	/*
++	 * DMA transfers are not reliable to buffers which
++	 * are not cache line aligned!
++	 */
++	if (vaddr & (dma_align - 1)) {
++		pr_err("userptr must be aligned to %lu bytes\n", dma_align);
++		return ERR_PTR(-EINVAL);
++	}
  
--	ret = vb2_queue_init(src_vq);
--	if (ret)
--		return ret;
-+	vb2_queue_init(src_vq);
- 
- 	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 	dst_vq->io_modes = VB2_MMAP | VB2_USERPTR;
-@@ -889,7 +887,8 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	q_data[V4L2_M2M_DST].sizeimage = (640 * 480 * 3) / 2;
- 	q_data[V4L2_M2M_SRC].field = V4L2_FIELD_INTERLACED_TB;
- 
--	return vb2_queue_init(dst_vq);
-+	vb2_queue_init(dst_vq);
-+	return 0;
- }
- 
- /*
+ 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+ 	if (!buf)
 -- 
-1.7.8.6
+1.7.9.5
 
