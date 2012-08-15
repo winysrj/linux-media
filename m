@@ -1,62 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:52697 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752753Ab2HaNSI (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35243 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753630Ab2HOSfO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Aug 2012 09:18:08 -0400
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Pawel Osciak <p.osciak@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Subject: [PATCH 1/2] media v4l2-mem2mem: Use list_first_entry
-Date: Fri, 31 Aug 2012 15:18:03 +0200
-Message-Id: <1346419084-10879-2-git-send-email-s.hauer@pengutronix.de>
-In-Reply-To: <1346419084-10879-1-git-send-email-s.hauer@pengutronix.de>
-References: <1346419084-10879-1-git-send-email-s.hauer@pengutronix.de>
+	Wed, 15 Aug 2012 14:35:14 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
+	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com,
+	g.liakhovetski@gmx.de, dmitriyz@google.com, s.nawrocki@samsung.com,
+	k.debski@samsung.com
+Subject: Re: [PATCHv8 10/26] v4l: vb2-dma-contig: add prepare/finish to dma-contig allocator
+Date: Wed, 15 Aug 2012 20:35:28 +0200
+Message-ID: <19239574.EXIJbKbmPC@avalon>
+In-Reply-To: <1344958496-9373-11-git-send-email-t.stanislaws@samsung.com>
+References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com> <1344958496-9373-11-git-send-email-t.stanislaws@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use list_first_entry instead of list_entry which makes the intention
-of the code more clear.
+Hi Tomasz,
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
----
- drivers/media/video/v4l2-mem2mem.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Thanks for the patch.
 
-diff --git a/drivers/media/video/v4l2-mem2mem.c b/drivers/media/video/v4l2-mem2mem.c
-index 975d0fa..aaa67d3 100644
---- a/drivers/media/video/v4l2-mem2mem.c
-+++ b/drivers/media/video/v4l2-mem2mem.c
-@@ -102,7 +102,7 @@ void *v4l2_m2m_next_buf(struct v4l2_m2m_queue_ctx *q_ctx)
- 		return NULL;
- 	}
- 
--	b = list_entry(q_ctx->rdy_queue.next, struct v4l2_m2m_buffer, list);
-+	b = list_first_entry(&q_ctx->rdy_queue, struct v4l2_m2m_buffer, list);
- 	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
- 	return &b->vb;
- }
-@@ -122,7 +122,7 @@ void *v4l2_m2m_buf_remove(struct v4l2_m2m_queue_ctx *q_ctx)
- 		spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
- 		return NULL;
- 	}
--	b = list_entry(q_ctx->rdy_queue.next, struct v4l2_m2m_buffer, list);
-+	b = list_first_entry(&q_ctx->rdy_queue, struct v4l2_m2m_buffer, list);
- 	list_del(&b->list);
- 	q_ctx->num_rdy--;
- 	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
-@@ -175,7 +175,7 @@ static void v4l2_m2m_try_run(struct v4l2_m2m_dev *m2m_dev)
- 		return;
- 	}
- 
--	m2m_dev->curr_ctx = list_entry(m2m_dev->job_queue.next,
-+	m2m_dev->curr_ctx = list_first_entry(&m2m_dev->job_queue,
- 				   struct v4l2_m2m_ctx, queue);
- 	m2m_dev->curr_ctx->job_flags |= TRANS_RUNNING;
- 	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
+On Tuesday 14 August 2012 17:34:40 Tomasz Stanislawski wrote:
+> From: Marek Szyprowski <m.szyprowski@samsung.com>
+> 
+> Add prepare/finish callbacks to vb2-dma-contig allocator.
+> 
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+
+As for v7,
+
+Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+:-)
+
+> ---
+>  drivers/media/video/videobuf2-dma-contig.c |   24 ++++++++++++++++++++++++
+>  1 file changed, 24 insertions(+)
+> 
+> diff --git a/drivers/media/video/videobuf2-dma-contig.c
+> b/drivers/media/video/videobuf2-dma-contig.c index 8486e06..494a824 100644
+> --- a/drivers/media/video/videobuf2-dma-contig.c
+> +++ b/drivers/media/video/videobuf2-dma-contig.c
+> @@ -103,6 +103,28 @@ static unsigned int vb2_dc_num_users(void *buf_priv)
+>  	return atomic_read(&buf->refcount);
+>  }
+> 
+> +static void vb2_dc_prepare(void *buf_priv)
+> +{
+> +	struct vb2_dc_buf *buf = buf_priv;
+> +	struct sg_table *sgt = buf->dma_sgt;
+> +
+> +	if (!sgt)
+> +		return;
+> +
+> +	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+> +}
+> +
+> +static void vb2_dc_finish(void *buf_priv)
+> +{
+> +	struct vb2_dc_buf *buf = buf_priv;
+> +	struct sg_table *sgt = buf->dma_sgt;
+> +
+> +	if (!sgt)
+> +		return;
+> +
+> +	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+> +}
+> +
+>  /*********************************************/
+>  /*        callbacks for MMAP buffers         */
+>  /*********************************************/
+> @@ -366,6 +388,8 @@ const struct vb2_mem_ops vb2_dma_contig_memops = {
+>  	.mmap		= vb2_dc_mmap,
+>  	.get_userptr	= vb2_dc_get_userptr,
+>  	.put_userptr	= vb2_dc_put_userptr,
+> +	.prepare	= vb2_dc_prepare,
+> +	.finish		= vb2_dc_finish,
+>  	.num_users	= vb2_dc_num_users,
+>  };
+>  EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
+
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
