@@ -1,43 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:45576 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751950Ab2HNG6a (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:56162 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756296Ab2HOUfm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 02:58:30 -0400
-Date: Tue, 14 Aug 2012 09:58:15 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Gianluca Gennari <gennarone@gmail.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch] [media] em28xx: use after free in em28xx_v4l2_close()
-Message-ID: <20120814065814.GB4791@elgon.mountain>
+	Wed, 15 Aug 2012 16:35:42 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id ED44B189F87
+	for <linux-media@vger.kernel.org>; Wed, 15 Aug 2012 22:35:40 +0200 (CEST)
+Date: Wed, 15 Aug 2012 22:35:40 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PULL] soc-camera: 3.6 fixes
+Message-ID: <Pine.LNX.4.64.1208152235260.4024@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We need to move the unlock before the kfree(dev);
+Hi Mauro
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Here go current soc-camera 3.6 fixes. We'll need them both in 3.6 and 3.7 
+to make your codebase reorganisation possibly simple. Note, that the two 
+patches from Fabio Estevam are already in 3.7, but are actually fixes and 
+should also go into 3.6. They are also required for the patch from Javier 
+Martin.
+
+I'm still using my "old" git, I'll update it soon, if you'd prefer to 
+wait, let me know, I'll regenerate with a newer version.
+
+The following changes since commit ddf343f635fe4440cad528e12f96f28bd50aa099:
+
+  Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/s390/linux (2012-08-14 07:58:59 +0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git 3.6-rc1-fixes
+
+Albert Wang (1):
+      media: soc_camera: don't clear pix->sizeimage in JPEG mode
+
+Alex Gershgorin (1):
+      media: mx3_camera: buf_init() add buffer state check
+
+Fabio Estevam (2):
+      video: mx1_camera: Use clk_prepare_enable/clk_disable_unprepare
+      video: mx2_camera: Use clk_prepare_enable/clk_disable_unprepare
+
+Javier Martin (1):
+      media: mx2_camera: Fix clock handling for i.MX27.
+
+ drivers/media/video/mx1_camera.c   |    4 +-
+ drivers/media/video/mx2_camera.c   |   47 +++++++++++++++++++++++------------
+ drivers/media/video/mx3_camera.c   |   22 +++++-----------
+ drivers/media/video/soc_camera.c   |    3 +-
+ drivers/media/video/soc_mediabus.c |    6 ++++
+ 5 files changed, 48 insertions(+), 34 deletions(-)
+
+Thanks
+Guennadi
 ---
-Applies to linux-next.
-
-diff --git a/drivers/media/video/em28xx/em28xx-video.c b/drivers/media/video/em28xx/em28xx-video.c
-index ecb23df..78d6ebd 100644
---- a/drivers/media/video/em28xx/em28xx-video.c
-+++ b/drivers/media/video/em28xx/em28xx-video.c
-@@ -2264,9 +2264,9 @@ static int em28xx_v4l2_close(struct file *filp)
- 		if (dev->state & DEV_DISCONNECTED) {
- 			em28xx_release_resources(dev);
- 			kfree(dev->alt_max_pkt_size);
-+			mutex_unlock(&dev->lock);
- 			kfree(dev);
- 			kfree(fh);
--			mutex_unlock(&dev->lock);
- 			return 0;
- 		}
- 
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
