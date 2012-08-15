@@ -1,143 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nexicom.net ([216.168.96.13]:47848 "EHLO smtp.nexicom.net"
+Received: from mail.kapsi.fi ([217.30.184.167]:44145 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755569Ab2HHBmL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Aug 2012 21:42:11 -0400
-Received: from mail.lockie.ca (dyn-dsl-mb-216-168-121-226.nexicom.net [216.168.121.226])
-	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id q781g9U2026847
-	for <linux-media@vger.kernel.org>; Tue, 7 Aug 2012 21:42:09 -0400
-Message-ID: <50218B38.3060200@lockie.ca>
-Date: Tue, 07 Aug 2012 17:40:08 -0400
-From: James <bjlockie@lockie.ca>
-MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: Sakari Ailus <sakari.ailus@iki.fi>,
-	linux-media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: boot slow down
-References: <501D4535.8080404@lockie.ca> <f1bd5aea-00cd-4b3f-9562-d25153f8cef3@email.android.com> <501DA203.7070800@lockie.ca> <20120805212054.GA29636@valkosipuli.retiisi.org.uk> <501F4A5B.1000608@lockie.ca> <20120807112742.GB29636@valkosipuli.retiisi.org.uk> <6ef5338940a90b4c8000594d546bf479.squirrel@lockie.ca> <32d7859a-ceda-442d-be67-f4f682a6e3b9@email.android.com>
-In-Reply-To: <32d7859a-ceda-442d-be67-f4f682a6e3b9@email.android.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1750968Ab2HOCVx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 22:21:53 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hin-Tak Leung <htl10@users.sourceforge.net>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/6] dvb_usb_v2: implement power-management for suspend
+Date: Wed, 15 Aug 2012 05:21:05 +0300
+Message-Id: <1344997269-20338-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1344997269-20338-1-git-send-email-crope@iki.fi>
+References: <1344997269-20338-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/07/12 09:53, Andy Walls wrote:
-> bjlockie@lockie.ca wrote:
-> 
->>> Hi James,
->>>
->>> On Mon, Aug 06, 2012 at 12:38:51AM -0400, James wrote:
->>>> On 08/05/12 17:20, Sakari Ailus wrote:
->>>>> Hi Andy and James,
->>>>>
->>>>> On Sat, Aug 04, 2012 at 06:28:19PM -0400, James wrote:
->>>>>> On 08/04/12 13:42, Andy Walls wrote:
->>>>>>> James <bjlockie@lockie.ca> wrote:
->>>>>>>
->>>>>>>> There's a big pause before the 'unable'
->>>>>>>>
->>>>>>>> [    2.243856] usb 4-1: Manufacturer: Logitech
->>>>>>>> [   62.739097] cx25840 6-0044: unable to open firmware
->>>>>>>> v4l-cx23885-avcore-01.fw
->>>>>>>>
->>>>>>>>
->>>>>>>> I have a cx23885
->>>>>>>> cx23885[0]: registered device video0 [v4l2]
->>>>>>>>
->>>>>>>> Is there any way to stop it from trying to load the firmware?
->>>>>>>> What is the firmware for, analog tv? Digital works fine and
->> analog
->>>> is
->>>>>>>> useless to me.
->>>>>>>> I assume it is timing out there.
->>>>>>>> --
->>>>>>>> To unsubscribe from this list: send the line "unsubscribe
->>>> linux-media"
->>>>>>>> in
->>>>>>>> the body of a message to majordomo@vger.kernel.org
->>>>>>>> More majordomo info at 
->> http://vger.kernel.org/majordomo-info.html
->>>>>>>
->>>>>>> The firmware is for the analog broadcast audio standard (e.g.
->> BTSC)
->>>> detection microcontroller.
->>>>>>>
->>>>>>> The A/V core of the CX23885/7/8 chips is for analog vidoe and
->> audio
->>>> processing (broadcast, CVBS, SVideo, audio L/R in).
->>>>>>>
->>>>>>> The A/V core of the CX23885 provides the IR unit and the Video
->> PLL
->>>> provides the timing for the IR unit.
->>>>>>>
->>>>>>> The A/V core of the CX23888 provides the Video PLL which is the
->>>> timing for the IR unit in the CX23888.
->>>>>>>
->>>>>>> Just grab the firmware and be done with it.  Don't waste time
->> with
->>>> trying to make the cx23885 working properly but halfway.
->>>>>>>
->>>>>>> Regards,
->>>>>>> Andy
->>>>>>
->>>>>> I already have the firmware.
->>>>>> # ls -l /lib/firmware/v4l-cx23885-avcore-01.fw
->>>>>> -rw-r--r-- 1 root root 16382 Oct 15  2011
->>>> /lib/firmware/v4l-cx23885-avcore-01.fw
->>>>>
->>>>> The timeout if for allowing the user space helper enough time to
->>>> provide the
->>>>> driver with the firmware, but it seems the helper isn't around as
->> the
->>>>> timeout expires. Is udev running around the time of the first
->> line? Is
->>>> the
->>>>> driver linked directly into the kernel or is it a module?
->>>>>
->>>>> Kind regards,
->>>>>
->>>> I have this set so the firmware is in the kernel.
->>>>
->>>> Symbol: FIRMWARE_IN_KERNEL [=y]
->>>
->>> I don't know about that driver, but if the udev would have to provide
->> the
->>> firmware, and it's not running, the delay is expected. Two seconds
->> after
->>> kernel startup is so early that the user space, including udev, might
->> not
->>> yet be running.
->>>
->>> Kind regards,
->>>
->>> --
->>> Sakari Ailus
->>> e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
->>
->> Doesn't that kernel option mean the firmware is put into the kernel at
->> kernel build time?
->>
->> If I build the module, is there a module option to skip the delay?
-> 
-> 
-> Hi,
-> 
-> The CX2388x firmware is _never_ built into the kernel.  I'm not sure what that particular kernel config option is for.
-> 
-> The kernel delay waiting for userspace to load firmware is settable using a node under /sys somewhere. The default is 60 seconds.  You will have to change it in very early boot, or fix the hardcoded constant in the kernel and recompile your kernel.
-> 
-> Shortening the delay may not get you entirely acceptable results.  If udev is not, or is refusing to load firmware for the cx25840 module, then that module will not properly initialize the CX23885/7/8 A/V core hardware and will likely return with failure.  I'm not sure if the cx23885 driver will happily continue on, if that happens.
-> 
-> If you still have a modular kernel build around, you may wish to test with it.  Blacklist the cx23885 module in /etc/modprobe.conf and the use udevadm to investigate what is going on with udev when you later modprobe the cx23885 driver. 
-> 
-> If building the video card driver into the kernel is causing you all the problems, then I simply recommend not doing that.
-> 
-> Regards,
-> Andy
+Put device full sleep on suspend, wake-up it on resume and acquire
+retune in order to return same television channel.
 
-I make it a module and I ran into more problems.
-It seemed to load the firmware but Kaffeine says there is no video device.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c | 83 ++++++++++++++++++++++-------
+ 1 file changed, 63 insertions(+), 20 deletions(-)
 
-http://pastebin.com/ABVWVrma
+diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+index a72f9c7..7ce8ffe 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
++++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+@@ -486,7 +486,6 @@ static int dvb_usb_fe_init(struct dvb_frontend *fe)
+ 	int ret;
+ 	struct dvb_usb_adapter *adap = fe->dvb->priv;
+ 	struct dvb_usb_device *d = adap_to_d(adap);
+-	mutex_lock(&adap->sync_mutex);
+ 	dev_dbg(&d->udev->dev, "%s: adap=%d fe=%d\n", __func__, adap->id,
+ 			fe->id);
+ 
+@@ -506,22 +505,30 @@ static int dvb_usb_fe_init(struct dvb_frontend *fe)
+ 			goto err;
+ 	}
+ 
+-	adap->active_fe = fe->id;
+-	mutex_unlock(&adap->sync_mutex);
+-
+ 	return 0;
+ err:
+-	mutex_unlock(&adap->sync_mutex);
+ 	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
++static int dvb_usb_fe_init_lock(struct dvb_frontend *fe)
++{
++	int ret;
++	struct dvb_usb_adapter *adap = fe->dvb->priv;
++	mutex_lock(&adap->sync_mutex);
++
++	ret = dvb_usb_fe_init(fe);
++	adap->active_fe = fe->id;
++
++	mutex_unlock(&adap->sync_mutex);
++	return ret;
++}
++
+ static int dvb_usb_fe_sleep(struct dvb_frontend *fe)
+ {
+ 	int ret;
+ 	struct dvb_usb_adapter *adap = fe->dvb->priv;
+ 	struct dvb_usb_device *d = adap_to_d(adap);
+-	mutex_lock(&adap->sync_mutex);
+ 	dev_dbg(&d->udev->dev, "%s: adap=%d fe=%d\n", __func__, adap->id,
+ 			fe->id);
+ 
+@@ -541,16 +548,25 @@ static int dvb_usb_fe_sleep(struct dvb_frontend *fe)
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	adap->active_fe = -1;
+-	mutex_unlock(&adap->sync_mutex);
+-
+ 	return 0;
+ err:
+-	mutex_unlock(&adap->sync_mutex);
+ 	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
++static int dvb_usb_fe_sleep_lock(struct dvb_frontend *fe)
++{
++	int ret;
++	struct dvb_usb_adapter *adap = fe->dvb->priv;
++	mutex_lock(&adap->sync_mutex);
++
++	ret = dvb_usb_fe_sleep(fe);
++	adap->active_fe = -1;
++
++	mutex_unlock(&adap->sync_mutex);
++	return ret;
++}
++
+ int dvb_usbv2_adapter_frontend_init(struct dvb_usb_adapter *adap)
+ {
+ 	int ret, i, count_registered = 0;
+@@ -578,9 +594,9 @@ int dvb_usbv2_adapter_frontend_init(struct dvb_usb_adapter *adap)
+ 		adap->fe[i]->id = i;
+ 		/* re-assign sleep and wakeup functions */
+ 		adap->fe_init[i] = adap->fe[i]->ops.init;
+-		adap->fe[i]->ops.init = dvb_usb_fe_init;
++		adap->fe[i]->ops.init = dvb_usb_fe_init_lock;
+ 		adap->fe_sleep[i] = adap->fe[i]->ops.sleep;
+-		adap->fe[i]->ops.sleep = dvb_usb_fe_sleep;
++		adap->fe[i]->ops.sleep = dvb_usb_fe_sleep_lock;
+ 
+ 		ret = dvb_register_frontend(&adap->dvb_adap, adap->fe[i]);
+ 		if (ret < 0) {
+@@ -950,18 +966,30 @@ EXPORT_SYMBOL(dvb_usbv2_disconnect);
+ int dvb_usbv2_suspend(struct usb_interface *intf, pm_message_t msg)
+ {
+ 	struct dvb_usb_device *d = usb_get_intfdata(intf);
+-	int i;
++	int i, active_fe;
++	struct dvb_frontend *fe;
+ 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
+ 
+ 	/* stop remote controller poll */
+ 	if (d->rc.query && !d->rc.bulk_mode)
+ 		cancel_delayed_work_sync(&d->rc_query_work);
+ 
+-	/* stop streaming */
+ 	for (i = MAX_NO_OF_ADAPTER_PER_DEVICE - 1; i >= 0; i--) {
+-		if (d->adapter[i].dvb_adap.priv &&
+-				d->adapter[i].active_fe != -1)
++		active_fe = d->adapter[i].active_fe;
++		if (d->adapter[i].dvb_adap.priv && active_fe != -1) {
++			fe = d->adapter[i].fe[active_fe];
++
++			if (d->props->streaming_ctrl)
++				d->props->streaming_ctrl(fe, 0);
++
++			/* stop usb streaming */
+ 			usb_urb_killv2(&d->adapter[i].stream);
++
++			if (fe->ops.tuner_ops.sleep)
++				fe->ops.tuner_ops.sleep(fe);
++
++			dvb_usb_fe_sleep(fe);
++		}
+ 	}
+ 
+ 	return 0;
+@@ -971,14 +999,29 @@ EXPORT_SYMBOL(dvb_usbv2_suspend);
+ int dvb_usbv2_resume(struct usb_interface *intf)
+ {
+ 	struct dvb_usb_device *d = usb_get_intfdata(intf);
+-	int i;
++	int i, active_fe;
++	struct dvb_frontend *fe;
+ 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
+ 
+-	/* start streaming */
+ 	for (i = 0; i < MAX_NO_OF_ADAPTER_PER_DEVICE; i++) {
+-		if (d->adapter[i].dvb_adap.priv &&
+-				d->adapter[i].active_fe != -1)
++		active_fe = d->adapter[i].active_fe;
++		if (d->adapter[i].dvb_adap.priv && active_fe != -1) {
++			fe = d->adapter[i].fe[active_fe];
++
++			dvb_usb_fe_init(fe);
++
++			if (fe->ops.tuner_ops.init)
++				fe->ops.tuner_ops.init(fe);
++
++			/* acquire dvb-core perform retune */
++			dvb_frontend_retune(fe);
++
++			/* resume usb streaming */
+ 			usb_urb_submitv2(&d->adapter[i].stream, NULL);
++
++			if (d->props->streaming_ctrl)
++				d->props->streaming_ctrl(fe, 1);
++		}
+ 	}
+ 
+ 	/* start remote controller poll */
+-- 
+1.7.11.2
 
-It seems to print a lot.
