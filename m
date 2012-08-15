@@ -1,216 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([93.97.41.153]:46448 "EHLO pequod.mess.org"
+Received: from www.linuxtv.org ([130.149.80.248]:44496 "EHLO www.linuxtv.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752867Ab2HJT2M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Aug 2012 15:28:12 -0400
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Greg Kroah-Hartman <greg@kroah.com>,
-	Stefan Macher <st_maker-lirc@yahoo.de>,
+	id S1757284Ab2HOUik (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Aug 2012 16:38:40 -0400
+Message-Id: <E1T1kMQ-0007NG-Mi@www.linuxtv.org>
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Date: Wed, 15 Aug 2012 22:17:29 +0200
+Subject: [git:v4l-dvb/for_v3.7] [media] video: mx2_camera: Use clk_prepare_enable/clk_disable_unprepare
+To: linuxtv-commits@linuxtv.org
+Cc: Fabio Estevam <fabio.estevam@freescale.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
 	linux-media@vger.kernel.org
-Subject: [PATCH 4/6] [media] rc: do not wake up rc thread unless there is something to do
-Date: Fri, 10 Aug 2012 20:28:06 +0100
-Message-Id: <1344626888-10536-4-git-send-email-sean@mess.org>
-In-Reply-To: <1344626888-10536-1-git-send-email-sean@mess.org>
-References: <1344626888-10536-1-git-send-email-sean@mess.org>
+Reply-to: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The TechnoTrend USB IR Receiver sends 125 ISO URBs per second, even when
-there is no IR activity. Reduce the number of wake ups from the other
-drivers too.
+This is an automatic generated email to let you know that the following patch were queued at the 
+http://git.linuxtv.org/media_tree.git tree:
 
-This saves about 0.25ms per second on a 2.4GHz Core 2 according to
-powertop.
+Subject: [media] video: mx2_camera: Use clk_prepare_enable/clk_disable_unprepare
+Author:  Fabio Estevam <fabio.estevam@freescale.com>
+Date:    Fri May 25 20:14:48 2012 -0300
 
-Signed-off-by: Sean Young <sean@mess.org>
+Prepare the clock before enabling it.
+
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: <linux-media@vger.kernel.org>
+Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+ drivers/media/platform/mx2_camera.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
+
 ---
- drivers/media/rc/fintek-cir.c | 11 ++++++++---
- drivers/media/rc/iguanair.c   |  7 +++++--
- drivers/media/rc/ir-raw.c     |  6 ++++--
- drivers/media/rc/mceusb.c     | 10 +++++++---
- drivers/media/rc/ttusbir.c    | 19 +++++++++++++------
- 5 files changed, 37 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/media/rc/fintek-cir.c b/drivers/media/rc/fintek-cir.c
-index 6aabf7a..3b4e465 100644
---- a/drivers/media/rc/fintek-cir.c
-+++ b/drivers/media/rc/fintek-cir.c
-@@ -291,6 +291,7 @@ static void fintek_process_rx_ir_data(struct fintek_dev *fintek)
- {
- 	DEFINE_IR_RAW_EVENT(rawir);
- 	u8 sample;
-+	bool event = false;
- 	int i;
- 
- 	for (i = 0; i < fintek->pkts; i++) {
-@@ -328,7 +329,9 @@ static void fintek_process_rx_ir_data(struct fintek_dev *fintek)
- 			fit_dbg("Storing %s with duration %d",
- 				rawir.pulse ? "pulse" : "space",
- 				rawir.duration);
--			ir_raw_event_store_with_filter(fintek->rdev, &rawir);
-+			if (ir_raw_event_store_with_filter(fintek->rdev,
-+									&rawir))
-+				event = true;
- 			break;
- 		}
- 
-@@ -338,8 +341,10 @@ static void fintek_process_rx_ir_data(struct fintek_dev *fintek)
- 
- 	fintek->pkts = 0;
- 
--	fit_dbg("Calling ir_raw_event_handle");
--	ir_raw_event_handle(fintek->rdev);
-+	if (event) {
-+		fit_dbg("Calling ir_raw_event_handle");
-+		ir_raw_event_handle(fintek->rdev);
-+	}
- }
- 
- /* copy data from hardware rx register into driver buffer */
-diff --git a/drivers/media/rc/iguanair.c b/drivers/media/rc/iguanair.c
-index 437aa42..4ef7ea9 100644
---- a/drivers/media/rc/iguanair.c
-+++ b/drivers/media/rc/iguanair.c
-@@ -151,6 +151,7 @@ static void process_ir_data(struct iguanair *ir, unsigned len)
- 	} else if (len >= 7) {
- 		DEFINE_IR_RAW_EVENT(rawir);
- 		unsigned i;
-+		bool event = false;
- 
- 		init_ir_raw_event(&rawir);
- 
-@@ -164,10 +165,12 @@ static void process_ir_data(struct iguanair *ir, unsigned len)
- 								 RX_RESOLUTION;
- 			}
- 
--			ir_raw_event_store_with_filter(ir->rc, &rawir);
-+			if (ir_raw_event_store_with_filter(ir->rc, &rawir))
-+				event = true;
- 		}
- 
--		ir_raw_event_handle(ir->rc);
-+		if (event)
-+			ir_raw_event_handle(ir->rc);
- 	}
- }
- 
-diff --git a/drivers/media/rc/ir-raw.c b/drivers/media/rc/ir-raw.c
-index a820251..97dc8d1 100644
---- a/drivers/media/rc/ir-raw.c
-+++ b/drivers/media/rc/ir-raw.c
-@@ -157,7 +157,9 @@ EXPORT_SYMBOL_GPL(ir_raw_event_store_edge);
-  * This routine (which may be called from an interrupt context) works
-  * in similar manner to ir_raw_event_store_edge.
-  * This routine is intended for devices with limited internal buffer
-- * It automerges samples of same type, and handles timeouts
-+ * It automerges samples of same type, and handles timeouts. Returns non-zero
-+ * if the event was added, and zero if the event was ignored due to idle
-+ * processing.
-  */
- int ir_raw_event_store_with_filter(struct rc_dev *dev, struct ir_raw_event *ev)
- {
-@@ -184,7 +186,7 @@ int ir_raw_event_store_with_filter(struct rc_dev *dev, struct ir_raw_event *ev)
- 	    dev->raw->this_ev.duration >= dev->timeout)
- 		ir_raw_event_set_idle(dev, true);
- 
--	return 0;
-+	return 1;
- }
- EXPORT_SYMBOL_GPL(ir_raw_event_store_with_filter);
- 
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index 84e06d3..573c174 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -969,6 +969,7 @@ static void mceusb_handle_command(struct mceusb_dev *ir, int index)
- static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
- {
- 	DEFINE_IR_RAW_EVENT(rawir);
-+	bool event = false;
- 	int i = 0;
- 
- 	/* skip meaningless 0xb1 0x60 header bytes on orig receiver */
-@@ -999,7 +1000,8 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
- 				rawir.pulse ? "pulse" : "space",
- 				rawir.duration);
- 
--			ir_raw_event_store_with_filter(ir->rc, &rawir);
-+			if (ir_raw_event_store_with_filter(ir->rc, &rawir))
-+				event = true;
- 			break;
- 		case CMD_DATA:
- 			ir->rem--;
-@@ -1027,8 +1029,10 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
- 		if (ir->parser_state != CMD_HEADER && !ir->rem)
- 			ir->parser_state = CMD_HEADER;
- 	}
--	mce_dbg(ir->dev, "processed IR data, calling ir_raw_event_handle\n");
--	ir_raw_event_handle(ir->rc);
-+	if (event) {
-+		mce_dbg(ir->dev, "processed IR data, calling ir_raw_event_handle\n");
-+		ir_raw_event_handle(ir->rc);
-+	}
- }
- 
- static void mceusb_dev_recv(struct urb *urb, struct pt_regs *regs)
-diff --git a/drivers/media/rc/ttusbir.c b/drivers/media/rc/ttusbir.c
-index 71f03ac..1aee57f 100644
---- a/drivers/media/rc/ttusbir.c
-+++ b/drivers/media/rc/ttusbir.c
-@@ -121,8 +121,9 @@ static void ttusbir_bulk_complete(struct urb *urb)
-  */
- static void ttusbir_process_ir_data(struct ttusbir *tt, uint8_t *buf)
- {
-+	struct ir_raw_event rawir;
- 	unsigned i, v, b;
--	DEFINE_IR_RAW_EVENT(rawir);
-+	bool event = false;
- 
- 	init_ir_raw_event(&rawir);
- 
-@@ -132,12 +133,14 @@ static void ttusbir_process_ir_data(struct ttusbir *tt, uint8_t *buf)
- 		case 0xfe:
- 			rawir.pulse = false;
- 			rawir.duration = NS_PER_BYTE;
--			ir_raw_event_store_with_filter(tt->rc, &rawir);
-+			if (ir_raw_event_store_with_filter(tt->rc, &rawir))
-+				event = true;
- 			break;
- 		case 0:
- 			rawir.pulse = true;
- 			rawir.duration = NS_PER_BYTE;
--			ir_raw_event_store_with_filter(tt->rc, &rawir);
-+			if (ir_raw_event_store_with_filter(tt->rc, &rawir))
-+				event = true;
- 			break;
- 		default:
- 			/* one edge per byte */
-@@ -150,16 +153,20 @@ static void ttusbir_process_ir_data(struct ttusbir *tt, uint8_t *buf)
- 			}
- 
- 			rawir.duration = NS_PER_BIT * (8 - b);
--			ir_raw_event_store_with_filter(tt->rc, &rawir);
-+			if (ir_raw_event_store_with_filter(tt->rc, &rawir))
-+				event = true;
- 
- 			rawir.pulse = !rawir.pulse;
- 			rawir.duration = NS_PER_BIT * b;
--			ir_raw_event_store_with_filter(tt->rc, &rawir);
-+			if (ir_raw_event_store_with_filter(tt->rc, &rawir))
-+				event = true;
- 			break;
- 		}
- 	}
- 
--	ir_raw_event_handle(tt->rc);
-+	/* don't wakeup when there's nothing to do */
-+	if (event)
-+		ir_raw_event_handle(tt->rc);
- }
- 
- static void ttusbir_urb_complete(struct urb *urb)
--- 
-1.7.11.2
+http://git.linuxtv.org/media_tree.git?a=commitdiff;h=561d5d78cb03fe08519a166594820c5a70f3931c
 
+diff --git a/drivers/media/platform/mx2_camera.c b/drivers/media/platform/mx2_camera.c
+index 637bde8..2c3ec94 100644
+--- a/drivers/media/platform/mx2_camera.c
++++ b/drivers/media/platform/mx2_camera.c
+@@ -407,7 +407,7 @@ static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
+ {
+ 	unsigned long flags;
+ 
+-	clk_disable(pcdev->clk_csi);
++	clk_disable_unprepare(pcdev->clk_csi);
+ 	writel(0, pcdev->base_csi + CSICR1);
+ 	if (cpu_is_mx27()) {
+ 		writel(0, pcdev->base_emma + PRP_CNTL);
+@@ -435,7 +435,7 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
+ 	if (pcdev->icd)
+ 		return -EBUSY;
+ 
+-	ret = clk_enable(pcdev->clk_csi);
++	ret = clk_prepare_enable(pcdev->clk_csi);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -1639,7 +1639,7 @@ static int __devinit mx27_camera_emma_init(struct mx2_camera_dev *pcdev)
+ 		goto exit_free_irq;
+ 	}
+ 
+-	clk_enable(pcdev->clk_emma);
++	clk_prepare_enable(pcdev->clk_emma);
+ 
+ 	err = mx27_camera_emma_prp_reset(pcdev);
+ 	if (err)
+@@ -1648,7 +1648,7 @@ static int __devinit mx27_camera_emma_init(struct mx2_camera_dev *pcdev)
+ 	return err;
+ 
+ exit_clk_emma_put:
+-	clk_disable(pcdev->clk_emma);
++	clk_disable_unprepare(pcdev->clk_emma);
+ 	clk_put(pcdev->clk_emma);
+ exit_free_irq:
+ 	free_irq(pcdev->irq_emma, pcdev);
+@@ -1785,7 +1785,7 @@ exit_free_emma:
+ eallocctx:
+ 	if (cpu_is_mx27()) {
+ 		free_irq(pcdev->irq_emma, pcdev);
+-		clk_disable(pcdev->clk_emma);
++		clk_disable_unprepare(pcdev->clk_emma);
+ 		clk_put(pcdev->clk_emma);
+ 		iounmap(pcdev->base_emma);
+ 		release_mem_region(pcdev->res_emma->start, resource_size(pcdev->res_emma));
+@@ -1825,7 +1825,7 @@ static int __devexit mx2_camera_remove(struct platform_device *pdev)
+ 	iounmap(pcdev->base_csi);
+ 
+ 	if (cpu_is_mx27()) {
+-		clk_disable(pcdev->clk_emma);
++		clk_disable_unprepare(pcdev->clk_emma);
+ 		clk_put(pcdev->clk_emma);
+ 		iounmap(pcdev->base_emma);
+ 		res = pcdev->res_emma;
