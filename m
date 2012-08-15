@@ -1,71 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35086 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751891Ab2HYI4A (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Aug 2012 04:56:00 -0400
-Date: Sat, 25 Aug 2012 11:55:55 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:41546 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754933Ab2HONs0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Aug 2012 09:48:26 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q7FDmP8N012635
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 15 Aug 2012 09:48:25 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC API] Renumber subdev ioctls
-Message-ID: <20120825085555.GN721@valkosipuli.retiisi.org.uk>
-References: <201208201030.30590.hverkuil@xs4all.nl>
- <201208210839.53924.hverkuil@xs4all.nl>
- <20120821104415.GF721@valkosipuli.retiisi.org.uk>
- <201208221052.02338.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201208221052.02338.hverkuil@xs4all.nl>
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 09/12] [media] reorganize the API core items
+Date: Wed, 15 Aug 2012 10:48:17 -0300
+Message-Id: <1345038500-28734-10-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1345038500-28734-1-git-send-email-mchehab@redhat.com>
+References: <502AC079.50902@gmail.com>
+ <1345038500-28734-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Reorganize the API core changes for them to appear closer to
+the items that enable them, and not at the drivers part of
+the menu.
 
-On Wed, Aug 22, 2012 at 10:52:02AM +0200, Hans Verkuil wrote:
-> On Tue August 21 2012 12:44:15 Sakari Ailus wrote:
-> > Hi Hans,
-> > 
-> > On Tue, Aug 21, 2012 at 08:39:53AM +0200, Hans Verkuil wrote:
-...
-> > > Currently I've chosen ioctl numbers that are not used by V4L2 (there are a
-> > > number of 'holes' in the ioctl list).
-> > > 
-> > > If people think it is not worth the effort, then so be it. But if we do want
-> > > to do this, then we can't wait any longer.
-> > 
-> > One option would be to start using a new type for the new IOCTLs but leave
-> > the existing ones as they are. The end result would be less elegant since
-> > the subdev IOCTLs would use two different types but OTOH the V4L2 IOCTLs are
-> > being used on subdevs as-is, too. This would at least prevent future clashes
-> > in IOCTL codes between V4L2 and subdev interfaces.
-> 
-> I don't really like that idea.
-> 
-> I thought that Laurent's proposal of creating SUBDEV aliases of reused V4L2
-> ioctls had merit. That way v4l2-subdev.h would give a nice overview of
-> which V4L2 ioctls are supported by the subdev API. Currently no such overview
-> exists to my knowledge.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/Kconfig           |  6 ++++--
+ drivers/media/v4l2-core/Kconfig | 32 ++++++++++++++++++++++++--------
+ drivers/media/video/Kconfig     | 17 -----------------
+ 3 files changed, 28 insertions(+), 27 deletions(-)
 
-We do --- it's the big switch in v4lw-ioctl.c. If that is to be improved
-that should be done IMO to the official Linux media infrastructure API spec.
-
-> With regards to adding pad fields to the existing control structs: that won't
-> work with queryctrl: the reserved fields are output fields only, there is no
-> requirement that apps have to zero them, so you can't use them to enumerate
-> controls for a particular pad.
-> 
-> A new queryctrl ioctl would have to be created for that. So if we need this
-> functionality, then I believe it is better to combine that with a new
-> queryctrl ioctl.
-
-Ack.
-
-Cheers,
-
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index c6d8658..c9cdc61 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -113,6 +113,8 @@ config VIDEO_V4L2_SUBDEV_API
+ 
+ 	  This API is mostly used by camera interfaces in embedded platforms.
+ 
++source "drivers/media/v4l2-core/Kconfig"
++
+ #
+ # DVB Core
+ #	Only enables if one of DTV is selected
+@@ -138,6 +140,8 @@ config DVB_NET
+ 	  You may want to disable the network support on embedded devices. If
+ 	  unsure say Y.
+ 
++source "drivers/media/dvb-core/Kconfig"
++
+ comment "Media drivers"
+ source "drivers/media/rc/Kconfig"
+ 
+@@ -151,7 +155,6 @@ source "drivers/media/tuners/Kconfig"
+ # Video/Radio/Hybrid adapters
+ #
+ 
+-source "drivers/media/v4l2-core/Kconfig"
+ source "drivers/media/video/Kconfig"
+ 
+ source "drivers/media/radio/Kconfig"
+@@ -160,7 +163,6 @@ source "drivers/media/radio/Kconfig"
+ # DVB adapters
+ #
+ 
+-source "drivers/media/dvb-core/Kconfig"
+ source "drivers/media/pci/Kconfig"
+ source "drivers/media/usb/Kconfig"
+ source "drivers/media/mmc/Kconfig"
+diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
+index 6f53337..05e530c 100644
+--- a/drivers/media/v4l2-core/Kconfig
++++ b/drivers/media/v4l2-core/Kconfig
+@@ -2,27 +2,44 @@
+ # Generic video config states
+ #
+ 
++config VIDEO_ADV_DEBUG
++	bool "Enable advanced debug functionality on V4L2 drivers"
++	default n
++	---help---
++	  Say Y here to enable advanced debugging functionality on some
++	  V4L devices.
++	  In doubt, say N.
++
++config VIDEO_FIXED_MINOR_RANGES
++	bool "Enable old-style fixed minor ranges on drivers/video devices"
++	default n
++	---help---
++	  Say Y here to enable the old-style fixed-range minor assignments.
++	  Only useful if you rely on the old behavior and use mknod instead of udev.
++
++	  When in doubt, say N.
++
+ config VIDEO_V4L2
+ 	tristate
+-	depends on VIDEO_DEV && VIDEO_V4L2_COMMON
++	depends on VIDEO_V4L2_COMMON
+ 	default y
+ 
+ config VIDEOBUF_GEN
+ 	tristate
+ 
+ config VIDEOBUF_DMA_SG
++	tristate
+ 	depends on HAS_DMA
+ 	select VIDEOBUF_GEN
+-	tristate
+ 
+ config VIDEOBUF_VMALLOC
+-	select VIDEOBUF_GEN
+ 	tristate
++	select VIDEOBUF_GEN
+ 
+ config VIDEOBUF_DMA_CONTIG
++	tristate
+ 	depends on HAS_DMA
+ 	select VIDEOBUF_GEN
+-	tristate
+ 
+ config VIDEOBUF_DVB
+ 	tristate
+@@ -43,18 +60,17 @@ config VIDEOBUF2_MEMOPS
+ 	tristate
+ 
+ config VIDEOBUF2_DMA_CONTIG
++	tristate
+ 	select VIDEOBUF2_CORE
+ 	select VIDEOBUF2_MEMOPS
+-	tristate
+ 
+ config VIDEOBUF2_VMALLOC
++	tristate
+ 	select VIDEOBUF2_CORE
+ 	select VIDEOBUF2_MEMOPS
+-	tristate
+ 
+ config VIDEOBUF2_DMA_SG
++	tristate
+ 	#depends on HAS_DMA
+ 	select VIDEOBUF2_CORE
+ 	select VIDEOBUF2_MEMOPS
+-	tristate
+-
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index f9703a0..a7bd9576c 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -26,23 +26,6 @@ menuconfig VIDEO_CAPTURE_DRIVERS
+ 
+ if VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2
+ 
+-config VIDEO_ADV_DEBUG
+-	bool "Enable advanced debug functionality"
+-	default n
+-	---help---
+-	  Say Y here to enable advanced debugging functionality on some
+-	  V4L devices.
+-	  In doubt, say N.
+-
+-config VIDEO_FIXED_MINOR_RANGES
+-	bool "Enable old-style fixed minor ranges for video devices"
+-	default n
+-	---help---
+-	  Say Y here to enable the old-style fixed-range minor assignments.
+-	  Only useful if you rely on the old behavior and use mknod instead of udev.
+-
+-	  When in doubt, say N.
+-
+ config VIDEO_HELPER_CHIPS_AUTO
+ 	bool "Autoselect pertinent encoders/decoders and other helper chips"
+ 	default y if !EXPERT
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+1.7.11.2
+
