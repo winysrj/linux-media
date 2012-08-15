@@ -1,128 +1,1728 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:51699 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757646Ab2HNVOZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 17:14:25 -0400
-Date: Tue, 14 Aug 2012 23:14:18 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Hans Verkuil <hverkuil@xs4all.nl>, workshop-2011@linuxtv.org,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [Workshop-2011] RFC: V4L2 API ambiguities
-In-Reply-To: <1500199.h7o1oFIasO@avalon>
-Message-ID: <Pine.LNX.4.64.1208142255110.8464@axis700.grange>
-References: <201208131427.56961.hverkuil@xs4all.nl> <1961858.59LqqANPqn@avalon>
- <201208141332.43254.hverkuil@xs4all.nl> <1500199.h7o1oFIasO@avalon>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mx1.redhat.com ([209.132.183.28]:60361 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754915Ab2HONsZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Aug 2012 09:48:25 -0400
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q7FDmPqd004115
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 15 Aug 2012 09:48:25 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 00/12] media tree reorganization part 2 (second version)
+Date: Wed, 15 Aug 2012 10:48:08 -0300
+Message-Id: <1345038500-28734-1-git-send-email-mchehab@redhat.com>
+In-Reply-To: <502AC079.50902@gmail.com>
+References: <502AC079.50902@gmail.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 14 Aug 2012, Laurent Pinchart wrote:
 
-> On Tuesday 14 August 2012 13:32:43 Hans Verkuil wrote:
-> > On Tue August 14 2012 13:15:21 Laurent Pinchart wrote:
-> > > On Tuesday 14 August 2012 13:11:49 Hans Verkuil wrote:
-> > > > On Tue August 14 2012 13:06:46 Laurent Pinchart wrote:
-> > > > > On Tuesday 14 August 2012 12:54:34 Hans Verkuil wrote:
-> > > > > > On Tue August 14 2012 01:54:16 Laurent Pinchart wrote:
-> > > > > > > On Monday 13 August 2012 14:27:56 Hans Verkuil wrote:
-> > > > > > > [snip]
-> > > > > > > 
-> > > > > > > > 4) What should a driver return in TRY_FMT/S_FMT if the requested
-> > > > > > > > format is not supported (possible behaviours include returning
-> > > > > > > > the currently selected format or a default format).
-> > > > > > > > 
-> > > > > > > > The spec says this: "Drivers should not return an error code
-> > > > > > > > unless the input is ambiguous", but it does not explain what
-> > > > > > > > constitutes an ambiguous input. Frankly, I can't think of any
-> > > > > > > > and in my opinion TRY/S_FMT should never return an error other
-> > > > > > > > than EINVAL (if the buffer type is unsupported)or EBUSY (for
-> > > > > > > > S_FMT if streaming is in progress).
-> > > > > > > > 
-> > > > > > > > Returning an error for any other reason doesn't help the
-> > > > > > > > application since the app will have no way of knowing what to do
-> > > > > > > > next.
-> > > > > > > 
-> > > > > > > That wasn't my point. Drivers should obviously not return an
-> > > > > > > error. Let's consider the case of a driver supporting YUYV and
-> > > > > > > MJPEG. If the user calls TRY_FMT or S_FMT with the pixel format
-> > > > > > > set to RGB565, should the driver return a hardcoded default format
-> > > > > > > (one of YUYV or MJPEG), or the currently selected format ? In
-> > > > > > > other words, should the pixel format returned by TRY_FMT or S_FMT
-> > > > > > > when the requested pixel format is not valid be a fixed default
-> > > > > > > pixel format, or should it depend on the currently selected pixel
-> > > > > > > format ?
-> > > > > > 
-> > > > > > Actually, in this case I would probably choose a YUYV format that is
-> > > > > > closest to the requested size. If a driver supports both compressed
-> > > > > > and uncompressed formats, then it should only select a compressed
-> > > > > > format if the application explicitly asked for it. Handling
-> > > > > > compressed formats is more complex than uncompressed formats, so
-> > > > > > that seems a sensible rule.
-> > > > > 
-> > > > > That wasn't my point either :-) YUYV/MJPEG was just an example. You
-> > > > > can replace MJPEG with UYVY or NV12 above. What I want to know is
-> > > > > whether TRY_FMT and S_FMT must, when given a non-supported format,
-> > > > > return a fixed supported format or return a supported format that can
-> > > > > depend on the currently selected format.
-> > > > > 
-> > > > > > The next heuristic I would apply is to choose a format that is
-> > > > > > closest to the requested size.
-> > > > > > 
-> > > > > > So I guess my guidelines would be:
-> > > > > > 
-> > > > > > 1) If the pixelformat is not supported, then choose an uncompressed
-> > > > > > format (if possible) instead.
-> > > > > > 2) Next choose a format closest to, but smaller than (if possible)
-> > > > > > the requested size.
-> > > > > > 
-> > > > > > But this would be a guideline only, and in the end it should be up
-> > > > > > to the driver. Just as long TRY/S_FMT always returns a format.
-> > > > 
-> > > > Well, the currently selected format is irrelevant. The user is obviously
-> > > > requesting something else and the driver should attempt to return
-> > > > something that is at least somewhat close to what it requested. If
-> > > > that's impossible, then falling back to some default format is a good
-> > > > choice.
-> > > > 
-> > > > Does that answer the question?
-> > > 
-> > > Yes it does, and I agree with that. Some drivers return the currently
-> > > selected format when a non-supported format is requested. I think the
-> > > spec should be clarified to make it mandatory to return a fixed default
-> > > format independent of the currently selected format, and non-compliant
-> > > drivers should be fixed.
-> >
-> > I don't know whether it should be mandated. In the end it doesn't matter to
-> > the application: that just wants to get some format that is valid.
-> > 
-> > It's a good recommendation for drivers, but I do not think that there is
-> > anything wrong as such with drivers that return the current format.
-> > 
-> > Am I missing something here? Is there any particular advantage of returning
-> > a default fallback format from the point of view of an application?
+Em 14-08-2012 18:17, Sylwester Nawrocki escreveu:> On 08/14/2012 10:55 PM, Mauro Carvalho Chehab wrote:
+>> Ok, it is now everything almost done... there are of course
+>> cleanups that may happen, and there are still some things
+>> to do at drivers/media/platform, but most of the things are
+>> there.
+>>
+>> If there isn't any big problem, I'll be merging them tomorrow.
 > 
-> Mostly consistency. I find returning different results for TRY_FMT calls with 
-> the exact same parameters confusing, both for applications and users.
+> Briefly looking didn't spot any issues. However it could be a bit easier
+> to review if patches were created with -M option to git-format patch,
+> for example patch 05/12 looks much smaller then
 
-We've discussed this issue privately with Laurent before, and my opinion 
-was rather to go with the currently configured format. The advantage of 
-this would be, that situations, when a user has configured some format and 
-then is trying to switch to an unsupported format, and instead the driver 
-switches to a 3rd format, instead of keeping the current one, would be 
-avoided.
+Sorry, forgot the "-M" this time. Resending the series with
+the merge detection enabled.
 
-OTOH, it seems a good idea to whenever possible return the same result in 
-reply to the same request, in this case to TRY_FMT. And it also seems 
-logical to have S_FMT do the same thing as TRY_FMT... So, this argument 
-seems stronger than my original one... Just one request - don't insist on 
-immediate conversion of existing drivers;-)
+Mauro Carvalho Chehab (12):
+  [media] rename most media/video usb drivers to media/usb
+  [media] move the remaining USB drivers to drivers/media/usb
+  [media] bt8xx: move analog TV part to be together with DTV one
+  [media] rename most media/video pci drivers to media/pci
+  [media] move analog PCI saa7146 drivers to its own dir
+  [media] move the remaining PCI devices to drivers/media/pci
+  [media] move parallel port/isa video drivers to
+    drivers/media/parport/
+  [media] mmc/Kconfig: Improve driver name for siano mmc/sdio driver
+  [media] reorganize the API core items
+  [media] move i2c files into drivers/media/i2c
+  [media] move soc_camera i2c drivers into its own dir
+  [media] rename drivers/media/video to platform
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ MAINTAINERS                                        |   24 +-
+ drivers/media/Kconfig                              |   18 +-
+ drivers/media/Makefile                             |    8 +-
+ drivers/media/i2c/Kconfig                          |  570 +++++++++
+ drivers/media/i2c/Makefile                         |   64 +
+ drivers/media/{video => i2c}/adp1653.c             |    2 +-
+ drivers/media/{video => i2c}/adv7170.c             |    0
+ drivers/media/{video => i2c}/adv7175.c             |    0
+ drivers/media/{video => i2c}/adv7180.c             |    0
+ drivers/media/{video => i2c}/adv7183.c             |    0
+ drivers/media/{video => i2c}/adv7183_regs.h        |    0
+ drivers/media/{video => i2c}/adv7343.c             |    0
+ drivers/media/{video => i2c}/adv7343_regs.h        |    0
+ drivers/media/{video => i2c}/adv7393.c             |    0
+ drivers/media/{video => i2c}/adv7393_regs.h        |    0
+ drivers/media/{video => i2c}/ak881x.c              |    0
+ drivers/media/{video => i2c}/aptina-pll.c          |    0
+ drivers/media/{video => i2c}/aptina-pll.h          |    0
+ drivers/media/{video => i2c}/as3645a.c             |    2 +-
+ drivers/media/{video => i2c}/bt819.c               |    0
+ drivers/media/{video => i2c}/bt856.c               |    0
+ drivers/media/{video => i2c}/bt866.c               |    0
+ drivers/media/{video => i2c}/btcx-risc.c           |    0
+ drivers/media/{video => i2c}/btcx-risc.h           |    0
+ drivers/media/{video => i2c}/cs5345.c              |    0
+ drivers/media/{video => i2c}/cs53l32a.c            |    0
+ drivers/media/{video => i2c}/cx2341x.c             |    0
+ drivers/media/{video => i2c}/cx25840/Kconfig       |    0
+ drivers/media/{video => i2c}/cx25840/Makefile      |    2 +-
+ .../media/{video => i2c}/cx25840/cx25840-audio.c   |    0
+ .../media/{video => i2c}/cx25840/cx25840-core.c    |    0
+ .../media/{video => i2c}/cx25840/cx25840-core.h    |    0
+ .../{video => i2c}/cx25840/cx25840-firmware.c      |    0
+ drivers/media/{video => i2c}/cx25840/cx25840-ir.c  |    0
+ drivers/media/{video => i2c}/cx25840/cx25840-vbi.c |    0
+ drivers/media/{video => i2c}/ir-kbd-i2c.c          |    0
+ drivers/media/{video => i2c}/ks0127.c              |    0
+ drivers/media/{video => i2c}/ks0127.h              |    0
+ drivers/media/{video => i2c}/m52790.c              |    0
+ drivers/media/{video => i2c}/m5mols/Kconfig        |    0
+ drivers/media/{video => i2c}/m5mols/Makefile       |    0
+ drivers/media/{video => i2c}/m5mols/m5mols.h       |    0
+ .../media/{video => i2c}/m5mols/m5mols_capture.c   |    0
+ .../media/{video => i2c}/m5mols/m5mols_controls.c  |    0
+ drivers/media/{video => i2c}/m5mols/m5mols_core.c  |    0
+ drivers/media/{video => i2c}/m5mols/m5mols_reg.h   |    0
+ drivers/media/{video => i2c}/msp3400-driver.c      |    0
+ drivers/media/{video => i2c}/msp3400-driver.h      |    0
+ drivers/media/{video => i2c}/msp3400-kthreads.c    |    0
+ drivers/media/{video => i2c}/mt9m032.c             |    0
+ drivers/media/{video => i2c}/mt9p031.c             |    0
+ drivers/media/{video => i2c}/mt9t001.c             |    0
+ drivers/media/{video => i2c}/mt9v011.c             |    0
+ drivers/media/{video => i2c}/mt9v032.c             |    0
+ drivers/media/{video => i2c}/noon010pc30.c         |    0
+ drivers/media/{video => i2c}/ov7670.c              |    0
+ drivers/media/{video => i2c}/s5k6aa.c              |    0
+ drivers/media/{video => i2c}/saa6588.c             |    0
+ drivers/media/{video => i2c}/saa7110.c             |    0
+ drivers/media/{video => i2c}/saa7115.c             |    0
+ drivers/media/{video => i2c}/saa711x_regs.h        |    0
+ drivers/media/{video => i2c}/saa7127.c             |    0
+ drivers/media/{video => i2c}/saa717x.c             |    0
+ drivers/media/{video => i2c}/saa7185.c             |    0
+ drivers/media/{video => i2c}/saa7191.c             |    0
+ drivers/media/{video => i2c}/saa7191.h             |    0
+ drivers/media/{video => i2c}/smiapp-pll.c          |    2 +-
+ drivers/media/{video => i2c}/smiapp-pll.h          |    2 +-
+ drivers/media/{video => i2c}/smiapp/Kconfig        |    0
+ drivers/media/{video => i2c}/smiapp/Makefile       |    2 +-
+ drivers/media/{video => i2c}/smiapp/smiapp-core.c  |    2 +-
+ .../media/{video => i2c}/smiapp/smiapp-limits.c    |    2 +-
+ .../media/{video => i2c}/smiapp/smiapp-limits.h    |    2 +-
+ drivers/media/{video => i2c}/smiapp/smiapp-quirk.c |    2 +-
+ drivers/media/{video => i2c}/smiapp/smiapp-quirk.h |    2 +-
+ .../media/{video => i2c}/smiapp/smiapp-reg-defs.h  |    2 +-
+ drivers/media/{video => i2c}/smiapp/smiapp-reg.h   |    2 +-
+ drivers/media/{video => i2c}/smiapp/smiapp-regs.c  |    2 +-
+ drivers/media/{video => i2c}/smiapp/smiapp-regs.h  |    0
+ drivers/media/{video => i2c}/smiapp/smiapp.h       |    2 +-
+ drivers/media/i2c/soc_camera/Kconfig               |   89 ++
+ drivers/media/i2c/soc_camera/Makefile              |   14 +
+ drivers/media/{video => i2c/soc_camera}/imx074.c   |    0
+ drivers/media/{video => i2c/soc_camera}/mt9m001.c  |    0
+ drivers/media/{video => i2c/soc_camera}/mt9m111.c  |    0
+ drivers/media/{video => i2c/soc_camera}/mt9t031.c  |    0
+ drivers/media/{video => i2c/soc_camera}/mt9t112.c  |    0
+ drivers/media/{video => i2c/soc_camera}/mt9v022.c  |    0
+ drivers/media/{video => i2c/soc_camera}/ov2640.c   |    0
+ drivers/media/{video => i2c/soc_camera}/ov5642.c   |    0
+ drivers/media/{video => i2c/soc_camera}/ov6650.c   |    0
+ drivers/media/{video => i2c/soc_camera}/ov772x.c   |    0
+ drivers/media/{video => i2c/soc_camera}/ov9640.c   |    0
+ drivers/media/{video => i2c/soc_camera}/ov9640.h   |    0
+ drivers/media/{video => i2c/soc_camera}/ov9740.c   |    0
+ .../media/{video => i2c/soc_camera}/rj54n1cb0c.c   |    0
+ .../{video => i2c/soc_camera}/sh_mobile_csi2.c     |    0
+ drivers/media/{video => i2c/soc_camera}/tw9910.c   |    0
+ drivers/media/{video => i2c}/sr030pc30.c           |    0
+ drivers/media/{video => i2c}/tcm825x.c             |    2 +-
+ drivers/media/{video => i2c}/tcm825x.h             |    2 +-
+ drivers/media/{video => i2c}/tda7432.c             |    0
+ drivers/media/{video => i2c}/tda9840.c             |    0
+ drivers/media/{video => i2c}/tea6415c.c            |    0
+ drivers/media/{video => i2c}/tea6415c.h            |    0
+ drivers/media/{video => i2c}/tea6420.c             |    0
+ drivers/media/{video => i2c}/tea6420.h             |    0
+ drivers/media/{video => i2c}/ths7303.c             |    0
+ drivers/media/{video => i2c}/tlv320aic23b.c        |    0
+ drivers/media/{video => i2c}/tvaudio.c             |    0
+ drivers/media/{video => i2c}/tveeprom.c            |    0
+ drivers/media/{video => i2c}/tvp514x.c             |    2 +-
+ drivers/media/{video => i2c}/tvp514x_regs.h        |    2 +-
+ drivers/media/{video => i2c}/tvp5150.c             |    0
+ drivers/media/{video => i2c}/tvp5150_reg.h         |    0
+ drivers/media/{video => i2c}/tvp7002.c             |    0
+ drivers/media/{video => i2c}/tvp7002_reg.h         |    0
+ drivers/media/{video => i2c}/upd64031a.c           |    0
+ drivers/media/{video => i2c}/upd64083.c            |    0
+ drivers/media/{video => i2c}/vp27smpx.c            |    0
+ drivers/media/{video => i2c}/vpx3220.c             |    0
+ drivers/media/{video => i2c}/vs6624.c              |    0
+ drivers/media/{video => i2c}/vs6624_regs.h         |    0
+ drivers/media/{video => i2c}/wm8739.c              |    0
+ drivers/media/{video => i2c}/wm8775.c              |    0
+ drivers/media/mmc/Kconfig                          |    1 +
+ drivers/media/parport/Kconfig                      |   47 +
+ drivers/media/parport/Makefile                     |    4 +
+ drivers/media/{video => parport}/bw-qcam.c         |    0
+ drivers/media/{video => parport}/c-qcam.c          |    0
+ drivers/media/{video => parport}/pms.c             |    0
+ drivers/media/{video => parport}/w9966.c           |    0
+ drivers/media/pci/Kconfig                          |   56 +-
+ drivers/media/pci/Makefile                         |   16 +-
+ drivers/media/pci/bt8xx/Kconfig                    |   23 +-
+ drivers/media/pci/bt8xx/Makefile                   |    7 +-
+ drivers/media/{video => pci}/bt8xx/bt848.h         |    0
+ .../media/{video => pci}/bt8xx/bttv-audio-hook.c   |    0
+ .../media/{video => pci}/bt8xx/bttv-audio-hook.h   |    0
+ drivers/media/{video => pci}/bt8xx/bttv-cards.c    |    0
+ drivers/media/{video => pci}/bt8xx/bttv-driver.c   |    0
+ drivers/media/{video => pci}/bt8xx/bttv-gpio.c     |    0
+ drivers/media/{video => pci}/bt8xx/bttv-i2c.c      |    0
+ drivers/media/{video => pci}/bt8xx/bttv-if.c       |    0
+ drivers/media/{video => pci}/bt8xx/bttv-input.c    |    0
+ drivers/media/{video => pci}/bt8xx/bttv-risc.c     |    0
+ drivers/media/{video => pci}/bt8xx/bttv-vbi.c      |    0
+ drivers/media/{video => pci}/bt8xx/bttv.h          |    0
+ drivers/media/{video => pci}/bt8xx/bttvp.h         |    0
+ drivers/media/{video => pci}/cx18/Kconfig          |    0
+ drivers/media/{video => pci}/cx18/Makefile         |    0
+ drivers/media/{video => pci}/cx18/cx18-alsa-main.c |    0
+ .../media/{video => pci}/cx18/cx18-alsa-mixer.c    |    0
+ .../media/{video => pci}/cx18/cx18-alsa-mixer.h    |    0
+ drivers/media/{video => pci}/cx18/cx18-alsa-pcm.c  |    0
+ drivers/media/{video => pci}/cx18/cx18-alsa-pcm.h  |    0
+ drivers/media/{video => pci}/cx18/cx18-alsa.h      |    0
+ drivers/media/{video => pci}/cx18/cx18-audio.c     |    0
+ drivers/media/{video => pci}/cx18/cx18-audio.h     |    0
+ drivers/media/{video => pci}/cx18/cx18-av-audio.c  |    0
+ drivers/media/{video => pci}/cx18/cx18-av-core.c   |    0
+ drivers/media/{video => pci}/cx18/cx18-av-core.h   |    0
+ .../media/{video => pci}/cx18/cx18-av-firmware.c   |    0
+ drivers/media/{video => pci}/cx18/cx18-av-vbi.c    |    0
+ drivers/media/{video => pci}/cx18/cx18-cards.c     |    0
+ drivers/media/{video => pci}/cx18/cx18-cards.h     |    0
+ drivers/media/{video => pci}/cx18/cx18-controls.c  |    0
+ drivers/media/{video => pci}/cx18/cx18-controls.h  |    0
+ drivers/media/{video => pci}/cx18/cx18-driver.c    |    0
+ drivers/media/{video => pci}/cx18/cx18-driver.h    |    0
+ drivers/media/{video => pci}/cx18/cx18-dvb.c       |    0
+ drivers/media/{video => pci}/cx18/cx18-dvb.h       |    0
+ drivers/media/{video => pci}/cx18/cx18-fileops.c   |    0
+ drivers/media/{video => pci}/cx18/cx18-fileops.h   |    0
+ drivers/media/{video => pci}/cx18/cx18-firmware.c  |    0
+ drivers/media/{video => pci}/cx18/cx18-firmware.h  |    0
+ drivers/media/{video => pci}/cx18/cx18-gpio.c      |    0
+ drivers/media/{video => pci}/cx18/cx18-gpio.h      |    0
+ drivers/media/{video => pci}/cx18/cx18-i2c.c       |    0
+ drivers/media/{video => pci}/cx18/cx18-i2c.h       |    0
+ drivers/media/{video => pci}/cx18/cx18-io.c        |    0
+ drivers/media/{video => pci}/cx18/cx18-io.h        |    0
+ drivers/media/{video => pci}/cx18/cx18-ioctl.c     |    0
+ drivers/media/{video => pci}/cx18/cx18-ioctl.h     |    0
+ drivers/media/{video => pci}/cx18/cx18-irq.c       |    0
+ drivers/media/{video => pci}/cx18/cx18-irq.h       |    0
+ drivers/media/{video => pci}/cx18/cx18-mailbox.c   |    0
+ drivers/media/{video => pci}/cx18/cx18-mailbox.h   |    0
+ drivers/media/{video => pci}/cx18/cx18-queue.c     |    0
+ drivers/media/{video => pci}/cx18/cx18-queue.h     |    0
+ drivers/media/{video => pci}/cx18/cx18-scb.c       |    0
+ drivers/media/{video => pci}/cx18/cx18-scb.h       |    0
+ drivers/media/{video => pci}/cx18/cx18-streams.c   |    0
+ drivers/media/{video => pci}/cx18/cx18-streams.h   |    0
+ drivers/media/{video => pci}/cx18/cx18-vbi.c       |    0
+ drivers/media/{video => pci}/cx18/cx18-vbi.h       |    0
+ drivers/media/{video => pci}/cx18/cx18-version.h   |    0
+ drivers/media/{video => pci}/cx18/cx18-video.c     |    0
+ drivers/media/{video => pci}/cx18/cx18-video.h     |    0
+ drivers/media/{video => pci}/cx18/cx23418.h        |    0
+ drivers/media/{video => pci}/cx23885/Kconfig       |    0
+ drivers/media/{video => pci}/cx23885/Makefile      |    2 +-
+ drivers/media/{video => pci}/cx23885/altera-ci.c   |    0
+ drivers/media/{video => pci}/cx23885/altera-ci.h   |    0
+ drivers/media/{video => pci}/cx23885/cimax2.c      |    0
+ drivers/media/{video => pci}/cx23885/cimax2.h      |    0
+ drivers/media/{video => pci}/cx23885/cx23885-417.c |    0
+ .../media/{video => pci}/cx23885/cx23885-alsa.c    |    0
+ drivers/media/{video => pci}/cx23885/cx23885-av.c  |    0
+ drivers/media/{video => pci}/cx23885/cx23885-av.h  |    0
+ .../media/{video => pci}/cx23885/cx23885-cards.c   |    0
+ .../media/{video => pci}/cx23885/cx23885-core.c    |    0
+ drivers/media/{video => pci}/cx23885/cx23885-dvb.c |    0
+ .../media/{video => pci}/cx23885/cx23885-f300.c    |    0
+ .../media/{video => pci}/cx23885/cx23885-f300.h    |    0
+ drivers/media/{video => pci}/cx23885/cx23885-i2c.c |    0
+ .../media/{video => pci}/cx23885/cx23885-input.c   |    0
+ .../media/{video => pci}/cx23885/cx23885-input.h   |    0
+ .../media/{video => pci}/cx23885/cx23885-ioctl.c   |    0
+ .../media/{video => pci}/cx23885/cx23885-ioctl.h   |    0
+ drivers/media/{video => pci}/cx23885/cx23885-ir.c  |    0
+ drivers/media/{video => pci}/cx23885/cx23885-ir.h  |    0
+ drivers/media/{video => pci}/cx23885/cx23885-reg.h |    0
+ drivers/media/{video => pci}/cx23885/cx23885-vbi.c |    0
+ .../media/{video => pci}/cx23885/cx23885-video.c   |    0
+ drivers/media/{video => pci}/cx23885/cx23885.h     |    0
+ drivers/media/{video => pci}/cx23885/cx23888-ir.c  |    0
+ drivers/media/{video => pci}/cx23885/cx23888-ir.h  |    0
+ .../media/{video => pci}/cx23885/netup-eeprom.c    |    0
+ .../media/{video => pci}/cx23885/netup-eeprom.h    |    0
+ drivers/media/{video => pci}/cx23885/netup-init.c  |    0
+ drivers/media/{video => pci}/cx23885/netup-init.h  |    0
+ drivers/media/{video => pci}/cx25821/Kconfig       |    0
+ drivers/media/{video => pci}/cx25821/Makefile      |    2 +-
+ .../media/{video => pci}/cx25821/cx25821-alsa.c    |    0
+ .../cx25821/cx25821-audio-upstream.c               |    0
+ .../cx25821/cx25821-audio-upstream.h               |    0
+ .../media/{video => pci}/cx25821/cx25821-audio.h   |    0
+ .../{video => pci}/cx25821/cx25821-biffuncs.h      |    0
+ .../media/{video => pci}/cx25821/cx25821-cards.c   |    0
+ .../media/{video => pci}/cx25821/cx25821-core.c    |    0
+ .../media/{video => pci}/cx25821/cx25821-gpio.c    |    0
+ drivers/media/{video => pci}/cx25821/cx25821-i2c.c |    0
+ .../cx25821/cx25821-medusa-defines.h               |    0
+ .../{video => pci}/cx25821/cx25821-medusa-reg.h    |    0
+ .../{video => pci}/cx25821/cx25821-medusa-video.c  |    0
+ .../{video => pci}/cx25821/cx25821-medusa-video.h  |    0
+ drivers/media/{video => pci}/cx25821/cx25821-reg.h |    0
+ .../media/{video => pci}/cx25821/cx25821-sram.h    |    0
+ .../cx25821/cx25821-video-upstream-ch2.c           |    0
+ .../cx25821/cx25821-video-upstream-ch2.h           |    0
+ .../cx25821/cx25821-video-upstream.c               |    0
+ .../cx25821/cx25821-video-upstream.h               |    0
+ .../media/{video => pci}/cx25821/cx25821-video.c   |    0
+ .../media/{video => pci}/cx25821/cx25821-video.h   |    0
+ drivers/media/{video => pci}/cx25821/cx25821.h     |    0
+ drivers/media/{video => pci}/cx88/Kconfig          |    0
+ drivers/media/{video => pci}/cx88/Makefile         |    2 +-
+ drivers/media/{video => pci}/cx88/cx88-alsa.c      |    0
+ drivers/media/{video => pci}/cx88/cx88-blackbird.c |    0
+ drivers/media/{video => pci}/cx88/cx88-cards.c     |    0
+ drivers/media/{video => pci}/cx88/cx88-core.c      |    0
+ drivers/media/{video => pci}/cx88/cx88-dsp.c       |    0
+ drivers/media/{video => pci}/cx88/cx88-dvb.c       |    0
+ drivers/media/{video => pci}/cx88/cx88-i2c.c       |    0
+ drivers/media/{video => pci}/cx88/cx88-input.c     |    0
+ drivers/media/{video => pci}/cx88/cx88-mpeg.c      |    0
+ drivers/media/{video => pci}/cx88/cx88-reg.h       |    0
+ drivers/media/{video => pci}/cx88/cx88-tvaudio.c   |    0
+ drivers/media/{video => pci}/cx88/cx88-vbi.c       |    0
+ drivers/media/{video => pci}/cx88/cx88-video.c     |    0
+ .../media/{video => pci}/cx88/cx88-vp3054-i2c.c    |    0
+ .../media/{video => pci}/cx88/cx88-vp3054-i2c.h    |    0
+ drivers/media/{video => pci}/cx88/cx88.h           |    0
+ drivers/media/{video => pci}/ivtv/Kconfig          |    0
+ drivers/media/{video => pci}/ivtv/Makefile         |    2 +-
+ drivers/media/{video => pci}/ivtv/ivtv-cards.c     |    0
+ drivers/media/{video => pci}/ivtv/ivtv-cards.h     |    0
+ drivers/media/{video => pci}/ivtv/ivtv-controls.c  |    0
+ drivers/media/{video => pci}/ivtv/ivtv-controls.h  |    0
+ drivers/media/{video => pci}/ivtv/ivtv-driver.c    |    0
+ drivers/media/{video => pci}/ivtv/ivtv-driver.h    |    0
+ drivers/media/{video => pci}/ivtv/ivtv-fileops.c   |    0
+ drivers/media/{video => pci}/ivtv/ivtv-fileops.h   |    0
+ drivers/media/{video => pci}/ivtv/ivtv-firmware.c  |    0
+ drivers/media/{video => pci}/ivtv/ivtv-firmware.h  |    0
+ drivers/media/{video => pci}/ivtv/ivtv-gpio.c      |    0
+ drivers/media/{video => pci}/ivtv/ivtv-gpio.h      |    0
+ drivers/media/{video => pci}/ivtv/ivtv-i2c.c       |    0
+ drivers/media/{video => pci}/ivtv/ivtv-i2c.h       |    0
+ drivers/media/{video => pci}/ivtv/ivtv-ioctl.c     |    0
+ drivers/media/{video => pci}/ivtv/ivtv-ioctl.h     |    0
+ drivers/media/{video => pci}/ivtv/ivtv-irq.c       |    0
+ drivers/media/{video => pci}/ivtv/ivtv-irq.h       |    0
+ drivers/media/{video => pci}/ivtv/ivtv-mailbox.c   |    0
+ drivers/media/{video => pci}/ivtv/ivtv-mailbox.h   |    0
+ drivers/media/{video => pci}/ivtv/ivtv-queue.c     |    0
+ drivers/media/{video => pci}/ivtv/ivtv-queue.h     |    0
+ drivers/media/{video => pci}/ivtv/ivtv-routing.c   |    0
+ drivers/media/{video => pci}/ivtv/ivtv-routing.h   |    0
+ drivers/media/{video => pci}/ivtv/ivtv-streams.c   |    0
+ drivers/media/{video => pci}/ivtv/ivtv-streams.h   |    0
+ drivers/media/{video => pci}/ivtv/ivtv-udma.c      |    0
+ drivers/media/{video => pci}/ivtv/ivtv-udma.h      |    0
+ drivers/media/{video => pci}/ivtv/ivtv-vbi.c       |    0
+ drivers/media/{video => pci}/ivtv/ivtv-vbi.h       |    0
+ drivers/media/{video => pci}/ivtv/ivtv-version.h   |    0
+ drivers/media/{video => pci}/ivtv/ivtv-yuv.c       |    0
+ drivers/media/{video => pci}/ivtv/ivtv-yuv.h       |    0
+ drivers/media/{video => pci}/ivtv/ivtvfb.c         |    0
+ drivers/media/pci/meye/Kconfig                     |   13 +
+ drivers/media/pci/meye/Makefile                    |    1 +
+ drivers/media/{video => pci/meye}/meye.c           |    0
+ drivers/media/{video => pci/meye}/meye.h           |    0
+ drivers/media/{video => pci}/saa7134/Kconfig       |    0
+ drivers/media/{video => pci}/saa7134/Makefile      |    2 +-
+ drivers/media/{video => pci}/saa7134/saa6752hs.c   |    0
+ .../media/{video => pci}/saa7134/saa7134-alsa.c    |    0
+ .../media/{video => pci}/saa7134/saa7134-cards.c   |    0
+ .../media/{video => pci}/saa7134/saa7134-core.c    |    0
+ drivers/media/{video => pci}/saa7134/saa7134-dvb.c |    0
+ .../media/{video => pci}/saa7134/saa7134-empress.c |    0
+ drivers/media/{video => pci}/saa7134/saa7134-i2c.c |    0
+ .../media/{video => pci}/saa7134/saa7134-input.c   |    0
+ drivers/media/{video => pci}/saa7134/saa7134-reg.h |    0
+ drivers/media/{video => pci}/saa7134/saa7134-ts.c  |    0
+ .../media/{video => pci}/saa7134/saa7134-tvaudio.c |    0
+ drivers/media/{video => pci}/saa7134/saa7134-vbi.c |    0
+ .../media/{video => pci}/saa7134/saa7134-video.c   |    0
+ drivers/media/{video => pci}/saa7134/saa7134.h     |    0
+ drivers/media/pci/saa7146/Kconfig                  |   38 +
+ drivers/media/pci/saa7146/Makefile                 |    5 +
+ .../media/{video => pci/saa7146}/hexium_gemini.c   |    0
+ .../media/{video => pci/saa7146}/hexium_orion.c    |    0
+ drivers/media/{video => pci/saa7146}/mxb.c         |    0
+ drivers/media/{video => pci}/saa7164/Kconfig       |    0
+ drivers/media/{video => pci}/saa7164/Makefile      |    2 +-
+ drivers/media/{video => pci}/saa7164/saa7164-api.c |    0
+ .../media/{video => pci}/saa7164/saa7164-buffer.c  |    0
+ drivers/media/{video => pci}/saa7164/saa7164-bus.c |    0
+ .../media/{video => pci}/saa7164/saa7164-cards.c   |    0
+ drivers/media/{video => pci}/saa7164/saa7164-cmd.c |    0
+ .../media/{video => pci}/saa7164/saa7164-core.c    |    0
+ drivers/media/{video => pci}/saa7164/saa7164-dvb.c |    0
+ .../media/{video => pci}/saa7164/saa7164-encoder.c |    0
+ drivers/media/{video => pci}/saa7164/saa7164-fw.c  |    0
+ drivers/media/{video => pci}/saa7164/saa7164-i2c.c |    0
+ drivers/media/{video => pci}/saa7164/saa7164-reg.h |    0
+ .../media/{video => pci}/saa7164/saa7164-types.h   |    0
+ drivers/media/{video => pci}/saa7164/saa7164-vbi.c |    0
+ drivers/media/{video => pci}/saa7164/saa7164.h     |    0
+ drivers/media/pci/sta2x11/Kconfig                  |   12 +
+ drivers/media/pci/sta2x11/Makefile                 |    1 +
+ drivers/media/{video => pci/sta2x11}/sta2x11_vip.c |    0
+ drivers/media/{video => pci/sta2x11}/sta2x11_vip.h |    0
+ drivers/media/{video => pci}/zoran/Kconfig         |    0
+ drivers/media/{video => pci}/zoran/Makefile        |    0
+ drivers/media/{video => pci}/zoran/videocodec.c    |    0
+ drivers/media/{video => pci}/zoran/videocodec.h    |    0
+ drivers/media/{video => pci}/zoran/zoran.h         |    0
+ drivers/media/{video => pci}/zoran/zoran_card.c    |    0
+ drivers/media/{video => pci}/zoran/zoran_card.h    |    0
+ drivers/media/{video => pci}/zoran/zoran_device.c  |    0
+ drivers/media/{video => pci}/zoran/zoran_device.h  |    0
+ drivers/media/{video => pci}/zoran/zoran_driver.c  |    0
+ drivers/media/{video => pci}/zoran/zoran_procfs.c  |    0
+ drivers/media/{video => pci}/zoran/zoran_procfs.h  |    0
+ drivers/media/{video => pci}/zoran/zr36016.c       |    0
+ drivers/media/{video => pci}/zoran/zr36016.h       |    0
+ drivers/media/{video => pci}/zoran/zr36050.c       |    0
+ drivers/media/{video => pci}/zoran/zr36050.h       |    0
+ drivers/media/{video => pci}/zoran/zr36057.h       |    0
+ drivers/media/{video => pci}/zoran/zr36060.c       |    0
+ drivers/media/{video => pci}/zoran/zr36060.h       |    0
+ drivers/media/platform/Kconfig                     |  297 +++++
+ drivers/media/platform/Makefile                    |   66 ++
+ drivers/media/{video => platform}/arv.c            |    0
+ drivers/media/{video => platform}/atmel-isi.c      |    0
+ drivers/media/{video => platform}/blackfin/Kconfig |    0
+ .../media/{video => platform}/blackfin/Makefile    |    0
+ .../{video => platform}/blackfin/bfin_capture.c    |    0
+ drivers/media/{video => platform}/blackfin/ppi.c   |    0
+ drivers/media/{video => platform}/coda.c           |    0
+ drivers/media/{video => platform}/coda.h           |    2 +-
+ drivers/media/{video => platform}/davinci/Kconfig  |    0
+ drivers/media/{video => platform}/davinci/Makefile |    0
+ .../{video => platform}/davinci/ccdc_hw_device.h   |    0
+ .../media/{video => platform}/davinci/dm355_ccdc.c |    0
+ .../{video => platform}/davinci/dm355_ccdc_regs.h  |    0
+ .../{video => platform}/davinci/dm644x_ccdc.c      |    0
+ .../{video => platform}/davinci/dm644x_ccdc_regs.h |    0
+ drivers/media/{video => platform}/davinci/isif.c   |    0
+ .../media/{video => platform}/davinci/isif_regs.h  |    0
+ drivers/media/{video => platform}/davinci/vpbe.c   |    0
+ .../{video => platform}/davinci/vpbe_display.c     |    0
+ .../media/{video => platform}/davinci/vpbe_osd.c   |    0
+ .../{video => platform}/davinci/vpbe_osd_regs.h    |    0
+ .../media/{video => platform}/davinci/vpbe_venc.c  |    0
+ .../{video => platform}/davinci/vpbe_venc_regs.h   |    0
+ .../{video => platform}/davinci/vpfe_capture.c     |    0
+ drivers/media/{video => platform}/davinci/vpif.c   |    0
+ drivers/media/{video => platform}/davinci/vpif.h   |    0
+ .../{video => platform}/davinci/vpif_capture.c     |    0
+ .../{video => platform}/davinci/vpif_capture.h     |    0
+ .../{video => platform}/davinci/vpif_display.c     |    0
+ .../{video => platform}/davinci/vpif_display.h     |    0
+ drivers/media/{video => platform}/davinci/vpss.c   |    0
+ drivers/media/{video => platform}/fsl-viu.c        |    0
+ drivers/media/{video => platform}/indycam.c        |    0
+ drivers/media/{video => platform}/indycam.h        |    0
+ .../media/{video => platform}/m2m-deinterlace.c    |    0
+ .../media/{video => platform}/marvell-ccic/Kconfig |    0
+ .../{video => platform}/marvell-ccic/Makefile      |    0
+ .../{video => platform}/marvell-ccic/cafe-driver.c |    0
+ .../{video => platform}/marvell-ccic/mcam-core.c   |    0
+ .../{video => platform}/marvell-ccic/mcam-core.h   |    0
+ .../{video => platform}/marvell-ccic/mmp-driver.c  |    0
+ .../media/{video => platform}/mem2mem_testdev.c    |    0
+ drivers/media/{video => platform}/mx1_camera.c     |    0
+ drivers/media/{video => platform}/mx2_camera.c     |    0
+ drivers/media/{video => platform}/mx2_emmaprp.c    |    0
+ drivers/media/{video => platform}/mx3_camera.c     |    0
+ drivers/media/{video => platform}/omap/Kconfig     |    0
+ drivers/media/{video => platform}/omap/Makefile    |    0
+ drivers/media/{video => platform}/omap/omap_vout.c |    0
+ .../{video => platform}/omap/omap_vout_vrfb.c      |    0
+ .../{video => platform}/omap/omap_vout_vrfb.h      |    0
+ .../media/{video => platform}/omap/omap_voutdef.h  |    0
+ .../media/{video => platform}/omap/omap_voutlib.c  |    0
+ .../media/{video => platform}/omap/omap_voutlib.h  |    0
+ drivers/media/{video => platform}/omap1_camera.c   |    2 +-
+ .../media/{video => platform}/omap24xxcam-dma.c    |    2 +-
+ drivers/media/{video => platform}/omap24xxcam.c    |    2 +-
+ drivers/media/{video => platform}/omap24xxcam.h    |    2 +-
+ .../media/{video => platform}/omap3isp/Makefile    |    0
+ .../{video => platform}/omap3isp/cfa_coef_table.h  |    0
+ .../{video => platform}/omap3isp/gamma_table.h     |    0
+ drivers/media/{video => platform}/omap3isp/isp.c   |    0
+ drivers/media/{video => platform}/omap3isp/isp.h   |    0
+ .../media/{video => platform}/omap3isp/ispccdc.c   |    0
+ .../media/{video => platform}/omap3isp/ispccdc.h   |    0
+ .../media/{video => platform}/omap3isp/ispccp2.c   |    0
+ .../media/{video => platform}/omap3isp/ispccp2.h   |    0
+ .../media/{video => platform}/omap3isp/ispcsi2.c   |    0
+ .../media/{video => platform}/omap3isp/ispcsi2.h   |    0
+ .../media/{video => platform}/omap3isp/ispcsiphy.c |    0
+ .../media/{video => platform}/omap3isp/ispcsiphy.h |    0
+ .../media/{video => platform}/omap3isp/isph3a.h    |    0
+ .../{video => platform}/omap3isp/isph3a_aewb.c     |    0
+ .../media/{video => platform}/omap3isp/isph3a_af.c |    0
+ .../media/{video => platform}/omap3isp/isphist.c   |    0
+ .../media/{video => platform}/omap3isp/isphist.h   |    0
+ .../{video => platform}/omap3isp/isppreview.c      |    0
+ .../{video => platform}/omap3isp/isppreview.h      |    0
+ .../media/{video => platform}/omap3isp/ispqueue.c  |    0
+ .../media/{video => platform}/omap3isp/ispqueue.h  |    0
+ .../media/{video => platform}/omap3isp/ispreg.h    |    0
+ .../{video => platform}/omap3isp/ispresizer.c      |    0
+ .../{video => platform}/omap3isp/ispresizer.h      |    0
+ .../media/{video => platform}/omap3isp/ispstat.c   |    0
+ .../media/{video => platform}/omap3isp/ispstat.h   |    0
+ .../media/{video => platform}/omap3isp/ispvideo.c  |    0
+ .../media/{video => platform}/omap3isp/ispvideo.h  |    0
+ .../omap3isp/luma_enhance_table.h                  |    0
+ .../omap3isp/noise_filter_table.h                  |    0
+ drivers/media/{video => platform}/pxa_camera.c     |    0
+ drivers/media/{video => platform}/s5p-fimc/Kconfig |    0
+ .../media/{video => platform}/s5p-fimc/Makefile    |    0
+ .../{video => platform}/s5p-fimc/fimc-capture.c    |    0
+ .../media/{video => platform}/s5p-fimc/fimc-core.c |    0
+ .../media/{video => platform}/s5p-fimc/fimc-core.h |    0
+ .../{video => platform}/s5p-fimc/fimc-lite-reg.c   |    0
+ .../{video => platform}/s5p-fimc/fimc-lite-reg.h   |    0
+ .../media/{video => platform}/s5p-fimc/fimc-lite.c |    0
+ .../media/{video => platform}/s5p-fimc/fimc-lite.h |    0
+ .../media/{video => platform}/s5p-fimc/fimc-m2m.c  |    0
+ .../{video => platform}/s5p-fimc/fimc-mdevice.c    |    0
+ .../{video => platform}/s5p-fimc/fimc-mdevice.h    |    0
+ .../media/{video => platform}/s5p-fimc/fimc-reg.c  |    0
+ .../media/{video => platform}/s5p-fimc/fimc-reg.h  |    0
+ .../media/{video => platform}/s5p-fimc/mipi-csis.c |    0
+ .../media/{video => platform}/s5p-fimc/mipi-csis.h |    0
+ drivers/media/{video => platform}/s5p-g2d/Makefile |    0
+ drivers/media/{video => platform}/s5p-g2d/g2d-hw.c |    0
+ .../media/{video => platform}/s5p-g2d/g2d-regs.h   |    0
+ drivers/media/{video => platform}/s5p-g2d/g2d.c    |    0
+ drivers/media/{video => platform}/s5p-g2d/g2d.h    |    0
+ .../media/{video => platform}/s5p-jpeg/Makefile    |    0
+ .../media/{video => platform}/s5p-jpeg/jpeg-core.c |    2 +-
+ .../media/{video => platform}/s5p-jpeg/jpeg-core.h |    2 +-
+ .../media/{video => platform}/s5p-jpeg/jpeg-hw.h   |    2 +-
+ .../media/{video => platform}/s5p-jpeg/jpeg-regs.h |    2 +-
+ drivers/media/{video => platform}/s5p-mfc/Makefile |    0
+ .../media/{video => platform}/s5p-mfc/regs-mfc.h   |    0
+ .../media/{video => platform}/s5p-mfc/s5p_mfc.c    |    0
+ .../{video => platform}/s5p-mfc/s5p_mfc_cmd.c      |    2 +-
+ .../{video => platform}/s5p-mfc/s5p_mfc_cmd.h      |    2 +-
+ .../{video => platform}/s5p-mfc/s5p_mfc_common.h   |    0
+ .../{video => platform}/s5p-mfc/s5p_mfc_ctrl.c     |    2 +-
+ .../{video => platform}/s5p-mfc/s5p_mfc_ctrl.h     |    2 +-
+ .../{video => platform}/s5p-mfc/s5p_mfc_debug.h    |    2 +-
+ .../{video => platform}/s5p-mfc/s5p_mfc_dec.c      |    2 +-
+ .../{video => platform}/s5p-mfc/s5p_mfc_dec.h      |    2 +-
+ .../{video => platform}/s5p-mfc/s5p_mfc_enc.c      |    2 +-
+ .../{video => platform}/s5p-mfc/s5p_mfc_enc.h      |    2 +-
+ .../{video => platform}/s5p-mfc/s5p_mfc_intr.c     |    2 +-
+ .../{video => platform}/s5p-mfc/s5p_mfc_intr.h     |    2 +-
+ .../{video => platform}/s5p-mfc/s5p_mfc_opr.c      |    2 +-
+ .../{video => platform}/s5p-mfc/s5p_mfc_opr.h      |    2 +-
+ .../media/{video => platform}/s5p-mfc/s5p_mfc_pm.c |    2 +-
+ .../media/{video => platform}/s5p-mfc/s5p_mfc_pm.h |    2 +-
+ .../{video => platform}/s5p-mfc/s5p_mfc_shm.c      |    2 +-
+ .../{video => platform}/s5p-mfc/s5p_mfc_shm.h      |    2 +-
+ drivers/media/{video => platform}/s5p-tv/Kconfig   |    2 +-
+ drivers/media/{video => platform}/s5p-tv/Makefile  |    2 +-
+ .../media/{video => platform}/s5p-tv/hdmi_drv.c    |    0
+ .../media/{video => platform}/s5p-tv/hdmiphy_drv.c |    0
+ drivers/media/{video => platform}/s5p-tv/mixer.h   |    0
+ .../media/{video => platform}/s5p-tv/mixer_drv.c   |    0
+ .../{video => platform}/s5p-tv/mixer_grp_layer.c   |    0
+ .../media/{video => platform}/s5p-tv/mixer_reg.c   |    0
+ .../media/{video => platform}/s5p-tv/mixer_video.c |    0
+ .../{video => platform}/s5p-tv/mixer_vp_layer.c    |    0
+ .../media/{video => platform}/s5p-tv/regs-hdmi.h   |    0
+ .../media/{video => platform}/s5p-tv/regs-mixer.h  |    0
+ .../media/{video => platform}/s5p-tv/regs-sdo.h    |    2 +-
+ drivers/media/{video => platform}/s5p-tv/regs-vp.h |    0
+ drivers/media/{video => platform}/s5p-tv/sdo_drv.c |    0
+ .../media/{video => platform}/s5p-tv/sii9234_drv.c |    0
+ .../{video => platform}/sh_mobile_ceu_camera.c     |    0
+ drivers/media/{video => platform}/sh_vou.c         |    0
+ drivers/media/{video => platform}/soc_camera.c     |    0
+ .../{video => platform}/soc_camera_platform.c      |    0
+ drivers/media/{video => platform}/soc_mediabus.c   |    0
+ drivers/media/{video => platform}/timblogiw.c      |    0
+ drivers/media/{video => platform}/via-camera.c     |    0
+ drivers/media/{video => platform}/via-camera.h     |    0
+ drivers/media/{video => platform}/vino.c           |    0
+ drivers/media/{video => platform}/vino.h           |    0
+ drivers/media/{video => platform}/vivi.c           |    0
+ drivers/media/usb/Kconfig                          |   44 +-
+ drivers/media/usb/Makefile                         |   16 +
+ drivers/media/{video => usb}/au0828/Kconfig        |    0
+ drivers/media/{video => usb}/au0828/Makefile       |    0
+ drivers/media/{video => usb}/au0828/au0828-cards.c |    0
+ drivers/media/{video => usb}/au0828/au0828-cards.h |    0
+ drivers/media/{video => usb}/au0828/au0828-core.c  |    0
+ drivers/media/{video => usb}/au0828/au0828-dvb.c   |    0
+ drivers/media/{video => usb}/au0828/au0828-i2c.c   |    0
+ drivers/media/{video => usb}/au0828/au0828-reg.h   |    0
+ drivers/media/{video => usb}/au0828/au0828-vbi.c   |    0
+ drivers/media/{video => usb}/au0828/au0828-video.c |    0
+ drivers/media/{video => usb}/au0828/au0828.h       |    0
+ drivers/media/{video => usb}/cpia2/Kconfig         |    0
+ drivers/media/{video => usb}/cpia2/Makefile        |    0
+ drivers/media/{video => usb}/cpia2/cpia2.h         |    0
+ drivers/media/{video => usb}/cpia2/cpia2_core.c    |    0
+ .../media/{video => usb}/cpia2/cpia2_registers.h   |    0
+ drivers/media/{video => usb}/cpia2/cpia2_usb.c     |    0
+ drivers/media/{video => usb}/cpia2/cpia2_v4l.c     |    0
+ drivers/media/{video => usb}/cx231xx/Kconfig       |    0
+ drivers/media/{video => usb}/cx231xx/Makefile      |    2 +-
+ drivers/media/{video => usb}/cx231xx/cx231xx-417.c |    0
+ .../media/{video => usb}/cx231xx/cx231xx-audio.c   |    0
+ .../media/{video => usb}/cx231xx/cx231xx-avcore.c  |    0
+ .../media/{video => usb}/cx231xx/cx231xx-cards.c   |    0
+ .../{video => usb}/cx231xx/cx231xx-conf-reg.h      |    0
+ .../media/{video => usb}/cx231xx/cx231xx-core.c    |    0
+ drivers/media/{video => usb}/cx231xx/cx231xx-dif.h |    0
+ drivers/media/{video => usb}/cx231xx/cx231xx-dvb.c |    0
+ drivers/media/{video => usb}/cx231xx/cx231xx-i2c.c |    0
+ .../media/{video => usb}/cx231xx/cx231xx-input.c   |    0
+ .../media/{video => usb}/cx231xx/cx231xx-pcb-cfg.c |    0
+ .../media/{video => usb}/cx231xx/cx231xx-pcb-cfg.h |    0
+ drivers/media/{video => usb}/cx231xx/cx231xx-reg.h |    0
+ drivers/media/{video => usb}/cx231xx/cx231xx-vbi.c |    0
+ drivers/media/{video => usb}/cx231xx/cx231xx-vbi.h |    0
+ .../media/{video => usb}/cx231xx/cx231xx-video.c   |    0
+ drivers/media/{video => usb}/cx231xx/cx231xx.h     |    0
+ drivers/media/{video => usb}/em28xx/Kconfig        |    0
+ drivers/media/{video => usb}/em28xx/Makefile       |    2 +-
+ drivers/media/{video => usb}/em28xx/em28xx-audio.c |    0
+ drivers/media/{video => usb}/em28xx/em28xx-cards.c |    0
+ drivers/media/{video => usb}/em28xx/em28xx-core.c  |    0
+ drivers/media/{video => usb}/em28xx/em28xx-dvb.c   |    0
+ drivers/media/{video => usb}/em28xx/em28xx-i2c.c   |    0
+ drivers/media/{video => usb}/em28xx/em28xx-input.c |    0
+ drivers/media/{video => usb}/em28xx/em28xx-reg.h   |    0
+ drivers/media/{video => usb}/em28xx/em28xx-vbi.c   |    0
+ drivers/media/{video => usb}/em28xx/em28xx-video.c |    0
+ drivers/media/{video => usb}/em28xx/em28xx.h       |    0
+ drivers/media/{video => usb}/gspca/Kconfig         |    6 +-
+ drivers/media/{video => usb}/gspca/Makefile        |    0
+ .../{video => usb}/gspca/autogain_functions.c      |    0
+ .../{video => usb}/gspca/autogain_functions.h      |    0
+ drivers/media/{video => usb}/gspca/benq.c          |    0
+ drivers/media/{video => usb}/gspca/conex.c         |    0
+ drivers/media/{video => usb}/gspca/cpia1.c         |    0
+ drivers/media/{video => usb}/gspca/etoms.c         |    0
+ drivers/media/{video => usb}/gspca/finepix.c       |    0
+ drivers/media/{video => usb}/gspca/gl860/Kconfig   |    0
+ drivers/media/{video => usb}/gspca/gl860/Makefile  |    2 +-
+ .../{video => usb}/gspca/gl860/gl860-mi1320.c      |    0
+ .../{video => usb}/gspca/gl860/gl860-mi2020.c      |    0
+ .../{video => usb}/gspca/gl860/gl860-ov2640.c      |    0
+ .../{video => usb}/gspca/gl860/gl860-ov9655.c      |    0
+ drivers/media/{video => usb}/gspca/gl860/gl860.c   |    0
+ drivers/media/{video => usb}/gspca/gl860/gl860.h   |    0
+ drivers/media/{video => usb}/gspca/gspca.c         |    0
+ drivers/media/{video => usb}/gspca/gspca.h         |    0
+ drivers/media/{video => usb}/gspca/jeilinj.c       |    0
+ drivers/media/{video => usb}/gspca/jl2005bcd.c     |    0
+ drivers/media/{video => usb}/gspca/jpeg.h          |    0
+ drivers/media/{video => usb}/gspca/kinect.c        |    0
+ drivers/media/{video => usb}/gspca/konica.c        |    0
+ drivers/media/{video => usb}/gspca/m5602/Kconfig   |    0
+ drivers/media/{video => usb}/gspca/m5602/Makefile  |    2 +-
+ .../{video => usb}/gspca/m5602/m5602_bridge.h      |    0
+ .../media/{video => usb}/gspca/m5602/m5602_core.c  |    0
+ .../{video => usb}/gspca/m5602/m5602_mt9m111.c     |    0
+ .../{video => usb}/gspca/m5602/m5602_mt9m111.h     |    0
+ .../{video => usb}/gspca/m5602/m5602_ov7660.c      |    0
+ .../{video => usb}/gspca/m5602/m5602_ov7660.h      |    0
+ .../{video => usb}/gspca/m5602/m5602_ov9650.c      |    0
+ .../{video => usb}/gspca/m5602/m5602_ov9650.h      |    0
+ .../{video => usb}/gspca/m5602/m5602_po1030.c      |    0
+ .../{video => usb}/gspca/m5602/m5602_po1030.h      |    0
+ .../{video => usb}/gspca/m5602/m5602_s5k4aa.c      |    0
+ .../{video => usb}/gspca/m5602/m5602_s5k4aa.h      |    0
+ .../{video => usb}/gspca/m5602/m5602_s5k83a.c      |    0
+ .../{video => usb}/gspca/m5602/m5602_s5k83a.h      |    0
+ .../{video => usb}/gspca/m5602/m5602_sensor.h      |    0
+ drivers/media/{video => usb}/gspca/mars.c          |    0
+ drivers/media/{video => usb}/gspca/mr97310a.c      |    0
+ drivers/media/{video => usb}/gspca/nw80x.c         |    0
+ drivers/media/{video => usb}/gspca/ov519.c         |    0
+ drivers/media/{video => usb}/gspca/ov534.c         |    0
+ drivers/media/{video => usb}/gspca/ov534_9.c       |    0
+ drivers/media/{video => usb}/gspca/pac207.c        |    0
+ drivers/media/{video => usb}/gspca/pac7302.c       |    0
+ drivers/media/{video => usb}/gspca/pac7311.c       |    0
+ drivers/media/{video => usb}/gspca/pac_common.h    |    0
+ drivers/media/{video => usb}/gspca/se401.c         |    0
+ drivers/media/{video => usb}/gspca/se401.h         |    0
+ drivers/media/{video => usb}/gspca/sn9c2028.c      |    0
+ drivers/media/{video => usb}/gspca/sn9c2028.h      |    0
+ drivers/media/{video => usb}/gspca/sn9c20x.c       |    0
+ drivers/media/{video => usb}/gspca/sonixb.c        |    0
+ drivers/media/{video => usb}/gspca/sonixj.c        |    0
+ drivers/media/{video => usb}/gspca/spca1528.c      |    0
+ drivers/media/{video => usb}/gspca/spca500.c       |    0
+ drivers/media/{video => usb}/gspca/spca501.c       |    0
+ drivers/media/{video => usb}/gspca/spca505.c       |    0
+ drivers/media/{video => usb}/gspca/spca506.c       |    0
+ drivers/media/{video => usb}/gspca/spca508.c       |    0
+ drivers/media/{video => usb}/gspca/spca561.c       |    0
+ drivers/media/{video => usb}/gspca/sq905.c         |    0
+ drivers/media/{video => usb}/gspca/sq905c.c        |    0
+ drivers/media/{video => usb}/gspca/sq930x.c        |    0
+ drivers/media/{video => usb}/gspca/stk014.c        |    0
+ drivers/media/{video => usb}/gspca/stv0680.c       |    0
+ drivers/media/{video => usb}/gspca/stv06xx/Kconfig |    0
+ .../media/{video => usb}/gspca/stv06xx/Makefile    |    2 +-
+ .../media/{video => usb}/gspca/stv06xx/stv06xx.c   |    0
+ .../media/{video => usb}/gspca/stv06xx/stv06xx.h   |    0
+ .../{video => usb}/gspca/stv06xx/stv06xx_hdcs.c    |    0
+ .../{video => usb}/gspca/stv06xx/stv06xx_hdcs.h    |    0
+ .../{video => usb}/gspca/stv06xx/stv06xx_pb0100.c  |    0
+ .../{video => usb}/gspca/stv06xx/stv06xx_pb0100.h  |    0
+ .../{video => usb}/gspca/stv06xx/stv06xx_sensor.h  |    0
+ .../{video => usb}/gspca/stv06xx/stv06xx_st6422.c  |    0
+ .../{video => usb}/gspca/stv06xx/stv06xx_st6422.h  |    0
+ .../{video => usb}/gspca/stv06xx/stv06xx_vv6410.c  |    0
+ .../{video => usb}/gspca/stv06xx/stv06xx_vv6410.h  |    0
+ drivers/media/{video => usb}/gspca/sunplus.c       |    0
+ drivers/media/{video => usb}/gspca/t613.c          |    0
+ drivers/media/{video => usb}/gspca/topro.c         |    0
+ drivers/media/{video => usb}/gspca/tv8532.c        |    0
+ drivers/media/{video => usb}/gspca/vc032x.c        |    0
+ drivers/media/{video => usb}/gspca/vicam.c         |    0
+ drivers/media/{video => usb}/gspca/w996Xcf.c       |    0
+ drivers/media/{video => usb}/gspca/xirlink_cit.c   |    0
+ drivers/media/{video => usb}/gspca/zc3xx-reg.h     |    0
+ drivers/media/{video => usb}/gspca/zc3xx.c         |    0
+ drivers/media/{video => usb}/hdpvr/Kconfig         |    0
+ drivers/media/{video => usb}/hdpvr/Makefile        |    2 +-
+ drivers/media/{video => usb}/hdpvr/hdpvr-control.c |    0
+ drivers/media/{video => usb}/hdpvr/hdpvr-core.c    |    0
+ drivers/media/{video => usb}/hdpvr/hdpvr-i2c.c     |    0
+ drivers/media/{video => usb}/hdpvr/hdpvr-video.c   |    0
+ drivers/media/{video => usb}/hdpvr/hdpvr.h         |    0
+ drivers/media/{video => usb}/pvrusb2/Kconfig       |    0
+ drivers/media/{video => usb}/pvrusb2/Makefile      |    2 +-
+ .../media/{video => usb}/pvrusb2/pvrusb2-audio.c   |    0
+ .../media/{video => usb}/pvrusb2/pvrusb2-audio.h   |    0
+ .../media/{video => usb}/pvrusb2/pvrusb2-context.c |    0
+ .../media/{video => usb}/pvrusb2/pvrusb2-context.h |    0
+ .../{video => usb}/pvrusb2/pvrusb2-cs53l32a.c      |    0
+ .../{video => usb}/pvrusb2/pvrusb2-cs53l32a.h      |    0
+ .../media/{video => usb}/pvrusb2/pvrusb2-ctrl.c    |    0
+ .../media/{video => usb}/pvrusb2/pvrusb2-ctrl.h    |    0
+ .../{video => usb}/pvrusb2/pvrusb2-cx2584x-v4l.c   |    0
+ .../{video => usb}/pvrusb2/pvrusb2-cx2584x-v4l.h   |    0
+ .../media/{video => usb}/pvrusb2/pvrusb2-debug.h   |    0
+ .../{video => usb}/pvrusb2/pvrusb2-debugifc.c      |    0
+ .../{video => usb}/pvrusb2/pvrusb2-debugifc.h      |    0
+ .../media/{video => usb}/pvrusb2/pvrusb2-devattr.c |    0
+ .../media/{video => usb}/pvrusb2/pvrusb2-devattr.h |    0
+ drivers/media/{video => usb}/pvrusb2/pvrusb2-dvb.c |    0
+ drivers/media/{video => usb}/pvrusb2/pvrusb2-dvb.h |    0
+ .../media/{video => usb}/pvrusb2/pvrusb2-eeprom.c  |    0
+ .../media/{video => usb}/pvrusb2/pvrusb2-eeprom.h  |    0
+ .../media/{video => usb}/pvrusb2/pvrusb2-encoder.c |    0
+ .../media/{video => usb}/pvrusb2/pvrusb2-encoder.h |    0
+ .../media/{video => usb}/pvrusb2/pvrusb2-fx2-cmd.h |    0
+ .../{video => usb}/pvrusb2/pvrusb2-hdw-internal.h  |    0
+ drivers/media/{video => usb}/pvrusb2/pvrusb2-hdw.c |    0
+ drivers/media/{video => usb}/pvrusb2/pvrusb2-hdw.h |    0
+ .../{video => usb}/pvrusb2/pvrusb2-i2c-core.c      |    0
+ .../{video => usb}/pvrusb2/pvrusb2-i2c-core.h      |    0
+ drivers/media/{video => usb}/pvrusb2/pvrusb2-io.c  |    0
+ drivers/media/{video => usb}/pvrusb2/pvrusb2-io.h  |    0
+ .../media/{video => usb}/pvrusb2/pvrusb2-ioread.c  |    0
+ .../media/{video => usb}/pvrusb2/pvrusb2-ioread.h  |    0
+ .../media/{video => usb}/pvrusb2/pvrusb2-main.c    |    0
+ drivers/media/{video => usb}/pvrusb2/pvrusb2-std.c |    0
+ drivers/media/{video => usb}/pvrusb2/pvrusb2-std.h |    0
+ .../media/{video => usb}/pvrusb2/pvrusb2-sysfs.c   |    0
+ .../media/{video => usb}/pvrusb2/pvrusb2-sysfs.h   |    0
+ .../media/{video => usb}/pvrusb2/pvrusb2-util.h    |    0
+ .../media/{video => usb}/pvrusb2/pvrusb2-v4l2.c    |    0
+ .../media/{video => usb}/pvrusb2/pvrusb2-v4l2.h    |    0
+ .../{video => usb}/pvrusb2/pvrusb2-video-v4l.c     |    0
+ .../{video => usb}/pvrusb2/pvrusb2-video-v4l.h     |    0
+ .../media/{video => usb}/pvrusb2/pvrusb2-wm8775.c  |    0
+ .../media/{video => usb}/pvrusb2/pvrusb2-wm8775.h  |    0
+ drivers/media/{video => usb}/pvrusb2/pvrusb2.h     |    0
+ drivers/media/{video => usb}/pwc/Kconfig           |    0
+ drivers/media/{video => usb}/pwc/Makefile          |    0
+ drivers/media/{video => usb}/pwc/philips.txt       |    0
+ drivers/media/{video => usb}/pwc/pwc-ctrl.c        |    0
+ drivers/media/{video => usb}/pwc/pwc-dec1.c        |    0
+ drivers/media/{video => usb}/pwc/pwc-dec1.h        |    0
+ drivers/media/{video => usb}/pwc/pwc-dec23.c       |    0
+ drivers/media/{video => usb}/pwc/pwc-dec23.h       |    0
+ drivers/media/{video => usb}/pwc/pwc-if.c          |    0
+ drivers/media/{video => usb}/pwc/pwc-kiara.c       |    0
+ drivers/media/{video => usb}/pwc/pwc-kiara.h       |    0
+ drivers/media/{video => usb}/pwc/pwc-misc.c        |    0
+ drivers/media/{video => usb}/pwc/pwc-nala.h        |    0
+ drivers/media/{video => usb}/pwc/pwc-timon.c       |    0
+ drivers/media/{video => usb}/pwc/pwc-timon.h       |    0
+ drivers/media/{video => usb}/pwc/pwc-uncompress.c  |    0
+ drivers/media/{video => usb}/pwc/pwc-v4l.c         |    0
+ drivers/media/{video => usb}/pwc/pwc.h             |    0
+ drivers/media/usb/s2255/Kconfig                    |    9 +
+ drivers/media/usb/s2255/Makefile                   |    2 +
+ drivers/media/{video => usb/s2255}/s2255drv.c      |    0
+ drivers/media/{video => usb}/sn9c102/Kconfig       |    0
+ drivers/media/{video => usb}/sn9c102/Makefile      |    0
+ drivers/media/{video => usb}/sn9c102/sn9c102.h     |    0
+ .../media/{video => usb}/sn9c102/sn9c102_config.h  |    0
+ .../media/{video => usb}/sn9c102/sn9c102_core.c    |    0
+ .../{video => usb}/sn9c102/sn9c102_devtable.h      |    0
+ .../media/{video => usb}/sn9c102/sn9c102_hv7131d.c |    0
+ .../media/{video => usb}/sn9c102/sn9c102_hv7131r.c |    0
+ .../media/{video => usb}/sn9c102/sn9c102_mi0343.c  |    0
+ .../media/{video => usb}/sn9c102/sn9c102_mi0360.c  |    0
+ .../media/{video => usb}/sn9c102/sn9c102_mt9v111.c |    0
+ .../media/{video => usb}/sn9c102/sn9c102_ov7630.c  |    0
+ .../media/{video => usb}/sn9c102/sn9c102_ov7660.c  |    0
+ .../media/{video => usb}/sn9c102/sn9c102_pas106b.c |    0
+ .../{video => usb}/sn9c102/sn9c102_pas202bcb.c     |    0
+ .../media/{video => usb}/sn9c102/sn9c102_sensor.h  |    0
+ .../{video => usb}/sn9c102/sn9c102_tas5110c1b.c    |    0
+ .../{video => usb}/sn9c102/sn9c102_tas5110d.c      |    0
+ .../{video => usb}/sn9c102/sn9c102_tas5130d1b.c    |    0
+ drivers/media/{video => usb}/stk1160/Kconfig       |    0
+ drivers/media/{video => usb}/stk1160/Makefile      |    2 +-
+ .../media/{video => usb}/stk1160/stk1160-ac97.c    |    0
+ .../media/{video => usb}/stk1160/stk1160-core.c    |    0
+ drivers/media/{video => usb}/stk1160/stk1160-i2c.c |    0
+ drivers/media/{video => usb}/stk1160/stk1160-reg.h |    0
+ drivers/media/{video => usb}/stk1160/stk1160-v4l.c |    0
+ .../media/{video => usb}/stk1160/stk1160-video.c   |    0
+ drivers/media/{video => usb}/stk1160/stk1160.h     |    0
+ drivers/media/usb/stkwebcam/Kconfig                |   13 +
+ drivers/media/usb/stkwebcam/Makefile               |    4 +
+ .../media/{video => usb/stkwebcam}/stk-sensor.c    |    0
+ .../media/{video => usb/stkwebcam}/stk-webcam.c    |    0
+ .../media/{video => usb/stkwebcam}/stk-webcam.h    |    0
+ drivers/media/{video => usb}/tlg2300/Kconfig       |    0
+ drivers/media/{video => usb}/tlg2300/Makefile      |    2 +-
+ drivers/media/{video => usb}/tlg2300/pd-alsa.c     |    0
+ drivers/media/{video => usb}/tlg2300/pd-common.h   |    0
+ drivers/media/{video => usb}/tlg2300/pd-dvb.c      |    0
+ drivers/media/{video => usb}/tlg2300/pd-main.c     |    0
+ drivers/media/{video => usb}/tlg2300/pd-radio.c    |    0
+ drivers/media/{video => usb}/tlg2300/pd-video.c    |    0
+ drivers/media/{video => usb}/tlg2300/vendorcmds.h  |    0
+ drivers/media/{video => usb}/tm6000/Kconfig        |    0
+ drivers/media/{video => usb}/tm6000/Makefile       |    2 +-
+ drivers/media/{video => usb}/tm6000/tm6000-alsa.c  |    0
+ drivers/media/{video => usb}/tm6000/tm6000-cards.c |    0
+ drivers/media/{video => usb}/tm6000/tm6000-core.c  |    0
+ drivers/media/{video => usb}/tm6000/tm6000-dvb.c   |    0
+ drivers/media/{video => usb}/tm6000/tm6000-i2c.c   |    0
+ drivers/media/{video => usb}/tm6000/tm6000-input.c |    0
+ drivers/media/{video => usb}/tm6000/tm6000-regs.h  |    0
+ drivers/media/{video => usb}/tm6000/tm6000-stds.c  |    0
+ .../media/{video => usb}/tm6000/tm6000-usb-isoc.h  |    0
+ drivers/media/{video => usb}/tm6000/tm6000-video.c |    0
+ drivers/media/{video => usb}/tm6000/tm6000.h       |    0
+ drivers/media/{video => usb}/usbvision/Kconfig     |    0
+ drivers/media/{video => usb}/usbvision/Makefile    |    2 +-
+ .../{video => usb}/usbvision/usbvision-cards.c     |    0
+ .../{video => usb}/usbvision/usbvision-cards.h     |    0
+ .../{video => usb}/usbvision/usbvision-core.c      |    0
+ .../media/{video => usb}/usbvision/usbvision-i2c.c |    0
+ .../{video => usb}/usbvision/usbvision-video.c     |    0
+ drivers/media/{video => usb}/usbvision/usbvision.h |    0
+ drivers/media/{video => usb}/uvc/Kconfig           |    0
+ drivers/media/{video => usb}/uvc/Makefile          |    0
+ drivers/media/{video => usb}/uvc/uvc_ctrl.c        |    0
+ drivers/media/{video => usb}/uvc/uvc_debugfs.c     |    0
+ drivers/media/{video => usb}/uvc/uvc_driver.c      |    0
+ drivers/media/{video => usb}/uvc/uvc_entity.c      |    0
+ drivers/media/{video => usb}/uvc/uvc_isight.c      |    0
+ drivers/media/{video => usb}/uvc/uvc_queue.c       |    0
+ drivers/media/{video => usb}/uvc/uvc_status.c      |    0
+ drivers/media/{video => usb}/uvc/uvc_v4l2.c        |    0
+ drivers/media/{video => usb}/uvc/uvc_video.c       |    0
+ drivers/media/{video => usb}/uvc/uvcvideo.h        |    0
+ drivers/media/usb/zr364xx/Kconfig                  |   14 +
+ drivers/media/usb/zr364xx/Makefile                 |    2 +
+ drivers/media/{video => usb/zr364xx}/zr364xx.c     |    0
+ drivers/media/v4l2-core/Kconfig                    |   32 +-
+ drivers/media/video/Kconfig                        | 1226 --------------------
+ drivers/media/video/Makefile                       |  195 ----
+ drivers/media/video/bt8xx/Kconfig                  |   27 -
+ drivers/media/video/bt8xx/Makefile                 |   13 -
+ 841 files changed, 1510 insertions(+), 1597 deletions(-)
+ create mode 100644 drivers/media/i2c/Kconfig
+ create mode 100644 drivers/media/i2c/Makefile
+ rename drivers/media/{video => i2c}/adp1653.c (99%)
+ rename drivers/media/{video => i2c}/adv7170.c (100%)
+ rename drivers/media/{video => i2c}/adv7175.c (100%)
+ rename drivers/media/{video => i2c}/adv7180.c (100%)
+ rename drivers/media/{video => i2c}/adv7183.c (100%)
+ rename drivers/media/{video => i2c}/adv7183_regs.h (100%)
+ rename drivers/media/{video => i2c}/adv7343.c (100%)
+ rename drivers/media/{video => i2c}/adv7343_regs.h (100%)
+ rename drivers/media/{video => i2c}/adv7393.c (100%)
+ rename drivers/media/{video => i2c}/adv7393_regs.h (100%)
+ rename drivers/media/{video => i2c}/ak881x.c (100%)
+ rename drivers/media/{video => i2c}/aptina-pll.c (100%)
+ rename drivers/media/{video => i2c}/aptina-pll.h (100%)
+ rename drivers/media/{video => i2c}/as3645a.c (99%)
+ rename drivers/media/{video => i2c}/bt819.c (100%)
+ rename drivers/media/{video => i2c}/bt856.c (100%)
+ rename drivers/media/{video => i2c}/bt866.c (100%)
+ rename drivers/media/{video => i2c}/btcx-risc.c (100%)
+ rename drivers/media/{video => i2c}/btcx-risc.h (100%)
+ rename drivers/media/{video => i2c}/cs5345.c (100%)
+ rename drivers/media/{video => i2c}/cs53l32a.c (100%)
+ rename drivers/media/{video => i2c}/cx2341x.c (100%)
+ rename drivers/media/{video => i2c}/cx25840/Kconfig (100%)
+ rename drivers/media/{video => i2c}/cx25840/Makefile (80%)
+ rename drivers/media/{video => i2c}/cx25840/cx25840-audio.c (100%)
+ rename drivers/media/{video => i2c}/cx25840/cx25840-core.c (100%)
+ rename drivers/media/{video => i2c}/cx25840/cx25840-core.h (100%)
+ rename drivers/media/{video => i2c}/cx25840/cx25840-firmware.c (100%)
+ rename drivers/media/{video => i2c}/cx25840/cx25840-ir.c (100%)
+ rename drivers/media/{video => i2c}/cx25840/cx25840-vbi.c (100%)
+ rename drivers/media/{video => i2c}/ir-kbd-i2c.c (100%)
+ rename drivers/media/{video => i2c}/ks0127.c (100%)
+ rename drivers/media/{video => i2c}/ks0127.h (100%)
+ rename drivers/media/{video => i2c}/m52790.c (100%)
+ rename drivers/media/{video => i2c}/m5mols/Kconfig (100%)
+ rename drivers/media/{video => i2c}/m5mols/Makefile (100%)
+ rename drivers/media/{video => i2c}/m5mols/m5mols.h (100%)
+ rename drivers/media/{video => i2c}/m5mols/m5mols_capture.c (100%)
+ rename drivers/media/{video => i2c}/m5mols/m5mols_controls.c (100%)
+ rename drivers/media/{video => i2c}/m5mols/m5mols_core.c (100%)
+ rename drivers/media/{video => i2c}/m5mols/m5mols_reg.h (100%)
+ rename drivers/media/{video => i2c}/msp3400-driver.c (100%)
+ rename drivers/media/{video => i2c}/msp3400-driver.h (100%)
+ rename drivers/media/{video => i2c}/msp3400-kthreads.c (100%)
+ rename drivers/media/{video => i2c}/mt9m032.c (100%)
+ rename drivers/media/{video => i2c}/mt9p031.c (100%)
+ rename drivers/media/{video => i2c}/mt9t001.c (100%)
+ rename drivers/media/{video => i2c}/mt9v011.c (100%)
+ rename drivers/media/{video => i2c}/mt9v032.c (100%)
+ rename drivers/media/{video => i2c}/noon010pc30.c (100%)
+ rename drivers/media/{video => i2c}/ov7670.c (100%)
+ rename drivers/media/{video => i2c}/s5k6aa.c (100%)
+ rename drivers/media/{video => i2c}/saa6588.c (100%)
+ rename drivers/media/{video => i2c}/saa7110.c (100%)
+ rename drivers/media/{video => i2c}/saa7115.c (100%)
+ rename drivers/media/{video => i2c}/saa711x_regs.h (100%)
+ rename drivers/media/{video => i2c}/saa7127.c (100%)
+ rename drivers/media/{video => i2c}/saa717x.c (100%)
+ rename drivers/media/{video => i2c}/saa7185.c (100%)
+ rename drivers/media/{video => i2c}/saa7191.c (100%)
+ rename drivers/media/{video => i2c}/saa7191.h (100%)
+ rename drivers/media/{video => i2c}/smiapp-pll.c (99%)
+ rename drivers/media/{video => i2c}/smiapp-pll.h (98%)
+ rename drivers/media/{video => i2c}/smiapp/Kconfig (100%)
+ rename drivers/media/{video => i2c}/smiapp/Makefile (78%)
+ rename drivers/media/{video => i2c}/smiapp/smiapp-core.c (99%)
+ rename drivers/media/{video => i2c}/smiapp/smiapp-limits.c (99%)
+ rename drivers/media/{video => i2c}/smiapp/smiapp-limits.h (99%)
+ rename drivers/media/{video => i2c}/smiapp/smiapp-quirk.c (99%)
+ rename drivers/media/{video => i2c}/smiapp/smiapp-quirk.h (98%)
+ rename drivers/media/{video => i2c}/smiapp/smiapp-reg-defs.h (99%)
+ rename drivers/media/{video => i2c}/smiapp/smiapp-reg.h (98%)
+ rename drivers/media/{video => i2c}/smiapp/smiapp-regs.c (99%)
+ rename drivers/media/{video => i2c}/smiapp/smiapp-regs.h (100%)
+ rename drivers/media/{video => i2c}/smiapp/smiapp.h (99%)
+ create mode 100644 drivers/media/i2c/soc_camera/Kconfig
+ create mode 100644 drivers/media/i2c/soc_camera/Makefile
+ rename drivers/media/{video => i2c/soc_camera}/imx074.c (100%)
+ rename drivers/media/{video => i2c/soc_camera}/mt9m001.c (100%)
+ rename drivers/media/{video => i2c/soc_camera}/mt9m111.c (100%)
+ rename drivers/media/{video => i2c/soc_camera}/mt9t031.c (100%)
+ rename drivers/media/{video => i2c/soc_camera}/mt9t112.c (100%)
+ rename drivers/media/{video => i2c/soc_camera}/mt9v022.c (100%)
+ rename drivers/media/{video => i2c/soc_camera}/ov2640.c (100%)
+ rename drivers/media/{video => i2c/soc_camera}/ov5642.c (100%)
+ rename drivers/media/{video => i2c/soc_camera}/ov6650.c (100%)
+ rename drivers/media/{video => i2c/soc_camera}/ov772x.c (100%)
+ rename drivers/media/{video => i2c/soc_camera}/ov9640.c (100%)
+ rename drivers/media/{video => i2c/soc_camera}/ov9640.h (100%)
+ rename drivers/media/{video => i2c/soc_camera}/ov9740.c (100%)
+ rename drivers/media/{video => i2c/soc_camera}/rj54n1cb0c.c (100%)
+ rename drivers/media/{video => i2c/soc_camera}/sh_mobile_csi2.c (100%)
+ rename drivers/media/{video => i2c/soc_camera}/tw9910.c (100%)
+ rename drivers/media/{video => i2c}/sr030pc30.c (100%)
+ rename drivers/media/{video => i2c}/tcm825x.c (99%)
+ rename drivers/media/{video => i2c}/tcm825x.h (99%)
+ rename drivers/media/{video => i2c}/tda7432.c (100%)
+ rename drivers/media/{video => i2c}/tda9840.c (100%)
+ rename drivers/media/{video => i2c}/tea6415c.c (100%)
+ rename drivers/media/{video => i2c}/tea6415c.h (100%)
+ rename drivers/media/{video => i2c}/tea6420.c (100%)
+ rename drivers/media/{video => i2c}/tea6420.h (100%)
+ rename drivers/media/{video => i2c}/ths7303.c (100%)
+ rename drivers/media/{video => i2c}/tlv320aic23b.c (100%)
+ rename drivers/media/{video => i2c}/tvaudio.c (100%)
+ rename drivers/media/{video => i2c}/tveeprom.c (100%)
+ rename drivers/media/{video => i2c}/tvp514x.c (99%)
+ rename drivers/media/{video => i2c}/tvp514x_regs.h (99%)
+ rename drivers/media/{video => i2c}/tvp5150.c (100%)
+ rename drivers/media/{video => i2c}/tvp5150_reg.h (100%)
+ rename drivers/media/{video => i2c}/tvp7002.c (100%)
+ rename drivers/media/{video => i2c}/tvp7002_reg.h (100%)
+ rename drivers/media/{video => i2c}/upd64031a.c (100%)
+ rename drivers/media/{video => i2c}/upd64083.c (100%)
+ rename drivers/media/{video => i2c}/vp27smpx.c (100%)
+ rename drivers/media/{video => i2c}/vpx3220.c (100%)
+ rename drivers/media/{video => i2c}/vs6624.c (100%)
+ rename drivers/media/{video => i2c}/vs6624_regs.h (100%)
+ rename drivers/media/{video => i2c}/wm8739.c (100%)
+ rename drivers/media/{video => i2c}/wm8775.c (100%)
+ create mode 100644 drivers/media/parport/Kconfig
+ create mode 100644 drivers/media/parport/Makefile
+ rename drivers/media/{video => parport}/bw-qcam.c (100%)
+ rename drivers/media/{video => parport}/c-qcam.c (100%)
+ rename drivers/media/{video => parport}/pms.c (100%)
+ rename drivers/media/{video => parport}/w9966.c (100%)
+ rename drivers/media/{video => pci}/bt8xx/bt848.h (100%)
+ rename drivers/media/{video => pci}/bt8xx/bttv-audio-hook.c (100%)
+ rename drivers/media/{video => pci}/bt8xx/bttv-audio-hook.h (100%)
+ rename drivers/media/{video => pci}/bt8xx/bttv-cards.c (100%)
+ rename drivers/media/{video => pci}/bt8xx/bttv-driver.c (100%)
+ rename drivers/media/{video => pci}/bt8xx/bttv-gpio.c (100%)
+ rename drivers/media/{video => pci}/bt8xx/bttv-i2c.c (100%)
+ rename drivers/media/{video => pci}/bt8xx/bttv-if.c (100%)
+ rename drivers/media/{video => pci}/bt8xx/bttv-input.c (100%)
+ rename drivers/media/{video => pci}/bt8xx/bttv-risc.c (100%)
+ rename drivers/media/{video => pci}/bt8xx/bttv-vbi.c (100%)
+ rename drivers/media/{video => pci}/bt8xx/bttv.h (100%)
+ rename drivers/media/{video => pci}/bt8xx/bttvp.h (100%)
+ rename drivers/media/{video => pci}/cx18/Kconfig (100%)
+ rename drivers/media/{video => pci}/cx18/Makefile (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-alsa-main.c (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-alsa-mixer.c (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-alsa-mixer.h (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-alsa-pcm.c (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-alsa-pcm.h (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-alsa.h (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-audio.c (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-audio.h (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-av-audio.c (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-av-core.c (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-av-core.h (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-av-firmware.c (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-av-vbi.c (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-cards.c (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-cards.h (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-controls.c (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-controls.h (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-driver.c (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-driver.h (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-dvb.c (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-dvb.h (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-fileops.c (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-fileops.h (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-firmware.c (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-firmware.h (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-gpio.c (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-gpio.h (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-i2c.c (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-i2c.h (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-io.c (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-io.h (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-ioctl.c (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-ioctl.h (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-irq.c (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-irq.h (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-mailbox.c (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-mailbox.h (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-queue.c (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-queue.h (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-scb.c (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-scb.h (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-streams.c (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-streams.h (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-vbi.c (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-vbi.h (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-version.h (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-video.c (100%)
+ rename drivers/media/{video => pci}/cx18/cx18-video.h (100%)
+ rename drivers/media/{video => pci}/cx18/cx23418.h (100%)
+ rename drivers/media/{video => pci}/cx23885/Kconfig (100%)
+ rename drivers/media/{video => pci}/cx23885/Makefile (93%)
+ rename drivers/media/{video => pci}/cx23885/altera-ci.c (100%)
+ rename drivers/media/{video => pci}/cx23885/altera-ci.h (100%)
+ rename drivers/media/{video => pci}/cx23885/cimax2.c (100%)
+ rename drivers/media/{video => pci}/cx23885/cimax2.h (100%)
+ rename drivers/media/{video => pci}/cx23885/cx23885-417.c (100%)
+ rename drivers/media/{video => pci}/cx23885/cx23885-alsa.c (100%)
+ rename drivers/media/{video => pci}/cx23885/cx23885-av.c (100%)
+ rename drivers/media/{video => pci}/cx23885/cx23885-av.h (100%)
+ rename drivers/media/{video => pci}/cx23885/cx23885-cards.c (100%)
+ rename drivers/media/{video => pci}/cx23885/cx23885-core.c (100%)
+ rename drivers/media/{video => pci}/cx23885/cx23885-dvb.c (100%)
+ rename drivers/media/{video => pci}/cx23885/cx23885-f300.c (100%)
+ rename drivers/media/{video => pci}/cx23885/cx23885-f300.h (100%)
+ rename drivers/media/{video => pci}/cx23885/cx23885-i2c.c (100%)
+ rename drivers/media/{video => pci}/cx23885/cx23885-input.c (100%)
+ rename drivers/media/{video => pci}/cx23885/cx23885-input.h (100%)
+ rename drivers/media/{video => pci}/cx23885/cx23885-ioctl.c (100%)
+ rename drivers/media/{video => pci}/cx23885/cx23885-ioctl.h (100%)
+ rename drivers/media/{video => pci}/cx23885/cx23885-ir.c (100%)
+ rename drivers/media/{video => pci}/cx23885/cx23885-ir.h (100%)
+ rename drivers/media/{video => pci}/cx23885/cx23885-reg.h (100%)
+ rename drivers/media/{video => pci}/cx23885/cx23885-vbi.c (100%)
+ rename drivers/media/{video => pci}/cx23885/cx23885-video.c (100%)
+ rename drivers/media/{video => pci}/cx23885/cx23885.h (100%)
+ rename drivers/media/{video => pci}/cx23885/cx23888-ir.c (100%)
+ rename drivers/media/{video => pci}/cx23885/cx23888-ir.h (100%)
+ rename drivers/media/{video => pci}/cx23885/netup-eeprom.c (100%)
+ rename drivers/media/{video => pci}/cx23885/netup-eeprom.h (100%)
+ rename drivers/media/{video => pci}/cx23885/netup-init.c (100%)
+ rename drivers/media/{video => pci}/cx23885/netup-init.h (100%)
+ rename drivers/media/{video => pci}/cx25821/Kconfig (100%)
+ rename drivers/media/{video => pci}/cx25821/Makefile (92%)
+ rename drivers/media/{video => pci}/cx25821/cx25821-alsa.c (100%)
+ rename drivers/media/{video => pci}/cx25821/cx25821-audio-upstream.c (100%)
+ rename drivers/media/{video => pci}/cx25821/cx25821-audio-upstream.h (100%)
+ rename drivers/media/{video => pci}/cx25821/cx25821-audio.h (100%)
+ rename drivers/media/{video => pci}/cx25821/cx25821-biffuncs.h (100%)
+ rename drivers/media/{video => pci}/cx25821/cx25821-cards.c (100%)
+ rename drivers/media/{video => pci}/cx25821/cx25821-core.c (100%)
+ rename drivers/media/{video => pci}/cx25821/cx25821-gpio.c (100%)
+ rename drivers/media/{video => pci}/cx25821/cx25821-i2c.c (100%)
+ rename drivers/media/{video => pci}/cx25821/cx25821-medusa-defines.h (100%)
+ rename drivers/media/{video => pci}/cx25821/cx25821-medusa-reg.h (100%)
+ rename drivers/media/{video => pci}/cx25821/cx25821-medusa-video.c (100%)
+ rename drivers/media/{video => pci}/cx25821/cx25821-medusa-video.h (100%)
+ rename drivers/media/{video => pci}/cx25821/cx25821-reg.h (100%)
+ rename drivers/media/{video => pci}/cx25821/cx25821-sram.h (100%)
+ rename drivers/media/{video => pci}/cx25821/cx25821-video-upstream-ch2.c (100%)
+ rename drivers/media/{video => pci}/cx25821/cx25821-video-upstream-ch2.h (100%)
+ rename drivers/media/{video => pci}/cx25821/cx25821-video-upstream.c (100%)
+ rename drivers/media/{video => pci}/cx25821/cx25821-video-upstream.h (100%)
+ rename drivers/media/{video => pci}/cx25821/cx25821-video.c (100%)
+ rename drivers/media/{video => pci}/cx25821/cx25821-video.h (100%)
+ rename drivers/media/{video => pci}/cx25821/cx25821.h (100%)
+ rename drivers/media/{video => pci}/cx88/Kconfig (100%)
+ rename drivers/media/{video => pci}/cx88/Makefile (94%)
+ rename drivers/media/{video => pci}/cx88/cx88-alsa.c (100%)
+ rename drivers/media/{video => pci}/cx88/cx88-blackbird.c (100%)
+ rename drivers/media/{video => pci}/cx88/cx88-cards.c (100%)
+ rename drivers/media/{video => pci}/cx88/cx88-core.c (100%)
+ rename drivers/media/{video => pci}/cx88/cx88-dsp.c (100%)
+ rename drivers/media/{video => pci}/cx88/cx88-dvb.c (100%)
+ rename drivers/media/{video => pci}/cx88/cx88-i2c.c (100%)
+ rename drivers/media/{video => pci}/cx88/cx88-input.c (100%)
+ rename drivers/media/{video => pci}/cx88/cx88-mpeg.c (100%)
+ rename drivers/media/{video => pci}/cx88/cx88-reg.h (100%)
+ rename drivers/media/{video => pci}/cx88/cx88-tvaudio.c (100%)
+ rename drivers/media/{video => pci}/cx88/cx88-vbi.c (100%)
+ rename drivers/media/{video => pci}/cx88/cx88-video.c (100%)
+ rename drivers/media/{video => pci}/cx88/cx88-vp3054-i2c.c (100%)
+ rename drivers/media/{video => pci}/cx88/cx88-vp3054-i2c.h (100%)
+ rename drivers/media/{video => pci}/cx88/cx88.h (100%)
+ rename drivers/media/{video => pci}/ivtv/Kconfig (100%)
+ rename drivers/media/{video => pci}/ivtv/Makefile (91%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-cards.c (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-cards.h (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-controls.c (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-controls.h (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-driver.c (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-driver.h (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-fileops.c (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-fileops.h (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-firmware.c (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-firmware.h (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-gpio.c (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-gpio.h (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-i2c.c (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-i2c.h (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-ioctl.c (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-ioctl.h (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-irq.c (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-irq.h (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-mailbox.c (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-mailbox.h (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-queue.c (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-queue.h (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-routing.c (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-routing.h (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-streams.c (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-streams.h (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-udma.c (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-udma.h (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-vbi.c (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-vbi.h (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-version.h (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-yuv.c (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtv-yuv.h (100%)
+ rename drivers/media/{video => pci}/ivtv/ivtvfb.c (100%)
+ create mode 100644 drivers/media/pci/meye/Kconfig
+ create mode 100644 drivers/media/pci/meye/Makefile
+ rename drivers/media/{video => pci/meye}/meye.c (100%)
+ rename drivers/media/{video => pci/meye}/meye.h (100%)
+ rename drivers/media/{video => pci}/saa7134/Kconfig (100%)
+ rename drivers/media/{video => pci}/saa7134/Makefile (91%)
+ rename drivers/media/{video => pci}/saa7134/saa6752hs.c (100%)
+ rename drivers/media/{video => pci}/saa7134/saa7134-alsa.c (100%)
+ rename drivers/media/{video => pci}/saa7134/saa7134-cards.c (100%)
+ rename drivers/media/{video => pci}/saa7134/saa7134-core.c (100%)
+ rename drivers/media/{video => pci}/saa7134/saa7134-dvb.c (100%)
+ rename drivers/media/{video => pci}/saa7134/saa7134-empress.c (100%)
+ rename drivers/media/{video => pci}/saa7134/saa7134-i2c.c (100%)
+ rename drivers/media/{video => pci}/saa7134/saa7134-input.c (100%)
+ rename drivers/media/{video => pci}/saa7134/saa7134-reg.h (100%)
+ rename drivers/media/{video => pci}/saa7134/saa7134-ts.c (100%)
+ rename drivers/media/{video => pci}/saa7134/saa7134-tvaudio.c (100%)
+ rename drivers/media/{video => pci}/saa7134/saa7134-vbi.c (100%)
+ rename drivers/media/{video => pci}/saa7134/saa7134-video.c (100%)
+ rename drivers/media/{video => pci}/saa7134/saa7134.h (100%)
+ create mode 100644 drivers/media/pci/saa7146/Kconfig
+ create mode 100644 drivers/media/pci/saa7146/Makefile
+ rename drivers/media/{video => pci/saa7146}/hexium_gemini.c (100%)
+ rename drivers/media/{video => pci/saa7146}/hexium_orion.c (100%)
+ rename drivers/media/{video => pci/saa7146}/mxb.c (100%)
+ rename drivers/media/{video => pci}/saa7164/Kconfig (100%)
+ rename drivers/media/{video => pci}/saa7164/Makefile (90%)
+ rename drivers/media/{video => pci}/saa7164/saa7164-api.c (100%)
+ rename drivers/media/{video => pci}/saa7164/saa7164-buffer.c (100%)
+ rename drivers/media/{video => pci}/saa7164/saa7164-bus.c (100%)
+ rename drivers/media/{video => pci}/saa7164/saa7164-cards.c (100%)
+ rename drivers/media/{video => pci}/saa7164/saa7164-cmd.c (100%)
+ rename drivers/media/{video => pci}/saa7164/saa7164-core.c (100%)
+ rename drivers/media/{video => pci}/saa7164/saa7164-dvb.c (100%)
+ rename drivers/media/{video => pci}/saa7164/saa7164-encoder.c (100%)
+ rename drivers/media/{video => pci}/saa7164/saa7164-fw.c (100%)
+ rename drivers/media/{video => pci}/saa7164/saa7164-i2c.c (100%)
+ rename drivers/media/{video => pci}/saa7164/saa7164-reg.h (100%)
+ rename drivers/media/{video => pci}/saa7164/saa7164-types.h (100%)
+ rename drivers/media/{video => pci}/saa7164/saa7164-vbi.c (100%)
+ rename drivers/media/{video => pci}/saa7164/saa7164.h (100%)
+ create mode 100644 drivers/media/pci/sta2x11/Kconfig
+ create mode 100644 drivers/media/pci/sta2x11/Makefile
+ rename drivers/media/{video => pci/sta2x11}/sta2x11_vip.c (100%)
+ rename drivers/media/{video => pci/sta2x11}/sta2x11_vip.h (100%)
+ rename drivers/media/{video => pci}/zoran/Kconfig (100%)
+ rename drivers/media/{video => pci}/zoran/Makefile (100%)
+ rename drivers/media/{video => pci}/zoran/videocodec.c (100%)
+ rename drivers/media/{video => pci}/zoran/videocodec.h (100%)
+ rename drivers/media/{video => pci}/zoran/zoran.h (100%)
+ rename drivers/media/{video => pci}/zoran/zoran_card.c (100%)
+ rename drivers/media/{video => pci}/zoran/zoran_card.h (100%)
+ rename drivers/media/{video => pci}/zoran/zoran_device.c (100%)
+ rename drivers/media/{video => pci}/zoran/zoran_device.h (100%)
+ rename drivers/media/{video => pci}/zoran/zoran_driver.c (100%)
+ rename drivers/media/{video => pci}/zoran/zoran_procfs.c (100%)
+ rename drivers/media/{video => pci}/zoran/zoran_procfs.h (100%)
+ rename drivers/media/{video => pci}/zoran/zr36016.c (100%)
+ rename drivers/media/{video => pci}/zoran/zr36016.h (100%)
+ rename drivers/media/{video => pci}/zoran/zr36050.c (100%)
+ rename drivers/media/{video => pci}/zoran/zr36050.h (100%)
+ rename drivers/media/{video => pci}/zoran/zr36057.h (100%)
+ rename drivers/media/{video => pci}/zoran/zr36060.c (100%)
+ rename drivers/media/{video => pci}/zoran/zr36060.h (100%)
+ create mode 100644 drivers/media/platform/Kconfig
+ create mode 100644 drivers/media/platform/Makefile
+ rename drivers/media/{video => platform}/arv.c (100%)
+ rename drivers/media/{video => platform}/atmel-isi.c (100%)
+ rename drivers/media/{video => platform}/blackfin/Kconfig (100%)
+ rename drivers/media/{video => platform}/blackfin/Makefile (100%)
+ rename drivers/media/{video => platform}/blackfin/bfin_capture.c (100%)
+ rename drivers/media/{video => platform}/blackfin/ppi.c (100%)
+ rename drivers/media/{video => platform}/coda.c (100%)
+ rename drivers/media/{video => platform}/coda.h (99%)
+ rename drivers/media/{video => platform}/davinci/Kconfig (100%)
+ rename drivers/media/{video => platform}/davinci/Makefile (100%)
+ rename drivers/media/{video => platform}/davinci/ccdc_hw_device.h (100%)
+ rename drivers/media/{video => platform}/davinci/dm355_ccdc.c (100%)
+ rename drivers/media/{video => platform}/davinci/dm355_ccdc_regs.h (100%)
+ rename drivers/media/{video => platform}/davinci/dm644x_ccdc.c (100%)
+ rename drivers/media/{video => platform}/davinci/dm644x_ccdc_regs.h (100%)
+ rename drivers/media/{video => platform}/davinci/isif.c (100%)
+ rename drivers/media/{video => platform}/davinci/isif_regs.h (100%)
+ rename drivers/media/{video => platform}/davinci/vpbe.c (100%)
+ rename drivers/media/{video => platform}/davinci/vpbe_display.c (100%)
+ rename drivers/media/{video => platform}/davinci/vpbe_osd.c (100%)
+ rename drivers/media/{video => platform}/davinci/vpbe_osd_regs.h (100%)
+ rename drivers/media/{video => platform}/davinci/vpbe_venc.c (100%)
+ rename drivers/media/{video => platform}/davinci/vpbe_venc_regs.h (100%)
+ rename drivers/media/{video => platform}/davinci/vpfe_capture.c (100%)
+ rename drivers/media/{video => platform}/davinci/vpif.c (100%)
+ rename drivers/media/{video => platform}/davinci/vpif.h (100%)
+ rename drivers/media/{video => platform}/davinci/vpif_capture.c (100%)
+ rename drivers/media/{video => platform}/davinci/vpif_capture.h (100%)
+ rename drivers/media/{video => platform}/davinci/vpif_display.c (100%)
+ rename drivers/media/{video => platform}/davinci/vpif_display.h (100%)
+ rename drivers/media/{video => platform}/davinci/vpss.c (100%)
+ rename drivers/media/{video => platform}/fsl-viu.c (100%)
+ rename drivers/media/{video => platform}/indycam.c (100%)
+ rename drivers/media/{video => platform}/indycam.h (100%)
+ rename drivers/media/{video => platform}/m2m-deinterlace.c (100%)
+ rename drivers/media/{video => platform}/marvell-ccic/Kconfig (100%)
+ rename drivers/media/{video => platform}/marvell-ccic/Makefile (100%)
+ rename drivers/media/{video => platform}/marvell-ccic/cafe-driver.c (100%)
+ rename drivers/media/{video => platform}/marvell-ccic/mcam-core.c (100%)
+ rename drivers/media/{video => platform}/marvell-ccic/mcam-core.h (100%)
+ rename drivers/media/{video => platform}/marvell-ccic/mmp-driver.c (100%)
+ rename drivers/media/{video => platform}/mem2mem_testdev.c (100%)
+ rename drivers/media/{video => platform}/mx1_camera.c (100%)
+ rename drivers/media/{video => platform}/mx2_camera.c (100%)
+ rename drivers/media/{video => platform}/mx2_emmaprp.c (100%)
+ rename drivers/media/{video => platform}/mx3_camera.c (100%)
+ rename drivers/media/{video => platform}/omap/Kconfig (100%)
+ rename drivers/media/{video => platform}/omap/Makefile (100%)
+ rename drivers/media/{video => platform}/omap/omap_vout.c (100%)
+ rename drivers/media/{video => platform}/omap/omap_vout_vrfb.c (100%)
+ rename drivers/media/{video => platform}/omap/omap_vout_vrfb.h (100%)
+ rename drivers/media/{video => platform}/omap/omap_voutdef.h (100%)
+ rename drivers/media/{video => platform}/omap/omap_voutlib.c (100%)
+ rename drivers/media/{video => platform}/omap/omap_voutlib.h (100%)
+ rename drivers/media/{video => platform}/omap1_camera.c (99%)
+ rename drivers/media/{video => platform}/omap24xxcam-dma.c (99%)
+ rename drivers/media/{video => platform}/omap24xxcam.c (99%)
+ rename drivers/media/{video => platform}/omap24xxcam.h (99%)
+ rename drivers/media/{video => platform}/omap3isp/Makefile (100%)
+ rename drivers/media/{video => platform}/omap3isp/cfa_coef_table.h (100%)
+ rename drivers/media/{video => platform}/omap3isp/gamma_table.h (100%)
+ rename drivers/media/{video => platform}/omap3isp/isp.c (100%)
+ rename drivers/media/{video => platform}/omap3isp/isp.h (100%)
+ rename drivers/media/{video => platform}/omap3isp/ispccdc.c (100%)
+ rename drivers/media/{video => platform}/omap3isp/ispccdc.h (100%)
+ rename drivers/media/{video => platform}/omap3isp/ispccp2.c (100%)
+ rename drivers/media/{video => platform}/omap3isp/ispccp2.h (100%)
+ rename drivers/media/{video => platform}/omap3isp/ispcsi2.c (100%)
+ rename drivers/media/{video => platform}/omap3isp/ispcsi2.h (100%)
+ rename drivers/media/{video => platform}/omap3isp/ispcsiphy.c (100%)
+ rename drivers/media/{video => platform}/omap3isp/ispcsiphy.h (100%)
+ rename drivers/media/{video => platform}/omap3isp/isph3a.h (100%)
+ rename drivers/media/{video => platform}/omap3isp/isph3a_aewb.c (100%)
+ rename drivers/media/{video => platform}/omap3isp/isph3a_af.c (100%)
+ rename drivers/media/{video => platform}/omap3isp/isphist.c (100%)
+ rename drivers/media/{video => platform}/omap3isp/isphist.h (100%)
+ rename drivers/media/{video => platform}/omap3isp/isppreview.c (100%)
+ rename drivers/media/{video => platform}/omap3isp/isppreview.h (100%)
+ rename drivers/media/{video => platform}/omap3isp/ispqueue.c (100%)
+ rename drivers/media/{video => platform}/omap3isp/ispqueue.h (100%)
+ rename drivers/media/{video => platform}/omap3isp/ispreg.h (100%)
+ rename drivers/media/{video => platform}/omap3isp/ispresizer.c (100%)
+ rename drivers/media/{video => platform}/omap3isp/ispresizer.h (100%)
+ rename drivers/media/{video => platform}/omap3isp/ispstat.c (100%)
+ rename drivers/media/{video => platform}/omap3isp/ispstat.h (100%)
+ rename drivers/media/{video => platform}/omap3isp/ispvideo.c (100%)
+ rename drivers/media/{video => platform}/omap3isp/ispvideo.h (100%)
+ rename drivers/media/{video => platform}/omap3isp/luma_enhance_table.h (100%)
+ rename drivers/media/{video => platform}/omap3isp/noise_filter_table.h (100%)
+ rename drivers/media/{video => platform}/pxa_camera.c (100%)
+ rename drivers/media/{video => platform}/s5p-fimc/Kconfig (100%)
+ rename drivers/media/{video => platform}/s5p-fimc/Makefile (100%)
+ rename drivers/media/{video => platform}/s5p-fimc/fimc-capture.c (100%)
+ rename drivers/media/{video => platform}/s5p-fimc/fimc-core.c (100%)
+ rename drivers/media/{video => platform}/s5p-fimc/fimc-core.h (100%)
+ rename drivers/media/{video => platform}/s5p-fimc/fimc-lite-reg.c (100%)
+ rename drivers/media/{video => platform}/s5p-fimc/fimc-lite-reg.h (100%)
+ rename drivers/media/{video => platform}/s5p-fimc/fimc-lite.c (100%)
+ rename drivers/media/{video => platform}/s5p-fimc/fimc-lite.h (100%)
+ rename drivers/media/{video => platform}/s5p-fimc/fimc-m2m.c (100%)
+ rename drivers/media/{video => platform}/s5p-fimc/fimc-mdevice.c (100%)
+ rename drivers/media/{video => platform}/s5p-fimc/fimc-mdevice.h (100%)
+ rename drivers/media/{video => platform}/s5p-fimc/fimc-reg.c (100%)
+ rename drivers/media/{video => platform}/s5p-fimc/fimc-reg.h (100%)
+ rename drivers/media/{video => platform}/s5p-fimc/mipi-csis.c (100%)
+ rename drivers/media/{video => platform}/s5p-fimc/mipi-csis.h (100%)
+ rename drivers/media/{video => platform}/s5p-g2d/Makefile (100%)
+ rename drivers/media/{video => platform}/s5p-g2d/g2d-hw.c (100%)
+ rename drivers/media/{video => platform}/s5p-g2d/g2d-regs.h (100%)
+ rename drivers/media/{video => platform}/s5p-g2d/g2d.c (100%)
+ rename drivers/media/{video => platform}/s5p-g2d/g2d.h (100%)
+ rename drivers/media/{video => platform}/s5p-jpeg/Makefile (100%)
+ rename drivers/media/{video => platform}/s5p-jpeg/jpeg-core.c (99%)
+ rename drivers/media/{video => platform}/s5p-jpeg/jpeg-core.h (98%)
+ rename drivers/media/{video => platform}/s5p-jpeg/jpeg-hw.h (99%)
+ rename drivers/media/{video => platform}/s5p-jpeg/jpeg-regs.h (98%)
+ rename drivers/media/{video => platform}/s5p-mfc/Makefile (100%)
+ rename drivers/media/{video => platform}/s5p-mfc/regs-mfc.h (100%)
+ rename drivers/media/{video => platform}/s5p-mfc/s5p_mfc.c (100%)
+ rename drivers/media/{video => platform}/s5p-mfc/s5p_mfc_cmd.c (98%)
+ rename drivers/media/{video => platform}/s5p-mfc/s5p_mfc_cmd.h (93%)
+ rename drivers/media/{video => platform}/s5p-mfc/s5p_mfc_common.h (100%)
+ rename drivers/media/{video => platform}/s5p-mfc/s5p_mfc_ctrl.c (99%)
+ rename drivers/media/{video => platform}/s5p-mfc/s5p_mfc_ctrl.h (93%)
+ rename drivers/media/{video => platform}/s5p-mfc/s5p_mfc_debug.h (95%)
+ rename drivers/media/{video => platform}/s5p-mfc/s5p_mfc_dec.c (99%)
+ rename drivers/media/{video => platform}/s5p-mfc/s5p_mfc_dec.h (93%)
+ rename drivers/media/{video => platform}/s5p-mfc/s5p_mfc_enc.c (99%)
+ rename drivers/media/{video => platform}/s5p-mfc/s5p_mfc_enc.h (93%)
+ rename drivers/media/{video => platform}/s5p-mfc/s5p_mfc_intr.c (97%)
+ rename drivers/media/{video => platform}/s5p-mfc/s5p_mfc_intr.h (93%)
+ rename drivers/media/{video => platform}/s5p-mfc/s5p_mfc_opr.c (99%)
+ rename drivers/media/{video => platform}/s5p-mfc/s5p_mfc_opr.h (98%)
+ rename drivers/media/{video => platform}/s5p-mfc/s5p_mfc_pm.c (98%)
+ rename drivers/media/{video => platform}/s5p-mfc/s5p_mfc_pm.h (92%)
+ rename drivers/media/{video => platform}/s5p-mfc/s5p_mfc_shm.c (96%)
+ rename drivers/media/{video => platform}/s5p-mfc/s5p_mfc_shm.h (98%)
+ rename drivers/media/{video => platform}/s5p-tv/Kconfig (98%)
+ rename drivers/media/{video => platform}/s5p-tv/Makefile (92%)
+ rename drivers/media/{video => platform}/s5p-tv/hdmi_drv.c (100%)
+ rename drivers/media/{video => platform}/s5p-tv/hdmiphy_drv.c (100%)
+ rename drivers/media/{video => platform}/s5p-tv/mixer.h (100%)
+ rename drivers/media/{video => platform}/s5p-tv/mixer_drv.c (100%)
+ rename drivers/media/{video => platform}/s5p-tv/mixer_grp_layer.c (100%)
+ rename drivers/media/{video => platform}/s5p-tv/mixer_reg.c (100%)
+ rename drivers/media/{video => platform}/s5p-tv/mixer_video.c (100%)
+ rename drivers/media/{video => platform}/s5p-tv/mixer_vp_layer.c (100%)
+ rename drivers/media/{video => platform}/s5p-tv/regs-hdmi.h (100%)
+ rename drivers/media/{video => platform}/s5p-tv/regs-mixer.h (100%)
+ rename drivers/media/{video => platform}/s5p-tv/regs-sdo.h (97%)
+ rename drivers/media/{video => platform}/s5p-tv/regs-vp.h (100%)
+ rename drivers/media/{video => platform}/s5p-tv/sdo_drv.c (100%)
+ rename drivers/media/{video => platform}/s5p-tv/sii9234_drv.c (100%)
+ rename drivers/media/{video => platform}/sh_mobile_ceu_camera.c (100%)
+ rename drivers/media/{video => platform}/sh_vou.c (100%)
+ rename drivers/media/{video => platform}/soc_camera.c (100%)
+ rename drivers/media/{video => platform}/soc_camera_platform.c (100%)
+ rename drivers/media/{video => platform}/soc_mediabus.c (100%)
+ rename drivers/media/{video => platform}/timblogiw.c (100%)
+ rename drivers/media/{video => platform}/via-camera.c (100%)
+ rename drivers/media/{video => platform}/via-camera.h (100%)
+ rename drivers/media/{video => platform}/vino.c (100%)
+ rename drivers/media/{video => platform}/vino.h (100%)
+ rename drivers/media/{video => platform}/vivi.c (100%)
+ rename drivers/media/{video => usb}/au0828/Kconfig (100%)
+ rename drivers/media/{video => usb}/au0828/Makefile (100%)
+ rename drivers/media/{video => usb}/au0828/au0828-cards.c (100%)
+ rename drivers/media/{video => usb}/au0828/au0828-cards.h (100%)
+ rename drivers/media/{video => usb}/au0828/au0828-core.c (100%)
+ rename drivers/media/{video => usb}/au0828/au0828-dvb.c (100%)
+ rename drivers/media/{video => usb}/au0828/au0828-i2c.c (100%)
+ rename drivers/media/{video => usb}/au0828/au0828-reg.h (100%)
+ rename drivers/media/{video => usb}/au0828/au0828-vbi.c (100%)
+ rename drivers/media/{video => usb}/au0828/au0828-video.c (100%)
+ rename drivers/media/{video => usb}/au0828/au0828.h (100%)
+ rename drivers/media/{video => usb}/cpia2/Kconfig (100%)
+ rename drivers/media/{video => usb}/cpia2/Makefile (100%)
+ rename drivers/media/{video => usb}/cpia2/cpia2.h (100%)
+ rename drivers/media/{video => usb}/cpia2/cpia2_core.c (100%)
+ rename drivers/media/{video => usb}/cpia2/cpia2_registers.h (100%)
+ rename drivers/media/{video => usb}/cpia2/cpia2_usb.c (100%)
+ rename drivers/media/{video => usb}/cpia2/cpia2_v4l.c (100%)
+ rename drivers/media/{video => usb}/cx231xx/Kconfig (100%)
+ rename drivers/media/{video => usb}/cx231xx/Makefile (93%)
+ rename drivers/media/{video => usb}/cx231xx/cx231xx-417.c (100%)
+ rename drivers/media/{video => usb}/cx231xx/cx231xx-audio.c (100%)
+ rename drivers/media/{video => usb}/cx231xx/cx231xx-avcore.c (100%)
+ rename drivers/media/{video => usb}/cx231xx/cx231xx-cards.c (100%)
+ rename drivers/media/{video => usb}/cx231xx/cx231xx-conf-reg.h (100%)
+ rename drivers/media/{video => usb}/cx231xx/cx231xx-core.c (100%)
+ rename drivers/media/{video => usb}/cx231xx/cx231xx-dif.h (100%)
+ rename drivers/media/{video => usb}/cx231xx/cx231xx-dvb.c (100%)
+ rename drivers/media/{video => usb}/cx231xx/cx231xx-i2c.c (100%)
+ rename drivers/media/{video => usb}/cx231xx/cx231xx-input.c (100%)
+ rename drivers/media/{video => usb}/cx231xx/cx231xx-pcb-cfg.c (100%)
+ rename drivers/media/{video => usb}/cx231xx/cx231xx-pcb-cfg.h (100%)
+ rename drivers/media/{video => usb}/cx231xx/cx231xx-reg.h (100%)
+ rename drivers/media/{video => usb}/cx231xx/cx231xx-vbi.c (100%)
+ rename drivers/media/{video => usb}/cx231xx/cx231xx-vbi.h (100%)
+ rename drivers/media/{video => usb}/cx231xx/cx231xx-video.c (100%)
+ rename drivers/media/{video => usb}/cx231xx/cx231xx.h (100%)
+ rename drivers/media/{video => usb}/em28xx/Kconfig (100%)
+ rename drivers/media/{video => usb}/em28xx/Makefile (92%)
+ rename drivers/media/{video => usb}/em28xx/em28xx-audio.c (100%)
+ rename drivers/media/{video => usb}/em28xx/em28xx-cards.c (100%)
+ rename drivers/media/{video => usb}/em28xx/em28xx-core.c (100%)
+ rename drivers/media/{video => usb}/em28xx/em28xx-dvb.c (100%)
+ rename drivers/media/{video => usb}/em28xx/em28xx-i2c.c (100%)
+ rename drivers/media/{video => usb}/em28xx/em28xx-input.c (100%)
+ rename drivers/media/{video => usb}/em28xx/em28xx-reg.h (100%)
+ rename drivers/media/{video => usb}/em28xx/em28xx-vbi.c (100%)
+ rename drivers/media/{video => usb}/em28xx/em28xx-video.c (100%)
+ rename drivers/media/{video => usb}/em28xx/em28xx.h (100%)
+ rename drivers/media/{video => usb}/gspca/Kconfig (98%)
+ rename drivers/media/{video => usb}/gspca/Makefile (100%)
+ rename drivers/media/{video => usb}/gspca/autogain_functions.c (100%)
+ rename drivers/media/{video => usb}/gspca/autogain_functions.h (100%)
+ rename drivers/media/{video => usb}/gspca/benq.c (100%)
+ rename drivers/media/{video => usb}/gspca/conex.c (100%)
+ rename drivers/media/{video => usb}/gspca/cpia1.c (100%)
+ rename drivers/media/{video => usb}/gspca/etoms.c (100%)
+ rename drivers/media/{video => usb}/gspca/finepix.c (100%)
+ rename drivers/media/{video => usb}/gspca/gl860/Kconfig (100%)
+ rename drivers/media/{video => usb}/gspca/gl860/Makefile (75%)
+ rename drivers/media/{video => usb}/gspca/gl860/gl860-mi1320.c (100%)
+ rename drivers/media/{video => usb}/gspca/gl860/gl860-mi2020.c (100%)
+ rename drivers/media/{video => usb}/gspca/gl860/gl860-ov2640.c (100%)
+ rename drivers/media/{video => usb}/gspca/gl860/gl860-ov9655.c (100%)
+ rename drivers/media/{video => usb}/gspca/gl860/gl860.c (100%)
+ rename drivers/media/{video => usb}/gspca/gl860/gl860.h (100%)
+ rename drivers/media/{video => usb}/gspca/gspca.c (100%)
+ rename drivers/media/{video => usb}/gspca/gspca.h (100%)
+ rename drivers/media/{video => usb}/gspca/jeilinj.c (100%)
+ rename drivers/media/{video => usb}/gspca/jl2005bcd.c (100%)
+ rename drivers/media/{video => usb}/gspca/jpeg.h (100%)
+ rename drivers/media/{video => usb}/gspca/kinect.c (100%)
+ rename drivers/media/{video => usb}/gspca/konica.c (100%)
+ rename drivers/media/{video => usb}/gspca/m5602/Kconfig (100%)
+ rename drivers/media/{video => usb}/gspca/m5602/Makefile (80%)
+ rename drivers/media/{video => usb}/gspca/m5602/m5602_bridge.h (100%)
+ rename drivers/media/{video => usb}/gspca/m5602/m5602_core.c (100%)
+ rename drivers/media/{video => usb}/gspca/m5602/m5602_mt9m111.c (100%)
+ rename drivers/media/{video => usb}/gspca/m5602/m5602_mt9m111.h (100%)
+ rename drivers/media/{video => usb}/gspca/m5602/m5602_ov7660.c (100%)
+ rename drivers/media/{video => usb}/gspca/m5602/m5602_ov7660.h (100%)
+ rename drivers/media/{video => usb}/gspca/m5602/m5602_ov9650.c (100%)
+ rename drivers/media/{video => usb}/gspca/m5602/m5602_ov9650.h (100%)
+ rename drivers/media/{video => usb}/gspca/m5602/m5602_po1030.c (100%)
+ rename drivers/media/{video => usb}/gspca/m5602/m5602_po1030.h (100%)
+ rename drivers/media/{video => usb}/gspca/m5602/m5602_s5k4aa.c (100%)
+ rename drivers/media/{video => usb}/gspca/m5602/m5602_s5k4aa.h (100%)
+ rename drivers/media/{video => usb}/gspca/m5602/m5602_s5k83a.c (100%)
+ rename drivers/media/{video => usb}/gspca/m5602/m5602_s5k83a.h (100%)
+ rename drivers/media/{video => usb}/gspca/m5602/m5602_sensor.h (100%)
+ rename drivers/media/{video => usb}/gspca/mars.c (100%)
+ rename drivers/media/{video => usb}/gspca/mr97310a.c (100%)
+ rename drivers/media/{video => usb}/gspca/nw80x.c (100%)
+ rename drivers/media/{video => usb}/gspca/ov519.c (100%)
+ rename drivers/media/{video => usb}/gspca/ov534.c (100%)
+ rename drivers/media/{video => usb}/gspca/ov534_9.c (100%)
+ rename drivers/media/{video => usb}/gspca/pac207.c (100%)
+ rename drivers/media/{video => usb}/gspca/pac7302.c (100%)
+ rename drivers/media/{video => usb}/gspca/pac7311.c (100%)
+ rename drivers/media/{video => usb}/gspca/pac_common.h (100%)
+ rename drivers/media/{video => usb}/gspca/se401.c (100%)
+ rename drivers/media/{video => usb}/gspca/se401.h (100%)
+ rename drivers/media/{video => usb}/gspca/sn9c2028.c (100%)
+ rename drivers/media/{video => usb}/gspca/sn9c2028.h (100%)
+ rename drivers/media/{video => usb}/gspca/sn9c20x.c (100%)
+ rename drivers/media/{video => usb}/gspca/sonixb.c (100%)
+ rename drivers/media/{video => usb}/gspca/sonixj.c (100%)
+ rename drivers/media/{video => usb}/gspca/spca1528.c (100%)
+ rename drivers/media/{video => usb}/gspca/spca500.c (100%)
+ rename drivers/media/{video => usb}/gspca/spca501.c (100%)
+ rename drivers/media/{video => usb}/gspca/spca505.c (100%)
+ rename drivers/media/{video => usb}/gspca/spca506.c (100%)
+ rename drivers/media/{video => usb}/gspca/spca508.c (100%)
+ rename drivers/media/{video => usb}/gspca/spca561.c (100%)
+ rename drivers/media/{video => usb}/gspca/sq905.c (100%)
+ rename drivers/media/{video => usb}/gspca/sq905c.c (100%)
+ rename drivers/media/{video => usb}/gspca/sq930x.c (100%)
+ rename drivers/media/{video => usb}/gspca/stk014.c (100%)
+ rename drivers/media/{video => usb}/gspca/stv0680.c (100%)
+ rename drivers/media/{video => usb}/gspca/stv06xx/Kconfig (100%)
+ rename drivers/media/{video => usb}/gspca/stv06xx/Makefile (78%)
+ rename drivers/media/{video => usb}/gspca/stv06xx/stv06xx.c (100%)
+ rename drivers/media/{video => usb}/gspca/stv06xx/stv06xx.h (100%)
+ rename drivers/media/{video => usb}/gspca/stv06xx/stv06xx_hdcs.c (100%)
+ rename drivers/media/{video => usb}/gspca/stv06xx/stv06xx_hdcs.h (100%)
+ rename drivers/media/{video => usb}/gspca/stv06xx/stv06xx_pb0100.c (100%)
+ rename drivers/media/{video => usb}/gspca/stv06xx/stv06xx_pb0100.h (100%)
+ rename drivers/media/{video => usb}/gspca/stv06xx/stv06xx_sensor.h (100%)
+ rename drivers/media/{video => usb}/gspca/stv06xx/stv06xx_st6422.c (100%)
+ rename drivers/media/{video => usb}/gspca/stv06xx/stv06xx_st6422.h (100%)
+ rename drivers/media/{video => usb}/gspca/stv06xx/stv06xx_vv6410.c (100%)
+ rename drivers/media/{video => usb}/gspca/stv06xx/stv06xx_vv6410.h (100%)
+ rename drivers/media/{video => usb}/gspca/sunplus.c (100%)
+ rename drivers/media/{video => usb}/gspca/t613.c (100%)
+ rename drivers/media/{video => usb}/gspca/topro.c (100%)
+ rename drivers/media/{video => usb}/gspca/tv8532.c (100%)
+ rename drivers/media/{video => usb}/gspca/vc032x.c (100%)
+ rename drivers/media/{video => usb}/gspca/vicam.c (100%)
+ rename drivers/media/{video => usb}/gspca/w996Xcf.c (100%)
+ rename drivers/media/{video => usb}/gspca/xirlink_cit.c (100%)
+ rename drivers/media/{video => usb}/gspca/zc3xx-reg.h (100%)
+ rename drivers/media/{video => usb}/gspca/zc3xx.c (100%)
+ rename drivers/media/{video => usb}/hdpvr/Kconfig (100%)
+ rename drivers/media/{video => usb}/hdpvr/Makefile (81%)
+ rename drivers/media/{video => usb}/hdpvr/hdpvr-control.c (100%)
+ rename drivers/media/{video => usb}/hdpvr/hdpvr-core.c (100%)
+ rename drivers/media/{video => usb}/hdpvr/hdpvr-i2c.c (100%)
+ rename drivers/media/{video => usb}/hdpvr/hdpvr-video.c (100%)
+ rename drivers/media/{video => usb}/hdpvr/hdpvr.h (100%)
+ rename drivers/media/{video => usb}/pvrusb2/Kconfig (100%)
+ rename drivers/media/{video => usb}/pvrusb2/Makefile (95%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-audio.c (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-audio.h (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-context.c (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-context.h (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-cs53l32a.c (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-cs53l32a.h (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-ctrl.c (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-ctrl.h (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-cx2584x-v4l.c (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-cx2584x-v4l.h (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-debug.h (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-debugifc.c (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-debugifc.h (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-devattr.c (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-devattr.h (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-dvb.c (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-dvb.h (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-eeprom.c (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-eeprom.h (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-encoder.c (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-encoder.h (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-fx2-cmd.h (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-hdw-internal.h (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-hdw.c (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-hdw.h (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-i2c-core.c (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-i2c-core.h (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-io.c (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-io.h (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-ioread.c (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-ioread.h (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-main.c (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-std.c (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-std.h (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-sysfs.c (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-sysfs.h (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-util.h (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-v4l2.c (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-v4l2.h (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-video-v4l.c (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-video-v4l.h (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-wm8775.c (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2-wm8775.h (100%)
+ rename drivers/media/{video => usb}/pvrusb2/pvrusb2.h (100%)
+ rename drivers/media/{video => usb}/pwc/Kconfig (100%)
+ rename drivers/media/{video => usb}/pwc/Makefile (100%)
+ rename drivers/media/{video => usb}/pwc/philips.txt (100%)
+ rename drivers/media/{video => usb}/pwc/pwc-ctrl.c (100%)
+ rename drivers/media/{video => usb}/pwc/pwc-dec1.c (100%)
+ rename drivers/media/{video => usb}/pwc/pwc-dec1.h (100%)
+ rename drivers/media/{video => usb}/pwc/pwc-dec23.c (100%)
+ rename drivers/media/{video => usb}/pwc/pwc-dec23.h (100%)
+ rename drivers/media/{video => usb}/pwc/pwc-if.c (100%)
+ rename drivers/media/{video => usb}/pwc/pwc-kiara.c (100%)
+ rename drivers/media/{video => usb}/pwc/pwc-kiara.h (100%)
+ rename drivers/media/{video => usb}/pwc/pwc-misc.c (100%)
+ rename drivers/media/{video => usb}/pwc/pwc-nala.h (100%)
+ rename drivers/media/{video => usb}/pwc/pwc-timon.c (100%)
+ rename drivers/media/{video => usb}/pwc/pwc-timon.h (100%)
+ rename drivers/media/{video => usb}/pwc/pwc-uncompress.c (100%)
+ rename drivers/media/{video => usb}/pwc/pwc-v4l.c (100%)
+ rename drivers/media/{video => usb}/pwc/pwc.h (100%)
+ create mode 100644 drivers/media/usb/s2255/Kconfig
+ create mode 100644 drivers/media/usb/s2255/Makefile
+ rename drivers/media/{video => usb/s2255}/s2255drv.c (100%)
+ rename drivers/media/{video => usb}/sn9c102/Kconfig (100%)
+ rename drivers/media/{video => usb}/sn9c102/Makefile (100%)
+ rename drivers/media/{video => usb}/sn9c102/sn9c102.h (100%)
+ rename drivers/media/{video => usb}/sn9c102/sn9c102_config.h (100%)
+ rename drivers/media/{video => usb}/sn9c102/sn9c102_core.c (100%)
+ rename drivers/media/{video => usb}/sn9c102/sn9c102_devtable.h (100%)
+ rename drivers/media/{video => usb}/sn9c102/sn9c102_hv7131d.c (100%)
+ rename drivers/media/{video => usb}/sn9c102/sn9c102_hv7131r.c (100%)
+ rename drivers/media/{video => usb}/sn9c102/sn9c102_mi0343.c (100%)
+ rename drivers/media/{video => usb}/sn9c102/sn9c102_mi0360.c (100%)
+ rename drivers/media/{video => usb}/sn9c102/sn9c102_mt9v111.c (100%)
+ rename drivers/media/{video => usb}/sn9c102/sn9c102_ov7630.c (100%)
+ rename drivers/media/{video => usb}/sn9c102/sn9c102_ov7660.c (100%)
+ rename drivers/media/{video => usb}/sn9c102/sn9c102_pas106b.c (100%)
+ rename drivers/media/{video => usb}/sn9c102/sn9c102_pas202bcb.c (100%)
+ rename drivers/media/{video => usb}/sn9c102/sn9c102_sensor.h (100%)
+ rename drivers/media/{video => usb}/sn9c102/sn9c102_tas5110c1b.c (100%)
+ rename drivers/media/{video => usb}/sn9c102/sn9c102_tas5110d.c (100%)
+ rename drivers/media/{video => usb}/sn9c102/sn9c102_tas5130d1b.c (100%)
+ rename drivers/media/{video => usb}/stk1160/Kconfig (100%)
+ rename drivers/media/{video => usb}/stk1160/Makefile (86%)
+ rename drivers/media/{video => usb}/stk1160/stk1160-ac97.c (100%)
+ rename drivers/media/{video => usb}/stk1160/stk1160-core.c (100%)
+ rename drivers/media/{video => usb}/stk1160/stk1160-i2c.c (100%)
+ rename drivers/media/{video => usb}/stk1160/stk1160-reg.h (100%)
+ rename drivers/media/{video => usb}/stk1160/stk1160-v4l.c (100%)
+ rename drivers/media/{video => usb}/stk1160/stk1160-video.c (100%)
+ rename drivers/media/{video => usb}/stk1160/stk1160.h (100%)
+ create mode 100644 drivers/media/usb/stkwebcam/Kconfig
+ create mode 100644 drivers/media/usb/stkwebcam/Makefile
+ rename drivers/media/{video => usb/stkwebcam}/stk-sensor.c (100%)
+ rename drivers/media/{video => usb/stkwebcam}/stk-webcam.c (100%)
+ rename drivers/media/{video => usb/stkwebcam}/stk-webcam.h (100%)
+ rename drivers/media/{video => usb}/tlg2300/Kconfig (100%)
+ rename drivers/media/{video => usb}/tlg2300/Makefile (86%)
+ rename drivers/media/{video => usb}/tlg2300/pd-alsa.c (100%)
+ rename drivers/media/{video => usb}/tlg2300/pd-common.h (100%)
+ rename drivers/media/{video => usb}/tlg2300/pd-dvb.c (100%)
+ rename drivers/media/{video => usb}/tlg2300/pd-main.c (100%)
+ rename drivers/media/{video => usb}/tlg2300/pd-radio.c (100%)
+ rename drivers/media/{video => usb}/tlg2300/pd-video.c (100%)
+ rename drivers/media/{video => usb}/tlg2300/vendorcmds.h (100%)
+ rename drivers/media/{video => usb}/tm6000/Kconfig (100%)
+ rename drivers/media/{video => usb}/tm6000/Makefile (91%)
+ rename drivers/media/{video => usb}/tm6000/tm6000-alsa.c (100%)
+ rename drivers/media/{video => usb}/tm6000/tm6000-cards.c (100%)
+ rename drivers/media/{video => usb}/tm6000/tm6000-core.c (100%)
+ rename drivers/media/{video => usb}/tm6000/tm6000-dvb.c (100%)
+ rename drivers/media/{video => usb}/tm6000/tm6000-i2c.c (100%)
+ rename drivers/media/{video => usb}/tm6000/tm6000-input.c (100%)
+ rename drivers/media/{video => usb}/tm6000/tm6000-regs.h (100%)
+ rename drivers/media/{video => usb}/tm6000/tm6000-stds.c (100%)
+ rename drivers/media/{video => usb}/tm6000/tm6000-usb-isoc.h (100%)
+ rename drivers/media/{video => usb}/tm6000/tm6000-video.c (100%)
+ rename drivers/media/{video => usb}/tm6000/tm6000.h (100%)
+ rename drivers/media/{video => usb}/usbvision/Kconfig (100%)
+ rename drivers/media/{video => usb}/usbvision/Makefile (83%)
+ rename drivers/media/{video => usb}/usbvision/usbvision-cards.c (100%)
+ rename drivers/media/{video => usb}/usbvision/usbvision-cards.h (100%)
+ rename drivers/media/{video => usb}/usbvision/usbvision-core.c (100%)
+ rename drivers/media/{video => usb}/usbvision/usbvision-i2c.c (100%)
+ rename drivers/media/{video => usb}/usbvision/usbvision-video.c (100%)
+ rename drivers/media/{video => usb}/usbvision/usbvision.h (100%)
+ rename drivers/media/{video => usb}/uvc/Kconfig (100%)
+ rename drivers/media/{video => usb}/uvc/Makefile (100%)
+ rename drivers/media/{video => usb}/uvc/uvc_ctrl.c (100%)
+ rename drivers/media/{video => usb}/uvc/uvc_debugfs.c (100%)
+ rename drivers/media/{video => usb}/uvc/uvc_driver.c (100%)
+ rename drivers/media/{video => usb}/uvc/uvc_entity.c (100%)
+ rename drivers/media/{video => usb}/uvc/uvc_isight.c (100%)
+ rename drivers/media/{video => usb}/uvc/uvc_queue.c (100%)
+ rename drivers/media/{video => usb}/uvc/uvc_status.c (100%)
+ rename drivers/media/{video => usb}/uvc/uvc_v4l2.c (100%)
+ rename drivers/media/{video => usb}/uvc/uvc_video.c (100%)
+ rename drivers/media/{video => usb}/uvc/uvcvideo.h (100%)
+ create mode 100644 drivers/media/usb/zr364xx/Kconfig
+ create mode 100644 drivers/media/usb/zr364xx/Makefile
+ rename drivers/media/{video => usb/zr364xx}/zr364xx.c (100%)
+ delete mode 100644 drivers/media/video/Kconfig
+ delete mode 100644 drivers/media/video/Makefile
+ delete mode 100644 drivers/media/video/bt8xx/Kconfig
+ delete mode 100644 drivers/media/video/bt8xx/Makefile
+
+-- 
+1.7.11.2
+
