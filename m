@@ -1,228 +1,275 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3706 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932196Ab2HIMSI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2012 08:18:08 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Konke Radlow <kradlow@cisco.com>
-Subject: Re: [RFC PATCH 1/2] Add libv4l2rds library (with changes proposed in RFC)
-Date: Thu, 9 Aug 2012 14:17:25 +0200
-Cc: linux-media@vger.kernel.org, hdegoede@redhat.com,
-	koradlow@gmail.com
-References: <[RFC PATCH 0/2] Add support for RDS decoding> <1344352315-1184-1-git-send-email-kradlow@cisco.com> <bce8b8118e9a8bcc7fd528d8b8d1a0732a9c8954.1344352285.git.kradlow@cisco.com>
-In-Reply-To: <bce8b8118e9a8bcc7fd528d8b8d1a0732a9c8954.1344352285.git.kradlow@cisco.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201208091417.25410.hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:50117 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750968Ab2HOCVz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Aug 2012 22:21:55 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hin-Tak Leung <htl10@users.sourceforge.net>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 3/6] dvb_frontend: implement suspend / resume
+Date: Wed, 15 Aug 2012 05:21:06 +0300
+Message-Id: <1344997269-20338-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1344997269-20338-1-git-send-email-crope@iki.fi>
+References: <1344997269-20338-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue August 7 2012 17:11:54 Konke Radlow wrote:
-> ---
->  Makefile.am                     |    3 +-
->  configure.ac                    |    7 +-
->  lib/include/libv4l2rds.h        |  228 ++++++++++
->  lib/libv4l2rds/Makefile.am      |   11 +
->  lib/libv4l2rds/libv4l2rds.c     |  953 +++++++++++++++++++++++++++++++++++++++
->  lib/libv4l2rds/libv4l2rds.pc.in |   11 +
->  6 files changed, 1211 insertions(+), 2 deletions(-)
->  create mode 100644 lib/include/libv4l2rds.h
->  create mode 100644 lib/libv4l2rds/Makefile.am
->  create mode 100644 lib/libv4l2rds/libv4l2rds.c
->  create mode 100644 lib/libv4l2rds/libv4l2rds.pc.in
-> 
-> diff --git a/lib/include/libv4l2rds.h b/lib/include/libv4l2rds.h
-> new file mode 100644
-> index 0000000..4aa8593
-> --- /dev/null
-> +++ b/lib/include/libv4l2rds.h
-> @@ -0,0 +1,228 @@
-> +/*
-> + * Copyright 2012 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-> + * Author: Konke Radlow <koradlow@gmail.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU Lesser General Public License as published by
-> + * the Free Software Foundation; either version 2.1 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA  02110-1335  USA
-> + */
-> +
-> +#ifndef __LIBV4L2RDS
-> +#define __LIBV4L2RDS
-> +
-> +#include <errno.h>
-> +#include <stdio.h>
-> +#include <stdlib.h>
-> +#include <string.h>
-> +#include <stdbool.h>
-> +#include <unistd.h>
-> +#include <stdint.h>
-> +#include <time.h>
-> +#include <sys/types.h>
-> +#include <sys/mman.h>
-> +#include <config.h>
-> +
-> +#include <linux/videodev2.h>
-> +
-> +#ifdef __cplusplus
-> +extern "C" {
-> +#endif /* __cplusplus */
-> +
-> +#if HAVE_VISIBILITY
-> +#define LIBV4L_PUBLIC __attribute__ ((visibility("default")))
-> +#else
-> +#define LIBV4L_PUBLIC
-> +#endif
-> +
-> +/* used to define the current version (version field) of the v4l2_rds struct */
-> +#define V4L2_RDS_VERSION (1)
-> +
-> +/* Constants used to define the size of arrays used to store RDS information */
-> +#define MAX_ODA_CNT 18 	/* there are 16 groups each with type a or b. Of these
-> +			 * 32 distinct groups, 18 can be used for ODA purposes */
-> +#define MAX_AF_CNT 25	/* AF Method A allows a maximum of 25 AFs to be defined
-> +			 * AF Method B does not impose a limit on the number of AFs
-> +			 * but it is not fully supported at the moment and will
-> +			 * not receive more than 25 AFs */
-> +
-> +/* Define Constants for the possible types of RDS information
-> + * used to address the relevant bit in the valid_fields bitmask */
-> +#define V4L2_RDS_PI 		0x01	/* Program Identification */
-> +#define V4L2_RDS_PTY		0x02	/* Program Type */
-> +#define V4L2_RDS_TP		0x04	/* Traffic Program */
-> +#define V4L2_RDS_PS		0x08	/* Program Service Name */
-> +#define V4L2_RDS_TA		0x10	/* Traffic Announcement */
-> +#define V4L2_RDS_DI		0x20	/* Decoder Information */
-> +#define V4L2_RDS_MS		0x40	/* Music / Speech flag */
-> +#define V4L2_RDS_PTYN		0x80	/* Program Type Name */
-> +#define V4L2_RDS_RT		0x100 	/* Radio-Text */
-> +#define V4L2_RDS_TIME		0x200	/* Date and Time information */
-> +#define V4L2_RDS_TMC		0x400	/* TMC availability */
-> +#define V4L2_RDS_AF		0x800	/* AF (alternative freq) available */
-> +#define V4L2_RDS_ECC		0x1000	/* Extended County Code */
-> +#define V4L2_RDS_LC		0x2000	/* Language Code */
-> +
-> +/* Define Constants for the state of the RDS decoding process
-> + * used to address the relevant bit in the decode_information bitmask */
-> +#define V4L2_RDS_GROUP_NEW 	0x01	/* New group received */
-> +#define V4L2_RDS_ODA		0x02	/* Open Data Group announced */
-> +
-> +/* Decoder Information (DI) codes
-> + * used to decode the DI information according to the RDS standard */
-> +#define V4L2_RDS_FLAG_STEREO 		0x01
-> +#define V4L2_RDS_FLAG_ARTIFICIAL_HEAD	0x02
-> +#define V4L2_RDS_FLAG_COMPRESSED	0x04
-> +#define V4L2_RDS_FLAG_STATIC_PTY	0x08
-> +
-> +/* struct to encapsulate one complete RDS group */
-> +/* This structure is used internally to store data until a complete RDS
-> + * group was received and group id dependent decoding can be done.
-> + * It is also used to provide external access to uninterpreted RDS groups
-> + * when manual decoding is required (e.g. special ODA types) */
-> +struct v4l2_rds_group {
-> +	uint16_t pi;		/* Program Identification */
-> +	char group_version;	/* group version ('A' / 'B') */
-> +	uint8_t group_id;	/* group number (0..16) */
-> +
-> +	/* uninterpreted data blocks for decoding (e.g. ODA) */
-> +	uint8_t data_b_lsb;
-> +	uint8_t data_c_msb;
-> +	uint8_t data_c_lsb;
-> +	uint8_t data_d_msb;
-> +	uint8_t data_d_lsb;
-> +};
-> +
-> +/* struct to encapsulate some statistical information about the decoding process */
-> +struct v4l2_rds_statistics {
-> +	uint32_t block_cnt;		/* total amount of received blocks */
-> +	uint32_t group_cnt;		/* total amount of successfully
-> +					 * decoded groups */
-> +	uint32_t block_error_cnt;	/* blocks that were marked as erroneous
-> +					 * and had to be dropped */
-> +	uint32_t group_error_cnt;	/* group decoding processes that had to be
-> +					 * aborted because of erroneous blocks
-> +					 * or wrong order of blocks */
-> +	uint32_t block_corrected_cnt;	/* blocks that contained 1-bit errors
-> +					 * which were corrected */
-> +	uint32_t group_type_cnt[16];	/* number of occurrence for each
-> +					 * defined RDS group */
-> +};
-> +
-> +/* struct to encapsulate the definition of one ODA (Open Data Application) type */
-> +struct v4l2_rds_oda {
-> +	uint8_t group_id;	/* RDS group used to broadcast this ODA */
-> +	char group_version;	/* group version (A / B) for this ODA */
-> +	uint16_t aid;		/* Application Identification for this ODA,
-> +				 * AIDs are centrally administered by the
-> +				 * RDS Registration Office (rds.org.uk) */
-> +};
-> +
-> +/* struct to encapsulate an array of all defined ODA types for a channel */
-> +/* This structure will grow with ODA announcements broadcasted in type 3A
-> + * groups, that were verified not to be no duplicates or redefinitions */
-> +struct v4l2_rds_oda_set {
-> +	uint8_t size;		/* number of ODAs defined by this channel */
-> +	struct v4l2_rds_oda oda[MAX_ODA_CNT];
-> +};
-> +
-> +/* struct to encapsulate an array of Alternative Frequencies for a channel */
-> +/* Every channel can send out AFs for his program. The number of AFs that
-> + * will be broadcasted is announced by the channel */
-> +struct v4l2_rds_af_set {
-> +	uint8_t size;			/* size of the set (might be smaller
-> +					 * than the announced size) */
-> +	uint8_t announced_af;		/* number of announced AF */
-> +	uint32_t af[MAX_AF_CNT];	/* AFs defined in Hz */
-> +};
-> +
-> +/* struct to encapsulate state and RDS information for current decoding process */
-> +/* This is the structure that will be used by external applications, to
-> + * communicate with the library and get access to RDS data */
-> +struct v4l2_rds {
-> +	uint32_t version;	/* version number of this structure */
-> +
-> +	/** state information **/
-> +	uint32_t decode_information;	/* state of decoding process */
-> +	uint32_t valid_fields;		/* currently valid info fields
-> +					 * of this structure */
-> +
-> +	/** RDS info fields **/
-> +	bool is_rbds; 		/* use RBDS standard version of LUTs */
-> +	uint16_t pi;		/* Program Identification */
-> +	uint8_t ps[9];		/* Program Service Name, UTF-8 encoding,
-> +				 * '\0' terminated */
-> +	uint8_t pty;		/* Program Type */
-> +	uint8_t ptyn[9];	/* Program Type Name, UTF-8 encoding,
-> +				 * '\0' terminated */
-> +	bool ptyn_ab_flag;	/* PTYN A/B flag (toggled), to signal
-> +				 * change of PTYN */
-> +	uint8_t rt_length;	/* length of RT string */
-> +	uint8_t rt[65];		/* Radio-Text string, UTF-8 encoding,
-> +				 * '\0' terminated */
-> +	bool rt_ab_flag;	/* RT A/B flag (toggled), to signal
-> +				 * transmission of new RT */
-> +	bool ta;		/* Traffic Announcement */
-> +	bool tp;		/* Traffic Program */
-> +	bool ms;		/* Music / Speech flag */
-> +	uint8_t di;		/* Decoder Information */
-> +	uint8_t ecc;		/* Extended Country Code */
-> +	uint8_t lc;		/* Language Code */
-> +	time_t time;		/* Time and Date of transmission */
+Move initial suspend / resume support from dvb_usb_v2 to dvb_frontend
+as it is dvb general feature that could be used all dvb devices.
 
-The comment needs to be improved: is this local time or UTC?
-That's not clear from the comment.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-core/dvb_frontend.c       | 47 ++++++++++++++++----
+ drivers/media/dvb-core/dvb_frontend.h       |  3 +-
+ drivers/media/usb/dvb-usb-v2/dvb_usb.h      |  3 ++
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c | 66 ++++++++++-------------------
+ 4 files changed, 66 insertions(+), 53 deletions(-)
 
-Regards,
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index 5fb19ea..aa4d4d8 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -307,15 +307,6 @@ void dvb_frontend_reinitialise(struct dvb_frontend *fe)
+ }
+ EXPORT_SYMBOL(dvb_frontend_reinitialise);
+ 
+-void dvb_frontend_retune(struct dvb_frontend *fe)
+-{
+-	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+-
+-	fepriv->state = FESTATE_RETUNE;
+-	dvb_frontend_wakeup(fe);
+-}
+-EXPORT_SYMBOL(dvb_frontend_retune);
+-
+ static void dvb_frontend_swzigzag_update_delay(struct dvb_frontend_private *fepriv, int locked)
+ {
+ 	int q2;
+@@ -2448,6 +2439,44 @@ static const struct file_operations dvb_frontend_fops = {
+ 	.llseek		= noop_llseek,
+ };
+ 
++int dvb_frontend_suspend(struct dvb_frontend *fe)
++{
++	int ret = 0;
++
++	dev_dbg(fe->dvb->device, "%s: adap=%d fe=%d\n", __func__, fe->dvb->num,
++			fe->id);
++
++	if (fe->ops.tuner_ops.sleep)
++		ret = fe->ops.tuner_ops.sleep(fe);
++
++	if (fe->ops.sleep)
++		ret = fe->ops.sleep(fe);
++
++	return ret;
++}
++EXPORT_SYMBOL(dvb_frontend_suspend);
++
++int dvb_frontend_resume(struct dvb_frontend *fe)
++{
++	struct dvb_frontend_private *fepriv = fe->frontend_priv;
++	int ret = 0;
++
++	dev_dbg(fe->dvb->device, "%s: adap=%d fe=%d\n", __func__, fe->dvb->num,
++			fe->id);
++
++	if (fe->ops.init)
++		ret = fe->ops.init(fe);
++
++	if (fe->ops.tuner_ops.init)
++		ret = fe->ops.tuner_ops.init(fe);
++
++	fepriv->state = FESTATE_RETUNE;
++	dvb_frontend_wakeup(fe);
++
++	return ret;
++}
++EXPORT_SYMBOL(dvb_frontend_resume);
++
+ int dvb_register_frontend(struct dvb_adapter* dvb,
+ 			  struct dvb_frontend* fe)
+ {
+diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
+index 58f6b4c..db309db 100644
+--- a/drivers/media/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb-core/dvb_frontend.h
+@@ -418,7 +418,8 @@ extern int dvb_unregister_frontend(struct dvb_frontend *fe);
+ extern void dvb_frontend_detach(struct dvb_frontend *fe);
+ 
+ extern void dvb_frontend_reinitialise(struct dvb_frontend *fe);
+-extern void dvb_frontend_retune(struct dvb_frontend *fe);
++extern int dvb_frontend_suspend(struct dvb_frontend *fe);
++extern int dvb_frontend_resume(struct dvb_frontend *fe);
+ 
+ extern void dvb_frontend_sleep_until(struct timeval *waketime, u32 add_usec);
+ extern s32 timeval_usec_diff(struct timeval lasttime, struct timeval curtime);
+diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb.h b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
+index 79b3b8b..63fc275 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvb_usb.h
++++ b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
+@@ -295,6 +295,7 @@ struct usb_data_stream {
+  * @stream: adapter the usb data stream
+  * @id: index of this adapter (starting with 0)
+  * @ts_type: transport stream, input stream, type
++ * @suspend_resume_active: set when there is ongoing suspend / resume
+  * @pid_filtering: is hardware pid_filtering used or not
+  * @feed_count: current feed count
+  * @max_feed_count: maimum feed count device can handle
+@@ -312,6 +313,7 @@ struct dvb_usb_adapter {
+ 	struct usb_data_stream stream;
+ 	u8 id;
+ 	u8 ts_type;
++	bool suspend_resume_active;
+ 	bool pid_filtering;
+ 	u8 feed_count;
+ 	u8 max_feed_count;
+@@ -381,6 +383,7 @@ extern int dvb_usbv2_probe(struct usb_interface *,
+ extern void dvb_usbv2_disconnect(struct usb_interface *);
+ extern int dvb_usbv2_suspend(struct usb_interface *, pm_message_t);
+ extern int dvb_usbv2_resume(struct usb_interface *);
++#define dvb_usbv2_reset_resume dvb_usbv2_resume
+ 
+ /* the generic read/write method for device control */
+ extern int dvb_usbv2_generic_rw(struct dvb_usb_device *, u8 *, u16, u8 *, u16);
+diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+index 7ce8ffe..a0e70e9 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
++++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+@@ -489,6 +489,11 @@ static int dvb_usb_fe_init(struct dvb_frontend *fe)
+ 	dev_dbg(&d->udev->dev, "%s: adap=%d fe=%d\n", __func__, adap->id,
+ 			fe->id);
+ 
++	if (!adap->suspend_resume_active) {
++		adap->active_fe = fe->id;
++		mutex_lock(&adap->sync_mutex);
++	}
++
+ 	ret = dvb_usbv2_device_power_ctrl(d, 1);
+ 	if (ret < 0)
+ 		goto err;
+@@ -504,23 +509,11 @@ static int dvb_usb_fe_init(struct dvb_frontend *fe)
+ 		if (ret < 0)
+ 			goto err;
+ 	}
+-
+-	return 0;
+ err:
+-	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
+-	return ret;
+-}
+-
+-static int dvb_usb_fe_init_lock(struct dvb_frontend *fe)
+-{
+-	int ret;
+-	struct dvb_usb_adapter *adap = fe->dvb->priv;
+-	mutex_lock(&adap->sync_mutex);
+-
+-	ret = dvb_usb_fe_init(fe);
+-	adap->active_fe = fe->id;
++	if (!adap->suspend_resume_active)
++		mutex_unlock(&adap->sync_mutex);
+ 
+-	mutex_unlock(&adap->sync_mutex);
++	dev_dbg(&d->udev->dev, "%s: ret=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
+@@ -532,6 +525,9 @@ static int dvb_usb_fe_sleep(struct dvb_frontend *fe)
+ 	dev_dbg(&d->udev->dev, "%s: adap=%d fe=%d\n", __func__, adap->id,
+ 			fe->id);
+ 
++	if (!adap->suspend_resume_active)
++		mutex_lock(&adap->sync_mutex);
++
+ 	if (adap->fe_sleep[fe->id]) {
+ 		ret = adap->fe_sleep[fe->id](fe);
+ 		if (ret < 0)
+@@ -547,23 +543,13 @@ static int dvb_usb_fe_sleep(struct dvb_frontend *fe)
+ 	ret = dvb_usbv2_device_power_ctrl(d, 0);
+ 	if (ret < 0)
+ 		goto err;
+-
+-	return 0;
+ err:
+-	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
+-	return ret;
+-}
+-
+-static int dvb_usb_fe_sleep_lock(struct dvb_frontend *fe)
+-{
+-	int ret;
+-	struct dvb_usb_adapter *adap = fe->dvb->priv;
+-	mutex_lock(&adap->sync_mutex);
+-
+-	ret = dvb_usb_fe_sleep(fe);
+-	adap->active_fe = -1;
++	if (!adap->suspend_resume_active) {
++		adap->active_fe = -1;
++		mutex_unlock(&adap->sync_mutex);
++	}
+ 
+-	mutex_unlock(&adap->sync_mutex);
++	dev_dbg(&d->udev->dev, "%s: ret=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
+@@ -594,9 +580,9 @@ int dvb_usbv2_adapter_frontend_init(struct dvb_usb_adapter *adap)
+ 		adap->fe[i]->id = i;
+ 		/* re-assign sleep and wakeup functions */
+ 		adap->fe_init[i] = adap->fe[i]->ops.init;
+-		adap->fe[i]->ops.init = dvb_usb_fe_init_lock;
++		adap->fe[i]->ops.init = dvb_usb_fe_init;
+ 		adap->fe_sleep[i] = adap->fe[i]->ops.sleep;
+-		adap->fe[i]->ops.sleep = dvb_usb_fe_sleep_lock;
++		adap->fe[i]->ops.sleep = dvb_usb_fe_sleep;
+ 
+ 		ret = dvb_register_frontend(&adap->dvb_adap, adap->fe[i]);
+ 		if (ret < 0) {
+@@ -978,6 +964,7 @@ int dvb_usbv2_suspend(struct usb_interface *intf, pm_message_t msg)
+ 		active_fe = d->adapter[i].active_fe;
+ 		if (d->adapter[i].dvb_adap.priv && active_fe != -1) {
+ 			fe = d->adapter[i].fe[active_fe];
++			d->adapter[i].suspend_resume_active = true;
+ 
+ 			if (d->props->streaming_ctrl)
+ 				d->props->streaming_ctrl(fe, 0);
+@@ -985,10 +972,7 @@ int dvb_usbv2_suspend(struct usb_interface *intf, pm_message_t msg)
+ 			/* stop usb streaming */
+ 			usb_urb_killv2(&d->adapter[i].stream);
+ 
+-			if (fe->ops.tuner_ops.sleep)
+-				fe->ops.tuner_ops.sleep(fe);
+-
+-			dvb_usb_fe_sleep(fe);
++			dvb_frontend_suspend(fe);
+ 		}
+ 	}
+ 
+@@ -1008,19 +992,15 @@ int dvb_usbv2_resume(struct usb_interface *intf)
+ 		if (d->adapter[i].dvb_adap.priv && active_fe != -1) {
+ 			fe = d->adapter[i].fe[active_fe];
+ 
+-			dvb_usb_fe_init(fe);
+-
+-			if (fe->ops.tuner_ops.init)
+-				fe->ops.tuner_ops.init(fe);
+-
+-			/* acquire dvb-core perform retune */
+-			dvb_frontend_retune(fe);
++			dvb_frontend_resume(fe);
+ 
+ 			/* resume usb streaming */
+ 			usb_urb_submitv2(&d->adapter[i].stream, NULL);
+ 
+ 			if (d->props->streaming_ctrl)
+ 				d->props->streaming_ctrl(fe, 1);
++
++			d->adapter[i].suspend_resume_active = false;
+ 		}
+ 	}
+ 
+-- 
+1.7.11.2
 
-	Hans
