@@ -1,381 +1,210 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46753 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58887 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756458Ab2HQAtf (ORCPT
+	with ESMTP id S1754152Ab2HOUoY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Aug 2012 20:49:35 -0400
+	Wed, 15 Aug 2012 16:44:24 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-leds@vger.kernel.org
-Cc: linux-media@vger.kernel.org, Bryan Wu <bryan.wu@canonical.com>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
-	Sumit Semwal <sumit.semwal@ti.com>,
-	Archit Taneja <archit@ti.com>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	Inki Dae <inki.dae@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [RFC 3/5] video: panel: Add MIPI DBI bus support
-Date: Fri, 17 Aug 2012 02:49:41 +0200
-Message-Id: <1345164583-18924-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1345164583-18924-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1345164583-18924-1-git-send-email-laurent.pinchart@ideasonboard.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
+	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com,
+	g.liakhovetski@gmx.de, dmitriyz@google.com, s.nawrocki@samsung.com,
+	k.debski@samsung.com
+Subject: Re: [PATCHv8 23/26] v4l: vb2: add support for DMA_ATTR_NO_KERNEL_MAPPING
+Date: Wed, 15 Aug 2012 22:44:39 +0200
+Message-ID: <1635347.9hJUtC51CO@avalon>
+In-Reply-To: <1344958496-9373-24-git-send-email-t.stanislaws@samsung.com>
+References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com> <1344958496-9373-24-git-send-email-t.stanislaws@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/video/panel/Kconfig     |    4 +
- drivers/video/panel/Makefile    |    1 +
- drivers/video/panel/panel-dbi.c |  217 +++++++++++++++++++++++++++++++++++++++
- include/video/panel-dbi.h       |   92 +++++++++++++++++
- 4 files changed, 314 insertions(+), 0 deletions(-)
- create mode 100644 drivers/video/panel/panel-dbi.c
- create mode 100644 include/video/panel-dbi.h
+Hi Tomasz,
 
-diff --git a/drivers/video/panel/Kconfig b/drivers/video/panel/Kconfig
-index 36fb9ca..fd0b3cf 100644
---- a/drivers/video/panel/Kconfig
-+++ b/drivers/video/panel/Kconfig
-@@ -12,4 +12,8 @@ config DISPLAY_PANEL_DUMMY
- 
- 	  If you are in doubt, say N.
- 
-+config DISPLAY_PANEL_DBI
-+	tristate
-+	default n
-+
- endif # DISPLAY_PANEL
-diff --git a/drivers/video/panel/Makefile b/drivers/video/panel/Makefile
-index 9fc05c2..2ab0520 100644
---- a/drivers/video/panel/Makefile
-+++ b/drivers/video/panel/Makefile
-@@ -1,2 +1,3 @@
- obj-$(CONFIG_DISPLAY_PANEL) += panel.o
- obj-$(CONFIG_DISPLAY_PANEL_DUMMY) += panel-dummy.o
-+obj-$(CONFIG_DISPLAY_PANEL_DBI) += panel-dbi.o
-diff --git a/drivers/video/panel/panel-dbi.c b/drivers/video/panel/panel-dbi.c
-new file mode 100644
-index 0000000..0511997
---- /dev/null
-+++ b/drivers/video/panel/panel-dbi.c
-@@ -0,0 +1,217 @@
-+/*
-+ * MIPI DBI Bus
-+ *
-+ * Copyright (C) 2012 Renesas Solutions Corp.
-+ *
-+ * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/device.h>
-+#include <linux/export.h>
-+#include <linux/kernel.h>
-+#include <linux/list.h>
-+#include <linux/module.h>
-+#include <linux/mutex.h>
-+#include <linux/pm.h>
-+#include <linux/pm_runtime.h>
-+
-+#include <video/panel-dbi.h>
-+
-+/* -----------------------------------------------------------------------------
-+ * Bus operations
-+ */
-+
-+void panel_dbi_write_command(struct panel_dbi_device *dev, unsigned long cmd)
-+{
-+	dev->bus->ops->write_command(dev->bus, cmd);
-+}
-+EXPORT_SYMBOL_GPL(panel_dbi_write_command);
-+
-+void panel_dbi_write_data(struct panel_dbi_device *dev, unsigned long data)
-+{
-+	dev->bus->ops->write_data(dev->bus, data);
-+}
-+EXPORT_SYMBOL_GPL(panel_dbi_write_data);
-+
-+unsigned long panel_dbi_read_data(struct panel_dbi_device *dev)
-+{
-+	return dev->bus->ops->read_data(dev->bus);
-+}
-+EXPORT_SYMBOL_GPL(panel_dbi_read_data);
-+
-+/* -----------------------------------------------------------------------------
-+ * Bus type
-+ */
-+
-+static const struct panel_dbi_device_id *
-+panel_dbi_match_id(const struct panel_dbi_device_id *id,
-+		   struct panel_dbi_device *dev)
-+{
-+	while (id->name[0]) {
-+		if (strcmp(dev->name, id->name) == 0) {
-+			dev->id_entry = id;
-+			return id;
-+		}
-+		id++;
-+	}
-+	return NULL;
-+}
-+
-+static int panel_dbi_match(struct device *_dev, struct device_driver *_drv)
-+{
-+	struct panel_dbi_device *dev = to_panel_dbi_device(_dev);
-+	struct panel_dbi_driver *drv = to_panel_dbi_driver(_drv);
-+
-+	if (drv->id_table)
-+		return panel_dbi_match_id(drv->id_table, dev) != NULL;
-+
-+	return (strcmp(dev->name, _drv->name) == 0);
-+}
-+
-+static ssize_t modalias_show(struct device *_dev, struct device_attribute *a,
-+			     char *buf)
-+{
-+	struct panel_dbi_device *dev = to_panel_dbi_device(_dev);
-+	int len = snprintf(buf, PAGE_SIZE, PANEL_DBI_MODULE_PREFIX "%s\n",
-+			   dev->name);
-+
-+	return (len >= PAGE_SIZE) ? (PAGE_SIZE - 1) : len;
-+}
-+
-+static struct device_attribute panel_dbi_dev_attrs[] = {
-+	__ATTR_RO(modalias),
-+	__ATTR_NULL,
-+};
-+
-+static int panel_dbi_uevent(struct device *_dev, struct kobj_uevent_env *env)
-+{
-+	struct panel_dbi_device *dev = to_panel_dbi_device(_dev);
-+
-+	add_uevent_var(env, "MODALIAS=%s%s", PANEL_DBI_MODULE_PREFIX,
-+		       dev->name);
-+	return 0;
-+}
-+
-+static const struct dev_pm_ops panel_dbi_dev_pm_ops = {
-+	.runtime_suspend = pm_generic_runtime_suspend,
-+	.runtime_resume = pm_generic_runtime_resume,
-+	.runtime_idle = pm_generic_runtime_idle,
-+	.suspend = pm_generic_suspend,
-+	.resume = pm_generic_resume,
-+	.freeze = pm_generic_freeze,
-+	.thaw = pm_generic_thaw,
-+	.poweroff = pm_generic_poweroff,
-+	.restore = pm_generic_restore,
-+};
-+
-+static struct bus_type panel_dbi_bus_type = {
-+	.name		= "mipi-dbi",
-+	.dev_attrs	= panel_dbi_dev_attrs,
-+	.match		= panel_dbi_match,
-+	.uevent		= panel_dbi_uevent,
-+	.pm		= &panel_dbi_dev_pm_ops,
-+};
-+
-+/* -----------------------------------------------------------------------------
-+ * Device and driver (un)registration
-+ */
-+
-+/**
-+ * panel_dbi_device_register - register a DBI device
-+ * @dev: DBI device we're registering
-+ */
-+int panel_dbi_device_register(struct panel_dbi_device *dev,
-+			      struct panel_dbi_bus *bus)
-+{
-+	device_initialize(&dev->dev);
-+
-+	dev->bus = bus;
-+	dev->dev.bus = &panel_dbi_bus_type;
-+	dev->dev.parent = bus->dev;
-+
-+	if (dev->id != -1)
-+		dev_set_name(&dev->dev, "%s.%d", dev->name,  dev->id);
-+	else
-+		dev_set_name(&dev->dev, "%s", dev->name);
-+
-+	return device_add(&dev->dev);
-+}
-+EXPORT_SYMBOL_GPL(panel_dbi_device_register);
-+
-+/**
-+ * panel_dbi_device_unregister - unregister a DBI device
-+ * @dev: DBI device we're unregistering
-+ */
-+void panel_dbi_device_unregister(struct panel_dbi_device *dev)
-+{
-+	device_del(&dev->dev);
-+	put_device(&dev->dev);
-+}
-+EXPORT_SYMBOL_GPL(panel_dbi_device_unregister);
-+
-+static int panel_dbi_drv_probe(struct device *_dev)
-+{
-+	struct panel_dbi_driver *drv = to_panel_dbi_driver(_dev->driver);
-+	struct panel_dbi_device *dev = to_panel_dbi_device(_dev);
-+
-+	return drv->probe(dev);
-+}
-+
-+static int panel_dbi_drv_remove(struct device *_dev)
-+{
-+	struct panel_dbi_driver *drv = to_panel_dbi_driver(_dev->driver);
-+	struct panel_dbi_device *dev = to_panel_dbi_device(_dev);
-+
-+	return drv->remove(dev);
-+}
-+
-+/**
-+ * panel_dbi_driver_register - register a driver for DBI devices
-+ * @drv: DBI driver structure
-+ */
-+int panel_dbi_driver_register(struct panel_dbi_driver *drv)
-+{
-+	drv->driver.bus = &panel_dbi_bus_type;
-+	if (drv->probe)
-+		drv->driver.probe = panel_dbi_drv_probe;
-+	if (drv->remove)
-+		drv->driver.remove = panel_dbi_drv_remove;
-+
-+	return driver_register(&drv->driver);
-+}
-+EXPORT_SYMBOL_GPL(panel_dbi_driver_register);
-+
-+/**
-+ * panel_dbi_driver_unregister - unregister a driver for DBI devices
-+ * @drv: DBI driver structure
-+ */
-+void panel_dbi_driver_unregister(struct panel_dbi_driver *drv)
-+{
-+	driver_unregister(&drv->driver);
-+}
-+EXPORT_SYMBOL_GPL(panel_dbi_driver_unregister);
-+
-+/* -----------------------------------------------------------------------------
-+ * Init/exit
-+ */
-+
-+static int __init panel_dbi_init(void)
-+{
-+	return bus_register(&panel_dbi_bus_type);
-+}
-+
-+static void __exit panel_dbi_exit(void)
-+{
-+	bus_unregister(&panel_dbi_bus_type);
-+}
-+
-+module_init(panel_dbi_init);
-+module_exit(panel_dbi_exit)
-+
-+MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
-+MODULE_DESCRIPTION("MIPI DBI Bus");
-+MODULE_LICENSE("GPL");
-diff --git a/include/video/panel-dbi.h b/include/video/panel-dbi.h
-new file mode 100644
-index 0000000..799ac41
---- /dev/null
-+++ b/include/video/panel-dbi.h
-@@ -0,0 +1,92 @@
-+/*
-+ * MIPI DBI Bus
-+ *
-+ * Copyright (C) 2012 Renesas Solutions Corp.
-+ *
-+ * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef __PANEL_DBI_H__
-+#define __PANEL_DBI_H__
-+
-+#include <linux/device.h>
-+#include <video/panel.h>
-+
-+struct panel_dbi_bus;
-+
-+struct panel_dbi_bus_ops {
-+	void (*write_command)(struct panel_dbi_bus *bus, unsigned long cmd);
-+	void (*write_data)(struct panel_dbi_bus *bus, unsigned long data);
-+	unsigned long (*read_data)(struct panel_dbi_bus *bus);
-+};
-+
-+struct panel_dbi_bus {
-+	struct device *dev;
-+	const struct panel_dbi_bus_ops *ops;
-+};
-+
-+#define PANEL_DBI_MODULE_PREFIX		"mipi-dbi:"
-+#define PANEL_DBI_NAME_SIZE		32
-+
-+struct panel_dbi_device_id {
-+	char name[PANEL_DBI_NAME_SIZE];
-+	kernel_ulong_t driver_data	/* Data private to the driver */
-+			__aligned(sizeof(kernel_ulong_t));
-+};
-+
-+struct panel_dbi_device {
-+	const char *name;
-+	int id;
-+	struct device dev;
-+
-+	const struct panel_dbi_device_id *id_entry;
-+	struct panel_dbi_bus *bus;
-+};
-+
-+#define to_panel_dbi_device(d)	container_of(d, struct panel_dbi_device, dev)
-+
-+int panel_dbi_device_register(struct panel_dbi_device *dev,
-+			      struct panel_dbi_bus *bus);
-+void panel_dbi_device_unregister(struct panel_dbi_device *dev);
-+
-+struct panel_dbi_driver {
-+	int(*probe)(struct panel_dbi_device *);
-+	int(*remove)(struct panel_dbi_device *);
-+	struct device_driver driver;
-+	const struct panel_dbi_device_id *id_table;
-+};
-+
-+#define to_panel_dbi_driver(d)	container_of(d, struct panel_dbi_driver, driver)
-+
-+int panel_dbi_driver_register(struct panel_dbi_driver *drv);
-+void panel_dbi_driver_unregister(struct panel_dbi_driver *drv);
-+
-+static inline void *panel_dbi_get_drvdata(const struct panel_dbi_device *dev)
-+{
-+	return dev_get_drvdata(&dev->dev);
-+}
-+
-+static inline void panel_dbi_set_drvdata(struct panel_dbi_device *dev,
-+					 void *data)
-+{
-+	dev_set_drvdata(&dev->dev, data);
-+}
-+
-+/* module_panel_dbi_driver() - Helper macro for drivers that don't do
-+ * anything special in module init/exit.  This eliminates a lot of
-+ * boilerplate.  Each module may only use this macro once, and
-+ * calling it replaces module_init() and module_exit()
-+ */
-+#define module_panel_dbi_driver(__panel_dbi_driver) \
-+	module_driver(__panel_dbi_driver, panel_dbi_driver_register, \
-+			panel_dbi_driver_unregister)
-+
-+void panel_dbi_write_command(struct panel_dbi_device *dev, unsigned long cmd);
-+void panel_dbi_write_data(struct panel_dbi_device *dev, unsigned long data);
-+unsigned long panel_dbi_read_data(struct panel_dbi_device *dev);
-+
-+#endif /* __PANEL_DBI__ */
+Thanks for the patch.
+
+On Tuesday 14 August 2012 17:34:53 Tomasz Stanislawski wrote:
+> From: Marek Szyprowski <m.szyprowski@samsung.com>
+> 
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
+>  drivers/media/video/atmel-isi.c              |    2 +-
+>  drivers/media/video/blackfin/bfin_capture.c  |    2 +-
+>  drivers/media/video/marvell-ccic/mcam-core.c |    3 ++-
+>  drivers/media/video/mx2_camera.c             |    2 +-
+>  drivers/media/video/mx2_emmaprp.c            |    2 +-
+>  drivers/media/video/mx3_camera.c             |    2 +-
+>  drivers/media/video/s5p-fimc/fimc-core.c     |    2 +-
+>  drivers/media/video/s5p-fimc/fimc-lite.c     |    2 +-
+>  drivers/media/video/s5p-g2d/g2d.c            |    2 +-
+>  drivers/media/video/s5p-jpeg/jpeg-core.c     |    2 +-
+>  drivers/media/video/s5p-mfc/s5p_mfc.c        |    5 ++--
+>  drivers/media/video/s5p-tv/mixer_video.c     |    2 +-
+>  drivers/media/video/sh_mobile_ceu_camera.c   |    2 +-
+>  drivers/media/video/videobuf2-dma-contig.c   |   33 ++++++++++++++++-------
+>  drivers/staging/media/dt3155v4l/dt3155v4l.c  |    2 +-
+>  include/media/videobuf2-dma-contig.h         |    4 +++-
+>  16 files changed, 44 insertions(+), 25 deletions(-)
+
+[snip]
+
+> diff --git a/drivers/media/video/videobuf2-dma-contig.c
+> b/drivers/media/video/videobuf2-dma-contig.c index 11f4a46..0729187 100644
+> --- a/drivers/media/video/videobuf2-dma-contig.c
+> +++ b/drivers/media/video/videobuf2-dma-contig.c
+> @@ -23,10 +23,12 @@
+> 
+>  struct vb2_dc_conf {
+>  	struct device		*dev;
+> +	unsigned int		flags;
+>  };
+> 
+>  struct vb2_dc_buf {
+>  	struct device			*dev;
+> +	unsigned int			flags;
+>  	void				*vaddr;
+>  	unsigned long			size;
+>  	dma_addr_t			dma_addr;
+> @@ -34,6 +36,7 @@ struct vb2_dc_buf {
+>  	struct sg_table			*dma_sgt;
+> 
+>  	/* MMAP related */
+> +	struct dma_attrs		dma_attrs;
+>  	struct vb2_vmarea_handler	handler;
+>  	atomic_t			refcount;
+>  	struct sg_table			*sgt_base;
+> @@ -98,6 +101,9 @@ static void *vb2_dc_vaddr(void *buf_priv)
+>  {
+>  	struct vb2_dc_buf *buf = buf_priv;
+> 
+> +	if (WARN_ON(~buf->flags & VB2_CREATE_VADDR))
+> +		return NULL;
+> +
+>  	return buf->vaddr;
+>  }
+> 
+> @@ -147,7 +153,8 @@ static void vb2_dc_put(void *buf_priv)
+>  		sg_free_table(buf->sgt_base);
+>  		kfree(buf->sgt_base);
+>  	}
+> -	dma_free_coherent(buf->dev, buf->size, buf->vaddr, buf->dma_addr);
+> +	dma_free_attrs(buf->dev, buf->size, buf->vaddr, buf->dma_addr,
+> +		       &buf->dma_attrs);
+>  	put_device(buf->dev);
+>  	kfree(buf);
+>  }
+> @@ -165,7 +172,14 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned
+> long size) /* prevent the device from release while the buffer is exported
+> */ get_device(dev);
+> 
+> -	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr, GFP_KERNEL);
+> +	/* set up alloca attributes */
+> +	init_dma_attrs(&buf->dma_attrs);
+> +	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &buf->dma_attrs);
+> +	if (!(conf->flags & VB2_CREATE_VADDR))
+> +		dma_set_attr(DMA_ATTR_NO_KERNEL_MAPPING, &buf->dma_attrs);
+> +
+> +	buf->vaddr = dma_alloc_attrs(dev, size, &buf->dma_addr, GFP_KERNEL,
+> +				     &buf->dma_attrs);
+
+What address does dma_alloc_attrs() return when the DMA_ATTR_NO_KERNEL_MAPPING 
+attribute is set ?
+
+>  	if (!buf->vaddr) {
+>  		dev_err(dev, "dma_alloc_coherent of size %ld failed\n", size);
+>  		put_device(dev);
+> @@ -174,6 +188,7 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long
+> size) }
+> 
+>  	buf->dev = dev;
+> +	buf->flags = conf->flags;
+>  	buf->size = size;
+> 
+>  	buf->handler.refcount = &buf->refcount;
+> @@ -201,9 +216,8 @@ static int vb2_dc_mmap(void *buf_priv, struct
+> vm_area_struct *vma) */
+>  	vma->vm_pgoff = 0;
+> 
+> -	ret = dma_mmap_coherent(buf->dev, vma, buf->vaddr,
+> -		buf->dma_addr, buf->size);
+> -
+> +	ret = dma_mmap_attrs(buf->dev, vma, buf->vaddr, buf->dma_addr,
+> +			     buf->size, &buf->dma_attrs);
+>  	if (ret) {
+>  		pr_err("Remapping memory failed, error: %d\n", ret);
+>  		return ret;
+> @@ -345,7 +359,7 @@ static void *vb2_dc_dmabuf_ops_kmap(struct dma_buf
+> *dbuf, unsigned long pgnum) {
+>  	struct vb2_dc_buf *buf = dbuf->priv;
+> 
+> -	return buf->vaddr + pgnum * PAGE_SIZE;
+> +	return buf->vaddr ? buf->vaddr + pgnum * PAGE_SIZE : NULL;
+
+Does this mean that a V4L2 driver that doesn't need a kernel mapping will not 
+be able to export buffers to devices that require such a mapping ?
+
+>  }
+> 
+>  static void *vb2_dc_dmabuf_ops_vmap(struct dma_buf *dbuf)
+> @@ -385,8 +399,8 @@ static struct sg_table *vb2_dc_get_base_sgt(struct
+> vb2_dc_buf *buf) return ERR_PTR(-ENOMEM);
+>  	}
+> 
+> -	ret = dma_get_sgtable(buf->dev, sgt, buf->vaddr, buf->dma_addr,
+> -		buf->size);
+> +	ret = dma_get_sgtable_attrs(buf->dev, sgt, buf->vaddr, buf->dma_addr,
+> +		buf->size, &buf->dma_attrs);
+>  	if (ret < 0) {
+>  		dev_err(buf->dev, "failed to get scatterlist from DMA API\n");
+>  		kfree(sgt);
+> @@ -753,7 +767,7 @@ const struct vb2_mem_ops vb2_dma_contig_memops = {
+>  };
+>  EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
+> 
+> -void *vb2_dma_contig_init_ctx(struct device *dev)
+> +void *vb2_dma_contig_init_ctx(struct device *dev, unsigned int flags)
+>  {
+>  	struct vb2_dc_conf *conf;
+> 
+> @@ -762,6 +776,7 @@ void *vb2_dma_contig_init_ctx(struct device *dev)
+>  		return ERR_PTR(-ENOMEM);
+> 
+>  	conf->dev = dev;
+> +	conf->flags = flags;
+> 
+>  	return conf;
+>  }
+
+[snip]
+
+> diff --git a/include/media/videobuf2-dma-contig.h
+> b/include/media/videobuf2-dma-contig.h index 8197f87..8bf4b29 100644
+> --- a/include/media/videobuf2-dma-contig.h
+> +++ b/include/media/videobuf2-dma-contig.h
+> @@ -24,7 +24,9 @@ vb2_dma_contig_plane_dma_addr(struct vb2_buffer *vb,
+> unsigned int plane_no) return *addr;
+>  }
+> 
+> -void *vb2_dma_contig_init_ctx(struct device *dev);
+> +#define VB2_CREATE_VADDR	(1 << 0)
+> +
+
+Would it make sense to either move the flag to a common vb2 header or to call 
+it VB2_DMA_CONTIG_CREATE_VADDR ?
+
+> +void *vb2_dma_contig_init_ctx(struct device *dev, unsigned int flags);
+>  void vb2_dma_contig_cleanup_ctx(void *alloc_ctx);
+> 
+>  extern const struct vb2_mem_ops vb2_dma_contig_memops;
+
 -- 
-1.7.8.6
+Regards,
+
+Laurent Pinchart
 
