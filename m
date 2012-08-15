@@ -1,120 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out.inet.fi ([195.156.147.13]:47182 "EHLO jenni2.inet.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:40663 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752552Ab2H3Ryf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Aug 2012 13:54:35 -0400
-From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCHv3 7/9] ir-rx51: Convert latency constraints to PM QoS API
-Date: Thu, 30 Aug 2012 20:54:29 +0300
-Message-Id: <1346349271-28073-8-git-send-email-timo.t.kokkonen@iki.fi>
-In-Reply-To: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
-References: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
+	id S1751850Ab2HOXOL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Aug 2012 19:14:11 -0400
+Message-ID: <502C2D35.4040102@redhat.com>
+Date: Wed, 15 Aug 2012 20:13:57 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Lars Hanisch <dvb@cinnamon-sage.de>
+CC: Alexey Khoroshilov <khoroshilov@ispras.ru>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	ldv-project@ispras.ru
+Subject: Re: [PATCH] [media] ddbridge: fix error handling in module_init_ddbridge()
+References: <1345063345-31131-1-git-send-email-khoroshilov@ispras.ru> <502C0DEC.3010104@cinnamon-sage.de>
+In-Reply-To: <502C0DEC.3010104@cinnamon-sage.de>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert the driver from the obsolete omap_pm_set_max_mpu_wakeup_lat
-API to the new PM QoS API. This allows the callback to be removed from
-the platform data structure.
+Em 15-08-2012 18:00, Lars Hanisch escreveu:
+> Hi,
+> 
+> Am 15.08.2012 22:42, schrieb Alexey Khoroshilov:
+>> If pci_register_driver() failed, resources allocated in
+>> ddb_class_create() are leaked. The patch fixes it.
+>>
+>> Found by Linux Driver Verification project (linuxtesting.org).
+>>
+>> Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+>> ---
+>>  drivers/media/dvb/ddbridge/ddbridge-core.c |    6 +++++-
+>>  1 file changed, 5 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/dvb/ddbridge/ddbridge-core.c b/drivers/media/dvb/ddbridge/ddbridge-core.c
+>> index ebf3f05..36aa4e4 100644
+>> --- a/drivers/media/dvb/ddbridge/ddbridge-core.c
+>> +++ b/drivers/media/dvb/ddbridge/ddbridge-core.c
+>> @@ -1705,7 +1705,11 @@ static __init int module_init_ddbridge(void)
+>>  	       "Copyright (C) 2010-11 Digital Devices GmbH\n");
+>>  	if (ddb_class_create())
+>>  		return -1;
 
-The latency requirements are also adjusted to prevent the MPU from
-going into sleep mode. This is needed as the GP timers have no means
-to wake up the MPU once it has gone into sleep. The "side effect" is
-that from now on the driver actually works even if there is no
-background load keeping the MPU awake.
+This is not right. It should be returning a proper error code.
 
-Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Acked-by: Tony Lindgren <tony@atomide.com>
-Acked-by: Jean Pihet <j-pihet@ti.com>
----
- arch/arm/mach-omap2/board-rx51-peripherals.c |  2 --
- drivers/media/rc/ir-rx51.c                   | 17 ++++++++++++-----
- include/media/ir-rx51.h                      |  2 --
- 3 files changed, 12 insertions(+), 9 deletions(-)
+Could you please patch ddb_class_create() in order to make it to
+return the retuned value from IS_ERR() as the error code, and return
+it back to the init code?
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index ca07264..e0750cb 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -34,7 +34,6 @@
- #include <plat/gpmc.h>
- #include <plat/onenand.h>
- #include <plat/gpmc-smc91x.h>
--#include <plat/omap-pm.h>
- 
- #include <mach/board-rx51.h>
- 
-@@ -1227,7 +1226,6 @@ static void __init rx51_init_tsc2005(void)
- 
- #if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
- static struct lirc_rx51_platform_data rx51_lirc_data = {
--	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
- 	.pwm_timer = 9, /* Use GPT 9 for CIR */
- };
- 
-diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-index 6e1ffa6..96ed23d 100644
---- a/drivers/media/rc/ir-rx51.c
-+++ b/drivers/media/rc/ir-rx51.c
-@@ -25,6 +25,7 @@
- #include <linux/platform_device.h>
- #include <linux/sched.h>
- #include <linux/wait.h>
-+#include <linux/pm_qos.h>
- 
- #include <plat/dmtimer.h>
- #include <plat/clock.h>
-@@ -49,6 +50,7 @@ struct lirc_rx51 {
- 	struct omap_dm_timer *pulse_timer;
- 	struct device	     *dev;
- 	struct lirc_rx51_platform_data *pdata;
-+	struct pm_qos_request	pm_qos_request;
- 	wait_queue_head_t     wqueue;
- 
- 	unsigned long	fclk_khz;
-@@ -268,10 +270,16 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
- 		lirc_rx51->wbuf[count] = -1; /* Insert termination mark */
- 
- 	/*
--	 * Adjust latency requirements so the device doesn't go in too
--	 * deep sleep states
-+	 * If the MPU is going into too deep sleep state while we are
-+	 * transmitting the IR code, timers will not be able to wake
-+	 * up the MPU. Thus, we need to set a strict enough latency
-+	 * requirement in order to ensure the interrupts come though
-+	 * properly. The 10us latency requirement is low enough to
-+	 * keep MPU from sleeping and thus ensures the interrupts are
-+	 * getting through properly.
- 	 */
--	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, 50);
-+	pm_qos_add_request(&lirc_rx51->pm_qos_request,
-+			PM_QOS_CPU_DMA_LATENCY,	10);
- 
- 	lirc_rx51_on(lirc_rx51);
- 	lirc_rx51->wbuf_index = 1;
-@@ -292,8 +300,7 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
- 	 */
- 	lirc_rx51_stop_tx(lirc_rx51);
- 
--	/* We can sleep again */
--	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, -1);
-+	pm_qos_remove_request(&lirc_rx51->pm_qos_request);
- 
- 	return n;
- }
-diff --git a/include/media/ir-rx51.h b/include/media/ir-rx51.h
-index 104aa89..57523f2 100644
---- a/include/media/ir-rx51.h
-+++ b/include/media/ir-rx51.h
-@@ -3,8 +3,6 @@
- 
- struct lirc_rx51_platform_data {
- 	int pwm_timer;
--
--	int(*set_max_mpu_wakeup_lat)(struct device *dev, long t);
- };
- 
- #endif
--- 
-1.7.12
+Ok, I noticed that other parts of the driver are also returning wrong
+error codes, but let's fix at least module_init_ddbridge() while you're
+looking into this.
+
+>> -	return pci_register_driver(&ddb_pci_driver);
+>> +	if (pci_register_driver(&ddb_pci_driver) < 0) {
+>> +		ddb_class_destroy();
+>> +		return -1;
+
+Again, the correct here would be to store the error on a temp register
+and return it, instead of returning -1.
+> 
+>  Difference to before: the return value of pci_register_driver is not passed through.
+>  Is this a problem? I'm just an interested application developer, not a driver developer.
+
+On userspace, ioctl() always return -1 on errors. The error code at "errno"
+is wrong, though. Instead of "1", it should be the ones described at the
+API spec[1].
+
+[1] http://linuxtv.org/downloads/v4l-dvb-apis/gen_errors.html
+
+> 
+> Regards,
+> Lars.
+> 
+>> +	}
+>> +	return 0;
+>>  }
+>>  
+>>  static __exit void module_exit_ddbridge(void)
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
