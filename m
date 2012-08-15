@@ -1,142 +1,243 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:49973 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756465Ab2HJHhE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Aug 2012 03:37:04 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [RFC PATCH 1/2] Add libv4l2rds library (with changes proposed in RFC)
-Date: Fri, 10 Aug 2012 09:36:59 +0200
-Cc: Konke Radlow <kradlow@cisco.com>, linux-media@vger.kernel.org,
-	koradlow@gmail.com
-References: <[RFC PATCH 0/2] Add support for RDS decoding> <201208091414.11249.hverkuil@xs4all.nl> <5024B552.7090205@redhat.com>
-In-Reply-To: <5024B552.7090205@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201208100936.59213.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:2036 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754928Ab2HONsZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Aug 2012 09:48:25 -0400
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q7FDmPEO011276
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 15 Aug 2012 09:48:25 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 07/12] [media] move parallel port/isa video drivers to drivers/media/parport/
+Date: Wed, 15 Aug 2012 10:48:15 -0300
+Message-Id: <1345038500-28734-8-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1345038500-28734-1-git-send-email-mchehab@redhat.com>
+References: <502AC079.50902@gmail.com>
+ <1345038500-28734-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri 10 August 2012 09:16:34 Hans de Goede wrote:
-> Hi,
-> 
-> On 08/09/2012 02:14 PM, Hans Verkuil wrote:
-> > On Thu August 9 2012 13:58:07 Hans de Goede wrote:
-> >> Hi Konke,
-> >>
-> >> As Gregor already mentioned there is no need to define libv4l2rdssubdir in configure.ac ,
-> >> so please drop that.
-> >>
-> >> Other then that I've some minor remarks (comments inline), with all those
-> >> fixed, this one is could to go. So hopefully the next version can be added
-> >> to git master!
-> >>
-> >> On 08/07/2012 05:11 PM, Konke Radlow wrote:
-> >>> ---
-> >>>    Makefile.am                     |    3 +-
-> >>>    configure.ac                    |    7 +-
-> >>>    lib/include/libv4l2rds.h        |  228 ++++++++++
-> >>>    lib/libv4l2rds/Makefile.am      |   11 +
-> >>>    lib/libv4l2rds/libv4l2rds.c     |  953 +++++++++++++++++++++++++++++++++++++++
-> >>>    lib/libv4l2rds/libv4l2rds.pc.in |   11 +
-> >>>    6 files changed, 1211 insertions(+), 2 deletions(-)
-> >>>    create mode 100644 lib/include/libv4l2rds.h
-> >>>    create mode 100644 lib/libv4l2rds/Makefile.am
-> >>>    create mode 100644 lib/libv4l2rds/libv4l2rds.c
-> >>>    create mode 100644 lib/libv4l2rds/libv4l2rds.pc.in
-> >>>
-> >>
-> >> <snip>
-> >>
-> >>> diff --git a/lib/include/libv4l2rds.h b/lib/include/libv4l2rds.h
-> >>> new file mode 100644
-> >>> index 0000000..4aa8593
-> >>> --- /dev/null
-> >>> +++ b/lib/include/libv4l2rds.h
-> >>> @@ -0,0 +1,228 @@
-> >>> +/*
-> >>> + * Copyright 2012 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-> >>> + * Author: Konke Radlow <koradlow@gmail.com>
-> >>> + *
-> >>> + * This program is free software; you can redistribute it and/or modify
-> >>> + * it under the terms of the GNU Lesser General Public License as published by
-> >>> + * the Free Software Foundation; either version 2.1 of the License, or
-> >>> + * (at your option) any later version.
-> >>> + *
-> >>> + * This program is distributed in the hope that it will be useful,
-> >>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> >>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> >>> + * GNU General Public License for more details.
-> >>> + *
-> >>> + * You should have received a copy of the GNU General Public License
-> >>> + * along with this program; if not, write to the Free Software
-> >>> + * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA  02110-1335  USA
-> >>> + */
-> >>> +
-> >>> +#ifndef __LIBV4L2RDS
-> >>> +#define __LIBV4L2RDS
-> >>> +
-> >>> +#include <errno.h>
-> >>> +#include <stdio.h>
-> >>> +#include <stdlib.h>
-> >>> +#include <string.h>
-> >>> +#include <stdbool.h>
-> >>> +#include <unistd.h>
-> >>> +#include <stdint.h>
-> >>> +#include <time.h>
-> >>> +#include <sys/types.h>
-> >>> +#include <sys/mman.h>
-> >>> +#include <config.h>
-> >>
-> >> You should never include config.h in a public header, also
-> >> are all the headers really needed for the prototypes in this header?
-> >>
-> >> I don't think so! Please move all the unneeded ones to the libv4l2rds.c
-> >> file!
-> >>
-> >>> +
-> >>> +#include <linux/videodev2.h>
-> >>> +
-> >>> +#ifdef __cplusplus
-> >>> +extern "C" {
-> >>> +#endif /* __cplusplus */
-> >>> +
-> >>> +#if HAVE_VISIBILITY
-> >>> +#define LIBV4L_PUBLIC __attribute__ ((visibility("default")))
-> >>> +#else
-> >>> +#define LIBV4L_PUBLIC
-> >>> +#endif
-> >>> +
-> >>> +/* used to define the current version (version field) of the v4l2_rds struct */
-> >>> +#define V4L2_RDS_VERSION (1)
-> >>> +
-> >>
-> >> What is the purpose of this field? Once we've released a v4l-utils with this
-> >> library we are stuck to the API we've defined, having a version field & changing it,
-> >> won't stop us from breaking existing apps, so once we've an official release we
-> >> simply cannot make ABI breaking changes, which is why most of my review sofar
-> >> has concentrated on the API side :)
-> >>
-> >> I suggest dropping this define and the version field from the struct.
-> >
-> > I think it is useful, actually. The v4l2_rds struct is allocated by the v4l2_rds_create
-> > so at least in theory it is possible to extend the struct in the future without breaking
-> > existing apps, provided you have a version number to check.
-> 
-> I disagree, if it gets extended only, then existing apps will just work, if an apps gets
-> compiled against a newer version with the extension then it is safe to assume it will run
-> against that newer version. The only reason I can see a version define being useful is
-> to make a newer app compile with an older version of the librarry, but that only requires
-> a version define, not a version field in the struct.
+We should keep just the I2C drivers under drivers/media/video, and
+then rename it to drivers/media/i2c.
 
-That's true, you only need the define, not the version field.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/Kconfig                      |  1 +
+ drivers/media/Makefile                     |  8 ++--
+ drivers/media/parport/Kconfig              | 47 +++++++++++++++++++++++
+ drivers/media/parport/Makefile             |  4 ++
+ drivers/media/{video => parport}/bw-qcam.c |  0
+ drivers/media/{video => parport}/c-qcam.c  |  0
+ drivers/media/{video => parport}/pms.c     |  0
+ drivers/media/{video => parport}/w9966.c   |  0
+ drivers/media/video/Kconfig                | 61 ------------------------------
+ drivers/media/video/Makefile               |  4 --
+ 10 files changed, 56 insertions(+), 69 deletions(-)
+ create mode 100644 drivers/media/parport/Kconfig
+ create mode 100644 drivers/media/parport/Makefile
+ rename drivers/media/{video => parport}/bw-qcam.c (100%)
+ rename drivers/media/{video => parport}/c-qcam.c (100%)
+ rename drivers/media/{video => parport}/pms.c (100%)
+ rename drivers/media/{video => parport}/w9966.c (100%)
 
-So let's keep the define and ditch the version field. I think that
-should do it.
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index 7970c24..c6d8658 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -164,6 +164,7 @@ source "drivers/media/dvb-core/Kconfig"
+ source "drivers/media/pci/Kconfig"
+ source "drivers/media/usb/Kconfig"
+ source "drivers/media/mmc/Kconfig"
++source "drivers/media/parport/Kconfig"
+ 
+ comment "Supported FireWire (IEEE 1394) Adapters"
+ 	depends on DVB_CORE && FIREWIRE
+diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+index 3265a9a..360c44d 100644
+--- a/drivers/media/Makefile
++++ b/drivers/media/Makefile
+@@ -8,8 +8,8 @@ ifeq ($(CONFIG_MEDIA_CONTROLLER),y)
+   obj-$(CONFIG_MEDIA_SUPPORT) += media.o
+ endif
+ 
+-obj-y += v4l2-core/ tuners/ common/ rc/ video/
++obj-y += tuners/ common/ rc/ video/
++obj-y += pci/ usb/ mmc/ firewire/ parport/
+ 
+-obj-$(CONFIG_VIDEO_DEV) += radio/
+-obj-$(CONFIG_DVB_CORE)  += dvb-core/ pci/ dvb-frontends/ usb/ mmc/
+-obj-$(CONFIG_DVB_FIREDTV) += firewire/
++obj-$(CONFIG_VIDEO_DEV) += radio/ v4l2-core/
++obj-$(CONFIG_DVB_CORE)  += dvb-core/ dvb-frontends/
+diff --git a/drivers/media/parport/Kconfig b/drivers/media/parport/Kconfig
+new file mode 100644
+index 0000000..48138fe
+--- /dev/null
++++ b/drivers/media/parport/Kconfig
+@@ -0,0 +1,47 @@
++menu "V4L ISA and parallel port devices"
++	visible if (ISA || PARPORT) && MEDIA_CAMERA_SUPPORT
++
++config VIDEO_BWQCAM
++	tristate "Quickcam BW Video For Linux"
++	depends on PARPORT && VIDEO_V4L2
++	help
++	  Say Y have if you the black and white version of the QuickCam
++	  camera. See the next option for the color version.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called bw-qcam.
++
++config VIDEO_CQCAM
++	tristate "QuickCam Colour Video For Linux"
++	depends on PARPORT && VIDEO_V4L2
++	help
++	  This is the video4linux driver for the colour version of the
++	  Connectix QuickCam.  If you have one of these cameras, say Y here,
++	  otherwise say N.  This driver does not work with the original
++	  monochrome QuickCam, QuickCam VC or QuickClip.  It is also available
++	  as a module (c-qcam).
++	  Read <file:Documentation/video4linux/CQcam.txt> for more information.
++
++config VIDEO_PMS
++	tristate "Mediavision Pro Movie Studio Video For Linux"
++	depends on ISA && VIDEO_V4L2
++	help
++	  Say Y if you have the ISA Mediavision Pro Movie Studio
++	  capture card.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called pms.
++
++config VIDEO_W9966
++	tristate "W9966CF Webcam (FlyCam Supra and others) Video For Linux"
++	depends on PARPORT_1284 && PARPORT && VIDEO_V4L2
++	help
++	  Video4linux driver for Winbond's w9966 based Webcams.
++	  Currently tested with the LifeView FlyCam Supra.
++	  If you have one of these cameras, say Y here
++	  otherwise say N.
++	  This driver is also available as a module (w9966).
++
++	  Check out <file:Documentation/video4linux/w9966.txt> for more
++	  information.
++endmenu
+diff --git a/drivers/media/parport/Makefile b/drivers/media/parport/Makefile
+new file mode 100644
+index 0000000..4eea06d
+--- /dev/null
++++ b/drivers/media/parport/Makefile
+@@ -0,0 +1,4 @@
++obj-$(CONFIG_VIDEO_CQCAM) += c-qcam.o
++obj-$(CONFIG_VIDEO_BWQCAM) += bw-qcam.o
++obj-$(CONFIG_VIDEO_W9966) += w9966.o
++obj-$(CONFIG_VIDEO_PMS) += pms.o
+diff --git a/drivers/media/video/bw-qcam.c b/drivers/media/parport/bw-qcam.c
+similarity index 100%
+rename from drivers/media/video/bw-qcam.c
+rename to drivers/media/parport/bw-qcam.c
+diff --git a/drivers/media/video/c-qcam.c b/drivers/media/parport/c-qcam.c
+similarity index 100%
+rename from drivers/media/video/c-qcam.c
+rename to drivers/media/parport/c-qcam.c
+diff --git a/drivers/media/video/pms.c b/drivers/media/parport/pms.c
+similarity index 100%
+rename from drivers/media/video/pms.c
+rename to drivers/media/parport/pms.c
+diff --git a/drivers/media/video/w9966.c b/drivers/media/parport/w9966.c
+similarity index 100%
+rename from drivers/media/video/w9966.c
+rename to drivers/media/parport/w9966.c
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index d545d93..f9703a0 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -606,67 +606,6 @@ config VIDEO_VIVI
+ 	  In doubt, say N.
+ 
+ #
+-# ISA & parallel port drivers configuration
+-#	All devices here are webcam or grabber devices
+-#
+-
+-menuconfig V4L_ISA_PARPORT_DRIVERS
+-	bool "V4L ISA and parallel port devices"
+-	depends on ISA || PARPORT
+-	depends on MEDIA_CAMERA_SUPPORT
+-	default n
+-	---help---
+-	  Say Y here to enable support for these ISA and parallel port drivers.
+-
+-if V4L_ISA_PARPORT_DRIVERS
+-
+-config VIDEO_BWQCAM
+-	tristate "Quickcam BW Video For Linux"
+-	depends on PARPORT && VIDEO_V4L2
+-	help
+-	  Say Y have if you the black and white version of the QuickCam
+-	  camera. See the next option for the color version.
+-
+-	  To compile this driver as a module, choose M here: the
+-	  module will be called bw-qcam.
+-
+-config VIDEO_CQCAM
+-	tristate "QuickCam Colour Video For Linux"
+-	depends on PARPORT && VIDEO_V4L2
+-	help
+-	  This is the video4linux driver for the colour version of the
+-	  Connectix QuickCam.  If you have one of these cameras, say Y here,
+-	  otherwise say N.  This driver does not work with the original
+-	  monochrome QuickCam, QuickCam VC or QuickClip.  It is also available
+-	  as a module (c-qcam).
+-	  Read <file:Documentation/video4linux/CQcam.txt> for more information.
+-
+-config VIDEO_PMS
+-	tristate "Mediavision Pro Movie Studio Video For Linux"
+-	depends on ISA && VIDEO_V4L2
+-	help
+-	  Say Y if you have the ISA Mediavision Pro Movie Studio
+-	  capture card.
+-
+-	  To compile this driver as a module, choose M here: the
+-	  module will be called pms.
+-
+-config VIDEO_W9966
+-	tristate "W9966CF Webcam (FlyCam Supra and others) Video For Linux"
+-	depends on PARPORT_1284 && PARPORT && VIDEO_V4L2
+-	help
+-	  Video4linux driver for Winbond's w9966 based Webcams.
+-	  Currently tested with the LifeView FlyCam Supra.
+-	  If you have one of these cameras, say Y here
+-	  otherwise say N.
+-	  This driver is also available as a module (w9966).
+-
+-	  Check out <file:Documentation/video4linux/w9966.txt> for more
+-	  information.
+-
+-endif # V4L_ISA_PARPORT_DRIVERS
+-
+-#
+ # Platform drivers
+ #	All drivers here are currently for webcam support
+ 
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index f212af3..a0c6692 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -87,10 +87,6 @@ obj-$(CONFIG_SOC_CAMERA_TW9910)		+= tw9910.o
+ 
+ # And now the v4l2 drivers:
+ 
+-obj-$(CONFIG_VIDEO_CQCAM) += c-qcam.o
+-obj-$(CONFIG_VIDEO_BWQCAM) += bw-qcam.o
+-obj-$(CONFIG_VIDEO_W9966) += w9966.o
+-obj-$(CONFIG_VIDEO_PMS) += pms.o
+ obj-$(CONFIG_VIDEO_VINO) += vino.o
+ obj-$(CONFIG_VIDEO_TIMBERDALE)	+= timblogiw.o
+ 
+-- 
+1.7.11.2
 
-Regards,
-
-	Hans
