@@ -1,312 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:53758 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756066Ab2HNPhZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 11:37:25 -0400
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de, dmitriyz@google.com,
-	s.nawrocki@samsung.com, k.debski@samsung.com,
-	linux-doc@vger.kernel.org
-Subject: [PATCHv8 17/26] Documentation: media: description of DMABUF exporting
- in V4L2
-Date: Tue, 14 Aug 2012 17:34:47 +0200
-Message-id: <1344958496-9373-18-git-send-email-t.stanislaws@samsung.com>
-In-reply-to: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
-References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:64352 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756093Ab2HOWKj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Aug 2012 18:10:39 -0400
+Message-ID: <502C1E53.4090103@redhat.com>
+Date: Wed, 15 Aug 2012 19:10:27 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Reinhard Nissl <rnissl@gmx.de>
+CC: Manu Abraham <abraham.manu@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: STV0299: reading property DTV_FREQUENCY -- what am I expected
+ to get?
+References: <502A1221.8020804@gmx.de> <CAHFNz9KnwKuATLKwhH22znmWa8QP5tZN0KJHFu4fuf7RGES1Gw@mail.gmail.com> <502AB1D2.3070209@gmx.de>
+In-Reply-To: <502AB1D2.3070209@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds description and usage examples for exporting
-DMABUF file descriptor in V4L2.
+Em 14-08-2012 17:15, Reinhard Nissl escreveu:
+> Hi,
+> 
+> Am 14.08.2012 14:05, schrieb Manu Abraham:
+> 
+>>> My other device, a STB0899, always reports the set frequency. So it seems
+>>> driver dependent whether it reports the actually locked frequency found by
+>>> the zig-zag-algorithm or just the set frequency to tune to.
+>>
+>> The STV0299 blindly sets the value based on a software zigzag (due to simpler
+>> hardware), but this might not be accurate enough. On the other hand, the
+>> STB0899 internally does zig-zag in hardware for DVB-S2, and partly in
+>> software for DVB-S.
+>>
+>> In any event, the get_frontend callback should return the value that is read
+>> from the demodulator registers, rather than the cached original value that
+>> which was requested to be tuned.
+>>
+>> The stb0899 returns only the cached value IIRC. Maybe I will fix this soon,
+>> or maybe you can send a patch.
+> 
+> See the attached patch.
+> 
+> This is what I get after the patch:
+> 
+> Sat.    Pol.    Band    Freq (MHz) Set    Freq (MHz) Get    Delta (MHz)
+> S19,2E    H    L    10744    10748,474    4,474
+> S19,2E    H    L    10773    10777,944    4,944
+> S19,2E    H    L    10832    10836,953    4,953
+> S19,2E    H    L    10861    10868,774    7,774
+> S19,2E    H    L    10920    10924,312    4,312
+> S19,2E    H    L    11023    11026,827    3,827
+> S19,2E    H    L    11170    11175,423    5,423
+> S19,2E    H    L    11243    11248,452    5,452
+> S19,2E    H    L    11302    11307,371    5,371
+> S19,2E    H    L    11361    11366,427    5,427
+> S19,2E    H    L    11420    11425,473    5,473
+> S19,2E    H    L    11464    11468,876    4,876
+> S19,2E    H    L    11493    11498,421    5,421
+> S19,2E    H    L    11523    11529,080    6,080
+> S19,2E    H    L    11582    11586,942    4,942
+> S19,2E    H    L    11611    11618,785    7,785
+> S19,2E    H    L    11641    11645,951    4,951
+> S19,2E    H    L    11670    11675,450    5,450
+> S19,2E    H    H    11719    11724,970    5,970
+> S19,2E    H    H    11758    11763,975    5,975
+> S19,2E    H    H    11797    11802,978    5,978
+> S19,2E    H    H    11836    11841,972    5,972
+> S19,2E    H    H    11875    11880,951    5,951
+> 
+> I'll have to let VDR "travel" across the transponders several times to see whether I get similar results for the previously mentioned transponder on the stv0299 device.
+> 
+> Bye.
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-CC: linux-doc@vger.kernel.org
----
- Documentation/DocBook/media/v4l/compat.xml        |    3 +
- Documentation/DocBook/media/v4l/io.xml            |    3 +
- Documentation/DocBook/media/v4l/v4l2.xml          |    1 +
- Documentation/DocBook/media/v4l/vidioc-expbuf.xml |  223 +++++++++++++++++++++
- 4 files changed, 230 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/vidioc-expbuf.xml
+The patch seems to be working. Anyway, for it to be merged, you'll
+need to be sending it together with your SOB (Signed-off-by),
+and using the -p1 format e. g. something like:
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index ff45330..802c1ab 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2609,6 +2609,9 @@ ioctls.</para>
- 	  <para>Importing DMABUF file descriptors as a new IO method described
- 	  in <xref linkend="dmabuf" />.</para>
-         </listitem>
-+        <listitem>
-+	  <para>Exporting DMABUF files using &VIDIOC-EXPBUF; ioctl.</para>
-+        </listitem>
-       </itemizedlist>
-     </section>
- 
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index 98253ee..c27e59b 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -488,6 +488,9 @@ buffer from userspace using a file descriptor previously exported for a
- different or the same device (known as the importer role), or both. This
- section describes the DMABUF importer role API in V4L2.</para>
- 
-+    <para>Refer to <link linked="vidioc-expbuf"> DMABUF exporting </link> for
-+details about exporting a V4L2 buffers as DMABUF file descriptors.</para>
-+
- <para>Input and output devices support the streaming I/O method when the
- <constant>V4L2_CAP_STREAMING</constant> flag in the
- <structfield>capabilities</structfield> field of &v4l2-capability; returned by
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index 0292ed1..874c085 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -568,6 +568,7 @@ and discussions on the V4L mailing list.</revremark>
-     &sub-overlay;
-     &sub-prepare-buf;
-     &sub-qbuf;
-+    &sub-expbuf;
-     &sub-querybuf;
-     &sub-querycap;
-     &sub-queryctrl;
-diff --git a/Documentation/DocBook/media/v4l/vidioc-expbuf.xml b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
-new file mode 100644
-index 0000000..30ebf67
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
-@@ -0,0 +1,223 @@
-+<refentry id="vidioc-expbuf">
-+
-+  <refmeta>
-+    <refentrytitle>ioctl VIDIOC_EXPBUF</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>VIDIOC_EXPBUF</refname>
-+    <refpurpose>Export a buffer as a DMABUF file descriptor.</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>struct v4l2_exportbuffer *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>&fd;</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>VIDIOC_EXPBUF</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <note>
-+      <title>Experimental</title>
-+      <para>This is an <link linkend="experimental"> experimental </link>
-+      interface and may change in the future.</para>
-+    </note>
-+
-+<para>This ioctl is an extension to the <link linkend="mmap">memory
-+mapping</link> I/O method therefore it is available only for
-+<constant>V4L2_MEMORY_MMAP</constant> buffers.  It can be used to export a
-+buffer as DMABUF file at any time after buffers have been allocated with the
-+&VIDIOC-REQBUFS; ioctl.</para>
-+
-+<para>Prior to exporting an application calls <link
-+linkend="vidioc-querybuf">VIDIOC_QUERYBUF</link> to obtain memory offsets. When
-+using the <link linkend="planar-apis">multi-planar API</link> every plane has
-+own offset.</para>
-+
-+<para>To export a buffer, the application fills &v4l2-exportbuffer;.  The
-+<structfield> mem_offset </structfield> field is set to the offset obtained
-+from <constant> VIDIOC_QUERYBUF </constant>.  Additional flags may be posted in
-+the <structfield> flags </structfield> field.  Refer to manual for open syscall
-+for details. Currently only O_CLOEXEC is guaranteed to be supported.  All other
-+fields must be set to zero.  In a case of multi-planar API, every plane is
-+exported separately using multiple <constant> VIDIOC_EXPBUF </constant>
-+calls.</para>
-+
-+<para> After calling <constant>VIDIOC_EXPBUF</constant> the <structfield> fd
-+</structfield> field will be set by a driver.  This is a DMABUF file
-+descriptor. The application may pass it to other API. Refer to <link
-+linkend="dmabuf">DMABUF importing</link> for details about importing DMABUF
-+files into V4L2 nodes. A developer is encouraged to close a DMABUF file when it
-+is no longer used.  </para>
-+
-+  </refsect1>
-+  <refsect1>
-+   <section>
-+      <title>Examples</title>
-+
-+      <example>
-+	<title>Exporting a buffer.</title>
-+	<programlisting>
-+int buffer_export(int v4lfd, &v4l2-buf-type; bt, int index, int *dmafd)
-+{
-+	&v4l2-buffer; buf;
-+	&v4l2-exportbuffer; expbuf;
-+
-+	memset(&amp;buf, 0, sizeof buf);
-+	buf.type = bt;
-+	buf.memory = V4L2_MEMORY_MMAP;
-+	buf.index = index;
-+
-+	if (ioctl (v4lfd, &VIDIOC-QUERYBUF;, &amp;buf) == -1) {
-+		perror ("VIDIOC_QUERYBUF");
-+		return -1;
-+	}
-+
-+	memset(&amp;expbuf, 0, sizeof expbuf);
-+	expbuf.mem_offset = buf.m.offset;
-+	if (ioctl (v4lfd, &VIDIOC-EXPBUF;, &amp;expbuf) == -1) {
-+		perror ("VIDIOC_EXPBUF");
-+		return -1;
-+	}
-+
-+	*dmafd = expbuf.fd;
-+
-+	return 0;
-+}
-+        </programlisting>
-+      </example>
-+
-+      <example>
-+	<title>Exporting a buffer using multi plane API.</title>
-+	<programlisting>
-+int buffer_export_mp(int v4lfd, &v4l2-buf-type; bt, int index,
-+	int dmafd[], int n_planes)
-+{
-+	&v4l2-buffer; buf;
-+	&v4l2-plane; planes[VIDEO_MAX_PLANES];
-+	int i;
-+
-+	memset(&amp;buf, 0, sizeof buf);
-+	buf.type = bt;
-+	buf.memory = V4L2_MEMORY_MMAP;
-+	buf.index = index;
-+	buf.m.planes = planes;
-+	buf.length = n_planes;
-+	memset(&amp;planes, 0, sizeof planes);
-+
-+	if (ioctl (v4lfd, &VIDIOC-QUERYBUF;, &amp;buf) == -1) {
-+		perror ("VIDIOC_QUERYBUF");
-+		return -1;
-+	}
-+
-+	for (i = 0; i &lt; n_planes; ++i) {
-+		&v4l2-exportbuffer; expbuf;
-+
-+		memset(&amp;expbuf, 0, sizeof expbuf);
-+		expbuf.mem_offset = plane[i].m.offset;
-+		if (ioctl (v4lfd, &VIDIOC-EXPBUF;, &amp;expbuf) == -1) {
-+			perror ("VIDIOC_EXPBUF");
-+			while (i)
-+				close(dmafd[--i]);
-+			return -1;
-+		}
-+		dmafd[i] = expbuf.fd;
-+	}
-+
-+	return 0;
-+}
-+        </programlisting>
-+      </example>
-+   </section>
-+  </refsect1>
-+
-+  <refsect1>
-+    <table pgwide="1" frame="none" id="v4l2-exportbuffer">
-+      <title>struct <structname>v4l2_exportbuffer</structname></title>
-+      <tgroup cols="3">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>fd</structfield></entry>
-+	    <entry>The DMABUF file descriptor associated with a buffer. Set by
-+		a driver.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved0</structfield></entry>
-+	    <entry>Reserved field for future use. Must be set to zero.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>mem_offset</structfield></entry>
-+	    <entry>Buffer memory offset as returned by <constant>
-+VIDIOC_QUERYBUF </constant> in &v4l2-buffer;<structfield> ::m.offset
-+</structfield> (for single-plane formats) or &v4l2-plane;<structfield>
-+::m.offset </structfield> (for multi-planar formats)</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>flags</structfield></entry>
-+	    <entry>Flags for newly created file, currently only <constant>
-+O_CLOEXEC </constant> is supported, refer to manual of open syscall for more
-+details.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved[12]</structfield></entry>
-+	    <entry>Reserved field for future use. Must be set to zero.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+  </refsect1>
-+
-+  <refsect1>
-+    &return-value;
-+    <variablelist>
-+      <varlistentry>
-+	<term><errorcode>EINVAL</errorcode></term>
-+	<listitem>
-+	  <para>A queue is not in MMAP mode or DMABUF exporting is not
-+supported or <structfield> flag </structfield> or <structfield> mem_offset
-+</structfield> fields are invalid.</para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+</refentry>
--- 
-1.7.9.5
+--- a/drivers/media/dvb/frontends/stb0899_drv.c	2012-08-14 21:59:59.000000000 +0200
++++ b/drivers/media/dvb/frontends/stb0899_drv.c	2012-08-14 21:29:17.000000000 +0200
 
+as otherwise developer's scripts won't get it right.
+
+Thanks,
+Mauro.
