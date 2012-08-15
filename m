@@ -1,52 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:37292 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756042Ab2HIJjb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2012 05:39:31 -0400
-Message-ID: <50238552.6030404@canonical.com>
-Date: Thu, 09 Aug 2012 11:39:30 +0200
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55612 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751785Ab2HOSjf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Aug 2012 14:39:35 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
+	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com,
+	g.liakhovetski@gmx.de, dmitriyz@google.com, s.nawrocki@samsung.com,
+	k.debski@samsung.com
+Subject: Re: [PATCHv8 12/26] v4l: vb2-vmalloc: add support for dmabuf importing
+Date: Wed, 15 Aug 2012 20:39:50 +0200
+Message-ID: <2456782.SiD0kQik2s@avalon>
+In-Reply-To: <1344958496-9373-13-git-send-email-t.stanislaws@samsung.com>
+References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com> <1344958496-9373-13-git-send-email-t.stanislaws@samsung.com>
 MIME-Version: 1.0
-To: Sumit Semwal <sumit.semwal@linaro.org>
-CC: rob.clark@linaro.org, linaro-mm-sig@lists.linaro.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, patches@linaro.org
-Subject: Re: [PATCH 1/3] dma-fence: dma-buf synchronization (v7)
-References: <20120807175330.18745.81293.stgit@patser.local> <502162D7.9090809@canonical.com> <CAO_48GGmo65yT9UeJk69f-ASir3E+SWMsOJXgN4M_-UyO3XqUA@mail.gmail.com>
-In-Reply-To: <CAO_48GGmo65yT9UeJk69f-ASir3E+SWMsOJXgN4M_-UyO3XqUA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey Sumit,
+Hi Tomasz,
 
-Op 08-08-12 08:35, Sumit Semwal schreef:
-> Hi Maarten,
->
-> On 8 August 2012 00:17, Maarten Lankhorst
-> <maarten.lankhorst@canonical.com> wrote:
->> Op 07-08-12 19:53, Maarten Lankhorst schreef:
->>> A dma-fence can be attached to a buffer which is being filled or consumed
->>> by hw, to allow userspace to pass the buffer without waiting to another
->>> device.  For example, userspace can call page_flip ioctl to display the
->>> next frame of graphics after kicking the GPU but while the GPU is still
->>> rendering.  The display device sharing the buffer with the GPU would
->>> attach a callback to get notified when the GPU's rendering-complete IRQ
->>> fires, to update the scan-out address of the display, without having to
->>> wake up userspace.
-> Thanks for this patchset; Could you please also fill up
-> Documentation/dma-buf-sharing.txt, to include the relevant bits?
->
-> We've tried to make sure the Documentation corresponding is kept
-> up-to-date as the framework has grown, and new features are added to
-> it - and I think features as important as dma-fence and dmabufmgr do
-> warrant a healthy update.
+Thanks for the patch.
 
-Ok I'll clean it up and add the documentation, one other question. If code
-that requires dmabuf needs to select CONFIG_DMA_SHARED_BUFFER,
-why does dma-buf.h have fallbacks for !CONFIG_DMA_SHARED_BUFFER?
-This seems weird, would you have any objection if I removed those?
+On Tuesday 14 August 2012 17:34:42 Tomasz Stanislawski wrote:
+> This patch adds support for importing DMABUF files for
+> vmalloc allocator in Videobuf2.
+> 
+> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-~Maarten
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+-- 
+Regards,
+
+Laurent Pinchart
 
