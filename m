@@ -1,92 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40795 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755918Ab2HOVJH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Aug 2012 17:09:07 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: Patches submitted via linux-media ML that are at patchwork.linuxtv.org
-Date: Wed, 15 Aug 2012 23:09:22 +0200
-Message-ID: <2376005.crkqt4XIze@avalon>
-In-Reply-To: <502BCA9F.4040603@gmail.com>
-References: <502A4CD1.1020108@redhat.com> <23599424.KTEC3Hhc5D@avalon> <502BCA9F.4040603@gmail.com>
+Received: from d154113.artnet.pl ([37.28.154.113]:43277 "EHLO pseudon.im"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751317Ab2HOLaI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Aug 2012 07:30:08 -0400
+Message-ID: <502B8077.3040700@maciej.szmigiero.name>
+Date: Wed, 15 Aug 2012 12:56:55 +0200
+From: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Andy Walls <awalls@md.metrocast.net>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Malcolm Priestley <tvboxspy@gmail.com>,
+	Patrick Boettcher <pboettcher@kernellabs.com>,
+	Martin Wilks <m.wilks@technisat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sven Barth <pascaldragon@googlemail.com>,
+	Lucas De Marchi <lucas.demarchi@profusion.mobi>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH]Medion 95700 analog video support
+References: <4E63C8A0.7030702@o2.pl>  <CAOcJUbzXKVoOsfLA+YewyfDKmxuX0PgB8mWdfG49ArdS1fpyfA@mail.gmail.com>  <4E7CDEB1.9090901@infradead.org>  <CAOcJUby0dK_sjhTB3HEfdxkc9rsWU9KkZ=2B4O=Tcn4E90AE2w@mail.gmail.com>  <c651371a-b2c4-4e95-bbb3-5b97a8b7281e@email.android.com>  <4E7CF707.7060800@o2.pl> <1316895712.12899.84.camel@palomino.walls.org>  <4E80F080.7030500@o2.pl> <1317081213.2345.13.camel@palomino.walls.org> <4E88B797.2020104@o2.pl> <50298F27.7020707@redhat.com>
+In-Reply-To: <50298F27.7020707@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
-
-On Wednesday 15 August 2012 18:13:19 Sylwester Nawrocki wrote:
-> On 08/15/2012 12:06 AM, Laurent Pinchart wrote:
-> > On Tuesday 14 August 2012 18:37:23 Sylwester Nawrocki wrote:
-> >> On 08/14/2012 03:04 PM, Mauro Carvalho Chehab wrote:
-> >>> This one requires more testing:
-> >>> 
-> >>> May,15 2012: [GIT,PULL,FOR,3.5] DMABUF importer feature in V4L2 API
-> >>>           http://patchwork.linuxtv.org/patch/11268  Sylwester Nawrocki
-> >>> <s.nawrocki@samsung.com>
-> >> 
-> >> Hmm, this is not valid any more. Tomasz just posted a new patch series
-> >> that adds DMABUF importer and exporter feature altogether.
-> >> 
-> >> [PATCHv8 00/26] Integration of videobuf2 with DMABUF
-> >> 
-> >> I guess we need someone else to submit test patches for other H/W than
-> >> just Samsung SoCs. I'm not sure if we've got enough resources to port
-> >> this to other hardware. We have been using these features internally for
-> >> some time already. It's been 2 kernel releases and I can see only Ack
-> >> tags from Laurent on Tomasz's patch series, hence it seems there is no
-> >> wide interest in DMABUF support in V4L2 and this patch series is probably
-> >> going to stay in a fridge for another few kernel releases.
-> > 
-> > What would be required to push it to v3.7 ?
+W dniu 14.08.2012 01:35, Mauro Carvalho Chehab pisze:
+> Em 02-10-2011 16:12, Maciej Szmigiero escreveu:
+>> Updated patch with Andy's suggestion to make changes to cx25840 driver
+>> conditional on platform_data flag and fixed few typos.
+>> Reverted changes to cx25840 driver VBI code - will think of them when
+>> we have VBI implemented in cxusb and, by extension, a way to test them.
+>>
+>> Also fixed small chroma bug with S-Video input.
+>>
+>> This still needs the patch for v4l2-device.c::v4l2_device_unregister
+>> applied first.
+>>
+>> Signed-off-by: Maciej Szmigiero <mhej@o2.pl>
 > 
-> Mauro requested more test coverage on that, which is understood since this
-> is a fairly important API enhancement and the V4L2 video overlay API
-> replacement.
 > 
-> We need DMABUF support added at some webcam driver and a DRM driver with
-> prime support (or some V4L2 output driver), I guess it would be best to
-> have that in a PC environment. It looks like i915/radeon/nouveau drivers
-> already have prime support.
-
-uvcvideo has recently been moved to videobuf2, using vb2_vmalloc. I can easily 
-test that, except that I have no idea how to export buffers on the i915 side 
-when X is running. Have you looked into that ?
-
-> The DRM driver could be an exporter of buffers that would be passed to the
-> webcam driver.
+> This patch is stil on my queue, not sure why it wasn't applied (probably
+> because I was waiting for Andy/Michael's ack):
+> 	http://patchwork.linuxtv.org/patch/8048/
 > 
-> And except the kernel patches we would need a test application, similar
-> to that one:
-> http://git.infradead.org/users/kmpark/public-apps/blob/a7e755629a74a7ac13788
-> 2032a0f7b2480fa1490:/v4l2-drm-example/dmabuf-sharing.c
+> Is it ok to apply? If so, could you please rebase it. It doesn't apply
+> anymore, due to the MFE changes at dvb-usb. It shouldn't be hard to fix,
+> as it should be just parameter names.
 > 
-> I haven't been closely following the DMABUF APIs development, I think
-> Tomasz could provide more details on that.
+> Regards,
+> Mauro
 > 
-> It's likely I'll get around and prepare a test case as outlined above in
-> coming days. Anyway, it would be appreciated if someone else could give this
-> patch series a try.
 
-I've previously tested the patches on Renesas hardware, exporting buffers on 
-the FBDEV side and importing them on the V4L2 side. We thus have test results 
-for two different platforms, albeit all ARM-based.
+Hello Mauro,
 
--- 
-Regards,
+I will dust off the device, rebase and retest the patch as soon as have
+some spare time (should happen in 2-3 weeks).
 
-Laurent Pinchart
-
+Best regards,
+Maciej Szmigiero
