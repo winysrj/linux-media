@@ -1,37 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:54560 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752891Ab2H1PmP (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:56798 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750870Ab2HOOVc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Aug 2012 11:42:15 -0400
-Received: by bkwj10 with SMTP id j10so1724705bkw.19
-        for <linux-media@vger.kernel.org>; Tue, 28 Aug 2012 08:42:14 -0700 (PDT)
-Message-ID: <503CE6D0.4010205@gmail.com>
-Date: Tue, 28 Aug 2012 18:42:08 +0300
-From: Olcay Korkmaz <olcay.mz@gmail.com>
+	Wed, 15 Aug 2012 10:21:32 -0400
+Date: Wed, 15 Aug 2012 16:20:48 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PULL] left-overs from old 3.6 pull, more to come
+Message-ID: <Pine.LNX.4.64.1208151618180.4024@axis700.grange>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [TM6000] Request video grabber support for geniatech satbox
-Content-Type: text/plain; charset=ISO-8859-9
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All
+Hi Mauro
 
-I have geniatech satbox it's tm6000 device with dvbs and Analogue CVBS
-A/V grabber
-I know tm6000 module doesn't support dvb-s but can i use satbox for
-video grabber
-if I load tm6000 module it's recognized to generic and loaded with
-XC2028 firmware
-satbox doesn't have xc2028 tuner it comes with conexant cx24109/cx24123
+Below are patches, that I tried to push for 3.6, but that went missing. 
+I'll also try to look through other my pending patches within the next 
+couple of hours, so, there might be one or two more pull requests from me 
+shortly.
 
-can be added to the code with video grabber support
-for device info: http://linuxtv.org/wiki/index.php/Geniatech_Satbox
+The following changes since commit f1b1b85c7f85417d73d3b315f5df1e2730477c0f:
 
-Regards
+  tw9910: Don't access the device in the g_mbus_fmt operation (2012-07-20 16:13:24 +0200)
 
--- 
-|By Olcay Korkmaz|
+are available in the git repository at:
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.6
 
+Fabio Estevam (2):
+      video: mx1_camera: Use clk_prepare_enable/clk_disable_unprepare
+      video: mx2_camera: Use clk_prepare_enable/clk_disable_unprepare
+
+Guennadi Liakhovetski (1):
+      V4L: soc-camera: add selection API host operations
+
+Javier Martin (2):
+      media: mx2_camera: Fix mbus format handling
+      media: mx2_camera: Add YUYV output format.
+
+Laurent Pinchart (13):
+      soc_camera: Don't call .s_power() during probe
+      soc-camera: Continue the power off sequence if one of the steps fails
+      soc-camera: Add and use soc_camera_power_[on|off]() helper functions
+      soc-camera: Push probe-time power management to drivers
+      ov772x: Fix memory leak in probe error path
+      ov772x: Select the default format at probe time
+      ov772x: Don't fail in s_fmt if the requested format isn't supported
+      ov772x: try_fmt must not default to the current format
+      ov772x: Make to_ov772x convert from v4l2_subdev to ov772x_priv
+      ov772x: Add ov772x_read() and ov772x_write() functions
+      ov772x: Add support for SBGGR10 format
+      ov772x: Compute window size registers at runtime
+      ov772x: Stop sensor readout right after reset
+
+ drivers/media/video/imx074.c              |   30 ++-
+ drivers/media/video/mt9m001.c             |   26 ++-
+ drivers/media/video/mt9m111.c             |  116 +++++---
+ drivers/media/video/mt9t031.c             |   48 ++--
+ drivers/media/video/mt9t112.c             |   21 ++-
+ drivers/media/video/mt9v022.c             |   14 +
+ drivers/media/video/mx1_camera.c          |    4 +-
+ drivers/media/video/mx2_camera.c          |   79 +++++-
+ drivers/media/video/ov2640.c              |   20 ++-
+ drivers/media/video/ov5642.c              |   31 ++-
+ drivers/media/video/ov6650.c              |   28 ++-
+ drivers/media/video/ov772x.c              |  447 +++++++++++++++--------------
+ drivers/media/video/ov9640.c              |   27 ++-
+ drivers/media/video/ov9740.c              |   47 ++-
+ drivers/media/video/rj54n1cb0c.c          |   27 ++-
+ drivers/media/video/soc_camera.c          |  166 +++++++----
+ drivers/media/video/soc_camera_platform.c |   11 +-
+ drivers/media/video/tw9910.c              |   21 ++-
+ include/media/soc_camera.h                |   12 +
+ 19 files changed, 764 insertions(+), 411 deletions(-)
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
