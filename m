@@ -1,180 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:51727 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753035Ab2HKTjf (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45437 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755314Ab2HOBMt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Aug 2012 15:39:35 -0400
-Received: by wgbdr13 with SMTP id dr13so2389922wgb.1
-        for <linux-media@vger.kernel.org>; Sat, 11 Aug 2012 12:39:33 -0700 (PDT)
-Date: Sat, 11 Aug 2012 21:39:54 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: Rob Clark <rob.clark@linaro.org>, linaro-mm-sig@lists.linaro.org,
-	linux-media@vger.kernel.org, sumit.semwal@linaro.org,
-	dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
-Subject: Re: [Linaro-mm-sig] [PATCH 2/4] dma-fence: dma-buf synchronization
- (v8 )
-Message-ID: <20120811193954.GC5132@phenom.ffwll.local>
-References: <20120810145728.5490.44707.stgit@patser.local>
- <20120810145750.5490.5639.stgit@patser.local>
- <20120810202916.GI5738@phenom.ffwll.local>
- <CAF6AEGvzaJmVmnZmEp0QBfja8Vzb0mpLa_2J6bdUZj=fgDAHVg@mail.gmail.com>
- <502681AE.9030507@canonical.com>
+	Tue, 14 Aug 2012 21:12:49 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: Dima Zavin <dmitriyz@google.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, airlied@redhat.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
+	robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
+	subashrp@gmail.com, mchehab@redhat.com, g.liakhovetski@gmx.de,
+	Sumit Semwal <sumit.semwal@linaro.org>
+Subject: Re: [PATCHv7 03/15] v4l: vb2: add support for shared buffer (dma_buf)
+Date: Wed, 15 Aug 2012 03:13:01 +0200
+Message-ID: <8969870.LBKalEQJ5u@avalon>
+In-Reply-To: <501AAB51.5050408@samsung.com>
+References: <1339681069-8483-1-git-send-email-t.stanislaws@samsung.com> <2867746.1nlzVAXyL8@avalon> <501AAB51.5050408@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <502681AE.9030507@canonical.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Aug 11, 2012 at 06:00:46PM +0200, Maarten Lankhorst wrote:
-> Op 11-08-12 17:14, Rob Clark schreef:
-> > On Fri, Aug 10, 2012 at 3:29 PM, Daniel Vetter <daniel@ffwll.ch> wrote:
-> >>> +/**
-> >>> + * dma_fence_signal - signal completion of a fence
-> >>> + * @fence: the fence to signal
-> >>> + *
-> >>> + * All registered callbacks will be called directly (synchronously) and
-> >>> + * all blocked waters will be awoken. This should be always be called on
-> >>> + * software only fences, or alternatively be called after
-> >>> + * dma_fence_ops::enable_signaling is called.
-> >> I think we need to be cleare here when dma_fence_signal can be called:
-> >> - for a sw-only fence (i.e. created with dma_fence_create)
-> >>   dma_fence_signal _must_ be called under all circumstances.
-> >> - for any other fences, dma_fence_signal may be called, but it _must_ be
-> >>   called once the ->enable_signalling func has been called and return 0
-> >>   (i.e. success).
-> >> - it may be called only _once_.
+Hi Tomasz,
+
+On Thursday 02 August 2012 18:31:13 Tomasz Stanislawski wrote:
+> On 06/27/2012 10:40 PM, Laurent Pinchart wrote:
+> > On Tuesday 26 June 2012 13:53:34 Dima Zavin wrote:
+> >> On Tue, Jun 26, 2012 at 2:40 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> >>> On Tue 26 June 2012 11:11:06 Laurent Pinchart wrote:
+> >>>> On Tuesday 26 June 2012 10:40:44 Tomasz Stanislawski wrote:
+> >>>>> Hi Dima Zavin,
+> >>>>> Thank you for the patch and for a ping remainder :).
+> >>>>> 
+> >>>>> You are right. The unmap is missing in __vb2_queue_cancel.
+> >>>>> I will apply your fix into next version of V4L2 support for dmabuf.
+> >>>>> 
+> >>>>> Please refer to some comments below.
+> >>>>> 
+> >>>>> On 06/20/2012 08:12 AM, Dima Zavin wrote:
+> >>>>>> Tomasz,
+> >>>>>> 
+> >>>>>> I've encountered an issue with this patch when userspace does several
+> >>>>>> stream_on/stream_off cycles. When the user tries to qbuf a buffer
+> >>>>>> after doing stream_off, we trigger the "dmabuf already pinned"
+> >>>>>> warning since we didn't unmap the buffer as dqbuf was never called.
+> >>>>>> 
+> >>>>>> The below patch adds calls to unmap in queue_cancel, but my feeling
+> >>>>>> is that we probably should be calling detach too (i.e. put_dmabuf).
+> >>>> 
+> >>>> According to the V4L2 specification, the "VIDIOC_STREAMOFF ioctl, apart
+> >>>> of aborting or finishing any DMA in progress, unlocks any user pointer
+> >>>> buffers locked in physical memory, and it removes all buffers from the
+> >>>> incoming and outgoing queues".
+> >>> 
+> >>> Correct. And what that means in practice is that after a streamoff all
+> >>> buffers are returned to the state they had just before STREAMON was
+> >>> called.
+> >> 
+> >> That can't be right. The buffers had to have been returned to the
+> >> state just *after REQBUFS*, not just *before STREAMON*. You need to
+> >> re-enqueue buffers before calling STREAMON. I assume that's what you
+> >> meant?
+> > 
+> > Your interpretation is correct.
 > 
-> As we discussed on irc it might be beneficial to be able to have it called
-> twice, the second time would be a noop, however.
-
-Agreed.
-
-[snip]
-
-> >>> +             /* At this point, if enable_signaling returns any error
-> >>> +              * a wakeup has to be performanced regardless.
-> >>> +              * -ENOENT signals fence was already signaled. Any other error
-> >>> +              * inidicates a catastrophic hardware error.
-> >>> +              *
-> >>> +              * If any hardware error occurs, nothing can be done against
-> >>> +              * it, so it's treated like the fence was already signaled.
-> >>> +              * No synchronization can be performed, so we have to assume
-> >>> +              * the fence was already signaled.
-> >>> +              */
-> >>> +             ret = fence->ops->enable_signaling(fence);
-> >>> +             if (ret) {
-> >>> +                     signaled = true;
-> >>> +                     dma_fence_signal(fence);
-> >> I think we should call dma_fence_signal only for -ENOENT and pass all
-> >> other errors back as-is. E.g. on -ENOMEM or so we might want to retry ...
+> So now we should decide what should be changed: the spec or vb2 ?
+> Bringing the queue state back to *after REQBUFS* may make the
+> next (STREAMON + QBUFs) very costly operations.
 > 
-> Also discussed on irc, boolean might be a better solution until we start dealing with
-> hardware on fire. :) This would however likely be dealt in the same way as signaling,
-> however.
-
-Agreed.
-
-[snip]
-
-> >>> +
-> >>> +     if (!ret) {
-> >>> +             cb->base.flags = 0;
-> >>> +             cb->base.func = __dma_fence_wake_func;
-> >>> +             cb->base.private = priv;
-> >>> +             cb->fence = fence;
-> >>> +             cb->func = func;
-> >>> +             __add_wait_queue(&fence->event_queue, &cb->base);
-> >>> +     }
-> >>> +     spin_unlock_irqrestore(&fence->event_queue.lock, flags);
-> >>> +
-> >>> +     return ret;
-> >>> +}
-> >>> +EXPORT_SYMBOL_GPL(dma_fence_add_callback);
-> >> I think for api completenes we should also have a
-> >> dma_fence_remove_callback function.
-> > We did originally but Maarten found it was difficult to deal with
-> > properly when the gpu's hang.  I think his alternative was just to
-> > require the hung driver to signal the fence.  I had kicked around the
-> > idea of a dma_fence_cancel() alternative to signal that could pass an
-> > error thru to the waiting driver.. although not sure if the other
-> > driver could really do anything differently at that point.
+> Reattaching and mapping a DMABUF might trigger DMA allocation and
+> *will* trigger creation of IOMMU mappings. In case of a user pointer,
+> calling next get_user_pages may cause numerous fault events and
+> will *create* new IOMMU mapping.
 > 
-> No, there is a very real reason I removed dma_fence_remove_callback. It is
-> absolutely non-trivial to cancel it once added, since you have to deal with
-> all kinds of race conditions.. See i915_gem_reset_requests in my git tree:
-> http://cgit.freedesktop.org/~mlankhorst/linux/commit/?id=673c4b2550bc63ec134bca47a95dabd617a689ce
+> Is there any need to do such a cleanup if the destruction of buffers
+> and all caches can be explicitly executed by REQBUFS(count = 0) ?
 
-I don't see the point in that code ... Why can't we drop the kref
-_outside_ of the critical section protected by event_queue_lock? Then you
-pretty much have an open-coded version of dma_fence_callback_cancel in
-there.
+STREAMOFF needs to pass ownership of all buffers to the application. In 
+practice this means that buffers must then be ready to be passed to other 
+devices, requeued to the same device, or destroyed completely.
 
-> This is the only way to do it completely deadlock/memory corruption free
-> since you essentially have a locking inversion to avoid. I had it wrong
-> the first 2 times too, even when I knew about a lot of the locking
-> complications. If you want to do it, in most cases it will likely be easier
-> to just eat the signal and ignore it instead of canceling.
+We can't keep the buffers in the V4L2 prepared state, as queueing them would 
+then skip cache handling. Keeping the mapping around could be done though, but 
+would not be compliant with the V4L2 spec as the DMABUF would then not be 
+freed until we call REQBUFS(0).
+
+Changing the spec might be possible. I'll need to think more about this, but 
+I'm not very fond of the way we allow a new DMABUF fd (as well as USERPTR 
+pointer) to be associated with an existing buffer, replacing the currently 
+associated fd/pointer. This makes the API asymetrical: it provides an explicit 
+way to associate an fd/pointer with a buffer, but no explicit way to break 
+that association.
+
+It's obviously too late to change this for USERPTR, but for DMABUF we could 
+make the buffer/fd association immutable. This would require a way to 
+selectively destroy buffers though, or at least to explicitly break the 
+association.
+
+> Maybe it would be easier to change the spec by removing
+> "apart of ... in physical memory" part?
 > 
-> >>> +
-> >>> +/**
-> >>> + * dma_fence_wait - wait for a fence to be signaled
-> >>> + *
-> >>> + * @fence:   [in]    The fence to wait on
-> >>> + * @intr:    [in]    if true, do an interruptible wait
-> >>> + * @timeout: [in]    absolute time for timeout, in jiffies.
-> >> I don't quite like this, I think we should keep the styl of all other
-> >> wait_*_timeout functions and pass the arg as timeout in jiffies (and also
-> >> the same return semantics). Otherwise well have funny code that needs to
-> >> handle return values differently depending upon whether it waits upon a
-> >> dma_fence or a native object (where it would us the wait_*_timeout
-> >> functions directly).
-> > We did start out this way, but there was an ugly jiffies roll-over
-> > problem that was difficult to deal with properly.  Using an absolute
-> > time avoided the problem.
-> Yeah, this makes it easier to wait on multiple fences, instead of
-> resetting the timeout over and over and over again, or manually
-> recalculating.
+> STREAMOFF should mean stopping streaming, and that resources are no
+> longer used. DMABUFs are unmapped but unmapping does not mean releasing.
+> The exporter may keep the resource in its caches.
 
-I don't see how updating the jiffies_left timeout is that onerous, and in
-any case we can easily wrap that up into a little helper function, passing
-in an array of dma_fence pointers.
+If the DMABUF implementation follows the USERPTR spec, applications will 
+expect a STREAMOFF call to release all DMABUF instances associated with the 
+buffers. This means that a DMABUF that is only referenced by a V4L2 buffer 
+will get destroyed by a STREAMOFF call. The more I think about it the more 
+this sounds wrong to me. STREAMOFF has never been tasked with freeing 
+resources. As we lack a way to selectively break the fd (or pointer) to buffer 
+association created at buffer prepare or queue time, applications would have 
+to call REQBUFS(0) to release all buffers, even if they will then want to 
+start a new capture run. This might be costly (although probably not in the 
+USERPTR and DMABUF cases), and doesn't allow to unmap DMABUF instances 
+selectively.
 
-Creating interfaces that differ from established kernel api patterns otoh
-isn't good imo. I.e. I want dma_fence_wait_bla to be a drop-in replacement
-for the corresponding wait_event_bla function/macro, which the same
-semantics for the timeout and return values.
+Maybe an UNPREPARE ioctl would be needed ?
 
-Differing in such things only leads to confusion when reading patches imo.
-
-> >> Also, I think we should add the non-_timeout variants, too, just for
-> >> completeness.
-> Would it be ok if timeout == 0 is special, then?
-
-See above ;-)
-
-[snip]
-
-> >>> +struct dma_fence_ops {
-> >>> +     int (*enable_signaling)(struct dma_fence *fence);
-> >> I think we should mandate that enable_signalling can be called from atomic
-> >> context, but not irq context (since I don't see a use-case for calling
-> >> this from irq context).
+> Currently, vb2 does not follow the policy from the spec.
+> The put_userptr ops is called on:
+> - VIDIOC_REBUFS
+> - VIDIOC_CREATE_BUFS
+> - vb2_queue_release() which is usually called on close() syscall
 > 
-> What would not having this called from irq context get you? I do agree
-> that you would be crazy to do so, but not sure why we should restrict it.
+> The put_userptr is not called and streamoff therefore the user pages
+> are locked after STREAMOFF.
+> 
+> BTW. What does 'buffer locked' mean?
+> 
+> Does it mean that a buffer is pinned or referenced by a driver/HW?
 
-If we allow ->enable_signalling to be called from irq context, all
-spinlocks the driver grabs need to be irq safe. If we disallow this I
-guess some drivers could easily get by with plain spinlocks.
+In this context I think it refers to pinning pages in memory.
 
-And since we both agree that it would be crazy to call ->enable_signalling
-from irq context, I think we should bake this constrain into the
-interface.
-
-Cheers, Daniel
 -- 
-Daniel Vetter
-Mail: daniel@ffwll.ch
-Mobile: +41 (0)79 365 57 48
+Regards,
+
+Laurent Pinchart
+
