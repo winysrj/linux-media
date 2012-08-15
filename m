@@ -1,88 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:35246 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753059Ab2H2Vvb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Aug 2012 17:51:31 -0400
-Received: by wicr5 with SMTP id r5so7015890wic.1
-        for <linux-media@vger.kernel.org>; Wed, 29 Aug 2012 14:51:29 -0700 (PDT)
-Message-ID: <503E8EDE.5010209@gmail.com>
-Date: Wed, 29 Aug 2012 23:51:26 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:51649 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753905Ab2HOXqm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Aug 2012 19:46:42 -0400
+Message-ID: <502C34CE.1040100@redhat.com>
+Date: Wed, 15 Aug 2012 20:46:22 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Nicolas THERY <nicolas.thery@st.com>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"riverful.kim@samsung.com" <riverful.kim@samsung.com>,
-	"sw0312.kim@samsung.com" <sw0312.kim@samsung.com>,
-	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>,
-	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	Jean-Marc VOLLE <jean-marc.volle@st.com>,
-	Pierre-yves TALOUD <pierre-yves.taloud@st.com>,
-	Willy POISSON <willy.poisson@st.com>,
-	Benjamin GAIGNARD <benjamin.gaignard@st.com>
-Subject: Re: [PATCH RFC 0/4] V4L2: Vendor specific media bus formats/ frame
- size control
-References: <1345715489-30158-1-git-send-email-s.nawrocki@samsung.com> <503B96DB.3070403@st.com>
-In-Reply-To: <503B96DB.3070403@st.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: LMML <linux-media@vger.kernel.org>
+CC: Manu Abraham <abraham.manu@gmail.com>,
+	=?UTF-8?B?RGF2aWQgSMOkcmRlbWFu?= <david@hardeman.nu>,
+	Silvester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Malcolm Priestley <tvboxspy@gmail.com>
+Subject: Re: Patches submitted via linux-media ML that are at patchwork.linuxtv.org
+References: <502A4CD1.1020108@redhat.com>
+In-Reply-To: <502A4CD1.1020108@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nicolas,
+Em 14-08-2012 10:04, Mauro Carvalho Chehab escreveu:
+> In order to help people to know about the status of the pending patches,
+> I'm summing-up the patches pending for merge on this email.
 
-On 08/27/2012 05:48 PM, Nicolas THERY wrote:
-> Hello,
-> 
-> On 2012-08-23 11:51, Sylwester Nawrocki wrote:
->> This patch series introduces new image source class control - V4L2_CID_FRAMESIZE
->> and vendor or device specific media bus format section.
->>
->> There was already a discussion WRT handling interleaved image data [1].
->> I'm not terribly happy with those vendor specific media bus formats but I
->> couldn't find better solution that would comply with the V4L2 API concepts
->> and would work reliably.
-> 
-> What about Sakari's "Frame format descriptors" RFC[1] that would allow to
-> describe arbitrary pixel code combinations and provide required information
-> (virtual channel and data type) to the CSI receiver driver for configuring the
-> hardware?
+Thank you all maintainers that helped me updating it!
 
-Thanks for reminding about this. The "Frame format descriptors" would not
-necessarily solve the main problem which I tried to address in this RFC.
+If I didn't miss anything, the patches below are what's under review.
 
-The sensor in question uses single MIPI-CSI data type frame as a container
-for multiple data planes, e.g. JPEG compressed stream interleaved with YUV
-image data, some optional padding and a specific metadata describing the
-interleaved image data. There is no MIPI-CSI2 virtual channel or data type 
-interleaving. Everything is transferred on single VC and single DT.
+I applied today the reorg patches part 2. Please test. There are still some
+mess at drivers/media/platform. I may try to address it next week, if I have
+some time. Of course, people are welcome to do that, instead ;) Basically,
+vivi, platform and mem2mem drivers are there, maybe together with some other
+stuff. I think soc_camera deserves its own directory, just like other
+platform drivers.
 
-Such a frames need sensor specific S/W algorithm do extract each component.
+The Kconfig stuff on V4L can likely be simplified: there are too many hidden
+options there that probably can be removed, in order to make it simpler.
 
-So it didn't look like the frame descriptors would be helpful here, since
-all this needs to be mapped to a single fourcc. Not sure if defining a
-"binary blob" fourcc and retrieving frame format information by some other
-means would have been a way to go.
+Anyway, at least in my humble opinion, things are now better organized.
 
-I also had some patches adopting design from Sakari's RFC, for the case where
-in addition to the above frame format there was captured a copy of meta-data,
-(as in the frame footer) send on separate DT (Embedded Data). And this was
-mapped to 2-planar V4L2 pixel format. Even then I used a sensor specific
-media bus code.
+With regards to media-build.git tree, I updated it to properly apply the
+fixup patches against the new tree. I didn't updated the driver removal
+logic there, used during "make install".
 
-In the end of the day I switched to a single-planar format as it had all 
-what's needed to decode the data. And the were some H/W limitations on using
-additional DT. 
+For the driver removal logic to work at media-build, the file "obsolete.txt" 
+needs to have the name and patches for all drivers before the reorganization.
+As the maximum backport is 2.6.31, I suspect that all other stuff at 
+"obsolete.txt" just got outdated and can be removed.
 
-The frame format descriptors might be worth to work on, but this doesn't 
-look like a solution to my problem and it is going to take some time to get 
-it right, as Sakari pointed out.
+Thanks,
+Mauro
 
---
+		== Needing more discussions/review by the LinuxTV community == 
 
-Regards,
-Sylwester
+Jun,21 2012: [media] dvb frontend core: tuning in ISDB-T using DVB API v3           http://patchwork.linuxtv.org/patch/12988  Olivier Grenie <olivier.grenie@parrot.com>
+Jun,21 2012: dvb: push down ioctl lock in dvb_usercopy                              http://patchwork.linuxtv.org/patch/12989  Nikolaus Schulz <schulz@macnetix.de>
+Jul,26 2012: media: rc: Add support to decode Remotes using NECx IR protocol        http://patchwork.linuxtv.org/patch/13480  Ravi Kumar V <kumarrav@codeaurora.org>
+Jul,31 2012: [RFC] Fix DVB ioctls failing if frontend open/closed too fast          http://patchwork.linuxtv.org/patch/13563  Juergen Lock <nox@jelal.kn-bremen.de>
+Jan,20 2012: [RFC] dvb: Add DVBv5 properties for quality parameters                 http://patchwork.linuxtv.org/patch/9578   Mauro Carvalho Chehab <mchehab@redhat.com>
+Aug,13 2012: [media] dvb: frontend API: Add a flag to indicate that get_frontend()  http://patchwork.linuxtv.org/patch/13783  Mauro Carvalho Chehab <mchehab@redhat.com>
+
+		== Guennadi Liakhovetski <g.liakhovetski@gmx.de> == 
+
+Jul,12 2012: media: mx2_camera: Remove MX2_CAMERA_SWAP16 and MX2_CAMERA_PACK_DIR_MS http://patchwork.linuxtv.org/patch/13331  Javier Martin <javier.martin@vista-silicon.com>
+May,25 2012: [08/15] video: mx2_emmaprp: Use clk_prepare_enable/clk_disable_unprepa http://patchwork.linuxtv.org/patch/11507  Fabio Estevam <fabio.estevam@freescale.com>
+
+		== Prabhakar Lad <prabhakar.lad@ti.com> == 
+
+Aug, 9 2012: [1/1, v2] media/video: vpif: fixing function name start to vpif_config http://patchwork.linuxtv.org/patch/13689  Dror Cohen <dror@liveu.tv>
+
+		== Jonathan Corbet <corbet@lwn.net> == 
+
+Apr,26 2012: [2/2] marvell-cam: Build fix: missing "select VIDEOBUF2_VMALLOC"       http://patchwork.linuxtv.org/patch/10848  Chris Ball <cjb@laptop.org>
+Aug,13 2012: [2/2] marvell-cam: Build fix: missing "select VIDEOBUF2_VMALLOC"       http://patchwork.linuxtv.org/patch/13784  Mauro Carvalho Chehab <mchehab@redhat.com>
+
+		== Manu Abraham <abraham.manu@gmail.com> == 
+
+May,25 2011: Add remote control support for mantis                                                                            Christoph Pinkl <christoph.pinkl@gmail.com>
+Jun, 8 2011: Add remote control support for mantis                                  http://patchwork.linuxtv.org/patch/7217   Christoph Pinkl <christoph.pinkl@gmail.com>
+Nov,29 2011: stv090x: implement function for reading uncorrected blocks count       http://patchwork.linuxtv.org/patch/8656   Mariusz Bia?o?czyk <manio@skyboo.net>
+Mar,11 2012: [2/3] stv090x: use error counter 1 for BER estimation                  http://patchwork.linuxtv.org/patch/10301  Andreas Regel <andreas.regel@gmx.de>
+Mar,11 2012: [3/3] stv090x: On STV0903 do not set registers of the second path.     http://patchwork.linuxtv.org/patch/10302  Andreas Regel <andreas.regel@gmx.de>
+Apr, 1 2012: [05/11] Slightly more friendly debugging output.                       http://patchwork.linuxtv.org/patch/10520  "Steinar H. Gunderson" <sesse@samfundet.no>
+Apr, 1 2012: [06/11] Replace ca_lock by a slightly more general int_stat_lock.      http://patchwork.linuxtv.org/patch/10521  "Steinar H. Gunderson" <sesse@samfundet.no>
+Apr, 1 2012: [07/11] Fix a ton of SMP-unsafe accesses.                              http://patchwork.linuxtv.org/patch/10523  "Steinar H. Gunderson" <sesse@samfundet.no>
+Apr, 1 2012: [11/11] Enable Mantis CA support.                                      http://patchwork.linuxtv.org/patch/10524  "Steinar H. Gunderson" <sesse@samfundet.no>
+Apr, 1 2012: [08/11] Remove some unused structure members.                          http://patchwork.linuxtv.org/patch/10525  "Steinar H. Gunderson" <sesse@samfundet.no>
+Apr, 1 2012: [09/11] Correct wait_event_timeout error return check.                 http://patchwork.linuxtv.org/patch/10526  "Steinar H. Gunderson" <sesse@samfundet.no>
+Apr, 1 2012: [10/11] Ignore timeouts waiting for the IRQ0 flag.                     http://patchwork.linuxtv.org/patch/10527  "Steinar H. Gunderson" <sesse@samfundet.no>
+
+		== David Härdeman <david@hardeman.nu> == 
+
+Jul,31 2012: [media] winbond-cir: Fix initialization                                http://patchwork.linuxtv.org/patch/13539  Sean Young <sean@mess.org>
+
+		== Waiting for Malcolm Priestley <tvboxspy@gmail.com> split tuner/demod new patches == 
+
+May, 8 2012: [1/2] TeVii DVB-S s421 and s632 cards support                          http://patchwork.linuxtv.org/patch/11103  Igor M. Liplianin <liplianin@me.by>
+May, 8 2012: [2/2] TeVii DVB-S s421 and s632 cards support, rs2000 part             http://patchwork.linuxtv.org/patch/11104  Igor M. Liplianin <liplianin@me.by>
+
+Number of pending patches per reviewer:
+  Manu Abraham <abraham.manu@gmail.com>                                 : 12
+  LinuxTV community                                                     : 6
+  Malcolm Priestley <tvboxspy@gmail.com>                                : 2
+  Jonathan Corbet <corbet@lwn.net>                                      : 2
+  Guennadi Liakhovetski <g.liakhovetski@gmx.de>                         : 2
+  David Härdeman <david@hardeman.nu>                                    : 1
+  Prabhakar Lad <prabhakar.lad@ti.com>                                  : 1
+
+Cheers,
+Mauro
+
