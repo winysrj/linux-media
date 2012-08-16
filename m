@@ -1,49 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:39259 "EHLO
-	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030945Ab2HIPf4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2012 11:35:56 -0400
-Received: from [194.168.151.111] (earthlight.etchedpixels.co.uk [81.2.110.250])
-	by lxorguk.ukuu.org.uk (8.14.5/8.14.1) with ESMTP id q79G8vNJ010420
-	for <linux-media@vger.kernel.org>; Thu, 9 Aug 2012 17:09:03 +0100
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: [PATCH] mantis: fix silly crash case
+Received: from mail.kapsi.fi ([217.30.184.167]:52904 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753844Ab2HPA3P (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Aug 2012 20:29:15 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Date: Thu, 09 Aug 2012 17:33:52 +0100
-Message-ID: <20120809163327.3072.31345.stgit@bluebook>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Cc: Hin-Tak Leung <htl10@users.sourceforge.net>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/5] dvb_frontend: return -ENOTTY for unimplement IOCTL
+Date: Thu, 16 Aug 2012 03:28:38 +0300
+Message-Id: <1345076921-9773-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1345076921-9773-1-git-send-email-crope@iki.fi>
+References: <1345076921-9773-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Alan Cox <alan@linux.intel.com>
+Earlier it was returning -EOPNOTSUPP.
 
-If we set mantis->fe to NULL on an error its not a good idea to then try
-passing NULL to the unregister paths and oopsing really.
-
-Signed-off-by: Alan Cox <alan@linux.intel.com>
-Resolves-bug: https://bugzilla.kernel.org/show_bug.cgi?id=16473
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
+ drivers/media/dvb-core/dvb_frontend.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
- drivers/media/dvb/mantis/mantis_dvb.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/dvb/mantis/mantis_dvb.c b/drivers/media/dvb/mantis/mantis_dvb.c
-index e5180e4..5d15c6b 100644
---- a/drivers/media/dvb/mantis/mantis_dvb.c
-+++ b/drivers/media/dvb/mantis/mantis_dvb.c
-@@ -248,8 +248,10 @@ int __devinit mantis_dvb_init(struct mantis_pci *mantis)
- err5:
- 	tasklet_kill(&mantis->tasklet);
- 	dvb_net_release(&mantis->dvbnet);
--	dvb_unregister_frontend(mantis->fe);
--	dvb_frontend_detach(mantis->fe);
-+	if (mantis->fe) {
-+		dvb_unregister_frontend(mantis->fe);
-+		dvb_frontend_detach(mantis->fe);
-+	}
- err4:
- 	mantis->demux.dmx.remove_frontend(&mantis->demux.dmx, &mantis->fe_mem);
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index 609e691..2bc80b1 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -1816,7 +1816,7 @@ static int dvb_frontend_ioctl(struct file *file,
+ 	struct dvb_frontend *fe = dvbdev->priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+-	int err = -EOPNOTSUPP;
++	int err = -ENOTTY;
  
+ 	dev_dbg(fe->dvb->device, "%s: (%d)\n", __func__, _IOC_NR(cmd));
+ 	if (fepriv->exit != DVB_FE_NO_EXIT)
+@@ -1934,7 +1934,7 @@ static int dvb_frontend_ioctl_properties(struct file *file,
+ 		}
+ 
+ 	} else
+-		err = -EOPNOTSUPP;
++		err = -ENOTTY;
+ 
+ out:
+ 	kfree(tvp);
+@@ -2067,7 +2067,7 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
+ 	struct dvb_frontend *fe = dvbdev->priv;
+ 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+-	int err = -EOPNOTSUPP;
++	int err = -ENOTTY;
+ 
+ 	switch (cmd) {
+ 	case FE_GET_INFO: {
+-- 
+1.7.11.2
 
