@@ -1,106 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:54364 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755974Ab2HPBMN (ORCPT
+Received: from hqemgate04.nvidia.com ([216.228.121.35]:2464 "EHLO
+	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751606Ab2HPHMl convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Aug 2012 21:12:13 -0400
-Received: by lbbgj3 with SMTP id gj3so1204065lbb.19
-        for <linux-media@vger.kernel.org>; Wed, 15 Aug 2012 18:12:11 -0700 (PDT)
-Message-ID: <502C48DC.9090303@iki.fi>
-Date: Thu, 16 Aug 2012 04:11:56 +0300
-From: Antti Palosaari <crope@iki.fi>
+	Thu, 16 Aug 2012 03:12:41 -0400
+From: Hiroshi Doyu <hdoyu@nvidia.com>
+To: "crope@iki.fi" <crope@iki.fi>
+CC: "htl10@users.sourceforge.net" <htl10@users.sourceforge.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"joe@perches.com" <joe@perches.com>
+Date: Thu, 16 Aug 2012 09:12:28 +0200
+Subject: Re: noisy dev_dbg_ratelimited()
+Message-ID: <20120816.101228.1829061240257077271.hdoyu@nvidia.com>
+References: <1344991485.62541.YahooMailClassic@web29404.mail.ird.yahoo.com><502AF5E3.7080405@iki.fi><502C48DC.9090303@iki.fi>
+In-Reply-To: <502C48DC.9090303@iki.fi>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-To: Hiroshi DOYU <hdoyu@nvidia.com>
-CC: htl10@users.sourceforge.net, linux-media@vger.kernel.org,
-	Joe Perches <joe@perches.com>
-Subject: noisy dev_dbg_ratelimited()   [Re: small regression in mediatree/for_v3.7-3
- - media_build]
-References: <1344991485.62541.YahooMailClassic@web29404.mail.ird.yahoo.com> <502AF5E3.7080405@iki.fi>
-In-Reply-To: <502AF5E3.7080405@iki.fi>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hiroshi,
+Hi Antti,
 
-I see you have added dev_dbg_ratelimited() recently, commit 
-6ca045930338485a8cdef117e74372aa1678009d .
+Antti Palosaari <crope@iki.fi> wrote @ Thu, 16 Aug 2012 03:11:56 +0200:
 
-However it seems to be noisy as expected similar behavior than normal 
-dev_dbg() without a ratelimit.
+> Hello Hiroshi,
+> 
+> I see you have added dev_dbg_ratelimited() recently, commit 
+> 6ca045930338485a8cdef117e74372aa1678009d .
+> 
+> However it seems to be noisy as expected similar behavior than normal 
+> dev_dbg() without a ratelimit.
+> 
+> I looked ratelimit.c and there is:
+> printk(KERN_WARNING "%s: %d callbacks suppressed\n", func, rs->missed);
+> 
+> What it looks my eyes it will print those "callbacks suppressed" always 
+> because KERN_WARNING.
 
-I looked ratelimit.c and there is:
-printk(KERN_WARNING "%s: %d callbacks suppressed\n", func, rs->missed);
+Right. Can the following fix the problem?
 
-What it looks my eyes it will print those "callbacks suppressed" always 
-because KERN_WARNING.
+>From 905b1dedb6c64bc46a70f6d203ef98c23fccb107 Mon Sep 17 00:00:00 2001
+From: Hiroshi Doyu <hdoyu@nvidia.com>
+Date: Thu, 16 Aug 2012 10:02:11 +0300
+Subject: [PATCH 1/1] driver-core: Shut up dev_dbg_reatelimited() without
+ DEBUG
 
-On 08/15/2012 04:05 AM, Antti Palosaari wrote:
-> On 08/15/2012 03:44 AM, Hin-Tak Leung wrote:
->> --- On Wed, 15/8/12, Antti Palosaari <crope@iki.fi> wrote:
->>
->>> On 08/15/2012 02:39 AM, Hin-Tak Leung
->>> wrote:
->>>> There seems to be a small regression on
->>> mediatree/for_v3.7-3
->>>> - dmesg/klog get flooded with these:
->>>>
->>>> [201145.140260] dvb_frontend_poll: 15 callbacks
->>> suppressed
->>>> [201145.586405] usb_urb_complete: 88 callbacks
->>> suppressed
->>>> [201150.587308] usb_urb_complete: 3456 callbacks
->>> suppressed
->>>>
->>>> [201468.630197] usb_urb_complete: 3315 callbacks
->>> suppressed
->>>> [201473.632978] usb_urb_complete: 3529 callbacks
->>> suppressed
->>>> [201478.635400] usb_urb_complete: 3574 callbacks
->>> suppressed
->>>>
->>>> It seems to be every 5 seconds, but I think that's just
->>> klog skipping repeats and collapsing duplicate entries. This
->>> does not happen the last time I tried playing with the TV
->>> stick :-).
->>>
->>> That's because you has dynamic debugs enabled!
->>> modprobe dvb_core; echo -n 'module dvb_core +p' >
->>> /sys/kernel/debug/dynamic_debug/control
->>> modprobe dvb_usbv2; echo -n 'module dvb_usbv2 +p' >
->>> /sys/kernel/debug/dynamic_debug/control
->>>
->>> If you don't add dvb_core and dvb_usbv2 modules to
->>> /sys/kernel/debug/dynamic_debug/control you will not see
->>> those.
->>>
->>> I have added ratelimited version for those few debugs that
->>> are flooded normally. This suppressed is coming from
->>> ratelimit - it does not print all those similar debugs.
->>
->> I did not enable it - it is as shipped :-).
->>
->> # grep 'CONFIG_DYNAMIC' /boot/config*
->> /boot/config-3.4.6-2.fc17.x86_64:CONFIG_DYNAMIC_FTRACE=y
->> /boot/config-3.4.6-2.fc17.x86_64:CONFIG_DYNAMIC_DEBUG=y
->> /boot/config-3.5.0-2.fc17.x86_64:CONFIG_DYNAMIC_FTRACE=y
->> /boot/config-3.5.0-2.fc17.x86_64:CONFIG_DYNAMIC_DEBUG=y
->> /boot/config-3.5.1-1.fc17.x86_64:CONFIG_DYNAMIC_FTRACE=y
->> /boot/config-3.5.1-1.fc17.x86_64:CONFIG_DYNAMIC_DEBUG=y
->>
->> Now I wonder why I didn't have those usb_urb_complete messages before?
->> The last time I played with mediatree was with 3.4.4-5.fc17.x86_64,
->> and with the mediatree2/dvb_core branch - and I did not have these then.
->
-> Yeah, you are correct. There is something wrong now. I see also those
-> ratelimited debugs even didn't ordered...
->
-> I think dev_dbg_ratelimited() is very new, there is no other users... I
-> have to find out whats wrong.
+dev_dbg_reatelimited() without DEBUG printed "217078 callbacks
+suppressed". This shouldn't print anything without DEBUG.
 
-regards
-Antti
+Signed-off-by: Hiroshi Doyu <hdoyu@nvidia.com>
+Reported-by: Antti Palosaari <crope@iki.fi>
+---
+ include/linux/device.h |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
 
+diff --git a/include/linux/device.h b/include/linux/device.h
+index eb945e1..d4dc26e 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -962,9 +962,13 @@ do {									\
+ 	dev_level_ratelimited(dev_notice, dev, fmt, ##__VA_ARGS__)
+ #define dev_info_ratelimited(dev, fmt, ...)				\
+ 	dev_level_ratelimited(dev_info, dev, fmt, ##__VA_ARGS__)
++#if defined(DEBUG)
+ #define dev_dbg_ratelimited(dev, fmt, ...)				\
+ 	dev_level_ratelimited(dev_dbg, dev, fmt, ##__VA_ARGS__)
+-
++#else
++#define dev_dbg_ratelimited(dev, fmt, ...)			\
++	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
++#endif
+ /*
+  * Stupid hackaround for existing uses of non-printk uses dev_info
+  *
 -- 
-http://palosaari.fi/
+1.7.5.4
+
