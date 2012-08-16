@@ -1,102 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:36687 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750935Ab2HaI3t (ORCPT
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:43542 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932180Ab2HPSb3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Aug 2012 04:29:49 -0400
-Received: by pbbrr13 with SMTP id rr13so4457947pbb.19
-        for <linux-media@vger.kernel.org>; Fri, 31 Aug 2012 01:29:48 -0700 (PDT)
-Date: Fri, 31 Aug 2012 16:29:52 +0800
-From: "=?utf-8?B?bmliYmxlLm1heA==?=" <nibble.max@gmail.com>
-To: "=?utf-8?B?QW50dGkgUGFsb3NhYXJp?=" <crope@iki.fi>,
-	"=?utf-8?B?UsOpbWkgQ2FyZG9uYQ==?=" <remi.cardona@smartjog.com>
-Cc: "=?utf-8?B?bGludXgtbWVkaWE=?=" <linux-media@vger.kernel.org>
-References: <1346319391-19015-1-git-send-email-remi.cardona@smartjog.com>,
- <1346319391-19015-3-git-send-email-remi.cardona@smartjog.com>,
- <503F6D18.2060804@iki.fi>,
- <503F84F5.9010304@smartjog.com>
-Subject: =?utf-8?B?UmU6IFJlOiBbUEFUQ0ggMi8yXSBbbWVkaWFdIGRzMzAwMDogcHJvcGVybHkgcmVwb3J0IGZpcm13YXJlIGxvYWRpbmdpc3N1ZXM=?=
-Message-ID: <201208311629500154084@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+	Thu, 16 Aug 2012 14:31:29 -0400
+Received: by lagy9 with SMTP id y9so1641527lag.19
+        for <linux-media@vger.kernel.org>; Thu, 16 Aug 2012 11:31:27 -0700 (PDT)
+Message-ID: <502D3C6F.6010507@iki.fi>
+Date: Thu, 16 Aug 2012 21:31:11 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: dvb-usb-v2 change broke s2250-loader compilation
+References: <201208161233.43618.hverkuil@xs4all.nl> <502CE527.2070006@iki.fi> <502CF98B.1060700@iki.fi> <201208161607.03380.hverkuil@xs4all.nl> <502D03B6.8030708@iki.fi> <502D24DF.8090503@redhat.com>
+In-Reply-To: <502D24DF.8090503@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-QXMgcmVtZW1iZXIgdGhhdCB0aGVyZSBpcyBhIGZhdWx0IGluIHRoZSB0dW5lciByZWdpc3RlciBy
-ZWFkIGZ1bmN0aW9uIGluIGRzMzAwMC5jIGZpbGUuDQpJdCB3aWxsIGNhdXNlIHRoZSByZWFkIGJh
-Y2sgdmFsdWUgd3JvbmcuDQpkczMwMDAuYyBmaWxlLCANCnN0YXRpYyBpbnQgZHMzMDAwX3R1bmVy
-X3JlYWRyZWcoc3RydWN0IGRzMzAwMF9zdGF0ZSAqc3RhdGUsIHU4IHJlZykNCnsNCi4uLi4uLi4N
-CmRzMzAwMF93cml0ZXJlZyhzdGF0ZSwgMHgwMywgMHgxMik7DQouLi4uLi4uDQp9DQppbiBEVkJT
-a3kgY29kZSwgbTg4ZHMzMTAzLmMgZmlsZSwNCnN0YXRpYyBpbnQgbTg4ZHMzMTAzX3R1bmVyX3Jl
-YWRyZWcoc3RydWN0IG04OGRzMzEwM19zdGF0ZSAqc3RhdGUsIHU4IHJlZykNCnsNCi4uLi4uLi4u
-DQptODhkczMxMDNfd3JpdGVyZWcoc3RhdGUsIDB4MDMsIDB4MTEpOw0KLi4uLi4uLi4NCn0NCkRW
-QlNreSBjb2RlIGNhbiByZWFkIGJhY2sgdGhlIHZhbHVlIGNvcnJlY3RseS4gDQpBcyBrbm93biB0
-aGF0IG04OGRzMzEwMy5jIGFsc28gc3VwcG9ydHMgdGhlIG9sZGVyIHR1bmVyKG04OHRzMjAyMCkg
-YW5kIGRlbW9kdWxhdG9yKG04OGRzMzAwMC8zMDAyKS4NCg0KMjAxMi0wOC0zMSAxNjoxODozOCBu
-aWJibGUubWF4QGdtYWlsLmNvbQ0KPk9uIDA4LzMwLzIwMTIgMDY6MjEgUE0sIFLDqW1pIENhcmRv
-bmEgd3JvdGU6DQo+PiBIaSBBbnR0aSwNCj4+DQo+PiBPbiAwOC8zMC8yMDEyIDAzOjM5IFBNLCBB
-bnR0aSBQYWxvc2Fhcmkgd3JvdGU6DQo+Pj4gQXMgSSB1bmRlcnN0YW5kIGZpcm13YXJlIGRvd25s
-b2FkaW5nIGZhaWx1cmUgaXMgY29taW5nIGZyb20gdGhlIGZhY3QNCj4+PiB0aGF0IHJlZ2lzdGVy
-IHJlYWQgZmFpbHMgPT4gZmFpbHMgdG8gZGV0ZWN0IGlmIGZpcm13YXJlIGlzIGFscmVhZHkNCj4+
-PiBydW5uaW5nIG9yIG5vdC4NCj4+DQo+PiBXZWxsIHdlIGFjdHVhbGx5IHNlZSAyIGNhc2VzOg0K
-Pj4NCj4+ICAgLSB0aGUgcmVnaXN0ZXIgcmVhZCBmYWlsdXJlICh3aGVuIGRzMzAwMF9yZWFkcmVn
-KCkgcmV0dXJucyBuZWdhdGl2ZQ0KPj4gdmFsdWVzKS4gVGhpcyBjYXNlIGlzIGZhaXJseSByYXJl
-LCBhbmQgbm8gY2hhbmdlcyB3ZSd2ZSBkb25lIHRvIHRoZQ0KPj4gZHJpdmVyIGFsbG93ZWQgdXMg
-dG8gbWFrZSB0aG9zZSBjYXJkcyB3b3JrLg0KPg0KPmhtbSwgbG9va3MgbGlrZSBkczMwMDBfcmVh
-ZHJlZygpIGxvZ2ljIGlzIHN0aWxsIGEgbGl0dGxlIGJpdCBicm9rZW4uIEl0IA0KPmNoZWNrcyBj
-b3VudCBvZiBzZW50IG1lc3NhZ2VzIGFuZCBjb21wYXJlcyBpdCB0byAyLiBCdXQgaWYgSTJDLWFk
-YXB0ZXIgDQo+c2VuZHMgb25seSAxIG1lc3NhZ2Ugb3IgMyAod2hpY2ggc2hvdWxkIG5vdCBiZSBw
-b3NzaWJsZSkgZnVuY3Rpb24gcmV0dXJuIA0KPnRoYXQgY291bnQgaW5zdGVhZCBvZiAtRVJFTU9U
-RUlPLiBPSywgcXVpdGUgcmFyZSBzaXR1YXRpb24sIGJ1dCBvbmUgDQo+cG9pbnQgbW9yZSB0byBm
-YWlsIGlmIEkyQy1hZGFwdGVyIGhhcyBhbHNvIGJ1Zy4NCj4NCj5CdXQgdGhhdCBoYXBwZW5zIGZv
-ciByZXR1cm4gdmFsdWUgMCB0b28uIENvdWxkIGl0IGJlIHRoZSBpc3N1ZT8gDQo+STJDLWFkYXB0
-ZXIgcmV0dXJucyAwIGZvciBzb21lIHJlYXNvbj8gQnVnIGluIEkyQy1hZGFwdGVyIHdpdGggYnVn
-IGluIA0KPmRzMzAwMF9yZWFkcmVnKCkgaW1wbGVtZW50YXRpb24/DQo+DQo+PiAgIC0gdGhlIHJl
-Z2lzdGVyIHJlYWQgcmV0dXJuaW5nIDAuIExvb2tpbmcgYXQgdGhlIGN1cnJlbnQgY29kZSwgaXQg
-bG9va3MNCj4+IGxpa2UgdGhlIDB4YjIgcmVnaXN0ZXIgaXMgc3VwcG9zZWQgdG8gbWVhbiB0aGF0
-IGEgZmlybXdhcmUgaXMgbG9hZGVkLg0KPj4gVGhpcyBjYXNlIGlzIGZhaXJseSBjb21tb246IHdl
-J3ZlIGhhZCBtYW55IGNhcmRzIHJhbmRvbWx5IHNheWluZyB0aGF0IGENCj4+IGZpcm13YXJlIHdh
-cyBsb2FkZWQgd2hlbiBub25lIGhhZCBiZWVuLiBPZnRlbiwgYSBzaW1wbGUgcmVib290IHdpbGwg
-ZG8NCj4+IHRoZSB0cmljay4gQnV0IHNvbWV0aW1lcywgZm9yY2luZyB0aGUgZmlybXdhcmUgdXBs
-b2FkIChpZSwgYnlwYXNzaW5nIHRoZQ0KPj4gMHhiMiByZWdpc3RlciBjaGVjaykgYWxsb3dzIHRo
-ZSBzdHViYm9ybiBjYXJkcyB0byBmdW5jdGlvbiBwcm9wZXJseS4NCj4+DQo+Pj4gT3JpZ2luYWwg
-YmVoYXZpb3IgdG8gZXhwZWN0IGZpcm13YXJlIGlzIGxvYWRlZCBhbmQgcnVubmluZyB3aGVuIHJl
-Z2lzdGVyDQo+Pj4gcmVhZCBmYWlscyBpcyB2ZXJ5IHN0dXBpZCBhbmQgeW91ciBmaXggc2VlbXMg
-bXVjaCBiZXR0ZXIuDQo+Pg0KPj4gV2VsbCwgdGhpcyBwYXRjaCBzaG91bGQgbm90IHJlYWxseSBj
-aGFuZ2UgdGhlIGJlaGF2aW9yLiBJdCBqdXN0DQo+PiBwcm9wYWdhdGVzIHJlZ2lzdGVyIHJlYWQg
-ZXJyb3JzIHRvIGRzMzAwMF9pbml0ZmUoKS4gSXQnbGwganVzdCBmYWlsIGVhcmxpZXIuDQo+Pg0K
-Pj4+IFNvIGZpcnN0IHByaW9yaXR5IHNob3VsZCBiZSB0cnkgZml4IHRoYXQgaXNzdWUgd2l0aCBy
-ZWdpc3RlciByZWFkLiBJcyBpdA0KPj4+IGNvbWluZyBmcm9tIHRoZSBVU0Igc3RhY2sgKGVnLiBl
-cnJvciAxMTAgdGltZW91dCkgb3Igc29tZSBvdGhlciBlcnJvcg0KPj4+IGNvbWluZyBmcm9tIHRo
-ZSBmYWN0IGNoaXAgYW5zd2VycyB3cm9uZz8NCj4+DQo+PiBUaGUgY2FyZHMgd2UncmUgdXNpbmcg
-YXJlIFBDSWUgKGFuZCBub3QgdGhlIG9uZXMgd2l0aCBhbiBlbWJlZGRlZCBVU0INCj4+IGNvbnRy
-b2xsZXIpLg0KPg0KPlRoZSBpZGVhIG9mIG15IHF1ZXN0aW9uIHdhcyB0byBhc2sgd2hlcmUgdGhv
-c2UgZXJyb3JzIGFyZSBjb21pbmcgZnJvbSAoSSANCj5zcG9rZSBtaXN0YWtlbmx5IGFib3V0IFVT
-QiBiZWNhdXNlIEkgdXN1YWxseSBwbGF5IHdpdGggVVNCIGRldmljZXMpLg0KPg0KPllvdSBiYXNp
-Y2FsbHkgc2VlIHR3byBkaWZmZXJlbnQga2luZCBvZiBlcnJvcnMsIDEpIGJ1cyBjb21tdW5pY2F0
-aW9uIA0KPmZhaWxzLCBlZy4gdXNiIHRpbWVvdXRzLiAyKSBjaGlwcyByZXR1cm5zIGVycm9yIHN0
-YXR1cy4gTGF0ZXIgY2FzZXMgdGhlIA0KPmVycm9yIGNvdWxkIGNvbWUgZnJvbSB0aGUgdGhpcyBj
-b3VsZCBjb21lIGZyb20gdGhlIGZpcm13YXJlIGlmIGNoaXAgdXNlcyANCj5maXJtd2FyZSBvciBm
-cm9tIHRoZSBzaWxpY29uLiBJdCBjb3VsZCBiZSBmcm9tIHRoZSBJMkMtYWRhcHRlciBmaXJtd2Fy
-ZS4NCj4NCj4+PiBEbyB5b3Ugc2VlIG90aGVyIHJlZ2lzdGVyIEkvTyBmYWlsaW5nIHRvbz8NCj4+
-DQo+PiBJJ2xsIHNlZSBpZiBJIGNhbiBnZXQgeW91IGFuIGFuc3dlciBmb3IgdGhhdCwgc2luY2Ug
-dGhlIGNhcmRzIGFyZQ0KPj4gc2hpcHBlZCB3aXRoIHRoZSBhcHBsaWFuY2Ugd2Ugc2VuZCB0byBv
-dXIgY3VzdG9tZXJzLiBSZW1vdGUgZGVidWdnaW5nIGlzDQo+PiBzb21ld2hhdCB0cmlja3kuDQo+
-Pg0KPj4+IERvZXMgYWRkaW5nIGZldyB1c2VjIHNsZWVwIGhlbHA/DQo+Pg0KPj4gSSdtIG5vdCBx
-dWl0ZSBzdXJlIHdoZXJlIHRvIGFkZCB0aG9zZSBzbGVlcHMuIEluIHRoZSByZWdpc3Rlcg0KPj4g
-cmVhZGluZy93cml0aW5nIGZ1bmN0aW9ucz8gMTB1cz8gMTAwdXM/DQo+DQo+QWRkIHNsZWVwIGFm
-dGVyIHRoZSBlYWNoIG9wZXJhdGlvbi4gR29vZCBwbGFjZSB0byBhZGQgc2xlZXAgaXMgDQo+STJD
-LWFkYXB0ZXIuIEkyQy1hZGFwdGVycyB1c3VhbGx5IHN1cHBvcnRzIHR3byBkaWZmZXJlbnQgb3Bl
-cmF0aW9ucywgDQo+d3JpdGUgYW5kIHJlYWQgKyB3cml0ZSB1c2luZyByZXBlYXRlZCBTVEFSVCBj
-b25kaXRpb24uIEZvcm1lciB1cyB1c2VkIA0KPnR5cGljYWxseSBmb3IgcmVnaXN0ZXIgd3JpdGUg
-YW5kIGxhdGVyIGZvciByZWdpc3RlciByZWFkLg0KPg0KPjUwMHVzIGlzIGdvb2QgY2hvaWNlLiBJ
-ZiBpdCBpcyBvbmx5IHRoYXQgb25lIHJlZ2lzdGVyIHJlYWQgd2hpY2ggY2F1c2VzIA0KPnByb2Js
-ZW1zLCBob3cgYWJvdXQgcmVwZWF0aW5nIGl0Pw0KPg0KPj4NCj4+IE1hbnkgdGhhbmtzDQo+Pg0K
-Pj4gUsOpbWkNCj4+DQo+DQo+DQo+LS0gDQo+aHR0cDovL3BhbG9zYWFyaS5maS8NCj4tLQ0KPlRv
-IHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBs
-aW51eC1tZWRpYSIgaW4NCj50aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIu
-a2VybmVsLm9yZw0KPk1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5v
-cmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
+On 08/16/2012 07:50 PM, Mauro Carvalho Chehab wrote:
+> Em 16-08-2012 11:29, Antti Palosaari escreveu:
+>> On 08/16/2012 05:07 PM, Hans Verkuil wrote:
+>>> On Thu August 16 2012 15:45:47 Antti Palosaari wrote:
+>>>> On 08/16/2012 03:18 PM, Antti Palosaari wrote:
+>>>>> On 08/16/2012 01:33 PM, Hans Verkuil wrote:
+>>>>>> Building the kernel with the Sensoray 2250/2251 staging go7007 driver
+>>>>>> enabled
+>>>>>> fails with this link error:
+>>>>>>
+>>>>>> ERROR: "usb_cypress_load_firmware"
+>>>>>> [drivers/staging/media/go7007/s2250-loader.ko] undefined!
+>>>>>>
+>>>>>> As far as I can tell this is related to the dvb-usb-v2 changes.
+>>>>>>
+>>>>>> Can someone take a look at this?
+>>>>>>
+>>>>>> Thanks!
+>>>>>>
+>>>>>>       Hans
+>>>>>
+>>>>> Yes it is dvb usb v2 related. I wasn't even aware that someone took that
+>>>>> module use in few days after it was added for the dvb-usb-v2.
+>>>>>
+>>>>> Maybe it is worth to make it even more common and move out of dvb-usb-v2...
+>>>>>
+>>>>> regards
+>>>>> Antti
+>>>>
+>>>> And after looking it twice I cannot see the reason. I split that Cypress
+>>>> firmware download to own module called dvb_usb_cypress_firmware which
+>>>> offer routine usbv2_cypress_load_firmware(). Old DVB USB is left
+>>>> untouched. I can confirm it fails to compile for s2250, but there is
+>>>> still old dvb_usb_cxusb that is compiling without a error.
+>>>>
+>>>> Makefile paths seems to be correct also, no idea whats wrong....
+>>>
+>>> drivers/media/usb/Makefile uses := instead of += for the dvb-usb(-v2) directories,
+>>> and that prevents dvb-usb from being build. I think that's the cause of the link
+>>> error.
+>>
+>> For that I cannot say as I don't understand situation enough.
+>>
+>>> In addition I noticed that in usb/dvb-usb there is a dvb_usb_dvb.c and a
+>>> dvb-usb-dvb.c file: there's a mixup with _ and -.
+>>
+>> These files seems to be my fault. Original patch series removes those,
+>> but I was forced to rebase whole set and in that rebased set those are left unremoved.
+>> Likely due to some rebase conflict. I will send new patch to remove those.
+>
+> If you remove the _, they'll conflict with dvb-usb at media-build.git.
+>
+> The better is to add a _v2 (or -v2) on all dvb-usb-v2 files
+> (or to convert the remaining dvb-usb drivers to dvb-usb-v2).
 
+hmm, now I am quite out what you mean.
+
+This is from my first PULL-request:
+http://git.linuxtv.org/anttip/media_tree.git/commit/c60c6d44111be2b2fd9ef9b716ea50bd87493893
+
+And this is same patch after large rebase:
+http://git.linuxtv.org/anttip/media_tree.git/commit/ac97c6f722aafb5b562ef04062b543147399dff8
+
+Why removing those wrong files will cause conflict in media_build.git ?
+
+
+
+OK, those are just wasting space nothing more. But there was that 
+original problem too which breaks s2250-loader compilation.
+
+regards
+Antti
+
+>
+> Regards,
+> Mauro
+>
+>>
+>>> Mauro, did that happen during the reorganization?
+>>>
+>>> Regards,
+>>>
+>>>      Hans
+>>>
+>>
+>> regards
+>> Antti
+>>
+>
+
+
+-- 
+http://palosaari.fi/
