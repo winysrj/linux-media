@@ -1,65 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48984 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752962Ab2HUX5I (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Aug 2012 19:57:08 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>,
-	Thomas Mair <thomas.mair86@googlemail.com>
-Subject: [PATCH 5/5] rtl2832: implement .read_ber()
-Date: Wed, 22 Aug 2012 02:56:22 +0300
-Message-Id: <1345593382-11367-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1345593382-11367-1-git-send-email-crope@iki.fi>
-References: <1345593382-11367-1-git-send-email-crope@iki.fi>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:41842 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755426Ab2HPMw5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Aug 2012 08:52:57 -0400
+Received: from eusync4.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M8U00FFDMGYJE80@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Aug 2012 13:53:22 +0100 (BST)
+Received: from [106.116.147.32] by eusync4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0M8U00EGGMG60720@eusync4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Aug 2012 13:52:55 +0100 (BST)
+Message-id: <502CED26.9010705@samsung.com>
+Date: Thu, 16 Aug 2012 14:52:54 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	andrzej.p@samsung.com, patches@linaro.org
+Subject: Re: [PATCH Trivial] [media] s5p-jpeg: Add missing braces around sizeof
+References: <1345117978-3374-1-git-send-email-sachin.kamat@linaro.org>
+In-reply-to: <1345117978-3374-1-git-send-email-sachin.kamat@linaro.org>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implementation taken from rtl2830.
+On 08/16/2012 01:52 PM, Sachin Kamat wrote:
+> Silences the following warning:
+> WARNING: sizeof *ctx should be sizeof(*ctx)
+> 
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 
-Cc: Thomas Mair <thomas.mair86@googlemail.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/rtl2832.c | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+Thanks Sachin, I've added this to my tree for v3.7.
 
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index dad8ab5..4d40b4f 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -824,6 +824,24 @@ err:
- 	return ret;
- }
- 
-+static int rtl2832_read_ber(struct dvb_frontend *fe, u32 *ber)
-+{
-+	struct rtl2832_priv *priv = fe->demodulator_priv;
-+	int ret;
-+	u8 buf[2];
-+
-+	ret = rtl2832_rd_regs(priv, 0x4e, 3, buf, 2);
-+	if (ret)
-+		goto err;
-+
-+	*ber = buf[0] << 8 | buf[1];
-+
-+	return 0;
-+err:
-+	dbg("%s: failed=%d", __func__, ret);
-+	return ret;
-+}
-+
- static struct dvb_frontend_ops rtl2832_ops;
- 
- static void rtl2832_release(struct dvb_frontend *fe)
-@@ -909,6 +927,7 @@ static struct dvb_frontend_ops rtl2832_ops = {
- 
- 	.read_status = rtl2832_read_status,
- 	.read_snr = rtl2832_read_snr,
-+	.read_ber = rtl2832_read_ber,
- 
- 	.i2c_gate_ctrl = rtl2832_i2c_gate_ctrl,
- };
--- 
-1.7.11.4
+> ---
+>  drivers/media/platform/s5p-jpeg/jpeg-core.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> index 72c3e52..ae916cd 100644
+> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> @@ -288,7 +288,7 @@ static int s5p_jpeg_open(struct file *file)
+>  	struct s5p_jpeg_fmt *out_fmt;
+>  	int ret = 0;
+>  
+> -	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
+> +	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+>  	if (!ctx)
+>  		return -ENOMEM;
 
+Regards,
+Sylwester
