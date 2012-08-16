@@ -1,61 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:47411 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752719Ab2HPOQm (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:24465 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752756Ab2HPJqW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Aug 2012 10:16:42 -0400
-Received: from epcpsbgm2.samsung.com (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
+	Thu, 16 Aug 2012 05:46:22 -0400
+Received: from epcpsbgm2.samsung.com (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
  (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M8U00BMHQBMXWG0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 16 Aug 2012 23:16:40 +0900 (KST)
+ 17 2011)) with ESMTP id <0M8U00ABJDT84OA0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Aug 2012 18:46:21 +0900 (KST)
 Received: from amdc248.digital.local ([106.116.147.32])
  by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
  (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M8U00M9IQBDBOA0@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 16 Aug 2012 23:16:40 +0900 (KST)
+ with ESMTPA id <0M8U00AV0DT26T80@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Aug 2012 18:46:21 +0900 (KST)
 From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com,
+Cc: riverful.kim@samsung.com, sw0312.kim@samsung.com,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	HeungJun Kim <riverful.kim@samsung.com>
-Subject: [PATCH] m5mols: Add missing free_irq() on error path
-Date: Thu, 16 Aug 2012 16:16:09 +0200
-Message-id: <1345126570-17919-1-git-send-email-s.nawrocki@samsung.com>
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH 1/4] s5p-fimc: Enable FIMC-LITE driver only for SOC_EXYNOS4x12
+Date: Thu, 16 Aug 2012 11:46:09 +0200
+Message-id: <1345110372-11874-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make sure the interrupt is freed when the driver probing fails.
+Allow to compile-in the FIMC-LITE driver only on Exynos4212,
+Exynos4412 and Exynos5250 SoC where the device is available.
 
-Reported-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: HeungJun Kim <riverful.kim@samsung.com>
 Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/video/m5mols/m5mols_core.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/media/platform/s5p-fimc/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/video/m5mols/m5mols_core.c b/drivers/media/video/m5mols/m5mols_core.c
-index ac7d28b..8bf6599 100644
---- a/drivers/media/video/m5mols/m5mols_core.c
-+++ b/drivers/media/video/m5mols/m5mols_core.c
-@@ -931,7 +931,7 @@ static int __devinit m5mols_probe(struct i2c_client *client,
-
- 	ret = m5mols_sensor_power(info, true);
- 	if (ret)
--		goto out_me;
-+		goto out_irq;
-
- 	ret = m5mols_fw_start(sd);
- 	if (!ret)
-@@ -940,6 +940,8 @@ static int __devinit m5mols_probe(struct i2c_client *client,
- 	m5mols_sensor_power(info, false);
- 	if (!ret)
- 		return 0;
-+out_irq:
-+	free_irq(client->irq, sd);
- out_me:
- 	media_entity_cleanup(&sd->entity);
- out_reg:
---
-1.7.11.3
+diff --git a/drivers/media/platform/s5p-fimc/Kconfig b/drivers/media/platform/s5p-fimc/Kconfig
+index a564f7e..8f090a8 100644
+--- a/drivers/media/platform/s5p-fimc/Kconfig
++++ b/drivers/media/platform/s5p-fimc/Kconfig
+@@ -31,7 +31,7 @@ config VIDEO_S5P_MIPI_CSIS
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called s5p-csis.
+ 
+-if ARCH_EXYNOS
++if SOC_EXYNOS4212 || SOC_EXYNOS4412 || SOC_EXYNOS5250
+ 
+ config VIDEO_EXYNOS_FIMC_LITE
+ 	tristate "EXYNOS FIMC-LITE camera interface driver"
+-- 
+1.7.10
 
