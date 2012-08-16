@@ -1,59 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:32146 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030553Ab2HIOyr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2012 10:54:47 -0400
-Message-id: <5023CF31.4010209@samsung.com>
-Date: Thu, 09 Aug 2012 16:54:41 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-MIME-version: 1.0
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
-	sumit.semwal@linaro.org, inki.dae@samsung.com,
-	daniel.vetter@ffwll.ch, rob@ti.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
-	jy0922.shim@samsung.com, sw0312.kim@samsung.com,
-	dan.j.williams@intel.com, linux-doc@vger.kernel.org
-Subject: Re: [PATCH v2 1/2] dma-buf: add reference counting for exporter module
-References: <1344504982-30415-1-git-send-email-t.stanislaws@samsung.com>
- <1344504982-30415-2-git-send-email-t.stanislaws@samsung.com>
- <20120809142346.GA17402@kroah.com>
-In-reply-to: <20120809142346.GA17402@kroah.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:7996 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756175Ab2HPJ0j (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Aug 2012 05:26:39 -0400
+Message-ID: <502CBCC4.6010603@redhat.com>
+Date: Thu, 16 Aug 2012 06:26:28 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Alexey Khoroshilov <khoroshilov@ispras.ru>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	ldv-project@ispras.ru
+Subject: Re: [PATCH] [media] ddbridge: fix error handling in module_init_ddbridge()
+References: <1345063345-31131-1-git-send-email-khoroshilov@ispras.ru>
+In-Reply-To: <1345063345-31131-1-git-send-email-khoroshilov@ispras.ru>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Greg,
-
-On 08/09/2012 04:23 PM, Greg KH wrote:
-> On Thu, Aug 09, 2012 at 11:36:21AM +0200, Tomasz Stanislawski wrote:
->> This patch adds reference counting on a module that exported dma-buf and
->> implements its operations. This prevents the module from being unloaded while
->> DMABUF file is in use.
+Em 15-08-2012 17:42, Alexey Khoroshilov escreveu:
+> If pci_register_driver() failed, resources allocated in
+> ddb_class_create() are leaked. The patch fixes it.
 > 
-> Why force all of the modules to be changed "by hand", and not just do
-> this automatically by changing the register function to include the
-> THIS_MODULE macro in it?  Much like the pci_register_driver() function
-> is implemented in include/linux/pci.h?
-
-Thank you for the hint.
-
-The owner field belongs to dma_buf_ops structure that is often a 'const'
-entity. Therefore owner field would have to be moved to 'struct dma_buf'
-to avoid 'deconstification' issues.
-
-Regards,
-Tomasz Stanislawski
-
+> Found by Linux Driver Verification project (linuxtesting.org).
 > 
-> That makes it impossible for driver authors to get it wrong, which is
-> always a good sign of a correct api.
+> Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+> ---
+>  drivers/media/dvb/ddbridge/ddbridge-core.c |    6 +++++-
+>  1 file changed, 5 insertions(+), 1 deletion(-)
 > 
-> thanks,
-> 
-> greg k-h
+> diff --git a/drivers/media/dvb/ddbridge/ddbridge-core.c b/drivers/media/dvb/ddbridge/ddbridge-core.c
+> index ebf3f05..36aa4e4 100644
+> --- a/drivers/media/dvb/ddbridge/ddbridge-core.c
+> +++ b/drivers/media/dvb/ddbridge/ddbridge-core.c
+> @@ -1705,7 +1705,11 @@ static __init int module_init_ddbridge(void)
+>  	       "Copyright (C) 2010-11 Digital Devices GmbH\n");
+>  	if (ddb_class_create())
+>  		return -1;
+
+This is not right. It should be returning a proper error code.
+
+Could you please patch ddb_class_create() in order to make it to
+return the retuned value from IS_ERR() as the error code, and return
+it back to the init code?
+
+Ok, I noticed that other parts of the driver are also returning wrong
+error codes, but let's fix at least module_init_ddbridge() while you're
+looking into this.
+
+> -	return pci_register_driver(&ddb_pci_driver);
+> +	if (pci_register_driver(&ddb_pci_driver) < 0) {
+> +		ddb_class_destroy();
+> +		return -1;
+
+The correct here would be to store the error on a temp register
+and return it, instead of returning -1.
+
+> +	}
+> +	return 0;
+>  }
+>  
+>  static __exit void module_exit_ddbridge(void)
 > 
 
+Thank you!
+Mauro
