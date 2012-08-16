@@ -1,105 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:60571 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751530Ab2HLL4J (ORCPT
+Received: from canardo.mork.no ([148.122.252.1]:53819 "EHLO canardo.mork.no"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751903Ab2HPNkE convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Aug 2012 07:56:09 -0400
-Received: by pbbrr13 with SMTP id rr13so5568863pbb.19
-        for <linux-media@vger.kernel.org>; Sun, 12 Aug 2012 04:56:08 -0700 (PDT)
+	Thu, 16 Aug 2012 09:40:04 -0400
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Manu Abraham <abraham.manu@gmail.com>,
+	"Igor M. Liplianin" <liplianin@me.by>, linux-media@vger.kernel.org,
+	linuxtv-commits@linuxtv.org
+Subject: Re: [git:v4l-dvb/for_v3.7] [media] mantis: Terratec Cinergy C PCI HD (CI)
+References: <E1SzvhW-0005hd-1S@www.linuxtv.org>
+	<CAHFNz9Ju7dB-iz0mcGuNMLDwibFXZqGe73jpBk7RPqG_w+MmXg@mail.gmail.com>
+	<5029548E.90901@redhat.com>
+	<CAHFNz9+qWXYkvJXeZfSu2DgAQ3BrsX591TS5x+XeEOVji3Hx2g@mail.gmail.com>
+	<502A5139.8080402@redhat.com> <502A533A.7030606@redhat.com>
+Date: Thu, 16 Aug 2012 15:39:36 +0200
+In-Reply-To: <502A533A.7030606@redhat.com> (Mauro Carvalho Chehab's message of
+	"Tue, 14 Aug 2012 10:31:38 -0300")
+Message-ID: <87zk5vneg7.fsf@nemi.mork.no>
 MIME-Version: 1.0
-From: Ilyes Gouta <ilyes.gouta@gmail.com>
-Date: Sun, 12 Aug 2012 12:55:48 +0100
-Message-ID: <CAL4m05X11YPqzA+4+V_Uo4BUJ2RdyX2L95FEKcocT-Xdbj0UyQ@mail.gmail.com>
-Subject: Patchwork notifications for '[RESEND,media] v4l2: define
- V4L2_PIX_FMT_NV16M and V4L2_PIX_FMT_NV24M pixel formats'
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Mauro Carvalho Chehab <mchehab@redhat.com> writes:
 
-On Sun, Aug 12, 2012 at 2:58 AM, Patchwork <patchwork@linuxtv.org> wrote:
-> Hello,
+> Hmm... there's something wrong: this would be the revert patch, as produced
+> by git revert:
 >
-> The following patches (submitted by you) have been updated in patchwork:
+> diff --git a/drivers/media/pci/mantis/mantis_cards.c b/drivers/media/pci/mantis/mantis_cards.c
+> index 0207d1f..095cf3a 100644
+> --- a/drivers/media/pci/mantis/mantis_cards.c
+> +++ b/drivers/media/pci/mantis/mantis_cards.c
+> @@ -275,7 +275,7 @@ static struct pci_device_id mantis_pci_table[] = {
+>  	MAKE_ENTRY(TWINHAN_TECHNOLOGIES, MANTIS_VP_2033_DVB_C, &vp2033_config),
+>  	MAKE_ENTRY(TWINHAN_TECHNOLOGIES, MANTIS_VP_2040_DVB_C, &vp2040_config),
+>  	MAKE_ENTRY(TECHNISAT, CABLESTAR_HD2, &vp2040_config),
+> -	MAKE_ENTRY(TERRATEC, CINERGY_C, &vp2040_config),
+> +	MAKE_ENTRY(TERRATEC, CINERGY_C, &vp2033_config),
+>  	MAKE_ENTRY(TWINHAN_TECHNOLOGIES, MANTIS_VP_3030_DVB_T, &vp3030_config),
+>  	{ }
+>  };
+> diff --git a/drivers/media/pci/mantis/mantis_core.c b/drivers/media/pci/mantis/mantis_core.c
+> index 684d906..22524a8 100644
+> --- a/drivers/media/pci/mantis/mantis_core.c
+> +++ b/drivers/media/pci/mantis/mantis_core.c
+> @@ -121,7 +121,7 @@ static void mantis_load_config(struct mantis_pci *mantis)
+>  		mantis->hwconfig = &vp2033_mantis_config;
+>  		break;
+>  	case MANTIS_VP_2040_DVB_C:	/* VP-2040 */
+> -	case CINERGY_C:	/* VP-2040 clone */
+> +	case TERRATEC_CINERGY_C_PCI:	/* VP-2040 clone */
+>  	case TECHNISAT_CABLESTAR_HD2:
+>  		mantis->hwconfig = &vp2040_mantis_config;
+>  		break;
 >
->  * [RESEND,media] v4l2: define V4L2_PIX_FMT_NV16M and V4L2_PIX_FMT_NV24M pixel formats
->      - http://patchwork.linuxtv.org/patch/13555/
->     was: New
->     now: Superseded
+> There's something wrong there: the comments at "mantis_core", before this
+> patch, is saying that TERRATEC_CINERGY_C_PCI is a VP-2040 clone.
 >
->  * [RESEND,media] v4l2: define V4L2_PIX_FMT_NV16M and V4L2_PIX_FMT_NV24M pixel formats
->      - http://patchwork.linuxtv.org/patch/13556/
->     was: New
->     now: Changes Requested
+> That doesn't look right: this card is either a VP-2033 clone (as stated on
+> mantis_cards), or a VP-2040 (as stated on mantis_core).
 
-Patchwork has moved my V4L2_PIX_FMT_NV16M and V4L2_PIX_FMT_NV24M
-definitions  patch (http://patchwork.linuxtv.org/patch/13556) from New
-to Changes Requested, but I couldn't look-up what changes need to be
-made.
 
-Where can I find such feedback?
+Just delete the whole mantis_core.c file.  It has never been built in
+the in-kernel driver.  See, no reference to it at all:
 
-Just for the record, in a previous conversation with Mauro, he
-suggested that new pixel formats don't get defined in the kernel
-unless a v4l2 device driver is actually using them (so suggesting to
-also upstream the driver, which isn't immediately possible).
 
--Ilyes
+bjorn@nemi:/usr/local/src/git/linux$ cat drivers/media/dvb/mantis/Makefile 
+mantis_core-objs :=     mantis_ioc.o    \
+                        mantis_uart.o   \
+                        mantis_dma.o    \
+                        mantis_pci.o    \
+                        mantis_i2c.o    \
+                        mantis_dvb.o    \
+                        mantis_evm.o    \
+                        mantis_hif.o    \
+                        mantis_ca.o     \
+                        mantis_pcmcia.o \
+                        mantis_input.o
 
-> This email is a notification only - you do not need to respond.
->
-> -
->
-> Patches submitted to linux-media@vger.kernel.org have the following
-> possible states:
->
-> New: Patches not yet reviewed (typically new patches);
->
-> Under review: When it is expected that someone is reviewing it (typically,
->               the driver's author or maintainer). Unfortunately, patchwork
->               doesn't have a field to indicate who is the driver maintainer.
->               If in doubt about who is the driver maintainer please check the
->               MAINTAINERS file or ask at the ML;
->
-> Superseded: when the same patch is sent twice, or a new version of the
->             same patch is sent, and the maintainer identified it, the first
->             version is marked as such;
->
-> Obsoleted: patch doesn't apply anymore, because the modified code doesn't
->            exist anymore.
->
-> Changes requested: when someone requests changes at the patch;
->
-> Rejected: When the patch is wrong or doesn't apply. Most of the
->           time, 'rejected' and 'changes requested' means the same thing
->           for the developer: he'll need to re-work on the patch.
->
-> RFC: patches marked as such and other patches that are also RFC, but the
->      patch author was not nice enough to mark them as such. That includes:
->         - patches sent by a driver's maintainer who send patches
->           via git pull requests;
->         - patches with a very active community (typically from developers
->           working with embedded devices), where lots of versions are
->           needed for the driver maintainer and/or the community to be
->           happy with.
->
-> Not Applicable: for patches that aren't meant to be applicable via
->                 the media-tree.git.
->
-> Accepted: when some driver maintainer says that the patch will be applied
->           via his tree, or when everything is ok and it got applied
->           either at the main tree or via some other tree (fixes tree;
->           some other maintainer's tree - when it belongs to other subsystems,
->           etc);
->
-> If you think any status change is a mistake, please send an email to the ML.
->
-> -
->
-> This is an automated mail sent by the patchwork system at
-> patchwork.linuxtv.org. To stop receiving these notifications, edit
-> your mail settings at:
->   http://patchwork.linuxtv.org/mail/
+mantis-objs     :=      mantis_cards.o  \
+                        mantis_vp1033.o \
+                        mantis_vp1034.o \
+                        mantis_vp1041.o \
+                        mantis_vp2033.o \
+                        mantis_vp2040.o \
+                        mantis_vp3030.o
+
+hopper-objs     :=      hopper_cards.o  \
+                        hopper_vp3028.o
+
+obj-$(CONFIG_MANTIS_CORE)       += mantis_core.o
+obj-$(CONFIG_DVB_MANTIS)        += mantis.o
+obj-$(CONFIG_DVB_HOPPER)        += hopper.o
+
+ccflags-y += -Idrivers/media/dvb/dvb-core/ -Idrivers/media/dvb/frontends/
+
+
+
+
+Bjørn
