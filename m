@@ -1,53 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:50430 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753267Ab2HTWKS (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:13777 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751106Ab2HPKkR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Aug 2012 18:10:18 -0400
-Received: by ialo24 with SMTP id o24so2835342ial.19
-        for <linux-media@vger.kernel.org>; Mon, 20 Aug 2012 15:10:17 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <5032B407.8030407@redhat.com>
-References: <20120816221514.GA26546@pequod.mess.org>
-	<502D7E62.9040204@redhat.com>
-	<20120820213659.GC14636@hardeman.nu>
-	<5032B407.8030407@redhat.com>
-Date: Mon, 20 Aug 2012 18:10:16 -0400
-Message-ID: <CAGoCfizxSnUgC2Ka5uz3_gXaFf65057kt+EBNz7WassEvVsDHg@mail.gmail.com>
-Subject: Re: [media] rc-core: move timeout and checks to lirc
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	Sean Young <sean@mess.org>, Jarod Wilson <jwilson@redhat.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 16 Aug 2012 06:40:17 -0400
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: 'Hideki EIRAKU' <hdk@igel.co.jp>
+Cc: laurent.pinchart@ideasonboard.com, linux@arm.linux.org.uk,
+	pawel@osciak.com, kyungmin.park@samsung.com, mchehab@infradead.org,
+	FlorianSchandinat@gmx.de, perex@perex.cz, tiwai@suse.de,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	alsa-devel@alsa-project.org, matsu@igel.co.jp, dhobsong@igel.co.jp
+References: <1344246924-32620-1-git-send-email-hdk@igel.co.jp>
+ <1344246924-32620-4-git-send-email-hdk@igel.co.jp>
+ <012701cd74ac$6a617060$3f245120$%szyprowski@samsung.com>
+ <20120816.191358.127675610.hdk@igel.co.jp>
+In-reply-to: <20120816.191358.127675610.hdk@igel.co.jp>
+Subject: RE: [PATCH v3 3/4] media: videobuf2-dma-contig: use dma_mmap_coherent
+ if available
+Date: Thu, 16 Aug 2012 12:39:57 +0200
+Message-id: <015b01cd7b9b$8010e2b0$8032a810$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 20, 2012 at 6:02 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> So, IMO, it makes sense to have a "high end" API that accepts
-> writing keystrokes like above, working with both "raw drivers"
-> using some kernel IR protocol encoders, and with devices that can
-> accept "processed" keystrokes, like HDMI CEC.
+Hello,
 
-It might also make sense to have a third mode for devices that support
-high level protocols such as RC5/NEC but you want to leverage the very
-large existing LIRC database of remote controls.  The device would
-advertise all the modes it supports (RC5/NEC/RC6/whatever), and from
-there it can accept the actual RC codes instead of a raw waveform.
+On Thursday, August 16, 2012 12:14 PM Hideki EIRAKU wrote:
 
-I recognize that this is case that falls in between the two models
-proposed, but there are devices that fall into this category.  The
-alternative for those devices would be for LIRC to convert the RC5
-code into a raw waveform, send the raw waveform to the kernel, and
-then the driver convert it back into a code, which would be quite
-messy since it would have to figure out what RC format it was
-originally in.  It would be much better if LIRC could just send the
-RC5 code directly into the kernel.
+> From: Marek Szyprowski <m.szyprowski@samsung.com>
+> Subject: RE: [PATCH v3 3/4] media: videobuf2-dma-contig: use dma_mmap_coherent if available
+> Date: Tue, 07 Aug 2012 16:53:25 +0200
+> 
+> > I'm sorry for bringing this issue now, once you have already created v3 of your
+> > patches, but similar patch has been already proposed some time ago. It is already
+> > processed together with general videobuf2-dma-contig redesign and dma-buf extensions
+> > by Tomasz Stanislawski.
+> >
+> > See post http://thread.gmane.org/gmane.comp.video.dri.devel/70402/focus=49461 and
+> > http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/49438
+> >
+> > It doesn't use conditional code inside videobuf2 allocator and rely entirely on
+> > dma-mapping subsystem to provide a working dma_mmap_coherent/writecombine/attrs()
+> > function. When it was posted, it relied on the dma-mapping extensions, which now
+> > have been finally merged to v3.6-rc1. Now I wonder if there are any architectures,
+> > which don't use dma_map_ops based dma-mapping framework, which might use
+> > videobuf2-dma-conting module.
+> 
+> Thank you for telling me about videobuf2-dma-contig and v3.6-rc1.  The
+> videobuf2-dma-contig patch I sent is now unnecessary.  So I will
+> remove the patch.  I will remove the patch defining
+> ARCH_HAS_DMA_MMAP_COHERENT too because the v3.6-rc1 kernel has generic
+> dma_mmap_coherent() API for every architecture.
 
-Devin
+Just to let you know - Tomasz has posted an updated version of the dma-buf/vb2-dma-contig
+patches:
 
+http://www.spinics.net/lists/linux-media/msg51768.html
+
+Best regards
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
