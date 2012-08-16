@@ -1,118 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:56376 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753439Ab2H1V7l (ORCPT
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:32877 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752933Ab2HPO31 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Aug 2012 17:59:41 -0400
-Received: from eusync3.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M9H00685JS3AQ00@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 28 Aug 2012 23:00:03 +0100 (BST)
-Received: from AMDN157 ([106.210.236.152])
- by eusync3.samsung.com (Oracle Communications Messaging Server 7u4-23.01
- (7.0.4.23.0) 64bit (built Aug 10 2011))
- with ESMTPA id <0M9H00KCBJRCUB30@eusync3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 28 Aug 2012 22:59:39 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Arun Kumar K' <arun.kk@samsung.com>, linux-media@vger.kernel.org
-Cc: jtp.park@samsung.com, janghyuck.kim@samsung.com,
-	jaeryul.oh@samsung.com, ch.naveen@samsung.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	kmpark@infradead.org, joshi@samsung.com
-References: <1346068683-31610-1-git-send-email-arun.kk@samsung.com>
- <1346068683-31610-2-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1346068683-31610-2-git-send-email-arun.kk@samsung.com>
-Subject: RE: [PATCH v5 1/4] [media] s5p-mfc: Update MFCv5 driver for callback
- based architecture
-Date: Tue, 28 Aug 2012 14:59:36 -0700
-Message-id: <001a01cd8568$6b78bc20$426a3460$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: en-gb
+	Thu, 16 Aug 2012 10:29:27 -0400
+Received: by lbbgj3 with SMTP id gj3so1515790lbb.19
+        for <linux-media@vger.kernel.org>; Thu, 16 Aug 2012 07:29:26 -0700 (PDT)
+Message-ID: <502D03B6.8030708@iki.fi>
+Date: Thu, 16 Aug 2012 17:29:10 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: dvb-usb-v2 change broke s2250-loader compilation
+References: <201208161233.43618.hverkuil@xs4all.nl> <502CE527.2070006@iki.fi> <502CF98B.1060700@iki.fi> <201208161607.03380.hverkuil@xs4all.nl>
+In-Reply-To: <201208161607.03380.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arun,
+On 08/16/2012 05:07 PM, Hans Verkuil wrote:
+> On Thu August 16 2012 15:45:47 Antti Palosaari wrote:
+>> On 08/16/2012 03:18 PM, Antti Palosaari wrote:
+>>> On 08/16/2012 01:33 PM, Hans Verkuil wrote:
+>>>> Building the kernel with the Sensoray 2250/2251 staging go7007 driver
+>>>> enabled
+>>>> fails with this link error:
+>>>>
+>>>> ERROR: "usb_cypress_load_firmware"
+>>>> [drivers/staging/media/go7007/s2250-loader.ko] undefined!
+>>>>
+>>>> As far as I can tell this is related to the dvb-usb-v2 changes.
+>>>>
+>>>> Can someone take a look at this?
+>>>>
+>>>> Thanks!
+>>>>
+>>>>      Hans
+>>>
+>>> Yes it is dvb usb v2 related. I wasn't even aware that someone took that
+>>> module use in few days after it was added for the dvb-usb-v2.
+>>>
+>>> Maybe it is worth to make it even more common and move out of dvb-usb-v2...
+>>>
+>>> regards
+>>> Antti
+>>
+>> And after looking it twice I cannot see the reason. I split that Cypress
+>> firmware download to own module called dvb_usb_cypress_firmware which
+>> offer routine usbv2_cypress_load_firmware(). Old DVB USB is left
+>> untouched. I can confirm it fails to compile for s2250, but there is
+>> still old dvb_usb_cxusb that is compiling without a error.
+>>
+>> Makefile paths seems to be correct also, no idea whats wrong....
+>
+> drivers/media/usb/Makefile uses := instead of += for the dvb-usb(-v2) directories,
+> and that prevents dvb-usb from being build. I think that's the cause of the link
+> error.
 
-Please find my comments inline.
+For that I cannot say as I don't understand situation enough.
 
-Best wishes,
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
+> In addition I noticed that in usb/dvb-usb there is a dvb_usb_dvb.c and a
+> dvb-usb-dvb.c file: there's a mixup with _ and -.
 
+These files seems to be my fault. Original patch series removes those, 
+but I was forced to rebase whole set and in that rebased set those are 
+left unremoved. Likely due to some rebase conflict. I will send new 
+patch to remove those.
 
-> From: Arun Kumar K [mailto:arun.kk@samsung.com]
-> Sent: 27 August 2012 04:58
+> Mauro, did that happen during the reorganization?
+>
+> Regards,
+>
+> 	Hans
+>
 
-[...]
+regards
+Antti
 
-> diff --git a/drivers/media/video/s5p-mfc/s5p_mfc.c
-b/drivers/media/video/s5p-
-> mfc/s5p_mfc.c
-> index 9bb68e7..ab66680 100644
-> --- a/drivers/media/video/s5p-mfc/s5p_mfc.c
-> +++ b/drivers/media/video/s5p-mfc/s5p_mfc.c
-> @@ -21,15 +21,15 @@
-
-[...]
-
-> @@ -552,22 +546,23 @@ static irqreturn_t s5p_mfc_irq(int irq, void *priv)
->  	atomic_set(&dev->watchdog_cnt, 0);
->  	ctx = dev->ctx[dev->curr_ctx];
->  	/* Get the reason of interrupt and the error code */
-> -	reason = s5p_mfc_get_int_reason();
-> -	err = s5p_mfc_get_int_err();
-> +	reason = s5p_mfc_get_int_reason(dev);
-> +	err = s5p_mfc_get_int_err(dev);
->  	mfc_debug(1, "Int reason: %d (err: %08x)\n", reason, err);
->  	switch (reason) {
-> -	case S5P_FIMV_R2H_CMD_ERR_RET:
-> +	case S5P_MFC_R2H_CMD_ERR_RET:
->  		/* An error has occured */
->  		if (ctx->state == MFCINST_RUNNING &&
-> -			s5p_mfc_err_dec(err) >= S5P_FIMV_ERR_WARNINGS_START)
-> +			s5p_mfc_err_dec(err) >= s5p_mfc_get_warn_start(dev))
-
-It's still a function call. I have meant that it could an argument of the
-dev structure that is set in probe. It's much better to use a value directly
-than call a function.
-
->  			s5p_mfc_handle_frame(ctx, reason, err);
->  		else
->  			s5p_mfc_handle_error(ctx, reason, err);
->  		clear_bit(0, &dev->enter_suspend);
->  		break;
-> 
-> -	case S5P_FIMV_R2H_CMD_SLICE_DONE_RET:
-> -	case S5P_FIMV_R2H_CMD_FRAME_DONE_RET:
-> +	case S5P_MFC_R2H_CMD_SLICE_DONE_RET:
-> +	case S5P_MFC_R2H_CMD_FIELD_DONE_RET:
-> +	case S5P_MFC_R2H_CMD_FRAME_DONE_RET:
->  		if (ctx->c_ops->post_frame_start) {
->  			if (ctx->c_ops->post_frame_start(ctx))
->  				mfc_err("post_frame_start() failed\n");
-
-[...]
-
-> +/* This function is used to send a command to the MFC */
-> +int s5p_mfc_cmd_host2risc(struct s5p_mfc_dev *dev, int cmd,
-> +				struct s5p_mfc_cmd_args *args)
-> +{
-> +	return s5p_mfc_hw_call(s5p_mfc_cmds, cmd_host2risc, dev, cmd, args);
->  }
-> 	
-
-Arun, also I think that we misunderstood each other. I suggested that
-for example s5p_mfc_cmd_host2risc could be changed to
-s5p_mfc_hw_call(s5p_mfc_cmds, cmd_host2risc, dev, cmd, args);
-
-It would be much better to use s5p_mfc_hw_call directly in the code.
-The idea was to completely remove function such as the above, the ones
-that have nothing more than a call to the ops.
-
-[...]
-
+-- 
+http://palosaari.fi/
