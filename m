@@ -1,37 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:35048 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755919Ab2HNOGz (ORCPT
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:41892 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932391Ab2HPStG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 10:06:55 -0400
-Received: from eusync1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M8R006SQ0K7TP00@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 14 Aug 2012 15:07:19 +0100 (BST)
-Received: from [106.116.147.32] by eusync1.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0M8R008S20JHY820@eusync1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 14 Aug 2012 15:06:53 +0100 (BST)
-Message-id: <502A5B7C.4070700@samsung.com>
-Date: Tue, 14 Aug 2012 16:06:52 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: linux-media@vger.kernel.org, t.stanislaws@samsung.com,
-	k.debski@samsung.com, kyungmin.park@samsung.com,
-	mchehab@infradead.org, patches@linaro.org
-Subject: Re: [PATCH 1/3] [media] s5p-tv: Replace printk with pr_* functions
-References: <1339409634-13657-1-git-send-email-sachin.kamat@linaro.org>
-In-reply-to: <1339409634-13657-1-git-send-email-sachin.kamat@linaro.org>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Thu, 16 Aug 2012 14:49:06 -0400
+Received: by lagy9 with SMTP id y9so1651152lag.19
+        for <linux-media@vger.kernel.org>; Thu, 16 Aug 2012 11:49:04 -0700 (PDT)
+Message-ID: <502D408F.9080102@iki.fi>
+Date: Thu, 16 Aug 2012 21:48:47 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: dvb-usb-v2 change broke s2250-loader compilation
+References: <201208161233.43618.hverkuil@xs4all.nl> <502CE527.2070006@iki.fi> <502CF98B.1060700@iki.fi> <201208161607.03380.hverkuil@xs4all.nl> <502D03B6.8030708@iki.fi> <502D24DF.8090503@redhat.com> <502D3C6F.6010507@iki.fi> <502D3D35.7020107@redhat.com>
+In-Reply-To: <502D3D35.7020107@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/11/2012 12:13 PM, Sachin Kamat wrote:
-> Replace printk with pr_* functions to silence checkpatch warnings.
-> 
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+On 08/16/2012 09:34 PM, Mauro Carvalho Chehab wrote:
+> Em 16-08-2012 15:31, Antti Palosaari escreveu:
+>> On 08/16/2012 07:50 PM, Mauro Carvalho Chehab wrote:
+>>> Em 16-08-2012 11:29, Antti Palosaari escreveu:
+>>>> On 08/16/2012 05:07 PM, Hans Verkuil wrote:
+>>>>> On Thu August 16 2012 15:45:47 Antti Palosaari wrote:
+>>>>>> On 08/16/2012 03:18 PM, Antti Palosaari wrote:
+>>>>>>> On 08/16/2012 01:33 PM, Hans Verkuil wrote:
+>>>>>>>> Building the kernel with the Sensoray 2250/2251 staging go7007 driver
+>>>>>>>> enabled
+>>>>>>>> fails with this link error:
+>>>>>>>>
+>>>>>>>> ERROR: "usb_cypress_load_firmware"
+>>>>>>>> [drivers/staging/media/go7007/s2250-loader.ko] undefined!
+>>>>>>>>
+>>>>>>>> As far as I can tell this is related to the dvb-usb-v2 changes.
+>>>>>>>>
+>>>>>>>> Can someone take a look at this?
+>>>>>>>>
+>>>>>>>> Thanks!
+>>>>>>>>
+>>>>>>>>        Hans
+>>>>>>>
+>>>>>>> Yes it is dvb usb v2 related. I wasn't even aware that someone took that
+>>>>>>> module use in few days after it was added for the dvb-usb-v2.
+>>>>>>>
+>>>>>>> Maybe it is worth to make it even more common and move out of dvb-usb-v2...
+>>>>>>>
+>>>>>>> regards
+>>>>>>> Antti
+>>>>>>
+>>>>>> And after looking it twice I cannot see the reason. I split that Cypress
+>>>>>> firmware download to own module called dvb_usb_cypress_firmware which
+>>>>>> offer routine usbv2_cypress_load_firmware(). Old DVB USB is left
+>>>>>> untouched. I can confirm it fails to compile for s2250, but there is
+>>>>>> still old dvb_usb_cxusb that is compiling without a error.
+>>>>>>
+>>>>>> Makefile paths seems to be correct also, no idea whats wrong....
+>>>>>
+>>>>> drivers/media/usb/Makefile uses := instead of += for the dvb-usb(-v2) directories,
+>>>>> and that prevents dvb-usb from being build. I think that's the cause of the link
+>>>>> error.
+>>>>
+>>>> For that I cannot say as I don't understand situation enough.
+>>>>
+>>>>> In addition I noticed that in usb/dvb-usb there is a dvb_usb_dvb.c and a
+>>>>> dvb-usb-dvb.c file: there's a mixup with _ and -.
+>>>>
+>>>> These files seems to be my fault. Original patch series removes those,
+>>>> but I was forced to rebase whole set and in that rebased set those are left unremoved.
+>>>> Likely due to some rebase conflict. I will send new patch to remove those.
+>>>
+>>> If you remove the _, they'll conflict with dvb-usb at media-build.git.
+>>>
+>>> The better is to add a _v2 (or -v2) on all dvb-usb-v2 files
+>>> (or to convert the remaining dvb-usb drivers to dvb-usb-v2).
+>>
+>> hmm, now I am quite out what you mean.
+>>
+>> This is from my first PULL-request:
+>> http://git.linuxtv.org/anttip/media_tree.git/commit/c60c6d44111be2b2fd9ef9b716ea50bd87493893
+>>
+>> And this is same patch after large rebase:
+>> http://git.linuxtv.org/anttip/media_tree.git/commit/ac97c6f722aafb5b562ef04062b543147399dff8
+>>
+>> Why removing those wrong files will cause conflict in media_build.git ?
+>
+> Because, at the media-build, all files are linked into the "/v4l" dir. If there are two different
+> modules with the same name, one will override the other.
 
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+But there should not be same names what I know.
+Here is the list of DVB USB related files:
+
+DVB USB v1:
+***********
+dvb-usb/dvb-usb-firmware.c
+dvb-usb/dvb-usb.h
+dvb-usb/dvb-usb-common.h
+dvb-usb/dvb_usb_dvb.c *** not needed
+dvb-usb/dvb-usb-dvb.c
+dvb-usb/dvb-usb-i2c.c
+dvb-usb/dvb-usb-init.c
+dvb-usb/dvb_usb_remote.c *** not needed
+dvb-usb/dvb-usb-remote.c
+dvb-usb/dvb-usb-urb.c
+dvb-usb/usb-urb.c
+dvb-usb/dvb-usb.ko
+
+DVB USB v2:
+***********
+dvb-usb-v2/cypress_firmware.c
+dvb-usb-v2/cypress_firmware.h
+dvb-usb-v2/dvb_usb.h
+dvb-usb-v2/dvb_usb_common.h
+dvb-usb-v2/dvb_usb_core.c
+dvb-usb-v2/dvb_usb_urb.c
+dvb-usb-v2/usb_urb.c
+dvb-usb-v2/dvb_usb_cypress_firmware.ko
+dvb-usb-v2/dvb_usbv2.ko
+
+
+regards
+Antti
+
+
+>>
+>>
+>>
+>> OK, those are just wasting space nothing more. But there was that original problem too which breaks s2250-loader compilation.
+>>
+>> regards
+>> Antti
+>>
+>>>
+>>> Regards,
+>>> Mauro
+>>>
+>>>>
+>>>>> Mauro, did that happen during the reorganization?
+>>>>>
+>>>>> Regards,
+>>>>>
+>>>>>       Hans
+>>>>>
+>>>>
+>>>> regards
+>>>> Antti
+>>>>
+>>>
+>>
+>>
+>
+
+
+-- 
+http://palosaari.fi/
