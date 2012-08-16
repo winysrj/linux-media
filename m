@@ -1,45 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58684 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751656Ab2HKPUF (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:39683 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751063Ab2HPLbY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Aug 2012 11:20:05 -0400
-Date: Sat, 11 Aug 2012 18:20:00 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: bjlockie@lockie.ca
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	linux-media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: boot slow down
-Message-ID: <20120811151959.GL29636@valkosipuli.retiisi.org.uk>
-References: <501DA203.7070800@lockie.ca>
- <20120805212054.GA29636@valkosipuli.retiisi.org.uk>
- <501F4A5B.1000608@lockie.ca>
- <20120807112742.GB29636@valkosipuli.retiisi.org.uk>
- <6ef5338940a90b4c8000594d546bf479.squirrel@lockie.ca>
- <32d7859a-ceda-442d-be67-f4f682a6e3b9@email.android.com>
- <48430fdf908e6481ae55103bd11b7cfe.squirrel@lockie.ca>
- <50218BD8.8040207@lockie.ca>
- <20120808082408.GE29636@valkosipuli.retiisi.org.uk>
- <18c22f6605c5aefbab8a42c4c0d3eca2.squirrel@lockie.ca>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <18c22f6605c5aefbab8a42c4c0d3eca2.squirrel@lockie.ca>
+	Thu, 16 Aug 2012 07:31:24 -0400
+Received: by pbbrr13 with SMTP id rr13so1450458pbb.19
+        for <linux-media@vger.kernel.org>; Thu, 16 Aug 2012 04:31:24 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, sakari.ailus@iki.fi,
+	sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH] smiapp: Use devm_kzalloc() in smiapp-core.c file
+Date: Thu, 16 Aug 2012 16:59:30 +0530
+Message-Id: <1345116570-27335-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 08, 2012 at 01:18:33PM -0400, bjlockie@lockie.ca wrote:
-> 
-> How hard would it be to get an official kernel option not to load firmware
-> OR be able to set the timeout?
+devm_kzalloc is a device managed function and makes code a bit
+smaller and cleaner.
 
-I think the right solution is that the failure of the user space program
-that is expected to load the firmware is considered as such, so the error
-could be returned by request_firmware() immediately. There could be reasons
-why it behaves the way it does currently as I don't know the details.
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+This patch is based on Mauro's re-organized tree
+(media_tree staging/for_v3.7) and is compile tested.
+---
+ drivers/media/i2c/smiapp/smiapp-core.c |   11 ++---------
+ 1 files changed, 2 insertions(+), 9 deletions(-)
 
-Kind regards,
-
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 1cf914d..7d4280e 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2801,12 +2801,11 @@ static int smiapp_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *devid)
+ {
+ 	struct smiapp_sensor *sensor;
+-	int rval;
+ 
+ 	if (client->dev.platform_data == NULL)
+ 		return -ENODEV;
+ 
+-	sensor = kzalloc(sizeof(*sensor), GFP_KERNEL);
++	sensor = devm_kzalloc(&client->dev, sizeof(*sensor), GFP_KERNEL);
+ 	if (sensor == NULL)
+ 		return -ENOMEM;
+ 
+@@ -2821,12 +2820,8 @@ static int smiapp_probe(struct i2c_client *client,
+ 	sensor->src->sensor = sensor;
+ 
+ 	sensor->src->pads[0].flags = MEDIA_PAD_FL_SOURCE;
+-	rval = media_entity_init(&sensor->src->sd.entity, 2,
++	return media_entity_init(&sensor->src->sd.entity, 2,
+ 				 sensor->src->pads, 0);
+-	if (rval < 0)
+-		kfree(sensor);
+-
+-	return rval;
+ }
+ 
+ static int __exit smiapp_remove(struct i2c_client *client)
+@@ -2862,8 +2857,6 @@ static int __exit smiapp_remove(struct i2c_client *client)
+ 	if (sensor->vana)
+ 		regulator_put(sensor->vana);
+ 
+-	kfree(sensor);
+-
+ 	return 0;
+ }
+ 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.4.1
+
