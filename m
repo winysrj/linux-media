@@ -1,135 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:59774 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752279Ab2HWL6n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Aug 2012 07:58:43 -0400
-Received: by lbbgj3 with SMTP id gj3so383165lbb.19
-        for <linux-media@vger.kernel.org>; Thu, 23 Aug 2012 04:58:42 -0700 (PDT)
+Received: from mta-out.inet.fi ([195.156.147.13]:57993 "EHLO jenni2.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754967Ab2HPSSI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Aug 2012 14:18:08 -0400
+Message-ID: <502D395C.8020003@iki.fi>
+Date: Thu, 16 Aug 2012 21:18:04 +0300
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <1345665041-15211-8-git-send-email-timo.t.kokkonen@iki.fi>
-References: <1345665041-15211-1-git-send-email-timo.t.kokkonen@iki.fi>
-	<1345665041-15211-8-git-send-email-timo.t.kokkonen@iki.fi>
-Date: Thu, 23 Aug 2012 13:58:41 +0200
-Message-ID: <CAORVsuXDpnP+QdfQDJMEAUGO3ekr+eGnt46SCqO9K2bsWpMdrw@mail.gmail.com>
-Subject: Re: [PATCH 7/8] ir-rx51: Remove MPU wakeup latency adjustments
-From: Jean Pihet <jean.pihet@newoldbits.com>
-To: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Sebastian Reichel <sre@ring0.de>, linux-media@vger.kernel.org,
+	linux-omap@vger.kernel.org
+Subject: Re: [git:v4l-dvb/for_v3.7] [media] media: rc: Introduce RX51 IR transmitter
+ driver
+References: <E1T10iu-0000Xo-L8@www.linuxtv.org> <20120815160621.GV29636@valkosipuli.retiisi.org.uk> <502BFCA3.5040905@iki.fi> <20120816102328.GW29636@valkosipuli.retiisi.org.uk> <20120816112103.GA1429@earth.universe> <20120816163458.GA29636@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20120816163458.GA29636@valkosipuli.retiisi.org.uk>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Timo,
+On 08/16/12 19:34, Sakari Ailus wrote:
+> Hi Sebastian,
+> 
+> On Thu, Aug 16, 2012 at 01:21:04PM +0200, Sebastian Reichel wrote:
+>> Hi,
+>>
+>>>> It was an requirement back then that this driver needs to be a module as
+>>>> 99% of the N900 owners still don't even know they have this kind of
+>>>> capability on their devices, so it doesn't make sense to keep the module
+>>>> loaded unless the user actually needs it.
+>>>
+>>> I don't think that's so important --- currently the vast majority of the
+>>> N900 users using the mainline kernel compile it themselves. It's more
+>>> important to have a clean implementation at this point.
+>>
+>> I would like to enable this feature for the Debian OMAP kernel,
+>> which is not only used for N900, but also for Pandaboard, etc.
+> 
+> Fair enough. Thanks for the info!
+> 
+> Timo: thinking this a little more, do you think the call is really needed?
+> AFAIU it doesn't really achieve what it's supposed to, keeping the CPU from
+> going to sleep. I noticed exactly the same problem you did, it was bad to
+> the extent irsend failed due to a timeout unless I kept the CPU busy.
 
-On Wed, Aug 22, 2012 at 9:50 PM, Timo Kokkonen <timo.t.kokkonen@iki.fi> wrote:
-> The ir-rx51 driver calls omap_pm_set_max_mpu_wakeup_lat() in order to
-> avoid problems that occur when MPU goes to sleep in the middle of
-> sending an IR code. Without such calls it takes ridiculously long for
-> the MPU to wake up from a sleep, which distorts the IR signal
-> completely.
->
-> However, the actual problem is that probably the GP timers are not
-> able to wake up the MPU at all. That is, adjusting the latency
-> requirements is not the correct way to solve the issue either. The
-> reason why this used to work with the original 2.6.28 based N900
-> kernel that is shipped with the product is that placing strict latency
-> requirements prevents the MPU from going to sleep at all. Furthermore,
-> the only PM layer imlementation available at the moment for OMAP3
-> doesn't do anything with the latency requirement placed with
-> omap_pm_set_max_mpu_wakeup_lat() calls.
-That is correct. The API to use is the PM QoS API which cpuidle uses
-to determine the next MPU state based on the allowed latency.
+Yes, that's right. It's not really useful as is.
 
-> A more appropriate fix for the problem would be to modify the idle
-> layer so that it does not allow MPU going to too deep sleep modes when
-> it is expected that the timers need to wake up MPU.
-The idle layer already uses the PM QoS framework to decide the next
-MPU state. I think the right solution is to convert from
-omap_pm_set_max_mpu_wakeup_lat to the PM QoS API.
+> So I think we can remove the call, which results in two things: the driver
+> can be built as a module and the platform data does not contain a function
+> pointer any longer.
 
-Cf. http://marc.info/?l=linux-omap&m=133968658305580&w=2 for an
-example of the conversion.
+Yeah, I agree. Although with the original N900 kernel the call did make
+it work. But the power management implementation was different there
+too. Maybe the proper fix for the problem is today something different
+it was back then.
 
-> Therefore, it makes sense to actually remove this call entirely from
-> the ir-rx51 driver as it is both wrong and does nothing useful at the
-> moment.
->
-> Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+If I have time I'll see if I can figure out something..
 
-Regards,
-Jean
+-Timo
 
-> ---
->  arch/arm/mach-omap2/board-rx51-peripherals.c | 2 --
->  drivers/media/rc/ir-rx51.c                   | 9 ---------
->  include/media/ir-rx51.h                      | 2 --
->  3 files changed, 13 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> index ca07264..e0750cb 100644
-> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> @@ -34,7 +34,6 @@
->  #include <plat/gpmc.h>
->  #include <plat/onenand.h>
->  #include <plat/gpmc-smc91x.h>
-> -#include <plat/omap-pm.h>
->
->  #include <mach/board-rx51.h>
->
-> @@ -1227,7 +1226,6 @@ static void __init rx51_init_tsc2005(void)
->
->  #if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
->  static struct lirc_rx51_platform_data rx51_lirc_data = {
-> -       .set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
->         .pwm_timer = 9, /* Use GPT 9 for CIR */
->  };
->
-> diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-> index 7eed541..ac7d3f0 100644
-> --- a/drivers/media/rc/ir-rx51.c
-> +++ b/drivers/media/rc/ir-rx51.c
-> @@ -267,12 +267,6 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
->         if (count < WBUF_LEN)
->                 lirc_rx51->wbuf[count] = -1; /* Insert termination mark */
->
-> -       /*
-> -        * Adjust latency requirements so the device doesn't go in too
-> -        * deep sleep states
-> -        */
-> -       lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, 50);
-> -
->         lirc_rx51_on(lirc_rx51);
->         lirc_rx51->wbuf_index = 1;
->         pulse_timer_set_timeout(lirc_rx51, lirc_rx51->wbuf[0]);
-> @@ -292,9 +286,6 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
->          */
->         lirc_rx51_stop_tx(lirc_rx51);
->
-> -       /* We can sleep again */
-> -       lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, -1);
-> -
->         return n;
->  }
->
-> diff --git a/include/media/ir-rx51.h b/include/media/ir-rx51.h
-> index 104aa89..57523f2 100644
-> --- a/include/media/ir-rx51.h
-> +++ b/include/media/ir-rx51.h
-> @@ -3,8 +3,6 @@
->
->  struct lirc_rx51_platform_data {
->         int pwm_timer;
-> -
-> -       int(*set_max_mpu_wakeup_lat)(struct device *dev, long t);
->  };
->
->  #endif
-> --
-> 1.7.12
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
