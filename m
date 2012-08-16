@@ -1,64 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:39164 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752809Ab2HNP1Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 11:27:16 -0400
-Received: from eusync4.samsung.com (mailout4.w1.samsung.com [210.118.77.14])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M8R00B7U4AG9J10@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 14 Aug 2012 16:27:52 +0100 (BST)
-Received: from [106.116.147.32] by eusync4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTPA id <0M8R00KJS49DLE10@eusync4.samsung.com> for
- linux-media@vger.kernel.org; Tue, 14 Aug 2012 16:27:14 +0100 (BST)
-Message-id: <502A6E51.3000203@samsung.com>
-Date: Tue, 14 Aug 2012 17:27:13 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>,
-	"Tomasz Stanislawski/Poland R&D Center-Linux (MSS)/./????"
-	<t.stanislaws@samsung.com>
-Subject: [GIT PATCHES FOR 3.7] s5p-tv driver updates
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from tex.lwn.net ([70.33.254.29]:43501 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752481Ab2HPRLI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Aug 2012 13:11:08 -0400
+Date: Thu, 16 Aug 2012 11:11:26 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Chris Ball <cjb@laptop.org>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] marvell-cam: Build fix: missing "select
+ VIDEOBUF2_VMALLOC"
+Message-ID: <20120816111126.60443d36@lwn.net>
+In-Reply-To: <50298248.2000609@redhat.com>
+References: <87d36u9rzc.fsf@laptop.org>
+	<20120427100358.4f5c2be7@lwn.net>
+	<87fwbp86py.fsf@laptop.org>
+	<50298248.2000609@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Mon, 13 Aug 2012 19:40:08 -0300
+Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
 
-The following changes since commit 1511288620bd4ea794bae08871f9e108ca034b2d:
+> Ping?
+> 
+> Is this patch needed or not?
 
-  ioctl-number.txt: Remove legacy private ioctl's from media drivers (2012-08-14 00:07:39 -0300)
+Sorry, I have dropped vast numbers of balls over the last six months and
+am far from having picked them all up.
 
-are available in the git repository at:
+Reviewing the conversation, I still must confess that I don't understand
+the problem.  Why is having the VB2 vmalloc support built as a module a
+problem?  
 
-  git://git.infradead.org/users/kmpark/linux-samsung v4l_samsung_for_v3.7
+> Another alternative would be to change the Kconfig stuff to explicitly select
+> the type of videobuf2 that would be used by those drivers, something like the
+> enclosed (untested) patch.
 
-for you to fetch changes up to 768ce5950059f98ef1e390a1ec2bb98a3104c943:
+The current Kconfig already has specific select lines for the supported
+modes.  
 
-  s5p-tv: Use devm_* functions in sii9234_drv.c file (2012-08-14 16:37:55 +0200)
+When I get a chance, I'll go in and try to reproduce the problem, but it
+may be a little bit, sorry...
 
-----------------------------------------------------------------
-Sachin Kamat (3):
-      s5p-tv: Use devm_regulator_get() in sdo_drv.c file
-      s5p-tv: Replace printk with pr_* functions
-      s5p-tv: Use devm_* functions in sii9234_drv.c file
-
- drivers/media/video/s5p-tv/hdmi_drv.c    |    6 ++++--
- drivers/media/video/s5p-tv/mixer_drv.c   |    6 +++---
- drivers/media/video/s5p-tv/mixer_video.c |    4 +++-
- drivers/media/video/s5p-tv/sdo_drv.c     |   10 +++-------
- drivers/media/video/s5p-tv/sii9234_drv.c |   17 ++++-------------
- 5 files changed, 17 insertions(+), 26 deletions(-)
-
-I'll post a separate pull request including some fixup patches this week.
-
-
-Thanks,
--- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+jon
