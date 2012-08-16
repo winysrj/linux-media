@@ -1,82 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:54286 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750793Ab2HQEra (ORCPT
+Received: from canardo.mork.no ([148.122.252.1]:53917 "EHLO canardo.mork.no"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752367Ab2HPNt3 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Aug 2012 00:47:30 -0400
-Received: by qaas11 with SMTP id s11so1261546qaa.19
-        for <linux-media@vger.kernel.org>; Thu, 16 Aug 2012 21:47:29 -0700 (PDT)
+	Thu, 16 Aug 2012 09:49:29 -0400
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+To: Manu Abraham <abraham.manu@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linuxtv-commits@linuxtv.org, "Igor M. Liplianin" <liplianin@me.by>
+Subject: Re: [git:v4l-dvb/for_v3.7] [media] mantis: Terratec Cinergy C PCI HD (CI)
+References: <E1SzvhW-0005hd-1S@www.linuxtv.org>
+	<CAHFNz9Ju7dB-iz0mcGuNMLDwibFXZqGe73jpBk7RPqG_w+MmXg@mail.gmail.com>
+Date: Thu, 16 Aug 2012 15:49:19 +0200
+In-Reply-To: <CAHFNz9Ju7dB-iz0mcGuNMLDwibFXZqGe73jpBk7RPqG_w+MmXg@mail.gmail.com>
+	(Manu Abraham's message of "Sat, 11 Aug 2012 05:25:37 +0530")
+Message-ID: <87vcgjne00.fsf@nemi.mork.no>
 MIME-Version: 1.0
-In-Reply-To: <20120816165656.GB29636@valkosipuli.retiisi.org.uk>
-References: <1345116570-27335-1-git-send-email-sachin.kamat@linaro.org>
-	<20120816165656.GB29636@valkosipuli.retiisi.org.uk>
-Date: Fri, 17 Aug 2012 10:17:29 +0530
-Message-ID: <CAK9yfHwT-2Y2=YjCAYFkRcp_+B93s2YiuhV0o8FjP+P5hv=w_w@mail.gmail.com>
-Subject: Re: [PATCH] smiapp: Use devm_kzalloc() in smiapp-core.c file
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	patches@linaro.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Manu Abraham <abraham.manu@gmail.com> writes:
 
-Thanks for reviewing the patch.
+> Terratec Cinregy C is VP-2033 and not VP-2040.
 
-On 16 August 2012 22:26, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Hi Sachin,
->
-> Thanks for the patch.
->
-> On Thu, Aug 16, 2012 at 04:59:30PM +0530, Sachin Kamat wrote:
->> devm_kzalloc is a device managed function and makes code a bit
->> smaller and cleaner.
->>
->> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
->> ---
->> This patch is based on Mauro's re-organized tree
->> (media_tree staging/for_v3.7) and is compile tested.
->> ---
->>  drivers/media/i2c/smiapp/smiapp-core.c |   11 ++---------
->>  1 files changed, 2 insertions(+), 9 deletions(-)
->>
->> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
->> index 1cf914d..7d4280e 100644
->> --- a/drivers/media/i2c/smiapp/smiapp-core.c
->> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
->> @@ -2801,12 +2801,11 @@ static int smiapp_probe(struct i2c_client *client,
->>                       const struct i2c_device_id *devid)
->>  {
->>       struct smiapp_sensor *sensor;
->> -     int rval;
->>
->>       if (client->dev.platform_data == NULL)
->>               return -ENODEV;
->>
->> -     sensor = kzalloc(sizeof(*sensor), GFP_KERNEL);
->> +     sensor = devm_kzalloc(&client->dev, sizeof(*sensor), GFP_KERNEL);
->>       if (sensor == NULL)
->>               return -ENOMEM;
->>
->
-> I think the same should be done to sensor->nvm. Would you like to change the
-> patch to incorporate the change? I'm fine doing that as well.
+Can you please enlighten me on how to tell this difference?  I have two
+of these cards:
 
-Sure. I will send the updated patch shortly. I have also expanded the
-scope of the patch to
-use other devm_* functions too.
+bjorn@canardo:~$ lspci -vvnns 05:00
+05:00.0 Multimedia controller [0480]: Twinhan Technology Co. Ltd Mantis DTV PCI Bridge Controller [Ver 1.0] [1822:4e35] (rev 01)
+        Subsystem: TERRATEC Electronic GmbH Device [153b:1178]
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+        Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 64 (2000ns min, 63750ns max)
+        Interrupt: pin A routed to IRQ 16
+        Region 0: Memory at fdfff000 (32-bit, prefetchable) [size=4K]
+        Kernel driver in use: Mantis
+        Kernel modules: mantis
 
->
-> Cheers,
->
-> --
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi     jabber/XMPP/Gmail: sailus@retiisi.org.uk
+bjorn@canardo:~$ lspci -vvnns 05:01
+05:01.0 Multimedia controller [0480]: Twinhan Technology Co. Ltd Mantis DTV PCI Bridge Controller [Ver 1.0] [1822:4e35] (rev 01)
+        Subsystem: TERRATEC Electronic GmbH Device [153b:1178]
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+        Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 64 (2000ns min, 63750ns max)
+        Interrupt: pin A routed to IRQ 17
+        Region 0: Memory at fdffe000 (32-bit, prefetchable) [size=4K]
+        Kernel driver in use: Mantis
+        Kernel modules: mantis
+
+
+Both of them appear to have a TDA10023 tuner:
+
+[   35.626204] Mantis 0000:05:00.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
+[   35.847869] DVB: registering new adapter (Mantis DVB adapter)
+[   37.358998] DVB: registering adapter 0 frontend 0 (Philips TDA10023 DVB-C)...
+[   37.359079] Mantis 0000:05:01.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
+[   37.607414] DVB: registering new adapter (Mantis DVB adapter)
+[   38.486159] DVB: registering adapter 1 frontend 0 (Philips TDA10023 DVB-C)...
+
+
+But as both the VP-2033 and VP-2040 code support both TDA10021 and
+TDA10023 there is obviously some other difference between these.  Bridge
+version maybe?   Or something else?
 
 
 
--- 
-With warm regards,
-Sachin
+Bjørn
