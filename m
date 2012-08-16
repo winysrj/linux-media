@@ -1,55 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog108.obsmtp.com ([207.126.144.125]:58415 "EHLO
-	eu1sys200aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751653Ab2H0PtW convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Aug 2012 11:49:22 -0400
-From: Nicolas THERY <nicolas.thery@st.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"riverful.kim@samsung.com" <riverful.kim@samsung.com>,
-	"sw0312.kim@samsung.com" <sw0312.kim@samsung.com>,
-	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>,
-	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	Jean-Marc VOLLE <jean-marc.volle@st.com>,
-	Pierre-yves TALOUD <pierre-yves.taloud@st.com>,
-	Willy POISSON <willy.poisson@st.com>,
-	Benjamin GAIGNARD <benjamin.gaignard@st.com>
-Date: Mon, 27 Aug 2012 17:48:43 +0200
-Subject: Re: [PATCH RFC 0/4] V4L2: Vendor specific media bus formats/ frame
- size control
-Message-ID: <503B96DB.3070403@st.com>
-References: <1345715489-30158-1-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1345715489-30158-1-git-send-email-s.nawrocki@samsung.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:33400 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932860Ab2HPRzT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Aug 2012 13:55:19 -0400
+Received: by vcbfk26 with SMTP id fk26so2599230vcb.19
+        for <linux-media@vger.kernel.org>; Thu, 16 Aug 2012 10:55:18 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <1c192a606143bbe1fb56fe02ffd5715e6592b3b6.1344592468.git.hans.verkuil@cisco.com>
+References: <bf682233fde61ca77ed4512ba77271f6daeedb31.1344592468.git.hans.verkuil@cisco.com>
+	<1344597684-8413-1-git-send-email-hans.verkuil@cisco.com>
+	<1c192a606143bbe1fb56fe02ffd5715e6592b3b6.1344592468.git.hans.verkuil@cisco.com>
+Date: Thu, 16 Aug 2012 23:25:17 +0530
+Message-ID: <CAGzWAshccKZedEzaxboV0t-KO5yFp4UR=i_KdVtOV5LuNv6BHA@mail.gmail.com>
+Subject: Re: [RFCv3 PATCH 3/8] v4l2-subdev: add support for the new edid ioctls.
+From: Soby Mathew <soby.linuxtv@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: linux-media@vger.kernel.org, marbugge@cisco.com,
+	Soby Mathew <soby.mathew@st.com>, mats.randgaard@cisco.com,
+	manjunath.hadli@ti.com,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	dri-devel@lists.freedesktop.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Hans,
+   For EDID update, it is recommended that the HPD line be toggled
+after the EDID update is completed. So for the driver to detect the
+EDID write is complete, probably a field mentioning the EDID write
+completed would be good, so that the HPD toggling can be done by the
+driver.
 
-On 2012-08-23 11:51, Sylwester Nawrocki wrote:
-> This patch series introduces new image source class control - V4L2_CID_FRAMESIZE
-> and vendor or device specific media bus format section.
-> 
-> There was already a discussion WRT handling interleaved image data [1].
-> I'm not terribly happy with those vendor specific media bus formats but I
-> couldn't find better solution that would comply with the V4L2 API concepts
-> and would work reliably.
+Best Regards
+Soby Mathew
 
-What about Sakari's "Frame format descriptors" RFC[1] that would allow to
-describe arbitrary pixel code combinations and provide required information
-(virtual channel and data type) to the CSI receiver driver for configuring the
-hardware?
-
-Thanks in advance.
-
-Best regards,
-Nicolas
-
-[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg43530.html
+On 8/10/12, Hans Verkuil <hans.verkuil@cisco.com> wrote:
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/video/v4l2-compat-ioctl32.c |   57
+> +++++++++++++++++++++++++++++
+>  drivers/media/video/v4l2-ioctl.c          |   13 +++++++
+>  drivers/media/video/v4l2-subdev.c         |    6 +++
+>  include/media/v4l2-subdev.h               |    2 +
+>  4 files changed, 78 insertions(+)
+>
+> diff --git a/drivers/media/video/v4l2-compat-ioctl32.c
+> b/drivers/media/video/v4l2-compat-ioctl32.c
+> index 9ebd5c5..e843705 100644
+> --- a/drivers/media/video/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/video/v4l2-compat-ioctl32.c
+> @@ -16,6 +16,7 @@
+>  #include <linux/compat.h>
+>  #include <linux/module.h>
+>  #include <linux/videodev2.h>
+> +#include <linux/v4l2-subdev.h>
+>  #include <media/v4l2-dev.h>
+>  #include <media/v4l2-ioctl.h>
+>
+> @@ -729,6 +730,44 @@ static int put_v4l2_event32(struct v4l2_event *kp,
+> struct v4l2_event32 __user *u
+>  	return 0;
+>  }
+>
+> +struct v4l2_subdev_edid32 {
+> +	__u32 pad;
+> +	__u32 start_block;
+> +	__u32 blocks;
+> +	__u32 reserved[5];
+> +	compat_caddr_t edid;
+> +};
+> +
+> +static int get_v4l2_subdev_edid32(struct v4l2_subdev_edid *kp, struct
+> v4l2_subdev_edid32 __user *up)
+> +{
+> +	u32 tmp;
+> +
+> +	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_subdev_edid32)) ||
+> +		get_user(kp->pad, &up->pad) ||
+> +		get_user(kp->start_block, &up->start_block) ||
+> +		get_user(kp->blocks, &up->blocks) ||
+> +		get_user(tmp, &up->edid) ||
+> +		copy_from_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
+> +			return -EFAULT;
+> +	kp->edid = compat_ptr(tmp);
+> +	return 0;
+> +}
+> +
+> +static int put_v4l2_subdev_edid32(struct v4l2_subdev_edid *kp, struct
+> v4l2_subdev_edid32 __user *up)
+> +{
+> +	u32 tmp = (u32)((unsigned long)kp->edid);
+> +
+> +	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_subdev_edid32)) ||
+> +		put_user(kp->pad, &up->pad) ||
+> +		put_user(kp->start_block, &up->start_block) ||
+> +		put_user(kp->blocks, &up->blocks) ||
+> +		put_user(tmp, &up->edid) ||
+> +		copy_to_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
+> +			return -EFAULT;
+> +	return 0;
+> +}
+> +
+> +
+>  #define VIDIOC_G_FMT32		_IOWR('V',  4, struct v4l2_format32)
+>  #define VIDIOC_S_FMT32		_IOWR('V',  5, struct v4l2_format32)
+>  #define VIDIOC_QUERYBUF32	_IOWR('V',  9, struct v4l2_buffer32)
+> @@ -738,6 +777,8 @@ static int put_v4l2_event32(struct v4l2_event *kp,
+> struct v4l2_event32 __user *u
+>  #define VIDIOC_DQBUF32		_IOWR('V', 17, struct v4l2_buffer32)
+>  #define VIDIOC_ENUMSTD32	_IOWR('V', 25, struct v4l2_standard32)
+>  #define VIDIOC_ENUMINPUT32	_IOWR('V', 26, struct v4l2_input32)
+> +#define VIDIOC_SUBDEV_G_EDID32	_IOWR('V', 63, struct v4l2_subdev_edid32)
+> +#define VIDIOC_SUBDEV_S_EDID32	_IOWR('V', 64, struct v4l2_subdev_edid32)
+>  #define VIDIOC_TRY_FMT32      	_IOWR('V', 64, struct v4l2_format32)
+>  #define VIDIOC_G_EXT_CTRLS32    _IOWR('V', 71, struct v4l2_ext_controls32)
+>  #define VIDIOC_S_EXT_CTRLS32    _IOWR('V', 72, struct v4l2_ext_controls32)
+> @@ -765,6 +806,7 @@ static long do_video_ioctl(struct file *file, unsigned
+> int cmd, unsigned long ar
+>  		struct v4l2_ext_controls v2ecs;
+>  		struct v4l2_event v2ev;
+>  		struct v4l2_create_buffers v2crt;
+> +		struct v4l2_subdev_edid v2edid;
+>  		unsigned long vx;
+>  		int vi;
+>  	} karg;
+> @@ -797,6 +839,8 @@ static long do_video_ioctl(struct file *file, unsigned
+> int cmd, unsigned long ar
+>  	case VIDIOC_S_OUTPUT32: cmd = VIDIOC_S_OUTPUT; break;
+>  	case VIDIOC_CREATE_BUFS32: cmd = VIDIOC_CREATE_BUFS; break;
+>  	case VIDIOC_PREPARE_BUF32: cmd = VIDIOC_PREPARE_BUF; break;
+> +	case VIDIOC_SUBDEV_G_EDID32: cmd = VIDIOC_SUBDEV_G_EDID; break;
+> +	case VIDIOC_SUBDEV_S_EDID32: cmd = VIDIOC_SUBDEV_S_EDID; break;
+>  	}
+>
+>  	switch (cmd) {
+> @@ -814,6 +858,12 @@ static long do_video_ioctl(struct file *file, unsigned
+> int cmd, unsigned long ar
+>  		compatible_arg = 0;
+>  		break;
+>
+> +	case VIDIOC_SUBDEV_G_EDID:
+> +	case VIDIOC_SUBDEV_S_EDID:
+> +		err = get_v4l2_subdev_edid32(&karg.v2edid, up);
+> +		compatible_arg = 0;
+> +		break;
+> +
+>  	case VIDIOC_G_FMT:
+>  	case VIDIOC_S_FMT:
+>  	case VIDIOC_TRY_FMT:
+> @@ -906,6 +956,11 @@ static long do_video_ioctl(struct file *file, unsigned
+> int cmd, unsigned long ar
+>  		err = put_v4l2_event32(&karg.v2ev, up);
+>  		break;
+>
+> +	case VIDIOC_SUBDEV_G_EDID:
+> +	case VIDIOC_SUBDEV_S_EDID:
+> +		err = put_v4l2_subdev_edid32(&karg.v2edid, up);
+> +		break;
+> +
+>  	case VIDIOC_G_FMT:
+>  	case VIDIOC_S_FMT:
+>  	case VIDIOC_TRY_FMT:
+> @@ -1026,6 +1081,8 @@ long v4l2_compat_ioctl32(struct file *file, unsigned
+> int cmd, unsigned long arg)
+>  	case VIDIOC_QUERY_DV_TIMINGS:
+>  	case VIDIOC_DV_TIMINGS_CAP:
+>  	case VIDIOC_ENUM_FREQ_BANDS:
+> +	case VIDIOC_SUBDEV_G_EDID32:
+> +	case VIDIOC_SUBDEV_S_EDID32:
+>  		ret = do_video_ioctl(file, cmd, arg);
+>  		break;
+>
+> diff --git a/drivers/media/video/v4l2-ioctl.c
+> b/drivers/media/video/v4l2-ioctl.c
+> index c3b7b5f..1400f98 100644
+> --- a/drivers/media/video/v4l2-ioctl.c
+> +++ b/drivers/media/video/v4l2-ioctl.c
+> @@ -2185,6 +2185,19 @@ static int check_array_args(unsigned int cmd, void
+> *parg, size_t *array_size,
+>  		break;
+>  	}
+>
+> +	case VIDIOC_SUBDEV_G_EDID:
+> +	case VIDIOC_SUBDEV_S_EDID: {
+> +		struct v4l2_subdev_edid *edid = parg;
+> +
+> +		if (edid->blocks) {
+> +			*user_ptr = (void __user *)edid->edid;
+> +			*kernel_ptr = (void *)&edid->edid;
+> +			*array_size = edid->blocks * 128;
+> +			ret = 1;
+> +		}
+> +		break;
+> +	}
+> +
+>  	case VIDIOC_S_EXT_CTRLS:
+>  	case VIDIOC_G_EXT_CTRLS:
+>  	case VIDIOC_TRY_EXT_CTRLS: {
+> diff --git a/drivers/media/video/v4l2-subdev.c
+> b/drivers/media/video/v4l2-subdev.c
+> index 9182f81..dced41c 100644
+> --- a/drivers/media/video/v4l2-subdev.c
+> +++ b/drivers/media/video/v4l2-subdev.c
+> @@ -348,6 +348,12 @@ static long subdev_do_ioctl(struct file *file, unsigned
+> int cmd, void *arg)
+>  		return v4l2_subdev_call(
+>  			sd, pad, set_selection, subdev_fh, sel);
+>  	}
+> +
+> +	case VIDIOC_SUBDEV_G_EDID:
+> +		return v4l2_subdev_call(sd, pad, get_edid, arg);
+> +
+> +	case VIDIOC_SUBDEV_S_EDID:
+> +		return v4l2_subdev_call(sd, pad, set_edid, arg);
+>  #endif
+>  	default:
+>  		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index c35a354..74c578f 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -476,6 +476,8 @@ struct v4l2_subdev_pad_ops {
+>  			     struct v4l2_subdev_selection *sel);
+>  	int (*set_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+>  			     struct v4l2_subdev_selection *sel);
+> +	int (*get_edid)(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid);
+> +	int (*set_edid)(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid);
+>  #ifdef CONFIG_MEDIA_CONTROLLER
+>  	int (*link_validate)(struct v4l2_subdev *sd, struct media_link *link,
+>  			     struct v4l2_subdev_format *source_fmt,
+> --
+> 1.7.10.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
