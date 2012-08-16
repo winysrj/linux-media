@@ -1,60 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:34119 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750875Ab2HHEQo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2012 00:16:44 -0400
-Received: by eeil10 with SMTP id l10so74322eei.19
-        for <linux-media@vger.kernel.org>; Tue, 07 Aug 2012 21:16:43 -0700 (PDT)
+Received: from ring0.de ([91.143.88.219]:39541 "EHLO ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752540Ab2HPLn4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Aug 2012 07:43:56 -0400
+Date: Thu, 16 Aug 2012 13:21:04 +0200
+From: Sebastian Reichel <sre@ring0.de>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Subject: Re: [git:v4l-dvb/for_v3.7] [media] media: rc: Introduce RX51 IR
+ transmitter driver
+Message-ID: <20120816112103.GA1429@earth.universe>
+References: <E1T10iu-0000Xo-L8@www.linuxtv.org>
+ <20120815160621.GV29636@valkosipuli.retiisi.org.uk>
+ <502BFCA3.5040905@iki.fi>
+ <20120816102328.GW29636@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <1344380196-9488-2-git-send-email-crope@iki.fi>
-References: <1344380196-9488-1-git-send-email-crope@iki.fi>
-	<1344380196-9488-2-git-send-email-crope@iki.fi>
-Date: Wed, 8 Aug 2012 07:16:43 +0300
-Message-ID: <CAHp75Vd=EiGvgWh=t22DTOx0=3x8EjC2wbcgXKba56YtSr22_w@mail.gmail.com>
-Subject: Re: [PATCH 2/2] dvb_usb_v2: use %*ph to dump usb xfer debugs
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="KsGdsel6WgEHnImy"
+Content-Disposition: inline
+In-Reply-To: <20120816102328.GW29636@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 8, 2012 at 1:56 AM, Antti Palosaari <crope@iki.fi> wrote:
-> diff --git a/drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c b/drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c
-> index 5f5bdd0..0431bee 100644
-> --- a/drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c
-> +++ b/drivers/media/dvb/dvb-usb-v2/dvb_usb_urb.c
 
-> @@ -37,10 +36,8 @@ int dvb_usbv2_generic_rw(struct dvb_usb_device *d, u8 *wbuf, u16 wlen, u8 *rbuf,
->         if (ret < 0)
->                 return ret;
->
-> -#ifdef DVB_USB_XFER_DEBUG
-> -       print_hex_dump(KERN_DEBUG, KBUILD_MODNAME ": >>> ", DUMP_PREFIX_NONE,
-> -                       32, 1, wbuf, wlen, 0);
-> -#endif
-> +       dev_dbg(&d->udev->dev, "%s: >>> %*ph\n", __func__, wlen, wbuf);
-> +
->         ret = usb_bulk_msg(d->udev, usb_sndbulkpipe(d->udev,
->                         d->props->generic_bulk_ctrl_endpoint), wbuf, wlen,
->                         &actual_length, 2000);
-> @@ -64,11 +61,8 @@ int dvb_usbv2_generic_rw(struct dvb_usb_device *d, u8 *wbuf, u16 wlen, u8 *rbuf,
->                         dev_err(&d->udev->dev, "%s: 2nd usb_bulk_msg() " \
->                                         "failed=%d\n", KBUILD_MODNAME, ret);
->
-> -#ifdef DVB_USB_XFER_DEBUG
-> -               print_hex_dump(KERN_DEBUG, KBUILD_MODNAME ": <<< ",
-> -                               DUMP_PREFIX_NONE, 32, 1, rbuf, actual_length,
-> -                               0);
-> -#endif
-> +               dev_dbg(&d->udev->dev, "%s: <<< %*ph\n", __func__,
-> +                               actual_length, rbuf);
->         }
->
-Antti, I didn't check how long buffer could be in above cases, but be
-aware that %*ph prints up to 64 bytes only. Is it enough here?
+--KsGdsel6WgEHnImy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
--- 
-With Best Regards,
-Andy Shevchenko
+Hi,
+
+> > It was an requirement back then that this driver needs to be a module as
+> > 99% of the N900 owners still don't even know they have this kind of
+> > capability on their devices, so it doesn't make sense to keep the module
+> > loaded unless the user actually needs it.
+>=20
+> I don't think that's so important --- currently the vast majority of the
+> N900 users using the mainline kernel compile it themselves. It's more
+> important to have a clean implementation at this point.
+
+I would like to enable this feature for the Debian OMAP kernel,
+which is not only used for N900, but also for Pandaboard, etc.
+
+-- Sebastian
+
+--KsGdsel6WgEHnImy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBCAAGBQJQLNefAAoJENju1/PIO/qa9qoP+wR3iLyJ516w08aAuagLuajR
+/o2djTYUIHkhJ1D2Z7jSnN5rQTvrLVZG31KS+ytxf16zzRzVCmoeK20ReYSBAcBY
+j8Ebutps9CHLHmwf3ca/5w4/O5FUL1s1NuOLV/ztKT9whRamzeDfOhwqkesKDdCK
+7H6xjB/SRB8iwQpW5wdemVaZU9QSdBfhBZ4i1EkUgsYcmQversZLAas8J32BygLP
+ENzz/3y17aVi7Muw0xf3EBU13bgOHiRO4ZktzlK1+ErwlK4wOh4fnVNqmP4NkLyz
+R4CcYQQXyO/4ZK6M3nKm6pID/v23b5ocTrNprm+XhcLqs1wxArDKD3J26Yxpov4Q
+BDeHVzUKWJfLJCjhAkCPIfB6DyZR//M94XJ74p1SQKc7aBAVGiu58yE5k7HlnCjQ
+LS/20BQtVIXJKfCpbtVVpSYEqcUUjbIkxfGU3isNh+oJT305T4hbLkcR5Td31O8w
+2bcqY4sOsChGXJ7VdYgddDX1fAgBuyFjZDmU/cKixTWW5sstS4K3IkMfWa1j9YPy
+MDBMm6x9LkyqFcjtblIDsSdR16HQ993IB9A/HPqcYZOdTwtSeRwxAoCDjShKmv4O
+lbTkE/TkvIKvD+RfNrWonCGdXkls/0+camSmRs2PGI/hbGKtdTxXPSb4e6inlhLD
+sXvXF6/nnDppPyftTS+f
+=XXqc
+-----END PGP SIGNATURE-----
+
+--KsGdsel6WgEHnImy--
