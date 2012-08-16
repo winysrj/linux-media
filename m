@@ -1,206 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:33632 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755953Ab2HGRyL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2012 13:54:11 -0400
-Subject: [PATCH 2/3] dma-bikeshed-fence: Hardware dma-buf implementation of
- fencing
-To: Sumit Semwal <sumit.semwal@linaro.org>, rob.clark@linaro.org
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	patches@linaro.org
-Date: Tue, 07 Aug 2012 19:54:07 +0200
-Message-ID: <20120807175355.18745.37828.stgit@patser.local>
-In-Reply-To: <20120807175330.18745.81293.stgit@patser.local>
-References: <20120807175330.18745.81293.stgit@patser.local>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1263 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757171Ab2HPOHr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Aug 2012 10:07:47 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: dvb-usb-v2 change broke s2250-loader compilation
+Date: Thu, 16 Aug 2012 16:07:03 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <201208161233.43618.hverkuil@xs4all.nl> <502CE527.2070006@iki.fi> <502CF98B.1060700@iki.fi>
+In-Reply-To: <502CF98B.1060700@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201208161607.03380.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This type of fence can be used with hardware synchronization for simple
-hardware that can block execution until the condition
-dma_buf[offset] >= value has been met, accounting for wraparound.
+On Thu August 16 2012 15:45:47 Antti Palosaari wrote:
+> On 08/16/2012 03:18 PM, Antti Palosaari wrote:
+> > On 08/16/2012 01:33 PM, Hans Verkuil wrote:
+> >> Building the kernel with the Sensoray 2250/2251 staging go7007 driver
+> >> enabled
+> >> fails with this link error:
+> >>
+> >> ERROR: "usb_cypress_load_firmware"
+> >> [drivers/staging/media/go7007/s2250-loader.ko] undefined!
+> >>
+> >> As far as I can tell this is related to the dvb-usb-v2 changes.
+> >>
+> >> Can someone take a look at this?
+> >>
+> >> Thanks!
+> >>
+> >>     Hans
+> >
+> > Yes it is dvb usb v2 related. I wasn't even aware that someone took that
+> > module use in few days after it was added for the dvb-usb-v2.
+> >
+> > Maybe it is worth to make it even more common and move out of dvb-usb-v2...
+> >
+> > regards
+> > Antti
+> 
+> And after looking it twice I cannot see the reason. I split that Cypress 
+> firmware download to own module called dvb_usb_cypress_firmware which 
+> offer routine usbv2_cypress_load_firmware(). Old DVB USB is left 
+> untouched. I can confirm it fails to compile for s2250, but there is 
+> still old dvb_usb_cxusb that is compiling without a error.
+> 
+> Makefile paths seems to be correct also, no idea whats wrong....
 
-A software fallback still has to be provided in case the fence is used
-with a device that doesn't support this mechanism. It is useful to expose
-this for graphics cards that have an op to support this.
+drivers/media/usb/Makefile uses := instead of += for the dvb-usb(-v2) directories,
+and that prevents dvb-usb from being build. I think that's the cause of the link
+error.
 
-Some cards like i915 can export those, but don't have an option to wait,
-so they need the software fallback.
+In addition I noticed that in usb/dvb-usb there is a dvb_usb_dvb.c and a
+dvb-usb-dvb.c file: there's a mixup with _ and -.
 
-I extended the original patch by Rob Clark.
+Mauro, did that happen during the reorganization?
 
-Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
----
- drivers/base/Makefile              |    2 -
- drivers/base/dma-bikeshed-fence.c  |   44 +++++++++++++++++
- include/linux/dma-bikeshed-fence.h |   92 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 137 insertions(+), 1 deletion(-)
- create mode 100644 drivers/base/dma-bikeshed-fence.c
- create mode 100644 include/linux/dma-bikeshed-fence.h
+Regards,
 
-diff --git a/drivers/base/Makefile b/drivers/base/Makefile
-index 6e9f217..1e7723b 100644
---- a/drivers/base/Makefile
-+++ b/drivers/base/Makefile
-@@ -10,7 +10,7 @@ obj-$(CONFIG_CMA) += dma-contiguous.o
- obj-y			+= power/
- obj-$(CONFIG_HAS_DMA)	+= dma-mapping.o
- obj-$(CONFIG_HAVE_GENERIC_DMA_COHERENT) += dma-coherent.o
--obj-$(CONFIG_DMA_SHARED_BUFFER) += dma-buf.o dma-fence.o
-+obj-$(CONFIG_DMA_SHARED_BUFFER) += dma-buf.o dma-fence.o dma-bikeshed-fence.o
- obj-$(CONFIG_ISA)	+= isa.o
- obj-$(CONFIG_FW_LOADER)	+= firmware_class.o
- obj-$(CONFIG_NUMA)	+= node.o
-diff --git a/drivers/base/dma-bikeshed-fence.c b/drivers/base/dma-bikeshed-fence.c
-new file mode 100644
-index 0000000..fa063e8
---- /dev/null
-+++ b/drivers/base/dma-bikeshed-fence.c
-@@ -0,0 +1,44 @@
-+/*
-+ * dma-fence implementation that supports hw synchronization via hw
-+ * read/write of memory semaphore
-+ *
-+ * Copyright (C) 2012 Texas Instruments
-+ * Author: Rob Clark <rob.clark@linaro.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include <linux/export.h>
-+#include <linux/slab.h>
-+#include <linux/dma-bikeshed-fence.h>
-+
-+static int enable_signaling(struct dma_fence *fence)
-+{
-+	struct dma_bikeshed_fence *bikeshed_fence = to_bikeshed_fence(fence);
-+	return bikeshed_fence->enable_signaling(bikeshed_fence);
-+}
-+
-+static void bikeshed_release(struct dma_fence *fence)
-+{
-+	struct dma_bikeshed_fence *f = to_bikeshed_fence(fence);
-+
-+	if (f->release)
-+		f->release(f);
-+	dma_buf_put(f->sync_buf);
-+}
-+
-+struct dma_fence_ops dma_bikeshed_fence_ops = {
-+	.enable_signaling = enable_signaling,
-+	.release = bikeshed_release
-+};
-+EXPORT_SYMBOL_GPL(dma_bikeshed_fence_ops);
-diff --git a/include/linux/dma-bikeshed-fence.h b/include/linux/dma-bikeshed-fence.h
-new file mode 100644
-index 0000000..4f19801
---- /dev/null
-+++ b/include/linux/dma-bikeshed-fence.h
-@@ -0,0 +1,92 @@
-+/*
-+ * dma-fence implementation that supports hw synchronization via hw
-+ * read/write of memory semaphore
-+ *
-+ * Copyright (C) 2012 Texas Instruments
-+ * Author: Rob Clark <rob.clark@linaro.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#ifndef __DMA_BIKESHED_FENCE_H__
-+#define __DMA_BIKESHED_FENCE_H__
-+
-+#include <linux/types.h>
-+#include <linux/dma-fence.h>
-+#include <linux/dma-buf.h>
-+
-+struct dma_bikeshed_fence {
-+	struct dma_fence base;
-+
-+	struct dma_buf *sync_buf;
-+	uint32_t seqno_ofs;
-+	uint32_t seqno;
-+
-+	int (*enable_signaling)(struct dma_bikeshed_fence *fence);
-+	void (*release)(struct dma_bikeshed_fence *fence);
-+};
-+
-+/*
-+ * TODO does it make sense to be able to enable dma-fence without dma-buf,
-+ * or visa versa?
-+ */
-+#ifdef CONFIG_DMA_SHARED_BUFFER
-+
-+extern struct dma_fence_ops dma_bikeshed_fence_ops;
-+
-+static inline bool is_bikeshed_fence(struct dma_fence *fence)
-+{
-+	return fence->ops == &dma_bikeshed_fence_ops;
-+}
-+
-+static inline struct dma_bikeshed_fence *to_bikeshed_fence(struct dma_fence *fence)
-+{
-+	if (WARN_ON(!is_bikeshed_fence(fence)))
-+		return NULL;
-+	return container_of(fence, struct dma_bikeshed_fence, base);
-+}
-+
-+/**
-+ * dma_bikeshed_fence_init - Initialize a fence
-+ *
-+ * @fence: dma_bikeshed_fence to initialize
-+ * @sync_buf: buffer containing the memory location to signal on
-+ * @seqno_ofs: the offset within @sync_buf
-+ * @seqno: the sequence # to signal on
-+ * @priv: value of priv member
-+ * @enable_signaling: callback which is called when some other device is
-+ *    waiting for sw notification of fence
-+ * @release: callback called during destruction before object is freed.
-+ */
-+static inline void dma_bikeshed_fence_init(struct dma_bikeshed_fence *fence,
-+		struct dma_buf *sync_buf,
-+		uint32_t seqno_ofs, uint32_t seqno, void *priv,
-+		int (*enable_signaling)(struct dma_bikeshed_fence *fence),
-+		void (*release)(struct dma_bikeshed_fence *fence))
-+{
-+	BUG_ON(!fence || !sync_buf || !enable_signaling);
-+
-+	__dma_fence_init(&fence->base, &dma_bikeshed_fence_ops, priv);
-+
-+	get_dma_buf(sync_buf);
-+	fence->sync_buf = sync_buf;
-+	fence->seqno_ofs = seqno_ofs;
-+	fence->seqno = seqno;
-+	fence->enable_signaling = enable_signaling;
-+}
-+
-+#else
-+// TODO
-+#endif /* CONFIG_DMA_SHARED_BUFFER */
-+
-+#endif /* __DMA_BIKESHED_FENCE_H__ */
-
+	Hans
