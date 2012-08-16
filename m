@@ -1,115 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:49366 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750876Ab2H1KcW convert rfc822-to-8bit (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:24511 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752986Ab2HPJqe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Aug 2012 06:32:22 -0400
-Received: by wibhr14 with SMTP id hr14so4577291wib.1
-        for <linux-media@vger.kernel.org>; Tue, 28 Aug 2012 03:32:21 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <503C9AD3.6010108@gmail.com>
-References: <1345825078-3688-1-git-send-email-p.zabel@pengutronix.de>
-	<CACKLOr2Jvaie-jDSQwhSB_DPRhspz+oFW=EowBir6DTdhvxJaw@mail.gmail.com>
-	<503C9AD3.6010108@gmail.com>
-Date: Tue, 28 Aug 2012 12:32:21 +0200
-Message-ID: <CACKLOr0LgF2hND2JkrU-Wa8GcnOZJ9g5uhpqNSiE7EOUN5EHAw@mail.gmail.com>
-Subject: Re: [PATCH 0/12] Initial i.MX5/CODA7 support for the CODA driver
-From: javier Martin <javier.martin@vista-silicon.com>
-To: =?ISO-8859-1?Q?Ga=EBtan_Carlier?= <gcembed@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Thu, 16 Aug 2012 05:46:34 -0400
+Received: from epcpsbgm1.samsung.com (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M8U00D8EDTLHB90@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Aug 2012 18:46:33 +0900 (KST)
+Received: from amdc248.digital.local ([106.116.147.32])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0M8U00AV0DT26T80@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Aug 2012 18:46:30 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH 4/4] s5p-fimc: Don't allocate fimc-m2m video device dynamically
+Date: Thu, 16 Aug 2012 11:46:12 +0200
+Message-id: <1345110372-11874-4-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1345110372-11874-1-git-send-email-s.nawrocki@samsung.com>
+References: <1345110372-11874-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-You have to apply the following operation to the binary fw file
-provided by Freescale.
-We agreed with Fabio that they were going to submit that file with the
-modification below to the linux-firmware repository soon.
+There is no need to to dynamically allocate struct video_device
+for the M2M devices, so embed it instead in driver's private
+data structure as it is done in case of fimc-capture and fimc-lite,
+where it solves some bugs on cleanup paths.
 
-#include <stdio.h>
-#include <stdint.h>
-#include <assert.h>
-#include "vpu_codetable_mx27.h"
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-fimc/fimc-capture.c |    3 ++
+ drivers/media/platform/s5p-fimc/fimc-core.h    |    2 +-
+ drivers/media/platform/s5p-fimc/fimc-m2m.c     |   40 ++++++++----------------
+ 3 files changed, 17 insertions(+), 28 deletions(-)
 
-int main() {
-  FILE *f;
-  uint32_t data;
-  int i;
-
-  f = fopen("v4l-codadx6-imx27.bin", "wb");
-
-  assert(f != NULL);
-
-  /* Copy full Microcode to Code Buffer allocated on SDRAM */
-  for (i = 0; i < sizeof(bit_code2) / sizeof(bit_code2[0]); i += 2) {
-    data = (uint32_t)((bit_code2[i] << 16) | bit_code2[i + 1]);
-    fwrite(&data, sizeof(data), 1, f);
-  }
-  fclose(f);
-
-}
-
-
-On 28 August 2012 12:17, Gaëtan Carlier <gcembed@gmail.com> wrote:
-> Hi Javier,
->
-> On 08/28/2012 10:10 AM, javier Martin wrote:
->>
->> Hi Philipp,
->> in order to give you my ACK I need that patch 3 gets fixed and patches
->> 3-10 are resent so that they can apply cleanly.
->> After that, we'll make some intensive testing for a week in i.MX27, if
->> everything works as expected I'll ACK the patches.
->>
-> I am also doing some test with new Coda6 driver (I previously used kernel
-> 2.6.22 with VPU driver) but when the FW is sent, Coda does not respond and
-> timeout occurs. I have tried built-in and module version with built-in
-> firmware or via rootfs but each time the FW is found, sent to Coda then
-> timeout occurs.
-> Have you any advise for me or a working patch set for the current
-> linux-next.
-> Thanks a lot for your help.
-> Regards,
-> Gaëtan Carlier.
->
->
->> Regards.
->>
->> On 24 August 2012 18:17, Philipp Zabel <p.zabel@pengutronix.de> wrote:
->>>
->>> These patches contain initial firmware loading and encoding support for
->>> the
->>> CODA7 series VPU contained in i.MX51 and i.MX53 SoCs, and fix some
->>> multi-instance
->>> issues.
->>>
->>> regards
->>> Philipp
->>>
->>> ---
->>>   arch/arm/boot/dts/imx51.dtsi        |    6 +++++
->>>   arch/arm/boot/dts/imx53.dtsi        |    7 ++++++
->>>   arch/arm/mach-imx/clk-imx51-imx53.c |    4 +--
->>>   drivers/media/video/Kconfig         |    3 ++-
->>>   drivers/media/video/coda.c          |  367
->>> ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++------------------------------------------------------------------------
->>>   drivers/media/video/coda.h          |   21 +++++++++++++---
->>>   6 files changed, 305 insertions(+), 103 deletions(-)
->>>
->>
->>
->>
->
-
-
-
+diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c b/drivers/media/platform/s5p-fimc/fimc-capture.c
+index 5d3a70f..4092388 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-capture.c
++++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
+@@ -1663,6 +1663,9 @@ static int fimc_capture_subdev_registered(struct v4l2_subdev *sd)
+ 	struct fimc_dev *fimc = v4l2_get_subdevdata(sd);
+ 	int ret;
+ 
++	if (fimc == NULL)
++		return -ENXIO;
++
+ 	ret = fimc_register_m2m_device(fimc, sd->v4l2_dev);
+ 	if (ret)
+ 		return ret;
+diff --git a/drivers/media/platform/s5p-fimc/fimc-core.h b/drivers/media/platform/s5p-fimc/fimc-core.h
+index 30f93f2..d3a3a00 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-core.h
++++ b/drivers/media/platform/s5p-fimc/fimc-core.h
+@@ -287,7 +287,7 @@ struct fimc_frame {
+  * @refcnt: the reference counter
+  */
+ struct fimc_m2m_device {
+-	struct video_device	*vfd;
++	struct video_device	vfd;
+ 	struct v4l2_m2m_dev	*m2m_dev;
+ 	struct fimc_ctx		*ctx;
+ 	int			refcnt;
+diff --git a/drivers/media/platform/s5p-fimc/fimc-m2m.c b/drivers/media/platform/s5p-fimc/fimc-m2m.c
+index c587011..293e602 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-m2m.c
++++ b/drivers/media/platform/s5p-fimc/fimc-m2m.c
+@@ -370,7 +370,7 @@ static int fimc_m2m_s_fmt_mplane(struct file *file, void *fh,
+ 	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
+ 
+ 	if (vb2_is_busy(vq)) {
+-		v4l2_err(fimc->m2m.vfd, "queue (%d) busy\n", f->type);
++		v4l2_err(&fimc->m2m.vfd, "queue (%d) busy\n", f->type);
+ 		return -EBUSY;
+ 	}
+ 
+@@ -507,7 +507,7 @@ static int fimc_m2m_try_crop(struct fimc_ctx *ctx, struct v4l2_crop *cr)
+ 	int i;
+ 
+ 	if (cr->c.top < 0 || cr->c.left < 0) {
+-		v4l2_err(fimc->m2m.vfd,
++		v4l2_err(&fimc->m2m.vfd,
+ 			"doesn't support negative values for top & left\n");
+ 		return -EINVAL;
+ 	}
+@@ -577,7 +577,7 @@ static int fimc_m2m_s_crop(struct file *file, void *fh, struct v4l2_crop *cr)
+ 					cr->c.height, ctx->rotation);
+ 		}
+ 		if (ret) {
+-			v4l2_err(fimc->m2m.vfd, "Out of scaler range\n");
++			v4l2_err(&fimc->m2m.vfd, "Out of scaler range\n");
+ 			return -EINVAL;
+ 		}
+ 	}
+@@ -666,7 +666,7 @@ static int fimc_m2m_open(struct file *file)
+ 		ret = -ENOMEM;
+ 		goto unlock;
+ 	}
+-	v4l2_fh_init(&ctx->fh, fimc->m2m.vfd);
++	v4l2_fh_init(&ctx->fh, &fimc->m2m.vfd);
+ 	ctx->fimc_dev = fimc;
+ 
+ 	/* Default color format */
+@@ -784,38 +784,26 @@ static struct v4l2_m2m_ops m2m_ops = {
+ int fimc_register_m2m_device(struct fimc_dev *fimc,
+ 			     struct v4l2_device *v4l2_dev)
+ {
+-	struct video_device *vfd;
+-	struct platform_device *pdev;
+-	int ret = 0;
+-
+-	if (!fimc)
+-		return -ENODEV;
++	struct video_device *vfd = &fimc->m2m.vfd;
++	int ret;
+ 
+-	pdev = fimc->pdev;
+ 	fimc->v4l2_dev = v4l2_dev;
+ 
+-	vfd = video_device_alloc();
+-	if (!vfd) {
+-		v4l2_err(v4l2_dev, "Failed to allocate video device\n");
+-		return -ENOMEM;
+-	}
+-
++	memset(vfd, 0, sizeof(*vfd));
+ 	vfd->fops = &fimc_m2m_fops;
+ 	vfd->ioctl_ops = &fimc_m2m_ioctl_ops;
+ 	vfd->v4l2_dev = v4l2_dev;
+ 	vfd->minor = -1;
+-	vfd->release = video_device_release;
++	vfd->release = video_device_release_empty;
+ 	vfd->lock = &fimc->lock;
+ 
+ 	snprintf(vfd->name, sizeof(vfd->name), "fimc.%d.m2m", fimc->id);
+ 	video_set_drvdata(vfd, fimc);
+ 
+-	fimc->m2m.vfd = vfd;
+ 	fimc->m2m.m2m_dev = v4l2_m2m_init(&m2m_ops);
+ 	if (IS_ERR(fimc->m2m.m2m_dev)) {
+ 		v4l2_err(v4l2_dev, "failed to initialize v4l2-m2m device\n");
+-		ret = PTR_ERR(fimc->m2m.m2m_dev);
+-		goto err_init;
++		return PTR_ERR(fimc->m2m.m2m_dev);
+ 	}
+ 
+ 	ret = media_entity_init(&vfd->entity, 0, NULL, 0);
+@@ -834,8 +822,6 @@ err_vd:
+ 	media_entity_cleanup(&vfd->entity);
+ err_me:
+ 	v4l2_m2m_release(fimc->m2m.m2m_dev);
+-err_init:
+-	video_device_release(fimc->m2m.vfd);
+ 	return ret;
+ }
+ 
+@@ -846,9 +832,9 @@ void fimc_unregister_m2m_device(struct fimc_dev *fimc)
+ 
+ 	if (fimc->m2m.m2m_dev)
+ 		v4l2_m2m_release(fimc->m2m.m2m_dev);
+-	if (fimc->m2m.vfd) {
+-		media_entity_cleanup(&fimc->m2m.vfd->entity);
+-		/* Can also be called if video device wasn't registered */
+-		video_unregister_device(fimc->m2m.vfd);
++
++	if (video_is_registered(&fimc->m2m.vfd)) {
++		video_unregister_device(&fimc->m2m.vfd);
++		media_entity_cleanup(&fimc->m2m.vfd.entity);
+ 	}
+ }
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+1.7.10
+
