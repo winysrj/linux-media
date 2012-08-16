@@ -1,81 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from va3ehsobe010.messaging.microsoft.com ([216.32.180.30]:16059
-	"EHLO va3outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751824Ab2HTDDz (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:35039 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751132Ab2HPLZc convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Aug 2012 23:03:55 -0400
-Date: Mon, 20 Aug 2012 11:03:40 +0800
-From: Richard Zhao <richard.zhao@freescale.com>
-To: javier Martin <javier.martin@vista-silicon.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, <linux-media@vger.kernel.org>,
-	<sakari.ailus@maxwell.research.nokia.com>,
-	<kyungmin.park@samsung.com>, <s.nawrocki@samsung.com>,
-	<laurent.pinchart@ideasonboard.com>, <mchehab@infradead.org>,
-	<s.hauer@pengutronix.de>, <p.zabel@pengutronix.de>,
-	<linuxzsc@gmail.com>, <shawn.guo@linaro.org>
-Subject: Re: [v7] media: coda: Add driver for Coda video codec.
-Message-ID: <20120820030339.GB4011@b20223-02.ap.freescale.net>
-References: <1343043061-24327-1-git-send-email-javier.martin@vista-silicon.com>
- <20120803082442.GE29944@b20223-02.ap.freescale.net>
- <201208031047.01174.hverkuil@xs4all.nl>
- <20120803090329.GA15809@b20223-02.ap.freescale.net>
- <CACKLOr2XRz5edR0ZEE3UFD5enbUEMi+OkfRsn1JvOmh=NBqt8A@mail.gmail.com>
+	Thu, 16 Aug 2012 07:25:32 -0400
+From: Federico Vaga <federico.vaga@gmail.com>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: Update VIP to videobuf2 and control framework
+Date: Thu, 16 Aug 2012 13:29:11 +0200
+Message-ID: <1501953.eRLcjlTouV@harkonnen>
+In-Reply-To: <20120801070418.51885637@lwn.net>
+References: <1343765829-6006-1-git-send-email-federico.vaga@gmail.com> <201208010841.56941.hverkuil@xs4all.nl> <20120801070418.51885637@lwn.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <CACKLOr2XRz5edR0ZEE3UFD5enbUEMi+OkfRsn1JvOmh=NBqt8A@mail.gmail.com>
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+In data mercoledì 1 agosto 2012 07:04:18, Jonathan Corbet ha scritto:
+> On Wed, 1 Aug 2012 08:41:56 +0200
+> 
+> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > > The second patch adds a new memory allocator for the videobuf2. I
+> > > name it videobuf2-dma-streaming but I think "streaming" is not
+> > > the best choice, so suggestions are welcome. My inspiration for
+> > > this buffer come from videobuf-dma-contig (cached) version. After
+> > > I made this buffer I found the videobuf2-dma-nc made by Jonathan
+> > > Corbet and I improve the allocator with some suggestions
+> > > (http://patchwork.linuxtv.org/patch/7441/). The VIP doesn't work
+> > > with videobu2-dma-contig and I think this solution is easier the
+> > > sg.> 
+> > I leave this to the vb2 experts. It's not obvious to me why we would
+> > need a fourth memory allocator.
+> 
+> I first wrote my version after observing that performance dropped by a
+> factor of three on the OLPC XO 1.75 when using contiguous, coherent
+> memory.  If the architecture needs to turn off caching, things really
+> slow down, to the point that it's unusable.  There's no real reason
+> why a V4L2 device shouldn't be able to use streaming mappings in this
+> situation; it performs better and doesn't eat into the limited
+> amounts of coherent DMA space available on some systems.
+> 
+> I never got my version into a mergeable state only because I finally
+> figured out how to bludgeon the hardware into doing s/g DMA and didn't
+> need it anymore.  But I think it's a worthwhile functionality to
+> have, and, with CMA, it could be the preferred mode for a number of
+> devices.
+> 
+> jon
 
-Did the patch get picked? I didn't see it on
-git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
+I think that the memory allocator is the most questionable patch, but if 
+there are not any other comments I will send my three patches for the 
+inclusion. It is summer, time for vacation, so I'll wait for another 
+week or two for critical comments and then I will send patches.
 
 
-Still, how did you test this v4l2 device?
-
-Thanks
-Richard
-
-On Fri, Aug 03, 2012 at 01:21:02PM +0200, javier Martin wrote:
-> Hi Richard,
-> thank you for your review.
-> 
-> This patch has been reviewed and acked by several people:
-> 
->     Reviewed-by: Philipp Zabel<p.zabel@pengutronix.de>
->     Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
->     Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> For this reason a pull request has already been sent to Mauro recently:
-> 
-> http://patchwork.linuxtv.org/patch/13483/
-> 
-> 
-> >> In this case I personally don't think it will be easier to read if this line is split up.
-> > My point here is checkpatch.
-> > total: 2 errors, 30 warnings, 2086 lines checked
-> 
-> Thank you for noticing this. I have solved it in my tree so that Mauro
-> can pull for 3.7.
-> 
-> You can find it here:
-> 
-> https://github.com/jmartinc/video_visstrim.git  for_3.6
-> 
-> Regarding your i.MX6 question, maybe Philippe will be able to help you
-> since I am only interested on i.MX27. However, the driver was
-> developed considering much of his suggestions so that adding support
-> for different chips later is as straightforward as possible.
-> 
-> -- 
-> Javier Martin
-> Vista Silicon S.L.
-> CDTUC - FASE C - Oficina S-345
-> Avda de los Castros s/n
-> 39005- Santander. Cantabria. Spain
-> +34 942 25 32 60
-> www.vista-silicon.com
-> 
-
+-- 
+Federico Vaga
