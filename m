@@ -1,64 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:56162 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756296Ab2HOUfm (ORCPT
+Received: from canardo.mork.no ([148.122.252.1]:53588 "EHLO canardo.mork.no"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932123Ab2HPNVY convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Aug 2012 16:35:42 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id ED44B189F87
-	for <linux-media@vger.kernel.org>; Wed, 15 Aug 2012 22:35:40 +0200 (CEST)
-Date: Wed, 15 Aug 2012 22:35:40 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PULL] soc-camera: 3.6 fixes
-Message-ID: <Pine.LNX.4.64.1208152235260.4024@axis700.grange>
+	Thu, 16 Aug 2012 09:21:24 -0400
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+To: Manu Abraham <abraham.manu@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] [media] mantis: merge both vp2033 and vp2040 drivers
+References: <1344279745-13024-1-git-send-email-mchehab@redhat.com>
+	<CAHFNz9Jz5x8i7-ip9BOdwC06tYR1SETctvvTpA4V=mbezhRoAw@mail.gmail.com>
+	<5020271B.1020702@redhat.com>
+	<CAHFNz9+mcnq5oWJLieN6P9e_gfS5BJZTVZDTGwhZR-dCtVJgcg@mail.gmail.com>
+Date: Thu, 16 Aug 2012 15:21:00 +0200
+In-Reply-To: <CAHFNz9+mcnq5oWJLieN6P9e_gfS5BJZTVZDTGwhZR-dCtVJgcg@mail.gmail.com>
+	(Manu Abraham's message of "Tue, 7 Aug 2012 01:57:20 +0530")
+Message-ID: <87a9xvotvn.fsf@nemi.mork.no>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro
+Manu Abraham <abraham.manu@gmail.com> writes:
 
-Here go current soc-camera 3.6 fixes. We'll need them both in 3.6 and 3.7 
-to make your codebase reorganisation possibly simple. Note, that the two 
-patches from Fabio Estevam are already in 3.7, but are actually fixes and 
-should also go into 3.6. They are also required for the patch from Javier 
-Martin.
+> That's just peanuts you are talking about. The memory usage appears only
+> if you are using the module. 200 lines of .text is nothing.
 
-I'm still using my "old" git, I'll update it soon, if you'd prefer to 
-wait, let me know, I'll regenerate with a newer version.
+OK.  Deleting 200 completely useless lines of code is nothing?  I don't
+think we live in the same world.
 
-The following changes since commit ddf343f635fe4440cad528e12f96f28bd50aa099:
+> That exists to
+> differentiate between the 2 devices, not to make both hardware look the same.
 
-  Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/s390/linux (2012-08-14 07:58:59 +0300)
+Right.  And every single USB hard drive out there should have it's own
+duplicated usb-storage driver?  I don't think so...
 
-are available in the git repository at:
+I am sure you are right that the cards are different.  It just doesn't
+matter as long as the drivers are identical.
 
-  git://linuxtv.org/gliakhovetski/v4l-dvb.git 3.6-rc1-fixes
+Thank you Mauro for doing this long awaited cleanup.  Getting rid of all
+the duplicated and unused code in this driver will make it easier for
+others to get involved in fixing the real bugs.
 
-Albert Wang (1):
-      media: soc_camera: don't clear pix->sizeimage in JPEG mode
 
-Alex Gershgorin (1):
-      media: mx3_camera: buf_init() add buffer state check
-
-Fabio Estevam (2):
-      video: mx1_camera: Use clk_prepare_enable/clk_disable_unprepare
-      video: mx2_camera: Use clk_prepare_enable/clk_disable_unprepare
-
-Javier Martin (1):
-      media: mx2_camera: Fix clock handling for i.MX27.
-
- drivers/media/video/mx1_camera.c   |    4 +-
- drivers/media/video/mx2_camera.c   |   47 +++++++++++++++++++++++------------
- drivers/media/video/mx3_camera.c   |   22 +++++-----------
- drivers/media/video/soc_camera.c   |    3 +-
- drivers/media/video/soc_mediabus.c |    6 ++++
- 5 files changed, 48 insertions(+), 34 deletions(-)
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Bjørn
