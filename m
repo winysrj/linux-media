@@ -1,160 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail4-relais-sop.national.inria.fr ([192.134.164.105]:12782
-	"EHLO mail4-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750911Ab2HNNXI (ORCPT
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:54364 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755974Ab2HPBMN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 09:23:08 -0400
-Date: Tue, 14 Aug 2012 15:23:06 +0200 (CEST)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-cc: Julia Lawall <julia.lawall@lip6.fr>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] drivers/media/video/mx2_emmaprp.c: use devm_kzalloc and
- devm_clk_get
-In-Reply-To: <502A2057.3000401@redhat.com>
-Message-ID: <alpine.DEB.2.02.1208141520430.1908@hadrien>
-References: <1344104607-18805-1-git-send-email-Julia.Lawall@lip6.fr> <20120806142323.GO4352@mwanda> <20120806142650.GT4403@mwanda> <501FD69D.7070702@metafoo.de> <alpine.DEB.2.02.1208101558100.2011@hadrien> <50295A43.30305@redhat.com>
- <alpine.DEB.2.02.1208132219060.2355@localhost6.localdomain6> <5029AC92.2060408@redhat.com> <alpine.DEB.2.02.1208140819400.1973@localhost6.localdomain6> <502A2057.3000401@redhat.com>
+	Wed, 15 Aug 2012 21:12:13 -0400
+Received: by lbbgj3 with SMTP id gj3so1204065lbb.19
+        for <linux-media@vger.kernel.org>; Wed, 15 Aug 2012 18:12:11 -0700 (PDT)
+Message-ID: <502C48DC.9090303@iki.fi>
+Date: Thu, 16 Aug 2012 04:11:56 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Hiroshi DOYU <hdoyu@nvidia.com>
+CC: htl10@users.sourceforge.net, linux-media@vger.kernel.org,
+	Joe Perches <joe@perches.com>
+Subject: noisy dev_dbg_ratelimited()   [Re: small regression in mediatree/for_v3.7-3
+ - media_build]
+References: <1344991485.62541.YahooMailClassic@web29404.mail.ird.yahoo.com> <502AF5E3.7080405@iki.fi>
+In-Reply-To: <502AF5E3.7080405@iki.fi>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Julia Lawall <Julia.Lawall@lip6.fr>
+Hello Hiroshi,
 
-Using devm_kzalloc simplifies the code and ensures that the use of
-devm_request_irq is safe.  When kzalloc and kfree were used, the interrupt
-could be triggered after the handler's data argument had been freed.
+I see you have added dev_dbg_ratelimited() recently, commit 
+6ca045930338485a8cdef117e74372aa1678009d .
 
-This also introduces some missing initializations of the return variable
-ret, and uses devm_request_and_ioremap instead of the combination of
-devm_request_mem_region and devm_ioremap.
+However it seems to be noisy as expected similar behavior than normal 
+dev_dbg() without a ratelimit.
 
-The problem of a free after a devm_request_irq was found using the
-following semantic match (http://coccinelle.lip6.fr/)
+I looked ratelimit.c and there is:
+printk(KERN_WARNING "%s: %d callbacks suppressed\n", func, rs->missed);
 
-// <smpl>
-@r exists@
-expression e1,e2,x,a,b,c,d;
-identifier free;
-position p1,p2;
-@@
+What it looks my eyes it will print those "callbacks suppressed" always 
+because KERN_WARNING.
 
-  devm_request_irq@p1(e1,e2,...,x)
-  ... when any
-      when != e2 = a
-      when != x = b
-  if (...) {
-    ... when != e2 = c
-        when != x = d
-    free@p2(...,x,...);
-    ...
-    return ...;
-  }
-// </smpl>
+On 08/15/2012 04:05 AM, Antti Palosaari wrote:
+> On 08/15/2012 03:44 AM, Hin-Tak Leung wrote:
+>> --- On Wed, 15/8/12, Antti Palosaari <crope@iki.fi> wrote:
+>>
+>>> On 08/15/2012 02:39 AM, Hin-Tak Leung
+>>> wrote:
+>>>> There seems to be a small regression on
+>>> mediatree/for_v3.7-3
+>>>> - dmesg/klog get flooded with these:
+>>>>
+>>>> [201145.140260] dvb_frontend_poll: 15 callbacks
+>>> suppressed
+>>>> [201145.586405] usb_urb_complete: 88 callbacks
+>>> suppressed
+>>>> [201150.587308] usb_urb_complete: 3456 callbacks
+>>> suppressed
+>>>>
+>>>> [201468.630197] usb_urb_complete: 3315 callbacks
+>>> suppressed
+>>>> [201473.632978] usb_urb_complete: 3529 callbacks
+>>> suppressed
+>>>> [201478.635400] usb_urb_complete: 3574 callbacks
+>>> suppressed
+>>>>
+>>>> It seems to be every 5 seconds, but I think that's just
+>>> klog skipping repeats and collapsing duplicate entries. This
+>>> does not happen the last time I tried playing with the TV
+>>> stick :-).
+>>>
+>>> That's because you has dynamic debugs enabled!
+>>> modprobe dvb_core; echo -n 'module dvb_core +p' >
+>>> /sys/kernel/debug/dynamic_debug/control
+>>> modprobe dvb_usbv2; echo -n 'module dvb_usbv2 +p' >
+>>> /sys/kernel/debug/dynamic_debug/control
+>>>
+>>> If you don't add dvb_core and dvb_usbv2 modules to
+>>> /sys/kernel/debug/dynamic_debug/control you will not see
+>>> those.
+>>>
+>>> I have added ratelimited version for those few debugs that
+>>> are flooded normally. This suppressed is coming from
+>>> ratelimit - it does not print all those similar debugs.
+>>
+>> I did not enable it - it is as shipped :-).
+>>
+>> # grep 'CONFIG_DYNAMIC' /boot/config*
+>> /boot/config-3.4.6-2.fc17.x86_64:CONFIG_DYNAMIC_FTRACE=y
+>> /boot/config-3.4.6-2.fc17.x86_64:CONFIG_DYNAMIC_DEBUG=y
+>> /boot/config-3.5.0-2.fc17.x86_64:CONFIG_DYNAMIC_FTRACE=y
+>> /boot/config-3.5.0-2.fc17.x86_64:CONFIG_DYNAMIC_DEBUG=y
+>> /boot/config-3.5.1-1.fc17.x86_64:CONFIG_DYNAMIC_FTRACE=y
+>> /boot/config-3.5.1-1.fc17.x86_64:CONFIG_DYNAMIC_DEBUG=y
+>>
+>> Now I wonder why I didn't have those usb_urb_complete messages before?
+>> The last time I played with mediatree was with 3.4.4-5.fc17.x86_64,
+>> and with the mediatree2/dvb_core branch - and I did not have these then.
+>
+> Yeah, you are correct. There is something wrong now. I see also those
+> ratelimited debugs even didn't ordered...
+>
+> I think dev_dbg_ratelimited() is very new, there is no other users... I
+> have to find out whats wrong.
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+regards
+Antti
 
----
-This is the same patch I sent before.  I had no trouble applying it after
-cloning the staging/for_v3.7 branch.
-
- drivers/media/video/mx2_emmaprp.c |   31 ++++++++++++-------------------
- 1 file changed, 12 insertions(+), 19 deletions(-)
-
-diff --git a/drivers/media/video/mx2_emmaprp.c b/drivers/media/video/mx2_emmaprp.c
-index 2810015..dab380a 100644
---- a/drivers/media/video/mx2_emmaprp.c
-+++ b/drivers/media/video/mx2_emmaprp.c
-@@ -896,7 +896,7 @@ static int emmaprp_probe(struct platform_device *pdev)
- 	int irq_emma;
- 	int ret;
-
--	pcdev = kzalloc(sizeof *pcdev, GFP_KERNEL);
-+	pcdev = devm_kzalloc(&pdev->dev, sizeof(*pcdev), GFP_KERNEL);
- 	if (!pcdev)
- 		return -ENOMEM;
-
-@@ -904,27 +904,24 @@ static int emmaprp_probe(struct platform_device *pdev)
-
- 	pcdev->clk_emma_ipg = devm_clk_get(&pdev->dev, "ipg");
- 	if (IS_ERR(pcdev->clk_emma_ipg)) {
--		ret = PTR_ERR(pcdev->clk_emma_ipg);
--		goto free_dev;
-+		return PTR_ERR(pcdev->clk_emma_ipg);
- 	}
-
- 	pcdev->clk_emma_ahb = devm_clk_get(&pdev->dev, "ahb");
- 	if (IS_ERR(pcdev->clk_emma_ipg)) {
--		ret = PTR_ERR(pcdev->clk_emma_ahb);
--		goto free_dev;
-+		return PTR_ERR(pcdev->clk_emma_ahb);
- 	}
-
- 	irq_emma = platform_get_irq(pdev, 0);
- 	res_emma = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (irq_emma < 0 || res_emma == NULL) {
- 		dev_err(&pdev->dev, "Missing platform resources data\n");
--		ret = -ENODEV;
--		goto free_dev;
-+		return -ENODEV;
- 	}
-
- 	ret = v4l2_device_register(&pdev->dev, &pcdev->v4l2_dev);
- 	if (ret)
--		goto free_dev;
-+		return ret;
-
- 	mutex_init(&pcdev->dev_mutex);
-
-@@ -946,21 +943,20 @@ static int emmaprp_probe(struct platform_device *pdev)
-
- 	platform_set_drvdata(pdev, pcdev);
-
--	if (devm_request_mem_region(&pdev->dev, res_emma->start,
--	    resource_size(res_emma), MEM2MEM_NAME) == NULL)
--		goto rel_vdev;
--
--	pcdev->base_emma = devm_ioremap(&pdev->dev, res_emma->start,
--					resource_size(res_emma));
--	if (!pcdev->base_emma)
-+	pcdev->base_emma = devm_request_and_ioremap(&pdev->dev, res_emma);
-+	if (!pcdev->base_emma) {
-+		ret = -ENXIO;
- 		goto rel_vdev;
-+	}
-
- 	pcdev->irq_emma = irq_emma;
- 	pcdev->res_emma = res_emma;
-
- 	if (devm_request_irq(&pdev->dev, pcdev->irq_emma, emmaprp_irq,
--			     0, MEM2MEM_NAME, pcdev) < 0)
-+			     0, MEM2MEM_NAME, pcdev) < 0) {
-+		ret = -ENODEV;
- 		goto rel_vdev;
-+	}
-
- 	pcdev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
- 	if (IS_ERR(pcdev->alloc_ctx)) {
-@@ -993,8 +989,6 @@ rel_vdev:
- 	video_device_release(vfd);
- unreg_dev:
- 	v4l2_device_unregister(&pcdev->v4l2_dev);
--free_dev:
--	kfree(pcdev);
-
- 	return ret;
- }
-@@ -1009,7 +1003,6 @@ static int emmaprp_remove(struct platform_device *pdev)
- 	v4l2_m2m_release(pcdev->m2m_dev);
- 	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
- 	v4l2_device_unregister(&pcdev->v4l2_dev);
--	kfree(pcdev);
-
- 	return 0;
- }
-
+-- 
+http://palosaari.fi/
