@@ -1,101 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37995 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:49039 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751863Ab2HOTeZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Aug 2012 15:34:25 -0400
-Message-ID: <502BF9B1.2050305@redhat.com>
-Date: Wed, 15 Aug 2012 16:34:09 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: LMML <linux-media@vger.kernel.org>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	=?UTF-8?B?RGF2aWQgSMOkcmRlbWFu?= <david@hardeman.nu>,
-	Silvester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: Re: Patches submitted via linux-media ML that are at patchwork.linuxtv.org
-References: <502A4CD1.1020108@redhat.com> <201208141546.19560.hverkuil@xs4all.nl> <502A6075.6070606@redhat.com> <201208151154.04979.hverkuil@xs4all.nl>
-In-Reply-To: <201208151154.04979.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	id S933165Ab2HQBf5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Aug 2012 21:35:57 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hin-Tak Leung <htl10@users.sourceforge.net>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 6/6] DVB API: LNA documentation
+Date: Fri, 17 Aug 2012 04:35:10 +0300
+Message-Id: <1345167310-8738-7-git-send-email-crope@iki.fi>
+In-Reply-To: <1345167310-8738-1-git-send-email-crope@iki.fi>
+References: <1345167310-8738-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 15-08-2012 06:54, Hans Verkuil escreveu:
-> On Tue August 14 2012 16:28:05 Mauro Carvalho Chehab wrote:
->> Em 14-08-2012 10:46, Hans Verkuil escreveu:
->>> On Tue August 14 2012 15:04:17 Mauro Carvalho Chehab wrote:
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ Documentation/DocBook/media/dvb/dvbproperty.xml | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
->> Without tagging them differently, I don't have any way to know what are
->> ready for merge, and what wasn't.
-> 
-> It's too bad patchwork doesn't support a way where the submitter can kill a
-> wrong patch. That would be very useful.
-
-Yes. If patchwork had such support, patch senders could also be marking a patch
-as superseded or as RFC.
-
-I don't know enough about patchwork to write such addition into it.
-
->> Anyway, I'm open to ideas on how to handle it better, especially when it helps
->> to allow handling patches on uniform way, without needing to apply different
->> procedures for each driver maintainer.
-> 
-> I have no problem with making pull requests when I think a patch series is ready,
-> as long as it is made very clear to me that that's the way you work for patches
-> from me.
-> 
-> This is fine for 'regular' patches. But in practice I also have two other kinds
-> of patches: the first is the trivial kind: fixing typos, compiler warnings,
-> one-liner bug fixes. Basically patches where the review process takes one
-> minute tops. I would propose a [PATCH TRIVIAL] category: patchwork would pick
-> them up, you go through them quickly once or twice a week and either apply them
-> or mark them as RFC or something if you think they aren't as trivial as they
-> look.
-
-[PATCH TRIVIAL] is something that makes sense on those cases, and it is pretty
-used on other trees.
- 
-> That way my git tree won't get messy with lots of little branches for what are
-> trivial patches, and these patches get processed quickly so they won't clutter
-> patchwork.
-> 
-> The other type of patch are core kernel API changes. Those need a review from
-> you as well, and it is frankly very annoying if after a long discussion on the
-> mailinglist we come to a solution, make a final pull request for it, and only
-> then will you review it and shoot it down... And sometimes that happens just
-> before the merge window opens, leaving us with no time to fix things.
-
-True. I try to follow those patches at the ML when time allows me to do it,
-and I'm just not so over-bloated with a huge patch backlog. FYI, on the last 2
-days, ~60 new patches arriving and are waiting for my review. That's because 
-it is not close to the end of a merge window, when the volume of patch goes as
-high as the sky.
-
-> I don't mind being shot down, but I'd like to see that happen a bit earlier
-> in the process when I haven't invested that much time in it and when I can
-> make changes in a timely manner.
-> 
-> So I proprose a [PATCH API] category for patches enhancing or modifying the
-> core API.
-
-OK.
-
-> 
-> It's a signal for you that these are relevant for you as subsystem maintainer
-> to look at them earlier rather than waiting for the final pull request.
-> 
-> What do you think?
-> 
-> Regards,
-> 
-> 	Hans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
+index d188be9..2dfa6a0 100644
+--- a/Documentation/DocBook/media/dvb/dvbproperty.xml
++++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
+@@ -827,6 +827,17 @@ enum fe_interleaving {
+ };
+ 	</programlisting>
+ 	</section>
++	<section id="DTV-LNA">
++	<title><constant>DTV_LNA</constant></title>
++	<para>Low-noise amplifier.</para>
++	<para>Hardware might offer controllable LNA which can be set manually
++		using that parameter. Usually LNA could be found only from
++		terrestrial devices if at all.</para>
++	<para>Possible values: 0, 1, INT_MIN</para>
++	<para>0, LNA off</para>
++	<para>1, LNA on</para>
++	<para>INT_MIN, LNA auto</para>
++	</section>
+ </section>
+ 	<section id="frontend-property-terrestrial-systems">
+ 	<title>Properties used on terrestrial delivery systems</title>
+@@ -847,6 +858,7 @@ enum fe_interleaving {
+ 				<listitem><para><link linkend="DTV-GUARD-INTERVAL"><constant>DTV_GUARD_INTERVAL</constant></link></para></listitem>
+ 				<listitem><para><link linkend="DTV-TRANSMISSION-MODE"><constant>DTV_TRANSMISSION_MODE</constant></link></para></listitem>
+ 				<listitem><para><link linkend="DTV-HIERARCHY"><constant>DTV_HIERARCHY</constant></link></para></listitem>
++				<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
+ 			</itemizedlist>
+ 		</section>
+ 		<section id="dvbt2-params">
+@@ -870,6 +882,7 @@ enum fe_interleaving {
+ 			<listitem><para><link linkend="DTV-TRANSMISSION-MODE"><constant>DTV_TRANSMISSION_MODE</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-HIERARCHY"><constant>DTV_HIERARCHY</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-DVBT2-PLP-ID"><constant>DTV_DVBT2_PLP_ID</constant></link></para></listitem>
++			<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
+ 		</itemizedlist>
+ 		</section>
+ 		<section id="isdbt">
+@@ -981,6 +994,7 @@ enum fe_interleaving {
+ 				<listitem><para><link linkend="DTV-GUARD-INTERVAL"><constant>DTV_GUARD_INTERVAL</constant></link></para></listitem>
+ 				<listitem><para><link linkend="DTV-TRANSMISSION-MODE"><constant>DTV_TRANSMISSION_MODE</constant></link></para></listitem>
+ 				<listitem><para><link linkend="DTV-INTERLEAVING"><constant>DTV_INTERLEAVING</constant></link></para></listitem>
++				<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
+ 			</itemizedlist>
+ 		</section>
+ 	</section>
+@@ -1001,6 +1015,7 @@ enum fe_interleaving {
+ 			<listitem><para><link linkend="DTV-INVERSION"><constant>DTV_INVERSION</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-SYMBOL-RATE"><constant>DTV_SYMBOL_RATE</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-INNER-FEC"><constant>DTV_INNER_FEC</constant></link></para></listitem>
++			<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
+ 		</itemizedlist>
+ 	</section>
+ 	<section id="dvbc-annex-b-params">
+@@ -1015,6 +1030,7 @@ enum fe_interleaving {
+ 			<listitem><para><link linkend="DTV-FREQUENCY"><constant>DTV_FREQUENCY</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-MODULATION"><constant>DTV_MODULATION</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-INVERSION"><constant>DTV_INVERSION</constant></link></para></listitem>
++			<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
+ 		</itemizedlist>
+ 	</section>
+ 	</section>
+-- 
+1.7.11.2
 
