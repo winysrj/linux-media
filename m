@@ -1,58 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55899 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750724Ab2HVLDN (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:55954 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751275Ab2HQMGN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Aug 2012 07:03:13 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
-	subashrp@gmail.com, mchehab@redhat.com, g.liakhovetski@gmx.de,
-	dmitriyz@google.com, s.nawrocki@samsung.com, k.debski@samsung.com
-Subject: Re: [PATCHv8 13/26] v4l: vivi: support for dmabuf importing
-Date: Wed, 22 Aug 2012 13:03:34 +0200
-Message-ID: <1420558.oAlJzEsVFr@avalon>
-In-Reply-To: <201208221256.30179.hverkuil@xs4all.nl>
-References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com> <1344958496-9373-14-git-send-email-t.stanislaws@samsung.com> <201208221256.30179.hverkuil@xs4all.nl>
+	Fri, 17 Aug 2012 08:06:13 -0400
+Received: by weyx8 with SMTP id x8so2377400wey.19
+        for <linux-media@vger.kernel.org>; Fri, 17 Aug 2012 05:06:12 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1345204225.1800.73.camel@dcky-ubuntu64>
+References: <1345204225.1800.73.camel@dcky-ubuntu64>
+Date: Fri, 17 Aug 2012 09:06:12 -0300
+Message-ID: <CA+MoWDrG4HTgc6UyTgU42UcQPq8s3AQhQehRS6rHS-NqvU6-+g@mail.gmail.com>
+Subject: Re: Preferred setup for development?
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: pdickeybeta@gmail.com
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hello Patrick,
 
-On Wednesday 22 August 2012 12:56:30 Hans Verkuil wrote:
-> On Tue August 14 2012 17:34:43 Tomasz Stanislawski wrote:
-> > This patch enhances VIVI driver with a support for importing a buffer
-> > from DMABUF file descriptors.
-> 
-> Thanks for adding DMABUF support to vivi.
-> 
-> What would be great is if DMABUF support is also added to mem2mem_testdev.
-> It would make an excellent test case to take the vivi output, pass it
-> through mem2mem_testdev, and finally output the image using the gpu, all
-> using dmabuf.
-> 
-> It's also very useful for application developers to test dmabuf support
-> without requiring special hardware (other than a dmabuf-enabled gpu
-> driver).
+There are some information at: http://git.linuxtv.org/media_tree.git
 
-One important missing feature is support for exporting GPU buffers as dmabuf 
-file descriptors in the userspace APIs. I'm not sure where that would plug in 
-the graphics stack, but we probably need at least a Linux-specific OpenGL 
-extension for that. I've heard from Rob Clark that work was ongoing in that 
-direction. I believe that  
-https://wiki.linaro.org/OfficeofCTO/MemoryManagement?action=AttachFile&do=get&target=linux-
-video.pdf is also related.
+
+On Fri, Aug 17, 2012 at 8:50 AM, Patrick Dickey <pdickeybeta@gmail.com> wrote:
+> I'm looking for information about what distributions people are using,
+> and how they go about testing their code.  The reason is, I'm running
+> Ubuntu for my main distribution, and it seems like I'll have to go
+> through a lot of hoops in order to compile and test changes to the
+> kernel.  I realize that I could probably just use the media_build tree,
+> and add the changes there.  But, I'd prefer to go the same route that
+> the majority of the developers here do.
+>
+> So, my questions are these:
+>
+> 1.  Do you use a specific distribution for development, or a roll your
+> own (like Linux from Scratch)?
+> 2.  If you use a distribution, which one?
+I like and use Fedora.
+
+> 3.  Do you do your development on physical computers or on virtual
+> machines (or both)?
+Most on physical. I use VM for some testing.
+
+> 4.  Do you have a machine that's dedicated to development, or is it one
+> that you use for other things?
+My notebook for everything.
+
+> 5.  Do you use a newer computer, or older computer for development? (or
+> both)
+>
+> For anyone using the media_build tree (instead of the media_git tree):
+>
+> Are you able to seamlessly implement changes that are in the media_git
+> tree files to the media_build tree, or do you have to make changes in
+> order to get them to compile?
+>
+> Are your files able to be implemented into the media_git tree
+> seamlessly, or do you have to make changes to get them to compile?
+>
+> If you're able to use the media_build tree, and the changes you make can
+> be implemented in the media_git tree without hassle, I may go that route
+> instead.
+>
+> I downloaded a Slackware DVD, as it appears to be one that you can "roll
+> your own kernel" without too much of a hassle. But, I want to get
+> people's opinions before I start.
+The key points for Fedora / Ubuntu / ... are:
+- how to generate the initrd for allowing you to book your custom Kernel
+- what Kernel options are needed for your distro to work
+
+I like to follow distro specific instructions for generate Kernel
+packages. This works for me for Fedora. I follow:
+http://fedoraproject.org/wiki/Docs/CustomKernel
+
+>
+> Thanks to everyone who responds, and have a great day:)
+> Patrick.
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+[]'s
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Peter Senna Tschudin
+peter.senna@gmail.com
+gpg id: 48274C36
