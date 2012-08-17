@@ -1,192 +1,516 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37534 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751983Ab2HTWCz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Aug 2012 18:02:55 -0400
-Message-ID: <5032B407.8030407@redhat.com>
-Date: Mon, 20 Aug 2012 19:02:47 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
-CC: Sean Young <sean@mess.org>, Jarod Wilson <jwilson@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [media] rc-core: move timeout and checks to lirc
-References: <20120816221514.GA26546@pequod.mess.org> <502D7E62.9040204@redhat.com> <20120820213659.GC14636@hardeman.nu>
-In-Reply-To: <20120820213659.GC14636@hardeman.nu>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46743 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756916Ab2HQAti (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Aug 2012 20:49:38 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-leds@vger.kernel.org
+Cc: linux-media@vger.kernel.org, Bryan Wu <bryan.wu@canonical.com>,
+	Richard Purdie <rpurdie@rpsys.net>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
+	Sumit Semwal <sumit.semwal@ti.com>,
+	Archit Taneja <archit@ti.com>,
+	Sebastien Guiriec <s-guiriec@ti.com>,
+	Inki Dae <inki.dae@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [RFC 5/5] video: panel: Add R61517 panel support
+Date: Fri, 17 Aug 2012 02:49:43 +0200
+Message-Id: <1345164583-18924-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1345164583-18924-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1345164583-18924-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 20-08-2012 18:36, David Härdeman escreveu:
-> On Thu, Aug 16, 2012 at 08:12:34PM -0300, Mauro Carvalho Chehab wrote:
->> Em 16-08-2012 19:15, Sean Young escreveu:
->>>  
->>>> The lirc TX functionality expects the process which writes (TX) data to
->>>> the lirc dev to sleep until the actual data has been transmitted by the
->>>> hardware.
->>>>
->>>> Since the same timeout calculation is duplicated in more than one driver
->>>> (and would have to be duplicated in even more drivers as they gain TX
->>>> support), it makes sense to move this timeout calculation to the lirc
->>>> layer instead.
->>>>
->>>> At the same time, centralize some of the sanity checks.
->>>>
->>>> Signed-off-by: David Härdeman <david@hardeman.nu>
->>>> Cc: Jarod Wilson <jwilson@redhat.com>
->>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>>> ---
->>>>  drivers/media/rc/ir-lirc-codec.c | 33 +++++++++++++++++++++++++++++----
->>>>  drivers/media/rc/mceusb.c        | 18 ------------------
->>>>  drivers/media/rc/rc-loopback.c   | 12 ------------
->>>>  3 files changed, 29 insertions(+), 34 deletions(-)
->>>>
->>>> diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
->>>> index d2fd064..6ad4a07 100644
->>>> --- a/drivers/media/rc/ir-lirc-codec.c
->>>> +++ b/drivers/media/rc/ir-lirc-codec.c
->>>> @@ -107,6 +107,12 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
->>>>  	unsigned int *txbuf; /* buffer with values to transmit */
->>>>  	ssize_t ret = -EINVAL;
->>>>  	size_t count;
->>>> +	ktime_t start;
->>>> +	s64 towait;
->>>> +	unsigned int duration = 0; /* signal duration in us */
->>>> +	int i;
->>>> +
->>>> +	start = ktime_get();
->>>>  
->>>>  	lirc = lirc_get_pdata(file);
->>>>  	if (!lirc)
->>>> @@ -129,11 +135,30 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
->>>>  		goto out;
->>>>  	}
->>>>  
->>>> -	if (dev->tx_ir)
->>>> -		ret = dev->tx_ir(dev, txbuf, count);
->>>> +	if (!dev->tx_ir) {
->>>> +		ret = -ENOSYS;
->>>> +		goto out;
->>>> +	}
->>>> +
->>>> +	ret = dev->tx_ir(dev, txbuf, (u32)n);
->>>> +	if (ret < 0)
->>>> +		goto out;
->>>> +
->>>> +	for (i = 0; i < ret; i++)
->>>> +		duration += txbuf[i];
->>>>  
->>>> -	if (ret > 0)
->>>> -		ret *= sizeof(unsigned);
->>>> +	ret *= sizeof(unsigned int);
->>>> +
->>>> +	/*
->>>> +	 * The lircd gap calculation expects the write function to
->>>> +	 * wait for the actual IR signal to be transmitted before
->>>> +	 * returning.
->>>> +	 */
->>>> +	towait = ktime_us_delta(ktime_add_us(start, duration), ktime_get());
->>>> +	if (towait > 0) {
->>>> +		set_current_state(TASK_INTERRUPTIBLE);
->>>> +		schedule_timeout(usecs_to_jiffies(towait));
->>>> +	}
->>>>  
->>>>  out:
->>>
->>> You've moved the sleeping out of the drivers to ir-lirc-codec, which makes
->>> sense for some devices. However you haven't updated winbond-cir.c which
->>> does two things:
->>>
->>> 1) Modifies the txbuf (which is now used after transmit)
->>> 2) Does the sleeping already since it blocks on the device to complete.
->>>
->>> Surely if the driver can block on the device to complete then that is 
->>> better than sleeping; there might some difference due to rounding and 
->>> clock skew.
->>>
->>> In addition to winbond-cir, iguanair suffer from the same problem. There
->>> might be others.
->>
->> That's likely my fault: I was waiting for Jarod's review on this patch,
->> with didn't happen, likely because he is too busy with some other stuff.
->> Both winbond and iguanair drivers went after David's patch.
->>
->> Feel free to send me a patch fixing it there.
->>
->>> Could we have a flag in rc_dev to signify whether a driver blocks on
->>> completion of a transmit and only sleep here if it is not set?
->>>
->>> e.g. rc_dev.tx_blocks_until_complete
->>>
->>> The wording could be improved.
->>>
->>> Another alternative would be if the drivers provided a 
->>> "wait_for_tx_to_complete()" function. If they can provided that; using 
->>> that it would be possible to implement O_NONBLOCK and sync.
->>
->> Seems fine on my eyes. It may avoid code duplication if you pass the fd 
->> flags to the lirc call, and add a code there that will wait for complete, 
->> if the device was not opened in block mode.
-> 
-> I think a future rc-core native TX API should behave like a write() on a
-> network socket does.
-> 
-> That is, a write on a rc device opened with O_NONBLOCK will either
-> succeed immediately (i.e. write data to buffers for further processing)
-> or return EAGAIN.  A write on a non-O_NONBLOCK device will either write
-> the data to buffer space and return or wait for more space to be
-> available. No waiting for the data to actually leave the "device" (NIC
-> or IR transmitter) is done by the write() call.
-> 
-> The "gap calculation" that lirc wants to do based on the time a write()
-> takes to complete is quite non-unixy in my eyes and seems bogus.
-> 
-> If a user-space program wants a very specific and deterministic
-> behaviour, eg. wrt gaps...it should just add it to the TX data.
-> 
-> I.e. if you want to TX command "A", wait 150ms, TX command "B", then
-> instead of doing:
-> 
-> write(A); sleep(150ms); write(B);
-> 
-> the app should do:
-> 
-> write(A + 150ms silence + B);
-> 
-> The same goes for e.g. trailing silences after commands, etc...
+The R61517 is a MIPI DBI panel controller from Renesas.
 
-That makes sense to me, but we need to not break existing userspace
-applications with new improvements.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/video/panel/Kconfig        |    9 +
+ drivers/video/panel/Makefile       |    1 +
+ drivers/video/panel/panel-r61517.c |  408 ++++++++++++++++++++++++++++++++++++
+ include/video/panel-r61517.h       |   28 +++
+ 4 files changed, 446 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/video/panel/panel-r61517.c
+ create mode 100644 include/video/panel-r61517.h
 
-Yeah, a better API is needed to not only allow sending pulse/space/waiting
-times to IR TX, but also sending real keystrokes, like:
+diff --git a/drivers/video/panel/Kconfig b/drivers/video/panel/Kconfig
+index 12d7712..bd643be 100644
+--- a/drivers/video/panel/Kconfig
++++ b/drivers/video/panel/Kconfig
+@@ -25,4 +25,13 @@ config DISPLAY_PANEL_R61505
+ 
+ 	  If you are in doubt, say N.
+ 
++config DISPLAY_PANEL_R61517
++	tristate "Renesas R61517-based Display Panel"
++	select DISPLAY_PANEL_DBI
++	---help---
++	  Support panels based on the Renesas R61517 panel controller.
++	  Those panels are controlled through a MIPI DBI interface.
++
++	  If you are in doubt, say N.
++
+ endif # DISPLAY_PANEL
+diff --git a/drivers/video/panel/Makefile b/drivers/video/panel/Makefile
+index e4fb9fe..3c11d26 100644
+--- a/drivers/video/panel/Makefile
++++ b/drivers/video/panel/Makefile
+@@ -2,3 +2,4 @@ obj-$(CONFIG_DISPLAY_PANEL) += panel.o
+ obj-$(CONFIG_DISPLAY_PANEL_DUMMY) += panel-dummy.o
+ obj-$(CONFIG_DISPLAY_PANEL_DBI) += panel-dbi.o
+ obj-$(CONFIG_DISPLAY_PANEL_R61505) += panel-r61505.o
++obj-$(CONFIG_DISPLAY_PANEL_R61517) += panel-r61517.o
+diff --git a/drivers/video/panel/panel-r61517.c b/drivers/video/panel/panel-r61517.c
+new file mode 100644
+index 0000000..6e8d933
+--- /dev/null
++++ b/drivers/video/panel/panel-r61517.c
+@@ -0,0 +1,408 @@
++/*
++ * Renesas R61517-based Display Panels
++ *
++ * Copyright (C) 2012 Renesas Solutions Corp.
++ * Based on KFR2R09 LCD panel support
++ * Copyright (C) 2009 Magnus Damm
++ * Register settings based on the out-of-tree t33fb.c driver
++ * Copyright (C) 2008 Lineo Solutions, Inc.
++ *
++ * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/delay.h>
++#include <linux/err.h>
++#include <linux/fb.h>
++#include <linux/init.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/gpio.h>
++
++#include <video/panel-dbi.h>
++#include <video/panel-r61517.h>
++
++struct r61517 {
++	struct panel panel;
++	struct panel_dbi_device *dbi;
++	const struct panel_r61517_platform_data *pdata;
++};
++
++#define to_panel(p)	container_of(p, struct r61517, panel)
++
++/* -----------------------------------------------------------------------------
++ * Read, write and reset
++ */
++
++static void r61517_write_command(struct r61517 *panel, u16 reg)
++{
++	panel_dbi_write_command(panel->dbi, reg);
++}
++
++static void r61517_write_data(struct r61517 *panel, u16 data)
++{
++	panel_dbi_write_data(panel->dbi, data);
++}
++
++static void r61517_write(struct r61517 *panel, u16 reg, u16 data)
++{
++	panel_dbi_write_command(panel->dbi, reg);
++	panel_dbi_write_data(panel->dbi, data);
++}
++
++static u16 r61517_read_data(struct r61517 *panel)
++{
++	return panel_dbi_read_data(panel->dbi);
++}
++
++static void __r61517_write_array(struct r61517 *panel, const u8 *data,
++				 unsigned int len)
++{
++	unsigned int i;
++
++	for (i = 0; i < len; ++i)
++		r61517_write_data(panel, data[i]);
++}
++
++#define r61517_write_array(p, a) \
++	__r61517_write_array(p, a, ARRAY_SIZE(a))
++
++static void r61517_reset(struct r61517 *panel)
++{
++	gpio_set_value(panel->pdata->protect, 0);	/* PROTECT/ -> L */
++	gpio_set_value(panel->pdata->reset, 0);		/* LCD_RST/ -> L */
++	gpio_set_value(panel->pdata->protect, 1);	/* PROTECT/ -> H */
++	usleep_range(1100, 1200);
++	gpio_set_value(panel->pdata->reset, 1);		/* LCD_RST/ -> H */
++	usleep_range(10, 100);
++	gpio_set_value(panel->pdata->protect, 0);	/* PROTECT/ -> L */
++	msleep(20);
++}
++
++/* -----------------------------------------------------------------------------
++ * Configuration
++ */
++
++static const u8 data_frame_if[] = {
++	0x02, /* WEMODE: 1=cont, 0=one-shot */
++	0x00, 0x00,
++	0x00, /* EPF, DFM */
++	0x02, /* RIM[1] : 1 (18bpp) */
++};
++
++static const u8 data_panel[] = {
++	0x0b,
++	0x63, /* 400 lines */
++	0x04, 0x00, 0x00, 0x04, 0x11, 0x00, 0x00,
++};
++
++static const u8 data_timing[] = {
++	0x00, 0x00, 0x13, 0x08, 0x08,
++};
++
++static const u8 data_timing_src[] = {
++	0x11, 0x01, 0x00, 0x01,
++};
++
++static const u8 data_gamma[] = {
++	0x01, 0x02, 0x08, 0x23,	0x03, 0x0c, 0x00, 0x06,	0x00, 0x00,
++	0x01, 0x00, 0x0c, 0x23, 0x03, 0x08, 0x02, 0x06, 0x00, 0x00,
++};
++
++static const u8 data_power[] = {
++	0x07, 0xc5, 0xdc, 0x02,	0x33, 0x0a,
++};
++
++static unsigned long r61517_read_device_code(struct r61517 *panel)
++{
++	/* access protect OFF */
++	r61517_write(panel, 0xb0, 0x00);
++
++	/* deep standby OFF */
++	r61517_write(panel, 0xb1, 0x00);
++
++	/* device code command */
++	r61517_write_command(panel, 0xbf);
++	mdelay(50);
++
++	/* dummy read */
++	r61517_read_data(panel);
++
++	/* read device code */
++	return ((r61517_read_data(panel) & 0xff) << 24) |
++	       ((r61517_read_data(panel) & 0xff) << 16) |
++	       ((r61517_read_data(panel) & 0xff) << 8) |
++	       ((r61517_read_data(panel) & 0xff) << 0);
++}
++
++static void r61517_write_memory_start(struct r61517 *panel)
++{
++	r61517_write_command(panel, 0x2c);
++}
++
++static void r61517_clear_memory(struct r61517 *panel)
++{
++	unsigned int i;
++
++	r61517_write_memory_start(panel);
++
++	for (i = 0; i < (240 * 400); i++)
++		r61517_write_data(panel, 0);
++}
++
++static void r61517_enable_panel(struct r61517 *panel)
++{
++	/* access protect off */
++	r61517_write(panel, 0xb0, 0x00);
++
++	/* exit deep standby mode */
++	r61517_write(panel, 0xb1, 0x00);
++
++	/* frame memory I/F */
++	r61517_write_command(panel, 0xb3);
++	r61517_write_array(panel, data_frame_if);
++
++	/* display mode and frame memory write mode */
++	r61517_write(panel, 0xb4, 0x00); /* DBI, internal clock */
++
++	/* panel */
++	r61517_write_command(panel, 0xc0);
++	r61517_write_array(panel, data_panel);
++
++	/* timing (normal) */
++	r61517_write_command(panel, 0xc1);
++	r61517_write_array(panel, data_timing);
++
++	/* timing (partial) */
++	r61517_write_command(panel, 0xc2);
++	r61517_write_array(panel, data_timing);
++
++	/* timing (idle) */
++	r61517_write_command(panel, 0xc3);
++	r61517_write_array(panel, data_timing);
++
++	/* timing (source/VCOM/gate driving) */
++	r61517_write_command(panel, 0xc4);
++	r61517_write_array(panel, data_timing_src);
++
++	/* gamma (red) */
++	r61517_write_command(panel, 0xc8);
++	r61517_write_array(panel, data_gamma);
++
++	/* gamma (green) */
++	r61517_write_command(panel, 0xc9);
++	r61517_write_array(panel, data_gamma);
++
++	/* gamma (blue) */
++	r61517_write_command(panel, 0xca);
++	r61517_write_array(panel, data_gamma);
++
++	/* power (common) */
++	r61517_write_command(panel, 0xd0);
++	r61517_write_array(panel, data_power);
++
++	/* VCOM */
++	r61517_write_command(panel, 0xd1);
++	r61517_write_data(panel, 0x00);
++	r61517_write_data(panel, 0x0f);
++	r61517_write_data(panel, 0x02);
++
++	/* power (normal) */
++	r61517_write_command(panel, 0xd2);
++	r61517_write_data(panel, 0x63);
++	r61517_write_data(panel, 0x24);
++
++	/* power (partial) */
++	r61517_write_command(panel, 0xd3);
++	r61517_write_data(panel, 0x63);
++	r61517_write_data(panel, 0x24);
++
++	/* power (idle) */
++	r61517_write_command(panel, 0xd4);
++	r61517_write_data(panel, 0x63);
++	r61517_write_data(panel, 0x24);
++
++	r61517_write_command(panel, 0xd8);
++	r61517_write_data(panel, 0x77);
++	r61517_write_data(panel, 0x77);
++
++	/* TE signal */
++	r61517_write(panel, 0x35, 0x00);
++
++	/* TE signal line */
++	r61517_write_command(panel, 0x44);
++	r61517_write_data(panel, 0x00);
++	r61517_write_data(panel, 0x00);
++
++	/* column address */
++	r61517_write_command(panel, 0x2a);
++	r61517_write_data(panel, 0x00);
++	r61517_write_data(panel, 0x00);
++	r61517_write_data(panel, 0x00);
++	r61517_write_data(panel, 0xef);
++
++	/* page address */
++	r61517_write_command(panel, 0x2b);
++	r61517_write_data(panel, 0x00);
++	r61517_write_data(panel, 0x00);
++	r61517_write_data(panel, 0x01);
++	r61517_write_data(panel, 0x8f);
++
++	/* exit sleep mode */
++	r61517_write_command(panel, 0x11);
++
++	mdelay(120);
++
++	/* clear vram */
++	r61517_clear_memory(panel);
++}
++
++static void r61517_disable_panel(struct r61517 *panel)
++{
++	r61517_reset(panel);
++}
++
++static void r61517_display_on(struct r61517 *panel)
++{
++	r61517_write_command(panel, 0x29);
++	mdelay(1);
++}
++
++static void r61517_display_off(struct r61517 *panel)
++{
++	r61517_write_command(panel, 0x28);
++}
++
++/* -----------------------------------------------------------------------------
++ * Panel operations
++ */
++
++static int r61517_enable(struct panel *p, enum panel_enable_mode enable)
++{
++	struct r61517 *panel = to_panel(p);
++
++	switch (enable) {
++	case PANEL_ENABLE_OFF:
++		r61517_disable_panel(panel);
++		break;
++
++	case PANEL_ENABLE_BLANK:
++		if (p->enable == PANEL_ENABLE_OFF)
++			r61517_enable_panel(panel);
++		else
++			r61517_display_off(panel);
++		break;
++
++	case PANEL_ENABLE_ON:
++		if (p->enable == PANEL_ENABLE_OFF)
++			r61517_enable_panel(panel);
++
++		r61517_display_on(panel);
++		break;
++	}
++
++	return 0;
++}
++
++static int r61517_start_transfer(struct panel *p)
++{
++	struct r61517 *panel = to_panel(p);
++
++	r61517_write_memory_start(panel);
++	return 0;
++}
++
++static int r61517_get_modes(struct panel *p, const struct fb_videomode **modes)
++{
++	struct r61517 *panel = to_panel(p);
++
++	*modes = panel->pdata->mode;
++	return 1;
++}
++
++static const struct panel_ops r61517_ops = {
++	.enable = r61517_enable,
++	.start_transfer = r61517_start_transfer,
++	.get_modes = r61517_get_modes,
++};
++
++static void r61517_release(struct panel *p)
++{
++	struct r61517 *panel = to_panel(p);
++
++	kfree(panel);
++}
++
++static int r61517_remove(struct panel_dbi_device *dev)
++{
++	struct r61517 *panel = panel_dbi_get_drvdata(dev);
++
++	panel_dbi_set_drvdata(dev, NULL);
++	panel_unregister(&panel->panel);
++
++	return 0;
++}
++
++static int __devinit r61517_probe(struct panel_dbi_device *dev)
++{
++	const struct panel_r61517_platform_data *pdata = dev->dev.platform_data;
++	struct r61517 *panel;
++	int ret;
++
++	if (pdata == NULL)
++		return -ENODEV;
++
++	panel = kzalloc(sizeof(*panel), GFP_KERNEL);
++	if (panel == NULL)
++		return -ENOMEM;
++
++	panel->pdata = pdata;
++	panel->dbi = dev;
++
++	r61517_reset(panel);
++
++	if (r61517_read_device_code(panel) != 0x01221517) {
++		kfree(panel);
++		return -ENODEV;
++	}
++
++	pr_info("R61517 panel controller detected.\n");
++
++	panel->panel.dev = &dev->dev;
++	panel->panel.release = r61517_release;
++	panel->panel.ops = &r61517_ops;
++	panel->panel.width = pdata->width;
++	panel->panel.height = pdata->height;
++
++	ret = panel_register(&panel->panel);
++	if (ret < 0) {
++		kfree(panel);
++		return ret;
++	}
++
++	panel_dbi_set_drvdata(dev, panel);
++
++	return 0;
++}
++
++static const struct dev_pm_ops r61517_dev_pm_ops = {
++};
++
++static struct panel_dbi_driver r61517_driver = {
++	.probe = r61517_probe,
++	.remove = r61517_remove,
++	.driver = {
++		.name = "panel_r61517",
++		.owner = THIS_MODULE,
++		.pm = &r61517_dev_pm_ops,
++	},
++};
++
++module_panel_dbi_driver(r61517_driver);
++
++MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
++MODULE_DESCRIPTION("Renesas R61517-based Display Panel");
++MODULE_LICENSE("GPL");
+diff --git a/include/video/panel-r61517.h b/include/video/panel-r61517.h
+new file mode 100644
+index 0000000..c9e6ddf
+--- /dev/null
++++ b/include/video/panel-r61517.h
+@@ -0,0 +1,28 @@
++/*
++ * Renesas R61517-based Display Panels
++ *
++ * Copyright (C) 2012 Renesas Solutions Corp.
++ *
++ * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef __PANEL_R61517_H__
++#define __PANEL_R61517_H__
++
++#include <linux/fb.h>
++#include <video/panel.h>
++
++struct panel_r61517_platform_data {
++	unsigned long width;		/* Panel width in mm */
++	unsigned long height;		/* Panel height in mm */
++	const struct fb_videomode *mode;
++
++	int protect;			/* Protect GPIO */
++	int reset;			/* Reset GPIO */
++};
++
++#endif /* __PANEL_R61517_H__ */
+-- 
+1.7.8.6
 
-echo "A" > /dev/<some rc device>
-
-Still, I'm not sure if we should create a "150 ms silence" keystroke. That
-doesn't sound linux style to me.
-
-The Linux way would be:
-
-fputs("A", fp);
-fflush(fp);
-usleep(150000);
-fputs("B", fp);
-
-That's close to what is done on term apps like minicom.
-
-Ok, currently, all drivers have only "raw" TX. Yet, HDMI CEC provides
-a way to receive/send IR commands from/to the TV set. So, I think we'll
-have soon some drivers that only work on 'non-raw' TX mode.
-
-So, IMO, it makes sense to have a "high end" API that accepts
-writing keystrokes like above, working with both "raw drivers"
-using some kernel IR protocol encoders, and with devices that can
-accept "processed" keystrokes, like HDMI CEC.
-
-The lirc interface may not be the right device for such usage,
-if changing it would break support for existing devices.
-
-Regards,
-Mauro
