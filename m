@@ -1,64 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58103 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750854Ab2HQM4q (ORCPT
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:53697 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932449Ab2HQSwz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Aug 2012 08:56:46 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: workshop-2011@linuxtv.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans de Goede <hdegoede@redhat.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [Workshop-2011] V4L2 API ambiguities: workshop presentation
-Date: Fri, 17 Aug 2012 14:57:02 +0200
-Message-ID: <70803480.BV5Mjk80If@avalon>
-In-Reply-To: <201208171455.13961.hverkuil@xs4all.nl>
-References: <201208171235.58094.hverkuil@xs4all.nl> <502E3D97.3090502@redhat.com> <201208171455.13961.hverkuil@xs4all.nl>
+	Fri, 17 Aug 2012 14:52:55 -0400
+Received: by lbbgj3 with SMTP id gj3so2298179lbb.19
+        for <linux-media@vger.kernel.org>; Fri, 17 Aug 2012 11:52:53 -0700 (PDT)
+Message-ID: <502E92F6.6060509@iki.fi>
+Date: Fri, 17 Aug 2012 21:52:38 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: CrazyCat <crazycat69@yandex.ru>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] dvb_frontend: Multistream support
+References: <53381345139167@web11e.yandex.ru> <502D37CF.7030608@iki.fi> <839331345224097@web14d.yandex.ru>
+In-Reply-To: <839331345224097@web14d.yandex.ru>
+Content-Type: text/plain; charset=KOI8-R; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 17 August 2012 14:55:13 Hans Verkuil wrote:
-> On Fri August 17 2012 14:48:23 Hans de Goede wrote:
-> > On 08/17/2012 12:35 PM, Hans Verkuil wrote:
-> > > Hi all,
-> > > 
-> > > I've prepared a presentation for the upcoming workshop based on my RFC
-> > > and the comments I received.
-> > > 
-> > > It is available here:
-> > > 
-> > > http://hverkuil.home.xs4all.nl/presentations/v4l2-workshop-2012.odp
-> > > http://hverkuil.home.xs4all.nl/presentations/v4l2-workshop-2012.pdf
-> > > 
-> > > Attendees of the workshop: please review this before the workshop
-> > > starts. I
-> > > want to go through this list fairly quickly (particularly slides 1-14)
-> > > so we can have more time for other topics.
-> > 
-> > A note on the Pixel Aspect Ratio from me, since I won't be attending:
-> > 
-> > I'm not sure if having a VIDIOC_G_PIXELASPECT is enough, it will work
-> > to get the current mode, but not for enumerating. Also it will not
-> > work with TRY_FMT, that is one cannot find out the actual pixelaspect
-> > until after a S_FMT. As mentioned in previous mail I think at a minimum
-> > the results of ENUM_FRAMESIZES should contain the pixel aspect per
-> > framesize, there is enough reserved space in the relevant structs to make
-> > this happen
-> Pixel aspect doesn't belong in the FMT ioctls: the pixel aspect ratio is
-> a property of the video input/output format, but the FMT ioctls deal with
-> scaling as well, so the aspect ratio would then be scaled as well, making
-> it very complex indeed.
-> 
-> Regarding ENUM_FRAMESIZES: it makes sense to add an aspect ratio here for
-> use with sensors. But for video receivers ENUM_FRAMESIZES isn't applicable.
+On 08/17/2012 08:21 PM, CrazyCat wrote:
+>
+> 16.08.2012, 21:11, "Antti Palosaari" <crope@iki.fi>:
+>>>   - /* ISDB-T specifics */
+>>>   - u32 isdbs_ts_id;
+>>>   -
+>>>   - /* DVB-T2 specifics */
+>>>   - u32                     dvbt2_plp_id;
+>>>   + /* Multistream specifics */
+>>>   + u32 stream_id;
+>>
+>> u32 == 32 bit long unsigned number. See next comment.
+>>>
+>>>   - c->isdbs_ts_id = 0;
+>>>   - c->dvbt2_plp_id = 0;
+>>>   + c->stream_id = -1;
+>>
+>> unsigned number cannot be -1. It can be only 0 or bigger. Due to that
+>> this is wrong.
+>
+> so maybe better declare in as int ? depend from standard valid stream id (for DVB is 0-255) and any another value (-1) disable stream filtering in demod.
 
-Do we have sensors with non-square pixels ?
+I agree that. Actually I was thinking same. For DVB-T2 valid values are 
+0-255, I haven't looked others but surely int maximum should enough for all.
+
+regards
+Antti
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+http://palosaari.fi/
