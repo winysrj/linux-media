@@ -1,49 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:23088 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752847Ab2HWKEG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Aug 2012 06:04:06 -0400
-Message-ID: <50360051.9050908@redhat.com>
-Date: Thu, 23 Aug 2012 12:05:05 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from hqemgate04.nvidia.com ([216.228.121.35]:6299 "EHLO
+	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754386Ab2HQGEj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Aug 2012 02:04:39 -0400
+From: Hiroshi Doyu <hdoyu@nvidia.com>
+To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+CC: Antti Palosaari <crope@iki.fi>,
+	"htl10@users.sourceforge.net" <htl10@users.sourceforge.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"joe@perches.com" <joe@perches.com>,
+	"linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
+Date: Fri, 17 Aug 2012 08:04:16 +0200
+Subject: [PATCH 1/1] driver-core: Shut up dev_dbg_reatelimited() without
+ DEBUG
+Message-ID: <20120817.090416.563933713934615530.hdoyu@nvidia.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-To: Arnd Bergmann <arnd@arndb.de>
-CC: Guenter Roeck <linux@roeck-us.net>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media/radio/shark2: Fix build error caused by missing
- dependencies
-References: <1345648585-5176-1-git-send-email-linux@roeck-us.net> <5034F932.4000405@redhat.com> <20120822152922.GA6177@roeck-us.net> <201208221857.01527.arnd@arndb.de>
-In-Reply-To: <201208221857.01527.arnd@arndb.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+dev_dbg_reatelimited() without DEBUG printed "217078 callbacks
+suppressed". This shouldn't print anything without DEBUG.
 
-On 08/22/2012 08:57 PM, Arnd Bergmann wrote:
-> On Wednesday 22 August 2012, Guenter Roeck wrote:
->> On Wed, Aug 22, 2012 at 05:22:26PM +0200, Hans de Goede wrote:
->>> Hi,
->>>
->>> I've a better fix for this here:
->>> http://git.linuxtv.org/hgoede/gspca.git/shortlog/refs/heads/media-for_v3.6
->>>
->>> I already send a pull-req for this to Mauro a while ago, Mauro?
->>>
->> Looks like it found its way into mainline in the last couple of days.
->> Should have updated my tree first. Sorry for the noise.
->>
->
-> I found another issue with the shark driver while doing randconfig tests.
-> Here is my semi-automated log file for the problem. Has this also made
-> it in already?
+Signed-off-by: Hiroshi Doyu <hdoyu@nvidia.com>
+Reported-by: Antti Palosaari <crope@iki.fi>
+---
+ include/linux/device.h |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
 
-No,
-
-Mauro, can you please add Arnd's fix for this to 3.6 ?
-
-Thanks,
-
-Hans
+diff --git a/include/linux/device.h b/include/linux/device.h
+index eb945e1..d4dc26e 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -962,9 +962,13 @@ do {									\
+ 	dev_level_ratelimited(dev_notice, dev, fmt, ##__VA_ARGS__)
+ #define dev_info_ratelimited(dev, fmt, ...)				\
+ 	dev_level_ratelimited(dev_info, dev, fmt, ##__VA_ARGS__)
++#if defined(DEBUG)
+ #define dev_dbg_ratelimited(dev, fmt, ...)				\
+ 	dev_level_ratelimited(dev_dbg, dev, fmt, ##__VA_ARGS__)
+-
++#else
++#define dev_dbg_ratelimited(dev, fmt, ...)			\
++	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
++#endif
+ /*
+  * Stupid hackaround for existing uses of non-printk uses dev_info
+  *
+-- 
+1.7.5.4
