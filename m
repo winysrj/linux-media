@@ -1,56 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:49331 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759798Ab2HXQSK (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2156 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757951Ab2HQMzZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 12:18:10 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@linaro.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 08/12] coda: enable user pointer support
-Date: Fri, 24 Aug 2012 18:17:54 +0200
-Message-Id: <1345825078-3688-9-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1345825078-3688-1-git-send-email-p.zabel@pengutronix.de>
-References: <1345825078-3688-1-git-send-email-p.zabel@pengutronix.de>
+	Fri, 17 Aug 2012 08:55:25 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: V4L2 API ambiguities: workshop presentation
+Date: Fri, 17 Aug 2012 14:55:13 +0200
+Cc: workshop-2011@linuxtv.org,
+	"linux-media" <linux-media@vger.kernel.org>
+References: <201208171235.58094.hverkuil@xs4all.nl> <502E3D97.3090502@redhat.com>
+In-Reply-To: <502E3D97.3090502@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201208171455.13961.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-USERPTR buffer support is provided by the videobuf2 framework.
+On Fri August 17 2012 14:48:23 Hans de Goede wrote:
+> Hi,
+> 
+> On 08/17/2012 12:35 PM, Hans Verkuil wrote:
+> > Hi all,
+> >
+> > I've prepared a presentation for the upcoming workshop based on my RFC and the
+> > comments I received.
+> >
+> > It is available here:
+> >
+> > http://hverkuil.home.xs4all.nl/presentations/v4l2-workshop-2012.odp
+> > http://hverkuil.home.xs4all.nl/presentations/v4l2-workshop-2012.pdf
+> >
+> > Attendees of the workshop: please review this before the workshop starts. I
+> > want to go through this list fairly quickly (particularly slides 1-14) so we
+> > can have more time for other topics.
+> 
+> A note on the Pixel Aspect Ratio from me, since I won't be attending:
+> 
+> I'm not sure if having a VIDIOC_G_PIXELASPECT is enough, it will work
+> to get the current mode, but not for enumerating. Also it will not
+> work with TRY_FMT, that is one cannot find out the actual pixelaspect
+> until after a S_FMT. As mentioned in previous mail I think at a minimum
+> the results of ENUM_FRAMESIZES should contain the pixel aspect per framesize,
+> there is enough reserved space in the relevant structs to make this happen
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/video/coda.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Pixel aspect doesn't belong in the FMT ioctls: the pixel aspect ratio is
+a property of the video input/output format, but the FMT ioctls deal with
+scaling as well, so the aspect ratio would then be scaled as well, making
+it very complex indeed.
 
-diff --git a/drivers/media/video/coda.c b/drivers/media/video/coda.c
-index e2c4585..700df4b 100644
---- a/drivers/media/video/coda.c
-+++ b/drivers/media/video/coda.c
-@@ -1350,7 +1350,7 @@ static int coda_queue_init(void *priv, struct vb2_queue *src_vq,
- 
- 	memset(src_vq, 0, sizeof(*src_vq));
- 	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
--	src_vq->io_modes = VB2_MMAP;
-+	src_vq->io_modes = VB2_MMAP | VB2_USERPTR;
- 	src_vq->drv_priv = ctx;
- 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 	src_vq->ops = &coda_qops;
-@@ -1362,7 +1362,7 @@ static int coda_queue_init(void *priv, struct vb2_queue *src_vq,
- 
- 	memset(dst_vq, 0, sizeof(*dst_vq));
- 	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
--	dst_vq->io_modes = VB2_MMAP;
-+	dst_vq->io_modes = VB2_MMAP | VB2_USERPTR;
- 	dst_vq->drv_priv = ctx;
- 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 	dst_vq->ops = &coda_qops;
--- 
-1.7.10.4
+Regarding ENUM_FRAMESIZES: it makes sense to add an aspect ratio here for
+use with sensors. But for video receivers ENUM_FRAMESIZES isn't applicable.
 
+Regards,
+
+	Hans
