@@ -1,41 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49133 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:49522 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754155Ab2HEDaY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 4 Aug 2012 23:30:24 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	id S932388Ab2HQCFA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Aug 2012 22:05:00 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hin-Tak Leung <htl10@users.sourceforge.net>,
 	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 0/5] Convert az6007 to dvb-usb-v2
-Date: Sun,  5 Aug 2012 00:30:06 -0300
-Message-Id: <1344137411-27948-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Subject: [PATCH 0/4] dvb_frontend: few DTV validation routines
+Date: Fri, 17 Aug 2012 05:03:38 +0300
+Message-Id: <1345169022-10221-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that dvb-usb-v2 patches got merged, convert az6007 to use it, as,
-in thesis, several core bugs at dvb-usb were fixed.
+It could be nice to validate transmission parameters, coming from
+the userspace, against standards before those are passed to the
+individual chipset driver. As a starting point towards that
+I implemented checks for few common standards. Those checks could
+be better as I added almost none checks for comparing allowed
+parameter combinations. I found it quite time consuming to search
+all allowed parameters and combinations...
 
-Also, driver became a little more simple than before, as the number of
-lines reduced a little bit.
+Those checks are now exported from the dvb-frontend, making for
+example demodulator driver possible to call. Maybe someday those
+could be used by frontend itself to validate data before pass call
+for the driver.
 
-No noticeable changes should be noticed... I hope ;)
+I also noticed our documentation lacks quite totally possible values,
+only possible parameters were listed. How do we expect application
+makers could know those?
 
-Mauro Carvalho Chehab (5):
-  [media] dvb-usb-v2: Fix cypress firmware compilation
-  [media] dvb-usb-v2: Don't ask user to select Cypress firmware module
-  [media] az6007: convert it to use dvb-usb-v2
-  [media] az6007: fix the I2C W+R logic
-  [media] az6007: Fix the number of parameters for QAM setup
+Antti Palosaari (4):
+  dvb_frontend: add routine for DVB-T parameter validation
+  dvb_frontend: add routine for DVB-T2 parameter validation
+  dvb_frontend: add routine for DVB-C annex A parameter validation
+  dvb_frontend: add routine for DTMB parameter validation
 
- drivers/media/dvb/dvb-usb-v2/Kconfig               |  17 +-
- drivers/media/dvb/dvb-usb-v2/Makefile              |   6 +-
- drivers/media/dvb/{dvb-usb => dvb-usb-v2}/az6007.c | 385 +++++++++------------
- drivers/media/dvb/dvb-usb/Kconfig                  |   8 -
- drivers/media/dvb/dvb-usb/Makefile                 |   3 -
- 5 files changed, 178 insertions(+), 241 deletions(-)
- rename drivers/media/dvb/{dvb-usb => dvb-usb-v2}/az6007.c (64%)
+ drivers/media/dvb-core/dvb_frontend.c | 405 ++++++++++++++++++++++++++++++++++
+ drivers/media/dvb-core/dvb_frontend.h |   5 +
+ 2 files changed, 410 insertions(+)
 
 -- 
 1.7.11.2
