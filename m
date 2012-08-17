@@ -1,92 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28411 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754199Ab2HMWdr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Aug 2012 18:33:47 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q7DMXlhP009889
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 13 Aug 2012 18:33:47 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] [media] dvb: frontend API: Add a flag to indicate that get_frontend() can be called
-Date: Mon, 13 Aug 2012 19:33:38 -0300
-Message-Id: <1344897218-28307-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mailfe05.c2i.net ([212.247.154.130]:36933 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753157Ab2HQTek (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Aug 2012 15:34:40 -0400
+Received: from [176.74.212.201] (account mc467741@c2i.net HELO laptop015.hselasky.homeunix.org)
+  by mailfe05.swip.net (CommuniGate Pro SMTP 5.4.4)
+  with ESMTPA id 305466997 for linux-media@vger.kernel.org; Fri, 17 Aug 2012 21:34:36 +0200
+From: Hans Petter Selasky <hselasky@c2i.net>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Strong pairing cam doesn't work with CT-3650 driver (ttusb2)
+Date: Fri, 17 Aug 2012 21:35:17 +0200
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201208172135.17623.hselasky@c2i.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-get_frontend() can't be called too early, as the device may not have it
-yet. Yet, get_frontend() on OFDM standards can happen before FE_HAS_LOCK,
-as the TMCC carriers (ISDB-T) or the TPS carriers (DVB-T) require a very
-low signal to noise relation to be detected. The other carriers use
+Hi,
 
-different modulations, so they require a higher SNR.
+Have anyone out there tested the CT-3650 USB driver in the Linux kernel with a 
+"strong pairing cam".
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+According to some web-forums, the hardware should support that given using the 
+vendor provided DVB WinXXX software.
 
----
+drivers/media/dvb/dvb-usb/ttusb2.c
 
-v2: rebase for patch at http://patchwork.linuxtv.org/patch/9562
----
- Documentation/DocBook/media/dvb/frontend.xml | 13 ++++++++++++-
- include/linux/dvb/frontend.h                 |  4 ++++
- 2 files changed, 16 insertions(+), 1 deletion(-)
+Any clues how to debug or what can be wrong?
 
-diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
-index 1ab2e1a..3c2b8c0 100644
---- a/Documentation/DocBook/media/dvb/frontend.xml
-+++ b/Documentation/DocBook/media/dvb/frontend.xml
-@@ -215,6 +215,7 @@ typedef enum fe_status {
- 	FE_HAS_LOCK		= 0x10,
- 	FE_TIMEDOUT		= 0x20,
- 	FE_REINIT		= 0x40,
-+	FE_HAS_PARAMETERS	= 0x80,
- } fe_status_t;
- </programlisting>
- <para>to indicate the current state and/or state changes of the frontend hardware:
-@@ -243,7 +244,17 @@ typedef enum fe_status {
- <entry align="char">FE_REINIT</entry>
- <entry align="char">The frontend was reinitialized, application is
- recommended to reset DiSEqC, tone and parameters</entry>
--</row>
-+</row><row>
-+<entry align="char">FE_HAS_PARAMETERS</entry>
-+<entry align="char"><link linkend="FE_GET_SET_PROPERTY">
-+<constant>FE_GET_PROPERTY/FE_SET_PROPERTY</constant></link> or
-+<link linkend="FE_GET_FRONTEND"><constant>FE_GET_FRONTEND</constant></link> can now be
-+called to provide the detected network parameters.
-+This should be risen for example when the DVB-T TPS/ISDB-T TMCC is locked.
-+This status can be risen before FE_HAS_SYNC, as the SNR required for
-+parameters detection is lower than the requirement for the other
-+carriers on the OFDM delivery systems.
-+</entry></row>
- </tbody></tgroup></informaltable>
- 
- </section>
-diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
-index bb51edf..8ff49c6 100644
---- a/include/linux/dvb/frontend.h
-+++ b/include/linux/dvb/frontend.h
-@@ -131,6 +131,9 @@ typedef enum fe_sec_mini_cmd {
-  * @FE_TIMEDOUT:	no lock within the last ~2 seconds
-  * @FE_REINIT:		frontend was reinitialized, application is recommended
-  *			to reset DiSEqC, tone and parameters
-+ * @FE_HAS_PARAMETERS:	get_frontend() can now be called to provide the
-+ *			detected network parameters. This should be risen
-+ *			for example when the DVB-T TPS/ISDB-T TMCC is locked.
-  */
- 
- typedef enum fe_status {
-@@ -141,6 +144,7 @@ typedef enum fe_status {
- 	FE_HAS_LOCK		= 0x10,
- 	FE_TIMEDOUT		= 0x20,
- 	FE_REINIT		= 0x40,
-+	FE_HAS_PARAMETERS	= 0x80,
- } fe_status_t;
- 
- typedef enum fe_spectral_inversion {
--- 
-1.7.11.2
+When inserting the CAM, VDR says that a CAM is present, but then after a while 
+no CAM is present.
 
+Log:
+
+ttusb2: tt3650_ci_slot_reset 0
+ttusb2: tt3650_ci_read_attribute_mem 0000 -> 0 0x00
+ttusb2: tt3650_ci_read_attribute_mem 0002 -> 0 0x00
+TUPLE type:0x0 length:0
+dvb_ca adapter 0: Invalid PC card inserted :(
+dvb_ca_en50221_io_open
+dvb_ca_en50221_thread_wakeup
+dvb_ca_en50221_io_do_ioctl
+dvb_ca_en50221_io_do_ioctl
+dvb_ca_en50221_slot_shutdown
+ttusb2: tt3650_ci_set_video_port 0 0
+Slot 0 shutdown
+dvb_ca_en50221_thread_wakeup
+dvb_ca_en50221_io_poll
+ttusb2: tt3650_ci_slot_reset 0
+dvb_ca_en50221_io_do_ioctl
+dvb_ca_en50221_io_poll
+dvb_ca_en50221_io_poll
+dvb_ca_en50221_io_poll
+dvb_ca_en50221_io_poll
+dvb_ca_en50221_io_poll
+dvb_ca_en50221_io_poll
+dvb_ca_en50221_io_poll
+dvb_ca_en50221_io_poll
+dvb_ca_en50221_io_poll
+dvb_ca_en50221_io_poll
+ttusb2: tt3650_ci_read_attribute_mem 0000 -> 0 0x1d
+ttusb2: tt3650_ci_read_attribute_mem 0002 -> 0 0x04
+TUPLE type:0x1d length:4
+ttusb2: tt3650_ci_read_attribute_mem 0004 -> 0 0x00
+  0x00: 0x00 .
+ttusb2: tt3650_ci_read_attribute_mem 0006 -> 0 0xdb
+  0x01: 0xdb .
+ttusb2: tt3650_ci_read_attribute_mem 0008 -> 0 0x08
+  0x02: 0x08 .
+ttusb2: tt3650_ci_read_attribute_mem 000a -> 0 0xff
+  0x03: 0xff .
+dvb_ca adapter 0: Invalid PC card inserted :(
+dvb_ca_en50221_io_do_ioctl
+
+--HPS
