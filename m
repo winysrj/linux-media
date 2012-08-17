@@ -1,56 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:54107 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754378Ab2HYDJY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 23:09:24 -0400
-Received: by mail-yx0-f174.google.com with SMTP id l14so583846yen.19
-        for <linux-media@vger.kernel.org>; Fri, 24 Aug 2012 20:09:24 -0700 (PDT)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: [PATCH 8/9] mem2mem_testdev: Don't check vb2_queue_init() return value
-Date: Sat, 25 Aug 2012 00:09:05 -0300
-Message-Id: <1345864146-2207-8-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1345864146-2207-1-git-send-email-elezegarcia@gmail.com>
-References: <1345864146-2207-1-git-send-email-elezegarcia@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:52323 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757199Ab2HQBfm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Aug 2012 21:35:42 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hin-Tak Leung <htl10@users.sourceforge.net>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 0/6] DVB API LNA
+Date: Fri, 17 Aug 2012 04:35:04 +0300
+Message-Id: <1345167310-8738-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Right now vb2_queue_init() returns always 0
-and it will be changed to return void.
+LNA API	and one	implementation as for example. 
 
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- drivers/media/platform/mem2mem_testdev.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+Implementation relies Kernel GPIOLIB as	LNAs are typically controlled
+by GPIO. Anyhow, GPIOLIB seems to be disabled by default thus I was
+forced to add some glue macros to handle situation where GPIOLIB is
+not available. But lets try to found out solution / reason later for
+that GPIOLIB part.
 
-diff --git a/drivers/media/platform/mem2mem_testdev.c b/drivers/media/platform/mem2mem_testdev.c
-index 9a8b14f..a2bd0b8 100644
---- a/drivers/media/platform/mem2mem_testdev.c
-+++ b/drivers/media/platform/mem2mem_testdev.c
-@@ -845,9 +845,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue *ds
- 	src_vq->ops = &m2mtest_qops;
- 	src_vq->mem_ops = &vb2_vmalloc_memops;
- 
--	ret = vb2_queue_init(src_vq);
--	if (ret)
--		return ret;
-+	vb2_queue_init(src_vq);
- 
- 	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 	dst_vq->io_modes = VB2_MMAP;
-@@ -856,7 +854,8 @@ static int queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue *ds
- 	dst_vq->ops = &m2mtest_qops;
- 	dst_vq->mem_ops = &vb2_vmalloc_memops;
- 
--	return vb2_queue_init(dst_vq);
-+	vb2_queue_init(dst_vq);
-+	return 0;
- }
- 
- static const struct v4l2_ctrl_config m2mtest_ctrl_trans_time_msec = {
+Antti Palosaari (6):
+  add LNA support for DVB API
+  cxd2820r: switch to Kernel dev_* logging
+  cxd2820r: use Kernel GPIO for GPIO access
+  em28xx: implement FE set_lna() callback
+  cxd2820r: use static GPIO config when GPIOLIB is undefined
+  DVB API: LNA documentation
+
+ Documentation/DocBook/media/dvb/dvbproperty.xml |  16 ++
+ drivers/media/dvb-core/dvb_frontend.c           |   5 +
+ drivers/media/dvb-core/dvb_frontend.h           |   1 +
+ drivers/media/dvb-frontends/cxd2820r.h          |  14 +-
+ drivers/media/dvb-frontends/cxd2820r_c.c        |  31 ++--
+ drivers/media/dvb-frontends/cxd2820r_core.c     | 211 ++++++++++++++++++------
+ drivers/media/dvb-frontends/cxd2820r_priv.h     |  22 +--
+ drivers/media/dvb-frontends/cxd2820r_t.c        |  33 ++--
+ drivers/media/dvb-frontends/cxd2820r_t2.c       |  31 ++--
+ drivers/media/usb/dvb-usb-v2/anysee.c           |   2 +-
+ drivers/media/usb/em28xx/em28xx-dvb.c           |  51 +++++-
+ include/linux/dvb/frontend.h                    |   4 +-
+ include/linux/dvb/version.h                     |   2 +-
+ 13 files changed, 287 insertions(+), 136 deletions(-)
+
 -- 
-1.7.8.6
+1.7.11.2
 
