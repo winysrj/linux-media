@@ -1,128 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:36988 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751143Ab2HaIL0 (ORCPT
+Received: from mail-qa0-f46.google.com ([209.85.216.46]:54286 "EHLO
+	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750793Ab2HQEra (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Aug 2012 04:11:26 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 06/16] media: coda: keep track of active instances
-Date: Fri, 31 Aug 2012 10:11:00 +0200
-Message-Id: <1346400670-16002-7-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
-References: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
+	Fri, 17 Aug 2012 00:47:30 -0400
+Received: by qaas11 with SMTP id s11so1261546qaa.19
+        for <linux-media@vger.kernel.org>; Thu, 16 Aug 2012 21:47:29 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20120816165656.GB29636@valkosipuli.retiisi.org.uk>
+References: <1345116570-27335-1-git-send-email-sachin.kamat@linaro.org>
+	<20120816165656.GB29636@valkosipuli.retiisi.org.uk>
+Date: Fri, 17 Aug 2012 10:17:29 +0530
+Message-ID: <CAK9yfHwT-2Y2=YjCAYFkRcp_+B93s2YiuhV0o8FjP+P5hv=w_w@mail.gmail.com>
+Subject: Re: [PATCH] smiapp: Use devm_kzalloc() in smiapp-core.c file
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	patches@linaro.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Determining the next free instance just by incrementing and decrementing
-an instance counter does not work: if there are two instances opened,
-0 and 1, and instance 0 is released, the next call to coda_open will
-create a new instance with index 1, but instance 1 is already in use.
+Hi Sakari,
 
-Instead, scan a bitfield of active instances to determine the first
-free instance index.
+Thanks for reviewing the patch.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c |   21 +++++++++++++++++----
- 1 file changed, 17 insertions(+), 4 deletions(-)
+On 16 August 2012 22:26, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Hi Sachin,
+>
+> Thanks for the patch.
+>
+> On Thu, Aug 16, 2012 at 04:59:30PM +0530, Sachin Kamat wrote:
+>> devm_kzalloc is a device managed function and makes code a bit
+>> smaller and cleaner.
+>>
+>> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+>> ---
+>> This patch is based on Mauro's re-organized tree
+>> (media_tree staging/for_v3.7) and is compile tested.
+>> ---
+>>  drivers/media/i2c/smiapp/smiapp-core.c |   11 ++---------
+>>  1 files changed, 2 insertions(+), 9 deletions(-)
+>>
+>> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+>> index 1cf914d..7d4280e 100644
+>> --- a/drivers/media/i2c/smiapp/smiapp-core.c
+>> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
+>> @@ -2801,12 +2801,11 @@ static int smiapp_probe(struct i2c_client *client,
+>>                       const struct i2c_device_id *devid)
+>>  {
+>>       struct smiapp_sensor *sensor;
+>> -     int rval;
+>>
+>>       if (client->dev.platform_data == NULL)
+>>               return -ENODEV;
+>>
+>> -     sensor = kzalloc(sizeof(*sensor), GFP_KERNEL);
+>> +     sensor = devm_kzalloc(&client->dev, sizeof(*sensor), GFP_KERNEL);
+>>       if (sensor == NULL)
+>>               return -ENOMEM;
+>>
+>
+> I think the same should be done to sensor->nvm. Would you like to change the
+> patch to incorporate the change? I'm fine doing that as well.
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index e1f5baf..7bc2d87 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -135,7 +135,8 @@ struct coda_dev {
- 	struct mutex		dev_mutex;
- 	struct v4l2_m2m_dev	*m2m_dev;
- 	struct vb2_alloc_ctx	*alloc_ctx;
--	int			instances;
-+	struct list_head	instances;
-+	unsigned long		instance_mask;
- };
- 
- struct coda_params {
-@@ -153,6 +154,7 @@ struct coda_params {
- 
- struct coda_ctx {
- 	struct coda_dev			*dev;
-+	struct list_head		list;
- 	int				aborting;
- 	int				rawstreamon;
- 	int				compstreamon;
-@@ -1358,14 +1360,22 @@ static int coda_queue_init(void *priv, struct vb2_queue *src_vq,
- 	return vb2_queue_init(dst_vq);
- }
- 
-+static int coda_next_free_instance(struct coda_dev *dev)
-+{
-+	return ffz(dev->instance_mask);
-+}
-+
- static int coda_open(struct file *file)
- {
- 	struct coda_dev *dev = video_drvdata(file);
- 	struct coda_ctx *ctx = NULL;
- 	int ret = 0;
-+	int idx;
- 
--	if (dev->instances >= CODA_MAX_INSTANCES)
-+	idx = coda_next_free_instance(dev);
-+	if (idx >= CODA_MAX_INSTANCES)
- 		return -EBUSY;
-+	set_bit(idx, &dev->instance_mask);
- 
- 	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
- 	if (!ctx)
-@@ -1375,6 +1385,7 @@ static int coda_open(struct file *file)
- 	file->private_data = &ctx->fh;
- 	v4l2_fh_add(&ctx->fh);
- 	ctx->dev = dev;
-+	ctx->idx = idx;
- 
- 	set_default_params(ctx);
- 	ctx->m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx,
-@@ -1403,7 +1414,7 @@ static int coda_open(struct file *file)
- 	}
- 
- 	coda_lock(ctx);
--	ctx->idx = dev->instances++;
-+	list_add(&ctx->list, &dev->instances);
- 	coda_unlock(ctx);
- 
- 	clk_prepare_enable(dev->clk_per);
-@@ -1430,7 +1441,7 @@ static int coda_release(struct file *file)
- 		 ctx);
- 
- 	coda_lock(ctx);
--	dev->instances--;
-+	list_del(&ctx->list);
- 	coda_unlock(ctx);
- 
- 	dma_free_coherent(&dev->plat_dev->dev, CODA_PARA_BUF_SIZE,
-@@ -1441,6 +1452,7 @@ static int coda_release(struct file *file)
- 	clk_disable_unprepare(dev->clk_ahb);
- 	v4l2_fh_del(&ctx->fh);
- 	v4l2_fh_exit(&ctx->fh);
-+	clear_bit(ctx->idx, &dev->instance_mask);
- 	kfree(ctx);
- 
- 	return 0;
-@@ -1823,6 +1835,7 @@ static int __devinit coda_probe(struct platform_device *pdev)
- 	}
- 
- 	spin_lock_init(&dev->irqlock);
-+	INIT_LIST_HEAD(&dev->instances);
- 
- 	dev->plat_dev = pdev;
- 	dev->clk_per = devm_clk_get(&pdev->dev, "per");
+Sure. I will send the updated patch shortly. I have also expanded the
+scope of the patch to
+use other devm_* functions too.
+
+>
+> Cheers,
+>
+> --
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi     jabber/XMPP/Gmail: sailus@retiisi.org.uk
+
+
+
 -- 
-1.7.10.4
-
+With warm regards,
+Sachin
