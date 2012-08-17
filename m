@@ -1,184 +1,248 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36823 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754825Ab2HFNaV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Aug 2012 09:30:21 -0400
-Message-ID: <501FC6E1.8060103@iki.fi>
-Date: Mon, 06 Aug 2012 16:30:09 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41375 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753557Ab2HQMct (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Aug 2012 08:32:49 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	Bryan Wu <bryan.wu@canonical.com>,
+	Richard Purdie <rpurdie@rpsys.net>,
+	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
+	Sumit Semwal <sumit.semwal@ti.com>,
+	Archit Taneja <archit@ti.com>,
+	Sebastien Guiriec <s-guiriec@ti.com>,
+	Inki Dae <inki.dae@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [RFC 3/5] video: panel: Add MIPI DBI bus support
+Date: Fri, 17 Aug 2012 14:33:05 +0200
+Message-ID: <2019849.eCaIrHMssh@avalon>
+In-Reply-To: <1345200709.11073.27.camel@lappyti>
+References: <1345164583-18924-1-git-send-email-laurent.pinchart@ideasonboard.com> <1682445.1yJVVY1ksn@avalon> <1345200709.11073.27.camel@lappyti>
 MIME-Version: 1.0
-To: Michael Krufky <mkrufky@linuxtv.org>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: tda18271 driver power consumption
-References: <500C5B9B.8000303@iki.fi> <CAOcJUbw-8zG-j7YobgKy7k5vp-k_trkaB5fYGz605KdUQHKTGQ@mail.gmail.com> <500F1DC5.1000608@iki.fi> <CAOcJUbzXoLx10o8oprxPM1TELFxyGE7_wodcWsBr8MX4OR0N_w@mail.gmail.com> <CAOcJUbzJjBBMcLmeaOCsJRz44KVPqZ_sGctG8+ai=n1W+9P9xA@mail.gmail.com> <500F4140.1000202@iki.fi> <CAOcJUbzF8onCqoxv-xkZY3YUiUjgjokkstB5eSX8YKELYDrjag@mail.gmail.com> <CAOcJUbw4O_rHCN6PgXc7=XU5ZToTB3QqAWLPUPhW-TZZVZ9X5w@mail.gmail.com>
-In-Reply-To: <CAOcJUbw4O_rHCN6PgXc7=XU5ZToTB3QqAWLPUPhW-TZZVZ9X5w@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/26/2012 03:48 PM, Michael Krufky wrote:
-> On Wed, Jul 25, 2012 at 11:18 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
->> On Tue, Jul 24, 2012 at 8:43 PM, Antti Palosaari <crope@iki.fi> wrote:
->>> On 07/25/2012 03:15 AM, Michael Krufky wrote:
->>>>
->>>> On Tue, Jul 24, 2012 at 6:17 PM, Michael Krufky <mkrufky@linuxtv.org>
->>>> wrote:
->>>>>
->>>>> On Tue, Jul 24, 2012 at 6:12 PM, Antti Palosaari <crope@iki.fi> wrote:
->>>>>>
->>>>>> On 07/25/2012 12:55 AM, Michael Krufky wrote:
->>>>>>>
->>>>>>>
->>>>>>> On Sun, Jul 22, 2012 at 3:59 PM, Antti Palosaari <crope@iki.fi> wrote:
->>>>>>>>
->>>>>>>>
->>>>>>>> Moi Michael,
->>>>>>>> I just realized tda18271 driver eats 160mA too much current after
->>>>>>>> attach.
->>>>>>>> This means, there is power management bug.
->>>>>>>>
->>>>>>>> When I plug my nanoStick it eats total 240mA, after tda18271 sleep is
->>>>>>>> called
->>>>>>>> it eats only 80mA total which is reasonable. If I use Digital Devices
->>>>>>>> tda18271c2dd driver it is total 110mA after attach, which is also
->>>>>>>> quite
->>>>>>>> OK.
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>> Thanks for the report -- I will take a look at it.
->>>>>>>
->>>>>>> ...patches are welcome, of course :-)
->>>>>>
->>>>>>
->>>>>>
->>>>>> I suspect it does some tweaking on attach() and chip leaves powered (I
->>>>>> saw
->>>>>> demod debugs at calls I2C-gate control quite many times thus this
->>>>>> suspicion). When chip is powered-up it is usually in some sleep state by
->>>>>> default. Also, on attach() there should be no I/O unless very good
->>>>>> reason.
->>>>>> For example chip ID is allowed to read and download firmware in case it
->>>>>> is
->>>>>> really needed to continue - like for tuner communication.
->>>>>>
->>>>>>
->>>>>> What I found quickly testing few DVB USB sticks there seems to be very
->>>>>> much
->>>>>> power management problems... I am now waiting for new multimeter in
->>>>>> order to
->>>>>> make better measurements and likely return fixing these issues later.
->>>>>
->>>>>
->>>>> The driver does some calibration during attach, some of which is a
->>>>> one-time initialization to determine a temperature differential for
->>>>> tune calculation later on, which can take some time on slower USB
->>>>> buses.  The "fix" for the power usage issue would just be to make sure
->>>>> to sleep the device before exiting the attach() function.
->>>>>
->>>>> I'm not looking to remove the calibration from the attach -- this was
->>>>> done on purpose.
->>>>>
->>>>
->>>> Antti,
->>>>
->>>> After looking again, I realize that we are purposefully not sleeping
->>>> the device before we exit the attach() function.
->>>>
->>>> The tda18271 is commonly found in multi-chip designs that may or may
->>>> not include an analog demodulator and / or other tda18271 tuners.  In
->>>> such designs, the chips tend to be daisy-chained to each other, using
->>>> the xtal output and loop-thru features of the tda18271.  We set the
->>>> required features in the attach-time configuration structure.
->>>> However, we must keep in mind that this is a hybrid tuner chip, and
->>>> the analog side of the bridge driver may actually come up before the
->>>> digital side.  Since the actual configuration tends to be done in the
->>>> digital bring-up, the analog side is brought up within tuner.ko using
->>>> the most generic one-size-fits all configuration, which gets
->>>> overridden when the digital side initializes.
->>>>
->>>> It is absolutely crucial that if we actually need the xtal output
->>>> feature enabled, that it must *never* be turned off, otherwise the i2c
->>>> bus may get wedged unrecoverably.  So, we make sure to leave this
->>>> feature enabled during the attach function, since we don't yet know at
->>>> that point whether there is another "instance" of this same tuner yet
->>>> to be initialized.  It is not safe to power off that feature until
->>>> after we are sure that the bridge has completely initialized.
->>>>
->>>> In order to rectify this issue from within your driver, you should
->>>> call sleep after you complete the attach.  For instance, this is what
->>>> we do in the cx23885 driver:
->>>>
->>>> if (fe0->dvb.frontend->ops.analog_ops.standby)
->>>>
->>>> fe0->dvb.frontend->ops.analog_ops.standby(fe0->dvb.frontend);
->>>>
->>>>
->>>> ...except you should call into the tuner_ops->sleep() function instead
->>>> of analog_demod_ops->standby()
->>>>
->>>> Does this clear things up for you?
->>>
->>>
->>> Surely this is possible and it will resolve power drain issue. But it is not
->>> nice looking and causes more deviation compared to others.
->>>
->>> Could you add configuration option "bool do_not_powerdown_on_attach" ?
->>>
->>> I have quite many tda18271 devices here and all those are DVB onlỵ (OK,
->>> PCTV 520e is DVB + analog, but analog is not supported). Having
->>> configuration parameter sounds like better plan.
->>
->> Come to think of it, since the generic "one-size-fits-all"
->> configuration leaves the loop thru and xtal output enabled, it should
->> be safe to go to the lowest power level allowed (based on the
->> configuration) at the end of the attach() function.  I'll put up a
->> patch within the next few days...  Thanks for noticing this, Antti.
->> :-)
->>
->> We wont need to add any new configuration option :-)
->>
->> -Mike
->
-> Antti,
->
-> This small patch should do the trick -- can you test it?
+Hi Tomi,
 
+On Friday 17 August 2012 13:51:49 Tomi Valkeinen wrote:
+> On Fri, 2012-08-17 at 12:02 +0200, Laurent Pinchart wrote:
+> > On Friday 17 August 2012 12:03:02 Tomi Valkeinen wrote:
+> > > On Fri, 2012-08-17 at 02:49 +0200, Laurent Pinchart wrote:
+> > > > +/*
+> > > > ----------------------------------------------------------------------
+> > > > ---
+> > > > ---- + * Bus operations
+> > > > + */
+> > > > +
+> > > > +void panel_dbi_write_command(struct panel_dbi_device *dev, unsigned
+> > > > long
+> > > > cmd) +{
+> > > > +	dev->bus->ops->write_command(dev->bus, cmd);
+> > > > +}
+> > > > +EXPORT_SYMBOL_GPL(panel_dbi_write_command);
+> > > > +
+> > > > +void panel_dbi_write_data(struct panel_dbi_device *dev, unsigned long
+> > > > data) +{
+> > > > +	dev->bus->ops->write_data(dev->bus, data);
+> > > > +}
+> > > > +EXPORT_SYMBOL_GPL(panel_dbi_write_data);
+> > > > +
+> > > > +unsigned long panel_dbi_read_data(struct panel_dbi_device *dev)
+> > > > +{
+> > > > +	return dev->bus->ops->read_data(dev->bus);
+> > > > +}
+> > > > +EXPORT_SYMBOL_GPL(panel_dbi_read_data);
+> > > 
+> > > I'm not that familiar with how to implement bus drivers, can you
+> > > describe in pseudo code how the SoC's DBI driver would register these?
+> > 
+> > Sure.
+> > 
+> > The DBI bus driver first needs to create a panel_dbi_bus_ops instance:
+> > 
+> > static const struct panel_dbi_bus_ops sh_mobile_lcdc_dbi_bus_ops = {
+> > 
+> >         .write_command = lcdc_dbi_write_command,
+> >         .write_data = lcdc_dbi_write_data,
+> >         .read_data = lcdc_dbi_read_data,
+> > 
+> > };
+> 
+> Thanks for the example, I think it cleared up things a bit.
+> 
+> As I mentioned earlier, I really think "panel" is not right here. While
+> the whole framework may be called panel framework, the bus drivers are
+> not panels, and we should support external chips also, which are not
+> panels either.
 
-Tested-by: Antti Palosaari <crope@iki.fi>
+I agree. I've renamed panel_dbi_* to mipi_dbi_*.
 
->
->
-> The following changes since commit 0c7d5a6da75caecc677be1fda207b7578936770d:
->
->    Linux 3.5-rc5 (2012-07-03 22:57:41 +0300)
->
-> are available in the git repository at:
->
->    git://git.linuxtv.org/mkrufky/tuners tda18271
->
-> for you to fetch changes up to 782b28e20d3b253d317cc71879639bf3c108b200:
->
->    tda18271: enter low-power standby mode at the end of
-> tda18271_attach() (2012-07-26 08:34:37 -0400)
->
-> ----------------------------------------------------------------
-> Michael Krufky (1):
->        tda18271: enter low-power standby mode at the end of tda18271_attach()
->
->   drivers/media/common/tuners/tda18271-fe.c |    3 +++
->   1 file changed, 3 insertions(+)
->
->
->
->
->
-> Cheers,
->
-> Mike
->
+> > > I think write/read data functions are a bit limited. Shouldn't they be
+> > > something like write_data(const u8 *buf, int size) and read_data(u8
+> > > *buf, int len)?
+> > 
+> > Good point. My hardware doesn't support multi-byte read/write operations
+> > directly so I haven't thought about adding those.
+> 
+> OMAP HW doesn't support it either. Well, not quite true, as OMAP's
+> system DMA could be used to write a buffer to the DBI output. But that's
+> really the same as doing the write with a a loop with CPU.
+> 
+> But first, the data type should be byte, not unsigned long. How would
+> you write 8 bits or 16 bits with your API?
 
+u8 and u16 both fit in an unsigned long :-) Please see below.
+
+> And second, if the function takes just u8, you'd need lots of calls to do
+> simple writes.
+
+I agree, an array write function is a good idea.
+
+> > Can your hardware group command + data writes in a single operation ? If
+> > so we should expose that at the API level as well.
+> 
+> No it can't. But with DCS that is a common operation, so we could have
+> some helpers to send command + data with one call.
+
+Agreed.
+
+> Then again, I'd hope to have DCS somehow as a separate library, which would
+> then use DBI/DSI/whatnot to actually send the data.
+> 
+> I'm not quite sure how easy that is because of the differences between
+> the busses.
+> 
+> > Is DBI limited to 8-bit data transfers for commands ? Pixels can be
+> > transferred 16-bit at a time, commands might as well. While DCS only
+> > specifies 8-bit command/data, DBI panels that are not DCS compliant can
+> > use 16-bit command/data (the R61505 panel, albeit a SYS-80 panel, does
+> > so).
+> 
+> I have to say I don't remember much about DBI =). Looking at OMAP's
+> driver, which was made for omap2 and hasn't been much updated since, I
+> see that there are 4 modes, 8/9/12/16 bits. I think that defines how
+> many of the parallel data lines are used.
+
+SYS-80 also has an 18-bits mode, where bits 0 and 9 are always ignored when 
+transferring instructions and data other than pixels (for pixels the 18-bits 
+bus width can be used to transfer RGB666 in a single clock cycle).
+
+See page 87 of 
+http://read.pudn.com/downloads91/sourcecode/others/348230/e61505_103a.pdf.
+
+> However, I don't think that matters for the panel driver when it wants
+> to send data. The panel driver should just call dbi_write(buf, buf_len),
+> and the dbi driver would send the data in the buffer according to the
+> bus width.
+
+According to the DCS specification, commands and parameters are transferred 
+using 8-bit data. Non-DCS panels can however use wider commands and parameters 
+(all commands and parameters are 16-bits wide for the R61505 for instance).
+
+We can add an API to switch the DBI bus width on the fly. For Renesas hardware 
+this would "just" require shifting bits around to output the 8-bit or 16-bit 
+commands on the right data lines (the R61505 uses D17-D9 in 8-bit mode, while 
+the DCS specification mentions D7-D0) based on how the panel is connected and 
+on which lines the panel expects data.
+
+As commands can be expressed on either 8 or 16 bits I would use a 16 type for 
+them.
+
+For parameters, we can either express everything as u8 * in the DBI bus 
+operations, or use a union similar to i2c_smbus_data
+
+union i2c_smbus_data {
+        __u8 byte;
+        __u16 word;
+        __u8 block[I2C_SMBUS_BLOCK_MAX + 2]; /* block[0] is used for length */
+                               /* and one more for user-space compatibility */
+};
+
+Helper functions would be available to perform 8-bit, 16-bit or n*8 bits 
+transfers.
+
+Would that work for your use cases ?
+
+> Also note that some chips need to change the bus width on the fly. The
+> chip used on N800 wants configuration to be done with 8-bits, and pixel
+> transfers with 16-bits. Who knows why...
+
+On which data lines is configuration performed ? D7-D0 ?
+
+> So I think this, and generally most of the configuration, should be
+> somewhat dynamic, so that the panel driver can change them when it
+> needs.
+> 
+> > > Something that's totally missing is configuring the DBI bus. There are a
+> > > bunch of timing related values that need to be configured. See
+> > > include/video/omapdss.h struct rfbi_timings. While the struct is OMAP
+> > > specific, if I recall right most of the values match to the MIPI DBI
+> > > spec.
+> > 
+> > I've left that out currently, and thought about passing that information
+> > as platform data to the DBI bus driver. That's the easiest solution, but I
+> > agree that it's a hack. Panel should expose their timing requirements to
+> > the DBI host. API wise that wouldn't be difficult (we only need to add
+> > timing information to the panel platform data and add a function to the
+> > DBI API to retrieve it), one of challenges might be to express it in a
+> > way that's both universal enough and easy to use for DBI bus drivers.
+> 
+> As I pointed above, I think the panel driver shouldn't expose it, but
+> the panel driver should somehow set it. Or at least allowed to change it
+> in some manner. This is actually again, the same problem as with enable
+> and transfer: who controls what's going on.
+> 
+> How I think it should work is something like:
+> 
+> mipi_dbi_set_timings(dbi_dev, mytimings);
+> mipi_dbi_set_bus_width(dbi_dev, 8);
+> mipi_dbi_write(dbi_dev, ...);
+> mipi_dbi_set_bus_width(dbi_dev, 16);
+> start_frame_transfer(dbi_dev, ...);
+
+I'll first implement bus width setting.
+
+> > > And this makes me wonder, you use DBI bus for SYS-80 panel. The busses
+> > > may look similar in operation, but are they really so similar when you
+> > > take into account the timings (and perhaps something else, it's been
+> > > years since I read the MIPI DBI spec)?
+> > 
+> > I'll have to check all the details. SYS-80 is similar to DBI-B, but
+> > supports a wider bus width of 18 bits. I think the interfaces are similar
+> > enough to use a single bus implementation, possibly with quirks and/or
+> > options (see SCCB support in I2C for instance, with flags to ignore acks,
+> > force a stop bit generation, ...). We would duplicate lots of code if we
+> > had two different implementations, and would prevent a DBI panel to be
+> > attached to a SYS-80 host and vice-versa (the format is known to work).
+> 
+> Ah ok, if a DBI panel can be connected to SYS-80 output and vice versa,
+> then I agree they are similar enough.
+
+Not all combination will work (a SYS panel that requires 16-bit transfers 
+won't work with a DBI host that only supports 8-bit), but some do.
+ 
+> > We might just need to provide fake timings. Video mode timings are at the
+> > core of display support in all drivers so we can't just get rid of them.
+> > The h/v front/back porch and sync won't be used by display drivers for
+> > DBI/DSI panels anyway.
+> 
+> Right. But we should probably think if we can, at the panel level, easily
+> separate conventional panels and smart panels. Then this framework wouldn't
+> need to fake the timings, and it'd be up to the higher level to decide if
+> and how to fake them. Then again, this is no biggie. Just thought that at
+> the lowest level it'd be nice to be "correct" and leave faking to upper
+> layers =).
+
+But we would then have two different APIs at the lower level depending on the 
+panel type. I'm not sure that's a good thing.
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
+
