@@ -1,56 +1,563 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:28874 "EHLO mga03.intel.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:35643 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753513Ab2HGQm4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Aug 2012 12:42:56 -0400
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH 06/11] radio-shark2: use %*ph to print small buffers
-Date: Tue,  7 Aug 2012 19:43:06 +0300
-Message-Id: <1344357792-18202-6-git-send-email-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <1344357792-18202-1-git-send-email-andriy.shevchenko@linux.intel.com>
-References: <1344357792-18202-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	id S932387Ab2HQCQs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Aug 2012 22:16:48 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hin-Tak Leung <htl10@users.sourceforge.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] dvb-usb: remove unused files
+Date: Fri, 17 Aug 2012 05:15:56 +0300
+Message-Id: <1345169756-12740-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/media/radio/radio-shark2.c |   13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
+Those files were left from dvb-usb-v2 development as I have made
+mistake during rebase operation.
 
-diff --git a/drivers/media/radio/radio-shark2.c b/drivers/media/radio/radio-shark2.c
-index b9575de..90aecfb 100644
---- a/drivers/media/radio/radio-shark2.c
-+++ b/drivers/media/radio/radio-shark2.c
-@@ -100,12 +100,8 @@ static int shark_write_reg(struct radio_tea5777 *tea, u64 reg)
- 	for (i = 0; i < 6; i++)
- 		shark->transfer_buffer[i + 1] = (reg >> (40 - i * 8)) & 0xff;
- 
--	v4l2_dbg(1, debug, tea->v4l2_dev,
--		 "shark2-write: %02x %02x %02x %02x %02x %02x %02x\n",
--		 shark->transfer_buffer[0], shark->transfer_buffer[1],
--		 shark->transfer_buffer[2], shark->transfer_buffer[3],
--		 shark->transfer_buffer[4], shark->transfer_buffer[5],
--		 shark->transfer_buffer[6]);
-+	v4l2_dbg(1, debug, tea->v4l2_dev, "shark2-write: %*ph\n",
-+		 7, shark->transfer_buffer);
- 
- 	res = usb_interrupt_msg(shark->usbdev,
- 				usb_sndintpipe(shark->usbdev, SHARK_OUT_EP),
-@@ -148,9 +144,8 @@ static int shark_read_reg(struct radio_tea5777 *tea, u32 *reg_ret)
- 	for (i = 0; i < 3; i++)
- 		reg |= shark->transfer_buffer[i] << (16 - i * 8);
- 
--	v4l2_dbg(1, debug, tea->v4l2_dev, "shark2-read: %02x %02x %02x\n",
--		 shark->transfer_buffer[0], shark->transfer_buffer[1],
--		 shark->transfer_buffer[2]);
-+	v4l2_dbg(1, debug, tea->v4l2_dev, "shark2-read: %*ph\n",
-+		 3, shark->transfer_buffer);
- 
- 	*reg_ret = reg;
- 	return 0;
+Reported-by: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb/dvb_usb_dvb.c    | 403 -----------------------------
+ drivers/media/usb/dvb-usb/dvb_usb_remote.c | 117 ---------
+ 2 files changed, 520 deletions(-)
+ delete mode 100644 drivers/media/usb/dvb-usb/dvb_usb_dvb.c
+ delete mode 100644 drivers/media/usb/dvb-usb/dvb_usb_remote.c
+
+diff --git a/drivers/media/usb/dvb-usb/dvb_usb_dvb.c b/drivers/media/usb/dvb-usb/dvb_usb_dvb.c
+deleted file mode 100644
+index 384fe8e..0000000
+--- a/drivers/media/usb/dvb-usb/dvb_usb_dvb.c
++++ /dev/null
+@@ -1,403 +0,0 @@
+-/* dvb-usb-dvb.c is part of the DVB USB library.
+- *
+- * Copyright (C) 2004-6 Patrick Boettcher (patrick.boettcher@desy.de)
+- * see dvb-usb-init.c for copyright information.
+- *
+- * This file contains functions for initializing and handling the
+- * linux-dvb API.
+- */
+-#include "dvb_usb_common.h"
+-
+-static void dvb_usb_data_complete(struct usb_data_stream *stream, u8 *buf,
+-		size_t len)
+-{
+-	struct dvb_usb_adapter *adap = stream->user_priv;
+-	dvb_dmx_swfilter(&adap->demux, buf, len);
+-}
+-
+-static void dvb_usb_data_complete_204(struct usb_data_stream *stream, u8 *buf,
+-		size_t len)
+-{
+-	struct dvb_usb_adapter *adap = stream->user_priv;
+-	dvb_dmx_swfilter_204(&adap->demux, buf, len);
+-}
+-
+-static void dvb_usb_data_complete_raw(struct usb_data_stream *stream, u8 *buf,
+-		size_t len)
+-{
+-	struct dvb_usb_adapter *adap = stream->user_priv;
+-	dvb_dmx_swfilter_raw(&adap->demux, buf, len);
+-}
+-
+-int dvb_usbv2_adapter_stream_init(struct dvb_usb_adapter *adap)
+-{
+-	pr_debug("%s: adap=%d\n", __func__, adap->id);
+-
+-	adap->stream.udev = adap_to_d(adap)->udev;
+-	adap->stream.user_priv = adap;
+-	adap->stream.complete = dvb_usb_data_complete;
+-
+-	return usb_urb_initv2(&adap->stream, &adap->props->stream);
+-}
+-
+-int dvb_usbv2_adapter_stream_exit(struct dvb_usb_adapter *adap)
+-{
+-	pr_debug("%s: adap=%d\n", __func__, adap->id);
+-	usb_urb_exitv2(&adap->stream);
+-
+-	return 0;
+-}
+-
+-/* does the complete input transfer handling */
+-static inline int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed, int count)
+-{
+-	struct dvb_usb_adapter *adap = dvbdmxfeed->demux->priv;
+-	struct dvb_usb_device *d = adap_to_d(adap);
+-	int ret;
+-	pr_debug("%s: adap=%d active_fe=%d feed_type=%d setting pid [%s]: " \
+-			"%04x (%04d) at index %d '%s'\n", __func__, adap->id,
+-			adap->active_fe, dvbdmxfeed->type,
+-			adap->pid_filtering ? "yes" : "no", dvbdmxfeed->pid,
+-			dvbdmxfeed->pid, dvbdmxfeed->index,
+-			(count == 1) ? "on" : "off");
+-
+-	if (adap->active_fe == -1)
+-		return -EINVAL;
+-
+-	adap->feed_count += count;
+-
+-	/* stop feeding if it is last pid */
+-	if (adap->feed_count == 0) {
+-		pr_debug("%s: stop feeding\n", __func__);
+-		usb_urb_killv2(&adap->stream);
+-
+-		if (d->props->streaming_ctrl) {
+-			ret = d->props->streaming_ctrl(adap, 0);
+-			if (ret < 0) {
+-				pr_err("%s: streaming_ctrl() failed=%d\n",
+-						KBUILD_MODNAME, ret);
+-				goto err_mutex_unlock;
+-			}
+-		}
+-		mutex_unlock(&adap->sync_mutex);
+-	}
+-
+-	/* activate the pid on the device pid filter */
+-	if (adap->props->caps & DVB_USB_ADAP_HAS_PID_FILTER &&
+-			adap->pid_filtering &&
+-			adap->props->pid_filter)
+-		ret = adap->props->pid_filter(adap, dvbdmxfeed->index,
+-				dvbdmxfeed->pid, (count == 1) ? 1 : 0);
+-			if (ret < 0)
+-				pr_err("%s: pid_filter() failed=%d\n",
+-						KBUILD_MODNAME, ret);
+-
+-	/* start feeding if it is first pid */
+-	if (adap->feed_count == 1 && count == 1) {
+-		struct usb_data_stream_properties stream_props;
+-		mutex_lock(&adap->sync_mutex);
+-		pr_debug("%s: start feeding\n", __func__);
+-
+-		/* resolve input and output streaming paramters */
+-		if (d->props->get_stream_config) {
+-			memcpy(&stream_props, &adap->props->stream,
+-				sizeof(struct usb_data_stream_properties));
+-			ret = d->props->get_stream_config(
+-					adap->fe[adap->active_fe],
+-					&adap->ts_type, &stream_props);
+-			if (ret < 0)
+-				goto err_mutex_unlock;
+-		} else {
+-			stream_props = adap->props->stream;
+-		}
+-
+-		switch (adap->ts_type) {
+-		case DVB_USB_FE_TS_TYPE_204:
+-			adap->stream.complete = dvb_usb_data_complete_204;
+-			break;
+-		case DVB_USB_FE_TS_TYPE_RAW:
+-			adap->stream.complete = dvb_usb_data_complete_raw;
+-			break;
+-		case DVB_USB_FE_TS_TYPE_188:
+-		default:
+-			adap->stream.complete = dvb_usb_data_complete;
+-			break;
+-		}
+-
+-		usb_urb_submitv2(&adap->stream, &stream_props);
+-
+-		if (adap->props->caps & DVB_USB_ADAP_HAS_PID_FILTER &&
+-				adap->props->caps &
+-				DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF &&
+-				adap->props->pid_filter_ctrl) {
+-			ret = adap->props->pid_filter_ctrl(adap,
+-					adap->pid_filtering);
+-			if (ret < 0) {
+-				pr_err("%s: pid_filter_ctrl() failed=%d\n",
+-						KBUILD_MODNAME, ret);
+-				goto err_mutex_unlock;
+-			}
+-		}
+-
+-		if (d->props->streaming_ctrl) {
+-			ret = d->props->streaming_ctrl(adap, 1);
+-			if (ret < 0) {
+-				pr_err("%s: streaming_ctrl() failed=%d\n",
+-						KBUILD_MODNAME, ret);
+-				goto err_mutex_unlock;
+-			}
+-		}
+-	}
+-
+-	return 0;
+-err_mutex_unlock:
+-	mutex_unlock(&adap->sync_mutex);
+-	pr_debug("%s: failed=%d\n", __func__, ret);
+-	return ret;
+-}
+-
+-static int dvb_usb_start_feed(struct dvb_demux_feed *dvbdmxfeed)
+-{
+-	return dvb_usb_ctrl_feed(dvbdmxfeed, 1);
+-}
+-
+-static int dvb_usb_stop_feed(struct dvb_demux_feed *dvbdmxfeed)
+-{
+-	return dvb_usb_ctrl_feed(dvbdmxfeed, -1);
+-}
+-
+-int dvb_usbv2_adapter_dvb_init(struct dvb_usb_adapter *adap)
+-{
+-	int ret;
+-	struct dvb_usb_device *d = adap_to_d(adap);
+-	pr_debug("%s: adap=%d\n", __func__, adap->id);
+-
+-	ret = dvb_register_adapter(&adap->dvb_adap, d->name, d->props->owner,
+-			&d->udev->dev, d->props->adapter_nr);
+-	if (ret < 0) {
+-		pr_debug("%s: dvb_register_adapter() failed=%d\n", __func__,
+-				ret);
+-		goto err;
+-	}
+-
+-	adap->dvb_adap.priv = adap;
+-
+-	if (d->props->read_mac_address) {
+-		ret = d->props->read_mac_address(adap,
+-				adap->dvb_adap.proposed_mac);
+-		if (ret < 0)
+-			goto err_dmx;
+-
+-		pr_info("%s: MAC address: %pM\n", KBUILD_MODNAME,
+-				adap->dvb_adap.proposed_mac);
+-	}
+-
+-	adap->demux.dmx.capabilities = DMX_TS_FILTERING | DMX_SECTION_FILTERING;
+-	adap->demux.priv             = adap;
+-	adap->demux.filternum        = 0;
+-	if (adap->demux.filternum < adap->max_feed_count)
+-		adap->demux.filternum = adap->max_feed_count;
+-	adap->demux.feednum          = adap->demux.filternum;
+-	adap->demux.start_feed       = dvb_usb_start_feed;
+-	adap->demux.stop_feed        = dvb_usb_stop_feed;
+-	adap->demux.write_to_decoder = NULL;
+-	ret = dvb_dmx_init(&adap->demux);
+-	if (ret < 0) {
+-		pr_err("%s: dvb_dmx_init() failed=%d\n", KBUILD_MODNAME, ret);
+-		goto err_dmx;
+-	}
+-
+-	adap->dmxdev.filternum       = adap->demux.filternum;
+-	adap->dmxdev.demux           = &adap->demux.dmx;
+-	adap->dmxdev.capabilities    = 0;
+-	ret = dvb_dmxdev_init(&adap->dmxdev, &adap->dvb_adap);
+-	if (ret < 0) {
+-		pr_err("%s: dvb_dmxdev_init() failed=%d\n", KBUILD_MODNAME,
+-				ret);
+-		goto err_dmx_dev;
+-	}
+-
+-	ret = dvb_net_init(&adap->dvb_adap, &adap->dvb_net, &adap->demux.dmx);
+-	if (ret < 0) {
+-		pr_err("%s: dvb_net_init() failed=%d\n", KBUILD_MODNAME, ret);
+-		goto err_net_init;
+-	}
+-
+-	mutex_init(&adap->sync_mutex);
+-
+-	return 0;
+-err_net_init:
+-	dvb_dmxdev_release(&adap->dmxdev);
+-err_dmx_dev:
+-	dvb_dmx_release(&adap->demux);
+-err_dmx:
+-	dvb_unregister_adapter(&adap->dvb_adap);
+-err:
+-	adap->dvb_adap.priv = NULL;
+-	return ret;
+-}
+-
+-int dvb_usbv2_adapter_dvb_exit(struct dvb_usb_adapter *adap)
+-{
+-	pr_debug("%s: adap=%d\n", __func__, adap->id);
+-
+-	if (adap->dvb_adap.priv) {
+-		dvb_net_release(&adap->dvb_net);
+-		adap->demux.dmx.close(&adap->demux.dmx);
+-		dvb_dmxdev_release(&adap->dmxdev);
+-		dvb_dmx_release(&adap->demux);
+-		dvb_unregister_adapter(&adap->dvb_adap);
+-	}
+-
+-	return 0;
+-}
+-
+-static int dvb_usb_fe_wakeup(struct dvb_frontend *fe)
+-{
+-	int ret;
+-	struct dvb_usb_adapter *adap = fe->dvb->priv;
+-	struct dvb_usb_device *d = adap_to_d(adap);
+-	mutex_lock(&adap->sync_mutex);
+-	pr_debug("%s: adap=%d fe=%d\n", __func__, adap->id, fe->id);
+-
+-	ret = dvb_usbv2_device_power_ctrl(d, 1);
+-	if (ret < 0)
+-		goto err;
+-
+-	if (d->props->frontend_ctrl) {
+-		ret = d->props->frontend_ctrl(fe, 1);
+-		if (ret < 0)
+-			goto err;
+-	}
+-
+-	if (adap->fe_init[fe->id]) {
+-		ret = adap->fe_init[fe->id](fe);
+-		if (ret < 0)
+-			goto err;
+-	}
+-
+-	adap->active_fe = fe->id;
+-	mutex_unlock(&adap->sync_mutex);
+-
+-	return 0;
+-err:
+-	mutex_unlock(&adap->sync_mutex);
+-	pr_debug("%s: failed=%d\n", __func__, ret);
+-	return ret;
+-}
+-
+-static int dvb_usb_fe_sleep(struct dvb_frontend *fe)
+-{
+-	int ret;
+-	struct dvb_usb_adapter *adap = fe->dvb->priv;
+-	struct dvb_usb_device *d = adap_to_d(adap);
+-	mutex_lock(&adap->sync_mutex);
+-	pr_debug("%s: adap=%d fe=%d\n", __func__, adap->id, fe->id);
+-
+-	if (adap->fe_sleep[fe->id]) {
+-		ret = adap->fe_sleep[fe->id](fe);
+-		if (ret < 0)
+-			goto err;
+-	}
+-
+-	if (d->props->frontend_ctrl) {
+-		ret = d->props->frontend_ctrl(fe, 0);
+-		if (ret < 0)
+-			goto err;
+-	}
+-
+-	ret = dvb_usbv2_device_power_ctrl(d, 0);
+-	if (ret < 0)
+-		goto err;
+-
+-	adap->active_fe = -1;
+-	mutex_unlock(&adap->sync_mutex);
+-
+-	return 0;
+-err:
+-	mutex_unlock(&adap->sync_mutex);
+-	pr_debug("%s: failed=%d\n", __func__, ret);
+-	return ret;
+-}
+-
+-int dvb_usbv2_adapter_frontend_init(struct dvb_usb_adapter *adap)
+-{
+-	int ret, i, count_registered = 0;
+-	struct dvb_usb_device *d = adap_to_d(adap);
+-	pr_debug("%s: adap=%d\n", __func__, adap->id);
+-
+-	memset(adap->fe, 0, sizeof(adap->fe));
+-	adap->active_fe = -1;
+-
+-	if (d->props->frontend_attach) {
+-		ret = d->props->frontend_attach(adap);
+-		if (ret < 0) {
+-			pr_debug("%s: frontend_attach() failed=%d\n", __func__,
+-					ret);
+-			goto err_dvb_frontend_detach;
+-		}
+-	} else {
+-		pr_debug("%s: frontend_attach() do not exists\n", __func__);
+-		ret = 0;
+-		goto err;
+-	}
+-
+-	for (i = 0; i < MAX_NO_OF_FE_PER_ADAP && adap->fe[i]; i++) {
+-		adap->fe[i]->id = i;
+-
+-		/* re-assign sleep and wakeup functions */
+-		adap->fe_init[i] = adap->fe[i]->ops.init;
+-		adap->fe[i]->ops.init  = dvb_usb_fe_wakeup;
+-		adap->fe_sleep[i] = adap->fe[i]->ops.sleep;
+-		adap->fe[i]->ops.sleep = dvb_usb_fe_sleep;
+-
+-		ret = dvb_register_frontend(&adap->dvb_adap, adap->fe[i]);
+-		if (ret < 0) {
+-			pr_err("%s: frontend%d registration failed\n",
+-					KBUILD_MODNAME, i);
+-			goto err_dvb_unregister_frontend;
+-		}
+-
+-		count_registered++;
+-	}
+-
+-	if (d->props->tuner_attach) {
+-		ret = d->props->tuner_attach(adap);
+-		if (ret < 0) {
+-			pr_debug("%s: tuner_attach() failed=%d\n", __func__,
+-					ret);
+-			goto err_dvb_unregister_frontend;
+-		}
+-	}
+-
+-	return 0;
+-
+-err_dvb_unregister_frontend:
+-	for (i = count_registered - 1; i >= 0; i--)
+-		dvb_unregister_frontend(adap->fe[i]);
+-
+-err_dvb_frontend_detach:
+-	for (i = MAX_NO_OF_FE_PER_ADAP - 1; i >= 0; i--) {
+-		if (adap->fe[i])
+-			dvb_frontend_detach(adap->fe[i]);
+-	}
+-
+-err:
+-	pr_debug("%s: failed=%d\n", __func__, ret);
+-	return ret;
+-}
+-
+-int dvb_usbv2_adapter_frontend_exit(struct dvb_usb_adapter *adap)
+-{
+-	int i;
+-	pr_debug("%s: adap=%d\n", __func__, adap->id);
+-
+-	for (i = MAX_NO_OF_FE_PER_ADAP - 1; i >= 0; i--) {
+-		if (adap->fe[i]) {
+-			dvb_unregister_frontend(adap->fe[i]);
+-			dvb_frontend_detach(adap->fe[i]);
+-		}
+-	}
+-
+-	return 0;
+-}
+diff --git a/drivers/media/usb/dvb-usb/dvb_usb_remote.c b/drivers/media/usb/dvb-usb/dvb_usb_remote.c
+deleted file mode 100644
+index f856ab6..0000000
+--- a/drivers/media/usb/dvb-usb/dvb_usb_remote.c
++++ /dev/null
+@@ -1,117 +0,0 @@
+-/* dvb-usb-remote.c is part of the DVB USB library.
+- *
+- * Copyright (C) 2004-6 Patrick Boettcher (patrick.boettcher@desy.de)
+- * see dvb-usb-init.c for copyright information.
+- *
+- * This file contains functions for initializing the input-device and for
+- * handling remote-control-queries.
+- */
+-#include "dvb_usb_common.h"
+-#include <linux/usb/input.h>
+-
+-/* Remote-control poll function - called every dib->rc_query_interval ms to see
+- * whether the remote control has received anything.
+- *
+- * TODO: Fix the repeat rate of the input device.
+- */
+-static void dvb_usb_read_remote_control(struct work_struct *work)
+-{
+-	struct dvb_usb_device *d = container_of(work,
+-			struct dvb_usb_device, rc_query_work.work);
+-	int ret;
+-
+-	/* TODO: need a lock here.  We can simply skip checking for the remote
+-	   control if we're busy. */
+-
+-	/* when the parameter has been set to 1 via sysfs while the
+-	 * driver was running, or when bulk mode is enabled after IR init
+-	 */
+-	if (dvb_usbv2_disable_rc_polling || d->rc.bulk_mode)
+-		return;
+-
+-	ret = d->rc.query(d);
+-	if (ret < 0)
+-		pr_err("%s: error %d while querying for an remote control " \
+-				"event\n", KBUILD_MODNAME, ret);
+-
+-	schedule_delayed_work(&d->rc_query_work,
+-			      msecs_to_jiffies(d->rc.interval));
+-}
+-
+-int dvb_usbv2_remote_init(struct dvb_usb_device *d)
+-{
+-	int ret;
+-	struct rc_dev *dev;
+-
+-	if (dvb_usbv2_disable_rc_polling || !d->props->get_rc_config)
+-		return 0;
+-
+-	ret = d->props->get_rc_config(d, &d->rc);
+-	if (ret < 0)
+-		goto err;
+-
+-	dev = rc_allocate_device();
+-	if (!dev) {
+-		ret = -ENOMEM;
+-		goto err;
+-	}
+-
+-	dev->dev.parent = &d->udev->dev;
+-	dev->input_name = "IR-receiver inside an USB DVB receiver";
+-	usb_make_path(d->udev, d->rc_phys, sizeof(d->rc_phys));
+-	strlcat(d->rc_phys, "/ir0", sizeof(d->rc_phys));
+-	dev->input_phys = d->rc_phys;
+-	usb_to_input_id(d->udev, &dev->input_id);
+-	/* TODO: likely RC-core should took const char * */
+-	dev->driver_name = (char *) d->props->driver_name;
+-	dev->driver_type = d->rc.driver_type;
+-	dev->allowed_protos = d->rc.allowed_protos;
+-	dev->change_protocol = d->rc.change_protocol;
+-	dev->priv = d;
+-	/* select used keymap */
+-	if (d->rc.map_name)
+-		dev->map_name = d->rc.map_name;
+-	else if (d->rc_map)
+-		dev->map_name = d->rc_map;
+-	else
+-		dev->map_name = RC_MAP_EMPTY; /* keep rc enabled */
+-
+-	ret = rc_register_device(dev);
+-	if (ret < 0) {
+-		rc_free_device(dev);
+-		goto err;
+-	}
+-
+-	d->input_dev = NULL;
+-	d->rc_dev = dev;
+-
+-	/* start polling if needed */
+-	if (d->rc.query && !d->rc.bulk_mode) {
+-		/* initialize a work queue for handling polling */
+-		INIT_DELAYED_WORK(&d->rc_query_work,
+-				dvb_usb_read_remote_control);
+-		pr_info("%s: schedule remote query interval to %d msecs\n",
+-				KBUILD_MODNAME, d->rc.interval);
+-		schedule_delayed_work(&d->rc_query_work,
+-				msecs_to_jiffies(d->rc.interval));
+-	}
+-
+-	d->state |= DVB_USB_STATE_REMOTE;
+-
+-	return 0;
+-err:
+-	pr_debug("%s: failed=%d\n", __func__, ret);
+-	return ret;
+-}
+-
+-int dvb_usbv2_remote_exit(struct dvb_usb_device *d)
+-{
+-	if (d->state & DVB_USB_STATE_REMOTE) {
+-		cancel_delayed_work_sync(&d->rc_query_work);
+-		rc_unregister_device(d->rc_dev);
+-	}
+-
+-	d->state &= ~DVB_USB_STATE_REMOTE;
+-
+-	return 0;
+-}
 -- 
-1.7.10.4
+1.7.11.2
 
