@@ -1,50 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:41774 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752767Ab2HNKzT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 06:55:19 -0400
+Received: from mga01.intel.com ([192.55.52.88]:15452 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932426Ab2HQDS4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Aug 2012 23:18:56 -0400
+Date: Fri, 17 Aug 2012 11:18:54 +0800
+From: Fengguang Wu <fengguang.wu@intel.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: kernel-janitors@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: [samsung:v4l-exynos-gsc 77/299]
+ drivers/media/video/em28xx/em28xx-video.c:2269:17-20: ERROR: reference
+ preceded by free on line 2267
+Message-ID: <20120817031854.GB26261@localhost>
 MIME-Version: 1.0
-In-Reply-To: <20120814065814.GB4791@elgon.mountain>
-References: <20120814065814.GB4791@elgon.mountain>
-Date: Tue, 14 Aug 2012 07:50:12 -0300
-Message-ID: <CALF0-+UU8dGBdihLgm==d0gCE4aHKdAbEVfe54U1LDjBHss8XQ@mail.gmail.com>
-Subject: Re: [patch] [media] em28xx: use after free in em28xx_v4l2_close()
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Gianluca Gennari <gennarone@gmail.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dan,
+Hi Hans,
 
-On Tue, Aug 14, 2012 at 3:58 AM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
-> We need to move the unlock before the kfree(dev);
->
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> ---
-> Applies to linux-next.
->
-> diff --git a/drivers/media/video/em28xx/em28xx-video.c b/drivers/media/video/em28xx/em28xx-video.c
-> index ecb23df..78d6ebd 100644
-> --- a/drivers/media/video/em28xx/em28xx-video.c
-> +++ b/drivers/media/video/em28xx/em28xx-video.c
-> @@ -2264,9 +2264,9 @@ static int em28xx_v4l2_close(struct file *filp)
->                 if (dev->state & DEV_DISCONNECTED) {
->                         em28xx_release_resources(dev);
+FYI, there are new coccinelle warnings show up in
 
-Why not unlocking here?
+tree:   git://git.infradead.org/users/kmpark/linux-samsung v4l-exynos-gsc
+head:   8ac9447881f291e7b473d946bde20ec952621a23
+commit: 876cb14db3bec19960751bb02f03f72ee024a46f [77/299] [media] em28xx: remove V4L2_FL_LOCK_ALL_FOPS
 
->                         kfree(dev->alt_max_pkt_size);
-> +                       mutex_unlock(&dev->lock);
->                         kfree(dev);
->                         kfree(fh);
-> -                       mutex_unlock(&dev->lock);
+All coccinelle warnings:
 
-Thanks,
-Ezequiel.
++ drivers/media/video/em28xx/em28xx-video.c:2269:17-20: ERROR: reference preceded by free on line 2267
+
+vim +2269 drivers/media/video/em28xx/em28xx-video.c
+  2266				kfree(dev->alt_max_pkt_size);
+  2267				kfree(dev);
+  2268				kfree(fh);
+> 2269				mutex_unlock(&dev->lock);
+  2270				return 0;
+  2271			}
+  2272	
+
+---
+0-DAY kernel build testing backend         Open Source Technology Centre
+Fengguang Wu <wfg@linux.intel.com>                     Intel Corporation
