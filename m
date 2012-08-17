@@ -1,33 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4475 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753547Ab2HAG0j (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2012 02:26:39 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Michael Krufky <mkrufky@kernellabs.com>
-Subject: Re: [Workshop-2011] Media summit at the Kernel Summit - was: Fwd: Re: [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
-Date: Wed, 1 Aug 2012 08:25:54 +0200
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	workshop-2011@linuxtv.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <20120713173708.GB17109@thunk.org> <Pine.LNX.4.64.1207210705240.13887@axis700.grange> <CAHAyoxwUvmXdZsZuCPU+CfsYUdx_cn9rzj1ncELxr9YyPK63BQ@mail.gmail.com>
-In-Reply-To: <CAHAyoxwUvmXdZsZuCPU+CfsYUdx_cn9rzj1ncELxr9YyPK63BQ@mail.gmail.com>
+Received: from mail-qa0-f53.google.com ([209.85.216.53]:63749 "EHLO
+	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754886Ab2HQPWI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Aug 2012 11:22:08 -0400
+Received: by qaas11 with SMTP id s11so1666648qaa.19
+        for <linux-media@vger.kernel.org>; Fri, 17 Aug 2012 08:22:07 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201208010825.54199.hverkuil@xs4all.nl>
+In-Reply-To: <20120817134443.GB32720@valkosipuli.retiisi.org.uk>
+References: <1345178942-6771-1-git-send-email-sachin.kamat@linaro.org>
+	<20120817134443.GB32720@valkosipuli.retiisi.org.uk>
+Date: Fri, 17 Aug 2012 20:52:06 +0530
+Message-ID: <CAK9yfHx=ueQreq-XLjLB4MvHibuh-b3JYz-F7JzdFqvRJaVM=w@mail.gmail.com>
+Subject: Re: [PATCH v2] smiapp: Use devm_* functions in smiapp-core.c file
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	patches@linaro.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue July 24 2012 19:40:27 Michael Krufky wrote:
-> Apologies for my late reply -- I plan to attend the conference!!!   I
-> am looking to book everything today...  I think I'm going to Barcelona
-> as well -- will you guys go to both conferences?
+On 17 August 2012 19:14, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Hi Sachin,
+>
+> On Fri, Aug 17, 2012 at 10:19:02AM +0530, Sachin Kamat wrote:
+>> devm_* functions are device managed functions and make code a bit
+>> smaller and cleaner.
+>>
+>> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+>> ---
+>> Changes since v1:
+>> Used devm_kzalloc for sensor->nvm.
+>> Used devm_clk_get and devm_regulator_get functions.
+>>
+>> This patch is based on Mauro's re-organized tree
+>> (media_tree staging/for_v3.7) and is compile tested.
+>
+> Thanks for the updated patch!
+>
+> I've applied this and the other patch you sent ("[media] smiapp: Remove
+> unused function") to my tree.
 
-I plan on going to Barcelona as well.
+Thanks Sakari.
 
-Regards,
+>
+> Cheers,
+>
+> --
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi     jabber/XMPP/Gmail: sailus@retiisi.org.uk
 
-	Hans
+
+
+-- 
+With warm regards,
+Sachin
