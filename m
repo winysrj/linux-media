@@ -1,61 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:26609 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753745Ab2HOOl2 (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:47575 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751642Ab2HQGaW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Aug 2012 10:41:28 -0400
-Date: Wed, 15 Aug 2012 17:41:15 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: jarod@redhat.com
-Cc: linux-media@vger.kernel.org
-Subject: [bug report] buffer overflow in redrat3_transmit_ir()
-Message-ID: <20120815144115.GA25050@elgon.mountain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	Fri, 17 Aug 2012 02:30:22 -0400
+Received: by pbbrr13 with SMTP id rr13so2835582pbb.19
+        for <linux-media@vger.kernel.org>; Thu, 16 Aug 2012 23:30:21 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, s.nawrocki@samsung.com,
+	sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH-Trivial 1/2] [media] s5p-fimc: Replace asm/* headers with linux/*
+Date: Fri, 17 Aug 2012 11:58:26 +0530
+Message-Id: <1345184907-8317-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Jarod Wilson,
+Silences the following warning:
+WARNING: Use #include <linux/sizes.h> instead of <asm/sizes.h>
 
-The patch 2154be651b90: "[media] redrat3: new rc-core IR transceiver 
-device driver" from May 4, 2011, leads to the following warning:
-drivers/media/rc/redrat3.c:948 redrat3_transmit_ir()
-	 error: buffer overflow 'sample_lens' 128 <= 254
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/platform/s5p-fimc/fimc-core.h |    2 +-
+ drivers/media/platform/s5p-fimc/fimc-lite.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-drivers/media/rc/redrat3.c
-   929          sample_lens = kzalloc(sizeof(int) * RR3_DRIVER_MAXLENS, GFP_KERNEL);
-                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-sample_lens has space for 128 ints.
+diff --git a/drivers/media/platform/s5p-fimc/fimc-core.h b/drivers/media/platform/s5p-fimc/fimc-core.h
+index 808ccc6..e787f65 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-core.h
++++ b/drivers/media/platform/s5p-fimc/fimc-core.h
+@@ -17,7 +17,7 @@
+ #include <linux/types.h>
+ #include <linux/videodev2.h>
+ #include <linux/io.h>
+-#include <asm/sizes.h>
++#include <linux/sizes.h>
 
-   930          if (!sample_lens) {
-   931                  ret = -ENOMEM;
-   932                  goto out;
-   933          }
-   934  
-   935          for (i = 0; i < count; i++) {
-   936                  for (lencheck = 0; lencheck < curlencheck; lencheck++) {
-   937                          cur_sample_len = redrat3_us_to_len(txbuf[i]);
-   938                          if (sample_lens[lencheck] == cur_sample_len)
-   939                                  break;
-   940                  }
-   941                  if (lencheck == curlencheck) {
-   942                          cur_sample_len = redrat3_us_to_len(txbuf[i]);
-   943                          rr3_dbg(dev, "txbuf[%d]=%u, pos %d, enc %u\n",
-   944                                  i, txbuf[i], curlencheck, cur_sample_len);
-   945                          if (curlencheck < 255) {
-                                    ^^^^^^^^^^^^^^^^^
-curlencheck goes up  to 254.
+ #include <media/media-entity.h>
+ #include <media/videobuf2-core.h>
+diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.h b/drivers/media/platform/s5p-fimc/fimc-lite.h
+index 44424ee..8dc3e9b 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-lite.h
++++ b/drivers/media/platform/s5p-fimc/fimc-lite.h
+@@ -9,7 +9,7 @@
+ #ifndef FIMC_LITE_H_
+ #define FIMC_LITE_H_
 
-   946                                  /* now convert the value to a proper
-   947                                   * rr3 value.. */
-   948                                  sample_lens[curlencheck] = cur_sample_len;
-                                        ^^^^^^^^^^^^^^^^^^^^^^^^
-overflow.
-
-   949                                  curlencheck++;
-   950                          } else {
-
-regards,
-dan carpenter
+-#include <asm/sizes.h>
++#include <linux/sizes.h>
+ #include <linux/io.h>
+ #include <linux/irqreturn.h>
+ #include <linux/platform_device.h>
+--
+1.7.4.1
 
