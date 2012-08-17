@@ -1,51 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:52139 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751444Ab2HNN5p (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:28254 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754197Ab2HQIVu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 09:57:45 -0400
-Received: by yhmm54 with SMTP id m54so444293yhm.19
-        for <linux-media@vger.kernel.org>; Tue, 14 Aug 2012 06:57:44 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <50292351.4080600@bmat.es>
-References: <5028CC8C.3060907@bmat.es>
-	<CALzAhNXim6t=w-49+TmzKr5sGu6uwgisc6O3oqVkUShYpu+PJQ@mail.gmail.com>
-	<50290BFF.6070503@bmat.es>
-	<CALzAhNX_DZ4WqaKKRJq0GFrPPdXZMp8jW0n3Zq9jMG7YtXUO7w@mail.gmail.com>
-	<50292351.4080600@bmat.es>
-Date: Tue, 14 Aug 2012 09:57:44 -0400
-Message-ID: <CALzAhNXpSNb2XYX+a0NV0QfFKOpPGXAQcdJ0kwGWOszh_JA5wg@mail.gmail.com>
-Subject: Re: Question Hauppauge Nova-S-Plus.
-From: Steven Toth <stoth@kernellabs.com>
-To: mark@bmat.es
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 17 Aug 2012 04:21:50 -0400
+Received: from eusync2.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M8W00LBT4L2OO70@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 17 Aug 2012 09:22:14 +0100 (BST)
+Received: from [106.116.147.32] by eusync2.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0M8W00INL4KCTW10@eusync2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 17 Aug 2012 09:21:49 +0100 (BST)
+Message-id: <502DFF1B.3000508@samsung.com>
+Date: Fri, 17 Aug 2012 10:21:47 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	patches@linaro.org
+Subject: Re: [PATCH-Trivial 1/2] [media] s5p-fimc: Replace asm/* headers with
+ linux/*
+References: <1345184907-8317-1-git-send-email-sachin.kamat@linaro.org>
+In-reply-to: <1345184907-8317-1-git-send-email-sachin.kamat@linaro.org>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> And regarding 2 hours, normally it's about 2 or 3 days before fails.
-> Sometimes it's some hours later. Totally random. For example today I
-> restarted this morning, and no failure for the moment on any of both
-> transponders.
->
-> The problem is really very strange.
+Hi Sachin,
 
-Hmm. I don't know then.
+On 08/17/2012 08:28 AM, Sachin Kamat wrote:
+> Silences the following warning:
+> WARNING: Use #include <linux/sizes.h> instead of <asm/sizes.h>
+> 
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 
-Other Hauppauge commercial customers are using those cards 7x24 with
-no problem, although I don't know with which kernel and or/driver
-version.
+Added both to my tree.
 
-My guess is that the the PCI reset which occurs during a reboot is
-fixing or resolving some issue with either an internal CX23883 issue
-(unlikely) or more likely, the tuner/demod/LNB power block becomes
-unstable, is not reset by reloading the driver (as it should be) and
-the only course of action is a full reboot.
-
-I just don't know why other users would not be seeing that.
-
-- Steve
-
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+Thanks,
+Sylwester
