@@ -1,49 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1822 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753672Ab2HAUSt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2012 16:18:49 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id q71KIk9K099140
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Wed, 1 Aug 2012 22:18:47 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from tschai.localnet (tschai.lan [192.168.1.186])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 093A046A011C
-	for <linux-media@vger.kernel.org>; Wed,  1 Aug 2012 22:18:41 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [PATCH for v3.6] Add missing logging for rangelow/high of hwseek
-Date: Wed, 1 Aug 2012 22:18:41 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201208012218.41213.hverkuil@xs4all.nl>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:47761 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751642Ab2HQGY4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Aug 2012 02:24:56 -0400
+Received: by pbbrr13 with SMTP id rr13so2828980pbb.19
+        for <linux-media@vger.kernel.org>; Thu, 16 Aug 2012 23:24:55 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, k.debski@samsung.com,
+	s.nawrocki@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH-Trivial] [media] s5p-mfc: Add missing braces around sizeof
+Date: Fri, 17 Aug 2012 11:52:55 +0530
+Message-Id: <1345184575-14035-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-struct v4l2_hw_freq_seek has two new fields that weren't printed in the
-logging function. Added.
+Silences the following warnings:
+WARNING: sizeof *ctx should be sizeof(*ctx)
+WARNING: sizeof *dev should be sizeof(*dev)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index c3b7b5f..6bc47fc 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -402,8 +402,10 @@ static void v4l_print_hw_freq_seek(const void *arg, bool write_only)
- {
- 	const struct v4l2_hw_freq_seek *p = arg;
- 
--	pr_cont("tuner=%u, type=%u, seek_upward=%u, wrap_around=%u, spacing=%u\n",
--		p->tuner, p->type, p->seek_upward, p->wrap_around, p->spacing);
-+	pr_cont("tuner=%u, type=%u, seek_upward=%u, wrap_around=%u, spacing=%u, "
-+		"rangelow=%u, rangehigh=%u\n",
-+		p->tuner, p->type, p->seek_upward, p->wrap_around, p->spacing,
-+		p->rangelow, p->rangehigh);
- }
- 
- static void v4l_print_requestbuffers(const void *arg, bool write_only)
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index e3e616d..815affe 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -649,7 +649,7 @@ static int s5p_mfc_open(struct file *file)
+ 		return -ERESTARTSYS;
+ 	dev->num_inst++;	/* It is guarded by mfc_mutex in vfd */
+ 	/* Allocate memory for context */
+-	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
++	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+ 	if (!ctx) {
+ 		mfc_err("Not enough memory\n");
+ 		ret = -ENOMEM;
+@@ -961,7 +961,7 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+ 	int ret;
+
+ 	pr_debug("%s++\n", __func__);
+-	dev = devm_kzalloc(&pdev->dev, sizeof *dev, GFP_KERNEL);
++	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
+ 	if (!dev) {
+ 		dev_err(&pdev->dev, "Not enough memory for MFC device\n");
+ 		return -ENOMEM;
+--
+1.7.4.1
+
