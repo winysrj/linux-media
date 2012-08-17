@@ -1,58 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out.inet.fi ([195.156.147.13]:47169 "EHLO jenni2.inet.fi"
+Received: from comal.ext.ti.com ([198.47.26.152]:38473 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751813Ab2H3Rye (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Aug 2012 13:54:34 -0400
-From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCHv3 0/9] Fixes in response to review comments
-Date: Thu, 30 Aug 2012 20:54:22 +0300
-Message-Id: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
+	id S1753600Ab2HQJcM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Aug 2012 05:32:12 -0400
+Message-ID: <502E0F8C.4070300@ti.com>
+Date: Fri, 17 Aug 2012 15:01:56 +0530
+From: Sekhar Nori <nsekhar@ti.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Prabhakar Lad <prabhakar.lad@ti.com>,
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	<linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: Re: [PATCH] media: davinci: vpif: add check for NULL handler
+References: <1345125720-24059-1-git-send-email-prabhakar.lad@ti.com> <502DD889.3040306@ti.com> <502E0193.9000003@ti.com> <2565324.ujMjh3qGVe@avalon>
+In-Reply-To: <2565324.ujMjh3qGVe@avalon>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These patches fix most of the issues pointed out in the patch review
-by Sean Young and Sakari Ailus.
+On 8/17/2012 2:45 PM, Laurent Pinchart wrote:
+> Hi Prabhakar,
+> 
+> On Friday 17 August 2012 14:02:19 Prabhakar Lad wrote:
+>> On Friday 17 August 2012 11:07 AM, Sekhar Nori wrote:
+>>> On 8/17/2012 10:51 AM, Prabhakar Lad wrote:
+>>>> On Thursday 16 August 2012 08:43 PM, Laurent Pinchart wrote:
+>>>>> On Thursday 16 August 2012 19:32:00 Prabhakar Lad wrote:
+>>>>>> From: Lad, Prabhakar <prabhakar.lad@ti.com>
+>>>>>>
+>>>>>> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+>>>>>> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+>>>>>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>>> ---
+>>>>>>
+>>>>>>  drivers/media/video/davinci/vpif_capture.c |   12 +++++++-----
+>>>>>>  drivers/media/video/davinci/vpif_display.c |   14 ++++++++------
+>>>>>>  2 files changed, 15 insertions(+), 11 deletions(-)
+>>>>>>
+>>>>>> diff --git a/drivers/media/video/davinci/vpif_capture.c
+>>>>>> b/drivers/media/video/davinci/vpif_capture.c index 266025e..a87b7a5
+>>>>>> 100644
+>>>>>> --- a/drivers/media/video/davinci/vpif_capture.c
+>>>>>> +++ b/drivers/media/video/davinci/vpif_capture.c
+>>>>>> @@ -311,12 +311,14 @@ static int vpif_start_streaming(struct vb2_queue
+>>>>>> *vq,
+>>>>>> unsigned int count) }
+>>>>>>
+>>>>>>  	/* configure 1 or 2 channel mode */
+>>>>>>
+>>>>>> -	ret = vpif_config_data->setup_input_channel_mode
+>>>>>> -					(vpif->std_info.ycmux_mode);
+>>>>>> +	if (vpif_config_data->setup_input_channel_mode) {
+>>>>>> +		ret = vpif_config_data->setup_input_channel_mode
+>>>>>> +						(vpif->std_info.ycmux_mode);
+>>>>>>
+>>>>>> -	if (ret < 0) {
+>>>>>> -		vpif_dbg(1, debug, "can't set vpif channel mode\n");
+>>>>>> -		return ret;
+>>>>>> +		if (ret < 0) {
+>>>>>> +			vpif_dbg(1, debug, "can't set vpif channel mode\n");
+>>>>>> +			return ret;
+>>>>>> +		}
+>>>>>
+>>>>> This change looks good to me. However, note that you will need to get
+>>>>> rid of board code callbacks at some point to implement device tree
+>>>>> support. It would be worth thinking about how to do so now.
+>>>>
+>>>> Currently VPIF driver is only used by dm646x, and the handlers for this
+>>>> in the the board code are not null. This patch is intended for da850
+>>>> where this handlers will be null.
+>>>>
+>>>>>>  	}
+>>>>>>  	
+>>>>>>  	/* Call vpif_set_params function to set the parameters and addresses
+>>>>>>  	*/
+>>>>>>
+>>>>>> diff --git a/drivers/media/video/davinci/vpif_display.c
+>>>>>> b/drivers/media/video/davinci/vpif_display.c index e129c98..1e35f92
+>>>>>> 100644
+>>>>>> --- a/drivers/media/video/davinci/vpif_display.c
+>>>>>> +++ b/drivers/media/video/davinci/vpif_display.c
+>>>>>> @@ -280,12 +280,14 @@ static int vpif_start_streaming(struct vb2_queue
+>>>>>> *vq,
+>>>>>> unsigned int count) }
+>>>>>>
+>>>>>>  	/* clock settings */
+>>>>>>
+>>>>>> -	ret =
+>>>>>> -	    vpif_config_data->set_clock(ch->vpifparams.std_info.ycmux_mode,
+>>>>>> -					ch->vpifparams.std_info.hd_sd);
+>>>>>> -	if (ret < 0) {
+>>>>>> -		vpif_err("can't set clock\n");
+>>>>>> -		return ret;
+>>>>>> +	if (vpif_config_data->set_clock) {
+>>>>>
+>>>>> Does the DaVinci platform use the common clock framework ? If so, a
+>>>>> better fix for this would be to pass a clock name through platform data
+>>>>> instead of using a callback function.
+>>>>
+>>>> Currently DaVinci is not using the common clock framework.
+>>>>
+>>>> Can you ACK this patch?
+>>>
+>>> Yes, DaVinci has not migrated to common clock framework (yet). However,
+>>> even without that it should be possible to use clock API in driver code.
+>>> Using a callback to enable clocks or even passing the clock name from
+>>> platform data would be bypassing an existing framework. Clock name
+>>> should be IP specific, so it should be possible to use that in driver.
+>>
+>> The callback is not actually dealing with PSC clock's but with system
+>> module registers.
+> 
+> Good to know. Then you'll have to create an API to expose the system module 
+> registers to drivers.
 
-The most noticeable change after these patch set is that the IR
-transmission no longer times out even if the timers are not waking up
-the MPU as it should be. Now that Jean Pihet kindly instructed me how
-to use the PM QoS API for setting the latency constraints, the driver
-will now work without any background load. Someone might consider such
-restriction a blocker bug, that is fixed on this patch set.
+Yes something like that is needed. Konstantin Baydarov is working on a
+MFD driver for a similar module that exists in OMAP world called
+"control module".
 
-Changes since v2:
+I guess this patch can go in though since it does not add any new
+accesses but merely lets the existing function be passed as NULL.
 
-- The 10us PM QoS latency requrement is documented in the code
+Thanks,
+Sekhar
 
-- A missing quote mark is added into the Kconfig text
-
-Changes since v1:
-
-- Replace wake_up_interruptible with wake_up, as the driver is having
-  non-interruptible sleeps
-
-- Instead of just removing the set_max_mpu_wakeup_lat calls, replace
-  them with QoS API calls
-
-Timo Kokkonen (9):
-  ir-rx51: Adjust dependencies
-  ir-rx51: Handle signals properly
-  ir-rx51: Trivial fixes
-  ir-rx51: Clean up timer initialization code
-  ir-rx51: Move platform data checking into probe function
-  ir-rx51: Replace module_{init,exit} macros with
-    module_platform_driver
-  ir-rx51: Convert latency constraints to PM QoS API
-  ir-rx51: Remove useless variable from struct lirc_rx51
-  ir-rx51: Add missing quote mark in Kconfig text
-
- arch/arm/mach-omap2/board-rx51-peripherals.c |   2 -
- drivers/media/rc/Kconfig                     |   6 +-
- drivers/media/rc/ir-rx51.c                   | 102 ++++++++++++++-------------
- include/media/ir-rx51.h                      |   2 -
- 4 files changed, 57 insertions(+), 55 deletions(-)
-
--- 
-1.7.12
-
+[1] https://patchwork.kernel.org/patch/1236491/
