@@ -1,83 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54251 "EHLO arroyo.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:13429 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932621Ab2HPOCf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Aug 2012 10:02:35 -0400
-From: Prabhakar Lad <prabhakar.lad@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	<linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH] media: davinci: vpif: add check for NULL handler
-Date: Thu, 16 Aug 2012 19:32:00 +0530
-Message-ID: <1345125720-24059-1-git-send-email-prabhakar.lad@ti.com>
+	id S1751417Ab2HQNWZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Aug 2012 09:22:25 -0400
+Message-ID: <502E45CB.6090103@redhat.com>
+Date: Fri, 17 Aug 2012 15:23:23 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: workshop-2011@linuxtv.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [Workshop-2011] V4L2 API ambiguities: workshop presentation
+References: <201208171235.58094.hverkuil@xs4all.nl> <502E3D97.3090502@redhat.com> <201208171455.13961.hverkuil@xs4all.nl> <70803480.BV5Mjk80If@avalon>
+In-Reply-To: <70803480.BV5Mjk80If@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.lad@ti.com>
+Hi,
 
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/davinci/vpif_capture.c |   12 +++++++-----
- drivers/media/video/davinci/vpif_display.c |   14 ++++++++------
- 2 files changed, 15 insertions(+), 11 deletions(-)
+On 08/17/2012 02:57 PM, Laurent Pinchart wrote:
 
-diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
-index 266025e..a87b7a5 100644
---- a/drivers/media/video/davinci/vpif_capture.c
-+++ b/drivers/media/video/davinci/vpif_capture.c
-@@ -311,12 +311,14 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	}
- 
- 	/* configure 1 or 2 channel mode */
--	ret = vpif_config_data->setup_input_channel_mode
--					(vpif->std_info.ycmux_mode);
-+	if (vpif_config_data->setup_input_channel_mode) {
-+		ret = vpif_config_data->setup_input_channel_mode
-+						(vpif->std_info.ycmux_mode);
- 
--	if (ret < 0) {
--		vpif_dbg(1, debug, "can't set vpif channel mode\n");
--		return ret;
-+		if (ret < 0) {
-+			vpif_dbg(1, debug, "can't set vpif channel mode\n");
-+			return ret;
-+		}
- 	}
- 
- 	/* Call vpif_set_params function to set the parameters and addresses */
-diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
-index e129c98..1e35f92 100644
---- a/drivers/media/video/davinci/vpif_display.c
-+++ b/drivers/media/video/davinci/vpif_display.c
-@@ -280,12 +280,14 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	}
- 
- 	/* clock settings */
--	ret =
--	    vpif_config_data->set_clock(ch->vpifparams.std_info.ycmux_mode,
--					ch->vpifparams.std_info.hd_sd);
--	if (ret < 0) {
--		vpif_err("can't set clock\n");
--		return ret;
-+	if (vpif_config_data->set_clock) {
-+		ret =
-+		vpif_config_data->set_clock(ch->vpifparams.std_info.ycmux_mode,
-+						ch->vpifparams.std_info.hd_sd);
-+		if (ret < 0) {
-+			vpif_err("can't set clock\n");
-+			return ret;
-+		}
- 	}
- 
- 	/* set the parameters and addresses */
--- 
-1.7.0.4
+<Snip>
 
+>> Regarding ENUM_FRAMESIZES: it makes sense to add an aspect ratio here for
+>> use with sensors. But for video receivers ENUM_FRAMESIZES isn't applicable.
+>
+> Do we have sensors with non-square pixels ?
+
+Short answer: not that I know of.
+
+Long answer: that depends on the optics (so the sensor pixels may be square,
+but the optics could make them non-square from a proper mapping to a real world
+picture pov).
+
+As I've done too much with weird old webcams I actually now webcams which do
+this, the vicam cameras to be precise. The 3 com HomeConnect (04c1:009) has
+a sensor with a native resolution of 512x244, yeah widescreen baby!
+
+But it stems from an area where widescreen was unheard of in computer graphics,
+so it actually has optics which force that cool widescreen resolution back into
+a 4x3 field of view. So for a proper square pixels image form that camera its
+image needs to be scaled from 512x244 to 512x384 (*). But with that one exception
+proving the rule (Dutch expression), I think all sensors have square pixels.
+
+Regards,
+
+Hans
+
+*) Really? Yes really!
