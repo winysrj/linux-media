@@ -1,89 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out.inet.fi ([195.156.147.13]:41040 "EHLO jenni2.inet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757430Ab2HIMlt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Aug 2012 08:41:49 -0400
-From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Cc: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Subject: [PATCH 2/2] ARM: mach-omap2: board-rx51-peripherals: Add lirc-rx51 data
-Date: Thu,  9 Aug 2012 15:41:26 +0300
-Message-Id: <1344516086-24615-3-git-send-email-timo.t.kokkonen@iki.fi>
-In-Reply-To: <1344516086-24615-1-git-send-email-timo.t.kokkonen@iki.fi>
-References: <1344516086-24615-1-git-send-email-timo.t.kokkonen@iki.fi>
+Received: from forward2h.mail.yandex.net ([84.201.187.147]:40362 "EHLO
+	forward2h.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758694Ab2HQRwm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Aug 2012 13:52:42 -0400
+From: CrazyCat <crazycat69@yandex.ru>
+To: Antti Palosaari <crope@iki.fi>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+In-Reply-To: <502D37CF.7030608@iki.fi>
+References: <53381345139167@web11e.yandex.ru> <502D37CF.7030608@iki.fi>
+Subject: Re: [PATCH] dvb_frontend: Multistream support
+MIME-Version: 1.0
+Message-Id: <791451345225958@web24h.yandex.ru>
+Date: Fri, 17 Aug 2012 20:52:38 +0300
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The IR diode on the RX51 is connected to the GPT9. This data is needed
-for the IR driver to function.
+16.08.2012, 21:11, "Antti Palosaari" <crope@iki.fi>:
+> @Mauro, should we rename also DTV_ISDBS_TS_ID to DTV_ISDBS_TS_ID_LEGACY
+> to remind users ?
 
-Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
----
- arch/arm/mach-omap2/board-rx51-peripherals.c |   30 ++++++++++++++++++++++++++
- 1 files changed, 30 insertions(+), 0 deletions(-)
+Maybe leave DTV_ISDBS_TS_ID and convert DTV_DVBT2_PLP_ID to  DTV_DVB_STREAM_ID ? and dvbt2_plp_id convert to dvb_stream_id.
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index df2534d..4a5a71b 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -34,6 +34,7 @@
- #include <plat/gpmc.h>
- #include <plat/onenand.h>
- #include <plat/gpmc-smc91x.h>
-+#include <plat/omap-pm.h>
- 
- #include <mach/board-rx51.h>
- 
-@@ -46,6 +47,10 @@
- #include <../drivers/staging/iio/light/tsl2563.h>
- #include <linux/lis3lv02d.h>
- 
-+#if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
-+#include "../../../drivers/media/rc/ir-rx51.h"
-+#endif
-+
- #include "mux.h"
- #include "hsmmc.h"
- #include "common-board-devices.h"
-@@ -1220,6 +1225,30 @@ static void __init rx51_init_tsc2005(void)
- 				gpio_to_irq(RX51_TSC2005_IRQ_GPIO);
- }
- 
-+#if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
-+static struct lirc_rx51_platform_data rx51_lirc_data = {
-+	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
-+	.pwm_timer = 9, /* Use GPT 9 for CIR */
-+};
-+
-+static struct platform_device rx51_lirc_device = {
-+	.name           = "lirc_rx51",
-+	.id             = -1,
-+	.dev            = {
-+		.platform_data = &rx51_lirc_data,
-+	},
-+};
-+
-+static void __init rx51_init_lirc(void)
-+{
-+	platform_device_register(&rx51_lirc_device);
-+}
-+#else
-+static void __init rx51_init_lirc(void)
-+{
-+}
-+#endif
-+
- void __init rx51_peripherals_init(void)
- {
- 	rx51_i2c_init();
-@@ -1230,6 +1259,7 @@ void __init rx51_peripherals_init(void)
- 	rx51_init_wl1251();
- 	rx51_init_tsc2005();
- 	rx51_init_si4713();
-+	rx51_init_lirc();
- 	spi_register_board_info(rx51_peripherals_spi_board_info,
- 				ARRAY_SIZE(rx51_peripherals_spi_board_info));
- 
--- 
-1.7.8.6
-
+Because DVB and ISDB different standards and look like stream id for ISDB is 16 bit, for DVB-S2/T2 8 bit.
