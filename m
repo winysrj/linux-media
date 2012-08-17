@@ -1,88 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:52451 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754606Ab2HADoZ (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:35354 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751288Ab2HQFhx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jul 2012 23:44:25 -0400
-Received: by vbbff1 with SMTP id ff1so6552563vbb.19
-        for <linux-media@vger.kernel.org>; Tue, 31 Jul 2012 20:44:24 -0700 (PDT)
+	Fri, 17 Aug 2012 01:37:53 -0400
+Message-ID: <502DD889.3040306@ti.com>
+Date: Fri, 17 Aug 2012 11:07:13 +0530
+From: Sekhar Nori <nsekhar@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <201207311418.05012.hverkuil@xs4all.nl>
-References: <1343736753-18454-1-git-send-email-shaik.ameer@samsung.com>
-	<1343736753-18454-5-git-send-email-shaik.ameer@samsung.com>
-	<201207311418.05012.hverkuil@xs4all.nl>
-Date: Wed, 1 Aug 2012 09:14:24 +0530
-Message-ID: <CAOD6ATqyxhV6mhOQcfe-65n_5brF5meSS6SHj1WgdzWkJPuZ5w@mail.gmail.com>
-Subject: Re: [PATCH v4 4/5] media: gscaler: Add m2m functionality for the
- G-Scaler driver
-From: Shaik Ameer Basha <shaik.samsung@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>,
-	linux-media@vger.kernel.org, sungchun.kang@samsung.com,
-	khw0178.kim@samsung.com, mchehab@infradead.org,
-	laurent.pinchart@ideasonboard.com, sy0816.kang@samsung.com,
-	s.nawrocki@samsung.com, posciak@google.com, alim.akhtar@gmail.com,
-	prashanth.g@samsung.com, joshi@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
+To: Prabhakar Lad <prabhakar.lad@ti.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	<linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] media: davinci: vpif: add check for NULL handler
+References: <1345125720-24059-1-git-send-email-prabhakar.lad@ti.com> <1435592.88fOxbvhY7@avalon> <502DD4C9.2030105@ti.com>
+In-Reply-To: <502DD4C9.2030105@ti.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Tue, Jul 31, 2012 at 5:48 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Tue 31 July 2012 14:12:32 Shaik Ameer Basha wrote:
->> From: Sungchun Kang <sungchun.kang@samsung.com>
+On 8/17/2012 10:51 AM, Prabhakar Lad wrote:
+> Hi Laurent,
+> 
+> Thanks for the review.
+> 
+> On Thursday 16 August 2012 08:43 PM, Laurent Pinchart wrote:
+>> Hi Prabhakar,
 >>
->> This patch adds the memory to memory (m2m) interface functionality
->> for the G-Scaler driver.
+>> Thanks for the patch.
 >>
->> Signed-off-by: Hynwoong Kim <khw0178.kim@samsung.com>
->> Signed-off-by: Sungchun Kang <sungchun.kang@samsung.com>
->> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
->> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
->> ---
->>  drivers/media/video/exynos-gsc/gsc-m2m.c |  772 ++++++++++++++++++++++++++++++
->>  1 files changed, 772 insertions(+), 0 deletions(-)
->>  create mode 100644 drivers/media/video/exynos-gsc/gsc-m2m.c
+>> On Thursday 16 August 2012 19:32:00 Prabhakar Lad wrote:
+>>> From: Lad, Prabhakar <prabhakar.lad@ti.com>
+>>>
+>>> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+>>> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+>>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>>> ---
+>>>  drivers/media/video/davinci/vpif_capture.c |   12 +++++++-----
+>>>  drivers/media/video/davinci/vpif_display.c |   14 ++++++++------
+>>>  2 files changed, 15 insertions(+), 11 deletions(-)
+>>>
+>>> diff --git a/drivers/media/video/davinci/vpif_capture.c
+>>> b/drivers/media/video/davinci/vpif_capture.c index 266025e..a87b7a5 100644
+>>> --- a/drivers/media/video/davinci/vpif_capture.c
+>>> +++ b/drivers/media/video/davinci/vpif_capture.c
+>>> @@ -311,12 +311,14 @@ static int vpif_start_streaming(struct vb2_queue *vq,
+>>> unsigned int count) }
+>>>
+>>>  	/* configure 1 or 2 channel mode */
+>>> -	ret = vpif_config_data->setup_input_channel_mode
+>>> -					(vpif->std_info.ycmux_mode);
+>>> +	if (vpif_config_data->setup_input_channel_mode) {
+>>> +		ret = vpif_config_data->setup_input_channel_mode
+>>> +						(vpif->std_info.ycmux_mode);
+>>>
+>>> -	if (ret < 0) {
+>>> -		vpif_dbg(1, debug, "can't set vpif channel mode\n");
+>>> -		return ret;
+>>> +		if (ret < 0) {
+>>> +			vpif_dbg(1, debug, "can't set vpif channel mode\n");
+>>> +			return ret;
+>>> +		}
 >>
->> diff --git a/drivers/media/video/exynos-gsc/gsc-m2m.c b/drivers/media/video/exynos-gsc/gsc-m2m.c
->> new file mode 100644
->> index 0000000..d7ecdb8
->> --- /dev/null
->> +++ b/drivers/media/video/exynos-gsc/gsc-m2m.c
->
->
->> +static int gsc_m2m_querycap(struct file *file, void *fh,
->> +                        struct v4l2_capability *cap)
->> +{
->> +     struct gsc_ctx *ctx = fh_to_ctx(fh);
->> +     struct gsc_dev *gsc = ctx->gsc_dev;
->> +
->> +     strlcpy(cap->driver, gsc->pdev->name, sizeof(cap->driver));
->> +     strlcpy(cap->card, gsc->pdev->name, sizeof(cap->card));
->> +     strlcpy(cap->bus_info, "platform", sizeof(cap->bus_info));
->> +     cap->device_caps = V4L2_CAP_STREAMING |
->> +                             V4L2_CAP_VIDEO_CAPTURE_MPLANE |
->> +                             V4L2_CAP_VIDEO_OUTPUT_MPLANE;
->
-> Yesterday the new V4L2_CAP_M2M_PLANE was added. You should add this
-> capability here. It is up to you to decide whether to remove the
-> CAPTURE_MPLANE and OUTPUT_MPLANE caps at the same time, or leave them for
-> a bit until any applications have had the chance to use the new M2M capability.
->
-> Combining the capture and output caps caused problems since apps would misdetect
-> this as a normal capture device instead of an M2M device. It's only for a
-> transition time that all three caps are allowed.
->
+>> This change looks good to me. However, note that you will need to get rid of 
+>> board code callbacks at some point to implement device tree support. It would 
+>> be worth thinking about how to do so now.
+>>
+> Currently VPIF driver is only used by dm646x, and the handlers for this
+> in the the board code are not null. This patch is intended for da850
+> where this handlers will be null.
+> 
+>>>  	}
+>>>
+>>>  	/* Call vpif_set_params function to set the parameters and addresses */
+>>> diff --git a/drivers/media/video/davinci/vpif_display.c
+>>> b/drivers/media/video/davinci/vpif_display.c index e129c98..1e35f92 100644
+>>> --- a/drivers/media/video/davinci/vpif_display.c
+>>> +++ b/drivers/media/video/davinci/vpif_display.c
+>>> @@ -280,12 +280,14 @@ static int vpif_start_streaming(struct vb2_queue *vq,
+>>> unsigned int count) }
+>>>
+>>>  	/* clock settings */
+>>> -	ret =
+>>> -	    vpif_config_data->set_clock(ch->vpifparams.std_info.ycmux_mode,
+>>> -					ch->vpifparams.std_info.hd_sd);
+>>> -	if (ret < 0) {
+>>> -		vpif_err("can't set clock\n");
+>>> -		return ret;
+>>> +	if (vpif_config_data->set_clock) {
+>>
+>> Does the DaVinci platform use the common clock framework ? If so, a better fix 
+>> for this would be to pass a clock name through platform data instead of using 
+>> a callback function.
+>>
+> Currently DaVinci is not using the common clock framework.
+> 
+> Can you ACK this patch?
 
-thanks for pointing it out.
-I addressed your comment in v5 set.
-CAPTURE_MPLANE and OUTPUT_MPLANE will be removed later.
+Yes, DaVinci has not migrated to common clock framework (yet). However,
+even without that it should be possible to use clock API in driver code.
+Using a callback to enable clocks or even passing the clock name from
+platform data would be bypassing an existing framework. Clock name
+should be IP specific, so it should be possible to use that in driver.
 
-> Regards,
->
->         Hans
-
-
-Regards,
-Shaik Ameer Basha
+Thanks,
+Sekhar
