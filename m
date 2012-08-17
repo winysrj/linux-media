@@ -1,52 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:38878 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751908Ab2HMTQD (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1200 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757810Ab2HQKgJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Aug 2012 15:16:03 -0400
-Received: by bkwj10 with SMTP id j10so1457114bkw.19
-        for <linux-media@vger.kernel.org>; Mon, 13 Aug 2012 12:16:01 -0700 (PDT)
-Message-ID: <5029526E.7020605@gmail.com>
-Date: Mon, 13 Aug 2012 21:15:58 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Fri, 17 Aug 2012 06:36:09 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: workshop-2011@linuxtv.org
+Subject: V4L2 API ambiguities: workshop presentation
+Date: Fri, 17 Aug 2012 12:35:58 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media <linux-media@vger.kernel.org>,
-	workshop-2011@linuxtv.org
-Subject: Re: [Workshop-2011] RFC: V4L2 API ambiguities
-References: <201208131427.56961.hverkuil@xs4all.nl> <5028FD7E.1010402@redhat.com>
-In-Reply-To: <5028FD7E.1010402@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201208171235.58094.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Hi all,
 
-On 08/13/2012 03:13 PM, Hans de Goede wrote:
->> 2) If a driver supports only formats with more than one plane, should
->> V4L2_CAP_VIDEO_CAPTURE still be defined?
-> 
-> No
+I've prepared a presentation for the upcoming workshop based on my RFC and the
+comments I received.
 
-Agreed.
+It is available here:
 
->> And if a driver also supports
->> single-plane formats in addition to >1 plane formats, should
->> V4L2_CAP_VIDEO_CAPTURE be compulsary?
-> 
-> Yes, so that non multi-plane aware apps keep working.
+http://hverkuil.home.xs4all.nl/presentations/v4l2-workshop-2012.odp
+http://hverkuil.home.xs4all.nl/presentations/v4l2-workshop-2012.pdf
 
-There is the multi-planar API and there are multi-planar formats. Single- 
-and multi-planar formats can be handled with the multi-planar API. So if 
-a driver supports single- and multi-planar formats by means on multi-planar
-APIs, there shouldn't be a need for signalling V4L2_CAP_VIDEO_CAPTURE, 
-which normally indicates single-planar API. The driver may choose to not 
-support it, in order to handle single-planar formats. Thus, in my opinion 
-making V4L2_CAP_VIDEO_CAPTURE compulsory wouldn't make sense. Unless the 
-driver supports both types of ioctls (_mplane and regular versions), we 
-shouldn't flag V4L2_CAP_VIDEO_CAPTURE. 
+Attendees of the workshop: please review this before the workshop starts. I
+want to go through this list fairly quickly (particularly slides 1-14) so we
+can have more time for other topics.
 
 Regards,
-Sylwester
+
+	Hans
