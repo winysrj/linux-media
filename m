@@ -1,49 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog106.obsmtp.com ([207.126.144.121]:48507 "EHLO
-	eu1sys200aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753230Ab2HCLX7 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Aug 2012 07:23:59 -0400
-Received: from zeta.dmz-eu.st.com (zeta.dmz-eu.st.com [164.129.230.9])
-	by beta.dmz-eu.st.com (STMicroelectronics) with ESMTP id 0F2F6CA
-	for <linux-media@vger.kernel.org>; Fri,  3 Aug 2012 11:23:56 +0000 (GMT)
-Received: from Webmail-eu.st.com (safex1hubcas1.st.com [10.75.90.14])
-	by zeta.dmz-eu.st.com (STMicroelectronics) with ESMTP id A98862C95
-	for <linux-media@vger.kernel.org>; Fri,  3 Aug 2012 11:23:56 +0000 (GMT)
-From: Nicolas THERY <nicolas.thery@st.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"pawel@osciak.com" <Pawel Osciak>,
-	"m.szyprowski@samsung.com" <Marek Szyprowski>,
-	"kyungmin.park@samsung.com" <Kyungmin Park>
-Date: Fri, 3 Aug 2012 13:23:54 +0200
-Subject: [PATCH for 3.6] videobuf2: fix sparse warning
-Message-ID: <501BB4CA.4010003@st.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mx2.mrecic.gov.ar ([200.16.97.20]:22365 "EHLO mx2.mrecic.gov.ar"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750906Ab2HQWtp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Aug 2012 18:49:45 -0400
+Date: Fri, 17 Aug 2012 19:39:49 -0300 (ART)
+From: "Mrs.Christy Walton" <suins@mrecic.gov.ar>
+Message-ID: <551962249.231100.1345243189990.JavaMail.root@mrelmx10.mrec.ar>
+Subject: 
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
+To: undisclosed-recipients:;
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix "symbol 'vb2_vmalloc_memops' was not declared. Should it be static?"
-sparse warning.
-
-Signed-off-by: Nicolas Thery <nicolas.thery@st.com>
----
- drivers/media/video/videobuf2-vmalloc.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/media/video/videobuf2-vmalloc.c b/drivers/media/video/videobuf2-vmalloc.c
-index 6b5ca6c..94efa04 100644
---- a/drivers/media/video/videobuf2-vmalloc.c
-+++ b/drivers/media/video/videobuf2-vmalloc.c
-@@ -18,6 +18,7 @@
- #include <linux/vmalloc.h>
- 
- #include <media/videobuf2-core.h>
-+#include <media/videobuf2-vmalloc.h>
- #include <media/videobuf2-memops.h>
- 
- struct vb2_vmalloc_buf {
--- 
-1.7.11.3
+0KHQutGK0L/QsCDQvNC+0Y8sDQoNCiAg0J/RgNC40LLQtdGC0YHRgtCy0LjRjyDQutGK0Lwg0LLQ
+sNGBLCDRgdC60YrQv9CwINC80L7RjyDQstGK0LfQu9GO0LHQtdC9LCDQsNC3INGB0YrQvCDQsy3Q
+ttCwINCa0YDQuNGB0YLQuCDQo9C+0LvRgtGK0L0g0LPQvtC70Y/QvNCwINCz0YDQsNC20LTQsNC9
+0LjQvSDQvdCwINCh0YrQtdC00LjQvdC10L3QuNGC0LUg0LDQvNC10YDQuNC60LDQvdGB0LrQuCDR
+idCw0YLQuC4NCg0KICDQkNC3INCy0Lgg0L3QvtGB0Y8g0L/RgNC10LTQu9C+0LbQtdC90LjQtSDQ
+vdCwINGB0YLQvtC50L3QvtGB0YIgJCA5LDAwMCwwMDAsMDAwLjAwICjQtNC10LLQtdGCINC80LjQ
+u9C40LDRgNC00LAg0KHRitC10LTQuNC90LXQvdC40YLQtSDRh9C70LXQvdC60LAg0LTQvtC70LDR
+gNCwKSwg0LrQvtC40YLQviDQstGK0LfQvdCw0LzQtdGA0Y/QstCw0Lwg0LTQsCDRgdC1INC40LfQ
+v9C+0LvQt9Cy0LDRgiDQt9CwINCx0LvQsNCz0L7RgtCy0L7RgNC40YLQtdC70L3QvtGB0YIuDQoN
+CiAg0JzQvtC70Y8g0LTQsCDQvNC4INC+0YLQs9C+0LLQvtGA0Lgg0L7QsdGA0LDRgtC90L4sINCw
+0LrQviDRgdC1INC40L3RgtC10YDQtdGB0YPQstCw0YLQtSwg0YLQsNC60LAg0YfQtSDQvNC+0LPQ
+sCDQtNCwINCy0Lgg0L/RgNC10LTQvtGB0YLQsNCy0Lgg0L/QvtCy0LXRh9C1INC/0L7QtNGA0L7Q
+sdC90L7RgdGC0LguIEVtYWlsOiBjaHJpc3R5MTAxd2FsdG9uQHlhaG9vLmNvLmpwDQoNCiAg0JHQ
+vtCzINC00LAg0LLQuCDQsdC70LDQs9C+0YHQu9C+0LLQuC4NCiAg0JMt0LbQsCDQmtGA0LjRgdGC
+0Lgg0KPQvtC70YLRitC9Lg==
