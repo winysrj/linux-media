@@ -1,97 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:37028 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751429Ab2HaIL2 (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:34530 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751126Ab2HQFVe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Aug 2012 04:11:28 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Fri, 17 Aug 2012 01:21:34 -0400
+Message-ID: <502DD4C9.2030105@ti.com>
+Date: Fri, 17 Aug 2012 10:51:13 +0530
+From: Prabhakar Lad <prabhakar.lad@ti.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: <davinci-linux-open-source@linux.davincidsp.com>,
+	LMML <linux-media@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 12/16] media: coda: add byte size slice limit control
-Date: Fri, 31 Aug 2012 10:11:06 +0200
-Message-Id: <1346400670-16002-13-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
-References: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: Re: [PATCH] media: davinci: vpif: add check for NULL handler
+References: <1345125720-24059-1-git-send-email-prabhakar.lad@ti.com> <1435592.88fOxbvhY7@avalon>
+In-Reply-To: <1435592.88fOxbvhY7@avalon>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c |   29 +++++++++++++++++++++++------
- 1 file changed, 23 insertions(+), 6 deletions(-)
+Hi Laurent,
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 8670d9f..266f97f 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -152,6 +152,7 @@ struct coda_params {
- 	enum v4l2_mpeg_video_multi_slice_mode slice_mode;
- 	u32			framerate;
- 	u16			bitrate;
-+	u32			slice_max_bits;
- 	u32			slice_max_mb;
- };
- 
-@@ -1057,12 +1058,23 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
- 		return -EINVAL;
- 	}
- 
--	value  = (ctx->params.slice_max_mb & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
--	value |= (1 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
--	if (ctx->params.slice_mode == V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB)
-+	switch (ctx->params.slice_mode) {
-+	case V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE:
-+		value = 0;
-+		break;
-+	case V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB:
-+		value  = (ctx->params.slice_max_mb & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
-+		value |= (1 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
-+		value |=  1 & CODA_SLICING_MODE_MASK;
-+		break;
-+	case V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES:
-+		value  = (ctx->params.slice_max_bits & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
-+		value |= (0 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
- 		value |=  1 & CODA_SLICING_MODE_MASK;
-+		break;
-+	}
- 	coda_write(dev, value, CODA_CMD_ENC_SEQ_SLICE_MODE);
--	value  =  ctx->params.gop_size & CODA_GOP_SIZE_MASK;
-+	value = ctx->params.gop_size & CODA_GOP_SIZE_MASK;
- 	coda_write(dev, value, CODA_CMD_ENC_SEQ_GOP_SIZE);
- 
- 	if (ctx->params.bitrate) {
-@@ -1309,6 +1321,9 @@ static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB:
- 		ctx->params.slice_max_mb = ctrl->val;
- 		break;
-+	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES:
-+		ctx->params.slice_max_bits = ctrl->val * 8;
-+		break;
- 	case V4L2_CID_MPEG_VIDEO_HEADER_MODE:
- 		break;
- 	default:
-@@ -1347,10 +1362,12 @@ static int coda_ctrls_setup(struct coda_ctx *ctx)
- 		V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP, 1, 31, 1, 2);
- 	v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE,
--		V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB, 0,
--		V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB);
-+		V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES, 0x7,
-+		V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB, 1, 0x3fffffff, 1, 1);
-+	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
-+		V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES, 1, 0x3fffffff, 1, 500);
- 	v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_HEADER_MODE,
- 		V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME,
--- 
-1.7.10.4
+Thanks for the review.
+
+On Thursday 16 August 2012 08:43 PM, Laurent Pinchart wrote:
+> Hi Prabhakar,
+> 
+> Thanks for the patch.
+> 
+> On Thursday 16 August 2012 19:32:00 Prabhakar Lad wrote:
+>> From: Lad, Prabhakar <prabhakar.lad@ti.com>
+>>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+>> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  drivers/media/video/davinci/vpif_capture.c |   12 +++++++-----
+>>  drivers/media/video/davinci/vpif_display.c |   14 ++++++++------
+>>  2 files changed, 15 insertions(+), 11 deletions(-)
+>>
+>> diff --git a/drivers/media/video/davinci/vpif_capture.c
+>> b/drivers/media/video/davinci/vpif_capture.c index 266025e..a87b7a5 100644
+>> --- a/drivers/media/video/davinci/vpif_capture.c
+>> +++ b/drivers/media/video/davinci/vpif_capture.c
+>> @@ -311,12 +311,14 @@ static int vpif_start_streaming(struct vb2_queue *vq,
+>> unsigned int count) }
+>>
+>>  	/* configure 1 or 2 channel mode */
+>> -	ret = vpif_config_data->setup_input_channel_mode
+>> -					(vpif->std_info.ycmux_mode);
+>> +	if (vpif_config_data->setup_input_channel_mode) {
+>> +		ret = vpif_config_data->setup_input_channel_mode
+>> +						(vpif->std_info.ycmux_mode);
+>>
+>> -	if (ret < 0) {
+>> -		vpif_dbg(1, debug, "can't set vpif channel mode\n");
+>> -		return ret;
+>> +		if (ret < 0) {
+>> +			vpif_dbg(1, debug, "can't set vpif channel mode\n");
+>> +			return ret;
+>> +		}
+> 
+> This change looks good to me. However, note that you will need to get rid of 
+> board code callbacks at some point to implement device tree support. It would 
+> be worth thinking about how to do so now.
+> 
+Currently VPIF driver is only used by dm646x, and the handlers for this
+in the the board code are not null. This patch is intended for da850
+where this handlers will be null.
+
+>>  	}
+>>
+>>  	/* Call vpif_set_params function to set the parameters and addresses */
+>> diff --git a/drivers/media/video/davinci/vpif_display.c
+>> b/drivers/media/video/davinci/vpif_display.c index e129c98..1e35f92 100644
+>> --- a/drivers/media/video/davinci/vpif_display.c
+>> +++ b/drivers/media/video/davinci/vpif_display.c
+>> @@ -280,12 +280,14 @@ static int vpif_start_streaming(struct vb2_queue *vq,
+>> unsigned int count) }
+>>
+>>  	/* clock settings */
+>> -	ret =
+>> -	    vpif_config_data->set_clock(ch->vpifparams.std_info.ycmux_mode,
+>> -					ch->vpifparams.std_info.hd_sd);
+>> -	if (ret < 0) {
+>> -		vpif_err("can't set clock\n");
+>> -		return ret;
+>> +	if (vpif_config_data->set_clock) {
+> 
+> Does the DaVinci platform use the common clock framework ? If so, a better fix 
+> for this would be to pass a clock name through platform data instead of using 
+> a callback function.
+> 
+Currently DaVinci is not using the common clock framework.
+
+Can you ACK this patch?
+
+Thanks and Regards,
+--Prabhakar
+
+>> +		ret =
+>> +		vpif_config_data->set_clock(ch->vpifparams.std_info.ycmux_mode,
+>> +						ch->vpifparams.std_info.hd_sd);
+>> +		if (ret < 0) {
+>> +			vpif_err("can't set clock\n");
+>> +			return ret;
+>> +		}
+>>  	}
+>>
+>>  	/* set the parameters and addresses */
 
