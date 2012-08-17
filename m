@@ -1,61 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.linuxtv.org ([130.149.80.248]:53142 "EHLO www.linuxtv.org"
+Received: from mx1.redhat.com ([209.132.183.28]:43515 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754396Ab2HXOZ6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 10:25:58 -0400
-Message-Id: <E1T4upg-0003SP-6I@www.linuxtv.org>
+	id S932589Ab2HQTB1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Aug 2012 15:01:27 -0400
+Message-ID: <502E94FA.6080301@redhat.com>
+Date: Fri, 17 Aug 2012 16:01:14 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Date: Thu, 16 Aug 2012 00:23:20 +0200
-Subject: [git:v4l-dvb/for_v3.7] [media] video: mx1_camera: Use clk_prepare_enable/clk_disable_unprepare
-To: linuxtv-commits@linuxtv.org
-Cc: Fabio Estevam <fabio.estevam@freescale.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Reply-to: linux-media@vger.kernel.org
+MIME-Version: 1.0
+To: CrazyCat <crazycat69@yandex.ru>
+CC: Antti Palosaari <crope@iki.fi>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] dvb_frontend: Multistream support
+References: <53381345139167@web11e.yandex.ru> <502D37CF.7030608@iki.fi> <839331345224097@web14d.yandex.ru>
+In-Reply-To: <839331345224097@web14d.yandex.ru>
+Content-Type: text/plain; charset=KOI8-R
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an automatic generated email to let you know that the following patch were queued at the 
-http://git.linuxtv.org/media_tree.git tree:
+Em 17-08-2012 14:21, CrazyCat escreveu:
+> 
+> 16.08.2012, 21:11, "Antti Palosaari" <crope@iki.fi>:
+>>>  - /* ISDB-T specifics */
+>>>  - u32 isdbs_ts_id;
+>>>  -
+>>>  - /* DVB-T2 specifics */
+>>>  - u32                     dvbt2_plp_id;
+>>>  + /* Multistream specifics */
+>>>  + u32 stream_id;
+>>
+>> u32 == 32 bit long unsigned number. See next comment.
+>>>
+>>>  - c->isdbs_ts_id = 0;
+>>>  - c->dvbt2_plp_id = 0;
+>>>  + c->stream_id = -1;
+>>
+>> unsigned number cannot be -1. It can be only 0 or bigger. Due to that
+>> this is wrong.
+> 
+> so maybe better declare in as int ? depend from standard valid stream id (for DVB is 0-255) and any another value (-1) disable stream filtering in demod.
 
-Subject: [media] video: mx1_camera: Use clk_prepare_enable/clk_disable_unprepare
-Author:  Fabio Estevam <fabio.estevam@freescale.com>
-Date:    Fri May 25 20:14:47 2012 -0300
+It should be noticed that DVBv5 will pass it as u32 in any case.
+So, maybe it is better to use UINT_MAX as the no-filter value:
 
-Prepare the clock before enabling it.
+/home/v4l/v4l/patchwork/include/linux/kernel.h:#define UINT_MAX	(~0U)
 
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: <linux-media@vger.kernel.org>
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
- drivers/media/video/mx1_camera.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Some care is needed when doing that, to avoid 32bits/64bits compat
+conflicts. Also, this define doesn't exist in userspace.
 
----
+so, maybe using something like:
 
-http://git.linuxtv.org/media_tree.git?a=commitdiff;h=5c4dfc84a88e1108f5ddba256ecaab6fe45f94e5
+#define NO_STREAM_ID_FILTER	(~0U)
 
-diff --git a/drivers/media/video/mx1_camera.c b/drivers/media/video/mx1_camera.c
-index d2e6f82..560a65a 100644
---- a/drivers/media/video/mx1_camera.c
-+++ b/drivers/media/video/mx1_camera.c
-@@ -403,7 +403,7 @@ static void mx1_camera_activate(struct mx1_camera_dev *pcdev)
- 
- 	dev_dbg(pcdev->icd->parent, "Activate device\n");
- 
--	clk_enable(pcdev->clk);
-+	clk_prepare_enable(pcdev->clk);
- 
- 	/* enable CSI before doing anything else */
- 	__raw_writel(csicr1, pcdev->base + CSICR1);
-@@ -422,7 +422,7 @@ static void mx1_camera_deactivate(struct mx1_camera_dev *pcdev)
- 	/* Disable all CSI interface */
- 	__raw_writel(0x00, pcdev->base + CSICR1);
- 
--	clk_disable(pcdev->clk);
-+	clk_disable_unprepare(pcdev->clk);
- }
- 
- /*
+Would work properly, as, even on 64bits system with 32bits userspace,
+this should work
+
+or, if we want to be pedantic:
+
+#define NO_STREAM_ID_FILTER	((u32)(~0U))
+
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
