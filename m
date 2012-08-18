@@ -1,39 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:48379 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751131Ab2HNGv4 (ORCPT
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:47161 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751839Ab2HRAMN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 02:51:56 -0400
-Date: Tue, 14 Aug 2012 09:51:20 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Malcolm Priestley <tvboxspy@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch] [media] it913x-fe: use ARRAY_SIZE() as a cleanup
-Message-ID: <20120814065120.GA4791@elgon.mountain>
+	Fri, 17 Aug 2012 20:12:13 -0400
+Message-ID: <502EDDCC.200@iki.fi>
+Date: Sat, 18 Aug 2012 03:11:56 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: Hiroshi Doyu <hdoyu@nvidia.com>
+CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"htl10@users.sourceforge.net" <htl10@users.sourceforge.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"joe@perches.com" <joe@perches.com>,
+	"linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
+Subject: Re: [PATCH 1/1] driver-core: Shut up dev_dbg_reatelimited() without
+ DEBUG
+References: <20120817.090416.563933713934615530.hdoyu@nvidia.com>
+In-Reply-To: <20120817.090416.563933713934615530.hdoyu@nvidia.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This code looks suspicious, but it turns out that "nv" is an array of u8
-so sizeof() is the same as ARRAY_SIZE().  Using ARRAY_SIZE() is more
-readable though.
+On 08/17/2012 09:04 AM, Hiroshi Doyu wrote:
+> dev_dbg_reatelimited() without DEBUG printed "217078 callbacks
+> suppressed". This shouldn't print anything without DEBUG.
+>
+> Signed-off-by: Hiroshi Doyu <hdoyu@nvidia.com>
+> Reported-by: Antti Palosaari <crope@iki.fi>
+> ---
+>   include/linux/device.h |    6 +++++-
+>   1 files changed, 5 insertions(+), 1 deletions(-)
+>
+> diff --git a/include/linux/device.h b/include/linux/device.h
+> index eb945e1..d4dc26e 100644
+> --- a/include/linux/device.h
+> +++ b/include/linux/device.h
+> @@ -962,9 +962,13 @@ do {									\
+>   	dev_level_ratelimited(dev_notice, dev, fmt, ##__VA_ARGS__)
+>   #define dev_info_ratelimited(dev, fmt, ...)				\
+>   	dev_level_ratelimited(dev_info, dev, fmt, ##__VA_ARGS__)
+> +#if defined(DEBUG)
+>   #define dev_dbg_ratelimited(dev, fmt, ...)				\
+>   	dev_level_ratelimited(dev_dbg, dev, fmt, ##__VA_ARGS__)
+> -
+> +#else
+> +#define dev_dbg_ratelimited(dev, fmt, ...)			\
+> +	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
+> +#endif
+>   /*
+>    * Stupid hackaround for existing uses of non-printk uses dev_info
+>    *
+>
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+NACK. I don't think that's correct behavior. After that patch it kills 
+all output of dev_dbg_ratelimited(). If I use dynamic debugs and order 
+debugs, I expect to see debugs as earlier.
 
-diff --git a/drivers/media/dvb/frontends/it913x-fe.c b/drivers/media/dvb/frontends/it913x-fe.c
-index 708cbf1..6e1c6eb 100644
---- a/drivers/media/dvb/frontends/it913x-fe.c
-+++ b/drivers/media/dvb/frontends/it913x-fe.c
-@@ -199,7 +199,7 @@ static int it913x_init_tuner(struct it913x_fe_state *state)
- 
- 	if (reg < 0)
- 		return -ENODEV;
--	else if (reg < sizeof(nv))
-+	else if (reg < ARRAY_SIZE(nv))
- 		nv_val = nv[reg];
- 	else
- 		nv_val = 2;
+I did test module in order to demonstrate problem. Here it is:
+http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/dev_dbg_ratelimited
+
+There is also file named: test_results.txt
+It contains 4 test cases:
+1) without that patch & without module dynamic debug
+2) without that patch & module dynamic debug ordered
+3) with that patch & without module dynamic debug
+4) with that patch & module dynamic debug ordered
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
