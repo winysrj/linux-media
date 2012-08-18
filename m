@@ -1,79 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:56512 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752060Ab2HXLWX (ORCPT
+Received: from acsinet15.oracle.com ([141.146.126.227]:24530 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751669Ab2HRQAo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 07:22:23 -0400
-Date: Fri, 24 Aug 2012 13:22:18 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Anatolij Gustschin <agust@denx.de>
-cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>, dzu@denx.de
-Subject: Re: [PATCH 2/3] mt9v022: fix the V4L2_CID_EXPOSURE control
-In-Reply-To: <1345799431-29426-3-git-send-email-agust@denx.de>
-Message-ID: <Pine.LNX.4.64.1208241320330.20710@axis700.grange>
-References: <1345799431-29426-1-git-send-email-agust@denx.de>
- <1345799431-29426-3-git-send-email-agust@denx.de>
+	Sat, 18 Aug 2012 12:00:44 -0400
+Date: Sat, 18 Aug 2012 18:58:50 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jarod Wilson <jarod@redhat.com>,
+	Ben Hutchings <ben@decadent.org.uk>,
+	Luis Henriques <luis.henriques@canonical.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] [media] rc: divide by zero bugs in s_tx_carrier()
+Message-ID: <20120818155850.GA11819@elgon.mountain>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 24 Aug 2012, Anatolij Gustschin wrote:
+"carrier" comes from a get_user() in ir_lirc_ioctl().  We need to test
+that it's not zero before using it as a divisor.
 
-> Since the MT9V022_TOTAL_SHUTTER_WIDTH register is controlled in manual
-> mode by V4L2_CID_EXPOSURE control, it shouldn't be written directly in
-> mt9v022_s_crop(). In manual mode this register should be set to the
-> V4L2_CID_EXPOSURE control value. Changing this register directly and
-> outside of the actual control function means that the register value
-> is not in sync with the corresponding control value. Thus, the following
-> problem is observed:
-> 
->     - setting this control initially succeeds
->     - VIDIOC_S_CROP ioctl() overwrites the MT9V022_TOTAL_SHUTTER_WIDTH
->       register
->     - setting this control to the same value again doesn't
->       result in setting the register since the control value
->       was previously cached and doesn't differ
-> 
-> Fix it by always setting the register to the controlled value, when
-> in manual mode.
-> 
-> Signed-off-by: Anatolij Gustschin <agust@denx.de>
-> ---
->  drivers/media/i2c/soc_camera/mt9v022.c |    6 +++---
->  1 files changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/soc_camera/mt9v022.c b/drivers/media/i2c/soc_camera/mt9v022.c
-> index d13c8c4..d26c071 100644
-> --- a/drivers/media/i2c/soc_camera/mt9v022.c
-> +++ b/drivers/media/i2c/soc_camera/mt9v022.c
-> @@ -274,9 +274,9 @@ static int mt9v022_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
->  		if (ret & 1) /* Autoexposure */
->  			ret = reg_write(client, mt9v022->reg->max_total_shutter_width,
->  					rect.height + mt9v022->y_skip_top + 43);
-> -		else
-> -			ret = reg_write(client, MT9V022_TOTAL_SHUTTER_WIDTH,
-> -					rect.height + mt9v022->y_skip_top + 43);
-> +		else /* Set to the manually controlled value */
-> +			ret = v4l2_ctrl_s_ctrl(mt9v022->exposure,
-> +					       mt9v022->exposure->val);
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-But why do we have to write it here at all then? Autoexposure can be off 
-only if the user has set exposure manually, using V4L2_CID_EXPOSURE_AUTO. 
-In this case MT9V022_TOTAL_SHUTTER_WIDTH already contains the correct 
-value. Why do we have to set it again? Maybe just adding a comment, 
-explaining the above, would suffice?
-
->  	}
->  	/* Setup frame format: defaults apart from width and height */
->  	if (!ret)
-> -- 
-> 1.7.1
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+diff --git a/drivers/media/rc/ene_ir.c b/drivers/media/rc/ene_ir.c
+index 647dd95..d05ac15 100644
+--- a/drivers/media/rc/ene_ir.c
++++ b/drivers/media/rc/ene_ir.c
+@@ -881,10 +881,13 @@ static int ene_set_tx_mask(struct rc_dev *rdev, u32 tx_mask)
+ static int ene_set_tx_carrier(struct rc_dev *rdev, u32 carrier)
+ {
+ 	struct ene_device *dev = rdev->priv;
+-	u32 period = 2000000 / carrier;
++	u32 period;
+ 
+ 	dbg("TX: attempt to set tx carrier to %d kHz", carrier);
++	if (carrier == 0)
++		return -EINVAL;
+ 
++	period = 2000000 / carrier;
+ 	if (period && (period > ENE_CIRMOD_PRD_MAX ||
+ 			period < ENE_CIRMOD_PRD_MIN)) {
+ 
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index 699eef3..2ea913a 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -517,6 +517,9 @@ static int nvt_set_tx_carrier(struct rc_dev *dev, u32 carrier)
+ 	struct nvt_dev *nvt = dev->priv;
+ 	u16 val;
+ 
++	if (carrier == 0)
++		return -EINVAL;
++
+ 	nvt_cir_reg_write(nvt, 1, CIR_CP);
+ 	val = 3000000 / (carrier) - 1;
+ 	nvt_cir_reg_write(nvt, val & 0xff, CIR_CC);
