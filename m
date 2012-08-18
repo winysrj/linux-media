@@ -1,83 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:15843 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030267Ab2HHNxP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2012 09:53:15 -0400
-Message-id: <50226F46.3080800@samsung.com>
-Date: Wed, 08 Aug 2012 15:53:10 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-MIME-version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	devel@driverdev.osuosl.org, Pawel Osciak <pawel@osciak.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jerome Glisse <jglisse@redhat.com>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Rob Landley <rob@landley.net>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Alex Deucher <alexander.deucher@amd.com>,
-	Rob Clark <rob@ti.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] dma-buf: add reference counting for exporter module
-References: <50223CC5.9060007@samsung.com> <1404275.atroogfRqe@avalon>
-In-reply-to: <1404275.atroogfRqe@avalon>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from mail1-relais-roc.national.inria.fr ([192.134.164.82]:61443 "EHLO
+	mail1-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752656Ab2HRV0V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 18 Aug 2012 17:26:21 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 2/5] drivers/media/video/mt9m032.c: introduce missing initialization
+Date: Sat, 18 Aug 2012 23:25:56 +0200
+Message-Id: <1345325159-7365-2-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
-On 08/08/2012 03:35 PM, Laurent Pinchart wrote:
-> Hi Tomasz,
-> 
-> Thanks for the patch.
-> 
-> On Wednesday 08 August 2012 12:17:41 Tomasz Stanislawski wrote:
->> This patch adds reference counting on a module that exports dma-buf and
->> implements its operations. This prevents the module from being unloaded
->> while DMABUF file is in use.
->>
->> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
->> ---
->>  Documentation/dma-buf-sharing.txt          |    3 ++-
->>  drivers/base/dma-buf.c                     |   10 +++++++++-
->>  drivers/gpu/drm/exynos/exynos_drm_dmabuf.c |    1 +
->>  drivers/gpu/drm/i915/i915_gem_dmabuf.c     |    1 +
->>  drivers/gpu/drm/nouveau/nouveau_prime.c    |    1 +
->>  drivers/gpu/drm/radeon/radeon_prime.c      |    1 +
->>  drivers/staging/omapdrm/omap_gem_dmabuf.c  |    1 +
->>  include/linux/dma-buf.h                    |    2 ++
->>  8 files changed, 18 insertions(+), 2 deletions(-)
->>
-[snip]
+The result of one call to a function is tested, and then at the second call
+to the same function, the previous result, and not the current result, is
+tested again.
 
->> @@ -96,6 +98,7 @@ struct dma_buf *dma_buf_export(void *priv, const struct
->> dma_buf_ops *ops, struct file *file;
->>
->>  	if (WARN_ON(!priv || !ops
->> +			  || !ops->owner
+The semantic match that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
 
-Thank you for spotting this.
-I didn'y know that try_get_module returned true is module was NULL.
+// <smpl>
+@@
+expression ret;
+identifier f;
+statement S1,S2;
+@@
 
-BTW. Is it worth to add ".owner = THIS_MODULE," to all dma_buf
-exporters in this patch?
+*ret = f(...);
+if (\(ret != 0\|ret < 0\|ret == NULL\)) S1
+... when any
+*f(...);
+if (\(ret != 0\|ret < 0\|ret == NULL\)) S2
+// </smpl>
 
-Regards,
-Tomasz Stanislawski
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-> 
-> THIS_MODULE is defined as ((struct module *)0) when the driver is built-in, 
-> this check should thus be removed.
-> 
->>  			  || !ops->map_dma_buf
->>  			  || !ops->unmap_dma_buf
->>  			  || !ops->release
->>
+---
+ drivers/media/video/mt9m032.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/video/mt9m032.c b/drivers/media/video/mt9m032.c
+index 445359c..f80c1d7 100644
+--- a/drivers/media/video/mt9m032.c
++++ b/drivers/media/video/mt9m032.c
+@@ -781,7 +781,7 @@ static int mt9m032_probe(struct i2c_client *client,
+ 	ret = mt9m032_write(client, MT9M032_RESET, 1);	/* reset on */
+ 	if (ret < 0)
+ 		goto error_entity;
+-	mt9m032_write(client, MT9M032_RESET, 0);	/* reset off */
++	ret = mt9m032_write(client, MT9M032_RESET, 0);	/* reset off */
+ 	if (ret < 0)
+ 		goto error_entity;
+ 
 
