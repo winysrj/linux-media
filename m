@@ -1,110 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:40351 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751347Ab2HYVqx (ORCPT
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:46463 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751410Ab2HSXcn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Aug 2012 17:46:53 -0400
-Subject: [PATCH 0/8] rc-core: patches for 3.7
-To: linux-media@vger.kernel.org
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: jwilson@redhat.com, mchehab@redhat.com, sean@mess.org
-Date: Sat, 25 Aug 2012 23:46:47 +0200
-Message-ID: <20120825214520.22603.37194.stgit@localhost.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	Sun, 19 Aug 2012 19:32:43 -0400
+Message-ID: <1345419147.22400.78.camel@deadeye.wl.decadent.org.uk>
+Subject: [PATCH v2] [media] rc: ite-cir: Initialise ite_dev::rdev earlier
+From: Ben Hutchings <ben@decadent.org.uk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: YunQiang Su <wzssyqa@gmail.com>, 684441@bugs.debian.org,
+	Jarod Wilson <jarod@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Luis Henriques <luis.henriques@canonical.com>
+Date: Mon, 20 Aug 2012 00:32:27 +0100
+In-Reply-To: <1345411489.22400.76.camel@deadeye.wl.decadent.org.uk>
+References: <1345411489.22400.76.camel@deadeye.wl.decadent.org.uk>
+Content-Type: multipart/signed; micalg="pgp-sha512";
+	protocol="application/pgp-signature"; boundary="=-5Lhi4OkxEGFA9/sEqpjU"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is two minor winbond-cir fixes as well as the first six patches
-from my previous patchbomb.
 
-The latter have been modified so that backwards compatibility is retained
-as much as possible (the format of the sysfs files do not change for
-example).
+--=-5Lhi4OkxEGFA9/sEqpjU
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+ite_dev::rdev is currently initialised in ite_probe() after
+rc_register_device() returns.  If a newly registered device is opened
+quickly enough, we may enable interrupts and try to use ite_dev::rdev
+before it has been initialised.  Move it up to the earliest point we
+can, right after calling rc_allocate_device().
+
+References: http://bugs.debian.org/684441
+Reported-and-tested-by: YunQiang Su <wzssyqa@gmail.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Cc: stable@vger.kernel.org
 ---
+Unlike the previous version, this will apply cleanly to the media
+staging/for_v3.6 branch.
 
-David Härdeman (8):
-      winbond-cir: correctness fix
-      winbond-cir: asynchronous tx
-      rc-core: add separate defines for protocol bitmaps and numbers
-      rc-core: don't throw away protocol information
-      rc-core: use the full 32 bits for NEC scancodes
-      rc-core: merge rc5 and streamzap decoders
-      rc-core: rename ir_input_class to rc_class
-      rc-core: initialize rc-core earlier if built-in
+Ben.
+
+ drivers/media/rc/ite-cir.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/rc/ite-cir.c b/drivers/media/rc/ite-cir.c
+index 36fe5a3..24c77a4 100644
+--- a/drivers/media/rc/ite-cir.c
++++ b/drivers/media/rc/ite-cir.c
+@@ -1473,6 +1473,7 @@ static int ite_probe(struct pnp_dev *pdev, const stru=
+ct pnp_device_id
+ 	rdev =3D rc_allocate_device();
+ 	if (!rdev)
+ 		goto failure;
++	itdev->rdev =3D rdev;
+=20
+ 	ret =3D -ENODEV;
+=20
+@@ -1604,7 +1605,6 @@ static int ite_probe(struct pnp_dev *pdev, const stru=
+ct pnp_device_id
+ 	if (ret)
+ 		goto failure3;
+=20
+-	itdev->rdev =3D rdev;
+ 	ite_pr(KERN_NOTICE, "driver has been successfully loaded\n");
+=20
+ 	return 0;
 
 
- drivers/media/common/siano/smsir.c           |    2 
- drivers/media/i2c/ir-kbd-i2c.c               |   26 +-
- drivers/media/pci/bt8xx/bttv-input.c         |   15 +
- drivers/media/pci/cx18/cx18-i2c.c            |    2 
- drivers/media/pci/cx23885/cx23885-input.c    |    6 
- drivers/media/pci/cx88/cx88-input.c          |   18 +
- drivers/media/pci/dm1105/dm1105.c            |    3 
- drivers/media/pci/ivtv/ivtv-i2c.c            |    8 -
- drivers/media/pci/saa7134/saa7134-input.c    |    8 -
- drivers/media/pci/ttpci/budget-ci.c          |    7 -
- drivers/media/rc/Kconfig                     |   12 -
- drivers/media/rc/Makefile                    |    1 
- drivers/media/rc/ati_remote.c                |   15 +
- drivers/media/rc/ene_ir.c                    |    2 
- drivers/media/rc/fintek-cir.c                |    2 
- drivers/media/rc/gpio-ir-recv.c              |    2 
- drivers/media/rc/iguanair.c                  |    2 
- drivers/media/rc/imon.c                      |   50 ++--
- drivers/media/rc/ir-jvc-decoder.c            |    6 
- drivers/media/rc/ir-lirc-codec.c             |    4 
- drivers/media/rc/ir-mce_kbd-decoder.c        |    4 
- drivers/media/rc/ir-nec-decoder.c            |   32 --
- drivers/media/rc/ir-raw.c                    |    2 
- drivers/media/rc/ir-rc5-decoder.c            |   64 +++--
- drivers/media/rc/ir-rc5-sz-decoder.c         |  154 -----------
- drivers/media/rc/ir-rc6-decoder.c            |   54 ++--
- drivers/media/rc/ir-sanyo-decoder.c          |    6 
- drivers/media/rc/ir-sony-decoder.c           |   17 +
- drivers/media/rc/ite-cir.c                   |    2 
- drivers/media/rc/keymaps/rc-imon-mce.c       |    2 
- drivers/media/rc/keymaps/rc-rc6-mce.c        |    2 
- drivers/media/rc/keymaps/rc-streamzap.c      |    4 
- drivers/media/rc/mceusb.c                    |    2 
- drivers/media/rc/nuvoton-cir.c               |    2 
- drivers/media/rc/rc-core-priv.h              |    9 -
- drivers/media/rc/rc-loopback.c               |    2 
- drivers/media/rc/rc-main.c                   |  354 ++++++++++++++++++--------
- drivers/media/rc/redrat3.c                   |    2 
- drivers/media/rc/streamzap.c                 |   12 -
- drivers/media/rc/ttusbir.c                   |    2 
- drivers/media/rc/winbond-cir.c               |   51 +---
- drivers/media/usb/cx231xx/cx231xx-input.c    |    2 
- drivers/media/usb/dvb-usb-v2/af9015.c        |   24 +-
- drivers/media/usb/dvb-usb-v2/af9035.c        |    4 
- drivers/media/usb/dvb-usb-v2/anysee.c        |    5 
- drivers/media/usb/dvb-usb-v2/az6007.c        |   19 +
- drivers/media/usb/dvb-usb-v2/dvb_usb.h       |    2 
- drivers/media/usb/dvb-usb-v2/it913x.c        |   22 +-
- drivers/media/usb/dvb-usb-v2/lmedm04.c       |    4 
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c      |   26 +-
- drivers/media/usb/dvb-usb/dib0700.h          |    2 
- drivers/media/usb/dvb-usb/dib0700_core.c     |   18 +
- drivers/media/usb/dvb-usb/dib0700_devices.c  |  156 ++++++-----
- drivers/media/usb/dvb-usb/dvb-usb.h          |    4 
- drivers/media/usb/dvb-usb/pctv452e.c         |   15 +
- drivers/media/usb/dvb-usb/technisat-usb2.c   |    2 
- drivers/media/usb/dvb-usb/ttusb2.c           |    4 
- drivers/media/usb/em28xx/em28xx-cards.c      |   15 +
- drivers/media/usb/em28xx/em28xx-input.c      |   44 ++-
- drivers/media/usb/em28xx/em28xx.h            |    1 
- drivers/media/usb/hdpvr/hdpvr-i2c.c          |    2 
- drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c |    4 
- drivers/media/usb/tm6000/tm6000-cards.c      |    2 
- drivers/media/usb/tm6000/tm6000-input.c      |   80 ++++--
- include/media/ir-kbd-i2c.h                   |    2 
- include/media/rc-core.h                      |   32 ++
- include/media/rc-map.h                       |   86 +++++-
- 67 files changed, 797 insertions(+), 750 deletions(-)
- delete mode 100644 drivers/media/rc/ir-rc5-sz-decoder.c
+--=-5Lhi4OkxEGFA9/sEqpjU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 
--- 
-David Härdeman
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIVAwUAUDF3i+e/yOyVhhEJAQrcCQ//SKkjXSAsVvcM+W5ADiuXh0NuiXSCXFgb
+8epuLwy0Gka/+neqc5zOHVEpM4PZhDhhRNtQe9Gee4qFJTxGLn0He1z9i+L2e9Dy
+9ewfKP1ECHsAcJALxUyHBlhJlOUg+Wp4UDAEapO27Q1yczw5rhXF6EB4mYjxHCMN
+KWqwyohohMy6iyfvdUPbV1o1IongPfrCJCGfWAbWe1R2tH1IsefrnsXjg6JEXmpG
+FP5b1foDfTe2debBI2v6oyXOIw+okzjxSscWk249wjMBMUWhoeso9VOfOfcsFVId
+is7Lbs9AzUJ7Qag0+vps+ZdP6SFK+jyTFrm/BZdFnrnYUIdNhY3ITMsMcdqQG5WE
+cSJGVOHoPU6A2+GhBTgascJbGI/yH8eUAmAFa/n26ZpV4yxv1VFBdQtsW1FjWon/
+VKu+CIVt7J5uy9Pk9ZqkoGgT8Mq7vjWGi0l2tYcyHV9nyv8Vs09Y9LFcK5BgApHs
+hB6o8sSMvQL9vBvCYgY4ofA4t6Wsv6wo28F7mEuIBhVKh9QcrWmH0X9h3e7xRtBD
+AYyMfSayvKa8z91OrUn8P05T5t/Lv9BiFw9QPfPx9IHtUf9aWwril76Q2PEYMAqC
+36lE6QNqThHBhMMXenY4mc0UTVY9A36bjs/QaaE03ZfziUtdxqqmvufgoAMwH/Rp
+XSOPwdlpgtM=
+=GeEZ
+-----END PGP SIGNATURE-----
+
+--=-5Lhi4OkxEGFA9/sEqpjU--
