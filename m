@@ -1,111 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44929 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751532Ab2H2McV (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:45280 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751627Ab2HTIIl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Aug 2012 08:32:21 -0400
-From: Prabhakar Lad <prabhakar.lad@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	<linux-kernel@vger.kernel.org>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH] media: v4l2-ctrls: add control for dpcm predictor
-Date: Wed, 29 Aug 2012 18:01:07 +0530
-Message-ID: <1346243467-17094-1-git-send-email-prabhakar.lad@ti.com>
+	Mon, 20 Aug 2012 04:08:41 -0400
+Received: by wicr5 with SMTP id r5so3463371wic.1
+        for <linux-media@vger.kernel.org>; Mon, 20 Aug 2012 01:08:40 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <Pine.LNX.4.64.1207301718510.28003@axis700.grange>
+References: <1342083809-19921-1-git-send-email-javier.martin@vista-silicon.com>
+	<Pine.LNX.4.64.1207201330240.27906@axis700.grange>
+	<CACKLOr2sKVWCk3we_cP5MvnR6-WsaFwA9AC=fgp3iLm8B6mfEA@mail.gmail.com>
+	<Pine.LNX.4.64.1207301718510.28003@axis700.grange>
+Date: Mon, 20 Aug 2012 10:08:39 +0200
+Message-ID: <CACKLOr3OmRUACO8QaJnYA6E=YZMCrrOq1pAXb1wTv4Udg+u8bQ@mail.gmail.com>
+Subject: Re: [PATCH] media: mx2_camera: Remove MX2_CAMERA_SWAP16 and
+ MX2_CAMERA_PACK_DIR_MSB flags.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-arm-kernel@lists.infradead.org, mchehab@redhat.com,
+	linux@arm.linux.org.uk, kernel@pengutronix.de,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.lad@ti.com>
+Hi,
 
-add V4L2_CID_DPCM_PREDICTOR control of type menu, which
-determines the dpcm predictor. The predictor can be either
-simple or advanced.
+On 30 July 2012 17:33, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> Hi Javier
+>
+> On Mon, 30 Jul 2012, javier Martin wrote:
+>
+>> Hi,
+>> thank you for yor ACKs.
+>>
+>> On 20 July 2012 13:31, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+>> > On Thu, 12 Jul 2012, Javier Martin wrote:
+>> >
+>> >> These flags are not used any longer and can be safely removed
+>> >> since the following patch:
+>> >> http://www.spinics.net/lists/linux-media/msg50165.html
+>> >>
+>> >> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+>> >
+>> > For the ARM tree:
+>> >
+>> > Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>>
+>> forgive my ignorance on the matter. Could you please point me to the
+>> git repository this patch should be merged?
+>
+> Sorry, my "for the ARM tree" comment was probably not clear enough. This
+> patch should certainly go via the ARM (SoC) tree, since it only touches
+> arch/arm. So, the maintainer (Sascha - added to CC), that will be
+> forwarding this patch to Linus can thereby add my "acked-by" to this
+> patch, if he feels like it.
+>
 
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Hans de Goede <hdegoede@redhat.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
----
- This patches has one checkpatch warning for line over
- 80 characters altough it can be avoided I have kept it
- for consistency.
+Sascha, do you have any comments on this one? I can't find it in
+arm-soc, did you already merge it?
 
- drivers/media/v4l2-core/v4l2-ctrls.c |    9 +++++++++
- include/linux/videodev2.h            |    5 +++++
- 2 files changed, 14 insertions(+), 0 deletions(-)
+Regards.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index b6a2ee7..2d7bc15 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -425,6 +425,11 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"Gray",
- 		NULL,
- 	};
-+	static const char * const dpcm_predictor[] = {
-+		"Simple Predictor",
-+		"Advanced Predictor",
-+		NULL,
-+	};
- 
- 	switch (id) {
- 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-@@ -502,6 +507,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		return mpeg4_profile;
- 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
- 		return jpeg_chroma_subsampling;
-+	case V4L2_CID_DPCM_PREDICTOR:
-+		return dpcm_predictor;
- 
- 	default:
- 		return NULL;
-@@ -732,6 +739,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_IMAGE_PROC_CLASS:		return "Image Processing Controls";
- 	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
- 	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
-+	case V4L2_CID_DPCM_PREDICTOR:		return "DPCM Predictor";
- 
- 	default:
- 		return NULL;
-@@ -832,6 +840,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_ISO_SENSITIVITY_AUTO:
- 	case V4L2_CID_EXPOSURE_METERING:
- 	case V4L2_CID_SCENE_MODE:
-+	case V4L2_CID_DPCM_PREDICTOR:
- 		*type = V4L2_CTRL_TYPE_MENU;
- 		break;
- 	case V4L2_CID_LINK_FREQ:
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 6d6dfa7..4edb941 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -2000,6 +2000,11 @@ enum v4l2_jpeg_chroma_subsampling {
- 
- #define V4L2_CID_LINK_FREQ			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 1)
- #define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
-+#define V4L2_CID_DPCM_PREDICTOR			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 3)
-+enum v4l2_dpcm_predictor {
-+	V4L2_DPCM_PREDICTOR_SIMPLE	= 0,
-+	V4L2_DPCM_PREDICTOR_ADVANCE	= 1,
-+};
- 
- /*
-  *	T U N I N G
 -- 
-1.7.0.4
-
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
