@@ -1,44 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55599 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751026Ab2HOSj0 (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:43592 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752336Ab2HTBYk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Aug 2012 14:39:26 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linaro-mm-sig@lists.linaro.org
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	k.debski@samsung.com, pawel@osciak.com, sumit.semwal@ti.com,
-	mchehab@redhat.com, robdclark@gmail.com,
-	dri-devel@lists.freedesktop.org, kyungmin.park@samsung.com,
-	dmitriyz@google.com, s.nawrocki@samsung.com, airlied@redhat.com,
-	remi@remlab.net, linux-media@vger.kernel.org, g.liakhovetski@gmx.de
-Subject: Re: [Linaro-mm-sig] [PATCHv8 10/26] v4l: vb2-dma-contig: add prepare/finish to dma-contig allocator
-Date: Wed, 15 Aug 2012 20:39:41 +0200
-Message-ID: <3130857.QkgBDISGD7@avalon>
-In-Reply-To: <19239574.EXIJbKbmPC@avalon>
-References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com> <1344958496-9373-11-git-send-email-t.stanislaws@samsung.com> <19239574.EXIJbKbmPC@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Sun, 19 Aug 2012 21:24:40 -0400
+Received: by yenl14 with SMTP id l14so4806062yen.19
+        for <linux-media@vger.kernel.org>; Sun, 19 Aug 2012 18:24:40 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: [PATCH 4/4] stk1160: Stop device and unqueue buffers when start_streaming() fails
+Date: Sun, 19 Aug 2012 22:23:46 -0300
+Message-Id: <1345425826-13429-4-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1345425826-13429-1-git-send-email-elezegarcia@gmail.com>
+References: <1345425826-13429-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 15 August 2012 20:35:28 Laurent Pinchart wrote:
-> On Tuesday 14 August 2012 17:34:40 Tomasz Stanislawski wrote:
-> > From: Marek Szyprowski <m.szyprowski@samsung.com>
-> > 
-> > Add prepare/finish callbacks to vb2-dma-contig allocator.
-> > 
-> > Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> 
-> As for v7,
-> 
-> Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+If start_streaming() fails (e.g. out of memory) the driver needs to
+rewind the start procedure. This implies possibly stopping the device
+and clearing the buffer queue.
 
-s/^/Acked-by: /
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/media/usb/stk1160/stk1160-v4l.c |   16 ++++++++++++----
+ 1 files changed, 12 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/media/usb/stk1160/stk1160-v4l.c b/drivers/media/usb/stk1160/stk1160-v4l.c
+index 63c5832..cc5a95f 100644
+--- a/drivers/media/usb/stk1160/stk1160-v4l.c
++++ b/drivers/media/usb/stk1160/stk1160-v4l.c
+@@ -184,7 +184,7 @@ static int stk1160_start_streaming(struct stk1160 *dev)
+ 	if (!dev->isoc_ctl.num_bufs || new_pkt_size) {
+ 		rc = stk1160_alloc_isoc(dev);
+ 		if (rc < 0)
+-			goto out_unlock;
++			goto out_stop_hw;
+ 	}
+ 
+ 	/* submit urbs and enables IRQ */
+@@ -192,8 +192,7 @@ static int stk1160_start_streaming(struct stk1160 *dev)
+ 		rc = usb_submit_urb(dev->isoc_ctl.urb[i], GFP_KERNEL);
+ 		if (rc) {
+ 			stk1160_err("cannot submit urb[%d] (%d)\n", i, rc);
+-			stk1160_uninit_isoc(dev);
+-			goto out_unlock;
++			goto out_uninit;
+ 		}
+ 	}
+ 
+@@ -206,7 +205,16 @@ static int stk1160_start_streaming(struct stk1160 *dev)
+ 
+ 	stk1160_dbg("streaming started\n");
+ 
+-out_unlock:
++	mutex_unlock(&dev->v4l_lock);
++
++	return 0;
++
++out_uninit:
++	stk1160_uninit_isoc(dev);
++out_stop_hw:
++	usb_set_interface(dev->udev, 0, 0);
++	stk1160_clear_queue(dev);
++
+ 	mutex_unlock(&dev->v4l_lock);
+ 
+ 	return rc;
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.8.6
 
