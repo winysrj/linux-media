@@ -1,109 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39720 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:34604 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754206Ab2HNMmg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 08:42:36 -0400
-Message-ID: <502A47F5.5050008@redhat.com>
-Date: Tue, 14 Aug 2012 14:43:33 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1754308Ab2HTVmy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Aug 2012 17:42:54 -0400
+Message-ID: <5032AF55.5030208@redhat.com>
+Date: Mon, 20 Aug 2012 18:42:45 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	workshop-2011@linuxtv.org,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [Workshop-2011] RFC: V4L2 API ambiguities
-References: <201208131427.56961.hverkuil@xs4all.nl> <2697809.QgTso8NvEE@avalon> <201208141254.34095.hverkuil@xs4all.nl>
-In-Reply-To: <201208141254.34095.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Randy Dunlap <rdunlap@xenotime.net>
+CC: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	linux-media <linux-media@vger.kernel.org>,
+	Steven Toth <stoth@kernellabs.com>
+Subject: Re: linux-next: Tree for Aug 20 (media: saa7164)
+References: <20120820192336.1be51b225ce2883bdcad5b15@canb.auug.org.au> <503260D9.4030208@xenotime.net>
+In-Reply-To: <503260D9.4030208@xenotime.net>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em 20-08-2012 13:07, Randy Dunlap escreveu:
+> (part of/due to kconfig menu restructuring?)
 
-On 08/14/2012 12:54 PM, Hans Verkuil wrote:
-> On Tue August 14 2012 01:54:16 Laurent Pinchart wrote:
->> Hi Hans,
->>
->> On Monday 13 August 2012 14:27:56 Hans Verkuil wrote:
->>> Hi all!
->>>
->>> As part of the 2012 Kernel Summit V4L2 workshop I will be discussing a bunch
->>> of V4L2 ambiguities/improvements.
->>>
->>> I've made a list of all the V4L2 issues and put them in two categories:
->>> issues that I think are easy to resolve (within a few minutes at most), and
->>> those that are harder.
->>>
->>> If you think I put something in the easy category that you believe is
->>> actually hard, then please let me know.
->>>
->>> If you attend the workshop, then please read through this and think about it
->>> a bit, particularly for the second category.
->>>
->>> If something is unclear, or you think another topic should be added, then
->>> let me know as well.
->>>
->>> Easy:
->>
->> [snip]
->>
->>> 4) What should a driver return in TRY_FMT/S_FMT if the requested format is
->>> not supported (possible behaviours include returning the currently selected
->>> format or a default format).
->>>
->>>     The spec says this: "Drivers should not return an error code unless the
->>> input is ambiguous", but it does not explain what constitutes an ambiguous
->>> input. Frankly, I can't think of any and in my opinion TRY/S_FMT should
->>> never return an error other than EINVAL (if the buffer type is unsupported)
->>> or EBUSY (for S_FMT if streaming is in progress).
->>>
->>>     Returning an error for any other reason doesn't help the application
->>> since the app will have no way of knowing what to do next.
->>
->> That wasn't my point. Drivers should obviously not return an error. Let's
->> consider the case of a driver supporting YUYV and MJPEG. If the user calls
->> TRY_FMT or S_FMT with the pixel format set to RGB565, should the driver return
->> a hardcoded default format (one of YUYV or MJPEG), or the currently selected
->> format ? In other words, should the pixel format returned by TRY_FMT or S_FMT
->> when the requested pixel format is not valid be a fixed default pixel format,
->> or should it depend on the currently selected pixel format ?
->
-> Actually, in this case I would probably choose a YUYV format that is closest
-> to the requested size. If a driver supports both compressed and uncompressed
-> formats, then it should only select a compressed format if the application
-> explicitly asked for it. Handling compressed formats is more complex than
-> uncompressed formats, so that seems a sensible rule.
->
-> The next heuristic I would apply is to choose a format that is closest to the
-> requested size.
+Yes.
 
-Size as in resolution or size as in bpp?
+Probably, there was an implicit dependency with the old Kconfig arrangement.
 
-> So I guess my guidelines would be:
->
-> 1) If the pixelformat is not supported, then choose an uncompressed format
-> (if possible) instead.
-> 2) Next choose a format closest to, but smaller than (if possible) the
-> requested size.
->
-> But this would be a guideline only, and in the end it should be up to the
-> driver. Just as long TRY/S_FMT always returns a format.
+Now that we're storing both analog and digital TV drivers at the same place,
+those dependencies need to be explicit.
 
-I think we're making this way too complicated. I agree that TRY/S_FMT should
-always returns a format and not EINVAL, but other then that lets just document
-that if the driver does not know the passed in format it should return a default
-format and not make this dependent on the passed in fmt, esp. since otherwise
-the driver would need to know about all formats it does not support to best map
-that to a one which it does support, which is just crazy.
+Thanks!
+Mauro
 
-So I suggest adding the following to the spec:
+> on i386:
+> 
+> drivers/built-in.o: In function `fops_open':
+> saa7164-encoder.c:(.text+0x68ed6f): undefined reference to `video_devdata'
+...
 
-When a driver receives an unsupported pixfmt as input on a TRY/S_FMT call it
-should replace this with a default pixfmt, independent of input pixfmt and
-current driver state. Preferably a driver uses a well known uncompressed
-pixfmt as its default.
+-
 
-Regards,
+[media] saa7164: Add dependency for V4L2 core
 
-Hans
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+As Reported by Randy:
+
+> drivers/built-in.o: In function `fops_open':
+> saa7164-encoder.c:(.text+0x68ed6f): undefined reference to `video_devdata'
+> drivers/built-in.o: In function `fill_queryctrl.clone.4':
+> saa7164-encoder.c:(.text+0x68f657): undefined reference to `v4l2_ctrl_query_fill'
+> saa7164-encoder.c:(.text+0x68f6a9): undefined reference to `v4l2_ctrl_query_fill'
+> saa7164-encoder.c:(.text+0x68f6e0): undefined reference to `v4l2_ctrl_query_fill'
+> saa7164-encoder.c:(.text+0x68f71a): undefined reference to `v4l2_ctrl_query_fill'
+> saa7164-encoder.c:(.text+0x68f73a): undefined reference to `v4l2_ctrl_query_fill'
+> drivers/built-in.o:saa7164-encoder.c:(.text+0x68f757): more undefined references to `v4l2_ctrl_query_fill' follow
+> drivers/built-in.o: In function `saa7164_encoder_register':
+> (.text+0x68fff7): undefined reference to `video_device_alloc'
+> drivers/built-in.o: In function `saa7164_encoder_register':
+> (.text+0x690073): undefined reference to `video_device_release'
+> drivers/built-in.o: In function `saa7164_encoder_register':
+> (.text+0x6900a1): undefined reference to `__video_register_device'
+> drivers/built-in.o: In function `saa7164_encoder_unregister':
+> (.text+0x690243): undefined reference to `video_unregister_device'
+> drivers/built-in.o: In function `saa7164_encoder_unregister':
+> (.text+0x690269): undefined reference to `video_device_release'
+> drivers/built-in.o: In function `fops_open':
+> saa7164-vbi.c:(.text+0x69125f): undefined reference to `video_devdata'
+> drivers/built-in.o: In function `fill_queryctrl.clone.4':
+> saa7164-vbi.c:(.text+0x6919b4): undefined reference to `v4l2_ctrl_query_fill'
+> saa7164-vbi.c:(.text+0x6919ee): undefined reference to `v4l2_ctrl_query_fill'
+> saa7164-vbi.c:(.text+0x691a23): undefined reference to `v4l2_ctrl_query_fill'
+> saa7164-vbi.c:(.text+0x691a47): undefined reference to `v4l2_ctrl_query_fill'
+> saa7164-vbi.c:(.text+0x691a6a): undefined reference to `v4l2_ctrl_query_fill'
+> drivers/built-in.o:saa7164-vbi.c:(.text+0x691a87): more undefined references to `v4l2_ctrl_query_fill' follow
+> drivers/built-in.o: In function `saa7164_vbi_register':
+> (.text+0x69220e): undefined reference to `video_device_alloc'
+> drivers/built-in.o: In function `saa7164_vbi_register':
+> (.text+0x69228a): undefined reference to `video_device_release'
+> drivers/built-in.o: In function `saa7164_vbi_register':
+> (.text+0x6922bb): undefined reference to `__video_register_device'
+> drivers/built-in.o: In function `saa7164_vbi_unregister':
+> (.text+0x6923de): undefined reference to `video_unregister_device'
+> drivers/built-in.o: In function `saa7164_vbi_unregister':
+> (.text+0x6923f9): undefined reference to `video_device_release'
+> drivers/built-in.o:(.rodata+0xb1054): undefined reference to `video_ioctl2'
+> drivers/built-in.o:(.rodata+0xb17d4): undefined reference to `video_ioctl2'
+
+That's due to the lack of an explicit Kconfig dependency for the V4L2 core.
+
+Reported-by: Randy Dunlap <rdunlap@xenotime.net>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/pci/saa7164/Kconfig b/drivers/media/pci/saa7164/Kconfig
+index 3532637..d0b92fe 100644
+--- a/drivers/media/pci/saa7164/Kconfig
++++ b/drivers/media/pci/saa7164/Kconfig
+@@ -1,6 +1,6 @@
+ config VIDEO_SAA7164
+ 	tristate "NXP SAA7164 support"
+-	depends on DVB_CORE && PCI && I2C
++	depends on DVB_CORE && VIDEO_DEV && PCI && I2C
+ 	select I2C_ALGOBIT
+ 	select FW_LOADER
+ 	select VIDEO_TUNER
+
+
+
