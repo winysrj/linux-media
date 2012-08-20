@@ -1,51 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ppsw-41.csi.cam.ac.uk ([131.111.8.141]:51451 "EHLO
-	ppsw-41.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756222Ab2HUP24 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Aug 2012 11:28:56 -0400
-From: "M. Fletcher" <mpf30@cam.ac.uk>
-To: <crope@iki.fi>
-Cc: <linux-media@vger.kernel.org>
-Subject: Re: Unable to load dvb-usb-rtl2832u driver in Ubuntu 12.04
-Date: Tue, 21 Aug 2012 16:29:09 +0100
-Message-ID: <00f301cd7fb1$b596f2c0$20c4d840$@cam.ac.uk>
+Received: from mx1.redhat.com ([209.132.183.28]:32579 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754172Ab2HTUpo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Aug 2012 16:45:44 -0400
+Message-ID: <5032A236.7000105@redhat.com>
+Date: Mon, 20 Aug 2012 22:46:46 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	linux-media@vger.kernel.org, mchehab@infradead.org
+Subject: Re: How to add support for the em2765 webcam Speedlink VAD Laplace
+ to the kernel ?
+References: <5032225A.9080305@googlemail.com> <50323559.7040107@redhat.com> <50328E22.4090805@redhat.com>
+In-Reply-To: <50328E22.4090805@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Language: en-gb
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Apologies for the confusion. Having done more digging I think the
-dvb_usb_rtl2832u module was added by the package download from here
-http://www.dfragos.me/2011/11/installation-of-the-rt2832u-driver-in-linux/.
-This is confirmed by looking through the corresponding 'MakeFile'. I have
-therefore removed references to dvb_usb_rtl2832u from
-/lib/modules/3.2.0-29-generic/kernel/drivers/media/usb/dvb-usb.
+Hi,
 
-I have also performed a clean, build & install of V4L-DVB.
+On 08/20/2012 09:21 PM, Mauro Carvalho Chehab wrote:
+> Em 20-08-2012 10:02, Hans de Goede escreveu:
 
-The contents of the dvb-usb folder are now as follows:
+<snip>
 
-dct@DCTbox:/lib/modules/3.2.0-29-generic/kernel/drivers/media/usb/dvb-usb$
-ls
-dvb-usb-a800.ko           dvb-usb-dib0700.ko        dvb-usb-dtv5100.ko
-dvb-usb-nova-t-usb2.ko     dvb-usb-vp702x.ko
-dvb-usb-af9005.ko         dvb-usb-dibusb-common.ko  dvb-usb-dw2102.ko
-dvb-usb-opera.ko           dvb-usb-vp7045.ko
-dvb-usb-af9005-remote.ko  dvb-usb-dibusb-mb.ko      dvb-usb-friio.ko
-dvb-usb-pctv452e.ko
-dvb-usb-az6027.ko         dvb-usb-dibusb-mc.ko      dvb-usb-gp8psk.ko
-dvb-usb-technisat-usb2.ko
-dvb-usb-cinergyT2.ko      dvb-usb-digitv.ko         dvb-usb.ko
-dvb-usb-ttusb2.ko
-dvb-usb-cxusb.ko          dvb-usb-dtt200u.ko        dvb-usb-m920x.ko
-dvb-usb-umt-010.ko
+>> Note that luckily these devices do use a unique USB id and not one of the
+>> generic em28xx ids so from that pov having a specialized driver for them
+>> is not an issue.
+>
+> Hans,
+>
+> Not sure if all em2765 cameras will have unique USB id's: at em28xx,
+> the known em2710/em2750 cameras that don't have unique ID's; detecting
+> between them requires to probe for the type of sensor.
 
-I cannot see any reference to the dvb_usb_rtl28xxu module. Having said that
-a reference to 'dvb_usb_rtl28xxu' does appear when I build V4L-DVB.
+Right, like the one I gave to Douglas and you or Douglas (don't remember) added
+support for. But that one was a "regular" em28xx using camera, and this one
+appears to be a bit funky in places...
 
-Can you please advise how I correctly add dvb_usb_rtl28xxu?
+I'll let Frank answer your other remarks.
 
+Regards,
+
+Hans
