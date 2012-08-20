@@ -1,112 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([93.97.41.153]:46993 "EHLO pequod.mess.org"
+Received: from mx1.redhat.com ([209.132.183.28]:37493 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751180Ab2HMM7y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Aug 2012 08:59:54 -0400
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Stefan Macher <st_maker-lirc@yahoo.de>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 04/13] [media] iguanair: fix return value for transmit
-Date: Mon, 13 Aug 2012 13:59:42 +0100
-Message-Id: <1344862791-30352-4-git-send-email-sean@mess.org>
-In-Reply-To: <1344862791-30352-1-git-send-email-sean@mess.org>
-References: <1344862791-30352-1-git-send-email-sean@mess.org>
+	id S1751275Ab2HTSWT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Aug 2012 14:22:19 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q7KIMJT3031560
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 20 Aug 2012 14:22:19 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 5/6] [media] Kconfig: use menuconfig instead of menu
+Date: Mon, 20 Aug 2012 15:22:14 -0300
+Message-Id: <1345486935-18002-6-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1345486935-18002-1-git-send-email-mchehab@redhat.com>
+References: <1345486935-18002-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Also fix error codes returned from open.
+This allows disabling all drivers of a certain type as a hole
 
-Signed-off-by: Sean Young <sean@mess.org>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/rc/iguanair.c | 30 ++++++++++++++++++------------
- 1 file changed, 18 insertions(+), 12 deletions(-)
+ drivers/media/parport/Kconfig |  8 +++++---
+ drivers/media/pci/Kconfig     | 11 +++++------
+ drivers/media/usb/Kconfig     | 12 +++++-------
+ 3 files changed, 15 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/media/rc/iguanair.c b/drivers/media/rc/iguanair.c
-index 7eeabdb..4525107 100644
---- a/drivers/media/rc/iguanair.c
-+++ b/drivers/media/rc/iguanair.c
-@@ -325,7 +325,7 @@ static int iguanair_tx(struct rc_dev *dev, unsigned *txbuf, unsigned count)
- {
- 	struct iguanair *ir = dev->priv;
- 	uint8_t space, *payload;
--	unsigned i, size, rc;
-+	unsigned i, size, rc, bytes;
- 	struct send_packet *packet;
+diff --git a/drivers/media/parport/Kconfig b/drivers/media/parport/Kconfig
+index 48138fe..a1c7853 100644
+--- a/drivers/media/parport/Kconfig
++++ b/drivers/media/parport/Kconfig
+@@ -1,6 +1,8 @@
+-menu "V4L ISA and parallel port devices"
+-	visible if (ISA || PARPORT) && MEDIA_CAMERA_SUPPORT
++menuconfig MEDIA_PARPORT_SUPPORT
++	bool "V4L ISA and parallel port devices"
++	depends on (ISA || PARPORT) && MEDIA_CAMERA_SUPPORT
  
- 	mutex_lock(&ir->lock);
-@@ -333,17 +333,22 @@ static int iguanair_tx(struct rc_dev *dev, unsigned *txbuf, unsigned count)
- 	/* convert from us to carrier periods */
- 	for (i = size = 0; i < count; i++) {
- 		txbuf[i] = DIV_ROUND_CLOSEST(txbuf[i] * ir->carrier, 1000000);
--		size += (txbuf[i] + 126) / 127;
-+		bytes = (txbuf[i] + 126) / 127;
-+		if (size + bytes > ir->bufsize) {
-+			count = i;
-+			break;
-+		}
-+		size += bytes;
- 	}
++if MEDIA_PARPORT_SUPPORT
+ config VIDEO_BWQCAM
+ 	tristate "Quickcam BW Video For Linux"
+ 	depends on PARPORT && VIDEO_V4L2
+@@ -44,4 +46,4 @@ config VIDEO_W9966
  
--	packet = kmalloc(sizeof(*packet) + size, GFP_KERNEL);
--	if (!packet) {
--		rc = -ENOMEM;
-+	if (count == 0) {
-+		rc = -EINVAL;
- 		goto out;
- 	}
+ 	  Check out <file:Documentation/video4linux/w9966.txt> for more
+ 	  information.
+-endmenu
++endif
+diff --git a/drivers/media/pci/Kconfig b/drivers/media/pci/Kconfig
+index 4243d5d..083b62f 100644
+--- a/drivers/media/pci/Kconfig
++++ b/drivers/media/pci/Kconfig
+@@ -1,9 +1,8 @@
+-#
+-# DVB device configuration
+-#
++menuconfig MEDIA_PCI_SUPPORT
++	bool "Media PCI Adapters"
++	depends on PCI && MEDIA_SUPPORT
  
--	if (size > ir->bufsize) {
--		rc = -E2BIG;
-+	packet = kmalloc(sizeof(*packet) + size, GFP_KERNEL);
-+	if (!packet) {
-+		rc = -ENOMEM;
- 		goto out;
- 	}
+-menu "Media PCI Adapters"
+-	visible if PCI && MEDIA_SUPPORT
++if MEDIA_PCI_SUPPORT
  
-@@ -374,7 +379,7 @@ static int iguanair_tx(struct rc_dev *dev, unsigned *txbuf, unsigned count)
- 		rc = iguanair_receiver(ir, false);
- 		if (rc) {
- 			dev_warn(ir->dev, "disable receiver before transmit failed\n");
--			goto out;
-+			goto out_kfree;
- 		}
- 	}
+ if MEDIA_CAMERA_SUPPORT
+ 	comment "Media capture support"
+@@ -42,4 +41,4 @@ source "drivers/media/pci/ngene/Kconfig"
+ source "drivers/media/pci/ddbridge/Kconfig"
+ endif
  
-@@ -390,11 +395,12 @@ static int iguanair_tx(struct rc_dev *dev, unsigned *txbuf, unsigned count)
- 			dev_warn(ir->dev, "re-enable receiver after transmit failed\n");
- 	}
+-endmenu
++endif #MEDIA_PCI_SUPPORT
+diff --git a/drivers/media/usb/Kconfig b/drivers/media/usb/Kconfig
+index 069a3c1..f960e7ca4 100644
+--- a/drivers/media/usb/Kconfig
++++ b/drivers/media/usb/Kconfig
+@@ -1,9 +1,8 @@
+-#
+-# USB media device configuration
+-#
++menuconfig MEDIA_USB_SUPPORT
++	bool "Media USB Adapters"
++	depends on USB && MEDIA_SUPPORT
  
-+out_kfree:
-+	kfree(packet);
- out:
- 	mutex_unlock(&ir->lock);
--	kfree(packet);
+-menu "Media USB Adapters"
+-	visible if USB && MEDIA_SUPPORT
++if MEDIA_USB_SUPPORT
  
--	return rc;
-+	return rc ? rc : count;
- }
+ if MEDIA_CAMERA_SUPPORT
+ 	comment "Webcam devices"
+@@ -25,7 +24,6 @@ source "drivers/media/usb/hdpvr/Kconfig"
+ source "drivers/media/usb/tlg2300/Kconfig"
+ source "drivers/media/usb/usbvision/Kconfig"
+ source "drivers/media/usb/stk1160/Kconfig"
+-
+ endif
  
- static int iguanair_open(struct rc_dev *rdev)
-@@ -442,7 +448,7 @@ static int __devinit iguanair_probe(struct usb_interface *intf,
- 	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
- 	rc = rc_allocate_device();
- 	if (!ir || !rc) {
--		ret = ENOMEM;
-+		ret = -ENOMEM;
- 		goto out;
- 	}
+ if (MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT)
+@@ -50,4 +48,4 @@ if (MEDIA_CAMERA_SUPPORT || MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT)
+ source "drivers/media/usb/em28xx/Kconfig"
+ endif
  
-@@ -451,7 +457,7 @@ static int __devinit iguanair_probe(struct usb_interface *intf,
- 	ir->urb_in = usb_alloc_urb(0, GFP_KERNEL);
- 
- 	if (!ir->buf_in || !ir->urb_in) {
--		ret = ENOMEM;
-+		ret = -ENOMEM;
- 		goto out;
- 	}
- 
+-endmenu
++endif #MEDIA_USB_SUPPORT
 -- 
-1.7.11.2
+1.7.11.4
 
