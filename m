@@ -1,61 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.10]:51897 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757906Ab2HXJKi (ORCPT
+Received: from hqemgate04.nvidia.com ([216.228.121.35]:19346 "EHLO
+	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752668Ab2HTLPF convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 05:10:38 -0400
-From: Anatolij Gustschin <agust@denx.de>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>, dzu@denx.de
-Subject: [PATCH 2/3] mt9v022: fix the V4L2_CID_EXPOSURE control
-Date: Fri, 24 Aug 2012 11:10:30 +0200
-Message-Id: <1345799431-29426-3-git-send-email-agust@denx.de>
-In-Reply-To: <1345799431-29426-1-git-send-email-agust@denx.de>
-References: <1345799431-29426-1-git-send-email-agust@denx.de>
+	Mon, 20 Aug 2012 07:15:05 -0400
+From: Hiroshi Doyu <hdoyu@nvidia.com>
+To: "crope@iki.fi" <crope@iki.fi>
+CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
+	"htl10@users.sourceforge.net" <htl10@users.sourceforge.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"joe@perches.com" <joe@perches.com>,
+	"linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
+Date: Mon, 20 Aug 2012 13:14:54 +0200
+Subject: Re: [PATCH 1/1] driver-core: Shut up dev_dbg_reatelimited() without
+ DEBUG
+Message-ID: <20120820.141454.449841061737873578.hdoyu@nvidia.com>
+References: <20120817.090416.563933713934615530.hdoyu@nvidia.com><502EDDCC.200@iki.fi>
+In-Reply-To: <502EDDCC.200@iki.fi>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since the MT9V022_TOTAL_SHUTTER_WIDTH register is controlled in manual
-mode by V4L2_CID_EXPOSURE control, it shouldn't be written directly in
-mt9v022_s_crop(). In manual mode this register should be set to the
-V4L2_CID_EXPOSURE control value. Changing this register directly and
-outside of the actual control function means that the register value
-is not in sync with the corresponding control value. Thus, the following
-problem is observed:
+Hi Antti,
 
-    - setting this control initially succeeds
-    - VIDIOC_S_CROP ioctl() overwrites the MT9V022_TOTAL_SHUTTER_WIDTH
-      register
-    - setting this control to the same value again doesn't
-      result in setting the register since the control value
-      was previously cached and doesn't differ
+Antti Palosaari <crope@iki.fi> wrote @ Sat, 18 Aug 2012 02:11:56 +0200:
 
-Fix it by always setting the register to the controlled value, when
-in manual mode.
+> On 08/17/2012 09:04 AM, Hiroshi Doyu wrote:
+> > dev_dbg_reatelimited() without DEBUG printed "217078 callbacks
+> > suppressed". This shouldn't print anything without DEBUG.
+> >
+> > Signed-off-by: Hiroshi Doyu <hdoyu@nvidia.com>
+> > Reported-by: Antti Palosaari <crope@iki.fi>
+> > ---
+> >   include/linux/device.h |    6 +++++-
+> >   1 files changed, 5 insertions(+), 1 deletions(-)
+> >
+> > diff --git a/include/linux/device.h b/include/linux/device.h
+> > index eb945e1..d4dc26e 100644
+> > --- a/include/linux/device.h
+> > +++ b/include/linux/device.h
+> > @@ -962,9 +962,13 @@ do {									\
+> >   	dev_level_ratelimited(dev_notice, dev, fmt, ##__VA_ARGS__)
+> >   #define dev_info_ratelimited(dev, fmt, ...)				\
+> >   	dev_level_ratelimited(dev_info, dev, fmt, ##__VA_ARGS__)
+> > +#if defined(DEBUG)
+> >   #define dev_dbg_ratelimited(dev, fmt, ...)				\
+> >   	dev_level_ratelimited(dev_dbg, dev, fmt, ##__VA_ARGS__)
+> > -
+> > +#else
+> > +#define dev_dbg_ratelimited(dev, fmt, ...)			\
+> > +	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
+> > +#endif
+> >   /*
+> >    * Stupid hackaround for existing uses of non-printk uses dev_info
+> >    *
+> >
+>
+> NACK. I don't think that's correct behavior. After that patch it kills
+> all output of dev_dbg_ratelimited(). If I use dynamic debugs and order
+> debugs, I expect to see debugs as earlier.
 
-Signed-off-by: Anatolij Gustschin <agust@denx.de>
+You are right. I attached the update patch, just moving *_ratelimited
+functions after dev_dbg() definitions.
+
+With DEBUG defined/undefined in your "test.ko", it works fine. With
+CONFIG_DYNAMIC_DEBUG, it works with "+p", but with "-p", still
+"..callbacks suppressed" is printed.
+
+$ insmod test.ko
+$ echo -n 'module test +p' > /sys/kernel/debug/dynamic_debug/control"
+$ rmmod test
+$ dmesg | tail -15
+<7>[   69.047192] (NULL device *): print_dev_dbg_ratelimited: dev_dbg_ratelimited()
+<7>[   69.047233] (NULL device *): print_dev_dbg_ratelimited: dev_dbg_ratelimited()
+<7>[   69.047275] (NULL device *): print_dev_dbg_ratelimited: dev_dbg_ratelimited()
+<4>[   75.057045] print_dev_dbg_ratelimited: 90 callbacks suppressed
+<7>[   75.063595] (NULL device *): print_dev_dbg_ratelimited: dev_dbg_ratelimited()
+<7>[   75.063796] (NULL device *): print_dev_dbg_ratelimited: dev_dbg_ratelimited()
+<7>[   75.063970] (NULL device *): print_dev_dbg_ratelimited: dev_dbg_ratelimited()
+<7>[   75.064137] (NULL device *): print_dev_dbg_ratelimited: dev_dbg_ratelimited()
+<7>[   75.064307] (NULL device *): print_dev_dbg_ratelimited: dev_dbg_ratelimited()
+<7>[   75.064472] (NULL device *): print_dev_dbg_ratelimited: dev_dbg_ratelimited()
+<7>[   75.064640] (NULL device *): print_dev_dbg_ratelimited: dev_dbg_ratelimited()
+<7>[   75.064806] (NULL device *): print_dev_dbg_ratelimited: dev_dbg_ratelimited()
+<7>[   75.064972] (NULL device *): print_dev_dbg_ratelimited: dev_dbg_ratelimited()
+<7>[   75.065137] (NULL device *): print_dev_dbg_ratelimited: dev_dbg_ratelimited()
+<6>[   75.065510] test module unloaded!
+
+$ insmod test.ko
+$ echo -n 'module test -p' > /sys/kernel/debug/dynamic_debug/control"
+$ rmmod test
+$ dmesg
+...
+<6>[   82.715925] test module loaded!
+<6>[   82.795642] dynamic_debug:ddebug_exec_queries: processed 1 queries, with 1 matches, 0 errs
+<4>[   88.892096] print_dev_dbg_ratelimited: 90 callbacks suppressed
+<6>[   88.898397] test module unloaded!
+
+Any suggestion to control "... callbacks suppressed" with
+CONFIG_DYNAMIC_DEBUG would be appreciated.
+
+>From 5b33751f89c2e91ee734325e6d73ed7e1c6d4b02 Mon Sep 17 00:00:00 2001
+From: Hiroshi Doyu <hdoyu@nvidia.com>
+Date: Mon, 20 Aug 2012 13:49:19 +0300
+Subject: [PATCH 1/1] driver-core: Shut up dev_dbg_reatelimited() without
+ DEBUG
+
+dev_dbg_reatelimited() without DEBUG printed "217078 callbacks
+suppressed". This shouldn't print anything without DEBUG.
+
+With CONFIG_DYNAMIC_DEBUG, the print should be configured as expected.
+
+Signed-off-by: Hiroshi Doyu <hdoyu@nvidia.com>
+Reported-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/i2c/soc_camera/mt9v022.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ include/linux/device.h |   53 ++++++++++++++++++++++++++---------------------
+ 1 files changed, 29 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/media/i2c/soc_camera/mt9v022.c b/drivers/media/i2c/soc_camera/mt9v022.c
-index d13c8c4..d26c071 100644
---- a/drivers/media/i2c/soc_camera/mt9v022.c
-+++ b/drivers/media/i2c/soc_camera/mt9v022.c
-@@ -274,9 +274,9 @@ static int mt9v022_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
- 		if (ret & 1) /* Autoexposure */
- 			ret = reg_write(client, mt9v022->reg->max_total_shutter_width,
- 					rect.height + mt9v022->y_skip_top + 43);
--		else
--			ret = reg_write(client, MT9V022_TOTAL_SHUTTER_WIDTH,
--					rect.height + mt9v022->y_skip_top + 43);
-+		else /* Set to the manually controlled value */
-+			ret = v4l2_ctrl_s_ctrl(mt9v022->exposure,
-+					       mt9v022->exposure->val);
- 	}
- 	/* Setup frame format: defaults apart from width and height */
- 	if (!ret)
+diff --git a/include/linux/device.h b/include/linux/device.h
+index 9648331..763bca4 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -932,6 +932,32 @@ int _dev_info(const struct device *dev, const char *fmt, ...)
+ 
+ #endif
+ 
++/*
++ * Stupid hackaround for existing uses of non-printk uses dev_info
++ *
++ * Note that the definition of dev_info below is actually _dev_info
++ * and a macro is used to avoid redefining dev_info
++ */
++
++#define dev_info(dev, fmt, arg...) _dev_info(dev, fmt, ##arg)
++
++#if defined(CONFIG_DYNAMIC_DEBUG)
++#define dev_dbg(dev, format, ...)		     \
++do {						     \
++	dynamic_dev_dbg(dev, format, ##__VA_ARGS__); \
++} while (0)
++#elif defined(DEBUG)
++#define dev_dbg(dev, format, arg...)		\
++	dev_printk(KERN_DEBUG, dev, format, ##arg)
++#else
++#define dev_dbg(dev, format, arg...)				\
++({								\
++	if (0)							\
++		dev_printk(KERN_DEBUG, dev, format, ##arg);	\
++	0;							\
++})
++#endif
++
+ #define dev_level_ratelimited(dev_level, dev, fmt, ...)			\
+ do {									\
+ 	static DEFINE_RATELIMIT_STATE(_rs,				\
+@@ -955,33 +981,12 @@ do {									\
+ 	dev_level_ratelimited(dev_notice, dev, fmt, ##__VA_ARGS__)
+ #define dev_info_ratelimited(dev, fmt, ...)				\
+ 	dev_level_ratelimited(dev_info, dev, fmt, ##__VA_ARGS__)
++#if defined(CONFIG_DYNAMIC_DEBUG) || defined(DEBUG)
+ #define dev_dbg_ratelimited(dev, fmt, ...)				\
+ 	dev_level_ratelimited(dev_dbg, dev, fmt, ##__VA_ARGS__)
+-
+-/*
+- * Stupid hackaround for existing uses of non-printk uses dev_info
+- *
+- * Note that the definition of dev_info below is actually _dev_info
+- * and a macro is used to avoid redefining dev_info
+- */
+-
+-#define dev_info(dev, fmt, arg...) _dev_info(dev, fmt, ##arg)
+-
+-#if defined(CONFIG_DYNAMIC_DEBUG)
+-#define dev_dbg(dev, format, ...)		     \
+-do {						     \
+-	dynamic_dev_dbg(dev, format, ##__VA_ARGS__); \
+-} while (0)
+-#elif defined(DEBUG)
+-#define dev_dbg(dev, format, arg...)		\
+-	dev_printk(KERN_DEBUG, dev, format, ##arg)
+ #else
+-#define dev_dbg(dev, format, arg...)				\
+-({								\
+-	if (0)							\
+-		dev_printk(KERN_DEBUG, dev, format, ##arg);	\
+-	0;							\
+-})
++#define dev_dbg_ratelimited(dev, fmt, ...)			\
++	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
+ #endif
+ 
+ #ifdef VERBOSE_DEBUG
 -- 
-1.7.1
+1.7.5.4
 
