@@ -1,73 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:1298 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755553Ab2HIUZ7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Aug 2012 16:25:59 -0400
-Message-ID: <50241CCE.2030000@redhat.com>
-Date: Thu, 09 Aug 2012 17:25:50 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:42332 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751100Ab2HTKjf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Aug 2012 06:39:35 -0400
+Received: by bkwj10 with SMTP id j10so1806064bkw.19
+        for <linux-media@vger.kernel.org>; Mon, 20 Aug 2012 03:39:33 -0700 (PDT)
+Message-ID: <503213F8.6060101@googlemail.com>
+Date: Mon, 20 Aug 2012 12:39:52 +0200
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-CC: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Takashi Iwai <tiwai@suse.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [PATCH v8] media: Add stk1160 new driver
-References: <1344260302-28849-1-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1344260302-28849-1-git-send-email-elezegarcia@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: How to add new chip ids to v4l2-chip-ident.h ?
+References: <502FA46E.3050500@googlemail.com> <201208181706.03257.hverkuil@xs4all.nl>
+In-Reply-To: <201208181706.03257.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patch looks ok. Just a few comments:
+Am 18.08.2012 17:06, schrieb Hans Verkuil:
+> On Sat August 18 2012 16:19:26 Frank Schäfer wrote:
+>> Hi,
+>>
+>> I would like to know how to add new chip ids to v4l2-chip-ident.h. Ist
+>> there a kind of policy for choosing numbers ?
+> Using numbers that match the chip number is recommended, but if that can't
+> be done due to clashes, then pick some other, related, number (e.g. 12700
+> instead of 2700) or create a range of number for all possible models of that
+> chip series.
 
-Em 06-08-2012 10:38, Ezequiel Garcia escreveu:
-> This driver adds support for stk1160 usb bridge as used in some
-> video/audio usb capture devices.
-> It is a complete rewrite of staging/media/easycap driver and
-> it's expected as a replacement.
-> ---
+Ok. And I guess a comment should be added that reserves a certain range
+of values, if similar chips exist.
 
-Please don't add a "---" here. Everything after a --- are discarded
-by my scripts (and by most other kernel developer scripts).
+>
+>> Which numbers would be approriate for the em25xx/em26xx/em27xx/em28xx
+>> chips ?
+>> Unfortunately 2700 is already used by V4L2_IDENT_VP27SMPX...
+> Please note that adding an identifier to v4l2-chip-ident.h is only needed
+> if the VIDIOC_DBG_* ioctls are implemented. If those are not implemented,
+> then there is no need for an ID either.
 
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Cc: Takashi Iwai <tiwai@suse.de>
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Sure ;-) Thanks !
 
-Hmm... weren't it reviewed already be them?
+Regards,
+Frank Schäfer
 
-> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
-> diff --git a/drivers/media/video/stk1160/Makefile b/drivers/media/video/stk1160/Makefile
-> new file mode 100644
-> index 0000000..8f66a78
-> --- /dev/null
-> +++ b/drivers/media/video/stk1160/Makefile
-> @@ -0,0 +1,12 @@
-> +obj-stk1160-ac97-$(CONFIG_VIDEO_STK1160_AC97) := stk1160-ac97.o
-> +
-> +stk1160-y := 	stk1160-core.o \
-> +		stk1160-v4l.o \
-> +		stk1160-video.o \
-> +		stk1160-i2c.o \
-> +		$(obj-stk1160-ac97-y)
-> +
-> +obj-$(CONFIG_VIDEO_STK1160) += stk1160.o
-> +
-> +ccflags-y += -Wall
-
-You shouldn't be adding the above here.
-
-> +ccflags-y += -Idrivers/media/video
-
-Ah, please split this patch into two patches: one with the new driver
-addition, and another one with the removal of the driver at staging.
-
-That will help to make the patch smaller, and avoids mixing two different
-things at the same place.
-
-Thanks,
-Mauro
+>
+> Regards,
+>
+> 	Hans
 
