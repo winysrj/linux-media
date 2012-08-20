@@ -1,1265 +1,3505 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:55349 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751850Ab2HOXM1 (ORCPT
+Received: from oproxy12-pub.bluehost.com ([50.87.16.10]:46816 "HELO
+	oproxy12-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1756041Ab2HTQIA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Aug 2012 19:12:27 -0400
-Received: by weyx8 with SMTP id x8so1349540wey.19
-        for <linux-media@vger.kernel.org>; Wed, 15 Aug 2012 16:12:25 -0700 (PDT)
-Date: Thu, 16 Aug 2012 01:12:46 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: sumit.semwal@linaro.org, rob.clark@linaro.org,
-	linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Subject: Re: [Linaro-mm-sig] [PATCH 4/4] dma-buf-mgr: multiple dma-buf
- synchronization (v3)
-Message-ID: <20120815231246.GI5533@phenom.ffwll.local>
-References: <20120810145728.5490.44707.stgit@patser.local>
- <20120810145804.5490.14858.stgit@patser.local>
+	Mon, 20 Aug 2012 12:08:00 -0400
+Message-ID: <503260D9.4030208@xenotime.net>
+Date: Mon, 20 Aug 2012 09:07:53 -0700
+From: Randy Dunlap <rdunlap@xenotime.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20120810145804.5490.14858.stgit@patser.local>
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+CC: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	linux-media <linux-media@vger.kernel.org>,
+	Steven Toth <stoth@kernellabs.com>
+Subject: Re: linux-next: Tree for Aug 20 (media: saa7164)
+References: <20120820192336.1be51b225ce2883bdcad5b15@canb.auug.org.au>
+In-Reply-To: <20120820192336.1be51b225ce2883bdcad5b15@canb.auug.org.au>
+Content-Type: multipart/mixed;
+ boundary="------------000607000406070808010108"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maarten,
+This is a multi-part message in MIME format.
+--------------000607000406070808010108
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Ok, here comes the promised review (finally!), but it's rather a
-high-level thingy. I've mostly thought about how we could create a neat
-api with the following points. For a bit of clarity, I've grouped the
-different considerations a bit.
+On 08/20/12 02:23, Stephen Rothwell wrote:
 
-Easy Integration
-================
-
-Where I mean integration of simple dma_buf importers that don't want to
-deal with all the hassle of dma_fence (like v4l framegrabbers). Or drivers
-where everything interesting needs cpu access anyway (like the udl
-driver). The case with explicitly handling dma_fences and going through
-the reservation dance should be the explicitly requested special cases.
-
-I'm thinking of adding a new dma_buf_attach_special function which takes
-an additional flags parameter (since we might need some other funky
-extension later on ...). A new flag ASYNC_ATTACHMENT would indicate that
-the driver will use this attachment with the dma_bufmgr and will use
-dma_fences to sync with other drivers (which is also stored in a new flag
-in the attachment struct).
-
-To ensure we can have mixed attachments we need to ensure that all other
-access (and also cpu access) sync up with any dma_fences left behind by
-drivers with async attachments (think e.g. nouveau render, but both intel
-and udl displaying a buffer). Note that we don't need any exclusion, but
-only barriers, i.e. if anyone sneaks in other rendering while an dma
-access from a synchronous client is underway, we don't need to care.
-
-The same needs to happen for cpu access obviously.
-
-Since both the cpu access functions (begin/end_cpu_access) and the device
-access functions (which atm are on map/unmap_attachment) have a direction
-attribute, we can even differentiate between read (i.e. shared) access and
-write (i.e. exclusive) access. Note that the dma_fence syncing needs to
-happen before we call the exporter's callbacks, otherwise any cache
-flushing/invalidation the exporter does might not yet see all rendering.
-
-Imo it would be good to split this up into a separate patch with:
-- adding the dma_fence members to struct dma_buf (but with no way yet to
-  set them).
-- adding a quick helper to wait for fences attached to a dma_buf (either
-  shared or exclusive access).
-- adding the synchronous bool to the attachment struct, setting it by
-  default and wiring, again with no way yet to use async attachments.
-- we also need to add the dma_bufmgr_spinlock, since this is what protects
-  the fences attached to a dma_buf for read access (at least that's my
-  understanding).
-
-Aside: This doesn't make too much sense since most drivers cheat and just
-hang onto the attachment mapping (instead of doing map/unmap for each
-access as the spec says they should ...). So there's no way actually for
-drivers to /simply/ sync up. But the lack of a streaming api (i.e. setting
-the coherency domain without map/unmap) is a known lack in the dma_buf
-api, so I think I'll follow up with a patch to finally add this. I'm
-thinking of something like
-
-int dma_buf_sync_attachment(attachment, enum {BEGIN_DMA, END_DMA},
-direction)
-
-The BEGIN_DMA/END_DMA is just to avoid coming up with two nice names -
-opposed to the normal dma api we need to differentiate explictly between
-begin/end (like for cpu access), since a given importer knows only about
-it's own usage (and hence we can't implictly flush the old coherency
-domain when we switch to a new coherency domain). Synchronous attachments
-would then simply as sync up with any dma_fences attached.
-
-Aside 2: I think for async attachments we need to demand that all the
-devices are coherent wrt each another - otherwise we need to allow that
-the exporter can do some magic cache flushing in between when one device
-signals a fence and everyone else receiving the update that the fence
-signaled. If there is any hw out there that would require cache-flushing
-at the gart level (i.e. not some caches which are known to the driver), we
-should know about it ... (I seriously hope nothing is that brain-dead).
-
-Allowing extensions
-===================
-
-Like I've said in irc discussion, I think we should aim for the eventual
-goal that dma_buf objects are fully evictable. Having a deadlock-free
-reservation system is a big step towards that. Afaict two things would be
-missing on top of your current bufmgr:
-
-- drivers would also need to be able to reserve their own, not-exported
-  buffers (and any other resource objects) with the dma_bufmgr. But they
-  don't necessarily want to use dma_fences to sync their private objects
-  (for efficiency reasons). So I think it should be possible to embed the
-  reservation fields (and only those) into any driver-private struct.
-
-- We'd again need a special attachment mode (hence the flags array, not
-  just a bool) to signal that the driver can cope with the exporter
-  evicting a dma_buf. Exporters would be free to evict any object (or just
-  gart mappings) if all the affected attachments are of the evictable type
-  and all the fences attached to a dma_buf have signalled (a bit
-  ineffiecent since we could wait for a different gart mapping, but
-  eviction shouldn't happen often).
-
-  On the driver-side we only need to check for errors in the
-  map_attachment/sync_attachment calls indicating whether the buffer has
-  been evicted and that we need to back off (i.e. unmap all
-  reserved&mapped buffers thus far) to avoid a deadlock.
-
-  Since synchronization between eviction and dma access would happen
-  through dma_fence, an evictable always needs to be async, too.
-
-  This is mostly useful on SoC where a (sometimes tiny) gart is shared by
-  a few IC blocks (e.g. video codec, gpu, display block).
-
-I don't think we need to do anything special to allow this, but I think we
-should ensure that it is possible. The simplest way is to but the bufmgr
-into it's own patch and extract any reservation fields from dma_buf into a
-separate dma_bufmgr_object. That patch wouldn't mention dma_fences or add
-dma_bufmgr_object to dma_buf, I think all that integration should happen
-in the final patch to put things together.
-
-Putting the bufmgr reservation logic into it's own patch should also make
-review easier ;-)
-
-Better encapsulation 
-====================
-
-I think we should avoid to expose clients as much as possible to bufmgr
-internals - they should be able to treat it as a magic blackbox that tells
-them when to back off and when they're good to go imo. Specifically I'm
-thinking of
-
-struct dma_bufmgr_reservation_ticket {
-	seqno
-	list_head *reservations
-}
-
-I also have a few gripes with the ttm-inspired "validation" moniker. Hence
-my bikeshed proposal for
-- "reservation ticket" the abstract thingy you get from bufmgr that
-  denotes your place (ticket) in the global reservation queue
-- and "reservation" for the book-keeping struct to reserve and object.
-
-I think the ttm wording comes from validating whether all buffers are in
-the right ttm (and moving them if needed), which (at least for dma_fence
-deadlock prevention only) doesn't quite fit for the dma_bufmgr.
-
-Another advantege of encapsulating the reservation_ticket is that we can
-easily track these, e.g. a global list of all still outstanding
-reservation can be used to prevent seqno wraparounds (we block for the old
-reservation to unreserve the seqno). Or we could dump all reservations
-into debugfs, which probably helps to diagnose deadlocks (if we add a bit
-of debug infrastructure to associate reservations with driver state).
-
-To make all this work neatly for your main use case, i.e. to reserve
-dma_bufs to put dma_fences onto them we'd to add some helpers that init a
-reservation from a dma buf and add the fences to all dma_bufs in a
-reservation. But I think that should be in the last patch that ties up the
-bufmgr with dma_buf.
-
-Now once we have a reservation_ticket struct we can put it to some good
-use:
-
-Fat-trimming
-============
-
-Imo your validation struct contains too much stuff, and I'd like it to be
-as small as possible so that drivers can quickly allocate lots of these
-(if they also use them for private objects):
-
-> +struct dmabufmgr_validate {
-> +	struct list_head head;
-> +	struct kref refcount;
-
-I see the need for refcounting the validation, so that we can wait on it
-without it disappearing under us. But imo it makes more sence if we
-reference count the proposed reservation_ticket instead and move a few
-related fields to that:
-- I think we should move the waitqueue from the dma_buf object (or the
-  bufmgr_object) to the reservation_ticket, too. Conceptually we only need
-  to wait on the reservation to unreserve all buffers, not on individual
-  buffers. The only case where waiting on the reservation_ticket is
-  different from waiting on the buffer is when there's contention and a
-  driver needs to back off. But in that case it's fairer for the
-  reservation to complete instead of trying to snatch away the buffer.
-
-> +
-> +	bool reserved;
-
-Afaict can tell that's only used in the reservation backoff code, I think
-we can ditch this by being a bit more clever there (e.g. splice of the
-list of already reserved buffers).
-
-> +	bool shared;
-
-We could shove this bit into bit0 of the below pointer. With some helpers
-to set up the reservation, no user of the bufmgr api would notice this.
-
-> +	struct dma_buf *bo;
-> +	void *priv;
-
-priv is imo unncessery, users can embed this struct into anything if they
-need more context for reservations.
-
-> +
-> +	unsigned num_fences, num_waits;
-> +	struct dma_fence *fences[DMA_BUF_MAX_SHARED_FENCE];
-> +	struct dma_fence_cb wait[DMA_BUF_MAX_SHARED_FENCE];
-
-Imo this shouldn't be part of the reservation itself:
-- for fences we only need a list of the (preferrably unique) dma_fence we
-  need to wait on before the batch can use all the reserved dma_bufs. And
-  we only need this list to attach our own callback to it, so this list is
-  (I think) only required within fence_buffers
-
-- the callback structs are a bit more obnoxious, since we need one for
-  every fence we need to wait on. And these need to be attached to a
-  reference-counted struct (or we need to allocate them individually,
-  which is even more wasteful).
-  
-  With my proposal we have two refcounted struct: reservation_ticket and
-  the dma_fence we newly attach to all dma_bufs, which will signal the
-  completion of the batchbuffer we are processing. Adding the callbacks to
-  the reservation_ticket doesn't make any more sense (that should get
-  free'd after the unreserve), but the dma_fence needs to be around until
-  all old fences have signaled anyway, for before the new batch can't
-  start.
-
-So what about we adjust the flow of fence_buffers a bit:
-
-- it walks all the buffers on the reservation_ticket, assembling a list of
-  fences we need to wait on. While doing so it also puts the new fence
-  into place (either shared or exclusive).
-- then it allocates the cb array, storing a pointer to it into the new
-  dma_fence
-- for every fence it adds the callback, increment the reference count of
-  the new dma_fence
-- the dma_fence code needs to free the attached cb array (if there's any)
-  on the final kput.
-
-> +};
-
-Aside: I think it'd be good to document which members are protected by
-which looks. I could deduce the following locking rules:
-
-- the fence lists in dma_fence are read-protected by dma_bufmgr_lock.
-  Writing is only allowed if you also hold a valid reservation on that
-  buffer.
-- seqno in the reservation_ticket is immutable, the list global list of
-  reservation tickets (my new proposal, handy for debuggin) is protected
-  by dma_bufmgr_lock
-- any other field in reservation_ticket and all fields in reservation are
-  presumed to be only manipulated by one thread (the one doing the
-  reservation/batchbuffer submission), additional locking is the callers
-  problem (if required, would indicate some big issue though imo).
-
-Proposed patch sequence
-=======================
-
-I.e. this is the summary of all the above blablabla:
-
-- First a patch that integrates the dma_fence book-keeping into dma_buf,
-  adds the required wait helpers and wires them up at all the right
-  places.
-
-- A patch introducing the dma reservation framework, with the 3 struct
-  dma_reservation_ticket, dma_reservation and dma_reservation_item
-  or whatever you're gonna call them. I think having this separate is good
-  to triple-check the reservation logic in review.
-
-- A final patch to wire things up, essentially adding a
-  dma_reservation_object embedded into dma_buf and adding the
-  fence_buffers function to exchange the fences, plus any other neat
-  helpers (waiting on all fences of a reservation for synchronous
-  fallback, stitching together the reservations list, reserve dma_bufs
-  instead of reservation_objects).
-
-btw, if you agree somewhat with my ideas, I think it'd be good to just
-discuss the structs and function interfaces a bit first - otherwise I fear
-you'll need to change the code way too often.
-
-Now let's here back the your flames ;-)
-
-Cheers, Daniel
-
-PS: I was somehow under the impression that the reservation code has some
-minimal fairness guarantee: If you try to reserve a buffer, but need to
-backoff due to a potential deadlock, not later reservation_ticket can
-snatch that buffer while the retry is happening. Somehow I've though ttm
-would implement this, but I'm too lazy to check ;-)
-
-In any case this is not required for the basic version - we only need a
-neat interface and no deadlocks for that.
-
-PPS: I think bikeshedding the documentation isn't useful yet, before we've
-settled on an interface for the dma_bufmgr.
-
-On Fri, Aug 10, 2012 at 04:58:06PM +0200, Maarten Lankhorst wrote:
-> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+> Hi all,
 > 
-> dma-buf-mgr handles the case of reserving single or multiple dma-bufs
-> while trying to prevent deadlocks from buffers being reserved
-> simultaneously. For this to happen extra functions have been introduced:
+> Changes since 20120817:
 > 
->   + dma_buf_reserve()
->   + dma_buf_unreserve()
->   + dma_buf_wait_unreserved()
-> 
-> Reserve a single buffer, optionally with a sequence to indicate this
-> is part of a multi-dmabuf reservation. This function will return
-> -EDEADLK and return immediately if reserving would cause a deadlock.
-> In case a single buffer is being reserved, no sequence is needed,
-> otherwise please use the dmabufmgr calls.
-> 
-> If you want to attach a exclusive dma-fence, you have to wait
-> until all shared fences have signalled completion. If there are none,
-> or if a shared fence has to be attached, wait until last exclusive
-> fence has signalled completion.
-> 
-> The new fence has to be attached before unreserving the buffer,
-> and in exclusive mode all previous fences will have be removed
-> from the buffer, and unreffed when done with it.
-> 
-> dmabufmgr methods:
-> 
->   + dmabufmgr_validate_init()
-> This function inits a dmabufmgr_validate structure and appends
-> it to the tail of the list, with refcount set to 1.
->   + dmabufmgr_validate_put()
-> Convenience function to unref and free a dmabufmgr_validate
-> structure. However if it's used for custom callback signalling,
-> a custom function should be implemented.
-> 
->   + dmabufmgr_reserve_buffers()
-> This function takes a linked list of dmabufmgr_validate's, each one
-> requires the following members to be set by the caller:
-> - validate->head, list head
-> - validate->bo, must be set to the dma-buf to reserve.
-> - validate->shared, set to true if opened in shared mode.
-> - validate->priv, can be used by the caller to identify this buffer.
-> 
-> This function will then set the following members on succesful completion:
-> 
-> - validate->num_fences, amount of valid fences to wait on before this
->   buffer can be accessed. This can be 0.
-> - validate->fences[0...num_fences-1] fences to wait on
-> 
->   + dmabufmgr_backoff_reservation()
-> This can be used when the caller encounters an error between reservation
-> and usage. No new fence will be attached and all reservations will be
-> undone without side effects.
-> 
->   + dmabufmgr_fence_buffer_objects
-> Upon successful completion a new fence will have to be attached.
-> This function releases old fences and attaches the new one.
-> 
->   + dmabufmgr_wait_completed_cpu
-> A simple cpu waiter convenience function. Waits until all fences have
-> signalled completion before returning.
-> 
-> The rationale of refcounting dmabufmgr_validate lies in the wait
-> dma_fence_cb wait member. Before calling dma_fence_add_callback
-> you should increase the refcount on dmabufmgr_validate with
-> dmabufmgr_validate_get, and on signal completion you should call
-> kref_put(&val->refcount, custom_free_signal); after all callbacks
-> have added you drop the refcount by 1 also, when refcount drops to
-> 0 all callbacks have been signalled, and dmabufmgr_validate
-> has been waited on and can be freed. Since this will require
-> atomic spinlocks to unlink the list and signal completion, a
-> deadlock could occur if you try to call add_callback otherwise,
-> so the refcount is used as a means of preventing this from
-> occuring by having your custom free function take a device specific
-> lock, removing from list and freeing the data. The nice/evil part
-> about this is that this will also guarantee no memory leaks can occur
-> behind your back. This allows delays completion by moving the
-> dmabufmgr_validate list to be a part of the committed reservation.
-> 
-> v1: Original version
-> v2: Use dma-fence
-> v3: Added refcounting to dmabufmgr-validate
-> v4: Fixed dmabufmgr_wait_completed_cpu prototype, added more
->     documentation and added Documentation/dma-buf-synchronization.txt
-> ---
->  Documentation/DocBook/device-drivers.tmpl |    2 
->  Documentation/dma-buf-synchronization.txt |  197 +++++++++++++++++++++
->  drivers/base/Makefile                     |    2 
->  drivers/base/dma-buf-mgr.c                |  277 +++++++++++++++++++++++++++++
->  drivers/base/dma-buf.c                    |  114 ++++++++++++
->  include/linux/dma-buf-mgr.h               |  121 +++++++++++++
->  include/linux/dma-buf.h                   |   24 +++
->  7 files changed, 736 insertions(+), 1 deletion(-)
->  create mode 100644 Documentation/dma-buf-synchronization.txt
->  create mode 100644 drivers/base/dma-buf-mgr.c
->  create mode 100644 include/linux/dma-buf-mgr.h
-> 
-> diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
-> index 36252ac..2fc050c 100644
-> --- a/Documentation/DocBook/device-drivers.tmpl
-> +++ b/Documentation/DocBook/device-drivers.tmpl
-> @@ -128,6 +128,8 @@ X!Edrivers/base/interface.c
->  !Edrivers/base/dma-buf.c
->  !Edrivers/base/dma-fence.c
->  !Iinclude/linux/dma-fence.h
-> +!Edrivers/base/dma-buf-mgr.c
-> +!Iinclude/linux/dma-buf-mgr.h
->  !Edrivers/base/dma-coherent.c
->  !Edrivers/base/dma-mapping.c
->       </sect1>
-> diff --git a/Documentation/dma-buf-synchronization.txt b/Documentation/dma-buf-synchronization.txt
-> new file mode 100644
-> index 0000000..dd4685e
-> --- /dev/null
-> +++ b/Documentation/dma-buf-synchronization.txt
-> @@ -0,0 +1,197 @@
-> +                    DMA Buffer Synchronization API Guide
-> +                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> +
-> +                            Maarten Lankhorst
-> +                    <maarten.lankhorst@canonical.com>
-> +                        <m.b.lankhorst@gmail.com>
-> +
-> +This is a followup to dma-buf-sharing.txt, which should be read first.
-> +Unless you're dealing with the most simplest of cases, you're going to need
-> +synchronization. This is done with the help of dma-fence and dma-buf-mgr.
-> +
-> +
-> +dma-fence
-> +---------
-> +
-> +dma-fence is simply a synchronization primitive used mostly by dma-buf-mgr.
-> +In general, driver writers would not need to implement their own kind of
-> +dma-fence, but re-use the existing types. The possibility is left open for
-> +platforms which support alternate means of hardware synchronization between
-> +IP blocks to provide their own implementation shared by the drivers on that
-> +platform.
-> +
-> +The base dma-fence is sufficient for software based signaling. Ie. when the
-> +signaling driver gets an irq, calls dma_fence_signal() which wakes other
-> +driver(s) that are waiting for the fence to be signaled.
-> +
-> +But to support cases where no CPU involvement is required in the buffer
-> +handoff between two devices, different fence implementations can be used. By
-> +comparing the ops pointer with known ops, it is possible to see if the fence
-> +you are waiting on works in a special way known to your driver, and act
-> +differently based upon that. For example dma_seqno_fence allows hardware
-> +waiting until the condition is met:
-> +
-> +    (s32)((sync_buf)[seqno_ofs] - seqno) >= 0
-> +
-> +But all dma-fences should have a software fallback, for the driver creating
-> +the fence does not know if the driver waiting on the fence supports hardware
-> +signaling.  The enable_signaling() callback is to notify the fence
-> +implementation (or possibly the creator of the fence) that some other driver
-> +is waiting for software notification and dma_fence_signal() must be called
-> +once the fence is passed.  This could be used to enable some irq that would
-> +not normally be enabled, etc, so that the CPU is woken once the fence condition
-> +has arrived.
-> +
-> +
-> +dma-buf-mgr overview
-> +--------------------
-> +
-> +dma-buf-mgr is a reservation manager, and it is used to handle the case where
-> +multiple devices want to access multiple dma-bufs in an arbitrary order, it
-> +uses dma-fences for synchronization. There are 3 steps that are important here:
-> +
-> +1. Reservation of all dma-buf buffers with dma-buf-mgr
-> +  - Create a struct dmabufmgr_validate for each one with a call to
-> +    dmabufmgr_validate_init()
-> +  - Reserve the list with dmabufmgr_reserve_buffers()
-> +2. Queueing waits and allocating a new dma-fence
-> +  - dmabufmgr_wait_completed_cpu or custom implementation.
-> +    * Custom implementation can use dma_fence_wait, dma_fence_add_callback
-> +      or a custom method that would depend on the fence type.
-> +    * An implementation that uses dma_fence_add_callback can use the
-> +      refcounting of dmabufmgr_validate to do signal completion, when
-> +      the original list head is empty, all fences would have been signaled,
-> +      and the command sequence can start running. This requires a custom put.
-> +  - dma_fence_create, dma_seqno_fence_init or custom implementation
-> +    that calls __dma_fence_init.
-> +3. Committing with the new dma-fence.
-> +  - dmabufmgr_fence_buffer_objects
-> +  - reduce refcount of list by 1 with dmabufmgr_validate_put or custom put.
-> +
-> +The waits queued in step 2 don't have to be completed before commit, this
-> +allows users of dma-buf-mgr to prevent stalls for as long as possible.
-> +
-> +
-> +dma-fence operations
-> +--------------------
-> +
-> +dma_fence_get() increments the refcount on a dma-fence by 1.
-> +dma_fence_put() decrements the refcount by 1.
-> +    Each dma-buf the dma-fence is attached to will also hold a reference to the
-> +    dma-fence, but this can will be removed by dma-buf-mgr upon committing a
-> +    reservation.
-> +
-> +dma_fence_ops.enable_signaling()
-> +    Indicates dma_fence_signal will have to be called, any error code returned
-> +    will cause the fence to be signaled. On success, if the dma_fence creator
-> +    didn't already hold a refcount, it should increase the refcount, and
-> +    decrease it after calling dma_fence_signal.
-> +
-> +dma_fence_ops.release()
-> +    Can be NULL, this function allows additional commands to run on destruction
-> +    of the dma_fence.
-> +
-> +dma_fence_signal()
-> +    Signal completion for software callbacks on a dma-fence, this will unblock
-> +    dma_fence_wait() calls and run all the callbacks added with
-> +    dma_fence_add_callback().
-> +
-> +dma_fence_wait()
-> +    Do a synchronous wait on this dma-fence. It is assumed the caller directly
-> +    or indirectly (dma-buf-mgr between reservation and committing) holds a
-> +    reference to the dma-fence, otherwise the dma-fence might be freed
-> +    before return, resulting in undefined behavior.
-> +
-> +dma_fence_add_callback()
-> +    Add a software callback to the dma-fence. Same restrictions apply to
-> +    refcount as it does to dma_fence_wait, however the caller doesn't need to
-> +    keep a refcount to dma-fence afterwards: when software access is enabled,
-> +    the creator of the dma-fence is required to keep the fence alive until
-> +    after it signals with dma_fence_signal. The callback itself can be called
-> +    from irq context.
-> +
-> +    This function returns -EINVAL if an input parameter is NULL, or -ENOENT
-> +    if the fence was already signaled.
-> +
-> +    *WARNING*:
-> +    Cancelling a callback should only be done if you really know what you're
-> +    doing, since deadlocks and race conditions could occur all too easily. For
-> +    this reason, it should only ever be done on hardware lockup recovery.
-> +
-> +dma_fence_create()
-> +    Create a software only fence, the creator must keep its reference until
-> +    after it calls dma_fence_signal.
-> +
-> +__dma_fence_init()
-> +    Initializes an allocated fence, the caller doesn't have to keep its
-> +    refcount after committing with this fence, but it will need to hold a
-> +    refcount again if dma_fence_ops.enable_signaling gets called. This can
-> +    be used for other implementing other types of dma_fence.
-> +
-> +dma_seqno_fence_init()
-> +    Initializes a dma_seqno_fence, the caller will need to be able to
-> +    enable software completion, but it also completes when
-> +    (s32)((sync_buf)[seqno_ofs] - seqno) >= 0 is true.
-> +
-> +    The dma_seqno_fence will take a refcount on sync_buf until it's destroyed.
-> +
-> +    Certain hardware have instructions to insert this type of wait condition
-> +    in the command stream, so no intervention from software would be needed.
-> +    This type of fence can be destroyed before completed, however a reference
-> +    on the sync_buf dma-buf can be taken. It is encouraged to re-use the same
-> +    dma-buf, since mapping or unmapping the sync_buf to the device's vm can be
-> +    expensive.
-> +
-> +
-> +dma-buf-mgr operations
-> +----------------------
-> +
-> +dmabufmgr_validate_init()
-> +    Initialize a struct dmabufmgr_validate for use with dmabufmgr methods, and
-> +    appends it to the list.
-> +
-> +dmabufmgr_validate_get()
-> +dmabufmgr_validate_put()
-> +    Decrease or increase a reference to a dmabufmgr_validate, these are
-> +    convenience functions and don't have to be used. The dmabufmgr commands
-> +    below will never touch the refcount.
-> +
-> +dmabufmgr_reserve_buffers()
-> +    Attempts to reserve a list of dmabufmgr_validate. This function does not
-> +    decrease or increase refcount on dmabufmgr_validate.
-> +
-> +    When this command returns 0 (success), the following
-> +    dmabufmgr_validate members become valid:
-> +    num_fences, fences[0...num_fences)
-> +
-> +    The caller will have to queue waits on those fences before calling
-> +    dmabufmgr_fence_buffer_objects, dma_fence_add_callback will keep
-> +    the fence alive until it is signaled.
-> +
-> +    As such, by incrementing refcount on dmabufmgr_validate before calling
-> +    dma_fence_add_callback, and making the callback decrement refcount on
-> +    dmabufmgr_validate, or releasing refcount if dma_fence_add_callback
-> +    failed, the dmabufmgr_validate would be freed when all the fences
-> +    have been signaled, and only after the last ref is released, which should
-> +    be after dmabufmgr_fence_buffer_objects. With proper locking, when the
-> +    list_head holding the list of dmabufmgr_validate's becomes empty it
-> +    indicates all fences for all dma-bufs have been signaled.
-> +
-> +dmabufmgr_backoff_reservation()
-> +    Unreserves a list of dmabufmgr_validate's, after dmabufmgr_reserve_buffers
-> +    was called. This function does not decrease or increase refcount on
-> +    dmabufmgr_validate.
-> +
-> +dmabufmgr_fence_buffer_objects()
-> +    Commits the list of dmabufmgr_validate's with the dma-fence specified.
-> +    This should be done after dmabufmgr_reserve_buffers was called succesfully.
-> +    dmabufmgr_backoff_reservation doesn't need to be called after this.
-> +    This function does not decrease or increase refcount on dmabufmgr_validate.
-> +
-> +dmabufmgr_wait_completed_cpu()
-> +    Will block until all dmabufmgr_validate's have been completed, a signal
-> +    has been received, or the wait timed out. This is a convenience function
-> +    to speed up initial implementations, however since this blocks
-> +    synchronously this is not the best way to wait.
-> +    Can be called after dmabufmgr_reserve_buffers returned, but before
-> +    dmabufmgr_backoff_reservation or dmabufmgr_fence_buffer_objects.
-> diff --git a/drivers/base/Makefile b/drivers/base/Makefile
-> index 6e9f217..f11d40f 100644
-> --- a/drivers/base/Makefile
-> +++ b/drivers/base/Makefile
-> @@ -10,7 +10,7 @@ obj-$(CONFIG_CMA) += dma-contiguous.o
->  obj-y			+= power/
->  obj-$(CONFIG_HAS_DMA)	+= dma-mapping.o
->  obj-$(CONFIG_HAVE_GENERIC_DMA_COHERENT) += dma-coherent.o
-> -obj-$(CONFIG_DMA_SHARED_BUFFER) += dma-buf.o dma-fence.o
-> +obj-$(CONFIG_DMA_SHARED_BUFFER) += dma-buf.o dma-fence.o dma-buf-mgr.o
->  obj-$(CONFIG_ISA)	+= isa.o
->  obj-$(CONFIG_FW_LOADER)	+= firmware_class.o
->  obj-$(CONFIG_NUMA)	+= node.o
-> diff --git a/drivers/base/dma-buf-mgr.c b/drivers/base/dma-buf-mgr.c
-> new file mode 100644
-> index 0000000..899a99b
-> --- /dev/null
-> +++ b/drivers/base/dma-buf-mgr.c
-> @@ -0,0 +1,277 @@
-> +/*
-> + * Copyright (C) 2012 Canonical Ltd
-> + *
-> + * Based on ttm_bo.c which bears the following copyright notice,
-> + * but is dual licensed:
-> + *
-> + * Copyright (c) 2006-2009 VMware, Inc., Palo Alto, CA., USA
-> + * All Rights Reserved.
-> + *
-> + * Permission is hereby granted, free of charge, to any person obtaining a
-> + * copy of this software and associated documentation files (the
-> + * "Software"), to deal in the Software without restriction, including
-> + * without limitation the rights to use, copy, modify, merge, publish,
-> + * distribute, sub license, and/or sell copies of the Software, and to
-> + * permit persons to whom the Software is furnished to do so, subject to
-> + * the following conditions:
-> + *
-> + * The above copyright notice and this permission notice (including the
-> + * next paragraph) shall be included in all copies or substantial portions
-> + * of the Software.
-> + *
-> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-> + * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-> + * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL
-> + * THE COPYRIGHT HOLDERS, AUTHORS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM,
-> + * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-> + * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-> + * USE OR OTHER DEALINGS IN THE SOFTWARE.
-> + *
-> + **************************************************************************/
-> +/*
-> + * Authors: Thomas Hellstrom <thellstrom-at-vmware-dot-com>
-> + */
-> +
-> +
-> +#include <linux/dma-buf-mgr.h>
-> +#include <linux/export.h>
-> +#include <linux/sched.h>
-> +#include <linux/slab.h>
-> +
-> +static void dmabufmgr_backoff_reservation_locked(struct list_head *list)
-> +{
-> +	struct dmabufmgr_validate *entry;
-> +
-> +	list_for_each_entry(entry, list, head) {
-> +		struct dma_buf *bo = entry->bo;
-> +		if (!entry->reserved)
-> +			continue;
-> +		entry->reserved = false;
-> +
-> +		entry->num_fences = 0;
-> +
-> +		atomic_set(&bo->reserved, 0);
-> +		wake_up_all(&bo->event_queue);
-> +	}
-> +}
-> +
-> +static int
-> +dmabufmgr_wait_unreserved_locked(struct list_head *list,
-> +				    struct dma_buf *bo)
-> +{
-> +	int ret;
-> +
-> +	spin_unlock(&dma_buf_reserve_lock);
-> +	ret = dma_buf_wait_unreserved(bo, true);
-> +	spin_lock(&dma_buf_reserve_lock);
-> +	if (unlikely(ret != 0))
-> +		dmabufmgr_backoff_reservation_locked(list);
-> +	return ret;
-> +}
-> +
-> +/**
-> + * dmabufmgr_backoff_reservation - cancel a reservation
-> + * @list:	[in]	a linked list of struct dmabufmgr_validate
-> + *
-> + * This function cancels a previous reservation done by
-> + * dmabufmgr_reserve_buffers. This is useful in case something
-> + * goes wrong between reservation and committing.
-> + *
-> + * Please read Documentation/dma-buf-synchronization.txt
-> + */
-> +void
-> +dmabufmgr_backoff_reservation(struct list_head *list)
-> +{
-> +	if (list_empty(list))
-> +		return;
-> +
-> +	spin_lock(&dma_buf_reserve_lock);
-> +	dmabufmgr_backoff_reservation_locked(list);
-> +	spin_unlock(&dma_buf_reserve_lock);
-> +}
-> +EXPORT_SYMBOL_GPL(dmabufmgr_backoff_reservation);
-> +
-> +/**
-> + * dmabufmgr_reserve_buffers - reserve a list of dmabufmgr_validate
-> + * @list:	[in]	a linked list of struct dmabufmgr_validate
-> + *
-> + * Please read Documentation/dma-buf-synchronization.txt
-> + */
-> +int
-> +dmabufmgr_reserve_buffers(struct list_head *list)
-> +{
-> +	struct dmabufmgr_validate *entry;
-> +	int ret;
-> +	u32 val_seq;
-> +
-> +	if (list_empty(list))
-> +		return 0;
-> +
-> +	list_for_each_entry(entry, list, head) {
-> +		entry->reserved = false;
-> +		entry->num_fences = 0;
-> +	}
-> +
-> +retry:
-> +	spin_lock(&dma_buf_reserve_lock);
-> +	val_seq = atomic_inc_return(&dma_buf_reserve_counter);
-> +
-> +	list_for_each_entry(entry, list, head) {
-> +		struct dma_buf *bo = entry->bo;
-> +
-> +retry_this_bo:
-> +		ret = dma_buf_reserve_locked(bo, true, true, true, val_seq);
-> +		switch (ret) {
-> +		case 0:
-> +			break;
-> +		case -EBUSY:
-> +			ret = dmabufmgr_wait_unreserved_locked(list, bo);
-> +			if (unlikely(ret != 0)) {
-> +				spin_unlock(&dma_buf_reserve_lock);
-> +				return ret;
-> +			}
-> +			goto retry_this_bo;
-> +		case -EAGAIN:
-> +			dmabufmgr_backoff_reservation_locked(list);
-> +			spin_unlock(&dma_buf_reserve_lock);
-> +			ret = dma_buf_wait_unreserved(bo, true);
-> +			if (unlikely(ret != 0))
-> +				return ret;
-> +			goto retry;
-> +		default:
-> +			dmabufmgr_backoff_reservation_locked(list);
-> +			spin_unlock(&dma_buf_reserve_lock);
-> +			return ret;
-> +		}
-> +
-> +		entry->reserved = true;
-> +
-> +		if (entry->shared &&
-> +		    bo->fence_shared_count == DMA_BUF_MAX_SHARED_FENCE) {
-> +			WARN_ON_ONCE(1);
-> +			dmabufmgr_backoff_reservation_locked(list);
-> +			spin_unlock(&dma_buf_reserve_lock);
-> +			return -EINVAL;
-> +		}
-> +
-> +		if (!entry->shared && bo->fence_shared_count) {
-> +			entry->num_fences = bo->fence_shared_count;
-> +
-> +			BUILD_BUG_ON(sizeof(entry->fences) !=
-> +				     sizeof(bo->fence_shared));
-> +
-> +			memcpy(entry->fences, bo->fence_shared,
-> +			       sizeof(bo->fence_shared));
-> +		} else if (bo->fence_excl) {
-> +			entry->num_fences = 1;
-> +			entry->fences[0] = bo->fence_excl;
-> +		} else
-> +			entry->num_fences = 0;
-> +	}
-> +	spin_unlock(&dma_buf_reserve_lock);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(dmabufmgr_reserve_buffers);
-> +
-> +/**
-> + * dmabufmgr_wait_completed_cpu - wait synchronously for completion on cpu
-> + * @list:	[in]	a linked list of struct dmabufmgr_validate
-> + * @intr:	[in]	perform an interruptible wait
-> + * @timeout:	[in]	absolute timeout in jiffies
-> + *
-> + * Since this function waits synchronously it is meant mostly for cases where
-> + * stalling is unimportant, or to speed up initial implementations.
-> + */
-> +int
-> +dmabufmgr_wait_completed_cpu(struct list_head *list, bool intr,
-> +			     unsigned long timeout)
-> +{
-> +	struct dmabufmgr_validate *entry;
-> +	int i, ret = 0;
-> +
-> +	list_for_each_entry(entry, list, head) {
-> +		for (i = 0; i < entry->num_fences && !ret; i++)
-> +			ret = dma_fence_wait(entry->fences[i], intr, timeout);
-> +
-> +		if (ret && ret != -ERESTARTSYS)
-> +			pr_err("waiting returns %i\n", ret);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(dmabufmgr_wait_completed_cpu);
-> +
-> +/**
-> + * dmabufmgr_fence_buffer_objects - commit a reservation with a new fence
-> + * @fence:	[in]	the fence that indicates completion
-> + * @list:	[in]	a linked list of struct dmabufmgr_validate
-> + *
-> + * This function should be called after a hardware command submission is
-> + * completed succesfully. The fence is used to indicate completion of
-> + * those commands.
-> + *
-> + * Please read Documentation/dma-buf-synchronization.txt
-> + */
-> +void
-> +dmabufmgr_fence_buffer_objects(struct dma_fence *fence, struct list_head *list)
-> +{
-> +	struct dmabufmgr_validate *entry;
-> +	struct dma_buf *bo;
-> +
-> +	if (list_empty(list) || WARN_ON(!fence))
-> +		return;
-> +
-> +	/* Until deferred fput hits mainline, release old things here */
-> +	list_for_each_entry(entry, list, head) {
-> +		bo = entry->bo;
-> +
-> +		if (!entry->shared) {
-> +			int i;
-> +			for (i = 0; i < bo->fence_shared_count; ++i) {
-> +				dma_fence_put(bo->fence_shared[i]);
-> +				bo->fence_shared[i] = NULL;
-> +			}
-> +			bo->fence_shared_count = 0;
-> +			if (bo->fence_excl) {
-> +				dma_fence_put(bo->fence_excl);
-> +				bo->fence_excl = NULL;
-> +			}
-> +		}
-> +
-> +		entry->reserved = false;
-> +	}
-> +
-> +	spin_lock(&dma_buf_reserve_lock);
-> +
-> +	list_for_each_entry(entry, list, head) {
-> +		bo = entry->bo;
-> +
-> +		dma_fence_get(fence);
-> +		if (entry->shared)
-> +			bo->fence_shared[bo->fence_shared_count++] = fence;
-> +		else
-> +			bo->fence_excl = fence;
-> +
-> +		dma_buf_unreserve_locked(bo);
-> +	}
-> +
-> +	spin_unlock(&dma_buf_reserve_lock);
-> +}
-> +EXPORT_SYMBOL_GPL(dmabufmgr_fence_buffer_objects);
-> +
-> +/**
-> + * dmabufmgr_validate_free - simple free function for dmabufmgr_validate
-> + * @ref:	[in]	pointer to dmabufmgr_validate::refcount to free
-> + *
-> + * Can be called when refcount drops to 0, but isn't required to be used.
-> + */
-> +void dmabufmgr_validate_free(struct kref *ref)
-> +{
-> +	struct dmabufmgr_validate *val;
-> +	val = container_of(ref, struct dmabufmgr_validate, refcount);
-> +	list_del(&val->head);
-> +	kfree(val);
-> +}
-> +EXPORT_SYMBOL_GPL(dmabufmgr_validate_free);
-> diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-> index 24e88fe..a19a518 100644
-> --- a/drivers/base/dma-buf.c
-> +++ b/drivers/base/dma-buf.c
-> @@ -25,14 +25,20 @@
->  #include <linux/fs.h>
->  #include <linux/slab.h>
->  #include <linux/dma-buf.h>
-> +#include <linux/dma-fence.h>
->  #include <linux/anon_inodes.h>
->  #include <linux/export.h>
-> +#include <linux/sched.h>
-> +
-> +atomic_t dma_buf_reserve_counter = ATOMIC_INIT(1);
-> +DEFINE_SPINLOCK(dma_buf_reserve_lock);
->  
->  static inline int is_dma_buf_file(struct file *);
->  
->  static int dma_buf_release(struct inode *inode, struct file *file)
->  {
->  	struct dma_buf *dmabuf;
-> +	int i;
->  
->  	if (!is_dma_buf_file(file))
->  		return -EINVAL;
-> @@ -40,6 +46,15 @@ static int dma_buf_release(struct inode *inode, struct file *file)
->  	dmabuf = file->private_data;
->  
->  	dmabuf->ops->release(dmabuf);
-> +
-> +	BUG_ON(waitqueue_active(&dmabuf->event_queue));
-> +	BUG_ON(atomic_read(&dmabuf->reserved));
-> +
-> +	if (dmabuf->fence_excl)
-> +		dma_fence_put(dmabuf->fence_excl);
-> +	for (i = 0; i < dmabuf->fence_shared_count; ++i)
-> +		dma_fence_put(dmabuf->fence_shared[i]);
-> +
->  	kfree(dmabuf);
->  	return 0;
->  }
-> @@ -119,6 +134,7 @@ struct dma_buf *dma_buf_export(void *priv, const struct dma_buf_ops *ops,
->  
->  	mutex_init(&dmabuf->lock);
->  	INIT_LIST_HEAD(&dmabuf->attachments);
-> +	init_waitqueue_head(&dmabuf->event_queue);
->  
->  	return dmabuf;
->  }
-> @@ -503,3 +519,101 @@ void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
->  		dmabuf->ops->vunmap(dmabuf, vaddr);
->  }
->  EXPORT_SYMBOL_GPL(dma_buf_vunmap);
-> +
-> +int
-> +dma_buf_reserve_locked(struct dma_buf *dmabuf, bool interruptible,
-> +		       bool no_wait, bool use_sequence, u32 sequence)
-> +{
-> +	int ret;
-> +
-> +	while (unlikely(atomic_cmpxchg(&dmabuf->reserved, 0, 1) != 0)) {
-> +		/**
-> +		 * Deadlock avoidance for multi-dmabuf reserving.
-> +		 */
-> +		if (use_sequence && dmabuf->seq_valid) {
-> +			/**
-> +			 * We've already reserved this one.
-> +			 */
-> +			if (unlikely(sequence == dmabuf->val_seq))
-> +				return -EDEADLK;
-> +			/**
-> +			 * Already reserved by a thread that will not back
-> +			 * off for us. We need to back off.
-> +			 */
-> +			if (unlikely(sequence - dmabuf->val_seq < (1 << 31)))
-> +				return -EAGAIN;
-> +		}
-> +
-> +		if (no_wait)
-> +			return -EBUSY;
-> +
-> +		spin_unlock(&dma_buf_reserve_lock);
-> +		ret = dma_buf_wait_unreserved(dmabuf, interruptible);
-> +		spin_lock(&dma_buf_reserve_lock);
-> +
-> +		if (unlikely(ret))
-> +			return ret;
-> +	}
-> +
-> +	if (use_sequence) {
-> +		/**
-> +		 * Wake up waiters that may need to recheck for deadlock,
-> +		 * if we decreased the sequence number.
-> +		 */
-> +		if (unlikely((dmabuf->val_seq - sequence < (1 << 31))
-> +			     || !dmabuf->seq_valid))
-> +			wake_up_all(&dmabuf->event_queue);
-> +
-> +		dmabuf->val_seq = sequence;
-> +		dmabuf->seq_valid = true;
-> +	} else {
-> +		dmabuf->seq_valid = false;
-> +	}
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(dma_buf_reserve_locked);
-> +
-> +int
-> +dma_buf_reserve(struct dma_buf *dmabuf, bool interruptible, bool no_wait,
-> +		bool use_sequence, u32 sequence)
-> +{
-> +	int ret;
-> +
-> +	spin_lock(&dma_buf_reserve_lock);
-> +	ret = dma_buf_reserve_locked(dmabuf, interruptible, no_wait,
-> +				     use_sequence, sequence);
-> +	spin_unlock(&dma_buf_reserve_lock);
-> +
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(dma_buf_reserve);
-> +
-> +int
-> +dma_buf_wait_unreserved(struct dma_buf *dmabuf, bool interruptible)
-> +{
-> +	if (interruptible) {
-> +		return wait_event_interruptible(dmabuf->event_queue,
-> +				atomic_read(&dmabuf->reserved) == 0);
-> +	} else {
-> +		wait_event(dmabuf->event_queue,
-> +			   atomic_read(&dmabuf->reserved) == 0);
-> +		return 0;
-> +	}
-> +}
-> +EXPORT_SYMBOL_GPL(dma_buf_wait_unreserved);
-> +
-> +void dma_buf_unreserve_locked(struct dma_buf *dmabuf)
-> +{
-> +	atomic_set(&dmabuf->reserved, 0);
-> +	wake_up_all(&dmabuf->event_queue);
-> +}
-> +EXPORT_SYMBOL_GPL(dma_buf_unreserve_locked);
-> +
-> +void dma_buf_unreserve(struct dma_buf *dmabuf)
-> +{
-> +	spin_lock(&dma_buf_reserve_lock);
-> +	dma_buf_unreserve_locked(dmabuf);
-> +	spin_unlock(&dma_buf_reserve_lock);
-> +}
-> +EXPORT_SYMBOL_GPL(dma_buf_unreserve);
-> diff --git a/include/linux/dma-buf-mgr.h b/include/linux/dma-buf-mgr.h
-> new file mode 100644
-> index 0000000..df30ee4
-> --- /dev/null
-> +++ b/include/linux/dma-buf-mgr.h
-> @@ -0,0 +1,121 @@
-> +/*
-> + * Header file for dma buffer sharing framework.
-> + *
-> + * Copyright(C) 2011 Linaro Limited. All rights reserved.
-> + * Author: Sumit Semwal <sumit.semwal@ti.com>
-> + *
-> + * Many thanks to linaro-mm-sig list, and specially
-> + * Arnd Bergmann <arnd@arndb.de>, Rob Clark <rob@ti.com> and
-> + * Daniel Vetter <daniel@ffwll.ch> for their support in creation and
-> + * refining of this idea.
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of the GNU General Public License version 2 as published by
-> + * the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but WITHOUT
-> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-> + * more details.
-> + *
-> + * You should have received a copy of the GNU General Public License along with
-> + * this program.  If not, see <http://www.gnu.org/licenses/>.
-> + */
-> +#ifndef __DMA_BUF_MGR_H__
-> +#define __DMA_BUF_MGR_H__
-> +
-> +#include <linux/dma-buf.h>
-> +#include <linux/dma-fence.h>
-> +#include <linux/list.h>
-> +
-> +/**
-> + * struct dmabufmgr_validate - reservation structure for a dma-buf
-> + * @head:	list entry
-> + * @refcount:	refcount
-> + * @reserved:	internal use: signals if reservation is succesful
-> + * @shared:	whether shared or exclusive access was requested
-> + * @bo:		pointer to a dma-buf to reserve
-> + * @priv:	pointer to user-specific data
-> + * @num_fences:	number of fences to wait on
-> + * @num_waits:	amount of waits queued
-> + * @fences:	fences to wait on
-> + * @wait:	dma_fence_cb that can be passed to dma_fence_add_callback
-> + *
-> + * Based on struct ttm_validate_buffer, but unrecognisably modified.
-> + * num_fences and fences are only valid after dmabufmgr_reserve_buffers
-> + * is called.
-> + */
-> +struct dmabufmgr_validate {
-> +	struct list_head head;
-> +	struct kref refcount;
-> +
-> +	bool reserved;
-> +	bool shared;
-> +	struct dma_buf *bo;
-> +	void *priv;
-> +
-> +	unsigned num_fences, num_waits;
-> +	struct dma_fence *fences[DMA_BUF_MAX_SHARED_FENCE];
-> +	struct dma_fence_cb wait[DMA_BUF_MAX_SHARED_FENCE];
-> +};
-> +
-> +/**
-> + * dmabufmgr_validate_init - initialize a dmabufmgr_validate struct
-> + * @val:	[in]	pointer to dmabufmgr_validate
-> + * @list:	[in]	pointer to list to append val to
-> + * @bo:		[in]	pointer to dma-buf
-> + * @priv:	[in]	pointer to user-specific data
-> + * @shared:	[in]	request shared or exclusive access
-> + */
-> +static inline void
-> +dmabufmgr_validate_init(struct dmabufmgr_validate *val,
-> +			struct list_head *list, struct dma_buf *bo,
-> +			void *priv, bool shared)
-> +{
-> +	kref_init(&val->refcount);
-> +	list_add_tail(&val->head, list);
-> +	val->bo = bo;
-> +	val->priv = priv;
-> +	val->shared = shared;
-> +}
-> +
-> +extern void dmabufmgr_validate_free(struct kref *ref);
-> +
-> +/**
-> + * dmabufmgr_validate_get - increase refcount on a dmabufmgr_validate
-> + * @val:	[in]	pointer to dmabufmgr_validate
-> + */
-> +static inline struct dmabufmgr_validate *
-> +dmabufmgr_validate_get(struct dmabufmgr_validate *val)
-> +{
-> +	kref_get(&val->refcount);
-> +	return val;
-> +}
-> +
-> +/**
-> + * dmabufmgr_validate_put - decrease refcount on a dmabufmgr_validate
-> + * @val:	[in]	pointer to dmabufmgr_validate
-> + *
-> + * Returns true if the caller removed last refcount on val,
-> + * false otherwise.
-> + */
-> +static inline bool
-> +dmabufmgr_validate_put(struct dmabufmgr_validate *val)
-> +{
-> +	return kref_put(&val->refcount, dmabufmgr_validate_free);
-> +}
-> +
-> +extern int
-> +dmabufmgr_reserve_buffers(struct list_head *list);
-> +
-> +extern void
-> +dmabufmgr_backoff_reservation(struct list_head *list);
-> +
-> +extern void
-> +dmabufmgr_fence_buffer_objects(struct dma_fence *fence, struct list_head *list);
-> +
-> +extern int
-> +dmabufmgr_wait_completed_cpu(struct list_head *list, bool intr,
-> +			     unsigned long timeout);
-> +
-> +#endif /* __DMA_BUF_MGR_H__ */
-> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-> index bd2e52c..8b14103 100644
-> --- a/include/linux/dma-buf.h
-> +++ b/include/linux/dma-buf.h
-> @@ -35,6 +35,11 @@ struct device;
->  struct dma_buf;
->  struct dma_buf_attachment;
->  
-> +extern atomic_t dma_buf_reserve_counter;
-> +extern spinlock_t dma_buf_reserve_lock;
-> +
-> +#define DMA_BUF_MAX_SHARED_FENCE 8
-> +
->  /**
->   * struct dma_buf_ops - operations possible on struct dma_buf
->   * @attach: [optional] allows different devices to 'attach' themselves to the
-> @@ -122,6 +127,18 @@ struct dma_buf {
->  	/* mutex to serialize list manipulation and attach/detach */
->  	struct mutex lock;
->  	void *priv;
-> +
-> +	/** event queue for waking up when this dmabuf becomes unreserved */
-> +	wait_queue_head_t event_queue;
-> +
-> +	atomic_t reserved;
-> +
-> +	/** These require dma_buf_reserve to be called before modification */
-> +	bool seq_valid;
-> +	u32 val_seq;
-> +	struct dma_fence *fence_excl;
-> +	struct dma_fence *fence_shared[DMA_BUF_MAX_SHARED_FENCE];
-> +	u32 fence_shared_count;
->  };
->  
->  /**
-> @@ -183,5 +200,12 @@ int dma_buf_mmap(struct dma_buf *, struct vm_area_struct *,
->  		 unsigned long);
->  void *dma_buf_vmap(struct dma_buf *);
->  void dma_buf_vunmap(struct dma_buf *, void *vaddr);
-> +int dma_buf_reserve_locked(struct dma_buf *, bool intr, bool no_wait,
-> +			   bool use_seq, u32 seq);
-> +int dma_buf_reserve(struct dma_buf *, bool intr, bool no_wait,
-> +		    bool use_seq, u32 seq);
-> +int dma_buf_wait_unreserved(struct dma_buf *, bool interruptible);
-> +void dma_buf_unreserve_locked(struct dma_buf *);
-> +void dma_buf_unreserve(struct dma_buf *);
->  
->  #endif /* __DMA_BUF_H__ */
-> 
-> 
-> _______________________________________________
-> Linaro-mm-sig mailing list
-> Linaro-mm-sig@lists.linaro.org
-> http://lists.linaro.org/mailman/listinfo/linaro-mm-sig
+
+
+
+(part of/due to kconfig menu restructuring?)
+
+
+on i386:
+
+drivers/built-in.o: In function `fops_open':
+saa7164-encoder.c:(.text+0x68ed6f): undefined reference to `video_devdata'
+drivers/built-in.o: In function `fill_queryctrl.clone.4':
+saa7164-encoder.c:(.text+0x68f657): undefined reference to `v4l2_ctrl_query_fill'
+saa7164-encoder.c:(.text+0x68f6a9): undefined reference to `v4l2_ctrl_query_fill'
+saa7164-encoder.c:(.text+0x68f6e0): undefined reference to `v4l2_ctrl_query_fill'
+saa7164-encoder.c:(.text+0x68f71a): undefined reference to `v4l2_ctrl_query_fill'
+saa7164-encoder.c:(.text+0x68f73a): undefined reference to `v4l2_ctrl_query_fill'
+drivers/built-in.o:saa7164-encoder.c:(.text+0x68f757): more undefined references to `v4l2_ctrl_query_fill' follow
+drivers/built-in.o: In function `saa7164_encoder_register':
+(.text+0x68fff7): undefined reference to `video_device_alloc'
+drivers/built-in.o: In function `saa7164_encoder_register':
+(.text+0x690073): undefined reference to `video_device_release'
+drivers/built-in.o: In function `saa7164_encoder_register':
+(.text+0x6900a1): undefined reference to `__video_register_device'
+drivers/built-in.o: In function `saa7164_encoder_unregister':
+(.text+0x690243): undefined reference to `video_unregister_device'
+drivers/built-in.o: In function `saa7164_encoder_unregister':
+(.text+0x690269): undefined reference to `video_device_release'
+drivers/built-in.o: In function `fops_open':
+saa7164-vbi.c:(.text+0x69125f): undefined reference to `video_devdata'
+drivers/built-in.o: In function `fill_queryctrl.clone.4':
+saa7164-vbi.c:(.text+0x6919b4): undefined reference to `v4l2_ctrl_query_fill'
+saa7164-vbi.c:(.text+0x6919ee): undefined reference to `v4l2_ctrl_query_fill'
+saa7164-vbi.c:(.text+0x691a23): undefined reference to `v4l2_ctrl_query_fill'
+saa7164-vbi.c:(.text+0x691a47): undefined reference to `v4l2_ctrl_query_fill'
+saa7164-vbi.c:(.text+0x691a6a): undefined reference to `v4l2_ctrl_query_fill'
+drivers/built-in.o:saa7164-vbi.c:(.text+0x691a87): more undefined references to `v4l2_ctrl_query_fill' follow
+drivers/built-in.o: In function `saa7164_vbi_register':
+(.text+0x69220e): undefined reference to `video_device_alloc'
+drivers/built-in.o: In function `saa7164_vbi_register':
+(.text+0x69228a): undefined reference to `video_device_release'
+drivers/built-in.o: In function `saa7164_vbi_register':
+(.text+0x6922bb): undefined reference to `__video_register_device'
+drivers/built-in.o: In function `saa7164_vbi_unregister':
+(.text+0x6923de): undefined reference to `video_unregister_device'
+drivers/built-in.o: In function `saa7164_vbi_unregister':
+(.text+0x6923f9): undefined reference to `video_device_release'
+drivers/built-in.o:(.rodata+0xb1054): undefined reference to `video_ioctl2'
+drivers/built-in.o:(.rodata+0xb17d4): undefined reference to `video_ioctl2'
+
+
+Full randconfig file is attached.
+
 
 -- 
-Daniel Vetter
-Mail: daniel@ffwll.ch
-Mobile: +41 (0)79 365 57 48
+~Randy
+
+--------------000607000406070808010108
+Content-Type: text/plain;
+ name="config-saa"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="config-saa"
+
+#
+# Automatically generated file; DO NOT EDIT.
+# Linux/i386 3.6.0-rc2 Kernel Configuration
+#
+# CONFIG_64BIT is not set
+CONFIG_X86_32=y
+# CONFIG_X86_64 is not set
+CONFIG_X86=y
+CONFIG_INSTRUCTION_DECODER=y
+CONFIG_OUTPUT_FORMAT="elf32-i386"
+CONFIG_ARCH_DEFCONFIG="arch/x86/configs/i386_defconfig"
+CONFIG_LOCKDEP_SUPPORT=y
+CONFIG_STACKTRACE_SUPPORT=y
+CONFIG_HAVE_LATENCYTOP_SUPPORT=y
+CONFIG_MMU=y
+CONFIG_NEED_DMA_MAP_STATE=y
+CONFIG_NEED_SG_DMA_LENGTH=y
+CONFIG_GENERIC_ISA_DMA=y
+CONFIG_GENERIC_BUG=y
+CONFIG_GENERIC_HWEIGHT=y
+CONFIG_GENERIC_GPIO=y
+CONFIG_ARCH_MAY_HAVE_PC_FDC=y
+# CONFIG_RWSEM_GENERIC_SPINLOCK is not set
+CONFIG_RWSEM_XCHGADD_ALGORITHM=y
+CONFIG_GENERIC_CALIBRATE_DELAY=y
+CONFIG_ARCH_HAS_CPU_RELAX=y
+CONFIG_ARCH_HAS_DEFAULT_IDLE=y
+CONFIG_ARCH_HAS_CACHE_LINE_SIZE=y
+CONFIG_ARCH_HAS_CPU_AUTOPROBE=y
+CONFIG_HAVE_SETUP_PER_CPU_AREA=y
+CONFIG_NEED_PER_CPU_EMBED_FIRST_CHUNK=y
+CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK=y
+CONFIG_ARCH_HIBERNATION_POSSIBLE=y
+CONFIG_ARCH_SUSPEND_POSSIBLE=y
+# CONFIG_ZONE_DMA32 is not set
+# CONFIG_AUDIT_ARCH is not set
+CONFIG_ARCH_SUPPORTS_OPTIMIZED_INLINING=y
+CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC=y
+CONFIG_ARCH_HWEIGHT_CFLAGS="-fcall-saved-ecx -fcall-saved-edx"
+CONFIG_ARCH_SUPPORTS_UPROBES=y
+CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
+CONFIG_HAVE_IRQ_WORK=y
+CONFIG_IRQ_WORK=y
+CONFIG_BUILDTIME_EXTABLE_SORT=y
+
+#
+# General setup
+#
+CONFIG_EXPERIMENTAL=y
+CONFIG_BROKEN_ON_SMP=y
+CONFIG_INIT_ENV_ARG_LIMIT=32
+CONFIG_CROSS_COMPILE=""
+CONFIG_LOCALVERSION=""
+CONFIG_LOCALVERSION_AUTO=y
+CONFIG_HAVE_KERNEL_GZIP=y
+CONFIG_HAVE_KERNEL_BZIP2=y
+CONFIG_HAVE_KERNEL_LZMA=y
+CONFIG_HAVE_KERNEL_XZ=y
+CONFIG_HAVE_KERNEL_LZO=y
+# CONFIG_KERNEL_GZIP is not set
+CONFIG_KERNEL_BZIP2=y
+# CONFIG_KERNEL_LZMA is not set
+# CONFIG_KERNEL_XZ is not set
+# CONFIG_KERNEL_LZO is not set
+CONFIG_DEFAULT_HOSTNAME="(none)"
+CONFIG_SWAP=y
+CONFIG_SYSVIPC=y
+CONFIG_POSIX_MQUEUE=y
+# CONFIG_BSD_PROCESS_ACCT is not set
+CONFIG_FHANDLE=y
+CONFIG_TASKSTATS=y
+CONFIG_TASK_DELAY_ACCT=y
+# CONFIG_TASK_XACCT is not set
+CONFIG_AUDIT=y
+CONFIG_AUDITSYSCALL=y
+CONFIG_AUDIT_WATCH=y
+CONFIG_AUDIT_TREE=y
+# CONFIG_AUDIT_LOGINUID_IMMUTABLE is not set
+CONFIG_HAVE_GENERIC_HARDIRQS=y
+
+#
+# IRQ subsystem
+#
+CONFIG_GENERIC_HARDIRQS=y
+CONFIG_GENERIC_IRQ_PROBE=y
+CONFIG_GENERIC_IRQ_SHOW=y
+CONFIG_GENERIC_IRQ_CHIP=y
+CONFIG_IRQ_DOMAIN=y
+# CONFIG_IRQ_DOMAIN_DEBUG is not set
+CONFIG_IRQ_FORCED_THREADING=y
+CONFIG_SPARSE_IRQ=y
+CONFIG_CLOCKSOURCE_WATCHDOG=y
+CONFIG_KTIME_SCALAR=y
+CONFIG_GENERIC_CLOCKEVENTS=y
+CONFIG_GENERIC_CLOCKEVENTS_BUILD=y
+CONFIG_GENERIC_CLOCKEVENTS_MIN_ADJUST=y
+CONFIG_GENERIC_CMOS_UPDATE=y
+
+#
+# Timers subsystem
+#
+# CONFIG_NO_HZ is not set
+# CONFIG_HIGH_RES_TIMERS is not set
+
+#
+# RCU Subsystem
+#
+CONFIG_TINY_RCU=y
+# CONFIG_PREEMPT_RCU is not set
+# CONFIG_TREE_RCU_TRACE is not set
+CONFIG_IKCONFIG=y
+CONFIG_LOG_BUF_SHIFT=17
+CONFIG_HAVE_UNSTABLE_SCHED_CLOCK=y
+# CONFIG_CGROUPS is not set
+CONFIG_CHECKPOINT_RESTORE=y
+# CONFIG_NAMESPACES is not set
+# CONFIG_SCHED_AUTOGROUP is not set
+CONFIG_SYSFS_DEPRECATED=y
+# CONFIG_SYSFS_DEPRECATED_V2 is not set
+# CONFIG_RELAY is not set
+# CONFIG_BLK_DEV_INITRD is not set
+# CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
+CONFIG_ANON_INODES=y
+CONFIG_EXPERT=y
+CONFIG_UID16=y
+CONFIG_KALLSYMS=y
+CONFIG_KALLSYMS_ALL=y
+# CONFIG_HOTPLUG is not set
+CONFIG_PRINTK=y
+CONFIG_BUG=y
+CONFIG_ELF_CORE=y
+# CONFIG_PCSPKR_PLATFORM is not set
+CONFIG_HAVE_PCSPKR_PLATFORM=y
+# CONFIG_BASE_FULL is not set
+# CONFIG_FUTEX is not set
+# CONFIG_EPOLL is not set
+# CONFIG_SIGNALFD is not set
+# CONFIG_TIMERFD is not set
+CONFIG_EVENTFD=y
+# CONFIG_SHMEM is not set
+# CONFIG_AIO is not set
+# CONFIG_EMBEDDED is not set
+CONFIG_HAVE_PERF_EVENTS=y
+CONFIG_PERF_USE_VMALLOC=y
+
+#
+# Kernel Performance Events And Counters
+#
+CONFIG_PERF_EVENTS=y
+CONFIG_DEBUG_PERF_USE_VMALLOC=y
+CONFIG_VM_EVENT_COUNTERS=y
+CONFIG_PCI_QUIRKS=y
+# CONFIG_SLUB_DEBUG is not set
+CONFIG_COMPAT_BRK=y
+# CONFIG_SLAB is not set
+CONFIG_SLUB=y
+# CONFIG_SLOB is not set
+CONFIG_PROFILING=y
+# CONFIG_OPROFILE is not set
+CONFIG_HAVE_OPROFILE=y
+CONFIG_OPROFILE_NMI_TIMER=y
+# CONFIG_JUMP_LABEL is not set
+CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS=y
+CONFIG_USER_RETURN_NOTIFIER=y
+CONFIG_HAVE_IOREMAP_PROT=y
+CONFIG_HAVE_KPROBES=y
+CONFIG_HAVE_KRETPROBES=y
+CONFIG_HAVE_OPTPROBES=y
+CONFIG_HAVE_ARCH_TRACEHOOK=y
+CONFIG_HAVE_DMA_ATTRS=y
+CONFIG_HAVE_DMA_CONTIGUOUS=y
+CONFIG_GENERIC_SMP_IDLE_THREAD=y
+CONFIG_HAVE_REGS_AND_STACK_ACCESS_API=y
+CONFIG_HAVE_DMA_API_DEBUG=y
+CONFIG_HAVE_HW_BREAKPOINT=y
+CONFIG_HAVE_MIXED_BREAKPOINTS_REGS=y
+CONFIG_HAVE_USER_RETURN_NOTIFIER=y
+CONFIG_HAVE_PERF_EVENTS_NMI=y
+CONFIG_HAVE_ARCH_JUMP_LABEL=y
+CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG=y
+CONFIG_HAVE_ALIGNED_STRUCT_PAGE=y
+CONFIG_HAVE_CMPXCHG_LOCAL=y
+CONFIG_HAVE_CMPXCHG_DOUBLE=y
+CONFIG_ARCH_WANT_IPC_PARSE_VERSION=y
+CONFIG_HAVE_ARCH_SECCOMP_FILTER=y
+CONFIG_SECCOMP_FILTER=y
+CONFIG_MODULES_USE_ELF_REL=y
+
+#
+# GCOV-based kernel profiling
+#
+# CONFIG_GCOV_KERNEL is not set
+CONFIG_HAVE_GENERIC_DMA_COHERENT=y
+CONFIG_RT_MUTEXES=y
+CONFIG_BASE_SMALL=1
+# CONFIG_MODULES is not set
+CONFIG_BLOCK=y
+# CONFIG_LBDAF is not set
+CONFIG_BLK_DEV_BSG=y
+CONFIG_BLK_DEV_BSGLIB=y
+# CONFIG_BLK_DEV_INTEGRITY is not set
+
+#
+# Partition Types
+#
+# CONFIG_PARTITION_ADVANCED is not set
+CONFIG_MSDOS_PARTITION=y
+
+#
+# IO Schedulers
+#
+CONFIG_IOSCHED_NOOP=y
+CONFIG_IOSCHED_DEADLINE=y
+# CONFIG_IOSCHED_CFQ is not set
+CONFIG_DEFAULT_DEADLINE=y
+# CONFIG_DEFAULT_NOOP is not set
+CONFIG_DEFAULT_IOSCHED="deadline"
+CONFIG_PREEMPT_NOTIFIERS=y
+# CONFIG_INLINE_SPIN_TRYLOCK is not set
+# CONFIG_INLINE_SPIN_TRYLOCK_BH is not set
+# CONFIG_INLINE_SPIN_LOCK is not set
+# CONFIG_INLINE_SPIN_LOCK_BH is not set
+# CONFIG_INLINE_SPIN_LOCK_IRQ is not set
+# CONFIG_INLINE_SPIN_LOCK_IRQSAVE is not set
+CONFIG_UNINLINE_SPIN_UNLOCK=y
+# CONFIG_INLINE_SPIN_UNLOCK_BH is not set
+# CONFIG_INLINE_SPIN_UNLOCK_IRQ is not set
+# CONFIG_INLINE_SPIN_UNLOCK_IRQRESTORE is not set
+# CONFIG_INLINE_READ_TRYLOCK is not set
+# CONFIG_INLINE_READ_LOCK is not set
+# CONFIG_INLINE_READ_LOCK_BH is not set
+# CONFIG_INLINE_READ_LOCK_IRQ is not set
+# CONFIG_INLINE_READ_LOCK_IRQSAVE is not set
+# CONFIG_INLINE_READ_UNLOCK is not set
+# CONFIG_INLINE_READ_UNLOCK_BH is not set
+# CONFIG_INLINE_READ_UNLOCK_IRQ is not set
+# CONFIG_INLINE_READ_UNLOCK_IRQRESTORE is not set
+# CONFIG_INLINE_WRITE_TRYLOCK is not set
+# CONFIG_INLINE_WRITE_LOCK is not set
+# CONFIG_INLINE_WRITE_LOCK_BH is not set
+# CONFIG_INLINE_WRITE_LOCK_IRQ is not set
+# CONFIG_INLINE_WRITE_LOCK_IRQSAVE is not set
+# CONFIG_INLINE_WRITE_UNLOCK is not set
+# CONFIG_INLINE_WRITE_UNLOCK_BH is not set
+# CONFIG_INLINE_WRITE_UNLOCK_IRQ is not set
+# CONFIG_INLINE_WRITE_UNLOCK_IRQRESTORE is not set
+# CONFIG_MUTEX_SPIN_ON_OWNER is not set
+# CONFIG_FREEZER is not set
+
+#
+# Processor type and features
+#
+# CONFIG_ZONE_DMA is not set
+# CONFIG_SMP is not set
+CONFIG_X86_EXTENDED_PLATFORM=y
+# CONFIG_X86_WANT_INTEL_MID is not set
+# CONFIG_X86_RDC321X is not set
+# CONFIG_X86_32_IRIS is not set
+# CONFIG_SCHED_OMIT_FRAME_POINTER is not set
+# CONFIG_KVMTOOL_TEST_ENABLE is not set
+CONFIG_PARAVIRT_GUEST=y
+# CONFIG_PARAVIRT_TIME_ACCOUNTING is not set
+# CONFIG_XEN_PRIVILEGED_GUEST is not set
+# CONFIG_KVM_CLOCK is not set
+CONFIG_KVM_GUEST=y
+CONFIG_LGUEST_GUEST=y
+CONFIG_PARAVIRT=y
+# CONFIG_PARAVIRT_DEBUG is not set
+CONFIG_NO_BOOTMEM=y
+# CONFIG_MEMTEST is not set
+# CONFIG_M386 is not set
+# CONFIG_M486 is not set
+# CONFIG_M586 is not set
+# CONFIG_M586TSC is not set
+# CONFIG_M586MMX is not set
+CONFIG_M686=y
+# CONFIG_MPENTIUMII is not set
+# CONFIG_MPENTIUMIII is not set
+# CONFIG_MPENTIUMM is not set
+# CONFIG_MPENTIUM4 is not set
+# CONFIG_MK6 is not set
+# CONFIG_MK7 is not set
+# CONFIG_MK8 is not set
+# CONFIG_MCRUSOE is not set
+# CONFIG_MEFFICEON is not set
+# CONFIG_MWINCHIPC6 is not set
+# CONFIG_MWINCHIP3D is not set
+# CONFIG_MELAN is not set
+# CONFIG_MGEODEGX1 is not set
+# CONFIG_MGEODE_LX is not set
+# CONFIG_MCYRIXIII is not set
+# CONFIG_MVIAC3_2 is not set
+# CONFIG_MVIAC7 is not set
+# CONFIG_MCORE2 is not set
+# CONFIG_MATOM is not set
+CONFIG_X86_GENERIC=y
+CONFIG_X86_INTERNODE_CACHE_SHIFT=6
+CONFIG_X86_CMPXCHG=y
+CONFIG_X86_L1_CACHE_SHIFT=6
+CONFIG_X86_XADD=y
+CONFIG_X86_PPRO_FENCE=y
+CONFIG_X86_WP_WORKS_OK=y
+CONFIG_X86_INVLPG=y
+CONFIG_X86_BSWAP=y
+CONFIG_X86_POPAD_OK=y
+CONFIG_X86_INTEL_USERCOPY=y
+CONFIG_X86_USE_PPRO_CHECKSUM=y
+CONFIG_X86_TSC=y
+CONFIG_X86_CMPXCHG64=y
+CONFIG_X86_CMOV=y
+CONFIG_X86_MINIMUM_CPU_FAMILY=5
+CONFIG_X86_DEBUGCTLMSR=y
+# CONFIG_PROCESSOR_SELECT is not set
+CONFIG_CPU_SUP_INTEL=y
+CONFIG_CPU_SUP_CYRIX_32=y
+CONFIG_CPU_SUP_AMD=y
+CONFIG_CPU_SUP_CENTAUR=y
+CONFIG_CPU_SUP_TRANSMETA_32=y
+CONFIG_CPU_SUP_UMC_32=y
+# CONFIG_HPET_TIMER is not set
+CONFIG_DMI=y
+# CONFIG_IOMMU_HELPER is not set
+CONFIG_NR_CPUS=1
+# CONFIG_IRQ_TIME_ACCOUNTING is not set
+# CONFIG_PREEMPT_NONE is not set
+CONFIG_PREEMPT_VOLUNTARY=y
+# CONFIG_PREEMPT is not set
+# CONFIG_X86_UP_APIC is not set
+# CONFIG_X86_MCE is not set
+# CONFIG_VM86 is not set
+CONFIG_TOSHIBA=y
+# CONFIG_I8K is not set
+CONFIG_X86_REBOOTFIXUPS=y
+# CONFIG_MICROCODE is not set
+CONFIG_X86_MSR=y
+CONFIG_X86_CPUID=y
+# CONFIG_NOHIGHMEM is not set
+CONFIG_HIGHMEM4G=y
+# CONFIG_HIGHMEM64G is not set
+# CONFIG_VMSPLIT_3G is not set
+# CONFIG_VMSPLIT_3G_OPT is not set
+CONFIG_VMSPLIT_2G=y
+# CONFIG_VMSPLIT_2G_OPT is not set
+# CONFIG_VMSPLIT_1G is not set
+CONFIG_PAGE_OFFSET=0x80000000
+CONFIG_HIGHMEM=y
+# CONFIG_ARCH_PHYS_ADDR_T_64BIT is not set
+# CONFIG_ARCH_DMA_ADDR_T_64BIT is not set
+CONFIG_ARCH_FLATMEM_ENABLE=y
+CONFIG_ARCH_SPARSEMEM_ENABLE=y
+CONFIG_ARCH_SELECT_MEMORY_MODEL=y
+CONFIG_ILLEGAL_POINTER_VALUE=0
+CONFIG_SELECT_MEMORY_MODEL=y
+CONFIG_FLATMEM_MANUAL=y
+# CONFIG_SPARSEMEM_MANUAL is not set
+CONFIG_FLATMEM=y
+CONFIG_FLAT_NODE_MEM_MAP=y
+CONFIG_SPARSEMEM_STATIC=y
+CONFIG_HAVE_MEMBLOCK=y
+CONFIG_HAVE_MEMBLOCK_NODE_MAP=y
+CONFIG_ARCH_DISCARD_MEMBLOCK=y
+CONFIG_MEMORY_ISOLATION=y
+CONFIG_PAGEFLAGS_EXTENDED=y
+CONFIG_SPLIT_PTLOCK_CPUS=999999
+CONFIG_COMPACTION=y
+CONFIG_MIGRATION=y
+# CONFIG_PHYS_ADDR_T_64BIT is not set
+CONFIG_ZONE_DMA_FLAG=0
+CONFIG_BOUNCE=y
+CONFIG_VIRT_TO_BUS=y
+CONFIG_MMU_NOTIFIER=y
+# CONFIG_KSM is not set
+CONFIG_DEFAULT_MMAP_MIN_ADDR=4096
+CONFIG_TRANSPARENT_HUGEPAGE=y
+# CONFIG_TRANSPARENT_HUGEPAGE_ALWAYS is not set
+CONFIG_TRANSPARENT_HUGEPAGE_MADVISE=y
+# CONFIG_CROSS_MEMORY_ATTACH is not set
+CONFIG_NEED_PER_CPU_KM=y
+CONFIG_CLEANCACHE=y
+# CONFIG_FRONTSWAP is not set
+# CONFIG_HIGHPTE is not set
+# CONFIG_X86_CHECK_BIOS_CORRUPTION is not set
+CONFIG_X86_RESERVE_LOW=64
+# CONFIG_MATH_EMULATION is not set
+CONFIG_MTRR=y
+# CONFIG_MTRR_SANITIZER is not set
+CONFIG_X86_PAT=y
+CONFIG_ARCH_USES_PG_UNCACHED=y
+CONFIG_ARCH_RANDOM=y
+CONFIG_SECCOMP=y
+CONFIG_CC_STACKPROTECTOR=y
+# CONFIG_HZ_100 is not set
+# CONFIG_HZ_250 is not set
+# CONFIG_HZ_300 is not set
+CONFIG_HZ_1000=y
+CONFIG_HZ=1000
+# CONFIG_SCHED_HRTICK is not set
+# CONFIG_KEXEC is not set
+CONFIG_CRASH_DUMP=y
+CONFIG_PHYSICAL_START=0x1000000
+# CONFIG_RELOCATABLE is not set
+CONFIG_PHYSICAL_ALIGN=0x1000000
+CONFIG_COMPAT_VDSO=y
+CONFIG_CMDLINE_BOOL=y
+CONFIG_CMDLINE=""
+CONFIG_CMDLINE_OVERRIDE=y
+CONFIG_ARCH_ENABLE_MEMORY_HOTPLUG=y
+
+#
+# Power management and ACPI options
+#
+# CONFIG_SUSPEND is not set
+# CONFIG_HIBERNATION is not set
+CONFIG_PM_RUNTIME=y
+CONFIG_PM=y
+CONFIG_PM_DEBUG=y
+# CONFIG_PM_ADVANCED_DEBUG is not set
+# CONFIG_ACPI is not set
+# CONFIG_SFI is not set
+
+#
+# CPU Frequency scaling
+#
+# CONFIG_CPU_FREQ is not set
+CONFIG_CPU_IDLE=y
+CONFIG_CPU_IDLE_GOV_LADDER=y
+# CONFIG_ARCH_NEEDS_CPU_IDLE_COUPLED is not set
+CONFIG_INTEL_IDLE=y
+
+#
+# Bus options (PCI etc.)
+#
+CONFIG_PCI=y
+# CONFIG_PCI_GOBIOS is not set
+# CONFIG_PCI_GOMMCONFIG is not set
+# CONFIG_PCI_GODIRECT is not set
+CONFIG_PCI_GOANY=y
+CONFIG_PCI_BIOS=y
+CONFIG_PCI_DIRECT=y
+CONFIG_PCI_DOMAINS=y
+CONFIG_PCI_CNB20LE_QUIRK=y
+CONFIG_PCIEPORTBUS=y
+# CONFIG_PCIEAER is not set
+CONFIG_PCIEASPM=y
+# CONFIG_PCIEASPM_DEBUG is not set
+CONFIG_PCIEASPM_DEFAULT=y
+# CONFIG_PCIEASPM_POWERSAVE is not set
+# CONFIG_PCIEASPM_PERFORMANCE is not set
+# CONFIG_ARCH_SUPPORTS_MSI is not set
+# CONFIG_PCI_DEBUG is not set
+CONFIG_PCI_REALLOC_ENABLE_AUTO=y
+# CONFIG_PCI_STUB is not set
+# CONFIG_PCI_IOV is not set
+# CONFIG_PCI_PRI is not set
+# CONFIG_PCI_PASID is not set
+CONFIG_PCI_LABEL=y
+CONFIG_ISA_DMA_API=y
+# CONFIG_ISA is not set
+# CONFIG_SCx200 is not set
+# CONFIG_OLPC is not set
+# CONFIG_ALIX is not set
+# CONFIG_NET5501 is not set
+# CONFIG_GEOS is not set
+CONFIG_AMD_NB=y
+# CONFIG_RAPIDIO is not set
+
+#
+# Executable file formats / Emulations
+#
+CONFIG_BINFMT_ELF=y
+CONFIG_ARCH_BINFMT_ELF_RANDOMIZE_PIE=y
+# CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS is not set
+CONFIG_HAVE_AOUT=y
+CONFIG_BINFMT_AOUT=y
+# CONFIG_BINFMT_MISC is not set
+CONFIG_HAVE_ATOMIC_IOMAP=y
+CONFIG_HAVE_TEXT_POKE_SMP=y
+CONFIG_NET=y
+
+#
+# Networking options
+#
+# CONFIG_PACKET is not set
+# CONFIG_UNIX is not set
+CONFIG_XFRM=y
+CONFIG_XFRM_ALGO=y
+# CONFIG_XFRM_USER is not set
+# CONFIG_XFRM_SUB_POLICY is not set
+CONFIG_XFRM_MIGRATE=y
+CONFIG_XFRM_IPCOMP=y
+# CONFIG_NET_KEY is not set
+CONFIG_INET=y
+CONFIG_IP_MULTICAST=y
+CONFIG_IP_ADVANCED_ROUTER=y
+# CONFIG_IP_FIB_TRIE_STATS is not set
+# CONFIG_IP_MULTIPLE_TABLES is not set
+CONFIG_IP_ROUTE_MULTIPATH=y
+CONFIG_IP_ROUTE_VERBOSE=y
+CONFIG_IP_PNP=y
+CONFIG_IP_PNP_DHCP=y
+CONFIG_IP_PNP_BOOTP=y
+# CONFIG_IP_PNP_RARP is not set
+# CONFIG_NET_IPIP is not set
+# CONFIG_NET_IPGRE_DEMUX is not set
+# CONFIG_IP_MROUTE is not set
+CONFIG_ARPD=y
+# CONFIG_SYN_COOKIES is not set
+# CONFIG_INET_AH is not set
+# CONFIG_INET_ESP is not set
+CONFIG_INET_IPCOMP=y
+CONFIG_INET_XFRM_TUNNEL=y
+CONFIG_INET_TUNNEL=y
+# CONFIG_INET_XFRM_MODE_TRANSPORT is not set
+# CONFIG_INET_XFRM_MODE_TUNNEL is not set
+# CONFIG_INET_XFRM_MODE_BEET is not set
+CONFIG_INET_LRO=y
+CONFIG_INET_DIAG=y
+CONFIG_INET_TCP_DIAG=y
+CONFIG_INET_UDP_DIAG=y
+# CONFIG_TCP_CONG_ADVANCED is not set
+CONFIG_TCP_CONG_CUBIC=y
+CONFIG_DEFAULT_TCP_CONG="cubic"
+# CONFIG_TCP_MD5SIG is not set
+CONFIG_IPV6=y
+CONFIG_IPV6_PRIVACY=y
+CONFIG_IPV6_ROUTER_PREF=y
+# CONFIG_IPV6_ROUTE_INFO is not set
+CONFIG_IPV6_OPTIMISTIC_DAD=y
+# CONFIG_INET6_AH is not set
+CONFIG_INET6_ESP=y
+# CONFIG_INET6_IPCOMP is not set
+# CONFIG_IPV6_MIP6 is not set
+# CONFIG_INET6_XFRM_TUNNEL is not set
+CONFIG_INET6_TUNNEL=y
+CONFIG_INET6_XFRM_MODE_TRANSPORT=y
+CONFIG_INET6_XFRM_MODE_TUNNEL=y
+CONFIG_INET6_XFRM_MODE_BEET=y
+CONFIG_INET6_XFRM_MODE_ROUTEOPTIMIZATION=y
+CONFIG_IPV6_SIT=y
+CONFIG_IPV6_SIT_6RD=y
+CONFIG_IPV6_NDISC_NODETYPE=y
+CONFIG_IPV6_TUNNEL=y
+CONFIG_IPV6_GRE=y
+CONFIG_IPV6_MULTIPLE_TABLES=y
+# CONFIG_IPV6_SUBTREES is not set
+CONFIG_IPV6_MROUTE=y
+CONFIG_IPV6_MROUTE_MULTIPLE_TABLES=y
+# CONFIG_IPV6_PIMSM_V2 is not set
+CONFIG_NETWORK_SECMARK=y
+# CONFIG_NETWORK_PHY_TIMESTAMPING is not set
+CONFIG_NETFILTER=y
+# CONFIG_NETFILTER_DEBUG is not set
+CONFIG_NETFILTER_ADVANCED=y
+
+#
+# Core Netfilter Configuration
+#
+CONFIG_NETFILTER_NETLINK=y
+CONFIG_NETFILTER_NETLINK_ACCT=y
+CONFIG_NETFILTER_NETLINK_QUEUE=y
+CONFIG_NETFILTER_NETLINK_LOG=y
+CONFIG_NF_CONNTRACK=y
+CONFIG_NF_CONNTRACK_MARK=y
+# CONFIG_NF_CONNTRACK_SECMARK is not set
+# CONFIG_NF_CONNTRACK_EVENTS is not set
+CONFIG_NF_CONNTRACK_TIMEOUT=y
+# CONFIG_NF_CONNTRACK_TIMESTAMP is not set
+CONFIG_NF_CT_PROTO_DCCP=y
+CONFIG_NF_CT_PROTO_SCTP=y
+CONFIG_NF_CT_PROTO_UDPLITE=y
+# CONFIG_NF_CONNTRACK_AMANDA is not set
+CONFIG_NF_CONNTRACK_FTP=y
+# CONFIG_NF_CONNTRACK_H323 is not set
+# CONFIG_NF_CONNTRACK_IRC is not set
+CONFIG_NF_CONNTRACK_BROADCAST=y
+CONFIG_NF_CONNTRACK_NETBIOS_NS=y
+# CONFIG_NF_CONNTRACK_SNMP is not set
+# CONFIG_NF_CONNTRACK_PPTP is not set
+# CONFIG_NF_CONNTRACK_SANE is not set
+# CONFIG_NF_CONNTRACK_SIP is not set
+CONFIG_NF_CONNTRACK_TFTP=y
+CONFIG_NF_CT_NETLINK=y
+CONFIG_NF_CT_NETLINK_TIMEOUT=y
+# CONFIG_NETFILTER_NETLINK_QUEUE_CT is not set
+CONFIG_NETFILTER_TPROXY=y
+CONFIG_NETFILTER_XTABLES=y
+
+#
+# Xtables combined modules
+#
+CONFIG_NETFILTER_XT_MARK=y
+# CONFIG_NETFILTER_XT_CONNMARK is not set
+CONFIG_NETFILTER_XT_SET=y
+
+#
+# Xtables targets
+#
+CONFIG_NETFILTER_XT_TARGET_AUDIT=y
+CONFIG_NETFILTER_XT_TARGET_CHECKSUM=y
+# CONFIG_NETFILTER_XT_TARGET_CLASSIFY is not set
+# CONFIG_NETFILTER_XT_TARGET_CONNMARK is not set
+CONFIG_NETFILTER_XT_TARGET_DSCP=y
+CONFIG_NETFILTER_XT_TARGET_HL=y
+# CONFIG_NETFILTER_XT_TARGET_HMARK is not set
+CONFIG_NETFILTER_XT_TARGET_IDLETIMER=y
+# CONFIG_NETFILTER_XT_TARGET_LED is not set
+# CONFIG_NETFILTER_XT_TARGET_LOG is not set
+# CONFIG_NETFILTER_XT_TARGET_MARK is not set
+CONFIG_NETFILTER_XT_TARGET_NFLOG=y
+CONFIG_NETFILTER_XT_TARGET_NFQUEUE=y
+CONFIG_NETFILTER_XT_TARGET_RATEEST=y
+# CONFIG_NETFILTER_XT_TARGET_TEE is not set
+CONFIG_NETFILTER_XT_TARGET_TPROXY=y
+# CONFIG_NETFILTER_XT_TARGET_SECMARK is not set
+# CONFIG_NETFILTER_XT_TARGET_TCPMSS is not set
+CONFIG_NETFILTER_XT_TARGET_TCPOPTSTRIP=y
+
+#
+# Xtables matches
+#
+CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y
+# CONFIG_NETFILTER_XT_MATCH_CLUSTER is not set
+# CONFIG_NETFILTER_XT_MATCH_COMMENT is not set
+# CONFIG_NETFILTER_XT_MATCH_CONNBYTES is not set
+# CONFIG_NETFILTER_XT_MATCH_CONNLIMIT is not set
+# CONFIG_NETFILTER_XT_MATCH_CONNMARK is not set
+CONFIG_NETFILTER_XT_MATCH_CONNTRACK=y
+# CONFIG_NETFILTER_XT_MATCH_CPU is not set
+# CONFIG_NETFILTER_XT_MATCH_DCCP is not set
+CONFIG_NETFILTER_XT_MATCH_DEVGROUP=y
+CONFIG_NETFILTER_XT_MATCH_DSCP=y
+CONFIG_NETFILTER_XT_MATCH_ECN=y
+# CONFIG_NETFILTER_XT_MATCH_ESP is not set
+# CONFIG_NETFILTER_XT_MATCH_HASHLIMIT is not set
+# CONFIG_NETFILTER_XT_MATCH_HELPER is not set
+CONFIG_NETFILTER_XT_MATCH_HL=y
+# CONFIG_NETFILTER_XT_MATCH_IPRANGE is not set
+CONFIG_NETFILTER_XT_MATCH_LENGTH=y
+# CONFIG_NETFILTER_XT_MATCH_LIMIT is not set
+# CONFIG_NETFILTER_XT_MATCH_MAC is not set
+# CONFIG_NETFILTER_XT_MATCH_MARK is not set
+# CONFIG_NETFILTER_XT_MATCH_MULTIPORT is not set
+CONFIG_NETFILTER_XT_MATCH_NFACCT=y
+# CONFIG_NETFILTER_XT_MATCH_OSF is not set
+CONFIG_NETFILTER_XT_MATCH_OWNER=y
+CONFIG_NETFILTER_XT_MATCH_POLICY=y
+# CONFIG_NETFILTER_XT_MATCH_PKTTYPE is not set
+# CONFIG_NETFILTER_XT_MATCH_QUOTA is not set
+CONFIG_NETFILTER_XT_MATCH_RATEEST=y
+# CONFIG_NETFILTER_XT_MATCH_REALM is not set
+# CONFIG_NETFILTER_XT_MATCH_RECENT is not set
+CONFIG_NETFILTER_XT_MATCH_SCTP=y
+CONFIG_NETFILTER_XT_MATCH_SOCKET=y
+CONFIG_NETFILTER_XT_MATCH_STATE=y
+# CONFIG_NETFILTER_XT_MATCH_STATISTIC is not set
+# CONFIG_NETFILTER_XT_MATCH_STRING is not set
+# CONFIG_NETFILTER_XT_MATCH_TCPMSS is not set
+CONFIG_NETFILTER_XT_MATCH_TIME=y
+CONFIG_NETFILTER_XT_MATCH_U32=y
+CONFIG_IP_SET=y
+CONFIG_IP_SET_MAX=256
+# CONFIG_IP_SET_BITMAP_IP is not set
+CONFIG_IP_SET_BITMAP_IPMAC=y
+# CONFIG_IP_SET_BITMAP_PORT is not set
+CONFIG_IP_SET_HASH_IP=y
+CONFIG_IP_SET_HASH_IPPORT=y
+CONFIG_IP_SET_HASH_IPPORTIP=y
+CONFIG_IP_SET_HASH_IPPORTNET=y
+# CONFIG_IP_SET_HASH_NET is not set
+CONFIG_IP_SET_HASH_NETPORT=y
+# CONFIG_IP_SET_HASH_NETIFACE is not set
+# CONFIG_IP_SET_LIST_SET is not set
+# CONFIG_IP_VS is not set
+
+#
+# IP: Netfilter Configuration
+#
+CONFIG_NF_DEFRAG_IPV4=y
+# CONFIG_NF_CONNTRACK_IPV4 is not set
+CONFIG_IP_NF_QUEUE=y
+CONFIG_IP_NF_IPTABLES=y
+# CONFIG_IP_NF_MATCH_AH is not set
+# CONFIG_IP_NF_MATCH_ECN is not set
+# CONFIG_IP_NF_MATCH_RPFILTER is not set
+# CONFIG_IP_NF_MATCH_TTL is not set
+CONFIG_IP_NF_FILTER=y
+# CONFIG_IP_NF_TARGET_REJECT is not set
+CONFIG_IP_NF_TARGET_ULOG=y
+CONFIG_IP_NF_MANGLE=y
+CONFIG_IP_NF_TARGET_ECN=y
+CONFIG_IP_NF_TARGET_TTL=y
+# CONFIG_IP_NF_RAW is not set
+CONFIG_IP_NF_ARPTABLES=y
+# CONFIG_IP_NF_ARPFILTER is not set
+# CONFIG_IP_NF_ARP_MANGLE is not set
+
+#
+# IPv6: Netfilter Configuration
+#
+# CONFIG_NF_DEFRAG_IPV6 is not set
+# CONFIG_NF_CONNTRACK_IPV6 is not set
+# CONFIG_IP6_NF_IPTABLES is not set
+CONFIG_IP_DCCP=y
+CONFIG_INET_DCCP_DIAG=y
+
+#
+# DCCP CCIDs Configuration (EXPERIMENTAL)
+#
+CONFIG_IP_DCCP_CCID2_DEBUG=y
+CONFIG_IP_DCCP_CCID3=y
+CONFIG_IP_DCCP_CCID3_DEBUG=y
+CONFIG_IP_DCCP_TFRC_LIB=y
+CONFIG_IP_DCCP_TFRC_DEBUG=y
+
+#
+# DCCP Kernel Hacking
+#
+CONFIG_IP_DCCP_DEBUG=y
+CONFIG_IP_SCTP=y
+# CONFIG_SCTP_DBG_MSG is not set
+# CONFIG_SCTP_HMAC_NONE is not set
+# CONFIG_SCTP_HMAC_SHA1 is not set
+CONFIG_SCTP_HMAC_MD5=y
+CONFIG_RDS=y
+# CONFIG_RDS_RDMA is not set
+# CONFIG_RDS_TCP is not set
+# CONFIG_RDS_DEBUG is not set
+CONFIG_TIPC=y
+CONFIG_TIPC_ADVANCED=y
+CONFIG_TIPC_PORTS=8191
+# CONFIG_ATM is not set
+CONFIG_L2TP=y
+CONFIG_L2TP_DEBUGFS=y
+# CONFIG_L2TP_V3 is not set
+# CONFIG_BRIDGE is not set
+# CONFIG_NET_DSA is not set
+CONFIG_VLAN_8021Q=y
+# CONFIG_VLAN_8021Q_GVRP is not set
+# CONFIG_DECNET is not set
+CONFIG_LLC=y
+# CONFIG_LLC2 is not set
+# CONFIG_IPX is not set
+CONFIG_ATALK=y
+CONFIG_DEV_APPLETALK=y
+# CONFIG_IPDDP is not set
+CONFIG_X25=y
+# CONFIG_LAPB is not set
+CONFIG_WAN_ROUTER=y
+CONFIG_PHONET=y
+CONFIG_IEEE802154=y
+CONFIG_IEEE802154_6LOWPAN=y
+CONFIG_MAC802154=y
+CONFIG_NET_SCHED=y
+
+#
+# Queueing/Scheduling
+#
+# CONFIG_NET_SCH_CBQ is not set
+# CONFIG_NET_SCH_HTB is not set
+# CONFIG_NET_SCH_HFSC is not set
+CONFIG_NET_SCH_PRIO=y
+CONFIG_NET_SCH_MULTIQ=y
+CONFIG_NET_SCH_RED=y
+CONFIG_NET_SCH_SFB=y
+# CONFIG_NET_SCH_SFQ is not set
+CONFIG_NET_SCH_TEQL=y
+CONFIG_NET_SCH_TBF=y
+# CONFIG_NET_SCH_GRED is not set
+CONFIG_NET_SCH_DSMARK=y
+CONFIG_NET_SCH_NETEM=y
+# CONFIG_NET_SCH_DRR is not set
+# CONFIG_NET_SCH_MQPRIO is not set
+CONFIG_NET_SCH_CHOKE=y
+# CONFIG_NET_SCH_QFQ is not set
+CONFIG_NET_SCH_CODEL=y
+# CONFIG_NET_SCH_FQ_CODEL is not set
+CONFIG_NET_SCH_PLUG=y
+
+#
+# Classification
+#
+CONFIG_NET_CLS=y
+CONFIG_NET_CLS_BASIC=y
+CONFIG_NET_CLS_TCINDEX=y
+# CONFIG_NET_CLS_ROUTE4 is not set
+CONFIG_NET_CLS_FW=y
+# CONFIG_NET_CLS_U32 is not set
+# CONFIG_NET_CLS_RSVP is not set
+CONFIG_NET_CLS_RSVP6=y
+CONFIG_NET_CLS_FLOW=y
+# CONFIG_NET_EMATCH is not set
+# CONFIG_NET_CLS_ACT is not set
+CONFIG_NET_CLS_IND=y
+CONFIG_NET_SCH_FIFO=y
+CONFIG_DCB=y
+CONFIG_DNS_RESOLVER=y
+# CONFIG_BATMAN_ADV is not set
+CONFIG_OPENVSWITCH=y
+CONFIG_BQL=y
+
+#
+# Network testing
+#
+# CONFIG_HAMRADIO is not set
+CONFIG_CAN=y
+CONFIG_CAN_RAW=y
+# CONFIG_CAN_BCM is not set
+# CONFIG_CAN_GW is not set
+
+#
+# CAN Device Drivers
+#
+# CONFIG_CAN_VCAN is not set
+# CONFIG_CAN_SLCAN is not set
+CONFIG_CAN_DEV=y
+# CONFIG_CAN_CALC_BITTIMING is not set
+# CONFIG_CAN_JANZ_ICAN3 is not set
+# CONFIG_PCH_CAN is not set
+# CONFIG_CAN_SJA1000 is not set
+CONFIG_CAN_C_CAN=y
+CONFIG_CAN_C_CAN_PLATFORM=y
+# CONFIG_CAN_C_CAN_PCI is not set
+# CONFIG_CAN_CC770 is not set
+
+#
+# CAN USB interfaces
+#
+# CONFIG_CAN_EMS_USB is not set
+CONFIG_CAN_ESD_USB2=y
+# CONFIG_CAN_PEAK_USB is not set
+# CONFIG_CAN_SOFTING is not set
+# CONFIG_CAN_DEBUG_DEVICES is not set
+CONFIG_IRDA=y
+
+#
+# IrDA protocols
+#
+CONFIG_IRLAN=y
+CONFIG_IRNET=y
+# CONFIG_IRCOMM is not set
+CONFIG_IRDA_ULTRA=y
+
+#
+# IrDA options
+#
+# CONFIG_IRDA_CACHE_LAST_LSAP is not set
+CONFIG_IRDA_FAST_RR=y
+CONFIG_IRDA_DEBUG=y
+
+#
+# Infrared-port device drivers
+#
+
+#
+# SIR device drivers
+#
+# CONFIG_IRTTY_SIR is not set
+
+#
+# Dongle support
+#
+CONFIG_KINGSUN_DONGLE=y
+CONFIG_KSDAZZLE_DONGLE=y
+# CONFIG_KS959_DONGLE is not set
+
+#
+# FIR device drivers
+#
+CONFIG_USB_IRDA=y
+# CONFIG_SIGMATEL_FIR is not set
+CONFIG_NSC_FIR=y
+CONFIG_WINBOND_FIR=y
+CONFIG_TOSHIBA_FIR=y
+# CONFIG_SMC_IRCC_FIR is not set
+CONFIG_ALI_FIR=y
+CONFIG_VLSI_FIR=y
+CONFIG_VIA_FIR=y
+CONFIG_MCS_FIR=y
+# CONFIG_BT is not set
+CONFIG_AF_RXRPC=y
+# CONFIG_AF_RXRPC_DEBUG is not set
+# CONFIG_RXKAD is not set
+CONFIG_FIB_RULES=y
+CONFIG_WIRELESS=y
+CONFIG_WIRELESS_EXT=y
+CONFIG_WEXT_CORE=y
+CONFIG_WEXT_SPY=y
+CONFIG_WEXT_PRIV=y
+CONFIG_CFG80211=y
+# CONFIG_NL80211_TESTMODE is not set
+CONFIG_CFG80211_DEVELOPER_WARNINGS=y
+CONFIG_CFG80211_REG_DEBUG=y
+# CONFIG_CFG80211_CERTIFICATION_ONUS is not set
+CONFIG_CFG80211_DEFAULT_PS=y
+# CONFIG_CFG80211_DEBUGFS is not set
+CONFIG_CFG80211_INTERNAL_REGDB=y
+# CONFIG_CFG80211_WEXT is not set
+CONFIG_LIB80211=y
+CONFIG_LIB80211_DEBUG=y
+CONFIG_MAC80211=y
+CONFIG_MAC80211_HAS_RC=y
+CONFIG_MAC80211_RC_PID=y
+# CONFIG_MAC80211_RC_MINSTREL is not set
+CONFIG_MAC80211_RC_DEFAULT_PID=y
+CONFIG_MAC80211_RC_DEFAULT="pid"
+CONFIG_MAC80211_MESH=y
+CONFIG_MAC80211_LEDS=y
+# CONFIG_MAC80211_DEBUGFS is not set
+CONFIG_MAC80211_MESSAGE_TRACING=y
+# CONFIG_MAC80211_DEBUG_MENU is not set
+# CONFIG_WIMAX is not set
+# CONFIG_RFKILL is not set
+CONFIG_RFKILL_REGULATOR=y
+CONFIG_NET_9P=y
+CONFIG_NET_9P_VIRTIO=y
+# CONFIG_NET_9P_RDMA is not set
+# CONFIG_NET_9P_DEBUG is not set
+# CONFIG_CAIF is not set
+CONFIG_CEPH_LIB=y
+CONFIG_CEPH_LIB_PRETTYDEBUG=y
+# CONFIG_CEPH_LIB_USE_DNS_RESOLVER is not set
+# CONFIG_NFC is not set
+
+#
+# Device Drivers
+#
+
+#
+# Generic Driver Options
+#
+CONFIG_STANDALONE=y
+CONFIG_PREVENT_FIRMWARE_BUILD=y
+CONFIG_FW_LOADER=y
+# CONFIG_FIRMWARE_IN_KERNEL is not set
+CONFIG_EXTRA_FIRMWARE=""
+# CONFIG_DEBUG_DRIVER is not set
+CONFIG_DEBUG_DEVRES=y
+# CONFIG_SYS_HYPERVISOR is not set
+# CONFIG_GENERIC_CPU_DEVICES is not set
+CONFIG_REGMAP=y
+CONFIG_REGMAP_I2C=y
+CONFIG_REGMAP_IRQ=y
+# CONFIG_DMA_SHARED_BUFFER is not set
+CONFIG_CMA=y
+# CONFIG_CMA_DEBUG is not set
+
+#
+# Default contiguous memory area size:
+#
+CONFIG_CMA_SIZE_PERCENTAGE=10
+# CONFIG_CMA_SIZE_SEL_MBYTES is not set
+CONFIG_CMA_SIZE_SEL_PERCENTAGE=y
+# CONFIG_CMA_SIZE_SEL_MIN is not set
+# CONFIG_CMA_SIZE_SEL_MAX is not set
+CONFIG_CMA_ALIGNMENT=8
+CONFIG_CMA_AREAS=7
+# CONFIG_CONNECTOR is not set
+# CONFIG_MTD is not set
+# CONFIG_PARPORT is not set
+CONFIG_BLK_DEV=y
+CONFIG_BLK_DEV_FD=y
+CONFIG_BLK_DEV_PCIESSD_MTIP32XX=y
+CONFIG_BLK_CPQ_DA=y
+# CONFIG_BLK_CPQ_CISS_DA is not set
+CONFIG_BLK_DEV_DAC960=y
+# CONFIG_BLK_DEV_UMEM is not set
+# CONFIG_BLK_DEV_COW_COMMON is not set
+CONFIG_BLK_DEV_LOOP=y
+CONFIG_BLK_DEV_LOOP_MIN_COUNT=8
+CONFIG_BLK_DEV_CRYPTOLOOP=y
+
+#
+# DRBD disabled because PROC_FS, INET or CONNECTOR not selected
+#
+# CONFIG_BLK_DEV_NBD is not set
+# CONFIG_BLK_DEV_NVME is not set
+CONFIG_BLK_DEV_OSD=y
+# CONFIG_BLK_DEV_SX8 is not set
+# CONFIG_BLK_DEV_UB is not set
+# CONFIG_BLK_DEV_RAM is not set
+CONFIG_CDROM_PKTCDVD=y
+CONFIG_CDROM_PKTCDVD_BUFFERS=8
+CONFIG_CDROM_PKTCDVD_WCACHE=y
+CONFIG_ATA_OVER_ETH=y
+CONFIG_VIRTIO_BLK=y
+CONFIG_BLK_DEV_HD=y
+CONFIG_BLK_DEV_RBD=y
+
+#
+# Misc devices
+#
+# CONFIG_SENSORS_LIS3LV02D is not set
+CONFIG_AD525X_DPOT=y
+# CONFIG_AD525X_DPOT_I2C is not set
+CONFIG_IBM_ASM=y
+# CONFIG_PHANTOM is not set
+CONFIG_INTEL_MID_PTI=y
+# CONFIG_SGI_IOC4 is not set
+CONFIG_TIFM_CORE=y
+CONFIG_TIFM_7XX1=y
+CONFIG_ICS932S401=y
+# CONFIG_ENCLOSURE_SERVICES is not set
+CONFIG_CS5535_MFGPT=y
+CONFIG_CS5535_MFGPT_DEFAULT_IRQ=7
+CONFIG_CS5535_CLOCK_EVENT_SRC=y
+# CONFIG_HP_ILO is not set
+# CONFIG_APDS9802ALS is not set
+CONFIG_ISL29003=y
+# CONFIG_ISL29020 is not set
+CONFIG_SENSORS_TSL2550=y
+# CONFIG_SENSORS_BH1780 is not set
+CONFIG_SENSORS_BH1770=y
+CONFIG_SENSORS_APDS990X=y
+CONFIG_HMC6352=y
+# CONFIG_DS1682 is not set
+# CONFIG_VMWARE_BALLOON is not set
+CONFIG_BMP085=y
+CONFIG_BMP085_I2C=y
+# CONFIG_PCH_PHUB is not set
+CONFIG_USB_SWITCH_FSA9480=y
+# CONFIG_C2PORT is not set
+
+#
+# EEPROM support
+#
+# CONFIG_EEPROM_AT24 is not set
+# CONFIG_EEPROM_LEGACY is not set
+# CONFIG_EEPROM_MAX6875 is not set
+# CONFIG_EEPROM_93CX6 is not set
+CONFIG_CB710_CORE=y
+# CONFIG_CB710_DEBUG is not set
+CONFIG_CB710_DEBUG_ASSUMPTIONS=y
+
+#
+# Texas Instruments shared transport line discipline
+#
+CONFIG_TI_ST=y
+# CONFIG_SENSORS_LIS3_I2C is not set
+
+#
+# Altera FPGA firmware download module
+#
+CONFIG_ALTERA_STAPL=y
+# CONFIG_INTEL_MEI is not set
+CONFIG_HAVE_IDE=y
+# CONFIG_IDE is not set
+
+#
+# SCSI device support
+#
+CONFIG_SCSI_MOD=y
+# CONFIG_RAID_ATTRS is not set
+CONFIG_SCSI=y
+CONFIG_SCSI_DMA=y
+CONFIG_SCSI_TGT=y
+CONFIG_SCSI_NETLINK=y
+
+#
+# SCSI support type (disk, tape, CD-ROM)
+#
+CONFIG_BLK_DEV_SD=y
+CONFIG_CHR_DEV_ST=y
+# CONFIG_CHR_DEV_OSST is not set
+# CONFIG_BLK_DEV_SR is not set
+# CONFIG_CHR_DEV_SG is not set
+CONFIG_CHR_DEV_SCH=y
+# CONFIG_SCSI_MULTI_LUN is not set
+CONFIG_SCSI_CONSTANTS=y
+# CONFIG_SCSI_LOGGING is not set
+# CONFIG_SCSI_SCAN_ASYNC is not set
+
+#
+# SCSI Transports
+#
+CONFIG_SCSI_SPI_ATTRS=y
+CONFIG_SCSI_FC_ATTRS=y
+# CONFIG_SCSI_FC_TGT_ATTRS is not set
+CONFIG_SCSI_ISCSI_ATTRS=y
+CONFIG_SCSI_SAS_ATTRS=y
+CONFIG_SCSI_SAS_LIBSAS=y
+CONFIG_SCSI_SAS_ATA=y
+# CONFIG_SCSI_SAS_HOST_SMP is not set
+CONFIG_SCSI_SRP_ATTRS=y
+CONFIG_SCSI_SRP_TGT_ATTRS=y
+CONFIG_SCSI_LOWLEVEL=y
+# CONFIG_ISCSI_TCP is not set
+CONFIG_ISCSI_BOOT_SYSFS=y
+CONFIG_SCSI_CXGB3_ISCSI=y
+# CONFIG_SCSI_CXGB4_ISCSI is not set
+# CONFIG_SCSI_BNX2_ISCSI is not set
+CONFIG_SCSI_BNX2X_FCOE=y
+CONFIG_BE2ISCSI=y
+CONFIG_BLK_DEV_3W_XXXX_RAID=y
+CONFIG_SCSI_HPSA=y
+CONFIG_SCSI_3W_9XXX=y
+CONFIG_SCSI_3W_SAS=y
+# CONFIG_SCSI_ACARD is not set
+CONFIG_SCSI_AACRAID=y
+# CONFIG_SCSI_AIC7XXX is not set
+# CONFIG_SCSI_AIC7XXX_OLD is not set
+CONFIG_SCSI_AIC79XX=y
+CONFIG_AIC79XX_CMDS_PER_DEVICE=32
+CONFIG_AIC79XX_RESET_DELAY_MS=5000
+# CONFIG_AIC79XX_DEBUG_ENABLE is not set
+CONFIG_AIC79XX_DEBUG_MASK=0
+# CONFIG_AIC79XX_REG_PRETTY_PRINT is not set
+# CONFIG_SCSI_AIC94XX is not set
+# CONFIG_SCSI_MVSAS is not set
+CONFIG_SCSI_MVUMI=y
+# CONFIG_SCSI_DPT_I2O is not set
+# CONFIG_SCSI_ADVANSYS is not set
+# CONFIG_SCSI_ARCMSR is not set
+# CONFIG_MEGARAID_NEWGEN is not set
+CONFIG_MEGARAID_LEGACY=y
+CONFIG_MEGARAID_SAS=y
+# CONFIG_SCSI_MPT2SAS is not set
+CONFIG_SCSI_UFSHCD=y
+# CONFIG_SCSI_HPTIOP is not set
+CONFIG_SCSI_BUSLOGIC=y
+# CONFIG_SCSI_FLASHPOINT is not set
+CONFIG_VMWARE_PVSCSI=y
+CONFIG_LIBFC=y
+CONFIG_LIBFCOE=y
+# CONFIG_FCOE is not set
+CONFIG_FCOE_FNIC=y
+CONFIG_SCSI_DMX3191D=y
+# CONFIG_SCSI_EATA is not set
+CONFIG_SCSI_FUTURE_DOMAIN=y
+# CONFIG_SCSI_GDTH is not set
+CONFIG_SCSI_ISCI=y
+# CONFIG_SCSI_IPS is not set
+# CONFIG_SCSI_INITIO is not set
+# CONFIG_SCSI_INIA100 is not set
+# CONFIG_SCSI_STEX is not set
+# CONFIG_SCSI_SYM53C8XX_2 is not set
+# CONFIG_SCSI_IPR is not set
+# CONFIG_SCSI_QLOGIC_1280 is not set
+CONFIG_SCSI_QLA_FC=y
+CONFIG_TCM_QLA2XXX=y
+CONFIG_SCSI_QLA_ISCSI=y
+# CONFIG_SCSI_LPFC is not set
+# CONFIG_SCSI_DC395x is not set
+CONFIG_SCSI_DC390T=y
+CONFIG_SCSI_NSP32=y
+# CONFIG_SCSI_DEBUG is not set
+CONFIG_SCSI_PMCRAID=y
+CONFIG_SCSI_PM8001=y
+CONFIG_SCSI_SRP=y
+# CONFIG_SCSI_BFA_FC is not set
+CONFIG_SCSI_VIRTIO=y
+# CONFIG_SCSI_DH is not set
+CONFIG_SCSI_OSD_INITIATOR=y
+CONFIG_SCSI_OSD_ULD=y
+CONFIG_SCSI_OSD_DPRINT_SENSE=1
+CONFIG_SCSI_OSD_DEBUG=y
+CONFIG_ATA=y
+# CONFIG_ATA_NONSTANDARD is not set
+# CONFIG_ATA_VERBOSE_ERROR is not set
+# CONFIG_SATA_PMP is not set
+
+#
+# Controllers with non-SFF native interface
+#
+CONFIG_SATA_AHCI=y
+CONFIG_SATA_AHCI_PLATFORM=y
+CONFIG_SATA_INIC162X=y
+# CONFIG_SATA_ACARD_AHCI is not set
+# CONFIG_SATA_SIL24 is not set
+# CONFIG_ATA_SFF is not set
+# CONFIG_MD is not set
+CONFIG_TARGET_CORE=y
+# CONFIG_TCM_IBLOCK is not set
+# CONFIG_TCM_FILEIO is not set
+CONFIG_TCM_PSCSI=y
+CONFIG_LOOPBACK_TARGET=y
+CONFIG_TCM_FC=y
+# CONFIG_ISCSI_TARGET is not set
+CONFIG_FUSION=y
+CONFIG_FUSION_SPI=y
+CONFIG_FUSION_FC=y
+# CONFIG_FUSION_SAS is not set
+CONFIG_FUSION_MAX_SGE=128
+# CONFIG_FUSION_CTL is not set
+CONFIG_FUSION_LAN=y
+# CONFIG_FUSION_LOGGING is not set
+
+#
+# IEEE 1394 (FireWire) support
+#
+# CONFIG_FIREWIRE is not set
+# CONFIG_FIREWIRE_NOSY is not set
+CONFIG_I2O=y
+CONFIG_I2O_LCT_NOTIFY_ON_CHANGES=y
+CONFIG_I2O_EXT_ADAPTEC=y
+CONFIG_I2O_CONFIG=y
+# CONFIG_I2O_CONFIG_OLD_IOCTL is not set
+CONFIG_I2O_BUS=y
+# CONFIG_I2O_BLOCK is not set
+CONFIG_I2O_SCSI=y
+CONFIG_I2O_PROC=y
+CONFIG_MACINTOSH_DRIVERS=y
+CONFIG_NETDEVICES=y
+CONFIG_NET_CORE=y
+CONFIG_BONDING=y
+CONFIG_DUMMY=y
+CONFIG_EQUALIZER=y
+CONFIG_NET_FC=y
+CONFIG_MII=y
+# CONFIG_IEEE802154_DRIVERS is not set
+CONFIG_NET_TEAM=y
+CONFIG_NET_TEAM_MODE_BROADCAST=y
+# CONFIG_NET_TEAM_MODE_ROUNDROBIN is not set
+# CONFIG_NET_TEAM_MODE_ACTIVEBACKUP is not set
+CONFIG_NET_TEAM_MODE_LOADBALANCE=y
+CONFIG_MACVLAN=y
+# CONFIG_MACVTAP is not set
+CONFIG_NETCONSOLE=y
+# CONFIG_NETCONSOLE_DYNAMIC is not set
+CONFIG_NETPOLL=y
+CONFIG_NETPOLL_TRAP=y
+CONFIG_NET_POLL_CONTROLLER=y
+CONFIG_TUN=y
+# CONFIG_VETH is not set
+CONFIG_VIRTIO_NET=y
+CONFIG_ARCNET=y
+# CONFIG_ARCNET_1201 is not set
+CONFIG_ARCNET_1051=y
+CONFIG_ARCNET_RAW=y
+CONFIG_ARCNET_CAP=y
+# CONFIG_ARCNET_COM90xx is not set
+# CONFIG_ARCNET_COM90xxIO is not set
+CONFIG_ARCNET_RIM_I=y
+# CONFIG_ARCNET_COM20020 is not set
+
+#
+# CAIF transport drivers
+#
+CONFIG_ETHERNET=y
+CONFIG_MDIO=y
+CONFIG_NET_VENDOR_3COM=y
+CONFIG_VORTEX=y
+# CONFIG_TYPHOON is not set
+CONFIG_NET_VENDOR_ADAPTEC=y
+# CONFIG_ADAPTEC_STARFIRE is not set
+CONFIG_NET_VENDOR_ALTEON=y
+CONFIG_ACENIC=y
+# CONFIG_ACENIC_OMIT_TIGON_I is not set
+CONFIG_NET_VENDOR_AMD=y
+# CONFIG_AMD8111_ETH is not set
+CONFIG_PCNET32=y
+CONFIG_NET_VENDOR_ATHEROS=y
+# CONFIG_ATL2 is not set
+# CONFIG_ATL1 is not set
+# CONFIG_ATL1E is not set
+CONFIG_ATL1C=y
+CONFIG_NET_VENDOR_BROADCOM=y
+CONFIG_B44=y
+CONFIG_B44_PCI_AUTOSELECT=y
+CONFIG_B44_PCICORE_AUTOSELECT=y
+CONFIG_B44_PCI=y
+CONFIG_BNX2=y
+CONFIG_CNIC=y
+CONFIG_TIGON3=y
+CONFIG_BNX2X=y
+# CONFIG_NET_VENDOR_BROCADE is not set
+CONFIG_NET_CALXEDA_XGMAC=y
+CONFIG_NET_VENDOR_CHELSIO=y
+# CONFIG_CHELSIO_T1 is not set
+CONFIG_CHELSIO_T3=y
+# CONFIG_CHELSIO_T4 is not set
+CONFIG_CHELSIO_T4VF=y
+# CONFIG_NET_VENDOR_CISCO is not set
+# CONFIG_DNET is not set
+# CONFIG_NET_VENDOR_DEC is not set
+CONFIG_NET_VENDOR_DLINK=y
+# CONFIG_DL2K is not set
+CONFIG_SUNDANCE=y
+# CONFIG_SUNDANCE_MMIO is not set
+# CONFIG_NET_VENDOR_EMULEX is not set
+CONFIG_NET_VENDOR_EXAR=y
+CONFIG_S2IO=y
+CONFIG_VXGE=y
+CONFIG_VXGE_DEBUG_TRACE_ALL=y
+CONFIG_NET_VENDOR_HP=y
+CONFIG_HP100=y
+CONFIG_NET_VENDOR_INTEL=y
+CONFIG_E100=y
+CONFIG_E1000=y
+CONFIG_E1000E=y
+# CONFIG_IGB is not set
+CONFIG_IGBVF=y
+# CONFIG_IXGB is not set
+# CONFIG_IXGBE is not set
+CONFIG_NET_VENDOR_I825XX=y
+CONFIG_ZNET=y
+# CONFIG_IP1000 is not set
+CONFIG_JME=y
+# CONFIG_NET_VENDOR_MARVELL is not set
+CONFIG_NET_VENDOR_MELLANOX=y
+# CONFIG_MLX4_EN is not set
+CONFIG_MLX4_CORE=y
+CONFIG_MLX4_DEBUG=y
+CONFIG_NET_VENDOR_MICREL=y
+CONFIG_KS8842=y
+# CONFIG_KS8851_MLL is not set
+CONFIG_KSZ884X_PCI=y
+# CONFIG_NET_VENDOR_MYRI is not set
+CONFIG_FEALNX=y
+CONFIG_NET_VENDOR_NATSEMI=y
+# CONFIG_NATSEMI is not set
+# CONFIG_NS83820 is not set
+# CONFIG_NET_VENDOR_8390 is not set
+CONFIG_NET_VENDOR_NVIDIA=y
+# CONFIG_FORCEDETH is not set
+CONFIG_NET_VENDOR_OKI=y
+# CONFIG_PCH_GBE is not set
+# CONFIG_ETHOC is not set
+# CONFIG_NET_PACKET_ENGINE is not set
+CONFIG_NET_VENDOR_QLOGIC=y
+# CONFIG_QLA3XXX is not set
+# CONFIG_QLCNIC is not set
+CONFIG_QLGE=y
+CONFIG_NETXEN_NIC=y
+# CONFIG_NET_VENDOR_REALTEK is not set
+# CONFIG_NET_VENDOR_RDC is not set
+CONFIG_NET_VENDOR_SEEQ=y
+CONFIG_SEEQ8005=y
+# CONFIG_NET_VENDOR_SILAN is not set
+CONFIG_NET_VENDOR_SIS=y
+# CONFIG_SIS900 is not set
+# CONFIG_SIS190 is not set
+CONFIG_SFC=y
+# CONFIG_NET_VENDOR_SMSC is not set
+CONFIG_NET_VENDOR_STMICRO=y
+CONFIG_STMMAC_ETH=y
+# CONFIG_STMMAC_PLATFORM is not set
+# CONFIG_STMMAC_PCI is not set
+# CONFIG_STMMAC_DEBUG_FS is not set
+CONFIG_STMMAC_DA=y
+# CONFIG_STMMAC_RING is not set
+CONFIG_STMMAC_CHAINED=y
+# CONFIG_NET_VENDOR_SUN is not set
+CONFIG_NET_VENDOR_TEHUTI=y
+CONFIG_TEHUTI=y
+CONFIG_NET_VENDOR_TI=y
+CONFIG_TLAN=y
+CONFIG_NET_VENDOR_VIA=y
+# CONFIG_VIA_RHINE is not set
+# CONFIG_VIA_VELOCITY is not set
+CONFIG_NET_VENDOR_WIZNET=y
+# CONFIG_WIZNET_W5100 is not set
+CONFIG_WIZNET_W5300=y
+# CONFIG_WIZNET_BUS_DIRECT is not set
+CONFIG_WIZNET_BUS_INDIRECT=y
+# CONFIG_WIZNET_BUS_ANY is not set
+# CONFIG_FDDI is not set
+CONFIG_HIPPI=y
+CONFIG_ROADRUNNER=y
+CONFIG_ROADRUNNER_LARGE_RINGS=y
+CONFIG_PHYLIB=y
+
+#
+# MII PHY device drivers
+#
+# CONFIG_AMD_PHY is not set
+CONFIG_MARVELL_PHY=y
+# CONFIG_DAVICOM_PHY is not set
+CONFIG_QSEMI_PHY=y
+CONFIG_LXT_PHY=y
+# CONFIG_CICADA_PHY is not set
+CONFIG_VITESSE_PHY=y
+# CONFIG_SMSC_PHY is not set
+# CONFIG_BROADCOM_PHY is not set
+# CONFIG_BCM87XX_PHY is not set
+# CONFIG_ICPLUS_PHY is not set
+# CONFIG_REALTEK_PHY is not set
+CONFIG_NATIONAL_PHY=y
+# CONFIG_STE10XP is not set
+CONFIG_LSI_ET1011C_PHY=y
+CONFIG_MICREL_PHY=y
+CONFIG_FIXED_PHY=y
+# CONFIG_MDIO_BITBANG is not set
+CONFIG_PPP=y
+CONFIG_PPP_BSDCOMP=y
+# CONFIG_PPP_DEFLATE is not set
+CONFIG_PPP_FILTER=y
+# CONFIG_PPP_MPPE is not set
+CONFIG_PPP_MULTILINK=y
+# CONFIG_PPPOE is not set
+CONFIG_PPPOL2TP=y
+# CONFIG_PPP_ASYNC is not set
+# CONFIG_PPP_SYNC_TTY is not set
+CONFIG_SLIP=y
+CONFIG_SLHC=y
+# CONFIG_SLIP_COMPRESSED is not set
+CONFIG_SLIP_SMART=y
+# CONFIG_SLIP_MODE_SLIP6 is not set
+
+#
+# USB Network Adapters
+#
+CONFIG_USB_CATC=y
+# CONFIG_USB_KAWETH is not set
+# CONFIG_USB_PEGASUS is not set
+CONFIG_USB_RTL8150=y
+CONFIG_USB_USBNET=y
+# CONFIG_USB_NET_AX8817X is not set
+CONFIG_USB_NET_CDCETHER=y
+CONFIG_USB_NET_CDC_EEM=y
+CONFIG_USB_NET_CDC_NCM=y
+CONFIG_USB_NET_DM9601=y
+# CONFIG_USB_NET_SMSC75XX is not set
+CONFIG_USB_NET_SMSC95XX=y
+CONFIG_USB_NET_GL620A=y
+CONFIG_USB_NET_NET1080=y
+# CONFIG_USB_NET_PLUSB is not set
+# CONFIG_USB_NET_MCS7830 is not set
+CONFIG_USB_NET_RNDIS_HOST=y
+# CONFIG_USB_NET_CDC_SUBSET is not set
+# CONFIG_USB_NET_ZAURUS is not set
+# CONFIG_USB_NET_CX82310_ETH is not set
+CONFIG_USB_NET_KALMIA=y
+# CONFIG_USB_NET_QMI_WWAN is not set
+# CONFIG_USB_NET_INT51X1 is not set
+CONFIG_USB_CDC_PHONET=y
+CONFIG_USB_IPHETH=y
+# CONFIG_USB_SIERRA_NET is not set
+# CONFIG_USB_VL600 is not set
+CONFIG_WLAN=y
+# CONFIG_LIBERTAS_THINFIRM is not set
+CONFIG_AIRO=y
+# CONFIG_ATMEL is not set
+CONFIG_AT76C50X_USB=y
+CONFIG_PRISM54=y
+CONFIG_USB_ZD1201=y
+CONFIG_USB_NET_RNDIS_WLAN=y
+# CONFIG_RTL8180 is not set
+# CONFIG_RTL8187 is not set
+# CONFIG_ADM8211 is not set
+# CONFIG_MAC80211_HWSIM is not set
+CONFIG_MWL8K=y
+CONFIG_ATH_COMMON=y
+# CONFIG_ATH_DEBUG is not set
+CONFIG_ATH5K=y
+CONFIG_ATH5K_DEBUG=y
+CONFIG_ATH5K_PCI=y
+CONFIG_ATH9K_HW=y
+CONFIG_ATH9K_COMMON=y
+# CONFIG_ATH9K_BTCOEX_SUPPORT is not set
+CONFIG_ATH9K=y
+# CONFIG_ATH9K_PCI is not set
+# CONFIG_ATH9K_AHB is not set
+CONFIG_ATH9K_DEBUGFS=y
+CONFIG_ATH9K_MAC_DEBUG=y
+CONFIG_ATH9K_RATE_CONTROL=y
+# CONFIG_ATH9K_HTC is not set
+# CONFIG_CARL9170 is not set
+# CONFIG_ATH6KL is not set
+CONFIG_B43=y
+CONFIG_B43_SSB=y
+CONFIG_B43_PCI_AUTOSELECT=y
+CONFIG_B43_PCICORE_AUTOSELECT=y
+# CONFIG_B43_SDIO is not set
+CONFIG_B43_PIO=y
+# CONFIG_B43_PHY_N is not set
+CONFIG_B43_PHY_LP=y
+CONFIG_B43_PHY_HT=y
+CONFIG_B43_LEDS=y
+CONFIG_B43_HWRNG=y
+# CONFIG_B43_DEBUG is not set
+# CONFIG_B43LEGACY is not set
+# CONFIG_BRCMFMAC is not set
+# CONFIG_HOSTAP is not set
+# CONFIG_IPW2100 is not set
+CONFIG_IWLWIFI=y
+CONFIG_IWLDVM=y
+
+#
+# Debugging Options
+#
+CONFIG_IWLWIFI_DEBUG=y
+# CONFIG_IWLWIFI_DEBUG_EXPERIMENTAL_UCODE is not set
+CONFIG_IWLWIFI_P2P=y
+CONFIG_IWLWIFI_EXPERIMENTAL_MFP=y
+CONFIG_IWLEGACY=y
+# CONFIG_IWL4965 is not set
+CONFIG_IWL3945=y
+
+#
+# iwl3945 / iwl4965 Debugging Options
+#
+# CONFIG_IWLEGACY_DEBUG is not set
+CONFIG_LIBERTAS=y
+CONFIG_LIBERTAS_USB=y
+# CONFIG_LIBERTAS_SDIO is not set
+CONFIG_LIBERTAS_DEBUG=y
+# CONFIG_LIBERTAS_MESH is not set
+CONFIG_P54_COMMON=y
+# CONFIG_P54_USB is not set
+# CONFIG_P54_PCI is not set
+CONFIG_P54_LEDS=y
+# CONFIG_RT2X00 is not set
+CONFIG_RTL8192CE=y
+# CONFIG_RTL8192SE is not set
+# CONFIG_RTL8192DE is not set
+# CONFIG_RTL8192CU is not set
+CONFIG_RTLWIFI=y
+# CONFIG_RTLWIFI_DEBUG is not set
+CONFIG_RTL8192C_COMMON=y
+CONFIG_WL_TI=y
+# CONFIG_WL1251 is not set
+# CONFIG_WL12XX is not set
+CONFIG_WL18XX=y
+CONFIG_WLCORE=y
+# CONFIG_WLCORE_SDIO is not set
+CONFIG_ZD1211RW=y
+# CONFIG_ZD1211RW_DEBUG is not set
+# CONFIG_MWIFIEX is not set
+
+#
+# Enable WiMAX (Networking options) to see the WiMAX drivers
+#
+# CONFIG_WAN is not set
+CONFIG_VMXNET3=y
+# CONFIG_ISDN is not set
+
+#
+# Input device support
+#
+CONFIG_INPUT=y
+CONFIG_INPUT_FF_MEMLESS=y
+CONFIG_INPUT_POLLDEV=y
+CONFIG_INPUT_SPARSEKMAP=y
+CONFIG_INPUT_MATRIXKMAP=y
+
+#
+# Userland interfaces
+#
+CONFIG_INPUT_MOUSEDEV=y
+CONFIG_INPUT_MOUSEDEV_PSAUX=y
+CONFIG_INPUT_MOUSEDEV_SCREEN_X=1024
+CONFIG_INPUT_MOUSEDEV_SCREEN_Y=768
+CONFIG_INPUT_JOYDEV=y
+CONFIG_INPUT_EVDEV=y
+CONFIG_INPUT_EVBUG=y
+
+#
+# Input Device Drivers
+#
+# CONFIG_INPUT_KEYBOARD is not set
+CONFIG_INPUT_MOUSE=y
+# CONFIG_MOUSE_PS2 is not set
+# CONFIG_MOUSE_SERIAL is not set
+# CONFIG_MOUSE_APPLETOUCH is not set
+# CONFIG_MOUSE_BCM5974 is not set
+# CONFIG_MOUSE_VSXXXAA is not set
+# CONFIG_MOUSE_GPIO is not set
+CONFIG_MOUSE_SYNAPTICS_I2C=y
+# CONFIG_MOUSE_SYNAPTICS_USB is not set
+# CONFIG_INPUT_JOYSTICK is not set
+# CONFIG_INPUT_TABLET is not set
+# CONFIG_INPUT_TOUCHSCREEN is not set
+# CONFIG_INPUT_MISC is not set
+
+#
+# Hardware I/O ports
+#
+CONFIG_SERIO=y
+CONFIG_SERIO_I8042=y
+CONFIG_SERIO_SERPORT=y
+CONFIG_SERIO_CT82C710=y
+CONFIG_SERIO_PCIPS2=y
+# CONFIG_SERIO_LIBPS2 is not set
+CONFIG_SERIO_RAW=y
+CONFIG_SERIO_ALTERA_PS2=y
+CONFIG_SERIO_PS2MULT=y
+# CONFIG_GAMEPORT is not set
+
+#
+# Character devices
+#
+# CONFIG_VT is not set
+CONFIG_UNIX98_PTYS=y
+CONFIG_DEVPTS_MULTIPLE_INSTANCES=y
+CONFIG_LEGACY_PTYS=y
+CONFIG_LEGACY_PTY_COUNT=256
+CONFIG_SERIAL_NONSTANDARD=y
+# CONFIG_ROCKETPORT is not set
+CONFIG_CYCLADES=y
+CONFIG_CYZ_INTR=y
+CONFIG_MOXA_INTELLIO=y
+CONFIG_MOXA_SMARTIO=y
+CONFIG_SYNCLINK=y
+# CONFIG_SYNCLINKMP is not set
+# CONFIG_SYNCLINK_GT is not set
+CONFIG_NOZOMI=y
+# CONFIG_ISI is not set
+# CONFIG_N_HDLC is not set
+CONFIG_N_GSM=y
+CONFIG_TRACE_ROUTER=y
+CONFIG_TRACE_SINK=y
+# CONFIG_DEVKMEM is not set
+CONFIG_STALDRV=y
+
+#
+# Serial drivers
+#
+CONFIG_SERIAL_8250=y
+CONFIG_SERIAL_8250_CONSOLE=y
+CONFIG_FIX_EARLYCON_MEM=y
+# CONFIG_SERIAL_8250_PCI is not set
+CONFIG_SERIAL_8250_NR_UARTS=4
+CONFIG_SERIAL_8250_RUNTIME_UARTS=4
+# CONFIG_SERIAL_8250_EXTENDED is not set
+
+#
+# Non-8250 serial port support
+#
+# CONFIG_SERIAL_MFD_HSU is not set
+CONFIG_SERIAL_UARTLITE=y
+# CONFIG_SERIAL_UARTLITE_CONSOLE is not set
+CONFIG_SERIAL_CORE=y
+CONFIG_SERIAL_CORE_CONSOLE=y
+CONFIG_CONSOLE_POLL=y
+CONFIG_SERIAL_JSM=y
+CONFIG_SERIAL_TIMBERDALE=y
+CONFIG_SERIAL_ALTERA_JTAGUART=y
+CONFIG_SERIAL_ALTERA_JTAGUART_CONSOLE=y
+# CONFIG_SERIAL_ALTERA_JTAGUART_CONSOLE_BYPASS is not set
+CONFIG_SERIAL_ALTERA_UART=y
+CONFIG_SERIAL_ALTERA_UART_MAXPORTS=4
+CONFIG_SERIAL_ALTERA_UART_BAUDRATE=115200
+CONFIG_SERIAL_ALTERA_UART_CONSOLE=y
+CONFIG_SERIAL_PCH_UART=y
+# CONFIG_SERIAL_PCH_UART_CONSOLE is not set
+CONFIG_SERIAL_XILINX_PS_UART=y
+# CONFIG_SERIAL_XILINX_PS_UART_CONSOLE is not set
+CONFIG_TTY_PRINTK=y
+CONFIG_HVC_DRIVER=y
+CONFIG_VIRTIO_CONSOLE=y
+# CONFIG_IPMI_HANDLER is not set
+CONFIG_HW_RANDOM=y
+# CONFIG_HW_RANDOM_TIMERIOMEM is not set
+# CONFIG_HW_RANDOM_INTEL is not set
+# CONFIG_HW_RANDOM_AMD is not set
+# CONFIG_HW_RANDOM_GEODE is not set
+CONFIG_HW_RANDOM_VIA=y
+CONFIG_HW_RANDOM_VIRTIO=y
+CONFIG_NVRAM=y
+CONFIG_RTC=y
+CONFIG_R3964=y
+# CONFIG_APPLICOM is not set
+# CONFIG_SONYPI is not set
+CONFIG_MWAVE=y
+CONFIG_PC8736x_GPIO=y
+CONFIG_NSC_GPIO=y
+# CONFIG_RAW_DRIVER is not set
+# CONFIG_HANGCHECK_TIMER is not set
+CONFIG_TCG_TPM=y
+# CONFIG_TCG_TIS is not set
+# CONFIG_TCG_NSC is not set
+# CONFIG_TCG_ATMEL is not set
+# CONFIG_TELCLOCK is not set
+CONFIG_DEVPORT=y
+CONFIG_I2C=y
+CONFIG_I2C_BOARDINFO=y
+# CONFIG_I2C_COMPAT is not set
+# CONFIG_I2C_CHARDEV is not set
+# CONFIG_I2C_MUX is not set
+CONFIG_I2C_HELPER_AUTO=y
+CONFIG_I2C_SMBUS=y
+CONFIG_I2C_ALGOBIT=y
+
+#
+# I2C Hardware Bus support
+#
+
+#
+# PC SMBus host controller drivers
+#
+CONFIG_I2C_ALI1535=y
+CONFIG_I2C_ALI1563=y
+CONFIG_I2C_ALI15X3=y
+CONFIG_I2C_AMD756=y
+CONFIG_I2C_AMD756_S4882=y
+CONFIG_I2C_AMD8111=y
+# CONFIG_I2C_I801 is not set
+# CONFIG_I2C_ISCH is not set
+# CONFIG_I2C_PIIX4 is not set
+# CONFIG_I2C_NFORCE2 is not set
+# CONFIG_I2C_SIS5595 is not set
+CONFIG_I2C_SIS630=y
+CONFIG_I2C_SIS96X=y
+CONFIG_I2C_VIA=y
+# CONFIG_I2C_VIAPRO is not set
+
+#
+# I2C system bus drivers (mostly embedded / system-on-chip)
+#
+# CONFIG_I2C_DESIGNWARE_PCI is not set
+# CONFIG_I2C_EG20T is not set
+# CONFIG_I2C_GPIO is not set
+CONFIG_I2C_INTEL_MID=y
+# CONFIG_I2C_OCORES is not set
+# CONFIG_I2C_PCA_PLATFORM is not set
+# CONFIG_I2C_PXA_PCI is not set
+# CONFIG_I2C_SIMTEC is not set
+CONFIG_I2C_XILINX=y
+
+#
+# External I2C/SMBus adapter drivers
+#
+CONFIG_I2C_DIOLAN_U2C=y
+CONFIG_I2C_PARPORT_LIGHT=y
+CONFIG_I2C_TAOS_EVM=y
+CONFIG_I2C_TINY_USB=y
+
+#
+# Other I2C/SMBus bus drivers
+#
+CONFIG_SCx200_ACB=y
+CONFIG_I2C_DEBUG_CORE=y
+# CONFIG_I2C_DEBUG_ALGO is not set
+# CONFIG_I2C_DEBUG_BUS is not set
+# CONFIG_SPI is not set
+# CONFIG_HSI is not set
+
+#
+# PPS support
+#
+# CONFIG_PPS is not set
+
+#
+# PPS generators support
+#
+
+#
+# PTP clock support
+#
+
+#
+# Enable Device Drivers -> PPS to see the PTP clock options.
+#
+CONFIG_ARCH_WANT_OPTIONAL_GPIOLIB=y
+CONFIG_GPIOLIB=y
+CONFIG_DEBUG_GPIO=y
+# CONFIG_GPIO_SYSFS is not set
+
+#
+# Memory mapped GPIO drivers:
+#
+# CONFIG_GPIO_GENERIC_PLATFORM is not set
+# CONFIG_GPIO_IT8761E is not set
+CONFIG_GPIO_SCH=y
+CONFIG_GPIO_ICH=y
+# CONFIG_GPIO_VX855 is not set
+
+#
+# I2C GPIO expanders:
+#
+# CONFIG_GPIO_ARIZONA is not set
+# CONFIG_GPIO_MAX7300 is not set
+# CONFIG_GPIO_MAX732X is not set
+CONFIG_GPIO_PCA953X=y
+# CONFIG_GPIO_PCA953X_IRQ is not set
+# CONFIG_GPIO_PCF857X is not set
+# CONFIG_GPIO_RC5T583 is not set
+CONFIG_GPIO_SX150X=y
+CONFIG_GPIO_STMPE=y
+CONFIG_GPIO_TWL4030=y
+CONFIG_GPIO_WM8350=y
+CONFIG_GPIO_ADP5520=y
+CONFIG_GPIO_ADP5588=y
+CONFIG_GPIO_ADP5588_IRQ=y
+
+#
+# PCI GPIO expanders:
+#
+CONFIG_GPIO_CS5535=y
+# CONFIG_GPIO_BT8XX is not set
+# CONFIG_GPIO_AMD8111 is not set
+# CONFIG_GPIO_LANGWELL is not set
+# CONFIG_GPIO_PCH is not set
+CONFIG_GPIO_ML_IOH=y
+CONFIG_GPIO_TIMBERDALE=y
+CONFIG_GPIO_RDC321X=y
+
+#
+# SPI GPIO expanders:
+#
+# CONFIG_GPIO_MCP23S08 is not set
+
+#
+# AC97 GPIO expanders:
+#
+# CONFIG_GPIO_UCB1400 is not set
+
+#
+# MODULbus GPIO expanders:
+#
+# CONFIG_GPIO_JANZ_TTL is not set
+# CONFIG_GPIO_TPS6586X is not set
+# CONFIG_GPIO_TPS65910 is not set
+CONFIG_W1=y
+
+#
+# 1-wire Bus Masters
+#
+CONFIG_W1_MASTER_MATROX=y
+CONFIG_W1_MASTER_DS2490=y
+# CONFIG_W1_MASTER_DS2482 is not set
+# CONFIG_W1_MASTER_DS1WM is not set
+CONFIG_W1_MASTER_GPIO=y
+# CONFIG_HDQ_MASTER_OMAP is not set
+
+#
+# 1-wire Slaves
+#
+CONFIG_W1_SLAVE_THERM=y
+# CONFIG_W1_SLAVE_SMEM is not set
+CONFIG_W1_SLAVE_DS2408=y
+CONFIG_W1_SLAVE_DS2423=y
+CONFIG_W1_SLAVE_DS2431=y
+CONFIG_W1_SLAVE_DS2433=y
+CONFIG_W1_SLAVE_DS2433_CRC=y
+CONFIG_W1_SLAVE_DS2760=y
+CONFIG_W1_SLAVE_DS2780=y
+# CONFIG_W1_SLAVE_DS2781 is not set
+# CONFIG_W1_SLAVE_DS28E04 is not set
+CONFIG_W1_SLAVE_BQ27000=y
+# CONFIG_POWER_SUPPLY is not set
+CONFIG_POWER_AVS=y
+# CONFIG_HWMON is not set
+# CONFIG_THERMAL is not set
+CONFIG_WATCHDOG=y
+CONFIG_WATCHDOG_CORE=y
+# CONFIG_WATCHDOG_NOWAYOUT is not set
+
+#
+# Watchdog Device Drivers
+#
+CONFIG_SOFT_WATCHDOG=y
+CONFIG_WM8350_WATCHDOG=y
+CONFIG_TWL4030_WATCHDOG=y
+# CONFIG_ACQUIRE_WDT is not set
+# CONFIG_ADVANTECH_WDT is not set
+CONFIG_ALIM1535_WDT=y
+# CONFIG_ALIM7101_WDT is not set
+# CONFIG_F71808E_WDT is not set
+# CONFIG_SP5100_TCO is not set
+# CONFIG_GEODE_WDT is not set
+# CONFIG_SC520_WDT is not set
+# CONFIG_SBC_FITPC2_WATCHDOG is not set
+# CONFIG_EUROTECH_WDT is not set
+# CONFIG_IB700_WDT is not set
+CONFIG_IBMASR=y
+CONFIG_WAFER_WDT=y
+CONFIG_I6300ESB_WDT=y
+CONFIG_IE6XX_WDT=y
+CONFIG_ITCO_WDT=y
+CONFIG_ITCO_VENDOR_SUPPORT=y
+# CONFIG_IT8712F_WDT is not set
+CONFIG_IT87_WDT=y
+CONFIG_HP_WATCHDOG=y
+CONFIG_HPWDT_NMI_DECODING=y
+# CONFIG_SC1200_WDT is not set
+# CONFIG_PC87413_WDT is not set
+CONFIG_NV_TCO=y
+CONFIG_60XX_WDT=y
+CONFIG_SBC8360_WDT=y
+# CONFIG_SBC7240_WDT is not set
+# CONFIG_CPU5_WDT is not set
+# CONFIG_SMSC_SCH311X_WDT is not set
+# CONFIG_SMSC37B787_WDT is not set
+CONFIG_VIA_WDT=y
+CONFIG_W83627HF_WDT=y
+CONFIG_W83697HF_WDT=y
+CONFIG_W83697UG_WDT=y
+# CONFIG_W83877F_WDT is not set
+CONFIG_W83977F_WDT=y
+# CONFIG_MACHZ_WDT is not set
+# CONFIG_SBC_EPX_C3_WATCHDOG is not set
+
+#
+# PCI-based Watchdog Cards
+#
+CONFIG_PCIPCWATCHDOG=y
+CONFIG_WDTPCI=y
+
+#
+# USB-based Watchdog Cards
+#
+CONFIG_USBPCWATCHDOG=y
+CONFIG_SSB_POSSIBLE=y
+
+#
+# Sonics Silicon Backplane
+#
+CONFIG_SSB=y
+CONFIG_SSB_SPROM=y
+CONFIG_SSB_BLOCKIO=y
+CONFIG_SSB_PCIHOST_POSSIBLE=y
+CONFIG_SSB_PCIHOST=y
+CONFIG_SSB_B43_PCI_BRIDGE=y
+CONFIG_SSB_SDIOHOST_POSSIBLE=y
+CONFIG_SSB_SDIOHOST=y
+# CONFIG_SSB_SILENT is not set
+CONFIG_SSB_DEBUG=y
+CONFIG_SSB_DRIVER_PCICORE_POSSIBLE=y
+CONFIG_SSB_DRIVER_PCICORE=y
+CONFIG_BCMA_POSSIBLE=y
+
+#
+# Broadcom specific AMBA
+#
+# CONFIG_BCMA is not set
+
+#
+# Multifunction device drivers
+#
+CONFIG_MFD_CORE=y
+# CONFIG_MFD_88PM860X is not set
+# CONFIG_MFD_88PM800 is not set
+# CONFIG_MFD_88PM805 is not set
+CONFIG_MFD_SM501=y
+CONFIG_MFD_SM501_GPIO=y
+CONFIG_HTC_PASIC3=y
+CONFIG_HTC_I2CPLD=y
+CONFIG_UCB1400_CORE=y
+CONFIG_MFD_LM3533=y
+# CONFIG_TPS6105X is not set
+CONFIG_TPS65010=y
+CONFIG_TPS6507X=y
+# CONFIG_MFD_TPS65217 is not set
+CONFIG_MFD_TPS6586X=y
+CONFIG_MFD_TPS65910=y
+# CONFIG_MFD_TPS65912_I2C is not set
+CONFIG_TWL4030_CORE=y
+# CONFIG_TWL4030_MADC is not set
+# CONFIG_MFD_TWL4030_AUDIO is not set
+CONFIG_TWL6030_PWM=y
+# CONFIG_TWL6040_CORE is not set
+CONFIG_MFD_STMPE=y
+
+#
+# STMPE Interface Drivers
+#
+# CONFIG_STMPE_I2C is not set
+# CONFIG_MFD_TC3589X is not set
+# CONFIG_MFD_TMIO is not set
+CONFIG_PMIC_DA903X=y
+# CONFIG_MFD_DA9052_I2C is not set
+CONFIG_PMIC_ADP5520=y
+CONFIG_MFD_MAX77686=y
+# CONFIG_MFD_MAX77693 is not set
+# CONFIG_MFD_MAX8925 is not set
+# CONFIG_MFD_MAX8997 is not set
+# CONFIG_MFD_MAX8998 is not set
+# CONFIG_MFD_SEC_CORE is not set
+CONFIG_MFD_ARIZONA=y
+CONFIG_MFD_ARIZONA_I2C=y
+CONFIG_MFD_WM5102=y
+# CONFIG_MFD_WM5110 is not set
+CONFIG_MFD_WM8400=y
+# CONFIG_MFD_WM831X_I2C is not set
+CONFIG_MFD_WM8350=y
+CONFIG_MFD_WM8350_I2C=y
+# CONFIG_MFD_WM8994 is not set
+CONFIG_MFD_PCF50633=y
+CONFIG_PCF50633_ADC=y
+CONFIG_PCF50633_GPIO=y
+# CONFIG_MFD_MC13XXX_I2C is not set
+# CONFIG_ABX500_CORE is not set
+CONFIG_MFD_CS5535=y
+CONFIG_MFD_TIMBERDALE=y
+CONFIG_LPC_SCH=y
+CONFIG_LPC_ICH=y
+CONFIG_MFD_RDC321X=y
+CONFIG_MFD_JANZ_CMODIO=y
+CONFIG_MFD_VX855=y
+CONFIG_MFD_WL1273_CORE=y
+# CONFIG_MFD_TPS65090 is not set
+# CONFIG_MFD_AAT2870_CORE is not set
+CONFIG_MFD_RC5T583=y
+CONFIG_MFD_PALMAS=y
+CONFIG_REGULATOR=y
+CONFIG_REGULATOR_DEBUG=y
+CONFIG_REGULATOR_DUMMY=y
+CONFIG_REGULATOR_FIXED_VOLTAGE=y
+CONFIG_REGULATOR_VIRTUAL_CONSUMER=y
+# CONFIG_REGULATOR_USERSPACE_CONSUMER is not set
+# CONFIG_REGULATOR_GPIO is not set
+CONFIG_REGULATOR_AD5398=y
+CONFIG_REGULATOR_ARIZONA=y
+# CONFIG_REGULATOR_DA903X is not set
+CONFIG_REGULATOR_ISL6271A=y
+# CONFIG_REGULATOR_MAX1586 is not set
+CONFIG_REGULATOR_MAX8649=y
+# CONFIG_REGULATOR_MAX8660 is not set
+# CONFIG_REGULATOR_MAX8952 is not set
+# CONFIG_REGULATOR_MAX77686 is not set
+# CONFIG_REGULATOR_LP3971 is not set
+CONFIG_REGULATOR_LP3972=y
+CONFIG_REGULATOR_LP872X=y
+CONFIG_REGULATOR_PCF50633=y
+# CONFIG_REGULATOR_RC5T583 is not set
+CONFIG_REGULATOR_PALMAS=y
+CONFIG_REGULATOR_TPS62360=y
+# CONFIG_REGULATOR_TPS65023 is not set
+# CONFIG_REGULATOR_TPS6507X is not set
+CONFIG_REGULATOR_TPS6586X=y
+CONFIG_REGULATOR_TPS65910=y
+# CONFIG_REGULATOR_TWL4030 is not set
+# CONFIG_REGULATOR_WM8350 is not set
+CONFIG_REGULATOR_WM8400=y
+CONFIG_MEDIA_SUPPORT=y
+
+#
+# Multimedia core support
+#
+# CONFIG_MEDIA_CAMERA_SUPPORT is not set
+# CONFIG_MEDIA_ANALOG_TV_SUPPORT is not set
+CONFIG_MEDIA_DIGITAL_TV_SUPPORT=y
+# CONFIG_MEDIA_RADIO_SUPPORT is not set
+CONFIG_MEDIA_RC_SUPPORT=y
+CONFIG_VIDEO_ADV_DEBUG=y
+CONFIG_VIDEO_FIXED_MINOR_RANGES=y
+CONFIG_VIDEOBUF_GEN=y
+CONFIG_VIDEOBUF_DVB=y
+CONFIG_VIDEO_TUNER=y
+CONFIG_DVB_CORE=y
+CONFIG_DVB_NET=y
+CONFIG_DVB_MAX_ADAPTERS=8
+# CONFIG_DVB_DYNAMIC_MINORS is not set
+
+#
+# Media drivers
+#
+CONFIG_RC_CORE=y
+CONFIG_RC_MAP=y
+CONFIG_RC_DECODERS=y
+# CONFIG_LIRC is not set
+CONFIG_IR_NEC_DECODER=y
+# CONFIG_IR_RC5_DECODER is not set
+# CONFIG_IR_RC6_DECODER is not set
+# CONFIG_IR_JVC_DECODER is not set
+CONFIG_IR_SONY_DECODER=y
+CONFIG_IR_RC5_SZ_DECODER=y
+# CONFIG_IR_SANYO_DECODER is not set
+# CONFIG_IR_MCE_KBD_DECODER is not set
+CONFIG_RC_DEVICES=y
+# CONFIG_RC_ATI_REMOTE is not set
+CONFIG_IR_IMON=y
+# CONFIG_IR_MCEUSB is not set
+CONFIG_IR_REDRAT3=y
+CONFIG_IR_STREAMZAP=y
+CONFIG_IR_IGUANA=y
+# CONFIG_IR_TTUSBIR is not set
+CONFIG_RC_LOOPBACK=y
+# CONFIG_IR_GPIO_CIR is not set
+CONFIG_MEDIA_TUNER_SIMPLE=y
+CONFIG_MEDIA_TUNER_TDA827X=y
+CONFIG_MEDIA_TUNER_TDA18271=y
+CONFIG_MEDIA_TUNER_TDA9887=y
+CONFIG_MEDIA_TUNER_MT2131=y
+CONFIG_MEDIA_TUNER_QT1010=y
+CONFIG_MEDIA_TUNER_MXL5005S=y
+CONFIG_MEDIA_TUNER_MXL5007T=y
+CONFIG_MEDIA_TUNER_TDA18218=y
+CONFIG_MEDIA_TUNER_FC0011=y
+CONFIG_MEDIA_TUNER_TUA9001=y
+CONFIG_VIDEO_TVEEPROM=y
+
+#
+# Media PCI Adapters
+#
+
+#
+# Media capture/analog/hybrid TV support
+#
+CONFIG_VIDEO_SAA7164=y
+
+#
+# Media digital TV PCI Adapters
+#
+CONFIG_TTPCI_EEPROM=y
+CONFIG_DVB_BUDGET_CORE=y
+# CONFIG_DVB_BUDGET is not set
+CONFIG_DVB_BUDGET_CI=y
+CONFIG_DVB_B2C2_FLEXCOP_PCI=y
+# CONFIG_DVB_PLUTO2 is not set
+CONFIG_DVB_DM1105=y
+CONFIG_DVB_PT1=y
+CONFIG_MANTIS_CORE=y
+# CONFIG_DVB_MANTIS is not set
+CONFIG_DVB_HOPPER=y
+CONFIG_DVB_NGENE=y
+# CONFIG_DVB_DDBRIDGE is not set
+
+#
+# Media USB Adapters
+#
+
+#
+# Analog/digital TV USB devices
+#
+
+#
+# Digital TV USB devices
+#
+# CONFIG_DVB_USB is not set
+CONFIG_DVB_USB_V2=y
+CONFIG_DVB_USB_CYPRESS_FIRMWARE=y
+# CONFIG_DVB_USB_AF9015 is not set
+CONFIG_DVB_USB_AF9035=y
+# CONFIG_DVB_USB_ANYSEE is not set
+# CONFIG_DVB_USB_AU6610 is not set
+CONFIG_DVB_USB_AZ6007=y
+CONFIG_DVB_USB_CE6230=y
+# CONFIG_DVB_USB_EC168 is not set
+CONFIG_DVB_USB_GL861=y
+# CONFIG_DVB_USB_IT913X is not set
+# CONFIG_DVB_USB_LME2510 is not set
+# CONFIG_DVB_USB_MXL111SF is not set
+# CONFIG_DVB_USB_RTL28XXU is not set
+# CONFIG_DVB_TTUSB_BUDGET is not set
+# CONFIG_DVB_TTUSB_DEC is not set
+# CONFIG_SMS_USB_DRV is not set
+# CONFIG_DVB_B2C2_FLEXCOP_USB is not set
+
+#
+# Webcam, TV (analog/digital) USB devices
+#
+
+#
+# Supported MMC/SDIO adapters
+#
+# CONFIG_SMS_SDIO_DRV is not set
+
+#
+# Supported DVB Frontends
+#
+CONFIG_DVB_FE_CUSTOMISE=y
+
+#
+# Customise DVB Frontends
+#
+
+#
+# Multistandard (satellite) frontends
+#
+CONFIG_DVB_STB0899=y
+# CONFIG_DVB_STB6100 is not set
+# CONFIG_DVB_STV090x is not set
+CONFIG_DVB_STV6110x=y
+
+#
+# Multistandard (cable + terrestrial) frontends
+#
+# CONFIG_DVB_DRXK is not set
+CONFIG_DVB_TDA18271C2DD=y
+
+#
+# DVB-S (satellite) frontends
+#
+# CONFIG_DVB_CX24110 is not set
+CONFIG_DVB_CX24123=y
+# CONFIG_DVB_MT312 is not set
+CONFIG_DVB_ZL10036=y
+CONFIG_DVB_ZL10039=y
+# CONFIG_DVB_S5H1420 is not set
+# CONFIG_DVB_STV0288 is not set
+CONFIG_DVB_STB6000=y
+CONFIG_DVB_STV0299=y
+CONFIG_DVB_STV6110=y
+# CONFIG_DVB_STV0900 is not set
+# CONFIG_DVB_TDA8083 is not set
+# CONFIG_DVB_TDA10086 is not set
+# CONFIG_DVB_TDA8261 is not set
+CONFIG_DVB_VES1X93=y
+CONFIG_DVB_TUNER_ITD1000=y
+# CONFIG_DVB_TUNER_CX24113 is not set
+# CONFIG_DVB_TDA826X is not set
+# CONFIG_DVB_TUA6100 is not set
+# CONFIG_DVB_CX24116 is not set
+CONFIG_DVB_SI21XX=y
+CONFIG_DVB_DS3000=y
+CONFIG_DVB_MB86A16=y
+CONFIG_DVB_TDA10071=y
+
+#
+# DVB-T (terrestrial) frontends
+#
+CONFIG_DVB_SP8870=y
+# CONFIG_DVB_SP887X is not set
+# CONFIG_DVB_CX22700 is not set
+CONFIG_DVB_CX22702=y
+# CONFIG_DVB_S5H1432 is not set
+# CONFIG_DVB_DRXD is not set
+# CONFIG_DVB_L64781 is not set
+CONFIG_DVB_TDA1004X=y
+CONFIG_DVB_NXT6000=y
+CONFIG_DVB_MT352=y
+CONFIG_DVB_ZL10353=y
+CONFIG_DVB_DIB3000MB=y
+CONFIG_DVB_DIB3000MC=y
+CONFIG_DVB_DIB7000M=y
+# CONFIG_DVB_DIB7000P is not set
+CONFIG_DVB_DIB9000=y
+CONFIG_DVB_TDA10048=y
+CONFIG_DVB_AF9013=y
+# CONFIG_DVB_EC100 is not set
+# CONFIG_DVB_HD29L2 is not set
+# CONFIG_DVB_STV0367 is not set
+CONFIG_DVB_CXD2820R=y
+# CONFIG_DVB_RTL2830 is not set
+# CONFIG_DVB_RTL2832 is not set
+
+#
+# DVB-C (cable) frontends
+#
+# CONFIG_DVB_VES1820 is not set
+# CONFIG_DVB_TDA10021 is not set
+# CONFIG_DVB_TDA10023 is not set
+# CONFIG_DVB_STV0297 is not set
+
+#
+# ATSC (North American/Korean Terrestrial/Cable DTV) frontends
+#
+CONFIG_DVB_NXT200X=y
+# CONFIG_DVB_OR51211 is not set
+# CONFIG_DVB_OR51132 is not set
+CONFIG_DVB_BCM3510=y
+CONFIG_DVB_LGDT330X=y
+CONFIG_DVB_LGDT3305=y
+# CONFIG_DVB_LG2160 is not set
+CONFIG_DVB_S5H1409=y
+# CONFIG_DVB_AU8522_DTV is not set
+# CONFIG_DVB_S5H1411 is not set
+
+#
+# ISDB-T (terrestrial) frontends
+#
+# CONFIG_DVB_S921 is not set
+# CONFIG_DVB_DIB8000 is not set
+# CONFIG_DVB_MB86A20S is not set
+
+#
+# Digital terrestrial only tuners/PLL
+#
+CONFIG_DVB_PLL=y
+# CONFIG_DVB_TUNER_DIB0070 is not set
+# CONFIG_DVB_TUNER_DIB0090 is not set
+
+#
+# SEC control devices for DVB-S
+#
+CONFIG_DVB_LNBP21=y
+CONFIG_DVB_LNBP22=y
+# CONFIG_DVB_ISL6405 is not set
+# CONFIG_DVB_ISL6421 is not set
+CONFIG_DVB_ISL6423=y
+CONFIG_DVB_A8293=y
+CONFIG_DVB_LGS8GL5=y
+# CONFIG_DVB_LGS8GXX is not set
+CONFIG_DVB_ATBM8830=y
+# CONFIG_DVB_TDA665x is not set
+CONFIG_DVB_IX2505V=y
+CONFIG_DVB_IT913X_FE=y
+# CONFIG_DVB_M88RS2000 is not set
+CONFIG_DVB_AF9033=y
+
+#
+# Tools to develop new frontends
+#
+CONFIG_DVB_DUMMY_FE=y
+CONFIG_DVB_B2C2_FLEXCOP=y
+# CONFIG_DVB_B2C2_FLEXCOP_DEBUG is not set
+CONFIG_VIDEO_SAA7146=y
+
+#
+# Graphics support
+#
+# CONFIG_AGP is not set
+# CONFIG_VGA_ARB is not set
+# CONFIG_DRM is not set
+# CONFIG_STUB_POULSBO is not set
+# CONFIG_VGASTATE is not set
+CONFIG_VIDEO_OUTPUT_CONTROL=y
+# CONFIG_FB is not set
+CONFIG_EXYNOS_VIDEO=y
+# CONFIG_BACKLIGHT_LCD_SUPPORT is not set
+CONFIG_BACKLIGHT_CLASS_DEVICE=y
+CONFIG_SOUND=y
+CONFIG_SOUND_OSS_CORE=y
+# CONFIG_SOUND_OSS_CORE_PRECLAIM is not set
+CONFIG_SND=y
+CONFIG_SND_TIMER=y
+CONFIG_SND_PCM=y
+CONFIG_SND_HWDEP=y
+CONFIG_SND_RAWMIDI=y
+CONFIG_SND_JACK=y
+CONFIG_SND_SEQUENCER=y
+# CONFIG_SND_SEQ_DUMMY is not set
+CONFIG_SND_OSSEMUL=y
+# CONFIG_SND_MIXER_OSS is not set
+# CONFIG_SND_PCM_OSS is not set
+CONFIG_SND_SEQUENCER_OSS=y
+# CONFIG_SND_RTCTIMER is not set
+CONFIG_SND_DYNAMIC_MINORS=y
+# CONFIG_SND_SUPPORT_OLD_API is not set
+# CONFIG_SND_VERBOSE_PRINTK is not set
+# CONFIG_SND_DEBUG is not set
+CONFIG_SND_VMASTER=y
+CONFIG_SND_DMA_SGBUF=y
+CONFIG_SND_RAWMIDI_SEQ=y
+CONFIG_SND_OPL3_LIB_SEQ=y
+# CONFIG_SND_OPL4_LIB_SEQ is not set
+# CONFIG_SND_SBAWE_SEQ is not set
+# CONFIG_SND_EMU10K1_SEQ is not set
+CONFIG_SND_MPU401_UART=y
+CONFIG_SND_OPL3_LIB=y
+CONFIG_SND_VX_LIB=y
+CONFIG_SND_AC97_CODEC=y
+CONFIG_SND_DRIVERS=y
+CONFIG_SND_DUMMY=y
+CONFIG_SND_ALOOP=y
+# CONFIG_SND_VIRMIDI is not set
+# CONFIG_SND_MTPAV is not set
+CONFIG_SND_SERIAL_U16550=y
+# CONFIG_SND_MPU401 is not set
+# CONFIG_SND_AC97_POWER_SAVE is not set
+CONFIG_SND_PCI=y
+# CONFIG_SND_AD1889 is not set
+# CONFIG_SND_ALS300 is not set
+# CONFIG_SND_ALS4000 is not set
+# CONFIG_SND_ALI5451 is not set
+# CONFIG_SND_ASIHPI is not set
+CONFIG_SND_ATIIXP=y
+# CONFIG_SND_ATIIXP_MODEM is not set
+# CONFIG_SND_AU8810 is not set
+CONFIG_SND_AU8820=y
+CONFIG_SND_AU8830=y
+# CONFIG_SND_AW2 is not set
+CONFIG_SND_AZT3328=y
+# CONFIG_SND_BT87X is not set
+CONFIG_SND_CA0106=y
+# CONFIG_SND_CMIPCI is not set
+CONFIG_SND_OXYGEN_LIB=y
+# CONFIG_SND_OXYGEN is not set
+CONFIG_SND_CS4281=y
+CONFIG_SND_CS46XX=y
+CONFIG_SND_CS46XX_NEW_DSP=y
+# CONFIG_SND_CS5530 is not set
+# CONFIG_SND_CS5535AUDIO is not set
+# CONFIG_SND_CTXFI is not set
+CONFIG_SND_DARLA20=y
+# CONFIG_SND_GINA20 is not set
+# CONFIG_SND_LAYLA20 is not set
+CONFIG_SND_DARLA24=y
+# CONFIG_SND_GINA24 is not set
+CONFIG_SND_LAYLA24=y
+# CONFIG_SND_MONA is not set
+CONFIG_SND_MIA=y
+# CONFIG_SND_ECHO3G is not set
+CONFIG_SND_INDIGO=y
+# CONFIG_SND_INDIGOIO is not set
+CONFIG_SND_INDIGODJ=y
+# CONFIG_SND_INDIGOIOX is not set
+# CONFIG_SND_INDIGODJX is not set
+# CONFIG_SND_EMU10K1 is not set
+# CONFIG_SND_EMU10K1X is not set
+# CONFIG_SND_ENS1370 is not set
+CONFIG_SND_ENS1371=y
+# CONFIG_SND_ES1938 is not set
+CONFIG_SND_ES1968=y
+CONFIG_SND_ES1968_INPUT=y
+CONFIG_SND_FM801=y
+# CONFIG_SND_HDA_INTEL is not set
+CONFIG_SND_HDSP=y
+
+#
+# Don't forget to add built-in firmwares for HDSP driver
+#
+CONFIG_SND_HDSPM=y
+CONFIG_SND_ICE1712=y
+CONFIG_SND_ICE1724=y
+CONFIG_SND_INTEL8X0=y
+CONFIG_SND_INTEL8X0M=y
+CONFIG_SND_KORG1212=y
+CONFIG_SND_LOLA=y
+# CONFIG_SND_LX6464ES is not set
+CONFIG_SND_MAESTRO3=y
+CONFIG_SND_MAESTRO3_INPUT=y
+CONFIG_SND_MIXART=y
+# CONFIG_SND_NM256 is not set
+CONFIG_SND_PCXHR=y
+# CONFIG_SND_RIPTIDE is not set
+CONFIG_SND_RME32=y
+# CONFIG_SND_RME96 is not set
+# CONFIG_SND_RME9652 is not set
+CONFIG_SND_SIS7019=y
+# CONFIG_SND_SONICVIBES is not set
+CONFIG_SND_TRIDENT=y
+CONFIG_SND_VIA82XX=y
+# CONFIG_SND_VIA82XX_MODEM is not set
+CONFIG_SND_VIRTUOSO=y
+CONFIG_SND_VX222=y
+CONFIG_SND_YMFPCI=y
+# CONFIG_SND_USB is not set
+CONFIG_SND_SOC=y
+CONFIG_SND_SOC_I2C_AND_SPI=y
+# CONFIG_SND_SOC_ALL_CODECS is not set
+# CONFIG_SND_SIMPLE_CARD is not set
+CONFIG_SOUND_PRIME=y
+# CONFIG_SOUND_OSS is not set
+CONFIG_AC97_BUS=y
+
+#
+# HID support
+#
+CONFIG_HID=y
+CONFIG_HIDRAW=y
+CONFIG_UHID=y
+CONFIG_HID_GENERIC=y
+
+#
+# Special HID drivers
+#
+CONFIG_HID_A4TECH=y
+CONFIG_HID_ACRUX=y
+CONFIG_HID_ACRUX_FF=y
+CONFIG_HID_APPLE=y
+CONFIG_HID_AUREAL=y
+# CONFIG_HID_BELKIN is not set
+CONFIG_HID_CHERRY=y
+CONFIG_HID_CHICONY=y
+CONFIG_HID_PRODIKEYS=y
+CONFIG_HID_CYPRESS=y
+# CONFIG_HID_DRAGONRISE is not set
+CONFIG_HID_EMS_FF=y
+CONFIG_HID_EZKEY=y
+CONFIG_HID_HOLTEK=y
+# CONFIG_HOLTEK_FF is not set
+CONFIG_HID_KEYTOUCH=y
+# CONFIG_HID_KYE is not set
+# CONFIG_HID_UCLOGIC is not set
+CONFIG_HID_WALTOP=y
+# CONFIG_HID_GYRATION is not set
+# CONFIG_HID_TWINHAN is not set
+CONFIG_HID_KENSINGTON=y
+CONFIG_HID_LCPOWER=y
+CONFIG_HID_LENOVO_TPKBD=y
+# CONFIG_HID_LOGITECH is not set
+CONFIG_HID_MICROSOFT=y
+CONFIG_HID_MONTEREY=y
+CONFIG_HID_MULTITOUCH=y
+# CONFIG_HID_NTRIG is not set
+# CONFIG_HID_ORTEK is not set
+# CONFIG_HID_PANTHERLORD is not set
+CONFIG_HID_PETALYNX=y
+CONFIG_HID_PICOLCD=y
+# CONFIG_HID_PICOLCD_BACKLIGHT is not set
+CONFIG_HID_PICOLCD_LEDS=y
+# CONFIG_HID_PICOLCD_CIR is not set
+# CONFIG_HID_PRIMAX is not set
+CONFIG_HID_ROCCAT=y
+# CONFIG_HID_SAITEK is not set
+CONFIG_HID_SAMSUNG=y
+# CONFIG_HID_SONY is not set
+# CONFIG_HID_SPEEDLINK is not set
+# CONFIG_HID_SUNPLUS is not set
+CONFIG_HID_GREENASIA=y
+CONFIG_GREENASIA_FF=y
+CONFIG_HID_SMARTJOYPLUS=y
+CONFIG_SMARTJOYPLUS_FF=y
+# CONFIG_HID_TIVO is not set
+CONFIG_HID_TOPSEED=y
+# CONFIG_HID_THRUSTMASTER is not set
+CONFIG_HID_ZEROPLUS=y
+CONFIG_ZEROPLUS_FF=y
+# CONFIG_HID_ZYDACRON is not set
+
+#
+# USB HID support
+#
+CONFIG_USB_HID=y
+CONFIG_HID_PID=y
+# CONFIG_USB_HIDDEV is not set
+CONFIG_USB_ARCH_HAS_OHCI=y
+CONFIG_USB_ARCH_HAS_EHCI=y
+CONFIG_USB_ARCH_HAS_XHCI=y
+CONFIG_USB_SUPPORT=y
+CONFIG_USB_COMMON=y
+CONFIG_USB_ARCH_HAS_HCD=y
+CONFIG_USB=y
+CONFIG_USB_DEBUG=y
+CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
+
+#
+# Miscellaneous USB options
+#
+# CONFIG_USB_DYNAMIC_MINORS is not set
+# CONFIG_USB_SUSPEND is not set
+# CONFIG_USB_OTG_WHITELIST is not set
+# CONFIG_USB_OTG_BLACKLIST_HUB is not set
+CONFIG_USB_DWC3=y
+# CONFIG_USB_DWC3_DEBUG is not set
+CONFIG_USB_MON=y
+CONFIG_USB_WUSB_CBAF=y
+# CONFIG_USB_WUSB_CBAF_DEBUG is not set
+
+#
+# USB Host Controller Drivers
+#
+# CONFIG_USB_C67X00_HCD is not set
+CONFIG_USB_XHCI_HCD=y
+CONFIG_USB_XHCI_PLATFORM=y
+CONFIG_USB_XHCI_HCD_DEBUGGING=y
+# CONFIG_USB_EHCI_HCD is not set
+CONFIG_USB_OXU210HP_HCD=y
+# CONFIG_USB_ISP116X_HCD is not set
+CONFIG_USB_ISP1760_HCD=y
+CONFIG_USB_ISP1362_HCD=y
+# CONFIG_USB_OHCI_HCD is not set
+CONFIG_USB_UHCI_HCD=y
+CONFIG_USB_U132_HCD=y
+CONFIG_USB_SL811_HCD=y
+# CONFIG_USB_SL811_HCD_ISO is not set
+CONFIG_USB_R8A66597_HCD=y
+# CONFIG_USB_HCD_SSB is not set
+CONFIG_USB_MUSB_HDRC=y
+CONFIG_USB_MUSB_TUSB6010=y
+CONFIG_MUSB_PIO_ONLY=y
+# CONFIG_USB_CHIPIDEA is not set
+# CONFIG_USB_RENESAS_USBHS is not set
+
+#
+# USB Device Class drivers
+#
+CONFIG_USB_ACM=y
+# CONFIG_USB_PRINTER is not set
+CONFIG_USB_WDM=y
+CONFIG_USB_TMC=y
+
+#
+# NOTE: USB_STORAGE depends on SCSI but BLK_DEV_SD may
+#
+
+#
+# also be needed; see USB_STORAGE Help for more info
+#
+# CONFIG_USB_STORAGE is not set
+# CONFIG_USB_UAS is not set
+CONFIG_USB_LIBUSUAL=y
+
+#
+# USB Imaging devices
+#
+CONFIG_USB_MDC800=y
+# CONFIG_USB_MICROTEK is not set
+
+#
+# USB port drivers
+#
+CONFIG_USB_SERIAL=y
+CONFIG_USB_SERIAL_CONSOLE=y
+CONFIG_USB_EZUSB=y
+CONFIG_USB_SERIAL_GENERIC=y
+# CONFIG_USB_SERIAL_AIRCABLE is not set
+# CONFIG_USB_SERIAL_ARK3116 is not set
+# CONFIG_USB_SERIAL_BELKIN is not set
+CONFIG_USB_SERIAL_CH341=y
+CONFIG_USB_SERIAL_WHITEHEAT=y
+# CONFIG_USB_SERIAL_DIGI_ACCELEPORT is not set
+# CONFIG_USB_SERIAL_CP210X is not set
+# CONFIG_USB_SERIAL_CYPRESS_M8 is not set
+CONFIG_USB_SERIAL_EMPEG=y
+# CONFIG_USB_SERIAL_FTDI_SIO is not set
+CONFIG_USB_SERIAL_FUNSOFT=y
+# CONFIG_USB_SERIAL_VISOR is not set
+# CONFIG_USB_SERIAL_IPAQ is not set
+CONFIG_USB_SERIAL_IR=y
+CONFIG_USB_SERIAL_EDGEPORT=y
+# CONFIG_USB_SERIAL_EDGEPORT_TI is not set
+# CONFIG_USB_SERIAL_F81232 is not set
+# CONFIG_USB_SERIAL_GARMIN is not set
+CONFIG_USB_SERIAL_IPW=y
+CONFIG_USB_SERIAL_IUU=y
+# CONFIG_USB_SERIAL_KEYSPAN_PDA is not set
+CONFIG_USB_SERIAL_KEYSPAN=y
+# CONFIG_USB_SERIAL_KLSI is not set
+CONFIG_USB_SERIAL_KOBIL_SCT=y
+# CONFIG_USB_SERIAL_MCT_U232 is not set
+# CONFIG_USB_SERIAL_METRO is not set
+# CONFIG_USB_SERIAL_MOS7720 is not set
+CONFIG_USB_SERIAL_MOS7840=y
+CONFIG_USB_SERIAL_MOTOROLA=y
+# CONFIG_USB_SERIAL_NAVMAN is not set
+# CONFIG_USB_SERIAL_PL2303 is not set
+CONFIG_USB_SERIAL_OTI6858=y
+# CONFIG_USB_SERIAL_QCAUX is not set
+CONFIG_USB_SERIAL_QUALCOMM=y
+# CONFIG_USB_SERIAL_SPCP8X5 is not set
+# CONFIG_USB_SERIAL_HP4X is not set
+# CONFIG_USB_SERIAL_SAFE is not set
+CONFIG_USB_SERIAL_SIEMENS_MPI=y
+CONFIG_USB_SERIAL_SIERRAWIRELESS=y
+# CONFIG_USB_SERIAL_SYMBOL is not set
+CONFIG_USB_SERIAL_TI=y
+CONFIG_USB_SERIAL_CYBERJACK=y
+CONFIG_USB_SERIAL_XIRCOM=y
+CONFIG_USB_SERIAL_WWAN=y
+CONFIG_USB_SERIAL_OPTION=y
+# CONFIG_USB_SERIAL_OMNINET is not set
+# CONFIG_USB_SERIAL_OPTICON is not set
+CONFIG_USB_SERIAL_VIVOPAY_SERIAL=y
+CONFIG_USB_SERIAL_ZIO=y
+# CONFIG_USB_SERIAL_SSU100 is not set
+CONFIG_USB_SERIAL_QT2=y
+# CONFIG_USB_SERIAL_DEBUG is not set
+
+#
+# USB Miscellaneous drivers
+#
+CONFIG_USB_EMI62=y
+# CONFIG_USB_EMI26 is not set
+# CONFIG_USB_ADUTUX is not set
+# CONFIG_USB_SEVSEG is not set
+CONFIG_USB_RIO500=y
+CONFIG_USB_LEGOTOWER=y
+# CONFIG_USB_LCD is not set
+# CONFIG_USB_LED is not set
+# CONFIG_USB_CYPRESS_CY7C63 is not set
+CONFIG_USB_CYTHERM=y
+CONFIG_USB_IDMOUSE=y
+CONFIG_USB_FTDI_ELAN=y
+# CONFIG_USB_APPLEDISPLAY is not set
+# CONFIG_USB_SISUSBVGA is not set
+CONFIG_USB_LD=y
+CONFIG_USB_TRANCEVIBRATOR=y
+# CONFIG_USB_IOWARRIOR is not set
+CONFIG_USB_TEST=y
+CONFIG_USB_ISIGHTFW=y
+# CONFIG_USB_YUREX is not set
+
+#
+# USB Physical Layer drivers
+#
+# CONFIG_USB_ISP1301 is not set
+CONFIG_USB_GADGET=y
+# CONFIG_USB_GADGET_DEBUG is not set
+# CONFIG_USB_GADGET_DEBUG_FS is not set
+CONFIG_USB_GADGET_VBUS_DRAW=2
+CONFIG_USB_GADGET_STORAGE_NUM_BUFFERS=2
+
+#
+# USB Peripheral Controller
+#
+CONFIG_USB_FUSB300=y
+# CONFIG_USB_R8A66597 is not set
+# CONFIG_USB_MV_UDC is not set
+# CONFIG_USB_GADGET_MUSB_HDRC is not set
+CONFIG_USB_M66592=y
+CONFIG_USB_AMD5536UDC=y
+CONFIG_USB_NET2272=y
+CONFIG_USB_NET2272_DMA=y
+CONFIG_USB_NET2280=y
+# CONFIG_USB_GOKU is not set
+CONFIG_USB_EG20T=y
+# CONFIG_USB_DUMMY_HCD is not set
+CONFIG_USB_GADGET_DUALSPEED=y
+CONFIG_USB_GADGET_SUPERSPEED=y
+# CONFIG_USB_ZERO is not set
+# CONFIG_USB_AUDIO is not set
+# CONFIG_USB_ETH is not set
+# CONFIG_USB_G_NCM is not set
+# CONFIG_USB_GADGETFS is not set
+# CONFIG_USB_FUNCTIONFS is not set
+# CONFIG_USB_FILE_STORAGE is not set
+CONFIG_USB_MASS_STORAGE=y
+# CONFIG_USB_GADGET_TARGET is not set
+# CONFIG_USB_G_SERIAL is not set
+# CONFIG_USB_MIDI_GADGET is not set
+# CONFIG_USB_G_PRINTER is not set
+# CONFIG_USB_CDC_COMPOSITE is not set
+# CONFIG_USB_G_NOKIA is not set
+# CONFIG_USB_G_ACM_MS is not set
+# CONFIG_USB_G_MULTI is not set
+# CONFIG_USB_G_HID is not set
+# CONFIG_USB_G_DBGP is not set
+
+#
+# OTG and related infrastructure
+#
+CONFIG_USB_OTG_UTILS=y
+CONFIG_USB_GPIO_VBUS=y
+CONFIG_TWL6030_USB=y
+# CONFIG_NOP_USB_XCEIV is not set
+# CONFIG_UWB is not set
+CONFIG_MMC=y
+# CONFIG_MMC_DEBUG is not set
+CONFIG_MMC_UNSAFE_RESUME=y
+CONFIG_MMC_CLKGATE=y
+
+#
+# MMC/SD/SDIO Card Drivers
+#
+CONFIG_MMC_BLOCK=y
+CONFIG_MMC_BLOCK_MINORS=8
+# CONFIG_MMC_BLOCK_BOUNCE is not set
+# CONFIG_SDIO_UART is not set
+# CONFIG_MMC_TEST is not set
+
+#
+# MMC/SD/SDIO Host Controller Drivers
+#
+CONFIG_MMC_SDHCI=y
+# CONFIG_MMC_SDHCI_PCI is not set
+# CONFIG_MMC_SDHCI_PLTFM is not set
+# CONFIG_MMC_WBSD is not set
+CONFIG_MMC_TIFM_SD=y
+CONFIG_MMC_CB710=y
+# CONFIG_MMC_VIA_SDMMC is not set
+CONFIG_MMC_VUB300=y
+# CONFIG_MMC_USHC is not set
+# CONFIG_MEMSTICK is not set
+CONFIG_NEW_LEDS=y
+CONFIG_LEDS_CLASS=y
+
+#
+# LED drivers
+#
+CONFIG_LEDS_LM3530=y
+# CONFIG_LEDS_LM3533 is not set
+# CONFIG_LEDS_PCA9532 is not set
+CONFIG_LEDS_GPIO=y
+CONFIG_LEDS_LP3944=y
+CONFIG_LEDS_LP5521=y
+CONFIG_LEDS_LP5523=y
+# CONFIG_LEDS_CLEVO_MAIL is not set
+CONFIG_LEDS_PCA955X=y
+CONFIG_LEDS_PCA9633=y
+# CONFIG_LEDS_WM8350 is not set
+CONFIG_LEDS_DA903X=y
+# CONFIG_LEDS_REGULATOR is not set
+CONFIG_LEDS_BD2802=y
+CONFIG_LEDS_INTEL_SS4200=y
+CONFIG_LEDS_LT3593=y
+CONFIG_LEDS_ADP5520=y
+CONFIG_LEDS_TCA6507=y
+CONFIG_LEDS_LM3556=y
+CONFIG_LEDS_OT200=y
+# CONFIG_LEDS_BLINKM is not set
+CONFIG_LEDS_TRIGGERS=y
+
+#
+# LED Triggers
+#
+CONFIG_LEDS_TRIGGER_TIMER=y
+CONFIG_LEDS_TRIGGER_ONESHOT=y
+CONFIG_LEDS_TRIGGER_HEARTBEAT=y
+CONFIG_LEDS_TRIGGER_BACKLIGHT=y
+CONFIG_LEDS_TRIGGER_CPU=y
+# CONFIG_LEDS_TRIGGER_GPIO is not set
+# CONFIG_LEDS_TRIGGER_DEFAULT_ON is not set
+
+#
+# iptables trigger is under Netfilter config (LED target)
+#
+CONFIG_LEDS_TRIGGER_TRANSIENT=y
+CONFIG_ACCESSIBILITY=y
+CONFIG_INFINIBAND=y
+CONFIG_INFINIBAND_USER_MAD=y
+# CONFIG_INFINIBAND_USER_ACCESS is not set
+CONFIG_INFINIBAND_ADDR_TRANS=y
+CONFIG_INFINIBAND_MTHCA=y
+# CONFIG_INFINIBAND_MTHCA_DEBUG is not set
+CONFIG_INFINIBAND_AMSO1100=y
+CONFIG_INFINIBAND_AMSO1100_DEBUG=y
+# CONFIG_INFINIBAND_CXGB3 is not set
+CONFIG_MLX4_INFINIBAND=y
+CONFIG_INFINIBAND_NES=y
+CONFIG_INFINIBAND_NES_DEBUG=y
+# CONFIG_INFINIBAND_OCRDMA is not set
+# CONFIG_INFINIBAND_IPOIB is not set
+CONFIG_INFINIBAND_SRP=y
+# CONFIG_INFINIBAND_SRPT is not set
+CONFIG_INFINIBAND_ISER=y
+CONFIG_EDAC=y
+
+#
+# Reporting subsystems
+#
+# CONFIG_EDAC_LEGACY_SYSFS is not set
+CONFIG_EDAC_DEBUG=y
+CONFIG_EDAC_MM_EDAC=y
+CONFIG_EDAC_AMD76X=y
+# CONFIG_EDAC_E7XXX is not set
+# CONFIG_EDAC_I82875P is not set
+CONFIG_EDAC_I82975X=y
+CONFIG_EDAC_I3000=y
+CONFIG_EDAC_I3200=y
+CONFIG_EDAC_X38=y
+# CONFIG_EDAC_I5400 is not set
+# CONFIG_EDAC_I82860 is not set
+# CONFIG_EDAC_R82600 is not set
+# CONFIG_EDAC_I5000 is not set
+CONFIG_EDAC_I5100=y
+# CONFIG_EDAC_I7300 is not set
+# CONFIG_RTC_CLASS is not set
+CONFIG_DMADEVICES=y
+CONFIG_DMADEVICES_DEBUG=y
+# CONFIG_DMADEVICES_VDEBUG is not set
+
+#
+# DMA Devices
+#
+# CONFIG_INTEL_MID_DMAC is not set
+CONFIG_INTEL_IOATDMA=y
+# CONFIG_TIMB_DMA is not set
+CONFIG_PCH_DMA=y
+CONFIG_DMA_ENGINE=y
+
+#
+# DMA Clients
+#
+CONFIG_NET_DMA=y
+# CONFIG_ASYNC_TX_DMA is not set
+CONFIG_DMATEST=y
+CONFIG_DCA=y
+CONFIG_AUXDISPLAY=y
+CONFIG_UIO=y
+# CONFIG_UIO_CIF is not set
+CONFIG_UIO_PDRV=y
+# CONFIG_UIO_PDRV_GENIRQ is not set
+CONFIG_UIO_AEC=y
+# CONFIG_UIO_SERCOS3 is not set
+CONFIG_UIO_PCI_GENERIC=y
+CONFIG_UIO_NETX=y
+CONFIG_VIRTIO=y
+CONFIG_VIRTIO_RING=y
+
+#
+# Virtio drivers
+#
+CONFIG_VIRTIO_PCI=y
+# CONFIG_VIRTIO_BALLOON is not set
+CONFIG_VIRTIO_MMIO=y
+# CONFIG_VIRTIO_MMIO_CMDLINE_DEVICES is not set
+
+#
+# Microsoft Hyper-V guest support
+#
+# CONFIG_STAGING is not set
+CONFIG_X86_PLATFORM_DEVICES=y
+# CONFIG_DELL_LAPTOP is not set
+CONFIG_SENSORS_HDAPS=y
+# CONFIG_IBM_RTL is not set
+CONFIG_SAMSUNG_LAPTOP=y
+CONFIG_SAMSUNG_Q10=y
+
+#
+# Hardware Spinlock drivers
+#
+CONFIG_CLKSRC_I8253=y
+CONFIG_CLKEVT_I8253=y
+CONFIG_CLKBLD_I8253=y
+CONFIG_IOMMU_SUPPORT=y
+
+#
+# Remoteproc drivers (EXPERIMENTAL)
+#
+
+#
+# Rpmsg drivers (EXPERIMENTAL)
+#
+# CONFIG_VIRT_DRIVERS is not set
+CONFIG_PM_DEVFREQ=y
+
+#
+# DEVFREQ Governors
+#
+# CONFIG_DEVFREQ_GOV_SIMPLE_ONDEMAND is not set
+# CONFIG_DEVFREQ_GOV_PERFORMANCE is not set
+CONFIG_DEVFREQ_GOV_POWERSAVE=y
+CONFIG_DEVFREQ_GOV_USERSPACE=y
+
+#
+# DEVFREQ Drivers
+#
+# CONFIG_EXTCON is not set
+# CONFIG_MEMORY is not set
+# CONFIG_IIO is not set
+CONFIG_VME_BUS=y
+
+#
+# VME Bridge Drivers
+#
+CONFIG_VME_CA91CX42=y
+# CONFIG_VME_TSI148 is not set
+
+#
+# VME Board Drivers
+#
+# CONFIG_VMIVME_7805 is not set
+
+#
+# VME Device Drivers
+#
+# CONFIG_PWM is not set
+
+#
+# Firmware Drivers
+#
+# CONFIG_EDD is not set
+# CONFIG_FIRMWARE_MEMMAP is not set
+# CONFIG_DELL_RBU is not set
+CONFIG_DCDBAS=y
+# CONFIG_DMIID is not set
+# CONFIG_DMI_SYSFS is not set
+# CONFIG_ISCSI_IBFT_FIND is not set
+CONFIG_GOOGLE_FIRMWARE=y
+
+#
+# Google Firmware Drivers
+#
+CONFIG_GOOGLE_MEMCONSOLE=y
+
+#
+# File systems
+#
+CONFIG_DCACHE_WORD_ACCESS=y
+CONFIG_EXT2_FS=y
+CONFIG_EXT2_FS_XATTR=y
+CONFIG_EXT2_FS_POSIX_ACL=y
+CONFIG_EXT2_FS_SECURITY=y
+# CONFIG_EXT2_FS_XIP is not set
+CONFIG_EXT3_FS=y
+# CONFIG_EXT3_DEFAULTS_TO_ORDERED is not set
+# CONFIG_EXT3_FS_XATTR is not set
+CONFIG_EXT4_FS=y
+CONFIG_EXT4_FS_XATTR=y
+# CONFIG_EXT4_FS_POSIX_ACL is not set
+# CONFIG_EXT4_FS_SECURITY is not set
+CONFIG_EXT4_DEBUG=y
+CONFIG_JBD=y
+# CONFIG_JBD_DEBUG is not set
+CONFIG_JBD2=y
+# CONFIG_JBD2_DEBUG is not set
+CONFIG_FS_MBCACHE=y
+CONFIG_REISERFS_FS=y
+# CONFIG_REISERFS_CHECK is not set
+CONFIG_REISERFS_FS_XATTR=y
+# CONFIG_REISERFS_FS_POSIX_ACL is not set
+CONFIG_REISERFS_FS_SECURITY=y
+CONFIG_JFS_FS=y
+CONFIG_JFS_POSIX_ACL=y
+CONFIG_JFS_SECURITY=y
+CONFIG_JFS_DEBUG=y
+CONFIG_JFS_STATISTICS=y
+# CONFIG_XFS_FS is not set
+# CONFIG_OCFS2_FS is not set
+CONFIG_BTRFS_FS=y
+CONFIG_BTRFS_FS_POSIX_ACL=y
+# CONFIG_BTRFS_FS_CHECK_INTEGRITY is not set
+# CONFIG_NILFS2_FS is not set
+CONFIG_FS_POSIX_ACL=y
+CONFIG_EXPORTFS=y
+# CONFIG_FILE_LOCKING is not set
+CONFIG_FSNOTIFY=y
+# CONFIG_DNOTIFY is not set
+CONFIG_INOTIFY_USER=y
+# CONFIG_FANOTIFY is not set
+# CONFIG_QUOTA is not set
+# CONFIG_QUOTACTL is not set
+# CONFIG_AUTOFS4_FS is not set
+# CONFIG_FUSE_FS is not set
+
+#
+# Caches
+#
+# CONFIG_FSCACHE is not set
+
+#
+# CD-ROM/DVD Filesystems
+#
+# CONFIG_ISO9660_FS is not set
+# CONFIG_UDF_FS is not set
+
+#
+# DOS/FAT/NT Filesystems
+#
+CONFIG_FAT_FS=y
+CONFIG_MSDOS_FS=y
+CONFIG_VFAT_FS=y
+CONFIG_FAT_DEFAULT_CODEPAGE=437
+CONFIG_FAT_DEFAULT_IOCHARSET="iso8859-1"
+CONFIG_NTFS_FS=y
+CONFIG_NTFS_DEBUG=y
+CONFIG_NTFS_RW=y
+
+#
+# Pseudo filesystems
+#
+# CONFIG_PROC_FS is not set
+CONFIG_SYSFS=y
+CONFIG_HUGETLBFS=y
+CONFIG_HUGETLB_PAGE=y
+CONFIG_CONFIGFS_FS=y
+# CONFIG_MISC_FILESYSTEMS is not set
+CONFIG_NETWORK_FILESYSTEMS=y
+CONFIG_CEPH_FS=y
+# CONFIG_CIFS is not set
+# CONFIG_NCP_FS is not set
+# CONFIG_CODA_FS is not set
+CONFIG_AFS_FS=y
+# CONFIG_AFS_DEBUG is not set
+CONFIG_9P_FS=y
+# CONFIG_9P_FS_POSIX_ACL is not set
+CONFIG_NLS=y
+CONFIG_NLS_DEFAULT="iso8859-1"
+# CONFIG_NLS_CODEPAGE_437 is not set
+# CONFIG_NLS_CODEPAGE_737 is not set
+# CONFIG_NLS_CODEPAGE_775 is not set
+CONFIG_NLS_CODEPAGE_850=y
+# CONFIG_NLS_CODEPAGE_852 is not set
+# CONFIG_NLS_CODEPAGE_855 is not set
+# CONFIG_NLS_CODEPAGE_857 is not set
+# CONFIG_NLS_CODEPAGE_860 is not set
+CONFIG_NLS_CODEPAGE_861=y
+CONFIG_NLS_CODEPAGE_862=y
+CONFIG_NLS_CODEPAGE_863=y
+# CONFIG_NLS_CODEPAGE_864 is not set
+CONFIG_NLS_CODEPAGE_865=y
+# CONFIG_NLS_CODEPAGE_866 is not set
+# CONFIG_NLS_CODEPAGE_869 is not set
+CONFIG_NLS_CODEPAGE_936=y
+# CONFIG_NLS_CODEPAGE_950 is not set
+# CONFIG_NLS_CODEPAGE_932 is not set
+CONFIG_NLS_CODEPAGE_949=y
+CONFIG_NLS_CODEPAGE_874=y
+CONFIG_NLS_ISO8859_8=y
+# CONFIG_NLS_CODEPAGE_1250 is not set
+CONFIG_NLS_CODEPAGE_1251=y
+CONFIG_NLS_ASCII=y
+# CONFIG_NLS_ISO8859_1 is not set
+CONFIG_NLS_ISO8859_2=y
+CONFIG_NLS_ISO8859_3=y
+CONFIG_NLS_ISO8859_4=y
+CONFIG_NLS_ISO8859_5=y
+CONFIG_NLS_ISO8859_6=y
+CONFIG_NLS_ISO8859_7=y
+# CONFIG_NLS_ISO8859_9 is not set
+CONFIG_NLS_ISO8859_13=y
+# CONFIG_NLS_ISO8859_14 is not set
+# CONFIG_NLS_ISO8859_15 is not set
+# CONFIG_NLS_KOI8_R is not set
+# CONFIG_NLS_KOI8_U is not set
+CONFIG_NLS_MAC_ROMAN=y
+CONFIG_NLS_MAC_CELTIC=y
+# CONFIG_NLS_MAC_CENTEURO is not set
+# CONFIG_NLS_MAC_CROATIAN is not set
+CONFIG_NLS_MAC_CYRILLIC=y
+# CONFIG_NLS_MAC_GAELIC is not set
+# CONFIG_NLS_MAC_GREEK is not set
+CONFIG_NLS_MAC_ICELAND=y
+CONFIG_NLS_MAC_INUIT=y
+# CONFIG_NLS_MAC_ROMANIAN is not set
+# CONFIG_NLS_MAC_TURKISH is not set
+CONFIG_NLS_UTF8=y
+# CONFIG_DLM is not set
+
+#
+# Kernel hacking
+#
+CONFIG_TRACE_IRQFLAGS_SUPPORT=y
+# CONFIG_PRINTK_TIME is not set
+CONFIG_DEFAULT_MESSAGE_LOGLEVEL=4
+# CONFIG_ENABLE_WARN_DEPRECATED is not set
+CONFIG_ENABLE_MUST_CHECK=y
+CONFIG_FRAME_WARN=1024
+CONFIG_MAGIC_SYSRQ=y
+CONFIG_STRIP_ASM_SYMS=y
+# CONFIG_READABLE_ASM is not set
+# CONFIG_UNUSED_SYMBOLS is not set
+CONFIG_DEBUG_FS=y
+# CONFIG_HEADERS_CHECK is not set
+CONFIG_DEBUG_SECTION_MISMATCH=y
+CONFIG_DEBUG_KERNEL=y
+# CONFIG_DEBUG_SHIRQ is not set
+CONFIG_LOCKUP_DETECTOR=y
+CONFIG_HARDLOCKUP_DETECTOR=y
+# CONFIG_BOOTPARAM_HARDLOCKUP_PANIC is not set
+CONFIG_BOOTPARAM_HARDLOCKUP_PANIC_VALUE=0
+# CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC is not set
+CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC_VALUE=0
+# CONFIG_PANIC_ON_OOPS is not set
+CONFIG_PANIC_ON_OOPS_VALUE=0
+# CONFIG_DETECT_HUNG_TASK is not set
+CONFIG_DEBUG_OBJECTS=y
+# CONFIG_DEBUG_OBJECTS_SELFTEST is not set
+CONFIG_DEBUG_OBJECTS_FREE=y
+# CONFIG_DEBUG_OBJECTS_TIMERS is not set
+# CONFIG_DEBUG_OBJECTS_WORK is not set
+CONFIG_DEBUG_OBJECTS_RCU_HEAD=y
+CONFIG_DEBUG_OBJECTS_PERCPU_COUNTER=y
+CONFIG_DEBUG_OBJECTS_ENABLE_DEFAULT=1
+# CONFIG_SLUB_STATS is not set
+CONFIG_DEBUG_KMEMLEAK=y
+CONFIG_DEBUG_KMEMLEAK_EARLY_LOG_SIZE=400
+CONFIG_DEBUG_KMEMLEAK_DEFAULT_OFF=y
+CONFIG_DEBUG_RT_MUTEXES=y
+CONFIG_DEBUG_PI_LIST=y
+# CONFIG_RT_MUTEX_TESTER is not set
+CONFIG_DEBUG_SPINLOCK=y
+CONFIG_DEBUG_MUTEXES=y
+CONFIG_DEBUG_LOCK_ALLOC=y
+# CONFIG_PROVE_LOCKING is not set
+CONFIG_SPARSE_RCU_POINTER=y
+CONFIG_LOCKDEP=y
+# CONFIG_LOCK_STAT is not set
+CONFIG_DEBUG_LOCKDEP=y
+# CONFIG_DEBUG_ATOMIC_SLEEP is not set
+# CONFIG_DEBUG_LOCKING_API_SELFTESTS is not set
+CONFIG_STACKTRACE=y
+CONFIG_DEBUG_STACK_USAGE=y
+# CONFIG_DEBUG_KOBJECT is not set
+CONFIG_DEBUG_HIGHMEM=y
+CONFIG_DEBUG_BUGVERBOSE=y
+# CONFIG_DEBUG_INFO is not set
+CONFIG_DEBUG_VM=y
+CONFIG_DEBUG_VIRTUAL=y
+CONFIG_DEBUG_WRITECOUNT=y
+CONFIG_DEBUG_MEMORY_INIT=y
+CONFIG_DEBUG_LIST=y
+CONFIG_TEST_LIST_SORT=y
+CONFIG_DEBUG_SG=y
+CONFIG_DEBUG_NOTIFIERS=y
+CONFIG_DEBUG_CREDENTIALS=y
+CONFIG_ARCH_WANT_FRAME_POINTERS=y
+CONFIG_FRAME_POINTER=y
+CONFIG_BOOT_PRINTK_DELAY=y
+CONFIG_RCU_TORTURE_TEST=y
+# CONFIG_RCU_TORTURE_TEST_RUNNABLE is not set
+CONFIG_RCU_TRACE=y
+# CONFIG_BACKTRACE_SELF_TEST is not set
+CONFIG_DEBUG_BLOCK_EXT_DEVT=y
+CONFIG_DEBUG_FORCE_WEAK_PER_CPU=y
+CONFIG_LKDTM=y
+CONFIG_NOTIFIER_ERROR_INJECTION=y
+CONFIG_PM_NOTIFIER_ERROR_INJECT=y
+CONFIG_FAULT_INJECTION=y
+# CONFIG_FAILSLAB is not set
+# CONFIG_FAIL_PAGE_ALLOC is not set
+# CONFIG_FAIL_MAKE_REQUEST is not set
+# CONFIG_FAIL_IO_TIMEOUT is not set
+CONFIG_FAIL_MMC_REQUEST=y
+CONFIG_FAULT_INJECTION_DEBUG_FS=y
+# CONFIG_FAULT_INJECTION_STACKTRACE_FILTER is not set
+# CONFIG_DEBUG_PAGEALLOC is not set
+CONFIG_USER_STACKTRACE_SUPPORT=y
+CONFIG_HAVE_FUNCTION_TRACER=y
+CONFIG_HAVE_FUNCTION_GRAPH_TRACER=y
+CONFIG_HAVE_FUNCTION_GRAPH_FP_TEST=y
+CONFIG_HAVE_FUNCTION_TRACE_MCOUNT_TEST=y
+CONFIG_HAVE_DYNAMIC_FTRACE=y
+CONFIG_HAVE_FTRACE_MCOUNT_RECORD=y
+CONFIG_HAVE_SYSCALL_TRACEPOINTS=y
+CONFIG_HAVE_C_RECORDMCOUNT=y
+CONFIG_TRACING_SUPPORT=y
+# CONFIG_FTRACE is not set
+CONFIG_PROVIDE_OHCI1394_DMA_INIT=y
+CONFIG_DYNAMIC_DEBUG=y
+CONFIG_DMA_API_DEBUG=y
+# CONFIG_ATOMIC64_SELFTEST is not set
+# CONFIG_SAMPLES is not set
+CONFIG_HAVE_ARCH_KGDB=y
+CONFIG_KGDB=y
+CONFIG_KGDB_SERIAL_CONSOLE=y
+# CONFIG_KGDB_TESTS is not set
+# CONFIG_KGDB_LOW_LEVEL_TRAP is not set
+# CONFIG_KGDB_KDB is not set
+CONFIG_HAVE_ARCH_KMEMCHECK=y
+# CONFIG_KMEMCHECK is not set
+CONFIG_TEST_KSTRTOX=y
+CONFIG_STRICT_DEVMEM=y
+CONFIG_X86_VERBOSE_BOOTUP=y
+CONFIG_EARLY_PRINTK=y
+# CONFIG_EARLY_PRINTK_DBGP is not set
+CONFIG_DEBUG_STACKOVERFLOW=y
+# CONFIG_X86_PTDUMP is not set
+# CONFIG_DEBUG_RODATA is not set
+# CONFIG_DOUBLEFAULT is not set
+CONFIG_DEBUG_TLBFLUSH=y
+CONFIG_IOMMU_STRESS=y
+CONFIG_HAVE_MMIOTRACE_SUPPORT=y
+CONFIG_IO_DELAY_TYPE_0X80=0
+CONFIG_IO_DELAY_TYPE_0XED=1
+CONFIG_IO_DELAY_TYPE_UDELAY=2
+CONFIG_IO_DELAY_TYPE_NONE=3
+# CONFIG_IO_DELAY_0X80 is not set
+# CONFIG_IO_DELAY_0XED is not set
+CONFIG_IO_DELAY_UDELAY=y
+# CONFIG_IO_DELAY_NONE is not set
+CONFIG_DEFAULT_IO_DELAY_TYPE=2
+# CONFIG_DEBUG_BOOT_PARAMS is not set
+# CONFIG_CPA_DEBUG is not set
+CONFIG_OPTIMIZE_INLINING=y
+# CONFIG_DEBUG_STRICT_USER_COPY_CHECKS is not set
+
+#
+# Security options
+#
+CONFIG_KEYS=y
+# CONFIG_TRUSTED_KEYS is not set
+CONFIG_ENCRYPTED_KEYS=y
+# CONFIG_KEYS_DEBUG_PROC_KEYS is not set
+CONFIG_SECURITY_DMESG_RESTRICT=y
+# CONFIG_SECURITY is not set
+CONFIG_SECURITYFS=y
+CONFIG_DEFAULT_SECURITY_DAC=y
+CONFIG_DEFAULT_SECURITY=""
+CONFIG_ASYNC_TX_DISABLE_PQ_VAL_DMA=y
+CONFIG_ASYNC_TX_DISABLE_XOR_VAL_DMA=y
+CONFIG_CRYPTO=y
+
+#
+# Crypto core or helper
+#
+CONFIG_CRYPTO_ALGAPI=y
+CONFIG_CRYPTO_ALGAPI2=y
+CONFIG_CRYPTO_AEAD=y
+CONFIG_CRYPTO_AEAD2=y
+CONFIG_CRYPTO_BLKCIPHER=y
+CONFIG_CRYPTO_BLKCIPHER2=y
+CONFIG_CRYPTO_HASH=y
+CONFIG_CRYPTO_HASH2=y
+CONFIG_CRYPTO_RNG=y
+CONFIG_CRYPTO_RNG2=y
+CONFIG_CRYPTO_PCOMP2=y
+CONFIG_CRYPTO_MANAGER=y
+CONFIG_CRYPTO_MANAGER2=y
+# CONFIG_CRYPTO_USER is not set
+# CONFIG_CRYPTO_MANAGER_DISABLE_TESTS is not set
+CONFIG_CRYPTO_GF128MUL=y
+# CONFIG_CRYPTO_NULL is not set
+CONFIG_CRYPTO_WORKQUEUE=y
+CONFIG_CRYPTO_CRYPTD=y
+CONFIG_CRYPTO_AUTHENC=y
+CONFIG_CRYPTO_ABLK_HELPER_X86=y
+
+#
+# Authenticated Encryption with Associated Data
+#
+# CONFIG_CRYPTO_CCM is not set
+# CONFIG_CRYPTO_GCM is not set
+CONFIG_CRYPTO_SEQIV=y
+
+#
+# Block modes
+#
+CONFIG_CRYPTO_CBC=y
+CONFIG_CRYPTO_CTR=y
+# CONFIG_CRYPTO_CTS is not set
+# CONFIG_CRYPTO_ECB is not set
+# CONFIG_CRYPTO_LRW is not set
+CONFIG_CRYPTO_PCBC=y
+CONFIG_CRYPTO_XTS=y
+
+#
+# Hash modes
+#
+CONFIG_CRYPTO_HMAC=y
+CONFIG_CRYPTO_XCBC=y
+CONFIG_CRYPTO_VMAC=y
+
+#
+# Digest
+#
+CONFIG_CRYPTO_CRC32C=y
+# CONFIG_CRYPTO_CRC32C_INTEL is not set
+CONFIG_CRYPTO_GHASH=y
+CONFIG_CRYPTO_MD4=y
+CONFIG_CRYPTO_MD5=y
+CONFIG_CRYPTO_MICHAEL_MIC=y
+CONFIG_CRYPTO_RMD128=y
+# CONFIG_CRYPTO_RMD160 is not set
+CONFIG_CRYPTO_RMD256=y
+CONFIG_CRYPTO_RMD320=y
+CONFIG_CRYPTO_SHA1=y
+CONFIG_CRYPTO_SHA256=y
+CONFIG_CRYPTO_SHA512=y
+CONFIG_CRYPTO_TGR192=y
+CONFIG_CRYPTO_WP512=y
+
+#
+# Ciphers
+#
+CONFIG_CRYPTO_AES=y
+CONFIG_CRYPTO_AES_586=y
+CONFIG_CRYPTO_AES_NI_INTEL=y
+CONFIG_CRYPTO_ANUBIS=y
+CONFIG_CRYPTO_ARC4=y
+CONFIG_CRYPTO_BLOWFISH=y
+CONFIG_CRYPTO_BLOWFISH_COMMON=y
+# CONFIG_CRYPTO_CAMELLIA is not set
+# CONFIG_CRYPTO_CAST5 is not set
+CONFIG_CRYPTO_CAST6=y
+CONFIG_CRYPTO_DES=y
+CONFIG_CRYPTO_FCRYPT=y
+CONFIG_CRYPTO_KHAZAD=y
+# CONFIG_CRYPTO_SALSA20 is not set
+# CONFIG_CRYPTO_SALSA20_586 is not set
+# CONFIG_CRYPTO_SEED is not set
+CONFIG_CRYPTO_SERPENT=y
+# CONFIG_CRYPTO_SERPENT_SSE2_586 is not set
+CONFIG_CRYPTO_TEA=y
+CONFIG_CRYPTO_TWOFISH=y
+CONFIG_CRYPTO_TWOFISH_COMMON=y
+CONFIG_CRYPTO_TWOFISH_586=y
+
+#
+# Compression
+#
+CONFIG_CRYPTO_DEFLATE=y
+# CONFIG_CRYPTO_ZLIB is not set
+# CONFIG_CRYPTO_LZO is not set
+
+#
+# Random Number Generation
+#
+# CONFIG_CRYPTO_ANSI_CPRNG is not set
+CONFIG_CRYPTO_USER_API=y
+CONFIG_CRYPTO_USER_API_HASH=y
+CONFIG_CRYPTO_USER_API_SKCIPHER=y
+CONFIG_CRYPTO_HW=y
+CONFIG_CRYPTO_DEV_PADLOCK=y
+CONFIG_CRYPTO_DEV_PADLOCK_AES=y
+CONFIG_CRYPTO_DEV_PADLOCK_SHA=y
+CONFIG_CRYPTO_DEV_GEODE=y
+CONFIG_CRYPTO_DEV_HIFN_795X=y
+CONFIG_CRYPTO_DEV_HIFN_795X_RNG=y
+CONFIG_HAVE_KVM=y
+CONFIG_HAVE_KVM_IRQCHIP=y
+CONFIG_HAVE_KVM_EVENTFD=y
+CONFIG_KVM_APIC_ARCHITECTURE=y
+CONFIG_KVM_MMIO=y
+CONFIG_KVM_ASYNC_PF=y
+CONFIG_HAVE_KVM_MSI=y
+CONFIG_HAVE_KVM_CPU_RELAX_INTERCEPT=y
+CONFIG_VIRTUALIZATION=y
+CONFIG_KVM=y
+CONFIG_KVM_INTEL=y
+CONFIG_KVM_AMD=y
+CONFIG_VHOST_NET=y
+# CONFIG_LGUEST is not set
+# CONFIG_BINARY_PRINTF is not set
+
+#
+# Library routines
+#
+CONFIG_BITREVERSE=y
+CONFIG_GENERIC_STRNCPY_FROM_USER=y
+CONFIG_GENERIC_STRNLEN_USER=y
+CONFIG_GENERIC_FIND_FIRST_BIT=y
+CONFIG_GENERIC_PCI_IOMAP=y
+CONFIG_GENERIC_IOMAP=y
+CONFIG_GENERIC_IO=y
+CONFIG_CRC_CCITT=y
+CONFIG_CRC16=y
+# CONFIG_CRC_T10DIF is not set
+CONFIG_CRC_ITU_T=y
+CONFIG_CRC32=y
+# CONFIG_CRC32_SELFTEST is not set
+CONFIG_CRC32_SLICEBY8=y
+# CONFIG_CRC32_SLICEBY4 is not set
+# CONFIG_CRC32_SARWATE is not set
+# CONFIG_CRC32_BIT is not set
+# CONFIG_CRC7 is not set
+CONFIG_LIBCRC32C=y
+CONFIG_CRC8=y
+CONFIG_AUDIT_GENERIC=y
+CONFIG_ZLIB_INFLATE=y
+CONFIG_ZLIB_DEFLATE=y
+CONFIG_LZO_COMPRESS=y
+CONFIG_LZO_DECOMPRESS=y
+CONFIG_XZ_DEC=y
+# CONFIG_XZ_DEC_X86 is not set
+# CONFIG_XZ_DEC_POWERPC is not set
+# CONFIG_XZ_DEC_IA64 is not set
+CONFIG_XZ_DEC_ARM=y
+# CONFIG_XZ_DEC_ARMTHUMB is not set
+CONFIG_XZ_DEC_SPARC=y
+CONFIG_XZ_DEC_BCJ=y
+CONFIG_XZ_DEC_TEST=y
+CONFIG_BTREE=y
+CONFIG_HAS_IOMEM=y
+CONFIG_HAS_IOPORT=y
+CONFIG_HAS_DMA=y
+CONFIG_CHECK_SIGNATURE=y
+CONFIG_DQL=y
+CONFIG_NLATTR=y
+CONFIG_ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE=y
+CONFIG_AVERAGE=y
+CONFIG_CORDIC=y
+# CONFIG_DDR is not set
+
+--------------000607000406070808010108--
