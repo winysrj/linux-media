@@ -1,46 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:28691 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751099Ab2HJLVb (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43956 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753472Ab2HUJFQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Aug 2012 07:21:31 -0400
-From: Hans Verkuil <hans.verkuil@cisco.com>
+	Tue, 21 Aug 2012 05:05:16 -0400
+Received: from avalon.ideasonboard.com (unknown [91.178.126.78])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 5CDCF35A85
+	for <linux-media@vger.kernel.org>; Tue, 21 Aug 2012 11:05:15 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: marbugge@cisco.com, Soby Mathew <soby.mathew@st.com>,
-	mats.randgaard@cisco.com, manjunath.hadli@ti.com,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	dri-devel@lists.freedesktop.org
-Subject: [RFCv3 PATCH 0/8] V4L2: add missing pieces to support HDMI et al and add adv7604/ad9389b drivers
-Date: Fri, 10 Aug 2012 13:21:16 +0200
-Message-Id: <1344597684-8413-1-git-send-email-hans.verkuil@cisco.com>
+Subject: [PATCH] uvcvideo: Remove outdated comment
+Date: Tue, 21 Aug 2012 11:05:35 +0200
+Message-Id: <1345539935-4441-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+The uvcvideo driver now supports USERPTR, and isn't limited to YUYV and
+MJPEG anymore.
 
-This is the third version of this patch series. The second version can be
-found here: http://www.spinics.net/lists/linux-media/msg50413.html
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/usb/uvc/uvc_driver.c |   12 ------------
+ 1 files changed, 0 insertions(+), 12 deletions(-)
 
-I made a pull request based on that and got some feedback:
+Small non-functional patch, I will push it through my tree for v3.7.
 
-http://patchwork.linuxtv.org/patch/13442/
-
-The feedback has been incorporated in this third version.
-
-One suggestion I got was to run this by the video devs as well so that they
-can take a look at the V4L2 EDID API, just in case I missed something, so
-that's why this is being cross-posted to the dri-devel mailinglist.
-
-Note that the EDID API at the moment is only meant to pass the EDID to userspace
-and vice versa. There is no parsing at the moment. If we ever need parsing in
-V4L2 (and I'm sure we will) then we will of course use shared EDID parsing code.
-
-The second patch documents the new V4L2 API additions. So that's a good one
-to review when it comes to the API.
-
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 45d7aa1..287f731 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -11,18 +11,6 @@
+  *
+  */
+ 
+-/*
+- * This driver aims to support video input and ouput devices compliant with the
+- * 'USB Video Class' specification.
+- *
+- * The driver doesn't support the deprecated v4l1 interface. It implements the
+- * mmap capture method only, and doesn't do any image format conversion in
+- * software. If your user-space application doesn't support YUYV or MJPEG, fix
+- * it :-). Please note that the MJPEG data have been stripped from their
+- * Huffman tables (DHT marker), you will need to add it back if your JPEG
+- * codec can't handle MJPEG data.
+- */
+-
+ #include <linux/atomic.h>
+ #include <linux/kernel.h>
+ #include <linux/list.h>
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
 
