@@ -1,135 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.telros.ru ([83.136.244.21]:55512 "EHLO mail.telros.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754391Ab2HVGnS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Aug 2012 02:43:18 -0400
-From: Volokh Konstantin <volokh84@gmail.com>
-To: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org, volokh@telros.ru
-Cc: Volokh Konstantin <volokh84@gmail.com>
-Subject: [PATCH 02/10] staging: media: go7007: TW2804 driver fix
-Date: Wed, 22 Aug 2012 14:45:11 +0400
-Message-Id: <1345632319-23224-2-git-send-email-volokh84@gmail.com>
-In-Reply-To: <1345632319-23224-1-git-send-email-volokh84@gmail.com>
-References: <1345632319-23224-1-git-send-email-volokh84@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60531 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753196Ab2HUOHX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Aug 2012 10:07:23 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
+	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com,
+	g.liakhovetski@gmx.de, dmitriyz@google.com, s.nawrocki@samsung.com,
+	k.debski@samsung.com
+Subject: Re: [PATCHv8 20/26] v4l: vb2-dma-contig: add support for DMABUF exporting
+Date: Tue, 21 Aug 2012 16:07:43 +0200
+Message-ID: <1855841.AYe7JyTi2E@avalon>
+In-Reply-To: <50339161.9010209@samsung.com>
+References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com> <1972504.ZFxOnMN9eT@avalon> <50339161.9010209@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- correct cast private data from i2c_get_clientdata()
-- initialization priv data
-- destroy priv data
-- using V4L2 controls framework
+Hi Tomasz,
 
-Signed-off-by: Volokh Konstantin <volokh84@gmail.com>
----
- drivers/staging/media/go7007/wis-tw2804.c |   72 +++++++++++++++++++++++------
- 1 files changed, 57 insertions(+), 15 deletions(-)
+On Tuesday 21 August 2012 15:47:13 Tomasz Stanislawski wrote:
+> On 08/21/2012 12:03 PM, Laurent Pinchart wrote:
+> > On Tuesday 14 August 2012 17:34:50 Tomasz Stanislawski wrote:
+> >> This patch adds support for exporting a dma-contig buffer using
+> >> DMABUF interface.
+> >> 
+> >> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> >> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >> ---
+> >> 
+> >>  drivers/media/video/videobuf2-dma-contig.c |  204 ++++++++++++++++++++++
+> >>  1 file changed, 204 insertions(+)
+> >> 
+> >> diff --git a/drivers/media/video/videobuf2-dma-contig.c
+> >> b/drivers/media/video/videobuf2-dma-contig.c index 7fc71a0..bb2b4ac8
+> >> 100644
+> >> --- a/drivers/media/video/videobuf2-dma-contig.c
+> >> +++ b/drivers/media/video/videobuf2-dma-contig.c
+> > 
+> > [snip]
+> > 
+> >> +static struct sg_table *vb2_dc_dmabuf_ops_map(
+> >> +	struct dma_buf_attachment *db_attach, enum dma_data_direction dir)
+> >> +{
+> >> +	struct vb2_dc_attachment *attach = db_attach->priv;
+> >> +	/* stealing dmabuf mutex to serialize map/unmap operations */
+> > 
+> > Why isn't this operation serialized by the dma-buf core itself ?
+> 
+> Indeed, it is a very good question. The lock was introduced in RFCv3 of
+> DMABUF patches. It was dedicated to serialize attach/detach calls.
+> No requirements for map/unmap serialization were stated so serialization
+> was delegated to an exporter.
+> 
+> A deadlock could occur if dma_map_attachment is called from inside
+> of attach ops. IMO, such an operation is invalid because an attachment
+> list is not in a valid state while attach ops is being processed.
+> 
+> Do you think that stealing a lock from dma-buf internals is too hacky?
 
-diff --git a/drivers/staging/media/go7007/wis-tw2804.c b/drivers/staging/media/go7007/wis-tw2804.c
-index 05851d3..13f0f63 100644
---- a/drivers/staging/media/go7007/wis-tw2804.c
-+++ b/drivers/staging/media/go7007/wis-tw2804.c
-@@ -367,10 +367,12 @@ static const struct v4l2_subdev_ops tw2804_ops = {
- static int wis_tw2804_command(struct i2c_client *client,
- 				unsigned int cmd, void *arg)
- {
--	struct wis_tw2804 *dec = i2c_get_clientdata(client);
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct wis_tw2804 *dec = to_state(sd);
-+	int *input;
- 
- 	if (cmd == DECODER_SET_CHANNEL) {
--		int *input = arg;
-+		input = arg;
- 
- 		if (*input < 0 || *input > 3) {
- 			printk(KERN_ERR "wis-tw2804: channel %d is not "
-@@ -539,22 +541,59 @@ static int wis_tw2804_probe(struct i2c_client *client,
- 			    const struct i2c_device_id *id)
- {
- 	struct i2c_adapter *adapter = client->adapter;
--	struct wis_tw2804 *dec;
-+	struct wis_tw2804 *state;
-+	struct v4l2_subdev *sd;
-+	struct v4l2_ctrl *ctrl = NULL;
-+	int err;
- 
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
- 		return -ENODEV;
- 
--	dec = kmalloc(sizeof(struct wis_tw2804), GFP_KERNEL);
--	if (dec == NULL)
--		return -ENOMEM;
-+	state = kzalloc(sizeof(struct wis_tw2804), GFP_KERNEL);
- 
--	dec->channel = -1;
--	dec->norm = V4L2_STD_NTSC;
--	dec->brightness = 128;
--	dec->contrast = 128;
--	dec->saturation = 128;
--	dec->hue = 128;
--	i2c_set_clientdata(client, dec);
-+	if (state == NULL)
-+		return -ENOMEM;
-+	sd = &state->sd;
-+	v4l2_i2c_subdev_init(sd, client, &tw2804_ops);
-+	state->channel = -1;
-+	state->norm = V4L2_STD_NTSC;
-+
-+	v4l2_ctrl_handler_init(&state->hdl, 10);
-+	v4l2_ctrl_new_std(&state->hdl, &tw2804_ctrl_ops,
-+					V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
-+	v4l2_ctrl_new_std(&state->hdl, &tw2804_ctrl_ops,
-+					V4L2_CID_CONTRAST, 0, 255, 1, 128);
-+	v4l2_ctrl_new_std(&state->hdl, &tw2804_ctrl_ops,
-+					V4L2_CID_SATURATION, 0, 255, 1, 128);
-+	v4l2_ctrl_new_std(&state->hdl, &tw2804_ctrl_ops,
-+					V4L2_CID_HUE, 0, 255, 1, 128);
-+	v4l2_ctrl_new_std(&state->hdl, &tw2804_ctrl_ops,
-+					V4L2_CID_AUTOGAIN, 0, 1, 1, 0);
-+	v4l2_ctrl_new_std(&state->hdl, &tw2804_ctrl_ops,
-+					V4L2_CID_COLOR_KILLER, 0, 1, 1, 0);
-+	ctrl = v4l2_ctrl_new_std(&state->hdl, &tw2804_ctrl_ops,
-+					V4L2_CID_GAIN, 0, 255, 1, 128);
-+	if (ctrl)
-+		ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
-+	ctrl = v4l2_ctrl_new_std(&state->hdl, &tw2804_ctrl_ops,
-+					V4L2_CID_CHROMA_GAIN, 0, 255, 1, 128);
-+	if (ctrl)
-+		ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
-+	ctrl = v4l2_ctrl_new_std(&state->hdl, &tw2804_ctrl_ops,
-+					V4L2_CID_BLUE_BALANCE, 0, 255, 1, 122);
-+	if (ctrl)
-+		ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
-+	ctrl = v4l2_ctrl_new_std(&state->hdl, &tw2804_ctrl_ops,
-+					V4L2_CID_RED_BALANCE, 0, 255, 1, 122);
-+	if (ctrl)
-+		ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
-+	sd->ctrl_handler = &state->hdl;
-+	err = state->hdl.error;
-+	if (err) {
-+		v4l2_ctrl_handler_free(&state->hdl);
-+		kfree(state);
-+		return err;
-+	}
- 
- 	printk(KERN_DEBUG "wis-tw2804: creating TW2804 at address %d on %s\n",
- 		client->addr, adapter->name);
-@@ -564,9 +603,12 @@ static int wis_tw2804_probe(struct i2c_client *client,
- 
- static int wis_tw2804_remove(struct i2c_client *client)
- {
--	struct wis_tw2804 *dec = i2c_get_clientdata(client);
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct wis_tw2804 *state = to_state(sd);
- 
--	kfree(dec);
-+	v4l2_device_unregister_subdev(sd);
-+	v4l2_ctrl_handler_free(&state->hdl);
-+	kfree(state);
- 	return 0;
- }
- 
+No, I would be OK with that, but I'd like to make sure that it won't bite us 
+back later. If there's a specific reason why the lock is not taken by the 
+dmabuf core around map/unmap calls, stealing the same lock might cause 
+unforeseen problems. That's why I would like to understand why the core 
+doesn't perform locking on its own.
+
+> I prefer not to introduce any extra locks in dma-contig allocator
+
+Agreed.
+
+> but it is not a big deal to add it.
+> 
+> >> +	struct mutex *lock = &db_attach->dmabuf->lock;
+> >> +	struct sg_table *sgt;
+> >> +	int ret;
+> >> +
+> >> +	mutex_lock(lock);
+> >> +
+> >> +	sgt = &attach->sgt;
+> >> +	/* return previously mapped sg table */
+> >> +	if (attach->dir == dir) {
+> >> +		mutex_unlock(lock);
+> >> +		return sgt;
+> >> +	}
+> >> +
+> >> +	/* release any previous cache */
+> >> +	if (attach->dir != DMA_NONE) {
+> >> +		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
+> >> +			attach->dir);
+> >> +		attach->dir = DMA_NONE;
+> >> +	}
+> >> +
+> >> +	/* mapping to the client with new direction */
+> >> +	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dir);
+> >> +	if (ret <= 0) {
+> >> +		pr_err("failed to map scatterlist\n");
+> >> +		mutex_unlock(lock);
+> >> +		return ERR_PTR(-EIO);
+> >> +	}
+> >> +
+> >> +	attach->dir = dir;
+> >> +
+> >> +	mutex_unlock(lock);
+> >> +
+> >> +	return sgt;
+> >> +}
+
 -- 
-1.7.7.6
+Regards,
+
+Laurent Pinchart
 
