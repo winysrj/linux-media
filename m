@@ -1,70 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:46528 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751109Ab2HMLs3 (ORCPT
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:38585 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754849Ab2HUToS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Aug 2012 07:48:29 -0400
-Received: by vbbff1 with SMTP id ff1so2915793vbb.19
-        for <linux-media@vger.kernel.org>; Mon, 13 Aug 2012 04:48:28 -0700 (PDT)
+	Tue, 21 Aug 2012 15:44:18 -0400
+Date: Tue, 21 Aug 2012 21:44:09 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sean Young <sean@mess.org>, Jarod Wilson <jwilson@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [media] rc-core: move timeout and checks to lirc
+Message-ID: <20120821194409.GB4993@hardeman.nu>
+References: <20120816221514.GA26546@pequod.mess.org>
+ <502D7E62.9040204@redhat.com>
+ <20120820213659.GC14636@hardeman.nu>
+ <5032B407.8030407@redhat.com>
+ <CAGoCfizxSnUgC2Ka5uz3_gXaFf65057kt+EBNz7WassEvVsDHg@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <bf682233fde61ca77ed4512ba77271f6daeedb31.1344592468.git.hans.verkuil@cisco.com>
-References: <1344597684-8413-1-git-send-email-hans.verkuil@cisco.com>
-	<bf682233fde61ca77ed4512ba77271f6daeedb31.1344592468.git.hans.verkuil@cisco.com>
-Date: Mon, 13 Aug 2012 17:18:28 +0530
-Message-ID: <CAGzWAsjFJ8GEVumJAW2oYEycggYJY0s=wc4fyNuLebND_kgfhg@mail.gmail.com>
-Subject: Re: [RFCv3 PATCH 1/8] v4l2 core: add the missing pieces to support DVI/HDMI/DisplayPort.
-From: Soby Mathew <soby.linuxtv@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org, marbugge@cisco.com,
-	Soby Mathew <soby.mathew@st.com>, mats.randgaard@cisco.com,
-	manjunath.hadli@ti.com,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	dri-devel@lists.freedesktop.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAGoCfizxSnUgC2Ka5uz3_gXaFf65057kt+EBNz7WassEvVsDHg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-   The patch seems to cover most of the requirement.  I find 2 gaps:
+On Mon, Aug 20, 2012 at 06:10:16PM -0400, Devin Heitmueller wrote:
+>On Mon, Aug 20, 2012 at 6:02 PM, Mauro Carvalho Chehab
+><mchehab@redhat.com> wrote:
+>> So, IMO, it makes sense to have a "high end" API that accepts
+>> writing keystrokes like above, working with both "raw drivers"
+>> using some kernel IR protocol encoders, and with devices that can
+>> accept "processed" keystrokes, like HDMI CEC.
+>
+>It might also make sense to have a third mode for devices that support
+>high level protocols such as RC5/NEC but you want to leverage the very
+>large existing LIRC database of remote controls.  The device would
+>advertise all the modes it supports (RC5/NEC/RC6/whatever), and from
+>there it can accept the actual RC codes instead of a raw waveform.
 
-> +/*  DV-class control IDs defined by V4L2 */
-> +#define V4L2_CID_DV_CLASS_BASE                 (V4L2_CTRL_CLASS_DV | 0x900)
-> +#define V4L2_CID_DV_CLASS                      (V4L2_CTRL_CLASS_DV | 1)
-> +
-> +#define        V4L2_CID_DV_TX_HOTPLUG                  (V4L2_CID_DV_CLASS_BASE + 1)
-> +#define        V4L2_CID_DV_TX_RXSENSE                  (V4L2_CID_DV_CLASS_BASE + 2)
-> +#define        V4L2_CID_DV_TX_EDID_PRESENT             (V4L2_CID_DV_CLASS_BASE + 3)
-> +#define        V4L2_CID_DV_TX_MODE                     (V4L2_CID_DV_CLASS_BASE + 4)
-> +enum v4l2_dv_tx_mode {
-> +       V4L2_DV_TX_MODE_DVI_D   = 0,
-> +       V4L2_DV_TX_MODE_HDMI    = 1,
-> +};
-
-
-Even at the receiver side the DVI/HDMI mode need to be detected. So
-probably a control for the RX mode is needed.
+That should be pretty trivial with the API I suggested - i.e. that
+userspace is expected to do an ioctl first to get the bitmask of
+supported modes. This would just be another TX mode.
 
 
-> +#define V4L2_CID_DV_TX_RGB_RANGE               (V4L2_CID_DV_CLASS_BASE + 5)
-> +enum v4l2_dv_rgb_range {
-> +       V4L2_DV_RGB_RANGE_AUTO    = 0,
-> +       V4L2_DV_RGB_RANGE_LIMITED = 1,
-> +       V4L2_DV_RGB_RANGE_FULL    = 2,
-> +};
-> +
-> +#define        V4L2_CID_DV_RX_POWER_PRESENT            (V4L2_CID_DV_CLASS_BASE + 100)
-> +#define V4L2_CID_DV_RX_RGB_RANGE               (V4L2_CID_DV_CLASS_BASE + 101)
-> +
-
-Similarly, some sources can support YC mode of transmission instaed of
-RGB. To control the YC Quantization Range, we can define  control
-V4L2_CID_DV_TX_YC_RANGE
-
-Similar control would be needed at the Rx side also like
-V4L2_CID_DV_RX_YC_RANGE.
-
-
-Best Regards
-Soby Mathew
+-- 
+David Härdeman
