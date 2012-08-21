@@ -1,97 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog116.obsmtp.com ([207.126.144.141]:43621 "EHLO
-	eu1sys200aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752398Ab2HCQZe convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Aug 2012 12:25:34 -0400
-From: Bhupesh SHARMA <bhupesh.sharma@st.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Sat, 4 Aug 2012 00:25:22 +0800
-Subject: RE: Query regarding the support and testing of MJPEG frame type in
- the UVC webcam gadget
-Message-ID: <D5ECB3C7A6F99444980976A8C6D896384FABF0DC5A@EAPEX1MAIL1.st.com>
-References: <D5ECB3C7A6F99444980976A8C6D896384FABF0D740@EAPEX1MAIL1.st.com>
- <3577370.FUYPT1zGjj@avalon>
- <D5ECB3C7A6F99444980976A8C6D896384FABF0D865@EAPEX1MAIL1.st.com>
- <1479304.PR7OAbvLrR@avalon>
-In-Reply-To: <1479304.PR7OAbvLrR@avalon>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:46051 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753167Ab2HUIQL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Aug 2012 04:16:11 -0400
+Message-ID: <503343B9.1070104@iki.fi>
+Date: Tue, 21 Aug 2012 11:15:53 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
+To: Hiroshi Doyu <hdoyu@nvidia.com>
+CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
+	"htl10@users.sourceforge.net" <htl10@users.sourceforge.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"joe@perches.com" <joe@perches.com>,
+	"linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
+Subject: Re: [PATCH 1/1] driver-core: Shut up dev_dbg_reatelimited() without
+ DEBUG
+References: <502EDDCC.200@iki.fi><20120820.141454.449841061737873578.hdoyu@nvidia.com><5032AC3E.5080402@iki.fi> <20120821.100204.446226016699627525.hdoyu@nvidia.com>
+In-Reply-To: <20120821.100204.446226016699627525.hdoyu@nvidia.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hello Hiroshi,
 
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Friday, August 03, 2012 1:45 PM
-> To: Bhupesh SHARMA
-> Cc: linux-usb@vger.kernel.org; linux-media@vger.kernel.org
-> Subject: Re: Query regarding the support and testing of MJPEG frame
-> type in the UVC webcam gadget
-> 
-> Hi Bhupesh,
-> 
-> On Wednesday 01 August 2012 21:29:30 Bhupesh SHARMA wrote:
-> > On Wednesday, August 01, 2012 6:46 PM Laurent Pinchart wrote:
-> > > On Wednesday 01 August 2012 14:26:33 Bhupesh SHARMA wrote:
-> > > > Hi Laurent,
-> > > >
-> > > > I have a query for you regarding the support and testing of MJPEG
-> > > > frame type in the UVC webcam gadget.
-> > > >
-> > > > I see that in the webcam.c gadget, the 720p and VGA MJPEG uvc
-> formats
-> > > > are supported. I was trying the same out and got confused because
-> the
-> > > > data arriving from a real video capture video supporting JPEG
-> will have
-> > > > no fixed size. We will have the JPEG defined Start-of-Frame and
-> End-of-
-> > > > Frame markers defining the boundary of the JPEG frame.
-> > > >
-> > > > But for almost all JPEG video capture devices even if we have
-> kept a
-> > > > frame size of VGA initially, the final frame size will be a
-> compressed
-> > > > version (with the compression depending on the nature of the
-> scene, so a
-> > > > flat scene will have high compression and hence less frame size)
-> of VGA
-> > > > and will not be equal to 640 * 480.
-> > > >
-> > > > So I couldn't exactly get why the dwMaxVideoFrameBufferSize is
-> kept
-> > > > as 614400 in webcam.c (see [1]).
-> > >
-> > > The dwMaxVideoFrameBufferSize value must be larger than or equal to
-> the
-> > > largest MJPEG frame size. As I have no idea what that value is,
-> I've
-> > > kept the same size as for uncompressed frames, which should be big
-> enough
-> > > (and most probably too big).
-> >
-> > .. Yes, so that means that the user-space application should set the
-> length
-> > of the buffer being queued at the UVC side equal to the length of the
-> buffer
-> > dequeued from the V4L2 side, to ensure that varying length JPEG
-> frames are
-> > correctly handled.
-> 
-> You should copy the bytesused field from the captured v4l2_buffer to
-> the
-> output v4l2_buffer. The length field stores the total buffer size, not
-> the
-> number of bytes used.
-> 
+On 08/21/2012 10:02 AM, Hiroshi Doyu wrote:
+> Antti Palosaari <crope@iki.fi> wrote @ Mon, 20 Aug 2012 23:29:34 +0200:
+>
+>> On 08/20/2012 02:14 PM, Hiroshi Doyu wrote:
+>>> Hi Antti,
+>>>
+>>> Antti Palosaari <crope@iki.fi> wrote @ Sat, 18 Aug 2012 02:11:56 +0200:
+>>>
+>>>> On 08/17/2012 09:04 AM, Hiroshi Doyu wrote:
+>>>>> dev_dbg_reatelimited() without DEBUG printed "217078 callbacks
+>>>>> suppressed". This shouldn't print anything without DEBUG.
+>>>>>
+>>>>> Signed-off-by: Hiroshi Doyu <hdoyu@nvidia.com>
+>>>>> Reported-by: Antti Palosaari <crope@iki.fi>
+>>>>> ---
+>>>>>     include/linux/device.h |    6 +++++-
+>>>>>     1 files changed, 5 insertions(+), 1 deletions(-)
+>>>>>
+>>>>> diff --git a/include/linux/device.h b/include/linux/device.h
+>>>>> index eb945e1..d4dc26e 100644
+>>>>> --- a/include/linux/device.h
+>>>>> +++ b/include/linux/device.h
+>>>>> @@ -962,9 +962,13 @@ do {									\
+>>>>>     	dev_level_ratelimited(dev_notice, dev, fmt, ##__VA_ARGS__)
+>>>>>     #define dev_info_ratelimited(dev, fmt, ...)				\
+>>>>>     	dev_level_ratelimited(dev_info, dev, fmt, ##__VA_ARGS__)
+>>>>> +#if defined(DEBUG)
+>>>>>     #define dev_dbg_ratelimited(dev, fmt, ...)				\
+>>>>>     	dev_level_ratelimited(dev_dbg, dev, fmt, ##__VA_ARGS__)
+>>>>> -
+>>>>> +#else
+>>>>> +#define dev_dbg_ratelimited(dev, fmt, ...)			\
+>>>>> +	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
+>>>>> +#endif
+>>>>>     /*
+>>>>>      * Stupid hackaround for existing uses of non-printk uses dev_info
+>>>>>      *
+>>>>>
+>>>>
+>>>> NACK. I don't think that's correct behavior. After that patch it kills
+>>>> all output of dev_dbg_ratelimited(). If I use dynamic debugs and order
+>>>> debugs, I expect to see debugs as earlier.
+>>>
+>>> You are right. I attached the update patch, just moving *_ratelimited
+>>> functions after dev_dbg() definitions.
+>>>
+>>> With DEBUG defined/undefined in your "test.ko", it works fine. With
+>>> CONFIG_DYNAMIC_DEBUG, it works with "+p", but with "-p", still
+>>> "..callbacks suppressed" is printed.
+>>
+>> I am using dynamic debugs and behavior is now just same as it was when
+>> reported that bug. OK, likely for static debug it is now correct.
+>
+> The following patch can also refrain "..callbacks suppressed" with
+> "-p". I think that it's ok for all cases.
+>
+>>From b4c6aa9160f03b61ed17975c73db36c983a48927 Mon Sep 17 00:00:00 2001
+> From: Hiroshi Doyu <hdoyu@nvidia.com>
+> Date: Mon, 20 Aug 2012 13:49:19 +0300
+> Subject: [v3 1/1] driver-core: Shut up dev_dbg_reatelimited() without DEBUG
+>
+> dev_dbg_reatelimited() without DEBUG printed "217078 callbacks
+> suppressed". This shouldn't print anything without DEBUG.
+>
+> With CONFIG_DYNAMIC_DEBUG, the print should be configured as expected.
+>
+> Signed-off-by: Hiroshi Doyu <hdoyu@nvidia.com>
+> Reported-by: Antti Palosaari <crope@iki.fi>
+> ---
+>   include/linux/device.h |   62 +++++++++++++++++++++++++++++------------------
+>   1 files changed, 38 insertions(+), 24 deletions(-)
+>
+> diff --git a/include/linux/device.h b/include/linux/device.h
+> index 9648331..bb6ffcb 100644
+> --- a/include/linux/device.h
+> +++ b/include/linux/device.h
+> @@ -932,6 +932,32 @@ int _dev_info(const struct device *dev, const char *fmt, ...)
+>
+>   #endif
+>
+> +/*
+> + * Stupid hackaround for existing uses of non-printk uses dev_info
+> + *
+> + * Note that the definition of dev_info below is actually _dev_info
+> + * and a macro is used to avoid redefining dev_info
+> + */
+> +
+> +#define dev_info(dev, fmt, arg...) _dev_info(dev, fmt, ##arg)
+> +
+> +#if defined(CONFIG_DYNAMIC_DEBUG)
+> +#define dev_dbg(dev, format, ...)		     \
+> +do {						     \
+> +	dynamic_dev_dbg(dev, format, ##__VA_ARGS__); \
+> +} while (0)
+> +#elif defined(DEBUG)
+> +#define dev_dbg(dev, format, arg...)		\
+> +	dev_printk(KERN_DEBUG, dev, format, ##arg)
+> +#else
+> +#define dev_dbg(dev, format, arg...)				\
+> +({								\
+> +	if (0)							\
+> +		dev_printk(KERN_DEBUG, dev, format, ##arg);	\
+> +	0;							\
+> +})
+> +#endif
+> +
+>   #define dev_level_ratelimited(dev_level, dev, fmt, ...)			\
+>   do {									\
+>   	static DEFINE_RATELIMIT_STATE(_rs,				\
+> @@ -955,33 +981,21 @@ do {									\
+>   	dev_level_ratelimited(dev_notice, dev, fmt, ##__VA_ARGS__)
+>   #define dev_info_ratelimited(dev, fmt, ...)				\
+>   	dev_level_ratelimited(dev_info, dev, fmt, ##__VA_ARGS__)
+> +#if defined(CONFIG_DYNAMIC_DEBUG) || defined(DEBUG)
+>   #define dev_dbg_ratelimited(dev, fmt, ...)				\
+> -	dev_level_ratelimited(dev_dbg, dev, fmt, ##__VA_ARGS__)
+> -
+> -/*
+> - * Stupid hackaround for existing uses of non-printk uses dev_info
+> - *
+> - * Note that the definition of dev_info below is actually _dev_info
+> - * and a macro is used to avoid redefining dev_info
+> - */
+> -
+> -#define dev_info(dev, fmt, arg...) _dev_info(dev, fmt, ##arg)
+> -
+> -#if defined(CONFIG_DYNAMIC_DEBUG)
+> -#define dev_dbg(dev, format, ...)		     \
+> -do {						     \
+> -	dynamic_dev_dbg(dev, format, ##__VA_ARGS__); \
+> +do {									\
+> +	static DEFINE_RATELIMIT_STATE(_rs,				\
+> +				      DEFAULT_RATELIMIT_INTERVAL,	\
+> +				      DEFAULT_RATELIMIT_BURST);		\
+> +	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);			\
+> +	if (unlikely(descriptor.flags & _DPRINTK_FLAGS_PRINT) &&	\
+> +	    __ratelimit(&_rs))						\
+> +		__dynamic_pr_debug(&descriptor, pr_fmt(fmt),		\
+> +				   ##__VA_ARGS__);			\
+>   } while (0)
+> -#elif defined(DEBUG)
+> -#define dev_dbg(dev, format, arg...)		\
+> -	dev_printk(KERN_DEBUG, dev, format, ##arg)
+>   #else
+> -#define dev_dbg(dev, format, arg...)				\
+> -({								\
+> -	if (0)							\
+> -		dev_printk(KERN_DEBUG, dev, format, ##arg);	\
+> -	0;							\
+> -})
+> +#define dev_dbg_ratelimited(dev, fmt, ...)			\
+> +	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
+>   #endif
+>
+>   #ifdef VERBOSE_DEBUG
 
-Yes, you are right. It should be bytesused field instead of the length field.
+That seems to work correctly now. I tested it using dynamic debugs. It 
+was Hin-Tak who originally reported that bug for me after I added few 
+ratelimited debugs for DVB stack. Thank you!
 
-Regards,
-Bhupesh
+Reported-by: Hin-Tak Leung <htl10@users.sourceforge.net>
+Tested-by: Antti Palosaari <crope@iki.fi>
+
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
