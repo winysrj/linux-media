@@ -1,153 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:16574 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755009Ab2HJT5g (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Aug 2012 15:57:36 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David Rientjes <rientjes@google.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-kernel@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 1/2] radio-shark: Only compile led support when CONFIG_LED_CLASS is set
-Date: Fri, 10 Aug 2012 21:58:05 +0200
-Message-Id: <1344628686-10482-1-git-send-email-hdegoede@redhat.com>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:38591 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750918Ab2HUTzp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Aug 2012 15:55:45 -0400
+Date: Tue, 21 Aug 2012 21:55:36 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Sean Young <sean@mess.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jwilson@redhat.com>, linux-media@vger.kernel.org
+Subject: Re: [media] rc-core: move timeout and checks to lirc
+Message-ID: <20120821195536.GC4993@hardeman.nu>
+References: <20120816221514.GA26546@pequod.mess.org>
+ <502D7E62.9040204@redhat.com>
+ <20120820213659.GC14636@hardeman.nu>
+ <5032B407.8030407@redhat.com>
+ <20120821125511.GA2361@pequod.mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20120821125511.GA2361@pequod.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reported-by: Dadiv Rientjes <rientjes@google.com>
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/media/radio/radio-shark.c | 26 ++++++++++++++++++++++++--
- 1 file changed, 24 insertions(+), 2 deletions(-)
+On Tue, Aug 21, 2012 at 01:55:12PM +0100, Sean Young wrote:
+>On Mon, Aug 20, 2012 at 07:02:47PM -0300, Mauro Carvalho Chehab wrote:
+>> Em 20-08-2012 18:36, David Härdeman escreveu:
+>> > On Thu, Aug 16, 2012 at 08:12:34PM -0300, Mauro Carvalho Chehab wrote:
+>> >> Em 16-08-2012 19:15, Sean Young escreveu:
+>> >>> Could we have a flag in rc_dev to signify whether a driver blocks on
+>> >>> completion of a transmit and only sleep here if it is not set?
+>> >>>
+>> >>> e.g. rc_dev.tx_blocks_until_complete
+>> >>>
+>> >>> The wording could be improved.
+>> >>>
+>> >>> Another alternative would be if the drivers provided a 
+>> >>> "wait_for_tx_to_complete()" function. If they can provided that; using 
+>> >>> that it would be possible to implement O_NONBLOCK and sync.
+>> >>
+>> >> Seems fine on my eyes. It may avoid code duplication if you pass the fd 
+>> >> flags to the lirc call, and add a code there that will wait for complete, 
+>> >> if the device was not opened in block mode.
+>> > 
+>> > I think a future rc-core native TX API should behave like a write() on a
+>> > network socket does.
+>> > 
+>> > That is, a write on a rc device opened with O_NONBLOCK will either
+>> > succeed immediately (i.e. write data to buffers for further processing)
+>> > or return EAGAIN.  A write on a non-O_NONBLOCK device will either write
+>> > the data to buffer space and return or wait for more space to be
+>> > available. No waiting for the data to actually leave the "device" (NIC
+>> > or IR transmitter) is done by the write() call.
+>
+>The waiting for the data to leave the device could be enforced by opening
+>with O_SYNC or fsync(). I agree with O_NONBLOCK being better for blocking
+>on outgoing buffer space.
 
-diff --git a/drivers/media/radio/radio-shark.c b/drivers/media/radio/radio-shark.c
-index c2ead23..f746ed0 100644
---- a/drivers/media/radio/radio-shark.c
-+++ b/drivers/media/radio/radio-shark.c
-@@ -27,7 +27,6 @@
- 
- #include <linux/init.h>
- #include <linux/kernel.h>
--#include <linux/leds.h>
- #include <linux/module.h>
- #include <linux/slab.h>
- #include <linux/usb.h>
-@@ -35,6 +34,12 @@
- #include <media/v4l2-device.h>
- #include <sound/tea575x-tuner.h>
- 
-+#if defined(CONFIG_LEDS_CLASS) || \
-+    (defined(CONFIG_LEDS_CLASS_MODULE) && defined(CONFIG_RADIO_SHARK_MODULE))
-+#include <linux/leds.h>
-+#define SHARK_USE_LEDS 1
-+#endif
-+
- /*
-  * Version Information
-  */
-@@ -54,6 +59,7 @@ MODULE_LICENSE("GPL");
- 
- #define v4l2_dev_to_shark(d) container_of(d, struct shark_device, v4l2_dev)
- 
-+#ifdef SHARK_USE_LEDS
- enum { BLUE_LED, BLUE_PULSE_LED, RED_LED, NO_LEDS };
- 
- static void shark_led_set_blue(struct led_classdev *led_cdev,
-@@ -83,17 +89,20 @@ static const struct led_classdev shark_led_templates[NO_LEDS] = {
- 		.brightness_set = shark_led_set_red,
- 	},
- };
-+#endif
- 
- struct shark_device {
- 	struct usb_device *usbdev;
- 	struct v4l2_device v4l2_dev;
- 	struct snd_tea575x tea;
- 
-+#ifdef SHARK_USE_LEDS
- 	struct work_struct led_work;
- 	struct led_classdev leds[NO_LEDS];
- 	char led_names[NO_LEDS][32];
- 	atomic_t brightness[NO_LEDS];
- 	unsigned long brightness_new;
-+#endif
- 
- 	u8 *transfer_buffer;
- 	u32 last_val;
-@@ -175,6 +184,7 @@ static struct snd_tea575x_ops shark_tea_ops = {
- 	.read_val  = shark_read_val,
- };
- 
-+#ifdef SHARK_USE_LEDS
- static void shark_led_work(struct work_struct *work)
- {
- 	struct shark_device *shark =
-@@ -244,20 +254,25 @@ static void shark_led_set_red(struct led_classdev *led_cdev,
- 	set_bit(RED_LED, &shark->brightness_new);
- 	schedule_work(&shark->led_work);
- }
-+#endif
- 
- static void usb_shark_disconnect(struct usb_interface *intf)
- {
- 	struct v4l2_device *v4l2_dev = usb_get_intfdata(intf);
- 	struct shark_device *shark = v4l2_dev_to_shark(v4l2_dev);
-+#ifdef SHARK_USE_LEDS
- 	int i;
-+#endif
- 
- 	mutex_lock(&shark->tea.mutex);
- 	v4l2_device_disconnect(&shark->v4l2_dev);
- 	snd_tea575x_exit(&shark->tea);
- 	mutex_unlock(&shark->tea.mutex);
- 
-+#ifdef SHARK_USE_LEDS
- 	for (i = 0; i < NO_LEDS; i++)
- 		led_classdev_unregister(&shark->leds[i]);
-+#endif
- 
- 	v4l2_device_put(&shark->v4l2_dev);
- }
-@@ -266,7 +281,9 @@ static void usb_shark_release(struct v4l2_device *v4l2_dev)
- {
- 	struct shark_device *shark = v4l2_dev_to_shark(v4l2_dev);
- 
-+#ifdef SHARK_USE_LEDS
- 	cancel_work_sync(&shark->led_work);
-+#endif
- 	v4l2_device_unregister(&shark->v4l2_dev);
- 	kfree(shark->transfer_buffer);
- 	kfree(shark);
-@@ -276,7 +293,10 @@ static int usb_shark_probe(struct usb_interface *intf,
- 			   const struct usb_device_id *id)
- {
- 	struct shark_device *shark;
--	int i, retval = -ENOMEM;
-+	int retval = -ENOMEM;
-+#ifdef SHARK_USE_LEDS
-+	int i;
-+#endif
- 
- 	shark = kzalloc(sizeof(struct shark_device), GFP_KERNEL);
- 	if (!shark)
-@@ -321,6 +341,7 @@ static int usb_shark_probe(struct usb_interface *intf,
- 		goto err_init_tea;
- 	}
- 
-+#ifdef SHARK_USE_LEDS
- 	INIT_WORK(&shark->led_work, shark_led_work);
- 	for (i = 0; i < NO_LEDS; i++) {
- 		shark->leds[i] = shark_led_templates[i];
-@@ -341,6 +362,7 @@ static int usb_shark_probe(struct usb_interface *intf,
- 				 "couldn't register led: %s\n",
- 				 shark->led_names[i]);
- 	}
-+#endif
- 
- 	return 0;
- 
+I don't think we should support O_SYNC at all unless there is a
+compelling use-case for it. I seriously doubt there is one. A rc device
+has more in common with a socket() than a open():ed file which resides
+on a harddisk.
+
+The O_NONBLOCK case is useful for e.g. a future lircd which uses some
+kind of epoll() event loop to write TX data, read RX data and to
+send/receive commands to/from userspace.
+
+The non-O_NONBLOCK case is useful to e.g. a debug command line program
+which does a blocking write and returns once the entire TX data stream
+has been passed to the kernel (eg some kind of rc_tx tool which could be
+used in scripts).
+
+>We could also have a kernel space write buffer (kfifo?) which the device 
+>driver works its way through; user space would just have to make sure
+>the buffer doesn't deplete, but there would be no limit on the IR signal
+>including silences. In that way the timing is entirely done in kernel 
+>space and no need for awkward sleeps and crossing of fingers.
+
+That is what I've proposed (in the patchset I've already sent, a kfifo
+is used for TX and trailing silences and/or inter-command silences can
+be encoded in the TX data itself).
+
+>> The lirc interface may not be the right device for such usage,
+>> if changing it would break support for existing devices.
+>
+>It would be great to obsolete that interface. Could reading raw IR be
+>merged with the input interface?
+
+No, it should be done using a separate RC-specific device...because we
+should support multiple input devices per RC device and not pollute the
+input subsystem with rc specifics.
+
 -- 
-1.7.11.4
-
+David Härdeman
