@@ -1,100 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57482 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57398 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753355Ab2HPPNA (ORCPT
+	with ESMTP id S1755409Ab2HUJXO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Aug 2012 11:13:00 -0400
+	Tue, 21 Aug 2012 05:23:14 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: davinci-linux-open-source@linux.davincidsp.com
-Cc: Prabhakar Lad <prabhakar.lad@ti.com>,
-	LMML <linux-media@vger.kernel.org>, linux-kernel@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] media: davinci: vpif: add check for NULL handler
-Date: Thu, 16 Aug 2012 17:13:16 +0200
-Message-ID: <1435592.88fOxbvhY7@avalon>
-In-Reply-To: <1345125720-24059-1-git-send-email-prabhakar.lad@ti.com>
-References: <1345125720-24059-1-git-send-email-prabhakar.lad@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	Bryan Wu <bryan.wu@canonical.com>,
+	Richard Purdie <rpurdie@rpsys.net>,
+	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
+	Sumit Semwal <sumit.semwal@ti.com>,
+	Archit Taneja <archit@ti.com>,
+	Sebastien Guiriec <s-guiriec@ti.com>,
+	Inki Dae <inki.dae@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [RFC 0/5] Generic panel framework
+Date: Tue, 21 Aug 2012 11:23:34 +0200
+Message-ID: <3648908.jA5PYymWxV@avalon>
+In-Reply-To: <1345528197.15491.8.camel@lappyti>
+References: <1345164583-18924-1-git-send-email-laurent.pinchart@ideasonboard.com> <3937256.gcqPRVoNWN@avalon> <1345528197.15491.8.camel@lappyti>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Hi Tomi,
 
-Thanks for the patch.
+On Tuesday 21 August 2012 08:49:57 Tomi Valkeinen wrote:
+> On Tue, 2012-08-21 at 01:29 +0200, Laurent Pinchart wrote:
+> > On Monday 20 August 2012 14:39:30 Tomi Valkeinen wrote:
+> > > On Sat, 2012-08-18 at 03:16 +0200, Laurent Pinchart wrote:
+> > > > Hi Tomi,
+> > > > 
+> > > > mipi-dbi-bus might not belong to include/video/panel/ though, as it
+> > > > can be used for non-panel devices (at least in theory). The future
+> > > > mipi-dsi-bus certainly will.
+> > > 
+> > > They are both display busses. So while they could be used for anything,
+> > > I find it quite unlikely as there are much better alternatives for
+> > > generic bus needs.
+> > 
+> > My point is that they could be used for display devices other than panels.
+> > This is especially true for DSI, as there are DSI to HDMI converters.
+> > Technically speaking that's also true for DBI, as DBI chips convert from
+> > DBI to DPI, but we can group both the DBI-to-DPI chip and the panel in a
+> > single panel object.
+> 
+> Ah, ok. I thought "panels" would include these buffer/converter chips.
+> 
+> I think we should have one driver for one indivisible hardware entity.
+> So if you've got a panel module that contains DBI receiver, buffer
+> memory and a DPI panel, let's just have one "DBI panel" driver for it.
+> 
+> If we get lots of different panel modules containing the same DBI RX IP,
+> we could have the DBI IP part as a common library, but still have one
+> panel driver per panel module.
 
-On Thursday 16 August 2012 19:32:00 Prabhakar Lad wrote:
-> From: Lad, Prabhakar <prabhakar.lad@ti.com>
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/video/davinci/vpif_capture.c |   12 +++++++-----
->  drivers/media/video/davinci/vpif_display.c |   14 ++++++++------
->  2 files changed, 15 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/video/davinci/vpif_capture.c
-> b/drivers/media/video/davinci/vpif_capture.c index 266025e..a87b7a5 100644
-> --- a/drivers/media/video/davinci/vpif_capture.c
-> +++ b/drivers/media/video/davinci/vpif_capture.c
-> @@ -311,12 +311,14 @@ static int vpif_start_streaming(struct vb2_queue *vq,
-> unsigned int count) }
-> 
->  	/* configure 1 or 2 channel mode */
-> -	ret = vpif_config_data->setup_input_channel_mode
-> -					(vpif->std_info.ycmux_mode);
-> +	if (vpif_config_data->setup_input_channel_mode) {
-> +		ret = vpif_config_data->setup_input_channel_mode
-> +						(vpif->std_info.ycmux_mode);
-> 
-> -	if (ret < 0) {
-> -		vpif_dbg(1, debug, "can't set vpif channel mode\n");
-> -		return ret;
-> +		if (ret < 0) {
-> +			vpif_dbg(1, debug, "can't set vpif channel mode\n");
-> +			return ret;
-> +		}
+Sounds good to me.
 
-This change looks good to me. However, note that you will need to get rid of 
-board code callbacks at some point to implement device tree support. It would 
-be worth thinking about how to do so now.
+> But how do you see the case for separate converter/buffer chips? Are
+> they part of the generic panel framework? I guess they kinda have to be.
+> On one side they use the "panel" API control the bus they are connected
+> to, and on the other they offer an API for the connected panel to use
+> the bus they provide.
 
->  	}
-> 
->  	/* Call vpif_set_params function to set the parameters and addresses */
-> diff --git a/drivers/media/video/davinci/vpif_display.c
-> b/drivers/media/video/davinci/vpif_display.c index e129c98..1e35f92 100644
-> --- a/drivers/media/video/davinci/vpif_display.c
-> +++ b/drivers/media/video/davinci/vpif_display.c
-> @@ -280,12 +280,14 @@ static int vpif_start_streaming(struct vb2_queue *vq,
-> unsigned int count) }
-> 
->  	/* clock settings */
-> -	ret =
-> -	    vpif_config_data->set_clock(ch->vpifparams.std_info.ycmux_mode,
-> -					ch->vpifparams.std_info.hd_sd);
-> -	if (ret < 0) {
-> -		vpif_err("can't set clock\n");
-> -		return ret;
-> +	if (vpif_config_data->set_clock) {
+The DBI/DSI APIs will not be panel-specific (they won't contain any reference 
+to "panel") I'm thus thinking of moving them from drivers/video/panel/ to 
+drivers/video/.
 
-Does the DaVinci platform use the common clock framework ? If so, a better fix 
-for this would be to pass a clock name through platform data instead of using 
-a callback function.
+Furthermore, a DSI-to-HDMI converter chip is not a panel, but needs to expose 
+display-related operations in a way similar to panels. I was thus wondering if 
+we shouldn't replace the panel structure with some kind of video entity 
+structure that would expose operations similar to panels. We could then extend 
+that structure with converter-specific operations later. The framework would 
+become a bit more generic, while remaining display-specific.
 
-> +		ret =
-> +		vpif_config_data->set_clock(ch->vpifparams.std_info.ycmux_mode,
-> +						ch->vpifparams.std_info.hd_sd);
-> +		if (ret < 0) {
-> +			vpif_err("can't set clock\n");
-> +			return ret;
-> +		}
->  	}
-> 
->  	/* set the parameters and addresses */
+> Did you just mean we should have a separate directory for them, while
+> still part of the same framework, or...?
+
 -- 
 Regards,
 
