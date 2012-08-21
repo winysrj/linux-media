@@ -1,86 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:63001 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760066Ab2HJXzj (ORCPT
+Received: from forward5h.mail.yandex.net ([84.201.186.23]:35794 "EHLO
+	forward5h.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752744Ab2HUAxV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Aug 2012 19:55:39 -0400
-Received: by weyx8 with SMTP id x8so1323910wey.19
-        for <linux-media@vger.kernel.org>; Fri, 10 Aug 2012 16:55:38 -0700 (PDT)
+	Mon, 20 Aug 2012 20:53:21 -0400
+From: CrazyCat <crazycat69@yandex.ru>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <502E94FA.6080301@redhat.com>
+References: <53381345139167@web11e.yandex.ru> <502D37CF.7030608@iki.fi> <839331345224097@web14d.yandex.ru> <502E94FA.6080301@redhat.com>
+Subject: Re: [PATCH] dvb_frontend: Multistream support
 MIME-Version: 1.0
-In-Reply-To: <E1SzvhW-0005hd-1S@www.linuxtv.org>
-References: <E1SzvhW-0005hd-1S@www.linuxtv.org>
-Date: Sat, 11 Aug 2012 05:25:37 +0530
-Message-ID: <CAHFNz9Ju7dB-iz0mcGuNMLDwibFXZqGe73jpBk7RPqG_w+MmXg@mail.gmail.com>
-Subject: Re: [git:v4l-dvb/for_v3.7] [media] mantis: Terratec Cinergy C PCI HD (CI)
-From: Manu Abraham <abraham.manu@gmail.com>
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linuxtv-commits@linuxtv.org, "Igor M. Liplianin" <liplianin@me.by>
-Content-Type: text/plain; charset=ISO-8859-1
+Message-Id: <168391345509740@web18h.yandex.ru>
+Date: Tue, 21 Aug 2012 03:42:20 +0300
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+Multistream support with all recommendations.
 
-Please revert this patch. Patch is incorrect. There is the VP-20300,
-VP-20330, VP-2040, with differences in tuner types TDA10021, TDA10023,
-MK-I, MK-II and MK-III. I have detailed this issue in an earlier mail.
-Terratec Cinregy C is VP-2033 and not VP-2040.
+Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
+diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
+index bb51edf..a6a6839 100644
+--- a/include/linux/dvb/frontend.h
++++ b/include/linux/dvb/frontend.h
+@@ -62,6 +62,7 @@ typedef enum fe_caps {
+ 	FE_CAN_8VSB			= 0x200000,
+ 	FE_CAN_16VSB			= 0x400000,
+ 	FE_HAS_EXTENDED_CAPS		= 0x800000,   /* We need more bitspace for newer APIs, indicate this. */
++	FE_CAN_MULTISTREAM		= 0x4000000,  /* frontend supports DVB-S2 multistream filtering */
+ 	FE_CAN_TURBO_FEC		= 0x8000000,  /* frontend supports "turbo fec modulation" */
+ 	FE_CAN_2G_MODULATION		= 0x10000000, /* frontend supports "2nd generation modulation" (DVB-S2) */
+ 	FE_NEEDS_BENDING		= 0x20000000, /* not supported anymore, don't use (frontend requires frequency bending) */
+@@ -338,9 +339,9 @@ struct dvb_frontend_event {
+ 
+ #define DTV_ISDBT_LAYER_ENABLED	41
+ 
+-#define DTV_ISDBS_TS_ID		42
+-
+-#define DTV_DVBT2_PLP_ID	43
++#define DTV_STREAM_ID		42
++#define DTV_ISDBS_TS_ID_LEGACY	DTV_STREAM_ID
++#define DTV_DVBT2_PLP_ID_LEGACY	43
+ 
+ #define DTV_ENUM_DELSYS		44
+ 
+@@ -436,6 +437,7 @@ enum atscmh_rs_code_mode {
+ 	ATSCMH_RSCODE_RES        = 3,
+ };
+ 
++#define NO_STREAM_ID_FILTER	(~0U)
+ 
+ struct dtv_cmds_h {
+ 	char	*name;		/* A display name for debugging purposes */
+diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
+index db309db..33996a0 100644
+--- a/drivers/media/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb-core/dvb_frontend.h
+@@ -370,11 +370,8 @@ struct dtv_frontend_properties {
+ 	    u8			interleaving;
+ 	} layer[3];
+ 
+-	/* ISDB-T specifics */
+-	u32			isdbs_ts_id;
+-
+-	/* DVB-T2 specifics */
+-	u32                     dvbt2_plp_id;
++	/* Multistream specifics */
++	u32			stream_id;
+ 
+ 	/* ATSC-MH specifics */
+ 	u8			atscmh_fic_ver;
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index aa4d4d8..fc0c0ca 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -946,8 +946,7 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
+ 		c->layer[i].segment_count = 0;
+ 	}
+ 
+-	c->isdbs_ts_id = 0;
+-	c->dvbt2_plp_id = 0;
++	c->stream_id = NO_STREAM_ID_FILTER;
+ 
+ 	switch (c->delivery_system) {
+ 	case SYS_DVBS:
+@@ -1018,8 +1017,8 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
+ 	_DTV_CMD(DTV_ISDBT_LAYERC_SEGMENT_COUNT, 1, 0),
+ 	_DTV_CMD(DTV_ISDBT_LAYERC_TIME_INTERLEAVING, 1, 0),
+ 
+-	_DTV_CMD(DTV_ISDBS_TS_ID, 1, 0),
+-	_DTV_CMD(DTV_DVBT2_PLP_ID, 1, 0),
++	_DTV_CMD(DTV_STREAM_ID, 1, 0),
++	_DTV_CMD(DTV_DVBT2_PLP_ID_LEGACY, 1, 0),
+ 
+ 	/* Get */
+ 	_DTV_CMD(DTV_DISEQC_SLAVE_REPLY, 0, 1),
+@@ -1387,11 +1386,11 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
+ 	case DTV_ISDBT_LAYERC_TIME_INTERLEAVING:
+ 		tvp->u.data = c->layer[2].interleaving;
+ 		break;
+-	case DTV_ISDBS_TS_ID:
+-		tvp->u.data = c->isdbs_ts_id;
+-		break;
+-	case DTV_DVBT2_PLP_ID:
+-		tvp->u.data = c->dvbt2_plp_id;
++
++	/* Multistream support */
++	case DTV_STREAM_ID:
++	case DTV_DVBT2_PLP_ID_LEGACY:
++		tvp->u.data = c->stream_id;
+ 		break;
+ 
+ 	/* ATSC-MH */
+@@ -1779,11 +1778,11 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
+ 	case DTV_ISDBT_LAYERC_TIME_INTERLEAVING:
+ 		c->layer[2].interleaving = tvp->u.data;
+ 		break;
+-	case DTV_ISDBS_TS_ID:
+-		c->isdbs_ts_id = tvp->u.data;
+-		break;
+-	case DTV_DVBT2_PLP_ID:
+-		c->dvbt2_plp_id = tvp->u.data;
++
++	/* Multistream support */
++	case DTV_STREAM_ID:
++	case DTV_DVBT2_PLP_ID_LEGACY:
++		c->stream_id = tvp->u.data;
+ 		break;
+ 
+ 	/* ATSC-MH */
 
-Thanks!
-
-
-On Sat, Aug 11, 2012 at 1:34 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> This is an automatic generated email to let you know that the following patch were queued at the
-> http://git.linuxtv.org/media_tree.git tree:
->
-> Subject: [media] mantis: Terratec Cinergy C PCI HD (CI)
-> Author:  Igor M. Liplianin <liplianin@me.by>
-> Date:    Wed May 9 07:23:14 2012 -0300
->
-> This patch seems for rectifying a typo. But actually the difference between
-> mantis_vp2040.c and mantis_vp2033.c code is a card name only.
->
-> Signed-off-by: Igor M. Liplianin <liplianin@me.by>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->
->  drivers/media/dvb/mantis/mantis_cards.c |    2 +-
->  drivers/media/dvb/mantis/mantis_core.c  |    2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
->
-> ---
->
-> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=9fa4d6a102ebb06663a03554b57fb93ad618b72e
->
-> diff --git a/drivers/media/dvb/mantis/mantis_cards.c b/drivers/media/dvb/mantis/mantis_cards.c
-> index 095cf3a..0207d1f 100644
-> --- a/drivers/media/dvb/mantis/mantis_cards.c
-> +++ b/drivers/media/dvb/mantis/mantis_cards.c
-> @@ -275,7 +275,7 @@ static struct pci_device_id mantis_pci_table[] = {
->         MAKE_ENTRY(TWINHAN_TECHNOLOGIES, MANTIS_VP_2033_DVB_C, &vp2033_config),
->         MAKE_ENTRY(TWINHAN_TECHNOLOGIES, MANTIS_VP_2040_DVB_C, &vp2040_config),
->         MAKE_ENTRY(TECHNISAT, CABLESTAR_HD2, &vp2040_config),
-> -       MAKE_ENTRY(TERRATEC, CINERGY_C, &vp2033_config),
-> +       MAKE_ENTRY(TERRATEC, CINERGY_C, &vp2040_config),
->         MAKE_ENTRY(TWINHAN_TECHNOLOGIES, MANTIS_VP_3030_DVB_T, &vp3030_config),
->         { }
->  };
-> diff --git a/drivers/media/dvb/mantis/mantis_core.c b/drivers/media/dvb/mantis/mantis_core.c
-> index 22524a8..684d906 100644
-> --- a/drivers/media/dvb/mantis/mantis_core.c
-> +++ b/drivers/media/dvb/mantis/mantis_core.c
-> @@ -121,7 +121,7 @@ static void mantis_load_config(struct mantis_pci *mantis)
->                 mantis->hwconfig = &vp2033_mantis_config;
->                 break;
->         case MANTIS_VP_2040_DVB_C:      /* VP-2040 */
-> -       case TERRATEC_CINERGY_C_PCI:    /* VP-2040 clone */
-> +       case CINERGY_C: /* VP-2040 clone */
->         case TECHNISAT_CABLESTAR_HD2:
->                 mantis->hwconfig = &vp2040_mantis_config;
->                 break;
->
-> _______________________________________________
-> linuxtv-commits mailing list
-> linuxtv-commits@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linuxtv-commits
