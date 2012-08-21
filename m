@@ -1,97 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:48404 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752052Ab2H1KyN (ORCPT
+Received: from ppsw-51.csi.cam.ac.uk ([131.111.8.151]:39142 "EHLO
+	ppsw-51.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751165Ab2HUOYa convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Aug 2012 06:54:13 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 12/14] media: coda: add byte size slice limit control
-Date: Tue, 28 Aug 2012 12:53:59 +0200
-Message-Id: <1346151241-10449-13-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1346151241-10449-1-git-send-email-p.zabel@pengutronix.de>
-References: <1346151241-10449-1-git-send-email-p.zabel@pengutronix.de>
+	Tue, 21 Aug 2012 10:24:30 -0400
+Received: from mpf30.sp.phy.cam.ac.uk ([131.111.73.200]:29507 helo=FexBox)
+	by ppsw-51.csi.cam.ac.uk (smtp.hermes.cam.ac.uk [131.111.8.158]:465)
+	with esmtpsa (LOGIN:mpf30) (TLSv1:AES128-SHA:128)
+	id 1T3pNd-00065M-Yw (Exim 4.72) for linux-media@vger.kernel.org
+	(return-path <mpf30@cam.ac.uk>); Tue, 21 Aug 2012 15:24:29 +0100
+From: "M. Fletcher" <mpf30@cam.ac.uk>
+To: <linux-media@vger.kernel.org>
+References: 
+In-Reply-To: 
+Subject: RE: Unable to load dvb-usb-rtl2832u driver in Ubuntu 12.04
+Date: Tue, 21 Aug 2012 15:24:43 +0100
+Message-ID: <00d701cd7fa8$b592c320$20b84960$@cam.ac.uk>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Language: en-gb
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/video/coda.c |   29 +++++++++++++++++++++++------
- 1 file changed, 23 insertions(+), 6 deletions(-)
+I am trying to setup a Compro U680F USB DVB-T adaptor in Ubuntu 12.04
+(kernel
+3.2.0-29-generic).
 
-diff --git a/drivers/media/video/coda.c b/drivers/media/video/coda.c
-index 3123260..db11219 100644
---- a/drivers/media/video/coda.c
-+++ b/drivers/media/video/coda.c
-@@ -152,6 +152,7 @@ struct coda_params {
- 	enum v4l2_mpeg_video_multi_slice_mode slice_mode;
- 	u32			framerate;
- 	u16			bitrate;
-+	u32			slice_max_bits;
- 	u32			slice_max_mb;
- };
- 
-@@ -1057,12 +1058,23 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
- 		return -EINVAL;
- 	}
- 
--	value  = (ctx->params.slice_max_mb & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
--	value |= (1 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
--	if (ctx->params.slice_mode == V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB)
-+	switch (ctx->params.slice_mode) {
-+	case V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE:
-+		value = 0;
-+		break;
-+	case V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB:
-+		value  = (ctx->params.slice_max_mb & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
-+		value |= (1 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
-+		value |=  1 & CODA_SLICING_MODE_MASK;
-+		break;
-+	case V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES:
-+		value  = (ctx->params.slice_max_bits & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
-+		value |= (0 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
- 		value |=  1 & CODA_SLICING_MODE_MASK;
-+		break;
-+	}
- 	coda_write(dev, value, CODA_CMD_ENC_SEQ_SLICE_MODE);
--	value  =  ctx->params.gop_size & CODA_GOP_SIZE_MASK;
-+	value = ctx->params.gop_size & CODA_GOP_SIZE_MASK;
- 	coda_write(dev, value, CODA_CMD_ENC_SEQ_GOP_SIZE);
- 
- 	if (ctx->params.bitrate) {
-@@ -1307,6 +1319,9 @@ static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB:
- 		ctx->params.slice_max_mb = ctrl->val;
- 		break;
-+	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES:
-+		ctx->params.slice_max_bits = ctrl->val * 8;
-+		break;
- 	case V4L2_CID_MPEG_VIDEO_HEADER_MODE:
- 		break;
- 	default:
-@@ -1345,10 +1360,12 @@ static int coda_ctrls_setup(struct coda_ctx *ctx)
- 		V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP, 1, 31, 1, 2);
- 	v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE,
--		V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB, 0,
--		V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB);
-+		V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES, 0x7,
-+		V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB, 1, 0x3fffffff, 1, 1);
-+	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
-+		V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES, 1, 0x3fffffff, 1, 500);
- 	v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_HEADER_MODE,
- 		V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME,
--- 
-1.7.10.4
+The compro device ID is given (lsusb) as 185b:0680. The following page
+suggests
+this device is supported by the RT2832U driver:
+http://www.dfragos.me/2011/11/installation-of-the-rt2832u-driver-in-linux/
+
+I successfully built the v4l-dvb package from source following this how to,
+using the "Basic Approach": 
+http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_D
+evice_Drivers
+
+After restarting the system the device does not appear to be working. The
+output from "lsmod | grep dvb" is as follows:
+
+root@DCTbox:/home/dct# lsmod | grep dvb
+dvb_usb                32369  0 
+dvb_core              110590  1 dvb_usb
+rc_core                26343  1 dvb_usb
+
+
+If I unplug the device and plug back in, I get the following from "dmesg |
+tail":
+
+root@DCTbox:/home/dct# dmesg | tail -n 27
+[  160.015155] usb 5-2: new high-speed USB device number 4 using xhci_hcd
+[  160.051152] usb 5-2: ep 0x81 - rounding interval to 32768 microframes, ep
+desc says 0 microframes
+[  160.133825] WARNING: You are using an experimental version of the media
+stack.
+[  160.133826]     As the driver is backported to an older kernel, it
+doesn't
+offer
+[  160.133827]     enough quality for its usage in production.
+[  160.133828]     Use it with care.
+[  160.133829] Latest git patches (needed if you report a bug to
+linux-media@vger.kernel.org):
+[  160.133830]     9b78c5a3007e10a172d4e83bea18509fdff2e8e3 [media] b2c2:
+export b2c2_flexcop_debug symbol
+[  160.133832]     88f8472c9fc6c08f5113887471f1f4aabf7b2929 [media] Fix some
+Makefile rules
+[  160.133833]     893430558e5bf116179915de2d3d119ad25c01cf [media]
+cx23885-cards: fix netup card default revision
+[  160.144374] WARNING: You are using an experimental version of the media
+stack.
+[  160.144376]     As the driver is backported to an older kernel, it
+doesn't
+offer
+[  160.144377]     enough quality for its usage in production.
+[  160.144378]     Use it with care.
+[  160.144379] Latest git patches (needed if you report a bug to
+linux-media@vger.kernel.org):
+[  160.144380]     9b78c5a3007e10a172d4e83bea18509fdff2e8e3 [media] b2c2:
+export b2c2_flexcop_debug symbol
+[  160.144381]     88f8472c9fc6c08f5113887471f1f4aabf7b2929 [media] Fix some
+Makefile rules
+[  160.144383]     893430558e5bf116179915de2d3d119ad25c01cf [media]
+cx23885-cards: fix netup card default revision
+[  160.173311] dvb_usb_rtl2832u: disagrees about version of symbol
+dvb_usb_device_init
+[  160.173315] dvb_usb_rtl2832u: Unknown symbol dvb_usb_device_init (err
+-22)
+[  392.860811] dvb_usb_rtl2832u: disagrees about version of symbol
+dvb_usb_device_init
+[  392.860815] dvb_usb_rtl2832u: Unknown symbol dvb_usb_device_init (err
+-22)
+[ 1282.328055] usb 5-2: USB disconnect, device number 4
+[ 1288.697208] usb 5-2: new high-speed USB device number 5 using xhci_hcd
+[ 1288.732785] usb 5-2: ep 0x81 - rounding interval to 32768 microframes, ep
+desc says 0 microframes
+[ 1288.747585] dvb_usb_rtl2832u: disagrees about version of symbol
+dvb_usb_device_init
+[ 1288.747589] dvb_usb_rtl2832u: Unknown symbol dvb_usb_device_init (err
+-22)
+
+
+
+If I attempt to load the driver manually I get the following error message:
+
+root@DCTbox:/home/dct# modprobe dvb_usb_rtl2832u
+FATAL: Error inserting dvb_usb_rtl2832u
+(/lib/modules/3.2.0-29-generic/kernel/drivers/media/dvb/dvb-usb/dvb-usb-rtl2
+832u.ko):
+Invalid argument
+
+
+
+Any advice on how to get this device working successfully would be greatly
+appreciated.
+
+Kind regards,
+Marc
+
 
