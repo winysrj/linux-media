@@ -1,36 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59908 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755268Ab2HVWw2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Aug 2012 18:52:28 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] au6610: define reset_resume
-Date: Thu, 23 Aug 2012 01:52:05 +0300
-Message-Id: <1345675925-30009-1-git-send-email-crope@iki.fi>
+Received: from ppsw-41.csi.cam.ac.uk ([131.111.8.141]:45710 "EHLO
+	ppsw-41.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756950Ab2HUPg4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Aug 2012 11:36:56 -0400
+From: "M. Fletcher" <mpf30@cam.ac.uk>
+To: "'Antti Palosaari'" <crope@iki.fi>
+Cc: <linux-media@vger.kernel.org>
+References: <00f301cd7fb1$b596f2c0$20c4d840$@cam.ac.uk> <5033A9C3.7090501@iki.fi>
+In-Reply-To: <5033A9C3.7090501@iki.fi>
+Subject: RE: Unable to load dvb-usb-rtl2832u driver in Ubuntu 12.04
+Date: Tue, 21 Aug 2012 16:37:10 +0100
+Message-ID: <00f401cd7fb2$d402c530$7c084f90$@cam.ac.uk>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Language: en-gb
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After qt1010 change that device seems to survive from reset resume.
+>It should be inside drivers/media/usb/dvb-usb-v2/ modinfo dvb_usb_rtl28xxu
+should list it. 
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/au6610.c | 1 +
- 1 file changed, 1 insertion(+)
+Correct, it was in drivers/media/usb/dvb-usb-v2/
+modinfo gives the expected output
 
-diff --git a/drivers/media/usb/dvb-usb-v2/au6610.c b/drivers/media/usb/dvb-usb-v2/au6610.c
-index 05f2a86..c126b70 100644
---- a/drivers/media/usb/dvb-usb-v2/au6610.c
-+++ b/drivers/media/usb/dvb-usb-v2/au6610.c
-@@ -194,6 +194,7 @@ static struct usb_driver au6610_driver = {
- 	.disconnect = dvb_usbv2_disconnect,
- 	.suspend = dvb_usbv2_suspend,
- 	.resume = dvb_usbv2_resume,
-+	.reset_resume = dvb_usbv2_reset_resume,
- 	.no_dynamic_id = 1,
- 	.soft_unbind = 1,
- };
--- 
-1.7.11.4
+>Also it is highly possible your device usb id is not known >by driver, you
+should add it, easiest is just replace some existing rtl2832u device id.
+
+Can you please advise how I do this? lsusb gives my device ID as 185b:0680
+
+Regards,
+Marc
+
+
 
