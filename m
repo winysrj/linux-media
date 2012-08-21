@@ -1,121 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59697 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751849Ab2HNFXt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 01:23:49 -0400
-From: Prabhakar Lad <prabhakar.lad@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	<linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH v2] media: davinci: fix section mismatch warnings
-Date: Tue, 14 Aug 2012 10:53:09 +0530
-Message-ID: <1344921789-16647-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:49263 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750791Ab2HUDln (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Aug 2012 23:41:43 -0400
+Received: by vbbff1 with SMTP id ff1so6086588vbb.19
+        for <linux-media@vger.kernel.org>; Mon, 20 Aug 2012 20:41:42 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <1345486935-18002-5-git-send-email-mchehab@redhat.com>
+References: <1345486935-18002-1-git-send-email-mchehab@redhat.com>
+	<1345486935-18002-5-git-send-email-mchehab@redhat.com>
+Date: Tue, 21 Aug 2012 09:11:42 +0530
+Message-ID: <CAK9yfHzbL0QKoEx9YWdRSczN3jPCzUzpDnoOXN7tFmogL0HpLg@mail.gmail.com>
+Subject: Re: [PATCH 4/6] [media] Cleanup media Kconfig files
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.lad@ti.com>
+Hi Mauro,
 
-This patch fixes section mismatch warnings for
-davinci video drivers.
+On 20 August 2012 23:52, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> - get rid of ridden V4L2_COMMON symbol
+>
+>   This symbol is not needed anymore; it can be folded with V4L2
+>   one, simplifying the Kconfig a little bit;
+>
+> - Comment why some Kconfig items are needed;
+>
+> - Remove if test for MEDIA_CAMERA_SUPPORT, replacing it by
+>   depends on.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> ---
+>  drivers/media/Kconfig            |  5 -----
+>  drivers/media/i2c/Kconfig        |  2 +-
+>  drivers/media/platform/Kconfig   |  6 ++----
+>  drivers/media/v4l2-core/Kconfig  | 27 ++++++++++++++++-----------
+>  drivers/media/v4l2-core/Makefile |  2 +-
+>  5 files changed, 20 insertions(+), 22 deletions(-)
+>
+> diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+> index d5b4e72..9c3698a 100644
+> --- a/drivers/media/Kconfig
+> +++ b/drivers/media/Kconfig
+> @@ -99,11 +99,6 @@ config VIDEO_DEV
+>         depends on MEDIA_CAMERA_SUPPORT || MEDIA_ANALOG_TV_SUPPORT || MEDIA_RADIO_SUPPORT
+>         default y
+>
+> -config VIDEO_V4L2_COMMON
+> -       tristate
+> -       depends on (I2C || I2C=n) && VIDEO_DEV
+> -       default (I2C || I2C=n) && VIDEO_DEV
+> -
+>  config VIDEO_V4L2_SUBDEV_API
+>         bool "V4L2 sub-device userspace API (EXPERIMENTAL)"
+>         depends on VIDEO_DEV && MEDIA_CONTROLLER && EXPERIMENTAL
+> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> index 7fe4acf..ad2c9de 100644
+> --- a/drivers/media/i2c/Kconfig
+> +++ b/drivers/media/i2c/Kconfig
+> @@ -322,7 +322,7 @@ comment "MPEG video encoders"
+>
+>  config VIDEO_CX2341X
+>         tristate "Conexant CX2341x MPEG encoders"
+> -       depends on VIDEO_V4L2 && VIDEO_V4L2_COMMON
+> +       depends on VIDEO_V4L2 && VIDEO_V4L2
 
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
----
- Changes for v2:
- 1: Annotate probe with __devinit.
- 2: Fixed the commit message.
+VIDEO_V4L2 is duplicated.
 
- drivers/media/video/davinci/dm355_ccdc.c   |    2 +-
- drivers/media/video/davinci/dm644x_ccdc.c  |    2 +-
- drivers/media/video/davinci/isif.c         |    2 +-
- drivers/media/video/davinci/vpfe_capture.c |    2 +-
- drivers/media/video/davinci/vpif.c         |    2 +-
- drivers/media/video/davinci/vpss.c         |    2 +-
- 6 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/video/davinci/dm355_ccdc.c b/drivers/media/video/davinci/dm355_ccdc.c
-index 5b68847..ce0e413 100644
---- a/drivers/media/video/davinci/dm355_ccdc.c
-+++ b/drivers/media/video/davinci/dm355_ccdc.c
-@@ -965,7 +965,7 @@ static struct ccdc_hw_device ccdc_hw_dev = {
- 	},
- };
- 
--static int __init dm355_ccdc_probe(struct platform_device *pdev)
-+static int __devinit dm355_ccdc_probe(struct platform_device *pdev)
- {
- 	void (*setup_pinmux)(void);
- 	struct resource	*res;
-diff --git a/drivers/media/video/davinci/dm644x_ccdc.c b/drivers/media/video/davinci/dm644x_ccdc.c
-index 9303fe5..ee7942b 100644
---- a/drivers/media/video/davinci/dm644x_ccdc.c
-+++ b/drivers/media/video/davinci/dm644x_ccdc.c
-@@ -957,7 +957,7 @@ static struct ccdc_hw_device ccdc_hw_dev = {
- 	},
- };
- 
--static int __init dm644x_ccdc_probe(struct platform_device *pdev)
-+static int __devinit dm644x_ccdc_probe(struct platform_device *pdev)
- {
- 	struct resource	*res;
- 	int status = 0;
-diff --git a/drivers/media/video/davinci/isif.c b/drivers/media/video/davinci/isif.c
-index 5278fe7..b99d542 100644
---- a/drivers/media/video/davinci/isif.c
-+++ b/drivers/media/video/davinci/isif.c
-@@ -1032,7 +1032,7 @@ static struct ccdc_hw_device isif_hw_dev = {
- 	},
- };
- 
--static int __init isif_probe(struct platform_device *pdev)
-+static int __devinit isif_probe(struct platform_device *pdev)
- {
- 	void (*setup_pinmux)(void);
- 	struct resource	*res;
-diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
-index 49a845f..843b138 100644
---- a/drivers/media/video/davinci/vpfe_capture.c
-+++ b/drivers/media/video/davinci/vpfe_capture.c
-@@ -1829,7 +1829,7 @@ static struct vpfe_device *vpfe_initialize(void)
-  * itself to the V4L2 driver and initializes fields of each
-  * device objects
-  */
--static __init int vpfe_probe(struct platform_device *pdev)
-+static __devinit int vpfe_probe(struct platform_device *pdev)
- {
- 	struct vpfe_subdev_info *sdinfo;
- 	struct vpfe_config *vpfe_cfg;
-diff --git a/drivers/media/video/davinci/vpif.c b/drivers/media/video/davinci/vpif.c
-index b3637af..9bd3caa 100644
---- a/drivers/media/video/davinci/vpif.c
-+++ b/drivers/media/video/davinci/vpif.c
-@@ -417,7 +417,7 @@ int vpif_channel_getfid(u8 channel_id)
- }
- EXPORT_SYMBOL(vpif_channel_getfid);
- 
--static int __init vpif_probe(struct platform_device *pdev)
-+static int __devinit vpif_probe(struct platform_device *pdev)
- {
- 	int status = 0;
- 
-diff --git a/drivers/media/video/davinci/vpss.c b/drivers/media/video/davinci/vpss.c
-index 3e5cf27..146e4b0 100644
---- a/drivers/media/video/davinci/vpss.c
-+++ b/drivers/media/video/davinci/vpss.c
-@@ -357,7 +357,7 @@ void dm365_vpss_set_pg_frame_size(struct vpss_pg_frame_size frame_size)
- }
- EXPORT_SYMBOL(dm365_vpss_set_pg_frame_size);
- 
--static int __init vpss_probe(struct platform_device *pdev)
-+static int __devinit vpss_probe(struct platform_device *pdev)
- {
- 	struct resource		*r1, *r2;
- 	char *platform_name;
+>         ---help---
+>           Support for the Conexant CX23416 MPEG encoders
+>           and CX23415 MPEG encoder/decoders.
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index 54e9ebb..03ae4e3 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -1,5 +1,3 @@
+> -if MEDIA_CAMERA_SUPPORT
+> -
+>  #
+>  # Platform drivers
+>  #      All drivers here are currently for webcam support
+> @@ -37,6 +35,7 @@ source "drivers/media/platform/blackfin/Kconfig"
+>
+>  config VIDEO_SH_VOU
+>         tristate "SuperH VOU video output driver"
+> +       depends on MEDIA_CAMERA_SUPPORT
+>         depends on VIDEO_DEV && ARCH_SHMOBILE
+>         select VIDEOBUF_DMA_CONTIG
+>         help
+> @@ -112,6 +111,7 @@ endif # V4L_PLATFORM_DRIVERS
+>  menuconfig V4L_MEM2MEM_DRIVERS
+>         bool "Memory-to-memory multimedia devices"
+>         depends on VIDEO_V4L2
+> +       depends on MEDIA_CAMERA_SUPPORT
+>         default n
+>         ---help---
+>           Say Y here to enable selecting drivers for V4L devices that
+> @@ -205,5 +205,3 @@ config VIDEO_MEM2MEM_TESTDEV
+>           This is a virtual test device for the memory-to-memory driver
+>           framework.
+>  endif #V4L_TEST_DRIVERS
+> -
+> -endif # MEDIA_CAMERA_SUPPORT
+> diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
+> index 05e530c..0c54e19 100644
+> --- a/drivers/media/v4l2-core/Kconfig
+> +++ b/drivers/media/v4l2-core/Kconfig
+> @@ -2,6 +2,12 @@
+>  # Generic video config states
+>  #
+>
+> +# Enable the V4L2 core and API
+> +config VIDEO_V4L2
+> +       tristate
+> +       depends on (I2C || I2C=n) && VIDEO_DEV
+> +       default (I2C || I2C=n) && VIDEO_DEV
+> +
+>  config VIDEO_ADV_DEBUG
+>         bool "Enable advanced debug functionality on V4L2 drivers"
+>         default n
+> @@ -19,11 +25,17 @@ config VIDEO_FIXED_MINOR_RANGES
+>
+>           When in doubt, say N.
+>
+> -config VIDEO_V4L2
+> +# Used by drivers that need tuner.ko
+> +config VIDEO_TUNER
+>         tristate
+> -       depends on VIDEO_V4L2_COMMON
+> -       default y
+> +       depends on MEDIA_TUNER
+> +
+> +# Used by drivers that need v4l2-mem2mem.ko
+> +config V4L2_MEM2MEM_DEV
+> +        tristate
+> +        depends on VIDEOBUF2_CORE
+>
+> +# Used by drivers that need Videobuf modules
+>  config VIDEOBUF_GEN
+>         tristate
+>
+> @@ -45,14 +57,7 @@ config VIDEOBUF_DVB
+>         tristate
+>         select VIDEOBUF_GEN
+>
+> -config VIDEO_TUNER
+> -       tristate
+> -       depends on MEDIA_TUNER
+> -
+> -config V4L2_MEM2MEM_DEV
+> -        tristate
+> -        depends on VIDEOBUF2_CORE
+> -
+> +# Used by drivers that need Videobuf2 modules
+>  config VIDEOBUF2_CORE
+>         tristate
+>
+> diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
+> index c0e90bc..c2d61d4 100644
+> --- a/drivers/media/v4l2-core/Makefile
+> +++ b/drivers/media/v4l2-core/Makefile
+> @@ -11,7 +11,7 @@ ifeq ($(CONFIG_COMPAT),y)
+>  endif
+>
+>  obj-$(CONFIG_VIDEO_DEV) += videodev.o v4l2-int-device.o
+> -obj-$(CONFIG_VIDEO_V4L2_COMMON) += v4l2-common.o
+> +obj-$(CONFIG_VIDEO_V4L2) += v4l2-common.o
+>
+>  obj-$(CONFIG_VIDEO_TUNER) += tuner.o
+>
+> --
+> 1.7.11.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
 -- 
-1.7.0.4
-
+With regards,
+Sachin
