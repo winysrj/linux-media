@@ -1,84 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:52908 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754047Ab2HOQNY (ORCPT
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:56911 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753737Ab2HUOb5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Aug 2012 12:13:24 -0400
-Received: by bkwj10 with SMTP id j10so585734bkw.19
-        for <linux-media@vger.kernel.org>; Wed, 15 Aug 2012 09:13:22 -0700 (PDT)
-Message-ID: <502BCA9F.4040603@gmail.com>
-Date: Wed, 15 Aug 2012 18:13:19 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Tue, 21 Aug 2012 10:31:57 -0400
+Received: by lagy9 with SMTP id y9so3930281lag.19
+        for <linux-media@vger.kernel.org>; Tue, 21 Aug 2012 07:31:56 -0700 (PDT)
+Message-ID: <50339BCB.3090006@iki.fi>
+Date: Tue, 21 Aug 2012 17:31:39 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: Patches submitted via linux-media ML that are at patchwork.linuxtv.org
-References: <502A4CD1.1020108@redhat.com> <502A7EC3.7030803@samsung.com> <23599424.KTEC3Hhc5D@avalon>
-In-Reply-To: <23599424.KTEC3Hhc5D@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
+To: "M. Fletcher" <mpf30@cam.ac.uk>
+CC: linux-media@vger.kernel.org
+Subject: Re: Unable to load dvb-usb-rtl2832u driver in Ubuntu 12.04
+References: <00d701cd7fa8$b592c320$20b84960$@cam.ac.uk>
+In-Reply-To: <00d701cd7fa8$b592c320$20b84960$@cam.ac.uk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On 08/21/2012 05:24 PM, M. Fletcher wrote:
+> I am trying to setup a Compro U680F USB DVB-T adaptor in Ubuntu 12.04
+> (kernel
+> 3.2.0-29-generic).
+>
+> The compro device ID is given (lsusb) as 185b:0680. The following page
+> suggests
+> this device is supported by the RT2832U driver:
+> http://www.dfragos.me/2011/11/installation-of-the-rt2832u-driver-in-linux/
+>
+> I successfully built the v4l-dvb package from source following this how to,
+> using the "Basic Approach":
+> http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_D
+> evice_Drivers
+>
+> After restarting the system the device does not appear to be working. The
+> output from "lsmod | grep dvb" is as follows:
+>
+> root@DCTbox:/home/dct# lsmod | grep dvb
+> dvb_usb                32369  0
+> dvb_core              110590  1 dvb_usb
+> rc_core                26343  1 dvb_usb
+>
+>
+> If I unplug the device and plug back in, I get the following from "dmesg |
+> tail":
+>
+> root@DCTbox:/home/dct# dmesg | tail -n 27
+> [  160.015155] usb 5-2: new high-speed USB device number 4 using xhci_hcd
+> [  160.051152] usb 5-2: ep 0x81 - rounding interval to 32768 microframes, ep
+> desc says 0 microframes
+> [  160.133825] WARNING: You are using an experimental version of the media
+> stack.
+> [  160.133826]     As the driver is backported to an older kernel, it
+> doesn't
+> offer
+> [  160.133827]     enough quality for its usage in production.
+> [  160.133828]     Use it with care.
+> [  160.133829] Latest git patches (needed if you report a bug to
+> linux-media@vger.kernel.org):
+> [  160.133830]     9b78c5a3007e10a172d4e83bea18509fdff2e8e3 [media] b2c2:
+> export b2c2_flexcop_debug symbol
+> [  160.133832]     88f8472c9fc6c08f5113887471f1f4aabf7b2929 [media] Fix some
+> Makefile rules
+> [  160.133833]     893430558e5bf116179915de2d3d119ad25c01cf [media]
+> cx23885-cards: fix netup card default revision
+> [  160.144374] WARNING: You are using an experimental version of the media
+> stack.
+> [  160.144376]     As the driver is backported to an older kernel, it
+> doesn't
+> offer
+> [  160.144377]     enough quality for its usage in production.
+> [  160.144378]     Use it with care.
+> [  160.144379] Latest git patches (needed if you report a bug to
+> linux-media@vger.kernel.org):
+> [  160.144380]     9b78c5a3007e10a172d4e83bea18509fdff2e8e3 [media] b2c2:
+> export b2c2_flexcop_debug symbol
+> [  160.144381]     88f8472c9fc6c08f5113887471f1f4aabf7b2929 [media] Fix some
+> Makefile rules
+> [  160.144383]     893430558e5bf116179915de2d3d119ad25c01cf [media]
+> cx23885-cards: fix netup card default revision
+> [  160.173311] dvb_usb_rtl2832u: disagrees about version of symbol
+> dvb_usb_device_init
+> [  160.173315] dvb_usb_rtl2832u: Unknown symbol dvb_usb_device_init (err
+> -22)
+> [  392.860811] dvb_usb_rtl2832u: disagrees about version of symbol
+> dvb_usb_device_init
+> [  392.860815] dvb_usb_rtl2832u: Unknown symbol dvb_usb_device_init (err
+> -22)
+> [ 1282.328055] usb 5-2: USB disconnect, device number 4
+> [ 1288.697208] usb 5-2: new high-speed USB device number 5 using xhci_hcd
+> [ 1288.732785] usb 5-2: ep 0x81 - rounding interval to 32768 microframes, ep
+> desc says 0 microframes
+> [ 1288.747585] dvb_usb_rtl2832u: disagrees about version of symbol
+> dvb_usb_device_init
+> [ 1288.747589] dvb_usb_rtl2832u: Unknown symbol dvb_usb_device_init (err
+> -22)
+>
+>
+>
+> If I attempt to load the driver manually I get the following error message:
+>
+> root@DCTbox:/home/dct# modprobe dvb_usb_rtl2832u
+> FATAL: Error inserting dvb_usb_rtl2832u
+> (/lib/modules/3.2.0-29-generic/kernel/drivers/media/dvb/dvb-usb/dvb-usb-rtl2
+> 832u.ko):
+> Invalid argument
+>
+>
+>
+> Any advice on how to get this device working successfully would be greatly
+> appreciated.
+>
+> Kind regards,
+> Marc
 
-On 08/15/2012 12:06 AM, Laurent Pinchart wrote:
-> Hi Sylwester,
-> 
-> On Tuesday 14 August 2012 18:37:23 Sylwester Nawrocki wrote:
->> On 08/14/2012 03:04 PM, Mauro Carvalho Chehab wrote:
->>> This one requires more testing:
->>>
->>> May,15 2012: [GIT,PULL,FOR,3.5] DMABUF importer feature in V4L2 API
->>>           http://patchwork.linuxtv.org/patch/11268  Sylwester Nawrocki
->>> <s.nawrocki@samsung.com>
->> Hmm, this is not valid any more. Tomasz just posted a new patch series
->> that adds DMABUF importer and exporter feature altogether.
->>
->> [PATCHv8 00/26] Integration of videobuf2 with DMABUF
->>
->> I guess we need someone else to submit test patches for other H/W than just
->> Samsung SoCs. I'm not sure if we've got enough resources to port this to
->> other hardware. We have been using these features internally for some time
->> already. It's been 2 kernel releases and I can see only Ack tags from
->> Laurent on Tomasz's patch series, hence it seems there is no wide interest
->> in DMABUF support in V4L2 and this patch series is probably going to stay in
->> a fridge for another few kernel releases.
-> 
-> What would be required to push it to v3.7 ?
+There is no driver named dvb_usb_rtl2832u. It is dvb_usb_rtl28xxu. I 
+don't know how in the world you could have such driver. It is not from 
+the LinuxTV.org / Kernel as you argue.
 
-Mauro requested more test coverage on that, which is understood since 
-this is a fairly important API enhancement and the V4L2 video overlay API 
-replacement.
+regards
+Antti
 
-We need DMABUF support added at some webcam driver and a DRM driver with 
-prime support (or some V4L2 output driver), I guess it would be best to 
-have that in a PC environment. It looks like i915/radeon/nouveau drivers 
-already have prime support.
-
-The DRM driver could be an exporter of buffers that would be passed to
-the webcam driver.
-
-And except the kernel patches we would need a test application, similar
-to that one: 
-http://git.infradead.org/users/kmpark/public-apps/blob/a7e755629a74a7ac137882032a0f7b2480fa1490:/v4l2-drm-example/dmabuf-sharing.c
-
-I haven't been closely following the DMABUF APIs development, I think
-Tomasz could provide more details on that.
-
-It's likely I'll get around and prepare a test case as outlined above
-in coming days. Anyway, it would be appreciated if someone else could 
-give this patch series a try.
-
---
-
-Regards,
-Sylwester
+-- 
+http://palosaari.fi/
