@@ -1,44 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:55150 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751483Ab2HCSLf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2012 14:11:35 -0400
-Received: by yenl2 with SMTP id l2so1164689yen.19
-        for <linux-media@vger.kernel.org>; Fri, 03 Aug 2012 11:11:35 -0700 (PDT)
+Received: from ppsw-41.csi.cam.ac.uk ([131.111.8.141]:51451 "EHLO
+	ppsw-41.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756222Ab2HUP24 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Aug 2012 11:28:56 -0400
+From: "M. Fletcher" <mpf30@cam.ac.uk>
+To: <crope@iki.fi>
+Cc: <linux-media@vger.kernel.org>
+Subject: Re: Unable to load dvb-usb-rtl2832u driver in Ubuntu 12.04
+Date: Tue, 21 Aug 2012 16:29:09 +0100
+Message-ID: <00f301cd7fb1$b596f2c0$20c4d840$@cam.ac.uk>
 MIME-Version: 1.0
-In-Reply-To: <1344016352-20302-1-git-send-email-elezegarcia@gmail.com>
-References: <1344016352-20302-1-git-send-email-elezegarcia@gmail.com>
-Date: Fri, 3 Aug 2012 15:11:34 -0300
-Message-ID: <CALF0-+UdxdawZMeniA-tia3qKARbX_+u2k8PnbhA_FhDKUMv3Q@mail.gmail.com>
-Subject: Re: [PATCH] em28xx: Fix height setting on non-progressive captures
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Language: en-gb
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 3, 2012 at 2:52 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
-> This was introduced on commit c2a6b54a9:
-> "em28xx: fix: don't do image interlacing on webcams"
-> It is a known bug that has already been reported several times
-> and confirmed by Mauro.
-> Tested by compilation only.
->
+Apologies for the confusion. Having done more digging I think the
+dvb_usb_rtl2832u module was added by the package download from here
+http://www.dfragos.me/2011/11/installation-of-the-rt2832u-driver-in-linux/.
+This is confirmed by looking through the corresponding 'MakeFile'. I have
+therefore removed references to dvb_usb_rtl2832u from
+/lib/modules/3.2.0-29-generic/kernel/drivers/media/usb/dvb-usb.
 
-I wonder if it's possible to get an Ack or a Tested-By from any of the
-em28xx owners?
+I have also performed a clean, build & install of V4L-DVB.
 
-Also, Devin: you mentioned in an old mail [1] you had some patches for em28xx,
-but you had no time to put them into shape for submission.
+The contents of the dvb-usb folder are now as follows:
 
-If you want to, send then to me (or the full em28xx tree) and I can
-try to submit
-the patches.
+dct@DCTbox:/lib/modules/3.2.0-29-generic/kernel/drivers/media/usb/dvb-usb$
+ls
+dvb-usb-a800.ko           dvb-usb-dib0700.ko        dvb-usb-dtv5100.ko
+dvb-usb-nova-t-usb2.ko     dvb-usb-vp702x.ko
+dvb-usb-af9005.ko         dvb-usb-dibusb-common.ko  dvb-usb-dw2102.ko
+dvb-usb-opera.ko           dvb-usb-vp7045.ko
+dvb-usb-af9005-remote.ko  dvb-usb-dibusb-mb.ko      dvb-usb-friio.ko
+dvb-usb-pctv452e.ko
+dvb-usb-az6027.ko         dvb-usb-dibusb-mc.ko      dvb-usb-gp8psk.ko
+dvb-usb-technisat-usb2.ko
+dvb-usb-cinergyT2.ko      dvb-usb-digitv.ko         dvb-usb.ko
+dvb-usb-ttusb2.ko
+dvb-usb-cxusb.ko          dvb-usb-dtt200u.ko        dvb-usb-m920x.ko
+dvb-usb-umt-010.ko
 
-Thanks,
-Ezequiel.
+I cannot see any reference to the dvb_usb_rtl28xxu module. Having said that
+a reference to 'dvb_usb_rtl28xxu' does appear when I build V4L-DVB.
 
-[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg48232.html
+Can you please advise how I correctly add dvb_usb_rtl28xxu?
+
