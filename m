@@ -1,42 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:36763 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752401Ab2HPLyv (ORCPT
+Received: from am1ehsobe004.messaging.microsoft.com ([213.199.154.207]:26626
+	"EHLO am1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751942Ab2HUGrx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Aug 2012 07:54:51 -0400
-Received: by ghrr11 with SMTP id r11so2781842ghr.19
-        for <linux-media@vger.kernel.org>; Thu, 16 Aug 2012 04:54:49 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, s.nawrocki@samsung.com,
-	andrzej.p@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH Trivial] [media] s5p-jpeg: Add missing braces around sizeof
-Date: Thu, 16 Aug 2012 17:22:58 +0530
-Message-Id: <1345117978-3374-1-git-send-email-sachin.kamat@linaro.org>
+	Tue, 21 Aug 2012 02:47:53 -0400
+From: Richard Zhao <richard.zhao@freescale.com>
+To: <linux-media@vger.kernel.org>
+CC: <mchehab@infradead.org>, <s.nawrocki@samsung.com>,
+	<p.zabel@pengutronix.de>, <javier.martin@vista-silicon.com>,
+	<hans.verkuil@cisco.com>, <nfleischmann@de.adit-jv.com>,
+	Richard Zhao <richard.zhao@freescale.com>
+Subject: [PATCH] media: coda: remove duplicated call of fh_to_ctx in vidioc_s_fmt_vid_out
+Date: Tue, 21 Aug 2012 14:47:42 +0800
+Message-ID: <1345531662-16990-1-git-send-email-richard.zhao@freescale.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Silences the following warning:
-WARNING: sizeof *ctx should be sizeof(*ctx)
-
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Signed-off-by: Richard Zhao <richard.zhao@freescale.com>
 ---
- drivers/media/platform/s5p-jpeg/jpeg-core.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/media/platform/coda.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 72c3e52..ae916cd 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -288,7 +288,7 @@ static int s5p_jpeg_open(struct file *file)
- 	struct s5p_jpeg_fmt *out_fmt;
- 	int ret = 0;
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 6908514..69ff0d3 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -501,7 +501,7 @@ static int vidioc_s_fmt_vid_out(struct file *file, void *priv,
+ 	if (ret)
+ 		return ret;
  
--	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
-+	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
- 	if (!ctx)
- 		return -ENOMEM;
+-	ret = vidioc_s_fmt(fh_to_ctx(priv), f);
++	ret = vidioc_s_fmt(ctx, f);
+ 	if (ret)
+ 		ctx->colorspace = f->fmt.pix.colorspace;
  
 -- 
-1.7.4.1
+1.7.9.5
+
 
