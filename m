@@ -1,304 +1,261 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.telros.ru ([83.136.244.21]:65535 "EHLO mail.telros.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754709Ab2HVGnU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Aug 2012 02:43:20 -0400
-From: Volokh Konstantin <volokh84@gmail.com>
-To: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org, volokh@telros.ru
-Cc: Volokh Konstantin <volokh84@gmail.com>
-Subject: [PATCH 01/10] staging: media: go7007: Some additional code for TW2804 driver functionality
-Date: Wed, 22 Aug 2012 14:45:10 +0400
-Message-Id: <1345632319-23224-1-git-send-email-volokh84@gmail.com>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:38581 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756970Ab2HUTmd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Aug 2012 15:42:33 -0400
+Date: Tue, 21 Aug 2012 21:42:26 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Sean Young <sean@mess.org>, Jarod Wilson <jwilson@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [media] rc-core: move timeout and checks to lirc
+Message-ID: <20120821194226.GA4993@hardeman.nu>
+References: <20120816221514.GA26546@pequod.mess.org>
+ <502D7E62.9040204@redhat.com>
+ <20120820213659.GC14636@hardeman.nu>
+ <5032B407.8030407@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <5032B407.8030407@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- using new v4l2 framework controls
-- function for reading volatile controls via i2c bus
-- separate V4L2_CID_ ctrls into each V4L2 calls
+On Mon, Aug 20, 2012 at 07:02:47PM -0300, Mauro Carvalho Chehab wrote:
+>Em 20-08-2012 18:36, David Härdeman escreveu:
+>> On Thu, Aug 16, 2012 at 08:12:34PM -0300, Mauro Carvalho Chehab wrote:
+>>> Em 16-08-2012 19:15, Sean Young escreveu:
+>>>>  
+>>>>> The lirc TX functionality expects the process which writes (TX) data to
+>>>>> the lirc dev to sleep until the actual data has been transmitted by the
+>>>>> hardware.
+>>>>>
+>>>>> Since the same timeout calculation is duplicated in more than one driver
+>>>>> (and would have to be duplicated in even more drivers as they gain TX
+>>>>> support), it makes sense to move this timeout calculation to the lirc
+>>>>> layer instead.
+>>>>>
+>>>>> At the same time, centralize some of the sanity checks.
+>>>>>
+>>>>> Signed-off-by: David Härdeman <david@hardeman.nu>
+>>>>> Cc: Jarod Wilson <jwilson@redhat.com>
+>>>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>>>> ---
+>>>>>  drivers/media/rc/ir-lirc-codec.c | 33 +++++++++++++++++++++++++++++----
+>>>>>  drivers/media/rc/mceusb.c        | 18 ------------------
+>>>>>  drivers/media/rc/rc-loopback.c   | 12 ------------
+>>>>>  3 files changed, 29 insertions(+), 34 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+>>>>> index d2fd064..6ad4a07 100644
+>>>>> --- a/drivers/media/rc/ir-lirc-codec.c
+>>>>> +++ b/drivers/media/rc/ir-lirc-codec.c
+>>>>> @@ -107,6 +107,12 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+>>>>>  	unsigned int *txbuf; /* buffer with values to transmit */
+>>>>>  	ssize_t ret = -EINVAL;
+>>>>>  	size_t count;
+>>>>> +	ktime_t start;
+>>>>> +	s64 towait;
+>>>>> +	unsigned int duration = 0; /* signal duration in us */
+>>>>> +	int i;
+>>>>> +
+>>>>> +	start = ktime_get();
+>>>>>  
+>>>>>  	lirc = lirc_get_pdata(file);
+>>>>>  	if (!lirc)
+>>>>> @@ -129,11 +135,30 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+>>>>>  		goto out;
+>>>>>  	}
+>>>>>  
+>>>>> -	if (dev->tx_ir)
+>>>>> -		ret = dev->tx_ir(dev, txbuf, count);
+>>>>> +	if (!dev->tx_ir) {
+>>>>> +		ret = -ENOSYS;
+>>>>> +		goto out;
+>>>>> +	}
+>>>>> +
+>>>>> +	ret = dev->tx_ir(dev, txbuf, (u32)n);
+>>>>> +	if (ret < 0)
+>>>>> +		goto out;
+>>>>> +
+>>>>> +	for (i = 0; i < ret; i++)
+>>>>> +		duration += txbuf[i];
+>>>>>  
+>>>>> -	if (ret > 0)
+>>>>> -		ret *= sizeof(unsigned);
+>>>>> +	ret *= sizeof(unsigned int);
+>>>>> +
+>>>>> +	/*
+>>>>> +	 * The lircd gap calculation expects the write function to
+>>>>> +	 * wait for the actual IR signal to be transmitted before
+>>>>> +	 * returning.
+>>>>> +	 */
+>>>>> +	towait = ktime_us_delta(ktime_add_us(start, duration), ktime_get());
+>>>>> +	if (towait > 0) {
+>>>>> +		set_current_state(TASK_INTERRUPTIBLE);
+>>>>> +		schedule_timeout(usecs_to_jiffies(towait));
+>>>>> +	}
+>>>>>  
+>>>>>  out:
+>>>>
+>>>> You've moved the sleeping out of the drivers to ir-lirc-codec, which makes
+>>>> sense for some devices. However you haven't updated winbond-cir.c which
+>>>> does two things:
+>>>>
+>>>> 1) Modifies the txbuf (which is now used after transmit)
+>>>> 2) Does the sleeping already since it blocks on the device to complete.
+>>>>
+>>>> Surely if the driver can block on the device to complete then that is 
+>>>> better than sleeping; there might some difference due to rounding and 
+>>>> clock skew.
+>>>>
+>>>> In addition to winbond-cir, iguanair suffer from the same problem. There
+>>>> might be others.
+>>>
+>>> That's likely my fault: I was waiting for Jarod's review on this patch,
+>>> with didn't happen, likely because he is too busy with some other stuff.
+>>> Both winbond and iguanair drivers went after David's patch.
+>>>
+>>> Feel free to send me a patch fixing it there.
+>>>
+>>>> Could we have a flag in rc_dev to signify whether a driver blocks on
+>>>> completion of a transmit and only sleep here if it is not set?
+>>>>
+>>>> e.g. rc_dev.tx_blocks_until_complete
+>>>>
+>>>> The wording could be improved.
+>>>>
+>>>> Another alternative would be if the drivers provided a 
+>>>> "wait_for_tx_to_complete()" function. If they can provided that; using 
+>>>> that it would be possible to implement O_NONBLOCK and sync.
+>>>
+>>> Seems fine on my eyes. It may avoid code duplication if you pass the fd 
+>>> flags to the lirc call, and add a code there that will wait for complete, 
+>>> if the device was not opened in block mode.
+>> 
+>> I think a future rc-core native TX API should behave like a write() on a
+>> network socket does.
+>> 
+>> That is, a write on a rc device opened with O_NONBLOCK will either
+>> succeed immediately (i.e. write data to buffers for further processing)
+>> or return EAGAIN.  A write on a non-O_NONBLOCK device will either write
+>> the data to buffer space and return or wait for more space to be
+>> available. No waiting for the data to actually leave the "device" (NIC
+>> or IR transmitter) is done by the write() call.
+>> 
+>> The "gap calculation" that lirc wants to do based on the time a write()
+>> takes to complete is quite non-unixy in my eyes and seems bogus.
+>> 
+>> If a user-space program wants a very specific and deterministic
+>> behaviour, eg. wrt gaps...it should just add it to the TX data.
+>> 
+>> I.e. if you want to TX command "A", wait 150ms, TX command "B", then
+>> instead of doing:
+>> 
+>> write(A); sleep(150ms); write(B);
+>> 
+>> the app should do:
+>> 
+>> write(A + 150ms silence + B);
+>> 
+>> The same goes for e.g. trailing silences after commands, etc...
+>
+>That makes sense to me, but we need to not break existing userspace
+>applications with new improvements.
 
-Signed-off-by: Volokh Konstantin <volokh84@gmail.com>
----
- drivers/staging/media/go7007/wis-tw2804.c |  248 +++++++++++++++++++++++++++++
- 1 files changed, 248 insertions(+), 0 deletions(-)
+Agreed. But that is what the patch aimed to do. The "timeout" was moved
+to the lirc code and out of the drivers. Then a new API could call the 
+drivers directly, without any timeout, while the lirc layer emulates the
+old behavior.
 
-diff --git a/drivers/staging/media/go7007/wis-tw2804.c b/drivers/staging/media/go7007/wis-tw2804.c
-index 9134f03..05851d3 100644
---- a/drivers/staging/media/go7007/wis-tw2804.c
-+++ b/drivers/staging/media/go7007/wis-tw2804.c
-@@ -21,10 +21,18 @@
- #include <linux/videodev2.h>
- #include <linux/ioctl.h>
- #include <linux/slab.h>
-+#include <media/v4l2-subdev.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-chip-ident.h>
-+#include <media/v4l2-ctrls.h>
- 
- #include "wis-i2c.h"
- 
- struct wis_tw2804 {
-+	struct v4l2_subdev sd;
-+	struct v4l2_ctrl_handler hdl;
-+	u8 channel:2;
-+	u8 input:1;
- 	int channel;
- 	int norm;
- 	int brightness;
-@@ -116,9 +124,246 @@ static int write_regs(struct i2c_client *client, u8 *regs, int channel)
- 		if (i2c_smbus_write_byte_data(client,
- 				regs[i] | (channel << 6), regs[i + 1]) < 0)
- 			return -1;
-+static s32 read_reg(struct i2c_client *client, u8 reg, u8 channel)
-+{
-+	return i2c_smbus_read_byte_data(client, (reg) | (channel << 6));
-+}
-+
-+inline struct wis_tw2804 *to_state(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct wis_tw2804, sd);
-+}
-+
-+inline struct wis_tw2804 *to_state_from_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	return container_of(ctrl->handler, struct wis_tw2804, hdl);
-+}
-+
-+static int tw2804_log_status(struct v4l2_subdev *sd)
-+{
-+	struct wis_tw2804 *state = to_state(sd);
-+	v4l2_info(sd, "Standard: %s\n",
-+			state->norm == V4L2_STD_NTSC ? "NTSC" :
-+			state->norm == V4L2_STD_PAL ? "PAL" : "unknown");
-+	v4l2_info(sd, "Channel: %d\n", state->channel);
-+	v4l2_info(sd, "Input: %d\n", state->input);
-+	v4l2_ctrl_handler_log_status(&state->hdl, sd->name);
-+	return 0;
-+}
-+
-+static s32 get_ctrl_addr(int ctrl)
-+{
-+	switch (ctrl) {
-+	case V4L2_CID_BRIGHTNESS:
-+		return 0x12;
-+	case V4L2_CID_CONTRAST:
-+		return 0x11;
-+	case V4L2_CID_SATURATION:
-+		return 0x10;
-+	case V4L2_CID_HUE:
-+		return 0x0f;
-+	case V4L2_CID_AUTOGAIN:
-+		return 0x02;
-+	case V4L2_CID_COLOR_KILLER:
-+		return 0x14;
-+	case V4L2_CID_GAIN:
-+		return 0x3c;
-+	case V4L2_CID_CHROMA_GAIN:
-+		return 0x3d;
-+	case V4L2_CID_RED_BALANCE:
-+		return 0x3f;
-+	case V4L2_CID_BLUE_BALANCE:
-+		return 0x3e;
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+static int tw2804_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct v4l2_subdev *sd = &to_state_from_ctrl(ctrl)->sd;
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	s32 addr = get_ctrl_addr(ctrl->id);
-+
-+	if (addr == -EINVAL)
-+		return -EINVAL;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_GAIN:
-+	case V4L2_CID_CHROMA_GAIN:
-+	case V4L2_CID_RED_BALANCE:
-+	case V4L2_CID_BLUE_BALANCE:
-+		ctrl->cur.val = read_reg(client, addr, 0);
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static int tw2804_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct wis_tw2804 *state = to_state_from_ctrl(ctrl);
-+	struct v4l2_subdev *sd = &state->sd;
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	s32 reg = ctrl->val;
-+	s32 addr = get_ctrl_addr(ctrl->id);
-+
-+	if (addr == -EINVAL)
-+		return -EINVAL;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_AUTOGAIN:
-+		reg = read_reg(client, addr, state->channel);
-+		if (reg > 0) {
-+			if (ctrl->val == 0)
-+				reg &= ~(1<<7);
-+			else
-+				reg |= 1<<7;
-+		} else
-+			return reg;
-+		break;
-+	case V4L2_CID_COLOR_KILLER:
-+		reg = read_reg(client, addr, state->channel);
-+		if (reg > 0)
-+			reg = (reg & ~(0x03)) | (ctrl->val == 0 ? 0x02 : 0x03);
-+		else
-+			return reg;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	reg = reg > 255 ? 255 : (reg < 0 ? 0 : reg);
-+	reg = write_reg(client, addr, (u8)reg,
-+			ctrl->id == V4L2_CID_GAIN ||
-+			ctrl->id == V4L2_CID_CHROMA_GAIN ||
-+			ctrl->id == V4L2_CID_RED_BALANCE ||
-+			ctrl->id == V4L2_CID_BLUE_BALANCE ? 0 : state->channel);
-+
-+	if (reg < 0) {
-+		v4l2_err(sd, "Can`t set_ctrl value:id=%d;value=%d\n", ctrl->id,
-+								    ctrl->val);
-+		return reg;
-+	}
-+	return 0;
-+}
-+
-+static int tw2804_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
-+{
-+	struct wis_tw2804 *dec = to_state(sd);
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+
-+	u8 regs[] = {
-+		0x01, norm&V4L2_STD_NTSC ? 0xc4 : 0x84,
-+		0x09, norm&V4L2_STD_NTSC ? 0x07 : 0x04,
-+		0x0a, norm&V4L2_STD_NTSC ? 0xf0 : 0x20,
-+		0x0b, norm&V4L2_STD_NTSC ? 0x07 : 0x04,
-+		0x0c, norm&V4L2_STD_NTSC ? 0xf0 : 0x20,
-+		0x0d, norm&V4L2_STD_NTSC ? 0x40 : 0x4a,
-+		0x16, norm&V4L2_STD_NTSC ? 0x00 : 0x40,
-+		0x17, norm&V4L2_STD_NTSC ? 0x00 : 0x40,
-+		0x20, norm&V4L2_STD_NTSC ? 0x07 : 0x0f,
-+		0x21, norm&V4L2_STD_NTSC ? 0x07 : 0x0f,
-+		0xff, 0xff,
-+	};
-+	write_regs(client, regs, dec->channel);
-+	dec->norm = norm;
-+	return 0;
-+}
-+
-+static int tw2804_g_chip_ident(struct v4l2_subdev *sd,
-+				struct v4l2_dbg_chip_ident *chip)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	return v4l2_chip_ident_i2c_client(client, chip,
-+					V4L2_IDENT_TW2804, 0x0e);
-+}
-+
-+static const struct v4l2_ctrl_ops tw2804_ctrl_ops = {
-+	.g_volatile_ctrl = tw2804_g_volatile_ctrl,
-+	.s_ctrl = tw2804_s_ctrl,
-+};
-+
-+static const struct v4l2_subdev_core_ops tw2804_core_ops = {
-+	.log_status = tw2804_log_status,
-+	.g_chip_ident = tw2804_g_chip_ident,
-+	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
-+	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
-+	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
-+	.g_ctrl = v4l2_subdev_g_ctrl,
-+	.s_ctrl = v4l2_subdev_s_ctrl,
-+	.queryctrl = v4l2_subdev_queryctrl,
-+	.querymenu = v4l2_subdev_querymenu,
-+	.s_std = tw2804_s_std,
-+};
-+
-+static int tw2804_s_video_routing(struct v4l2_subdev *sd, u32 input, u32 output,
-+	u32 config)
-+{
-+	struct wis_tw2804 *dec = to_state(sd);
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	s32 reg = 0;
-+
-+	if (0 > input || input > 1)
-+		return -EINVAL;
-+
-+	if (input == dec->input)
-+		return 0;
-+
-+	reg = read_reg(client, 0x22, dec->channel);
-+
-+	if (reg >= 0) {
-+		if (input == 0)
-+			reg &= ~(1<<2);
-+		else
-+			reg |= 1<<2;
-+		reg = write_reg(client, 0x22, (u8)reg, dec->channel);
-+	}
-+
-+	if (reg >= 0)
-+		dec->input = input;
-+	else
-+		return reg;
- 	return 0;
- }
- 
-+static int tw2804_s_mbus_fmt(struct v4l2_subdev *sd,
-+	struct v4l2_mbus_framefmt *fmt)
-+{
-+	/*TODO need select between 3fmt:
-+	 * bt_656,
-+	 * bt_601_8bit,
-+	 * bt_656_dual,
-+	 */
-+	return 0;
-+}
-+
-+static int tw2804_s_stream(struct v4l2_subdev *sd, int enable)
-+{
-+	struct wis_tw2804 *dec = to_state(sd);
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	u32 reg = read_reg(client, 0x78, 0);
-+
-+	if (enable == 1)
-+		write_reg(client, 0x78, reg & ~(1<<dec->channel), 0);
-+	else
-+		write_reg(client, 0x78, reg | (1<<dec->channel), 0);
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_video_ops tw2804_video_ops = {
-+	.s_routing = tw2804_s_video_routing,
-+	.s_mbus_fmt = tw2804_s_mbus_fmt,
-+	.s_stream = tw2804_s_stream,
-+};
-+
-+static const struct v4l2_subdev_ops tw2804_ops = {
-+	.core = &tw2804_core_ops,
-+	.video = &tw2804_video_ops,
-+};
-+
- static int wis_tw2804_command(struct i2c_client *client,
- 				unsigned int cmd, void *arg)
- {
-@@ -355,3 +600,6 @@ module_init(wis_tw2804_init);
- module_exit(wis_tw2804_cleanup);
- 
- MODULE_LICENSE("GPL v2");
-+MODULE_DESCRIPTION("TW2804/TW2802 V4L2 i2c driver");
-+MODULE_AUTHOR("Volokh Konstantin <volokh84@gmail.com>");
-+MODULE_AUTHOR("Micronas USA Inc");
+>Yeah, a better API is needed to not only allow sending pulse/space/waiting
+>times to IR TX, but also sending real keystrokes, like:
+>
+>echo "A" > /dev/<some rc device>
+>
+>Still, I'm not sure if we should create a "150 ms silence" keystroke. That
+>doesn't sound linux style to me.
+>
+>The Linux way would be:
+>
+>fputs("A", fp);
+>fflush(fp);
+>usleep(150000);
+>fputs("B", fp);
+>
+>That's close to what is done on term apps like minicom.
+
+Sorry, I was being too terse. What I meant with "A" and "B" was actually
+"sequence of pulse/space timings corresponding to IR command A/B".
+
+So, if lircd used to do this:
+
+	unsigned cmd_A[] = { 500, 1000, 500, 500 ...};
+	unsigned cmd_B[] = { 500, 1000, 500, 1000 ...};
+
+	write_pulsespace(cmd_A, fp);
+	usleep(150000);
+	write_pulsespace(cmd_B, fp);
+
+it should instead (with a new, non-lirc API) do:
+
+	unsigned cmd_A[] = { 500, 1000, 500, 500 ...};
+	unsigned cmd_B[] = { 500, 1000, 500, 1000 ...};
+
+	write_pulsespace(cmd_A, fp);
+	write_space(150000, fp);
+	write_pulsespace(cmd_B, fp);
+
+And not care a bit about any "gap calculations".
+
+The result would be that the lircd daemon can go about it's business and
+that the TX hardware is guaranteed to be busy for the duration it takes
+to send the "A" command, silent for 150ms, and yet again busy for the
+duration it takes to send the "B" command.
+
+>Ok, currently, all drivers have only "raw" TX. Yet, HDMI CEC provides
+>a way to receive/send IR commands from/to the TV set. So, I think we'll
+>have soon some drivers that only work on 'non-raw' TX mode.
+>
+>So, IMO, it makes sense to have a "high end" API that accepts
+>writing keystrokes like above, working with both "raw drivers"
+>using some kernel IR protocol encoders, and with devices that can
+>accept "processed" keystrokes, like HDMI CEC.
+
+Agreed.
+
+>The lirc interface may not be the right device for such usage,
+>if changing it would break support for existing devices.
+
+No, the lirc interface is unlikely to be what we want. Instead, I expect
+the future API to be modelled along the lines of:
+
+	unsigned cmd_A[] = { 500, 1000, 500, 500 ...};
+
+	fd = open("/dev/some_rc_dev");
+	ioctl(fd, RCIOCGTXTYPE, &type);
+
+	switch (type) {
+	case RC_DRIVER_SCANCODE:
+		write_cmd(KEY_A, fd);
+		break;
+	case RC_DRIVER_IR_RAW:
+		write_pulsespace(cmd_A, fd);
+		break;
+	...
+	default:
+		error("Unknown device type\n");
+	}
+
+(Some details left out...the type above is probably going to have to be
+a bitmask for example).
+
+The lirc layer could trivially be provided by a compat driver (as now)
+which supports doing the right thing on the right kinds of hardware
+(i.e. not support e.g. HDMI-CEC with keystrokes).
+
+
 -- 
-1.7.7.6
-
+David Härdeman
