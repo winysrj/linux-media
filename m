@@ -1,70 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:34526 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751639Ab2HBSW4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Aug 2012 14:22:56 -0400
-References: <50186040.1050908@lockie.ca> <c5ac2603-cc98-4688-b50c-b9166cada8f0@email.android.com> <5019EE10.1000207@lockie.ca> <bdafbcab-4074-4557-b108-a76f00ab8b3e@email.android.com> <CAGoCfiwN=h708e65DmZi7m6gcRMmcRbRZGJvpJ6ZzUk9Cm22dQ@mail.gmail.com> <7381e4d38b045460f0ff32e0905f079e.squirrel@lockie.ca>
-In-Reply-To: <7381e4d38b045460f0ff32e0905f079e.squirrel@lockie.ca>
-MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: 3.5 kernel options for Hauppauge_WinTV-HVR-1250
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Thu, 02 Aug 2012 14:22:59 -0400
-To: bjlockie@lockie.ca, Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: linux-media Mailing List <linux-media@vger.kernel.org>
-Message-ID: <751dab30-8c09-4f1d-a540-78851caa3904@email.android.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:35514 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752962Ab2HUX46 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Aug 2012 19:56:58 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>,
+	Thomas Mair <thomas.mair86@googlemail.com>
+Subject: [PATCH 2/5] rtl28xxu: fix rtl2832u module reload fails bug
+Date: Wed, 22 Aug 2012 02:56:19 +0300
+Message-Id: <1345593382-11367-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1345593382-11367-1-git-send-email-crope@iki.fi>
+References: <1345593382-11367-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-bjlockie@lockie.ca wrote:
+This is workaround / partial fix.
 
->> On Thu, Aug 2, 2012 at 5:53 AM, Andy Walls <awalls@md.metrocast.net>
->> wrote:
->>> You can 'grep MODULE_ drivers/media/video/cx23885/*
->>> drivers/media/video/cx25840/* ' and other relevant directories under
->>> drivers/media/{dvb, common} to find all the parameter options for
->all
->>> the drivers involved in making a HVR_1250 work.
->>
->> Or just build with everything enabled until you know it is working,
->> and then optimize the list of modules later.
->
->It should have been easier, select the card and it builds all the
->drivers
->it needs. :-)
->Is there a script somewhere that lets me select a card and
->automatically
->modifies the kernel config?
->
->>
->> Also, the 1250 is broken for analog until very recently (patches went
->> upstream for 3.5/3.6 a few days ago).
->
->North American OTA is all digital so I have no way to test it.
->
->>
->> Devin
->>
->> --
->> Devin J. Heitmueller - Kernel Labs
->> http://www.kernellabs.com
->> --
->> To unsubscribe from this list: send the line "unsubscribe
->linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+rtl2832u_power_ctrl() and rtl2832u_frontend_attach() needs to
+be go through carefully and fix properly. There is clearly
+some logical errors when handling power-management ang GPIOs...
 
-There are too many different card models and variants supported by bridge drivers to list every one in the kconfig system.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Cc: Thomas Mair <thomas.mair86@googlemail.com>
+---
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 11 -----------
+ 1 file changed, 11 deletions(-)
 
-There are several variants of the 1250 itself with different chips on board.  You have no guarantee that two retail boxes labeled HVR-1250 both contain identical hardware.
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index 1ccb99b..c246c50 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -946,17 +946,6 @@ static int rtl2832u_power_ctrl(struct dvb_usb_device *d, int onoff)
+ 		if (ret)
+ 			goto err;
  
-IMO, trying to winnow down the supporting drivers you compile just sets yourself for more work in the future if you add a second card.
-
-Regards,
-Andy
-
+-		/* demod HW reset */
+-		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL, &val);
+-		if (ret)
+-			goto err;
+-		/* bit 5 to 0 */
+-		val &= 0xdf;
+-
+-		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL, val);
+-		if (ret)
+-			goto err;
+-
+ 		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL, &val);
+ 		if (ret)
+ 			goto err;
+-- 
+1.7.11.4
 
