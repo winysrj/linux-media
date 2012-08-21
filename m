@@ -1,70 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:18340 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:29225 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750796Ab2HLI44 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Aug 2012 04:56:56 -0400
-Message-ID: <50276FD0.10501@redhat.com>
-Date: Sun, 12 Aug 2012 05:56:48 -0300
+	id S1756872Ab2HULS0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Aug 2012 07:18:26 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q7LBIPhd021184
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 21 Aug 2012 07:18:25 -0400
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: "llarevo@gmx.net" <llarevo@gmx.net>
-CC: Ezequiel Garcia <elezegarcia@gmail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] em28xx: Fix height setting on non-progressive captures
-References: <1344016352-20302-1-git-send-email-elezegarcia@gmail.com>  <CALF0-+UdxdawZMeniA-tia3qKARbX_+u2k8PnbhA_FhDKUMv3Q@mail.gmail.com>  <CAGoCfiyaO5xhjUCVW5QfeLDoh=a6WE73aiAOXX5ZkOiM=efOfQ@mail.gmail.com>  <CALF0-+Vhng3=GUJs5k9fiktkE6mEtDNEzKfP8+zjTSmCCRez8w@mail.gmail.com>  <CAGoCfizFYYtA2HHE6TO9eW6UF6FaxOhOyrsu6gCRi5kCGCO4zA@mail.gmail.com>  <CALF0-+XR6Utov445E54Uu++ETc6QrivMK-ZR0TfVLpNAtRbVgQ@mail.gmail.com> <1344070424.32527.7.camel@tbastian-desktop.localdomain>
-In-Reply-To: <1344070424.32527.7.camel@tbastian-desktop.localdomain>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] [media] Add missing help for some menuconfig items
+Date: Tue, 21 Aug 2012 08:18:22 -0300
+Message-Id: <1345547902-30846-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 04-08-2012 05:53, llarevo@gmx.net escreveu:
->>>> Wait a minute, unless I completely misunderstood the bug (which is possible),
->>>> I think this patch is straightforward.
->>>>
->>>> By the look of this hunk on commit c2a6b54a:
->>>>
->>>> ---------------------------------8<--------------------------
->>>> diff --git a/drivers/media/video/em28xx/em28xx-core.c
->>>> b/drivers/media/video/em28xx/em28xx-core.c
->>>> index 5b78e19..339fffd 100644
->>>> --- a/drivers/media/video/em28xx/em28xx-core.c
->>>> +++ b/drivers/media/video/em28xx/em28xx-core.c
->>>> @@ -720,7 +720,10 @@ int em28xx_resolution_set(struct em28xx *dev)
->>>>  {
->>>>         int width, height;
->>>>         width = norm_maxw(dev);
->>>> -       height = norm_maxh(dev) >> 1;
->>>> +       height = norm_maxh(dev);
->>>> +
->>>> +       if (!dev->progressive)
->>>> +               height >>= norm_maxh(dev);
->>>>
->>>> --------------------------------->8--------------------------
->>>>
->>>> It seems to me that for non-progressive the height should just be
->>>>
->>>>   height = height / 2 (or height = height >> 1)
->>>>
->>>> as was before, and as my patch is doing. It seems to driver will
->>>> "merge" the interlaced
->>>> frames and so the "expected" height is half the real height.
->>>> I hope I got it right.
->>>>
->>>> That said and no matter how straightforward may be, which I'm not sure,
->>>> I also want the patch to get tested before being accepted.
-> 
-> I own a Terratec Cinergy XS USB in two flavors:  0ccd:005e and
-> 0ccd:0042. I work with  Fedora F17. If somebody gives me an advice what
-> code to patch (git or a tarball from
-> http://linuxtv.org/downloads/drivers/) and what to test, I can make a
-> try.
+Help was missing during some items reorganization. Add them.
 
-Thanks for your offering, but this should affect only em28xx-based
-webcams (like the Silvercrest one).
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/i2c/Kconfig     | 2 +-
+ drivers/media/parport/Kconfig | 5 ++++-
+ drivers/media/pci/Kconfig     | 3 +++
+ drivers/media/usb/Kconfig     | 3 +++
+ 4 files changed, 11 insertions(+), 2 deletions(-)
 
-I have a few here. I'll do the testing.
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index d41dc0a..9a5a059 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -549,7 +549,7 @@ config VIDEO_M52790
+ 	 To compile this driver as a module, choose M here: the
+ 	 module will be called m52790.
+ endmenu
+-	 
++
+ menu "Sensors used on soc_camera driver"
+ 
+ if SOC_CAMERA
+diff --git a/drivers/media/parport/Kconfig b/drivers/media/parport/Kconfig
+index a1c7853..ece13dc 100644
+--- a/drivers/media/parport/Kconfig
++++ b/drivers/media/parport/Kconfig
+@@ -1,6 +1,9 @@
+ menuconfig MEDIA_PARPORT_SUPPORT
+-	bool "V4L ISA and parallel port devices"
++	bool "ISA and parallel port devices"
+ 	depends on (ISA || PARPORT) && MEDIA_CAMERA_SUPPORT
++	help
++	  Enables drivers for ISA and parallel port bus. If you
++	  need media drivers using those legacy buses, say Y.
+ 
+ if MEDIA_PARPORT_SUPPORT
+ config VIDEO_BWQCAM
+diff --git a/drivers/media/pci/Kconfig b/drivers/media/pci/Kconfig
+index 083b62f..d4e2ed3 100644
+--- a/drivers/media/pci/Kconfig
++++ b/drivers/media/pci/Kconfig
+@@ -1,6 +1,9 @@
+ menuconfig MEDIA_PCI_SUPPORT
+ 	bool "Media PCI Adapters"
+ 	depends on PCI && MEDIA_SUPPORT
++	help
++	  Enable media drivers for PCI/PCIe bus.
++	  If you have such devices, say Y.
+ 
+ if MEDIA_PCI_SUPPORT
+ 
+diff --git a/drivers/media/usb/Kconfig b/drivers/media/usb/Kconfig
+index f960e7ca4..6746994 100644
+--- a/drivers/media/usb/Kconfig
++++ b/drivers/media/usb/Kconfig
+@@ -1,6 +1,9 @@
+ menuconfig MEDIA_USB_SUPPORT
+ 	bool "Media USB Adapters"
+ 	depends on USB && MEDIA_SUPPORT
++	help
++	  Enable media drivers for USB bus.
++	  If you have such devices, say Y.
+ 
+ if MEDIA_USB_SUPPORT
+ 
+-- 
+1.7.11.4
 
-Regards,
-Mauro
