@@ -1,83 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:35419 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753449Ab2HaSe3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Aug 2012 14:34:29 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M9M00LAOU9G7VE0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Sat, 01 Sep 2012 03:34:28 +0900 (KST)
-Received: from [106.210.235.55] by mmp1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTPA id <0M9M00BMHU9BZV00@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Sat, 01 Sep 2012 03:34:28 +0900 (KST)
-Message-id: <504103AE.3020305@samsung.com>
-Date: Fri, 31 Aug 2012 20:34:22 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-MIME-version: 1.0
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: linux-media@vger.kernel.org, Pawel Osciak <pawel@osciak.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 1/2] media v4l2-mem2mem: Use list_first_entry
-References: <1346419084-10879-1-git-send-email-s.hauer@pengutronix.de>
- <1346419084-10879-2-git-send-email-s.hauer@pengutronix.de>
-In-reply-to: <1346419084-10879-2-git-send-email-s.hauer@pengutronix.de>
-Content-type: text/plain; charset=ISO-8859-2; format=flowed
-Content-transfer-encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:48984 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752962Ab2HUX5I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Aug 2012 19:57:08 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>,
+	Thomas Mair <thomas.mair86@googlemail.com>
+Subject: [PATCH 5/5] rtl2832: implement .read_ber()
+Date: Wed, 22 Aug 2012 02:56:22 +0300
+Message-Id: <1345593382-11367-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1345593382-11367-1-git-send-email-crope@iki.fi>
+References: <1345593382-11367-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Implementation taken from rtl2830.
 
-On 8/31/2012 3:18 PM, Sascha Hauer wrote:
-> Use list_first_entry instead of list_entry which makes the intention
-> of the code more clear.
->
-> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Thomas Mair <thomas.mair86@googlemail.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/rtl2832.c | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-
-> ---
->   drivers/media/video/v4l2-mem2mem.c |    6 +++---
->   1 file changed, 3 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/media/video/v4l2-mem2mem.c b/drivers/media/video/v4l2-mem2mem.c
-> index 975d0fa..aaa67d3 100644
-> --- a/drivers/media/video/v4l2-mem2mem.c
-> +++ b/drivers/media/video/v4l2-mem2mem.c
-> @@ -102,7 +102,7 @@ void *v4l2_m2m_next_buf(struct v4l2_m2m_queue_ctx *q_ctx)
->   		return NULL;
->   	}
->
-> -	b = list_entry(q_ctx->rdy_queue.next, struct v4l2_m2m_buffer, list);
-> +	b = list_first_entry(&q_ctx->rdy_queue, struct v4l2_m2m_buffer, list);
->   	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
->   	return &b->vb;
->   }
-> @@ -122,7 +122,7 @@ void *v4l2_m2m_buf_remove(struct v4l2_m2m_queue_ctx *q_ctx)
->   		spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
->   		return NULL;
->   	}
-> -	b = list_entry(q_ctx->rdy_queue.next, struct v4l2_m2m_buffer, list);
-> +	b = list_first_entry(&q_ctx->rdy_queue, struct v4l2_m2m_buffer, list);
->   	list_del(&b->list);
->   	q_ctx->num_rdy--;
->   	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
-> @@ -175,7 +175,7 @@ static void v4l2_m2m_try_run(struct v4l2_m2m_dev *m2m_dev)
->   		return;
->   	}
->
-> -	m2m_dev->curr_ctx = list_entry(m2m_dev->job_queue.next,
-> +	m2m_dev->curr_ctx = list_first_entry(&m2m_dev->job_queue,
->   				   struct v4l2_m2m_ctx, queue);
->   	m2m_dev->curr_ctx->job_flags |= TRANS_RUNNING;
->   	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
->
-
-
-Best regards
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index dad8ab5..4d40b4f 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -824,6 +824,24 @@ err:
+ 	return ret;
+ }
+ 
++static int rtl2832_read_ber(struct dvb_frontend *fe, u32 *ber)
++{
++	struct rtl2832_priv *priv = fe->demodulator_priv;
++	int ret;
++	u8 buf[2];
++
++	ret = rtl2832_rd_regs(priv, 0x4e, 3, buf, 2);
++	if (ret)
++		goto err;
++
++	*ber = buf[0] << 8 | buf[1];
++
++	return 0;
++err:
++	dbg("%s: failed=%d", __func__, ret);
++	return ret;
++}
++
+ static struct dvb_frontend_ops rtl2832_ops;
+ 
+ static void rtl2832_release(struct dvb_frontend *fe)
+@@ -909,6 +927,7 @@ static struct dvb_frontend_ops rtl2832_ops = {
+ 
+ 	.read_status = rtl2832_read_status,
+ 	.read_snr = rtl2832_read_snr,
++	.read_ber = rtl2832_read_ber,
+ 
+ 	.i2c_gate_ctrl = rtl2832_i2c_gate_ctrl,
+ };
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
+1.7.11.4
+
