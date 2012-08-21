@@ -1,90 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54718 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:40933 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754281Ab2HARjG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Aug 2012 13:39:06 -0400
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q71HcvPL023492
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 1 Aug 2012 13:39:06 -0400
-Received: from [10.97.5.124] (vpn1-5-124.gru2.redhat.com [10.97.5.124])
-	by int-mx12.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id q71GgoRi002326
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 1 Aug 2012 12:42:51 -0400
-Message-ID: <50195C89.5090808@redhat.com>
-Date: Wed, 01 Aug 2012 13:42:49 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [ANNOUNCE] patchwork notifications
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1757904Ab2HUQNM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Aug 2012 12:13:12 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/2] tda18218: re-implement tda18218_wr_regs()
+Date: Tue, 21 Aug 2012 19:12:50 +0300
+Message-Id: <1345565570-30887-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1345565570-30887-1-git-send-email-crope@iki.fi>
+References: <1345565570-30887-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Developers,
+Old i2c message length splitting logic was faulty. Make it better.
 
-Just to let you know, I finally made patchwork notifications to work.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/tda18218.c | 24 +++++++++++-------------
+ 1 file changed, 11 insertions(+), 13 deletions(-)
 
-With this change, every time a patch (or a group of patches) have their
-status changed, an email will be sent to the patch author, similar to this one:
+diff --git a/drivers/media/tuners/tda18218.c b/drivers/media/tuners/tda18218.c
+index ffbec9e..1819853 100644
+--- a/drivers/media/tuners/tda18218.c
++++ b/drivers/media/tuners/tda18218.c
+@@ -23,8 +23,8 @@
+ /* write multiple registers */
+ static int tda18218_wr_regs(struct tda18218_priv *priv, u8 reg, u8 *val, u8 len)
+ {
+-	int ret = 0;
+-	u8 buf[1+len], quotient, remainder, i, msg_len, msg_len_max;
++	int ret = 0, len2, remaining;
++	u8 buf[1 + len];
+ 	struct i2c_msg msg[1] = {
+ 		{
+ 			.addr = priv->cfg->i2c_address,
+@@ -33,17 +33,15 @@ static int tda18218_wr_regs(struct tda18218_priv *priv, u8 reg, u8 *val, u8 len)
+ 		}
+ 	};
+ 
+-	msg_len_max = priv->cfg->i2c_wr_max - 1;
+-	quotient = len / msg_len_max;
+-	remainder = len % msg_len_max;
+-	msg_len = msg_len_max;
+-	for (i = 0; (i <= quotient && remainder); i++) {
+-		if (i == quotient)  /* set len of the last msg */
+-			msg_len = remainder;
+-
+-		msg[0].len = msg_len + 1;
+-		buf[0] = reg + i * msg_len_max;
+-		memcpy(&buf[1], &val[i * msg_len_max], msg_len);
++	for (remaining = len; remaining > 0;
++			remaining -= (priv->cfg->i2c_wr_max - 1)) {
++		len2 = remaining;
++		if (len2 > (priv->cfg->i2c_wr_max - 1))
++			len2 = (priv->cfg->i2c_wr_max - 1);
++
++		msg[0].len = 1 + len2;
++		buf[0] = reg + len - remaining;
++		memcpy(&buf[1], &val[len - remaining], len2);
+ 
+ 		ret = i2c_transfer(priv->i2c, msg, 1);
+ 		if (ret != 1)
+-- 
+1.7.11.4
 
-	The following patches (submitted by you) have been updated in patchwork:
-
-	 * [43/47,media] mt2063: add some useful info for the dvb callback calls
-	     - http://patchwork.linuxtv.org/patch/9332/
-	    was: New
-	    now: RFC
-
-	 * [2/4,media] DocBook/dvbproperty.xml: Fix ISDB-T delivery system parameters
-	     - http://patchwork.linuxtv.org/patch/9557/
-	    was: New
-	    now: Accepted
-
-	 * [13/35,media] az6007: need to define drivers name before including dvb-usb.h
-	     - http://patchwork.linuxtv.org/patch/9593/
-	    was: New
-	    now: Accepted
-
-...
-
-Developers that don't want this feature can opt-out, using this link:
-	 http://patchwork.linuxtv.org/mail/
-
-Still, I suggest you to don't to that ;)
-
-As a reminder, the policy I'm using to handle patches is:
-
-New patches are marked there as 'New'.
-
-When I'm expecting someone (typically, the driver's author) to review a patch, the
-status is changed to 'Under review'. Unfortunately, patchwork doesn't have a field
-to indicate to whom, so I'm currently this information on a separate file on my local
-machine.
-
-When the same patch is sent twice, or a new version of the same patch and I am
-able to identify it, the old patch is marked as  'superseded'.
-
-When someone asks for changes at the patch, the patch is marked as 'changes requested'.
-
-When the patch is wrong or doesn't apply, it is marked as 'rejected'. Most of the
-time, 'rejected' and 'changes requested' means the same thing for the developer:
-he'll need to re-work on the patch.
-
-Patches that aren't meant to be applicable at the media-tree.git are typically
-marked as 'not applicable' [1].
-
-Finally, when everything is ok and it got applied either at the main tree or at
-the fixes tree, the patch is marked as 'accepted'.
-
-Of course, as we're all humans (and patchwork status is changed manually by me),
-errors may happen. Feel free to ping me on irc or via email on such cases.
-
-[1] Just to make my life easier, patches for a few other random trees that I
-maintain/partially maintain, like media-build tree, are generally marked as 
-'Accepted' as well, when I am the one applying it, as it saves me time ;)
-
-I hope you'll find this new tool useful.
-
-Regards,
-Mauro
