@@ -1,118 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ftp.meprolight.com ([194.90.149.17]:37015 "EHLO meprolight.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752421Ab2HAO1S convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2012 10:27:18 -0400
-From: Alex Gershgorin <alexg@meprolight.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"m.szyprowski@samsung.com" <m.szyprowski@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Wed, 1 Aug 2012 17:27:24 +0300
-Subject: RE: [PATCH v2] media: mx3_camera: buf_init() add buffer state check
-Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B2E31A0CA1D@MEP-EXCH.meprolight.com>
-References: <1343675227-9061-1-git-send-email-alexg@meprolight.com>,<Pine.LNX.4.64.1208011002020.5406@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1208011002020.5406@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:28910 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752821Ab2HUXu4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Aug 2012 19:50:56 -0400
+Message-ID: <50341EDA.5080109@redhat.com>
+Date: Tue, 21 Aug 2012 20:50:50 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v3.6-rc3] media fixes
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Linus,
 
-From: Alex Gershgorin <alexg@meprolight.com>
+Please pull from:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
 
-This patch check the state of the buffer when calling buf_init() method.
-The thread http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/48587
-also includes report witch can show the problem. This patch solved the problem.
-Both MMAP and USERPTR methods was successfully tested.
+For bug fixes, at soc_camera, si470x, uvcvideo, iguanaworks IR driver, 
+radio_shark Kbuild fixes, and at the V4L2 core (radio fixes).
 
-Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
-[g.liakhovetski@gmx.de: remove mx3_camera_buffer::state completely]
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+Thank you!
+Mauro
 
-> > Hi Alex
-
-> > Thanks for your explanation. Please, check whether this version of your
-> > patch also fixes the problem and works in both MMAP and USERPTR modes.
-
-> > Thanks
-> > Guennadi
-
-Hi Guennadi,
-
-This is a good upgrade :-)
- I tested both modes, it works fine without any problems.
-
-Sincerely,
-Alex
-
-diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
-index 02d54a0..0af24d0 100644
---- a/drivers/media/video/mx3_camera.c
-+++ b/drivers/media/video/mx3_camera.c
-@@ -61,15 +61,9 @@
-
- #define MAX_VIDEO_MEM 16
-
--enum csi_buffer_state {
--       CSI_BUF_NEEDS_INIT,
--       CSI_BUF_PREPARED,
--};
 -
- struct mx3_camera_buffer {
-        /* common v4l buffer stuff -- must be first */
-        struct vb2_buffer                       vb;
--       enum csi_buffer_state                   state;
-        struct list_head                        queue;
 
-        /* One descriptot per scatterlist (per frame) */
-@@ -285,7 +279,7 @@ static void mx3_videobuf_queue(struct vb2_buffer *vb)
-                goto error;
-        }
+The following changes since commit 8762541f067d371320731510669e27f5cc40af38:
 
--       if (buf->state == CSI_BUF_NEEDS_INIT) {
-+       if (!buf->txd) {
-                sg_dma_address(sg)      = vb2_dma_contig_plane_dma_addr(vb, 0);
-                sg_dma_len(sg)          = new_size;
+  Merge branch 'v4l_for_linus' of git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media (2012-07-31 18:47:44 -0700)
 
-@@ -298,7 +292,6 @@ static void mx3_videobuf_queue(struct vb2_buffer *vb)
-                txd->callback_param     = txd;
-                txd->callback           = mx3_cam_dma_done;
+are available in the git repository at:
 
--               buf->state              = CSI_BUF_PREPARED;
-                buf->txd                = txd;
-        } else {
-                txd = buf->txd;
-@@ -385,7 +378,6 @@ static void mx3_videobuf_release(struct vb2_buffer *vb)
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
 
-        /* Doesn't hurt also if the list is empty */
-        list_del_init(&buf->queue);
--       buf->state = CSI_BUF_NEEDS_INIT;
+for you to fetch changes up to 991b3137f21e13db4711f313edbe67d49bed795b:
 
-        if (txd) {
-                buf->txd = NULL;
-@@ -405,13 +397,13 @@ static int mx3_videobuf_init(struct vb2_buffer *vb)
-        struct mx3_camera_dev *mx3_cam = ici->priv;
-        struct mx3_camera_buffer *buf = to_mx3_vb(vb);
+  [media] media: soc_camera: don't clear pix->sizeimage in JPEG mode (2012-08-15 19:24:28 -0300)
 
--       /* This is for locking debugging only */
--       INIT_LIST_HEAD(&buf->queue);
--       sg_init_table(&buf->sg, 1);
-+       if (!buf->txd) {
-+               /* This is for locking debugging only */
-+               INIT_LIST_HEAD(&buf->queue);
-+               sg_init_table(&buf->sg, 1);
+----------------------------------------------------------------
+Albert Wang (1):
+      [media] media: soc_camera: don't clear pix->sizeimage in JPEG mode
 
--       buf->state = CSI_BUF_NEEDS_INIT;
--
--       mx3_cam->buf_total += vb2_plane_size(vb, 0);
-+               mx3_cam->buf_total += vb2_plane_size(vb, 0);
-+       }
+Alex Gershgorin (1):
+      [media] media: mx3_camera: buf_init() add buffer state check
 
-        return 0;
- }
+Fabio Estevam (2):
+      [media] video: mx1_camera: Use clk_prepare_enable/clk_disable_unprepare
+      [media] video: mx2_camera: Use clk_prepare_enable/clk_disable_unprepare
+
+Guenter Roeck (1):
+      [media] Add USB dependency for IguanaWorks USB IR Transceiver
+
+Hans Verkuil (5):
+      [media] DocBook: Remove a spurious character
+      [media] si470x: v4l2-compliance fixes
+      [media] mem2mem_testdev: fix querycap regression
+      [media] VIDIOC_ENUM_FREQ_BANDS fix
+      [media] Add missing logging for rangelow/high of hwseek
+
+Hans de Goede (4):
+      [media] radio-shark*: Remove work-around for dangling pointer in usb intfdata
+      [media] radio-shark*: Call cancel_work_sync from disconnect rather then release
+      [media] radio-shark: Only compile led support when CONFIG_LED_CLASS is set
+      [media] radio-shark2: Only compile led support when CONFIG_LED_CLASS is set
+
+Javier Martin (1):
+      [media] media: mx2_camera: Fix clock handling for i.MX27
+
+Jayakrishnan Memana (1):
+      [media] uvcvideo: Reset the bytesused field when recycling an erroneous buffer
+
+ Documentation/DocBook/media/v4l/vidioc-g-tuner.xml |   2 +-
+ drivers/media/radio/radio-shark.c                  | 151 +++++++++++----------
+ drivers/media/radio/radio-shark2.c                 | 137 ++++++++++---------
+ drivers/media/radio/si470x/radio-si470x-common.c   |   3 +
+ drivers/media/radio/si470x/radio-si470x-i2c.c      |   5 +-
+ drivers/media/radio/si470x/radio-si470x-usb.c      |   2 +-
+ drivers/media/rc/Kconfig                           |   1 +
+ drivers/media/video/mem2mem_testdev.c              |   2 +-
+ drivers/media/video/mx1_camera.c                   |   4 +-
+ drivers/media/video/mx2_camera.c                   |  47 ++++---
+ drivers/media/video/mx3_camera.c                   |  22 +--
+ drivers/media/video/soc_camera.c                   |   3 +-
+ drivers/media/video/soc_mediabus.c                 |   6 +
+ drivers/media/video/uvc/uvc_queue.c                |   1 +
+ drivers/media/video/v4l2-ioctl.c                   |  10 +-
+ 15 files changed, 217 insertions(+), 179 deletions(-)
+
