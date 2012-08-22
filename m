@@ -1,46 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60798 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755420Ab2HQNos (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Aug 2012 09:44:48 -0400
-Date: Fri, 17 Aug 2012 16:44:43 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	patches@linaro.org
-Subject: Re: [PATCH v2] smiapp: Use devm_* functions in smiapp-core.c file
-Message-ID: <20120817134443.GB32720@valkosipuli.retiisi.org.uk>
-References: <1345178942-6771-1-git-send-email-sachin.kamat@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1345178942-6771-1-git-send-email-sachin.kamat@linaro.org>
+Received: from mail.telros.ru ([83.136.244.21]:61459 "EHLO mail.telros.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754739Ab2HVGnU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Aug 2012 02:43:20 -0400
+From: Volokh Konstantin <volokh84@gmail.com>
+To: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org, volokh@telros.ru
+Cc: Volokh Konstantin <volokh84@gmail.com>
+Subject: [PATCH 06/10] staging: media: go7007: tw2804 ADC power control
+Date: Wed, 22 Aug 2012 14:45:15 +0400
+Message-Id: <1345632319-23224-6-git-send-email-volokh84@gmail.com>
+In-Reply-To: <1345632319-23224-1-git-send-email-volokh84@gmail.com>
+References: <1345632319-23224-1-git-send-email-volokh84@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sachin,
+switch off all ADC (max 4) with first init,
+we control it then start/stop grabbing frame
 
-On Fri, Aug 17, 2012 at 10:19:02AM +0530, Sachin Kamat wrote:
-> devm_* functions are device managed functions and make code a bit
-> smaller and cleaner.
-> 
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-> ---
-> Changes since v1:
-> Used devm_kzalloc for sensor->nvm.
-> Used devm_clk_get and devm_regulator_get functions.
-> 
-> This patch is based on Mauro's re-organized tree
-> (media_tree staging/for_v3.7) and is compile tested.
+Signed-off-by: Volokh Konstantin <volokh84@gmail.com>
+---
+ drivers/staging/media/go7007/wis-tw2804.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Thanks for the updated patch!
-
-I've applied this and the other patch you sent ("[media] smiapp: Remove
-unused function") to my tree.
-
-Cheers,
-
+diff --git a/drivers/staging/media/go7007/wis-tw2804.c b/drivers/staging/media/go7007/wis-tw2804.c
+index 7bd3058..34cf6b6 100644
+--- a/drivers/staging/media/go7007/wis-tw2804.c
++++ b/drivers/staging/media/go7007/wis-tw2804.c
+@@ -44,6 +44,7 @@ static u8 global_registers[] = {
+ 	0x3d, 0x80,
+ 	0x3e, 0x82,
+ 	0x3f, 0x82,
++	0x78, 0x0f,
+ 	0xff, 0xff, /* Terminator (reg 0xff does not exist) */
+ };
+ 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.7.6
+
