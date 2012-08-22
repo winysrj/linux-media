@@ -1,396 +1,406 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:24932 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752254Ab2HJLVg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Aug 2012 07:21:36 -0400
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: marbugge@cisco.com, Soby Mathew <soby.mathew@st.com>,
-	mats.randgaard@cisco.com, manjunath.hadli@ti.com,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	dri-devel@lists.freedesktop.org
-Subject: [RFCv3 PATCH 6/8] v4l2-common: add CVT and GTF detection functions.
-Date: Fri, 10 Aug 2012 13:21:22 +0200
-Message-Id: <d483c439ee5959b8c2c1684bc7126b2875c30a10.1344592468.git.hans.verkuil@cisco.com>
-In-Reply-To: <1344597684-8413-1-git-send-email-hans.verkuil@cisco.com>
-References: <1344597684-8413-1-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <bf682233fde61ca77ed4512ba77271f6daeedb31.1344592468.git.hans.verkuil@cisco.com>
-References: <bf682233fde61ca77ed4512ba77271f6daeedb31.1344592468.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:23687 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933100Ab2HVSPs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Aug 2012 14:15:48 -0400
+Message-ID: <503521B4.6050207@redhat.com>
+Date: Wed, 22 Aug 2012 15:15:16 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+CC: linux-media@vger.kernel.org, hdegoede@redhat.com,
+	mchehab@infradead.org
+Subject: Re: How to add support for the em2765 webcam Speedlink VAD Laplace
+ to the kernel ?
+References: <5032225A.9080305@googlemail.com> <50323559.7040107@redhat.com> <50328E22.4090805@redhat.com> <50337293.8050808@googlemail.com> <50337FF4.2030200@redhat.com> <5033B177.8060609@googlemail.com> <5033C573.2000304@redhat.com> <50349017.4020204@googlemail.com>
+In-Reply-To: <50349017.4020204@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These two helper functions detect whether the analog video timings detected
-by the video receiver match the VESA CVT or GTF standards.
+Em 22-08-2012 04:53, Frank Schäfer escreveu:
+> Am 21.08.2012 19:29, schrieb Mauro Carvalho Chehab:
+>> Hmm... before reading the rest of this email... I found some doc saying that
+>> em2765 is UVC compliant. Doesn't the uvcdriver work with this device?
+> 
+> Yeah, I stumbled over that, too. :D
+> But this device is definitely not UVC compliant. Take a look at the
+> lsusb output.
+> Maybe they are using a different firmware or something like that, but I
+> have no idea why the hell they should make a UVC compliant device
+> non-UVC-compliant...
+> Another notable difference to the devices we've seen so far is the
+> em25xx-style EEPROM. Maybe there is a connection.
+> 
+> Btw, do we know any em25xx devices ???
 
-They basically do the inverse of the CVT and GTF modeline calculations.
+No, I never heard about em25xx. It seems that there are some new em275xx
+chips, but I don't have any technical data.
 
-This patch also adds a helper function that will determine the aspect ratio
-based on the provided EDID values. This aspect ratio can be given to the GTF
-helper function.
+> I have to admit that I didn't open my device to check which chip it
+> uses. This information comes from the guy who created the inital wiki
+> page. But I think we can trust this information, because he provided the
+> full chip label content and also photos. And according to the chip id,
+> it's none of the devices we already know.
+> I wouldn't hesitate to open my device to verify it, if the chance to
+> damage the device wouldn't be that high...
+> 
+> 
+>>
+>> Em 21-08-2012 13:04, Frank Schäfer escreveu:
+>>> Am 21.08.2012 14:32, schrieb Mauro Carvalho Chehab:
+>>>> Em 21-08-2012 08:35, Frank Schäfer escreveu:
+>>>>> Am 20.08.2012 21:21, schrieb Mauro Carvalho Chehab:
+>>>>>> Em 20-08-2012 10:02, Hans de Goede escreveu:
+>>>>>>> Hi,
+>>>>>>>
+>>>>>>> On 08/20/2012 01:41 PM, Frank Schäfer wrote:
+>>>>>>>> Hi,
+>>>>>>>>
+>>>>>>>> after a break of 2 1/2 kernel releases (sorry, I was busy with another
+>>>>>>>> project), I would like to bring up again the question how to add support
+>>>>>>>> for this device to the kernel.
+>>>>>>>> See
+>>>>>>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg44417.html
+>>>>>>>> ("Move em27xx/em28xx webcams to a gspca subdriver ?") for the previous
+>>>>>>>> discussion.
+>>>>>>>>
+>>>>>>>> Current status is, that I've reverse-engineered the Windows driver and
+>>>>>>>> written a new gspca-subdriver for testing, which is feature complete and
+>>>>>>>> working stable (will send a patch shortly !).
+>>>>>>>>
+>>>>>>>> The device uses an em2765-bridge, so my first idea was of course to
+>>>>>>>> modify/extend the em28xx-driver.
+>>>>>>>> But during the reverse-engineering-process, it turned out that writing a
+>>>>>>>> new gspca-subdriver was much easier than modifying the em28xx-driver.
+>>>>>>>>
+>>>>>>>> The device has the following special characteristics:
+>>>>>>>> - supports only bulk transfers (em28xx driver supports ISOC only)
+>>>>>> Em28xx driver supports both isoc and bulk transfers, as bulk is
+>>>>>> required by DVB.
+>>>>> Hmm... are you 100% sure ? Must have been added recently then...
+>>>>>
+>>>>> I did a quick check of the current code, but can't find anything. Could
+>>>>> you please give me a pointer to the code parts ?
+>>>>> Btw, if I'm not understanding the code wrong, em28xx_usb_probe() still
+>>>>> seems to return -ENODEV if no isoc-in endpoint is found, so bulk-ep-only
+>>>>> devices should not work...
+>>>> Perhaps I'm tricked by tm6000 code... both codes are similar.
+>>>> There are a few differences with regards to isoc/bulk hanlding
+>>>> there.
+>>>>
+>>>>>>>> - uses "proprietary" read/write procedures for the sensor
+>>>>>> Sure about that? It doesn't use I2C?
+>>>>> According to the datasheet of the OV2640 it should be SCCB.
+>>>> SCCB is a variant of I2C.
+>>> I'm not sure if Omnivison would admit that. :D
+>> Maybe there are trademarks envolved ;)
+> 
+> Yes, it's a funny game. ;)
+> 
+>>>>> Anyway, I'm referring to how communication works on the USB level.
+>>>>> Take a look at http://linuxtv.org/wiki/index.php/VAD_Laplace section
+>>>>> "Reverse Engineering (evaluation of USB-logs)" to see how it is working.
+>>>> Ok. From your logs, it seems that em2765 uses a different bus for
+>>>> sensor communication. It is not unusual to have more than one bus on
+>>>> some modern devices (cx231xx has 3 I2C buses, plus one extra bus that
+>>>> can be switched).
+>>> Yes, but I'm wondering why.
+>>> Shouldn't it be possible to connect both (sensor and eeprom) to the same
+>>> bus ? Or are i2c and sccb devices incompatible ?
+>>> We've seen so many em28xx devices (some of them beeing much more
+>>> complex) and none of them has used two busses so far.
+>>> Strange...
+>> Most devices nowadays have 2 i2c buses. TV boards typically uses an
+>> I2C switch on them. The rationale is to avoid receiving signal
+>> interference. Some newer em28xx devices have more than one bus, although,
+>> on TV chipsets, this is controlled via one register, that commands
+>> bus switch:
+>>
+>> 	/* em28xx I2C Clock Register (0x06) */
+>> 	#define EM2874_I2C_SECONDARY_BUS_SELECT	0x04 /* em2874 has two i2c busses */
+>>
+>> On those devices (em2874/em2875, afaikt), hardware manufacturers put
+>> the TV tuner and demod at the second bus, keeping the first bus 
+>> for remote controller and eeprom.
+> 
+> Ok, I didn't notice that there a two i2c busses.
+> I wouldn't wonder if the em2765 doesn't support this bus switch and
+> that's why different USB reads/writes are used instead.
+> Shouldn't be too difficult to find out...
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/v4l2-common.c |  325 +++++++++++++++++++++++++++++++++++++
- include/media/v4l2-common.h       |    9 +
- 2 files changed, 334 insertions(+)
+Perhaps it accepts both ways. IMHO, a separate req for the other bus is
+better than needing to change a register for every single read/write
+(If my memories are not betraying me, from some USB logs, I remind I
+saw that kind of thing: for every single I2C operation, it first sets the
+bus, and then reads/writes - even when the previous operation were at
+the same bus).
 
-diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
-index 38da47c..33e57d8 100644
---- a/drivers/media/video/v4l2-common.c
-+++ b/drivers/media/video/v4l2-common.c
-@@ -630,6 +630,331 @@ bool v4l_match_dv_timings(const struct v4l2_dv_timings *t1,
- }
- EXPORT_SYMBOL_GPL(v4l_match_dv_timings);
- 
-+/*
-+ * CVT defines
-+ * Based on Coordinated Video Timings Standard
-+ * version 1.1 September 10, 2003
-+ */
-+
-+#define CVT_PXL_CLK_GRAN	250000	/* pixel clock granularity */
-+
-+/* Normal blanking */
-+#define CVT_MIN_V_BPORCH	7	/* lines */
-+#define CVT_MIN_V_PORCH_RND	3	/* lines */
-+#define CVT_MIN_VSYNC_BP	550	/* min time of vsync + back porch (us) */
-+
-+/* Normal blanking for CVT uses GTF to calculate horizontal blanking */
-+#define CVT_CELL_GRAN		8	/* character cell granularity */
-+#define CVT_M			600	/* blanking formula gradient */
-+#define CVT_C			40	/* blanking formula offset */
-+#define CVT_K			128	/* blanking formula scaling factor */
-+#define CVT_J			20	/* blanking formula scaling factor */
-+#define CVT_C_PRIME (((CVT_C - CVT_J) * CVT_K / 256) + CVT_J)
-+#define CVT_M_PRIME (CVT_K * CVT_M / 256)
-+
-+/* Reduced Blanking */
-+#define CVT_RB_MIN_V_BPORCH    7       /* lines  */
-+#define CVT_RB_V_FPORCH        3       /* lines  */
-+#define CVT_RB_MIN_V_BLANK   460     /* us     */
-+#define CVT_RB_H_SYNC         32       /* pixels */
-+#define CVT_RB_H_BPORCH       80       /* pixels */
-+#define CVT_RB_H_BLANK       160       /* pixels */
-+
-+/** v4l2_detect_cvt - detect if the given timings follow the CVT standard
-+ * @frame_height - the total height of the frame (including blanking) in lines.
-+ * @hfreq - the horizontal frequency in Hz.
-+ * @vsync - the height of the vertical sync in lines.
-+ * @polarities - the horizontal and vertical polarities (same as struct
-+ *		v4l2_bt_timings polarities).
-+ * @fmt - the resulting timings.
-+ *
-+ * This function will attempt to detect if the given values correspond to a
-+ * valid CVT format. If so, then it will return true, and fmt will be filled
-+ * in with the found CVT timings.
-+ */
-+bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
-+		u32 polarities, struct v4l2_dv_timings *fmt)
-+{
-+	int  v_fp, v_bp, h_fp, h_bp, hsync;
-+	int  frame_width, image_height, image_width;
-+	bool reduced_blanking;
-+	unsigned pix_clk;
-+
-+	if (vsync < 4 || vsync > 7)
-+		return false;
-+
-+	if (polarities == V4L2_DV_VSYNC_POS_POL)
-+		reduced_blanking = false;
-+	else if (polarities == V4L2_DV_HSYNC_POS_POL)
-+		reduced_blanking = true;
-+	else
-+		return false;
-+
-+	/* Vertical */
-+	if (reduced_blanking) {
-+		v_fp = CVT_RB_V_FPORCH;
-+		v_bp = (CVT_RB_MIN_V_BLANK * hfreq + 999999) / 1000000;
-+		v_bp -= vsync + v_fp;
-+
-+		if (v_bp < CVT_RB_MIN_V_BPORCH)
-+			v_bp = CVT_RB_MIN_V_BPORCH;
-+	} else {
-+		v_fp = CVT_MIN_V_PORCH_RND;
-+		v_bp = (CVT_MIN_VSYNC_BP * hfreq + 999999) / 1000000 - vsync;
-+
-+		if (v_bp < CVT_MIN_V_BPORCH)
-+			v_bp = CVT_MIN_V_BPORCH;
-+	}
-+	image_height = (frame_height - v_fp - vsync - v_bp + 1) & ~0x1;
-+
-+	/* Aspect ratio based on vsync */
-+	switch (vsync) {
-+	case 4:
-+		image_width = (image_height * 4) / 3;
-+		break;
-+	case 5:
-+		image_width = (image_height * 16) / 9;
-+		break;
-+	case 6:
-+		image_width = (image_height * 16) / 10;
-+		break;
-+	case 7:
-+		/* special case */
-+		if (image_height == 1024)
-+			image_width = (image_height * 5) / 4;
-+		else if (image_height == 768)
-+			image_width = (image_height * 15) / 9;
-+		else
-+			return false;
-+		break;
-+	default:
-+		return false;
-+	}
-+
-+	image_width = image_width & ~7;
-+
-+	/* Horizontal */
-+	if (reduced_blanking) {
-+		pix_clk = (image_width + CVT_RB_H_BLANK) * hfreq;
-+		pix_clk = (pix_clk / CVT_PXL_CLK_GRAN) * CVT_PXL_CLK_GRAN;
-+
-+		h_bp = CVT_RB_H_BPORCH;
-+		hsync = CVT_RB_H_SYNC;
-+		h_fp = CVT_RB_H_BLANK - h_bp - hsync;
-+
-+		frame_width = image_width + CVT_RB_H_BLANK;
-+	} else {
-+		int h_blank;
-+		unsigned ideal_duty_cycle = CVT_C_PRIME - (CVT_M_PRIME * 1000) / hfreq;
-+
-+		h_blank = (image_width * ideal_duty_cycle + (100 - ideal_duty_cycle) / 2) /
-+						(100 - ideal_duty_cycle);
-+		h_blank = h_blank - h_blank % (2 * CVT_CELL_GRAN);
-+
-+		if (h_blank * 100 / image_width < 20) {
-+			h_blank = image_width / 5;
-+			h_blank = (h_blank + 0x7) & ~0x7;
-+		}
-+
-+		pix_clk = (image_width + h_blank) * hfreq;
-+		pix_clk = (pix_clk / CVT_PXL_CLK_GRAN) * CVT_PXL_CLK_GRAN;
-+
-+		h_bp = h_blank / 2;
-+		frame_width = image_width + h_blank;
-+
-+		hsync = (frame_width * 8 + 50) / 100;
-+		hsync = hsync - hsync % CVT_CELL_GRAN;
-+		h_fp = h_blank - hsync - h_bp;
-+	}
-+
-+	fmt->bt.polarities = polarities;
-+	fmt->bt.width = image_width;
-+	fmt->bt.height = image_height;
-+	fmt->bt.hfrontporch = h_fp;
-+	fmt->bt.vfrontporch = v_fp;
-+	fmt->bt.hsync = hsync;
-+	fmt->bt.vsync = vsync;
-+	fmt->bt.hbackporch = frame_width - image_width - h_fp - hsync;
-+	fmt->bt.vbackporch = frame_height - image_height - v_fp - vsync;
-+	fmt->bt.pixelclock = pix_clk;
-+	fmt->bt.standards = V4L2_DV_BT_STD_CVT;
-+	if (reduced_blanking)
-+		fmt->bt.flags |= V4L2_DV_FL_REDUCED_BLANKING;
-+	return true;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_detect_cvt);
-+
-+/*
-+ * GTF defines
-+ * Based on Generalized Timing Formula Standard
-+ * Version 1.1 September 2, 1999
-+ */
-+
-+#define GTF_PXL_CLK_GRAN	250000	/* pixel clock granularity */
-+
-+#define GTF_MIN_VSYNC_BP	550	/* min time of vsync + back porch (us) */
-+#define GTF_V_FP		1	/* vertical front porch (lines) */
-+#define GTF_CELL_GRAN		8	/* character cell granularity */
-+
-+/* Default */
-+#define GTF_D_M			600	/* blanking formula gradient */
-+#define GTF_D_C			40	/* blanking formula offset */
-+#define GTF_D_K			128	/* blanking formula scaling factor */
-+#define GTF_D_J			20	/* blanking formula scaling factor */
-+#define GTF_D_C_PRIME ((((GTF_D_C - GTF_D_J) * GTF_D_K) / 256) + GTF_D_J)
-+#define GTF_D_M_PRIME ((GTF_D_K * GTF_D_M) / 256)
-+
-+/* Secondary */
-+#define GTF_S_M			3600	/* blanking formula gradient */
-+#define GTF_S_C			40	/* blanking formula offset */
-+#define GTF_S_K			128	/* blanking formula scaling factor */
-+#define GTF_S_J			35	/* blanking formula scaling factor */
-+#define GTF_S_C_PRIME ((((GTF_S_C - GTF_S_J) * GTF_S_K) / 256) + GTF_S_J)
-+#define GTF_S_M_PRIME ((GTF_S_K * GTF_S_M) / 256)
-+
-+/** v4l2_detect_gtf - detect if the given timings follow the GTF standard
-+ * @frame_height - the total height of the frame (including blanking) in lines.
-+ * @hfreq - the horizontal frequency in Hz.
-+ * @vsync - the height of the vertical sync in lines.
-+ * @polarities - the horizontal and vertical polarities (same as struct
-+ *		v4l2_bt_timings polarities).
-+ * @aspect - preferred aspect ratio. GTF has no method of determining the
-+ *		aspect ratio in order to derive the image width from the
-+ *		image height, so it has to be passed explicitly. Usually
-+ *		the native screen aspect ratio is used for this. If it
-+ *		is not filled in correctly, then 16:9 will be assumed.
-+ * @fmt - the resulting timings.
-+ *
-+ * This function will attempt to detect if the given values correspond to a
-+ * valid GTF format. If so, then it will return true, and fmt will be filled
-+ * in with the found GTF timings.
-+ */
-+bool v4l2_detect_gtf(unsigned frame_height,
-+		unsigned hfreq,
-+		unsigned vsync,
-+		u32 polarities,
-+		struct v4l2_fract aspect,
-+		struct v4l2_dv_timings *fmt)
-+{
-+	int pix_clk;
-+	int  v_fp, v_bp, h_fp, h_bp, hsync;
-+	int frame_width, image_height, image_width;
-+	bool default_gtf;
-+	int h_blank;
-+
-+	if (vsync != 3)
-+		return false;
-+
-+	if (polarities == V4L2_DV_VSYNC_POS_POL)
-+		default_gtf = true;
-+	else if (polarities == V4L2_DV_HSYNC_POS_POL)
-+		default_gtf = false;
-+	else
-+		return false;
-+
-+	/* Vertical */
-+	v_fp = GTF_V_FP;
-+	v_bp = (GTF_MIN_VSYNC_BP * hfreq + 999999) / 1000000 - vsync;
-+	image_height = (frame_height - v_fp - vsync - v_bp + 1) & ~0x1;
-+
-+	if (aspect.numerator == 0 || aspect.denominator == 0) {
-+		aspect.numerator = 16;
-+		aspect.denominator = 9;
-+	}
-+	image_width = ((image_height * aspect.numerator) / aspect.denominator);
-+
-+	/* Horizontal */
-+	if (default_gtf)
-+		h_blank = ((image_width * GTF_D_C_PRIME * hfreq) -
-+					(image_width * GTF_D_M_PRIME * 1000) +
-+			(hfreq * (100 - GTF_D_C_PRIME) + GTF_D_M_PRIME * 1000) / 2) /
-+			(hfreq * (100 - GTF_D_C_PRIME) + GTF_D_M_PRIME * 1000);
-+	else
-+		h_blank = ((image_width * GTF_S_C_PRIME * hfreq) -
-+					(image_width * GTF_S_M_PRIME * 1000) +
-+			(hfreq * (100 - GTF_S_C_PRIME) + GTF_S_M_PRIME * 1000) / 2) /
-+			(hfreq * (100 - GTF_S_C_PRIME) + GTF_S_M_PRIME * 1000);
-+
-+	h_blank = h_blank - h_blank % (2 * GTF_CELL_GRAN);
-+	frame_width = image_width + h_blank;
-+
-+	pix_clk = (image_width + h_blank) * hfreq;
-+	pix_clk = pix_clk / GTF_PXL_CLK_GRAN * GTF_PXL_CLK_GRAN;
-+
-+	hsync = (frame_width * 8 + 50) / 100;
-+	hsync = hsync - hsync % GTF_CELL_GRAN;
-+
-+	h_fp = h_blank / 2 - hsync;
-+	h_bp = h_blank / 2;
-+
-+	fmt->bt.polarities = polarities;
-+	fmt->bt.width = image_width;
-+	fmt->bt.height = image_height;
-+	fmt->bt.hfrontporch = h_fp;
-+	fmt->bt.vfrontporch = v_fp;
-+	fmt->bt.hsync = hsync;
-+	fmt->bt.vsync = vsync;
-+	fmt->bt.hbackporch = frame_width - image_width - h_fp - hsync;
-+	fmt->bt.vbackporch = frame_height - image_height - v_fp - vsync;
-+	fmt->bt.pixelclock = pix_clk;
-+	fmt->bt.standards = V4L2_DV_BT_STD_GTF;
-+	if (!default_gtf)
-+		fmt->bt.flags |= V4L2_DV_FL_REDUCED_BLANKING;
-+	return true;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_detect_gtf);
-+
-+/** v4l2_calc_aspect_ratio - calculate the aspect ratio based on bytes
-+ *	0x15 and 0x16 from the EDID.
-+ * @hor_landscape - byte 0x15 from the EDID.
-+ * @vert_portrait - byte 0x16 from the EDID.
-+ *
-+ * Determines the aspect ratio from the EDID.
-+ * See VESA Enhanced EDID standard, release A, rev 2, section 3.6.2:
-+ * "Horizontal and Vertical Screen Size or Aspect Ratio"
-+ */
-+struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait)
-+{
-+	struct v4l2_fract aspect = { 16, 9 };
-+	u32 tmp;
-+	u8 ratio;
-+
-+	/* Nothing filled in, fallback to 16:9 */
-+	if (!hor_landscape && !vert_portrait)
-+		return aspect;
-+	/* Both filled in, so they are interpreted as the screen size in cm */
-+	if (hor_landscape && vert_portrait) {
-+		aspect.numerator = hor_landscape;
-+		aspect.denominator = vert_portrait;
-+		return aspect;
-+	}
-+	/* Only one is filled in, so interpret them as a ratio:
-+	   (val + 99) / 100 */
-+	ratio = hor_landscape | vert_portrait;
-+	/* Change some rounded values into the exact aspect ratio */
-+	if (ratio == 79) {
-+		aspect.numerator = 16;
-+		aspect.denominator = 9;
-+	} else if (ratio == 34) {
-+		aspect.numerator = 4;
-+		aspect.numerator = 3;
-+	} else if (ratio == 68) {
-+		aspect.numerator = 15;
-+		aspect.numerator = 9;
-+	} else {
-+		aspect.numerator = hor_landscape + 99;
-+		aspect.denominator = 100;
-+	}
-+	if (hor_landscape)
-+		return aspect;
-+	/* The aspect ratio is for portrait, so swap numerator and denominator */
-+	tmp = aspect.denominator;
-+	aspect.denominator = aspect.numerator;
-+	aspect.numerator = tmp;
-+	return aspect;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_calc_aspect_ratio);
-+
- const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
- 		const struct v4l2_discrete_probe *probe,
- 		s32 width, s32 height)
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index b43b968..6df9554 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -216,4 +216,13 @@ bool v4l_match_dv_timings(const struct v4l2_dv_timings *t1,
- 			  const struct v4l2_dv_timings *t2,
- 			  unsigned pclock_delta);
- 
-+bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
-+		u32 polarities, struct v4l2_dv_timings *fmt);
-+
-+bool v4l2_detect_gtf(unsigned frame_height, unsigned hfreq, unsigned vsync,
-+		u32 polarities, struct v4l2_fract aspect,
-+		struct v4l2_dv_timings *fmt);
-+
-+struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait);
-+
- #endif /* V4L2_COMMON_H_ */
--- 
-1.7.10.4
+Well, you may try to change register 6 to use the secondary bus and see
+if the "standard" I2C code will work there for the sensor.
 
+>> You'll see several supported devices using the secondary bus for TV and
+>> demod. As, currently, the TV eeprom is not read on those devices, nobody
+>> cared enough to add a separate I2C bus code for it, as all access used
+>> by the driver happen just on the second bus.
+> 
+> Well, the same applies to this webcam. We do not really need to read the
+> EEPROM at the moment.
+> 
+> 
+>>>> A proper mapping for it to use ov2640 driver is to create two i2c
+>>>> buses, one used by eeprom access, and another one for sensor.
+>>> Sure.
+>>>
+>>>>> Interestingly, the standard I2C reads are used, too, for reading the
+>>>>> EEPROM. So maybe there is a "physical" difference.
+>>>>>
+>>>>> "Proprietary" is probably not the best name, but I don't have e better
+>>>>> one at the moment (suggestions ?).
+>>>> It is just another bus: instead of using req 3/4 for read/write, it uses
+>>>> req 6 for both reads/writes at the i2c-like sensor bus.
+>>>>
+>>>>>>>> - uses 16bit eeprom
+>>>>>>>> - em25xx-eeprom with different layout
+>>>>>> There are other supported chips with 16bit eeproms. Currently,
+>>>>>> support for 16bit eeproms is disabled just because this weren't
+>>>>>> needed so far, but I'm sure this is a need there.
+>>>>> Yes, I've read the comment in em28xx_i2c_eeprom():
+>>>>> "...there is the risk that we could corrupt the eeprom (since a 16-bit
+>>>>> read call is interpreted as a write call by 8-bit eeproms)..."
+>>>>> How can we know if a device uses an 8bit or 16bit EEPROM ? Can we derive
+>>>>> that from the uses em27xx/28xx-chip ?
+>>>> I don't know any other way to check it than to read the chip ID, at register
+>>>> 0x0a. Those are the chip ID's that we currently know:
+>>>>
+>>>> enum em28xx_chip_id {
+>>>> 	CHIP_ID_EM2800 = 7,
+>>>> 	CHIP_ID_EM2710 = 17,
+>>>> 	CHIP_ID_EM2820 = 18,	/* Also used by some em2710 */
+>>>> 	CHIP_ID_EM2840 = 20,
+>>>> 	CHIP_ID_EM2750 = 33,
+>>>> 	CHIP_ID_EM2860 = 34,
+>>>> 	CHIP_ID_EM2870 = 35,
+>>>> 	CHIP_ID_EM2883 = 36,
+>>>> 	CHIP_ID_EM2874 = 65,
+>>>> 	CHIP_ID_EM2884 = 68,
+>>>> 	CHIP_ID_EM28174 = 113,
+>>>> };
+>>>>
+>>>> Even if we add it as a separate driver, it is likely wise to re-use the
+>>>> registers description at drivers/media/usb/em28xx/em28xx-reg.h, moving it
+>>>> to drivers/include/media, as em2765 likely uses the same registers. 
+>>>> It also makes sense to add a chip detection at the existing driver, 
+>>>> for it to bail out if it detects an em2765 (and the reverse on the new
+>>>> driver).
+>>> em2765 has chip-id 0x36 = 54.
+>>> Do you want me to send a patch ?
+>> Yes, please send it when you'll be ready for driver submission.
+> 
+> Will do that.
+> 
+>>> Do you really think the em28xx driver should always bail out when it
+>>> detects the em2765 ?
+>> Well, having 2 drivers for the same chipset is a very bad idea. Either
+>> one should use it.
+>>
+>> Another option would be to have a generic em28xx dispatcher driver
+>> that would handle all of them, probe the board, and then starting
+>> either one, depending if the driver is webcam or not.
+> 
+> Sounds good.
+> 
+>> Btw, this is on my TODO list (with low priority), as there are several
+>> devices that have only DVB. So, it makes sense to split the analog
+>> TV driver, just like we did with the DVB and alsa drivers. This way,
+>> an em28xx core driver will contain only the probe and the core functions
+>> like i2c and the common helper functions, while all the rest would be
+>> on separate drivers.
+> 
+> Yeah, a compact bridge module providing chip info, bridge register r/w
+> functions and access to the 2 + 1 i2c busses sounds good.
+> If I understand you right, this module should also do the probing and
+> then call the right driver for the device, e.g. gspca for webcams ?
+> Sounds complicating, because the bridge module is still needed after the
+> handover to the other driver, but I know nearly nothing about the
+> modules interaction possibilites (except that one module can call
+> another ;) ).
+
+It is not complicated.
+
+At the main driver, take a look at request_module_async(), at em28xx-cards: 
+it basically schedules a deferred work that will load the needed drivers,
+after em28xx finishes probing.
+
+At the sub-drivers, they use em28xx_register_extension() on their init
+code. This function uses a table with 4 parameters, like this one:
+
+static struct em28xx_ops audio_ops = {
+	.id   = EM28XX_AUDIO,
+	.name = "Em28xx Audio Extension",
+	.init = em28xx_audio_init,
+	.fini = em28xx_audio_fini,
+};
+
+The .init() function will then do everything that it is needed for the
+device to run. It is called when the main driver detects a new card,
+and it is ready for that (the main driver has some code there to avoid
+race conditions, serializing the extensions load).
+
+The .fini() is called when the device got removed, or when the driver
+calls em28xx_unregister_extension().
+
+The struct em28xx *dev is passed as a parameter on both calls, to allow
+the several drivers to share common data.
+
+This logic works pretty well, even on SMP environments with lots of CPU.
+The only care needed there (with won't affect a webcam driver) is to
+properly lock the driver to avoid two different sub-drivers to access the
+same device resources at the same time (this is needed between DVB and video
+parts of the driver).
+
+By moving the TV part to a separate driver, it makes sense to also create
+an em28xx_video structure, moving there everything that it is not common,
+but this is an optimization that could be done anytime.
+
+I suggest you to create an em28xx_webcam struct and put there data that it
+is specifics to the webcam driver there, if any.
+
+>> IMO, doing that that could be better than coding em2765 as a
+>> completely separate driver.
+> 
+> Sounds like the best approach. But also lots of non-trivial work which
+> someone has to do first. I'm afraid too much for a beginner like me...
+> And we should keep in mind that this probably means that people will
+> have to wait several further kernel releases before their device gets
+> supported.
+
+Well, it is not that hard. If I had any time, I would do it right now.
+It probably won't take more than a few hours of work to split the video
+part into a separate driver, as 99% of the work is to move a few functions
+between the .c files, and move the init code from em28xx-cards.c to
+em28xx-video.
+
+I can seek for doing that after the media workshop that will happen
+next week.
+
+> What about the GPIO/buttons stuff ? That's probably the biggest issue
+> comparing this device with the others. Would be nice to have a more
+> generic approach here, too.
+
+See em28xx_query_sbutton(), at em28xx-input.c. It makes sense to move
+the button code to a separate file, as this is needed only by the
+webcam driver.
+
+> 
+>> It shouldn't be hard to split the code like that: most of the TV-specific
+>> code is already under em28xx-video. There are still some stuff under
+>> em28xx-core that could likely be moved into em28xx-video as well, as
+>> the code is specific for TV.
+>>
+>> The probing code, plus the card descriptions is at em28xx-cards. Some
+>> code there, under em28xx_init_dev() are due to analog init. Moving it
+>> into em28xx-video and adding there a code like the one at the end of
+>> em28xx-dvb - the calls for em28xx_(un)register_extension() - should
+>> be enough for em28xx-video to be an independent module, that would be
+>> loaded by the core driver only if the device has analog TV.
+>>
+>> If you want, please feel free to take this way, working on the
+>> existing em28xx code to split it like that.
+> 
+> Ok, I will a look it. But that could take some time... ;)
+
+Ok.
+
+>>>>> Anyway, this problem is common to both solutions (gspca or em28xx-driver).
+>>>> As eeprom reading is I2C, it could make some sense to use a generic driver
+>>>> for reading its contents, removing the code from em28xx-i2c logic, and
+>>>> re-using it on both drivers (assuming that we fork it).
+>>> Yes, I think that would be a good idea.
+>>>
+>>>>>>>> - sensor OV2640
+>>>>>> There is a driver for it at:
+>>>>>> 	drivers/media/i2c/soc_camera/ov2640.c
+>>>>>>
+>>>>>> The better is to use it (even if this got mapped via gspca).
+>>>>> Yes, I know. This is already on my ToDo list.
+>>>>>
+>>>>>>>> - different frame processing
+>>>>>>>> - 3 buttons (snapshot, mute, light) which need special treatment
+>>>>>>>> (GPIO-polling, status-reseting, ...)
+>>>>>> Need to see the code to better understand that.
+>>>>> Take a look at the patch.
+>>>>>
+>>>>> http://www.spinics.net/lists/linux-media/msg52084.html
+>>>> Ok, let's do it via gspca, but please map both the standard I2C and 
+>>>> the "SCCB" bus via the I2C API, and use the existing ov2640 driver.
+>>> Wow, that was a fast decision. ;)
+>>> Could you please elaborate a bit more on that ?
+>>> How are we going to handle em27xx/em28xx webcams in the future ?
+>>> Only add THIS device via gspca ?
+>>> Put all em2765 based webcams to a gspca driver ?
+>>> Put all new devices to gspca ?
+>>> Or move all webcams to gspca ?
+>> The better is to move all webcams to the new code. I suspect, however, that
+>> this can only happen if we keep just one probing code for all em28xx devices.
+>>
+>> If you can work like that, I can certainly test the em2750 cameras I
+>> have here (and fix, if needed).
+> 
+>  That would be necessary. And also testing any other changes to the
+> em28xx driver, because I don't have such a device.
+
+Yeah, sure. I'm sure that there are also other people with em28xx hardware
+that can help testing, in order to avoid regressions there.
+
+>>>>> I've sent it to the list 3 minutes after I started this thread and also
+>>>>> CC'ed you.
+>>>>>
+>>>>>
+>>>>>>>> Another important point to mention: you can see from the USB-logs
+>>>>>>>> (sensor probing) that there must be at least 3 other webcam devices.
+>>>>>> What do you mean?
+>>>>> The Windows driver probes 3 other sensor addresses (using the same
+>>>>> "proprietary" reads). I've included them in my patch.
+>>>>> The INF-file does not contain any other USB IDs, but I think it is
+>>>>> unlikely that they are used by this device.
+>>>>> SpeedLink spent different USB IDs even for identical devices with
+>>>>> different body colors, so I think they would have done they same for
+>>>>> variants with different sensors.
+>>>>> It is more likely that the Windows driver is a kind of universal em2765
+>>>>> driver.
+>>>> With means that we'll sooner or later get some devices with other sensors.
+>>> I'm pretty sure about that. Two of them are:
+>>> eb1a:2711    V-Gear TalkCamPro
+>> This USB ID is a generic EmpiaTech ID. That means that those cameras don't
+>> have any eeprom. I'm sure you'll find other devices with different
+>> sensors sharing this very same USB ID, and maybe even some grabber devices.
+>>
+>>> 1ae7:2001    SpeedLink Snappy Microphone
+>>>
+>>>> So, it is better to be prepared for that, by exposing the sensor bus via I2C.
+>>>>
+>>>> I don't see any need to probe those other sensors right now: we should do it
+>>>> only if we actually get one of those other devices in hands.
+>>> Ok. Probing the other 3 addresses doesn't hurt, and the idea behind is,
+>>> that it easier for people to add support for new devices.
+>>> The first thing they usually do is to add their USB-ID to the driver and
+>>> see what happens. With a bit luck, dmesg the shows something like
+>>> "unknown sensor detetced at address xy" or even "unknown Omnivison
+>>> sensor detected at address xy", which is (hopefully) encouraging... ;)
+>>> But if you want me to not probe them, I will disable them (I'm sure you
+>>> agree that we should keep the addresses in the code, at least as comments).
+>> If the sensor is Omnivision/Micron, its model typically can be identified
+>> by reading the contents of sensor register 0. The code under em28xx_hint_sensor()
+>> does that (it currently assumes a sensor at I2C address 0x5d). So, trying
+>> to read from address 0, on the possible sensor addresses may help to
+>> identify what sensor was used.
+> 
+> Yes I'm doing this for Omnivision sensors in the gspca subdriver. And
+> the the em28xx sensor probing function does it for Micron sensors.
+
+Ok.
+
+Regards,
+Mauro
