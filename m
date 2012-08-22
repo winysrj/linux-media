@@ -1,84 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57232 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759995Ab2HIWZm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Aug 2012 18:25:42 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC 3/3] dvb_frontend: do not allow statistic IOCTLs when sleeping
-Date: Fri, 10 Aug 2012 01:25:01 +0300
-Message-Id: <1344551101-16700-4-git-send-email-crope@iki.fi>
-In-Reply-To: <1344551101-16700-1-git-send-email-crope@iki.fi>
-References: <1344551101-16700-1-git-send-email-crope@iki.fi>
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:2845 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752879Ab2HVLsA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Aug 2012 07:48:00 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCHv8 13/26] v4l: vivi: support for dmabuf importing
+Date: Wed, 22 Aug 2012 13:47:56 +0200
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
+	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
+	robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
+	subashrp@gmail.com, mchehab@redhat.com, g.liakhovetski@gmx.de,
+	dmitriyz@google.com, s.nawrocki@samsung.com, k.debski@samsung.com
+References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com> <1344958496-9373-14-git-send-email-t.stanislaws@samsung.com> <201208221256.30179.hverkuil@xs4all.nl>
+In-Reply-To: <201208221256.30179.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201208221347.56879.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Demodulator cannot perform statistic IOCTLs when it is not tuned.
-Return -EPERM in such case.
+On Wed August 22 2012 12:56:30 Hans Verkuil wrote:
+> On Tue August 14 2012 17:34:43 Tomasz Stanislawski wrote:
+> > This patch enhances VIVI driver with a support for importing a buffer
+> > from DMABUF file descriptors.
+> 
+> Thanks for adding DMABUF support to vivi.
+> 
+> What would be great is if DMABUF support is also added to mem2mem_testdev.
+> It would make an excellent test case to take the vivi output, pass it
+> through mem2mem_testdev, and finally output the image using the gpu, all
+> using dmabuf.
+> 
+> It's also very useful for application developers to test dmabuf support
+> without requiring special hardware (other than a dmabuf-enabled gpu
+> driver).
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb/dvb-core/dvb_frontend.c | 34 +++++++++++++++++++++++--------
- 1 file changed, 25 insertions(+), 9 deletions(-)
+Adding VIDIOC_EXPBUF support to vivi and mem2mem_testdev would be
+welcome as well for the same reasons.
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index 4fc11eb..40efcde 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -2157,27 +2157,43 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 			err = fe->ops.read_status(fe, status);
- 		break;
- 	}
-+
- 	case FE_READ_BER:
--		if (fe->ops.read_ber)
--			err = fe->ops.read_ber(fe, (__u32*) parg);
-+		if (fe->ops.read_ber) {
-+			if (fepriv->thread)
-+				err = fe->ops.read_ber(fe, (__u32 *) parg);
-+			else
-+				err = -EPERM;
-+		}
- 		break;
- 
- 	case FE_READ_SIGNAL_STRENGTH:
--		if (fe->ops.read_signal_strength)
--			err = fe->ops.read_signal_strength(fe, (__u16*) parg);
-+		if (fe->ops.read_signal_strength) {
-+			if (fepriv->thread)
-+				err = fe->ops.read_signal_strength(fe, (__u16 *) parg);
-+			else
-+				err = -EPERM;
-+		}
- 		break;
- 
- 	case FE_READ_SNR:
--		if (fe->ops.read_snr)
--			err = fe->ops.read_snr(fe, (__u16*) parg);
-+		if (fe->ops.read_snr) {
-+			if (fepriv->thread)
-+				err = fe->ops.read_snr(fe, (__u16 *) parg);
-+			else
-+				err = -EPERM;
-+		}
- 		break;
- 
- 	case FE_READ_UNCORRECTED_BLOCKS:
--		if (fe->ops.read_ucblocks)
--			err = fe->ops.read_ucblocks(fe, (__u32*) parg);
-+		if (fe->ops.read_ucblocks) {
-+			if (fepriv->thread)
-+				err = fe->ops.read_ucblocks(fe, (__u32 *) parg);
-+			else
-+				err = -EPERM;
-+		}
- 		break;
- 
--
- 	case FE_DISEQC_RESET_OVERLOAD:
- 		if (fe->ops.diseqc_reset_overload) {
- 			err = fe->ops.diseqc_reset_overload(fe);
--- 
-1.7.11.2
+Regards,
 
+	Hans
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> > Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > ---
+> >  drivers/media/video/Kconfig |    1 +
+> >  drivers/media/video/vivi.c  |    2 +-
+> >  2 files changed, 2 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+> > index 966954d..8fa81be 100644
+> > --- a/drivers/media/video/Kconfig
+> > +++ b/drivers/media/video/Kconfig
+> > @@ -653,6 +653,7 @@ config VIDEO_VIVI
+> >  	depends on FRAMEBUFFER_CONSOLE || STI_CONSOLE
+> >  	select FONT_8x16
+> >  	select VIDEOBUF2_VMALLOC
+> > +	select DMA_SHARED_BUFFER
+> >  	default n
+> >  	---help---
+> >  	  Enables a virtual video driver. This device shows a color bar
+> > diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
+> > index a6351c4..37d8fd4 100644
+> > --- a/drivers/media/video/vivi.c
+> > +++ b/drivers/media/video/vivi.c
+> > @@ -1308,7 +1308,7 @@ static int __init vivi_create_instance(int inst)
+> >  	q = &dev->vb_vidq;
+> >  	memset(q, 0, sizeof(dev->vb_vidq));
+> >  	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> > -	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
+> > +	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
+> >  	q->drv_priv = dev;
+> >  	q->buf_struct_size = sizeof(struct vivi_buffer);
+> >  	q->ops = &vivi_video_qops;
+> > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
