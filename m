@@ -1,74 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:62960 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756340Ab2HNPiZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 11:38:25 -0400
-Received: from epcpsbgm2.samsung.com (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M8R0051T4RRDSF0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:38:24 +0900 (KST)
-Received: from mcdsrvbld02.digital.local ([106.116.37.23])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M8R004J44MBC810@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:38:24 +0900 (KST)
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de, dmitriyz@google.com,
-	s.nawrocki@samsung.com, k.debski@samsung.com
-Subject: [PATCHv8 25/26] v4l: s5p-tv: mixer: support for dmabuf exporting
-Date: Tue, 14 Aug 2012 17:34:55 +0200
-Message-id: <1344958496-9373-26-git-send-email-t.stanislaws@samsung.com>
-In-reply-to: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
-References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:60483 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757884Ab2HVXmY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Aug 2012 19:42:24 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/2] dvb_usb_v2: use dvb_usb_dbg_usb_control_msg()
+Date: Thu, 23 Aug 2012 02:42:00 +0300
+Message-Id: <1345678920-6360-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1345678920-6360-1-git-send-email-crope@iki.fi>
+References: <1345678920-6360-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch enhances s5p-tv with support for DMABUF exporting via
-VIDIOC_EXPBUF ioctl.
+Convert drivers: au6610, ce6230, ec168, rtl28xxu for
+dvb_usb_dbg_usb_control_msg() macro.
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/video/s5p-tv/mixer_video.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/media/usb/dvb-usb-v2/au6610.c   |  5 +++++
+ drivers/media/usb/dvb-usb-v2/ce6230.c   |  4 ++--
+ drivers/media/usb/dvb-usb-v2/ce6230.h   | 11 -----------
+ drivers/media/usb/dvb-usb-v2/ec168.c    |  4 ++--
+ drivers/media/usb/dvb-usb-v2/ec168.h    | 11 -----------
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c |  6 ++++--
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.h | 11 -----------
+ 7 files changed, 13 insertions(+), 39 deletions(-)
 
-diff --git a/drivers/media/video/s5p-tv/mixer_video.c b/drivers/media/video/s5p-tv/mixer_video.c
-index a7e3b53..e5ec6bd 100644
---- a/drivers/media/video/s5p-tv/mixer_video.c
-+++ b/drivers/media/video/s5p-tv/mixer_video.c
-@@ -697,6 +697,15 @@ static int mxr_dqbuf(struct file *file, void *priv, struct v4l2_buffer *p)
- 	return vb2_dqbuf(&layer->vb_queue, p, file->f_flags & O_NONBLOCK);
- }
+diff --git a/drivers/media/usb/dvb-usb-v2/au6610.c b/drivers/media/usb/dvb-usb-v2/au6610.c
+index c126b70..f309fd8 100644
+--- a/drivers/media/usb/dvb-usb-v2/au6610.c
++++ b/drivers/media/usb/dvb-usb-v2/au6610.c
+@@ -56,6 +56,11 @@ static int au6610_usb_msg(struct dvb_usb_device *d, u8 operation, u8 addr,
+ 	ret = usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0), operation,
+ 			      USB_TYPE_VENDOR|USB_DIR_IN, addr << 1, index,
+ 			      usb_buf, 6, AU6610_USB_TIMEOUT);
++
++	dvb_usb_dbg_usb_control_msg(d->udev, operation,
++			(USB_TYPE_VENDOR|USB_DIR_IN), addr << 1, index,
++			usb_buf, 6);
++
+ 	if (ret < 0)
+ 		goto error;
  
-+static int mxr_expbuf(struct file *file, void *priv,
-+	struct v4l2_exportbuffer *eb)
-+{
-+	struct mxr_layer *layer = video_drvdata(file);
+diff --git a/drivers/media/usb/dvb-usb-v2/ce6230.c b/drivers/media/usb/dvb-usb-v2/ce6230.c
+index 819db9c..1c4357d 100644
+--- a/drivers/media/usb/dvb-usb-v2/ce6230.c
++++ b/drivers/media/usb/dvb-usb-v2/ce6230.c
+@@ -74,8 +74,8 @@ static int ce6230_ctrl_msg(struct dvb_usb_device *d, struct usb_req *req)
+ 	ret = usb_control_msg(d->udev, pipe, request, requesttype, value, index,
+ 			buf, req->data_len, CE6230_USB_TIMEOUT);
+ 
+-	ce6230_debug_dump(request, requesttype, value, index, buf,
+-			req->data_len);
++	dvb_usb_dbg_usb_control_msg(d->udev, request, requesttype, value, index,
++			buf, req->data_len);
+ 
+ 	if (ret < 0)
+ 		pr_err("%s: usb_control_msg() failed=%d\n", KBUILD_MODNAME,
+diff --git a/drivers/media/usb/dvb-usb-v2/ce6230.h b/drivers/media/usb/dvb-usb-v2/ce6230.h
+index 42d7544..299e57e 100644
+--- a/drivers/media/usb/dvb-usb-v2/ce6230.h
++++ b/drivers/media/usb/dvb-usb-v2/ce6230.h
+@@ -26,17 +26,6 @@
+ #include "zl10353.h"
+ #include "mxl5005s.h"
+ 
+-#define ce6230_debug_dump(r, t, v, i, b, l) { \
+-	char *direction; \
+-	if (t == (USB_TYPE_VENDOR | USB_DIR_OUT)) \
+-		direction = ">>>"; \
+-	else \
+-		direction = "<<<"; \
+-	pr_debug("%s: %02x %02x %02x %02x %02x %02x %02x %02x %s [%d bytes]\n", \
+-			 __func__, t, r, v & 0xff, v >> 8, i & 0xff, i >> 8, \
+-			l & 0xff, l >> 8, direction, l); \
+-}
+-
+ #define CE6230_USB_TIMEOUT 1000
+ 
+ struct usb_req {
+diff --git a/drivers/media/usb/dvb-usb-v2/ec168.c b/drivers/media/usb/dvb-usb-v2/ec168.c
+index ab77622..b74c810 100644
+--- a/drivers/media/usb/dvb-usb-v2/ec168.c
++++ b/drivers/media/usb/dvb-usb-v2/ec168.c
+@@ -86,8 +86,8 @@ static int ec168_ctrl_msg(struct dvb_usb_device *d, struct ec168_req *req)
+ 	ret = usb_control_msg(d->udev, pipe, request, requesttype, req->value,
+ 		req->index, buf, req->size, EC168_USB_TIMEOUT);
+ 
+-	ec168_debug_dump(request, requesttype, req->value, req->index, buf,
+-		req->size);
++	dvb_usb_dbg_usb_control_msg(d->udev, request, requesttype, req->value,
++			req->index, buf, req->size);
+ 
+ 	if (ret < 0)
+ 		goto err_dealloc;
+diff --git a/drivers/media/usb/dvb-usb-v2/ec168.h b/drivers/media/usb/dvb-usb-v2/ec168.h
+index 9181236..f651808 100644
+--- a/drivers/media/usb/dvb-usb-v2/ec168.h
++++ b/drivers/media/usb/dvb-usb-v2/ec168.h
+@@ -24,17 +24,6 @@
+ 
+ #include "dvb_usb.h"
+ 
+-#define ec168_debug_dump(r, t, v, i, b, l) { \
+-	char *direction; \
+-	if (t == (USB_TYPE_VENDOR | USB_DIR_OUT)) \
+-		direction = ">>>"; \
+-	else \
+-		direction = "<<<"; \
+-	pr_debug("%s: %02x %02x %02x %02x %02x %02x %02x %02x %s\n", \
+-			 __func__, t, r, v & 0xff, v >> 8, i & 0xff, i >> 8, \
+-			l & 0xff, l >> 8, direction); \
+-}
+-
+ #define EC168_USB_TIMEOUT 1000
+ 
+ struct ec168_req {
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index c246c50..e29fca2 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -59,11 +59,13 @@ static int rtl28xxu_ctrl_msg(struct dvb_usb_device *d, struct rtl28xxu_req *req)
+ 
+ 	ret = usb_control_msg(d->udev, pipe, 0, requesttype, req->value,
+ 			req->index, buf, req->size, 1000);
 +
-+	mxr_dbg(layer->mdev, "%s:%d\n", __func__, __LINE__);
-+	return vb2_expbuf(&layer->vb_queue, eb);
-+}
++	dvb_usb_dbg_usb_control_msg(d->udev, 0, requesttype, req->value,
++			req->index, buf, req->size);
 +
- static int mxr_streamon(struct file *file, void *priv, enum v4l2_buf_type i)
- {
- 	struct mxr_layer *layer = video_drvdata(file);
-@@ -724,6 +733,7 @@ static const struct v4l2_ioctl_ops mxr_ioctl_ops = {
- 	.vidioc_querybuf = mxr_querybuf,
- 	.vidioc_qbuf = mxr_qbuf,
- 	.vidioc_dqbuf = mxr_dqbuf,
-+	.vidioc_expbuf = mxr_expbuf,
- 	/* Streaming control */
- 	.vidioc_streamon = mxr_streamon,
- 	.vidioc_streamoff = mxr_streamoff,
+ 	if (ret > 0)
+ 		ret = 0;
+ 
+-	deb_dump(0, requesttype, req->value, req->index, buf, req->size);
+-
+ 	/* read request, copy returned data to return buf */
+ 	if (!ret && requesttype == (USB_TYPE_VENDOR | USB_DIR_IN))
+ 		memcpy(req->data, buf, req->size);
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
+index 575edbf..035a9c8 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
+@@ -24,17 +24,6 @@
+ 
+ #include "dvb_usb.h"
+ 
+-#define deb_dump(r, t, v, i, b, l) { \
+-	char *direction; \
+-	if (t == (USB_TYPE_VENDOR | USB_DIR_OUT)) \
+-		direction = ">>>"; \
+-	else \
+-		direction = "<<<"; \
+-	dev_dbg(&d->udev->dev, "%s: %02x %02x %02x %02x %02x %02x %02x %02x " \
+-			"%s [%d bytes]\n",  __func__, t, r, v & 0xff, v >> 8, \
+-			i & 0xff, i >> 8, l & 0xff, l >> 8, direction, l); \
+-}
+-
+ /*
+  * USB commands
+  * (usb_control_msg() index parameter)
 -- 
-1.7.9.5
+1.7.11.4
 
