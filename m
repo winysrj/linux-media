@@ -1,86 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:50174 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750952Ab2H1IYP (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:16395 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752622Ab2HVMJW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Aug 2012 04:24:15 -0400
-Subject: Re: [PATCH 03/12] coda: fix IRAM/AXI handling for i.MX53
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@linaro.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
-In-Reply-To: <CACKLOr0znE9WOBqk-nfm_y58mDAiW+noFbyugDD7n0Vo0Drp9g@mail.gmail.com>
-References: <1345825078-3688-1-git-send-email-p.zabel@pengutronix.de>
-	 <1345825078-3688-4-git-send-email-p.zabel@pengutronix.de>
-	 <CACKLOr0znE9WOBqk-nfm_y58mDAiW+noFbyugDD7n0Vo0Drp9g@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 28 Aug 2012 10:24:09 +0200
-Message-ID: <1346142249.2534.26.camel@pizza.hi.pengutronix.de>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 22 Aug 2012 08:09:22 -0400
+Received: from eusync4.samsung.com (mailout3.w1.samsung.com [210.118.77.13])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M9500DPCOGHR270@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 22 Aug 2012 13:09:53 +0100 (BST)
+Received: from [106.116.147.108] by eusync4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0M9500LBVOFJDR60@eusync4.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 22 Aug 2012 13:09:20 +0100 (BST)
+Message-id: <5034CBEE.1020700@samsung.com>
+Date: Wed, 22 Aug 2012 14:09:18 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+MIME-version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
+	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
+	robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
+	subashrp@gmail.com, mchehab@redhat.com, g.liakhovetski@gmx.de,
+	dmitriyz@google.com, s.nawrocki@samsung.com, k.debski@samsung.com,
+	Sumit Semwal <sumit.semwal@linaro.org>
+Subject: Re: [PATCHv8 01/26] v4l: Add DMABUF as a memory type
+References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
+ <1344958496-9373-2-git-send-email-t.stanislaws@samsung.com>
+ <201208221227.52900.hverkuil@xs4all.nl>
+In-reply-to: <201208221227.52900.hverkuil@xs4all.nl>
+Content-type: text/plain; charset=ISO-8859-15
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+Hi Hans,
+Thank your for the review.
+Please refer to the comments below.
 
-thank you for the comments,
-
-Am Montag, den 27.08.2012, 10:59 +0200 schrieb javier Martin:
-> Hi Philipp,
-> thank you for your patch. Please, find some comments below.
+On 08/22/2012 12:27 PM, Hans Verkuil wrote:
+> On Tue August 14 2012 17:34:31 Tomasz Stanislawski wrote:
+>> From: Sumit Semwal <sumit.semwal@ti.com>
+>>
+>> Adds DMABUF memory type to v4l framework. Also adds the related file
+>> descriptor in v4l2_plane and v4l2_buffer.
+>>
+>> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+>>    [original work in the PoC for buffer sharing]
+>> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+>> Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+>> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> ---
+>>  drivers/media/video/v4l2-compat-ioctl32.c |   18 ++++++++++++++++++
+>>  drivers/media/video/v4l2-ioctl.c          |    1 +
+>>  include/linux/videodev2.h                 |    7 +++++++
+>>  3 files changed, 26 insertions(+)
+>>
+>> diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
+>> index 9ebd5c5..a2e0549 100644
+>> --- a/drivers/media/video/v4l2-compat-ioctl32.c
+>> +++ b/drivers/media/video/v4l2-compat-ioctl32.c
+>> @@ -304,6 +304,7 @@ struct v4l2_plane32 {
+>>  	union {
+>>  		__u32		mem_offset;
+>>  		compat_long_t	userptr;
+>> +		__u32		fd;
 > 
-> On 24 August 2012 18:17, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-[...]
-> > @@ -1854,6 +1886,25 @@ static int __devinit coda_probe(struct platform_device *pdev)
-> >                 return -ENOMEM;
-> >         }
-> >
-> > +       if (dev->devtype->product == CODA_DX6) {
-> > +               dev->iram_paddr = 0xffff4c00;
-> > +       } else {
-> > +               struct device_node *np = pdev->dev.of_node;
-> > +
-> > +               dev->iram_pool = of_get_named_gen_pool(np, "iram", 0);
+> Shouldn't this be int?
 > 
-> "of_get_named_gen_pool" doesn't exist in linux_media 'for_v3.7'.
-> Moreover, nobody registers an IRAM through the function 'iram_init' in
-> mainline [1] so this will never work.
-> You will have to wait until this functionality gets merge before
-> sending this patch.
+
+Notice that this field should be consistent with fd field used in
+'struct v4l2_exportbuffer'. Therefore I prefer to use fixed-size types.
+One could use __s32 here but notice that file descriptors are defined
+as small, nonnegative integers according to POSIX spec. The type __u32
+suits well for this purpose. The negative values returned by open
+syscall are used only to indicate failures.
+
+On the other hand, using __s32 may help to avoid compiler warning while
+building userspace apps due to 'signed-vs-unsigned comparisons'.
+
+However, I do not have any strong opinion about 'int vs __u32' issue :).
+Do you think that using __s32 for both QUERYBUF and EXPBUF is a good
+compromise?
+
+>>  	} m;
+>>  	__u32			data_offset;
+>>  	__u32			reserved[11];
+>> @@ -325,6 +326,7 @@ struct v4l2_buffer32 {
+>>  		__u32           offset;
+>>  		compat_long_t   userptr;
+>>  		compat_caddr_t  planes;
+>> +		__u32		fd;
 > 
-> > +               if (!iram_pool) {
+> Ditto.
 > 
-> I think you meant 'dev->iram_pool' here, otherwise this will not
-> compile properly:
+>>  	} m;
+>>  	__u32			length;
+>>  	__u32			reserved2;
+
+> Regards,
 > 
->  CC      drivers/media/video/coda.o
-> drivers/media/video/coda.c: In function 'coda_probe':
-> drivers/media/video/coda.c:1893: error: implicit declaration of
-> function 'of_get_named_gen_pool'
-> drivers/media/video/coda.c:1893: warning: assignment makes pointer
-> from integer without a cast
-> drivers/media/video/coda.c:1894: error: 'iram_pool' undeclared (first
-> use in this function)
-> drivers/media/video/coda.c:1894: error: (Each undeclared identifier is
-> reported only once
-> drivers/media/video/coda.c:1894: error: for each function it appears in.)
+> 	Hans
+> 
 
-I was a bit overzealous squashing my patches. For the next round, I'm
-using the iram_alloc/iram_free functions that are present in
-arch/plat-mxc/include/mach/iram.h (and thus gain a temporary dependency
-on ARCH_MXC until there is a mechansim to get to the IRAM gen_pool).
-A follow-up patch then would convert the driver to the genalloc API
-again.
+Regards,
 
-On a related note, is the 45 KiB VRAM at 0xffff4c00 on i.MX27 reserved
-exclusively for the CODA? I suppose rather than hard-coding the address
-in the driver, we could use the iram_alloc API on i.MX27, too?
-
-regards
-Philipp
-
+	Tomasz
