@@ -1,60 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1-relais-roc.national.inria.fr ([192.134.164.82]:61456 "EHLO
-	mail1-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752836Ab2HRV0W (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Aug 2012 17:26:22 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: kernel-janitors@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 3/5] drivers/media/video/gspca/cpia1.c: introduce missing initialization
-Date: Sat, 18 Aug 2012 23:25:57 +0200
-Message-Id: <1345325159-7365-3-git-send-email-Julia.Lawall@lip6.fr>
+Received: from mta-out.inet.fi ([195.156.147.13]:49743 "EHLO jenni1.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752184Ab2HVTuo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Aug 2012 15:50:44 -0400
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH 5/8] ir-rx51: Move platform data checking into probe function
+Date: Wed, 22 Aug 2012 22:50:38 +0300
+Message-Id: <1345665041-15211-6-git-send-email-timo.t.kokkonen@iki.fi>
+In-Reply-To: <1345665041-15211-1-git-send-email-timo.t.kokkonen@iki.fi>
+References: <1345665041-15211-1-git-send-email-timo.t.kokkonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Julia Lawall <Julia.Lawall@lip6.fr>
+This driver is useless without proper platform data. If data is not
+available, we should not register the driver at all. Once this check
+is done, the BUG_ON check during device open is no longer needed.
 
-The result of one call to a function is tested, and then at the second call
-to the same function, the previous result, and not the current result, is
-tested again.
-
-The semantic match that finds this problem is as follows:
-(http://coccinelle.lip6.fr/)
-
-// <smpl>
-@@
-expression ret;
-identifier f;
-statement S1,S2;
-@@
-
-*ret = f(...);
-if (\(ret != 0\|ret < 0\|ret == NULL\)) S1
-... when any
-*f(...);
-if (\(ret != 0\|ret < 0\|ret == NULL\)) S2
-// </smpl>
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
+Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
 ---
- drivers/media/video/gspca/cpia1.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/rc/ir-rx51.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/video/gspca/cpia1.c b/drivers/media/video/gspca/cpia1.c
-index 2499a88..b3ba47d 100644
---- a/drivers/media/video/gspca/cpia1.c
-+++ b/drivers/media/video/gspca/cpia1.c
-@@ -751,7 +751,7 @@ static int goto_high_power(struct gspca_dev *gspca_dev)
- 	if (signal_pending(current))
- 		return -EINTR;
+diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+index 3d2911b..46628c0 100644
+--- a/drivers/media/rc/ir-rx51.c
++++ b/drivers/media/rc/ir-rx51.c
+@@ -378,7 +378,6 @@ static long lirc_rx51_ioctl(struct file *filep,
+ static int lirc_rx51_open(struct inode *inode, struct file *file)
+ {
+ 	struct lirc_rx51 *lirc_rx51 = lirc_get_pdata(file);
+-	BUG_ON(!lirc_rx51);
  
--	do_command(gspca_dev, CPIA_COMMAND_GetCameraStatus, 0, 0, 0, 0);
-+	ret = do_command(gspca_dev, CPIA_COMMAND_GetCameraStatus, 0, 0, 0, 0);
- 	if (ret)
- 		return ret;
+ 	file->private_data = lirc_rx51;
  
+@@ -458,6 +457,9 @@ static int lirc_rx51_resume(struct platform_device *dev)
+ 
+ static int __devinit lirc_rx51_probe(struct platform_device *dev)
+ {
++	if (!dev->dev.platform_data)
++		return -ENODEV;
++
+ 	lirc_rx51_driver.features = LIRC_RX51_DRIVER_FEATURES;
+ 	lirc_rx51.pdata = dev->dev.platform_data;
+ 	lirc_rx51.pwm_timer_num = lirc_rx51.pdata->pwm_timer;
+-- 
+1.7.12
 
