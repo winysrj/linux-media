@@ -1,345 +1,269 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:58152 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752214Ab2HBVSz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2012 17:18:55 -0400
-Received: by bkwj10 with SMTP id j10so4442030bkw.19
-        for <linux-media@vger.kernel.org>; Thu, 02 Aug 2012 14:18:54 -0700 (PDT)
-Message-ID: <501AEEBC.30803@gmail.com>
-Date: Thu, 02 Aug 2012 23:18:52 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:35132 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756703Ab2HVPVZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Aug 2012 11:21:25 -0400
+Message-ID: <5034F8E3.2060700@iki.fi>
+Date: Wed, 22 Aug 2012 18:21:07 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Sangwook Lee <sangwook.lee@linaro.org>
-CC: LMML <linux-media@vger.kernel.org>, quartz.jang@samsung.com,
-	linaro-dev@lists.linaro.org, patches@linaro.org,
-	suapapa@insignal.co.kr,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	sakari.ailus@maxwell.research.nokia.com
-Subject: Re: [PATH v3 2/2] v4l: Add v4l2 subdev driver for S5K4ECGX sensor
-References: <1343914971-23007-1-git-send-email-sangwook.lee@linaro.org> <1343914971-23007-3-git-send-email-sangwook.lee@linaro.org>
-In-Reply-To: <1343914971-23007-3-git-send-email-sangwook.lee@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Hin-Tak Leung <htl10@users.sourceforge.net>
+CC: Hiroshi Doyu <hdoyu@nvidia.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"joe@perches.com" <joe@perches.com>,
+	"linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
+Subject: Re: [PATCH 1/1] driver-core: Shut up dev_dbg_reatelimited() without
+ DEBUG
+References: <502EDDCC.200@iki.fi><20120820.141454.449841061737873578.hdoyu@nvidia.com><5032AC3E.5080402@iki.fi> <20120821.100204.446226016699627525.hdoyu@nvidia.com> <503343B9.1070104@iki.fi> <5034E532.8090207@users.sourceforge.net>
+In-Reply-To: <5034E532.8090207@users.sourceforge.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/02/2012 03:42 PM, Sangwook Lee wrote:
-> This driver implements preview mode of the S5K4ECGX sensor.
-> capture (snapshot) operation, face detection are missing now.
-> 
-> Following controls are supported:
-> contrast/saturation/brightness/sharpness
-> 
-> Signed-off-by: Sangwook Lee<sangwook.lee-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> ---
-...
-> +static const char * const s5k4ecgx_supply_names[] = {
-> +	/*
-> +	 * vdd_2.8v is for Analog power supply 2.8V(vdda)
-> +	 * and Digital IO(vddio, vddd_core)
-> +	 */
-> +	"vdd_2.8v",
+On 08/22/2012 04:57 PM, Hin-Tak Leung wrote:
+> Antti Palosaari wrote:
+>> Hello Hiroshi,
+>>
+>> On 08/21/2012 10:02 AM, Hiroshi Doyu wrote:
+>>> Antti Palosaari <crope@iki.fi> wrote @ Mon, 20 Aug 2012 23:29:34 +0200:
+>>>
+>>>> On 08/20/2012 02:14 PM, Hiroshi Doyu wrote:
+>>>>> Hi Antti,
+>>>>>
+>>>>> Antti Palosaari <crope@iki.fi> wrote @ Sat, 18 Aug 2012 02:11:56
+>>>>> +0200:
+>>>>>
+>>>>>> On 08/17/2012 09:04 AM, Hiroshi Doyu wrote:
+>>>>>>> dev_dbg_reatelimited() without DEBUG printed "217078 callbacks
+>>>>>>> suppressed". This shouldn't print anything without DEBUG.
+>>>>>>>
+>>>>>>> Signed-off-by: Hiroshi Doyu <hdoyu@nvidia.com>
+>>>>>>> Reported-by: Antti Palosaari <crope@iki.fi>
+>>>>>>> ---
+>>>>>>>     include/linux/device.h |    6 +++++-
+>>>>>>>     1 files changed, 5 insertions(+), 1 deletions(-)
+>>>>>>>
+>>>>>>> diff --git a/include/linux/device.h b/include/linux/device.h
+>>>>>>> index eb945e1..d4dc26e 100644
+>>>>>>> --- a/include/linux/device.h
+>>>>>>> +++ b/include/linux/device.h
+>>>>>>> @@ -962,9 +962,13 @@ do {                                    \
+>>>>>>>         dev_level_ratelimited(dev_notice, dev, fmt, ##__VA_ARGS__)
+>>>>>>>     #define dev_info_ratelimited(dev, fmt, ...)                \
+>>>>>>>         dev_level_ratelimited(dev_info, dev, fmt, ##__VA_ARGS__)
+>>>>>>> +#if defined(DEBUG)
+>>>>>>>     #define dev_dbg_ratelimited(dev, fmt, ...)                \
+>>>>>>>         dev_level_ratelimited(dev_dbg, dev, fmt, ##__VA_ARGS__)
+>>>>>>> -
+>>>>>>> +#else
+>>>>>>> +#define dev_dbg_ratelimited(dev, fmt, ...)            \
+>>>>>>> +    no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
+>>>>>>> +#endif
+>>>>>>>     /*
+>>>>>>>      * Stupid hackaround for existing uses of non-printk uses
+>>>>>>> dev_info
+>>>>>>>      *
+>>>>>>>
+>>>>>>
+>>>>>> NACK. I don't think that's correct behavior. After that patch it
+>>>>>> kills
+>>>>>> all output of dev_dbg_ratelimited(). If I use dynamic debugs and
+>>>>>> order
+>>>>>> debugs, I expect to see debugs as earlier.
+>>>>>
+>>>>> You are right. I attached the update patch, just moving *_ratelimited
+>>>>> functions after dev_dbg() definitions.
+>>>>>
+>>>>> With DEBUG defined/undefined in your "test.ko", it works fine. With
+>>>>> CONFIG_DYNAMIC_DEBUG, it works with "+p", but with "-p", still
+>>>>> "..callbacks suppressed" is printed.
+>>>>
+>>>> I am using dynamic debugs and behavior is now just same as it was when
+>>>> reported that bug. OK, likely for static debug it is now correct.
+>>>
+>>> The following patch can also refrain "..callbacks suppressed" with
+>>> "-p". I think that it's ok for all cases.
+>>>
+>>>> From b4c6aa9160f03b61ed17975c73db36c983a48927 Mon Sep 17 00:00:00 2001
+>>> From: Hiroshi Doyu <hdoyu@nvidia.com>
+>>> Date: Mon, 20 Aug 2012 13:49:19 +0300
+>>> Subject: [v3 1/1] driver-core: Shut up dev_dbg_reatelimited() without
+>>> DEBUG
+>>>
+>>> dev_dbg_reatelimited() without DEBUG printed "217078 callbacks
+>>> suppressed". This shouldn't print anything without DEBUG.
+>>>
+>>> With CONFIG_DYNAMIC_DEBUG, the print should be configured as expected.
+>>>
+>>> Signed-off-by: Hiroshi Doyu <hdoyu@nvidia.com>
+>>> Reported-by: Antti Palosaari <crope@iki.fi>
+>>> ---
+>>>   include/linux/device.h |   62
+>>> +++++++++++++++++++++++++++++------------------
+>>>   1 files changed, 38 insertions(+), 24 deletions(-)
+>>>
+>>> diff --git a/include/linux/device.h b/include/linux/device.h
+>>> index 9648331..bb6ffcb 100644
+>>> --- a/include/linux/device.h
+>>> +++ b/include/linux/device.h
+>>> @@ -932,6 +932,32 @@ int _dev_info(const struct device *dev, const
+>>> char *fmt,
+>>> ...)
+>>>
+>>>   #endif
+>>>
+>>> +/*
+>>> + * Stupid hackaround for existing uses of non-printk uses dev_info
+>>> + *
+>>> + * Note that the definition of dev_info below is actually _dev_info
+>>> + * and a macro is used to avoid redefining dev_info
+>>> + */
+>>> +
+>>> +#define dev_info(dev, fmt, arg...) _dev_info(dev, fmt, ##arg)
+>>> +
+>>> +#if defined(CONFIG_DYNAMIC_DEBUG)
+>>> +#define dev_dbg(dev, format, ...)             \
+>>> +do {                             \
+>>> +    dynamic_dev_dbg(dev, format, ##__VA_ARGS__); \
+>>> +} while (0)
+>>> +#elif defined(DEBUG)
+>>> +#define dev_dbg(dev, format, arg...)        \
+>>> +    dev_printk(KERN_DEBUG, dev, format, ##arg)
+>>> +#else
+>>> +#define dev_dbg(dev, format, arg...)                \
+>>> +({                                \
+>>> +    if (0)                            \
+>>> +        dev_printk(KERN_DEBUG, dev, format, ##arg);    \
+>>> +    0;                            \
+>>> +})
+>>> +#endif
+>>> +
+>>>   #define dev_level_ratelimited(dev_level, dev, fmt, ...)            \
+>>>   do {                                    \
+>>>       static DEFINE_RATELIMIT_STATE(_rs,                \
+>>> @@ -955,33 +981,21 @@ do {                                    \
+>>>       dev_level_ratelimited(dev_notice, dev, fmt, ##__VA_ARGS__)
+>>>   #define dev_info_ratelimited(dev, fmt, ...)                \
+>>>       dev_level_ratelimited(dev_info, dev, fmt, ##__VA_ARGS__)
+>>> +#if defined(CONFIG_DYNAMIC_DEBUG) || defined(DEBUG)
+>>>   #define dev_dbg_ratelimited(dev, fmt, ...)                \
+>>> -    dev_level_ratelimited(dev_dbg, dev, fmt, ##__VA_ARGS__)
+>>> -
+>>> -/*
+>>> - * Stupid hackaround for existing uses of non-printk uses dev_info
+>>> - *
+>>> - * Note that the definition of dev_info below is actually _dev_info
+>>> - * and a macro is used to avoid redefining dev_info
+>>> - */
+>>> -
+>>> -#define dev_info(dev, fmt, arg...) _dev_info(dev, fmt, ##arg)
+>>> -
+>>> -#if defined(CONFIG_DYNAMIC_DEBUG)
+>>> -#define dev_dbg(dev, format, ...)             \
+>>> -do {                             \
+>>> -    dynamic_dev_dbg(dev, format, ##__VA_ARGS__); \
+>>> +do {                                    \
+>>> +    static DEFINE_RATELIMIT_STATE(_rs,                \
+>>> +                      DEFAULT_RATELIMIT_INTERVAL,    \
+>>> +                      DEFAULT_RATELIMIT_BURST);        \
+>>> +    DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);            \
+>>> +    if (unlikely(descriptor.flags & _DPRINTK_FLAGS_PRINT) &&    \
+>>> +        __ratelimit(&_rs))                        \
+>>> +        __dynamic_pr_debug(&descriptor, pr_fmt(fmt),        \
+>>> +                   ##__VA_ARGS__);            \
+>>>   } while (0)
+>>> -#elif defined(DEBUG)
+>>> -#define dev_dbg(dev, format, arg...)        \
+>>> -    dev_printk(KERN_DEBUG, dev, format, ##arg)
+>>>   #else
+>>> -#define dev_dbg(dev, format, arg...)                \
+>>> -({                                \
+>>> -    if (0)                            \
+>>> -        dev_printk(KERN_DEBUG, dev, format, ##arg);    \
+>>> -    0;                            \
+>>> -})
+>>> +#define dev_dbg_ratelimited(dev, fmt, ...)            \
+>>> +    no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
+>>>   #endif
+>>>
+>>>   #ifdef VERBOSE_DEBUG
+>>
+>> That seems to work correctly now. I tested it using dynamic debugs. It
+>> was
+>> Hin-Tak who originally reported that bug for me after I added few
+>> ratelimited
+>> debugs for DVB stack. Thank you!
+>>
+>> Reported-by: Hin-Tak Leung <htl10@users.sourceforge.net>
+>> Tested-by: Antti Palosaari <crope@iki.fi>
+>>
+>>
+>> regards
+>> Antti
+>>
+>
+> This is with mediatree/for_v3.7-8 , playing DVB-T video with mplayer.
+>
+> echo 'file ...media_build/v4l/usb_urb.c +p' >
+> /sys/kernel/debug/dynamic_debug/control
+>
+> With +p
+>
+> [137749.698202] usb 1-3: usb_urb_complete: bulk urb completed status=0
+> length=4096/4096 pack_num=0 errors=0
+> [137749.699449] usb 1-3: usb_urb_complete: bulk urb completed status=0
+> length=4096/4096 pack_num=0 errors=0
+> [137749.700825] usb 1-3: usb_urb_complete: bulk urb completed status=0
+> length=4096/4096 pack_num=0 errors=0
+> [137754.690862] usb_urb_complete: 3570 callbacks suppressed
+> [137754.690888] usb 1-3: usb_urb_complete: bulk urb completed status=0
+> length=4096/4096 pack_num=0 errors=0
+> [137754.692489] usb 1-3: usb_urb_complete: bulk urb completed status=0
+> length=4096/4096 pack_num=0 errors=0
+> [137754.693745] usb 1-3: usb_urb_complete: bulk urb completed status=0
+> length=4096/4096 pack_num=0 errors=0
+> [137754.694882] usb 1-3: usb_urb_complete: bulk urb completed status=0
+> length=4096/4096 pack_num=0 errors=0
+> [137754.696240] usb 1-3: usb_urb_complete: bulk urb completed status=0
+> length=4096/4096 pack_num=0 errors=0
+> [137754.697483] usb 1-3: usb_urb_complete: bulk urb completed status=0
+> length=4096/4096 pack_num=0 errors=0
+> [137754.699002] usb 1-3: usb_urb_complete: bulk urb completed status=0
+> length=4096/4096 pack_num=0 errors=0
+> [137754.700884] usb 1-3: usb_urb_complete: bulk urb completed status=0
+> length=4096/4096 pack_num=0 errors=0
+> [137754.701613] usb 1-3: usb_urb_complete: bulk urb completed status=0
+> length=4096/4096 pack_num=0 errors=0
+> [137754.702986] usb 1-3: usb_urb_complete: bulk urb completed status=0
+> length=4096/4096 pack_num=0 errors=0
+> [137759.695906] usb_urb_complete: 3595 callbacks suppressed
+> [137759.695934] usb 1-3: usb_urb_complete: bulk urb completed status=0
+> length=4096/4096 pack_num=0 errors=0
+> [137759.697788] usb 1-3: usb_urb_complete: bulk urb completed status=0
+> length=4096/4096 pack_num=0 errors=0
+> [137759.698772] usb 1-3: usb_urb_complete: bulk urb completed status=0
+> length=4096/4096 pack_num=0 errors=0
+>
+> with -p
+>
+> [137814.730303] usb_urb_complete: 3555 callbacks suppressed
+> [137819.740698] usb_urb_complete: 3519 callbacks suppressed
+> [137824.744857] usb_urb_complete: 3443 callbacks suppressed
+> [137829.746023] usb_urb_complete: 3345 callbacks suppressed
+> [137834.749931] usb_urb_complete: 3558 callbacks suppressed
+> [137839.753102] usb_urb_complete: 3465 callbacks suppressed
+> [137844.755521] usb_urb_complete: 3438 callbacks suppressed
 
-Might be better to avoid voltage value in regulator supply names. Can you
-just make it on of: vdda, vddio, vddcore ? On some systems all 3 power pads
-might be used and all 3 voltage supply names might be needed. I guess it can
-be changed if there is a need for it. Also we could specify all 3 entries as
-above and add such regulator supply names at a corresponding regulator.
+I think you are using media_build.git (with my devel tree)? Could that 
+be due to that as there is some compat stuff? I am not very familiar 
+with media_build.git...
 
-> +	/* vdd_1.8v is for regulator input */
-> +	"vdd_1.8v",
+regards
+Antti
 
-I would suggest just using "vddreg".
-
-> +static int s5k4ecgx_write(struct i2c_client *client, u32 addr, u16 val)
-> +{
-> +	int ret = 0;
-
-Unneeded initialization.
-
-> +	u16 high = addr>>  16, low =  addr&  0xffff;
-> +
-> +	ret = s5k4ecgx_i2c_write(client, REG_CMDWR_ADDRH, high);
-> +	ret |= s5k4ecgx_i2c_write(client, REG_CMDWR_ADDRL, low);
-> +	ret |= s5k4ecgx_i2c_write(client, REG_CMDBUF0_ADDR, val);
-> +	if (ret)
-> +		return -ENODEV;
-> +
-> +	return 0;
-> +}
-> +
-> +static int s5k4ecgx_read(struct i2c_client *client, u32 addr, u16 *val)
-> +{
-> +	int ret = 0;
-
-Ditto.
-
-> +	u16 high = addr>>  16, low =  addr&  0xffff;
-> +
-> +	ret  = s5k4ecgx_i2c_write(client, REG_CMDRD_ADDRH, high);
-> +	ret  |= s5k4ecgx_i2c_write(client, REG_CMDRD_ADDRL, low);
-> +	ret  |= s5k4ecgx_i2c_read(client, REG_CMDBUF0_ADDR, val);
-> +	if (ret) {
-> +		dev_err(&client->dev, "Failed to execute read command\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int s5k4ecgx_set_ahb_address(struct v4l2_subdev *sd)
-> +{
-> +	int ret;
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +
-> +	/* Set APB peripherals start address */
-> +	ret = s5k4ecgx_i2c_write(client, AHB_MSB_ADDR_PTR, GEN_REG_OFFSH);
-> +	if (ret)
-> +		return ret;
-> +	/*
-> +	 * FIMXE: This is copied from s5k6aa, because of no information
-> +	 * in s5k4ecgx's datasheet.
-> +	 * sw_reset is activated to put device into idle status
-> +	 */
-> +	ret = s5k4ecgx_i2c_write(client, 0x0010, 0x0001);
-> +	if (ret)
-> +		return ret;
-> +
-> +	/* FIXME: no information avaialbe about this register */
-
-avaialbe -> available
-
-> +	ret = s5k4ecgx_i2c_write(client, 0x1030, 0x0000);
-> +	if (ret)
-> +		return ret;
-> +	/* Halt ARM CPU */
-> +	ret = s5k4ecgx_i2c_write(client, 0x0014, 0x0001);
-> +
-> +	return ret;
-
-	return s5k4ecgx_i2c_write(...); ?
-> +}
-> +
-> +static int s5k4ecgx_write_array(struct v4l2_subdev *sd,
-> +				const struct regval_list *reg)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +	u16 addr_incr = 0;
-> +	int ret = 0;
-
-Unneeded initialization.
-
-> +
-> +	while (reg->addr != TOK_TERM) {
-> +		if (addr_incr != 2)
-> +			ret = s5k4ecgx_write(client, reg->addr, reg->val);
-> +		else
-> +			ret = s5k4ecgx_i2c_write(client, REG_CMDBUF0_ADDR,
-> +						reg->val);
-> +		if (ret)
-> +			break;
-> +		/* Assume that msg->addr is always less than 0xfffc */
-> +		addr_incr = (reg + 1)->addr - reg->addr;
-> +		reg++;
-> +	}
-> +
-> +	return ret;
-> +}
-...
-> +
-> +static int s5k4ecgx_init_sensor(struct v4l2_subdev *sd)
-> +{
-> +	int ret = 0;
-
-Ditto.
-
-> +
-> +	ret = s5k4ecgx_set_ahb_address(sd);
-> +	/* The delay is from manufacturer's settings */
-> +	msleep(100);
-> +
-> +	ret |= s5k4ecgx_write_array(sd, s5k4ecgx_apb_regs);
-> +	ret |= s5k4ecgx_write_array(sd, s5k4ecgx_img_regs);
-> +
-> +	if (ret)
-> +		v4l2_err(sd, "Failed to write initial settings\n");
-> +
-> +	return 0;
-> +}
-> +
-...
-> +static int s5k4ecgx_s_ctrl(struct v4l2_ctrl *ctrl)
-> +{
-> +
-> +	struct v4l2_subdev *sd =&container_of(ctrl->handler, struct s5k4ecgx,
-> +						handler)->sd;
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +	struct s5k4ecgx *priv = to_s5k4ecgx(sd);
-> +	int err = 0;
-
-Unneded initilization.
-
-> +
-> +	v4l2_dbg(1, debug, sd, "ctrl: 0x%x, value: %d\n", ctrl->id, ctrl->val);
-> +
-> +	mutex_lock(&priv->lock);
-> +	switch (ctrl->id) {
-> +	case V4L2_CID_CONTRAST:
-> +		err = s5k4ecgx_write(client, REG_USER_CONTRAST, ctrl->val);
-> +		break;
-> +
-> +	case V4L2_CID_SATURATION:
-> +		err = s5k4ecgx_write(client, REG_USER_SATURATION, ctrl->val);
-> +		break;
-> +
-> +	case V4L2_CID_SHARPNESS:
-> +		ctrl->val *= SHARPNESS_DIV;
-> +		err |= s5k4ecgx_write(client, REG_USER_SHARP1, ctrl->val);
-> +		err |= s5k4ecgx_write(client, REG_USER_SHARP2, ctrl->val);
-> +		err |= s5k4ecgx_write(client, REG_USER_SHARP3, ctrl->val);
-> +		err |= s5k4ecgx_write(client, REG_USER_SHARP4, ctrl->val);
-> +		err |= s5k4ecgx_write(client, REG_USER_SHARP5, ctrl->val);
-> +		break;
-> +
-> +	case V4L2_CID_BRIGHTNESS:
-> +		err = s5k4ecgx_write(client, REG_USER_BRIGHTNESS, ctrl->val);
-> +		break;
-> +	}
-> +	mutex_unlock(&priv->lock);
-> +	if (err<  0)
-> +		v4l2_err(sd, "Failed to write s_ctrl err %d\n", err);
-> +
-> +	return err;
-> +}
-...
-> +static const struct v4l2_subdev_core_ops s5k4ecgx_core_ops = {
-> +	.s_power = s5k4ecgx_s_power,
-> +	.log_status	= s5k4ecgx_log_status,
-
-nit: inconsistent indentation.
-
-> +};
-> +
-> +static int __s5k4ecgx_s_stream(struct v4l2_subdev *sd, int on)
-> +{
-> +	struct s5k4ecgx *priv = to_s5k4ecgx(sd);
-> +	int err = 0;
-> +
-> +	if (on)
-> +		err = s5k4ecgx_write_array(sd, prev_regs[priv->curr_win->idx]);
-> +
-> +	return err;
-
-	if (on)
-		return s5k4ecgx_write_array(sd, prev_regs[priv->curr_win->idx]);
-
-	return 0;
-
-> +}
-> +
-...
-> +/*
-> + * Fetching platform data is being done with s_config subdev call.
-
-This comment is false, care to remove it ?
-
-> + * In probe routine, we just register subdev device
-> + */
-> +static int s5k4ecgx_probe(struct i2c_client *client,
-> +			  const struct i2c_device_id *id)
-> +{
-> +	int	ret, i;
-> +	struct v4l2_subdev *sd;
-> +	struct s5k4ecgx *priv;
-> +	struct s5k4ecgx_platform_data *pdata = client->dev.platform_data;
-> +
-> +	if (pdata == NULL) {
-> +		dev_err(&client->dev, "platform data is missing!\n");
-> +		return -EINVAL;
-> +	}
-> +	priv = kzalloc(sizeof(struct s5k4ecgx), GFP_KERNEL);
-
-devm_kzalloc ?
-
-> +	if (!priv)
-> +		return -ENOMEM;
-> +
-> +	mutex_init(&priv->lock);
-> +	priv->msleep = pdata->msleep;
-> +	priv->streaming = 0;
-> +
-> +	sd =&priv->sd;
-> +	/* Registering subdev */
-> +	v4l2_i2c_subdev_init(sd, client,&s5k4ecgx_ops);
-> +	strlcpy(sd->name, S5K4ECGX_DRIVER_NAME, sizeof(sd->name));
-> +
-> +	sd->internal_ops =&s5k4ecgx_subdev_internal_ops;
-> +	/* Support v4l2 sub-device userspace API */
-> +	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-> +
-> +	priv->pad.flags = MEDIA_PAD_FL_SOURCE;
-> +	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
-> +	ret = media_entity_init(&sd->entity, 1,&priv->pad, 0);
-> +	if (ret)
-> +		goto out_err1;
-> +
-> +	ret = s5k4ecgx_config_gpios(priv, pdata);
-> +	if (ret) {
-> +		dev_err(&client->dev, "Failed to set gpios\n");
-> +		goto out_err2;
-> +	}
-> +	for (i = 0; i<  S5K4ECGX_NUM_SUPPLIES; i++)
-> +		priv->supplies[i].supply = s5k4ecgx_supply_names[i];
-> +
-> +	ret = regulator_bulk_get(&client->dev, S5K4ECGX_NUM_SUPPLIES,
-> +				 priv->supplies);
-
-How about using devm_regulator_bulk_get() ?
-
-> +	if (ret) {
-> +		dev_err(&client->dev, "Failed to get regulators\n");
-> +		goto out_err3;
-> +	}
-> +
-> +	ret = s5k4ecgx_init_v4l2_ctrls(priv);
-> +
-> +	if (ret)
-> +		goto out_err4;
-> +
-> +	return 0;
-> +
-> +out_err4:
-> +	regulator_bulk_free(S5K4ECGX_NUM_SUPPLIES, priv->supplies);
-> +out_err3:
-> +	s5k4ecgx_free_gpios(priv);
-> +out_err2:
-> +	media_entity_cleanup(&priv->sd.entity);
-> +out_err1:
-> +	kfree(priv);
-> +
-> +	return ret;
-> +}
-> +
-...
-> +/**
-> + * struct ss5k4ecgx_platform_data- s5k4ecgx driver platform data
-> + * @gpio_reset:	 GPIO driving RESET pin
-> + * @gpio_stby :	 GPIO driving STBY pin
-> + * @msleep    :	 delay (ms) needed after enabling power
-
-Can't it be some default value hardcoded at the driver ?
-
-> + */
-> +
-> +struct s5k4ecgx_platform_data {
-> +	struct s5k4ecgx_gpio gpio_reset;
-> +	struct s5k4ecgx_gpio gpio_stby;
-> +	int msleep;
-> +};
-> +
-> +#endif /* S5K4ECGX_H */
-
---
-
-Regards,
-Sylwester
+-- 
+http://palosaari.fi/
