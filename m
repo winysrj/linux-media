@@ -1,32 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:40187 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759452Ab2HIUD7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2012 16:03:59 -0400
-Received: by pbbrr13 with SMTP id rr13so1409317pbb.19
-        for <linux-media@vger.kernel.org>; Thu, 09 Aug 2012 13:03:58 -0700 (PDT)
-Date: Thu, 9 Aug 2012 13:03:56 -0700 (PDT)
-From: David Rientjes <rientjes@google.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-cc: Hans de Goede <hdegoede@redhat.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [GIT PULL for 3.6-rc1] media updates part 2
-In-Reply-To: <5023AF3A.9050206@redhat.com>
-Message-ID: <alpine.DEB.2.00.1208091302220.12942@chino.kir.corp.google.com>
-References: <5017F674.80404@redhat.com> <alpine.DEB.2.00.1208081526320.11542@chino.kir.corp.google.com> <5023A11C.50502@redhat.com> <5023A645.40308@redhat.com> <5023AF3A.9050206@redhat.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail.telros.ru ([83.136.244.21]:52585 "EHLO mail.telros.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754409Ab2HVGnU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Aug 2012 02:43:20 -0400
+From: Volokh Konstantin <volokh84@gmail.com>
+To: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org, volokh@telros.ru
+Cc: Volokh Konstantin <volokh84@gmail.com>
+Subject: [PATCH 09/10] staging: media: go7007: Adlink_MPG24 board initialization fix.
+Date: Wed, 22 Aug 2012 14:45:18 +0400
+Message-Id: <1345632319-23224-9-git-send-email-volokh84@gmail.com>
+In-Reply-To: <1345632319-23224-1-git-send-email-volokh84@gmail.com>
+References: <1345632319-23224-1-git-send-email-volokh84@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 9 Aug 2012, Mauro Carvalho Chehab wrote:
+setting via gpio i2c bus support at every time then init encoder.
 
-> Yeah, that would work as well, although the code would look uglier.
-> IMHO, using select/depend is better.
-> 
+Signed-off-by: Volokh Konstantin <volokh84@gmail.com>
+---
+ drivers/staging/media/go7007/go7007-driver.c |    5 +++++
+ drivers/staging/media/go7007/go7007-usb.c    |    3 ---
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-Agreed, I think it should be "depends on LEDS_CLASS" rather than select 
-it if there is a hard dependency that cannot be fixed with extracting the 
-led support in the driver to #ifdef CONFIG_LEDS_CLASS code.
+diff --git a/drivers/staging/media/go7007/go7007-driver.c b/drivers/staging/media/go7007/go7007-driver.c
+index a66e339..c0ea312 100644
+--- a/drivers/staging/media/go7007/go7007-driver.c
++++ b/drivers/staging/media/go7007/go7007-driver.c
+@@ -173,6 +173,11 @@ static int go7007_init_encoder(struct go7007 *go)
+ 		go7007_write_addr(go, 0x3c82, 0x0001);
+ 		go7007_write_addr(go, 0x3c80, 0x00fe);
+ 	}
++	if (go->board_id == GO7007_BOARDID_ADLINK_MPG24) {
++		/* set GPIO5 to be an output, currently low */
++		go7007_write_addr(go, 0x3c82, 0x0000);
++		go7007_write_addr(go, 0x3c80, 0x00df);
++	}
+ 	return 0;
+ }
+ 
+diff --git a/drivers/staging/media/go7007/go7007-usb.c b/drivers/staging/media/go7007/go7007-usb.c
+index a6cad15..9dbf5ec 100644
+--- a/drivers/staging/media/go7007/go7007-usb.c
++++ b/drivers/staging/media/go7007/go7007-usb.c
+@@ -1110,9 +1110,6 @@ static int go7007_usb_probe(struct usb_interface *intf,
+ 			} else {
+ 				u16 channel;
+ 
+-				/* set GPIO5 to be an output, currently low */
+-				go7007_write_addr(go, 0x3c82, 0x0000);
+-				go7007_write_addr(go, 0x3c80, 0x00df);
+ 				/* read channel number from GPIO[1:0] */
+ 				go7007_read_addr(go, 0x3c81, &channel);
+ 				channel &= 0x3;
+-- 
+1.7.7.6
+
