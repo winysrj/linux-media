@@ -1,86 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52298 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751683Ab2HKStE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Aug 2012 14:49:04 -0400
-Message-ID: <5026A8ED.9000102@redhat.com>
-Date: Sat, 11 Aug 2012 15:48:13 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:46698 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754558Ab2HVBz5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Aug 2012 21:55:57 -0400
+Received: by wgbdr13 with SMTP id dr13so382826wgb.1
+        for <linux-media@vger.kernel.org>; Tue, 21 Aug 2012 18:55:56 -0700 (PDT)
 MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.lad@ti.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	LMML <linux-media@vger.kernel.org>,
+Date: Tue, 21 Aug 2012 22:55:56 -0300
+Message-ID: <CALF0-+UMaO9ygn4P+g7XSffLjwYCkuGOXxb9gEQWhxuhHBptSQ@mail.gmail.com>
+Subject: [RFC PATCH 0/1] videobuf2-core: Change vb2_queue_init return type to void
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [GIT PULL FOR v3.6-rc1] Mediabus And Pixel format supported by
- DM365
-References: <501F6F13.8090401@ti.com> <501F903A.3070700@ti.com>
-In-Reply-To: <501F903A.3070700@ti.com>
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 06-08-2012 06:36, Prabhakar Lad escreveu:
-> Hi Mauro,
-> 
-> Sorry, the subject of course should have been "GIT PULL FOR v3.7"
+Hello,
 
-Hi Prabhakar,
+This is a simple patch that replaces vb2_queue_init return type.
+Currently vb2_queue_init is returning an integer, but it always return 0
+since it's a very simple function and doesn't take any actions that can fail.
 
-Please only send patches for the API together with the drivers that
-require it, e. g. with dm365 patches.
+For this reason some drivers (e.g. pwc) don't bother to check the return value,
+while others do.
 
-Thanks!
-Mauro
+This patch simply change this return type to void;
+it's only an RFC and, of course, it won't compile as it is.
 
-> 
-> Thx,
-> --Prabhakar
-> 
-> On Monday 06 August 2012 12:45 PM, Prabhakar Lad wrote:
->> Hi Mauro,
->>
->> Can you please pull the following patches, which add medibus and pixel
->> format supported by DM365.
->>
->> Thanks and Regards,
->> --Prabhakar Lad
->>
->>
->> The following changes since commit 0d7614f09c1ebdbaa1599a5aba7593f147bf96ee:
->>
->>   Linux 3.6-rc1 (2012-08-02 16:38:10 -0700)
->>
->> are available in the git repository at:
->>   git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git mc_dm365_mbus_fmt
->>
->> Manjunath Hadli (2):
->>       media: add new mediabus format enums for dm365
->>       v4l2: add new pixel formats supported on dm365
->>
->>  .../DocBook/media/v4l/pixfmt-srggb10alaw8.xml      |   34 +++
->>  Documentation/DocBook/media/v4l/pixfmt-uv8.xml     |   62 +++++
->>  Documentation/DocBook/media/v4l/pixfmt.xml         |    2 +
->>  Documentation/DocBook/media/v4l/subdev-formats.xml |  250
->> +++++++++++++++++++-
->>  include/linux/v4l2-mediabus.h                      |   10 +-
->>  include/linux/videodev2.h                          |    8 +
->>  6 files changed, 358 insertions(+), 8 deletions(-)
->>  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
->>  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-uv8.xml
->> _______________________________________________
->> Davinci-linux-open-source mailing list
->> Davinci-linux-open-source@linux.davincidsp.com
->> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
->>
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+It's arguable that one may want to keep returning an integer, just in
+case we consider
+returning something other than 0 in the future.
+On the other hand, fixing this to void will help simplify lots of drivers.
 
+If you think the change is good, I'll prepare a nice patchset fixing
+the drivers aswell.
+
+Thanks,
+Ezequiel.
