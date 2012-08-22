@@ -1,239 +1,304 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:52341 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750807Ab2HBMv7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2012 08:51:59 -0400
-Date: Thu, 2 Aug 2012 14:51:48 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Alex Gershgorin <alexg@meprolight.com>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCH v2] mt9v022: Add support for mt9v024
-In-Reply-To: <4875438356E7CA4A8F2145FCD3E61C0B2E31A0CA1F@MEP-EXCH.meprolight.com>
-Message-ID: <Pine.LNX.4.64.1208021445540.11412@axis700.grange>
-References: <1343900052-29934-1-git-send-email-alexg@meprolight.com>,<Pine.LNX.4.64.1208021150430.11412@axis700.grange>
- <4875438356E7CA4A8F2145FCD3E61C0B2E31A0CA1F@MEP-EXCH.meprolight.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail.telros.ru ([83.136.244.21]:65535 "EHLO mail.telros.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754709Ab2HVGnU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Aug 2012 02:43:20 -0400
+From: Volokh Konstantin <volokh84@gmail.com>
+To: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org, volokh@telros.ru
+Cc: Volokh Konstantin <volokh84@gmail.com>
+Subject: [PATCH 01/10] staging: media: go7007: Some additional code for TW2804 driver functionality
+Date: Wed, 22 Aug 2012 14:45:10 +0400
+Message-Id: <1345632319-23224-1-git-send-email-volokh84@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alex
+- using new v4l2 framework controls
+- function for reading volatile controls via i2c bus
+- separate V4L2_CID_ ctrls into each V4L2 calls
 
-On Thu, 2 Aug 2012, Alex Gershgorin wrote:
-
-> Hi Guennadi,
-> 
-> Thank you for your very detailed comment.
-> 
-> > Hi Alex
-> 
-> > Yes, this looks much better to me now. Still, I'd like to ask you to
-> > make a couple more changes. First - there are different opinions about how
-> > really important a patch description is, whether there are at all cases,
-> > when an empty description is acceptable. I do sometimes myself provide no
-> > description and accept the same from others, but only in really trivial
-> > cases, where the single patch subject line perfectly tells it all.
-> > However, I don't think this is the case here. It would be nice to have a
-> > couple of words in the patch description, saying, that "mt9v024 is a
-> > camera sensor, very similar to mt9v022 with just a few differences, namely
-> > its sensor matrix size is now ... instead of ..., some register locations
-> > have changed,..."
-> 
-> No problem, I'll add descriptions.
-> 
-> > While at it, please, also change one more thing. Yes, it was my request to
-> > move chip_id into the private struct, but now with the addition of "struct
-> > mt9v02x_register" it is not needed anymore. The chip_id is only used in
-> > the probe function, so, you don't have to save it. Please, if I'm not
-> > mistaken and I haven't missed some additional uses of chip_id, remove it
-> > again and just leave the local "data" variable without change.
-> > Respectively, your is_mt9v024 macro will change to
-> 
-> > #define is_mt9v024(id) (id == 0x1324)
-> 
-> I only have a few doubts about this:
-> mt9v024 camera sensor has about 20 additional registers that are not supported in mt9v022 camera sensor.
-
-I see...
-
-> What should be happened if someone wants to add this registers?
-> I guess, that in this case we will need to use the chip_id outside of the probe function.
-> What do you think?
-
-Well, this can of course happen. But I think, it is better to add code 
-when it is really needed, then try to guess in advance. If we had to 
-decide between two alternative modifications to the code, then yes, taking 
-into account possible future extensions might make sense. Whereas, when 
-deciding between no-modification and a modification, that might be useful 
-in the future, I think, the former is a safer bet.
-
-Thanks
-Guennadi
-
-> 
-> Regards,
-> Alex
-> 
->  
->  > Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
-> > ---
-> >  drivers/media/video/Kconfig   |    2 +-
-> >  drivers/media/video/mt9v022.c |   45 ++++++++++++++++++++++++++++++++--------
-> >  2 files changed, 37 insertions(+), 10 deletions(-)
-> >
-> > Changes for v2:
-> >         Fixed comment from Guennadi.
-> >
-> > diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> > index c128fac..3ce905c 100644
-> > --- a/drivers/media/video/Kconfig
-> > +++ b/drivers/media/video/Kconfig
-> > @@ -1058,7 +1058,7 @@ config SOC_CAMERA_MT9T112
-> >         This driver supports MT9T112 cameras from Aptina.
-> >
-> >  config SOC_CAMERA_MT9V022
-> > -     tristate "mt9v022 support"
-> > +     tristate "mt9v022 and mt9v024 support"
-> >       depends on SOC_CAMERA && I2C
-> >       select GPIO_PCA953X if MT9V022_PCA9536_SWITCH
-> >       help
-> > diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
-> > index 7247924..d46727b 100644
-> > --- a/drivers/media/video/mt9v022.c
-> > +++ b/drivers/media/video/mt9v022.c
-> > @@ -57,6 +57,10 @@ MODULE_PARM_DESC(sensor_type, "Sensor type: \"colour\" or \"monochrome\"");
-> >  #define MT9V022_AEC_AGC_ENABLE               0xAF
-> >  #define MT9V022_MAX_TOTAL_SHUTTER_WIDTH      0xBD
-> >
-> > +/* mt9v024 partial list register addresses changes with respect to mt9v022 */
-> > +#define MT9V024_PIXCLK_FV_LV         0x72
-> > +#define MT9V024_MAX_TOTAL_SHUTTER_WIDTH      0xAD
-> > +
-> >  /* Progressive scan, master, defaults */
-> >  #define MT9V022_CHIP_CONTROL_DEFAULT 0x188
-> >
-> > @@ -67,6 +71,8 @@ MODULE_PARM_DESC(sensor_type, "Sensor type: \"colour\" or \"monochrome\"");
-> >  #define MT9V022_COLUMN_SKIP          1
-> >  #define MT9V022_ROW_SKIP             4
-> >
-> > +#define is_mt9v024(p) (p->chip_id == 0x1324)
-> > +
-> >  /* MT9V022 has only one fixed colorspace per pixelcode */
-> >  struct mt9v022_datafmt {
-> >       enum v4l2_mbus_pixelcode        code;
-> > @@ -101,6 +107,22 @@ static const struct mt9v022_datafmt mt9v022_monochrome_fmts[] = {
-> >       {V4L2_MBUS_FMT_Y8_1X8, V4L2_COLORSPACE_JPEG},
-> >  };
-> >
-> > +/* only registers with different addresses on different mt9v02x sensors */
-> > +struct mt9v02x_register {
-> > +     u8      max_total_shutter_width;
-> > +     u8      pixclk_fv_lv;
-> > +};
-> > +
-> > +static const struct mt9v02x_register mt9v022_register = {
-> > +     .max_total_shutter_width        = MT9V022_MAX_TOTAL_SHUTTER_WIDTH,
-> > +     .pixclk_fv_lv                   = MT9V022_PIXCLK_FV_LV,
-> > +};
-> > +
-> > +static const struct mt9v02x_register mt9v024_register = {
-> > +     .max_total_shutter_width        = MT9V024_MAX_TOTAL_SHUTTER_WIDTH,
-> > +     .pixclk_fv_lv                   = MT9V024_PIXCLK_FV_LV,
-> > +};
-> > +
-> >  struct mt9v022 {
-> >       struct v4l2_subdev subdev;
-> >       struct v4l2_ctrl_handler hdl;
-> > @@ -117,10 +139,12 @@ struct mt9v022 {
-> >       struct v4l2_rect rect;  /* Sensor window */
-> >       const struct mt9v022_datafmt *fmt;
-> >       const struct mt9v022_datafmt *fmts;
-> > +     const struct mt9v02x_register *reg;
-> >       int num_fmts;
-> >       int model;      /* V4L2_IDENT_MT9V022* codes from v4l2-chip-ident.h */
-> >       u16 chip_control;
-> >       unsigned short y_skip_top;      /* Lines to skip at the top */
-> > +     s32 chip_id;
-> >  };
-> >
-> >  static struct mt9v022 *to_mt9v022(const struct i2c_client *client)
-> > @@ -185,7 +209,7 @@ static int mt9v022_init(struct i2c_client *client)
-> >       if (!ret)
-> >               ret = reg_write(client, MT9V022_TOTAL_SHUTTER_WIDTH, 480);
-> >       if (!ret)
-> > -             ret = reg_write(client, MT9V022_MAX_TOTAL_SHUTTER_WIDTH, 480);
-> > +             ret = reg_write(client, mt9v022->reg->max_total_shutter_width, 480);
-> >       if (!ret)
-> >               /* default - auto */
-> >               ret = reg_clear(client, MT9V022_BLACK_LEVEL_CALIB_CTRL, 1);
-> > @@ -238,7 +262,7 @@ static int mt9v022_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
-> >       ret = reg_read(client, MT9V022_AEC_AGC_ENABLE);
-> >       if (ret >= 0) {
-> >               if (ret & 1) /* Autoexposure */
-> > -                     ret = reg_write(client, MT9V022_MAX_TOTAL_SHUTTER_WIDTH,
-> > +                     ret = reg_write(client, mt9v022->reg->max_total_shutter_width,
-> >                                       rect.height + mt9v022->y_skip_top + 43);
-> >               else
-> >                       ret = reg_write(client, MT9V022_TOTAL_SHUTTER_WIDTH,
-> > @@ -566,21 +590,24 @@ static int mt9v022_video_probe(struct i2c_client *client)
-> >  {
-> >       struct mt9v022 *mt9v022 = to_mt9v022(client);
-> >       struct soc_camera_link *icl = soc_camera_i2c_to_link(client);
-> > -     s32 data;
-> >       int ret;
-> >       unsigned long flags;
-> >
-> >       /* Read out the chip version register */
-> > -     data = reg_read(client, MT9V022_CHIP_VERSION);
-> > +     mt9v022->chip_id = reg_read(client, MT9V022_CHIP_VERSION);
-> >
-> > -     /* must be 0x1311 or 0x1313 */
-> > -     if (data != 0x1311 && data != 0x1313) {
-> > +     /* must be 0x1311, 0x1313 or 0x1324 */
-> > +     if (mt9v022->chip_id != 0x1311 && mt9v022->chip_id != 0x1313 &&
-> > +             mt9v022->chip_id != 0x1324) {
-> >               ret = -ENODEV;
-> >               dev_info(&client->dev, "No MT9V022 found, ID register 0x%x\n",
-> > -                      data);
-> > +                      mt9v022->chip_id);
-> >               goto ei2c;
-> >       }
-> >
-> > +     mt9v022->reg = is_mt9v024(mt9v022) ? &mt9v024_register :
-> > +                     &mt9v022_register;
-> > +
-> >       /* Soft reset */
-> >       ret = reg_write(client, MT9V022_RESET, 1);
-> >       if (ret < 0)
-> > @@ -632,7 +659,7 @@ static int mt9v022_video_probe(struct i2c_client *client)
-> >       mt9v022->fmt = &mt9v022->fmts[0];
-> >
-> >       dev_info(&client->dev, "Detected a MT9V022 chip ID %x, %s sensor\n",
-> > -              data, mt9v022->model == V4L2_IDENT_MT9V022IX7ATM ?
-> > +              mt9v022->chip_id, mt9v022->model == V4L2_IDENT_MT9V022IX7ATM ?
-> >                "monochrome" : "colour");
-> >
-> >       ret = mt9v022_init(client);
-> > @@ -728,7 +755,7 @@ static int mt9v022_s_mbus_config(struct v4l2_subdev *sd,
-> >       if (!(flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH))
-> >               pixclk |= 0x2;
-> >
-> > -     ret = reg_write(client, MT9V022_PIXCLK_FV_LV, pixclk);
-> > +     ret = reg_write(client, mt9v022->reg->pixclk_fv_lv, pixclk);
-> >       if (ret < 0)
-> >               return ret;
-> >
-> > --
-> > 1.7.0.4
-> >
-> 
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-
+Signed-off-by: Volokh Konstantin <volokh84@gmail.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/staging/media/go7007/wis-tw2804.c |  248 +++++++++++++++++++++++++++++
+ 1 files changed, 248 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/staging/media/go7007/wis-tw2804.c b/drivers/staging/media/go7007/wis-tw2804.c
+index 9134f03..05851d3 100644
+--- a/drivers/staging/media/go7007/wis-tw2804.c
++++ b/drivers/staging/media/go7007/wis-tw2804.c
+@@ -21,10 +21,18 @@
+ #include <linux/videodev2.h>
+ #include <linux/ioctl.h>
+ #include <linux/slab.h>
++#include <media/v4l2-subdev.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-chip-ident.h>
++#include <media/v4l2-ctrls.h>
+ 
+ #include "wis-i2c.h"
+ 
+ struct wis_tw2804 {
++	struct v4l2_subdev sd;
++	struct v4l2_ctrl_handler hdl;
++	u8 channel:2;
++	u8 input:1;
+ 	int channel;
+ 	int norm;
+ 	int brightness;
+@@ -116,9 +124,246 @@ static int write_regs(struct i2c_client *client, u8 *regs, int channel)
+ 		if (i2c_smbus_write_byte_data(client,
+ 				regs[i] | (channel << 6), regs[i + 1]) < 0)
+ 			return -1;
++static s32 read_reg(struct i2c_client *client, u8 reg, u8 channel)
++{
++	return i2c_smbus_read_byte_data(client, (reg) | (channel << 6));
++}
++
++inline struct wis_tw2804 *to_state(struct v4l2_subdev *sd)
++{
++	return container_of(sd, struct wis_tw2804, sd);
++}
++
++inline struct wis_tw2804 *to_state_from_ctrl(struct v4l2_ctrl *ctrl)
++{
++	return container_of(ctrl->handler, struct wis_tw2804, hdl);
++}
++
++static int tw2804_log_status(struct v4l2_subdev *sd)
++{
++	struct wis_tw2804 *state = to_state(sd);
++	v4l2_info(sd, "Standard: %s\n",
++			state->norm == V4L2_STD_NTSC ? "NTSC" :
++			state->norm == V4L2_STD_PAL ? "PAL" : "unknown");
++	v4l2_info(sd, "Channel: %d\n", state->channel);
++	v4l2_info(sd, "Input: %d\n", state->input);
++	v4l2_ctrl_handler_log_status(&state->hdl, sd->name);
++	return 0;
++}
++
++static s32 get_ctrl_addr(int ctrl)
++{
++	switch (ctrl) {
++	case V4L2_CID_BRIGHTNESS:
++		return 0x12;
++	case V4L2_CID_CONTRAST:
++		return 0x11;
++	case V4L2_CID_SATURATION:
++		return 0x10;
++	case V4L2_CID_HUE:
++		return 0x0f;
++	case V4L2_CID_AUTOGAIN:
++		return 0x02;
++	case V4L2_CID_COLOR_KILLER:
++		return 0x14;
++	case V4L2_CID_GAIN:
++		return 0x3c;
++	case V4L2_CID_CHROMA_GAIN:
++		return 0x3d;
++	case V4L2_CID_RED_BALANCE:
++		return 0x3f;
++	case V4L2_CID_BLUE_BALANCE:
++		return 0x3e;
++	default:
++		return -EINVAL;
++	}
++}
++
++static int tw2804_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct v4l2_subdev *sd = &to_state_from_ctrl(ctrl)->sd;
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	s32 addr = get_ctrl_addr(ctrl->id);
++
++	if (addr == -EINVAL)
++		return -EINVAL;
++
++	switch (ctrl->id) {
++	case V4L2_CID_GAIN:
++	case V4L2_CID_CHROMA_GAIN:
++	case V4L2_CID_RED_BALANCE:
++	case V4L2_CID_BLUE_BALANCE:
++		ctrl->cur.val = read_reg(client, addr, 0);
++		break;
++	default:
++		return -EINVAL;
++	}
++	return 0;
++}
++
++static int tw2804_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct wis_tw2804 *state = to_state_from_ctrl(ctrl);
++	struct v4l2_subdev *sd = &state->sd;
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	s32 reg = ctrl->val;
++	s32 addr = get_ctrl_addr(ctrl->id);
++
++	if (addr == -EINVAL)
++		return -EINVAL;
++
++	switch (ctrl->id) {
++	case V4L2_CID_AUTOGAIN:
++		reg = read_reg(client, addr, state->channel);
++		if (reg > 0) {
++			if (ctrl->val == 0)
++				reg &= ~(1<<7);
++			else
++				reg |= 1<<7;
++		} else
++			return reg;
++		break;
++	case V4L2_CID_COLOR_KILLER:
++		reg = read_reg(client, addr, state->channel);
++		if (reg > 0)
++			reg = (reg & ~(0x03)) | (ctrl->val == 0 ? 0x02 : 0x03);
++		else
++			return reg;
++		break;
++	default:
++		break;
++	}
++
++	reg = reg > 255 ? 255 : (reg < 0 ? 0 : reg);
++	reg = write_reg(client, addr, (u8)reg,
++			ctrl->id == V4L2_CID_GAIN ||
++			ctrl->id == V4L2_CID_CHROMA_GAIN ||
++			ctrl->id == V4L2_CID_RED_BALANCE ||
++			ctrl->id == V4L2_CID_BLUE_BALANCE ? 0 : state->channel);
++
++	if (reg < 0) {
++		v4l2_err(sd, "Can`t set_ctrl value:id=%d;value=%d\n", ctrl->id,
++								    ctrl->val);
++		return reg;
++	}
++	return 0;
++}
++
++static int tw2804_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
++{
++	struct wis_tw2804 *dec = to_state(sd);
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++
++	u8 regs[] = {
++		0x01, norm&V4L2_STD_NTSC ? 0xc4 : 0x84,
++		0x09, norm&V4L2_STD_NTSC ? 0x07 : 0x04,
++		0x0a, norm&V4L2_STD_NTSC ? 0xf0 : 0x20,
++		0x0b, norm&V4L2_STD_NTSC ? 0x07 : 0x04,
++		0x0c, norm&V4L2_STD_NTSC ? 0xf0 : 0x20,
++		0x0d, norm&V4L2_STD_NTSC ? 0x40 : 0x4a,
++		0x16, norm&V4L2_STD_NTSC ? 0x00 : 0x40,
++		0x17, norm&V4L2_STD_NTSC ? 0x00 : 0x40,
++		0x20, norm&V4L2_STD_NTSC ? 0x07 : 0x0f,
++		0x21, norm&V4L2_STD_NTSC ? 0x07 : 0x0f,
++		0xff, 0xff,
++	};
++	write_regs(client, regs, dec->channel);
++	dec->norm = norm;
++	return 0;
++}
++
++static int tw2804_g_chip_ident(struct v4l2_subdev *sd,
++				struct v4l2_dbg_chip_ident *chip)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	return v4l2_chip_ident_i2c_client(client, chip,
++					V4L2_IDENT_TW2804, 0x0e);
++}
++
++static const struct v4l2_ctrl_ops tw2804_ctrl_ops = {
++	.g_volatile_ctrl = tw2804_g_volatile_ctrl,
++	.s_ctrl = tw2804_s_ctrl,
++};
++
++static const struct v4l2_subdev_core_ops tw2804_core_ops = {
++	.log_status = tw2804_log_status,
++	.g_chip_ident = tw2804_g_chip_ident,
++	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
++	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
++	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
++	.g_ctrl = v4l2_subdev_g_ctrl,
++	.s_ctrl = v4l2_subdev_s_ctrl,
++	.queryctrl = v4l2_subdev_queryctrl,
++	.querymenu = v4l2_subdev_querymenu,
++	.s_std = tw2804_s_std,
++};
++
++static int tw2804_s_video_routing(struct v4l2_subdev *sd, u32 input, u32 output,
++	u32 config)
++{
++	struct wis_tw2804 *dec = to_state(sd);
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	s32 reg = 0;
++
++	if (0 > input || input > 1)
++		return -EINVAL;
++
++	if (input == dec->input)
++		return 0;
++
++	reg = read_reg(client, 0x22, dec->channel);
++
++	if (reg >= 0) {
++		if (input == 0)
++			reg &= ~(1<<2);
++		else
++			reg |= 1<<2;
++		reg = write_reg(client, 0x22, (u8)reg, dec->channel);
++	}
++
++	if (reg >= 0)
++		dec->input = input;
++	else
++		return reg;
+ 	return 0;
+ }
+ 
++static int tw2804_s_mbus_fmt(struct v4l2_subdev *sd,
++	struct v4l2_mbus_framefmt *fmt)
++{
++	/*TODO need select between 3fmt:
++	 * bt_656,
++	 * bt_601_8bit,
++	 * bt_656_dual,
++	 */
++	return 0;
++}
++
++static int tw2804_s_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct wis_tw2804 *dec = to_state(sd);
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	u32 reg = read_reg(client, 0x78, 0);
++
++	if (enable == 1)
++		write_reg(client, 0x78, reg & ~(1<<dec->channel), 0);
++	else
++		write_reg(client, 0x78, reg | (1<<dec->channel), 0);
++
++	return 0;
++}
++
++static const struct v4l2_subdev_video_ops tw2804_video_ops = {
++	.s_routing = tw2804_s_video_routing,
++	.s_mbus_fmt = tw2804_s_mbus_fmt,
++	.s_stream = tw2804_s_stream,
++};
++
++static const struct v4l2_subdev_ops tw2804_ops = {
++	.core = &tw2804_core_ops,
++	.video = &tw2804_video_ops,
++};
++
+ static int wis_tw2804_command(struct i2c_client *client,
+ 				unsigned int cmd, void *arg)
+ {
+@@ -355,3 +600,6 @@ module_init(wis_tw2804_init);
+ module_exit(wis_tw2804_cleanup);
+ 
+ MODULE_LICENSE("GPL v2");
++MODULE_DESCRIPTION("TW2804/TW2802 V4L2 i2c driver");
++MODULE_AUTHOR("Volokh Konstantin <volokh84@gmail.com>");
++MODULE_AUTHOR("Micronas USA Inc");
+-- 
+1.7.7.6
+
