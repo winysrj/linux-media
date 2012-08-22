@@ -1,72 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3271 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752973Ab2HFH04 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 03:26:56 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Federico Vaga <federico.vaga@gmail.com>
-Subject: Re: Update VIP to videobuf2 and control framework
-Date: Mon, 6 Aug 2012 09:26:40 +0200
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Jonathan Corbet <corbet@lwn.net>
-References: <1343765829-6006-1-git-send-email-federico.vaga@gmail.com> <201208010841.56941.hverkuil@xs4all.nl> <5055608.KkUHWr6mgc@harkonnen>
-In-Reply-To: <5055608.KkUHWr6mgc@harkonnen>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42886 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754747Ab2HVXjN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Aug 2012 19:39:13 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
+	subashrp@gmail.com, mchehab@redhat.com, g.liakhovetski@gmx.de,
+	dmitriyz@google.com, s.nawrocki@samsung.com, k.debski@samsung.com
+Subject: Re: [PATCHv8 18/26] v4l: add buffer exporting via dmabuf
+Date: Thu, 23 Aug 2012 01:39:34 +0200
+Message-ID: <1482826.kal9EJjByd@avalon>
+In-Reply-To: <201208221341.06056.hverkuil@xs4all.nl>
+References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com> <1344958496-9373-19-git-send-email-t.stanislaws@samsung.com> <201208221341.06056.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201208060926.40164.hverkuil@xs4all.nl>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun August 5 2012 19:11:19 Federico Vaga wrote:
-> Hi Hans,
->  
-> > Did you run the latest v4l2-compliance tool from the v4l-utils.git
-> > repository over your driver? I'm sure you didn't since VIP is missing
-> > support for control events and v4l2-compliance would certainly
-> > complain about that.
+Hi Hans,
+
+On Wednesday 22 August 2012 13:41:05 Hans Verkuil wrote:
+> On Tue August 14 2012 17:34:48 Tomasz Stanislawski wrote:
+> > This patch adds extension to V4L2 api. It allow to export a mmap buffer as
+> > file descriptor. New ioctl VIDIOC_EXPBUF is added. It takes a buffer
+> > offset used by mmap and return a file descriptor on success.
 > > 
-> > Always check with v4l2-compliance whenever you make changes! It's
-> > continuously improved as well, so a periodic check wouldn't hurt.
-> 
-> I applied all your suggestions, and some extra simplification; now I'm 
-> running v4l2-compliance but I have this error:
-> 
-> 
-> Allow for multiple opens:
->         test second video open: OK
->         test VIDIOC_QUERYCAP: OK
->                 fail: v4l2-compliance.cpp(322): doioctl(node, 
-> VIDIOC_G_PRIORITY, &prio)
->         test VIDIOC_G/S_PRIORITY: FAIL
-> 
-> 
-> which I don't undestand. I don't have vidio_{g|s}_priority functions in 
-> my implementation. And I'm using the V4L2_FL_USE_FH_PRIO flag as 
-> suggested in the documentation:
-> 
-> ---------------
-> - flags: optional. Set to V4L2_FL_USE_FH_PRIO if you want to let the 
-> framework handle the VIDIOC_G/S_PRIORITY ioctls. This requires that you 
-> use struct v4l2_fh.
+> > Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-  ^^^^^^^^^^^^^^^^^^
+[snip]
 
-Are you using struct v4l2_fh? The version you posted didn't. You need this
-anyway to implement control events.
+> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > index 7f918dc..b5d058b 100644
+> > --- a/include/linux/videodev2.h
+> > +++ b/include/linux/videodev2.h
+> > @@ -688,6 +688,31 @@ struct v4l2_buffer {
+> > 
+> >  #define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
+> >  #define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x1000
+> > 
+> > +/**
+> > + * struct v4l2_exportbuffer - export of video buffer as DMABUF file
+> > descriptor + *
+> > + * @fd:		file descriptor associated with DMABUF (set by driver)
+> > + * @mem_offset:	buffer memory offset as returned by VIDIOC_QUERYBUF in
+> > struct + *		v4l2_buffer::m.offset (for single-plane formats) or
+> > + *		v4l2_plane::m.offset (for multi-planar formats)
+> > + * @flags:	flags for newly created file, currently only O_CLOEXEC is
+> > + *		supported, refer to manual of open syscall for more details
+> > + *
+> > + * Contains data used for exporting a video buffer as DMABUF file
+> > descriptor. + * The buffer is identified by a 'cookie' returned by
+> > VIDIOC_QUERYBUF + * (identical to the cookie used to mmap() the buffer to
+> > userspace). All + * reserved fields must be set to zero. The field
+> > reserved0 is expected to + * become a structure 'type' allowing an
+> > alternative layout of the structure + * content. Therefore this field
+> > should not be used for any other extensions. + */
+> > +struct v4l2_exportbuffer {
+> > +	__u32		fd;
+> > +	__u32		reserved0;
+> > +	__u32		mem_offset;
+> > +	__u32		flags;
+> > +	__u32		reserved[12];
+> > +};
+> 
+> OK, I realized that we also need a type field here: you need the type field
+> (same as in v4l2_buffer) to know which queue the mem_offset refers to. For
+> M2M devices you have two queues, so you need this information.
+> 
+> Is there any reason not to use __u32 memory instead of __u32 reserved0?
+> I really dislike 'reserved0'. It's also very inconsistent with the other
+> buffer ioctls which all have type+memory fields.
 
+I'm concerned that we might need to export buffers in the future based on 
+something else than the memory type. That's probably an irrational fear 
+though.
+
+> Regarding mem_offset: I would prefer a union (possibly anonymous):
+> 
+>         union {
+>                 __u32           mem_offset;
+>                 unsigned long   reserved;
+>         } m;
+> 
+> Again, it's more consistent with the existing buffer ioctls, and it prepares
+> the API for future pointer values. 'reserved' in the union above could even
+> safely be renamed to userptr, even though userptr isn't supported at the
+> moment.
+
+Once again I would really want to see compeling use cases before we export a 
+userptr buffer as a dmabuf object. As Mauro previously stated, userptr for 
+buffer sharing was a hack in the first place (although a pretty successful one 
+so far).
+
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
 
-> Eventually this flag will disappear once all drivers 
-> use the core priority handling. But for now it has to be set explicitly.
-> --------------
-> 
-> 
