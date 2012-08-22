@@ -1,96 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35243 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753630Ab2HOSfO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Aug 2012 14:35:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
-	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com,
-	g.liakhovetski@gmx.de, dmitriyz@google.com, s.nawrocki@samsung.com,
-	k.debski@samsung.com
-Subject: Re: [PATCHv8 10/26] v4l: vb2-dma-contig: add prepare/finish to dma-contig allocator
-Date: Wed, 15 Aug 2012 20:35:28 +0200
-Message-ID: <19239574.EXIJbKbmPC@avalon>
-In-Reply-To: <1344958496-9373-11-git-send-email-t.stanislaws@samsung.com>
-References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com> <1344958496-9373-11-git-send-email-t.stanislaws@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:43980 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933100Ab2HVSS7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Aug 2012 14:18:59 -0400
+Message-ID: <50352285.8070703@redhat.com>
+Date: Wed, 22 Aug 2012 15:18:45 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC API] Renumber subdev ioctls
+References: <201208201030.30590.hverkuil@xs4all.nl> <201208210839.53924.hverkuil@xs4all.nl> <20120821104415.GF721@valkosipuli.retiisi.org.uk> <201208221052.02338.hverkuil@xs4all.nl>
+In-Reply-To: <201208221052.02338.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
-
-Thanks for the patch.
-
-On Tuesday 14 August 2012 17:34:40 Tomasz Stanislawski wrote:
-> From: Marek Szyprowski <m.szyprowski@samsung.com>
+Em 22-08-2012 05:52, Hans Verkuil escreveu:
+> On Tue August 21 2012 12:44:15 Sakari Ailus wrote:
+>> Hi Hans,
+>>
+>> On Tue, Aug 21, 2012 at 08:39:53AM +0200, Hans Verkuil wrote:
+>>> On Mon August 20 2012 22:46:04 Sakari Ailus wrote:
+>>>> Hi Mauro and Hans,
+>>>>
+>>>> On Mon, Aug 20, 2012 at 04:05:03PM -0300, Mauro Carvalho Chehab wrote:
+>>>>> Em 20-08-2012 05:30, Hans Verkuil escreveu:
+>>>>>> Hi all!
+>>>>>>
+>>>>>> Recently I had to add two new ioctls for the subdev API (include/linux/v4l2-subdev.h)
+>>>>>> and I noticed that the numbering of the ioctls was somewhat random.
+>>>>>>
+>>>>>> In most cases the ioctl number was the same as the V4L2 API counterpart, but for
+>>>>>> subdev-specific ioctls no rule exists.
+>>>>>>
+>>>>>> There are a few problems with this: because of the lack of rules there is a chance
+>>>>>> that in the future a subdev ioctl may end up to be identical to an existing V4L2
+>>>>>> ioctl. Also, because the numbering isn't nicely increasing it makes it hard to create
+>>>>>> a lookup table as was done for the V4L2 ioctls. Well, you could do it, but it would
+>>>>>> be a very sparse array, wasting a lot of memory.
+>>>>>>
+>>>>>> Lookup tables have proven to be very useful, so we might want to introduce them for
+>>>>>> the subdev core code as well in the future.
+>>>>>>
+>>>>>> Since the subdev API is still marked experimental, I propose to renumber the ioctls
+>>>>>> and use the letter 'v' instead of 'V'. 'v' was used for V4L1, and so it is now
+>>>>>> available for reuse.
+>>>>>
+>>>>> 'v' is already used (mainly by fs):
+>>>>>
+>>>>> 'v'	00-1F	linux/ext2_fs.h		conflict!
+>>>>> 'v'	00-1F	linux/fs.h		conflict!
+>>>>> 'v'	00-0F	linux/sonypi.h		conflict!
+>>>>> 'v'	C0-FF	linux/meye.h		conflict!
+>>>>>
+>>>>> Reusing the ioctl numbering is a bad thing, as tracing code like strace will likely
+>>>>> say that a different type of ioctl was called.
+>>>>>
+>>>>> (Yeah, unfortunately, this end by merging with duplicated stuff :< )
+>>>>>
+>>>>> Also, I don't like the idea of deprecating it just because of that: interfaces are
+>>>>> supposed to be stable.
+>>>>>
+>>>>> It should be noticed that there are very few ioctls there. So,
+>>>>> using a lookup table is overkill.
+>>>>>
+>>>>> IMO, the better is to sort the ioctl's there at the header file, in order to
+>>>>> avoid ioctl duplicaton.
+>>>>
+>>>> Many of the V4L2 IOCTLs are being used on subdevs, too, to the extent that
+>>>> subdev_do_ioctl() in drivers/media/v4l2-core/v4l2-subdev.c has a switch
+>>>> statement with over 20 cases. We'll get rid of two once the old crop IOCTLs
+>>>> are removed but we've still got over 20, and the number is likely to grow in
+>>>> the future. Still it's just a fraction of what V4L2 has.
+>>>>
+>>>> We decided to use 'V' also for subdev IOCTLs for a reason I no longer
+>>>> remember. It's true there can be clashes with regular V4L2 IOCTLs in terms
+>>>> of IOCTL codes if the size of the argument struct matches. One of the
+>>>> reasons to use 'V' might have been that then some of the IOCTLs on a device
+>>>> would have different type (the letter in question) which wasn't considered
+>>>> pretty. 'V' is for V4L2 after all, and V4L2 subdev interface is part of the
+>>>> V4L2.
+>>>>
+>>>> The numbering is based on using V4L2 IOCTLs as such if they were applicable
+>>>> to subdevs as such (controls) in which case they're defined in videodev2.h,
+>>>> and if there was even a loosely corresponding IOCTL in V4L2 then use the
+>>>> same number (e.g. formats vs. media bus pixel codes) and otherwise something
+>>>> else. The "something else" case hasn't happened yet.
+>>>>
+>>>> It might have made sense to use a different type for the IOCTLs that aren't
+>>>> V4L2 IOCTLs (i.e. are subdev IOCTLs) for clarity but it's quite late for
+>>>> such a change. However if we think we definitely should do it then it should
+>>>> be done now or not at all...
+>>>>
+>>>> If we want to just improve the efficiency of the switch statement in
+>>>> subdev_do_ioctl() we could divide the IOCTLs based on e.g. a few last bits
+>>>> of the IOCTL number into buckets.
+>>>
+>>> It's not so much the switch efficiency. In practice there will be no measurable
+>>> speed difference. But a lookup table allows one to easily look up information
+>>> about the ioctl.
+>>>
+>>> But the main goal would be to guarantee that subdev ioctls and V4L2 ioctls
+>>> will never clash, since both types of ioctls can be used with a subdev node.
+>>
+>> It's indeed possible to have clashes between the IOCTL codes but that does
+>> not matter so much: all IOCTLs related to buffers belong to V4L2 and
+>> anything related to pads belongs to subdevs only.
+>>
+>> As long as a little care is taken when choosing the IOCTL number we
+>> shouldn't have issues any more we have now. Well, that said, the IOCTLs
+>> belonging to the something else category are more difficult to number in a
+>> good way. Perhaps starting from highest IOCTL numbers before the private
+>> IOCTLs would be one option.
 > 
-> Add prepare/finish callbacks to vb2-dma-contig allocator.
+> Currently I've decided to use ioctl numbers that are unused in V4L2 (there are
+> quite a few holes in the ioctl numbering).
 > 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-
-As for v7,
-
-Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-:-)
-
-> ---
->  drivers/media/video/videobuf2-dma-contig.c |   24 ++++++++++++++++++++++++
->  1 file changed, 24 insertions(+)
+>>>> I don't have a strong opinion on this either way, but unless there's a
+>>>> concrete problem related to it I'd keep it as-is. We will definitely pick a
+>>>> new type for the property API when once we get that far. ;-)
+>>>>
+>>>> Could you elaborate what you were about to add? Something that would fall
+>>>> into the "something else" category perhaps?
+>>>
+>>> Yes indeed. It's two new ioctls for setting/getting the EDID.
+>>
+>> Do these IOCTLs have (or should they have) corresponding IOCTLs in V4L2?
 > 
-> diff --git a/drivers/media/video/videobuf2-dma-contig.c
-> b/drivers/media/video/videobuf2-dma-contig.c index 8486e06..494a824 100644
-> --- a/drivers/media/video/videobuf2-dma-contig.c
-> +++ b/drivers/media/video/videobuf2-dma-contig.c
-> @@ -103,6 +103,28 @@ static unsigned int vb2_dc_num_users(void *buf_priv)
->  	return atomic_read(&buf->refcount);
->  }
+> No. These are unique to the subdevs.
 > 
-> +static void vb2_dc_prepare(void *buf_priv)
-> +{
-> +	struct vb2_dc_buf *buf = buf_priv;
-> +	struct sg_table *sgt = buf->dma_sgt;
-> +
-> +	if (!sgt)
-> +		return;
-> +
-> +	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-> +}
-> +
-> +static void vb2_dc_finish(void *buf_priv)
-> +{
-> +	struct vb2_dc_buf *buf = buf_priv;
-> +	struct sg_table *sgt = buf->dma_sgt;
-> +
-> +	if (!sgt)
-> +		return;
-> +
-> +	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-> +}
-> +
->  /*********************************************/
->  /*        callbacks for MMAP buffers         */
->  /*********************************************/
-> @@ -366,6 +388,8 @@ const struct vb2_mem_ops vb2_dma_contig_memops = {
->  	.mmap		= vb2_dc_mmap,
->  	.get_userptr	= vb2_dc_get_userptr,
->  	.put_userptr	= vb2_dc_put_userptr,
-> +	.prepare	= vb2_dc_prepare,
-> +	.finish		= vb2_dc_finish,
->  	.num_users	= vb2_dc_num_users,
->  };
->  EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
+>>> Currently I've chosen ioctl numbers that are not used by V4L2 (there are a
+>>> number of 'holes' in the ioctl list).
+>>>
+>>> If people think it is not worth the effort, then so be it. But if we do want
+>>> to do this, then we can't wait any longer.
+>>
+>> One option would be to start using a new type for the new IOCTLs but leave
+>> the existing ones as they are. The end result would be less elegant since
+>> the subdev IOCTLs would use two different types but OTOH the V4L2 IOCTLs are
+>> being used on subdevs as-is, too. This would at least prevent future clashes
+>> in IOCTL codes between V4L2 and subdev interfaces.
+> 
+> I don't really like that idea.
+> 
+> I thought that Laurent's proposal of creating SUBDEV aliases of reused V4L2
+> ioctls had merit. That way v4l2-subdev.h would give a nice overview of
+> which V4L2 ioctls are supported by the subdev API. Currently no such overview
+> exists to my knowledge.
 
--- 
-Regards,
+Adding aliases just for documenting purposes doesn't seem nice, IMHO.
 
-Laurent Pinchart
+Again, this is one case where profiles help: we need a profile for devices
+that implement subdev's, telling what is allowed and what is forbidden
+there.
+
+> With regards to adding pad fields to the existing control structs: that won't
+> work with queryctrl: the reserved fields are output fields only, there is no
+> requirement that apps have to zero them, so you can't use them to enumerate
+> controls for a particular pad.
+> 
+> A new queryctrl ioctl would have to be created for that. So if we need this
+> functionality, then I believe it is better to combine that with a new
+> queryctrl ioctl.
+> 
+> Regards,
+> 
+> 	Hans
+> 
 
