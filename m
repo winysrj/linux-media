@@ -1,97 +1,250 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34429 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750927Ab2HLP2V (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Aug 2012 11:28:21 -0400
-Message-ID: <5027CB8A.1020204@redhat.com>
-Date: Sun, 12 Aug 2012 12:28:10 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from nm25-vm1.bullet.mail.ukl.yahoo.com ([217.146.177.23]:28765 "HELO
+	nm25-vm1.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753249Ab2HVODZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Aug 2012 10:03:25 -0400
+Message-ID: <5034E532.8090207@users.sourceforge.net>
+Date: Wed, 22 Aug 2012 14:57:06 +0100
+From: Hin-Tak Leung <htl10@users.sourceforge.net>
 MIME-Version: 1.0
 To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH RFC 3/3] dvb_frontend: do not allow statistic IOCTLs when
- sleeping
-References: <1344551101-16700-1-git-send-email-crope@iki.fi> <1344551101-16700-4-git-send-email-crope@iki.fi>
-In-Reply-To: <1344551101-16700-4-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+CC: Hiroshi Doyu <hdoyu@nvidia.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"joe@perches.com" <joe@perches.com>,
+	"linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
+Subject: Re: [PATCH 1/1] driver-core: Shut up dev_dbg_reatelimited() without
+ DEBUG
+References: <502EDDCC.200@iki.fi><20120820.141454.449841061737873578.hdoyu@nvidia.com><5032AC3E.5080402@iki.fi> <20120821.100204.446226016699627525.hdoyu@nvidia.com> <503343B9.1070104@iki.fi>
+In-Reply-To: <503343B9.1070104@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 09-08-2012 19:25, Antti Palosaari escreveu:
-> Demodulator cannot perform statistic IOCTLs when it is not tuned.
-> Return -EPERM in such case.
+Antti Palosaari wrote:
+> Hello Hiroshi,
+>
+> On 08/21/2012 10:02 AM, Hiroshi Doyu wrote:
+>> Antti Palosaari <crope@iki.fi> wrote @ Mon, 20 Aug 2012 23:29:34 +0200:
+>>
+>>> On 08/20/2012 02:14 PM, Hiroshi Doyu wrote:
+>>>> Hi Antti,
+>>>>
+>>>> Antti Palosaari <crope@iki.fi> wrote @ Sat, 18 Aug 2012 02:11:56 +0200:
+>>>>
+>>>>> On 08/17/2012 09:04 AM, Hiroshi Doyu wrote:
+>>>>>> dev_dbg_reatelimited() without DEBUG printed "217078 callbacks
+>>>>>> suppressed". This shouldn't print anything without DEBUG.
+>>>>>>
+>>>>>> Signed-off-by: Hiroshi Doyu <hdoyu@nvidia.com>
+>>>>>> Reported-by: Antti Palosaari <crope@iki.fi>
+>>>>>> ---
+>>>>>>     include/linux/device.h |    6 +++++-
+>>>>>>     1 files changed, 5 insertions(+), 1 deletions(-)
+>>>>>>
+>>>>>> diff --git a/include/linux/device.h b/include/linux/device.h
+>>>>>> index eb945e1..d4dc26e 100644
+>>>>>> --- a/include/linux/device.h
+>>>>>> +++ b/include/linux/device.h
+>>>>>> @@ -962,9 +962,13 @@ do {                                    \
+>>>>>>         dev_level_ratelimited(dev_notice, dev, fmt, ##__VA_ARGS__)
+>>>>>>     #define dev_info_ratelimited(dev, fmt, ...)                \
+>>>>>>         dev_level_ratelimited(dev_info, dev, fmt, ##__VA_ARGS__)
+>>>>>> +#if defined(DEBUG)
+>>>>>>     #define dev_dbg_ratelimited(dev, fmt, ...)                \
+>>>>>>         dev_level_ratelimited(dev_dbg, dev, fmt, ##__VA_ARGS__)
+>>>>>> -
+>>>>>> +#else
+>>>>>> +#define dev_dbg_ratelimited(dev, fmt, ...)            \
+>>>>>> +    no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
+>>>>>> +#endif
+>>>>>>     /*
+>>>>>>      * Stupid hackaround for existing uses of non-printk uses dev_info
+>>>>>>      *
+>>>>>>
+>>>>>
+>>>>> NACK. I don't think that's correct behavior. After that patch it kills
+>>>>> all output of dev_dbg_ratelimited(). If I use dynamic debugs and order
+>>>>> debugs, I expect to see debugs as earlier.
+>>>>
+>>>> You are right. I attached the update patch, just moving *_ratelimited
+>>>> functions after dev_dbg() definitions.
+>>>>
+>>>> With DEBUG defined/undefined in your "test.ko", it works fine. With
+>>>> CONFIG_DYNAMIC_DEBUG, it works with "+p", but with "-p", still
+>>>> "..callbacks suppressed" is printed.
+>>>
+>>> I am using dynamic debugs and behavior is now just same as it was when
+>>> reported that bug. OK, likely for static debug it is now correct.
+>>
+>> The following patch can also refrain "..callbacks suppressed" with
+>> "-p". I think that it's ok for all cases.
+>>
+>>> From b4c6aa9160f03b61ed17975c73db36c983a48927 Mon Sep 17 00:00:00 2001
+>> From: Hiroshi Doyu <hdoyu@nvidia.com>
+>> Date: Mon, 20 Aug 2012 13:49:19 +0300
+>> Subject: [v3 1/1] driver-core: Shut up dev_dbg_reatelimited() without DEBUG
+>>
+>> dev_dbg_reatelimited() without DEBUG printed "217078 callbacks
+>> suppressed". This shouldn't print anything without DEBUG.
+>>
+>> With CONFIG_DYNAMIC_DEBUG, the print should be configured as expected.
+>>
+>> Signed-off-by: Hiroshi Doyu <hdoyu@nvidia.com>
+>> Reported-by: Antti Palosaari <crope@iki.fi>
+>> ---
+>>   include/linux/device.h |   62 +++++++++++++++++++++++++++++------------------
+>>   1 files changed, 38 insertions(+), 24 deletions(-)
+>>
+>> diff --git a/include/linux/device.h b/include/linux/device.h
+>> index 9648331..bb6ffcb 100644
+>> --- a/include/linux/device.h
+>> +++ b/include/linux/device.h
+>> @@ -932,6 +932,32 @@ int _dev_info(const struct device *dev, const char *fmt,
+>> ...)
+>>
+>>   #endif
+>>
+>> +/*
+>> + * Stupid hackaround for existing uses of non-printk uses dev_info
+>> + *
+>> + * Note that the definition of dev_info below is actually _dev_info
+>> + * and a macro is used to avoid redefining dev_info
+>> + */
+>> +
+>> +#define dev_info(dev, fmt, arg...) _dev_info(dev, fmt, ##arg)
+>> +
+>> +#if defined(CONFIG_DYNAMIC_DEBUG)
+>> +#define dev_dbg(dev, format, ...)             \
+>> +do {                             \
+>> +    dynamic_dev_dbg(dev, format, ##__VA_ARGS__); \
+>> +} while (0)
+>> +#elif defined(DEBUG)
+>> +#define dev_dbg(dev, format, arg...)        \
+>> +    dev_printk(KERN_DEBUG, dev, format, ##arg)
+>> +#else
+>> +#define dev_dbg(dev, format, arg...)                \
+>> +({                                \
+>> +    if (0)                            \
+>> +        dev_printk(KERN_DEBUG, dev, format, ##arg);    \
+>> +    0;                            \
+>> +})
+>> +#endif
+>> +
+>>   #define dev_level_ratelimited(dev_level, dev, fmt, ...)            \
+>>   do {                                    \
+>>       static DEFINE_RATELIMIT_STATE(_rs,                \
+>> @@ -955,33 +981,21 @@ do {                                    \
+>>       dev_level_ratelimited(dev_notice, dev, fmt, ##__VA_ARGS__)
+>>   #define dev_info_ratelimited(dev, fmt, ...)                \
+>>       dev_level_ratelimited(dev_info, dev, fmt, ##__VA_ARGS__)
+>> +#if defined(CONFIG_DYNAMIC_DEBUG) || defined(DEBUG)
+>>   #define dev_dbg_ratelimited(dev, fmt, ...)                \
+>> -    dev_level_ratelimited(dev_dbg, dev, fmt, ##__VA_ARGS__)
+>> -
+>> -/*
+>> - * Stupid hackaround for existing uses of non-printk uses dev_info
+>> - *
+>> - * Note that the definition of dev_info below is actually _dev_info
+>> - * and a macro is used to avoid redefining dev_info
+>> - */
+>> -
+>> -#define dev_info(dev, fmt, arg...) _dev_info(dev, fmt, ##arg)
+>> -
+>> -#if defined(CONFIG_DYNAMIC_DEBUG)
+>> -#define dev_dbg(dev, format, ...)             \
+>> -do {                             \
+>> -    dynamic_dev_dbg(dev, format, ##__VA_ARGS__); \
+>> +do {                                    \
+>> +    static DEFINE_RATELIMIT_STATE(_rs,                \
+>> +                      DEFAULT_RATELIMIT_INTERVAL,    \
+>> +                      DEFAULT_RATELIMIT_BURST);        \
+>> +    DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);            \
+>> +    if (unlikely(descriptor.flags & _DPRINTK_FLAGS_PRINT) &&    \
+>> +        __ratelimit(&_rs))                        \
+>> +        __dynamic_pr_debug(&descriptor, pr_fmt(fmt),        \
+>> +                   ##__VA_ARGS__);            \
+>>   } while (0)
+>> -#elif defined(DEBUG)
+>> -#define dev_dbg(dev, format, arg...)        \
+>> -    dev_printk(KERN_DEBUG, dev, format, ##arg)
+>>   #else
+>> -#define dev_dbg(dev, format, arg...)                \
+>> -({                                \
+>> -    if (0)                            \
+>> -        dev_printk(KERN_DEBUG, dev, format, ##arg);    \
+>> -    0;                            \
+>> -})
+>> +#define dev_dbg_ratelimited(dev, fmt, ...)            \
+>> +    no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
+>>   #endif
+>>
+>>   #ifdef VERBOSE_DEBUG
+>
+> That seems to work correctly now. I tested it using dynamic debugs. It was
+> Hin-Tak who originally reported that bug for me after I added few ratelimited
+> debugs for DVB stack. Thank you!
+>
+> Reported-by: Hin-Tak Leung <htl10@users.sourceforge.net>
+> Tested-by: Antti Palosaari <crope@iki.fi>
+>
+>
+> regards
+> Antti
+>
 
-While, in general, doing it makes sense, -EPERM is a very bad return code.
-It is used to indicate when accessing some resources would require root access.
+This is with mediatree/for_v3.7-8 , playing DVB-T video with mplayer.
 
-> 
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  drivers/media/dvb/dvb-core/dvb_frontend.c | 34 +++++++++++++++++++++++--------
->  1 file changed, 25 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-> index 4fc11eb..40efcde 100644
-> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-> @@ -2157,27 +2157,43 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
->  			err = fe->ops.read_status(fe, status);
->  		break;
->  	}
-> +
->  	case FE_READ_BER:
-> -		if (fe->ops.read_ber)
-> -			err = fe->ops.read_ber(fe, (__u32*) parg);
-> +		if (fe->ops.read_ber) {
-> +			if (fepriv->thread)
-> +				err = fe->ops.read_ber(fe, (__u32 *) parg);
-> +			else
-> +				err = -EPERM;
-> +		}
->  		break;
->  
->  	case FE_READ_SIGNAL_STRENGTH:
-> -		if (fe->ops.read_signal_strength)
-> -			err = fe->ops.read_signal_strength(fe, (__u16*) parg);
-> +		if (fe->ops.read_signal_strength) {
-> +			if (fepriv->thread)
-> +				err = fe->ops.read_signal_strength(fe, (__u16 *) parg);
-> +			else
-> +				err = -EPERM;
-> +		}
->  		break;
+echo 'file ...media_build/v4l/usb_urb.c +p' > 
+/sys/kernel/debug/dynamic_debug/control
 
-Signal strength can still be available even without locking.
+With +p
 
->  
->  	case FE_READ_SNR:
-> -		if (fe->ops.read_snr)
-> -			err = fe->ops.read_snr(fe, (__u16*) parg);
-> +		if (fe->ops.read_snr) {
-> +			if (fepriv->thread)
-> +				err = fe->ops.read_snr(fe, (__u16 *) parg);
-> +			else
-> +				err = -EPERM;
-> +		}
->  		break;
->  
->  	case FE_READ_UNCORRECTED_BLOCKS:
-> -		if (fe->ops.read_ucblocks)
-> -			err = fe->ops.read_ucblocks(fe, (__u32*) parg);
-> +		if (fe->ops.read_ucblocks) {
-> +			if (fepriv->thread)
-> +				err = fe->ops.read_ucblocks(fe, (__u32 *) parg);
-> +			else
-> +				err = -EPERM;
-> +		}
->  		break;
->  
-> -
->  	case FE_DISEQC_RESET_OVERLOAD:
->  		if (fe->ops.diseqc_reset_overload) {
->  			err = fe->ops.diseqc_reset_overload(fe);
-> 
+[137749.698202] usb 1-3: usb_urb_complete: bulk urb completed status=0 
+length=4096/4096 pack_num=0 errors=0
+[137749.699449] usb 1-3: usb_urb_complete: bulk urb completed status=0 
+length=4096/4096 pack_num=0 errors=0
+[137749.700825] usb 1-3: usb_urb_complete: bulk urb completed status=0 
+length=4096/4096 pack_num=0 errors=0
+[137754.690862] usb_urb_complete: 3570 callbacks suppressed
+[137754.690888] usb 1-3: usb_urb_complete: bulk urb completed status=0 
+length=4096/4096 pack_num=0 errors=0
+[137754.692489] usb 1-3: usb_urb_complete: bulk urb completed status=0 
+length=4096/4096 pack_num=0 errors=0
+[137754.693745] usb 1-3: usb_urb_complete: bulk urb completed status=0 
+length=4096/4096 pack_num=0 errors=0
+[137754.694882] usb 1-3: usb_urb_complete: bulk urb completed status=0 
+length=4096/4096 pack_num=0 errors=0
+[137754.696240] usb 1-3: usb_urb_complete: bulk urb completed status=0 
+length=4096/4096 pack_num=0 errors=0
+[137754.697483] usb 1-3: usb_urb_complete: bulk urb completed status=0 
+length=4096/4096 pack_num=0 errors=0
+[137754.699002] usb 1-3: usb_urb_complete: bulk urb completed status=0 
+length=4096/4096 pack_num=0 errors=0
+[137754.700884] usb 1-3: usb_urb_complete: bulk urb completed status=0 
+length=4096/4096 pack_num=0 errors=0
+[137754.701613] usb 1-3: usb_urb_complete: bulk urb completed status=0 
+length=4096/4096 pack_num=0 errors=0
+[137754.702986] usb 1-3: usb_urb_complete: bulk urb completed status=0 
+length=4096/4096 pack_num=0 errors=0
+[137759.695906] usb_urb_complete: 3595 callbacks suppressed
+[137759.695934] usb 1-3: usb_urb_complete: bulk urb completed status=0 
+length=4096/4096 pack_num=0 errors=0
+[137759.697788] usb 1-3: usb_urb_complete: bulk urb completed status=0 
+length=4096/4096 pack_num=0 errors=0
+[137759.698772] usb 1-3: usb_urb_complete: bulk urb completed status=0 
+length=4096/4096 pack_num=0 errors=0
 
-Regards,
-Mauro
+with -p
+
+[137814.730303] usb_urb_complete: 3555 callbacks suppressed
+[137819.740698] usb_urb_complete: 3519 callbacks suppressed
+[137824.744857] usb_urb_complete: 3443 callbacks suppressed
+[137829.746023] usb_urb_complete: 3345 callbacks suppressed
+[137834.749931] usb_urb_complete: 3558 callbacks suppressed
+[137839.753102] usb_urb_complete: 3465 callbacks suppressed
+[137844.755521] usb_urb_complete: 3438 callbacks suppressed
+
