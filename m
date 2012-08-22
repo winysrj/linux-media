@@ -1,123 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hqemgate03.nvidia.com ([216.228.121.140]:9626 "EHLO
-	hqemgate03.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754515Ab2HXEfm convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3660 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754127Ab2HVLJl convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 00:35:42 -0400
-From: Hiroshi Doyu <hdoyu@nvidia.com>
-To: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
-CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"htl10@users.sourceforge.net" <htl10@users.sourceforge.net>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"joe@perches.com" <joe@perches.com>,
-	"linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>,
-	"crope@iki.fi" <crope@iki.fi>
-Date: Fri, 24 Aug 2012 06:35:35 +0200
-Subject: [v3 1/1] driver-core: Shut up dev_dbg_reatelimited() without DEBUG
-Message-ID: <20120824.073535.1710298672594744200.hdoyu@nvidia.com>
-Reply-To: "1345726463.82057.YahooMailClassic@web29403.mail.ird.yahoo.com"
-	  <1345726463.82057.YahooMailClassic@web29403.mail.ird.yahoo.com>
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Wed, 22 Aug 2012 07:09:41 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: workshop-2011@linuxtv.org
+Subject: Re: [Workshop-2011] V4L2 API ambiguities: workshop presentation
+Date: Wed, 22 Aug 2012 13:09:25 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>
+References: <201208171235.58094.hverkuil@xs4all.nl>
+In-Reply-To: <201208171235.58094.hverkuil@xs4all.nl>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201208221309.25058.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-dev_dbg_reatelimited() without DEBUG printed "217078 callbacks
-suppressed". This shouldn't print anything without DEBUG.
+On Fri August 17 2012 12:35:58 Hans Verkuil wrote:
+> Hi all,
+> 
+> I've prepared a presentation for the upcoming workshop based on my RFC and the
+> comments I received.
+> 
+> It is available here:
+> 
+> http://hverkuil.home.xs4all.nl/presentations/v4l2-workshop-2012.odp
+> http://hverkuil.home.xs4all.nl/presentations/v4l2-workshop-2012.pdf
+> 
+> Attendees of the workshop: please review this before the workshop starts. I
+> want to go through this list fairly quickly (particularly slides 1-14) so we
+> can have more time for other topics.
 
-With CONFIG_DYNAMIC_DEBUG, the print should be configured as expected.
+One additional topic:
 
-Signed-off-by: Hiroshi Doyu <hdoyu@nvidia.com>
-Reported-by: Hin-Tak Leung <htl10@users.sourceforge.net>
-Tested-by: Antti Palosaari <crope@iki.fi>
-Acked-by: Hin-Tak Leung <htl10@users.sourceforge.net>
----
- include/linux/device.h |   62 +++++++++++++++++++++++++++++------------------
- 1 files changed, 38 insertions(+), 24 deletions(-)
+The V4L2 API has a number of experimental API elements, see:
 
-diff --git a/include/linux/device.h b/include/linux/device.h
-index 9648331..bb6ffcb 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -932,6 +932,32 @@ int _dev_info(const struct device *dev, const char *fmt, ...)
- 
- #endif
- 
-+/*
-+ * Stupid hackaround for existing uses of non-printk uses dev_info
-+ *
-+ * Note that the definition of dev_info below is actually _dev_info
-+ * and a macro is used to avoid redefining dev_info
-+ */
-+
-+#define dev_info(dev, fmt, arg...) _dev_info(dev, fmt, ##arg)
-+
-+#if defined(CONFIG_DYNAMIC_DEBUG)
-+#define dev_dbg(dev, format, ...)		     \
-+do {						     \
-+	dynamic_dev_dbg(dev, format, ##__VA_ARGS__); \
-+} while (0)
-+#elif defined(DEBUG)
-+#define dev_dbg(dev, format, arg...)		\
-+	dev_printk(KERN_DEBUG, dev, format, ##arg)
-+#else
-+#define dev_dbg(dev, format, arg...)				\
-+({								\
-+	if (0)							\
-+		dev_printk(KERN_DEBUG, dev, format, ##arg);	\
-+	0;							\
-+})
-+#endif
-+
- #define dev_level_ratelimited(dev_level, dev, fmt, ...)			\
- do {									\
- 	static DEFINE_RATELIMIT_STATE(_rs,				\
-@@ -955,33 +981,21 @@ do {									\
- 	dev_level_ratelimited(dev_notice, dev, fmt, ##__VA_ARGS__)
- #define dev_info_ratelimited(dev, fmt, ...)				\
- 	dev_level_ratelimited(dev_info, dev, fmt, ##__VA_ARGS__)
-+#if defined(CONFIG_DYNAMIC_DEBUG) || defined(DEBUG)
- #define dev_dbg_ratelimited(dev, fmt, ...)				\
--	dev_level_ratelimited(dev_dbg, dev, fmt, ##__VA_ARGS__)
--
--/*
-- * Stupid hackaround for existing uses of non-printk uses dev_info
-- *
-- * Note that the definition of dev_info below is actually _dev_info
-- * and a macro is used to avoid redefining dev_info
-- */
--
--#define dev_info(dev, fmt, arg...) _dev_info(dev, fmt, ##arg)
--
--#if defined(CONFIG_DYNAMIC_DEBUG)
--#define dev_dbg(dev, format, ...)		     \
--do {						     \
--	dynamic_dev_dbg(dev, format, ##__VA_ARGS__); \
-+do {									\
-+	static DEFINE_RATELIMIT_STATE(_rs,				\
-+				      DEFAULT_RATELIMIT_INTERVAL,	\
-+				      DEFAULT_RATELIMIT_BURST);		\
-+	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);			\
-+	if (unlikely(descriptor.flags & _DPRINTK_FLAGS_PRINT) &&	\
-+	    __ratelimit(&_rs))						\
-+		__dynamic_pr_debug(&descriptor, pr_fmt(fmt),		\
-+				   ##__VA_ARGS__);			\
- } while (0)
--#elif defined(DEBUG)
--#define dev_dbg(dev, format, arg...)		\
--	dev_printk(KERN_DEBUG, dev, format, ##arg)
- #else
--#define dev_dbg(dev, format, arg...)				\
--({								\
--	if (0)							\
--		dev_printk(KERN_DEBUG, dev, format, ##arg);	\
--	0;							\
--})
-+#define dev_dbg_ratelimited(dev, fmt, ...)			\
-+	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
- #endif
- 
- #ifdef VERBOSE_DEBUG
--- 
-1.7.5.4
+	http://hverkuil.home.xs4all.nl/spec/media.html#experimental
+
+The following have been in use for a considerable amount of time I and propose
+to drop the experimental tag:
+
+Video Output Overlay (OSD) Interface, the section called “Video Output Overlay Interface”.
+
+V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY, enum v4l2_buf_type, Table 3.3, “enum v4l2_buf_type”.
+
+V4L2_CAP_VIDEO_OUTPUT_OVERLAY, VIDIOC_QUERYCAP ioctl, Table A.92, “Device Capabilities Flags”.
+
+VIDIOC_ENUM_FRAMESIZES and VIDIOC_ENUM_FRAMEINTERVALS ioctls.
+
+VIDIOC_G_ENC_INDEX ioctl.
+
+VIDIOC_ENCODER_CMD and VIDIOC_TRY_ENCODER_CMD ioctls.
+
+VIDIOC_DECODER_CMD and VIDIOC_TRY_DECODER_CMD ioctls.
+
+
+While the (TRY_)DECODER_CMD ioctls are strictly speaking new to V4L2 (appearing
+in 3.4) they started life as identical ioctls (although with a different name)
+in dvb/video.h.
+
+Other than being renamed and folded into the V4L2 specification they are quite
+old as well.
+
+Regards,
+
+	Hans
