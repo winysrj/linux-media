@@ -1,60 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:34683 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754265Ab2HERHl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Aug 2012 13:07:41 -0400
-From: Federico Vaga <federico.vaga@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: Re: Update VIP to videobuf2 and control framework
-Date: Sun, 05 Aug 2012 19:11:19 +0200
-Message-ID: <5055608.KkUHWr6mgc@harkonnen>
-In-Reply-To: <201208010841.56941.hverkuil@xs4all.nl>
-References: <1343765829-6006-1-git-send-email-federico.vaga@gmail.com> <201208010841.56941.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail.telros.ru ([83.136.244.21]:60629 "EHLO mail.telros.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754147Ab2HVGnS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Aug 2012 02:43:18 -0400
+From: Volokh Konstantin <volokh84@gmail.com>
+To: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org, volokh@telros.ru
+Cc: Volokh Konstantin <volokh84@gmail.com>
+Subject: [PATCH 04/10] staging: media: go7007: Add IDENT for TW2802/2804
+Date: Wed, 22 Aug 2012 14:45:13 +0400
+Message-Id: <1345632319-23224-4-git-send-email-volokh84@gmail.com>
+In-Reply-To: <1345632319-23224-1-git-send-email-volokh84@gmail.com>
+References: <1345632319-23224-1-git-send-email-volokh84@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Signed-off-by: Volokh Konstantin <volokh84@gmail.com>
+---
+ include/media/v4l2-chip-ident.h |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
+index 7395c81..5395495 100644
+--- a/include/media/v4l2-chip-ident.h
++++ b/include/media/v4l2-chip-ident.h
+@@ -113,6 +113,10 @@ enum {
+ 	/* module vp27smpx: just ident 2700 */
+ 	V4L2_IDENT_VP27SMPX = 2700,
  
-> Did you run the latest v4l2-compliance tool from the v4l-utils.git
-> repository over your driver? I'm sure you didn't since VIP is missing
-> support for control events and v4l2-compliance would certainly
-> complain about that.
-> 
-> Always check with v4l2-compliance whenever you make changes! It's
-> continuously improved as well, so a periodic check wouldn't hurt.
-
-I applied all your suggestions, and some extra simplification; now I'm 
-running v4l2-compliance but I have this error:
-
-
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-                fail: v4l2-compliance.cpp(322): doioctl(node, 
-VIDIOC_G_PRIORITY, &prio)
-        test VIDIOC_G/S_PRIORITY: FAIL
-
-
-which I don't undestand. I don't have vidio_{g|s}_priority functions in 
-my implementation. And I'm using the V4L2_FL_USE_FH_PRIO flag as 
-suggested in the documentation:
-
----------------
-- flags: optional. Set to V4L2_FL_USE_FH_PRIO if you want to let the 
-framework handle the VIDIOC_G/S_PRIORITY ioctls. This requires that you 
-use struct v4l2_fh. Eventually this flag will disappear once all drivers 
-use the core priority handling. But for now it has to be set explicitly.
---------------
-
++	/* module wis-tw2804: 2802/2804 */
++	V4L2_IDENT_TW2802 = 2802,
++	V4L2_IDENT_TW2804 = 2804,
++
+ 	/* module vpx3220: reserved range: 3210-3229 */
+ 	V4L2_IDENT_VPX3214C = 3214,
+ 	V4L2_IDENT_VPX3216B = 3216,
 -- 
-Federico Vaga
+1.7.7.6
+
