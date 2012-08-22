@@ -1,84 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:60627 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753024Ab2HXLhX (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2889 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758769Ab2HVIGz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 07:37:23 -0400
-Date: Fri, 24 Aug 2012 13:37:20 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Anatolij Gustschin <agust@denx.de>
-cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>, dzu@denx.de
-Subject: Re: [PATCH v2] V4L: soc_camera: allow reading from video device if
- supported
-In-Reply-To: <1345799604-29608-1-git-send-email-agust@denx.de>
-Message-ID: <Pine.LNX.4.64.1208241331550.20710@axis700.grange>
-References: <1345290335-12980-1-git-send-email-agust@denx.de>
- <1345799604-29608-1-git-send-email-agust@denx.de>
+	Wed, 22 Aug 2012 04:06:55 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Volokh Konstantin <volokh84@gmail.com>
+Subject: Re: [PATCH 04/10] staging: media: go7007: Add IDENT for TW2802/2804
+Date: Wed, 22 Aug 2012 10:05:18 +0200
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org, volokh@telros.ru
+References: <1345632319-23224-1-git-send-email-volokh84@gmail.com> <1345632319-23224-4-git-send-email-volokh84@gmail.com>
+In-Reply-To: <1345632319-23224-4-git-send-email-volokh84@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201208221005.18039.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 24 Aug 2012, Anatolij Gustschin wrote:
-
-> Try reading on video device. If the camera bus driver supports reading
-> we can try it and return the result. Also add a debug line.
-> 
-> Signed-off-by: Anatolij Gustschin <agust@denx.de>
+On Wed August 22 2012 12:45:13 Volokh Konstantin wrote:
+> Signed-off-by: Volokh Konstantin <volokh84@gmail.com>
 > ---
->  v2: - rebased on current staging/for_v3.7 branch
->  
->  drivers/media/platform/soc_camera/soc_camera.c |    9 ++++++++-
->  1 files changed, 8 insertions(+), 1 deletions(-)
+>  include/media/v4l2-chip-ident.h |    4 ++++
+>  1 files changed, 4 insertions(+), 0 deletions(-)
 > 
-> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-> index 10b57f8..d591a42 100644
-> --- a/drivers/media/platform/soc_camera/soc_camera.c
-> +++ b/drivers/media/platform/soc_camera/soc_camera.c
-> @@ -645,9 +645,16 @@ static ssize_t soc_camera_read(struct file *file, char __user *buf,
->  			       size_t count, loff_t *ppos)
->  {
->  	struct soc_camera_device *icd = file->private_data;
-> +	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
->  	int err = -EINVAL;
+> diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
+> index 7395c81..5395495 100644
+> --- a/include/media/v4l2-chip-ident.h
+> +++ b/include/media/v4l2-chip-ident.h
+> @@ -113,6 +113,10 @@ enum {
+>  	/* module vp27smpx: just ident 2700 */
+>  	V4L2_IDENT_VP27SMPX = 2700,
 >  
-> -	dev_err(icd->pdev, "camera device read not implemented\n");
-> +	dev_dbg(icd->pdev, "read called, buf %p\n", buf);
+> +	/* module wis-tw2804: 2802/2804 */
+> +	V4L2_IDENT_TW2802 = 2802,
+> +	V4L2_IDENT_TW2804 = 2804,
 > +
-> +	if (ici->ops->init_videobuf2 && icd->vb2_vidq.io_modes & VB2_READ)
-> +		err = vb2_read(&icd->vb2_vidq, buf, count, ppos,
-> +				file->f_flags & O_NONBLOCK);
-> +	else
-> +		dev_err(icd->pdev, "camera device read not implemented\n");
->  
->  	return err;
-
-How about a slightly simpler
-
-> +	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-> -	int err = -EINVAL;
->  
-> -	dev_err(icd->pdev, "camera device read not implemented\n");
-> +	dev_dbg(icd->pdev, "read called, buf %p\n", buf);
->  
-> -	return err;
-> +	if (ici->ops->init_videobuf2 && icd->vb2_vidq.io_modes & VB2_READ)
-> +		return vb2_read(&icd->vb2_vidq, buf, count, ppos,
-> +				file->f_flags & O_NONBLOCK);
-> +
-> +	dev_err(icd->pdev, "camera device read not implemented\n");
-> +	return -EINVAL;
-
-Thanks
-Guennadi
-
->  }
-> -- 
-> 1.7.1
+>  	/* module vpx3220: reserved range: 3210-3229 */
+>  	V4L2_IDENT_VPX3214C = 3214,
+>  	V4L2_IDENT_VPX3216B = 3216,
 > 
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+There is no need to add this, unless the g/s_register or g_chip_ident ops
+are also implemented.
+
+In this case I'd just drop this patch.
+
+Regards,
+
+	Hans
