@@ -1,50 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50031 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933531Ab2HQCH2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Aug 2012 22:07:28 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hin-Tak Leung <htl10@users.sourceforge.net>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] dvb_usb_v2: use ratelimited debugs where appropriate
-Date: Fri, 17 Aug 2012 05:07:08 +0300
-Message-Id: <1345169228-10650-1-git-send-email-crope@iki.fi>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1226 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758775Ab2HVJk3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Aug 2012 05:40:29 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id q7M9eQdi030566
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Wed, 22 Aug 2012 11:40:27 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.localnet (tschai.lan [192.168.1.10])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 377C135E0224
+	for <linux-media@vger.kernel.org>; Wed, 22 Aug 2012 11:40:25 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: RFC: Core + Radio profile
+Date: Wed, 22 Aug 2012 11:40:25 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201208221140.25656.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/usb_urb.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+Hi all!
 
-diff --git a/drivers/media/usb/dvb-usb-v2/usb_urb.c b/drivers/media/usb/dvb-usb-v2/usb_urb.c
-index eaf673a..5989b65 100644
---- a/drivers/media/usb/dvb-usb-v2/usb_urb.c
-+++ b/drivers/media/usb/dvb-usb-v2/usb_urb.c
-@@ -22,9 +22,9 @@ static void usb_urb_complete(struct urb *urb)
- 	int i;
- 	u8 *b;
- 
--	dev_dbg(&stream->udev->dev, "%s: %s urb completed status=%d " \
--			"length=%d/%d pack_num=%d errors=%d\n", __func__,
--			ptype == PIPE_ISOCHRONOUS ? "isoc" : "bulk",
-+	dev_dbg_ratelimited(&stream->udev->dev, "%s: %s urb completed " \
-+			"status=%d length=%d/%d pack_num=%d errors=%d\n",
-+			__func__, ptype == PIPE_ISOCHRONOUS ? "isoc" : "bulk",
- 			urb->status, urb->actual_length,
- 			urb->transfer_buffer_length,
- 			urb->number_of_packets, urb->error_count);
-@@ -38,7 +38,8 @@ static void usb_urb_complete(struct urb *urb)
- 	case -ESHUTDOWN:
- 		return;
- 	default:        /* error */
--		dev_dbg(&stream->udev->dev, "%s: urb completition failed=%d\n",
-+		dev_dbg_ratelimited(&stream->udev->dev,
-+				"%s: urb completition failed=%d\n",
- 				__func__, urb->status);
- 		break;
- 	}
--- 
-1.7.11.2
+The v4l2-compliance utility checks whether device drivers follows the V4L2
+specification. What is missing are 'profiles' detailing what device drivers
+should and shouldn't implement for particular device classes.
 
+This has been discussed several times, but until now no attempt was made to
+actually write this down.
+
+This RFC is my attempt to start this process by describing three profiles:
+the core profile that all drivers must adhere to, a profile for a radio
+receiver and a profile for a radio transmitter.
+
+Missing in this RFC is a description of how tuner ownership is handled if a
+tuner is shared between a radio and video driver. This will be discussed
+during the workshop next week.
+
+I am not certain where these profile descriptions should go. Should we add
+this to DocBook, or describe it in Documentation/video4linux? Or perhaps
+somehow add it to v4l2-compliance, since that tool effectively verifies
+the profile.
+
+Also note that the core profile description is more strict than the spec. For
+example, G/S_PRIORITY are currently optional, but I feel that all new drivers
+should implement this, especially since it is very easy to add provided you
+use struct v4l2_fh. Similar with respect to the control requirements which
+assume you use the control framework.
+
+Note that these profiles are primarily meant for driver developers. The V4L2
+specification is leading for application developers.
+
+While writing down these profiles I noticed one thing that was very much
+missing for radio devices: there is no capability bit to tell the application
+whether there is an associated ALSA device or whether the audio goes through
+a line-in/out. Personally I think that this should be fixed.
+
+Comments are welcome!
+
+Regards,
+
+	Hans
+
+
+Core Profile
+============
+
+All V4L2 device nodes must support the core profile.
+
+VIDIOC_QUERYCAP must be supported and must set the device_caps field.
+bus_info must be a unique string and must not be empty (pending result of
+the upcoming workshop).
+
+VIDIOC_G/S_PRIORITY must be supported.
+
+If you have controls then both the VIDIOC_G/S_CTRL and the VIDIOC_G/S/TRY_EXT_CTRLS
+ioctls must be supported, together with poll(), VIDIOC_DQEVENT and
+VIDIOC_(UN)SUBSCRIBE_EVENT to handle control events. Use the control framework
+to implement this.
+
+VIDIOC_LOG_STATUS is optional, but recommended for complex drivers.
+
+VIDIOC_DBG_G_CHIP_IDENT, VIDIOC_DBG_G/S_REGISTER are optional and are
+primarily used to debug drivers.
+
+Video, Radio and VBI nodes are for input or output only. The only exception
+are video nodes that have the V4L2_CAP_VIDEO_M2M(_MPLANE) capability set.
+
+Video nodes only control video, radio nodes only control radio and RDS, vbi
+nodes only control VBI (raw and/or sliced).
+
+Streaming I/O is not supported by radio nodes.
+
+Radio Receiver Profile
+======================
+
+Radio devices have a tuner and (usually) a demodulator. The audio is either
+send out to a line-out connector or uses ALSA to stream the audio.
+
+It implements VIDIOC_G/S_TUNER, VIDIOC_G/S_FREQUENCY and VIDIOC_ENUM_FREQ_BANDS.
+
+If hardware seek is supported, then VIDIOC_S_HW_FREQ_SEEK is implemented.
+
+It does *not* implement VIDIOC_ENUM/G/S_INPUT or VIDIOC_ENUM/G/S_AUDIO.
+
+If RDS_BLOCK_IO is supported, then read() and poll() are implemented as well.
+
+If a mute control exists and the audio is output using a line-out, then the
+audio must be muted on driver load and unload.
+
+On driver load the frequency must be initialized to a valid frequency.
+
+Note: There are a few drivers that use a radio (pvrusb2) or video (ivtv)
+node to stream the audio. These are legacy exceptions to the rule.
+
+FM Transmitter Profile
+======================
+
+FM transmitter devices have a transmitter and modulator. The audio is
+transferred using ALSA or a line-in connector.
+
+It implements VIDIOC_G/S_MODULATOR, VIDIOC_G/S_FREQUENCY and VIDIOC_ENUM_FREQ_BANDS.
+
+It does *not* implement VIDIOC_ENUM/G/S_OUTPUT or VIDIOC_ENUM/G/S_AUDOUT.
+
+If RDS_BLOCK_IO is supported, then write() and poll() are implemented
+as well.
+
+On driver load the frequency must be initialized to a valid frequency.
