@@ -1,31 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm10.bullet.mail.ird.yahoo.com ([77.238.189.39]:45653 "HELO
-	nm10.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751931Ab2HNXji convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 19:39:38 -0400
-Message-ID: <1344987576.21425.YahooMailClassic@web29406.mail.ird.yahoo.com>
-Date: Wed, 15 Aug 2012 00:39:36 +0100 (BST)
-From: Hin-Tak Leung <htl10@users.sourceforge.net>
-Reply-To: htl10@users.sourceforge.net
-Subject: small regression in mediatree/for_v3.7-3 - media_build
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
+Received: from moutng.kundenserver.de ([212.227.17.9]:58310 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753051Ab2HVS5m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Aug 2012 14:57:42 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [PATCH] media/radio/shark2: Fix build error caused by missing dependencies
+Date: Wed, 22 Aug 2012 18:57:01 +0000
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-kernel@vger.kernel.org
+References: <1345648585-5176-1-git-send-email-linux@roeck-us.net> <5034F932.4000405@redhat.com> <20120822152922.GA6177@roeck-us.net>
+In-Reply-To: <20120822152922.GA6177@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201208221857.01527.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There seems to be a small regression on mediatree/for_v3.7-3
-- dmesg/klog get flooded with these:
+On Wednesday 22 August 2012, Guenter Roeck wrote:
+> On Wed, Aug 22, 2012 at 05:22:26PM +0200, Hans de Goede wrote:
+> > Hi,
+> > 
+> > I've a better fix for this here:
+> > http://git.linuxtv.org/hgoede/gspca.git/shortlog/refs/heads/media-for_v3.6
+> > 
+> > I already send a pull-req for this to Mauro a while ago, Mauro?
+> > 
+> Looks like it found its way into mainline in the last couple of days.
+> Should have updated my tree first. Sorry for the noise.
+> 
 
-[201145.140260] dvb_frontend_poll: 15 callbacks suppressed
-[201145.586405] usb_urb_complete: 88 callbacks suppressed
-[201150.587308] usb_urb_complete: 3456 callbacks suppressed
+I found another issue with the shark driver while doing randconfig tests.
+Here is my semi-automated log file for the problem. Has this also made
+it in already?
 
-[201468.630197] usb_urb_complete: 3315 callbacks suppressed
-[201473.632978] usb_urb_complete: 3529 callbacks suppressed
-[201478.635400] usb_urb_complete: 3574 callbacks suppressed
+	Arnd
 
-It seems to be every 5 seconds, but I think that's just klog skipping repeats and collapsing duplicate entries. This does not happen the last time I tried playing with the TV stick :-).
+---
+Without this patch, building rand-0y2jSKT results in:
+
+WARNING: drivers/usb/musb/musb_hdrc.o(.devinit.text+0x9b8): Section mismatch in reference from the function musb_init_controller() to the function .init.text:dma_controller_create()
+The function __devinit musb_init_controller() references
+a function __init dma_controller_create().
+If dma_controller_create is only used by musb_init_controller then
+annotate dma_controller_create with a matching annotation.
+
+ERROR: "snd_tea575x_init" [drivers/media/radio/radio-shark.ko] undefined!
+ERROR: "snd_tea575x_exit" [drivers/media/radio/radio-shark.ko] undefined!
+make[2]: *** [__modpost] Error 1
+make[1]: *** [modules] Error 2
+make: *** [sub-make] Error 2
+
+---
+ sound/pci/Kconfig |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/sound/pci/Kconfig b/sound/pci/Kconfig
+index ff3af6e..f99fa25 100644
+--- a/sound/pci/Kconfig
++++ b/sound/pci/Kconfig
+@@ -2,8 +2,8 @@
+ 
+ config SND_TEA575X
+ 	tristate
+-	depends on SND_FM801_TEA575X_BOOL || SND_ES1968_RADIO || RADIO_SF16FMR2 || RADIO_MAXIRADIO
+-	default SND_FM801 || SND_ES1968 || RADIO_SF16FMR2 || RADIO_MAXIRADIO
++	depends on SND_FM801_TEA575X_BOOL || SND_ES1968_RADIO || RADIO_SF16FMR2 || RADIO_MAXIRADIO || RADIO_SHARK
++	default SND_FM801 || SND_ES1968 || RADIO_SF16FMR2 || RADIO_MAXIRADIO || RADIO_SHARK
+ 
+ menuconfig SND_PCI
+ 	bool "PCI sound devices"
+-- 
+1.7.10
+
