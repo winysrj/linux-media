@@ -1,106 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1266 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752610Ab2HNLL6 (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:47392 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933315Ab2HVVAk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 07:11:58 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [Workshop-2011] RFC: V4L2 API ambiguities
-Date: Tue, 14 Aug 2012 13:11:49 +0200
-Cc: workshop-2011@linuxtv.org,
-	"linux-media" <linux-media@vger.kernel.org>
-References: <201208131427.56961.hverkuil@xs4all.nl> <201208141254.34095.hverkuil@xs4all.nl> <2777231.LqxP1P2FHv@avalon>
-In-Reply-To: <2777231.LqxP1P2FHv@avalon>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201208141311.49268.hverkuil@xs4all.nl>
+	Wed, 22 Aug 2012 17:00:40 -0400
+Received: by weyx8 with SMTP id x8so18499wey.19
+        for <linux-media@vger.kernel.org>; Wed, 22 Aug 2012 14:00:39 -0700 (PDT)
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH] m2m-deinterlace: Add V4L2_CAP_VIDEO_M2M capability flag
+Date: Wed, 22 Aug 2012 23:00:20 +0200
+Message-Id: <1345669220-21052-2-git-send-email-sylvester.nawrocki@gmail.com>
+In-Reply-To: <1345669220-21052-1-git-send-email-sylvester.nawrocki@gmail.com>
+References: <1345669220-21052-1-git-send-email-sylvester.nawrocki@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue August 14 2012 13:06:46 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Tuesday 14 August 2012 12:54:34 Hans Verkuil wrote:
-> > On Tue August 14 2012 01:54:16 Laurent Pinchart wrote:
-> > > On Monday 13 August 2012 14:27:56 Hans Verkuil wrote:
-> > > > Hi all!
-> > > > 
-> > > > As part of the 2012 Kernel Summit V4L2 workshop I will be discussing a
-> > > > bunch of V4L2 ambiguities/improvements.
-> > > > 
-> > > > I've made a list of all the V4L2 issues and put them in two categories:
-> > > > issues that I think are easy to resolve (within a few minutes at most),
-> > > > and those that are harder.
-> > > > 
-> > > > If you think I put something in the easy category that you believe is
-> > > > actually hard, then please let me know.
-> > > > 
-> > > > If you attend the workshop, then please read through this and think
-> > > > about it a bit, particularly for the second category.
-> > > > 
-> > > > If something is unclear, or you think another topic should be added,
-> > > > then let me know as well.
-> > > 
-> > > > Easy:
-> > > [snip]
-> > > 
-> > > > 4) What should a driver return in TRY_FMT/S_FMT if the requested format
-> > > > is not supported (possible behaviours include returning the currently
-> > > > selected format or a default format).
-> > > > 
-> > > > The spec says this: "Drivers should not return an error code unless
-> > > > the input is ambiguous", but it does not explain what constitutes an
-> > > > ambiguous input. Frankly, I can't think of any and in my opinion
-> > > > TRY/S_FMT should never return an error other than EINVAL (if the buffer
-> > > > type is unsupported)or EBUSY (for S_FMT if streaming is in progress).
-> > > > 
-> > > > Returning an error for any other reason doesn't help the application
-> > > > since the app will have no way of knowing what to do next.
-> > > 
-> > > That wasn't my point. Drivers should obviously not return an error. Let's
-> > > consider the case of a driver supporting YUYV and MJPEG. If the user calls
-> > > TRY_FMT or S_FMT with the pixel format set to RGB565, should the driver
-> > > return a hardcoded default format (one of YUYV or MJPEG), or the
-> > > currently selected format ? In other words, should the pixel format
-> > > returned by TRY_FMT or S_FMT when the requested pixel format is not valid
-> > > be a fixed default pixel format, or should it depend on the currently
-> > > selected pixel format ?
-> > 
-> > Actually, in this case I would probably choose a YUYV format that is closest
-> > to the requested size. If a driver supports both compressed and
-> > uncompressed formats, then it should only select a compressed format if the
-> > application explicitly asked for it. Handling compressed formats is more
-> > complex than uncompressed formats, so that seems a sensible rule.
-> 
-> That wasn't my point either :-) YUYV/MJPEG was just an example. You can 
-> replace MJPEG with UYVY or NV12 above. What I want to know is whether TRY_FMT 
-> and S_FMT must, when given a non-supported format, return a fixed supported 
-> format or return a supported format that can depend on the currently selected 
-> format.
-> 
-> > The next heuristic I would apply is to choose a format that is closest to
-> > the requested size.
-> > 
-> > So I guess my guidelines would be:
-> > 
-> > 1) If the pixelformat is not supported, then choose an uncompressed format
-> > (if possible) instead.
-> > 2) Next choose a format closest to, but smaller than (if possible) the
-> > requested size.
-> > 
-> > But this would be a guideline only, and in the end it should be up to the
-> > driver. Just as long TRY/S_FMT always returns a format.
+New mem-to-mem video drivers should use V4L2_CAP_VIDEO_M2M capability, rather
+than ORed V4L2_CAP_VIDEO_CAPTURE and V4L2_CAP_VIDEO_OUTPUT flags, as outlined
+in commit a1367f1b260d29e9b9fb20d8e2f39f1e74fa6c3b.
 
-Well, the currently selected format is irrelevant. The user is obviously
-requesting something else and the driver should attempt to return something
-that is at least somewhat close to what it requested. If that's impossible,
-then falling back to some default format is a good choice.
+Cc: Javier Martin <javier.martin@vista-silicon.com>
+Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+---
+ drivers/media/platform/m2m-deinterlace.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
 
-Does that answer the question?
+diff --git a/drivers/media/platform/m2m-deinterlace.c b/drivers/media/platform/m2m-deinterlace.c
+index a38c152..5c7df67 100644
+--- a/drivers/media/platform/m2m-deinterlace.c
++++ b/drivers/media/platform/m2m-deinterlace.c
+@@ -456,8 +456,13 @@ static int vidioc_querycap(struct file *file, void *priv,
+ 	strlcpy(cap->driver, MEM2MEM_NAME, sizeof(cap->driver));
+ 	strlcpy(cap->card, MEM2MEM_NAME, sizeof(cap->card));
+ 	strlcpy(cap->bus_info, MEM2MEM_NAME, sizeof(cap->card));
+-	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT
+-			  | V4L2_CAP_STREAMING;
++	/*
++	 * This is only a mem-to-mem video device. The capture and output
++	 * device capability flags are left only for backward compatibility
++	 * and are scheduled for removal.
++	 */
++	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT |
++			   V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 
+ 	return 0;
+-- 
+1.7.4.1
 
-Regards,
-
-	Hans
