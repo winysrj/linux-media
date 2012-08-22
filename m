@@ -1,97 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.linuxtv.org ([130.149.80.248]:53139 "EHLO www.linuxtv.org"
+Received: from mta-out.inet.fi ([195.156.147.13]:49738 "EHLO jenni1.inet.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753829Ab2HXOZ6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 10:25:58 -0400
-Message-Id: <E1T4upf-0003SB-UM@www.linuxtv.org>
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Date: Thu, 16 Aug 2012 00:23:43 +0200
-Subject: [git:v4l-dvb/for_v3.7] [media] video: mx2_camera: Use clk_prepare_enable/clk_disable_unprepare
-To: linuxtv-commits@linuxtv.org
-Cc: Fabio Estevam <fabio.estevam@freescale.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Reply-to: linux-media@vger.kernel.org
+	id S1751889Ab2HVTun (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Aug 2012 15:50:43 -0400
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH 2/8] ir-rx51: Handle signals properly
+Date: Wed, 22 Aug 2012 22:50:35 +0300
+Message-Id: <1345665041-15211-3-git-send-email-timo.t.kokkonen@iki.fi>
+In-Reply-To: <1345665041-15211-1-git-send-email-timo.t.kokkonen@iki.fi>
+References: <1345665041-15211-1-git-send-email-timo.t.kokkonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an automatic generated email to let you know that the following patch were queued at the 
-http://git.linuxtv.org/media_tree.git tree:
+The lirc-dev expects the ir-code to be transmitted when the write call
+returns back to the user space. We should not leave TX ongoing no
+matter what is the reason we return to the user space. Easiest
+solution for that is to simply remove interruptible sleeps.
 
-Subject: [media] video: mx2_camera: Use clk_prepare_enable/clk_disable_unprepare
-Author:  Fabio Estevam <fabio.estevam@freescale.com>
-Date:    Fri May 25 20:14:48 2012 -0300
+The first wait_event_interruptible is thus replaced with return -EBUSY
+in case there is still ongoing transfer. This should suffice as the
+concept of sending multiple codes in parallel does not make sense.
 
-Prepare the clock before enabling it.
+The second wait_event_interruptible call is replaced with
+wait_even_timeout with a fixed and safe timeout that should prevent
+the process from getting stuck in kernel for too long.
 
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: <linux-media@vger.kernel.org>
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Also, from now on we will force the TX to stop before we return from
+write call. If the TX happened to time out for some reason, we should
+not leave the HW transmitting anything.
 
- drivers/media/video/mx2_camera.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
-
+Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
 ---
+ drivers/media/rc/ir-rx51.c | 39 ++++++++++++++++++++++++++++-----------
+ 1 file changed, 28 insertions(+), 11 deletions(-)
 
-http://git.linuxtv.org/media_tree.git?a=commitdiff;h=f8afbf3caa991655e989ecd10c135162d84288b2
-
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index 637bde8..2c3ec94 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -407,7 +407,7 @@ static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
+diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+index 9487dd3..a7b787a 100644
+--- a/drivers/media/rc/ir-rx51.c
++++ b/drivers/media/rc/ir-rx51.c
+@@ -74,6 +74,19 @@ static void lirc_rx51_off(struct lirc_rx51 *lirc_rx51)
+ 			      OMAP_TIMER_TRIGGER_NONE);
+ }
+ 
++static void lirc_rx51_stop_tx(struct lirc_rx51 *lirc_rx51)
++{
++	if (lirc_rx51->wbuf_index < 0)
++		return;
++
++	lirc_rx51_off(lirc_rx51);
++	lirc_rx51->wbuf_index = -1;
++	omap_dm_timer_stop(lirc_rx51->pwm_timer);
++	omap_dm_timer_stop(lirc_rx51->pulse_timer);
++	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
++	wake_up_interruptible(&lirc_rx51->wqueue);
++}
++
+ static int init_timing_params(struct lirc_rx51 *lirc_rx51)
  {
- 	unsigned long flags;
+ 	u32 load, match;
+@@ -160,13 +173,7 @@ static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
  
--	clk_disable(pcdev->clk_csi);
-+	clk_disable_unprepare(pcdev->clk_csi);
- 	writel(0, pcdev->base_csi + CSICR1);
- 	if (cpu_is_mx27()) {
- 		writel(0, pcdev->base_emma + PRP_CNTL);
-@@ -435,7 +435,7 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
- 	if (pcdev->icd)
- 		return -EBUSY;
+ 	return IRQ_HANDLED;
+ end:
+-	/* Stop TX here */
+-	lirc_rx51_off(lirc_rx51);
+-	lirc_rx51->wbuf_index = -1;
+-	omap_dm_timer_stop(lirc_rx51->pwm_timer);
+-	omap_dm_timer_stop(lirc_rx51->pulse_timer);
+-	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
+-	wake_up_interruptible(&lirc_rx51->wqueue);
++	lirc_rx51_stop_tx(lirc_rx51);
  
--	ret = clk_enable(pcdev->clk_csi);
-+	ret = clk_prepare_enable(pcdev->clk_csi);
- 	if (ret < 0)
- 		return ret;
+ 	return IRQ_HANDLED;
+ }
+@@ -246,8 +253,9 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+ 	if ((count > WBUF_LEN) || (count % 2 == 0))
+ 		return -EINVAL;
  
-@@ -1639,7 +1639,7 @@ static int __devinit mx27_camera_emma_init(struct mx2_camera_dev *pcdev)
- 		goto exit_free_irq;
- 	}
+-	/* Wait any pending transfers to finish */
+-	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
++	/* We can have only one transmit at a time */
++	if (lirc_rx51->wbuf_index >= 0)
++		return -EBUSY;
  
--	clk_enable(pcdev->clk_emma);
-+	clk_prepare_enable(pcdev->clk_emma);
+ 	if (copy_from_user(lirc_rx51->wbuf, buf, n))
+ 		return -EFAULT;
+@@ -273,9 +281,18 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
  
- 	err = mx27_camera_emma_prp_reset(pcdev);
- 	if (err)
-@@ -1648,7 +1648,7 @@ static int __devinit mx27_camera_emma_init(struct mx2_camera_dev *pcdev)
- 	return err;
+ 	/*
+ 	 * Don't return back to the userspace until the transfer has
+-	 * finished
++	 * finished. However, we wish to not spend any more than 500ms
++	 * in kernel. No IR code TX should ever take that long.
++	 */
++	i = wait_event_timeout(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0,
++			HZ / 2);
++
++	/*
++	 * Ensure transmitting has really stopped, even if the timers
++	 * went mad or something else happened that caused it still
++	 * sending out something.
+ 	 */
+-	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
++	lirc_rx51_stop_tx(lirc_rx51);
  
- exit_clk_emma_put:
--	clk_disable(pcdev->clk_emma);
-+	clk_disable_unprepare(pcdev->clk_emma);
- 	clk_put(pcdev->clk_emma);
- exit_free_irq:
- 	free_irq(pcdev->irq_emma, pcdev);
-@@ -1785,7 +1785,7 @@ exit_free_emma:
- eallocctx:
- 	if (cpu_is_mx27()) {
- 		free_irq(pcdev->irq_emma, pcdev);
--		clk_disable(pcdev->clk_emma);
-+		clk_disable_unprepare(pcdev->clk_emma);
- 		clk_put(pcdev->clk_emma);
- 		iounmap(pcdev->base_emma);
- 		release_mem_region(pcdev->res_emma->start, resource_size(pcdev->res_emma));
-@@ -1825,7 +1825,7 @@ static int __devexit mx2_camera_remove(struct platform_device *pdev)
- 	iounmap(pcdev->base_csi);
- 
- 	if (cpu_is_mx27()) {
--		clk_disable(pcdev->clk_emma);
-+		clk_disable_unprepare(pcdev->clk_emma);
- 		clk_put(pcdev->clk_emma);
- 		iounmap(pcdev->base_emma);
- 		res = pcdev->res_emma;
+ 	/* We can sleep again */
+ 	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, -1);
+-- 
+1.7.12
+
