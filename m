@@ -1,63 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:49340 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759794Ab2HXQSL (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1176 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754362Ab2HVK4s (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 12:18:11 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@linaro.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 10/12] media: coda: fix sizeimage setting in try_fmt
-Date: Fri, 24 Aug 2012 18:17:56 +0200
-Message-Id: <1345825078-3688-11-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1345825078-3688-1-git-send-email-p.zabel@pengutronix.de>
-References: <1345825078-3688-1-git-send-email-p.zabel@pengutronix.de>
+	Wed, 22 Aug 2012 06:56:48 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCHv8 13/26] v4l: vivi: support for dmabuf importing
+Date: Wed, 22 Aug 2012 12:56:30 +0200
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
+	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
+	robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
+	subashrp@gmail.com, mchehab@redhat.com, g.liakhovetski@gmx.de,
+	dmitriyz@google.com, s.nawrocki@samsung.com, k.debski@samsung.com
+References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com> <1344958496-9373-14-git-send-email-t.stanislaws@samsung.com>
+In-Reply-To: <1344958496-9373-14-git-send-email-t.stanislaws@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201208221256.30179.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VIDIOC_TRY_FMT would incorrectly return bytesperline * height,
-instead of width * height * 3 / 2.
+On Tue August 14 2012 17:34:43 Tomasz Stanislawski wrote:
+> This patch enhances VIVI driver with a support for importing a buffer
+> from DMABUF file descriptors.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/video/coda.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+Thanks for adding DMABUF support to vivi.
 
-diff --git a/drivers/media/video/coda.c b/drivers/media/video/coda.c
-index afd1243..b709667 100644
---- a/drivers/media/video/coda.c
-+++ b/drivers/media/video/coda.c
-@@ -415,8 +415,8 @@ static int vidioc_try_fmt(struct coda_dev *dev, struct v4l2_format *f)
- 				      W_ALIGN, &f->fmt.pix.height,
- 				      MIN_H, MAX_H, H_ALIGN, S_ALIGN);
- 		f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 2);
--		f->fmt.pix.sizeimage = f->fmt.pix.height *
--					f->fmt.pix.bytesperline;
-+		f->fmt.pix.sizeimage = f->fmt.pix.width *
-+					f->fmt.pix.height * 3 / 2;
- 	} else { /*encoded formats h.264/mpeg4 */
- 		f->fmt.pix.bytesperline = 0;
- 		f->fmt.pix.sizeimage = CODA_MAX_FRAME_SIZE;
-@@ -500,11 +500,7 @@ static int vidioc_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f)
- 	q_data->fmt = find_format(ctx->dev, f);
- 	q_data->width = f->fmt.pix.width;
- 	q_data->height = f->fmt.pix.height;
--	if (q_data->fmt->fourcc == V4L2_PIX_FMT_YUV420) {
--		q_data->sizeimage = q_data->width * q_data->height * 3 / 2;
--	} else { /* encoded format h.264/mpeg-4 */
--		q_data->sizeimage = CODA_MAX_FRAME_SIZE;
--	}
-+	q_data->sizeimage = f->fmt.pix.sizeimage;
- 
- 	v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
- 		"Setting format for type %d, wxh: %dx%d, fmt: %d\n",
--- 
-1.7.10.4
+What would be great is if DMABUF support is also added to mem2mem_testdev.
+It would make an excellent test case to take the vivi output, pass it
+through mem2mem_testdev, and finally output the image using the gpu, all
+using dmabuf.
 
+It's also very useful for application developers to test dmabuf support
+without requiring special hardware (other than a dmabuf-enabled gpu
+driver).
+
+Regards,
+
+	Hans
+
+> 
+> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  drivers/media/video/Kconfig |    1 +
+>  drivers/media/video/vivi.c  |    2 +-
+>  2 files changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+> index 966954d..8fa81be 100644
+> --- a/drivers/media/video/Kconfig
+> +++ b/drivers/media/video/Kconfig
+> @@ -653,6 +653,7 @@ config VIDEO_VIVI
+>  	depends on FRAMEBUFFER_CONSOLE || STI_CONSOLE
+>  	select FONT_8x16
+>  	select VIDEOBUF2_VMALLOC
+> +	select DMA_SHARED_BUFFER
+>  	default n
+>  	---help---
+>  	  Enables a virtual video driver. This device shows a color bar
+> diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
+> index a6351c4..37d8fd4 100644
+> --- a/drivers/media/video/vivi.c
+> +++ b/drivers/media/video/vivi.c
+> @@ -1308,7 +1308,7 @@ static int __init vivi_create_instance(int inst)
+>  	q = &dev->vb_vidq;
+>  	memset(q, 0, sizeof(dev->vb_vidq));
+>  	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> -	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
+> +	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
+>  	q->drv_priv = dev;
+>  	q->buf_struct_size = sizeof(struct vivi_buffer);
+>  	q->ops = &vivi_video_qops;
+> 
