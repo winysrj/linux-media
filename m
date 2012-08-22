@@ -1,47 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:33814 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750775Ab2HYR3y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Aug 2012 13:29:54 -0400
-Date: Sat, 25 Aug 2012 11:30:21 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH 9/9] videobuf2-core: Change vb2_queue_init return type
- to void
-Message-ID: <20120825113021.690440ba@lwn.net>
-In-Reply-To: <CALF0-+VEGKL6zqFcqkw__qxuy+_3aDa-0u4xD63+Mc4FioM+aw@mail.gmail.com>
-References: <1345864146-2207-1-git-send-email-elezegarcia@gmail.com>
-	<1345864146-2207-9-git-send-email-elezegarcia@gmail.com>
-	<20120825092814.4eee46f0@lwn.net>
-	<CALF0-+VEGKL6zqFcqkw__qxuy+_3aDa-0u4xD63+Mc4FioM+aw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from mail.active-venture.com ([67.228.131.205]:49982 "EHLO
+	mail.active-venture.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757362Ab2HVPQh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Aug 2012 11:16:37 -0400
+From: Guenter Roeck <linux@roeck-us.net>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
+Subject: [PATCH] media/radio/shark2: Fix build error caused by missing dependencies
+Date: Wed, 22 Aug 2012 08:16:25 -0700
+Message-Id: <1345648585-5176-1-git-send-email-linux@roeck-us.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 25 Aug 2012 13:12:01 -0300
-Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+Fix build error:
 
-> The mentioned BUG_ON() are these:
-> 
-> void vb2_queue_init(struct vb2_queue *q)
-> {
->         BUG_ON(!q);
->         BUG_ON(!q->ops);
->         BUG_ON(!q->mem_ops);
->         BUG_ON(!q->type);
->         BUG_ON(!q->io_modes);
-> [...]
-> 
-> Unless I'm overlooking something they look fine to me,
-> since vb2_queue should always be prepared  by the driver.
+ERROR: "led_classdev_register" [drivers/media/radio/shark2.ko] undefined!
+ERROR: "led_classdev_unregister" [drivers/media/radio/shark2.ko] undefined!
 
-http://permalink.gmane.org/gmane.linux.kernel/1347333 is, I believe, the
-definitive word on this kind of use of BUG_ON()...
+which is seen if RADIO_SHARK2 is enabled, but LEDS_CLASS is not.
 
-jon
+Since RADIO_SHARK2 depends on NEW_LEDS and LEDS_CLASS, select both if
+it is enabled.
+
+Cc: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/media/radio/Kconfig |    2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+index 8090b87..bee4bee 100644
+--- a/drivers/media/radio/Kconfig
++++ b/drivers/media/radio/Kconfig
+@@ -77,6 +77,8 @@ config RADIO_SHARK
+ config RADIO_SHARK2
+ 	tristate "Griffin radioSHARK2 USB radio receiver"
+ 	depends on USB
++	select NEW_LEDS
++	select LEDS_CLASS
+ 	---help---
+ 	  Choose Y here if you have this radio receiver.
+ 
+-- 
+1.7.9.7
+
