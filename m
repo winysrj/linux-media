@@ -1,59 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:48563 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752903Ab2HUIfn (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:36090 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758882Ab2HWNJQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Aug 2012 04:35:43 -0400
-Received: by wicr5 with SMTP id r5so4439819wic.1
-        for <linux-media@vger.kernel.org>; Tue, 21 Aug 2012 01:35:41 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1345531662-16990-1-git-send-email-richard.zhao@freescale.com>
-References: <1345531662-16990-1-git-send-email-richard.zhao@freescale.com>
-Date: Tue, 21 Aug 2012 10:35:41 +0200
-Message-ID: <CACKLOr37yU-Lsbh+gKuzUG44a9s8s-ur5Fw74Tay=R8fDRBfGg@mail.gmail.com>
-Subject: Re: [PATCH] media: coda: remove duplicated call of fh_to_ctx in vidioc_s_fmt_vid_out
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Richard Zhao <richard.zhao@freescale.com>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	s.nawrocki@samsung.com, p.zabel@pengutronix.de,
-	hans.verkuil@cisco.com, nfleischmann@de.adit-jv.com
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 23 Aug 2012 09:09:16 -0400
+Received: by mail-yw0-f46.google.com with SMTP id m54so166064yhm.19
+        for <linux-media@vger.kernel.org>; Thu, 23 Aug 2012 06:09:16 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	<linux-media@vger.kernel.org>
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Subject: [PATCH 09/10] s5p-jpeg: Remove unneeded struct vb2_queue clear on queue_init()
+Date: Thu, 23 Aug 2012 10:08:30 -0300
+Message-Id: <1345727311-27478-9-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1345727311-27478-1-git-send-email-elezegarcia@gmail.com>
+References: <1345727311-27478-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 21 August 2012 08:47, Richard Zhao <richard.zhao@freescale.com> wrote:
-> Signed-off-by: Richard Zhao <richard.zhao@freescale.com>
-> ---
->  drivers/media/platform/coda.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-> index 6908514..69ff0d3 100644
-> --- a/drivers/media/platform/coda.c
-> +++ b/drivers/media/platform/coda.c
-> @@ -501,7 +501,7 @@ static int vidioc_s_fmt_vid_out(struct file *file, void *priv,
->         if (ret)
->                 return ret;
->
-> -       ret = vidioc_s_fmt(fh_to_ctx(priv), f);
-> +       ret = vidioc_s_fmt(ctx, f);
->         if (ret)
->                 ctx->colorspace = f->fmt.pix.colorspace;
->
-> --
-> 1.7.9.5
->
->
+queue_init() is always called by v4l2_m2m_ctx_init(), which allocates
+a context struct v4l2_m2m_ctx with kzalloc.
+Therefore, there is no need to clear vb2_queue src/dst structs.
 
-Good catch.
+Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-Acked-by: Javier Martin <javier.martin@vista-silicon.com>
-
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 72c3e52..90459cef 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -1223,7 +1223,6 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	struct s5p_jpeg_ctx *ctx = priv;
+ 	int ret;
+ 
+-	memset(src_vq, 0, sizeof(*src_vq));
+ 	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+ 	src_vq->io_modes = VB2_MMAP | VB2_USERPTR;
+ 	src_vq->drv_priv = ctx;
+@@ -1235,7 +1234,6 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	if (ret)
+ 		return ret;
+ 
+-	memset(dst_vq, 0, sizeof(*dst_vq));
+ 	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 	dst_vq->io_modes = VB2_MMAP | VB2_USERPTR;
+ 	dst_vq->drv_priv = ctx;
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+1.7.8.6
+
