@@ -1,49 +1,22 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out.inet.fi ([195.156.147.13]:49743 "EHLO jenni1.inet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752184Ab2HVTuo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Aug 2012 15:50:44 -0400
-From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH 5/8] ir-rx51: Move platform data checking into probe function
-Date: Wed, 22 Aug 2012 22:50:38 +0300
-Message-Id: <1345665041-15211-6-git-send-email-timo.t.kokkonen@iki.fi>
-In-Reply-To: <1345665041-15211-1-git-send-email-timo.t.kokkonen@iki.fi>
-References: <1345665041-15211-1-git-send-email-timo.t.kokkonen@iki.fi>
+Received: from corrreo.puertomontt.cl ([200.55.198.147]:59896 "HELO
+	prx-correopmontt.puertomontt.cl" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with SMTP id S1753972Ab2HWKU4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Aug 2012 06:20:56 -0400
+From: "Raymond CH IEN Kuo Fung" <raykuofung@gci.net>
+Reply-To: kuofungr.r@w.cn
+Subject: Please I Need Your Maximum Co-operation&#8207;
+Date: Thu, 23 Aug 2012 06:25:56 -0300
+Message-Id: <20120823082959.M8241@puertomontt.cl>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset=iso-8859-1
+To: undisclosed-recipients:;
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver is useless without proper platform data. If data is not
-available, we should not register the driver at all. Once this check
-is done, the BUG_ON check during device open is no longer needed.
-
-Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
----
- drivers/media/rc/ir-rx51.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-index 3d2911b..46628c0 100644
---- a/drivers/media/rc/ir-rx51.c
-+++ b/drivers/media/rc/ir-rx51.c
-@@ -378,7 +378,6 @@ static long lirc_rx51_ioctl(struct file *filep,
- static int lirc_rx51_open(struct inode *inode, struct file *file)
- {
- 	struct lirc_rx51 *lirc_rx51 = lirc_get_pdata(file);
--	BUG_ON(!lirc_rx51);
- 
- 	file->private_data = lirc_rx51;
- 
-@@ -458,6 +457,9 @@ static int lirc_rx51_resume(struct platform_device *dev)
- 
- static int __devinit lirc_rx51_probe(struct platform_device *dev)
- {
-+	if (!dev->dev.platform_data)
-+		return -ENODEV;
-+
- 	lirc_rx51_driver.features = LIRC_RX51_DRIVER_FEATURES;
- 	lirc_rx51.pdata = dev->dev.platform_data;
- 	lirc_rx51.pwm_timer_num = lirc_rx51.pdata->pwm_timer;
--- 
-1.7.12
-
+Dear Friend. I have a business deal worth four million eight hundred and fifty 
+thousand dollars. I need you Maximum Co-operation to execute this deal. Note 
+that % ratio will be 60% for me, 40% for you. If you are interested, get back 
+to me as soon as you receive this email.
