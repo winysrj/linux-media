@@ -1,71 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2191 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752412Ab2HAGmI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2012 02:42:08 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Federico Vaga <federico.vaga@gmail.com>
-Subject: Re: Update VIP to videobuf2 and control framework
-Date: Wed, 1 Aug 2012 08:41:56 +0200
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Jonathan Corbet <corbet@lwn.net>
-References: <1343765829-6006-1-git-send-email-federico.vaga@gmail.com>
-In-Reply-To: <1343765829-6006-1-git-send-email-federico.vaga@gmail.com>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:40668 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754017Ab2HWGTn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Aug 2012 02:19:43 -0400
+Received: by wgbdr13 with SMTP id dr13so331805wgb.1
+        for <linux-media@vger.kernel.org>; Wed, 22 Aug 2012 23:19:42 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201208010841.56941.hverkuil@xs4all.nl>
+In-Reply-To: <1345669220-21052-1-git-send-email-sylvester.nawrocki@gmail.com>
+References: <1345669220-21052-1-git-send-email-sylvester.nawrocki@gmail.com>
+Date: Thu, 23 Aug 2012 08:19:41 +0200
+Message-ID: <CACKLOr3BVJS_iB-y-5PNxCZD+xeNPUw5XzwN8rTgMaa8wWjVww@mail.gmail.com>
+Subject: Re: [PATCH] coda: Add V4L2_CAP_VIDEO_M2M capability flag
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue July 31 2012 22:17:06 Federico Vaga wrote:
-> As suggested I moved the Video Buffer Input (VIP) of the STA2X11 board to the
-> videobuf2. This patch series is an RFC.
+On 22 August 2012 23:00, Sylwester Nawrocki
+<sylvester.nawrocki@gmail.com> wrote:
+> New mem-to-mem video drivers should use V4L2_CAP_VIDEO_M2M capability, rather
+> than ORed V4L2_CAP_VIDEO_CAPTURE and V4L2_CAP_VIDEO_OUTPUT flags, as outlined
+> in commit a1367f1b260d29e9b9fb20d8e2f39f1e74fa6c3b.
+>
+> Cc: Javier Martin <javier.martin@vista-silicon.com>
+> Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+> ---
+>  drivers/media/platform/coda.c |    9 +++++++--
+>  1 files changed, 7 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+> index 0d6e0a0..e74705c 100644
+> --- a/drivers/media/platform/coda.c
+> +++ b/drivers/media/platform/coda.c
+> @@ -287,8 +287,13 @@ static int vidioc_querycap(struct file *file, void *priv,
+>         strlcpy(cap->driver, CODA_NAME, sizeof(cap->driver));
+>         strlcpy(cap->card, CODA_NAME, sizeof(cap->card));
+>         strlcpy(cap->bus_info, CODA_NAME, sizeof(cap->bus_info));
+> -       cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT
+> -                               | V4L2_CAP_STREAMING;
+> +       /*
+> +        * This is only a mem-to-mem video device. The capture and output
+> +        * device capability flags are left only for backward compatibility
+> +        * and are scheduled for removal.
+> +        */
+> +       cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT |
+> +                          V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
+>         cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+>
+>         return 0;
+> --
+> 1.7.4.1
+>
 
-Thank you very much for working on this! Much appreciated!
+Acked-by: Javier Martin <javier.martin@vista-silicon.com>
 
-> The first patch is just an update to the adv7180 because the VIP (the only
-> user) now use the control framework so query{g_|s_|ctrl} are not necessery.
-
-For this patch:
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-> The second patch adds a new memory allocator for the videobuf2. I name it
-> videobuf2-dma-streaming but I think "streaming" is not the best choice, so
-> suggestions are welcome. My inspiration for this buffer come from
-> videobuf-dma-contig (cached) version. After I made this buffer I found the
-> videobuf2-dma-nc made by Jonathan Corbet and I improve the allocator with
-> some suggestions (http://patchwork.linuxtv.org/patch/7441/). The VIP doesn't
-> work with videobu2-dma-contig and I think this solution is easier the sg.
-
-I leave this to the vb2 experts. It's not obvious to me why we would need
-a fourth memory allocator.
-
-> The third patch updates the VIP to videobuf2 and control framework. I made also
-> some restyling to the driver and change some mechanism so I take the ownership
-> of the driver and I add the copyright of ST Microelectronics. Some trivial
-> code is unchanged. The patch probably needs some extra update.
-> I add the control framework to the VIP but without any control. I add it to 
-> inherit controls from adv7180.
-
-Did you run the latest v4l2-compliance tool from the v4l-utils.git repository
-over your driver? I'm sure you didn't since VIP is missing support for control
-events and v4l2-compliance would certainly complain about that.
-
-Always check with v4l2-compliance whenever you make changes! It's continuously
-improved as well, so a periodic check wouldn't hurt.
-
-Also take a look at the new vb2 helper functions in media/videobuf2-core.h:
-it is likely that you can use those to simplify your driver. They are used in
-e.g. vivi, so take a look there.
-
-Regards,
-
-	Hans
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
