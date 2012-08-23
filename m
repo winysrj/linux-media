@@ -1,72 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:62716 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753033Ab2HNPhC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 11:37:02 -0400
-Received: from epcpsbgm1.samsung.com (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M8R003Y94PHBPE0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:37:01 +0900 (KST)
-Received: from mcdsrvbld02.digital.local ([106.116.37.23])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M8R004J44MBC810@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:37:01 +0900 (KST)
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de, dmitriyz@google.com,
-	s.nawrocki@samsung.com, k.debski@samsung.com
-Subject: [PATCHv8 14/26] v4l: s5p-tv: mixer: support for dmabuf importing
-Date: Tue, 14 Aug 2012 17:34:44 +0200
-Message-id: <1344958496-9373-15-git-send-email-t.stanislaws@samsung.com>
-In-reply-to: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
-References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
+Received: from pequod.mess.org ([93.97.41.153]:41194 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755136Ab2HWVS2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Aug 2012 17:18:28 -0400
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
+Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
+Subject: [PATCH] [media] rc: fix buffer overrun
+Date: Thu, 23 Aug 2012 22:18:25 +0100
+Message-Id: <1345756705-17576-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch enhances s5p-tv with support for DMABUF importing via
-V4L2_MEMORY_DMABUF memory type.
+"[media] rc-core: move timeout and checks to lirc" introduced a buffer
+overrun by passing the number of bytes, rather than the number of samples,
+to the transmit function.
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- drivers/media/video/s5p-tv/Kconfig       |    1 +
- drivers/media/video/s5p-tv/mixer_video.c |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/rc/ir-lirc-codec.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/video/s5p-tv/Kconfig b/drivers/media/video/s5p-tv/Kconfig
-index f248b28..2e80126 100644
---- a/drivers/media/video/s5p-tv/Kconfig
-+++ b/drivers/media/video/s5p-tv/Kconfig
-@@ -10,6 +10,7 @@ config VIDEO_SAMSUNG_S5P_TV
- 	bool "Samsung TV driver for S5P platform (experimental)"
- 	depends on PLAT_S5P && PM_RUNTIME
- 	depends on EXPERIMENTAL
-+	select DMA_SHARED_BUFFER
- 	default n
- 	---help---
- 	  Say Y here to enable selecting the TV output devices for
-diff --git a/drivers/media/video/s5p-tv/mixer_video.c b/drivers/media/video/s5p-tv/mixer_video.c
-index e0e02cc..da5b7a5 100644
---- a/drivers/media/video/s5p-tv/mixer_video.c
-+++ b/drivers/media/video/s5p-tv/mixer_video.c
-@@ -1091,7 +1091,7 @@ struct mxr_layer *mxr_base_layer_create(struct mxr_device *mdev,
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index 6ad4a07..569124b 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -140,7 +140,7 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 		goto out;
+ 	}
  
- 	layer->vb_queue = (struct vb2_queue) {
- 		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
--		.io_modes = VB2_MMAP | VB2_USERPTR,
-+		.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF,
- 		.drv_priv = layer,
- 		.buf_struct_size = sizeof(struct mxr_buffer),
- 		.ops = &mxr_video_qops,
+-	ret = dev->tx_ir(dev, txbuf, (u32)n);
++	ret = dev->tx_ir(dev, txbuf, count);
+ 	if (ret < 0)
+ 		goto out;
+ 
 -- 
-1.7.9.5
+1.7.11.4
 
