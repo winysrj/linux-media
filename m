@@ -1,41 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:38838 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752218Ab2HNHDt (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:47914 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751635Ab2HWNJE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 03:03:49 -0400
-Date: Tue, 14 Aug 2012 10:03:35 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Thu, 23 Aug 2012 09:09:04 -0400
+Received: by yenl14 with SMTP id l14so168915yen.19
+        for <linux-media@vger.kernel.org>; Thu, 23 Aug 2012 06:09:04 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	<linux-media@vger.kernel.org>
 Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch] [media] stk1160: remove unneeded check
-Message-ID: <20120814070335.GE4791@elgon.mountain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH 05/10] coda: Remove unneeded struct vb2_queue clear on queue_init()
+Date: Thu, 23 Aug 2012 10:08:26 -0300
+Message-Id: <1345727311-27478-5-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1345727311-27478-1-git-send-email-elezegarcia@gmail.com>
+References: <1345727311-27478-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-"card" is a valid pointer here because we checked snd_card_create() for
-error returns.  Checking after a dereference makes the static checkers
-complain.
+queue_init() is always called by v4l2_m2m_ctx_init(), which allocates
+a context struct v4l2_m2m_ctx with kzalloc.
+Therefore, there is no need to clear vb2_queue src/dst structs.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Javier Martin <javier.martin@vista-silicon.com>
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
 ---
-Only needed on linux-next.
+ drivers/media/platform/coda.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/video/stk1160/stk1160-ac97.c b/drivers/media/video/stk1160/stk1160-ac97.c
-index 8d325f5..c8583c2 100644
---- a/drivers/media/video/stk1160/stk1160-ac97.c
-+++ b/drivers/media/video/stk1160/stk1160-ac97.c
-@@ -133,8 +133,7 @@ int stk1160_ac97_register(struct stk1160 *dev)
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 6908514..3ea822f 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -1249,7 +1249,6 @@ static int coda_queue_init(void *priv, struct vb2_queue *src_vq,
+ 	struct coda_ctx *ctx = priv;
+ 	int ret;
  
- err:
- 	dev->snd_card = NULL;
--	if (card)
--		snd_card_free(card);
-+	snd_card_free(card);
- 	return rc;
- }
+-	memset(src_vq, 0, sizeof(*src_vq));
+ 	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+ 	src_vq->io_modes = VB2_MMAP;
+ 	src_vq->drv_priv = ctx;
+@@ -1261,7 +1260,6 @@ static int coda_queue_init(void *priv, struct vb2_queue *src_vq,
+ 	if (ret)
+ 		return ret;
  
+-	memset(dst_vq, 0, sizeof(*dst_vq));
+ 	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 	dst_vq->io_modes = VB2_MMAP;
+ 	dst_vq->drv_priv = ctx;
+-- 
+1.7.8.6
+
