@@ -1,104 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out5-smtp.messagingengine.com ([66.111.4.29]:48514 "EHLO
-	out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754105Ab2HPQTL (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:37852 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753395Ab2HWLNC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Aug 2012 12:19:11 -0400
-Date: Thu, 16 Aug 2012 09:19:09 -0700
-From: Greg KH <greg@kroah.com>
-To: Sean Young <sean@mess.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	Alan Cox <alan@linux.intel.com>, linux-media@vger.kernel.org,
-	linux-serial@vger.kernel.org, lirc-list@lists.sourceforge.net
-Subject: Re: [PATCH] [media] winbond-cir: Fix initialization
-Message-ID: <20120816161909.GB29199@kroah.com>
-References: <1343731023-9822-1-git-send-email-sean@mess.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1343731023-9822-1-git-send-email-sean@mess.org>
+	Thu, 23 Aug 2012 07:13:02 -0400
+Subject: Re: RFC: Core + Radio profile
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mike Isely at pobox <isely@pobox.com>,
+	Mike Isely <isely@isely.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>
+Date: Thu, 23 Aug 2012 07:12:24 -0400
+In-Reply-To: <50352044.7040104@redhat.com>
+References: <201208221140.25656.hverkuil@xs4all.nl>
+	 <201208221211.47842.hverkuil@xs4all.nl> <5034E1C2.30205@redhat.com>
+	 <alpine.DEB.2.00.1208221013110.8031@cnc.isely.net>
+	 <50352044.7040104@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <1345720345.2484.11.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 31, 2012 at 11:37:03AM +0100, Sean Young wrote:
-> The serial driver will detect the winbond cir device as a serial port,
-> since it looks exactly like a serial port unless you know what it is
-> from the PNP ID.
+On Wed, 2012-08-22 at 15:09 -0300, Mauro Carvalho Chehab wrote:
+> Em 22-08-2012 12:19, Mike Isely escreveu:
+> > On Wed, 22 Aug 2012, Mauro Carvalho Chehab wrote:
+> > 
+> >> Em 22-08-2012 07:11, Hans Verkuil escreveu:
+> >>> I've added some more core profile requirements.
+> >>
+> >>>>
+> >>>> Streaming I/O is not supported by radio nodes.
+> >>
+> >> 	Hmm... pvrusb2/ivtv? Ok, it makes sense to move it to use the alsa
+> >> mpeg API there. If we're enforcing it, we should deprecate the current way
+> >> there, and make it use ALSA.
+> > 
+> > I am unaware of any ALSA MPEG API.  It's entirely likely that this is 
+> > because I haven't been paying attention.  Nevertheless, can you please 
+> > point me at any documentation on this so I can get up to speed?
 > 
-> Winbond CIR 00:04: Region 0x2f8-0x2ff already in use!
-> Winbond CIR 00:04: disabled
-> Winbond CIR: probe of 00:04 failed with error -16
 > 
-> Signed-off-by: Sean Young <sean@mess.org>
-> ---
->  drivers/media/rc/winbond-cir.c | 21 ++++++++++++++++++++-
->  drivers/tty/serial/8250/8250.c |  1 +
->  2 files changed, 21 insertions(+), 1 deletion(-)
+> I don't know much about that. A grep at sound might help:
 > 
-> diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
-> index 54ee348..20a0bbb 100644
-> --- a/drivers/media/rc/winbond-cir.c
-> +++ b/drivers/media/rc/winbond-cir.c
-> @@ -55,6 +55,7 @@
->  #include <linux/slab.h>
->  #include <linux/wait.h>
->  #include <linux/sched.h>
-> +#include <linux/serial_8250.h>
->  #include <media/rc-core.h>
->  
->  #define DRVNAME "winbond-cir"
-> @@ -957,6 +958,7 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
->  	struct device *dev = &device->dev;
->  	struct wbcir_data *data;
->  	int err;
-> +	struct resource *io;
->  
->  	if (!(pnp_port_len(device, 0) == EHFUNC_IOMEM_LEN &&
->  	      pnp_port_len(device, 1) == WAKEUP_IOMEM_LEN &&
-> @@ -1049,7 +1051,24 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
->  		goto exit_release_wbase;
->  	}
->  
-> -	if (!request_region(data->sbase, SP_IOMEM_LEN, DRVNAME)) {
-> +	io = request_region(data->sbase, SP_IOMEM_LEN, DRVNAME);
-> +
-> +	/*
-> +	 * The winbond cir device looks exactly like an NS16550A serial port
-> +	 * unless you know what it is. We've got here via the PNP ID.
-> +	 */
-> +#ifdef CONFIG_SERIAL_8250
-> +	if (!io) {
-> +		struct uart_port port = { .iobase = data->sbase };
-> +		int line = serial8250_find_port(&port);
-> +		if (line >= 0) {
-> +			serial8250_unregister_port(line);
-> +
-> +			io = request_region(data->sbase, SP_IOMEM_LEN, DRVNAME);
-> +		}
-> +	}
-> +#endif
-> +	if (!io) {
->  		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
->  			data->sbase, data->sbase + SP_IOMEM_LEN - 1);
->  		err = -EBUSY;
-> diff --git a/drivers/tty/serial/8250/8250.c b/drivers/tty/serial/8250/8250.c
-> index 5c27f7e..d38615f 100644
-> --- a/drivers/tty/serial/8250/8250.c
-> +++ b/drivers/tty/serial/8250/8250.c
-> @@ -2914,6 +2914,7 @@ int serial8250_find_port(struct uart_port *p)
->  	}
->  	return -ENODEV;
->  }
-> +EXPORT_SYMBOL(serial8250_find_port);
+> $ git grep -i mpeg sound/
+> sound/core/oss/pcm_oss.c: case AFMT_MPEG:         return SNDRV_PCM_FORMAT_MPEG;
+> sound/core/oss/pcm_oss.c: case SNDRV_PCM_FORMAT_MPEG:             return AFMT_MPEG;
+> sound/core/pcm.c: FORMAT(MPEG),
+> sound/core/pcm.c: case AFMT_MPEG:
+> sound/core/pcm.c:         return "MPEG";
+> sound/core/pcm_misc.c:    [SNDRV_PCM_FORMAT_MPEG] = {
 
-EXPORT_SYMBOL_GPL please.
+> sound/usb/format.c:       case UAC_FORMAT_TYPE_II_MPEG:
+> sound/usb/format.c:               fp->formats = SNDRV_PCM_FMTBIT_MPEG;
+> sound/usb/format.c:               snd_printd(KERN_INFO "%d:%u:%d : unknown format tag %#x is detected.  processed as MPEG.\n",
+> sound/usb/format.c:               fp->formats = SNDRV_PCM_FMTBIT_MPEG;
+> 
+> 
+> > 
+> > Currently the pvrusb2 driver does not attempt to perform any processing 
+> > or filtering of the data stream, so radio data is just the same mpeg 
+> > stream as video (but without any real embedded video data).  If I have 
+> > to get into the business of processing the MPEG data in order to adhere 
+> > to this proposal, then that will be a very big deal for this driver.
+> 
+> I _suspect_ that it is just a matter of adding something like em28xx-audio
+> at pvrusb2, saying that the format is MPEG, instead of raw PCM. In-kernel
+> processing is likely not needed/wanted.
 
-But can't this be done as a quirk to the 8250 driver so that it just
-does not bind to this device in the first place?  Wouldn't that make
-more sense?
+The ivtv and cx18 drivers ask the CX2341[568] to produce a raw PCM audio
+stream and provide that PCM audio via the legacy /dev/video24 device,
+and via ALSA as well in the case of cx18.
 
-thanks,
+>From what I can tell, the pvrusb2 driver does not use the raw PCM stream
+the CX23416/7 is able to produce.  Instead, pvrusb2 appears to "mute"
+the video and provides then whole MPEG-2 PS in radio mode.  That means
+there is a full MPEG-2 PS container stream with both the audio ES and
+video ES in it.
 
-greg k-h
+If something in user-space needs to get PCM or MPEG-1 Layer 3 audio from
+that pvrusb2 "audio" stream via ALSA, something is going to need to
+demux the MPEG-2 PS and possibly convert to PCM.  I'll bet ALSA
+currently does not support that except maybe via some ALSA plug-in which
+likely does not exist.
+
+At that point, it might be easier just to use the PCM stream from the
+CX23416 and add a pvrusb2-alsa module for the ALSA interface.
+
+Regards,
+Andy
+
+> We may try to double check with Takashi during the KS media workshop.
+> 
+> Regards,
+> Mauro
+
+
