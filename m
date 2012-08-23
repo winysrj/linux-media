@@ -1,172 +1,499 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:9517 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755707Ab2HNPhl (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:51016 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752169Ab2HWIis (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 11:37:41 -0400
-Received: from epcpsbgm2.samsung.com (mailout2.samsung.com [203.254.224.25])
- by mailout2.samsung.com
+	Thu, 23 Aug 2012 04:38:48 -0400
+Received: from epcpsbgm1.samsung.com (mailout3.samsung.com [203.254.224.33])
+ by mailout3.samsung.com
  (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M8R00BPV4QJGBC0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:37:32 +0900 (KST)
-Received: from mcdsrvbld02.digital.local ([106.116.37.23])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ 17 2011)) with ESMTP id <0M9700E5S9BO1I90@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 23 Aug 2012 17:38:46 +0900 (KST)
+Received: from amdc248.digital.local ([106.116.147.32])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
  (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M8R004J44MBC810@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:37:31 +0900 (KST)
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de, dmitriyz@google.com,
-	s.nawrocki@samsung.com, k.debski@samsung.com
-Subject: [PATCHv8 18/26] v4l: add buffer exporting via dmabuf
-Date: Tue, 14 Aug 2012 17:34:48 +0200
-Message-id: <1344958496-9373-19-git-send-email-t.stanislaws@samsung.com>
-In-reply-to: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
-References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
+ with ESMTPA id <0M9700DML9C43WA0@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 23 Aug 2012 17:38:43 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH v2] s5p-fimc: Add pipeline ops to separate FIMC-LITE module
+Date: Thu, 23 Aug 2012 10:38:19 +0200
+Message-id: <1345711099-17565-1-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1345113242-12992-1-git-send-email-s.nawrocki@samsung.com>
+References: <1345113242-12992-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds extension to V4L2 api. It allow to export a mmap buffer as file
-descriptor. New ioctl VIDIOC_EXPBUF is added. It takes a buffer offset used by
-mmap and return a file descriptor on success.
+In order to reuse the FIMC-LITE module on Exynos4 and Exynos5
+SoC introduce a set of callbacks for the media pipeline control
+from within FIMC/FIMC-LITE video node. It lets us avoid symbol
+dependencies between FIMC-LITE and the whole media device driver,
+which simplifies the initialization sequences and doesn't
+introduce issues preventing common kernel image for exynos4 and
+exynos5 SoCs.
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+This patch also corrects following build errors:
+
+drivers/built-in.o: In function `buffer_queue':
+drivers/media/video/s5p-fimc/fimc-lite.c:414: undefined reference
+to `fimc_pipeline_s_stream'
+drivers/built-in.o: In function `fimc_lite_resume':
+drivers/media/video/s5p-fimc/fimc-lite.c:1518: undefined reference
+to `fimc_pipeline_initialize'
+drivers/built-in.o: In function `fimc_lite_suspend':
+drivers/media/video/s5p-fimc/fimc-lite.c:1544: undefined reference
+to `fimc_pipeline_shutdown'
+
+when only CONFIG_VIDEO_EXYNOS_FIMC_LITE is selected, without
+CONFIG_VIDEO_S5P_FIMC.
+
+Reported-by: Sachin Kamat <sachin.kamat@linaro.org>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/video/v4l2-compat-ioctl32.c |    1 +
- drivers/media/video/v4l2-dev.c            |    1 +
- drivers/media/video/v4l2-ioctl.c          |   15 +++++++++++++++
- include/linux/videodev2.h                 |   26 ++++++++++++++++++++++++++
- include/media/v4l2-ioctl.h                |    2 ++
- 5 files changed, 45 insertions(+)
+Changes since v1:
+ - ops rename: initialize/open, shutdown/close
 
-diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-index a2e0549..7689c4a 100644
---- a/drivers/media/video/v4l2-compat-ioctl32.c
-+++ b/drivers/media/video/v4l2-compat-ioctl32.c
-@@ -971,6 +971,7 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
- 	case VIDIOC_S_FBUF32:
- 	case VIDIOC_OVERLAY32:
- 	case VIDIOC_QBUF32:
-+	case VIDIOC_EXPBUF:
- 	case VIDIOC_DQBUF32:
- 	case VIDIOC_STREAMON32:
- 	case VIDIOC_STREAMOFF32:
-diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-index 71237f5..f6e7ea5 100644
---- a/drivers/media/video/v4l2-dev.c
-+++ b/drivers/media/video/v4l2-dev.c
-@@ -607,6 +607,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 	SET_VALID_IOCTL(ops, VIDIOC_REQBUFS, vidioc_reqbufs);
- 	SET_VALID_IOCTL(ops, VIDIOC_QUERYBUF, vidioc_querybuf);
- 	SET_VALID_IOCTL(ops, VIDIOC_QBUF, vidioc_qbuf);
-+	SET_VALID_IOCTL(ops, VIDIOC_EXPBUF, vidioc_expbuf);
- 	SET_VALID_IOCTL(ops, VIDIOC_DQBUF, vidioc_dqbuf);
- 	SET_VALID_IOCTL(ops, VIDIOC_OVERLAY, vidioc_overlay);
- 	SET_VALID_IOCTL(ops, VIDIOC_G_FBUF, vidioc_g_fbuf);
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index dffd3c9..c4e8c7e 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -458,6 +458,14 @@ static void v4l_print_buffer(const void *arg, bool write_only)
- 			tc->type, tc->flags, tc->frames, *(__u32 *)tc->userbits);
+ drivers/media/platform/s5p-fimc/fimc-capture.c | 21 ++++++-----
+ drivers/media/platform/s5p-fimc/fimc-core.h    |  1 +
+ drivers/media/platform/s5p-fimc/fimc-lite.c    | 22 +++++++----
+ drivers/media/platform/s5p-fimc/fimc-lite.h    |  2 +
+ drivers/media/platform/s5p-fimc/fimc-mdevice.c | 52 +++++++++++++++-----------
+ drivers/media/platform/s5p-fimc/fimc-mdevice.h |  6 ---
+ include/media/s5p_fimc.h                       | 18 +++++++++
+ 7 files changed, 78 insertions(+), 44 deletions(-)
+
+diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c b/drivers/media/platform/s5p-fimc/fimc-capture.c
+index 4092388..749b015 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-capture.c
++++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
+@@ -118,7 +118,8 @@ static int fimc_capture_state_cleanup(struct fimc_dev *fimc, bool suspend)
+ 	spin_unlock_irqrestore(&fimc->slock, flags);
+
+ 	if (streaming)
+-		return fimc_pipeline_s_stream(&fimc->pipeline, 0);
++		return fimc_pipeline_call(fimc, set_stream,
++					  &fimc->pipeline, 0);
+ 	else
+ 		return 0;
  }
- 
-+static void v4l_print_exportbuffer(const void *arg, bool write_only)
-+{
-+	const struct v4l2_exportbuffer *p = arg;
-+
-+	pr_cont("fd=%d, mem_offset=%lx, flags=%lx\n",
-+		p->fd, (unsigned long)p->mem_offset, (unsigned long)p->flags);
-+}
-+
- static void v4l_print_create_buffers(const void *arg, bool write_only)
- {
- 	const struct v4l2_create_buffers *p = arg;
-@@ -1254,6 +1262,12 @@ static int v4l_streamoff(const struct v4l2_ioctl_ops *ops,
- 	return ops->vidioc_streamoff(file, fh, *(unsigned int *)arg);
+@@ -264,7 +265,8 @@ static int start_streaming(struct vb2_queue *q, unsigned int count)
+ 		fimc_activate_capture(ctx);
+
+ 		if (!test_and_set_bit(ST_CAPT_ISP_STREAM, &fimc->state))
+-			fimc_pipeline_s_stream(&fimc->pipeline, 1);
++			fimc_pipeline_call(fimc, set_stream,
++					   &fimc->pipeline, 1);
+ 	}
+
+ 	return 0;
+@@ -288,7 +290,7 @@ int fimc_capture_suspend(struct fimc_dev *fimc)
+ 	int ret = fimc_stop_capture(fimc, suspend);
+ 	if (ret)
+ 		return ret;
+-	return fimc_pipeline_shutdown(&fimc->pipeline);
++	return fimc_pipeline_call(fimc, close, &fimc->pipeline);
  }
- 
-+static int v4l_expbuf(const struct v4l2_ioctl_ops *ops,
-+				struct file *file, void *fh, void *arg)
-+{
-+	return ops->vidioc_expbuf(file, fh, arg);
-+}
+
+ static void buffer_queue(struct vb2_buffer *vb);
+@@ -304,8 +306,8 @@ int fimc_capture_resume(struct fimc_dev *fimc)
+
+ 	INIT_LIST_HEAD(&fimc->vid_cap.active_buf_q);
+ 	vid_cap->buf_index = 0;
+-	fimc_pipeline_initialize(&fimc->pipeline, &vid_cap->vfd.entity,
+-				 false);
++	fimc_pipeline_call(fimc, open, &fimc->pipeline,
++			   &vid_cap->vfd.entity, false);
+ 	fimc_capture_hw_init(fimc);
+
+ 	clear_bit(ST_CAPT_SUSPENDED, &fimc->state);
+@@ -422,7 +424,8 @@ static void buffer_queue(struct vb2_buffer *vb)
+ 		spin_unlock_irqrestore(&fimc->slock, flags);
+
+ 		if (!test_and_set_bit(ST_CAPT_ISP_STREAM, &fimc->state))
+-			fimc_pipeline_s_stream(&fimc->pipeline, 1);
++			fimc_pipeline_call(fimc, set_stream,
++					   &fimc->pipeline, 1);
+ 		return;
+ 	}
+ 	spin_unlock_irqrestore(&fimc->slock, flags);
+@@ -502,8 +505,8 @@ static int fimc_capture_open(struct file *file)
+ 	}
+
+ 	if (++fimc->vid_cap.refcnt == 1) {
+-		ret = fimc_pipeline_initialize(&fimc->pipeline,
+-				       &fimc->vid_cap.vfd.entity, true);
++		ret = fimc_pipeline_call(fimc, open, &fimc->pipeline,
++					 &fimc->vid_cap.vfd.entity, true);
+
+ 		if (!ret && !fimc->vid_cap.user_subdev_api)
+ 			ret = fimc_capture_set_default_format(fimc);
+@@ -536,7 +539,7 @@ static int fimc_capture_close(struct file *file)
+ 	if (--fimc->vid_cap.refcnt == 0) {
+ 		clear_bit(ST_CAPT_BUSY, &fimc->state);
+ 		fimc_stop_capture(fimc, false);
+-		fimc_pipeline_shutdown(&fimc->pipeline);
++		fimc_pipeline_call(fimc, close, &fimc->pipeline);
+ 		clear_bit(ST_CAPT_SUSPENDED, &fimc->state);
+ 	}
+
+diff --git a/drivers/media/platform/s5p-fimc/fimc-core.h b/drivers/media/platform/s5p-fimc/fimc-core.h
+index d3a3a00..6180546 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-core.h
++++ b/drivers/media/platform/s5p-fimc/fimc-core.h
+@@ -440,6 +440,7 @@ struct fimc_dev {
+ 	unsigned long			state;
+ 	struct vb2_alloc_ctx		*alloc_ctx;
+ 	struct fimc_pipeline		pipeline;
++	const struct fimc_pipeline_ops	*pipeline_ops;
+ };
+
+ /**
+diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c b/drivers/media/platform/s5p-fimc/fimc-lite.c
+index 9289008..2f63830 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-lite.c
++++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
+@@ -28,11 +28,14 @@
+ #include <media/v4l2-mem2mem.h>
+ #include <media/videobuf2-core.h>
+ #include <media/videobuf2-dma-contig.h>
++#include <media/s5p_fimc.h>
+
+ #include "fimc-mdevice.h"
+ #include "fimc-core.h"
++#include "fimc-lite.h"
+ #include "fimc-lite-reg.h"
+
 +
- static int v4l_g_tuner(const struct v4l2_ioctl_ops *ops,
- 				struct file *file, void *fh, void *arg)
+ static int debug;
+ module_param(debug, int, 0644);
+
+@@ -193,7 +196,7 @@ static int fimc_lite_reinit(struct fimc_lite *fimc, bool suspend)
+ 	if (!streaming)
+ 		return 0;
+
+-	return fimc_pipeline_s_stream(&fimc->pipeline, 0);
++	return fimc_pipeline_call(fimc, set_stream, &fimc->pipeline, 0);
+ }
+
+ static int fimc_lite_stop_capture(struct fimc_lite *fimc, bool suspend)
+@@ -307,7 +310,8 @@ static int start_streaming(struct vb2_queue *q, unsigned int count)
+ 		flite_hw_capture_start(fimc);
+
+ 		if (!test_and_set_bit(ST_SENSOR_STREAM, &fimc->state))
+-			fimc_pipeline_s_stream(&fimc->pipeline, 1);
++			fimc_pipeline_call(fimc, set_stream,
++					   &fimc->pipeline, 1);
+ 	}
+ 	if (debug > 0)
+ 		flite_hw_dump_regs(fimc, __func__);
+@@ -411,7 +415,8 @@ static void buffer_queue(struct vb2_buffer *vb)
+ 		spin_unlock_irqrestore(&fimc->slock, flags);
+
+ 		if (!test_and_set_bit(ST_SENSOR_STREAM, &fimc->state))
+-			fimc_pipeline_s_stream(&fimc->pipeline, 1);
++			fimc_pipeline_call(fimc, set_stream,
++					   &fimc->pipeline, 1);
+ 		return;
+ 	}
+ 	spin_unlock_irqrestore(&fimc->slock, flags);
+@@ -466,8 +471,8 @@ static int fimc_lite_open(struct file *file)
+ 		goto done;
+
+ 	if (++fimc->ref_count == 1 && fimc->out_path == FIMC_IO_DMA) {
+-		ret = fimc_pipeline_initialize(&fimc->pipeline,
+-					       &fimc->vfd.entity, true);
++		ret = fimc_pipeline_call(fimc, open, &fimc->pipeline,
++					 &fimc->vfd.entity, true);
+ 		if (ret < 0) {
+ 			pm_runtime_put_sync(&fimc->pdev->dev);
+ 			fimc->ref_count--;
+@@ -493,7 +498,7 @@ static int fimc_lite_close(struct file *file)
+ 	if (--fimc->ref_count == 0 && fimc->out_path == FIMC_IO_DMA) {
+ 		clear_bit(ST_FLITE_IN_USE, &fimc->state);
+ 		fimc_lite_stop_capture(fimc, false);
+-		fimc_pipeline_shutdown(&fimc->pipeline);
++		fimc_pipeline_call(fimc, close, &fimc->pipeline);
+ 		clear_bit(ST_FLITE_SUSPENDED, &fimc->state);
+ 	}
+
+@@ -1505,7 +1510,8 @@ static int fimc_lite_resume(struct device *dev)
+ 		return 0;
+
+ 	INIT_LIST_HEAD(&fimc->active_buf_q);
+-	fimc_pipeline_initialize(&fimc->pipeline, &fimc->vfd.entity, false);
++	fimc_pipeline_call(fimc, open, &fimc->pipeline,
++			   &fimc->vfd.entity, false);
+ 	fimc_lite_hw_init(fimc);
+ 	clear_bit(ST_FLITE_SUSPENDED, &fimc->state);
+
+@@ -1531,7 +1537,7 @@ static int fimc_lite_suspend(struct device *dev)
+ 	if (ret < 0 || !fimc_lite_active(fimc))
+ 		return ret;
+
+-	return fimc_pipeline_shutdown(&fimc->pipeline);
++	return fimc_pipeline_call(fimc, close, &fimc->pipeline);
+ }
+ #endif /* CONFIG_PM_SLEEP */
+
+diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.h b/drivers/media/platform/s5p-fimc/fimc-lite.h
+index 9944dd3..b04bf3b 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-lite.h
++++ b/drivers/media/platform/s5p-fimc/fimc-lite.h
+@@ -108,6 +108,7 @@ struct flite_buffer {
+  * @test_pattern: test pattern controls
+  * @index: FIMC-LITE platform device index
+  * @pipeline: video capture pipeline data structure
++ * @pipeline_ops: media pipeline ops for the video node driver
+  * @slock: spinlock protecting this data structure and the hw registers
+  * @lock: mutex serializing video device and the subdev operations
+  * @clock: FIMC-LITE gate clock
+@@ -142,6 +143,7 @@ struct fimc_lite {
+ 	struct v4l2_ctrl	*test_pattern;
+ 	u32			index;
+ 	struct fimc_pipeline	pipeline;
++	const struct fimc_pipeline_ops *pipeline_ops;
+
+ 	struct mutex		lock;
+ 	spinlock_t		slock;
+diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
+index 3c76bd9..cb3dd4f 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
++++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
+@@ -23,6 +23,7 @@
+ #include <linux/slab.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/media-device.h>
++#include <media/s5p_fimc.h>
+
+ #include "fimc-core.h"
+ #include "fimc-lite.h"
+@@ -38,7 +39,8 @@ static int __fimc_md_set_camclk(struct fimc_md *fmd,
+  *
+  * Caller holds the graph mutex.
+  */
+-void fimc_pipeline_prepare(struct fimc_pipeline *p, struct media_entity *me)
++static void fimc_pipeline_prepare(struct fimc_pipeline *p,
++				  struct media_entity *me)
  {
-@@ -1947,6 +1961,7 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_STD(VIDIOC_S_FBUF, vidioc_s_fbuf, v4l_print_framebuffer, INFO_FL_PRIO),
- 	IOCTL_INFO_STD(VIDIOC_OVERLAY, vidioc_overlay, v4l_print_u32, INFO_FL_PRIO),
- 	IOCTL_INFO_FNC(VIDIOC_QBUF, v4l_qbuf, v4l_print_buffer, INFO_FL_QUEUE),
-+	IOCTL_INFO_FNC(VIDIOC_EXPBUF, v4l_expbuf, v4l_print_exportbuffer, INFO_FL_CLEAR(v4l2_exportbuffer, flags)),
- 	IOCTL_INFO_FNC(VIDIOC_DQBUF, v4l_dqbuf, v4l_print_buffer, INFO_FL_QUEUE),
- 	IOCTL_INFO_FNC(VIDIOC_STREAMON, v4l_streamon, v4l_print_buftype, INFO_FL_PRIO | INFO_FL_QUEUE),
- 	IOCTL_INFO_FNC(VIDIOC_STREAMOFF, v4l_streamoff, v4l_print_buftype, INFO_FL_PRIO | INFO_FL_QUEUE),
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 7f918dc..b5d058b 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -688,6 +688,31 @@ struct v4l2_buffer {
- #define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
- #define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x1000
- 
-+/**
-+ * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
-+ *
-+ * @fd:		file descriptor associated with DMABUF (set by driver)
-+ * @mem_offset:	buffer memory offset as returned by VIDIOC_QUERYBUF in struct
-+ *		v4l2_buffer::m.offset (for single-plane formats) or
-+ *		v4l2_plane::m.offset (for multi-planar formats)
-+ * @flags:	flags for newly created file, currently only O_CLOEXEC is
-+ *		supported, refer to manual of open syscall for more details
-+ *
-+ * Contains data used for exporting a video buffer as DMABUF file descriptor.
-+ * The buffer is identified by a 'cookie' returned by VIDIOC_QUERYBUF
-+ * (identical to the cookie used to mmap() the buffer to userspace). All
-+ * reserved fields must be set to zero. The field reserved0 is expected to
-+ * become a structure 'type' allowing an alternative layout of the structure
-+ * content. Therefore this field should not be used for any other extensions.
+ 	struct media_pad *pad = &me->pads[0];
+ 	struct v4l2_subdev *sd;
+@@ -114,7 +116,7 @@ static int __subdev_set_power(struct v4l2_subdev *sd, int on)
+  *
+  * Needs to be called with the graph mutex held.
+  */
+-int fimc_pipeline_s_power(struct fimc_pipeline *p, bool state)
++static int fimc_pipeline_s_power(struct fimc_pipeline *p, bool state)
+ {
+ 	unsigned int i;
+ 	int ret;
+@@ -134,15 +136,15 @@ int fimc_pipeline_s_power(struct fimc_pipeline *p, bool state)
+ }
+
+ /**
+- * __fimc_pipeline_initialize - update the pipeline information, enable power
+- *                              of all pipeline subdevs and the sensor clock
++ * __fimc_pipeline_open - update the pipeline information, enable power
++ *                        of all pipeline subdevs and the sensor clock
+  * @me: media entity to start graph walk with
+  * @prep: true to acquire sensor (and csis) subdevs
+  *
+  * This function must be called with the graph mutex held.
+  */
+-static int __fimc_pipeline_initialize(struct fimc_pipeline *p,
+-				      struct media_entity *me, bool prep)
++static int __fimc_pipeline_open(struct fimc_pipeline *p,
++				struct media_entity *me, bool prep)
+ {
+ 	int ret;
+
+@@ -159,28 +161,27 @@ static int __fimc_pipeline_initialize(struct fimc_pipeline *p,
+ 	return fimc_pipeline_s_power(p, 1);
+ }
+
+-int fimc_pipeline_initialize(struct fimc_pipeline *p, struct media_entity *me,
+-			     bool prep)
++static int fimc_pipeline_open(struct fimc_pipeline *p,
++			      struct media_entity *me, bool prep)
+ {
+ 	int ret;
+
+ 	mutex_lock(&me->parent->graph_mutex);
+-	ret =  __fimc_pipeline_initialize(p, me, prep);
++	ret =  __fimc_pipeline_open(p, me, prep);
+ 	mutex_unlock(&me->parent->graph_mutex);
+
+ 	return ret;
+ }
+-EXPORT_SYMBOL_GPL(fimc_pipeline_initialize);
+
+ /**
+- * __fimc_pipeline_shutdown - disable the sensor clock and pipeline power
++ * __fimc_pipeline_close - disable the sensor clock and pipeline power
+  * @fimc: fimc device terminating the pipeline
+  *
+  * Disable power of all subdevs in the pipeline and turn off the external
+  * sensor clock.
+  * Called with the graph mutex held.
+  */
+-static int __fimc_pipeline_shutdown(struct fimc_pipeline *p)
++static int __fimc_pipeline_close(struct fimc_pipeline *p)
+ {
+ 	int ret = 0;
+
+@@ -191,7 +192,7 @@ static int __fimc_pipeline_shutdown(struct fimc_pipeline *p)
+ 	return ret == -ENXIO ? 0 : ret;
+ }
+
+-int fimc_pipeline_shutdown(struct fimc_pipeline *p)
++static int fimc_pipeline_close(struct fimc_pipeline *p)
+ {
+ 	struct media_entity *me;
+ 	int ret;
+@@ -201,12 +202,11 @@ int fimc_pipeline_shutdown(struct fimc_pipeline *p)
+
+ 	me = &p->subdevs[IDX_SENSOR]->entity;
+ 	mutex_lock(&me->parent->graph_mutex);
+-	ret = __fimc_pipeline_shutdown(p);
++	ret = __fimc_pipeline_close(p);
+ 	mutex_unlock(&me->parent->graph_mutex);
+
+ 	return ret;
+ }
+-EXPORT_SYMBOL_GPL(fimc_pipeline_shutdown);
+
+ /**
+  * fimc_pipeline_s_stream - invoke s_stream on pipeline subdevs
+@@ -232,7 +232,13 @@ int fimc_pipeline_s_stream(struct fimc_pipeline *p, bool on)
+ 	return 0;
+
+ }
+-EXPORT_SYMBOL_GPL(fimc_pipeline_s_stream);
++
++/* Media pipeline operations for the FIMC/FIMC-LITE video device driver */
++static const struct fimc_pipeline_ops fimc_pipeline_ops = {
++	.open		= fimc_pipeline_open,
++	.close		= fimc_pipeline_close,
++	.set_stream	= fimc_pipeline_s_stream,
++};
+
+ /*
+  * Sensor subdevice helper functions
+@@ -347,6 +353,7 @@ static int fimc_register_callback(struct device *dev, void *p)
+ 	if (fimc->pdev->id < 0 || fimc->pdev->id >= FIMC_MAX_DEVS)
+ 		return 0;
+
++	fimc->pipeline_ops = &fimc_pipeline_ops;
+ 	fmd->fimc[fimc->pdev->id] = fimc;
+ 	sd->grp_id = FIMC_GROUP_ID;
+
+@@ -372,6 +379,7 @@ static int fimc_lite_register_callback(struct device *dev, void *p)
+ 	if (fimc->index >= FIMC_LITE_MAX_DEVS)
+ 		return 0;
+
++	fimc->pipeline_ops = &fimc_pipeline_ops;
+ 	fmd->fimc_lite[fimc->index] = fimc;
+ 	sd->grp_id = FLITE_GROUP_ID;
+
+@@ -473,12 +481,14 @@ static void fimc_md_unregister_entities(struct fimc_md *fmd)
+ 		if (fmd->fimc[i] == NULL)
+ 			continue;
+ 		v4l2_device_unregister_subdev(&fmd->fimc[i]->vid_cap.subdev);
++		fmd->fimc[i]->pipeline_ops = NULL;
+ 		fmd->fimc[i] = NULL;
+ 	}
+ 	for (i = 0; i < FIMC_LITE_MAX_DEVS; i++) {
+ 		if (fmd->fimc_lite[i] == NULL)
+ 			continue;
+ 		v4l2_device_unregister_subdev(&fmd->fimc_lite[i]->subdev);
++		fmd->fimc[i]->pipeline_ops = NULL;
+ 		fmd->fimc_lite[i] = NULL;
+ 	}
+ 	for (i = 0; i < CSIS_MAX_ENTITIES; i++) {
+@@ -829,7 +839,7 @@ static int fimc_md_link_notify(struct media_pad *source,
+ 	}
+
+ 	if (!(flags & MEDIA_LNK_FL_ENABLED)) {
+-		ret = __fimc_pipeline_shutdown(pipeline);
++		ret = __fimc_pipeline_close(pipeline);
+ 		pipeline->subdevs[IDX_SENSOR] = NULL;
+ 		pipeline->subdevs[IDX_CSIS] = NULL;
+
+@@ -848,8 +858,8 @@ static int fimc_md_link_notify(struct media_pad *source,
+ 	if (fimc) {
+ 		mutex_lock(&fimc->lock);
+ 		if (fimc->vid_cap.refcnt > 0) {
+-			ret = __fimc_pipeline_initialize(pipeline,
+-							 source->entity, true);
++			ret = __fimc_pipeline_open(pipeline,
++						   source->entity, true);
+ 		if (!ret)
+ 			ret = fimc_capture_ctrls_create(fimc);
+ 		}
+@@ -857,8 +867,8 @@ static int fimc_md_link_notify(struct media_pad *source,
+ 	} else {
+ 		mutex_lock(&fimc_lite->lock);
+ 		if (fimc_lite->ref_count > 0) {
+-			ret = __fimc_pipeline_initialize(pipeline,
+-							 source->entity, true);
++			ret = __fimc_pipeline_open(pipeline,
++						   source->entity, true);
+ 		}
+ 		mutex_unlock(&fimc_lite->lock);
+ 	}
+diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.h b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
+index d310d9c..0135386 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-mdevice.h
++++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
+@@ -108,11 +108,5 @@ static inline void fimc_md_graph_unlock(struct fimc_dev *fimc)
+ }
+
+ int fimc_md_set_camclk(struct v4l2_subdev *sd, bool on);
+-void fimc_pipeline_prepare(struct fimc_pipeline *p, struct media_entity *me);
+-int fimc_pipeline_initialize(struct fimc_pipeline *p, struct media_entity *me,
+-			     bool resume);
+-int fimc_pipeline_shutdown(struct fimc_pipeline *p);
+-int fimc_pipeline_s_power(struct fimc_pipeline *p, bool state);
+-int fimc_pipeline_s_stream(struct fimc_pipeline *p, bool state);
+
+ #endif
+diff --git a/include/media/s5p_fimc.h b/include/media/s5p_fimc.h
+index 8587aaf..09421a61 100644
+--- a/include/media/s5p_fimc.h
++++ b/include/media/s5p_fimc.h
+@@ -12,6 +12,8 @@
+ #ifndef S5P_FIMC_H_
+ #define S5P_FIMC_H_
+
++#include <media/media-entity.h>
++
+ enum cam_bus_type {
+ 	FIMC_ITU_601 = 1,
+ 	FIMC_ITU_656,
+@@ -80,4 +82,20 @@ struct fimc_pipeline {
+ 	struct media_pipeline *m_pipeline;
+ };
+
++/*
++ * Media pipeline operations to be called from within the fimc(-lite)
++ * video node when it is the last entity of the pipeline. Implemented
++ * by corresponding media device driver.
 + */
-+struct v4l2_exportbuffer {
-+	__u32		fd;
-+	__u32		reserved0;
-+	__u32		mem_offset;
-+	__u32		flags;
-+	__u32		reserved[12];
++struct fimc_pipeline_ops {
++	int (*open)(struct fimc_pipeline *p, struct media_entity *me,
++			  bool resume);
++	int (*close)(struct fimc_pipeline *p);
++	int (*set_stream)(struct fimc_pipeline *p, bool state);
 +};
 +
- /*
-  *	O V E R L A Y   P R E V I E W
-  */
-@@ -2558,6 +2583,7 @@ struct v4l2_create_buffers {
- #define VIDIOC_S_FBUF		 _IOW('V', 11, struct v4l2_framebuffer)
- #define VIDIOC_OVERLAY		 _IOW('V', 14, int)
- #define VIDIOC_QBUF		_IOWR('V', 15, struct v4l2_buffer)
-+#define VIDIOC_EXPBUF		_IOWR('V', 16, struct v4l2_exportbuffer)
- #define VIDIOC_DQBUF		_IOWR('V', 17, struct v4l2_buffer)
- #define VIDIOC_STREAMON		 _IOW('V', 18, int)
- #define VIDIOC_STREAMOFF	 _IOW('V', 19, int)
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index e614c9c..38fb139 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -119,6 +119,8 @@ struct v4l2_ioctl_ops {
- 	int (*vidioc_reqbufs) (struct file *file, void *fh, struct v4l2_requestbuffers *b);
- 	int (*vidioc_querybuf)(struct file *file, void *fh, struct v4l2_buffer *b);
- 	int (*vidioc_qbuf)    (struct file *file, void *fh, struct v4l2_buffer *b);
-+	int (*vidioc_expbuf)  (struct file *file, void *fh,
-+				struct v4l2_exportbuffer *e);
- 	int (*vidioc_dqbuf)   (struct file *file, void *fh, struct v4l2_buffer *b);
- 
- 	int (*vidioc_create_bufs)(struct file *file, void *fh, struct v4l2_create_buffers *b);
--- 
-1.7.9.5
++#define fimc_pipeline_call(f, op, p, args...)				\
++	(!(f) ? -ENODEV : (((f)->pipeline_ops && (f)->pipeline_ops->op) ? \
++			    (f)->pipeline_ops->op((p), ##args) : -ENOIOCTLCMD))
++
+ #endif /* S5P_FIMC_H_ */
+--
+1.7.11.3
 
