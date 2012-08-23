@@ -1,378 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57141 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752390Ab2HBIBD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Aug 2012 04:01:03 -0400
-From: Prabhakar Lad <prabhakar.lad@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v8 1/2] media: add new mediabus format enums for dm365
-Date: Thu, 2 Aug 2012 13:30:09 +0530
-Message-ID: <1343894410-16829-2-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1343894410-16829-1-git-send-email-prabhakar.lad@ti.com>
-References: <1343894410-16829-1-git-send-email-prabhakar.lad@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mailout1.samsung.com ([203.254.224.24]:19572 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758280Ab2HWJwQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Aug 2012 05:52:16 -0400
+Received: from epcpsbgm1.samsung.com (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M9700EG3CQH07Z0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 23 Aug 2012 18:52:15 +0900 (KST)
+Received: from amdc248.digital.local ([106.116.147.32])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0M9700GHMCQHII60@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 23 Aug 2012 18:52:14 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	sakari.ailus@iki.fi, g.liakhovetski@gmx.de,
+	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC 2/4] V4L: Add V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8 media bus
+ format
+Date: Thu, 23 Aug 2012 11:51:27 +0200
+Message-id: <1345715489-30158-3-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1345715489-30158-1-git-send-email-s.nawrocki@samsung.com>
+References: <1345715489-30158-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Manjunath Hadli <manjunath.hadli@ti.com>
+This patch adds media bus pixel code for the interleaved JPEG/UYVY
+image format used by S5C73MX Samsung cameras. This interleaved image
+data is transferred on MIPI-CSI2 bus as User Defined Byte-based Data.
 
-add new enum entries for supporting the media-bus formats on dm365.
-These include some bayer and some non-bayer formats.
-V4L2_MBUS_FMT_YDYUYDYV8_1X16 and V4L2_MBUS_FMT_UV8_1X8 are used
-internal to the hardware by the resizer.
-V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8 represents the bayer ALAW format
-that is supported by dm365 hardware.
+It also defines an experimental vendor and device specific media bus
+formats section and adds related DocBook documentation.
 
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- Documentation/DocBook/media/v4l/subdev-formats.xml |  250 +++++++++++++++++++-
- include/linux/v4l2-mediabus.h                      |   10 +-
- 2 files changed, 252 insertions(+), 8 deletions(-)
+ Documentation/DocBook/media/v4l/compat.xml         |  4 ++
+ Documentation/DocBook/media/v4l/subdev-formats.xml | 45 ++++++++++++++++++++++
+ include/linux/v4l2-mediabus.h                      |  5 +++
+ 3 files changed, 54 insertions(+)
 
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index 98e8d08..5d2480b 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2605,6 +2605,10 @@ ioctls.</para>
+         <listitem>
+ 	  <para>Support for frequency band enumeration: &VIDIOC-ENUM-FREQ-BANDS; ioctl.</para>
+         </listitem>
++        <listitem>
++	  <para>Vendor and device specific media bus pixel formats.
++	    <xref linkend="v4l2-mbus-vendor-spec-fmts" />.</para>
++        </listitem>
+       </itemizedlist>
+     </section>
+ 
 diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index 49c532e..75dc275 100644
+index 49c532e..d7aa870 100644
 --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
 +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -353,9 +353,9 @@
- 	<listitem><para>The number of bits per pixel component. All components are
- 	transferred on the same number of bits. Common values are 8, 10 and 12.</para>
- 	</listitem>
--	<listitem><para>If the pixel components are DPCM-compressed, a mention of the
--	DPCM compression and the number of bits per compressed pixel component.</para>
--	</listitem>
-+	<listitem><para>The compression (optional). If the pixel components are
-+	ALAW- or DPCM-compressed, a mention of the compression scheme and the
-+	number of bits per compressed pixel component.</para></listitem>
- 	<listitem><para>The number of bus samples per pixel. Pixels that are wider than
- 	the bus width must be transferred in multiple samples. Common values are
- 	1 and 2.</para></listitem>
-@@ -504,6 +504,74 @@
- 	      <entry>r<subscript>1</subscript></entry>
- 	      <entry>r<subscript>0</subscript></entry>
- 	    </row>
-+	    <row id="V4L2-MBUS-FMT-SBGGR10-ALAW8-1X8">
-+	      <entry>V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8</entry>
-+	      <entry>0x3015</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>b<subscript>7</subscript></entry>
-+	      <entry>b<subscript>6</subscript></entry>
-+	      <entry>b<subscript>5</subscript></entry>
-+	      <entry>b<subscript>4</subscript></entry>
-+	      <entry>b<subscript>3</subscript></entry>
-+	      <entry>b<subscript>2</subscript></entry>
-+	      <entry>b<subscript>1</subscript></entry>
-+	      <entry>b<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="V4L2-MBUS-FMT-SGBRG10-ALAW8-1X8">
-+	      <entry>V4L2_MBUS_FMT_SGBRG10_ALAW8_1X8</entry>
-+	      <entry>0x3016</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>g<subscript>7</subscript></entry>
-+	      <entry>g<subscript>6</subscript></entry>
-+	      <entry>g<subscript>5</subscript></entry>
-+	      <entry>g<subscript>4</subscript></entry>
-+	      <entry>g<subscript>3</subscript></entry>
-+	      <entry>g<subscript>2</subscript></entry>
-+	      <entry>g<subscript>1</subscript></entry>
-+	      <entry>g<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="V4L2-MBUS-FMT-SGRBG10-ALAW8-1X8">
-+	      <entry>V4L2_MBUS_FMT_SGRBG10_ALAW8_1X8</entry>
-+	      <entry>0x3017</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>g<subscript>7</subscript></entry>
-+	      <entry>g<subscript>6</subscript></entry>
-+	      <entry>g<subscript>5</subscript></entry>
-+	      <entry>g<subscript>4</subscript></entry>
-+	      <entry>g<subscript>3</subscript></entry>
-+	      <entry>g<subscript>2</subscript></entry>
-+	      <entry>g<subscript>1</subscript></entry>
-+	      <entry>g<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="V4L2-MBUS-FMT-SRGGB10-ALAW8-1X8">
-+	      <entry>V4L2_MBUS_FMT_SRGGB10_ALAW8_1X8</entry>
-+	      <entry>0x3018</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>r<subscript>7</subscript></entry>
-+	      <entry>r<subscript>6</subscript></entry>
-+	      <entry>r<subscript>5</subscript></entry>
-+	      <entry>r<subscript>4</subscript></entry>
-+	      <entry>r<subscript>3</subscript></entry>
-+	      <entry>r<subscript>2</subscript></entry>
-+	      <entry>r<subscript>1</subscript></entry>
-+	      <entry>r<subscript>0</subscript></entry>
-+	    </row>
- 	    <row id="V4L2-MBUS-FMT-SBGGR10-DPCM8-1X8">
- 	      <entry>V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8</entry>
- 	      <entry>0x300b</entry>
-@@ -853,10 +921,16 @@
-       <title>Packed YUV Formats</title>
- 
-       <para>Those data formats transfer pixel data as (possibly downsampled) Y, U
--      and V components. The format code is made of the following information.
-+      and V components. Some formats include dummy bits in some of their samples
-+      and are collectively referred to as "YDYC" (Y-Dummy-Y-Chroma) formats.
-+      One cannot rely on the values of these dummy bits as those are undefined.
+@@ -2565,5 +2565,50 @@
+ 	</tgroup>
+       </table>
+     </section>
++
++    <section id="v4l2-mbus-vendor-spec-fmts">
++      <title>Vendor and Device Specific Formats</title>
++
++      <note>
++	<title> Experimental </title>
++	<para>This is an <link linkend="experimental">experimental</link>
++interface and may change in the future.</para>
++      </note>
++
++      <para> This section lists complex data formats that are either vendor or
++	device specific. These formats comprise raw and compressed image data
++	and optional meta-data within a single frame.
 +      </para>
-+      <para>The format code is made of the following information.
-       <itemizedlist>
- 	<listitem><para>The Y, U and V components order code, as transferred on the
--	bus. Possible values are YUYV, UYVY, YVYU and VYUY.</para></listitem>
-+	bus. Possible values are YUYV, UYVY, YVYU and VYUY for formats with no
-+	dummy bit, and YDYUYDYV, YDYVYDYU, YUYDYVYD and YVYDYUYD for YDYC formats.
-+	</para></listitem>
- 	<listitem><para>The number of bits per pixel component. All components are
- 	transferred on the same number of bits. Common values are 8, 10 and 12.</para>
- 	</listitem>
-@@ -877,7 +951,21 @@
-       U, Y, V, Y order will be named <constant>V4L2_MBUS_FMT_UYVY8_2X8</constant>.
-       </para>
- 
--      <para>The following table lisst existing packet YUV formats.</para>
-+	<para><xref linkend="v4l2-mbus-pixelcode-yuv8"/> list existing packet YUV
-+	formats and describes the organization of each pixel data in each sample.
-+	When a format pattern is split across multiple samples each of the samples
-+	in the pattern is described.</para>
 +
-+	<para>The role of each bit transferred over the bus is identified by one
-+	of the following codes.</para>
++      <para>The following table lists the existing vendor and device specific
++	formats.</para>
 +
-+	<itemizedlist>
-+	   <listitem><para>y<subscript>x</subscript> for luma component bit number x</para></listitem>
-+	   <listitem><para>u<subscript>x</subscript> for blue chroma component bit number x</para></listitem>
-+	   <listitem><para>v<subscript>x</subscript> for red chroma component bit number x</para></listitem>
-+	   <listitem><para>- for non-available bits (for positions higher than the bus width)</para></listitem>
-+	   <listitem><para>d for dummy bits</para></listitem>
-+	</itemizedlist>
- 
-       <table pgwide="0" frame="none" id="v4l2-mbus-pixelcode-yuv8">
- 	<title>YUV Formats</title>
-@@ -965,6 +1053,56 @@
- 	      <entry>y<subscript>1</subscript></entry>
- 	      <entry>y<subscript>0</subscript></entry>
- 	    </row>
-+	    <row id="V4L2-MBUS-FMT-UV8-1X8">
-+	      <entry>V4L2_MBUS_FMT_UV8_1X8</entry>
-+	      <entry>0x2015</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	    </row>
++      <table pgwide="0" frame="none" id="v4l2-mbus-pixelcode-vendor-specific">
++	<title>Vendor and device specific formats</title>
++	<tgroup cols="3">
++	  <colspec colname="id" align="left" />
++	  <colspec colname="code" align="left"/>
++	  <colspec colname="remarks" align="left"/>
++	  <thead>
 +	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
++	      <entry>Identifier</entry>
++	      <entry>Code</entry>
++	      <entry>Comments</entry>
 +	    </row>
- 	    <row id="V4L2-MBUS-FMT-UYVY8-1_5X8">
- 	      <entry>V4L2_MBUS_FMT_UYVY8_1_5X8</entry>
- 	      <entry>0x2002</entry>
-@@ -2415,6 +2553,106 @@
- 	      <entry>u<subscript>1</subscript></entry>
- 	      <entry>u<subscript>0</subscript></entry>
- 	    </row>
-+	    <row id="V4L2-MBUS-FMT-YDYUYDYV8-1X16">
-+	      <entry>V4L2_MBUS_FMT_YDYUYDYV8_1X16</entry>
-+	      <entry>0x2014</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
++	  </thead>
++	  <tbody valign="top">
++	    <row id="V4L2-MBUS-FMT-S5C-UYVY-JPG-1X8">
++	      <entry>V4L2_MBUS_FMT_S5C_UYVY_JPG_1X8</entry>
++	      <entry>0x8001</entry>
++	      <entry>
++		Interleaved raw UYVY and JPEG image format with embedded
++		meta-data, produced by S3C73M3 camera sensors.
++	      </entry>
 +	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	    </row>
- 	    <row id="V4L2-MBUS-FMT-YUYV10-1X20">
- 	      <entry>V4L2_MBUS_FMT_YUYV10_1X20</entry>
- 	      <entry>0x200d</entry>
++	  </tbody>
++	</tgroup>
++      </table>
++    </section>
++
+   </section>
+ </section>
 diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-index 5ea7f75..a871a4a 100644
+index 5ea7f75..b98c566 100644
 --- a/include/linux/v4l2-mediabus.h
 +++ b/include/linux/v4l2-mediabus.h
-@@ -47,8 +47,9 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_RGB565_2X8_BE = 0x1007,
- 	V4L2_MBUS_FMT_RGB565_2X8_LE = 0x1008,
+@@ -92,6 +92,11 @@ enum v4l2_mbus_pixelcode {
  
--	/* YUV (including grey) - next is 0x2014 */
-+	/* YUV (including grey) - next is 0x2016 */
- 	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
-+	V4L2_MBUS_FMT_UV8_1X8 = 0x2015,
- 	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
- 	V4L2_MBUS_FMT_VYUY8_1_5X8 = 0x2003,
- 	V4L2_MBUS_FMT_YUYV8_1_5X8 = 0x2004,
-@@ -65,14 +66,19 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_VYUY8_1X16 = 0x2010,
- 	V4L2_MBUS_FMT_YUYV8_1X16 = 0x2011,
- 	V4L2_MBUS_FMT_YVYU8_1X16 = 0x2012,
-+	V4L2_MBUS_FMT_YDYUYDYV8_1X16 = 0x2014,
- 	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
- 	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
+ 	/* JPEG compressed formats - next is 0x4002 */
+ 	V4L2_MBUS_FMT_JPEG_1X8 = 0x4001,
++
++	/* Vendor specific formats - next is 0x8002 */
++
++	/* S5C73M3 interleaved UYVY and JPEG */
++	V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8 = 0x8001,
+ };
  
--	/* Bayer - next is 0x3015 */
-+	/* Bayer - next is 0x3019 */
- 	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
- 	V4L2_MBUS_FMT_SGBRG8_1X8 = 0x3013,
- 	V4L2_MBUS_FMT_SGRBG8_1X8 = 0x3002,
- 	V4L2_MBUS_FMT_SRGGB8_1X8 = 0x3014,
-+	V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8 = 0x3015,
-+	V4L2_MBUS_FMT_SGBRG10_ALAW8_1X8 = 0x3016,
-+	V4L2_MBUS_FMT_SGRBG10_ALAW8_1X8 = 0x3017,
-+	V4L2_MBUS_FMT_SRGGB10_ALAW8_1X8 = 0x3018,
- 	V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8 = 0x300b,
- 	V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8 = 0x300c,
- 	V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 = 0x3009,
+ /**
 -- 
-1.7.0.4
+1.7.11.3
 
