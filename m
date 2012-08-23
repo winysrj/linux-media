@@ -1,45 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34872 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754742Ab2HERo7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Aug 2012 13:44:59 -0400
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q75HixjD015382
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 5 Aug 2012 13:44:59 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] [media] az6007: Update copyright
-Date: Sun,  5 Aug 2012 14:44:55 -0300
-Message-Id: <1344188695-9558-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:47914 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758852Ab2HWNJI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Aug 2012 09:09:08 -0400
+Received: by mail-yx0-f174.google.com with SMTP id l14so168915yen.19
+        for <linux-media@vger.kernel.org>; Thu, 23 Aug 2012 06:09:08 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	<linux-media@vger.kernel.org>
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH 06/10] mem2mem-deinterlace: Remove unneeded struct vb2_queue clear on queue_init()
+Date: Thu, 23 Aug 2012 10:08:27 -0300
+Message-Id: <1345727311-27478-6-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1345727311-27478-1-git-send-email-elezegarcia@gmail.com>
+References: <1345727311-27478-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update copyright comments after dvb-usb-v2 conversion.
+queue_init() is always called by v4l2_m2m_ctx_init(), which allocates
+a context struct v4l2_m2m_ctx with kzalloc.
+Therefore, there is no need to clear vb2_queue src/dst structs.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Javier Martin <javier.martin@vista-silicon.com>
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
 ---
- drivers/media/dvb/dvb-usb-v2/az6007.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/platform/m2m-deinterlace.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/dvb/dvb-usb-v2/az6007.c b/drivers/media/dvb/dvb-usb-v2/az6007.c
-index 420cb62..54f1221 100644
---- a/drivers/media/dvb/dvb-usb-v2/az6007.c
-+++ b/drivers/media/dvb/dvb-usb-v2/az6007.c
-@@ -7,9 +7,9 @@
-  *	http://linux.terratec.de/files/TERRATEC_H7/20110323_TERRATEC_H7_Linux.tar.gz
-  * The original driver's license is GPL, as declared with MODULE_LICENSE()
-  *
-- * Copyright (c) 2010-2011 Mauro Carvalho Chehab <mchehab@redhat.com>
-+ * Copyright (c) 2010-2012 Mauro Carvalho Chehab <mchehab@redhat.com>
-  *	Driver modified by in order to work with upstream drxk driver, and
-- *	tons of bugs got fixed.
-+ *	tons of bugs got fixed, and converted to use dvb-usb-v2.
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
+diff --git a/drivers/media/platform/m2m-deinterlace.c b/drivers/media/platform/m2m-deinterlace.c
+index a38c152..9afd930 100644
+--- a/drivers/media/platform/m2m-deinterlace.c
++++ b/drivers/media/platform/m2m-deinterlace.c
+@@ -861,7 +861,6 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	struct deinterlace_ctx *ctx = priv;
+ 	int ret;
+ 
+-	memset(src_vq, 0, sizeof(*src_vq));
+ 	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+ 	src_vq->io_modes = VB2_MMAP | VB2_USERPTR;
+ 	src_vq->drv_priv = ctx;
+@@ -878,7 +877,6 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	if (ret)
+ 		return ret;
+ 
+-	memset(dst_vq, 0, sizeof(*dst_vq));
+ 	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 	dst_vq->io_modes = VB2_MMAP | VB2_USERPTR;
+ 	dst_vq->drv_priv = ctx;
 -- 
-1.7.11.2
+1.7.8.6
 
