@@ -1,440 +1,401 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([93.97.41.153]:47018 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751539Ab2HMM74 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Aug 2012 08:59:56 -0400
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Stefan Macher <st_maker-lirc@yahoo.de>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 12/13] [staging] lirc: remove lirc_ttusbir driver
-Date: Mon, 13 Aug 2012 13:59:50 +0100
-Message-Id: <1344862791-30352-12-git-send-email-sean@mess.org>
-In-Reply-To: <1344862791-30352-1-git-send-email-sean@mess.org>
-References: <1344862791-30352-1-git-send-email-sean@mess.org>
+Received: from mailout1.samsung.com ([203.254.224.24]:19599 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933719Ab2HWJwZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Aug 2012 05:52:25 -0400
+Received: from epcpsbgm1.samsung.com (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M9700EG3CQH07Z0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 23 Aug 2012 18:52:23 +0900 (KST)
+Received: from amdc248.digital.local ([106.116.147.32])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0M9700GHMCQHII60@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 23 Aug 2012 18:52:23 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	sakari.ailus@iki.fi, g.liakhovetski@gmx.de,
+	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC 4/4] s5p-fimc: Add support for V4L2_PIX_FMT_S5C_UYVY_JPG
+ fourcc
+Date: Thu, 23 Aug 2012 11:51:29 +0200
+Message-id: <1345715489-30158-5-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1345715489-30158-1-git-send-email-s.nawrocki@samsung.com>
+References: <1345715489-30158-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This has been replaced by the ttusbir driver.
+This patch adds support for the interleaved JPEG/UYVY
+V4L2_PIX_FMT_S5C_UYVY_JPG image format.
 
-Signed-off-by: Sean Young <sean@mess.org>
+To ensure the size of allocated buffers is correct for a subdev
+configuration during VIDIOC_STREAMON ioctl, an additional check
+is added the video at the data pipeline validation routine.
+
+Flag FMT_FLAGS_COMPRESSED indicates the buffer size must be
+retrieved from a sensor subdev, by means of V4L2_CID_FRAMESIZE
+control.
+
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/staging/media/lirc/Kconfig        |   6 -
- drivers/staging/media/lirc/Makefile       |   1 -
- drivers/staging/media/lirc/lirc_ttusbir.c | 376 ------------------------------
- 3 files changed, 383 deletions(-)
- delete mode 100644 drivers/staging/media/lirc/lirc_ttusbir.c
+ drivers/media/platform/s5p-fimc/fimc-capture.c | 86 ++++++++++++++++++++------
+ drivers/media/platform/s5p-fimc/fimc-core.c    | 16 ++++-
+ drivers/media/platform/s5p-fimc/fimc-core.h    | 26 ++++++--
+ drivers/media/platform/s5p-fimc/fimc-reg.c     |  3 +-
+ drivers/media/platform/s5p-fimc/mipi-csis.c    |  6 +-
+ 5 files changed, 111 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/staging/media/lirc/Kconfig b/drivers/staging/media/lirc/Kconfig
-index 526ec0f..e60a59f 100644
---- a/drivers/staging/media/lirc/Kconfig
-+++ b/drivers/staging/media/lirc/Kconfig
-@@ -63,12 +63,6 @@ config LIRC_SIR
- 	help
- 	  Driver for the SIR IrDA port
+diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c b/drivers/media/platform/s5p-fimc/fimc-capture.c
+index 8e413dd..ab062f3 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-capture.c
++++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
+@@ -349,6 +349,8 @@ static int queue_setup(struct vb2_queue *vq, const struct v4l2_format *pfmt,
+ 		unsigned int size = (wh * fmt->depth[i]) / 8;
+ 		if (pixm)
+ 			sizes[i] = max(size, pixm->plane_fmt[i].sizeimage);
++		else if (fimc_fmt_is_user_defined(fmt->color))
++			sizes[i] = frame->payload[i];
+ 		else
+ 			sizes[i] = max_t(u32, size, frame->payload[i]);
  
--config LIRC_TTUSBIR
--	tristate "Technotrend USB IR Receiver"
--	depends on LIRC && USB
--	help
--	  Driver for the Technotrend USB IR Receiver
+@@ -608,10 +610,10 @@ static struct fimc_fmt *fimc_capture_try_format(struct fimc_ctx *ctx,
+ 	u32 mask = FMT_FLAGS_CAM;
+ 	struct fimc_fmt *ffmt;
+ 
+-	/* Color conversion from/to JPEG is not supported */
++	/* Conversion from/to JPEG or User Defined format is not supported */
+ 	if (code && ctx->s_frame.fmt && pad == FIMC_SD_PAD_SOURCE &&
+-	    fimc_fmt_is_jpeg(ctx->s_frame.fmt->color))
+-		*code = V4L2_MBUS_FMT_JPEG_1X8;
++	    fimc_fmt_is_user_defined(ctx->s_frame.fmt->color))
++		*code = ctx->s_frame.fmt->mbus_code;
+ 
+ 	if (fourcc && *fourcc != V4L2_PIX_FMT_JPEG && pad != FIMC_SD_PAD_SINK)
+ 		mask |= FMT_FLAGS_M2M;
+@@ -625,18 +627,19 @@ static struct fimc_fmt *fimc_capture_try_format(struct fimc_ctx *ctx,
+ 		*fourcc = ffmt->fourcc;
+ 
+ 	if (pad == FIMC_SD_PAD_SINK) {
+-		max_w = fimc_fmt_is_jpeg(ffmt->color) ?
++		max_w = fimc_fmt_is_user_defined(ffmt->color) ?
+ 			pl->scaler_dis_w : pl->scaler_en_w;
+ 		/* Apply the camera input interface pixel constraints */
+ 		v4l_bound_align_image(width, max_t(u32, *width, 32), max_w, 4,
+ 				      height, max_t(u32, *height, 32),
+ 				      FIMC_CAMIF_MAX_HEIGHT,
+-				      fimc_fmt_is_jpeg(ffmt->color) ? 3 : 1,
++				      fimc_fmt_is_user_defined(ffmt->color) ?
++				      3 : 1,
+ 				      0);
+ 		return ffmt;
+ 	}
+ 	/* Can't scale or crop in transparent (JPEG) transfer mode */
+-	if (fimc_fmt_is_jpeg(ffmt->color)) {
++	if (fimc_fmt_is_user_defined(ffmt->color)) {
+ 		*width  = ctx->s_frame.f_width;
+ 		*height = ctx->s_frame.f_height;
+ 		return ffmt;
+@@ -681,7 +684,7 @@ static void fimc_capture_try_selection(struct fimc_ctx *ctx,
+ 	u32 max_sc_h, max_sc_v;
+ 
+ 	/* In JPEG transparent transfer mode cropping is not supported */
+-	if (fimc_fmt_is_jpeg(ctx->d_frame.fmt->color)) {
++	if (fimc_fmt_is_user_defined(ctx->d_frame.fmt->color)) {
+ 		r->width  = sink->f_width;
+ 		r->height = sink->f_height;
+ 		r->left   = r->top = 0;
+@@ -844,6 +847,23 @@ static int fimc_pipeline_try_format(struct fimc_ctx *ctx,
+ 	return 0;
+ }
+ 
++static int get_sensor_frame_size(struct v4l2_subdev *sensor, __u32 *size)
++{
++	struct v4l2_ctrl *ctrl;
++
++	ctrl = v4l2_ctrl_find(sensor->ctrl_handler, V4L2_CID_FRAMESIZE);
++	if (ctrl == NULL)
++		return -ENXIO;
++
++	*size = v4l2_ctrl_g_ctrl(ctrl);
++
++	if (*size <= FIMC_MAX_JPEG_BUF_SIZE)
++		return 0;
++
++	v4l2_err(sensor->v4l2_dev, "Unsupported buffer size: %u\n", *size);
++	return -EINVAL;
++}
++
+ static int fimc_cap_g_fmt_mplane(struct file *file, void *fh,
+ 				 struct v4l2_format *f)
+ {
+@@ -862,7 +882,7 @@ static int fimc_cap_try_fmt_mplane(struct file *file, void *fh,
+ 	struct v4l2_mbus_framefmt mf;
+ 	struct fimc_fmt *ffmt = NULL;
+ 
+-	if (pix->pixelformat == V4L2_PIX_FMT_JPEG) {
++	if (fimc_jpeg_fourcc(pix->pixelformat)) {
+ 		fimc_capture_try_format(ctx, &pix->width, &pix->height,
+ 					NULL, &pix->pixelformat,
+ 					FIMC_SD_PAD_SINK);
+@@ -876,25 +896,32 @@ static int fimc_cap_try_fmt_mplane(struct file *file, void *fh,
+ 		return -EINVAL;
+ 
+ 	if (!fimc->vid_cap.user_subdev_api) {
+-		mf.width  = pix->width;
++		mf.width = pix->width;
+ 		mf.height = pix->height;
+-		mf.code   = ffmt->mbus_code;
++		mf.code = ffmt->mbus_code;
+ 		fimc_md_graph_lock(fimc);
+ 		fimc_pipeline_try_format(ctx, &mf, &ffmt, false);
+ 		fimc_md_graph_unlock(fimc);
 -
- config LIRC_ZILOG
- 	tristate "Zilog/Hauppauge IR Transmitter"
- 	depends on LIRC && I2C
-diff --git a/drivers/staging/media/lirc/Makefile b/drivers/staging/media/lirc/Makefile
-index d76b0fa..b90fcab 100644
---- a/drivers/staging/media/lirc/Makefile
-+++ b/drivers/staging/media/lirc/Makefile
-@@ -10,5 +10,4 @@ obj-$(CONFIG_LIRC_PARALLEL)	+= lirc_parallel.o
- obj-$(CONFIG_LIRC_SASEM)	+= lirc_sasem.o
- obj-$(CONFIG_LIRC_SERIAL)	+= lirc_serial.o
- obj-$(CONFIG_LIRC_SIR)		+= lirc_sir.o
--obj-$(CONFIG_LIRC_TTUSBIR)	+= lirc_ttusbir.o
- obj-$(CONFIG_LIRC_ZILOG)	+= lirc_zilog.o
-diff --git a/drivers/staging/media/lirc/lirc_ttusbir.c b/drivers/staging/media/lirc/lirc_ttusbir.c
-deleted file mode 100644
-index 3bb865c..0000000
---- a/drivers/staging/media/lirc/lirc_ttusbir.c
-+++ /dev/null
-@@ -1,376 +0,0 @@
--/*
-- * lirc_ttusbir.c
-- *
-- * lirc_ttusbir - LIRC device driver for the TechnoTrend USB IR Receiver
-- *
-- * Copyright (C) 2007 Stefan Macher <st_maker-lirc@yahoo.de>
-- *
-- * This LIRC driver provides access to the TechnoTrend USB IR Receiver.
-- * The receiver delivers the IR signal as raw sampled true/false data in
-- * isochronous USB packets each of size 128 byte.
-- * Currently the driver reduces the sampling rate by factor of 8 as this
-- * is still more than enough to decode RC-5 - others should be analyzed.
-- * But the driver does not rely on RC-5 it should be able to decode every
-- * IR signal that is not too fast.
-- */
--
--/*
-- *  This program is free software; you can redistribute it and/or modify
-- *  it under the terms of the GNU General Public License as published by
-- *  the Free Software Foundation; either version 2 of the License, or
-- *  (at your option) any later version.
-- *
-- *  This program is distributed in the hope that it will be useful,
-- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- *  GNU General Public License for more details.
-- *
-- *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-- */
--
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/module.h>
--#include <linux/errno.h>
--#include <linux/slab.h>
--#include <linux/usb.h>
--
--#include <media/lirc.h>
--#include <media/lirc_dev.h>
--
--MODULE_DESCRIPTION("TechnoTrend USB IR device driver for LIRC");
--MODULE_AUTHOR("Stefan Macher (st_maker-lirc@yahoo.de)");
--MODULE_LICENSE("GPL");
--
--/* #define DEBUG */
--#ifdef DEBUG
--#define DPRINTK printk
--#else
--#define DPRINTK(_x_, a...)
--#endif
--
--/* function declarations */
--static int probe(struct usb_interface *intf, const struct usb_device_id *id);
--static void disconnect(struct usb_interface *intf);
--static void urb_complete(struct urb *urb);
--static int set_use_inc(void *data);
--static void set_use_dec(void *data);
--
--static int num_urbs = 2;
--module_param(num_urbs, int, S_IRUGO);
--MODULE_PARM_DESC(num_urbs,
--		 "Number of URBs in queue. Try to increase to 4 in case "
--		 "of problems (default: 2; minimum: 2)");
--
--/* table of devices that work with this driver */
--static struct usb_device_id device_id_table[] = {
--	/* TechnoTrend USB IR Receiver */
--	{ USB_DEVICE(0x0B48, 0x2003) },
--	/* Terminating entry */
--	{ }
--};
--MODULE_DEVICE_TABLE(usb, device_id_table);
--
--/* USB driver definition */
--static struct usb_driver usb_driver = {
--	.name = "TTUSBIR",
--	.id_table = &(device_id_table[0]),
--	.probe = probe,
--	.disconnect = disconnect,
--};
--
--/* USB device definition */
--struct ttusbir_device {
--	struct usb_driver *usb_driver;
--	struct usb_device *udev;
--	struct usb_interface *interf;
--	struct usb_class_driver class_driver;
--	unsigned int ifnum; /* Interface number to use */
--	unsigned int alt_setting; /* alternate setting to use */
--	unsigned int endpoint; /* Endpoint to use */
--	struct urb **urb; /* num_urb URB pointers*/
--	char **buffer; /* 128 byte buffer for each URB */
--	struct lirc_buffer rbuf; /* Buffer towards LIRC */
--	struct lirc_driver driver;
--	int minor;
--	int last_pulse; /* remembers if last received byte was pulse or space */
--	int last_num; /* remembers how many last bytes appeared */
--	int opened;
--};
--
--/*** LIRC specific functions ***/
--static int set_use_inc(void *data)
--{
--	int i, retval;
--	struct ttusbir_device *ttusbir = data;
--
--	DPRINTK("Sending first URBs\n");
--	/* @TODO Do I need to check if I am already opened */
--	ttusbir->opened = 1;
--
--	for (i = 0; i < num_urbs; i++) {
--		retval = usb_submit_urb(ttusbir->urb[i], GFP_KERNEL);
--		if (retval) {
--			dev_err(&ttusbir->interf->dev,
--				"%s: usb_submit_urb failed on urb %d\n",
--				__func__, i);
--			return retval;
--		}
--	}
--	return 0;
--}
--
--static void set_use_dec(void *data)
--{
--	struct ttusbir_device *ttusbir = data;
--
--	DPRINTK("Device closed\n");
--
--	ttusbir->opened = 0;
--}
--
--/*** USB specific functions ***/
--
--/*
-- * This mapping table is used to do a very simple filtering of the
-- * input signal.
-- * For a value with at least 4 bits set it returns 0xFF otherwise
-- * 0x00.  For faster IR signals this can not be used. But for RC-5 we
-- * still have about 14 samples per pulse/space, i.e. we sample with 14
-- * times higher frequency than the signal frequency
-- */
--const unsigned char map_table[] = {
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
--	0x00, 0x00, 0x00, 0xFF, 0x00, 0xFF, 0xFF, 0xFF,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
--	0x00, 0x00, 0x00, 0xFF, 0x00, 0xFF, 0xFF, 0xFF,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
--	0x00, 0x00, 0x00, 0xFF, 0x00, 0xFF, 0xFF, 0xFF,
--	0x00, 0x00, 0x00, 0xFF, 0x00, 0xFF, 0xFF, 0xFF,
--	0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
--	0x00, 0x00, 0x00, 0xFF, 0x00, 0xFF, 0xFF, 0xFF,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
--	0x00, 0x00, 0x00, 0xFF, 0x00, 0xFF, 0xFF, 0xFF,
--	0x00, 0x00, 0x00, 0xFF, 0x00, 0xFF, 0xFF, 0xFF,
--	0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
--	0x00, 0x00, 0x00, 0xFF, 0x00, 0xFF, 0xFF, 0xFF,
--	0x00, 0x00, 0x00, 0xFF, 0x00, 0xFF, 0xFF, 0xFF,
--	0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
--	0x00, 0x00, 0x00, 0xFF, 0x00, 0xFF, 0xFF, 0xFF,
--	0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
--	0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
--	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
--};
--
--static void urb_complete(struct urb *urb)
--{
--	struct ttusbir_device *ttusbir;
--	unsigned char *buf;
--	int i;
--	int l;
--
--	ttusbir = urb->context;
--
--	if (!ttusbir->opened)
--		return;
--
--	buf = (unsigned char *)urb->transfer_buffer;
--
--	for (i = 0; i < 128; i++) {
--		/* Here we do the filtering and some kind of down sampling */
--		buf[i] = ~map_table[buf[i]];
--		if (ttusbir->last_pulse == buf[i]) {
--			if (ttusbir->last_num < PULSE_MASK/63)
--				ttusbir->last_num++;
--		/*
--		 * else we are in a idle period and do not need to
--		 * increment any longer
--		 */
--		} else {
--			l = ttusbir->last_num * 62; /* about 62 = us/byte */
--			if (ttusbir->last_pulse) /* pulse or space? */
--				l |= PULSE_BIT;
--			if (!lirc_buffer_full(&ttusbir->rbuf)) {
--				lirc_buffer_write(&ttusbir->rbuf, (void *)&l);
--				wake_up_interruptible(&ttusbir->rbuf.wait_poll);
--			}
--			ttusbir->last_num = 0;
--			ttusbir->last_pulse = buf[i];
--		}
--	}
--	usb_submit_urb(urb, GFP_ATOMIC); /* keep data rolling :-) */
--}
--
--/*
-- * Called whenever the USB subsystem thinks we could be the right driver
-- * to handle this device
-- */
--static int probe(struct usb_interface *intf, const struct usb_device_id *id)
--{
--	int alt_set, endp;
--	int found = 0;
--	int i, j;
--	int struct_size;
--	struct usb_host_interface *host_interf;
--	struct usb_interface_descriptor *interf_desc;
--	struct usb_host_endpoint *host_endpoint;
--	struct ttusbir_device *ttusbir;
--
--	DPRINTK("Module ttusbir probe\n");
--
--	/* To reduce memory fragmentation we use only one allocation */
--	struct_size =  sizeof(struct ttusbir_device) +
--		(sizeof(struct urb *) * num_urbs) +
--		(sizeof(char *) * num_urbs) +
--		(num_urbs * 128);
--	ttusbir = kzalloc(struct_size, GFP_KERNEL);
--	if (!ttusbir)
--		return -ENOMEM;
--
--	ttusbir->urb = (struct urb **)((char *)ttusbir +
--				      sizeof(struct ttusbir_device));
--	ttusbir->buffer = (char **)((char *)ttusbir->urb +
--				   (sizeof(struct urb *) * num_urbs));
--	for (i = 0; i < num_urbs; i++)
--		ttusbir->buffer[i] = (char *)ttusbir->buffer +
--			(sizeof(char *)*num_urbs) + (i * 128);
--
--	ttusbir->usb_driver = &usb_driver;
--	ttusbir->alt_setting = -1;
--	/* @TODO check if error can be returned */
--	ttusbir->udev = usb_get_dev(interface_to_usbdev(intf));
--	ttusbir->interf = intf;
--	ttusbir->last_pulse = 0x00;
--	ttusbir->last_num = 0;
--
--	/*
--	 * Now look for interface setting we can handle
--	 * We are searching for the alt setting where end point
--	 * 0x82 has max packet size 16
--	 */
--	for (alt_set = 0; alt_set < intf->num_altsetting && !found; alt_set++) {
--		host_interf = &intf->altsetting[alt_set];
--		interf_desc = &host_interf->desc;
--		for (endp = 0; endp < interf_desc->bNumEndpoints; endp++) {
--			host_endpoint = &host_interf->endpoint[endp];
--			if ((host_endpoint->desc.bEndpointAddress == 0x82) &&
--			    (host_endpoint->desc.wMaxPacketSize == 0x10)) {
--				ttusbir->alt_setting = alt_set;
--				ttusbir->endpoint = endp;
--				found = 1;
--				break;
--			}
--		}
--	}
--	if (ttusbir->alt_setting != -1)
--		DPRINTK("alt setting: %d\n", ttusbir->alt_setting);
--	else {
--		dev_err(&intf->dev, "Could not find alternate setting\n");
--		kfree(ttusbir);
--		return -EINVAL;
--	}
--
--	/* OK lets setup this interface setting */
--	usb_set_interface(ttusbir->udev, 0, ttusbir->alt_setting);
--
--	/* Store device info in interface structure */
--	usb_set_intfdata(intf, ttusbir);
--
--	/* Register as a LIRC driver */
--	if (lirc_buffer_init(&ttusbir->rbuf, sizeof(int), 256) < 0) {
--		dev_err(&intf->dev, "Could not get memory for LIRC data buffer\n");
--		usb_set_intfdata(intf, NULL);
--		kfree(ttusbir);
--		return -ENOMEM;
--	}
--	strcpy(ttusbir->driver.name, "TTUSBIR");
--	ttusbir->driver.minor = -1;
--	ttusbir->driver.code_length = 1;
--	ttusbir->driver.sample_rate = 0;
--	ttusbir->driver.data = ttusbir;
--	ttusbir->driver.add_to_buf = NULL;
--	ttusbir->driver.rbuf = &ttusbir->rbuf;
--	ttusbir->driver.set_use_inc = set_use_inc;
--	ttusbir->driver.set_use_dec = set_use_dec;
--	ttusbir->driver.dev = &intf->dev;
--	ttusbir->driver.owner = THIS_MODULE;
--	ttusbir->driver.features = LIRC_CAN_REC_MODE2;
--	ttusbir->minor = lirc_register_driver(&ttusbir->driver);
--	if (ttusbir->minor < 0) {
--		dev_err(&intf->dev, "Error registering as LIRC driver\n");
--		usb_set_intfdata(intf, NULL);
--		lirc_buffer_free(&ttusbir->rbuf);
--		kfree(ttusbir);
--		return -EIO;
--	}
--
--	/* Allocate and setup the URB that we will use to talk to the device */
--	for (i = 0; i < num_urbs; i++) {
--		ttusbir->urb[i] = usb_alloc_urb(8, GFP_KERNEL);
--		if (!ttusbir->urb[i]) {
--			dev_err(&intf->dev, "Could not allocate memory for the URB\n");
--			for (j = i - 1; j >= 0; j--)
--				kfree(ttusbir->urb[j]);
--			lirc_buffer_free(&ttusbir->rbuf);
--			lirc_unregister_driver(ttusbir->minor);
--			kfree(ttusbir);
--			usb_set_intfdata(intf, NULL);
--			return -ENOMEM;
--		}
--		ttusbir->urb[i]->dev = ttusbir->udev;
--		ttusbir->urb[i]->context = ttusbir;
--		ttusbir->urb[i]->pipe = usb_rcvisocpipe(ttusbir->udev,
--							ttusbir->endpoint);
--		ttusbir->urb[i]->interval = 1;
--		ttusbir->urb[i]->transfer_flags = URB_ISO_ASAP;
--		ttusbir->urb[i]->transfer_buffer = &ttusbir->buffer[i][0];
--		ttusbir->urb[i]->complete = urb_complete;
--		ttusbir->urb[i]->number_of_packets = 8;
--		ttusbir->urb[i]->transfer_buffer_length = 128;
--		for (j = 0; j < 8; j++) {
--			ttusbir->urb[i]->iso_frame_desc[j].offset = j*16;
--			ttusbir->urb[i]->iso_frame_desc[j].length = 16;
--		}
--	}
--	return 0;
--}
--
--/**
-- * Called when the driver is unloaded or the device is unplugged
-- */
--static void disconnect(struct usb_interface *intf)
--{
--	int i;
--	struct ttusbir_device *ttusbir;
--
--	DPRINTK("Module ttusbir disconnect\n");
--
--	ttusbir = (struct ttusbir_device *) usb_get_intfdata(intf);
--	usb_set_intfdata(intf, NULL);
--	lirc_unregister_driver(ttusbir->minor);
--	DPRINTK("unregistered\n");
--
--	for (i = 0; i < num_urbs; i++) {
--		usb_kill_urb(ttusbir->urb[i]);
--		usb_free_urb(ttusbir->urb[i]);
--	}
--	DPRINTK("URBs killed\n");
--	lirc_buffer_free(&ttusbir->rbuf);
--	kfree(ttusbir);
--}
--
--module_usb_driver(usb_driver);
+-		pix->width	 = mf.width;
+-		pix->height	 = mf.height;
++		pix->width = mf.width;
++		pix->height = mf.height;
+ 		if (ffmt)
+ 			pix->pixelformat = ffmt->fourcc;
+ 	}
+ 
+ 	fimc_adjust_mplane_format(ffmt, pix->width, pix->height, pix);
++
++	if (ffmt->flags & FMT_FLAGS_COMPRESSED)
++		get_sensor_frame_size(fimc->pipeline.subdevs[IDX_SENSOR],
++				      &pix->plane_fmt[0].sizeimage);
++
+ 	return 0;
+ }
+ 
+-static void fimc_capture_mark_jpeg_xfer(struct fimc_ctx *ctx, bool jpeg)
++static void fimc_capture_mark_jpeg_xfer(struct fimc_ctx *ctx,
++					enum fimc_color_fmt color)
+ {
++	bool jpeg = fimc_fmt_is_user_defined(color);
++
+ 	ctx->scaler.enabled = !jpeg;
+ 	fimc_ctrls_activate(ctx, !jpeg);
+ 
+@@ -917,7 +944,7 @@ static int fimc_capture_set_format(struct fimc_dev *fimc, struct v4l2_format *f)
+ 		return -EBUSY;
+ 
+ 	/* Pre-configure format at camera interface input, for JPEG only */
+-	if (pix->pixelformat == V4L2_PIX_FMT_JPEG) {
++	if (fimc_jpeg_fourcc(pix->pixelformat)) {
+ 		fimc_capture_try_format(ctx, &pix->width, &pix->height,
+ 					NULL, &pix->pixelformat,
+ 					FIMC_SD_PAD_SINK);
+@@ -950,7 +977,15 @@ static int fimc_capture_set_format(struct fimc_dev *fimc, struct v4l2_format *f)
+ 	}
+ 
+ 	fimc_adjust_mplane_format(ff->fmt, pix->width, pix->height, pix);
+-	for (i = 0; i < ff->fmt->colplanes; i++)
++
++	if (ff->fmt->flags & FMT_FLAGS_COMPRESSED) {
++		ret = get_sensor_frame_size(fimc->pipeline.subdevs[IDX_SENSOR],
++					    &pix->plane_fmt[0].sizeimage);
++		if (ret < 0)
++			return ret;
++	}
++
++	for (i = 0; i < ff->fmt->memplanes; i++)
+ 		ff->payload[i] = pix->plane_fmt[i].sizeimage;
+ 
+ 	set_frame_bounds(ff, pix->width, pix->height);
+@@ -958,7 +993,7 @@ static int fimc_capture_set_format(struct fimc_dev *fimc, struct v4l2_format *f)
+ 	if (!(ctx->state & FIMC_COMPOSE))
+ 		set_frame_crop(ff, 0, 0, pix->width, pix->height);
+ 
+-	fimc_capture_mark_jpeg_xfer(ctx, fimc_fmt_is_jpeg(ff->fmt->color));
++	fimc_capture_mark_jpeg_xfer(ctx, ff->fmt->color);
+ 
+ 	/* Reset cropping and set format at the camera interface input */
+ 	if (!fimc->vid_cap.user_subdev_api) {
+@@ -1060,6 +1095,21 @@ static int fimc_pipeline_validate(struct fimc_dev *fimc)
+ 		    src_fmt.format.height != sink_fmt.format.height ||
+ 		    src_fmt.format.code != sink_fmt.format.code)
+ 			return -EPIPE;
++
++		if (sd == fimc->pipeline.subdevs[IDX_SENSOR] &&
++		    fimc_user_defined_mbus_fmt(src_fmt.format.code)) {
++			struct v4l2_plane_pix_format plane_fmt[FIMC_MAX_PLANES];
++			struct fimc_frame *frame = &vid_cap->ctx->d_frame;
++			unsigned int i;
++
++			ret = get_sensor_frame_size(sd, &plane_fmt[0].sizeimage);
++			if (ret < 0)
++				return -EPIPE;
++			for (i = 0; i < frame->fmt->memplanes; i++) {
++				if (frame->payload[i] < plane_fmt[i].sizeimage)
++					return -EPIPE;
++			}
++		}
+ 	}
+ 	return 0;
+ }
+@@ -1421,7 +1471,7 @@ static int fimc_subdev_set_fmt(struct v4l2_subdev *sd,
+ 	/* Update RGB Alpha control state and value range */
+ 	fimc_alpha_ctrl_update(ctx);
+ 
+-	fimc_capture_mark_jpeg_xfer(ctx, fimc_fmt_is_jpeg(ffmt->color));
++	fimc_capture_mark_jpeg_xfer(ctx, ffmt->color);
+ 
+ 	ff = fmt->pad == FIMC_SD_PAD_SINK ?
+ 		&ctx->s_frame : &ctx->d_frame;
+diff --git a/drivers/media/platform/s5p-fimc/fimc-core.c b/drivers/media/platform/s5p-fimc/fimc-core.c
+index 1a44540..b3249b1 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-core.c
++++ b/drivers/media/platform/s5p-fimc/fimc-core.c
+@@ -184,7 +184,16 @@ static struct fimc_fmt fimc_formats[] = {
+ 		.memplanes	= 1,
+ 		.colplanes	= 1,
+ 		.mbus_code	= V4L2_MBUS_FMT_JPEG_1X8,
+-		.flags		= FMT_FLAGS_CAM,
++		.flags		= FMT_FLAGS_CAM | FMT_FLAGS_COMPRESSED,
++	}, {
++		.name		= "S5C73MX interleaved JPEG/YUYV",
++		.fourcc		= V4L2_PIX_FMT_S5C_UYVY_JPG,
++		.color		= FIMC_FMT_UYVY_JPEG,
++		.depth		= { 8 },
++		.memplanes	= 1,
++		.colplanes	= 1,
++		.mbus_code	= V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8,
++		.flags		= FMT_FLAGS_CAM | FMT_FLAGS_COMPRESSED,
+ 	},
+ };
+ 
+@@ -698,6 +707,11 @@ int fimc_fill_format(struct fimc_frame *frame, struct v4l2_format *f)
+ 		if (frame->fmt->colplanes == 1) /* packed formats */
+ 			bpl = (bpl * frame->fmt->depth[0]) / 8;
+ 		pixm->plane_fmt[i].bytesperline = bpl;
++
++		if (frame->fmt->flags & FMT_FLAGS_COMPRESSED) {
++			pixm->plane_fmt[i].sizeimage = frame->payload[i];
++			continue;
++		}
+ 		pixm->plane_fmt[i].sizeimage = (frame->o_width *
+ 			frame->o_height * frame->fmt->depth[i]) / 8;
+ 	}
+diff --git a/drivers/media/platform/s5p-fimc/fimc-core.h b/drivers/media/platform/s5p-fimc/fimc-core.h
+index 808ccc6..8e1a9e8 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-core.h
++++ b/drivers/media/platform/s5p-fimc/fimc-core.h
+@@ -40,6 +40,8 @@
+ #define SCALER_MAX_VRATIO	64
+ #define DMA_MIN_SIZE		8
+ #define FIMC_CAMIF_MAX_HEIGHT	0x2000
++#define FIMC_MAX_JPEG_BUF_SIZE	SZ_8M
++#define FIMC_MAX_PLANES		3
+ 
+ /* indices to the clocks array */
+ enum {
+@@ -83,7 +85,7 @@ enum fimc_datapath {
+ };
+ 
+ enum fimc_color_fmt {
+-	FIMC_FMT_RGB444 = 0x10,
++	FIMC_FMT_RGB444	= 0x10,
+ 	FIMC_FMT_RGB555,
+ 	FIMC_FMT_RGB565,
+ 	FIMC_FMT_RGB666,
+@@ -95,14 +97,15 @@ enum fimc_color_fmt {
+ 	FIMC_FMT_CBYCRY422,
+ 	FIMC_FMT_CRYCBY422,
+ 	FIMC_FMT_YCBCR444_LOCAL,
+-	FIMC_FMT_JPEG = 0x40,
+-	FIMC_FMT_RAW8 = 0x80,
++	FIMC_FMT_RAW8 = 0x40,
+ 	FIMC_FMT_RAW10,
+ 	FIMC_FMT_RAW12,
++	FIMC_FMT_JPEG = 0x80,
++	FIMC_FMT_UYVY_JPEG = 0x100,
+ };
+ 
++#define fimc_fmt_is_user_defined(x) (!!((x) & 0x180))
+ #define fimc_fmt_is_rgb(x) (!!((x) & 0x10))
+-#define fimc_fmt_is_jpeg(x) (!!((x) & 0x40))
+ 
+ #define IS_M2M(__strt) ((__strt) == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE || \
+ 			__strt == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+@@ -155,6 +158,7 @@ struct fimc_fmt {
+ #define FMT_FLAGS_M2M_OUT	(1 << 2)
+ #define FMT_FLAGS_M2M		(1 << 1 | 1 << 2)
+ #define FMT_HAS_ALPHA		(1 << 3)
++#define FMT_FLAGS_COMPRESSED	(1 << 4)
+ };
+ 
+ /**
+@@ -272,7 +276,7 @@ struct fimc_frame {
+ 	u32	offs_v;
+ 	u32	width;
+ 	u32	height;
+-	unsigned long		payload[VIDEO_MAX_PLANES];
++	unsigned int		payload[VIDEO_MAX_PLANES];
+ 	struct fimc_addr	paddr;
+ 	struct fimc_dma_offset	dma_offset;
+ 	struct fimc_fmt		*fmt;
+@@ -576,6 +580,18 @@ static inline int tiled_fmt(struct fimc_fmt *fmt)
+ 	return fmt->fourcc == V4L2_PIX_FMT_NV12MT;
+ }
+ 
++static inline bool fimc_jpeg_fourcc(u32 pixelformat)
++{
++	return (pixelformat == V4L2_PIX_FMT_JPEG ||
++		pixelformat == V4L2_PIX_FMT_S5C_UYVY_JPG);
++}
++
++static inline bool fimc_user_defined_mbus_fmt(u32 code)
++{
++	return (code == V4L2_MBUS_FMT_JPEG_1X8 ||
++		code == V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8);
++}
++
+ /* Return the alpha component bit mask */
+ static inline int fimc_get_alpha_mask(struct fimc_fmt *fmt)
+ {
+diff --git a/drivers/media/platform/s5p-fimc/fimc-reg.c b/drivers/media/platform/s5p-fimc/fimc-reg.c
+index 0e3eb9c..db03152 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-reg.c
++++ b/drivers/media/platform/s5p-fimc/fimc-reg.c
+@@ -625,7 +625,7 @@ int fimc_hw_set_camera_source(struct fimc_dev *fimc,
+ 				cfg |= FIMC_REG_CISRCFMT_ITU601_16BIT;
+ 		} /* else defaults to ITU-R BT.656 8-bit */
+ 	} else if (cam->bus_type == FIMC_MIPI_CSI2) {
+-		if (fimc_fmt_is_jpeg(f->fmt->color))
++		if (fimc_fmt_is_user_defined(f->fmt->color))
+ 			cfg |= FIMC_REG_CISRCFMT_ITU601_8BIT;
+ 	}
+ 
+@@ -680,6 +680,7 @@ int fimc_hw_set_camera_type(struct fimc_dev *fimc,
+ 			tmp = FIMC_REG_CSIIMGFMT_YCBCR422_8BIT;
+ 			break;
+ 		case V4L2_MBUS_FMT_JPEG_1X8:
++		case V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8:
+ 			tmp = FIMC_REG_CSIIMGFMT_USER(1);
+ 			cfg |= FIMC_REG_CIGCTRL_CAM_JPEG;
+ 			break;
+diff --git a/drivers/media/platform/s5p-fimc/mipi-csis.c b/drivers/media/platform/s5p-fimc/mipi-csis.c
+index 2f73d9e..e479fe0 100644
+--- a/drivers/media/platform/s5p-fimc/mipi-csis.c
++++ b/drivers/media/platform/s5p-fimc/mipi-csis.c
+@@ -145,7 +145,11 @@ static const struct csis_pix_format s5pcsis_formats[] = {
+ 		.code = V4L2_MBUS_FMT_JPEG_1X8,
+ 		.fmt_reg = S5PCSIS_CFG_FMT_USER(1),
+ 		.data_alignment = 32,
+-	},
++	}, {
++		.code = V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8,
++		.fmt_reg = S5PCSIS_CFG_FMT_USER(1),
++		.data_alignment = 32,
++	}
+ };
+ 
+ #define s5pcsis_write(__csis, __r, __v) writel(__v, __csis->regs + __r)
 -- 
-1.7.11.2
+1.7.11.3
 
