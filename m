@@ -1,110 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37493 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751275Ab2HTSWT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Aug 2012 14:22:19 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q7KIMJT3031560
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 20 Aug 2012 14:22:19 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:64533 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030212Ab2HWOEi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Aug 2012 10:04:38 -0400
+Received: from eusync4.samsung.com (mailout3.w1.samsung.com [210.118.77.13])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M970081COGLOO40@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 23 Aug 2012 15:05:09 +0100 (BST)
+Received: from [106.116.147.32] by eusync4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0M9700H6COFOV210@eusync4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 23 Aug 2012 15:04:37 +0100 (BST)
+Message-id: <50363874.5030507@samsung.com>
+Date: Thu, 23 Aug 2012 16:04:36 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Ezequiel Garcia <elezegarcia@gmail.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 5/6] [media] Kconfig: use menuconfig instead of menu
-Date: Mon, 20 Aug 2012 15:22:14 -0300
-Message-Id: <1345486935-18002-6-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1345486935-18002-1-git-send-email-mchehab@redhat.com>
-References: <1345486935-18002-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 04/10] mem2mem_testdev: Remove unneeded struct vb2_queue
+ clear on queue_init()
+References: <1345727311-27478-1-git-send-email-elezegarcia@gmail.com>
+ <1345727311-27478-4-git-send-email-elezegarcia@gmail.com>
+ <503634D2.9000301@samsung.com>
+In-reply-to: <503634D2.9000301@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This allows disabling all drivers of a certain type as a hole
+On 08/23/2012 03:49 PM, Sylwester Nawrocki wrote:
+> Hi Ezequiel,
+> 
+> On 08/23/2012 03:08 PM, Ezequiel Garcia wrote:
+>> queue_init() is always called by v4l2_m2m_ctx_init(), which allocates
+>> a context struct v4l2_m2m_ctx with kzalloc.
+>> Therefore, there is no need to clear vb2_queue src/dst structs.
+>>
+>> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+> 
+> Looks good to me. Let me pick this and s5p-jpeg, s5p-g2d patches for v3.7.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/parport/Kconfig |  8 +++++---
- drivers/media/pci/Kconfig     | 11 +++++------
- drivers/media/usb/Kconfig     | 12 +++++-------
- 3 files changed, 15 insertions(+), 16 deletions(-)
+whoops, I'll just pick s5p driver patches, i.e. 3 last ones in this series
+ -  08/10, 09/10, 10/10 as I have other patches touching these drivers.
 
-diff --git a/drivers/media/parport/Kconfig b/drivers/media/parport/Kconfig
-index 48138fe..a1c7853 100644
---- a/drivers/media/parport/Kconfig
-+++ b/drivers/media/parport/Kconfig
-@@ -1,6 +1,8 @@
--menu "V4L ISA and parallel port devices"
--	visible if (ISA || PARPORT) && MEDIA_CAMERA_SUPPORT
-+menuconfig MEDIA_PARPORT_SUPPORT
-+	bool "V4L ISA and parallel port devices"
-+	depends on (ISA || PARPORT) && MEDIA_CAMERA_SUPPORT
- 
-+if MEDIA_PARPORT_SUPPORT
- config VIDEO_BWQCAM
- 	tristate "Quickcam BW Video For Linux"
- 	depends on PARPORT && VIDEO_V4L2
-@@ -44,4 +46,4 @@ config VIDEO_W9966
- 
- 	  Check out <file:Documentation/video4linux/w9966.txt> for more
- 	  information.
--endmenu
-+endif
-diff --git a/drivers/media/pci/Kconfig b/drivers/media/pci/Kconfig
-index 4243d5d..083b62f 100644
---- a/drivers/media/pci/Kconfig
-+++ b/drivers/media/pci/Kconfig
-@@ -1,9 +1,8 @@
--#
--# DVB device configuration
--#
-+menuconfig MEDIA_PCI_SUPPORT
-+	bool "Media PCI Adapters"
-+	depends on PCI && MEDIA_SUPPORT
- 
--menu "Media PCI Adapters"
--	visible if PCI && MEDIA_SUPPORT
-+if MEDIA_PCI_SUPPORT
- 
- if MEDIA_CAMERA_SUPPORT
- 	comment "Media capture support"
-@@ -42,4 +41,4 @@ source "drivers/media/pci/ngene/Kconfig"
- source "drivers/media/pci/ddbridge/Kconfig"
- endif
- 
--endmenu
-+endif #MEDIA_PCI_SUPPORT
-diff --git a/drivers/media/usb/Kconfig b/drivers/media/usb/Kconfig
-index 069a3c1..f960e7ca4 100644
---- a/drivers/media/usb/Kconfig
-+++ b/drivers/media/usb/Kconfig
-@@ -1,9 +1,8 @@
--#
--# USB media device configuration
--#
-+menuconfig MEDIA_USB_SUPPORT
-+	bool "Media USB Adapters"
-+	depends on USB && MEDIA_SUPPORT
- 
--menu "Media USB Adapters"
--	visible if USB && MEDIA_SUPPORT
-+if MEDIA_USB_SUPPORT
- 
- if MEDIA_CAMERA_SUPPORT
- 	comment "Webcam devices"
-@@ -25,7 +24,6 @@ source "drivers/media/usb/hdpvr/Kconfig"
- source "drivers/media/usb/tlg2300/Kconfig"
- source "drivers/media/usb/usbvision/Kconfig"
- source "drivers/media/usb/stk1160/Kconfig"
--
- endif
- 
- if (MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT)
-@@ -50,4 +48,4 @@ if (MEDIA_CAMERA_SUPPORT || MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT)
- source "drivers/media/usb/em28xx/Kconfig"
- endif
- 
--endmenu
-+endif #MEDIA_USB_SUPPORT
--- 
-1.7.11.4
+--
+Regards,
+Sylwester
 
