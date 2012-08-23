@@ -1,112 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59044 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751368Ab2HMOSZ (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:36090 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751635Ab2HWNIs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Aug 2012 10:18:25 -0400
-Date: Mon, 13 Aug 2012 17:18:20 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] mt9v032: Export horizontal and vertical blanking as
- V4L2 controls
-Message-ID: <20120813141805.GP29636@valkosipuli.retiisi.org.uk>
-References: <1343068502-7431-4-git-send-email-laurent.pinchart@ideasonboard.com>
- <4375414.cY8huNNgj1@avalon>
- <20120727212723.GB26642@valkosipuli.retiisi.org.uk>
- <1505124.16Oe9aIvIj@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <1505124.16Oe9aIvIj@avalon>
+	Thu, 23 Aug 2012 09:08:48 -0400
+Received: by mail-yw0-f46.google.com with SMTP id m54so166064yhm.19
+        for <linux-media@vger.kernel.org>; Thu, 23 Aug 2012 06:08:48 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	<linux-media@vger.kernel.org>
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 02/10] pwc: Remove unneeded struct vb2_queue clearing
+Date: Thu, 23 Aug 2012 10:08:23 -0300
+Message-Id: <1345727311-27478-2-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1345727311-27478-1-git-send-email-elezegarcia@gmail.com>
+References: <1345727311-27478-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+struct vb2_queue is allocated through kzalloc as part of a larger struct,
+there's no need to clear it.
 
-Laurent Pinchart wrote:
-> On Saturday 28 July 2012 00:27:23 Sakari Ailus wrote:
->> On Fri, Jul 27, 2012 at 01:02:04AM +0200, Laurent Pinchart wrote:
->>> On Thursday 26 July 2012 23:54:01 Sakari Ailus wrote:
->>>> On Tue, Jul 24, 2012 at 01:10:42AM +0200, Laurent Pinchart wrote:
->>>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>>>> ---
->>>>>
->>>>>   drivers/media/video/mt9v032.c |   36  ++++++++++++++++++++++++++++---
->>>>>   1 files changed, 33 insertions(+), 3 deletions(-)
->>>>>
->>>>> Changes since v1:
->>>>>
->>>>> - Make sure the total horizontal time will not go below 660 when
->>>>>    setting the horizontal blanking control
->>>>>
->>>>> - Restrict the vertical blanking value to 3000 as documented in the
->>>>>    datasheet. Increasing the exposure time actually extends vertical
->>>>>    blanking, as long as the user doesn't forget to turn auto-exposure
->>>>>    off...
->>>>
->>>> Does binning either horizontally or vertically affect the blanking
->>>> limits? If the process is analogue then the answer is typically "yes".
->>>
->>> The datasheet doesn't specify whether binning and blanking can influence
->>> each other.
->>
->> Vertical binning is often analogue since digital binning would require as
->> much temporary memory as the row holds pixels. This means the hardware
->> already does binning before a/d conversion and there's only need to actually
->> read half the number of rows, hence the effect on frame length.
->
-> That will affect the frame length, but why would it affect vertical blanking ?
+Cc: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/media/usb/pwc/pwc-if.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-Frame length == image height + vertical blanking.
-
-The SMIA++ driver (at least) associates the blanking controls to the 
-pixel array subdev. They might be more naturally placed to the source 
-(either binner or scaler) but the width and height (to calculate the 
-frame and line length) are related to the dimensions of the pixel array 
-crop rectangle.
-
-So when the binning configuration changes, that changes the limits for 
-blanking and thus possibly also blanking itself.
-
->>>> It's not directly related to this patch, but the effect of the driver
->>>> just exposing one sub-device really shows better now. Besides lacking
->>>> the way to specify binning as in the V4L2 subdev API (compose selection
->>>> target), the user also can't use the crop bounds selection target to get
->>>> the size of the pixel array.
->>>>
->>>> We could either accept this for the time being and fix it later on of
->>>> fix it now.
->>>>
->>>> I prefer fixing it right now but admit that this patch isn't breaking
->>>> anything, it rather is missing quite relevant functionality to control
->>>> the sensor in a generic way.
->>>
->>> I'd rather apply this patch first, as it doesn't break anything :-) Fixing
->>> the problem will require discussions, and that will take time.
->>
->> How so? There's nothing special in this sensor as far as I can see.
->>
->>> Binning/skipping is a pretty common feature in sensors. Exposing two sub-
->>> devices like the SMIA++ driver does is one way to fix the problem, but do
->>> we really want to do that for the vast majority of sensors ?
->>
->> If we want to expose the sensor's functionality using the V4L2 subdev API
->> and not a sensor specific API, the answer is "yes". The bottom line is that
->> we have just one API to configure scaling and cropping and that API
->> (selections) is the same independently of where the operation is being
->> performed; whether it's the sensor or the ISP.
->
-> If we want to expose two subdevices for every sensor we will need to get both
-> kernelspace (ISP drivers) and userspace ready for this. I'm not against the
-> idea, but we need to plan it properly.
-
-I fully agree that this has to be planned properly; e.g. libv4l support for
-controlling low level devices required by this is completely missing right
-now.
-
-Cheers,
-
+diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
+index de7c7ba..825c61a 100644
+--- a/drivers/media/usb/pwc/pwc-if.c
++++ b/drivers/media/usb/pwc/pwc-if.c
+@@ -994,7 +994,6 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
+ 	pdev->power_save = my_power_save;
+ 
+ 	/* Init videobuf2 queue structure */
+-	memset(&pdev->vb_queue, 0, sizeof(pdev->vb_queue));
+ 	pdev->vb_queue.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 	pdev->vb_queue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
+ 	pdev->vb_queue.drv_priv = pdev;
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+1.7.8.6
+
