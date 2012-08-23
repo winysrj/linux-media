@@ -1,140 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:25928 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751349Ab2HBQbU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2012 12:31:20 -0400
-Received: from eusync1.samsung.com (mailout3.w1.samsung.com [210.118.77.13])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M8400AQZZ94J7A0@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 02 Aug 2012 17:31:52 +0100 (BST)
-Received: from [106.116.147.108] by eusync1.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0M8400IOUZ84GX30@eusync1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 02 Aug 2012 17:31:18 +0100 (BST)
-Message-id: <501AAB51.5050408@samsung.com>
-Date: Thu, 02 Aug 2012 18:31:13 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-MIME-version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Dima Zavin <dmitriyz@google.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, airlied@redhat.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
-	robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
-	subashrp@gmail.com, mchehab@redhat.com, g.liakhovetski@gmx.de,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: Re: [PATCHv7 03/15] v4l: vb2: add support for shared buffer (dma_buf)
-References: <1339681069-8483-1-git-send-email-t.stanislaws@samsung.com>
- <201206261140.37666.hverkuil@xs4all.nl>
- <CAPz4a6Cn9-f+nP6HeC94oiyJGqxesz40pWGp1ZxnA-gJZ4e=dQ@mail.gmail.com>
- <2867746.1nlzVAXyL8@avalon>
-In-reply-to: <2867746.1nlzVAXyL8@avalon>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34425 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932566Ab2HWMNy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Aug 2012 08:13:54 -0400
+Date: Thu, 23 Aug 2012 15:13:49 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, g.liakhovetski@gmx.de,
+	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com
+Subject: Re: [PATCH RFC 1/4] V4L: Add V4L2_CID_FRAMESIZE image source class
+ control
+Message-ID: <20120823121349.GI721@valkosipuli.retiisi.org.uk>
+References: <1345715489-30158-1-git-send-email-s.nawrocki@samsung.com>
+ <1345715489-30158-2-git-send-email-s.nawrocki@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1345715489-30158-2-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent, Hi Dima,
+Hi Sylwester,
 
-On 06/27/2012 10:40 PM, Laurent Pinchart wrote:
-> Hi Dima,
+Thanks for the patch.
+
+On Thu, Aug 23, 2012 at 11:51:26AM +0200, Sylwester Nawrocki wrote:
+> The V4L2_CID_FRAMESIZE control determines maximum number
+> of media bus samples transmitted within a single data frame.
+> It is useful for determining size of data buffer at the
+> receiver side.
 > 
-> On Tuesday 26 June 2012 13:53:34 Dima Zavin wrote:
->> On Tue, Jun 26, 2012 at 2:40 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>> On Tue 26 June 2012 11:11:06 Laurent Pinchart wrote:
->>>> On Tuesday 26 June 2012 10:40:44 Tomasz Stanislawski wrote:
->>>>> Hi Dima Zavin,
->>>>> Thank you for the patch and for a ping remainder :).
->>>>>
->>>>> You are right. The unmap is missing in __vb2_queue_cancel.
->>>>> I will apply your fix into next version of V4L2 support for dmabuf.
->>>>>
->>>>> Please refer to some comments below.
->>>>>
->>>>> On 06/20/2012 08:12 AM, Dima Zavin wrote:
->>>>>> Tomasz,
->>>>>>
->>>>>> I've encountered an issue with this patch when userspace does several
->>>>>> stream_on/stream_off cycles. When the user tries to qbuf a buffer
->>>>>> after doing stream_off, we trigger the "dmabuf already pinned"
->>>>>> warning since we didn't unmap the buffer as dqbuf was never called.
->>>>>>
->>>>>> The below patch adds calls to unmap in queue_cancel, but my feeling
->>>>>> is that we probably should be calling detach too (i.e. put_dmabuf).
->>>>
->>>> According to the V4L2 specification, the "VIDIOC_STREAMOFF ioctl, apart
->>>> of aborting or finishing any DMA in progress, unlocks any user pointer
->>>> buffers locked in physical memory, and it removes all buffers from the
->>>> incoming and outgoing queues".
->>>
->>> Correct. And what that means in practice is that after a streamoff all
->>> buffers are returned to the state they had just before STREAMON was
->>> called.
->>
->> That can't be right. The buffers had to have been returned to the
->> state just *after REQBUFS*, not just *before STREAMON*. You need to
->> re-enqueue buffers before calling STREAMON. I assume that's what you
->> meant?
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  Documentation/DocBook/media/v4l/controls.xml | 12 ++++++++++++
+>  drivers/media/v4l2-core/v4l2-ctrls.c         |  2 ++
+>  include/linux/videodev2.h                    |  1 +
+>  3 files changed, 15 insertions(+)
 > 
-> Your interpretation is correct.
-> 
+> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+> index 93b9c68..ad5d4e5 100644
+> --- a/Documentation/DocBook/media/v4l/controls.xml
+> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> @@ -4184,6 +4184,18 @@ interface and may change in the future.</para>
+>  	    conversion.
+>  	    </entry>
+>  	  </row>
+> +	  <row>
+> +	    <entry spanname="id"><constant>V4L2_CID_FRAMESIZE</constant></entry>
+> +	    <entry>integer</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry spanname="descr">Maximum size of a data frame in media bus
+> +	      sample units. This control determines maximum number of samples
+> +	      transmitted per single compressed data frame. For generic raw
+> +	      pixel formats the value of this control is undefined. This is
+> +	      a read-only control.
+> +	    </entry>
+> +	  </row>
+>  	  <row><entry></entry></row>
+>  	</tbody>
+>        </tgroup>
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index b6a2ee7..0043fd2 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -727,6 +727,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_VBLANK:			return "Vertical Blanking";
+>  	case V4L2_CID_HBLANK:			return "Horizontal Blanking";
+>  	case V4L2_CID_ANALOGUE_GAIN:		return "Analogue Gain";
+> +	case V4L2_CID_FRAMESIZE:		return "Maximum Frame Size";
 
-So now we should decide what should be changed: the spec or vb2 ?
-Bringing the queue state back to *after REQBUFS* may make the
-next (STREAMON + QBUFs) very costly operations.
+I would put this to the image processing class, as the control isn't related
+to image capture. Jpeg encoding (or image compression in general) after all
+is related to image processing rather than capturing it.
 
-Reattaching and mapping a DMABUF might trigger DMA allocation and
-*will* trigger creation of IOMMU mappings. In case of a user pointer,
-calling next get_user_pages may cause numerous fault events and
-will *create* new IOMMU mapping.
+>  	/* Image processing controls */
+>  	case V4L2_CID_IMAGE_PROC_CLASS:		return "Image Processing Controls";
+> @@ -933,6 +934,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>  	case V4L2_CID_FLASH_STROBE_STATUS:
+>  	case V4L2_CID_AUTO_FOCUS_STATUS:
+>  	case V4L2_CID_FLASH_READY:
+> +	case V4L2_CID_FRAMESIZE:
+>  		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
+>  		break;
+>  	}
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 7a147c8..d3fd19f 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -1985,6 +1985,7 @@ enum v4l2_jpeg_chroma_subsampling {
+>  #define V4L2_CID_VBLANK				(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 1)
+>  #define V4L2_CID_HBLANK				(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 2)
+>  #define V4L2_CID_ANALOGUE_GAIN			(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 3)
+> +#define V4L2_CID_FRAMESIZE			(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 4)
+>  
+>  /* Image processing controls */
+>  #define V4L2_CID_IMAGE_PROC_CLASS_BASE		(V4L2_CTRL_CLASS_IMAGE_PROC | 0x900)
 
-Is there any need to do such a cleanup if the destruction of buffers
-and all caches can be explicitly executed by REQBUFS(count = 0) ?
+Kind regards,
 
-Maybe it would be easier to change the spec by removing
-"apart of ... in physical memory" part?
-
-STREAMOFF should mean stopping streaming, and that resources are no
-longer used. DMABUFs are unmapped but unmapping does not mean releasing.
-The exporter may keep the resource in its caches.
-
-Currently, vb2 does not follow the policy from the spec.
-The put_userptr ops is called on:
-- VIDIOC_REBUFS
-- VIDIOC_CREATE_BUFS
-- vb2_queue_release() which is usually called on close() syscall
-
-The put_userptr is not called and streamoff therefore the user pages
-are locked after STREAMOFF.
-
-BTW. What does 'buffer locked' mean?
-
-Does it mean that a buffer is pinned or referenced by a driver/HW?
-
-Regards,
-Tomasz Stanislawski
-
-
->>> So after STREAMOFF you can immediately queue all buffers again with QBUF
->>> and call STREAMON to restart streaming. No mmap or other operations
->>> should be required. This behavior must be kept.
->>>
->>> VIDIOC_REQBUFS() or a close() are the only two operations that will
->>> actually free the buffers completely.
->>>
->>> In practice, a STREAMOFF is either followed by a STREAMON at a later time,
->>> or almost immediately followed by REQBUFS or close() to tear down the
->>> buffers. So I don't think the buffers should be detached at streamoff.
->>
->> I agree. I was leaning this way which is why I left it out of my patch
->> and wanted to hear your guys' opinion as you are much more familiar
->> with the intended behavior than I am.
->>
->> Thanks!
-> 
-> You're welcome. Thank you for reporting the problem and providing a patch.
-> 
-
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
