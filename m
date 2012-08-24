@@ -1,56 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:52348 "EHLO
-	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753853Ab2HSPzn (ORCPT
+Received: from mail-out.m-online.net ([212.18.0.10]:54657 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754116Ab2HXN2o (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Aug 2012 11:55:43 -0400
-Date: Sun, 19 Aug 2012 17:00:04 +0100
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: David =?ISO-8859-1?B?SORyZGVtYW4=?= <david@hardeman.nu>,
-	Sean Young <sean@mess.org>, Jarod Wilson <jarod@wilsonet.com>,
-	Alan Cox <alan@linux.intel.com>, linux-media@vger.kernel.org,
-	linux-serial@vger.kernel.org, lirc-list@lists.sourceforge.net
-Subject: Re: [PATCH] [media] winbond-cir: Fix initialization
-Message-ID: <20120819170004.579ee640@pyramind.ukuu.org.uk>
-In-Reply-To: <5026BE78.80902@redhat.com>
-References: <1343731023-9822-1-git-send-email-sean@mess.org>
-	<5026BE78.80902@redhat.com>
+	Fri, 24 Aug 2012 09:28:44 -0400
+Date: Fri, 24 Aug 2012 15:28:39 +0200
+From: Anatolij Gustschin <agust@denx.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>, dzu@denx.de
+Subject: Re: [PATCH 1/3] mt9v022: add v4l2 controls for blanking and other
+ register settings
+Message-ID: <20120824152839.62ef31e9@wker>
+In-Reply-To: <Pine.LNX.4.64.1208241227140.20710@axis700.grange>
+References: <1345799431-29426-1-git-send-email-agust@denx.de>
+	<1345799431-29426-2-git-send-email-agust@denx.de>
+	<Pine.LNX.4.64.1208241227140.20710@axis700.grange>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> > +#ifdef CONFIG_SERIAL_8250
+Hi Guennadi,
 
-Coule be modular
-
-> > +	if (!io) {
-> > +		struct uart_port port = { .iobase = data->sbase };
-> > +		int line = serial8250_find_port(&port);
-> > +		if (line >= 0) {
-> > +			serial8250_unregister_port(line);
+On Fri, 24 Aug 2012 13:08:52 +0200 (CEST)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+...
+> > +#define MT9V022_HORIZONTAL_BLANKING_MIN	43
+> > +#define MT9V022_HORIZONTAL_BLANKING_MAX	1023
+> > +#define MT9V022_HORIZONTAL_BLANKING_DEF	94
+> > +#define MT9V022_VERTICAL_BLANKING_MIN	2
 > 
-> Hmm... Not sure if it makes sense, but perhaps the unregistering code
-> should be reverting serial8250_unregister_port(line).
+> Interesting, in my datasheet min is 4. Maybe 4 would be a safer bet then.
 
-Can't do that anyway it may well be busy.
+The legal range in the datasheet here is 2-3000. The datasheet
+states that the minimal value must be 4 only if "show dark rows"
+control bit is set (it is unset by default).
 
-> > --- a/drivers/tty/serial/8250/8250.c
-> > +++ b/drivers/tty/serial/8250/8250.c
-> > @@ -2914,6 +2914,7 @@ int serial8250_find_port(struct uart_port *p)
-> >  	}
-> >  	return -ENODEV;
-> >  }
-> > +EXPORT_SYMBOL(serial8250_find_port);
+...
+> > +#define V4L2_CID_REG32			(V4L2_CTRL_CLASS_CAMERA | 0x1001)
+> > +#define V4L2_CID_ANALOG_CONTROLS	(V4L2_CTRL_CLASS_CAMERA | 0x1002)
+> 
+> Sorry, no again. The MT9V022_ANALOG_CONTROL register contains two fields: 
+> anti-eclipse and "anti-eclipse reference voltage control," don't think 
+> they should be set as a single control value. IIUC, controls are supposed 
+> to control logical parameters of the system. In this case you could 
+> introduce an "anti-eclipse reference voltage" control with values in the 
+> range between 0 and 2250mV, setting it to anything below 1900mV would turn 
+> the enable bit off. Would such a control make sense? Then you might want 
+> to ask on the ML, whether this control would make sense as a generic one, 
+> not mt9v022 specific.
 
-No - this leaks all the uart internal abstractions into the tree. We
-really don't want that happening.
+It probably makes sense since other sensors also have anti-eclipse control
+registers.
 
-The right way to fix this (and a couple of other uglies) is to make 8250
-on x86 scan for PnP ports *before* generic ports and to make a note of
-any ports to skip on the PnP scan (so that the port poking scan ignores
-them too)
+...
+> >  	if (mt9v022->hdl.error) {
+> >  		int err = mt9v022->hdl.error;
+> >  
+> > +		dev_err(&client->dev, "hdl init err %d\n", err);
+> 
+> That's not very clear IMHO. "hdl" isn't too specific, just "control 
+> initialisation?"
 
-Alan
+Ok, I'll fix it.
+
+Thanks,
+
+Anatolij
