@@ -1,75 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.9]:36078 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759566Ab2HXPoZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 11:44:25 -0400
-From: Detlev Zundel <dzu@denx.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Anatolij Gustschin <agust@denx.de>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 1/3] mt9v022: add v4l2 controls for blanking and other register settings
-References: <1345799431-29426-1-git-send-email-agust@denx.de>
-	<1345799431-29426-2-git-send-email-agust@denx.de>
-	<Pine.LNX.4.64.1208241227140.20710@axis700.grange>
-	<m2pq6g5tm3.fsf@lamuella.denx.de>
-	<Pine.LNX.4.64.1208241527370.20710@axis700.grange>
-Date: Fri, 24 Aug 2012 17:44:08 +0200
-In-Reply-To: <Pine.LNX.4.64.1208241527370.20710@axis700.grange> (Guennadi
-	Liakhovetski's message of "Fri, 24 Aug 2012 15:35:59 +0200 (CEST)")
-Message-ID: <m2fw7c47nb.fsf@lamuella.denx.de>
+Received: from pequod.mess.org ([93.97.41.153]:51742 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758828Ab2HXKDa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Aug 2012 06:03:30 -0400
+Date: Fri, 24 Aug 2012 11:03:28 +0100
+From: Sean Young <sean@mess.org>
+To: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/8] ir-rx51: Handle signals properly
+Message-ID: <20120824100328.GA20481@pequod.mess.org>
+References: <1345665041-15211-1-git-send-email-timo.t.kokkonen@iki.fi>
+ <1345665041-15211-3-git-send-email-timo.t.kokkonen@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1345665041-15211-3-git-send-email-timo.t.kokkonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+On Wed, Aug 22, 2012 at 10:50:35PM +0300, Timo Kokkonen wrote:
+> The lirc-dev expects the ir-code to be transmitted when the write call
+> returns back to the user space. We should not leave TX ongoing no
+> matter what is the reason we return to the user space. Easiest
+> solution for that is to simply remove interruptible sleeps.
+> 
+> The first wait_event_interruptible is thus replaced with return -EBUSY
+> in case there is still ongoing transfer. This should suffice as the
+> concept of sending multiple codes in parallel does not make sense.
+> 
+> The second wait_event_interruptible call is replaced with
+> wait_even_timeout with a fixed and safe timeout that should prevent
+> the process from getting stuck in kernel for too long.
+> 
+> Also, from now on we will force the TX to stop before we return from
+> write call. If the TX happened to time out for some reason, we should
+> not leave the HW transmitting anything.
+> 
+> Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+> ---
+>  drivers/media/rc/ir-rx51.c | 39 ++++++++++++++++++++++++++++-----------
+>  1 file changed, 28 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+> index 9487dd3..a7b787a 100644
+> --- a/drivers/media/rc/ir-rx51.c
+> +++ b/drivers/media/rc/ir-rx51.c
+> @@ -74,6 +74,19 @@ static void lirc_rx51_off(struct lirc_rx51 *lirc_rx51)
+>  			      OMAP_TIMER_TRIGGER_NONE);
+>  }
+>  
+> +static void lirc_rx51_stop_tx(struct lirc_rx51 *lirc_rx51)
+> +{
+> +	if (lirc_rx51->wbuf_index < 0)
+> +		return;
+> +
+> +	lirc_rx51_off(lirc_rx51);
+> +	lirc_rx51->wbuf_index = -1;
+> +	omap_dm_timer_stop(lirc_rx51->pwm_timer);
+> +	omap_dm_timer_stop(lirc_rx51->pulse_timer);
+> +	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
+> +	wake_up_interruptible(&lirc_rx51->wqueue);
 
-> Hi Detlev
->
-> On Fri, 24 Aug 2012, Detlev Zundel wrote:
->
->> Hello Guennadi,
->> 
->> > Hi Anatolij
->> >
->> > On Fri, 24 Aug 2012, Anatolij Gustschin wrote:
->> >
->> >> Add controls for horizontal and vertical blanking, analog control
->> >> and control for undocumented register 32.
->> >
->> > Sorry, I don't think this is a good idea to export an undocumented 
->> > register as a control.
->> 
->> Why exactly is that?  Even though it is not documented, we need to
->> fiddle with it to make our application work at all.  So we tend to
->> believe that other users of the chip will want to use it also.
->
-> Below I asked to provide details about how you have to change this 
-> register value: toggle dynamically at run-time or just set once at 
-> initialisation? Even if toggle: are this certain moments, related to 
-> standard camera activities (e.g., starting and stopping streaming, 
-> changing geometry etc.) or you have to set this absolutely asynchronously 
-> at moments of time, that only your application knows about?
+Unless I'm mistaken, wait_up_interruptable() won't wake up any 
+non-interruptable sleepers. Should this not be wake_up()?
 
-Anatolij can answer those detail questions, all I know is that without
-fiddling with the register we do not receive valid pictures at all.
+> +}
+> +
+>  static int init_timing_params(struct lirc_rx51 *lirc_rx51)
+>  {
+>  	u32 load, match;
+> @@ -160,13 +173,7 @@ static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
+>  
+>  	return IRQ_HANDLED;
+>  end:
+> -	/* Stop TX here */
+> -	lirc_rx51_off(lirc_rx51);
+> -	lirc_rx51->wbuf_index = -1;
+> -	omap_dm_timer_stop(lirc_rx51->pwm_timer);
+> -	omap_dm_timer_stop(lirc_rx51->pulse_timer);
+> -	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
+> -	wake_up_interruptible(&lirc_rx51->wqueue);
+> +	lirc_rx51_stop_tx(lirc_rx51);
+>  
+>  	return IRQ_HANDLED;
+>  }
+> @@ -246,8 +253,9 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+>  	if ((count > WBUF_LEN) || (count % 2 == 0))
+>  		return -EINVAL;
+>  
+> -	/* Wait any pending transfers to finish */
+> -	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
+> +	/* We can have only one transmit at a time */
+> +	if (lirc_rx51->wbuf_index >= 0)
+> +		return -EBUSY;
+>  
+>  	if (copy_from_user(lirc_rx51->wbuf, buf, n))
+>  		return -EFAULT;
+> @@ -273,9 +281,18 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+>  
+>  	/*
+>  	 * Don't return back to the userspace until the transfer has
+> -	 * finished
+> +	 * finished. However, we wish to not spend any more than 500ms
+> +	 * in kernel. No IR code TX should ever take that long.
+> +	 */
+> +	i = wait_event_timeout(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0,
 
->> Furthermore I don't see that we fundamentally reject patches for other
->> parts in the Linux kernel where people found out things not in the
->> official datasheets.
->
-> The problem is not, that this register is undocumented, the problem rather 
-> is, that IMHO exporting an API to user-space, setting an undocumented 
-> register to arbitrary values is, hm, at least pretty dubious.
+Note non-interruptable sleeper.
 
-As I wrote above, without fiddling with the register, we do _not_
-receive correct pictures at all.  So this is not dubious but shown by
-experiment to be needed (at least in our setup).
-
-Best wishes
-  Detlev
-
--- 
-A language that doesn't affect the way you think about programming, is
-not worth knowing.             -- Alan Perlis, Epigrams on Programming
+> +			HZ / 2);
+> +
+> +	/*
+> +	 * Ensure transmitting has really stopped, even if the timers
+> +	 * went mad or something else happened that caused it still
+> +	 * sending out something.
+>  	 */
+> -	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
+> +	lirc_rx51_stop_tx(lirc_rx51);
+>  
+>  	/* We can sleep again */
+>  	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, -1);
+> -- 
+> 1.7.12
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
