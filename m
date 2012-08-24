@@ -1,71 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:47898 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753439Ab2H0JZO (ORCPT
+Received: from mail-out.m-online.net ([212.18.0.10]:51039 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757828Ab2HXJKi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Aug 2012 05:25:14 -0400
-Received: by lbbgj3 with SMTP id gj3so2369140lbb.19
-        for <linux-media@vger.kernel.org>; Mon, 27 Aug 2012 02:25:13 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20120824203957.GC1303@atomide.com>
-References: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
-	<1345820986-4597-8-git-send-email-timo.t.kokkonen@iki.fi>
-	<20120824203957.GC1303@atomide.com>
-Date: Mon, 27 Aug 2012 11:25:12 +0200
-Message-ID: <CAORVsuVXDK896dBb+f6qLq6Dct0CWjTn72q4Y88hdgjNA+T0pg@mail.gmail.com>
-Subject: Re: [PATCHv2 7/8] ir-rx51: Convert latency constraints to PM QoS API
-From: Jean Pihet <jean.pihet@newoldbits.com>
-To: Tony Lindgren <tony@atomide.com>
-Cc: Timo Kokkonen <timo.t.kokkonen@iki.fi>,
-	Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 24 Aug 2012 05:10:38 -0400
+From: Anatolij Gustschin <agust@denx.de>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>, dzu@denx.de
+Subject: [PATCH 3/3] mt9v022: set y_skip_top field to zero
+Date: Fri, 24 Aug 2012 11:10:31 +0200
+Message-Id: <1345799431-29426-4-git-send-email-agust@denx.de>
+In-Reply-To: <1345799431-29426-1-git-send-email-agust@denx.de>
+References: <1345799431-29426-1-git-send-email-agust@denx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Timo,
+Set "y_skip_top" to zero and remove comment as I do not see this
+line corruption on two different mt9v022 setups. The first read-out
+line is perfectly fine.
 
-On Fri, Aug 24, 2012 at 10:39 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Timo Kokkonen <timo.t.kokkonen@iki.fi> [120824 08:11]:
->> Convert the driver from the obsolete omap_pm_set_max_mpu_wakeup_lat
->> API to the new PM QoS API. This allows the callback to be removed from
->> the platform data structure.
->>
->> The latency requirements are also adjusted to prevent the MPU from
->> going into sleep mode. This is needed as the GP timers have no means
->> to wake up the MPU once it has gone into sleep. The "side effect" is
->> that from now on the driver actually works even if there is no
->> background load keeping the MPU awake.
->>
->> Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
->
-> This should get acked by Kevin ideally. Other than that:
->
-> Acked-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Anatolij Gustschin <agust@denx.de>
+---
+ drivers/media/i2c/soc_camera/mt9v022.c |    6 +-----
+ 1 files changed, 1 insertions(+), 5 deletions(-)
 
-...
-@@ -268,10 +270,14 @@ static ssize_t lirc_rx51_write(struct file
-*file, const char *buf,
-                lirc_rx51->wbuf[count] = -1; /* Insert termination mark */
+diff --git a/drivers/media/i2c/soc_camera/mt9v022.c b/drivers/media/i2c/soc_camera/mt9v022.c
+index d26c071..e41d738 100644
+--- a/drivers/media/i2c/soc_camera/mt9v022.c
++++ b/drivers/media/i2c/soc_camera/mt9v022.c
+@@ -960,11 +960,7 @@ static int mt9v022_probe(struct i2c_client *client,
+ 
+ 	mt9v022->chip_control = MT9V022_CHIP_CONTROL_DEFAULT;
+ 
+-	/*
+-	 * MT9V022 _really_ corrupts the first read out line.
+-	 * TODO: verify on i.MX31
+-	 */
+-	mt9v022->y_skip_top	= 1;
++	mt9v022->y_skip_top	= 0;
+ 	mt9v022->rect.left	= MT9V022_COLUMN_SKIP;
+ 	mt9v022->rect.top	= MT9V022_ROW_SKIP;
+ 	mt9v022->rect.width	= MT9V022_MAX_WIDTH;
+-- 
+1.7.1
 
-        /*
--        * Adjust latency requirements so the device doesn't go in too
--        * deep sleep states
-+        * If the MPU is going into too deep sleep state while we are
-+        * transmitting the IR code, timers will not be able to wake
-+        * up the MPU. Thus, we need to set a strict enough latency
-+        * requirement in order to ensure the interrupts come though
-+        * properly.
-         */
--       lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, 50);
-+       pm_qos_add_request(&lirc_rx51->pm_qos_request,
-+                       PM_QOS_CPU_DMA_LATENCY, 10);
-Minor remark: it would be nice to have more detail on where the
-latency number 10 comes from. Is it fixed, is it linked to the baud
-rate etc?
-
-Here is my ack for the PM QoS API part:
-Acked-by: Jean Pihet <j-pihet@ti.com>
-
-Regards,
-Jean
