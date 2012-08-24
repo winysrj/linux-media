@@ -1,45 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42968 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751198Ab2HUXk2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Aug 2012 19:40:28 -0400
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q7LNeSBN008633
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 21 Aug 2012 19:40:28 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] Makefile: Add missing soc_camera/ directory
-Date: Tue, 21 Aug 2012 20:40:19 -0300
-Message-Id: <1345592419-6447-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:49289 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759715Ab2HXQSI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Aug 2012 12:18:08 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@linaro.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 02/12] coda: add i.MX53 / CODA7541 platform support
+Date: Fri, 24 Aug 2012 18:17:48 +0200
+Message-Id: <1345825078-3688-3-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1345825078-3688-1-git-send-email-p.zabel@pengutronix.de>
+References: <1345825078-3688-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/built-in.o: In function `imx074_s_power':
-imx074.c:(.text+0x1de93d0): undefined reference to `soc_camera_power_on'
-imx074.c:(.text+0x1de93f3): undefined reference to `soc_camera_power_off'
-drivers/built-in.o: In function `mt9m001_s_mbus_config':
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/platform/Makefile | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/video/coda.c |   37 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
 
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 4afb1af..9212777 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -40,6 +40,8 @@ obj-$(CONFIG_ARCH_DAVINCI)		+= davinci/
+diff --git a/drivers/media/video/coda.c b/drivers/media/video/coda.c
+index 86dae17..aa12b7b 100644
+--- a/drivers/media/video/coda.c
++++ b/drivers/media/video/coda.c
+@@ -84,6 +84,7 @@ enum coda_inst_type {
  
- obj-$(CONFIG_VIDEO_SH_VOU)		+= sh_vou.o
+ enum coda_product {
+ 	CODA_DX6 = 0xf001,
++	CODA_7541 = 0xf012,
+ };
  
-+obj-$(CONFIG_SOC_CAMERA)		+= soc_camera/
+ struct coda_fmt {
+@@ -261,6 +262,29 @@ static struct coda_fmt codadx6_formats[] = {
+ 	},
+ };
+ 
++static struct coda_fmt coda7_formats[] = {
++	{
++		.name = "YUV 4:2:0 Planar",
++		.fourcc = V4L2_PIX_FMT_YUV420,
++		.type = CODA_FMT_RAW,
++	},
++	{
++		.name = "H264 Encoded Stream",
++		.fourcc = V4L2_PIX_FMT_H264,
++		.type = CODA_FMT_ENC,
++	},
++	{
++		.name = "MPEG4 Encoded Stream",
++		.fourcc = V4L2_PIX_FMT_MPEG4,
++		.type = CODA_FMT_ENC,
++	},
++	{
++		.name = "JPEG Encoded Images",
++		.fourcc = V4L2_PIX_FMT_JPEG,
++		.type = CODA_FMT_ENC,
++	},
++};
 +
- obj-y	+= davinci/
+ static struct coda_fmt *find_format(struct coda_dev *dev, struct v4l2_format *f)
+ {
+ 	struct coda_fmt *formats = dev->devtype->formats;
+@@ -1485,6 +1509,8 @@ static irqreturn_t coda_irq_handler(int irq, void *data)
  
- obj-$(CONFIG_ARCH_OMAP)	+= omap/
+ static u32 coda_supported_firmwares[] = {
+ 	CODA_FIRMWARE_VERNUM(CODA_DX6, 2, 2, 5),
++	CODA_FIRMWARE_VERNUM(CODA_7541, 13, 4, 29),
++	CODA_FIRMWARE_VERNUM(CODA_7541, 13, 4, 41),
+ };
+ 
+ static bool coda_firmware_supported(u32 vernum)
+@@ -1504,6 +1530,8 @@ static char *coda_product_name(int product)
+ 	switch (product) {
+ 	case CODA_DX6:
+ 		return "CodaDx6";
++	case CODA_7541:
++		return "CODA7541";
+ 	default:
+ 		snprintf(buf, sizeof(buf), "(0x%04x)", product);
+ 		return buf;
+@@ -1695,6 +1723,7 @@ static int coda_firmware_request(struct coda_dev *dev)
+ 
+ enum coda_platform {
+ 	CODA_IMX27,
++	CODA_IMX53,
+ };
+ 
+ static struct coda_devtype coda_devdata[] = {
+@@ -1704,10 +1733,17 @@ static struct coda_devtype coda_devdata[] = {
+ 		.formats     = codadx6_formats,
+ 		.num_formats = ARRAY_SIZE(codadx6_formats),
+ 	},
++	[CODA_IMX53] = {
++		.firmware    = "v4l-coda7541-imx53.bin",
++		.product     = CODA_7541,
++		.formats     = coda7_formats,
++		.num_formats = ARRAY_SIZE(coda7_formats),
++	},
+ };
+ 
+ static struct platform_device_id coda_platform_ids[] = {
+ 	{ .name = "coda-imx27", .driver_data = CODA_IMX27 },
++	{ .name = "coda-imx53", .driver_data = CODA_7541 },
+ 	{ /* sentinel */ }
+ };
+ MODULE_DEVICE_TABLE(platform, coda_platform_ids);
+@@ -1715,6 +1751,7 @@ MODULE_DEVICE_TABLE(platform, coda_platform_ids);
+ #ifdef CONFIG_OF
+ static const struct of_device_id coda_dt_ids[] = {
+ 	{ .compatible = "fsl,imx27-vpu", .data = &coda_platform_ids[CODA_IMX27] },
++	{ .compatible = "fsl,imx53-vpu", .data = &coda_devdata[CODA_IMX53] },
+ 	{ /* sentinel */ }
+ };
+ MODULE_DEVICE_TABLE(of, coda_dt_ids);
 -- 
-1.7.11.4
+1.7.10.4
 
