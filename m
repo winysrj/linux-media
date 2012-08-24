@@ -1,86 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oyp.chewa.net ([91.121.6.101]:49904 "EHLO oyp.chewa.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751972Ab2HAIhF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Aug 2012 04:37:05 -0400
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCHv2 3/9] v4l: add buffer exporting via dmabuf
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:50606 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756007Ab2HXGWg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Aug 2012 02:22:36 -0400
+Received: by wibhr14 with SMTP id hr14so489830wib.1
+        for <linux-media@vger.kernel.org>; Thu, 23 Aug 2012 23:22:35 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Date: Wed, 01 Aug 2012 10:37:02 +0200
-From: =?UTF-8?Q?R=C3=A9mi_Denis-Courmont?= <remi@remlab.net>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	<linux-media@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
-	<airlied@redhat.com>, <m.szyprowski@samsung.com>,
-	<kyungmin.park@samsung.com>, <sumit.semwal@ti.com>,
-	<daeinki@gmail.com>, <daniel.vetter@ffwll.ch>,
-	<robdclark@gmail.com>, <pawel@osciak.com>,
-	<linaro-mm-sig@lists.linaro.org>, <subashrp@gmail.com>,
-	<mchehab@redhat.com>, <g.liakhovetski@gmx.de>
-In-Reply-To: <1376487.cHbjGZJEZg@avalon>
-References: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com> <26877422.izWOc7eKQo@avalon> <201207312139.42818.remi@remlab.net> <1376487.cHbjGZJEZg@avalon>
-Message-ID: <60c9f6aa1a35c476f6d3493aa24438ad@chewa.net>
+In-Reply-To: <1345727311-27478-7-git-send-email-elezegarcia@gmail.com>
+References: <1345727311-27478-1-git-send-email-elezegarcia@gmail.com>
+	<1345727311-27478-7-git-send-email-elezegarcia@gmail.com>
+Date: Fri, 24 Aug 2012 08:22:35 +0200
+Message-ID: <CACKLOr0-1QncE17Ufr1m0zn47ZOZoG6dtOusNq+_hO+D8SOLhg@mail.gmail.com>
+Subject: Re: [PATCH 07/10] mem2mem-emmaprp: Remove unneeded struct vb2_queue
+ clear on queue_init()
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 31 Jul 2012 23:52:35 +0200, Laurent Pinchart
+On 23 August 2012 15:08, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+> queue_init() is always called by v4l2_m2m_ctx_init(), which allocates
+> a context struct v4l2_m2m_ctx with kzalloc.
+> Therefore, there is no need to clear vb2_queue src/dst structs.
+>
+> Cc: Javier Martin <javier.martin@vista-silicon.com>
+> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+> ---
+>  drivers/media/platform/mx2_emmaprp.c |    2 --
+>  1 files changed, 0 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
+> index dab380a..59aaca4 100644
+> --- a/drivers/media/platform/mx2_emmaprp.c
+> +++ b/drivers/media/platform/mx2_emmaprp.c
+> @@ -757,7 +757,6 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+>         struct emmaprp_ctx *ctx = priv;
+>         int ret;
+>
+> -       memset(src_vq, 0, sizeof(*src_vq));
+>         src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+>         src_vq->io_modes = VB2_MMAP | VB2_USERPTR;
+>         src_vq->drv_priv = ctx;
+> @@ -769,7 +768,6 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+>         if (ret)
+>                 return ret;
+>
+> -       memset(dst_vq, 0, sizeof(*dst_vq));
+>         dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+>         dst_vq->io_modes = VB2_MMAP | VB2_USERPTR;
+>         dst_vq->drv_priv = ctx;
+> --
+> 1.7.8.6
+>
 
-<laurent.pinchart@ideasonboard.com> wrote:
-
->> I want to receive the video buffers in user space for processing.
-
->> Typically
-
->> "processing" is software encoding or conversion. That's what virtually
-
->> any
-
->> V4L application does on the desktop...
-
-> 
-
-> But what prevents you from using MMAP ?
-
-
-
-As I wrote several times earlier, MMAP uses fixed number of buffers. In
-
-some tightly controlled media pipeline with low latency, it might work.
-
-
-
-But in general, the V4L element in the pipeline does not know how fast the
-
-downstream element(s) will consume the buffers. Thus it has to copy from
-
-the MMAP buffers into anonymous user memory pending processing. Then any
-
-dequeued buffer can be requeued as soon as possible. In theory, it might
-
-also be that, even though the latency is known, the number of required
-
-buffers exceeds the maximum MMAP buffers count of the V4L device. Either
-
-way, user space ends up doing memory copy from MMAP to custom buffers.
-
-
-
-This problem does not exist with USERBUF - the V4L2 element can simply
-
-allocate a new buffer for each dequeued buffer.
-
-
-
-By the way, this was already discussed a few months ago for the exact same
-
-DMABUF patch series...
-
-
+Acked-By: Javier Martin <javier.martin@vista-silicon.com>
 
 -- 
-
-Rémi Denis-Courmont
-
-Sent from my collocated server
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
