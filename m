@@ -1,70 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:22938 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756193Ab2HINwH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2012 09:52:07 -0400
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Received: from eusync2.samsung.com (mailout4.w1.samsung.com [210.118.77.14])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M8H00GN1QJU17B0@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 09 Aug 2012 14:52:42 +0100 (BST)
-Content-transfer-encoding: 8BIT
-Received: from [106.116.147.32] by eusync2.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0M8H0078NQIS4Q50@eusync2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 09 Aug 2012 14:52:04 +0100 (BST)
-Message-id: <5023C083.8040003@samsung.com>
-Date: Thu, 09 Aug 2012 15:52:03 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Richard Zhao <richard.zhao@freescale.com>,
-	linux-media@vger.kernel.org
-Subject: Re: __video_register_device: warning cannot be reached if
- warn_if_nr_in_use
-References: <20120809125501.GD3824@b20223-02.ap.freescale.net>
- <201208091519.19254.hverkuil@xs4all.nl>
-In-reply-to: <201208091519.19254.hverkuil@xs4all.nl>
+Received: from moutng.kundenserver.de ([212.227.126.171]:53412 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752643Ab2HXLXZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Aug 2012 07:23:25 -0400
+Date: Fri, 24 Aug 2012 13:23:22 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Anatolij Gustschin <agust@denx.de>
+cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>, dzu@denx.de
+Subject: Re: [PATCH 3/3] mt9v022: set y_skip_top field to zero
+In-Reply-To: <1345799431-29426-4-git-send-email-agust@denx.de>
+Message-ID: <Pine.LNX.4.64.1208241323030.20710@axis700.grange>
+References: <1345799431-29426-1-git-send-email-agust@denx.de>
+ <1345799431-29426-4-git-send-email-agust@denx.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/09/2012 03:19 PM, Hans Verkuil wrote:
-> On Thu August 9 2012 14:55:02 Richard Zhao wrote:
->> In file drivers/media/video/v4l2-dev.c
->>
->> int __video_register_device(struct video_device *vdev, int type, int nr,
->> 		int warn_if_nr_in_use, struct module *owner)
->> {
->> [...]
->> 	vdev->minor = i + minor_offset;
->> 878:	vdev->num = nr;
->>
->> vdev->num is set to nr here. 
->> [...]
->> 	if (nr != -1 && nr != vdev->num && warn_if_nr_in_use)
->> 		printk(KERN_WARNING "%s: requested %s%d, got %s\n", __func__,
->> 			name_base, nr, video_device_node_name(vdev));
->>
->> so nr != vdev->num is always false. The warning can never be printed.
+On Fri, 24 Aug 2012, Anatolij Gustschin wrote:
+
+> Set "y_skip_top" to zero and remove comment as I do not see this
+> line corruption on two different mt9v022 setups. The first read-out
+> line is perfectly fine.
+
+On what systems have you checked this?
+
+Thanks
+Guennadi
+
 > 
-> Hmm, true. The question is, should we just fix this, or drop the warning altogether?
-> Clearly nobody missed that warning.
+> Signed-off-by: Anatolij Gustschin <agust@denx.de>
+> ---
+>  drivers/media/i2c/soc_camera/mt9v022.c |    6 +-----
+>  1 files changed, 1 insertions(+), 5 deletions(-)
 > 
-> I'm inclined to drop the warning altogether and so also the video_register_device_no_warn
-> inline function.
+> diff --git a/drivers/media/i2c/soc_camera/mt9v022.c b/drivers/media/i2c/soc_camera/mt9v022.c
+> index d26c071..e41d738 100644
+> --- a/drivers/media/i2c/soc_camera/mt9v022.c
+> +++ b/drivers/media/i2c/soc_camera/mt9v022.c
+> @@ -960,11 +960,7 @@ static int mt9v022_probe(struct i2c_client *client,
+>  
+>  	mt9v022->chip_control = MT9V022_CHIP_CONTROL_DEFAULT;
+>  
+> -	/*
+> -	 * MT9V022 _really_ corrupts the first read out line.
+> -	 * TODO: verify on i.MX31
+> -	 */
+> -	mt9v022->y_skip_top	= 1;
+> +	mt9v022->y_skip_top	= 0;
+>  	mt9v022->rect.left	= MT9V022_COLUMN_SKIP;
+>  	mt9v022->rect.top	= MT9V022_ROW_SKIP;
+>  	mt9v022->rect.width	= MT9V022_MAX_WIDTH;
+> -- 
+> 1.7.1
 > 
-> What do others think?
 
-Yeah, let's remove it.
-
---
-
-Regards,
-Sylwester
-
-
--- 
-Sylwester Nawrocki
-실베스터 나브로츠키
-Samsung Poland R&D Center
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
