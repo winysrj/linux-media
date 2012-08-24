@@ -1,47 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:52194 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754168Ab2HPMTF (ORCPT
+Received: from mail-out.m-online.net ([212.18.0.9]:36078 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759566Ab2HXPoZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Aug 2012 08:19:05 -0400
-Received: by lbbgj3 with SMTP id gj3so1437653lbb.19
-        for <linux-media@vger.kernel.org>; Thu, 16 Aug 2012 05:19:03 -0700 (PDT)
-Message-ID: <502CE527.2070006@iki.fi>
-Date: Thu, 16 Aug 2012 15:18:47 +0300
-From: Antti Palosaari <crope@iki.fi>
+	Fri, 24 Aug 2012 11:44:25 -0400
+From: Detlev Zundel <dzu@denx.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Anatolij Gustschin <agust@denx.de>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 1/3] mt9v022: add v4l2 controls for blanking and other register settings
+References: <1345799431-29426-1-git-send-email-agust@denx.de>
+	<1345799431-29426-2-git-send-email-agust@denx.de>
+	<Pine.LNX.4.64.1208241227140.20710@axis700.grange>
+	<m2pq6g5tm3.fsf@lamuella.denx.de>
+	<Pine.LNX.4.64.1208241527370.20710@axis700.grange>
+Date: Fri, 24 Aug 2012 17:44:08 +0200
+In-Reply-To: <Pine.LNX.4.64.1208241527370.20710@axis700.grange> (Guennadi
+	Liakhovetski's message of "Fri, 24 Aug 2012 15:35:59 +0200 (CEST)")
+Message-ID: <m2fw7c47nb.fsf@lamuella.denx.de>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: dvb-usb-v2 change broke s2250-loader compilation
-References: <201208161233.43618.hverkuil@xs4all.nl>
-In-Reply-To: <201208161233.43618.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/16/2012 01:33 PM, Hans Verkuil wrote:
-> Building the kernel with the Sensoray 2250/2251 staging go7007 driver enabled
-> fails with this link error:
->
-> ERROR: "usb_cypress_load_firmware" [drivers/staging/media/go7007/s2250-loader.ko] undefined!
->
-> As far as I can tell this is related to the dvb-usb-v2 changes.
->
-> Can someone take a look at this?
->
-> Thanks!
->
-> 	Hans
+Hi Guennadi,
 
-Yes it is dvb usb v2 related. I wasn't even aware that someone took that 
-module use in few days after it was added for the dvb-usb-v2.
+> Hi Detlev
+>
+> On Fri, 24 Aug 2012, Detlev Zundel wrote:
+>
+>> Hello Guennadi,
+>> 
+>> > Hi Anatolij
+>> >
+>> > On Fri, 24 Aug 2012, Anatolij Gustschin wrote:
+>> >
+>> >> Add controls for horizontal and vertical blanking, analog control
+>> >> and control for undocumented register 32.
+>> >
+>> > Sorry, I don't think this is a good idea to export an undocumented 
+>> > register as a control.
+>> 
+>> Why exactly is that?  Even though it is not documented, we need to
+>> fiddle with it to make our application work at all.  So we tend to
+>> believe that other users of the chip will want to use it also.
+>
+> Below I asked to provide details about how you have to change this 
+> register value: toggle dynamically at run-time or just set once at 
+> initialisation? Even if toggle: are this certain moments, related to 
+> standard camera activities (e.g., starting and stopping streaming, 
+> changing geometry etc.) or you have to set this absolutely asynchronously 
+> at moments of time, that only your application knows about?
 
-Maybe it is worth to make it even more common and move out of dvb-usb-v2...
+Anatolij can answer those detail questions, all I know is that without
+fiddling with the register we do not receive valid pictures at all.
 
-regards
-Antti
+>> Furthermore I don't see that we fundamentally reject patches for other
+>> parts in the Linux kernel where people found out things not in the
+>> official datasheets.
+>
+> The problem is not, that this register is undocumented, the problem rather 
+> is, that IMHO exporting an API to user-space, setting an undocumented 
+> register to arbitrary values is, hm, at least pretty dubious.
 
+As I wrote above, without fiddling with the register, we do _not_
+receive correct pictures at all.  So this is not dubious but shown by
+experiment to be needed (at least in our setup).
+
+Best wishes
+  Detlev
 
 -- 
-http://palosaari.fi/
+A language that doesn't affect the way you think about programming, is
+not worth knowing.             -- Alan Perlis, Epigrams on Programming
