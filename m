@@ -1,60 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45527 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753546Ab2HFMBA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Aug 2012 08:01:00 -0400
-Message-ID: <501FB1EC.5070905@iki.fi>
-Date: Mon, 06 Aug 2012 15:00:44 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 0/2] get rid of fe_ioctl_override()
-References: <1344190590-10863-1-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1344190590-10863-1-git-send-email-mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mail-out.m-online.net ([212.18.0.9]:35316 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757700Ab2HXOR5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Aug 2012 10:17:57 -0400
+Date: Fri, 24 Aug 2012 16:17:56 +0200
+From: Anatolij Gustschin <agust@denx.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>, dzu@denx.de
+Subject: Re: [PATCH 2/3] mt9v022: fix the V4L2_CID_EXPOSURE control
+Message-ID: <20120824161756.5cedec79@wker>
+In-Reply-To: <Pine.LNX.4.64.1208241320330.20710@axis700.grange>
+References: <1345799431-29426-1-git-send-email-agust@denx.de>
+	<1345799431-29426-3-git-send-email-agust@denx.de>
+	<Pine.LNX.4.64.1208241320330.20710@axis700.grange>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/05/2012 09:16 PM, Mauro Carvalho Chehab wrote:
-> There's just one driver using fe_ioctl_override(), and it can be
-> replaced at tuner_attach call. This callback is evil, as only DVBv3
-> calls are handled.
->
-> Removing it is also a nice cleanup, as about 90 lines of code are
-> removed.
->
-> Get rid of it!
+Hi Guennadi,
 
-I totally agree that! Only mxl111sf.c uses it and it was overriding 
-signal strength meter which could be overridden by simply replacing fe 
-default demod callback by one from tuner.
+On Fri, 24 Aug 2012 13:22:18 +0200 (CEST)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+...
+> > --- a/drivers/media/i2c/soc_camera/mt9v022.c
+> > +++ b/drivers/media/i2c/soc_camera/mt9v022.c
+> > @@ -274,9 +274,9 @@ static int mt9v022_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+> >  		if (ret & 1) /* Autoexposure */
+> >  			ret = reg_write(client, mt9v022->reg->max_total_shutter_width,
+> >  					rect.height + mt9v022->y_skip_top + 43);
+> > -		else
+> > -			ret = reg_write(client, MT9V022_TOTAL_SHUTTER_WIDTH,
+> > -					rect.height + mt9v022->y_skip_top + 43);
+> > +		else /* Set to the manually controlled value */
+> > +			ret = v4l2_ctrl_s_ctrl(mt9v022->exposure,
+> > +					       mt9v022->exposure->val);
+> 
+> But why do we have to write it here at all then? Autoexposure can be off 
+> only if the user has set exposure manually, using V4L2_CID_EXPOSURE_AUTO. 
+> In this case MT9V022_TOTAL_SHUTTER_WIDTH already contains the correct 
+> value. Why do we have to set it again? Maybe just adding a comment, 
+> explaining the above, would suffice?
 
-Actually it was very near I removed support for it from dvb-usb-v2 
-totally but still decided to leave as I converted mxl111sf driver. You 
-likely saw my comments to avoid using it in dvb_usb.h :)
+Actually we do not have to write it here, yes. Should I remove the shutter
+register setting here entirely? And add a comment explaining, why?
 
-> Mauro Carvalho Chehab (2):
->    [media] dvb core: remove support for post FE legacy ioctl intercept
->    [media] dvb: get rid of fe_ioctl_override callback
->
->   drivers/media/dvb/dvb-core/dvb_frontend.c   | 20 +----------------
->   drivers/media/dvb/dvb-core/dvbdev.h         | 26 ----------------------
->   drivers/media/dvb/dvb-usb-v2/dvb_usb.h      |  3 ---
->   drivers/media/dvb/dvb-usb-v2/dvb_usb_core.c |  2 --
->   drivers/media/dvb/dvb-usb-v2/mxl111sf.c     | 34 +----------------------------
->   drivers/media/dvb/dvb-usb/dvb-usb-dvb.c     |  1 -
->   drivers/media/dvb/dvb-usb/dvb-usb.h         |  2 --
->   drivers/media/video/cx23885/cx23885-dvb.c   |  3 +--
->   drivers/media/video/cx88/cx88-dvb.c         |  2 +-
->   drivers/media/video/saa7134/saa7134-dvb.c   |  2 +-
->   drivers/media/video/videobuf-dvb.c          | 11 +++-------
->   include/media/videobuf-dvb.h                |  4 +---
->   12 files changed, 9 insertions(+), 101 deletions(-)
+Thanks,
 
-regards
-Antti
-
--- 
-http://palosaari.fi/
+Anatolij
