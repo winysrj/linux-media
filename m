@@ -1,52 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:16782 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751495Ab2HIJgh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2012 05:36:37 -0400
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@linaro.org,
-	inki.dae@samsung.com, daniel.vetter@ffwll.ch, rob@ti.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org,
-	jy0922.shim@samsung.com, sw0312.kim@samsung.com,
-	dan.j.williams@intel.com
-Subject: [PATCH v2 0/2] Enhance DMABUF with reference counting for exporter
- module
-Date: Thu, 09 Aug 2012 11:36:20 +0200
-Message-id: <1344504982-30415-1-git-send-email-t.stanislaws@samsung.com>
+Received: from mail-out.m-online.net ([212.18.0.9]:41381 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759648Ab2HXQVZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Aug 2012 12:21:25 -0400
+Date: Fri, 24 Aug 2012 18:21:25 +0200
+From: Anatolij Gustschin <agust@denx.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Detlev Zundel <dzu@denx.de>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 1/3] mt9v022: add v4l2 controls for blanking and other
+ register settings
+Message-ID: <20120824182125.4d19ed64@wker>
+In-Reply-To: <Pine.LNX.4.64.1208241527370.20710@axis700.grange>
+References: <1345799431-29426-1-git-send-email-agust@denx.de>
+	<1345799431-29426-2-git-send-email-agust@denx.de>
+	<Pine.LNX.4.64.1208241227140.20710@axis700.grange>
+	<m2pq6g5tm3.fsf@lamuella.denx.de>
+	<Pine.LNX.4.64.1208241527370.20710@axis700.grange>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-This patchset adds reference counting for an exporter module to DMABUF
-framework.  Moreover, it adds setup of an owner field for exporters in DRM
-subsystem.
+Hi Guennadi,
 
-v1: Original
-v2:
-  - split patch into DMABUF and DRM part
-  - allow owner to be NULL
+On Fri, 24 Aug 2012 15:35:59 +0200 (CEST)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+...
+> Below I asked to provide details about how you have to change this 
+> register value: toggle dynamically at run-time or just set once at 
+> initialisation? Even if toggle: are this certain moments, related to 
+> standard camera activities (e.g., starting and stopping streaming, 
+> changing geometry etc.) or you have to set this absolutely asynchronously 
+> at moments of time, that only your application knows about?
 
-Regards,
-Tomasz Stanislawski
+Every time the sensor is reset, it resets this register. Without setting
+the register after sensor reset to the needed value I only get garbage data
+from the sensor. Since the possibility to reset the sensor is provided on
+the hardware and also used, the register has to be set after each sensor
+reset. Only the instance controlling the reset gpio pin "knows" the time,
+when the register should be initialized again, so it is asynchronously and
+not related to the standard camera activities. But since the stuff is _not_
+documented, I can only speculate. Maybe it can be set to different values
+to achieve different things, currently I do not know.
 
-Tomasz Stanislawski (2):
-  dma-buf: add reference counting for exporter module
-  drm: set owner field to for all DMABUF exporters
+Thanks,
 
- Documentation/dma-buf-sharing.txt          |    3 ++-
- drivers/base/dma-buf.c                     |    9 ++++++++-
- drivers/gpu/drm/exynos/exynos_drm_dmabuf.c |    1 +
- drivers/gpu/drm/i915/i915_gem_dmabuf.c     |    1 +
- drivers/gpu/drm/nouveau/nouveau_prime.c    |    1 +
- drivers/gpu/drm/radeon/radeon_prime.c      |    1 +
- drivers/staging/omapdrm/omap_gem_dmabuf.c  |    1 +
- include/linux/dma-buf.h                    |    2 ++
- 8 files changed, 17 insertions(+), 2 deletions(-)
-
--- 
-1.7.9.5
-
+Anatolij
