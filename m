@@ -1,88 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:59434 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750866Ab2HZQ4r (ORCPT
+Received: from oproxy6-pub.bluehost.com ([67.222.54.6]:53463 "HELO
+	oproxy6-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755831Ab2HXPy3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Aug 2012 12:56:47 -0400
-Message-ID: <503A554B.6080003@gmail.com>
-Date: Sun, 26 Aug 2012 18:56:43 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Tomasz Figa <tomasz.figa@gmail.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	oselas@community.pengutronix.de,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
-Subject: Re: [PATCH 0/1] S3C244X/S3C64XX SoC camera host interface driver
-References: <50269F15.4030504@gmail.com> <9609498.7r78ladCdh@flatron> <5026B33F.3030605@gmail.com> <1744040.LQ4tYRekV8@flatron>
-In-Reply-To: <1744040.LQ4tYRekV8@flatron>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Fri, 24 Aug 2012 11:54:29 -0400
+From: Federico Fuga <fuga@studiofuga.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org, Federico Fuga <fuga@studiofuga.com>
+Subject: [PATCH] Corrected Oops on omap_vout when no manager is connected
+Date: Fri, 24 Aug 2012 17:54:11 +0200
+Message-Id: <1345823651-19800-1-git-send-email-fuga@studiofuga.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+If no manager is connected to the vout device, the omapvid_init() function
+fails. No error condition is checked, and the device is started. Later on,
+when irq is serviced, a NULL pointer dereference occurs.
+Also, the isr routine must be registered only if no error occurs, otherwise
+the isr triggers without the proper setup, and the kernel oops again.
+To prevent this, the error condition is checked, and the streamon function
+exits with error. Also the isr registration call is moved after the setup
+procedure is completed.
+---
+ drivers/media/video/omap/omap_vout.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-On 08/12/2012 12:22 AM, Tomasz Figa wrote:
-> On Saturday 11 of August 2012 21:32:15 Sylwester Nawrocki wrote:
->> On 08/11/2012 08:39 PM, Tomasz Figa wrote:
->>> Hi,
->>>
->>> On Saturday 11 of August 2012 20:06:13 Sylwester Nawrocki wrote:
->>>> Hi all,
->>>>
->>>> This patch adds a driver for Samsung S3C244X/S3C64XX SoC series camera
->>>> host interface. My intention was to create a V4L2 driver that would
->>>> work
->>>> with standard applications like Gstreamer or mplayer, and yet exposing
->>>> possibly all features available in the hardware.
->>>>
->>>> It took me several weeks to do this work in my (limited) spare time.
->>>> Finally I've got something that is functional and I think might be
->>>> useful for others, so I'm publishing this initial version. It
->>>> hopefully doesn't need much tweaking or corrections, at least as far
->>>> as S3C244X is concerned. It has not been tested on S3C64XX SoCs, as I
->>>> don't have the hardware. However, the driver has been designed with
->>>> covering S3C64XX as well in mind, and I've already taken care of some
->>>> differences between S3C2444X and S3C64XX. Mem-to-mem features are not
->>>> yet supported, but these are quite separate issue and could be easily
->>>> added as a next step.>
->>> I will try to test it on S3C6410 in some reasonably near future and
->>> report any needed corrections.
->>
->> Sounds great, thanks.
-> 
-> I have not tested the driver yet, but I am looking through the code and it
-> seems like S3C6410 (at least according to the documentation) supports far
-> more pixel formats than defined in the driver.
-> 
-> Both preview and scaler paths are supposed to support 420/422 planar, 422
-> interleaved and 565/666/888 formats.
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index 15c5f4d..f456587 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -650,9 +650,12 @@ static void omap_vout_isr(void *arg, unsigned int irqstatus)
+ 
+ 	/* First save the configuration in ovelray structure */
+ 	ret = omapvid_init(vout, addr);
+-	if (ret)
++	if (ret) {
+ 		printk(KERN_ERR VOUT_NAME
+ 			"failed to set overlay info\n");
++		goto vout_isr_err;
++	}
++
+ 	/* Enable the pipeline and set the Go bit */
+ 	ret = omapvid_apply_changes(vout);
+ 	if (ret)
+@@ -1678,13 +1681,16 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
+ 	mask = DISPC_IRQ_VSYNC | DISPC_IRQ_EVSYNC_EVEN | DISPC_IRQ_EVSYNC_ODD
+ 		| DISPC_IRQ_VSYNC2;
+ 
+-	omap_dispc_register_isr(omap_vout_isr, vout, mask);
+-
+ 	/* First save the configuration in ovelray structure */
+ 	ret = omapvid_init(vout, addr);
+-	if (ret)
++	if (ret) {
+ 		v4l2_err(&vout->vid_dev->v4l2_dev,
+ 				"failed to set overlay info\n");
++		goto streamon_err1;
++	}
++
++	omap_dispc_register_isr(omap_vout_isr, vout, mask);
++
+ 	/* Enable the pipeline and set the Go bit */
+ 	ret = omapvid_apply_changes(vout);
+ 	if (ret)
+-- 
+1.7.9.5
 
-Indeed, somehow I missed that s3c64xx supports most of the pixel formats
-on both: the preview and the codec data paths. I've updated the pixel 
-format definitions to reflect that, but it still needs to be verified 
-with proper tests. I just didn't add YUV422 packed format, I expect it 
-to be done by someone who actually verifies that it works, after 
-checking/updating camif-regs.c as well.
-
-> Also two distinct planar 420 formats exist that simply differ by plane
-> order YUV420 (currently supported in your driver) and YVU420 (with Cb and
-> Cr planes swapped). It should be pretty straightforward to add support for
-> the latter.
-
-Yeah, thanks for the suggestion. I've added support for YVU420 - it yields 
-more options where setting up gstreamer pipelines, along with a few fixes 
-for issues I've found after some more testing, including LKM build. It can 
-be pulled from following git tree:
-
-git://linuxtv.org/snawrocki/media.git s3c-camif-devel
-
-It's based off of staging/for_v3.7 branch (3.6-rc3). I consider it more or
-less stable. The final branch for mainline is 's3c-camif', the difference
-is only that the fixes were squashed to a single commit adding the whole 
-driver there.
-
---
-
-Thanks,
-Sylwester
