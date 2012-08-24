@@ -1,81 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1176 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754362Ab2HVK4s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Aug 2012 06:56:48 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCHv8 13/26] v4l: vivi: support for dmabuf importing
-Date: Wed, 22 Aug 2012 12:56:30 +0200
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
-	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
-	robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
-	subashrp@gmail.com, mchehab@redhat.com, g.liakhovetski@gmx.de,
-	dmitriyz@google.com, s.nawrocki@samsung.com, k.debski@samsung.com
-References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com> <1344958496-9373-14-git-send-email-t.stanislaws@samsung.com>
-In-Reply-To: <1344958496-9373-14-git-send-email-t.stanislaws@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201208221256.30179.hverkuil@xs4all.nl>
+Received: from mta-out.inet.fi ([195.156.147.13]:59028 "EHLO jenni1.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755775Ab2HXPJu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Aug 2012 11:09:50 -0400
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCHv2 5/8] ir-rx51: Move platform data checking into probe function
+Date: Fri, 24 Aug 2012 18:09:43 +0300
+Message-Id: <1345820986-4597-6-git-send-email-timo.t.kokkonen@iki.fi>
+In-Reply-To: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
+References: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue August 14 2012 17:34:43 Tomasz Stanislawski wrote:
-> This patch enhances VIVI driver with a support for importing a buffer
-> from DMABUF file descriptors.
+This driver is useless without proper platform data. If data is not
+available, we should not register the driver at all. Once this check
+is done, the BUG_ON check during device open is no longer needed.
 
-Thanks for adding DMABUF support to vivi.
+Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+---
+ drivers/media/rc/ir-rx51.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-What would be great is if DMABUF support is also added to mem2mem_testdev.
-It would make an excellent test case to take the vivi output, pass it
-through mem2mem_testdev, and finally output the image using the gpu, all
-using dmabuf.
+diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+index f22e5e4..16b3c1f 100644
+--- a/drivers/media/rc/ir-rx51.c
++++ b/drivers/media/rc/ir-rx51.c
+@@ -378,7 +378,6 @@ static long lirc_rx51_ioctl(struct file *filep,
+ static int lirc_rx51_open(struct inode *inode, struct file *file)
+ {
+ 	struct lirc_rx51 *lirc_rx51 = lirc_get_pdata(file);
+-	BUG_ON(!lirc_rx51);
+ 
+ 	file->private_data = lirc_rx51;
+ 
+@@ -458,6 +457,9 @@ static int lirc_rx51_resume(struct platform_device *dev)
+ 
+ static int __devinit lirc_rx51_probe(struct platform_device *dev)
+ {
++	if (!dev->dev.platform_data)
++		return -ENODEV;
++
+ 	lirc_rx51_driver.features = LIRC_RX51_DRIVER_FEATURES;
+ 	lirc_rx51.pdata = dev->dev.platform_data;
+ 	lirc_rx51.pwm_timer_num = lirc_rx51.pdata->pwm_timer;
+-- 
+1.7.12
 
-It's also very useful for application developers to test dmabuf support
-without requiring special hardware (other than a dmabuf-enabled gpu
-driver).
-
-Regards,
-
-	Hans
-
-> 
-> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/video/Kconfig |    1 +
->  drivers/media/video/vivi.c  |    2 +-
->  2 files changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> index 966954d..8fa81be 100644
-> --- a/drivers/media/video/Kconfig
-> +++ b/drivers/media/video/Kconfig
-> @@ -653,6 +653,7 @@ config VIDEO_VIVI
->  	depends on FRAMEBUFFER_CONSOLE || STI_CONSOLE
->  	select FONT_8x16
->  	select VIDEOBUF2_VMALLOC
-> +	select DMA_SHARED_BUFFER
->  	default n
->  	---help---
->  	  Enables a virtual video driver. This device shows a color bar
-> diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-> index a6351c4..37d8fd4 100644
-> --- a/drivers/media/video/vivi.c
-> +++ b/drivers/media/video/vivi.c
-> @@ -1308,7 +1308,7 @@ static int __init vivi_create_instance(int inst)
->  	q = &dev->vb_vidq;
->  	memset(q, 0, sizeof(dev->vb_vidq));
->  	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> -	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
-> +	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
->  	q->drv_priv = dev;
->  	q->buf_struct_size = sizeof(struct vivi_buffer);
->  	q->ops = &vivi_video_qops;
-> 
