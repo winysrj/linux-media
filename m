@@ -1,67 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:37037 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751493Ab2HaIL2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Aug 2012 04:11:28 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 15/16] media: coda: set up buffers to be sized as negotiated with s_fmt
-Date: Fri, 31 Aug 2012 10:11:09 +0200
-Message-Id: <1346400670-16002-16-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
-References: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mta-out.inet.fi ([195.156.147.13]:59026 "EHLO jenni1.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755764Ab2HXPJu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Aug 2012 11:09:50 -0400
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCHv2 4/8] ir-rx51: Clean up timer initialization code
+Date: Fri, 24 Aug 2012 18:09:42 +0300
+Message-Id: <1345820986-4597-5-git-send-email-timo.t.kokkonen@iki.fi>
+In-Reply-To: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
+References: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This fixes a failure in vb2_qbuf in user pointer mode where
-__qbuf_userptr checks if the buffer queued by userspace is large
-enough. The failure would happen if coda_queue_setup was called
-with empty fmt (and thus set the expected buffer size to the maximum
-resolution), and userspace queues buffers of smaller size -
-corresponding to the negotiated dimensions - were queued.
-Explicitly setting sizeimage to the value negotiated via s_fmt
-fixes the issue.
+Remove a redundant macro definition. This is unneeded and becomes more
+readable once the actual timer code is refactored a little.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
 ---
- drivers/media/platform/coda.c |   13 +++----------
- 1 file changed, 3 insertions(+), 10 deletions(-)
+ drivers/media/rc/ir-rx51.c | 11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 266f97f..f106e61 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -814,18 +814,11 @@ static int coda_queue_setup(struct vb2_queue *vq,
- 				unsigned int sizes[], void *alloc_ctxs[])
+diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+index 125d4c3..f22e5e4 100644
+--- a/drivers/media/rc/ir-rx51.c
++++ b/drivers/media/rc/ir-rx51.c
+@@ -105,11 +105,9 @@ static int init_timing_params(struct lirc_rx51 *lirc_rx51)
+ 	return 0;
+ }
+ 
+-#define tics_after(a, b) ((long)(b) - (long)(a) < 0)
+-
+ static int pulse_timer_set_timeout(struct lirc_rx51 *lirc_rx51, int usec)
  {
- 	struct coda_ctx *ctx = vb2_get_drv_priv(vq);
-+	struct coda_q_data *q_data;
- 	unsigned int size;
+-	int counter;
++	int counter, counter_now;
  
--	if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
--		if (fmt)
--			size = fmt->fmt.pix.width *
--				fmt->fmt.pix.height * 3 / 2;
--		else
--			size = MAX_W *
--				MAX_H * 3 / 2;
--	} else {
--		size = CODA_MAX_FRAME_SIZE;
+ 	BUG_ON(usec < 0);
+ 
+@@ -122,11 +120,8 @@ static int pulse_timer_set_timeout(struct lirc_rx51 *lirc_rx51, int usec)
+ 	omap_dm_timer_set_match(lirc_rx51->pulse_timer, 1, counter);
+ 	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer,
+ 				     OMAP_TIMER_INT_MATCH);
+-	if (tics_after(omap_dm_timer_read_counter(lirc_rx51->pulse_timer),
+-		       counter)) {
+-		return 1;
 -	}
-+	q_data = get_q_data(ctx, vq->type);
-+	size = q_data->sizeimage;
+-	return 0;
++	counter_now = omap_dm_timer_read_counter(lirc_rx51->pulse_timer);
++	return (counter - counter_now) < 0;
+ }
  
- 	*nplanes = 1;
- 	sizes[0] = size;
+ static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
 -- 
-1.7.10.4
+1.7.12
 
