@@ -1,136 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:11836 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751243Ab2HTLdQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Aug 2012 07:33:16 -0400
-Received: from eusync1.samsung.com (mailout3.w1.samsung.com [210.118.77.13])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M9100ABWXGBJO70@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 20 Aug 2012 12:33:47 +0100 (BST)
-Received: from [106.116.147.32] by eusync1.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0M91001WAXFDAB40@eusync1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 20 Aug 2012 12:33:14 +0100 (BST)
-Message-id: <50322079.4080409@samsung.com>
-Date: Mon, 20 Aug 2012 13:33:13 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Sangwook Lee <sangwook.lee@linaro.org>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@maxwell.research.nokia.com, suapapa@insignal.co.kr,
-	quartz.jang@samsung.com, linaro-dev@lists.linaro.org,
-	patches@linaro.org, usman.ahmad@linaro.org
-Subject: Re: [PATH v3 0/2] Add v4l2 subdev driver for S5K4ECGX sensor with
- embedded SoC ISP
-References: <1343914971-23007-1-git-send-email-sangwook.lee@linaro.org>
- <501ADEF6.1080901@gmail.com>
- <CADPsn1b6TxhmWVzzH1u-wr0UZs6D3cif4+r1S9OOROx1iXCXUQ@mail.gmail.com>
- <50315AC8.5060100@gmail.com>
- <CADPsn1YyOO=wS5eh3H0MJTgwga=j49eE+rn=xcVUaq+ES7CK+A@mail.gmail.com>
- <CADPsn1ZnqxRYd2kTWcOatZVgdcWWbNCA9kwMaWs4O_tk2gYEPQ@mail.gmail.com>
-In-reply-to: <CADPsn1ZnqxRYd2kTWcOatZVgdcWWbNCA9kwMaWs4O_tk2gYEPQ@mail.gmail.com>
-Content-type: multipart/mixed; boundary=------------020201040601070303000803
+Received: from mx1.redhat.com ([209.132.183.28]:44629 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758491Ab2HXRE5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Aug 2012 13:04:57 -0400
+Message-ID: <5037B425.2030706@redhat.com>
+Date: Fri, 24 Aug 2012 14:04:37 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	workshop-2011@linuxtv.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [Workshop-2011] Media summit at the Kernel Summit - was: Fwd:
+ Re: [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
+References: <20120713173708.GB17109@thunk.org> <503759F7.8040907@redhat.com> <Pine.LNX.4.64.1208241406010.20710@axis700.grange> <1833523.h2Fu1nApC7@avalon> <Pine.LNX.4.64.1208241437120.20710@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1208241437120.20710@axis700.grange>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------020201040601070303000803
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-Hi Sangwook,
-
-On 08/20/2012 12:43 PM, Sangwook Lee wrote:
-> On 20 August 2012 09:12, Sangwook Lee <sangwook.lee@linaro.org> wrote:
->> On 19 August 2012 22:29, Sylwester Nawrocki
->> <sylvester.nawrocki@gmail.com> wrote:
->>> On 08/03/2012 04:24 PM, Sangwook Lee wrote:
->>>> I was thinking about this, but this seems to be is a bit time-consuming because
->>>> I have to do this just due to lack of s5k4ecgx hardware information.
->>>> let me try it later once
->>>> this patch is accepted.
->>>
->>> I've converted this driver to use function calls instead of the register
->>> arrays. It can be pulled, along with a couple of minor fixes/improvements,
->>> from following git tree:
->>>
->>>         git://linuxtv.org/snawrocki/media.git s5k4ecgx
->>>         (gitweb: http://git.linuxtv.org/snawrocki/media.git/s5k4ecgx)
->>>
->>> I don't own any Origen board thus it's untested. Could you give it a try ?
+Em 24-08-2012 09:41, Guennadi Liakhovetski escreveu:
+> Hi Laurent
 > 
-> Sorry, It doesn't work. I will send pictures to you by another mail thread.
-> Previously, I tested preview array and found out that
-> +	/*
-> +	 * FIXME: according to the datasheet,
-> +	 * 0x70000496~ 0x7000049c seems to be only for capture mode,
-> +	 * but without these value, it doesn't work with preview mode.
-> +	 */
+> On Fri, 24 Aug 2012, Laurent Pinchart wrote:
 > 
-> Do we need to set those values ?
+>> Hi Guennadi,
+>>
+>> On Friday 24 August 2012 14:11:58 Guennadi Liakhovetski wrote:
+>>> On Fri, 24 Aug 2012, Mauro Carvalho Chehab wrote:
+>>>> Em 22-08-2012 18:39, Naveen KRISHNAMURTHY escreveu:
+>>>>> Hi Mauro,
+>>>>>
+>>>>> Can you please provide the schedule for the linuxTV discussions this
+>>>>> time at San Diego? Which day will it be on? If you have a detailed
+>>>>> schedule, please pass on. I am planning to be in only on that day as I
+>>>>> cannot stay back more than that this time around.> 
+>>>>
+>>>> The media workshop will be at Tuesday, August 28th, with the following
+>>>> agenda, for the ones that got the invitation:
+>>>>     morning:
+>>>>            V4L2 API ambiguities + v4l2 compliance tool: 60 min
+>>>>            Media Controller library: 30 min
+>>>>            ALSA and V4L/Media Controller: 30 min
+>>>>            ARM and needed features for V4L/DVB: 30 min
+>>>>     
+>>>>     - after lunch:
+>>>>            SoC Vendors feedback – how to help them to go upstream: 45 min
+>>>>            V4L2/DVB issues from userspace perspective: 45 min
+>>>>            Android's V4L2 cam library: 30 min
+>>>
+>>> Wow, this is interesting... Have I proposed this? :-) Or is anyone else
+>>> working on an alternative solution?... I don't mind talking about this, if
+>>> indeed my work is meant, just really cannot remember discussing taking
+>>> this topic to the KS... I might have forgotten though... /me confused :-)
 
-Yes, after my changes it should be set too. But there is a bug in the
-registers definitions. Attached patch should correct this, sorry about
-this oversight. Let me know if there are still any issues.
-To make sure the I2C write sequences are correct it might be useful to
-log all calls to s5k4ecgx_write() and compare the logs with original
-tables.
+It was proposed by someone ;) I think you said you would be giving this
+talk, if I'm not mistaken, on the discussions we had. So, we're counting
+on you ;)
 
---
+
+>>>
+>>>>            HDMI CEC: 30 min
+>>>>            Synchronization, shared resource and optimizations: 30 min
+>>>
+>>> What happened to the V4L DT topic? I believe, Sylwester and I have been
+>>> discussing this pretty intensively over the last couple of weeks and,
+>>> hopefully, are just about to submit an example V4L .dts fragment.
+
+There was some discussions about having a DT summit or BoF there, so
+it was left away from the media workshop, due to the lack of time for all
+panels there (and since this is really a DT-specific theme). I didn't
+track if the DT workshop got actually scheduled or not.
+>>
+>> I believe it was deemed to be a too complex topic that would take too much 
+>> time to fit in the schedule. I will be free on Monday to discuss this, should 
+>> we organize a (informal) meeting ?
+> 
+> Sure, everyone is most welcome to join me on the plane;-) I should arrive 
+> to the airport at 18:15, so, if anyone would like to talk to me after a 
+> 13.5-hour trip - we can try that:-)
+
+I'm sure you'll be able to find some time along the week to do such
+meeting. In my case, I don't feel I need to be on such discussions,
+as this is not directly related to the media API, and such patches go
+though other trees (or though media tree, but with DT maintainers
+acks). Yet, I'd like to know about the end results of such discussions, 
+in order to keep track of it.
 
 Regards,
-Sylwester
-
---------------020201040601070303000803
-Content-Type: text/x-patch;
- name="0001-s5k4ecgx-fix-register-definitions.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="0001-s5k4ecgx-fix-register-definitions.patch"
-
->From b53f1279a32808d696676b905d167bcd33c6e2dc Mon Sep 17 00:00:00 2001
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Date: Mon, 20 Aug 2012 13:27:03 +0200
-Subject: [PATCH] s5k4ecgx: fix register definitions
-
----
- drivers/media/video/s5k4ecgx.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/video/s5k4ecgx.c b/drivers/media/video/s5k4ecgx.c
-index 8ad0fb1..836db2f 100644
---- a/drivers/media/video/s5k4ecgx.c
-+++ b/drivers/media/video/s5k4ecgx.c
-@@ -69,7 +69,7 @@ module_param(debug, int, 0644);
- #define REG_G_PREV_OPEN_AFTER_CH	0x7000026a
- 
- /* Preview context register sets. n = 0...4. */
--#define PREG(n, x)			((n) * 0x26 + (x))
-+#define PREG(n, x)			((n) * 0x30 + (x))
- #define REG_P_OUT_WIDTH(n)		PREG(n, 0x700002a6)
- #define REG_P_OUT_HEIGHT(n)		PREG(n, 0x700002a8)
- #define REG_P_FMT(n)			PREG(n, 0x700002aa)
-@@ -93,10 +93,10 @@ module_param(debug, int, 0644);
- #define REG_G_PREVZOOM_IN_HEIGHT	0x70000496
- #define REG_G_PREVZOOM_IN_XOFFS		0x70000498
- #define REG_G_PREVZOOM_IN_YOFFS		0x7000049a
--#define REG_G_CAPZOOM_IN_WIDTH		0x70000494
--#define REG_G_CAPZOOM_IN_HEIGHT		0x70000496
--#define REG_G_CAPZOOM_IN_XOFFS		0x70000498
--#define REG_G_CAPZOOM_IN_YOFFS		0x7000049a
-+#define REG_G_CAPZOOM_IN_WIDTH		0x7000049c
-+#define REG_G_CAPZOOM_IN_HEIGHT		0x7000049e
-+#define REG_G_CAPZOOM_IN_XOFFS		0x700004a0
-+#define REG_G_CAPZOOM_IN_YOFFS		0x700004a2
- 
- /* n = 0...4 */
- #define REG_USER_SHARPNESS(n)		(0x70000a28 + (n) * 0xb6)
--- 
-1.7.11.3
-
-
---------------020201040601070303000803--
-
+Mauro
