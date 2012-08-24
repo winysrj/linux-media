@@ -1,79 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:55538 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752610Ab2HNKvr (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:49340 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759794Ab2HXQSL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 06:51:47 -0400
-MIME-Version: 1.0
-In-Reply-To: <20120814065948.GD4791@elgon.mountain>
-References: <20120814065948.GD4791@elgon.mountain>
-Date: Tue, 14 Aug 2012 07:51:46 -0300
-Message-ID: <CALF0-+WGaYErM5SrCGfOJFCS0yqjJ2Oa4+u3_GcHAXR3mwnBmQ@mail.gmail.com>
-Subject: Re: [patch] [media] stk1160: unlock on error path stk1160_set_alternate()
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 24 Aug 2012 12:18:11 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@linaro.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 10/12] media: coda: fix sizeimage setting in try_fmt
+Date: Fri, 24 Aug 2012 18:17:56 +0200
+Message-Id: <1345825078-3688-11-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1345825078-3688-1-git-send-email-p.zabel@pengutronix.de>
+References: <1345825078-3688-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dan,
+VIDIOC_TRY_FMT would incorrectly return bytesperline * height,
+instead of width * height * 3 / 2.
 
-On Tue, Aug 14, 2012 at 3:59 AM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
-> There are some unlocks missing on error.
->
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> ---
-> Applies on top of linux-next.
->
-> diff --git a/drivers/media/video/stk1160/stk1160-v4l.c b/drivers/media/video/stk1160/stk1160-v4l.c
-> index 360bdbe..1ad4ac1 100644
-> --- a/drivers/media/video/stk1160/stk1160-v4l.c
-> +++ b/drivers/media/video/stk1160/stk1160-v4l.c
-> @@ -159,8 +159,9 @@ static bool stk1160_set_alternate(struct stk1160 *dev)
->
->  static int stk1160_start_streaming(struct stk1160 *dev)
->  {
-> -       int i, rc;
->         bool new_pkt_size;
-> +       int rc = 0;
-> +       int i;
->
->         /* Check device presence */
->         if (!dev->udev)
-> @@ -183,7 +184,7 @@ static int stk1160_start_streaming(struct stk1160 *dev)
->         if (!dev->isoc_ctl.num_bufs || new_pkt_size) {
->                 rc = stk1160_alloc_isoc(dev);
->                 if (rc < 0)
-> -                       return rc;
-> +                       goto out_unlock;
->         }
->
->         /* submit urbs and enables IRQ */
-> @@ -192,7 +193,7 @@ static int stk1160_start_streaming(struct stk1160 *dev)
->                 if (rc) {
->                         stk1160_err("cannot submit urb[%d] (%d)\n", i, rc);
->                         stk1160_uninit_isoc(dev);
-> -                       return rc;
-> +                       goto out_unlock;
->                 }
->         }
->
-> @@ -205,9 +206,10 @@ static int stk1160_start_streaming(struct stk1160 *dev)
->
->         stk1160_dbg("streaming started\n");
->
-> +out_unlock:
->         mutex_unlock(&dev->v4l_lock);
->
-> -       return 0;
-> +       return rc;
->  }
->
->  /* Must be called with v4l_lock hold */
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/video/coda.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-This and the other stk1160 patch looks good. I'll give them a test.
+diff --git a/drivers/media/video/coda.c b/drivers/media/video/coda.c
+index afd1243..b709667 100644
+--- a/drivers/media/video/coda.c
++++ b/drivers/media/video/coda.c
+@@ -415,8 +415,8 @@ static int vidioc_try_fmt(struct coda_dev *dev, struct v4l2_format *f)
+ 				      W_ALIGN, &f->fmt.pix.height,
+ 				      MIN_H, MAX_H, H_ALIGN, S_ALIGN);
+ 		f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 2);
+-		f->fmt.pix.sizeimage = f->fmt.pix.height *
+-					f->fmt.pix.bytesperline;
++		f->fmt.pix.sizeimage = f->fmt.pix.width *
++					f->fmt.pix.height * 3 / 2;
+ 	} else { /*encoded formats h.264/mpeg4 */
+ 		f->fmt.pix.bytesperline = 0;
+ 		f->fmt.pix.sizeimage = CODA_MAX_FRAME_SIZE;
+@@ -500,11 +500,7 @@ static int vidioc_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f)
+ 	q_data->fmt = find_format(ctx->dev, f);
+ 	q_data->width = f->fmt.pix.width;
+ 	q_data->height = f->fmt.pix.height;
+-	if (q_data->fmt->fourcc == V4L2_PIX_FMT_YUV420) {
+-		q_data->sizeimage = q_data->width * q_data->height * 3 / 2;
+-	} else { /* encoded format h.264/mpeg-4 */
+-		q_data->sizeimage = CODA_MAX_FRAME_SIZE;
+-	}
++	q_data->sizeimage = f->fmt.pix.sizeimage;
+ 
+ 	v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+ 		"Setting format for type %d, wxh: %dx%d, fmt: %d\n",
+-- 
+1.7.10.4
 
-Thanks,
-Ezequiel.
