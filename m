@@ -1,189 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:26875 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751454Ab2HHKRq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2012 06:17:46 -0400
-Message-id: <50223CC5.9060007@samsung.com>
-Date: Wed, 08 Aug 2012 12:17:41 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-MIME-version: 1.0
-To: linaro-mm-sig@lists.linaro.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-	Pawel Osciak <pawel@osciak.com>, Rob Landley <rob@landley.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Inki Dae <inki.dae@samsung.com>,
-	Joonyoung Shim <jy0922.shim@samsung.com>,
-	Seung-Woo Kim <sw0312.kim@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	David Airlie <airlied@linux.ie>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Alex Deucher <alexander.deucher@amd.com>,
-	Jerome Glisse <jglisse@redhat.com>, Rob Clark <rob@ti.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH] dma-buf: add reference counting for exporter module
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35022 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752610Ab2HXWvY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Aug 2012 18:51:24 -0400
+Date: Sat, 25 Aug 2012 01:51:18 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, g.liakhovetski@gmx.de,
+	kyungmin.park@samsung.com
+Subject: Re: [PATCH RFC 1/4] V4L: Add V4L2_CID_FRAMESIZE image source class
+ control
+Message-ID: <20120824225118.GM721@valkosipuli.retiisi.org.uk>
+References: <1345715489-30158-1-git-send-email-s.nawrocki@samsung.com>
+ <50363F19.5070607@samsung.com>
+ <5036754C.4040501@iki.fi>
+ <1479692.F6ROfrmgsS@avalon>
+ <5037383E.3030109@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5037383E.3030109@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds reference counting on a module that exports dma-buf and
-implements its operations. This prevents the module from being unloaded while
-DMABUF file is in use.
+Hi Sylwester,
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
----
- Documentation/dma-buf-sharing.txt          |    3 ++-
- drivers/base/dma-buf.c                     |   10 +++++++++-
- drivers/gpu/drm/exynos/exynos_drm_dmabuf.c |    1 +
- drivers/gpu/drm/i915/i915_gem_dmabuf.c     |    1 +
- drivers/gpu/drm/nouveau/nouveau_prime.c    |    1 +
- drivers/gpu/drm/radeon/radeon_prime.c      |    1 +
- drivers/staging/omapdrm/omap_gem_dmabuf.c  |    1 +
- include/linux/dma-buf.h                    |    2 ++
- 8 files changed, 18 insertions(+), 2 deletions(-)
+On Fri, Aug 24, 2012 at 10:15:58AM +0200, Sylwester Nawrocki wrote:
+> On 08/24/2012 12:41 AM, Laurent Pinchart wrote:
+> > On Thursday 23 August 2012 21:24:12 Sakari Ailus wrote:
+> >> Sylwester Nawrocki wrote:
+> >>>> On Thu, Aug 23, 2012 at 11:51:26AM +0200, Sylwester Nawrocki wrote:
+> >>>>> The V4L2_CID_FRAMESIZE control determines maximum number
+> >>>>> of media bus samples transmitted within a single data frame.
+> >>>>> It is useful for determining size of data buffer at the
+> >>>>> receiver side.
+> >>>>>
+> >>>>> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> >>>>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >>>>> ---
+> >>>>>
+> >>>>>   Documentation/DocBook/media/v4l/controls.xml | 12 ++++++++++++
+> >>>>>   drivers/media/v4l2-core/v4l2-ctrls.c         |  2 ++
+> >>>>>   include/linux/videodev2.h                    |  1 +
+> >>>>>   3 files changed, 15 insertions(+)
+> >>>>>
+> >>>>> diff --git a/Documentation/DocBook/media/v4l/controls.xml
+> >>>>> b/Documentation/DocBook/media/v4l/controls.xml index 93b9c68..ad5d4e5
+> >>>>> 100644
+> >>>>> --- a/Documentation/DocBook/media/v4l/controls.xml
+> >>>>> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> >>>>> @@ -4184,6 +4184,18 @@ interface and may change in the future.</para>
+> >>>>>
+> >>>>>   	    conversion.
+> >>>>>   	    </entry>
+> >>>>>   	  
+> >>>>>   	  </row>
+> >>>>>
+> >>>>> +	  <row>
+> >>>>> +	    <entry
+> >>>>> spanname="id"><constant>V4L2_CID_FRAMESIZE</constant></entry>
+> >>>>> +	    <entry>integer</entry>
+> >>>>> +	  </row>
+> >>>>> +	  <row>
+> >>>>> +	    <entry spanname="descr">Maximum size of a data frame in media bus
+> >>>>> +	      sample units. This control determines maximum number of samples
+> >>>>> +	      transmitted per single compressed data frame. For generic raw
+> >>>>> +	      pixel formats the value of this control is undefined. This is
+> >>>>> +	      a read-only control.
+> >>>>> +	    </entry>
+> >>>>> +	  </row>
+> >>>>>
+> >>>>>   	  <row><entry></entry></row>
+> >>>>>   	
+> >>>>>   	</tbody>
+> >>>>>   	
+> >>>>>         </tgroup>
+> >>>>>
+> >>>>> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c
+> >>>>> b/drivers/media/v4l2-core/v4l2-ctrls.c index b6a2ee7..0043fd2 100644
+> >>>>> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> >>>>> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> >>>>> @@ -727,6 +727,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+> >>>>>
+> >>>>>   	case V4L2_CID_VBLANK:			return "Vertical Blanking";
+> >>>>>   	case V4L2_CID_HBLANK:			return "Horizontal Blanking";
+> >>>>>   	case V4L2_CID_ANALOGUE_GAIN:		return "Analogue Gain";
+> >>>>>
+> >>>>> +	case V4L2_CID_FRAMESIZE:		return "Maximum Frame Size";
+> >>>>
+> >>>> I would put this to the image processing class, as the control isn't
+> >>>> related to image capture. Jpeg encoding (or image compression in
+> >>>> general) after all is related to image processing rather than capturing
+> >>>> it.
+> >>>
+> >>> All right, might make more sense that way. Let me move it to the image
+> >>> processing class then. It probably also makes sense to name it
+> >>> V4L2_CID_FRAME_SIZE, rather than V4L2_CID_FRAMESIZE.
+> >>
+> >> Hmm. While we're at it, as the size is maximum --- it can be lower ---
+> >> how about V4L2_CID_MAX_FRAME_SIZE or V4L2_CID_MAX_FRAME_SAMPLES, as the
+> >> unit is samples?
+> >
+> >> Does sample in this context mean pixels for uncompressed formats and
+> >> bytes (octets) for compressed formats? It's important to define it as
+> >> we're also using the term "sample" to refer to data units transferred
+> >> over a parallel bus per a clock cycle.
+> > 
+> > I agree with Sakari here, I find the documentation quite vague, I wouldn't 
+> > understand what the control is meant for from the documentation only.
+> 
+> I thought it was clear enough:
+> 
+> Maximum size of a data frame in media bus sample units.
+>                              ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
-index ad86fb8..2613057 100644
---- a/Documentation/dma-buf-sharing.txt
-+++ b/Documentation/dma-buf-sharing.txt
-@@ -49,7 +49,8 @@ The dma_buf buffer sharing API usage contains the following steps:
-    The buffer exporter announces its wish to export a buffer. In this, it
-    connects its own private buffer data, provides implementation for operations
-    that can be performed on the exported dma_buf, and flags for the file
--   associated with this buffer.
-+   associated with this buffer. The operations structure has owner field.
-+   You should initialize this to THIS_MODULE in most cases.
+Oops. I somehow managed to miss that. My mistake.
 
-    Interface:
-       struct dma_buf *dma_buf_export(void *priv, struct dma_buf_ops *ops,
-diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-index c30f3e1..d14b2f5 100644
---- a/drivers/base/dma-buf.c
-+++ b/drivers/base/dma-buf.c
-@@ -27,6 +27,7 @@
- #include <linux/dma-buf.h>
- #include <linux/anon_inodes.h>
- #include <linux/export.h>
-+#include <linux/module.h>
+> So that means the unit is a number of bits clocked by a single clock
+> pulse on parallel video bus... :) But how is media bus sample defined
+> in case of CSI bus ? Looks like "media bus sample" is a useless term
+> for our purpose.
 
- static inline int is_dma_buf_file(struct file *);
+The CSI2 transmitters and receivers, as far as I understand, want to know a
+lot more about the data that I think would be necessary. This doesn't only
+involve the bits per sample (e.g. pixel for raw bayer formats) but some
+information on the media bus code, too. I.e. if you're transferring 11 bit
+pixels the bus has to know that.
 
-@@ -40,6 +41,7 @@ static int dma_buf_release(struct inode *inode, struct file *file)
- 	dmabuf = file->private_data;
+I think it would have been better to use different media bus codes for
+serial busses than on parallel busses that transfer the sample on a single
+clock cycle. But that's out of the scope of this patch.
 
- 	dmabuf->ops->release(dmabuf);
-+	module_put(dmabuf->ops->owner);
- 	kfree(dmabuf);
- 	return 0;
- }
-@@ -96,6 +98,7 @@ struct dma_buf *dma_buf_export(void *priv, const struct dma_buf_ops *ops,
- 	struct file *file;
+In respect to this the CCP2 AFAIR works mostly the same way.
 
- 	if (WARN_ON(!priv || !ops
-+			  || !ops->owner
- 			  || !ops->map_dma_buf
- 			  || !ops->unmap_dma_buf
- 			  || !ops->release
-@@ -105,9 +108,14 @@ struct dma_buf *dma_buf_export(void *priv, const struct dma_buf_ops *ops,
- 		return ERR_PTR(-EINVAL);
- 	}
+> I thought it was better than just 8-bit byte, because the data receiver
+> (bridge) could layout data received from video bus in various ways in
+> memory, e.g. add some padding. OTOH, would any padding make sense
+> for compressed streams ? It would break the content, wouldn't it ?
 
-+	if (!try_module_get(ops->owner))
-+		return ERR_PTR(-ENOENT);
-+
- 	dmabuf = kzalloc(sizeof(struct dma_buf), GFP_KERNEL);
--	if (dmabuf == NULL)
-+	if (dmabuf == NULL) {
-+		module_put(ops->owner);
- 		return ERR_PTR(-ENOMEM);
-+	}
+I guess it't break if the padding is applied anywhere else than the end,
+where I hope it's ok. I'm not that familiar with compressed formats, though.
+The hardware typically has limitations on the DMA transaction width and that
+can easily be e.g. 32 or 64 bytes, so some padding may easily be introduced
+at the end of the compressed image.
 
- 	dmabuf->priv = priv;
- 	dmabuf->ops = ops;
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c b/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
-index 613bf8a..cf3bc6d 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
-@@ -164,6 +164,7 @@ static void exynos_gem_dmabuf_kunmap(struct dma_buf *dma_buf,
- }
+> So I would propose to use 8-bit byte as a unit for this control and
+> name it V4L2_CID_MAX_FRAME_SIZE. All in all it's not really tied
+> to the media bus.
 
- static struct dma_buf_ops exynos_dmabuf_ops = {
-+	.owner			= THIS_MODULE,
- 	.map_dma_buf		= exynos_gem_map_dma_buf,
- 	.unmap_dma_buf		= exynos_gem_unmap_dma_buf,
- 	.kmap			= exynos_gem_dmabuf_kmap,
-diff --git a/drivers/gpu/drm/i915/i915_gem_dmabuf.c b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-index aa308e1..07ff03b 100644
---- a/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-+++ b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-@@ -152,6 +152,7 @@ static int i915_gem_dmabuf_mmap(struct dma_buf *dma_buf, struct vm_area_struct *
- }
+It took me quite a while toe remember what the control really was for. ;)
 
- static const struct dma_buf_ops i915_dmabuf_ops =  {
-+	.owner = THIS_MODULE,
- 	.map_dma_buf = i915_gem_map_dma_buf,
- 	.unmap_dma_buf = i915_gem_unmap_dma_buf,
- 	.release = i915_gem_dmabuf_release,
-diff --git a/drivers/gpu/drm/nouveau/nouveau_prime.c b/drivers/gpu/drm/nouveau/nouveau_prime.c
-index a25cf2c..8605033 100644
---- a/drivers/gpu/drm/nouveau/nouveau_prime.c
-+++ b/drivers/gpu/drm/nouveau/nouveau_prime.c
-@@ -127,6 +127,7 @@ static void nouveau_gem_prime_vunmap(struct dma_buf *dma_buf, void *vaddr)
- }
+How about using bytes on video nodes and bus and media bus code specific
+extended samples (or how we should call pixels in uncompressed formats and
+units of data in compressed formats?) on subdevs? The information how the
+former is derived from the latter resides in the driver controlling the DMA
+anyway.
 
- static const struct dma_buf_ops nouveau_dmabuf_ops =  {
-+	.owner = THIS_MODULE,
- 	.map_dma_buf = nouveau_gem_map_dma_buf,
- 	.unmap_dma_buf = nouveau_gem_unmap_dma_buf,
- 	.release = nouveau_gem_dmabuf_release,
-diff --git a/drivers/gpu/drm/radeon/radeon_prime.c b/drivers/gpu/drm/radeon/radeon_prime.c
-index 6bef46a..4061fd3 100644
---- a/drivers/gpu/drm/radeon/radeon_prime.c
-+++ b/drivers/gpu/drm/radeon/radeon_prime.c
-@@ -127,6 +127,7 @@ static void radeon_gem_prime_vunmap(struct dma_buf *dma_buf, void *vaddr)
- 	mutex_unlock(&dev->struct_mutex);
- }
- const static struct dma_buf_ops radeon_dmabuf_ops =  {
-+	.owner = THIS_MODULE,
- 	.map_dma_buf = radeon_gem_map_dma_buf,
- 	.unmap_dma_buf = radeon_gem_unmap_dma_buf,
- 	.release = radeon_gem_dmabuf_release,
-diff --git a/drivers/staging/omapdrm/omap_gem_dmabuf.c b/drivers/staging/omapdrm/omap_gem_dmabuf.c
-index 42728e0..6a4dd67 100644
---- a/drivers/staging/omapdrm/omap_gem_dmabuf.c
-+++ b/drivers/staging/omapdrm/omap_gem_dmabuf.c
-@@ -179,6 +179,7 @@ out_unlock:
- }
+As you proposed originally, this control is more relevant to subdevs so we
+could also not define it for video nodes at all. Especially if the control
+isn't needed: the information should be available from VIDIOC_TRY_FMT.
 
- struct dma_buf_ops omap_dmabuf_ops = {
-+		.owner = THIS_MODULE,
- 		.map_dma_buf = omap_gem_map_dma_buf,
- 		.unmap_dma_buf = omap_gem_unmap_dma_buf,
- 		.release = omap_gem_dmabuf_release,
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index eb48f38..22953de 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -37,6 +37,7 @@ struct dma_buf_attachment;
-
- /**
-  * struct dma_buf_ops - operations possible on struct dma_buf
-+ * @owner: the module that implements dma_buf operations
-  * @attach: [optional] allows different devices to 'attach' themselves to the
-  *	    given buffer. It might return -EBUSY to signal that backing storage
-  *	    is already allocated and incompatible with the requirements
-@@ -70,6 +71,7 @@ struct dma_buf_attachment;
-  * @vunmap: [optional] unmaps a vmap from the buffer
-  */
- struct dma_buf_ops {
-+	struct module *owner;
- 	int (*attach)(struct dma_buf *, struct device *,
- 			struct dma_buf_attachment *);
+Kind regards,
 
 -- 
-1.7.9.5
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
