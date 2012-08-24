@@ -1,100 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:54413 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752610Ab2HNLKx (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:56148 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751471Ab2HXMMF convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 07:10:53 -0400
-Received: by lbbgj3 with SMTP id gj3so163969lbb.19
-        for <linux-media@vger.kernel.org>; Tue, 14 Aug 2012 04:10:51 -0700 (PDT)
-Message-ID: <502A322D.2060900@iki.fi>
-Date: Tue, 14 Aug 2012 14:10:37 +0300
-From: Antti Palosaari <crope@iki.fi>
+	Fri, 24 Aug 2012 08:12:05 -0400
+Date: Fri, 24 Aug 2012 14:11:58 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+cc: Naveen KRISHNAMURTHY <naveen.krishnamurthy@st.com>,
+	"workshop-2011@linuxtv.org" <workshop-2011@linuxtv.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [Workshop-2011] Media summit at the Kernel Summit - was: Fwd:
+ Re: [Ksummit-2012-discuss] Organising Mini Summits within the Kernel Summit
+In-Reply-To: <503759F7.8040907@redhat.com>
+Message-ID: <Pine.LNX.4.64.1208241406010.20710@axis700.grange>
+References: <20120713173708.GB17109@thunk.org> <5005A14D.8000809@redhat.com>
+ <Pine.LNX.4.64.1207172149440.30937@axis700.grange>
+ <Pine.LNX.4.64.1207210705240.13887@axis700.grange> <5018148C.5020009@redhat.com>
+ <507CA1C5BFF45D429225893E9D464308311B7BDC80@SAFEX1MAIL2.st.com>
+ <503759F7.8040907@redhat.com>
 MIME-Version: 1.0
-To: Reinhard Nissl <rnissl@gmx.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: STV0299: reading property DTV_FREQUENCY -- what am I expected
- to get?
-References: <502A1221.8020804@gmx.de>
-In-Reply-To: <502A1221.8020804@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/14/2012 11:53 AM, Reinhard Nissl wrote:
-> Hi,
->
-> it seems that my 9 years old LNBs got some drift over time, as tuning
-> takes quite a while until I get a lock. So I thought I could compensate
-> this offset by adjusting VDR's diseqc.conf.
->
-> Therefore I first hacked some logging into VDR's tuner code to read and
-> output the above mentioned property once it got a lock after tuning. As
-> VDR's EPG scanner travels over all transponders when idle, I get offset
-> values for all transponders and can then try to find some average offset
-> to put into diseqc.conf.
->
-> So here are several "travel" results for a single transponder ordered by
-> Delta:
->
-> Sat.    Pol.    Band    Freq (MHz) Set    Freq (MHz) Get    Delta (MHz)
-> S13,0E    H    H    11938    11930,528    -7,472
-> S13,0E    H    H    11938    11936,294    -1,706
-> S13,0E    H    H    11938    11938,917    0,917
-> S13,0E    H    H    11938    11939,158    1,158
-> S13,0E    H    H    11938    11939,906    1,906
-> S13,0E    H    H    11938    11939,965    1,965
-> S13,0E    H    H    11938    11940,029    2,029
-> S13,0E    H    H    11938    11940,032    2,032
-> S13,0E    H    H    11938    11940,103    2,103
-> S13,0E    H    H    11938    11940,112    2,112
-> S13,0E    H    H    11938    11940,167    2,167
-> S13,0E    H    H    11938    11941,736    3,736
-> S13,0E    H    H    11938    11941,736    3,736
-> S13,0E    H    H    11938    11941,736    3,736
-> S13,0E    H    H    11938    11942,412    4,412
-> S13,0E    H    H    11938    11943,604    5,604
-> S13,0E    H    H    11938    11943,604    5,604
-> S13,0E    H    H    11938    11943,604    5,604
-> S13,0E    H    H    11938    11945,472    7,472
-> S13,0E    H    H    11938    11945,472    7,472
-> S13,0E    H    H    11938    11945,472    7,472
-> S13,0E    H    H    11938    11945,472    7,472
-> S13,0E    H    H    11938    11945,472    7,472
-> S13,0E    H    H    11938    11945,472    7,472
-> S13,0E    H    H    11938    11945,472    7,472
-> S13,0E    H    H    11938    11945,777    7,777
-> S13,0E    H    H    11938    11945,777    7,777
-> S13,0E    H    H    11938    11945,777    7,777
-> S13,0E    H    H    11938    11945,777    7,777
->
-> I really wonder why Delta varies that much, and there are other
-> transponders in the same band which have no larger deltas then 3 MHz.
->
-> So is it at all possible to determine LNB drift in that way?
->
-> My other device, a STB0899, always reports the set frequency. So it
-> seems driver dependent whether it reports the actually locked frequency
-> found by the zig-zag-algorithm or just the set frequency to tune to.
+Hi Mauro
 
-That is tricky part. I recently explained that too when Mauro added 
-get_afc() callback:
-http://www.spinics.net/lists/linux-media/msg51308.html
+On Fri, 24 Aug 2012, Mauro Carvalho Chehab wrote:
 
-It should return actual frequency frontend is tuned (I am not sure about 
-DVB-S as there is IF/LNB). But the way DVBv5 API is implemented, using 
-cache, you never know if it is same value you set or some real value 
-tuner is listening. You can never trust APIv5 get values - those are 1) 
-just same you have set or 2) those could be values updated by driver.
+> Hi Naveen,
+> 
+> Em 22-08-2012 18:39, Naveen KRISHNAMURTHY escreveu:
+> > Hi Mauro,
+> > 
+> > Can you please provide the schedule for the linuxTV discussions this time at San Diego?
+> > Which day will it be on? If you have a detailed schedule, please pass on. I am planning 
+> > to be in only on that day as I cannot stay back more than that this time around.
+> 
+> The media workshop will be at Tuesday, August 28th, with the following agenda,
+> for the ones that got the invitation:
+> 
+>     morning:
+>            V4L2 API ambiguities + v4l2 compliance tool: 60 min
+>            Media Controller library: 30 min
+>            ALSA and V4L/Media Controller: 30 min
+>            ARM and needed features for V4L/DVB: 30 min
+>     - after lunch: 
+>            SoC Vendors feedback – how to help them to go upstream: 45 min
+>            V4L2/DVB issues from userspace perspective: 45 min
+>            Android's V4L2 cam library: 30 min
 
->
-> Thanks in advance for any replies.
->
-> Bye.
+Wow, this is interesting... Have I proposed this? :-) Or is anyone else 
+working on an alternative solution?... I don't mind talking about this, if 
+indeed my work is meant, just really cannot remember discussing taking 
+this topic to the KS... I might have forgotten though... /me confused :-)
 
-regards
-Antti
+>            HDMI CEC: 30 min
+>            Synchronization, shared resource and optimizations: 30 min
 
+What happened to the V4L DT topic? I believe, Sylwester and I have been 
+discussing this pretty intensively over the last couple of weeks and, 
+hopefully, are just about to submit an example V4L .dts fragment.
 
--- 
-http://palosaari.fi/
+> On Wednesday, August 29th, there will be open plenary sections, together
+> with the other Kernel Summit participants.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
