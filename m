@@ -1,87 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.telros.ru ([83.136.244.21]:59242 "EHLO mail.telros.ru"
+Received: from mta-out.inet.fi ([195.156.147.13]:59022 "EHLO jenni1.inet.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754728Ab2HVGnV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Aug 2012 02:43:21 -0400
-From: Volokh Konstantin <volokh84@gmail.com>
-To: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org, volokh@telros.ru
-Cc: Volokh Konstantin <volokh84@gmail.com>
-Subject: [PATCH 10/10] staging: media: go7007: some i2c initialization
-Date: Wed, 22 Aug 2012 14:45:19 +0400
-Message-Id: <1345632319-23224-10-git-send-email-volokh84@gmail.com>
-In-Reply-To: <1345632319-23224-1-git-send-email-volokh84@gmail.com>
-References: <1345632319-23224-1-git-send-email-volokh84@gmail.com>
+	id S1752060Ab2HXPJu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Aug 2012 11:09:50 -0400
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCHv2 1/8] ir-rx51: Adjust dependencies
+Date: Fri, 24 Aug 2012 18:09:39 +0300
+Message-Id: <1345820986-4597-2-git-send-email-timo.t.kokkonen@iki.fi>
+In-Reply-To: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
+References: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-i2c initialization via struct item
-as tw2804 have 0x00 i2c address, so need to use I2C_CLIENT_TEN
-  flag for validity
+Although this kind of IR diode circuitry is known to exist only in
+N900 hardware, nothing prevents making similar circuitry on any OMAP
+based board. The MACH_NOKIA_RX51 dependency is thus not something we
+want to be there.
 
-Signed-off-by: Volokh Konstantin <volokh84@gmail.com>
+Also, this should depend on LIRC as it is a LIRC driver.
+
+Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
 ---
- drivers/staging/media/go7007/go7007-driver.c |   20 ++++++++++++--------
- drivers/staging/media/go7007/go7007-priv.h   |    2 +-
- 2 files changed, 13 insertions(+), 9 deletions(-)
+ drivers/media/rc/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/staging/media/go7007/go7007-driver.c b/drivers/staging/media/go7007/go7007-driver.c
-index c0ea312..2dff9b5 100644
---- a/drivers/staging/media/go7007/go7007-driver.c
-+++ b/drivers/staging/media/go7007/go7007-driver.c
-@@ -197,17 +197,23 @@ int go7007_reset_encoder(struct go7007 *go)
- /*
-  * Attempt to instantiate an I2C client by ID, probably loading a module.
-  */
--static int init_i2c_module(struct i2c_adapter *adapter, const char *type,
--			   int addr)
-+static int init_i2c_module(struct i2c_adapter *adapter, const struct go_i2c *const i2c)
- {
- 	struct go7007 *go = i2c_get_adapdata(adapter);
- 	struct v4l2_device *v4l2_dev = &go->v4l2_dev;
-+	struct i2c_board_info info;
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index ffef8b4..093982b 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -273,7 +273,7 @@ config IR_IGUANA
  
--	if (v4l2_i2c_new_subdev(v4l2_dev, adapter, type, addr, NULL))
-+	memset(&info, 0, sizeof(info));
-+	strlcpy(info.type, i2c->type, sizeof(info.type));
-+	info.addr = i2c->addr;
-+
-+	if (i2c->id == I2C_DRIVERID_WIS_TW2804)
-+		info.flags |= I2C_CLIENT_TEN;
-+	if (v4l2_i2c_new_subdev_board(v4l2_dev, adapter, &info, NULL))
- 		return 0;
- 
--	printk(KERN_INFO "go7007: probing for module i2c:%s failed\n", type);
--	return -1;
-+	printk(KERN_INFO "go7007: probing for module i2c:%s failed\n", i2c->type);
-+	return -EINVAL;
- }
- 
- /*
-@@ -243,9 +249,7 @@ int go7007_register_encoder(struct go7007 *go)
- 	}
- 	if (go->i2c_adapter_online) {
- 		for (i = 0; i < go->board_info->num_i2c_devs; ++i)
--			init_i2c_module(&go->i2c_adapter,
--					go->board_info->i2c_devs[i].type,
--					go->board_info->i2c_devs[i].addr);
-+			init_i2c_module(&go->i2c_adapter, &go->board_info->i2c_devs[i]);
- 		if (go->board_id == GO7007_BOARDID_ADLINK_MPG24)
- 			i2c_clients_command(&go->i2c_adapter,
- 				DECODER_SET_CHANNEL, &go->channel_number);
-diff --git a/drivers/staging/media/go7007/go7007-priv.h b/drivers/staging/media/go7007/go7007-priv.h
-index b58c394..b7b939a 100644
---- a/drivers/staging/media/go7007/go7007-priv.h
-+++ b/drivers/staging/media/go7007/go7007-priv.h
-@@ -88,7 +88,7 @@ struct go7007_board_info {
- 	int audio_bclk_div;
- 	int audio_main_div;
- 	int num_i2c_devs;
--	struct {
-+	struct go_i2c {
- 		const char *type;
- 		int id;
- 		int addr;
+ config IR_RX51
+ 	tristate "Nokia N900 IR transmitter diode
+-	depends on MACH_NOKIA_RX51 && OMAP_DM_TIMER
++	depends on OMAP_DM_TIMER && LIRC
+ 	---help---
+ 	   Say Y or M here if you want to enable support for the IR
+ 	   transmitter diode built in the Nokia N900 (RX51) device.
 -- 
-1.7.7.6
+1.7.12
 
