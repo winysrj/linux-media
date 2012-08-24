@@ -1,55 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49639 "EHLO mx1.redhat.com"
+Received: from mta-out.inet.fi ([195.156.147.13]:59025 "EHLO jenni1.inet.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751914Ab2HEVbJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Aug 2012 17:31:09 -0400
-Message-ID: <501EE61A.2060804@redhat.com>
-Date: Sun, 05 Aug 2012 18:31:06 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 0/2] get rid of fe_ioctl_override()
-References: <1344190590-10863-1-git-send-email-mchehab@redhat.com> <CAGoCfizhL6=WhV9-9RMx9PX8ctV2Ao+GyMzPL8T67g4y5nBWAw@mail.gmail.com>
-In-Reply-To: <CAGoCfizhL6=WhV9-9RMx9PX8ctV2Ao+GyMzPL8T67g4y5nBWAw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1753811Ab2HXPJu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Aug 2012 11:09:50 -0400
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCHv2 3/8] ir-rx51: Trivial fixes
+Date: Fri, 24 Aug 2012 18:09:41 +0300
+Message-Id: <1345820986-4597-4-git-send-email-timo.t.kokkonen@iki.fi>
+In-Reply-To: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
+References: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 05-08-2012 15:44, Devin Heitmueller escreveu:
-> On Sun, Aug 5, 2012 at 2:16 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> There's just one driver using fe_ioctl_override(), and it can be
->> replaced at tuner_attach call. This callback is evil, as only DVBv3
->> calls are handled.
->>
->> Removing it is also a nice cleanup, as about 90 lines of code are
->> removed.
->>
->> Get rid of it!
-> 
-> Did you consult with anyone about this?  Did you talk to the
-> maintainer for the driver that uses this functionality (he's not on
-> the CC: for this patch series).  Did you actually do any testing to
-> validate that it didn't break anything?
-> 
-> This might indeed be a piece of functionality that can possibly be
-> removed, assuming you can answer yes to all three of the questions
-> above.
+-Fix typo
 
-This is not how it works. Patches are posted at the ML and developers can
-review and comment about them. Does those patches break something? If not, 
-please stop flaming.
+-Change pwm_timer_num type to match type in platform data
 
-With regards to Cc the driver maintainer (mkrufky), the patch also got
-forwarded to him, in priv (it were supposed to be sent via git send-email, 
-but, as it wasn't, the patch was manually forwarded for him to review,
-just after the patchbomb).
+-Remove extra parenthesis
 
-In any case, my intention is to wait for a couple days before merging
-the patches I posted today, as the dvb-usb-v2 is too new, and it is good
-to hear some comments about it.
+-Replace magic constant with proper bit defintions
 
-Regards,
-Mauro
+-Remove duplicate exit pointer
+
+Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+---
+ drivers/media/rc/Kconfig   |  2 +-
+ drivers/media/rc/ir-rx51.c | 10 ++++++----
+ 2 files changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index 093982b..4a68014 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -278,7 +278,7 @@ config IR_RX51
+ 	   Say Y or M here if you want to enable support for the IR
+ 	   transmitter diode built in the Nokia N900 (RX51) device.
+ 
+-	   The driver uses omap DM timers for gereating the carrier
++	   The driver uses omap DM timers for generating the carrier
+ 	   wave and pulses.
+ 
+ config RC_LOOPBACK
+diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+index e2db94e..125d4c3 100644
+--- a/drivers/media/rc/ir-rx51.c
++++ b/drivers/media/rc/ir-rx51.c
+@@ -59,7 +59,7 @@ struct lirc_rx51 {
+ 	int		wbuf[WBUF_LEN];
+ 	int		wbuf_index;
+ 	unsigned long	device_is_open;
+-	unsigned int	pwm_timer_num;
++	int		pwm_timer_num;
+ };
+ 
+ static void lirc_rx51_on(struct lirc_rx51 *lirc_rx51)
+@@ -138,11 +138,14 @@ static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
+ 	if (!retval)
+ 		return IRQ_NONE;
+ 
+-	if ((retval & ~OMAP_TIMER_INT_MATCH))
++	if (retval & ~OMAP_TIMER_INT_MATCH)
+ 		dev_err_ratelimited(lirc_rx51->dev,
+ 				": Unexpected interrupt source: %x\n", retval);
+ 
+-	omap_dm_timer_write_status(lirc_rx51->pulse_timer, 7);
++	omap_dm_timer_write_status(lirc_rx51->pulse_timer,
++				OMAP_TIMER_INT_MATCH	|
++				OMAP_TIMER_INT_OVERFLOW	|
++				OMAP_TIMER_INT_CAPTURE);
+ 	if (lirc_rx51->wbuf_index < 0) {
+ 		dev_err_ratelimited(lirc_rx51->dev,
+ 				": BUG wbuf_index has value of %i\n",
+@@ -489,7 +492,6 @@ struct platform_driver lirc_rx51_platform_driver = {
+ 	.remove		= __exit_p(lirc_rx51_remove),
+ 	.suspend	= lirc_rx51_suspend,
+ 	.resume		= lirc_rx51_resume,
+-	.remove		= __exit_p(lirc_rx51_remove),
+ 	.driver		= {
+ 		.name	= DRIVER_NAME,
+ 		.owner	= THIS_MODULE,
+-- 
+1.7.12
+
