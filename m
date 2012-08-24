@@ -1,55 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:32949 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750724Ab2HNWGP (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:49347 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759814Ab2HXQSL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 18:06:15 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: Re: Patches submitted via linux-media ML that are at patchwork.linuxtv.org
-Date: Wed, 15 Aug 2012 00:06:28 +0200
-Message-ID: <23599424.KTEC3Hhc5D@avalon>
-In-Reply-To: <502A7EC3.7030803@samsung.com>
-References: <502A4CD1.1020108@redhat.com> <502A7EC3.7030803@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 24 Aug 2012 12:18:11 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@linaro.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 12/12] ARM i.MX5: Add CODA7 to device tree for i.MX51 and i.MX53
+Date: Fri, 24 Aug 2012 18:17:58 +0200
+Message-Id: <1345825078-3688-13-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1345825078-3688-1-git-send-email-p.zabel@pengutronix.de>
+References: <1345825078-3688-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ arch/arm/boot/dts/imx51.dtsi |    6 ++++++
+ arch/arm/boot/dts/imx53.dtsi |    7 +++++++
+ 2 files changed, 13 insertions(+)
 
-On Tuesday 14 August 2012 18:37:23 Sylwester Nawrocki wrote:
-> On 08/14/2012 03:04 PM, Mauro Carvalho Chehab wrote:
-> > This one requires more testing:
-> > 
-> > May,15 2012: [GIT,PULL,FOR,3.5] DMABUF importer feature in V4L2 API       
-> >          http://patchwork.linuxtv.org/patch/11268  Sylwester Nawrocki
-> > <s.nawrocki@samsung.com>
-> Hmm, this is not valid any more. Tomasz just posted a new patch series
-> that adds DMABUF importer and exporter feature altogether.
-> 
-> [PATCHv8 00/26] Integration of videobuf2 with DMABUF
-> 
-> I guess we need someone else to submit test patches for other H/W than just
-> Samsung SoCs. I'm not sure if we've got enough resources to port this to
-> other hardware. We have been using these features internally for some time
-> already. It's been 2 kernel releases and I can see only Ack tags from
-> Laurent on Tomasz's patch series, hence it seems there is no wide interest
-> in DMABUF support in V4L2 and this patch series is probably going to stay in
-> a fridge for another few kernel releases.
-
-What would be required to push it to v3.7 ?
-
+diff --git a/arch/arm/boot/dts/imx51.dtsi b/arch/arm/boot/dts/imx51.dtsi
+index bfa65ab..8e23068 100644
+--- a/arch/arm/boot/dts/imx51.dtsi
++++ b/arch/arm/boot/dts/imx51.dtsi
+@@ -274,6 +274,12 @@
+ 				interrupts = <87>;
+ 				status = "disabled";
+ 			};
++
++			vpu@83ff4000 {
++				compatible = "fsl,imx51-vpu";
++				reg = <0x83ff4000 0x1000>;
++				interrupts = <9>;
++			};
+ 		};
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/imx53.dtsi b/arch/arm/boot/dts/imx53.dtsi
+index e3e8694..108f204 100644
+--- a/arch/arm/boot/dts/imx53.dtsi
++++ b/arch/arm/boot/dts/imx53.dtsi
+@@ -329,6 +329,13 @@
+ 				interrupts = <87>;
+ 				status = "disabled";
+ 			};
++
++			vpu@63ff4000 {
++				compatible = "fsl,imx53-vpu";
++				reg = <0x63ff4000 0x1000>;
++				interrupts = <9>;
++				iram = <&iram 0>;
++			};
+ 		};
+ 	};
+ };
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
