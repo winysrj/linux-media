@@ -1,58 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:35466 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751164Ab2HNJUW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 05:20:22 -0400
-Message-ID: <502A1890.2050803@redhat.com>
-Date: Tue, 14 Aug 2012 11:21:20 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"Igor M. Liplianin" <liplianin@me.by>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Copyright issues, do not copy code and add your own copyrights
-References: <CAHFNz9+H9=NJSB6FY7i5bJPhXQL-eCpmomBCqi14hca2q-wVvg@mail.gmail.com>
-In-Reply-To: <CAHFNz9+H9=NJSB6FY7i5bJPhXQL-eCpmomBCqi14hca2q-wVvg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:49346 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759811Ab2HXQSL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Aug 2012 12:18:11 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@linaro.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 11/12] ARM i.MX5: Fix CODA7 clock lookup for device tree on i.MX51 and i.MX53
+Date: Fri, 24 Aug 2012 18:17:57 +0200
+Message-Id: <1345825078-3688-12-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1345825078-3688-1-git-send-email-p.zabel@pengutronix.de>
+References: <1345825078-3688-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ arch/arm/mach-imx/clk-imx51-imx53.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-On 08/14/2012 11:10 AM, Manu Abraham wrote:
-> Hi,
->
-> The subject line says it.
->
-> Please fix the offending Copyright header.
->
-> Offending one.
-> http://git.linuxtv.org/media_tree.git/blob/staging/for_v3.7:/drivers/media/dvb-frontends/stb6100_proc.h
->
-> Original one.
-> http://git.linuxtv.org/media_tree.git/blob/staging/for_v3.7:/drivers/media/dvb-frontends/stb6100_cfg.h
+diff --git a/arch/arm/mach-imx/clk-imx51-imx53.c b/arch/arm/mach-imx/clk-imx51-imx53.c
+index a2200c7..887ede9 100644
+--- a/arch/arm/mach-imx/clk-imx51-imx53.c
++++ b/arch/arm/mach-imx/clk-imx51-imx53.c
+@@ -334,7 +334,7 @@ int __init mx51_clocks_init(unsigned long rate_ckil, unsigned long rate_osc,
+ 
+ 	clk_register_clkdev(clk[hsi2c_gate], NULL, "imx-i2c.2");
+ 	clk_register_clkdev(clk[mx51_mipi], "mipi_hsp", NULL);
+-	clk_register_clkdev(clk[vpu_gate], NULL, "imx51-vpu.0");
++	clk_register_clkdev(clk[vpu_gate], NULL, "83ff4000.vpu");
+ 	clk_register_clkdev(clk[fec_gate], NULL, "imx27-fec.0");
+ 	clk_register_clkdev(clk[gpc_dvfs], "gpc_dvfs", NULL);
+ 	clk_register_clkdev(clk[ipu_gate], "bus", "imx51-ipu");
+@@ -422,7 +422,7 @@ int __init mx53_clocks_init(unsigned long rate_ckil, unsigned long rate_osc,
+ 
+ 	mx5_clocks_common_init(rate_ckil, rate_osc, rate_ckih1, rate_ckih2);
+ 
+-	clk_register_clkdev(clk[vpu_gate], NULL, "imx53-vpu.0");
++	clk_register_clkdev(clk[vpu_gate], NULL, "63ff4000.vpu");
+ 	clk_register_clkdev(clk[i2c3_gate], NULL, "imx-i2c.2");
+ 	clk_register_clkdev(clk[fec_gate], NULL, "imx25-fec.0");
+ 	clk_register_clkdev(clk[ipu_gate], "bus", "imx53-ipu");
+-- 
+1.7.10.4
 
-Or even better, get rid of the offending one and add a i2c_gate_ctrl parameters to the inline
-functions defined in stb6100_cfg.h, as this seems a typical case of unnecessary code-duplication.
-
-I would also like to point out that things like these are pretty much wrong:
-
-   27         if (&fe->ops)
-   28                 frontend_ops = &fe->ops;
-   29         if (&frontend_ops->tuner_ops)
-   30                 tuner_ops = &frontend_ops->tuner_ops;
-   31         if (tuner_ops->get_state) {
-
-The last check de-references tuner_ops, which only is non-NULL if
-fe-ops and fe->ops->tuner_ops are non NULL. So either the last check
-needs to be:
-              if (tuner_ops && tuner_ops->get_state) {
-
-Or we assume that fe-ops and fe->ops->tuner_ops are always non NULL
-when this helper gets called and all the previous checks can be removed.
-
-Regards,
-
-Hans
