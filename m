@@ -1,174 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:53407 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754143Ab2HNPgJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 11:36:09 -0400
-Received: from epcpsbgm2.samsung.com (mailout4.samsung.com [203.254.224.34])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M8R00MPF4O88F20@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:36:08 +0900 (KST)
-Received: from mcdsrvbld02.digital.local ([106.116.37.23])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M8R004J44MBC810@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Aug 2012 00:36:08 +0900 (KST)
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de, dmitriyz@google.com,
-	s.nawrocki@samsung.com, k.debski@samsung.com
-Subject: [PATCHv8 07/26] v4l: vb2-dma-contig: Reorder functions
-Date: Tue, 14 Aug 2012 17:34:37 +0200
-Message-id: <1344958496-9373-8-git-send-email-t.stanislaws@samsung.com>
-In-reply-to: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
-References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
+Received: from mta-out.inet.fi ([195.156.147.13]:59030 "EHLO jenni1.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755870Ab2HXPJu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Aug 2012 11:09:50 -0400
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCHv2 7/8] ir-rx51: Convert latency constraints to PM QoS API
+Date: Fri, 24 Aug 2012 18:09:45 +0300
+Message-Id: <1345820986-4597-8-git-send-email-timo.t.kokkonen@iki.fi>
+In-Reply-To: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
+References: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Convert the driver from the obsolete omap_pm_set_max_mpu_wakeup_lat
+API to the new PM QoS API. This allows the callback to be removed from
+the platform data structure.
 
-Group functions by buffer type.
+The latency requirements are also adjusted to prevent the MPU from
+going into sleep mode. This is needed as the GP timers have no means
+to wake up the MPU once it has gone into sleep. The "side effect" is
+that from now on the driver actually works even if there is no
+background load keeping the MPU awake.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
 ---
- drivers/media/video/videobuf2-dma-contig.c |   92 ++++++++++++++++------------
- 1 file changed, 54 insertions(+), 38 deletions(-)
+ arch/arm/mach-omap2/board-rx51-peripherals.c |  2 --
+ drivers/media/rc/ir-rx51.c                   | 15 ++++++++++-----
+ include/media/ir-rx51.h                      |  2 --
+ 3 files changed, 10 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
-index 20c95da..daac2b2 100644
---- a/drivers/media/video/videobuf2-dma-contig.c
-+++ b/drivers/media/video/videobuf2-dma-contig.c
-@@ -25,14 +25,56 @@ struct vb2_dc_conf {
- struct vb2_dc_buf {
- 	struct device			*dev;
- 	void				*vaddr;
--	dma_addr_t			dma_addr;
- 	unsigned long			size;
--	struct vm_area_struct		*vma;
--	atomic_t			refcount;
-+	dma_addr_t			dma_addr;
-+
-+	/* MMAP related */
- 	struct vb2_vmarea_handler	handler;
-+	atomic_t			refcount;
-+
-+	/* USERPTR related */
-+	struct vm_area_struct		*vma;
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index ca07264..e0750cb 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -34,7 +34,6 @@
+ #include <plat/gpmc.h>
+ #include <plat/onenand.h>
+ #include <plat/gpmc-smc91x.h>
+-#include <plat/omap-pm.h>
+ 
+ #include <mach/board-rx51.h>
+ 
+@@ -1227,7 +1226,6 @@ static void __init rx51_init_tsc2005(void)
+ 
+ #if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
+ static struct lirc_rx51_platform_data rx51_lirc_data = {
+-	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
+ 	.pwm_timer = 9, /* Use GPT 9 for CIR */
  };
  
--static void vb2_dc_put(void *buf_priv);
-+/*********************************************/
-+/*         callbacks for all buffers         */
-+/*********************************************/
-+
-+static void *vb2_dc_cookie(void *buf_priv)
-+{
-+	struct vb2_dc_buf *buf = buf_priv;
-+
-+	return &buf->dma_addr;
-+}
-+
-+static void *vb2_dc_vaddr(void *buf_priv)
-+{
-+	struct vb2_dc_buf *buf = buf_priv;
-+
-+	return buf->vaddr;
-+}
-+
-+static unsigned int vb2_dc_num_users(void *buf_priv)
-+{
-+	struct vb2_dc_buf *buf = buf_priv;
-+
-+	return atomic_read(&buf->refcount);
-+}
-+
-+/*********************************************/
-+/*        callbacks for MMAP buffers         */
-+/*********************************************/
-+
-+static void vb2_dc_put(void *buf_priv)
-+{
-+	struct vb2_dc_buf *buf = buf_priv;
-+
-+	if (!atomic_dec_and_test(&buf->refcount))
-+		return;
-+
-+	dma_free_coherent(buf->dev, buf->size, buf->vaddr, buf->dma_addr);
-+	kfree(buf);
-+}
+diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+index 6e1ffa6..008cdab 100644
+--- a/drivers/media/rc/ir-rx51.c
++++ b/drivers/media/rc/ir-rx51.c
+@@ -25,6 +25,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/sched.h>
+ #include <linux/wait.h>
++#include <linux/pm_qos.h>
  
- static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
- {
-@@ -63,40 +105,6 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
- 	return buf;
+ #include <plat/dmtimer.h>
+ #include <plat/clock.h>
+@@ -49,6 +50,7 @@ struct lirc_rx51 {
+ 	struct omap_dm_timer *pulse_timer;
+ 	struct device	     *dev;
+ 	struct lirc_rx51_platform_data *pdata;
++	struct pm_qos_request	pm_qos_request;
+ 	wait_queue_head_t     wqueue;
+ 
+ 	unsigned long	fclk_khz;
+@@ -268,10 +270,14 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+ 		lirc_rx51->wbuf[count] = -1; /* Insert termination mark */
+ 
+ 	/*
+-	 * Adjust latency requirements so the device doesn't go in too
+-	 * deep sleep states
++	 * If the MPU is going into too deep sleep state while we are
++	 * transmitting the IR code, timers will not be able to wake
++	 * up the MPU. Thus, we need to set a strict enough latency
++	 * requirement in order to ensure the interrupts come though
++	 * properly.
+ 	 */
+-	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, 50);
++	pm_qos_add_request(&lirc_rx51->pm_qos_request,
++			PM_QOS_CPU_DMA_LATENCY,	10);
+ 
+ 	lirc_rx51_on(lirc_rx51);
+ 	lirc_rx51->wbuf_index = 1;
+@@ -292,8 +298,7 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+ 	 */
+ 	lirc_rx51_stop_tx(lirc_rx51);
+ 
+-	/* We can sleep again */
+-	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, -1);
++	pm_qos_remove_request(&lirc_rx51->pm_qos_request);
+ 
+ 	return n;
  }
+diff --git a/include/media/ir-rx51.h b/include/media/ir-rx51.h
+index 104aa89..57523f2 100644
+--- a/include/media/ir-rx51.h
++++ b/include/media/ir-rx51.h
+@@ -3,8 +3,6 @@
  
--static void vb2_dc_put(void *buf_priv)
--{
--	struct vb2_dc_buf *buf = buf_priv;
+ struct lirc_rx51_platform_data {
+ 	int pwm_timer;
 -
--	if (atomic_dec_and_test(&buf->refcount)) {
--		dma_free_coherent(buf->dev, buf->size, buf->vaddr,
--				  buf->dma_addr);
--		kfree(buf);
--	}
--}
--
--static void *vb2_dc_cookie(void *buf_priv)
--{
--	struct vb2_dc_buf *buf = buf_priv;
--
--	return &buf->dma_addr;
--}
--
--static void *vb2_dc_vaddr(void *buf_priv)
--{
--	struct vb2_dc_buf *buf = buf_priv;
--	if (!buf)
--		return NULL;
--
--	return buf->vaddr;
--}
--
--static unsigned int vb2_dc_num_users(void *buf_priv)
--{
--	struct vb2_dc_buf *buf = buf_priv;
--
--	return atomic_read(&buf->refcount);
--}
--
- static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
- {
- 	struct vb2_dc_buf *buf = buf_priv;
-@@ -110,6 +118,10 @@ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
- 				  &vb2_common_vm_ops, &buf->handler);
- }
+-	int(*set_max_mpu_wakeup_lat)(struct device *dev, long t);
+ };
  
-+/*********************************************/
-+/*       callbacks for USERPTR buffers       */
-+/*********************************************/
-+
- static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 					unsigned long size, int write)
- {
-@@ -148,6 +160,10 @@ static void vb2_dc_put_userptr(void *mem_priv)
- 	kfree(buf);
- }
- 
-+/*********************************************/
-+/*       DMA CONTIG exported functions       */
-+/*********************************************/
-+
- const struct vb2_mem_ops vb2_dma_contig_memops = {
- 	.alloc		= vb2_dc_alloc,
- 	.put		= vb2_dc_put,
+ #endif
 -- 
-1.7.9.5
+1.7.12
 
