@@ -1,82 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36868 "EHLO mx1.redhat.com"
+Received: from mta-out.inet.fi ([195.156.147.13]:41060 "EHLO jenni2.inet.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754065Ab2HNBk7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Aug 2012 21:40:59 -0400
-Message-ID: <5029AC92.2060408@redhat.com>
-Date: Mon, 13 Aug 2012 22:40:34 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1758778Ab2HXKtC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Aug 2012 06:49:02 -0400
+Message-ID: <50375C1B.5000308@iki.fi>
+Date: Fri, 24 Aug 2012 13:48:59 +0300
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
 MIME-Version: 1.0
-To: Julia Lawall <julia.lawall@lip6.fr>
-CC: Lars-Peter Clausen <lars@metafoo.de>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] drivers/media/video/mx2_emmaprp.c: use devm_kzalloc and
- devm_clk_get
-References: <1344104607-18805-1-git-send-email-Julia.Lawall@lip6.fr> <20120806142323.GO4352@mwanda> <20120806142650.GT4403@mwanda> <501FD69D.7070702@metafoo.de> <alpine.DEB.2.02.1208101558100.2011@hadrien> <50295A43.30305@redhat.com> <alpine.DEB.2.02.1208132219060.2355@localhost6.localdomain6>
-In-Reply-To: <alpine.DEB.2.02.1208132219060.2355@localhost6.localdomain6>
+To: Jean Pihet <jean.pihet@newoldbits.com>
+CC: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 7/8] ir-rx51: Remove MPU wakeup latency adjustments
+References: <1345665041-15211-1-git-send-email-timo.t.kokkonen@iki.fi> <1345665041-15211-8-git-send-email-timo.t.kokkonen@iki.fi> <CAORVsuXDpnP+QdfQDJMEAUGO3ekr+eGnt46SCqO9K2bsWpMdrw@mail.gmail.com> <503737DD.2020802@iki.fi> <CAORVsuX_J0xkYOaTN_v3KG7MLeaeFgf1zGMbQNoXikzur_MKSA@mail.gmail.com>
+In-Reply-To: <CAORVsuX_J0xkYOaTN_v3KG7MLeaeFgf1zGMbQNoXikzur_MKSA@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 13-08-2012 17:20, Julia Lawall escreveu:
-> From: Julia Lawall <Julia.Lawall@lip6.fr>
+On 08/24/12 12:04, Jean Pihet wrote:
+> Hi Timo,
 > 
-> Using devm_kzalloc simplifies the code and ensures that the use of
-> devm_request_irq is safe.  When kzalloc and kfree were used, the interrupt
-> could be triggered after the handler's data argument had been freed.
+> On Fri, Aug 24, 2012 at 10:14 AM, Timo Kokkonen <timo.t.kokkonen@iki.fi> wrote:
+>> Hi Jean,
+>>
+>> On 08/23/12 14:58, Jean Pihet wrote:
+>>> Hi Timo,
+>>>
+>>> On Wed, Aug 22, 2012 at 9:50 PM, Timo Kokkonen <timo.t.kokkonen@iki.fi> wrote:
+>>> That is correct. The API to use is the PM QoS API which cpuidle uses
+>>> to determine the next MPU state based on the allowed latency.
+>>>
+>>>> A more appropriate fix for the problem would be to modify the idle
+>>>> layer so that it does not allow MPU going to too deep sleep modes when
+>>>> it is expected that the timers need to wake up MPU.
+>>> The idle layer already uses the PM QoS framework to decide the next
+>>> MPU state. I think the right solution is to convert from
+>>> omap_pm_set_max_mpu_wakeup_lat to the PM QoS API.
+>>>
+>>> Cf. http://marc.info/?l=linux-omap&m=133968658305580&w=2 for an
+>>> example of the conversion.
+>>>
+>>
+>> Thanks. It looks like really easy and straightforward conversion.
+>> However, I couldn't find the patch you were referring to from any trees
+> Correct, this patch is not applied to the mainline code yet, it is
+> provided as an example of the conversion.
 > 
-> This also introduces some missing initializations of the return variable
-> ret, and uses devm_request_and_ioremap instead of the combination of
-> devm_request_mem_region and devm_ioremap.
+>> I could find. So, I take that this API does not really have omap2
+>> support in it yet? I tried git grepping through the source and to me it
+>> appears there is nothing in place yet that actually restricts the MPU
+>> sleep states on omap2 when requested.
+> The MPU state is controlled from the cpuidle framework, which
+> retrieves the MPU allowed latency from the PM QoS framework. This is
+> supported on OMAP2.
+> Cf. the table of states and the associated latency in
+> arch/arm/mach-omap2/cpuidle34xx.c.
 > 
-> The problem of a free after a devm_request_irq was found using the
-> following semantic match (http://coccinelle.lip6.fr/)
-> 
-> // <smpl>
-> @r exists@
-> expression e1,e2,x,a,b,c,d;
-> identifier free;
-> position p1,p2;
-> @@
-> 
->   devm_request_irq@p1(e1,e2,...,x)
->   ... when any
->       when != e2 = a
->       when != x = b
->   if (...) {
->     ... when != e2 = c
->         when != x = d
->     free@p2(...,x,...);
->     ...
->     return ...;
->   }
-> // </smpl>
-> 
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-> 
-> ---
-> v3: due to a conflict with another patch
 
-Not sure what tree you used for it, but the result was
-worse ;)
+Thanks for the pointer. I took a look at the state table and adjusted
+the latency requirements in my code. If I lower the latency from 50us to
+10us, the timers are then waking up as they should be.
 
-patching file drivers/media/video/mx2_emmaprp.c
-Hunk #1 FAILED at 896.
-Hunk #2 FAILED at 904.
-Hunk #3 FAILED at 946.
-Hunk #4 FAILED at 993.
-Hunk #5 FAILED at 1009.
-5 out of 5 hunks FAILED -- rejects in file drivers/media/video/mx2_emmaprp.c
+I'll replace this patch with one where I convert it using the new API.
 
-Well, I've massively applied hundreds of patches today, but not much
-on this driver. Maybe it is better for you to wait for a couple of
-days for these to be at -next, or use, instead, our tree as the basis for
-it:
-	git://linuxtv.org/media_tree.git staging/for_v3.7
+Thanks!
 
-Regards,
-Mauro
+-Timo
+
