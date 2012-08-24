@@ -1,45 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:36984 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751123Ab2HaIL0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Aug 2012 04:11:26 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
-Subject: [PATCH v3 0/16] Initial i.MX5/CODA7 support for the CODA driver
-Date: Fri, 31 Aug 2012 10:10:54 +0200
-Message-Id: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mta-out.inet.fi ([195.156.147.13]:59019 "EHLO jenni1.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751866Ab2HXPJu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Aug 2012 11:09:50 -0400
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCHv2 0/8] ir-rx51: Fixes in response to review comments
+Date: Fri, 24 Aug 2012 18:09:38 +0300
+Message-Id: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These patches contain initial firmware loading and encoding support for the
-CODA7 series VPU contained in i.MX51 and i.MX53 SoCs, and fix some multi-instance
-issues. Patches 13 and 14, touching files in arch/arm/*, are included for
-illustration purposes.
+These patches fix most of the issues pointed out in the patch review
+by Sean Young and Sakari Ailus.
 
-Changes since v2:
- - Rebase onto media_tree.git staging/for_v3.7 branch.
- - Stop calling cancel_delayed_work in the coda_irq_handler.
- - Fix a memory leak in patch 09/16.
- - Add a patch to fix buffer sizes for userptr mode.
- - Add a patch to allow >PAL resolutions.
+The most noticeable change after these patch set is that the IR
+transmission no longer times out even if the timers are not waking up
+the MPU as it should be. Now that Jean Pihet kindly instructed me how
+to use the PM QoS API for setting the latency constraints, the driver
+will now work without any background load. Someone might consider such
+restriction a blocker bug, that is fixed on this patch set.
 
-regards
-Philipp
+Changes since v1:
 
----
- arch/arm/boot/dts/imx51.dtsi        |    6 +
- arch/arm/boot/dts/imx53.dtsi        |    6 +
- arch/arm/mach-imx/clk-imx51-imx53.c |    4 +-
- drivers/media/platform/Kconfig      |    3 +-
- drivers/media/platform/coda.c       |  423 +++++++++++++++++++++++++----------
- drivers/media/platform/coda.h       |   33 ++-
- 6 files changed, 348 insertions(+), 127 deletions(-)
+- Replace wake_up_interruptible with wake_up, as the driver is having
+  non-interruptible sleeps
+
+- Instead of just removing the set_max_mpu_wakeup_lat calls, replace
+  them with QoS API calls
+
+Timo Kokkonen (8):
+  ir-rx51: Adjust dependencies
+  ir-rx51: Handle signals properly
+  ir-rx51: Trivial fixes
+  ir-rx51: Clean up timer initialization code
+  ir-rx51: Move platform data checking into probe function
+  ir-rx51: Replace module_{init,exit} macros with
+    module_platform_driver
+  ir-rx51: Convert latency constraints to PM QoS API
+  ir-rx51: Remove useless variable from struct lirc_rx51
+
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   2 -
+ drivers/media/rc/Kconfig                     |   4 +-
+ drivers/media/rc/ir-rx51.c                   | 100 ++++++++++++++-------------
+ include/media/ir-rx51.h                      |   2 -
+ 4 files changed, 54 insertions(+), 54 deletions(-)
+
+-- 
+1.7.12
 
