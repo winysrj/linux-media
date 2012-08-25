@@ -1,41 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog117.obsmtp.com ([207.126.144.143]:49597 "EHLO
-	eu1sys200aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753517Ab2HAGZy convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Aug 2012 02:25:54 -0400
-From: Bhupesh SHARMA <bhupesh.sharma@st.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Wed, 1 Aug 2012 14:25:36 +0800
-Subject: 
-Message-ID: <D5ECB3C7A6F99444980976A8C6D896384FABF0D73F@EAPEX1MAIL1.st.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail.chem.fsu.edu ([128.186.184.144]:33537 "EHLO
+	mail.chem.fsu.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752763Ab2HYJYH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Aug 2012 05:24:07 -0400
+Message-ID: <20120825030611.25775eptijft2gkj@webmail.chem.fsu.edu>
+Date: Sat, 25 Aug 2012 03:06:11 -0400
+From: Xli@chem.fsu.edu
+Reply-to: sg.bennyb@w.cn
+To: undisclosed-recipients:;
+Subject: $
 MIME-Version: 1.0
+Content-Type: text/plain;
+ charset=ISO-8859-1;
+ DelSp="Yes";
+ format="flowed"
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
 
-I have a query for you regarding the support and testing of MJPEG frame type in the UVC webcam gadget.
 
-I see that in the webcam.c gadget, the 720p and VGA MJPEG uvc formats are supported. I was trying the same
-out and got confused because the data arriving from a real video capture video supporting JPEG will have no
-fixed size. We will have the JPEG defined Start-of-Frame and End-of-Frame markers defining the boundary
-of the JPEG frame.
+My name is Sgt. Benny Brooker. I am in the Engineering military unit  
+here in Ba'qubah in Iraq; we have some amount of funds that we want to  
+move out of the country. REPLY VIA THIS EMAIL: (sgt.benny@w.cn)
 
-But for almost all JPEG video capture devices even if we have kept a frame size of VGA initially, the final
-frame size will be a compressed version (with the compression depending on the nature of the scene, so a flat
-scene will have high compression and hence less frame size) of VGA and will not be equal to 640 * 480.
+-------------------------------------------------------------------------
+  Sent via webmail for Chemistry & Biochemistry @ Florida State University
+  https://webmail.chem.fsu.edu
 
-So I couldn't exactly get why the dwMaxVideoFrameBufferSize is kept as 614400 in webcam.c (see [1]).
 
-Can you please let me know your opinions and how you tested the UVC gadget's MJPEG frame format.
 
-[1] http://lxr.linux.no/linux+v3.5/drivers/usb/gadget/webcam.c#L232
 
-Thanks,
-Bhupesh
+-- 
+This message has been scanned for viruses and
+dangerous content by MailScanner, and is
+believed to be clean.
+
