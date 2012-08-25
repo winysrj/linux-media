@@ -1,105 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:44836 "EHLO
-	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754605Ab2HST3r (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35086 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751891Ab2HYI4A (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Aug 2012 15:29:47 -0400
-Message-ID: <1345404569.22400.64.camel@deadeye.wl.decadent.org.uk>
-Subject: Re: [patch] [media] rc: divide by zero bugs in s_tx_carrier()
-From: Ben Hutchings <ben@decadent.org.uk>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jarod Wilson <jarod@redhat.com>,
-	Luis Henriques <luis.henriques@canonical.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Date: Sun, 19 Aug 2012 20:29:29 +0100
-In-Reply-To: <20120818155850.GA11819@elgon.mountain>
-References: <20120818155850.GA11819@elgon.mountain>
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-0t80kclXEh6B75DHwZqj"
-Mime-Version: 1.0
+	Sat, 25 Aug 2012 04:56:00 -0400
+Date: Sat, 25 Aug 2012 11:55:55 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC API] Renumber subdev ioctls
+Message-ID: <20120825085555.GN721@valkosipuli.retiisi.org.uk>
+References: <201208201030.30590.hverkuil@xs4all.nl>
+ <201208210839.53924.hverkuil@xs4all.nl>
+ <20120821104415.GF721@valkosipuli.retiisi.org.uk>
+ <201208221052.02338.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201208221052.02338.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
---=-0t80kclXEh6B75DHwZqj
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On Wed, Aug 22, 2012 at 10:52:02AM +0200, Hans Verkuil wrote:
+> On Tue August 21 2012 12:44:15 Sakari Ailus wrote:
+> > Hi Hans,
+> > 
+> > On Tue, Aug 21, 2012 at 08:39:53AM +0200, Hans Verkuil wrote:
+...
+> > > Currently I've chosen ioctl numbers that are not used by V4L2 (there are a
+> > > number of 'holes' in the ioctl list).
+> > > 
+> > > If people think it is not worth the effort, then so be it. But if we do want
+> > > to do this, then we can't wait any longer.
+> > 
+> > One option would be to start using a new type for the new IOCTLs but leave
+> > the existing ones as they are. The end result would be less elegant since
+> > the subdev IOCTLs would use two different types but OTOH the V4L2 IOCTLs are
+> > being used on subdevs as-is, too. This would at least prevent future clashes
+> > in IOCTL codes between V4L2 and subdev interfaces.
+> 
+> I don't really like that idea.
+> 
+> I thought that Laurent's proposal of creating SUBDEV aliases of reused V4L2
+> ioctls had merit. That way v4l2-subdev.h would give a nice overview of
+> which V4L2 ioctls are supported by the subdev API. Currently no such overview
+> exists to my knowledge.
 
-On Sat, 2012-08-18 at 18:58 +0300, Dan Carpenter wrote:
-> "carrier" comes from a get_user() in ir_lirc_ioctl().  We need to test
-> that it's not zero before using it as a divisor.
+We do --- it's the big switch in v4lw-ioctl.c. If that is to be improved
+that should be done IMO to the official Linux media infrastructure API spec.
 
-Other RC drivers seem to have the same problem, only more deeply buried.
-I think it's better to put this check in ir_lirc_ioctl() instead,
-consistent with LIRC_SET_REC_CARRIER.
+> With regards to adding pad fields to the existing control structs: that won't
+> work with queryctrl: the reserved fields are output fields only, there is no
+> requirement that apps have to zero them, so you can't use them to enumerate
+> controls for a particular pad.
+> 
+> A new queryctrl ioctl would have to be created for that. So if we need this
+> functionality, then I believe it is better to combine that with a new
+> queryctrl ioctl.
 
-Ben.
+Ack.
 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
->=20
-> diff --git a/drivers/media/rc/ene_ir.c b/drivers/media/rc/ene_ir.c
-> index 647dd95..d05ac15 100644
-> --- a/drivers/media/rc/ene_ir.c
-> +++ b/drivers/media/rc/ene_ir.c
-> @@ -881,10 +881,13 @@ static int ene_set_tx_mask(struct rc_dev *rdev, u32=
- tx_mask)
->  static int ene_set_tx_carrier(struct rc_dev *rdev, u32 carrier)
->  {
->  	struct ene_device *dev =3D rdev->priv;
-> -	u32 period =3D 2000000 / carrier;
-> +	u32 period;
-> =20
->  	dbg("TX: attempt to set tx carrier to %d kHz", carrier);
-> +	if (carrier =3D=3D 0)
-> +		return -EINVAL;
-> =20
-> +	period =3D 2000000 / carrier;
->  	if (period && (period > ENE_CIRMOD_PRD_MAX ||
->  			period < ENE_CIRMOD_PRD_MIN)) {
-> =20
-> diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-ci=
-r.c
-> index 699eef3..2ea913a 100644
-> --- a/drivers/media/rc/nuvoton-cir.c
-> +++ b/drivers/media/rc/nuvoton-cir.c
-> @@ -517,6 +517,9 @@ static int nvt_set_tx_carrier(struct rc_dev *dev, u32=
- carrier)
->  	struct nvt_dev *nvt =3D dev->priv;
->  	u16 val;
-> =20
-> +	if (carrier =3D=3D 0)
-> +		return -EINVAL;
-> +
->  	nvt_cir_reg_write(nvt, 1, CIR_CP);
->  	val =3D 3000000 / (carrier) - 1;
->  	nvt_cir_reg_write(nvt, val & 0xff, CIR_CC);
->=20
+Cheers,
 
---=20
-Ben Hutchings
-I say we take off; nuke the site from orbit.  It's the only way to be sure.
-
---=-0t80kclXEh6B75DHwZqj
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIVAwUAUDE+mee/yOyVhhEJAQoiVhAAvcSyg4OkHhyvnGeRwApgaxFy5ZZPKtPX
-oYGtQK73y4kD8JbSg2XhR/1BN4dTFELLzhFa41OI3QaOEO7Y+W3n7KB7/DGfN+QT
-ABoxOeC3SzH8+SCK2wfO4EDBet55VRPMjkmnvDOmn7BkcL6FzeKxfp7pHDNDa16H
-KgYFPBGaJPeos+/1OVFQIkCNMldKGu+18U3ovPXZR3W/KfuRBuHKviae0PFp5Gi8
-ett5lcsjsnIsxN4K06g6XPK3eSWl8OCCg4XjkWi5/uLx8TR+CDRZS7hoy0R8REfo
-ICwz2KvSyTVj5BUiFKaKCGgBFdkvvfCTto/q8CNPGRHPmjaLRLjfrS00yqZGCevI
-QUOlFXIpgVVHQ/z8Zy9Wq7sUNbxzm9GztNd2+DzWfVUqLNjYLASkjsiFZwG87xua
-i8L48o56TsYRCQ8MC9LS7ht0ygHFHXpw2N36GS3gAsyVEv4QlApl1gs2pOn3LKvG
-+/2oK609BGQ1Ar0GaaSxM3X6NF1TkeXiZKCyKiE4Xp9uDno3IfsWhVAlHraQQP3j
-xEXgB9Z9C7VSWxlFnJ3hLYu2JRXJ8yda8aYNXInQyuUNgCnWivTDJbqdRGXQGUIP
-T85oA2TvCtM9LpbEtcoGRukkBmWuXPPtEsPS9IXln1n31HMcZrkbrphcNeZ9DGsN
-Bv8GliNf/ek=
-=J3Z8
------END PGP SIGNATURE-----
-
---=-0t80kclXEh6B75DHwZqj--
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
