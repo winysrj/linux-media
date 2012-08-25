@@ -1,52 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:41101 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752866Ab2HEUkK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Aug 2012 16:40:10 -0400
-Received: by pbbrr13 with SMTP id rr13so1452676pbb.19
-        for <linux-media@vger.kernel.org>; Sun, 05 Aug 2012 13:40:10 -0700 (PDT)
-From: Devendra Naga <develkernel412222@gmail.com>
-To: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Devendra Naga <develkernel412222@gmail.com>
-Subject: [PATCH] staging: media: cxd2099: remove memcpy of similar structure variables
-Date: Mon,  6 Aug 2012 02:25:02 +0545
-Message-Id: <1344199202-15744-1-git-send-email-develkernel412222@gmail.com>
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:44969 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752911Ab2HYDJO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Aug 2012 23:09:14 -0400
+Received: by ggdk6 with SMTP id k6so581646ggd.19
+        for <linux-media@vger.kernel.org>; Fri, 24 Aug 2012 20:09:13 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH 3/9] mem2mem-emmaprp: Don't check vb2_queue_init() return value
+Date: Sat, 25 Aug 2012 00:09:00 -0300
+Message-Id: <1345864146-2207-3-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1345864146-2207-1-git-send-email-elezegarcia@gmail.com>
+References: <1345864146-2207-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-structure variables can be assigned, no memcpy needed,
-remove the memcpy and use assignment for the cfg and en variables.
+Right now vb2_queue_init() returns always 0
+and it will be changed to return void.
 
-Tested by Compilation Only
-
-Suggested-by: Ezequiel Garcia <elezegarcia@gmail.com>
-Signed-off-by: Devendra Naga <develkernel412222@gmail.com>
+Cc: Javier Martin <javier.martin@vista-silicon.com>
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
 ---
- drivers/staging/media/cxd2099/cxd2099.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/platform/mx2_emmaprp.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/staging/media/cxd2099/cxd2099.c b/drivers/staging/media/cxd2099/cxd2099.c
-index 4f2235f..0ff1972 100644
---- a/drivers/staging/media/cxd2099/cxd2099.c
-+++ b/drivers/staging/media/cxd2099/cxd2099.c
-@@ -696,13 +696,13 @@ struct dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg,
- 		return NULL;
+diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
+index 59aaca4..17e5c7e 100644
+--- a/drivers/media/platform/mx2_emmaprp.c
++++ b/drivers/media/platform/mx2_emmaprp.c
+@@ -764,9 +764,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->ops = &emmaprp_qops;
+ 	src_vq->mem_ops = &vb2_dma_contig_memops;
  
- 	mutex_init(&ci->lock);
--	memcpy(&ci->cfg, cfg, sizeof(struct cxd2099_cfg));
-+	ci->cfg = *cfg;
- 	ci->i2c = i2c;
- 	ci->lastaddress = 0xff;
- 	ci->clk_reg_b = 0x4a;
- 	ci->clk_reg_f = 0x1b;
+-	ret = vb2_queue_init(src_vq);
+-	if (ret)
+-		return ret;
++	vb2_queue_init(src_vq);
  
--	memcpy(&ci->en, &en_templ, sizeof(en_templ));
-+	ci->en = en_templ;
- 	ci->en.data = ci;
- 	init(ci);
- 	printk(KERN_INFO "Attached CXD2099AR at %02x\n", ci->cfg.adr);
+ 	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 	dst_vq->io_modes = VB2_MMAP | VB2_USERPTR;
+@@ -775,7 +773,8 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->ops = &emmaprp_qops;
+ 	dst_vq->mem_ops = &vb2_dma_contig_memops;
+ 
+-	return vb2_queue_init(dst_vq);
++	vb2_queue_init(dst_vq);
++	return 0;
+ }
+ 
+ /*
 -- 
-1.7.9.5
+1.7.8.6
 
