@@ -1,61 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:47823 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751026Ab2HOTFw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Aug 2012 15:05:52 -0400
-Message-ID: <502BF2DD.5020601@redhat.com>
-Date: Wed, 15 Aug 2012 16:05:01 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PULL] left-overs from old 3.6 pull, more to come
-References: <Pine.LNX.4.64.1208151618180.4024@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1208151618180.4024@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:44969 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754749Ab2HYDJ0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Aug 2012 23:09:26 -0400
+Received: by mail-gg0-f174.google.com with SMTP id k6so581646ggd.19
+        for <linux-media@vger.kernel.org>; Fri, 24 Aug 2012 20:09:25 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: [PATCH 9/9] videobuf2-core: Change vb2_queue_init return type to void
+Date: Sat, 25 Aug 2012 00:09:06 -0300
+Message-Id: <1345864146-2207-9-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1345864146-2207-1-git-send-email-elezegarcia@gmail.com>
+References: <1345864146-2207-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 15-08-2012 11:20, Guennadi Liakhovetski escreveu:
-> Hi Mauro
-> 
-> Below are patches, that I tried to push for 3.6, but that went missing. 
-> I'll also try to look through other my pending patches within the next 
-> couple of hours, so, there might be one or two more pull requests from me 
-> shortly.
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c |    3 +--
+ include/media/videobuf2-core.h           |    2 +-
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-Sorry for missing them! Not sure what happened.
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 4da3df6..ea45842 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1736,7 +1736,7 @@ EXPORT_SYMBOL_GPL(vb2_poll);
+  * to the struct vb2_queue description in include/media/videobuf2-core.h
+  * for more information.
+  */
+-int vb2_queue_init(struct vb2_queue *q)
++void vb2_queue_init(struct vb2_queue *q)
+ {
+ 	BUG_ON(!q);
+ 	BUG_ON(!q->ops);
+@@ -1755,7 +1755,6 @@ int vb2_queue_init(struct vb2_queue *q)
+ 	if (q->buf_struct_size == 0)
+ 		q->buf_struct_size = sizeof(struct vb2_buffer);
+ 
+-	return 0;
+ }
+ EXPORT_SYMBOL_GPL(vb2_queue_init);
+ 
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 8dd9b6c..ed6854a 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -324,7 +324,7 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req);
+ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create);
+ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b);
+ 
+-int vb2_queue_init(struct vb2_queue *q);
++void vb2_queue_init(struct vb2_queue *q);
+ 
+ void vb2_queue_release(struct vb2_queue *q);
+ 
+-- 
+1.7.8.6
 
-> The following changes since commit f1b1b85c7f85417d73d3b315f5df1e2730477c0f:
-> 
->   tw9910: Don't access the device in the g_mbus_fmt operation (2012-07-20 16:13:24 +0200)
-> 
-> are available in the git repository at:
->   git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.6
-
-Hmm... it seems you're using an old version of git... Newer versions show it as:
-
-The following changes since commit a1b3a6ce0f1510b14b18d019c4cda137585b1f69:
-
-  [media] media: davinci: fix section mismatch warnings (2012-08-14 08:45:49 -0300)
-
-are available in the git repository at:
-
-  . staging/for_v3.7
-
-for you to fetch changes up to 84cfe9e79bd5ac11c963f4841158454fefa872f6:
-
-  [media] b2c2: fix driver's build due to the lack of pci DMA code (2012-08-15 12:14:12 -0300)
-
-
-My merge scripts are now handling both commit ID's (start and end ones), in order
-to be sure that I'll be picking all patches.
-
-While it also works with the older way, I suggest you to update git, as this
-can help me to double check if all patches were got, and that I'm not getting
-more than actually requested.
-
-Regards,
-Mauro.
