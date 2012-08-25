@@ -1,289 +1,439 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:62229 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756217Ab2HUMdA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Aug 2012 08:33:00 -0400
-Message-ID: <50337FF4.2030200@redhat.com>
-Date: Tue, 21 Aug 2012 09:32:52 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:40373 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752235Ab2HYVrW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Aug 2012 17:47:22 -0400
+Subject: [PATCH 6/8] rc-core: merge rc5 and streamzap decoders
+To: linux-media@vger.kernel.org
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: jwilson@redhat.com, mchehab@redhat.com, sean@mess.org
+Date: Sat, 25 Aug 2012 23:47:19 +0200
+Message-ID: <20120825214719.22603.94346.stgit@localhost.localdomain>
+In-Reply-To: <20120825214520.22603.37194.stgit@localhost.localdomain>
+References: <20120825214520.22603.37194.stgit@localhost.localdomain>
 MIME-Version: 1.0
-To: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-CC: linux-media@vger.kernel.org, hdegoede@redhat.com,
-	mchehab@infradead.org
-Subject: Re: How to add support for the em2765 webcam Speedlink VAD Laplace
- to the kernel ?
-References: <5032225A.9080305@googlemail.com> <50323559.7040107@redhat.com> <50328E22.4090805@redhat.com> <50337293.8050808@googlemail.com>
-In-Reply-To: <50337293.8050808@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 21-08-2012 08:35, Frank Schäfer escreveu:
-> Am 20.08.2012 21:21, schrieb Mauro Carvalho Chehab:
->> Em 20-08-2012 10:02, Hans de Goede escreveu:
->>> Hi,
->>>
->>> On 08/20/2012 01:41 PM, Frank Schäfer wrote:
->>>> Hi,
->>>>
->>>> after a break of 2 1/2 kernel releases (sorry, I was busy with another
->>>> project), I would like to bring up again the question how to add support
->>>> for this device to the kernel.
->>>> See
->>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg44417.html
->>>> ("Move em27xx/em28xx webcams to a gspca subdriver ?") for the previous
->>>> discussion.
->>>>
->>>> Current status is, that I've reverse-engineered the Windows driver and
->>>> written a new gspca-subdriver for testing, which is feature complete and
->>>> working stable (will send a patch shortly !).
->>>>
->>>> The device uses an em2765-bridge, so my first idea was of course to
->>>> modify/extend the em28xx-driver.
->>>> But during the reverse-engineering-process, it turned out that writing a
->>>> new gspca-subdriver was much easier than modifying the em28xx-driver.
->>>>
->>>> The device has the following special characteristics:
->>>> - supports only bulk transfers (em28xx driver supports ISOC only)
->> Em28xx driver supports both isoc and bulk transfers, as bulk is
->> required by DVB.
-> 
-> Hmm... are you 100% sure ? Must have been added recently then...
-> 
-> I did a quick check of the current code, but can't find anything. Could
-> you please give me a pointer to the code parts ?
-> Btw, if I'm not understanding the code wrong, em28xx_usb_probe() still
-> seems to return -ENODEV if no isoc-in endpoint is found, so bulk-ep-only
-> devices should not work...
+Now that the protocol is part of the scancode, it is pretty easy to merge
+the rc5 and streamzap decoders. An additional advantage is that the decoder
+is now stricter as it waits for the trailing silence before determining that
+a command is a valid rc5/streamzap command (which avoids collisions that I've
+seen with e.g. Sony protocols).
 
-Perhaps I'm tricked by tm6000 code... both codes are similar.
-There are a few differences with regards to isoc/bulk hanlding
-there.
+Signed-off-by: David HÃ¤rdeman <david@hardeman.nu>
+---
+ drivers/media/rc/Kconfig                |   12 --
+ drivers/media/rc/Makefile               |    1 
+ drivers/media/rc/ir-rc5-decoder.c       |   51 ++++++----
+ drivers/media/rc/ir-rc5-sz-decoder.c    |  154 -------------------------------
+ drivers/media/rc/keymaps/rc-streamzap.c |    4 -
+ drivers/media/rc/rc-core-priv.h         |    8 --
+ drivers/media/rc/streamzap.c            |   10 --
+ 7 files changed, 31 insertions(+), 209 deletions(-)
+ delete mode 100644 drivers/media/rc/ir-rc5-sz-decoder.c
 
->>>> - uses "proprietary" read/write procedures for the sensor
->> Sure about that? It doesn't use I2C?
-> 
-> According to the datasheet of the OV2640 it should be SCCB.
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index 4682a5a..d700b1d 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -84,18 +84,6 @@ config IR_SONY_DECODER
+ 	   Enable this option if you have an infrared remote control which
+ 	   uses the Sony protocol, and you need software decoding support.
+ 
+-config IR_RC5_SZ_DECODER
+-	tristate "Enable IR raw decoder for the RC-5 (streamzap) protocol"
+-	depends on RC_CORE
+-	select BITREVERSE
+-	default y
+-
+-	---help---
+-	   Enable this option if you have IR with RC-5 (streamzap) protocol,
+-	   and if the IR is decoded in software. (The Streamzap PC Remote
+-	   uses an IR protocol that is almost standard RC-5, but not quite,
+-	   as it uses an additional bit).
+-
+ config IR_SANYO_DECODER
+ 	tristate "Enable IR raw decoder for the Sanyo protocol"
+ 	depends on RC_CORE
+diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+index 56bacf0..9f56774 100644
+--- a/drivers/media/rc/Makefile
++++ b/drivers/media/rc/Makefile
+@@ -9,7 +9,6 @@ obj-$(CONFIG_IR_RC5_DECODER) += ir-rc5-decoder.o
+ obj-$(CONFIG_IR_RC6_DECODER) += ir-rc6-decoder.o
+ obj-$(CONFIG_IR_JVC_DECODER) += ir-jvc-decoder.o
+ obj-$(CONFIG_IR_SONY_DECODER) += ir-sony-decoder.o
+-obj-$(CONFIG_IR_RC5_SZ_DECODER) += ir-rc5-sz-decoder.o
+ obj-$(CONFIG_IR_SANYO_DECODER) += ir-sanyo-decoder.o
+ obj-$(CONFIG_IR_MCE_KBD_DECODER) += ir-mce_kbd-decoder.o
+ obj-$(CONFIG_IR_LIRC_CODEC) += ir-lirc-codec.o
+diff --git a/drivers/media/rc/ir-rc5-decoder.c b/drivers/media/rc/ir-rc5-decoder.c
+index ddbf9bf..9594b8f 100644
+--- a/drivers/media/rc/ir-rc5-decoder.c
++++ b/drivers/media/rc/ir-rc5-decoder.c
+@@ -1,6 +1,7 @@
+-/* ir-rc5-decoder.c - handle RC5(x) IR Pulse/Space protocol
++/* ir-rc5-decoder.c - decoder for RC5(x) and StreamZap protocols
+  *
+  * Copyright (C) 2010 by Mauro Carvalho Chehab <mchehab@redhat.com>
++ * Copyright (C) 2010 by Jarod Wilson <jarod@redhat.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  *  it under the terms of the GNU General Public License as published by
+@@ -13,23 +14,22 @@
+  */
+ 
+ /*
+- * This code handles 14 bits RC5 protocols and 20 bits RC5x protocols.
+- * There are other variants that use a different number of bits.
+- * This is currently unsupported.
+- * It considers a carrier of 36 kHz, with a total of 14/20 bits, where
+- * the first two bits are start bits, and a third one is a filing bit
++ * This decoder handles the 14 bit RC5 protocol, 15 bit "StreamZap" protocol
++ * and 20 bit RC5x protocol.
+  */
+ 
+ #include "rc-core-priv.h"
+ #include <linux/module.h>
+ 
+ #define RC5_NBITS		14
++#define RC5_SZ_NBITS		15
+ #define RC5X_NBITS		20
+ #define CHECK_RC5X_NBITS	8
+ #define RC5_UNIT		888888 /* ns */
+ #define RC5_BIT_START		(1 * RC5_UNIT)
+ #define RC5_BIT_END		(1 * RC5_UNIT)
+ #define RC5X_SPACE		(4 * RC5_UNIT)
++#define RC5_TRAILER		(10 * RC5_UNIT) /* In reality, approx 100 */
+ 
+ enum rc5_state {
+ 	STATE_INACTIVE,
+@@ -80,12 +80,15 @@ again:
+ 
+ 		data->state = STATE_BIT_START;
+ 		data->count = 1;
+-		/* We just need enough bits to get to STATE_CHECK_RC5X */
+-		data->wanted_bits = RC5X_NBITS;
+ 		decrease_duration(&ev, RC5_BIT_START);
+ 		goto again;
+ 
+ 	case STATE_BIT_START:
++		if (!ev.pulse && geq_margin(ev.duration, RC5_TRAILER, RC5_UNIT / 2)) {
++			data->state = STATE_FINISHED;
++			goto again;
++		}
++
+ 		if (!eq_margin(ev.duration, RC5_BIT_START, RC5_UNIT / 2))
+ 			break;
+ 
+@@ -100,9 +103,7 @@ again:
+ 		if (!is_transition(&ev, &dev->raw->prev_ev))
+ 			break;
+ 
+-		if (data->count == data->wanted_bits)
+-			data->state = STATE_FINISHED;
+-		else if (data->count == CHECK_RC5X_NBITS)
++		if (data->count == CHECK_RC5X_NBITS)
+ 			data->state = STATE_CHECK_RC5X;
+ 		else
+ 			data->state = STATE_BIT_START;
+@@ -112,13 +113,10 @@ again:
+ 
+ 	case STATE_CHECK_RC5X:
+ 		if (!ev.pulse && geq_margin(ev.duration, RC5X_SPACE, RC5_UNIT / 2)) {
+-			/* RC5X */
+-			data->wanted_bits = RC5X_NBITS;
++			data->is_rc5x = true;
+ 			decrease_duration(&ev, RC5X_SPACE);
+-		} else {
+-			/* RC5 */
+-			data->wanted_bits = RC5_NBITS;
+-		}
++		} else
++			data->is_rc5x = false;
+ 		data->state = STATE_BIT_START;
+ 		goto again;
+ 
+@@ -126,7 +124,7 @@ again:
+ 		if (ev.pulse)
+ 			break;
+ 
+-		if (data->wanted_bits == RC5X_NBITS) {
++		if (data->is_rc5x && data->count == RC5X_NBITS) {
+ 			/* RC5X */
+ 			u8 xdata, command, system;
+ 			xdata    = (data->bits & 0x0003F) >> 0;
+@@ -136,7 +134,7 @@ again:
+ 			command += (data->bits & 0x01000) ? 0 : 0x40;
+ 			scancode = system << 16 | command << 8 | xdata;
+ 			protocol = RC_TYPE_RC5X;
+-		} else {
++		} else if (!data->is_rc5x && data->count == RC5_NBITS) {
+ 			/* RC5 */
+ 			u8 command, system;
+ 			command  = (data->bits & 0x0003F) >> 0;
+@@ -145,10 +143,19 @@ again:
+ 			command += (data->bits & 0x01000) ? 0 : 0x40;
+ 			scancode = system << 8 | command;
+ 			protocol = RC_TYPE_RC5;
+-		}
++		} else if (!data->is_rc5x && data->count == RC5_SZ_NBITS) {
++			/* RC5 StreamZap */
++			u8 command, system;
++			command  = (data->bits & 0x0003F) >> 0;
++			system   = (data->bits & 0x02FC0) >> 6;
++			toggle   = (data->bits & 0x01000) ? 1 : 0;
++			scancode = system << 6 | command;
++			protocol = RC_TYPE_RC5_SZ;
++		} else
++			break;
+ 
+ 		if (dev->enabled_protocols & (1 << protocol)) {
+-			IR_dprintk(1, "RC5(x) scancode 0x%06x (toggle: %u)\n",
++			IR_dprintk(1, "RC5(x/sz) scancode 0x%06x (toggle: %u)\n",
+ 				   scancode, toggle);
+ 			rc_keydown(dev, protocol, scancode, toggle);
+ 		}
+@@ -165,7 +172,7 @@ out:
+ }
+ 
+ static struct ir_raw_handler rc5_handler = {
+-	.protocols	= RC_BIT_RC5 | RC_BIT_RC5X,
++	.protocols	= RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ,
+ 	.decode		= ir_rc5_decode,
+ };
+ 
+diff --git a/drivers/media/rc/ir-rc5-sz-decoder.c b/drivers/media/rc/ir-rc5-sz-decoder.c
+deleted file mode 100644
+index 8681b96..0000000
+--- a/drivers/media/rc/ir-rc5-sz-decoder.c
++++ /dev/null
+@@ -1,154 +0,0 @@
+-/* ir-rc5-sz-decoder.c - handle RC5 Streamzap IR Pulse/Space protocol
+- *
+- * Copyright (C) 2010 by Mauro Carvalho Chehab <mchehab@redhat.com>
+- * Copyright (C) 2010 by Jarod Wilson <jarod@redhat.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- *  it under the terms of the GNU General Public License as published by
+- *  the Free Software Foundation version 2 of the License.
+- *
+- *  This program is distributed in the hope that it will be useful,
+- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- *  GNU General Public License for more details.
+- */
+-
+-/*
+- * This code handles the 15 bit RC5-ish protocol used by the Streamzap
+- * PC Remote.
+- * It considers a carrier of 36 kHz, with a total of 15 bits, where
+- * the first two bits are start bits, and a third one is a filing bit
+- */
+-
+-#include "rc-core-priv.h"
+-#include <linux/module.h>
+-
+-#define RC5_SZ_NBITS		15
+-#define RC5_UNIT		888888 /* ns */
+-#define RC5_BIT_START		(1 * RC5_UNIT)
+-#define RC5_BIT_END		(1 * RC5_UNIT)
+-
+-enum rc5_sz_state {
+-	STATE_INACTIVE,
+-	STATE_BIT_START,
+-	STATE_BIT_END,
+-	STATE_FINISHED,
+-};
+-
+-/**
+- * ir_rc5_sz_decode() - Decode one RC-5 Streamzap pulse or space
+- * @dev:	the struct rc_dev descriptor of the device
+- * @ev:		the struct ir_raw_event descriptor of the pulse/space
+- *
+- * This function returns -EINVAL if the pulse violates the state machine
+- */
+-static int ir_rc5_sz_decode(struct rc_dev *dev, struct ir_raw_event ev)
+-{
+-	struct rc5_sz_dec *data = &dev->raw->rc5_sz;
+-	u8 toggle, command, system;
+-	u32 scancode;
+-
+-	if (!(dev->enabled_protocols & RC_BIT_RC5_SZ))
+-		return 0;
+-
+-	if (!is_timing_event(ev)) {
+-		if (ev.reset)
+-			data->state = STATE_INACTIVE;
+-		return 0;
+-	}
+-
+-	if (!geq_margin(ev.duration, RC5_UNIT, RC5_UNIT / 2))
+-		goto out;
+-
+-again:
+-	IR_dprintk(2, "RC5-sz decode started at state %i (%uus %s)\n",
+-		   data->state, TO_US(ev.duration), TO_STR(ev.pulse));
+-
+-	if (!geq_margin(ev.duration, RC5_UNIT, RC5_UNIT / 2))
+-		return 0;
+-
+-	switch (data->state) {
+-
+-	case STATE_INACTIVE:
+-		if (!ev.pulse)
+-			break;
+-
+-		data->state = STATE_BIT_START;
+-		data->count = 1;
+-		data->wanted_bits = RC5_SZ_NBITS;
+-		decrease_duration(&ev, RC5_BIT_START);
+-		goto again;
+-
+-	case STATE_BIT_START:
+-		if (!eq_margin(ev.duration, RC5_BIT_START, RC5_UNIT / 2))
+-			break;
+-
+-		data->bits <<= 1;
+-		if (!ev.pulse)
+-			data->bits |= 1;
+-		data->count++;
+-		data->state = STATE_BIT_END;
+-		return 0;
+-
+-	case STATE_BIT_END:
+-		if (!is_transition(&ev, &dev->raw->prev_ev))
+-			break;
+-
+-		if (data->count == data->wanted_bits)
+-			data->state = STATE_FINISHED;
+-		else
+-			data->state = STATE_BIT_START;
+-
+-		decrease_duration(&ev, RC5_BIT_END);
+-		goto again;
+-
+-	case STATE_FINISHED:
+-		if (ev.pulse)
+-			break;
+-
+-		/* RC5-sz */
+-		command  = (data->bits & 0x0003F) >> 0;
+-		system   = (data->bits & 0x02FC0) >> 6;
+-		toggle   = (data->bits & 0x01000) ? 1 : 0;
+-		scancode = system << 6 | command;
+-
+-		IR_dprintk(1, "RC5-sz scancode 0x%04x (toggle: %u)\n",
+-			   scancode, toggle);
+-
+-		rc_keydown(dev, RC_TYPE_RC5_SZ, scancode, toggle);
+-		data->state = STATE_INACTIVE;
+-		return 0;
+-	}
+-
+-out:
+-	IR_dprintk(1, "RC5-sz decode failed at state %i (%uus %s)\n",
+-		   data->state, TO_US(ev.duration), TO_STR(ev.pulse));
+-	data->state = STATE_INACTIVE;
+-	return -EINVAL;
+-}
+-
+-static struct ir_raw_handler rc5_sz_handler = {
+-	.protocols	= RC_BIT_RC5_SZ,
+-	.decode		= ir_rc5_sz_decode,
+-};
+-
+-static int __init ir_rc5_sz_decode_init(void)
+-{
+-	ir_raw_handler_register(&rc5_sz_handler);
+-
+-	printk(KERN_INFO "IR RC5 (streamzap) protocol handler initialized\n");
+-	return 0;
+-}
+-
+-static void __exit ir_rc5_sz_decode_exit(void)
+-{
+-	ir_raw_handler_unregister(&rc5_sz_handler);
+-}
+-
+-module_init(ir_rc5_sz_decode_init);
+-module_exit(ir_rc5_sz_decode_exit);
+-
+-MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Jarod Wilson <jarod@redhat.com>");
+-MODULE_AUTHOR("Red Hat Inc. (http://www.redhat.com)");
+-MODULE_DESCRIPTION("RC5 (streamzap) IR protocol decoder");
+diff --git a/drivers/media/rc/keymaps/rc-streamzap.c b/drivers/media/rc/keymaps/rc-streamzap.c
+index f9a0757..23c0611 100644
+--- a/drivers/media/rc/keymaps/rc-streamzap.c
++++ b/drivers/media/rc/keymaps/rc-streamzap.c
+@@ -15,9 +15,7 @@
+ static struct rc_map_table streamzap[] = {
+ /*
+  * The Streamzap remote is almost, but not quite, RC-5, as it has an extra
+- * bit in it, which throws the in-kernel RC-5 decoder for a loop. Currently,
+- * an additional RC-5-sz decoder is being deployed to support it, but it
+- * may be possible to merge it back with the standard RC-5 decoder.
++ * bit in it.
+  */
+ 	{ 0x28c0, KEY_NUMERIC_0 },
+ 	{ 0x28c1, KEY_NUMERIC_1 },
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index 4de2d47..6a40bc9 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -54,7 +54,7 @@ struct ir_raw_event_ctrl {
+ 		int state;
+ 		u32 bits;
+ 		unsigned count;
+-		unsigned wanted_bits;
++		bool is_rc5x;
+ 	} rc5;
+ 	struct rc6_dec {
+ 		int state;
+@@ -77,12 +77,6 @@ struct ir_raw_event_ctrl {
+ 		bool first;
+ 		bool toggle;
+ 	} jvc;
+-	struct rc5_sz_dec {
+-		int state;
+-		u32 bits;
+-		unsigned count;
+-		unsigned wanted_bits;
+-	} rc5_sz;
+ 	struct sanyo_dec {
+ 		int state;
+ 		unsigned count;
+diff --git a/drivers/media/rc/streamzap.c b/drivers/media/rc/streamzap.c
+index c720f12..fdfedc6 100644
+--- a/drivers/media/rc/streamzap.c
++++ b/drivers/media/rc/streamzap.c
+@@ -69,13 +69,6 @@ MODULE_DEVICE_TABLE(usb, streamzap_table);
+ /* number of samples buffered */
+ #define SZ_BUF_LEN 128
+ 
+-/* from ir-rc5-sz-decoder.c */
+-#ifdef CONFIG_IR_RC5_SZ_DECODER_MODULE
+-#define load_rc5_sz_decode()    request_module("ir-rc5-sz-decoder")
+-#else
+-#define load_rc5_sz_decode()    {}
+-#endif
+-
+ enum StreamzapDecoderState {
+ 	PulseSpace,
+ 	FullPulse,
+@@ -458,9 +451,6 @@ static int __devinit streamzap_probe(struct usb_interface *intf,
+ 	dev_info(sz->dev, "Registered %s on usb%d:%d\n", name,
+ 		 usbdev->bus->busnum, usbdev->devnum);
+ 
+-	/* Load the streamzap not-quite-rc5 decoder too */
+-	load_rc5_sz_decode();
+-
+ 	return 0;
+ 
+ rc_dev_fail:
 
-SCCB is a variant of I2C.
-
-> Anyway, I'm referring to how communication works on the USB level.
-> Take a look at http://linuxtv.org/wiki/index.php/VAD_Laplace section
-> "Reverse Engineering (evaluation of USB-logs)" to see how it is working.
-
-Ok. From your logs, it seems that em2765 uses a different bus for
-sensor communication. It is not unusual to have more than one bus on
-some modern devices (cx231xx has 3 I2C buses, plus one extra bus that
-can be switched).
-
-A proper mapping for it to use ov2640 driver is to create two i2c
-buses, one used by eeprom access, and another one for sensor.
-
-> Interestingly, the standard I2C reads are used, too, for reading the
-> EEPROM. So maybe there is a "physical" difference.
-> 
-> "Proprietary" is probably not the best name, but I don't have e better
-> one at the moment (suggestions ?).
-
-It is just another bus: instead of using req 3/4 for read/write, it uses
-req 6 for both reads/writes at the i2c-like sensor bus.
-
->>>> - uses 16bit eeprom
->>>> - em25xx-eeprom with different layout
->> There are other supported chips with 16bit eeproms. Currently,
->> support for 16bit eeproms is disabled just because this weren't
->> needed so far, but I'm sure this is a need there.
-> 
-> Yes, I've read the comment in em28xx_i2c_eeprom():
-> "...there is the risk that we could corrupt the eeprom (since a 16-bit
-> read call is interpreted as a write call by 8-bit eeproms)..."
-> How can we know if a device uses an 8bit or 16bit EEPROM ? Can we derive
-> that from the uses em27xx/28xx-chip ?
-
-I don't know any other way to check it than to read the chip ID, at register
-0x0a. Those are the chip ID's that we currently know:
-
-enum em28xx_chip_id {
-	CHIP_ID_EM2800 = 7,
-	CHIP_ID_EM2710 = 17,
-	CHIP_ID_EM2820 = 18,	/* Also used by some em2710 */
-	CHIP_ID_EM2840 = 20,
-	CHIP_ID_EM2750 = 33,
-	CHIP_ID_EM2860 = 34,
-	CHIP_ID_EM2870 = 35,
-	CHIP_ID_EM2883 = 36,
-	CHIP_ID_EM2874 = 65,
-	CHIP_ID_EM2884 = 68,
-	CHIP_ID_EM28174 = 113,
-};
-
-Even if we add it as a separate driver, it is likely wise to re-use the
-registers description at drivers/media/usb/em28xx/em28xx-reg.h, moving it
-to drivers/include/media, as em2765 likely uses the same registers. 
-It also makes sense to add a chip detection at the existing driver, 
-for it to bail out if it detects an em2765 (and the reverse on the new
-driver).
-
-> Anyway, this problem is common to both solutions (gspca or em28xx-driver).
-
-As eeprom reading is I2C, it could make some sense to use a generic driver
-for reading its contents, removing the code from em28xx-i2c logic, and
-re-using it on both drivers (assuming that we fork it).
-
->>>> - sensor OV2640
->> There is a driver for it at:
->> 	drivers/media/i2c/soc_camera/ov2640.c
->>
->> The better is to use it (even if this got mapped via gspca).
-> 
-> Yes, I know. This is already on my ToDo list.
-> 
->>>> - different frame processing
->>>> - 3 buttons (snapshot, mute, light) which need special treatment
->>>> (GPIO-polling, status-reseting, ...)
->> Need to see the code to better understand that.
-> 
-> Take a look at the patch.
-> 
-> http://www.spinics.net/lists/linux-media/msg52084.html
-
-Ok, let's do it via gspca, but please map both the standard I2C and 
-the "SCCB" bus via the I2C API, and use the existing ov2640 driver.
-
-> I've sent it to the list 3 minutes after I started this thread and also
-> CC'ed you.
-> 
-> 
->>>> Another important point to mention: you can see from the USB-logs
->>>> (sensor probing) that there must be at least 3 other webcam devices.
->> What do you mean?
-> 
-> The Windows driver probes 3 other sensor addresses (using the same
-> "proprietary" reads). I've included them in my patch.
-> The INF-file does not contain any other USB IDs, but I think it is
-> unlikely that they are used by this device.
-> SpeedLink spent different USB IDs even for identical devices with
-> different body colors, so I think they would have done they same for
-> variants with different sensors.
-> It is more likely that the Windows driver is a kind of universal em2765
-> driver.
-
-With means that we'll sooner or later get some devices with other sensors.
-So, it is better to be prepared for that, by exposing the sensor bus via I2C.
-
-I don't see any need to probe those other sensors right now: we should do it
-only if we actually get one of those other devices in hands.
-
->>>> Some pros and cons for both solutions:
->>>>
->>>> em28xx:
->>>> + one driver for all 25xx/26xx/27xx/28xx devices
->>>> + no duplicate code (bridge register defines, bridge read/write fcns)
->>>> + other devices COULD benefit from the new functions/code
->>>> - big task/lots of work
->>>> - code gets bloated with stuff, which is only needed by a few special
->>>> devices
->> It all depends on what's needed ;)
->>
->>>> gspca:
->>>> + driver already exists (see patch)
->> Which patch?
-> 
-> See above.
-> 
->>>> + default driver for webcams
->>>> + much easier to understand and extend
->>>> + same or even less amount of new code lines
->>>> + keeps em28xx-code "simple"
->>>> - code duplication
->>>> - support for em28xx-webcams spread over to 2 different drivers
->> The spread of em27xx support on 2 different drivers can lead into
->> problems for the users to know what driver implements support for
->> their device.
-> 
-> Ok, but that's what dmesg is for, isn't it ?
-> And people willing to add support for a new device have to contact the
-> linux-media ML anyway.
-
-Well, if the driver's probe can handle it and return -ENODEV if it doesn't
-mach a device it could work with, then we might not have much issues.
-
-> 
-> Btw: there is another "non-technical" argument for a gspca subdriver:
-> For the remaining unsupported em2xxx webcams, we probably depend on
-> people doing reverse-engineering of their device. People which might not
-> be that skilled (like me ;-) ).
-> A gspca subdriver is MUCH easier to understand and to modify, than the
-> em28xx-driver. I really tried and I think I didn't give up to early, but...
-> 
->> So, if we're going to do that, then the better is to move support
->> for all em27xx devices out of em28xx driver, but I think that this
->> will end by creating duplicated stuff.
-> 
-> You are probably right.
-> I don't like the idea of having two different drivers for the same
-> webcam family, but I think separate drivers for webcams and TV-devices
-> would be ok.
-
-Yeah, sure.
-
-> Concerning code duplication: I think it isn't too much. We should also
-> take the total number of code lines into account. For example, we could
-> get rid of field is_webcam in the em28xx device struct, which saves some
-> lines of code.
-> But form your own opinion by comparing the code.
-> 
->> Btw, how is audio with your em2765 device? Is it provided via
->> snd-usb-audio, or does it require some code like the one inside
->> em28xx?
-> 
-> It works out of the box with snd-usb-audio.
-> But, of course, at least in theory, there could be webcams requiring the
-> special code.
-> I'm not sure how likely that is, given that the audio part of webcam is
-> just a microphone.
-
-Empia has 2 "families" of chips: one with standard audio class and another
-one with proprietary audio class. I won't doubt that there is some variant
-of em2765 with proprietary audio class. If so, we may need to add some
-logic at the gspca driver, in order to load and bind the em28xx-alsa
-module.
-
-That's one extra reason for trying to keep at least some common headers
-accessed by both drivers.
-
->>>> I have no strong opinion whether support for this device should finally
->>>> be added to em28xx or gspca and
->>>> I'm willing to continue working on both solutions as much as my time
->>>> permits and as long as I'm having fun (I'm doing this as a hobby !).
->>>> Anyway, the em28xx driver is very complex and I really think it would
->>>> take several further kernel releases to get the job done...
->>>> I would also be willing to spend some time for moving the em28xx-webcam
->>>> code to a gspca subdriver, but I don't have any of these devices for
->>>> testing.
->>>>
->>>> What do you think ?
->>> I think given the special way this camera uses the bridge (not using
->>> standard i2c interface, weird button layout, etc.). That it is likely server
->>> better by a specialized driver. As the (new) gspca maintainer I'm fine with
->>> taking it as a gspca sub-driver, but given the code duplication issue,
->>> that is a call Mauro should make.
->>>
->>> Note that luckily these devices do use a unique USB id and not one of the
->>> generic em28xx ids so from that pov having a specialized driver for them
->>> is not an issue.
->> Hans,
->>
->> Not sure if all em2765 cameras will have unique USB id's: at em28xx,
->> the known em2710/em2750 cameras that don't have unique ID's; detecting
->> between them requires to probe for the type of sensor.
-> 
-> Hmmm... I'm aware of non-unique-id problem, but is it really possible
-> that an ID is used for a webcam and a for example a DVB-T-device ?
-
-There are some USB ID's at em28xx that are used by both grabber devices and
-webcams.
-
-Regards,
-Mauro
