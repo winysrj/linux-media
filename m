@@ -1,65 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33359 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753884Ab2HPA3R (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Aug 2012 20:29:17 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hin-Tak Leung <htl10@users.sourceforge.net>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 4/5] DocBook: update ioctl error codes
-Date: Thu, 16 Aug 2012 03:28:40 +0300
-Message-Id: <1345076921-9773-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1345076921-9773-1-git-send-email-crope@iki.fi>
-References: <1345076921-9773-1-git-send-email-crope@iki.fi>
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:44969 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753353Ab2HYDJR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Aug 2012 23:09:17 -0400
+Received: by mail-gg0-f174.google.com with SMTP id k6so581646ggd.19
+        for <linux-media@vger.kernel.org>; Fri, 24 Aug 2012 20:09:17 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 5/9] marvel-cam: Don't check vb2_queue_init() return value
+Date: Sat, 25 Aug 2012 00:09:02 -0300
+Message-Id: <1345864146-2207-5-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1345864146-2207-1-git-send-email-elezegarcia@gmail.com>
+References: <1345864146-2207-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ENOTTY is now returned for unimplemented ioctl by dvb-frontend.
-Old EOPNOTSUPP & ENOSYS could be still returned by some drivers
-as well as other "non standard" error codes.
+Right now vb2_queue_init() returns always 0
+and it will be changed to return void.
 
-EAGAIN is returned in case of device is in state where it cannot
-perform requested operation. This is for example sleep and statistics
-are queried. Quick check for few demodulator drivers reveals there is
-a lot of different error codes used in such case currently, few to
-mention still: EOPNOTSUPP, ENOSYS, EAGAIN ... Lets try harmonize.
-
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
 ---
- Documentation/DocBook/media/v4l/gen-errors.xml | 12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ drivers/media/platform/marvell-ccic/mcam-core.c |    9 +++------
+ 1 files changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/gen-errors.xml b/Documentation/DocBook/media/v4l/gen-errors.xml
-index 5bbf3ce..737ecaa 100644
---- a/Documentation/DocBook/media/v4l/gen-errors.xml
-+++ b/Documentation/DocBook/media/v4l/gen-errors.xml
-@@ -7,6 +7,13 @@
-     <tbody valign="top">
- 	<!-- Keep it ordered alphabetically -->
-       <row>
-+	<entry>EAGAIN</entry>
-+	<entry>The ioctl can't be handled because the device is in state where
-+	       it can't perform it. This could happen for example in case where
-+	       device is sleeping and ioctl is performed to query statistics.
-+	</entry>
-+      </row>
-+      <row>
- 	<entry>EBADF</entry>
- 	<entry>The file descriptor is not a valid.</entry>
-       </row>
-@@ -51,11 +58,6 @@
- 	       for periodic transfers (up to 80% of the USB bandwidth).</entry>
-       </row>
-       <row>
--	<entry>ENOSYS or EOPNOTSUPP</entry>
--	<entry>Function not available for this device (dvb API only. Will likely
--	       be replaced anytime soon by ENOTTY).</entry>
--      </row>
--      <row>
- 	<entry>EPERM</entry>
- 	<entry>Permission denied. Can be returned if the device needs write
- 		permission, or some special capabilities is needed
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index ce2b7b4..e117adb 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -1098,7 +1098,7 @@ static const struct vb2_ops mcam_vb2_sg_ops = {
+ 
+ #endif /* MCAM_MODE_DMA_SG */
+ 
+-static int mcam_setup_vb2(struct mcam_camera *cam)
++static void mcam_setup_vb2(struct mcam_camera *cam)
+ {
+ 	struct vb2_queue *vq = &cam->vb_queue;
+ 
+@@ -1139,7 +1139,7 @@ static int mcam_setup_vb2(struct mcam_camera *cam)
+ #endif
+ 		break;
+ 	}
+-	return vb2_queue_init(vq);
++	vb2_queue_init(vq);
+ }
+ 
+ static void mcam_cleanup_vb2(struct mcam_camera *cam)
+@@ -1548,15 +1548,12 @@ static int mcam_v4l_open(struct file *filp)
+ 	frames = singles = delivered = 0;
+ 	mutex_lock(&cam->s_mutex);
+ 	if (cam->users == 0) {
+-		ret = mcam_setup_vb2(cam);
+-		if (ret)
+-			goto out;
++		mcam_setup_vb2(cam);
+ 		mcam_ctlr_power_up(cam);
+ 		__mcam_cam_reset(cam);
+ 		mcam_set_config_needed(cam, 1);
+ 	}
+ 	(cam->users)++;
+-out:
+ 	mutex_unlock(&cam->s_mutex);
+ 	return ret;
+ }
 -- 
-1.7.11.2
+1.7.8.6
 
