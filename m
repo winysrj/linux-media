@@ -1,93 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57046 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754014Ab2HGL1s (ORCPT
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:40379 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751347Ab2HYVrc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Aug 2012 07:27:48 -0400
-Date: Tue, 7 Aug 2012 14:27:43 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: James <bjlockie@lockie.ca>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	linux-media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: boot slow down
-Message-ID: <20120807112742.GB29636@valkosipuli.retiisi.org.uk>
-References: <501D4535.8080404@lockie.ca>
- <f1bd5aea-00cd-4b3f-9562-d25153f8cef3@email.android.com>
- <501DA203.7070800@lockie.ca>
- <20120805212054.GA29636@valkosipuli.retiisi.org.uk>
- <501F4A5B.1000608@lockie.ca>
+	Sat, 25 Aug 2012 17:47:32 -0400
+Subject: [PATCH 8/8] rc-core: initialize rc-core earlier if built-in
+To: linux-media@vger.kernel.org
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: jwilson@redhat.com, mchehab@redhat.com, sean@mess.org
+Date: Sat, 25 Aug 2012 23:47:29 +0200
+Message-ID: <20120825214729.22603.49937.stgit@localhost.localdomain>
+In-Reply-To: <20120825214520.22603.37194.stgit@localhost.localdomain>
+References: <20120825214520.22603.37194.stgit@localhost.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <501F4A5B.1000608@lockie.ca>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi James,
+rc-core is a subsystem so it should be registered earlier if built into the
+kernel.
 
-On Mon, Aug 06, 2012 at 12:38:51AM -0400, James wrote:
-> On 08/05/12 17:20, Sakari Ailus wrote:
-> > Hi Andy and James,
-> > 
-> > On Sat, Aug 04, 2012 at 06:28:19PM -0400, James wrote:
-> >> On 08/04/12 13:42, Andy Walls wrote:
-> >>> James <bjlockie@lockie.ca> wrote:
-> >>>
-> >>>> There's a big pause before the 'unable'
-> >>>>
-> >>>> [    2.243856] usb 4-1: Manufacturer: Logitech
-> >>>> [   62.739097] cx25840 6-0044: unable to open firmware
-> >>>> v4l-cx23885-avcore-01.fw
-> >>>>
-> >>>>
-> >>>> I have a cx23885
-> >>>> cx23885[0]: registered device video0 [v4l2]
-> >>>>
-> >>>> Is there any way to stop it from trying to load the firmware?
-> >>>> What is the firmware for, analog tv? Digital works fine and analog is
-> >>>> useless to me.
-> >>>> I assume it is timing out there.
-> >>>> --
-> >>>> To unsubscribe from this list: send the line "unsubscribe linux-media"
-> >>>> in
-> >>>> the body of a message to majordomo@vger.kernel.org
-> >>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >>>
-> >>> The firmware is for the analog broadcast audio standard (e.g. BTSC) detection microcontroller.
-> >>>
-> >>> The A/V core of the CX23885/7/8 chips is for analog vidoe and audio processing (broadcast, CVBS, SVideo, audio L/R in).
-> >>>
-> >>> The A/V core of the CX23885 provides the IR unit and the Video PLL provides the timing for the IR unit.
-> >>>
-> >>> The A/V core of the CX23888 provides the Video PLL which is the timing for the IR unit in the CX23888.
-> >>>
-> >>> Just grab the firmware and be done with it.  Don't waste time with trying to make the cx23885 working properly but halfway.
-> >>>
-> >>> Regards,
-> >>> Andy
-> >>
-> >> I already have the firmware.
-> >> # ls -l /lib/firmware/v4l-cx23885-avcore-01.fw 
-> >> -rw-r--r-- 1 root root 16382 Oct 15  2011 /lib/firmware/v4l-cx23885-avcore-01.fw
-> > 
-> > The timeout if for allowing the user space helper enough time to provide the
-> > driver with the firmware, but it seems the helper isn't around as the
-> > timeout expires. Is udev running around the time of the first line? Is the
-> > driver linked directly into the kernel or is it a module?
-> > 
-> > Kind regards,
-> > 
-> I have this set so the firmware is in the kernel.
-> 
-> Symbol: FIRMWARE_IN_KERNEL [=y]
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/rc-main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I don't know about that driver, but if the udev would have to provide the
-firmware, and it's not running, the delay is expected. Two seconds after
-kernel startup is so early that the user space, including udev, might not
-yet be running.
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index ec7311f..8134bd8 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1327,7 +1327,7 @@ static void __exit rc_core_exit(void)
+ 	rc_map_unregister(&empty_map);
+ }
+ 
+-module_init(rc_core_init);
++subsys_initcall(rc_core_init);
+ module_exit(rc_core_exit);
+ 
+ int rc_core_debug;    /* ir_debug level (0,1,2) */
 
-Kind regards,
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
