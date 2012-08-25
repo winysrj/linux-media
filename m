@@ -1,110 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59524 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752270Ab2HMC16 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Aug 2012 22:27:58 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 2/2] rtl28xxu: generalize streaming control
-Date: Mon, 13 Aug 2012 05:27:08 +0300
-Message-Id: <1344824828-2207-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1344824828-2207-1-git-send-email-crope@iki.fi>
-References: <1344824828-2207-1-git-send-email-crope@iki.fi>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:40014 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756585Ab2HYJZd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Aug 2012 05:25:33 -0400
+Date: Sat, 25 Aug 2012 11:25:26 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Sean Young <sean@mess.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] rc: do not sleep when the driver blocks on IR
+ completion
+Message-ID: <20120825092526.GA4285@hardeman.nu>
+References: <1345756715-17643-1-git-send-email-sean@mess.org>
+ <20120824220518.GA19354@hardeman.nu>
+ <20120824232625.GA24562@pequod.mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20120824232625.GA24562@pequod.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move rtl2831u LED from streaming control to power control. It
-changes LED behavior slightly but who cares :)
-After that same streaming control can be used for both rtl2831u
-and rtl2832u.
+On Sat, Aug 25, 2012 at 12:26:25AM +0100, Sean Young wrote:
+>On Sat, Aug 25, 2012 at 12:05:18AM +0200, David Härdeman wrote:
+>> On Thu, Aug 23, 2012 at 10:18:35PM +0100, Sean Young wrote:
+>> >Some drivers wait for the IR device to complete sending before
+>> >returning, so sleeping should not be done.
+>> 
+>> I'm not quite sure what the purpose is. Even if a driver waits for TX to
+>> finish, the lirc imposed sleep isn't harmful in any way.
+>
+>Due to rounding errors, clock skew and different start times, the sleep 
+>might be waiting for a different amount of time than the hardware took 
+>to send it. The sleep is a bit of a kludge, let alone if the driver
+>can wait for the hardware to tell you when it's done.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb/dvb-usb-v2/rtl28xxu.c | 44 ++++-----------------------------
- 1 file changed, 5 insertions(+), 39 deletions(-)
+I don't see the sleep as much of a problem right now. Whether the
+hardware says its done or if we simulate the same thing in the lirc
+layer, the entire concept is a bit of a kludge :)
 
-diff --git a/drivers/media/dvb/dvb-usb-v2/rtl28xxu.c b/drivers/media/dvb/dvb-usb-v2/rtl28xxu.c
-index 493d531..a2d1e5b 100644
---- a/drivers/media/dvb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/dvb/dvb-usb-v2/rtl28xxu.c
-@@ -823,43 +823,7 @@ err:
- 	return ret;
- }
- 
--static int rtl2831u_streaming_ctrl(struct dvb_frontend *fe , int onoff)
--{
--	int ret;
--	u8 buf[2], gpio;
--	struct dvb_usb_device *d = fe_to_d(fe);
--
--	dev_dbg(&d->udev->dev, "%s: onoff=%d\n", __func__, onoff);
--
--	ret = rtl28xx_rd_reg(d, SYS_GPIO_OUT_VAL, &gpio);
--	if (ret)
--		goto err;
--
--	if (onoff) {
--		buf[0] = 0x00;
--		buf[1] = 0x00;
--		gpio |= 0x04; /* LED on */
--	} else {
--		buf[0] = 0x10; /* stall EPA */
--		buf[1] = 0x02; /* reset EPA */
--		gpio &= (~0x04); /* LED off */
--	}
--
--	ret = rtl28xx_wr_reg(d, SYS_GPIO_OUT_VAL, gpio);
--	if (ret)
--		goto err;
--
--	ret = rtl28xx_wr_regs(d, USB_EPA_CTL, buf, 2);
--	if (ret)
--		goto err;
--
--	return ret;
--err:
--	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
--	return ret;
--}
--
--static int rtl2832u_streaming_ctrl(struct dvb_frontend *fe , int onoff)
-+static int rtl28xxu_streaming_ctrl(struct dvb_frontend *fe , int onoff)
- {
- 	int ret;
- 	u8 buf[2];
-@@ -908,11 +872,13 @@ static int rtl2831u_power_ctrl(struct dvb_usb_device *d, int onoff)
- 	if (onoff) {
- 		gpio |= 0x01; /* GPIO0 = 1 */
- 		gpio &= (~0x10); /* GPIO4 = 0 */
-+		gpio |= 0x04; /* GPIO2 = 1, LED on */
- 		sys0 = sys0 & 0x0f;
- 		sys0 |= 0xe0;
- 	} else {
- 		gpio &= (~0x01); /* GPIO0 = 0 */
- 		gpio |= 0x10; /* GPIO4 = 1 */
-+		gpio &= (~0x04); /* GPIO2 = 1, LED off */
- 		sys0 = sys0 & (~0xc0);
- 	}
- 
-@@ -1224,7 +1190,7 @@ static const struct dvb_usb_device_properties rtl2831u_props = {
- 	.tuner_attach = rtl2831u_tuner_attach,
- 	.init = rtl28xxu_init,
- 	.get_rc_config = rtl2831u_get_rc_config,
--	.streaming_ctrl = rtl2831u_streaming_ctrl,
-+	.streaming_ctrl = rtl28xxu_streaming_ctrl,
- 
- 	.num_adapters = 1,
- 	.adapter = {
-@@ -1246,7 +1212,7 @@ static const struct dvb_usb_device_properties rtl2832u_props = {
- 	.tuner_attach = rtl2832u_tuner_attach,
- 	.init = rtl28xxu_init,
- 	.get_rc_config = rtl2832u_get_rc_config,
--	.streaming_ctrl = rtl2832u_streaming_ctrl,
-+	.streaming_ctrl = rtl28xxu_streaming_ctrl,
- 
- 	.num_adapters = 1,
- 	.adapter = {
+>Also, your change calculates the amount of us to sleep after transmission, 
+>so if the transmission buffer was modified by the driver, the calculated 
+>sleep might not make sense. Both winbond-cir and iguanair do this.
+
+Oh, right, I'd overlooked this. I have written patches for winbond-cir
+(which makes it asynchronous and leaves the txbuffer alone) and iguanair
+(to leave the txbuffer alone). I'll post them sometime today when I've
+done some more tests.
+
+>> As far as I can tell, the iguanair driver waits for the usb packet to be
+>> submitted, not for IR TX to finish.
+>
+>The iguanair driver waits for the ack from the device (which is an urb
+>you receive from the device), which is sent once the IR has been 
+>transmitted. The firmware source code is available.
+
+Ah, I see.
+
+
 -- 
-1.7.11.2
-
+David Härdeman
