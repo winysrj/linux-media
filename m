@@ -1,58 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:47575 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751662Ab2HQGaY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Aug 2012 02:30:24 -0400
-Received: by mail-pb0-f46.google.com with SMTP id rr13so2835582pbb.19
-        for <linux-media@vger.kernel.org>; Thu, 16 Aug 2012 23:30:24 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, s.nawrocki@samsung.com,
-	sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH-Trivial 2/2] [media] s5p-fimc: Add missing braces around sizeof
-Date: Fri, 17 Aug 2012 11:58:27 +0530
-Message-Id: <1345184907-8317-2-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1345184907-8317-1-git-send-email-sachin.kamat@linaro.org>
-References: <1345184907-8317-1-git-send-email-sachin.kamat@linaro.org>
+Received: from tex.lwn.net ([70.33.254.29]:33814 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750775Ab2HYR3y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Aug 2012 13:29:54 -0400
+Date: Sat, 25 Aug 2012 11:30:21 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH 9/9] videobuf2-core: Change vb2_queue_init return type
+ to void
+Message-ID: <20120825113021.690440ba@lwn.net>
+In-Reply-To: <CALF0-+VEGKL6zqFcqkw__qxuy+_3aDa-0u4xD63+Mc4FioM+aw@mail.gmail.com>
+References: <1345864146-2207-1-git-send-email-elezegarcia@gmail.com>
+	<1345864146-2207-9-git-send-email-elezegarcia@gmail.com>
+	<20120825092814.4eee46f0@lwn.net>
+	<CALF0-+VEGKL6zqFcqkw__qxuy+_3aDa-0u4xD63+Mc4FioM+aw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Silences the following warning:
-WARNING: sizeof *ctx should be sizeof(*ctx)
+On Sat, 25 Aug 2012 13:12:01 -0300
+Ezequiel Garcia <elezegarcia@gmail.com> wrote:
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
- drivers/media/platform/s5p-fimc/fimc-capture.c |    2 +-
- drivers/media/platform/s5p-fimc/fimc-m2m.c     |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+> The mentioned BUG_ON() are these:
+> 
+> void vb2_queue_init(struct vb2_queue *q)
+> {
+>         BUG_ON(!q);
+>         BUG_ON(!q->ops);
+>         BUG_ON(!q->mem_ops);
+>         BUG_ON(!q->type);
+>         BUG_ON(!q->io_modes);
+> [...]
+> 
+> Unless I'm overlooking something they look fine to me,
+> since vb2_queue should always be prepared  by the driver.
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c b/drivers/media/platform/s5p-fimc/fimc-capture.c
-index 8e413dd..5283957 100644
---- a/drivers/media/platform/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
-@@ -1593,7 +1593,7 @@ static int fimc_register_capture_device(struct fimc_dev *fimc,
- 	struct vb2_queue *q;
- 	int ret = -ENOMEM;
+http://permalink.gmane.org/gmane.linux.kernel/1347333 is, I believe, the
+definitive word on this kind of use of BUG_ON()...
 
--	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
-+	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
- 	if (!ctx)
- 		return -ENOMEM;
-
-diff --git a/drivers/media/platform/s5p-fimc/fimc-m2m.c b/drivers/media/platform/s5p-fimc/fimc-m2m.c
-index c587011..1b1e564 100644
---- a/drivers/media/platform/s5p-fimc/fimc-m2m.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-m2m.c
-@@ -661,7 +661,7 @@ static int fimc_m2m_open(struct file *file)
- 	if (fimc->vid_cap.refcnt > 0)
- 		goto unlock;
-
--	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
-+	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
- 	if (!ctx) {
- 		ret = -ENOMEM;
- 		goto unlock;
---
-1.7.4.1
-
+jon
