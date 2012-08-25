@@ -1,136 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:32875 "EHLO mx1.redhat.com"
+Received: from pequod.mess.org ([93.97.41.153]:34654 "EHLO pequod.mess.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751954Ab2HLRP6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Aug 2012 13:15:58 -0400
-Message-ID: <5027E4CB.4030902@redhat.com>
-Date: Sun, 12 Aug 2012 14:15:55 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Ilyes Gouta <ilyes.gouta@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Patchwork notifications for '[RESEND,media] v4l2: define V4L2_PIX_FMT_NV16M
- and V4L2_PIX_FMT_NV24M pixel formats'
-References: <CAL4m05X11YPqzA+4+V_Uo4BUJ2RdyX2L95FEKcocT-Xdbj0UyQ@mail.gmail.com>
-In-Reply-To: <CAL4m05X11YPqzA+4+V_Uo4BUJ2RdyX2L95FEKcocT-Xdbj0UyQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1751644Ab2HYLBr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Aug 2012 07:01:47 -0400
+From: Sean Young <sean@mess.org>
+To: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
+Subject: [PATCH] [media] iguanair: do not modify transmit buffer
+Date: Sat, 25 Aug 2012 12:01:45 +0100
+Message-Id: <1345892505-27049-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 12-08-2012 08:55, Ilyes Gouta escreveu:
-> Hi,
-> 
-> On Sun, Aug 12, 2012 at 2:58 AM, Patchwork <patchwork@linuxtv.org> wrote:
->> Hello,
->>
->> The following patches (submitted by you) have been updated in patchwork:
->>
->>  * [RESEND,media] v4l2: define V4L2_PIX_FMT_NV16M and V4L2_PIX_FMT_NV24M pixel formats
->>      - http://patchwork.linuxtv.org/patch/13555/
->>     was: New
->>     now: Superseded
->>
->>  * [RESEND,media] v4l2: define V4L2_PIX_FMT_NV16M and V4L2_PIX_FMT_NV24M pixel formats
->>      - http://patchwork.linuxtv.org/patch/13556/
->>     was: New
->>     now: Changes Requested
-> 
-> Patchwork has moved my V4L2_PIX_FMT_NV16M and V4L2_PIX_FMT_NV24M
-> definitions  patch (http://patchwork.linuxtv.org/patch/13556) from New
-> to Changes Requested, but I couldn't look-up what changes need to be
-> made.
-> 
-> Where can I find such feedback?
-> 
-> Just for the record, in a previous conversation with Mauro, he
-> suggested that new pixel formats don't get defined in the kernel
-> unless a v4l2 device driver is actually using them (so suggesting to
-> also upstream the driver, which isn't immediately possible).
+Since commit "[media] rc-core: move timeout and checks to lirc", the
+incoming buffer is used after the driver transmits.
 
-Yes, that's the "changes requested": to submit it together with the
-driver, when you're ready for that.
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/iguanair.c | 51 +++++++++++++++++++--------------------------
+ 1 file changed, 21 insertions(+), 30 deletions(-)
 
-While "changes requested" is not an exact match for "postpone submission",
-it fits a little better than rejected/accepted/under review/rfc/obsoleted/...
-
-Keeping it as "new" doesn't make sense, as I need to cleanup my pending
-queue.
-
-I might have created yet-another-status-tag for patchwork for this case,
-but having a lot of status is confusing for everybody.
-
-Also, at the time you'll be re-submitting it, you may need to rebase the
-patch, as it might conflict with some other changes. So, changes may be
-needed anyway.
-
-So, what I do is, when someone, including me, requests any type of action 
-from the driver's author (in this case, to put it together with the patches
-that require those API additions, when you're done), I mark it as
-"changes requested".
-
-Regards,
-Mauro
-
-PS.: I'm following this logic since when we started with patchwork; the
-only thing that changed is that patchwork is now posting e-mails to
-help developers to track on what's the merging status of their work. 
-
-> 
-> -Ilyes
-> 
->> This email is a notification only - you do not need to respond.
->>
->> -
->>
->> Patches submitted to linux-media@vger.kernel.org have the following
->> possible states:
->>
->> New: Patches not yet reviewed (typically new patches);
->>
->> Under review: When it is expected that someone is reviewing it (typically,
->>               the driver's author or maintainer). Unfortunately, patchwork
->>               doesn't have a field to indicate who is the driver maintainer.
->>               If in doubt about who is the driver maintainer please check the
->>               MAINTAINERS file or ask at the ML;
->>
->> Superseded: when the same patch is sent twice, or a new version of the
->>             same patch is sent, and the maintainer identified it, the first
->>             version is marked as such;
->>
->> Obsoleted: patch doesn't apply anymore, because the modified code doesn't
->>            exist anymore.
->>
->> Changes requested: when someone requests changes at the patch;
->>
->> Rejected: When the patch is wrong or doesn't apply. Most of the
->>           time, 'rejected' and 'changes requested' means the same thing
->>           for the developer: he'll need to re-work on the patch.
->>
->> RFC: patches marked as such and other patches that are also RFC, but the
->>      patch author was not nice enough to mark them as such. That includes:
->>         - patches sent by a driver's maintainer who send patches
->>           via git pull requests;
->>         - patches with a very active community (typically from developers
->>           working with embedded devices), where lots of versions are
->>           needed for the driver maintainer and/or the community to be
->>           happy with.
->>
->> Not Applicable: for patches that aren't meant to be applicable via
->>                 the media-tree.git.
->>
->> Accepted: when some driver maintainer says that the patch will be applied
->>           via his tree, or when everything is ok and it got applied
->>           either at the main tree or via some other tree (fixes tree;
->>           some other maintainer's tree - when it belongs to other subsystems,
->>           etc);
->>
->> If you think any status change is a mistake, please send an email to the ML.
->>
->> -
->>
->> This is an automated mail sent by the patchwork system at
->> patchwork.linuxtv.org. To stop receiving these notifications, edit
->> your mail settings at:
->>   http://patchwork.linuxtv.org/mail/
+diff --git a/drivers/media/rc/iguanair.c b/drivers/media/rc/iguanair.c
+index 66ba237..1e4c68a 100644
+--- a/drivers/media/rc/iguanair.c
++++ b/drivers/media/rc/iguanair.c
+@@ -334,21 +334,34 @@ static int iguanair_set_tx_mask(struct rc_dev *dev, uint32_t mask)
+ static int iguanair_tx(struct rc_dev *dev, unsigned *txbuf, unsigned count)
+ {
+ 	struct iguanair *ir = dev->priv;
+-	uint8_t space, *payload;
+-	unsigned i, size, rc, bytes;
++	uint8_t space;
++	unsigned i, size, periods, bytes;
++	int rc;
+ 	struct send_packet *packet;
+ 
+ 	mutex_lock(&ir->lock);
+ 
++	packet = kmalloc(sizeof(*packet) + ir->bufsize, GFP_KERNEL);
++	if (!packet) {
++		rc = -ENOMEM;
++		goto out;
++	}
++
+ 	/* convert from us to carrier periods */
+-	for (i = size = 0; i < count; i++) {
+-		txbuf[i] = DIV_ROUND_CLOSEST(txbuf[i] * ir->carrier, 1000000);
+-		bytes = (txbuf[i] + 126) / 127;
++	for (i = space = size = 0; i < count; i++) {
++		periods = DIV_ROUND_CLOSEST(txbuf[i] * ir->carrier, 1000000);
++		bytes = DIV_ROUND_UP(periods, 127);
+ 		if (size + bytes > ir->bufsize) {
+ 			count = i;
+ 			break;
+ 		}
+-		size += bytes;
++		while (periods > 127) {
++			packet->payload[size++] = 127 | space;
++			periods -= 127;
++		}
++
++		packet->payload[size++] = periods | space;
++		space ^= 0x80;
+ 	}
+ 
+ 	if (count == 0) {
+@@ -356,12 +369,6 @@ static int iguanair_tx(struct rc_dev *dev, unsigned *txbuf, unsigned count)
+ 		goto out;
+ 	}
+ 
+-	packet = kmalloc(sizeof(*packet) + size, GFP_KERNEL);
+-	if (!packet) {
+-		rc = -ENOMEM;
+-		goto out;
+-	}
+-
+ 	packet->header.start = 0;
+ 	packet->header.direction = DIR_OUT;
+ 	packet->header.cmd = CMD_SEND;
+@@ -370,26 +377,11 @@ static int iguanair_tx(struct rc_dev *dev, unsigned *txbuf, unsigned count)
+ 	packet->busy7 = ir->busy7;
+ 	packet->busy4 = ir->busy4;
+ 
+-	space = 0;
+-	payload = packet->payload;
+-
+-	for (i = 0; i < count; i++) {
+-		unsigned periods = txbuf[i];
+-
+-		while (periods > 127) {
+-			*payload++ = 127 | space;
+-			periods -= 127;
+-		}
+-
+-		*payload++ = periods | space;
+-		space ^= 0x80;
+-	}
+-
+ 	if (ir->receiver_on) {
+ 		rc = iguanair_receiver(ir, false);
+ 		if (rc) {
+ 			dev_warn(ir->dev, "disable receiver before transmit failed\n");
+-			goto out_kfree;
++			goto out;
+ 		}
+ 	}
+ 
+@@ -405,9 +397,8 @@ static int iguanair_tx(struct rc_dev *dev, unsigned *txbuf, unsigned count)
+ 			dev_warn(ir->dev, "re-enable receiver after transmit failed\n");
+ 	}
+ 
+-out_kfree:
+-	kfree(packet);
+ out:
++	kfree(packet);
+ 	mutex_unlock(&ir->lock);
+ 
+ 	return rc ? rc : count;
+-- 
+1.7.11.4
 
