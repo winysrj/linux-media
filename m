@@ -1,61 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1-relais-roc.national.inria.fr ([192.134.164.82]:61457 "EHLO
-	mail1-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753334Ab2HRV0X (ORCPT
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:60963 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751114Ab2HZQWM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Aug 2012 17:26:23 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: kernel-janitors@vger.kernel.org,
-	Heungjun Kim <riverful.kim@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 5/5] drivers/media/video/m5mols/m5mols_core.c: introduce missing initialization
-Date: Sat, 18 Aug 2012 23:25:59 +0200
-Message-Id: <1345325159-7365-5-git-send-email-Julia.Lawall@lip6.fr>
+	Sun, 26 Aug 2012 12:22:12 -0400
+Message-ID: <503A4D04.2050303@iki.fi>
+Date: Sun, 26 Aug 2012 19:21:24 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, awalls@md.metrocast.net
+Subject: Re: [PATCH] drivers/media/dvb-frontends/rtl2830.c: correct double
+ assignment
+References: <1345997751-340-1-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1345997751-340-1-git-send-email-Julia.Lawall@lip6.fr>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Julia Lawall <Julia.Lawall@lip6.fr>
+On 08/26/2012 07:15 PM, Julia Lawall wrote:
+> From: Julia Lawall <Julia.Lawall@lip6.fr>
+>
+> The double assignment is meant to be a bit-or to combine two values.
+>
+> A simplified version of the semantic match that finds this problem is as
+> follows: (http://coccinelle.lip6.fr/)
+>
+> // <smpl>
+> @@
+> expression i;
+> @@
+>
+> *i = ...;
+>   i = ...;
+> // </smpl>
+>
+> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+>
+> ---
+>   drivers/media/dvb-frontends/rtl2830.c |    2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
+> index 8fa8b08..b6ab858 100644
+> --- a/drivers/media/dvb-frontends/rtl2830.c
+> +++ b/drivers/media/dvb-frontends/rtl2830.c
+> @@ -254,7 +254,7 @@ static int rtl2830_init(struct dvb_frontend *fe)
+>   		goto err;
+>
+>   	buf[0] = tmp << 6;
+> -	buf[0] = (if_ctl >> 16) & 0x3f;
+> +	buf[0] |= (if_ctl >> 16) & 0x3f;
+>   	buf[1] = (if_ctl >>  8) & 0xff;
+>   	buf[2] = (if_ctl >>  0) & 0xff;
+>
+>
+Thank you!
 
-The result of one call to a function is tested, and then at the second call
-to the same function, the previous result, and not the current result, is
-tested again.
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-The semantic match that finds this problem is as follows:
-(http://coccinelle.lip6.fr/)
 
-// <smpl>
-@@
-expression ret;
-identifier f;
-statement S1,S2;
-@@
-
-*ret = f(...);
-if (\(ret != 0\|ret < 0\|ret == NULL\)) S1
-... when any
-*f(...);
-if (\(ret != 0\|ret < 0\|ret == NULL\)) S2
-// </smpl>
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
----
- drivers/media/video/m5mols/m5mols_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/video/m5mols/m5mols_core.c b/drivers/media/video/m5mols/m5mols_core.c
-index ac7d28b..0f521f5 100644
---- a/drivers/media/video/m5mols/m5mols_core.c
-+++ b/drivers/media/video/m5mols/m5mols_core.c
-@@ -937,7 +937,7 @@ static int __devinit m5mols_probe(struct i2c_client *client,
- 	if (!ret)
- 		ret = m5mols_init_controls(sd);
- 
--	m5mols_sensor_power(info, false);
-+	ret = m5mols_sensor_power(info, false);
- 	if (!ret)
- 		return 0;
- out_me:
-
+Antti
+-- 
+http://palosaari.fi/
