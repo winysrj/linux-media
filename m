@@ -1,125 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36547 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753617Ab2H3Ry4 (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:40940 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753416Ab2HZW5X (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Aug 2012 13:54:56 -0400
-Message-ID: <503FA8EC.8030309@iki.fi>
-Date: Thu, 30 Aug 2012 20:54:52 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
+	Sun, 26 Aug 2012 18:57:23 -0400
+Subject: Re: RFC: Core + Radio profile
+From: Andy Walls <awalls@md.metrocast.net>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Prabhakar Lad <prabhakar.lad@ti.com>,
-	LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-kernel@vger.kernel.org,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH v2] media: v4l2-ctrls: add control for dpcm predictor
-References: <1346313496-3652-1-git-send-email-prabhakar.lad@ti.com> <201208300757.44775.hverkuil@xs4all.nl>
-In-Reply-To: <201208300757.44775.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Mike Isely <isely@pobox.com>
+Date: Sun, 26 Aug 2012 18:56:58 -0400
+In-Reply-To: <201208241431.04984.hverkuil@xs4all.nl>
+References: <201208221140.25656.hverkuil@xs4all.nl>
+	 <201208221211.47842.hverkuil@xs4all.nl> <5034E1C2.30205@redhat.com>
+	 <201208241431.04984.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
+Message-ID: <1346021822.2466.60.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans and Prabhakar,
+On Fri, 2012-08-24 at 14:31 +0200, Hans Verkuil wrote:
+> Hi Mauro,
+> 
+> Thanks for your review!
+> 
+> On Wed August 22 2012 15:42:26 Mauro Carvalho Chehab wrote:
+> > Em 22-08-2012 07:11, Hans Verkuil escreveu:
 
-Hans Verkuil wrote:
-> Hi Prabhakar!
->
-> I've got some documentation review comments below...
->
-> On Thu August 30 2012 00:58:16 Prabhakar Lad wrote:
->> From: Lad, Prabhakar <prabhakar.lad@ti.com>
->>
->> add V4L2_CID_DPCM_PREDICTOR control of type menu, which
->> determines the dpcm predictor. The predictor can be either
->> simple or advanced.
->>
->> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
->> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
->> Cc: Sakari Ailus <sakari.ailus@iki.fi>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
->> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
->> Cc: Hans de Goede <hdegoede@redhat.com>
->> Cc: Kyungmin Park <kyungmin.park@samsung.com>
->> ---
->> This patches has one checkpatch warning for line over
->> 80 characters altough it can be avoided I have kept it
->> for consistency.
->>
->> Changes for v2:
->> 1: Added documentaion in controls.xml pointed by Sylwester.
->> 2: Chnaged V4L2_DPCM_PREDICTOR_ADVANCE to V4L2_DPCM_PREDICTOR_ADVANCED
->>     pointed by Sakari.
->>
->>   Documentation/DocBook/media/v4l/controls.xml |   25 ++++++++++++++++++++++++-
->>   drivers/media/v4l2-core/v4l2-ctrls.c         |    9 +++++++++
->>   include/linux/videodev2.h                    |    5 +++++
->>   3 files changed, 38 insertions(+), 1 deletions(-)
->>
->> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
->> index 93b9c68..84746d0 100644
->> --- a/Documentation/DocBook/media/v4l/controls.xml
->> +++ b/Documentation/DocBook/media/v4l/controls.xml
->> @@ -4267,7 +4267,30 @@ interface and may change in the future.</para>
->>   	    pixels / second.
->>   	    </entry>
->>   	  </row>
->> -	  <row><entry></entry></row>
->> +	  <row>
->> +	    <entry spanname="id"><constant>V4L2_CID_DPCM_PREDICTOR</constant></entry>
->> +	    <entry>menu</entry>
->> +	  </row>
->> +	  <row id="v4l2-dpcm-predictor">
->> +	    <entry spanname="descr"> DPCM Predictor: depicts what type of prediction
->> +	    is used simple or advanced.
->
-> This is not useful information. It basically just rephrases the name of the
-> define without actually telling me anything.
->
-> I would expect to see here at least the following:
->
-> - what the DPCM abbreviation stands for
-> - a link or bibliography reference to the relevant standard (if there is any)
 
-There's a Wikipedia article:
+> > >> Also note that the core profile description is more strict than the spec.
+> > 
+> > IMO, that's the right approach: The specs should define the several API
+> > aspects; the profile should mandate what's optional and what's mandatory.
+> > 
+> > >> For example, G/S_PRIORITY are currently optional,
+> > 
+> > After putting the profiles there, we should remove "optional" tags elsewhere,
+> > as the profiles section will tell what's mandatory and what is optional, as
+> > different profiles require different mandatory arguments.
+> > 
+> > >> but I feel that all new drivers should implement this, especially since it
+> > >> is very easy to add provided you use struct v4l2_fh. 
+> > 
+> > I agree on making G/S_PRIORITY mandatory.
 
-<URL:http://en.wikipedia.org/wiki/Differential_pulse-code_modulation>
+ 
+> > >> Note that these profiles are primarily meant for driver developers. The V4L2
+> > >> specification is leading for application developers.
+> > 
+> > This is where we diverge ;) We need profiles primary for application developers,
+> > for them to know what is expected to be there on any media driver of a certain
+> > kind.
 
-It's the same DPCM encoding as in many of the compressed raw bayer formats.
++1
 
-> - a high-level explanation of what this do and what the difference is between
->   simple and advanced.
+> > Ok, internal driver-developer profiles is also needed, in order for them to
+> > use the right internal API's and internal core functions.
+> 
+> Well, it is all very nice to just say e.g. 'G/S_PRIORITY is mandatory' in the
+> profile section, but the reality is that it is hit and miss whether or not it
+> is implemented. Even if we manage to convert all drivers to implement G/S_PRIO,
+> then it is still not something an app developer can rely on because many users
+> use older kernel versions.
 
-That's somewhat subjective and hardware dependent. If I understand this 
-correctly, the "advanced" should differ only quality-wise from "simple" 
-option. Why one would use "simple" instead of "advanced" then? Perhaps 
-mostly for testing purposes; it might be that the advanced predictor 
-could have issues in certain cases where the simple would not. However 
-this isn't the only piece of hardware where I see that this is 
-configurable, and the simple one was even the default.
 
-> If this is part of a video compression standard, then this control would probably
-> belong to the MPEG control class as well.
+A profile should either
+a. make no statement about G/S_PRIORITY,
+b. should make them mandatory, or
+c. should state explicitly they should not be implemented.
 
-It's not --- DPCM compression is typically used on the bus between the 
-sensor and the receiver to compress the data as the bus is often a 
-limiting factor in the transfer rate. DPCM compression can be used to 
-squeeze the data from 10 to 8 bits without much loss in quality or 
-dynamic range.
+The V4L2 spec already implies they are optional:
 
-Cheers,
+"... V4L2 defines the VIDIOC_G_PRIORITY and VIDIOC_S_PRIORITY ioctls to
+request and query the access priority associate with a file descriptor.
+Opening a device assigns a medium priority, compatible with earlier
+versions of V4L2 and drivers not supporting these ioctls."
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+If the profile make them mandatory, legacy driver non-compliance with
+this should be reported.  Better still, a driver should not be claimed
+to be profile compliant until the non-compliance is fixed.
+
+We are not going to have the drivers compliant with profiles all at
+once.
+
+In the long view, applications evolve too.  As drivers move to comply
+with profiles, and old kernel versions are dropped from main stream
+distros, application writers can get rid of complex code to handle V4L2
+quirks and exceptions.
+
+
+> Which is why IMHO the spec should be leading for app development. The profile
+> sections are a handy summary of what you can expect from drivers for specific
+> types of hardware, but it can't be leading except when it comes to new driver
+> development or driver changes in areas covered by the profile(s).
+
+I disagree here.  I guess that is obvious by now. ;)
+
+
+
+> > >>
+> > >> Note: There are a few drivers that use a radio (pvrusb2) or video (ivtv)
+> > >> node to stream the audio. These are legacy exceptions to the rule.
+> > 
+> > What an application developer should do with that???
+> 
+> Nothing. A generic application cannot support audio for these devices.
+> You need specialized apps for that.
+> 
+> > If this should not be supported anymore, then we need instead to either
+> > fix the drivers that aren't compliant with the specs or move them to
+> > staging, in order to let them to be either fixed or dropped, if none
+> > cares enough to fix.
+> 
+> Well, the problem is that people are actually using the existing, nonstandard,
+> APIs for ivtv (and probably pvrusb2 as well).
+
+Please note that the profile need not prohibit the legacy radio audio
+API.  That way the legacy drivers can be compliant with the profile
+without removing existing functionality.
+
+It will be sufficient for the profile to require all drivers to
+implement the ALSA interface.  No sane person is going to work to
+inplement the legacy oddball audio interface in a driver after the ALSA
+interface is done.
+
+
+> For ivtv it is probably not too difficult to add ALSA support.
+> 
+> Andy, I know you implemented ALSA support for cx18, do you know how much work
+> it would be to do the same for ivtv?
+
+I implemented the cx18-alsa-* skeleton; DEvin actually got it hooked up
+to ALSA and working.  There are still some aspects of it that are dead
+code - i.e. the ALSA controls for volume - even though the skeleton has
+them.
+
+
+> If Andy has absolutely no time, then I can try to find time to add ALSA support
+> to ivtv. But the existing API should probably remain (if possible).
+
+The cx18-alsa-* code and glue is certainly copyable to ivtv.  I might
+suggest one difference: don't make ivtv-alsa it's own module.  Just
+build it in to the ivtv driver and reduce some module-glue complexity.
+ALSA audio interface is going to be mandated by the profile anyway, so
+there really isn't much point in a modular implemetation,
+
+I might have time to do this.  But that is probably an optimistic
+statement too.
+
+> It's probably more work to fix this for pvrusb2, though.
+
+Agree.
+
+> > --
+> > 
+> > That's said, I think that the RFC proposal is going on the right direction.
+> > It is very good to see it moving forward!
+
+Ditto.
+
+Regards,
+Andy
+
 
