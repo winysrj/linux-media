@@ -1,266 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:59101 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753024Ab2HXLJT (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:57634 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753007Ab2HZWPr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 07:09:19 -0400
-Date: Fri, 24 Aug 2012 13:08:52 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Anatolij Gustschin <agust@denx.de>
-cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>, dzu@denx.de
-Subject: Re: [PATCH 1/3] mt9v022: add v4l2 controls for blanking and other
- register settings
-In-Reply-To: <1345799431-29426-2-git-send-email-agust@denx.de>
-Message-ID: <Pine.LNX.4.64.1208241227140.20710@axis700.grange>
-References: <1345799431-29426-1-git-send-email-agust@denx.de>
- <1345799431-29426-2-git-send-email-agust@denx.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Sun, 26 Aug 2012 18:15:47 -0400
+Subject: Re: RFC: Core + Radio profile
+From: Andy Walls <awalls@md.metrocast.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>
+Date: Sun, 26 Aug 2012 18:15:29 -0400
+In-Reply-To: <201208250921.52422.hverkuil@xs4all.nl>
+References: <201208221140.25656.hverkuil@xs4all.nl>
+	 <1345855036.2491.86.camel@palomino.walls.org>
+	 <201208250921.52422.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <1346019333.2466.33.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Anatolij
+Hi Hans,
 
-On Fri, 24 Aug 2012, Anatolij Gustschin wrote:
-
-> Add controls for horizontal and vertical blanking, analog control
-> and control for undocumented register 32.
-
-Sorry, I don't think this is a good idea to export an undocumented 
-register as a control. At most I would add a platform parameter for it, if 
-really needed. Or do you have to switch it at run-time? If so, you would 
-have some idea - at what time to switch it to what value and what effect 
-that produces. Then you could define a _logical_ control. If you 
-absolutely need to write random values to various registers, you can use 
-VIDIOC_DBG_S_REGISTER and VIDIOC_DBG_G_REGISTER.
-
-> Also add an error message
-> for case that the control handler init failed. Since setting the
-> blanking registers is done by controls now, we should't change these
-> registers outside of the control function. Use v4l2_ctrl_s_ctrl()
-> to set them.
+On Sat, 2012-08-25 at 09:21 +0200, Hans Verkuil wrote:
+> On Sat August 25 2012 02:37:15 Andy Walls wrote:
+> > On Wed, 2012-08-22 at 11:40 +0200, Hans Verkuil wrote:
+ 
+> > > This RFC is my attempt to start this process by describing three profiles:
+> > > the core profile that all drivers must adhere to, a profile for a radio
+> > > receiver and a profile for a radio transmitter.
+> > 
+> > I was thinking that profiles based on applications types might be more
+> > useful, but then I saw that applications were basically already handling
+> > different device types differently.  So prfoiles for hardware device
+> > types seems the reasonable choice.
+> > 
+> > MythTV seems to care about 4 classes of device
+> > http://www.mythtv.org/wiki/Video_capture_card
+> > 
+> > 	Analog Framebuffer
+> > 	Analog Hardware Encoder
+> > 	Digital Capture
+> > 	Digital Tuner
+> > 
+> > VLC seems to be similar to MythTV in terms of classes:
+> > http://www.videolan.org/doc/streaming-howto/en/images/global-diagram.jpg
+> > 
+> > I suppose there would also be profiles to support device classes for:
+> > 
+> > 	webcams
+> > 	webcams that provide video in a container format (AVI, MJPEG, whatever)
+> > 	integrated cameras (I'm thinking smart-phones, but I'm out of my depth here)
 > 
-> Signed-off-by: Anatolij Gustschin <agust@denx.de>
-> ---
->  drivers/media/i2c/soc_camera/mt9v022.c |  105 ++++++++++++++++++++++++++++++--
->  1 files changed, 100 insertions(+), 5 deletions(-)
+> Looking at the current set of V4L drivers I come up with the following
+> profiles:
 > 
-> diff --git a/drivers/media/i2c/soc_camera/mt9v022.c b/drivers/media/i2c/soc_camera/mt9v022.c
-> index 350d0d8..d13c8c4 100644
-> --- a/drivers/media/i2c/soc_camera/mt9v022.c
-> +++ b/drivers/media/i2c/soc_camera/mt9v022.c
-> @@ -50,12 +50,14 @@ MODULE_PARM_DESC(sensor_type, "Sensor type: \"colour\" or \"monochrome\"");
->  #define MT9V022_PIXEL_OPERATION_MODE	0x0f
->  #define MT9V022_LED_OUT_CONTROL		0x1b
->  #define MT9V022_ADC_MODE_CONTROL	0x1c
-> +#define MT9V022_REG32			0x20
->  #define MT9V022_ANALOG_GAIN		0x35
->  #define MT9V022_BLACK_LEVEL_CALIB_CTRL	0x47
->  #define MT9V022_PIXCLK_FV_LV		0x74
->  #define MT9V022_DIGITAL_TEST_PATTERN	0x7f
->  #define MT9V022_AEC_AGC_ENABLE		0xAF
->  #define MT9V022_MAX_TOTAL_SHUTTER_WIDTH	0xBD
-> +#define MT9V022_ANALOG_CONTROL		0xC2
->  
->  /* mt9v024 partial list register addresses changes with respect to mt9v022 */
->  #define MT9V024_PIXCLK_FV_LV		0x72
-> @@ -71,6 +73,13 @@ MODULE_PARM_DESC(sensor_type, "Sensor type: \"colour\" or \"monochrome\"");
->  #define MT9V022_COLUMN_SKIP		1
->  #define MT9V022_ROW_SKIP		4
->  
-> +#define MT9V022_HORIZONTAL_BLANKING_MIN	43
-> +#define MT9V022_HORIZONTAL_BLANKING_MAX	1023
-> +#define MT9V022_HORIZONTAL_BLANKING_DEF	94
-> +#define MT9V022_VERTICAL_BLANKING_MIN	2
+> - Core Profile (mandatory for all)
+> - Radio Receiver Profile (with optional RDS support (sub-profile?))
 
-Interesting, in my datasheet min is 4. Maybe 4 would be a safer bet then.
+I would avoid the use of the word "optional" in a profile.
 
-> +#define MT9V022_VERTICAL_BLANKING_MAX	3000
-> +#define MT9V022_VERTICAL_BLANKING_DEF	45
-> +
->  #define is_mt9v024(id) (id == 0x1324)
->  
->  /* MT9V022 has only one fixed colorspace per pixelcode */
-> @@ -136,6 +145,8 @@ struct mt9v022 {
->  		struct v4l2_ctrl *autogain;
->  		struct v4l2_ctrl *gain;
->  	};
-> +	struct v4l2_ctrl *hblank;
-> +	struct v4l2_ctrl *vblank;
->  	struct v4l2_rect rect;	/* Sensor window */
->  	const struct mt9v022_datafmt *fmt;
->  	const struct mt9v022_datafmt *fmts;
-> @@ -277,11 +288,10 @@ static int mt9v022_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
->  		 * Default 94, Phytec driver says:
->  		 * "width + horizontal blank >= 660"
->  		 */
-> -		ret = reg_write(client, MT9V022_HORIZONTAL_BLANKING,
-> -				rect.width > 660 - 43 ? 43 :
-> -				660 - rect.width);
-> +		ret = v4l2_ctrl_s_ctrl(mt9v022->hblank,
-> +				rect.width > 660 - 43 ? 43 : 660 - rect.width);
->  	if (!ret)
-> -		ret = reg_write(client, MT9V022_VERTICAL_BLANKING, 45);
-> +		ret = v4l2_ctrl_s_ctrl(mt9v022->vblank, 45);
->  	if (!ret)
->  		ret = reg_write(client, MT9V022_WINDOW_WIDTH, rect.width);
->  	if (!ret)
-> @@ -476,6 +486,9 @@ static int mt9v022_s_power(struct v4l2_subdev *sd, int on)
->  	return soc_camera_set_power(&client->dev, icl, on);
->  }
->  
-> +#define V4L2_CID_REG32			(V4L2_CTRL_CLASS_CAMERA | 0x1001)
-> +#define V4L2_CID_ANALOG_CONTROLS	(V4L2_CTRL_CLASS_CAMERA | 0x1002)
+I would imagine the profile would say something like: "If the device and
+driver support RDS, then applications can determine this by [some method
+consistent with the V4L2 spec] and the driver will implement the
+following ioctl()s: [...]; and provide data in the following manner:
+[...]"
 
-Sorry, no again. The MT9V022_ANALOG_CONTROL register contains two fields: 
-anti-eclipse and "anti-eclipse reference voltage control," don't think 
-they should be set as a single control value. IIUC, controls are supposed 
-to control logical parameters of the system. In this case you could 
-introduce an "anti-eclipse reference voltage" control with values in the 
-range between 0 and 2250mV, setting it to anything below 1900mV would turn 
-the enable bit off. Would such a control make sense? Then you might want 
-to ask on the ML, whether this control would make sense as a generic one, 
-not mt9v022 specific.
+So nothing is really optional, if the device and driver can support RDS.
 
-> +
->  static int mt9v022_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
->  {
->  	struct mt9v022 *mt9v022 = container_of(ctrl->handler,
-> @@ -504,6 +517,30 @@ static int mt9v022_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
->  		range = exp->maximum - exp->minimum;
->  		exp->val = ((data - 1) * range + 239) / 479 + exp->minimum;
->  		return 0;
-> +	case V4L2_CID_HBLANK:
-> +		data = reg_read(client, MT9V022_HORIZONTAL_BLANKING);
-> +		if (data < 0)
-> +			return -EIO;
-> +		ctrl->val = data;
-> +		return 0;
-> +	case V4L2_CID_VBLANK:
-> +		data = reg_read(client, MT9V022_VERTICAL_BLANKING);
-> +		if (data < 0)
-> +			return -EIO;
-> +		ctrl->val = data;
-> +		return 0;
-> +	case V4L2_CID_REG32:
-> +		data = reg_read(client, MT9V022_REG32);
-> +		if (data < 0)
-> +			return -EIO;
-> +		ctrl->val = data;
-> +		return 0;
-> +	case V4L2_CID_ANALOG_CONTROLS:
-> +		data = reg_read(client, MT9V022_ANALOG_CONTROL);
-> +		if (data < 0)
-> +			return -EIO;
-> +		ctrl->val = data;
-> +		return 0;
->  	}
->  	return -EINVAL;
->  }
-> @@ -585,6 +622,26 @@ static int mt9v022_s_ctrl(struct v4l2_ctrl *ctrl)
->  				return -EIO;
->  		}
->  		return 0;
-> +	case V4L2_CID_HBLANK:
-> +		if (reg_write(client, MT9V022_HORIZONTAL_BLANKING,
-> +				ctrl->val) < 0)
-> +			return -EIO;
-> +		return 0;
-> +	case V4L2_CID_VBLANK:
-> +		if (reg_write(client, MT9V022_VERTICAL_BLANKING,
-> +				ctrl->val) < 0)
-> +			return -EIO;
-> +		return 0;
-> +	case V4L2_CID_REG32:
-> +		if (reg_write(client, MT9V022_REG32,
-> +				ctrl->val) < 0)
-> +			return -EIO;
-> +		return 0;
-> +	case V4L2_CID_ANALOG_CONTROLS:
-> +		if (reg_write(client, MT9V022_ANALOG_CONTROL,
-> +				ctrl->val) < 0)
-> +			return -EIO;
-> +		return 0;
->  	}
->  	return -EINVAL;
->  }
-> @@ -697,6 +754,30 @@ static const struct v4l2_ctrl_ops mt9v022_ctrl_ops = {
->  	.s_ctrl = mt9v022_s_ctrl,
->  };
->  
-> +static const struct v4l2_ctrl_config mt9v022_ctrls[] = {
-> +	{
-> +		.ops		= &mt9v022_ctrl_ops,
-> +		.id		= V4L2_CID_REG32,
-> +		.type		= V4L2_CTRL_TYPE_INTEGER,
-> +		.name		= "reg32 (0x20)",
-> +		.min		= 0,
-> +		.max		= 0x0fff,
-> +		.step		= 1,
-> +		.def		= 0x01d1,
-> +		.flags		= V4L2_CTRL_FLAG_VOLATILE,
-> +	}, {
-> +		.ops		= &mt9v022_ctrl_ops,
-> +		.id		= V4L2_CID_ANALOG_CONTROLS,
-> +		.type		= V4L2_CTRL_TYPE_INTEGER,
-> +		.name		= "analog controls",
-> +		.min		= 0,
-> +		.max		= 0xffff,
-> +		.step		= 1,
-> +		.def		= 0x1840,
-> +		.flags		= V4L2_CTRL_FLAG_VOLATILE,
-> +	},
-> +};
-> +
->  static struct v4l2_subdev_core_ops mt9v022_subdev_core_ops = {
->  	.g_chip_ident	= mt9v022_g_chip_ident,
->  #ifdef CONFIG_VIDEO_ADV_DEBUG
-> @@ -832,7 +913,7 @@ static int mt9v022_probe(struct i2c_client *client,
->  		return -ENOMEM;
->  
->  	v4l2_i2c_subdev_init(&mt9v022->subdev, client, &mt9v022_subdev_ops);
-> -	v4l2_ctrl_handler_init(&mt9v022->hdl, 6);
-> +	v4l2_ctrl_handler_init(&mt9v022->hdl, 6 + ARRAY_SIZE(mt9v022_ctrls));
->  	v4l2_ctrl_new_std(&mt9v022->hdl, &mt9v022_ctrl_ops,
->  			V4L2_CID_VFLIP, 0, 1, 1, 0);
->  	v4l2_ctrl_new_std(&mt9v022->hdl, &mt9v022_ctrl_ops,
-> @@ -852,10 +933,24 @@ static int mt9v022_probe(struct i2c_client *client,
->  	mt9v022->exposure = v4l2_ctrl_new_std(&mt9v022->hdl, &mt9v022_ctrl_ops,
->  			V4L2_CID_EXPOSURE, 1, 255, 1, 255);
->  
-> +	mt9v022->hblank = v4l2_ctrl_new_std(&mt9v022->hdl, &mt9v022_ctrl_ops,
-> +			V4L2_CID_HBLANK, MT9V022_HORIZONTAL_BLANKING_MIN,
-> +			MT9V022_HORIZONTAL_BLANKING_MAX, 1,
-> +			MT9V022_HORIZONTAL_BLANKING_DEF);
-> +
-> +	mt9v022->vblank = v4l2_ctrl_new_std(&mt9v022->hdl, &mt9v022_ctrl_ops,
-> +			V4L2_CID_VBLANK, MT9V022_VERTICAL_BLANKING_MIN,
-> +			MT9V022_VERTICAL_BLANKING_MAX, 1,
-> +			MT9V022_VERTICAL_BLANKING_DEF);
-> +
-> +	v4l2_ctrl_new_custom(&mt9v022->hdl, &mt9v022_ctrls[0], NULL);
-> +	v4l2_ctrl_new_custom(&mt9v022->hdl, &mt9v022_ctrls[1], NULL);
-> +
->  	mt9v022->subdev.ctrl_handler = &mt9v022->hdl;
->  	if (mt9v022->hdl.error) {
->  		int err = mt9v022->hdl.error;
->  
-> +		dev_err(&client->dev, "hdl init err %d\n", err);
+That way you also don't get a proliferation of profiles - Radio Receiver
+with RDS and also Radio Receiver w/o RDS - or subprofiles. (As a group,
+numerous profiles begin to create the option inconsistency problem all
+over again.) 
 
-That's not very clear IMHO. "hdl" isn't too specific, just "control 
-initialisation?"
+Again, I'm coming from the viewpoint that every "option" holds potential
+for an application <-> driver interoperability problem.  Profiles need
+to set clear expectations for both applications and driver.  Stating
+that something is optional in a profile is undersireable, IMO.
 
->  		kfree(mt9v022);
->  		return err;
->  	}
-> -- 
-> 1.7.1
+
+> - Radio Transmitter Profile (with optional RDS support)
+> - Webcam Profile
+> - Video Capture Profile (with optional tuner/overlay/vbi support)
+> - Video Output Profile (with optional vbi support)
+
+Ditto, regarding "optional".
+
+
+> - Memory-to-Memory Profile (for hardware codecs)
+> - Complex Profile (for SoCs with complex video hardware requiring the use
+>   of the Media Controller API and a supporting library)
 > 
+> I wonder if e.g. optional tuner support and similar optional features
+> should be defined as full profiles or as sub-profiles.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+I would suggest you avoid a proliferation of profiles.  Fewer profiles
+go farther in enhancing application <-> driver inetroperability.
+
+I like your list above.  Using your example of tuner support, you would
+include that in the Video Capture Profile.  The language I would use is
+again something like:
+
+"If the device has a supported analog broadcast TV tuner, then
+applications can detect this by [some method consistent with the V4L2
+spec], and the following ioctl()s must be supported: [...].
+
+
+> In theory it is possible to have, say, a device that just captures VBI and
+> no video. So there is something to be said for making it a full profile
+> and allow drivers to support multiple profiles (although not all combinations
+> are allowed).
+
+IMO, Combinations of profiles, just creates uncertainty and thus
+interoperability problems.
+
+My first inclination would be to just handle a VBI-only capture device
+under the Video Capture profile, with a properly worded profile.
+
+There is probably a similar situation with Video Capture devices that
+output raw frames vs. video capture devices that output conatiner
+formats (MPEG PS, MPEG TS, AVI).  I think that can be handled in a
+single Video Capture profile as well.
+
+
+
+> > > I am not certain where these profile descriptions should go. Should we add
+> > > this to DocBook, or describe it in Documentation/video4linux? Or perhaps
+> > > somehow add it to v4l2-compliance, since that tool effectively verifies
+> > > the profile.
+> > 
+> > Don't bury the authoritative profile in a tool, profiles should be
+> > documents easily accessed by implementors.
+> > 
+> > Interoperability is promoted via clearly documentation requirments for
+> > implementors.  Interoperability is assessed with tools.
+
+I would like to temper my above statements.
+
+Given the reality of man-power to write documents for Open Source
+software, my above recommendations might not be realistic.  I've been
+living in a "big, up-front design" world lately.
+
+Also Steven Toth's Viewcast Osprey PULL request has shown how a good
+tool can help speed compliance after the fact.  (Although good profile
+documents may have prevented the back & forth in the first place.)
+
+ 
+
+> > > Core Profile
+> > > ============
+ 
+
+> > > VIDIOC_LOG_STATUS is optional, but recommended for complex drivers.
+> > 
+> > Not OK.  I would avoid making anything in a profile optional.
+> > 
+> > Given that the output of LOG_STATUS does not enhance interoperability,
+> > as its output is not readily readable by the calling application, I
+> > recommend dropping mention of LOG_STATUS from the core profile.
+> > 
+> > 
+> > > VIDIOC_DBG_G_CHIP_IDENT, VIDIOC_DBG_G/S_REGISTER are optional and are
+> > > primarily used to debug drivers.
+> > 
+> > Drop mention of these from the Core profile as well.  These can be, and
+> > usually are, compiled out of stock distro kernel with a kernel build
+> > configuration option.
+> > 
+> > Normal end user applications cannot rely on the being there, so they do
+> > not enhance interoperability.
+> > 
+> > If you wish to add a Debug profile that builds upon the Core profile,
+> > them these ioctl()s and _LOG_STATUS would fit nicely in that.
+> 
+> A Debug Profile sounds good.
+
+I'm having second thoughts on this.
+
+The only real advantage I can see is that we could recommend to
+application developers to test against drivers that support the Debug
+profile, to enhance troubleshooting, support requests, and bug reports.
+
+Given a previous email I saw from you, I guess supporting USERPTR would
+also be a good thing to add to a Debug profile.
+
+
+> > > 
+> > > Video nodes only control video, radio nodes only control radio and RDS, vbi
+> > > nodes only control VBI (raw and/or sliced).
+> > 
+> > If that is the case, then does the profile need to say something about
+> > multiple open of radio nodes?  (I'm thinking of the legacy /dev/video24
+> > nodes here, which are really interoperabily losers in terms of existing
+> > FM radio apps anyway.)
+> 
+> I made a follow-up to this profile that adds that.
+> 
+> Regards,
+> 
+> 	Hans
+
+
+Regards,
+Andy
+
+
