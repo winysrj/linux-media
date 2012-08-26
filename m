@@ -1,121 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm11-vm0.bullet.mail.ird.yahoo.com ([77.238.189.218]:22552 "HELO
-	nm11-vm0.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752652Ab2HPU3p convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Aug 2012 16:29:45 -0400
-Message-ID: <1345148983.10042.YahooMailClassic@web29405.mail.ird.yahoo.com>
-Date: Thu, 16 Aug 2012 21:29:43 +0100 (BST)
-From: Hin-Tak Leung <htl10@users.sourceforge.net>
-Reply-To: htl10@users.sourceforge.net
-Subject: Re: noisy dev_dbg_ratelimited()
-To: Hiroshi Doyu <hdoyu@nvidia.com>, Antti Palosaari <crope@iki.fi>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"joe@perches.com" <joe@perches.com>
-In-Reply-To: <502D4E9D.5010401@iki.fi>
+Received: from dell.nexicom.net ([216.168.96.13]:37391 "EHLO smtp.nexicom.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753316Ab2HZWjy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Aug 2012 18:39:54 -0400
+Received: from mail.lockie.ca (dyn-dsl-mb-216-168-121-163.nexicom.net [216.168.121.163])
+	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id q7QMdqVI007311
+	for <linux-media@vger.kernel.org>; Sun, 26 Aug 2012 18:39:53 -0400
+Received: from [192.168.1.102] (69-196-139-35.dsl.teksavvy.com [69.196.139.35])
+	(using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.lockie.ca (Postfix) with ESMTPSA id 6EEB01E006F
+	for <linux-media@vger.kernel.org>; Sun, 26 Aug 2012 18:39:52 -0400 (EDT)
+Message-ID: <503AA5B7.60704@lockie.ca>
+Date: Sun, 26 Aug 2012 18:39:51 -0400
+From: James <bjlockie@lockie.ca>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+To: linux-media Mailing List <linux-media@vger.kernel.org>
+Subject: patch idea
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---- On Thu, 16/8/12, Antti Palosaari <crope@iki.fi> wrote:
 
-> Hello Hiroshi
-> 
-> On 08/16/2012 10:12 AM, Hiroshi Doyu wrote:
-> > Hi Antti,
-> >
-> > Antti Palosaari <crope@iki.fi>
-> wrote @ Thu, 16 Aug 2012 03:11:56 +0200:
-> >
-> >> Hello Hiroshi,
-> >>
-> >> I see you have added dev_dbg_ratelimited()
-> recently, commit
-> >> 6ca045930338485a8cdef117e74372aa1678009d .
-> >>
-> >> However it seems to be noisy as expected similar
-> behavior than normal
-> >> dev_dbg() without a ratelimit.
-> >>
-> >> I looked ratelimit.c and there is:
-> >> printk(KERN_WARNING "%s: %d callbacks
-> suppressed\n", func, rs->missed);
-> >>
-> >> What it looks my eyes it will print those
-> "callbacks suppressed" always
-> >> because KERN_WARNING.
-> >
-> > Right. Can the following fix the problem?
-> 
-> No. That silences dev_dbg_reatelimited() totally.
-> dev_dbg() works as expected printing all the debugs. But
-> when I change 
-> it to dev_dbg_reatelimited() all printings are silenced.
+If the driver is built into kernel it causes a timeout because it relies on udev which is not initialized yet (that is the theory).
+Regardless, the timeout is not needed except to load the firmware to provide analog reception.
+I doubt anyone who compiles it in the kernel needs the firmware.
 
-That's probably correct - the patch looks a bit strange... I did not try the patch, but had a quick look at the file and noted that in include/linux/device.h, "info" (and possibly another level) are treated specially... just thought I should mention this.
+I think the following should make it into the kernel source:
 
-> >>From 905b1dedb6c64bc46a70f6d203ef98c23fccb107 Mon
-> Sep 17 00:00:00 2001
-> > From: Hiroshi Doyu <hdoyu@nvidia.com>
-> > Date: Thu, 16 Aug 2012 10:02:11 +0300
-> > Subject: [PATCH 1/1] driver-core: Shut up
-> dev_dbg_reatelimited() without
-> >   DEBUG
-> >
-> > dev_dbg_reatelimited() without DEBUG printed "217078
-> callbacks
-> > suppressed". This shouldn't print anything without
-> DEBUG.
-> >
-> > Signed-off-by: Hiroshi Doyu <hdoyu@nvidia.com>
-> > Reported-by: Antti Palosaari <crope@iki.fi>
-> > ---
-> >   include/linux/device.h |   
-> 6 +++++-
-> >   1 files changed, 5 insertions(+), 1
-> deletions(-)
-> >
-> > diff --git a/include/linux/device.h
-> b/include/linux/device.h
-> > index eb945e1..d4dc26e 100644
-> > --- a/include/linux/device.h
-> > +++ b/include/linux/device.h
-> > @@ -962,9 +962,13 @@ do {   
->            
->            
->         \
-> >      
-> dev_level_ratelimited(dev_notice, dev, fmt, ##__VA_ARGS__)
-> >   #define dev_info_ratelimited(dev, fmt,
-> ...)           
->     \
-> >      
-> dev_level_ratelimited(dev_info, dev, fmt, ##__VA_ARGS__)
-> > +#if defined(DEBUG)
-> >   #define dev_dbg_ratelimited(dev, fmt,
-> ...)           
->     \
-> >      
-> dev_level_ratelimited(dev_dbg, dev, fmt, ##__VA_ARGS__)
-> > -
-> > +#else
-> > +#define dev_dbg_ratelimited(dev, fmt,
-> ...)           
-> \
-> > +    no_printk(KERN_DEBUG pr_fmt(fmt),
-> ##__VA_ARGS__)
-> > +#endif
-> >   /*
-> >    * Stupid hackaround for existing uses of
-> non-printk uses dev_info
-> >    *
-> >
-> 
-> regards
-> Antti
-> 
-> -- 
-> http://palosaari.fi/
-> 
+drivers/media/video/cx25840/cx25840-core.c
+
+#ifdef MODULE
+        cx25840_loadfw(state->c);
+#endif
