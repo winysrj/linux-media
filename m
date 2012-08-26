@@ -1,51 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailfe09.c2i.net ([212.247.155.2]:50555 "EHLO swip.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753199Ab2H1VAs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Aug 2012 17:00:48 -0400
-From: Hans Petter Selasky <hselasky@c2i.net>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [PATCH, RFC] Fix DVB ioctls failing if frontend open/closed too fast
-Date: Tue, 28 Aug 2012 22:56:41 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Juergen Lock <nox@jelal.kn-bremen.de>
-References: <20120731222216.GA36603@triton8.kn-bremen.de> <502711BE.4020701@redhat.com> <CAGoCfiyBZNkFkvhCqsbwxVaANZcp+1df-0eAmzrpzfavD6A+dQ@mail.gmail.com>
-In-Reply-To: <CAGoCfiyBZNkFkvhCqsbwxVaANZcp+1df-0eAmzrpzfavD6A+dQ@mail.gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:38470 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750820Ab2HZQqI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Aug 2012 12:46:08 -0400
+Message-ID: <503A52BD.90603@iki.fi>
+Date: Sun, 26 Aug 2012 19:45:49 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Jose Alberto Reguero <jareguero@telefonica.net>
+CC: linux-media@vger.kernel.org, Michael Krufky <mkrufky@linuxtv.org>
+Subject: Re: [PATCH] Add support to Avermedia Twinstar double tuner in af9035
+References: <1535656.ZrASkjgG1J@jar7.dominio>
+In-Reply-To: <1535656.ZrASkjgG1J@jar7.dominio>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201208282256.41157.hselasky@c2i.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 12 August 2012 05:06:49 Devin Heitmueller wrote:
-> On Sat, Aug 11, 2012 at 10:15 PM, Mauro Carvalho Chehab
-> 
-> <mchehab@redhat.com> wrote:
-> > Devin/Antti,
-> > 
-> > As Juergen mentioned your help on this patch, do you mind helping
-> > reviewing and testing it?
-> 
-> I guided Juergen through the creation of the patch via #linuxtv a
-> couple of weeks ago.  While I'm generally confident that it should
-> work (and it does address his basic issue), I hadn't had the time to
-> stare at the code long enough to see what other side effects it might
-> produce.
-> 
-> I'm tied up in other projects right now and am not confident I will
-> have cycles to look at this closer.  Antti, if you want to give it
-> some cycles, this would be a good fix to get upstream (and you've
-> already been looking at dvb_frontend.c for quite a while, so I believe
-> you would be able to spot a problem if one exists).
-> 
-> Devin
+On 08/25/2012 10:05 PM, Jose Alberto Reguero wrote:
+> This patch add support to the Avermedia Twinstar double tuner in the
+> af9035 driver.
+>
+> This time the patch inline because it was rejected. Also patch was
+> malformed.
+>
+> Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net
+> <mailto:jareguero@telefonica.net>>
+>
+> Jose Alberto
 
-Hi,
+Hello Jose, and thank you very much to hack this important and missing 
+piece of AF9035 driver functionality.
 
-What is the status of this PATCH? Submitted or under testing ??
+I looked it quickly and here is the comments so far. I will try to 
+review it more carefully tomorrow.
 
---HPS
+* your patch is very hard to read/review as you used some diff option 
+that does not show function name whom code is changed
+
+* there is two new configuration parameters for af9033 demod. I don't 
+understand why. As I don't see any need / use for those I want you to 
+remove those. Configurations structures are something not to add any 
+extra parameters "just for fun". Use "ts_mode != AF9033_TS_MODE_USB" 
+instead of "second". Other parameter "tuner_address" is not used at all 
+for af9033.
+
+* MXL5007T is not my driver. There seems to be new parameters no_probe 
+and no_reset. Those sounds also something that could be avoided. But I 
+didn't looked that code and I am not sure. Add at least comment why 
+those are used as such parameters deviates from normal use.
+
+
+Could you also sent small sniff for me where is dual tuner used?
+
+
+regards
+Antti
+
+
+-- 
+http://palosaari.fi/
