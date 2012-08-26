@@ -1,36 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:35031 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753366Ab2HNDuj (ORCPT
+Received: from mail1-relais-roc.national.inria.fr ([192.134.164.82]:16479 "EHLO
+	mail1-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754034Ab2HZQQS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Aug 2012 23:50:39 -0400
-Received: by eaac11 with SMTP id c11so1343378eaa.19
-        for <linux-media@vger.kernel.org>; Mon, 13 Aug 2012 20:50:37 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <50295881.5090000@redhat.com>
-References: <1344357792-18202-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	<1344357792-18202-11-git-send-email-andriy.shevchenko@linux.intel.com>
-	<50295881.5090000@redhat.com>
-Date: Tue, 14 Aug 2012 06:50:37 +0300
-Message-ID: <CAHp75Vdw2rYdaUXx0Hew+q1sfW5TfWASPgi_tGm_FwoPXcNETQ@mail.gmail.com>
-Subject: Re: [PATCH 11/11] au0828: use %*ph to dump small buffers
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sun, 26 Aug 2012 12:16:18 -0400
+Date: Sun, 26 Aug 2012 18:16:16 +0200 (CEST)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: Antti Palosaari <crope@iki.fi>
+cc: Andy Walls <awalls@md.metrocast.net>,
+	Julia Lawall <julia.lawall@lip6.fr>, mchehab@infradead.org,
 	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Subject: Re: question about drivers/media/dvb-frontends/rtl2830.c
+In-Reply-To: <503A4988.70205@iki.fi>
+Message-ID: <alpine.DEB.2.02.1208261815590.2065@localhost6.localdomain6>
+References: <alpine.DEB.2.02.1208260923570.2065@localhost6.localdomain6> <c67025bd-4c41-462f-88ee-b534b733d320@email.android.com> <503A4988.70205@iki.fi>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 13, 2012 at 10:41 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em 07-08-2012 13:43, Andy Shevchenko escreveu:
->> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
->> ---
-> That one doesn't apply anymore.
-It's not needed anymore. Please, skip it.
+On Sun, 26 Aug 2012, Antti Palosaari wrote:
 
--- 
-With Best Regards,
-Andy Shevchenko
+> On 08/26/2012 02:20 PM, Andy Walls wrote:
+>> Julia Lawall <julia.lawall@lip6.fr> wrote:
+>> 
+>>> The function rtl2830_init contains the code:
+>>>
+>>>          buf[0] = tmp << 6;
+>>>          buf[0] = (if_ctl >> 16) & 0x3f;
+>>>          buf[1] = (if_ctl >>  8) & 0xff;
+>>>          buf[2] = (if_ctl >>  0) & 0xff;
+>>> 
+>>> Is there any purpose to initializing buf[0] twice?
+>>> 
+>>> julia
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>>> in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> 
+>> Hmm.  Since 0x3f is the lowest 6 bits, it looks like the second line should 
+>> use |= instead of = .   I don't know anything about the rt2830 though.
+>> 
+>> -Andy
+>
+> Andy is correct. If you look few lines just before that you could see that 
+> logic. Patch is welcome.
+
+Done.  Thanks for the quick responses.
+
+julia
