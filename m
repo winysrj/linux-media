@@ -1,110 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:37019 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751397Ab2HaIL2 (ORCPT
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:33012 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751114Ab2HZQGv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Aug 2012 04:11:28 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 11/16] media: coda: add horizontal / vertical flipping support
-Date: Fri, 31 Aug 2012 10:11:05 +0200
-Message-Id: <1346400670-16002-12-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
-References: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
+	Sun, 26 Aug 2012 12:06:51 -0400
+Received: by lagy9 with SMTP id y9so2080361lag.19
+        for <linux-media@vger.kernel.org>; Sun, 26 Aug 2012 09:06:49 -0700 (PDT)
+Message-ID: <503A4988.70205@iki.fi>
+Date: Sun, 26 Aug 2012 19:06:32 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Andy Walls <awalls@md.metrocast.net>,
+	Julia Lawall <julia.lawall@lip6.fr>
+CC: mchehab@infradead.org, linux-media@vger.kernel.org
+Subject: Re: question about drivers/media/dvb-frontends/rtl2830.c
+References: <alpine.DEB.2.02.1208260923570.2065@localhost6.localdomain6> <c67025bd-4c41-462f-88ee-b534b733d320@email.android.com>
+In-Reply-To: <c67025bd-4c41-462f-88ee-b534b733d320@email.android.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The hardware can also rotate in 90° steps, but there is no
-corresponding V4L2_CID defined yet.
+On 08/26/2012 02:20 PM, Andy Walls wrote:
+> Julia Lawall <julia.lawall@lip6.fr> wrote:
+>
+>> The function rtl2830_init contains the code:
+>>
+>>          buf[0] = tmp << 6;
+>>          buf[0] = (if_ctl >> 16) & 0x3f;
+>>          buf[1] = (if_ctl >>  8) & 0xff;
+>>          buf[2] = (if_ctl >>  0) & 0xff;
+>>
+>> Is there any purpose to initializing buf[0] twice?
+>>
+>> julia
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>> in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> Hmm.  Since 0x3f is the lowest 6 bits, it looks like the second line should use |= instead of = .   I don't know anything about the rt2830 though.
+>
+> -Andy
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c |   19 ++++++++++++++++++-
- drivers/media/platform/coda.h |    9 +++++++++
- 2 files changed, 27 insertions(+), 1 deletion(-)
+Andy is correct. If you look few lines just before that you could see 
+that logic. Patch is welcome.
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index cdb2ead..8670d9f 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -142,6 +142,7 @@ struct coda_dev {
- };
- 
- struct coda_params {
-+	u8			rot_mode;
- 	u8			h264_intra_qp;
- 	u8			h264_inter_qp;
- 	u8			mpeg4_intra_qp;
-@@ -696,7 +697,7 @@ static void coda_device_run(void *m2m_priv)
- 	}
- 
- 	/* submit */
--	coda_write(dev, 0, CODA_CMD_ENC_PIC_ROT_MODE);
-+	coda_write(dev, CODA_ROT_MIR_ENABLE | ctx->params.rot_mode, CODA_CMD_ENC_PIC_ROT_MODE);
- 	coda_write(dev, quant_param, CODA_CMD_ENC_PIC_QS);
- 
- 
-@@ -1272,6 +1273,18 @@ static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
- 		 "s_ctrl: id = %d, val = %d\n", ctrl->id, ctrl->val);
- 
- 	switch (ctrl->id) {
-+	case V4L2_CID_HFLIP:
-+		if (ctrl->val)
-+			ctx->params.rot_mode |= CODA_MIR_HOR;
-+		else
-+			ctx->params.rot_mode &= ~CODA_MIR_HOR;
-+		break;
-+	case V4L2_CID_VFLIP:
-+		if (ctrl->val)
-+			ctx->params.rot_mode |= CODA_MIR_VER;
-+		else
-+			ctx->params.rot_mode &= ~CODA_MIR_VER;
-+		break;
- 	case V4L2_CID_MPEG_VIDEO_BITRATE:
- 		ctx->params.bitrate = ctrl->val / 1000;
- 		break;
-@@ -1317,6 +1330,10 @@ static int coda_ctrls_setup(struct coda_ctx *ctx)
- 	v4l2_ctrl_handler_init(&ctx->ctrls, 9);
- 
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
-+		V4L2_CID_HFLIP, 0, 1, 1, 0);
-+	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
-+		V4L2_CID_VFLIP, 0, 1, 1, 0);
-+	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_BITRATE, 0, 32767000, 1, 0);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_GOP_SIZE, 1, 60, 1, 16);
-diff --git a/drivers/media/platform/coda.h b/drivers/media/platform/coda.h
-index 3324010..f3f5e43 100644
---- a/drivers/media/platform/coda.h
-+++ b/drivers/media/platform/coda.h
-@@ -188,6 +188,15 @@
- #define CODA_CMD_ENC_PIC_SRC_ADDR_CR	0x188
- #define CODA_CMD_ENC_PIC_QS		0x18c
- #define CODA_CMD_ENC_PIC_ROT_MODE	0x190
-+#define		CODA_ROT_MIR_ENABLE				(1 << 4)
-+#define		CODA_ROT_0					(0x0 << 0)
-+#define		CODA_ROT_90					(0x1 << 0)
-+#define		CODA_ROT_180					(0x2 << 0)
-+#define		CODA_ROT_270					(0x3 << 0)
-+#define		CODA_MIR_NONE					(0x0 << 2)
-+#define		CODA_MIR_VER					(0x1 << 2)
-+#define		CODA_MIR_HOR					(0x2 << 2)
-+#define		CODA_MIR_VER_HOR				(0x3 << 2)
- #define CODA_CMD_ENC_PIC_OPTION	0x194
- #define CODA_CMD_ENC_PIC_BB_START	0x198
- #define CODA_CMD_ENC_PIC_BB_SIZE	0x19c
+regards
+Antti
+
+
 -- 
-1.7.10.4
-
+http://palosaari.fi/
