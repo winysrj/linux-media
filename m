@@ -1,74 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47457 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756489Ab2HOUUh (ORCPT
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:47898 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753439Ab2H0JZO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Aug 2012 16:20:37 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
-	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com,
-	g.liakhovetski@gmx.de, dmitriyz@google.com, s.nawrocki@samsung.com,
-	k.debski@samsung.com
-Subject: Re: [PATCHv8 22/26] media: vb2: fail if user ptr buffer is not correctly aligned
-Date: Wed, 15 Aug 2012 22:20:52 +0200
-Message-ID: <1712149.lhk9fvSKkE@avalon>
-In-Reply-To: <1344958496-9373-23-git-send-email-t.stanislaws@samsung.com>
-References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com> <1344958496-9373-23-git-send-email-t.stanislaws@samsung.com>
+	Mon, 27 Aug 2012 05:25:14 -0400
+Received: by lbbgj3 with SMTP id gj3so2369140lbb.19
+        for <linux-media@vger.kernel.org>; Mon, 27 Aug 2012 02:25:13 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20120824203957.GC1303@atomide.com>
+References: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
+	<1345820986-4597-8-git-send-email-timo.t.kokkonen@iki.fi>
+	<20120824203957.GC1303@atomide.com>
+Date: Mon, 27 Aug 2012 11:25:12 +0200
+Message-ID: <CAORVsuVXDK896dBb+f6qLq6Dct0CWjTn72q4Y88hdgjNA+T0pg@mail.gmail.com>
+Subject: Re: [PATCHv2 7/8] ir-rx51: Convert latency constraints to PM QoS API
+From: Jean Pihet <jean.pihet@newoldbits.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Timo Kokkonen <timo.t.kokkonen@iki.fi>,
+	Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+Hi Timo,
 
-Thanks for the patch.
+On Fri, Aug 24, 2012 at 10:39 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Timo Kokkonen <timo.t.kokkonen@iki.fi> [120824 08:11]:
+>> Convert the driver from the obsolete omap_pm_set_max_mpu_wakeup_lat
+>> API to the new PM QoS API. This allows the callback to be removed from
+>> the platform data structure.
+>>
+>> The latency requirements are also adjusted to prevent the MPU from
+>> going into sleep mode. This is needed as the GP timers have no means
+>> to wake up the MPU once it has gone into sleep. The "side effect" is
+>> that from now on the driver actually works even if there is no
+>> background load keeping the MPU awake.
+>>
+>> Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+>
+> This should get acked by Kevin ideally. Other than that:
+>
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-On Tuesday 14 August 2012 17:34:52 Tomasz Stanislawski wrote:
-> From: Marek Szyprowski <m.szyprowski@samsung.com>
-> 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> ---
->  drivers/media/video/videobuf2-dma-contig.c |   10 ++++++++++
->  1 file changed, 10 insertions(+)
-> 
-> diff --git a/drivers/media/video/videobuf2-dma-contig.c
-> b/drivers/media/video/videobuf2-dma-contig.c index d44766e..11f4a46 100644
-> --- a/drivers/media/video/videobuf2-dma-contig.c
-> +++ b/drivers/media/video/videobuf2-dma-contig.c
-> @@ -498,6 +498,16 @@ static void *vb2_dc_get_userptr(void *alloc_ctx,
-> unsigned long vaddr, struct vm_area_struct *vma;
->  	struct sg_table *sgt;
->  	unsigned long contig_size;
-> +	unsigned long dma_align = dma_get_cache_alignment();
-> +
-> +	/*
-> +	 * DMA transfers are not reliable to buffers which
-> +	 * are not cache line aligned!
-> +	 */
+...
+@@ -268,10 +270,14 @@ static ssize_t lirc_rx51_write(struct file
+*file, const char *buf,
+                lirc_rx51->wbuf[count] = -1; /* Insert termination mark */
 
-Are you scared of going near the 80 columns limit ? :-)
+        /*
+-        * Adjust latency requirements so the device doesn't go in too
+-        * deep sleep states
++        * If the MPU is going into too deep sleep state while we are
++        * transmitting the IR code, timers will not be able to wake
++        * up the MPU. Thus, we need to set a strict enough latency
++        * requirement in order to ensure the interrupts come though
++        * properly.
+         */
+-       lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, 50);
++       pm_qos_add_request(&lirc_rx51->pm_qos_request,
++                       PM_QOS_CPU_DMA_LATENCY, 10);
+Minor remark: it would be nice to have more detail on where the
+latency number 10 comes from. Is it fixed, is it linked to the baud
+rate etc?
 
-> +	if (vaddr & (dma_align - 1)) {
+Here is my ack for the PM QoS API part:
+Acked-by: Jean Pihet <j-pihet@ti.com>
 
-You could use the IS_ALIGNED macro here, but that might just be nitpicking.
-
-> +		pr_err("userptr must be aligned to %lu bytes\n", dma_align);
-> +		return ERR_PTR(-EINVAL);
-> +	}
-
-Shouldn't you also check that the size is a multiple of dma_align ?
-
->  	buf = kzalloc(sizeof *buf, GFP_KERNEL);
->  	if (!buf)
-
--- 
 Regards,
-
-Laurent Pinchart
-
+Jean
