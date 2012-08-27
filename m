@@ -1,33 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3977 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756659Ab2HPI5m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Aug 2012 04:57:42 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Konke Radlow <koradlow@googlemail.com>
-Subject: Re: [RFC PATCHv2 0/1] Adding core TMC decoding support to RDS library
-Date: Thu, 16 Aug 2012 10:57:05 +0200
-Cc: linux-media@vger.kernel.org, hdegoede@redhat.com
-References: <[RFC PATCH 0/1] Adding core TMC decoding support to RDS library> <1345041058-1334-1-git-send-email-koradlow@gmail.com>
-In-Reply-To: <1345041058-1334-1-git-send-email-koradlow@gmail.com>
+Received: from eu1sys200aog108.obsmtp.com ([207.126.144.125]:58415 "EHLO
+	eu1sys200aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751653Ab2H0PtW convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Aug 2012 11:49:22 -0400
+From: Nicolas THERY <nicolas.thery@st.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"riverful.kim@samsung.com" <riverful.kim@samsung.com>,
+	"sw0312.kim@samsung.com" <sw0312.kim@samsung.com>,
+	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>,
+	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	Jean-Marc VOLLE <jean-marc.volle@st.com>,
+	Pierre-yves TALOUD <pierre-yves.taloud@st.com>,
+	Willy POISSON <willy.poisson@st.com>,
+	Benjamin GAIGNARD <benjamin.gaignard@st.com>
+Date: Mon, 27 Aug 2012 17:48:43 +0200
+Subject: Re: [PATCH RFC 0/4] V4L2: Vendor specific media bus formats/ frame
+ size control
+Message-ID: <503B96DB.3070403@st.com>
+References: <1345715489-30158-1-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1345715489-30158-1-git-send-email-s.nawrocki@samsung.com>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201208161057.05225.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed August 15 2012 16:30:57 Konke Radlow wrote:
-> this patch is an updated version of the last RDS-TMC core support patch. 
+Hello,
+
+On 2012-08-23 11:51, Sylwester Nawrocki wrote:
+> This patch series introduces new image source class control - V4L2_CID_FRAMESIZE
+> and vendor or device specific media bus format section.
 > 
-> The changes proposed by Hans Verkuil were implemented. In addition
-> the handling and decoding of multi-group TMC messages was heavily modified,
-> in order to improve read- and maintainability
+> There was already a discussion WRT handling interleaved image data [1].
+> I'm not terribly happy with those vendor specific media bus formats but I
+> couldn't find better solution that would comply with the V4L2 API concepts
+> and would work reliably.
 
-If there are no further comments, then I plan on merging this tomorrow.
+What about Sakari's "Frame format descriptors" RFC[1] that would allow to
+describe arbitrary pixel code combinations and provide required information
+(virtual channel and data type) to the CSI receiver driver for configuring the
+hardware?
 
-Regards,
+Thanks in advance.
 
-	Hans
+Best regards,
+Nicolas
+
+[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg43530.html
