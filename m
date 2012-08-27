@@ -1,152 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.meprolight.com ([194.90.149.17]:32115 "EHLO meprolight.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752281Ab2HBPl4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Aug 2012 11:41:56 -0400
-From: Alex Gershgorin <alexg@meprolight.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: <g.liakhovetski@gmx.de>, <linux-media@vger.kernel.org>,
-	Alex Gershgorin <alexg@meprolight.com>
-Subject: [PATCH v3] mt9v022: Add support for mt9v024
-Date: Thu, 2 Aug 2012 18:32:41 +0300
-Message-ID: <1343921561-671-1-git-send-email-alexg@meprolight.com>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:34672 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753240Ab2H0JbU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Aug 2012 05:31:20 -0400
+Received: by vcbfk26 with SMTP id fk26so4154734vcb.19
+        for <linux-media@vger.kernel.org>; Mon, 27 Aug 2012 02:31:19 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <1346068683-31610-1-git-send-email-arun.kk@samsung.com>
+References: <1346068683-31610-1-git-send-email-arun.kk@samsung.com>
+Date: Mon, 27 Aug 2012 15:01:19 +0530
+Message-ID: <CAK9yfHwit2G3LpDZKx5yZ+zFGBkw3R3Jz+6YHDL-S7aCdnH_xw@mail.gmail.com>
+Subject: Re: [PATCH v5 0/4] Update MFC v4l2 driver to support MFC6.x
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Arun Kumar K <arun.kk@samsung.com>
+Cc: linux-media@vger.kernel.org, jtp.park@samsung.com,
+	janghyuck.kim@samsung.com, jaeryul.oh@samsung.com,
+	ch.naveen@samsung.com, m.szyprowski@samsung.com,
+	k.debski@samsung.com, kmpark@infradead.org, joshi@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Driver for mt9v022 camera sensor is fully compatible for mt9v024 camera sensor
-with the exception of several registers which have been changed addresses.
-mt9v024 also has improved and additional features, but they are currently not in use.
+Hi Arun,
 
-Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
----
- drivers/media/video/Kconfig   |    2 +-
- drivers/media/video/mt9v022.c |   36 +++++++++++++++++++++++++++++++-----
- 2 files changed, 32 insertions(+), 6 deletions(-)
+The media tree has been re-organized recently.
+It would be useful to re-base your patches against the latest media
+tree (or linux-next).
+MFC driver is now located at "drivers/media/platform/s5p-mfc/"
 
-Changes for v2:
-         Fixed comment from Guennadi.
+On 27 August 2012 17:27, Arun Kumar K <arun.kk@samsung.com> wrote:
+> The patchset adds support for MFCv6 firmware in s5p-mfc driver.
+> The first two patches will update the existing MFCv5 driver framework
+> for making it suitable for supporting co-existence with a newer
+> hardware version. The last two patches add support for MFCv6 firmware.
+> This patchset have to be applied on patches [1] and [2] posted
+> earlier which adds the required v4l2 controls.
+>
+> Changelog:
+> - Modified ops mechanism for macro based function call
+> - Addressed all other review comments on Patch v4
+>
+> [1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg48972.html
+> [2] http://www.mail-archive.com/linux-media@vger.kernel.org/msg48973.html
+>
+> Arun Kumar K (1):
+>   [media] s5p-mfc: Update MFCv5 driver for callback based architecture
+>
+> Jeongtae Park (3):
+>   [media] s5p-mfc: Add MFC variant data to device context
+>   [media] s5p-mfc: MFCv6 register definitions
+>   [media] s5p-mfc: Update MFC v4l2 driver to support MFC6.x
+>
+>  drivers/media/video/Kconfig                  |    4 +-
+>  drivers/media/video/s5p-mfc/Makefile         |    7 +-
+>  drivers/media/video/s5p-mfc/regs-mfc-v6.h    |  440 ++++++
+>  drivers/media/video/s5p-mfc/regs-mfc.h       |   49 +
+>  drivers/media/video/s5p-mfc/s5p_mfc.c        |  229 ++--
+>  drivers/media/video/s5p-mfc/s5p_mfc_cmd.c    |   98 +-
+>  drivers/media/video/s5p-mfc/s5p_mfc_cmd.h    |   13 +
+>  drivers/media/video/s5p-mfc/s5p_mfc_cmd_v5.c |  164 +++
+>  drivers/media/video/s5p-mfc/s5p_mfc_cmd_v5.h |   20 +
+>  drivers/media/video/s5p-mfc/s5p_mfc_cmd_v6.c |  155 ++
+>  drivers/media/video/s5p-mfc/s5p_mfc_cmd_v6.h |   20 +
+>  drivers/media/video/s5p-mfc/s5p_mfc_common.h |  174 ++-
+>  drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c   |  188 ++-
+>  drivers/media/video/s5p-mfc/s5p_mfc_ctrl.h   |    1 +
+>  drivers/media/video/s5p-mfc/s5p_mfc_dec.c    |  226 ++-
+>  drivers/media/video/s5p-mfc/s5p_mfc_dec.h    |    1 +
+>  drivers/media/video/s5p-mfc/s5p_mfc_enc.c    |  208 ++--
+>  drivers/media/video/s5p-mfc/s5p_mfc_enc.h    |    1 +
+>  drivers/media/video/s5p-mfc/s5p_mfc_intr.c   |   11 +-
+>  drivers/media/video/s5p-mfc/s5p_mfc_opr.c    | 1407 ++-----------------
+>  drivers/media/video/s5p-mfc/s5p_mfc_opr.h    |  178 ++-
+>  drivers/media/video/s5p-mfc/s5p_mfc_opr_v5.c | 1759 +++++++++++++++++++++++
+>  drivers/media/video/s5p-mfc/s5p_mfc_opr_v5.h |   85 ++
+>  drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.c | 1945 ++++++++++++++++++++++++++
+>  drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.h |   50 +
+>  drivers/media/video/s5p-mfc/s5p_mfc_pm.c     |    3 +-
+>  drivers/media/video/s5p-mfc/s5p_mfc_shm.c    |   47 -
+>  drivers/media/video/s5p-mfc/s5p_mfc_shm.h    |   90 --
+>  28 files changed, 5700 insertions(+), 1873 deletions(-)
+>  create mode 100644 drivers/media/video/s5p-mfc/regs-mfc-v6.h
+>  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_cmd_v5.c
+>  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_cmd_v5.h
+>  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_cmd_v6.c
+>  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_cmd_v6.h
+>  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr_v5.c
+>  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr_v5.h
+>  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.c
+>  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr_v6.h
+>  delete mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_shm.c
+>  delete mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_shm.h
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Changes for v3:
-         Added patch descriptions.
 
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index c128fac..3ce905c 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -1058,7 +1058,7 @@ config SOC_CAMERA_MT9T112
- 	  This driver supports MT9T112 cameras from Aptina.
- 
- config SOC_CAMERA_MT9V022
--	tristate "mt9v022 support"
-+	tristate "mt9v022 and mt9v024 support"
- 	depends on SOC_CAMERA && I2C
- 	select GPIO_PCA953X if MT9V022_PCA9536_SWITCH
- 	help
-diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
-index 7247924..b67ce7f 100644
---- a/drivers/media/video/mt9v022.c
-+++ b/drivers/media/video/mt9v022.c
-@@ -57,6 +57,10 @@ MODULE_PARM_DESC(sensor_type, "Sensor type: \"colour\" or \"monochrome\"");
- #define MT9V022_AEC_AGC_ENABLE		0xAF
- #define MT9V022_MAX_TOTAL_SHUTTER_WIDTH	0xBD
- 
-+/* mt9v024 partial list register addresses changes with respect to mt9v022 */
-+#define MT9V024_PIXCLK_FV_LV		0x72
-+#define MT9V024_MAX_TOTAL_SHUTTER_WIDTH	0xAD
-+
- /* Progressive scan, master, defaults */
- #define MT9V022_CHIP_CONTROL_DEFAULT	0x188
- 
-@@ -67,6 +71,8 @@ MODULE_PARM_DESC(sensor_type, "Sensor type: \"colour\" or \"monochrome\"");
- #define MT9V022_COLUMN_SKIP		1
- #define MT9V022_ROW_SKIP		4
- 
-+#define is_mt9v024(id) (id == 0x1324)
-+
- /* MT9V022 has only one fixed colorspace per pixelcode */
- struct mt9v022_datafmt {
- 	enum v4l2_mbus_pixelcode	code;
-@@ -101,6 +107,22 @@ static const struct mt9v022_datafmt mt9v022_monochrome_fmts[] = {
- 	{V4L2_MBUS_FMT_Y8_1X8, V4L2_COLORSPACE_JPEG},
- };
- 
-+/* only registers with different addresses on different mt9v02x sensors */
-+struct mt9v02x_register {
-+	u8	max_total_shutter_width;
-+	u8	pixclk_fv_lv;
-+};
-+
-+static const struct mt9v02x_register mt9v022_register = {
-+	.max_total_shutter_width	= MT9V022_MAX_TOTAL_SHUTTER_WIDTH,
-+	.pixclk_fv_lv			= MT9V022_PIXCLK_FV_LV,
-+};
-+
-+static const struct mt9v02x_register mt9v024_register = {
-+	.max_total_shutter_width	= MT9V024_MAX_TOTAL_SHUTTER_WIDTH,
-+	.pixclk_fv_lv			= MT9V024_PIXCLK_FV_LV,
-+};
-+
- struct mt9v022 {
- 	struct v4l2_subdev subdev;
- 	struct v4l2_ctrl_handler hdl;
-@@ -117,6 +139,7 @@ struct mt9v022 {
- 	struct v4l2_rect rect;	/* Sensor window */
- 	const struct mt9v022_datafmt *fmt;
- 	const struct mt9v022_datafmt *fmts;
-+	const struct mt9v02x_register *reg;
- 	int num_fmts;
- 	int model;	/* V4L2_IDENT_MT9V022* codes from v4l2-chip-ident.h */
- 	u16 chip_control;
-@@ -185,7 +208,7 @@ static int mt9v022_init(struct i2c_client *client)
- 	if (!ret)
- 		ret = reg_write(client, MT9V022_TOTAL_SHUTTER_WIDTH, 480);
- 	if (!ret)
--		ret = reg_write(client, MT9V022_MAX_TOTAL_SHUTTER_WIDTH, 480);
-+		ret = reg_write(client, mt9v022->reg->max_total_shutter_width, 480);
- 	if (!ret)
- 		/* default - auto */
- 		ret = reg_clear(client, MT9V022_BLACK_LEVEL_CALIB_CTRL, 1);
-@@ -238,7 +261,7 @@ static int mt9v022_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
- 	ret = reg_read(client, MT9V022_AEC_AGC_ENABLE);
- 	if (ret >= 0) {
- 		if (ret & 1) /* Autoexposure */
--			ret = reg_write(client, MT9V022_MAX_TOTAL_SHUTTER_WIDTH,
-+			ret = reg_write(client, mt9v022->reg->max_total_shutter_width,
- 					rect.height + mt9v022->y_skip_top + 43);
- 		else
- 			ret = reg_write(client, MT9V022_TOTAL_SHUTTER_WIDTH,
-@@ -573,14 +596,17 @@ static int mt9v022_video_probe(struct i2c_client *client)
- 	/* Read out the chip version register */
- 	data = reg_read(client, MT9V022_CHIP_VERSION);
- 
--	/* must be 0x1311 or 0x1313 */
--	if (data != 0x1311 && data != 0x1313) {
-+	/* must be 0x1311, 0x1313 or 0x1324 */
-+	if (data != 0x1311 && data != 0x1313 && data != 0x1324) {
- 		ret = -ENODEV;
- 		dev_info(&client->dev, "No MT9V022 found, ID register 0x%x\n",
- 			 data);
- 		goto ei2c;
- 	}
- 
-+	mt9v022->reg = is_mt9v024(data) ? &mt9v024_register :
-+			&mt9v022_register;
-+
- 	/* Soft reset */
- 	ret = reg_write(client, MT9V022_RESET, 1);
- 	if (ret < 0)
-@@ -728,7 +754,7 @@ static int mt9v022_s_mbus_config(struct v4l2_subdev *sd,
- 	if (!(flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH))
- 		pixclk |= 0x2;
- 
--	ret = reg_write(client, MT9V022_PIXCLK_FV_LV, pixclk);
-+	ret = reg_write(client, mt9v022->reg->pixclk_fv_lv, pixclk);
- 	if (ret < 0)
- 		return ret;
- 
 -- 
-1.7.0.4
-
+With warm regards,
+Sachin
