@@ -1,68 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1263 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757171Ab2HPOHr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Aug 2012 10:07:47 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Antti Palosaari <crope@iki.fi>
-Subject: Re: dvb-usb-v2 change broke s2250-loader compilation
-Date: Thu, 16 Aug 2012 16:07:03 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <201208161233.43618.hverkuil@xs4all.nl> <502CE527.2070006@iki.fi> <502CF98B.1060700@iki.fi>
-In-Reply-To: <502CF98B.1060700@iki.fi>
+Received: from mail.kapsi.fi ([217.30.184.167]:47954 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751465Ab2H0KDh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Aug 2012 06:03:37 -0400
+Message-ID: <503B45E8.1050002@iki.fi>
+Date: Mon, 27 Aug 2012 13:03:20 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201208161607.03380.hverkuil@xs4all.nl>
+To: =?ISO-8859-1?Q?Roger_M=E5rtensson?= <roger.martensson@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Terratec H7 aka az6007 with CI
+References: <503A7E98.9030404@gmail.com>
+In-Reply-To: <503A7E98.9030404@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu August 16 2012 15:45:47 Antti Palosaari wrote:
-> On 08/16/2012 03:18 PM, Antti Palosaari wrote:
-> > On 08/16/2012 01:33 PM, Hans Verkuil wrote:
-> >> Building the kernel with the Sensoray 2250/2251 staging go7007 driver
-> >> enabled
-> >> fails with this link error:
-> >>
-> >> ERROR: "usb_cypress_load_firmware"
-> >> [drivers/staging/media/go7007/s2250-loader.ko] undefined!
-> >>
-> >> As far as I can tell this is related to the dvb-usb-v2 changes.
-> >>
-> >> Can someone take a look at this?
-> >>
-> >> Thanks!
-> >>
-> >>     Hans
-> >
-> > Yes it is dvb usb v2 related. I wasn't even aware that someone took that
-> > module use in few days after it was added for the dvb-usb-v2.
-> >
-> > Maybe it is worth to make it even more common and move out of dvb-usb-v2...
-> >
-> > regards
-> > Antti
-> 
-> And after looking it twice I cannot see the reason. I split that Cypress 
-> firmware download to own module called dvb_usb_cypress_firmware which 
-> offer routine usbv2_cypress_load_firmware(). Old DVB USB is left 
-> untouched. I can confirm it fails to compile for s2250, but there is 
-> still old dvb_usb_cxusb that is compiling without a error.
-> 
-> Makefile paths seems to be correct also, no idea whats wrong....
+On 08/26/2012 10:52 PM, Roger Mårtensson wrote:
+> Hello!
+>
+> Just a reminder that az6007 with CI still isn't working 100% with Kaffeine.
+> But since I use my device with MythTV that uses the same usage pattern
+> as my workaround for Kaffeine it works like a charm.
+>
+> The pattern are:
+> * Open up device / Start Kaffeine
+> * Tune to encrypted channel / Choose channel in Kaffeine
+> * Close Device / Close Kaffeine
+> * Open device / Start Kaffeine
+> * Watch channel
+>
+> The exact procedure that MythTV uses when tuning to a channel.
+>
+> Not exactly sure if this is a driver bug or a Kaffeine bug since I'm
+> just a user.
 
-drivers/media/usb/Makefile uses := instead of += for the dvb-usb(-v2) directories,
-and that prevents dvb-usb from being build. I think that's the cause of the link
-error.
+It is likely driver bug.
 
-In addition I noticed that in usb/dvb-usb there is a dvb_usb_dvb.c and a
-dvb-usb-dvb.c file: there's a mixup with _ and -.
+You could take sniffs from windows and do some hacking. It should not be 
+very hard to fix.
 
-Mauro, did that happen during the reorganization?
+> The "normal" way that do not work in Kaffeine are:
+> * Start Kaffeine
+> * Tune to an encrypted channel
+> * If that works tune to another encrypted channel which will not work.
+>
+> Since it is working with my main application I'm satisfied but look at
+> this as a formal bug report. If you need any help or testing I'm willing
+> to help time permitting. I know that some of you doing the actual work
+> doesn't have access to a CAM but if you need debugging information or
+> any output just notify me directly.
+>
+> I'm am running a relativly new media_build. Haven't been able to test
+> the latest media_build since it is stopping on a compile error. (As of
+> 25 of August 2012)
 
-Regards,
+I don't see that, but it is not surprise as I use latest Kernel.
 
-	Hans
+Also latest build test logs shows all builds are working
+http://hverkuil.home.xs4all.nl/logs/Sunday.log
+
+
+> Thanks again for the hard work with the driver (Mauro for the inclusion
+> and Jose for the CI. Hopefully I got the names right).
+>
+> It is much appreciated by me and my better half.
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
