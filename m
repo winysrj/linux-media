@@ -1,88 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:30578 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752663Ab2HOVns (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Aug 2012 17:43:48 -0400
-Message-ID: <502C17F5.5070301@redhat.com>
-Date: Wed, 15 Aug 2012 18:43:17 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	Silvester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Michael Jones <michael.jones@matrix-vision.de>
-Subject: Re: Patches submitted via linux-media ML that are at patchwork.linuxtv.org
-References: <502A4CD1.1020108@redhat.com> <1648356.GPjgaBcQZf@avalon>
-In-Reply-To: <1648356.GPjgaBcQZf@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from cn.fujitsu.com ([222.73.24.84]:56424 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1752503Ab2H0HZZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Aug 2012 03:25:25 -0400
+From: Wanlong Gao <gaowanlong@cn.fujitsu.com>
+To: linux-kernel@vger.kernel.org
+Cc: Wanlong Gao <gaowanlong@cn.fujitsu.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 3/5] media:dvb:fix up ENOIOCTLCMD error handling
+Date: Mon, 27 Aug 2012 15:23:14 +0800
+Message-Id: <1346052196-32682-4-git-send-email-gaowanlong@cn.fujitsu.com>
+In-Reply-To: <1346052196-32682-1-git-send-email-gaowanlong@cn.fujitsu.com>
+References: <1346052196-32682-1-git-send-email-gaowanlong@cn.fujitsu.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 14-08-2012 12:16, Laurent Pinchart escreveu:
->> May,15 2012: [GIT,PULL,FOR,3.5] DMABUF importer feature in V4L2 API         
->>        http://patchwork.linuxtv.org/patch/11268
->>        Sylwester Nawrocki <s.nawrocki@samsung.com>
-> 
-> What is needed here, can I help with testing ?
+At commit 07d106d0, Linus pointed out that ENOIOCTLCMD should be
+translated as ENOTTY to user mode.
 
-Testing, as Sylwester answered. Yeah, any help with those are welcome.
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Wanlong Gao <gaowanlong@cn.fujitsu.com>
+---
+ drivers/media/dvb/dvb-core/dvbdev.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I had some discussions with Sylwester today. Let's see if he can help
-setting a test environment for it.
-> 
-> [snip]
-> 
->> 		== Guennadi Liakhovetski <g.liakhovetski@gmx.de> ==
->>
->> Aug, 2 2012: [v3] mt9v022: Add support for mt9v024                          
->>        http://patchwork.linuxtv.org/patch/13582
->>        Alex Gershgorin <alexg@meprolight.com>
->> Aug, 6 2012: [1/1] media: mx3_camera: Improve data bus width check code for
->> probe
->> 		http://patchwork.linuxtv.org/patch/13618
->> 		Liu Ying <Ying.liu@freescale.com>
->> Aug, 9 2012: [1/1, v2] media/video: vpif: fixing function name start to
->> vpif_config
->> 		http://patchwork.linuxtv.org/patch/13689
->> 		Dror Cohen <dror@liveu.tv>
-> 
-> I think this one has been misclassified. v1 was correctly attributed to 
-> Prabhakar Lad <prabhakar.lad@ti.com>
+diff --git a/drivers/media/dvb/dvb-core/dvbdev.c b/drivers/media/dvb/dvb-core/dvbdev.c
+index 39eab73..d33101a 100644
+--- a/drivers/media/dvb/dvb-core/dvbdev.c
++++ b/drivers/media/dvb/dvb-core/dvbdev.c
+@@ -420,7 +420,7 @@ int dvb_usercopy(struct file *file,
+ 	/* call driver */
+ 	mutex_lock(&dvbdev_mutex);
+ 	if ((err = func(file, cmd, parg)) == -ENOIOCTLCMD)
+-		err = -EINVAL;
++		err = -ENOTTY;
+ 	mutex_unlock(&dvbdev_mutex);
+ 
+ 	if (err < 0)
+-- 
+1.7.12
 
-Ok, changed on my internal control.
-
-> 
-> [snip]
-> 
->> 		== Laurent Pinchart <laurent.pinchart@ideasonboard.com> ==
->>
->> Sep,27 2011: [v2,1/5] omap3evm: Enable regulators for camera interface
->>        http://patchwork.linuxtv.org/patch/7969
->>        Vaibhav Hiremath <hvaibhav@ti.com>
-> 
-> I'm fine with that one, shouldn't it go through the arm tree ?
-
-Ah, yes. Dropped from my queue.
-
->> Jul,26 2012: [1/2,media] omap3isp: implement ENUM_FMT
->> 		http://patchwork.linuxtv.org/patch/13492
->> 		Michael Jones <michael.jones@matrix-vision.de>
->> Jul,26 2012: [2/2,media] omap3isp: support G_FMT
->> 		http://patchwork.linuxtv.org/patch/13493
->> 		Michael Jones <michael.jones@matrix-vision.de>
-> 
-> A proper solution for this will first require CREATE_BUFS/PREPARE_BUF support 
-> in the OMAP3 ISP driver (and a move to videobuf2).
-
-Marked as "changes requested".
-
-Michael Jones c/c, to let him know.
-
-Regards,
-Mauro
