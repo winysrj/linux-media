@@ -1,86 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:62512 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:31924 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752024Ab2HGLlQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Aug 2012 07:41:16 -0400
-Message-ID: <5020FED2.2040109@redhat.com>
-Date: Tue, 07 Aug 2012 08:41:06 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1752991Ab2H0Hqw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Aug 2012 03:46:52 -0400
+Message-ID: <503B2631.50807@redhat.com>
+Date: Mon, 27 Aug 2012 09:48:01 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
+To: Sam Bulka <sambul7165@gmail.com>
 CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 3/3] [media] az6007: handle CI during suspend/resume
-References: <1344188679-8247-1-git-send-email-mchehab@redhat.com> <1344188679-8247-4-git-send-email-mchehab@redhat.com> <501FB6DC.3040200@iki.fi>
-In-Reply-To: <501FB6DC.3040200@iki.fi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: Re: [Bug] gspca_zc3xx v.2.14.0 Auto Gain is OFF
+References: <op.wjndk6b6w3grbt@weboffice>
+In-Reply-To: <op.wjndk6b6w3grbt@weboffice>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 06-08-2012 09:21, Antti Palosaari escreveu:
-> On 08/05/2012 08:44 PM, Mauro Carvalho Chehab wrote:
->> The dvb-usb-v2 core doesn't know anything about CI. So, the
->> driver needs to handle it by hand. This patch stops CI just
->> before stopping URB's/RC, and restarts it before URB/RC start.
->>
->> It should be noticed that suspend/resume is not yet working properly,
->> as the PM model requires the implementation of reset_resume:
->>     dvb_usb_az6007 1-6:1.0: no reset_resume for driver dvb_usb_az6007?
->> But this is not implemented there at dvb-usb-v2 yet.
-> 
-> That is true, but it is coming:
-> http://blog.palosaari.fi/2012/07/dvb-power-management-on-suspend.html
-> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/dvb_core3
-> 
-> At the time I added initial suspend/resume support for dvb-usb-v2 I left those out purposely as I saw some study and changes are needed for DVB-core/frontend.
-> 
-> Normally suspend keeps USB-device powered and calls .resume() on resume. But on certain conditions USB device could lose power
-> during suspend and on that case reset_resume() is called, and if there is no reset_resume() is calls disconnect() (and probe() after that).
+Hi Sam,
 
-This should depend on BIOS settings, and what of the following type of suspend[1]
-was done: 
-	S1: All processor caches are flushed, and the CPU(s) stops executing instructions.
-	    Power to the CPU(s) and RAM is maintained; devices that do not indicate they 
-	    must remain on may be powered down.
-	S2: CPU powered off. Dirty cache is flushed to RAM.
-	S3: Commonly referred to as Standby, Sleep, or Suspend to RAM. RAM remains powered
-	S4: Hibernation or Suspend to Disk. All content of main memory is saved to non-volatile
-	    memory such as a hard drive, and is powered down.
+Thanks for the detailed bug report. Unfortunately I don't have time to look into
+this atm. Perhaps someone else reading the list has time to look into this ?
 
-[1] http://en.wikipedia.org/wiki/Advanced_Configuration_and_Power_Interface
+Regards,
 
-There are also some per-device sysfs nodes that control how PM will work for them.
-See:
-
- $ tree /sys/devices/pci0000:00/0000:00:1d.7/usb1/1-8/dvb/dvb0.frontend0
-/sys/devices/pci0000:00/0000:00:1d.7/usb1/1-8/dvb/dvb0.frontend0
-├── dev
-├── device -> ../../../1-8
-├── power
-│   ├── async
-│   ├── autosuspend_delay_ms
-│   ├── control
-│   ├── runtime_active_kids
-│   ├── runtime_active_time
-│   ├── runtime_enabled
-│   ├── runtime_status
-│   ├── runtime_suspended_time
-│   └── runtime_usage
-├── subsystem -> ../../../../../../../class/dvb
-└── uevent
-
-There are a number of pm functions that can change the power management behavior
-as well.
-
-Not sure how to control it, but, IMHO, for a media device, it only makes sense
-to keep it powered on suspend if the device has IR and if the power button of 
-the IR could be used to wake up the hardware. Otherwise, the better is to just
-power it off, to save battery (for notebooks).
-
-Maybe it makes sense to talk with Raphael Wysocki to be sure that it will cover
-all possible cases: auto-suspend, S1/S2/S3/S4 and "wake on IR").
+Hans
 
 
-> regards
-> Antti
-
+On 08/26/2012 02:13 PM, Sam Bulka wrote:
+> Hello,
+>
+> This is a bug report for gspca_zc3xx v.2.14.0 webcam driver installed as a module on ArchLinux plug computer, kernel 3.5.2-1-ARCH
+>
+> [root@alarm ~]# dmesg
+>
+> [   15.271381] gspca_main: v2.14.0 registered
+> [   15.303224] gspca_main: gspca_zc3xx-2.14.0 probing 046d:08d7
+> [   16.211715] fuse init (API version 7.19)
+> [   16.461436] input: gspca_zc3xx as /devices/platform/orion-ehci.0/usb1/1-1/1-1.4/input/input0
+> [   16.469635] usbcore: registered new interface driver snd-usb-audio
+> [   16.470642] usbcore: registered new interface driver gspca_zc3xx
+>
+> [root@alarm ~]# lsusb
+> Bus 001 Device 004: ID 046d:08d7 Logitech, Inc. QuickCam Communicate STX
+>
+> [root@alarm ~]# v4lctl list
+> attribute  | type   | current | default | comment
+> -----------+--------+---------+---------+-------------------------------------
+> norm       | choice | (null)  | (null)  |
+> input      | choice | gspca_z | gspca_z | gspca_zc3xx
+> bright     | int    |     128 |     128 | range is 0 => 255
+> contrast   | int    |     128 |     128 | range is 0 => 255
+> Gamma      | int    |       4 |       4 | range is 1 => 6
+> Exposure   | int    |    2343 |    2343 | range is 781 => 18750
+> Gain, Auto | bool   | on      | on      |
+> Power Line | choice | Disable | Disable | Disabled 50 Hz 60 Hz
+> Sharpness  | int    |       2 |       2 | range is 0 => 3
+>
+> The above output is complete, there is nothing else coming from dmesg.
+> In Windows 7 64-bit with the webcam connected, while running Logitech Webcam Software, shows some extra info:
+>
+> Logitech QuickCam Communicate STX
+> Hardware ID    USB\VID_046D&PID_08D7&REV_0100&MI_00
+>
+> Procmon output for LWS.exe (from Registry):
+>
+> ZC0302 chipset, Image Sensor HV7131B
+>
+> Attached to this message are exported webcam Registry settings (default and factual), and controls available for the webcam and optimally set by LWS. Also attached are datasheets for the webcam chipset and image sensor.
+>
+> The main problems now are:
+>
+> - Image Sensor can't be identified by gspca_zc3xx driver or verified since not shown in dmesg
+> - Auto Gain is switched off permanently (despite shown On), and its choice range is missing
+> - Color Saturation and White Balance controls are absent
+> - Changes in image are unnoticed when adjusting Brightness and Contrast within their full range
+>
+> The webcam works with exposure and other adjustments manually changed over the day, but very difficult to get quality image in  evening low light. See also the discussion (https://bbs.archlinux.org/viewtopic.php?pid=879810#p879810) on how varying the driver's settings ("quality" and other) affects controls responsiveness ("brightness" and "contrast") and perceived image quality.
+>
+> Thanks,
+> Sam
