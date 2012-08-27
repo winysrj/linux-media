@@ -1,69 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([93.97.41.153]:33324 "EHLO pequod.mess.org"
+Received: from mta-out.inet.fi ([195.156.147.13]:33839 "EHLO jenni2.inet.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750975Ab2HMM5M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Aug 2012 08:57:12 -0400
-Date: Mon, 13 Aug 2012 13:57:10 +0100
-From: Sean Young <sean@mess.org>
-To: Partha Guha Roy <partha.guha.roy@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Philips saa7134 IR remote problem with linux kernel v2.6.35
-Message-ID: <20120813125710.GA30097@pequod.mess.org>
-References: <CADTwmX8-yf3iNhrOozQGFnHg=H+rq6rti8AO=uRBzsj+OHEdyQ@mail.gmail.com>
- <20120810094758.GA18223@pequod.mess.org>
- <CADTwmX-odw+=GXuYAo9y3E6=7-TLuW0U5GSU2dnpWYtm4RXGLA@mail.gmail.com>
+	id S1751114Ab2H0LMh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Aug 2012 07:12:37 -0400
+Message-ID: <503B55D1.9000908@iki.fi>
+Date: Mon, 27 Aug 2012 14:11:13 +0300
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CADTwmX-odw+=GXuYAo9y3E6=7-TLuW0U5GSU2dnpWYtm4RXGLA@mail.gmail.com>
+To: Jean Pihet <jean.pihet@newoldbits.com>
+CC: Tony Lindgren <tony@atomide.com>, mchehab@redhat.com,
+	Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCHv2 7/8] ir-rx51: Convert latency constraints to PM QoS
+ API
+References: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi> <1345820986-4597-8-git-send-email-timo.t.kokkonen@iki.fi> <20120824203957.GC1303@atomide.com> <CAORVsuVXDK896dBb+f6qLq6Dct0CWjTn72q4Y88hdgjNA+T0pg@mail.gmail.com>
+In-Reply-To: <CAORVsuVXDK896dBb+f6qLq6Dct0CWjTn72q4Y88hdgjNA+T0pg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 10, 2012 at 11:41:23PM +0600, Partha Guha Roy wrote:
-> On Fri, Aug 10, 2012 at 3:47 PM, Sean Young <sean@mess.org> wrote:
-> >
-> > Are you runnning the lircd user space process for input or relying on
-> > the in-kernel decoders?
+On 08/27/12 12:25, Jean Pihet wrote:
+> Hi Timo,
 > 
-> For my testing, I booted the vanilla kernel into ubuntu recovery mode
-> and just pressed a few keys on the remote. No lircd process was
-> running at that point. So, I am guessing that I used the in-kernel
-> decoders.
-
-That sounds right.
-
-> > Also what remote are you using (or more
-> > specifically, what IR protocol does it use)?
-> >
+> On Fri, Aug 24, 2012 at 10:39 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> * Timo Kokkonen <timo.t.kokkonen@iki.fi> [120824 08:11]:
+>>> Convert the driver from the obsolete omap_pm_set_max_mpu_wakeup_lat
+>>> API to the new PM QoS API. This allows the callback to be removed from
+>>> the platform data structure.
+>>>
+>>> The latency requirements are also adjusted to prevent the MPU from
+>>> going into sleep mode. This is needed as the GP timers have no means
+>>> to wake up the MPU once it has gone into sleep. The "side effect" is
+>>> that from now on the driver actually works even if there is no
+>>> background load keeping the MPU awake.
+>>>
+>>> Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+>>
+>> This should get acked by Kevin ideally. Other than that:
+>>
+>> Acked-by: Tony Lindgren <tony@atomide.com>
 > 
-> The remove came with the analog TV card (avermedia pci pure m135a). I
-> am not sure what protocol the remote uses. I'd really appreciate it if
-> you could let me know how I can find that out.
-
-That's a nec remote. Using ir-keytable (in the ir-keyable package on
-Ubuntu) you change the protocol and see what's being sent.
-
-However I guess the problem is that IR edges aren't being reported until
-triggered by more IR edges.
-
-> > Can you reproduce the issue on a more contemporary kernel?
-> >
+> ...
+> @@ -268,10 +270,14 @@ static ssize_t lirc_rx51_write(struct file
+> *file, const char *buf,
+>                 lirc_rx51->wbuf[count] = -1; /* Insert termination mark */
 > 
-> Yes. The buggy behavior is present in Ubuntu 12.04 (IIRC, kernel
-> v3.2.*). I also know that the buggy behavior is present at v3.4.x of
-> the kernel. I haven't tested more recent kernels.
+>         /*
+> -        * Adjust latency requirements so the device doesn't go in too
+> -        * deep sleep states
+> +        * If the MPU is going into too deep sleep state while we are
+> +        * transmitting the IR code, timers will not be able to wake
+> +        * up the MPU. Thus, we need to set a strict enough latency
+> +        * requirement in order to ensure the interrupts come though
+> +        * properly.
+>          */
+> -       lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, 50);
+> +       pm_qos_add_request(&lirc_rx51->pm_qos_request,
+> +                       PM_QOS_CPU_DMA_LATENCY, 10);
+> Minor remark: it would be nice to have more detail on where the
+> latency number 10 comes from. Is it fixed, is it linked to the baud
+> rate etc?
+> 
 
-There is a lot code churn so it would be very helpful to have it 
-reproduced on a recent kernel.
+Yeah, it was chosen to be low enough for the MPU to receive the IRQ from
+the timers. 50us was good enough back then with the original n900
+kernel, but nowadays it is not good enough from preventing the MPU from
+going to sleep where the timer interrupts don't come through.
 
-Unfortunately your bisect wasn't entirely useful. You ended up at
-e40b1127f994a427568319d1be9b9e5ab1f58dd1. Unfortunately that commit
-introduced a bug which was not entirely resolved until
-9800b5b619cd9a013a6f0c7d5da0dbbc17a5af30. If you do a bisect 
-again it would useful to skip anything between those commits.
+Yes, I should probably have stated that in the comment to make it clear.
+Can I re-send just this one patch or should I send the entire set again?
+I'm assuming these go in through Mauro's media tree as these depend on
+stuff that's already there. So, which ever is easier for him I guess :)
 
-Also is the issue intermittent or is your last key press *always*
-missed? 
+Thanks!
 
+-Timo
 
-Sean
+> Here is my ack for the PM QoS API part:
+> Acked-by: Jean Pihet <j-pihet@ti.com>
+> 
+> Regards,
+> Jean
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
