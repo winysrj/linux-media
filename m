@@ -1,56 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:47974 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756101Ab2HFM2h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 08:28:37 -0400
-Received: by ghrr11 with SMTP id r11so2383712ghr.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 05:28:36 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1343485133-11090-1-git-send-email-elezegarcia@gmail.com>
-References: <1343485133-11090-1-git-send-email-elezegarcia@gmail.com>
-Date: Mon, 6 Aug 2012 09:28:36 -0300
-Message-ID: <CALF0-+XEStNrfdqYecKQHr=qkcFPtC5CyDC4DWWy_7+_oA0h=g@mail.gmail.com>
-Subject: Re: [PATCH v7] media: Add stk1160 new driver
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
-	alsa-devel@alsa-project.org, linux-media@vger.kernel.org,
-	Takashi Iwai <tiwai@suse.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:48358 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751747Ab2H1KyL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Aug 2012 06:54:11 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 05/14] media: coda: ignore coda busy status in coda_job_ready
+Date: Tue, 28 Aug 2012 12:53:52 +0200
+Message-Id: <1346151241-10449-6-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1346151241-10449-1-git-send-email-p.zabel@pengutronix.de>
+References: <1346151241-10449-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+job_ready is supposed to signal whether a context is ready to be
+added to the job queue, not whether the CODA is ready to run it
+immediately.
+Calling v4l2_m2m_job_finish at the end of coda_irq_handler already
+guarantees that the coda is ready when v4l2-mem2mem eventually tries
+to run the next queued job.
 
-On Sat, Jul 28, 2012 at 11:18 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
-> This driver adds support for stk1160 usb bridge as used in some
-> video/audio usb capture devices.
-> It is a complete rewrite of staging/media/easycap driver and
-> it's expected as a future replacement.
->
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Cc: Takashi Iwai <tiwai@suse.de>
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
-> ---
->
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/video/coda.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-Did you take a look at this?
+diff --git a/drivers/media/video/coda.c b/drivers/media/video/coda.c
+index cb556d5..9119875 100644
+--- a/drivers/media/video/coda.c
++++ b/drivers/media/video/coda.c
+@@ -739,12 +739,6 @@ static int coda_job_ready(void *m2m_priv)
+ 		return 0;
+ 	}
+ 
+-	if (coda_isbusy(ctx->dev)) {
+-		v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+-			 "not ready: coda is still busy.\n");
+-		return 0;
+-	}
+-
+ 	v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+ 			"job ready\n");
+ 	return 1;
+-- 
+1.7.10.4
 
-Perhaps we can discuss now you're previous comments:
-
-1. Place for ac97 code: media or alsa? (see Takashis' comments)
-2. current_norm usage (see Hans' comments)
-3. vb2_dqbuf and O_NONBLOCK flag (also see Hans' comments)
-
-I know it's a big patch*, so there is no need to rush.
-I just wanted to discuss a bit about this before my brain-cache
-flushes completely :-)
-
-Thanks,
-Ezequiel.
-
-* Actually it's huge (12k lines) since I'm removing staging/easycap.
