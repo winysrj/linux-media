@@ -1,80 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39289 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750709Ab2HLKI5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Aug 2012 06:08:57 -0400
-Message-ID: <502780B3.60205@redhat.com>
-Date: Sun, 12 Aug 2012 07:08:51 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:57755 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751713Ab2H1LoT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Aug 2012 07:44:19 -0400
+Date: Tue, 28 Aug 2012 12:44:09 +0100
+From: Luis Henriques <luis.henriques@canonical.com>
+To: Ben Hutchings <ben@decadent.org.uk>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	YunQiang Su <wzssyqa@gmail.com>, 684441@bugs.debian.org,
+	Jarod Wilson <jarod@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2] [media] rc: ite-cir: Initialise ite_dev::rdev earlier
+Message-ID: <20120828114409.GA3191@zeus>
+References: <1345411489.22400.76.camel@deadeye.wl.decadent.org.uk>
+ <1345419147.22400.78.camel@deadeye.wl.decadent.org.uk>
 MIME-Version: 1.0
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] em28xx: Fix height setting on non-progressive captures
-References: <1344016352-20302-1-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1344016352-20302-1-git-send-email-elezegarcia@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1345419147.22400.78.camel@deadeye.wl.decadent.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 03-08-2012 14:52, Ezequiel Garcia escreveu:
-> This was introduced on commit c2a6b54a9:
-> "em28xx: fix: don't do image interlacing on webcams"
-> It is a known bug that has already been reported several times
-> and confirmed by Mauro.
+On Mon, Aug 20, 2012 at 12:32:27AM +0100, Ben Hutchings wrote:
+> ite_dev::rdev is currently initialised in ite_probe() after
+> rc_register_device() returns.  If a newly registered device is opened
+> quickly enough, we may enable interrupts and try to use ite_dev::rdev
+> before it has been initialised.  Move it up to the earliest point we
+> can, right after calling rc_allocate_device().
 
-Thanks for reminding us about that.
+I believe this is the same bug:
 
-> Tested by compilation only.
+https://bugzilla.kernel.org/show_bug.cgi?id=46391
+
+And the bug is present in other IR devices as well.
+
+I've sent a proposed fix:
+
+http://marc.info/?l=linux-kernel&m=134590803109050&w=2
+
+Cheers,
+--
+Luis
+
 > 
-> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
-> ---
-> Hi,
+> References: http://bugs.debian.org/684441 Reported-and-tested-by:
+> YunQiang Su <wzssyqa@gmail.com> Signed-off-by: Ben Hutchings
+> <ben@decadent.org.uk> Cc: stable@vger.kernel.org --- Unlike the
+> previous version, this will apply cleanly to the media
+> staging/for_v3.6 branch.
 > 
-> I have no idea why this hasn't been fixed before.
-
-The reason was because that patch didn't work ;)
-
+> Ben.
 > 
-> See this mail for Mauro's confirmation
-> http://www.digipedia.pl/usenet/thread/18550/7691/#post7685
-> where he requested a patch on reporter. 
+>  drivers/media/rc/ite-cir.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> I guess the patch never came in.
-
-
-Did some tests here with both TV and Webcam (progressive)
-devices. The enclosed patch fixes the issue.
-
-Regards,
-Mauro.
-
-[media] em28xx: Fix height setting on non-progressive captures
-
-This was introduced on commit c2a6b54a9:
-"em28xx: fix: don't do image interlacing on webcams"
-
-The proposed patch by Ezequiel is wrong. The right fix here is to just
-don't bother here if either the image is progressive or not.
-
-Reported-by: Ezequiel Garcia <elezegarcia@gmail.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/video/em28xx/em28xx-core.c b/drivers/media/video/em28xx/em28xx-core.c
-index de2cb20..bed07a6 100644
---- a/drivers/media/video/em28xx/em28xx-core.c
-+++ b/drivers/media/video/em28xx/em28xx-core.c
-@@ -785,12 +785,8 @@ int em28xx_resolution_set(struct em28xx *dev)
- 	else
- 		dev->vbi_height = 18;
- 
--	if (!dev->progressive)
--		height >>= norm_maxh(dev);
--
- 	em28xx_set_outfmt(dev);
- 
--
- 	em28xx_accumulator_set(dev, 1, (width - 4) >> 2, 1, (height - 4) >> 2);
- 
- 	/* If we don't set the start position to 2 in VBI mode, we end up
-
+> diff --git a/drivers/media/rc/ite-cir.c b/drivers/media/rc/ite-cir.c
+> index 36fe5a3..24c77a4 100644
+> --- a/drivers/media/rc/ite-cir.c
+> +++ b/drivers/media/rc/ite-cir.c
+> @@ -1473,6 +1473,7 @@ static int ite_probe(struct pnp_dev *pdev, const struct pnp_device_id
+>  	rdev = rc_allocate_device();
+>  	if (!rdev)
+>  		goto failure;
+> +	itdev->rdev = rdev;
+>  
+>  	ret = -ENODEV;
+>  
+> @@ -1604,7 +1605,6 @@ static int ite_probe(struct pnp_dev *pdev, const struct pnp_device_id
+>  	if (ret)
+>  		goto failure3;
+>  
+> -	itdev->rdev = rdev;
+>  	ite_pr(KERN_NOTICE, "driver has been successfully loaded\n");
+>  
+>  	return 0;
+> 
