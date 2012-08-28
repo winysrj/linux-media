@@ -1,80 +1,233 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:47873 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751907Ab2HKWW6 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:48342 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751269Ab2H1KyK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Aug 2012 18:22:58 -0400
-From: Tomasz Figa <tomasz.figa@gmail.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	oselas@community.pengutronix.de,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
-Subject: Re: [PATCH 0/1] S3C244X/S3C64XX SoC camera host interface driver
-Date: Sun, 12 Aug 2012 00:22:51 +0200
-Message-ID: <1744040.LQ4tYRekV8@flatron>
-In-Reply-To: <5026B33F.3030605@gmail.com>
-References: <50269F15.4030504@gmail.com> <9609498.7r78ladCdh@flatron> <5026B33F.3030605@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Tue, 28 Aug 2012 06:54:10 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 03/14] media: coda: fix IRAM/AXI handling for i.MX53
+Date: Tue, 28 Aug 2012 12:53:50 +0200
+Message-Id: <1346151241-10449-4-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1346151241-10449-1-git-send-email-p.zabel@pengutronix.de>
+References: <1346151241-10449-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 11 of August 2012 21:32:15 Sylwester Nawrocki wrote:
-> On 08/11/2012 08:39 PM, Tomasz Figa wrote:
-> > Hi,
-> > 
-> > On Saturday 11 of August 2012 20:06:13 Sylwester Nawrocki wrote:
-> >> Hi all,
-> >> 
-> >> This patch adds a driver for Samsung S3C244X/S3C64XX SoC series camera
-> >> host interface. My intention was to create a V4L2 driver that would
-> >> work
-> >> with standard applications like Gstreamer or mplayer, and yet exposing
-> >> possibly all features available in the hardware.
-> >> 
-> >> It took me several weeks to do this work in my (limited) spare time.
-> >> Finally I've got something that is functional and I think might be
-> >> useful for others, so I'm publishing this initial version. It
-> >> hopefully doesn't need much tweaking or corrections, at least as far
-> >> as S3C244X is concerned. It has not been tested on S3C64XX SoCs, as I
-> >> don't have the hardware. However, the driver has been designed with
-> >> covering S3C64XX as well in mind, and I've already taken care of some
-> >> differences between S3C2444X and S3C64XX. Mem-to-mem features are not
-> >> yet supported, but these are quite separate issue and could be easily
-> >> added as a next step.> 
-> > I will try to test it on S3C6410 in some reasonably near future and
-> > report any needed corrections.
-> 
-> Sounds great, thanks.
+This uses the ARCH_MXC specific iram_alloc API to allocate a work
+buffer in the SoC's on-chip SRAM and sets up the AXI_SRAM_USE
+register. In the future, the allocation will be converted to use
+the genalloc API.
 
-I have not tested the driver yet, but I am looking through the code and it 
-seems like S3C6410 (at least according to the documentation) supports far 
-more pixel formats than defined in the driver.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+Changes since v1:
+ - Use iram_alloc/iram_free instead of the genalloc API.
+---
+ drivers/media/video/Kconfig |    3 ++-
+ drivers/media/video/coda.c  |   51 +++++++++++++++++++++++++++++++++++++++----
+ drivers/media/video/coda.h  |   21 ++++++++++++++----
+ 3 files changed, 66 insertions(+), 9 deletions(-)
 
-Both preview and scaler paths are supposed to support 420/422 planar, 422 
-interleaved and 565/666/888 formats.
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index c95954d..5350fa2 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -1226,9 +1226,10 @@ config VIDEO_MEM2MEM_TESTDEV
+ 
+ config VIDEO_CODA
+ 	tristate "Chips&Media Coda multi-standard codec IP"
+-	depends on VIDEO_DEV && VIDEO_V4L2
++	depends on VIDEO_DEV && VIDEO_V4L2 && ARCH_MXC
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select V4L2_MEM2MEM_DEV
++	select IRAM_ALLOC if SOC_IMX53
+ 	---help---
+ 	   Coda is a range of video codec IPs that supports
+ 	   H.264, MPEG-4, and other video formats.
+diff --git a/drivers/media/video/coda.c b/drivers/media/video/coda.c
+index 6ae5f0f..3537c41 100644
+--- a/drivers/media/video/coda.c
++++ b/drivers/media/video/coda.c
+@@ -24,6 +24,7 @@
+ #include <linux/videodev2.h>
+ #include <linux/of.h>
+ 
++#include <mach/iram.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+@@ -42,6 +43,7 @@
+ #define CODA7_WORK_BUF_SIZE	(512 * 1024 + CODA_FMO_BUF_SIZE * 8 * 1024)
+ #define CODA_PARA_BUF_SIZE	(10 * 1024)
+ #define CODA_ISRAM_SIZE	(2048 * 2)
++#define CODA7_IRAM_SIZE		0x14000 /* 81920 bytes */
+ 
+ #define CODA_OUTPUT_BUFS	4
+ #define CODA_CAPTURE_BUFS	2
+@@ -127,6 +129,8 @@ struct coda_dev {
+ 
+ 	struct coda_aux_buf	codebuf;
+ 	struct coda_aux_buf	workbuf;
++	long unsigned int	iram_vaddr;
++	long unsigned int	iram_paddr;
+ 
+ 	spinlock_t		irqlock;
+ 	struct mutex		dev_mutex;
+@@ -710,6 +714,13 @@ static void coda_device_run(void *m2m_priv)
+ 	coda_write(dev, pic_stream_buffer_addr, CODA_CMD_ENC_PIC_BB_START);
+ 	coda_write(dev, pic_stream_buffer_size / 1024,
+ 		   CODA_CMD_ENC_PIC_BB_SIZE);
++
++	if (dev->devtype->product == CODA_7541) {
++		coda_write(dev, CODA7_USE_BIT_ENABLE | CODA7_USE_HOST_BIT_ENABLE |
++				CODA7_USE_ME_ENABLE | CODA7_USE_HOST_ME_ENABLE,
++				CODA7_REG_BIT_AXI_SRAM_USE);
++	}
++
+ 	coda_command_async(ctx, CODA_COMMAND_PIC_RUN);
+ }
+ 
+@@ -941,8 +952,10 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+ 			CODA7_STREAM_BUF_PIC_RESET, CODA_REG_BIT_STREAM_CTRL);
+ 	}
+ 
+-	/* Configure the coda */
+-	coda_write(dev, 0xffff4c00, CODA_REG_BIT_SEARCH_RAM_BASE_ADDR);
++	if (dev->devtype->product == CODA_DX6) {
++		/* Configure the coda */
++		coda_write(dev, dev->iram_paddr, CODADX6_REG_BIT_SEARCH_RAM_BASE_ADDR);
++	}
+ 
+ 	/* Could set rotation here if needed */
+ 	switch (dev->devtype->product) {
+@@ -1017,7 +1030,12 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+ 		value  = (FMO_SLICE_SAVE_BUF_SIZE << 7);
+ 		value |= (0 & CODA_FMOPARAM_TYPE_MASK) << CODA_FMOPARAM_TYPE_OFFSET;
+ 		value |=  0 & CODA_FMOPARAM_SLICENUM_MASK;
+-		coda_write(dev, value, CODA_CMD_ENC_SEQ_FMO);
++		if (dev->devtype->product == CODA_DX6) {
++			coda_write(dev, value, CODADX6_CMD_ENC_SEQ_FMO);
++		} else {
++			coda_write(dev, dev->iram_paddr, CODA7_CMD_ENC_SEQ_SEARCH_BASE);
++			coda_write(dev, 48 * 1024, CODA7_CMD_ENC_SEQ_SEARCH_SIZE);
++		}
+ 	}
+ 
+ 	if (coda_command_sync(ctx, CODA_COMMAND_SEQ_INIT)) {
+@@ -1047,7 +1065,15 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+ 	}
+ 
+ 	coda_write(dev, src_vq->num_buffers, CODA_CMD_SET_FRAME_BUF_NUM);
+-	coda_write(dev, q_data_src->width, CODA_CMD_SET_FRAME_BUF_STRIDE);
++	coda_write(dev, round_up(q_data_src->width, 8), CODA_CMD_SET_FRAME_BUF_STRIDE);
++	if (dev->devtype->product != CODA_DX6) {
++		coda_write(dev, round_up(q_data_src->width, 8), CODA7_CMD_SET_FRAME_SOURCE_BUF_STRIDE);
++		coda_write(dev, dev->iram_paddr + 48 * 1024, CODA7_CMD_SET_FRAME_AXI_DBKY_ADDR);
++		coda_write(dev, dev->iram_paddr + 53 * 1024, CODA7_CMD_SET_FRAME_AXI_DBKC_ADDR);
++		coda_write(dev, dev->iram_paddr + 58 * 1024, CODA7_CMD_SET_FRAME_AXI_BIT_ADDR);
++		coda_write(dev, dev->iram_paddr + 68 * 1024, CODA7_CMD_SET_FRAME_AXI_IPACDC_ADDR);
++		coda_write(dev, 0x0, CODA7_CMD_SET_FRAME_AXI_OVL_ADDR);
++	}
+ 	if (coda_command_sync(ctx, CODA_COMMAND_SET_FRAME_BUF)) {
+ 		v4l2_err(v4l2_dev, "CODA_COMMAND_SET_FRAME_BUF timeout\n");
+ 		return -ETIMEDOUT;
+@@ -1580,6 +1606,10 @@ static int coda_hw_init(struct coda_dev *dev)
+ 		coda_write(dev, CODA7_STREAM_BUF_PIC_FLUSH, CODA_REG_BIT_STREAM_CTRL);
+ 	}
+ 	coda_write(dev, 0, CODA_REG_BIT_FRAME_MEM_CTRL);
++
++	if (dev->devtype->product != CODA_DX6)
++		coda_write(dev, 0, CODA7_REG_BIT_AXI_SRAM_USE);
++
+ 	coda_write(dev, CODA_INT_INTERRUPT_ENABLE,
+ 		      CODA_REG_BIT_INT_ENABLE);
+ 
+@@ -1848,6 +1878,17 @@ static int __devinit coda_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 	}
+ 
++	if (dev->devtype->product == CODA_DX6) {
++		dev->iram_paddr = 0xffff4c00;
++	} else {
++		dev->iram_vaddr = iram_alloc(CODA7_IRAM_SIZE,
++					     &dev->iram_paddr);
++		if (!dev->iram_vaddr) {
++			dev_err(&pdev->dev, "unable to alloc iram\n");
++			return -ENOMEM;
++		}
++	}
++
+ 	platform_set_drvdata(pdev, dev);
+ 
+ 	return coda_firmware_request(dev);
+@@ -1863,6 +1904,8 @@ static int coda_remove(struct platform_device *pdev)
+ 	if (dev->alloc_ctx)
+ 		vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
+ 	v4l2_device_unregister(&dev->v4l2_dev);
++	if (dev->iram_vaddr)
++		iram_free(dev->iram_vaddr, CODA7_IRAM_SIZE);
+ 	if (dev->codebuf.vaddr)
+ 		dma_free_coherent(&pdev->dev, dev->codebuf.size,
+ 				  &dev->codebuf.vaddr, dev->codebuf.paddr);
+diff --git a/drivers/media/video/coda.h b/drivers/media/video/coda.h
+index 4cf4a04..fffeaf0 100644
+--- a/drivers/media/video/coda.h
++++ b/drivers/media/video/coda.h
+@@ -45,7 +45,12 @@
+ #define		CODA_IMAGE_ENDIAN_SELECT	(1 << 0)
+ #define CODA_REG_BIT_RD_PTR(x)			(0x120 + 8 * (x))
+ #define CODA_REG_BIT_WR_PTR(x)			(0x124 + 8 * (x))
+-#define CODA_REG_BIT_SEARCH_RAM_BASE_ADDR	0x140
++#define CODADX6_REG_BIT_SEARCH_RAM_BASE_ADDR	0x140
++#define CODA7_REG_BIT_AXI_SRAM_USE		0x140
++#define		CODA7_USE_BIT_ENABLE		(1 << 0)
++#define		CODA7_USE_HOST_BIT_ENABLE	(1 << 7)
++#define		CODA7_USE_ME_ENABLE		(1 << 4)
++#define		CODA7_USE_HOST_ME_ENABLE	(1 << 11)
+ #define CODA_REG_BIT_BUSY			0x160
+ #define		CODA_REG_BIT_BUSY_FLAG		1
+ #define CODA_REG_BIT_RUN_COMMAND		0x164
+@@ -162,11 +167,13 @@
+ #define		CODA_RATECONTROL_ENABLE_MASK			0x01
+ #define CODA_CMD_ENC_SEQ_RC_BUF_SIZE				0x1b0
+ #define CODA_CMD_ENC_SEQ_INTRA_REFRESH				0x1b4
+-#define CODA_CMD_ENC_SEQ_FMO					0x1b8
++#define CODADX6_CMD_ENC_SEQ_FMO					0x1b8
+ #define		CODA_FMOPARAM_TYPE_OFFSET			4
+ #define		CODA_FMOPARAM_TYPE_MASK				1
+ #define		CODA_FMOPARAM_SLICENUM_OFFSET			0
+ #define		CODA_FMOPARAM_SLICENUM_MASK			0x0f
++#define CODA7_CMD_ENC_SEQ_SEARCH_BASE				0x1b8
++#define CODA7_CMD_ENC_SEQ_SEARCH_SIZE				0x1bc
+ #define CODA_CMD_ENC_SEQ_RC_QP_MAX				0x1c8
+ #define		CODA_QPMAX_OFFSET				0
+ #define		CODA_QPMAX_MASK					0x3f
+@@ -189,8 +196,14 @@
+ #define CODA_RET_ENC_PIC_FLAG		0x1d0
+ 
+ /* Set Frame Buffer */
+-#define CODA_CMD_SET_FRAME_BUF_NUM	0x180
+-#define CODA_CMD_SET_FRAME_BUF_STRIDE	0x184
++#define CODA_CMD_SET_FRAME_BUF_NUM		0x180
++#define CODA_CMD_SET_FRAME_BUF_STRIDE		0x184
++#define CODA7_CMD_SET_FRAME_AXI_BIT_ADDR	0x190
++#define CODA7_CMD_SET_FRAME_AXI_IPACDC_ADDR	0x194
++#define CODA7_CMD_SET_FRAME_AXI_DBKY_ADDR	0x198
++#define CODA7_CMD_SET_FRAME_AXI_DBKC_ADDR	0x19c
++#define CODA7_CMD_SET_FRAME_AXI_OVL_ADDR	0x1a0
++#define CODA7_CMD_SET_FRAME_SOURCE_BUF_STRIDE	0x1a8
+ 
+ /* Encoder Header */
+ #define CODA_CMD_ENC_HEADER_CODE	0x180
+-- 
+1.7.10.4
 
-Also two distinct planar 420 formats exist that simply differ by plane 
-order YUV420 (currently supported in your driver) and YVU420 (with Cb and 
-Cr planes swapped). It should be pretty straightforward to add support for 
-the latter.
-
-Best regards,
-Tomasz Figa
-
-> 
-> > Currently I am using a modified s5p-fimc driver in my project, but it
-> > supports only the codec path of S3C64xx and any needed stream
-> > duplication and rescaling is done in later processing, so it might be
-> > wise to migrate to yours.
-> 
-> Yeah, the s3c camif is quite different from the s5p one. Thus the
-> s3c-camif driver might be a much better starting point for S3C6410. I
-> could test any changes for s3c6410 back on s3c2440 and incorporate the
-> verified ones into some common stable git branch.
-> 
-> --
-> 
-> Regards,
-> Sylwester
