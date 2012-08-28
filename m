@@ -1,58 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:55408 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752108Ab2HXVXm (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:48460 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752042Ab2H1KyR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 17:23:42 -0400
-Date: Fri, 24 Aug 2012 23:23:37 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Anatolij Gustschin <agust@denx.de>
-cc: Detlev Zundel <dzu@denx.de>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 1/3] mt9v022: add v4l2 controls for blanking and other
- register settings
-In-Reply-To: <20120824182125.4d19ed64@wker>
-Message-ID: <Pine.LNX.4.64.1208242305050.20710@axis700.grange>
-References: <1345799431-29426-1-git-send-email-agust@denx.de>
- <1345799431-29426-2-git-send-email-agust@denx.de>
- <Pine.LNX.4.64.1208241227140.20710@axis700.grange> <m2pq6g5tm3.fsf@lamuella.denx.de>
- <Pine.LNX.4.64.1208241527370.20710@axis700.grange> <20120824182125.4d19ed64@wker>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Tue, 28 Aug 2012 06:54:17 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 01/14] media: coda: firmware loading for 64-bit AXI bus width
+Date: Tue, 28 Aug 2012 12:53:48 +0200
+Message-Id: <1346151241-10449-2-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1346151241-10449-1-git-send-email-p.zabel@pengutronix.de>
+References: <1346151241-10449-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 24 Aug 2012, Anatolij Gustschin wrote:
+Add support for loading a raw firmware with 16-bit chars ordered in
+little-endian 64-bit words, corresponding to the memory access pattern
+of CODA7 and above: When writing the boot code into the code download
+register, the chars have to be reordered back.
 
-> Hi Guennadi,
-> 
-> On Fri, 24 Aug 2012 15:35:59 +0200 (CEST)
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> ...
-> > Below I asked to provide details about how you have to change this 
-> > register value: toggle dynamically at run-time or just set once at 
-> > initialisation? Even if toggle: are this certain moments, related to 
-> > standard camera activities (e.g., starting and stopping streaming, 
-> > changing geometry etc.) or you have to set this absolutely asynchronously 
-> > at moments of time, that only your application knows about?
-> 
-> Every time the sensor is reset, it resets this register. Without setting
-> the register after sensor reset to the needed value I only get garbage data
-> from the sensor. Since the possibility to reset the sensor is provided on
-> the hardware and also used, the register has to be set after each sensor
-> reset. Only the instance controlling the reset gpio pin "knows" the time,
-> when the register should be initialized again, so it is asynchronously and
-> not related to the standard camera activities. But since the stuff is _not_
-> documented, I can only speculate. Maybe it can be set to different values
-> to achieve different things, currently I do not know.
-
-How about adding that register write (if required by platform data) to 
-mt9v022_s_power() in the "on" case? This is called (on soc-camera hosts at 
-least) on each first open(), would this suffice?
-
-Thanks
-Guennadi
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/coda.c |   34 ++++++++++++++++++++++------------
+ 1 file changed, 22 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/media/video/coda.c b/drivers/media/video/coda.c
+index 0d6e0a0..86dae17 100644
+--- a/drivers/media/video/coda.c
++++ b/drivers/media/video/coda.c
+@@ -1510,7 +1510,7 @@ static char *coda_product_name(int product)
+ 	}
+ }
+ 
+-static int coda_hw_init(struct coda_dev *dev, const struct firmware *fw)
++static int coda_hw_init(struct coda_dev *dev)
+ {
+ 	u16 product, major, minor, release;
+ 	u32 data;
+@@ -1520,21 +1520,27 @@ static int coda_hw_init(struct coda_dev *dev, const struct firmware *fw)
+ 	clk_prepare_enable(dev->clk_per);
+ 	clk_prepare_enable(dev->clk_ahb);
+ 
+-	/* Copy the whole firmware image to the code buffer */
+-	memcpy(dev->codebuf.vaddr, fw->data, fw->size);
+ 	/*
+ 	 * Copy the first CODA_ISRAM_SIZE in the internal SRAM.
+-	 * This memory seems to be big-endian here, which is weird, since
+-	 * the internal ARM processor of the coda is little endian.
++	 * The 16-bit chars in the code buffer are in memory access
++	 * order, re-sort them to CODA order for register download.
+ 	 * Data in this SRAM survives a reboot.
+ 	 */
+-	p = (u16 *)fw->data;
+-	for (i = 0; i < (CODA_ISRAM_SIZE / 2); i++)  {
+-		data = CODA_DOWN_ADDRESS_SET(i) |
+-			CODA_DOWN_DATA_SET(p[i ^ 1]);
+-		coda_write(dev, data, CODA_REG_BIT_CODE_DOWN);
++	p = (u16 *)dev->codebuf.vaddr;
++	if (dev->devtype->product == CODA_DX6) {
++		for (i = 0; i < (CODA_ISRAM_SIZE / 2); i++)  {
++			data = CODA_DOWN_ADDRESS_SET(i) |
++				CODA_DOWN_DATA_SET(p[i ^ 1]);
++			coda_write(dev, data, CODA_REG_BIT_CODE_DOWN);
++		}
++	} else {
++		for (i = 0; i < (CODA_ISRAM_SIZE / 2); i++) {
++			data = CODA_DOWN_ADDRESS_SET(i) |
++				CODA_DOWN_DATA_SET(p[round_down(i, 4) +
++							3 - (i % 4)]);
++			coda_write(dev, data, CODA_REG_BIT_CODE_DOWN);
++		}
+ 	}
+-	release_firmware(fw);
+ 
+ 	/* Tell the BIT where to find everything it needs */
+ 	coda_write(dev, dev->workbuf.paddr,
+@@ -1630,7 +1636,11 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
+ 		return;
+ 	}
+ 
+-	ret = coda_hw_init(dev, fw);
++	/* Copy the whole firmware image to the code buffer */
++	memcpy(dev->codebuf.vaddr, fw->data, fw->size);
++	release_firmware(fw);
++
++	ret = coda_hw_init(dev);
+ 	if (ret) {
+ 		v4l2_err(&dev->v4l2_dev, "HW initialization failed\n");
+ 		return;
+-- 
+1.7.10.4
+
