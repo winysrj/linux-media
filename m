@@ -1,54 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38621 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751368Ab2HMOOH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Aug 2012 10:14:07 -0400
-Message-ID: <50290B89.7070100@ti.com>
-Date: Mon, 13 Aug 2012 19:43:29 +0530
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-MIME-Version: 1.0
-To: Dror Cohen <dror@liveu.tv>, <mchehab@infradead.org>
-CC: <linux-media@vger.kernel.org>,
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: Re: [PATCH 0/1 v2] media/video: vpif: fixing function name start
- to vpif_config_params
-References: <1344494017-18099-1-git-send-email-dror@liveu.tv>
-In-Reply-To: <1344494017-18099-1-git-send-email-dror@liveu.tv>
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Received: from tex.lwn.net ([70.33.254.29]:49467 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752162Ab2H1QzW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Aug 2012 12:55:22 -0400
+Date: Tue, 28 Aug 2012 10:55:52 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH 9/9] videobuf2-core: Change vb2_queue_init return type
+ to void
+Message-ID: <20120828105552.1e39b32b@lwn.net>
+In-Reply-To: <CALF0-+WjGYhHd4xshW9fOtdVp-Cgmz-7t8JzzoqMW-w0pNv85A@mail.gmail.com>
+References: <1345864146-2207-1-git-send-email-elezegarcia@gmail.com>
+	<1345864146-2207-9-git-send-email-elezegarcia@gmail.com>
+	<20120825092814.4eee46f0@lwn.net>
+	<CALF0-+VEGKL6zqFcqkw__qxuy+_3aDa-0u4xD63+Mc4FioM+aw@mail.gmail.com>
+	<20120825113021.690440ba@lwn.net>
+	<CALF0-+WjGYhHd4xshW9fOtdVp-Cgmz-7t8JzzoqMW-w0pNv85A@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dror,
+On Sun, 26 Aug 2012 19:59:40 -0300
+Ezequiel Garcia <elezegarcia@gmail.com> wrote:
 
-Thanks for the patch.
+> 1.
+> Why do we need to check for all these conditions in the first place?
+> There are many other functions relying on "struct vb2_queue *q"
+> not being null (almost all of them) and we don't check for it.
+> What makes vb2_queue_init() so special that we need to check for it?
 
-Mauro,
+There are plenty of developers who would argue for the removal of the
+BUG_ON(!q) line regardless, since the kernel will quickly crash shortly
+thereafter.  I'm a bit less convinced; there are attackers who are very
+good at exploiting null pointer dereferences, and some systems still allow
+the low part of the address space to be mapped.
 
-I'll queue this patch for v3.7 through my tree.
+In general, IMO, checks for consistency make sense; it's nice if the
+kernel can *tell* you that something is wrong.
 
-On Thursday 09 August 2012 12:03 PM, Dror Cohen wrote:
-> This patch address the issue that a function named config_vpif_params should
-> be vpif_config_params. However this name is shared with two structures defined
-> already. So I changed the structures to config_vpif_params (origin was
-> vpif_config_params)
->
-> v2 changes: softer wording in description and the structs are now
-> defined without _t
->
-> Dror Cohen (1):
->   fixing function name start to vpif_config_params
->
->  drivers/media/video/davinci/vpif.c         |    6 +++---
->  drivers/media/video/davinci/vpif_capture.c |    2 +-
->  drivers/media/video/davinci/vpif_capture.h |    2 +-
->  drivers/media/video/davinci/vpif_display.c |    2 +-
->  drivers/media/video/davinci/vpif_display.h |    2 +-
->  5 files changed, 7 insertions(+), 7 deletions(-)
-    Acked-by: Manjunath Hadli <manjunath.hadli@ti.com>
+What's a mistake is the BUG_ON; that should really only be used in places
+where things simply cannot continue.  In this case, the initialization can
+be failed, the V4L2 device will likely be unavailable, but everything else
+can continue as normal.  -EINVAL is the right response here.
 
-  Thx,
-  --Manju
+> 2.
+> If a DoS attack is the concern here, I wonder how this would be achieved?
+> vb2_queue_init() is an "internal" (so to speak) function, that will only
+> be called by videobuf2 drivers.
 
+It would depend on a driver bug, but the sad fact is that driver bugs do
+exist.  Perhaps it's as simple as getting the driver module to load when
+the hardware is absent, for example.
+
+> I'm not arguing, truly. I wan't to understand what's the rationale behind
+> putting BUG_ON, or WARN_ON, or return -EINVAL in a case like this.
+
+In short: we want the kernel to be as robust as it can be.  Detecting
+problems before they can snowball helps in that regard.  Hitting the big
+red BUG_ON() button in situations where things can continue does not.  At
+least, that's how I see it.
+
+jon
