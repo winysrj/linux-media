@@ -1,103 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:51234 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756889Ab2HINTo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Aug 2012 09:19:44 -0400
-Message-ID: <5023B8E9.6040105@compulab.co.il>
-Date: Thu, 09 Aug 2012 16:19:37 +0300
-From: Igor Grinberg <grinberg@compulab.co.il>
-MIME-Version: 1.0
-To: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-CC: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] ARM: mach-omap2: board-rx51-peripherals: Add lirc-rx51
- data
-References: <1344516086-24615-1-git-send-email-timo.t.kokkonen@iki.fi> <1344516086-24615-3-git-send-email-timo.t.kokkonen@iki.fi>
-In-Reply-To: <1344516086-24615-3-git-send-email-timo.t.kokkonen@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:50174 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750952Ab2H1IYP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Aug 2012 04:24:15 -0400
+Subject: Re: [PATCH 03/12] coda: fix IRAM/AXI handling for i.MX53
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: javier Martin <javier.martin@vista-silicon.com>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@linaro.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
+In-Reply-To: <CACKLOr0znE9WOBqk-nfm_y58mDAiW+noFbyugDD7n0Vo0Drp9g@mail.gmail.com>
+References: <1345825078-3688-1-git-send-email-p.zabel@pengutronix.de>
+	 <1345825078-3688-4-git-send-email-p.zabel@pengutronix.de>
+	 <CACKLOr0znE9WOBqk-nfm_y58mDAiW+noFbyugDD7n0Vo0Drp9g@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 28 Aug 2012 10:24:09 +0200
+Message-ID: <1346142249.2534.26.camel@pizza.hi.pengutronix.de>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Timo,
+Hi Javier,
 
-On 08/09/12 15:41, Timo Kokkonen wrote:
-> The IR diode on the RX51 is connected to the GPT9. This data is needed
-> for the IR driver to function.
+thank you for the comments,
+
+Am Montag, den 27.08.2012, 10:59 +0200 schrieb javier Martin:
+> Hi Philipp,
+> thank you for your patch. Please, find some comments below.
 > 
-> Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-> ---
->  arch/arm/mach-omap2/board-rx51-peripherals.c |   30 ++++++++++++++++++++++++++
->  1 files changed, 30 insertions(+), 0 deletions(-)
+> On 24 August 2012 18:17, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+[...]
+> > @@ -1854,6 +1886,25 @@ static int __devinit coda_probe(struct platform_device *pdev)
+> >                 return -ENOMEM;
+> >         }
+> >
+> > +       if (dev->devtype->product == CODA_DX6) {
+> > +               dev->iram_paddr = 0xffff4c00;
+> > +       } else {
+> > +               struct device_node *np = pdev->dev.of_node;
+> > +
+> > +               dev->iram_pool = of_get_named_gen_pool(np, "iram", 0);
 > 
-> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> index df2534d..4a5a71b 100644
-> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> @@ -34,6 +34,7 @@
->  #include <plat/gpmc.h>
->  #include <plat/onenand.h>
->  #include <plat/gpmc-smc91x.h>
-> +#include <plat/omap-pm.h>
->  
->  #include <mach/board-rx51.h>
->  
-> @@ -46,6 +47,10 @@
->  #include <../drivers/staging/iio/light/tsl2563.h>
->  #include <linux/lis3lv02d.h>
->  
-> +#if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
-> +#include "../../../drivers/media/rc/ir-rx51.h"
-> +#endif
+> "of_get_named_gen_pool" doesn't exist in linux_media 'for_v3.7'.
+> Moreover, nobody registers an IRAM through the function 'iram_init' in
+> mainline [1] so this will never work.
+> You will have to wait until this functionality gets merge before
+> sending this patch.
+> 
+> > +               if (!iram_pool) {
+> 
+> I think you meant 'dev->iram_pool' here, otherwise this will not
+> compile properly:
+> 
+>  CC      drivers/media/video/coda.o
+> drivers/media/video/coda.c: In function 'coda_probe':
+> drivers/media/video/coda.c:1893: error: implicit declaration of
+> function 'of_get_named_gen_pool'
+> drivers/media/video/coda.c:1893: warning: assignment makes pointer
+> from integer without a cast
+> drivers/media/video/coda.c:1894: error: 'iram_pool' undeclared (first
+> use in this function)
+> drivers/media/video/coda.c:1894: error: (Each undeclared identifier is
+> reported only once
+> drivers/media/video/coda.c:1894: error: for each function it appears in.)
 
-That is not really nice...
-You should place the struct lirc_rx51_platform_data and
-other stuff used outside of the driver in: include/media/
-so you will not have to add that long and ugly relative path.
+I was a bit overzealous squashing my patches. For the next round, I'm
+using the iram_alloc/iram_free functions that are present in
+arch/plat-mxc/include/mach/iram.h (and thus gain a temporary dependency
+on ARCH_MXC until there is a mechansim to get to the IRAM gen_pool).
+A follow-up patch then would convert the driver to the genalloc API
+again.
 
-> +
->  #include "mux.h"
->  #include "hsmmc.h"
->  #include "common-board-devices.h"
-> @@ -1220,6 +1225,30 @@ static void __init rx51_init_tsc2005(void)
->  				gpio_to_irq(RX51_TSC2005_IRQ_GPIO);
->  }
->  
-> +#if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
-> +static struct lirc_rx51_platform_data rx51_lirc_data = {
-> +	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
-> +	.pwm_timer = 9, /* Use GPT 9 for CIR */
-> +};
-> +
-> +static struct platform_device rx51_lirc_device = {
-> +	.name           = "lirc_rx51",
-> +	.id             = -1,
-> +	.dev            = {
-> +		.platform_data = &rx51_lirc_data,
-> +	},
-> +};
-> +
-> +static void __init rx51_init_lirc(void)
-> +{
-> +	platform_device_register(&rx51_lirc_device);
-> +}
-> +#else
-> +static void __init rx51_init_lirc(void)
-> +{
-> +}
-> +#endif
-> +
->  void __init rx51_peripherals_init(void)
->  {
->  	rx51_i2c_init();
-> @@ -1230,6 +1259,7 @@ void __init rx51_peripherals_init(void)
->  	rx51_init_wl1251();
->  	rx51_init_tsc2005();
->  	rx51_init_si4713();
-> +	rx51_init_lirc();
->  	spi_register_board_info(rx51_peripherals_spi_board_info,
->  				ARRAY_SIZE(rx51_peripherals_spi_board_info));
->  
+On a related note, is the 45 KiB VRAM at 0xffff4c00 on i.MX27 reserved
+exclusively for the CODA? I suppose rather than hard-coding the address
+in the driver, we could use the iram_alloc API on i.MX27, too?
 
--- 
-Regards,
-Igor.
+regards
+Philipp
+
