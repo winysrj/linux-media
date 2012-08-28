@@ -1,64 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oyp.chewa.net ([91.121.6.101]:37859 "EHLO oyp.chewa.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753395Ab2HBG4s convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2012 02:56:48 -0400
-From: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCHv2 3/9] v4l: add buffer exporting via dmabuf
-Date: Thu, 2 Aug 2012 09:56:43 +0300
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de
-References: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com> <201208012350.00207.remi@remlab.net> <201208020835.58332.hverkuil@xs4all.nl>
-In-Reply-To: <201208020835.58332.hverkuil@xs4all.nl>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:61384 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751484Ab2H1Iy0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Aug 2012 04:54:26 -0400
+Received: by wgbdr13 with SMTP id dr13so4430135wgb.1
+        for <linux-media@vger.kernel.org>; Tue, 28 Aug 2012 01:54:24 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201208020956.45291.remi@remlab.net>
+In-Reply-To: <1346142249.2534.26.camel@pizza.hi.pengutronix.de>
+References: <1345825078-3688-1-git-send-email-p.zabel@pengutronix.de>
+	<1345825078-3688-4-git-send-email-p.zabel@pengutronix.de>
+	<CACKLOr0znE9WOBqk-nfm_y58mDAiW+noFbyugDD7n0Vo0Drp9g@mail.gmail.com>
+	<1346142249.2534.26.camel@pizza.hi.pengutronix.de>
+Date: Tue, 28 Aug 2012 10:54:23 +0200
+Message-ID: <CACKLOr1yiT4hJcX4EryFR6gLEEW-W5c0Mc=GGyVCm6+_-8tqbQ@mail.gmail.com>
+Subject: Re: [PATCH 03/12] coda: fix IRAM/AXI handling for i.MX53
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le jeudi 2 août 2012 09:35:58 Hans Verkuil, vous avez écrit :
-> On Wed August 1 2012 22:49:57 Rémi Denis-Courmont wrote:
-> > > What about using the CREATE_BUFS ioctl to add new MMAP buffers at
-> > > runtime ?
-> > 
-> > Does CREATE_BUFS always work while already streaming has already started?
-> > If it depends on the driver, it's kinda helpless.
-> 
-> Yes, it does. It's one of the reasons it exists in the first place. But
-> there are currently only a handful of drivers that implement it. I hope
-> that as more and more drivers are converted to vb2 that the availability
-> of create_bufs will increase.
+On 28 August 2012 10:24, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> Hi Javier,
+>
+> thank you for the comments,
+>
+> Am Montag, den 27.08.2012, 10:59 +0200 schrieb javier Martin:
+>> Hi Philipp,
+>> thank you for your patch. Please, find some comments below.
+>>
+>> On 24 August 2012 18:17, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> [...]
+>> > @@ -1854,6 +1886,25 @@ static int __devinit coda_probe(struct platform_device *pdev)
+>> >                 return -ENOMEM;
+>> >         }
+>> >
+>> > +       if (dev->devtype->product == CODA_DX6) {
+>> > +               dev->iram_paddr = 0xffff4c00;
+>> > +       } else {
+>> > +               struct device_node *np = pdev->dev.of_node;
+>> > +
+>> > +               dev->iram_pool = of_get_named_gen_pool(np, "iram", 0);
+>>
+>> "of_get_named_gen_pool" doesn't exist in linux_media 'for_v3.7'.
+>> Moreover, nobody registers an IRAM through the function 'iram_init' in
+>> mainline [1] so this will never work.
+>> You will have to wait until this functionality gets merge before
+>> sending this patch.
+>>
+>> > +               if (!iram_pool) {
+>>
+>> I think you meant 'dev->iram_pool' here, otherwise this will not
+>> compile properly:
+>>
+>>  CC      drivers/media/video/coda.o
+>> drivers/media/video/coda.c: In function 'coda_probe':
+>> drivers/media/video/coda.c:1893: error: implicit declaration of
+>> function 'of_get_named_gen_pool'
+>> drivers/media/video/coda.c:1893: warning: assignment makes pointer
+>> from integer without a cast
+>> drivers/media/video/coda.c:1894: error: 'iram_pool' undeclared (first
+>> use in this function)
+>> drivers/media/video/coda.c:1894: error: (Each undeclared identifier is
+>> reported only once
+>> drivers/media/video/coda.c:1894: error: for each function it appears in.)
+>
+> I was a bit overzealous squashing my patches. For the next round, I'm
+> using the iram_alloc/iram_free functions that are present in
+> arch/plat-mxc/include/mach/iram.h (and thus gain a temporary dependency
+> on ARCH_MXC until there is a mechansim to get to the IRAM gen_pool).
+> A follow-up patch then would convert the driver to the genalloc API
+> again.
 
-That's contradictory. If most drivers do not support it, then it won't work 
-during streaming.
+I agree.
 
-> > What's the guaranteed minimum buffer count? It seems in any case, MMAP
-> > has a hard limit of 32 buffers (at least videobuf2 has), though one
-> > might argue this should be more than enough.
-> 
-> Minimum or maximum? The maximum is 32, that's hardcoded in the V4L2 core.
-> Although drivers may force a lower maximum if they want. I have no idea
-> whether there are drivers that do that. There probably are.
+> On a related note, is the 45 KiB VRAM at 0xffff4c00 on i.MX27 reserved
+> exclusively for the CODA? I suppose rather than hard-coding the address
+> in the driver, we could use the iram_alloc API on i.MX27, too?
 
-The smallest of the maxima of all drivers.
+When I first saw your patch I thought I would be great to do the same
+with the i.MX27. Let me share with you some conflicts we have found
+between the codadx6 datasheet and the reference code from Freescale:
 
-> The minimum is usually between 1 and 3, depending on hardware limitations.
+Regarding whether codadx6 needs to know IRAM size or not:
+Code from Freescale: vpu_reg.h: BIT_SEARCH_RAM_SIZE 0x144 (if we try
+to read it we get nonsense values)
+Datasheet codadx6: p 109: Protected for internal use.
 
-And that's clearly insufficient without memory copy to userspace buffers.
 
-It does not seem to me that CREATE_BUFS+MMAP is a useful replacement for 
-REQBUFS+USERBUF then.
+Regarding actual IRAM used size:
+i.MX27 datasheet from Freescale: VRAM 0xFFFF4C00 to 0xFFFFFFFF. 45 kiB
+(46080 bytes).
+Datasheet codadx6: p 17: 33 KB of internal memory are used (33792 bytes)
+Datasheet codadx6: p 68: Size of the memory needed is 52 lines =
+52*720 =  37440 bytes
+
+Keeping the above in mind, it seems the IRAM size inside the i.MX27 is
+bigger than what the codadx6 really uses, so the IRAM could be shared.
+However, the datasheet of the codadx6 indicates that static RAM is
+used for performance reasons, so sharing it with another block is not
+a good idea.
+
+To sum up, after I test/ack the following version of your patches I'll
+add proper support for the IRAM inside the i.MX27, reserving the whole
+IRAM for the codadx6.
+Do you agree?
+
+Regards.
 
 -- 
-Rémi Denis-Courmont
-http://www.remlab.net/
-http://fi.linkedin.com/in/remidenis
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
