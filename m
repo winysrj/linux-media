@@ -1,69 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:35594 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751931Ab2HHGgH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2012 02:36:07 -0400
-Received: by vcbfk26 with SMTP id fk26so427176vcb.19
-        for <linux-media@vger.kernel.org>; Tue, 07 Aug 2012 23:36:05 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <502162D7.9090809@canonical.com>
-References: <20120807175330.18745.81293.stgit@patser.local> <502162D7.9090809@canonical.com>
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Wed, 8 Aug 2012 12:05:45 +0530
-Message-ID: <CAO_48GGmo65yT9UeJk69f-ASir3E+SWMsOJXgN4M_-UyO3XqUA@mail.gmail.com>
-Subject: Re: [PATCH 1/3] dma-fence: dma-buf synchronization (v7)
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: rob.clark@linaro.org, linaro-mm-sig@lists.linaro.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, patches@linaro.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:48414 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752144Ab2H1KyO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Aug 2012 06:54:14 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 14/14] ARM i.MX5: Add CODA7 to device tree for i.MX51 and i.MX53
+Date: Tue, 28 Aug 2012 12:54:01 +0200
+Message-Id: <1346151241-10449-15-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1346151241-10449-1-git-send-email-p.zabel@pengutronix.de>
+References: <1346151241-10449-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maarten,
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ arch/arm/boot/dts/imx51.dtsi |    6 ++++++
+ arch/arm/boot/dts/imx53.dtsi |    6 ++++++
+ 2 files changed, 12 insertions(+)
 
-On 8 August 2012 00:17, Maarten Lankhorst
-<maarten.lankhorst@canonical.com> wrote:
-> Op 07-08-12 19:53, Maarten Lankhorst schreef:
->> A dma-fence can be attached to a buffer which is being filled or consumed
->> by hw, to allow userspace to pass the buffer without waiting to another
->> device.  For example, userspace can call page_flip ioctl to display the
->> next frame of graphics after kicking the GPU but while the GPU is still
->> rendering.  The display device sharing the buffer with the GPU would
->> attach a callback to get notified when the GPU's rendering-complete IRQ
->> fires, to update the scan-out address of the display, without having to
->> wake up userspace.
-
-Thanks for this patchset; Could you please also fill up
-Documentation/dma-buf-sharing.txt, to include the relevant bits?
-
-We've tried to make sure the Documentation corresponding is kept
-up-to-date as the framework has grown, and new features are added to
-it - and I think features as important as dma-fence and dmabufmgr do
-warrant a healthy update.
->
-> I implemented this for intel and debugged it with intel <-> nouveau
-> interaction. Unfortunately the nouveau patches aren't ready at this point,
-> but the git repo I'm using is available at:
->
-> http://cgit.freedesktop.org/~mlankhorst/linux/
->
-> It has the patch series and a sample implementation for intel, based on
-> drm-intel-next tree.
->
-> I tried to keep it deadlock and race condition free as much as possible,
-> but locking gets complicated enough that if I'm unlucky something might
-> have slipped through regardless.
->
-> Especially the locking in i915_gem_reset_requests, is screwed up.
-> This shows what a real PITA it is to abort callbacks prematurely while
-> keeping everything stable. As such, aborting requests should only be done
-> in exceptional circumstances, in this case hardware died and things are
-> already locked up anyhow..
->
-> ~Maarten
->
-
+diff --git a/arch/arm/boot/dts/imx51.dtsi b/arch/arm/boot/dts/imx51.dtsi
+index aba28dc..8f38d83 100644
+--- a/arch/arm/boot/dts/imx51.dtsi
++++ b/arch/arm/boot/dts/imx51.dtsi
+@@ -278,6 +278,12 @@
+ 				interrupts = <87>;
+ 				status = "disabled";
+ 			};
++
++			vpu@83ff4000 {
++				compatible = "fsl,imx51-vpu";
++				reg = <0x83ff4000 0x1000>;
++				interrupts = <9>;
++			};
+ 		};
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/imx53.dtsi b/arch/arm/boot/dts/imx53.dtsi
+index cd37165..4cf59e5 100644
+--- a/arch/arm/boot/dts/imx53.dtsi
++++ b/arch/arm/boot/dts/imx53.dtsi
+@@ -336,6 +336,12 @@
+ 				interrupts = <87>;
+ 				status = "disabled";
+ 			};
++
++			vpu@63ff4000 {
++				compatible = "fsl,imx53-vpu";
++				reg = <0x63ff4000 0x1000>;
++				interrupts = <9>;
++			};
+ 		};
+ 	};
+ };
 -- 
-Thanks and best regards,
-Sumit Semwal
+1.7.10.4
+
