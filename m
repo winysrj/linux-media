@@ -1,116 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44118 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750977Ab2HGMBe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2012 08:01:34 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hideki EIRAKU <hdk@igel.co.jp>
-Cc: Russell King <linux@arm.linux.org.uk>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:48344 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751550Ab2H1KyK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Aug 2012 06:54:10 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
-	alsa-devel@alsa-project.org, Katsuya MATSUBARA <matsu@igel.co.jp>
-Subject: Re: [PATCH v3 4/4] fbdev: sh_mobile_lcdc: use dma_mmap_coherent if available
-Date: Tue, 07 Aug 2012 14:01:43 +0200
-Message-ID: <1854100.yBXTHaXkcr@avalon>
-In-Reply-To: <1344246924-32620-5-git-send-email-hdk@igel.co.jp>
-References: <1344246924-32620-1-git-send-email-hdk@igel.co.jp> <1344246924-32620-5-git-send-email-hdk@igel.co.jp>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
+Subject: [PATCH v2 0/14] Initial i.MX5/CODA7 support for the CODA driver
+Date: Tue, 28 Aug 2012 12:53:47 +0200
+Message-Id: <1346151241-10449-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Eiraku-san,
+These patches contain initial firmware loading and encoding support for the
+CODA7 series VPU contained in i.MX51 and i.MX53 SoCs, and fix some multi-instance
+issues. The last two patches touching files in arch/arm/* are included for
+illustration purposes.
 
-On Monday 06 August 2012 18:55:24 Hideki EIRAKU wrote:
-> fb_mmap() implemented in fbmem.c uses smem_start as the physical
-> address of the frame buffer.  In the sh_mobile_lcdc driver, the
-> smem_start is a dma_addr_t that is not a physical address when IOMMU is
-> enabled.  dma_mmap_coherent() maps the address correctly.  It is
-> available on ARM platforms.
-> 
-> Signed-off-by: Hideki EIRAKU <hdk@igel.co.jp>
+Changes since v1:
+ - Use iram_alloc/iram_free instead of the genalloc API.
+ - Add a patch to add byte size slice limit control.
+ - Add a patch to enable flipping controls.
+ - Do not allocate extra frame buffer space for CODA7 on i.MX27.
+ - Removed JPEG from the coda7_formats, will be added again
+   with the JPEG support patch.
 
-Acked-by: Hideki EIRAKU <hdk@igel.co.jp>
+regards
+Philipp
 
-As this patch doesn't depend on any other patch in your series 
-(ARCH_HAS_DMA_MMAP_COHERENT will not be defined without 1/4, so this patch 
-will be a no-op until then), I've applied it to my tree and will push it to 
-avoid merge conflicts, unless you would prefer to push it yourself.
-
-> ---
->  drivers/video/sh_mobile_lcdcfb.c |   28 ++++++++++++++++++++++++++++
->  1 files changed, 28 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/video/sh_mobile_lcdcfb.c
-> b/drivers/video/sh_mobile_lcdcfb.c index 8cb653b..c8cba7a 100644
-> --- a/drivers/video/sh_mobile_lcdcfb.c
-> +++ b/drivers/video/sh_mobile_lcdcfb.c
-> @@ -1614,6 +1614,17 @@ static int sh_mobile_lcdc_overlay_blank(int blank,
-> struct fb_info *info) return 1;
->  }
-> 
-> +#ifdef ARCH_HAS_DMA_MMAP_COHERENT
-> +static int
-> +sh_mobile_lcdc_overlay_mmap(struct fb_info *info, struct vm_area_struct
-> *vma) +{
-> +	struct sh_mobile_lcdc_overlay *ovl = info->par;
-> +
-> +	return dma_mmap_coherent(ovl->channel->lcdc->dev, vma, ovl->fb_mem,
-> +				 ovl->dma_handle, ovl->fb_size);
-> +}
-> +#endif
-> +
->  static struct fb_ops sh_mobile_lcdc_overlay_ops = {
->  	.owner          = THIS_MODULE,
->  	.fb_read        = fb_sys_read,
-> @@ -1626,6 +1637,9 @@ static struct fb_ops sh_mobile_lcdc_overlay_ops = {
->  	.fb_ioctl       = sh_mobile_lcdc_overlay_ioctl,
->  	.fb_check_var	= sh_mobile_lcdc_overlay_check_var,
->  	.fb_set_par	= sh_mobile_lcdc_overlay_set_par,
-> +#ifdef ARCH_HAS_DMA_MMAP_COHERENT
-> +	.fb_mmap	= sh_mobile_lcdc_overlay_mmap,
-> +#endif
->  };
-> 
->  static void
-> @@ -2093,6 +2107,17 @@ static int sh_mobile_lcdc_blank(int blank, struct
-> fb_info *info) return 0;
->  }
-> 
-> +#ifdef ARCH_HAS_DMA_MMAP_COHERENT
-> +static int
-> +sh_mobile_lcdc_mmap(struct fb_info *info, struct vm_area_struct *vma)
-> +{
-> +	struct sh_mobile_lcdc_chan *ch = info->par;
-> +
-> +	return dma_mmap_coherent(ch->lcdc->dev, vma, ch->fb_mem,
-> +				 ch->dma_handle, ch->fb_size);
-> +}
-> +#endif
-> +
->  static struct fb_ops sh_mobile_lcdc_ops = {
->  	.owner          = THIS_MODULE,
->  	.fb_setcolreg	= sh_mobile_lcdc_setcolreg,
-> @@ -2108,6 +2133,9 @@ static struct fb_ops sh_mobile_lcdc_ops = {
->  	.fb_release	= sh_mobile_lcdc_release,
->  	.fb_check_var	= sh_mobile_lcdc_check_var,
->  	.fb_set_par	= sh_mobile_lcdc_set_par,
-> +#ifdef ARCH_HAS_DMA_MMAP_COHERENT
-> +	.fb_mmap	= sh_mobile_lcdc_mmap,
-> +#endif
->  };
-> 
->  static void
-
--- 
-Regards,
-
-Laurent Pinchart
+---
+ arch/arm/boot/dts/imx51.dtsi        |    6 +
+ arch/arm/boot/dts/imx53.dtsi        |    6 +
+ arch/arm/mach-imx/clk-imx51-imx53.c |    4 +-
+ drivers/media/video/Kconfig         |    3 +-
+ drivers/media/video/coda.c          |  399 ++++++++++++++++++++++++++---------
+ drivers/media/video/coda.h          |   30 ++-
+ 6 files changed, 338 insertions(+), 110 deletions(-)
 
