@@ -1,307 +1,586 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:31865 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:36948 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932429Ab2HVNmh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Aug 2012 09:42:37 -0400
-Message-ID: <5034E1C2.30205@redhat.com>
-Date: Wed, 22 Aug 2012 10:42:26 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1750894Ab2H1BTZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Aug 2012 21:19:25 -0400
+Message-ID: <503C1C8B.8010502@iki.fi>
+Date: Tue, 28 Aug 2012 04:19:07 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media <linux-media@vger.kernel.org>,
-	Mike Isely <isely@pobox.com>,
-	Andy Walls <awalls@md.metrocast.net>
-Subject: Re: RFC: Core + Radio profile
-References: <201208221140.25656.hverkuil@xs4all.nl> <201208221211.47842.hverkuil@xs4all.nl>
-In-Reply-To: <201208221211.47842.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Jose Alberto Reguero <jareguero@telefonica.net>
+CC: linux-media@vger.kernel.org, Michael Krufky <mkrufky@linuxtv.org>
+Subject: Re: [PATCH] v2 Add support to Avermedia Twinstar double tuner in
+ af9035
+References: <21730276.nBhNp4UZ8D@jar7.dominio>
+In-Reply-To: <21730276.nBhNp4UZ8D@jar7.dominio>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 22-08-2012 07:11, Hans Verkuil escreveu:
-> I've added some more core profile requirements.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> On Wed August 22 2012 11:40:25 Hans Verkuil wrote:
->> Hi all!
->>
->> The v4l2-compliance utility checks whether device drivers follows the V4L2
->> specification. What is missing are 'profiles' detailing what device drivers
->> should and shouldn't implement for particular device classes.
->>
->> This has been discussed several times, but until now no attempt was made to
->> actually write this down.
->>
->> This RFC is my attempt to start this process by describing three profiles:
->> the core profile that all drivers must adhere to, a profile for a radio
->> receiver and a profile for a radio transmitter.
->>
->> Missing in this RFC is a description of how tuner ownership is handled if a
->> tuner is shared between a radio and video driver. This will be discussed
->> during the workshop next week.
+Hello
+this is not final review, as there was more things to check I was first 
+thinking. I have to look it tomorrow too. But few comments still.
 
-DVB x V4L2 tunership discussion is also needed. It also makes sense to 
-document it somewhere.
-
->> I am not certain where these profile descriptions should go. Should we add
->> this to DocBook, or describe it in Documentation/video4linux? Or perhaps
->> somehow add it to v4l2-compliance, since that tool effectively verifies
->> the profile.
-
-The strongest document we have, IMO, is the DocBook API one, as both Kernel
-and userspace developers use it. As we want userspace apps to be aware and
-benefit of the profiles, this should be there at DocBook.
-
->> Also note that the core profile description is more strict than the spec.
-
-IMO, that's the right approach: The specs should define the several API
-aspects; the profile should mandate what's optional and what's mandatory.
-
->> For example, G/S_PRIORITY are currently optional,
-
-After putting the profiles there, we should remove "optional" tags elsewhere,
-as the profiles section will tell what's mandatory and what is optional, as
-different profiles require different mandatory arguments.
-
->> but I feel that all new drivers should implement this, especially since it
->> is very easy to add provided you use struct v4l2_fh. 
-
-I agree on making G/S_PRIORITY mandatory.
-
->> Similar with respect to the control requirements which
->> assume you use the control framework.
-
-IMO, we should split the internal API requirements (use the control framework)
-from the external API ones, as they're addressed to different audiences, e. g.
-external API requirements are needed by all application developers, while
-the internal ones are only for Kernel hackers.
-
-The internal API requirements should be together with the internal API descriptions,
-so Documentation/video4linux is probably the best place for them.
-
->> Note that these profiles are primarily meant for driver developers. The V4L2
->> specification is leading for application developers.
-
-This is where we diverge ;) We need profiles primary for application developers,
-for them to know what is expected to be there on any media driver of a certain
-kind.
-
-Ok, internal driver-developer profiles is also needed, in order for them to
-use the right internal API's and internal core functions.
-
->> While writing down these profiles I noticed one thing that was very much
->> missing for radio devices: there is no capability bit to tell the application
->> whether there is an associated ALSA device or whether the audio goes through
->> a line-in/out. Personally I think that this should be fixed.
-
-Yes, this is one bit that it is missing. Well, this is currently handled this
-at xawtv3 "radio" aplication by using the libmedia_dev API there.
-
-It likely makes sense, for a version 2 of the profiles (e. g. after we finish
-merging the basic stuff there), to add a chapter at  the profiles section 
-recommending the usage of the libraries provided by v4l-utils, with some 
-description or code examples.
-
->>
->> Comments are welcome!
->>
->> Regards,
->>
->> 	Hans
->>
->>
->> Core Profile
->> ============
->>
->> All V4L2 device nodes must support the core profile.
->>
->> VIDIOC_QUERYCAP must be supported and must set the device_caps field.
->> bus_info must be a unique string and must not be empty (pending result of
->> the upcoming workshop).
->>
->> VIDIOC_G/S_PRIORITY must be supported.
->>
->> If you have controls then both the VIDIOC_G/S_CTRL and the VIDIOC_G/S/TRY_EXT_CTRLS
->> ioctls must be supported, together with poll(), VIDIOC_DQEVENT and
->> VIDIOC_(UN)SUBSCRIBE_EVENT to handle control events. 
-
->> Use the control framework to implement this.
-
-Now looking at the concrete case, I don't see any troubles on adding it to
-the V4L2 API, but writing it as:
-
-	"Driver developers must use the control framework to implement this."
-
->> VIDIOC_LOG_STATUS is optional, but recommended for complex drivers.
->>
->> VIDIOC_DBG_G_CHIP_IDENT, VIDIOC_DBG_G/S_REGISTER are optional and are
->> primarily used to debug drivers.
-
-The above ones require a note for application developers:
-
-	"Applications must not use VIDIOC_LOG_STATUS during its normal behaviour;
-	 this is reserved for driver's debug/test.
-
-	 The usage of VIDIOC_DBG_G_CHIP_IDENT and VIDIOC_DBG_G/S_REGISTER is solely 
-	 for driver's debug. Applications should never use it."
-
->> Video, Radio and VBI nodes are for input or output only. 
-
-Hmm... didn't look clear to me. I would change the first phase to something like:
-
-	"Each video, radio or vbi node should be used by just one input or
-	output streaming engine."
-
->> The only exception
->> are video nodes that have the V4L2_CAP_VIDEO_M2M(_MPLANE) capability set.
-
-Again, not clear what it should be expected on a device with the M2M capabilities.
-
-Better to write it like:
-
-	"Video nodes with memory to memory capabilities (V4L2_CAP_VIDEO_M2M and
-V4L2_CAP_VIDEO_M2M_MPLANE) must implement both one input streaming engine and
-one output streaming engine at the same node."
-
->> Video nodes only control video, radio nodes only control radio and RDS, vbi
->> nodes only control VBI (raw and/or sliced).
-
-I would use "must" word for everything mandatory at the profiles section (
-and "may" for optional ones), like:
-
-	"Video nodes must only control the video functionality.
-
-	 Radio nodes must only control the radio functionality.
-
-	 VBI nodes must only control the Vertical Blank Interface functionality. The
-	 same VBI node must be used by raw VBI and sliced VBI api's, when both are
-	 supported."
-
->>
->> Streaming I/O is not supported by radio nodes.
-
-	Hmm... pvrusb2/ivtv? Ok, it makes sense to move it to use the alsa
-mpeg API there. If we're enforcing it, we should deprecate the current way
-there, and make it use ALSA.
-
-(more comments about it below)
-
-> It should be possible to open device nodes more than once. Just opening a
-> node and querying information from the driver should not change the state
-> of the driver.
-
-Hmm... locking between DVB and V4L should likely be added here: e. g. is it
-allowed to open both DVB and V4L nodes for the same tuner/streaming engine?
-
-Currently, this is not allowed. There are also known issues when applications
-change too fast between them (open/close V4L, then open/close dvb or vice-versa).
-
-> The file handle that called VIDIOC_REQBUFS, VIDIOC_CREATE_BUFS, read/write
-> or select (for reading or writing) first is the only one that can do I/O.
-> Attempts by other file handles to call these ioctls/file operations will
-> get an EBUSY error.
+On 08/27/2012 01:25 AM, Jose Alberto Reguero wrote:
+> This patch add support to the Avermedia Twinstar double tuner in the af9035
+> driver. Version 2 of the patch with suggestions of Antti.
 >
-> This file handle remains the owner of the I/O until the file handle is
-> closed, or until VIDIOC_REQBUFS is called with count == 0.
+> Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
+>
+> Jose Alberto
+>
+> diff -upr linux/drivers/media/dvb-frontends/af9033.c linux.new/drivers/media/dvb-frontends/af9033.c
+> --- linux/drivers/media/dvb-frontends/af9033.c	2012-08-14 05:45:22.000000000 +0200
+> +++ linux.new/drivers/media/dvb-frontends/af9033.c	2012-08-26 23:38:10.527070150 +0200
+> @@ -51,6 +51,8 @@ static int af9033_wr_regs(struct af9033_
+>   	};
+>
+>   	buf[0] = (reg >> 16) & 0xff;
+> +	if (state->cfg.ts_mode == AF9033_TS_MODE_SERIAL)
+> +		buf[0] |= 0x10;
+>   	buf[1] = (reg >>  8) & 0xff;
+>   	buf[2] = (reg >>  0) & 0xff;
+>   	memcpy(&buf[3], val, len);
+> @@ -87,6 +89,9 @@ static int af9033_rd_regs(struct af9033_
+>   		}
+>   	};
+>
+> +	if (state->cfg.ts_mode == AF9033_TS_MODE_SERIAL)
+> +		buf[0] |= 0x10;
+> +
 
-Please change it to use "must". Also, I think that doing s/called/calls/
-is better.
+I don't like that if TS mode serial then tweak address bytes.
 
-It is likely better to say it as:
+I looked those from the sniff and it looks like that bit is used as a 
+mail box pointing out if chip is on secondary bus. Imagine it as a 
+situation there is two I2C bus, 1st demod is on bus#0 and 2nd demod is 
+on bus#1. Such kind of info does not belong here - correct place is 
+I2C-adapter or even register multiple adapters.
 
-	The streaming engine ownership must be taken by the first handle that calls
-	VIDIOC_REQBUFS, VIDIOC_CREATE_BUFS, read/write or select (for reading or writing).
 
-	Only such file handler must do streaming I/O. Any attempts by other file handlers
-	to do I/O must return EBUSY.
+>   	ret = i2c_transfer(state->i2c, msg, 2);
+>   	if (ret == 2) {
+>   		ret = 0;
+> @@ -325,6 +330,18 @@ static int af9033_init(struct dvb_fronte
+>   		if (ret < 0)
+>   			goto err;
+>   	}
+> +
+> +	if (state->cfg.ts_mode == AF9033_TS_MODE_SERIAL) {
+> +		ret = af9033_wr_reg_mask(state, 0x00d91c, 0x01, 0x01);
+> +		if (ret < 0)
+> +			goto err;
+> +		ret = af9033_wr_reg_mask(state, 0x00d917, 0x00, 0x01);
+> +		if (ret < 0)
+> +			goto err;
+> +		ret = af9033_wr_reg_mask(state, 0x00d916, 0x00, 0x01);
+> +		if (ret < 0)
+> +			goto err;
+> +	}
 
-	The I/O streaming ownership must be released when the file handler is closed
-	or when VIDIOC_REQBUFS is called with count equal to zero.
+Haven't looked these yet.
 
->>
->> Radio Receiver Profile
->> ======================
->>
->> Radio devices have a tuner and (usually) a demodulator. The audio is either
->> send out to a line-out connector or uses ALSA to stream the audio.
+>
+>   	state->bandwidth_hz = 0; /* force to program all parameters */
+>
+> diff -upr linux/drivers/media/tuners/mxl5007t.c linux.new/drivers/media/tuners/mxl5007t.c
+> --- linux/drivers/media/tuners/mxl5007t.c	2012-08-14 05:45:22.000000000 +0200
+> +++ linux.new/drivers/media/tuners/mxl5007t.c	2012-08-25 19:36:44.689924518 +0200
+> @@ -374,7 +374,6 @@ static struct reg_pair_t *mxl5007t_calc_
+>   	mxl5007t_set_if_freq_bits(state, cfg->if_freq_hz, cfg->invert_if);
+>   	mxl5007t_set_xtal_freq_bits(state, cfg->xtal_freq_hz);
+>
+> -	set_reg_bits(state->tab_init, 0x04, 0x01, cfg->loop_thru_enable);
+>   	set_reg_bits(state->tab_init, 0x03, 0x08, cfg->clk_out_enable << 3);
+>   	set_reg_bits(state->tab_init, 0x03, 0x07, cfg->clk_out_amp);
+>
+> @@ -531,9 +530,11 @@ static int mxl5007t_tuner_init(struct mx
+>   	struct reg_pair_t *init_regs;
+>   	int ret;
+>
+> -	ret = mxl5007t_soft_reset(state);
+> -	if (mxl_fail(ret))
+> -		goto fail;
+> +	if (!state->config->no_reset) {
+> +	 	ret = mxl5007t_soft_reset(state);
+> + 		if (mxl_fail(ret))
+> + 			goto fail;
+> +	}
 
-Hmm... are there anything mandatory here, or are you just defining what a radio is?
-In the latter, the above text looks ok.
+What happens if you do soft reset as normally?
 
->>
->> It implements VIDIOC_G/S_TUNER, VIDIOC_G/S_FREQUENCY and VIDIOC_ENUM_FREQ_BANDS.
+I would like to mention that AF9035/AF9033/MXL5007T was supported even 
+earlier that given patch in question and I can guess it has been 
+working. So why you are changing it now ?
 
-	In addition to the mandatory items at the core profile (I would add an hyperlink here),
-	all drivers must implement VIDIOC_G/S_TUNER, VIDIOC_G/S_FREQUENCY and VIDIOC_ENUM_FREQ_BANDS.
+If you do these changes because what you see is different compared to 
+windows sniff then you are on wrong way. Windows and Linux drivers are 
+not needed to do 100% similar USB commands.
 
->> If hardware seek is supported, then VIDIOC_S_HW_FREQ_SEEK is implemented.
+>   	/* calculate initialization reg array */
+>   	init_regs = mxl5007t_calc_init_regs(state, mode);
+> @@ -887,7 +888,10 @@ struct dvb_frontend *mxl5007t_attach(str
+>   		if (fe->ops.i2c_gate_ctrl)
+>   			fe->ops.i2c_gate_ctrl(fe, 1);
+>
+> -		ret = mxl5007t_get_chip_id(state);
+> +		if (!state->config->no_probe)
+> +			ret = mxl5007t_get_chip_id(state);
 
-	A radio device may implement VIDIOC_S_HW_FREQ_SEEK, when audio station seek is
-	supported by radio.
+Same here. AF9015 firmware does not support reading for MXL5007T. Due to 
+that, it outputs something like unknown chip revision detected but works 
+as it should. Similar case here as AF9015 ?
 
->> It does *not* implement VIDIOC_ENUM/G/S_INPUT or VIDIOC_ENUM/G/S_AUDIO.
+> +
+> +		ret = mxl5007t_write_reg(state, 0x04, state->config->loop_thru_enable);
+>
+>   		if (fe->ops.i2c_gate_ctrl)
+>   			fe->ops.i2c_gate_ctrl(fe, 0);
+> diff -upr linux/drivers/media/tuners/mxl5007t.h linux.new/drivers/media/tuners/mxl5007t.h
+> --- linux/drivers/media/tuners/mxl5007t.h	2012-08-14 05:45:22.000000000 +0200
+> +++ linux.new/drivers/media/tuners/mxl5007t.h	2012-08-25 19:38:19.990920623 +0200
+> @@ -73,8 +73,10 @@ struct mxl5007t_config {
+>   	enum mxl5007t_xtal_freq xtal_freq_hz;
+>   	enum mxl5007t_if_freq if_freq_hz;
+>   	unsigned int invert_if:1;
+> -	unsigned int loop_thru_enable:1;
+> +	unsigned int loop_thru_enable:2;
+>   	unsigned int clk_out_enable:1;
+> +	unsigned int no_probe:1;
+> +	unsigned int no_reset:1;
+>   };
+>
+>   #if defined(CONFIG_MEDIA_TUNER_MXL5007T) || (defined(CONFIG_MEDIA_TUNER_MXL5007T_MODULE) && defined(MODULE))
+> diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.c linux.new/drivers/media/usb/dvb-usb-v2/af9035.c
+> --- linux/drivers/media/usb/dvb-usb-v2/af9035.c	2012-08-16 05:45:24.000000000 +0200
+> +++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.c	2012-08-26 23:46:10.702070148 +0200
+> @@ -209,7 +209,8 @@ static int af9035_i2c_master_xfer(struct
+>   		if (msg[0].len > 40 || msg[1].len > 40) {
+>   			/* TODO: correct limits > 40 */
+>   			ret = -EOPNOTSUPP;
+> -		} else if (msg[0].addr == state->af9033_config[0].i2c_addr) {
+> +		} else if ((msg[0].addr == state->af9033_config[0].i2c_addr) ||
+> +			   (msg[0].addr == state->af9033_config[1].i2c_addr)) {
+>   			/* integrated demod */
+>   			u32 reg = msg[0].buf[0] << 16 | msg[0].buf[1] << 8 |
+>   					msg[0].buf[2];
+> @@ -220,6 +221,11 @@ static int af9035_i2c_master_xfer(struct
+>   			u8 buf[5 + msg[0].len];
+>   			struct usb_req req = { CMD_I2C_RD, 0, sizeof(buf),
+>   					buf, msg[1].len, msg[1].buf };
+> +			if (msg[0].addr == state->tuner_address[1]) {
+> +				req.mbox += 0x10;
+> +				msg[0].addr -= 1;
+> +
+> +			}
+>   			buf[0] = msg[1].len;
+>   			buf[1] = msg[0].addr << 1;
+>   			buf[2] = 0x00; /* reg addr len */
+> @@ -232,7 +238,8 @@ static int af9035_i2c_master_xfer(struct
+>   		if (msg[0].len > 40) {
+>   			/* TODO: correct limits > 40 */
+>   			ret = -EOPNOTSUPP;
+> -		} else if (msg[0].addr == state->af9033_config[0].i2c_addr) {
+> +		} else if ((msg[0].addr == state->af9033_config[0].i2c_addr) ||
+> +			   (msg[0].addr == state->af9033_config[1].i2c_addr)) {
+>   			/* integrated demod */
+>   			u32 reg = msg[0].buf[0] << 16 | msg[0].buf[1] << 8 |
+>   					msg[0].buf[2];
+> @@ -243,6 +250,10 @@ static int af9035_i2c_master_xfer(struct
+>   			u8 buf[5 + msg[0].len];
+>   			struct usb_req req = { CMD_I2C_WR, 0, sizeof(buf), buf,
+>   					0, NULL };
+> +			if (msg[0].addr == state->tuner_address[1]) {
+> +				req.mbox += 0x10;
+> +				msg[0].addr -= 1;
+> +			}
+>   			buf[0] = msg[0].len;
+>   			buf[1] = msg[0].addr << 1;
+>   			buf[2] = 0x00; /* reg addr len */
 
-A radio node must *not* implement VIDIOC_ENUM/G/S_INPUT or VIDIOC_ENUM/G/S_AUDIO.
 
->> If RDS_BLOCK_IO is supported, then read() and poll() are implemented as well.
+It took somehow a quite long time to realize what all this is. First I 
+was looking tuner commands from the sniff searching 0xc2 (0x61 << 1) and 
+didn't find. After that I realized 0x61 was a fake address and that 
+logic is done for handling it. Ugly hacks without any commends...
 
-Radio drivers that support RDS must report RDS_BLOCK_IO. In this case, radio
-nodes must implement read()/poll() syscalls.
+I am quite sure original I2C-adapter logic is about 99% correct. But as 
+I saw from the sniff that bit 4 from 2nd byte was used as a mail box to 
+select 2nd I2C-adapter or multiplexing I2C in firmware I  admit 
+something should be done in order to handle it. That is much better 
+situation than was for AF9015 where was no way to select used 
+I2C-adapter other than demod I2C-gate.
 
->> If a mute control exists and the audio is output using a line-out, then the
->> audio must be muted on driver load and unload.
->>
->> On driver load the frequency must be initialized to a valid frequency.
+Lets put here:
 
-This is not nice, and not always possible: devices with xc3028 tuner (and other
-Xceive tuners) have firmwares for radio and for TV. Initializing for radio
-makes TV uninitialized, and vice-versa. Also, some devices take up to 30 seconds
-to load a firmware (tm6000).
+both demodulators
+001957:  OUT: 000000 ms 057146 ms BULK[00002] >>> 0b 80 00 2b 01 02 00 
+00 f9 99 b9 05
+001977:  OUT: 000002 ms 057164 ms BULK[00002] >>> 0b 90 00 35 01 02 00 
+00 f9 99 9f 05
 
-I think you're likely trying to say that the initial frequency should be
-a valid value. If so, please prepend it with a "driver developer's note".
+both tuners:
+002069:  OUT: 000001 ms 058016 ms BULK[00002] >>> 0b 00 03 63 01 c0 01 
+00 04 00 dc f6
+002087:  OUT: 000002 ms 058045 ms BULK[00002] >>> 0b 10 03 6c 01 c0 01 
+00 04 03 c0 f6
 
->>
->> Note: There are a few drivers that use a radio (pvrusb2) or video (ivtv)
->> node to stream the audio. These are legacy exceptions to the rule.
+bit4 from 2nd byte does selection between I2C-adapter as can be seen easily.
 
-What an application developer should do with that???
+Most elegant way is to implement two I2C-adapters, one for each tuner. 
+But as it is some more code I encourage to some other "abused" solution. 
+I2C-addresses are 7bit long, but 8bit (or even more as 10bit addresses) 
+could be used. I see best solution to use that one extra bit to carry 
+info about used I2C-bus. Then that adapter hackish code will be much 
+more shorter. Just add MSB bit from I2C-address to req.mbox, req.mbox += 
+((msg[0].addr & 0x80) >> 3) and thats it. And please comment it too.
 
-If this should not be supported anymore, then we need instead to either
-fix the drivers that aren't compliant with the specs or move them to
-staging, in order to let them to be either fixed or dropped, if none
-cares enough to fix.
 
->>
->> FM Transmitter Profile
->> ======================
->>
->> FM transmitter devices have a transmitter and modulator. The audio is
->> transferred using ALSA or a line-in connector.
+> @@ -283,9 +294,30 @@ static int af9035_identify_state(struct
+>   	int ret;
+>   	u8 wbuf[1] = { 1 };
+>   	u8 rbuf[4];
+> +	u8 tmp;
+>   	struct usb_req req = { CMD_FW_QUERYINFO, 0, sizeof(wbuf), wbuf,
+>   			sizeof(rbuf), rbuf };
+>
+> +	/* check if there is dual tuners */
+> +	ret = af9035_rd_reg(d, EEPROM_DUAL_MODE, &tmp);
+> +	if (ret < 0)
+> +		goto err;
+> +
+> +	if (tmp) {
+> +		/* read 2nd demodulator I2C address */
+> +		ret = af9035_rd_reg(d, EEPROM_2WIREADDR, &tmp);
+> +		if (ret < 0)
+> +			goto err;
+> +	
+> +		ret = af9035_wr_reg(d, 0x00417f, tmp);
+> +		if (ret < 0)
+> +			goto err;
+> +
+> +		ret = af9035_wr_reg(d, 0x00d81a, 1);
+> +		if (ret < 0)
+> +			goto err;
+> +	}
 
-Hmm... are there anything mandatory here, or are you just defining what a radio is?
-In the latter, the above text looks ok.
+That is already done in af9035_read_config(). You are not allowed to 
+abuse af9035_identify_state() unless very good reason. Leave 
+af9035_identify_state() alone and hack with af9035_read_config().
 
->>
->> It implements VIDIOC_G/S_MODULATOR, VIDIOC_G/S_FREQUENCY and VIDIOC_ENUM_FREQ_BANDS.
->>
->> It does *not* implement VIDIOC_ENUM/G/S_OUTPUT or VIDIOC_ENUM/G/S_AUDOUT.
->>
->> If RDS_BLOCK_IO is supported, then write() and poll() are implemented
->> as well.
->>
->> On driver load the frequency must be initialized to a valid frequency.
+> +
+>   	ret = af9035_ctrl_msg(d, &req);
+>   	if (ret < 0)
+>   		goto err;
+> @@ -492,7 +524,14 @@ static int af9035_read_config(struct dvb
+>
+>   	state->dual_mode = tmp;
+>   	pr_debug("%s: dual mode=%d\n", __func__, state->dual_mode);
+> -
+> +	if (state->dual_mode) {
+> +		/* read 2nd demodulator I2C address */
+> +		ret = af9035_rd_reg(d, EEPROM_2WIREADDR, &tmp);
+> +		if (ret < 0)
+> +			goto err;
+> +		state->af9033_config[1].i2c_addr = tmp;
+> +		pr_debug("%s: 2nd demod I2C addr:%02x\n", __func__, tmp);
+> +	}
 
-Same notes from the "radio" profile applies here.
+Why this is again here?
 
---
+>   	for (i = 0; i < state->dual_mode + 1; i++) {
+>   		/* tuner */
+>   		ret = af9035_rd_reg(d, EEPROM_1_TUNER_ID + eeprom_shift, &tmp);
+> @@ -671,6 +710,12 @@ static int af9035_frontend_callback(void
+>   	return -EINVAL;
+>   }
+>
+> +static int af9035_get_adapter_count(struct dvb_usb_device *d)
+> +{
+> +	struct state *state = d_to_priv(d);
+> +	return state->dual_mode + 1;
+> +}
+> +
+>   static int af9035_frontend_attach(struct dvb_usb_adapter *adap)
+>   {
+>   	struct state *state = adap_to_priv(adap);
+> @@ -726,13 +771,26 @@ static const struct fc0011_config af9035
+>   	.i2c_address = 0x60,
+>   };
+>
+> -static struct mxl5007t_config af9035_mxl5007t_config = {
+> -	.xtal_freq_hz = MxL_XTAL_24_MHZ,
+> -	.if_freq_hz = MxL_IF_4_57_MHZ,
+> -	.invert_if = 0,
+> -	.loop_thru_enable = 0,
+> -	.clk_out_enable = 0,
+> -	.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
+> +static struct mxl5007t_config af9035_mxl5007t_config[] = {
+> +	{
+> +		.xtal_freq_hz = MxL_XTAL_24_MHZ,
+> +		.if_freq_hz = MxL_IF_4_57_MHZ,
+> +		.invert_if = 0,
+> +		.loop_thru_enable = 0,
+> +		.clk_out_enable = 0,
+> +		.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
+> +		.no_probe = 1,
+> +		.no_reset = 1,
+> +	},{
+> +		.xtal_freq_hz = MxL_XTAL_24_MHZ,
+> +		.if_freq_hz = MxL_IF_4_57_MHZ,
+> +		.invert_if = 0,
+> +		.loop_thru_enable = 3,
+> +		.clk_out_enable = 1,
+> +		.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
+> +		.no_probe = 1,
+> +		.no_reset = 1,
+> +	}
+>   };
+>
+>   static struct tda18218_config af9035_tda18218_config = {
+> @@ -795,46 +853,50 @@ static int af9035_tuner_attach(struct dv
+>   				&d->i2c_adap, &af9035_fc0011_config);
+>   		break;
+>   	case AF9033_TUNER_MXL5007T:
+> -		ret = af9035_wr_reg(d, 0x00d8e0, 1);
+> -		if (ret < 0)
+> -			goto err;
+> -		ret = af9035_wr_reg(d, 0x00d8e1, 1);
+> -		if (ret < 0)
+> -			goto err;
+> -		ret = af9035_wr_reg(d, 0x00d8df, 0);
+> -		if (ret < 0)
+> -			goto err;
+> +		state->tuner_address[adap->id] = 0x60;
+> +		state->tuner_address[adap->id] += adap->id;
 
-That's said, I think that the RFC proposal is going on the right direction.
-It is very good to see it moving forward!
+Better to use MSB bit to mark 2nd bus.
 
-Thanks!
-Mauro
+Like that:
+state->tuner_address[adap->id] = (1 << 7) | 0x60; /* hack, use b[7] to 
+carry used I2C-bus */
+
+> +		if (adap->id == 0) {
+> +			ret = af9035_wr_reg(d, 0x00d8e0, 1);
+> +			if (ret < 0)
+> +				goto err;
+> +			ret = af9035_wr_reg(d, 0x00d8e1, 1);
+> +			if (ret < 0)
+> +				goto err;
+> +			ret = af9035_wr_reg(d, 0x00d8df, 0);
+> +			if (ret < 0)
+> +				goto err;
+>
+> -		msleep(30);
+> +			msleep(30);
+>
+> -		ret = af9035_wr_reg(d, 0x00d8df, 1);
+> -		if (ret < 0)
+> -			goto err;
+> +			ret = af9035_wr_reg(d, 0x00d8df, 1);
+> +			if (ret < 0)
+> +				goto err;
+>
+> -		msleep(300);
+> +			msleep(300);
+
+300ms is like 10 years in time to wait tuner to wake up from reset. I 
+guess it is reset as *no comments at all*. OK, it has been earlier there 
+too...
+
+>
+> -		ret = af9035_wr_reg(d, 0x00d8c0, 1);
+> -		if (ret < 0)
+> -			goto err;
+> -		ret = af9035_wr_reg(d, 0x00d8c1, 1);
+> -		if (ret < 0)
+> -			goto err;
+> -		ret = af9035_wr_reg(d, 0x00d8bf, 0);
+> -		if (ret < 0)
+> -			goto err;
+> -		ret = af9035_wr_reg(d, 0x00d8b4, 1);
+> -		if (ret < 0)
+> -			goto err;
+> -		ret = af9035_wr_reg(d, 0x00d8b5, 1);
+> -		if (ret < 0)
+> -			goto err;
+> -		ret = af9035_wr_reg(d, 0x00d8b3, 1);
+> -		if (ret < 0)
+> -			goto err;
+> +			ret = af9035_wr_reg(d, 0x00d8c0, 1);
+> +			if (ret < 0)
+> +				goto err;
+> +			ret = af9035_wr_reg(d, 0x00d8c1, 1);
+> +			if (ret < 0)
+> +				goto err;
+> +			ret = af9035_wr_reg(d, 0x00d8bf, 0);
+> +			if (ret < 0)
+> +				goto err;
+> +			ret = af9035_wr_reg(d, 0x00d8b4, 1);
+> +			if (ret < 0)
+> +				goto err;
+> +			ret = af9035_wr_reg(d, 0x00d8b5, 1);
+> +			if (ret < 0)
+> +				goto err;
+> +			ret = af9035_wr_reg(d, 0x00d8b3, 1);
+> +			if (ret < 0)
+> +				goto err;
+> +		}
+
+Could you add description which GPIOs are which. Which one demod, which 
+for tuner, which for reset, which for standby etc.
+
+>
+>   		/* attach tuner */
+>   		fe = dvb_attach(mxl5007t_attach, adap->fe[0],
+> -				&d->i2c_adap, 0x60, &af9035_mxl5007t_config);
+> +				&d->i2c_adap, state->tuner_address[adap->id], &af9035_mxl5007t_config[adap->id]);
+>   		break;
+>   	case AF9033_TUNER_TDA18218:
+>   		/* attach tuner */
+> @@ -879,8 +941,8 @@ static int af9035_init(struct dvb_usb_de
+>   		{ 0x00dd8a, (frame_size >> 0) & 0xff, 0xff},
+>   		{ 0x00dd8b, (frame_size >> 8) & 0xff, 0xff},
+>   		{ 0x00dd0d, packet_size, 0xff },
+> -		{ 0x80f9a3, 0x00, 0x01 },
+> -		{ 0x80f9cd, 0x00, 0x01 },
+> +		{ 0x80f9a3, state->dual_mode, 0x01 },
+> +		{ 0x80f9cd, state->dual_mode, 0x01 },
+>   		{ 0x80f99d, 0x00, 0x01 },
+>   		{ 0x80f9a4, 0x00, 0x01 },
+>   	};
+> @@ -1001,7 +1063,7 @@ static const struct dvb_usb_device_prope
+>   	.init = af9035_init,
+>   	.get_rc_config = af9035_get_rc_config,
+>
+> -	.num_adapters = 1,
+> +	.get_adapter_count = af9035_get_adapter_count,
+>   	.adapter = {
+>   		{
+>   			.stream = DVB_USB_STREAM_BULK(0x84, 6, 87 * 188),
+> diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.h linux.new/drivers/media/usb/dvb-usb-v2/af9035.h
+> --- linux/drivers/media/usb/dvb-usb-v2/af9035.h	2012-08-14 05:45:22.000000000 +0200
+> +++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.h	2012-08-26 23:45:08.774070150 +0200
+> @@ -54,6 +54,8 @@ struct state {
+>   	bool dual_mode;
+>
+>   	struct af9033_config af9033_config[2];
+> +
+> +	u8 tuner_address[2];
+>   };
+>
+>   u32 clock_lut[] = {
+> @@ -87,6 +89,7 @@ u32 clock_lut_it9135[] = {
+>   /* EEPROM locations */
+>   #define EEPROM_IR_MODE            0x430d
+>   #define EEPROM_DUAL_MODE          0x4326
+> +#define EEPROM_2WIREADDR          0x4327
+>   #define EEPROM_IR_TYPE            0x4329
+>   #define EEPROM_1_IFFREQ_L         0x432d
+>   #define EEPROM_1_IFFREQ_H         0x432e
+>
+
+And I saw these errors too when imported that patch to my local git tree:
+
+[crope@localhost linux]$ wget -O - 
+http://patchwork.linuxtv.org/patch/14067/mbox/ | git am -s
+--2012-08-28 02:17:55--  http://patchwork.linuxtv.org/patch/14067/mbox/
+Resolving patchwork.linuxtv.org... 130.149.80.248
+Connecting to patchwork.linuxtv.org|130.149.80.248|:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/plain]
+Saving to: `STDOUT'
+
+     [ <=> 
+ 
+        ] 12,017      --.-K/s   in 0.06s
+
+2012-08-28 02:17:55 (206 KB/s) - written to stdout [12017]
+
+Applying: v2 Add support to Avermedia Twinstar double tuner in af9035
+/home/crope/linuxtv/code/linux/.git/rebase-apply/patch:66: space before 
+tab in indent.
+	 	ret = mxl5007t_soft_reset(state);
+/home/crope/linuxtv/code/linux/.git/rebase-apply/patch:67: space before 
+tab in indent.
+  		if (mxl_fail(ret))
+/home/crope/linuxtv/code/linux/.git/rebase-apply/patch:68: space before 
+tab in indent.
+  			goto fail;
+/home/crope/linuxtv/code/linux/.git/rebase-apply/patch:164: trailing 
+whitespace.
+	
+warning: 4 lines add whitespace errors.
+[crope@localhost linux]$
+[crope@localhost linux]$ git show --pretty=email | ./scripts/checkpatch.pl -
+ERROR: code indent should use tabs where possible
+#76: FILE: drivers/media/tuners/mxl5007t.c:534:
++^I ^Iret = mxl5007t_soft_reset(state);$
+
+WARNING: please, no space before tabs
+#76: FILE: drivers/media/tuners/mxl5007t.c:534:
++^I ^Iret = mxl5007t_soft_reset(state);$
+
+ERROR: code indent should use tabs where possible
+#77: FILE: drivers/media/tuners/mxl5007t.c:535:
++ ^I^Iif (mxl_fail(ret))$
+
+WARNING: please, no space before tabs
+#77: FILE: drivers/media/tuners/mxl5007t.c:535:
++ ^I^Iif (mxl_fail(ret))$
+
+WARNING: please, no spaces at the start of a line
+#77: FILE: drivers/media/tuners/mxl5007t.c:535:
++ ^I^Iif (mxl_fail(ret))$
+
+ERROR: code indent should use tabs where possible
+#78: FILE: drivers/media/tuners/mxl5007t.c:536:
++ ^I^I^Igoto fail;$
+
+WARNING: please, no space before tabs
+#78: FILE: drivers/media/tuners/mxl5007t.c:536:
++ ^I^I^Igoto fail;$
+
+WARNING: please, no spaces at the start of a line
+#78: FILE: drivers/media/tuners/mxl5007t.c:536:
++ ^I^I^Igoto fail;$
+
+WARNING: line over 80 characters
+#91: FILE: drivers/media/tuners/mxl5007t.c:894:
++		ret = mxl5007t_write_reg(state, 0x04, state->config->loop_thru_enable);
+
+ERROR: trailing whitespace
+#176: FILE: drivers/media/usb/dvb-usb-v2/af9035.c:311:
++^I$
+
+ERROR: space required after that ',' (ctx:VxV)
+#239: FILE: drivers/media/usb/dvb-usb-v2/af9035.c:784:
++	},{
+  	 ^
+
+WARNING: line over 80 characters
+#332: FILE: drivers/media/usb/dvb-usb-v2/af9035.c:899:
++				&d->i2c_adap, state->tuner_address[adap->id], 
+&af9035_mxl5007t_config[adap->id]);
+
+total: 5 errors, 7 warnings, 323 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+       scripts/cleanfile
+
+Your patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+[crope@localhost linux]$
+
+
+I think it is quite OK when these findings are fixed or you explain 
+better alternative.
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
