@@ -1,98 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56259 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751119Ab2HNNgq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 09:36:46 -0400
-Message-ID: <502A5464.2060005@ti.com>
-Date: Tue, 14 Aug 2012 19:06:36 +0530
-From: Prabhakar Lad <prabhakar.lad@ti.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: LMML <linux-media@vger.kernel.org>
-Subject: Re: Patches submitted via linux-media ML that are at patchwork.linuxtv.org
-References: <502A4CD1.1020108@redhat.com>
-In-Reply-To: <502A4CD1.1020108@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Received: from mail-out.m-online.net ([212.18.0.9]:40067 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752786Ab2H1Pka (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Aug 2012 11:40:30 -0400
+Date: Tue, 28 Aug 2012 15:43:43 +0200
+From: Anatolij Gustschin <agust@denx.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Detlev Zundel <dzu@denx.de>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 1/3] mt9v022: add v4l2 controls for blanking and other
+ register settings
+Message-ID: <20120828154343.3c847dff@wker>
+In-Reply-To: <Pine.LNX.4.64.1208242305050.20710@axis700.grange>
+References: <1345799431-29426-1-git-send-email-agust@denx.de>
+	<1345799431-29426-2-git-send-email-agust@denx.de>
+	<Pine.LNX.4.64.1208241227140.20710@axis700.grange>
+	<m2pq6g5tm3.fsf@lamuella.denx.de>
+	<Pine.LNX.4.64.1208241527370.20710@axis700.grange>
+	<20120824182125.4d19ed64@wker>
+	<Pine.LNX.4.64.1208242305050.20710@axis700.grange>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Guennadi,
 
-On Tuesday 14 August 2012 06:34 PM, Mauro Carvalho Chehab wrote:
-> In order to help people to know about the status of the pending patches,
-> I'm summing-up the patches pending for merge on this email.
+On Fri, 24 Aug 2012 23:23:37 +0200 (CEST)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+...
+> > Every time the sensor is reset, it resets this register. Without setting
+> > the register after sensor reset to the needed value I only get garbage data
+> > from the sensor. Since the possibility to reset the sensor is provided on
+> > the hardware and also used, the register has to be set after each sensor
+> > reset. Only the instance controlling the reset gpio pin "knows" the time,
+> > when the register should be initialized again, so it is asynchronously and
+> > not related to the standard camera activities. But since the stuff is _not_
+> > documented, I can only speculate. Maybe it can be set to different values
+> > to achieve different things, currently I do not know.
 > 
-> If is there any patch missing, please check if it is at patchwork
-> before asking what happened:
-> 	http://patchwork.linuxtv.org/project/linux-media/list/?state=*
-> 
-> If patchwork didn't pick, then the emailer likely line-wrapped or
-> corrupted the patch.
-> 
+> How about adding that register write (if required by platform data) to 
+> mt9v022_s_power() in the "on" case? This is called (on soc-camera hosts at 
+> least) on each first open(), would this suffice?
 
-[Snip]
+This would suffice. But now I found some more info for this register.
+Rev3. errata mentions that the bit 9 of the register should be set when
+in snapshot mode (in my case this is the only mode that we can use).
+Additionally the errata recommends to set bit 2 when the high dynamic
+range mode is used. Now I'm not sure how to realise these settings.
 
-> 		== Laurent Pinchart <laurent.pinchart@ideasonboard.com> == 
-> 
-> Sep,27 2011: [v2,1/5] omap3evm: Enable regulators for camera interface              http://patchwork.linuxtv.org/patch/7969   Vaibhav Hiremath <hvaibhav@ti.com>
-> Jul,26 2012: [1/2,media] omap3isp: implement ENUM_FMT                               http://patchwork.linuxtv.org/patch/13492  Michael Jones <michael.jones@matrix-vision.de>
-> Jul,26 2012: [2/2,media] omap3isp: support G_FMT                                    http://patchwork.linuxtv.org/patch/13493  Michael Jones <michael.jones@matrix-vision.de>
-> 
-> 		== Prabhakar Lad <prabhakar.lad@ti.com> == 
-> 
-> Aug, 2 2012: [1/1] media/video: vpif: fixing function name start to vpif_config_par http://patchwork.linuxtv.org/patch/13576  Dror Cohen <dror@liveu.tv>
-> 
- This patch can be marked as 'Rejected'. Dror has sent a v2 version
-fixing few comments (http://patchwork.linuxtv.org/patch/13689/) which
-I'll issue a pull to this v2 patch through Manju's tree soon for 3.7.
+The bit 9 should be set/unset when configuring the master/snapshot
+mode in mt9v022_s_stream(), I think. 
 
-Thx,
---Prabhakar
+For setting bit 2 we could add V4L2_CID_WIDE_DYNAMIC_RANGE control
+which primarily configures the HiDy mode in register 0x0f and
+additionally sets/unsets bit 2 in register 0x20. But setting this
+bit 2 seems to be needed also in linear mode when manual exposure
+control is used. With the recommended register value 0x03D1 in linear
+mode the image quality is really bad when manual exposure mode is
+used, independent of the configured exposure time. Using 0x03D5
+in linear mode however gives good image quality here. So setting
+bit 2 should be independent of HiDy control. The errata states "the
+register setting recommendations are based on the characterization of
+the image sensor only and that camera module makers should test these
+recommendations on their module and evaluate the overall performance".
+These settings should be configurable independently of each other,
+I think.
 
-> 		== Silvester Nawrocki <sylvester.nawrocki@gmail.com> == 
-> 
-> Aug, 2 2012: [PATH,v3,1/2] v4l: Add factory register values form S5K4ECGX sensor    http://patchwork.linuxtv.org/patch/13580  Sangwook Lee <sangwook.lee@linaro.org>
-> Aug, 2 2012: [PATH,v3,2/2] v4l: Add v4l2 subdev driver for S5K4ECGX sensor          http://patchwork.linuxtv.org/patch/13581  Sangwook Lee <sangwook.lee@linaro.org>
-> Aug,10 2012: [1/2,media] s5p-tv: Use devm_regulator_get() in sdo_drv.c file         http://patchwork.linuxtv.org/patch/13719  Sachin Kamat <sachin.kamat@linaro.org>
-> Aug,10 2012: [2/2,media] s5p-tv: Use devm_* functions in sii9234_drv.c file         http://patchwork.linuxtv.org/patch/13720  Sachin Kamat <sachin.kamat@linaro.org>
-> Aug,10 2012: [RESEND] v4l/s5p-mfc: added support for end of stream handling in MFC  http://patchwork.linuxtv.org/patch/13721  Andrzej Hajda <a.hajda@samsung.com>
-> Aug,10 2012: [v4,1/2] v4l: Add factory register values form S5K4ECGX sensor         http://patchwork.linuxtv.org/patch/13727  Sangwook Lee <sangwook.lee@linaro.org>
-> Aug,10 2012: [v4,2/2] v4l: Add v4l2 subdev driver for S5K4ECGX sensor               http://patchwork.linuxtv.org/patch/13728  Sangwook Lee <sangwook.lee@linaro.org>
-> Jun,11 2012: [1/3,media] s5p-tv: Replace printk with pr_* functions                 http://patchwork.linuxtv.org/patch/11666  Sachin Kamat <sachin.kamat@linaro.org>
-> Jun,11 2012: [2/3,media] s5p-mfc: Replace printk with pr_* functions                http://patchwork.linuxtv.org/patch/11667  Sachin Kamat <sachin.kamat@linaro.org>
-> Jun,11 2012: [3/3,media] s5p-fimc: Replace printk with pr_* functions               http://patchwork.linuxtv.org/patch/11668  Sachin Kamat <sachin.kamat@linaro.org>
-> Jun,12 2012: [1/1, media] s5p-fimc: Replace custom err() macro with v4l2_err() macr http://patchwork.linuxtv.org/patch/11675  Sachin Kamat <sachin.kamat@linaro.org>
-> 
-> 		== Jonathan Corbet <corbet@lwn.net> == 
-> 
-> Apr,26 2012: [2/2] marvell-cam: Build fix: missing "select VIDEOBUF2_VMALLOC"       http://patchwork.linuxtv.org/patch/10848  Chris Ball <cjb@laptop.org>
-> 
-> This one is an alternative RFC proposal for the above, if Jon/Chris
-> decide to take another approach:
-> 
-> Aug,13 2012: [2/2] marvell-cam: Build fix: missing "select VIDEOBUF2_VMALLOC"       http://patchwork.linuxtv.org/patch/13784  Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> 		== Manu Abraham <abraham.manu@gmail.com> == 
-> 
-> Jun, 8 2011: Add remote control support for mantis                                  http://patchwork.linuxtv.org/patch/7217   Christoph Pinkl <christoph.pinkl@gmail.com>
-> Nov,29 2011: stv090x: implement function for reading uncorrected blocks count       http://patchwork.linuxtv.org/patch/8656   Mariusz Bia?o?czyk <manio@skyboo.net>
-> Mar,11 2012: [2/3] stv090x: use error counter 1 for BER estimation                  http://patchwork.linuxtv.org/patch/10301  Andreas Regel <andreas.regel@gmx.de>
-> Mar,11 2012: [3/3] stv090x: On STV0903 do not set registers of the second path.     http://patchwork.linuxtv.org/patch/10302  Andreas Regel <andreas.regel@gmx.de>
-> Apr, 1 2012: [05/11] Slightly more friendly debugging output.                       http://patchwork.linuxtv.org/patch/10520  "Steinar H. Gunderson" <sesse@samfundet.no>
-> Apr, 1 2012: [06/11] Replace ca_lock by a slightly more general int_stat_lock.      http://patchwork.linuxtv.org/patch/10521  "Steinar H. Gunderson" <sesse@samfundet.no>
-> Apr, 1 2012: [07/11] Fix a ton of SMP-unsafe accesses.                              http://patchwork.linuxtv.org/patch/10523  "Steinar H. Gunderson" <sesse@samfundet.no>
-> Apr, 1 2012: [11/11] Enable Mantis CA support.                                      http://patchwork.linuxtv.org/patch/10524  "Steinar H. Gunderson" <sesse@samfundet.no>
-> Apr, 1 2012: [08/11] Remove some unused structure members.                          http://patchwork.linuxtv.org/patch/10525  "Steinar H. Gunderson" <sesse@samfundet.no>
-> Apr, 1 2012: [09/11] Correct wait_event_timeout error return check.                 http://patchwork.linuxtv.org/patch/10526  "Steinar H. Gunderson" <sesse@samfundet.no>
-> Apr, 1 2012: [10/11] Ignore timeouts waiting for the IRQ0 flag.                     http://patchwork.linuxtv.org/patch/10527  "Steinar H. Gunderson" <sesse@samfundet.no>
-> 
-> 		== David Härdeman <david@hardeman.nu> == 
-> 
-> Jul,31 2012: [media] winbond-cir: Fix initialization                                http://patchwork.linuxtv.org/patch/13539  Sean Young <sean@mess.org>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+Thanks,
+Anatolij
