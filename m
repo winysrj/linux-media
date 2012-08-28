@@ -1,89 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39265 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030407Ab2HPSXG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Aug 2012 14:23:06 -0400
-Message-ID: <502D24DF.8090503@redhat.com>
-Date: Thu, 16 Aug 2012 13:50:39 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mailfe09.c2i.net ([212.247.155.2]:50555 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753199Ab2H1VAs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Aug 2012 17:00:48 -0400
+From: Hans Petter Selasky <hselasky@c2i.net>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [PATCH, RFC] Fix DVB ioctls failing if frontend open/closed too fast
+Date: Tue, 28 Aug 2012 22:56:41 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Juergen Lock <nox@jelal.kn-bremen.de>
+References: <20120731222216.GA36603@triton8.kn-bremen.de> <502711BE.4020701@redhat.com> <CAGoCfiyBZNkFkvhCqsbwxVaANZcp+1df-0eAmzrpzfavD6A+dQ@mail.gmail.com>
+In-Reply-To: <CAGoCfiyBZNkFkvhCqsbwxVaANZcp+1df-0eAmzrpzfavD6A+dQ@mail.gmail.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: dvb-usb-v2 change broke s2250-loader compilation
-References: <201208161233.43618.hverkuil@xs4all.nl> <502CE527.2070006@iki.fi> <502CF98B.1060700@iki.fi> <201208161607.03380.hverkuil@xs4all.nl> <502D03B6.8030708@iki.fi>
-In-Reply-To: <502D03B6.8030708@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201208282256.41157.hselasky@c2i.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 16-08-2012 11:29, Antti Palosaari escreveu:
-> On 08/16/2012 05:07 PM, Hans Verkuil wrote:
->> On Thu August 16 2012 15:45:47 Antti Palosaari wrote:
->>> On 08/16/2012 03:18 PM, Antti Palosaari wrote:
->>>> On 08/16/2012 01:33 PM, Hans Verkuil wrote:
->>>>> Building the kernel with the Sensoray 2250/2251 staging go7007 driver
->>>>> enabled
->>>>> fails with this link error:
->>>>>
->>>>> ERROR: "usb_cypress_load_firmware"
->>>>> [drivers/staging/media/go7007/s2250-loader.ko] undefined!
->>>>>
->>>>> As far as I can tell this is related to the dvb-usb-v2 changes.
->>>>>
->>>>> Can someone take a look at this?
->>>>>
->>>>> Thanks!
->>>>>
->>>>>      Hans
->>>>
->>>> Yes it is dvb usb v2 related. I wasn't even aware that someone took that
->>>> module use in few days after it was added for the dvb-usb-v2.
->>>>
->>>> Maybe it is worth to make it even more common and move out of dvb-usb-v2...
->>>>
->>>> regards
->>>> Antti
->>>
->>> And after looking it twice I cannot see the reason. I split that Cypress
->>> firmware download to own module called dvb_usb_cypress_firmware which
->>> offer routine usbv2_cypress_load_firmware(). Old DVB USB is left
->>> untouched. I can confirm it fails to compile for s2250, but there is
->>> still old dvb_usb_cxusb that is compiling without a error.
->>>
->>> Makefile paths seems to be correct also, no idea whats wrong....
->>
->> drivers/media/usb/Makefile uses := instead of += for the dvb-usb(-v2) directories,
->> and that prevents dvb-usb from being build. I think that's the cause of the link
->> error.
+On Sunday 12 August 2012 05:06:49 Devin Heitmueller wrote:
+> On Sat, Aug 11, 2012 at 10:15 PM, Mauro Carvalho Chehab
 > 
-> For that I cannot say as I don't understand situation enough.
+> <mchehab@redhat.com> wrote:
+> > Devin/Antti,
+> > 
+> > As Juergen mentioned your help on this patch, do you mind helping
+> > reviewing and testing it?
 > 
->> In addition I noticed that in usb/dvb-usb there is a dvb_usb_dvb.c and a
->> dvb-usb-dvb.c file: there's a mixup with _ and -.
+> I guided Juergen through the creation of the patch via #linuxtv a
+> couple of weeks ago.  While I'm generally confident that it should
+> work (and it does address his basic issue), I hadn't had the time to
+> stare at the code long enough to see what other side effects it might
+> produce.
 > 
-> These files seems to be my fault. Original patch series removes those, 
-> but I was forced to rebase whole set and in that rebased set those are left unremoved. 
-> Likely due to some rebase conflict. I will send new patch to remove those.
+> I'm tied up in other projects right now and am not confident I will
+> have cycles to look at this closer.  Antti, if you want to give it
+> some cycles, this would be a good fix to get upstream (and you've
+> already been looking at dvb_frontend.c for quite a while, so I believe
+> you would be able to spot a problem if one exists).
+> 
+> Devin
 
-If you remove the _, they'll conflict with dvb-usb at media-build.git.
+Hi,
 
-The better is to add a _v2 (or -v2) on all dvb-usb-v2 files
-(or to convert the remaining dvb-usb drivers to dvb-usb-v2).
+What is the status of this PATCH? Submitted or under testing ??
 
-Regards,
-Mauro
-
-> 
->> Mauro, did that happen during the reorganization?
->>
->> Regards,
->>
->>     Hans
->>
-> 
-> regards
-> Antti
-> 
-
+--HPS
