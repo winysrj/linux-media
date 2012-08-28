@@ -1,87 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1388 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757961Ab2HQMg3 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:48381 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751269Ab2H1KyM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Aug 2012 08:36:29 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: pdickeybeta@gmail.com
-Subject: Re: Preferred setup for development?
-Date: Fri, 17 Aug 2012 14:35:56 +0200
-Cc: linux-media@vger.kernel.org
-References: <1345204225.1800.73.camel@dcky-ubuntu64>
-In-Reply-To: <1345204225.1800.73.camel@dcky-ubuntu64>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201208171435.56349.hverkuil@xs4all.nl>
+	Tue, 28 Aug 2012 06:54:12 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 07/14] media: coda: stop all queues in case of lockup
+Date: Tue, 28 Aug 2012 12:53:54 +0200
+Message-Id: <1346151241-10449-8-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1346151241-10449-1-git-send-email-p.zabel@pengutronix.de>
+References: <1346151241-10449-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri August 17 2012 13:50:25 Patrick Dickey wrote:
-> I'm looking for information about what distributions people are using,
-> and how they go about testing their code.  The reason is, I'm running
-> Ubuntu for my main distribution, and it seems like I'll have to go
-> through a lot of hoops in order to compile and test changes to the
-> kernel.  I realize that I could probably just use the media_build tree,
-> and add the changes there.  But, I'd prefer to go the same route that
-> the majority of the developers here do.
-> 
-> So, my questions are these:
-> 
-> 1.  Do you use a specific distribution for development, or a roll your
-> own (like Linux from Scratch)?
+Add a 1 second timeout for each PIC_RUN command to the CODA. In
+case it locks up, stop all queues and dequeue remaining buffers.
 
-I used LFS a long time ago. It's great to learn how a linux system is put
-together, but it takes way too much time to upgrade.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/video/coda.c |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-I've used several distros in the past but I'm now running aptosid, which is
-a rolling Debian sid distro. But I do build my own kernel.
+diff --git a/drivers/media/video/coda.c b/drivers/media/video/coda.c
+index aea8d17..a67a52a 100644
+--- a/drivers/media/video/coda.c
++++ b/drivers/media/video/coda.c
+@@ -137,6 +137,7 @@ struct coda_dev {
+ 	struct vb2_alloc_ctx	*alloc_ctx;
+ 	struct list_head	instances;
+ 	unsigned long		instance_mask;
++	struct delayed_work	timeout;
+ };
+ 
+ struct coda_params {
+@@ -723,6 +724,9 @@ static void coda_device_run(void *m2m_priv)
+ 				CODA7_REG_BIT_AXI_SRAM_USE);
+ 	}
+ 
++	/* 1 second timeout in case CODA locks up */
++	schedule_delayed_work(&dev->timeout, HZ);
++
+ 	coda_command_async(ctx, CODA_COMMAND_PIC_RUN);
+ }
+ 
+@@ -1493,6 +1497,8 @@ static irqreturn_t coda_irq_handler(int irq, void *data)
+ 	u32 wr_ptr, start_ptr;
+ 	struct coda_ctx *ctx;
+ 
++	__cancel_delayed_work(&dev->timeout);
++
+ 	/* read status register to attend the IRQ */
+ 	coda_read(dev, CODA_REG_BIT_INT_STATUS);
+ 	coda_write(dev, CODA_REG_BIT_INT_CLEAR_SET,
+@@ -1565,6 +1571,20 @@ static irqreturn_t coda_irq_handler(int irq, void *data)
+ 	return IRQ_HANDLED;
+ }
+ 
++void coda_timeout(struct work_struct *work)
++{
++	struct coda_ctx *ctx;
++	struct coda_dev *dev = container_of(to_delayed_work(work),
++					    struct coda_dev, timeout);
++
++	v4l2_err(&dev->v4l2_dev, "CODA PIC_RUN timeout, stopping all streams\n");
++
++	list_for_each_entry(ctx, &dev->instances, list) {
++		v4l2_m2m_streamoff(NULL, ctx->m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
++		v4l2_m2m_streamoff(NULL, ctx->m2m_ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
++	}
++}
++
+ static u32 coda_supported_firmwares[] = {
+ 	CODA_FIRMWARE_VERNUM(CODA_DX6, 2, 2, 5),
+ 	CODA_FIRMWARE_VERNUM(CODA_7541, 13, 4, 29),
+@@ -1836,6 +1856,7 @@ static int __devinit coda_probe(struct platform_device *pdev)
+ 
+ 	spin_lock_init(&dev->irqlock);
+ 	INIT_LIST_HEAD(&dev->instances);
++	INIT_DELAYED_WORK(&dev->timeout, coda_timeout);
+ 
+ 	dev->plat_dev = pdev;
+ 	dev->clk_per = devm_clk_get(&pdev->dev, "per");
+-- 
+1.7.10.4
 
-> 2.  If you use a distribution, which one?
-> 3.  Do you do your development on physical computers or on virtual
-> machines (or both)?
-
-Physical for the most part.
-
-> 4.  Do you have a machine that's dedicated to development, or is it one
-> that you use for other things?
-
-Both. I use my main PC for development, but I also have more specialized
-PCs to test certain things.
-
-> 5.  Do you use a newer computer, or older computer for development? (or
-> both)
-
-I tend to upgrade to something faster every so often :-)
-
-> For anyone using the media_build tree (instead of the media_git tree):
-> 
-> Are you able to seamlessly implement changes that are in the media_git
-> tree files to the media_build tree, or do you have to make changes in
-> order to get them to compile? 
-> Are your files able to be implemented into the media_git tree
-> seamlessly, or do you have to make changes to get them to compile?
-
-If you have to make changes, let me know. It should be seamless. Occasionally
-things break with media_build if new code is merged in media-git, but I try
-to be on top of it.
-
-> If you're able to use the media_build tree, and the changes you make can
-> be implemented in the media_git tree without hassle, I may go that route
-> instead.
-> 
-> I downloaded a Slackware DVD, as it appears to be one that you can "roll
-> your own kernel" without too much of a hassle. But, I want to get
-> people's opinions before I start.
-
-Generally, building your own kernel isn't that hard. Figuring it out tends
-to be a one-time job.
-
-But if you just touch media drivers and do not intend to do any work
-elsewhere in the kernel, then media_build should work well.
-
-Regards,
-
-	Hans
