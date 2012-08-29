@@ -1,112 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out.inet.fi ([195.156.147.13]:59023 "EHLO jenni1.inet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753103Ab2HXPJu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 11:09:50 -0400
-From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCHv2 2/8] ir-rx51: Handle signals properly
-Date: Fri, 24 Aug 2012 18:09:40 +0300
-Message-Id: <1345820986-4597-3-git-send-email-timo.t.kokkonen@iki.fi>
-In-Reply-To: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
-References: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:20915 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751210Ab2H2MnK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Aug 2012 08:43:10 -0400
+Message-id: <503E0E5B.2090807@samsung.com>
+Date: Wed, 29 Aug 2012 14:43:07 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Prabhakar Lad <prabhakar.lad@ti.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-kernel@vger.kernel.org,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH] media: v4l2-ctrls: add control for dpcm predictor
+References: <1346243467-17094-1-git-send-email-prabhakar.lad@ti.com>
+In-reply-to: <1346243467-17094-1-git-send-email-prabhakar.lad@ti.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The lirc-dev expects the ir-code to be transmitted when the write call
-returns back to the user space. We should not leave TX ongoing no
-matter what is the reason we return to the user space. Easiest
-solution for that is to simply remove interruptible sleeps.
+Hi Prabhakar,
 
-The first wait_event_interruptible is thus replaced with return -EBUSY
-in case there is still ongoing transfer. This should suffice as the
-concept of sending multiple codes in parallel does not make sense.
+On 08/29/2012 02:31 PM, Prabhakar Lad wrote:
+> From: Lad, Prabhakar <prabhakar.lad@ti.com>
+> 
+> add V4L2_CID_DPCM_PREDICTOR control of type menu, which
+> determines the dpcm predictor. The predictor can be either
+> simple or advanced.
 
-The second wait_event_interruptible call is replaced with
-wait_even_timeout with a fixed and safe timeout that should prevent
-the process from getting stuck in kernel for too long.
+Thanks for the patch. I was expecting to find some information about
+this new control in its DocBook documentation, but this part seems
+to be missing here. :) Could you please add relevant entries in
+Documentation/DocBook/media/v4l/controls.xml as well ?
 
-Also, from now on we will force the TX to stop before we return from
-write call. If the TX happened to time out for some reason, we should
-not leave the HW transmitting anything.
+--
 
-Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
----
- drivers/media/rc/ir-rx51.c | 39 ++++++++++++++++++++++++++++-----------
- 1 file changed, 28 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-index 9487dd3..e2db94e 100644
---- a/drivers/media/rc/ir-rx51.c
-+++ b/drivers/media/rc/ir-rx51.c
-@@ -74,6 +74,19 @@ static void lirc_rx51_off(struct lirc_rx51 *lirc_rx51)
- 			      OMAP_TIMER_TRIGGER_NONE);
- }
- 
-+static void lirc_rx51_stop_tx(struct lirc_rx51 *lirc_rx51)
-+{
-+	if (lirc_rx51->wbuf_index < 0)
-+		return;
-+
-+	lirc_rx51_off(lirc_rx51);
-+	lirc_rx51->wbuf_index = -1;
-+	omap_dm_timer_stop(lirc_rx51->pwm_timer);
-+	omap_dm_timer_stop(lirc_rx51->pulse_timer);
-+	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
-+	wake_up(&lirc_rx51->wqueue);
-+}
-+
- static int init_timing_params(struct lirc_rx51 *lirc_rx51)
- {
- 	u32 load, match;
-@@ -160,13 +173,7 @@ static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
- 
- 	return IRQ_HANDLED;
- end:
--	/* Stop TX here */
--	lirc_rx51_off(lirc_rx51);
--	lirc_rx51->wbuf_index = -1;
--	omap_dm_timer_stop(lirc_rx51->pwm_timer);
--	omap_dm_timer_stop(lirc_rx51->pulse_timer);
--	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
--	wake_up_interruptible(&lirc_rx51->wqueue);
-+	lirc_rx51_stop_tx(lirc_rx51);
- 
- 	return IRQ_HANDLED;
- }
-@@ -246,8 +253,9 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
- 	if ((count > WBUF_LEN) || (count % 2 == 0))
- 		return -EINVAL;
- 
--	/* Wait any pending transfers to finish */
--	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
-+	/* We can have only one transmit at a time */
-+	if (lirc_rx51->wbuf_index >= 0)
-+		return -EBUSY;
- 
- 	if (copy_from_user(lirc_rx51->wbuf, buf, n))
- 		return -EFAULT;
-@@ -273,9 +281,18 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
- 
- 	/*
- 	 * Don't return back to the userspace until the transfer has
--	 * finished
-+	 * finished. However, we wish to not spend any more than 500ms
-+	 * in kernel. No IR code TX should ever take that long.
-+	 */
-+	i = wait_event_timeout(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0,
-+			HZ / 2);
-+
-+	/*
-+	 * Ensure transmitting has really stopped, even if the timers
-+	 * went mad or something else happened that caused it still
-+	 * sending out something.
- 	 */
--	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
-+	lirc_rx51_stop_tx(lirc_rx51);
- 
- 	/* We can sleep again */
- 	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, -1);
--- 
-1.7.12
-
+Regards,
+Sylwester
