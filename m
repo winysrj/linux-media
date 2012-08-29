@@ -1,112 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out.inet.fi ([195.156.147.13]:49738 "EHLO jenni1.inet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751889Ab2HVTun (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Aug 2012 15:50:43 -0400
-From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH 2/8] ir-rx51: Handle signals properly
-Date: Wed, 22 Aug 2012 22:50:35 +0300
-Message-Id: <1345665041-15211-3-git-send-email-timo.t.kokkonen@iki.fi>
-In-Reply-To: <1345665041-15211-1-git-send-email-timo.t.kokkonen@iki.fi>
-References: <1345665041-15211-1-git-send-email-timo.t.kokkonen@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.17.10]:61239 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752456Ab2H2QCf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Aug 2012 12:02:35 -0400
+Date: Wed, 29 Aug 2012 18:02:18 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+cc: Josh Wu <josh.wu@atmel.com>, linux-media@vger.kernel.org,
+	nicolas.ferre@atmel.com, mchehab@redhat.com,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH] [media] atmel_isi: allocate memory to store the isi
+ platform data.
+In-Reply-To: <503E323A.8060409@samsung.com>
+Message-ID: <alpine.DEB.2.00.1208291755220.3095@axis700.grange>
+References: <1346235093-28613-1-git-send-email-josh.wu@atmel.com> <503E323A.8060409@samsung.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The lirc-dev expects the ir-code to be transmitted when the write call
-returns back to the user space. We should not leave TX ongoing no
-matter what is the reason we return to the user space. Easiest
-solution for that is to simply remove interruptible sleeps.
+On Wed, 29 Aug 2012, Sylwester Nawrocki wrote:
 
-The first wait_event_interruptible is thus replaced with return -EBUSY
-in case there is still ongoing transfer. This should suffice as the
-concept of sending multiple codes in parallel does not make sense.
+> Hi,
+> 
+> On 08/29/2012 12:11 PM, Josh Wu wrote:
+> > This patch fix the bug: ISI driver's platform data became invalid 
+> > when isi platform data's attribution is __initdata.
+> > 
+> > If the isi platform data is passed as __initdata. Then we need store
+> > it in driver allocated memory. otherwise when we use it out of the 
+> > probe() function, then the isi platform data is invalid.
+> > 
+> > Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> > ---
+> >  drivers/media/platform/soc_camera/atmel-isi.c |   12 +++++++++++-
+> >  1 file changed, 11 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+> > index ec3f6a0..dc0fdec 100644
+> > --- a/drivers/media/platform/soc_camera/atmel-isi.c
+> > +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+> > @@ -926,6 +926,7 @@ static int __devexit atmel_isi_remove(struct platform_device *pdev)
+> >  	clk_put(isi->mck);
+> >  	clk_unprepare(isi->pclk);
+> >  	clk_put(isi->pclk);
+> > +	kfree(isi->pdata);
+> >  	kfree(isi);
+> >  
+> >  	return 0;
+> > @@ -968,8 +969,15 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
+> >  		goto err_alloc_isi;
+> >  	}
+> >  
+> > +	isi->pdata = kzalloc(sizeof(struct isi_platform_data), GFP_KERNEL);
+> > +	if (!isi->pdata) {
+> > +		ret = -ENOMEM;
+> > +		dev_err(&pdev->dev, "Can't allocate isi platform data!\n");
+> > +		goto err_alloc_isi_pdata;
+> > +	}
+> > +	memcpy(isi->pdata, pdata, sizeof(struct isi_platform_data));
+> > +
+> 
+> Why not just embed struct isi_platform_data in struct atmel_isi and drop this
+> another kzalloc() ?
+> Then you could simply do isi->pdata = *pdata.
+> 
+> Also, is this going to work when this driver is build and as a module
+> and its loading is deferred past system booting ? At that time the driver's
+> platform data may be well discarded.
 
-The second wait_event_interruptible call is replaced with
-wait_even_timeout with a fixed and safe timeout that should prevent
-the process from getting stuck in kernel for too long.
+Right, it will be gone, I think.
 
-Also, from now on we will force the TX to stop before we return from
-write call. If the TX happened to time out for some reason, we should
-not leave the HW transmitting anything.
+> You may wan't to duplicate it on the
+> running boards in board code with kmemdup() or something.
 
-Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+How about removing __initdata from board code?
+
+Thanks
+Guennadi
 ---
- drivers/media/rc/ir-rx51.c | 39 ++++++++++++++++++++++++++++-----------
- 1 file changed, 28 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-index 9487dd3..a7b787a 100644
---- a/drivers/media/rc/ir-rx51.c
-+++ b/drivers/media/rc/ir-rx51.c
-@@ -74,6 +74,19 @@ static void lirc_rx51_off(struct lirc_rx51 *lirc_rx51)
- 			      OMAP_TIMER_TRIGGER_NONE);
- }
- 
-+static void lirc_rx51_stop_tx(struct lirc_rx51 *lirc_rx51)
-+{
-+	if (lirc_rx51->wbuf_index < 0)
-+		return;
-+
-+	lirc_rx51_off(lirc_rx51);
-+	lirc_rx51->wbuf_index = -1;
-+	omap_dm_timer_stop(lirc_rx51->pwm_timer);
-+	omap_dm_timer_stop(lirc_rx51->pulse_timer);
-+	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
-+	wake_up_interruptible(&lirc_rx51->wqueue);
-+}
-+
- static int init_timing_params(struct lirc_rx51 *lirc_rx51)
- {
- 	u32 load, match;
-@@ -160,13 +173,7 @@ static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
- 
- 	return IRQ_HANDLED;
- end:
--	/* Stop TX here */
--	lirc_rx51_off(lirc_rx51);
--	lirc_rx51->wbuf_index = -1;
--	omap_dm_timer_stop(lirc_rx51->pwm_timer);
--	omap_dm_timer_stop(lirc_rx51->pulse_timer);
--	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
--	wake_up_interruptible(&lirc_rx51->wqueue);
-+	lirc_rx51_stop_tx(lirc_rx51);
- 
- 	return IRQ_HANDLED;
- }
-@@ -246,8 +253,9 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
- 	if ((count > WBUF_LEN) || (count % 2 == 0))
- 		return -EINVAL;
- 
--	/* Wait any pending transfers to finish */
--	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
-+	/* We can have only one transmit at a time */
-+	if (lirc_rx51->wbuf_index >= 0)
-+		return -EBUSY;
- 
- 	if (copy_from_user(lirc_rx51->wbuf, buf, n))
- 		return -EFAULT;
-@@ -273,9 +281,18 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
- 
- 	/*
- 	 * Don't return back to the userspace until the transfer has
--	 * finished
-+	 * finished. However, we wish to not spend any more than 500ms
-+	 * in kernel. No IR code TX should ever take that long.
-+	 */
-+	i = wait_event_timeout(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0,
-+			HZ / 2);
-+
-+	/*
-+	 * Ensure transmitting has really stopped, even if the timers
-+	 * went mad or something else happened that caused it still
-+	 * sending out something.
- 	 */
--	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
-+	lirc_rx51_stop_tx(lirc_rx51);
- 
- 	/* We can sleep again */
- 	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, -1);
--- 
-1.7.12
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
