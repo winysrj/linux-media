@@ -1,315 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:54120 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750977Ab2H1Hur (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:44558 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751658Ab2H2PQO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Aug 2012 03:50:47 -0400
-Received: by wgbdr13 with SMTP id dr13so4379398wgb.1
-        for <linux-media@vger.kernel.org>; Tue, 28 Aug 2012 00:50:45 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1345825078-3688-5-git-send-email-p.zabel@pengutronix.de>
-References: <1345825078-3688-1-git-send-email-p.zabel@pengutronix.de>
-	<1345825078-3688-5-git-send-email-p.zabel@pengutronix.de>
-Date: Tue, 28 Aug 2012 09:50:44 +0200
-Message-ID: <CACKLOr35e2QaktJ675VN0K3CdosznQ-4fNCQGq8xYaRH1q8LKg@mail.gmail.com>
-Subject: Re: [PATCH 04/12] media: coda: allocate internal framebuffers
- separately from v4l2 buffers
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@linaro.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
-Content-Type: text/plain; charset=ISO-8859-1
+	Wed, 29 Aug 2012 11:16:14 -0400
+Received: from eusync3.samsung.com (mailout4.w1.samsung.com [210.118.77.14])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M9I00MTUVS0A220@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 29 Aug 2012 16:16:48 +0100 (BST)
+Received: from [106.116.147.32] by eusync3.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0M9I00LS0VQZ7G00@eusync3.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 29 Aug 2012 16:16:11 +0100 (BST)
+Message-id: <503E323A.8060409@samsung.com>
+Date: Wed, 29 Aug 2012 17:16:10 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Josh Wu <josh.wu@atmel.com>
+Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
+	nicolas.ferre@atmel.com, mchehab@redhat.com,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH] [media] atmel_isi: allocate memory to store the isi
+ platform data.
+References: <1346235093-28613-1-git-send-email-josh.wu@atmel.com>
+In-reply-to: <1346235093-28613-1-git-send-email-josh.wu@atmel.com>
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Phillip,
-I see you are trying a cleaner approach for reference and reconstructed frames.
+Hi,
 
-On 24 August 2012 18:17, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> Some codecs running on CODA need internal framebuffers for reference and
-> reconstructed frames. Allocate them separately, and do not use the input
-> vb2_buffers: those will be handed off to userspace regularly, and there
-> is no way to signal to the CODA which of the registered framebuffers are
-> off limits. As a consequence, userspace is now free to choose the number
-> of v4l2 buffers.
-> This patch also includes the code to set up the parameter buffer for
-> CODA7 and above with 64-bit AXI bus width.
->
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+On 08/29/2012 12:11 PM, Josh Wu wrote:
+> This patch fix the bug: ISI driver's platform data became invalid 
+> when isi platform data's attribution is __initdata.
+> 
+> If the isi platform data is passed as __initdata. Then we need store
+> it in driver allocated memory. otherwise when we use it out of the 
+> probe() function, then the isi platform data is invalid.
+> 
+> Signed-off-by: Josh Wu <josh.wu@atmel.com>
 > ---
->  drivers/media/video/coda.c |  141 +++++++++++++++++++++++++++-----------------
->  1 file changed, 86 insertions(+), 55 deletions(-)
->
-> diff --git a/drivers/media/video/coda.c b/drivers/media/video/coda.c
-> index 2e2e8c5..b531c25 100644
-> --- a/drivers/media/video/coda.c
-> +++ b/drivers/media/video/coda.c
-> @@ -46,8 +46,7 @@
->  #define CODA_ISRAM_SIZE        (2048 * 2)
->  #define CODA7_IRAM_SIZE                0x14000 /* 81920 bytes */
->
-> -#define CODA_OUTPUT_BUFS       4
-> -#define CODA_CAPTURE_BUFS      2
-> +#define CODA_MAX_FRAMEBUFFERS  2
+>  drivers/media/platform/soc_camera/atmel-isi.c |   12 +++++++++++-
+>  1 file changed, 11 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+> index ec3f6a0..dc0fdec 100644
+> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+> @@ -926,6 +926,7 @@ static int __devexit atmel_isi_remove(struct platform_device *pdev)
+>  	clk_put(isi->mck);
+>  	clk_unprepare(isi->pclk);
+>  	clk_put(isi->pclk);
+> +	kfree(isi->pdata);
+>  	kfree(isi);
+>  
+>  	return 0;
+> @@ -968,8 +969,15 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
+>  		goto err_alloc_isi;
+>  	}
+>  
+> +	isi->pdata = kzalloc(sizeof(struct isi_platform_data), GFP_KERNEL);
+> +	if (!isi->pdata) {
+> +		ret = -ENOMEM;
+> +		dev_err(&pdev->dev, "Can't allocate isi platform data!\n");
+> +		goto err_alloc_isi_pdata;
+> +	}
+> +	memcpy(isi->pdata, pdata, sizeof(struct isi_platform_data));
+> +
 
-According to page 58 of 'cnm-codadx6-datasheet-v2.9.pdf' for H.264
-encoding a third buffer is needed whose size should be 'framebuffer
-size / 16'.
+Why not just embed struct isi_platform_data in struct atmel_isi and drop this
+another kzalloc() ?
+Then you could simply do isi->pdata = *pdata.
 
->  #define MAX_W          720
->  #define MAX_H          576
-> @@ -167,11 +166,12 @@ struct coda_ctx {
->         struct v4l2_m2m_ctx             *m2m_ctx;
->         struct v4l2_ctrl_handler        ctrls;
->         struct v4l2_fh                  fh;
-> -       struct vb2_buffer               *reference;
->         int                             gopcounter;
->         char                            vpu_header[3][64];
->         int                             vpu_header_size[3];
->         struct coda_aux_buf             parabuf;
-> +       struct coda_aux_buf             framebuffers[CODA_MAX_FRAMEBUFFERS];
-> +       int                             num_framebuffers;
->         int                             idx;
->  };
->
-> @@ -746,14 +746,6 @@ static int coda_job_ready(void *m2m_priv)
->                 return 0;
->         }
->
-> -       /* For P frames a reference picture is needed too */
-> -       if ((ctx->gopcounter != (ctx->params.gop_size - 1)) &&
-> -          !ctx->reference) {
-> -               v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
-> -                        "not ready: reference picture not available.\n");
-> -               return 0;
-> -       }
-> -
->         if (coda_isbusy(ctx->dev)) {
->                 v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
->                          "not ready: coda is still busy.\n");
-> @@ -807,7 +799,6 @@ static void set_default_params(struct coda_ctx *ctx)
->         ctx->params.codec_mode = CODA_MODE_INVALID;
->         ctx->colorspace = V4L2_COLORSPACE_REC709;
->         ctx->params.framerate = 30;
-> -       ctx->reference = NULL;
->         ctx->aborting = 0;
->
->         /* Default formats for output and input queues */
-> @@ -833,7 +824,6 @@ static int coda_queue_setup(struct vb2_queue *vq,
->         unsigned int size;
->
->         if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-> -               *nbuffers = CODA_OUTPUT_BUFS;
->                 if (fmt)
->                         size = fmt->fmt.pix.width *
->                                 fmt->fmt.pix.height * 3 / 2;
-> @@ -841,7 +831,6 @@ static int coda_queue_setup(struct vb2_queue *vq,
->                         size = MAX_W *
->                                 MAX_H * 3 / 2;
->         } else {
-> -               *nbuffers = CODA_CAPTURE_BUFS;
->                 size = CODA_MAX_FRAME_SIZE;
->         }
->
-> @@ -894,6 +883,77 @@ static void coda_wait_finish(struct vb2_queue *q)
->         coda_lock(ctx);
->  }
->
-> +static void coda_free_framebuffers(struct coda_ctx *ctx)
-> +{
-> +       int i;
-> +
-> +       for (i = 0; i < CODA_MAX_FRAMEBUFFERS; i++) {
-> +               if (ctx->framebuffers[i].vaddr) {
-> +                       dma_free_coherent(&ctx->dev->plat_dev->dev,
-> +                               ctx->framebuffers[i].size,
-> +                               ctx->framebuffers[i].vaddr,
-> +                               ctx->framebuffers[i].paddr);
-> +                       ctx->framebuffers[i].vaddr = NULL;
-> +               }
-> +       }
-> +}
-> +
-> +static int coda_alloc_framebuffers(struct coda_ctx *ctx, struct coda_q_data *q_data, u32 fourcc)
-> +{
-> +       struct coda_dev *dev = ctx->dev;
-> +
-> +       int height = q_data->height;
-> +       int width = q_data->width;
-> +       u32 *p;
-> +       int i;
-> +
-> +       /* Allocate frame buffers */
-> +       ctx->num_framebuffers = CODA_MAX_FRAMEBUFFERS;
-> +       for (i = 0; i < ctx->num_framebuffers; i++) {
-> +               ctx->framebuffers[i].size = q_data->sizeimage;
-> +               if (fourcc == V4L2_PIX_FMT_H264)
-> +                       ctx->framebuffers[i].size += width / 2 * height / 2;
-> +               ctx->framebuffers[i].vaddr = dma_alloc_coherent(
-> +                               &dev->plat_dev->dev, ctx->framebuffers[i].size,
-> +                               &ctx->framebuffers[i].paddr, GFP_KERNEL);
-> +               if (!ctx->framebuffers[i].vaddr) {
-> +                       coda_free_framebuffers(ctx);
-> +                       return -ENOMEM;
-> +               }
-> +       }
-> +
-> +       /* Register frame buffers in the parameter buffer */
-> +       p = ctx->parabuf.vaddr;
-> +
-> +       if (dev->devtype->product == CODA_DX6) {
-> +               for (i = 0; i < ctx->num_framebuffers; i++) {
-> +                       p[i * 3] = ctx->framebuffers[i].paddr; /* Y */
-> +                       p[i * 3 + 1] = p[i * 3] + width * height; /* Cb */
-> +                       p[i * 3 + 2] = p[i * 3 + 1] + width / 2 * height / 2; /* Cr */
-> +               }
+Also, is this going to work when this driver is build and as a module
+and its loading is deferred past system booting ? At that time the driver's
+platform data may be well discarded. You may wan't to duplicate it on the
+running boards in board code with kmemdup() or something.
 
-I'm the previous approach all source pictures were registered. Now you
-only register the temporal private buffers. Are you sure this will
-work?
+--
 
-> +       } else {
-> +               for (i = 0; i < ctx->num_framebuffers; i += 2) {
-> +                       p[i * 3 + 1] = ctx->framebuffers[i].paddr; /* Y */
-> +                       p[i * 3] = p[i * 3 + 1] + width * height; /* Cb */
-> +                       p[i * 3 + 3] = p[i * 3] + (width / 2) * (height / 2); /* Cr */
-> +
-> +                       if (fourcc == V4L2_PIX_FMT_H264)
-> +                               p[96 + i + 1] = p[i * 3 + 3] + (width / 2) * (height / 2);
-> +
-> +                       if (i + 1 < ctx->num_framebuffers) {
-> +                               p[i * 3 + 2] = ctx->framebuffers[i+1].paddr; /* Y */
-> +                               p[i * 3 + 5] = p[i * 3 + 2] + width * height ; /* Cb */
-> +                               p[i * 3 + 4] = p[i * 3 + 5] + (width / 2) * (height / 2); /* Cr */
-> +
-> +                               if (fourcc == V4L2_PIX_FMT_H264)
-> +                                       p[96 + i] = p[i * 3 + 4] + (width / 2) * (height / 2);
-> +                       }
-> +               }
-> +       }
-> +
-> +       return 0;
-> +}
-> +
->  static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
->  {
->         struct coda_ctx *ctx = vb2_get_drv_priv(q);
-> @@ -901,11 +961,10 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
->         u32 bitstream_buf, bitstream_size;
->         struct coda_dev *dev = ctx->dev;
->         struct coda_q_data *q_data_src, *q_data_dst;
-> -       u32 dst_fourcc;
->         struct vb2_buffer *buf;
-> -       struct vb2_queue *src_vq;
-> +       u32 dst_fourcc;
->         u32 value;
-> -       int i = 0;
-> +       int ret;
->
->         if (count < 1)
->                 return -EINVAL;
-> @@ -1053,25 +1112,11 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
->         if (coda_read(dev, CODA_RET_ENC_SEQ_SUCCESS) == 0)
->                 return -EFAULT;
->
-> -       /*
-> -        * Walk the src buffer list and let the codec know the
-> -        * addresses of the pictures.
-> -        */
-> -       src_vq = v4l2_m2m_get_vq(ctx->m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
-> -       for (i = 0; i < src_vq->num_buffers; i++) {
-> -               u32 *p;
-> -
-> -               buf = src_vq->bufs[i];
-> -               p = ctx->parabuf.vaddr;
-> -
-> -               p[i * 3] = vb2_dma_contig_plane_dma_addr(buf, 0);
-> -               p[i * 3 + 1] = p[i * 3] + q_data_src->width *
-> -                               q_data_src->height;
-> -               p[i * 3 + 2] = p[i * 3 + 1] + q_data_src->width / 2 *
-> -                               q_data_src->height / 2;
-> -       }
-> +       ret = coda_alloc_framebuffers(ctx, q_data_src, dst_fourcc);
-> +       if (ret < 0)
-> +               return ret;
-
-Ditto.
-
-> -       coda_write(dev, src_vq->num_buffers, CODA_CMD_SET_FRAME_BUF_NUM);
-> +       coda_write(dev, ctx->num_framebuffers, CODA_CMD_SET_FRAME_BUF_NUM);
->         coda_write(dev, round_up(q_data_src->width, 8), CODA_CMD_SET_FRAME_BUF_STRIDE);
->         if (dev->devtype->product != CODA_DX6) {
->                 coda_write(dev, round_up(q_data_src->width, 8), CODA7_CMD_SET_FRAME_SOURCE_BUF_STRIDE);
-> @@ -1194,6 +1239,8 @@ static int coda_stop_streaming(struct vb2_queue *q)
->                                  "CODA_COMMAND_SEQ_END failed\n");
->                         return -ETIMEDOUT;
->                 }
-> +
-> +               coda_free_framebuffers(ctx);
->         }
->
->         return 0;
-> @@ -1442,7 +1489,7 @@ static const struct v4l2_file_operations coda_fops = {
->
->  static irqreturn_t coda_irq_handler(int irq, void *data)
->  {
-> -       struct vb2_buffer *src_buf, *dst_buf, *tmp_buf;
-> +       struct vb2_buffer *src_buf, *dst_buf;
->         struct coda_dev *dev = data;
->         u32 wr_ptr, start_ptr;
->         struct coda_ctx *ctx;
-> @@ -1470,8 +1517,8 @@ static irqreturn_t coda_irq_handler(int irq, void *data)
->                 return IRQ_NONE;
->         }
->
-> -       src_buf = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
-> -       dst_buf = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
-> +       src_buf = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
-> +       dst_buf = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
->
->         /* Get results from the coda */
->         coda_read(dev, CODA_RET_ENC_PIC_TYPE);
-> @@ -1501,23 +1548,7 @@ static irqreturn_t coda_irq_handler(int irq, void *data)
->                 dst_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_KEYFRAME;
->         }
->
-> -       /* Free previous reference picture if available */
-> -       if (ctx->reference) {
-> -               v4l2_m2m_buf_done(ctx->reference, VB2_BUF_STATE_DONE);
-> -               ctx->reference = NULL;
-> -       }
-> -
-> -       /*
-> -        * For the last frame of the gop we don't need to save
-> -        * a reference picture.
-> -        */
-> -       v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
-> -       tmp_buf = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
-> -       if (ctx->gopcounter == 0)
-> -               v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
-> -       else
-> -               ctx->reference = tmp_buf;
-> -
-> +       v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
->         v4l2_m2m_buf_done(dst_buf, VB2_BUF_STATE_DONE);
->
->         ctx->gopcounter--;
-> --
-> 1.7.10.4
->
-
-Otherwise looks good.
-
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Regards,
+Sylwester
