@@ -1,107 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1683 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751661Ab2HMOwZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Aug 2012 10:52:25 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [Workshop-2011] RFC: V4L2 API ambiguities
-Date: Mon, 13 Aug 2012 16:52:11 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	workshop-2011@linuxtv.org
-References: <201208131427.56961.hverkuil@xs4all.nl> <5028FD7E.1010402@redhat.com>
-In-Reply-To: <5028FD7E.1010402@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201208131652.11182.hverkuil@xs4all.nl>
+Received: from mta-out.inet.fi ([195.156.147.13]:47174 "EHLO jenni2.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751737Ab2H3Rye (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Aug 2012 13:54:34 -0400
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCHv3 2/9] ir-rx51: Handle signals properly
+Date: Thu, 30 Aug 2012 20:54:24 +0300
+Message-Id: <1346349271-28073-3-git-send-email-timo.t.kokkonen@iki.fi>
+In-Reply-To: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
+References: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon August 13 2012 15:13:34 Hans de Goede wrote:
-> Hi,
-> 
-> <snip>
-> 
-> > 5) How to handle tuner ownership if both a video and radio node share the same
-> >     tuner?
-> >
-> >     Obvious rules:
-> >
-> >     - Calling S_FREQ, S_TUNER, S_MODULATOR or S_HW_FREQ_SEEK will change owner
-> >       or return EBUSY if streaming is in progress.
-> 
-> That won't work, as there is no such thing as streaming from a radio node,
+The lirc-dev expects the ir-code to be transmitted when the write call
+returns back to the user space. We should not leave TX ongoing no
+matter what is the reason we return to the user space. Easiest
+solution for that is to simply remove interruptible sleeps.
 
-There is, actually: read() for RDS data and alsa streaming (although that might
-be hard to detect in the case of USB audio).
+The first wait_event_interruptible is thus replaced with return -EBUSY
+in case there is still ongoing transfer. This should suffice as the
+concept of sending multiple codes in parallel does not make sense.
 
-> I suggest we go with the simple approach we discussed at our last meeting in
-> your Dutch House: Calling S_FREQ, S_TUNER, S_MODULATOR or S_HW_FREQ_SEEK will
-> make an app the tuner-owner, and *closing* the device handle makes an app
-> release its tuner ownership. If an other app already is the tuner owner
-> -EBUSY is returned.
+The second wait_event_interruptible call is replaced with
+wait_even_timeout with a fixed and safe timeout that should prevent
+the process from getting stuck in kernel for too long.
 
-So the ownership is associated with a filehandle?
+Also, from now on we will force the TX to stop before we return from
+write call. If the TX happened to time out for some reason, we should
+not leave the HW transmitting anything.
 
-> 
-> >     - Ditto for STREAMON, read/write and polling for read/write.
-> 
-> No, streaming and tuning are 2 different things, if an app does both, it
-> will likely tune before streaming, but in some cases a user may use a streaming
-> only app together with say v4l2-ctl to do the actual tuning. I think keeping
-> things simple here is key. Lets just treat the "tuner" and "stream" as 2 separate
-> entities with a separate ownership.
+Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+---
+ drivers/media/rc/ir-rx51.c | 39 ++++++++++++++++++++++++++++-----------
+ 1 file changed, 28 insertions(+), 11 deletions(-)
 
-That would work provided the ownership is associated with a filehandle.
+diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+index 9487dd3..e2db94e 100644
+--- a/drivers/media/rc/ir-rx51.c
++++ b/drivers/media/rc/ir-rx51.c
+@@ -74,6 +74,19 @@ static void lirc_rx51_off(struct lirc_rx51 *lirc_rx51)
+ 			      OMAP_TIMER_TRIGGER_NONE);
+ }
+ 
++static void lirc_rx51_stop_tx(struct lirc_rx51 *lirc_rx51)
++{
++	if (lirc_rx51->wbuf_index < 0)
++		return;
++
++	lirc_rx51_off(lirc_rx51);
++	lirc_rx51->wbuf_index = -1;
++	omap_dm_timer_stop(lirc_rx51->pwm_timer);
++	omap_dm_timer_stop(lirc_rx51->pulse_timer);
++	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
++	wake_up(&lirc_rx51->wqueue);
++}
++
+ static int init_timing_params(struct lirc_rx51 *lirc_rx51)
+ {
+ 	u32 load, match;
+@@ -160,13 +173,7 @@ static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
+ 
+ 	return IRQ_HANDLED;
+ end:
+-	/* Stop TX here */
+-	lirc_rx51_off(lirc_rx51);
+-	lirc_rx51->wbuf_index = -1;
+-	omap_dm_timer_stop(lirc_rx51->pwm_timer);
+-	omap_dm_timer_stop(lirc_rx51->pulse_timer);
+-	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
+-	wake_up_interruptible(&lirc_rx51->wqueue);
++	lirc_rx51_stop_tx(lirc_rx51);
+ 
+ 	return IRQ_HANDLED;
+ }
+@@ -246,8 +253,9 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+ 	if ((count > WBUF_LEN) || (count % 2 == 0))
+ 		return -EINVAL;
+ 
+-	/* Wait any pending transfers to finish */
+-	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
++	/* We can have only one transmit at a time */
++	if (lirc_rx51->wbuf_index >= 0)
++		return -EBUSY;
+ 
+ 	if (copy_from_user(lirc_rx51->wbuf, buf, n))
+ 		return -EFAULT;
+@@ -273,9 +281,18 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+ 
+ 	/*
+ 	 * Don't return back to the userspace until the transfer has
+-	 * finished
++	 * finished. However, we wish to not spend any more than 500ms
++	 * in kernel. No IR code TX should ever take that long.
++	 */
++	i = wait_event_timeout(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0,
++			HZ / 2);
++
++	/*
++	 * Ensure transmitting has really stopped, even if the timers
++	 * went mad or something else happened that caused it still
++	 * sending out something.
+ 	 */
+-	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
++	lirc_rx51_stop_tx(lirc_rx51);
+ 
+ 	/* We can sleep again */
+ 	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, -1);
+-- 
+1.7.12
 
-> 
-> >     - Ditto for ioctls that expect a valid tuner configuration like QUERYSTD.
-> 
-> QUERY is a read only ioctl, so it should not be influenced by any ownership, nor
-> imply ownership.
-
-It is definitely influenced by ownership, since if the tuner is in radio mode,
-then it can't detect a standard. Neither is this necessarily a passive call as
-some (mostly older) drivers need to switch the receiver to different modes in
-order to try and detect the current standard.
-
-> >     - Just opening a device node should *not* switch ownership.
-> Ack!
-> 
-> >     But it is not clear what to do when any of these ioctls are called:
-> >
-> >     - G_FREQUENCY: could just return the last set frequency for radio or TV:
-> >       requires that that is remembered when switching ownership. This is what
-> >       happens today, so G_FREQUENCY does not have to switch ownership.
-> 
-> Ack.
-> 
-> >     - G_TUNER: the rxsubchans, signal and afc fields all require ownership of
-> >       the tuner. So in principle you would want to switch ownership when
-> >       G_TUNER is called. On the other hand, that would mean that calling
-> >       v4l2-ctl --all -d /dev/radio0 would change tuner ownership to radio for
-> >       /dev/video0. That's rather unexpected.
-> >
-> >       It is possible to just set rxsubchans, signal and afc to 0 if the device
-> >       node doesn't own the tuner. I'm inclined to do that.
-> 
-> Right, G_TUNER should not change ownership, if the tuner is currently in radio
-> mode and a G_TUNER is done on the video node just 0 out the fields which we cannot
-> fill with useful info.
-> 
-> >     - Should closing a device node switch ownership? E.g. if nobody has a radio
-> >       device open, should the tuner switch back to TV mode automatically? I don't
-> >       think it should.
-> 
-> +1 on delaying the mode switch until it is actually necessary to switch mode.
-> 
-> >     - How about hybrid tuners?
-> 
-> No opinion.
-
-Regards,
-
-	Hans
