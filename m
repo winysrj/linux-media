@@ -1,65 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from isis.lip6.fr ([132.227.60.2]:55586 "EHLO isis.lip6.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752121Ab2HFUBb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Aug 2012 16:01:31 -0400
-Message-ID: <20120806215320.21253wg8t8q1evok@webmail.lip6.fr>
-Date: Mon, 06 Aug 2012 21:53:20 +0200
-From: Julia.Lawall@lip6.fr
-To: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-	Julia Lawall <Julia.Lawall@lip6.fr>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] drivers/media/video/mx2_emmaprp.c: use devm_kzalloc
- and devm_clk_get
-References: <1344104607-18805-1-git-send-email-Julia.Lawall@lip6.fr>
- <20120806142323.GO4352@mwanda> <20120806142650.GT4403@mwanda>
- <501FD69D.7070702@metafoo.de>
-In-Reply-To: <501FD69D.7070702@metafoo.de>
+Received: from eu1sys200aog112.obsmtp.com ([207.126.144.133]:55843 "EHLO
+	eu1sys200aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751813Ab2H3IEX convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Aug 2012 04:04:23 -0400
+From: Nicolas THERY <nicolas.thery@st.com>
+To: "sakari.ailus@iki.fi" <sakari.ailus@iki.fi>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"riverful.kim@samsung.com" <riverful.kim@samsung.com>,
+	"sw0312.kim@samsung.com" <sw0312.kim@samsung.com>,
+	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	Jean-Marc VOLLE <jean-marc.volle@st.com>,
+	Pierre-yves TALOUD <pierre-yves.taloud@st.com>,
+	Willy POISSON <willy.poisson@st.com>,
+	Benjamin GAIGNARD <benjamin.gaignard@st.com>
+Date: Thu, 30 Aug 2012 10:03:55 +0200
+Subject: Re: [PATCH RFC 0/4] V4L2: Vendor specific media bus formats/ frame
+ size control
+Message-ID: <503F1E6B.1000006@st.com>
+References: <1345715489-30158-1-git-send-email-s.nawrocki@samsung.com>
+ <503B96DB.3070403@st.com> <20120829184125.GC5261@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20120829184125.GC5261@valkosipuli.retiisi.org.uk>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=ISO-8859-15;
- DelSp="Yes";
- format="flowed"
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Quoting Lars-Peter Clausen <lars@metafoo.de>:
+Hello,
 
-> On 08/06/2012 04:26 PM, Dan Carpenter wrote:
->> On Mon, Aug 06, 2012 at 05:23:23PM +0300, Dan Carpenter wrote:
->>> On Sat, Aug 04, 2012 at 08:23:27PM +0200, Julia Lawall wrote:
->>>> @@ -922,12 +920,7 @@ static int emmaprp_probe(struct  
->>>> platform_device *pdev)
->>>>
->>>>  	platform_set_drvdata(pdev, pcdev);
->>>>
->>>> -	if (devm_request_mem_region(&pdev->dev, res_emma->start,
->>>> -	    resource_size(res_emma), MEM2MEM_NAME) == NULL)
->>>> -		goto rel_vdev;
->>>> -
->>>> -	pcdev->base_emma = devm_ioremap(&pdev->dev, res_emma->start,
->>>> -					resource_size(res_emma));
->>>> +	pcdev->base_emma = devm_request_and_ioremap(&pdev->dev, res_emma);
->>>>  	if (!pcdev->base_emma)
->>>>  		goto rel_vdev;
->>>
->>> This was in the original code, but there is a "ret = -ENOMEM;"
->>> missing here, and again a couple lines down in the original code.
->>>
->>
->> Or should that be -EIO instead of -ENOMEM?  I'm not sure.
+Thanks for your reply.  It's good to know your proposal is simply on the
+back-burner.
+
+Best regards,
+Nicolas
+
+On 2012-08-29 20:41, sakari.ailus@iki.fi wrote:
+> Hi Nicolas,
 >
-> -ENXIO is usually used in such a case.
-
-Thanks for the feedback.  I won't be able to access my work machine  
-until the end of the week, so I will fix it then.
-
-julia
-
-
-
+> On Mon, Aug 27, 2012 at 05:48:43PM +0200, Nicolas THERY wrote:
+>> Hello,
+>>
+>> On 2012-08-23 11:51, Sylwester Nawrocki wrote:
+>>> This patch series introduces new image source class control - V4L2_CID_FRAMESIZE
+>>> and vendor or device specific media bus format section.
+>>>
+>>> There was already a discussion WRT handling interleaved image data [1].
+>>> I'm not terribly happy with those vendor specific media bus formats but I
+>>> couldn't find better solution that would comply with the V4L2 API concepts
+>>> and would work reliably.
+>> What about Sakari's "Frame format descriptors" RFC[1] that would allow to
+>> describe arbitrary pixel code combinations and provide required information
+>> (virtual channel and data type) to the CSI receiver driver for configuring the
+>> hardware?
+> I we'll need to continue that work as well, unfortunately I've had higher
+> priority things to do. Still, getting that right is complex and will take
+> time. The V4L2 pixel format for this sensor will likely be a
+> hardware-specific one for quite a while: this sensor in question sends
+> several frames in different formats of a single image at once which doesn't
+> match to V4L2's pixel format configuration that assumes a single format.
+>
+> Kind regards,
+>
