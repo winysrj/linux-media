@@ -1,64 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:59586 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751722Ab2HFF21 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 01:28:27 -0400
-Received: by vbbff1 with SMTP id ff1so2242252vbb.19
-        for <linux-media@vger.kernel.org>; Sun, 05 Aug 2012 22:28:27 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CALF0-+UHQ_TdAL-wdRLEjoi33UiFBVMUCZLbaMh9oZ5qsDOA_A@mail.gmail.com>
-References: <1344199202-15744-1-git-send-email-develkernel412222@gmail.com>
-	<CALF0-+UHQ_TdAL-wdRLEjoi33UiFBVMUCZLbaMh9oZ5qsDOA_A@mail.gmail.com>
-Date: Mon, 6 Aug 2012 11:13:26 +0545
-Message-ID: <CA+C2MxStsujUkSd0HPLp-P9As-5cZu__dNw025LA3ynwzxtG6Q@mail.gmail.com>
-Subject: Re: [PATCH] staging: media: cxd2099: remove memcpy of similar
- structure variables
-From: Devendra Naga <develkernel412222@gmail.com>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mta-out.inet.fi ([195.156.147.13]:47169 "EHLO jenni2.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751813Ab2H3Rye (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Aug 2012 13:54:34 -0400
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCHv3 0/9] Fixes in response to review comments
+Date: Thu, 30 Aug 2012 20:54:22 +0300
+Message-Id: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ezequiel,
+These patches fix most of the issues pointed out in the patch review
+by Sean Young and Sakari Ailus.
 
-On Mon, Aug 6, 2012 at 3:36 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
-> Hi Devendra,
->
-> Thanks for the patch,
->
-> On Sun, Aug 5, 2012 at 5:40 PM, Devendra Naga
-> <develkernel412222@gmail.com> wrote:
->> structure variables can be assigned, no memcpy needed,
->> remove the memcpy and use assignment for the cfg and en variables.
->>
->> Tested by Compilation Only
->>
->> Suggested-by: Ezequiel Garcia <elezegarcia@gmail.com>
->
-> I'm not sure this is completely valid or useful.
->
-> If you read Documentation/SubmittingPatches (which you should)
-> you will find references to Acked-by, Reported-by, Tested-by,
-> but not this one.
->
-> You don't need to give me credit for the patch:
-> it's *your* patch, all I did was a very simple suggestion :-)
->
-Ok. I will remove the Suggested-by line and send out the patch again
-with PATCH RESEND subject line.
-Is it ok?
+The most noticeable change after these patch set is that the IR
+transmission no longer times out even if the timers are not waking up
+the MPU as it should be. Now that Jean Pihet kindly instructed me how
+to use the PM QoS API for setting the latency constraints, the driver
+will now work without any background load. Someone might consider such
+restriction a blocker bug, that is fixed on this patch set.
 
-> Plus, there was some discussion called "Kernel Komedians" [1] where
-> some developer expressed their concern on the number of weird signatures
-> that have recently appeared.
->
-> Regards,
-> Ezequiel.
->
-> [1] http://lwn.net/Articles/503829/
+Changes since v2:
 
-I will read out the Documentation and will try to send patches accordingly,
+- The 10us PM QoS latency requrement is documented in the code
 
-Thanks a lot for your help and your time,
+- A missing quote mark is added into the Kconfig text
+
+Changes since v1:
+
+- Replace wake_up_interruptible with wake_up, as the driver is having
+  non-interruptible sleeps
+
+- Instead of just removing the set_max_mpu_wakeup_lat calls, replace
+  them with QoS API calls
+
+Timo Kokkonen (9):
+  ir-rx51: Adjust dependencies
+  ir-rx51: Handle signals properly
+  ir-rx51: Trivial fixes
+  ir-rx51: Clean up timer initialization code
+  ir-rx51: Move platform data checking into probe function
+  ir-rx51: Replace module_{init,exit} macros with
+    module_platform_driver
+  ir-rx51: Convert latency constraints to PM QoS API
+  ir-rx51: Remove useless variable from struct lirc_rx51
+  ir-rx51: Add missing quote mark in Kconfig text
+
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   2 -
+ drivers/media/rc/Kconfig                     |   6 +-
+ drivers/media/rc/ir-rx51.c                   | 102 ++++++++++++++-------------
+ include/media/ir-rx51.h                      |   2 -
+ 4 files changed, 57 insertions(+), 55 deletions(-)
+
+-- 
+1.7.12
+
