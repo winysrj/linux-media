@@ -1,102 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:53369 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755080Ab2HKBUO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Aug 2012 21:20:14 -0400
-Received: by weyx8 with SMTP id x8so1349470wey.19
-        for <linux-media@vger.kernel.org>; Fri, 10 Aug 2012 18:20:12 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <5025B05F.8090809@iki.fi>
-References: <59951342221302@web18g.yandex.ru>
-	<50258758.8050902@redhat.com>
-	<5025A3FD.8020001@iki.fi>
-	<CAHFNz9KA1pHgxyjX5KdKgsy8nWgREkVFTVg38cox1TFNGJVqew@mail.gmail.com>
-	<5025B05F.8090809@iki.fi>
-Date: Sat, 11 Aug 2012 06:50:12 +0530
-Message-ID: <CAHFNz9KRXiMwxL+kMsQAmy9mghW4ZkFrizoG0NKBkEiGJxrDjA@mail.gmail.com>
-Subject: Re: [PATCH] DVB-S2 multistream support
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	CrazyCat <crazycat69@yandex.ru>,
+Received: from eu1sys200aog116.obsmtp.com ([207.126.144.141]:36727 "EHLO
+	eu1sys200aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751975Ab2H3IHE convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Aug 2012 04:07:04 -0400
+From: Nicolas THERY <nicolas.thery@st.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
 	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Manu Abraham <manu@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	"riverful.kim@samsung.com" <riverful.kim@samsung.com>,
+	"sw0312.kim@samsung.com" <sw0312.kim@samsung.com>,
+	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>,
+	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	Jean-Marc VOLLE <jean-marc.volle@st.com>,
+	Pierre-yves TALOUD <pierre-yves.taloud@st.com>,
+	Willy POISSON <willy.poisson@st.com>,
+	Benjamin GAIGNARD <benjamin.gaignard@st.com>
+Date: Thu, 30 Aug 2012 10:06:44 +0200
+Subject: Re: [PATCH RFC 0/4] V4L2: Vendor specific media bus formats/ frame
+ size control
+Message-ID: <503F1F14.9020800@st.com>
+References: <1345715489-30158-1-git-send-email-s.nawrocki@samsung.com>
+ <503B96DB.3070403@st.com> <503E8EDE.5010209@gmail.com>
+In-Reply-To: <503E8EDE.5010209@gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Aug 11, 2012 at 6:37 AM, Antti Palosaari <crope@iki.fi> wrote:
-> On 08/11/2012 03:31 AM, Manu Abraham wrote:
->>
->> On Sat, Aug 11, 2012 at 5:44 AM, Antti Palosaari <crope@iki.fi> wrote:
->>>
->>> On 08/11/2012 01:12 AM, Mauro Carvalho Chehab wrote:
->>>>
->>>>
->>>> Em 13-07-2012 20:15, CrazyCat escreveu:
->>>
->>>
->>>
->>>>>    #define DTV_ISDBS_TS_ID               42
->>>>>
->>>>>    #define DTV_DVBT2_PLP_ID      43
->>>>> +#define DTV_DVBS2_MIS_ID       43
->>>>
->>>>
->>>>
->>>> It would be better to define it as:
->>>>
->>>> #define DTV_DVBS2_MIS_ID        DTV_DVBT2_PLP_ID
->>>>
->>>> Even better, we should instead find a better name that would cover both
->>>> DVB-T2 and DVB-S2 program ID fields, like:
->>>>
->>>> #define DTV_DVB_MULT            43
->>>> #define DTV_DVBT2_PLP_ID        DTV_DVB_MULT
->>>>
->>>> And use the new symbol for both DVB-S2 and DVB-T2, deprecating the
->>>> legacy symbol.
->>>
->>>
->>>
->>> Also DTV_ISDBS_TS_ID means same. All these three DTV_ISDBS_TS_ID,
->>> DTV_DVBT2_PLP_ID and DTV_DVBS2_MIS_ID are same thing - just named
->>> differently between standards. I vote for common name TS ID (I have said
->>> that already enough many times...).
->>
->>
->> I agree, but a still more generic term like STREAM_ID would be more
->> appropriate,
->
->
-> Ack. Since this stream could be something else than MPEG2-TS better to give
-> more generic name.
->
->
->> as it happens at different layers for different delivery
->> systems.DVB-S2 additionally
->> provides BBHEADER at Physical Layer. In any case setting PLP_ID for DVB-S2
->> is completely confusing.
->>
->> Anyway, the demuxer part is also missing ..
->
->
-> Demuxer for MIS? I am not any familiar with MIS but I know there is "raw"
-> demux payload used already for ATSC-M/H. It just passes all the data coming
-> from demod "TS".
+Hello,
 
-Just grabbing and sending the DMA'd data to userspace is not nice.
+Thanks for your reply.  I overlooked this sensor packages multiple streams in a
+single DT.  It seems indeed that Sakari's RFC would not help.
 
-With ATSC-M/H you don't simply have a TS. With an ATSC-M/H capable
-demod, which supports ATSC (standard) outputs a TS. the M/H part is not
-a TS at all.
+Best regards,
 
-Even with ATSC-M/H passing raw data causes all the IP (network) packets to
-be parsed in userspace, which should have been properly done in kernel
-space as a filter. If we were to do everything similarly, then we don't need
-any API at all, just a simple read and let each application do whatever it
-wants.
-
-Regards,
-Manu
+On 2012-08-29 23:51, Sylwester Nawrocki wrote:
+> Hi Nicolas,
+> 
+> On 08/27/2012 05:48 PM, Nicolas THERY wrote:
+>> Hello,
+>>
+>> On 2012-08-23 11:51, Sylwester Nawrocki wrote:
+>>> This patch series introduces new image source class control - V4L2_CID_FRAMESIZE
+>>> and vendor or device specific media bus format section.
+>>>
+>>> There was already a discussion WRT handling interleaved image data [1].
+>>> I'm not terribly happy with those vendor specific media bus formats but I
+>>> couldn't find better solution that would comply with the V4L2 API concepts
+>>> and would work reliably.
+>>
+>> What about Sakari's "Frame format descriptors" RFC[1] that would allow to
+>> describe arbitrary pixel code combinations and provide required information
+>> (virtual channel and data type) to the CSI receiver driver for configuring the
+>> hardware?
+> 
+> Thanks for reminding about this. The "Frame format descriptors" would not
+> necessarily solve the main problem which I tried to address in this RFC.
+> 
+> The sensor in question uses single MIPI-CSI data type frame as a container
+> for multiple data planes, e.g. JPEG compressed stream interleaved with YUV
+> image data, some optional padding and a specific metadata describing the
+> interleaved image data. There is no MIPI-CSI2 virtual channel or data type 
+> interleaving. Everything is transferred on single VC and single DT.
+> 
+> Such a frames need sensor specific S/W algorithm do extract each component.
+> 
+> So it didn't look like the frame descriptors would be helpful here, since
+> all this needs to be mapped to a single fourcc. Not sure if defining a
+> "binary blob" fourcc and retrieving frame format information by some other
+> means would have been a way to go.
+> 
+> I also had some patches adopting design from Sakari's RFC, for the case where
+> in addition to the above frame format there was captured a copy of meta-data,
+> (as in the frame footer) send on separate DT (Embedded Data). And this was
+> mapped to 2-planar V4L2 pixel format. Even then I used a sensor specific
+> media bus code.
+> 
+> In the end of the day I switched to a single-planar format as it had all 
+> what's needed to decode the data. And the were some H/W limitations on using
+> additional DT. 
+> 
+> The frame format descriptors might be worth to work on, but this doesn't 
+> look like a solution to my problem and it is going to take some time to get 
+> it right, as Sakari pointed out.
+> 
+> --
+> 
+> Regards,
+> Sylwester
+> 
