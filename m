@@ -1,54 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:39532 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754894Ab2HFJ4L (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 05:56:11 -0400
-Received: by pbbrr13 with SMTP id rr13so2350020pbb.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 02:56:11 -0700 (PDT)
-From: Hideki EIRAKU <hdk@igel.co.jp>
-To: Russell King <linux@arm.linux.org.uk>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
+Received: from comal.ext.ti.com ([198.47.26.152]:52133 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751092Ab2H3H7P (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Aug 2012 03:59:15 -0400
+From: Prabhakar Lad <prabhakar.lad@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	<linux-kernel@vger.kernel.org>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
-	alsa-devel@alsa-project.org, Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Hideki EIRAKU <hdk@igel.co.jp>
-Subject: [PATCH v3 0/4] Use dma_mmap_coherent to support IOMMU mapper
-Date: Mon,  6 Aug 2012 18:55:20 +0900
-Message-Id: <1344246924-32620-1-git-send-email-hdk@igel.co.jp>
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH v2] media: v4l2-ctrls: add control for dpcm predictor
+Date: Thu, 30 Aug 2012 13:28:16 +0530
+Message-ID: <1346313496-3652-1-git-send-email-prabhakar.lad@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is a dma_mmap_coherent() API in some architectures.  This API
-provides a mmap function for memory allocated by dma_alloc_coherent().
-Some drivers mmap a dma_addr_t returned by dma_alloc_coherent() as a
-physical address.  But such drivers do not work correctly when IOMMU
-mapper is used.
+From: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-v3:
-- Remove an unnecessary line which sets page protection bits.
-v2:
-- Rebase on fbdev-next branch of
-  git://github.com/schandinat/linux-2.6.git.
-- Initialize .fb_mmap in both sh_mobile_lcdc_overlay_ops and
-  sh_mobile_lcdc_ops.
-- Add Laurent's clean up patch.
+add V4L2_CID_DPCM_PREDICTOR control of type menu, which
+determines the dpcm predictor. The predictor can be either
+simple or advanced.
 
-Hideki EIRAKU (3):
-  ARM: dma-mapping: define ARCH_HAS_DMA_MMAP_COHERENT
-  media: videobuf2-dma-contig: use dma_mmap_coherent if available
-  fbdev: sh_mobile_lcdc: use dma_mmap_coherent if available
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+---
+This patches has one checkpatch warning for line over
+80 characters altough it can be avoided I have kept it
+for consistency.
 
-Laurent Pinchart (1):
-  ALSA: pcm - Don't define ARCH_HAS_DMA_MMAP_COHERENT privately for ARM
+Changes for v2: 
+1: Added documentaion in controls.xml pointed by Sylwester.
+2: Chnaged V4L2_DPCM_PREDICTOR_ADVANCE to V4L2_DPCM_PREDICTOR_ADVANCED
+   pointed by Sakari.
 
- arch/arm/include/asm/dma-mapping.h         |    1 +
- drivers/media/video/videobuf2-dma-contig.c |   17 +++++++++++++++++
- drivers/video/sh_mobile_lcdcfb.c           |   28 ++++++++++++++++++++++++++++
- sound/core/pcm_native.c                    |    7 -------
- 4 files changed, 46 insertions(+), 7 deletions(-)
+ Documentation/DocBook/media/v4l/controls.xml |   25 ++++++++++++++++++++++++-
+ drivers/media/v4l2-core/v4l2-ctrls.c         |    9 +++++++++
+ include/linux/videodev2.h                    |    5 +++++
+ 3 files changed, 38 insertions(+), 1 deletions(-)
+
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 93b9c68..84746d0 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -4267,7 +4267,30 @@ interface and may change in the future.</para>
+ 	    pixels / second.
+ 	    </entry>
+ 	  </row>
+-	  <row><entry></entry></row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_DPCM_PREDICTOR</constant></entry>
++	    <entry>menu</entry>
++	  </row>
++	  <row id="v4l2-dpcm-predictor">
++	    <entry spanname="descr"> DPCM Predictor: depicts what type of prediction
++	    is used simple or advanced.
++	    </entry>
++	  </row>
++	  <row>
++	    <entrytbl spanname="descr" cols="2">
++	      <tbody valign="top">
++	        <row>
++	         <entry><constant>V4L2_DPCM_PREDICTOR_SIMPLE</constant></entry>
++	          <entry>Predictor type is simple</entry>
++	        </row>
++	        <row>
++	          <entry><constant>V4L2_DPCM_PREDICTOR_ADVANCED</constant></entry>
++	          <entry>Predictor type is advanced</entry>
++	        </row>
++	      </tbody>
++	    </entrytbl>
++	  </row>
++	<row><entry></entry></row>
+ 	</tbody>
+       </tgroup>
+       </table>
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index b6a2ee7..2d7bc15 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -425,6 +425,11 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"Gray",
+ 		NULL,
+ 	};
++	static const char * const dpcm_predictor[] = {
++		"Simple Predictor",
++		"Advanced Predictor",
++		NULL,
++	};
+ 
+ 	switch (id) {
+ 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+@@ -502,6 +507,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		return mpeg4_profile;
+ 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
+ 		return jpeg_chroma_subsampling;
++	case V4L2_CID_DPCM_PREDICTOR:
++		return dpcm_predictor;
+ 
+ 	default:
+ 		return NULL;
+@@ -732,6 +739,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_IMAGE_PROC_CLASS:		return "Image Processing Controls";
+ 	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
+ 	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
++	case V4L2_CID_DPCM_PREDICTOR:		return "DPCM Predictor";
+ 
+ 	default:
+ 		return NULL;
+@@ -832,6 +840,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_ISO_SENSITIVITY_AUTO:
+ 	case V4L2_CID_EXPOSURE_METERING:
+ 	case V4L2_CID_SCENE_MODE:
++	case V4L2_CID_DPCM_PREDICTOR:
+ 		*type = V4L2_CTRL_TYPE_MENU;
+ 		break;
+ 	case V4L2_CID_LINK_FREQ:
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 6d6dfa7..ca9fb78 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -2000,6 +2000,11 @@ enum v4l2_jpeg_chroma_subsampling {
+ 
+ #define V4L2_CID_LINK_FREQ			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 1)
+ #define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
++#define V4L2_CID_DPCM_PREDICTOR			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 3)
++enum v4l2_dpcm_predictor {
++	V4L2_DPCM_PREDICTOR_SIMPLE	= 0,
++	V4L2_DPCM_PREDICTOR_ADVANCED	= 1,
++};
+ 
+ /*
+  *	T U N I N G
+-- 
+1.7.0.4
 
