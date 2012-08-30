@@ -1,245 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:49295 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759734Ab2HXQSJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 12:18:09 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@linaro.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 03/12] coda: fix IRAM/AXI handling for i.MX53
-Date: Fri, 24 Aug 2012 18:17:49 +0200
-Message-Id: <1345825078-3688-4-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1345825078-3688-1-git-send-email-p.zabel@pengutronix.de>
-References: <1345825078-3688-1-git-send-email-p.zabel@pengutronix.de>
+Received: from newsmtp5.atmel.com ([204.2.163.5]:8988 "EHLO sjogate2.atmel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751594Ab2H3GgO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Aug 2012 02:36:14 -0400
+Message-ID: <503F07ED.6080802@atmel.com>
+Date: Thu, 30 Aug 2012 14:27:57 +0800
+From: Josh Wu <josh.wu@atmel.com>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, nicolas.ferre@atmel.com,
+	mchehab@redhat.com, linux-arm-kernel@lists.infradead.org,
+	nicolas.thery@st.com
+Subject: Re: [PATCH] [media] atmel_isi: allocate memory to store the isi platform
+ data.
+References: <1346235093-28613-1-git-send-email-josh.wu@atmel.com> <503E323A.8060409@samsung.com> <alpine.DEB.2.00.1208291755220.3095@axis700.grange>
+In-Reply-To: <alpine.DEB.2.00.1208291755220.3095@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This uses the genalloc API to allocate a work buffer in the SoC's
-on-chip SRAM and sets up the AXI_SRAM_USE register.
+Hi, all
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/video/Kconfig |    3 ++-
- drivers/media/video/coda.c  |   61 ++++++++++++++++++++++++++++++++++++++++---
- drivers/media/video/coda.h  |   21 ++++++++++++---
- 3 files changed, 76 insertions(+), 9 deletions(-)
+Sorry, My mistake here. After checking the code, this ISI bug doesn't 
+exist in current mainline code. So I will *cancel* this patch.
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 9cebf7b..1c40b1b 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -1181,9 +1181,10 @@ config VIDEO_MEM2MEM_TESTDEV
- 
- config VIDEO_CODA
- 	tristate "Chips&Media Coda multi-standard codec IP"
--	depends on VIDEO_DEV && VIDEO_V4L2
-+	depends on VIDEO_DEV && VIDEO_V4L2 && ARCH_MXC
- 	select VIDEOBUF2_DMA_CONTIG
- 	select V4L2_MEM2MEM_DEV
-+	select IRAM_ALLOC if SOC_IMX53
- 	---help---
- 	   Coda is a range of video codec IPs that supports
- 	   H.264, MPEG-4, and other video formats.
-diff --git a/drivers/media/video/coda.c b/drivers/media/video/coda.c
-index aa12b7b..2e2e8c5 100644
---- a/drivers/media/video/coda.c
-+++ b/drivers/media/video/coda.c
-@@ -14,6 +14,7 @@
- #include <linux/clk.h>
- #include <linux/delay.h>
- #include <linux/firmware.h>
-+#include <linux/genalloc.h>
- #include <linux/interrupt.h>
- #include <linux/io.h>
- #include <linux/irq.h>
-@@ -24,6 +25,7 @@
- #include <linux/videodev2.h>
- #include <linux/of.h>
- 
-+#include <mach/iram.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
-@@ -42,6 +44,7 @@
- #define CODA7_WORK_BUF_SIZE	(512 * 1024 + CODA_FMO_BUF_SIZE * 8 * 1024)
- #define CODA_PARA_BUF_SIZE	(10 * 1024)
- #define CODA_ISRAM_SIZE	(2048 * 2)
-+#define CODA7_IRAM_SIZE		0x14000 /* 81920 bytes */
- 
- #define CODA_OUTPUT_BUFS	4
- #define CODA_CAPTURE_BUFS	2
-@@ -127,6 +130,9 @@ struct coda_dev {
- 
- 	struct coda_aux_buf	codebuf;
- 	struct coda_aux_buf	workbuf;
-+	struct gen_pool		*iram_pool;
-+	long unsigned int	iram_vaddr;
-+	long unsigned int	iram_paddr;
- 
- 	spinlock_t		irqlock;
- 	struct mutex		dev_mutex;
-@@ -715,6 +721,13 @@ static void coda_device_run(void *m2m_priv)
- 	coda_write(dev, pic_stream_buffer_addr, CODA_CMD_ENC_PIC_BB_START);
- 	coda_write(dev, pic_stream_buffer_size / 1024,
- 		   CODA_CMD_ENC_PIC_BB_SIZE);
-+
-+	if (dev->devtype->product == CODA_7541) {
-+		coda_write(dev, CODA7_USE_BIT_ENABLE | CODA7_USE_HOST_BIT_ENABLE |
-+				CODA7_USE_ME_ENABLE | CODA7_USE_HOST_ME_ENABLE,
-+				CODA7_REG_BIT_AXI_SRAM_USE);
-+	}
-+
- 	coda_command_async(ctx, CODA_COMMAND_PIC_RUN);
- }
- 
-@@ -946,8 +959,10 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
- 			CODA7_STREAM_BUF_PIC_RESET, CODA_REG_BIT_STREAM_CTRL);
- 	}
- 
--	/* Configure the coda */
--	coda_write(dev, 0xffff4c00, CODA_REG_BIT_SEARCH_RAM_BASE_ADDR);
-+	if (dev->devtype->product == CODA_DX6) {
-+		/* Configure the coda */
-+		coda_write(dev, dev->iram_paddr, CODADX6_REG_BIT_SEARCH_RAM_BASE_ADDR);
-+	}
- 
- 	/* Could set rotation here if needed */
- 	switch (dev->devtype->product) {
-@@ -1022,7 +1037,12 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
- 		value  = (FMO_SLICE_SAVE_BUF_SIZE << 7);
- 		value |= (0 & CODA_FMOPARAM_TYPE_MASK) << CODA_FMOPARAM_TYPE_OFFSET;
- 		value |=  0 & CODA_FMOPARAM_SLICENUM_MASK;
--		coda_write(dev, value, CODA_CMD_ENC_SEQ_FMO);
-+		if (dev->devtype->product == CODA_DX6) {
-+			coda_write(dev, value, CODADX6_CMD_ENC_SEQ_FMO);
-+		} else {
-+			coda_write(dev, dev->iram_paddr, CODA7_CMD_ENC_SEQ_SEARCH_BASE);
-+			coda_write(dev, 48 * 1024, CODA7_CMD_ENC_SEQ_SEARCH_SIZE);
-+		}
- 	}
- 
- 	if (coda_command_sync(ctx, CODA_COMMAND_SEQ_INIT)) {
-@@ -1052,7 +1072,15 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
- 	}
- 
- 	coda_write(dev, src_vq->num_buffers, CODA_CMD_SET_FRAME_BUF_NUM);
--	coda_write(dev, q_data_src->width, CODA_CMD_SET_FRAME_BUF_STRIDE);
-+	coda_write(dev, round_up(q_data_src->width, 8), CODA_CMD_SET_FRAME_BUF_STRIDE);
-+	if (dev->devtype->product != CODA_DX6) {
-+		coda_write(dev, round_up(q_data_src->width, 8), CODA7_CMD_SET_FRAME_SOURCE_BUF_STRIDE);
-+		coda_write(dev, dev->iram_paddr + 48 * 1024, CODA7_CMD_SET_FRAME_AXI_DBKY_ADDR);
-+		coda_write(dev, dev->iram_paddr + 53 * 1024, CODA7_CMD_SET_FRAME_AXI_DBKC_ADDR);
-+		coda_write(dev, dev->iram_paddr + 58 * 1024, CODA7_CMD_SET_FRAME_AXI_BIT_ADDR);
-+		coda_write(dev, dev->iram_paddr + 68 * 1024, CODA7_CMD_SET_FRAME_AXI_IPACDC_ADDR);
-+		coda_write(dev, 0x0, CODA7_CMD_SET_FRAME_AXI_OVL_ADDR);
-+	}
- 	if (coda_command_sync(ctx, CODA_COMMAND_SET_FRAME_BUF)) {
- 		v4l2_err(v4l2_dev, "CODA_COMMAND_SET_FRAME_BUF timeout\n");
- 		return -ETIMEDOUT;
-@@ -1586,6 +1614,10 @@ static int coda_hw_init(struct coda_dev *dev)
- 		coda_write(dev, CODA7_STREAM_BUF_PIC_FLUSH, CODA_REG_BIT_STREAM_CTRL);
- 	}
- 	coda_write(dev, 0, CODA_REG_BIT_FRAME_MEM_CTRL);
-+
-+	if (dev->devtype->product != CODA_DX6)
-+		coda_write(dev, 0, CODA7_REG_BIT_AXI_SRAM_USE);
-+
- 	coda_write(dev, CODA_INT_INTERRUPT_ENABLE,
- 		      CODA_REG_BIT_INT_ENABLE);
- 
-@@ -1854,6 +1886,25 @@ static int __devinit coda_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 	}
- 
-+	if (dev->devtype->product == CODA_DX6) {
-+		dev->iram_paddr = 0xffff4c00;
-+	} else {
-+		struct device_node *np = pdev->dev.of_node;
-+
-+		dev->iram_pool = of_get_named_gen_pool(np, "iram", 0);
-+		if (!iram_pool) {
-+			dev_err(&pdev->dev, "iram pool not available\n");
-+			return -ENOMEM;
-+		}
-+		dev->iram_vaddr = gen_pool_alloc(dev->iram_pool, CODA7_IRAM_SIZE);
-+		if (!dev->iram_vaddr) {
-+			dev_err(&pdev->dev, "unable to alloc iram\n");
-+			return -ENOMEM;
-+		}
-+		dev->iram_paddr = gen_pool_virt_to_phys(iram_pool,
-+							dev->iram_vaddr);
-+	}
-+
- 	platform_set_drvdata(pdev, dev);
- 
- 	return coda_firmware_request(dev);
-@@ -1869,6 +1920,8 @@ static int coda_remove(struct platform_device *pdev)
- 	if (dev->alloc_ctx)
- 		vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
- 	v4l2_device_unregister(&dev->v4l2_dev);
-+	if (dev->iram_vaddr)
-+		gen_pool_free(dev->iram_pool, dev->iram_vaddr, CODA7_IRAM_SIZE);
- 	if (dev->codebuf.vaddr)
- 		dma_free_coherent(&pdev->dev, dev->codebuf.size,
- 				  &dev->codebuf.vaddr, dev->codebuf.paddr);
-diff --git a/drivers/media/video/coda.h b/drivers/media/video/coda.h
-index 4cf4a04..fffeaf0 100644
---- a/drivers/media/video/coda.h
-+++ b/drivers/media/video/coda.h
-@@ -45,7 +45,12 @@
- #define		CODA_IMAGE_ENDIAN_SELECT	(1 << 0)
- #define CODA_REG_BIT_RD_PTR(x)			(0x120 + 8 * (x))
- #define CODA_REG_BIT_WR_PTR(x)			(0x124 + 8 * (x))
--#define CODA_REG_BIT_SEARCH_RAM_BASE_ADDR	0x140
-+#define CODADX6_REG_BIT_SEARCH_RAM_BASE_ADDR	0x140
-+#define CODA7_REG_BIT_AXI_SRAM_USE		0x140
-+#define		CODA7_USE_BIT_ENABLE		(1 << 0)
-+#define		CODA7_USE_HOST_BIT_ENABLE	(1 << 7)
-+#define		CODA7_USE_ME_ENABLE		(1 << 4)
-+#define		CODA7_USE_HOST_ME_ENABLE	(1 << 11)
- #define CODA_REG_BIT_BUSY			0x160
- #define		CODA_REG_BIT_BUSY_FLAG		1
- #define CODA_REG_BIT_RUN_COMMAND		0x164
-@@ -162,11 +167,13 @@
- #define		CODA_RATECONTROL_ENABLE_MASK			0x01
- #define CODA_CMD_ENC_SEQ_RC_BUF_SIZE				0x1b0
- #define CODA_CMD_ENC_SEQ_INTRA_REFRESH				0x1b4
--#define CODA_CMD_ENC_SEQ_FMO					0x1b8
-+#define CODADX6_CMD_ENC_SEQ_FMO					0x1b8
- #define		CODA_FMOPARAM_TYPE_OFFSET			4
- #define		CODA_FMOPARAM_TYPE_MASK				1
- #define		CODA_FMOPARAM_SLICENUM_OFFSET			0
- #define		CODA_FMOPARAM_SLICENUM_MASK			0x0f
-+#define CODA7_CMD_ENC_SEQ_SEARCH_BASE				0x1b8
-+#define CODA7_CMD_ENC_SEQ_SEARCH_SIZE				0x1bc
- #define CODA_CMD_ENC_SEQ_RC_QP_MAX				0x1c8
- #define		CODA_QPMAX_OFFSET				0
- #define		CODA_QPMAX_MASK					0x3f
-@@ -189,8 +196,14 @@
- #define CODA_RET_ENC_PIC_FLAG		0x1d0
- 
- /* Set Frame Buffer */
--#define CODA_CMD_SET_FRAME_BUF_NUM	0x180
--#define CODA_CMD_SET_FRAME_BUF_STRIDE	0x184
-+#define CODA_CMD_SET_FRAME_BUF_NUM		0x180
-+#define CODA_CMD_SET_FRAME_BUF_STRIDE		0x184
-+#define CODA7_CMD_SET_FRAME_AXI_BIT_ADDR	0x190
-+#define CODA7_CMD_SET_FRAME_AXI_IPACDC_ADDR	0x194
-+#define CODA7_CMD_SET_FRAME_AXI_DBKY_ADDR	0x198
-+#define CODA7_CMD_SET_FRAME_AXI_DBKC_ADDR	0x19c
-+#define CODA7_CMD_SET_FRAME_AXI_OVL_ADDR	0x1a0
-+#define CODA7_CMD_SET_FRAME_SOURCE_BUF_STRIDE	0x1a8
- 
- /* Encoder Header */
- #define CODA_CMD_ENC_HEADER_CODE	0x180
--- 
-1.7.10.4
+Since current mainline will copy this __initdata isi platform data to 
+one static structure in function at91_add_device_isi(...). Then pass 
+this static structure to the driver.
 
+So the ISI driver has no bug that isi platform became invalid. I meet 
+this is because I'm not call the at91_add_device_isi(...) since I try in 
+the DT support board.
+
+At last, even no above bug in the code, This isi_platform_data is still 
+need to stored in ISI driver. Since if we support DT then we need this 
+isi platform data and the function at91_add_device_isi(...) will not to 
+be called (it is in device file).
+
+So I think after soc-camera DT support is merged. Then I will send a DT 
+support patch for ISI driver which will embed the isi_platform_data into 
+atmel_isi.
+
+Thank you all for the replies. That helps a lot even in this small 
+patch.  :)
+
+On 8/30/2012 12:02 AM, Guennadi Liakhovetski wrote:
+> On Wed, 29 Aug 2012, Sylwester Nawrocki wrote:
+>
+>> Hi,
+>>
+>> On 08/29/2012 12:11 PM, Josh Wu wrote:
+>>> This patch fix the bug: ISI driver's platform data became invalid
+>>> when isi platform data's attribution is __initdata.
+>>>
+>>> If the isi platform data is passed as __initdata. Then we need store
+>>> it in driver allocated memory. otherwise when we use it out of the
+>>> probe() function, then the isi platform data is invalid.
+>>>
+>>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+>>> ---
+>>>   drivers/media/platform/soc_camera/atmel-isi.c |   12 +++++++++++-
+>>>   1 file changed, 11 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+>>> index ec3f6a0..dc0fdec 100644
+>>> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+>>> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+>>> @@ -926,6 +926,7 @@ static int __devexit atmel_isi_remove(struct platform_device *pdev)
+>>>   	clk_put(isi->mck);
+>>>   	clk_unprepare(isi->pclk);
+>>>   	clk_put(isi->pclk);
+>>> +	kfree(isi->pdata);
+>>>   	kfree(isi);
+>>>   
+>>>   	return 0;
+>>> @@ -968,8 +969,15 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
+>>>   		goto err_alloc_isi;
+>>>   	}
+>>>   
+>>> +	isi->pdata = kzalloc(sizeof(struct isi_platform_data), GFP_KERNEL);
+>>> +	if (!isi->pdata) {
+>>> +		ret = -ENOMEM;
+>>> +		dev_err(&pdev->dev, "Can't allocate isi platform data!\n");
+>>> +		goto err_alloc_isi_pdata;
+>>> +	}
+>>> +	memcpy(isi->pdata, pdata, sizeof(struct isi_platform_data));
+>>> +
+>> Why not just embed struct isi_platform_data in struct atmel_isi and drop this
+>> another kzalloc() ?
+>> Then you could simply do isi->pdata = *pdata.
+>>
+>> Also, is this going to work when this driver is build and as a module
+>> and its loading is deferred past system booting ? At that time the driver's
+>> platform data may be well discarded.
+> Right, it will be gone, I think.
+>
+>> You may wan't to duplicate it on the
+>> running boards in board code with kmemdup() or something.
+> How about removing __initdata from board code?
+>
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Best Regards,
+Josh Wu
