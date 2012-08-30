@@ -1,47 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:14205 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752394Ab2HNJyz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 05:54:55 -0400
-Message-ID: <502A2057.3000401@redhat.com>
-Date: Tue, 14 Aug 2012 06:54:31 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from moutng.kundenserver.de ([212.227.17.8]:64350 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752010Ab2H3U6b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Aug 2012 16:58:31 -0400
+Date: Thu, 30 Aug 2012 22:58:17 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+cc: Nicolas THERY <nicolas.thery@st.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	devicetree-discuss <devicetree-discuss@lists.ozlabs.org>,
+	"linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Benjamin GAIGNARD <benjamin.gaignard@st.com>,
+	Willy POISSON <willy.poisson@st.com>,
+	Jean-Marc VOLLE <jean-marc.volle@st.com>,
+	Pierre-yves TALOUD <pierre-yves.taloud@st.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: V4L DT @ plumbers (was Re: [RFC v4] V4L DT bindings)
+In-Reply-To: <503FCB37.5080706@gmail.com>
+Message-ID: <alpine.DEB.2.00.1208302255210.4516@axis700.grange>
+References: <Pine.LNX.4.64.1208242356051.20710@axis700.grange> <503F8471.5000406@st.com> <503FCB37.5080706@gmail.com>
 MIME-Version: 1.0
-To: Julia Lawall <julia.lawall@lip6.fr>
-CC: Lars-Peter Clausen <lars@metafoo.de>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] drivers/media/video/mx2_emmaprp.c: use devm_kzalloc and
- devm_clk_get
-References: <1344104607-18805-1-git-send-email-Julia.Lawall@lip6.fr> <20120806142323.GO4352@mwanda> <20120806142650.GT4403@mwanda> <501FD69D.7070702@metafoo.de> <alpine.DEB.2.02.1208101558100.2011@hadrien> <50295A43.30305@redhat.com> <alpine.DEB.2.02.1208132219060.2355@localhost6.localdomain6> <5029AC92.2060408@redhat.com> <alpine.DEB.2.02.1208140819400.1973@localhost6.localdomain6>
-In-Reply-To: <alpine.DEB.2.02.1208140819400.1973@localhost6.localdomain6>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 14-08-2012 03:30, Julia Lawall escreveu:
->> Well, I've massively applied hundreds of patches today, but not much
->> on this driver. Maybe it is better for you to wait for a couple of
->> days for these to be at -next, or use, instead, our tree as the basis for
->> it:
->>     git://linuxtv.org/media_tree.git staging/for_v3.7
-> 
-> I cloned this, but it doesn't seem to contain the file:
-> 
->> :~: cd staging/for_v3.7/
+Hi all
 
-staging/for_v3.7 is the name of the branch ;)
+Do we still want to try to organise a short discussion of this while at 
+plumbers? Maybe tomorrow during or around lunch? Or any other time for 
+that matter?
 
-So, you need to use "--branch staging/for_v3.7" on your git
-clone command.
-
->> :for_v3.7: ls drivers/media/video/mx2_emmaprp.c
-> ls: cannot access drivers/media/video/mx2_emmaprp.c: No such file or directory
-
-PS.: I started yesterday to apply a major reorganization of the drivers
-along drivers/media/. This driver is still there at the same path, but it
-will be moving soon to another place.
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
