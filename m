@@ -1,73 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:51490 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754172Ab2HXNkw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Aug 2012 09:40:52 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: 'Federico Vaga' <federico.vaga@gmail.com>
-Cc: 'Mauro Carvalho Chehab' <mchehab@infradead.org>,
-	'Pawel Osciak' <pawel@osciak.com>,
-	'Hans Verkuil' <hans.verkuil@cisco.com>,
-	'Giancarlo Asnaghi' <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	'Jonathan Corbet' <corbet@lwn.net>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-References: <1343765829-6006-1-git-send-email-federico.vaga@gmail.com>
- <1343765829-6006-3-git-send-email-federico.vaga@gmail.com>
- <02f301cd7eaa$4fa7a7a0$eef6f6e0$%szyprowski@samsung.com>
- <1417436.RHVOLNlTxk@harkonnen>
-In-reply-to: <1417436.RHVOLNlTxk@harkonnen>
-Subject: RE: [PATCH 2/3] [media] videobuf2-dma-streaming: new videobuf2 memory
- allocator
-Date: Fri, 24 Aug 2012 15:40:38 +0200
-Message-id: <027701cd81fe$0ed356a0$2c7a03e0$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from mta-out.inet.fi ([195.156.147.13]:47182 "EHLO jenni2.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752552Ab2H3Ryf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Aug 2012 13:54:35 -0400
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCHv3 7/9] ir-rx51: Convert latency constraints to PM QoS API
+Date: Thu, 30 Aug 2012 20:54:29 +0300
+Message-Id: <1346349271-28073-8-git-send-email-timo.t.kokkonen@iki.fi>
+In-Reply-To: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
+References: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Convert the driver from the obsolete omap_pm_set_max_mpu_wakeup_lat
+API to the new PM QoS API. This allows the callback to be removed from
+the platform data structure.
 
-On Friday, August 24, 2012 3:23 PM Federico Vaga wrote:
+The latency requirements are also adjusted to prevent the MPU from
+going into sleep mode. This is needed as the GP timers have no means
+to wake up the MPU once it has gone into sleep. The "side effect" is
+that from now on the driver actually works even if there is no
+background load keeping the MPU awake.
 
-> > Getting back to your patch - in your approach cpu cache handling is
-> > missing. I suspect that it worked fine only because it has been
-> > tested on some simple platform without any cpu caches (or with very
-> > small ones).
-> 
-> Is missing from the memory allocator because I do it on the device
-> driver. The current operations don't allow me to do that in the memory
-> allocator.
+Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Acked-by: Tony Lindgren <tony@atomide.com>
+Acked-by: Jean Pihet <j-pihet@ti.com>
+---
+ arch/arm/mach-omap2/board-rx51-peripherals.c |  2 --
+ drivers/media/rc/ir-rx51.c                   | 17 ++++++++++++-----
+ include/media/ir-rx51.h                      |  2 --
+ 3 files changed, 12 insertions(+), 9 deletions(-)
 
-Memory allocator module is much more appropriate place for it. dma-sg
-allocator also needs a huge cleanup in this area...
-
-> > Please check the following thread:
-> > http://www.spinics.net/lists/linux-media/msg51768.html where Tomasz
-> > has posted his ongoing effort on updating and extending videobuf2 and
-> > dma-contig allocator. Especially the patch
-> > http://www.spinics.net/lists/linux-media/msg51776.html will be
-> > interesting for you, because cpu cache synchronization
-> > (dma_sync_single_for_device / dma_sync_single_for_cpu) should be
-> > called from prepare/finish callbacks.
-> 
-> You are right, it is interesting because avoid me to use cache sync in
-> my driver. Can I work on these patches?
-> 
-> From this page I understand that these patches are not approved yet
-> https://patchwork.kernel.org/project/linux-media/list/?page=2
-
-You can take the patch which adds prepare/finish methods to memory
-allocators. It should not have any dependency on the other stuff from
-that thread. I'm fine with merging it either together with Your patch
-or via Tomasz's patchset, whatever comes first.
-
-Best regards
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index ca07264..e0750cb 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -34,7 +34,6 @@
+ #include <plat/gpmc.h>
+ #include <plat/onenand.h>
+ #include <plat/gpmc-smc91x.h>
+-#include <plat/omap-pm.h>
+ 
+ #include <mach/board-rx51.h>
+ 
+@@ -1227,7 +1226,6 @@ static void __init rx51_init_tsc2005(void)
+ 
+ #if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
+ static struct lirc_rx51_platform_data rx51_lirc_data = {
+-	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
+ 	.pwm_timer = 9, /* Use GPT 9 for CIR */
+ };
+ 
+diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+index 6e1ffa6..96ed23d 100644
+--- a/drivers/media/rc/ir-rx51.c
++++ b/drivers/media/rc/ir-rx51.c
+@@ -25,6 +25,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/sched.h>
+ #include <linux/wait.h>
++#include <linux/pm_qos.h>
+ 
+ #include <plat/dmtimer.h>
+ #include <plat/clock.h>
+@@ -49,6 +50,7 @@ struct lirc_rx51 {
+ 	struct omap_dm_timer *pulse_timer;
+ 	struct device	     *dev;
+ 	struct lirc_rx51_platform_data *pdata;
++	struct pm_qos_request	pm_qos_request;
+ 	wait_queue_head_t     wqueue;
+ 
+ 	unsigned long	fclk_khz;
+@@ -268,10 +270,16 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+ 		lirc_rx51->wbuf[count] = -1; /* Insert termination mark */
+ 
+ 	/*
+-	 * Adjust latency requirements so the device doesn't go in too
+-	 * deep sleep states
++	 * If the MPU is going into too deep sleep state while we are
++	 * transmitting the IR code, timers will not be able to wake
++	 * up the MPU. Thus, we need to set a strict enough latency
++	 * requirement in order to ensure the interrupts come though
++	 * properly. The 10us latency requirement is low enough to
++	 * keep MPU from sleeping and thus ensures the interrupts are
++	 * getting through properly.
+ 	 */
+-	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, 50);
++	pm_qos_add_request(&lirc_rx51->pm_qos_request,
++			PM_QOS_CPU_DMA_LATENCY,	10);
+ 
+ 	lirc_rx51_on(lirc_rx51);
+ 	lirc_rx51->wbuf_index = 1;
+@@ -292,8 +300,7 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+ 	 */
+ 	lirc_rx51_stop_tx(lirc_rx51);
+ 
+-	/* We can sleep again */
+-	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, -1);
++	pm_qos_remove_request(&lirc_rx51->pm_qos_request);
+ 
+ 	return n;
+ }
+diff --git a/include/media/ir-rx51.h b/include/media/ir-rx51.h
+index 104aa89..57523f2 100644
+--- a/include/media/ir-rx51.h
++++ b/include/media/ir-rx51.h
+@@ -3,8 +3,6 @@
+ 
+ struct lirc_rx51_platform_data {
+ 	int pwm_timer;
+-
+-	int(*set_max_mpu_wakeup_lat)(struct device *dev, long t);
+ };
+ 
+ #endif
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
+1.7.12
 
