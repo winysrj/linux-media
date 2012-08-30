@@ -1,59 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:52727 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932526Ab2HGCsA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 22:48:00 -0400
-Received: by mail-vc0-f174.google.com with SMTP id fk26so3432709vcb.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 19:47:59 -0700 (PDT)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH 13/24] au0828: fix case where STREAMOFF being called on stopped stream causes BUG()
-Date: Mon,  6 Aug 2012 22:47:03 -0400
-Message-Id: <1344307634-11673-14-git-send-email-dheitmueller@kernellabs.com>
-In-Reply-To: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
-References: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36547 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753617Ab2H3Ry4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Aug 2012 13:54:56 -0400
+Message-ID: <503FA8EC.8030309@iki.fi>
+Date: Thu, 30 Aug 2012 20:54:52 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Prabhakar Lad <prabhakar.lad@ti.com>,
+	LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-kernel@vger.kernel.org,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH v2] media: v4l2-ctrls: add control for dpcm predictor
+References: <1346313496-3652-1-git-send-email-prabhakar.lad@ti.com> <201208300757.44775.hverkuil@xs4all.nl>
+In-Reply-To: <201208300757.44775.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We weren't checking whether the resource was in use before calling res_free(),
-so applications which called STREAMOFF on a v4l2 device that wasn't already
-streaming would cause a BUG() to be hit (MythTV).
+Hi Hans and Prabhakar,
 
-Reported-by: Larry Finger <larry.finger@lwfinger.net>
-Reported-by: Jay Harbeston <jharbestonus@gmail.com>
-Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
----
- drivers/media/video/au0828/au0828-video.c |   12 ++++++++----
- 1 files changed, 8 insertions(+), 4 deletions(-)
+Hans Verkuil wrote:
+> Hi Prabhakar!
+>
+> I've got some documentation review comments below...
+>
+> On Thu August 30 2012 00:58:16 Prabhakar Lad wrote:
+>> From: Lad, Prabhakar <prabhakar.lad@ti.com>
+>>
+>> add V4L2_CID_DPCM_PREDICTOR control of type menu, which
+>> determines the dpcm predictor. The predictor can be either
+>> simple or advanced.
+>>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+>> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+>> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+>> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> Cc: Hans de Goede <hdegoede@redhat.com>
+>> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+>> ---
+>> This patches has one checkpatch warning for line over
+>> 80 characters altough it can be avoided I have kept it
+>> for consistency.
+>>
+>> Changes for v2:
+>> 1: Added documentaion in controls.xml pointed by Sylwester.
+>> 2: Chnaged V4L2_DPCM_PREDICTOR_ADVANCE to V4L2_DPCM_PREDICTOR_ADVANCED
+>>     pointed by Sakari.
+>>
+>>   Documentation/DocBook/media/v4l/controls.xml |   25 ++++++++++++++++++++++++-
+>>   drivers/media/v4l2-core/v4l2-ctrls.c         |    9 +++++++++
+>>   include/linux/videodev2.h                    |    5 +++++
+>>   3 files changed, 38 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+>> index 93b9c68..84746d0 100644
+>> --- a/Documentation/DocBook/media/v4l/controls.xml
+>> +++ b/Documentation/DocBook/media/v4l/controls.xml
+>> @@ -4267,7 +4267,30 @@ interface and may change in the future.</para>
+>>   	    pixels / second.
+>>   	    </entry>
+>>   	  </row>
+>> -	  <row><entry></entry></row>
+>> +	  <row>
+>> +	    <entry spanname="id"><constant>V4L2_CID_DPCM_PREDICTOR</constant></entry>
+>> +	    <entry>menu</entry>
+>> +	  </row>
+>> +	  <row id="v4l2-dpcm-predictor">
+>> +	    <entry spanname="descr"> DPCM Predictor: depicts what type of prediction
+>> +	    is used simple or advanced.
+>
+> This is not useful information. It basically just rephrases the name of the
+> define without actually telling me anything.
+>
+> I would expect to see here at least the following:
+>
+> - what the DPCM abbreviation stands for
+> - a link or bibliography reference to the relevant standard (if there is any)
 
-diff --git a/drivers/media/video/au0828/au0828-video.c b/drivers/media/video/au0828/au0828-video.c
-index df92322..4d5b670 100644
---- a/drivers/media/video/au0828/au0828-video.c
-+++ b/drivers/media/video/au0828/au0828-video.c
-@@ -1702,14 +1702,18 @@ static int vidioc_streamoff(struct file *file, void *priv,
- 			(AUVI_INPUT(i).audio_setup)(dev, 0);
- 		}
- 
--		videobuf_streamoff(&fh->vb_vidq);
--		res_free(fh, AU0828_RESOURCE_VIDEO);
-+		if (res_check(fh, AU0828_RESOURCE_VIDEO)) {
-+			videobuf_streamoff(&fh->vb_vidq);
-+			res_free(fh, AU0828_RESOURCE_VIDEO);
-+		}
- 	} else if (fh->type == V4L2_BUF_TYPE_VBI_CAPTURE) {
- 		dev->vbi_timeout_running = 0;
- 		del_timer_sync(&dev->vbi_timeout);
- 
--		videobuf_streamoff(&fh->vb_vbiq);
--		res_free(fh, AU0828_RESOURCE_VBI);
-+		if (res_check(fh, AU0828_RESOURCE_VBI)) {
-+			videobuf_streamoff(&fh->vb_vbiq);
-+			res_free(fh, AU0828_RESOURCE_VBI);
-+		}
- 	}
- 
- 	return 0;
+There's a Wikipedia article:
+
+<URL:http://en.wikipedia.org/wiki/Differential_pulse-code_modulation>
+
+It's the same DPCM encoding as in many of the compressed raw bayer formats.
+
+> - a high-level explanation of what this do and what the difference is between
+>   simple and advanced.
+
+That's somewhat subjective and hardware dependent. If I understand this 
+correctly, the "advanced" should differ only quality-wise from "simple" 
+option. Why one would use "simple" instead of "advanced" then? Perhaps 
+mostly for testing purposes; it might be that the advanced predictor 
+could have issues in certain cases where the simple would not. However 
+this isn't the only piece of hardware where I see that this is 
+configurable, and the simple one was even the default.
+
+> If this is part of a video compression standard, then this control would probably
+> belong to the MPEG control class as well.
+
+It's not --- DPCM compression is typically used on the bus between the 
+sensor and the receiver to compress the data as the bus is often a 
+limiting factor in the transfer rate. DPCM compression can be used to 
+squeeze the data from 10 to 8 bits without much loss in quality or 
+dynamic range.
+
+Cheers,
+
 -- 
-1.7.1
+Sakari Ailus
+sakari.ailus@iki.fi
 
