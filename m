@@ -1,137 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46960 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752578Ab2HNPQm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Aug 2012 11:16:42 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	Silvester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: Re: Patches submitted via linux-media ML that are at patchwork.linuxtv.org
-Date: Tue, 14 Aug 2012 17:16:56 +0200
-Message-ID: <1648356.GPjgaBcQZf@avalon>
-In-Reply-To: <502A4CD1.1020108@redhat.com>
-References: <502A4CD1.1020108@redhat.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Received: from mta-out.inet.fi ([195.156.147.13]:47177 "EHLO jenni2.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752470Ab2H3Rye (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Aug 2012 13:54:34 -0400
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCHv3 4/9] ir-rx51: Clean up timer initialization code
+Date: Thu, 30 Aug 2012 20:54:26 +0300
+Message-Id: <1346349271-28073-5-git-send-email-timo.t.kokkonen@iki.fi>
+In-Reply-To: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
+References: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Remove a redundant macro definition. This is unneeded and becomes more
+readable once the actual timer code is refactored a little.
 
-On Tuesday 14 August 2012 10:04:17 Mauro Carvalho Chehab wrote:
-> In order to help people to know about the status of the pending patches,
-> I'm summing-up the patches pending for merge on this email.
-> 
-> If is there any patch missing, please check if it is at patchwork
-> before asking what happened:
-> 	http://patchwork.linuxtv.org/project/linux-media/list/?state=*
-> 
-> If patchwork didn't pick, then the emailer likely line-wrapped or
-> corrupted the patch.
-> 
-> As announced, patchwork is now generating status change emails. So,
-> those that didn't decide to opt-out emails there will receive
-> notifications every time a patch is reviewed. Unfortunately,
-> patchwork doesn't send emails is when a patch is stored there.
-> 
-> For the ones explicitly copied on this email, I kindly ask you to update
-> me about the review status of the patches below.
-> 
-> In special, on my track list, there are three patches from 2011 still
-> not reviewed. Driver maintainers: I kindly ask you to be more active on
-> patch reviewing, not holding any patch for long periods like that,
-> and sending pull request more often. You should only be holding patches
-> if you have very strong reasons why this is required.
-> 
-> A final note: patches from driver maintainers with git trees are generally
-> just marked as RFC. Well, I still applied several of them, when they're
-> trivial enough and they're seem to be addressing a real bug - helping
-> myself to not need to re-review them later.
-> 
-> I really expect people to add more "RFC" on patches. We're having a net
-> commit rate of about 500-600 patches per merge window, and perhaps 3 or 4
-> times more patches at the ML that are just part of some discussions and
-> aren't yet on their final version. It doesn't scale if I need to review
-> ~3000 patches per merge window, as that would mean reviewing 75 patches per
-> working day. Unfortunately, linux-media patch reviewing is not my full-time
-> job. So, please help me marking those under-discussion patches as RFC, in
-> order to allow me to focus on the 600 ones that will actually be merged.
->
-> Thank you!
-> Mauro
-> 
-> 
-> Number of pending patches per reviewer (excluding the newer ones):
->   Guennadi Liakhovetski <g.liakhovetski@gmx.de>                         : 17
-> Manu Abraham <abraham.manu@gmail.com>                                 : 11
-> Silvester Nawrocki <sylvester.nawrocki@gmail.com>                     : 11
-> Laurent Pinchart <laurent.pinchart@ideasonboard.com>                  : 3
-> Jonathan Corbet <corbet@lwn.net>                                      : 2
-> David Härdeman <david@hardeman.nu>                                    : 1
-> Prabhakar Lad <prabhakar.lad@ti.com>                                  : 1
-> 
-> 
-> 		== Patches waiting for some action ==
+Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+---
+ drivers/media/rc/ir-rx51.c | 11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-[snip]
-
-> This one requires more testing:
-> 
-> May,15 2012: [GIT,PULL,FOR,3.5] DMABUF importer feature in V4L2 API         
->        http://patchwork.linuxtv.org/patch/11268
->        Sylwester Nawrocki <s.nawrocki@samsung.com>
-
-What is needed here, can I help with testing ?
-
-[snip]
-
-> 		== Guennadi Liakhovetski <g.liakhovetski@gmx.de> ==
-> 
-> Aug, 2 2012: [v3] mt9v022: Add support for mt9v024                          
->        http://patchwork.linuxtv.org/patch/13582
->        Alex Gershgorin <alexg@meprolight.com>
-> Aug, 6 2012: [1/1] media: mx3_camera: Improve data bus width check code for
-> probe
->		http://patchwork.linuxtv.org/patch/13618
->		Liu Ying <Ying.liu@freescale.com>
-> Aug, 9 2012: [1/1, v2] media/video: vpif: fixing function name start to
-> vpif_config
->		http://patchwork.linuxtv.org/patch/13689
->		Dror Cohen <dror@liveu.tv>
-
-I think this one has been misclassified. v1 was correctly attributed to 
-Prabhakar Lad <prabhakar.lad@ti.com>
-
-[snip]
-
-> 		== Laurent Pinchart <laurent.pinchart@ideasonboard.com> ==
-> 
-> Sep,27 2011: [v2,1/5] omap3evm: Enable regulators for camera interface
->        http://patchwork.linuxtv.org/patch/7969
->        Vaibhav Hiremath <hvaibhav@ti.com>
-
-I'm fine with that one, shouldn't it go through the arm tree ?
-
-> Jul,26 2012: [1/2,media] omap3isp: implement ENUM_FMT
->		http://patchwork.linuxtv.org/patch/13492
->		Michael Jones <michael.jones@matrix-vision.de>
-> Jul,26 2012: [2/2,media] omap3isp: support G_FMT
->		http://patchwork.linuxtv.org/patch/13493
->		Michael Jones <michael.jones@matrix-vision.de>
-
-A proper solution for this will first require CREATE_BUFS/PREPARE_BUF support 
-in the OMAP3 ISP driver (and a move to videobuf2).
-
+diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+index 125d4c3..f22e5e4 100644
+--- a/drivers/media/rc/ir-rx51.c
++++ b/drivers/media/rc/ir-rx51.c
+@@ -105,11 +105,9 @@ static int init_timing_params(struct lirc_rx51 *lirc_rx51)
+ 	return 0;
+ }
+ 
+-#define tics_after(a, b) ((long)(b) - (long)(a) < 0)
+-
+ static int pulse_timer_set_timeout(struct lirc_rx51 *lirc_rx51, int usec)
+ {
+-	int counter;
++	int counter, counter_now;
+ 
+ 	BUG_ON(usec < 0);
+ 
+@@ -122,11 +120,8 @@ static int pulse_timer_set_timeout(struct lirc_rx51 *lirc_rx51, int usec)
+ 	omap_dm_timer_set_match(lirc_rx51->pulse_timer, 1, counter);
+ 	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer,
+ 				     OMAP_TIMER_INT_MATCH);
+-	if (tics_after(omap_dm_timer_read_counter(lirc_rx51->pulse_timer),
+-		       counter)) {
+-		return 1;
+-	}
+-	return 0;
++	counter_now = omap_dm_timer_read_counter(lirc_rx51->pulse_timer);
++	return (counter - counter_now) < 0;
+ }
+ 
+ static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.12
 
