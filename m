@@ -1,33 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:49705 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750698Ab2HBMtA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2012 08:49:00 -0400
-Received: by eeil10 with SMTP id l10so2367052eei.19
-        for <linux-media@vger.kernel.org>; Thu, 02 Aug 2012 05:48:59 -0700 (PDT)
-Message-ID: <1343911731.4113.5.camel@edge>
-Subject: s5p-fimc capturing interlaced BT656
-From: Mike Dyer <mike.dyer@md-soft.co.uk>
-To: linux-media@vger.kernel.org
-Date: Thu, 02 Aug 2012 13:48:51 +0100
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from moutng.kundenserver.de ([212.227.17.8]:57322 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751154Ab2H3Wjs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Aug 2012 18:39:48 -0400
+Date: Fri, 31 Aug 2012 00:39:33 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Nicolas THERY <nicolas.thery@st.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	devicetree-discuss <devicetree-discuss@lists.ozlabs.org>,
+	"linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Benjamin GAIGNARD <benjamin.gaignard@st.com>,
+	Willy POISSON <willy.poisson@st.com>,
+	Jean-Marc VOLLE <jean-marc.volle@st.com>,
+	Pierre-yves TALOUD <pierre-yves.taloud@st.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: V4L DT @ plumbers (was Re: [RFC v4] V4L DT bindings)
+In-Reply-To: <3661005.Emfz1E6cRV@avalon>
+Message-ID: <alpine.DEB.2.00.1208310037040.5960@axis700.grange>
+References: <Pine.LNX.4.64.1208242356051.20710@axis700.grange> <503FCB37.5080706@gmail.com> <alpine.DEB.2.00.1208302255210.4516@axis700.grange> <3661005.Emfz1E6cRV@avalon>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+On Fri, 31 Aug 2012, Laurent Pinchart wrote:
 
-I'm using the S5PV210 camera IF and capturing BT656 video from a TVP5150
-video decoder.
+> Hi Guennadi,
+> 
+> On Thursday 30 August 2012 22:58:17 Guennadi Liakhovetski wrote:
+> > Hi all
+> > 
+> > Do we still want to try to organise a short discussion of this while at
+> > plumbers? Maybe tomorrow during or around lunch? Or any other time for
+> > that matter?
+> 
+> I'm certainly interested. I have a meeting tomorrow at a still unknown type, 
+> apart from that I'm free.
 
-I notice that the capture driver ignores the field interlace flags
-reported by the 'sensor' and always uses 'V4L2_FIELD_NONE'.  It also
-seems each field ends up in it's own frame, using only half the height.
+How about beginning tomorrow at 11:55 (Nautilus 3 & 4 are still free 
+according to the schedule) and then continuing after the lunch for another 
+hour if needed (first talk in the afternoon tomorrow is at 14:10).
 
-What would need to be done to store both fields in a single frame, for
-example in a V4L2_FIELD_INTERLACE_TB/BT format? 
-
-Cheers,
-Mike
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
