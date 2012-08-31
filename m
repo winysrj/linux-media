@@ -1,62 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48598 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753933Ab2HALe5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2012 07:34:57 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: =?ISO-8859-1?Q?R=E9mi?= Denis-Courmont <remi@remlab.net>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de
-Subject: Re: [PATCHv2 3/9] v4l: add buffer exporting via dmabuf
-Date: Wed, 01 Aug 2012 13:35:03 +0200
-Message-ID: <1390726.ZQ58TDe5fq@avalon>
-In-Reply-To: <60c9f6aa1a35c476f6d3493aa24438ad@chewa.net>
-References: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com> <1376487.cHbjGZJEZg@avalon> <60c9f6aa1a35c476f6d3493aa24438ad@chewa.net>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:37029 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751458Ab2HaIL2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Aug 2012 04:11:28 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 13/16] ARM i.MX5: Fix CODA7 clock lookup for device tree on i.MX51 and i.MX53
+Date: Fri, 31 Aug 2012 10:11:07 +0200
+Message-Id: <1346400670-16002-14-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
+References: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rémi,
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ arch/arm/mach-imx/clk-imx51-imx53.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-On Wednesday 01 August 2012 10:37:02 Rémi Denis-Courmont wrote:
-> On Tue, 31 Jul 2012 23:52:35 +0200, Laurent Pinchart wrote:
-> >> I want to receive the video buffers in user space for processing.
-> >> Typically "processing" is software encoding or conversion. That's what
-> >> virtually any V4L application does on the desktop...
-> > 
-> > But what prevents you from using MMAP ?
-> 
-> As I wrote several times earlier, MMAP uses fixed number of buffers. In
-> some tightly controlled media pipeline with low latency, it might work.
-
-Sorry about making you repeat.
-
-> But in general, the V4L element in the pipeline does not know how fast the
-> downstream element(s) will consume the buffers. Thus it has to copy from
-> the MMAP buffers into anonymous user memory pending processing. Then any
-> dequeued buffer can be requeued as soon as possible. In theory, it might
-> also be that, even though the latency is known, the number of required
-> buffers exceeds the maximum MMAP buffers count of the V4L device. Either
-> way, user space ends up doing memory copy from MMAP to custom buffers.
-> 
-> This problem does not exist with USERBUF - the V4L2 element can simply
-> allocate a new buffer for each dequeued buffer.
-
-What about using the CREATE_BUFS ioctl to add new MMAP buffers at runtime ?
-
-> By the way, this was already discussed a few months ago for the exact same
-> DMABUF patch series...
-
+diff --git a/arch/arm/mach-imx/clk-imx51-imx53.c b/arch/arm/mach-imx/clk-imx51-imx53.c
+index 4bdcaa9..64f9ceb 100644
+--- a/arch/arm/mach-imx/clk-imx51-imx53.c
++++ b/arch/arm/mach-imx/clk-imx51-imx53.c
+@@ -345,7 +345,7 @@ int __init mx51_clocks_init(unsigned long rate_ckil, unsigned long rate_osc,
+ 
+ 	clk_register_clkdev(clk[hsi2c_gate], NULL, "imx-i2c.2");
+ 	clk_register_clkdev(clk[mx51_mipi], "mipi_hsp", NULL);
+-	clk_register_clkdev(clk[vpu_gate], NULL, "imx51-vpu.0");
++	clk_register_clkdev(clk[vpu_gate], NULL, "83ff4000.vpu");
+ 	clk_register_clkdev(clk[fec_gate], NULL, "imx27-fec.0");
+ 	clk_register_clkdev(clk[ipu_gate], "bus", "imx51-ipu");
+ 	clk_register_clkdev(clk[ipu_di0_gate], "di0", "imx51-ipu");
+@@ -432,7 +432,7 @@ int __init mx53_clocks_init(unsigned long rate_ckil, unsigned long rate_osc,
+ 
+ 	mx5_clocks_common_init(rate_ckil, rate_osc, rate_ckih1, rate_ckih2);
+ 
+-	clk_register_clkdev(clk[vpu_gate], NULL, "imx53-vpu.0");
++	clk_register_clkdev(clk[vpu_gate], NULL, "63ff4000.vpu");
+ 	clk_register_clkdev(clk[i2c3_gate], NULL, "imx-i2c.2");
+ 	clk_register_clkdev(clk[fec_gate], NULL, "imx25-fec.0");
+ 	clk_register_clkdev(clk[ipu_gate], "bus", "imx53-ipu");
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
