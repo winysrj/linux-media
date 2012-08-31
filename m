@@ -1,69 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:49467 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752162Ab2H1QzW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Aug 2012 12:55:22 -0400
-Date: Tue, 28 Aug 2012 10:55:52 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH 9/9] videobuf2-core: Change vb2_queue_init return type
- to void
-Message-ID: <20120828105552.1e39b32b@lwn.net>
-In-Reply-To: <CALF0-+WjGYhHd4xshW9fOtdVp-Cgmz-7t8JzzoqMW-w0pNv85A@mail.gmail.com>
-References: <1345864146-2207-1-git-send-email-elezegarcia@gmail.com>
-	<1345864146-2207-9-git-send-email-elezegarcia@gmail.com>
-	<20120825092814.4eee46f0@lwn.net>
-	<CALF0-+VEGKL6zqFcqkw__qxuy+_3aDa-0u4xD63+Mc4FioM+aw@mail.gmail.com>
-	<20120825113021.690440ba@lwn.net>
-	<CALF0-+WjGYhHd4xshW9fOtdVp-Cgmz-7t8JzzoqMW-w0pNv85A@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:36984 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751123Ab2HaIL0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Aug 2012 04:11:26 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
+Subject: [PATCH v3 0/16] Initial i.MX5/CODA7 support for the CODA driver
+Date: Fri, 31 Aug 2012 10:10:54 +0200
+Message-Id: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 26 Aug 2012 19:59:40 -0300
-Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+These patches contain initial firmware loading and encoding support for the
+CODA7 series VPU contained in i.MX51 and i.MX53 SoCs, and fix some multi-instance
+issues. Patches 13 and 14, touching files in arch/arm/*, are included for
+illustration purposes.
 
-> 1.
-> Why do we need to check for all these conditions in the first place?
-> There are many other functions relying on "struct vb2_queue *q"
-> not being null (almost all of them) and we don't check for it.
-> What makes vb2_queue_init() so special that we need to check for it?
+Changes since v2:
+ - Rebase onto media_tree.git staging/for_v3.7 branch.
+ - Stop calling cancel_delayed_work in the coda_irq_handler.
+ - Fix a memory leak in patch 09/16.
+ - Add a patch to fix buffer sizes for userptr mode.
+ - Add a patch to allow >PAL resolutions.
 
-There are plenty of developers who would argue for the removal of the
-BUG_ON(!q) line regardless, since the kernel will quickly crash shortly
-thereafter.  I'm a bit less convinced; there are attackers who are very
-good at exploiting null pointer dereferences, and some systems still allow
-the low part of the address space to be mapped.
+regards
+Philipp
 
-In general, IMO, checks for consistency make sense; it's nice if the
-kernel can *tell* you that something is wrong.
+---
+ arch/arm/boot/dts/imx51.dtsi        |    6 +
+ arch/arm/boot/dts/imx53.dtsi        |    6 +
+ arch/arm/mach-imx/clk-imx51-imx53.c |    4 +-
+ drivers/media/platform/Kconfig      |    3 +-
+ drivers/media/platform/coda.c       |  423 +++++++++++++++++++++++++----------
+ drivers/media/platform/coda.h       |   33 ++-
+ 6 files changed, 348 insertions(+), 127 deletions(-)
 
-What's a mistake is the BUG_ON; that should really only be used in places
-where things simply cannot continue.  In this case, the initialization can
-be failed, the V4L2 device will likely be unavailable, but everything else
-can continue as normal.  -EINVAL is the right response here.
-
-> 2.
-> If a DoS attack is the concern here, I wonder how this would be achieved?
-> vb2_queue_init() is an "internal" (so to speak) function, that will only
-> be called by videobuf2 drivers.
-
-It would depend on a driver bug, but the sad fact is that driver bugs do
-exist.  Perhaps it's as simple as getting the driver module to load when
-the hardware is absent, for example.
-
-> I'm not arguing, truly. I wan't to understand what's the rationale behind
-> putting BUG_ON, or WARN_ON, or return -EINVAL in a case like this.
-
-In short: we want the kernel to be as robust as it can be.  Detecting
-problems before they can snowball helps in that regard.  Hitting the big
-red BUG_ON() button in situations where things can continue does not.  At
-least, that's how I see it.
-
-jon
