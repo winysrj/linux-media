@@ -1,66 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:58502 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752328Ab2HCTRr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2012 15:17:47 -0400
-Message-ID: <501C23D7.3020307@gmail.com>
-Date: Fri, 03 Aug 2012 21:17:43 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Mike Dyer <mike.dyer@md-soft.co.uk>
-CC: LMML <linux-media@vger.kernel.org>,
-	"linux-samsung-soc@vger.kernel.org"
-	<linux-samsung-soc@vger.kernel.org>
-Subject: Re: s5p-fimc capturing interlaced BT656
-References: <1343911731.4113.5.camel@edge>
-In-Reply-To: <1343911731.4113.5.camel@edge>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:36988 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751143Ab2HaIL0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Aug 2012 04:11:26 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 06/16] media: coda: keep track of active instances
+Date: Fri, 31 Aug 2012 10:11:00 +0200
+Message-Id: <1346400670-16002-7-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
+References: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mike,
+Determining the next free instance just by incrementing and decrementing
+an instance counter does not work: if there are two instances opened,
+0 and 1, and instance 0 is released, the next call to coda_open will
+create a new instance with index 1, but instance 1 is already in use.
 
-On 08/02/2012 02:48 PM, Mike Dyer wrote:
-> Hi All,
-> 
-> I'm using the S5PV210 camera IF and capturing BT656 video from a TVP5150
-> video decoder.
-> 
-> I notice that the capture driver ignores the field interlace flags
-> reported by the 'sensor' and always uses 'V4L2_FIELD_NONE'.  It also
-> seems each field ends up in it's own frame, using only half the height.
+Instead, scan a bitfield of active instances to determine the first
+free instance index.
 
-s5p-fimc driver doesn't support the interlaced video capture, as we had
-no such use case yet. Patches adding it are welcome.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda.c |   21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index e1f5baf..7bc2d87 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -135,7 +135,8 @@ struct coda_dev {
+ 	struct mutex		dev_mutex;
+ 	struct v4l2_m2m_dev	*m2m_dev;
+ 	struct vb2_alloc_ctx	*alloc_ctx;
+-	int			instances;
++	struct list_head	instances;
++	unsigned long		instance_mask;
+ };
  
-> What would need to be done to store both fields in a single frame, for
-> example in a V4L2_FIELD_INTERLACE_TB/BT format?
-
-Firstly, it would good to figure out FIMC register settings that would
-allow storing both fields in a single frame. I _suspect_ it's as simple
-as setting CAM_INTERLACE bit in CIGCTRL register. Have you perhaps tried
-it already ?
-
-For a quick test a patch as below might be sufficient.
-
-
-diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
-index 1fc4ce8..19afa1a 100644
---- a/drivers/media/video/s5p-fimc/fimc-reg.c
-+++ b/drivers/media/video/s5p-fimc/fimc-reg.c
-@@ -576,6 +576,8 @@ int fimc_hw_set_camera_polarity(struct fimc_dev *fimc,
- 	if (cam->flags & V4L2_MBUS_FIELD_EVEN_LOW)
- 		cfg |= FIMC_REG_CIGCTRL_INVPOLFIELD;
+ struct coda_params {
+@@ -153,6 +154,7 @@ struct coda_params {
  
-+	cfg |= FIMC_REG_CIGCTRL_INTERLACE;
+ struct coda_ctx {
+ 	struct coda_dev			*dev;
++	struct list_head		list;
+ 	int				aborting;
+ 	int				rawstreamon;
+ 	int				compstreamon;
+@@ -1358,14 +1360,22 @@ static int coda_queue_init(void *priv, struct vb2_queue *src_vq,
+ 	return vb2_queue_init(dst_vq);
+ }
+ 
++static int coda_next_free_instance(struct coda_dev *dev)
++{
++	return ffz(dev->instance_mask);
++}
 +
- 	writel(cfg, fimc->regs + FIMC_REG_CIGCTRL);
+ static int coda_open(struct file *file)
+ {
+ 	struct coda_dev *dev = video_drvdata(file);
+ 	struct coda_ctx *ctx = NULL;
+ 	int ret = 0;
++	int idx;
+ 
+-	if (dev->instances >= CODA_MAX_INSTANCES)
++	idx = coda_next_free_instance(dev);
++	if (idx >= CODA_MAX_INSTANCES)
+ 		return -EBUSY;
++	set_bit(idx, &dev->instance_mask);
+ 
+ 	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
+ 	if (!ctx)
+@@ -1375,6 +1385,7 @@ static int coda_open(struct file *file)
+ 	file->private_data = &ctx->fh;
+ 	v4l2_fh_add(&ctx->fh);
+ 	ctx->dev = dev;
++	ctx->idx = idx;
+ 
+ 	set_default_params(ctx);
+ 	ctx->m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx,
+@@ -1403,7 +1414,7 @@ static int coda_open(struct file *file)
+ 	}
+ 
+ 	coda_lock(ctx);
+-	ctx->idx = dev->instances++;
++	list_add(&ctx->list, &dev->instances);
+ 	coda_unlock(ctx);
+ 
+ 	clk_prepare_enable(dev->clk_per);
+@@ -1430,7 +1441,7 @@ static int coda_release(struct file *file)
+ 		 ctx);
+ 
+ 	coda_lock(ctx);
+-	dev->instances--;
++	list_del(&ctx->list);
+ 	coda_unlock(ctx);
+ 
+ 	dma_free_coherent(&dev->plat_dev->dev, CODA_PARA_BUF_SIZE,
+@@ -1441,6 +1452,7 @@ static int coda_release(struct file *file)
+ 	clk_disable_unprepare(dev->clk_ahb);
+ 	v4l2_fh_del(&ctx->fh);
+ 	v4l2_fh_exit(&ctx->fh);
++	clear_bit(ctx->idx, &dev->instance_mask);
+ 	kfree(ctx);
  
  	return 0;
+@@ -1823,6 +1835,7 @@ static int __devinit coda_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	spin_lock_init(&dev->irqlock);
++	INIT_LIST_HEAD(&dev->instances);
+ 
+ 	dev->plat_dev = pdev;
+ 	dev->clk_per = devm_clk_get(&pdev->dev, "per");
+-- 
+1.7.10.4
 
-
---
-
-Thanks,
-Sylwester
