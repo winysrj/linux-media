@@ -1,70 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3660 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754127Ab2HVLJl convert rfc822-to-8bit (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:35419 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753449Ab2HaSe3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Aug 2012 07:09:41 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: workshop-2011@linuxtv.org
-Subject: Re: [Workshop-2011] V4L2 API ambiguities: workshop presentation
-Date: Wed, 22 Aug 2012 13:09:25 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>
-References: <201208171235.58094.hverkuil@xs4all.nl>
-In-Reply-To: <201208171235.58094.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201208221309.25058.hverkuil@xs4all.nl>
+	Fri, 31 Aug 2012 14:34:29 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M9M00LAOU9G7VE0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 01 Sep 2012 03:34:28 +0900 (KST)
+Received: from [106.210.235.55] by mmp1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0M9M00BMHU9BZV00@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 01 Sep 2012 03:34:28 +0900 (KST)
+Message-id: <504103AE.3020305@samsung.com>
+Date: Fri, 31 Aug 2012 20:34:22 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+MIME-version: 1.0
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: linux-media@vger.kernel.org, Pawel Osciak <pawel@osciak.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 1/2] media v4l2-mem2mem: Use list_first_entry
+References: <1346419084-10879-1-git-send-email-s.hauer@pengutronix.de>
+ <1346419084-10879-2-git-send-email-s.hauer@pengutronix.de>
+In-reply-to: <1346419084-10879-2-git-send-email-s.hauer@pengutronix.de>
+Content-type: text/plain; charset=ISO-8859-2; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri August 17 2012 12:35:58 Hans Verkuil wrote:
-> Hi all,
-> 
-> I've prepared a presentation for the upcoming workshop based on my RFC and the
-> comments I received.
-> 
-> It is available here:
-> 
-> http://hverkuil.home.xs4all.nl/presentations/v4l2-workshop-2012.odp
-> http://hverkuil.home.xs4all.nl/presentations/v4l2-workshop-2012.pdf
-> 
-> Attendees of the workshop: please review this before the workshop starts. I
-> want to go through this list fairly quickly (particularly slides 1-14) so we
-> can have more time for other topics.
+Hello,
 
-One additional topic:
+On 8/31/2012 3:18 PM, Sascha Hauer wrote:
+> Use list_first_entry instead of list_entry which makes the intention
+> of the code more clear.
+>
+> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
 
-The V4L2 API has a number of experimental API elements, see:
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-	http://hverkuil.home.xs4all.nl/spec/media.html#experimental
+> ---
+>   drivers/media/video/v4l2-mem2mem.c |    6 +++---
+>   1 file changed, 3 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/media/video/v4l2-mem2mem.c b/drivers/media/video/v4l2-mem2mem.c
+> index 975d0fa..aaa67d3 100644
+> --- a/drivers/media/video/v4l2-mem2mem.c
+> +++ b/drivers/media/video/v4l2-mem2mem.c
+> @@ -102,7 +102,7 @@ void *v4l2_m2m_next_buf(struct v4l2_m2m_queue_ctx *q_ctx)
+>   		return NULL;
+>   	}
+>
+> -	b = list_entry(q_ctx->rdy_queue.next, struct v4l2_m2m_buffer, list);
+> +	b = list_first_entry(&q_ctx->rdy_queue, struct v4l2_m2m_buffer, list);
+>   	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
+>   	return &b->vb;
+>   }
+> @@ -122,7 +122,7 @@ void *v4l2_m2m_buf_remove(struct v4l2_m2m_queue_ctx *q_ctx)
+>   		spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
+>   		return NULL;
+>   	}
+> -	b = list_entry(q_ctx->rdy_queue.next, struct v4l2_m2m_buffer, list);
+> +	b = list_first_entry(&q_ctx->rdy_queue, struct v4l2_m2m_buffer, list);
+>   	list_del(&b->list);
+>   	q_ctx->num_rdy--;
+>   	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
+> @@ -175,7 +175,7 @@ static void v4l2_m2m_try_run(struct v4l2_m2m_dev *m2m_dev)
+>   		return;
+>   	}
+>
+> -	m2m_dev->curr_ctx = list_entry(m2m_dev->job_queue.next,
+> +	m2m_dev->curr_ctx = list_first_entry(&m2m_dev->job_queue,
+>   				   struct v4l2_m2m_ctx, queue);
+>   	m2m_dev->curr_ctx->job_flags |= TRANS_RUNNING;
+>   	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
+>
 
-The following have been in use for a considerable amount of time I and propose
-to drop the experimental tag:
 
-Video Output Overlay (OSD) Interface, the section called “Video Output Overlay Interface”.
-
-V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY, enum v4l2_buf_type, Table 3.3, “enum v4l2_buf_type”.
-
-V4L2_CAP_VIDEO_OUTPUT_OVERLAY, VIDIOC_QUERYCAP ioctl, Table A.92, “Device Capabilities Flags”.
-
-VIDIOC_ENUM_FRAMESIZES and VIDIOC_ENUM_FRAMEINTERVALS ioctls.
-
-VIDIOC_G_ENC_INDEX ioctl.
-
-VIDIOC_ENCODER_CMD and VIDIOC_TRY_ENCODER_CMD ioctls.
-
-VIDIOC_DECODER_CMD and VIDIOC_TRY_DECODER_CMD ioctls.
-
-
-While the (TRY_)DECODER_CMD ioctls are strictly speaking new to V4L2 (appearing
-in 3.4) they started life as identical ioctls (although with a different name)
-in dvb/video.h.
-
-Other than being renamed and folded into the V4L2 specification they are quite
-old as well.
-
-Regards,
-
-	Hans
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
