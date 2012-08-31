@@ -1,482 +1,484 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54547 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759800Ab2HIWGy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Aug 2012 18:06:54 -0400
-Message-ID: <5024347A.5000303@redhat.com>
-Date: Thu, 09 Aug 2012 19:06:50 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v3.6] Add adv7604/ad9389b drivers
-References: <201207231336.15392.hverkuil@xs4all.nl>
-In-Reply-To: <201207231336.15392.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.samsung.com ([203.254.224.24]:25909 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752162Ab2HaNrq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Aug 2012 09:47:46 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M9M00N10GP73Y70@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 31 Aug 2012 22:47:44 +0900 (KST)
+Received: from localhost.localdomain ([107.108.73.106])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0M9M00K7JGWALLB0@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 31 Aug 2012 22:47:44 +0900 (KST)
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: jtp.park@samsung.com, janghyuck.kim@samsung.com,
+	jaeryul.oh@samsung.com, ch.naveen@samsung.com, arun.kk@samsung.com,
+	m.szyprowski@samsung.com, k.debski@samsung.com,
+	s.nawrocki@samsung.com, kmpark@infradead.org, joshi@samsung.com
+Subject: [PATCH v6 2/6] [media] v4l: Add control definitions for new H264
+ encoder features
+Date: Fri, 31 Aug 2012 22:37:38 +0530
+Message-id: <1346432862-14242-3-git-send-email-arun.kk@samsung.com>
+In-reply-to: <1346432862-14242-1-git-send-email-arun.kk@samsung.com>
+References: <1346432862-14242-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Jeongtae Park <jtp.park@samsung.com>
 
-It follows a few notes about what I've seen at the two initial patches.
-I didn't review the other ones, as they should follow whatever agreed
-at the API/spec changes.
+New controls are added for supporting H264 encoding features like
+- MVC frame packing
+- Flexible macroblock ordering
+- Arbitrary slice ordering
+- Hierarchial coding
 
-It should be noticed that I'm not a monitor-set expert (while I have
-some past experiences playing with monitor's EDID information, due to
-some bugs I noticed in the past with some monitors I used to have).
-So, it would be nice to have someone from drivers/video to do a review
-on this series (or at least, the API/spec changes).
+Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
+Signed-off-by: Naveen Krishna Chatradhi <ch.naveen@samsung.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml |  268 +++++++++++++++++++++++++-
+ drivers/media/v4l2-core/v4l2-ctrls.c         |   42 ++++
+ include/linux/videodev2.h                    |   41 ++++
+ 3 files changed, 350 insertions(+), 1 deletions(-)
 
-Regards,
-Mauro
-
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 93b9c68..837ef42 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -1586,7 +1586,6 @@ frame counter of the frame that is currently displayed (decoded). This value is
+ the decoder is started.</entry>
+ 	      </row>
+ 
 -
-
-Em 23-07-2012 08:36, Hans Verkuil escreveu:
-> Hi all!
-> 
-> There haven't been any comments since either RFCv1 or RFCv2.
-> 
-> (http://www.spinics.net/lists/linux-media/msg48529.html and
-> http://www.spinics.net/lists/linux-media/msg50413.html)
-> 
-> So I'm making this pull request now.
-> 
-> The only changes since RFCv2 are some documentation fixes:
-> 
-> - Add a note that the SUBDEV_G/S_EDID ioctls are experimental
-> - Add the proper revision/experimental references.
-> - Update the spec version to 3.6.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> The following changes since commit 931efdf58bd83af8d0578a6cc53421675daf6d41:
-> 
->    Merge branch 'v4l_for_linus' into staging/for_v3.6 (2012-07-14 15:45:44 -0300)
-> 
-> are available in the git repository at:
-> 
-> 
->    git://linuxtv.org/hverkuil/media_tree.git hdmi2
-> 
-> for you to fetch changes up to d3e17e09dfd48ce8a8f7c6d80ca777230b487855:
-> 
->    ad9389b: driver for the Analog Devices AD9389B video encoder. (2012-07-23 13:34:01 +0200)
-> 
-> ----------------------------------------------------------------
-> Hans Verkuil (7):
->        v4l2 core: add the missing pieces to support DVI/HDMI/DisplayPort.
-
-> +struct v4l2_subdev_edid {
-> +	__u32 pad;
-> +	__u32 start_block;
-> +	__u32 blocks;
-> +	__u32 reserved[5];
-> +	__u8 __user *edid;
-> +};
-
-Hmm.... you'll need compat32 bits for this struct. Maybe also packing it.
-
->        V4L2 spec: document the new DV controls and ioctls.
-
->  Documentation/DocBook/media/v4l/controls.xml       | 149 ++++++++++++++++++++
->  Documentation/DocBook/media/v4l/v4l2.xml           |   1 +
->  .../DocBook/media/v4l/vidioc-subdev-g-edid.xml     | 152 +++++++++++++++++++++
->  3 files changed, 302 insertions(+)
->  create mode 100644 Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
-> 
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-> index 6c27f7b..9b0a161 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -4274,4 +4274,153 @@ interface and may change in the future.</para>
->        </table>
->  
->      </section>
-> +
-> +    <section id="dv-controls">
-> +      <title>Digital Video Control Reference</title>
-> +
-> +      <note>
-> +	<title>Experimental</title>
-> +
-> +	<para>This is an <link
-> +	linkend="experimental">experimental</link> interface and may
-> +	change in the future.</para>
-> +      </note>
-> +
-> +      <para>
-> +	The Digital Video control class is intended to control receivers
-> +	and transmitters for VGA, DVI, HDMI and DisplayPort. These controls
-> +	are generally expected to be private to the receiver or transmitter
-> +	subdevice that implements them, so they are only exposed on the
-> +	<filename>/dev/v4l-subdev*</filename> device node.
-> +      </para>
-> +
-> +      <para>Note that these devices can have multiple input or output pads which are
-> +      hooked up to e.g. HDMI connectors. Even though the subdevice will receive or
-> +      transmit video from/to only one of those pads, the other pads can still be
-> +      active when it comes to EDID and HDCP processing, allowing the device
-> +      to do the fairly slow EDID/HDCP handling in advance. This allows for quick
-> +      switching between connectors.</para>
-> +
-> +      <para>These pads appear in several of the controls in this section as
-> +      bitmasks, one bit for each pad starting at bit 0. The maximum value of
-> +      the control is the set of valid pads.</para>
-> +
-> +      <table pgwide="1" frame="none" id="dv-control-id">
-> +      <title>Digital Video Control IDs</title>
-> +
-> +      <tgroup cols="4">
-> +	<colspec colname="c1" colwidth="1*" />
-> +	<colspec colname="c2" colwidth="6*" />
-> +	<colspec colname="c3" colwidth="2*" />
-> +	<colspec colname="c4" colwidth="6*" />
-> +	<spanspec namest="c1" nameend="c2" spanname="id" />
-> +	<spanspec namest="c2" nameend="c4" spanname="descr" />
-> +	<thead>
-> +	  <row>
-> +	    <entry spanname="id" align="left">ID</entry>
-> +	    <entry align="left">Type</entry>
-> +	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
-> +	  </row>
-> +	</thead>
-> +	<tbody valign="top">
-> +	  <row><entry></entry></row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_DV_CLASS</constant></entry>
-> +	    <entry>class</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="descr">The DV class descriptor.</entry>
-
-Please replace 'DV' by digital video.
-
-Btw, It may be useful to have a glossary with an acronym glossary for the ones we won't
-get rid of it (EDID, DVI, HDCP, ...), if possible pointing to an spec that defines them.
-
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_DV_TX_HOTPLUG</constant></entry>
-> +	    <entry>bitmask</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="descr">Many connectors have a hotplug pin which is high
-> +	    if EDID information is available from the source. This control shows the
-> +	    state of the hotplug pin as seen by the transmitter.
-> +	    Each bit corresponds to an output pad on the transmitter.
-> +	    This read-only control is applicable to DVI-D, HDMI and DisplayPort connectors.
-
-What's the return code if the driver supports EDID, but the device (or cable) doesn't?
-It should likely be different than when EDID is not supported at all by the driver.
-
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_DV_TX_RXSENSE</constant></entry>
-> +	    <entry>bitmask</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="descr">Rx Sense is the detection of pull-ups on the TMDS
-> +            clock lines. This normally means that the sink has left/entered standby (i.e.
-> +	    the transmitter can sense that the receiver is ready to receive video).
-> +	    Each bit corresponds to an output pad on the transmitter.
-> +	    This read-only control is applicable to DVI-D and HDMI devices.
-
-same as above: return codes?
-
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_DV_TX_EDID_PRESENT</constant></entry>
-> +	    <entry>bitmask</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="descr">When the transmitter sees the hotplug signal from the
-> +	    receiver it will attempt to read the EDID. If set, then the transmitter has read
-> +	    at least the first block (= 128 bytes).
-> +	    Each bit corresponds to an output pad on the transmitter.
-> +	    This read-only control is applicable to VGA, DVI-A/D, HDMI and DisplayPort connectors.
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_DV_TX_MODE</constant></entry>
-> +	    <entry id="v4l2-dv-tx-mode">enum v4l2_dv_tx_mode</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="descr">HDMI transmitters can transmit in DVI-D mode (just video)
-> +	    or in HDMI mode (video + audio + auxiliary data). This control selects which mode
-> +	    to use: V4L2_DV_TX_MODE_DVI_D or V4L2_DV_TX_MODE_HDMI.
-> +	    This control is applicable to HDMI connectors.
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_DV_TX_RGB_RANGE</constant></entry>
-> +	    <entry id="v4l2-dv-rgb-range">enum v4l2_dv_rgb_range</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="descr">Select the quantization range for RGB output. V4L2_DV_RANGE_AUTO
-> +	    follows the RGB quantization range specified in the standard for the video interface
-> +	    (ie. CEA-861 for HDMI). V4L2_DV_RANGE_LIMITED and V4L2_DV_RANGE_FULL override the standard
-> +	    to be compatible with sinks that have not implemented the standard correctly
-> +	    (unfortunately quite common for HDMI and DVI-D).
-> +	    This control is applicable to VGA, DVI-A/D, HDMI and DisplayPort connectors.
-
-Hmm... V4L2_DV_RANGE_LIMITED doesn't sound nice, as it doesn't specify what limits.
-
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_DV_RX_POWER_PRESENT</constant></entry>
-> +	    <entry>bitmask</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="descr">Detects whether the receiver receives power from the source
-> +	    (e.g. HDMI carries 5V on one of the pins). This is often used to power an eeprom
-> +	    which contains EDID information, such that the source can read the EDID even if
-> +	    the sink is in standby/power off.
-> +	    Each bit corresponds to an input pad on the receiver.
-> +	    This read-only control is applicable to DVI-D, HDMI and DisplayPort connectors.
-
-It seems better to say that bit 0 corresponds to pad 0, bit 1 to pad 1 and so on, as one might
-understand it the opposite (same note is also true to the other bitmask fields on this proposal).
-
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_DV_RX_RGB_RANGE</constant></entry>
-> +	    <entry>enum v4l2_dv_rgb_range</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="descr">Select the quantization range for RGB input. V4L2_DV_RANGE_AUTO
-> +	    follows the RGB quantization range specified in the standard for the video interface
-> +	    (ie. CEA-861 for HDMI). V4L2_DV_RANGE_LIMITED and V4L2_DV_RANGE_FULL override the standard
-> +	    to be compatible with sources that have not implemented the standard correctly
-> +	    (unfortunately quite common for HDMI and DVI-D).
-> +	    This control is applicable to VGA, DVI-A/D, HDMI and DisplayPort connectors.
-
-Same note as the TX: what precisely "range limited" means?
-
-> +	    </entry>
-> +	  </row>
-> +	  <row><entry></entry></row>
-> +	</tbody>
-> +      </tgroup>
-> +      </table>
-> +
-> +    </section>
->  </section>
-> diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-> index eee6908..b251c4b 100644
-> --- a/Documentation/DocBook/media/v4l/v4l2.xml
-> +++ b/Documentation/DocBook/media/v4l/v4l2.xml
-> @@ -581,6 +581,7 @@ and discussions on the V4L mailing list.</revremark>
->      &sub-subdev-enum-frame-size;
->      &sub-subdev-enum-mbus-code;
->      &sub-subdev-g-crop;
-> +    &sub-subdev-g-edid;
->      &sub-subdev-g-fmt;
->      &sub-subdev-g-frame-interval;
->      &sub-subdev-g-selection;
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
-> new file mode 100644
-> index 0000000..05371db
-> --- /dev/null
-> +++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
-> @@ -0,0 +1,152 @@
-> +<refentry id="vidioc-subdev-g-edid">
-> +  <refmeta>
-> +    <refentrytitle>ioctl VIDIOC_SUBDEV_G_EDID, VIDIOC_SUBDEV_S_EDID</refentrytitle>
-> +    &manvol;
-> +  </refmeta>
-> +
-> +  <refnamediv>
-> +    <refname>VIDIOC_SUBDEV_G_EDID</refname>
-> +    <refname>VIDIOC_SUBDEV_S_EDID</refname>
-> +    <refpurpose>Get or set the EDID of a video receiver/transmitter</refpurpose>
-> +  </refnamediv>
-> +
-> +  <refsynopsisdiv>
-> +    <funcsynopsis>
-> +      <funcprototype>
-> +	<funcdef>int <function>ioctl</function></funcdef>
-> +	<paramdef>int <parameter>fd</parameter></paramdef>
-> +	<paramdef>int <parameter>request</parameter></paramdef>
-> +	<paramdef>struct v4l2_subdev_edid *<parameter>argp</parameter></paramdef>
-> +      </funcprototype>
-> +    </funcsynopsis>
-> +    <funcsynopsis>
-> +      <funcprototype>
-> +	<funcdef>int <function>ioctl</function></funcdef>
-> +	<paramdef>int <parameter>fd</parameter></paramdef>
-> +	<paramdef>int <parameter>request</parameter></paramdef>
-> +	<paramdef>const struct v4l2_subdev_edid *<parameter>argp</parameter></paramdef>
-> +      </funcprototype>
-> +    </funcsynopsis>
-> +  </refsynopsisdiv>
-> +
-> +  <refsect1>
-> +    <title>Arguments</title>
-> +
-> +    <variablelist>
-> +      <varlistentry>
-> +	<term><parameter>fd</parameter></term>
-> +	<listitem>
-> +	  <para>&fd;</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><parameter>request</parameter></term>
-> +	<listitem>
-> +	  <para>VIDIOC_SUBDEV_G_EDID, VIDIOC_SUBDEV_S_EDID</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><parameter>argp</parameter></term>
-> +	<listitem>
-> +	  <para></para>
-> +	</listitem>
-> +      </varlistentry>
-> +    </variablelist>
-> +  </refsect1>
-> +
-> +  <refsect1>
-> +    <title>Description</title>
-> +    <para>These ioctls can be used to get or set an EDID associated with an input pad
-> +    from a receiver or an output pad of a transmitter subdevice.</para>
-> +
-> +    <para>To get the EDID data the application has to fill in the <structfield>pad</structfield>,
-> +    <structfield>start_block</structfield>, <structfield>blocks</structfield> and <structfield>edid</structfield>
-> +    fields and call <constant>VIDIOC_SUBDEV_G_EDID</constant>. The current EDID from block
-> +    <structfield>start_block</structfield> and of size <structfield>blocks</structfield>
-> +    will be placed in the memory <structfield>edid</structfield> points to. The <structfield>edid</structfield>
-> +    pointer must point to memory at least <structfield>blocks</structfield>&nbsp;*&nbsp;128 bytes
-> +    large (the size of one block is 128 bytes).</para>
-> +
-> +    <para>If there are fewer blocks than specified, then the driver will set <structfield>blocks</structfield>
-> +    to the actual number of blocks. If there are no EDID blocks available at all, then the error code
-> +    ENODATA is set.</para>
-> +
-> +    <para>If blocks have to be retrieved from the sink, then this call will block until they
-> +    have been read.</para>
-> +
-> +    <para>To set the EDID blocks of a receiver the application has to fill in the <structfield>pad</structfield>,
-> +    <structfield>blocks</structfield> and <structfield>edid</structfield> fields and set
-> +    <structfield>start_block</structfield> to 0. It is not possible to set part of an EDID,
-> +    it is always all or nothing. Setting the EDID data is only valid for receivers as it makes
-> +    no sense for a transmitter.</para>
-> +
-> +    <para>The driver assumes that the full EDID is passed in. If there are more EDID blocks than
-> +    the hardware can handle then the EDID is not written, but instead the error code E2BIG is set
-> +    and <structfield>blocks</structfield> is set to the maximum that the hardware supports.
-> +    If <structfield>start_block</structfield> is any
-> +    value other than 0 then the error code EINVAL is set.</para>
-> +
-> +    <para>To disable an EDID you set <structfield>blocks</structfield> to 0. Depending on the
-> +    hardware this will drive the hotplug pin low and/or block the source from reading the EDID
-> +    data in some way. In any case, the end result is the same: the EDID is no longer available.
-> +    </para>
-> +
-> +    <table pgwide="1" frame="none" id="v4l2-subdev-edid">
-> +      <title>struct <structname>v4l2_subdev_edid</structname></title>
-> +      <tgroup cols="3">
-> +        &cs-str;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>pad</structfield></entry>
-> +	    <entry>Pad for which to get/set the EDID blocks.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>start_block</structfield></entry>
-> +	    <entry>Read the EDID from starting with this block. Must be 0 when setting
-> +	    the EDID.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>blocks</structfield></entry>
-> +	    <entry>The number of blocks to get or set. Must be less or equal to 255 (the
-> +	    maximum block number defined by the standard). When you set the EDID and
-> +	    <structfield>blocks</structfield> is 0, then the EDID is disabled or erased.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u8&nbsp;*</entry>
-> +	    <entry><structfield>edid</structfield></entry>
-> +	    <entry>Pointer to memory that contains the EDID. The minimum size is
-> +	    <structfield>blocks</structfield>&nbsp;*&nbsp;128.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>reserved</structfield>[5]</entry>
-> +	    <entry>Reserved for future extensions. Applications and drivers must
-> +	    set the array to zero.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +  </refsect1>
-> +
-> +  <refsect1>
-> +    &return-value;
-> +
-> +    <variablelist>
-> +      <varlistentry>
-> +	<term><errorcode>ENODATA</errorcode></term>
-> +	<listitem>
-> +	  <para>The EDID data is not available.</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><errorcode>E2BIG</errorcode></term>
-> +	<listitem>
-> +	  <para>The EDID data you provided is more than the hardware can handle.</para>
-> +	</listitem>
-> +      </varlistentry>
-> +    </variablelist>
-> +  </refsect1>
-> +</refentry>
-> -- 
-> 1.7.11.2
-> 
-
-
->        v4l2-subdev: add support for the new edid ioctls.
->        v4l2-ctrls.c: add support for the new DV controls.
->        v4l2-common: add CVT and GTF detection functions.
->        adv7604: driver for the Analog Devices ADV7604 video decoder.
->        ad9389b: driver for the Analog Devices AD9389B video encoder.
-> 
->   Documentation/DocBook/media/v4l/compat.xml               |   21 +
->   Documentation/DocBook/media/v4l/controls.xml             |  149 ++++
->   Documentation/DocBook/media/v4l/v4l2.xml                 |   14 +-
->   Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml |  161 +++++
->   drivers/media/video/Kconfig                              |   23 +
->   drivers/media/video/Makefile                             |    2 +
->   drivers/media/video/ad9389b.c                            | 1328 ++++++++++++++++++++++++++++++++++
->   drivers/media/video/adv7604.c                            | 1959 ++++++++++++++++++++++++++++++++++++++++++++++++++
->   drivers/media/video/v4l2-common.c                        |  358 +++++++++
->   drivers/media/video/v4l2-ctrls.c                         |   39 +
->   drivers/media/video/v4l2-ioctl.c                         |   13 +
->   drivers/media/video/v4l2-subdev.c                        |    6 +
->   include/linux/v4l2-subdev.h                              |   10 +
->   include/linux/videodev2.h                                |   23 +
->   include/media/ad9389b.h                                  |   49 ++
->   include/media/adv7604.h                                  |  153 ++++
->   include/media/v4l2-chip-ident.h                          |    6 +
->   include/media/v4l2-common.h                              |   13 +
->   include/media/v4l2-subdev.h                              |    2 +
->   19 files changed, 4327 insertions(+), 2 deletions(-)
->   create mode 100644 Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
->   create mode 100644 drivers/media/video/ad9389b.c
->   create mode 100644 drivers/media/video/adv7604.c
->   create mode 100644 include/media/ad9389b.h
->   create mode 100644 include/media/adv7604.h
-
-
-
+ 	      <row><entry></entry></row>
+ 	      <row>
+ 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_DECODER_SLICE_INTERFACE</constant>&nbsp;</entry>
+@@ -2270,6 +2269,14 @@ Applicable to the MPEG1, MPEG2, MPEG4 encoders.</entry>
+ 	      </row>
+ 
+ 	      <row><entry></entry></row>
++	      <row id="v4l2-mpeg-video-vbv-delay">
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VBV_DELAY</constant>&nbsp;</entry>
++		<entry>integer</entry>
++	      </row><row><entry spanname="descr">Sets the initial delay in milliseconds for
++VBV buffer control.</entry>
++	      </row>
++
++	      <row><entry></entry></row>
+ 	      <row>
+ 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE</constant>&nbsp;</entry>
+ 		<entry>integer</entry>
+@@ -2334,6 +2341,265 @@ Applicable to the MPEG4 decoder.</entry>
+ 	      </row><row><entry spanname="descr">vop_time_increment value for MPEG4. Applicable to the MPEG4 encoder.</entry>
+ 	      </row>
+ 
++	      <row><entry></entry></row>
++	      <row>
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_SEI_FRAME_PACKING</constant>&nbsp;</entry>
++		<entry>boolean</entry>
++	      </row>
++	      <row><entry spanname="descr">Enable generation of frame packing supplemental enhancement information in the encoded bitstream.
++The frame packing SEI message contains the arrangement of L and R planes for 3D viewing. Applicable to the H264 encoder.</entry>
++	      </row>
++
++	      <row><entry></entry></row>
++	      <row>
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_SEI_FP_CURRENT_FRAME_0</constant>&nbsp;</entry>
++		<entry>boolean</entry>
++	      </row>
++	      <row><entry spanname="descr">Sets current frame as frame0 in frame packing SEI.
++Applicable to the H264 encoder.</entry>
++	      </row>
++
++	      <row><entry></entry></row>
++	      <row id="v4l2-mpeg-video-h264-sei-fp-arrangement-type">
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE</constant>&nbsp;</entry>
++		<entry>enum&nbsp;v4l2_mpeg_video_h264_sei_fp_arrangement_type</entry>
++	      </row>
++	      <row><entry spanname="descr">Frame packing arrangement type for H264 SEI.
++Applicable to the H264 encoder.
++Possible values are:</entry>
++	      </row>
++	      <row>
++		<entrytbl spanname="descr" cols="2">
++		  <tbody valign="top">
++		    <row>
++		      <entry><constant>V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_CHEKERBOARD</constant>&nbsp;</entry>
++		      <entry>Pixels are alternatively from L and R.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_COLUMN</constant>&nbsp;</entry>
++		      <entry>L and R are interlaced by column.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_ROW</constant>&nbsp;</entry>
++		      <entry>L and R are interlaced by row.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_SIDE_BY_SIDE</constant>&nbsp;</entry>
++		      <entry>L is on the left, R on the right.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_TOP_BOTTOM</constant>&nbsp;</entry>
++		      <entry>L is on top, R on bottom.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_TEMPORAL</constant>&nbsp;</entry>
++		      <entry>One view per frame.</entry>
++		    </row>
++		  </tbody>
++		</entrytbl>
++	      </row>
++
++	      <row><entry></entry></row>
++	      <row>
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_FMO</constant>&nbsp;</entry>
++		<entry>boolean</entry>
++	      </row>
++	      <row><entry spanname="descr">Enables flexible macroblock ordering in the encoded bitstream. It is a technique
++used for restructuring the ordering of macroblocks in pictures. Applicable to the H264 encoder.</entry>
++	      </row>
++
++	      <row><entry></entry></row>
++	      <row id="v4l2-mpeg-video-h264-fmo-map-type">
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_FMO_MAP_TYPE</constant>&nbsp;</entry>
++		<entry>enum&nbsp;v4l2_mpeg_video_h264_fmo_map_type</entry>
++	      </row>
++	      <row><entry spanname="descr">When using FMO, the map type divides the image in different scan patterns of macroblocks.
++Applicable to the H264 encoder.
++Possible values are:</entry>
++	      </row>
++	      <row>
++		<entrytbl spanname="descr" cols="2">
++		  <tbody valign="top">
++		    <row>
++		      <entry><constant>V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_INTERLEAVED_SLICES</constant>&nbsp;</entry>
++		      <entry>Slices are interleaved one after other with macroblocks in run length order.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_SCATTERED_SLICES</constant>&nbsp;</entry>
++		      <entry>Scatters the macroblocks based on a mathematical function known to both encoder and decoder.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_FOREGROUND_WITH_LEFT_OVER</constant>&nbsp;</entry>
++		      <entry>Macroblocks arranged in rectangular areas or regions of interest.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_BOX_OUT</constant>&nbsp;</entry>
++		      <entry>Slice groups grow in a cyclic way from centre to outwards.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_RASTER_SCAN</constant>&nbsp;</entry>
++		      <entry>Slice groups grow in raster scan pattern from left to right.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_WIPE_SCAN</constant>&nbsp;</entry>
++		      <entry>Slice groups grow in wipe scan pattern from top to bottom.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_EXPLICIT</constant>&nbsp;</entry>
++		      <entry>User defined map type.</entry>
++		    </row>
++		  </tbody>
++		</entrytbl>
++	      </row>
++
++	      <row><entry></entry></row>
++	      <row>
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_FMO_SLICE_GROUP</constant>&nbsp;</entry>
++		<entry>integer</entry>
++	      </row>
++	      <row><entry spanname="descr">Number of slice groups in FMO.
++Applicable to the H264 encoder.</entry>
++	      </row>
++
++	      <row><entry></entry></row>
++	      <row id="v4l2-mpeg-video-h264-fmo-change-direction">
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_FMO_CHANGE_DIRECTION</constant>&nbsp;</entry>
++		<entry>enum&nbsp;v4l2_mpeg_video_h264_fmo_change_dir</entry>
++	      </row>
++	      <row><entry spanname="descr">Specifies a direction of the slice group change for raster and wipe maps.
++Applicable to the H264 encoder.
++Possible values are:</entry>
++	      </row>
++	      <row>
++		<entrytbl spanname="descr" cols="2">
++		  <tbody valign="top">
++		    <row>
++		      <entry><constant>V4L2_MPEG_VIDEO_H264_FMO_CHANGE_DIR_RIGHT</constant>&nbsp;</entry>
++		      <entry>Raster scan or wipe right.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_MPEG_VIDEO_H264_FMO_CHANGE_DIR_LEFT</constant>&nbsp;</entry>
++		      <entry>Reverse raster scan or wipe left.</entry>
++		    </row>
++		  </tbody>
++		</entrytbl>
++	      </row>
++
++	      <row><entry></entry></row>
++	      <row>
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_FMO_CHANGE_RATE</constant>&nbsp;</entry>
++		<entry>integer</entry>
++	      </row>
++	      <row><entry spanname="descr">Specifies the size of the first slice group for raster and wipe map.
++Applicable to the H264 encoder.</entry>
++	      </row>
++
++	      <row><entry></entry></row>
++	      <row>
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_FMO_RUN_LENGTH</constant>&nbsp;</entry>
++		<entry>integer</entry>
++	      </row>
++	      <row><entry spanname="descr">Specifies the number of consecutive macroblocks for the interleaved map.
++Applicable to the H264 encoder.</entry>
++	      </row>
++
++	      <row><entry></entry></row>
++	      <row>
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_ASO</constant>&nbsp;</entry>
++		<entry>boolean</entry>
++	      </row>
++	      <row><entry spanname="descr">Enables arbitrary slice ordering in encoded bitstream.
++Applicable to the H264 encoder.</entry>
++	      </row>
++
++	      <row><entry></entry></row>
++	      <row>
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_ASO_SLICE_ORDER</constant>&nbsp;</entry>
++		<entry>integer</entry>
++	      </row><row><entry spanname="descr">Specifies the slice order in ASO. Applicable to the H264 encoder.
++The supplied 32-bit integer is interpreted as follows (bit
++0 = least significant bit):</entry>
++	      </row>
++	      <row>
++		<entrytbl spanname="descr" cols="2">
++		  <tbody valign="top">
++		    <row>
++		      <entry>Bit 0:15</entry>
++		      <entry>Slice ID</entry>
++		    </row>
++		    <row>
++		      <entry>Bit 16:32</entry>
++		      <entry>Slice position or order</entry>
++		    </row>
++		  </tbody>
++		</entrytbl>
++	      </row>
++
++	      <row><entry></entry></row>
++	      <row>
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING</constant>&nbsp;</entry>
++		<entry>boolean</entry>
++	      </row>
++	      <row><entry spanname="descr">Enables H264 hierarchial coding.
++Applicable to the H264 encoder.</entry>
++	      </row>
++
++	      <row><entry></entry></row>
++	      <row id="v4l2-mpeg-video-h264-hierarchial-coding-type">
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_TYPE</constant>&nbsp;</entry>
++		<entry>enum&nbsp;v4l2_mpeg_video_h264_hierarchical_coding_type</entry>
++	      </row>
++	      <row><entry spanname="descr">Specifies the hierarchial coding type.
++Applicable to the H264 encoder.
++Possible values are:</entry>
++	      </row>
++	      <row>
++		<entrytbl spanname="descr" cols="2">
++		  <tbody valign="top">
++		    <row>
++		      <entry><constant>V4L2_MPEG_VIDEO_H264_HIERARCHICAL_CODING_B</constant>&nbsp;</entry>
++		      <entry>Hierarchial B coding.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_MPEG_VIDEO_H264_HIERARCHICAL_CODING_P</constant>&nbsp;</entry>
++		      <entry>Hierarchial P coding.</entry>
++		    </row>
++		  </tbody>
++		</entrytbl>
++	      </row>
++
++	      <row><entry></entry></row>
++	      <row>
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER</constant>&nbsp;</entry>
++		<entry>integer</entry>
++	      </row>
++	      <row><entry spanname="descr">Specifies the number of hierarchial coding layers.
++Applicable to the H264 encoder.</entry>
++	      </row>
++
++	      <row><entry></entry></row>
++	      <row>
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP</constant>&nbsp;</entry>
++		<entry>integer</entry>
++	      </row><row><entry spanname="descr">Specifies a user defined QP for each layer. Applicable to the H264 encoder.
++The supplied 32-bit integer is interpreted as follows (bit
++0 = least significant bit):</entry>
++	      </row>
++	      <row>
++		<entrytbl spanname="descr" cols="2">
++		  <tbody valign="top">
++		    <row>
++		      <entry>Bit 0:15</entry>
++		      <entry>QP value</entry>
++		    </row>
++		    <row>
++		      <entry>Bit 16:32</entry>
++		      <entry>Layer number</entry>
++		    </row>
++		  </tbody>
++		</entrytbl>
++	      </row>
++
+ 	    </tbody>
+ 	  </tgroup>
+ 	</table>
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index b6a2ee7..c405c36 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -384,6 +384,25 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"Extended SAR",
+ 		NULL,
+ 	};
++	static const char * const h264_fp_arrangement_type[] = {
++		"Checkerboard",
++		"Column",
++		"Row",
++		"Side by side",
++		"Top Bottom",
++		"Temporal",
++		NULL,
++	};
++	static const char * const h264_fmo_map_type[] = {
++		"Interleaved Slices",
++		"Scattered Slices",
++		"Foreground With Leftover",
++		"Box Out",
++		"Raster Scan",
++		"Wipe Scan",
++		"Explicit",
++		NULL,
++	};
+ 	static const char * const mpeg_mpeg4_level[] = {
+ 		"0",
+ 		"0b",
+@@ -496,6 +515,10 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		return h264_profile;
+ 	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC:
+ 		return vui_sar_idc;
++	case V4L2_CID_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE:
++		return h264_fp_arrangement_type;
++	case V4L2_CID_MPEG_VIDEO_H264_FMO_MAP_TYPE:
++		return h264_fmo_map_type;
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
+ 		return mpeg_mpeg4_level;
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
+@@ -626,6 +649,22 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_MPEG_VIDEO_H264_VUI_EXT_SAR_WIDTH:	return "Horizontal Size of SAR";
+ 	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_ENABLE:		return "Aspect Ratio VUI Enable";
+ 	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC:		return "VUI Aspect Ratio IDC";
++	case V4L2_CID_MPEG_VIDEO_H264_SEI_FRAME_PACKING:	return "H264 Enable Frame Packing SEI";
++	case V4L2_CID_MPEG_VIDEO_H264_SEI_FP_CURRENT_FRAME_0:	return "H264 Set Current Frame as Frame0";
++	case V4L2_CID_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE:	return "H264 Frame Packing Arrangement Type";
++	case V4L2_CID_MPEG_VIDEO_H264_FMO:			return "H264 Flexible Macroblock Ordering";
++	case V4L2_CID_MPEG_VIDEO_H264_FMO_MAP_TYPE:		return "H264 Map Type for FMO";
++	case V4L2_CID_MPEG_VIDEO_H264_FMO_SLICE_GROUP:		return "H264 FMO Number of Slice Groups";
++	case V4L2_CID_MPEG_VIDEO_H264_FMO_CHANGE_DIRECTION:	return "H264 FMO Direction of the Slice Group Change";
++	case V4L2_CID_MPEG_VIDEO_H264_FMO_CHANGE_RATE:		return "H264 FMO Size of the First Slice Group";
++	case V4L2_CID_MPEG_VIDEO_H264_FMO_RUN_LENGTH:		return "H264 FMO Number of Consecutive MBs";
++	case V4L2_CID_MPEG_VIDEO_H264_ASO:			return "H264 Arbitrary Slice Ordering";
++	case V4L2_CID_MPEG_VIDEO_H264_ASO_SLICE_ORDER:		return "H264 ASO Slice Order";
++	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING:	return "Enable H264 Hierarchial Coding";
++	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_TYPE:	return "H264 Hierarchial Coding Type";
++	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER:return "H264 Number of Hierarchial Coding Layers";
++	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP:
++								return "H264 Set QP Value for Hierarchial Coding Layers";
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP:		return "MPEG4 I-Frame QP Value";
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP:		return "MPEG4 P-Frame QP Value";
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP:		return "MPEG4 B-Frame QP Value";
+@@ -640,6 +679,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_MPEG_VIDEO_VBV_SIZE:			return "VBV Buffer Size";
+ 	case V4L2_CID_MPEG_VIDEO_DEC_PTS:			return "Video Decoder PTS";
+ 	case V4L2_CID_MPEG_VIDEO_DEC_FRAME:			return "Video Decoder Frame Count";
++	case V4L2_CID_MPEG_VIDEO_VBV_DELAY:			return "Initial Delay for VBV Buffer Control";
+ 
+ 	/* CAMERA controls */
+ 	/* Keep the order of the 'case's the same as in videodev2.h! */
+@@ -826,6 +866,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE:
+ 	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
+ 	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC:
++	case V4L2_CID_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE:
++	case V4L2_CID_MPEG_VIDEO_H264_FMO_MAP_TYPE:
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
+ 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 1f70954..092127d 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1598,6 +1598,7 @@ enum v4l2_mpeg_video_multi_slice_mode {
+ #define V4L2_CID_MPEG_VIDEO_VBV_SIZE			(V4L2_CID_MPEG_BASE+222)
+ #define V4L2_CID_MPEG_VIDEO_DEC_PTS			(V4L2_CID_MPEG_BASE+223)
+ #define V4L2_CID_MPEG_VIDEO_DEC_FRAME			(V4L2_CID_MPEG_BASE+224)
++#define V4L2_CID_MPEG_VIDEO_VBV_DELAY			(V4L2_CID_MPEG_BASE+225)
+ 
+ #define V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP		(V4L2_CID_MPEG_BASE+300)
+ #define V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP		(V4L2_CID_MPEG_BASE+301)
+@@ -1688,6 +1689,46 @@ enum v4l2_mpeg_video_h264_vui_sar_idc {
+ 	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_2x1		= 16,
+ 	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_EXTENDED	= 17,
+ };
++#define V4L2_CID_MPEG_VIDEO_H264_SEI_FRAME_PACKING		(V4L2_CID_MPEG_BASE+368)
++#define V4L2_CID_MPEG_VIDEO_H264_SEI_FP_CURRENT_FRAME_0		(V4L2_CID_MPEG_BASE+369)
++#define V4L2_CID_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE	(V4L2_CID_MPEG_BASE+370)
++enum v4l2_mpeg_video_h264_sei_fp_arrangement_type {
++	V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_CHEKERBOARD	= 0,
++	V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_COLUMN		= 1,
++	V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_ROW		= 2,
++	V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_SIDE_BY_SIDE	= 3,
++	V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_TOP_BOTTOM		= 4,
++	V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_TEMPORAL		= 5,
++};
++#define V4L2_CID_MPEG_VIDEO_H264_FMO			(V4L2_CID_MPEG_BASE+371)
++#define V4L2_CID_MPEG_VIDEO_H264_FMO_MAP_TYPE		(V4L2_CID_MPEG_BASE+372)
++enum v4l2_mpeg_video_h264_fmo_map_type {
++	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_INTERLEAVED_SLICES		= 0,
++	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_SCATTERED_SLICES		= 1,
++	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_FOREGROUND_WITH_LEFT_OVER	= 2,
++	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_BOX_OUT			= 3,
++	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_RASTER_SCAN			= 4,
++	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_WIPE_SCAN			= 5,
++	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_EXPLICIT			= 6,
++};
++#define V4L2_CID_MPEG_VIDEO_H264_FMO_SLICE_GROUP	(V4L2_CID_MPEG_BASE+373)
++#define V4L2_CID_MPEG_VIDEO_H264_FMO_CHANGE_DIRECTION	(V4L2_CID_MPEG_BASE+374)
++enum v4l2_mpeg_video_h264_fmo_change_dir {
++	V4L2_MPEG_VIDEO_H264_FMO_CHANGE_DIR_RIGHT	= 0,
++	V4L2_MPEG_VIDEO_H264_FMO_CHANGE_DIR_LEFT	= 1,
++};
++#define V4L2_CID_MPEG_VIDEO_H264_FMO_CHANGE_RATE	(V4L2_CID_MPEG_BASE+375)
++#define V4L2_CID_MPEG_VIDEO_H264_FMO_RUN_LENGTH		(V4L2_CID_MPEG_BASE+376)
++#define V4L2_CID_MPEG_VIDEO_H264_ASO			(V4L2_CID_MPEG_BASE+377)
++#define V4L2_CID_MPEG_VIDEO_H264_ASO_SLICE_ORDER	(V4L2_CID_MPEG_BASE+378)
++#define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING		(V4L2_CID_MPEG_BASE+379)
++#define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_TYPE	(V4L2_CID_MPEG_BASE+380)
++enum v4l2_mpeg_video_h264_hierarchical_coding_type {
++	V4L2_MPEG_VIDEO_H264_HIERARCHICAL_CODING_B	= 0,
++	V4L2_MPEG_VIDEO_H264_HIERARCHICAL_CODING_P	= 1,
++};
++#define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER	(V4L2_CID_MPEG_BASE+381)
++#define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP	(V4L2_CID_MPEG_BASE+382)
+ #define V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP	(V4L2_CID_MPEG_BASE+400)
+ #define V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP	(V4L2_CID_MPEG_BASE+401)
+ #define V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP	(V4L2_CID_MPEG_BASE+402)
+-- 
+1.7.0.4
 
