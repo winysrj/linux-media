@@ -1,79 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1724 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755071Ab2HIH3z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2012 03:29:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Antti Palosaari <crope@iki.fi>
-Subject: Re: build docs fails: parser error : Failure to process entity sub-enum-freq-bands
-Date: Thu, 9 Aug 2012 09:29:41 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"linux-media" <linux-media@vger.kernel.org>
-References: <5022F3A5.2030507@iki.fi>
-In-Reply-To: <5022F3A5.2030507@iki.fi>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201208090929.41126.hverkuil@xs4all.nl>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:37001 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751315Ab2HaIL1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Aug 2012 04:11:27 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 09/16] media: coda: wait for picture run completion in start/stop_streaming
+Date: Fri, 31 Aug 2012 10:11:03 +0200
+Message-Id: <1346400670-16002-10-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
+References: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It works for me.
+While the CODA is running a PIC_RUN command, its registers are
+not to be touched.
 
-make DOCBOOKS=media_api.xml htmldocs
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+Changes since v2:
+ - Properly move the call to coda_free_framebuffers in coda_stop_streaming,
+   to avoid introducing a memory leak.
+---
+ drivers/media/platform/coda.c |   38 +++++++++++++++++++++++++++++---------
+ 1 file changed, 29 insertions(+), 9 deletions(-)
 
-Perhaps you need to do a make cleandocs first?
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 2e357394..de66579 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -138,6 +138,7 @@ struct coda_dev {
+ 	struct list_head	instances;
+ 	unsigned long		instance_mask;
+ 	struct delayed_work	timeout;
++	struct completion	done;
+ };
+ 
+ struct coda_params {
+@@ -727,6 +728,7 @@ static void coda_device_run(void *m2m_priv)
+ 	/* 1 second timeout in case CODA locks up */
+ 	schedule_delayed_work(&dev->timeout, HZ);
+ 
++	INIT_COMPLETION(dev->done);
+ 	coda_command_async(ctx, CODA_COMMAND_PIC_RUN);
+ }
+ 
+@@ -971,6 +973,10 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+ 	if (!(ctx->rawstreamon & ctx->compstreamon))
+ 		return 0;
+ 
++	if (coda_isbusy(dev))
++		if (wait_for_completion_interruptible_timeout(&dev->done, HZ) <= 0)
++			return -EBUSY;
++
+ 	ctx->gopcounter = ctx->params.gop_size - 1;
+ 
+ 	q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+@@ -1213,6 +1219,7 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+ static int coda_stop_streaming(struct vb2_queue *q)
+ {
+ 	struct coda_ctx *ctx = vb2_get_drv_priv(q);
++	struct coda_dev *dev = ctx->dev;
+ 
+ 	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+ 		v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+@@ -1224,20 +1231,29 @@ static int coda_stop_streaming(struct vb2_queue *q)
+ 		ctx->compstreamon = 0;
+ 	}
+ 
+-	if (!ctx->rawstreamon && !ctx->compstreamon) {
+-		cancel_delayed_work(&dev->timeout);
++	/* Don't stop the coda unless both queues are off */
++	if (ctx->rawstreamon || ctx->compstreamon)
++		return 0;
+ 
+-		v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+-			 "%s: sent command 'SEQ_END' to coda\n", __func__);
+-		if (coda_command_sync(ctx, CODA_COMMAND_SEQ_END)) {
+-			v4l2_err(&ctx->dev->v4l2_dev,
+-				 "CODA_COMMAND_SEQ_END failed\n");
+-			return -ETIMEDOUT;
++	if (coda_isbusy(dev)) {
++		if (wait_for_completion_interruptible_timeout(&dev->done, HZ) <= 0) {
++			v4l2_warn(&dev->v4l2_dev,
++				  "%s: timeout, sending SEQ_END anyway\n", __func__);
+ 		}
++	}
+ 
+-		coda_free_framebuffers(ctx);
++	cancel_delayed_work(&dev->timeout);
++
++	v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
++		 "%s: sent command 'SEQ_END' to coda\n", __func__);
++	if (coda_command_sync(ctx, CODA_COMMAND_SEQ_END)) {
++		v4l2_err(&dev->v4l2_dev,
++			 "CODA_COMMAND_SEQ_END failed\n");
++		return -ETIMEDOUT;
+ 	}
+ 
++	coda_free_framebuffers(ctx);
++
+ 	return 0;
+ }
+ 
+@@ -1522,6 +1538,8 @@ static irqreturn_t coda_irq_handler(int irq, void *data)
+ 		return IRQ_NONE;
+ 	}
+ 
++	complete(&dev->done);
++
+ 	src_buf = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
+ 	dst_buf = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
+ 
+@@ -1857,6 +1875,8 @@ static int __devinit coda_probe(struct platform_device *pdev)
+ 	spin_lock_init(&dev->irqlock);
+ 	INIT_LIST_HEAD(&dev->instances);
+ 	INIT_DELAYED_WORK(&dev->timeout, coda_timeout);
++	init_completion(&dev->done);
++	complete(&dev->done);
+ 
+ 	dev->plat_dev = pdev;
+ 	dev->clk_per = devm_clk_get(&pdev->dev, "per");
+-- 
+1.7.10.4
 
-Regards,
-
-	Hans
-
-On Thu August 9 2012 01:17:57 Antti Palosaari wrote:
-> That is from current "staging/for_v3.7"
-> 
-> [crope@localhost linux]$ make htmldocs
->    HTML    Documentation/DocBook/media_api.html
-> warning: failed to load external entity 
-> "/home/crope/linuxtv/code/linux/Documentation/DocBook/vidioc-enum-freq-bands.xml"
-> /home/crope/linuxtv/code/linux/Documentation/DocBook/v4l2.xml:542: 
-> parser error : Failure to process entity sub-enum-freq-bands
->      &sub-enum-freq-bands;
->                           ^
-> /home/crope/linuxtv/code/linux/Documentation/DocBook/v4l2.xml:542: 
-> parser error : Entity 'sub-enum-freq-bands' not defined
->      &sub-enum-freq-bands;
->                           ^
-> warning: failed to load external entity 
-> "/home/crope/linuxtv/code/linux/Documentation/DocBook/selections-common.xml"
-> /home/crope/linuxtv/code/linux/Documentation/DocBook/v4l2.xml:600: 
-> parser error : Failure to process entity sub-selections-common
->        &sub-selections-common;
->                               ^
-> /home/crope/linuxtv/code/linux/Documentation/DocBook/v4l2.xml:600: 
-> parser error : Entity 'sub-selections-common' not defined
->        &sub-selections-common;
->                               ^
-> /home/crope/linuxtv/code/linux/Documentation/DocBook/v4l2.xml:625: 
-> parser error : chunk is not well balanced
-> 
-> ^
-> /home/crope/linuxtv/code/linux/Documentation/DocBook/media_api.xml:73: 
-> parser error : Failure to process entity sub-v4l2
-> &sub-v4l2;
->            ^
-> /home/crope/linuxtv/code/linux/Documentation/DocBook/media_api.xml:73: 
-> parser error : Entity 'sub-v4l2' not defined
-> &sub-v4l2;
->            ^
-> unable to parse 
-> /home/crope/linuxtv/code/linux/Documentation/DocBook/media_api.xml
-> /usr/bin/cp: cannot stat `*.*htm*': No such file or directory
-> make[1]: *** [Documentation/DocBook/media_api.html] Error 1
-> make: *** [htmldocs] Error 2
-> [crope@localhost linux]$
-> 
-> regards
-> Antti
-> 
-> 
