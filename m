@@ -1,136 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1226 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758775Ab2HVJk3 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:37010 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751351Ab2HaIL1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Aug 2012 05:40:29 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id q7M9eQdi030566
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Wed, 22 Aug 2012 11:40:27 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from tschai.localnet (tschai.lan [192.168.1.10])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 377C135E0224
-	for <linux-media@vger.kernel.org>; Wed, 22 Aug 2012 11:40:25 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: RFC: Core + Radio profile
-Date: Wed, 22 Aug 2012 11:40:25 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201208221140.25656.hverkuil@xs4all.nl>
+	Fri, 31 Aug 2012 04:11:27 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 10/16] media: coda: fix sizeimage setting in try_fmt
+Date: Fri, 31 Aug 2012 10:11:04 +0200
+Message-Id: <1346400670-16002-11-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
+References: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all!
+VIDIOC_TRY_FMT would incorrectly return bytesperline * height,
+instead of width * height * 3 / 2.
 
-The v4l2-compliance utility checks whether device drivers follows the V4L2
-specification. What is missing are 'profiles' detailing what device drivers
-should and shouldn't implement for particular device classes.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-This has been discussed several times, but until now no attempt was made to
-actually write this down.
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index de66579..cdb2ead 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -408,8 +408,8 @@ static int vidioc_try_fmt(struct coda_dev *dev, struct v4l2_format *f)
+ 				      W_ALIGN, &f->fmt.pix.height,
+ 				      MIN_H, MAX_H, H_ALIGN, S_ALIGN);
+ 		f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 2);
+-		f->fmt.pix.sizeimage = f->fmt.pix.height *
+-					f->fmt.pix.bytesperline;
++		f->fmt.pix.sizeimage = f->fmt.pix.width *
++					f->fmt.pix.height * 3 / 2;
+ 	} else { /*encoded formats h.264/mpeg4 */
+ 		f->fmt.pix.bytesperline = 0;
+ 		f->fmt.pix.sizeimage = CODA_MAX_FRAME_SIZE;
+@@ -493,11 +493,7 @@ static int vidioc_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f)
+ 	q_data->fmt = find_format(ctx->dev, f);
+ 	q_data->width = f->fmt.pix.width;
+ 	q_data->height = f->fmt.pix.height;
+-	if (q_data->fmt->fourcc == V4L2_PIX_FMT_YUV420) {
+-		q_data->sizeimage = q_data->width * q_data->height * 3 / 2;
+-	} else { /* encoded format h.264/mpeg-4 */
+-		q_data->sizeimage = CODA_MAX_FRAME_SIZE;
+-	}
++	q_data->sizeimage = f->fmt.pix.sizeimage;
+ 
+ 	v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+ 		"Setting format for type %d, wxh: %dx%d, fmt: %d\n",
+-- 
+1.7.10.4
 
-This RFC is my attempt to start this process by describing three profiles:
-the core profile that all drivers must adhere to, a profile for a radio
-receiver and a profile for a radio transmitter.
-
-Missing in this RFC is a description of how tuner ownership is handled if a
-tuner is shared between a radio and video driver. This will be discussed
-during the workshop next week.
-
-I am not certain where these profile descriptions should go. Should we add
-this to DocBook, or describe it in Documentation/video4linux? Or perhaps
-somehow add it to v4l2-compliance, since that tool effectively verifies
-the profile.
-
-Also note that the core profile description is more strict than the spec. For
-example, G/S_PRIORITY are currently optional, but I feel that all new drivers
-should implement this, especially since it is very easy to add provided you
-use struct v4l2_fh. Similar with respect to the control requirements which
-assume you use the control framework.
-
-Note that these profiles are primarily meant for driver developers. The V4L2
-specification is leading for application developers.
-
-While writing down these profiles I noticed one thing that was very much
-missing for radio devices: there is no capability bit to tell the application
-whether there is an associated ALSA device or whether the audio goes through
-a line-in/out. Personally I think that this should be fixed.
-
-Comments are welcome!
-
-Regards,
-
-	Hans
-
-
-Core Profile
-============
-
-All V4L2 device nodes must support the core profile.
-
-VIDIOC_QUERYCAP must be supported and must set the device_caps field.
-bus_info must be a unique string and must not be empty (pending result of
-the upcoming workshop).
-
-VIDIOC_G/S_PRIORITY must be supported.
-
-If you have controls then both the VIDIOC_G/S_CTRL and the VIDIOC_G/S/TRY_EXT_CTRLS
-ioctls must be supported, together with poll(), VIDIOC_DQEVENT and
-VIDIOC_(UN)SUBSCRIBE_EVENT to handle control events. Use the control framework
-to implement this.
-
-VIDIOC_LOG_STATUS is optional, but recommended for complex drivers.
-
-VIDIOC_DBG_G_CHIP_IDENT, VIDIOC_DBG_G/S_REGISTER are optional and are
-primarily used to debug drivers.
-
-Video, Radio and VBI nodes are for input or output only. The only exception
-are video nodes that have the V4L2_CAP_VIDEO_M2M(_MPLANE) capability set.
-
-Video nodes only control video, radio nodes only control radio and RDS, vbi
-nodes only control VBI (raw and/or sliced).
-
-Streaming I/O is not supported by radio nodes.
-
-Radio Receiver Profile
-======================
-
-Radio devices have a tuner and (usually) a demodulator. The audio is either
-send out to a line-out connector or uses ALSA to stream the audio.
-
-It implements VIDIOC_G/S_TUNER, VIDIOC_G/S_FREQUENCY and VIDIOC_ENUM_FREQ_BANDS.
-
-If hardware seek is supported, then VIDIOC_S_HW_FREQ_SEEK is implemented.
-
-It does *not* implement VIDIOC_ENUM/G/S_INPUT or VIDIOC_ENUM/G/S_AUDIO.
-
-If RDS_BLOCK_IO is supported, then read() and poll() are implemented as well.
-
-If a mute control exists and the audio is output using a line-out, then the
-audio must be muted on driver load and unload.
-
-On driver load the frequency must be initialized to a valid frequency.
-
-Note: There are a few drivers that use a radio (pvrusb2) or video (ivtv)
-node to stream the audio. These are legacy exceptions to the rule.
-
-FM Transmitter Profile
-======================
-
-FM transmitter devices have a transmitter and modulator. The audio is
-transferred using ALSA or a line-in connector.
-
-It implements VIDIOC_G/S_MODULATOR, VIDIOC_G/S_FREQUENCY and VIDIOC_ENUM_FREQ_BANDS.
-
-It does *not* implement VIDIOC_ENUM/G/S_OUTPUT or VIDIOC_ENUM/G/S_AUDOUT.
-
-If RDS_BLOCK_IO is supported, then write() and poll() are implemented
-as well.
-
-On driver load the frequency must be initialized to a valid frequency.
