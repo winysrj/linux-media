@@ -1,89 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53406 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752528Ab2HAF7y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2012 01:59:54 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1181 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753082Ab2HaBCx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Aug 2012 21:02:53 -0400
+Date: Thu, 30 Aug 2012 17:59:24 -0700
+Subject: Re: V4L DT @ plumbers (was Re: [RFC v4] V4L DT bindings)
+Message-ID: <le0u47eut2t0gh4pxyuu5vse.1346374764563@email.android.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Nicolas THERY <nicolas.thery@st.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Magnus Damm <magnus.damm@gmail.com>,
 	devicetree-discuss <devicetree-discuss@lists.ozlabs.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [RFC] media DT bindings
-Date: Wed, 01 Aug 2012 07:59:59 +0200
-Message-ID: <3134777.Df1peamEaY@avalon>
-In-Reply-To: <50186A54.3@wwwdotorg.org>
-References: <Pine.LNX.4.64.1207110854290.18999@axis700.grange> <1853410.hC8HZhzZI6@avalon> <50186A54.3@wwwdotorg.org>
+	"linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Benjamin GAIGNARD <benjamin.gaignard@st.com>,
+	Willy POISSON <willy.poisson@st.com>,
+	Jean-Marc VOLLE <jean-marc.volle@st.com>,
+	Pierre-yves TALOUD <pierre-yves.taloud@st.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Stephen,
-
-On Tuesday 31 July 2012 17:29:24 Stephen Warren wrote:
-> On 07/31/2012 03:22 PM, Laurent Pinchart wrote:
-> > On Tuesday 31 July 2012 14:39:07 Guennadi Liakhovetski wrote:
-> ...
-> 
-> >> Ok, then, how about
-> >> 
-> >> 		#address-cells = <1>;
-> >> 		#size-cells = <0>;
-> >> 		...
-> >> 		ov772x-1 = {
-> >> 		
-> >> 			reg = <1>;			/* local pad # */
-> >> 			client = <&ov772x@0x21-0 0>;	/* remote phandle and pad */
-> > 
-> > The client property looks good, but isn't such a usage of the reg property
-> > an abuse ? Maybe the local pad # should be a device-specific property.
-> > Many hosts won't need it, and on others it would actually need to
-> > reference a subdev, not just a pad.
-> 
-> That's a very odd syntax the the phandle; I assume that "&ov772x@0x21-0"
-> is supposed to reference some other DT node. However, other nodes are
-> either referenced by:
-> 
-> "&foo" where foo is a label, and the label name is unlikely to include
-> the text "@0x21"; the @ symbol probably isn't even legal in label names.
-> 
-> "&{/path/to/node}" which might include the "@0x21" syntax since it might
-> be part of the node's name, but your example didn't include {}.
-> 
-> I'm not sure what "-0" is meant to be in that string - a math
-> expression, or ...? If it's intended to represent some separate field
-> relative to the node the phandle references, it needs to be just another
-> cell.
-
-I'm actually not sure what -0 represents, and I don't think we need the 
-@0x21-0 at all. I believe &ov772x@0x21-0 is supposed to just be a label. We 
-don't need an extra cell.
-
-> So overall, perhaps:
-> 
-> / {
->    ...
->    pad: something { ... };
->    ...
->    ov772x@1 = { /* @1 not -1 would be canonical syntax */
->      reg = <1>;
->      client = <&pad 0 0>;
->    ...
-> 
-> I'm sorry I haven't followed the thread; I'm wondering why a client is a
-> pad, which to me means a pin/pad/ball on an IC package, so I'm still not
-> entirely sure if even this makes sense.
-
-Client references an image source (which is usually an I2C client, but can be 
-a different type of device) and a pad. Pad refers here to a media entity pad 
-(see http://linuxtv.org/downloads/v4l-dvb-apis/media-controller-model.html), 
-not a physical pin on an IC package.
-
--- 
-Regards,
-
-Laurent Pinchart
+RmluZSBieSBtZSEKCiAgICAgIEhhbnMKCkd1ZW5uYWRpIExpYWtob3ZldHNraSA8Zy5saWFraG92
+ZXRza2lAZ214LmRlPiB3cm90ZToKCj5PbiBGcmksIDMxIEF1ZyAyMDEyLCBMYXVyZW50IFBpbmNo
+YXJ0IHdyb3RlOgo+Cj4+IEhpIEd1ZW5uYWRpLAo+PiAKPj4gT24gVGh1cnNkYXkgMzAgQXVndXN0
+IDIwMTIgMjI6NTg6MTcgR3Vlbm5hZGkgTGlha2hvdmV0c2tpIHdyb3RlOgo+PiA+IEhpIGFsbAo+
+PiA+IAo+PiA+IERvIHdlIHN0aWxsIHdhbnQgdG8gdHJ5IHRvIG9yZ2FuaXNlIGEgc2hvcnQgZGlz
+Y3Vzc2lvbiBvZiB0aGlzIHdoaWxlIGF0Cj4+ID4gcGx1bWJlcnM/IE1heWJlIHRvbW9ycm93IGR1
+cmluZyBvciBhcm91bmQgbHVuY2g/IE9yIGFueSBvdGhlciB0aW1lIGZvcgo+PiA+IHRoYXQgbWF0
+dGVyPwo+PiAKPj4gSSdtIGNlcnRhaW5seSBpbnRlcmVzdGVkLiBJIGhhdmUgYSBtZWV0aW5nIHRv
+bW9ycm93IGF0IGEgc3RpbGwgdW5rbm93biB0eXBlLCAKPj4gYXBhcnQgZnJvbSB0aGF0IEknbSBm
+cmVlLgo+Cj5Ib3cgYWJvdXQgYmVnaW5uaW5nIHRvbW9ycm93IGF0IDExOjU1IChOYXV0aWx1cyAz
+ICYgNCBhcmUgc3RpbGwgZnJlZSAKPmFjY29yZGluZyB0byB0aGUgc2NoZWR1bGUpIGFuZCB0aGVu
+IGNvbnRpbnVpbmcgYWZ0ZXIgdGhlIGx1bmNoIGZvciBhbm90aGVyIAo+aG91ciBpZiBuZWVkZWQg
+KGZpcnN0IHRhbGsgaW4gdGhlIGFmdGVybm9vbiB0b21vcnJvdyBpcyBhdCAxNDoxMCkuCj4KPlRo
+YW5rcwo+R3Vlbm5hZGkKPi0tLQo+R3Vlbm5hZGkgTGlha2hvdmV0c2tpLCBQaC5ELgo+RnJlZWxh
+bmNlIE9wZW4tU291cmNlIFNvZnR3YXJlIERldmVsb3Blcgo+aHR0cDovL3d3dy5vcGVuLXRlY2hu
+b2xvZ3kuZGUvCj4tLQo+VG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxp
+bmUgInVuc3Vic2NyaWJlIGxpbnV4LW1lZGlhIiBpbgo+dGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRv
+IG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcKPk1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6
+Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbAo=
 
