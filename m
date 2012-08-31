@@ -1,57 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:32810 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932505Ab2HGCr4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2012 22:47:56 -0400
-Received: by mail-vc0-f174.google.com with SMTP id fk26so3432645vcb.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2012 19:47:56 -0700 (PDT)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:37028 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751429Ab2HaIL2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Aug 2012 04:11:28 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH 10/24] au8522: fix regression in logging introduced by separation of modules
-Date: Mon,  6 Aug 2012 22:47:00 -0400
-Message-Id: <1344307634-11673-11-git-send-email-dheitmueller@kernellabs.com>
-In-Reply-To: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
-References: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 12/16] media: coda: add byte size slice limit control
+Date: Fri, 31 Aug 2012 10:11:06 +0200
+Message-Id: <1346400670-16002-13-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
+References: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The au8522 driver was broken into three modules (dig, decoder, common), and
-as a result the debug modprobe option doesn't work for any of the common
-functions.
-
-Copy the module macros over to the common module so that the debug option
-works again.
-
-Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/dvb/frontends/au8522_common.c |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
+ drivers/media/platform/coda.c |   29 +++++++++++++++++++++++------
+ 1 file changed, 23 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/dvb/frontends/au8522_common.c b/drivers/media/dvb/frontends/au8522_common.c
-index 5cfe151..8b4da40 100644
---- a/drivers/media/dvb/frontends/au8522_common.c
-+++ b/drivers/media/dvb/frontends/au8522_common.c
-@@ -26,8 +26,6 @@
- #include "dvb_frontend.h"
- #include "au8522_priv.h"
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 8670d9f..266f97f 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -152,6 +152,7 @@ struct coda_params {
+ 	enum v4l2_mpeg_video_multi_slice_mode slice_mode;
+ 	u32			framerate;
+ 	u16			bitrate;
++	u32			slice_max_bits;
+ 	u32			slice_max_mb;
+ };
  
--MODULE_LICENSE("GPL");
--
- static int debug;
+@@ -1057,12 +1058,23 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+ 		return -EINVAL;
+ 	}
  
- #define dprintk(arg...)\
-@@ -257,3 +255,10 @@ int au8522_sleep(struct dvb_frontend *fe)
- 	return 0;
- }
- EXPORT_SYMBOL(au8522_sleep);
-+
-+module_param(debug, int, 0644);
-+MODULE_PARM_DESC(debug, "Enable verbose debug messages");
-+
-+MODULE_DESCRIPTION("Auvitek AU8522 QAM-B/ATSC Demodulator driver");
-+MODULE_AUTHOR("Steven Toth");
-+MODULE_LICENSE("GPL");
+-	value  = (ctx->params.slice_max_mb & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
+-	value |= (1 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
+-	if (ctx->params.slice_mode == V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB)
++	switch (ctx->params.slice_mode) {
++	case V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE:
++		value = 0;
++		break;
++	case V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB:
++		value  = (ctx->params.slice_max_mb & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
++		value |= (1 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
++		value |=  1 & CODA_SLICING_MODE_MASK;
++		break;
++	case V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES:
++		value  = (ctx->params.slice_max_bits & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
++		value |= (0 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
+ 		value |=  1 & CODA_SLICING_MODE_MASK;
++		break;
++	}
+ 	coda_write(dev, value, CODA_CMD_ENC_SEQ_SLICE_MODE);
+-	value  =  ctx->params.gop_size & CODA_GOP_SIZE_MASK;
++	value = ctx->params.gop_size & CODA_GOP_SIZE_MASK;
+ 	coda_write(dev, value, CODA_CMD_ENC_SEQ_GOP_SIZE);
+ 
+ 	if (ctx->params.bitrate) {
+@@ -1309,6 +1321,9 @@ static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB:
+ 		ctx->params.slice_max_mb = ctrl->val;
+ 		break;
++	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES:
++		ctx->params.slice_max_bits = ctrl->val * 8;
++		break;
+ 	case V4L2_CID_MPEG_VIDEO_HEADER_MODE:
+ 		break;
+ 	default:
+@@ -1347,10 +1362,12 @@ static int coda_ctrls_setup(struct coda_ctx *ctx)
+ 		V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP, 1, 31, 1, 2);
+ 	v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE,
+-		V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB, 0,
+-		V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB);
++		V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES, 0x7,
++		V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE);
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB, 1, 0x3fffffff, 1, 1);
++	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
++		V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES, 1, 0x3fffffff, 1, 500);
+ 	v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_HEADER_MODE,
+ 		V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME,
 -- 
-1.7.1
+1.7.10.4
 
