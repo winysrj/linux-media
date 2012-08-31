@@ -1,47 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:32579 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754172Ab2HTUpo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Aug 2012 16:45:44 -0400
-Message-ID: <5032A236.7000105@redhat.com>
-Date: Mon, 20 Aug 2012 22:46:46 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	linux-media@vger.kernel.org, mchehab@infradead.org
-Subject: Re: How to add support for the em2765 webcam Speedlink VAD Laplace
- to the kernel ?
-References: <5032225A.9080305@googlemail.com> <50323559.7040107@redhat.com> <50328E22.4090805@redhat.com>
-In-Reply-To: <50328E22.4090805@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:37035 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751465Ab2HaIL2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Aug 2012 04:11:28 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 14/16] ARM i.MX5: Add CODA7 to device tree for i.MX51 and i.MX53
+Date: Fri, 31 Aug 2012 10:11:08 +0200
+Message-Id: <1346400670-16002-15-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
+References: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ arch/arm/boot/dts/imx51.dtsi |    6 ++++++
+ arch/arm/boot/dts/imx53.dtsi |    6 ++++++
+ 2 files changed, 12 insertions(+)
 
-On 08/20/2012 09:21 PM, Mauro Carvalho Chehab wrote:
-> Em 20-08-2012 10:02, Hans de Goede escreveu:
+diff --git a/arch/arm/boot/dts/imx51.dtsi b/arch/arm/boot/dts/imx51.dtsi
+index aba28dc..8f38d83 100644
+--- a/arch/arm/boot/dts/imx51.dtsi
++++ b/arch/arm/boot/dts/imx51.dtsi
+@@ -278,6 +278,12 @@
+ 				interrupts = <87>;
+ 				status = "disabled";
+ 			};
++
++			vpu@83ff4000 {
++				compatible = "fsl,imx51-vpu";
++				reg = <0x83ff4000 0x1000>;
++				interrupts = <9>;
++			};
+ 		};
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/imx53.dtsi b/arch/arm/boot/dts/imx53.dtsi
+index cd37165..4cf59e5 100644
+--- a/arch/arm/boot/dts/imx53.dtsi
++++ b/arch/arm/boot/dts/imx53.dtsi
+@@ -336,6 +336,12 @@
+ 				interrupts = <87>;
+ 				status = "disabled";
+ 			};
++
++			vpu@63ff4000 {
++				compatible = "fsl,imx53-vpu";
++				reg = <0x63ff4000 0x1000>;
++				interrupts = <9>;
++			};
+ 		};
+ 	};
+ };
+-- 
+1.7.10.4
 
-<snip>
-
->> Note that luckily these devices do use a unique USB id and not one of the
->> generic em28xx ids so from that pov having a specialized driver for them
->> is not an issue.
->
-> Hans,
->
-> Not sure if all em2765 cameras will have unique USB id's: at em28xx,
-> the known em2710/em2750 cameras that don't have unique ID's; detecting
-> between them requires to probe for the type of sensor.
-
-Right, like the one I gave to Douglas and you or Douglas (don't remember) added
-support for. But that one was a "regular" em28xx using camera, and this one
-appears to be a bit funky in places...
-
-I'll let Frank answer your other remarks.
-
-Regards,
-
-Hans
