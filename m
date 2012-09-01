@@ -1,53 +1,218 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:39625 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751309Ab2IGVlA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 17:41:00 -0400
-Received: by eekc1 with SMTP id c1so22275eek.19
-        for <linux-media@vger.kernel.org>; Fri, 07 Sep 2012 14:40:59 -0700 (PDT)
-Message-ID: <504A69E7.9090900@gmail.com>
-Date: Fri, 07 Sep 2012 23:40:55 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:45514 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751761Ab2IARh5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Sep 2012 13:37:57 -0400
+Received: by bkwj10 with SMTP id j10so1679217bkw.19
+        for <linux-media@vger.kernel.org>; Sat, 01 Sep 2012 10:37:56 -0700 (PDT)
+Message-ID: <504247F0.40500@gmail.com>
+Date: Sat, 01 Sep 2012 19:37:52 +0200
+From: poma <pomidorabelisima@gmail.com>
 MIME-Version: 1.0
-To: Sangwook Lee <sangwook.lee@linaro.org>
-CC: linux-media@vger.kernel.org, mchehab@infradead.org,
-	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com,
-	hans.verkuil@cisco.com, linaro-dev@lists.linaro.org,
-	patches@linaro.org, scott.bambrough@linaro.org,
-	s.nawrocki@samsung.com
-Subject: Re: [RFC PATCH v6] media: add v4l2 subdev driver for S5K4ECGX sensor
-References: <1346944114-17527-1-git-send-email-sangwook.lee@linaro.org>
-In-Reply-To: <1346944114-17527-1-git-send-email-sangwook.lee@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org,
+	Hin-Tak Leung <htl10@users.sourceforge.net>
+Subject: Re: [PATCH] rtl28xxu: correct usb_clear_halt() usage
+References: <1346507683-3621-1-git-send-email-crope@iki.fi> <50422B57.60701@gmail.com> <50422E32.9000501@iki.fi>
+In-Reply-To: <50422E32.9000501@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sangwook,
+On 09/01/2012 05:48 PM, Antti Palosaari wrote:
+> On 09/01/2012 06:35 PM, poma wrote:
+>> On 09/01/2012 03:54 PM, Antti Palosaari wrote:
+>>> It is not allowed to call usb_clear_halt() after urbs are submitted.
+>>> That causes oops sometimes. Move whole streaming_ctrl() logic to
+>>> power_ctrl() in order to avoid wrong usb_clear_halt() use. Also,
+>>> configuring streaming endpoint in streaming_ctrl() sounds like a
+>>> little bit wrong as it is aimed for control stream gate.
+>>>
+>>> Reported-by: Hin-Tak Leung <htl10@users.sourceforge.net>
+>>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>>> ---
+>>>   drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 55
+>>> +++++++++++++++------------------
+>>>   1 file changed, 25 insertions(+), 30 deletions(-)
+>>>
+>>> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+>>> b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+>>> index e29fca2..7d11c5d 100644
+>>> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+>>> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+>>> @@ -825,37 +825,10 @@ err:
+>>>       return ret;
+>>>   }
+>>>
+>>> -static int rtl28xxu_streaming_ctrl(struct dvb_frontend *fe , int onoff)
+>>> -{
+>>> -    int ret;
+>>> -    u8 buf[2];
+>>> -    struct dvb_usb_device *d = fe_to_d(fe);
+>>> -
+>>> -    dev_dbg(&d->udev->dev, "%s: onoff=%d\n", __func__, onoff);
+>>> -
+>>> -    if (onoff) {
+>>> -        buf[0] = 0x00;
+>>> -        buf[1] = 0x00;
+>>> -        usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x81));
+>>> -    } else {
+>>> -        buf[0] = 0x10; /* stall EPA */
+>>> -        buf[1] = 0x02; /* reset EPA */
+>>> -    }
+>>> -
+>>> -    ret = rtl28xx_wr_regs(d, USB_EPA_CTL, buf, 2);
+>>> -    if (ret)
+>>> -        goto err;
+>>> -
+>>> -    return ret;
+>>> -err:
+>>> -    dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
+>>> -    return ret;
+>>> -}
+>>> -
+>>>   static int rtl2831u_power_ctrl(struct dvb_usb_device *d, int onoff)
+>>>   {
+>>>       int ret;
+>>> -    u8 gpio, sys0;
+>>> +    u8 gpio, sys0, epa_ctl[2];
+>>>
+>>>       dev_dbg(&d->udev->dev, "%s: onoff=%d\n", __func__, onoff);
+>>>
+>>> @@ -878,11 +851,15 @@ static int rtl2831u_power_ctrl(struct
+>>> dvb_usb_device *d, int onoff)
+>>>           gpio |= 0x04; /* GPIO2 = 1, LED on */
+>>>           sys0 = sys0 & 0x0f;
+>>>           sys0 |= 0xe0;
+>>> +        epa_ctl[0] = 0x00; /* clear stall */
+>>> +        epa_ctl[1] = 0x00; /* clear reset */
+>>>       } else {
+>>>           gpio &= (~0x01); /* GPIO0 = 0 */
+>>>           gpio |= 0x10; /* GPIO4 = 1 */
+>>>           gpio &= (~0x04); /* GPIO2 = 1, LED off */
+>>>           sys0 = sys0 & (~0xc0);
+>>> +        epa_ctl[0] = 0x10; /* set stall */
+>>> +        epa_ctl[1] = 0x02; /* set reset */
+>>>       }
+>>>
+>>>       dev_dbg(&d->udev->dev, "%s: WR SYS0=%02x GPIO_OUT_VAL=%02x\n",
+>>> __func__,
+>>> @@ -898,6 +875,14 @@ static int rtl2831u_power_ctrl(struct
+>>> dvb_usb_device *d, int onoff)
+>>>       if (ret)
+>>>           goto err;
+>>>
+>>> +    /* streaming EP: stall & reset */
+>>> +    ret = rtl28xx_wr_regs(d, USB_EPA_CTL, epa_ctl, 2);
+>>> +    if (ret)
+>>> +        goto err;
+>>> +
+>>> +    if (onoff)
+>>> +        usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x81));
+>>> +
+>>>       return ret;
+>>>   err:
+>>>       dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
+>>> @@ -972,6 +957,14 @@ static int rtl2832u_power_ctrl(struct
+>>> dvb_usb_device *d, int onoff)
+>>>               goto err;
+>>>
+>>>
+>>> +        /* streaming EP: clear stall & reset */
+>>> +        ret = rtl28xx_wr_regs(d, USB_EPA_CTL, "\x00\x00", 2);
+>>> +        if (ret)
+>>> +            goto err;
+>>> +
+>>> +        ret = usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x81));
+>>> +        if (ret)
+>>> +            goto err;
+>>>       } else {
+>>>           /* demod_ctl_1 */
+>>>           ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL1, &val);
+>>> @@ -1006,6 +999,10 @@ static int rtl2832u_power_ctrl(struct
+>>> dvb_usb_device *d, int onoff)
+>>>           if (ret)
+>>>               goto err;
+>>>
+>>> +        /* streaming EP: set stall & reset */
+>>> +        ret = rtl28xx_wr_regs(d, USB_EPA_CTL, "\x10\x02", 2);
+>>> +        if (ret)
+>>> +            goto err;
+>>>       }
+>>>
+>>>       return ret;
+>>> @@ -1182,7 +1179,6 @@ static const struct dvb_usb_device_properties
+>>> rtl2831u_props = {
+>>>       .tuner_attach = rtl2831u_tuner_attach,
+>>>       .init = rtl28xxu_init,
+>>>       .get_rc_config = rtl2831u_get_rc_config,
+>>> -    .streaming_ctrl = rtl28xxu_streaming_ctrl,
+>>>
+>>>       .num_adapters = 1,
+>>>       .adapter = {
+>>> @@ -1204,7 +1200,6 @@ static const struct dvb_usb_device_properties
+>>> rtl2832u_props = {
+>>>       .tuner_attach = rtl2832u_tuner_attach,
+>>>       .init = rtl28xxu_init,
+>>>       .get_rc_config = rtl2832u_get_rc_config,
+>>> -    .streaming_ctrl = rtl28xxu_streaming_ctrl,
+>>>
+>>>       .num_adapters = 1,
+>>>       .adapter = {
+>>>
+>>
+>> OK, after patching with this one from http://goo.gl/5wtpT there is no
+>> OOPS, but this happened[1][2]:
+>> 1. mythtv-setup version: fixes/0.25 [v0.25.2-3-gf0e2ad8-dirty]:
+>> …
+>>     E  DVBChan(1:/dev/dvb/adapter0/frontend0): Getting Frontend
+>> uncorrected block count failed.
+>> eno: Operation not supported (95)
+>> 2012-09-01 17:08:20.577044 W  DVBSM(/dev/dvb/adapter0/frontend0): Cannot
+>> count Uncorrected Blocks
+>> eno: Operation not supported (95)
+>> …
+>> 2. tzap/femon:
+>> …
+>> status 1f | signal 2f2f | snr 00f2 | ber 0000001e | unc 00000033 |
+>> FE_HAS_LOCK
+>> status 1f | signal 2f2f | snr 00f3 | ber 0000000b | unc 00000033 |
+>> FE_HAS_LOCK
+>> status 1f | signal 2f2f | snr 00f1 | ber 00000000 | unc 00000033 |
+>> FE_HAS_LOCK
+>> …
+>> …
+>> Problem retrieving frontend information: Operation not supported
+>> status SCVYL | signal  18% | snr   0% | ber 19 | unc 1 | FE_HAS_LOCK
+>> Problem retrieving frontend information: Operation not supported
+>> status SCVYL | signal  18% | snr   0% | ber 7 | unc 1 | FE_HAS_LOCK
+>> Problem retrieving frontend information: Operation not supported
+>> status SCVYL | signal  18% | snr   0% | ber 54 | unc 1 | FE_HAS_LOCK
+>> …
+> 
+> It is correct as driver does not report uncorrected blocks at all. Those
+> applications should be fixed. When I removed stub callback
+> implementation I looked quite many frontend drivers and there is surely
+> more than 10 other demod drivers reporting errors too. Unfortunately
+> returned error codes varies from driver by driver. Correct error code
+> for non-supported IOCTL is ENOTTY and DVB-frontend is changed to return
+> it too, but you don't seems to have a such patch.
+> 
 
-On 09/06/2012 05:08 PM, Sangwook Lee wrote:
-> This patch adds driver for S5K4ECGX sensor with embedded ISP SoC,
-> S5K4ECGX, which is a 5M CMOS Image sensor from Samsung
-> The driver implements preview mode of the S5K4ECGX sensor.
-> capture (snapshot) operation, face detection are missing now.
-> Following controls are supported:
-> contrast/saturation/brightness/sharpness
->
-> Signed-off-by: Sangwook Lee<sangwook.lee@linaro.org>
-> Reviewed-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
+Yeah, as you mentioned before this case;
+http://www.spinics.net/lists/linux-media/msg49869.html
+Thanks for explain that again!
 
-Thanks for the update. I've done a few more minor fixes and improved
-s_stream() subdev op handling, so it really enables/disables data
-stream on the sensor's output. It's pushed to
+> And also, patch in question has nothing to do with that error code.
+> 
 
-git://linuxtv.org/snawrocki/media.git samsung_s5k4ecgx
+I'll go from 1st patch just to confirm ;)
 
-Could you please squash the changes that you are willing to accept
-and test if the last patch really does what it is intended to ?
+> regards
+> Antti
+> 
 
-After you send v7 I could add this patch to my tree for v3.7,
-unless you want to handle it yourself.
+Cheers,
+poma
 
---
-Thanks,
-Sylwester
