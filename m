@@ -1,46 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oyp.chewa.net ([91.121.6.101]:39007 "EHLO oyp.chewa.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754745Ab2IHOdg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Sep 2012 10:33:36 -0400
-From: "=?utf-8?q?R=C3=A9mi?= Denis-Courmont" <remi@remlab.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFCv2 API PATCH 13/28] Add V4L2_CAP_MONOTONIC_TS where applicable.
-Date: Sat, 8 Sep 2012 17:33:32 +0300
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl> <753ddb14136b19372f3a533961fc90b5adbfb07a.1347023744.git.hans.verkuil@cisco.com>
-In-Reply-To: <753ddb14136b19372f3a533961fc90b5adbfb07a.1347023744.git.hans.verkuil@cisco.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:54276 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752974Ab2IAPv1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Sep 2012 11:51:27 -0400
+Received: by bkwj10 with SMTP id j10so1657818bkw.19
+        for <linux-media@vger.kernel.org>; Sat, 01 Sep 2012 08:51:26 -0700 (PDT)
+Message-ID: <50422EFA.5000606@gmail.com>
+Date: Sat, 01 Sep 2012 17:51:22 +0200
+From: poma <pomidorabelisima@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201209081733.32755@leon.remlab.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Juergen Lock <nox@jelal.kn-bremen.de>, hselasky@c2i.net
+Subject: Re: Fwd: [PATCH, RFC] Fix DVB ioctls failing if frontend open/closed
+ too fast
+References: <20120731222216.GA36603@triton8.kn-bremen.de> <502711BE.4020701@redhat.com>
+In-Reply-To: <502711BE.4020701@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le vendredi 7 septembre 2012 16:29:13, Hans Verkuil a Ã©crit :
-> diff --git a/drivers/media/platform/davinci/vpbe_display.c
-> b/drivers/media/platform/davinci/vpbe_display.c index 9a05c81..3a50547
-> 100644
-> --- a/drivers/media/platform/davinci/vpbe_display.c
-> +++ b/drivers/media/platform/davinci/vpbe_display.c
-> @@ -620,7 +620,8 @@ static int vpbe_display_querycap(struct file *file,
-> void  *priv, struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
+On 08/12/2012 04:15 AM, Mauro Carvalho Chehab wrote:
+> Devin/Antti,
 > 
->  	cap->version = VPBE_DISPLAY_VERSION_CODE;
-> -	cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
-> +	cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING |
-> +		V4L2_MONOTONIC_TS;
+> As Juergen mentioned your help on this patch, do you mind helping reviewing
+> and testing it?
+> 
+> Touching on those semaphores can be very tricky, as anything wrong may cause
+> a driver hangup. So, it is great to have more pair of eyes looking on it.
+> 
+> While I didn't test the code (too busy trying to clean up my long queue -
+> currently with still 200+ patches left), I did a careful review at the
+> semaphore code there, and it seems this approach will work.
+> 
+> At least, the first hunk looks perfect for me. The second hunk seems
+> a little more worrying, as the dvb core might be waiting forever for
+> a lock on a device that was already removed.
+> 
+> In order to test it in practice, I think we need to remove an USB device
+> by hand while tuning it, and see if the core will not lock the device 
+> forever.
+> 
+> What do you think?
+> Mauro
+> 
+> -------- Mensagem original --------
+> Assunto: [PATCH, RFC] Fix DVB ioctls failing if frontend open/closed too fast
+> Data: Wed, 1 Aug 2012 00:22:16 +0200
+> De: Juergen Lock <nox@jelal.kn-bremen.de>
+> Para: linux-media@vger.kernel.org
+> CC: hselasky@c2i.net
+> 
+> That likely fxes this MythTV ticket:
+> 
+> 	http://code.mythtv.org/trac/ticket/10830
+> 
+> (which btw affects all usb tuners I tested as well, pctv452e,
+> dib0700, af9015)  pctv452e is still possibly broken with MythTV
+> even after this fix; it does work with VDR here tho despite I2C
+> errors.
+> 
+> Reduced testcase:
+> 
+> 	http://people.freebsd.org/~nox/tmp/ioctltst.c
+> 
+> Thanx to devinheitmueller and crope from #linuxtv for helping with
+> this fix! :)
+> 
+> Signed-off-by: Juergen Lock <nox@jelal.kn-bremen.de>
+> 
+> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> @@ -604,6 +604,7 @@ static int dvb_frontend_thread(void *dat
+>  	enum dvbfe_algo algo;
+>  
+>  	bool re_tune = false;
+> +	bool semheld = false;
+>  
+>  	dprintk("%s\n", __func__);
+>  
+> @@ -627,6 +628,8 @@ restart:
+>  
+>  		if (kthread_should_stop() || dvb_frontend_is_exiting(fe)) {
+>  			/* got signal or quitting */
+> +			if (!down_interruptible (&fepriv->sem))
+> +				semheld = true;
+>  			fepriv->exit = DVB_FE_NORMAL_EXIT;
+>  			break;
+>  		}
+> @@ -742,6 +745,8 @@ restart:
+>  		fepriv->exit = DVB_FE_NO_EXIT;
+>  	mb();
+>  
+> +	if (semheld)
+> +		up(&fepriv->sem);
+>  	dvb_frontend_wakeup(fe);
+>  	return 0;
+>  }
+> @@ -1804,16 +1809,20 @@ static int dvb_frontend_ioctl(struct fil
+>  
+>  	dprintk("%s (%d)\n", __func__, _IOC_NR(cmd));
+>  
+> -	if (fepriv->exit != DVB_FE_NO_EXIT)
+> +	if (down_interruptible (&fepriv->sem))
+> +		return -ERESTARTSYS;
+> +
+> +	if (fepriv->exit != DVB_FE_NO_EXIT) {
+> +		up(&fepriv->sem);
+>  		return -ENODEV;
+> +	}
+>  
+>  	if ((file->f_flags & O_ACCMODE) == O_RDONLY &&
+>  	    (_IOC_DIR(cmd) != _IOC_READ || cmd == FE_GET_EVENT ||
+> -	     cmd == FE_DISEQC_RECV_SLAVE_REPLY))
+> +	     cmd == FE_DISEQC_RECV_SLAVE_REPLY)) {
+> +		up(&fepriv->sem);
+>  		return -EPERM;
+> -
+> -	if (down_interruptible (&fepriv->sem))
+> -		return -ERESTARTSYS;
+> +	}
+>  
+>  	if ((cmd == FE_SET_PROPERTY) || (cmd == FE_GET_PROPERTY))
+>  		err = dvb_frontend_ioctl_properties(file, cmd, parg);
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Typo ?
++1
+This one resolve annoying mythtv-setup output:
+"E FE_GET_INFO ioctl failed (/dev/dvb/adapter0/frontend0)
+eno: No such device (19)"
+http://www.gossamer-threads.com/lists/mythtv/dev/513410
 
->  	strlcpy(cap->driver, VPBE_DISPLAY_DRIVER, sizeof(cap->driver));
->  	strlcpy(cap->bus_info, "platform", sizeof(cap->bus_info));
->  	strlcpy(cap->card, vpbe_dev->cfg->module_name, sizeof(cap->card));
+But, there is a new one!
+Just had a little déjà vu :)
+
+Cheers,
+poma
 
 
--- 
-RÃ©mi Denis-Courmont
-http://www.remlab.net/
