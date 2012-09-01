@@ -1,135 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:11450 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756208Ab2IXO4F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 10:56:05 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MAV00HTS05535D0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Mon, 24 Sep 2012 23:56:04 +0900 (KST)
-Received: from amdc248.digital.local ([106.116.147.32])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MAV0044E052DB30@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 24 Sep 2012 23:56:03 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:52017 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751958Ab2IANzT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 1 Sep 2012 09:55:19 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: a.hajda@samsung.com, sakari.ailus@iki.fi,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC 1/5] V4L: Add V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8 media bus
- format
-Date: Mon, 24 Sep 2012 16:55:42 +0200
-Message-id: <1348498546-2652-2-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1348498546-2652-1-git-send-email-s.nawrocki@samsung.com>
-References: <1348498546-2652-1-git-send-email-s.nawrocki@samsung.com>
+Cc: Hin-Tak Leung <htl10@users.sourceforge.net>,
+	poma <pomidorabelisima@gmail.com>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] rtl28xxu: correct usb_clear_halt() usage
+Date: Sat,  1 Sep 2012 16:54:43 +0300
+Message-Id: <1346507683-3621-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds media bus pixel code for the interleaved JPEG/UYVY
-image format used by S5C73MX Samsung cameras. This interleaved image
-data is transferred on MIPI-CSI2 bus as User Defined Byte-based Data.
+It is not allowed to call usb_clear_halt() after urbs are submitted.
+That causes oops sometimes. Move whole streaming_ctrl() logic to
+power_ctrl() in order to avoid wrong usb_clear_halt() use. Also,
+configuring streaming endpoint in streaming_ctrl() sounds like a
+little bit wrong as it is aimed for control stream gate.
 
-It also defines an experimental vendor and device specific media bus
-formats section and adds related DocBook documentation.
-
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Reported-by: Hin-Tak Leung <htl10@users.sourceforge.net>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- Documentation/DocBook/media/v4l/compat.xml         |  4 ++
- Documentation/DocBook/media/v4l/subdev-formats.xml | 45 ++++++++++++++++++++++
- include/linux/v4l2-mediabus.h                      |  5 +++
- 3 files changed, 54 insertions(+)
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 55 +++++++++++++++------------------
+ 1 file changed, 25 insertions(+), 30 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index 98e8d08..5d2480b 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2605,6 +2605,10 @@ ioctls.</para>
-         <listitem>
- 	  <para>Support for frequency band enumeration: &VIDIOC-ENUM-FREQ-BANDS; ioctl.</para>
-         </listitem>
-+        <listitem>
-+	  <para>Vendor and device specific media bus pixel formats.
-+	    <xref linkend="v4l2-mbus-vendor-spec-fmts" />.</para>
-+        </listitem>
-       </itemizedlist>
-     </section>
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index e29fca2..7d11c5d 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -825,37 +825,10 @@ err:
+ 	return ret;
+ }
  
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index 49c532e..d7aa870 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -2565,5 +2565,50 @@
- 	</tgroup>
-       </table>
-     </section>
-+
-+    <section id="v4l2-mbus-vendor-spec-fmts">
-+      <title>Vendor and Device Specific Formats</title>
-+
-+      <note>
-+	<title> Experimental </title>
-+	<para>This is an <link linkend="experimental">experimental</link>
-+interface and may change in the future.</para>
-+      </note>
-+
-+      <para> This section lists complex data formats that are either vendor or
-+	device specific. These formats comprise raw and compressed image data
-+	and optional meta-data within a single frame.
-+      </para>
-+
-+      <para>The following table lists the existing vendor and device specific
-+	formats.</para>
-+
-+      <table pgwide="0" frame="none" id="v4l2-mbus-pixelcode-vendor-specific">
-+	<title>Vendor and device specific formats</title>
-+	<tgroup cols="3">
-+	  <colspec colname="id" align="left" />
-+	  <colspec colname="code" align="left"/>
-+	  <colspec colname="remarks" align="left"/>
-+	  <thead>
-+	    <row>
-+	      <entry>Identifier</entry>
-+	      <entry>Code</entry>
-+	      <entry>Comments</entry>
-+	    </row>
-+	  </thead>
-+	  <tbody valign="top">
-+	    <row id="V4L2-MBUS-FMT-S5C-UYVY-JPG-1X8">
-+	      <entry>V4L2_MBUS_FMT_S5C_UYVY_JPG_1X8</entry>
-+	      <entry>0x8001</entry>
-+	      <entry>
-+		Interleaved raw UYVY and JPEG image format with embedded
-+		meta-data, produced by S3C73M3 camera sensors.
-+	      </entry>
-+	    </row>
-+	  </tbody>
-+	</tgroup>
-+      </table>
-+    </section>
-+
-   </section>
- </section>
-diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-index 5ea7f75..b98c566 100644
---- a/include/linux/v4l2-mediabus.h
-+++ b/include/linux/v4l2-mediabus.h
-@@ -92,6 +92,11 @@ enum v4l2_mbus_pixelcode {
+-static int rtl28xxu_streaming_ctrl(struct dvb_frontend *fe , int onoff)
+-{
+-	int ret;
+-	u8 buf[2];
+-	struct dvb_usb_device *d = fe_to_d(fe);
+-
+-	dev_dbg(&d->udev->dev, "%s: onoff=%d\n", __func__, onoff);
+-
+-	if (onoff) {
+-		buf[0] = 0x00;
+-		buf[1] = 0x00;
+-		usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x81));
+-	} else {
+-		buf[0] = 0x10; /* stall EPA */
+-		buf[1] = 0x02; /* reset EPA */
+-	}
+-
+-	ret = rtl28xx_wr_regs(d, USB_EPA_CTL, buf, 2);
+-	if (ret)
+-		goto err;
+-
+-	return ret;
+-err:
+-	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
+-	return ret;
+-}
+-
+ static int rtl2831u_power_ctrl(struct dvb_usb_device *d, int onoff)
+ {
+ 	int ret;
+-	u8 gpio, sys0;
++	u8 gpio, sys0, epa_ctl[2];
  
- 	/* JPEG compressed formats - next is 0x4002 */
- 	V4L2_MBUS_FMT_JPEG_1X8 = 0x4001,
-+
-+	/* Vendor specific formats - next is 0x8002 */
-+
-+	/* S5C73M3 interleaved UYVY and JPEG */
-+	V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8 = 0x8001,
- };
+ 	dev_dbg(&d->udev->dev, "%s: onoff=%d\n", __func__, onoff);
  
- /**
+@@ -878,11 +851,15 @@ static int rtl2831u_power_ctrl(struct dvb_usb_device *d, int onoff)
+ 		gpio |= 0x04; /* GPIO2 = 1, LED on */
+ 		sys0 = sys0 & 0x0f;
+ 		sys0 |= 0xe0;
++		epa_ctl[0] = 0x00; /* clear stall */
++		epa_ctl[1] = 0x00; /* clear reset */
+ 	} else {
+ 		gpio &= (~0x01); /* GPIO0 = 0 */
+ 		gpio |= 0x10; /* GPIO4 = 1 */
+ 		gpio &= (~0x04); /* GPIO2 = 1, LED off */
+ 		sys0 = sys0 & (~0xc0);
++		epa_ctl[0] = 0x10; /* set stall */
++		epa_ctl[1] = 0x02; /* set reset */
+ 	}
+ 
+ 	dev_dbg(&d->udev->dev, "%s: WR SYS0=%02x GPIO_OUT_VAL=%02x\n", __func__,
+@@ -898,6 +875,14 @@ static int rtl2831u_power_ctrl(struct dvb_usb_device *d, int onoff)
+ 	if (ret)
+ 		goto err;
+ 
++	/* streaming EP: stall & reset */
++	ret = rtl28xx_wr_regs(d, USB_EPA_CTL, epa_ctl, 2);
++	if (ret)
++		goto err;
++
++	if (onoff)
++		usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x81));
++
+ 	return ret;
+ err:
+ 	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
+@@ -972,6 +957,14 @@ static int rtl2832u_power_ctrl(struct dvb_usb_device *d, int onoff)
+ 			goto err;
+ 
+ 
++		/* streaming EP: clear stall & reset */
++		ret = rtl28xx_wr_regs(d, USB_EPA_CTL, "\x00\x00", 2);
++		if (ret)
++			goto err;
++
++		ret = usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x81));
++		if (ret)
++			goto err;
+ 	} else {
+ 		/* demod_ctl_1 */
+ 		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL1, &val);
+@@ -1006,6 +999,10 @@ static int rtl2832u_power_ctrl(struct dvb_usb_device *d, int onoff)
+ 		if (ret)
+ 			goto err;
+ 
++		/* streaming EP: set stall & reset */
++		ret = rtl28xx_wr_regs(d, USB_EPA_CTL, "\x10\x02", 2);
++		if (ret)
++			goto err;
+ 	}
+ 
+ 	return ret;
+@@ -1182,7 +1179,6 @@ static const struct dvb_usb_device_properties rtl2831u_props = {
+ 	.tuner_attach = rtl2831u_tuner_attach,
+ 	.init = rtl28xxu_init,
+ 	.get_rc_config = rtl2831u_get_rc_config,
+-	.streaming_ctrl = rtl28xxu_streaming_ctrl,
+ 
+ 	.num_adapters = 1,
+ 	.adapter = {
+@@ -1204,7 +1200,6 @@ static const struct dvb_usb_device_properties rtl2832u_props = {
+ 	.tuner_attach = rtl2832u_tuner_attach,
+ 	.init = rtl28xxu_init,
+ 	.get_rc_config = rtl2832u_get_rc_config,
+-	.streaming_ctrl = rtl28xxu_streaming_ctrl,
+ 
+ 	.num_adapters = 1,
+ 	.adapter = {
 -- 
-1.7.11.3
+1.7.11.4
 
