@@ -1,75 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2609 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754522Ab2IQJaG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Sep 2012 05:30:06 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFCv3 API PATCH 15/31] v4l2-core: Add new V4L2_CAP_MONOTONIC_TS capability.
-Date: Mon, 17 Sep 2012 11:28:51 +0200
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	" =?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>,
-	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com> <50564BCE.8010901@gmail.com> <4124728.lDo7VTRoK5@avalon>
-In-Reply-To: <4124728.lDo7VTRoK5@avalon>
+Received: from mail.kapsi.fi ([217.30.184.167]:51885 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751958Ab2IANvE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 1 Sep 2012 09:51:04 -0400
+Message-ID: <504212B6.609@iki.fi>
+Date: Sat, 01 Sep 2012 16:50:46 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: poma <pomidorabelisima@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/5] rtl28xxu: stream did not start after stop on USB3.0
+References: <1345593382-11367-1-git-send-email-crope@iki.fi> <50420E9A.6000800@gmail.com>
+In-Reply-To: <50420E9A.6000800@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201209171128.52022.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon September 17 2012 11:18:58 Laurent Pinchart wrote:
-> Hi Sylwester,
-> 
-> On Sunday 16 September 2012 23:59:42 Sylwester Nawrocki wrote:
-> > On 09/16/2012 05:33 PM, Laurent Pinchart wrote:
-> > > On Sunday 16 September 2012 15:57:14 Hans Verkuil wrote:
-> > >> On Sat September 15 2012 22:16:24 Sylwester Nawrocki wrote:
-> > >>> On 09/15/2012 02:35 PM, Hans Verkuil wrote:
-> 
-> > >>> Have anyone has ever come with a use case for switching timestamps clock
-> > >>> type, can anyone give an example of it ? How likely is we will ever need
-> > >>> that ?
-> > >> 
-> > >> Well, ALSA allows you to switch between gettimeofday and monotonic. So in
-> > >> theory at least if an app selects gettimeofday for alsa, that app might
-> > >> also want to select gettimeofday for v4l2.
-> 
-> Does it, in its kernel API ? The userspace ALSA library (or possibly 
-> PulseAudio, I'd need to check) allows converting between clock sources, but I 
-> don't think the kernel API supports several clock sources.
+On 09/01/2012 04:33 PM, poma wrote:
+> On 08/22/2012 01:56 AM, Antti Palosaari wrote:
+>> Stream did not start anymore after stream was stopped once.
+>>
+>> Following error can be seen, xhci_hcd
+>> WARN Set TR Deq Ptr cmd failed due to incorrect slot or ep state.
+>>
+>> usb_clear_halt for streaming endpoint helps.
+>>
+>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>> ---
+>>   drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 1 +
+>>   1 file changed, 1 insertion(+)
+>>
+>> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+>> index d2b1505..1ccb99b 100644
+>> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+>> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+>> @@ -834,6 +834,7 @@ static int rtl28xxu_streaming_ctrl(struct dvb_frontend *fe , int onoff)
+>>   	if (onoff) {
+>>   		buf[0] = 0x00;
+>>   		buf[1] = 0x00;
+>> +		usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x81));
+>>   	} else {
+>>   		buf[0] = 0x10; /* stall EPA */
+>>   		buf[1] = 0x02; /* reset EPA */
+>>
+>
+> After every soft/warm [re]boot only after first scandvb:
+> ------------[ cut here ]------------
+> WARNING: at drivers/usb/host/ehci-hcd.c:1226
+> ehci_endpoint_reset+0x111/0x120()
+> Hardware name: M720-US3
+> clear_halt for a busy endpoint
+> Modules linked in: fc0012(O) rtl2832(O) dvb_usb_rtl28xxu(O) rtl2830(O)
+> dvb_usbv2(O) dvb_core(O) nvidia(PO) tvaudio(O) tda7432(O) msp3400(O)
+> tuner_simple(O) tuner_types(O) wm8775(O) snd_hda_codec_realtek
+> tda9887(O) tda8290(O) tuner(O) cx25840(O) snd_hda_intel snd_bt87x
+> bttv(O) ivtv(O) snd_hda_codec snd_hwdep tveeprom(O) cx2341x(O)
+> btcx_risc(O) snd_pcm snd_page_alloc snd_timer snd soundcore ppdev
+> videobuf_dma_sg(O) videobuf_core(O) v4l2_common(O) parport_serial
+> parport_pc parport videodev(O) edac_core media(O) i2c_nforce2 rc_core(O)
+> i2c_algo_bit microcode i2c_core edac_mce_amd vhost_net tun macvtap
+> macvlan kvm_amd kvm uinput binfmt_misc raid1 r8169 ata_generic pata_acpi
+> mii usb_storage skge pata_amd wmi sunrpc be2iscsi bnx2i cnic uio cxgb4i
+> cxgb4 cxgb3i cxgb3 mdio libcxgbi libiscsi_tcp qla4xxx iscsi_boot_sysfs
+> libiscsi scsi_transport_iscsi [last unloaded: scsi_wait_scan]
+> Pid: 1170, comm: scandvb Tainted: P           O 3.5.2-3.fc17.x86_64 #1
+> Call Trace:
+>   [<ffffffff810584bf>] warn_slowpath_common+0x7f/0xc0
+>   [<ffffffff810585b6>] warn_slowpath_fmt+0x46/0x50
+>   [<ffffffff81444a31>] ehci_endpoint_reset+0x111/0x120
+>   [<ffffffff8142c135>] usb_hcd_reset_endpoint+0x25/0x70
+>   [<ffffffff8142d468>] usb_reset_endpoint+0x28/0x40
+>   [<ffffffff8142e06e>] usb_clear_halt+0x6e/0x80
+>   [<ffffffffa0f2baed>] rtl28xxu_streaming_ctrl+0xad/0x110 [dvb_usb_rtl28xxu]
+>   [<ffffffffa0f50375>] dvb_usb_start_feed+0x235/0x440 [dvb_usbv2]
+>   [<ffffffff8115ca5d>] ? __vmalloc_node_range+0x17d/0x240
+>   [<ffffffffa0f111b9>] ? dvb_dmxdev_filter_start+0x2c9/0x3e0 [dvb_core]
+>   [<ffffffffa0f12b00>] dmx_section_feed_start_filtering+0xe0/0x180 [dvb_core]
+>   [<ffffffffa0f110fe>] dvb_dmxdev_filter_start+0x20e/0x3e0 [dvb_core]
+>   [<ffffffffa0f11945>] dvb_demux_do_ioctl+0x405/0x640 [dvb_core]
+>   [<ffffffffa0f11540>] ? dvb_dvr_do_ioctl+0x130/0x130 [dvb_core]
+>   [<ffffffffa0f0fa36>] dvb_usercopy+0x86/0x1d0 [dvb_core]
+>   [<ffffffff811976d1>] ? do_filp_open+0x41/0xa0
+>   [<ffffffffa0f0ffa5>] dvb_demux_ioctl+0x15/0x20 [dvb_core]
+>   [<ffffffff811996c9>] do_vfs_ioctl+0x99/0x580
+>   [<ffffffff812793da>] ? inode_has_perm.isra.31.constprop.61+0x2a/0x30
+>   [<ffffffff8127a9b7>] ? file_has_perm+0x97/0xb0
+>   [<ffffffff81199c49>] sys_ioctl+0x99/0xa0
+>   [<ffffffff81614969>] system_call_fastpath+0x16/0x1b
+> ---[ end trace cce2913a24da6585 ]---
+>
+> media_build
+> commit 420335f564c32517a791ecea3909af233925634d
 
-Through the SNDRV_PCM_IOCTL_TTSTAMP ioctl AFAICT.
+That is already fixed, but I haven't sent patch yet. Currently last patch:
+http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/for_v3.7-10
 
-Regards,
+Mabbe I will sent that fix out to mailing list right now.
 
-	Hans
+regards
+Antti
 
-> 
-> > OK, I'm not complaining any more. :)
-> > 
-> > >> I'd really like to keep this door open. My experience is that if
-> > >> something is possible, then someone somewhere will want to use it.
-> > 
-> > Indeed, caps flags approach might be too limited anyway. And a v4l2 control
-> > might be not good for reporting things like these.
-> > 
-> > > As far as system timestamps are concerned I think the monotonic clock
-> > > should be enough, at least for now. Raw monotonic could possibly be
-> > > useful later.
-> > > 
-> > > Another important use case I have in mind is to provide raw device
-> > > timestamps. For instance UVC devices send a device clock timestamp along
-> > > with video frames. That timestamp can be useful to userspace
-> > > applications.
-> > 
-> > Could be interesting to add support for something like this. Of what format
-> > are then such device timestamps ?
-> 
-> They're device-dependent :-) In the UVC case they're 32-bit integers.
-> 
-> 
+-- 
+http://palosaari.fi/
