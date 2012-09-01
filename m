@@ -1,70 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:57610 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755973Ab2IQLij (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Sep 2012 07:38:39 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Subject: Re: [PATCH 00/34] i.MX multi-platform support
-Date: Mon, 17 Sep 2012 11:38:13 +0000
-Cc: Shawn Guo <shawn.guo@linaro.org>,
-	linux-arm-kernel@lists.infradead.org,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	alsa-devel@alsa-project.org,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	linux-fbdev@vger.kernel.org, Chris Ball <cjb@laptop.org>,
-	linux-mmc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	rtc-linux@googlegroups.com,
-	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
-	linux-mtd@lists.infradead.org,
-	Wolfram Sang <w.sang@pengutronix.de>,
-	linux-i2c@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>,
-	linux-watchdog@vger.kernel.org,
-	"Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
-	linux-usb@vger.kernel.org, Vinod Koul <vinod.koul@linux.intel.com>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-References: <1347860103-4141-1-git-send-email-shawn.guo@linaro.org> <20120917075138.GN6180@pengutronix.de>
-In-Reply-To: <20120917075138.GN6180@pengutronix.de>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:32881 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752721Ab2IAQ0O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Sep 2012 12:26:14 -0400
+Received: by iahk25 with SMTP id k25so2628137iah.19
+        for <linux-media@vger.kernel.org>; Sat, 01 Sep 2012 09:26:13 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209171138.13327.arnd@arndb.de>
+In-Reply-To: <50423436.9040708@iki.fi>
+References: <20120731222216.GA36603@triton8.kn-bremen.de>
+	<502711BE.4020701@redhat.com>
+	<50422EFA.5000606@gmail.com>
+	<50423436.9040708@iki.fi>
+Date: Sat, 1 Sep 2012 12:26:13 -0400
+Message-ID: <CAGoCfiy=nbL1MvLZmiRG0JZe+69VBjPNur8R64pcoL0f3Y7Q_A@mail.gmail.com>
+Subject: Re: Fwd: [PATCH, RFC] Fix DVB ioctls failing if frontend open/closed
+ too fast
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: poma <pomidorabelisima@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Juergen Lock <nox@jelal.kn-bremen.de>, hselasky@c2i.net
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 17 September 2012, Sascha Hauer wrote:
-> On Mon, Sep 17, 2012 at 01:34:29PM +0800, Shawn Guo wrote:
-> > The series enables multi-platform support for imx.  Since the required
-> > frameworks (clk, pwm) and spare_irq have already been adopted on imx,
-> > the series is all about cleaning up mach/* headers.  Along with the
-> > changes, arch/arm/plat-mxc gets merged into arch/arm/mach-imx.
-> > 
-> > It's based on a bunch of branches (works from others), Rob's initial
-> > multi-platform series, Arnd's platform-data and smp_ops (Marc's) and
-> > imx 3.7 material (Sascha and myself).
-> > 
-> > It's available on branch below.
-> > 
-> >   git://git.linaro.org/people/shawnguo/linux-2.6.git imx/multi-platform
-> > 
-> > It's been tested on imx5 and imx6, and only compile-tested on imx2 and
-> > imx3, so testing on imx2/3 are appreciated.
-> 
-> Great work! This really pushes the i.MX architecture one step closer to
-> a clean code base.
+On Sat, Sep 1, 2012 at 12:13 PM, Antti Palosaari <crope@iki.fi> wrote:
+> Is there anyone caring to review that carefully?
+>
+> I am quite out with semaphores (up/down_interruptible) and also frontend is
+> so complex... I would rather design / write whole dvb-frontend from the
+> scratch :] (not doing that as no time).
 
-I agree, this series is wonderful, I thought it would take much longer
-to get this far.
+If you're not willing to take the time to understand why the existing
+dvb-frontend is so complex, how could you possibly suggest that you
+could do a better job rewriting it from scratch?  :-)
 
-Two small comments on the last two patches from me, but overall I really
-love it.
+Like most things, the devil is in the details.  The threading model is
+complicated not because it was done poorly, but because there are lots
+of complexity that is not obvious (combined with it having evolved
+over time to adapt to hardware bugs).  It's only when you run it
+against a half dozen cards with different behavior that you begin to
+see why certain things were done the way they were.
 
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+In this case, I think the race condition in question has become more
+obvious because of more aggressive use of power management for the
+tuner and demod.  Because powering down the frontend now takes actual
+time (due to i2c), users are now starting to hit the race condition.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
