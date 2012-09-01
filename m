@@ -1,169 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:58724 "EHLO
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:47120 "EHLO
 	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754505Ab2I1NUr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Sep 2012 09:20:47 -0400
-Received: by bkcjk13 with SMTP id jk13so3362570bkc.19
-        for <linux-media@vger.kernel.org>; Fri, 28 Sep 2012 06:20:45 -0700 (PDT)
-Date: Fri, 28 Sep 2012 15:20:40 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: jakob@vmware.com, thellstrom@vmware.com,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	sumit.semwal@linaro.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/5] dma-buf: remove fallback for
- !CONFIG_DMA_SHARED_BUFFER
-Message-ID: <20120928132040.GK2098@bremse>
-References: <20120928124148.14366.21063.stgit@patser.local>
+	with ESMTP id S1751958Ab2IANdS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Sep 2012 09:33:18 -0400
+Received: by bkwj10 with SMTP id j10so1629019bkw.19
+        for <linux-media@vger.kernel.org>; Sat, 01 Sep 2012 06:33:17 -0700 (PDT)
+Message-ID: <50420E9A.6000800@gmail.com>
+Date: Sat, 01 Sep 2012 15:33:14 +0200
+From: poma <pomidorabelisima@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20120928124148.14366.21063.stgit@patser.local>
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/5] rtl28xxu: stream did not start after stop on USB3.0
+References: <1345593382-11367-1-git-send-email-crope@iki.fi>
+In-Reply-To: <1345593382-11367-1-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 28, 2012 at 02:41:48PM +0200, Maarten Lankhorst wrote:
-> Documentation says that code requiring dma-buf should add it to
-> select, so inline fallbacks are not going to be used. A link error
-> will make it obvious what went wrong, instead of silently doing
-> nothing at runtime.
+On 08/22/2012 01:56 AM, Antti Palosaari wrote:
+> Stream did not start anymore after stream was stopped once.
 > 
-> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-
-Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-
-I think it'd be good if we could merge this for 3.7 ...
--Daniel
-
+> Following error can be seen, xhci_hcd
+> WARN Set TR Deq Ptr cmd failed due to incorrect slot or ep state.
+> 
+> usb_clear_halt for streaming endpoint helps.
+> 
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
 > ---
->  include/linux/dma-buf.h |   99 -----------------------------------------------
->  1 file changed, 99 deletions(-)
+>  drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 1 +
+>  1 file changed, 1 insertion(+)
 > 
-> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-> index eb48f38..bd2e52c 100644
-> --- a/include/linux/dma-buf.h
-> +++ b/include/linux/dma-buf.h
-> @@ -156,7 +156,6 @@ static inline void get_dma_buf(struct dma_buf *dmabuf)
->  	get_file(dmabuf->file);
->  }
->  
-> -#ifdef CONFIG_DMA_SHARED_BUFFER
->  struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
->  							struct device *dev);
->  void dma_buf_detach(struct dma_buf *dmabuf,
-> @@ -184,103 +183,5 @@ int dma_buf_mmap(struct dma_buf *, struct vm_area_struct *,
->  		 unsigned long);
->  void *dma_buf_vmap(struct dma_buf *);
->  void dma_buf_vunmap(struct dma_buf *, void *vaddr);
-> -#else
-> -
-> -static inline struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
-> -							struct device *dev)
-> -{
-> -	return ERR_PTR(-ENODEV);
-> -}
-> -
-> -static inline void dma_buf_detach(struct dma_buf *dmabuf,
-> -				  struct dma_buf_attachment *dmabuf_attach)
-> -{
-> -	return;
-> -}
-> -
-> -static inline struct dma_buf *dma_buf_export(void *priv,
-> -					     const struct dma_buf_ops *ops,
-> -					     size_t size, int flags)
-> -{
-> -	return ERR_PTR(-ENODEV);
-> -}
-> -
-> -static inline int dma_buf_fd(struct dma_buf *dmabuf, int flags)
-> -{
-> -	return -ENODEV;
-> -}
-> -
-> -static inline struct dma_buf *dma_buf_get(int fd)
-> -{
-> -	return ERR_PTR(-ENODEV);
-> -}
-> -
-> -static inline void dma_buf_put(struct dma_buf *dmabuf)
-> -{
-> -	return;
-> -}
-> -
-> -static inline struct sg_table *dma_buf_map_attachment(
-> -	struct dma_buf_attachment *attach, enum dma_data_direction write)
-> -{
-> -	return ERR_PTR(-ENODEV);
-> -}
-> -
-> -static inline void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
-> -			struct sg_table *sg, enum dma_data_direction dir)
-> -{
-> -	return;
-> -}
-> -
-> -static inline int dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
-> -					   size_t start, size_t len,
-> -					   enum dma_data_direction dir)
-> -{
-> -	return -ENODEV;
-> -}
-> -
-> -static inline void dma_buf_end_cpu_access(struct dma_buf *dmabuf,
-> -					  size_t start, size_t len,
-> -					  enum dma_data_direction dir)
-> -{
-> -}
-> -
-> -static inline void *dma_buf_kmap_atomic(struct dma_buf *dmabuf,
-> -					unsigned long pnum)
-> -{
-> -	return NULL;
-> -}
-> -
-> -static inline void dma_buf_kunmap_atomic(struct dma_buf *dmabuf,
-> -					 unsigned long pnum, void *vaddr)
-> -{
-> -}
-> -
-> -static inline void *dma_buf_kmap(struct dma_buf *dmabuf, unsigned long pnum)
-> -{
-> -	return NULL;
-> -}
-> -
-> -static inline void dma_buf_kunmap(struct dma_buf *dmabuf,
-> -				  unsigned long pnum, void *vaddr)
-> -{
-> -}
-> -
-> -static inline int dma_buf_mmap(struct dma_buf *dmabuf,
-> -			       struct vm_area_struct *vma,
-> -			       unsigned long pgoff)
-> -{
-> -	return -ENODEV;
-> -}
-> -
-> -static inline void *dma_buf_vmap(struct dma_buf *dmabuf)
-> -{
-> -	return NULL;
-> -}
-> -
-> -static inline void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
-> -{
-> -}
-> -#endif /* CONFIG_DMA_SHARED_BUFFER */
->  
->  #endif /* __DMA_BUF_H__ */
+> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> index d2b1505..1ccb99b 100644
+> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> @@ -834,6 +834,7 @@ static int rtl28xxu_streaming_ctrl(struct dvb_frontend *fe , int onoff)
+>  	if (onoff) {
+>  		buf[0] = 0x00;
+>  		buf[1] = 0x00;
+> +		usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x81));
+>  	} else {
+>  		buf[0] = 0x10; /* stall EPA */
+>  		buf[1] = 0x02; /* reset EPA */
 > 
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
 
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+After every soft/warm [re]boot only after first scandvb:
+------------[ cut here ]------------
+WARNING: at drivers/usb/host/ehci-hcd.c:1226
+ehci_endpoint_reset+0x111/0x120()
+Hardware name: M720-US3
+clear_halt for a busy endpoint
+Modules linked in: fc0012(O) rtl2832(O) dvb_usb_rtl28xxu(O) rtl2830(O)
+dvb_usbv2(O) dvb_core(O) nvidia(PO) tvaudio(O) tda7432(O) msp3400(O)
+tuner_simple(O) tuner_types(O) wm8775(O) snd_hda_codec_realtek
+tda9887(O) tda8290(O) tuner(O) cx25840(O) snd_hda_intel snd_bt87x
+bttv(O) ivtv(O) snd_hda_codec snd_hwdep tveeprom(O) cx2341x(O)
+btcx_risc(O) snd_pcm snd_page_alloc snd_timer snd soundcore ppdev
+videobuf_dma_sg(O) videobuf_core(O) v4l2_common(O) parport_serial
+parport_pc parport videodev(O) edac_core media(O) i2c_nforce2 rc_core(O)
+i2c_algo_bit microcode i2c_core edac_mce_amd vhost_net tun macvtap
+macvlan kvm_amd kvm uinput binfmt_misc raid1 r8169 ata_generic pata_acpi
+mii usb_storage skge pata_amd wmi sunrpc be2iscsi bnx2i cnic uio cxgb4i
+cxgb4 cxgb3i cxgb3 mdio libcxgbi libiscsi_tcp qla4xxx iscsi_boot_sysfs
+libiscsi scsi_transport_iscsi [last unloaded: scsi_wait_scan]
+Pid: 1170, comm: scandvb Tainted: P           O 3.5.2-3.fc17.x86_64 #1
+Call Trace:
+ [<ffffffff810584bf>] warn_slowpath_common+0x7f/0xc0
+ [<ffffffff810585b6>] warn_slowpath_fmt+0x46/0x50
+ [<ffffffff81444a31>] ehci_endpoint_reset+0x111/0x120
+ [<ffffffff8142c135>] usb_hcd_reset_endpoint+0x25/0x70
+ [<ffffffff8142d468>] usb_reset_endpoint+0x28/0x40
+ [<ffffffff8142e06e>] usb_clear_halt+0x6e/0x80
+ [<ffffffffa0f2baed>] rtl28xxu_streaming_ctrl+0xad/0x110 [dvb_usb_rtl28xxu]
+ [<ffffffffa0f50375>] dvb_usb_start_feed+0x235/0x440 [dvb_usbv2]
+ [<ffffffff8115ca5d>] ? __vmalloc_node_range+0x17d/0x240
+ [<ffffffffa0f111b9>] ? dvb_dmxdev_filter_start+0x2c9/0x3e0 [dvb_core]
+ [<ffffffffa0f12b00>] dmx_section_feed_start_filtering+0xe0/0x180 [dvb_core]
+ [<ffffffffa0f110fe>] dvb_dmxdev_filter_start+0x20e/0x3e0 [dvb_core]
+ [<ffffffffa0f11945>] dvb_demux_do_ioctl+0x405/0x640 [dvb_core]
+ [<ffffffffa0f11540>] ? dvb_dvr_do_ioctl+0x130/0x130 [dvb_core]
+ [<ffffffffa0f0fa36>] dvb_usercopy+0x86/0x1d0 [dvb_core]
+ [<ffffffff811976d1>] ? do_filp_open+0x41/0xa0
+ [<ffffffffa0f0ffa5>] dvb_demux_ioctl+0x15/0x20 [dvb_core]
+ [<ffffffff811996c9>] do_vfs_ioctl+0x99/0x580
+ [<ffffffff812793da>] ? inode_has_perm.isra.31.constprop.61+0x2a/0x30
+ [<ffffffff8127a9b7>] ? file_has_perm+0x97/0xb0
+ [<ffffffff81199c49>] sys_ioctl+0x99/0xa0
+ [<ffffffff81614969>] system_call_fastpath+0x16/0x1b
+---[ end trace cce2913a24da6585 ]---
+
+media_build
+commit 420335f564c32517a791ecea3909af233925634d
+
+Cheers,
+poma
+
