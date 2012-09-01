@@ -1,54 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:47255 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757204Ab2IZQjM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Sep 2012 12:39:12 -0400
-Date: Wed, 26 Sep 2012 10:40:07 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	hverkuil@xs4all.nl
-Subject: Re: [PATCH 1/5] media: ov7670: add support for ov7675.
-Message-ID: <20120926104007.4de17d19@lwn.net>
-In-Reply-To: <1348652877-25816-2-git-send-email-javier.martin@vista-silicon.com>
-References: <1348652877-25816-1-git-send-email-javier.martin@vista-silicon.com>
-	<1348652877-25816-2-git-send-email-javier.martin@vista-silicon.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37235 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752043Ab2IAQMC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 1 Sep 2012 12:12:02 -0400
+Date: Sat, 1 Sep 2012 19:11:56 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-doc@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Rob Landley <rob@landley.net>,
+	LMML <linux-media@vger.kernel.org>, hverkuil@xs4all.nl
+Subject: Re: [PATCH] [media] davinci: vpfe: Add documentation
+Message-ID: <20120901161156.GB6638@valkosipuli.retiisi.org.uk>
+References: <1342021166-6092-1-git-send-email-manjunath.hadli@ti.com>
+ <CA+V-a8tNnevox8OcXc_jxDzHdrxdF9Z-Nf2Rn0QaBsnM=n5CfA@mail.gmail.com>
+ <20120901095707.GB6348@valkosipuli.retiisi.org.uk>
+ <8524664.XGp3WDre5y@avalon>
+ <CA+V-a8sg+MR8TasN0p9kL0yQU1KtJEZZUQsknC6hrRysWA52UQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CA+V-a8sg+MR8TasN0p9kL0yQU1KtJEZZUQsknC6hrRysWA52UQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is going to have to be quick, sorry...
+Hi Prabhakar,
 
-On Wed, 26 Sep 2012 11:47:53 +0200
-Javier Martin <javier.martin@vista-silicon.com> wrote:
+On Sat, Sep 01, 2012 at 08:23:58PM +0530, Prabhakar Lad wrote:
+> On Sat, Sep 1, 2012 at 7:52 PM, Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> wrote:
+> > Hi Sakari,
+> >
+> > On Saturday 01 September 2012 12:57:07 Sakari Ailus wrote:
+> >> On Wed, Aug 29, 2012 at 08:11:50PM +0530, Prabhakar Lad wrote:
+> >
+> > [snip]
+> >
+> >> > For test pattern you meant control to enable/disable it ?
+> >>
+> >> There are two approaches I can think of.
+> >>
+> >> One is a menu control which can be used to choose the test pattern (or
+> >> disable it). The control could be standardised but the menu items would have
+> >> to be hardware-specific since the test patterns themselves are not
+> >> standardised.
+> >
+> > Agreed. The test patterns themselves are highly hardware-specific.
+> >
+> > From personal experience with sensors, most devices implement a small, fixed
+> > set of test patterns that can be exposed through a menu control. However, some
+> > devices also implement more "configurable" test patterns. For instance the
+> > MT9V032 can generate horizontal, vertical or diagonal test patterns, or a
+> > uniform grey test pattern with a user-configurable value. This would then
+> > require two controls.
+> >
+> two controls I didn't get it ? When we have menu itself with a list of standard
+> patterns why would two controls be required ?
 
-> +static struct ov7670_win_size ov7670_win_sizes[2][4] = {
-> +	/* ov7670 */
+Two are not required. A single menu control will do.
 
-I must confess I don't like this; now we've got constants in an array that
-was automatically sized before and ov7670_win_sizes[info->model]
-everywhere.  I'd suggest a separate array for each device and an
-ov7670_get_wsizes(model) function.
-
-> +		/* CIF - WARNING: not tested for ov7675 */
-> +		{
-
-...and this is part of why I don't like it.  My experience with this
-particular sensor says that, if it's not tested, it hasn't yet seen the
-magic-number tweaking required to actually make it work.  Please don't
-claim to support formats that you don't know actually work, or I'll get
-stuck with the bug reports :)
-
-> +			.width		= CIF_WIDTH,
-> +			.height		= CIF_HEIGHT,
-> +			.com7_bit	= COM7_FMT_CIF,
-> +			.hstart		= 170,	/* Empirically determined */
-> +			.hstop		=  90,
-> +			.vstart		=  14,
-> +			.vstop		= 494,
-> +			.regs		= NULL,
-> +		},
-
-jon
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
