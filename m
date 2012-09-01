@@ -1,41 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ms-fb03.so-net.ne.jp ([202.238.84.143]:30779 "EHLO
-	ms-fb03.so-net.ne.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752895Ab2IFPUn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2012 11:20:43 -0400
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:52411 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751335Ab2IAOyU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Sep 2012 10:54:20 -0400
 MIME-Version: 1.0
-Message-ID: <20120906122336.00006812.0125@m6.gyao.ne.jp>
-Date: Thu, 06 Sep 2012 21:23:36 +0900
-From: "MR.TAN WONG" <subaru04@m6.gyao.ne.jp>
-To: <info.rowanc@yahoo.com.ph>
-Reply-To: <tan.wong222@yahoo.com.hk>
-Subject: 
-Content-Type: Text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
+In-Reply-To: <8524664.XGp3WDre5y@avalon>
+References: <1342021166-6092-1-git-send-email-manjunath.hadli@ti.com>
+ <CA+V-a8tNnevox8OcXc_jxDzHdrxdF9Z-Nf2Rn0QaBsnM=n5CfA@mail.gmail.com>
+ <20120901095707.GB6348@valkosipuli.retiisi.org.uk> <8524664.XGp3WDre5y@avalon>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Sat, 1 Sep 2012 20:23:58 +0530
+Message-ID: <CA+V-a8sg+MR8TasN0p9kL0yQU1KtJEZZUQsknC6hrRysWA52UQ@mail.gmail.com>
+Subject: Re: [PATCH] [media] davinci: vpfe: Add documentation
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-doc@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Rob Landley <rob@landley.net>,
+	LMML <linux-media@vger.kernel.org>, hverkuil@xs4all.nl
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DQpGUk9NOk1SLlRBTiBXT05HDQoNCih0YW4ud29uZzIyMkB5YWhvby5jb20uaGspTGV0IG1lIHN0
-YXJ0IGJ5IGludHJvZHVjaW5nIG15c2VsZi4gSSBhbSBNci4gVGFuIFdvbmcgZGlyZWN0b3Igb2Yg
-b3BlcmF0aW9ucyBvZiB0aGUgSGFuZyBTZW5nIEJhbmsgTHRkLiBJIGhhdmUgYW4gb2JzY3VyZWQg
-YnVzaW5lc3Mgc3VnZ2VzdGlvbiBmb3IgeW91LiBUaGF0IHdpbGwgYmUgYSBncmVhdCBiZW5lZml0
-IGZvciB5b3UgYW5kIG1lLiBJdCBpbnZvbHZlIHRoZSB0cmFuc2ZlciBvZiBUd2VudHkgRm91ciBt
-aWxsaW9ucyBGaXZlIEh1bmRyZWQgVGhvdXNhbmQgVW5pdGVkIFN0YXRlIERvbGxhcigkMjQsNTAw
-LDAwMCwwMCkgZGVwb3NpdCBpbiBteSBiYW5rIFNvLCBUd2VudHkgRm91ciBtaWxsaW9ucyBGaXZl
-IEh1bmRyZWQgVGhvdXNhbmQgVW5pdGVkIFN0YXRlIERvbGxhcigkMjQsNTAwLDAwMCwwMCkgaXMg
-c3RpbGwgbHlpbmcgaW4gbXkgYmFuayBhbmQgbm8gb25lIHdpbGwgZXZlciBjb21lIGZvcndhcmQg
-dG8gY2xhaW0gaXQuIFdoYXQgYm90aGVycyBtZSBtb3N0IGlzIHRoYXQgYWNjb3JkaW5nIHRvIHRo
-ZSBsYXdzIG9mIG15IGNvdW50cnkgYXQgdGhlIGV4cGlyYXRpb24gOHllYXJzIHRoZSBmdW5kcyB3
-aWxsIHJldmVydCB0byB0aGUgb3duZXJzaGlwIG9mIHRoZSBIb25nIEtvbmcgR292ZXJubWVudCBp
-ZiBub2JvZHkgYXBwbGllcyB0byBjbGFpbSB0aGUgZnVuZHMuIEFnYWluc3QgdGhpcyBiYWNrZHJv
-cCwgbXkgc3VnZ2VzdGlvbiB0byB5b3UgaXMgdGhhdCBJIHdpbGwgbGlrZSB5b3UgYXMgYSBmb3Jl
-aWduZXIgdG8gc3RhbmQgYXMgdGhlIG5leHQgb2Yga2luIHRvIE1ham9yIEZhZGkgQmFzZW0gc28g
-dGhhdCB5b3Ugd2lsbCBiZSBhYmxlIHRvIHJlY2VpdmUgaGlzIGZ1bmRzLlRyYW5zZmVyLiBTaG91
-bGQgeW91IGJlIGludGVyZXN0ZWQgcGxlYXNlIHNlbmQgbWUgeW91ciBmdWxsIG5hbWVzIGFuZCBj
-dXJyZW50IHJlc2lkZW50aWFsIGFkZHJlc3MgYW5kIEkgd2lsbCBwcmVmZXIgeW91IHRvIHJlYWNo
-IG1lIG9uIHRoaXMgZW1haWwgYWRkcmVzcyAodGFuLndvbmcyMjJAeWFob28uY29tLmhrKSB3aGlj
-aCBpcyBteSBwcml2YXRlIGVtYWlsIGFkZHJlc3MgYW5kIGZpbmFsbHkgYWZ0ZXIgdGhhdCBJIHNo
-YWxsIHByb3ZpZGUgeW91IHdpdGggbW9yZSBkZXRhaWxzIG9mIHRoaXMgb3BlcmF0aW9uLllvdXIg
-ZWFybGllc3QgcmVzcG9uc2UgdG8gdGhpcyBsZXR0ZXIgd2lsbCBiZSBhcHByZWNpYXRlZC4gS2lu
-ZCBSZWdhcmRzLCBNci5UYW4gV29uZy4NCg==
+Hi Laurent,
 
+On Sat, Sep 1, 2012 at 7:52 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Sakari,
+>
+> On Saturday 01 September 2012 12:57:07 Sakari Ailus wrote:
+>> On Wed, Aug 29, 2012 at 08:11:50PM +0530, Prabhakar Lad wrote:
+>
+> [snip]
+>
+>> > For test pattern you meant control to enable/disable it ?
+>>
+>> There are two approaches I can think of.
+>>
+>> One is a menu control which can be used to choose the test pattern (or
+>> disable it). The control could be standardised but the menu items would have
+>> to be hardware-specific since the test patterns themselves are not
+>> standardised.
+>
+> Agreed. The test patterns themselves are highly hardware-specific.
+>
+> From personal experience with sensors, most devices implement a small, fixed
+> set of test patterns that can be exposed through a menu control. However, some
+> devices also implement more "configurable" test patterns. For instance the
+> MT9V032 can generate horizontal, vertical or diagonal test patterns, or a
+> uniform grey test pattern with a user-configurable value. This would then
+> require two controls.
+>
+two controls I didn't get it ? When we have menu itself with a list of standard
+patterns why would two controls be required ?
+
+Thx,
+--Prabhakar Lad
+
+>> The alternative is to have a boolean control to enable (and disable) the
+>> test pattern and then a menu control to choose which one to use. Using or
+>> implemeting the control to select the test pattern isn't even strictly
+>> necessary to get a test pattern out of the device: one can enable it without
+>> knowing which one it is.
+>>
+>> So which one would be better? Similar cases include V4L2_CID_SCENE_MODE
+>> which is used to choose the scene mode from a list of alternatives. The main
+>> difference to this case is that the menu items of the scene mode control
+>> are standardised, too.
+>>
+>> I'd be inclined to have a single menu control, even if the other menu items
+>> will be device-specific. The first value (0) still has to be documented to
+>> mean the test pattern is disabled.
+>>
+>> Laurent, Hans: what do you think?
+>
+> A menu control with value 0 meaning test pattern disabled has my preference as
+> well.
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
