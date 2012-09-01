@@ -1,126 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:54704 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751842Ab2ISUye (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Sep 2012 16:54:34 -0400
-Received: by bkwj10 with SMTP id j10so779842bkw.19
-        for <linux-media@vger.kernel.org>; Wed, 19 Sep 2012 13:54:32 -0700 (PDT)
-Message-ID: <505A3112.10207@googlemail.com>
-Date: Wed, 19 Sep 2012 22:54:42 +0200
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:37519 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752721Ab2IAQOC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 1 Sep 2012 12:14:02 -0400
+Message-ID: <50423436.9040708@iki.fi>
+Date: Sat, 01 Sep 2012 19:13:42 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/4] gspca_pac7302: add support for green balance adjustment
-References: <1347811240-4000-1-git-send-email-fschaefer.oss@googlemail.com> <1347811240-4000-4-git-send-email-fschaefer.oss@googlemail.com> <5059FFF1.30104@googlemail.com> <505A2C52.4040001@redhat.com>
-In-Reply-To: <505A2C52.4040001@redhat.com>
-Content-Type: text/plain; charset=UTF-8
+To: poma <pomidorabelisima@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Juergen Lock <nox@jelal.kn-bremen.de>, hselasky@c2i.net
+Subject: Re: Fwd: [PATCH, RFC] Fix DVB ioctls failing if frontend open/closed
+ too fast
+References: <20120731222216.GA36603@triton8.kn-bremen.de> <502711BE.4020701@redhat.com> <50422EFA.5000606@gmail.com>
+In-Reply-To: <50422EFA.5000606@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 19.09.2012 22:34, schrieb Hans de Goede:
-> Hi,
->
-> On 09/19/2012 07:25 PM, Frank SchÃ¤fer wrote:
->> Am 16.09.2012 18:00, schrieb Frank SchÃ¤fer:
->>> Signed-off-by: Frank SchÃ¤fer <fschaefer.oss@googlemail.com>
->>> ---
->>>   drivers/media/usb/gspca/pac7302.c |   23 ++++++++++++++++++++++-
->>>   1 files changed, 22 insertions(+), 1 deletions(-)
->>>
->>> diff --git a/drivers/media/usb/gspca/pac7302.c
->>> b/drivers/media/usb/gspca/pac7302.c
->>> index 8a0f4d6..9b62b74 100644
->>> --- a/drivers/media/usb/gspca/pac7302.c
->>> +++ b/drivers/media/usb/gspca/pac7302.c
->>> @@ -78,6 +78,7 @@
->>>    * Page | Register   | Function
->>>    *
->>> -----+------------+---------------------------------------------------
->>>    *  0   | 0x01       | setredbalance()
->>> + *  0   | 0x02       | setgreenbalance()
->>>    *  0   | 0x03       | setbluebalance()
->>>    *  0   | 0x0f..0x20 | setcolors()
->>>    *  0   | 0xa2..0xab | setbrightcont()
->>> @@ -121,6 +122,7 @@ struct sd {
->>>       struct v4l2_ctrl *saturation;
->>>       struct v4l2_ctrl *white_balance;
->>>       struct v4l2_ctrl *red_balance;
->>> +    struct v4l2_ctrl *green_balance;
->>>       struct v4l2_ctrl *blue_balance;
->>>       struct { /* flip cluster */
->>>           struct v4l2_ctrl *hflip;
->>> @@ -470,6 +472,17 @@ static void setredbalance(struct gspca_dev
->>> *gspca_dev)
->>>       reg_w(gspca_dev, 0xdc, 0x01);
->>>   }
->>>
->>> +static void setgreenbalance(struct gspca_dev *gspca_dev)
->>> +{
->>> +    struct sd *sd = (struct sd *) gspca_dev;
->>> +
->>> +    reg_w(gspca_dev, 0xff, 0x00);            /* page 0 */
->>> +    reg_w(gspca_dev, 0x02,
->>> +          rgbbalance_ctrl_to_reg_value(sd->green_balance->val));
->>> +
->>> +    reg_w(gspca_dev, 0xdc, 0x01);
->>> +}
->>> +
->>>   static void setbluebalance(struct gspca_dev *gspca_dev)
->>>   {
->>>       struct sd *sd = (struct sd *) gspca_dev;
->>> @@ -620,6 +633,9 @@ static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
->>>       case V4L2_CID_RED_BALANCE:
->>>           setredbalance(gspca_dev);
->>>           break;
->>> +    case V4L2_CID_GREEN_BALANCE:
->>> +        setgreenbalance(gspca_dev);
->>> +        break;
->>>       case V4L2_CID_BLUE_BALANCE:
->>>           setbluebalance(gspca_dev);
->>>           break;
->>> @@ -652,7 +668,7 @@ static int sd_init_controls(struct gspca_dev
->>> *gspca_dev)
->>>       struct v4l2_ctrl_handler *hdl = &gspca_dev->ctrl_handler;
->>>
->>>       gspca_dev->vdev.ctrl_handler = hdl;
->>> -    v4l2_ctrl_handler_init(hdl, 12);
->>> +    v4l2_ctrl_handler_init(hdl, 13);
->>>
->>>       sd->brightness = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
->>>                       V4L2_CID_BRIGHTNESS, 0, 32, 1, 16);
->>> @@ -669,6 +685,11 @@ static int sd_init_controls(struct gspca_dev
->>> *gspca_dev)
->>>                       PAC7302_RGB_BALANCE_MIN,
->>>                       PAC7302_RGB_BALANCE_MAX,
->>>                       1, PAC7302_RGB_BALANCE_DEFAULT);
->>> +    sd->green_balance = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
->>> +                    V4L2_CID_GREEN_BALANCE,
->>> +                    PAC7302_RGB_BALANCE_MIN,
->>> +                    PAC7302_RGB_BALANCE_MAX,
->>> +                    1, PAC7302_RGB_BALANCE_DEFAULT);
->>>       sd->blue_balance = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
->>>                       V4L2_CID_BLUE_BALANCE,
->>>                       PAC7302_RGB_BALANCE_MIN,
+On 09/01/2012 06:51 PM, poma wrote:
+> On 08/12/2012 04:15 AM, Mauro Carvalho Chehab wrote:
+>> Devin/Antti,
 >>
->> Hans, it seems like you didn't pick up these patches up yet...
->> Is there anything wrong with them ?
+>> As Juergen mentioned your help on this patch, do you mind helping reviewing
+>> and testing it?
+>>
+>> Touching on those semaphores can be very tricky, as anything wrong may cause
+>> a driver hangup. So, it is great to have more pair of eyes looking on it.
+>>
+>> While I didn't test the code (too busy trying to clean up my long queue -
+>> currently with still 200+ patches left), I did a careful review at the
+>> semaphore code there, and it seems this approach will work.
+>>
+>> At least, the first hunk looks perfect for me. The second hunk seems
+>> a little more worrying, as the dvb core might be waiting forever for
+>> a lock on a device that was already removed.
+>>
+>> In order to test it in practice, I think we need to remove an USB device
+>> by hand while tuning it, and see if the core will not lock the device
+>> forever.
+>>
+>> What do you think?
+>> Mauro
+>>
+>> -------- Mensagem original --------
+>> Assunto: [PATCH, RFC] Fix DVB ioctls failing if frontend open/closed too fast
+>> Data: Wed, 1 Aug 2012 00:22:16 +0200
+>> De: Juergen Lock <nox@jelal.kn-bremen.de>
+>> Para: linux-media@vger.kernel.org
+>> CC: hselasky@c2i.net
+>>
+>> That likely fxes this MythTV ticket:
+>>
+>> 	http://code.mythtv.org/trac/ticket/10830
+>>
+>> (which btw affects all usb tuners I tested as well, pctv452e,
+>> dib0700, af9015)  pctv452e is still possibly broken with MythTV
+>> even after this fix; it does work with VDR here tho despite I2C
+>> errors.
+>>
+>> Reduced testcase:
+>>
+>> 	http://people.freebsd.org/~nox/tmp/ioctltst.c
+>>
+>> Thanx to devinheitmueller and crope from #linuxtv for helping with
+>> this fix! :)
+>>
+>> Signed-off-by: Juergen Lock <nox@jelal.kn-bremen.de>
+>>
+>> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
+>> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+>> @@ -604,6 +604,7 @@ static int dvb_frontend_thread(void *dat
+>>   	enum dvbfe_algo algo;
+>>
+>>   	bool re_tune = false;
+>> +	bool semheld = false;
+>>
+>>   	dprintk("%s\n", __func__);
+>>
+>> @@ -627,6 +628,8 @@ restart:
+>>
+>>   		if (kthread_should_stop() || dvb_frontend_is_exiting(fe)) {
+>>   			/* got signal or quitting */
+>> +			if (!down_interruptible (&fepriv->sem))
+>> +				semheld = true;
+>>   			fepriv->exit = DVB_FE_NORMAL_EXIT;
+>>   			break;
+>>   		}
+>> @@ -742,6 +745,8 @@ restart:
+>>   		fepriv->exit = DVB_FE_NO_EXIT;
+>>   	mb();
+>>
+>> +	if (semheld)
+>> +		up(&fepriv->sem);
+>>   	dvb_frontend_wakeup(fe);
+>>   	return 0;
+>>   }
+>> @@ -1804,16 +1809,20 @@ static int dvb_frontend_ioctl(struct fil
+>>
+>>   	dprintk("%s (%d)\n", __func__, _IOC_NR(cmd));
+>>
+>> -	if (fepriv->exit != DVB_FE_NO_EXIT)
+>> +	if (down_interruptible (&fepriv->sem))
+>> +		return -ERESTARTSYS;
+>> +
+>> +	if (fepriv->exit != DVB_FE_NO_EXIT) {
+>> +		up(&fepriv->sem);
+>>   		return -ENODEV;
+>> +	}
+>>
+>>   	if ((file->f_flags & O_ACCMODE) == O_RDONLY &&
+>>   	    (_IOC_DIR(cmd) != _IOC_READ || cmd == FE_GET_EVENT ||
+>> -	     cmd == FE_DISEQC_RECV_SLAVE_REPLY))
+>> +	     cmd == FE_DISEQC_RECV_SLAVE_REPLY)) {
+>> +		up(&fepriv->sem);
+>>   		return -EPERM;
+>> -
+>> -	if (down_interruptible (&fepriv->sem))
+>> -		return -ERESTARTSYS;
+>> +	}
+>>
+>>   	if ((cmd == FE_SET_PROPERTY) || (cmd == FE_GET_PROPERTY))
+>>   		err = dvb_frontend_ioctl_properties(file, cmd, parg);
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
 >
-> I've somehow completely missed them. Can you resend the entire set
-> please?
-
-No problem, but I can't do that before weekend (I'm currently not at home).
-I've sent these 4 patches on last Sunday (16. Sept) evening.
-Maybe you can pick them up from patchwork ?
-http://patchwork.linuxtv.org/patch/14433/
-
-Regards,
-Frank
-
+> +1
+> This one resolve annoying mythtv-setup output:
+> "E FE_GET_INFO ioctl failed (/dev/dvb/adapter0/frontend0)
+> eno: No such device (19)"
+> http://www.gossamer-threads.com/lists/mythtv/dev/513410
 >
-> Thanks,
->
-> Hans
+> But, there is a new one!
+> Just had a little déjà vu :)
 
+
+Is there anyone caring to review that carefully?
+
+I am quite out with semaphores (up/down_interruptible) and also frontend 
+is so complex... I would rather design / write whole dvb-frontend from 
+the scratch :] (not doing that as no time).
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
