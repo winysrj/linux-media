@@ -1,125 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44030 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932142Ab2IQRTd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Sep 2012 13:19:33 -0400
-Message-ID: <50575BA1.8020600@iki.fi>
-Date: Mon, 17 Sep 2012 20:19:29 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52116 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751335Ab2IAOWO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Sep 2012 10:22:14 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-doc@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Rob Landley <rob@landley.net>,
+	LMML <linux-media@vger.kernel.org>, hverkuil@xs4all.nl
+Subject: Re: [PATCH] [media] davinci: vpfe: Add documentation
+Date: Sat, 01 Sep 2012 16:22:30 +0200
+Message-ID: <8524664.XGp3WDre5y@avalon>
+In-Reply-To: <20120901095707.GB6348@valkosipuli.retiisi.org.uk>
+References: <1342021166-6092-1-git-send-email-manjunath.hadli@ti.com> <CA+V-a8tNnevox8OcXc_jxDzHdrxdF9Z-Nf2Rn0QaBsnM=n5CfA@mail.gmail.com> <20120901095707.GB6348@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	=?ISO-8859-1?Q?R=E9mi_Denis-Courmont?= <remi@remlab.net>,
-	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv3 API PATCH 15/31] v4l2-core: Add new V4L2_CAP_MONOTONIC_TS
- capability.
-References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com> <5054E218.4010807@gmail.com> <201209161557.15049.hverkuil@xs4all.nl> <2870315.6PlfZS62FS@avalon> <50564BCE.8010901@gmail.com>
-In-Reply-To: <50564BCE.8010901@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Hi Sakari,
 
-Sylwester Nawrocki wrote:
-> On 09/16/2012 05:33 PM, Laurent Pinchart wrote:
->> On Sunday 16 September 2012 15:57:14 Hans Verkuil wrote:
->>> On Sat September 15 2012 22:16:24 Sylwester Nawrocki wrote:
->>>> On 09/15/2012 02:35 PM, Hans Verkuil wrote:
->>>>>>>> If we switch all existing drivers to monotonic timestamps in kernel
->>>>>>>> release
->>>>>>>> 3.x, v4l2-compliance can just use the version it gets from
->>>>>>>> VIDIOC_QUERYCAP and enforce monotonic timestamps verification if the
->>>>>>>> version is>= 3.x. This isn't more difficult for apps to check than a
->>>>>>>> dedicated flag (although it's less explicit).
->>>>>>>
->>>>>>> I think that checking for the driver (kernel) version is a very poor
->>>>>>> substitute for testing against a proper flag.
->>>>>>
->>>>>> That flag should be the default in this case. The flag should be set by
->>>>>> the framework instead giving every driver the job of setting it.
->>>>>>
->>>>>>> One alternative might be to use a v4l2_buffer flag instead. That does
->>>>>>> have the advantage that in the future we can add additional flags
->>>>>>> should we need to support different clocks. Should we ever add
->>>>>>> support to switch clocks dynamically, then a buffer flag is more
->>>>>>> suitable than a driver capability. In that scenario it does make real
->>>>>>> sense to have a flag (or really mask).
->>>>>>>
->>>>>>> Say something like this:
->>>>>>>
->>>>>>> /* Clock Mask */
->>>>>>> V4L2_BUF_FLAG_CLOCK_MASK	0xf000
->>>>>>> /* Possible Clocks */
->>>>>>> V4L2_BUF_FLAG_CLOCK_SYSTEM	0x0000
->>>>>
->>>>> I realized that this should be called:
->>>>>
->>>>> V4L2_BUF_FLAG_CLOCK_UNKNOWN	0x0000
->>>>>
->>>>> With a comment saying that is clock is either the system clock or a
->>>>> monotonic clock. That reflects the current situation correctly.
->>>>>
->>>>>>> V4L2_BUF_FLAG_CLOCK_MONOTONIC	0x1000
->>>>
->>>> There is already lots of overhead related to the buffers management, could
->>>> we perhaps have the most common option defined in a way that drivers don't
->>>> need to update each buffer's flags before dequeuing, only to indicate the
->>>> timestamp type (other than flags being modified in videobuf) ?
->>>
->>> Well, if all vb2 drivers use the monotonic clock, then you could do it in
->>> __fill_v4l2_buffer: instead of clearing just the state flags you'd clear
->>> state + clock flags, and you OR in the monotonic flag in the case statement
->>> below (adding just a single b->flags |= line in the DEQUEUED case).
->>>
->>> So that wouldn't add any overhead. Not that I think setting a flag will add
->>> any measurable overhead in any case.
->
-> Yes, that might be indeed negligible overhead, especially if it's done well.
-> User space logic usually adds much more to complexity.
->
-> Might be good idea to add some helpers to videobuf2, so handling timestamps
-> is as simple as possible in drivers.
+On Saturday 01 September 2012 12:57:07 Sakari Ailus wrote:
+> On Wed, Aug 29, 2012 at 08:11:50PM +0530, Prabhakar Lad wrote:
 
-Of the V4L2 core. Taking the timestamp has to be done usually at a very 
-precise point in the code, and that's a decision I think is better done 
-in the driver. Timestamps are also independent of the videobuf2.
+[snip]
 
->>>> This buffer flags idea sounds to me worse than the capability flag. After
->>>> all the drivers should use monotonic clock timestamps, shouldn't they ?
->>>
->>> Yes. But you have monotonic and raw monotonic clocks at the moment, and
->>> perhaps others will be added in the future. You can't change clocks if you
->>> put this in the querycap capabilities.
->
-> Fair enough. BTW, CLOCK_MONOTONIC_RAW is not defined in any POSIX standard,
-> is it ?
+> > For test pattern you meant control to enable/disable it ?
+> 
+> There are two approaches I can think of.
+> 
+> One is a menu control which can be used to choose the test pattern (or
+> disable it). The control could be standardised but the menu items would have
+> to be hardware-specific since the test patterns themselves are not
+> standardised.
 
-It's Linux-specific. Perhaps it's worth noting that both V4L2 and ALSA 
-are Linux-specific, too. :-)
+Agreed. The test patterns themselves are highly hardware-specific.
 
-Raw wonotonic time could be better in some use cases as it's not 
-NTP-adjusted. Which one is better for the purpose might be 
-system-specific, albeit I'm leaning on the side of the monotonic in a 
-general case.
+>From personal experience with sensors, most devices implement a small, fixed 
+set of test patterns that can be exposed through a menu control. However, some 
+devices also implement more "configurable" test patterns. For instance the 
+MT9V032 can generate horizontal, vertical or diagonal test patterns, or a 
+uniform grey test pattern with a user-configurable value. This would then 
+require two controls.
 
-...
+> The alternative is to have a boolean control to enable (and disable) the
+> test pattern and then a menu control to choose which one to use. Using or
+> implemeting the control to select the test pattern isn't even strictly
+> necessary to get a test pattern out of the device: one can enable it without
+> knowing which one it is.
+> 
+> So which one would be better? Similar cases include V4L2_CID_SCENE_MODE
+> which is used to choose the scene mode from a list of alternatives. The main
+> difference to this case is that the menu items of the scene mode control
+> are standardised, too.
+> 
+> I'd be inclined to have a single menu control, even if the other menu items
+> will be device-specific. The first value (0) still has to be documented to
+> mean the test pattern is disabled.
+> 
+> Laurent, Hans: what do you think?
 
->>> I'd really like to keep this door open. My experience is that if something
->>> is possible, then someone somewhere will want to use it.
->
-> Indeed, caps flags approach might be too limited anyway. And a v4l2 control
-> might be not good for reporting things like these.
-
-Why not? Are there other mechanisms that are suitable for this than 
-controls? If we end up using controls for this, then we should make it 
-as easy as possible for the drivers.
-
-Kind regards,
+A menu control with value 0 meaning test pattern disabled has my preference as 
+well.
 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Regards,
+
+Laurent Pinchart
+
