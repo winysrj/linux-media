@@ -1,37 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:36352 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752506Ab2ITJnw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Sep 2012 05:43:52 -0400
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:36461 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751958Ab2IANyY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Sep 2012 09:54:24 -0400
+Received: by bkwj10 with SMTP id j10so1633397bkw.19
+        for <linux-media@vger.kernel.org>; Sat, 01 Sep 2012 06:54:23 -0700 (PDT)
+Message-ID: <5042138B.4080109@gmail.com>
+Date: Sat, 01 Sep 2012 15:54:19 +0200
+From: poma <pomidorabelisima@gmail.com>
 MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org,
+	Thomas Mair <thomas.mair86@googlemail.com>,
+	David Basden <davidb-git@rcpt.to>,
+	Zdenek Styblik <stybla@turnovfree.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 2/5] rtl28xxu: fix rtl2832u module reload fails bug
+References: <1345593382-11367-1-git-send-email-crope@iki.fi> <1345593382-11367-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1345593382-11367-2-git-send-email-crope@iki.fi>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Date: Thu, 20 Sep 2012 11:43:46 +0200
-From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
-To: Sean Young <sean@mess.org>
-Cc: <linux-media@vger.kernel.org>
-Subject: Re: [PATCHv3 2/9] ir-rx51: Handle signals properly
-In-Reply-To: <20120904124356.GB13018@pequod.mess.org>
-References: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi> <1346349271-28073-3-git-send-email-timo.t.kokkonen@iki.fi> <20120901171420.GC6638@valkosipuli.retiisi.org.uk> <50437328.9050903@iki.fi> <504375FA.1030209@iki.fi> <20120902152027.GA5236@itanic.dhcp.inet.fi> <20120902194110.GA6834@valkosipuli.retiisi.org.uk> <5043BCB4.1040308@iki.fi> <20120903123653.GA7218@pequod.mess.org> <20120903214155.GA6393@hardeman.nu> <20120904124356.GB13018@pequod.mess.org>
-Message-ID: <24b0d7a51ff4595f65d7307d90cda144@hardeman.nu>
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 4 Sep 2012 13:43:56 +0100, Sean Young <sean@mess.org> wrote:
-> This interface is much better but it's also an ABI change. How should
-this
-> be handled? Should rc-core expose it's own /dev/rc[0-9] device with its
-> own ioctls?
+On 08/22/2012 01:56 AM, Antti Palosaari wrote:
+> This is workaround / partial fix.
+> 
+> rtl2832u_power_ctrl() and rtl2832u_frontend_attach() needs to
+> be go through carefully and fix properly. There is clearly
+> some logical errors when handling power-management ang GPIOs...
+> 
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> Cc: Thomas Mair <thomas.mair86@googlemail.com>
+> ---
+>  drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 11 -----------
+>  1 file changed, 11 deletions(-)
+> 
+> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> index 1ccb99b..c246c50 100644
+> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> @@ -946,17 +946,6 @@ static int rtl2832u_power_ctrl(struct dvb_usb_device *d, int onoff)
+>  		if (ret)
+>  			goto err;
+>  
+> -		/* demod HW reset */
+> -		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL, &val);
+> -		if (ret)
+> -			goto err;
+> -		/* bit 5 to 0 */
+> -		val &= 0xdf;
+> -
+> -		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL, val);
+> -		if (ret)
+> -			goto err;
+> -
+>  		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL, &val);
+>  		if (ret)
+>  			goto err;
+> 
 
-That was the plan yes. I've posted a patchbomb in the past to the
-linux-media mailing list which implements a rc specific chardev with an
-ioctl/read/write based API.
+Test: PASSED!
+Working zapping on every hard/cold boot, soft/warm [re]boot and every
+module(dvb_usb_rtl28xxu) [re]load.
+Outside the box thinking!
+Antti, thank you very much!
 
-Since the entire patchset is a bit much to digest and merging of patches
-has been slow lately, I'm trying to drip-feed the patches. The lirc TX
-rework was part of that process. It basically lays the groundwork for later
-patches.
+media_build
+commit 420335f564c32517a791ecea3909af233925634d
+1f4d:b803 G-Tek Electronics Group Lifeview LV5TDLX DVB-T [RTL2832U]
 
-//David
+Cheers,
+poma
+
 
