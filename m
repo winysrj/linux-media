@@ -1,69 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 5571f1ba.dsl.concepts.nl ([85.113.241.186]:36195 "EHLO
-	his10.thuis.hoogenraad.info" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1757341Ab2IUQ1h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Sep 2012 12:27:37 -0400
-Message-ID: <505C9388.8090500@hoogenraad.net>
-Date: Fri, 21 Sep 2012 18:19:20 +0200
-From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Received: from cantor2.suse.de ([195.135.220.15]:34720 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755154Ab2IBHaY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 2 Sep 2012 03:30:24 -0400
+Date: Sun, 2 Sep 2012 09:30:15 +0200 (CEST)
+From: Jiri Kosina <jkosina@suse.cz>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Alan Cox <alan@linux.intel.com>, linux-media@vger.kernel.org
+Subject: [PATCH] tda8261: add printk levels
+Message-ID: <alpine.LNX.2.00.1209011013420.28562@deuxcents.site>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: media_build directory error after patch dvb_frontend: implement suspend
- / resume
-References: <20120819195423.8011935E0224@alastor.dyndns.org> <CAJL_dMuF1iDZ8vAXu7a0OFfozzKj31UOc-n6ZWWQGBxjTciTXQ@mail.gmail.com> <503149FC.5030501@iki.fi>
-In-Reply-To: <503149FC.5030501@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I try to compile the media_build on an old Ubuntu Lucid system.
-2.6.32-42-generic-pae #96-Ubuntu SMP Wed Aug 15 19:12:17 UTC 2012 i686
-GNU/Linux
+From: Alan Cox <alan@linux.intel.com>
 
-The make job stops with
+This is done as a minimal printk updating patch to ensure correctness. Yes
+it should all one day use dev_foo(), but that's one for the maintainers.
 
-/home/jhh/dvb/media_build/v4l/dvb_usb_core.c: In function
-'dvb_usb_data_complete_raw':
-/home/jhh/dvb/media_build/v4l/dvb_usb_core.c:224: error: implicit
-declaration of function 'dvb_dmx_swfilter_raw'
-/home/jhh/dvb/media_build/v4l/dvb_usb_core.c: In function
-'dvb_usbv2_suspend':
-/home/jhh/dvb/media_build/v4l/dvb_usb_core.c:975: error: implicit
-declaration of function 'dvb_frontend_suspend'
-/home/jhh/dvb/media_build/v4l/dvb_usb_core.c: In function
-'dvb_usbv2_resume_common':
-/home/jhh/dvb/media_build/v4l/dvb_usb_core.c:994: error: implicit
-declaration of function 'dvb_frontend_resume'
+Resolves-bug: https://bugzilla.kernel.org/show_bug.cgi?id=32932
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+---
 
-This probably started after
-http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/52430/match=dvb_frontend_resume
+The file has been moved in -next, so to avoid unnecessary conflicts, I am 
+passing this one over from trivial tree to media maintainers.
 
-The media_build tree is confused with too many files with the same name:
+Thanks.
 
-find linux -name \*front\* -ls
-54788964   24 -rw-r--r--   1 jhh      jhh         12642 Aug 16 05:45
-linux/drivers/media/dvb-core/dvb_frontend.h
-54788973   80 -rw-r--r--   1 jhh      jhh         71787 Sep 14 05:45
-linux/drivers/media/dvb-core/dvb_frontend.c
-54397078   20 -rw-r--r--   1 jhh      jhh         12056 Sep 16 20:20
-linux/drivers/media/dvb/dvb-core/dvb_frontend.h
-54397083   68 -rw-r--r--   1 jhh      jhh         60558 Jun  8  2011
-linux/drivers/media/dvb/dvb-core/dvb_frontend.c
-54397777   24 -rw-r--r--   1 jhh      jhh         13012 Aug 14 05:45
-linux/include/linux/dvb/frontend.h
+ drivers/media/dvb-frontends/tda8261.c |   28 ++++++++++++++--------------
+ 1 files changed, 14 insertions(+), 14 deletions(-)
 
-The frontend.h and .c chosen in the build are older ones
- find v4l -name \*front\* -ls
+diff --git a/drivers/media/dvb-frontends/tda8261.c b/drivers/media/dvb-frontends/tda8261.c
+index 53c7d8f..19c4888 100644
+--- a/drivers/media/dvb-frontends/tda8261.c
++++ b/drivers/media/dvb-frontends/tda8261.c
+@@ -43,7 +43,7 @@ static int tda8261_read(struct tda8261_state *state, u8 *buf)
+ 	struct i2c_msg msg = { .addr	= config->addr, .flags = I2C_M_RD,.buf = buf,  .len = 1 };
+ 
+ 	if ((err = i2c_transfer(state->i2c, &msg, 1)) != 1)
+-		printk("%s: read error, err=%d\n", __func__, err);
++		pr_err("%s: read error, err=%d\n", __func__, err);
+ 
+ 	return err;
+ }
+@@ -55,7 +55,7 @@ static int tda8261_write(struct tda8261_state *state, u8 *buf)
+ 	struct i2c_msg msg = { .addr = config->addr, .flags = 0, .buf = buf, .len = 4 };
+ 
+ 	if ((err = i2c_transfer(state->i2c, &msg, 1)) != 1)
+-		printk("%s: write error, err=%d\n", __func__, err);
++		pr_err("%s: write error, err=%d\n", __func__, err);
+ 
+ 	return err;
+ }
+@@ -69,11 +69,11 @@ static int tda8261_get_status(struct dvb_frontend *fe, u32 *status)
+ 	*status = 0;
+ 
+ 	if ((err = tda8261_read(state, &result)) < 0) {
+-		printk("%s: I/O Error\n", __func__);
++		pr_err("%s: I/O Error\n", __func__);
+ 		return err;
+ 	}
+ 	if ((result >> 6) & 0x01) {
+-		printk("%s: Tuner Phase Locked\n", __func__);
++		pr_debug("%s: Tuner Phase Locked\n", __func__);
+ 		*status = 1;
+ 	}
+ 
+@@ -98,7 +98,7 @@ static int tda8261_get_state(struct dvb_frontend *fe,
+ 		tstate->bandwidth = 40000000; /* FIXME! need to calculate Bandwidth */
+ 		break;
+ 	default:
+-		printk("%s: Unknown parameter (param=%d)\n", __func__, param);
++		pr_err("%s: Unknown parameter (param=%d)\n", __func__, param);
+ 		err = -EINVAL;
+ 		break;
+ 	}
+@@ -124,11 +124,11 @@ static int tda8261_set_state(struct dvb_frontend *fe,
+ 		 */
+ 		frequency = tstate->frequency;
+ 		if ((frequency < 950000) || (frequency > 2150000)) {
+-			printk("%s: Frequency beyond limits, frequency=%d\n", __func__, frequency);
++			pr_warn("%s: Frequency beyond limits, frequency=%d\n", __func__, frequency);
+ 			return -EINVAL;
+ 		}
+ 		N = (frequency + (div_tab[config->step_size] - 1)) / div_tab[config->step_size];
+-		printk("%s: Step size=%d, Divider=%d, PG=0x%02x (%d)\n",
++		pr_debug("%s: Step size=%d, Divider=%d, PG=0x%02x (%d)\n",
+ 			__func__, config->step_size, div_tab[config->step_size], N, N);
+ 
+ 		buf[0] = (N >> 8) & 0xff;
+@@ -144,25 +144,25 @@ static int tda8261_set_state(struct dvb_frontend *fe,
+ 
+ 		/* Set params */
+ 		if ((err = tda8261_write(state, buf)) < 0) {
+-			printk("%s: I/O Error\n", __func__);
++			pr_err("%s: I/O Error\n", __func__);
+ 			return err;
+ 		}
+ 		/* sleep for some time */
+-		printk("%s: Waiting to Phase LOCK\n", __func__);
++		pr_debug("%s: Waiting to Phase LOCK\n", __func__);
+ 		msleep(20);
+ 		/* check status */
+ 		if ((err = tda8261_get_status(fe, &status)) < 0) {
+-			printk("%s: I/O Error\n", __func__);
++			pr_err("%s: I/O Error\n", __func__);
+ 			return err;
+ 		}
+ 		if (status == 1) {
+-			printk("%s: Tuner Phase locked: status=%d\n", __func__, status);
++			pr_debug("%s: Tuner Phase locked: status=%d\n", __func__, status);
+ 			state->frequency = frequency; /* cache successful state */
+ 		} else {
+-			printk("%s: No Phase lock: status=%d\n", __func__, status);
++			pr_debug("%s: No Phase lock: status=%d\n", __func__, status);
+ 		}
+ 	} else {
+-		printk("%s: Unknown parameter (param=%d)\n", __func__, param);
++		pr_err("%s: Unknown parameter (param=%d)\n", __func__, param);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -214,7 +214,7 @@ struct dvb_frontend *tda8261_attach(struct dvb_frontend *fe,
+ 
+ //	printk("%s: Attaching %s TDA8261 8PSK/QPSK tuner\n",
+ //		__func__, fe->ops.tuner_ops.tuner_name);
+-	printk("%s: Attaching TDA8261 8PSK/QPSK tuner\n", __func__);
++	pr_info("%s: Attaching TDA8261 8PSK/QPSK tuner\n", __func__);
+ 
+ 	return fe;
+ 
+-- 
+1.7.7
 
-54135379   76 -rw-r--r--   1 jhh      jhh         67636 Sep 21 17:47
-v4l/.dvb_frontend.o.cmd
-54133920    0 lrwxrwxrwx   1 jhh      jhh            50 Sep 21 18:13
-v4l/dvb_frontend.h -> ../linux/drivers/media/dvb/dvb-core/dvb_frontend.h
-54133927    0 lrwxrwxrwx   1 jhh      jhh            50 Sep 21 18:13
-v4l/dvb_frontend.c -> ../linux/drivers/media/dvb/dvb-core/dvb_frontend.c
-54136025  184 -rw-r--r--   1 jhh      jhh        179558 Sep 21 17:47
-v4l/dvb_frontend.o
-
-Do you know what to do about this situation ?
