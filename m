@@ -1,53 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3129 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756484Ab2IGN3i (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 09:29:38 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:41546 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755021Ab2IBXWN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 2 Sep 2012 19:22:13 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 API PATCH 28/28] Add vfl_dir field documentation.
-Date: Fri,  7 Sep 2012 15:29:28 +0200
-Message-Id: <73a5869ff6f5b11437f0938458e99e0532e70757.1347023744.git.hans.verkuil@cisco.com>
-In-Reply-To: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
-References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
-References: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] mc44s803: implement get_if_frequency()
+Date: Mon,  3 Sep 2012 02:21:51 +0300
+Message-Id: <1346628111-5784-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- Documentation/video4linux/v4l2-framework.txt |    9 ++++++++-
+ drivers/media/tuners/mc44s803.c | 9 ++++++++-
  1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index 89318be..20f1c05 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -583,11 +583,18 @@ You should also set these fields:
+diff --git a/drivers/media/tuners/mc44s803.c b/drivers/media/tuners/mc44s803.c
+index 5ddce7e..f1b7640 100644
+--- a/drivers/media/tuners/mc44s803.c
++++ b/drivers/media/tuners/mc44s803.c
+@@ -298,6 +298,12 @@ static int mc44s803_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+ 	return 0;
+ }
  
- - name: set to something descriptive and unique.
- 
-+- vfl_dir: set to VFL_DIR_TX for output devices and VFL_DIR_M2M for mem2mem
-+  (codec) devices.
++static int mc44s803_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
++{
++	*frequency = MC44S803_IF2; /* 36.125 MHz */
++	return 0;
++}
 +
- - fops: set to the v4l2_file_operations struct.
+ static const struct dvb_tuner_ops mc44s803_tuner_ops = {
+ 	.info = {
+ 		.name           = "Freescale MC44S803",
+@@ -309,7 +315,8 @@ static const struct dvb_tuner_ops mc44s803_tuner_ops = {
+ 	.release       = mc44s803_release,
+ 	.init          = mc44s803_init,
+ 	.set_params    = mc44s803_set_params,
+-	.get_frequency = mc44s803_get_frequency
++	.get_frequency = mc44s803_get_frequency,
++	.get_if_frequency = mc44s803_get_if_frequency,
+ };
  
- - ioctl_ops: if you use the v4l2_ioctl_ops to simplify ioctl maintenance
-   (highly recommended to use this and it might become compulsory in the
--  future!), then set this to your v4l2_ioctl_ops struct.
-+  future!), then set this to your v4l2_ioctl_ops struct. The vfl_type and
-+  vfl_dir fields are used to disable ops that do not match the type/dir
-+  combination. E.g. VBI ops are disabled for non-VBI nodes, and output ops
-+  are disabled for a capture device. This makes it possible to provide
-+  just one v4l2_ioctl_ops struct for both vbi and video nodes.
- 
- - lock: leave to NULL if you want to do all the locking in the driver.
-   Otherwise you give it a pointer to a struct mutex_lock and before the
+ /* This functions tries to identify a MC44S803 tuner by reading the ID
 -- 
-1.7.10.4
+1.7.11.4
 
