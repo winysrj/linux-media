@@ -1,76 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48692 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752446Ab2IXKzB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 06:55:01 -0400
-Message-ID: <50603C39.9060105@redhat.com>
-Date: Mon, 24 Sep 2012 12:55:53 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3485 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752561Ab2IBIom (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Sep 2012 04:44:42 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] [media] davinci: vpfe: Add documentation
+Date: Sun, 2 Sep 2012 10:44:32 +0200
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
 	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: Re: Gain controls in v4l2-ctrl framework
-References: <CA+V-a8vYDFhJzKVKsv7Q_JOQzDDYRyev15jDKio0tG2CP8iCCw@mail.gmail.com>
-In-Reply-To: <CA+V-a8vYDFhJzKVKsv7Q_JOQzDDYRyev15jDKio0tG2CP8iCCw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	linux-doc@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Rob Landley <rob@landley.net>,
+	LMML <linux-media@vger.kernel.org>
+References: <1342021166-6092-1-git-send-email-manjunath.hadli@ti.com> <20120901095707.GB6348@valkosipuli.retiisi.org.uk> <8524664.XGp3WDre5y@avalon>
+In-Reply-To: <8524664.XGp3WDre5y@avalon>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201209021044.32571.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Sat September 1 2012 16:22:30 Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> On Saturday 01 September 2012 12:57:07 Sakari Ailus wrote:
+> > On Wed, Aug 29, 2012 at 08:11:50PM +0530, Prabhakar Lad wrote:
+> 
+> [snip]
+> 
+> > > For test pattern you meant control to enable/disable it ?
+> > 
+> > There are two approaches I can think of.
+> > 
+> > One is a menu control which can be used to choose the test pattern (or
+> > disable it). The control could be standardised but the menu items would have
+> > to be hardware-specific since the test patterns themselves are not
+> > standardised.
+> 
+> Agreed. The test patterns themselves are highly hardware-specific.
+> 
+> From personal experience with sensors, most devices implement a small, fixed 
+> set of test patterns that can be exposed through a menu control. However, some 
+> devices also implement more "configurable" test patterns. For instance the 
+> MT9V032 can generate horizontal, vertical or diagonal test patterns, or a 
+> uniform grey test pattern with a user-configurable value. This would then 
+> require two controls.
+> 
+> > The alternative is to have a boolean control to enable (and disable) the
+> > test pattern and then a menu control to choose which one to use. Using or
+> > implemeting the control to select the test pattern isn't even strictly
+> > necessary to get a test pattern out of the device: one can enable it without
+> > knowing which one it is.
+> > 
+> > So which one would be better? Similar cases include V4L2_CID_SCENE_MODE
+> > which is used to choose the scene mode from a list of alternatives. The main
+> > difference to this case is that the menu items of the scene mode control
+> > are standardised, too.
+> > 
+> > I'd be inclined to have a single menu control, even if the other menu items
+> > will be device-specific. The first value (0) still has to be documented to
+> > mean the test pattern is disabled.
+> > 
+> > Laurent, Hans: what do you think?
+> 
+> A menu control with value 0 meaning test pattern disabled has my preference as 
+> well.
 
-On 09/23/2012 01:26 PM, Prabhakar Lad wrote:
-> Hi All,
->
-> The CCD/Sensors have the capability to adjust the R/ye, Gr/Cy, Gb/G,
-> B/Mg gain values.
-> Since these control can be re-usable I am planning to add the
-> following gain controls as part
-> of the framework:
->
-> 1: V4L2_CID_GAIN_RED
-> 2: V4L2_CID_GAIN_GREEN_RED
-> 3: V4L2_CID_GAIN_GREEN_BLUE
++1
 
-Not all sensors have separate V4L2_CID_GAIN_GREEN_RED / V4L2_CID_GAIN_GREEN_BLUE,
-so we will need a separate control for sensors which have one combined gain
-called simply V4L2_CID_GAIN_GREEN
-
-Also do we really need separate V4L2_CID_GAIN_GREEN_RED / V4L2_CID_GAIN_GREEN_BLUE
-controls? I know hardware has them, but in my experience that is only done as it
-is simpler to make the hardware this way (fully symmetric sensor grid), have you ever
-tried actually using different gain settings for the 2 different green rows ?
-
-I've and that always results in an ugly checker board pattern. So I think we can
-and should only have a V4L2_CID_GAIN_GREEN, and for sensors with 2 green gains
-have that control both, forcing both to always have the same setting, which is
-really what you want anyways ...
-
-> 4: V4L2_CID_GAIN_BLUE
-> 5: V4L2_CID_GAIN_OFFSET
-
-GAIN_OFFSET that sounds a bit weird... GAIN_OFFSET sounds like it is
-a number which gets added to the 3/4 gain settings before the gain gets applied,
-but I assume that you just mean a number which gets added to the value from
-the pixel, either before or after the gain is applied and I must admit I cannot
-come up with a better name.
-
-I believe (not sure) that some sensors have these per color ... The question
-is if it makes sense to actually control this per color though, I don't think it
-does as it is meant to compensate for any fixed measuring errors, which are the
-same for all 3/4 colors. Note that all the sensor cells are exactly the same,
-later on a color grid gets added on top of the sensors to turn them into r/g/b
-cells, but physically they are the same cells, so with the same process and
-temperature caused measuring errors...
-
-Regards,
-
-Hans
+	Hans
