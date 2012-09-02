@@ -1,205 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3760 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756094Ab2ICJW1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2012 05:22:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: Re: [PATCH] media: v4l2-ctrls: add control for test pattern
-Date: Mon, 3 Sep 2012 11:22:17 +0200
-Cc: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-kernel@vger.kernel.org,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-doc@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Rob Landley <rob@landley.net>,
-	HeungJun Kim <riverful.kim@samsung.com>
-References: <1346663777-23149-1-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1346663777-23149-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mta-out.inet.fi ([195.156.147.13]:36117 "EHLO jenni1.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754417Ab2IBUIZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 2 Sep 2012 16:08:25 -0400
+Message-ID: <5043BCB4.1040308@iki.fi>
+Date: Sun, 02 Sep 2012 23:08:20 +0300
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Sakari Ailus <sakari.ailus@iki.fi>, Sean Young <sean@mess.org>
+CC: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCHv3 2/9] ir-rx51: Handle signals properly
+References: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi> <1346349271-28073-3-git-send-email-timo.t.kokkonen@iki.fi> <20120901171420.GC6638@valkosipuli.retiisi.org.uk> <50437328.9050903@iki.fi> <504375FA.1030209@iki.fi> <20120902152027.GA5236@itanic.dhcp.inet.fi> <20120902194110.GA6834@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20120902194110.GA6834@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201209031122.17568.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon September 3 2012 11:16:17 Prabhakar Lad wrote:
-> From: Lad, Prabhakar <prabhakar.lad@ti.com>
+On 09/02/12 22:41, Sakari Ailus wrote:
+> On Sun, Sep 02, 2012 at 06:20:27PM +0300, Timo Kokkonen wrote:
+>> On 09.02 2012 18:06:34, Sakari Ailus wrote:
+>>> Heippa,
+>>>
+>>> Timo Kokkonen wrote:
+>>>> Terve,
+>>>>
+>>>> On 09/01/12 20:14, Sakari Ailus wrote:
+>>>>> Moi,
+>>>>>
+>>>>> On Thu, Aug 30, 2012 at 08:54:24PM +0300, Timo Kokkonen wrote:
+>>>>>> @@ -273,9 +281,18 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+>>>>>>
+>>>>>>   	/*
+>>>>>>   	 * Don't return back to the userspace until the transfer has
+>>>>>> -	 * finished
+>>>>>> +	 * finished. However, we wish to not spend any more than 500ms
+>>>>>> +	 * in kernel. No IR code TX should ever take that long.
+>>>>>> +	 */
+>>>>>> +	i = wait_event_timeout(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0,
+>>>>>> +			HZ / 2);
+>>>>>
+>>>>> Why such an arbitrary timeout? In reality it might not bite the user space
+>>>>> in practice ever, but is it (and if so, why) really required in the first
+>>>>> place?
+>>>>
+>>>> Well, I can think of two cases:
+>>>>
+>>>> 1) Something goes wrong. Such before I converted the patch to use the up
+>>>> to date PM QoS implementation, the transmitting could take very long
+>>>> time because the interrupts were not waking up the MPU. Now that this is
+>>>> sorted out only unknown bugs can cause transmitting to hang indefinitely.
+>>>>
+>>>> 2) User is (intentionally?) doing something wrong. For example by
+>>>> feeding in an IR code that has got very long pulses, he could end up
+>>>> having the lircd process hung in kernel unkillable for long time. That
+>>>> could be avoided quite easily by counting the pulse lengths and
+>>>> rejecting any IR codes that are obviously too long. But since I'd like
+>>>> to also protect against 1) case, I think this solution works just fine.
+>>>>
+>>>> In the end, this is just safety measure that this driver behaves well.
+>>>
+>>> In that case I think you should use wait_event_interruptible() instead. 
+>>
+>> Well, that's what I had there in the first place. With interruptible
+>> wait we are left with problem with signals. I was told by Sean Young
+>> that the lirc API expects the write call to finish only after the IR
+>> code is transmitted.
+>>
+>>> It's not the driver's job to decide what the user can do with the 
+>>> hardware and what not, is it?
+>>
+>> Yeah, policy should be decided by the user space. However, kernel
+>> should not leave any objvious denial of service holes open
+>> either. Allowing a process to get stuck unkillable within kernel for
+>> long time sounds like one to me.
 > 
-> add V4L2_CID_TEST_PATTERN of type menu, which determines
-> the internal test pattern selected by the device.
+> It's interruptible, so the user space can interrupt that wait if it chooses
+> so. Besides, if you call this denial of service, then capturing video on
+> V4L2 is, too, since others can't use the device in the meantime. :-)
 > 
-> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Hans de Goede <hdegoede@redhat.com>
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Rob Landley <rob@landley.net>
-> Cc: HeungJun Kim <riverful.kim@samsung.com>
-> Cc: Rob Landley <rob@landley.net>
-> ---
->  This patches has one checkpatch warning for line over
->  80 characters altough it can be avoided I have kept it
->  for consistency.
+
+Well, of course there is no problem if we use interruptible waits. But I
+was told by Sean that the lirc API expects the IR TX to be finished
+always when the write call returns. I guess the assumption is to avoid
+breaking the transmission in the middle in case the process is signaled.
+And that's why we shouldn't use interruptible waits.
+
+However, if we allow simply breaking the transmitting in case the
+process is signaled any way during the transmission, then the handling
+would be trivial in the driver. That is, if someone for example kills or
+stops the lirc daemon process, then the IR code just wouldn't finish ever.
+
+Sean, do you have an opinion how this should or is allowed to work?
+
+>> Anyway, we are trying to cover some rare corner cases here, I'm not
+>> sure how it should work exactly..
 > 
->  Documentation/DocBook/media/v4l/controls.xml |   52 ++++++++++++++++++++++++++
->  drivers/media/v4l2-core/v4l2-ctrls.c         |   16 ++++++++
->  include/linux/videodev2.h                    |   12 ++++++
->  3 files changed, 80 insertions(+), 0 deletions(-)
+> If there was a generic maximum timeout for sending a code, wouldn't it make
+> sense to enforce that in the LIRC framework instead?
 > 
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-> index f704218..06f16e7 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -4313,6 +4313,58 @@ interface and may change in the future.</para>
->  	      </tbody>
->  	    </entrytbl>
->  	  </row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_TEST_PATTERN</constant></entry>
-> +	    <entry>menu</entry>
-> +	  </row>
-> +	  <row id="v4l2-test-pattern">
-> +	    <entry spanname="descr"> The capture devices/sensors have the capability to
 
-Test patterns are also applicable to output devices, not just capture and sensor devices.
+Yes, I agree it makes sense to leave unrestricted. But in that case we
+definitely have to use interruptible waits in case user space is doing
+something stupid and regrets it later :)
 
-> +	    generate internal test patterns. This test patterns are used to test a device
-> +	    is properly working and can generate the desired waveforms that it supports.
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entrytbl spanname="descr" cols="2">
-> +	      <tbody valign="top">
-> +	        <row>
-> +	         <entry><constant>V4L2_TEST_PATTERN_DISABLED</constant></entry>
-> +	          <entry>Test pattern generation is disabled</entry>
-> +	        </row>
-> +	        <row>
-> +	          <entry><constant>V4L2_TEST_PATTERN_VERTICAL_LINES</constant></entry>
-> +	          <entry>Generate vertical lines as test pattern</entry>
-> +	        </row>
-> +	        <row>
-> +	          <entry><constant>V4L2_TEST_PATTERN_HORIZONTAL_LINES</constant></entry>
-> +	          <entry>Generate horizontal lines as test pattern</entry>
-> +	        </row>
-> +	        <row>
-> +	          <entry><constant>V4L2_TEST_PATTERN_DIAGONAL_LINES</constant></entry>
-> +	          <entry>Generate diagonal lines as test pattern</entry>
-> +	        </row>
-> +	        <row>
-> +	          <entry><constant>V4L2_TEST_PATTERN_SOLID_BLACK</constant></entry>
-> +	          <entry>Generate solid black color as test pattern</entry>
-> +	        </row>
-> +	        <row>
-> +	          <entry><constant>V4L2_TEST_PATTERN_SOLID_WHITE</constant></entry>
-> +	          <entry>Generate solid white color as test pattern</entry>
-> +	        </row>
-> +	        <row>
-> +	          <entry><constant>V4L2_TEST_PATTERN_SOLID_BLUE</constant></entry>
-> +	          <entry>Generate solid blue color as test pattern</entry>
-> +	        </row>
-> +	        <row>
-> +	          <entry><constant>V4L2_TEST_PATTERN_SOLID_RED</constant></entry>
-> +	          <entry>Generate solid red color as test pattern</entry>
-> +	        </row>
-
-Just wondering: is there no SOLID_GREEN available with this sensor?
-
-Regards,
-
-	Hans
-
-> +	        <row>
-> +	          <entry><constant>V4L2_TEST_PATTERN_CHECKER_BOARD</constant></entry>
-> +	          <entry>Generate a checker board as test pattern</entry>
-> +	        </row>
-> +	      </tbody>
-> +	    </entrytbl>
-> +	  </row>
->  	<row><entry></entry></row>
->  	</tbody>
->        </tgroup>
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index 2d7bc15..ae709d1 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -430,6 +430,18 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->  		"Advanced Predictor",
->  		NULL,
->  	};
-> +	static const char * const test_pattern[] = {
-> +		"Test Pattern Disabled",
-> +		"Vertical Lines",
-> +		"Horizontal Lines",
-> +		"Diagonal Lines",
-> +		"Solid Black",
-> +		"Solid White",
-> +		"Solid Blue",
-> +		"Solid Red",
-> +		"Checker Board",
-> +		NULL,
-> +	};
->  
->  	switch (id) {
->  	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-> @@ -509,6 +521,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->  		return jpeg_chroma_subsampling;
->  	case V4L2_CID_DPCM_PREDICTOR:
->  		return dpcm_predictor;
-> +	case V4L2_CID_TEST_PATTERN:
-> +		return test_pattern;
->  
->  	default:
->  		return NULL;
-> @@ -740,6 +754,7 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
->  	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
->  	case V4L2_CID_DPCM_PREDICTOR:		return "DPCM Predictor";
-> +	case V4L2_CID_TEST_PATTERN:		return "Test Pattern";
->  
->  	default:
->  		return NULL;
-> @@ -841,6 +856,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->  	case V4L2_CID_EXPOSURE_METERING:
->  	case V4L2_CID_SCENE_MODE:
->  	case V4L2_CID_DPCM_PREDICTOR:
-> +	case V4L2_CID_TEST_PATTERN:
->  		*type = V4L2_CTRL_TYPE_MENU;
->  		break;
->  	case V4L2_CID_LINK_FREQ:
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index ca9fb78..1796079 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -2005,6 +2005,18 @@ enum v4l2_dpcm_predictor {
->  	V4L2_DPCM_PREDICTOR_SIMPLE	= 0,
->  	V4L2_DPCM_PREDICTOR_ADVANCED	= 1,
->  };
-> +#define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 4)
-> +enum v4l2_test_pattern {
-> +	V4L2_TEST_PATTERN_DISABLED		= 0,
-> +	V4L2_TEST_PATTERN_VERTICAL_LINES	= 1,
-> +	V4L2_TEST_PATTERN_HORIZONTAL_LINES	= 2,
-> +	V4L2_TEST_PATTERN_DIAGONAL_LINES	= 3,
-> +	V4L2_TEST_PATTERN_SOLID_BLACK		= 4,
-> +	V4L2_TEST_PATTERN_SOLID_WHITE		= 5,
-> +	V4L2_TEST_PATTERN_SOLID_BLUE		= 6,
-> +	V4L2_TEST_PATTERN_SOLID_RED		= 7,
-> +	V4L2_TEST_PATTERN_CHECKER_BOARD		= 8,
-> +};
->  
->  /*
->   *	T U N I N G
+> Terveisin,
 > 
+
