@@ -1,162 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:23169 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757989Ab2IRKxa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Sep 2012 06:53:30 -0400
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>
-Subject: [RFCv1 PATCH 06/11] vpif_capture: move routing info from subdev to input.
-Date: Tue, 18 Sep 2012 12:53:08 +0200
-Message-Id: <f8998f7436c6122ac4df90f6f211de95c7df206e.1347965140.git.hans.verkuil@cisco.com>
-In-Reply-To: <1347965593-16746-1-git-send-email-hans.verkuil@cisco.com>
-References: <1347965593-16746-1-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <bd383d11cd06a8f66571cf1dccb42fd89760ecdb.1347965140.git.hans.verkuil@cisco.com>
-References: <bd383d11cd06a8f66571cf1dccb42fd89760ecdb.1347965140.git.hans.verkuil@cisco.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:37682 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756141Ab2ICJrO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Sep 2012 05:47:14 -0400
+Message-ID: <50447C88.3030401@ti.com>
+Date: Mon, 3 Sep 2012 15:16:48 +0530
+From: Prabhakar Lad <prabhakar.lad@ti.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	<linux-kernel@vger.kernel.org>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	<linux-doc@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Rob Landley <rob@landley.net>,
+	HeungJun Kim <riverful.kim@samsung.com>
+Subject: Re: [PATCH] media: v4l2-ctrls: add control for test pattern
+References: <1346663777-23149-1-git-send-email-prabhakar.lad@ti.com> <201209031122.17568.hverkuil@xs4all.nl>
+In-Reply-To: <201209031122.17568.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Routing information is a property of the input, not of the subdev.
-One subdev may provide multiple inputs, each with its own routing
-information.
+Hi Hans,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- arch/arm/mach-davinci/board-da850-evm.c    |    8 ++++----
- arch/arm/mach-davinci/board-dm646x-evm.c   |    8 ++++----
- drivers/media/video/davinci/vpif_capture.c |    7 +++++--
- include/media/davinci/vpif_types.h         |    4 ++--
- 4 files changed, 15 insertions(+), 12 deletions(-)
+Thanks for the review.
 
-diff --git a/arch/arm/mach-davinci/board-da850-evm.c b/arch/arm/mach-davinci/board-da850-evm.c
-index d92e0ab..514d4d4 100644
---- a/arch/arm/mach-davinci/board-da850-evm.c
-+++ b/arch/arm/mach-davinci/board-da850-evm.c
-@@ -1184,6 +1184,8 @@ static const struct vpif_input da850_ch0_inputs[] = {
- 			.type  = V4L2_INPUT_TYPE_CAMERA,
- 			.std   = TVP514X_STD_ALL,
- 		},
-+		.input_route = INPUT_CVBS_VI2B,
-+		.output_route = OUTPUT_10BIT_422_EMBEDDED_SYNC,
- 		.subdev_name = TVP5147_CH0,
- 	},
- };
-@@ -1196,6 +1198,8 @@ static const struct vpif_input da850_ch1_inputs[] = {
- 			.type  = V4L2_INPUT_TYPE_CAMERA,
- 			.std   = TVP514X_STD_ALL,
- 		},
-+		.input_route = INPUT_SVIDEO_VI2C_VI1C,
-+		.output_route = OUTPUT_10BIT_422_EMBEDDED_SYNC,
- 		.subdev_name = TVP5147_CH1,
- 	},
- };
-@@ -1207,8 +1211,6 @@ static struct vpif_subdev_info da850_vpif_capture_sdev_info[] = {
- 			I2C_BOARD_INFO("tvp5146", 0x5d),
- 			.platform_data = &tvp5146_pdata,
- 		},
--		.input = INPUT_CVBS_VI2B,
--		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
- 		.vpif_if = {
- 			.if_type = VPIF_IF_BT656,
- 			.hd_pol  = 1,
-@@ -1222,8 +1224,6 @@ static struct vpif_subdev_info da850_vpif_capture_sdev_info[] = {
- 			I2C_BOARD_INFO("tvp5146", 0x5c),
- 			.platform_data = &tvp5146_pdata,
- 		},
--		.input = INPUT_SVIDEO_VI2C_VI1C,
--		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
- 		.vpif_if = {
- 			.if_type = VPIF_IF_BT656,
- 			.hd_pol  = 1,
-diff --git a/arch/arm/mach-davinci/board-dm646x-evm.c b/arch/arm/mach-davinci/board-dm646x-evm.c
-index a0be63b..0daec7e 100644
---- a/arch/arm/mach-davinci/board-dm646x-evm.c
-+++ b/arch/arm/mach-davinci/board-dm646x-evm.c
-@@ -601,8 +601,6 @@ static struct vpif_subdev_info vpif_capture_sdev_info[] = {
- 			I2C_BOARD_INFO("tvp5146", 0x5d),
- 			.platform_data = &tvp5146_pdata,
- 		},
--		.input = INPUT_CVBS_VI2B,
--		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
- 		.vpif_if = {
- 			.if_type = VPIF_IF_BT656,
- 			.hd_pol = 1,
-@@ -616,8 +614,6 @@ static struct vpif_subdev_info vpif_capture_sdev_info[] = {
- 			I2C_BOARD_INFO("tvp5146", 0x5c),
- 			.platform_data = &tvp5146_pdata,
- 		},
--		.input = INPUT_SVIDEO_VI2C_VI1C,
--		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
- 		.vpif_if = {
- 			.if_type = VPIF_IF_BT656,
- 			.hd_pol = 1,
-@@ -636,6 +632,8 @@ static const struct vpif_input dm6467_ch0_inputs[] = {
- 			.std = TVP514X_STD_ALL,
- 		},
- 		.subdev_name = TVP5147_CH0,
-+		.input_route = INPUT_CVBS_VI2B,
-+		.output_route = OUTPUT_10BIT_422_EMBEDDED_SYNC,
- 	},
- };
- 
-@@ -648,6 +646,8 @@ static const struct vpif_input dm6467_ch1_inputs[] = {
- 			.std = TVP514X_STD_ALL,
- 		},
- 		.subdev_name = TVP5147_CH1,
-+		.input_route = INPUT_SVIDEO_VI2C_VI1C,
-+		.output_route = OUTPUT_10BIT_422_EMBEDDED_SYNC,
- 	},
- };
- 
-diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
-index ae5cabf..f11b9e3 100644
---- a/drivers/media/video/davinci/vpif_capture.c
-+++ b/drivers/media/video/davinci/vpif_capture.c
-@@ -1449,6 +1449,9 @@ static int vpif_s_input(struct file *file, void *priv, unsigned int index)
- 
- 	chan_cfg = &config->chan_config[ch->channel_id];
- 
-+	if (index >= chan_cfg->input_count)
-+		return -EINVAL;
-+
- 	if (common->started) {
- 		vpif_err("Streaming in progress\n");
- 		return -EBUSY;
-@@ -1487,8 +1490,8 @@ static int vpif_s_input(struct file *file, void *priv, unsigned int index)
- 		}
- 	}
- 
--	input = subdev_info->input;
--	output = subdev_info->output;
-+	input = chan_cfg->inputs[index].input_route;
-+	output = chan_cfg->inputs[index].output_route;
- 	ret = v4l2_subdev_call(vpif_obj.sd[sd_index], video, s_routing,
- 			input, output, 0);
- 	if (ret < 0 && ret != -ENOIOCTLCMD) {
-diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
-index 1fe46a5..a422ed0 100644
---- a/include/media/davinci/vpif_types.h
-+++ b/include/media/davinci/vpif_types.h
-@@ -37,8 +37,6 @@ struct vpif_interface {
- struct vpif_subdev_info {
- 	const char *name;
- 	struct i2c_board_info board_info;
--	u32 input;
--	u32 output;
- 	struct vpif_interface vpif_if;
- };
- 
-@@ -56,6 +54,8 @@ struct vpif_display_config {
- struct vpif_input {
- 	struct v4l2_input input;
- 	const char *subdev_name;
-+	u32 input_route;
-+	u32 output_route;
- };
- 
- struct vpif_capture_chan_config {
--- 
-1.7.10.4
+On Monday 03 September 2012 02:52 PM, Hans Verkuil wrote:
+> On Mon September 3 2012 11:16:17 Prabhakar Lad wrote:
+>> From: Lad, Prabhakar <prabhakar.lad@ti.com>
+>>
+>> add V4L2_CID_TEST_PATTERN of type menu, which determines
+>> the internal test pattern selected by the device.
+>>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+>> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+>> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+>> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> Cc: Hans de Goede <hdegoede@redhat.com>
+>> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+>> Cc: Rob Landley <rob@landley.net>
+>> Cc: HeungJun Kim <riverful.kim@samsung.com>
+>> Cc: Rob Landley <rob@landley.net>
+>> ---
+>>  This patches has one checkpatch warning for line over
+>>  80 characters altough it can be avoided I have kept it
+>>  for consistency.
+>>
+>>  Documentation/DocBook/media/v4l/controls.xml |   52 ++++++++++++++++++++++++++
+>>  drivers/media/v4l2-core/v4l2-ctrls.c         |   16 ++++++++
+>>  include/linux/videodev2.h                    |   12 ++++++
+>>  3 files changed, 80 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+>> index f704218..06f16e7 100644
+>> --- a/Documentation/DocBook/media/v4l/controls.xml
+>> +++ b/Documentation/DocBook/media/v4l/controls.xml
+>> @@ -4313,6 +4313,58 @@ interface and may change in the future.</para>
+>>  	      </tbody>
+>>  	    </entrytbl>
+>>  	  </row>
+>> +	  <row>
+>> +	    <entry spanname="id"><constant>V4L2_CID_TEST_PATTERN</constant></entry>
+>> +	    <entry>menu</entry>
+>> +	  </row>
+>> +	  <row id="v4l2-test-pattern">
+>> +	    <entry spanname="descr"> The capture devices/sensors have the capability to
+> 
+> Test patterns are also applicable to output devices, not just capture and sensor devices.
+> 
+Agreed. I'll make it 'capture/display/sensors'.
+
+>> +	    generate internal test patterns. This test patterns are used to test a device
+>> +	    is properly working and can generate the desired waveforms that it supports.
+>> +	    </entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entrytbl spanname="descr" cols="2">
+>> +	      <tbody valign="top">
+>> +	        <row>
+>> +	         <entry><constant>V4L2_TEST_PATTERN_DISABLED</constant></entry>
+>> +	          <entry>Test pattern generation is disabled</entry>
+>> +	        </row>
+>> +	        <row>
+>> +	          <entry><constant>V4L2_TEST_PATTERN_VERTICAL_LINES</constant></entry>
+>> +	          <entry>Generate vertical lines as test pattern</entry>
+>> +	        </row>
+>> +	        <row>
+>> +	          <entry><constant>V4L2_TEST_PATTERN_HORIZONTAL_LINES</constant></entry>
+>> +	          <entry>Generate horizontal lines as test pattern</entry>
+>> +	        </row>
+>> +	        <row>
+>> +	          <entry><constant>V4L2_TEST_PATTERN_DIAGONAL_LINES</constant></entry>
+>> +	          <entry>Generate diagonal lines as test pattern</entry>
+>> +	        </row>
+>> +	        <row>
+>> +	          <entry><constant>V4L2_TEST_PATTERN_SOLID_BLACK</constant></entry>
+>> +	          <entry>Generate solid black color as test pattern</entry>
+>> +	        </row>
+>> +	        <row>
+>> +	          <entry><constant>V4L2_TEST_PATTERN_SOLID_WHITE</constant></entry>
+>> +	          <entry>Generate solid white color as test pattern</entry>
+>> +	        </row>
+>> +	        <row>
+>> +	          <entry><constant>V4L2_TEST_PATTERN_SOLID_BLUE</constant></entry>
+>> +	          <entry>Generate solid blue color as test pattern</entry>
+>> +	        </row>
+>> +	        <row>
+>> +	          <entry><constant>V4L2_TEST_PATTERN_SOLID_RED</constant></entry>
+>> +	          <entry>Generate solid red color as test pattern</entry>
+>> +	        </row>
+> 
+> Just wondering: is there no SOLID_GREEN available with this sensor?
+> 
+Not sure I guess it should be.
+
+Thanks and Regards,
+--Prabhakar Lad
+
+> Regards,
+> 
+> 	Hans
+> 
+>> +	        <row>
+>> +	          <entry><constant>V4L2_TEST_PATTERN_CHECKER_BOARD</constant></entry>
+>> +	          <entry>Generate a checker board as test pattern</entry>
+>> +	        </row>
+>> +	      </tbody>
+>> +	    </entrytbl>
+>> +	  </row>
+>>  	<row><entry></entry></row>
+>>  	</tbody>
+>>        </tgroup>
+>> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> index 2d7bc15..ae709d1 100644
+>> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+>> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> @@ -430,6 +430,18 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+>>  		"Advanced Predictor",
+>>  		NULL,
+>>  	};
+>> +	static const char * const test_pattern[] = {
+>> +		"Test Pattern Disabled",
+>> +		"Vertical Lines",
+>> +		"Horizontal Lines",
+>> +		"Diagonal Lines",
+>> +		"Solid Black",
+>> +		"Solid White",
+>> +		"Solid Blue",
+>> +		"Solid Red",
+>> +		"Checker Board",
+>> +		NULL,
+>> +	};
+>>  
+>>  	switch (id) {
+>>  	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+>> @@ -509,6 +521,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+>>  		return jpeg_chroma_subsampling;
+>>  	case V4L2_CID_DPCM_PREDICTOR:
+>>  		return dpcm_predictor;
+>> +	case V4L2_CID_TEST_PATTERN:
+>> +		return test_pattern;
+>>  
+>>  	default:
+>>  		return NULL;
+>> @@ -740,6 +754,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+>>  	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
+>>  	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
+>>  	case V4L2_CID_DPCM_PREDICTOR:		return "DPCM Predictor";
+>> +	case V4L2_CID_TEST_PATTERN:		return "Test Pattern";
+>>  
+>>  	default:
+>>  		return NULL;
+>> @@ -841,6 +856,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>>  	case V4L2_CID_EXPOSURE_METERING:
+>>  	case V4L2_CID_SCENE_MODE:
+>>  	case V4L2_CID_DPCM_PREDICTOR:
+>> +	case V4L2_CID_TEST_PATTERN:
+>>  		*type = V4L2_CTRL_TYPE_MENU;
+>>  		break;
+>>  	case V4L2_CID_LINK_FREQ:
+>> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+>> index ca9fb78..1796079 100644
+>> --- a/include/linux/videodev2.h
+>> +++ b/include/linux/videodev2.h
+>> @@ -2005,6 +2005,18 @@ enum v4l2_dpcm_predictor {
+>>  	V4L2_DPCM_PREDICTOR_SIMPLE	= 0,
+>>  	V4L2_DPCM_PREDICTOR_ADVANCED	= 1,
+>>  };
+>> +#define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 4)
+>> +enum v4l2_test_pattern {
+>> +	V4L2_TEST_PATTERN_DISABLED		= 0,
+>> +	V4L2_TEST_PATTERN_VERTICAL_LINES	= 1,
+>> +	V4L2_TEST_PATTERN_HORIZONTAL_LINES	= 2,
+>> +	V4L2_TEST_PATTERN_DIAGONAL_LINES	= 3,
+>> +	V4L2_TEST_PATTERN_SOLID_BLACK		= 4,
+>> +	V4L2_TEST_PATTERN_SOLID_WHITE		= 5,
+>> +	V4L2_TEST_PATTERN_SOLID_BLUE		= 6,
+>> +	V4L2_TEST_PATTERN_SOLID_RED		= 7,
+>> +	V4L2_TEST_PATTERN_CHECKER_BOARD		= 8,
+>> +};
+>>  
+>>  /*
+>>   *	T U N I N G
+>>
 
