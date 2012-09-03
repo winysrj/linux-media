@@ -1,158 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51003 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754824Ab2I0Hih (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Sep 2012 03:38:37 -0400
-Message-ID: <5064025F.8040508@redhat.com>
-Date: Thu, 27 Sep 2012 04:38:07 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3760 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756094Ab2ICJW1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2012 05:22:27 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: Re: [PATCH] media: v4l2-ctrls: add control for test pattern
+Date: Mon, 3 Sep 2012 11:22:17 +0200
+Cc: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-kernel@vger.kernel.org,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-doc@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Rob Landley <rob@landley.net>,
+	HeungJun Kim <riverful.kim@samsung.com>
+References: <1346663777-23149-1-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1346663777-23149-1-git-send-email-prabhakar.lad@ti.com>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Shawn Guo <shawn.guo@linaro.org>,
-	linux-arm-kernel@lists.infradead.org,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org
-Subject: Re: [PATCH 14/34] dma: ipu: rename mach/ipu.h to include/linux/dma/ipu-dma.h
-References: <1347860103-4141-1-git-send-email-shawn.guo@linaro.org> <1347860103-4141-15-git-send-email-shawn.guo@linaro.org> <Pine.LNX.4.64.1209171124130.1689@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1209171124130.1689@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201209031122.17568.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 17-09-2012 06:26, Guennadi Liakhovetski escreveu:
-> On Mon, 17 Sep 2012, Shawn Guo wrote:
+On Mon September 3 2012 11:16:17 Prabhakar Lad wrote:
+> From: Lad, Prabhakar <prabhakar.lad@ti.com>
 > 
->> The header ipu.h really belongs to dma subsystem rather than imx
->> platform.  Rename it to ipu-dma.h and put it into include/linux/dma/.
->>
->> Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
->> Cc: Vinod Koul <vinod.koul@intel.com>
->> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->> Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
->> Cc: linux-media@vger.kernel.org
->> Cc: linux-fbdev@vger.kernel.org
+> add V4L2_CID_TEST_PATTERN of type menu, which determines
+> the internal test pattern selected by the device.
 > 
-> Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> Thanks
-> Guennadi
-> 
->> ---
->>  drivers/dma/ipu/ipu_idmac.c                        |    3 +--
->>  drivers/dma/ipu/ipu_irq.c                          |    3 +--
->>  drivers/media/video/mx3_camera.c                   |    2 +-
->>  drivers/video/mx3fb.c                              |    2 +-
->>  .../mach/ipu.h => include/linux/dma/ipu-dma.h      |    6 +++---
->>  5 files changed, 7 insertions(+), 9 deletions(-)
->>  rename arch/arm/mach-imx/include/mach/ipu.h => include/linux/dma/ipu-dma.h (97%)
->>
->> diff --git a/drivers/dma/ipu/ipu_idmac.c b/drivers/dma/ipu/ipu_idmac.c
->> index c7573e5..6585537 100644
->> --- a/drivers/dma/ipu/ipu_idmac.c
->> +++ b/drivers/dma/ipu/ipu_idmac.c
->> @@ -22,8 +22,7 @@
->>  #include <linux/interrupt.h>
->>  #include <linux/io.h>
->>  #include <linux/module.h>
->> -
->> -#include <mach/ipu.h>
->> +#include <linux/dma/ipu-dma.h>
->>  
->>  #include "../dmaengine.h"
->>  #include "ipu_intern.h"
->> diff --git a/drivers/dma/ipu/ipu_irq.c b/drivers/dma/ipu/ipu_irq.c
->> index fa95bcc..a5ee37d 100644
->> --- a/drivers/dma/ipu/ipu_irq.c
->> +++ b/drivers/dma/ipu/ipu_irq.c
->> @@ -15,8 +15,7 @@
->>  #include <linux/irq.h>
->>  #include <linux/io.h>
->>  #include <linux/module.h>
->> -
->> -#include <mach/ipu.h>
->> +#include <linux/dma/ipu-dma.h>
->>  
->>  #include "ipu_intern.h"
->>  
->> diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
->> index 1481b0d..892cba5 100644
->> --- a/drivers/media/video/mx3_camera.c
->> +++ b/drivers/media/video/mx3_camera.c
->> @@ -17,6 +17,7 @@
->>  #include <linux/vmalloc.h>
->>  #include <linux/interrupt.h>
->>  #include <linux/sched.h>
->> +#include <linux/dma/ipu-dma.h>
->>  
->>  #include <media/v4l2-common.h>
->>  #include <media/v4l2-dev.h>
->> @@ -24,7 +25,6 @@
->>  #include <media/soc_camera.h>
->>  #include <media/soc_mediabus.h>
->>  
->> -#include <mach/ipu.h>
->>  #include <linux/platform_data/camera-mx3.h>
->>  #include <linux/platform_data/dma-imx.h>
->>  
->> diff --git a/drivers/video/mx3fb.c b/drivers/video/mx3fb.c
->> index d738108..3b63ad8 100644
->> --- a/drivers/video/mx3fb.c
->> +++ b/drivers/video/mx3fb.c
->> @@ -26,10 +26,10 @@
->>  #include <linux/console.h>
->>  #include <linux/clk.h>
->>  #include <linux/mutex.h>
->> +#include <linux/dma/ipu-dma.h>
->>  
->>  #include <linux/platform_data/dma-imx.h>
->>  #include <mach/hardware.h>
->> -#include <mach/ipu.h>
->>  #include <linux/platform_data/video-mx3fb.h>
->>  
->>  #include <asm/io.h>
->> diff --git a/arch/arm/mach-imx/include/mach/ipu.h b/include/linux/dma/ipu-dma.h
->> similarity index 97%
->> rename from arch/arm/mach-imx/include/mach/ipu.h
->> rename to include/linux/dma/ipu-dma.h
->> index 539e559..1803111 100644
->> --- a/arch/arm/mach-imx/include/mach/ipu.h
->> +++ b/include/linux/dma/ipu-dma.h
->> @@ -9,8 +9,8 @@
->>   * published by the Free Software Foundation.
->>   */
->>  
->> -#ifndef _IPU_H_
->> -#define _IPU_H_
->> +#ifndef __LINUX_DMA_IPU_DMA_H
->> +#define __LINUX_DMA_IPU_DMA_H
->>  
->>  #include <linux/types.h>
->>  #include <linux/dmaengine.h>
->> @@ -174,4 +174,4 @@ struct idmac_channel {
->>  #define to_tx_desc(tx) container_of(tx, struct idmac_tx_desc, txd)
->>  #define to_idmac_chan(c) container_of(c, struct idmac_channel, dma_chan)
->>  
->> -#endif
->> +#endif /* __LINUX_DMA_IPU_DMA_H */
->> -- 
->> 1.7.9.5
->>
-> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Cc: Hans de Goede <hdegoede@redhat.com>
+> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Rob Landley <rob@landley.net>
+> Cc: HeungJun Kim <riverful.kim@samsung.com>
+> Cc: Rob Landley <rob@landley.net>
 > ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  This patches has one checkpatch warning for line over
+>  80 characters altough it can be avoided I have kept it
+>  for consistency.
 > 
+>  Documentation/DocBook/media/v4l/controls.xml |   52 ++++++++++++++++++++++++++
+>  drivers/media/v4l2-core/v4l2-ctrls.c         |   16 ++++++++
+>  include/linux/videodev2.h                    |   12 ++++++
+>  3 files changed, 80 insertions(+), 0 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+> index f704218..06f16e7 100644
+> --- a/Documentation/DocBook/media/v4l/controls.xml
+> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> @@ -4313,6 +4313,58 @@ interface and may change in the future.</para>
+>  	      </tbody>
+>  	    </entrytbl>
+>  	  </row>
+> +	  <row>
+> +	    <entry spanname="id"><constant>V4L2_CID_TEST_PATTERN</constant></entry>
+> +	    <entry>menu</entry>
+> +	  </row>
+> +	  <row id="v4l2-test-pattern">
+> +	    <entry spanname="descr"> The capture devices/sensors have the capability to
 
+Test patterns are also applicable to output devices, not just capture and sensor devices.
+
+> +	    generate internal test patterns. This test patterns are used to test a device
+> +	    is properly working and can generate the desired waveforms that it supports.
+> +	    </entry>
+> +	  </row>
+> +	  <row>
+> +	    <entrytbl spanname="descr" cols="2">
+> +	      <tbody valign="top">
+> +	        <row>
+> +	         <entry><constant>V4L2_TEST_PATTERN_DISABLED</constant></entry>
+> +	          <entry>Test pattern generation is disabled</entry>
+> +	        </row>
+> +	        <row>
+> +	          <entry><constant>V4L2_TEST_PATTERN_VERTICAL_LINES</constant></entry>
+> +	          <entry>Generate vertical lines as test pattern</entry>
+> +	        </row>
+> +	        <row>
+> +	          <entry><constant>V4L2_TEST_PATTERN_HORIZONTAL_LINES</constant></entry>
+> +	          <entry>Generate horizontal lines as test pattern</entry>
+> +	        </row>
+> +	        <row>
+> +	          <entry><constant>V4L2_TEST_PATTERN_DIAGONAL_LINES</constant></entry>
+> +	          <entry>Generate diagonal lines as test pattern</entry>
+> +	        </row>
+> +	        <row>
+> +	          <entry><constant>V4L2_TEST_PATTERN_SOLID_BLACK</constant></entry>
+> +	          <entry>Generate solid black color as test pattern</entry>
+> +	        </row>
+> +	        <row>
+> +	          <entry><constant>V4L2_TEST_PATTERN_SOLID_WHITE</constant></entry>
+> +	          <entry>Generate solid white color as test pattern</entry>
+> +	        </row>
+> +	        <row>
+> +	          <entry><constant>V4L2_TEST_PATTERN_SOLID_BLUE</constant></entry>
+> +	          <entry>Generate solid blue color as test pattern</entry>
+> +	        </row>
+> +	        <row>
+> +	          <entry><constant>V4L2_TEST_PATTERN_SOLID_RED</constant></entry>
+> +	          <entry>Generate solid red color as test pattern</entry>
+> +	        </row>
+
+Just wondering: is there no SOLID_GREEN available with this sensor?
+
+Regards,
+
+	Hans
+
+> +	        <row>
+> +	          <entry><constant>V4L2_TEST_PATTERN_CHECKER_BOARD</constant></entry>
+> +	          <entry>Generate a checker board as test pattern</entry>
+> +	        </row>
+> +	      </tbody>
+> +	    </entrytbl>
+> +	  </row>
+>  	<row><entry></entry></row>
+>  	</tbody>
+>        </tgroup>
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 2d7bc15..ae709d1 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -430,6 +430,18 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+>  		"Advanced Predictor",
+>  		NULL,
+>  	};
+> +	static const char * const test_pattern[] = {
+> +		"Test Pattern Disabled",
+> +		"Vertical Lines",
+> +		"Horizontal Lines",
+> +		"Diagonal Lines",
+> +		"Solid Black",
+> +		"Solid White",
+> +		"Solid Blue",
+> +		"Solid Red",
+> +		"Checker Board",
+> +		NULL,
+> +	};
+>  
+>  	switch (id) {
+>  	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+> @@ -509,6 +521,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+>  		return jpeg_chroma_subsampling;
+>  	case V4L2_CID_DPCM_PREDICTOR:
+>  		return dpcm_predictor;
+> +	case V4L2_CID_TEST_PATTERN:
+> +		return test_pattern;
+>  
+>  	default:
+>  		return NULL;
+> @@ -740,6 +754,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
+>  	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
+>  	case V4L2_CID_DPCM_PREDICTOR:		return "DPCM Predictor";
+> +	case V4L2_CID_TEST_PATTERN:		return "Test Pattern";
+>  
+>  	default:
+>  		return NULL;
+> @@ -841,6 +856,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>  	case V4L2_CID_EXPOSURE_METERING:
+>  	case V4L2_CID_SCENE_MODE:
+>  	case V4L2_CID_DPCM_PREDICTOR:
+> +	case V4L2_CID_TEST_PATTERN:
+>  		*type = V4L2_CTRL_TYPE_MENU;
+>  		break;
+>  	case V4L2_CID_LINK_FREQ:
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index ca9fb78..1796079 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -2005,6 +2005,18 @@ enum v4l2_dpcm_predictor {
+>  	V4L2_DPCM_PREDICTOR_SIMPLE	= 0,
+>  	V4L2_DPCM_PREDICTOR_ADVANCED	= 1,
+>  };
+> +#define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 4)
+> +enum v4l2_test_pattern {
+> +	V4L2_TEST_PATTERN_DISABLED		= 0,
+> +	V4L2_TEST_PATTERN_VERTICAL_LINES	= 1,
+> +	V4L2_TEST_PATTERN_HORIZONTAL_LINES	= 2,
+> +	V4L2_TEST_PATTERN_DIAGONAL_LINES	= 3,
+> +	V4L2_TEST_PATTERN_SOLID_BLACK		= 4,
+> +	V4L2_TEST_PATTERN_SOLID_WHITE		= 5,
+> +	V4L2_TEST_PATTERN_SOLID_BLUE		= 6,
+> +	V4L2_TEST_PATTERN_SOLID_RED		= 7,
+> +	V4L2_TEST_PATTERN_CHECKER_BOARD		= 8,
+> +};
+>  
+>  /*
+>   *	T U N I N G
+> 
