@@ -1,75 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([93.97.41.153]:42746 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754370Ab2ICND7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Sep 2012 09:03:59 -0400
-Date: Mon, 3 Sep 2012 14:03:57 +0100
-From: Sean Young <sean@mess.org>
-To: "Du, Changbin" <changbin.du@gmail.com>
-Cc: mchehab@infradead.org, paul.gortmaker@windriver.com,
-	sfr@canb.auug.org.au, srinivas.kandagatla@st.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [RFC PATCH] [media] rc: filter out not allowed protocols when
- decoding
-Message-ID: <20120903130357.GA7403@pequod.mess.org>
-References: <1346464629-22458-1-git-send-email-changbin.du@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1346464629-22458-1-git-send-email-changbin.du@gmail.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:57390 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756508Ab2ICQjk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2012 12:39:40 -0400
+Subject: Re: [PATCH v3 07/16] media: coda: stop all queues in case of lockup
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: javier Martin <javier.martin@vista-silicon.com>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
+In-Reply-To: <CACKLOr1brydhZsZFiY=rBs9SzG9mcKwOViy+uZy-4ka6R51VPw@mail.gmail.com>
+References: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
+	 <1346400670-16002-8-git-send-email-p.zabel@pengutronix.de>
+	 <CACKLOr1brydhZsZFiY=rBs9SzG9mcKwOViy+uZy-4ka6R51VPw@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 03 Sep 2012 18:39:36 +0200
+Message-ID: <1346690376.2391.50.camel@pizza.hi.pengutronix.de>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Sep 01, 2012 at 09:57:09AM +0800, Du, Changbin wrote:
-> From: "Du, Changbin" <changbin.du@gmail.com>
+Hi Javier,
+
+Am Montag, den 03.09.2012, 14:18 +0200 schrieb javier Martin:
+> On 31 August 2012 10:11, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> > Add a 1 second timeout for each PIC_RUN command to the CODA. In
+> > case it locks up, stop all queues and dequeue remaining buffers.
+> >
+> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > ---
+> > Changes since v2:
+> >  - Call cancel_delayed_work in coda_stop_streaming instead of coda_irq_handler.
+> > ---
+> >  drivers/media/platform/coda.c |   21 +++++++++++++++++++++
+> >  1 file changed, 21 insertions(+)
+> >
+> > diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+> > index 7bc2d87..6e3f026 100644
+> > --- a/drivers/media/platform/coda.c
+> > +++ b/drivers/media/platform/coda.c
+> > @@ -137,6 +137,7 @@ struct coda_dev {
+> >         struct vb2_alloc_ctx    *alloc_ctx;
+> >         struct list_head        instances;
+> >         unsigned long           instance_mask;
+> > +       struct delayed_work     timeout;
+> >  };
+> >
+> >  struct coda_params {
+> > @@ -723,6 +724,9 @@ static void coda_device_run(void *m2m_priv)
+> >                                 CODA7_REG_BIT_AXI_SRAM_USE);
+> >         }
+> >
+> > +       /* 1 second timeout in case CODA locks up */
+> > +       schedule_delayed_work(&dev->timeout, HZ);
+> > +
+> >         coda_command_async(ctx, CODA_COMMAND_PIC_RUN);
+> >  }
+> >
+> > @@ -1221,6 +1225,8 @@ static int coda_stop_streaming(struct vb2_queue *q)
+> >         }
+> >
+> >         if (!ctx->rawstreamon && !ctx->compstreamon) {
+> > +               cancel_delayed_work(&dev->timeout);
+> > +
 > 
-> Each rc-raw device has a property "allowed_protos" stored in structure
-> ir_raw_event_ctrl. But it didn't work because all decoders would be
-> called when decoding. This path makes only allowed protocol decoders
-> been invoked.
+> Since 'schedule_delayed_work()' is called for each frame and
+> 'cancel_delayed_work()' is called only when stopping the streaming,
+> the timeout will always trigger after 1 second.
+> I can confirm this due some tests where I always get this message
+> after one second:  coda coda-imx27.0: CODA PIC_RUN timeout, stopping
+> all streams
+
+Yes, removing the __cancel_delayed_work in coda_irq_handler was a
+mistake.
+
+> Please find some of my doubts below:
 > 
-> Signed-off-by: Du, Changbin <changbin.du@gmail.com>
-> ---
->  drivers/media/rc/ir-raw.c |    8 ++++++--
->  1 file changed, 6 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/rc/ir-raw.c b/drivers/media/rc/ir-raw.c
-> index a820251..198b6d8 100644
-> --- a/drivers/media/rc/ir-raw.c
-> +++ b/drivers/media/rc/ir-raw.c
-> @@ -63,8 +63,12 @@ static int ir_raw_event_thread(void *data)
->  		spin_unlock_irq(&raw->lock);
->  
->  		mutex_lock(&ir_raw_handler_lock);
-> -		list_for_each_entry(handler, &ir_raw_handler_list, list)
-> -			handler->decode(raw->dev, ev);
-> +		list_for_each_entry(handler, &ir_raw_handler_list, list) {
-> +			/* use all protocol by default */
-> +			if (raw->dev->allowed_protos == RC_TYPE_UNKNOWN ||
-> +			    raw->dev->allowed_protos & handler->protocols)
-> +				handler->decode(raw->dev, ev);
-> +		}
+> Do we really need this patch? Couldn't you just use
+> 'coda_command_sync()' for CODA_COMMAND_PIC_RUN? Why did you changed
+> 'cancel_delayed_work()' from the IRQ to stop streaming? I think the
+> former was correct, wasn't it?
 
-Each IR protocol decoder already checks whether it is enabled or not; 
-should it not be so that only allowed protocols can be enabled rather 
-than checking both enabled_protocols and allowed_protocols?
+Ideally, the CODA shouldn't hang. I've seen it happen, though - whether
+because of firmware or driver bugs I couldn't say.
 
-Just from reading store_protocols it looks like decoders which aren't
-in allowed_protocols can be enabled, which makes no sense. Also 
-ir_raw_event_register all protocols are enabled rather than the 
-allowed ones.
+Using coda_command_sync would mean spinning in coda_wait_timeout all the
+time. I guess we could put device_run to sleep with
+wait_for_completion_interruptible_timeout and just complete the
+completion in the irq handler.
 
-Lastely I don't know why raw ir drivers should dictate which protocols
-can be enabled. Would it not be better to remove it entirely?
+regards
+Philipp
 
-
->  		raw->prev_ev = ev;
->  		mutex_unlock(&ir_raw_handler_lock);
->  	}
-> -- 
-> 1.7.9.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
