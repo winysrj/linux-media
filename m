@@ -1,392 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1994 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756220Ab2IGN3i (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 09:29:38 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 API PATCH 20/28] v4l2: make vidioc_s_audio const.
-Date: Fri,  7 Sep 2012 15:29:20 +0200
-Message-Id: <e89c253e3f065e35332dc3a3afcb97fc5be2de63.1347023744.git.hans.verkuil@cisco.com>
-In-Reply-To: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
-References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
-References: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:37183 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756094Ab2ICJVQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2012 05:21:16 -0400
+Message-id: <50447688.4030004@samsung.com>
+Date: Mon, 03 Sep 2012 11:21:12 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Prabhakar Lad <prabhakar.lad@ti.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-kernel@vger.kernel.org,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-doc@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Rob Landley <rob@landley.net>
+Subject: Re: [PATCH v3] media: v4l2-ctrls: add control for dpcm predictor
+References: <1346656851-20316-1-git-send-email-prabhakar.lad@ti.com>
+In-reply-to: <1346656851-20316-1-git-send-email-prabhakar.lad@ti.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 09/03/2012 09:20 AM, Prabhakar Lad wrote:
+> From: Lad, Prabhakar <prabhakar.lad@ti.com>
+> 
+> add V4L2_CID_DPCM_PREDICTOR control of type menu, which
+> determines the dpcm predictor. The predictor can be either
+> simple or advanced.
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Cc: Hans de Goede <hdegoede@redhat.com>
+> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Rob Landley <rob@landley.net>
+> Cc: HeungJun Kim <riverful.kim@samsung.com>
 
-Write-only ioctls should have a const argument in the ioctl op.
+Looks good.
 
-Do this conversion for vidioc_s_audio.
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-Adding const for write-only ioctls was decided during the 2012 Media Workshop.
+> ---
+> This patches has one checkpatch warning for line over
+> 80 characters altough it can be avoided I have kept it
+> for consistency.
+> 
+> Changes for v3:
+> 1: Added better explanation for DPCM, pointed by Hans.
+> 
+> Changes for v2:
+> 1: Added documentaion in controls.xml pointed by Sylwester.
+> 2: Chnaged V4L2_DPCM_PREDICTOR_ADVANCE to V4L2_DPCM_PREDICTOR_ADVANCED
+>    pointed by Sakari.
+> 
+>  Documentation/DocBook/media/v4l/controls.xml |   48 +++++++++++++++++++++++++-
+>  drivers/media/v4l2-core/v4l2-ctrls.c         |    9 +++++
+>  include/linux/videodev2.h                    |    5 +++
+>  3 files changed, 61 insertions(+), 1 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+> index 93b9c68..f704218 100644
+> --- a/Documentation/DocBook/media/v4l/controls.xml
+> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> @@ -4267,7 +4267,53 @@ interface and may change in the future.</para>
+>  	    pixels / second.
+>  	    </entry>
+>  	  </row>
+> -	  <row><entry></entry></row>
+> +	  <row>
+> +	    <entry spanname="id"><constant>V4L2_CID_DPCM_PREDICTOR</constant></entry>
+> +	    <entry>menu</entry>
+> +	  </row>
+> +	  <row id="v4l2-dpcm-predictor">
+> +	    <entry spanname="descr"> Differential pulse-code modulation (DPCM) is a signal
+> +	    encoder that uses the baseline of pulse-code modulation (PCM) but adds some
+> +	    functionalities based on the prediction of the samples of the signal. The input
+> +	    can be an analog signal or a digital signal.
+> +
+> +	    <para>If the input is a continuous-time
+> +	    analog signal, it needs to be sampled first so that a discrete-time signal is
+> +	    the input to the DPCM encoder.</para>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/bt8xx/bttv-driver.c         |    4 ++--
- drivers/media/pci/cx18/cx18-ioctl.c           |    2 +-
- drivers/media/pci/cx23885/cx23885-video.c     |    2 +-
- drivers/media/pci/ivtv/ivtv-ioctl.c           |    2 +-
- drivers/media/pci/saa7134/saa7134-video.c     |    4 ++--
- drivers/media/pci/saa7146/mxb.c               |    2 +-
- drivers/media/pci/ttpci/av7110_v4l.c          |    2 +-
- drivers/media/radio/radio-miropcm20.c         |    2 +-
- drivers/media/radio/radio-sf16fmi.c           |    2 +-
- drivers/media/radio/radio-tea5764.c           |    2 +-
- drivers/media/radio/radio-timb.c              |    2 +-
- drivers/media/radio/radio-wl1273.c            |    2 +-
- drivers/media/radio/wl128x/fmdrv_v4l2.c       |    2 +-
- drivers/media/usb/au0828/au0828-video.c       |    2 +-
- drivers/media/usb/cx231xx/cx231xx-video.c     |    4 ++--
- drivers/media/usb/em28xx/em28xx-video.c       |    4 ++--
- drivers/media/usb/hdpvr/hdpvr-video.c         |    2 +-
- drivers/media/usb/pvrusb2/pvrusb2-v4l2.c      |    2 +-
- drivers/media/usb/tlg2300/pd-radio.c          |    2 +-
- drivers/media/usb/tlg2300/pd-video.c          |    2 +-
- drivers/media/usb/tm6000/tm6000-video.c       |    2 +-
- drivers/media/usb/usbvision/usbvision-video.c |    2 +-
- include/media/v4l2-ioctl.h                    |    2 +-
- 23 files changed, 27 insertions(+), 27 deletions(-)
+nit: this whole paragraph could fit in 2 lines.
 
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index 26bf309..31b2826 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -3076,7 +3076,7 @@ static int bttv_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
- 	return 0;
- }
- 
--static int bttv_s_audio(struct file *file, void *priv, struct v4l2_audio *a)
-+static int bttv_s_audio(struct file *file, void *priv, const struct v4l2_audio *a)
- {
- 	if (unlikely(a->index))
- 		return -EINVAL;
-@@ -3480,7 +3480,7 @@ static int radio_s_tuner(struct file *file, void *priv,
- }
- 
- static int radio_s_audio(struct file *file, void *priv,
--					struct v4l2_audio *a)
-+					const struct v4l2_audio *a)
- {
- 	if (unlikely(a->index))
- 		return -EINVAL;
-diff --git a/drivers/media/pci/cx18/cx18-ioctl.c b/drivers/media/pci/cx18/cx18-ioctl.c
-index 51675bc..ffc00ef 100644
---- a/drivers/media/pci/cx18/cx18-ioctl.c
-+++ b/drivers/media/pci/cx18/cx18-ioctl.c
-@@ -492,7 +492,7 @@ static int cx18_g_audio(struct file *file, void *fh, struct v4l2_audio *vin)
- 	return cx18_get_audio_input(cx, vin->index, vin);
- }
- 
--static int cx18_s_audio(struct file *file, void *fh, struct v4l2_audio *vout)
-+static int cx18_s_audio(struct file *file, void *fh, const struct v4l2_audio *vout)
- {
- 	struct cx18 *cx = fh2id(fh)->cx;
- 
-diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
-index 22f8e7f..8c4a9a5 100644
---- a/drivers/media/pci/cx23885/cx23885-video.c
-+++ b/drivers/media/pci/cx23885/cx23885-video.c
-@@ -1426,7 +1426,7 @@ static int vidioc_g_audinput(struct file *file, void *priv,
- }
- 
- static int vidioc_s_audinput(struct file *file, void *priv,
--	struct v4l2_audio *i)
-+	const struct v4l2_audio *i)
- {
- 	struct cx23885_dev *dev = ((struct cx23885_fh *)priv)->dev;
- 	if (i->index >= 2)
-diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c b/drivers/media/pci/ivtv/ivtv-ioctl.c
-index 966abb4..99e35dd 100644
---- a/drivers/media/pci/ivtv/ivtv-ioctl.c
-+++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
-@@ -784,7 +784,7 @@ static int ivtv_g_audio(struct file *file, void *fh, struct v4l2_audio *vin)
- 	return ivtv_get_audio_input(itv, vin->index, vin);
- }
- 
--static int ivtv_s_audio(struct file *file, void *fh, struct v4l2_audio *vout)
-+static int ivtv_s_audio(struct file *file, void *fh, const struct v4l2_audio *vout)
- {
- 	struct ivtv *itv = fh2id(fh)->itv;
- 
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index bac4386..135bfd8 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -2089,7 +2089,7 @@ static int saa7134_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
- 	return 0;
- }
- 
--static int saa7134_s_audio(struct file *file, void *priv, struct v4l2_audio *a)
-+static int saa7134_s_audio(struct file *file, void *priv, const struct v4l2_audio *a)
- {
- 	return 0;
- }
-@@ -2373,7 +2373,7 @@ static int radio_g_audio(struct file *file, void *priv,
- }
- 
- static int radio_s_audio(struct file *file, void *priv,
--					struct v4l2_audio *a)
-+					const struct v4l2_audio *a)
- {
- 	return 0;
- }
-diff --git a/drivers/media/pci/saa7146/mxb.c b/drivers/media/pci/saa7146/mxb.c
-index b520a45..91369da 100644
---- a/drivers/media/pci/saa7146/mxb.c
-+++ b/drivers/media/pci/saa7146/mxb.c
-@@ -646,7 +646,7 @@ static int vidioc_g_audio(struct file *file, void *fh, struct v4l2_audio *a)
- 	return 0;
- }
- 
--static int vidioc_s_audio(struct file *file, void *fh, struct v4l2_audio *a)
-+static int vidioc_s_audio(struct file *file, void *fh, const struct v4l2_audio *a)
- {
- 	struct saa7146_dev *dev = ((struct saa7146_fh *)fh)->dev;
- 	struct mxb *mxb = (struct mxb *)dev->ext_priv;
-diff --git a/drivers/media/pci/ttpci/av7110_v4l.c b/drivers/media/pci/ttpci/av7110_v4l.c
-index 1b2d151..730e906 100644
---- a/drivers/media/pci/ttpci/av7110_v4l.c
-+++ b/drivers/media/pci/ttpci/av7110_v4l.c
-@@ -526,7 +526,7 @@ static int vidioc_g_audio(struct file *file, void *fh, struct v4l2_audio *a)
- 	return 0;
- }
- 
--static int vidioc_s_audio(struct file *file, void *fh, struct v4l2_audio *a)
-+static int vidioc_s_audio(struct file *file, void *fh, const struct v4l2_audio *a)
- {
- 	struct saa7146_dev *dev = ((struct saa7146_fh *)fh)->dev;
- 	struct av7110 *av7110 = (struct av7110 *)dev->ext_priv;
-diff --git a/drivers/media/radio/radio-miropcm20.c b/drivers/media/radio/radio-miropcm20.c
-index 87c1ee1..11f76ed 100644
---- a/drivers/media/radio/radio-miropcm20.c
-+++ b/drivers/media/radio/radio-miropcm20.c
-@@ -197,7 +197,7 @@ static int vidioc_g_audio(struct file *file, void *priv,
- }
- 
- static int vidioc_s_audio(struct file *file, void *priv,
--				struct v4l2_audio *a)
-+				const struct v4l2_audio *a)
- {
- 	return a->index ? -EINVAL : 0;
- }
-diff --git a/drivers/media/radio/radio-sf16fmi.c b/drivers/media/radio/radio-sf16fmi.c
-index 8185d5f..227dcdb 100644
---- a/drivers/media/radio/radio-sf16fmi.c
-+++ b/drivers/media/radio/radio-sf16fmi.c
-@@ -239,7 +239,7 @@ static int vidioc_g_audio(struct file *file, void *priv,
- }
- 
- static int vidioc_s_audio(struct file *file, void *priv,
--					struct v4l2_audio *a)
-+					const struct v4l2_audio *a)
- {
- 	return a->index ? -EINVAL : 0;
- }
-diff --git a/drivers/media/radio/radio-tea5764.c b/drivers/media/radio/radio-tea5764.c
-index 6b1fae3..efb05aa 100644
---- a/drivers/media/radio/radio-tea5764.c
-+++ b/drivers/media/radio/radio-tea5764.c
-@@ -448,7 +448,7 @@ static int vidioc_g_audio(struct file *file, void *priv,
- }
- 
- static int vidioc_s_audio(struct file *file, void *priv,
--			   struct v4l2_audio *a)
-+			   const struct v4l2_audio *a)
- {
- 	if (a->index != 0)
- 		return -EINVAL;
-diff --git a/drivers/media/radio/radio-timb.c b/drivers/media/radio/radio-timb.c
-index 09fc560..5cf0777 100644
---- a/drivers/media/radio/radio-timb.c
-+++ b/drivers/media/radio/radio-timb.c
-@@ -85,7 +85,7 @@ static int timbradio_vidioc_g_audio(struct file *file, void *priv,
- }
- 
- static int timbradio_vidioc_s_audio(struct file *file, void *priv,
--	struct v4l2_audio *a)
-+	const struct v4l2_audio *a)
- {
- 	return a->index ? -EINVAL : 0;
- }
-diff --git a/drivers/media/radio/radio-wl1273.c b/drivers/media/radio/radio-wl1273.c
-index 71968a6..2d93354 100644
---- a/drivers/media/radio/radio-wl1273.c
-+++ b/drivers/media/radio/radio-wl1273.c
-@@ -1479,7 +1479,7 @@ static int wl1273_fm_vidioc_g_audio(struct file *file, void *priv,
- }
- 
- static int wl1273_fm_vidioc_s_audio(struct file *file, void *priv,
--				    struct v4l2_audio *audio)
-+				    const struct v4l2_audio *audio)
- {
- 	struct wl1273_device *radio = video_get_drvdata(video_devdata(file));
- 
-diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.c b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-index f816ea6..09585a9 100644
---- a/drivers/media/radio/wl128x/fmdrv_v4l2.c
-+++ b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-@@ -258,7 +258,7 @@ static int fm_v4l2_vidioc_g_audio(struct file *file, void *priv,
- }
- 
- static int fm_v4l2_vidioc_s_audio(struct file *file, void *priv,
--		struct v4l2_audio *audio)
-+		const struct v4l2_audio *audio)
- {
- 	if (audio->index != 0)
- 		return -EINVAL;
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index fa0fa9a..8705855 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -1465,7 +1465,7 @@ static int vidioc_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
- 	return 0;
- }
- 
--static int vidioc_s_audio(struct file *file, void *priv, struct v4l2_audio *a)
-+static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio *a)
- {
- 	struct au0828_fh *fh = priv;
- 	struct au0828_dev *dev = fh->dev;
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index 790b28d..fedf785 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -1253,7 +1253,7 @@ static int vidioc_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
- 	return 0;
- }
- 
--static int vidioc_s_audio(struct file *file, void *priv, struct v4l2_audio *a)
-+static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio *a)
- {
- 	struct cx231xx_fh *fh = priv;
- 	struct cx231xx *dev = fh->dev;
-@@ -2096,7 +2096,7 @@ static int radio_s_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
- 	return 0;
- }
- 
--static int radio_s_audio(struct file *file, void *fh, struct v4l2_audio *a)
-+static int radio_s_audio(struct file *file, void *fh, const struct v4l2_audio *a)
- {
- 	return 0;
- }
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 78d6ebd..1e553d3 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -1352,7 +1352,7 @@ static int vidioc_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
- 	return 0;
- }
- 
--static int vidioc_s_audio(struct file *file, void *priv, struct v4l2_audio *a)
-+static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio *a)
- {
- 	struct em28xx_fh   *fh  = priv;
- 	struct em28xx      *dev = fh->dev;
-@@ -2087,7 +2087,7 @@ static int radio_s_tuner(struct file *file, void *priv,
- }
- 
- static int radio_s_audio(struct file *file, void *fh,
--			 struct v4l2_audio *a)
-+			 const struct v4l2_audio *a)
- {
- 	return 0;
- }
-diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
-index 0e9e156..da6b779 100644
---- a/drivers/media/usb/hdpvr/hdpvr-video.c
-+++ b/drivers/media/usb/hdpvr/hdpvr-video.c
-@@ -677,7 +677,7 @@ static int vidioc_enumaudio(struct file *file, void *priv,
- }
- 
- static int vidioc_s_audio(struct file *file, void *private_data,
--			  struct v4l2_audio *audio)
-+			  const struct v4l2_audio *audio)
- {
- 	struct hdpvr_fh *fh = file->private_data;
- 	struct hdpvr_device *dev = fh->dev;
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-index f344aed..7a445b0 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-@@ -333,7 +333,7 @@ static int pvr2_g_audio(struct file *file, void *priv, struct v4l2_audio *vin)
- 	return 0;
- }
- 
--static int pvr2_s_audio(struct file *file, void *priv, struct v4l2_audio *vout)
-+static int pvr2_s_audio(struct file *file, void *priv, const struct v4l2_audio *vout)
- {
- 	if (vout->index)
- 		return -EINVAL;
-diff --git a/drivers/media/usb/tlg2300/pd-radio.c b/drivers/media/usb/tlg2300/pd-radio.c
-index 4fad1df..25eeb16 100644
---- a/drivers/media/usb/tlg2300/pd-radio.c
-+++ b/drivers/media/usb/tlg2300/pd-radio.c
-@@ -348,7 +348,7 @@ static int vidioc_s_tuner(struct file *file, void *priv, struct v4l2_tuner *vt)
- {
- 	return vt->index > 0 ? -EINVAL : 0;
- }
--static int vidioc_s_audio(struct file *file, void *priv, struct v4l2_audio *va)
-+static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio *va)
- {
- 	return (va->index != 0) ? -EINVAL : 0;
- }
-diff --git a/drivers/media/usb/tlg2300/pd-video.c b/drivers/media/usb/tlg2300/pd-video.c
-index bfbf9e5..1f448ac 100644
---- a/drivers/media/usb/tlg2300/pd-video.c
-+++ b/drivers/media/usb/tlg2300/pd-video.c
-@@ -1029,7 +1029,7 @@ static int vidioc_g_audio(struct file *file, void *fh, struct v4l2_audio *a)
- 	return 0;
- }
- 
--static int vidioc_s_audio(struct file *file, void *fh, struct v4l2_audio *a)
-+static int vidioc_s_audio(struct file *file, void *fh, const struct v4l2_audio *a)
- {
- 	return (0 == a->index) ? 0 : -EINVAL;
- }
-diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
-index 45ed59c..4342cd4 100644
---- a/drivers/media/usb/tm6000/tm6000-video.c
-+++ b/drivers/media/usb/tm6000/tm6000-video.c
-@@ -1401,7 +1401,7 @@ static int radio_g_audio(struct file *file, void *priv,
- }
- 
- static int radio_s_audio(struct file *file, void *priv,
--					struct v4l2_audio *a)
-+					const struct v4l2_audio *a)
- {
- 	return 0;
- }
-diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
-index 8a43179..f67018e 100644
---- a/drivers/media/usb/usbvision/usbvision-video.c
-+++ b/drivers/media/usb/usbvision/usbvision-video.c
-@@ -684,7 +684,7 @@ static int vidioc_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
- }
- 
- static int vidioc_s_audio(struct file *file, void *fh,
--			  struct v4l2_audio *a)
-+			  const struct v4l2_audio *a)
- {
- 	if (a->index)
- 		return -EINVAL;
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index 3eef4de..babbe09 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -167,7 +167,7 @@ struct v4l2_ioctl_ops {
- 	int (*vidioc_g_audio)          (struct file *file, void *fh,
- 					struct v4l2_audio *a);
- 	int (*vidioc_s_audio)          (struct file *file, void *fh,
--					struct v4l2_audio *a);
-+					const struct v4l2_audio *a);
- 
- 	/* Audio out ioctls */
- 	int (*vidioc_enumaudout)       (struct file *file, void *fh,
--- 
-1.7.10.4
+> +
+> +	    <para>Simple: take the values of two
+> +	    consecutive samples; if they are analog samples, quantize them; calculate the
+> +	    difference between the first one and the next; the output is the difference, and
+> +	    it can be further entropy coded.</para>
+> +
+> +	    <para>Advanced: instead of taking a difference relative to a previous input sample,
+> +	    take the difference relative to the output of a local model of the decoder process;
+> +	    in this option, the difference can be quantized, which allows a good way to
+> +	    incorporate a controlled loss in the encoding.</para>
+> +
+> +	    <para>Applying one of these two processes, short-term redundancy (positive correlation of
+> +	    nearby values) of the signal is eliminated; compression ratios on the order of 2 to 4
+> +	    can be achieved if differences are subsequently entropy coded, because the entropy of
+> +	    the difference signal is much smaller than that of the original discrete signal treated
+> +	    as independent samples.For more information about DPCM see <ulink
+> +	    url="http://en.wikipedia.org/wiki/Differential_pulse-code_modulation">Wikipedia</ulink>.</para>
+> +	    </entry>
+> +	  </row>
+> +	  <row>
+> +	    <entrytbl spanname="descr" cols="2">
+> +	      <tbody valign="top">
+> +	        <row>
+> +	         <entry><constant>V4L2_DPCM_PREDICTOR_SIMPLE</constant></entry>
+> +	          <entry>Predictor type is simple</entry>
+> +	        </row>
+> +	        <row>
+> +	          <entry><constant>V4L2_DPCM_PREDICTOR_ADVANCED</constant></entry>
+> +	          <entry>Predictor type is advanced</entry>
+> +	        </row>
+> +	      </tbody>
+> +	    </entrytbl>
+> +	  </row>
+> +	<row><entry></entry></row>
+>  	</tbody>
+>        </tgroup>
+>        </table>
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index b6a2ee7..2d7bc15 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -425,6 +425,11 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+>  		"Gray",
+>  		NULL,
+>  	};
+> +	static const char * const dpcm_predictor[] = {
+> +		"Simple Predictor",
+> +		"Advanced Predictor",
+> +		NULL,
+> +	};
+>  
+>  	switch (id) {
+>  	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+> @@ -502,6 +507,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+>  		return mpeg4_profile;
+>  	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
+>  		return jpeg_chroma_subsampling;
+> +	case V4L2_CID_DPCM_PREDICTOR:
+> +		return dpcm_predictor;
+>  
+>  	default:
+>  		return NULL;
+> @@ -732,6 +739,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_IMAGE_PROC_CLASS:		return "Image Processing Controls";
+>  	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
+>  	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
+> +	case V4L2_CID_DPCM_PREDICTOR:		return "DPCM Predictor";
+>  
+>  	default:
+>  		return NULL;
+> @@ -832,6 +840,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>  	case V4L2_CID_ISO_SENSITIVITY_AUTO:
+>  	case V4L2_CID_EXPOSURE_METERING:
+>  	case V4L2_CID_SCENE_MODE:
+> +	case V4L2_CID_DPCM_PREDICTOR:
+>  		*type = V4L2_CTRL_TYPE_MENU;
+>  		break;
+>  	case V4L2_CID_LINK_FREQ:
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 6d6dfa7..ca9fb78 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -2000,6 +2000,11 @@ enum v4l2_jpeg_chroma_subsampling {
+>  
+>  #define V4L2_CID_LINK_FREQ			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 1)
+>  #define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
+> +#define V4L2_CID_DPCM_PREDICTOR			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 3)
+> +enum v4l2_dpcm_predictor {
+> +	V4L2_DPCM_PREDICTOR_SIMPLE	= 0,
+> +	V4L2_DPCM_PREDICTOR_ADVANCED	= 1,
+> +};
+>  
+>  /*
+>   *	T U N I N G
 
+Regards,
+Sylwester
