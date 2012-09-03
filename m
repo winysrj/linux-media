@@ -1,172 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:21458 "EHLO mx1.redhat.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:34875 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757627Ab2IRJxj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Sep 2012 05:53:39 -0400
-Message-ID: <505844A0.30001@redhat.com>
-Date: Tue, 18 Sep 2012 06:53:36 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1755801Ab2ICJRG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Sep 2012 05:17:06 -0400
+From: Prabhakar Lad <prabhakar.lad@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	<linux-kernel@vger.kernel.org>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	<linux-doc@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Rob Landley <rob@landley.net>,
+	HeungJun Kim <riverful.kim@samsung.com>
+Subject: [PATCH] media: v4l2-ctrls: add control for test pattern
+Date: Mon, 3 Sep 2012 14:46:17 +0530
+Message-ID: <1346663777-23149-1-git-send-email-prabhakar.lad@ti.com>
 MIME-Version: 1.0
-To: Anders Thomson <aeriksson2@gmail.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: tda8290 regression fix
-References: <503F4E19.1050700@gmail.com> <20120915133417.27cb82a1@redhat.com> <5054BD53.7060109@gmail.com> <20120915145834.0b763f73@redhat.com> <5054C521.1090200@gmail.com> <20120915192530.74aedaa6@redhat.com> <50559241.6070408@gmail.com>
-In-Reply-To: <50559241.6070408@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 16-09-2012 05:48, Anders Thomson escreveu:
-> On 2012-09-16 00:25, Mauro Carvalho Chehab wrote:
->> Em Sat, 15 Sep 2012 20:12:49 +0200
->> Anders Thomson<aeriksson2@gmail.com>  escreveu:
->>
->> >  On 2012-09-15 19:58, Mauro Carvalho Chehab wrote:
->> >  >  Em Sat, 15 Sep 2012 19:39:31 +0200
->> >  >  Anders Thomson<aeriksson2@gmail.com>   escreveu:
->> >  >
->> >  >  >   On 2012-09-15 18:34, Mauro Carvalho Chehab wrote:
->> >  >  >   >   >    $ cat /TV_CARD.diff
->> >  >  >   >   >    diff --git a/drivers/media/common/tuners/tda8290.c
->> >  >  >   >   >    b/drivers/media/common/tuners/tda8290.c
->> >  >  >   >   >    index 064d14c..498cc7b 100644
->> >  >  >   >   >    --- a/drivers/media/common/tuners/tda8290.c
->> >  >  >   >   >    +++ b/drivers/media/common/tuners/tda8290.c
->> >  >  >   >   >    @@ -635,7 +635,11 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
->> >  >  >   >   >
->> >  >  >   >   >                     dvb_attach(tda827x_attach, fe, priv->tda827x_addr,
->> >  >  >   >   >                                priv->i2c_props.adap,&priv->cfg);
->> >  >  >   >   >    +               tuner_info("ANDERS: setting switch_addr. was 0x%02x, new
->> >  >  >   >   >    0x%02x\n",priv->cfg.switch_addr,priv->i2c_props.addr);
->> >  >  >   >   >                     priv->cfg.switch_addr = priv->i2c_props.addr;
->> >  >  >   >   >    +               priv->cfg.switch_addr = 0xc2 / 2;
->> >  >  >   >
->> >  >  >   >   No, this is wrong. The I2C address is passed by the bridge driver or by
->> >  >  >   >   the tuner_core attachment, being stored at priv->i2c_props.addr.
->> >  >  >   >
->> >  >  >   >   What's the driver and card you're using?
->> >  >  >   >
->> >  >  >   lspci -vv:
->> >  >  >   03:06.0 Multimedia controller: Philips Semiconductors
->> >  >  >   SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d1)
->> >  >  >            Subsystem: Pinnacle Systems Inc. Device 002f
->> >  >
->> >  >  There are lots of Pinnacle device supported by saa7134 driver. Without its
->> >  >  PCI ID that's not much we can do.
->> >  That here, right?
->> >  lspci -nvv:
->> >  03:06.0 0480: 1131:7133 (rev d1)
->> >           Subsystem: 11bd:002f
->> >           Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
->> >  ParErr- Stepping- SERR- FastB2B- DisINTx-
->> >           Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium
->> >   >TAbort-<TAbort-<MAbort->SERR-<PERR- INTx-
->> >           Latency: 64 (21000ns min, 8000ns max)
->> >           Interrupt: pin A routed to IRQ 21
->> >           Region 0: Memory at fdeff000 (32-bit, non-prefetchable) [size=2K]
->> >           Capabilities: [40] Power Management version 2
->> >                   Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA
->> >  PME(D0-,D1-,D2-,D3hot-,D3cold-)
->> >                   Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=1 PME-
->> >           Kernel driver in use: saa7134
->> >           Kernel modules: saa7134
->> >
->> >
->> >
->> >
->> >  >  Also, please post the dmesg showing what happens without and with your patch.
->> >  Coming. Hold on...
->>
->> Thanks!
->>
->> Please try the enclosed patch.
->>
->> -
->>
->> [PATCH] tda8290: Fix lna switch address
->>
->> When LNA is configured with config 1 or config 2, tda827x driver
->> will use the LNA switch_addr. However, this is not happening for
->> all devices using such config, as reported by Anders. According
->> to him, he is experiencing bad tuning with this code since
->> Kenrel 2.6.26.
->>
->> Reported-by: Anders Thomson<aeriksson2@gmail.com>
->> Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
->>
->> diff --git a/drivers/media/tuners/tda8290.c b/drivers/media/tuners/tda8290.c
->> index 8c48521..bedc6ce 100644
->> --- a/drivers/media/tuners/tda8290.c
->> +++ b/drivers/media/tuners/tda8290.c
->> @@ -627,6 +627,9 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
->>           return -EREMOTEIO;
->>       }
->>
->> +    if (priv->cfg.config == 1 || priv->cfg.config == 2)
->> +        priv->cfg.switch_addr = priv->i2c_props.addr;
->> +
->>       if ((data == 0x83) || (data == 0x84)) {
->>           priv->ver |= TDA18271;
->>           tda829x_tda18271_config.config = priv->cfg.config;
->> @@ -640,7 +643,6 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
->>
->>           dvb_attach(tda827x_attach, fe, priv->tda827x_addr,
->>                  priv->i2c_props.adap,&priv->cfg);
->> -        priv->cfg.switch_addr = priv->i2c_props.addr;
->>       }
->>       if (fe->ops.tuner_ops.init)
->>           fe->ops.tuner_ops.init(fe);
->>
->>
-> Hi,
-> Which tree should this be applied to? I have no drivers/media/tuners dir here.
+From: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-I'm always using the very latest development tree:
-	http://git.linuxtv.org/media_tree.git
+add V4L2_CID_TEST_PATTERN of type menu, which determines
+the internal test pattern selected by the device.
 
-You can use the media_build.git tree to compile it against an older Kernel.
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Rob Landley <rob@landley.net>
+Cc: HeungJun Kim <riverful.kim@samsung.com>
+Cc: Rob Landley <rob@landley.net>
+---
+ This patches has one checkpatch warning for line over
+ 80 characters altough it can be avoided I have kept it
+ for consistency.
 
-> However, it applies cleanly to 3.5.3 as:
->  diff --git a/drivers/media/common/tuners/tda8290.c b/drivers/media/common/tuners/tda8290.c
-> index 8c48521..bedc6ce 100644
-> --- a/drivers/media/common/tuners/tda8290.c
-> +++ b/drivers/media/common/tuners/tda8290.c
-> @@ -627,6 +627,9 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
->                 return -EREMOTEIO;
->         }
-> 
-> +       if (priv->cfg.config == 1 || priv->cfg.config == 2)
-> +               priv->cfg.switch_addr = priv->i2c_props.addr;
-> +
->         if ((data == 0x83) || (data == 0x84)) {
->                 priv->ver |= TDA18271;
->                 tda829x_tda18271_config.config = priv->cfg.config;
-> @@ -640,7 +643,6 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
-> 
->                 dvb_attach(tda827x_attach, fe, priv->tda827x_addr,
->                            priv->i2c_props.adap, &priv->cfg);
-> -               priv->cfg.switch_addr = priv->i2c_props.addr;
->         }
->         if (fe->ops.tuner_ops.init)
->                 fe->ops.tuner_ops.init(fe);
-> 
-> It doesn't make any difference though :-( I still have the layer of noise...
+ Documentation/DocBook/media/v4l/controls.xml |   52 ++++++++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-ctrls.c         |   16 ++++++++
+ include/linux/videodev2.h                    |   12 ++++++
+ 3 files changed, 80 insertions(+), 0 deletions(-)
 
-That's weird. Hmm... perhaps priv->cfg.config is being initialized
-latter. Maybe you can then do, instead:
-	
-                 return -EREMOTEIO;
-         }
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index f704218..06f16e7 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -4313,6 +4313,58 @@ interface and may change in the future.</para>
+ 	      </tbody>
+ 	    </entrytbl>
+ 	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_TEST_PATTERN</constant></entry>
++	    <entry>menu</entry>
++	  </row>
++	  <row id="v4l2-test-pattern">
++	    <entry spanname="descr"> The capture devices/sensors have the capability to
++	    generate internal test patterns. This test patterns are used to test a device
++	    is properly working and can generate the desired waveforms that it supports.
++	    </entry>
++	  </row>
++	  <row>
++	    <entrytbl spanname="descr" cols="2">
++	      <tbody valign="top">
++	        <row>
++	         <entry><constant>V4L2_TEST_PATTERN_DISABLED</constant></entry>
++	          <entry>Test pattern generation is disabled</entry>
++	        </row>
++	        <row>
++	          <entry><constant>V4L2_TEST_PATTERN_VERTICAL_LINES</constant></entry>
++	          <entry>Generate vertical lines as test pattern</entry>
++	        </row>
++	        <row>
++	          <entry><constant>V4L2_TEST_PATTERN_HORIZONTAL_LINES</constant></entry>
++	          <entry>Generate horizontal lines as test pattern</entry>
++	        </row>
++	        <row>
++	          <entry><constant>V4L2_TEST_PATTERN_DIAGONAL_LINES</constant></entry>
++	          <entry>Generate diagonal lines as test pattern</entry>
++	        </row>
++	        <row>
++	          <entry><constant>V4L2_TEST_PATTERN_SOLID_BLACK</constant></entry>
++	          <entry>Generate solid black color as test pattern</entry>
++	        </row>
++	        <row>
++	          <entry><constant>V4L2_TEST_PATTERN_SOLID_WHITE</constant></entry>
++	          <entry>Generate solid white color as test pattern</entry>
++	        </row>
++	        <row>
++	          <entry><constant>V4L2_TEST_PATTERN_SOLID_BLUE</constant></entry>
++	          <entry>Generate solid blue color as test pattern</entry>
++	        </row>
++	        <row>
++	          <entry><constant>V4L2_TEST_PATTERN_SOLID_RED</constant></entry>
++	          <entry>Generate solid red color as test pattern</entry>
++	        </row>
++	        <row>
++	          <entry><constant>V4L2_TEST_PATTERN_CHECKER_BOARD</constant></entry>
++	          <entry>Generate a checker board as test pattern</entry>
++	        </row>
++	      </tbody>
++	    </entrytbl>
++	  </row>
+ 	<row><entry></entry></row>
+ 	</tbody>
+       </tgroup>
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 2d7bc15..ae709d1 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -430,6 +430,18 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"Advanced Predictor",
+ 		NULL,
+ 	};
++	static const char * const test_pattern[] = {
++		"Test Pattern Disabled",
++		"Vertical Lines",
++		"Horizontal Lines",
++		"Diagonal Lines",
++		"Solid Black",
++		"Solid White",
++		"Solid Blue",
++		"Solid Red",
++		"Checker Board",
++		NULL,
++	};
  
-+        priv->cfg.switch_addr = priv->i2c_props.addr;
-         if ((data == 0x83) || (data == 0x84)) {
-                 priv->ver |= TDA18271;
-                 tda829x_tda18271_config.config = priv->cfg.config;
+ 	switch (id) {
+ 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+@@ -509,6 +521,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		return jpeg_chroma_subsampling;
+ 	case V4L2_CID_DPCM_PREDICTOR:
+ 		return dpcm_predictor;
++	case V4L2_CID_TEST_PATTERN:
++		return test_pattern;
  
-This shouldn't cause any harm for tuners with config 0 or 3, as the switch
-address will never be used, anyway.
-
-Regards,
-Mauro
+ 	default:
+ 		return NULL;
+@@ -740,6 +754,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
+ 	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
+ 	case V4L2_CID_DPCM_PREDICTOR:		return "DPCM Predictor";
++	case V4L2_CID_TEST_PATTERN:		return "Test Pattern";
+ 
+ 	default:
+ 		return NULL;
+@@ -841,6 +856,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_EXPOSURE_METERING:
+ 	case V4L2_CID_SCENE_MODE:
+ 	case V4L2_CID_DPCM_PREDICTOR:
++	case V4L2_CID_TEST_PATTERN:
+ 		*type = V4L2_CTRL_TYPE_MENU;
+ 		break;
+ 	case V4L2_CID_LINK_FREQ:
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index ca9fb78..1796079 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -2005,6 +2005,18 @@ enum v4l2_dpcm_predictor {
+ 	V4L2_DPCM_PREDICTOR_SIMPLE	= 0,
+ 	V4L2_DPCM_PREDICTOR_ADVANCED	= 1,
+ };
++#define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 4)
++enum v4l2_test_pattern {
++	V4L2_TEST_PATTERN_DISABLED		= 0,
++	V4L2_TEST_PATTERN_VERTICAL_LINES	= 1,
++	V4L2_TEST_PATTERN_HORIZONTAL_LINES	= 2,
++	V4L2_TEST_PATTERN_DIAGONAL_LINES	= 3,
++	V4L2_TEST_PATTERN_SOLID_BLACK		= 4,
++	V4L2_TEST_PATTERN_SOLID_WHITE		= 5,
++	V4L2_TEST_PATTERN_SOLID_BLUE		= 6,
++	V4L2_TEST_PATTERN_SOLID_RED		= 7,
++	V4L2_TEST_PATTERN_CHECKER_BOARD		= 8,
++};
+ 
+ /*
+  *	T U N I N G
+-- 
+1.7.0.4
 
