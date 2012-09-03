@@ -1,38 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54165 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756619Ab2IMAY1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Sep 2012 20:24:27 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:41579 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756550Ab2ICUY6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Sep 2012 16:24:58 -0400
+Subject: [GIT PATCHES] ivtv-alsa, ivtv: Add initial ivtv-alsa interface
+ driver for ivtv
+From: Andy Walls <awalls@md.metrocast.net>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 13/16] au6610: use Kernel dev_foo() logging
-Date: Thu, 13 Sep 2012 03:23:54 +0300
-Message-Id: <1347495837-3244-13-git-send-email-crope@iki.fi>
-In-Reply-To: <1347495837-3244-1-git-send-email-crope@iki.fi>
-References: <1347495837-3244-1-git-send-email-crope@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Mike Isely at pobox <isely@pobox.com>,
+	Mike Isely <isely@isely.net>
+Date: Mon, 03 Sep 2012 16:24:19 -0400
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <1346703860.4874.11.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/au6610.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Mauro,
 
-diff --git a/drivers/media/usb/dvb-usb-v2/au6610.c b/drivers/media/usb/dvb-usb-v2/au6610.c
-index f309fd8..ae6a671 100644
---- a/drivers/media/usb/dvb-usb-v2/au6610.c
-+++ b/drivers/media/usb/dvb-usb-v2/au6610.c
-@@ -48,7 +48,8 @@ static int au6610_usb_msg(struct dvb_usb_device *d, u8 operation, u8 addr,
- 		index += wbuf[1];
- 		break;
- 	default:
--		pr_err("%s: wlen = %d, aborting\n", KBUILD_MODNAME, wlen);
-+		dev_err(&d->udev->dev, "%s: wlen=%d, aborting\n",
-+				KBUILD_MODNAME, wlen);
- 		ret = -EINVAL;
- 		goto error;
- 	}
--- 
-1.7.11.4
+Please pull this changeset which implements a basic ALSA interface for
+the ivtv driver.
+
+The changes are a modified cut and paste from cx18 and cx18-alsa.  It
+inherets all the problems of the cx18-alsa driver: locking
+inconsistencies, ALSA mixer interface is not enabled, hardcoded sample
+rate of 48 ksps regardless of the real audio sample rate, etc.  However
+in testing, it works well enough for userspace to get basic FM radio and
+TV audio via ALSA. 
+
+Regards,
+Andy
+
+
+The following changes since commit f9cd49033b349b8be3bb1f01b39eed837853d880:
+
+  Merge tag 'v3.6-rc1' into staging/for_v3.6 (2012-08-03 22:41:33 -0300)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/awalls/media_tree.git ivtv-alsa
+
+Andy Walls (3):
+      ivtv, ivtv-alsa: Add initial ivtv-alsa interface driver for ivtv
+      ivtv-alsa, ivtv: Connect ivtv PCM capture stream to ivtv-alsa interface driver
+      ivtv-alsa: Remove EXPERIMENTAL from Kconfig and revise Kconfig help text
+
+ drivers/media/video/ivtv/Kconfig           |   16 ++
+ drivers/media/video/ivtv/Makefile          |    2 +
+ drivers/media/video/ivtv/ivtv-alsa-main.c  |  303 +++++++++++++++++++++++
+ drivers/media/video/ivtv/ivtv-alsa-mixer.c |  175 ++++++++++++++
+ drivers/media/video/ivtv/ivtv-alsa-mixer.h |   23 ++
+ drivers/media/video/ivtv/ivtv-alsa-pcm.c   |  357 ++++++++++++++++++++++++++++
+ drivers/media/video/ivtv/ivtv-alsa-pcm.h   |   27 ++
+ drivers/media/video/ivtv/ivtv-alsa.h       |   75 ++++++
+ drivers/media/video/ivtv/ivtv-driver.c     |   37 +++
+ drivers/media/video/ivtv/ivtv-driver.h     |   11 +
+ drivers/media/video/ivtv/ivtv-fileops.c    |    4 +-
+ drivers/media/video/ivtv/ivtv-fileops.h    |    4 +-
+ drivers/media/video/ivtv/ivtv-irq.c        |   50 ++++
+ drivers/media/video/ivtv/ivtv-streams.c    |    2 +
+ 14 files changed, 1083 insertions(+), 3 deletions(-)
+ create mode 100644 drivers/media/video/ivtv/ivtv-alsa-main.c
+ create mode 100644 drivers/media/video/ivtv/ivtv-alsa-mixer.c
+ create mode 100644 drivers/media/video/ivtv/ivtv-alsa-mixer.h
+ create mode 100644 drivers/media/video/ivtv/ivtv-alsa-pcm.c
+ create mode 100644 drivers/media/video/ivtv/ivtv-alsa-pcm.h
+ create mode 100644 drivers/media/video/ivtv/ivtv-alsa.h
+
 
