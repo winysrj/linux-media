@@ -1,62 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:36965 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754513Ab2ITT2y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Sep 2012 15:28:54 -0400
-Message-ID: <505B6E74.9020605@schinagl.nl>
-Date: Thu, 20 Sep 2012 21:28:52 +0200
-From: Oliver Schinagl <oliver+list@schinagl.nl>
+Received: from mx.fr.smartjog.net ([95.81.144.3]:44109 "EHLO
+	mx.fr.smartjog.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756463Ab2ICONt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2012 10:13:49 -0400
+Message-ID: <5044BB16.3000900@smartjog.com>
+Date: Mon, 03 Sep 2012 16:13:42 +0200
+From: =?UTF-8?B?UsOpbWkgQ2FyZG9uYQ==?= <remi.cardona@smartjog.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Support for Asus MyCinema U3100Mini Plus
-References: <1348167437-4371-1-git-send-email-oliver+list@schinagl.nl> <505B6B4E.8010006@iki.fi>
-In-Reply-To: <505B6B4E.8010006@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2] [media] ds3000: Remove useless 'locking'
+References: <1346319391-19015-1-git-send-email-remi.cardona@smartjog.com> <1346319391-19015-2-git-send-email-remi.cardona@smartjog.com>
+In-Reply-To: <1346319391-19015-2-git-send-email-remi.cardona@smartjog.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 20-09-12 21:15, Antti Palosaari wrote:
-> On 09/20/2012 09:57 PM, oliver@schinagl.nl wrote:
->> From: Oliver Schinagl <oliver@schinagl.nl>
->>
->> This is initial support for the Asus MyCinema U3100Mini Plus. The driver
->> in its current form gets detected and loads properly.
->>
->> Scanning using dvbscan works without problems, Locking onto a channel
->> using tzap also works fine. Only playback using tzap -r + mplayer was
->> tested and was fully functional.
->>
->> It uses the af9035 USB Bridge chip, with an af9033 demodulator. The 
->> tuner
->> used is the FCI FC2580.
->>
->> Signed-off-by: Oliver Schinagl <oliver@schinagl.nl>
->
-> Acked-by: Antti Palosaari <crope@iki.fi>
-> Reviewed-by: Antti Palosaari <crope@iki.fi>
->
-> It is OK. Mauro, please merge to the master.
-I do hope that it won't be a problem as I based it on your 
-remotes/origin/for_v3.7-13
->
-> @Oliver, you didn't fixed FC2580 useless braces as I requested. 
-> Anyway, I will sent another patch to fix it later. Action not required.
-Ah, I did comment on that change in my reply on your comments; a 
-re-paste from that:
+On 08/30/2012 11:36 AM, Rémi Cardona wrote:
+> Since b9bf2eafaad9c1ef02fb3db38c74568be601a43a, the function
+> ds3000_firmware_ondemand() is called only once during init. This
+> locking scheme may have been useful when the firmware was loaded at
+> each tune.
+> 
+> Furthermore, it looks like this 'lock' was put in to prevent concurrent
+> access (and not recursion as the comments suggest). However, this open-
+> coded mechanism is anything but race-free and should have used a proper
+> mutex.
+> 
+> Signed-off-by: Rémi Cardona <remi.cardona@smartjog.com>
+> ---
+>  drivers/media/dvb/frontends/ds3000.c |    9 ---------
+>  1 file changed, 9 deletions(-)
 
-Checkpatch did not trigger on this. Which makes sense. Kernel 
-CodingStyle is in very strong favor of K&R and from what I know from 
-K&R, K&R strongly discourage not using braces as it is very likely to 
-introduce bugs. Wikipedia has a small mention of this, then again 
-wikipedia is wikipedia.
+Ping on that patch. Could anyone take a look at it?
 
-I will take it out of you really want it out, but with checkpatch not 
-even complaining, I would think this as an improvement. :D
->
+Many thanks,
 
->
-> regards
-> Antti
-
+Rémi
