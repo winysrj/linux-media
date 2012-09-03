@@ -1,93 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:5534 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752485Ab2IWLg6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Sep 2012 07:36:58 -0400
-Message-ID: <505EF455.9080604@redhat.com>
-Date: Sun, 23 Sep 2012 08:36:53 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:38701 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756373Ab2ICMBO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2012 08:01:14 -0400
+Received: by wibhr14 with SMTP id hr14so3971592wib.1
+        for <linux-media@vger.kernel.org>; Mon, 03 Sep 2012 05:01:13 -0700 (PDT)
 MIME-Version: 1.0
-To: Anders Eriksson <aeriksson2@gmail.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: tda8290 regression fix
-References: <503F4E19.1050700@gmail.com> <20120915133417.27cb82a1@redhat.com> <5054BD53.7060109@gmail.com> <20120915145834.0b763f73@redhat.com> <5054C521.1090200@gmail.com> <20120915192530.74aedaa6@redhat.com> <50559241.6070408@gmail.com> <505844A0.30001@redhat.com> <5059C242.3010902@gmail.com> <5059F68F.4050009@redhat.com> <505A1C16.40507@gmail.com> <CAGncdOae+VoAAUWz3x84zUA-TCMeMmNONf_ktNFd1p7c-o5H_A@mail.gmail.com> <505C7E64.4040507@redhat.com> <8ed8c988-fa8c-41fc-9f33-cccdceb1b232@email.android.com>
-In-Reply-To: <8ed8c988-fa8c-41fc-9f33-cccdceb1b232@email.android.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1346400670-16002-8-git-send-email-p.zabel@pengutronix.de>
+References: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
+	<1346400670-16002-8-git-send-email-p.zabel@pengutronix.de>
+Date: Mon, 3 Sep 2012 14:01:12 +0200
+Message-ID: <CACKLOr1jbotK2z4icas+1DGANGh=0xykBxXCTSGfVay6zq647A@mail.gmail.com>
+Subject: Re: [PATCH v3 07/16] media: coda: stop all queues in case of lockup
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 22-09-2012 11:32, Anders Eriksson escreveu:
-> Not to my knowledge. It's a standard antenna cable to my cabletv box. I watch tv over hdmi to get HD. I only use analogue (and this htpc card) to record stuff.
+Hi Philipp,
 
-(please, don't top-post - it makes harder to preserve the history of the
- discussions)
+On 31 August 2012 10:11, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> Add a 1 second timeout for each PIC_RUN command to the CODA. In
+> case it locks up, stop all queues and dequeue remaining buffers.
+>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+> Changes since v2:
+>  - Call cancel_delayed_work in coda_stop_streaming instead of coda_irq_handler.
+> ---
+>  drivers/media/platform/coda.c |   21 +++++++++++++++++++++
+>  1 file changed, 21 insertions(+)
+>
+> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+> index 7bc2d87..6e3f026 100644
+> --- a/drivers/media/platform/coda.c
+> +++ b/drivers/media/platform/coda.c
+> @@ -137,6 +137,7 @@ struct coda_dev {
+>         struct vb2_alloc_ctx    *alloc_ctx;
+>         struct list_head        instances;
+>         unsigned long           instance_mask;
+> +       struct delayed_work     timeout;
+>  };
+>
+>  struct coda_params {
+> @@ -723,6 +724,9 @@ static void coda_device_run(void *m2m_priv)
+>                                 CODA7_REG_BIT_AXI_SRAM_USE);
+>         }
+>
+> +       /* 1 second timeout in case CODA locks up */
+> +       schedule_delayed_work(&dev->timeout, HZ);
+> +
+>         coda_command_async(ctx, CODA_COMMAND_PIC_RUN);
+>  }
+>
+> @@ -1221,6 +1225,8 @@ static int coda_stop_streaming(struct vb2_queue *q)
+>         }
+>
+>         if (!ctx->rawstreamon && !ctx->compstreamon) {
+> +               cancel_delayed_work(&dev->timeout);
+> +
 
+This breaks compilation. There is no such variable 'dev' in this
+function at this time.
+I see you add it later in patch 9 but I think we should avoid breaking
+bisect as long as possible.
 
-Then, maybe that's the reason why you're having troubles with this board.
+  CC      drivers/media/video/coda.o
+drivers/media/video/coda.c: In function 'coda_stop_streaming':
+drivers/media/video/coda.c:1227: error: 'dev' undeclared (first use in
+this function)
+drivers/media/video/coda.c:1227: error: (Each undeclared identifier is
+reported only once
+drivers/media/video/coda.c:1227: error: for each function it appears in.)
 
-The tda8290-based devices have two components:
-
-	1) a tda8275 tuner, at address 0x61 at the 7-bit I2C address notation
-	  (or 0xc2, at the 8-bit notation);
-	2) a tda8290 analog demod at address 0x4b (7-bit notation).
-
-Some devices provide a way to send power to a low noise amplifier located at the
-antenna or at the device itself (called LNA). The way to activate the LNA is
-board-dependent.
-
-On some devices the tda8290 can also be used to enable/disable a linear amplifier
-(LNA). Enabling/disabling the LNA and its gain affects the quality of the signal.
-
-In the case of tda8275/tda8290 based devices, the LNA setup type is stored at
-priv->cfg->config, where:
-
-	0 - means no LNA control at all - device won't use it;
-	1, 2 - LNA is via a pin at tda8290 (GPIO 0):
-		When config is 1, LNA high gain happens writing a 0;
-		When config is 2, LNA high gain happens writing a 1;
-	3 - The LNA gain control is via a pin at saa713x.
-
-For modes 1 and 2, the switch_addr should be equal to 0x4b, as the commands
-sent to the device are for the tda8290 chip; sending them to tda8275 will
-likely produce no results or would affect something else there.
-
-I suspect that, in the case of your board, the LNA is at the antenna bundled
-together with the device. If I'm right, by enabling LNA, your board is sending
-some voltage through the cabling (you could easily check it with a voltmeter).
-
-What I think that your patch is actually doing is to disable LNA. As such, it
-should be equivalent to:
-
-
-diff --git a/drivers/media/pci/saa7134/saa7134-cards.c b/drivers/media/pci/saa7134/saa7134-cards.c
-index bc08f1d..98b482e 100644
---- a/drivers/media/pci/saa7134/saa7134-cards.c
-+++ b/drivers/media/pci/saa7134/saa7134-cards.c
-@@ -3288,13 +3288,13 @@ struct saa7134_board saa7134_boards[] = {
- 		.name           = "Pinnacle PCTV 310i",
- 		.audio_clock    = 0x00187de7,
- 		.tuner_type     = TUNER_PHILIPS_TDA8290,
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
--		.tuner_config   = 1,
-+		.tuner_config   = 0,
- 		.mpeg           = SAA7134_MPEG_DVB,
- 		.gpiomask       = 0x000200000,
- 		.inputs         = {{
- 			.name = name_tv,
- 			.vmux = 4,
- 			.amux = TV,
+Could you please add it in this patch instead?
 
 
-Please test if the above patch fixes the issue you're suffering[1]. If so, then
-we'll need to add a modprobe parameter to allow disabling LNA for saa7134 devices
-with LNA.
+>                 v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+>                          "%s: sent command 'SEQ_END' to coda\n", __func__);
+>                 if (coda_command_sync(ctx, CODA_COMMAND_SEQ_END)) {
+> @@ -1565,6 +1571,20 @@ static irqreturn_t coda_irq_handler(int irq, void *data)
+>         return IRQ_HANDLED;
+>  }
+>
+> +static void coda_timeout(struct work_struct *work)
+> +{
+> +       struct coda_ctx *ctx;
+> +       struct coda_dev *dev = container_of(to_delayed_work(work),
+> +                                           struct coda_dev, timeout);
+> +
+> +       v4l2_err(&dev->v4l2_dev, "CODA PIC_RUN timeout, stopping all streams\n");
+> +
+> +       list_for_each_entry(ctx, &dev->instances, list) {
+> +               v4l2_m2m_streamoff(NULL, ctx->m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+> +               v4l2_m2m_streamoff(NULL, ctx->m2m_ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
+> +       }
+> +}
+> +
+>  static u32 coda_supported_firmwares[] = {
+>         CODA_FIRMWARE_VERNUM(CODA_DX6, 2, 2, 5),
+>         CODA_FIRMWARE_VERNUM(CODA_7541, 13, 4, 29),
+> @@ -1836,6 +1856,7 @@ static int __devinit coda_probe(struct platform_device *pdev)
+>
+>         spin_lock_init(&dev->irqlock);
+>         INIT_LIST_HEAD(&dev->instances);
+> +       INIT_DELAYED_WORK(&dev->timeout, coda_timeout);
+>
+>         dev->plat_dev = pdev;
+>         dev->clk_per = devm_clk_get(&pdev->dev, "per");
+> --
+> 1.7.10.4
+>
 
-[1] Note: the above is not the fix, as some users of this board may be using the
-original antenna, and changing tuner_config will break things for them; the right
-fix is likely to allow controlling the LNA via userspace.
 
-Regards,
-Mauro
+
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
