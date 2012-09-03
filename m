@@ -1,64 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:50437 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750819Ab2ITHLG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Sep 2012 03:11:06 -0400
-Received: by ieak13 with SMTP id k13so2911362iea.19
-        for <linux-media@vger.kernel.org>; Thu, 20 Sep 2012 00:11:05 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAHAyoxy9_68js+w6hOFnq_56cYeHBde2mp8o7an9Nbd8qU+VWw@mail.gmail.com>
-References: <50597E1F.2010503@redhat.com>
-	<1607382.njAb2Pt0ha@avalon>
-	<CAHAyoxy9_68js+w6hOFnq_56cYeHBde2mp8o7an9Nbd8qU+VWw@mail.gmail.com>
-Date: Thu, 20 Sep 2012 09:11:04 +0200
-Message-ID: <CAK9US3Bo2rBsTU1sHHPFimZ5hCdXDegZsMXNQ7XGf_52zs2u7w@mail.gmail.com>
-Subject: Re: [media-workshop] [ANNOUNCE] media workshop in November
-From: Jean-Paul Saman <jpsaman@videolan.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	media-workshop@linuxtv.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3670 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752941Ab2ICNst (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2012 09:48:49 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id q83DmlnV039423
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Mon, 3 Sep 2012 15:48:48 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from durdane.fritz.box (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id A726535E0270
+	for <linux-media@vger.kernel.org>; Mon,  3 Sep 2012 15:48:45 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [RFC PATCH 00/10] First series of API fixes from the 2012 Media Workshop
+Date: Mon,  3 Sep 2012 15:48:34 +0200
+Message-Id: <1346680124-15169-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 19, 2012 at 11:19 PM, Michael Krufky <mkrufky@kernellabs.com> wrote:
-> On Wed, Sep 19, 2012 at 7:34 AM, Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
->> Hi Mauro,
->>
->> On Wednesday 19 September 2012 05:11:11 Mauro Carvalho Chehab wrote:
->>> Dear developers,
->>>
->>> We're feeling the need for one more media workshop this year.
->>>
->>> As there will be already several developers going to LinuxCon Europe and
->>> Embedded Linux Conference Europe, we'll be co-locating the workshop together
->>> with those two events.
->>>
->>> As there will be several developers speaking about the media subsystem at
->>> both LinuxCon and ELCE, we decided to take just one day (September, 8th)
->>> for the media workshop (while we expect that we'll likely have some other
->>> discussions during the week).
->>>
->>> In order to finish the arrangements, I need to know who will be attending,
->>> and also we need to receive the theme proposals. Please estimate how long
->>> do you think that it would be needed for the proposed theme presentation
->>> and discussions.
->>>
->>> I have a theme proposal already:
->>>
->>>       How to improve the patch submission workflow for media patches - 2 hours.
->>>
->>> So, please confirm your intention to be there and propose the themes of
->>> your interests to media-workshop@linuxtv.org mailing list.
->>
->> I'll be there.
->
-> I will be there as well.
->
-> -Mike Krufky
+Hi all,
 
-I will be there
+This is the first set of patches that fix a number of V4L2 API ambiguities and
+related changes.
 
-Jean-Paul Saman
+A note with regards to the bus_info changes: I've enumerated the bus_info format
+for a number of busses. I still need to verify the USB prefix and add the prefix
+used by the parallel port.
+
+This patch series also includes Sakari's patch that removes the experimental tag
+from several API elements.
+
+Regards,
+
+	Hans
+
