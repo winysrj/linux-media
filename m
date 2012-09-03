@@ -1,50 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:47270 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751473Ab2IQGCd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Sep 2012 02:02:33 -0400
-Received: by iahk25 with SMTP id k25so5091207iah.19
-        for <linux-media@vger.kernel.org>; Sun, 16 Sep 2012 23:02:33 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:54165 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752327Ab2ICKzb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Sep 2012 06:55:31 -0400
+Message-ID: <50448C8F.8000603@iki.fi>
+Date: Mon, 03 Sep 2012 13:55:11 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <D5ECB3C7A6F99444980976A8C6D896384FB1E69774@EAPEX1MAIL1.st.com>
-References: <1347504057-5612-1-git-send-email-lliubbo@gmail.com>
-	<20120913122738.04eaceb3.akpm@linux-foundation.org>
-	<CAHG8p1CJ7YizySrocYvQeCye4_63TkAimsAGU1KC5+Fn0wqF8w@mail.gmail.com>
-	<D5ECB3C7A6F99444980976A8C6D896384FB1E69774@EAPEX1MAIL1.st.com>
-Date: Mon, 17 Sep 2012 14:02:32 +0800
-Message-ID: <CAHG8p1AwCSvWJm_xvpOOr4PAcQ6MjWgYx+RKa2i6OHPwRSkCig@mail.gmail.com>
-Subject: Re: [PATCH] nommu: remap_pfn_range: fix addr parameter check
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: Bhupesh SHARMA <bhupesh.sharma@st.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Bob Liu <lliubbo@gmail.com>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"uclinux-dist-devel@blackfin.uclinux.org"
-	<uclinux-dist-devel@blackfin.uclinux.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"dhowells@redhat.com" <dhowells@redhat.com>,
-	"geert@linux-m68k.org" <geert@linux-m68k.org>,
-	"gerg@uclinux.org" <gerg@uclinux.org>,
-	"stable@kernel.org" <stable@kernel.org>,
-	"gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
-	Hugh Dickins <hughd@google.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Philipp Dreimann <philipp@dreimann.net>
+CC: linux-media@vger.kernel.org,
+	Thomas Mair <thomas.mair86@googlemail.com>
+Subject: Re: [PATCH] Add the usb id of the Trekstor DVB-T Stick Terres 2.0
+References: <1346628654-3348-1-git-send-email-philipp@dreimann.net>
+In-Reply-To: <1346628654-3348-1-git-send-email-philipp@dreimann.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> I was using 3.3 linux kernel. I will again check if videobuf2 in 3.5 has already
->> fixed this issue.
+On 09/03/2012 02:30 AM, Philipp Dreimann wrote:
+> It needs the e4000 tuner driver.
 >
-> [snip..]
+> Signed-off-by: Philipp Dreimann <philipp@dreimann.net>
+> ---
+>   drivers/media/dvb-core/dvb-usb-ids.h    |    1 +
+>   drivers/media/usb/dvb-usb-v2/rtl28xxu.c |    2 ++
+>   2 files changed, 3 insertions(+)
 >
-> Ok I just checked the vb2_dma_contig allocator and it has no major changes from my version,
-> http://lxr.linux.no/linux+v3.5.3/drivers/media/video/videobuf2-dma-contig.c#L37
+> diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
+> index 26c4481..fed6dcd 100644
+> --- a/drivers/media/dvb-core/dvb-usb-ids.h
+> +++ b/drivers/media/dvb-core/dvb-usb-ids.h
+> @@ -82,6 +82,7 @@
+>   #define USB_PID_AFATECH_AF9035_1003			0x1003
+>   #define USB_PID_AFATECH_AF9035_9035			0x9035
+>   #define USB_PID_TREKSTOR_DVBT				0x901b
+> +#define USB_PID_TREKSTOR_TERRES_2_0			0xC803
+>   #define USB_VID_ALINK_DTU				0xf170
+>   #define USB_PID_ANSONIC_DVBT_USB			0x6000
+>   #define USB_PID_ANYSEE					0x861f
+> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> index 88b5ea1..d0d23f2 100644
+> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> @@ -1236,6 +1236,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
+>   		&rtl2832u_props, "NOXON DAB/DAB+ USB dongle", NULL) },
+>   	{ DVB_USB_DEVICE(USB_VID_REALTEK, 0x2838,
+>   		&rtl2832u_props, "Realtek RTL2832U reference design", NULL) },
+> +	{ DVB_USB_DEVICE(USB_VID_GTEK, USB_PID_TREKSTOR_TERRES_2_0,
+> +		&rtl2832u_props, "Trekstor DVB-T Stick Terres 2.0", NULL) },
+>   	{ }
+>   };
+>   MODULE_DEVICE_TABLE(usb, rtl28xxu_id_table);
 >
-> So, I am not sure if this issue has been fixed in the videobuf2 (or if any patch is in the pipeline
-> which fixes the issue).
->
-I run my test on our blackfin platform, and all addresses in
-remap_pfn_range is aligned for 3.5 branch.
+
+Acked-by: Antti Palosaari <crope@iki.fi>
+
+
+Antti
+-- 
+http://palosaari.fi/
