@@ -1,143 +1,239 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1853 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755914Ab2IGN3h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 09:29:37 -0400
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1603 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932087Ab2ICNsy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2012 09:48:54 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 API PATCH 10/28] Rename V4L2_(IN|OUT)_CAP_CUSTOM_TIMINGS.
-Date: Fri,  7 Sep 2012 15:29:10 +0200
-Message-Id: <0c01d1164be688b20ae03f51c700a31a7f154acc.1347023744.git.hans.verkuil@cisco.com>
-In-Reply-To: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
-References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
-References: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 06/10] v4l2-core: deprecate V4L2_BUF_TYPE_PRIVATE
+Date: Mon,  3 Sep 2012 15:48:40 +0200
+Message-Id: <0051dd586003ba3879e9e6667b597e9c83204cdf.1346679785.git.hans.verkuil@cisco.com>
+In-Reply-To: <1346680124-15169-1-git-send-email-hverkuil@xs4all.nl>
+References: <1346680124-15169-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <c31da93f2bf615b90086d749e3f3eae6d6c3fc41.1346679785.git.hans.verkuil@cisco.com>
+References: <c31da93f2bf615b90086d749e3f3eae6d6c3fc41.1346679785.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The 'custom' timings are no longer just for custom timings, but also for standard
-CEA/VESA timings. So rename to V4L2_IN/OUT_CAP_DV_TIMINGS.
+This buffer type isn't used at all, and since it is effectively undefined
+what it should do it is deprecated. The define still exists, but any
+internal support for such buffers is removed.
 
-The old define is still kept for backwards compatibility.
-
-This decision was taken during the 2012 Media Workshop.
+The decisions to deprecate this was taken during the 2012 Media Workshop.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/DocBook/media/v4l/vidioc-enuminput.xml    |    2 +-
- Documentation/DocBook/media/v4l/vidioc-enumoutput.xml   |    2 +-
- Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml |    2 +-
- drivers/media/v4l2-core/v4l2-ioctl.c                    |    8 ++++----
- include/linux/videodev2.h                               |    6 ++++--
- 5 files changed, 11 insertions(+), 9 deletions(-)
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c |    8 --------
+ drivers/media/v4l2-core/v4l2-dev.c            |   12 ++++--------
+ drivers/media/v4l2-core/v4l2-ioctl.c          |   26 +------------------------
+ include/linux/videodev2.h                     |    1 +
+ include/media/v4l2-ioctl.h                    |    8 --------
+ 5 files changed, 6 insertions(+), 49 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-enuminput.xml b/Documentation/DocBook/media/v4l/vidioc-enuminput.xml
-index 46d5a04..3c9a813 100644
---- a/Documentation/DocBook/media/v4l/vidioc-enuminput.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-enuminput.xml
-@@ -283,7 +283,7 @@ input/output interface to linux-media@vger.kernel.org on 19 Oct 2009.
- 	    <entry>This input supports setting DV presets by using VIDIOC_S_DV_PRESET.</entry>
- 	  </row>
- 	  <row>
--	    <entry><constant>V4L2_IN_CAP_CUSTOM_TIMINGS</constant></entry>
-+	    <entry><constant>V4L2_IN_CAP_DV_TIMINGS</constant></entry>
- 	    <entry>0x00000002</entry>
- 	    <entry>This input supports setting video timings by using VIDIOC_S_DV_TIMINGS.</entry>
- 	  </row>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-enumoutput.xml b/Documentation/DocBook/media/v4l/vidioc-enumoutput.xml
-index 4280200..f4ab079 100644
---- a/Documentation/DocBook/media/v4l/vidioc-enumoutput.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-enumoutput.xml
-@@ -168,7 +168,7 @@ input/output interface to linux-media@vger.kernel.org on 19 Oct 2009.
- 	    <entry>This output supports setting DV presets by using VIDIOC_S_DV_PRESET.</entry>
- 	  </row>
- 	  <row>
--	    <entry><constant>V4L2_OUT_CAP_CUSTOM_TIMINGS</constant></entry>
-+	    <entry><constant>V4L2_OUT_CAP_DV_TIMINGS</constant></entry>
- 	    <entry>0x00000002</entry>
- 	    <entry>This output supports setting video timings by using VIDIOC_S_DV_TIMINGS.</entry>
- 	  </row>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml b/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
-index feaa180..7236970 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
-@@ -57,7 +57,7 @@ or the timing values are not correct, the driver returns &EINVAL;.</para>
- <para>The <filename>linux/v4l2-dv-timings.h</filename> header can be used to get the
- timings of the formats in the <xref linkend="cea861" /> and <xref linkend="vesadmt" />
- standards. If the current input or output does not support DV timings (e.g. if
--&VIDIOC-ENUMINPUT; does not set the <constant>V4L2_IN_CAP_CUSTOM_TIMINGS</constant> flag), then
-+&VIDIOC-ENUMINPUT; does not set the <constant>V4L2_IN_CAP_DV_TIMINGS</constant> flag), then
- &ENODATA; is returned.</para>
-   </refsect1>
- 
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 9ebd5c5..5d97fd1 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -194,10 +194,6 @@ static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
+ 	case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
+ 	case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
+ 		return get_v4l2_sliced_vbi_format(&kp->fmt.sliced, &up->fmt.sliced);
+-	case V4L2_BUF_TYPE_PRIVATE:
+-		if (copy_from_user(kp, up, sizeof(kp->fmt.raw_data)))
+-			return -EFAULT;
+-		return 0;
+ 	default:
+ 		printk(KERN_INFO "compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
+ 								kp->type);
+@@ -240,10 +236,6 @@ static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
+ 	case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
+ 	case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
+ 		return put_v4l2_sliced_vbi_format(&kp->fmt.sliced, &up->fmt.sliced);
+-	case V4L2_BUF_TYPE_PRIVATE:
+-		if (copy_to_user(up, kp, sizeof(up->fmt.raw_data)))
+-			return -EFAULT;
+-		return 0;
+ 	default:
+ 		printk(KERN_INFO "compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
+ 								kp->type);
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 71237f5..95f92ea 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -565,8 +565,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 	    ops->vidioc_enum_fmt_vid_out ||
+ 	    ops->vidioc_enum_fmt_vid_cap_mplane ||
+ 	    ops->vidioc_enum_fmt_vid_out_mplane ||
+-	    ops->vidioc_enum_fmt_vid_overlay ||
+-	    ops->vidioc_enum_fmt_type_private)
++	    ops->vidioc_enum_fmt_vid_overlay)
+ 		set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
+ 	if (ops->vidioc_g_fmt_vid_cap ||
+ 	    ops->vidioc_g_fmt_vid_out ||
+@@ -577,8 +576,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 	    ops->vidioc_g_fmt_vid_out_overlay ||
+ 	    ops->vidioc_g_fmt_vbi_out ||
+ 	    ops->vidioc_g_fmt_sliced_vbi_cap ||
+-	    ops->vidioc_g_fmt_sliced_vbi_out ||
+-	    ops->vidioc_g_fmt_type_private)
++	    ops->vidioc_g_fmt_sliced_vbi_out)
+ 		set_bit(_IOC_NR(VIDIOC_G_FMT), valid_ioctls);
+ 	if (ops->vidioc_s_fmt_vid_cap ||
+ 	    ops->vidioc_s_fmt_vid_out ||
+@@ -589,8 +587,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 	    ops->vidioc_s_fmt_vid_out_overlay ||
+ 	    ops->vidioc_s_fmt_vbi_out ||
+ 	    ops->vidioc_s_fmt_sliced_vbi_cap ||
+-	    ops->vidioc_s_fmt_sliced_vbi_out ||
+-	    ops->vidioc_s_fmt_type_private)
++	    ops->vidioc_s_fmt_sliced_vbi_out)
+ 		set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
+ 	if (ops->vidioc_try_fmt_vid_cap ||
+ 	    ops->vidioc_try_fmt_vid_out ||
+@@ -601,8 +598,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 	    ops->vidioc_try_fmt_vid_out_overlay ||
+ 	    ops->vidioc_try_fmt_vbi_out ||
+ 	    ops->vidioc_try_fmt_sliced_vbi_cap ||
+-	    ops->vidioc_try_fmt_sliced_vbi_out ||
+-	    ops->vidioc_try_fmt_type_private)
++	    ops->vidioc_try_fmt_sliced_vbi_out)
+ 		set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
+ 	SET_VALID_IOCTL(ops, VIDIOC_REQBUFS, vidioc_reqbufs);
+ 	SET_VALID_IOCTL(ops, VIDIOC_QUERYBUF, vidioc_querybuf);
 diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 473ebea..99a8ad7 100644
+index 6bc47fc..473ebea 100644
 --- a/drivers/media/v4l2-core/v4l2-ioctl.c
 +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -982,7 +982,7 @@ static int v4l_enuminput(const struct v4l2_ioctl_ops *ops,
- 	struct v4l2_input *p = arg;
- 
- 	/*
--	 * We set the flags for CAP_PRESETS, CAP_CUSTOM_TIMINGS &
-+	 * We set the flags for CAP_PRESETS, CAP_DV_TIMINGS &
- 	 * CAP_STD here based on ioctl handler provided by the
- 	 * driver. If the driver doesn't support these
- 	 * for a specific input, it must override these flags.
-@@ -992,7 +992,7 @@ static int v4l_enuminput(const struct v4l2_ioctl_ops *ops,
- 	if (ops->vidioc_s_dv_preset)
- 		p->capabilities |= V4L2_IN_CAP_PRESETS;
- 	if (ops->vidioc_s_dv_timings)
--		p->capabilities |= V4L2_IN_CAP_CUSTOM_TIMINGS;
-+		p->capabilities |= V4L2_IN_CAP_DV_TIMINGS;
- 
- 	return ops->vidioc_enum_input(file, fh, p);
+@@ -316,9 +316,6 @@ static void v4l_print_format(const void *arg, bool write_only)
+ 				sliced->service_lines[0][i],
+ 				sliced->service_lines[1][i]);
+ 		break;
+-	case V4L2_BUF_TYPE_PRIVATE:
+-		pr_cont("\n");
+-		break;
+ 	}
  }
-@@ -1003,7 +1003,7 @@ static int v4l_enumoutput(const struct v4l2_ioctl_ops *ops,
- 	struct v4l2_output *p = arg;
  
- 	/*
--	 * We set the flags for CAP_PRESETS, CAP_CUSTOM_TIMINGS &
-+	 * We set the flags for CAP_PRESETS, CAP_DV_TIMINGS &
- 	 * CAP_STD here based on ioctl handler provided by the
- 	 * driver. If the driver doesn't support these
- 	 * for a specific output, it must override these flags.
-@@ -1013,7 +1013,7 @@ static int v4l_enumoutput(const struct v4l2_ioctl_ops *ops,
- 	if (ops->vidioc_s_dv_preset)
- 		p->capabilities |= V4L2_OUT_CAP_PRESETS;
- 	if (ops->vidioc_s_dv_timings)
--		p->capabilities |= V4L2_OUT_CAP_CUSTOM_TIMINGS;
-+		p->capabilities |= V4L2_OUT_CAP_DV_TIMINGS;
+@@ -927,10 +924,6 @@ static int check_fmt(const struct v4l2_ioctl_ops *ops, enum v4l2_buf_type type)
+ 		if (ops->vidioc_g_fmt_sliced_vbi_out)
+ 			return 0;
+ 		break;
+-	case V4L2_BUF_TYPE_PRIVATE:
+-		if (ops->vidioc_g_fmt_type_private)
+-			return 0;
+-		break;
+ 	}
+ 	return -EINVAL;
+ }
+@@ -1051,10 +1044,6 @@ static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
+ 		if (unlikely(!ops->vidioc_enum_fmt_vid_out_mplane))
+ 			break;
+ 		return ops->vidioc_enum_fmt_vid_out_mplane(file, fh, arg);
+-	case V4L2_BUF_TYPE_PRIVATE:
+-		if (unlikely(!ops->vidioc_enum_fmt_type_private))
+-			break;
+-		return ops->vidioc_enum_fmt_type_private(file, fh, arg);
+ 	}
+ 	return -EINVAL;
+ }
+@@ -1105,10 +1094,6 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+ 		if (unlikely(!ops->vidioc_g_fmt_sliced_vbi_out))
+ 			break;
+ 		return ops->vidioc_g_fmt_sliced_vbi_out(file, fh, arg);
+-	case V4L2_BUF_TYPE_PRIVATE:
+-		if (unlikely(!ops->vidioc_g_fmt_type_private))
+-			break;
+-		return ops->vidioc_g_fmt_type_private(file, fh, arg);
+ 	}
+ 	return -EINVAL;
+ }
+@@ -1169,10 +1154,6 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.sliced);
+ 		return ops->vidioc_s_fmt_sliced_vbi_out(file, fh, arg);
+-	case V4L2_BUF_TYPE_PRIVATE:
+-		if (unlikely(!ops->vidioc_s_fmt_type_private))
+-			break;
+-		return ops->vidioc_s_fmt_type_private(file, fh, arg);
+ 	}
+ 	return -EINVAL;
+ }
+@@ -1233,10 +1214,6 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.sliced);
+ 		return ops->vidioc_try_fmt_sliced_vbi_out(file, fh, arg);
+-	case V4L2_BUF_TYPE_PRIVATE:
+-		if (unlikely(!ops->vidioc_try_fmt_type_private))
+-			break;
+-		return ops->vidioc_try_fmt_type_private(file, fh, arg);
+ 	}
+ 	return -EINVAL;
+ }
+@@ -1425,8 +1402,7 @@ static int v4l_reqbufs(const struct v4l2_ioctl_ops *ops,
+ 	if (ret)
+ 		return ret;
  
- 	return ops->vidioc_enum_output(file, fh, p);
+-	if (p->type < V4L2_BUF_TYPE_PRIVATE)
+-		CLEAR_AFTER_FIELD(p, memory);
++	CLEAR_AFTER_FIELD(p, memory);
+ 
+ 	return ops->vidioc_reqbufs(file, fh, p);
  }
 diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index b06342b..47d58ed 100644
+index c72b9f3..b06342b 100644
 --- a/include/linux/videodev2.h
 +++ b/include/linux/videodev2.h
-@@ -1190,7 +1190,8 @@ struct v4l2_input {
+@@ -162,6 +162,7 @@ enum v4l2_buf_type {
+ #endif
+ 	V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
+ 	V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
++	/* Deprecated, do not use */
+ 	V4L2_BUF_TYPE_PRIVATE              = 0x80,
+ };
  
- /* capabilities flags */
- #define V4L2_IN_CAP_PRESETS		0x00000001 /* Supports S_DV_PRESET */
--#define V4L2_IN_CAP_CUSTOM_TIMINGS	0x00000002 /* Supports S_DV_TIMINGS */
-+#define V4L2_IN_CAP_DV_TIMINGS		0x00000002 /* Supports S_DV_TIMINGS */
-+#define V4L2_IN_CAP_CUSTOM_TIMINGS	V4L2_IN_CAP_DV_TIMINGS /* For compatibility */
- #define V4L2_IN_CAP_STD			0x00000004 /* Supports S_STD */
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index e614c9c..0bc1444 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -40,8 +40,6 @@ struct v4l2_ioctl_ops {
+ 					      struct v4l2_fmtdesc *f);
+ 	int (*vidioc_enum_fmt_vid_out_mplane)(struct file *file, void *fh,
+ 					      struct v4l2_fmtdesc *f);
+-	int (*vidioc_enum_fmt_type_private)(struct file *file, void *fh,
+-					    struct v4l2_fmtdesc *f);
  
- /*
-@@ -1213,7 +1214,8 @@ struct v4l2_output {
+ 	/* VIDIOC_G_FMT handlers */
+ 	int (*vidioc_g_fmt_vid_cap)    (struct file *file, void *fh,
+@@ -64,8 +62,6 @@ struct v4l2_ioctl_ops {
+ 					   struct v4l2_format *f);
+ 	int (*vidioc_g_fmt_vid_out_mplane)(struct file *file, void *fh,
+ 					   struct v4l2_format *f);
+-	int (*vidioc_g_fmt_type_private)(struct file *file, void *fh,
+-					struct v4l2_format *f);
  
- /* capabilities flags */
- #define V4L2_OUT_CAP_PRESETS		0x00000001 /* Supports S_DV_PRESET */
--#define V4L2_OUT_CAP_CUSTOM_TIMINGS	0x00000002 /* Supports S_DV_TIMINGS */
-+#define V4L2_OUT_CAP_DV_TIMINGS		0x00000002 /* Supports S_DV_TIMINGS */
-+#define V4L2_OUT_CAP_CUSTOM_TIMINGS	V4L2_OUT_CAP_DV_TIMINGS /* For compatibility */
- #define V4L2_OUT_CAP_STD		0x00000004 /* Supports S_STD */
+ 	/* VIDIOC_S_FMT handlers */
+ 	int (*vidioc_s_fmt_vid_cap)    (struct file *file, void *fh,
+@@ -88,8 +84,6 @@ struct v4l2_ioctl_ops {
+ 					   struct v4l2_format *f);
+ 	int (*vidioc_s_fmt_vid_out_mplane)(struct file *file, void *fh,
+ 					   struct v4l2_format *f);
+-	int (*vidioc_s_fmt_type_private)(struct file *file, void *fh,
+-					struct v4l2_format *f);
  
- /*
+ 	/* VIDIOC_TRY_FMT handlers */
+ 	int (*vidioc_try_fmt_vid_cap)    (struct file *file, void *fh,
+@@ -112,8 +106,6 @@ struct v4l2_ioctl_ops {
+ 					     struct v4l2_format *f);
+ 	int (*vidioc_try_fmt_vid_out_mplane)(struct file *file, void *fh,
+ 					     struct v4l2_format *f);
+-	int (*vidioc_try_fmt_type_private)(struct file *file, void *fh,
+-					  struct v4l2_format *f);
+ 
+ 	/* Buffer handlers */
+ 	int (*vidioc_reqbufs) (struct file *file, void *fh, struct v4l2_requestbuffers *b);
 -- 
 1.7.10.4
 
