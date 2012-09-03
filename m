@@ -1,24 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm15-vm0.bullet.mail.ird.yahoo.com ([77.238.189.216]:25155 "HELO
-	nm15-vm0.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753095Ab2IVRmj convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Sep 2012 13:42:39 -0400
-Message-ID: <1348335758.70304.YahooMailNeo@web28902.mail.ir2.yahoo.com>
-Date: Sat, 22 Sep 2012 18:42:38 +0100 (BST)
-From: P Jackson <pej02@yahoo.co.uk>
-Reply-To: P Jackson <pej02@yahoo.co.uk>
-Subject: mt9t031 driver support on OMAP3 system
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Received: from pequod.mess.org ([93.97.41.153]:42746 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754370Ab2ICND7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Sep 2012 09:03:59 -0400
+Date: Mon, 3 Sep 2012 14:03:57 +0100
+From: Sean Young <sean@mess.org>
+To: "Du, Changbin" <changbin.du@gmail.com>
+Cc: mchehab@infradead.org, paul.gortmaker@windriver.com,
+	sfr@canb.auug.org.au, srinivas.kandagatla@st.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [RFC PATCH] [media] rc: filter out not allowed protocols when
+ decoding
+Message-ID: <20120903130357.GA7403@pequod.mess.org>
+References: <1346464629-22458-1-git-send-email-changbin.du@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1346464629-22458-1-git-send-email-changbin.du@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'm trying to incorporate an MT9T031-based sensor into a commercial small form-factor OMAP3 DM3730-based system which is supplied with sources for a 2.6.37 kernel and is somewhat out-dated.The application I'm working on requires a single image to be acquired from the sensor every once in a while which is then processed off-line by another algorithm on the OMAP3
+On Sat, Sep 01, 2012 at 09:57:09AM +0800, Du, Changbin wrote:
+> From: "Du, Changbin" <changbin.du@gmail.com>
+> 
+> Each rc-raw device has a property "allowed_protos" stored in structure
+> ir_raw_event_ctrl. But it didn't work because all decoders would be
+> called when decoding. This path makes only allowed protocol decoders
+> been invoked.
+> 
+> Signed-off-by: Du, Changbin <changbin.du@gmail.com>
+> ---
+>  drivers/media/rc/ir-raw.c |    8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/rc/ir-raw.c b/drivers/media/rc/ir-raw.c
+> index a820251..198b6d8 100644
+> --- a/drivers/media/rc/ir-raw.c
+> +++ b/drivers/media/rc/ir-raw.c
+> @@ -63,8 +63,12 @@ static int ir_raw_event_thread(void *data)
+>  		spin_unlock_irq(&raw->lock);
+>  
+>  		mutex_lock(&ir_raw_handler_lock);
+> -		list_for_each_entry(handler, &ir_raw_handler_list, list)
+> -			handler->decode(raw->dev, ev);
+> +		list_for_each_entry(handler, &ir_raw_handler_list, list) {
+> +			/* use all protocol by default */
+> +			if (raw->dev->allowed_protos == RC_TYPE_UNKNOWN ||
+> +			    raw->dev->allowed_protos & handler->protocols)
+> +				handler->decode(raw->dev, ev);
+> +		}
 
-I'd appreciate any advice from the list as to what the most suitable up to-date compatible kernel I should use would be and what other work I need to do in order to get things sorted.
+Each IR protocol decoder already checks whether it is enabled or not; 
+should it not be so that only allowed protocols can be enabled rather 
+than checking both enabled_protocols and allowed_protocols?
 
-Thanks, Pete  
+Just from reading store_protocols it looks like decoders which aren't
+in allowed_protocols can be enabled, which makes no sense. Also 
+ir_raw_event_register all protocols are enabled rather than the 
+allowed ones.
 
+Lastely I don't know why raw ir drivers should dictate which protocols
+can be enabled. Would it not be better to remove it entirely?
+
+
+>  		raw->prev_ev = ev;
+>  		mutex_unlock(&ir_raw_handler_lock);
+>  	}
+> -- 
+> 1.7.9.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
