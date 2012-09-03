@@ -1,51 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:64779 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759580Ab2INRek (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 13:34:40 -0400
-Received: by mail-bk0-f46.google.com with SMTP id j10so1362498bkw.19
-        for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 10:34:39 -0700 (PDT)
-Message-ID: <50536AAD.2030306@gmail.com>
-Date: Fri, 14 Sep 2012 19:34:37 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:45166 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753692Ab2ICVz0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2012 17:55:26 -0400
+Date: Mon, 3 Sep 2012 23:55:21 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Jarod Wilson <jarod@redhat.com>
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com, sean@mess.org
+Subject: Re: [PATCH 0/8] rc-core: patches for 3.7
+Message-ID: <20120903215521.GA6675@hardeman.nu>
+References: <20120825214520.22603.37194.stgit@localhost.localdomain>
+ <20120830195612.GA13026@redhat.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hans.verkuil@cisco.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [RFCv3 API PATCH 28/31] Set vfl_dir for all display or m2m drivers.
-References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com> <77dc4c90ae1e875bb5f5530003390c19a4ebab3e.1347619766.git.hans.verkuil@cisco.com>
-In-Reply-To: <77dc4c90ae1e875bb5f5530003390c19a4ebab3e.1347619766.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20120830195612.GA13026@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/14/2012 12:57 PM, Hans Verkuil wrote:
-> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
-> ---
->   drivers/media/pci/ivtv/ivtv-streams.c         |    3 +++
->   drivers/media/pci/zoran/zoran_card.c          |    4 ++++
->   drivers/media/platform/coda.c                 |    1 +
->   drivers/media/platform/davinci/vpbe_display.c |    1 +
->   drivers/media/platform/davinci/vpif_display.c |    1 +
->   drivers/media/platform/m2m-deinterlace.c      |    1 +
->   drivers/media/platform/mem2mem_testdev.c      |    1 +
->   drivers/media/platform/mx2_emmaprp.c          |    1 +
->   drivers/media/platform/omap/omap_vout.c       |    1 +
->   drivers/media/platform/omap3isp/ispvideo.c    |    1 +
->   drivers/media/platform/s5p-fimc/fimc-m2m.c    |    1 +
->   drivers/media/platform/s5p-g2d/g2d.c          |    1 +
->   drivers/media/platform/s5p-jpeg/jpeg-core.c   |    1 +
->   drivers/media/platform/s5p-mfc/s5p_mfc.c      |    1 +
->   drivers/media/platform/s5p-tv/mixer_video.c   |    1 +
->   drivers/media/platform/sh_vou.c               |    1 +
->   drivers/media/usb/uvc/uvc_driver.c            |    2 ++
+On Thu, Aug 30, 2012 at 03:56:12PM -0400, Jarod Wilson wrote:
+>On Sat, Aug 25, 2012 at 11:46:47PM +0200, David Härdeman wrote:
+>> This is two minor winbond-cir fixes as well as the first six patches
+>> from my previous patchbomb.
+>> 
+>> The latter have been modified so that backwards compatibility is retained
+>> as much as possible (the format of the sysfs files do not change for
+>> example).
+>
+>I've read through the set, and it all seems to make sense to me, but I
+>haven't actually tried it out with any of the hardware I've got. I assume
+>its been tested on various other hardware though.
 
-For drivers/media/platform/s5p-*,
+I've tested the patches on mceusb hardware (RX only) and using some
+scripted TX/RX testing with rc-loopback. I haven't tested (this latest
+version) on winbond-cir hardware yet as I'm travelling.
 
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>Side note: my life has been turned a wee bit upside down, been busy
+>dealing with some fairly big changes, and that's still ongoing, thus the
+>relative lack of repsonsiveness on, well, anything, lately.
 
---
+If you have limited time and bandwidth I'd suggest that you focus on the
+API changes - in this particular patchset that would be the addition of
+the "struct rc_keymap_entry" to the EVIOC[GS]KEYCODE_V2 ioctl (maybe we
+should involve the input maintainer as well?).
 
-Regards,
-Sylwester
+Getting the API right would benefit from you cooperation, getting bugs
+worked out is hopefully something which can be done with or without you.
+
+Thanks,
+David
+
