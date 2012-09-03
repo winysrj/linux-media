@@ -1,62 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:59010 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751181Ab2IXKEZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 06:04:25 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: t.stanislaws@samsung.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC] s5p-tv: Report only multi-plane capabilities in
- vidioc_querycap
-Date: Mon, 24 Sep 2012 12:04:09 +0200
-Message-id: <1348481049-19145-1-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <201209211207.46679.hverkuil@xs4all.nl>
-References: <201209211207.46679.hverkuil@xs4all.nl>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:47445 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753435Ab2ICS1w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2012 14:27:52 -0400
+Received: by bkwj10 with SMTP id j10so2314521bkw.19
+        for <linux-media@vger.kernel.org>; Mon, 03 Sep 2012 11:27:50 -0700 (PDT)
+Message-ID: <5044F69E.9030901@googlemail.com>
+Date: Mon, 03 Sep 2012 20:27:42 +0200
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org,
+	=?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
+Subject: Re: gspca_pac7302 driver broken ?
+References: <5043943E.2090802@googlemail.com> <CALF0-+UqPu3Pw74XCtFwfZHOp_WS775y77xmEXisnbx8pzG2ew@mail.gmail.com>
+In-Reply-To: <CALF0-+UqPu3Pw74XCtFwfZHOp_WS775y77xmEXisnbx8pzG2ew@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The mixer video node supports only multi-planar API so the driver
-should not be setting V4L2_CAP_VIDEO_OUTPUT flags. Fix this and
-also switch to device_caps. Additionally fix the VIDIOC_ENUM_FMT
-ioctl handler which now works for V4L2_BUF_TYPE_CAPTURE, rather
-than expected V4L2_BUF_TYPE_CAPTURE_MPLANE.
+Am 02.09.2012 22:08, schrieb Ezequiel Garcia:
+> Hi Frank,
+>
+> On Sun, Sep 2, 2012 at 2:15 PM, Frank Schäfer
+> <fschaefer.oss@googlemail.com> wrote:
+>> Hi,
+>>
+>> can anyone who owns such a device confirm that the gspca_pac7302 driver
+>> (kernel 3.6.0-rc1+) is fine ?
+>>
+> It's working here with latest media-tree kernel.
+>
+> Driver Info:
+> 	Driver name   : gspca_pac7302
+> 	Card type     : USB Camera (093a:2625)
+> 	Bus info      : usb-0000:00:12.0-1
+> 	Driver version: 3.6.0
+> 	Capabilities  : 0x85000001
+> 		Video Capture
+> 		Read/Write
+> 		Streaming
+> 		Device Capabilities
+> 	Device Caps   : 0x05000001
+> 		Video Capture
+> 		Read/Write
+> 		Streaming
+>
+> Hope this helps,
+> Ezequiel.
 
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-tv/mixer_video.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+Ok, thank you for testing.
+Then this device must be somehow different. :(
+The driver seems to be "straight-forward", it basically writes static
+sequences to registers and doesn't check things like chip ids etc.
+So I guess it's time again for USB-sniffing...
 
-diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
-index 8649de01..9876bd9 100644
---- a/drivers/media/platform/s5p-tv/mixer_video.c
-+++ b/drivers/media/platform/s5p-tv/mixer_video.c
-@@ -164,9 +164,8 @@ static int mxr_querycap(struct file *file, void *priv,
- 	strlcpy(cap->driver, MXR_DRIVER_NAME, sizeof cap->driver);
- 	strlcpy(cap->card, layer->vfd.name, sizeof cap->card);
- 	sprintf(cap->bus_info, "%d", layer->idx);
--	cap->version = KERNEL_VERSION(0, 1, 0);
--	cap->capabilities = V4L2_CAP_STREAMING |
--		V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_VIDEO_OUTPUT_MPLANE;
-+	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_OUTPUT_MPLANE;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+Regards,
+Frank
 
- 	return 0;
- }
-@@ -727,7 +726,7 @@ static int mxr_streamoff(struct file *file, void *priv, enum v4l2_buf_type i)
- static const struct v4l2_ioctl_ops mxr_ioctl_ops = {
- 	.vidioc_querycap = mxr_querycap,
- 	/* format handling */
--	.vidioc_enum_fmt_vid_out = mxr_enum_fmt,
-+	.vidioc_enum_fmt_vid_out_mplane = mxr_enum_fmt,
- 	.vidioc_s_fmt_vid_out_mplane = mxr_s_fmt,
- 	.vidioc_g_fmt_vid_out_mplane = mxr_g_fmt,
- 	/* buffer control */
---
-1.7.11.3
+
 
