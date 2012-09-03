@@ -1,133 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2884 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754366Ab2IXNhZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 09:37:25 -0400
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2657 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932096Ab2ICNsz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2012 09:48:55 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: davinci-linux-open-source@linux.davincidsp.com
-Subject: Re: [PATCH v3] media: v4l2-ctrls: add control for test pattern
-Date: Mon, 24 Sep 2012 15:37:17 +0200
-Cc: Prabhakar <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Rob Landley <rob@landley.net>,
-	LDOC <linux-doc@vger.kernel.org>,
-	VGER <linux-kernel@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <1348491221-6068-1-git-send-email-prabhakar.lad@ti.com> <1348491221-6068-2-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1348491221-6068-2-git-send-email-prabhakar.lad@ti.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209241537.17549.hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 07/10] DocBook: deprecate V4L2_BUF_TYPE_PRIVATE.
+Date: Mon,  3 Sep 2012 15:48:41 +0200
+Message-Id: <09164b905bb3020751b6a3f101c4f52257570ff7.1346679785.git.hans.verkuil@cisco.com>
+In-Reply-To: <1346680124-15169-1-git-send-email-hverkuil@xs4all.nl>
+References: <1346680124-15169-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <c31da93f2bf615b90086d749e3f3eae6d6c3fc41.1346679785.git.hans.verkuil@cisco.com>
+References: <c31da93f2bf615b90086d749e3f3eae6d6c3fc41.1346679785.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon September 24 2012 14:53:41 Prabhakar wrote:
-> From: Lad, Prabhakar <prabhakar.lad@ti.com>
-> 
-> add V4L2_CID_TEST_PATTERN of type menu, which determines
-> the internal test pattern selected by the device.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Hans de Goede <hdegoede@redhat.com>
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Rob Landley <rob@landley.net>
-> ---
->  This patches has one checkpatch warning for line over
->  80 characters altough it can be avoided I have kept it
->  for consistency.
-> 
->  Changes for v3:
->  1: Removed the menu for test pattern, pointed by Sakari.
-> 
->  Changes for v2:
->  1: Included display devices in the description for test pattern
->    as pointed by Hans.
->  2: In the menu replaced 'Test Pattern Disabled' by 'Disabled' as
->    pointed by Sylwester.
->  3: Removed the test patterns from menu as the are hardware specific
->    as pointed by Sakari.
-> 
->  Documentation/DocBook/media/v4l/controls.xml |   10 ++++++++++
->  drivers/media/v4l2-core/v4l2-ctrls.c         |    2 ++
->  include/linux/videodev2.h                    |    1 +
->  3 files changed, 13 insertions(+), 0 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-> index f0fb08d..51e9c4e 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -4313,6 +4313,16 @@ interface and may change in the future.</para>
->  	      </tbody>
->  	    </entrytbl>
->  	  </row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_TEST_PATTERN</constant></entry>
-> +	    <entry>menu</entry>
-> +	  </row>
-> +	  <row id="v4l2-test-pattern">
-> +	    <entry spanname="descr"> The Capture/Display/Sensors have the capability
-> +	    to generate internal test patterns and this are hardware specific. This
-> +	    test patterns are used to test a device is properly working and can generate
-> +	    the desired waveforms that it supports.</entry>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Some grammar/style fixes:
+As per decision taken during the 2012 Media Workshop.
 
-	    <entry spanname="descr"> Some capture/display/sensor devices have the
-	    capability to generate test pattern images. These hardware specific
-	    test patterns can be used to test if a device is working properly.</entry>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/compat.xml          |    2 +-
+ Documentation/DocBook/media/v4l/io.xml              |   14 ++------------
+ Documentation/DocBook/media/v4l/vidioc-cropcap.xml  |    6 ++----
+ Documentation/DocBook/media/v4l/vidioc-enum-fmt.xml |    6 ++----
+ Documentation/DocBook/media/v4l/vidioc-g-crop.xml   |    6 ++----
+ Documentation/DocBook/media/v4l/vidioc-g-fmt.xml    |    4 +---
+ Documentation/DocBook/media/v4l/vidioc-g-parm.xml   |    4 +---
+ Documentation/DocBook/media/v4l/vidioc-reqbufs.xml  |    5 ++---
+ 8 files changed, 13 insertions(+), 34 deletions(-)
 
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index 578135e..c6ae4c9 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -1476,7 +1476,7 @@ follows.<informaltable>
+ 		  </row>
+ 		  <row>
+ 		    <entry><constant>V4L2_BUF_TYPE_PRIVATE_BASE</constant></entry>
+-		    <entry><constant>V4L2_BUF_TYPE_PRIVATE</constant></entry>
++		    <entry><constant>V4L2_BUF_TYPE_PRIVATE</constant> (but this is deprecated)</entry>
+ 		  </row>
+ 		</tbody>
+ 	      </tgroup>
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index 2512649..2dc39d8 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -685,18 +685,14 @@ memory, set by the application. See <xref linkend="userp" /> for details.
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>reserved2</structfield></entry>
+ 	    <entry></entry>
+-	    <entry>A place holder for future extensions and custom
+-(driver defined) buffer types
+-<constant>V4L2_BUF_TYPE_PRIVATE</constant> and higher. Applications
++	    <entry>A place holder for future extensions. Applications
+ should set this to 0.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>reserved</structfield></entry>
+ 	    <entry></entry>
+-	    <entry>A place holder for future extensions and custom
+-(driver defined) buffer types
+-<constant>V4L2_BUF_TYPE_PRIVATE</constant> and higher. Applications
++	    <entry>A place holder for future extensions. Applications
+ should set this to 0.</entry>
+ 	  </row>
+ 	</tbody>
+@@ -829,12 +825,6 @@ should set this to 0.</entry>
+ 	    <entry>Buffer for video output overlay (OSD), see <xref
+ 		linkend="osd" />.</entry>
+ 	  </row>
+-	  <row>
+-	    <entry><constant>V4L2_BUF_TYPE_PRIVATE</constant></entry>
+-	    <entry>0x80</entry>
+-	  <entry>This and higher values are reserved for custom
+-(driver defined) buffer types.</entry>
+-	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-cropcap.xml b/Documentation/DocBook/media/v4l/vidioc-cropcap.xml
+index f1bac2c..4559c45 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-cropcap.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-cropcap.xml
+@@ -70,10 +70,8 @@ output.</para>
+ 	    <entry>Type of the data stream, set by the application.
+ Only these types are valid here:
+ <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>,
+-<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT</constant>,
+-<constant>V4L2_BUF_TYPE_VIDEO_OVERLAY</constant>, and custom (driver
+-defined) types with code <constant>V4L2_BUF_TYPE_PRIVATE</constant>
+-and higher. See <xref linkend="v4l2-buf-type" />.</entry>
++<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT</constant> and
++<constant>V4L2_BUF_TYPE_VIDEO_OVERLAY</constant>. See <xref linkend="v4l2-buf-type" />.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>struct <link linkend="v4l2-rect-crop">v4l2_rect</link></entry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-fmt.xml b/Documentation/DocBook/media/v4l/vidioc-enum-fmt.xml
+index 0bd3324..f8dfeed 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-enum-fmt.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-enum-fmt.xml
+@@ -81,10 +81,8 @@ Only these types are valid here:
+ <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>,
+ <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE</constant>,
+ <constant>V4L2_BUF_TYPE_VIDEO_OUTPUT</constant>,
+-<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE</constant>,
+-<constant>V4L2_BUF_TYPE_VIDEO_OVERLAY</constant>, and custom (driver
+-defined) types with code <constant>V4L2_BUF_TYPE_PRIVATE</constant>
+-and higher. See <xref linkend="v4l2-buf-type" />.</entry>
++<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE</constant> and
++<constant>V4L2_BUF_TYPE_VIDEO_OVERLAY</constant>. See <xref linkend="v4l2-buf-type" />.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-crop.xml b/Documentation/DocBook/media/v4l/vidioc-g-crop.xml
+index c4ff3b1..75c6a93 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-crop.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-crop.xml
+@@ -104,10 +104,8 @@ changed and <constant>VIDIOC_S_CROP</constant> returns the
+ 	    <entry><structfield>type</structfield></entry>
+ 	    <entry>Type of the data stream, set by the application.
+ Only these types are valid here: <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>,
+-<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT</constant>,
+-<constant>V4L2_BUF_TYPE_VIDEO_OVERLAY</constant>, and custom (driver
+-defined) types with code <constant>V4L2_BUF_TYPE_PRIVATE</constant>
+-and higher. See <xref linkend="v4l2-buf-type" />.</entry>
++<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT</constant> and
++<constant>V4L2_BUF_TYPE_VIDEO_OVERLAY</constant>. See <xref linkend="v4l2-buf-type" />.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>&v4l2-rect;</entry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
+index 9ef279a..6b16af95 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
+@@ -174,9 +174,7 @@ capture and output devices.</entry>
+ 	    <entry></entry>
+ 	    <entry>__u8</entry>
+ 	    <entry><structfield>raw_data</structfield>[200]</entry>
+-	    <entry>Place holder for future extensions and custom
+-(driver defined) formats with <structfield>type</structfield>
+-<constant>V4L2_BUF_TYPE_PRIVATE</constant> and higher.</entry>
++	    <entry>Place holder for future extensions.</entry>
+ 	  </row>
+ 	</tbody>
+       </tgroup>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-parm.xml b/Documentation/DocBook/media/v4l/vidioc-g-parm.xml
+index f83d2cd..9058224 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-parm.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-parm.xml
+@@ -108,9 +108,7 @@ devices.</para>
+ 	    <entry></entry>
+ 	    <entry>__u8</entry>
+ 	    <entry><structfield>raw_data</structfield>[200]</entry>
+-	    <entry>A place holder for future extensions and custom
+-(driver defined) buffer types <constant>V4L2_BUF_TYPE_PRIVATE</constant> and
+-higher.</entry>
++	    <entry>A place holder for future extensions.</entry>
+ 	  </row>
+ 	</tbody>
+       </tgroup>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-reqbufs.xml b/Documentation/DocBook/media/v4l/vidioc-reqbufs.xml
+index d7c9505..2b50ef2 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-reqbufs.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-reqbufs.xml
+@@ -109,9 +109,8 @@ as the &v4l2-format; <structfield>type</structfield> field. See <xref
+ 	  <row>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>reserved</structfield>[2]</entry>
+-	    <entry>A place holder for future extensions and custom
+-(driver defined) buffer types <constant>V4L2_BUF_TYPE_PRIVATE</constant> and
+-higher. This array should be zeroed by applications.</entry>
++	    <entry>A place holder for future extensions. This array should
++be zeroed by applications.</entry>
+ 	  </row>
+ 	</tbody>
+       </tgroup>
+-- 
+1.7.10.4
 
-> +	  </row>
->  	<row><entry></entry></row>
->  	</tbody>
->        </tgroup>
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index 8f2f40b..41b7732 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -740,6 +740,7 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
->  	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
->  	case V4L2_CID_DPCM_PREDICTOR:		return "DPCM Predictor";
-> +	case V4L2_CID_TEST_PATTERN:		return "Test Pattern";
->  
->  	default:
->  		return NULL;
-> @@ -841,6 +842,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->  	case V4L2_CID_EXPOSURE_METERING:
->  	case V4L2_CID_SCENE_MODE:
->  	case V4L2_CID_DPCM_PREDICTOR:
-> +	case V4L2_CID_TEST_PATTERN:
->  		*type = V4L2_CTRL_TYPE_MENU;
->  		break;
->  	case V4L2_CID_LINK_FREQ:
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index ca9fb78..7014c0b 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -2005,6 +2005,7 @@ enum v4l2_dpcm_predictor {
->  	V4L2_DPCM_PREDICTOR_SIMPLE	= 0,
->  	V4L2_DPCM_PREDICTOR_ADVANCED	= 1,
->  };
-> +#define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 4)
->  
->  /*
->   *	T U N I N G
-> 
-
-Regards,
-
-	Hans
