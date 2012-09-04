@@ -1,65 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out1-smtp.messagingengine.com ([66.111.4.25]:41804 "EHLO
-	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751121Ab2I1ATN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Sep 2012 20:19:13 -0400
-Date: Thu, 27 Sep 2012 17:19:11 -0700
-From: Greg KH <greg@kroah.com>
-To: Tejun Heo <tj@kernel.org>
-Cc: Colin Cross <ccross@google.com>, linux-kernel@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Avi Kivity <avi@redhat.com>, kvm@vger.kernel.org,
-	Andy Walls <awalls@md.metrocast.net>,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	Grant Likely <grant.likely@secretlab.ca>,
-	spi-devel-general@lists.sourceforge.net,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	stable@vger.kernel.org
-Subject: Re: [PATCHSET] kthread_worker: reimplement flush_kthread_work() to
- allow freeing during execution
-Message-ID: <20120928001911.GL29949@kroah.com>
-References: <20120719211510.GA32763@google.com>
- <CAMbhsRQs+2MCXq0M-eTeezwPR=KMnBKtJny1rjiUJL-wNYctMQ@mail.gmail.com>
- <20120917194016.GI18677@google.com>
- <20120917202850.GA18910@kroah.com>
+Received: from hqemgate04.nvidia.com ([216.228.121.35]:10753 "EHLO
+	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750793Ab2IDEku convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Sep 2012 00:40:50 -0400
+From: Hiroshi Doyu <hdoyu@nvidia.com>
+To: Hiroshi Doyu <hdoyu@nvidia.com>
+CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
+	"htl10@users.sourceforge.net" <htl10@users.sourceforge.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"joe@perches.com" <joe@perches.com>,
+	"linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>,
+	"crope@iki.fi" <crope@iki.fi>
+Date: Tue, 4 Sep 2012 06:40:40 +0200
+Subject: [v3 1/1] driver-core: Shut up dev_dbg_reatelimited() without DEBUG
+Message-ID: <20120904.074040.1817050383890381031.hdoyu@nvidia.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20120917202850.GA18910@kroah.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 17, 2012 at 01:28:50PM -0700, Greg KH wrote:
-> On Mon, Sep 17, 2012 at 12:40:16PM -0700, Tejun Heo wrote:
-> > On Fri, Sep 14, 2012 at 03:50:40PM -0700, Colin Cross wrote:
-> > > This patch set fixes a reproducible crash I'm seeing on a 3.4.10
-> > > kernel.  flush_kthread_worker (which is different from
-> > > flush_kthread_work) is initializing a kthread_work and a completion on
-> > > the stack, then queuing it and calling wait_for_completion.  Once the
-> > > completion is signaled, flush_kthread_worker exits and the stack
-> > > region used by the kthread_work may be immediately reused by another
-> > > object on the stack, but kthread_worker_fn continues accessing its
-> > > work pointer:
-> > >                 work->func(work);         <- calls complete,
-> > > effectively frees work
-> > >                 smp_wmb();      /* wmb worker-b0 paired with flush-b1 */
-> > >                 work->done_seq = work->queue_seq;   <- overwrites a
-> > > new stack object
-> > >                 smp_mb();       /* mb worker-b1 paired with flush-b0 */
-> > >                 if (atomic_read(&work->flushing))
-> > >                         wake_up_all(&work->done);  <- or crashes here
-> > > 
-> > > These patches fix the problem by not accessing work after work->func
-> > > is called, and should be backported to stable.  They apply cleanly to
-> > > 3.4.10.  Upstream commits are 9a2e03d8ed518a61154f18d83d6466628e519f94
-> > > and 46f3d976213452350f9d10b0c2780c2681f7075b.
-> > 
-> > Yeah, you're right.  I wonder why this didn't come up before.  Greg,
-> > can you please pick up these two commits?
-> 
-> Ok, will do, thanks for letting me know.
+dev_dbg_reatelimited() without DEBUG printed "217078 callbacks
+suppressed". This shouldn't print anything without DEBUG.
 
-Now applied, thanks.
+With CONFIG_DYNAMIC_DEBUG, the print should be configured as expected.
 
-greg k-h
+Signed-off-by: Hiroshi Doyu <hdoyu@nvidia.com>
+Reported-by: Hin-Tak Leung <htl10@users.sourceforge.net>
+Tested-by: Antti Palosaari <crope@iki.fi>
+Tested-by: Hin-Tak Leung <htl10@users.sourceforge.net>
+Acked-by: Hin-Tak Leung <htl10@users.sourceforge.net>
+---
+ include/linux/device.h |   62 +++++++++++++++++++++++++++++------------------
+ 1 files changed, 38 insertions(+), 24 deletions(-)
+
+diff --git a/include/linux/device.h b/include/linux/device.h
+index 9648331..bb6ffcb 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -932,6 +932,32 @@ int _dev_info(const struct device *dev, const char *fmt, ...)
+ 
+ #endif
+ 
++/*
++ * Stupid hackaround for existing uses of non-printk uses dev_info
++ *
++ * Note that the definition of dev_info below is actually _dev_info
++ * and a macro is used to avoid redefining dev_info
++ */
++
++#define dev_info(dev, fmt, arg...) _dev_info(dev, fmt, ##arg)
++
++#if defined(CONFIG_DYNAMIC_DEBUG)
++#define dev_dbg(dev, format, ...)		     \
++do {						     \
++	dynamic_dev_dbg(dev, format, ##__VA_ARGS__); \
++} while (0)
++#elif defined(DEBUG)
++#define dev_dbg(dev, format, arg...)		\
++	dev_printk(KERN_DEBUG, dev, format, ##arg)
++#else
++#define dev_dbg(dev, format, arg...)				\
++({								\
++	if (0)							\
++		dev_printk(KERN_DEBUG, dev, format, ##arg);	\
++	0;							\
++})
++#endif
++
+ #define dev_level_ratelimited(dev_level, dev, fmt, ...)			\
+ do {									\
+ 	static DEFINE_RATELIMIT_STATE(_rs,				\
+@@ -955,33 +981,21 @@ do {									\
+ 	dev_level_ratelimited(dev_notice, dev, fmt, ##__VA_ARGS__)
+ #define dev_info_ratelimited(dev, fmt, ...)				\
+ 	dev_level_ratelimited(dev_info, dev, fmt, ##__VA_ARGS__)
++#if defined(CONFIG_DYNAMIC_DEBUG) || defined(DEBUG)
+ #define dev_dbg_ratelimited(dev, fmt, ...)				\
+-	dev_level_ratelimited(dev_dbg, dev, fmt, ##__VA_ARGS__)
+-
+-/*
+- * Stupid hackaround for existing uses of non-printk uses dev_info
+- *
+- * Note that the definition of dev_info below is actually _dev_info
+- * and a macro is used to avoid redefining dev_info
+- */
+-
+-#define dev_info(dev, fmt, arg...) _dev_info(dev, fmt, ##arg)
+-
+-#if defined(CONFIG_DYNAMIC_DEBUG)
+-#define dev_dbg(dev, format, ...)		     \
+-do {						     \
+-	dynamic_dev_dbg(dev, format, ##__VA_ARGS__); \
++do {									\
++	static DEFINE_RATELIMIT_STATE(_rs,				\
++				      DEFAULT_RATELIMIT_INTERVAL,	\
++				      DEFAULT_RATELIMIT_BURST);		\
++	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);			\
++	if (unlikely(descriptor.flags & _DPRINTK_FLAGS_PRINT) &&	\
++	    __ratelimit(&_rs))						\
++		__dynamic_pr_debug(&descriptor, pr_fmt(fmt),		\
++				   ##__VA_ARGS__);			\
+ } while (0)
+-#elif defined(DEBUG)
+-#define dev_dbg(dev, format, arg...)		\
+-	dev_printk(KERN_DEBUG, dev, format, ##arg)
+ #else
+-#define dev_dbg(dev, format, arg...)				\
+-({								\
+-	if (0)							\
+-		dev_printk(KERN_DEBUG, dev, format, ##arg);	\
+-	0;							\
+-})
++#define dev_dbg_ratelimited(dev, fmt, ...)			\
++	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
+ #endif
+ 
+ #ifdef VERBOSE_DEBUG
+-- 
+1.7.5.4
+--
+To unsubscribe from this list: send the line "unsubscribe linux-tegra" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
