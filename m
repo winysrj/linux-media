@@ -1,47 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:60391 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932070Ab2IUJBg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Sep 2012 05:01:36 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 1/2] m5mols: Remove unneeded control ops assignments
-Date: Fri, 21 Sep 2012 11:01:22 +0200
-Message-id: <1348218083-32201-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:51844 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757335Ab2IDQOx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Sep 2012 12:14:53 -0400
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 2/5] drivers/media/platform/s5p-tv/sdo_drv.c: fix error return code
+Date: Tue,  4 Sep 2012 18:14:28 +0200
+Message-Id: <1346775269-12191-4-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since all host drivers using this subdev are already using
-the control framework these compatibility ops can be removed.
+From: Peter Senna Tschudin <peter.senna@gmail.com>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Convert a nonnegative error return code to a negative one, as returned
+elsewhere in the function.
+
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
+
+// <smpl>
+(
+if@p1 (\(ret < 0\|ret != 0\))
+ { ... return ret; }
+|
+ret@p1 = 0
+)
+... when != ret = e1
+    when != &ret
+*if(...)
+{
+  ... when != ret = e2
+      when forall
+ return ret;
+}
+
+// </smpl>
+
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+
 ---
- drivers/media/video/m5mols/m5mols_core.c | 7 -------
- 1 file changed, 7 deletions(-)
+ drivers/media/platform/s5p-tv/sdo_drv.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/media/video/m5mols/m5mols_core.c b/drivers/media/video/m5mols/m5mols_core.c
-index ac7d28b..cbb6381 100644
---- a/drivers/media/video/m5mols/m5mols_core.c
-+++ b/drivers/media/video/m5mols/m5mols_core.c
-@@ -822,13 +822,6 @@ static int m5mols_log_status(struct v4l2_subdev *sd)
+diff --git a/drivers/media/platform/s5p-tv/sdo_drv.c b/drivers/media/platform/s5p-tv/sdo_drv.c
+index ad68bbe..58cf56d 100644
+--- a/drivers/media/platform/s5p-tv/sdo_drv.c
++++ b/drivers/media/platform/s5p-tv/sdo_drv.c
+@@ -369,6 +369,7 @@ static int __devinit sdo_probe(struct platform_device *pdev)
+ 	sdev->fout_vpll = clk_get(dev, "fout_vpll");
+ 	if (IS_ERR_OR_NULL(sdev->fout_vpll)) {
+ 		dev_err(dev, "failed to get clock 'fout_vpll'\n");
++		ret = -ENODEV;
+ 		goto fail_dacphy;
+ 	}
+ 	dev_info(dev, "fout_vpll.rate = %lu\n", clk_get_rate(sclk_vpll));
+@@ -377,11 +378,13 @@ static int __devinit sdo_probe(struct platform_device *pdev)
+ 	sdev->vdac = devm_regulator_get(dev, "vdd33a_dac");
+ 	if (IS_ERR_OR_NULL(sdev->vdac)) {
+ 		dev_err(dev, "failed to get regulator 'vdac'\n");
++		ret = -ENODEV;
+ 		goto fail_fout_vpll;
+ 	}
+ 	sdev->vdet = devm_regulator_get(dev, "vdet");
+ 	if (IS_ERR_OR_NULL(sdev->vdet)) {
+ 		dev_err(dev, "failed to get regulator 'vdet'\n");
++		ret = -ENODEV;
+ 		goto fail_fout_vpll;
+ 	}
  
- static const struct v4l2_subdev_core_ops m5mols_core_ops = {
- 	.s_power	= m5mols_s_power,
--	.g_ctrl		= v4l2_subdev_g_ctrl,
--	.s_ctrl		= v4l2_subdev_s_ctrl,
--	.queryctrl	= v4l2_subdev_queryctrl,
--	.querymenu	= v4l2_subdev_querymenu,
--	.g_ext_ctrls	= v4l2_subdev_g_ext_ctrls,
--	.try_ext_ctrls	= v4l2_subdev_try_ext_ctrls,
--	.s_ext_ctrls	= v4l2_subdev_s_ext_ctrls,
- 	.log_status	= m5mols_log_status,
- };
- 
--- 
-1.7.11.3
 
