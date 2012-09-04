@@ -1,61 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56494 "EHLO mail.kapsi.fi"
+Received: from pequod.mess.org ([93.97.41.153]:59684 "EHLO pequod.mess.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756381Ab2ILC1m (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Sep 2012 22:27:42 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Thomas Mair <mair.thomas86@gmail.com>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 3/8] af9035: relax frontend callback error handling
-Date: Wed, 12 Sep 2012 05:27:06 +0300
-Message-Id: <1347416831-1413-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1347416831-1413-1-git-send-email-crope@iki.fi>
-References: <1347416831-1413-1-git-send-email-crope@iki.fi>
+	id S1756848Ab2IDMVX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Sep 2012 08:21:23 -0400
+Date: Tue, 4 Sep 2012 13:21:21 +0100
+From: Sean Young <sean@mess.org>
+To: Changbin Du <changbin.du@gmail.com>
+Cc: mchehab@infradead.org, paul.gortmaker@windriver.com,
+	sfr@canb.auug.org.au, srinivas.kandagatla@st.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [RFC PATCH] [media] rc: filter out not allowed protocols when
+ decoding
+Message-ID: <20120904122121.GA13018@pequod.mess.org>
+References: <1346464629-22458-1-git-send-email-changbin.du@gmail.com>
+ <20120903130357.GA7403@pequod.mess.org>
+ <CABgQ-ThYGdvhmpf+=GcLpE-qFAhrDUc1j07+XqohDNRa9bStiw@mail.gmail.com>
+ <CABgQ-TjrXbqKaOd9fDptV2fUiyVTpzZ31K_iZ+HQ+3PGmWoHRw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CABgQ-TjrXbqKaOd9fDptV2fUiyVTpzZ31K_iZ+HQ+3PGmWoHRw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is not good idea to return error for missing callback
-handler as whole callback as optional and could be missing
-by intentionally.
+On Tue, Sep 04, 2012 at 11:06:07AM +0800, Changbin Du wrote:
+> > >               mutex_lock(&ir_raw_handler_lock);
+> > > -             list_for_each_entry(handler, &ir_raw_handler_list, list)
+> > > -                     handler->decode(raw->dev, ev);
+> > > +             list_for_each_entry(handler, &ir_raw_handler_list, list) {
+> > > +                     /* use all protocol by default */
+> > > +                     if (raw->dev->allowed_protos == RC_TYPE_UNKNOWN ||
+> > > +                         raw->dev->allowed_protos & handler->protocols)
+> > > +                             handler->decode(raw->dev, ev);
+> > > +             }
+> >
+> > Each IR protocol decoder already checks whether it is enabled or not;
+> > should it not be so that only allowed protocols can be enabled rather
+> > than checking both enabled_protocols and allowed_protocols?
+> >
+> > Just from reading store_protocols it looks like decoders which aren't
+> > in allowed_protocols can be enabled, which makes no sense. Also
+> > ir_raw_event_register all protocols are enabled rather than the
+> > allowed ones.
+> >
+> >
+> > Lastely I don't know why raw ir drivers should dictate which protocols
+> > can be enabled. Would it not be better to remove it entirely?
+> 
+> 
+> I agree with you. I just thought that the only thing a decoder should care
+> is its decoding logic, but not including decoder management. My idaea is:
+>      1) use enabled_protocols to select decoders in ir_raw.c, but not
+> placed in decoders to do the judgement.
+>      2) remove  allowed_protocols or just use it to set the default
+> decoder (also should rename allowed_protocols  to default_protocol).
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/af9035.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+The default decoder should be the one set by the rc keymap.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index b700444..fdec3b1 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -652,7 +652,7 @@ static int af9035_tuner_callback(struct dvb_usb_device *d, int cmd, int arg)
- 		break;
- 	}
- 
--	return -ENODEV;
-+	return 0;
- }
- 
- static int af9035_frontend_callback(void *adapter_priv, int component,
-@@ -661,6 +661,9 @@ static int af9035_frontend_callback(void *adapter_priv, int component,
- 	struct i2c_adapter *adap = adapter_priv;
- 	struct dvb_usb_device *d = i2c_get_adapdata(adap);
- 
-+	dev_dbg(&d->udev->dev, "%s: component=%d cmd=%d arg=%d\n",
-+			__func__, component, cmd, arg);
-+
- 	switch (component) {
- 	case DVB_FRONTEND_COMPONENT_TUNER:
- 		return af9035_tuner_callback(d, cmd, arg);
-@@ -668,7 +671,7 @@ static int af9035_frontend_callback(void *adapter_priv, int component,
- 		break;
- 	}
- 
--	return -EINVAL;
-+	return 0;
- }
- 
- static int af9035_frontend_attach(struct dvb_usb_adapter *adap)
--- 
-1.7.11.4
+> I also have a question:
+>      Is there a requirement that one more decoders are enabled for a
+> IR device at the same time?
 
+Yes, you want to be able to multiple remotes on the IR device (which
+you can do as long as the scancodes don't overlap, I think), and the 
+lirc device is implemented as a decoder, so you might want to see the
+raw IR as well as have it decoded.
+
+>     And if that will lead to a issue that each decoder may decode a
+> same pulse sequence to different evnets since their protocol is
+> different?
+
+At the moment, no. David Hardeman has sent a patch for this:
+
+http://patchwork.linuxtv.org/patch/11388/
+
+
+Sean
