@@ -1,35 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:47269 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756896Ab2IZQlG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Sep 2012 12:41:06 -0400
-Date: Wed, 26 Sep 2012 10:42:02 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	hverkuil@xs4all.nl
-Subject: Re: [PATCH 2/5] media: ov7670: make try_fmt() consistent with
- 'min_height' and 'min_width'.
-Message-ID: <20120926104202.794c96c5@lwn.net>
-In-Reply-To: <1348652877-25816-3-git-send-email-javier.martin@vista-silicon.com>
-References: <1348652877-25816-1-git-send-email-javier.martin@vista-silicon.com>
-	<1348652877-25816-3-git-send-email-javier.martin@vista-silicon.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from mail-we0-f174.google.com ([74.125.82.174]:50446 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757290Ab2IDQOw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Sep 2012 12:14:52 -0400
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 3/5] drivers/media/platform/s5p-tv/mixer_video.c: fix error return code
+Date: Tue,  4 Sep 2012 18:14:27 +0200
+Message-Id: <1346775269-12191-3-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 26 Sep 2012 11:47:54 +0200
-Javier Martin <javier.martin@vista-silicon.com> wrote:
+From: Peter Senna Tschudin <peter.senna@gmail.com>
 
-> 'min_height' and 'min_width' are variables that allow to specify the minimum
-> resolution that the sensor will achieve. This patch make v4l2 fmt callbacks
-> consider this parameters in order to return valid data to user space.
-> 
-I'd have preferred to do this differently, perhaps backing toward larger
-sizes if the minimum turns out to be violated.  But so be it...
+Convert a nonnegative error return code to a negative one, as returned
+elsewhere in the function.
 
-Acked-by: Jonathan Corbet <corbet@lwn.net>
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
-jon
+// <smpl>
+(
+if@p1 (\(ret < 0\|ret != 0\))
+ { ... return ret; }
+|
+ret@p1 = 0
+)
+... when != ret = e1
+    when != &ret
+*if(...)
+{
+  ... when != ret = e2
+      when forall
+ return ret;
+}
+
+// </smpl>
+
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+
+---
+ drivers/media/platform/s5p-tv/mixer_video.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
+index a9c6be3..f139fed 100644
+--- a/drivers/media/platform/s5p-tv/mixer_video.c
++++ b/drivers/media/platform/s5p-tv/mixer_video.c
+@@ -83,6 +83,7 @@ int __devinit mxr_acquire_video(struct mxr_device *mdev,
+ 	mdev->alloc_ctx = vb2_dma_contig_init_ctx(mdev->dev);
+ 	if (IS_ERR_OR_NULL(mdev->alloc_ctx)) {
+ 		mxr_err(mdev, "could not acquire vb2 allocator\n");
++		ret = -ENODEV;
+ 		goto fail_v4l2_dev;
+ 	}
+ 
+@@ -764,8 +765,10 @@ static int mxr_video_open(struct file *file)
+ 	}
+ 
+ 	/* leaving if layer is already initialized */
+-	if (!v4l2_fh_is_singular_file(file))
++	if (!v4l2_fh_is_singular_file(file)) {
++		ret = -EBUSY; /* Not sure if EBUSY is the best for here */
+ 		goto unlock;
++	}
+ 
+ 	/* FIXME: should power be enabled on open? */
+ 	ret = mxr_power_get(mdev);
+
