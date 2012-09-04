@@ -1,64 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:36186 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753973Ab2IYNpZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Sep 2012 09:45:25 -0400
-From: Hans Verkuil <hansverk@cisco.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFCv1 API PATCH 4/4] tuner-core: map audmode to STEREO for radio devices.
-Date: Tue, 25 Sep 2012 15:45:00 +0200
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
-References: <1347621336-14108-1-git-send-email-hans.verkuil@cisco.com> <97c2130954d0c14e16e0e7b08b29405e48a9687e.1347620872.git.hans.verkuil@cisco.com> <20120925103340.76a5db3c@redhat.com>
-In-Reply-To: <20120925103340.76a5db3c@redhat.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:49142 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751285Ab2IDFGP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Sep 2012 01:06:15 -0400
+Message-ID: <50458C21.2090000@ti.com>
+Date: Tue, 4 Sep 2012 10:35:37 +0530
+From: Prabhakar Lad <prabhakar.lad@ti.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	<linux-kernel@vger.kernel.org>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	<linux-doc@vger.kernel.org>, Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Rob Landley <rob@landley.net>,
+	HeungJun Kim <riverful.kim@samsung.com>
+Subject: Re: [PATCH] media: v4l2-ctrls: add control for test pattern
+References: <1346663777-23149-1-git-send-email-prabhakar.lad@ti.com> <20120903193947.GD6834@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20120903193947.GD6834@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201209251545.00414.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue 25 September 2012 15:33:40 Mauro Carvalho Chehab wrote:
-> Em Fri, 14 Sep 2012 13:15:36 +0200
-> Hans Verkuil <hans.verkuil@cisco.com> escreveu:
+Hi Sakari,
+
+Thanks for the review.
+
+On Tuesday 04 September 2012 01:09 AM, Sakari Ailus wrote:
+> Hi Prabhakar,
 > 
-> > Fixes a v4l2-compliance error: setting audmode to a value other than mono
-> > or stereo for a radio device should map to MODE_STEREO.
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  drivers/media/v4l2-core/tuner-core.c |    5 ++++-
-> >  1 file changed, 4 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
-> > index b5a819a..ea71371 100644
-> > --- a/drivers/media/v4l2-core/tuner-core.c
-> > +++ b/drivers/media/v4l2-core/tuner-core.c
-> > @@ -1235,8 +1235,11 @@ static int tuner_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
-> >  	if (set_mode(t, vt->type))
-> >  		return 0;
-> >  
-> > -	if (t->mode == V4L2_TUNER_RADIO)
-> > +	if (t->mode == V4L2_TUNER_RADIO) {
-> >  		t->audmode = vt->audmode;
-> > +		if (t->audmode > V4L2_TUNER_MODE_STEREO)
-> > +			t->audmode = V4L2_TUNER_MODE_STEREO;
+> Thanks for the patch.
 > 
-> NACK. It is not a core's task to fix driver's bugs. It would be ok to have here a
-> WARN_ON(), but, if a driver is reporting a wrong radio audmode, the fix should be
-> there at the drivers, and not here at the core.
+> On Mon, Sep 03, 2012 at 02:46:17PM +0530, Prabhakar Lad wrote:
+>> From: Lad, Prabhakar <prabhakar.lad@ti.com>
+>>
+>> add V4L2_CID_TEST_PATTERN of type menu, which determines
+>> the internal test pattern selected by the device.
+>>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+>> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+>> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+>> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> Cc: Hans de Goede <hdegoede@redhat.com>
+>> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+>> Cc: Rob Landley <rob@landley.net>
+>> Cc: HeungJun Kim <riverful.kim@samsung.com>
+>> Cc: Rob Landley <rob@landley.net>
+>> ---
+>>  This patches has one checkpatch warning for line over
+>>  80 characters altough it can be avoided I have kept it
+>>  for consistency.
+>>
+>>  Documentation/DocBook/media/v4l/controls.xml |   52 ++++++++++++++++++++++++++
+>>  drivers/media/v4l2-core/v4l2-ctrls.c         |   16 ++++++++
+>>  include/linux/videodev2.h                    |   12 ++++++
+>>  3 files changed, 80 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+>> index f704218..06f16e7 100644
+>> --- a/Documentation/DocBook/media/v4l/controls.xml
+>> +++ b/Documentation/DocBook/media/v4l/controls.xml
+>> @@ -4313,6 +4313,58 @@ interface and may change in the future.</para>
+>>  	      </tbody>
+>>  	    </entrytbl>
+>>  	  </row>
+>> +	  <row>
+>> +	    <entry spanname="id"><constant>V4L2_CID_TEST_PATTERN</constant></entry>
+>> +	    <entry>menu</entry>
+>> +	  </row>
+>> +	  <row id="v4l2-test-pattern">
+>> +	    <entry spanname="descr"> The capture devices/sensors have the capability to
+>> +	    generate internal test patterns. This test patterns are used to test a device
+>> +	    is properly working and can generate the desired waveforms that it supports.
+>> +	    </entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entrytbl spanname="descr" cols="2">
+>> +	      <tbody valign="top">
+>> +	        <row>
+>> +	         <entry><constant>V4L2_TEST_PATTERN_DISABLED</constant></entry>
+>> +	          <entry>Test pattern generation is disabled</entry>
+>> +	        </row>
+>> +	        <row>
+>> +	          <entry><constant>V4L2_TEST_PATTERN_VERTICAL_LINES</constant></entry>
+>> +	          <entry>Generate vertical lines as test pattern</entry>
+>> +	        </row>
+>> +	        <row>
+>> +	          <entry><constant>V4L2_TEST_PATTERN_HORIZONTAL_LINES</constant></entry>
+>> +	          <entry>Generate horizontal lines as test pattern</entry>
+>> +	        </row>
+>> +	        <row>
+>> +	          <entry><constant>V4L2_TEST_PATTERN_DIAGONAL_LINES</constant></entry>
+>> +	          <entry>Generate diagonal lines as test pattern</entry>
+>> +	        </row>
+>> +	        <row>
+>> +	          <entry><constant>V4L2_TEST_PATTERN_SOLID_BLACK</constant></entry>
+>> +	          <entry>Generate solid black color as test pattern</entry>
+>> +	        </row>
+>> +	        <row>
+>> +	          <entry><constant>V4L2_TEST_PATTERN_SOLID_WHITE</constant></entry>
+>> +	          <entry>Generate solid white color as test pattern</entry>
+>> +	        </row>
+>> +	        <row>
+>> +	          <entry><constant>V4L2_TEST_PATTERN_SOLID_BLUE</constant></entry>
+>> +	          <entry>Generate solid blue color as test pattern</entry>
+>> +	        </row>
+>> +	        <row>
+>> +	          <entry><constant>V4L2_TEST_PATTERN_SOLID_RED</constant></entry>
+>> +	          <entry>Generate solid red color as test pattern</entry>
+>> +	        </row>
+>> +	        <row>
+>> +	          <entry><constant>V4L2_TEST_PATTERN_CHECKER_BOARD</constant></entry>
+>> +	          <entry>Generate a checker board as test pattern</entry>
+>> +	        </row>
+> 
+> You're defining 8 different test patterns based on a single device, I guess? 
+> 
+No.
 
-tuner-core *is* the driver. A bridge driver just passes v4l2_tuner on to the
-subdev driver(s), and it is the subdev driver such as tuner-core that needs to
-process the audmode as specified by the user. Which in this case means mapping
-audmodes that are invalid when in radio mode to something that is valid as per
-the spec.
+> As the test patterns are not standardised, I'd suppose that if another
+> driver implements the same control, it would require another n menu items
+> added to the same standard menu. That way we'd run quickly out of menu items
+> as the maximum is 32.
+> 
+Agreed the test patterns are not standardized and are hardware
+dependent, but this entries which have been added are generally common
+across capture/display/sensors.
 
-So this is a real tuner-core bug, not a bridge driver bug since they don't
-generally touch the audmode field, they just pass it along. And the vt->audmode
-value comes straight from userspace, not from the bridge driver.
+> For this reason I'd leave the items in the menu up to the driver that
+> implements the control, until we have more information on the test patterns
+> different devices implement --- as discussed earlier.
+> 
+Assuming that I only added disable test pattern and if a driver wants to
+implement this control and wants add  an item to this menu, on what
+basis an entry to this menu will be qualified then ?
 
-Regards,
+Thanks and Regards,
+--Prabhakar Lad
 
-	Hans
+> Kind regards,
+> 
+
