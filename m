@@ -1,115 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:55280 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758092Ab2IRLrK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Sep 2012 07:47:10 -0400
-Received: by lbbgj3 with SMTP id gj3so4873445lbb.19
-        for <linux-media@vger.kernel.org>; Tue, 18 Sep 2012 04:47:08 -0700 (PDT)
-Date: Tue, 18 Sep 2012 14:42:26 +0300
-From: Felipe Balbi <balbi@ti.com>
-To: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	julia.lawall@lip6.fr
-Subject: Re: [PATCHv3 5/6] media: Convert struct i2c_msg initialization to
- C99 format
-Message-ID: <20120918114224.GH24047@arwen.pp.htv.fi>
-Reply-To: balbi@ti.com
-References: <1347968672-10803-1-git-send-email-shubhrajyoti@ti.com>
- <1347968672-10803-6-git-send-email-shubhrajyoti@ti.com>
+Received: from oyp.chewa.net ([91.121.6.101]:55567 "EHLO oyp.chewa.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756926Ab2IDM0b convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Sep 2012 08:26:31 -0400
+Received: from leon.localnet (unknown [IPv6:2001:660:330f:38:219:d2ff:fe07:5de5])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: remi)
+	by oyp.chewa.net (Postfix) with ESMTPSA id 015D52024C
+	for <linux-media@vger.kernel.org>; Tue,  4 Sep 2012 14:26:30 +0200 (CEST)
+From: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>
+To: linux-media@vger.kernel.org
+Subject: Re: RFC: use of timestamp/sequence in v4l2_buffer
+Date: Tue, 4 Sep 2012 15:26:49 +0300
+References: <201209041238.07000.hverkuil@xs4all.nl>
+In-Reply-To: <201209041238.07000.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="nOM8ykUjac0mNN89"
-Content-Disposition: inline
-In-Reply-To: <1347968672-10803-6-git-send-email-shubhrajyoti@ti.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201209041526.49196@leon.remlab.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Le mardi 4 septembre 2012 13:38:06, Hans Verkuil a écrit :
+> 7) Should the timestamp field always be monotonically increasing? Or it is
+> possible to get timestamps that jump around? This makes sense for encoders
+> that create B-frames referring to frames captured earlier than an I-frame.
 
---nOM8ykUjac0mNN89
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I would expect an encoder to output frames in DTS order rather than PTS and a 
+decoder to output frames in PTS order. The timestamp field is the only 
+indication of the PCR, so an application might not recover if the timestamp 
+jumps backward.
 
-On Tue, Sep 18, 2012 at 05:14:31PM +0530, Shubhrajyoti D wrote:
->         Convert the struct i2c_msg initialization to C99 format. This mak=
-es
->         maintaining and editing the code simpler. Also helps once other f=
-ields
->         like transferred are added in future.
+If there is an ambiguity between PTS and DTS, I think it should be documented 
+and specified per format what the timestamp is.
 
-no need for these tabs here.
-
-FWIW:
-
-Reviewed-by: Felipe Balbi <balbi@ti.com>
-
->=20
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-> ---
->  drivers/media/radio/saa7706h.c |   15 +++++++++++++--
->  1 files changed, 13 insertions(+), 2 deletions(-)
->=20
-> diff --git a/drivers/media/radio/saa7706h.c b/drivers/media/radio/saa7706=
-h.c
-> index bb953ef..54db36c 100644
-> --- a/drivers/media/radio/saa7706h.c
-> +++ b/drivers/media/radio/saa7706h.c
-> @@ -199,8 +199,19 @@ static int saa7706h_get_reg16(struct v4l2_subdev *sd=
-, u16 reg)
->  	u8 buf[2];
->  	int err;
->  	u8 regaddr[] =3D {reg >> 8, reg};
-> -	struct i2c_msg msg[] =3D { {client->addr, 0, sizeof(regaddr), regaddr},
-> -				{client->addr, I2C_M_RD, sizeof(buf), buf} };
-> +	struct i2c_msg msg[] =3D {
-> +					{
-> +						.addr =3D client->addr,
-> +						.len =3D sizeof(regaddr),
-> +						.buf =3D regaddr
-> +					},
-> +					{
-> +						.addr =3D client->addr,
-> +						.flags =3D I2C_M_RD,
-> +						.len =3D sizeof(buf),
-> +						.buf =3D buf
-> +					}
-> +				};
-> =20
->  	err =3D saa7706h_i2c_transfer(client, msg, ARRAY_SIZE(msg));
->  	if (err)
-> --=20
-> 1.7.5.4
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-
---=20
-balbi
-
---nOM8ykUjac0mNN89
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQWF4gAAoJEIaOsuA1yqREOwsP/0VNvKgy/2AJeoCEkQY/Qcwz
-RaU3OlWPCtFy8SJpwn1cxWW49sftySXUzSM+ndZOoKJfwh1ccEgEqyjH9l+Pbm54
-FYku1m5B3j6LJhKN2Yv0uLSyoaJJavXaXtqc66PrCRdpWC+KGOAT4rM4NAclMvh5
-Omw1nV9SE8CvoXzJro3wGKcKrbiDzlt/g1uqNwQ8Hnj1LL3cBjkF5tlDKFzdUnPW
-eI2PILqzGxcV5EwUP/ykPJdk6F/7OIYJkVNhaUocZYQJAppw6RUYg9D8GSG2aVPn
-A6Y/oyJhdlKdS59WgAmIgU17R0MApUNZaxDCBf4u42HL4Yz3SZ9Ppw36qWEK14OA
-LwZEuCJVOYleY1lqolyanDkDlLLPNknSAtXJj4zlhuwrfq9IEc2qa4EiQAvYaSJR
-U7colorvQ5eclV0DNDTE+5F5Dh862YAWX+kCj2SI3g7U5lQCQMxwCyEtA67THjhg
-UeNxzS7qZdibBoe9BjCKspeajBsegraQTMwnFhqi8mC7TRxRtiyAk4LY41YWh9zX
-ChNngy3MgnteHmJbTEV1fki9DyLn4+bbQrQYr9ZPceF0CxVl0mtdRjulw/vcLsFR
-30yP+Z4OJ3C1c2ZVCSPjgaF1lDDW0W++7i+FD4PYA5QfQ4X2NsPaNgSUBGSux4cf
-GlkIMATagO2wttq/vb4E
-=etEM
------END PGP SIGNATURE-----
-
---nOM8ykUjac0mNN89--
+-- 
+Rémi Denis-Courmont
+http://www.remlab.net/
