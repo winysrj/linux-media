@@ -1,82 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:59196 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750929Ab2IEIRc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Sep 2012 04:17:32 -0400
-Date: Wed, 5 Sep 2012 10:17:28 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-cc: linux-media@vger.kernel.org, fabio.estevam@freescale.com,
-	laurent.pinchart@ideasonboard.com, mchehab@infradead.org
-Subject: Re: [PATCH v3] media: mx2_camera: Don't modify non volatile parameters
- in try_fmt.
-In-Reply-To: <CACKLOr1HLSvvz8Bs_qgHuF1qjshwnsXqtcuS3q5uWmGhTkpxkg@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1209051016360.16676@axis700.grange>
-References: <1345456164-12995-1-git-send-email-javier.martin@vista-silicon.com>
- <CACKLOr1HLSvvz8Bs_qgHuF1qjshwnsXqtcuS3q5uWmGhTkpxkg@mail.gmail.com>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:59901 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754276Ab2IETgx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Sep 2012 15:36:53 -0400
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <1346775269-12191-3-git-send-email-peter.senna@gmail.com>
+References: <1346775269-12191-3-git-send-email-peter.senna@gmail.com>
+Date: Wed, 5 Sep 2012 16:36:52 -0300
+Message-ID: <CALF0-+W6i548ehTDaqkXj7ehFfYBPOBwwPBZQ03eMoo+3K3HXQ@mail.gmail.com>
+Subject: Re: [PATCH 3/5] drivers/media/platform/s5p-tv/mixer_video.c: fix
+ error return code
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Peter Senna Tschudin <peter.senna@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier
+Hi Peter,
 
-On Mon, 3 Sep 2012, javier Martin wrote:
+On Tue, Sep 4, 2012 at 1:14 PM, Peter Senna Tschudin
+<peter.senna@gmail.com> wrote:
+> From: Peter Senna Tschudin <peter.senna@gmail.com>
+>
+> Convert a nonnegative error return code to a negative one, as returned
+> elsewhere in the function.
+>
+> A simplified version of the semantic match that finds this problem is as
+> follows: (http://coccinelle.lip6.fr/)
+>
+> // <smpl>
+> (
+> if@p1 (\(ret < 0\|ret != 0\))
+>  { ... return ret; }
+> |
+> ret@p1 = 0
+> )
+> ... when != ret = e1
+>     when != &ret
+> *if(...)
+> {
+>   ... when != ret = e2
+>       when forall
+>  return ret;
+> }
+>
+> // </smpl>
+>
+> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+>
+> ---
+>  drivers/media/platform/s5p-tv/mixer_video.c |    5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
+> index a9c6be3..f139fed 100644
+> --- a/drivers/media/platform/s5p-tv/mixer_video.c
+> +++ b/drivers/media/platform/s5p-tv/mixer_video.c
+> @@ -83,6 +83,7 @@ int __devinit mxr_acquire_video(struct mxr_device *mdev,
+>         mdev->alloc_ctx = vb2_dma_contig_init_ctx(mdev->dev);
+>         if (IS_ERR_OR_NULL(mdev->alloc_ctx)) {
+>                 mxr_err(mdev, "could not acquire vb2 allocator\n");
+> +               ret = -ENODEV;
+>                 goto fail_v4l2_dev;
+>         }
+>
+> @@ -764,8 +765,10 @@ static int mxr_video_open(struct file *file)
+>         }
+>
+>         /* leaving if layer is already initialized */
+> -       if (!v4l2_fh_is_singular_file(file))
+> +       if (!v4l2_fh_is_singular_file(file)) {
+> +               ret = -EBUSY; /* Not sure if EBUSY is the best for here */
+>                 goto unlock;
+> +       }
+>
+>         /* FIXME: should power be enabled on open? */
+>         ret = mxr_power_get(mdev);
+>
 
-> Hi,
-> Guennadi,did you pick this one?
+Well, same to say here. I think if you look at this functions you'll realize
+it's so much easy to just initialize ret to something, instead of the obviously
+wrong ret = 0.
 
-Wanted to do so, but
+IMO, initializing ret to zero it's a free ticket to bugs. :-)
 
-> Regards.
-> 
-> On 20 August 2012 11:49, Javier Martin <javier.martin@vista-silicon.com> wrote:
-> > Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
-> > ---
-> > Changes since v2:
-> >  - Add Signed-off-by line.
-> >
-> > ---
-> >  drivers/media/video/mx2_camera.c |    5 +++--
-> >  1 file changed, 3 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-> > index 2a33bcb..88dcae6 100644
-> > --- a/drivers/media/video/mx2_camera.c
-> > +++ b/drivers/media/video/mx2_camera.c
-> > @@ -1385,6 +1385,7 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
-> >         __u32 pixfmt = pix->pixelformat;
-> >         struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-> >         struct mx2_camera_dev *pcdev = ici->priv;
-> > +       struct mx2_fmt_cfg *emma_prp;
-> >         unsigned int width_limit;
-> >         int ret;
-> >
-> > @@ -1447,12 +1448,12 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
-> >                 __func__, pcdev->s_width, pcdev->s_height);
-> >
-> >         /* If the sensor does not support image size try PrP resizing */
-> > -       pcdev->emma_prp = mx27_emma_prp_get_format(xlate->code,
-> > +       emma_prp = mx27_emma_prp_get_format(xlate->code,
-> >                                                    xlate->host_fmt->fourcc);
-> >
-> >         memset(pcdev->resizing, 0, sizeof(pcdev->resizing));
-
-Doesn't the above line also have to be removed?
-
-Thanks
-Guennadi
-
-> >         if ((mf.width != pix->width || mf.height != pix->height) &&
-> > -               pcdev->emma_prp->cfg.in_fmt == PRP_CNTL_DATA_IN_YUV422) {
-> > +               emma_prp->cfg.in_fmt == PRP_CNTL_DATA_IN_YUV422) {
-> >                 if (mx2_emmaprp_resize(pcdev, &mf, pix, false) < 0)
-> >                         dev_dbg(icd->parent, "%s: can't resize\n", __func__);
-> >         }
-> > --
-> > 1.7.9.5
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Hope it helps,
+Ezequiel.
