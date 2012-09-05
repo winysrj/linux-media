@@ -1,263 +1,354 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46022 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750778Ab2IXXlx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 19:41:53 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	remi@remlab.net, daniel-gl@gmx.net, sylwester.nawrocki@gmail.com
-Subject: Re: [RFC] Timestamps and V4L2
-Date: Tue, 25 Sep 2012 01:42:28 +0200
-Message-ID: <2045908.qINF045ynN@avalon>
-In-Reply-To: <201209211133.24174.hverkuil@xs4all.nl>
-References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk> <201209211133.24174.hverkuil@xs4all.nl>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:50445 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759440Ab2IEV4y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Sep 2012 17:56:54 -0400
+Received: by weyx8 with SMTP id x8so722299wey.19
+        for <linux-media@vger.kernel.org>; Wed, 05 Sep 2012 14:56:53 -0700 (PDT)
+Message-ID: <5047CAA2.4050702@gmail.com>
+Date: Wed, 05 Sep 2012 23:56:50 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Sangwook Lee <sangwook.lee@linaro.org>
+CC: linux-media@vger.kernel.org, mchehab@infradead.org,
+	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com,
+	hans.verkuil@cisco.com, linaro-dev@lists.linaro.org,
+	patches@linaro.org, Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Scott Bambrough <scott.bambrough@linaro.org>
+Subject: Re: [RFC PATCH v5] media: add v4l2 subdev driver for S5K4ECGX sensor
+References: <1346848110-17882-1-git-send-email-sangwook.lee@linaro.org>
+In-Reply-To: <1346848110-17882-1-git-send-email-sangwook.lee@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 21 September 2012 11:33:24 Hans Verkuil wrote:
-> On Thu September 20 2012 22:21:22 Sakari Ailus wrote:
-> > Hi all,
-> > 
-> > 
-> > This RFC intends to summarise and further the recent discussion on
-> > linux-media regarding the proposed changes of timestamping V4L2 buffers.
-> > 
-> > 
-> > The problem
-> > ===========
-> > 
-> > The V4L2 has long used realtime timestamps (such as
-> > clock_gettime(CLOCK_REALTIME, ...)) to stamp the video buffers before
-> > handing them over to the user. This has been found problematic in
-> > associating the video buffers with data from other sources: realtime clock
-> > may jump around due to daylight saving time, for example, and ALSA
-> > (audio-video synchronisation is a common use case) user space API does not
-> > provide the user with realtime timestamps, but instead uses monotonic time
-> > (i.e. clock_gettime(CLOCK_MONOTONIC, ...)).
-> > 
-> > This is especially an issue in embedded systems where video recording is a
-> > common use case. Drivers typically used in such systems have silently
-> > switched to use monotonic timestamps. While against the spec, this is
-> > necessary for those systems to operate properly.
-> > 
-> > In general, realtime timestamps are seen of little use in other than
-> > debugging purposes, but monotonic timestamps are fine for that as well.
-> > It's still possible that an application I'm not aware of uses them in a
-> > peculiar way that would be adversely affected by changing to monotonic
-> > timestamps. Nevertheless, we're not supposed to break the API (or ABI).
-> > It'd be also very important for the application to know what kind of
-> > timestamps are provided by the device.
-> > 
-> > 
-> > Requirements, wishes and constraints
-> > ====================================
-> > 
-> > Now that it seems to be about the time to fix these issues, it's worth
-> > looking a little bit to the future to anticipate the coming changes to be
-> > able to accommodate them better later on.
-> > 
-> > - The new default should be monotonic. As the monotonic timestamps are
-> > seen
-> > to be the most useful, they should be made the default.
-> > 
-> > - timeval vs. timespec. The two structs can be used to store timestamp
-> > information. They are not compatible with each other. It's a little bit
-> > uncertain what's the case with all the architectures but it looks like the
-> > timespec fits into the space of timeval in all cases. If timespec is
-> > considered to be used somewhere the compatibility must be ensured.
-> > Timespec
-> > is better than timeval since timespec has more precision and it's the same
-> > struct that's used everywhere else in the V4L2 API: timespec does not need
-> > conversion to timespec in the user space.
-> > 
-> > struct timespec {
-> > 
-> >         __kernel_time_t tv_sec;                 /* seconds */
-> >         long            tv_nsec;                /* nanoseconds */
-> > 
-> > };
-> > 
-> > struct timeval {
-> > 
-> >         __kernel_time_t         tv_sec;         /* seconds */
-> >         __kernel_suseconds_t    tv_usec;        /* microseconds */
-> > 
-> > };
-> > 
-> > To be able to use timespec, the user would have to most likely explicitly
-> > choose to do that.
-> > 
-> > - Users should know what kind of timestamps the device produces. This
-> > includes existing and future kernels. What should be considered are
-> > uninformed porting drivers back and forth across kernel versions and
-> > out-of-date kernel header files.
-> > 
-> > - Device-dependent timestamps. Some devices such as the uvcvideo ones
-> > produce device-dependent timestamps for synchronising video and audio,
-> > both
-> > produced by the same physical hardware device. For uvcvideo these
-> > timestamps are unsigned 32-bit integers.
-> > 
-> > - There's also another clock, Linux-specific raw monotonic clock (as in
-> > clock_gettime(CLOCK_RAW_MONOTONIC, ...)) that could be better in some use
-> > cases than the regular monotonic clock. The difference is that the raw
-> > monotonic clock is free from the NTP adjustments. It would be nice for the
-> > user to be able to choose the clock used for timestamps. This is
-> > especially
-> > important for device-dependent timestamps: not all applications can be
-> > expected to be able to use them.
-> > 
-> > - The field adjacent to timestamp, timecode, is 128 bits wide, and not
-> > used
-> > by a single driver. This field could be re-used.
-> > 
-> > 
-> > Possible solutions
-> > ==================
-> > 
-> > Not all of the solutions below that have been proposed are mutually
-> > exclusive. That's also what's making the choice difficult: the ultimate
-> > solution to the issue of timestamping may involve several of these --- or
-> > possibly something better that's not on the list.
-> > 
-> > 
-> > Use of timespec
-> > ---------------
-> > 
-> > If we can conclude timespec will always fit into the size of timeval (or
-> > timecode) we could use timespec instead. The solution should still make
-> > the use of timespec explicit to the user space. This seems to conflict
-> > with
-> > the idea of making monotonic timestamps the default: the default can't be
-> > anything incompatible with timeval, and at the same time it's the most
-> > important that the monotonic timestamps are timespec.
+Hi Sangwook,
+
+On 09/05/2012 02:28 PM, Sangwook Lee wrote:
+> This patch adds driver for S5K4ECGX sensor with embedded ISP SoC,
+> S5K4ECGX, which is a 5M CMOS Image sensor from Samsung
+> The driver implements preview mode of the S5K4ECGX sensor.
+> capture (snapshot) operation, face detection are missing now.
+> Following controls are supported:
+> contrast/saturation/brightness/sharpness
 > 
-> We have to keep timeval. Changing this will break the ABI. I see absolutely
-> no reason to use timespec for video. At 60 Hz a frame takes 16.67 ms, and
-> that's far, far removed from ns precisions. Should we ever have to support
-> high-speed cameras running at 60000 Hz, then we'll talk again.
+> Signed-off-by: Sangwook Lee<sangwook.lee@linaro.org>
+> Cc: Sylwester Nawrocki<s.nawrocki@samsung.com>
+> Cc: Scott Bambrough<scott.bambrough@linaro.org>
+
+Overall it looks good, thank you for patiently addressing all my 
+comments ;) There might be some rough edges here and there, but it's 
+all easy to fix. Please see below.
+
+
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+
+> ---
+> Changes since v4:
+> - replaced register tables with the function from Sylwester
+> - updated firmware parsing function with CRC32 check
+>    firmware generator from user space:
+>    git://git.linaro.org/people/sangwook/fimc-v4l2-app.git
 > 
-> For me this is a non-issue.
+> Changes since v3:
+> - used request_firmware to configure initial settings
+> - added parsing functions to read initial settings
+> - updated regulator API
+> - reduced preview setting tables by experiment
 > 
-> > Kernel version as indicator of timestamp
-> > ----------------------------------------
-> > 
-> > Conversion of drivers to use monotonic timestamp is trivial, so the
-> > conversion could be done once and for all drivers. The kernel version
-> > could
-> > be used to indicate the type of the timestamp.
-> > 
-> > If this approach is taken care must be taken when new drivers are
-> > integrated: developers sometimes use old kernels for development and might
-> > also use an old driver for guidance on timestamps, thus using real-time
-> > timestamps when monotonic timestamps should be used.
+> Changes since v2:
+> - added GPIO (reset/stby) and regulators
+> - updated I2C read/write, based on s5k6aa datasheet
+> - fixed set_fmt errors
+> - reduced register tables a bit
+> - removed vmalloc
 > 
-> More importantly, this also fails when users use out-of-tree drivers.
+> Changes since v1:
+> - fixed s_stream(0) when it called twice
+> - changed mutex_X position to be used when strictly necessary
+> - add additional s_power(0) in case that error happens
+> - update more accurate debugging statements
+> - remove dummy else
 > 
-> > This approach has an
-> > advantage over the capability flag below: which is that we don't populate
-> > the interface with essentially dead definitions.
+>   drivers/media/i2c/Kconfig    |    7 +
+>   drivers/media/i2c/Makefile   |    1 +
+>   drivers/media/i2c/s5k4ecgx.c | 1019 ++++++++++++++++++++++++++++++++++++++++++
+>   include/media/s5k4ecgx.h     |   37 ++
+>   4 files changed, 1064 insertions(+)
+>   create mode 100644 drivers/media/i2c/s5k4ecgx.c
+>   create mode 100644 include/media/s5k4ecgx.h
 > 
-> Using a kernel version to decide whether some feature is available or not is
-> IMHO something of a last resort. It's very application unfriendly.
-> > Capability flag for monotonic timestamps
-> > ----------------------------------------
-> > 
-> > A capability flag can be used to tell whether the timestamp is monotonic.
-> > However, it's not extensible cleanly to provide selectable timestamps.
-> > These are not features that are needed right now, though.
-> > 
-> > The upside of this option is ease of implementation and use, but it's not
-> > extensible. Also we're left with a flag that's set for all drivers: in the
-> > end it provides no information to the user and is only noise in the spec.
-> > 
-> > 
-> > Control for timestamp type
-> > --------------------------
-> > 
-> > Using a control to tell the type of the timestamp is extensible but not as
-> > easy to implement than the capability flag: each and every device would
-> > get
-> > an additional control. The value should likely be also file handle
-> > specific, and we do not have file handle specific controls yet.
+> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> index 9a5a059..55b3bbb 100644
+> --- a/drivers/media/i2c/Kconfig
+> +++ b/drivers/media/i2c/Kconfig
+> @@ -484,6 +484,13 @@ config VIDEO_S5K6AA
+>   	  This is a V4L2 sensor-level driver for Samsung S5K6AA(FX) 1.3M
+>   	  camera sensor with an embedded SoC image signal processor.
 > 
-> Yes, we do. You can make per-file handle controls. M2M devices need that.
+> +config VIDEO_S5K4ECGX
+> +        tristate "Samsung S5K4ECGX sensor support"
+> +        depends on I2C&&  VIDEO_V4L2&&  VIDEO_V4L2_SUBDEV_API
+> +        ---help---
+> +          This is a V4L2 sensor-level driver for Samsung S5K4ECGX 5M
+> +          camera sensor with an embedded SoC image signal processor.
+> +
+>   source "drivers/media/i2c/smiapp/Kconfig"
 > 
-> I'm not sure why this would be filehandle specific, BTW.
-> 
-> > In the meantime the control could be read-only, and later made read-write
-> > when the timestamp type can be made selectable. Much of he work of
-> > timestamping can be done by the framework: drivers can use a single helper
-> > function and need to create one extra standard control.
-> > 
-> > Should the control also have an effect on the types of the timestamps in
-> > V4L2 events? Likely yes.
-> 
-> You are missing one other option:
-> 
-> Using v4l2_buffer flags to report the clock
-> -------------------------------------------
-> 
-> By defining flags like this:
-> 
-> V4L2_BUF_FLAG_CLOCK_MASK	0x7000
-> /* Possible Clocks */
-> V4L2_BUF_FLAG_CLOCK_UNKNOWN	0x0000  /* system or monotonic, we don't know 
-*/
-> V4L2_BUF_FLAG_CLOCK_MONOTONIC   0x1000
-> 
-> you could tell the application which clock is used.
-> 
-> This does allow for more clocks to be added in the future and clock
-> selection would then be done by a control or possibly an ioctl. For now
-> there are no plans to do such things, so this flag should be sufficient.
-> And it can be implemented very efficiently. It works with existing drivers
-> as well, since they will report CLOCK_UNKNOWN.
-> 
-> I am very much in favor of this approach.
-> 
-> > Device-dependent timestamp
-> > --------------------------
-> > 
-> > Should we agree on selectable timestamps, the existing timestamp field (or
-> > a union with another field of different type) could be used for the
-> > device-dependent timestamps.
-> 
-> No. Device timestamps should get their own field. You want to be able to
-> relate device timestamps with the monotonic timestamps, so you need both.
-> > Alternatively we can choose to re-use the
-> > existing timecode field.
-> > 
-> > At the moment there's no known use case for passing device-dependent
-> > timestamps at the same time with monotonic timestamps.
-> 
-> Well, the use case is there, but there is no driver support. The device
-> timestamps should be 64 bits to accomodate things like PTS and DTS from
-> MPEG streams. Since timecode is 128 bits we might want to use two u64 fields
-> or perhaps 4 u32 fields.
-> 
-> > Now what?
-> > =========
-> > 
-> > Almost as many options have been presented as there were opinions, but we
-> > need to agree to have a single one. My personal leaning is on using a
-> > control for the purpose as it is the most flexible alternative. I'd still
-> > need to see an implementation of that but it doesn't seem that difficult,
-> > especially when it's read-only. And even for read-write control the vast
-> > majority of the work can be done by the V4L2 framework.
-> > 
-> > Questions, comments and opinions are very, very welcome.
-> 
-> Regards,
-> 
-> 	Hans
--- 
+>   comment "Flash devices"
+> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+> index 088a460..a720812 100644
+> --- a/drivers/media/i2c/Makefile
+> +++ b/drivers/media/i2c/Makefile
+> @@ -55,6 +55,7 @@ obj-$(CONFIG_VIDEO_MT9V032) += mt9v032.o
+>   obj-$(CONFIG_VIDEO_SR030PC30)	+= sr030pc30.o
+>   obj-$(CONFIG_VIDEO_NOON010PC30)	+= noon010pc30.o
+>   obj-$(CONFIG_VIDEO_S5K6AA)	+= s5k6aa.o
+> +obj-$(CONFIG_VIDEO_S5K4ECGX)	+= s5k4ecgx.o
+>   obj-$(CONFIG_VIDEO_ADP1653)	+= adp1653.o
+>   obj-$(CONFIG_VIDEO_AS3645A)	+= as3645a.o
+>   obj-$(CONFIG_VIDEO_SMIAPP_PLL)	+= smiapp-pll.o
+> diff --git a/drivers/media/i2c/s5k4ecgx.c b/drivers/media/i2c/s5k4ecgx.c
+> new file mode 100644
+> index 0000000..0f12d46
+> --- /dev/null
+> +++ b/drivers/media/i2c/s5k4ecgx.c
+> @@ -0,0 +1,1019 @@
+> +/*
+> + * Driver for s5k4ecgx (5MP Camera) from Samsung
+> + * a quarter-inch optical format 1.4 micron 5 megapixel (Mp)
+> + * CMOS image sensor.
+> + *
+> + * Copyright (C) 2012, Linaro, Sangwook Lee<sangwook.lee@linaro.org>
+> + * Copyright (C) 2012, Insignal Co,. Ltd,  Homin Lee<suapapa@insignal.co.kr>
+> + *
+> + * Based on s5k6aa, noon010pc30 driver
+> + * Copyright (C) 2011, Samsung Electronics Co., Ltd.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + */
+> +
+> +#include<linux/clk.h>
+> +#include<linux/crc32.h>
+> +#include<linux/ctype.h>
+> +#include<linux/delay.h>
+> +#include<linux/firmware.h>
+> +#include<linux/gpio.h>
+> +#include<linux/i2c.h>
+> +#include<linux/module.h>
+> +#include<linux/regulator/consumer.h>
+> +#include<linux/slab.h>
+> +#include<linux/vmalloc.h>
+
+What do we need this header for ?
+
+> +
+> +#include<media/media-entity.h>
+> +#include<media/s5k4ecgx.h>
+> +#include<media/v4l2-ctrls.h>
+> +#include<media/v4l2-device.h>
+> +#include<media/v4l2-mediabus.h>
+> +#include<media/v4l2-subdev.h>
+...
+> +
+> +static int s5k4ecgx_set_ahb_address(struct v4l2_subdev *sd)
+> +{
+> +	int ret;
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +
+> +	/* Set APB peripherals start address */
+> +	ret = s5k4ecgx_i2c_write(client, AHB_MSB_ADDR_PTR, GEN_REG_OFFSH);
+> +	if (ret)
+> +		return ret;
+> +	/*
+> +	 * FIXME: This is copied from s5k6aa, because of no information
+> +	 * in s5k4ecgx's datasheet.
+> +	 * sw_reset is activated to put device into idle status
+> +	 */
+> +	ret = s5k4ecgx_i2c_write(client, 0x0010, 0x0001);
+> +	if (ret)
+> +		return ret;
+> +
+> +	/* FIXME: no information available about this register */
+
+Let's drop that comment, we will fix all magic numbers once proper
+documentation is available.
+
+> +	ret = s5k4ecgx_i2c_write(client, 0x1030, 0x0000);
+> +	if (ret)
+> +		return ret;
+> +	/* Halt ARM CPU */
+> +	ret = s5k4ecgx_i2c_write(client, 0x0014, 0x0001);
+> +
+> +	return ret;
+
+Just do
+
+	return s5k4ecgx_i2c_write(client, 0x0014, 0x0001);
+> +}
+> +
+> +#define FW_HEAD 6
+> +/* Register address, value are 4, 2 bytes */
+> +#define FW_REG_SIZE 6
+
+FW_REG_SIZE is a bit confusing, maybe we could name this FW_RECORD_SIZE
+or something similar ?
+
+> +/*
+> + * Firmware has the following format:
+> + *<total number of records (4-bytes + 2-bytes padding) N>,<  record 0>,
+> + *<  record N - 1>,<  CRC32-CCITT (4-bytes)>
+> + * where "record" is a 4-byte register address followed by 2-byte
+> + * register value (little endian)
+> + */
+> +static int s5k4ecgx_load_firmware(struct v4l2_subdev *sd)
+> +{
+> +	const struct firmware *fw;
+> +	int err, i, regs_num;
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +	u16 val;
+> +	u32 addr, crc, crc_file, addr_inc = 0;
+> +	u8 *fwbuf;
+> +
+> +	err = request_firmware(&fw, S5K4ECGX_FIRMWARE, sd->v4l2_dev->dev);
+> +	if (err) {
+> +		v4l2_err(sd, "Failed to read firmware %s\n", S5K4ECGX_FIRMWARE);
+> +		goto fw_out1;
+
+return err; 
+
+?
+> +	}
+> +	fwbuf = kmemdup(fw->data, fw->size, GFP_KERNEL);
+
+Why do we need this kmemdup ? Couldn't we just use fw->data ?
+
+> +	if (!fwbuf) {
+> +		err = -ENOMEM;
+> +		goto fw_out2;
+> +	}
+> +	crc_file = *(u32 *)(fwbuf + regs_num * FW_REG_SIZE);
+
+regs_num is uninitialized ?
+
+> +	crc = crc32_le(~0, fwbuf, regs_num * FW_REG_SIZE);
+> +	if (crc != crc_file) {
+> +		v4l2_err(sd, "FW: invalid crc (%#x:%#x)\n", crc, crc_file);
+> +		err = -EINVAL;
+> +		goto fw_out3;
+> +	}
+> +	regs_num = *(u32 *)(fwbuf);
+
+I guess this needs to be moved up. I would make it 
+
+	regs_num = le32_to_cpu(*(u32 *)fw->data);
+
+And perhaps we need a check like:
+
+	if (fw->size < regs_num * FW_REG_SIZE)
+		return -EINVAL;
+?
+> +	v4l2_dbg(3, debug, sd, "FW: %s size %d register sets %d\n",
+> +		 S5K4ECGX_FIRMWARE, fw->size, regs_num);
+> +	regs_num++; /* Add header */
+> +	for (i = 1; i<  regs_num; i++) {
+> +		addr = *(u32 *)(fwbuf + i * FW_REG_SIZE);
+> +		val = *(u16 *)(fwbuf + i * FW_REG_SIZE + 4);
+
+I think you need to access addr and val through le32_to_cpu() as well, 
+even though your ARM system might be little-endian by default, this 
+driver could possibly be used on machines with different endianness.
+
+Something like this could be more optimal:
+
+	const u8 *ptr = fw->data + FW_REG_SIZE;
+
+	for (i = 1; i < regs_num; i++) {
+		addr = le32_to_cpu(*(u32 *)ptr);
+		ptr += 4;
+		val = le16_to_cpu(*(u16 *)ptr);
+		ptr += FW_REG_SIZE;
+	
+> +		if (addr - addr_inc != 2)
+> +			err = s5k4ecgx_write(client, addr, val);
+> +		else
+> +			err = s5k4ecgx_i2c_write(client, REG_CMDBUF0_ADDR, val);
+> +		if (err)
+> +			goto fw_out3;
+
+nit: break instead of goto ?
+
+> +		addr_inc = addr;
+> +	}
+> +fw_out3:
+> +	kfree(fwbuf);
+> +fw_out2:
+> +	release_firmware(fw);
+> +fw_out1:
+> +
+> +	return err;
+> +}
+...
+> +static int s5k4ecgx_init_sensor(struct v4l2_subdev *sd)
+> +{
+> +	int ret;
+> +
+> +	ret = s5k4ecgx_set_ahb_address(sd);
+> +	/* The delay is from manufacturer's settings */
+> +	msleep(100);
+> +
+> +	ret |= s5k4ecgx_load_firmware(sd);
+
+	if (!ret)
+		ret = s5k4ecgx_load_firmware(sd);
+	else
+?
+> +
+> +	if (ret)
+> +		v4l2_err(sd, "Failed to write initial settings\n");
+> +
+> +	return 0;
+
+	return ret; ?
+...
+> +module_i2c_driver(v4l2_i2c_driver);
+> +
+> +MODULE_DESCRIPTION("Samsung S5K4ECGX 5MP SOC camera");
+> +MODULE_AUTHOR("Sangwook Lee<sangwook.lee@linaro.org>");
+> +MODULE_AUTHOR("Seok-Young Jang<quartz.jang@samsung.com>");
+
+Was there anything really contributed by this person ? 
+
+> +MODULE_LICENSE("GPL");
+> +MODULE_FIRMWARE(S5K4ECGX_FIRMWARE);
+> diff --git a/include/media/s5k4ecgx.h b/include/media/s5k4ecgx.h
+> new file mode 100644
+> index 0000000..fbed5cb
+> --- /dev/null
+> +++ b/include/media/s5k4ecgx.h
+> @@ -0,0 +1,37 @@
+> +/*
+> + * S5K4ECGX image sensor header file
+> + *
+> + * Copyright (C) 2012, Linaro
+> + * Copyright (C) 2011, Samsung Electronics Co., Ltd.
+
+2011 -> 2012 ?
+
+Otherwise looks good. Would be interesting to add capture support
+to this driver later. I've seen it supports JPEG compressed stream,
+also with interleaved preview raw data inside it.
+
+We have similar problem with S5C73M3 sensor, you have to configure 
+two resolutions for JPEG and YUV for a single stream. Here you 
+additionally could choose from various preview "sub-stream" pixel 
+formats (YCBCR, RGB, etc.).
+
+--
+
 Regards,
-
-Laurent Pinchart
-
+Sylwester
