@@ -1,92 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3770 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753804Ab2IQKmy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Sep 2012 06:42:54 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: davinci-linux-open-source@linux.davincidsp.com
-Subject: Re: [PATCH] media: davinci: vpif: add check for NULL handler
-Date: Mon, 17 Sep 2012 12:41:41 +0200
-Cc: Prabhakar Lad <prabhakar.lad@ti.com>,
-	LMML <linux-media@vger.kernel.org>, linux-kernel@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <1345125720-24059-1-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1345125720-24059-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:55301 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754323Ab2IETqU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Sep 2012 15:46:20 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209171241.41203.hverkuil@xs4all.nl>
+In-Reply-To: <1346775269-12191-2-git-send-email-peter.senna@gmail.com>
+References: <1346775269-12191-2-git-send-email-peter.senna@gmail.com>
+Date: Wed, 5 Sep 2012 16:46:20 -0300
+Message-ID: <CALF0-+UiJy-mcB7U003dCqmQp2ziiTKrTehh3E-2C6FU2bfvkQ@mail.gmail.com>
+Subject: Re: [PATCH 4/5] drivers/media/platform/vino.c: fix error return code
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Peter Senna Tschudin <peter.senna@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu August 16 2012 16:02:00 Prabhakar Lad wrote:
-> From: Lad, Prabhakar <prabhakar.lad@ti.com>
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Peter,
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
-
+On Tue, Sep 4, 2012 at 1:14 PM, Peter Senna Tschudin
+<peter.senna@gmail.com> wrote:
+> From: Peter Senna Tschudin <peter.senna@gmail.com>
+>
+> Convert a nonnegative error return code to a negative one, as returned
+> elsewhere in the function.
+>
+> A simplified version of the semantic match that finds this problem is as
+> follows: (http://coccinelle.lip6.fr/)
+>
+> // <smpl>
+> (
+> if@p1 (\(ret < 0\|ret != 0\))
+>  { ... return ret; }
+> |
+> ret@p1 = 0
+> )
+> ... when != ret = e1
+>     when != &ret
+> *if(...)
+> {
+>   ... when != ret = e2
+>       when forall
+>  return ret;
+> }
+>
+> // </smpl>
+>
+> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+>
 > ---
->  drivers/media/video/davinci/vpif_capture.c |   12 +++++++-----
->  drivers/media/video/davinci/vpif_display.c |   14 ++++++++------
->  2 files changed, 15 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
-> index 266025e..a87b7a5 100644
-> --- a/drivers/media/video/davinci/vpif_capture.c
-> +++ b/drivers/media/video/davinci/vpif_capture.c
-> @@ -311,12 +311,14 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
->  	}
->  
->  	/* configure 1 or 2 channel mode */
-> -	ret = vpif_config_data->setup_input_channel_mode
-> -					(vpif->std_info.ycmux_mode);
-> +	if (vpif_config_data->setup_input_channel_mode) {
-> +		ret = vpif_config_data->setup_input_channel_mode
-> +						(vpif->std_info.ycmux_mode);
->  
-> -	if (ret < 0) {
-> -		vpif_dbg(1, debug, "can't set vpif channel mode\n");
-> -		return ret;
-> +		if (ret < 0) {
-> +			vpif_dbg(1, debug, "can't set vpif channel mode\n");
-> +			return ret;
-> +		}
->  	}
->  
->  	/* Call vpif_set_params function to set the parameters and addresses */
-> diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
-> index e129c98..1e35f92 100644
-> --- a/drivers/media/video/davinci/vpif_display.c
-> +++ b/drivers/media/video/davinci/vpif_display.c
-> @@ -280,12 +280,14 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
->  	}
->  
->  	/* clock settings */
-> -	ret =
-> -	    vpif_config_data->set_clock(ch->vpifparams.std_info.ycmux_mode,
-> -					ch->vpifparams.std_info.hd_sd);
-> -	if (ret < 0) {
-> -		vpif_err("can't set clock\n");
-> -		return ret;
-> +	if (vpif_config_data->set_clock) {
-> +		ret =
-> +		vpif_config_data->set_clock(ch->vpifparams.std_info.ycmux_mode,
-> +						ch->vpifparams.std_info.hd_sd);
-> +		if (ret < 0) {
-> +			vpif_err("can't set clock\n");
-> +			return ret;
-> +		}
->  	}
->  
->  	/* set the parameters and addresses */
-> 
+>  drivers/media/platform/vino.c |    1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/drivers/media/platform/vino.c b/drivers/media/platform/vino.c
+> index cc9110c..6654a28 100644
+> --- a/drivers/media/platform/vino.c
+> +++ b/drivers/media/platform/vino.c
+> @@ -2061,6 +2061,7 @@ static int vino_capture_next(struct vino_channel_settings *vcs, int start)
+>         }
+>         if (incoming == 0) {
+>                 dprintk("vino_capture_next(): no buffers available\n");
+> +               err = -ENOMEM;
+>                 goto out;
+>         }
+>
+
+Mmm, this one doesn't look good.
+
+I think the intention was to return zero, without error.
+They driver tt's just double-checking for incoming data, if there's no incoming
+data, then he simply exits.
+
+Thanks,
+Ezequiel.
