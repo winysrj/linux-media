@@ -1,94 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out.inet.fi ([195.156.147.13]:48779 "EHLO jenni2.inet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753860Ab2IBPUa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 2 Sep 2012 11:20:30 -0400
-Date: Sun, 2 Sep 2012 18:20:27 +0300
-From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCHv3 2/9] ir-rx51: Handle signals properly
-Message-ID: <20120902152027.GA5236@itanic.dhcp.inet.fi>
-References: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
- <1346349271-28073-3-git-send-email-timo.t.kokkonen@iki.fi>
- <20120901171420.GC6638@valkosipuli.retiisi.org.uk>
- <50437328.9050903@iki.fi>
- <504375FA.1030209@iki.fi>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:61607 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753955Ab2IETZc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Sep 2012 15:25:32 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <504375FA.1030209@iki.fi>
+In-Reply-To: <1346775269-12191-5-git-send-email-peter.senna@gmail.com>
+References: <1346775269-12191-5-git-send-email-peter.senna@gmail.com>
+Date: Wed, 5 Sep 2012 16:25:31 -0300
+Message-ID: <CALF0-+Vn33ZtY68JbKSbNbaqkSO6OOfA38Ejoz=Kkz5WmOSFjA@mail.gmail.com>
+Subject: Re: [PATCH 1/5] drivers/media/platform/davinci/vpbe.c: fix error
+ return code
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Peter Senna Tschudin <peter.senna@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09.02 2012 18:06:34, Sakari Ailus wrote:
-> Heippa,
-> 
-> Timo Kokkonen wrote:
-> > Terve,
-> >
-> > On 09/01/12 20:14, Sakari Ailus wrote:
-> >> Moi,
-> >>
-> >> On Thu, Aug 30, 2012 at 08:54:24PM +0300, Timo Kokkonen wrote:
-> >>> @@ -273,9 +281,18 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
-> >>>
-> >>>   	/*
-> >>>   	 * Don't return back to the userspace until the transfer has
-> >>> -	 * finished
-> >>> +	 * finished. However, we wish to not spend any more than 500ms
-> >>> +	 * in kernel. No IR code TX should ever take that long.
-> >>> +	 */
-> >>> +	i = wait_event_timeout(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0,
-> >>> +			HZ / 2);
-> >>
-> >> Why such an arbitrary timeout? In reality it might not bite the user space
-> >> in practice ever, but is it (and if so, why) really required in the first
-> >> place?
-> >
-> > Well, I can think of two cases:
-> >
-> > 1) Something goes wrong. Such before I converted the patch to use the up
-> > to date PM QoS implementation, the transmitting could take very long
-> > time because the interrupts were not waking up the MPU. Now that this is
-> > sorted out only unknown bugs can cause transmitting to hang indefinitely.
-> >
-> > 2) User is (intentionally?) doing something wrong. For example by
-> > feeding in an IR code that has got very long pulses, he could end up
-> > having the lircd process hung in kernel unkillable for long time. That
-> > could be avoided quite easily by counting the pulse lengths and
-> > rejecting any IR codes that are obviously too long. But since I'd like
-> > to also protect against 1) case, I think this solution works just fine.
-> >
-> > In the end, this is just safety measure that this driver behaves well.
-> 
-> In that case I think you should use wait_event_interruptible() instead. 
+Hi Peter,
 
-Well, that's what I had there in the first place. With interruptible
-wait we are left with problem with signals. I was told by Sean Young
-that the lirc API expects the write call to finish only after the IR
-code is transmitted.
+On Tue, Sep 4, 2012 at 1:14 PM, Peter Senna Tschudin
+<peter.senna@gmail.com> wrote:
+> From: Peter Senna Tschudin <peter.senna@gmail.com>
+>
+> Convert a nonnegative error return code to a negative one, as returned
+> elsewhere in the function.
+>
+> A simplified version of the semantic match that finds this problem is as
+> follows: (http://coccinelle.lip6.fr/)
+>
+> // <smpl>
+> (
+> if@p1 (\(ret < 0\|ret != 0\))
+>  { ... return ret; }
+> |
+> ret@p1 = 0
+> )
+> ... when != ret = e1
+>     when != &ret
+> *if(...)
+> {
+>   ... when != ret = e2
+>       when forall
+>  return ret;
+> }
+>
+> // </smpl>
+>
+> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+>
+> ---
+>  drivers/media/platform/davinci/vpbe.c |   13 ++++++-------
+>  1 file changed, 6 insertions(+), 7 deletions(-)
+>
+> diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
+> index c4a82a1..2e4a0da 100644
+> --- a/drivers/media/platform/davinci/vpbe.c
+> +++ b/drivers/media/platform/davinci/vpbe.c
+> @@ -603,7 +603,6 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+>         int output_index;
+>         int num_encoders;
+>         int ret = 0;
+> -       int err;
+>         int i;
+>
+>         /*
+> @@ -646,10 +645,10 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+>         }
+>         v4l2_info(&vpbe_dev->v4l2_dev, "vpbe v4l2 device registered\n");
+>
+> -       err = bus_for_each_dev(&platform_bus_type, NULL, vpbe_dev,
+> +       ret = bus_for_each_dev(&platform_bus_type, NULL, vpbe_dev,
+>                                platform_device_get);
+> -       if (err < 0)
+> -               return err;
+> +       if (ret < 0)
+> +               return ret;
 
-> It's not the driver's job to decide what the user can do with the 
-> hardware and what not, is it?
+This should be "goto somewhere" (probably vbpe_fail_v4l2_device),
+instead of "return".
+There are several tasks done (like locking a mutex) that need to be undone.
 
-Yeah, policy should be decided by the user space. However, kernel
-should not leave any objvious denial of service holes open
-either. Allowing a process to get stuck unkillable within kernel for
-long time sounds like one to me.
+Actually, this bug is not directly related to *this* patch, so you
+could send another patch
+fixing this.
 
-Anyway, we are trying to cover some rare corner cases here, I'm not
-sure how it should work exactly..
-
--Timo
-
-> 
-> Terveisin,
-> 
-> -- 
-> Sakari Ailus
-> sakari.ailus@iki.fi
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Ezequiel.
