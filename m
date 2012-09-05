@@ -1,67 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog105.obsmtp.com ([207.126.144.119]:40412 "EHLO
-	eu1sys200aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751738Ab2IKOBe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Sep 2012 10:01:34 -0400
-From: Nicolas THERY <nicolas.thery@st.com>
-To: Prashanth Subramanya <sprashanth@aptina.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"mchehab@infradead.org" <mchehab@infradead.org>,
-	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"s.nawrocki@samsung.com" <s.nawrocki@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"sakari.ailus@maxwell.research.nokia.com"
-	<sakari.ailus@maxwell.research.nokia.com>,
-	"scott.jiang.linux@gmail.com" <scott.jiang.linux@gmail.com>
-Date: Tue, 11 Sep 2012 16:00:23 +0200
-Subject: Re: [PATCH] drivers: media: video: Add support for Aptina ar0130
- sensor
-Message-ID: <504F43F7.10504@st.com>
-References: <1347010226-12546-1-git-send-email-sprashanth@aptina.com>
-In-Reply-To: <1347010226-12546-1-git-send-email-sprashanth@aptina.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:65385 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751340Ab2IEIEm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Sep 2012 04:04:42 -0400
+Received: by pbbrr13 with SMTP id rr13so528098pbb.19
+        for <linux-media@vger.kernel.org>; Wed, 05 Sep 2012 01:04:41 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <201208061535.59616.hverkuil@xs4all.nl>
+References: <20120713173708.GB17109@thunk.org>
+	<201208031110.35930.hverkuil@xs4all.nl>
+	<CAGA24M+7NTxhTW_aRdxJTjupfXORPEt5YxcoovCOsb_jSNTPrg@mail.gmail.com>
+	<201208061535.59616.hverkuil@xs4all.nl>
+Date: Wed, 5 Sep 2012 16:04:41 +0800
+Message-ID: <CAGA24MKVVfT7BDGus+spj9CZWctS1YLdvOM5eWOGBdgeGqmnHw@mail.gmail.com>
+Subject: Re: [Workshop-2011] Media summit/KS-2012 proposals
+From: Jun Nie <niej0001@gmail.com>
+To: workshop-2011@linuxtv.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGVsbG8sDQoNCkkndmUgc3BvdHRlZCBhIG1pbm9yIGlzc3VlIHdoaWxlIGdsYW5jaW5nIHRocm91
-Z2ggdGhlIGNvZGUuDQoNCkNoZWVycywNCk5pY29sYXMNCg0KT24gMjAxMi0wOS0wNyAxMTozMCwg
-UHJhc2hhbnRoIFN1YnJhbWFueWEgd3JvdGU6DQo+IFRoaXMgZHJpdmVyIGFkZHMgYmFzaWMgc3Vw
-cG9ydCBmb3IgQXB0aW5hIGFyMDEzMCAxLjJNIHNlbnNvci4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6
-IFByYXNoYW50aCBTdWJyYW1hbnlhIDxzcHJhc2hhbnRoQGFwdGluYS5jb20+DQo+IC0tLQ0KW3Nu
-aXBdDQo+ICsvKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqDQo+ICsgICAgICAgICAgICAgICB2NGwyX3N1YmRldl92aWRlb19vcHMNCj4gKyoqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKiovDQo+ICtzdGF0aWMg
-aW50IGFyMDEzMF9zX3N0cmVhbShzdHJ1Y3QgdjRsMl9zdWJkZXYgKnNkLCBpbnQgZW5hYmxlKQ0K
-PiArew0KPiArICAgICAgIHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQgPSB2NGwyX2dldF9zdWJk
-ZXZkYXRhKHNkKTsNCj4gKyAgICAgICBzdHJ1Y3QgYXIwMTMwX3ByaXYgKmFyMDEzMCA9IGNvbnRh
-aW5lcl9vZihzZCwNCj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHN0
-cnVjdCBhcjAxMzBfcHJpdiwgc3ViZGV2KTsNCj4gKyAgICAgICBpbnQgcmV0Ow0KPiArDQo+ICsg
-ICAgICAgaWYgKCFlbmFibGUpIHsNCj4gKyAgICAgICAgICAgICAgIHJldCA9IGFyMDEzMF93cml0
-ZShjbGllbnQsIEFSMDEzMF9SRVNFVF9SRUcsIEFSMDEzMF9TVFJFQU1fT0ZGKTsNCj4gKyAgICAg
-ICAgICAgICAgIHJldHVybiAwOw0KPiArICAgICAgIH0NCj4gKw0KPiArICAgICAgIHJldCA9IGFy
-MDEzMF9saW5lYXJfbW9kZV9zZXR1cChjbGllbnQpOw0KPiArICAgICAgIGlmIChyZXQgPCAwKSB7
-DQo+ICsgICAgICAgICAgICAgICBkZXZfZXJyKGFyMDEzMC0+c3ViZGV2LnY0bDJfZGV2LT5kZXYs
-DQo+ICsgICAgICAgICAgICAgICAgICAgICAgICJGYWlsZWQgdG8gc2V0dXAgbGluZWFyIG1vZGU6
-ICVkXG4iLCByZXQpOw0KPiArICAgICAgICAgICAgICAgcmV0dXJuIHJldDsNCj4gKyAgICAgICB9
-DQo+ICsNCj4gKyAgICAgICByZXQgPSBhcjAxMzBfc2V0X3Jlc29sdXRpb24oY2xpZW50LCBhcjAx
-MzAtPnJlc19pbmRleCk7DQo+ICsgICAgICAgaWYgKHJldCA8IDApIHsNCj4gKyAgICAgICAgICAg
-ICAgIGRldl9lcnIoYXIwMTMwLT5zdWJkZXYudjRsMl9kZXYtPmRldiwNCj4gKyAgICAgICAgICAg
-ICAgICAgICAgICAgIkZhaWxlZCB0byBzZXR1cCByZXNvbHV0aW9uOiAlZFxuIiwgcmV0KTsNCj4g
-KyAgICAgICAgICAgICAgIHJldHVybiByZXQ7DQo+ICsgICAgICAgfQ0KPiArDQo+ICsgICAgICAg
-cmV0IHw9IGFyMDEzMF93cml0ZShjbGllbnQsIEFSMDEzMF9SRVNFVF9SRUcsIEFSMDEzMF9TVFJF
-QU1fT0ZGKTsNCj4gKyAgICAgICByZXQgfD0gYXIwMTMwX3dyaXRlKGNsaWVudCwgQVIwMTMwX0hE
-Ul9DT01QLCAweDAwMDEpOw0KPiArDQo+ICsgICAgICAgcmV0ID0gYXIwMTMwX3BsbF9lbmFibGUo
-YXIwMTMwKTsNCg0KVGhlIHByZXZpb3VzIHZhbHVlIG9mIHJldCBpcyBvdmVyd3JpdHRlbiBoZXJl
-Lg0KDQo+ICsgICAgICAgaWYgKHJldCA8IDApIHsNCj4gKyAgICAgICAgICAgICAgIGRldl9lcnIo
-YXIwMTMwLT5zdWJkZXYudjRsMl9kZXYtPmRldiwNCj4gKyAgICAgICAgICAgICAgICAgICAgICAg
-IkZhaWxlZCB0byBlbmFibGUgcGxsOiAlZFxuIiwgcmV0KTsNCj4gKyAgICAgICAgICAgICAgIHJl
-dHVybiByZXQ7DQo+ICsgICAgICAgfQ0KPiArDQo+ICsgICAgICAgcmV0ICA9IGFyMDEzMF9zZXRf
-YXV0b2V4cG9zdXJlKGNsaWVudCwgQVIwMTMwX0VOQUJMRSk7DQo+ICsgICAgICAgcmV0IHw9IGFy
-MDEzMF93cml0ZShjbGllbnQsIEFSMDEzMF9SRVNFVF9SRUcsIEFSMDEzMF9TVFJFQU1fT04pOw0K
-PiArDQo+ICsgICAgICAgcmV0dXJuIHJldDsNCj4gK30=
+Is there any summary for this summit or presentation material? I am
+looking forward for some idea on CEC. It is really complex in
+functionality.
+Maybe other guys is expecting simiar fruite from summit too.
+
+B.R.
+Jun
