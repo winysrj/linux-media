@@ -1,69 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:60585 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932165Ab2IRIe0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Sep 2012 04:34:26 -0400
-Received: by obbuo13 with SMTP id uo13so10122668obb.19
-        for <linux-media@vger.kernel.org>; Tue, 18 Sep 2012 01:34:25 -0700 (PDT)
+Received: from moutng.kundenserver.de ([212.227.126.187]:53299 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750999Ab2IEI31 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Sep 2012 04:29:27 -0400
+Date: Wed, 5 Sep 2012 10:29:24 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: javier Martin <javier.martin@vista-silicon.com>
+cc: linux-media@vger.kernel.org, fabio.estevam@freescale.com,
+	laurent.pinchart@ideasonboard.com, mchehab@infradead.org
+Subject: Re: [PATCH v3] media: mx2_camera: Don't modify non volatile parameters
+ in try_fmt.
+In-Reply-To: <Pine.LNX.4.64.1209051016360.16676@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1209051028380.16676@axis700.grange>
+References: <1345456164-12995-1-git-send-email-javier.martin@vista-silicon.com>
+ <CACKLOr1HLSvvz8Bs_qgHuF1qjshwnsXqtcuS3q5uWmGhTkpxkg@mail.gmail.com>
+ <Pine.LNX.4.64.1209051016360.16676@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <20120918074315.GH1338@S2101-09.ap.freescale.net>
-References: <1347860103-4141-1-git-send-email-shawn.guo@linaro.org>
-	<1347860103-4141-28-git-send-email-shawn.guo@linaro.org>
-	<Pine.LNX.4.64.1209171110580.1689@axis700.grange>
-	<CACKLOr1pa+kskDjFVJ6N++f4i5NMyEtjFELqrwqvaPR4ErXiNA@mail.gmail.com>
-	<20120918074315.GH1338@S2101-09.ap.freescale.net>
-Date: Tue, 18 Sep 2012 10:34:25 +0200
-Message-ID: <CACKLOr0C_x1qmN2bnw5cPFxPRRsJ5qNvvyLxdiQkoDyq76B3gQ@mail.gmail.com>
-Subject: Re: [PATCH 27/34] media: mx2_camera: use managed functions to clean
- up code
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Shawn Guo <shawn.guo@linaro.org>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shawn,
+On Wed, 5 Sep 2012, Guennadi Liakhovetski wrote:
 
-On 18 September 2012 09:43, Shawn Guo <shawn.guo@linaro.org> wrote:
-> On Mon, Sep 17, 2012 at 03:36:07PM +0200, javier Martin wrote:
->> This patch breaks the driver:
->>
-> Javier,
->
-> Can you please apply the following change to see if it fixes the
-> problem?
->
-> Shawn
->
-> @@ -1783,6 +1783,8 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
->                         goto exit;
->         }
->
-> +       platform_set_drvdata(pdev, NULL);
-> +
->         pcdev->soc_host.drv_name        = MX2_CAM_DRV_NAME,
->         pcdev->soc_host.ops             = &mx2_soc_camera_host_ops,
->         pcdev->soc_host.priv            = pcdev;
+> Hi Javier
+> 
+> On Mon, 3 Sep 2012, javier Martin wrote:
+> 
+> > Hi,
+> > Guennadi,did you pick this one?
+> 
+> Wanted to do so, but
 
-Yes. That fixes the problem.
+I've applied this your patch with only that "memset()" line additionally 
+removed. If this is ok with you, no need to re-send.
 
-With this fix:
+Thanks
+Guennadi
 
-Tested-by: Javier Martin <javier.martin@vista-silicon.com>
+> > Regards.
+> > 
+> > On 20 August 2012 11:49, Javier Martin <javier.martin@vista-silicon.com> wrote:
+> > > Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+> > > ---
+> > > Changes since v2:
+> > >  - Add Signed-off-by line.
+> > >
+> > > ---
+> > >  drivers/media/video/mx2_camera.c |    5 +++--
+> > >  1 file changed, 3 insertions(+), 2 deletions(-)
+> > >
+> > > diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+> > > index 2a33bcb..88dcae6 100644
+> > > --- a/drivers/media/video/mx2_camera.c
+> > > +++ b/drivers/media/video/mx2_camera.c
+> > > @@ -1385,6 +1385,7 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
+> > >         __u32 pixfmt = pix->pixelformat;
+> > >         struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+> > >         struct mx2_camera_dev *pcdev = ici->priv;
+> > > +       struct mx2_fmt_cfg *emma_prp;
+> > >         unsigned int width_limit;
+> > >         int ret;
+> > >
+> > > @@ -1447,12 +1448,12 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
+> > >                 __func__, pcdev->s_width, pcdev->s_height);
+> > >
+> > >         /* If the sensor does not support image size try PrP resizing */
+> > > -       pcdev->emma_prp = mx27_emma_prp_get_format(xlate->code,
+> > > +       emma_prp = mx27_emma_prp_get_format(xlate->code,
+> > >                                                    xlate->host_fmt->fourcc);
+> > >
+> > >         memset(pcdev->resizing, 0, sizeof(pcdev->resizing));
+> 
+> Doesn't the above line also have to be removed?
+> 
+> Thanks
+> Guennadi
+> 
+> > >         if ((mf.width != pix->width || mf.height != pix->height) &&
+> > > -               pcdev->emma_prp->cfg.in_fmt == PRP_CNTL_DATA_IN_YUV422) {
+> > > +               emma_prp->cfg.in_fmt == PRP_CNTL_DATA_IN_YUV422) {
+> > >                 if (mx2_emmaprp_resize(pcdev, &mf, pix, false) < 0)
+> > >                         dev_dbg(icd->parent, "%s: can't resize\n", __func__);
+> > >         }
+> > > --
+> > > 1.7.9.5
+> 
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> 
 
-Regards.
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
