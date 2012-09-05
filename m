@@ -1,53 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:45885 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755013Ab2ILJip (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Sep 2012 05:38:45 -0400
-Received: by obbuo13 with SMTP id uo13so2300863obb.19
-        for <linux-media@vger.kernel.org>; Wed, 12 Sep 2012 02:38:44 -0700 (PDT)
+Received: from moutng.kundenserver.de ([212.227.17.10]:59196 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750929Ab2IEIRc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Sep 2012 04:17:32 -0400
+Date: Wed, 5 Sep 2012 10:17:28 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: javier Martin <javier.martin@vista-silicon.com>
+cc: linux-media@vger.kernel.org, fabio.estevam@freescale.com,
+	laurent.pinchart@ideasonboard.com, mchehab@infradead.org
+Subject: Re: [PATCH v3] media: mx2_camera: Don't modify non volatile parameters
+ in try_fmt.
+In-Reply-To: <CACKLOr1HLSvvz8Bs_qgHuF1qjshwnsXqtcuS3q5uWmGhTkpxkg@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1209051016360.16676@axis700.grange>
+References: <1345456164-12995-1-git-send-email-javier.martin@vista-silicon.com>
+ <CACKLOr1HLSvvz8Bs_qgHuF1qjshwnsXqtcuS3q5uWmGhTkpxkg@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <D5ECB3C7A6F99444980976A8C6D896384FB084B206@EAPEX1MAIL1.st.com>
-References: <D5ECB3C7A6F99444980976A8C6D896384FB084B206@EAPEX1MAIL1.st.com>
-Date: Wed, 12 Sep 2012 17:38:44 +0800
-Message-ID: <CAHG8p1DnP_=AwS6t8LAftFu=OyWAjX5hp=sYcQD4kpJ7fAaDRg@mail.gmail.com>
-Subject: Re: Using MMAP calls on a video capture device having underlying
- NOMMU arch
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: Bhupesh SHARMA <bhupesh.sharma@st.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Armando VISCONTI <armando.visconti@st.com>,
-	Shiraz HASHIM <shiraz.hashim@st.com>,
-	"m.szyprowski@samsung.com" <m.szyprowski@samsung.com>,
-	uclinux-dist-devel@blackfin.uclinux.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->
-> Now, I see that the requested videobuffers are correctly allocated via 'vb2_dma_contig_alloc'
-> call (see [3] for reference). But the MMAP call fails in 'vb2_dma_contig_alloc' function
-> in mm/nommu.c (see [4] for reference) when it tries to make the following check:
->
->         if (addr != (pfn << PAGE_SHIFT))
->                 return -EINVAL;
->
-> I address Scott also, as I see that he has worked on the Blackfin v4l2 capture driver using
-> DMA contiguous method and may have seen this issue (on a NOMMU system) with a v4l2 application
-> performing a MMAP operation.
->
-> Any comments on what I could be doing wrong here?
->
+Hi Javier
 
-int remap_pfn_range(struct vm_area_struct *vma, unsigned long addr,
-                unsigned long pfn, unsigned long size, pgprot_t prot)
-{
-        if ((addr & PAGE_MASK) != (pfn << PAGE_SHIFT))
-                return -EINVAL;
+On Mon, 3 Sep 2012, javier Martin wrote:
 
-        vma->vm_flags |= VM_IO | VM_RESERVED | VM_PFNMAP;
-        return 0;
-}
+> Hi,
+> Guennadi,did you pick this one?
 
-This patch seems not in current kernel. Hope it can resolve your problem.
+Wanted to do so, but
+
+> Regards.
+> 
+> On 20 August 2012 11:49, Javier Martin <javier.martin@vista-silicon.com> wrote:
+> > Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+> > ---
+> > Changes since v2:
+> >  - Add Signed-off-by line.
+> >
+> > ---
+> >  drivers/media/video/mx2_camera.c |    5 +++--
+> >  1 file changed, 3 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+> > index 2a33bcb..88dcae6 100644
+> > --- a/drivers/media/video/mx2_camera.c
+> > +++ b/drivers/media/video/mx2_camera.c
+> > @@ -1385,6 +1385,7 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
+> >         __u32 pixfmt = pix->pixelformat;
+> >         struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+> >         struct mx2_camera_dev *pcdev = ici->priv;
+> > +       struct mx2_fmt_cfg *emma_prp;
+> >         unsigned int width_limit;
+> >         int ret;
+> >
+> > @@ -1447,12 +1448,12 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
+> >                 __func__, pcdev->s_width, pcdev->s_height);
+> >
+> >         /* If the sensor does not support image size try PrP resizing */
+> > -       pcdev->emma_prp = mx27_emma_prp_get_format(xlate->code,
+> > +       emma_prp = mx27_emma_prp_get_format(xlate->code,
+> >                                                    xlate->host_fmt->fourcc);
+> >
+> >         memset(pcdev->resizing, 0, sizeof(pcdev->resizing));
+
+Doesn't the above line also have to be removed?
+
+Thanks
+Guennadi
+
+> >         if ((mf.width != pix->width || mf.height != pix->height) &&
+> > -               pcdev->emma_prp->cfg.in_fmt == PRP_CNTL_DATA_IN_YUV422) {
+> > +               emma_prp->cfg.in_fmt == PRP_CNTL_DATA_IN_YUV422) {
+> >                 if (mx2_emmaprp_resize(pcdev, &mf, pix, false) < 0)
+> >                         dev_dbg(icd->parent, "%s: can't resize\n", __func__);
+> >         }
+> > --
+> > 1.7.9.5
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
