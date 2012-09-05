@@ -1,84 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 173-166-109-252-newengland.hfc.comcastbusiness.net ([173.166.109.252]:33483
-	"EHLO bombadil.infradead.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754475Ab2IZUUY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Sep 2012 16:20:24 -0400
-Date: Wed, 26 Sep 2012 17:20:16 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Manjunath Hadli <manjunath.hadli@ti.com>
-Cc: Dror Cohen <dror@liveu.tv>, <linux-media@vger.kernel.org>,
-	<davinci-linux-open-source@linux.davincidsp.com>
-Subject: Re: [PATCH 0/1 v2] media/video: vpif: fixing function name start to
- vpif_config_params
-Message-ID: <20120926172016.3b6b23c4@infradead.org>
-In-Reply-To: <50290B89.7070100@ti.com>
-References: <1344494017-18099-1-git-send-email-dror@liveu.tv>
-	<50290B89.7070100@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:41315 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750826Ab2IEL2R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Sep 2012 07:28:17 -0400
+Received: by mail-pz0-f46.google.com with SMTP id y13so300122dad.19
+        for <linux-media@vger.kernel.org>; Wed, 05 Sep 2012 04:28:16 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, g.liakhovetski@gmx.de
+Subject: [PATCH 2/2] [media] soc_camera: Use module_platform_driver macro
+Date: Wed,  5 Sep 2012 16:55:27 +0530
+Message-Id: <1346844327-5524-2-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1346844327-5524-1-git-send-email-sachin.kamat@linaro.org>
+References: <1346844327-5524-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 13 Aug 2012 19:43:29 +0530
-Manjunath Hadli <manjunath.hadli@ti.com> escreveu:
+module_platform_driver simplifies the code by eliminating
+module_init and module_exit calls.
 
-> Hi Dror,
-> 
-> Thanks for the patch.
-> 
-> Mauro,
-> 
-> I'll queue this patch for v3.7 through my tree.
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/platform/soc_camera/soc_camera.c |   13 +------------
+ 1 files changed, 1 insertions(+), 12 deletions(-)
 
-Sure.
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index acf5289..4c7d509 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1575,18 +1575,7 @@ static struct platform_driver __refdata soc_camera_pdrv = {
+ 	},
+ };
+ 
+-static int __init soc_camera_init(void)
+-{
+-	return platform_driver_register(&soc_camera_pdrv);
+-}
+-
+-static void __exit soc_camera_exit(void)
+-{
+-	platform_driver_unregister(&soc_camera_pdrv);
+-}
+-
+-module_init(soc_camera_init);
+-module_exit(soc_camera_exit);
++module_platform_driver(soc_camera_pdrv);
+ 
+ MODULE_DESCRIPTION("Image capture bus driver");
+ MODULE_AUTHOR("Guennadi Liakhovetski <kernel@pengutronix.de>");
+-- 
+1.7.4.1
 
-> 
-> On Thursday 09 August 2012 12:03 PM, Dror Cohen wrote:
-> > This patch address the issue that a function named config_vpif_params should
-> > be vpif_config_params. However this name is shared with two structures defined
-> > already. So I changed the structures to config_vpif_params (origin was
-> > vpif_config_params)
-> >
-> > v2 changes: softer wording in description and the structs are now
-> > defined without _t
-
-Hmm... I didn't understand what you're wanting with this change. Before this patch,
-there are:
-
-v4l@pedra ~/v4l/patchwork $ git grep config_vpif_params
-drivers/media/platform/davinci/vpif.c:/* config_vpif_params
-drivers/media/platform/davinci/vpif.c:static void config_vpif_params(struct vpif_params *vpifparams,
-drivers/media/platform/davinci/vpif.c:    config_vpif_params(vpifparams, channel_id, found);
-v4l@pedra ~/v4l/patchwork $ git grep vpif_config_params
-drivers/media/platform/davinci/vpif_capture.c:static struct vpif_config_params config_params = {
-drivers/media/platform/davinci/vpif_capture.h:struct vpif_config_params {
-drivers/media/platform/davinci/vpif_display.c:static struct vpif_config_params config_params = {
-drivers/media/platform/davinci/vpif_display.h:struct vpif_config_params {
-
-After that, there are:
-
-v4l@pedra ~/v4l/patchwork $ git grep vpif_config_params
-drivers/media/platform/davinci/vpif.c:/* vpif_config_params
-drivers/media/platform/davinci/vpif.c:static void vpif_config_params(struct vpif_params *vpifparams,
-drivers/media/platform/davinci/vpif.c:    vpif_config_params(vpifparams, channel_id, found);
-v4l@pedra ~/v4l/patchwork $ git grep config_vpif_params
-drivers/media/platform/davinci/vpif_capture.c:static struct config_vpif_params config_params = {
-drivers/media/platform/davinci/vpif_capture.h:struct config_vpif_params {
-drivers/media/platform/davinci/vpif_display.c:static struct config_vpif_params config_params = {
-drivers/media/platform/davinci/vpif_display.h:struct config_vpif_params {
-
-So, I can't really see any improvement on avoiding duplicate names.
-
-IMHO, the better would be to name those functions as:
-
-vpif:		vpif_config_params (or, even better, vpif_core_config_params)
-vpif_capture:	vpif_capture_config_params
-vpif_display:	vpif_display_config_params
-
-This way, duplication will be avoided and will avoid the confusing inversion between
-vpif and config.
-
-Regards,
-Mauro
