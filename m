@@ -1,27 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55475 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750894Ab2IPB2H (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Sep 2012 21:28:07 -0400
-Message-ID: <50552B14.4050801@iki.fi>
-Date: Sun, 16 Sep 2012 04:27:48 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: =?UTF-8?B?UsOpbWkgQ2FyZG9uYQ==?= <remi.cardona@smartjog.com>
-CC: linux-media@vger.kernel.org, liplianin@me.by
-Subject: Re: [PATCH 1/6] [media] ds3000: Declare MODULE_FIRMWARE usage
-References: <1347614846-19046-1-git-send-email-remi.cardona@smartjog.com> <1347614846-19046-2-git-send-email-remi.cardona@smartjog.com>
-In-Reply-To: <1347614846-19046-2-git-send-email-remi.cardona@smartjog.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:43127 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755379Ab2IFPYN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2012 11:24:13 -0400
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 12/14] drivers/media/usb/tm6000/tm6000-video.c: fix error return code
+Date: Thu,  6 Sep 2012 17:23:49 +0200
+Message-Id: <1346945041-26676-2-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/14/2012 12:27 PM, Rémi Cardona wrote:
-> Signed-off-by: Rémi Cardona <remi.cardona@smartjog.com>
+From: Peter Senna Tschudin <peter.senna@gmail.com>
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+Convert a nonnegative error return code to a negative one, as returned
+elsewhere in the function.
 
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
--- 
-http://palosaari.fi/
+// <smpl>
+(
+if@p1 (\(ret < 0\|ret != 0\))
+ { ... return ret; }
+|
+ret@p1 = 0
+)
+... when != ret = e1
+    when != &ret
+*if(...)
+{
+  ... when != ret = e2
+      when forall
+ return ret;
+}
+
+// </smpl>
+
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+
+---
+ drivers/media/usb/tm6000/tm6000-video.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
+index 45ed59c..12cc59c 100644
+--- a/drivers/media/usb/tm6000/tm6000-video.c
++++ b/drivers/media/usb/tm6000/tm6000-video.c
+@@ -1802,6 +1802,7 @@ int tm6000_v4l2_register(struct tm6000_core *dev)
+ 		if (!dev->radio_dev) {
+ 			printk(KERN_INFO "%s: can't register radio device\n",
+ 			       dev->name);
++			ret = -ENXIO;
+ 			return ret; /* FIXME release resource */
+ 		}
+ 
+
