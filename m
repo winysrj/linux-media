@@ -1,53 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:42428 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754330Ab2IISBx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Sep 2012 14:01:53 -0400
-Received: by mail-ee0-f46.google.com with SMTP id c1so640416eek.19
-        for <linux-media@vger.kernel.org>; Sun, 09 Sep 2012 11:01:52 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: hdegoede@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 5/6] gspca_pac7302: avoid duplicate calls of the image quality adjustment functions on capturing start
-Date: Sun,  9 Sep 2012 20:02:23 +0200
-Message-Id: <1347213744-8509-5-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1347213744-8509-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1347213744-8509-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:43127 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757743Ab2IFPYQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2012 11:24:16 -0400
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 8/14] drivers/media/pci/ttpci/budget-av.c: fix error return code
+Date: Thu,  6 Sep 2012 17:23:53 +0200
+Message-Id: <1346945041-26676-6-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is no need to call the image quality adjustment functions in sd_start.
-The gspca main driver calls v4l2_ctrl_handler_setup in gspca_init_transfer,
-which already applies all image control values.
+From: Peter Senna Tschudin <peter.senna@gmail.com>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Convert a nonnegative error return code to a negative one, as returned
+elsewhere in the function.
+
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
+
+// <smpl>
+(
+if@p1 (\(ret < 0\|ret != 0\))
+ { ... return ret; }
+|
+ret@p1 = 0
+)
+... when != ret = e1
+    when != &ret
+*if(...)
+{
+  ... when != ret = e2
+      when forall
+ return ret;
+}
+
+// </smpl>
+
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+
 ---
- drivers/media/usb/gspca/pac7302.c |    8 --------
- 1 files changed, 0 insertions(+), 8 deletions(-)
+ drivers/media/pci/ttpci/budget-av.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/gspca/pac7302.c b/drivers/media/usb/gspca/pac7302.c
-index bed34df..71fa5a4 100644
---- a/drivers/media/usb/gspca/pac7302.c
-+++ b/drivers/media/usb/gspca/pac7302.c
-@@ -673,14 +673,6 @@ static int sd_start(struct gspca_dev *gspca_dev)
+diff --git a/drivers/media/pci/ttpci/budget-av.c b/drivers/media/pci/ttpci/budget-av.c
+index 12ddb53..1f8b1bb 100644
+--- a/drivers/media/pci/ttpci/budget-av.c
++++ b/drivers/media/pci/ttpci/budget-av.c
+@@ -1477,8 +1477,8 @@ static int budget_av_attach(struct saa7146_dev *dev, struct saa7146_pci_extensio
  
- 	reg_w_var(gspca_dev, start_7302,
- 		page3_7302, sizeof(page3_7302));
--	setbrightcont(gspca_dev);
--	setcolors(gspca_dev);
--	setwhitebalance(gspca_dev);
--	setredbalance(gspca_dev);
--	setbluebalance(gspca_dev);
--	setexposure(gspca_dev);
--	setgain(gspca_dev);
--	sethvflip(gspca_dev);
- 
- 	sd->sof_read = 0;
- 	sd->autogain_ignore_frames = 0;
--- 
-1.7.7
+ 	if (saa7113_init(budget_av) == 0) {
+ 		budget_av->has_saa7113 = 1;
+-
+-		if (0 != saa7146_vv_init(dev, &vv_data)) {
++		err = saa7146_vv_init(dev, &vv_data);
++		if (err != 0) {
+ 			/* fixme: proper cleanup here */
+ 			ERR("cannot init vv subsystem\n");
+ 			return err;
 
