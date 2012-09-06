@@ -1,51 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33888 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754763Ab2IBWo4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 2 Sep 2012 18:44:56 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] mxl5005s: implement get_if_frequency()
-Date: Mon,  3 Sep 2012 01:44:31 +0300
-Message-Id: <1346625871-28301-1-git-send-email-crope@iki.fi>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:49110 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757859Ab2IFPYT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2012 11:24:19 -0400
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 3/14] drivers/media/platform/blackfin/bfin_capture.c: fix error return code
+Date: Thu,  6 Sep 2012 17:23:58 +0200
+Message-Id: <1346945041-26676-11-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/mxl5005s.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+From: Peter Senna Tschudin <peter.senna@gmail.com>
 
-diff --git a/drivers/media/tuners/mxl5005s.c b/drivers/media/tuners/mxl5005s.c
-index 6133315..b473b76 100644
---- a/drivers/media/tuners/mxl5005s.c
-+++ b/drivers/media/tuners/mxl5005s.c
-@@ -4054,6 +4054,16 @@ static int mxl5005s_get_bandwidth(struct dvb_frontend *fe, u32 *bandwidth)
- 	return 0;
- }
+Convert a nonnegative error return code to a negative one, as returned
+elsewhere in the function.
+
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
+
+// <smpl>
+(
+if@p1 (\(ret < 0\|ret != 0\))
+ { ... return ret; }
+|
+ret@p1 = 0
+)
+... when != ret = e1
+    when != &ret
+*if(...)
+{
+  ... when != ret = e2
+      when forall
+ return ret;
+}
+
+// </smpl>
+
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+
+---
+ drivers/media/platform/blackfin/bfin_capture.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index 1677623..cb2eb26 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -968,6 +968,7 @@ static int __devinit bcap_probe(struct platform_device *pdev)
+ 	if (!i2c_adap) {
+ 		v4l2_err(&bcap_dev->v4l2_dev,
+ 				"Unable to find i2c adapter\n");
++		ret = -ENODEV;
+ 		goto err_unreg_vdev;
  
-+static int mxl5005s_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
-+{
-+	struct mxl5005s_state *state = fe->tuner_priv;
-+	dprintk(1, "%s()\n", __func__);
-+
-+	*frequency = state->IF_OUT;
-+
-+	return 0;
-+}
-+
- static int mxl5005s_release(struct dvb_frontend *fe)
- {
- 	dprintk(1, "%s()\n", __func__);
-@@ -4076,6 +4086,7 @@ static const struct dvb_tuner_ops mxl5005s_tuner_ops = {
- 	.set_params    = mxl5005s_set_params,
- 	.get_frequency = mxl5005s_get_frequency,
- 	.get_bandwidth = mxl5005s_get_bandwidth,
-+	.get_if_frequency = mxl5005s_get_if_frequency,
- };
- 
- struct dvb_frontend *mxl5005s_attach(struct dvb_frontend *fe,
--- 
-1.7.11.4
+ 	}
 
