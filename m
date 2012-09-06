@@ -1,109 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.10]:43730 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756090Ab2I0Wwv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Sep 2012 18:52:51 -0400
-From: Anatolij Gustschin <agust@denx.de>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] mt9v022: support required register settings in snapshot mode
-Date: Fri, 28 Sep 2012 00:52:42 +0200
-Message-Id: <1348786362-28586-1-git-send-email-agust@denx.de>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1387 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751128Ab2IFGh0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2012 02:37:26 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Jun Nie <niej0001@gmail.com>
+Subject: Re: [Workshop-2011] Media summit/KS-2012 proposals
+Date: Thu, 6 Sep 2012 08:36:42 +0200
+Cc: workshop-2011@linuxtv.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <20120713173708.GB17109@thunk.org> <201209051028.30258.hverkuil@xs4all.nl> <CAGA24MKyr_N2Upns9FaZ9Q+Yegs0DDeHVfm_EWZQQN=Auky8Ow@mail.gmail.com>
+In-Reply-To: <CAGA24MKyr_N2Upns9FaZ9Q+Yegs0DDeHVfm_EWZQQN=Auky8Ow@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201209060836.42059.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some camera systems cannot operate mt9v022 in normal mode and use
-only the snapshot mode. The TechNote for mt9v022 (TN0960) and mt9v024
-(TN-09-225) describes required register settings when configuring the
-snapshot operation. The snapshot mode requires that certain automatic
-functions of the image sensor should be disabled or set to fixed values.
+On Thu September 6 2012 06:09:44 Jun Nie wrote:
+> 2012/9/5 Hans Verkuil <hverkuil@xs4all.nl>:
+> > On Wed 5 September 2012 10:04:41 Jun Nie wrote:
+> >> Is there any summary for this summit or presentation material? I am
+> >> looking forward for some idea on CEC. It is really complex in
+> >> functionality.
+> >> Maybe other guys is expecting simiar fruite from summit too.
+> >
+> > Yes, there will be a summit report. It's not quite finished yet, I think.
+> >
+> > With respect to CEC we had some useful discussions. It will have to be a
+> > new class of device (/dev/cecX), so the userspace API will be separate from
+> > drm or v4l.
+> >
+> > And the kernel will have to take care of the core CEC protocol w.r.t. control
+> > and discovery due to the HDMI 1.4a requirements.
+> >
+> > I plan on starting work on this within 1-2 weeks.
+> >
+> > My CEC presentation can be found here:
+> >
+> > http://hverkuil.home.xs4all.nl/presentations/v4l2-workshop-cec.odp
+> >
+> > Regards,
+> >
+> >         Hans
+> 
+> Thanks for quick response! It's good to know that CEC is independent
+> with DRM/V4L for my HDMI implementation is FB/lcd-device based. CEC is
+> also deserved to have independent management in both hardware signal
+> and functionality. Someone also expressed similar thoughts before.
+> Will remote control protocal parsing are done in userspace reference
+> library? Or not decided yet?
 
-According to the TechNote bit 2 and bit 9 in the register 0x20 must be
-set in snapshot mode and unset for normal operation. This applies for
-mt9v022 Rev.3 and mt9v024. Add required reg. 0x20 settings dependent on
-sensor chip version.
+Are you referring to the remote control pass-through functionality?
+I don't know yet whether that will go through a userspace library or
+through the RC kernel subsystem, or possibly both.
 
-Signed-off-by: Anatolij Gustschin <agust@denx.de>
----
- drivers/media/i2c/soc_camera/mt9v022.c |   31 ++++++++++++++++++++++++++++---
- 1 files changed, 28 insertions(+), 3 deletions(-)
+Most of the other non-system messages will go to a userspace library.
 
-diff --git a/drivers/media/i2c/soc_camera/mt9v022.c b/drivers/media/i2c/soc_camera/mt9v022.c
-index 8feaddc..2abe999 100644
---- a/drivers/media/i2c/soc_camera/mt9v022.c
-+++ b/drivers/media/i2c/soc_camera/mt9v022.c
-@@ -51,6 +51,7 @@ MODULE_PARM_DESC(sensor_type, "Sensor type: \"colour\" or \"monochrome\"");
- #define MT9V022_PIXEL_OPERATION_MODE	0x0f
- #define MT9V022_LED_OUT_CONTROL		0x1b
- #define MT9V022_ADC_MODE_CONTROL	0x1c
-+#define MT9V022_REG32			0x20
- #define MT9V022_ANALOG_GAIN		0x35
- #define MT9V022_BLACK_LEVEL_CALIB_CTRL	0x47
- #define MT9V022_PIXCLK_FV_LV		0x74
-@@ -79,7 +80,8 @@ MODULE_PARM_DESC(sensor_type, "Sensor type: \"colour\" or \"monochrome\"");
- #define MT9V022_VERTICAL_BLANKING_MAX	3000
- #define MT9V022_VERTICAL_BLANKING_DEF	45
- 
--#define is_mt9v024(id) (id == 0x1324)
-+#define is_mt9v022_rev3(id)	(id == 0x1313)
-+#define is_mt9v024(id)		(id == 0x1324)
- 
- /* MT9V022 has only one fixed colorspace per pixelcode */
- struct mt9v022_datafmt {
-@@ -153,6 +155,7 @@ struct mt9v022 {
- 	int num_fmts;
- 	int model;	/* V4L2_IDENT_MT9V022* codes from v4l2-chip-ident.h */
- 	u16 chip_control;
-+	u16 chip_version;
- 	unsigned short y_skip_top;	/* Lines to skip at the top */
- };
- 
-@@ -235,12 +238,32 @@ static int mt9v022_s_stream(struct v4l2_subdev *sd, int enable)
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct mt9v022 *mt9v022 = to_mt9v022(client);
- 
--	if (enable)
-+	if (enable) {
- 		/* Switch to master "normal" mode */
- 		mt9v022->chip_control &= ~0x10;
--	else
-+		if (is_mt9v022_rev3(mt9v022->chip_version) ||
-+		    is_mt9v024(mt9v022->chip_version)) {
-+			/*
-+			 * Unset snapshot mode specific settings: clear bit 9
-+			 * and bit 2 in reg. 0x20 when in normal mode.
-+			 */
-+			if (reg_clear(client, MT9V022_REG32, 0x204))
-+				return -EIO;
-+		}
-+	} else {
- 		/* Switch to snapshot mode */
- 		mt9v022->chip_control |= 0x10;
-+		if (is_mt9v022_rev3(mt9v022->chip_version) ||
-+		    is_mt9v024(mt9v022->chip_version)) {
-+			/*
-+			 * Required settings for snapshot mode: set bit 9
-+			 * (RST enable) and bit 2 (CR enable) in reg. 0x20
-+			 * See TechNote TN0960 or TN-09-225.
-+			 */
-+			if (reg_set(client, MT9V022_REG32, 0x204))
-+				return -EIO;
-+		}
-+	}
- 
- 	if (reg_write(client, MT9V022_CHIP_CONTROL, mt9v022->chip_control) < 0)
- 		return -EIO;
-@@ -652,6 +675,8 @@ static int mt9v022_video_probe(struct i2c_client *client)
- 		goto ei2c;
- 	}
- 
-+	mt9v022->chip_version = data;
-+
- 	mt9v022->reg = is_mt9v024(data) ? &mt9v024_register :
- 			&mt9v022_register;
- 
--- 
-1.7.1
+But I haven't started coding yet, so it is very early days :-)
 
+The main thing is that at least I now have a high-level design that
+I can start to work with.
+
+Regards,
+
+	Hans
