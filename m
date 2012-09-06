@@ -1,183 +1,142 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34134 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751805Ab2ICHXC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Sep 2012 03:23:02 -0400
-From: Prabhakar Lad <prabhakar.lad@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	<linux-kernel@vger.kernel.org>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	<linux-doc@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Rob Landley <rob@landley.net>,
-	HeungJun Kim <riverful.kim@samsung.com>
-Subject: [PATCH v3] media: v4l2-ctrls: add control for dpcm predictor
-Date: Mon, 3 Sep 2012 12:50:51 +0530
-Message-ID: <1346656851-20316-1-git-send-email-prabhakar.lad@ti.com>
+Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
+Received: from mail.tu-berlin.de ([130.149.7.33])
+	by www.linuxtv.org with esmtp (Exim 4.72)
+	(envelope-from <rwachs@activision.tv>) id 1T9ihC-00064e-KN
+	for linux-dvb@linuxtv.org; Thu, 06 Sep 2012 22:29:03 +0200
+Received: from atl4mhob04.myregisteredsite.com ([209.17.115.42])
+	by mail.tu-berlin.de (exim-4.75/mailfrontend-2) with esmtp
+	for <linux-dvb@linuxtv.org>
+	id 1T9ihC-0003ln-GN; Thu, 06 Sep 2012 22:29:02 +0200
+Received: from mailpod1.hostingplatform.com
+	(mailpod1.networksolutionsemail.com [206.188.198.65])
+	by atl4mhob04.myregisteredsite.com (8.14.4/8.14.4) with SMTP id
+	q86KSxcJ001445
+	for <linux-dvb@linuxtv.org>; Thu, 6 Sep 2012 16:28:59 -0400
+From: "Richard Wachs" <rwachs@activision.tv>
+To: <linux-dvb@linuxtv.org>
+Date: Thu, 6 Sep 2012 16:28:58 -0400
+Message-ID: <000901cd8c6e$3e752c10$bb5f8430$@activision.tv>
 MIME-Version: 1.0
-Content-Type: text/plain
-Sender: linux-media-owner@vger.kernel.org
-List-ID: <linux-media.vger.kernel.org>
+Content-Language: en-us
+Subject: [linux-dvb] channels.conf for Bradenton, FL
+Reply-To: linux-media@vger.kernel.org, rwachs@activision.tv
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============1503565381=="
+Sender: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
+List-ID: <linux-dvb@linuxtv.org>
 
-From: Lad, Prabhakar <prabhakar.lad@ti.com>
+This is a multipart message in MIME format.
 
-add V4L2_CID_DPCM_PREDICTOR control of type menu, which
-determines the dpcm predictor. The predictor can be either
-simple or advanced.
+--===============1503565381==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_000A_01CD8C4C.B764EBA0"
+Content-Language: en-us
 
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Hans de Goede <hdegoede@redhat.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Rob Landley <rob@landley.net>
-Cc: HeungJun Kim <riverful.kim@samsung.com>
----
-This patches has one checkpatch warning for line over
-80 characters altough it can be avoided I have kept it
-for consistency.
+This is a multipart message in MIME format.
 
-Changes for v3:
-1: Added better explanation for DPCM, pointed by Hans.
+------=_NextPart_000_000A_01CD8C4C.B764EBA0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-Changes for v2:
-1: Added documentaion in controls.xml pointed by Sylwester.
-2: Chnaged V4L2_DPCM_PREDICTOR_ADVANCE to V4L2_DPCM_PREDICTOR_ADVANCED
-   pointed by Sakari.
+I am using Ubuntu 11.10.  I have tried building a channels.conf for
+Bradenton, FL (Bright House Communications is the cable provider) using
+w_scan.  245 services are returned, but only 48 of them connect to a channel
+with active media.  I am missing many of the channels that come through the
+cable and are picked by the tv (e.g. ACM, TCM, USA, Hallmark)
 
- Documentation/DocBook/media/v4l/controls.xml |   48 +++++++++++++++++++++++++-
- drivers/media/v4l2-core/v4l2-ctrls.c         |    9 +++++
- include/linux/videodev2.h                    |    5 +++
- 3 files changed, 61 insertions(+), 1 deletions(-)
-
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 93b9c68..f704218 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -4267,7 +4267,53 @@ interface and may change in the future.</para>
- 	    pixels / second.
- 	    </entry>
- 	  </row>
--	  <row><entry></entry></row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_DPCM_PREDICTOR</constant></entry>
-+	    <entry>menu</entry>
-+	  </row>
-+	  <row id="v4l2-dpcm-predictor">
-+	    <entry spanname="descr"> Differential pulse-code modulation (DPCM) is a signal
-+	    encoder that uses the baseline of pulse-code modulation (PCM) but adds some
-+	    functionalities based on the prediction of the samples of the signal. The input
-+	    can be an analog signal or a digital signal.
-+
-+	    <para>If the input is a continuous-time
-+	    analog signal, it needs to be sampled first so that a discrete-time signal is
-+	    the input to the DPCM encoder.</para>
-+
-+	    <para>Simple: take the values of two
-+	    consecutive samples; if they are analog samples, quantize them; calculate the
-+	    difference between the first one and the next; the output is the difference, and
-+	    it can be further entropy coded.</para>
-+
-+	    <para>Advanced: instead of taking a difference relative to a previous input sample,
-+	    take the difference relative to the output of a local model of the decoder process;
-+	    in this option, the difference can be quantized, which allows a good way to
-+	    incorporate a controlled loss in the encoding.</para>
-+
-+	    <para>Applying one of these two processes, short-term redundancy (positive correlation of
-+	    nearby values) of the signal is eliminated; compression ratios on the order of 2 to 4
-+	    can be achieved if differences are subsequently entropy coded, because the entropy of
-+	    the difference signal is much smaller than that of the original discrete signal treated
-+	    as independent samples.For more information about DPCM see <ulink
-+	    url="http://en.wikipedia.org/wiki/Differential_pulse-code_modulation">Wikipedia</ulink>.</para>
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entrytbl spanname="descr" cols="2">
-+	      <tbody valign="top">
-+	        <row>
-+	         <entry><constant>V4L2_DPCM_PREDICTOR_SIMPLE</constant></entry>
-+	          <entry>Predictor type is simple</entry>
-+	        </row>
-+	        <row>
-+	          <entry><constant>V4L2_DPCM_PREDICTOR_ADVANCED</constant></entry>
-+	          <entry>Predictor type is advanced</entry>
-+	        </row>
-+	      </tbody>
-+	    </entrytbl>
-+	  </row>
-+	<row><entry></entry></row>
- 	</tbody>
-       </tgroup>
-       </table>
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index b6a2ee7..2d7bc15 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -425,6 +425,11 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"Gray",
- 		NULL,
- 	};
-+	static const char * const dpcm_predictor[] = {
-+		"Simple Predictor",
-+		"Advanced Predictor",
-+		NULL,
-+	};
  
- 	switch (id) {
- 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-@@ -502,6 +507,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		return mpeg4_profile;
- 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
- 		return jpeg_chroma_subsampling;
-+	case V4L2_CID_DPCM_PREDICTOR:
-+		return dpcm_predictor;
- 
- 	default:
- 		return NULL;
-@@ -732,6 +739,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_IMAGE_PROC_CLASS:		return "Image Processing Controls";
- 	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
- 	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
-+	case V4L2_CID_DPCM_PREDICTOR:		return "DPCM Predictor";
- 
- 	default:
- 		return NULL;
-@@ -832,6 +840,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_ISO_SENSITIVITY_AUTO:
- 	case V4L2_CID_EXPOSURE_METERING:
- 	case V4L2_CID_SCENE_MODE:
-+	case V4L2_CID_DPCM_PREDICTOR:
- 		*type = V4L2_CTRL_TYPE_MENU;
- 		break;
- 	case V4L2_CID_LINK_FREQ:
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 6d6dfa7..ca9fb78 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -2000,6 +2000,11 @@ enum v4l2_jpeg_chroma_subsampling {
- 
- #define V4L2_CID_LINK_FREQ			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 1)
- #define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
-+#define V4L2_CID_DPCM_PREDICTOR			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 3)
-+enum v4l2_dpcm_predictor {
-+	V4L2_DPCM_PREDICTOR_SIMPLE	= 0,
-+	V4L2_DPCM_PREDICTOR_ADVANCED	= 1,
-+};
- 
- /*
-  *	T U N I N G
--- 
-1.7.0.4
 
+Does anyone have a complete list of tv channels for Bradenton?  If not does
+anyone know how to generate a channels.conf that will include those
+channels?
+
+ 
+
+Thanks
+
+
+------=_NextPart_000_000A_01CD8C4C.B764EBA0
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+<html xmlns:v=3D"urn:schemas-microsoft-com:vml" =
+xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
+xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
+xmlns:m=3D"http://schemas.microsoft.com/office/2004/12/omml" =
+xmlns=3D"http://www.w3.org/TR/REC-html40"><head><meta =
+http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Dus-ascii"><meta name=3DGenerator content=3D"Microsoft Word 14 =
+(filtered medium)"><style><!--
+/* Font Definitions */
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+/* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+a:link, span.MsoHyperlink
+	{mso-style-priority:99;
+	color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{mso-style-priority:99;
+	color:purple;
+	text-decoration:underline;}
+span.EmailStyle17
+	{mso-style-type:personal-compose;
+	font-family:"Calibri","sans-serif";
+	color:windowtext;}
+.MsoChpDefault
+	{mso-style-type:export-only;
+	font-family:"Calibri","sans-serif";}
+@page WordSection1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.0in 1.0in 1.0in;}
+div.WordSection1
+	{page:WordSection1;}
+--></style><!--[if gte mso 9]><xml>
+<o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
+</xml><![endif]--><!--[if gte mso 9]><xml>
+<o:shapelayout v:ext=3D"edit">
+<o:idmap v:ext=3D"edit" data=3D"1" />
+</o:shapelayout></xml><![endif]--></head><body lang=3DEN-US link=3Dblue =
+vlink=3Dpurple><div class=3DWordSection1><p class=3DMsoNormal>I am using =
+Ubuntu 11.10.&nbsp; I have tried building a channels.conf for Bradenton, =
+FL (Bright House Communications is the cable provider) using =
+w_scan.&nbsp; 245 services are returned, but only 48 of them connect to =
+a channel with active media.&nbsp; I am missing many of the channels =
+that come through the cable and are picked by the tv (e.g. ACM, TCM, =
+USA, Hallmark)<o:p></o:p></p><p =
+class=3DMsoNormal><o:p>&nbsp;</o:p></p><p class=3DMsoNormal>Does anyone =
+have a complete list of tv channels for Bradenton?&nbsp; If not does =
+anyone know how to generate a channels.conf that will include those =
+channels?<o:p></o:p></p><p class=3DMsoNormal><o:p>&nbsp;</o:p></p><p =
+class=3DMsoNormal>Thanks<o:p></o:p></p></div></body></html>
+------=_NextPart_000_000A_01CD8C4C.B764EBA0--
+
+
+
+--===============1503565381==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1503565381==--
