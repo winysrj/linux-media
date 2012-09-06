@@ -1,75 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:53226 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754306Ab2IZJsV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Sep 2012 05:48:21 -0400
-Received: by mail-wg0-f44.google.com with SMTP id dr13so357301wgb.1
-        for <linux-media@vger.kernel.org>; Wed, 26 Sep 2012 02:48:20 -0700 (PDT)
-From: Javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: corbet@lwn.net, mchehab@infradead.org, hverkuil@xs4all.nl,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH 5/5] media: ov7670: Add possibility to disable pixclk during hblank.
-Date: Wed, 26 Sep 2012 11:47:57 +0200
-Message-Id: <1348652877-25816-6-git-send-email-javier.martin@vista-silicon.com>
-In-Reply-To: <1348652877-25816-1-git-send-email-javier.martin@vista-silicon.com>
-References: <1348652877-25816-1-git-send-email-javier.martin@vista-silicon.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:35860 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752895Ab2IFPYM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2012 11:24:12 -0400
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 13/14] drivers/media/usb/hdpvr/hdpvr-core.c: fix error return code
+Date: Thu,  6 Sep 2012 17:23:48 +0200
+Message-Id: <1346945041-26676-1-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Peter Senna Tschudin <peter.senna@gmail.com>
 
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+Convert a nonnegative error return code to a negative one, as returned
+elsewhere in the function.
+
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
+
+// <smpl>
+(
+if@p1 (\(ret < 0\|ret != 0\))
+ { ... return ret; }
+|
+ret@p1 = 0
+)
+... when != ret = e1
+    when != &ret
+*if(...)
+{
+  ... when != ret = e2
+      when forall
+ return ret;
+}
+
+// </smpl>
+
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+
 ---
- drivers/media/i2c/ov7670.c |    8 ++++++++
- include/media/ov7670.h     |    1 +
- 2 files changed, 9 insertions(+)
+ drivers/media/usb/hdpvr/hdpvr-core.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-index 54fb535..f7e4341 100644
---- a/drivers/media/i2c/ov7670.c
-+++ b/drivers/media/i2c/ov7670.c
-@@ -211,6 +211,7 @@ struct ov7670_info {
- 	u8 clkrc;			/* Clock divider value */
- 	bool use_smbus;			/* Use smbus I/O instead of I2C */
- 	bool pll_bypass;
-+	bool pclk_hb_disable;
- 	enum ov7670_model model;
- };
- 
-@@ -1709,6 +1710,9 @@ static int ov7670_probe(struct i2c_client *client,
- 
- 		if (config->pll_bypass && id->driver_data != MODEL_OV7670)
- 			info->pll_bypass = true;
-+
-+		if (config->pclk_hb_disable)
-+			info->pclk_hb_disable = true;
+diff --git a/drivers/media/usb/hdpvr/hdpvr-core.c b/drivers/media/usb/hdpvr/hdpvr-core.c
+index 304f43e..84dc26f 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-core.c
++++ b/drivers/media/usb/hdpvr/hdpvr-core.c
+@@ -401,12 +401,14 @@ static int hdpvr_probe(struct usb_interface *interface,
+ 	client = hdpvr_register_ir_rx_i2c(dev);
+ 	if (!client) {
+ 		v4l2_err(&dev->v4l2_dev, "i2c IR RX device register failed\n");
++		retval = -ENODEV;
+ 		goto reg_fail;
  	}
  
- 	/* Make sure it's an ov7670 */
-@@ -1735,6 +1739,10 @@ static int ov7670_probe(struct i2c_client *client,
- 		tpf.denominator = 30;
- 		ov7670_set_framerate(sd, &tpf);
+ 	client = hdpvr_register_ir_tx_i2c(dev);
+ 	if (!client) {
+ 		v4l2_err(&dev->v4l2_dev, "i2c IR TX device register failed\n");
++		retval = -ENODEV;
+ 		goto reg_fail;
  	}
-+
-+	if (info->pclk_hb_disable)
-+		ov7670_write(sd, REG_COM10, COM10_PCLK_HB);
-+
- 	return 0;
- }
- 
-diff --git a/include/media/ov7670.h b/include/media/ov7670.h
-index a68c8bb..1913d51 100644
---- a/include/media/ov7670.h
-+++ b/include/media/ov7670.h
-@@ -16,6 +16,7 @@ struct ov7670_config {
- 	int clock_speed;		/* External clock speed (MHz) */
- 	bool use_smbus;			/* Use smbus I/O instead of I2C */
- 	bool pll_bypass;		/* Choose whether to bypass the PLL */
-+	bool pclk_hb_disable;		/* Disable toggling pixclk during horizontal blanking */
- };
- 
  #endif
--- 
-1.7.9.5
 
