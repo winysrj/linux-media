@@ -1,90 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.telros.ru ([83.136.244.21]:54066 "EHLO mail.telros.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750706Ab2IJGet (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Sep 2012 02:34:49 -0400
-Date: Mon, 10 Sep 2012 14:37:25 +0400
-From: volokh@telros.ru
-To: Adam Rosi-Kessel <adam@rosi-kessel.org>
-Cc: linux-media@vger.kernel.org, volokh84@gmail.com
-Subject: Re: go7007 question
-Message-ID: <20120910103725.GB2507@VPir.telros.ru>
-References: <5044F8DC.20509@rosi-kessel.org>
- <20120906191014.GA2540@VPir.Home>
- <20120907141831.GA12333@VPir.telros.ru>
- <20120909022331.GA28838@whitehail.bostoncoop.net>
- <20120909122155.GA29057@whitehail.bostoncoop.net>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:34455 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756510Ab2IFJgP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2012 05:36:15 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20120909122155.GA29057@whitehail.bostoncoop.net>
+In-Reply-To: <20120904122121.GA13018@pequod.mess.org>
+References: <1346464629-22458-1-git-send-email-changbin.du@gmail.com>
+	<20120903130357.GA7403@pequod.mess.org>
+	<CABgQ-ThYGdvhmpf+=GcLpE-qFAhrDUc1j07+XqohDNRa9bStiw@mail.gmail.com>
+	<CABgQ-TjrXbqKaOd9fDptV2fUiyVTpzZ31K_iZ+HQ+3PGmWoHRw@mail.gmail.com>
+	<20120904122121.GA13018@pequod.mess.org>
+Date: Thu, 6 Sep 2012 17:36:14 +0800
+Message-ID: <CABgQ-TigHVka=iW-dzXebEDK-Hxjh8OrvhtfELMgoh6MN4s1Zw@mail.gmail.com>
+Subject: Re: [RFC PATCH] [media] rc: filter out not allowed protocols when decoding
+From: Changbin Du <changbin.du@gmail.com>
+To: Sean Young <sean@mess.org>
+Cc: mchehab@infradead.org, paul.gortmaker@windriver.com,
+	sfr@canb.auug.org.au, srinivas.kandagatla@st.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Sep 09, 2012 at 08:21:55AM -0400, Adam Rosi-Kessel wrote:
-> On Sat, Sep 08, 2012 at 10:23:31PM -0400, Adam Rosi-Kessel wrote:
-> > On Fri, Sep 07, 2012 at 06:18:31PM +0400, volokh@telros.ru wrote:
-> > > On Thu, Sep 06, 2012 at 11:10:14PM +0400, Volokh Konstantin wrote:
-> > e > On Mon, Sep 03, 2012 at 02:37:16PM -0400, Adam Rosi-Kessel wrote:
-> > > > > [469.928881] wis-saa7115: initializing SAA7115 at address 32 on WIS
-> > > > > GO7007SB EZ-USB
-> > > Hi, I generated patchs, that u may in your own go7007/ folder
-> > > It contains go7007 initialization and i2c_subdev fixing
-> > > It was checked for 3.6 branch (compile only)
-> > So I have this installed now (patched with your 3.6 patch) but I'm not
-> > seeing the device.
-> 
-> OK, this was just a problem of needing to mount /proc/usb. With that
-> mounted, the device is detected and the modules load automatically.
-> gorecord just hangs, however:
-> 
-> ------------[ cut here ]------------
-> WARNING: at drivers/usb/core/urb.c:414 usb_submit_urb+0x12a/0x3e0()
-> Hardware name: Inspiron 530
-> Device: usb
-> BOGUS urb xfer, pipe 1 != type 3
-> Modules linked in: wis_sony_tuner(C) wis_uda1342(C) go7007_usb(C) go7007(C) v4l2_common videodev media xt_LOG fuse ext4 jbd2 crc16 e1000e
-I`m not seeing wis-sa7115 module, (it`s main  module for video device)
-> [last unloaded: go7007]
-> Pid: 18595, comm: gorecord Tainted: G        WC   3.6.0-rc4
-> Call Trace:
->  [<c1033f4d>] warn_slowpath_common+0x6d/0xa0
->  [<c13bc8fa>] ? usb_submit_urb+0x12a/0x3e0
-Some error in URB,
-did u machine have any ATI chipset?
->  [<c13bc8fa>] ? usb_submit_urb+0x12a/0x3e0
->  [<c1033ffe>] warn_slowpath_fmt+0x2e/0x30
->  [<c13bc8fa>] usb_submit_urb+0x12a/0x3e0
->  [<f938625a>] go7007_usb_read_interrupt+0x1a/0x40 [go7007_usb]
->  [<f9371af4>] go7007_read_interrupt+0x24/0x100 [go7007]
->  [<f938615e>] ? go7007_usb_send_firmware+0x3e/0x60 [go7007_usb]
->  [<f9371c4d>] go7007_start_encoder+0x7d/0x120 [go7007]
->  [<c1624d84>] ? mutex_lock+0x14/0x40
->  [<f9370c2c>] vidioc_streamon+0xdc/0xf0 [go7007]
->  [<f9004b75>] v4l_streamon+0x15/0x20 [videodev]
->  [<f90070cc>] __video_do_ioctl+0x28c/0x3a0 [videodev]
->  [<c1075933>] ? ktime_get+0x43/0xf0
->  [<c107b9fa>] ? clockevents_program_event+0xca/0x180
->  [<c122bd28>] ? _copy_from_user+0x38/0x130
->  [<f9008b83>] video_usercopy+0x143/0x320 [videodev]
->  [<c103be44>] ? irq_exit+0x54/0xc0
->  [<c10218a4>] ? smp_apic_timer_interrupt+0x54/0x90
->  [<c113b631>] ? inotify_handle_event+0x51/0xc0
->  [<c113b510>] ? idr_callback+0x80/0x80
->  [<c1626f66>] ? apic_timer_interrupt+0x2a/0x30
->  [<f9008d72>] video_ioctl2+0x12/0x20 [videodev]
->  [<f9006e40>] ? v4l2_ioctl_get_lock+0x50/0x50 [videodev]
->  [<f9003913>] v4l2_ioctl+0x103/0x150 [videodev]
->  [<f9003810>] ? v4l2_open+0x140/0x140 [videodev]
-Can u send me:
-ls /dev/video*
-ls /dev/audio*
-ls /dev/tun*
-tail -n 500 /var/log/messages (after calling go_record)
->  [<c111440e>] do_vfs_ioctl+0x7e/0x5c0
->  [<c11e198a>] ? file_has_perm+0x9a/0xc0
->  [<c11e1e86>] ? selinux_file_ioctl+0x56/0x110
->  [<c11149cf>] sys_ioctl+0x7f/0x90
->  [<c162d18c>] sysenter_do_call+0x12/0x22
-> ---[ end trace 04d11de2981e53e3 ]---
-Thanks.
+Sean , many thanks for your help. I know much more about IR framwork
+now. I'll try to
+work out a patch to remove "allowed_protocols".
+
+Thanks again!
+[Du, Changbin]
+
+2012/9/4 Sean Young <sean@mess.org>:
+> On Tue, Sep 04, 2012 at 11:06:07AM +0800, Changbin Du wrote:
+>> > >               mutex_lock(&ir_raw_handler_lock);
+>> > > -             list_for_each_entry(handler, &ir_raw_handler_list, list)
+>> > > -                     handler->decode(raw->dev, ev);
+>> > > +             list_for_each_entry(handler, &ir_raw_handler_list, list) {
+>> > > +                     /* use all protocol by default */
+>> > > +                     if (raw->dev->allowed_protos == RC_TYPE_UNKNOWN ||
+>> > > +                         raw->dev->allowed_protos & handler->protocols)
+>> > > +                             handler->decode(raw->dev, ev);
+>> > > +             }
+>> >
+>> > Each IR protocol decoder already checks whether it is enabled or not;
+>> > should it not be so that only allowed protocols can be enabled rather
+>> > than checking both enabled_protocols and allowed_protocols?
+>> >
+>> > Just from reading store_protocols it looks like decoders which aren't
+>> > in allowed_protocols can be enabled, which makes no sense. Also
+>> > ir_raw_event_register all protocols are enabled rather than the
+>> > allowed ones.
+>> >
+>> >
+>> > Lastely I don't know why raw ir drivers should dictate which protocols
+>> > can be enabled. Would it not be better to remove it entirely?
+>>
+>>
+>> I agree with you. I just thought that the only thing a decoder should care
+>> is its decoding logic, but not including decoder management. My idaea is:
+>>      1) use enabled_protocols to select decoders in ir_raw.c, but not
+>> placed in decoders to do the judgement.
+>>      2) remove  allowed_protocols or just use it to set the default
+>> decoder (also should rename allowed_protocols  to default_protocol).
+>
+> The default decoder should be the one set by the rc keymap.
+>
+>> I also have a question:
+>>      Is there a requirement that one more decoders are enabled for a
+>> IR device at the same time?
+>
+> Yes, you want to be able to multiple remotes on the IR device (which
+> you can do as long as the scancodes don't overlap, I think), and the
+> lirc device is implemented as a decoder, so you might want to see the
+> raw IR as well as have it decoded.
+>
+>>     And if that will lead to a issue that each decoder may decode a
+>> same pulse sequence to different evnets since their protocol is
+>> different?
+>
+> At the moment, no. David Hardeman has sent a patch for this:
+>
+> http://patchwork.linuxtv.org/patch/11388/
+>
+>
+> Sean
