@@ -1,55 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46896 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760190Ab2ILPh4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Sep 2012 11:37:56 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 3/5] ec168: declare MODULE_FIRMWARE
-Date: Wed, 12 Sep 2012 18:37:27 +0300
-Message-Id: <1347464249-23728-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1347464249-23728-1-git-send-email-crope@iki.fi>
-References: <1347464249-23728-1-git-send-email-crope@iki.fi>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:62287 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757839Ab2IFPYS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2012 11:24:18 -0400
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 5/14] drivers/media/pci/cx25821/cx25821-video-upstream.c: fix error return code
+Date: Thu,  6 Sep 2012 17:23:56 +0200
+Message-Id: <1346945041-26676-9-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/ec168.c | 3 ++-
- drivers/media/usb/dvb-usb-v2/ec168.h | 1 +
- 2 files changed, 3 insertions(+), 1 deletion(-)
+From: Peter Senna Tschudin <peter.senna@gmail.com>
 
-diff --git a/drivers/media/usb/dvb-usb-v2/ec168.c b/drivers/media/usb/dvb-usb-v2/ec168.c
-index b74c810..b6a9c5b 100644
---- a/drivers/media/usb/dvb-usb-v2/ec168.c
-+++ b/drivers/media/usb/dvb-usb-v2/ec168.c
-@@ -322,7 +322,7 @@ static struct dvb_usb_device_properties ec168_props = {
- 	.bInterfaceNumber = 1,
+Convert a nonnegative error return code to a negative one, as returned
+elsewhere in the function.
+
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
+
+// <smpl>
+(
+if@p1 (\(ret < 0\|ret != 0\))
+ { ... return ret; }
+|
+ret@p1 = 0
+)
+... when != ret = e1
+    when != &ret
+*if(...)
+{
+  ... when != ret = e2
+      when forall
+ return ret;
+}
+
+// </smpl>
+
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+
+---
+ drivers/media/pci/cx25821/cx25821-video-upstream.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/pci/cx25821/cx25821-video-upstream.c b/drivers/media/pci/cx25821/cx25821-video-upstream.c
+index 52c13e0..b41e57b 100644
+--- a/drivers/media/pci/cx25821/cx25821-video-upstream.c
++++ b/drivers/media/pci/cx25821/cx25821-video-upstream.c
+@@ -753,7 +753,6 @@ int cx25821_vidupstream_init_ch1(struct cx25821_dev *dev, int channel_select,
+ {
+ 	struct sram_channel *sram_ch;
+ 	u32 tmp;
+-	int retval = 0;
+ 	int err = 0;
+ 	int data_frame_size = 0;
+ 	int risc_buffer_size = 0;
+@@ -796,15 +795,19 @@ int cx25821_vidupstream_init_ch1(struct cx25821_dev *dev, int channel_select,
+ 		dev->_filename = kmemdup(dev->input_filename, str_length + 1,
+ 					 GFP_KERNEL);
  
- 	.identify_state = ec168_identify_state,
--	.firmware = "dvb-usb-ec168.fw",
-+	.firmware = EC168_FIRMWARE,
- 	.download_firmware = ec168_download_firmware,
+-		if (!dev->_filename)
++		if (!dev->_filename) {
++			err = -ENOENT;
+ 			goto error;
++		}
+ 	} else {
+ 		str_length = strlen(dev->_defaultname);
+ 		dev->_filename = kmemdup(dev->_defaultname, str_length + 1,
+ 					 GFP_KERNEL);
  
- 	.i2c_algo = &ec168_i2c_algo,
-@@ -374,3 +374,4 @@ module_usb_driver(ec168_driver);
- MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
- MODULE_DESCRIPTION("E3C EC168 driver");
- MODULE_LICENSE("GPL");
-+MODULE_FIRMWARE(EC168_FIRMWARE);
-diff --git a/drivers/media/usb/dvb-usb-v2/ec168.h b/drivers/media/usb/dvb-usb-v2/ec168.h
-index f651808..615a656 100644
---- a/drivers/media/usb/dvb-usb-v2/ec168.h
-+++ b/drivers/media/usb/dvb-usb-v2/ec168.h
-@@ -25,6 +25,7 @@
- #include "dvb_usb.h"
+-		if (!dev->_filename)
++		if (!dev->_filename) {
++			err = -ENOENT;
+ 			goto error;
++		}
+ 	}
  
- #define EC168_USB_TIMEOUT 1000
-+#define EC168_FIRMWARE "dvb-usb-ec168.fw"
+ 	/* Default if filename is empty string */
+@@ -828,7 +831,7 @@ int cx25821_vidupstream_init_ch1(struct cx25821_dev *dev, int channel_select,
+ 	dev->_line_size = (dev->_pixel_format == PIXEL_FRMT_422) ?
+ 		(WIDTH_D1 * 2) : (WIDTH_D1 * 3) / 2;
  
- struct ec168_req {
- 	u8  cmd;       /* [1] */
--- 
-1.7.11.4
+-	retval = cx25821_sram_channel_setup_upstream(dev, sram_ch,
++	err = cx25821_sram_channel_setup_upstream(dev, sram_ch,
+ 			dev->_line_size, 0);
+ 
+ 	/* setup fifo + format */
+@@ -838,8 +841,8 @@ int cx25821_vidupstream_init_ch1(struct cx25821_dev *dev, int channel_select,
+ 	dev->upstream_databuf_size = data_frame_size * 2;
+ 
+ 	/* Allocating buffers and prepare RISC program */
+-	retval = cx25821_upstream_buffer_prepare(dev, sram_ch, dev->_line_size);
+-	if (retval < 0) {
++	err = cx25821_upstream_buffer_prepare(dev, sram_ch, dev->_line_size);
++	if (err < 0) {
+ 		pr_err("%s: Failed to set up Video upstream buffers!\n",
+ 		       dev->name);
+ 		goto error;
 
