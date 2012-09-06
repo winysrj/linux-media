@@ -1,91 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from whitehail.bostoncoop.net ([66.199.252.235]:43229 "EHLO
-	bostoncoop.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751725Ab2IIDIa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Sep 2012 23:08:30 -0400
-Date: Sat, 8 Sep 2012 22:23:31 -0400
-From: Adam Rosi-Kessel <adam@rosi-kessel.org>
-To: volokh@telros.ru
-Cc: linux-media@vger.kernel.org, volokh84@gmail.com
-Subject: Re: go7007 question
-Message-ID: <20120909022331.GA28838@whitehail.bostoncoop.net>
-References: <5044F8DC.20509@rosi-kessel.org> <20120906191014.GA2540@VPir.Home> <20120907141831.GA12333@VPir.telros.ru>
+Received: from mx1.redhat.com ([209.132.183.28]:42759 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753364Ab2IFOH5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 6 Sep 2012 10:07:57 -0400
+Message-ID: <5048AE38.6080108@redhat.com>
+Date: Thu, 06 Sep 2012 11:07:52 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20120907141831.GA12333@VPir.telros.ru>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: Re: [PATCH 10/12] [media] move i2c files into drivers/media/i2c
+References: <502AC079.50902@gmail.com> <1345038500-28734-1-git-send-email-mchehab@redhat.com> <1345038500-28734-11-git-send-email-mchehab@redhat.com> <503811EC.8030808@gmail.com>
+In-Reply-To: <503811EC.8030808@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 07, 2012 at 06:18:31PM +0400, volokh@telros.ru wrote:
-> On Thu, Sep 06, 2012 at 11:10:14PM +0400, Volokh Konstantin wrote:
-> > On Mon, Sep 03, 2012 at 02:37:16PM -0400, Adam Rosi-Kessel wrote:
-> > > 
-> > > [469.928881] wis-saa7115: initializing SAA7115 at address 32 on WIS
-> > > GO7007SB EZ-USB
-> > > 
-> > > [469.989083] go7007: probing for module i2c:wis_saa7115 failed
-> > > 
-> > > [470.004785] wis-uda1342: initializing UDA1342 at address 26 on WIS
-> > > GO7007SB EZ-USB
-> > > 
-> > > [470.005454] go7007: probing for module i2c:wis_uda1342 failed
-> > > 
-> > > [470.011659] wis-sony-tuner: initializing tuner at address 96 on WIS
-> > > GO7007SB EZ-USB
-> Hi, I generated patchs, that u may in your own go7007/ folder
-> It contains go7007 initialization and i2c_subdev fixing
+Em 24-08-2012 20:44, Sylwester Nawrocki escreveu:
+> From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+> Date: Sat, 25 Aug 2012 01:23:14 +0200
+> Subject: [PATCH] [media] Fix link order of the V4L2 bridge and I2C modules
 > 
-> It was checked for 3.6 branch (compile only)
+> All I2C modules must be linked first to ensure proper module
+> initialization order. With platform devices linked before I2C
+> modules I2C subdev registration fails as the subdev drivers
+> are not yet initialized during bridge driver's probing.
+> 
+> This fixes regression introduced with commmit cb7a01ac324bf2ee2,
+> "[media] move i2c files into drivers/media/i2c".
+> 
+> Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+> ---
+>  drivers/media/Makefile |    7 ++++---
+>  1 files changed, 4 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+> index b0b0193..92a8bcf 100644
+> --- a/drivers/media/Makefile
+> +++ b/drivers/media/Makefile
+> @@ -8,8 +8,9 @@ ifeq ($(CONFIG_MEDIA_CONTROLLER),y)
+>    obj-$(CONFIG_MEDIA_SUPPORT) += media.o
+>  endif
+>  
+> -obj-y += tuners/ common/ rc/ platform/
+> -obj-y += i2c/ pci/ usb/ mmc/ firewire/ parport/
+> +obj-$(CONFIG_VIDEO_DEV) += v4l2-core/
+> +obj-y += common/ rc/ i2c/
+> +obj-y += tuners/ platform/ pci/ usb/ mmc/ firewire/ parport/
+>  
+> -obj-$(CONFIG_VIDEO_DEV) += radio/ v4l2-core/
+> +obj-$(CONFIG_VIDEO_DEV) += radio/
+>  obj-$(CONFIG_DVB_CORE)  += dvb-core/ dvb-frontends/
+> -- 1.7.4.1
 
-So I have this installed now (patched with your 3.6 patch) but I'm not
-seeing the device.
+Hmm... This change seems incomplete on my eyes: tuners and dvb-frontends
+are also I2C drivers. So, while this fixes the issue for platform drivers,
+other drivers will still suffer this issue, at least on drivers that doesn't
+depend on drivers located outside the media subsystem[1]
 
-The module is there:
+[1] thankfully, staging compiles after media, so the drivers there
+shouldn't be affected. Also, drivers that use alsa won't be affected, as
+alsa core (with is compiled after media) uses subsys_initcall().
 
-[  416.189030] Linux media interface: v0.10
-[  416.198616] Linux video capture interface: v2.00
-[  416.220656] wis_uda1342: module is from the staging directory, the quality is unknown, you have been warned.
+IMO, the correct fix is the one below. Could you please test it?
 
-# lsmod|grep -i go7
-go7007_usb             10059  0 
-go7007                 46966  1 go7007_usb
-v4l2_common             4206  1 go7007
-videodev               78250  2 go7007,v4l2_common
+Regards,
+Mauro
 
-# uname -a
-Linux storage 3.6.0-rc4.ajk+ #5 SMP Sat Sep 8 22:05:57 EDT 2012 i686 GNU/Linux
+-
 
-# grep -i go7 /boot/config-`uname -r`
-CONFIG_VIDEO_GO7007=m
-CONFIG_VIDEO_GO7007_USB=m
-CONFIG_VIDEO_GO7007_OV7640=m
-# CONFIG_VIDEO_GO7007_SAA7113 is not set
-# CONFIG_VIDEO_GO7007_SAA7115 is not set
-CONFIG_VIDEO_GO7007_TW9903=m
-CONFIG_VIDEO_GO7007_UDA1342=m
-CONFIG_VIDEO_GO7007_SONY_TUNER=m
-CONFIG_VIDEO_GO7007_TW2804=m
+[media] Fix init order for I2C drivers
 
-But I'm not getting any device to appear:
+Based on a patch from Sylvester Nawrocki
 
-# ls /dev/video*
-ls: cannot access /dev/video*: No such file or directory
-# gorecord -format mpeg4 test.avi
-Driver loaded but no GO7007 devices found.
-Is the device connected properly?
+This fixes regression introduced with commmit cb7a01ac324bf2ee2,
+"[media] move i2c files into drivers/media/i2c".
 
-When I connect the device I see this:
+The linked order affect what drivers will be initialized first, when
+they're built-in at Kernel. While there are macros that allow changing
+the init order, like subsys_initcall(), late_initcall() & friends,
+when all drivers  linked belong to the same subsystem, it is easier
+to change the order at the Makefile.
 
-[  585.705406] usb 1-4: udev 4, busnum 1, minor = 3
-[  585.705412] usb 1-4: New USB device found, idVendor=093b, idProduct=a004
-[  585.705415] usb 1-4: New USB device strings: Mfr=0, Product=0, SerialNumber=0
-[  585.705532] usb 1-4: usb_probe_device
-[  585.705535] usb 1-4: configuration #1 chosen from 1 choice
-[  585.706233] usb 1-4: adding 1-4:1.0 (config #1, interface 0)
+All I2C modules must be linked before any drivers that actually use it,
+in order to ensure proper module initialization order.
 
-But no video node.
+Also, the core drivers should be initialized before the drivers that use
+them.
 
-Am I missing something?
+This patch reorders the drivers init, in order to fulfill the above
+requirements.
 
-Adam
+Reported-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+index b0b0193..620f275 100644
+--- a/drivers/media/Makefile
++++ b/drivers/media/Makefile
+@@ -4,12 +4,30 @@
+ 
+ media-objs	:= media-device.o media-devnode.o media-entity.o
+ 
++#
++# I2C drivers should come before other drivers, otherwise they'll fail
++# when compiled as builtin drivers
++#
++obj-y += i2c/ tuners/
++obj-$(CONFIG_DVB_CORE)  += dvb-frontends/
++
++#
++# Now, let's link-in the media core
++#
+ ifeq ($(CONFIG_MEDIA_CONTROLLER),y)
+   obj-$(CONFIG_MEDIA_SUPPORT) += media.o
+ endif
+ 
+-obj-y += tuners/ common/ rc/ platform/
+-obj-y += i2c/ pci/ usb/ mmc/ firewire/ parport/
++obj-$(CONFIG_VIDEO_DEV) += v4l2-core/
++obj-$(CONFIG_DVB_CORE)  += dvb-core/
++
++# There are both core and drivers at RC subtree - merge before drivers
++obj-y += rc/
++
++#
++# Finally, merge the drivers that require the core
++#
++
++obj-y += common/ platform/ pci/ usb/ mmc/ firewire/ parport/
++obj-$(CONFIG_VIDEO_DEV) += radio/
+ 
+-obj-$(CONFIG_VIDEO_DEV) += radio/ v4l2-core/
+-obj-$(CONFIG_DVB_CORE)  += dvb-core/ dvb-frontends/
+
+
