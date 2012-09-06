@@ -1,303 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:61760 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753770Ab2IMOmZ (ORCPT
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:54441 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932999Ab2IFSOW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 10:42:25 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: sw0312.kim@samsung.com, linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH] s5p-csis: Add transmission errors logging
-Date: Thu, 13 Sep 2012 16:42:10 +0200
-Message-id: <1347547330-22326-1-git-send-email-s.nawrocki@samsung.com>
+	Thu, 6 Sep 2012 14:14:22 -0400
+Received: by lagy9 with SMTP id y9so1301239lag.19
+        for <linux-media@vger.kernel.org>; Thu, 06 Sep 2012 11:14:20 -0700 (PDT)
+Date: Thu, 6 Sep 2012 23:10:14 +0400
+From: Volokh Konstantin <volokh84@gmail.com>
+To: Adam Rosi-Kessel <adam@rosi-kessel.org>
+Cc: linux-media@vger.kernel.org, volokh@telros.ru
+Subject: Re: go7007 question
+Message-ID: <20120906191014.GA2540@VPir.Home>
+References: <5044F8DC.20509@rosi-kessel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5044F8DC.20509@rosi-kessel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add hardware event/error counters which can be dumped into the kernel
-log through VIDIOC_LOG_STATUS ioctl. The counters are reset  in each
-s_stream(1) call. Any errors are logged after streaming is turned off.
+On Mon, Sep 03, 2012 at 02:37:16PM -0400, Adam Rosi-Kessel wrote:
+> Hi:
+> 
+> I've been searching around for help with go7007 on a Plextor device
+> (PX-TV402U) and can't find any forum for questions/help. You seem to
+> be active in development--wondering if you might have any tips.
+> 
+> I'm running 3.2.23, using the go7007 drivers from your
+> wis-go7007-3.2.11.patch.
+I found that it very old patch and it don`t recover existing problems on new linux brunch
+> 
+> When I try to run gorecord, it can't find the audio device ("Unable
+> to find associated ALSA device node").
+> 
+> If I manually specify an audio device, I get this:
+> 
+> gorecord -vdevice /dev/video0 -adevice /dev/dsp -format mpeg4 test.avi
+> 
+> Unable to open /dev/video0: Device or resource busy
+> 
+> 
+> There seems to be a kernel oops of sort when I connect the USB device:
+> 
+> [469.653440] go7007-usb: probing new GO7007 USB board
+> 
+> [469.909932] go7007: registering new Plextor PX-TV402U-NA
+> 
+> [469.909987] go7007: registered device video0 [v4l2]
+> 
+> [469.928881] wis-saa7115: initializing SAA7115 at address 32 on WIS
+> GO7007SB EZ-USB
+> 
+> [469.989083] go7007: probing for module i2c:wis_saa7115 failed
+> 
+> [470.004785] wis-uda1342: initializing UDA1342 at address 26 on WIS
+> GO7007SB EZ-USB
+> 
+> [470.005454] go7007: probing for module i2c:wis_uda1342 failed
+> 
+> [470.011659] wis-sony-tuner: initializing tuner at address 96 on WIS
+> GO7007SB EZ-USB
+> 
+> [470.011676] Modules linked in: wis_sony_tuner(O) wis_uda1342(O)
+> wis_saa7115(O) go7007_usb(O+) go7007(O) v4l2_common videodev media
+> cpufreq_conservative cpufreq_powersave cpufreq_stats
+> cpufreq_userspace parport_pc ppdev lp parport ipt_MASQUERADE
+> xt_tcpudp ipt_REDIRECT xt_conntrack iptable_mangle nf_conntrack_ftp
+> ipt_REJECT ipt_LOG xt_limit xt_multiport xt_state iptable_nat nf_nat
+> nf_conntrack_ipv4 nf_conntrack nf_defrag_ipv4 iptable_filter
+> ip_tables x_tables bridge stp bnep rfcomm bluetooth rfkill radeon
+> ttm drm_kms_helper drm i2c_algo_bit power_supply binfmt_misc
+> dm_snapshot dm_mirror dm_region_hash dm_log dm_mod fuse nfsd nfs
+> lockd fscache auth_rpcgss nfs_acl sunrpc hwmon_vid
+> snd_hda_codec_hdmi snd_hda_codec_realtek snd_hda_intel snd_hda_codec
+> snd_hwdep snd_pcm_oss snd_mixer_oss snd_pcm tpm_tis tpm snd_seq_midi
+> snd_rawmidi snd_seq_midi_event snd_seq acpi_cpufreq mperf snd_timer
+> snd_seq_device i2c_i801 serio_raw evdev i2c_core coretemp dcdbas
+> pcspkr tpm_bios snd soundcore processor snd_page_alloc button ext4
+> mbcache jbd2 crc16 sg sr_mod cdrom sd_mod crc_t10dif usb_storage uas
+> ata_generic uhci_hcd ata_piix libata ehci_hcd r8169 mii floppy
+> scsi_mod usbcore usb_common e1000e thermal fan thermal_sys [last
+> unloaded: scsi_wait_scan]
+> 
+> [470.011810][<f988fdf7>] ? go7007_register_encoder+0xbf/0x11a [go7007]
+> 
+> [470.011816][<f9872c5c>] ? go7007_usb_probe+0x47c/0x60c [go7007_usb]
+When driver probes I found bug that i2c_subdev not init properly
+> 
+> [470.011932] Modules linked in: wis_sony_tuner(O) wis_uda1342(O)
+> wis_saa7115(O) go7007_usb(O+) go7007(O) v4l2_common videodev media
+> cpufreq_conservative cpufreq_powersave cpufreq_stats
+> cpufreq_userspace parport_pc ppdev lp parport ipt_MASQUERADE
+> xt_tcpudp ipt_REDIRECT xt_conntrack iptable_mangle nf_conntrack_ftp
+> ipt_REJECT ipt_LOG xt_limit xt_multiport xt_state iptable_nat nf_nat
+> nf_conntrack_ipv4 nf_conntrack nf_defrag_ipv4 iptable_filter
+> ip_tables x_tables bridge stp bnep rfcomm bluetooth rfkill radeon
+> ttm drm_kms_helper drm i2c_algo_bit power_supply binfmt_misc
+> dm_snapshot dm_mirror dm_region_hash dm_log dm_mod fuse nfsd nfs
+> lockd fscache auth_rpcgss nfs_acl sunrpc hwmon_vid
+> snd_hda_codec_hdmi snd_hda_codec_realtek snd_hda_intel snd_hda_codec
+> snd_hwdep snd_pcm_oss snd_mixer_oss snd_pcm tpm_tis tpm snd_seq_midi
+> snd_rawmidi snd_seq_midi_event snd_seq acpi_cpufreq mperf snd_timer
+> snd_seq_device i2c_i801 serio_raw evdev i2c_core coretemp dcdbas
+> pcspkr tpm_bios snd soundcore processor snd_page_alloc button ext4
+> mbcache jbd2 crc16 sg sr_mod cdrom sd_mod crc_t10dif usb_storage uas
+> ata_generic uhci_hcd ata_piix libata ehci_hcd r8169 mii floppy
+> scsi_mod usbcore usb_common e1000e thermal fan thermal_sys [last
+> unloaded: scsi_wait_scan]
+> 
+> [470.012070][<f988fdf7>] ? go7007_register_encoder+0xbf/0x11a [go7007]
+> 
+> [470.012075][<f9872c5c>] ? go7007_usb_probe+0x47c/0x60c [go7007_usb]
+> 
+> Thanks in advance for any pointers!
+> 
+I recommend to try to use latest patches:
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg50930.html
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg50931.html
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg50923.html
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg50922.html
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg50924.html
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg50929.html
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg50926.html
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg50925.html
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg50928.html
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg50927.html
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-fimc/mipi-csis.c | 159 ++++++++++++++++++++++++----
- 1 file changed, 139 insertions(+), 20 deletions(-)
+It need apply at once.
+But It was tested only with Angelo-MPG24 board, although it contans commonly initialization part
 
-diff --git a/drivers/media/platform/s5p-fimc/mipi-csis.c b/drivers/media/platform/s5p-fimc/mipi-csis.c
-index 2f73d9e..3bfee3a 100644
---- a/drivers/media/platform/s5p-fimc/mipi-csis.c
-+++ b/drivers/media/platform/s5p-fimc/mipi-csis.c
-@@ -31,7 +31,7 @@
- 
- static int debug;
- module_param(debug, int, 0644);
--MODULE_PARM_DESC(debug, "Debug level (0-1)");
-+MODULE_PARM_DESC(debug, "Debug level (0-2)");
- 
- /* Register map definition */
- 
-@@ -60,10 +60,38 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
- #define S5PCSIS_CFG_FMT_MASK		(0x3f << 2)
- #define S5PCSIS_CFG_NR_LANE_MASK	3
- 
--/* Interrupt mask. */
-+/* Interrupt mask */
- #define S5PCSIS_INTMSK			0x10
--#define S5PCSIS_INTMSK_EN_ALL		0xf000003f
-+#define S5PCSIS_INTMSK_EN_ALL		0xf000103f
-+#define S5PCSIS_INTMSK_EVEN_BEFORE	(1 << 31)
-+#define S5PCSIS_INTMSK_EVEN_AFTER	(1 << 30)
-+#define S5PCSIS_INTMSK_ODD_BEFORE	(1 << 29)
-+#define S5PCSIS_INTMSK_ODD_AFTER	(1 << 28)
-+#define S5PCSIS_INTMSK_ERR_SOT_HS	(1 << 12)
-+#define S5PCSIS_INTMSK_ERR_LOST_FS	(1 << 5)
-+#define S5PCSIS_INTMSK_ERR_LOST_FE	(1 << 4)
-+#define S5PCSIS_INTMSK_ERR_OVER		(1 << 3)
-+#define S5PCSIS_INTMSK_ERR_ECC		(1 << 2)
-+#define S5PCSIS_INTMSK_ERR_CRC		(1 << 1)
-+#define S5PCSIS_INTMSK_ERR_UNKNOWN	(1 << 0)
-+
-+/* Interrupt source */
- #define S5PCSIS_INTSRC			0x14
-+#define S5PCSIS_INTSRC_EVEN_BEFORE	(1 << 31)
-+#define S5PCSIS_INTSRC_EVEN_AFTER	(1 << 30)
-+#define S5PCSIS_INTSRC_EVEN		(0x3 << 30)
-+#define S5PCSIS_INTSRC_ODD_BEFORE	(1 << 29)
-+#define S5PCSIS_INTSRC_ODD_AFTER	(1 << 28)
-+#define S5PCSIS_INTSRC_ODD		(0x3 << 28)
-+#define S5PCSIS_INTSRC_NON_IMAGE_DATA	(0xff << 28)
-+#define S5PCSIS_INTSRC_ERR_SOT_HS	(0xf << 12)
-+#define S5PCSIS_INTSRC_ERR_LOST_FS	(1 << 5)
-+#define S5PCSIS_INTSRC_ERR_LOST_FE	(1 << 4)
-+#define S5PCSIS_INTSRC_ERR_OVER		(1 << 3)
-+#define S5PCSIS_INTSRC_ERR_ECC		(1 << 2)
-+#define S5PCSIS_INTSRC_ERR_CRC		(1 << 1)
-+#define S5PCSIS_INTSRC_ERR_UNKNOWN	(1 << 0)
-+#define S5PCSIS_INTSRC_ERRORS		0xf03f
- 
- /* Pixel resolution */
- #define S5PCSIS_RESOL			0x2c
-@@ -93,6 +121,29 @@ enum {
- 	ST_SUSPENDED	= 4,
- };
- 
-+struct s5pcsis_event {
-+	u32 mask;
-+	const char * const name;
-+	unsigned int counter;
-+};
-+
-+static const struct s5pcsis_event s5pcsis_events[] = {
-+	/* Errors */
-+	{ S5PCSIS_INTSRC_ERR_SOT_HS,	"SOT Error" },
-+	{ S5PCSIS_INTSRC_ERR_LOST_FS,	"Lost Frame Start Error" },
-+	{ S5PCSIS_INTSRC_ERR_LOST_FE,	"Lost Frame End Error" },
-+	{ S5PCSIS_INTSRC_ERR_OVER,	"FIFO Overflow Error" },
-+	{ S5PCSIS_INTSRC_ERR_ECC,	"ECC Error" },
-+	{ S5PCSIS_INTSRC_ERR_CRC,	"CRC Error" },
-+	{ S5PCSIS_INTSRC_ERR_UNKNOWN,	"Unknown Error" },
-+	/* Non-image data receive events */
-+	{ S5PCSIS_INTSRC_EVEN_BEFORE,	"Non-image data before even frame" },
-+	{ S5PCSIS_INTSRC_EVEN_AFTER,	"Non-image data after even frame" },
-+	{ S5PCSIS_INTSRC_ODD_BEFORE,	"Non-image data before odd frame" },
-+	{ S5PCSIS_INTSRC_ODD_AFTER,	"Non-image data after odd frame" },
-+};
-+#define S5PCSIS_NUM_EVENTS ARRAY_SIZE(s5pcsis_events)
-+
- /**
-  * struct csis_state - the driver's internal state data structure
-  * @lock: mutex serializing the subdev and power management operations,
-@@ -101,11 +152,14 @@ enum {
-  * @sd: v4l2_subdev associated with CSIS device instance
-  * @pdev: CSIS platform device
-  * @regs: mmaped I/O registers memory
-+ * @supplies: CSIS regulator supplies
-  * @clock: CSIS clocks
-  * @irq: requested s5p-mipi-csis irq number
-  * @flags: the state variable for power and streaming control
-  * @csis_fmt: current CSIS pixel format
-  * @format: common media bus format for the source and sink pad
-+ * @slock: spinlock protecting structure members below
-+ * @events: MIPI-CSIS event (error) counters
-  */
- struct csis_state {
- 	struct mutex lock;
-@@ -119,6 +173,9 @@ struct csis_state {
- 	u32 flags;
- 	const struct csis_pix_format *csis_fmt;
- 	struct v4l2_mbus_framefmt format;
-+
-+	struct spinlock slock;
-+	struct s5pcsis_event events[S5PCSIS_NUM_EVENTS];
- };
- 
- /**
-@@ -292,17 +349,6 @@ err:
- 	return -ENXIO;
- }
- 
--static int s5pcsis_s_power(struct v4l2_subdev *sd, int on)
--{
--	struct csis_state *state = sd_to_csis_state(sd);
--	struct device *dev = &state->pdev->dev;
--
--	if (on)
--		return pm_runtime_get_sync(dev);
--
--	return pm_runtime_put_sync(dev);
--}
--
- static void s5pcsis_start_stream(struct csis_state *state)
- {
- 	s5pcsis_reset(state);
-@@ -317,7 +363,47 @@ static void s5pcsis_stop_stream(struct csis_state *state)
- 	s5pcsis_system_enable(state, false);
- }
- 
--/* v4l2_subdev operations */
-+static void s5pcsis_clear_counters(struct csis_state *state)
-+{
-+	unsigned long flags;
-+	int i;
-+
-+	spin_lock_irqsave(&state->slock, flags);
-+	for (i = 0; i < S5PCSIS_NUM_EVENTS; i++)
-+		state->events[i].counter = 0;
-+	spin_unlock_irqrestore(&state->slock, flags);
-+}
-+
-+static void s5pcsis_log_counters(struct csis_state *state, bool non_errors)
-+{
-+	int i = non_errors ? S5PCSIS_NUM_EVENTS : S5PCSIS_NUM_EVENTS - 4;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&state->slock, flags);
-+
-+	for (i--; i >= 0; i--)
-+		if (state->events[i].counter >= 0)
-+			v4l2_info(&state->sd, "%s events: %d\n",
-+				  state->events[i].name,
-+				  state->events[i].counter);
-+
-+	spin_unlock_irqrestore(&state->slock, flags);
-+}
-+
-+/*
-+ * V4L2 subdev operations
-+ */
-+static int s5pcsis_s_power(struct v4l2_subdev *sd, int on)
-+{
-+	struct csis_state *state = sd_to_csis_state(sd);
-+	struct device *dev = &state->pdev->dev;
-+
-+	if (on)
-+		return pm_runtime_get_sync(dev);
-+
-+	return pm_runtime_put_sync(dev);
-+}
-+
- static int s5pcsis_s_stream(struct v4l2_subdev *sd, int enable)
- {
- 	struct csis_state *state = sd_to_csis_state(sd);
-@@ -327,10 +413,12 @@ static int s5pcsis_s_stream(struct v4l2_subdev *sd, int enable)
- 		 __func__, enable, state->flags);
- 
- 	if (enable) {
-+		s5pcsis_clear_counters(state);
- 		ret = pm_runtime_get_sync(&state->pdev->dev);
- 		if (ret && ret != 1)
- 			return ret;
- 	}
-+
- 	mutex_lock(&state->lock);
- 	if (enable) {
- 		if (state->flags & ST_SUSPENDED) {
-@@ -342,6 +430,7 @@ static int s5pcsis_s_stream(struct v4l2_subdev *sd, int enable)
- 	} else {
- 		s5pcsis_stop_stream(state);
- 		state->flags &= ~ST_STREAMING;
-+		s5pcsis_log_counters(state, true);
- 	}
- unlock:
- 	mutex_unlock(&state->lock);
-@@ -439,6 +528,14 @@ static int s5pcsis_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 	return 0;
- }
- 
-+static int s5pcsis_log_status(struct v4l2_subdev *sd)
-+{
-+	struct csis_state *state = sd_to_csis_state(sd);
-+
-+	s5pcsis_log_counters(state, true);
-+	return 0;
-+}
-+
- static int s5pcsis_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
- {
- 	struct v4l2_mbus_framefmt *format = v4l2_subdev_get_try_format(fh, 0);
-@@ -458,6 +555,7 @@ static const struct v4l2_subdev_internal_ops s5pcsis_sd_internal_ops = {
- 
- static struct v4l2_subdev_core_ops s5pcsis_core_ops = {
- 	.s_power = s5pcsis_s_power,
-+	.log_status = s5pcsis_log_status,
- };
- 
- static struct v4l2_subdev_pad_ops s5pcsis_pad_ops = {
-@@ -479,12 +577,29 @@ static struct v4l2_subdev_ops s5pcsis_subdev_ops = {
- static irqreturn_t s5pcsis_irq_handler(int irq, void *dev_id)
- {
- 	struct csis_state *state = dev_id;
--	u32 val;
--
--	/* Just clear the interrupt pending bits. */
--	val = s5pcsis_read(state, S5PCSIS_INTSRC);
--	s5pcsis_write(state, S5PCSIS_INTSRC, val);
-+	unsigned long flags;
-+	u32 status;
-+
-+	status = s5pcsis_read(state, S5PCSIS_INTSRC);
-+
-+	spin_lock_irqsave(&state->slock, flags);
-+
-+	/* Update the event/error counters */
-+	if ((status & S5PCSIS_INTSRC_ERRORS) || debug) {
-+		int i;
-+		for (i = 0; i < S5PCSIS_NUM_EVENTS; i++) {
-+			if (!(status & state->events[i].mask))
-+				continue;
-+			state->events[i].counter++;
-+			v4l2_dbg(2, debug, &state->sd, "%s: %d\n",
-+				 state->events[i].name,
-+				 state->events[i].counter);
-+		}
-+		v4l2_dbg(2, debug, &state->sd, "status: %08x\n", status);
-+	}
-+	spin_unlock_irqrestore(&state->slock, flags);
- 
-+	s5pcsis_write(state, S5PCSIS_INTSRC, status);
- 	return IRQ_HANDLED;
- }
- 
-@@ -501,6 +616,8 @@ static int __devinit s5pcsis_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 
- 	mutex_init(&state->lock);
-+	spin_lock_init(&state->slock);
-+
- 	state->pdev = pdev;
- 
- 	pdata = pdev->dev.platform_data;
-@@ -577,6 +694,8 @@ static int __devinit s5pcsis_probe(struct platform_device *pdev)
- 	/* .. and a pointer to the subdev. */
- 	platform_set_drvdata(pdev, &state->sd);
- 
-+	memcpy(state->events, s5pcsis_events, sizeof(state->events));
-+
- 	pm_runtime_enable(&pdev->dev);
- 	return 0;
- 
--- 
-1.7.11.3
+> Adam
 
+Regards,
+Volokh Konstantin
