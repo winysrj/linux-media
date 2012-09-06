@@ -1,105 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:56129 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757240Ab2I1OOj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Sep 2012 10:14:39 -0400
-Message-ID: <5065B0C9.7040209@canonical.com>
-Date: Fri, 28 Sep 2012 16:14:33 +0200
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-MIME-Version: 1.0
-To: jakob@vmware.com, thellstrom@vmware.com,
-	dri-devel@lists.freedesktop.org, sumit.semwal@linaro.org
-CC: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/5] dma-buf: remove fallback for !CONFIG_DMA_SHARED_BUFFER
-References: <20120928124148.14366.21063.stgit@patser.local>
-In-Reply-To: <20120928124148.14366.21063.stgit@patser.local>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:33245 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757743Ab2IFPYU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2012 11:24:20 -0400
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 1/14] drivers/media/platform/soc_camera/soc_camera.c: fix error return code
+Date: Thu,  6 Sep 2012 17:24:00 +0200
+Message-Id: <1346945041-26676-13-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey,
+From: Peter Senna Tschudin <peter.senna@gmail.com>
 
-Op 28-09-12 14:41, Maarten Lankhorst schreef:
-> Documentation says that code requiring dma-buf should add it to
-> select, so inline fallbacks are not going to be used. A link error
-> will make it obvious what went wrong, instead of silently doing
-> nothing at runtime.
->
-  
+Convert a nonnegative error return code to a negative one, as returned
+elsewhere in the function.
 
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
-The whole patch series is in my tree, I use stg so things might
-move around, do not use for merging currently:
+// <smpl>
+(
+if@p1 (\(ret < 0\|ret != 0\))
+ { ... return ret; }
+|
+ret@p1 = 0
+)
+... when != ret = e1
+    when != &ret
+*if(...)
+{
+  ... when != ret = e2
+      when forall
+ return ret;
+}
 
-http://cgit.freedesktop.org/~mlankhorst/linux/log/?h=v10-wip
+// </smpl>
 
-It contains everything in here plus the patches for ttm to make
-it work, I use a old snapshot of drm-next + merge of nouveau as
-base. Description of what the parts do:
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
 
-Series to fix small api issues when moving over:
+---
+ drivers/media/platform/soc_camera/soc_camera.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-drm/ttm: Remove cpu_writers related code
-drm/ttm: Add ttm_bo_is_reserved function
-drm/radeon: Use ttm_bo_is_reserved
-drm/vmwgfx: use ttm_bo_is_reserved
-
-drm/vmwgfx: remove use of fence_obj_args
-drm/ttm: remove sync_obj_arg
-drm/ttm: remove sync_obj_arg from ttm_bo_move_accel_cleanup
-drm/ttm: remove sync_arg entirely
-
-drm/nouveau: unpin buffers before releasing to prevent lockdep warnings
-drm/nouveau: add reservation to nouveau_bo_vma_del
-drm/nouveau: add reservation to nouveau_gem_ioctl_cpu_prep
-
-Hey great, now we only have one user left for fence waiting before reserving,
-lets fix that and remove fence lock:
-ttm_bo_cleanup_refs_or_queue and ttm_bo_cleanup_refs have to reserve before
-waiting, lets do it in the squash commit so we don't have to throw lock order
-around everywhere:
-
-drm/ttm: remove fence_lock
-
--- Up to this point should be mergeable now
-
-Then we start working on lru_lock removal slightly, this means the lru
-list no longer is empty but can contain only reserved buffers:
-
-drm/ttm: do not check if list is empty in ttm_bo_force_list_clean
-drm/ttm: move reservations for ttm_bo_cleanup_refs
-
--- Still mergeable up to this point, just fixes
-
-Patch series from this email:
-dma-buf: remove fallback for !CONFIG_DMA_SHARED_BUFFER
-fence: dma-buf cross-device synchronization (v9)
-seqno-fence: Hardware dma-buf implementation of fencing (v3)
-reservation: cross-device reservation support
-reservation: Add lockdep annotation and selftests
-
-Now hook it up to drm/ttm in a few steps:
-usage around reservations:
-drm/ttm: make ttm reservation calls behave like reservation calls
-drm/ttm: use dma_reservation api
-dma-buf: use reservations
-drm/ttm: allow drivers to pass custom dma_reservation_objects for a bo
-
-then kill off the lru lock around reservation:
-drm/ttm: remove lru_lock around ttm_bo_reserve
-drm/ttm: simplify ttm_eu_*
-
-The lru_lock removal patch removes the lock around lru_lock around the
-reservation, this will break the assumption that items on the lru list
-and swap list can always be reserved, and this gets patched up too.
-Is there any part in ttm you disagree with? I believe that this 
-is all mergeable, the lru_lock removal patch could be moved to before
-the reservation parts, this might make merging easier, but I don't
-think there is any ttm part of the series that are wrong on a conceptual
-level.
-
-~Maarten
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index 10b57f8..a4beb6c 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1184,7 +1184,8 @@ static int soc_camera_probe(struct soc_camera_device *icd)
+ 	sd->grp_id = soc_camera_grp_id(icd);
+ 	v4l2_set_subdev_hostdata(sd, icd);
+ 
+-	if (v4l2_ctrl_add_handler(&icd->ctrl_handler, sd->ctrl_handler))
++	ret = v4l2_ctrl_add_handler(&icd->ctrl_handler, sd->ctrl_handler);
++	if (ret)
+ 		goto ectrl;
+ 
+ 	/* At this point client .probe() should have run already */
 
