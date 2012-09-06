@@ -1,70 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42670 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1758828Ab2IMVBn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 17:01:43 -0400
-Date: Fri, 14 Sep 2012 00:01:39 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Antoine Reversat <a.reversat@gmail.com>
-Subject: Re: [PATCH] omap3isp: Use monotonic timestamps for statistics
- buffers
-Message-ID: <20120913210139.GL6834@valkosipuli.retiisi.org.uk>
-References: <1347566003-14500-1-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1347566003-14500-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:62287 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752895Ab2IFPYP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2012 11:24:15 -0400
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 9/14] drivers/media/radio/radio-cadet.c: fix error return code
+Date: Thu,  6 Sep 2012 17:23:52 +0200
+Message-Id: <1346945041-26676-5-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+From: Peter Senna Tschudin <peter.senna@gmail.com>
 
-Thanks for the patch!
+Convert a nonnegative error return code to a negative one, as returned
+elsewhere in the function.
 
-On Thu, Sep 13, 2012 at 09:53:23PM +0200, Laurent Pinchart wrote:
-> V4L2 buffers use the monotonic clock, while statistics buffers use wall
-> time. This makes it difficult to correlate video frames and statistics.
-> 
-> Switch statistics buffers to the monotonic clock to fix this.
-> 
-> Reported-by: Antoine Reversat <a.reversat@gmail.com>
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/platform/omap3isp/ispstat.c |    6 +++++-
->  1 files changed, 5 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/ispstat.c b/drivers/media/platform/omap3isp/ispstat.c
-> index b8640be..52263cc 100644
-> --- a/drivers/media/platform/omap3isp/ispstat.c
-> +++ b/drivers/media/platform/omap3isp/ispstat.c
-> @@ -253,10 +253,14 @@ isp_stat_buf_find_oldest_or_empty(struct ispstat *stat)
->  
->  static int isp_stat_buf_queue(struct ispstat *stat)
->  {
-> +	struct timespec ts;
-> +
->  	if (!stat->active_buf)
->  		return STAT_NO_BUF;
->  
-> -	do_gettimeofday(&stat->active_buf->ts);
-> +	ktime_get_ts(&ts);
-> +	stat->active_buf->ts.tv_sec = ts.tv_sec;
-> +	stat->active_buf->ts.tv_usec = ts.tv_nsec / NSEC_PER_USEC;
->  
->  	stat->active_buf->buf_size = stat->buf_size;
->  	if (isp_stat_buf_check_magic(stat, stat->active_buf)) {
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
-I didn't think wall clock timestamps were used for statistics. This change
-is sure going to affect anyone using them --- which likely equates to no-one
-since I can hardly see use for wall clock timestams in such use.
+// <smpl>
+(
+if@p1 (\(ret < 0\|ret != 0\))
+ { ... return ret; }
+|
+ret@p1 = 0
+)
+... when != ret = e1
+    when != &ret
+*if(...)
+{
+  ... when != ret = e2
+      when forall
+ return ret;
+}
 
-How about using struct timespec instead?
+// </smpl>
 
-Regards,
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+---
+ drivers/media/radio/radio-cadet.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/radio/radio-cadet.c b/drivers/media/radio/radio-cadet.c
+index 697a421..643d80a 100644
+--- a/drivers/media/radio/radio-cadet.c
++++ b/drivers/media/radio/radio-cadet.c
+@@ -645,7 +645,8 @@ static int __init cadet_init(void)
+ 	set_bit(V4L2_FL_USE_FH_PRIO, &dev->vdev.flags);
+ 	video_set_drvdata(&dev->vdev, dev);
+ 
+-	if (video_register_device(&dev->vdev, VFL_TYPE_RADIO, radio_nr) < 0)
++	res = video_register_device(&dev->vdev, VFL_TYPE_RADIO, radio_nr);
++	if (res < 0)
+ 		goto err_hdl;
+ 	v4l2_info(v4l2_dev, "ADS Cadet Radio Card at 0x%x\n", dev->io);
+ 	return 0;
+
