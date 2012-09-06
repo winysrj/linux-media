@@ -1,71 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:48148 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751959Ab2IRS42 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Sep 2012 14:56:28 -0400
-Received: by iahk25 with SMTP id k25so166275iah.19
-        for <linux-media@vger.kernel.org>; Tue, 18 Sep 2012 11:56:28 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAAnFQG8fDnmGN2_sfrhU8tB_kiuheSmXPqVq5wdmh73vB8EtdA@mail.gmail.com>
-References: <CAAnFQG_SrXyr8MtPDujciE2=QRQK8dAK_SPBE3rC_c-XNSC00w@mail.gmail.com>
-	<CAGoCfiy4Ybymdd4Mym1JB3gwW9Suqdj3w6bEdMpxWWBHPhUvTQ@mail.gmail.com>
-	<CAAnFQG8fDnmGN2_sfrhU8tB_kiuheSmXPqVq5wdmh73vB8EtdA@mail.gmail.com>
-Date: Tue, 18 Sep 2012 14:56:28 -0400
-Message-ID: <CAGoCfixqaSY4MFosg=uCwGMRRmbQhYE5gUBdPGFddCpKHDRtwg@mail.gmail.com>
-Subject: Re: Terratec Cinergy T PCIe Dual doesn;t work nder the Xen hypervisor
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Javier Marcet <jmarcet@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:33245 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757793Ab2IFPYR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2012 11:24:17 -0400
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 7/14] drivers/media/pci/ngene/ngene-core.c: fix error return code
+Date: Thu,  6 Sep 2012 17:23:54 +0200
+Message-Id: <1346945041-26676-7-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 18, 2012 at 2:34 PM, Javier Marcet <jmarcet@gmail.com> wrote:
-> I can't say how happy I am that you were wrong in your guess. Quoting
-> Konrad Rzeszutek Wilk:
+From: Peter Senna Tschudin <peter.senna@gmail.com>
 
-Well, you haven't proven me wrong yet.  :-)
+Convert a nonnegative error return code to a negative one, as returned
+elsewhere in the function.
 
-> """
-> The issue as I understand is that the DVB drivers allocate their
-> buffers from 0->4GB most (all the time?) so they never have to do
-> bounce-buffering.
->
-> While the pv-ops one ends up quite frequently doing the
-> bounce-buffering, which implies that the DVB drivers end up allocating
-> their buffers above the 4GB.
-> This means we end up spending some CPU time (in the guest) copying the
-> memory from >4GB to 0-4GB region (And vice-versa).
-> """
->
-> You can see the original thread where this was found, together with a
-> working patch, here:
->
-> http://lists.xen.org/archives/html/xen-devel/2012-01/msg01927.html
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
-As far as I can read, the patch has never been confirmed to work.  The
-user mentioned upgrading to an updated kernel and seeing a slight
-decrease in load:
+// <smpl>
+(
+if@p1 (\(ret < 0\|ret != 0\))
+ { ... return ret; }
+|
+ret@p1 = 0
+)
+... when != ret = e1
+    when != &ret
+*if(...)
+{
+  ... when != ret = e2
+      when forall
+ return ret;
+}
 
-http://lists.xen.org/archives/html/xen-devel/2012-01/msg02166.html
+// </smpl>
 
-Further, the reason many of the drivers in question require the memory
-to be in the 0-4GB memory region is due to some hardware not being
-able to DMA to memory > 4GB.  Such a change would have to be tested
-with every board that does scatter/gather, and the framework would
-likely have to change to explicitly allow the board driver to specify
-whether it supports memory > 4GB.
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
 
-In short, this is a useful bit of information, but not clear whether
-it would actually solve the underlying problem.
+---
+ drivers/media/pci/ngene/ngene-core.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Again, I would be happy to be proven wrong, but there appears to still
-be quite a bit of work required for such.  I would suggest trying the
-patch yourself to see if it has any visible effect on the problem.
+diff --git a/drivers/media/pci/ngene/ngene-core.c b/drivers/media/pci/ngene/ngene-core.c
+index c8e0d5b..6bb44f1 100644
+--- a/drivers/media/pci/ngene/ngene-core.c
++++ b/drivers/media/pci/ngene/ngene-core.c
+@@ -1691,7 +1691,8 @@ int __devinit ngene_probe(struct pci_dev *pci_dev,
+ 	dev->i2c_current_bus = -1;
+ 
+ 	/* Register DVB adapters and devices for both channels */
+-	if (init_channels(dev) < 0)
++	stat = init_channels(dev);
++	if (stat < 0)
+ 		goto fail2;
+ 
+ 	return 0;
 
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
