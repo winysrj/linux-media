@@ -1,284 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:53742 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752281Ab2IKSAk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Sep 2012 14:00:40 -0400
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] drivers/media: Removes useless kfree()
-Date: Tue, 11 Sep 2012 20:00:32 +0200
-Message-Id: <1347386432-12954-1-git-send-email-peter.senna@gmail.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:60695 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759754Ab2IFUfJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2012 16:35:09 -0400
+Received: by bkwj10 with SMTP id j10so1046805bkw.19
+        for <linux-media@vger.kernel.org>; Thu, 06 Sep 2012 13:35:07 -0700 (PDT)
+Message-ID: <504908F8.3090200@gmail.com>
+Date: Thu, 06 Sep 2012 22:35:04 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: Re: [PATCH 10/12] [media] move i2c files into drivers/media/i2c
+References: <502AC079.50902@gmail.com> <1345038500-28734-1-git-send-email-mchehab@redhat.com> <1345038500-28734-11-git-send-email-mchehab@redhat.com> <503811EC.8030808@gmail.com> <5048AE38.6080108@redhat.com>
+In-Reply-To: <5048AE38.6080108@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Senna Tschudin <peter.senna@gmail.com>
+On 09/06/2012 04:07 PM, Mauro Carvalho Chehab wrote:
+> Em 24-08-2012 20:44, Sylwester Nawrocki escreveu:
+>> From: Sylwester Nawrocki<sylvester.nawrocki@gmail.com>
+>> Date: Sat, 25 Aug 2012 01:23:14 +0200
+>> Subject: [PATCH] [media] Fix link order of the V4L2 bridge and I2C modules
+>>
+>> All I2C modules must be linked first to ensure proper module
+>> initialization order. With platform devices linked before I2C
+>> modules I2C subdev registration fails as the subdev drivers
+>> are not yet initialized during bridge driver's probing.
+>>
+>> This fixes regression introduced with commmit cb7a01ac324bf2ee2,
+>> "[media] move i2c files into drivers/media/i2c".
+>>
+>> Signed-off-by: Sylwester Nawrocki<sylvester.nawrocki@gmail.com>
+>> ---
+>>   drivers/media/Makefile |    7 ++++---
+>>   1 files changed, 4 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+>> index b0b0193..92a8bcf 100644
+>> --- a/drivers/media/Makefile
+>> +++ b/drivers/media/Makefile
+>> @@ -8,8 +8,9 @@ ifeq ($(CONFIG_MEDIA_CONTROLLER),y)
+>>     obj-$(CONFIG_MEDIA_SUPPORT) += media.o
+>>   endif
+>>
+>> -obj-y += tuners/ common/ rc/ platform/
+>> -obj-y += i2c/ pci/ usb/ mmc/ firewire/ parport/
+>> +obj-$(CONFIG_VIDEO_DEV) += v4l2-core/
+>> +obj-y += common/ rc/ i2c/
+>> +obj-y += tuners/ platform/ pci/ usb/ mmc/ firewire/ parport/
+>>
+>> -obj-$(CONFIG_VIDEO_DEV) += radio/ v4l2-core/
+>> +obj-$(CONFIG_VIDEO_DEV) += radio/
+>>   obj-$(CONFIG_DVB_CORE)  += dvb-core/ dvb-frontends/
+>> -- 1.7.4.1
+> 
+> Hmm... This change seems incomplete on my eyes: tuners and dvb-frontends
+> are also I2C drivers. So, while this fixes the issue for platform drivers,
+> other drivers will still suffer this issue, at least on drivers that doesn't
+> depend on drivers located outside the media subsystem[1]
 
-The semantic patch that finds this problem is as follows:
-(http://coccinelle.lip6.fr/)
+Yeah, that's possible. I wasn't very confident about anything but platform 
+and i2c drivers. Thanks for improving it. I tested the patch with a camera 
+host and I2C sensor driver and it also fixed the problem.
 
-// <smpl>
-@r exists@
-position p1,p2;
-expression x;
-@@
+> [1] thankfully, staging compiles after media, so the drivers there
+> shouldn't be affected. Also, drivers that use alsa won't be affected, as
+> alsa core (with is compiled after media) uses subsys_initcall().
+> 
+> IMO, the correct fix is the one below. Could you please test it?
+> 
+> Regards,
+> Mauro
+> 
+> -
+> 
+> [media] Fix init order for I2C drivers
+> 
+> Based on a patch from Sylvester Nawrocki
+> 
+> This fixes regression introduced with commmit cb7a01ac324bf2ee2,
+> "[media] move i2c files into drivers/media/i2c".
+> 
+> The linked order affect what drivers will be initialized first, when
+> they're built-in at Kernel. While there are macros that allow changing
+> the init order, like subsys_initcall(), late_initcall()&  friends,
+> when all drivers  linked belong to the same subsystem, it is easier
+> to change the order at the Makefile.
+> 
+> All I2C modules must be linked before any drivers that actually use it,
+> in order to ensure proper module initialization order.
+> 
+> Also, the core drivers should be initialized before the drivers that use
+> them.
+> 
+> This patch reorders the drivers init, in order to fulfill the above
+> requirements.
+> 
+> Reported-by: Sylwester Nawrocki<sylvester.nawrocki@gmail.com>
+> Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
+ 
+Acked-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+ 
+> diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+> index b0b0193..620f275 100644
+> --- a/drivers/media/Makefile
+> +++ b/drivers/media/Makefile
+> @@ -4,12 +4,30 @@
+> 
+>   media-objs	:= media-device.o media-devnode.o media-entity.o
+> 
+> +#
+> +# I2C drivers should come before other drivers, otherwise they'll fail
+> +# when compiled as builtin drivers
+> +#
+> +obj-y += i2c/ tuners/
+> +obj-$(CONFIG_DVB_CORE)  += dvb-frontends/
+> +
+> +#
+> +# Now, let's link-in the media core
+> +#
+>   ifeq ($(CONFIG_MEDIA_CONTROLLER),y)
+>     obj-$(CONFIG_MEDIA_SUPPORT) += media.o
+>   endif
+> 
+> -obj-y += tuners/ common/ rc/ platform/
+> -obj-y += i2c/ pci/ usb/ mmc/ firewire/ parport/
+> +obj-$(CONFIG_VIDEO_DEV) += v4l2-core/
+> +obj-$(CONFIG_DVB_CORE)  += dvb-core/
+> +
+> +# There are both core and drivers at RC subtree - merge before drivers
+> +obj-y += rc/
+> +
+> +#
+> +# Finally, merge the drivers that require the core
+> +#
+> +
+> +obj-y += common/ platform/ pci/ usb/ mmc/ firewire/ parport/
+> +obj-$(CONFIG_VIDEO_DEV) += radio/
+> 
+> -obj-$(CONFIG_VIDEO_DEV) += radio/ v4l2-core/
+> -obj-$(CONFIG_DVB_CORE)  += dvb-core/ dvb-frontends/
 
-if (x@p1 == NULL) { ... kfree@p2(x); ... return ...; }
+--
 
-@unchanged exists@
-position r.p1,r.p2;
-expression e <= r.x,x,e1;
-iterator I;
-statement S;
-@@
-
-if (x@p1 == NULL) { ... when != I(x,...) S
-                        when != e = e1
-                        when != e += e1
-                        when != e -= e1
-                        when != ++e
-                        when != --e
-                        when != e++
-                        when != e--
-                        when != &e
-   kfree@p2(x); ... return ...; }
-
-@ok depends on unchanged exists@
-position any r.p1;
-position r.p2;
-expression x;
-@@
-
-... when != true x@p1 == NULL
-kfree@p2(x);
-
-@depends on !ok && unchanged@
-position r.p2;
-expression x;
-@@
-
-*kfree@p2(x);
-// </smpl>
-
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-
----
- drivers/media/dvb-frontends/dvb_dummy_fe.c |   21 ++++++---------------
- drivers/media/dvb-frontends/lg2160.c       |    1 -
- drivers/media/dvb-frontends/s5h1432.c      |    6 +-----
- drivers/media/dvb-frontends/s921.c         |    7 +------
- drivers/media/dvb-frontends/stb6100.c      |    6 +-----
- drivers/media/dvb-frontends/tda665x.c      |    6 +-----
- drivers/media/platform/davinci/vpbe.c      |    1 -
- drivers/media/tuners/mt2063.c              |    6 +-----
- 8 files changed, 11 insertions(+), 43 deletions(-)
-
-diff --git a/drivers/media/dvb-frontends/dvb_dummy_fe.c b/drivers/media/dvb-frontends/dvb_dummy_fe.c
-index dcfc902..465068f 100644
---- a/drivers/media/dvb-frontends/dvb_dummy_fe.c
-+++ b/drivers/media/dvb-frontends/dvb_dummy_fe.c
-@@ -121,16 +121,13 @@ struct dvb_frontend* dvb_dummy_fe_ofdm_attach(void)
- 
- 	/* allocate memory for the internal state */
- 	state = kzalloc(sizeof(struct dvb_dummy_fe_state), GFP_KERNEL);
--	if (state == NULL) goto error;
-+	if (state == NULL)
-+		return NULL;
- 
- 	/* create dvb_frontend */
- 	memcpy(&state->frontend.ops, &dvb_dummy_fe_ofdm_ops, sizeof(struct dvb_frontend_ops));
- 	state->frontend.demodulator_priv = state;
- 	return &state->frontend;
--
--error:
--	kfree(state);
--	return NULL;
- }
- 
- static struct dvb_frontend_ops dvb_dummy_fe_qpsk_ops;
-@@ -141,16 +138,13 @@ struct dvb_frontend *dvb_dummy_fe_qpsk_attach(void)
- 
- 	/* allocate memory for the internal state */
- 	state = kzalloc(sizeof(struct dvb_dummy_fe_state), GFP_KERNEL);
--	if (state == NULL) goto error;
-+	if (state == NULL)
-+		return NULL;
- 
- 	/* create dvb_frontend */
- 	memcpy(&state->frontend.ops, &dvb_dummy_fe_qpsk_ops, sizeof(struct dvb_frontend_ops));
- 	state->frontend.demodulator_priv = state;
- 	return &state->frontend;
--
--error:
--	kfree(state);
--	return NULL;
- }
- 
- static struct dvb_frontend_ops dvb_dummy_fe_qam_ops;
-@@ -161,16 +155,13 @@ struct dvb_frontend *dvb_dummy_fe_qam_attach(void)
- 
- 	/* allocate memory for the internal state */
- 	state = kzalloc(sizeof(struct dvb_dummy_fe_state), GFP_KERNEL);
--	if (state == NULL) goto error;
-+	if (state == NULL)
-+		return NULL;
- 
- 	/* create dvb_frontend */
- 	memcpy(&state->frontend.ops, &dvb_dummy_fe_qam_ops, sizeof(struct dvb_frontend_ops));
- 	state->frontend.demodulator_priv = state;
- 	return &state->frontend;
--
--error:
--	kfree(state);
--	return NULL;
- }
- 
- static struct dvb_frontend_ops dvb_dummy_fe_ofdm_ops = {
-diff --git a/drivers/media/dvb-frontends/lg2160.c b/drivers/media/dvb-frontends/lg2160.c
-index cc11260..748da5d 100644
---- a/drivers/media/dvb-frontends/lg2160.c
-+++ b/drivers/media/dvb-frontends/lg2160.c
-@@ -1451,7 +1451,6 @@ struct dvb_frontend *lg2160_attach(const struct lg2160_config *config,
- 	return &state->frontend;
- fail:
- 	lg_warn("unable to detect LG216x hardware\n");
--	kfree(state);
- 	return NULL;
- }
- EXPORT_SYMBOL(lg2160_attach);
-diff --git a/drivers/media/dvb-frontends/s5h1432.c b/drivers/media/dvb-frontends/s5h1432.c
-index 8352ce1..24a8c75 100644
---- a/drivers/media/dvb-frontends/s5h1432.c
-+++ b/drivers/media/dvb-frontends/s5h1432.c
-@@ -352,7 +352,7 @@ struct dvb_frontend *s5h1432_attach(const struct s5h1432_config *config,
- 	/* allocate memory for the internal state */
- 	state = kmalloc(sizeof(struct s5h1432_state), GFP_KERNEL);
- 	if (state == NULL)
--		goto error;
-+		return NULL;
- 
- 	/* setup the state */
- 	state->config = config;
-@@ -367,10 +367,6 @@ struct dvb_frontend *s5h1432_attach(const struct s5h1432_config *config,
- 	state->frontend.demodulator_priv = state;
- 
- 	return &state->frontend;
--
--error:
--	kfree(state);
--	return NULL;
- }
- EXPORT_SYMBOL(s5h1432_attach);
- 
-diff --git a/drivers/media/dvb-frontends/s921.c b/drivers/media/dvb-frontends/s921.c
-index cd2288c..5766512 100644
---- a/drivers/media/dvb-frontends/s921.c
-+++ b/drivers/media/dvb-frontends/s921.c
-@@ -489,7 +489,7 @@ struct dvb_frontend *s921_attach(const struct s921_config *config,
- 	dprintk("\n");
- 	if (state == NULL) {
- 		rc("Unable to kzalloc\n");
--		goto rcor;
-+		return NULL;
- 	}
- 
- 	/* setup the state */
-@@ -502,11 +502,6 @@ struct dvb_frontend *s921_attach(const struct s921_config *config,
- 	state->frontend.demodulator_priv = state;
- 
- 	return &state->frontend;
--
--rcor:
--	kfree(state);
--
--	return NULL;
- }
- EXPORT_SYMBOL(s921_attach);
- 
-diff --git a/drivers/media/dvb-frontends/stb6100.c b/drivers/media/dvb-frontends/stb6100.c
-index 2e93e65..1147e61 100644
---- a/drivers/media/dvb-frontends/stb6100.c
-+++ b/drivers/media/dvb-frontends/stb6100.c
-@@ -576,7 +576,7 @@ struct dvb_frontend *stb6100_attach(struct dvb_frontend *fe,
- 
- 	state = kzalloc(sizeof (struct stb6100_state), GFP_KERNEL);
- 	if (state == NULL)
--		goto error;
-+		return NULL;
- 
- 	state->config		= config;
- 	state->i2c		= i2c;
-@@ -587,10 +587,6 @@ struct dvb_frontend *stb6100_attach(struct dvb_frontend *fe,
- 
- 	printk("%s: Attaching STB6100 \n", __func__);
- 	return fe;
--
--error:
--	kfree(state);
--	return NULL;
- }
- 
- static int stb6100_release(struct dvb_frontend *fe)
-diff --git a/drivers/media/dvb-frontends/tda665x.c b/drivers/media/dvb-frontends/tda665x.c
-index 2c1c759..58ba534 100644
---- a/drivers/media/dvb-frontends/tda665x.c
-+++ b/drivers/media/dvb-frontends/tda665x.c
-@@ -229,7 +229,7 @@ struct dvb_frontend *tda665x_attach(struct dvb_frontend *fe,
- 
- 	state = kzalloc(sizeof(struct tda665x_state), GFP_KERNEL);
- 	if (state == NULL)
--		goto exit;
-+		return NULL;
- 
- 	state->config		= config;
- 	state->i2c		= i2c;
-@@ -246,10 +246,6 @@ struct dvb_frontend *tda665x_attach(struct dvb_frontend *fe,
- 	printk(KERN_DEBUG "%s: Attaching TDA665x (%s) tuner\n", __func__, info->name);
- 
- 	return fe;
--
--exit:
--	kfree(state);
--	return NULL;
- }
- EXPORT_SYMBOL(tda665x_attach);
- 
-diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
-index c4a82a1..1125a87 100644
---- a/drivers/media/platform/davinci/vpbe.c
-+++ b/drivers/media/platform/davinci/vpbe.c
-@@ -771,7 +771,6 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
- 	return 0;
- 
- vpbe_fail_amp_register:
--	kfree(vpbe_dev->amp);
- vpbe_fail_sd_register:
- 	kfree(vpbe_dev->encoders);
- vpbe_fail_v4l2_device:
-diff --git a/drivers/media/tuners/mt2063.c b/drivers/media/tuners/mt2063.c
-index 0ed9091..1a91215 100644
---- a/drivers/media/tuners/mt2063.c
-+++ b/drivers/media/tuners/mt2063.c
-@@ -2250,7 +2250,7 @@ struct dvb_frontend *mt2063_attach(struct dvb_frontend *fe,
- 
- 	state = kzalloc(sizeof(struct mt2063_state), GFP_KERNEL);
- 	if (state == NULL)
--		goto error;
-+		return NULL;
- 
- 	state->config = config;
- 	state->i2c = i2c;
-@@ -2261,10 +2261,6 @@ struct dvb_frontend *mt2063_attach(struct dvb_frontend *fe,
- 
- 	printk(KERN_INFO "%s: Attaching MT2063\n", __func__);
- 	return fe;
--
--error:
--	kfree(state);
--	return NULL;
- }
- EXPORT_SYMBOL_GPL(mt2063_attach);
- 
-
+Regards,
+Sylwester
