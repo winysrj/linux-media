@@ -1,80 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:32811 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753065Ab2I2Oct (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Sep 2012 10:32:49 -0400
-Date: Sat, 29 Sep 2012 17:32:05 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: walter harms <wharms@bfs.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Leonid V. Fedorenchik" <leonidsbox@gmail.com>,
-	Thomas Meyer <thomas@m3y3r.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] cx25821: testing the wrong variable
-Message-ID: <20120929143205.GN4587@mwanda>
-References: <20120929071253.GD10993@elgon.mountain>
- <5066D2F6.10800@bfs.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5066D2F6.10800@bfs.de>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:62616 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757860Ab2IFPYT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2012 11:24:19 -0400
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 4/14] drivers/media/v4l2-core/videobuf2-core.c: fix error return code
+Date: Thu,  6 Sep 2012 17:23:57 +0200
+Message-Id: <1346945041-26676-10-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Sep 29, 2012 at 12:52:38PM +0200, walter harms wrote:
-> 
-> 
-> Am 29.09.2012 09:12, schrieb Dan Carpenter:
-> > ->input_filename could be NULL here.  The intent was to test
-> > ->_filename.
-> > 
-> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> > ---
-> > I'm not totally convinced that using /root/vid411.yuv is the right idea.
-> > 
-> > diff --git a/drivers/media/pci/cx25821/cx25821-video-upstream.c b/drivers/media/pci/cx25821/cx25821-video-upstream.c
-> > index 52c13e0..6759fff 100644
-> > --- a/drivers/media/pci/cx25821/cx25821-video-upstream.c
-> > +++ b/drivers/media/pci/cx25821/cx25821-video-upstream.c
-> > @@ -808,7 +808,7 @@ int cx25821_vidupstream_init_ch1(struct cx25821_dev *dev, int channel_select,
-> >  	}
-> >  
-> >  	/* Default if filename is empty string */
-> > -	if (strcmp(dev->input_filename, "") == 0) {
-> > +	if (strcmp(dev->_filename, "") == 0) {
-> >  		if (dev->_isNTSC) {
-> >  			dev->_filename =
-> >  				(dev->_pixel_format == PIXEL_FRMT_411) ?
-> > diff --git a/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c b/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
-> > index c8c94fb..d33fc1a 100644
-> > --- a/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
-> > +++ b/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
-> > @@ -761,7 +761,7 @@ int cx25821_vidupstream_init_ch2(struct cx25821_dev *dev, int channel_select,
-> >  	}
-> >  
-> >  	/* Default if filename is empty string */
-> > -	if (strcmp(dev->input_filename_ch2, "") == 0) {
-> > +	if (strcmp(dev->_filename_ch2, "") == 0) {
-> >  		if (dev->_isNTSC_ch2) {
-> >  			dev->_filename_ch2 = (dev->_pixel_format_ch2 ==
-> >  				PIXEL_FRMT_411) ? "/root/vid411.yuv" :
-> >
-> 
-> In this case stcmp seems a bit of a overkill. A simple
-> *(dev->_filename_ch2) == 0
-> should be ok ?
+From: Peter Senna Tschudin <peter.senna@gmail.com>
 
-I prefer strcmp() actually.  More readable.
+Convert a nonnegative error return code to a negative one, as returned
+elsewhere in the function.
 
-regards,
-dan carpenter
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
-> 
-> re,
->  wh
-> --
-> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+// <smpl>
+(
+if@p1 (\(ret < 0\|ret != 0\))
+ { ... return ret; }
+|
+ret@p1 = 0
+)
+... when != ret = e1
+    when != &ret
+*if(...)
+{
+  ... when != ret = e2
+      when forall
+ return ret;
+}
+
+// </smpl>
+
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+
+---
+ drivers/media/v4l2-core/videobuf2-core.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 4da3df6..f6bc240 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1876,8 +1876,10 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 	 */
+ 	for (i = 0; i < q->num_buffers; i++) {
+ 		fileio->bufs[i].vaddr = vb2_plane_vaddr(q->bufs[i], 0);
+-		if (fileio->bufs[i].vaddr == NULL)
++		if (fileio->bufs[i].vaddr == NULL) {
++			ret = -EFAULT;
+ 			goto err_reqbufs;
++		}
+ 		fileio->bufs[i].size = vb2_plane_size(q->bufs[i], 0);
+ 	}
+ 
+
