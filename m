@@ -1,16 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:45141 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751809Ab2IHOCG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Sep 2012 10:02:06 -0400
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:56784 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755460Ab2IFIim (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2012 04:38:42 -0400
 From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: kernel-janitors@vger.kernel.org, wharms@bfs.de,
-	Julia.Lawall@lip6.fr, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v2] drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c: fix error return code
-Date: Sat,  8 Sep 2012 16:01:58 +0200
-Message-Id: <1347112918-7738-1-git-send-email-peter.senna@gmail.com>
+To: peter.senna@gmail.com,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v2] drivers/media/platform/s5p-tv/sdo_drv.c: fix error return code
+Date: Thu,  6 Sep 2012 10:38:29 +0200
+Message-Id: <1346920709-8711-1-git-send-email-peter.senna@gmail.com>
+In-Reply-To: <1346775269-12191-4-git-send-email-peter.senna@gmail.com>
+References: <1346775269-12191-4-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -43,76 +44,33 @@ ret@p1 = 0
 Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
 
 ---
-walter harms <wharms@bfs.de>, thanks for the tip. Please take a look carefully to check if I got your suggestion correctly. It was tested by compilation only.
+ drivers/media/platform/s5p-tv/sdo_drv.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
- drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c |   30 ++++++-----------
- 1 file changed, 12 insertions(+), 18 deletions(-)
-
-diff --git a/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c b/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
-index c8c94fb..b663dac 100644
---- a/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
-+++ b/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
-@@ -704,11 +704,9 @@ int cx25821_vidupstream_init_ch2(struct cx25821_dev *dev, int channel_select,
- {
- 	struct sram_channel *sram_ch;
- 	u32 tmp;
--	int retval = 0;
- 	int err = 0;
- 	int data_frame_size = 0;
- 	int risc_buffer_size = 0;
--	int str_length = 0;
- 
- 	if (dev->_is_running_ch2) {
- 		pr_info("Video Channel is still running so return!\n");
-@@ -744,20 +742,16 @@ int cx25821_vidupstream_init_ch2(struct cx25821_dev *dev, int channel_select,
- 	risc_buffer_size = dev->_isNTSC_ch2 ?
- 		NTSC_RISC_BUF_SIZE : PAL_RISC_BUF_SIZE;
- 
--	if (dev->input_filename_ch2) {
--		str_length = strlen(dev->input_filename_ch2);
--		dev->_filename_ch2 = kmemdup(dev->input_filename_ch2,
--					     str_length + 1, GFP_KERNEL);
--
--		if (!dev->_filename_ch2)
--			goto error;
--	} else {
--		str_length = strlen(dev->_defaultname_ch2);
--		dev->_filename_ch2 = kmemdup(dev->_defaultname_ch2,
--					     str_length + 1, GFP_KERNEL);
-+	if (dev->input_filename_ch2)
-+		dev->_filename_ch2 = kstrdup(dev->input_filename_ch2,
-+								GFP_KERNEL);
-+	else
-+		dev->_filename_ch2 = kstrdup(dev->_defaultname_ch2,
-+								GFP_KERNEL);
- 
--		if (!dev->_filename_ch2)
--			goto error;
-+	if (!dev->_filename_ch2) {
-+		err = -ENOENT;
-+		goto error;
+diff --git a/drivers/media/platform/s5p-tv/sdo_drv.c b/drivers/media/platform/s5p-tv/sdo_drv.c
+index ad68bbe..58cf56d 100644
+--- a/drivers/media/platform/s5p-tv/sdo_drv.c
++++ b/drivers/media/platform/s5p-tv/sdo_drv.c
+@@ -369,6 +369,7 @@ static int __devinit sdo_probe(struct platform_device *pdev)
+ 	sdev->fout_vpll = clk_get(dev, "fout_vpll");
+ 	if (IS_ERR_OR_NULL(sdev->fout_vpll)) {
+ 		dev_err(dev, "failed to get clock 'fout_vpll'\n");
++		ret = -ENXIO;
+ 		goto fail_dacphy;
+ 	}
+ 	dev_info(dev, "fout_vpll.rate = %lu\n", clk_get_rate(sclk_vpll));
+@@ -377,11 +378,13 @@ static int __devinit sdo_probe(struct platform_device *pdev)
+ 	sdev->vdac = devm_regulator_get(dev, "vdd33a_dac");
+ 	if (IS_ERR_OR_NULL(sdev->vdac)) {
+ 		dev_err(dev, "failed to get regulator 'vdac'\n");
++		ret = -ENXIO;
+ 		goto fail_fout_vpll;
+ 	}
+ 	sdev->vdet = devm_regulator_get(dev, "vdet");
+ 	if (IS_ERR_OR_NULL(sdev->vdet)) {
+ 		dev_err(dev, "failed to get regulator 'vdet'\n");
++		ret = -ENXIO;
+ 		goto fail_fout_vpll;
  	}
  
- 	/* Default if filename is empty string */
-@@ -773,7 +767,7 @@ int cx25821_vidupstream_init_ch2(struct cx25821_dev *dev, int channel_select,
- 		}
- 	}
- 
--	retval = cx25821_sram_channel_setup_upstream(dev, sram_ch,
-+	err = cx25821_sram_channel_setup_upstream(dev, sram_ch,
- 						dev->_line_size_ch2, 0);
- 
- 	/* setup fifo + format */
-@@ -783,9 +777,9 @@ int cx25821_vidupstream_init_ch2(struct cx25821_dev *dev, int channel_select,
- 	dev->upstream_databuf_size_ch2 = data_frame_size * 2;
- 
- 	/* Allocating buffers and prepare RISC program */
--	retval = cx25821_upstream_buffer_prepare_ch2(dev, sram_ch,
-+	err = cx25821_upstream_buffer_prepare_ch2(dev, sram_ch,
- 						dev->_line_size_ch2);
--	if (retval < 0) {
-+	if (err < 0) {
- 		pr_err("%s: Failed to set up Video upstream buffers!\n",
- 		       dev->name);
- 		goto error;
 
