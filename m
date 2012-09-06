@@ -1,55 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:23132 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755500Ab2INK5z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 06:57:55 -0400
-Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
-	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id q8EAvqBY013688
-	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 10:57:53 GMT
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [RFCv3 API PATCH 03/31] DocBook: improve STREAMON/OFF documentation.
-Date: Fri, 14 Sep 2012 12:57:18 +0200
-Message-Id: <be8d4f090e3bdd797604f1bedf0c44b37b583b22.1347619766.git.hans.verkuil@cisco.com>
-In-Reply-To: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
-References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
-References: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:32412 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758078Ab2IFKtU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2012 06:49:20 -0400
+Received: from eusync3.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M9X004OVCQV2B60@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 06 Sep 2012 11:49:43 +0100 (BST)
+Received: from [106.116.147.32] by eusync3.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0M9X00NH1CQ50350@eusync3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 06 Sep 2012 11:49:17 +0100 (BST)
+Message-id: <50487FAC.5000203@samsung.com>
+Date: Thu, 06 Sep 2012 12:49:16 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: Fabio Estevam <festevam@gmail.com>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	=?ISO-8859-1?Q?Ga=EBtan_Carlier?= <gcembed@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: Camera not detected on linux-next
+References: <CAOMZO5D7Ar0SE9vmi41jSxbPqv8sSOQshbL6Uzv4Ltow5xKx4w@mail.gmail.com>
+ <50477B20.1030902@samsung.com>
+ <CA+V-a8t0GCKsvn5i8U8xNpeRQZCfu6b0s3O+XuOKbSfUY8AD8Q@mail.gmail.com>
+In-reply-to: <CA+V-a8t0GCKsvn5i8U8xNpeRQZCfu6b0s3O+XuOKbSfUY8AD8Q@mail.gmail.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Specify that STREAMON/OFF should return 0 if the stream is already
-started/stopped.
+Hi Prabhakar,
 
-The spec never specified what the correct behavior is. This ambiguity
-was resolved during the 2012 Media Workshop.
+On 09/06/2012 11:16 AM, Prabhakar Lad wrote:
+> Thanks for the patch.  I too had created one but didnt submit. I guess you will
+> post the patch soon to the list.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/DocBook/media/v4l/vidioc-streamon.xml |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+I've posted it a few days ago, it's already queued in the patchwork:
+http://patchwork.linuxtv.org/patch/14046/
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-streamon.xml b/Documentation/DocBook/media/v4l/vidioc-streamon.xml
-index 81cca45..716ea15 100644
---- a/Documentation/DocBook/media/v4l/vidioc-streamon.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-streamon.xml
-@@ -74,7 +74,12 @@ not transmitted yet. I/O returns to the same state as after calling
- stream type. This is the same as &v4l2-requestbuffers;
- <structfield>type</structfield>.</para>
- 
--    <para>Note applications can be preempted for unknown periods right
-+    <para>If <constant>VIDIOC_STREAMON</constant> is called when streaming
-+is already in progress, or if <constant>VIDIOC_STREAMOFF</constant> is called
-+when streaming is already stopped, then the ioctl does nothing and 0 is
-+returned.</para>
-+
-+    <para>Note that applications can be preempted for unknown periods right
- before or after the <constant>VIDIOC_STREAMON</constant> or
- <constant>VIDIOC_STREAMOFF</constant> calls, there is no notion of
- starting or stopping "now". Buffer timestamps can be used to
--- 
-1.7.10.4
 
+Regards,
+Sylwester
