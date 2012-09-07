@@ -1,44 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43355 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750807Ab2IOGcZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Sep 2012 02:32:25 -0400
-Date: Sat, 15 Sep 2012 09:32:20 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Antoine Reversat <a.reversat@gmail.com>
-Subject: Re: [PATCH v2] omap3isp: Use monotonic timestamps for statistics
- buffers
-Message-ID: <20120915063220.GN6834@valkosipuli.retiisi.org.uk>
-References: <1347659868-17398-1-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1347659868-17398-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1677 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756336Ab2IGN3i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 09:29:38 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 API PATCH 24/28] v4l2-dev: add new VFL_DIR_ defines.
+Date: Fri,  7 Sep 2012 15:29:24 +0200
+Message-Id: <e2043c0ca47cc3ed1fd45f62a6bce14e3ed5e2e8.1347023744.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
+References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
+References: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks, Laurent!
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Fri, Sep 14, 2012 at 11:57:48PM +0200, Laurent Pinchart wrote:
-> V4L2 buffers use the monotonic clock, while statistics buffers use wall
-> time. This makes it difficult to correlate video frames and statistics.
-> 
-> Switch statistics buffers to the monotonic clock to fix this, and
-> replace struct timeval with struct timespec.
-> 
-> Reported-by: Antoine Reversat <a.reversat@gmail.com>
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/platform/omap3isp/ispstat.c |    2 +-
->  drivers/media/platform/omap3isp/ispstat.h |    2 +-
->  include/linux/omap3isp.h                  |    7 ++++++-
->  3 files changed, 8 insertions(+), 3 deletions(-)
+These will be used by v4l2-dev.c to improve ioctl checking.
+I.e. ioctls for capture should return -ENOTTY when called for
+an output device.
 
-Acked-by: Sakari Ailus <sakari.ailu@iki.fi>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/media/v4l2-dev.h |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 6ee8897..95d1c91 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -26,6 +26,12 @@
+ #define VFL_TYPE_SUBDEV		3
+ #define VFL_TYPE_MAX		4
+ 
++/* Is this a receiver, transmitter or mem-to-mem? */
++/* Ignored for VFL_TYPE_SUBDEV. */
++#define VFL_DIR_RX		0
++#define VFL_DIR_TX		1
++#define VFL_DIR_M2M		2
++
+ struct v4l2_ioctl_callbacks;
+ struct video_device;
+ struct v4l2_device;
+@@ -105,7 +111,8 @@ struct video_device
+ 
+ 	/* device info */
+ 	char name[32];
+-	int vfl_type;
++	int vfl_type;	/* device type */
++	int vfl_dir;	/* receiver, transmitter or m2m */
+ 	/* 'minor' is set to -1 if the registration failed */
+ 	int minor;
+ 	u16 num;
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+1.7.10.4
+
