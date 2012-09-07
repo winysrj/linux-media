@@ -1,322 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from impaqm1.telefonica.net ([213.4.138.17]:8560 "EHLO
-	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754058Ab2IWTtC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Sep 2012 15:49:02 -0400
-From: Jose Alberto Reguero <jareguero@telefonica.net>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3598 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755007Ab2IGN3h (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 09:29:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] v4 Add support to Avermedia Twinstar double tuner in af9035
-Date: Sun, 23 Sep 2012 21:48:47 +0200
-Message-ID: <1552985.E1xmo1hCEj@jar7.dominio>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 API PATCH 16/28] v4l2: make vidioc_s_fbuf const.
+Date: Fri,  7 Sep 2012 15:29:16 +0200
+Message-Id: <6adca8757d94f0a16558a07a7f3d7a1340f13009.1347023744.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
+References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
+References: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch add support to the Avermedia Twinstar double tuner in the af9035
-driver. Version 4 of the patch. I split the patch as suggested by Antti. I send
-the changes to mxl5007 driver in another patch.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
+Write-only ioctls should have a const argument in the ioctl op.
 
-Jose Alberto
+Do this conversion for vidioc_s_fbuf.
 
-diff -upr linux/drivers/media/dvb-frontends/af9033.c linux.new/drivers/media/dvb-frontends/af9033.c
---- linux/drivers/media/dvb-frontends/af9033.c	2012-08-14 05:45:22.000000000 +0200
-+++ linux.new/drivers/media/dvb-frontends/af9033.c	2012-09-13 22:22:29.012301231 +0200
-@@ -326,6 +326,18 @@ static int af9033_init(struct dvb_fronte
- 			goto err;
- 	}
- 
-+	if (state->cfg.ts_mode == AF9033_TS_MODE_SERIAL) {
-+		ret = af9033_wr_reg_mask(state, 0x00d91c, 0x01, 0x01);
-+		if (ret < 0)
-+			goto err;
-+		ret = af9033_wr_reg_mask(state, 0x00d917, 0x00, 0x01);
-+		if (ret < 0)
-+			goto err;
-+		ret = af9033_wr_reg_mask(state, 0x00d916, 0x00, 0x01);
-+		if (ret < 0)
-+			goto err;
-+	}
-+
- 	state->bandwidth_hz = 0; /* force to program all parameters */
- 
+Adding const for write-only ioctls was decided during the 2012 Media Workshop.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/common/saa7146/saa7146_video.c |    2 +-
+ drivers/media/pci/bt8xx/bttv-driver.c        |    2 +-
+ drivers/media/pci/ivtv/ivtv-ioctl.c          |    4 ++--
+ drivers/media/pci/saa7134/saa7134-video.c    |    2 +-
+ drivers/media/pci/zoran/zoran_driver.c       |    2 +-
+ drivers/media/platform/fsl-viu.c             |    2 +-
+ drivers/media/platform/omap/omap_vout.c      |    2 +-
+ include/media/v4l2-ioctl.h                   |    2 +-
+ 8 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/media/common/saa7146/saa7146_video.c b/drivers/media/common/saa7146/saa7146_video.c
+index 6d14785..4143d61 100644
+--- a/drivers/media/common/saa7146/saa7146_video.c
++++ b/drivers/media/common/saa7146/saa7146_video.c
+@@ -479,7 +479,7 @@ static int vidioc_g_fbuf(struct file *file, void *fh, struct v4l2_framebuffer *f
  	return 0;
-diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.c linux.new/drivers/media/usb/dvb-usb-v2/af9035.c
---- linux/drivers/media/usb/dvb-usb-v2/af9035.c	2012-08-16 05:45:24.000000000 +0200
-+++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.c	2012-09-23 21:32:10.313657063 +0200
-@@ -209,10 +209,14 @@ static int af9035_i2c_master_xfer(struct
- 		if (msg[0].len > 40 || msg[1].len > 40) {
- 			/* TODO: correct limits > 40 */
- 			ret = -EOPNOTSUPP;
--		} else if (msg[0].addr == state->af9033_config[0].i2c_addr) {
-+		} else if ((msg[0].addr == state->af9033_config[0].i2c_addr) ||
-+			   (msg[0].addr == state->af9033_config[1].i2c_addr)) {
- 			/* integrated demod */
- 			u32 reg = msg[0].buf[0] << 16 | msg[0].buf[1] << 8 |
- 					msg[0].buf[2];
-+			if (state->af9033_config[1].i2c_addr &&
-+			   (msg[0].addr == state->af9033_config[1].i2c_addr))
-+				reg |= 0x100000;
- 			ret = af9035_rd_regs(d, reg, &msg[1].buf[0],
- 					msg[1].len);
- 		} else {
-@@ -220,8 +224,9 @@ static int af9035_i2c_master_xfer(struct
- 			u8 buf[5 + msg[0].len];
- 			struct usb_req req = { CMD_I2C_RD, 0, sizeof(buf),
- 					buf, msg[1].len, msg[1].buf };
-+			req.mbox |= ((msg[0].addr & 0x80)  >>  3);
- 			buf[0] = msg[1].len;
--			buf[1] = msg[0].addr << 1;
-+			buf[1] = (u8)(msg[0].addr << 1);
- 			buf[2] = 0x00; /* reg addr len */
- 			buf[3] = 0x00; /* reg addr MSB */
- 			buf[4] = 0x00; /* reg addr LSB */
-@@ -232,10 +237,14 @@ static int af9035_i2c_master_xfer(struct
- 		if (msg[0].len > 40) {
- 			/* TODO: correct limits > 40 */
- 			ret = -EOPNOTSUPP;
--		} else if (msg[0].addr == state->af9033_config[0].i2c_addr) {
-+		} else if ((msg[0].addr == state->af9033_config[0].i2c_addr) ||
-+			   (msg[0].addr == state->af9033_config[1].i2c_addr)) {
- 			/* integrated demod */
- 			u32 reg = msg[0].buf[0] << 16 | msg[0].buf[1] << 8 |
- 					msg[0].buf[2];
-+			if (state->af9033_config[1].i2c_addr &&
-+			   (msg[0].addr == state->af9033_config[1].i2c_addr))
-+				reg |= 0x100000;
- 			ret = af9035_wr_regs(d, reg, &msg[0].buf[3],
- 					msg[0].len - 3);
- 		} else {
-@@ -243,8 +252,9 @@ static int af9035_i2c_master_xfer(struct
- 			u8 buf[5 + msg[0].len];
- 			struct usb_req req = { CMD_I2C_WR, 0, sizeof(buf), buf,
- 					0, NULL };
-+			req.mbox |= ((msg[0].addr & 0x80)  >>  3);
- 			buf[0] = msg[0].len;
--			buf[1] = msg[0].addr << 1;
-+			buf[1] = (u8)(msg[0].addr << 1);
- 			buf[2] = 0x00; /* reg addr len */
- 			buf[3] = 0x00; /* reg addr MSB */
- 			buf[4] = 0x00; /* reg addr LSB */
-@@ -283,9 +293,30 @@ static int af9035_identify_state(struct 
- 	int ret;
- 	u8 wbuf[1] = { 1 };
- 	u8 rbuf[4];
-+	u8 tmp;
- 	struct usb_req req = { CMD_FW_QUERYINFO, 0, sizeof(wbuf), wbuf,
- 			sizeof(rbuf), rbuf };
- 
-+	/* check if there is dual tuners */
-+	ret = af9035_rd_reg(d, EEPROM_DUAL_MODE, &tmp);
-+	if (ret < 0)
-+		goto err;
-+
-+	if (tmp) {
-+		/* read 2nd demodulator I2C address */
-+		ret = af9035_rd_reg(d, EEPROM_2WIREADDR, &tmp);
-+		if (ret < 0)
-+			goto err;
-+
-+		ret = af9035_wr_reg(d, 0x00417f, tmp);
-+		if (ret < 0)
-+			goto err;
-+
-+		ret = af9035_wr_reg(d, 0x00d81a, 1);
-+		if (ret < 0)
-+			goto err;
-+	}
-+
- 	ret = af9035_ctrl_msg(d, &req);
- 	if (ret < 0)
- 		goto err;
-@@ -492,7 +523,14 @@ static int af9035_read_config(struct dvb
- 
- 	state->dual_mode = tmp;
- 	pr_debug("%s: dual mode=%d\n", __func__, state->dual_mode);
--
-+	if (state->dual_mode) {
-+		/* read 2nd demodulator I2C address */
-+		ret = af9035_rd_reg(d, EEPROM_2WIREADDR, &tmp);
-+		if (ret < 0)
-+			goto err;
-+		state->af9033_config[1].i2c_addr = tmp;
-+		pr_debug("%s: 2nd demod I2C addr:%02x\n", __func__, tmp);
-+	}
- 	for (i = 0; i < state->dual_mode + 1; i++) {
- 		/* tuner */
- 		ret = af9035_rd_reg(d, EEPROM_1_TUNER_ID + eeprom_shift, &tmp);
-@@ -671,6 +709,12 @@ static int af9035_frontend_callback(void
- 	return -EINVAL;
  }
  
-+static int af9035_get_adapter_count(struct dvb_usb_device *d)
-+{
-+	struct state *state = d_to_priv(d);
-+	return state->dual_mode + 1;
-+}
-+
- static int af9035_frontend_attach(struct dvb_usb_adapter *adap)
+-static int vidioc_s_fbuf(struct file *file, void *fh, struct v4l2_framebuffer *fb)
++static int vidioc_s_fbuf(struct file *file, void *fh, const struct v4l2_framebuffer *fb)
  {
- 	struct state *state = adap_to_priv(adap);
-@@ -726,13 +770,22 @@ static const struct fc0011_config af9035
- 	.i2c_address = 0x60,
- };
+ 	struct saa7146_dev *dev = ((struct saa7146_fh *)fh)->dev;
+ 	struct saa7146_vv *vv = dev->vv_data;
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index b58ff87..26bf309 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -2740,7 +2740,7 @@ static int bttv_overlay(struct file *file, void *f, unsigned int on)
+ }
  
--static struct mxl5007t_config af9035_mxl5007t_config = {
--	.xtal_freq_hz = MxL_XTAL_24_MHZ,
--	.if_freq_hz = MxL_IF_4_57_MHZ,
--	.invert_if = 0,
--	.loop_thru_enable = 0,
--	.clk_out_enable = 0,
--	.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
-+static struct mxl5007t_config af9035_mxl5007t_config[] = {
-+	{
-+		.xtal_freq_hz = MxL_XTAL_24_MHZ,
-+		.if_freq_hz = MxL_IF_4_57_MHZ,
-+		.invert_if = 0,
-+		.loop_thru_enable = 0,
-+		.clk_out_enable = 0,
-+		.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
-+	}, {
-+		.xtal_freq_hz = MxL_XTAL_24_MHZ,
-+		.if_freq_hz = MxL_IF_4_57_MHZ,
-+		.invert_if = 0,
-+		.loop_thru_enable = 1,
-+		.clk_out_enable = 1,
-+		.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
-+	}
- };
+ static int bttv_s_fbuf(struct file *file, void *f,
+-				struct v4l2_framebuffer *fb)
++				const struct v4l2_framebuffer *fb)
+ {
+ 	struct bttv_fh *fh = f;
+ 	struct bttv *btv = fh->btv;
+diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c b/drivers/media/pci/ivtv/ivtv-ioctl.c
+index 32a5910..d3b32c2 100644
+--- a/drivers/media/pci/ivtv/ivtv-ioctl.c
++++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
+@@ -1427,7 +1427,7 @@ static int ivtv_g_fbuf(struct file *file, void *fh, struct v4l2_framebuffer *fb)
+ 	return 0;
+ }
  
- static struct tda18218_config af9035_tda18218_config = {
-@@ -795,46 +848,52 @@ static int af9035_tuner_attach(struct dv
- 				&d->i2c_adap, &af9035_fc0011_config);
- 		break;
- 	case AF9033_TUNER_MXL5007T:
--		ret = af9035_wr_reg(d, 0x00d8e0, 1);
--		if (ret < 0)
--			goto err;
--		ret = af9035_wr_reg(d, 0x00d8e1, 1);
--		if (ret < 0)
--			goto err;
--		ret = af9035_wr_reg(d, 0x00d8df, 0);
--		if (ret < 0)
--			goto err;
-+		state->tuner_address[adap->id] = 0x60;
-+		/* hack, use b[7] to carry used I2C-bus */
-+		state->tuner_address[adap->id] |= (adap->id << 7);
-+		if (adap->id == 0) {
-+			ret = af9035_wr_reg(d, 0x00d8e0, 1);
-+			if (ret < 0)
-+				goto err;
-+			ret = af9035_wr_reg(d, 0x00d8e1, 1);
-+			if (ret < 0)
-+				goto err;
-+			ret = af9035_wr_reg(d, 0x00d8df, 0);
-+			if (ret < 0)
-+				goto err;
+-static int ivtv_s_fbuf(struct file *file, void *fh, struct v4l2_framebuffer *fb)
++static int ivtv_s_fbuf(struct file *file, void *fh, const struct v4l2_framebuffer *fb)
+ {
+ 	struct ivtv_open_id *id = fh2id(fh);
+ 	struct ivtv *itv = id->itv;
+@@ -1444,7 +1444,7 @@ static int ivtv_s_fbuf(struct file *file, void *fh, struct v4l2_framebuffer *fb)
+ 	itv->osd_chroma_key_state = (fb->flags & V4L2_FBUF_FLAG_CHROMAKEY) != 0;
+ 	ivtv_set_osd_alpha(itv);
+ 	yi->track_osd = (fb->flags & V4L2_FBUF_FLAG_OVERLAY) != 0;
+-	return ivtv_g_fbuf(file, fh, fb);
++	return 0;
+ }
  
--		msleep(30);
-+			msleep(30);
+ static int ivtv_overlay(struct file *file, void *fh, unsigned int on)
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+index 6de10b1..bac4386 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -2158,7 +2158,7 @@ static int saa7134_g_fbuf(struct file *file, void *f,
+ }
  
--		ret = af9035_wr_reg(d, 0x00d8df, 1);
--		if (ret < 0)
--			goto err;
-+			ret = af9035_wr_reg(d, 0x00d8df, 1);
-+			if (ret < 0)
-+				goto err;
+ static int saa7134_s_fbuf(struct file *file, void *f,
+-					struct v4l2_framebuffer *fb)
++					const struct v4l2_framebuffer *fb)
+ {
+ 	struct saa7134_fh *fh = f;
+ 	struct saa7134_dev *dev = fh->dev;
+diff --git a/drivers/media/pci/zoran/zoran_driver.c b/drivers/media/pci/zoran/zoran_driver.c
+index c6ccdeb..f91b551 100644
+--- a/drivers/media/pci/zoran/zoran_driver.c
++++ b/drivers/media/pci/zoran/zoran_driver.c
+@@ -1978,7 +1978,7 @@ static int zoran_g_fbuf(struct file *file, void *__fh,
+ }
  
--		msleep(300);
-+			msleep(300);
+ static int zoran_s_fbuf(struct file *file, void *__fh,
+-		struct v4l2_framebuffer *fb)
++		const struct v4l2_framebuffer *fb)
+ {
+ 	struct zoran_fh *fh = __fh;
+ 	struct zoran *zr = fh->zr;
+diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
+index 20f9810..897250b 100644
+--- a/drivers/media/platform/fsl-viu.c
++++ b/drivers/media/platform/fsl-viu.c
+@@ -860,7 +860,7 @@ int vidioc_g_fbuf(struct file *file, void *priv, struct v4l2_framebuffer *arg)
+ 	return 0;
+ }
  
--		ret = af9035_wr_reg(d, 0x00d8c0, 1);
--		if (ret < 0)
--			goto err;
--		ret = af9035_wr_reg(d, 0x00d8c1, 1);
--		if (ret < 0)
--			goto err;
--		ret = af9035_wr_reg(d, 0x00d8bf, 0);
--		if (ret < 0)
--			goto err;
--		ret = af9035_wr_reg(d, 0x00d8b4, 1);
--		if (ret < 0)
--			goto err;
--		ret = af9035_wr_reg(d, 0x00d8b5, 1);
--		if (ret < 0)
--			goto err;
--		ret = af9035_wr_reg(d, 0x00d8b3, 1);
--		if (ret < 0)
--			goto err;
-+			ret = af9035_wr_reg(d, 0x00d8c0, 1);
-+			if (ret < 0)
-+				goto err;
-+			ret = af9035_wr_reg(d, 0x00d8c1, 1);
-+			if (ret < 0)
-+				goto err;
-+			ret = af9035_wr_reg(d, 0x00d8bf, 0);
-+			if (ret < 0)
-+				goto err;
-+			ret = af9035_wr_reg(d, 0x00d8b4, 1);
-+			if (ret < 0)
-+				goto err;
-+			ret = af9035_wr_reg(d, 0x00d8b5, 1);
-+			if (ret < 0)
-+				goto err;
-+			ret = af9035_wr_reg(d, 0x00d8b3, 1);
-+			if (ret < 0)
-+				goto err;
-+		}
+-int vidioc_s_fbuf(struct file *file, void *priv, struct v4l2_framebuffer *arg)
++int vidioc_s_fbuf(struct file *file, void *priv, const struct v4l2_framebuffer *arg)
+ {
+ 	struct viu_fh  *fh = priv;
+ 	struct viu_dev *dev = fh->dev;
+diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
+index 88cf9d9..92845f8 100644
+--- a/drivers/media/platform/omap/omap_vout.c
++++ b/drivers/media/platform/omap/omap_vout.c
+@@ -1744,7 +1744,7 @@ static int vidioc_streamoff(struct file *file, void *fh, enum v4l2_buf_type i)
+ }
  
- 		/* attach tuner */
- 		fe = dvb_attach(mxl5007t_attach, adap->fe[0],
--				&d->i2c_adap, 0x60, &af9035_mxl5007t_config);
-+				&d->i2c_adap, state->tuner_address[adap->id],
-+				&af9035_mxl5007t_config[adap->id]);
- 		break;
- 	case AF9033_TUNER_TDA18218:
- 		/* attach tuner */
-@@ -879,8 +938,8 @@ static int af9035_init(struct dvb_usb_de
- 		{ 0x00dd8a, (frame_size >> 0) & 0xff, 0xff},
- 		{ 0x00dd8b, (frame_size >> 8) & 0xff, 0xff},
- 		{ 0x00dd0d, packet_size, 0xff },
--		{ 0x80f9a3, 0x00, 0x01 },
--		{ 0x80f9cd, 0x00, 0x01 },
-+		{ 0x80f9a3, state->dual_mode, 0x01 },
-+		{ 0x80f9cd, state->dual_mode, 0x01 },
- 		{ 0x80f99d, 0x00, 0x01 },
- 		{ 0x80f9a4, 0x00, 0x01 },
- 	};
-@@ -1001,7 +1060,7 @@ static const struct dvb_usb_device_prope
- 	.init = af9035_init,
- 	.get_rc_config = af9035_get_rc_config,
+ static int vidioc_s_fbuf(struct file *file, void *fh,
+-				struct v4l2_framebuffer *a)
++				const struct v4l2_framebuffer *a)
+ {
+ 	int enable = 0;
+ 	struct omap_overlay *ovl;
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index 0bc1444..73ae24a 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -120,7 +120,7 @@ struct v4l2_ioctl_ops {
+ 	int (*vidioc_g_fbuf)   (struct file *file, void *fh,
+ 				struct v4l2_framebuffer *a);
+ 	int (*vidioc_s_fbuf)   (struct file *file, void *fh,
+-				struct v4l2_framebuffer *a);
++				const struct v4l2_framebuffer *a);
  
--	.num_adapters = 1,
-+	.get_adapter_count = af9035_get_adapter_count,
- 	.adapter = {
- 		{
- 			.stream = DVB_USB_STREAM_BULK(0x84, 6, 87 * 188),
-diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.h linux.new/drivers/media/usb/dvb-usb-v2/af9035.h
---- linux/drivers/media/usb/dvb-usb-v2/af9035.h	2012-08-14 05:45:22.000000000 +0200
-+++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.h	2012-09-23 21:29:45.608466128 +0200
-@@ -54,6 +54,8 @@ struct state {
- 	bool dual_mode;
- 
- 	struct af9033_config af9033_config[2];
-+
-+	u8 tuner_address[2];
- };
- 
- u32 clock_lut[] = {
-@@ -87,6 +89,7 @@ u32 clock_lut_it9135[] = {
- /* EEPROM locations */
- #define EEPROM_IR_MODE            0x430d
- #define EEPROM_DUAL_MODE          0x4326
-+#define EEPROM_2WIREADDR          0x4327
- #define EEPROM_IR_TYPE            0x4329
- #define EEPROM_1_IFFREQ_L         0x432d
- #define EEPROM_1_IFFREQ_H         0x432e
+ 		/* Stream on/off */
+ 	int (*vidioc_streamon) (struct file *file, void *fh, enum v4l2_buf_type i);
+-- 
+1.7.10.4
 
