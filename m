@@ -1,264 +1,262 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:36103 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030245Ab2I1Ta0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Sep 2012 15:30:26 -0400
-Received: by eekb15 with SMTP id b15so1644236eek.19
-        for <linux-media@vger.kernel.org>; Fri, 28 Sep 2012 12:30:25 -0700 (PDT)
-Message-ID: <1348860617.2782.26.camel@Route3278>
-Subject: Re: [PATCH] usb id addition for Terratec Cinergy T Stick Dual rev. 2
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Damien Bally <biribi@free.fr>, linux-media@vger.kernel.org,
-	MauroCarvalhoChehab <mchehab@redhat.com>
-Date: Fri, 28 Sep 2012 20:30:17 +0100
-In-Reply-To: <5065E487.80502@iki.fi>
-References: <5064A3AD.70009@free.fr> <5064ABD2.2060106@iki.fi>
-	 <5065D1AC.5030800@free.fr> <5065E487.80502@iki.fi>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3289 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756632Ab2IGN3k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 09:29:40 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 API PATCH 27/28] v4l2-dev: reorder checks into blocks of ioctls with similar properties.
+Date: Fri,  7 Sep 2012 15:29:27 +0200
+Message-Id: <f1c16696469d4f9d89e628d138d25bf323143085.1347023744.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
+References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
+References: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2012-09-28 at 20:55 +0300, Antti Palosaari wrote:
-> On 09/28/2012 07:34 PM, Damien Bally wrote:
-> >   > I will NACK that initially because that USB ID already used by AF9015
-> >> driver. You have to explain / study what happens when AF9015 driver
-> >> claims that device same time.
-> >>
-> >
-> > Hi Antti
-> >
-> > With the Cinergy stick alone, dvb_usb_af9015 is predictably loaded, but
-> > doesn't prevent dvb_usb_it913x from working nicely.
-> >
-> > If an afatech 9015 stick is connected, such as an AverTV Volar Black HD
-> > (A850), it will be recognized and doesn't affect the other device.
-> >
-> > *But* it runs into trouble if the two devices were connected at bootup,
-> > or if the Cinergy stick is inserted after the other one :
-> 
-> I am not sure what you do here but let it be clear.
-> There is same ID used by af9015 and it913x. Both drivers are loaded when 
-> that ID appears. What I understand *both* drivers, af9015 and it913x 
-> should detect if device is correct or not. If device is af9015 then 
-> it913x should reject it with -ENODEV most likely without a I/O. If 
-> device is it913x then af9015 should reject the device similarly. And you 
-> must find out how to do that. It is not acceptable both drivers starts 
-> doing I/O for same device same time.
-> 
-Hi All
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Which module is loaded first depends on the order in 
+This makes it easier to read and also ties in more closely with the
+profile concept.
 
-/lib/modules/$(uname -r)/modules.usbmap
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-dev.c |  156 +++++++++++++++++-------------------
+ 1 file changed, 74 insertions(+), 82 deletions(-)
 
-Its is likely that af9015 will be first, so the it913x will need to be
-loaded first by added it to /etc/modules.
-
-I recall a similar problem exists with the DiB3000M-B driver with its
-faulty IDs.
-
-A solution may be for Cinergy to have its own module with extern access
-to both dvb_usb_device_properties structures and dvb_usbv2_probe them
-twice.
-
-
-Regards
-
-
-Malcolm
-
-
-
-
-
-
-
-
-> regards
-> Antti
-> 
-> > -----------------------------------------------------------------------
-> > [    1.264018] usb 2-1: new high speed USB device using ehci_hcd and
-> > address 2
-> > [    1.382487] usb 2-1: New USB device found, idVendor=0ccd, idProduct=0099
-> > [    1.382490] usb 2-1: New USB device strings: Mfr=1, Product=2,
-> > SerialNumber=0
-> > [    1.382492] usb 2-1: Product: DVB-T TV Stick
-> > [    1.382494] usb 2-1: Manufacturer: ITE Technologies, Inc.
-> > [    1.385073] input: ITE Technologies, Inc. DVB-T TV Stick as
-> > /devices/pci0000:00/0000:00:1d.7/usb2/2-1/2-1:1.1/input/input1
-> > [    1.385147] generic-usb 0003:0CCD:0099.0001: input,hidraw0: USB HID
-> > v1.01 Keyboard [ITE Technologies, Inc. DVB-T TV Stick] on
-> > usb-0000:00:1d.7-1 input1
-> > [    5.045527] usbcore: registered new interface driver dvb_usb_it913x
-> > [    5.147276] it913x: Chip Version=01 Chip Type=9135
-> > [    5.147524] it913x: Firmware Version 33684956
-> > [    5.148649] it913x: Remote HID mode NOT SUPPORTED
-> > [    5.149024] it913x: Dual mode=3 Tuner Type=0
-> > [    5.149028] usb 2-1: dvb_usbv2: found a 'ITE 9135(9006) Generic' in
-> > warm state
-> > [    5.149077] usb 2-1: dvb_usbv2: will pass the complete MPEG2
-> > transport stream to the software demuxer
-> > [    5.149307] DVB: registering new adapter (ITE 9135(9006) Generic)
-> > [    5.174907] usb 1-4: dvb_usbv2: downloading firmware from file
-> > 'dvb-usb-af9015.fw'
-> > [    5.241934] usb 1-4: dvb_usbv2: found a 'AverMedia AVerTV Volar Black
-> > HD (A850)' in warm state
-> > [    5.614827] usb 1-4: dvb_usbv2: will pass the complete MPEG2
-> > transport stream to the software demuxer
-> > [    5.614866] DVB: registering new adapter (AverMedia AVerTV Volar
-> > Black HD (A850))
-> > [    5.710026] af9013: firmware version 4.95.0.0
-> > [    5.712151] DVB: registering adapter 1 frontend 0 (Afatech AF9013)...
-> > [    5.813139] MXL5005S: Attached at address 0xc6
-> > [    5.818896] usb 1-4: dvb_usbv2: 'AverMedia AVerTV Volar Black HD
-> > (A850)' successfully initialized and connected
-> > [    7.266161] usb 2-1: dvb_usbv2: 2nd usb_bulk_msg() failed=-110
-> > [    7.266247] it913x-fe: ADF table value    :00
-> > [    9.267200] usb 2-1: dvb_usbv2: 2nd usb_bulk_msg() failed=-110
-> > [   11.267153] usb 2-1: dvb_usbv2: 2nd usb_bulk_msg() failed=-110
-> > [   13.267250] usb 2-1: dvb_usbv2: 2nd usb_bulk_msg() failed=-110
-> > [   15.267089] usb 2-1: dvb_usbv2: 2nd usb_bulk_msg() failed=-110
-> > [   17.267162] usb 2-1: dvb_usbv2: 2nd usb_bulk_msg() failed=-110
-> > [   19.267139] usb 2-1: dvb_usbv2: 2nd usb_bulk_msg() failed=-110
-> > [   19.267218] it913x-fe: Crystal Frequency :12000000 Adc Frequency
-> > :20250000 ADC X2: 01
-> > [   19.267296] usb 2-1: dvb_usbv2: 'ITE 9135(9006) Generic' error while
-> > loading driver (-19)
-> > [   19.267472] usb 2-1: dvb_usbv2: 'ITE 9135(9006) Generic' successfully
-> > deinitialized and disconnected
-> > -----------------------------------------------------------------------
-> >
-> > I'm unfortunately not able to rewrite the driver, but I'm willing to
-> > provide any information about the device to help its correct
-> > identification. Here is what lsusb yields :
-> > -----------------------------------------------------------------------
-> > Bus 002 Device 003: ID 0ccd:0099 TerraTec Electronic GmbH
-> > Device Descriptor:
-> >    bLength                18
-> >    bDescriptorType         1
-> >    bcdUSB               2.00
-> >    bDeviceClass            0 (Defined at Interface level)
-> >    bDeviceSubClass         0
-> >    bDeviceProtocol         0
-> >    bMaxPacketSize0        64
-> >    idVendor           0x0ccd TerraTec Electronic GmbH
-> >    idProduct          0x0099
-> >    bcdDevice            2.00
-> >    iManufacturer           1 ITE Technologies, Inc.
-> >    iProduct                2 DVB-T TV Stick
-> >    iSerial                 0
-> >    bNumConfigurations      1
-> >    Configuration Descriptor:
-> >      bLength                 9
-> >      bDescriptorType         2
-> >      wTotalLength           71
-> >      bNumInterfaces          2
-> >      bConfigurationValue     1
-> >      iConfiguration          0
-> >      bmAttributes         0x80
-> >        (Bus Powered)
-> >      MaxPower              500mA
-> >      Interface Descriptor:
-> >        bLength                 9
-> >        bDescriptorType         4
-> >        bInterfaceNumber        0
-> >        bAlternateSetting       0
-> >        bNumEndpoints           4
-> >        bInterfaceClass       255 Vendor Specific Class
-> >        bInterfaceSubClass      0
-> >        bInterfaceProtocol      0
-> >        iInterface              0
-> >        Endpoint Descriptor:
-> >          bLength                 7
-> >          bDescriptorType         5
-> >          bEndpointAddress     0x81  EP 1 IN
-> >          bmAttributes            2
-> >            Transfer Type            Bulk
-> >            Synch Type               None
-> >            Usage Type               Data
-> >          wMaxPacketSize     0x0200  1x 512 bytes
-> >          bInterval               0
-> >        Endpoint Descriptor:
-> >          bLength                 7
-> >          bDescriptorType         5
-> >          bEndpointAddress     0x02  EP 2 OUT
-> >          bmAttributes            2
-> >            Transfer Type            Bulk
-> >            Synch Type               None
-> >            Usage Type               Data
-> >          wMaxPacketSize     0x0200  1x 512 bytes
-> >          bInterval               0
-> >        Endpoint Descriptor:
-> >          bLength                 7
-> >          bDescriptorType         5
-> >          bEndpointAddress     0x84  EP 4 IN
-> >          bmAttributes            2
-> >            Transfer Type            Bulk
-> >            Synch Type               None
-> >            Usage Type               Data
-> >          wMaxPacketSize     0x0200  1x 512 bytes
-> >          bInterval               0
-> >        Endpoint Descriptor:
-> >          bLength                 7
-> >          bDescriptorType         5
-> >          bEndpointAddress     0x85  EP 5 IN
-> >          bmAttributes            2
-> >            Transfer Type            Bulk
-> >            Synch Type               None
-> >            Usage Type               Data
-> >          wMaxPacketSize     0x0200  1x 512 bytes
-> >          bInterval               0
-> >      Interface Descriptor:
-> >        bLength                 9
-> >        bDescriptorType         4
-> >        bInterfaceNumber        1
-> >        bAlternateSetting       0
-> >        bNumEndpoints           1
-> >        bInterfaceClass         3 Human Interface Device
-> >        bInterfaceSubClass      0 No Subclass
-> >        bInterfaceProtocol      1 Keyboard
-> >        iInterface              0
-> >          HID Device Descriptor:
-> >            bLength                 9
-> >            bDescriptorType        33
-> >            bcdHID               1.01
-> >            bCountryCode            0 Not supported
-> >            bNumDescriptors         1
-> >            bDescriptorType        34 Report
-> >            wDescriptorLength      65
-> >           Report Descriptors:
-> >             ** UNAVAILABLE **
-> >        Endpoint Descriptor:
-> >          bLength                 7
-> >          bDescriptorType         5
-> >          bEndpointAddress     0x83  EP 3 IN
-> >          bmAttributes            3
-> >            Transfer Type            Interrupt
-> >            Synch Type               None
-> >            Usage Type               Data
-> >          wMaxPacketSize     0x0040  1x 64 bytes
-> >          bInterval              10
-> > Device Qualifier (for other device speed):
-> >    bLength                10
-> >    bDescriptorType         6
-> >    bcdUSB               2.00
-> >    bDeviceClass            0 (Defined at Interface level)
-> >    bDeviceSubClass         0
-> >    bDeviceProtocol         0
-> >    bMaxPacketSize0        64
-> >    bNumConfigurations      1
-> > Device Status:     0x0000
-> >    (Bus Powered)
-> >
-> > Hope that helps...
-> >
-> > Damien
-> 
-> 
-
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 3e15a079..4b86065 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -559,6 +559,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 
+ 	bitmap_zero(valid_ioctls, BASE_VIDIOC_PRIVATE);
+ 
++	/* vfl_type and vfl_dir independent ioctls */
++
+ 	SET_VALID_IOCTL(ops, VIDIOC_QUERYCAP, vidioc_querycap);
+ 	if (ops->vidioc_g_priority ||
+ 			test_bit(V4L2_FL_USE_FH_PRIO, &vdev->flags))
+@@ -566,7 +568,49 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 	if (ops->vidioc_s_priority ||
+ 			test_bit(V4L2_FL_USE_FH_PRIO, &vdev->flags))
+ 		set_bit(_IOC_NR(VIDIOC_S_PRIORITY), valid_ioctls);
++	SET_VALID_IOCTL(ops, VIDIOC_REQBUFS, vidioc_reqbufs);
++	SET_VALID_IOCTL(ops, VIDIOC_QUERYBUF, vidioc_querybuf);
++	SET_VALID_IOCTL(ops, VIDIOC_QBUF, vidioc_qbuf);
++	SET_VALID_IOCTL(ops, VIDIOC_DQBUF, vidioc_dqbuf);
++	SET_VALID_IOCTL(ops, VIDIOC_STREAMON, vidioc_streamon);
++	SET_VALID_IOCTL(ops, VIDIOC_STREAMOFF, vidioc_streamoff);
++	/* Note: the control handler can also be passed through the filehandle,
++	   and that can't be tested here. If the bit for these control ioctls
++	   is set, then the ioctl is valid. But if it is 0, then it can still
++	   be valid if the filehandle passed the control handler. */
++	if (vdev->ctrl_handler || ops->vidioc_queryctrl)
++		set_bit(_IOC_NR(VIDIOC_QUERYCTRL), valid_ioctls);
++	if (vdev->ctrl_handler || ops->vidioc_g_ctrl || ops->vidioc_g_ext_ctrls)
++		set_bit(_IOC_NR(VIDIOC_G_CTRL), valid_ioctls);
++	if (vdev->ctrl_handler || ops->vidioc_s_ctrl || ops->vidioc_s_ext_ctrls)
++		set_bit(_IOC_NR(VIDIOC_S_CTRL), valid_ioctls);
++	if (vdev->ctrl_handler || ops->vidioc_g_ext_ctrls)
++		set_bit(_IOC_NR(VIDIOC_G_EXT_CTRLS), valid_ioctls);
++	if (vdev->ctrl_handler || ops->vidioc_s_ext_ctrls)
++		set_bit(_IOC_NR(VIDIOC_S_EXT_CTRLS), valid_ioctls);
++	if (vdev->ctrl_handler || ops->vidioc_try_ext_ctrls)
++		set_bit(_IOC_NR(VIDIOC_TRY_EXT_CTRLS), valid_ioctls);
++	if (vdev->ctrl_handler || ops->vidioc_querymenu)
++		set_bit(_IOC_NR(VIDIOC_QUERYMENU), valid_ioctls);
++	SET_VALID_IOCTL(ops, VIDIOC_G_FREQUENCY, vidioc_g_frequency);
++	SET_VALID_IOCTL(ops, VIDIOC_S_FREQUENCY, vidioc_s_frequency);
++	SET_VALID_IOCTL(ops, VIDIOC_LOG_STATUS, vidioc_log_status);
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++	SET_VALID_IOCTL(ops, VIDIOC_DBG_G_REGISTER, vidioc_g_register);
++	SET_VALID_IOCTL(ops, VIDIOC_DBG_S_REGISTER, vidioc_s_register);
++#endif
++	SET_VALID_IOCTL(ops, VIDIOC_DBG_G_CHIP_IDENT, vidioc_g_chip_ident);
++	/* yes, really vidioc_subscribe_event */
++	SET_VALID_IOCTL(ops, VIDIOC_DQEVENT, vidioc_subscribe_event);
++	SET_VALID_IOCTL(ops, VIDIOC_SUBSCRIBE_EVENT, vidioc_subscribe_event);
++	SET_VALID_IOCTL(ops, VIDIOC_UNSUBSCRIBE_EVENT, vidioc_unsubscribe_event);
++	SET_VALID_IOCTL(ops, VIDIOC_CREATE_BUFS, vidioc_create_bufs);
++	SET_VALID_IOCTL(ops, VIDIOC_PREPARE_BUF, vidioc_prepare_buf);
++	if (ops->vidioc_enum_freq_bands || ops->vidioc_g_tuner || ops->vidioc_g_modulator)
++		set_bit(_IOC_NR(VIDIOC_ENUM_FREQ_BANDS), valid_ioctls);
++
+ 	if (is_vid) {
++		/* video specific ioctls */
+ 		if ((is_rx && (ops->vidioc_enum_fmt_vid_cap ||
+ 			       ops->vidioc_enum_fmt_vid_cap_mplane ||
+ 			       ops->vidioc_enum_fmt_vid_overlay)) ||
+@@ -594,7 +638,20 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 			       ops->vidioc_try_fmt_vid_out_mplane ||
+ 			       ops->vidioc_try_fmt_vid_out_overlay)))
+ 			 set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
++		SET_VALID_IOCTL(ops, VIDIOC_OVERLAY, vidioc_overlay);
++		SET_VALID_IOCTL(ops, VIDIOC_G_FBUF, vidioc_g_fbuf);
++		SET_VALID_IOCTL(ops, VIDIOC_S_FBUF, vidioc_s_fbuf);
++		SET_VALID_IOCTL(ops, VIDIOC_G_JPEGCOMP, vidioc_g_jpegcomp);
++		SET_VALID_IOCTL(ops, VIDIOC_S_JPEGCOMP, vidioc_s_jpegcomp);
++		SET_VALID_IOCTL(ops, VIDIOC_G_ENC_INDEX, vidioc_g_enc_index);
++		SET_VALID_IOCTL(ops, VIDIOC_ENCODER_CMD, vidioc_encoder_cmd);
++		SET_VALID_IOCTL(ops, VIDIOC_TRY_ENCODER_CMD, vidioc_try_encoder_cmd);
++		SET_VALID_IOCTL(ops, VIDIOC_DECODER_CMD, vidioc_decoder_cmd);
++		SET_VALID_IOCTL(ops, VIDIOC_TRY_DECODER_CMD, vidioc_try_decoder_cmd);
++		SET_VALID_IOCTL(ops, VIDIOC_ENUM_FRAMESIZES, vidioc_enum_framesizes);
++		SET_VALID_IOCTL(ops, VIDIOC_ENUM_FRAMEINTERVALS, vidioc_enum_frameintervals);
+ 	} else if (is_vbi) {
++		/* vbi specific ioctls */
+ 		if ((is_rx && (ops->vidioc_g_fmt_vbi_cap ||
+ 			       ops->vidioc_g_fmt_sliced_vbi_cap)) ||
+ 		    (is_tx && (ops->vidioc_g_fmt_vbi_out ||
+@@ -610,33 +667,25 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 		    (is_tx && (ops->vidioc_try_fmt_vbi_out ||
+ 			       ops->vidioc_try_fmt_sliced_vbi_out)))
+ 			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
++		SET_VALID_IOCTL(ops, VIDIOC_G_SLICED_VBI_CAP, vidioc_g_sliced_vbi_cap);
+ 	}
+-	SET_VALID_IOCTL(ops, VIDIOC_REQBUFS, vidioc_reqbufs);
+-	SET_VALID_IOCTL(ops, VIDIOC_QUERYBUF, vidioc_querybuf);
+-	SET_VALID_IOCTL(ops, VIDIOC_QBUF, vidioc_qbuf);
+-	SET_VALID_IOCTL(ops, VIDIOC_DQBUF, vidioc_dqbuf);
+-	if (is_vid) {
+-		SET_VALID_IOCTL(ops, VIDIOC_OVERLAY, vidioc_overlay);
+-		SET_VALID_IOCTL(ops, VIDIOC_G_FBUF, vidioc_g_fbuf);
+-		SET_VALID_IOCTL(ops, VIDIOC_S_FBUF, vidioc_s_fbuf);
+-	}
+-	SET_VALID_IOCTL(ops, VIDIOC_STREAMON, vidioc_streamon);
+-	SET_VALID_IOCTL(ops, VIDIOC_STREAMOFF, vidioc_streamoff);
+ 	if (!is_radio) {
++		/* ioctls valid for video or vbi */
+ 		if (vdev->tvnorms)
+ 			set_bit(_IOC_NR(VIDIOC_ENUMSTD), valid_ioctls);
+ 		if (ops->vidioc_g_std || vdev->current_norm)
+ 			set_bit(_IOC_NR(VIDIOC_G_STD), valid_ioctls);
+ 		SET_VALID_IOCTL(ops, VIDIOC_S_STD, vidioc_s_std);
+-		if (is_rx)
+-			SET_VALID_IOCTL(ops, VIDIOC_QUERYSTD, vidioc_querystd);
+ 		if (is_rx) {
++			SET_VALID_IOCTL(ops, VIDIOC_QUERYSTD, vidioc_querystd);
+ 			SET_VALID_IOCTL(ops, VIDIOC_ENUMINPUT, vidioc_enum_input);
+ 			SET_VALID_IOCTL(ops, VIDIOC_G_INPUT, vidioc_g_input);
+ 			SET_VALID_IOCTL(ops, VIDIOC_S_INPUT, vidioc_s_input);
+ 			SET_VALID_IOCTL(ops, VIDIOC_ENUMAUDIO, vidioc_enumaudio);
+ 			SET_VALID_IOCTL(ops, VIDIOC_G_AUDIO, vidioc_g_audio);
+ 			SET_VALID_IOCTL(ops, VIDIOC_S_AUDIO, vidioc_s_audio);
++			SET_VALID_IOCTL(ops, VIDIOC_QUERY_DV_PRESET, vidioc_query_dv_preset);
++			SET_VALID_IOCTL(ops, VIDIOC_QUERY_DV_TIMINGS, vidioc_query_dv_timings);
+ 		}
+ 		if (is_tx) {
+ 			SET_VALID_IOCTL(ops, VIDIOC_ENUMOUTPUT, vidioc_enum_output);
+@@ -646,30 +695,6 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 			SET_VALID_IOCTL(ops, VIDIOC_G_AUDOUT, vidioc_g_audout);
+ 			SET_VALID_IOCTL(ops, VIDIOC_S_AUDOUT, vidioc_s_audout);
+ 		}
+-	}
+-	/* Note: the control handler can also be passed through the filehandle,
+-	   and that can't be tested here. If the bit for these control ioctls
+-	   is set, then the ioctl is valid. But if it is 0, then it can still
+-	   be valid if the filehandle passed the control handler. */
+-	if (vdev->ctrl_handler || ops->vidioc_queryctrl)
+-		set_bit(_IOC_NR(VIDIOC_QUERYCTRL), valid_ioctls);
+-	if (vdev->ctrl_handler || ops->vidioc_g_ctrl || ops->vidioc_g_ext_ctrls)
+-		set_bit(_IOC_NR(VIDIOC_G_CTRL), valid_ioctls);
+-	if (vdev->ctrl_handler || ops->vidioc_s_ctrl || ops->vidioc_s_ext_ctrls)
+-		set_bit(_IOC_NR(VIDIOC_S_CTRL), valid_ioctls);
+-	if (vdev->ctrl_handler || ops->vidioc_g_ext_ctrls)
+-		set_bit(_IOC_NR(VIDIOC_G_EXT_CTRLS), valid_ioctls);
+-	if (vdev->ctrl_handler || ops->vidioc_s_ext_ctrls)
+-		set_bit(_IOC_NR(VIDIOC_S_EXT_CTRLS), valid_ioctls);
+-	if (vdev->ctrl_handler || ops->vidioc_try_ext_ctrls)
+-		set_bit(_IOC_NR(VIDIOC_TRY_EXT_CTRLS), valid_ioctls);
+-	if (vdev->ctrl_handler || ops->vidioc_querymenu)
+-		set_bit(_IOC_NR(VIDIOC_QUERYMENU), valid_ioctls);
+-	if (is_tx) {
+-		SET_VALID_IOCTL(ops, VIDIOC_G_MODULATOR, vidioc_g_modulator);
+-		SET_VALID_IOCTL(ops, VIDIOC_S_MODULATOR, vidioc_s_modulator);
+-	}
+-	if (!is_radio) {
+ 		if (ops->vidioc_g_crop || ops->vidioc_g_selection)
+ 			set_bit(_IOC_NR(VIDIOC_G_CROP), valid_ioctls);
+ 		if (ops->vidioc_s_crop || ops->vidioc_s_selection)
+@@ -678,63 +703,30 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 		SET_VALID_IOCTL(ops, VIDIOC_S_SELECTION, vidioc_s_selection);
+ 		if (ops->vidioc_cropcap || ops->vidioc_g_selection)
+ 			set_bit(_IOC_NR(VIDIOC_CROPCAP), valid_ioctls);
+-	}
+-	if (is_vid) {
+-		SET_VALID_IOCTL(ops, VIDIOC_G_JPEGCOMP, vidioc_g_jpegcomp);
+-		SET_VALID_IOCTL(ops, VIDIOC_S_JPEGCOMP, vidioc_s_jpegcomp);
+-		SET_VALID_IOCTL(ops, VIDIOC_G_ENC_INDEX, vidioc_g_enc_index);
+-		SET_VALID_IOCTL(ops, VIDIOC_ENCODER_CMD, vidioc_encoder_cmd);
+-		SET_VALID_IOCTL(ops, VIDIOC_TRY_ENCODER_CMD, vidioc_try_encoder_cmd);
+-		SET_VALID_IOCTL(ops, VIDIOC_DECODER_CMD, vidioc_decoder_cmd);
+-		SET_VALID_IOCTL(ops, VIDIOC_TRY_DECODER_CMD, vidioc_try_decoder_cmd);
+-	}
+-	if (!is_radio) {
+ 		if (ops->vidioc_g_parm || (vdev->vfl_type == VFL_TYPE_GRABBER &&
+ 					(ops->vidioc_g_std || vdev->tvnorms)))
+ 			set_bit(_IOC_NR(VIDIOC_G_PARM), valid_ioctls);
+ 		SET_VALID_IOCTL(ops, VIDIOC_S_PARM, vidioc_s_parm);
+-	}
+-	if (is_rx) {
+-		SET_VALID_IOCTL(ops, VIDIOC_G_TUNER, vidioc_g_tuner);
+-		SET_VALID_IOCTL(ops, VIDIOC_S_TUNER, vidioc_s_tuner);
+-	}
+-	SET_VALID_IOCTL(ops, VIDIOC_G_FREQUENCY, vidioc_g_frequency);
+-	SET_VALID_IOCTL(ops, VIDIOC_S_FREQUENCY, vidioc_s_frequency);
+-	if (is_vbi)
+-		SET_VALID_IOCTL(ops, VIDIOC_G_SLICED_VBI_CAP, vidioc_g_sliced_vbi_cap);
+-	SET_VALID_IOCTL(ops, VIDIOC_LOG_STATUS, vidioc_log_status);
+-#ifdef CONFIG_VIDEO_ADV_DEBUG
+-	SET_VALID_IOCTL(ops, VIDIOC_DBG_G_REGISTER, vidioc_g_register);
+-	SET_VALID_IOCTL(ops, VIDIOC_DBG_S_REGISTER, vidioc_s_register);
+-#endif
+-	SET_VALID_IOCTL(ops, VIDIOC_DBG_G_CHIP_IDENT, vidioc_g_chip_ident);
+-	if (is_rx)
+-		SET_VALID_IOCTL(ops, VIDIOC_S_HW_FREQ_SEEK, vidioc_s_hw_freq_seek);
+-	if (is_vid) {
+-		SET_VALID_IOCTL(ops, VIDIOC_ENUM_FRAMESIZES, vidioc_enum_framesizes);
+-		SET_VALID_IOCTL(ops, VIDIOC_ENUM_FRAMEINTERVALS, vidioc_enum_frameintervals);
+-	}
+-	if (!is_radio) {
+ 		SET_VALID_IOCTL(ops, VIDIOC_ENUM_DV_PRESETS, vidioc_enum_dv_presets);
+ 		SET_VALID_IOCTL(ops, VIDIOC_S_DV_PRESET, vidioc_s_dv_preset);
+ 		SET_VALID_IOCTL(ops, VIDIOC_G_DV_PRESET, vidioc_g_dv_preset);
+-		if (is_rx)
+-			SET_VALID_IOCTL(ops, VIDIOC_QUERY_DV_PRESET, vidioc_query_dv_preset);
+ 		SET_VALID_IOCTL(ops, VIDIOC_S_DV_TIMINGS, vidioc_s_dv_timings);
+ 		SET_VALID_IOCTL(ops, VIDIOC_G_DV_TIMINGS, vidioc_g_dv_timings);
+ 		SET_VALID_IOCTL(ops, VIDIOC_ENUM_DV_TIMINGS, vidioc_enum_dv_timings);
+-		if (is_rx)
+-			SET_VALID_IOCTL(ops, VIDIOC_QUERY_DV_TIMINGS, vidioc_query_dv_timings);
+ 		SET_VALID_IOCTL(ops, VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap);
+ 	}
+-	/* yes, really vidioc_subscribe_event */
+-	SET_VALID_IOCTL(ops, VIDIOC_DQEVENT, vidioc_subscribe_event);
+-	SET_VALID_IOCTL(ops, VIDIOC_SUBSCRIBE_EVENT, vidioc_subscribe_event);
+-	SET_VALID_IOCTL(ops, VIDIOC_UNSUBSCRIBE_EVENT, vidioc_unsubscribe_event);
+-	SET_VALID_IOCTL(ops, VIDIOC_CREATE_BUFS, vidioc_create_bufs);
+-	SET_VALID_IOCTL(ops, VIDIOC_PREPARE_BUF, vidioc_prepare_buf);
+-	if (ops->vidioc_enum_freq_bands || ops->vidioc_g_tuner || ops->vidioc_g_modulator)
+-		set_bit(_IOC_NR(VIDIOC_ENUM_FREQ_BANDS), valid_ioctls);
++	if (is_tx) {
++		/* transmitter only ioctls */
++		SET_VALID_IOCTL(ops, VIDIOC_G_MODULATOR, vidioc_g_modulator);
++		SET_VALID_IOCTL(ops, VIDIOC_S_MODULATOR, vidioc_s_modulator);
++	}
++	if (is_rx) {
++		/* receiver only ioctls */
++		SET_VALID_IOCTL(ops, VIDIOC_G_TUNER, vidioc_g_tuner);
++		SET_VALID_IOCTL(ops, VIDIOC_S_TUNER, vidioc_s_tuner);
++		SET_VALID_IOCTL(ops, VIDIOC_S_HW_FREQ_SEEK, vidioc_s_hw_freq_seek);
++	}
++
+ 	bitmap_andnot(vdev->valid_ioctls, valid_ioctls, vdev->valid_ioctls,
+ 			BASE_VIDIOC_PRIVATE);
+ }
+-- 
+1.7.10.4
 
