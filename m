@@ -1,496 +1,506 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:38747 "EHLO 7of9.schinagl.nl"
+Received: from mail.telros.ru ([83.136.244.21]:52826 "EHLO mail.telros.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751133Ab2IPWKe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Sep 2012 18:10:34 -0400
-Message-ID: <50564E58.20004@schinagl.nl>
-Date: Mon, 17 Sep 2012 00:10:32 +0200
-From: Oliver Schinagl <oliver+list@schinagl.nl>
+	id S1753222Ab2IGKvs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Sep 2012 06:51:48 -0400
+Date: Fri, 7 Sep 2012 18:18:31 +0400
+From: volokh@telros.ru
+To: Adam Rosi-Kessel <adam@rosi-kessel.org>
+Cc: linux-media@vger.kernel.org, volokh84@gmail.com
+Subject: Re: go7007 question
+Message-ID: <20120907141831.GA12333@VPir.telros.ru>
+References: <5044F8DC.20509@rosi-kessel.org>
+ <20120906191014.GA2540@VPir.Home>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Support for Asus MyCinema U3100Mini Plus
-References: <1347223647-645-1-git-send-email-oliver+list@schinagl.nl> <504D00BC.4040109@schinagl.nl> <504D0F44.6030706@iki.fi> <504D17AA.8020807@schinagl.nl> <504D1859.5050201@iki.fi> <504DB9D4.6020502@schinagl.nl> <504DD311.7060408@iki.fi> <504DF950.8060006@schinagl.nl> <504E2345.5090800@schinagl.nl> <5055DD27.7080501@schinagl.nl> <505601B6.2010103@iki.fi> <5055EA30.8000200@schinagl.nl> <50560B82.7000205@iki.fi>
-In-Reply-To: <50560B82.7000205@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="CE+1k2dSO48ffgeK"
+Content-Disposition: inline
+In-Reply-To: <20120906191014.GA2540@VPir.Home>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/16/12 19:25, Antti Palosaari wrote:
-> On 09/16/2012 06:03 PM, Oliver Schinagl wrote:
->> I don't have windows, so capturing using windows is near impossible.
->> Also since the vendor driver used to work, I guess I will have to dig
->> into that more.
->
-> You could capture data from Linux too (eg. Wireshark).
-Ah of course. I'll dig up the old vendor driver and see if I can get it 
-running on 3.2 or better yet, on 3.5/your-3.6. I know there's patches 
-for 3.2 but I've never tested those. Otherwise the older 2.6.2* series 
-should still work.
 
->
-> But with a little experience you could see those GPIOs reading existing
-> Linux driver and then do some tests to see what happens. For example
-> some GPIO powers tuner off, you will see I2C error. Changing it back
-> error disappears.
-I have zero experience so I'll try to figure things out. I guess you 
-currently turn on/off GPIO's etc in the current driver? Any line which 
-does this so I can examine how it's done? As for the I2C errors, I 
-suppose the current driver will spew those out?
+--CE+1k2dSO48ffgeK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Speaking off, in my previous message, I wrote about the driver spitting 
-out the following error:
-[dvb_usb_af9035]af9035_read_config =_ "%s: [%d]tuner=%02x\012"
+On Thu, Sep 06, 2012 at 11:10:14PM +0400, Volokh Konstantin wrote:
+> On Mon, Sep 03, 2012 at 02:37:16PM -0400, Adam Rosi-Kessel wrote:
+> > 
+> > [469.928881] wis-saa7115: initializing SAA7115 at address 32 on WIS
+> > GO7007SB EZ-USB
+> > 
+> > [469.989083] go7007: probing for module i2c:wis_saa7115 failed
+> > 
+> > [470.004785] wis-uda1342: initializing UDA1342 at address 26 on WIS
+> > GO7007SB EZ-USB
+> > 
+> > [470.005454] go7007: probing for module i2c:wis_uda1342 failed
+> > 
+> > [470.011659] wis-sony-tuner: initializing tuner at address 96 on WIS
+> > GO7007SB EZ-USB
+Hi, I generated patchs, that u may in your own go7007/ folder
+It contains go7007 initialization and i2c_subdev fixing
 
-None of the values where set however. Did I miss-configure anything for 
-it to cause to 'forget' substituting?
+It was checked for 3.6 branch (compile only)
+ 
+Regards,
+Volokh Konstantin
 
->
->> Since all the pieces should be there, fc2580 driver, af9033/5 driver,
->> it's just a matter of glueing things together, right? I'll dig further
->> into it and see what I can find/do.
->
-> Correct. Tuner init (demod settings fc2580) for is needed for af9033.
-> And GPIOs for AF9035. In very bad luck some changes for fc2580 is needed
-> too, but it is not very, very, unlikely.
->
-> This patch is very similar you will need to do (tda18218 tuner support
-> for af9035):
-> http://patchwork.linuxtv.org/patch/10547/
-I re-did my patch using that as a template (before I used your work on 
-the rtl) and got the exact result.
+--CE+1k2dSO48ffgeK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="patch.diff"
 
-Your rtl|fc2580 combo btw (from bare memory) didn't have the fc2580_init 
-stream in af9033_priv.h. What exactly gets init-ed there? The af9033 to 
-work with the fc2580?
+diff --git a/drivers/staging/media/go7007/go7007-driver.c b/drivers/staging/media/go7007/go7007-driver.c
+index ece2dd1..2dff9b5 100644
+--- a/drivers/staging/media/go7007/go7007-driver.c
++++ b/drivers/staging/media/go7007/go7007-driver.c
+@@ -173,6 +173,11 @@ static int go7007_init_encoder(struct go7007 *go)
+ 		go7007_write_addr(go, 0x3c82, 0x0001);
+ 		go7007_write_addr(go, 0x3c80, 0x00fe);
+ 	}
++	if (go->board_id == GO7007_BOARDID_ADLINK_MPG24) {
++		/* set GPIO5 to be an output, currently low */
++		go7007_write_addr(go, 0x3c82, 0x0000);
++		go7007_write_addr(go, 0x3c80, 0x00df);
++	}
+ 	return 0;
+ }
+ 
+@@ -192,17 +197,23 @@ int go7007_reset_encoder(struct go7007 *go)
+ /*
+  * Attempt to instantiate an I2C client by ID, probably loading a module.
+  */
+-static int init_i2c_module(struct i2c_adapter *adapter, const char *type,
+-			   int addr)
++static int init_i2c_module(struct i2c_adapter *adapter, const struct go_i2c *const i2c)
+ {
+ 	struct go7007 *go = i2c_get_adapdata(adapter);
+ 	struct v4l2_device *v4l2_dev = &go->v4l2_dev;
++	struct i2c_board_info info;
++
++	memset(&info, 0, sizeof(info));
++	strlcpy(info.type, i2c->type, sizeof(info.type));
++	info.addr = i2c->addr;
+ 
+-	if (v4l2_i2c_new_subdev(v4l2_dev, adapter, type, addr, NULL))
++	if (i2c->id == I2C_DRIVERID_WIS_TW2804)
++		info.flags |= I2C_CLIENT_TEN;
++	if (v4l2_i2c_new_subdev_board(v4l2_dev, adapter, &info, NULL))
+ 		return 0;
+ 
+-	printk(KERN_INFO "go7007: probing for module i2c:%s failed\n", type);
+-	return -1;
++	printk(KERN_INFO "go7007: probing for module i2c:%s failed\n", i2c->type);
++	return -EINVAL;
+ }
+ 
+ /*
+@@ -238,9 +249,7 @@ int go7007_register_encoder(struct go7007 *go)
+ 	}
+ 	if (go->i2c_adapter_online) {
+ 		for (i = 0; i < go->board_info->num_i2c_devs; ++i)
+-			init_i2c_module(&go->i2c_adapter,
+-					go->board_info->i2c_devs[i].type,
+-					go->board_info->i2c_devs[i].addr);
++			init_i2c_module(&go->i2c_adapter, &go->board_info->i2c_devs[i]);
+ 		if (go->board_id == GO7007_BOARDID_ADLINK_MPG24)
+ 			i2c_clients_command(&go->i2c_adapter,
+ 				DECODER_SET_CHANNEL, &go->channel_number);
+@@ -571,7 +580,7 @@ struct go7007 *go7007_alloc(struct go7007_board_info *board, struct device *dev)
+ 	struct go7007 *go;
+ 	int i;
+ 
+-	go = kmalloc(sizeof(struct go7007), GFP_KERNEL);
++	go = kzalloc(sizeof(struct go7007), GFP_KERNEL);
+ 	if (go == NULL)
+ 		return NULL;
+ 	go->dev = dev;
+diff --git a/drivers/staging/media/go7007/go7007-priv.h b/drivers/staging/media/go7007/go7007-priv.h
+index b58c394..b7b939a 100644
+--- a/drivers/staging/media/go7007/go7007-priv.h
++++ b/drivers/staging/media/go7007/go7007-priv.h
+@@ -88,7 +88,7 @@ struct go7007_board_info {
+ 	int audio_bclk_div;
+ 	int audio_main_div;
+ 	int num_i2c_devs;
+-	struct {
++	struct go_i2c {
+ 		const char *type;
+ 		int id;
+ 		int addr;
+diff --git a/drivers/staging/media/go7007/go7007-usb.c b/drivers/staging/media/go7007/go7007-usb.c
+index 5443e25..9dbf5ec 100644
+--- a/drivers/staging/media/go7007/go7007-usb.c
++++ b/drivers/staging/media/go7007/go7007-usb.c
+@@ -1110,9 +1110,6 @@ static int go7007_usb_probe(struct usb_interface *intf,
+ 			} else {
+ 				u16 channel;
+ 
+-				/* set GPIO5 to be an output, currently low */
+-				go7007_write_addr(go, 0x3c82, 0x0000);
+-				go7007_write_addr(go, 0x3c80, 0x00df);
+ 				/* read channel number from GPIO[1:0] */
+ 				go7007_read_addr(go, 0x3c81, &channel);
+ 				channel &= 0x3;
+@@ -1245,7 +1242,6 @@ static void go7007_usb_disconnect(struct usb_interface *intf)
+ 	struct urb *vurb, *aurb;
+ 	int i;
+ 
+-	go->status = STATUS_SHUTDOWN;
+ 	usb_kill_urb(usb->intr_urb);
+ 
+ 	/* Free USB-related structs */
+@@ -1269,6 +1265,7 @@ static void go7007_usb_disconnect(struct usb_interface *intf)
+ 	kfree(go->hpi_context);
+ 
+ 	go7007_remove(go);
++	go->status = STATUS_SHUTDOWN;
+ }
+ 
+ static struct usb_driver go7007_usb_driver = {
+diff --git a/drivers/staging/media/go7007/go7007-v4l2.c b/drivers/staging/media/go7007/go7007-v4l2.c
+index c184ad3..b8f2eb6 100644
+--- a/drivers/staging/media/go7007/go7007-v4l2.c
++++ b/drivers/staging/media/go7007/go7007-v4l2.c
+@@ -98,7 +98,7 @@ static int go7007_open(struct file *file)
+ 
+ 	if (go->status != STATUS_ONLINE)
+ 		return -EBUSY;
+-	gofh = kmalloc(sizeof(struct go7007_file), GFP_KERNEL);
++	gofh = kzalloc(sizeof(struct go7007_file), GFP_KERNEL);
+ 	if (gofh == NULL)
+ 		return -ENOMEM;
+ 	++go->ref_count;
+@@ -953,6 +953,7 @@ static int vidioc_streamon(struct file *file, void *priv,
+ 	}
+ 	mutex_unlock(&go->hw_lock);
+ 	mutex_unlock(&gofh->lock);
++	call_all(&go->v4l2_dev, video, s_stream, 1);
+ 
+ 	return retval;
+ }
+@@ -968,6 +969,7 @@ static int vidioc_streamoff(struct file *file, void *priv,
+ 	mutex_lock(&gofh->lock);
+ 	go7007_streamoff(go);
+ 	mutex_unlock(&gofh->lock);
++	call_all(&go->v4l2_dev, video, s_stream, 0);
+ 
+ 	return 0;
+ }
+@@ -1832,5 +1834,6 @@ void go7007_v4l2_remove(struct go7007 *go)
+ 	mutex_unlock(&go->hw_lock);
+ 	if (go->video_dev)
+ 		video_unregister_device(go->video_dev);
+-	v4l2_device_unregister(&go->v4l2_dev);
++	if (go->status != STATUS_SHUTDOWN)
++		v4l2_device_unregister(&go->v4l2_dev);
+ }
+diff --git a/drivers/staging/media/go7007/wis-saa7115.c b/drivers/staging/media/go7007/wis-saa7115.c
+index 46cff59..9065cc7 100644
+--- a/drivers/staging/media/go7007/wis-saa7115.c
++++ b/drivers/staging/media/go7007/wis-saa7115.c
+@@ -21,10 +21,17 @@
+ #include <linux/videodev2.h>
+ #include <linux/ioctl.h>
+ #include <linux/slab.h>
++#include <media/v4l2-common.h>
++#include <media/v4l2-ioctl.h>
++#include <media/v4l2-subdev.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
+ 
+ #include "wis-i2c.h"
+ 
+ struct wis_saa7115 {
++  struct v4l2_subdev sd;
++  struct v4l2_ctrl_handler hdl;
+ 	int norm;
+ 	int brightness;
+ 	int contrast;
+@@ -182,6 +189,15 @@ static u8 initial_registers[] =
+ 	0x00, 0x00, /* Terminator (reg 0x00 is read-only) */
+ };
+ 
++static const struct v4l2_subdev_core_ops wis_saa7115_core_ops = {
++};
++
++static const struct v4l2_subdev_video_ops wis_saa7115_video_ops = {
++/*  .s_routing = tw2804_s_video_routing,
++  .s_mbus_fmt = tw2804_s_mbus_fmt,
++  .s_stream = tw2804_s_stream,*/
++};
++
+ static int write_reg(struct i2c_client *client, u8 reg, u8 value)
+ {
+ 	return i2c_smbus_write_byte_data(client, reg, value);
+@@ -197,10 +213,16 @@ static int write_regs(struct i2c_client *client, u8 *regs)
+ 	return 0;
+ }
+ 
++inline struct wis_saa7115 *to_state(struct v4l2_subdev *sd)
++{
++  return container_of(sd, struct wis_saa7115, sd);
++}
++
+ static int wis_saa7115_command(struct i2c_client *client,
+ 				unsigned int cmd, void *arg)
+ {
+-	struct wis_saa7115 *dec = i2c_get_clientdata(client);
++  struct v4l2_subdev *sd = i2c_get_clientdata(client);
++  struct wis_saa7115 *dec = to_state(sd);
+ 
+ 	switch (cmd) {
+ 	case VIDIOC_S_INPUT:
+@@ -395,11 +417,18 @@ static int wis_saa7115_command(struct i2c_client *client,
+ 	return 0;
+ }
+ 
++static const struct v4l2_subdev_ops wis_saa7115_ops = {
++  .core = &wis_saa7115_core_ops,
++  .video = &wis_saa7115_video_ops,
++//  .video = &wis_sony_tuner_video_ops,
++};
++
+ static int wis_saa7115_probe(struct i2c_client *client,
+ 			     const struct i2c_device_id *id)
+ {
+ 	struct i2c_adapter *adapter = client->adapter;
+ 	struct wis_saa7115 *dec;
++  struct v4l2_subdev *sd;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -ENODEV;
+@@ -407,13 +436,14 @@ static int wis_saa7115_probe(struct i2c_client *client,
+ 	dec = kmalloc(sizeof(struct wis_saa7115), GFP_KERNEL);
+ 	if (dec == NULL)
+ 		return -ENOMEM;
++  sd = &dec->sd;
++  v4l2_i2c_subdev_init(sd, client, &wis_saa7115_ops);
+ 
+ 	dec->norm = V4L2_STD_NTSC;
+ 	dec->brightness = 128;
+ 	dec->contrast = 64;
+ 	dec->saturation = 64;
+ 	dec->hue = 0;
+-	i2c_set_clientdata(client, dec);
+ 
+ 	printk(KERN_DEBUG
+ 		"wis-saa7115: initializing SAA7115 at address %d on %s\n",
+@@ -431,8 +461,10 @@ static int wis_saa7115_probe(struct i2c_client *client,
+ 
+ static int wis_saa7115_remove(struct i2c_client *client)
+ {
+-	struct wis_saa7115 *dec = i2c_get_clientdata(client);
++  struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct wis_saa7115 *dec = to_state(sd);
+ 
++  v4l2_device_unregister_subdev(sd);
+ 	kfree(dec);
+ 	return 0;
+ }
+diff --git a/drivers/staging/media/go7007/wis-sony-tuner.c b/drivers/staging/media/go7007/wis-sony-tuner.c
+index 8f1b7d4..884a261 100644
+--- a/drivers/staging/media/go7007/wis-sony-tuner.c
++++ b/drivers/staging/media/go7007/wis-sony-tuner.c
+@@ -23,6 +23,9 @@
+ #include <media/tuner.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-subdev.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
+ 
+ #include "wis-i2c.h"
+ 
+@@ -67,6 +70,8 @@ static struct sony_tunertype sony_tuners[] = {
+ };
+ 
+ struct wis_sony_tuner {
++  struct v4l2_subdev sd;
++  struct v4l2_ctrl_handler hdl;
+ 	int type;
+ 	v4l2_std_id std;
+ 	unsigned int freq;
+@@ -74,10 +79,32 @@ struct wis_sony_tuner {
+ 	u32 audmode;
+ };
+ 
++inline struct wis_sony_tuner *to_state(struct v4l2_subdev *sd)
++{
++  return container_of(sd, struct wis_sony_tuner, sd);
++}
++
++static const struct v4l2_subdev_tuner_ops wis_sony_tuner_ops = {
++};
++
++static const struct v4l2_subdev_core_ops wis_sony_core_ops = {
++/*  .log_status = wis_sony_tuner_log_status,
++  .g_chip_ident = wis_sony_tuner_g_chip_ident,
++  .g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
++  .try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
++  .s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
++  .g_ctrl = v4l2_subdev_g_ctrl,
++  .s_ctrl = v4l2_subdev_s_ctrl,
++  .queryctrl = v4l2_subdev_queryctrl,
++  .querymenu = v4l2_subdev_querymenu,
++  .s_std = wis_sony_tuner_s_std,*/
++};
++
+ /* Basically the same as default_set_tv_freq() in tuner.c */
+ static int set_freq(struct i2c_client *client, int freq)
+ {
+-	struct wis_sony_tuner *t = i2c_get_clientdata(client);
++  struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct wis_sony_tuner *t = to_state(sd);
+ 	char *band_name;
+ 	int n;
+ 	int band_select;
+@@ -220,7 +247,8 @@ static struct {
+ 
+ static int mpx_setup(struct i2c_client *client)
+ {
+-	struct wis_sony_tuner *t = i2c_get_clientdata(client);
++  struct v4l2_subdev *sd = i2c_get_clientdata(client);
++  struct wis_sony_tuner *t = to_state(sd);
+ 	u16 source = 0;
+ 	u8 buffer[3];
+ 	struct i2c_msg msg;
+@@ -336,7 +364,8 @@ static int mpx_setup(struct i2c_client *client)
+ 
+ static int set_if(struct i2c_client *client)
+ {
+-	struct wis_sony_tuner *t = i2c_get_clientdata(client);
++  struct v4l2_subdev *sd = i2c_get_clientdata(client);
++  struct wis_sony_tuner *t = to_state(sd);
+ 	u8 buffer[4];
+ 	struct i2c_msg msg;
+ 	int default_mpx_mode = 0;
+@@ -384,7 +413,8 @@ static int set_if(struct i2c_client *client)
+ 
+ static int tuner_command(struct i2c_client *client, unsigned int cmd, void *arg)
+ {
+-	struct wis_sony_tuner *t = i2c_get_clientdata(client);
++  struct v4l2_subdev *sd = i2c_get_clientdata(client);
++  struct wis_sony_tuner *t = to_state(sd);
+ 
+ 	switch (cmd) {
+ #if 0
+@@ -654,24 +684,33 @@ static int tuner_command(struct i2c_client *client, unsigned int cmd, void *arg)
+ 	return 0;
+ }
+ 
++
++static const struct v4l2_subdev_ops wis_sony_ops = {
++  .core = &wis_sony_core_ops,
++  .tuner = &wis_sony_tuner_ops,
++//  .video = &wis_sony_tuner_video_ops,
++};
++
+ static int wis_sony_tuner_probe(struct i2c_client *client,
+ 				const struct i2c_device_id *id)
+ {
+ 	struct i2c_adapter *adapter = client->adapter;
+ 	struct wis_sony_tuner *t;
++  struct v4l2_subdev *sd;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_I2C_BLOCK))
+ 		return -ENODEV;
+ 
+-	t = kmalloc(sizeof(struct wis_sony_tuner), GFP_KERNEL);
++	t = kzalloc(sizeof(struct wis_sony_tuner), GFP_KERNEL);
+ 	if (t == NULL)
+ 		return -ENOMEM;
++  sd = &t->sd;
++  v4l2_i2c_subdev_init(sd, client, &wis_sony_ops);
+ 
+ 	t->type = -1;
+ 	t->freq = 0;
+ 	t->mpxmode = 0;
+ 	t->audmode = V4L2_TUNER_MODE_STEREO;
+-	i2c_set_clientdata(client, t);
+ 
+ 	printk(KERN_DEBUG
+ 		"wis-sony-tuner: initializing tuner at address %d on %s\n",
+@@ -682,8 +721,10 @@ static int wis_sony_tuner_probe(struct i2c_client *client,
+ 
+ static int wis_sony_tuner_remove(struct i2c_client *client)
+ {
+-	struct wis_sony_tuner *t = i2c_get_clientdata(client);
++  struct v4l2_subdev *sd = i2c_get_clientdata(client);
++  struct wis_sony_tuner *t = to_state(sd);
+ 
++  v4l2_device_unregister_subdev(sd);
+ 	kfree(t);
+ 	return 0;
+ }
+diff --git a/drivers/staging/media/go7007/wis-uda1342.c b/drivers/staging/media/go7007/wis-uda1342.c
+index 0127be2..83aa1b9 100644
+--- a/drivers/staging/media/go7007/wis-uda1342.c
++++ b/drivers/staging/media/go7007/wis-uda1342.c
+@@ -18,9 +18,14 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/i2c.h>
++#include <linux/slab.h>
+ #include <linux/videodev2.h>
+ #include <media/tvaudio.h>
+ #include <media/v4l2-common.h>
++#include <media/v4l2-ioctl.h>
++#include <media/v4l2-subdev.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
+ 
+ #include "wis-i2c.h"
+ 
+@@ -31,6 +36,9 @@ static int write_reg(struct i2c_client *client, int reg, int value)
+ 	return 0;
+ }
+ 
++static const struct v4l2_subdev_audio_ops wis_uda1342_audio_ops = {
++};
++
+ static int wis_uda1342_command(struct i2c_client *client,
+ 				unsigned int cmd, void *arg)
+ {
+@@ -59,10 +67,16 @@ static int wis_uda1342_command(struct i2c_client *client,
+ 	return 0;
+ }
+ 
++static const struct v4l2_subdev_ops wis_uda1342_ops = {
++//  .core = &wis_uda1342_core_ops,
++  .audio = &wis_uda1342_audio_ops,
++};
++
+ static int wis_uda1342_probe(struct i2c_client *client,
+ 			     const struct i2c_device_id *id)
+ {
+ 	struct i2c_adapter *adapter = client->adapter;
++  struct v4l2_subdev *sd;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA))
+ 		return -ENODEV;
+@@ -70,7 +84,11 @@ static int wis_uda1342_probe(struct i2c_client *client,
+ 	printk(KERN_DEBUG
+ 		"wis-uda1342: initializing UDA1342 at address %d on %s\n",
+ 		client->addr, adapter->name);
++  sd=kzalloc(sizeof(struct v4l2_subdev), GFP_KERNEL);
++  if (sd == NULL)
++    return -ENOMEM;
+ 
++  v4l2_i2c_subdev_init(sd, client, &wis_uda1342_ops);
+ 	write_reg(client, 0x00, 0x8000); /* reset registers */
+ 	write_reg(client, 0x00, 0x1241); /* select input 1 */
+ 
+@@ -79,6 +97,10 @@ static int wis_uda1342_probe(struct i2c_client *client,
+ 
+ static int wis_uda1342_remove(struct i2c_client *client)
+ {
++  struct v4l2_subdev *sd = i2c_get_clientdata(client);
++
++  v4l2_device_unregister_subdev(sd);
++  kfree(sd);
+ 	return 0;
+ }
+ 
 
->
->
-> regards
-> Antti
-
-Thanks so far,
-
-Oliver
->>
->> On 09/16/12 18:43, Antti Palosaari wrote:
->>> Hello
->>> You have about all the possible info. There is chipset vendor driver
->>> look example and existing Linux drivers for all the used chips. Just few
->>> lines of code needed for the device profile. I surely can help, but it
->>> is not something I would like to teach and say do that and test that. It
->>> is wasting my time. I encourage you to take one simple USB capture from
->>> Windows driver and look help from there. GPIOs are the first thing to
->>> test.
->>>
->>> Also maintaining driver without a hardware is something that causes
->>> always headache later when some changes are needed to do that
->>> driver.... :s
->>>
->>> regards
->>> Antti
->>>
->>>
->>>
->>> On 09/16/2012 05:07 PM, Oliver Schinagl wrote:
->>>> Any pointers where else to look? I'm kinda lost at the moment :)
->>>>
->>>> Oliver
->>>>
->>>> On 09/10/12 19:28, Oliver Schinagl wrote:
->>>>> On 09/10/12 16:29, Oliver Schinagl wrote:
->>>>>> On 10-09-12 13:46, Antti Palosaari wrote:
->>>>>>> On 09/10/2012 12:58 PM, Oliver Schinagl wrote:
->>>>>>>> Changed the address as recommended, which after reading 7bit and
->>>>>>>> 8bit
->>>>>>>> addressing makes perfect sense (drop the r/w bit and get the actual
->>>>>>>> address).
->>>>>>>>
->>>>>>>> static struct fc2580_config af9035_fc2580_config = {
->>>>>>>> - .i2c_addr = 0xac,
->>>>>>>> + .i2c_addr = 0x56,
->>>>>>>> .clock = 16384000,
->>>>>>>> };
->>>>>>>>
->>>>>>>>
->>>>>>>> So now the address should actually be correct ;)
->>>>>>>>
->>>>>>>> Unfortunately, nothing. What other debug options do I need to
->>>>>>>> enable
->>>>>>>> besides CONFIG_DVB_USB_DEBUG to get more interesting output?
->>>>>>>
->>>>>>> For me it sees something happens as there is no I2C error seen
->>>>>>> anymore.
->>>>>>>
->>>>>>> AF9035 driver uses Kernel dynamic debugs. CONFIG_DVB_USB_DEBUG is
->>>>>>> legacy and proprietary DVB subsystem debug which should not be used
->>>>>>> anymore.
->>>>>>> You could order dynamic debugs like that:
->>>>>>> modprobe dvb_usb_af9035; echo -n 'module dvb_usb_af9035 +p' >
->>>>>>> /sys/kernel/debug/dynamic_debug/control
->>>>>>>
->>>>>>> For tuner, demod and dvb_usbv2 similarly if needed.
->>>>>> I've did and added output from control and dmesg output.
->>>>>>
->>>>>> I don't exactly know how to read the dynamic debug output, the only
->>>>>> thing that jumped out at me, was:
->>>>>> drivers/media/dvb-frontends/af9033.c:327 [af9033]af9033_init =p "%s:
->>>>>> unsupported tuner ID=%d\012"
->>>>>>
->>>>>> So I will search and see where in the driver the supported tunerID's
->>>>>> are
->>>>>> stored and fix that.
->>>>>>
->>>>>> Any other pointers/things you see I should look at?
->>>>> Appearantly, I setup the tuner, like the others, but it skips that
->>>>> because the tuner id is wrong/not set.
->>>>>
->>>>>      case AF9033_TUNER_FC2580:
->>>>>          len = ARRAY_SIZE(tuner_init_fc2580);
->>>>>          init = tuner_init_fc2580;
->>>>>          break;
->>>>>
->>>>> So where is the tuner set?
->>>>>
->>>>> I did find this bit:
->>>>>
->>>>> tatic int af9035_read_config(struct dvb_usb_device *d)
->>>>> {
->>>>> <snip>
->>>>>          ret = af9035_rd_reg(d, EEPROM_1_TUNER_ID + eeprom_shift,
->>>>> &tmp);
->>>>>
->>>>> which suggests that it comes from the actual eeprom. I assumed that
->>>>> the
->>>>> 'init/script/firmware' bit, the first 'message' was the ID, 0x32 in
->>>>> the
->>>>> case of this tuner. I guess I'm wrong?
->>>>>
->>>>> The log is not exactly helpful either:
->>>>> drivers/media/usb/dvb-usb-v2/af9035.c:542
->>>>> [dvb_usb_af9035]af9035_read_config =_ "%s: [%d]tuner=%02x\012"
->>>>>
->>>>> So close, yet so far. So if I'm right, the actual ID of the tuner and
->>>>> the first byte in the init are not always the same? Then why use the
->>>>> define in the first place there? And why would the 'official' code
->>>>> user
->>>>> 0x32 as tuner ID. Or is this simply a dec/hex conversion goof?
->>>>>
->>>>>
->>>>> Oliver
->>>>>
->>>>>>>
->>>>>>>> Anyway, dmesg reports the following.
->>>>>>>> [60.071538] usb 1-3: new high-speed USB device number 3 using
->>>>>>>> ehci_hcd
->>>>>>>> [60.192627] usb 1-3: New USB device found, idVendor=0b05,
->>>>>>>> idProduct=1779
->>>>>>>> [60.192638] usb 1-3: New USB device strings: Mfr=1, Product=2,
->>>>>>>> SerialNumber=3
->>>>>>>> [60.192646] usb 1-3: Product: AF9035A USB Device
->>>>>>>> [60.192652] usb 1-3: Manufacturer: Afa Technologies Inc.
->>>>>>>> [60.192657] usb 1-3: SerialNumber: AF010asdfasdf12314
->>>>>>>> [60.198686] input: Afa Technologies Inc. AF9035A USB Device as
->>>>>>>> /devices/pci0000:00/0000:00:12.2/usb1/1-3/1-3:1.1/input/input14
->>>>>>>> [60.198832] hid-generic 0003:0B05:1779.0003: input: USB HID v1.01
->>>>>>>> Keyboard [Afa Technologies Inc. AF9035A USB Device] on
->>>>>>>> usb-0000:00:12.2-3/input1
->>>>>>>> [60.263893] usbcore: registered new interface driver dvb_usb_af9035
->>>>>>>> [60.264605] usb 1-3: dvb_usbv2: found a 'Asus U3100Mini Plus' in
->>>>>>>> cold
->>>>>>>> state
->>>>>>>> [60.273924] usb 1-3: dvb_usbv2: downloading firmware from file
->>>>>>>> 'dvb-usb-af9035-02.fw'
->>>>>>>> [60.584267] dvb_usb_af9035: firmware version=11.5.9.0
->>>>>>>> [60.584287] usb 1-3: dvb_usbv2: found a 'Asus U3100Mini Plus' in
->>>>>>>> warm
->>>>>>>> state
->>>>>>>> [60.586802] usb 1-3: dvb_usbv2: will pass the complete MPEG2
->>>>>>>> transport
->>>>>>>> stream to the software demuxer
->>>>>>>> [60.586871] DVB: registering new adapter (Asus U3100Mini Plus)
->>>>>>>> [60.595637] af9033: firmware version: LINK=11.5.9.0 OFDM=5.17.9.1
->>>>>>>> [60.595654] usb 1-3: DVB: registering adapter 0 frontend 0 (Afatech
->>>>>>>> AF9033 (DVB-T))...
->>>>>>>> [60.599889] usb 1-3: dvb_usbv2: 'Asus U3100Mini Plus' error while
->>>>>>>> loading driver (-19)
->>>>>>>>
->>>>>>>> I then tried using the firmware that came with said driver, as the
->>>>>>>> version seems slightly different/newer.
->>>>>>>>
->>>>>>>> #define FW_RELEASE_VERSION "v8_8_63_0"
->>>>>>>>
->>>>>>>> #define DVB_LL_VERSION1 11
->>>>>>>> #define DVB_LL_VERSION2 22
->>>>>>>> #define DVB_LL_VERSION3 12
->>>>>>>> #define DVB_LL_VERSION4 0
->>>>>>>>
->>>>>>>> #define DVB_OFDM_VERSION1 5
->>>>>>>> #define DVB_OFDM_VERSION2 66
->>>>>>>> #define DVB_OFDM_VERSION3 12
->>>>>>>> #define DVB_OFDM_VERSION4 0
->>>>>>>>
->>>>>>>> (which also gets displayed when loading the firmware, originally on
->>>>>>>> the
->>>>>>>> old kernel).
->>>>>>>>
->>>>>>>> This however results in a hard lock/dump when plugging in the
->>>>>>>> device.
->>>>>>>> Are there certain size restrictions etc? What I did to obtain said
->>>>>>>> firmware was write a simple program that reads the array, static
->>>>>>>> unsigned char Firmware_codes[] and outputs the read bytes to a
->>>>>>>> file.
->>>>>>>> From what I saw from the -02 firmware, the first few bytes are
->>>>>>>> identical (header?) so should be right procedure.
->>>>>>>
->>>>>>> Firmare surely works but you make some mistake. I have extracted
->>>>>>> those
->>>>>>> from the windows driver.
->>>>>>>
->>>>>>> http://palosaari.fi/linux/v4l-dvb/firmware/af9035/
->>>>>>>
->>>>>> A link to, or your files should be listed at the linuxdvb firmware
->>>>>> download page ;)
->>>>>>
->>>>>> I noticed your latest firmware is way newer then the one I had. So
->>>>>> deffinatly using that one.
->>>>>>>> Btw, when using the -02 firmware and trying to unload the af9033
->>>>>>>> module,
->>>>>>>> either with or without the stick plugged in, it just hangs there
->>>>>>>> for a
->>>>>>>> long time. Reboot fails too (it hangs at trying to disable swap).
->>>>>>>> Only a
->>>>>>>> sys-req-reisub successfully reboots.
->>>>>>>>
->>>>>>>> oliver
->>>>>>>
->>>>>>>
->>>>>>> Antti
->>>>>>
->>>>>> Oliver
->>>>>>>>
->>>>>>>>
->>>>>>>> On 09/10/12 00:29, Antti Palosaari wrote:
->>>>>>>>> On 09/10/2012 01:26 AM, Oliver Schinagl wrote:
->>>>>>>>>> On 09/09/12 23:51, Antti Palosaari wrote:
->>>>>>>>>>> On 09/09/2012 11:49 PM, Oliver Schinagl wrote:
->>>>>>>>>>>> Hi All/Antti,
->>>>>>>>>>>>
->>>>>>>>>>>> I used Antti's previous patch to try to get some support in for
->>>>>>>>>>>> the
->>>>>>>>>>>> Asus
->>>>>>>>>>>> MyCinema U3100Mini Plus as it uses a supported driver (af9035)
->>>>>>>>>>>> and now
->>>>>>>>>>>> supported tuner (FCI FC2580).
->>>>>>>>>>>>
->>>>>>>>>>>> It compiles fine and almost works :(
->>>>>>>>>>>>
->>>>>>>>>>>> Here's what I get, which I have no idea what causes it.
->>>>>>>>>>>>
->>>>>>>>>>>> dmesg output:
->>>>>>>>>>>> [ 380.677434] usb 1-3: New USB device found, idVendor=0b05,
->>>>>>>>>>>> idProduct=1779
->>>>>>>>>>>> [ 380.677445] usb 1-3: New USB device strings: Mfr=1,
->>>>>>>>>>>> Product=2,
->>>>>>>>>>>> SerialNumber=3
->>>>>>>>>>>> [ 380.677452] usb 1-3: Product: AF9035A USB Device
->>>>>>>>>>>> [ 380.677458] usb 1-3: Manufacturer: Afa Technologies Inc.
->>>>>>>>>>>> [ 380.677463] usb 1-3: SerialNumber: AF01020abcdef12301
->>>>>>>>>>>> [ 380.683361] input: Afa Technologies Inc. AF9035A USB
->>>>>>>>>>>> Device as
->>>>>>>>>>>> /devices/pci0000:00/0000:00:12.2/usb1/1-3/1-3:1.1/input/input15
->>>>>>>>>>>> [ 380.683505] hid-generic 0003:0B05:1779.0004: input: USB HID
->>>>>>>>>>>> v1.01
->>>>>>>>>>>> Keyboard [Afa Technologies Inc. AF9035A USB Device] on
->>>>>>>>>>>> usb-0000:00:12.2-3/input1
->>>>>>>>>>>> [ 380.703807] usbcore: registered new interface driver
->>>>>>>>>>>> dvb_usb_af9035
->>>>>>>>>>>> [ 380.704553] usb 1-3: dvb_usbv2: found a 'Asus U3100Mini
->>>>>>>>>>>> Plus' in
->>>>>>>>>>>> cold
->>>>>>>>>>>> state
->>>>>>>>>>>> [ 380.705075] usb 1-3: dvb_usbv2: downloading firmware from
->>>>>>>>>>>> file
->>>>>>>>>>>> 'dvb-usb-af9035-02.fw'
->>>>>>>>>>>> [ 381.014996] dvb_usb_af9035: firmware version=11.5.9.0
->>>>>>>>>>>> [ 381.015018] usb 1-3: dvb_usbv2: found a 'Asus U3100Mini
->>>>>>>>>>>> Plus' in
->>>>>>>>>>>> warm
->>>>>>>>>>>> state
->>>>>>>>>>>> [ 381.017172] usb 1-3: dvb_usbv2: will pass the complete MPEG2
->>>>>>>>>>>> transport stream to the software demuxer
->>>>>>>>>>>> [ 381.017242] DVB: registering new adapter (Asus U3100Mini
->>>>>>>>>>>> Plus)
->>>>>>>>>>>> [ 381.037184] af9033: firmware version: LINK=11.5.9.0
->>>>>>>>>>>> OFDM=5.17.9.1
->>>>>>>>>>>> [ 381.037200] usb 1-3: DVB: registering adapter 0 frontend 0
->>>>>>>>>>>> (Afatech
->>>>>>>>>>>> AF9033 (DVB-T))...
->>>>>>>>>>>> [ 381.044197] i2c i2c-1: fc2580: i2c rd failed=-5 reg=01 len=1
->>>>>>>>>>>> [ 381.044357] usb 1-3: dvb_usbv2: 'Asus U3100Mini Plus' error
->>>>>>>>>>>> while
->>>>>>>>>>>> loading driver (-19)
->>>>>>>>>>>
->>>>>>>>>>> I2C communication to tuner chip does not work at all. It
->>>>>>>>>>> tries to
->>>>>>>>>>> read
->>>>>>>>>>> chip id register but fails. If you enable debugs you will see
->>>>>>>>>>> which
->>>>>>>>>>> error status af9035 reports.
->>>>>>>>>> CONFIG_DVB_USB_DEBUG was enabled, but nothing extra :(
->>>>>>>>>>
->>>>>>>>>>>
->>>>>>>>>>> There is likely 3 possibilities:
->>>>>>>>>>> 1) wrong I2C address
->>>>>>>>>> Well as linked before, I used it from the 'official' driver,
->>>>>>>>>> where it
->>>>>>>>>> says:
->>>>>>>>>> #define FC2580_ADDRESS 0xAC
->>>>>>>>>>
->>>>>>>>>> grepping the entire source of theirs, I then found this in
->>>>>>>>>> FC2580.c
->>>>>>>>>> TunerDescription tuner_FC2580 = {
->>>>>>>>>> FC2580_open, /** Function to open tuner. */
->>>>>>>>>> FC2580_close, /** Function to close tuner. */
->>>>>>>>>> FC2580_set, /** Function set frequency. */
->>>>>>>>>> FC2580_scripts, /** Scripts. */
->>>>>>>>>> FC2580_scriptSets, /** Length of scripts. */
->>>>>>>>>> FC2580_ADDRESS, /** The I2C address of tuner. */
->>>>>>>>>> 1, /** Valid length of tuner register. */
->>>>>>>>>> 0, /** IF frequency of tuner. */
->>>>>>>>>> True, /** Spectrum inversion. */
->>>>>>>>>> 0x32, /** tuner id */
->>>>>>>>>> };
->>>>>>>>>>
->>>>>>>>>> The only other thing that I recognize is the scripts, which is
->>>>>>>>>> some
->>>>>>>>>> init
->>>>>>>>>> code (which I asked about below, which should also be right,
->>>>>>>>>> unless I
->>>>>>>>>> made a typo) and the tuner id, which is the first thing in the
->>>>>>>>>> script
->>>>>>>>>> and in my patch defined as AF9033_TUNER_FC2580. No idea of its
->>>>>>>>>> significance :)
->>>>>>>>>>
->>>>>>>>>>> 2) wrong GPIOs
->>>>>>>>>>> * tuner is not powered on or it is on standby
->>>>>>>>>> How/where would I check that?
->>>>>>>>>>
->>>>>>>>>>> 3) wrong firmware
->>>>>>>>>>> * it very unlikely that even wrong firmware fails basic I2C...
->>>>>>>>>> I know there's a few versions right? the 01 02 etc? But that is
->>>>>>>>>> mostly
->>>>>>>>>> in relation with the af9035 mostly right?
->>>>>>>>>>
->>>>>>>>>>>
->>>>>>>>>>>> using the following modules.
->>>>>>>>>>>> fc2580 4189 -1
->>>>>>>>>>>> af9033 10266 0
->>>>>>>>>>>> dvb_usb_af9035 8924 0
->>>>>>>>>>>> dvb_usbv2 11388 1 dvb_usb_af9035
->>>>>>>>>>>> dvb_core 71756 1 dvb_usbv2
->>>>>>>>>>>> rc_core 10583 2 dvb_usbv2,dvb_usb_af9035
->>>>>>>>>>>>
->>>>>>>>>>>> I'm supprised though that dvb-pll isn't there. Wasn't that a
->>>>>>>>>>>> requirement? [1]
->>>>>>>>>>>
->>>>>>>>>>> No. dvb-pll is used for old simple 4-byte PLLs. FCI FC2580 is
->>>>>>>>>>> modern
->>>>>>>>>>> silicon tuner. There is PLL used inside FC2580 for frequency
->>>>>>>>>>> synthesizer
->>>>>>>>>>> but no dvb-pll needed as all calculations are done inside that
->>>>>>>>>>> driver.
->>>>>>>>>>> Silicon tuners are so much more complicated to program than old
->>>>>>>>>>> 4-byte
->>>>>>>>>>> PLLs, thus own driver is needed for each silicon tuner chip.
->>>>>>>>>> Ah, well then the wiki needs a small update ;)
->>>>>>>>>>>
->>>>>>>>>>>> For the tuner 'script' firmware/init bit, I used the 'official'
->>>>>>>>>>>> driver
->>>>>>>>>>>> [2].
->>>>>>>>>>>>
->>>>>>>>>>>> Also the i2c-addr and clock comes from these files.
->>>>>>>>>>>
->>>>>>>>>>> Aaah, now I see. At least I2C address is wrong. You use 0xac but
->>>>>>>>>>> should
->>>>>>>>>>> be 0x56. There is wrong "8-bit" address used. 0xac >> 1 == 0x56.
->>>>>>>>>> That I don't understand (as I wrote above) 0xac 'should' be the
->>>>>>>>>> correct,
->>>>>>>>>> but appearantly it needs to be shifted. Why?
->>>>>>>>>
->>>>>>>>> Because it is wrong in vendor driver you look. I2C addresses are 7
->>>>>>>>> bit
->>>>>>>>> long and LSB bit used for direction (read or write). Try to search
->>>>>>>>> some
->>>>>>>>> I2C tutorials. This kind of wrong I2C addresses are called usually
->>>>>>>>> 8-bit
->>>>>>>>> I2C address.
->>>>>>>>>
->>>>>>>>>>
->>>>>>>>>>>
->>>>>>>>>>>
->>>>>>>>>>> 16384000 (16.384MHz) is FC2580 internal clock what I
->>>>>>>>>>> understand. It
->>>>>>>>>>> should be OK. I suspect that everyone uses it for DVB-T to save
->>>>>>>>>>> components / make design simple.
->>>>>>>>>> I would assume so, since also that is in the original sources;
->>>>>>>>>> fc2580.c
->>>>>>>>>> lists it as:
->>>>>>>>>> #define FREQ_XTAL 16384 //16.384MHz
->>>>>>>>>>
->>>>>>>>>>>
->>>>>>>>>>>> One minor questions I have regarding the recently submitted RTL
->>>>>>>>>>>> and
->>>>>>>>>>>> AF9033 drivers, is one uses AF9033_TUNER_* whereas the other
->>>>>>>>>>>> uses
->>>>>>>>>>>> TUNER_RTL2832_*. Any reason for this? It just confused me is
->>>>>>>>>>>> all.
->>>>>>>>>>>
->>>>>>>>>>> It is just naming issue driver, driver author decision. Usually
->>>>>>>>>>> names
->>>>>>>>>>> start with driver name letters (in that case RTL28XXU_). It is
->>>>>>>>>>> not
->>>>>>>>>>> big
->>>>>>>>>>> issue for variable names unless it is too "general" to conflict
->>>>>>>>>>> some
->>>>>>>>>>> library. For function names driver names prefix (rtl28xxu_)
->>>>>>>>>>> should be
->>>>>>>>>>> used as it eases debugging (example ooops is dumped showing
->>>>>>>>>>> function
->>>>>>>>>>> names).
->>>>>>>>>>
->>>>>>>>>> Ok I will test the shifted i2c address and try that.
->>>>>>>>>>>
->>>>>>>>>>>
->>>>>>>>>>> Antti
->>>>>>>>>>>
->>>>>>>>>>>>
->>>>>>>>>>>> Oliver
->>>>>>>>>>>>
->>>>>>>>>>>> [1] http://linuxtv.org/wiki/index.php/DVB_via_USB#Introduction
->>>>>>>>>>>> [2]
->>>>>>>>>>>> http://git.schinagl.nl/AF903x_SRC.git/tree/api/FCI_FC2580_Script.h
->>>>>>>>>>>>
->>>>>>>>>>>>
->>>>>>>>>>>>
->>>>>>>>>> <snipped patch>
->>>>>>>>>
->>>>>>>>>
->>>>>>>>
->>>>>>>
->>>>>>>
->>>>>>
->>>>>
->>>>> --
->>>>> To unsubscribe from this list: send the line "unsubscribe
->>>>> linux-media" in
->>>>> the body of a message to majordomo@vger.kernel.org
->>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>
->>>
->>>
->>
->
->
-
+--CE+1k2dSO48ffgeK--
