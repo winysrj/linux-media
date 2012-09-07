@@ -1,181 +1,245 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38360 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750718Ab2IJF65 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Sep 2012 01:58:57 -0400
-From: Prabhakar Lad <prabhakar.lad@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	<linux-kernel@vger.kernel.org>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	<linux-doc@vger.kernel.org>, Hans Verkuil <hans.verkuil@cisco.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Rob Landley <rob@landley.net>
-Subject: [PATCH v5] media: v4l2-ctrls: add control for dpcm predictor
-Date: Mon, 10 Sep 2012 11:27:55 +0530
-Message-ID: <1347256675-13391-1-git-send-email-prabhakar.lad@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4144 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756892Ab2IGN3m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 09:29:42 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 API PATCH 17/28] v4l2: make vidioc_s_jpegcomp const.
+Date: Fri,  7 Sep 2012 15:29:17 +0200
+Message-Id: <c70224d92ad19379afe1580705c80f9d9c1623d1.1347023744.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
+References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
+References: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.lad@ti.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-add V4L2_CID_DPCM_PREDICTOR control of type menu, which
-determines the dpcm predictor. The predictor can be either
-simple or advanced.
+Write-only ioctls should have a const argument in the ioctl op.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Hans de Goede <hdegoede@redhat.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Rob Landley <rob@landley.net>
+Do this conversion for vidioc_s_jpegcomp.
+
+Adding const for write-only ioctls was decided during the 2012 Media Workshop.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-This patches has one checkpatch warning for line over
-80 characters altough it can be avoided I have kept it
-for consistency.
+ drivers/media/pci/zoran/zoran_driver.c     |    4 ++--
+ drivers/media/usb/cpia2/cpia2_v4l.c        |    5 ++---
+ drivers/media/usb/gspca/gspca.c            |    2 +-
+ drivers/media/usb/gspca/gspca.h            |    8 +++++---
+ drivers/media/usb/gspca/jeilinj.c          |    2 +-
+ drivers/media/usb/gspca/ov519.c            |    2 +-
+ drivers/media/usb/gspca/topro.c            |    2 +-
+ drivers/media/usb/gspca/zc3xx.c            |    9 ++-------
+ drivers/media/usb/s2255/s2255drv.c         |    2 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c       |    2 ++
+ drivers/staging/media/go7007/go7007-v4l2.c |    2 +-
+ include/media/v4l2-ioctl.h                 |    2 +-
+ 12 files changed, 20 insertions(+), 22 deletions(-)
 
-Changes for v5:
-1: Changed the control's name to 'Simple' and  'Advanced'
-   as pointed by Sakari.
-2: Changed the description of DPCM. Thanks to Sakari for
-   providing the description.
-
-Changes for v4:
-1: Aligned the description to fit appropriately in the
-   para tag, pointed by Sylwester.
-
-Changes for v3:
-1: Added better explanation for DPCM, pointed by Hans.
-
-Changes for v2:
-1: Added documentaion in controls.xml pointed by Sylwester.
-2: Chnaged V4L2_DPCM_PREDICTOR_ADVANCE to V4L2_DPCM_PREDICTOR_ADVANCED
-   pointed by Sakari.
-
- Documentation/DocBook/media/v4l/controls.xml |   39 +++++++++++++++++++++++++-
- drivers/media/v4l2-core/v4l2-ctrls.c         |    9 ++++++
- include/linux/videodev2.h                    |    5 +++
- 3 files changed, 52 insertions(+), 1 deletions(-)
-
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 93b9c68..2c1599f 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -4267,7 +4267,44 @@ interface and may change in the future.</para>
- 	    pixels / second.
- 	    </entry>
- 	  </row>
--	  <row><entry></entry></row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_DPCM_PREDICTOR</constant></entry>
-+	    <entry>menu</entry>
-+	  </row>
-+	  <row id="v4l2-dpcm-predictor">
-+	    <entry spanname="descr"> Differential pulse-code modulation (DPCM) compression can
-+	    be used to compress the samples into fewer bits than they would otherwise require.
-+	    This is done by calculating the difference between consecutive samples and outputting
-+	    the difference which in average is much smaller than the values of the samples
-+	    themselves since there is generally lots of correlation between adjacent pixels. In
-+	    decompression the original samples are reconstructed. The process isn't lossless as
-+	    the encoded sample size in bits is less than the original.
-+
-+	    <para>Formats using DPCM compression include <xref linkend="pixfmt-srggb10dpcm8" />.</para>
-+
-+	    <para>This control is used to select the predictor used to encode the samples.</para>
-+
-+	    <para>The main difference between the simple and the advanced predictors is image quality,
-+	    with advanced predictor supposed to produce better quality images as a result. Simple
-+	    predictor can be used e.g. for testing purposes. For more information about DPCM see <ulink
-+	    url="http://en.wikipedia.org/wiki/Differential_pulse-code_modulation">Wikipedia</ulink>.</para>
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entrytbl spanname="descr" cols="2">
-+	      <tbody valign="top">
-+	        <row>
-+	         <entry><constant>V4L2_DPCM_PREDICTOR_SIMPLE</constant></entry>
-+	          <entry>Predictor type is simple</entry>
-+	        </row>
-+	        <row>
-+	          <entry><constant>V4L2_DPCM_PREDICTOR_ADVANCED</constant></entry>
-+	          <entry>Predictor type is advanced</entry>
-+	        </row>
-+	      </tbody>
-+	    </entrytbl>
-+	  </row>
-+	<row><entry></entry></row>
- 	</tbody>
-       </tgroup>
-       </table>
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index b6a2ee7..8f2f40b 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -425,6 +425,11 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"Gray",
- 		NULL,
- 	};
-+	static const char * const dpcm_predictor[] = {
-+		"Simple",
-+		"Advanced",
-+		NULL,
-+	};
+diff --git a/drivers/media/pci/zoran/zoran_driver.c b/drivers/media/pci/zoran/zoran_driver.c
+index f91b551..9ecd7d7 100644
+--- a/drivers/media/pci/zoran/zoran_driver.c
++++ b/drivers/media/pci/zoran/zoran_driver.c
+@@ -2674,7 +2674,7 @@ static int zoran_g_jpegcomp(struct file *file, void *__fh,
+ }
  
- 	switch (id) {
- 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-@@ -502,6 +507,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		return mpeg4_profile;
- 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
- 		return jpeg_chroma_subsampling;
-+	case V4L2_CID_DPCM_PREDICTOR:
-+		return dpcm_predictor;
+ static int zoran_s_jpegcomp(struct file *file, void *__fh,
+-					struct v4l2_jpegcompression *params)
++					const struct v4l2_jpegcompression *params)
+ {
+ 	struct zoran_fh *fh = __fh;
+ 	struct zoran *zr = fh->zr;
+@@ -2701,7 +2701,7 @@ static int zoran_s_jpegcomp(struct file *file, void *__fh,
+ 	if (!fh->buffers.allocated)
+ 		fh->buffers.buffer_size =
+ 			zoran_v4l2_calc_bufsize(&fh->jpg_settings);
+-	fh->jpg_settings.jpg_comp = *params = settings.jpg_comp;
++	fh->jpg_settings.jpg_comp = settings.jpg_comp;
+ sjpegc_unlock_and_return:
+ 	mutex_unlock(&zr->resource_lock);
  
- 	default:
- 		return NULL;
-@@ -732,6 +739,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_IMAGE_PROC_CLASS:		return "Image Processing Controls";
- 	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
- 	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
-+	case V4L2_CID_DPCM_PREDICTOR:		return "DPCM Predictor";
+diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
+index 5ca6f44..aeb9d22 100644
+--- a/drivers/media/usb/cpia2/cpia2_v4l.c
++++ b/drivers/media/usb/cpia2/cpia2_v4l.c
+@@ -734,7 +734,8 @@ static int cpia2_g_jpegcomp(struct file *file, void *fh, struct v4l2_jpegcompres
+  *
+  *****************************************************************************/
  
- 	default:
- 		return NULL;
-@@ -832,6 +840,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_ISO_SENSITIVITY_AUTO:
- 	case V4L2_CID_EXPOSURE_METERING:
- 	case V4L2_CID_SCENE_MODE:
-+	case V4L2_CID_DPCM_PREDICTOR:
- 		*type = V4L2_CTRL_TYPE_MENU;
+-static int cpia2_s_jpegcomp(struct file *file, void *fh, struct v4l2_jpegcompression *parms)
++static int cpia2_s_jpegcomp(struct file *file, void *fh,
++		const struct v4l2_jpegcompression *parms)
+ {
+ 	struct camera_data *cam = video_drvdata(file);
+ 
+@@ -743,8 +744,6 @@ static int cpia2_s_jpegcomp(struct file *file, void *fh, struct v4l2_jpegcompres
+ 
+ 	cam->params.compression.inhibit_htables =
+ 		!(parms->jpeg_markers & V4L2_JPEG_MARKER_DHT);
+-	parms->jpeg_markers &= V4L2_JPEG_MARKER_DQT | V4L2_JPEG_MARKER_DRI |
+-			       V4L2_JPEG_MARKER_DHT;
+ 
+ 	if(parms->APP_len != 0) {
+ 		if(parms->APP_len > 0 &&
+diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
+index 5d3bcdc..a89de17 100644
+--- a/drivers/media/usb/gspca/gspca.c
++++ b/drivers/media/usb/gspca/gspca.c
+@@ -1687,7 +1687,7 @@ static int vidioc_g_jpegcomp(struct file *file, void *priv,
+ }
+ 
+ static int vidioc_s_jpegcomp(struct file *file, void *priv,
+-			struct v4l2_jpegcompression *jpegcomp)
++			const struct v4l2_jpegcompression *jpegcomp)
+ {
+ 	struct gspca_dev *gspca_dev = video_drvdata(file);
+ 
+diff --git a/drivers/media/usb/gspca/gspca.h b/drivers/media/usb/gspca/gspca.h
+index dc688c7..e3eab82 100644
+--- a/drivers/media/usb/gspca/gspca.h
++++ b/drivers/media/usb/gspca/gspca.h
+@@ -83,8 +83,10 @@ struct gspca_frame;
+ typedef int (*cam_op) (struct gspca_dev *);
+ typedef void (*cam_v_op) (struct gspca_dev *);
+ typedef int (*cam_cf_op) (struct gspca_dev *, const struct usb_device_id *);
+-typedef int (*cam_jpg_op) (struct gspca_dev *,
++typedef int (*cam_get_jpg_op) (struct gspca_dev *,
+ 				struct v4l2_jpegcompression *);
++typedef int (*cam_set_jpg_op) (struct gspca_dev *,
++				const struct v4l2_jpegcompression *);
+ typedef int (*cam_reg_op) (struct gspca_dev *,
+ 				struct v4l2_dbg_register *);
+ typedef int (*cam_ident_op) (struct gspca_dev *,
+@@ -126,8 +128,8 @@ struct sd_desc {
+ 	cam_v_op stopN;		/* called on stream off - main alt */
+ 	cam_v_op stop0;		/* called on stream off & disconnect - alt 0 */
+ 	cam_v_op dq_callback;	/* called when a frame has been dequeued */
+-	cam_jpg_op get_jcomp;
+-	cam_jpg_op set_jcomp;
++	cam_get_jpg_op get_jcomp;
++	cam_set_jpg_op set_jcomp;
+ 	cam_qmnu_op querymenu;
+ 	cam_streamparm_op get_streamparm;
+ 	cam_streamparm_op set_streamparm;
+diff --git a/drivers/media/usb/gspca/jeilinj.c b/drivers/media/usb/gspca/jeilinj.c
+index 26b9931..b897aa8 100644
+--- a/drivers/media/usb/gspca/jeilinj.c
++++ b/drivers/media/usb/gspca/jeilinj.c
+@@ -474,7 +474,7 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
+ }
+ 
+ static int sd_set_jcomp(struct gspca_dev *gspca_dev,
+-			struct v4l2_jpegcompression *jcomp)
++			const struct v4l2_jpegcompression *jcomp)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 
+diff --git a/drivers/media/usb/gspca/ov519.c b/drivers/media/usb/gspca/ov519.c
+index bfc7cef..3d859f4 100644
+--- a/drivers/media/usb/gspca/ov519.c
++++ b/drivers/media/usb/gspca/ov519.c
+@@ -4762,7 +4762,7 @@ static int sd_get_jcomp(struct gspca_dev *gspca_dev,
+ }
+ 
+ static int sd_set_jcomp(struct gspca_dev *gspca_dev,
+-			struct v4l2_jpegcompression *jcomp)
++			const struct v4l2_jpegcompression *jcomp)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 
+diff --git a/drivers/media/usb/gspca/topro.c b/drivers/media/usb/gspca/topro.c
+index a605524..4cb511c 100644
+--- a/drivers/media/usb/gspca/topro.c
++++ b/drivers/media/usb/gspca/topro.c
+@@ -4806,7 +4806,7 @@ static void sd_set_streamparm(struct gspca_dev *gspca_dev,
+ }
+ 
+ static int sd_set_jcomp(struct gspca_dev *gspca_dev,
+-			struct v4l2_jpegcompression *jcomp)
++			const struct v4l2_jpegcompression *jcomp)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 
+diff --git a/drivers/media/usb/gspca/zc3xx.c b/drivers/media/usb/gspca/zc3xx.c
+index f0bacee..a3ca809 100644
+--- a/drivers/media/usb/gspca/zc3xx.c
++++ b/drivers/media/usb/gspca/zc3xx.c
+@@ -6881,16 +6881,11 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
+ }
+ 
+ static int sd_set_jcomp(struct gspca_dev *gspca_dev,
+-			struct v4l2_jpegcompression *jcomp)
++			const struct v4l2_jpegcompression *jcomp)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+-	int ret;
+ 
+-	ret = v4l2_ctrl_s_ctrl(sd->jpegqual, jcomp->quality);
+-	if (ret)
+-		return ret;
+-	jcomp->quality = v4l2_ctrl_g_ctrl(sd->jpegqual);
+-	return 0;
++	return v4l2_ctrl_s_ctrl(sd->jpegqual, jcomp->quality);
+ }
+ 
+ static int sd_get_jcomp(struct gspca_dev *gspca_dev,
+diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
+index a25513d..2191f6d 100644
+--- a/drivers/media/usb/s2255/s2255drv.c
++++ b/drivers/media/usb/s2255/s2255drv.c
+@@ -1556,7 +1556,7 @@ static int vidioc_g_jpegcomp(struct file *file, void *priv,
+ }
+ 
+ static int vidioc_s_jpegcomp(struct file *file, void *priv,
+-			 struct v4l2_jpegcompression *jc)
++			 const struct v4l2_jpegcompression *jc)
+ {
+ 	struct s2255_fh *fh = priv;
+ 	struct s2255_channel *channel = fh->channel;
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 99a8ad7..725c56e 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -924,6 +924,8 @@ static int check_fmt(const struct v4l2_ioctl_ops *ops, enum v4l2_buf_type type)
+ 		if (ops->vidioc_g_fmt_sliced_vbi_out)
+ 			return 0;
  		break;
- 	case V4L2_CID_LINK_FREQ:
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 6d6dfa7..ca9fb78 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -2000,6 +2000,11 @@ enum v4l2_jpeg_chroma_subsampling {
++	default:
++		break;
+ 	}
+ 	return -EINVAL;
+ }
+diff --git a/drivers/staging/media/go7007/go7007-v4l2.c b/drivers/staging/media/go7007/go7007-v4l2.c
+index c184ad3..f1dff3d 100644
+--- a/drivers/staging/media/go7007/go7007-v4l2.c
++++ b/drivers/staging/media/go7007/go7007-v4l2.c
+@@ -1392,7 +1392,7 @@ static int vidioc_g_jpegcomp(struct file *file, void *priv,
+ }
  
- #define V4L2_CID_LINK_FREQ			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 1)
- #define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
-+#define V4L2_CID_DPCM_PREDICTOR			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 3)
-+enum v4l2_dpcm_predictor {
-+	V4L2_DPCM_PREDICTOR_SIMPLE	= 0,
-+	V4L2_DPCM_PREDICTOR_ADVANCED	= 1,
-+};
- 
- /*
-  *	T U N I N G
+ static int vidioc_s_jpegcomp(struct file *file, void *priv,
+-			 struct v4l2_jpegcompression *params)
++			 const struct v4l2_jpegcompression *params)
+ {
+ 	if (params->quality != 50 ||
+ 			params->jpeg_markers != (V4L2_JPEG_MARKER_DHT |
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index 73ae24a..21f6245 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -195,7 +195,7 @@ struct v4l2_ioctl_ops {
+ 	int (*vidioc_g_jpegcomp)       (struct file *file, void *fh,
+ 					struct v4l2_jpegcompression *a);
+ 	int (*vidioc_s_jpegcomp)       (struct file *file, void *fh,
+-					struct v4l2_jpegcompression *a);
++					const struct v4l2_jpegcompression *a);
+ 	int (*vidioc_g_enc_index)      (struct file *file, void *fh,
+ 					struct v4l2_enc_idx *a);
+ 	int (*vidioc_encoder_cmd)      (struct file *file, void *fh,
 -- 
-1.7.0.4
+1.7.10.4
 
