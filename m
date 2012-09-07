@@ -1,302 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:42751 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753518Ab2IMNuI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 09:50:08 -0400
-From: Federico Vaga <federico.vaga@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:38847 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755356Ab2IGUPs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 16:15:48 -0400
+Received: by eaac11 with SMTP id c11so1076942eaa.19
+        for <linux-media@vger.kernel.org>; Fri, 07 Sep 2012 13:15:47 -0700 (PDT)
+Message-ID: <504A55F0.2010406@gmail.com>
+Date: Fri, 07 Sep 2012 22:15:44 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Jonathan Corbet <corbet@lwn.net>,
-	Federico Vaga <federico.vaga@gmail.com>
-Subject: [PATCH 3/4] videobuf2-dma-streaming: new videobuf2 memory allocator
-Date: Thu, 13 Sep 2012 15:52:47 +0200
-Message-Id: <1347544368-30583-3-git-send-email-federico.vaga@gmail.com>
-In-Reply-To: <1347544368-30583-1-git-send-email-federico.vaga@gmail.com>
-References: <1347544368-30583-1-git-send-email-federico.vaga@gmail.com>
+Subject: Re: [RFCv2 API PATCH 13/28] Add V4L2_CAP_MONOTONIC_TS where applicable.
+References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl> <753ddb14136b19372f3a533961fc90b5adbfb07a.1347023744.git.hans.verkuil@cisco.com>
+In-Reply-To: <753ddb14136b19372f3a533961fc90b5adbfb07a.1347023744.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Federico Vaga <federico.vaga@gmail.com>
----
- drivers/media/v4l2-core/Kconfig                   |   5 +
- drivers/media/v4l2-core/Makefile                  |   1 +
- drivers/media/v4l2-core/videobuf2-dma-streaming.c | 205 ++++++++++++++++++++++
- include/media/videobuf2-dma-streaming.h           |  24 +++
- 4 file modificati, 235 inserzioni(+)
- create mode 100644 drivers/media/v4l2-core/videobuf2-dma-streaming.c
- create mode 100644 include/media/videobuf2-dma-streaming.h
+On 09/07/2012 03:29 PM, Hans Verkuil wrote:
+> From: Hans Verkuil<hans.verkuil@cisco.com>
+>
+> Add the new V4L2_CAP_MONOTONIC_TS capability to those drivers that
+> use monotomic timestamps instead of the system time.
+>
+> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
-index 0c54e19..60548a7 100644
---- a/drivers/media/v4l2-core/Kconfig
-+++ b/drivers/media/v4l2-core/Kconfig
-@@ -79,3 +79,8 @@ config VIDEOBUF2_DMA_SG
- 	#depends on HAS_DMA
- 	select VIDEOBUF2_CORE
- 	select VIDEOBUF2_MEMOPS
-+
-+config VIDEOBUF2_DMA_STREAMING
-+	select VIDEOBUF2_CORE
-+	select VIDEOBUF2_MEMOPS
-+	tristate
-diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
-index c2d61d4..0b2756f 100644
---- a/drivers/media/v4l2-core/Makefile
-+++ b/drivers/media/v4l2-core/Makefile
-@@ -28,6 +28,7 @@ obj-$(CONFIG_VIDEOBUF2_MEMOPS) += videobuf2-memops.o
- obj-$(CONFIG_VIDEOBUF2_VMALLOC) += videobuf2-vmalloc.o
- obj-$(CONFIG_VIDEOBUF2_DMA_CONTIG) += videobuf2-dma-contig.o
- obj-$(CONFIG_VIDEOBUF2_DMA_SG) += videobuf2-dma-sg.o
-+obj-$(CONFIG_VIDEOBUF2_DMA_STREAMING) += videobuf2-dma-streaming.o
- 
- ccflags-y += -I$(srctree)/drivers/media/dvb-core
- ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-streaming.c b/drivers/media/v4l2-core/videobuf2-dma-streaming.c
-new file mode 100644
-index 0000000..23475a6
---- /dev/null
-+++ b/drivers/media/v4l2-core/videobuf2-dma-streaming.c
-@@ -0,0 +1,205 @@
-+/*
-+ * videobuf2-dma-streaming.c - DMA streaming memory allocator for videobuf2
-+ *
-+ * Copyright (C) 2012 Federico Vaga <federico.vaga@gmail.com>
-+ * *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/pagemap.h>
-+#include <linux/dma-mapping.h>
-+
-+#include <media/videobuf2-core.h>
-+#include <media/videobuf2-dma-streaming.h>
-+#include <media/videobuf2-memops.h>
-+
-+struct vb2_streaming_conf {
-+	struct device			*dev;
-+};
-+struct vb2_streaming_buf {
-+	struct vb2_streaming_conf	*conf;
-+	void				*vaddr;
-+
-+	dma_addr_t			dma_handle;
-+
-+	unsigned long			size;
-+	struct vm_area_struct		*vma;
-+
-+	atomic_t			refcount;
-+	struct vb2_vmarea_handler	handler;
-+};
-+
-+static void vb2_dma_streaming_put(void *buf_priv)
-+{
-+	struct vb2_streaming_buf *buf = buf_priv;
-+
-+	if (atomic_dec_and_test(&buf->refcount)) {
-+		dma_unmap_single(buf->conf->dev, buf->dma_handle, buf->size,
-+				 DMA_FROM_DEVICE);
-+		free_pages_exact(buf->vaddr, buf->size);
-+		kfree(buf);
-+	}
-+
-+}
-+
-+static void *vb2_dma_streaming_alloc(void *alloc_ctx, unsigned long size)
-+{
-+	struct vb2_streaming_conf *conf = alloc_ctx;
-+	struct vb2_streaming_buf *buf;
-+	int err;
-+
-+	buf = kzalloc(sizeof *buf, GFP_KERNEL);
-+	if (!buf)
-+		return ERR_PTR(-ENOMEM);
-+	buf->vaddr = alloc_pages_exact(size, GFP_KERNEL | GFP_DMA);
-+	if (!buf->vaddr) {
-+		err = -ENOMEM;
-+		goto out;
-+	}
-+	buf->dma_handle = dma_map_single(conf->dev, buf->vaddr, size,
-+					 DMA_FROM_DEVICE);
-+	err = dma_mapping_error(conf->dev, buf->dma_handle);
-+	if (err) {
-+		dev_err(conf->dev, "dma_map_single failed\n");
-+
-+		free_pages_exact(buf->vaddr, size);
-+		buf->vaddr = NULL;
-+		goto out_pages;
-+	}
-+	buf->conf = conf;
-+	buf->size = size;
-+	buf->handler.refcount = &buf->refcount;
-+	buf->handler.put = vb2_dma_streaming_put;
-+	buf->handler.arg = buf;
-+
-+	atomic_inc(&buf->refcount);
-+	return buf;
-+
-+out_pages:
-+	free_pages_exact(buf->vaddr, buf->size);
-+out:
-+	kfree(buf);
-+	return ERR_PTR(err);
-+}
-+
-+static void *vb2_dma_streaming_cookie(void *buf_priv)
-+{
-+	struct vb2_streaming_buf *buf = buf_priv;
-+
-+	return (void *)buf->dma_handle;
-+}
-+
-+static void *vb2_dma_streaming_vaddr(void *buf_priv)
-+{
-+	struct vb2_streaming_buf *buf = buf_priv;
-+
-+	if (!buf)
-+		return NULL;
-+	return buf->vaddr;
-+}
-+
-+static unsigned int vb2_dma_streaming_num_users(void *buf_priv)
-+{
-+	struct vb2_streaming_buf *buf = buf_priv;
-+
-+	return atomic_read(&buf->refcount);
-+}
-+
-+static int vb2_dma_streaming_mmap(void *buf_priv, struct vm_area_struct *vma)
-+{
-+	struct vb2_streaming_buf *buf = buf_priv;
-+	unsigned long pos, start = vma->vm_start;
-+	unsigned long size;
-+	struct page *page;
-+	int err;
-+
-+	/* Try to remap memory */
-+	size = vma->vm_end - vma->vm_start;
-+	size = (size < buf->size) ? size : buf->size;
-+	pos = (unsigned long)buf->vaddr;
-+
-+	while (size > 0) {
-+		page = virt_to_page((void *)pos);
-+		if (!page) {
-+			dev_err(buf->conf->dev, "mmap: virt_to_page failed\n");
-+			return -ENOMEM;
-+		}
-+		err = vm_insert_page(vma, start, page);
-+		if (err) {
-+			dev_err(buf->conf->dev, "mmap: insert failed %d\n", err);
-+			return -ENOMEM;
-+		}
-+		start += PAGE_SIZE;
-+		pos += PAGE_SIZE;
-+
-+		if (size > PAGE_SIZE)
-+			size -= PAGE_SIZE;
-+		else
-+			size = 0;
-+	}
-+
-+
-+	vma->vm_ops = &vb2_common_vm_ops;
-+	vma->vm_flags |= VM_DONTEXPAND;
-+	vma->vm_private_data = &buf->handler;
-+
-+	vma->vm_ops->open(vma);
-+
-+	return 0;
-+}
-+
-+static void vb2_dma_streaming_prepare(void *buf_priv)
-+{
-+	struct vb2_streaming_buf *buf = buf_priv;
-+
-+	dma_sync_single_for_device(buf->conf->dev, buf->dma_handle,
-+				   buf->size, DMA_FROM_DEVICE);
-+}
-+
-+static void vb2_dma_streaming_finish(void *buf_priv)
-+{
-+	struct vb2_streaming_buf *buf = buf_priv;
-+
-+	dma_sync_single_for_cpu(buf->conf->dev, buf->dma_handle,
-+				buf->size, DMA_FROM_DEVICE);
-+}
-+
-+const struct vb2_mem_ops vb2_dma_streaming_memops = {
-+	.alloc		= vb2_dma_streaming_alloc,
-+	.put		= vb2_dma_streaming_put,
-+	.cookie		= vb2_dma_streaming_cookie,
-+	.vaddr		= vb2_dma_streaming_vaddr,
-+	.mmap		= vb2_dma_streaming_mmap,
-+	.num_users	= vb2_dma_streaming_num_users,
-+	.prepare	= vb2_dma_streaming_prepare,
-+	.finish		= vb2_dma_streaming_finish,
-+};
-+EXPORT_SYMBOL_GPL(vb2_dma_streaming_memops);
-+
-+void *vb2_dma_streaming_init_ctx(struct device *dev)
-+{
-+	struct vb2_streaming_conf *conf;
-+
-+	conf = kmalloc(sizeof *conf, GFP_KERNEL);
-+	if (!conf)
-+		return ERR_PTR(-ENOMEM);
-+
-+	conf->dev = dev;
-+
-+	return conf;
-+}
-+EXPORT_SYMBOL_GPL(vb2_dma_streaming_init_ctx);
-+
-+void vb2_dma_streaming_cleanup_ctx(void *alloc_ctx)
-+{
-+	kfree(alloc_ctx);
-+}
-+EXPORT_SYMBOL_GPL(vb2_dma_streaming_cleanup_ctx);
-+
-+MODULE_DESCRIPTION("DMA-streaming memory allocator for videobuf2");
-+MODULE_AUTHOR("Federico Vaga <federico.vaga@gmail.com>");
-+MODULE_LICENSE("GPL v2");
-diff --git a/include/media/videobuf2-dma-streaming.h b/include/media/videobuf2-dma-streaming.h
-new file mode 100644
-index 0000000..89cbd06
---- /dev/null
-+++ b/include/media/videobuf2-dma-streaming.h
-@@ -0,0 +1,24 @@
-+/*
-+ * videobuf2-dma-streaming.h - DMA steaming memory allocator for videobuf2
-+ *
-+ * Copyright (C) 2012 Federico Vaga
-+ *
-+ * Author: Federico Vaga <federico.vaga@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation.
-+ */
-+
-+#ifndef _MEDIA_VIDEOBUF2_DMA_STREAMING_H
-+#define _MEDIA_VIDEOBUF2_DMA_STREAMING_H
-+
-+#include <media/videobuf2-core.h>
-+#include <linux/dma-mapping.h>
-+
-+void *vb2_dma_streaming_init_ctx(struct device *dev);
-+void vb2_dma_streaming_cleanup_ctx(void *alloc_ctx);
-+
-+extern const struct vb2_mem_ops vb2_dma_streaming_memops;
-+
-+#endif
--- 
-1.7.11.4
+For s5p-fimc,
 
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
