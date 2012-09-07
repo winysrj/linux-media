@@ -1,98 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([93.97.41.153]:56282 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756860Ab2IDMn6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Sep 2012 08:43:58 -0400
-Date: Tue, 4 Sep 2012 13:43:56 +0100
-From: Sean Young <sean@mess.org>
-To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: Timo Kokkonen <timo.t.kokkonen@iki.fi>,
-	Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCHv3 2/9] ir-rx51: Handle signals properly
-Message-ID: <20120904124356.GB13018@pequod.mess.org>
-References: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
- <1346349271-28073-3-git-send-email-timo.t.kokkonen@iki.fi>
- <20120901171420.GC6638@valkosipuli.retiisi.org.uk>
- <50437328.9050903@iki.fi>
- <504375FA.1030209@iki.fi>
- <20120902152027.GA5236@itanic.dhcp.inet.fi>
- <20120902194110.GA6834@valkosipuli.retiisi.org.uk>
- <5043BCB4.1040308@iki.fi>
- <20120903123653.GA7218@pequod.mess.org>
- <20120903214155.GA6393@hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20120903214155.GA6393@hardeman.nu>
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:2298 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756651Ab2IGN3k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 09:29:40 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 API PATCH 22/28] v4l2: make vidioc_s_modulator const.
+Date: Fri,  7 Sep 2012 15:29:22 +0200
+Message-Id: <719ebad3c869bd4700d56d3a1ffad103c04edae6.1347023744.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
+References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
+References: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 03, 2012 at 11:41:55PM +0200, David Härdeman wrote:
-> Hej,
-> 
-> On Mon, Sep 03, 2012 at 01:36:53PM +0100, Sean Young wrote:
-> >On Sun, Sep 02, 2012 at 11:08:20PM +0300, Timo Kokkonen wrote:
-> >> I guess the assumption is to avoid
-> >> breaking the transmission in the middle in case the process is signaled.
-> >> And that's why we shouldn't use interruptible waits.
-> >>
-> >> However, if we allow simply breaking the transmitting in case the
-> >> process is signaled any way during the transmission, then the handling
-> >> would be trivial in the driver. That is, if someone for example kills or
-> >> stops the lirc daemon process, then the IR code just wouldn't finish ever.
-> >> 
-> >> Sean, do you have an opinion how this should or is allowed to work?
-> >
-> >You want to know when the hardware is done sending the IR. If you return
-> >EINTR to user space, how would user space know how much IR has been sent, 
-> >if any?
-> >
-> >This ABI is not particularily elegant so there are proposals for a better
-> >interface which would obsolete the lirc interface. David Hardeman has
-> >worked on this:
-> >
-> >http://patchwork.linuxtv.org/patch/11411/
-> >
-> 
-> Yes, the first step is an asynchronous interface using a kfifo which is
-> managed/fed using functionality in rc-core and drained by the drivers.
-> 
-> The size of the kfifo() itself is the only limiting factor right now,
-> but I do think we should eventually add some restrictions on the combined
-> duration of the pulse/space timings that are in the queue at any given
-> point.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-While we're at it, it would be useful to check that there no 0s in 
-the timings, I'm not sure how well the drivers deal with those.
+Write-only ioctls should have a const argument in the ioctl op.
 
-> Say, for example, that any given pulse/space value is not allowed to be
-> above 500ms and the total duration of the queue is not allowed to be
-> above 1000ms. In case user-space wants (for whatever reason)...to write
-> a 4000ms space, it would have to do so in 8 messages of 500ms each.
-> 
-> Each message write() provides the opportunity for a interruptible wait
-> (in the regular case) or returning EAGAIN (in the O_NONBLOCK case) -
-> assuming that the kfifo already holds pulse/space timing totalling
-> 1000ms and/or is full.
-> 
-> EINTR should only be returned if nothing has been written to the kfifo
-> at all.
+Do this conversion for vidioc_s_modulator.
 
-This interface is much better but it's also an ABI change. How should this
-be handled? Should rc-core expose it's own /dev/rc[0-9] device with its
-own ioctls?
+Adding const for write-only ioctls was decided during the 2012 Media Workshop.
 
-> That way we would avoid policy in kernel while still making it possible
-> to kill a misbehaving user-space process by forcing it to drip feed long
-> TX sequences.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/radio/radio-keene.c       |    2 +-
+ drivers/media/radio/radio-si4713.c      |    2 +-
+ drivers/media/radio/radio-wl1273.c      |    2 +-
+ drivers/media/radio/si4713-i2c.c        |    4 ++--
+ drivers/media/radio/wl128x/fmdrv_v4l2.c |    2 +-
+ include/media/v4l2-ioctl.h              |    2 +-
+ include/media/v4l2-subdev.h             |    2 +-
+ 7 files changed, 8 insertions(+), 8 deletions(-)
 
-Is the purpose of this to prevent one user space program from writing
-minutes worth of IR and then killing the process won't help since it's
-already in the kfifo?
+diff --git a/drivers/media/radio/radio-keene.c b/drivers/media/radio/radio-keene.c
+index 79adf3e..e10e525 100644
+--- a/drivers/media/radio/radio-keene.c
++++ b/drivers/media/radio/radio-keene.c
+@@ -203,7 +203,7 @@ static int vidioc_g_modulator(struct file *file, void *priv,
+ }
+ 
+ static int vidioc_s_modulator(struct file *file, void *priv,
+-				struct v4l2_modulator *v)
++				const struct v4l2_modulator *v)
+ {
+ 	struct keene_device *radio = video_drvdata(file);
+ 
+diff --git a/drivers/media/radio/radio-si4713.c b/drivers/media/radio/radio-si4713.c
+index 1e04101..a082e40 100644
+--- a/drivers/media/radio/radio-si4713.c
++++ b/drivers/media/radio/radio-si4713.c
+@@ -200,7 +200,7 @@ static int radio_si4713_g_modulator(struct file *file, void *p,
+ }
+ 
+ static int radio_si4713_s_modulator(struct file *file, void *p,
+-						struct v4l2_modulator *vm)
++						const struct v4l2_modulator *vm)
+ {
+ 	return v4l2_device_call_until_err(get_v4l2_dev(file), 0, tuner,
+ 							s_modulator, vm);
+diff --git a/drivers/media/radio/radio-wl1273.c b/drivers/media/radio/radio-wl1273.c
+index 2d93354..b53ecbc 100644
+--- a/drivers/media/radio/radio-wl1273.c
++++ b/drivers/media/radio/radio-wl1273.c
+@@ -1715,7 +1715,7 @@ out:
+ }
+ 
+ static int wl1273_fm_vidioc_s_modulator(struct file *file, void *priv,
+-					struct v4l2_modulator *modulator)
++					const struct v4l2_modulator *modulator)
+ {
+ 	struct wl1273_device *radio = video_get_drvdata(video_devdata(file));
+ 	struct wl1273_core *core = radio->core;
+diff --git a/drivers/media/radio/si4713-i2c.c b/drivers/media/radio/si4713-i2c.c
+index b898c89..a9e6d17 100644
+--- a/drivers/media/radio/si4713-i2c.c
++++ b/drivers/media/radio/si4713-i2c.c
+@@ -1213,7 +1213,7 @@ exit:
+ }
+ 
+ static int si4713_s_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f);
+-static int si4713_s_modulator(struct v4l2_subdev *sd, struct v4l2_modulator *);
++static int si4713_s_modulator(struct v4l2_subdev *sd, const struct v4l2_modulator *);
+ /*
+  * si4713_setup - Sets the device up with current configuration.
+  * @sdev: si4713_device structure for the device we are communicating
+@@ -1873,7 +1873,7 @@ exit:
+ }
+ 
+ /* si4713_s_modulator - set modulator attributes */
+-static int si4713_s_modulator(struct v4l2_subdev *sd, struct v4l2_modulator *vm)
++static int si4713_s_modulator(struct v4l2_subdev *sd, const struct v4l2_modulator *vm)
+ {
+ 	struct si4713_device *sdev = to_si4713_device(sd);
+ 	int rval = 0;
+diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.c b/drivers/media/radio/wl128x/fmdrv_v4l2.c
+index 09585a9..8a672a3 100644
+--- a/drivers/media/radio/wl128x/fmdrv_v4l2.c
++++ b/drivers/media/radio/wl128x/fmdrv_v4l2.c
+@@ -448,7 +448,7 @@ static int fm_v4l2_vidioc_g_modulator(struct file *file, void *priv,
+ 
+ /* Set modulator attributes. If mode is not TX, set to TX. */
+ static int fm_v4l2_vidioc_s_modulator(struct file *file, void *priv,
+-		struct v4l2_modulator *mod)
++		const struct v4l2_modulator *mod)
+ {
+ 	struct fmdev *fmdev = video_drvdata(file);
+ 	u8 rds_mode;
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index d4c7729..fbeb00e 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -179,7 +179,7 @@ struct v4l2_ioctl_ops {
+ 	int (*vidioc_g_modulator)      (struct file *file, void *fh,
+ 					struct v4l2_modulator *a);
+ 	int (*vidioc_s_modulator)      (struct file *file, void *fh,
+-					struct v4l2_modulator *a);
++					const struct v4l2_modulator *a);
+ 	/* Crop ioctls */
+ 	int (*vidioc_cropcap)          (struct file *file, void *fh,
+ 					struct v4l2_cropcap *a);
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 4cc1652..279bd8d 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -194,7 +194,7 @@ struct v4l2_subdev_tuner_ops {
+ 	int (*g_tuner)(struct v4l2_subdev *sd, struct v4l2_tuner *vt);
+ 	int (*s_tuner)(struct v4l2_subdev *sd, struct v4l2_tuner *vt);
+ 	int (*g_modulator)(struct v4l2_subdev *sd, struct v4l2_modulator *vm);
+-	int (*s_modulator)(struct v4l2_subdev *sd, struct v4l2_modulator *vm);
++	int (*s_modulator)(struct v4l2_subdev *sd, const struct v4l2_modulator *vm);
+ 	int (*s_type_addr)(struct v4l2_subdev *sd, struct tuner_setup *type);
+ 	int (*s_config)(struct v4l2_subdev *sd, const struct v4l2_priv_tun_config *config);
+ };
+-- 
+1.7.10.4
 
-In that case I'd say that close() should purge the kfifo and user space
-needs to do fsync to ensure that all IR has been sent.
-
-
-Sean
