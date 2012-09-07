@@ -1,63 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:58815 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1754687Ab2IMKV5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 06:21:57 -0400
-Message-ID: <5051B39E.8050806@cn.fujitsu.com>
-Date: Thu, 13 Sep 2012 18:21:18 +0800
-From: Wanlong Gao <gaowanlong@cn.fujitsu.com>
-Reply-To: gaowanlong@cn.fujitsu.com
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-kernel@vger.kernel.org,
+Received: from devils.ext.ti.com ([198.47.26.153]:60739 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760089Ab2IGInN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 04:43:13 -0400
+From: Prabhakar Lad <prabhakar.lad@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	<linux-kernel@vger.kernel.org>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	<linux-doc@vger.kernel.org>, Hans Verkuil <hans.verkuil@cisco.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/5] video:omap3isp:fix up ENOIOCTLCMD error handling
-References: <1346052196-32682-1-git-send-email-gaowanlong@cn.fujitsu.com> <1346052196-32682-5-git-send-email-gaowanlong@cn.fujitsu.com> <1946796.hhZ2Ot34qB@avalon>
-In-Reply-To: <1946796.hhZ2Ot34qB@avalon>
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset=ISO-8859-1
+	Hans de Goede <hdegoede@redhat.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Rob Landley <rob@landley.net>
+Subject: [PATCH v2] media: v4l2-ctrls: add control for test pattern
+Date: Fri, 7 Sep 2012 14:11:49 +0530
+Message-ID: <1347007309-6913-1-git-send-email-prabhakar.lad@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/13/2012 12:03 PM, Laurent Pinchart wrote:
-> Hi Wanlong,
-> 
-> Thanks for the patch.
-> 
-> On Monday 27 August 2012 15:23:15 Wanlong Gao wrote:
->> At commit 07d106d0, Linus pointed out that ENOIOCTLCMD should be
->> translated as ENOTTY to user mode.
->>
->> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
->> Cc: linux-media@vger.kernel.org
->> Signed-off-by: Wanlong Gao <gaowanlong@cn.fujitsu.com>
->> ---
->>  drivers/media/video/omap3isp/ispvideo.c | 10 +++++-----
->>  1 file changed, 5 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/media/video/omap3isp/ispvideo.c
->> b/drivers/media/video/omap3isp/ispvideo.c index b37379d..2dd982e 100644
->> --- a/drivers/media/video/omap3isp/ispvideo.c
->> +++ b/drivers/media/video/omap3isp/ispvideo.c
->> @@ -337,7 +337,7 @@ __isp_video_get_format(struct isp_video *video, struct
->> v4l2_format *format) fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
->>  	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
->>  	if (ret == -ENOIOCTLCMD)
->> -		ret = -EINVAL;
->> +		ret = -ENOTTY;
-> 
-> I don't think this location should be changed. __isp_video_get_format() is 
-> called by isp_video_check_format() only, which in turn is called by 
-> isp_video_streamon() only. A failure to retrieve the format in 
-> __isp_video_get_format() does not really mean the VIDIOC_STREAMON is not 
-> supported.
-> 
-> I'll apply hunks 2 to 5 and drop hunk 1 if that's fine with you.
+From: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-Fine, I defer to your great knowledge in this.
+add V4L2_CID_TEST_PATTERN of type menu, which determines
+the internal test pattern selected by the device.
 
-Thanks,
-Wanlong Gao
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Rob Landley <rob@landley.net>
+---
+This patches has one checkpatch warning for line over
+80 characters altough it can be avoided I have kept it
+for consistency.
+
+Changes for v2:
+1: Included display devices in the description for test pattern
+   as pointed by Hans.
+2: In the menu replaced 'Test Pattern Disabled' by 'Disabled' as
+   pointed by Sylwester.
+3: Removed the test patterns from menu as the are hardware specific
+   as pointed by Sakari.
+
+ Documentation/DocBook/media/v4l/controls.xml |   20 ++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-ctrls.c         |    8 ++++++++
+ include/linux/videodev2.h                    |    4 ++++
+ 3 files changed, 32 insertions(+), 0 deletions(-)
+
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index ad873ea..173934e 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -4311,6 +4311,26 @@ interface and may change in the future.</para>
+ 	      </tbody>
+ 	    </entrytbl>
+ 	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_TEST_PATTERN</constant></entry>
++	    <entry>menu</entry>
++	  </row>
++	  <row id="v4l2-test-pattern">
++	    <entry spanname="descr"> The Capture/Display/Sensors have the capability
++	    to generate internal test patterns and this are hardware specific. This
++	    test patterns are used to test a device is properly working and can generate
++	    the desired waveforms that it supports.</entry>
++	  </row>
++	  <row>
++	    <entrytbl spanname="descr" cols="2">
++	      <tbody valign="top">
++	        <row>
++	         <entry><constant>V4L2_TEST_PATTERN_DISABLED</constant></entry>
++	          <entry>Test pattern generation is disabled</entry>
++	        </row>
++	      </tbody>
++	    </entrytbl>
++	  </row>
+ 	<row><entry></entry></row>
+ 	</tbody>
+       </tgroup>
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 8f2f40b..d731422 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -430,6 +430,10 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"Advanced",
+ 		NULL,
+ 	};
++	static const char * const test_pattern[] = {
++		"Disabled",
++		NULL,
++	};
+ 
+ 	switch (id) {
+ 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+@@ -509,6 +513,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		return jpeg_chroma_subsampling;
+ 	case V4L2_CID_DPCM_PREDICTOR:
+ 		return dpcm_predictor;
++	case V4L2_CID_TEST_PATTERN:
++		return test_pattern;
+ 
+ 	default:
+ 		return NULL;
+@@ -740,6 +746,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
+ 	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
+ 	case V4L2_CID_DPCM_PREDICTOR:		return "DPCM Predictor";
++	case V4L2_CID_TEST_PATTERN:		return "Test Pattern";
+ 
+ 	default:
+ 		return NULL;
+@@ -841,6 +848,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_EXPOSURE_METERING:
+ 	case V4L2_CID_SCENE_MODE:
+ 	case V4L2_CID_DPCM_PREDICTOR:
++	case V4L2_CID_TEST_PATTERN:
+ 		*type = V4L2_CTRL_TYPE_MENU;
+ 		break;
+ 	case V4L2_CID_LINK_FREQ:
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index ca9fb78..6a2d499 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -2005,6 +2005,10 @@ enum v4l2_dpcm_predictor {
+ 	V4L2_DPCM_PREDICTOR_SIMPLE	= 0,
+ 	V4L2_DPCM_PREDICTOR_ADVANCED	= 1,
+ };
++#define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 4)
++enum v4l2_test_pattern {
++	V4L2_TEST_PATTERN_DISABLED		= 0,
++};
+ 
+ /*
+  *	T U N I N G
+-- 
+1.7.0.4
 
