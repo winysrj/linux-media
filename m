@@ -1,108 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:20542 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752898Ab2IXGgu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 02:36:50 -0400
-Date: Mon, 24 Sep 2012 09:36:42 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: yvahk-xreary@zacglen.net
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Steven Toth <stoth@kernellabs.com>,
-	Devin Heitmueler <dheitmueller@kernellabs.com>,
-	Mijhail Moreyra <mijhail.moreyra@gmail.com>
-Subject: Re: Freeze or Oops on recent kernels
-Message-ID: <20120924063641.GB28937@mwanda>
-References: <201209071124.q87BODFm028421.zacglen.com@localhost>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:51835 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755905Ab2IGUSO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 16:18:14 -0400
+Received: by eekc1 with SMTP id c1so1426333eek.19
+        for <linux-media@vger.kernel.org>; Fri, 07 Sep 2012 13:18:13 -0700 (PDT)
+Message-ID: <504A5683.5020807@gmail.com>
+Date: Fri, 07 Sep 2012 22:18:11 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201209071124.q87BODFm028421.zacglen.com@localhost>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 API PATCH 14/28] DocBook: clarify that sequence is also
+ set for output devices.
+References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl> <218a8f843734b9b2572842bc817ed36970931c24.1347023744.git.hans.verkuil@cisco.com>
+In-Reply-To: <218a8f843734b9b2572842bc817ed36970931c24.1347023744.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'm not going to file a bug for this on bugzilla because it's
-ancient and not a new bug.  But I can forward it to linux-media
-and the get_maintainer.pl people for cx23885_video.
+On 09/07/2012 03:29 PM, Hans Verkuil wrote:
+> From: Hans Verkuil<hans.verkuil@cisco.com>
+>
+> It was not entirely obvious that the sequence count should also
+> be set for output devices. Also made it more explicit that this
+> sequence counter counts frames, not fields.
+>
+> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
 
-HINT: We only care about the very most recent kernel.  If you can
-take a photo of the stack trace, then file a bug report and attach
-the .jpg.
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-regards,
-dan carpenter
-
-On Fri, Sep 07, 2012 at 09:24:13PM +1000, yvahk-xreary@zacglen.net wrote:
-> 
-> I am getting either a a kernel Oops or freeze (without any console output)
-> on recent kernels.  I have tested on 2.6.32.26 PAE, 3.1.9 PAE, and 3.4.9 PAE
-> all with similar results.
-> 
-> The hardware involved comprises mainly:
-> 
-> 	12 GB ram
-> 	Intel DX58S02 motherboard
-> 	Intel Xeon E5220
-> 	2 x onboard ethernet
-> 	Intel PRO/1000 PT Dual Port ethernet
-> 	Hauppauge HVR1700 DVB-T PCIe card
-> 	Technisat SkyStar2 DVB-T PCI card
-> 
-> The oops or freeze occurs when both DVB cards are recording
-> simultaneously. With either card installed on their own there
-> is never any problem.
-> 
-> I should also add that the exact same kernel and cards on
-> a Gigabyte GA-P31-S3G motherboard + Intel Pentium 4 the problem
-> NEVER occurs. So there may be a DX58S02/timing/interrupt issue.
-> 
-> When there is an oops it is like this (hand-transcribed
-> from 2.6.32.26 PAE kernel):
-> 
-> c0789444	panic + 3e/e9
-> 		oops_end + 97/a6
-> 		no_context + 13b/145
-> 		__bad_area_nosemaphore + ec/f4
-> 		? do_page_fault + 0/29f
-> 		bad_area_nosemaphore + 12/15
-> 		do_page_fault + 139/29f
-> 		? do_page_fault + 139/29f
-> c078b54b	error_code + 73/78
-> f82084fb	? cx23885_video_irq + d8/1dc
-> f820b04d	cx23885_irq + 3df/3fe
-> c04834ac	handle_irq_event + 57/fd
-> 		handle_fasteoi_irq + 6f/a2
-> 		handle_irq + 40/4d
-> 		do_IRQ + 46/9a
-> 		common_interrupt + 30/38
-> c045b7a9	? prepare_to_wait + 14c
-> f7fef5a5	? videobug_waitm + 90/133
-> c045b601	? autoremove_waker_function + 0/34
-> f805e5bc	videobuf_dvb_thread + 73/135
-> f805e4f9	? videobuf_dvb_thread + 0/135
-> c045b3c9	kthread + 64/69
-> 		? kthread + 0/69
-> 		kernel_thread_helper + 7/10
-> 
-> Although I am a very experienced programmer I have next to zero
-> kernel expertise except for minor patching of a few drivers.
-> 
-> My guess from the stack trace is that there might be an issue
-> with page fault recursion (if that is at all possible).
-> 
-> Anyhow I don't want to waste too much of my time or anybody elses
-> on this - although with the problem occuring with 3.4.9 kernel which
-> has significant interrupt handling changes it probably is something
-> that somebody might want to know about. If anybody can spot a clue
-> as to where I should be looking and how I should go about isolating
-> the problem (if only kernel core dumped!) please let me know and
-> I will possibly try and assist. I need some guidance.
-> 
-> Regards
-> John W.
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
