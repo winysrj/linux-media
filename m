@@ -1,64 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:62616 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757860Ab2IFPYT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2012 11:24:19 -0400
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 4/14] drivers/media/v4l2-core/videobuf2-core.c: fix error return code
-Date: Thu,  6 Sep 2012 17:23:57 +0200
-Message-Id: <1346945041-26676-10-git-send-email-peter.senna@gmail.com>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3951 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756491Ab2IGN3j (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 09:29:39 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 API PATCH 03/28] DocBook: improve STREAMON/OFF documentation.
+Date: Fri,  7 Sep 2012 15:29:03 +0200
+Message-Id: <133a249609e30bd0c77fcc12c01b8899f3ff81d7.1347023744.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
+References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
+References: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Senna Tschudin <peter.senna@gmail.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Convert a nonnegative error return code to a negative one, as returned
-elsewhere in the function.
+Specify that STREAMON/OFF should return 0 if the stream is already
+started/stopped.
 
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
+The spec never specified what the correct behavior is. This ambiguity
+was resolved during the 2012 Media Workshop.
 
-// <smpl>
-(
-if@p1 (\(ret < 0\|ret != 0\))
- { ... return ret; }
-|
-ret@p1 = 0
-)
-... when != ret = e1
-    when != &ret
-*if(...)
-{
-  ... when != ret = e2
-      when forall
- return ret;
-}
-
-// </smpl>
-
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ Documentation/DocBook/media/v4l/vidioc-streamon.xml |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 4da3df6..f6bc240 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1876,8 +1876,10 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 	 */
- 	for (i = 0; i < q->num_buffers; i++) {
- 		fileio->bufs[i].vaddr = vb2_plane_vaddr(q->bufs[i], 0);
--		if (fileio->bufs[i].vaddr == NULL)
-+		if (fileio->bufs[i].vaddr == NULL) {
-+			ret = -EFAULT;
- 			goto err_reqbufs;
-+		}
- 		fileio->bufs[i].size = vb2_plane_size(q->bufs[i], 0);
- 	}
+diff --git a/Documentation/DocBook/media/v4l/vidioc-streamon.xml b/Documentation/DocBook/media/v4l/vidioc-streamon.xml
+index 81cca45..716ea15 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-streamon.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-streamon.xml
+@@ -74,7 +74,12 @@ not transmitted yet. I/O returns to the same state as after calling
+ stream type. This is the same as &v4l2-requestbuffers;
+ <structfield>type</structfield>.</para>
  
+-    <para>Note applications can be preempted for unknown periods right
++    <para>If <constant>VIDIOC_STREAMON</constant> is called when streaming
++is already in progress, or if <constant>VIDIOC_STREAMOFF</constant> is called
++when streaming is already stopped, then the ioctl does nothing and 0 is
++returned.</para>
++
++    <para>Note that applications can be preempted for unknown periods right
+ before or after the <constant>VIDIOC_STREAMON</constant> or
+ <constant>VIDIOC_STREAMOFF</constant> calls, there is no notion of
+ starting or stopping "now". Buffer timestamps can be used to
+-- 
+1.7.10.4
 
