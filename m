@@ -1,94 +1,392 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:55479 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753824Ab2IONFl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Sep 2012 09:05:41 -0400
-Received: by iahk25 with SMTP id k25so4229498iah.19
-        for <linux-media@vger.kernel.org>; Sat, 15 Sep 2012 06:05:40 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <50547907.2050101@redhat.com>
-References: <1345864146-2207-1-git-send-email-elezegarcia@gmail.com>
-	<1345864146-2207-9-git-send-email-elezegarcia@gmail.com>
-	<20120825092814.4eee46f0@lwn.net>
-	<CALF0-+VEGKL6zqFcqkw__qxuy+_3aDa-0u4xD63+Mc4FioM+aw@mail.gmail.com>
-	<20120825113021.690440ba@lwn.net>
-	<CALF0-+WjGYhHd4xshW9fOtdVp-Cgmz-7t8JzzoqMW-w0pNv85A@mail.gmail.com>
-	<20120828105552.1e39b32b@lwn.net>
-	<CALF0-+XhgNSjA_RMVK1VWkM=_oEh3JHitZNH55cCSn=AKK0N3Q@mail.gmail.com>
-	<50547907.2050101@redhat.com>
-Date: Sat, 15 Sep 2012 10:05:40 -0300
-Message-ID: <CALF0-+Vx2eb4KJ4UoHts7R1ks4YsiUFHoqSixY-yd9bMV5VBeA@mail.gmail.com>
-Subject: Re: [PATCH 9/9] videobuf2-core: Change vb2_queue_init return type to void
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1994 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756220Ab2IGN3i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 09:29:38 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 API PATCH 20/28] v4l2: make vidioc_s_audio const.
+Date: Fri,  7 Sep 2012 15:29:20 +0200
+Message-Id: <e89c253e3f065e35332dc3a3afcb97fc5be2de63.1347023744.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
+References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
+References: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Sep 15, 2012 at 9:48 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em 28-08-2012 14:23, Ezequiel Garcia escreveu:
->> Hi Jon,
->>
->> Thanks for your answers, I really appreciate it.
->>
->> On Tue, Aug 28, 2012 at 1:55 PM, Jonathan Corbet <corbet@lwn.net> wrote:
->>> On Sun, 26 Aug 2012 19:59:40 -0300
->>> Ezequiel Garcia <elezegarcia@gmail.com> wrote:
->>>
->>>> 1.
->>>> Why do we need to check for all these conditions in the first place?
->>>> There are many other functions relying on "struct vb2_queue *q"
->>>> not being null (almost all of them) and we don't check for it.
->>>> What makes vb2_queue_init() so special that we need to check for it?
->>>
->>> There are plenty of developers who would argue for the removal of the
->>> BUG_ON(!q) line regardless, since the kernel will quickly crash shortly
->>> thereafter.  I'm a bit less convinced; there are attackers who are very
->>> good at exploiting null pointer dereferences, and some systems still allow
->>> the low part of the address space to be mapped.
->>>
->>> In general, IMO, checks for consistency make sense; it's nice if the
->>> kernel can *tell* you that something is wrong.
->>>
->>> What's a mistake is the BUG_ON; that should really only be used in places
->>> where things simply cannot continue.  In this case, the initialization can
->>> be failed, the V4L2 device will likely be unavailable, but everything else
->>> can continue as normal.  -EINVAL is the right response here.
->>>
->>
->> I see your point.
->>
->> What I really can't seem to understand is why we should have a check
->> at vb2_queue_init() but not at vb2_get_drv_priv(), just to pick one.
->
-> Those BUG_ON() checks are there since likely the first version of VB1.
-> VB2 just inherited it.
->
-> The think is that letting the VB code to run without checking for some
-> conditions is evil, as it could cause mass memory corruption, as the
-> videobuf code writes on a large amount of memory (typically, something
-> like 512MB written on every 1/30s). So, the code has protections, in order
-> to try avoiding it. Even so, with VB1, when the output buffer is at the
-> video adapter memory region (what is called PCI2PCI memory transfers),
-> there are known bugs with some chipsets that will cause mass data corruption
-> at the hard disks (as the PCI2PCI transfers interfere at the data transfers
-> from/to the disk, due to hardware bugs).
->
-> Calling WARN_ON_ONCE() and returning some error code works, provided that
-> we enforce that the error code will be handled at the drivers that call
-> vb2_queue_init(), using something like __attribute__((warn_unused_result, nonnull))
-> and double_checking the code at VB2 callers.
->
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-So, you want me to resend?
+Write-only ioctls should have a const argument in the ioctl op.
 
-And this whole patchset patchset should
-be dropped because we'll return something from vb2_queue_init.
+Do this conversion for vidioc_s_audio.
 
-Thanks,
-Ezequiel.
+Adding const for write-only ioctls was decided during the 2012 Media Workshop.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/bt8xx/bttv-driver.c         |    4 ++--
+ drivers/media/pci/cx18/cx18-ioctl.c           |    2 +-
+ drivers/media/pci/cx23885/cx23885-video.c     |    2 +-
+ drivers/media/pci/ivtv/ivtv-ioctl.c           |    2 +-
+ drivers/media/pci/saa7134/saa7134-video.c     |    4 ++--
+ drivers/media/pci/saa7146/mxb.c               |    2 +-
+ drivers/media/pci/ttpci/av7110_v4l.c          |    2 +-
+ drivers/media/radio/radio-miropcm20.c         |    2 +-
+ drivers/media/radio/radio-sf16fmi.c           |    2 +-
+ drivers/media/radio/radio-tea5764.c           |    2 +-
+ drivers/media/radio/radio-timb.c              |    2 +-
+ drivers/media/radio/radio-wl1273.c            |    2 +-
+ drivers/media/radio/wl128x/fmdrv_v4l2.c       |    2 +-
+ drivers/media/usb/au0828/au0828-video.c       |    2 +-
+ drivers/media/usb/cx231xx/cx231xx-video.c     |    4 ++--
+ drivers/media/usb/em28xx/em28xx-video.c       |    4 ++--
+ drivers/media/usb/hdpvr/hdpvr-video.c         |    2 +-
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c      |    2 +-
+ drivers/media/usb/tlg2300/pd-radio.c          |    2 +-
+ drivers/media/usb/tlg2300/pd-video.c          |    2 +-
+ drivers/media/usb/tm6000/tm6000-video.c       |    2 +-
+ drivers/media/usb/usbvision/usbvision-video.c |    2 +-
+ include/media/v4l2-ioctl.h                    |    2 +-
+ 23 files changed, 27 insertions(+), 27 deletions(-)
+
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index 26bf309..31b2826 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -3076,7 +3076,7 @@ static int bttv_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
+ 	return 0;
+ }
+ 
+-static int bttv_s_audio(struct file *file, void *priv, struct v4l2_audio *a)
++static int bttv_s_audio(struct file *file, void *priv, const struct v4l2_audio *a)
+ {
+ 	if (unlikely(a->index))
+ 		return -EINVAL;
+@@ -3480,7 +3480,7 @@ static int radio_s_tuner(struct file *file, void *priv,
+ }
+ 
+ static int radio_s_audio(struct file *file, void *priv,
+-					struct v4l2_audio *a)
++					const struct v4l2_audio *a)
+ {
+ 	if (unlikely(a->index))
+ 		return -EINVAL;
+diff --git a/drivers/media/pci/cx18/cx18-ioctl.c b/drivers/media/pci/cx18/cx18-ioctl.c
+index 51675bc..ffc00ef 100644
+--- a/drivers/media/pci/cx18/cx18-ioctl.c
++++ b/drivers/media/pci/cx18/cx18-ioctl.c
+@@ -492,7 +492,7 @@ static int cx18_g_audio(struct file *file, void *fh, struct v4l2_audio *vin)
+ 	return cx18_get_audio_input(cx, vin->index, vin);
+ }
+ 
+-static int cx18_s_audio(struct file *file, void *fh, struct v4l2_audio *vout)
++static int cx18_s_audio(struct file *file, void *fh, const struct v4l2_audio *vout)
+ {
+ 	struct cx18 *cx = fh2id(fh)->cx;
+ 
+diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
+index 22f8e7f..8c4a9a5 100644
+--- a/drivers/media/pci/cx23885/cx23885-video.c
++++ b/drivers/media/pci/cx23885/cx23885-video.c
+@@ -1426,7 +1426,7 @@ static int vidioc_g_audinput(struct file *file, void *priv,
+ }
+ 
+ static int vidioc_s_audinput(struct file *file, void *priv,
+-	struct v4l2_audio *i)
++	const struct v4l2_audio *i)
+ {
+ 	struct cx23885_dev *dev = ((struct cx23885_fh *)priv)->dev;
+ 	if (i->index >= 2)
+diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c b/drivers/media/pci/ivtv/ivtv-ioctl.c
+index 966abb4..99e35dd 100644
+--- a/drivers/media/pci/ivtv/ivtv-ioctl.c
++++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
+@@ -784,7 +784,7 @@ static int ivtv_g_audio(struct file *file, void *fh, struct v4l2_audio *vin)
+ 	return ivtv_get_audio_input(itv, vin->index, vin);
+ }
+ 
+-static int ivtv_s_audio(struct file *file, void *fh, struct v4l2_audio *vout)
++static int ivtv_s_audio(struct file *file, void *fh, const struct v4l2_audio *vout)
+ {
+ 	struct ivtv *itv = fh2id(fh)->itv;
+ 
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+index bac4386..135bfd8 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -2089,7 +2089,7 @@ static int saa7134_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
+ 	return 0;
+ }
+ 
+-static int saa7134_s_audio(struct file *file, void *priv, struct v4l2_audio *a)
++static int saa7134_s_audio(struct file *file, void *priv, const struct v4l2_audio *a)
+ {
+ 	return 0;
+ }
+@@ -2373,7 +2373,7 @@ static int radio_g_audio(struct file *file, void *priv,
+ }
+ 
+ static int radio_s_audio(struct file *file, void *priv,
+-					struct v4l2_audio *a)
++					const struct v4l2_audio *a)
+ {
+ 	return 0;
+ }
+diff --git a/drivers/media/pci/saa7146/mxb.c b/drivers/media/pci/saa7146/mxb.c
+index b520a45..91369da 100644
+--- a/drivers/media/pci/saa7146/mxb.c
++++ b/drivers/media/pci/saa7146/mxb.c
+@@ -646,7 +646,7 @@ static int vidioc_g_audio(struct file *file, void *fh, struct v4l2_audio *a)
+ 	return 0;
+ }
+ 
+-static int vidioc_s_audio(struct file *file, void *fh, struct v4l2_audio *a)
++static int vidioc_s_audio(struct file *file, void *fh, const struct v4l2_audio *a)
+ {
+ 	struct saa7146_dev *dev = ((struct saa7146_fh *)fh)->dev;
+ 	struct mxb *mxb = (struct mxb *)dev->ext_priv;
+diff --git a/drivers/media/pci/ttpci/av7110_v4l.c b/drivers/media/pci/ttpci/av7110_v4l.c
+index 1b2d151..730e906 100644
+--- a/drivers/media/pci/ttpci/av7110_v4l.c
++++ b/drivers/media/pci/ttpci/av7110_v4l.c
+@@ -526,7 +526,7 @@ static int vidioc_g_audio(struct file *file, void *fh, struct v4l2_audio *a)
+ 	return 0;
+ }
+ 
+-static int vidioc_s_audio(struct file *file, void *fh, struct v4l2_audio *a)
++static int vidioc_s_audio(struct file *file, void *fh, const struct v4l2_audio *a)
+ {
+ 	struct saa7146_dev *dev = ((struct saa7146_fh *)fh)->dev;
+ 	struct av7110 *av7110 = (struct av7110 *)dev->ext_priv;
+diff --git a/drivers/media/radio/radio-miropcm20.c b/drivers/media/radio/radio-miropcm20.c
+index 87c1ee1..11f76ed 100644
+--- a/drivers/media/radio/radio-miropcm20.c
++++ b/drivers/media/radio/radio-miropcm20.c
+@@ -197,7 +197,7 @@ static int vidioc_g_audio(struct file *file, void *priv,
+ }
+ 
+ static int vidioc_s_audio(struct file *file, void *priv,
+-				struct v4l2_audio *a)
++				const struct v4l2_audio *a)
+ {
+ 	return a->index ? -EINVAL : 0;
+ }
+diff --git a/drivers/media/radio/radio-sf16fmi.c b/drivers/media/radio/radio-sf16fmi.c
+index 8185d5f..227dcdb 100644
+--- a/drivers/media/radio/radio-sf16fmi.c
++++ b/drivers/media/radio/radio-sf16fmi.c
+@@ -239,7 +239,7 @@ static int vidioc_g_audio(struct file *file, void *priv,
+ }
+ 
+ static int vidioc_s_audio(struct file *file, void *priv,
+-					struct v4l2_audio *a)
++					const struct v4l2_audio *a)
+ {
+ 	return a->index ? -EINVAL : 0;
+ }
+diff --git a/drivers/media/radio/radio-tea5764.c b/drivers/media/radio/radio-tea5764.c
+index 6b1fae3..efb05aa 100644
+--- a/drivers/media/radio/radio-tea5764.c
++++ b/drivers/media/radio/radio-tea5764.c
+@@ -448,7 +448,7 @@ static int vidioc_g_audio(struct file *file, void *priv,
+ }
+ 
+ static int vidioc_s_audio(struct file *file, void *priv,
+-			   struct v4l2_audio *a)
++			   const struct v4l2_audio *a)
+ {
+ 	if (a->index != 0)
+ 		return -EINVAL;
+diff --git a/drivers/media/radio/radio-timb.c b/drivers/media/radio/radio-timb.c
+index 09fc560..5cf0777 100644
+--- a/drivers/media/radio/radio-timb.c
++++ b/drivers/media/radio/radio-timb.c
+@@ -85,7 +85,7 @@ static int timbradio_vidioc_g_audio(struct file *file, void *priv,
+ }
+ 
+ static int timbradio_vidioc_s_audio(struct file *file, void *priv,
+-	struct v4l2_audio *a)
++	const struct v4l2_audio *a)
+ {
+ 	return a->index ? -EINVAL : 0;
+ }
+diff --git a/drivers/media/radio/radio-wl1273.c b/drivers/media/radio/radio-wl1273.c
+index 71968a6..2d93354 100644
+--- a/drivers/media/radio/radio-wl1273.c
++++ b/drivers/media/radio/radio-wl1273.c
+@@ -1479,7 +1479,7 @@ static int wl1273_fm_vidioc_g_audio(struct file *file, void *priv,
+ }
+ 
+ static int wl1273_fm_vidioc_s_audio(struct file *file, void *priv,
+-				    struct v4l2_audio *audio)
++				    const struct v4l2_audio *audio)
+ {
+ 	struct wl1273_device *radio = video_get_drvdata(video_devdata(file));
+ 
+diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.c b/drivers/media/radio/wl128x/fmdrv_v4l2.c
+index f816ea6..09585a9 100644
+--- a/drivers/media/radio/wl128x/fmdrv_v4l2.c
++++ b/drivers/media/radio/wl128x/fmdrv_v4l2.c
+@@ -258,7 +258,7 @@ static int fm_v4l2_vidioc_g_audio(struct file *file, void *priv,
+ }
+ 
+ static int fm_v4l2_vidioc_s_audio(struct file *file, void *priv,
+-		struct v4l2_audio *audio)
++		const struct v4l2_audio *audio)
+ {
+ 	if (audio->index != 0)
+ 		return -EINVAL;
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index fa0fa9a..8705855 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -1465,7 +1465,7 @@ static int vidioc_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
+ 	return 0;
+ }
+ 
+-static int vidioc_s_audio(struct file *file, void *priv, struct v4l2_audio *a)
++static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio *a)
+ {
+ 	struct au0828_fh *fh = priv;
+ 	struct au0828_dev *dev = fh->dev;
+diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+index 790b28d..fedf785 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-video.c
++++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+@@ -1253,7 +1253,7 @@ static int vidioc_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
+ 	return 0;
+ }
+ 
+-static int vidioc_s_audio(struct file *file, void *priv, struct v4l2_audio *a)
++static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio *a)
+ {
+ 	struct cx231xx_fh *fh = priv;
+ 	struct cx231xx *dev = fh->dev;
+@@ -2096,7 +2096,7 @@ static int radio_s_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
+ 	return 0;
+ }
+ 
+-static int radio_s_audio(struct file *file, void *fh, struct v4l2_audio *a)
++static int radio_s_audio(struct file *file, void *fh, const struct v4l2_audio *a)
+ {
+ 	return 0;
+ }
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 78d6ebd..1e553d3 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1352,7 +1352,7 @@ static int vidioc_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
+ 	return 0;
+ }
+ 
+-static int vidioc_s_audio(struct file *file, void *priv, struct v4l2_audio *a)
++static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio *a)
+ {
+ 	struct em28xx_fh   *fh  = priv;
+ 	struct em28xx      *dev = fh->dev;
+@@ -2087,7 +2087,7 @@ static int radio_s_tuner(struct file *file, void *priv,
+ }
+ 
+ static int radio_s_audio(struct file *file, void *fh,
+-			 struct v4l2_audio *a)
++			 const struct v4l2_audio *a)
+ {
+ 	return 0;
+ }
+diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+index 0e9e156..da6b779 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-video.c
++++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+@@ -677,7 +677,7 @@ static int vidioc_enumaudio(struct file *file, void *priv,
+ }
+ 
+ static int vidioc_s_audio(struct file *file, void *private_data,
+-			  struct v4l2_audio *audio)
++			  const struct v4l2_audio *audio)
+ {
+ 	struct hdpvr_fh *fh = file->private_data;
+ 	struct hdpvr_device *dev = fh->dev;
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+index f344aed..7a445b0 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+@@ -333,7 +333,7 @@ static int pvr2_g_audio(struct file *file, void *priv, struct v4l2_audio *vin)
+ 	return 0;
+ }
+ 
+-static int pvr2_s_audio(struct file *file, void *priv, struct v4l2_audio *vout)
++static int pvr2_s_audio(struct file *file, void *priv, const struct v4l2_audio *vout)
+ {
+ 	if (vout->index)
+ 		return -EINVAL;
+diff --git a/drivers/media/usb/tlg2300/pd-radio.c b/drivers/media/usb/tlg2300/pd-radio.c
+index 4fad1df..25eeb16 100644
+--- a/drivers/media/usb/tlg2300/pd-radio.c
++++ b/drivers/media/usb/tlg2300/pd-radio.c
+@@ -348,7 +348,7 @@ static int vidioc_s_tuner(struct file *file, void *priv, struct v4l2_tuner *vt)
+ {
+ 	return vt->index > 0 ? -EINVAL : 0;
+ }
+-static int vidioc_s_audio(struct file *file, void *priv, struct v4l2_audio *va)
++static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio *va)
+ {
+ 	return (va->index != 0) ? -EINVAL : 0;
+ }
+diff --git a/drivers/media/usb/tlg2300/pd-video.c b/drivers/media/usb/tlg2300/pd-video.c
+index bfbf9e5..1f448ac 100644
+--- a/drivers/media/usb/tlg2300/pd-video.c
++++ b/drivers/media/usb/tlg2300/pd-video.c
+@@ -1029,7 +1029,7 @@ static int vidioc_g_audio(struct file *file, void *fh, struct v4l2_audio *a)
+ 	return 0;
+ }
+ 
+-static int vidioc_s_audio(struct file *file, void *fh, struct v4l2_audio *a)
++static int vidioc_s_audio(struct file *file, void *fh, const struct v4l2_audio *a)
+ {
+ 	return (0 == a->index) ? 0 : -EINVAL;
+ }
+diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
+index 45ed59c..4342cd4 100644
+--- a/drivers/media/usb/tm6000/tm6000-video.c
++++ b/drivers/media/usb/tm6000/tm6000-video.c
+@@ -1401,7 +1401,7 @@ static int radio_g_audio(struct file *file, void *priv,
+ }
+ 
+ static int radio_s_audio(struct file *file, void *priv,
+-					struct v4l2_audio *a)
++					const struct v4l2_audio *a)
+ {
+ 	return 0;
+ }
+diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
+index 8a43179..f67018e 100644
+--- a/drivers/media/usb/usbvision/usbvision-video.c
++++ b/drivers/media/usb/usbvision/usbvision-video.c
+@@ -684,7 +684,7 @@ static int vidioc_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
+ }
+ 
+ static int vidioc_s_audio(struct file *file, void *fh,
+-			  struct v4l2_audio *a)
++			  const struct v4l2_audio *a)
+ {
+ 	if (a->index)
+ 		return -EINVAL;
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index 3eef4de..babbe09 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -167,7 +167,7 @@ struct v4l2_ioctl_ops {
+ 	int (*vidioc_g_audio)          (struct file *file, void *fh,
+ 					struct v4l2_audio *a);
+ 	int (*vidioc_s_audio)          (struct file *file, void *fh,
+-					struct v4l2_audio *a);
++					const struct v4l2_audio *a);
+ 
+ 	/* Audio out ioctls */
+ 	int (*vidioc_enumaudout)       (struct file *file, void *fh,
+-- 
+1.7.10.4
+
