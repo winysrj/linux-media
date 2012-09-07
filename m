@@ -1,46 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34664 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756786Ab2IQPXA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Sep 2012 11:23:00 -0400
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: <linux-kernel@vger.kernel.org>, <julia.lawall@lip6.fr>,
-	Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCH 3/6] media: Convert struct i2c_msg initialization to C99 format
-Date: Mon, 17 Sep 2012 20:52:30 +0530
-Message-ID: <1347895353-18090-4-git-send-email-shubhrajyoti@ti.com>
-In-Reply-To: <1347895353-18090-1-git-send-email-shubhrajyoti@ti.com>
-References: <1347895353-18090-1-git-send-email-shubhrajyoti@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:62893 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753747Ab2IGPZR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 11:25:17 -0400
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 8/10] drivers/media/dvb-core/dvb_demux.c: removes unnecessary semicolon
+Date: Fri,  7 Sep 2012 17:24:44 +0200
+Message-Id: <1347031488-26598-6-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-        Convert the struct i2c_msg initialization to C99 format. This makes
-        maintaining and editing the code simpler. Also helps once other fields
-        like transferred are added in future.
+From: Peter Senna Tschudin <peter.senna@gmail.com>
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+removes unnecessary semicolon
+
+Found by Coccinelle: http://coccinelle.lip6.fr/
+
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+
 ---
- drivers/media/i2c/tvaudio.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/dvb-core/dvb_demux.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/i2c/tvaudio.c b/drivers/media/i2c/tvaudio.c
-index 321b315..2a9fdc7 100644
---- a/drivers/media/i2c/tvaudio.c
-+++ b/drivers/media/i2c/tvaudio.c
-@@ -217,8 +217,8 @@ static int chip_read2(struct CHIPSTATE *chip, int subaddr)
- 	unsigned char write[1];
- 	unsigned char read[1];
- 	struct i2c_msg msgs[2] = {
--		{ c->addr, 0,        1, write },
--		{ c->addr, I2C_M_RD, 1, read  }
-+		{ .addr = c->addr, .flags = 0,        .len = 1, .buf = write },
-+		{ .addr = c->addr, .flags = I2C_M_RD, .len = 1, .buf = read  }
- 	};
+diff -u -p a/drivers/media/dvb-core/dvb_demux.c b/drivers/media/dvb-core/dvb_demux.c
+--- a/drivers/media/dvb-core/dvb_demux.c
++++ b/drivers/media/dvb-core/dvb_demux.c
+@@ -424,12 +424,12 @@ static void dvb_dmx_swfilter_packet(stru
+ 				printk(KERN_INFO "TS speed %llu Kbits/sec \n",
+ 						div64_u64(speed_bytes,
+ 							speed_timedelta));
+-			};
++			}
  
- 	write[0] = subaddr;
--- 
-1.7.5.4
+ 			demux->speed_last_time = cur_time;
+ 			demux->speed_pkts_cnt = 0;
+-		};
+-	};
++		}
++	}
+ 
+ 	if (buf[1] & 0x80) {
+ 		dprintk_tscheck("TEI detected. "
+@@ -451,9 +451,9 @@ static void dvb_dmx_swfilter_packet(stru
+ 						buf[3] & 0xf);
+ 
+ 			demux->cnt_storage[pid] = ((buf[3] & 0xf) + 1)&0xf;
+-		};
++		}
+ 		/* end check */
+-	};
++	}
+ 
+ 	list_for_each_entry(feed, &demux->feed_list, list_head) {
+ 		if ((feed->pid != pid) && (feed->pid != 0x2000))
 
