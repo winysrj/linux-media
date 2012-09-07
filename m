@@ -1,42 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog112.obsmtp.com ([207.126.144.133]:32891 "EHLO
-	eu1sys200aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752419Ab2IXO7C convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 10:59:02 -0400
-From: Vincent ABRIOU <vincent.abriou@st.com>
-To: "sakari.ailus@iki.fi" <sakari.ailus@iki.fi>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Willy POISSON <willy.poisson@st.com>,
-	Nicolas THERY <nicolas.thery@st.com>,
-	Jean-Marc VOLLE <jean-marc.volle@st.com>,
-	Pierre-yves TALOUD <pierre-yves.taloud@st.com>
-Date: Mon, 24 Sep 2012 16:58:34 +0200
-Subject: RE: [RFC] Frame format descriptors
-Message-ID: <9481210134BDC5419AC503D05B6CA44F34B74D90D3@SAFEX1MAIL1.st.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:62754 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754263Ab2IGPZS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 11:25:18 -0400
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 7/10] drivers/media/tuners/tda18271-common.c: removes unnecessary semicolon
+Date: Fri,  7 Sep 2012 17:24:45 +0200
+Message-Id: <1347031488-26598-7-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari
+From: Peter Senna Tschudin <peter.senna@gmail.com>
 
-Thank you for sharing your opinion on this subject.
-I know that for you it is an old topics but I would like to revive this RFC by asking you some questions about your proposal in order to move forward on this subject.
+removes unnecessary semicolon
 
-Indeed, stream format description is very important and mandatory for every CSI-2 receiver in order to be well configured.  
+Found by Coccinelle: http://coccinelle.lip6.fr/
 
-I understand from your proposal that frame format descriptor is defined by the sensor/camera and retrieve by the CSI-2 receiver. 
-Since the CSI-2 stream to capture does not have multiple pixel format (one pixel format but multiple embedded data) it does not bring so many complexity.
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
 
-But I have some difficulties to put things together in case of a sensor/camera providing
-2 interleaved streams with 2 different pixel format such JPEG interleaved with YUV.
-In that case, what is the external trigger from the client to warn sensor/camera that the client is requesting an interleaved stream? New mbus pixel code added in the v4l2_mbus_pixelcode enum and defined in the sensor/camera pad? 
+---
+ drivers/media/tuners/tda18271-common.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-Kind regards,
-
---
-Vincent Abriou
+diff -u -p a/drivers/media/tuners/tda18271-common.c b/drivers/media/tuners/tda18271-common.c
+--- a/drivers/media/tuners/tda18271-common.c
++++ b/drivers/media/tuners/tda18271-common.c
+@@ -275,7 +275,7 @@ int tda18271_init_regs(struct dvb_fronte
+ 	case TDA18271HDC2:
+ 		regs[R_ID]   = 0x84;
+ 		break;
+-	};
++	}
+ 
+ 	regs[R_TM]   = 0x08;
+ 	regs[R_PL]   = 0x80;
+@@ -300,7 +300,7 @@ int tda18271_init_regs(struct dvb_fronte
+ 	case TDA18271HDC2:
+ 		regs[R_EB1]  = 0xfc;
+ 		break;
+-	};
++	}
+ 
+ 	regs[R_EB2]  = 0x01;
+ 	regs[R_EB3]  = 0x84;
+@@ -320,7 +320,7 @@ int tda18271_init_regs(struct dvb_fronte
+ 	case TDA18271HDC2:
+ 		regs[R_EB12] = 0x33;
+ 		break;
+-	};
++	}
+ 
+ 	regs[R_EB13] = 0xc1;
+ 	regs[R_EB14] = 0x00;
+@@ -335,7 +335,7 @@ int tda18271_init_regs(struct dvb_fronte
+ 	case TDA18271HDC2:
+ 		regs[R_EB18] = 0x8c;
+ 		break;
+-	};
++	}
+ 
+ 	regs[R_EB19] = 0x00;
+ 	regs[R_EB20] = 0x20;
+@@ -347,7 +347,7 @@ int tda18271_init_regs(struct dvb_fronte
+ 	case TDA18271HDC2:
+ 		regs[R_EB21] = 0xb3;
+ 		break;
+-	};
++	}
+ 
+ 	regs[R_EB22] = 0x48;
+ 	regs[R_EB23] = 0xb0;
 
