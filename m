@@ -1,37 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57378 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754763Ab2IBWrq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 2 Sep 2012 18:47:46 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2887 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753583Ab2IGN3d (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 09:29:33 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] af9013: add debug for IF frequency
-Date: Mon,  3 Sep 2012 01:47:25 +0300
-Message-Id: <1346626045-29396-1-git-send-email-crope@iki.fi>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFCv2 API PATCH 00/28] Full series of API fixes from the 2012 Media Workshop
+Date: Fri,  7 Sep 2012 15:29:00 +0200
+Message-Id: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Used IF frequency is one of the most important parameter to know.
+Hi all,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/af9013.c | 2 ++
- 1 file changed, 2 insertions(+)
+This is the full patch series containing API fixes as discussed during the
+2012 Media Workshop.
 
-diff --git a/drivers/media/dvb-frontends/af9013.c b/drivers/media/dvb-frontends/af9013.c
-index 5bc570d..2dac314 100644
---- a/drivers/media/dvb-frontends/af9013.c
-+++ b/drivers/media/dvb-frontends/af9013.c
-@@ -606,6 +606,8 @@ static int af9013_set_frontend(struct dvb_frontend *fe)
- 		else
- 			if_frequency = state->config.if_frequency;
- 
-+		dbg("%s: if_frequency=%d", __func__, if_frequency);
-+
- 		sampling_freq = if_frequency;
- 
- 		while (sampling_freq > (state->config.clock / 2))
--- 
-1.7.11.4
+Regarding the 'make ioctl const' patches: I've only done the easy ones in
+this patch series. The remaining write-only ioctls are used much more widely,
+so changing those will happen later.
+
+The last few patches that enhance the core code with more stringent tests
+against what ioctls can be called for which types of device node will need
+reviewing. I have tested it exhaustively with ivtv (which is one of the
+most complex drivers, and the only one that has exotic devices like VBI
+out).
+
+To use v4l2-compliance with ivtv I also needed to make a few other fixes
+elsewhere. The tree with both this patch series and the addition ivtv fixes
+can be found here:
+
+http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/ivtv
+
+I have also tested this patch series (actually a slightly older version)
+with em28xx. That driver needed a lot of changes to get it to pass the
+v4l2-compliance tests. Those can be found here:
+
+http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/em28xx
+
+Comments are welcome.
+
+Regards,
+
+	Hans
 
