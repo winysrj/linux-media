@@ -1,89 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:51943 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754638Ab2I0Fd4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Sep 2012 01:33:56 -0400
-From: Prabhakar <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	VGER <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v2] media: davinci: vpif: add check for NULL handler
-Date: Thu, 27 Sep 2012 11:03:12 +0530
-Message-Id: <1348723992-3199-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:37451 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754660Ab2IGNrP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 09:47:15 -0400
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org
+Subject: [PATCH] drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c: fix error return code
+Date: Fri,  7 Sep 2012 15:46:55 +0200
+Message-Id: <1347025615-11811-1-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.lad@ti.com>
+From: Peter Senna Tschudin <peter.senna@gmail.com>
 
-for da850/omap-l138, there is no need to setup_input_channel_mode()
-and set_clock(), to avoid adding dummy code in board file just returning
-zero add a check in the driver itself to call the handler only if its
-not NULL.
+Convert a nonnegative error return code to a negative one, as returned
+elsewhere in the function.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
+
+// <smpl>
+(
+if@p1 (\(ret < 0\|ret != 0\))
+ { ... return ret; }
+|
+ret@p1 = 0
+)
+... when != ret = e1
+    when != &ret
+*if(...)
+{
+  ... when != ret = e2
+      when forall
+ return ret;
+}
+
+// </smpl>
+
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+
 ---
- Changes for v2:
- 1: Added patch description, pointed by Mauro.
+ drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
- drivers/media/platform/davinci/vpif_capture.c |   13 +++++++------
- drivers/media/platform/davinci/vpif_display.c |   13 +++++++------
- 2 files changed, 14 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 13aa46d..7b5e09a 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -311,12 +311,13 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	}
+diff --git a/../linux-next/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c b/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
+index c8c94fb..273df94 100644
+--- a/../linux-next/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
++++ b/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
+@@ -704,7 +704,6 @@ int cx25821_vidupstream_init_ch2(struct cx25821_dev *dev, int channel_select,
+ {
+ 	struct sram_channel *sram_ch;
+ 	u32 tmp;
+-	int retval = 0;
+ 	int err = 0;
+ 	int data_frame_size = 0;
+ 	int risc_buffer_size = 0;
+@@ -749,15 +748,19 @@ int cx25821_vidupstream_init_ch2(struct cx25821_dev *dev, int channel_select,
+ 		dev->_filename_ch2 = kmemdup(dev->input_filename_ch2,
+ 					     str_length + 1, GFP_KERNEL);
  
- 	/* configure 1 or 2 channel mode */
--	ret = vpif_config_data->setup_input_channel_mode
--					(vpif->std_info.ycmux_mode);
--
--	if (ret < 0) {
--		vpif_dbg(1, debug, "can't set vpif channel mode\n");
--		return ret;
-+	if (vpif_config_data->setup_input_channel_mode) {
-+		ret = vpif_config_data->
-+			setup_input_channel_mode(vpif->std_info.ycmux_mode);
-+		if (ret < 0) {
-+			vpif_dbg(1, debug, "can't set vpif channel mode\n");
-+			return ret;
+-		if (!dev->_filename_ch2)
++		if (!dev->_filename_ch2) {
++			err = -ENOENT;
+ 			goto error;
++		}
+ 	} else {
+ 		str_length = strlen(dev->_defaultname_ch2);
+ 		dev->_filename_ch2 = kmemdup(dev->_defaultname_ch2,
+ 					     str_length + 1, GFP_KERNEL);
+ 
+-		if (!dev->_filename_ch2)
++		if (!dev->_filename_ch2) {
++			err = -ENOENT;
+ 			goto error;
 +		}
  	}
  
- 	/* Call vpif_set_params function to set the parameters and addresses */
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index e401aea..e8a0286 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -280,12 +280,13 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	/* Default if filename is empty string */
+@@ -773,7 +776,7 @@ int cx25821_vidupstream_init_ch2(struct cx25821_dev *dev, int channel_select,
+ 		}
  	}
  
- 	/* clock settings */
--	ret =
--	    vpif_config_data->set_clock(ch->vpifparams.std_info.ycmux_mode,
--					ch->vpifparams.std_info.hd_sd);
--	if (ret < 0) {
--		vpif_err("can't set clock\n");
--		return ret;
-+	if (vpif_config_data->set_clock) {
-+		ret = vpif_config_data->set_clock(ch->vpifparams.std_info.
-+		ycmux_mode, ch->vpifparams.std_info.hd_sd);
-+		if (ret < 0) {
-+			vpif_err("can't set clock\n");
-+			return ret;
-+		}
- 	}
+-	retval = cx25821_sram_channel_setup_upstream(dev, sram_ch,
++	err = cx25821_sram_channel_setup_upstream(dev, sram_ch,
+ 						dev->_line_size_ch2, 0);
  
- 	/* set the parameters and addresses */
--- 
-1.7.4.1
+ 	/* setup fifo + format */
+@@ -783,9 +786,9 @@ int cx25821_vidupstream_init_ch2(struct cx25821_dev *dev, int channel_select,
+ 	dev->upstream_databuf_size_ch2 = data_frame_size * 2;
+ 
+ 	/* Allocating buffers and prepare RISC program */
+-	retval = cx25821_upstream_buffer_prepare_ch2(dev, sram_ch,
++	err = cx25821_upstream_buffer_prepare_ch2(dev, sram_ch,
+ 						dev->_line_size_ch2);
+-	if (retval < 0) {
++	if (err < 0) {
+ 		pr_err("%s: Failed to set up Video upstream buffers!\n",
+ 		       dev->name);
+ 		goto error;
 
