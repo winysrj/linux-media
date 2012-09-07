@@ -1,196 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50004 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751765Ab2IAPsT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Sep 2012 11:48:19 -0400
-Message-ID: <50422E32.9000501@iki.fi>
-Date: Sat, 01 Sep 2012 18:48:02 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: poma <pomidorabelisima@gmail.com>
-CC: linux-media@vger.kernel.org,
-	Hin-Tak Leung <htl10@users.sourceforge.net>
-Subject: Re: [PATCH] rtl28xxu: correct usb_clear_halt() usage
-References: <1346507683-3621-1-git-send-email-crope@iki.fi> <50422B57.60701@gmail.com>
-In-Reply-To: <50422B57.60701@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3431 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753880Ab2IGN3m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 09:29:42 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 API PATCH 08/28] v4l2: remove experimental tag from a number of old drivers.
+Date: Fri,  7 Sep 2012 15:29:08 +0200
+Message-Id: <0cbef0a949709d1c824b850f5bf59225d224059e.1347023744.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
+References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
+References: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/01/2012 06:35 PM, poma wrote:
-> On 09/01/2012 03:54 PM, Antti Palosaari wrote:
->> It is not allowed to call usb_clear_halt() after urbs are submitted.
->> That causes oops sometimes. Move whole streaming_ctrl() logic to
->> power_ctrl() in order to avoid wrong usb_clear_halt() use. Also,
->> configuring streaming endpoint in streaming_ctrl() sounds like a
->> little bit wrong as it is aimed for control stream gate.
->>
->> Reported-by: Hin-Tak Leung <htl10@users.sourceforge.net>
->> Signed-off-by: Antti Palosaari <crope@iki.fi>
->> ---
->>   drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 55 +++++++++++++++------------------
->>   1 file changed, 25 insertions(+), 30 deletions(-)
->>
->> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
->> index e29fca2..7d11c5d 100644
->> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
->> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
->> @@ -825,37 +825,10 @@ err:
->>   	return ret;
->>   }
->>
->> -static int rtl28xxu_streaming_ctrl(struct dvb_frontend *fe , int onoff)
->> -{
->> -	int ret;
->> -	u8 buf[2];
->> -	struct dvb_usb_device *d = fe_to_d(fe);
->> -
->> -	dev_dbg(&d->udev->dev, "%s: onoff=%d\n", __func__, onoff);
->> -
->> -	if (onoff) {
->> -		buf[0] = 0x00;
->> -		buf[1] = 0x00;
->> -		usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x81));
->> -	} else {
->> -		buf[0] = 0x10; /* stall EPA */
->> -		buf[1] = 0x02; /* reset EPA */
->> -	}
->> -
->> -	ret = rtl28xx_wr_regs(d, USB_EPA_CTL, buf, 2);
->> -	if (ret)
->> -		goto err;
->> -
->> -	return ret;
->> -err:
->> -	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
->> -	return ret;
->> -}
->> -
->>   static int rtl2831u_power_ctrl(struct dvb_usb_device *d, int onoff)
->>   {
->>   	int ret;
->> -	u8 gpio, sys0;
->> +	u8 gpio, sys0, epa_ctl[2];
->>
->>   	dev_dbg(&d->udev->dev, "%s: onoff=%d\n", __func__, onoff);
->>
->> @@ -878,11 +851,15 @@ static int rtl2831u_power_ctrl(struct dvb_usb_device *d, int onoff)
->>   		gpio |= 0x04; /* GPIO2 = 1, LED on */
->>   		sys0 = sys0 & 0x0f;
->>   		sys0 |= 0xe0;
->> +		epa_ctl[0] = 0x00; /* clear stall */
->> +		epa_ctl[1] = 0x00; /* clear reset */
->>   	} else {
->>   		gpio &= (~0x01); /* GPIO0 = 0 */
->>   		gpio |= 0x10; /* GPIO4 = 1 */
->>   		gpio &= (~0x04); /* GPIO2 = 1, LED off */
->>   		sys0 = sys0 & (~0xc0);
->> +		epa_ctl[0] = 0x10; /* set stall */
->> +		epa_ctl[1] = 0x02; /* set reset */
->>   	}
->>
->>   	dev_dbg(&d->udev->dev, "%s: WR SYS0=%02x GPIO_OUT_VAL=%02x\n", __func__,
->> @@ -898,6 +875,14 @@ static int rtl2831u_power_ctrl(struct dvb_usb_device *d, int onoff)
->>   	if (ret)
->>   		goto err;
->>
->> +	/* streaming EP: stall & reset */
->> +	ret = rtl28xx_wr_regs(d, USB_EPA_CTL, epa_ctl, 2);
->> +	if (ret)
->> +		goto err;
->> +
->> +	if (onoff)
->> +		usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x81));
->> +
->>   	return ret;
->>   err:
->>   	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
->> @@ -972,6 +957,14 @@ static int rtl2832u_power_ctrl(struct dvb_usb_device *d, int onoff)
->>   			goto err;
->>
->>
->> +		/* streaming EP: clear stall & reset */
->> +		ret = rtl28xx_wr_regs(d, USB_EPA_CTL, "\x00\x00", 2);
->> +		if (ret)
->> +			goto err;
->> +
->> +		ret = usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x81));
->> +		if (ret)
->> +			goto err;
->>   	} else {
->>   		/* demod_ctl_1 */
->>   		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL1, &val);
->> @@ -1006,6 +999,10 @@ static int rtl2832u_power_ctrl(struct dvb_usb_device *d, int onoff)
->>   		if (ret)
->>   			goto err;
->>
->> +		/* streaming EP: set stall & reset */
->> +		ret = rtl28xx_wr_regs(d, USB_EPA_CTL, "\x10\x02", 2);
->> +		if (ret)
->> +			goto err;
->>   	}
->>
->>   	return ret;
->> @@ -1182,7 +1179,6 @@ static const struct dvb_usb_device_properties rtl2831u_props = {
->>   	.tuner_attach = rtl2831u_tuner_attach,
->>   	.init = rtl28xxu_init,
->>   	.get_rc_config = rtl2831u_get_rc_config,
->> -	.streaming_ctrl = rtl28xxu_streaming_ctrl,
->>
->>   	.num_adapters = 1,
->>   	.adapter = {
->> @@ -1204,7 +1200,6 @@ static const struct dvb_usb_device_properties rtl2832u_props = {
->>   	.tuner_attach = rtl2832u_tuner_attach,
->>   	.init = rtl28xxu_init,
->>   	.get_rc_config = rtl2832u_get_rc_config,
->> -	.streaming_ctrl = rtl28xxu_streaming_ctrl,
->>
->>   	.num_adapters = 1,
->>   	.adapter = {
->>
->
-> OK, after patching with this one from http://goo.gl/5wtpT there is no
-> OOPS, but this happened[1][2]:
-> 1. mythtv-setup version: fixes/0.25 [v0.25.2-3-gf0e2ad8-dirty]:
-> …
->     E  DVBChan(1:/dev/dvb/adapter0/frontend0): Getting Frontend
-> uncorrected block count failed.
-> eno: Operation not supported (95)
-> 2012-09-01 17:08:20.577044 W  DVBSM(/dev/dvb/adapter0/frontend0): Cannot
-> count Uncorrected Blocks
-> eno: Operation not supported (95)
-> …
-> 2. tzap/femon:
-> …
-> status 1f | signal 2f2f | snr 00f2 | ber 0000001e | unc 00000033 |
-> FE_HAS_LOCK
-> status 1f | signal 2f2f | snr 00f3 | ber 0000000b | unc 00000033 |
-> FE_HAS_LOCK
-> status 1f | signal 2f2f | snr 00f1 | ber 00000000 | unc 00000033 |
-> FE_HAS_LOCK
-> …
-> …
-> Problem retrieving frontend information: Operation not supported
-> status SCVYL | signal  18% | snr   0% | ber 19 | unc 1 | FE_HAS_LOCK
-> Problem retrieving frontend information: Operation not supported
-> status SCVYL | signal  18% | snr   0% | ber 7 | unc 1 | FE_HAS_LOCK
-> Problem retrieving frontend information: Operation not supported
-> status SCVYL | signal  18% | snr   0% | ber 54 | unc 1 | FE_HAS_LOCK
-> …
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-It is correct as driver does not report uncorrected blocks at all. Those 
-applications should be fixed. When I removed stub callback 
-implementation I looked quite many frontend drivers and there is surely 
-more than 10 other demod drivers reporting errors too. Unfortunately 
-returned error codes varies from driver by driver. Correct error code 
-for non-supported IOCTL is ENOTTY and DVB-frontend is changed to return 
-it too, but you don't seems to have a such patch.
+A number of old drivers still had the experimental tag. Time to remove it.
 
-And also, patch in question has nothing to do with that error code.
+It concerns the following drivers:
 
-regards
-Antti
+VIDEO_TLV320AIC23B
+USB_STKWEBCAM
+VIDEO_CX18
+VIDEO_CX18_ALSA
+VIDEO_ZORAN_AVS6EYES
+DVB_USB_AF9005
+MEDIA_TUNER_TEA5761
+VIDEO_NOON010PC30
 
+This decision was taken during the 2012 Media Workshop.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/Kconfig           |    4 ++--
+ drivers/media/pci/cx18/Kconfig      |    4 ++--
+ drivers/media/pci/zoran/Kconfig     |    4 ++--
+ drivers/media/tuners/Kconfig        |    5 ++---
+ drivers/media/usb/dvb-usb/Kconfig   |    2 +-
+ drivers/media/usb/stkwebcam/Kconfig |    2 +-
+ 6 files changed, 10 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index 9a5a059..64e0c5c 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -117,7 +117,7 @@ config VIDEO_CS53L32A
+ 
+ config VIDEO_TLV320AIC23B
+ 	tristate "Texas Instruments TLV320AIC23B audio codec"
+-	depends on VIDEO_V4L2 && I2C && EXPERIMENTAL
++	depends on VIDEO_V4L2 && I2C
+ 	---help---
+ 	  Support for the Texas Instruments TLV320AIC23B audio codec.
+ 
+@@ -469,7 +469,7 @@ config VIDEO_SR030PC30
+ 
+ config VIDEO_NOON010PC30
+ 	tristate "Siliconfile NOON010PC30 sensor support"
+-	depends on I2C && VIDEO_V4L2 && EXPERIMENTAL && VIDEO_V4L2_SUBDEV_API
++	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+ 	depends on MEDIA_CAMERA_SUPPORT
+ 	---help---
+ 	  This driver supports NOON010PC30 CIF camera from Siliconfile
+diff --git a/drivers/media/pci/cx18/Kconfig b/drivers/media/pci/cx18/Kconfig
+index 9a9f765..c675b83 100644
+--- a/drivers/media/pci/cx18/Kconfig
++++ b/drivers/media/pci/cx18/Kconfig
+@@ -1,6 +1,6 @@
+ config VIDEO_CX18
+ 	tristate "Conexant cx23418 MPEG encoder support"
+-	depends on VIDEO_V4L2 && DVB_CORE && PCI && I2C && EXPERIMENTAL
++	depends on VIDEO_V4L2 && DVB_CORE && PCI && I2C
+ 	select I2C_ALGOBIT
+ 	select VIDEOBUF_VMALLOC
+ 	depends on RC_CORE
+@@ -25,7 +25,7 @@ config VIDEO_CX18
+ 
+ config VIDEO_CX18_ALSA
+ 	tristate "Conexant 23418 DMA audio support"
+-	depends on VIDEO_CX18 && SND && EXPERIMENTAL
++	depends on VIDEO_CX18 && SND
+ 	select SND_PCM
+ 	---help---
+ 	  This is a video4linux driver for direct (DMA) audio on
+diff --git a/drivers/media/pci/zoran/Kconfig b/drivers/media/pci/zoran/Kconfig
+index a9b2318..26ca870 100644
+--- a/drivers/media/pci/zoran/Kconfig
++++ b/drivers/media/pci/zoran/Kconfig
+@@ -65,8 +65,8 @@ config VIDEO_ZORAN_LML33R10
+ 	  card.
+ 
+ config VIDEO_ZORAN_AVS6EYES
+-	tristate "AverMedia 6 Eyes support (EXPERIMENTAL)"
+-	depends on VIDEO_ZORAN_ZR36060 && EXPERIMENTAL
++	tristate "AverMedia 6 Eyes support"
++	depends on VIDEO_ZORAN_ZR36060
+ 	select VIDEO_BT856 if MEDIA_SUBDRV_AUTOSELECT
+ 	select VIDEO_BT866 if MEDIA_SUBDRV_AUTOSELECT
+ 	select VIDEO_KS0127 if MEDIA_SUBDRV_AUTOSELECT
+diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
+index 80238b9..901d886 100644
+--- a/drivers/media/tuners/Kconfig
++++ b/drivers/media/tuners/Kconfig
+@@ -28,7 +28,7 @@ config MEDIA_TUNER
+ 	select MEDIA_TUNER_XC4000 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_MT20XX if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_TDA8290 if MEDIA_SUBDRV_AUTOSELECT
+-	select MEDIA_TUNER_TEA5761 if MEDIA_SUBDRV_AUTOSELECT && MEDIA_RADIO_SUPPORT && EXPERIMENTAL
++	select MEDIA_TUNER_TEA5761 if MEDIA_SUBDRV_AUTOSELECT && MEDIA_RADIO_SUPPORT
+ 	select MEDIA_TUNER_TEA5767 if MEDIA_SUBDRV_AUTOSELECT && MEDIA_RADIO_SUPPORT
+ 	select MEDIA_TUNER_SIMPLE if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_TDA9887 if MEDIA_SUBDRV_AUTOSELECT
+@@ -78,9 +78,8 @@ config MEDIA_TUNER_TDA9887
+ 	  analog IF demodulator.
+ 
+ config MEDIA_TUNER_TEA5761
+-	tristate "TEA 5761 radio tuner (EXPERIMENTAL)"
++	tristate "TEA 5761 radio tuner"
+ 	depends on MEDIA_SUPPORT && I2C
+-	depends on EXPERIMENTAL
+ 	default m if !MEDIA_SUBDRV_AUTOSELECT
+ 	help
+ 	  Say Y here to include support for the Philips TEA5761 radio tuner.
+diff --git a/drivers/media/usb/dvb-usb/Kconfig b/drivers/media/usb/dvb-usb/Kconfig
+index 3c5fff8..fa0b293 100644
+--- a/drivers/media/usb/dvb-usb/Kconfig
++++ b/drivers/media/usb/dvb-usb/Kconfig
+@@ -227,7 +227,7 @@ config DVB_USB_OPERA1
+ 
+ config DVB_USB_AF9005
+ 	tristate "Afatech AF9005 DVB-T USB1.1 support"
+-	depends on DVB_USB && EXPERIMENTAL
++	depends on DVB_USB
+ 	select MEDIA_TUNER_MT2060 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_QT1010 if MEDIA_SUBDRV_AUTOSELECT
+ 	help
+diff --git a/drivers/media/usb/stkwebcam/Kconfig b/drivers/media/usb/stkwebcam/Kconfig
+index 2fb0c2b..a6a00aa 100644
+--- a/drivers/media/usb/stkwebcam/Kconfig
++++ b/drivers/media/usb/stkwebcam/Kconfig
+@@ -1,6 +1,6 @@
+ config USB_STKWEBCAM
+ 	tristate "USB Syntek DC1125 Camera support"
+-	depends on VIDEO_V4L2 && EXPERIMENTAL
++	depends on VIDEO_V4L2
+ 	---help---
+ 	  Say Y here if you want to use this type of camera.
+ 	  Supported devices are typically found in some Asus laptops,
 -- 
-http://palosaari.fi/
+1.7.10.4
+
