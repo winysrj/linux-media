@@ -1,132 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:59086 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754441Ab2IWVXE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Sep 2012 17:23:04 -0400
-Date: Sun, 23 Sep 2012 23:23:02 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-cc: maramaopercheseimorto@gmail.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 3/3] ov2640: simplify single register writes
-In-Reply-To: <505F6BAF.90307@googlemail.com>
-Message-ID: <Pine.LNX.4.64.1209232316160.31250@axis700.grange>
-References: <1348424926-12864-1-git-send-email-fschaefer.oss@googlemail.com>
- <1348424926-12864-3-git-send-email-fschaefer.oss@googlemail.com>
- <Pine.LNX.4.64.1209232239210.31250@axis700.grange> <505F6BAF.90307@googlemail.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:44429 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752220Ab2IGUAf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 16:00:35 -0400
+Received: by mail-ee0-f46.google.com with SMTP id c1so1418058eek.19
+        for <linux-media@vger.kernel.org>; Fri, 07 Sep 2012 13:00:35 -0700 (PDT)
+Message-ID: <504A5261.1090405@gmail.com>
+Date: Fri, 07 Sep 2012 22:00:33 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 API PATCH 05/28] DocBook: bus_info can no longer be empty.
+References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl> <7d0e5a9425253ece02bb57adc9413a5558200f2d.1347023744.git.hans.verkuil@cisco.com>
+In-Reply-To: <7d0e5a9425253ece02bb57adc9413a5558200f2d.1347023744.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 23 Sep 2012, Frank Schäfer wrote:
+On 09/07/2012 03:29 PM, Hans Verkuil wrote:
+> From: Hans Verkuil<hans.verkuil@cisco.com>
+> 
+> During the 2012 Media Workshop it was decided that bus_info as returned
+> by VIDIOC_QUERYCAP can no longer be empty. It should be a unique identifier,
+> and empty strings are obviously not unique.
+> 
+> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
 
-> Am 23.09.2012 23:43, schrieb Guennadi Liakhovetski:
-> > On Sun, 23 Sep 2012, Frank Schäfer wrote:
-> >
-> >> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> >> ---
-> >>  drivers/media/i2c/soc_camera/ov2640.c |   17 ++++++++---------
-> >>  1 Datei geändert, 8 Zeilen hinzugefügt(+), 9 Zeilen entfernt(-)
-> >>
-> >> diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
-> >> index 182d5a1..e71bf4c 100644
-> >> --- a/drivers/media/i2c/soc_camera/ov2640.c
-> >> +++ b/drivers/media/i2c/soc_camera/ov2640.c
-> >> @@ -639,17 +639,19 @@ static struct ov2640_priv *to_ov2640(const struct i2c_client *client)
-> >>  			    subdev);
-> >>  }
-> >>  
-> >> +static int ov2640_write_single(struct i2c_client *client, u8  reg, u8 val)
-> >> +{
-> >> +	dev_vdbg(&client->dev, "write: 0x%02x, 0x%02x", reg, val);
-> >> +	return i2c_smbus_write_byte_data(client, reg, val);
-> >> +}
-> > Well, I'm not convinced. I don't necessarily see it as a simplification. 
-> > You replace one perfectly ok function with another one with exactly the 
-> > same parameters. Ok, you also hide a debug printk() in your wrapper, but 
-> > that's not too useful either, IMHO.
-> 
-> Sure, at the moment this is not really needed. But that will change in
-> the future, when we need to do more single writes / can't use static
-> register sequences.
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-Why won't you be able to just use i2c_smbus_write_byte_data() directly 
-with those your sequences? Ok, if you just dislike the long name, and if 
-you have a number of them, I might buy that as a valid reason:-) And yes, 
-it'd be good to add such a helper function in a separate patch, preceding 
-the actual functional changes. But then I'd probably suggest to name, that 
-offers an even greater saving of your monitor real estate and is more 
-similar to what other drivers use, something like ov2640_reg_write() and 
-also add an ov2640_reg_read() for symmetry.
+> ---
+>   Documentation/DocBook/media/v4l/vidioc-querycap.xml |   14 ++++++++++----
+>   1 file changed, 10 insertions(+), 4 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+> index f33dd74..d5b1248 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+> @@ -90,11 +90,17 @@ ambiguities.</entry>
+>   	<entry>__u8</entry>
+>   	<entry><structfield>bus_info</structfield>[32]</entry>
+>   	<entry>Location of the device in the system, a
+> -NUL-terminated ASCII string. For example: "PCI Slot 4". This
+> +NUL-terminated ASCII string. For example: "PCI:0000:05:06.0". This
+>   information is intended for users, to distinguish multiple
+> -identical devices. If no such information is available the field may
+> -simply count the devices controlled by the driver, or contain the
+> -empty string (<structfield>bus_info</structfield>[0] = 0).<!-- XXX pci_dev->slot_name example --></entry>
+> +identical devices. If no such information is available the field must
+> +simply count the devices controlled by the driver ("vivi-000"). The bus_info
+> +must start with "PCI:" for PCI boards, "PCIe:" for PCI Express boards,
+> +"usb-" for USB devices, "I2C:" for i2c devices, "ISA:" for ISA devices and
+> +"parport" for parallel port devices.
+> +For devices without a bus it should start with the driver name, optionally
 
-Thanks
-Guennadi
+Most, if not all, devices are on some sort of bus. What would be an example
+of a device "without a bus" ?
 
-> A good example is the powerline frequency filter control, which I'm
-> currently experimenting with.
-> But if you don't want to take it at the moment, it's ok for me.
-> 
-> 
-> > Besides, you're missing more calls to 
-> > i2c_smbus_write_byte_data() in ov2640_mask_set(), ov2640_s_register() and 
-> > ov2640_video_probe(). So, I'd just drop it.
-> 
-> I skipped that because of the different debug output (which could of
-> course be improved).
-> 
-> Regrads,
-> Frank
-> 
-> > Thanks
-> > Guennadi
-> >
-> >> +
-> >>  static int ov2640_write_array(struct i2c_client *client,
-> >>  			      const struct regval_list *vals)
-> >>  {
-> >>  	int ret;
-> >>  
-> >>  	while ((vals->reg_num != 0xff) || (vals->value != 0xff)) {
-> >> -		ret = i2c_smbus_write_byte_data(client,
-> >> -						vals->reg_num, vals->value);
-> >> -		dev_vdbg(&client->dev, "array: 0x%02x, 0x%02x",
-> >> -			 vals->reg_num, vals->value);
-> >> -
-> >> +		ret = ov2640_write_single(client, vals->reg_num, vals->value);
-> >>  		if (ret < 0)
-> >>  			return ret;
-> >>  		vals++;
-> >> @@ -704,13 +706,10 @@ static int ov2640_s_ctrl(struct v4l2_ctrl *ctrl)
-> >>  	struct v4l2_subdev *sd =
-> >>  		&container_of(ctrl->handler, struct ov2640_priv, hdl)->subdev;
-> >>  	struct i2c_client  *client = v4l2_get_subdevdata(sd);
-> >> -	struct regval_list regval;
-> >>  	int ret;
-> >>  	u8 val;
-> >>  
-> >> -	regval.reg_num = BANK_SEL;
-> >> -	regval.value = BANK_SEL_SENS;
-> >> -	ret = ov2640_write_array(client, &regval);
-> >> +	ret = ov2640_write_single(client, BANK_SEL, BANK_SEL_SENS);
-> >>  	if (ret < 0)
-> >>  		return ret;
-> >>  
-> >> -- 
-> >> 1.7.10.4
-> >>
-> > ---
-> > Guennadi Liakhovetski, Ph.D.
-> > Freelance Open-Source Software Developer
-> > http://www.open-technology.de/
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Could we just be saying here "For other devices" instead of "For devices
+without a bus", or something similar ?
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+> +followed by "-" and an index if multiple instances of the device as possible.
+> +Many platform devices can have only one instance, so in that case bus_info
+> +is identical to the<structfield>driver</structfield>  field.</entry>
+>   	</row>
+>   	<row>
+>   	<entry>__u32</entry>
+
+--
+
+Regards,
+Sylwester
