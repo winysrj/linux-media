@@ -1,134 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:37861 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758355Ab2ILM42 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Sep 2012 08:56:28 -0400
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v2 1/8] drivers/media/dvb-frontends/dvb_dummy_fe.c: Removes useless kfree()
-Date: Wed, 12 Sep 2012 14:56:04 +0200
-Message-Id: <1347454564-5178-8-git-send-email-peter.senna@gmail.com>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4516 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754662Ab2IGN3g (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 09:29:36 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 API PATCH 13/28] Add V4L2_CAP_MONOTONIC_TS where applicable.
+Date: Fri,  7 Sep 2012 15:29:13 +0200
+Message-Id: <753ddb14136b19372f3a533961fc90b5adbfb07a.1347023744.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
+References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
+References: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Senna Tschudin <peter.senna@gmail.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Remove useless kfree() and clean up code related to the removal.
+Add the new V4L2_CAP_MONOTONIC_TS capability to those drivers that
+use monotomic timestamps instead of the system time.
 
-The semantic patch that finds this problem is as follows:
-(http://coccinelle.lip6.fr/)
-
-// <smpl>
-@r exists@
-position p1,p2;
-expression x;
-@@
-
-if (x@p1 == NULL) { ... kfree@p2(x); ... return ...; }
-
-@unchanged exists@
-position r.p1,r.p2;
-expression e <= r.x,x,e1;
-iterator I;
-statement S;
-@@
-
-if (x@p1 == NULL) { ... when != I(x,...) S
-                        when != e = e1
-                        when != e += e1
-                        when != e -= e1
-                        when != ++e
-                        when != --e
-                        when != e++
-                        when != e--
-                        when != &e
-   kfree@p2(x); ... return ...; }
-
-@ok depends on unchanged exists@
-position any r.p1;
-position r.p2;
-expression x;
-@@
-
-... when != true x@p1 == NULL
-kfree@p2(x);
-
-@depends on !ok && unchanged@
-position r.p2;
-expression x;
-@@
-
-*kfree@p2(x);
-// </smpl>
-
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-frontends/dvb_dummy_fe.c |   21 ++++++---------------
- 1 file changed, 6 insertions(+), 15 deletions(-)
+ drivers/media/pci/cx18/cx18-ioctl.c           |    2 +-
+ drivers/media/platform/davinci/vpbe_display.c |    3 ++-
+ drivers/media/platform/omap3isp/ispvideo.c    |    5 +++--
+ drivers/media/platform/s5p-fimc/fimc-lite.c   |    2 +-
+ drivers/media/usb/gspca/gspca.c               |    1 +
+ drivers/media/usb/uvc/uvc_v4l2.c              |    7 +++----
+ 6 files changed, 11 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/dvb_dummy_fe.c b/drivers/media/dvb-frontends/dvb_dummy_fe.c
-index dcfc902..d5acc30 100644
---- a/drivers/media/dvb-frontends/dvb_dummy_fe.c
-+++ b/drivers/media/dvb-frontends/dvb_dummy_fe.c
-@@ -121,16 +121,13 @@ struct dvb_frontend* dvb_dummy_fe_ofdm_attach(void)
- 
- 	/* allocate memory for the internal state */
- 	state = kzalloc(sizeof(struct dvb_dummy_fe_state), GFP_KERNEL);
--	if (state == NULL) goto error;
-+	if (!state)
-+		return NULL;
- 
- 	/* create dvb_frontend */
- 	memcpy(&state->frontend.ops, &dvb_dummy_fe_ofdm_ops, sizeof(struct dvb_frontend_ops));
- 	state->frontend.demodulator_priv = state;
- 	return &state->frontend;
--
--error:
--	kfree(state);
--	return NULL;
+diff --git a/drivers/media/pci/cx18/cx18-ioctl.c b/drivers/media/pci/cx18/cx18-ioctl.c
+index e9912db..51675bc 100644
+--- a/drivers/media/pci/cx18/cx18-ioctl.c
++++ b/drivers/media/pci/cx18/cx18-ioctl.c
+@@ -473,7 +473,7 @@ static int cx18_querycap(struct file *file, void *fh,
+ 		 "PCI:%s", pci_name(cx->pci_dev));
+ 	vcap->capabilities = cx->v4l2_cap; 	    /* capabilities */
+ 	if (id->type == CX18_ENC_STREAM_TYPE_YUV)
+-		vcap->capabilities |= V4L2_CAP_STREAMING;
++		vcap->capabilities |= V4L2_CAP_STREAMING | V4L2_CAP_MONOTONIC_TS;
+ 	return 0;
  }
  
- static struct dvb_frontend_ops dvb_dummy_fe_qpsk_ops;
-@@ -141,16 +138,13 @@ struct dvb_frontend *dvb_dummy_fe_qpsk_attach(void)
+diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+index 9a05c81..3a50547 100644
+--- a/drivers/media/platform/davinci/vpbe_display.c
++++ b/drivers/media/platform/davinci/vpbe_display.c
+@@ -620,7 +620,8 @@ static int vpbe_display_querycap(struct file *file, void  *priv,
+ 	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
  
- 	/* allocate memory for the internal state */
- 	state = kzalloc(sizeof(struct dvb_dummy_fe_state), GFP_KERNEL);
--	if (state == NULL) goto error;
-+	if (!state)
-+		return NULL;
+ 	cap->version = VPBE_DISPLAY_VERSION_CODE;
+-	cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
++	cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING |
++		V4L2_MONOTONIC_TS;
+ 	strlcpy(cap->driver, VPBE_DISPLAY_DRIVER, sizeof(cap->driver));
+ 	strlcpy(cap->bus_info, "platform", sizeof(cap->bus_info));
+ 	strlcpy(cap->card, vpbe_dev->cfg->module_name, sizeof(cap->card));
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 3a5085e..a25aa1d 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -663,10 +663,11 @@ isp_video_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
+ 	strlcpy(cap->card, video->video.name, sizeof(cap->card));
+ 	strlcpy(cap->bus_info, "media", sizeof(cap->bus_info));
  
- 	/* create dvb_frontend */
- 	memcpy(&state->frontend.ops, &dvb_dummy_fe_qpsk_ops, sizeof(struct dvb_frontend_ops));
- 	state->frontend.demodulator_priv = state;
- 	return &state->frontend;
--
--error:
--	kfree(state);
--	return NULL;
++	cap->capabilities = V4L2_CAP_STREAMING | V4L2_CAP_MONOTONIC_TS;
+ 	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-		cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
++		cap->capabilities |= V4L2_CAP_VIDEO_CAPTURE;
+ 	else
+-		cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
++		cap->capabilities |= V4L2_CAP_VIDEO_OUTPUT;
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c b/drivers/media/platform/s5p-fimc/fimc-lite.c
+index c5b57e8..ab12928 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-lite.c
++++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
+@@ -629,7 +629,7 @@ static int fimc_vidioc_querycap_capture(struct file *file, void *priv,
+ 	strlcpy(cap->driver, FIMC_LITE_DRV_NAME, sizeof(cap->driver));
+ 	cap->bus_info[0] = 0;
+ 	cap->card[0] = 0;
+-	cap->capabilities = V4L2_CAP_STREAMING;
++	cap->capabilities = V4L2_CAP_STREAMING | V4L2_CAP_MONOTONIC_TS;
+ 	return 0;
  }
  
- static struct dvb_frontend_ops dvb_dummy_fe_qam_ops;
-@@ -161,16 +155,13 @@ struct dvb_frontend *dvb_dummy_fe_qam_attach(void)
+diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
+index d4e8343..5d3bcdc 100644
+--- a/drivers/media/usb/gspca/gspca.c
++++ b/drivers/media/usb/gspca/gspca.c
+@@ -1351,6 +1351,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
+ 	usb_make_path(gspca_dev->dev, (char *) cap->bus_info,
+ 			sizeof(cap->bus_info));
+ 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE
++			  | V4L2_CAP_MONOTONIC_TS
+ 			  | V4L2_CAP_STREAMING
+ 			  | V4L2_CAP_READWRITE;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index f00db30..1c6dff0 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -564,12 +564,11 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		usb_make_path(stream->dev->udev,
+ 			      cap->bus_info, sizeof(cap->bus_info));
+ 		cap->version = LINUX_VERSION_CODE;
++		cap->capabilities = V4L2_CAP_STREAMING | V4L2_CAP_MONOTONIC_TS;
+ 		if (stream->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-			cap->capabilities = V4L2_CAP_VIDEO_CAPTURE
+-					  | V4L2_CAP_STREAMING;
++			cap->capabilities |= V4L2_CAP_VIDEO_CAPTURE;
+ 		else
+-			cap->capabilities = V4L2_CAP_VIDEO_OUTPUT
+-					  | V4L2_CAP_STREAMING;
++			cap->capabilities |= V4L2_CAP_VIDEO_OUTPUT;
+ 		break;
+ 	}
  
- 	/* allocate memory for the internal state */
- 	state = kzalloc(sizeof(struct dvb_dummy_fe_state), GFP_KERNEL);
--	if (state == NULL) goto error;
-+	if (!state)
-+		return NULL;
- 
- 	/* create dvb_frontend */
- 	memcpy(&state->frontend.ops, &dvb_dummy_fe_qam_ops, sizeof(struct dvb_frontend_ops));
- 	state->frontend.demodulator_priv = state;
- 	return &state->frontend;
--
--error:
--	kfree(state);
--	return NULL;
- }
- 
- static struct dvb_frontend_ops dvb_dummy_fe_ofdm_ops = {
+-- 
+1.7.10.4
 
