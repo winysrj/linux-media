@@ -1,100 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4586 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752166Ab2ITMHY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Sep 2012 08:07:24 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:36964 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753757Ab2IHOTW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Sep 2012 10:19:22 -0400
+Received: by eaac11 with SMTP id c11so222835eaa.19
+        for <linux-media@vger.kernel.org>; Sat, 08 Sep 2012 07:19:21 -0700 (PDT)
+Message-ID: <504B53E6.6000107@gmail.com>
+Date: Sat, 08 Sep 2012 16:19:18 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 03/14] vpif_capture: move input_idx to channel_obj.
-Date: Thu, 20 Sep 2012 14:06:22 +0200
-Message-Id: <f9e6bf38a5903721879205e315bd5e33eb55a2da.1348142407.git.hans.verkuil@cisco.com>
-In-Reply-To: <1348142793-27157-1-git-send-email-hverkuil@xs4all.nl>
-References: <1348142793-27157-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <15fd87671d173ae4b943df4114aafb55d7e958fa.1348142407.git.hans.verkuil@cisco.com>
-References: <15fd87671d173ae4b943df4114aafb55d7e958fa.1348142407.git.hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 API PATCH 05/28] DocBook: bus_info can no longer be empty.
+References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl> <7d0e5a9425253ece02bb57adc9413a5558200f2d.1347023744.git.hans.verkuil@cisco.com> <504A5261.1090405@gmail.com> <201209081315.15411.hverkuil@xs4all.nl>
+In-Reply-To: <201209081315.15411.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 09/08/2012 01:15 PM, Hans Verkuil wrote:
+> On Fri September 7 2012 22:00:33 Sylwester Nawrocki wrote:
+>> On 09/07/2012 03:29 PM, Hans Verkuil wrote:
+>>> From: Hans Verkuil<hans.verkuil@cisco.com>
+>>>
+>>> During the 2012 Media Workshop it was decided that bus_info as returned
+>>> by VIDIOC_QUERYCAP can no longer be empty. It should be a unique identifier,
+>>> and empty strings are obviously not unique.
+>>>
+>>> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
+>>
+>> Reviewed-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
+>>
+>>> ---
+>>>    Documentation/DocBook/media/v4l/vidioc-querycap.xml |   14 ++++++++++----
+>>>    1 file changed, 10 insertions(+), 4 deletions(-)
+>>>
+>>> diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+>>> index f33dd74..d5b1248 100644
+>>> --- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+>>> +++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+>>> @@ -90,11 +90,17 @@ ambiguities.</entry>
+>>>    	<entry>__u8</entry>
+>>>    	<entry><structfield>bus_info</structfield>[32]</entry>
+>>>    	<entry>Location of the device in the system, a
+>>> -NUL-terminated ASCII string. For example: "PCI Slot 4". This
+>>> +NUL-terminated ASCII string. For example: "PCI:0000:05:06.0". This
+>>>    information is intended for users, to distinguish multiple
+>>> -identical devices. If no such information is available the field may
+>>> -simply count the devices controlled by the driver, or contain the
+>>> -empty string (<structfield>bus_info</structfield>[0] = 0).<!-- XXX pci_dev->slot_name example --></entry>
+>>> +identical devices. If no such information is available the field must
+>>> +simply count the devices controlled by the driver ("vivi-000"). The bus_info
+>>> +must start with "PCI:" for PCI boards, "PCIe:" for PCI Express boards,
+>>> +"usb-" for USB devices, "I2C:" for i2c devices, "ISA:" for ISA devices and
+>>> +"parport" for parallel port devices.
+>>> +For devices without a bus it should start with the driver name, optionally
+>>
+>> Most, if not all, devices are on some sort of bus. What would be an example
+>> of a device "without a bus" ?
+> 
+> Virtual devices like vivi and platform devices. Or is there some sort of
+> platform bus?
 
-input_idx does not belong to video_obj. Move it where it belongs.
-Also remove the bogus code in the open() function that suddenly
-changes the input to 0 for no reason.
+OK, then virtual devices like vivi are indeed not on any bus. But saying so,
+or implicitly assuming, about platform devices would have been misleading.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/davinci/vpif_capture.c |    9 ++-------
- drivers/media/platform/davinci/vpif_capture.h |    4 ++--
- 2 files changed, 4 insertions(+), 9 deletions(-)
+On ASICs and SoCs such devices are on some kind of on-chip peripheral bus, 
+e.g. AMBA APB/AHB [1]. So perhaps we could specify that for platform devices
+bus_info should start with "platform-" ? A unique remainder could be easily 
+formed in drivers on basis of a memory mapped register region address/size
+and/or a device interrupt number to the CPU. However, exposing such sensitive
+data may be questionable, so it's probably better to just stick with a simple 
+counter of identical devices.
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 78edd01..4233554 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -888,8 +888,6 @@ static int vpif_open(struct file *filep)
- 			if (vpif_obj.sd[i]) {
- 				/* the sub device is registered */
- 				ch->curr_subdev_info = &config->subdev_info[i];
--				/* make first input as the current input */
--				vid_ch->input_idx = 0;
- 				break;
- 			}
- 		}
-@@ -1442,10 +1440,8 @@ static int vpif_g_input(struct file *file, void *priv, unsigned int *index)
- {
- 	struct vpif_fh *fh = priv;
- 	struct channel_obj *ch = fh->channel;
--	struct video_obj *vid_ch = &ch->video;
--
--	*index = vid_ch->input_idx;
- 
-+	*index = ch->input_idx;
- 	return 0;
- }
- 
-@@ -1462,7 +1458,6 @@ static int vpif_s_input(struct file *file, void *priv, unsigned int index)
- 	struct vpif_fh *fh = priv;
- 	struct channel_obj *ch = fh->channel;
- 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
--	struct video_obj *vid_ch = &ch->video;
- 	struct vpif_subdev_info *subdev_info;
- 	int ret = 0, sd_index = 0;
- 	u32 input = 0, output = 0;
-@@ -1517,7 +1512,7 @@ static int vpif_s_input(struct file *file, void *priv, unsigned int index)
- 			return ret;
- 		}
- 	}
--	vid_ch->input_idx = index;
-+	ch->input_idx = index;
- 	ch->curr_subdev_info = subdev_info;
- 	ch->curr_sd_index = sd_index;
- 	/* copy interface parameters to vpif */
-diff --git a/drivers/media/platform/davinci/vpif_capture.h b/drivers/media/platform/davinci/vpif_capture.h
-index 0a3904c..a284667 100644
---- a/drivers/media/platform/davinci/vpif_capture.h
-+++ b/drivers/media/platform/davinci/vpif_capture.h
-@@ -54,8 +54,6 @@ struct video_obj {
- 	/* Currently selected or default standard */
- 	v4l2_std_id stdid;
- 	struct v4l2_dv_timings dv_timings;
--	/* This is to track the last input that is passed to application */
--	u32 input_idx;
- };
- 
- struct vpif_cap_buffer {
-@@ -121,6 +119,8 @@ struct channel_obj {
- 	enum vpif_channel_id channel_id;
- 	/* index into sd table */
- 	int curr_sd_index;
-+	/* Current input */
-+	u32 input_idx;
- 	/* ptr to current sub device information */
- 	struct vpif_subdev_info *curr_subdev_info;
- 	/* vpif configuration params */
--- 
-1.7.10.4
+>> Could we just be saying here "For other devices" instead of "For devices
+>> without a bus", or something similar ?
+> 
+> Well, I'd like for any device on a bus to have a consistent naming convention
+> so we can guarantee that bus_info is always unique.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+>>
+>>> +followed by "-" and an index if multiple instances of the device as possible.
+>>> +Many platform devices can have only one instance, so in that case bus_info
+>>> +is identical to the<structfield>driver</structfield>   field.</entry>
+>>>    	</row>
+>>>    	<row>
+>>>    	<entry>__u32</entry>
 
+[1] http://www-micro.deis.unibo.it/~magagni/amba99.pdf
+
+--
+
+Regards,
+Sylwester
