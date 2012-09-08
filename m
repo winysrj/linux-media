@@ -1,115 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:63230 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759519Ab2IKTVI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Sep 2012 15:21:08 -0400
-Received: by eekc1 with SMTP id c1so712997eek.19
-        for <linux-media@vger.kernel.org>; Tue, 11 Sep 2012 12:21:06 -0700 (PDT)
-Message-ID: <504F8F1F.3020703@gmail.com>
-Date: Tue, 11 Sep 2012 21:21:03 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3667 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753569Ab2IHLLO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Sep 2012 07:11:14 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+Subject: Re: [PATCH v2] media: v4l2-ctrls: add control for test pattern
+Date: Sat, 8 Sep 2012 13:11:04 +0200
+Cc: Prabhakar Lad <prabhakar.lad@ti.com>,
+	LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-kernel@vger.kernel.org,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, g.liakhovetski@gmx.de,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl
-Subject: Re: [PATCH RFC 1/4] V4L: Add V4L2_CID_FRAMESIZE image source class
- control
-References: <1345715489-30158-1-git-send-email-s.nawrocki@samsung.com> <50363F19.5070607@samsung.com> <5036754C.4040501@iki.fi> <1479692.F6ROfrmgsS@avalon> <5037383E.3030109@samsung.com> <20120824225118.GM721@valkosipuli.retiisi.org.uk> <503A7764.700@gmail.com> <20120827192840.GA5261@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20120827192840.GA5261@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1
+	linux-doc@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Rob Landley <rob@landley.net>
+References: <1347007309-6913-1-git-send-email-prabhakar.lad@ti.com> <504A3B03.4090600@iki.fi>
+In-Reply-To: <504A3B03.4090600@iki.fi>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201209081311.04861.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-On 08/27/2012 09:28 PM, Sakari Ailus wrote:
->>> How about using bytes on video nodes and bus and media bus code specific
->>> extended samples (or how we should call pixels in uncompressed formats and
->>> units of data in compressed formats?) on subdevs? The information how the
->>> former is derived from the latter resides in the driver controlling the DMA
->>> anyway.
->>>
->>> As you proposed originally, this control is more relevant to subdevs so we
->>> could also not define it for video nodes at all. Especially if the control
->>> isn't needed: the information should be available from VIDIOC_TRY_FMT.
->>
->> Yeah, I seem to have forgotten to add a note that this control would be
->> valid only on subdev nodes :/
->> OTOH, how do we handle cases where subdev's controls are inherited by
->> a video node ? Referring to an media bus pixel code seems wrong in that
->> cases.
+On Fri September 7 2012 20:20:51 Sakari Ailus wrote:
+> Hi Prabhakar,
 > 
-> I don't think this control ever should be visible on a video device if we
-> define it's only valid for subdevs. Even then, if it's implemented by a
-> subdev driver, its value refers to samples rather than bytes which would
-> make more sense on a video node (in case we'd define it there).
-
-I agree as for not exposing such a control on video nodes. We don't seem to
-have support for that in v4l2-core though.
-
-Hmm, not sure how would media bus data samples make sense on a video node,
-where media bus is not quite defined at the user space API level.
-
-> AFAIR Hans once suggested a flag to hide low-level controls from video nodes
-> and inherit the rest from subdevs; I think that would be a valid use case
-> for this flag. On the other hand, I see little or no meaningful use for
-
-Yeah, sounds interesting.
-
-> inheriting controls from subdevs on systems I'm the most familiar with, but
-> it may be more useful elsewhere. Most of the subdev controls are not
-> something a regular V4L2 application would like to touch as such; look at
-> the image processing controls, for example.
-
-Yeah, but in general controls can be inherited and there could be an 
-ambiguity. Not all drivers involving subdevs use the subdev user space API.
-
->> Also for compressed formats, where this control is only needed, the bus
->> receivers/DMA just do transparent transfers, without actually modifying
->> the data stream.
+> Thanks for the patch!
 > 
-> That makes sense. I don't have the documentation in front of my eyes right
-> now, but what would you think about adding a note to the documentation that
-> the control is only valid for compressed formats? That would limit the
-> defined use of it to cases we (or you) know well?
-
-I think that could be done, all in all nobody ever needed such a control
-for uncompressed/raw formats so far.
-
->> The problem is that ideally this V4L2_CID_FRAMESIZE control shouldn't be
->> exposed to user space. It might be useful, for example for checking what
->> would be resulting file size on a subdev modelling a JPEG encoder, etc.
->> I agree on video nodes ioctls like VIDIOC_[S/G/TRY]_FMT are just sufficient
->> for retrieving that information.
+> Prabhakar Lad wrote:
+> > From: Lad, Prabhakar <prabhakar.lad@ti.com>
+> >
+> > add V4L2_CID_TEST_PATTERN of type menu, which determines
+> > the internal test pattern selected by the device.
+> >
+> > Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> > Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> > Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> > Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> > Cc: Hans de Goede <hdegoede@redhat.com>
+> > Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> > Cc: Rob Landley <rob@landley.net>
+> > ---
+> > This patches has one checkpatch warning for line over
+> > 80 characters altough it can be avoided I have kept it
+> > for consistency.
+> >
+> > Changes for v2:
+> > 1: Included display devices in the description for test pattern
+> >     as pointed by Hans.
+> > 2: In the menu replaced 'Test Pattern Disabled' by 'Disabled' as
+> >     pointed by Sylwester.
+> > 3: Removed the test patterns from menu as the are hardware specific
+> >     as pointed by Sakari.
+> >
+> >   Documentation/DocBook/media/v4l/controls.xml |   20 ++++++++++++++++++++
+> >   drivers/media/v4l2-core/v4l2-ctrls.c         |    8 ++++++++
+> >   include/linux/videodev2.h                    |    4 ++++
+> >   3 files changed, 32 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+> > index ad873ea..173934e 100644
+> > --- a/Documentation/DocBook/media/v4l/controls.xml
+> > +++ b/Documentation/DocBook/media/v4l/controls.xml
+> > @@ -4311,6 +4311,26 @@ interface and may change in the future.</para>
+> >   	      </tbody>
+> >   	    </entrytbl>
+> >   	  </row>
+> > +	  <row>
+> > +	    <entry spanname="id"><constant>V4L2_CID_TEST_PATTERN</constant></entry>
+> > +	    <entry>menu</entry>
+> > +	  </row>
+> > +	  <row id="v4l2-test-pattern">
+> > +	    <entry spanname="descr"> The Capture/Display/Sensors have the capability
+> > +	    to generate internal test patterns and this are hardware specific. This
+> > +	    test patterns are used to test a device is properly working and can generate
+> > +	    the desired waveforms that it supports.</entry>
+> > +	  </row>
+> > +	  <row>
+> > +	    <entrytbl spanname="descr" cols="2">
+> > +	      <tbody valign="top">
+> > +	        <row>
+> > +	         <entry><constant>V4L2_TEST_PATTERN_DISABLED</constant></entry>
+> > +	          <entry>Test pattern generation is disabled</entry>
+> > +	        </row>
+> > +	      </tbody>
+> > +	    </entrytbl>
+> > +	  </row>
+> >   	<row><entry></entry></row>
+> >   	</tbody>
+> >         </tgroup>
+> > diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> > index 8f2f40b..d731422 100644
+> > --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> > +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> > @@ -430,6 +430,10 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+> >   		"Advanced",
+> >   		NULL,
+> >   	};
+> > +	static const char * const test_pattern[] = {
+> > +		"Disabled",
+> > +		NULL,
+> > +	};
+> >
+> >   	switch (id) {
+> >   	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+> > @@ -509,6 +513,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+> >   		return jpeg_chroma_subsampling;
+> >   	case V4L2_CID_DPCM_PREDICTOR:
+> >   		return dpcm_predictor;
+> > +	case V4L2_CID_TEST_PATTERN:
+> > +		return test_pattern;
 > 
-> One case I could imagine where the user might want to touch the control is
-> to modify the maximum size of the compressed images, should the hardware
-> support that. But in that case, the user should be aware of how to convert
-> samples into bytes, and I don't see a regular V4L2 application should
-> necessarily be aware of something potentially as hardware-dependent as that.
+> I think it's not necessary to define test_pattern (nor be prepared to 
+> return it) since the menu is going to be device specific. So the driver 
+> is responsible for all of the menu items. Such menus are created using 
+> v4l2_ctrl_new_custom() instead of v4l2_ctrl_new_std_menu().
+> 
+> Looks good to me otherwise.
 
-Yes, V4L2_CID_FRAME_SIZE/SAMPLES looks like something only for a library
-to play with. But for compressed formats conversion framesamples <-> data
-octets in a memory buffer should be rather straightforward.
- 
-That said, V4L2_CID_FRAME_SAMPLES control would have been insufficient
-where you want to query frame sizes for multiple logical streams within
-a frame, e.g. multi-planar frame transmitted on MIPI-CSI2 bus with 
-different data types and received on user space side as a multi-planar
-v4l2 buffer. We would need to query a value for each plane and single 
-control won't do the job in such cases. Hence I'm inclined to drop the 
-idea of V4L2_CID_FRAME_SAMPLES control and carry on with the frame format 
-descriptors approach. We probably can't/shouldn't have both solutions 
-in use.
+I would suggest that we *do* make this a standard control, but the menu consists
+of just one item: "Disabled". After creating the control you can just set the
+ctrl->qmenu pointer to the device-specific menu. I like using standard controls
+because they guarantee standard naming and type conventions. They are also
+easier to use in an application.
 
---
+This would obvious require good documentation, both in the code and in the
+spec.
+
+BTW, see also this patch that needs to use the test pattern control:
+
+http://www.spinics.net/lists/linux-media/msg52747.html
 
 Regards,
-Sylwester
 
+	Hans
