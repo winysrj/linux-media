@@ -1,83 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:19123 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755054Ab2IYLyy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Sep 2012 07:54:54 -0400
-From: Hans Verkuil <hansverk@cisco.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] media: davinci: vpif: set device capabilities
-Date: Tue, 25 Sep 2012 13:54:29 +0200
-Cc: Prabhakar <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	VGER <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+Received: from oyp.chewa.net ([91.121.6.101]:39007 "EHLO oyp.chewa.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754745Ab2IHOdg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Sep 2012 10:33:36 -0400
+From: "=?utf-8?q?R=C3=A9mi?= Denis-Courmont" <remi@remlab.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFCv2 API PATCH 13/28] Add V4L2_CAP_MONOTONIC_TS where applicable.
+Date: Sat, 8 Sep 2012 17:33:32 +0300
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1348571784-4237-1-git-send-email-prabhakar.lad@ti.com> <201209251343.36240.hansverk@cisco.com> <2015356.T8yoHfqqkq@avalon>
-In-Reply-To: <2015356.T8yoHfqqkq@avalon>
+References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl> <753ddb14136b19372f3a533961fc90b5adbfb07a.1347023744.git.hans.verkuil@cisco.com>
+In-Reply-To: <753ddb14136b19372f3a533961fc90b5adbfb07a.1347023744.git.hans.verkuil@cisco.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209251354.29824.hansverk@cisco.com>
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201209081733.32755@leon.remlab.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue 25 September 2012 13:49:16 Laurent Pinchart wrote:
-> Hi Hans,
+Le vendredi 7 septembre 2012 16:29:13, Hans Verkuil a écrit :
+> diff --git a/drivers/media/platform/davinci/vpbe_display.c
+> b/drivers/media/platform/davinci/vpbe_display.c index 9a05c81..3a50547
+> 100644
+> --- a/drivers/media/platform/davinci/vpbe_display.c
+> +++ b/drivers/media/platform/davinci/vpbe_display.c
+> @@ -620,7 +620,8 @@ static int vpbe_display_querycap(struct file *file,
+> void  *priv, struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
 > 
-> On Tuesday 25 September 2012 13:43:36 Hans Verkuil wrote:
-> > On Tue 25 September 2012 13:16:24 Prabhakar wrote:
-> > > From: Lad, Prabhakar <prabhakar.lad@ti.com>
-> > > 
-> > > Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> > > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> > > Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> > > ---
-> > > 
-> > >  drivers/media/platform/davinci/vpif_capture.c |    4 +++-
-> > >  drivers/media/platform/davinci/vpif_display.c |    4 +++-
-> > >  2 files changed, 6 insertions(+), 2 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/platform/davinci/vpif_capture.c
-> > > b/drivers/media/platform/davinci/vpif_capture.c index 4828888..faeca98
-> > > 100644
-> > > --- a/drivers/media/platform/davinci/vpif_capture.c
-> > > +++ b/drivers/media/platform/davinci/vpif_capture.c
-> > > @@ -1630,7 +1630,9 @@ static int vpif_querycap(struct file *file, void 
-> > > *priv,> 
-> > >  {
-> > >  
-> > >  	struct vpif_capture_config *config = vpif_dev->platform_data;
-> > > 
-> > > -	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-> > > +	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
-> > > +			V4L2_CAP_READWRITE;
-> > > +	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-> > > 
-> > >  	strlcpy(cap->driver, "vpif capture", sizeof(cap->driver));
-> > 
-> > This should be the real driver name which is 'vpif_capture'.
-> > 
-> > >  	strlcpy(cap->bus_info, "VPIF Platform", sizeof(cap->bus_info));
-> > 
-> > For bus_info I would use: "platform:vpif_capture".
-> > 
-> > The 'platform:' prefix is going to be the standard for platform drivers.
-> 
-> What about
-> 
-> snprintf(cap->driver, sizeof(cap->driver), "platform:%s", dev_name(vpif_dev));
-> 
-> That would handle cases where multiple platform devices of the same type are 
-> present.
+>  	cap->version = VPBE_DISPLAY_VERSION_CODE;
+> -	cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
+> +	cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING |
+> +		V4L2_MONOTONIC_TS;
 
-Sure, that's even better. You do have to check that this gives you what you'd
-expect (i.e., that you don't end up with "platform:platform:vpif_capture").
+Typo ?
 
-Regards,
+>  	strlcpy(cap->driver, VPBE_DISPLAY_DRIVER, sizeof(cap->driver));
+>  	strlcpy(cap->bus_info, "platform", sizeof(cap->bus_info));
+>  	strlcpy(cap->card, vpbe_dev->cfg->module_name, sizeof(cap->card));
 
-	Hans
+
+-- 
+Rémi Denis-Courmont
+http://www.remlab.net/
