@@ -1,44 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:64854 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752686Ab2IZHr0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Sep 2012 03:47:26 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.7] Add back lost tda9875 copyright
-Date: Wed, 26 Sep 2012 09:47:00 +0200
-Cc: guillaume <guiguid@free.fr>
+Received: from mx1.redhat.com ([209.132.183.28]:40719 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754330Ab2IIVzn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Sep 2012 17:55:43 -0400
+Message-ID: <504D109C.8000803@redhat.com>
+Date: Sun, 09 Sep 2012 23:56:44 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: Peter Senna Tschudin <peter.senna@gmail.com>
+CC: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 14/14] drivers/media/usb/gspca/cpia1.c: fix error return
+ code
+References: <1346945041-26676-14-git-send-email-peter.senna@gmail.com>
+In-Reply-To: <1346945041-26676-14-git-send-email-peter.senna@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201209260947.00189.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When the separate tda9875 driver was merged into tvaudio the copyright
-line of the tda9875 driver was dropped inadvertently. Add it back.
+Hi,
 
-Regards,
+Applied to my gspca tree and included in my pull-req for 3.7 which I just send out.
 
-	Hans
+Thanks,
 
-The following changes since commit 4313902ebe33155209472215c62d2f29d117be29:
+Hans
 
-  [media] ivtv-alsa, ivtv: Connect ivtv PCM capture stream to ivtv-alsa interface driver (2012-09-18 13:29:07 -0300)
 
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git tvaudio
-
-for you to fetch changes up to d4c90825a394f0bb3858516757c427e19cdfe224:
-
-  tvaudio: add back lost tda9875 copyright. (2012-09-25 09:44:46 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (1):
-      tvaudio: add back lost tda9875 copyright.
-
- drivers/media/i2c/tvaudio.c |    4 ++++
- 1 file changed, 4 insertions(+)
+On 09/06/2012 05:24 PM, Peter Senna Tschudin wrote:
+> From: Peter Senna Tschudin <peter.senna@gmail.com>
+>
+> Convert a nonnegative error return code to a negative one, as returned
+> elsewhere in the function.
+>
+> A simplified version of the semantic match that finds this problem is as
+> follows: (http://coccinelle.lip6.fr/)
+>
+> // <smpl>
+> (
+> if@p1 (\(ret < 0\|ret != 0\))
+>   { ... return ret; }
+> |
+> ret@p1 = 0
+> )
+> ... when != ret = e1
+>      when != &ret
+> *if(...)
+> {
+>    ... when != ret = e2
+>        when forall
+>   return ret;
+> }
+>
+> // </smpl>
+>
+> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+>
+> ---
+>   drivers/media/usb/gspca/cpia1.c |    2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/usb/gspca/cpia1.c b/drivers/media/usb/gspca/cpia1.c
+> index 2499a88..b3ba47d 100644
+> --- a/drivers/media/usb/gspca/cpia1.c
+> +++ b/drivers/media/usb/gspca/cpia1.c
+> @@ -751,7 +751,7 @@ static int goto_high_power(struct gspca_dev *gspca_dev)
+>   	if (signal_pending(current))
+>   		return -EINTR;
+>
+> -	do_command(gspca_dev, CPIA_COMMAND_GetCameraStatus, 0, 0, 0, 0);
+> +	ret = do_command(gspca_dev, CPIA_COMMAND_GetCameraStatus, 0, 0, 0, 0);
+>   	if (ret)
+>   		return ret;
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
