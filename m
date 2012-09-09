@@ -1,79 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48187 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1758186Ab2IZTR0 (ORCPT
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:50796 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754609Ab2IIWiQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Sep 2012 15:17:26 -0400
-Message-ID: <506354C2.1030805@iki.fi>
-Date: Wed, 26 Sep 2012 22:17:22 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	remi@remlab.net, daniel-gl@gmx.net, sylwester.nawrocki@gmail.com
-Subject: Re: [RFC] Timestamps and V4L2
-References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk> <201209251254.34483.hverkuil@xs4all.nl> <50621010.3070703@iki.fi> <84293169.Vi1CrtjK0W@avalon>
-In-Reply-To: <84293169.Vi1CrtjK0W@avalon>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sun, 9 Sep 2012 18:38:16 -0400
+Message-ID: <1347230281.5134.1.camel@deadeye.wl.decadent.org.uk>
+Subject: Re: [patch v2] [media] rc-core: prevent divide by zero bug in
+ s_tx_carrier()
+From: Ben Hutchings <ben@decadent.org.uk>
+To: Sean Young <sean@mess.org>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Paul Gortmaker <paul.gortmaker@windriver.com>,
+	David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Date: Sun, 09 Sep 2012 23:38:01 +0100
+In-Reply-To: <20120909222629.GA28355@pequod.mess.org>
+References: <20120909203142.GA12296@elgon.mountain>
+	 <20120909222629.GA28355@pequod.mess.org>
+Content-Type: multipart/signed; micalg="pgp-sha512";
+	protocol="application/pgp-signature"; boundary="=-34PVV3Bggk5EDdtCKdHa"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-Laurent Pinchart wrote:
-> On Tuesday 25 September 2012 23:12:00 Sakari Ailus wrote:
->> Hans Verkuil wrote:
->>> On Tue 25 September 2012 12:48:01 Laurent Pinchart wrote:
->>>> On Tuesday 25 September 2012 08:47:45 Hans Verkuil wrote:
->>>>> On Tue September 25 2012 02:00:55 Laurent Pinchart wrote:
->>>>> BTW, I think we should also fix the description of the timestamp in the
->>>>> spec. Currently it says:
->>>>>
->>>>> "For input streams this is the system time (as returned by the
->>>>> gettimeofday() function) when the first data byte was captured. For
->>>>> output streams the data will not be displayed before this time,
->>>>> secondary to the nominal frame rate determined by the current video
->>>>> standard in enqueued order. Applications can for example zero this field
->>>>> to display frames as soon as possible. The driver stores the time at
->>>>> which the first data byte was actually sent out in the timestamp field.
->>>>> This permits applications to monitor the drift between the video and
->>>>> system clock."
->>>>>
->>>>> To my knowledge all capture drivers set the timestamp to the time the
->>>>> *last* data byte was captured, not the first.
->>>>
->>>> The uvcvideo driver uses the time the first image packet is received :-)
->>>> Most other drivers use the time the last byte was *received*, not
->>>> captured.
->>>
->>> Unless the hardware buffers more than a few lines there is very little
->>> difference between the time the last byte was received and when it was
->>> captured.
->>>
->>> But you are correct, it is typically the time the last byte was received.
->>>
->>> Should we signal this as well? First vs last byte? Or shall we
->>> standardize?
->>
->> My personal opinion would be to change the spec to say what almost every
->> driver does: it's the timestamp from the moment the last pixel has been
->> received. We have the frame sync event for telling when the frame starts
->> btw. The same event could be used for signalling whenever a given line
->> starts. I don't see frame end fitting to that quite as nicely but I
->> guess it could be possible.
+
+--=-34PVV3Bggk5EDdtCKdHa
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Sun, 2012-09-09 at 23:26 +0100, Sean Young wrote:
+> On Sun, Sep 09, 2012 at 11:31:42PM +0300, Dan Carpenter wrote:
+> > Several of the drivers use carrier as a divisor in their s_tx_carrier()
+> > functions.  We should do a sanity check here like we do for
+> > LIRC_SET_REC_CARRIER.
+> >=20
+> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> > ---
+> > v2: Ben Hutchings pointed out that my first patch was not a complete
+> >     fix.
+> >=20
+> > diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lir=
+c-codec.c
+> > index 6ad4a07..28dc0f0 100644
+> > --- a/drivers/media/rc/ir-lirc-codec.c
+> > +++ b/drivers/media/rc/ir-lirc-codec.c
+> > @@ -211,6 +211,9 @@ static long ir_lirc_ioctl(struct file *filep, unsig=
+ned int cmd,
+> >  		if (!dev->s_tx_carrier)
+> >  			return -EINVAL;
+>=20
+> This should be ENOSYS.
+>=20
+> > =20
+> > +		if (val <=3D 0)
+> > +			return -EINVAL;
+> > +
+>=20
+> 1) val is unsigned so it would never be less than zero.
+>=20
+> 2) A value of zero means disabling carrier modulation, which is used by=
+=20
+>    the mceusb driver.
 >
-> The uvcvideo driver can timestamp the buffers with the system time at which
-> the first packet in the frame is received, but has no way to generate a frame
-> start event: the frame start event should correspond to the time the frame
-> starts, not to the time the first packet in the frame is received. That
-> information isn't available to the driver.
+> So the check belongs in the individual drivers, as in the original patch.
 
-Aren't the two about equal, apart from the possible delays caused by the 
-USB bus? The spec says about the frame sync event that it's "Triggered 
-immediately when the reception of a frame has begun."
+Oh well, sorry for pointing Dan in the wrong direction.  Is the special
+case documented somewhere?
 
-Cheers,
+Ben.
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+--=20
+Ben Hutchings
+Time is nature's way of making sure that everything doesn't happen at once.
+
+--=-34PVV3Bggk5EDdtCKdHa
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIVAwUAUE0aSee/yOyVhhEJAQpmvQ//U2NF2R1HNHjqKol0yb5NjV0qRcHLo8nD
+ftpTHRpasx92ElSlVo4ARII77kwr1WnokYxHCYwS1DuNqpxVP7zRifp26NTDRjpz
+c9hg1yzcVOEl/kCXLw0A4IiBKy3L+D9cNClEIFJfFcdKsejuM+8Md5r/gypUPfTf
+cFAWDkCUXnWPEPB+/NQHB1R3cCHoolBR8lDRt3+XYo/QaV5Eb4A4KQPmcug6BKEX
+Onby85KjthbOdLN4gShRdJ0P3Ud15WxeZyMLXUAHN/Zm8gcy6PnQ4cLCQeuknvyu
+WdYzH69g8fby0aQbS0mdvGof3DzsA2sIA0SaVfW5uVIBd/d0BqdGX+4sTWE7ZU12
+NoLBX37Xm+aSyp8rKjXgFY+y9yop6saRjHj0duVqWALl+nXDRkeo9XzRTVhLUAJs
+xagNQ1cRrk9VD+BdU2TxKam6o5q17fhSaqELMiSDKwYwbiOabp4LtTWXPKW9xGZx
+ap0KoPxMaxM70kxEMc/pR325ymZg/sGxNHqpzzI6Xum34wXHRq6jsTysLZbgenVQ
+6k1CA/fBLSPbz0Kvi/LtH0b8p6m3S7456rCJL3frmAPxXudq+61DBZH9jFFeGp6S
+4MlcxOseevPdz7ywUUlJB7jCMNqqcVP2cwP1Ch9LM00Dp1Kl/LgMJWB2FimCG6FI
+AkbGYBTWfoA=
+=jE1d
+-----END PGP SIGNATURE-----
+
+--=-34PVV3Bggk5EDdtCKdHa--
