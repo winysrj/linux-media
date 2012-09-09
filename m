@@ -1,45 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:46738 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751833Ab2ITTVZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Sep 2012 15:21:25 -0400
-Received: by ieak13 with SMTP id k13so4009843iea.19
-        for <linux-media@vger.kernel.org>; Thu, 20 Sep 2012 12:21:24 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <505B665D.4080004@schinagl.nl>
-References: <1348080243-3818-1-git-send-email-oliver+list@schinagl.nl>
-	<CAGoCfizA_wEcJdcXHfN1xA4MTMUJy4vCX4YpN8vpei9=wFZg-w@mail.gmail.com>
-	<505B665D.4080004@schinagl.nl>
-Date: Thu, 20 Sep 2012 15:21:24 -0400
-Message-ID: <CAGoCfixUXWRPHMaKr-YMo32h2xUMOKLFWi_FXpt_=rcpJ_KZ8g@mail.gmail.com>
-Subject: Re: [PATCH] Support for Asus MyCinema U3100Mini Plus
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Oliver Schinagl <oliver+list@schinagl.nl>
-Cc: linux-media@vger.kernel.org, crope@iki.fi
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:52535 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754197Ab2IITV6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Sep 2012 15:21:58 -0400
+Received: by eekc1 with SMTP id c1so666326eek.19
+        for <linux-media@vger.kernel.org>; Sun, 09 Sep 2012 12:21:57 -0700 (PDT)
+Message-ID: <1347218514.1641.4.camel@edge.config>
+Subject: MFC Encode on S5PV210 hangs
+From: Mike Dyer <mike.dyer@md-soft.co.uk>
+To: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
+Date: Sun, 09 Sep 2012 20:21:54 +0100
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 20, 2012 at 2:54 PM, Oliver Schinagl
-<oliver+list@schinagl.nl> wrote:
-> dvbscan and dvbv5-scan does constantly say 'tuning failed' but it does say
-> that on my terratec too. It does work fine however, so probably a bug in
-> driver/tool unrelated to this patch.
+Hi All,
 
-Just to be clear, the message "tuning failed" is expected behavior
-(albeit very misleading).  Basically it means that the tuning attempt
-was performed but it failed to get a frequency lock on that channel.
-This is very common in cases where you're scanning a range of
-frequencies where many of them will not actually achieve a signal
-lock.
+I'm trying to use the MFC encoder to generate an H264 bitstream using
+the V4L2 interface.  I've tried using my own application, and also the
+example encode application here:
+git://git.infradead.org/users/kmpark/public-apps
 
-I would really like to change that message to something more clear,
-especially since you're certainly not the first one to think it
-indicated there was a problem.  Suggestions/patches welcome.
+Both exhibit the same behavior.  Input frames are queued up until the
+input queue is full, but only one frame is emitted (which I guess is the
+H264 header).  The encoder then just sits there.
 
-Devin
+I'm not sure where to start looking, so any advice is appreciated.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Cheers,
+Mike
+
