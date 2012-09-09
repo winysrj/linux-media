@@ -1,69 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:63481 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755974Ab2INMu2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 08:50:28 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>
-Subject: [PATCH 11/14] dm365: vpss: set vpss clk ctrl
-Date: Fri, 14 Sep 2012 18:16:41 +0530
-Message-Id: <1347626804-5703-12-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1347626804-5703-1-git-send-email-prabhakar.lad@ti.com>
-References: <1347626804-5703-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mx01.sz.bfs.de ([194.94.69.103]:44652 "EHLO mx01.sz.bfs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754626Ab2IIVBx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Sep 2012 17:01:53 -0400
+Message-ID: <504D03BD.8010203@bfs.de>
+Date: Sun, 09 Sep 2012 23:01:49 +0200
+From: walter harms <wharms@bfs.de>
+Reply-To: wharms@bfs.de
+MIME-Version: 1.0
+To: Dan Carpenter <dan.carpenter@oracle.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Paul Gortmaker <paul.gortmaker@windriver.com>,
+	Sean Young <sean@mess.org>,
+	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
+	Ben Hutchings <ben@decadent.org.uk>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch v2] [media] rc-core: prevent divide by zero bug in s_tx_carrier()
+References: <20120909203142.GA12296@elgon.mountain>
+In-Reply-To: <20120909203142.GA12296@elgon.mountain>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Manjunath Hadli <manjunath.hadli@ti.com>
+Hi all,
+I am not sure if that is a good idea.
+it should be in the hands of the driver who to use these 'val'
+some driver may need a higher value like this one:
 
-request_mem_region for VPSS_CLK_CTRL register and ioremap.
-and enable clocks appropriately.
+static int iguanair_set_tx_carrier(struct rc_dev *dev, uint32_t carrier)
+{
+	struct iguanair *ir = dev->priv;
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
----
- drivers/media/platform/davinci/vpss.c |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
+	if (carrier < 25000 || carrier > 150000)
+		return -EINVAL;
 
-diff --git a/drivers/media/platform/davinci/vpss.c b/drivers/media/platform/davinci/vpss.c
-index 34ad7bd..49bb045 100644
---- a/drivers/media/platform/davinci/vpss.c
-+++ b/drivers/media/platform/davinci/vpss.c
-@@ -103,6 +103,7 @@ struct vpss_hw_ops {
- struct vpss_oper_config {
- 	__iomem void *vpss_regs_base0;
- 	__iomem void *vpss_regs_base1;
-+	resource_size_t *vpss_regs_base2;
- 	enum vpss_platform_type platform;
- 	spinlock_t vpss_lock;
- 	struct vpss_hw_ops hw_ops;
-@@ -484,11 +485,21 @@ static struct platform_driver vpss_driver = {
- 
- static void vpss_exit(void)
- {
-+	iounmap(oper_cfg.vpss_regs_base2);
-+	release_mem_region(*oper_cfg.vpss_regs_base2, 4);
- 	platform_driver_unregister(&vpss_driver);
- }
- 
-+#define VPSS_CLK_CTRL		0x01c40044
-+
- static int __init vpss_init(void)
- {
-+	if (request_mem_region(VPSS_CLK_CTRL, 4, "vpss_clock_control")) {
-+		oper_cfg.vpss_regs_base2 = ioremap(VPSS_CLK_CTRL, 4);
-+		__raw_writel(0x18, oper_cfg.vpss_regs_base2);
-+	} else {
-+		return -EBUSY;
-+	}
- 	return platform_driver_register(&vpss_driver);
- }
- subsys_initcall(vpss_init);
--- 
-1.7.4.1
+There are also examples where 0 has a special meaning (to be fair not
+with this function). Example:
+  cfsetospeed() ...  The zero baud rate, B0, is used to terminate the connection.
+
+I have no clue who will use the 0 but ...
+
+just my 2 cents,
+re,
+ wh
+
+Am 09.09.2012 22:31, schrieb Dan Carpenter:
+> Several of the drivers use carrier as a divisor in their s_tx_carrier()
+> functions.  We should do a sanity check here like we do for
+> LIRC_SET_REC_CARRIER.
+> 
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> ---
+> v2: Ben Hutchings pointed out that my first patch was not a complete
+>     fix.
+> 
+> diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+> index 6ad4a07..28dc0f0 100644
+> --- a/drivers/media/rc/ir-lirc-codec.c
+> +++ b/drivers/media/rc/ir-lirc-codec.c
+> @@ -211,6 +211,9 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+>  		if (!dev->s_tx_carrier)
+>  			return -EINVAL;
+>  
+> +		if (val <= 0)
+> +			return -EINVAL;
+> +
+>  		return dev->s_tx_carrier(dev, val);
+>  
+>  	case LIRC_SET_SEND_DUTY_CYCLE:
+
+
+
 
