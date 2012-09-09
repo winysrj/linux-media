@@ -1,56 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:47255 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756490Ab2IRBtT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Sep 2012 21:49:19 -0400
-Received: by pbbrr13 with SMTP id rr13so9999227pbb.19
-        for <linux-media@vger.kernel.org>; Mon, 17 Sep 2012 18:49:19 -0700 (PDT)
-Date: Tue, 18 Sep 2012 09:49:39 +0800
-From: Shawn Guo <shawn.guo@linaro.org>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 26/34] media: mx2_camera: remove dead code in
- mx2_camera_add_device
-Message-ID: <20120918014936.GG1338@S2101-09.ap.freescale.net>
-References: <1347860103-4141-1-git-send-email-shawn.guo@linaro.org>
- <1347860103-4141-27-git-send-email-shawn.guo@linaro.org>
- <Pine.LNX.4.64.1209171017460.1689@axis700.grange>
+Received: from mx1.redhat.com ([209.132.183.28]:53451 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754919Ab2IIV6G (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Sep 2012 17:58:06 -0400
+Message-ID: <504D1133.2030408@redhat.com>
+Date: Sun, 09 Sep 2012 23:59:15 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1209171017460.1689@axis700.grange>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+CC: hans.verkuil@cisco.com, linux-media@vger.kernel.org
+Subject: Re: [media] gspca: Fix locking issues related to suspend/resume
+References: <20120719121355.GA2609@elgon.mountain>
+In-Reply-To: <20120719121355.GA2609@elgon.mountain>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 17, 2012 at 10:18:42AM +0200, Guennadi Liakhovetski wrote:
-> Hi Shawn
-> 
-> Thanks for the clean up. Would you like these patches to go via a single 
-> tree, presumably, arm-soc? In this case
-> 
-Yes, to save the cross-tree dependency, I would like to have the series
-go via arm-soc tree as a whole.
+Hi,
 
-> On Mon, 17 Sep 2012, Shawn Guo wrote:
-> 
-> > This is a piece of code becoming dead since commit 2c9ba37 ([media]
-> > V4L: mx2_camera: remove unsupported i.MX27 DMA mode, make EMMA
-> > mandatory).  It should have been removed together with the commit.
-> > Remove it now.
-> > 
-> > Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
-> > Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > Cc: linux-media@vger.kernel.org
-> 
-> Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> 
-Thanks, Guennadi.
+Thanks for the report, it turns out that the checking for gspca_dev->dev,
+rather then gspca_dev->present (which is a mod I made on top of
+Hans Verkuil's orginal patch), turns out to be a bad idea in general
+as its racy, this race has been fixed by this commit:
+http://git.linuxtv.org/hgoede/gspca.git/commitdiff/a454f0811950742475b76dbf5ac10876e48ffaaa
 
--- 
-Regards,
-Shawn
+Which should also appease the static checker warnings.
+
+Thanks & Regards,
+
+Hans
+
+
+On 07/19/2012 02:13 PM, Dan Carpenter wrote:
+> Hello Hans Verkuil,
+>
+> This is a semi-automatic email about new static checker warnings.
+>
+> The patch 254902b01d2a: "[media] gspca: Fix locking issues related to
+> suspend/resume" from May 6, 2012, leads to the following Smatch
+> complaint:
+>
+> drivers/media/video/gspca/sq905c.c:176 sq905c_dostream()
+> 	 warn: variable dereferenced before check 'gspca_dev->dev' (see line 180)
+>
+> drivers/media/video/gspca/sq905c.c
+>     158                  /* Request the header, which tells the size to download */
+>     159                  ret = usb_bulk_msg(gspca_dev->dev,
+>     160                                  usb_rcvbulkpipe(gspca_dev->dev, 0x81),
+>                                                          ^^^^^^^^^^^^^^
+> Derereference inside the calls to usb_bulk_msg() and usb_rcvbulkpipe().
+>
+>     161                                  buffer, FRAME_HEADER_LEN, &act_len,
+>     162                                  SQ905C_DATA_TIMEOUT);
+>     163                  PDEBUG(D_STREAM,
+>     164                          "Got %d bytes out of %d for header",
+>     165                          act_len, FRAME_HEADER_LEN);
+>     166                  if (ret < 0 || act_len < FRAME_HEADER_LEN)
+>     167                          goto quit_stream;
+>     168                  /* size is read from 4 bytes starting 0x40, little endian */
+>     169                  bytes_left = buffer[0x40]|(buffer[0x41]<<8)|(buffer[0x42]<<16)
+>     170                                          |(buffer[0x43]<<24);
+>     171                  PDEBUG(D_STREAM, "bytes_left = 0x%x", bytes_left);
+>     172                  /* We keep the header. It has other information, too. */
+>     173                  packet_type = FIRST_PACKET;
+>     174                  gspca_frame_add(gspca_dev, packet_type,
+>     175                                  buffer, FRAME_HEADER_LEN);
+>     176			while (bytes_left > 0 && gspca_dev->dev) {
+>                                                   ^^^^^^^^^^^^^^
+> New check.
+>
+>     177				data_len = bytes_left > SQ905C_MAX_TRANSFER ?
+>     178					SQ905C_MAX_TRANSFER : bytes_left;
+>     179				ret = usb_bulk_msg(gspca_dev->dev,
+>     180					usb_rcvbulkpipe(gspca_dev->dev, 0x81),
+>                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> Some more dereferences here.
+>
+>     181					buffer, data_len, &act_len,
+>     182					SQ905C_DATA_TIMEOUT);
+>     183                          if (ret < 0 || act_len < data_len)
+>     184                                  goto quit_stream;
+>     185                          PDEBUG(D_STREAM,
+>     186                                  "Got %d bytes out of %d for frame",
+>     187                                  data_len, bytes_left);
+>     188                          bytes_left -= data_len;
+>     189                          if (bytes_left == 0)
+>     190                                  packet_type = LAST_PACKET;
+>     191                          else
+>     192                                  packet_type = INTER_PACKET;
+>     193                          gspca_frame_add(gspca_dev, packet_type,
+>     194                                          buffer, data_len);
+>     195                  }
+>
+> regards,
+> dan carpenter
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
