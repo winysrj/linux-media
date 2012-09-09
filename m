@@ -1,59 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:42876 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754197Ab2IISfd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Sep 2012 14:35:33 -0400
-Received: by mail-ee0-f46.google.com with SMTP id c1so651506eek.19
-        for <linux-media@vger.kernel.org>; Sun, 09 Sep 2012 11:35:32 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: hdegoede@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 3/3] libv4lconvert: update the list of pac7302 webcams
-Date: Sun,  9 Sep 2012 20:36:08 +0200
-Message-Id: <1347215768-9843-3-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1347215768-9843-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1347215768-9843-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from whitehail.bostoncoop.net ([66.199.252.235]:43229 "EHLO
+	bostoncoop.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751725Ab2IIDIa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 8 Sep 2012 23:08:30 -0400
+Date: Sat, 8 Sep 2012 22:23:31 -0400
+From: Adam Rosi-Kessel <adam@rosi-kessel.org>
+To: volokh@telros.ru
+Cc: linux-media@vger.kernel.org, volokh84@gmail.com
+Subject: Re: go7007 question
+Message-ID: <20120909022331.GA28838@whitehail.bostoncoop.net>
+References: <5044F8DC.20509@rosi-kessel.org> <20120906191014.GA2540@VPir.Home> <20120907141831.GA12333@VPir.telros.ru>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20120907141831.GA12333@VPir.telros.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All pac7302 webcams need image rotation, so synchronize the list with the driver.
+On Fri, Sep 07, 2012 at 06:18:31PM +0400, volokh@telros.ru wrote:
+> On Thu, Sep 06, 2012 at 11:10:14PM +0400, Volokh Konstantin wrote:
+> > On Mon, Sep 03, 2012 at 02:37:16PM -0400, Adam Rosi-Kessel wrote:
+> > > 
+> > > [469.928881] wis-saa7115: initializing SAA7115 at address 32 on WIS
+> > > GO7007SB EZ-USB
+> > > 
+> > > [469.989083] go7007: probing for module i2c:wis_saa7115 failed
+> > > 
+> > > [470.004785] wis-uda1342: initializing UDA1342 at address 26 on WIS
+> > > GO7007SB EZ-USB
+> > > 
+> > > [470.005454] go7007: probing for module i2c:wis_uda1342 failed
+> > > 
+> > > [470.011659] wis-sony-tuner: initializing tuner at address 96 on WIS
+> > > GO7007SB EZ-USB
+> Hi, I generated patchs, that u may in your own go7007/ folder
+> It contains go7007 initialization and i2c_subdev fixing
+> 
+> It was checked for 3.6 branch (compile only)
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- lib/libv4lconvert/control/libv4lcontrol.c |   13 ++++++++++++-
- 1 files changed, 12 insertions(+), 1 deletions(-)
+So I have this installed now (patched with your 3.6 patch) but I'm not
+seeing the device.
 
-diff --git a/lib/libv4lconvert/control/libv4lcontrol.c b/lib/libv4lconvert/control/libv4lcontrol.c
-index 3d7a816..6eea121 100644
---- a/lib/libv4lconvert/control/libv4lcontrol.c
-+++ b/lib/libv4lconvert/control/libv4lcontrol.c
-@@ -202,10 +202,21 @@ static const struct v4lcontrol_flags_info v4lcontrol_flags[] = {
- 	{ 0x145f, 0x013a, 0,    NULL, NULL, V4LCONTROL_WANTS_WB, 1500 },
- 	{ 0x2001, 0xf115, 0,    NULL, NULL, V4LCONTROL_WANTS_WB, 1500 },
- 	/* Pac7302 based devices */
--	{ 0x093a, 0x2620, 0x0f, NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
- 	{ 0x06f8, 0x3009, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
- 	{ 0x06f8, 0x301b, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
-+	{ 0x093a, 0x2620, 0x0f, NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
-+	{ 0x093a, 0x2611, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
-+	{ 0x093a, 0x2622, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
-+	{ 0x093a, 0x2624, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
-+	{ 0x093a, 0x2625, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
-+	{ 0x093a, 0x2626, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
-+	{ 0x093a, 0x2627, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
-+	{ 0x093a, 0x2628, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
-+	{ 0x093a, 0x2629, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
-+	{ 0x093a, 0x262a, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
-+	{ 0x093a, 0x262c, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
- 	{ 0x145f, 0x013c, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
-+	{ 0x1ae7, 0x2001, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
- 	/* Pac7311 based devices */
- 	{ 0x093a, 0x2600, 0x0f, NULL, NULL, V4LCONTROL_WANTS_WB },
- 	/* sq905 devices */
--- 
-1.7.7
+The module is there:
 
+[  416.189030] Linux media interface: v0.10
+[  416.198616] Linux video capture interface: v2.00
+[  416.220656] wis_uda1342: module is from the staging directory, the quality is unknown, you have been warned.
+
+# lsmod|grep -i go7
+go7007_usb             10059  0 
+go7007                 46966  1 go7007_usb
+v4l2_common             4206  1 go7007
+videodev               78250  2 go7007,v4l2_common
+
+# uname -a
+Linux storage 3.6.0-rc4.ajk+ #5 SMP Sat Sep 8 22:05:57 EDT 2012 i686 GNU/Linux
+
+# grep -i go7 /boot/config-`uname -r`
+CONFIG_VIDEO_GO7007=m
+CONFIG_VIDEO_GO7007_USB=m
+CONFIG_VIDEO_GO7007_OV7640=m
+# CONFIG_VIDEO_GO7007_SAA7113 is not set
+# CONFIG_VIDEO_GO7007_SAA7115 is not set
+CONFIG_VIDEO_GO7007_TW9903=m
+CONFIG_VIDEO_GO7007_UDA1342=m
+CONFIG_VIDEO_GO7007_SONY_TUNER=m
+CONFIG_VIDEO_GO7007_TW2804=m
+
+But I'm not getting any device to appear:
+
+# ls /dev/video*
+ls: cannot access /dev/video*: No such file or directory
+# gorecord -format mpeg4 test.avi
+Driver loaded but no GO7007 devices found.
+Is the device connected properly?
+
+When I connect the device I see this:
+
+[  585.705406] usb 1-4: udev 4, busnum 1, minor = 3
+[  585.705412] usb 1-4: New USB device found, idVendor=093b, idProduct=a004
+[  585.705415] usb 1-4: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+[  585.705532] usb 1-4: usb_probe_device
+[  585.705535] usb 1-4: configuration #1 chosen from 1 choice
+[  585.706233] usb 1-4: adding 1-4:1.0 (config #1, interface 0)
+
+But no video node.
+
+Am I missing something?
+
+Adam
