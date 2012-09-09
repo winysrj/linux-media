@@ -1,77 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56421 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750891Ab2INWFN (ORCPT
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:50553 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754919Ab2IIWBL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 18:05:13 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+	Sun, 9 Sep 2012 18:01:11 -0400
+Message-ID: <1347228041.7709.128.camel@deadeye.wl.decadent.org.uk>
+Subject: Re: [patch v2] [media] rc-core: prevent divide by zero bug in
+ s_tx_carrier()
+From: Ben Hutchings <ben@decadent.org.uk>
+To: wharms@bfs.de
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	brijohn@gmail.com
-Subject: Re: Improving ov7670 sensor driver.
-Date: Sat, 15 Sep 2012 00:05:45 +0200
-Message-ID: <1436194.OkjyqZg1hD@avalon>
-In-Reply-To: <CACKLOr22AvmWhXmj2SrMGO4y39ESHfyh_HPnLr6nmQGkUv2+zg@mail.gmail.com>
-References: <CACKLOr22AvmWhXmj2SrMGO4y39ESHfyh_HPnLr6nmQGkUv2+zg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Paul Gortmaker <paul.gortmaker@windriver.com>,
+	Sean Young <sean@mess.org>,
+	David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Date: Sun, 09 Sep 2012 23:00:41 +0100
+In-Reply-To: <504D03BD.8010203@bfs.de>
+References: <20120909203142.GA12296@elgon.mountain>
+	 <504D03BD.8010203@bfs.de>
+Content-Type: multipart/signed; micalg="pgp-sha512";
+	protocol="application/pgp-signature"; boundary="=-iXa/u8d20Akdlw2R2AQg"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
 
-On Thursday 13 September 2012 11:48:17 javier Martin wrote:
-> Hi,
-> our new i.MX27 based platform (Visstrim-SM20) uses an ov7675 sensor
-> attached to the CSI interface. Apparently, this sensor is fully
-> compatible with the old ov7670. For this reason, it seems rather
-> sensible that they should share the same driver: ov7670.c
-> One of the challenges we have to face is that capture video support
-> for our platform is mx2_camera.c, which is a soc-camera host driver;
-> while ov7670.c was developed for being used as part of a more complex
-> video card.
-> 
-> Here is the list of current users of ov7670:
-> 
-> http://lxr.linux.no/#linux+v3.5.3/drivers/media/video/gspca/ov519.c
-> http://lxr.linux.no/#linux+v3.5.3/drivers/media/video/gspca/sn9c20x.c
-> http://lxr.linux.no/#linux+v3.5.3/drivers/media/video/gspca/vc032x.c
-> http://lxr.linux.no/#linux+v3.5.3/drivers/media/video/via-camera.c
-> http://lxr.linux.no/#linux+v3.5.3/drivers/media/video/marvell-ccic/mcam-core
-> .c
-> 
-> These are basically the improvements we need to make to this driver in
-> order to satisfy our needs:
-> 
-> 1.- Adapt v4l2 controls to the subvevice control framework, with a
-> proper ctrl handler, etc...
-> 2.- Add the possibility to bypass PLL and clkrc preescaler.
-> 3.- Adjust vstart/vstop in order to remove an horizontal green line.
-> 4.- Disable pixclk during horizontal blanking.
-> 5.- min_height, min_width should be respected in try_fmt().
-> 6.- Pass platform data when used with a soc-camera host driver.
-> 7.- Add V4L2_CID_POWER_LINE_FREQUENCY ctrl.
+--=-iXa/u8d20Akdlw2R2AQg
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-8. Make sure it still works when used with a non soc-camera bridge.
+On Sun, 2012-09-09 at 23:01 +0200, walter harms wrote:
+> Hi all,
+> I am not sure if that is a good idea.
+> it should be in the hands of the driver who to use these 'val'
+>
+> some driver may need a higher value like this one:
 
-That's the tricky part. I've spent time working on this for the ov772x driver 
-(albeit in the other direction, making it usable with a non soc-camera 
-bridge). You can find work-in-progress hacks at
+I doubt that any driver can actually work with the full range of
+positive values, but at least they're less likely to crash.
 
-http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp-
-sensors-board
+> static int iguanair_set_tx_carrier(struct rc_dev *dev, uint32_t carrier)
+> {
+> 	struct iguanair *ir =3D dev->priv;
+>=20
+> 	if (carrier < 25000 || carrier > 150000)
+> 		return -EINVAL;
+>=20
+> There are also examples where 0 has a special meaning (to be fair not
+> with this function). Example:
+>   cfsetospeed() ...  The zero baud rate, B0, is used to terminate the con=
+nection.
+>
+> I have no clue who will use the 0 but ...
+[...]
 
-The basic idea is that the soc-camera platform data structure needs to be 
-split into a generic device part (currently called soc_camera_pdtata, which 
-should be renamed to something not related to soc-camera), and a soc-camera 
-specific structure. The device should only see the device part, and the soc-
-camera framework will get the host part. That's currently not implemented.
+If an ioctl is defined for a whole class of devices then it is perfectly
+valid for the core code for that class to do (some) parameter validation
+for the ioctl.  As I'm not really familiar with LIRC I can't say for
+sure that 0 is invalid, but if it is then driver writers should not
+expect to be able to assign a driver-specific meaning to it.  Consider
+what would happen if the LIRC developers wanted to assign a generic
+meaning to a value of 0 some time later.
 
--- 
-Regards,
+Ben.
 
-Laurent Pinchart
+--=20
+Ben Hutchings
+Time is nature's way of making sure that everything doesn't happen at once.
 
+--=-iXa/u8d20Akdlw2R2AQg
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIVAwUAUE0Riee/yOyVhhEJAQq8/A/9EM/BQmm14dCe0JETW6A62dxzlQr+0Qpq
+P8nSZOetjXs+EcKh//n0bZvqFPXyu+N5UHjZT3GeI3g+NVkPqmPEuFERtM4qlQS7
+1huJ/em8TfZ7MfeEDLtD5qCEyN9YzkQOFwRl/+SGMuGHYIfToKd5JfGUpueyF7rL
+Wa1A/dCGdwkGhemDaT8GyJxHizvrAGIZAMwzpKKQbiAZ5i3Z9PMWVLfOBR0avtb1
+bKl8fS5TsbHfHz8q9ORaO8mGOcFBlTVXA2aBfXlM/ZWj8xjbVMvPxOwN/GiVsYOx
+SWih4D408/loNbyAj8flIMKFR3RFr/qiyYQMms69bbKaqhzAcOq+ZiytGIA1ACDU
+ofpOwAfSa+1ITv8y0a9Abl+A0cHI9TLVZu/a41OjitpzfGZs2yp8wD2TlrVS2v1x
+ItOahFLMLA5UpivHxwslJkppUXEJGaHmrv7IvHipjAyabGsLc+cqScHLF3UAT4Wb
+OccrJAcHFw71LC9nR6HDXMLBqhnyPvgs8e+U/XguB2ABx8oXMNX6smobOAFQyHFP
+uG2J6fn1RapE2HGll+QQGWUM05CTuVW109z8M1KJiHyMQvH0SQjHOIDN9IOdY2N5
+OnPHuR/JlNaY3SF2Zbex/5K8lgw6ES5CvYjqjwl+ouLRfammX7ruguzpyIm5tH27
+6A7wgGUiNUw=
+=5wfN
+-----END PGP SIGNATURE-----
+
+--=-iXa/u8d20Akdlw2R2AQg--
