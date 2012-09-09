@@ -1,45 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:50864 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753553Ab2IMLYw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 07:24:52 -0400
-Subject: Re: [PATCH v5 0/13] Initial i.MX5/CODA7 support for the CODA driver
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
-In-Reply-To: <CACKLOr2AjC3chZHK_jx1ZJsariT7i_f6pQ6BCiUJG+nfDzZBKA@mail.gmail.com>
-References: <1347462158-20417-1-git-send-email-p.zabel@pengutronix.de>
-	 <CACKLOr2XDFUU=_dQ+P=ff9o27+_YZTTiA_nS+tv5t09mwDFPrQ@mail.gmail.com>
-	 <CACKLOr2AjC3chZHK_jx1ZJsariT7i_f6pQ6BCiUJG+nfDzZBKA@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 13 Sep 2012 13:24:38 +0200
-Message-ID: <1347535478.2429.345.camel@pizza.hi.pengutronix.de>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:12666 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754330Ab2IIVyV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Sep 2012 17:54:21 -0400
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q89LsK5r015329
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 9 Sep 2012 17:54:20 -0400
+Received: from shalem.localdomain (vpn1-5-140.ams2.redhat.com [10.36.5.140])
+	by int-mx11.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id q89LsJJX025456
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 9 Sep 2012 17:54:20 -0400
+Message-ID: <504D1054.1080305@redhat.com>
+Date: Sun, 09 Sep 2012 23:55:32 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR 3.7]: shark 1 & 2 / tea575x & tea5777 AM support +
+ misc gspca fixes
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Donnerstag, den 13.09.2012, 09:51 +0200 schrieb javier Martin:
-> If you want to speed up the process and you have you could send a pull
-> request to Mauro.
+Hi Mauro,
 
-Should I include the four patches below in the pull request, or wait for
-them to hit staging/for_v3.7 ?
+Please pull from my media-for_v3.7 branch for AM frequency band support
+for the shark 1 & 2 / tea575x & tea5777 AM support, as well as various
+gspca and 2 pwc fixes.
 
-> But be careful with the following patches that have been sent to the
-> list after the initial support of the driver and before these series:
-> http://patchwork.linuxtv.org/patch/14048/
-> https://patchwork.kernel.org/patch/1367011/
-> https://patchwork.kernel.org/patch/1363331/
-> https://patchwork.kernel.org/patch/1352551/
+The following changes since commit 79e8c7bebb467bbc3f2514d75bba669a3f354324:
 
-regards
-Philipp
+   Merge tag 'v3.6-rc3' into staging/for_v3.7 (2012-08-24 11:25:10 -0300)
 
+are available in the git repository at:
+
+
+   git://linuxtv.org/hgoede/gspca.git media-for_v3.7
+
+for you to fetch changes up to f16eef4206a3b155451d3fde19c5f4411ba5516e:
+
+   gspca_pac7302: extend register documentation (2012-09-09 23:14:04 +0200)
+
+----------------------------------------------------------------
+Emil Goode (1):
+       gspca: dubious one-bit signed bitfield
+
+Ezequiel Garcia (2):
+       pwc: Use vb2 queue mutex through a single name
+       pwc: Remove unneeded struct vb2_queue clearing
+
+Frank Schäfer (6):
+       gspca_pac7302: add support for device 1ae7:2001 Speedlink Snappy Microphone SL-6825-SBK
+       gspca_pac7302: make red balance and blue balance controls work again
+       gspca_pac7302: add sharpness control
+       gspca_pac7302: increase default value for white balance temperature
+       gspca_pac7302: avoid duplicate calls of the image quality adjustment functions on capturing start
+       gspca_pac7302: extend register documentation
+
+Hans de Goede (10):
+       media-api-docs: Documented V4L2_TUNER_CAP_HWSEEK_PROG_LIM in G_TUNER docs
+       snd_tea575x: Add support for tuning AM
+       radio-tea5777.c: Get rid of do_div usage
+       radio-tea5777: Add support for tuning AM
+       radio-shark2: Add support for suspend & resume
+       radio-shark: Add support for suspend & resume
+       gspca: Don't set gspca_dev->dev to NULL before stop0
+       gspca_finepix: Remove unnecessary lock/unlock call
+       gspca: Update / fix various comments wrt workqueue usb_lock usage
+       gspca: Fix input urb creation / destruction surrounding suspend resume
+
+Peter Senna Tschudin (1):
+       drivers/media/usb/gspca/cpia1.c: fix error return code
+
+  Documentation/DocBook/media/v4l/vidioc-g-tuner.xml |   6 +
+  drivers/media/radio/radio-shark.c                  |  44 ++++-
+  drivers/media/radio/radio-shark2.c                 |  39 ++++
+  drivers/media/radio/radio-tea5777.c                | 197 +++++++++++++++-----
+  drivers/media/radio/radio-tea5777.h                |   3 +
+  drivers/media/usb/gspca/cpia1.c                    |   2 +-
+  drivers/media/usb/gspca/finepix.c                  |  18 +-
+  drivers/media/usb/gspca/gspca.c                    |  12 +-
+  drivers/media/usb/gspca/jl2005bcd.c                |  18 +-
+  drivers/media/usb/gspca/ov519.c                    |  16 +-
+  drivers/media/usb/gspca/pac7302.c                  |  47 +++--
+  drivers/media/usb/gspca/sn9c20x.c                  |   2 +
+  drivers/media/usb/gspca/sonixj.c                   |   2 +
+  drivers/media/usb/gspca/sq905.c                    |  19 +-
+  drivers/media/usb/gspca/sq905c.c                   |  18 +-
+  drivers/media/usb/gspca/vicam.c                    |  17 +-
+  drivers/media/usb/gspca/xirlink_cit.c              |   4 +-
+  drivers/media/usb/gspca/zc3xx.c                    |   8 +-
+  drivers/media/usb/pwc/pwc-if.c                     |   3 +-
+  include/sound/tea575x-tuner.h                      |   4 +
+  sound/i2c/other/tea575x-tuner.c                    | 200 +++++++++++++++++----
+  21 files changed, 519 insertions(+), 160 deletions(-)
+
+Thanks & Regards,
+
+Hans
