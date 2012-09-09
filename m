@@ -1,300 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37292 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751761Ab2IARZe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Sep 2012 13:25:34 -0400
-Date: Sat, 1 Sep 2012 20:25:30 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Manjunath Hadli <manjunath.hadli@ti.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-doc@vger.kernel.org, Rob Landley <rob@landley.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH] [media] davinci: vpfe: Add documentation
-Message-ID: <20120901172530.GA6757@valkosipuli.retiisi.org.uk>
-References: <1342021166-6092-1-git-send-email-manjunath.hadli@ti.com>
- <20120802000756.GM26642@valkosipuli.retiisi.org.uk>
- <502331F8.3050503@ti.com>
- <20120816162318.GZ29636@valkosipuli.retiisi.org.uk>
- <50349ED2.4050209@ti.com>
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:4174 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751127Ab2IIIqi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Sep 2012 04:46:38 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: Re: [RFCv2 API PATCH 05/28] DocBook: bus_info can no longer be empty.
+Date: Sun, 9 Sep 2012 10:45:56 +0200
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl> <201209081315.15411.hverkuil@xs4all.nl> <504B53E6.6000107@gmail.com>
+In-Reply-To: <504B53E6.6000107@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <50349ED2.4050209@ti.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201209091045.56740.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Manju,
-
-My apologies for the delayed answer.
-
-On Wed, Aug 22, 2012 at 02:26:50PM +0530, Manjunath Hadli wrote:
-> On Thursday 16 August 2012 09:53 PM, Sakari Ailus wrote:
-> > On Thu, Aug 09, 2012 at 09:13:52AM +0530, Manjunath Hadli wrote:
-> >> On Thursday 02 August 2012 05:37 AM, Sakari Ailus wrote:
-> >>> Hi Manju,
+On Sat September 8 2012 16:19:18 Sylwester Nawrocki wrote:
+> On 09/08/2012 01:15 PM, Hans Verkuil wrote:
+> > On Fri September 7 2012 22:00:33 Sylwester Nawrocki wrote:
+> >> On 09/07/2012 03:29 PM, Hans Verkuil wrote:
+> >>> From: Hans Verkuil<hans.verkuil@cisco.com>
 > >>>
-> >>> Thanks for the patch.
+> >>> During the 2012 Media Workshop it was decided that bus_info as returned
+> >>> by VIDIOC_QUERYCAP can no longer be empty. It should be a unique identifier,
+> >>> and empty strings are obviously not unique.
 > >>>
-> >>> Please make sure these patches reach linux-media next time. If they do
-> >>> not,
-> >>> it severely limits the number of potential reviewers. I don't know
-> >>> why, but
-> >>> the original patch isn't on linux-media even if the list was cc'd.
+> >>> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
+> >>
+> >> Reviewed-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
+> >>
+> >>> ---
+> >>>    Documentation/DocBook/media/v4l/vidioc-querycap.xml |   14 ++++++++++----
+> >>>    1 file changed, 10 insertions(+), 4 deletions(-)
 > >>>
-> >>> Dropping linux-kernel from cc.
-> >>>
-> >>> Manjunath Hadli wrote:
-> >>>> Add documentation on the Davinci VPFE driver. Document the subdevs,
-> >>>> and private IOTCLs the driver implements
-> >>>>
-> >>>> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> >>>> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> >>>> ---
-> >>>>   Documentation/video4linux/davinci-vpfe-mc.txt |  263
-> >>>> +++++++++++++++++++++++++
-> >>>>   1 files changed, 263 insertions(+), 0 deletions(-)
-> >>>>   create mode 100644 Documentation/video4linux/davinci-vpfe-mc.txt
-> >>>>
-> >>>> diff --git a/Documentation/video4linux/davinci-vpfe-mc.txt
-> >>>> b/Documentation/video4linux/davinci-vpfe-mc.txt
-> >>>> new file mode 100644
-> >>>> index 0000000..968194f
-> >>>> --- /dev/null
-> >>>> +++ b/Documentation/video4linux/davinci-vpfe-mc.txt
-> >>>> @@ -0,0 +1,263 @@
-> >>>> +Davinci Video processing Front End (VPFE) driver
-> >>>> +
-> >>>> +Copyright (C) 2012 Texas Instruments Inc
-> >>>> +
-> >>>> +Contacts: Manjunath Hadli <manjunath.hadli@ti.com>
-> >>>> +
-> >>>> +Introduction
-> >>>> +============
-> >>>> +
-> >>>> +This file documents the Texas Instruments Davinci Video processing
-> >>>> Front End
-> >>>> +(VPFE) driver located under drivers/media/video/davinci. The
-> >>>> original driver
-> >>>> +exists for Davinci VPFE, which is now being changed to Media Controller
-> >>>> +Framework.
-> >>>> +
-> >>>> +Currently the driver has been successfully used on the following
-> >>>> version of Davinci:
-> >>>> +
-> >>>> +    DM365/DM368
-> >>>> +
-> >>>> +The driver implements V4L2, Media controller and v4l2_subdev
-> >>>> interfaces.
-> >>>> +Sensor, lens and flash drivers using the v4l2_subdev interface in
-> >>>> the kernel
-> >>>> +are supported.
-> >>>> +
-> >>>> +
-> >>>> +Split to subdevs
-> >>>> +================
-> >>>> +
-> >>>> +The Davinic VPFE is split into V4L2 subdevs, each of the blocks
-> >>>> inside the VPFE
-> >>>> +having one subdev to represent it. Each of the subdevs provide a
-> >>>> V4L2 subdev
-> >>>> +interface to userspace.
-> >>>> +
-> >>>> +    DAVINCI CCDC
-> >>>> +    DAVINCI PREVIEWER
-> >>>> +    DAVINCI RESIZER
-> >>>> +    DAVINCI AEW
-> >>>> +    DAVINCI AF
-> >>>> +
-> >>>> +Each possible link in the VPFE is modeled by a link in the Media
-> >>>> controller
-> >>>> +interface. For an example program see [1].
-> >>>> +
-> >>>> +
-> >>>> +Private IOCTLs
-> >>>> +==============
-> >>>> +
-> >>>> +The Davinci Video processing Front End (VPFE) driver supports
-> >>>> standard V4L2
-> >>>> +IOCTLs and controls where possible and practical. Much of the
-> >>>> functions provided
-> >>>> +by the VPFE, however, does not fall under the standard IOCTLs.
-> >>>> +
-> >>>> +In general, there is a private ioctl for configuring each of the blocks
-> >>>> +containing hardware-dependent functions.
-> >>>> +
-> >>>> +The following private IOCTLs are supported:
-> >>>> +
-> >>>> +1: IOCTL: PREV_S_PARAM/PREV_G_PARAM
-> >>>> +Description:
-> >>>> +    Sets/Gets the parameters required by the previewer module
-> >>>> +Parameter:
-> >>>> +    /**
-> >>>> +     * struct prev_module_param- structure to configure preview modules
-> >>>> +     * @version: Version of the preview module
-> >>>> +     * @len: Length of the module config structure
-> >>>> +     * @module_id: Module id
-> >>>> +     * @param: pointer to module config parameter.
-> >>>> +     */
-> >>>> +    struct prev_module_param {
-> >>>> +        char version[IMP_MAX_NAME_SIZE];
-> >>>> +        unsigned short len;
-> >>>> +        unsigned short module_id;
-> >>>> +        void *param;
-> >>>> +    };
-> >>>
-> >>> In addition to what Laurent commented on this, could the version
-> >>> information be passed in struct media_entity_desc instead?
-> >> I plan to leave out the version.
-> >>>
-> >>> As a general comment, it's a bad idea to design an API that allows
-> >>> passing
-> >>> blobs, especially when the expected size of the blobs isn't known. That
-> >>> really equals to asking for trouble.
-> >>>
-> >>> That said, I know this is an area where complete documentation is acarce,
-> >>> but I think that at least the memory layout of the current blob pointers
-> >>> should be visible in the struct definitions whenever possible. See
-> >>> e.g. the
-> >>> OMAP 3 ISP driver.
-> >> I have proposed using a union of structures instead of the void  blob. 
-> >> I also saw the OMAP implementation, and they are pointers (but not void). 
-> >> To me the union approach looks better as it keeps the architecture
-> >> intact and does not necessitate an
-> >> explicit copy_from_user. Which of these ways do you suggest?
+> >>> diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+> >>> index f33dd74..d5b1248 100644
+> >>> --- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+> >>> +++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+> >>> @@ -90,11 +90,17 @@ ambiguities.</entry>
+> >>>    	<entry>__u8</entry>
+> >>>    	<entry><structfield>bus_info</structfield>[32]</entry>
+> >>>    	<entry>Location of the device in the system, a
+> >>> -NUL-terminated ASCII string. For example: "PCI Slot 4". This
+> >>> +NUL-terminated ASCII string. For example: "PCI:0000:05:06.0". This
+> >>>    information is intended for users, to distinguish multiple
+> >>> -identical devices. If no such information is available the field may
+> >>> -simply count the devices controlled by the driver, or contain the
+> >>> -empty string (<structfield>bus_info</structfield>[0] = 0).<!-- XXX pci_dev->slot_name example --></entry>
+> >>> +identical devices. If no such information is available the field must
+> >>> +simply count the devices controlled by the driver ("vivi-000"). The bus_info
+> >>> +must start with "PCI:" for PCI boards, "PCIe:" for PCI Express boards,
+> >>> +"usb-" for USB devices, "I2C:" for i2c devices, "ISA:" for ISA devices and
+> >>> +"parport" for parallel port devices.
+> >>> +For devices without a bus it should start with the driver name, optionally
+> >>
+> >> Most, if not all, devices are on some sort of bus. What would be an example
+> >> of a device "without a bus" ?
 > > 
-> > I would suggest to use the approach taken in the OMAP 3 ISP driver as it has
-> > one obvious advantage over the union of pointers: it makes it possible to
-> > perform atomic changes to the configuration.
-> > 
-> > However, changes to configuration done through controls and the private
-> > IOCTL can never be atomic as they're done using a different IOCTL. This is
-> > something that will require some work at the API level in the future.
-> > 
-> > I'm fine with both union of struct pointers or a struct of struct pointers
-> > (as in the OMAP 3 ISP driver). Laurent?
-> > 
-> What I meant was using a union of structures and not strct pointers.
-> That way there would be no need to have a copy_from_user in the
-> driver.Hovewer ,I am open to either methods.So We will go ahead with the
-> OMAP way for now.
-
-Agreed. An obvious issue with the approach of having an union of structures
-(not pointers) is that you end up copying a lot more memory (the maximum
-size of all of the configurations) every time between user and kernel
-spaces.
-
-> >>>
-> >>>> +2: IOCTL: PREV_S_CONFIG/PREV_G_CONFIG
-> >>>> +Description:
-> >>>> +    Sets/Gets the configuration required by the previewer channel
-> >>>> +Parameter:
-> >>>> +    /**
-> >>>> +     * struct prev_channel_config - structure for configuring the
-> >>>> previewer channel
-> >>>> +     * @len: Length of the user configuration
-> >>>> +     * @config: pointer to either single shot config or continuous
-> >>>> +     */
-> >>>> +    struct prev_channel_config {
-> >>>> +        unsigned short len;
-> >>>> +        void *config;
-> >>>> +    };
-> >>>> +
-> >>>> +3: IOCTL: PREV_ENUM_CAP
-> >>>> +Description:
-> >>>> +    Queries the modules available in the image processor for preview
-> >>>> the
-> >>>> +    input image.
-> >>>> +Parameter:
-> >>>> +    /**
-> >>>> +     * struct prev_cap - structure to enumerate capabilities of
-> >>>> previewer
-> >>>> +     * @index: application use this to iterate over the available
-> >>>> modules
-> >>>> +     * @version: version of the preview module
-> >>>> +     * @module_id: module id
-> >>>> +     * @control: control operation allowed in continuous mode? 1 -
-> >>>> allowed, 0 - not allowed
-> >>>> +     * @path: path on which the module is sitting
-> >>>> +     * @module_name: module name
-> >>>> +     */
-> >>>> +    struct prev_cap {
-> >>>> +        unsigned short index;
-> >>>> +        char version[IMP_MAX_NAME_SIZE];
-> >>>> +        unsigned short module_id;
-> >>>
-> >>> Huh? How many sub-modules do the preview modules have in different DM
-> >>> series
-> >>> chips, and which ones have the same?
-> >>>
-> >>> The user still has to know quite lot about the hardware; I'd give the
-> >>> responsibility of knowing the hardware to the user also here --- the user
-> >>> has to know this exactly anyway.
-> >> I am going to remove this IOCTL as agreed. Will keep only a SET and a
-> >> GET IOTCL.
-> > 
-> > PREV_[GS]_CONFIG or something else? That's also a blob passing IOCTL.
-> > 
+> > Virtual devices like vivi and platform devices. Or is there some sort of
+> > platform bus?
 > 
-> We will implement this is a similar way as above. Will probably merge
-> with the above to make it a single blob IOCTL.
+> OK, then virtual devices like vivi are indeed not on any bus. But saying so,
+> or implicitly assuming, about platform devices would have been misleading.
+> 
+> On ASICs and SoCs such devices are on some kind of on-chip peripheral bus, 
+> e.g. AMBA APB/AHB [1].
 
-I'm not comfortable with the idea of a blob IOCTL. As the kernel driver will
-even parse the data, is there a single valid reason not to specify the
-memory layout of the data as well, and thus enforce the proper use of the
-interface?
+Yes, but such busses are internal to the hardware and are not enumerated by
+the kernel. The kernel will generate unique names for e.g. usb and pci busses
+which is used to identify the device on that bus. And that's used also when
+generating the bus_info.
 
-> >>>> +        char control;
-> >>>> +        enum imp_data_paths path;
-> >>>> +        char module_name[IMP_MAX_NAME_SIZE];
-> >>>> +    };
-> >>>> +
-> >>>> +4: IOCTL: RSZ_S_CONFIG/RSZ_G_CONFIG
-> >>>> +Description:
-> >>>> +    Sets/Gets the configuration required by the resizer channel
-> >>>> +Parameter:
-> >>>> +    /**
-> >>>> +     * struct rsz_channel_config - structure for configuring the
-> >>>> resizer channel
-> >>>> +     * @chain: chain this resizer at the previewer output
-> >>>> +     * @len: length of the user configuration
-> >>>> +     * @config: pointer to either single shot config or continuous
-> >>>> +     */
-> >>>> +    struct rsz_channel_config {
-> >>>> +        unsigned char chain;
-> >>>
-> >>> How many resizers do you have? Wouldn't the Media controller link
-> >>> configuration be the right way to configure this?
-> >> Yes. The Media controller links the entities to act as single shot or
-> >> continuous.
-> >> The above variable can be removed. There are two resizers.
+That said, I checked drivers/base/platform.c and there is actually a platform
+bus that's created in the kernel for platform devices. So perhaps something
+like platform:devname wouldn't be such a bad idea after all. I'd have to do
+some tests with this to see how it would look.
+
+Regards,
+
+	Hans
+
+> So perhaps we could specify that for platform devices
+> bus_info should start with "platform-" ? A unique remainder could be easily 
+> formed in drivers on basis of a memory mapped register region address/size
+> and/or a device interrupt number to the CPU. However, exposing such sensitive
+> data may be questionable, so it's probably better to just stick with a simple 
+> counter of identical devices.
+> 
+> >> Could we just be saying here "For other devices" instead of "For devices
+> >> without a bus", or something similar ?
 > > 
-> > If you have two independent resizer blocks then you should represent them as
-> > two subdevs. The reason is that the scaling factor is configured using the
-> > COMPOSE target on the sink pad, making the scaling factor specific to the
-> > subdev.
+> > Well, I'd like for any device on a bus to have a consistent naming convention
+> > so we can guarantee that bus_info is always unique.
 > > 
-> Oh! in that sense it is more of a single resizer which a lot of common
-> hardware blocks and has a facility that we can enable the second output.
-> Most of registers are common as well. I think it is much better to keep
-> it the way it is. The scaling factor is not taken as an explicit
-> parameter but managed using the w and h of sources and sinks.
-
-That would be against the V4L2 spec. It's explicitly defined that the source
-compose rectangle defines the output size of the scaler.
-
-<URL:http://hverkuil.home.xs4all.nl/spec/media.html#pad-level-formats>
-
-The reason for the source width and height not being used for the purpose is
-that it'd be impossible to specify cropping after scaling in the same
-subdev.
-
-I'll reply to the rest later on.
-
-Kind regards,
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+> > Regards,
+> > 
+> > 	Hans
+> > 
+> >>
+> >>> +followed by "-" and an index if multiple instances of the device as possible.
+> >>> +Many platform devices can have only one instance, so in that case bus_info
+> >>> +is identical to the<structfield>driver</structfield>   field.</entry>
+> >>>    	</row>
+> >>>    	<row>
+> >>>    	<entry>__u32</entry>
+> 
+> [1] http://www-micro.deis.unibo.it/~magagni/amba99.pdf
+> 
+> --
+> 
+> Regards,
+> Sylwester
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
