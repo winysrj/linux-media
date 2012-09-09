@@ -1,90 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:36565 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753745Ab2IYN0e (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Sep 2012 09:26:34 -0400
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:51979 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751870Ab2IIOCD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Sep 2012 10:02:03 -0400
+Received: by eekc1 with SMTP id c1so568849eek.19
+        for <linux-media@vger.kernel.org>; Sun, 09 Sep 2012 07:02:02 -0700 (PDT)
+Message-ID: <504CA157.4070303@gmail.com>
+Date: Sun, 09 Sep 2012 16:01:59 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <201209251354.29824.hansverk@cisco.com>
-References: <1348571784-4237-1-git-send-email-prabhakar.lad@ti.com>
- <201209251343.36240.hansverk@cisco.com> <2015356.T8yoHfqqkq@avalon> <201209251354.29824.hansverk@cisco.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Tue, 25 Sep 2012 18:56:11 +0530
-Message-ID: <CA+V-a8uLTmCSzY7xtp_TpAcmt=w5hMEWEpk24py1OD9qxOtYbw@mail.gmail.com>
-Subject: Re: [PATCH] media: davinci: vpif: set device capabilities
-To: Hans Verkuil <hansverk@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	VGER <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 API PATCH 05/28] DocBook: bus_info can no longer be empty.
+References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl> <201209081315.15411.hverkuil@xs4all.nl> <504B53E6.6000107@gmail.com> <201209091045.56740.hverkuil@xs4all.nl>
+In-Reply-To: <201209091045.56740.hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans/Laurent
+On 09/09/2012 10:45 AM, Hans Verkuil wrote:
+>>>>> diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+>>>>> index f33dd74..d5b1248 100644
+>>>>> --- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+>>>>> +++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+>>>>> @@ -90,11 +90,17 @@ ambiguities.</entry>
+>>>>>     	<entry>__u8</entry>
+>>>>>     	<entry><structfield>bus_info</structfield>[32]</entry>
+>>>>>     	<entry>Location of the device in the system, a
+>>>>> -NUL-terminated ASCII string. For example: "PCI Slot 4". This
+>>>>> +NUL-terminated ASCII string. For example: "PCI:0000:05:06.0". This
+>>>>>     information is intended for users, to distinguish multiple
+>>>>> -identical devices. If no such information is available the field may
+>>>>> -simply count the devices controlled by the driver, or contain the
+>>>>> -empty string (<structfield>bus_info</structfield>[0] = 0).<!-- XXX pci_dev->slot_name example --></entry>
+>>>>> +identical devices. If no such information is available the field must
+>>>>> +simply count the devices controlled by the driver ("vivi-000"). The bus_info
+>>>>> +must start with "PCI:" for PCI boards, "PCIe:" for PCI Express boards,
+>>>>> +"usb-" for USB devices, "I2C:" for i2c devices, "ISA:" for ISA devices and
+>>>>> +"parport" for parallel port devices.
+>>>>> +For devices without a bus it should start with the driver name, optionally
+>>>>
+>>>> Most, if not all, devices are on some sort of bus. What would be an example
+>>>> of a device "without a bus" ?
+>>>
+>>> Virtual devices like vivi and platform devices. Or is there some sort of
+>>> platform bus?
+>>
+>> OK, then virtual devices like vivi are indeed not on any bus. But saying so,
+>> or implicitly assuming, about platform devices would have been misleading.
+>>
+>> On ASICs and SoCs such devices are on some kind of on-chip peripheral bus,
+>> e.g. AMBA APB/AHB [1].
+> 
+> Yes, but such busses are internal to the hardware and are not enumerated by
+> the kernel. The kernel will generate unique names for e.g. usb and pci busses
+> which is used to identify the device on that bus. And that's used also when
+> generating the bus_info.
 
-On Tue, Sep 25, 2012 at 5:24 PM, Hans Verkuil <hansverk@cisco.com> wrote:
-> On Tue 25 September 2012 13:49:16 Laurent Pinchart wrote:
->> Hi Hans,
->>
->> On Tuesday 25 September 2012 13:43:36 Hans Verkuil wrote:
->> > On Tue 25 September 2012 13:16:24 Prabhakar wrote:
->> > > From: Lad, Prabhakar <prabhakar.lad@ti.com>
->> > >
->> > > Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
->> > > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
->> > > Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> > > ---
->> > >
->> > >  drivers/media/platform/davinci/vpif_capture.c |    4 +++-
->> > >  drivers/media/platform/davinci/vpif_display.c |    4 +++-
->> > >  2 files changed, 6 insertions(+), 2 deletions(-)
->> > >
->> > > diff --git a/drivers/media/platform/davinci/vpif_capture.c
->> > > b/drivers/media/platform/davinci/vpif_capture.c index 4828888..faeca98
->> > > 100644
->> > > --- a/drivers/media/platform/davinci/vpif_capture.c
->> > > +++ b/drivers/media/platform/davinci/vpif_capture.c
->> > > @@ -1630,7 +1630,9 @@ static int vpif_querycap(struct file *file, void
->> > > *priv,>
->> > >  {
->> > >
->> > >   struct vpif_capture_config *config = vpif_dev->platform_data;
->> > >
->> > > - cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
->> > > + cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
->> > > +                 V4L2_CAP_READWRITE;
->> > > + cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
->> > >
->> > >   strlcpy(cap->driver, "vpif capture", sizeof(cap->driver));
->> >
->> > This should be the real driver name which is 'vpif_capture'.
->> >
->> > >   strlcpy(cap->bus_info, "VPIF Platform", sizeof(cap->bus_info));
->> >
->> > For bus_info I would use: "platform:vpif_capture".
->> >
->> > The 'platform:' prefix is going to be the standard for platform drivers.
->>
->> What about
->>
->> snprintf(cap->driver, sizeof(cap->driver), "platform:%s", dev_name(vpif_dev));
->>
->> That would handle cases where multiple platform devices of the same type are
->> present.
->
-> Sure, that's even better. You do have to check that this gives you what you'd
-> expect (i.e., that you don't end up with "platform:platform:vpif_capture").
->
-But the driver field is max 16, should i extend it to 32 ?
+They are not enumerated but are commonly referred to as simple bus or AMBA 
+bus and mapped to system address space. See drivers/of/platform.c or 
+Documentation/devicetree/usage-model.txt. And the device names must also be 
+unique IIRC. platform_bus_type is also often used for devices that don't match 
+with any other existing bus_type. One could look at /sys/bus/platform/devices 
+for sample list of platform devices.
+
+> That said, I checked drivers/base/platform.c and there is actually a platform
+> bus that's created in the kernel for platform devices. So perhaps something
+> like platform:devname wouldn't be such a bad idea after all. I'd have to do
+> some tests with this to see how it would look.
+
+Yeah, obviously. platform:devname sounds good, bus_info would be then telling 
+something about the bus, rather than being a redundant copy of driver's name.
+
+--
 
 Regards,
---Prabhakar Lad
-
-> Regards,
->
->         Hans
+Sylwester
