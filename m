@@ -1,62 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:62616 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757834Ab2IFPYV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2012 11:24:21 -0400
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:47044 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757690Ab2IJMp0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Sep 2012 08:45:26 -0400
+MIME-Version: 1.0
+In-Reply-To: <CALF0-+U_D4ipSbN=DHSdxRvE1sju-Uq0e_mTE9=QsjLOtpLe1w@mail.gmail.com>
+References: <1347112918-7738-1-git-send-email-peter.senna@gmail.com>
+	<CALF0-+U_D4ipSbN=DHSdxRvE1sju-Uq0e_mTE9=QsjLOtpLe1w@mail.gmail.com>
+Date: Mon, 10 Sep 2012 14:45:24 +0200
+Message-ID: <CA+MoWDq12HEtA4xODddMzqEOENQDgx4MzbogFe4uprm93CvvOw@mail.gmail.com>
+Subject: Re: [PATCH v2] drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c:
+ fix error return code
 From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 14/14] drivers/media/usb/gspca/cpia1.c: fix error return code
-Date: Thu,  6 Sep 2012 17:24:01 +0200
-Message-Id: <1346945041-26676-14-git-send-email-peter.senna@gmail.com>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	kernel-janitors@vger.kernel.org, wharms@bfs.de,
+	Julia.Lawall@lip6.fr, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Senna Tschudin <peter.senna@gmail.com>
+>
+> You're replacing kmemdup for kstrdup, which is great,
+> but that's not anywhere in the commit message.
+Sorry for that.
 
-Convert a nonnegative error return code to a negative one, as returned
-elsewhere in the function.
+>
+> I'm not sure if you should re-send, but you should definitely
+> try to have better commit messages in the future!
+I'll kindly ask to ignore the V2 of this patch. I'll send other patch
+to be applied after the V1. The second patch will replace kmemdup for
+kstrdup. Please ignore the patch:
+http://patchwork.linuxtv.org/patch/14237/
 
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
+>
+> Not to mention you're doing two things in one patch, and that makes
+> very difficult to bisect.
+This is really bad thing to do in a single patch. Sorry for that too.
 
-// <smpl>
-(
-if@p1 (\(ret < 0\|ret != 0\))
- { ... return ret; }
-|
-ret@p1 = 0
-)
-... when != ret = e1
-    when != &ret
-*if(...)
-{
-  ... when != ret = e2
-      when forall
- return ret;
-}
+>
+> Thanks (and sorry for the nitpick)...
 
-// </smpl>
+Thanks!
 
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+> Ezequiel.
 
----
- drivers/media/usb/gspca/cpia1.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/gspca/cpia1.c b/drivers/media/usb/gspca/cpia1.c
-index 2499a88..b3ba47d 100644
---- a/drivers/media/usb/gspca/cpia1.c
-+++ b/drivers/media/usb/gspca/cpia1.c
-@@ -751,7 +751,7 @@ static int goto_high_power(struct gspca_dev *gspca_dev)
- 	if (signal_pending(current))
- 		return -EINTR;
- 
--	do_command(gspca_dev, CPIA_COMMAND_GetCameraStatus, 0, 0, 0, 0);
-+	ret = do_command(gspca_dev, CPIA_COMMAND_GetCameraStatus, 0, 0, 0, 0);
- 	if (ret)
- 		return ret;
- 
 
+-- 
+Peter
