@@ -1,55 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:56137 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751427Ab2IVPnH (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:47423 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757636Ab2IJPaP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Sep 2012 11:43:07 -0400
-Date: Sat, 22 Sep 2012 11:43:03 -0400
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-To: Olof Johansson <olof@lixom.net>
-Cc: Shawn Guo <shawn.guo@linaro.org>, Arnd Bergmann <arnd@arndb.de>,
-	alsa-devel@alsa-project.org,
-	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
-	linux-fbdev@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>,
-	linux-mtd@lists.infradead.org, linux-i2c@vger.kernel.org,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
-	Chris Ball <cjb@laptop.org>, linux-media@vger.kernel.org,
-	linux-watchdog@vger.kernel.org, rtc-linux@googlegroups.com,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <rob.herring@calxeda.com>,
-	linux-arm-kernel@lists.infradead.org,
-	Vinod Koul <vinod.koul@linux.intel.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-usb@vger.kernel.org, linux-mmc@vger.kernel.org,
-	Wolfram Sang <w.sang@pengutronix.de>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [alsa-devel] [PATCH v2 00/34] i.MX multi-platform support
-Message-ID: <20120922154303.GO4495@opensource.wolfsonmicro.com>
-References: <1348123547-31082-1-git-send-email-shawn.guo@linaro.org>
- <201209200739.34899.arnd@arndb.de>
- <20120920145342.GI2450@S2101-09.ap.freescale.net>
- <201209201556.57171.arnd@arndb.de>
- <20120921080123.GM2450@S2101-09.ap.freescale.net>
- <CAOesGMi6CbvFikycJVdE8W-DxLD3W7+CyScz+YT103dxR31U9g@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOesGMi6CbvFikycJVdE8W-DxLD3W7+CyScz+YT103dxR31U9g@mail.gmail.com>
+	Mon, 10 Sep 2012 11:30:15 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v4 12/16] media: coda: add byte size slice limit control
+Date: Mon, 10 Sep 2012 17:29:56 +0200
+Message-Id: <1347291000-340-13-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
+References: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 21, 2012 at 01:26:43AM -0700, Olof Johansson wrote:
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda.c |   29 +++++++++++++++++++++++------
+ 1 file changed, 23 insertions(+), 6 deletions(-)
 
-> I'll take a look at merging it tomorrow after I've dealt with smp_ops;
-> if it looks reasonably conflict-free I'll pull it in. We need the
-> sound dependency sorted out (or agreed upon) first though.
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 81e3401..863b96a 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -151,6 +151,7 @@ struct coda_params {
+ 	enum v4l2_mpeg_video_multi_slice_mode slice_mode;
+ 	u32			framerate;
+ 	u16			bitrate;
++	u32			slice_max_bits;
+ 	u32			slice_max_mb;
+ };
+ 
+@@ -1056,12 +1057,23 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+ 		return -EINVAL;
+ 	}
+ 
+-	value  = (ctx->params.slice_max_mb & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
+-	value |= (1 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
+-	if (ctx->params.slice_mode == V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB)
++	switch (ctx->params.slice_mode) {
++	case V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE:
++		value = 0;
++		break;
++	case V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB:
++		value  = (ctx->params.slice_max_mb & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
++		value |= (1 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
++		value |=  1 & CODA_SLICING_MODE_MASK;
++		break;
++	case V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES:
++		value  = (ctx->params.slice_max_bits & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
++		value |= (0 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
+ 		value |=  1 & CODA_SLICING_MODE_MASK;
++		break;
++	}
+ 	coda_write(dev, value, CODA_CMD_ENC_SEQ_SLICE_MODE);
+-	value  =  ctx->params.gop_size & CODA_GOP_SIZE_MASK;
++	value = ctx->params.gop_size & CODA_GOP_SIZE_MASK;
+ 	coda_write(dev, value, CODA_CMD_ENC_SEQ_GOP_SIZE);
+ 
+ 	if (ctx->params.bitrate) {
+@@ -1308,6 +1320,9 @@ static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB:
+ 		ctx->params.slice_max_mb = ctrl->val;
+ 		break;
++	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES:
++		ctx->params.slice_max_bits = ctrl->val * 8;
++		break;
+ 	case V4L2_CID_MPEG_VIDEO_HEADER_MODE:
+ 		break;
+ 	default:
+@@ -1346,10 +1361,12 @@ static int coda_ctrls_setup(struct coda_ctx *ctx)
+ 		V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP, 1, 31, 1, 2);
+ 	v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE,
+-		V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB, 0,
+-		V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB);
++		V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES, 0x7,
++		V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE);
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB, 1, 0x3fffffff, 1, 1);
++	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
++		V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES, 1, 0x3fffffff, 1, 500);
+ 	v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_HEADER_MODE,
+ 		V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME,
+-- 
+1.7.10.4
 
-I guess in the light of the rest of the thread it doesn't much matter
-for this merge window but I just pushed:
-
- git://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git tags/asoc-3.7
-
-which is signed so can happily be merged elsewhere.
