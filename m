@@ -1,112 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:47851 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753358Ab2IZJsT (ORCPT
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:62058 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932152Ab2IJUcy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Sep 2012 05:48:19 -0400
-Received: by mail-wi0-f178.google.com with SMTP id hr7so481354wib.1
-        for <linux-media@vger.kernel.org>; Wed, 26 Sep 2012 02:48:19 -0700 (PDT)
-From: Javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: corbet@lwn.net, mchehab@infradead.org, hverkuil@xs4all.nl,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH 4/5] media: ov7670: add possibility to bypass pll for ov7675.
-Date: Wed, 26 Sep 2012 11:47:56 +0200
-Message-Id: <1348652877-25816-5-git-send-email-javier.martin@vista-silicon.com>
-In-Reply-To: <1348652877-25816-1-git-send-email-javier.martin@vista-silicon.com>
-References: <1348652877-25816-1-git-send-email-javier.martin@vista-silicon.com>
+	Mon, 10 Sep 2012 16:32:54 -0400
+Received: by eekc1 with SMTP id c1so1494297eek.19
+        for <linux-media@vger.kernel.org>; Mon, 10 Sep 2012 13:32:52 -0700 (PDT)
+Message-ID: <504E4E83.4050706@googlemail.com>
+Date: Mon, 10 Sep 2012 22:33:07 +0200
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Hans de Goede <hdegoede@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/3] libv4lconvert: pac7302-devices: remove unneeded flag
+ V4LCONTROL_WANTS_WB
+References: <1347215768-9843-1-git-send-email-fschaefer.oss@googlemail.com> <1347215768-9843-2-git-send-email-fschaefer.oss@googlemail.com> <504D08F8.3070104@redhat.com> <504E0A13.2050305@googlemail.com> <504E3275.8010806@redhat.com>
+In-Reply-To: <504E3275.8010806@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Am 10.09.2012 20:33, schrieb Hans de Goede:
+> Hi,
+>
+> On 09/10/2012 05:41 PM, Frank Schäfer wrote:
+>> Am 09.09.2012 23:24, schrieb Hans de Goede:
+>>> Hi,
+>>>
+>>> On 09/09/2012 08:36 PM, Frank Schäfer wrote:
+>>>> The gspca_pac7302 driver already provides this control.
+>>>>
+>>>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+>>>> ---
+>>>>    lib/libv4lconvert/control/libv4lcontrol.c |   12 ++++--------
+>>>>    1 files changed, 4 insertions(+), 8 deletions(-)
+>>>>
+>>>> diff --git a/lib/libv4lconvert/control/libv4lcontrol.c
+>>>> b/lib/libv4lconvert/control/libv4lcontrol.c
+>>>> index 1272256..3d7a816 100644
+>>>> --- a/lib/libv4lconvert/control/libv4lcontrol.c
+>>>> +++ b/lib/libv4lconvert/control/libv4lcontrol.c
+>>>> @@ -202,14 +202,10 @@ static const struct v4lcontrol_flags_info
+>>>> v4lcontrol_flags[] = {
+>>>>        { 0x145f, 0x013a, 0,    NULL, NULL, V4LCONTROL_WANTS_WB,
+>>>> 1500 },
+>>>>        { 0x2001, 0xf115, 0,    NULL, NULL, V4LCONTROL_WANTS_WB,
+>>>> 1500 },
+>>>>        /* Pac7302 based devices */
+>>>> -    { 0x093a, 0x2620, 0x0f, NULL, NULL,
+>>>> -        V4LCONTROL_ROTATED_90_JPEG | V4LCONTROL_WANTS_WB, 1500 },
+>>>> -    { 0x06f8, 0x3009, 0,    NULL, NULL,
+>>>> -        V4LCONTROL_ROTATED_90_JPEG | V4LCONTROL_WANTS_WB, 1500 },
+>>>> -    { 0x06f8, 0x301b, 0,    NULL, NULL,
+>>>> -        V4LCONTROL_ROTATED_90_JPEG | V4LCONTROL_WANTS_WB, 1500 },
+>>>> -    { 0x145f, 0x013c, 0,    NULL, NULL,
+>>>> -        V4LCONTROL_ROTATED_90_JPEG | V4LCONTROL_WANTS_WB, 1500 },
+>>>> +    { 0x093a, 0x2620, 0x0f, NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
+>>>> +    { 0x06f8, 0x3009, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
+>>>> +    { 0x06f8, 0x301b, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
+>>>> +    { 0x145f, 0x013c, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
+>>>>        /* Pac7311 based devices */
+>>>>        { 0x093a, 0x2600, 0x0f, NULL, NULL, V4LCONTROL_WANTS_WB },
+>>>>        /* sq905 devices */
+>>>>
+>>>
+>>> WANTS_WB does not add a whitebalance control, which these cameras
+>>> indeed
+>>> already have, it adds a (software) autowhitebalance control, which
+>>> enables
+>>> libv4lconvert doing software whitebalance correction. Although your
+>>> kernel patch for the pac7302 driver to pick a better default
+>>> whitebalance
+>>> value, probably helps a lot to get the colors less screwed up, in
+>>> the end
+>>> we still need some sort of awb to adjust to changing lightning
+>>> conditions,
+>>> that is what this flag adds, as the pac7302 driver lacks awb.
+>>
+>> Ok, so WANTS_WB is actually WANTS_AUTOWB. ;)
+>> But... IIRC... the software AWB control is always there, even without
+>> this flag !?
+>> Or is it just about switching AWB on by default ?
+>
+> Correct, also note that the awb control will only show up for devices
+> which
+> have non standard formats, since those need to always go through
+> libv4lconvert
+> anyways, it does not get added to standard cams unless specifically
+> enabled
+> through a quirk list entry.
 
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
----
- drivers/media/i2c/ov7670.c |   24 ++++++++++++++++++++++--
- include/media/ov7670.h     |    1 +
- 2 files changed, 23 insertions(+), 2 deletions(-)
+Good to know that, thanks !
 
-diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-index 175fbfc..54fb535 100644
---- a/drivers/media/i2c/ov7670.c
-+++ b/drivers/media/i2c/ov7670.c
-@@ -210,6 +210,7 @@ struct ov7670_info {
- 	int clock_speed;		/* External clock speed (MHz) */
- 	u8 clkrc;			/* Clock divider value */
- 	bool use_smbus;			/* Use smbus I/O instead of I2C */
-+	bool pll_bypass;
- 	enum ov7670_model model;
- };
- 
-@@ -778,7 +779,12 @@ static void ov7670_get_framerate(struct v4l2_subdev *sd,
- {
- 	struct ov7670_info *info = to_state(sd);
- 	u32 clkrc = info->clkrc;
--	u32 pll_factor = PLL_FACTOR;
-+	int pll_factor;
-+
-+	if (info->pll_bypass)
-+		pll_factor = 1;
-+	else
-+		pll_factor = PLL_FACTOR;
- 
- 	clkrc++;
- 	if (info->fmt->mbus_code == V4L2_MBUS_FMT_SBGGR8_1X8)
-@@ -794,7 +800,7 @@ static int ov7670_set_framerate(struct v4l2_subdev *sd,
- {
- 	struct ov7670_info *info = to_state(sd);
- 	u32 clkrc;
--	u32 pll_factor = PLL_FACTOR;
-+	int pll_factor;
- 	int ret;
- 
- 	/*
-@@ -804,6 +810,16 @@ static int ov7670_set_framerate(struct v4l2_subdev *sd,
- 	 * pixclk = clock_speed / (clkrc + 1) * PLLfactor
- 	 *
- 	 */
-+	if (info->pll_bypass) {
-+		pll_factor = 1;
-+		ret = ov7670_write(sd, REG_DBLV, DBLV_BYPASS);
-+	} else {
-+		pll_factor = PLL_FACTOR;
-+		ret = ov7670_write(sd, REG_DBLV, DBLV_X4);
-+	}
-+	if (ret < 0)
-+		return ret;
-+
- 	if (tpf->numerator == 0 || tpf->denominator == 0) {
- 		clkrc = 0;
- 	} else {
-@@ -831,6 +847,7 @@ static int ov7670_set_framerate(struct v4l2_subdev *sd,
- 	ret = ov7670_write(sd, REG_CLKRC, info->clkrc);
- 	if (ret < 0)
- 		return ret;
-+
- 	return ov7670_write(sd, REG_DBLV, DBLV_X4);
- }
- 
-@@ -1689,6 +1706,9 @@ static int ov7670_probe(struct i2c_client *client,
- 
- 		if (config->clock_speed)
- 			info->clock_speed = config->clock_speed;
-+
-+		if (config->pll_bypass && id->driver_data != MODEL_OV7670)
-+			info->pll_bypass = true;
- 	}
- 
- 	/* Make sure it's an ov7670 */
-diff --git a/include/media/ov7670.h b/include/media/ov7670.h
-index b133bc1..a68c8bb 100644
---- a/include/media/ov7670.h
-+++ b/include/media/ov7670.h
-@@ -15,6 +15,7 @@ struct ov7670_config {
- 	int min_height;			/* Filter out smaller sizes */
- 	int clock_speed;		/* External clock speed (MHz) */
- 	bool use_smbus;			/* Use smbus I/O instead of I2C */
-+	bool pll_bypass;		/* Choose whether to bypass the PLL */
- };
- 
- #endif
--- 
-1.7.9.5
+>
+>> And if AWB is on, the WB control should be disabled, right ?
+>
+> No, the software AWB works by applying software rgb gains, so the
+> hardware
+> control is still useful, as the better the color balance of the input,
+> the better the end-result will be.
+
+Hmm... auto-whitebalance should compensate the setting made with the
+manual hardware controlled whitebalance.
+But I guess they are working too differenty.
+
+Regards,
+Frank
+
+>
+> Regards,
+>
+> Hans
 
