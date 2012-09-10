@@ -1,114 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47206 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751138Ab2I0LSm convert rfc822-to-8bit (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:47445 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757652Ab2IJPaR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Sep 2012 07:18:42 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Enric =?ISO-8859-1?Q?Balletb=F2?= i Serra <eballetbo@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: omap3isp: wrong image after resizer with mt9v034 sensor
-Date: Thu, 27 Sep 2012 13:19:20 +0200
-Message-ID: <2096827.TE4L9M8af3@avalon>
-In-Reply-To: <CAFqH_51XXMyN0W5tUJiUr9MUrXe1KUZT5LuD-95M7xCaFT5Kgg@mail.gmail.com>
-References: <CAFqH_53EY7BcMjn+fy=KfAhSU9Ut1pcLUyrmu2kiHznrBUB2XQ@mail.gmail.com> <4942603.aHqLq5MBAn@avalon> <CAFqH_51XXMyN0W5tUJiUr9MUrXe1KUZT5LuD-95M7xCaFT5Kgg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+	Mon, 10 Sep 2012 11:30:17 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v4 16/16] media: coda: support >1024 px height on CODA7, set max frame size to 1080p
+Date: Mon, 10 Sep 2012 17:30:00 +0200
+Message-Id: <1347291000-340-17-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
+References: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Enric,
+Increases the maximum encoded frame buffer size to 1 MiB.
 
-On Wednesday 26 September 2012 16:15:35 Enric Balletbò i Serra wrote:
-> 2012/9/26 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> > On Wednesday 26 September 2012 09:57:53 Enric Balletbò i Serra wrote:
-> > 
-> > [snip]
-> > 
-> >> You had reason. Checking the data lines of the camera bus with an
-> >> oscilloscope I see I had a problem, exactly in D8 /D9 data lines.
-> > 
-> > I'm curious, how have you fixed that ?
-> 
-> The board had a pull-down 4k7 resistor which I removed in these lines
-> (D8/D9). The board is prepared to accept sensors from 8 to 12 bits,
-> lines from D8 to D12 have a pull-down resistor to tie down the line by
-> default.
-> 
-> With the oscilloscope I saw that D8/D9 had problems to go to high
-> level like you said, then I checked the schematic and I saw these
-> resistors.
-> 
-> >> Now I can capture images but the color is still wrong, see the following
-> >> image captured with pipeline SENSOR -> CCDC OUTPUT
-> >> 
-> >>     http://downloads.isee.biz/pub/files/patterns/img-000001.pnm
-> >> 
-> >> Now the image was converted using :
-> >>     ./raw2rgbpnm -s 752x480 -f SGRBG10 img-000001.bin img-000001.pnm
-> >> 
-> >> And the raw data can be found here:
-> >>     http://downloads.isee.biz/pub/files/patterns/img-000001.bin
-> >> 
-> >> Any idea where I can look ? Thanks.
-> > 
-> > Your sensors produces BGGR data if I'm not mistaken, not GRBG. raw2rgbpnm
-> > doesn't support BGGR (yet), but the OMAP3 ISP preview engine can convert
-> > that to YUV since v3.5. Just make your sensor driver expose the right
-> > media bus format and configure the pipeline accordingly.
-> 
-> The datasheet (p.10,11) says that the Pixel Color Pattern is as follows.
-> 
-> <------------------------ direction
-> n  4    3    2    1
-> .. GB GB GB GB
-> .. RG RG RG RG
-> 
-> So seems you're right, if the first byte is on the right the sensor
-> produces BGGR. But for some reason the mt9v032 driver uses GRBG data.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda.c |   11 +++++------
+ drivers/media/platform/coda.h |    3 ++-
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-You can change the Bayer pattern by moving the crop rectangle. That how the 
-mt9v032 driver ensures a GRBG pattern even though the first active pixel in 
-the sensor array is a blue one. As the MT9V034 first active pixel is located 
-at different coordinates you will have to modify the crop rectangle 
-computation logic to get GRBG.
-
-> Maybe is related with following lines which writes register 0x0D Read
-> Mode (p.26,27) and presumably flips row or column bytes (not sure
-> about this I need to check)
-> 
-> 334         /* Configure the window size and row/column bin */
-> 335         hratio = DIV_ROUND_CLOSEST(crop->width, format->width);
-> 336         vratio = DIV_ROUND_CLOSEST(crop->height, format->height);
-> 337
-> 338         ret = mt9v032_write(client, MT9V032_READ_MODE,
-> 339                     (hratio - 1) <<
-> MT9V032_READ_MODE_ROW_BIN_SHIFT |
-> 340                     (vratio - 1) << MT9V032_READ_MODE_COLUMN_BIN_SHIFT);
-> 
-> Nonetheless, I changed the driver to configure for BGGR pattern. Using
-> the Sensor->CCDC->Preview->Resizer pipeline I captured the data with
-> yavta and converted using raw2rgbpnm program.
-> 
->     ./raw2rgbpnm -s 752x480 -f UYVY img-000001.uyvy img-000001.pnm
-> 
-> and the result is
-> 
->     http://downloads.isee.biz/pub/files/patterns/img-000002.pnm
->     http://downloads.isee.biz/pub/files/patterns/img-000002.bin
-> 
-> The image looks better than older, not perfect, but better. The image
-> is only a bit yellowish. Could be this a hardware issue ? We are close
-> to ...
-
-It's like a white balance issue. The OMAP3 ISP hardware doesn't perform 
-automatic white balance, you will need to implement an AWB algorithm in 
-software. You can have a look at the omap3-isp-live project for sample code 
-(http://git.ideasonboard.org/omap3-isp-live.git).
-
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 4c3e100..defab64 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -47,16 +47,14 @@
+ 
+ #define CODA_MAX_FRAMEBUFFERS	2
+ 
+-#define MAX_W		720
+-#define MAX_H		576
+-#define CODA_MAX_FRAME_SIZE	0x90000
++#define MAX_W		1920
++#define MAX_H		1080
++#define CODA_MAX_FRAME_SIZE	0x100000
+ #define FMO_SLICE_SAVE_BUF_SIZE         (32)
+ #define CODA_DEFAULT_GAMMA		4096
+ 
+ #define MIN_W 176
+ #define MIN_H 144
+-#define MAX_W 720
+-#define MAX_H 576
+ 
+ #define S_ALIGN		1 /* multiple of 2 */
+ #define W_ALIGN		1 /* multiple of 2 */
+@@ -1016,11 +1014,12 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+ 	switch (dev->devtype->product) {
+ 	case CODA_DX6:
+ 		value = (q_data_src->width & CODADX6_PICWIDTH_MASK) << CODADX6_PICWIDTH_OFFSET;
++		value |= (q_data_src->height & CODADX6_PICHEIGHT_MASK) << CODA_PICHEIGHT_OFFSET;
+ 		break;
+ 	default:
+ 		value = (q_data_src->width & CODA7_PICWIDTH_MASK) << CODA7_PICWIDTH_OFFSET;
++		value |= (q_data_src->height & CODA7_PICHEIGHT_MASK) << CODA_PICHEIGHT_OFFSET;
+ 	}
+-	value |= (q_data_src->height & CODA_PICHEIGHT_MASK) << CODA_PICHEIGHT_OFFSET;
+ 	coda_write(dev, value, CODA_CMD_ENC_SEQ_SRC_SIZE);
+ 	coda_write(dev, ctx->params.framerate,
+ 		   CODA_CMD_ENC_SEQ_SRC_F_RATE);
+diff --git a/drivers/media/platform/coda.h b/drivers/media/platform/coda.h
+index f3f5e43..60338c3 100644
+--- a/drivers/media/platform/coda.h
++++ b/drivers/media/platform/coda.h
+@@ -117,7 +117,8 @@
+ #define		CODADX6_PICWIDTH_OFFSET				10
+ #define		CODADX6_PICWIDTH_MASK				0x3ff
+ #define		CODA_PICHEIGHT_OFFSET				0
+-#define		CODA_PICHEIGHT_MASK				0x3ff
++#define		CODADX6_PICHEIGHT_MASK				0x3ff
++#define		CODA7_PICHEIGHT_MASK				0xffff
+ #define CODA_CMD_ENC_SEQ_SRC_F_RATE				0x194
+ #define CODA_CMD_ENC_SEQ_MP4_PARA				0x198
+ #define		CODA_MP4PARAM_VERID_OFFSET			6
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
