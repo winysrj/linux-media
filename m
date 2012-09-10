@@ -1,55 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from p600.netmaster.dk ([217.157.54.18]:45850 "EHLO
-	p600.netmaster.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750974Ab2ILPmt (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:47441 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757654Ab2IJPaQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Sep 2012 11:42:49 -0400
-Message-ID: <5050AC4A.8070003@netmaster.dk>
-Date: Wed, 12 Sep 2012 17:37:46 +0200
-From: Thomas Seilund <tps@netmaster.dk>
-MIME-Version: 1.0
+	Mon, 10 Sep 2012 11:30:16 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Subject: hdpvr and HD PVR 2 Gaming Edition from Haoppauge
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v4 15/16] media: coda: set up buffers to be sized as negotiated with s_fmt
+Date: Mon, 10 Sep 2012 17:29:59 +0200
+Message-Id: <1347291000-340-16-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
+References: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+This fixes a failure in vb2_qbuf in user pointer mode where
+__qbuf_userptr checks if the buffer queued by userspace is large
+enough. The failure would happen if coda_queue_setup was called
+with empty fmt (and thus set the expected buffer size to the maximum
+resolution), and userspace queues buffers of smaller size -
+corresponding to the negotiated dimensions - were queued.
+Explicitly setting sizeimage to the value negotiated via s_fmt
+fixes the issue.
 
-I just bought the HD PVR 2 Gaming Edition from Hauppauge.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda.c |   13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
 
-It there any change this device will be supported by the hdpvr kernel 
-driver. (Or any other driver for that matter!)
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 863b96a..4c3e100 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -813,18 +813,11 @@ static int coda_queue_setup(struct vb2_queue *vq,
+ 				unsigned int sizes[], void *alloc_ctxs[])
+ {
+ 	struct coda_ctx *ctx = vb2_get_drv_priv(vq);
++	struct coda_q_data *q_data;
+ 	unsigned int size;
+ 
+-	if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+-		if (fmt)
+-			size = fmt->fmt.pix.width *
+-				fmt->fmt.pix.height * 3 / 2;
+-		else
+-			size = MAX_W *
+-				MAX_H * 3 / 2;
+-	} else {
+-		size = CODA_MAX_FRAME_SIZE;
+-	}
++	q_data = get_q_data(ctx, vq->type);
++	size = q_data->sizeimage;
+ 
+ 	*nplanes = 1;
+ 	sizes[0] = size;
+-- 
+1.7.10.4
 
-When I insert the device only the usb module reacts. The hdpvr module is 
-not loaded.
-
-Then I updated the product id in the hdpvr module and now the hdpvr 
-driver is loaded. but I get device init failed
-
-I added this code:
-
-- I patched hdpvr.h and added #define HD_PVR_PRODUCT_ID5      0xe502
-- I patched hdpvr-core.c and added { USB_DEVICE(HD_PVR_VENDOR_ID, 
-HD_PVR_PRODUCT_ID5) }
-
-Now the driver sees the device but I get this in the dmesg when I attach 
-the device:
-
-[  201.311799] usb 2-1.2: new high-speed USB device number 5 using ehci_hcd
-[  201.436217] hdpvr 2-1.2:1.0: unexpected answer of status request, len 
--32
-[  201.436226] hdpvr 2-1.2:1.0: device init failed
-[  201.436308] hdpvr: probe of 2-1.2:1.0 failed with error -12
-[  201.436353] usbcore: registered new interface driver hdpvr
-
-I looked closer at the driver code but this is way over my head!
-
-I can make the device work on Windows.
-
-Any help would be greatly appreciated.
-
-Thanks
-
-Thomas S
