@@ -1,52 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:57020 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752559Ab2ISWq7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Sep 2012 18:46:59 -0400
-In-Reply-To: <CAGoCfizA_wEcJdcXHfN1xA4MTMUJy4vCX4YpN8vpei9=wFZg-w@mail.gmail.com>
-References: <1348080243-3818-1-git-send-email-oliver+list@schinagl.nl> <CAGoCfizA_wEcJdcXHfN1xA4MTMUJy4vCX4YpN8vpei9=wFZg-w@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH] Support for Asus MyCinema U3100Mini Plus
-From: Oliver Schinagl <oliver+list@schinagl.nl>
-Date: Thu, 20 Sep 2012 00:47:49 +0200
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: linux-media@vger.kernel.org
-Message-ID: <41a0de76-8a71-4c8e-aedd-cdc731c63145@email.android.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:47438 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757539Ab2IJPaQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Sep 2012 11:30:16 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v4 14/16] ARM i.MX5: Add CODA7 to device tree for i.MX51 and i.MX53
+Date: Mon, 10 Sep 2012 17:29:58 +0200
+Message-Id: <1347291000-340-15-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
+References: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ arch/arm/boot/dts/imx51.dtsi |    6 ++++++
+ arch/arm/boot/dts/imx53.dtsi |    6 ++++++
+ 2 files changed, 12 insertions(+)
 
-
-Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
-
->On Wed, Sep 19, 2012 at 2:44 PM,  <oliver@schinagl.nl> wrote:
->> From: Oliver Schinagl <oliver@schinagl.nl>
->>
->> This is initial support for the Asus MyCinema U3100Mini Plus. The
->driver
->> in its current form gets detected and loads properly.
->>
->> Scanning using dvbscan works without problems, Locking onto a channel
->> using tzap also works fine. Only playback using tzap -r + mplayer was
->> tested and was fully functional.
->
->Hi Oliver,
->
->The previous thread suggested that this driver didn't work with
->dvbv5-scan and w_scan.  Is that still the case?  If so, do we really
->want a "half working" driver upstream?  Seems like this is more likely
->to cause support headaches than the device not being supported at all
->(since users will "think" it's supported but it's actually broken in
->some pretty common use cases).
->
->Or perhaps I'm mistaken and the issues have been addressed and now it
->works with all the common applications.
-I've only tested with dvbscan, which worked fine. So initial problems apear to be solved. After working in antti's comments I will also test some more tools, but don't forsee any other issues.
->
->Devin
-
+diff --git a/arch/arm/boot/dts/imx51.dtsi b/arch/arm/boot/dts/imx51.dtsi
+index aba28dc..8f38d83 100644
+--- a/arch/arm/boot/dts/imx51.dtsi
++++ b/arch/arm/boot/dts/imx51.dtsi
+@@ -278,6 +278,12 @@
+ 				interrupts = <87>;
+ 				status = "disabled";
+ 			};
++
++			vpu@83ff4000 {
++				compatible = "fsl,imx51-vpu";
++				reg = <0x83ff4000 0x1000>;
++				interrupts = <9>;
++			};
+ 		};
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/imx53.dtsi b/arch/arm/boot/dts/imx53.dtsi
+index cd37165..4cf59e5 100644
+--- a/arch/arm/boot/dts/imx53.dtsi
++++ b/arch/arm/boot/dts/imx53.dtsi
+@@ -336,6 +336,12 @@
+ 				interrupts = <87>;
+ 				status = "disabled";
+ 			};
++
++			vpu@63ff4000 {
++				compatible = "fsl,imx53-vpu";
++				reg = <0x63ff4000 0x1000>;
++				interrupts = <9>;
++			};
+ 		};
+ 	};
+ };
 -- 
-Sent from my Android phone with K-9 Mail. Please excuse my brevity.
+1.7.10.4
+
