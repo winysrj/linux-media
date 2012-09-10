@@ -1,151 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:34555 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752234Ab2IMKQU (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:58584 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751077Ab2IJPgx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 06:16:20 -0400
-Received: by qaas11 with SMTP id s11so2953579qaa.19
-        for <linux-media@vger.kernel.org>; Thu, 13 Sep 2012 03:16:20 -0700 (PDT)
+	Mon, 10 Sep 2012 11:36:53 -0400
+Received: by eaac11 with SMTP id c11so973790eaa.19
+        for <linux-media@vger.kernel.org>; Mon, 10 Sep 2012 08:36:52 -0700 (PDT)
+Message-ID: <504E0916.8010204@googlemail.com>
+Date: Mon, 10 Sep 2012 17:36:54 +0200
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <5050CF7B.9040204@gmail.com>
-References: <1347449164-6306-1-git-send-email-sangwook.lee@linaro.org>
-	<5050CF7B.9040204@gmail.com>
-Date: Thu, 13 Sep 2012 11:16:19 +0100
-Message-ID: <CADPsn1aoj3u+PYie+GSxV7GJLYagxz7yjv_nwTfzgqYGbWbsDA@mail.gmail.com>
-Subject: Re: [RFC PATCH v7] media: add v4l2 subdev driver for S5K4ECGX sensor
-From: Sangwook Lee <sangwook.lee@linaro.org>
-To: Francesco Lavra <francescolavra.fl@gmail.com>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com,
-	hans.verkuil@cisco.com, linaro-dev@lists.linaro.org,
-	patches@linaro.org, Scott Bambrough <scott.bambrough@linaro.org>,
-	Homin Lee <suapapa@insignal.co.kr>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Hans de Goede <hdegoede@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: pac7302-webcams and libv4lconvert interaction
+References: <5048BDA2.7090203@googlemail.com> <504D080C.8020608@redhat.com>
+In-Reply-To: <504D080C.8020608@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Francesco
+Hi Hans,
 
-On 12 September 2012 19:07, Francesco Lavra <francescolavra.fl@gmail.com> wrote:
-> Hi Sangwook,
-> two remarks from my review on September 9th haven't been addressed.
+Am 09.09.2012 23:20, schrieb Hans de Goede:
+> Hi,
+>
+> On 09/06/2012 05:13 PM, Frank Schäfer wrote:
+>>
+>> Hi,
+>>
+>> I'm currently looking into the gspca_pac7302-driver and how it interacts
+>> with libv4lconvert.
+>> This is how it currently works
+>> - driver announces v4l2_pix_format 640x480 (width x height)
+>> - the frames (jpeg) passed to userspace are encoded as 480x640 and this
+>> complies with the jpeg-header we generate
+>> - libv4lconvert checks width/height in the jpeg-header and compares them
+>> with the image format announced by the kernel:
+>>     a) values are the same:
+>>        1) V4LCONTROL_ROTATED_90_JPEG is NOT set for the device (standard
+>> case):
+>>            => everything is fine, image is decoded
+>>        2) V4LCONTROL_ROTATED_90_JPEG is set for the device:
+>>            => libv4lconvert bails out with -EIO displaying the error
+>> message "unexpected width / height in JPEG header: expected: 640x480,
+>> header: 480x640"
+>>     b) values are different:
+>>        1) V4LCONTROL_ROTATED_90_JPEG is NOT set:
+>>            => libv4lconvert bails out with -EIO displaying the error
+>> message "unexpected width / height in JPEG header: expected: 640x480,
+>> header: 480x640"
+>>        2) V4LCONTROL_ROTATED_90_JPEG is set:
+>>            => image is decoded and rotated correctly
+>>
+>>
+>> Thinking about this for some minutes:
+>>
+>> 1) shouldn't the kernel always announce the real image format (size) of
+>> the data it passes to userspace ?
+>
+> It is passing the real size, the data is just in a vary funky format
+> which
+> needs rotation as part of its "decoding" / decompression.
 
-Thanks for the review.
-I missed those, please let me correct them and send patch again.
+It is first decoded, then rotated, right ?
+Are the frames encoded as 480x640 (that's what the header says) or 640x480 ?
+If the header is wrong, everything is fine. Otherwise we are passing the
+size we finally get AFTER decoding and rotation to userspace, which I
+think would be inconsistent.
 
-Regards
-Sangwook
+>
+>> Current behavior seems inconsistent to me...
+>> Announcing the actual image size allows applications which trust the API
+>> value more than the value in the frame header to decode the image
+>> correctly without using libv4lconvert (although the image would still be
+>> rotated).
+>
+> That assumes that the app would know how to decompress the data which it
+> will not know, these cams do not generate standard JPEG data,
+> libv4lconvert's
+> decompression code is the only decompression code for this fsck-ed up
+> JPEG-s,
+> short of the windows drivers code.
+
+Ok, that's true.
+Because of the special format, applications are forced to use
+libv4lconvert, so there is CURRENTLY no need to think about the kernel
+<-> userspace interface.
+But that might change in the future...
+
+>
+>> 2) shouldn't libv4lconvert always rotate the image if
+>> V4LCONTROL_ROTATED_90_JPEG is set for a device ?
+>> It seems like a2) is a bug, because the expected size should be 640x480,
+>> too.
+>
+> rotating by 90 degrees also swaps the width and height, which are usually
+> not the same, so rotating an image which starts at 640x480 will yield
+> a final image of 480x640 which will not be what the app expects.
+
+Well, I can't see why 480x640 should be an invalid format !? Depends on
+the hardware.
+Applications really shouldn't rely on width beeing always larger then
+height. Otherwise I would call them buggy.
+
+Regards,
+Frank
 
 
-> I believe those remarks are correct, but please let me know if I'm
-> missing something.
-> See below.
 >
-> On 09/12/2012 01:26 PM, Sangwook Lee wrote:
->> +static int s5k4ecgx_s_power(struct v4l2_subdev *sd, int on)
->> +{
->> +     struct s5k4ecgx *priv = to_s5k4ecgx(sd);
->> +     int ret;
->> +
->> +     v4l2_dbg(1, debug, sd, "Switching %s\n", on ? "on" : "off");
->> +
->> +     if (on) {
->> +             ret = __s5k4ecgx_power_on(priv);
->> +             if (ret < 0)
->> +                     return ret;
->> +             /* Time to stabilize sensor */
->> +             msleep(100);
->> +             ret = s5k4ecgx_init_sensor(sd);
->> +             if (ret < 0)
->> +                     __s5k4ecgx_power_off(priv);
->> +             else
->> +                     priv->set_params = 1;
->> +     } else {
->> +             ret = __s5k4ecgx_power_off(priv);
->> +     }
->> +
->> +     return 0;
+>> 3) because all pac7302 devices are sending rotated image data, we should
+>> add them ALL to libv4lconvert. Currently only 4 of the 14 devices are on
+>> the list.
+>> Do you want me to send a patch ?
 >
-> return ret;
+> I see you've send a patch in the mean time, I'll reply in more detail to
+> this to the patch mail.
 >
->> +static int s5k4ecgx_probe(struct i2c_client *client,
->> +                       const struct i2c_device_id *id)
->> +{
->> +     int     ret, i;
->> +     struct v4l2_subdev *sd;
->> +     struct s5k4ecgx *priv;
->> +     struct s5k4ecgx_platform_data *pdata = client->dev.platform_data;
->> +
->> +     if (pdata == NULL) {
->> +             dev_err(&client->dev, "platform data is missing!\n");
->> +             return -EINVAL;
->> +     }
->> +     priv = devm_kzalloc(&client->dev, sizeof(struct s5k4ecgx), GFP_KERNEL);
->> +     if (!priv)
->> +             return -ENOMEM;
->> +
->> +     mutex_init(&priv->lock);
->> +     priv->streaming = 0;
->> +
->> +     sd = &priv->sd;
->> +     /* Registering subdev */
->> +     v4l2_i2c_subdev_init(sd, client, &s5k4ecgx_ops);
->> +     strlcpy(sd->name, S5K4ECGX_DRIVER_NAME, sizeof(sd->name));
->> +
->> +     sd->internal_ops = &s5k4ecgx_subdev_internal_ops;
->> +     /* Support v4l2 sub-device user space API */
->> +     sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
->> +
->> +     priv->pad.flags = MEDIA_PAD_FL_SOURCE;
->> +     sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
->> +     ret = media_entity_init(&sd->entity, 1, &priv->pad, 0);
->> +     if (ret)
->> +             return ret;
->> +
->> +     ret = s5k4ecgx_config_gpios(priv, pdata);
->> +     if (ret) {
->> +             dev_err(&client->dev, "Failed to set gpios\n");
->> +             goto out_err1;
->> +     }
->> +     for (i = 0; i < S5K4ECGX_NUM_SUPPLIES; i++)
->> +             priv->supplies[i].supply = s5k4ecgx_supply_names[i];
->> +
->> +     ret = devm_regulator_bulk_get(&client->dev, S5K4ECGX_NUM_SUPPLIES,
->> +                              priv->supplies);
->> +     if (ret) {
->> +             dev_err(&client->dev, "Failed to get regulators\n");
->> +             goto out_err2;
->> +     }
->> +     ret = s5k4ecgx_init_v4l2_ctrls(priv);
->> +     if (ret)
->> +             goto out_err2;
->> +
->> +     priv->curr_pixfmt = &s5k4ecgx_formats[0];
->> +     priv->curr_frmsize = &s5k4ecgx_prev_sizes[0];
->> +
->> +     return 0;
->> +
->> +out_err2:
->> +     s5k4ecgx_free_gpios(priv);
->> +out_err1:
->> +     media_entity_cleanup(&priv->sd.entity);
->> +
->> +     return ret;
->> +}
->> +
->> +static int s5k4ecgx_remove(struct i2c_client *client)
->> +{
->> +     struct v4l2_subdev *sd = i2c_get_clientdata(client);
->> +     struct s5k4ecgx *priv = to_s5k4ecgx(sd);
->> +
->> +     mutex_destroy(&priv->lock);
->> +     v4l2_device_unregister_subdev(sd);
->> +     v4l2_ctrl_handler_free(&priv->handler);
->> +     media_entity_cleanup(&sd->entity);
->> +
->> +     return 0;
+> Regards,
 >
-> s5k4ecgx_free_gpios() should be called to release the GPIOs
->
-> Thanks,
-> Francesco
+> Hans
+
