@@ -1,299 +1,255 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:54341 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752142Ab2ISLpf (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:51478 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755516Ab2IKODD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Sep 2012 07:45:35 -0400
-Received: by lbbgj3 with SMTP id gj3so753708lbb.19
-        for <linux-media@vger.kernel.org>; Wed, 19 Sep 2012 04:45:32 -0700 (PDT)
-Message-ID: <1348055129.2565.54.camel@deskari>
-Subject: Re: [RFC 0/5] Generic panel framework
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	Bryan Wu <bryan.wu@canonical.com>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
-	Sumit Semwal <sumit.semwal@ti.com>,
-	Archit Taneja <archit@ti.com>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	Inki Dae <inki.dae@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Alexandre Courbot <acourbot@nvidia.com>
-Date: Wed, 19 Sep 2012 14:45:29 +0300
-In-Reply-To: <1345164583-18924-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1345164583-18924-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-R8a6q3oReQ1az69Eh5Nv"
-Mime-Version: 1.0
+	Tue, 11 Sep 2012 10:03:03 -0400
+Date: Tue, 11 Sep 2012 16:02:43 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Stephen Warren <swarren@wwwdotorg.org>
+cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	devicetree-discuss <devicetree-discuss@lists.ozlabs.org>,
+	linux-sh@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [RFC v5] V4L DT bindings
+In-Reply-To: <5047DEE6.9020607@wwwdotorg.org>
+Message-ID: <Pine.LNX.4.64.1209111555010.22084@axis700.grange>
+References: <Pine.LNX.4.64.1208242356051.20710@axis700.grange>
+ <Pine.LNX.4.64.1209051030230.16676@axis700.grange> <5047DEE6.9020607@wwwdotorg.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
---=-R8a6q3oReQ1az69Eh5Nv
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Fri, 2012-08-17 at 02:49 +0200, Laurent Pinchart wrote:
-> Hi everybody,
->=20
-> While working on DT bindings for the Renesas Mobile SoC display controlle=
-r
-> (a.k.a. LCDC) I quickly realized that display panel implementation based =
-on
-> board code callbacks would need to be replaced by a driver-based panel
-> framework.
-
-I thought I'd try to approach the common panel framework by creating
-device tree examples that OMAP would need. I only thought about the
-connections and organization, not individual properties, so I have not
-filled any "compatible" or such properties.
-
-What I have below is first DT data for OMAP SoC (more or less what omap4
-has), then display examples of different board setups. The hardware
-examples I have here are all real, so no imaginary use cases =3D).
-
-We don't need to implement support for all these at once, but I think
-the DT data structure should be right from the start, so I'm posting
-this to get discussion about the format.
-
-
-OMAP SoC
-=3D=3D=3D=3D=3D=3D=3D=3D
-
-So here's first the SoC specific display nodes. OMAP has a DSS (display
-subsystem) block, which contains the following elements:
-
-- DISPC (display controller) reads the pixels from memory and outputs
-them using specified video timings. DISPC has three outputs, LCD0, LCD1
-and TV. These are SoC internal outputs, they do not go outside the SoC.
-
-- DPI gets its data from DISPC's LCD0, and outputs MIPI DPI (parallel
-RBG)
-
-- Two independent DSI modules, which get their data from LCD0 or LCD1,
-and output MIPI DSI (a serial two-way video bus)
-
-- HDMI, gets data from DISPC's TV output and outputs HDMI
-
-/ {
-	ocp {
-		dss {
-			dispc {
-				dss-lcd0: output@0 {
-				};
-
-				dss-lcd1: output@1 {
-				};
-
-				dss-tv: output@2 {
-				};
-			};
-
-			dpi: dpi {
-				video-source =3D <&dss-lcd0>;
-			};
-
-			dsi0: dsi@0 {
-				video-source =3D <&dss-lcd0>;
-			};
-
-			dsi1: dsi@1 {
-				video-source =3D <&dss-lcd1>;
-			};
-
-			hdmi: hdmi {
-				video-source =3D <&dss-tv>;
-			};
-		};
-	};
-};
-
-I have defined all the relevant nodes, and video-source property is used
-to point to the source for video data. I also define aliases for the SoC
-outputs so that panels can use them.
-
-One thing to note is that the video sources for some of the blocks, like
-DSI, are not hardcoded in the HW, so dsi0 could get its data from LCD0
-or LCD1. However, I don't think they are usually changed during runtime,
-and the dss driver cannot change them independently for sure (meaning
-that some upper layer should tell it how to change the config). Thus I
-specify sane defaults here, but the board dts files can of course
-override the video sources.
-
-Another thing to note is that we have more outputs from OMAP than we
-have outputs from DISPC. This means that the same video source is used
-by multiple sinks (LCD0 used by DPI and DSI0). DPI and DSI0 cannot be
-used at the same time, obviously.
-
-And third thing to note, DISPC node defines outputs explicitly, as it
-has multiple outputs, whereas the external outputs do not as they have
-only one output. Thus the node's output is implicitly the node itself.
-So, instead of having:
-
-ds0: dsi@0 {
-	video-source =3D <&dss-lcd0>;
-	dsi0-out0: output@0 {
-	};
-};
-
-I have:
-
-dsi0: dsi@0 {
-	video-source =3D <&dss-lcd0>;
-};
-
-Of this I'm a bit unsure. I believe in most cases there's only one
-output, so it'd be nice to have a shorter representation, but I'm not
-sure if it's good to handle the cases for single and multiple outputs
-differently. Or if it's good to mix control and data busses, as, for
-example, dsi0 can be used as both control and data bus. Having the
-output defined explicitly would separate the control and data bus nodes.
-
-
-Simple DPI panel
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-
-Here a board has a DPI panel, which is controlled via i2c. Panel nodes
-are children of the control bus, so in this case we define the panel
-under i2c2.
-
-&i2c2 {
-	dpi-lcd-panel {
-		video-source =3D <&dpi>;
-
-	};
-};
-
-
-HDMI
-=3D=3D=3D=3D
-
-OMAP has a HDMI output, but it cannot be connected directly to an HDMI
-cable. TI uses tpd12s015 chip in its board, which provides ESD,
-level-shifting and whatnot (I'm an SW guy, google for the chip to read
-the details =3D). tpd12s015 has a few GPIOs and powers that need to be
-controlled, so we need a driver for it.
-
-There's no control bus for the tpd12s015, so it's platform device. Then
-there's the device for the HDMI monitor, and the DDC lines are connected
-to OMAP's i2c4, thus the hdmi monitor device is a child of i2c.
-
-/ {
-	hdmi-connector: tpd12s015 {
-		video-source =3D <&hdmi>;
-	};
-};
-
-&i2c4 {
-	hdmi-monitor {
-		video-source =3D <&hdmi-connector>;
-	};
-};
-
-
-DSI bridge chip
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-
-In this board we have a DSI bridge chip that is controlled via DSI, and
-gets the pixel data via DSI video mode stream. The chip converts this to
-LVDS. We then have an LVDS panel connected to this bridge chip, which is
-controlled via SPI.
-
-&dsi0 {
-	dsi2lvds: dsi2lvds {
-		video-source =3D <&dsi0>;
-
-	};
-};
-
-&spi2 {
-	lvds-lcd-panel {
-		video-source =3D <&dsi2lvds>;
-	};
-};
-
-
-High res dual-DSI panel
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-
-Here we have a DSI video mode panel that gets its data from two DSI
-buses. This allows it to get the combined bandwidth of the DSI buses,
-achieving higher resolution than with single DSI bus. The panel is
-controlled via the first DSI bus.
-
-&dsi0 {
-	dual-dsi-panel {
-		video-source-1 =3D <&dsi0>;
-		video-source-2 =3D <&dsi1>;
-
-	};
-};
-
-
-DSI buffer chip with two outputs
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D
-
-This board has a DSI command mode buffer chip, that contains its own
-framebuffer. The buffer chip has two DPI outputs, which get the pixels
-from the framebuffer. Similar to OMAP's DISPC this chip has multiple
-outputs so they need to be defined explicitly. And we also have two
-dummy DPI panels connected to this buffer chip.
-
-&dsi0 {
-	dsibuf {
-		video-source =3D <&dsi0>;
-
-		dsibuf-dpi0: output@0 {
-		};
-
-		dsibuf-dpi1: output@1 {
-		};
-	};
-};
-
-/ {
-	dpi-lcd-panel@0 {
-		video-source =3D <&dsibuf-dpi0>;
-
-	};
-
-	dpi-lcd-panel@1 {
-		video-source =3D <&dsibuf-dpi1>;
-
-	};
-};
-
- Tomi
-
-
---=-R8a6q3oReQ1az69Eh5Nv
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJQWbBZAAoJEPo9qoy8lh71x88P/A4GZt/4vVGpUf51NjpRzOZr
-NbNPrqjtTYrjD+cgPEBjF/m5jdPkkhtiqQFwaxanahby+YoC2rilHhbP7TWesGOi
-nqeiG15mA5DTGkI8q91zlLZGlJneHZFtrihyz0FXOOuEHn0KqMGfvSRyYQohDplE
-vxluOXrHoA4HvTDF1QCgEUzWS+euzdhdAcG4sZjrlcFKX2/0XhBJDaUNZIlswG5N
-6ekWBadSfesXDI2FP1bcZ3b2PEInEJ49PXks8UjKbz1409qRUI6JJF+nJgxr47XS
-cezuyDe/7UqXrhtwnw9Bhkq2TfnvG3C+SskX4dcU/NRGgbHLPcPOxkcevyAuXwxu
-qMikoAgCY/3C5hv54Pi4tGIQISR2/Aa+idOeGJ1sv/K4V8ftbvkaH6Lm9MPps0iC
-gsoEY/cmUKB6kYlKmrOjJ2VZirRVEB3uL8jh4mqjcJBF1Q0txupJHF1AHR0Tbu3d
-XZPpIfK80gCVvV71qBZzCaugYfLbxkbRisENEbZRJHDvT1Q5FdTs7k/km5kK+5+L
-yQm2bd294eBy5IRAhBw3wGUewjxKTtnczCOEm0mc1+xCS1IIW9zrLLIkyuteOmvg
-0v1l329LqV+Sx7ptTn/inuS7ILvT990u96m60+icXjhSgLxSeXXq3HjmfI/r/wlC
-4a9M9DMgsB7Pihuz35fg
-=pQuG
------END PGP SIGNATURE-----
-
---=-R8a6q3oReQ1az69Eh5Nv--
-
+Hi Stephen
+
+Thanks for the review.
+
+On Wed, 5 Sep 2012, Stephen Warren wrote:
+
+> On 09/05/2012 04:57 AM, Guennadi Liakhovetski wrote:
+> > Hi all
+> > 
+> > Version 5 of this RFC is a result of a discussion of its version 4, which 
+> > took place during the recent Linux Plumbers conference in San Diego. 
+> > Changes are:
+> > 
+> > (1) remove bus-width properties from device (bridge and client) top level. 
+> > This has actually already been decided upon during our discussions with 
+> > Sylwester, I just forgot to actually remove them, sorry.
+> > 
+> > (2) links are now grouped under "ports." This should help better describe 
+> > device connection topology by making clearer, which interfaces links are 
+> > attached to. (help needed: in my notes I see "port" optional if only one 
+> > port is present, but I seem to remember, that the final decision was - 
+> > make ports compulsory for uniformity. Which one is true?)
+> 
+> I'd tend to make the port node compulsory.
+> 
+> A related question: What code is going to parse all the port/link
+> sub-nodes in a device?
+
+I think we'll have to make a generic V4L DT parser. We certainly don't 
+want each driver reimplement this.
+
+> And, how does it know which sub-nodes are ports,
+> and which are something else entirely? Perhaps the algorithm is that all
+> port nodes must be named "port"?
+
+Yes, that was the idea. Is anything speaking against it?
+
+> If there were (optionally) no port node, I think the answer to that
+> question would be a lot more complex, hence why I advocate for it always
+> being there.
+
+Ok, fine with me.
+
+All other your comments address various issues with specific DT node 
+instances, not with the design itself. I'll address them in the next 
+version, which I'm also planning to accompany with a proper 
+Documentation/devicetree/bindings patch.
+
+Thanks
+Guennadi
+
+> > (3) "videolink" is renamed to just "link."
+> > 
+> > (4) "client" is renamed to "remote" and is now used on both sides of 
+> > links.
+> > 
+> > (5) clock-names in clock consumer nodes (e.g., camera sensors) should 
+> > reflect clock input pin names from respective datasheets
+> > 
+> > (6) also serial bus description should be placed under respective link 
+> > nodes.
+> > 
+> > (7) reference remote link DT nodes in "remote" properties, not to the 
+> > parent.
+> > 
+> > (8) use standard names for "SoC-external" (e.g., i2c) devices on their 
+> > respective busses. "Sensor" has been proposed, maybe "camera" is a better 
+> > match though.
+> > 
+> > Thanks
+> > Guennadi
+> > ---
+> > Guennadi Liakhovetski, Ph.D.
+> > Freelance Open-Source Software Developer
+> > http://www.open-technology.de/
+> > 
+> > // Describe an imaginary configuration: a CEU serving either a parallel ov7725
+> > // sensor, or a serial imx074 sensor, connected over a CSI-2 SoC interface
+> > 
+> > 	ceu0: ceu@0xfe910000 {
+> > 		compatible = "renesas,sh-mobile-ceu";
+> > 		reg = <0xfe910000 0xa0>;
+> > 		interrupts = <0x880>;
+> > 
+> > 		mclk: master_clock {
+> > 			compatible = "renesas,ceu-clock";
+> > 			#clock-cells = <1>;
+> > 			clock-frequency = <50000000>;	/* max clock frequency */
+> > 			clock-output-names = "mclk";
+> > 		};
+> > 
+> > 		...
+> > 		port@0 {
+> 
+> Since there's only 1 port node here, you can drop the "@0" here.
+> 
+> > 			#address-cells = <1>;
+> > 			#size-cells = <0>;
+> > 
+> > 			ov772x_1_1: link@1 {
+> 
+> This isn't a comment on the binding definition, but on the example
+> itself. The label names ("ov772x_1_1" here and "csi2_0" below) feel
+> backwards to me; I'd personally use label names that describe the object
+> being labelled, rather than the object that's linked to the node being
+> labelled. In other words, "ceu0_1" here, and "ov772x_1" at the far end
+> of this link. But, these are just arbitrary names, so you can name/label
+> everything whatever you want and it'll still work.
+> 
+> > 				reg = <1>;		/* local pad # */
+> > 				remote = <&ceu0_1>;	/* remote phandle and pad # */
+> > 				bus-width = <8>;	/* used data lines */
+> > 				data-shift = <0>;	/* lines 7:0 are used */
+> > 	
+> > 				/* If [hv]sync-active are missing, embedded bt.605 sync is used */
+> > 				hsync-active = <1>;	/* active high */
+> > 				vsync-active = <1>;	/* active high */
+> > 				pclk-sample = <1>;	/* rising */
+> > 			};
+> > 
+> > 			csi2_0: link@0 {
+> > 				reg = <0>;
+> > 				remote = <&ceu0_2>;
+> > 				immutable;
+> > 			};
+> > 		};
+> > 	};
+> > 
+> > 	i2c0: i2c@0xfff20000 {
+> > 		...
+> > 		ov772x_1: camera@0x21 {
+> > 			compatible = "omnivision,ov772x";
+> > 			reg = <0x21>;
+> > 			vddio-supply = <&regulator1>;
+> > 			vddcore-supply = <&regulator2>;
+> > 
+> > 			clock-frequency = <20000000>;
+> > 			clocks = <&mclk 0>;
+> > 			clock-names = "xclk";
+> > 
+> > 			...
+> > 			port {
+> > 				/* With 1 link per port no need in addresses */
+> > 				ceu0_1: link@0 {
+> 
+> You can drop "@0" there too.
+> 
+> > 					bus-width = <8>;
+> > 					remote = <&ov772x_1_1>;
+> > 					hsync-active = <1>;
+> > 					hsync-active = <0>;	/* who came up with an inverter here?... */
+> > 					pclk-sample = <1>;
+> > 				};
+> > 			};
+> > 		};
+> > 
+> > 		imx074: camera@0x1a {
+> > 			compatible = "sony,imx074";
+> > 			reg = <0x1a>;
+> > 			vddio-supply = <&regulator1>;
+> > 			vddcore-supply = <&regulator2>;
+> > 
+> > 			clock-frequency = <30000000>;	/* shared clock with ov772x_1 */
+> > 			clocks = <&mclk 0>;
+> > 			clock-names = "sysclk";		/* assuming this is the name in the datasheet */
+> > 			...
+> > 			port {
+> > 				csi2_1: link@0 {
+> 
+> You can drop "@0" there too.
+> 
+> > 					clock-lanes = <0>;
+> > 					data-lanes = <1>, <2>;
+> > 					remote = <&imx074_1>;
+> > 				};
+> > 			};
+> > 		};
+> > 		...
+> > 	};
+> > 
+> > 	csi2: csi2@0xffc90000 {
+> > 		compatible = "renesas,sh-mobile-csi2";
+> > 		reg = <0xffc90000 0x1000>;
+> > 		interrupts = <0x17a0>;
+> > 		#address-cells = <1>;
+> > 		#size-cells = <0>;
+> > 		...
+> > 		port {
+> > 			compatible = "renesas,csi2c";	/* one of CSI2I and CSI2C */
+> > 			reg = <1>;			/* CSI-2 PHY #1 of 2: PHY_S, PHY_M has port address 0, is unused */
+> > 
+> > 			imx074_1: link@1 {
+> 
+> You can drop "@1" there too.
+> 
+> > 				client = <&imx074 0>;
+> > 				clock-lanes = <0>;
+> > 				data-lanes = <2>, <1>;
+> > 				remote = <&csi2_1>;
+> > 			};
+> > 		};
+> > 		port {
+> 
+> There are two nodes named "port" here; I think they should be "port@1"
+> and "port@2" based on the reg properties.
+> 
+> > 			reg = <2>;			/* port 2: link to the CEU */
+> > 			ceu0_2: link@0 {
+> 
+> You can drop "@0" there too.
+> 
+> > 				immutable;
+> > 				remote = <&csi2_0>;
+> > 			};
+> > 		};
+> > 	};
+> 
+> Aside from those minor comments, I think the overall structure of the
+> bindings looks good.
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
