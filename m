@@ -1,228 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:47839 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755454Ab2IQNwt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Sep 2012 09:52:49 -0400
-Message-ID: <50572B1D.3080807@iki.fi>
-Date: Mon, 17 Sep 2012 16:52:29 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.126.171]:61766 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759562Ab2IKPv0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Sep 2012 11:51:26 -0400
+Date: Tue, 11 Sep 2012 17:51:08 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Stephen Warren <swarren@wwwdotorg.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	devicetree-discuss <devicetree-discuss@lists.ozlabs.org>,
+	linux-sh@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	linux-arm-kernel@lists.infradead.org
+Subject: [PATCH] media: add V4L2 DT binding documentation
+Message-ID: <Pine.LNX.4.64.1209111746420.22084@axis700.grange>
 MIME-Version: 1.0
-To: Oliver Schinagl <oliver+list@schinagl.nl>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Support for Asus MyCinema U3100Mini Plus
-References: <1347223647-645-1-git-send-email-oliver+list@schinagl.nl> <504D00BC.4040109@schinagl.nl> <504D0F44.6030706@iki.fi> <504D17AA.8020807@schinagl.nl> <504D1859.5050201@iki.fi> <504DB9D4.6020502@schinagl.nl> <504DD311.7060408@iki.fi> <504DF950.8060006@schinagl.nl> <504E2345.5090800@schinagl.nl> <5055DD27.7080501@schinagl.nl> <505601B6.2010103@iki.fi> <5055EA30.8000200@schinagl.nl> <50560B82.7000205@iki.fi> <50564E58.20004@schinagl.nl> <50566260.1090108@iki.fi> <5056DE5C.70003@schinagl.nl> <50571F83.10708@schinagl.nl> <50572290.8090308@iki.fi> <505724F0.20502@schinagl.nl>
-In-Reply-To: <505724F0.20502@schinagl.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/17/2012 04:26 PM, Oliver Schinagl wrote:
-> On 17-09-12 15:16, Antti Palosaari wrote:
->> On 09/17/2012 04:02 PM, Oliver Schinagl wrote:
->>> On 17-09-12 10:25, Oliver Schinagl wrote:
->>>> On 17-09-12 01:36, Antti Palosaari wrote:
->>>>> On 09/17/2012 01:10 AM, Oliver Schinagl wrote:
->>>>>> On 09/16/12 19:25, Antti Palosaari wrote:
->>>>>>> On 09/16/2012 06:03 PM, Oliver Schinagl wrote:
->>>>>>>> I don't have windows, so capturing using windows is near
->>>>>>>> impossible.
->>>>>>>> Also since the vendor driver used to work, I guess I will have
->>>>>>>> to dig
->>>>>>>> into that more.
->>>>>>>
->>>>>>> You could capture data from Linux too (eg. Wireshark).
->>>>>> Ah of course. I'll dig up the old vendor driver and see if I can
->>>>>> get it
->>>>>> running on 3.2 or better yet, on 3.5/your-3.6. I know there's patches
->>>>>> for 3.2 but I've never tested those. Otherwise the older 2.6.2*
->>>>>> series
->>>>>> should still work.
->>>>>>
->>>>>>>
->>>>>>> But with a little experience you could see those GPIOs reading
->>>>>>> existing
->>>>>>> Linux driver and then do some tests to see what happens. For example
->>>>>>> some GPIO powers tuner off, you will see I2C error. Changing it back
->>>>>>> error disappears.
->>>>>> I have zero experience so I'll try to figure things out. I guess you
->>>>>> currently turn on/off GPIO's etc in the current driver? Any line
->>>>>> which
->>>>>> does this so I can examine how it's done? As for the I2C errors, I
->>>>>> suppose the current driver will spew those out?
->>>>>
->>>>> Those GPIOs are set in file af9035.c, functiuons:
->>>>> af9035_tuner_attach() and af9035_fc0011_tuner_callback(). For
->>>>> TDA18218 tuner there is no any GPIOs set, which could be wrong and it
->>>>> just works with good luck OR it is wired/connected directly so that
->>>>> GPIOs are not used at all.
->>>> Ahah! Then I know what to look for. Since af9035 also has fc0011
->>>> support, there should be some similarities I can find.
->>> Which I did. I found that the af9033 sets the "gpiot2" o, en and on
->>> values high to enable the tuner. Luckly, the fc2580 is routed to the
->>> exact same gpio and thus the same tuner enable/disable routine can be
->>> used as the FC0011. Appearantly the FC0011 tuner also has a led that
->>> needs to be enabled/disabled, at gpioh8, which the fc2580 lacks. So I
->>> found the tuner enable and should be able to incorporate that without
->>> issue.
->>>
->>> The other callback the fc2580 has, is a 'reset'. The fc2580 appears to
->>> be lacking such feature, or is not used in the vendor driver.
->>>>>
->>>>>> Speaking off, in my previous message, I wrote about the driver
->>>>>> spitting
->>>>>> out the following error:
->>>>>> [dvb_usb_af9035]af9035_read_config =_ "%s: [%d]tuner=%02x\012"
->>>>>
->>>>> It is the tuner ID value got from eeprom. You should take that number
->>>>> and add it to af9033.h file:
->>>>> #define AF9033_TUNER_FC2580    0xXXXX <= insert number here
->>>> Yes, but I think %s, %d and %02x\012 should actually list values?
->>>> (\012 I belive is \newline)
->>> I need to learn dynamic_debug; and I think I may have set it up wrong
->>> last time (af9035 and fc2580, but not af9033). I found some good
->>> documentation and will try this tonight.
->>>>>
->>>>>> None of the values where set however. Did I miss-configure
->>>>>> anything for
->>>>>> it to cause to 'forget' substituting?
->>>>>
->>>>> What you mean? Could you enable debugs, plug stick in and copy paste
->>>>> what debugs says?
->>>> I have dynamic debugging enabled and have gotten the above snipped
->>>> from the proc/sysfs interface. Also dmesg from replugging I've
->>>> attached a few messages back.
->>>>
->>>> [  188.051502] af9033: firmware version: LINK=12.13.15.0 OFDM=6.20.15.0
->>>> [  188.051520] usb 1-3: DVB: registering adapter 0 frontend 0 (Afatech
->>>> AF9033 (DVB-T))...
->>>> [  188.054019] i2c i2c-1: fc2580_attach: chip_id=5a
->>>> [  188.054030] i2c i2c-1: fc2580_attach: failed=0
->>>> [  188.054471] i2c i2c-1: fc2580_release:
->>>> [  188.054485] usb 1-3: dvb_usbv2: 'Asus U3100Mini Plus' error while
->>>> loading driver (-19)
->>>>
->>>> is the dmesg output from then, which doesn't list the values from the
->>>> debugging bit either. I suppose I need more debugging options enabled
->>>> to have those flag characters actually filled in?
->>
->> It should print af9035 debugs too.
->>
->> usb 2-2: af9035_read_config: [0]tuner=27
->>
->> modprobe dvb_usb_af9035; echo -n 'module dvb_usb_af9035 +p' >
->> /sys/kernel/debug/dynamic_debug/control
->>
->> modprobe dvb_usb_v2; echo -n 'module dvb_usb_v2 +p' >
->> /sys/kernel/debug/dynamic_debug/control
->>
->> If tuner communication is really working and it says chip id is 0x5a
->> then it is different than driver knows. It could be new revision of
->> tuner. Change chip_id to match 0x5a
->>
-> Ah, so it's called chip_id on one end, but tuner_id on the other end.
-> If/when I got this link working properly, I'll write a patch to fix some
-> naming consistencies.
+This patch adds a document, describing common V4L2 device tree bindings.
 
-No, you are totally wrong now. Chip ID is value inside chip register. 
-Almost every chip has some chip id value which driver could detect it is 
-speaking with correct chip. In that case value is stored inside fc2580.
+Co-authored-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ Documentation/devicetree/bindings/media/v4l2.txt |  143 ++++++++++++++++++++++
+ 1 files changed, 143 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/v4l2.txt
 
-Tuner ID is value stored inside AF9035 chip / eeprom. It is 
-configuration value for AF9035 hardware design. It says "that AF9035 
-device uses FC2580 RF-tuner". AF9035 (FC2580) tuner ID and FC2580 chip 
-ID are different values having different meaning.
-
-> The vendor source also slightly more accurately describes
-> fc2580_init_reg_vals. When writing to 0x45 and 0x4c, it can have
-> different meanings, it controls the AGC. While the vendor driver always
-> uses the same bytes the init table uses, there always exists these
-> differences and its documentation. Is it desired to document this, and
-> if so where? A comment in the source? A wikipage somewhere? Or does it
-> simply not matter? See
-> http://git.schinagl.nl/AF903x_SRC.git/tree/api/fc2580.c#n135 for what I
-> mean exactly.
-
-It does not matter how vendor have implemented it and how I have 
-implemented it if both end up same register value anyway. And even 
-register value is different it could be still correct. Driver does not 
-need to be similar, driver aim is just program chip and it could do 
-totally differently.
-
-If you do...
-write_register(0x1a, 0x12);
-write_register(0x1b, 0x34);
-OR
-write_register(0x1b, 0x34);
-write_register(0x1a, 0x12);
-OR
-write_registers(0x1a, "\x12\x34", 2);
-
-all will generally end up similar solution, even all those are done 
-differently.
-
-
-> I guess which address goes with which GPIO is far less interesting, as
-> the gpio name could in theory be different from the actual pin due to
-> pin multiplexing, right?
-
-dunno what you mean
-
->>
->>>>>>>
->>>>>>>> Since all the pieces should be there, fc2580 driver, af9033/5
->>>>>>>> driver,
->>>>>>>> it's just a matter of glueing things together, right? I'll dig
->>>>>>>> further
->>>>>>>> into it and see what I can find/do.
->>>>>>>
->>>>>>> Correct. Tuner init (demod settings fc2580) for is needed for
->>>>>>> af9033.
->>>>>>> And GPIOs for AF9035. In very bad luck some changes for fc2580 is
->>>>>>> needed
->>>>>>> too, but it is not very, very, unlikely.
->>>>>>>
->>>>>>> This patch is very similar you will need to do (tda18218 tuner
->>>>>>> support
->>>>>>> for af9035):
->>>>>>> http://patchwork.linuxtv.org/patch/10547/
->>>>>> I re-did my patch using that as a template (before I used your
->>>>>> work on
->>>>>> the rtl) and got the exact result.
->>>>>>
->>>>>> Your rtl|fc2580 combo btw (from bare memory) didn't have the
->>>>>> fc2580_init
->>>>>> stream in af9033_priv.h. What exactly gets init-ed there? The
->>>>>> af9033 to
->>>>>> work with the fc2580?
->>>>>
->>>>> You have to add fc2580 init table to file af9033_priv.h. It
->>>>> configures all the settings needed for AF9033 demod in order to
->>>>> operate with FC2580 tuner. There is some values like "tuner ID" which
->>>>> is passed for AF9033 firmware, dunno what kind of tweaks it done.
->>>>> Maybe calculates some values like signal strengths and AGC values. It
->>>>> could work without, but at least performance is reduced.
->>>> I did add it. I found the init tables in the vendor driver, compared
->>>> them to the existing init tables, found that the others where
->>>> identical, but offset by 0x8000. I thus copied the table for the
->>>> fc2580 and added the address offset.
->>>> You can glance over it in the driver patch I submitted last week,
->>>> should be there :)
->>>>
->>>> But since it modified the AF9033, I understand why your rtl driver
->>>> didn't have the init table for the fc2580.
->>
->> If you look comment from the rtl28xxu.c around line 635 you will see it.
->> /* FIXME: do not abuse fc0012 settings */
-> I take it, if my patch works, it can be also useful to the rtl28xxu driver?
-
-If there is someday tuner version having different tuner id. Idea of 
-checking that ID is to ensure driver is speaking with chip it know. The 
-language is something that both chip and driver both understand. Hey 
-these are so basic questions I hope you will try to google answers first.
-
-regards
-Antti
-
+diff --git a/Documentation/devicetree/bindings/media/v4l2.txt b/Documentation/devicetree/bindings/media/v4l2.txt
+new file mode 100644
+index 0000000..55da6de
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/v4l2.txt
+@@ -0,0 +1,143 @@
++Video4Linux Version 2 (V4L2)
++
++General concept:
++- video pipelines consist of external devices, e.g., camera sensors, controlled
++  over an I2C bus, and SoC internal IP blocks, including video DMA engines and
++  video data processors.
++- this document describes common bindings of all video pipeline devices.
++- SoC internal blocks are described by DT nodes, placed similarly to other SoC
++  blocks.
++- external devices are places on their respective control busses, e.g., I2C
++- data interfaces on all video devices are described by "port" child DT nodes
++- port configuration depends on other devices, participating in the data
++  transfer, and is described by "link" DT nodes, specified as children of
++  all "port" nodes, connected to this bus.
++- if a port can be configured to work with more than one other device on the
++  same bus, a "link" child DT node must be provided for each of them.
++- if more than one port is present on a device or more than one link is
++  connected to a port, a common scheme, using "#address-cells," "#size-cells"
++  and "reg" properties is used.
++
++Optional link properties:
++- remote: phandle to the other endpoint link DT node.
++- data-shift: on parallel data busses, if data-width is used to specify the
++  number of data lines, data-shift can be used to specify which data lines are
++  used, e.g., "data-width=<10>; data-shift=<2>;" means, that lines 9:2 are used.
++- hsync-active: 1 or 0 for active-high or -low HSYNC signal polarity
++  respectively.
++- vsync-active: ditto for VSYNC. Note, that if HSYNC and VSYNC polarities are
++  not specified, embedded synchronisation may be required, where supported.
++- pclk-sample: rising (1) or falling (0) edge to sample the pixel clock pin.
++- immutable: used for SoC-internal links, if no configuration is required.
++- data-lanes: array of serial, e.g., MIPI CSI-2, data hardware lane numbers in
++  the ascending order, beginning with logical lane 0.
++- clock-lanes: hardware lane number, used for the clock lane.
++
++Example:
++
++	ceu0: ceu@0xfe910000 {
++		compatible = "renesas,sh-mobile-ceu";
++		reg = <0xfe910000 0xa0>;
++		interrupts = <0x880>;
++
++		mclk: master_clock {
++			compatible = "renesas,ceu-clock";
++			#clock-cells = <1>;
++			clock-frequency = <50000000>;	/* max clock frequency */
++			clock-output-names = "mclk";
++		};
++
++		port {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			ceu0_1: link@1 {
++				reg = <1>;		/* local link # */
++				remote = <&ov772x_1_1>;	/* remote phandle */
++				bus-width = <8>;	/* used data lines */
++				data-shift = <0>;	/* lines 7:0 are used */
++	
++				/* If [hv]sync-active are missing, embedded bt.605 sync is used */
++				hsync-active = <1>;	/* active high */
++				vsync-active = <1>;	/* active high */
++				pclk-sample = <1>;	/* rising */
++			};
++
++			ceu0_0: link@0 {
++				reg = <0>;
++				remote = <&csi2_2>;
++				immutable;
++			};
++		};
++	};
++
++	i2c0: i2c@0xfff20000 {
++		...
++		ov772x_1: camera@0x21 {
++			compatible = "omnivision,ov772x";
++			reg = <0x21>;
++			vddio-supply = <&regulator1>;
++			vddcore-supply = <&regulator2>;
++
++			clock-frequency = <20000000>;
++			clocks = <&mclk 0>;
++			clock-names = "xclk";
++
++			port {
++				/* With 1 link per port no need in addresses */
++				ov772x_1_1: link {
++					bus-width = <8>;
++					remote = <&ceu0_1>;
++					hsync-active = <1>;
++					hsync-active = <0>;	/* who came up with an inverter here?... */
++					pclk-sample = <1>;
++				};
++			};
++		};
++
++		imx074: camera@0x1a {
++			compatible = "sony,imx074";
++			reg = <0x1a>;
++			vddio-supply = <&regulator1>;
++			vddcore-supply = <&regulator2>;
++
++			clock-frequency = <30000000>;	/* shared clock with ov772x_1 */
++			clocks = <&mclk 0>;
++			clock-names = "sysclk";		/* assuming this is the name in the datasheet */
++
++			port {
++				imx074_1: link {
++					clock-lanes = <0>;
++					data-lanes = <1>, <2>;
++					remote = <&csi2_1>;
++				};
++			};
++		};
++	};
++
++	csi2: csi2@0xffc90000 {
++		compatible = "renesas,sh-mobile-csi2";
++		reg = <0xffc90000 0x1000>;
++		interrupts = <0x17a0>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@1 {
++			compatible = "renesas,csi2c";	/* one of CSI2I and CSI2C */
++			reg = <1>;			/* CSI-2 PHY #1 of 2: PHY_S, PHY_M has port address 0, is unused */
++
++			csi2_1: link {
++				clock-lanes = <0>;
++				data-lanes = <2>, <1>;
++				remote = <&imx074_1>;
++			};
++		};
++		port@2 {
++			reg = <2>;			/* port 2: link to the CEU */
++
++			csi2_2: link {
++				immutable;
++				remote = <&ceu0_0>;
++			};
++		};
++	};
 -- 
-http://palosaari.fi/
+1.7.2.5
+
