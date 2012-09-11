@@ -1,166 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59539 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:42876 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751413Ab2JAAgg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Sep 2012 20:36:36 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC] dvb: LNA implementation changes
-Date: Mon,  1 Oct 2012 03:35:51 +0300
-Message-Id: <1349051751-11826-1-git-send-email-crope@iki.fi>
+	id S1751824Ab2IKTdc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Sep 2012 15:33:32 -0400
+Message-ID: <504F91FB.20309@redhat.com>
+Date: Tue, 11 Sep 2012 16:33:15 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org,
+	Hin-Tak Leung <htl10@users.sourceforge.net>
+Subject: Re: [PATCH 2/4] dvb_frontend: add routine for DVB-T2 parameter validation
+References: <1345169022-10221-1-git-send-email-crope@iki.fi> <1345169022-10221-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1345169022-10221-3-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* use dvb property cache
-* implement get
-* LNA_AUTO value changed
+Em 16-08-2012 23:03, Antti Palosaari escreveu:
+> Common routine for use of dvb-core, demodulator and tuner for check
+> given DVB-T2 parameters correctness.
+> 
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>  drivers/media/dvb-core/dvb_frontend.c | 118 ++++++++++++++++++++++++++++++++++
+>  drivers/media/dvb-core/dvb_frontend.h |   1 +
+>  2 files changed, 119 insertions(+)
+> 
+> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+> index 4abb648..6413c74 100644
+> --- a/drivers/media/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb-core/dvb_frontend.c
+> @@ -2641,6 +2641,124 @@ int dvb_validate_params_dvbt(struct dvb_frontend *fe)
+>  }
+>  EXPORT_SYMBOL(dvb_validate_params_dvbt);
+>  
+> +int dvb_validate_params_dvbt2(struct dvb_frontend *fe)
+> +{
+> +	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+> +
+> +	dev_dbg(fe->dvb->device, "%s:\n", __func__);
+> +
+> +	switch (c->delivery_system) {
+> +	case SYS_DVBT2:
+> +		break;
+> +	default:
+> +		dev_dbg(fe->dvb->device, "%s: delivery_system=%d\n", __func__,
+> +				c->delivery_system);
+> +		return -EINVAL;
+> +	}
 
-Hans and Mauro proposed	use of cache implementation of get as they
-were planning to extend LNA usage for analog side too.
+Same comments made on patch 1/4 apply here.
 
-LNA_AUTO value was changed from (~0U) to INT_MIN as (~0U) resulted
-only -1 which is waste of numeric range if need to extend that in
-the future.
+> +
+> +	/*
+> +	 * DVB-T2 specification as such does not specify any frequency bands.
+> +	 * Define real life limits still. L-Band 1452 - 1492 MHz may exits in
+> +	 * future too.
+> +	 */
+> +	if (c->frequency >= 174000000 && c->frequency <= 230000000) {
+> +		;
+> +	} else if (c->frequency >= 470000000 && c->frequency <= 862000000) {
+> +		;
+> +	} else {
+> +		dev_dbg(fe->dvb->device, "%s: frequency=%d\n", __func__,
+> +				c->frequency);
+> +		return -EINVAL;
+> +	}
 
-Reported-by: Hans Verkuil <hverkuil@xs4all.nl>
-Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-core/dvb_frontend.c | 18 ++++++++++++++----
- drivers/media/dvb-core/dvb_frontend.h |  4 +++-
- drivers/media/usb/em28xx/em28xx-dvb.c |  9 +++++----
- include/linux/dvb/frontend.h          |  2 +-
- 4 files changed, 23 insertions(+), 10 deletions(-)
+Same comments made on patch 1/4 apply here.
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 8f58f24..246a3c5 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -966,6 +966,8 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
- 		break;
- 	}
- 
-+	c->lna = LNA_AUTO;
-+
- 	return 0;
- }
- 
-@@ -1054,6 +1056,8 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
- 	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_B, 0, 0),
- 	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_C, 0, 0),
- 	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_D, 0, 0),
-+
-+	_DTV_CMD(DTV_LNA, 0, 0),
- };
- 
- static void dtv_property_dump(struct dvb_frontend *fe, struct dtv_property *tvp)
-@@ -1440,6 +1444,10 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
- 		tvp->u.data = fe->dtv_property_cache.atscmh_sccc_code_mode_d;
- 		break;
- 
-+	case DTV_LNA:
-+		tvp->u.data = c->lna;
-+		break;
-+
- 	default:
- 		return -EINVAL;
- 	}
-@@ -1731,10 +1739,6 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
- 	case DTV_INTERLEAVING:
- 		c->interleaving = tvp->u.data;
- 		break;
--	case DTV_LNA:
--		if (fe->ops.set_lna)
--			r = fe->ops.set_lna(fe, tvp->u.data);
--		break;
- 
- 	/* ISDB-T Support here */
- 	case DTV_ISDBT_PARTIAL_RECEPTION:
-@@ -1806,6 +1810,12 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
- 		fe->dtv_property_cache.atscmh_rs_frame_ensemble = tvp->u.data;
- 		break;
- 
-+	case DTV_LNA:
-+		c->lna = tvp->u.data;
-+		if (fe->ops.set_lna)
-+			r = fe->ops.set_lna(fe);
-+		break;
-+
- 	default:
- 		return -EINVAL;
- 	}
-diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
-index 44a445c..5d25953 100644
---- a/drivers/media/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb-core/dvb_frontend.h
-@@ -303,7 +303,7 @@ struct dvb_frontend_ops {
- 	int (*dishnetwork_send_legacy_command)(struct dvb_frontend* fe, unsigned long cmd);
- 	int (*i2c_gate_ctrl)(struct dvb_frontend* fe, int enable);
- 	int (*ts_bus_ctrl)(struct dvb_frontend* fe, int acquire);
--	int (*set_lna)(struct dvb_frontend *, int);
-+	int (*set_lna)(struct dvb_frontend *);
- 
- 	/* These callbacks are for devices that implement their own
- 	 * tuning algorithms, rather than a simple swzigzag
-@@ -391,6 +391,8 @@ struct dtv_frontend_properties {
- 	u8			atscmh_sccc_code_mode_b;
- 	u8			atscmh_sccc_code_mode_c;
- 	u8			atscmh_sccc_code_mode_d;
-+
-+	int			lna;
- };
- 
- struct dvb_frontend {
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index 109474b..1166e8b 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -569,15 +569,16 @@ static void pctv_520e_init(struct em28xx *dev)
- 		i2c_master_send(&dev->i2c_client, regs[i].r, regs[i].len);
- };
- 
--static int em28xx_pctv_290e_set_lna(struct dvb_frontend *fe, int val)
-+static int em28xx_pctv_290e_set_lna(struct dvb_frontend *fe)
- {
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	struct em28xx *dev = fe->dvb->priv;
- #ifdef CONFIG_GPIOLIB
- 	struct em28xx_dvb *dvb = dev->dvb;
- 	int ret;
- 	unsigned long flags;
- 
--	if (val)
-+	if (c->lna)
- 		flags = GPIOF_OUT_INIT_LOW;
- 	else
- 		flags = GPIOF_OUT_INIT_HIGH;
-@@ -590,8 +591,8 @@ static int em28xx_pctv_290e_set_lna(struct dvb_frontend *fe, int val)
- 
- 	return ret;
- #else
--	dev_warn(&dev->udev->dev, "%s: LNA control is disabled\n",
--			KBUILD_MODNAME);
-+	dev_warn(&dev->udev->dev, "%s: LNA control is disabled (lna=%d)\n",
-+			KBUILD_MODNAME, c->lna);
- 	return 0;
- #endif
- }
-diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
-index c12d452..6c97457 100644
---- a/include/linux/dvb/frontend.h
-+++ b/include/linux/dvb/frontend.h
-@@ -439,7 +439,7 @@ enum atscmh_rs_code_mode {
- };
- 
- #define NO_STREAM_ID_FILTER	(~0U)
--#define LNA_AUTO                (~0U)
-+#define LNA_AUTO                INT_MIN
- 
- struct dtv_cmds_h {
- 	char	*name;		/* A display name for debugging purposes */
--- 
-1.7.11.4
+> +
+> +	switch (c->bandwidth_hz) {
+> +	case  6000000:
+> +	case  7000000:
+> +	case  8000000:
+> +	case  1700000:
+> +	case  5000000:
+> +	case 10000000:
+> +		break;
+
+0 is also valid. Also, better to sort the entries here.
+
+> +	default:
+> +		dev_dbg(fe->dvb->device, "%s: bandwidth_hz=%d\n", __func__,
+> +				c->bandwidth_hz);
+> +		return -EINVAL;
+> +	}
+> +
+> +	/*
+> +	 * Valid Physical Layer Pipe (PLP) values are 0 - 255
+> +	 */
+> +	if (c->dvbt2_plp_id <= 255) {
+> +		;
+> +	} else {
+> +		dev_dbg(fe->dvb->device, "%s: dvbt2_plp_id=%d\n", __func__,
+> +				c->dvbt2_plp_id);
+> +		return -EINVAL;
+> +	}
+
+Is it possible to disable it for DVB-T2? If so, a new value
+is needed here (~0), according with our discussions related to
+multistream patches.
+
+> +
+> +	switch (c->transmission_mode) {
+> +	case TRANSMISSION_MODE_AUTO:
+> +	case TRANSMISSION_MODE_2K:
+> +	case TRANSMISSION_MODE_8K:
+> +	case TRANSMISSION_MODE_1K:
+> +	case TRANSMISSION_MODE_4K:
+> +	case TRANSMISSION_MODE_16K:
+> +	case TRANSMISSION_MODE_32K:
+> +		break;
+> +	default:
+> +		dev_dbg(fe->dvb->device, "%s: transmission_mode=%d\n", __func__,
+> +				c->transmission_mode);
+> +		return -EINVAL;
+> +	}
+> +
+> +	switch (c->modulation) {
+> +	case QAM_AUTO:
+> +	case QPSK:
+> +	case QAM_16:
+> +	case QAM_64:
+> +	case QAM_256:
+> +		break;
+> +	default:
+> +		dev_dbg(fe->dvb->device, "%s: modulation=%d\n", __func__,
+> +				c->modulation);
+> +		return -EINVAL;
+> +	}
+> +
+> +	switch (c->guard_interval) {
+> +	case GUARD_INTERVAL_AUTO:
+> +	case GUARD_INTERVAL_1_32:
+> +	case GUARD_INTERVAL_1_16:
+> +	case GUARD_INTERVAL_1_8:
+> +	case GUARD_INTERVAL_1_4:
+> +	case GUARD_INTERVAL_1_128:
+> +	case GUARD_INTERVAL_19_128:
+> +	case GUARD_INTERVAL_19_256:
+> +		break;
+> +	default:
+> +		dev_dbg(fe->dvb->device, "%s: guard_interval=%d\n", __func__,
+> +				c->guard_interval);
+> +		return -EINVAL;
+> +	}
+> +
+> +	switch (c->fec_inner) {
+> +	case FEC_AUTO:
+> +	case FEC_1_2:
+> +	case FEC_3_5:
+> +	case FEC_2_3:
+> +	case FEC_3_4:
+> +	case FEC_4_5:
+> +	case FEC_5_6:
+> +		break;
+> +	default:
+> +		dev_dbg(fe->dvb->device, "%s: fec_inner=%d\n", __func__,
+> +				c->fec_inner);
+> +		return -EINVAL;
+> +	}
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(dvb_validate_params_dvbt2);
+
+Same comments made on patch 1/4 apply here.
+
+> +
+>  int dvb_register_frontend(struct dvb_adapter* dvb,
+>  			  struct dvb_frontend* fe)
+>  {
+> diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
+> index 6df0c44..bcd572d 100644
+> --- a/drivers/media/dvb-core/dvb_frontend.h
+> +++ b/drivers/media/dvb-core/dvb_frontend.h
+> @@ -426,5 +426,6 @@ extern void dvb_frontend_sleep_until(struct timeval *waketime, u32 add_usec);
+>  extern s32 timeval_usec_diff(struct timeval lasttime, struct timeval curtime);
+>  
+>  extern int dvb_validate_params_dvbt(struct dvb_frontend *fe);
+> +extern int dvb_validate_params_dvbt2(struct dvb_frontend *fe);
+>  
+>  #endif
+> 
 
