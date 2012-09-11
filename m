@@ -1,31 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37682 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756141Ab2ICJrO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Sep 2012 05:47:14 -0400
-Message-ID: <50447C88.3030401@ti.com>
-Date: Mon, 3 Sep 2012 15:16:48 +0530
-From: Prabhakar Lad <prabhakar.lad@ti.com>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:63019 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753207Ab2IKIFe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Sep 2012 04:05:34 -0400
 MIME-Version: 1.0
+In-Reply-To: <201209110955.26208.hverkuil@xs4all.nl>
+References: <1347349142-2230-1-git-send-email-prabhakar.lad@ti.com> <201209110955.26208.hverkuil@xs4all.nl>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 11 Sep 2012 13:35:12 +0530
+Message-ID: <CA+V-a8vR3T0N5AEzZZ4qrr2Yp9g9hqgZ79CYiQNjUzoPEDhBRg@mail.gmail.com>
+Subject: Re: [PATCH v2] media: v4l2-ctrl: add a helper function to modify the menu
 To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: LMML <linux-media@vger.kernel.org>,
+Cc: Prabhakar Lad <prabhakar.lad@ti.com>,
 	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	<linux-kernel@vger.kernel.org>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	<linux-doc@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
+	Rob Landley <rob@landley.net>, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
 	Hans de Goede <hdegoede@redhat.com>,
 	Kyungmin Park <kyungmin.park@samsung.com>,
-	Rob Landley <rob@landley.net>,
-	HeungJun Kim <riverful.kim@samsung.com>
-Subject: Re: [PATCH] media: v4l2-ctrls: add control for test pattern
-References: <1346663777-23149-1-git-send-email-prabhakar.lad@ti.com> <201209031122.17568.hverkuil@xs4all.nl>
-In-Reply-To: <201209031122.17568.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: 7bit
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	LMML <linux-media@vger.kernel.org>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -33,185 +34,187 @@ Hi Hans,
 
 Thanks for the review.
 
-On Monday 03 September 2012 02:52 PM, Hans Verkuil wrote:
-> On Mon September 3 2012 11:16:17 Prabhakar Lad wrote:
+On Tue, Sep 11, 2012 at 1:25 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Pradhakar,
+>
+> Looks good, but I have a number of style/grammar issues which I've corrected
+> below.
+>
+> On Tue 11 September 2012 09:39:02 Prabhakar Lad wrote:
 >> From: Lad, Prabhakar <prabhakar.lad@ti.com>
 >>
->> add V4L2_CID_TEST_PATTERN of type menu, which determines
->> the internal test pattern selected by the device.
+>> Add a helper function to modify the menu, max and default value
+>> to set.
 >>
 >> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
 >> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
->> Cc: Sakari Ailus <sakari.ailus@iki.fi>
 >> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+>> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
 >> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 >> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
->> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
 >> Cc: Hans de Goede <hdegoede@redhat.com>
 >> Cc: Kyungmin Park <kyungmin.park@samsung.com>
->> Cc: Rob Landley <rob@landley.net>
->> Cc: HeungJun Kim <riverful.kim@samsung.com>
+>> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 >> Cc: Rob Landley <rob@landley.net>
 >> ---
->>  This patches has one checkpatch warning for line over
->>  80 characters altough it can be avoided I have kept it
->>  for consistency.
+>> Changes for v2:
+>> 1: Fixed review comments from Hans, to have return type as
+>>    void, add WARN_ON() for fail conditions, allow this fucntion
+>>    to modify the menu of custom controls.
 >>
->>  Documentation/DocBook/media/v4l/controls.xml |   52 ++++++++++++++++++++++++++
->>  drivers/media/v4l2-core/v4l2-ctrls.c         |   16 ++++++++
->>  include/linux/videodev2.h                    |   12 ++++++
->>  3 files changed, 80 insertions(+), 0 deletions(-)
+>>  Documentation/video4linux/v4l2-controls.txt |   30 +++++++++++++++++++++++++++
+>>  drivers/media/v4l2-core/v4l2-ctrls.c        |   17 +++++++++++++++
+>>  include/media/v4l2-ctrls.h                  |   11 +++++++++
+>>  3 files changed, 58 insertions(+), 0 deletions(-)
 >>
->> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
->> index f704218..06f16e7 100644
->> --- a/Documentation/DocBook/media/v4l/controls.xml
->> +++ b/Documentation/DocBook/media/v4l/controls.xml
->> @@ -4313,6 +4313,58 @@ interface and may change in the future.</para>
->>  	      </tbody>
->>  	    </entrytbl>
->>  	  </row>
->> +	  <row>
->> +	    <entry spanname="id"><constant>V4L2_CID_TEST_PATTERN</constant></entry>
->> +	    <entry>menu</entry>
->> +	  </row>
->> +	  <row id="v4l2-test-pattern">
->> +	    <entry spanname="descr"> The capture devices/sensors have the capability to
-> 
-> Test patterns are also applicable to output devices, not just capture and sensor devices.
-> 
-Agreed. I'll make it 'capture/display/sensors'.
+>> diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
+>> index 43da22b..160368a 100644
+>> --- a/Documentation/video4linux/v4l2-controls.txt
+>> +++ b/Documentation/video4linux/v4l2-controls.txt
+>> @@ -367,6 +367,36 @@ it to 0 means that all menu items are supported.
+>>  You set this mask either through the v4l2_ctrl_config struct for a custom
+>>  control, or by calling v4l2_ctrl_new_std_menu().
+>>
+>> +Changing the menu:
+>> +There are situations when menu items may be device specific, in such cases the
+>> +framework provides the helper function to change the menu.
+>> +
+>> +void v4l2_ctrl_modify_menu(struct v4l2_ctrl *ctrl, const char * const *qmenu,
+>> +     s32 max, u32 menu_skip_mask, s32 def);
+>> +
+>> +A good example is the test pattern generation, the capture/display/sensors have
+>> +the capability to generate test patterns. This test patterns are hardware
+>> +specific, In such case the menu will vary from device to device.
+>> +
+>> +This helper, function is used to modify the menu, max, mask and the default
+>> +value to set.
+>> +
+>> +Example for usage:
+>> +     static const char * const test_pattern[] = {
+>> +             "Disabled",
+>> +             "Vertical Bars",
+>> +             "Vertical Bars",
+>> +             "Solid Black",
+>> +             "Solid White",
+>> +             NULL
+>> +     };
+>> +     struct v4l2_ctrl *test_pattern_ctrl =
+>> +             v4l2_ctrl_new_std_menu(&foo->ctrl_handler, &foo_ctrl_ops,
+>> +                     V4L2_CID_TEST_PATTERN, V4L2_TEST_PATTERN_DISABLED, 0,
+>> +                     V4L2_TEST_PATTERN_DISABLED);
+>> +
+>> +     v4l2_ctrl_modify_menu(test_pattern_ctrl, test_pattern, 5, 0x3, 1);
+>> +
+>
+> There are a number of style/grammar issues with the text above. I've
+> corrected them in the revised version below. That replaces your version
+> completely. So just to make it clear: I've dropped the first line ('Changing
+> the menu:') because I don't think that line is necessary.
+>
+Thanks for the text :) I'll fix it for v3.
 
->> +	    generate internal test patterns. This test patterns are used to test a device
->> +	    is properly working and can generate the desired waveforms that it supports.
->> +	    </entry>
->> +	  </row>
->> +	  <row>
->> +	    <entrytbl spanname="descr" cols="2">
->> +	      <tbody valign="top">
->> +	        <row>
->> +	         <entry><constant>V4L2_TEST_PATTERN_DISABLED</constant></entry>
->> +	          <entry>Test pattern generation is disabled</entry>
->> +	        </row>
->> +	        <row>
->> +	          <entry><constant>V4L2_TEST_PATTERN_VERTICAL_LINES</constant></entry>
->> +	          <entry>Generate vertical lines as test pattern</entry>
->> +	        </row>
->> +	        <row>
->> +	          <entry><constant>V4L2_TEST_PATTERN_HORIZONTAL_LINES</constant></entry>
->> +	          <entry>Generate horizontal lines as test pattern</entry>
->> +	        </row>
->> +	        <row>
->> +	          <entry><constant>V4L2_TEST_PATTERN_DIAGONAL_LINES</constant></entry>
->> +	          <entry>Generate diagonal lines as test pattern</entry>
->> +	        </row>
->> +	        <row>
->> +	          <entry><constant>V4L2_TEST_PATTERN_SOLID_BLACK</constant></entry>
->> +	          <entry>Generate solid black color as test pattern</entry>
->> +	        </row>
->> +	        <row>
->> +	          <entry><constant>V4L2_TEST_PATTERN_SOLID_WHITE</constant></entry>
->> +	          <entry>Generate solid white color as test pattern</entry>
->> +	        </row>
->> +	        <row>
->> +	          <entry><constant>V4L2_TEST_PATTERN_SOLID_BLUE</constant></entry>
->> +	          <entry>Generate solid blue color as test pattern</entry>
->> +	        </row>
->> +	        <row>
->> +	          <entry><constant>V4L2_TEST_PATTERN_SOLID_RED</constant></entry>
->> +	          <entry>Generate solid red color as test pattern</entry>
->> +	        </row>
-> 
-> Just wondering: is there no SOLID_GREEN available with this sensor?
-> 
-Not sure I guess it should be.
-
-Thanks and Regards,
---Prabhakar Lad
-
-> Regards,
-> 
-> 	Hans
-> 
->> +	        <row>
->> +	          <entry><constant>V4L2_TEST_PATTERN_CHECKER_BOARD</constant></entry>
->> +	          <entry>Generate a checker board as test pattern</entry>
->> +	        </row>
->> +	      </tbody>
->> +	    </entrytbl>
->> +	  </row>
->>  	<row><entry></entry></row>
->>  	</tbody>
->>        </tgroup>
+> New text:
+>
+> There are situations where menu items may be device specific. In such cases the
+> framework provides a helper function to change the menu:
+>
+> void v4l2_ctrl_modify_menu(struct v4l2_ctrl *ctrl, const char * const *qmenu,
+>         s32 max, u32 menu_skip_mask, s32 def);
+>
+> A good example is the test pattern control for capture/display/sensors devices
+> that have the capability to generate test patterns. These test patterns are
+> hardware specific, so the contents of the menu will vary from device to device.
+>
+> This helper function is used to modify the menu, max, mask and the default
+> value of the control.
+>
+> Example:
+>
+>         static const char * const test_pattern[] = {
+>                 "Disabled",
+>                 "Vertical Bars",
+>                 "Solid Black",
+>                 "Solid White",
+>                 NULL
+>         };
+>         struct v4l2_ctrl *test_pattern_ctrl =
+>                 v4l2_ctrl_new_std_menu(&foo->ctrl_handler, &foo_ctrl_ops,
+>                         V4L2_CID_TEST_PATTERN, V4L2_TEST_PATTERN_DISABLED, 0,
+>                         V4L2_TEST_PATTERN_DISABLED);
+>
+>         v4l2_ctrl_modify_menu(test_pattern_ctrl, test_pattern, 3, 0,
+>                         V4L2_TEST_PATTERN_DISABLED);
+>
+>>
+>>  Custom Controls
+>>  ===============
 >> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
->> index 2d7bc15..ae709d1 100644
+>> index d731422..d89b460 100644
 >> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
 >> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
->> @@ -430,6 +430,18 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->>  		"Advanced Predictor",
->>  		NULL,
->>  	};
->> +	static const char * const test_pattern[] = {
->> +		"Test Pattern Disabled",
->> +		"Vertical Lines",
->> +		"Horizontal Lines",
->> +		"Diagonal Lines",
->> +		"Solid Black",
->> +		"Solid White",
->> +		"Solid Blue",
->> +		"Solid Red",
->> +		"Checker Board",
->> +		NULL,
->> +	};
->>  
->>  	switch (id) {
->>  	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
->> @@ -509,6 +521,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->>  		return jpeg_chroma_subsampling;
->>  	case V4L2_CID_DPCM_PREDICTOR:
->>  		return dpcm_predictor;
->> +	case V4L2_CID_TEST_PATTERN:
->> +		return test_pattern;
->>  
->>  	default:
->>  		return NULL;
->> @@ -740,6 +754,7 @@ const char *v4l2_ctrl_get_name(u32 id)
->>  	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
->>  	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
->>  	case V4L2_CID_DPCM_PREDICTOR:		return "DPCM Predictor";
->> +	case V4L2_CID_TEST_PATTERN:		return "Test Pattern";
->>  
->>  	default:
->>  		return NULL;
->> @@ -841,6 +856,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->>  	case V4L2_CID_EXPOSURE_METERING:
->>  	case V4L2_CID_SCENE_MODE:
->>  	case V4L2_CID_DPCM_PREDICTOR:
->> +	case V4L2_CID_TEST_PATTERN:
->>  		*type = V4L2_CTRL_TYPE_MENU;
->>  		break;
->>  	case V4L2_CID_LINK_FREQ:
->> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
->> index ca9fb78..1796079 100644
->> --- a/include/linux/videodev2.h
->> +++ b/include/linux/videodev2.h
->> @@ -2005,6 +2005,18 @@ enum v4l2_dpcm_predictor {
->>  	V4L2_DPCM_PREDICTOR_SIMPLE	= 0,
->>  	V4L2_DPCM_PREDICTOR_ADVANCED	= 1,
->>  };
->> +#define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 4)
->> +enum v4l2_test_pattern {
->> +	V4L2_TEST_PATTERN_DISABLED		= 0,
->> +	V4L2_TEST_PATTERN_VERTICAL_LINES	= 1,
->> +	V4L2_TEST_PATTERN_HORIZONTAL_LINES	= 2,
->> +	V4L2_TEST_PATTERN_DIAGONAL_LINES	= 3,
->> +	V4L2_TEST_PATTERN_SOLID_BLACK		= 4,
->> +	V4L2_TEST_PATTERN_SOLID_WHITE		= 5,
->> +	V4L2_TEST_PATTERN_SOLID_BLUE		= 6,
->> +	V4L2_TEST_PATTERN_SOLID_RED		= 7,
->> +	V4L2_TEST_PATTERN_CHECKER_BOARD		= 8,
->> +};
->>  
->>  /*
->>   *	T U N I N G
+>> @@ -2666,3 +2666,20 @@ unsigned int v4l2_ctrl_poll(struct file *file, struct poll_table_struct *wait)
+>>       return 0;
+>>  }
+>>  EXPORT_SYMBOL(v4l2_ctrl_poll);
+>> +
+>> +/* Helper function for modifying the menu */
+>> +void v4l2_ctrl_modify_menu(struct v4l2_ctrl *ctrl, const char * const *qmenu,
+>> +                        s32 max, u32 menu_skip_mask, s32 def)
+>> +{
+>> +     if (WARN_ON(ctrl->type != V4L2_CTRL_TYPE_MENU || qmenu == NULL))
+>> +             return;
+>> +
+>> +     if (WARN_ON(def < 0 || def > max))
+>> +             return;
+>> +
+>> +     ctrl->qmenu = qmenu;
+>> +     ctrl->maximum = max;
+>> +     ctrl->menu_skip_mask = menu_skip_mask;
+>> +     ctrl->cur.val = ctrl->val = ctrl->default_value = def;
+>> +}
+>> +EXPORT_SYMBOL(v4l2_ctrl_modify_menu);
+>> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+>> index 776605f..0c91b4e 100644
+>> --- a/include/media/v4l2-ctrls.h
+>> +++ b/include/media/v4l2-ctrls.h
+>> @@ -488,6 +488,17 @@ static inline void v4l2_ctrl_unlock(struct v4l2_ctrl *ctrl)
+>>       mutex_unlock(ctrl->handler->lock);
+>>  }
 >>
+>> +/**
+>> + * v4l2_ctrl_modify_menu() - This function is used to modify the menu.
+>> + * @ctrl:            The control of which menu should be changed.
+>
+> "The control whose menu should be modified."
+>
+Ok.
 
+>> + * @qmenu:           The new menu to which control will point to.
+>
+> "The new menu."
+>
+Ok.
+
+Regards,
+--Prabhakar Lad
+
+>> + * @max:             Maximum value of the control.
+>> + * @menu_skip_mask:  The control's skip mask for menu controls.
+>> + * @def:             The default value for control to be set.
+>> + */
+>> +void v4l2_ctrl_modify_menu(struct v4l2_ctrl *ctrl, const char * const *qmenu,
+>> +                        s32 max, u32 menu_skip_mask, s32 def);
+>> +
+>>  /** v4l2_ctrl_g_ctrl() - Helper function to get the control's value from within a driver.
+>>    * @ctrl:   The control.
+>>    *
+>>
+>
+> Regards,
+>
+>         Hans
+> _______________________________________________
+> Davinci-linux-open-source mailing list
+> Davinci-linux-open-source@linux.davincidsp.com
+> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
