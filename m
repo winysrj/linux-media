@@ -1,92 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40540 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932828Ab2IRLoy (ORCPT
+Received: from eu1sys200aog105.obsmtp.com ([207.126.144.119]:40412 "EHLO
+	eu1sys200aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751738Ab2IKOBe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Sep 2012 07:44:54 -0400
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: <linux-kernel@vger.kernel.org>, <julia.lawall@lip6.fr>,
-	Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv3 4/6] media: Convert struct i2c_msg initialization to C99 format
-Date: Tue, 18 Sep 2012 17:14:30 +0530
-Message-ID: <1347968672-10803-5-git-send-email-shubhrajyoti@ti.com>
-In-Reply-To: <1347968672-10803-1-git-send-email-shubhrajyoti@ti.com>
-References: <1347968672-10803-1-git-send-email-shubhrajyoti@ti.com>
+	Tue, 11 Sep 2012 10:01:34 -0400
+From: Nicolas THERY <nicolas.thery@st.com>
+To: Prashanth Subramanya <sprashanth@aptina.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"mchehab@infradead.org" <mchehab@infradead.org>,
+	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"s.nawrocki@samsung.com" <s.nawrocki@samsung.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	"sakari.ailus@maxwell.research.nokia.com"
+	<sakari.ailus@maxwell.research.nokia.com>,
+	"scott.jiang.linux@gmail.com" <scott.jiang.linux@gmail.com>
+Date: Tue, 11 Sep 2012 16:00:23 +0200
+Subject: Re: [PATCH] drivers: media: video: Add support for Aptina ar0130
+ sensor
+Message-ID: <504F43F7.10504@st.com>
+References: <1347010226-12546-1-git-send-email-sprashanth@aptina.com>
+In-Reply-To: <1347010226-12546-1-git-send-email-sprashanth@aptina.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-        Convert the struct i2c_msg initialization to C99 format. This makes
-        maintaining and editing the code simpler. Also helps once other fields
-        like transferred are added in future.
-
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- drivers/media/i2c/msp3400-driver.c |   40 ++++++++++++++++++++++++++++++-----
- 1 files changed, 34 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/i2c/msp3400-driver.c b/drivers/media/i2c/msp3400-driver.c
-index aeb22be..766305f 100644
---- a/drivers/media/i2c/msp3400-driver.c
-+++ b/drivers/media/i2c/msp3400-driver.c
-@@ -119,12 +119,31 @@ int msp_reset(struct i2c_client *client)
- 	static u8 write[3]     = { I2C_MSP_DSP + 1, 0x00, 0x1e };
- 	u8 read[2];
- 	struct i2c_msg reset[2] = {
--		{ client->addr, I2C_M_IGNORE_NAK, 3, reset_off },
--		{ client->addr, I2C_M_IGNORE_NAK, 3, reset_on  },
-+		{
-+			.addr = client->addr,
-+			.flags = I2C_M_IGNORE_NAK,
-+			.len = 3,
-+			.buf = reset_off
-+		},
-+		{
-+			.addr = client->addr,
-+			.flags = I2C_M_IGNORE_NAK,
-+			.len = 3,
-+			.buf = reset_on
-+		},
- 	};
- 	struct i2c_msg test[2] = {
--		{ client->addr, 0,        3, write },
--		{ client->addr, I2C_M_RD, 2, read  },
-+		{
-+			.addr = client->addr,
-+			.len = 3,
-+			.buf = write
-+		},
-+		{
-+			.addr = client->addr,
-+			.flags = I2C_M_RD,
-+			.len = 2,
-+			.buf = read
-+		},
- 	};
- 
- 	v4l_dbg(3, msp_debug, client, "msp_reset\n");
-@@ -143,8 +162,17 @@ static int msp_read(struct i2c_client *client, int dev, int addr)
- 	u8 write[3];
- 	u8 read[2];
- 	struct i2c_msg msgs[2] = {
--		{ client->addr, 0,        3, write },
--		{ client->addr, I2C_M_RD, 2, read  }
-+		{
-+			.addr = client->addr,
-+			.len = 3,
-+			.buf = write
-+		},
-+		{
-+			.addr = client->addr,
-+			.flags = I2C_M_RD,
-+			.len = 2,
-+			.buf = read
-+		}
- 	};
- 
- 	write[0] = dev + 1;
--- 
-1.7.5.4
-
+SGVsbG8sDQoNCkkndmUgc3BvdHRlZCBhIG1pbm9yIGlzc3VlIHdoaWxlIGdsYW5jaW5nIHRocm91
+Z2ggdGhlIGNvZGUuDQoNCkNoZWVycywNCk5pY29sYXMNCg0KT24gMjAxMi0wOS0wNyAxMTozMCwg
+UHJhc2hhbnRoIFN1YnJhbWFueWEgd3JvdGU6DQo+IFRoaXMgZHJpdmVyIGFkZHMgYmFzaWMgc3Vw
+cG9ydCBmb3IgQXB0aW5hIGFyMDEzMCAxLjJNIHNlbnNvci4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6
+IFByYXNoYW50aCBTdWJyYW1hbnlhIDxzcHJhc2hhbnRoQGFwdGluYS5jb20+DQo+IC0tLQ0KW3Nu
+aXBdDQo+ICsvKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqDQo+ICsgICAgICAgICAgICAgICB2NGwyX3N1YmRldl92aWRlb19vcHMNCj4gKyoqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKiovDQo+ICtzdGF0aWMg
+aW50IGFyMDEzMF9zX3N0cmVhbShzdHJ1Y3QgdjRsMl9zdWJkZXYgKnNkLCBpbnQgZW5hYmxlKQ0K
+PiArew0KPiArICAgICAgIHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQgPSB2NGwyX2dldF9zdWJk
+ZXZkYXRhKHNkKTsNCj4gKyAgICAgICBzdHJ1Y3QgYXIwMTMwX3ByaXYgKmFyMDEzMCA9IGNvbnRh
+aW5lcl9vZihzZCwNCj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHN0
+cnVjdCBhcjAxMzBfcHJpdiwgc3ViZGV2KTsNCj4gKyAgICAgICBpbnQgcmV0Ow0KPiArDQo+ICsg
+ICAgICAgaWYgKCFlbmFibGUpIHsNCj4gKyAgICAgICAgICAgICAgIHJldCA9IGFyMDEzMF93cml0
+ZShjbGllbnQsIEFSMDEzMF9SRVNFVF9SRUcsIEFSMDEzMF9TVFJFQU1fT0ZGKTsNCj4gKyAgICAg
+ICAgICAgICAgIHJldHVybiAwOw0KPiArICAgICAgIH0NCj4gKw0KPiArICAgICAgIHJldCA9IGFy
+MDEzMF9saW5lYXJfbW9kZV9zZXR1cChjbGllbnQpOw0KPiArICAgICAgIGlmIChyZXQgPCAwKSB7
+DQo+ICsgICAgICAgICAgICAgICBkZXZfZXJyKGFyMDEzMC0+c3ViZGV2LnY0bDJfZGV2LT5kZXYs
+DQo+ICsgICAgICAgICAgICAgICAgICAgICAgICJGYWlsZWQgdG8gc2V0dXAgbGluZWFyIG1vZGU6
+ICVkXG4iLCByZXQpOw0KPiArICAgICAgICAgICAgICAgcmV0dXJuIHJldDsNCj4gKyAgICAgICB9
+DQo+ICsNCj4gKyAgICAgICByZXQgPSBhcjAxMzBfc2V0X3Jlc29sdXRpb24oY2xpZW50LCBhcjAx
+MzAtPnJlc19pbmRleCk7DQo+ICsgICAgICAgaWYgKHJldCA8IDApIHsNCj4gKyAgICAgICAgICAg
+ICAgIGRldl9lcnIoYXIwMTMwLT5zdWJkZXYudjRsMl9kZXYtPmRldiwNCj4gKyAgICAgICAgICAg
+ICAgICAgICAgICAgIkZhaWxlZCB0byBzZXR1cCByZXNvbHV0aW9uOiAlZFxuIiwgcmV0KTsNCj4g
+KyAgICAgICAgICAgICAgIHJldHVybiByZXQ7DQo+ICsgICAgICAgfQ0KPiArDQo+ICsgICAgICAg
+cmV0IHw9IGFyMDEzMF93cml0ZShjbGllbnQsIEFSMDEzMF9SRVNFVF9SRUcsIEFSMDEzMF9TVFJF
+QU1fT0ZGKTsNCj4gKyAgICAgICByZXQgfD0gYXIwMTMwX3dyaXRlKGNsaWVudCwgQVIwMTMwX0hE
+Ul9DT01QLCAweDAwMDEpOw0KPiArDQo+ICsgICAgICAgcmV0ID0gYXIwMTMwX3BsbF9lbmFibGUo
+YXIwMTMwKTsNCg0KVGhlIHByZXZpb3VzIHZhbHVlIG9mIHJldCBpcyBvdmVyd3JpdHRlbiBoZXJl
+Lg0KDQo+ICsgICAgICAgaWYgKHJldCA8IDApIHsNCj4gKyAgICAgICAgICAgICAgIGRldl9lcnIo
+YXIwMTMwLT5zdWJkZXYudjRsMl9kZXYtPmRldiwNCj4gKyAgICAgICAgICAgICAgICAgICAgICAg
+IkZhaWxlZCB0byBlbmFibGUgcGxsOiAlZFxuIiwgcmV0KTsNCj4gKyAgICAgICAgICAgICAgIHJl
+dHVybiByZXQ7DQo+ICsgICAgICAgfQ0KPiArDQo+ICsgICAgICAgcmV0ICA9IGFyMDEzMF9zZXRf
+YXV0b2V4cG9zdXJlKGNsaWVudCwgQVIwMTMwX0VOQUJMRSk7DQo+ICsgICAgICAgcmV0IHw9IGFy
+MDEzMF93cml0ZShjbGllbnQsIEFSMDEzMF9SRVNFVF9SRUcsIEFSMDEzMF9TVFJFQU1fT04pOw0K
+PiArDQo+ICsgICAgICAgcmV0dXJuIHJldDsNCj4gK30=
