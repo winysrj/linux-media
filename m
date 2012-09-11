@@ -1,61 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1041 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751549Ab2IPQ2t (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:60847 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751040Ab2IKM7f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Sep 2012 12:28:49 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Georgi Chorbadzhiyski <gf@unixsol.org>
-Subject: Re: How to set pixelaspect in struct v4l2_cropcap returned by VIDIOC_CROPCAP?
-Date: Sun, 16 Sep 2012 18:28:44 +0200
-Cc: linux-media@vger.kernel.org
-References: <5055F124.8020507@unixsol.org>
-In-Reply-To: <5055F124.8020507@unixsol.org>
+	Tue, 11 Sep 2012 08:59:35 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id 20DCE189AF7
+	for <linux-media@vger.kernel.org>; Tue, 11 Sep 2012 14:59:33 +0200 (CEST)
+Date: Tue, 11 Sep 2012 14:59:33 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] media: mem2mem: make reference to struct m2m_ops in the core
+ const
+Message-ID: <Pine.LNX.4.64.1209111458580.22084@axis700.grange>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209161828.44984.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun September 16 2012 17:32:52 Georgi Chorbadzhiyski wrote:
-> Guys I'm adding v4l2 output device support for VLC/ffmpeg/libav (I'm using
-> v4l2loopback [1] driver for testing) but I have a problem which I can't seem
-> to find a solution.
-> 
-> VLC [2] uses VIDIOC_CROPCAP [3] to detect the pixelaspect ratio of the input
-> it receives from v4l2 device. But I can't seem to find a way to set struct
-> v4l2_cropcap.pixelaspect when I'm outputting data to the device and the
-> result is that VLC assumes pixelaspect is 1:1.
-> 
-> I was hoping that VIDIOC_S_CROP [4] would allow setting pixelaspect but
-> according to docs that is not case. What am I missing?
+The mem2mem core doesn't change struct m2m_ops, provided by the driver,
+make references to it const.
 
-The pixelaspect ratio returned by CROPCAP depends on the current video standard
-of the video receiver or transmitter.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/v4l2-core/v4l2-mem2mem.c |    4 ++--
+ include/media/v4l2-mem2mem.h           |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-So for video capture the pixelaspect depends on the standard (50 vs 60 Hz) and
-the horizontal sampling frequency of the video receiver (hardware specific).
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index 3ac8358..e4ff65d 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -62,7 +62,7 @@ struct v4l2_m2m_dev {
+ 	struct list_head	job_queue;
+ 	spinlock_t		job_spinlock;
+ 
+-	struct v4l2_m2m_ops	*m2m_ops;
++	const struct v4l2_m2m_ops *m2m_ops;
+ };
+ 
+ static struct v4l2_m2m_queue_ctx *get_queue_ctx(struct v4l2_m2m_ctx *m2m_ctx,
+@@ -506,7 +506,7 @@ EXPORT_SYMBOL(v4l2_m2m_mmap);
+  *
+  * Usually called from driver's probe() function.
+  */
+-struct v4l2_m2m_dev *v4l2_m2m_init(struct v4l2_m2m_ops *m2m_ops)
++struct v4l2_m2m_dev *v4l2_m2m_init(const struct v4l2_m2m_ops *m2m_ops)
+ {
+ 	struct v4l2_m2m_dev *m2m_dev;
+ 
+diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
+index 16ac473..d4bf29a26 100644
+--- a/include/media/v4l2-mem2mem.h
++++ b/include/media/v4l2-mem2mem.h
+@@ -122,7 +122,7 @@ unsigned int v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ int v4l2_m2m_mmap(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 		  struct vm_area_struct *vma);
+ 
+-struct v4l2_m2m_dev *v4l2_m2m_init(struct v4l2_m2m_ops *m2m_ops);
++struct v4l2_m2m_dev *v4l2_m2m_init(const struct v4l2_m2m_ops *m2m_ops);
+ void v4l2_m2m_release(struct v4l2_m2m_dev *m2m_dev);
+ 
+ struct v4l2_m2m_ctx *v4l2_m2m_ctx_init(struct v4l2_m2m_dev *m2m_dev,
+-- 
+1.7.2.5
 
-For video output the pixelaspect depends also on the standard and on how the
-transmitter goes from digital to analog pixels (the reverse of what a receiver
-does).
-
-It is *not* the pixelaspect of the video data itself. For output it is the
-pixel aspect that the transmitter expects. Any difference between the two will
-need to be resolved somehow, typically by software or hardware scaling.
-
-Regards,
-
-	Hans
-
-> 
-> How to set pixelaspect values returned by VIDIOC_CROPCAP?
-> 
-> [1]: https://github.com/umlaeute/v4l2loopback
-> [2]: http://git.videolan.org/?p=vlc.git;a=blob;f=modules/access/v4l2/demux.c;hb=HEAD#l248
-> [3]: http://www.linuxtv.org/downloads/v4l-dvb-apis/vidioc-cropcap.html
-> [4]: http://www.kernel.org/doc/htmldocs/media/vidioc-g-crop.html
-> 
-> 
