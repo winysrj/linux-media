@@ -1,192 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44177 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932089Ab2IRHmi (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:52834 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750930Ab2IKHk3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Sep 2012 03:42:38 -0400
-Date: Tue, 18 Sep 2012 10:42:33 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	=?iso-8859-1?Q?R=E9mi?= Denis-Courmont <remi@remlab.net>,
-	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv3 API PATCH 15/31] v4l2-core: Add new
- V4L2_CAP_MONOTONIC_TS capability.
-Message-ID: <20120918074159.GQ6834@valkosipuli.retiisi.org.uk>
-References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
- <5054E218.4010807@gmail.com>
- <201209161557.15049.hverkuil@xs4all.nl>
- <2870315.6PlfZS62FS@avalon>
- <50564BCE.8010901@gmail.com>
- <50575BA1.8020600@iki.fi>
- <505787CA.6070409@gmail.com>
+	Tue, 11 Sep 2012 03:40:29 -0400
+From: Prabhakar Lad <prabhakar.lad@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	<linux-kernel@vger.kernel.org>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	<linux-doc@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Rob Landley <rob@landley.net>
+Subject: [PATCH v2] media: v4l2-ctrl: add a helper function to modify the menu
+Date: Tue, 11 Sep 2012 13:09:02 +0530
+Message-ID: <1347349142-2230-1-git-send-email-prabhakar.lad@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <505787CA.6070409@gmail.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+From: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-Sylwester Nawrocki wrote:
-> On 09/17/2012 07:19 PM, Sakari Ailus wrote:
->> Sylwester Nawrocki wrote:
->>> On 09/16/2012 05:33 PM, Laurent Pinchart wrote:
->>>> On Sunday 16 September 2012 15:57:14 Hans Verkuil wrote:
->>>>> On Sat September 15 2012 22:16:24 Sylwester Nawrocki wrote:
->>>>>> On 09/15/2012 02:35 PM, Hans Verkuil wrote:
->>>>>>>>> One alternative might be to use a v4l2_buffer flag instead. That
->>>>>>>>> does
->>>>>>>>> have the advantage that in the future we can add additional flags
->>>>>>>>> should we need to support different clocks. Should we ever add
->>>>>>>>> support to switch clocks dynamically, then a buffer flag is more
->>>>>>>>> suitable than a driver capability. In that scenario it does make
->>>>>>>>> real
->>>>>>>>> sense to have a flag (or really mask).
->>>>>>>>>
->>>>>>>>> Say something like this:
->>>>>>>>>
->>>>>>>>> /* Clock Mask */
->>>>>>>>> V4L2_BUF_FLAG_CLOCK_MASK 0xf000
->>>>>>>>> /* Possible Clocks */
->>>>>>>>> V4L2_BUF_FLAG_CLOCK_SYSTEM 0x0000
->>>>>>>
->>>>>>> I realized that this should be called:
->>>>>>>
->>>>>>> V4L2_BUF_FLAG_CLOCK_UNKNOWN 0x0000
->>>>>>>
->>>>>>> With a comment saying that is clock is either the system clock or a
->>>>>>> monotonic clock. That reflects the current situation correctly.
->>>>>>>
->>>>>>>>> V4L2_BUF_FLAG_CLOCK_MONOTONIC 0x1000
->>>>>>
->>>>>> There is already lots of overhead related to the buffers
->>>>>> management, could
->>>>>> we perhaps have the most common option defined in a way that
->>>>>> drivers don't
->>>>>> need to update each buffer's flags before dequeuing, only to
->>>>>> indicate the
->>>>>> timestamp type (other than flags being modified in videobuf) ?
->>>>>
->>>>> Well, if all vb2 drivers use the monotonic clock, then you could do
->>>>> it in
->>>>> __fill_v4l2_buffer: instead of clearing just the state flags you'd
->>>>> clear
->>>>> state + clock flags, and you OR in the monotonic flag in the case
->>>>> statement
->>>>> below (adding just a single b->flags |= line in the DEQUEUED case).
->>>>>
->>>>> So that wouldn't add any overhead. Not that I think setting a flag
->>>>> will add
->>>>> any measurable overhead in any case.
->>>
->>> Yes, that might be indeed negligible overhead, especially if it's done
->>> well.
->>> User space logic usually adds much more to complexity.
->>>
->>> Might be good idea to add some helpers to videobuf2, so handling
->>> timestamps
->>> is as simple as possible in drivers.
->>
->> Of the V4L2 core. Taking the timestamp has to be done usually at a very
->> precise point in the code, and that's a decision I think is better done
->> in the driver. Timestamps are also independent of the videobuf2.
->
-> Yes, good point. All in all videobuf2 belongs to v4l2-core, doesn't
-> it ? ;)
+Add a helper function to modify the menu, max and default value
+to set.
 
-You're correct. I meant to say that it could (or should) be separate 
-from handling the buffers themselves.
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Rob Landley <rob@landley.net>
+---
+Changes for v2:
+1: Fixed review comments from Hans, to have return type as
+   void, add WARN_ON() for fail conditions, allow this fucntion
+   to modify the menu of custom controls.
 
-> Taking a timestamp indeed needs some care and precision, but setting
-> a flag could be considered a sort of separate issue - it's more relaxed
-> and videobuf2 already handles the buffer flags.
+ Documentation/video4linux/v4l2-controls.txt |   30 +++++++++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-ctrls.c        |   17 +++++++++++++++
+ include/media/v4l2-ctrls.h                  |   11 +++++++++
+ 3 files changed, 58 insertions(+), 0 deletions(-)
 
-True.
-
->>>>>> This buffer flags idea sounds to me worse than the capability flag.
->>>>>> After
->>>>>> all the drivers should use monotonic clock timestamps, shouldn't
->>>>>> they ?
->>>>>
->>>>> Yes. But you have monotonic and raw monotonic clocks at the moment, and
->>>>> perhaps others will be added in the future. You can't change clocks
->>>>> if you
->>>>> put this in the querycap capabilities.
->>>
->>> Fair enough. BTW, CLOCK_MONOTONIC_RAW is not defined in any POSIX
->>> standard,
->>> is it ?
->>
->> It's Linux-specific. Perhaps it's worth noting that both V4L2 and ALSA
->> are Linux-specific, too. :-)
->
-> OK. I don't mind V4L2 and ALSA being Linux-specific...
->
-> :)
->> Raw wonotonic time could be better in some use cases as it's not
->> NTP-adjusted. Which one is better for the purpose might be
->> system-specific, albeit I'm leaning on the side of the monotonic in a
->> general case.
->
-> Yeah, I guess it's all determined by streams from what subsystems
-> we're trying to synchronize and what clocks are used there. If there
-> is a possibility to select from various clocks in at least one of
-> the subsystems then we're all set.
-
-It's not only that, it's also that the clock has to be suitable for the 
-synchronisation problem at hand. Currently realtime timestamps could be 
-used by ALSA and V4L2 but I could hardly recommend using them for 
-audio/video synchronisation.
-
-> The main issue here is that we already have plenty of different
-> clocks and there is a need on the video side for at least:
-> 1. reporting to user space what clock is used by a driver,
-> and optionally
-> 2. selecting clock type on user request.
-
-I think the solution for 1 should be such it makes easy and clean to do 2.
-
->>>>> I'd really like to keep this door open. My experience is that if
->>>>> something
->>>>> is possible, then someone somewhere will want to use it.
->>>
->>> Indeed, caps flags approach might be too limited anyway. And a v4l2
->>> control
->>> might be not good for reporting things like these.
->>
->> Why not? Are there other mechanisms that are suitable for this than
->> controls? If we end up using controls for this, then we should make it
->> as easy as possible for the drivers.
->
-> Sorry, my concern here was that timestamps are needed by all video
-> devices and I wasn't sure if there are any video nodes that don't
-> implement the v4l2 control ioctls. I.e. we might be enforcing adding
-> controls support only for the purpose of being able to query the
-> timestamps type. That was my concern here about using controls. However
-> if all video devices implement the controls API then it's negligible.
-> Moreover some parts of such control implementation could likely be
-> a part v4l2-core.
->
-> I'm just wondering why we need a flag when a control is going to be
-> used anyway. It sounds like per-buffer controls/status but that's an
-> issue that was previously discussed and is still not really addressed
-> in V4L2 AFAICT.
->
-> Flags + a control is likely going to fulfil all (most of) possible
-> app requirements. Not sure if the applications really need to get
-> timestamp type from each v4l2 buffer and the drivers need to be setting
-> it. Rather than just using a control before starting/after stopping
-> streaming to select, and at any time to query, the clock type.
-
-I think so, too. It's unlikely that the user would want to change the 
-value of the timestamp type control while streaming. Those flags could 
-well be added later on if the need to do so arises.
-
-Kind regards,
-
+diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
+index 43da22b..160368a 100644
+--- a/Documentation/video4linux/v4l2-controls.txt
++++ b/Documentation/video4linux/v4l2-controls.txt
+@@ -367,6 +367,36 @@ it to 0 means that all menu items are supported.
+ You set this mask either through the v4l2_ctrl_config struct for a custom
+ control, or by calling v4l2_ctrl_new_std_menu().
+ 
++Changing the menu:
++There are situations when menu items may be device specific, in such cases the
++framework provides the helper function to change the menu.
++
++void v4l2_ctrl_modify_menu(struct v4l2_ctrl *ctrl, const char * const *qmenu,
++	s32 max, u32 menu_skip_mask, s32 def);
++
++A good example is the test pattern generation, the capture/display/sensors have
++the capability to generate test patterns. This test patterns are hardware
++specific, In such case the menu will vary from device to device.
++
++This helper, function is used to modify the menu, max, mask and the default
++value to set.
++
++Example for usage:
++	static const char * const test_pattern[] = {
++		"Disabled",
++		"Vertical Bars",
++		"Vertical Bars",
++		"Solid Black",
++		"Solid White",
++		NULL
++	};
++	struct v4l2_ctrl *test_pattern_ctrl =
++		v4l2_ctrl_new_std_menu(&foo->ctrl_handler, &foo_ctrl_ops,
++			V4L2_CID_TEST_PATTERN, V4L2_TEST_PATTERN_DISABLED, 0,
++			V4L2_TEST_PATTERN_DISABLED);
++
++	v4l2_ctrl_modify_menu(test_pattern_ctrl, test_pattern, 5, 0x3, 1);
++
+ 
+ Custom Controls
+ ===============
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index d731422..d89b460 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -2666,3 +2666,20 @@ unsigned int v4l2_ctrl_poll(struct file *file, struct poll_table_struct *wait)
+ 	return 0;
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_poll);
++
++/* Helper function for modifying the menu */
++void v4l2_ctrl_modify_menu(struct v4l2_ctrl *ctrl, const char * const *qmenu,
++			   s32 max, u32 menu_skip_mask, s32 def)
++{
++	if (WARN_ON(ctrl->type != V4L2_CTRL_TYPE_MENU || qmenu == NULL))
++		return;
++
++	if (WARN_ON(def < 0 || def > max))
++		return;
++
++	ctrl->qmenu = qmenu;
++	ctrl->maximum = max;
++	ctrl->menu_skip_mask = menu_skip_mask;
++	ctrl->cur.val = ctrl->val = ctrl->default_value = def;
++}
++EXPORT_SYMBOL(v4l2_ctrl_modify_menu);
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 776605f..0c91b4e 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -488,6 +488,17 @@ static inline void v4l2_ctrl_unlock(struct v4l2_ctrl *ctrl)
+ 	mutex_unlock(ctrl->handler->lock);
+ }
+ 
++/**
++ * v4l2_ctrl_modify_menu() - This function is used to modify the menu.
++ * @ctrl:		The control of which menu should be changed.
++ * @qmenu:		The new menu to which control will point to.
++ * @max:		Maximum value of the control.
++ * @menu_skip_mask:	The control's skip mask for menu controls.
++ * @def:		The default value for control to be set.
++ */
++void v4l2_ctrl_modify_menu(struct v4l2_ctrl *ctrl, const char * const *qmenu,
++			   s32 max, u32 menu_skip_mask, s32 def);
++
+ /** v4l2_ctrl_g_ctrl() - Helper function to get the control's value from within a driver.
+   * @ctrl:	The control.
+   *
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+1.7.0.4
+
