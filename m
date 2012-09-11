@@ -1,69 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37347 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751604Ab2IBPGh (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:46349 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755057Ab2IKAkG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 2 Sep 2012 11:06:37 -0400
-Message-ID: <504375FA.1030209@iki.fi>
-Date: Sun, 02 Sep 2012 18:06:34 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-CC: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCHv3 2/9] ir-rx51: Handle signals properly
-References: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi> <1346349271-28073-3-git-send-email-timo.t.kokkonen@iki.fi> <20120901171420.GC6638@valkosipuli.retiisi.org.uk> <50437328.9050903@iki.fi>
-In-Reply-To: <50437328.9050903@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	Mon, 10 Sep 2012 20:40:06 -0400
+Subject: Re: [RFC API] Capture Overlay API ambiguities
+From: Andy Walls <awalls@md.metrocast.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Date: Mon, 10 Sep 2012 20:39:47 -0400
+In-Reply-To: <201209101714.54365.hverkuil@xs4all.nl>
+References: <201209101714.54365.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
+Message-ID: <1347323994.2499.23.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Heippa,
+On Mon, 2012-09-10 at 17:14 +0200, Hans Verkuil wrote:
+> Hi all,
+> 
+> While working on making bttv compliant with the V4L2 API I managed to resolve
+> all v4l2-compliance errors except for two:
+> 
+>                 fail: v4l2-test-formats.cpp(339): !fmt.width || !fmt.height
+>         test VIDIOC_G_FBUF: FAIL
+>                 fail: v4l2-test-formats.cpp(607): Video Overlay is valid, but no S_FMT was implemented
+>         test VIDIOC_S_FMT: FAIL
+> 
+> After some analysis it turns out to be an ambiguity in VIDIOC_G_FBUF and
+> VIDIOC_G_FMT for overlays.
+> 
+> The first relates to what VIDIOC_G_FBUF should return if there is no framebuffer
+> set? I.e. if VIDIOC_S_FBUF was never called?
+> 
+> Should G_FBUF return an error, or provide non-zero but dummy struct v4l2_pix_format
+> values and only leave base to NULL, or should the whole v4l2_framebuffer structure
+> be zeroed (except for the capability field)?
+> 
+> bttv just zeroes everything.
+> 
+> Currently v4l2-compliance assumes that there is at least a dummy fmt setup. But
+> I think that is unreasonably for destructive capture overlays.
+> 
+> I would prefer to zero everything except for the capability field.
+> 
+> Returning an error is not an option IMHO: even if there is no framebuffer defined,
+> the capability field is still useful information to have.
+> 
+> The second error is related to the first: what should happen if you try to set
+> a capture overlay format with S_FMT and no framebuffer is defined? The driver
+> cannot really validate the given format without knowing what the framebuffer
+> is like.
+> 
+> Currently I am returning some dummy values for G_FMT and TRY_FMT in that case,
+> but for S_FMT I cannot do even that.
+> 
+> While normally the G/S/TRY_FMT ioctls should never return an error, I think
+> that in this particular case we should allow an error code. I am proposing
+> ENODATA because, well, there is no data w.r.t. the framebuffer.
 
-Timo Kokkonen wrote:
-> Terve,
->
-> On 09/01/12 20:14, Sakari Ailus wrote:
->> Moi,
->>
->> On Thu, Aug 30, 2012 at 08:54:24PM +0300, Timo Kokkonen wrote:
->>> @@ -273,9 +281,18 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
->>>
->>>   	/*
->>>   	 * Don't return back to the userspace until the transfer has
->>> -	 * finished
->>> +	 * finished. However, we wish to not spend any more than 500ms
->>> +	 * in kernel. No IR code TX should ever take that long.
->>> +	 */
->>> +	i = wait_event_timeout(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0,
->>> +			HZ / 2);
->>
->> Why such an arbitrary timeout? In reality it might not bite the user space
->> in practice ever, but is it (and if so, why) really required in the first
->> place?
->
-> Well, I can think of two cases:
->
-> 1) Something goes wrong. Such before I converted the patch to use the up
-> to date PM QoS implementation, the transmitting could take very long
-> time because the interrupts were not waking up the MPU. Now that this is
-> sorted out only unknown bugs can cause transmitting to hang indefinitely.
->
-> 2) User is (intentionally?) doing something wrong. For example by
-> feeding in an IR code that has got very long pulses, he could end up
-> having the lircd process hung in kernel unkillable for long time. That
-> could be avoided quite easily by counting the pulse lengths and
-> rejecting any IR codes that are obviously too long. But since I'd like
-> to also protect against 1) case, I think this solution works just fine.
->
-> In the end, this is just safety measure that this driver behaves well.
+I agree that something better and more distinct than EINVAL is needed.
 
-In that case I think you should use wait_event_interruptible() instead. 
-It's not the driver's job to decide what the user can do with the 
-hardware and what not, is it?
+Not that the exact error return code really matters, but ENODATA is one
+of those little used things in POSIX that looks like it was really only
+meant for read-data-releated POSIX STREAMS ioctl()s:
 
-Terveisin,
+http://pubs.opengroup.org/onlinepubs/009695399/functions/ioctl.html
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Maybe one of ENXIO, ENOTTY, or EPROTO would be better?
+http://pubs.opengroup.org/onlinepubs/009695399/functions/xsh_chap02_03.html#tag_02_03
+
+Regards,
+Andy
+
+> The current bttv driver returns EINVAL for these cases, but that's too generic
+> I think.
+
+
+> So in the case of destructive capture overlays the G/S/TRY_FMT ioctls should
+> return ENODATA if no framebuffer was configured.
+> 
+> Comments?
+> 
+> Regards,
+> 
+> 	Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
