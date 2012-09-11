@@ -1,99 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:50909 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758327Ab2ILM40 (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:48856 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751630Ab2IKOY5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Sep 2012 08:56:26 -0400
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v2 3/8] drivers/media/dvb-frontends/s5h1432.c: Removes useless kfree()
-Date: Wed, 12 Sep 2012 14:56:02 +0200
-Message-Id: <1347454564-5178-6-git-send-email-peter.senna@gmail.com>
+	Tue, 11 Sep 2012 10:24:57 -0400
+From: Prabhakar Lad <prabhakar.lad@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	<linux-kernel@vger.kernel.org>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	<linux-doc@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Rob Landley <rob@landley.net>
+Subject: [PATCH v3] media: v4l2-ctrl: add a helper function to modify the menu
+Date: Tue, 11 Sep 2012 19:53:38 +0530
+Message-ID: <1347373418-18927-1-git-send-email-prabhakar.lad@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Senna Tschudin <peter.senna@gmail.com>
+From: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-Remove useless kfree() and clean up code related to the removal.
+Add a helper function to modify the menu, max and default value
+to set.
 
-The semantic patch that finds this problem is as follows:
-(http://coccinelle.lip6.fr/)
-
-// <smpl>
-@r exists@
-position p1,p2;
-expression x;
-@@
-
-if (x@p1 == NULL) { ... kfree@p2(x); ... return ...; }
-
-@unchanged exists@
-position r.p1,r.p2;
-expression e <= r.x,x,e1;
-iterator I;
-statement S;
-@@
-
-if (x@p1 == NULL) { ... when != I(x,...) S
-                        when != e = e1
-                        when != e += e1
-                        when != e -= e1
-                        when != ++e
-                        when != --e
-                        when != e++
-                        when != e--
-                        when != &e
-   kfree@p2(x); ... return ...; }
-
-@ok depends on unchanged exists@
-position any r.p1;
-position r.p2;
-expression x;
-@@
-
-... when != true x@p1 == NULL
-kfree@p2(x);
-
-@depends on !ok && unchanged@
-position r.p2;
-expression x;
-@@
-
-*kfree@p2(x);
-// </smpl>
-
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Rob Landley <rob@landley.net>
 ---
- drivers/media/dvb-frontends/s5h1432.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+Changes for v3:
+1: Fixed style/grammer issues as pointed by Hans.
+   Thanks Hans for providing the description.
 
-diff --git a/drivers/media/dvb-frontends/s5h1432.c b/drivers/media/dvb-frontends/s5h1432.c
-index 8352ce1..6ec16a2 100644
---- a/drivers/media/dvb-frontends/s5h1432.c
-+++ b/drivers/media/dvb-frontends/s5h1432.c
-@@ -351,8 +351,8 @@ struct dvb_frontend *s5h1432_attach(const struct s5h1432_config *config,
- 	printk(KERN_INFO " Enter s5h1432_attach(). attach success!\n");
- 	/* allocate memory for the internal state */
- 	state = kmalloc(sizeof(struct s5h1432_state), GFP_KERNEL);
--	if (state == NULL)
--		goto error;
-+	if (!state)
-+		return NULL;
+Changes for v2:
+1: Fixed review comments from Hans, to have return type as
+   void, add WARN_ON() for fail conditions, allow this fucntion
+   to modify the menu of custom controls.
+
+ Documentation/video4linux/v4l2-controls.txt |   29 +++++++++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-ctrls.c        |   17 +++++++++++++++
+ include/media/v4l2-ctrls.h                  |   11 ++++++++++
+ 3 files changed, 57 insertions(+), 0 deletions(-)
+
+diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
+index 43da22b..01d0a82 100644
+--- a/Documentation/video4linux/v4l2-controls.txt
++++ b/Documentation/video4linux/v4l2-controls.txt
+@@ -367,6 +367,35 @@ it to 0 means that all menu items are supported.
+ You set this mask either through the v4l2_ctrl_config struct for a custom
+ control, or by calling v4l2_ctrl_new_std_menu().
  
- 	/* setup the state */
- 	state->config = config;
-@@ -367,10 +367,6 @@ struct dvb_frontend *s5h1432_attach(const struct s5h1432_config *config,
- 	state->frontend.demodulator_priv = state;
++There are situations where menu items may be device specific. In such cases the
++framework provides a helper function to change the menu:
++
++void v4l2_ctrl_modify_menu(struct v4l2_ctrl *ctrl, const char * const *qmenu,
++	s32 max, u32 menu_skip_mask, s32 def);
++
++A good example is the test pattern control for capture/display/sensors devices
++that have the capability to generate test patterns. These test patterns are
++hardware specific, so the contents of the menu will vary from device to device.
++
++This helper function is used to modify the menu, max, mask and the default
++value of the control.
++
++Example:
++
++	static const char * const test_pattern[] = {
++		"Disabled",
++		"Vertical Bars",
++		"Solid Black",
++		"Solid White",
++		NULL,
++	};
++	struct v4l2_ctrl *test_pattern_ctrl =
++		v4l2_ctrl_new_std_menu(&foo->ctrl_handler, &foo_ctrl_ops,
++			V4L2_CID_TEST_PATTERN, V4L2_TEST_PATTERN_DISABLED, 0,
++			V4L2_TEST_PATTERN_DISABLED);
++
++	v4l2_ctrl_modify_menu(test_pattern_ctrl, test_pattern, 3, 0,
++		V4L2_TEST_PATTERN_DISABLED);
  
- 	return &state->frontend;
--
--error:
--	kfree(state);
--	return NULL;
+ Custom Controls
+ ===============
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index d731422..d89b460 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -2666,3 +2666,20 @@ unsigned int v4l2_ctrl_poll(struct file *file, struct poll_table_struct *wait)
+ 	return 0;
  }
- EXPORT_SYMBOL(s5h1432_attach);
+ EXPORT_SYMBOL(v4l2_ctrl_poll);
++
++/* Helper function for modifying the menu */
++void v4l2_ctrl_modify_menu(struct v4l2_ctrl *ctrl, const char * const *qmenu,
++			   s32 max, u32 menu_skip_mask, s32 def)
++{
++	if (WARN_ON(ctrl->type != V4L2_CTRL_TYPE_MENU || qmenu == NULL))
++		return;
++
++	if (WARN_ON(def < 0 || def > max))
++		return;
++
++	ctrl->qmenu = qmenu;
++	ctrl->maximum = max;
++	ctrl->menu_skip_mask = menu_skip_mask;
++	ctrl->cur.val = ctrl->val = ctrl->default_value = def;
++}
++EXPORT_SYMBOL(v4l2_ctrl_modify_menu);
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 776605f..5303489 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -488,6 +488,17 @@ static inline void v4l2_ctrl_unlock(struct v4l2_ctrl *ctrl)
+ 	mutex_unlock(ctrl->handler->lock);
+ }
  
++/**
++ * v4l2_ctrl_modify_menu() - This function is used to modify the menu.
++ * @ctrl:		The control whose menu should be modified.
++ * @qmenu:		The new menu.
++ * @max:		Maximum value of the control.
++ * @menu_skip_mask:	The control's skip mask for menu controls.
++ * @def:		The default value for control to be set.
++ */
++void v4l2_ctrl_modify_menu(struct v4l2_ctrl *ctrl, const char * const *qmenu,
++			   s32 max, u32 menu_skip_mask, s32 def);
++
+ /** v4l2_ctrl_g_ctrl() - Helper function to get the control's value from within a driver.
+   * @ctrl:	The control.
+   *
+-- 
+1.7.0.4
 
