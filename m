@@ -1,108 +1,319 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:50581 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754333Ab2IZOPg convert rfc822-to-8bit (ORCPT
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:46806 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757980Ab2IKSYN convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Sep 2012 10:15:36 -0400
-Received: by pbbrr4 with SMTP id rr4so1951329pbb.19
-        for <linux-media@vger.kernel.org>; Wed, 26 Sep 2012 07:15:35 -0700 (PDT)
+	Tue, 11 Sep 2012 14:24:13 -0400
 MIME-Version: 1.0
-In-Reply-To: <4942603.aHqLq5MBAn@avalon>
-References: <CAFqH_53EY7BcMjn+fy=KfAhSU9Ut1pcLUyrmu2kiHznrBUB2XQ@mail.gmail.com>
-	<1982842.IhYcnQa0e6@avalon>
-	<CAFqH_515+=O+s1rOZ85hzO8nnU=Fn9O=NxV_mM+4dfowb0pa7w@mail.gmail.com>
-	<4942603.aHqLq5MBAn@avalon>
-Date: Wed, 26 Sep 2012 16:15:35 +0200
-Message-ID: <CAFqH_51XXMyN0W5tUJiUr9MUrXe1KUZT5LuD-95M7xCaFT5Kgg@mail.gmail.com>
-Subject: Re: omap3isp: wrong image after resizer with mt9v034 sensor
-From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <1347386432-12954-1-git-send-email-peter.senna@gmail.com>
+References: <1347386432-12954-1-git-send-email-peter.senna@gmail.com>
+Date: Tue, 11 Sep 2012 15:24:11 -0300
+Message-ID: <CAH0vN5Jd9LY6dx0qeA0irP+Z6gaPcouZuVYtd35YO-smnYgThg@mail.gmail.com>
+Subject: Re: [PATCH] drivers/media: Removes useless kfree()
+From: Marcos Souza <marcos.souza.org@gmail.com>
+To: Peter Senna Tschudin <peter.senna@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-2012/9/26 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hi Enric,
+2012/9/11 Peter Senna Tschudin <peter.senna@gmail.com>:
+> From: Peter Senna Tschudin <peter.senna@gmail.com>
 >
-> On Wednesday 26 September 2012 09:57:53 Enric BalletbÃ² i Serra wrote:
+> The semantic patch that finds this problem is as follows:
+> (http://coccinelle.lip6.fr/)
 >
-> [snip]
+> // <smpl>
+> @r exists@
+> position p1,p2;
+> expression x;
+> @@
 >
->> You had reason. Checking the data lines of the camera bus with an
->> oscilloscope I see I had a problem, exactly in D8 /D9 data lines.
+> if (x@p1 == NULL) { ... kfree@p2(x); ... return ...; }
 >
-> I'm curious, how have you fixed that ?
-
-The board had a pull-down 4k7 resistor which I removed in these lines
-(D8/D9). The board is prepared to accept sensors from 8 to 12 bits,
-lines from D8 to D12 have a pull-down resistor to tie down the line by
-default.
-
-With the oscilloscope I saw that D8/D9 had problems to go to high
-level like you said, then I checked the schematic and I saw these
-resistors.
-
+> @unchanged exists@
+> position r.p1,r.p2;
+> expression e <= r.x,x,e1;
+> iterator I;
+> statement S;
+> @@
 >
->> Now I can capture images but the color is still wrong, see the following
->> image captured with pipeline SENSOR -> CCDC OUTPUT
->>
->>     http://downloads.isee.biz/pub/files/patterns/img-000001.pnm
->>
->> Now the image was converted using :
->>
->>     ./raw2rgbpnm -s 752x480 -f SGRBG10 img-000001.bin img-000001.pnm
->>
->> And the raw data can be found here:
->>
->>     http://downloads.isee.biz/pub/files/patterns/img-000001.bin
->>
->> Any idea where I can look ? Thanks.
+> if (x@p1 == NULL) { ... when != I(x,...) S
+>                         when != e = e1
+>                         when != e += e1
+>                         when != e -= e1
+>                         when != ++e
+>                         when != --e
+>                         when != e++
+>                         when != e--
+>                         when != &e
+>    kfree@p2(x); ... return ...; }
 >
-> Your sensors produces BGGR data if I'm not mistaken, not GRBG. raw2rgbpnm
-> doesn't support BGGR (yet), but the OMAP3 ISP preview engine can convert that
-> to YUV since v3.5. Just make your sensor driver expose the right media bus
-> format and configure the pipeline accordingly.
+> @ok depends on unchanged exists@
+> position any r.p1;
+> position r.p2;
+> expression x;
+> @@
+>
+> ... when != true x@p1 == NULL
+> kfree@p2(x);
+>
+> @depends on !ok && unchanged@
+> position r.p2;
+> expression x;
+> @@
+>
+> *kfree@p2(x);
+> // </smpl>
+>
+> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+>
+> ---
+>  drivers/media/dvb-frontends/dvb_dummy_fe.c |   21 ++++++---------------
+>  drivers/media/dvb-frontends/lg2160.c       |    1 -
+>  drivers/media/dvb-frontends/s5h1432.c      |    6 +-----
+>  drivers/media/dvb-frontends/s921.c         |    7 +------
+>  drivers/media/dvb-frontends/stb6100.c      |    6 +-----
+>  drivers/media/dvb-frontends/tda665x.c      |    6 +-----
+>  drivers/media/platform/davinci/vpbe.c      |    1 -
+>  drivers/media/tuners/mt2063.c              |    6 +-----
+>  8 files changed, 11 insertions(+), 43 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/dvb_dummy_fe.c b/drivers/media/dvb-frontends/dvb_dummy_fe.c
+> index dcfc902..465068f 100644
+> --- a/drivers/media/dvb-frontends/dvb_dummy_fe.c
+> +++ b/drivers/media/dvb-frontends/dvb_dummy_fe.c
+> @@ -121,16 +121,13 @@ struct dvb_frontend* dvb_dummy_fe_ofdm_attach(void)
+>
+>         /* allocate memory for the internal state */
+>         state = kzalloc(sizeof(struct dvb_dummy_fe_state), GFP_KERNEL);
+> -       if (state == NULL) goto error;
+> +       if (state == NULL)
+> +               return NULL;
 
-The datasheet (p.10,11) says that the Pixel Color Pattern is as follows.
+I know that is not the scope here but, what do you think to change
 
-<------------------------ direction
-n  4    3    2    1
-.. GB GB GB GB
-.. RG RG RG RG
+if (state == NULL)
 
-So seems you're right, if the first byte is on the right the sensor
-produces BGGR. But for some reason the mt9v032 driver uses GRBG data.
-Maybe is related with following lines which writes register 0x0D Read
-Mode (p.26,27) and presumably flips row or column bytes (not sure
-about this I need to check)
+for
 
-334         /* Configure the window size and row/column bin */
-335         hratio = DIV_ROUND_CLOSEST(crop->width, format->width);
-336         vratio = DIV_ROUND_CLOSEST(crop->height, format->height);
-337
-338         ret = mt9v032_write(client, MT9V032_READ_MODE,
-339                     (hratio - 1) <<
-MT9V032_READ_MODE_ROW_BIN_SHIFT |
-340                     (vratio - 1) << MT9V032_READ_MODE_COLUMN_BIN_SHIFT);
+if (!state)
 
-Nonetheless, I changed the driver to configure for BGGR pattern. Using
-the Sensor->CCDC->Preview->Resizer pipeline I captured the data with
-yavta and converted using raw2rgbpnm program.
+?
 
-    ./raw2rgbpnm -s 752x480 -f UYVY img-000001.uyvy img-000001.pnm
+maybe you can send another patch for simplify these.
 
-and the result is
+Just my 2 cents :)
 
-    http://downloads.isee.biz/pub/files/patterns/img-000002.pnm
-    http://downloads.isee.biz/pub/files/patterns/img-000002.bin
+>         /* create dvb_frontend */
+>         memcpy(&state->frontend.ops, &dvb_dummy_fe_ofdm_ops, sizeof(struct dvb_frontend_ops));
+>         state->frontend.demodulator_priv = state;
+>         return &state->frontend;
+> -
+> -error:
+> -       kfree(state);
+> -       return NULL;
+>  }
+>
+>  static struct dvb_frontend_ops dvb_dummy_fe_qpsk_ops;
+> @@ -141,16 +138,13 @@ struct dvb_frontend *dvb_dummy_fe_qpsk_attach(void)
+>
+>         /* allocate memory for the internal state */
+>         state = kzalloc(sizeof(struct dvb_dummy_fe_state), GFP_KERNEL);
+> -       if (state == NULL) goto error;
+> +       if (state == NULL)
+> +               return NULL;
+>
+>         /* create dvb_frontend */
+>         memcpy(&state->frontend.ops, &dvb_dummy_fe_qpsk_ops, sizeof(struct dvb_frontend_ops));
+>         state->frontend.demodulator_priv = state;
+>         return &state->frontend;
+> -
+> -error:
+> -       kfree(state);
+> -       return NULL;
+>  }
+>
+>  static struct dvb_frontend_ops dvb_dummy_fe_qam_ops;
+> @@ -161,16 +155,13 @@ struct dvb_frontend *dvb_dummy_fe_qam_attach(void)
+>
+>         /* allocate memory for the internal state */
+>         state = kzalloc(sizeof(struct dvb_dummy_fe_state), GFP_KERNEL);
+> -       if (state == NULL) goto error;
+> +       if (state == NULL)
+> +               return NULL;
+>
+>         /* create dvb_frontend */
+>         memcpy(&state->frontend.ops, &dvb_dummy_fe_qam_ops, sizeof(struct dvb_frontend_ops));
+>         state->frontend.demodulator_priv = state;
+>         return &state->frontend;
+> -
+> -error:
+> -       kfree(state);
+> -       return NULL;
+>  }
+>
+>  static struct dvb_frontend_ops dvb_dummy_fe_ofdm_ops = {
+> diff --git a/drivers/media/dvb-frontends/lg2160.c b/drivers/media/dvb-frontends/lg2160.c
+> index cc11260..748da5d 100644
+> --- a/drivers/media/dvb-frontends/lg2160.c
+> +++ b/drivers/media/dvb-frontends/lg2160.c
+> @@ -1451,7 +1451,6 @@ struct dvb_frontend *lg2160_attach(const struct lg2160_config *config,
+>         return &state->frontend;
+>  fail:
+>         lg_warn("unable to detect LG216x hardware\n");
+> -       kfree(state);
+>         return NULL;
+>  }
+>  EXPORT_SYMBOL(lg2160_attach);
+> diff --git a/drivers/media/dvb-frontends/s5h1432.c b/drivers/media/dvb-frontends/s5h1432.c
+> index 8352ce1..24a8c75 100644
+> --- a/drivers/media/dvb-frontends/s5h1432.c
+> +++ b/drivers/media/dvb-frontends/s5h1432.c
+> @@ -352,7 +352,7 @@ struct dvb_frontend *s5h1432_attach(const struct s5h1432_config *config,
+>         /* allocate memory for the internal state */
+>         state = kmalloc(sizeof(struct s5h1432_state), GFP_KERNEL);
+>         if (state == NULL)
+> -               goto error;
+> +               return NULL;
+>
+>         /* setup the state */
+>         state->config = config;
+> @@ -367,10 +367,6 @@ struct dvb_frontend *s5h1432_attach(const struct s5h1432_config *config,
+>         state->frontend.demodulator_priv = state;
+>
+>         return &state->frontend;
+> -
+> -error:
+> -       kfree(state);
+> -       return NULL;
+>  }
+>  EXPORT_SYMBOL(s5h1432_attach);
+>
+> diff --git a/drivers/media/dvb-frontends/s921.c b/drivers/media/dvb-frontends/s921.c
+> index cd2288c..5766512 100644
+> --- a/drivers/media/dvb-frontends/s921.c
+> +++ b/drivers/media/dvb-frontends/s921.c
+> @@ -489,7 +489,7 @@ struct dvb_frontend *s921_attach(const struct s921_config *config,
+>         dprintk("\n");
+>         if (state == NULL) {
+>                 rc("Unable to kzalloc\n");
+> -               goto rcor;
+> +               return NULL;
+>         }
+>
+>         /* setup the state */
+> @@ -502,11 +502,6 @@ struct dvb_frontend *s921_attach(const struct s921_config *config,
+>         state->frontend.demodulator_priv = state;
+>
+>         return &state->frontend;
+> -
+> -rcor:
+> -       kfree(state);
+> -
+> -       return NULL;
+>  }
+>  EXPORT_SYMBOL(s921_attach);
+>
+> diff --git a/drivers/media/dvb-frontends/stb6100.c b/drivers/media/dvb-frontends/stb6100.c
+> index 2e93e65..1147e61 100644
+> --- a/drivers/media/dvb-frontends/stb6100.c
+> +++ b/drivers/media/dvb-frontends/stb6100.c
+> @@ -576,7 +576,7 @@ struct dvb_frontend *stb6100_attach(struct dvb_frontend *fe,
+>
+>         state = kzalloc(sizeof (struct stb6100_state), GFP_KERNEL);
+>         if (state == NULL)
+> -               goto error;
+> +               return NULL;
+>
+>         state->config           = config;
+>         state->i2c              = i2c;
+> @@ -587,10 +587,6 @@ struct dvb_frontend *stb6100_attach(struct dvb_frontend *fe,
+>
+>         printk("%s: Attaching STB6100 \n", __func__);
+>         return fe;
+> -
+> -error:
+> -       kfree(state);
+> -       return NULL;
+>  }
+>
+>  static int stb6100_release(struct dvb_frontend *fe)
+> diff --git a/drivers/media/dvb-frontends/tda665x.c b/drivers/media/dvb-frontends/tda665x.c
+> index 2c1c759..58ba534 100644
+> --- a/drivers/media/dvb-frontends/tda665x.c
+> +++ b/drivers/media/dvb-frontends/tda665x.c
+> @@ -229,7 +229,7 @@ struct dvb_frontend *tda665x_attach(struct dvb_frontend *fe,
+>
+>         state = kzalloc(sizeof(struct tda665x_state), GFP_KERNEL);
+>         if (state == NULL)
+> -               goto exit;
+> +               return NULL;
+>
+>         state->config           = config;
+>         state->i2c              = i2c;
+> @@ -246,10 +246,6 @@ struct dvb_frontend *tda665x_attach(struct dvb_frontend *fe,
+>         printk(KERN_DEBUG "%s: Attaching TDA665x (%s) tuner\n", __func__, info->name);
+>
+>         return fe;
+> -
+> -exit:
+> -       kfree(state);
+> -       return NULL;
+>  }
+>  EXPORT_SYMBOL(tda665x_attach);
+>
+> diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
+> index c4a82a1..1125a87 100644
+> --- a/drivers/media/platform/davinci/vpbe.c
+> +++ b/drivers/media/platform/davinci/vpbe.c
+> @@ -771,7 +771,6 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+>         return 0;
+>
+>  vpbe_fail_amp_register:
+> -       kfree(vpbe_dev->amp);
+>  vpbe_fail_sd_register:
+>         kfree(vpbe_dev->encoders);
+>  vpbe_fail_v4l2_device:
+> diff --git a/drivers/media/tuners/mt2063.c b/drivers/media/tuners/mt2063.c
+> index 0ed9091..1a91215 100644
+> --- a/drivers/media/tuners/mt2063.c
+> +++ b/drivers/media/tuners/mt2063.c
+> @@ -2250,7 +2250,7 @@ struct dvb_frontend *mt2063_attach(struct dvb_frontend *fe,
+>
+>         state = kzalloc(sizeof(struct mt2063_state), GFP_KERNEL);
+>         if (state == NULL)
+> -               goto error;
+> +               return NULL;
+>
+>         state->config = config;
+>         state->i2c = i2c;
+> @@ -2261,10 +2261,6 @@ struct dvb_frontend *mt2063_attach(struct dvb_frontend *fe,
+>
+>         printk(KERN_INFO "%s: Attaching MT2063\n", __func__);
+>         return fe;
+> -
+> -error:
+> -       kfree(state);
+> -       return NULL;
+>  }
+>  EXPORT_SYMBOL_GPL(mt2063_attach);
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-The image looks better than older, not perfect, but better. The image
-is only a bit yellowish. Could be this a hardware issue ? We are close
-to ...
 
-Regards,
-    Enric
+
+-- 
+Att,
+
+Marcos Paulo de Souza
+Acadêmico de Ciencia da Computação - FURB - SC
+"Uma vida sem desafios é uma vida sem razão"
+"A life without challenges, is a non reason life"
