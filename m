@@ -1,289 +1,224 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48261 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751680Ab2IZVuj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Sep 2012 17:50:39 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: paul@pwsan.com, laurent.pinchart@ideasonboard.com,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: [PATCH v2 2/2] omap3isp: Configure CSI-2 phy based on platform data
-Date: Thu, 27 Sep 2012 00:50:36 +0300
-Message-Id: <1348696236-3470-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120926215001.GA14107@valkosipuli.retiisi.org.uk>
-References: <20120926215001.GA14107@valkosipuli.retiisi.org.uk>
+Received: from mx1.redhat.com ([209.132.183.28]:32629 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758767Ab2IKTXo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Sep 2012 15:23:44 -0400
+Message-ID: <504F8FAF.1010104@redhat.com>
+Date: Tue, 11 Sep 2012 16:23:27 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org,
+	Hin-Tak Leung <htl10@users.sourceforge.net>
+Subject: Re: [PATCH 1/4] dvb_frontend: add routine for DVB-T parameter validation
+References: <1345169022-10221-1-git-send-email-crope@iki.fi> <1345169022-10221-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1345169022-10221-2-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Configure CSI-2 phy based on platform data in the ISP driver. For that, the
-new V4L2_CID_IMAGE_SOURCE_PIXEL_RATE control is used. Previously the same
-was configured from the board code.
+Em 16-08-2012 23:03, Antti Palosaari escreveu:
+> Common routine for use of dvb-core, demodulator and tuner for check
+> given DVB-T parameters correctness.
+> 
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>  drivers/media/dvb-core/dvb_frontend.c | 136 ++++++++++++++++++++++++++++++++++
+>  drivers/media/dvb-core/dvb_frontend.h |   2 +
+>  2 files changed, 138 insertions(+)
+> 
+> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+> index d29d41a..4abb648 100644
+> --- a/drivers/media/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb-core/dvb_frontend.c
+> @@ -2505,6 +2505,142 @@ int dvb_frontend_resume(struct dvb_frontend *fe)
+>  }
+>  EXPORT_SYMBOL(dvb_frontend_resume);
+>  
+> +int dvb_validate_params_dvbt(struct dvb_frontend *fe)
+> +{
+> +	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+> +
+> +	dev_dbg(fe->dvb->device, "%s:\n", __func__);
+> +
+> +	switch (c->delivery_system) {
+> +	case SYS_DVBT:
+> +		break;
+> +	default:
+> +		dev_dbg(fe->dvb->device, "%s: delivery_system=%d\n", __func__,
+> +				c->delivery_system);
+> +		return -EINVAL;
+> +	}
 
-This patch is dependent on "omap3: Provide means for changing CSI2 PHY
-configuration".
+Why do you need to check if the system is DVB-T here? The routine name 
+is only for DVB-T! It should either be a generic routine for all standards,
+or not having such checks, otherwise, it will end by checking if the 
+delivery system is DVB-T on multiple places.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/isp.h       |    3 -
- drivers/media/platform/omap3isp/ispcsiphy.c |  161 +++++++++++++++------------
- drivers/media/platform/omap3isp/ispcsiphy.h |   10 --
- 3 files changed, 90 insertions(+), 84 deletions(-)
+IMO, a dvb_validate_params() call that checks for all types is better.
 
-diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-index 8be7487..a2f992c 100644
---- a/drivers/media/platform/omap3isp/isp.h
-+++ b/drivers/media/platform/omap3isp/isp.h
-@@ -127,9 +127,6 @@ struct isp_reg {
- 
- struct isp_platform_callback {
- 	u32 (*set_xclk)(struct isp_device *isp, u32 xclk, u8 xclksel);
--	int (*csiphy_config)(struct isp_csiphy *phy,
--			     struct isp_csiphy_dphy_cfg *dphy,
--			     struct isp_csiphy_lanes_cfg *lanes);
- };
- 
- /*
-diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/platform/omap3isp/ispcsiphy.c
-index 348f67e..1d16e66 100644
---- a/drivers/media/platform/omap3isp/ispcsiphy.c
-+++ b/drivers/media/platform/omap3isp/ispcsiphy.c
-@@ -28,41 +28,13 @@
- #include <linux/device.h>
- #include <linux/regulator/consumer.h>
- 
-+#include <mach/control.h>
-+
- #include "isp.h"
- #include "ispreg.h"
- #include "ispcsiphy.h"
- 
- /*
-- * csiphy_lanes_config - Configuration of CSIPHY lanes.
-- *
-- * Updates HW configuration.
-- * Called with phy->mutex taken.
-- */
--static void csiphy_lanes_config(struct isp_csiphy *phy)
--{
--	unsigned int i;
--	u32 reg;
--
--	reg = isp_reg_readl(phy->isp, phy->cfg_regs, ISPCSI2_PHY_CFG);
--
--	for (i = 0; i < phy->num_data_lanes; i++) {
--		reg &= ~(ISPCSI2_PHY_CFG_DATA_POL_MASK(i + 1) |
--			 ISPCSI2_PHY_CFG_DATA_POSITION_MASK(i + 1));
--		reg |= (phy->lanes.data[i].pol <<
--			ISPCSI2_PHY_CFG_DATA_POL_SHIFT(i + 1));
--		reg |= (phy->lanes.data[i].pos <<
--			ISPCSI2_PHY_CFG_DATA_POSITION_SHIFT(i + 1));
--	}
--
--	reg &= ~(ISPCSI2_PHY_CFG_CLOCK_POL_MASK |
--		 ISPCSI2_PHY_CFG_CLOCK_POSITION_MASK);
--	reg |= phy->lanes.clk.pol << ISPCSI2_PHY_CFG_CLOCK_POL_SHIFT;
--	reg |= phy->lanes.clk.pos << ISPCSI2_PHY_CFG_CLOCK_POSITION_SHIFT;
--
--	isp_reg_writel(phy->isp, reg, phy->cfg_regs, ISPCSI2_PHY_CFG);
--}
--
--/*
-  * csiphy_power_autoswitch_enable
-  * @enable: Sets or clears the autoswitch function enable flag.
-  */
-@@ -107,46 +79,32 @@ static int csiphy_set_power(struct isp_csiphy *phy, u32 power)
- }
- 
- /*
-- * csiphy_dphy_config - Configure CSI2 D-PHY parameters.
-- *
-- * Called with phy->mutex taken.
-+ * TCLK values are OK at their reset values
-  */
--static void csiphy_dphy_config(struct isp_csiphy *phy)
--{
--	u32 reg;
--
--	/* Set up ISPCSIPHY_REG0 */
--	reg = isp_reg_readl(phy->isp, phy->phy_regs, ISPCSIPHY_REG0);
--
--	reg &= ~(ISPCSIPHY_REG0_THS_TERM_MASK |
--		 ISPCSIPHY_REG0_THS_SETTLE_MASK);
--	reg |= phy->dphy.ths_term << ISPCSIPHY_REG0_THS_TERM_SHIFT;
--	reg |= phy->dphy.ths_settle << ISPCSIPHY_REG0_THS_SETTLE_SHIFT;
--
--	isp_reg_writel(phy->isp, reg, phy->phy_regs, ISPCSIPHY_REG0);
--
--	/* Set up ISPCSIPHY_REG1 */
--	reg = isp_reg_readl(phy->isp, phy->phy_regs, ISPCSIPHY_REG1);
--
--	reg &= ~(ISPCSIPHY_REG1_TCLK_TERM_MASK |
--		 ISPCSIPHY_REG1_TCLK_MISS_MASK |
--		 ISPCSIPHY_REG1_TCLK_SETTLE_MASK);
--	reg |= phy->dphy.tclk_term << ISPCSIPHY_REG1_TCLK_TERM_SHIFT;
--	reg |= phy->dphy.tclk_miss << ISPCSIPHY_REG1_TCLK_MISS_SHIFT;
--	reg |= phy->dphy.tclk_settle << ISPCSIPHY_REG1_TCLK_SETTLE_SHIFT;
--
--	isp_reg_writel(phy->isp, reg, phy->phy_regs, ISPCSIPHY_REG1);
--}
-+#define TCLK_TERM	0
-+#define TCLK_MISS	1
-+#define TCLK_SETTLE	14
- 
--static int csiphy_config(struct isp_csiphy *phy,
--			 struct isp_csiphy_dphy_cfg *dphy,
--			 struct isp_csiphy_lanes_cfg *lanes)
-+static int omap3isp_csiphy_config(struct isp_csiphy *phy)
- {
-+	struct isp_csi2_device *csi2 = phy->csi2;
-+	struct isp_pipeline *pipe = to_isp_pipeline(&csi2->subdev.entity);
-+	struct isp_v4l2_subdevs_group *subdevs = pipe->external->host_priv;
-+	struct isp_csiphy_lanes_cfg *lanes;
-+	int csi2_ddrclk_khz;
- 	unsigned int used_lanes = 0;
- 	unsigned int i;
-+	unsigned int phy_num;
-+	u32 reg;
-+
-+	if (subdevs->interface == ISP_INTERFACE_CCP2B_PHY1
-+	    || subdevs->interface == ISP_INTERFACE_CCP2B_PHY2)
-+		lanes = &subdevs->bus.ccp2.lanecfg;
-+	else
-+		lanes = &subdevs->bus.csi2.lanecfg;
- 
- 	/* Clock and data lanes verification */
--	for (i = 0; i < phy->num_data_lanes; i++) {
-+	for (i = 0; i < csi2->phy->num_data_lanes; i++) {
- 		if (lanes->data[i].pol > 1 || lanes->data[i].pos > 3)
- 			return -EINVAL;
- 
-@@ -162,10 +120,72 @@ static int csiphy_config(struct isp_csiphy *phy,
- 	if (lanes->clk.pos == 0 || used_lanes & (1 << lanes->clk.pos))
- 		return -EINVAL;
- 
--	mutex_lock(&phy->mutex);
--	phy->dphy = *dphy;
--	phy->lanes = *lanes;
--	mutex_unlock(&phy->mutex);
-+	switch (subdevs->interface) {
-+	case ISP_INTERFACE_CSI2A_PHY2:
-+		phy_num = OMAP3_CTRL_CSI2_PHY2_CSI2A;
-+		break;
-+	case ISP_INTERFACE_CSI2C_PHY1:
-+		phy_num = OMAP3_CTRL_CSI2_PHY1_CSI2C;
-+		break;
-+	case ISP_INTERFACE_CCP2B_PHY1:
-+		phy_num = OMAP3_CTRL_CSI2_PHY1_CCP2B;
-+		break;
-+	case ISP_INTERFACE_CCP2B_PHY2:
-+		phy_num = OMAP3_CTRL_CSI2_PHY2_CCP2B;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	omap3_ctrl_csi2_phy_cfg(phy_num, true, 0);
-+
-+	/* DPHY timing configuration */
-+	/* CSI-2 is DDR and we only count used lanes. */
-+	csi2_ddrclk_khz = pipe->external_rate / 1000
-+		/ (2 * hweight32(used_lanes)) * pipe->external_width;
-+
-+	reg = isp_reg_readl(csi2->isp, csi2->phy->phy_regs, ISPCSIPHY_REG0);
-+
-+	reg &= ~(ISPCSIPHY_REG0_THS_TERM_MASK |
-+		 ISPCSIPHY_REG0_THS_SETTLE_MASK);
-+	/* THS_TERM: Programmed value = ceil(12.5 ns/DDRClk period) - 1. */
-+	reg |= (DIV_ROUND_UP(25 * csi2_ddrclk_khz, 2000000) - 1)
-+		<< ISPCSIPHY_REG0_THS_TERM_SHIFT;
-+	/* THS_SETTLE: Programmed value = ceil(90 ns/DDRClk period) + 3. */
-+	reg |= (DIV_ROUND_UP(90 * csi2_ddrclk_khz, 1000000) + 3)
-+		<< ISPCSIPHY_REG0_THS_SETTLE_SHIFT;
-+
-+	isp_reg_writel(csi2->isp, reg, csi2->phy->phy_regs, ISPCSIPHY_REG0);
-+
-+	reg = isp_reg_readl(csi2->isp, csi2->phy->phy_regs, ISPCSIPHY_REG1);
-+
-+	reg &= ~(ISPCSIPHY_REG1_TCLK_TERM_MASK |
-+		 ISPCSIPHY_REG1_TCLK_MISS_MASK |
-+		 ISPCSIPHY_REG1_TCLK_SETTLE_MASK);
-+	reg |= TCLK_TERM << ISPCSIPHY_REG1_TCLK_TERM_SHIFT;
-+	reg |= TCLK_MISS << ISPCSIPHY_REG1_TCLK_MISS_SHIFT;
-+	reg |= TCLK_SETTLE << ISPCSIPHY_REG1_TCLK_SETTLE_SHIFT;
-+
-+	isp_reg_writel(csi2->isp, reg, csi2->phy->phy_regs, ISPCSIPHY_REG1);
-+
-+	/* DPHY lane configuration */
-+	reg = isp_reg_readl(csi2->isp, csi2->phy->cfg_regs, ISPCSI2_PHY_CFG);
-+
-+	for (i = 0; i < csi2->phy->num_data_lanes; i++) {
-+		reg &= ~(ISPCSI2_PHY_CFG_DATA_POL_MASK(i + 1) |
-+			 ISPCSI2_PHY_CFG_DATA_POSITION_MASK(i + 1));
-+		reg |= (lanes->data[i].pol <<
-+			ISPCSI2_PHY_CFG_DATA_POL_SHIFT(i + 1));
-+		reg |= (lanes->data[i].pos <<
-+			ISPCSI2_PHY_CFG_DATA_POSITION_SHIFT(i + 1));
-+	}
-+
-+	reg &= ~(ISPCSI2_PHY_CFG_CLOCK_POL_MASK |
-+		 ISPCSI2_PHY_CFG_CLOCK_POSITION_MASK);
-+	reg |= lanes->clk.pol << ISPCSI2_PHY_CFG_CLOCK_POL_SHIFT;
-+	reg |= lanes->clk.pos << ISPCSI2_PHY_CFG_CLOCK_POSITION_SHIFT;
-+
-+	isp_reg_writel(csi2->isp, reg, csi2->phy->cfg_regs, ISPCSI2_PHY_CFG);
- 
- 	return 0;
- }
-@@ -190,8 +210,9 @@ int omap3isp_csiphy_acquire(struct isp_csiphy *phy)
- 	if (rval < 0)
- 		goto done;
- 
--	csiphy_dphy_config(phy);
--	csiphy_lanes_config(phy);
-+	rval = omap3isp_csiphy_config(phy);
-+	if (rval < 0)
-+		goto done;
- 
- 	rval = csiphy_set_power(phy, ISPCSI2_PHY_CFG_PWR_CMD_ON);
- 	if (rval) {
-@@ -227,8 +248,6 @@ int omap3isp_csiphy_init(struct isp_device *isp)
- 	struct isp_csiphy *phy1 = &isp->isp_csiphy1;
- 	struct isp_csiphy *phy2 = &isp->isp_csiphy2;
- 
--	isp->platform_cb.csiphy_config = csiphy_config;
--
- 	phy2->isp = isp;
- 	phy2->csi2 = &isp->isp_csi2a;
- 	phy2->num_data_lanes = ISP_CSIPHY2_NUM_DATA_LANES;
-diff --git a/drivers/media/platform/omap3isp/ispcsiphy.h b/drivers/media/platform/omap3isp/ispcsiphy.h
-index e93a661..14551fd 100644
---- a/drivers/media/platform/omap3isp/ispcsiphy.h
-+++ b/drivers/media/platform/omap3isp/ispcsiphy.h
-@@ -32,14 +32,6 @@
- struct isp_csi2_device;
- struct regulator;
- 
--struct isp_csiphy_dphy_cfg {
--	u8 ths_term;
--	u8 ths_settle;
--	u8 tclk_term;
--	unsigned tclk_miss:1;
--	u8 tclk_settle;
--};
--
- struct isp_csiphy {
- 	struct isp_device *isp;
- 	struct mutex mutex;	/* serialize csiphy configuration */
-@@ -52,8 +44,6 @@ struct isp_csiphy {
- 	unsigned int phy_regs;
- 
- 	u8 num_data_lanes;	/* number of CSI2 Data Lanes supported */
--	struct isp_csiphy_lanes_cfg lanes;
--	struct isp_csiphy_dphy_cfg dphy;
- };
- 
- int omap3isp_csiphy_acquire(struct isp_csiphy *phy);
--- 
-1.7.2.5
+Not sure if you have seen, but there is already something like that at
+the dvb_frontend.c: dvb_frontend_check_parameters(). So, please let's not
+reinvent the wheel.
+
+> +
+> +	if (c->frequency >= 174000000 && c->frequency <= 230000000) {
+> +		;
+> +	} else if (c->frequency >= 470000000 && c->frequency <= 862000000) {
+> +		;
+> +	} else {
+> +		dev_dbg(fe->dvb->device, "%s: frequency=%d\n", __func__,
+> +				c->frequency);
+> +		return -EINVAL;
+> +	}
+
+Hmm... dvb_frontend_check_parameters() already checks for the min and max
+frequencies, based on tuner/demod capabilities.
+
+Also, I don't see any reason why the range between 230 MHz and 470 MHz should 
+explicitly excluded here. Are you sure that there aren't any Country somewhere 
+that might be using part of this range for TV? AFAIKT, most tuners will support 
+this range anyway, so enforcing drivers to not use them without any really good 
+reason doesn't make much sense.
+
+> +
+> +	switch (c->bandwidth_hz) {
+> +	case 6000000:
+> +	case 7000000:
+> +	case 8000000:
+> +		break;
+> +	default:
+> +		dev_dbg(fe->dvb->device, "%s: bandwidth_hz=%d\n", __func__,
+> +				c->bandwidth_hz);
+> +		return -EINVAL;
+> +	}
+
+Hmm... 0 is a valid value (it means AUTO, as documented at the DVB API spec).
+
+Also, 5 MHz is also a valid value for DVB-T (see Annex G of EN 300.744 v 1.6.1).
+I don't doubt you'll find some places with 5MHz on DVB-T outside Europe.
+
+> +
+> +	switch (c->transmission_mode) {
+> +	case TRANSMISSION_MODE_AUTO:
+> +	case TRANSMISSION_MODE_2K:
+> +	case TRANSMISSION_MODE_8K:
+> +		break;
+
+DVB-T specs also allow 4K for 5 MHz bandwidth. 
+
+> +	default:
+> +		dev_dbg(fe->dvb->device, "%s: transmission_mode=%d\n", __func__,
+> +				c->transmission_mode);
+> +		return -EINVAL;
+> +	}
+> +
+> +	switch (c->modulation) {
+> +	case QAM_AUTO:
+> +	case QPSK:
+> +	case QAM_16:
+> +	case QAM_64:
+> +		break;
+> +	default:
+> +		dev_dbg(fe->dvb->device, "%s: modulation=%d\n", __func__,
+> +				c->modulation);
+> +		return -EINVAL;
+> +	}
+> +
+> +	switch (c->guard_interval) {
+> +	case GUARD_INTERVAL_AUTO:
+> +	case GUARD_INTERVAL_1_32:
+> +	case GUARD_INTERVAL_1_16:
+> +	case GUARD_INTERVAL_1_8:
+> +	case GUARD_INTERVAL_1_4:
+> +		break;
+> +	default:
+> +		dev_dbg(fe->dvb->device, "%s: guard_interval=%d\n", __func__,
+> +				c->guard_interval);
+> +		return -EINVAL;
+> +	}
+> +
+> +	switch (c->hierarchy) {
+> +	case HIERARCHY_NONE:
+> +	case HIERARCHY_AUTO:
+> +	case HIERARCHY_1:
+> +	case HIERARCHY_2:
+> +	case HIERARCHY_4:
+> +		break;
+> +	default:
+> +		dev_dbg(fe->dvb->device, "%s: hierarchy=%d\n", __func__,
+> +				c->hierarchy);
+> +		return -EINVAL;
+> +	}
+> +
+> +	switch (c->code_rate_HP) {
+> +	case FEC_AUTO:
+> +	case FEC_1_2:
+> +	case FEC_2_3:
+> +	case FEC_3_4:
+> +	case FEC_5_6:
+> +	case FEC_7_8:
+> +		break;
+> +	default:
+> +		dev_dbg(fe->dvb->device, "%s: code_rate_HP=%d\n", __func__,
+> +				c->code_rate_HP);
+> +		return -EINVAL;
+> +	}
+> +
+> +	/*
+> +	 * code_rate_LP is used only with hierarchical coding
+> +	 */
+> +	if (c->hierarchy == HIERARCHY_NONE) {
+> +		switch (c->code_rate_LP) {
+> +		case FEC_NONE:
+> +		/*
+> +		 * TODO: FEC_AUTO here is wrong, but for some reason
+> +		 * dtv_set_frontend() forces it.
+> +		 */
+> +		case FEC_AUTO:
+> +			break;
+> +		default:
+> +			dev_dbg(fe->dvb->device, "%s: code_rate_LP=%d\n",
+> +					__func__, c->code_rate_LP);
+> +			return -EINVAL;
+> +		}
+> +	} else {
+> +		switch (c->code_rate_LP) {
+> +		case FEC_AUTO:
+> +		case FEC_1_2:
+> +		case FEC_2_3:
+> +		case FEC_3_4:
+> +		case FEC_5_6:
+> +		case FEC_7_8:
+> +			break;
+> +		default:
+> +			dev_dbg(fe->dvb->device, "%s: code_rate_LP=%d\n",
+> +					__func__, c->code_rate_LP);
+> +			return -EINVAL;
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(dvb_validate_params_dvbt);
+
+Please use EXPORT_SYMBOL_GPL().
+
+> +
+>  int dvb_register_frontend(struct dvb_adapter* dvb,
+>  			  struct dvb_frontend* fe)
+>  {
+> diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
+> index 74ba563..6df0c44 100644
+> --- a/drivers/media/dvb-core/dvb_frontend.h
+> +++ b/drivers/media/dvb-core/dvb_frontend.h
+> @@ -425,4 +425,6 @@ extern int dvb_frontend_resume(struct dvb_frontend *fe);
+>  extern void dvb_frontend_sleep_until(struct timeval *waketime, u32 add_usec);
+>  extern s32 timeval_usec_diff(struct timeval lasttime, struct timeval curtime);
+>  
+> +extern int dvb_validate_params_dvbt(struct dvb_frontend *fe);
+> +
+>  #endif
+> 
 
