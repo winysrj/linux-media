@@ -1,40 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:34541 "EHLO vena.lwn.net"
+Received: from mail.kapsi.fi ([217.30.184.167]:47926 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757644Ab2I2TZ6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Sep 2012 15:25:58 -0400
-Date: Sat, 29 Sep 2012 13:25:56 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl, rusty@rustcorp.com.au, dsd@laptop.org,
-	mchehab@infradead.org, hdegoede@redhat.com
-Subject: Re: [PATCH v3 0/4] ov7670: migrate this sensor and its users to
- ctrl framework.
-Message-ID: <20120929132556.22c48312@hpe.lwn.net>
-In-Reply-To: <1348831603-18007-1-git-send-email-javier.martin@vista-silicon.com>
-References: <1348831603-18007-1-git-send-email-javier.martin@vista-silicon.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+	id S1753442Ab2IKBZx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Sep 2012 21:25:53 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/2] dvb_usb_v2: rename module dvb_usbv2 => dvb_usb_v2
+Date: Tue, 11 Sep 2012 04:25:13 +0300
+Message-Id: <1347326714-19514-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 28 Sep 2012 13:26:39 +0200
-Javier Martin <javier.martin@vista-silicon.com> wrote:
+I think it is better name. At that phase renaming is quite painless
+as module is not yet merged to mainline Kernel.
 
-> The following series migrate ov7670 sensor and current users to ctrl framework
-> as  discussed in [1]. This has been tested against mx2_camera soc-camera bridge,
-> so tests or acks will be required from people using cam-core and via-camera out
-> there.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/Makefile | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Looking over the code, I can't really find much to get grumpy about.
-Certainly I like how it removes more code than it adds.  I'm not really
-up on the control framework, though.  What's really needed is to see
-this code actually work on the relevant systems.  I will *try* to do
-that testing, but it's going to take a little while; I don't think I
-can do it by the 3.7 merge window.  Mauro willing, perhaps it can go in
-this time around anyway with the idea that we can sort out any little
-difficulties after -rc1.
+diff --git a/drivers/media/usb/dvb-usb-v2/Makefile b/drivers/media/usb/dvb-usb-v2/Makefile
+index 58027fd..b76f58e 100644
+--- a/drivers/media/usb/dvb-usb-v2/Makefile
++++ b/drivers/media/usb/dvb-usb-v2/Makefile
+@@ -1,5 +1,5 @@
+-dvb_usbv2-objs := dvb_usb_core.o dvb_usb_urb.o usb_urb.o
+-obj-$(CONFIG_DVB_USB_V2) += dvb_usbv2.o
++dvb_usb_v2-objs := dvb_usb_core.o dvb_usb_urb.o usb_urb.o
++obj-$(CONFIG_DVB_USB_V2) += dvb_usb_v2.o
+ 
+ dvb_usb_cypress_firmware-objs := cypress_firmware.o
+ obj-$(CONFIG_DVB_USB_CYPRESS_FIRMWARE) += dvb_usb_cypress_firmware.o
+-- 
+1.7.11.4
 
-jon
