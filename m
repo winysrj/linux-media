@@ -1,55 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2365 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751546Ab2IYGvK convert rfc822-to-8bit (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:33320 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755701Ab2IKKlI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Sep 2012 02:51:10 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>
-Subject: Re: [RFC] Timestamps and V4L2
-Date: Tue, 25 Sep 2012 08:50:35 +0200
-Cc: linux-media@vger.kernel.org
-References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk> <20120923114342.GF12025@valkosipuli.retiisi.org.uk> <201209242311.51003@leon.remlab.net>
-In-Reply-To: <201209242311.51003@leon.remlab.net>
+	Tue, 11 Sep 2012 06:41:08 -0400
+Received: by obbuo13 with SMTP id uo13so481295obb.19
+        for <linux-media@vger.kernel.org>; Tue, 11 Sep 2012 03:41:08 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201209250850.35473.hverkuil@xs4all.nl>
+In-Reply-To: <1347291000-340-6-git-send-email-p.zabel@pengutronix.de>
+References: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
+	<1347291000-340-6-git-send-email-p.zabel@pengutronix.de>
+Date: Tue, 11 Sep 2012 12:41:08 +0200
+Message-ID: <CACKLOr1=uCp_Zuwr7hJbPnAxRx4gAFruXYbsW4vQZA2Aa7KoWA@mail.gmail.com>
+Subject: Re: [PATCH v4 05/16] media: coda: ignore coda busy status in coda_job_ready
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon September 24 2012 22:11:50 Rémi Denis-Courmont wrote:
-> Le dimanche 23 septembre 2012 14:43:42, Sakari Ailus a écrit :
-> > > I think I like this idea best, it's relatively simple (even with adding
-> > > support for reporting flags in VIDIOC_QUERYBUF) for the purpose.
-> > > 
-> > > If we ever need the clock selection API I would vote for an IOCTL.
-> > > The controls API is a bad choice for something such fundamental as
-> > > type of clock for buffer timestamping IMHO. Let's stop making the
-> > > controls API a dumping ground for almost everything in V4L2! ;)
-> > 
-> > Why would the control API be worse than an IOCTL for choosing the type of
-> > the timestamp? The control API after all has functionality for exactly for
-> > this: this is an obvious menu control.
-> > 
-> > What comes to the nature of things that can be configured using controls
-> > and what can be done using IOCTLs I see no difference. It's just a
-> > mechanism. That's what traditional Unix APIs do in general: provide
-> > mechanism, not a policy.
-> 
-> Seriously? Timestamp is _not_ a controllable hardware feature like brightness 
-> or flash. Controls are meant to build user interface controls for interaction 
-> with the user. Timestamp is _not_ something the user should control directly. 
-> The application should figure out what it gets and what it needs.
+On 10 September 2012 17:29, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> job_ready is supposed to signal whether a context is ready to be
+> added to the job queue, not whether the CODA is ready to run it
+> immediately.
+> Calling v4l2_m2m_job_finish at the end of coda_irq_handler already
+> guarantees that the coda is ready when v4l2-mem2mem eventually tries
+> to run the next queued job.
+>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>  drivers/media/platform/coda.c |    6 ------
+>  1 file changed, 6 deletions(-)
+>
+> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+> index f4b4a6f..d069787 100644
+> --- a/drivers/media/platform/coda.c
+> +++ b/drivers/media/platform/coda.c
+> @@ -738,12 +738,6 @@ static int coda_job_ready(void *m2m_priv)
+>                 return 0;
+>         }
+>
+> -       if (coda_isbusy(ctx->dev)) {
+> -               v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+> -                        "not ready: coda is still busy.\n");
+> -               return 0;
+> -       }
+> -
+>         v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+>                         "job ready\n");
+>         return 1;
+> --
+> 1.7.10.4
+>
 
-Exactly. I agree completely.
-
-Regards,
-
-	Hans
-
-> 
-> Or why do you use STREAMON/STREAMOFF instead of a STREAM boolean control, eh?
-> 
-> 
+Tested-by: Javier Martin <javier.martin@vista-silicon.com
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
