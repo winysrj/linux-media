@@ -1,110 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:47412 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757625Ab2IJPaP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Sep 2012 11:30:15 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:37895 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754374Ab2IKBZ6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Sep 2012 21:25:58 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v4 11/16] media: coda: add horizontal / vertical flipping support
-Date: Mon, 10 Sep 2012 17:29:55 +0200
-Message-Id: <1347291000-340-12-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
-References: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/2] dvb_usb_v2: call streaming_ctrl() before kill urbs
+Date: Tue, 11 Sep 2012 04:25:14 +0300
+Message-Id: <1347326714-19514-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1347326714-19514-1-git-send-email-crope@iki.fi>
+References: <1347326714-19514-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The hardware can also rotate in 90° steps, but there is no
-corresponding V4L2_CID defined yet.
+Logically it is better ask hardware to stop streaming before
+killing urbs carrying stream. Earlier it was just opposite.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Now code runs:
+* submit urbs
+* start streaming
+** streaming ongoing **
+* stop streaming
+* kill urbs
+
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/platform/coda.c |   19 ++++++++++++++++++-
- drivers/media/platform/coda.h |    9 +++++++++
- 2 files changed, 27 insertions(+), 1 deletion(-)
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index e8ed427..81e3401 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -141,6 +141,7 @@ struct coda_dev {
- };
+diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+index e2d73e1..f990159 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
++++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+@@ -265,7 +265,6 @@ static inline int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed,
+ 	/* stop feeding if it is last pid */
+ 	if (adap->feed_count == 0) {
+ 		dev_dbg(&d->udev->dev, "%s: stop feeding\n", __func__);
+-		usb_urb_killv2(&adap->stream);
  
- struct coda_params {
-+	u8			rot_mode;
- 	u8			h264_intra_qp;
- 	u8			h264_inter_qp;
- 	u8			mpeg4_intra_qp;
-@@ -695,7 +696,7 @@ static void coda_device_run(void *m2m_priv)
+ 		if (d->props->streaming_ctrl) {
+ 			ret = d->props->streaming_ctrl(
+@@ -274,9 +273,11 @@ static inline int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed,
+ 				dev_err(&d->udev->dev, "%s: streaming_ctrl() " \
+ 						"failed=%d\n", KBUILD_MODNAME,
+ 						ret);
++				usb_urb_killv2(&adap->stream);
+ 				goto err_mutex_unlock;
+ 			}
+ 		}
++		usb_urb_killv2(&adap->stream);
+ 		mutex_unlock(&adap->sync_mutex);
  	}
  
- 	/* submit */
--	coda_write(dev, 0, CODA_CMD_ENC_PIC_ROT_MODE);
-+	coda_write(dev, CODA_ROT_MIR_ENABLE | ctx->params.rot_mode, CODA_CMD_ENC_PIC_ROT_MODE);
- 	coda_write(dev, quant_param, CODA_CMD_ENC_PIC_QS);
- 
- 
-@@ -1271,6 +1272,18 @@ static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
- 		 "s_ctrl: id = %d, val = %d\n", ctrl->id, ctrl->val);
- 
- 	switch (ctrl->id) {
-+	case V4L2_CID_HFLIP:
-+		if (ctrl->val)
-+			ctx->params.rot_mode |= CODA_MIR_HOR;
-+		else
-+			ctx->params.rot_mode &= ~CODA_MIR_HOR;
-+		break;
-+	case V4L2_CID_VFLIP:
-+		if (ctrl->val)
-+			ctx->params.rot_mode |= CODA_MIR_VER;
-+		else
-+			ctx->params.rot_mode &= ~CODA_MIR_VER;
-+		break;
- 	case V4L2_CID_MPEG_VIDEO_BITRATE:
- 		ctx->params.bitrate = ctrl->val / 1000;
- 		break;
-@@ -1316,6 +1329,10 @@ static int coda_ctrls_setup(struct coda_ctx *ctx)
- 	v4l2_ctrl_handler_init(&ctx->ctrls, 9);
- 
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
-+		V4L2_CID_HFLIP, 0, 1, 1, 0);
-+	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
-+		V4L2_CID_VFLIP, 0, 1, 1, 0);
-+	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_BITRATE, 0, 32767000, 1, 0);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_GOP_SIZE, 1, 60, 1, 16);
-diff --git a/drivers/media/platform/coda.h b/drivers/media/platform/coda.h
-index 3324010..f3f5e43 100644
---- a/drivers/media/platform/coda.h
-+++ b/drivers/media/platform/coda.h
-@@ -188,6 +188,15 @@
- #define CODA_CMD_ENC_PIC_SRC_ADDR_CR	0x188
- #define CODA_CMD_ENC_PIC_QS		0x18c
- #define CODA_CMD_ENC_PIC_ROT_MODE	0x190
-+#define		CODA_ROT_MIR_ENABLE				(1 << 4)
-+#define		CODA_ROT_0					(0x0 << 0)
-+#define		CODA_ROT_90					(0x1 << 0)
-+#define		CODA_ROT_180					(0x2 << 0)
-+#define		CODA_ROT_270					(0x3 << 0)
-+#define		CODA_MIR_NONE					(0x0 << 2)
-+#define		CODA_MIR_VER					(0x1 << 2)
-+#define		CODA_MIR_HOR					(0x2 << 2)
-+#define		CODA_MIR_VER_HOR				(0x3 << 2)
- #define CODA_CMD_ENC_PIC_OPTION	0x194
- #define CODA_CMD_ENC_PIC_BB_START	0x198
- #define CODA_CMD_ENC_PIC_BB_SIZE	0x19c
 -- 
-1.7.10.4
+1.7.11.4
 
