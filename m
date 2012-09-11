@@ -1,72 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:1437 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752921Ab2IJPPA (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:42236 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755701Ab2IKKmn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Sep 2012 11:15:00 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [RFC API] Capture Overlay API ambiguities
-Date: Mon, 10 Sep 2012 17:14:54 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+	Tue, 11 Sep 2012 06:42:43 -0400
+Received: by obbuo13 with SMTP id uo13so482727obb.19
+        for <linux-media@vger.kernel.org>; Tue, 11 Sep 2012 03:42:42 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209101714.54365.hverkuil@xs4all.nl>
+In-Reply-To: <1347291000-340-9-git-send-email-p.zabel@pengutronix.de>
+References: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
+	<1347291000-340-9-git-send-email-p.zabel@pengutronix.de>
+Date: Tue, 11 Sep 2012 12:42:42 +0200
+Message-ID: <CACKLOr3VS1L=zssMjp0OuCG6-oQHBEXDB+P9bnsP1NHCFEqRkQ@mail.gmail.com>
+Subject: Re: [PATCH v4 08/16] media: coda: enable user pointer support
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On 10 September 2012 17:29, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> USERPTR buffer support is provided by the videobuf2 framework.
+>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>  drivers/media/platform/coda.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+> index 7f6ec3a..e0595ce 100644
+> --- a/drivers/media/platform/coda.c
+> +++ b/drivers/media/platform/coda.c
+> @@ -1345,7 +1345,7 @@ static int coda_queue_init(void *priv, struct vb2_queue *src_vq,
+>
+>         memset(src_vq, 0, sizeof(*src_vq));
+>         src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+> -       src_vq->io_modes = VB2_MMAP;
+> +       src_vq->io_modes = VB2_MMAP | VB2_USERPTR;
+>         src_vq->drv_priv = ctx;
+>         src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+>         src_vq->ops = &coda_qops;
+> @@ -1357,7 +1357,7 @@ static int coda_queue_init(void *priv, struct vb2_queue *src_vq,
+>
+>         memset(dst_vq, 0, sizeof(*dst_vq));
+>         dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> -       dst_vq->io_modes = VB2_MMAP;
+> +       dst_vq->io_modes = VB2_MMAP | VB2_USERPTR;
+>         dst_vq->drv_priv = ctx;
+>         dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+>         dst_vq->ops = &coda_qops;
+> --
+> 1.7.10.4
+>
 
-While working on making bttv compliant with the V4L2 API I managed to resolve
-all v4l2-compliance errors except for two:
+Acked-by: Javier Martin <javier.martin@vista-silicon.com
 
-                fail: v4l2-test-formats.cpp(339): !fmt.width || !fmt.height
-        test VIDIOC_G_FBUF: FAIL
-                fail: v4l2-test-formats.cpp(607): Video Overlay is valid, but no S_FMT was implemented
-        test VIDIOC_S_FMT: FAIL
-
-After some analysis it turns out to be an ambiguity in VIDIOC_G_FBUF and
-VIDIOC_G_FMT for overlays.
-
-The first relates to what VIDIOC_G_FBUF should return if there is no framebuffer
-set? I.e. if VIDIOC_S_FBUF was never called?
-
-Should G_FBUF return an error, or provide non-zero but dummy struct v4l2_pix_format
-values and only leave base to NULL, or should the whole v4l2_framebuffer structure
-be zeroed (except for the capability field)?
-
-bttv just zeroes everything.
-
-Currently v4l2-compliance assumes that there is at least a dummy fmt setup. But
-I think that is unreasonably for destructive capture overlays.
-
-I would prefer to zero everything except for the capability field.
-
-Returning an error is not an option IMHO: even if there is no framebuffer defined,
-the capability field is still useful information to have.
-
-The second error is related to the first: what should happen if you try to set
-a capture overlay format with S_FMT and no framebuffer is defined? The driver
-cannot really validate the given format without knowing what the framebuffer
-is like.
-
-Currently I am returning some dummy values for G_FMT and TRY_FMT in that case,
-but for S_FMT I cannot do even that.
-
-While normally the G/S/TRY_FMT ioctls should never return an error, I think
-that in this particular case we should allow an error code. I am proposing
-ENODATA because, well, there is no data w.r.t. the framebuffer.
-
-The current bttv driver returns EINVAL for these cases, but that's too generic
-I think.
-
-So in the case of destructive capture overlays the G/S/TRY_FMT ioctls should
-return ENODATA if no framebuffer was configured.
-
-Comments?
-
-Regards,
-
-	Hans
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
