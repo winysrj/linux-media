@@ -1,94 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:4674 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756345Ab2IXSpS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 14:45:18 -0400
-Message-ID: <5060AA68.6050208@redhat.com>
-Date: Mon, 24 Sep 2012 20:46:00 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Chris MacGregor <chris@cybermato.com>
-CC: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:33371 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754626Ab2ILPCs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Sep 2012 11:02:48 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: Re: Gain controls in v4l2-ctrl framework
-References: <CA+V-a8vYDFhJzKVKsv7Q_JOQzDDYRyev15jDKio0tG2CP8iCCw@mail.gmail.com> <50603C39.9060105@redhat.com> <CA+V-a8uLhTTTOMNtz-iL=HZ0M+D6LgU4nbttcbb9Ej1cNDQMEQ@mail.gmail.com> <506095A7.7020302@cybermato.com>
-In-Reply-To: <506095A7.7020302@cybermato.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v5 07/13] media: coda: stop all queues in case of lockup
+Date: Wed, 12 Sep 2012 17:02:32 +0200
+Message-Id: <1347462158-20417-8-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1347462158-20417-1-git-send-email-p.zabel@pengutronix.de>
+References: <1347462158-20417-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Add a 1 second timeout for each PIC_RUN command to the CODA. In
+case it locks up, stop all queues and dequeue remaining buffers.
 
-On 09/24/2012 07:17 PM, Chris MacGregor wrote:
->
-> On 09/24/2012 07:42 AM, Prabhakar Lad wrote:
->> Hi Hans,
->>
->> On Mon, Sep 24, 2012 at 4:25 PM, Hans de Goede <hdegoede@redhat.com> wrote:
->>> Hi,
->>>
->>>
->>> On 09/23/2012 01:26 PM, Prabhakar Lad wrote:
->>>> Hi All,
->>>>
->>>> The CCD/Sensors have the capability to adjust the R/ye, Gr/Cy, Gb/G,
->>>> B/Mg gain values.
->>>> Since these control can be re-usable I am planning to add the
->>>> following gain controls as part
->>>> of the framework:
->>>>
->>>> 1: V4L2_CID_GAIN_RED
->>>> 2: V4L2_CID_GAIN_GREEN_RED
->>>> 3: V4L2_CID_GAIN_GREEN_BLUE
->>>
->>> Not all sensors have separate V4L2_CID_GAIN_GREEN_RED /
->>> V4L2_CID_GAIN_GREEN_BLUE,
->>> so we will need a separate control for sensors which have one combined gain
->>> called simply V4L2_CID_GAIN_GREEN
->>>
->> Agreed
->>
->>> Also do we really need separate V4L2_CID_GAIN_GREEN_RED /
->>> V4L2_CID_GAIN_GREEN_BLUE
->>> controls? I know hardware has them, but in my experience that is only done
->>> as it
->>> is simpler to make the hardware this way (fully symmetric sensor grid), have
->>> you ever
->>> tried actually using different gain settings for the 2 different green rows
->>> ?
->>>
->> Never tried it.
->>
->>> I've and that always results in an ugly checker board pattern. So I think we
->>> can
->>> and should only have a V4L2_CID_GAIN_GREEN, and for sensors with 2 green
->>> gains
->>> have that control both, forcing both to always have the same setting, which
->>> is
->>> really what you want anyways ...
->>>
->> Agreed.
->
-> Please don't do this.  I am working with the MT9P031, which has separate gains, and as we are using the color version of the sensor (which we can get much more cheaply) with infrared illumination, we correct for the slightly different response levels of the different color channels by adjusting the individual gain controls.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Tested-by: Javier Martin <javier.martin@vista-silicon.com>
+---
+ drivers/media/platform/coda.c |   26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-Ok, sofar I'm following you, but are you saying that the correction you need to apply for the green pixels on the same row as red pixels, is different then the one for the green pixels on the same row as blue pixels ?
-I can understand that the green "lenses" let through a different amount of infrared light then sat the red lenses, but is there any (significant) differences between the green lenses on 2 different rows?
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 159df08..7f6ec3a 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -136,6 +136,7 @@ struct coda_dev {
+ 	struct vb2_alloc_ctx	*alloc_ctx;
+ 	struct list_head	instances;
+ 	unsigned long		instance_mask;
++	struct delayed_work	timeout;
+ };
+ 
+ struct coda_params {
+@@ -722,6 +723,9 @@ static void coda_device_run(void *m2m_priv)
+ 				CODA7_REG_BIT_AXI_SRAM_USE);
+ 	}
+ 
++	/* 1 second timeout in case CODA locks up */
++	schedule_delayed_work(&dev->timeout, HZ);
++
+ 	coda_command_async(ctx, CODA_COMMAND_PIC_RUN);
+ }
+ 
+@@ -1208,6 +1212,7 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+ static int coda_stop_streaming(struct vb2_queue *q)
+ {
+ 	struct coda_ctx *ctx = vb2_get_drv_priv(q);
++	struct coda_dev *dev = ctx->dev;
+ 
+ 	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+ 		v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+@@ -1220,6 +1225,8 @@ static int coda_stop_streaming(struct vb2_queue *q)
+ 	}
+ 
+ 	if (!ctx->rawstreamon && !ctx->compstreamon) {
++		cancel_delayed_work(&dev->timeout);
++
+ 		v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+ 			 "%s: sent command 'SEQ_END' to coda\n", __func__);
+ 		if (coda_command_sync(ctx, CODA_COMMAND_SEQ_END)) {
+@@ -1492,6 +1499,8 @@ static irqreturn_t coda_irq_handler(int irq, void *data)
+ 	u32 wr_ptr, start_ptr;
+ 	struct coda_ctx *ctx;
+ 
++	__cancel_delayed_work(&dev->timeout);
++
+ 	/* read status register to attend the IRQ */
+ 	coda_read(dev, CODA_REG_BIT_INT_STATUS);
+ 	coda_write(dev, CODA_REG_BIT_INT_CLEAR_SET,
+@@ -1564,6 +1573,22 @@ static irqreturn_t coda_irq_handler(int irq, void *data)
+ 	return IRQ_HANDLED;
+ }
+ 
++static void coda_timeout(struct work_struct *work)
++{
++	struct coda_ctx *ctx;
++	struct coda_dev *dev = container_of(to_delayed_work(work),
++					    struct coda_dev, timeout);
++
++	v4l2_err(&dev->v4l2_dev, "CODA PIC_RUN timeout, stopping all streams\n");
++
++	mutex_lock(&dev->dev_mutex);
++	list_for_each_entry(ctx, &dev->instances, list) {
++		v4l2_m2m_streamoff(NULL, ctx->m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
++		v4l2_m2m_streamoff(NULL, ctx->m2m_ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
++	}
++	mutex_unlock(&dev->dev_mutex);
++}
++
+ static u32 coda_supported_firmwares[] = {
+ 	CODA_FIRMWARE_VERNUM(CODA_DX6, 2, 2, 5),
+ 	CODA_FIRMWARE_VERNUM(CODA_7541, 13, 4, 29),
+@@ -1835,6 +1860,7 @@ static int __devinit coda_probe(struct platform_device *pdev)
+ 
+ 	spin_lock_init(&dev->irqlock);
+ 	INIT_LIST_HEAD(&dev->instances);
++	INIT_DELAYED_WORK(&dev->timeout, coda_timeout);
+ 
+ 	dev->plat_dev = pdev;
+ 	dev->clk_per = devm_clk_get(&pdev->dev, "per");
+-- 
+1.7.10.4
 
-   (I have patches to add the controls, but I haven't had time yet to get them into good enough shape to submit - sorry!)
->
-> It seems to me that for applications that want to set them to the same value (presumably the vast majority), it is not so hard to set both the green_red and green_blue.  If you implement a single control, what happens for the (admittedly rare) application that needs to control them separately?
-
-Well if these are showing up in something like a user oriented control-panel (which they may) then having one slider for both certainly is more userfriendly.
-
-Regards,
-
-Hans
