@@ -1,47 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:43134 "EHLO
-	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932244Ab2IDOZm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Sep 2012 10:25:42 -0400
-Received: from localhost.localdomain (earthlight.etchedpixels.co.uk [81.2.110.250])
-	by lxorguk.ukuu.org.uk (8.14.5/8.14.1) with ESMTP id q84EwOcF007500
-	for <linux-media@vger.kernel.org>; Tue, 4 Sep 2012 15:58:29 +0100
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: [PATCH] tlg2300: fix missing check for audio creation
-To: linux-media@vger.kernel.org
-Date: Tue, 04 Sep 2012 15:43:26 +0100
-Message-ID: <20120904144319.25311.50526.stgit@localhost.localdomain>
+Received: from acsinet15.oracle.com ([141.146.126.227]:26316 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754811Ab2ILIGs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Sep 2012 04:06:48 -0400
+Date: Wed, 12 Sep 2012 11:06:42 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Peter Senna Tschudin <peter.senna@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] drivers/media: Removes useless kfree()
+Message-ID: <20120912080642.GA19396@mwanda>
+References: <1347386432-12954-1-git-send-email-peter.senna@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1347386432-12954-1-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Alan Cox <alan@linux.intel.com>
+On Tue, Sep 11, 2012 at 08:00:32PM +0200, Peter Senna Tschudin wrote:
+> diff --git a/drivers/media/dvb-frontends/lg2160.c b/drivers/media/dvb-frontends/lg2160.c
+> index cc11260..748da5d 100644
+> --- a/drivers/media/dvb-frontends/lg2160.c
+> +++ b/drivers/media/dvb-frontends/lg2160.c
+> @@ -1451,7 +1451,6 @@ struct dvb_frontend *lg2160_attach(const struct lg2160_config *config,
+>  	return &state->frontend;
+>  fail:
+>  	lg_warn("unable to detect LG216x hardware\n");
+> -	kfree(state);
+>  	return NULL;
+>  }
 
-If we fail to set up the capture device we go through negative indexes and
-badness happens. Add the missing test.
+I wish you had fixed this the same as the others and removed the
+goto.  Also the printk is redundant and wrong.  Remove it too.
 
-Resolves-bug: https://bugzilla.kernel.org/show_bug.cgi?id=44551
-Signed-off-by: Alan Cox <alan@linux.intel.com>
----
-
- drivers/media/usb/tlg2300/pd-alsa.c |    4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/drivers/media/usb/tlg2300/pd-alsa.c b/drivers/media/usb/tlg2300/pd-alsa.c
-index 9f8b7da..0c77869 100644
---- a/drivers/media/usb/tlg2300/pd-alsa.c
-+++ b/drivers/media/usb/tlg2300/pd-alsa.c
-@@ -305,6 +305,10 @@ int poseidon_audio_init(struct poseidon *p)
- 		return ret;
- 
- 	ret = snd_pcm_new(card, "poseidon audio", 0, 0, 1, &pcm);
-+	if (ret < 0) {
-+		snd_free_card(card);
-+		return ret;
-+	}
- 	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_CAPTURE, &pcm_capture_ops);
- 	pcm->info_flags   = 0;
- 	pcm->private_data = p;
+regards,
+dan carpenter
 
