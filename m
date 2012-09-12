@@ -1,83 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:43107 "EHLO
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:33376 "EHLO
 	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932098Ab2IRHxZ (ORCPT
+	with ESMTP id S1755428Ab2ILPCs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Sep 2012 03:53:25 -0400
-Date: Tue, 18 Sep 2012 09:52:13 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Shawn Guo <shawn.guo@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	alsa-devel@alsa-project.org,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	linux-fbdev@vger.kernel.org, Chris Ball <cjb@laptop.org>,
-	linux-mmc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	rtc-linux@googlegroups.com,
-	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
-	linux-mtd@lists.infradead.org,
-	Wolfram Sang <w.sang@pengutronix.de>,
-	linux-i2c@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>,
-	linux-watchdog@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-usb@vger.kernel.org, Vinod Koul <vinod.koul@linux.intel.com>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-Subject: Re: [PATCH 00/34] i.MX multi-platform support
-Message-ID: <20120918075213.GD24458@pengutronix.de>
-References: <1347860103-4141-1-git-send-email-shawn.guo@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1347860103-4141-1-git-send-email-shawn.guo@linaro.org>
+	Wed, 12 Sep 2012 11:02:48 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v5 10/13] media: coda: fix sizeimage setting in try_fmt
+Date: Wed, 12 Sep 2012 17:02:35 +0200
+Message-Id: <1347462158-20417-11-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1347462158-20417-1-git-send-email-p.zabel@pengutronix.de>
+References: <1347462158-20417-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shawn,
+VIDIOC_TRY_FMT would incorrectly return bytesperline * height,
+instead of width * height * 3 / 2.
 
-On Mon, Sep 17, 2012 at 01:34:29PM +0800, Shawn Guo wrote:
-> The series enables multi-platform support for imx.  Since the required
-> frameworks (clk, pwm) and spare_irq have already been adopted on imx,
-> the series is all about cleaning up mach/* headers.  Along with the
-> changes, arch/arm/plat-mxc gets merged into arch/arm/mach-imx.
-> 
-> It's based on a bunch of branches (works from others), Rob's initial
-> multi-platform series, Arnd's platform-data and smp_ops (Marc's) and
-> imx 3.7 material (Sascha and myself).
-> 
-> It's available on branch below.
-> 
->   git://git.linaro.org/people/shawnguo/linux-2.6.git imx/multi-platform
-> 
-> It's been tested on imx5 and imx6, and only compile-tested on imx2 and
-> imx3, so testing on imx2/3 are appreciated.
-> 
-> Subsystem maintainers,
-> 
-> I plan to send the whole series via arm-soc tree at the end of 3.7
-> merge window when all dependant bits hit mainline.  Please have a
-> look at the patches you get copied and provide ACKs if the changes
-> are good.  Thanks.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Tested-by: Javier Martin <javier.martin@vista-silicon.com>
+---
+ drivers/media/platform/coda.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-I just had a look at the remaining initcalls in arch-imx. Most of them
-are protected with a cpu_is_*, but this one should be fixed before i.MX
-is enabled for multi platform:
-
-arch/arm/mach-imx/devices/devices.c:48:core_initcall(mxc_device_init);
-
-I think this won't harm others directly, but it will register i.MX
-related devices on foreign platforms.
-
-Sascha
-
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index fe8a397..e8ed427 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -407,8 +407,8 @@ static int vidioc_try_fmt(struct coda_dev *dev, struct v4l2_format *f)
+ 				      W_ALIGN, &f->fmt.pix.height,
+ 				      MIN_H, MAX_H, H_ALIGN, S_ALIGN);
+ 		f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 2);
+-		f->fmt.pix.sizeimage = f->fmt.pix.height *
+-					f->fmt.pix.bytesperline;
++		f->fmt.pix.sizeimage = f->fmt.pix.width *
++					f->fmt.pix.height * 3 / 2;
+ 	} else { /*encoded formats h.264/mpeg4 */
+ 		f->fmt.pix.bytesperline = 0;
+ 		f->fmt.pix.sizeimage = CODA_MAX_FRAME_SIZE;
+@@ -492,11 +492,7 @@ static int vidioc_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f)
+ 	q_data->fmt = find_format(ctx->dev, f);
+ 	q_data->width = f->fmt.pix.width;
+ 	q_data->height = f->fmt.pix.height;
+-	if (q_data->fmt->fourcc == V4L2_PIX_FMT_YUV420) {
+-		q_data->sizeimage = q_data->width * q_data->height * 3 / 2;
+-	} else { /* encoded format h.264/mpeg-4 */
+-		q_data->sizeimage = CODA_MAX_FRAME_SIZE;
+-	}
++	q_data->sizeimage = f->fmt.pix.sizeimage;
+ 
+ 	v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+ 		"Setting format for type %d, wxh: %dx%d, fmt: %d\n",
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+1.7.10.4
+
