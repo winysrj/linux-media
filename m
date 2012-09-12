@@ -1,52 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:38497 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754275Ab2IRIFb (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:33385 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752748Ab2ILPCt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Sep 2012 04:05:31 -0400
-Received: by pbbrr13 with SMTP id rr13so10554472pbb.19
-        for <linux-media@vger.kernel.org>; Tue, 18 Sep 2012 01:05:31 -0700 (PDT)
-Date: Tue, 18 Sep 2012 16:05:43 +0800
-From: Shawn Guo <shawn.guo@linaro.org>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: alsa-devel@alsa-project.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
-	linux-fbdev@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>,
-	linux-mtd@lists.infradead.org, linux-i2c@vger.kernel.org,
-	Arnd Bergmann <arnd@arndb.de>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
-	Chris Ball <cjb@laptop.org>, linux-media@vger.kernel.org,
-	linux-watchdog@vger.kernel.org, rtc-linux@googlegroups.com,
-	Rob Herring <rob.herring@calxeda.com>,
-	linux-arm-kernel@lists.infradead.org,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Vinod Koul <vinod.koul@linux.intel.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-usb@vger.kernel.org, linux-mmc@vger.kernel.org,
-	Wolfram Sang <w.sang@pengutronix.de>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [alsa-devel] [PATCH 00/34] i.MX multi-platform support
-Message-ID: <20120918080541.GA6377@S2101-09.ap.freescale.net>
-References: <1347860103-4141-1-git-send-email-shawn.guo@linaro.org>
- <20120918075213.GD24458@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20120918075213.GD24458@pengutronix.de>
+	Wed, 12 Sep 2012 11:02:49 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v5 13/13] media: coda: set up buffers to be sized as negotiated with s_fmt
+Date: Wed, 12 Sep 2012 17:02:38 +0200
+Message-Id: <1347462158-20417-14-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1347462158-20417-1-git-send-email-p.zabel@pengutronix.de>
+References: <1347462158-20417-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 18, 2012 at 09:52:13AM +0200, Sascha Hauer wrote:
-> I just had a look at the remaining initcalls in arch-imx. Most of them
-> are protected with a cpu_is_*, but this one should be fixed before i.MX
-> is enabled for multi platform:
-> 
-> arch/arm/mach-imx/devices/devices.c:48:core_initcall(mxc_device_init);
-> 
-Ah, I missed that.  Thanks for reminding, Sascha.
+This fixes a failure in vb2_qbuf in user pointer mode where
+__qbuf_userptr checks if the buffer queued by userspace is large
+enough. The failure would happen if coda_queue_setup was called
+with empty fmt (and thus set the expected buffer size to the maximum
+resolution), and userspace queues buffers of smaller size -
+corresponding to the negotiated dimensions - were queued.
+Explicitly setting sizeimage to the value negotiated via s_fmt
+fixes the issue.
 
-Shawn
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda.c |   13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 0235f4e..0e0b4fe 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -813,18 +813,11 @@ static int coda_queue_setup(struct vb2_queue *vq,
+ 				unsigned int sizes[], void *alloc_ctxs[])
+ {
+ 	struct coda_ctx *ctx = vb2_get_drv_priv(vq);
++	struct coda_q_data *q_data;
+ 	unsigned int size;
+ 
+-	if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+-		if (fmt)
+-			size = fmt->fmt.pix.width *
+-				fmt->fmt.pix.height * 3 / 2;
+-		else
+-			size = MAX_W *
+-				MAX_H * 3 / 2;
+-	} else {
+-		size = CODA_MAX_FRAME_SIZE;
+-	}
++	q_data = get_q_data(ctx, vq->type);
++	size = q_data->sizeimage;
+ 
+ 	*nplanes = 1;
+ 	sizes[0] = size;
+-- 
+1.7.10.4
+
