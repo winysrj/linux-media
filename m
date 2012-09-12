@@ -1,106 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:58262 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755313Ab2IKIY2 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:33417 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754626Ab2ILPC4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Sep 2012 04:24:28 -0400
-Date: Tue, 11 Sep 2012 10:24:23 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Anatolij Gustschin <agust@denx.de>
-cc: Detlev Zundel <dzu@denx.de>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 1/3] mt9v022: add v4l2 controls for blanking and other
- register settings
-In-Reply-To: <20120828154343.3c847dff@wker>
-Message-ID: <Pine.LNX.4.64.1209110935370.22084@axis700.grange>
-References: <1345799431-29426-1-git-send-email-agust@denx.de>
- <1345799431-29426-2-git-send-email-agust@denx.de>
- <Pine.LNX.4.64.1208241227140.20710@axis700.grange> <m2pq6g5tm3.fsf@lamuella.denx.de>
- <Pine.LNX.4.64.1208241527370.20710@axis700.grange> <20120824182125.4d19ed64@wker>
- <Pine.LNX.4.64.1208242305050.20710@axis700.grange> <20120828154343.3c847dff@wker>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Wed, 12 Sep 2012 11:02:56 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v5 12/13] media: coda: add byte size slice limit control
+Date: Wed, 12 Sep 2012 17:02:37 +0200
+Message-Id: <1347462158-20417-13-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1347462158-20417-1-git-send-email-p.zabel@pengutronix.de>
+References: <1347462158-20417-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Anatolij
-
-On Tue, 28 Aug 2012, Anatolij Gustschin wrote:
-
-> Hi Guennadi,
-> 
-> On Fri, 24 Aug 2012 23:23:37 +0200 (CEST)
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> ...
-> > > Every time the sensor is reset, it resets this register. Without setting
-> > > the register after sensor reset to the needed value I only get garbage data
-> > > from the sensor. Since the possibility to reset the sensor is provided on
-> > > the hardware and also used, the register has to be set after each sensor
-> > > reset. Only the instance controlling the reset gpio pin "knows" the time,
-> > > when the register should be initialized again, so it is asynchronously and
-> > > not related to the standard camera activities. But since the stuff is _not_
-> > > documented, I can only speculate. Maybe it can be set to different values
-> > > to achieve different things, currently I do not know.
-> > 
-> > How about adding that register write (if required by platform data) to 
-> > mt9v022_s_power() in the "on" case? This is called (on soc-camera hosts at 
-> > least) on each first open(), would this suffice?
-> 
-> This would suffice. But now I found some more info for this register.
-> Rev3. errata
-
-Yes, I've found that one too. But I don't understand the table they 
-present there: have only default values of various registers changed, or 
-have actually new features been added in Rev.3? If the latter we'd have to 
-find out which revision we're running on.
-
-> mentions that the bit 9 of the register should be set when
-> in snapshot mode (in my case this is the only mode that we can use).
-
-Currently the snapshot mode is used in the mt9v022 driver to stop 
-streaming. This means you've got more local changes in your driver to 
-enable capture in the snapshot mode?
-
-> Additionally the errata recommends to set bit 2 when the high dynamic
-> range mode is used.
-
-The HiDy mode is also not used so far in the driver.
-
-> Now I'm not sure how to realise these settings.
-> 
-> The bit 9 should be set/unset when configuring the master/snapshot
-> mode in mt9v022_s_stream(), I think.
-
-As mentioned above, currently the snapshot mode is used by the driver to 
-stop continuous data read-out by the sensor, so, unless we begin 
-supporting capture in the snapshot mode, setting any further configuration 
-parameters seems pretty useless to me.
-
-> For setting bit 2 we could add V4L2_CID_WIDE_DYNAMIC_RANGE control
-> which primarily configures the HiDy mode in register 0x0f and
-> additionally sets/unsets bit 2 in register 0x20. But setting this
-> bit 2 seems to be needed also in linear mode when manual exposure
-> control is used. With the recommended register value 0x03D1 in linear
-> mode the image quality is really bad when manual exposure mode is
-> used, independent of the configured exposure time. Using 0x03D5
-> in linear mode however gives good image quality here.
-
-Doesn't this switch on the HiDy mode? What happens if you also set 0x0f:6 
-to 1?
-
-> So setting
-> bit 2 should be independent of HiDy control. The errata states "the
-> register setting recommendations are based on the characterization of
-> the image sensor only and that camera module makers should test these
-> recommendations on their module and evaluate the overall performance".
-> These settings should be configurable independently of each other,
-> I think.
-
-Maybe we need some noise (PFN) related control?
-
-Thanks
-Guennadi
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Changes since v4:
+ - Fix menu_skip_mask for V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE v4l2_ctrl.
+---
+ drivers/media/platform/coda.c |   29 +++++++++++++++++++++++------
+ 1 file changed, 23 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 81e3401..0235f4e 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -151,6 +151,7 @@ struct coda_params {
+ 	enum v4l2_mpeg_video_multi_slice_mode slice_mode;
+ 	u32			framerate;
+ 	u16			bitrate;
++	u32			slice_max_bits;
+ 	u32			slice_max_mb;
+ };
+ 
+@@ -1056,12 +1057,23 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+ 		return -EINVAL;
+ 	}
+ 
+-	value  = (ctx->params.slice_max_mb & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
+-	value |= (1 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
+-	if (ctx->params.slice_mode == V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB)
++	switch (ctx->params.slice_mode) {
++	case V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE:
++		value = 0;
++		break;
++	case V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB:
++		value  = (ctx->params.slice_max_mb & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
++		value |= (1 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
++		value |=  1 & CODA_SLICING_MODE_MASK;
++		break;
++	case V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES:
++		value  = (ctx->params.slice_max_bits & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
++		value |= (0 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
+ 		value |=  1 & CODA_SLICING_MODE_MASK;
++		break;
++	}
+ 	coda_write(dev, value, CODA_CMD_ENC_SEQ_SLICE_MODE);
+-	value  =  ctx->params.gop_size & CODA_GOP_SIZE_MASK;
++	value = ctx->params.gop_size & CODA_GOP_SIZE_MASK;
+ 	coda_write(dev, value, CODA_CMD_ENC_SEQ_GOP_SIZE);
+ 
+ 	if (ctx->params.bitrate) {
+@@ -1308,6 +1320,9 @@ static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB:
+ 		ctx->params.slice_max_mb = ctrl->val;
+ 		break;
++	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES:
++		ctx->params.slice_max_bits = ctrl->val * 8;
++		break;
+ 	case V4L2_CID_MPEG_VIDEO_HEADER_MODE:
+ 		break;
+ 	default:
+@@ -1346,10 +1361,12 @@ static int coda_ctrls_setup(struct coda_ctx *ctx)
+ 		V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP, 1, 31, 1, 2);
+ 	v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE,
+-		V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB, 0,
+-		V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB);
++		V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES, 0x0,
++		V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE);
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB, 1, 0x3fffffff, 1, 1);
++	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
++		V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES, 1, 0x3fffffff, 1, 500);
+ 	v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_HEADER_MODE,
+ 		V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME,
+-- 
+1.7.10.4
+
