@@ -1,92 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51178 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756077Ab2ITTiA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Sep 2012 15:38:00 -0400
-Message-ID: <505B7082.80805@iki.fi>
-Date: Thu, 20 Sep 2012 22:37:38 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:34021 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751317Ab2ILQKw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Sep 2012 12:10:52 -0400
 MIME-Version: 1.0
-To: Oliver Schinagl <oliver+list@schinagl.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Support for Asus MyCinema U3100Mini Plus
-References: <1348167437-4371-1-git-send-email-oliver+list@schinagl.nl> <505B6B4E.8010006@iki.fi> <505B6E74.9020605@schinagl.nl>
-In-Reply-To: <505B6E74.9020605@schinagl.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CA+MoWDquDi6+kY9z3rj79dJK6j5tSWO9oWHCkvt6J-XBB=HNvA@mail.gmail.com>
+References: <1347454564-5178-2-git-send-email-peter.senna@gmail.com>
+	<CAH0vN5+ZoexHtmgyZ+s9tiW3LYx+6PMT8aLyYt-T5mnaGXvYbQ@mail.gmail.com>
+	<CA+MoWDquDi6+kY9z3rj79dJK6j5tSWO9oWHCkvt6J-XBB=HNvA@mail.gmail.com>
+Date: Wed, 12 Sep 2012 13:10:50 -0300
+Message-ID: <CAH0vN5KeNB1JfW8n66fse=vuk-ak9LShni7FhVCJ=_kjyEzqcg@mail.gmail.com>
+Subject: Re: [PATCH v2 7/8] drivers/media/platform/davinci/vpbe.c: Removes
+ useless kfree()
+From: Marcos Souza <marcos.souza.org@gmail.com>
+To: Peter Senna Tschudin <peter.senna@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/20/2012 10:28 PM, Oliver Schinagl wrote:
-> On 20-09-12 21:15, Antti Palosaari wrote:
->> On 09/20/2012 09:57 PM, oliver@schinagl.nl wrote:
->>> From: Oliver Schinagl <oliver@schinagl.nl>
->>>
->>> This is initial support for the Asus MyCinema U3100Mini Plus. The driver
->>> in its current form gets detected and loads properly.
->>>
->>> Scanning using dvbscan works without problems, Locking onto a channel
->>> using tzap also works fine. Only playback using tzap -r + mplayer was
->>> tested and was fully functional.
->>>
->>> It uses the af9035 USB Bridge chip, with an af9033 demodulator. The
->>> tuner
->>> used is the FCI FC2580.
->>>
->>> Signed-off-by: Oliver Schinagl <oliver@schinagl.nl>
->>
->> Acked-by: Antti Palosaari <crope@iki.fi>
->> Reviewed-by: Antti Palosaari <crope@iki.fi>
->>
->> It is OK. Mauro, please merge to the master.
-> I do hope that it won't be a problem as I based it on your
-> remotes/origin/for_v3.7-13
->>
->> @Oliver, you didn't fixed FC2580 useless braces as I requested.
->> Anyway, I will sent another patch to fix it later. Action not required.
-> Ah, I did comment on that change in my reply on your comments; a
-> re-paste from that:
+Hi Peter,
+
+2012/9/12 Peter Senna Tschudin <peter.senna@gmail.com>:
+> Marcos,
 >
-> Checkpatch did not trigger on this. Which makes sense. Kernel
-> CodingStyle is in very strong favor of K&R and from what I know from
-> K&R, K&R strongly discourage not using braces as it is very likely to
-> introduce bugs. Wikipedia has a small mention of this, then again
-> wikipedia is wikipedia.
+>> Now that you removed this kfree, you could remove this label too. Very
+>> nice your cleanup :)
+> Thanks!
+>
+>>
+>>>  vpbe_fail_sd_register:
+>>>         kfree(vpbe_dev->encoders);
+>>>  vpbe_fail_v4l2_device:
+>
+> The problem removing the label is that it will require some more work
+> naming the labels. See:
+> if (!vpbe_dev->amp) {
+> ...
+>         goto vpbe_fail_amp_register;
+>
+> If I just remove the label vpbe_fail_amp_register, the label names
+> will not make sense any more as the next label is
+> vpbe_fail_sd_register. So I will need to change the name to something
+> different or rename all labels to out1, out2, out3 or err1, err2,
+> err3, or ....
 
-I am quite sure it says braces are not allowed for if () when it is 
-single line.
+I was looking at the code here, but this code is under
+drivers/media/video/davince/vpbe.c....
 
-> I will take it out of you really want it out, but with checkpatch not
-> even complaining, I would think this as an improvement. :D
+Are  you using the Linus tree?
 
-Seems like you are correct, it does not detect it from the patch for 
-reason or the other. Maybe you could sent patch to fix checkpatch.pl :)
+BTW, this label is only used once. AFAICS, you can GOTO to the next
+label, vpbe_fail_sd_register in this case, who frees another member of
+the vpbe_dev.
 
-But it seems to find it when asked to check file correctness.
+This make sense to you?
 
-Anyway, my eyes seems to be again more careful than checkpatch ;-)
+> Any suggestions?
+>
+> --
+> Peter
 
-[crope@localhost linux]$ git show --format=email | ./scripts/checkpatch.pl -
-total: 0 errors, 0 warnings, 141 lines checked
 
-Your patch has no obvious style problems and is ready for submission.
-[crope@localhost linux]$ ./scripts/checkpatch.pl --file 
-drivers/media/tuners/fc2580.c
-WARNING: braces {} are not necessary for single statement blocks
-#501: FILE: media/tuners/fc2580.c:501:
-+	if ((chip_id != 0x56) && (chip_id != 0x5a)) {
-+		goto err;
-+	}
-
-total: 0 errors, 1 warnings, 525 lines checked
-
-drivers/media/tuners/fc2580.c has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-[crope@localhost linux]$
-
-Antti
 
 -- 
-http://palosaari.fi/
+Att,
+
+Marcos Paulo de Souza
+Acadêmico de Ciencia da Computação - FURB - SC
+"Uma vida sem desafios é uma vida sem razão"
+"A life without challenges, is a non reason life"
