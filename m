@@ -1,121 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:35601 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751148Ab2I3Mvj convert rfc822-to-8bit (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:49428 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753772Ab2ILVRV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Sep 2012 08:51:39 -0400
-Received: by wgbdr13 with SMTP id dr13so3265739wgb.1
-        for <linux-media@vger.kernel.org>; Sun, 30 Sep 2012 05:51:37 -0700 (PDT)
-From: =?iso-8859-1?Q?David_R=F6thlisberger?= <david@rothlis.net>
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Subject: hdpvr driver and VIDIOC_G_FMT
-Date: Sun, 30 Sep 2012 13:51:36 +0100
-Message-Id: <76F043BB-BCE9-4521-A17E-5246BA2E812E@rothlis.net>
-Cc: will@williammanley.net
-To: linux-media@vger.kernel.org,
-	Discussion of the development of and with GStreamer
-	<gstreamer-devel@lists.freedesktop.org>,
-	Janne Grunau <j@jannau.net>
-Mime-Version: 1.0 (Apple Message framework v1283)
+	Wed, 12 Sep 2012 17:17:21 -0400
+Date: Wed, 12 Sep 2012 23:17:16 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Stephen Warren <swarren@wwwdotorg.org>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	devicetree-discuss <devicetree-discuss@lists.ozlabs.org>,
+	linux-sh@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH] media: add V4L2 DT binding documentation
+In-Reply-To: <5050F653.5070404@wwwdotorg.org>
+Message-ID: <Pine.LNX.4.64.1209122302410.28968@axis700.grange>
+References: <Pine.LNX.4.64.1209111746420.22084@axis700.grange>
+ <5050DA40.8050105@wwwdotorg.org> <Pine.LNX.4.64.1209122111100.28968@axis700.grange>
+ <5050F653.5070404@wwwdotorg.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am using the Hauppauge HD PVR video-capture device with a GStreamer
-"v4l2src". The HD PVR has an upstream driver called "hdpvr":
-http://git.kernel.org/?p=linux/kernel/git/stable/linux-stable.git;a=tree;f=drivers/media/video/hdpvr
+On Wed, 12 Sep 2012, Stephen Warren wrote:
 
-When the HD PVR device does not have any video on its capture input, the
-VIDIOC_G_FMT ioctl fails. GStreamer ignores the error (and doesn't
-report it to my application); the HD PVR fails to start up so even if
-video is later established on the HD PVR's input, the GStreamer pipeline
-never receives video. (Bear with me, linuxtv folks; I have plenty of
-non-GStreamer questions for you.) :-)
+> On 09/12/2012 01:28 PM, Guennadi Liakhovetski wrote:
+> > Hi Stephen
+> > 
+> > On Wed, 12 Sep 2012, Stephen Warren wrote:
+> > 
+> >> On 09/11/2012 09:51 AM, Guennadi Liakhovetski wrote:
+> >>> This patch adds a document, describing common V4L2 device tree bindings.
+> >>>
+> >>> Co-authored-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> >>> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> >>
+> >> Overall, I think this looks pretty reasonable, so:
+> ...
+> >>
+> >>> +			clock-frequency = <50000000>;	/* max clock frequency */
+> >>> +			clock-output-names = "mclk";
+> >>> +		};
+> >>> +
+> >>> +		port {
+> >> ...
+> >>> +			ceu0_0: link@0 {
+> >>> +				reg = <0>;
+> >>> +				remote = <&csi2_2>;
+> >>> +				immutable;
+> >>
+> >> Did we decide "immutable" was actually needed? Presumably the driver for
+> >> the HW in question knows the HW isn't configurable, and would simply not
+> >> attempt to apply any configuration even if the .dts author erroneously
+> >> provided some?
+> > 
+> > Well, I've been thinking about this today. I think, bridge drivers will 
+> 
+> Sorry, I'm not sure what a "bridge" driver is; is it any v4l2 device?
 
-It seems to me that the only reason the hdpvr's vidioc_g_fmt_vid_cap [1]
-fails, is because it doesn't know the video width & height until it
-has video on its input:
+Right, sorry for not explaining. We call a bridge a device, that's sitting 
+on a bus like USB, PCI or - as in the SoC case - on an internal one and 
+interfacing to, say, a video sensor or a TV decoder or encoder. In the SoC 
+case most primitive bridges just take data from video sensors attached 
+over, say, an 8-bit parallel bus and DMA it into RAM buffers. Some bridges 
+can also perform some data processing.
 
-    vid_info = get_video_info(dev);
-    if (!vid_info)
-    	return -EFAULT;
-    
-    f->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    f->fmt.pix.pixelformat	= V4L2_PIX_FMT_MPEG;
-    f->fmt.pix.width	= vid_info->width;
-    f->fmt.pix.height	= vid_info->height;
-    f->fmt.pix.sizeimage	= dev->bulk_in_size;
-    f->fmt.pix.colorspace	= 0;
-    f->fmt.pix.bytesperline	= 0;
-    f->fmt.pix.field	= V4L2_FIELD_ANY;
+> > call centrally provided helper functions to enumerate links inside ports. 
+> 
+> Presumably a given driver would only parse the ports/links of its own DT
+> node, and hence would be able to provide a parameter to any helper
+> function that indicated the same information that "immutable" would?
 
-Note that the v4l2 documentation for VIDIOC_G_FMT [2] says:
+Well, let's drop "immutable" for now, since we don't have a good idea 
+whether we need it or not. If we do need it, we'll add it later, removing 
+a part of a standart is more difficult.
 
-    Drivers should not return an error code unless the type field is
-    invalid, this is a mechanism to fathom device capabilities and to
-    approach parameters acceptable for both the application and driver.
+> > While doing that they will want to differentiate between links to external 
+> > devices with explicit configuration, and links to internal devices, whose 
+> > configuration drivers might be able to figure out themselves. How should a 
+> > driver find out what device this link is pointing to? Should it follow the 
+> > "remote" phandle and then check the "compatible" property? The word 
+> > "immutable" is a hint, that this is a link to an internal device, but it 
+> > might either be unneeded or be transformed into something more 
+> > informative.
+> 
+> I would imagine that a given driver would only ever parse its own DT
+> node; the far end of any link is purely the domain of the other driver.
+> I thought that each link node would contain whatever hsync-active,
+> data-lanes, ... properties that were needed to configure the local device?
 
-The above discusses "device capabilities" whereas what the hdpvr driver
-does in this case describes properties of the input data. The difficulty
-is that the capabilities of the hardware include a whole bunch of
-different resolutions and frame-rates but these modes seem only
-available if they match the incoming signal.
+I think, information needed to configure a bridge device to connect to a 
+camera sensor, like sync polarities etc., might not be sufficient to 
+configure it to interface to an SoC internal unit, like a MIPI CSI-2 
+interface. I can see 2 possibilities to recognise, that this link is going 
+to an internal device: (1) follow the remote phandle, (2) use a 
+vendor-specific property to specify the remote device type. I guess, you'd 
+prefer the latter?
 
-Question 1: Is this [return -EFAULT] a bug in the hdpvr driver? If the
-format is mpeg, why do we need to fill in width & height -- isn't this
-something the container or codec will tell you? It seems to me that all
-the other fields can be determined even without video on the device's
-capture input, so this function doesn't need to fail.
-
-Now looking at v4l2_fd_open: [3]
-
-    /* Get current cam format */
-    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    if (dev_ops->ioctl(dev_ops_priv, fd, VIDIOC_G_FMT, &fmt)) {
-            int saved_err = errno;
-            V4L2_LOG_ERR("getting pixformat: %s\n", strerror(errno));
-            v4l2_plugin_cleanup(plugin_library, dev_ops_priv, dev_ops);
-            errno = saved_err;
-            return -1;
-    }
-
-Question 2: Is v4l2 mostly designed towards webcams (as the comment in
-the above code implies)? What about capturing a continuous video stream
-from a video-capture device, where I want to continue capturing even
-when the capture device loses video input? (Say, it's connected to a
-set-top box that reboots, and I want to capture the video from the
-set-top box before it reboots and after it reboots, with a blank image
-during the time the video was lost.)
-
-Now to GStreamer: gst_v4l2_open [4] ignores the error from v4l2_fd_open:
-
-    libv4l2_fd = v4l2_fd_open (v4l2object->video_fd,
-        V4L2_ENABLE_ENUM_FMT_EMULATION);
-    /* Note the v4l2_xxx functions are designed so that if they get passed an
-       unknown fd, the will behave exactly as their regular xxx counterparts, so
-       if v4l2_fd_open fails, we continue as normal (missing the libv4l2 custom
-       cam format to normal formats conversion). Chances are big we will still
-       fail then though, as normally v4l2_fd_open only fails if the device is not
-       a v4l2 device. */
-    if (libv4l2_fd != -1)
-      v4l2object->video_fd = libv4l2_fd;
-
-Again a comment mentioning "cams".
-
-Question 3: If "chances are big we will still fail" anyway, could we
-instead report the error up to the GStreamer pipeline/application?
-
-Thanks for your help, and I hope my ignorance doesn't show through too
-much in my questions. :-) What we haven't tried yet is just removing the
-call to get_video_info from VIDIOC_G_FMT and related calls in the kernel
-to avoid the failure condition, and see what happens; but in parallel
-with that task I thought I'd write to you for some guidance.
-
-David Rothlisberger
-http://stb-tester.com
-
-[1] http://git.kernel.org/?p=linux/kernel/git/stable/linux-stable.git;a=blob;f=drivers/media/video/hdpvr/hdpvr-video.c;h=0e9e156#l1142
-[2] http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-fmt.html
-[3] http://git.linuxtv.org/v4l-utils.git/blob/c7ffd22:/lib/libv4l2/libv4l2.c#l612
-[4] http://cgit.freedesktop.org/gstreamer/gst-plugins-good/tree/sys/v4l2/v4l2_calls.c?id=05d4f81#n407
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
