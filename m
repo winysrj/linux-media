@@ -1,55 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46622 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753763Ab2IWNSm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Sep 2012 09:18:42 -0400
-Message-ID: <505F0C86.9070206@iki.fi>
-Date: Sun, 23 Sep 2012 16:20:06 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: Re: Gain controls in v4l2-ctrl framework
-References: <CA+V-a8vYDFhJzKVKsv7Q_JOQzDDYRyev15jDKio0tG2CP8iCCw@mail.gmail.com>
-In-Reply-To: <CA+V-a8vYDFhJzKVKsv7Q_JOQzDDYRyev15jDKio0tG2CP8iCCw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:39240 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755569Ab2ILC1m (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Sep 2012 22:27:42 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Thomas Mair <mair.thomas86@gmail.com>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/8] rtl2832: remove redundant function declaration
+Date: Wed, 12 Sep 2012 05:27:05 +0300
+Message-Id: <1347416831-1413-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1347416831-1413-1-git-send-email-crope@iki.fi>
+References: <1347416831-1413-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/rtl2832.h | 4 ----
+ 1 file changed, 4 deletions(-)
 
-Prabhakar Lad wrote:
-> Hi All,
->
-> The CCD/Sensors have the capability to adjust the R/ye, Gr/Cy, Gb/G,
-> B/Mg gain values.
-> Since these control can be re-usable I am planning to add the
-> following gain controls as part
-> of the framework:
->
-> 1: V4L2_CID_GAIN_RED
-> 2: V4L2_CID_GAIN_GREEN_RED
-> 3: V4L2_CID_GAIN_GREEN_BLUE
-> 4: V4L2_CID_GAIN_BLUE
-> 5: V4L2_CID_GAIN_OFFSET
->
-> I need your opinion's to get moving to add them.
-
-I think these controls can fit under the image processing controls class 
---- image processing and not image source since these can also have a 
-digital implementation e.g. in an ISP.
-
-Kind regards,
-
+diff --git a/drivers/media/dvb-frontends/rtl2832.h b/drivers/media/dvb-frontends/rtl2832.h
+index 5da0cc4..270fd1e 100644
+--- a/drivers/media/dvb-frontends/rtl2832.h
++++ b/drivers/media/dvb-frontends/rtl2832.h
+@@ -58,10 +58,6 @@ extern struct dvb_frontend *rtl2832_attach(
+ 	const struct rtl2832_config *cfg,
+ 	struct i2c_adapter *i2c
+ );
+-
+-extern struct i2c_adapter *rtl2832_get_tuner_i2c_adapter(
+-	struct dvb_frontend *fe
+-);
+ #else
+ static inline struct dvb_frontend *rtl2832_attach(
+ 	const struct rtl2832_config *config,
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+1.7.11.4
+
