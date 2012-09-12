@@ -1,44 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44072 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752725Ab2IZLdN (ORCPT
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2902 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751883Ab2ILHBU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Sep 2012 07:33:13 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: John Tobias <john.tobias.ph@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: ISPsupport
-Date: Wed, 26 Sep 2012 13:33:51 +0200
-Message-ID: <33718976.0Yia9PWmdN@avalon>
-In-Reply-To: <CACUGKYPyquYDjHS0k1cuxWjyTX5+oypbe=Gm=nOz0-2jRYfbzg@mail.gmail.com>
-References: <CACUGKYPyquYDjHS0k1cuxWjyTX5+oypbe=Gm=nOz0-2jRYfbzg@mail.gmail.com>
+	Wed, 12 Sep 2012 03:01:20 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Kconfig DVB_CAPTURE_DRIVERS no longer exists?
+Date: Wed, 12 Sep 2012 09:01:14 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201209120901.14575.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi John,
+Hi Mauro,
 
-On Monday 10 September 2012 20:00:54 John Tobias wrote:
-> Hi all,
-> 
-> I tried devel-ISPSUPPORT-IPIPE and devel-ISPSUPPORT,
+Two drivers, au0828 and cx2341xx depend on the DVB_CAPTURE_DRIVERS config
+option, which no longer exists. So au0828 and the DVB part of cx231xx are
+no longer built. Should this dependency be removed or was it renamed?
 
-It would help you you told use what hardware you're running on, what kernel 
-version you're using, and what devel-ISPSUPPORT-IPIPE and devel-ISPSUPPORT 
-are.
+Can you take a look at it?
 
-> the kernel
-> detected my image sensor (ov5650). But, when I execute the "yavta
-> /dev/video0 -c4 -n1 -s2592x1944 -fSGRBG10 -Fov5650-2592x1944-#.bin" I
-> was getting "Unable to start streaming: Invalid argument (22).".
-> 
-> I would like to know if anyone here can guide me a bit in order to
-> have a working environment?.
+Thanks!
 
--- 
-Regards,
-
-Laurent Pinchart
-
+	Hans
