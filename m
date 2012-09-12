@@ -1,100 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:33417 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754626Ab2ILPC4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Sep 2012 11:02:56 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:44156 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758122Ab2ILC1r (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Sep 2012 22:27:47 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v5 12/13] media: coda: add byte size slice limit control
-Date: Wed, 12 Sep 2012 17:02:37 +0200
-Message-Id: <1347462158-20417-13-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1347462158-20417-1-git-send-email-p.zabel@pengutronix.de>
-References: <1347462158-20417-1-git-send-email-p.zabel@pengutronix.de>
+Cc: Thomas Mair <mair.thomas86@gmail.com>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 7/8] tua9001: use dev_foo logging
+Date: Wed, 12 Sep 2012 05:27:10 +0300
+Message-Id: <1347416831-1413-7-git-send-email-crope@iki.fi>
+In-Reply-To: <1347416831-1413-1-git-send-email-crope@iki.fi>
+References: <1347416831-1413-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
-Changes since v4:
- - Fix menu_skip_mask for V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE v4l2_ctrl.
----
- drivers/media/platform/coda.c |   29 +++++++++++++++++++++++------
- 1 file changed, 23 insertions(+), 6 deletions(-)
+ drivers/media/tuners/tua9001.c | 31 ++++++++++++++++++++++---------
+ 1 file changed, 22 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 81e3401..0235f4e 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -151,6 +151,7 @@ struct coda_params {
- 	enum v4l2_mpeg_video_multi_slice_mode slice_mode;
- 	u32			framerate;
- 	u16			bitrate;
-+	u32			slice_max_bits;
- 	u32			slice_max_mb;
- };
- 
-@@ -1056,12 +1057,23 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
- 		return -EINVAL;
+diff --git a/drivers/media/tuners/tua9001.c b/drivers/media/tuners/tua9001.c
+index 6147eee..e6394fc 100644
+--- a/drivers/media/tuners/tua9001.c
++++ b/drivers/media/tuners/tua9001.c
+@@ -39,8 +39,8 @@ static int tua9001_wr_reg(struct tua9001_priv *priv, u8 reg, u16 val)
+ 	if (ret == 1) {
+ 		ret = 0;
+ 	} else {
+-		printk(KERN_WARNING "%s: I2C wr failed=%d reg=%02x\n",
+-				__func__, ret, reg);
++		dev_warn(&priv->i2c->dev, "%s: i2c wr failed=%d reg=%02x\n",
++				KBUILD_MODNAME, ret, reg);
+ 		ret = -EREMOTEIO;
  	}
  
--	value  = (ctx->params.slice_max_mb & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
--	value |= (1 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
--	if (ctx->params.slice_mode == V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB)
-+	switch (ctx->params.slice_mode) {
-+	case V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE:
-+		value = 0;
-+		break;
-+	case V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB:
-+		value  = (ctx->params.slice_max_mb & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
-+		value |= (1 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
-+		value |=  1 & CODA_SLICING_MODE_MASK;
-+		break;
-+	case V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES:
-+		value  = (ctx->params.slice_max_bits & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
-+		value |= (0 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
- 		value |=  1 & CODA_SLICING_MODE_MASK;
-+		break;
-+	}
- 	coda_write(dev, value, CODA_CMD_ENC_SEQ_SLICE_MODE);
--	value  =  ctx->params.gop_size & CODA_GOP_SIZE_MASK;
-+	value = ctx->params.gop_size & CODA_GOP_SIZE_MASK;
- 	coda_write(dev, value, CODA_CMD_ENC_SEQ_GOP_SIZE);
+@@ -52,6 +52,8 @@ static int tua9001_release(struct dvb_frontend *fe)
+ 	struct tua9001_priv *priv = fe->tuner_priv;
+ 	int ret = 0;
  
- 	if (ctx->params.bitrate) {
-@@ -1308,6 +1320,9 @@ static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB:
- 		ctx->params.slice_max_mb = ctrl->val;
- 		break;
-+	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES:
-+		ctx->params.slice_max_bits = ctrl->val * 8;
-+		break;
- 	case V4L2_CID_MPEG_VIDEO_HEADER_MODE:
- 		break;
- 	default:
-@@ -1346,10 +1361,12 @@ static int coda_ctrls_setup(struct coda_ctx *ctx)
- 		V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP, 1, 31, 1, 2);
- 	v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE,
--		V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB, 0,
--		V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB);
-+		V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES, 0x0,
-+		V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB, 1, 0x3fffffff, 1, 1);
-+	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
-+		V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES, 1, 0x3fffffff, 1, 500);
- 	v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_HEADER_MODE,
- 		V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME,
++	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
++
+ 	if (fe->callback)
+ 		ret = fe->callback(priv->i2c, DVB_FRONTEND_COMPONENT_TUNER,
+ 				TUA9001_CMD_CEN, 0);
+@@ -85,6 +87,8 @@ static int tua9001_init(struct dvb_frontend *fe)
+ 		{ 0x34, 0x0a40 },
+ 	};
+ 
++	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
++
+ 	if (fe->callback) {
+ 		ret = fe->callback(priv->i2c, DVB_FRONTEND_COMPONENT_TUNER,
+ 				TUA9001_CMD_RESETN, 0);
+@@ -106,7 +110,7 @@ err_i2c_gate_ctrl:
+ 		fe->ops.i2c_gate_ctrl(fe, 0); /* close i2c-gate */
+ err:
+ 	if (ret < 0)
+-		pr_debug("%s: failed=%d\n", __func__, ret);
++		dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
+ 
+ 	return ret;
+ }
+@@ -116,12 +120,14 @@ static int tua9001_sleep(struct dvb_frontend *fe)
+ 	struct tua9001_priv *priv = fe->tuner_priv;
+ 	int ret = 0;
+ 
++	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
++
+ 	if (fe->callback)
+ 		ret = fe->callback(priv->i2c, DVB_FRONTEND_COMPONENT_TUNER,
+ 				TUA9001_CMD_RESETN, 1);
+ 
+ 	if (ret < 0)
+-		pr_debug("%s: failed=%d\n", __func__, ret);
++		dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
+ 
+ 	return ret;
+ }
+@@ -135,9 +141,9 @@ static int tua9001_set_params(struct dvb_frontend *fe)
+ 	u32 frequency;
+ 	struct reg_val data[2];
+ 
+-	pr_debug("%s: delivery_system=%d frequency=%d bandwidth_hz=%d\n",
+-			__func__, c->delivery_system, c->frequency,
+-			c->bandwidth_hz);
++	dev_dbg(&priv->i2c->dev, "%s: delivery_system=%d frequency=%d " \
++			"bandwidth_hz=%d\n", __func__,
++			c->delivery_system, c->frequency, c->bandwidth_hz);
+ 
+ 	switch (c->delivery_system) {
+ 	case SYS_DVBT:
+@@ -203,13 +209,17 @@ err_i2c_gate_ctrl:
+ 		fe->ops.i2c_gate_ctrl(fe, 0); /* close i2c-gate */
+ err:
+ 	if (ret < 0)
+-		pr_debug("%s: failed=%d\n", __func__, ret);
++		dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
+ 
+ 	return ret;
+ }
+ 
+ static int tua9001_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
+ {
++	struct tua9001_priv *priv = fe->tuner_priv;
++
++	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
++
+ 	*frequency = 0; /* Zero-IF */
+ 
+ 	return 0;
+@@ -253,7 +263,9 @@ struct dvb_frontend *tua9001_attach(struct dvb_frontend *fe,
+ 			goto err;
+ 	}
+ 
+-	printk(KERN_INFO "Infineon TUA 9001 successfully attached.");
++	dev_info(&priv->i2c->dev,
++			"%s: Infineon TUA 9001 successfully attached\n",
++			KBUILD_MODNAME);
+ 
+ 	memcpy(&fe->ops.tuner_ops, &tua9001_tuner_ops,
+ 			sizeof(struct dvb_tuner_ops));
+@@ -261,6 +273,7 @@ struct dvb_frontend *tua9001_attach(struct dvb_frontend *fe,
+ 	fe->tuner_priv = priv;
+ 	return fe;
+ err:
++	dev_dbg(&i2c->dev, "%s: failed=%d\n", __func__, ret);
+ 	kfree(priv);
+ 	return NULL;
+ }
 -- 
-1.7.10.4
+1.7.11.4
 
