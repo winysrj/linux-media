@@ -1,70 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:52061 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751318Ab2IEMCT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Sep 2012 08:02:19 -0400
-Date: Wed, 5 Sep 2012 14:02:16 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] soc-camera: Use new selection target definitions
-In-Reply-To: <1345669410-31836-1-git-send-email-sylvester.nawrocki@gmail.com>
-Message-ID: <Pine.LNX.4.64.1209051401580.16676@axis700.grange>
-References: <1345669410-31836-1-git-send-email-sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:33339 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752748Ab2ILPCq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Sep 2012 11:02:46 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
+Subject: [PATCH v5 0/13] Initial i.MX5/CODA7 support for the CODA driver
+Date: Wed, 12 Sep 2012 17:02:25 +0200
+Message-Id: <1347462158-20417-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 22 Aug 2012, Sylwester Nawrocki wrote:
+These patches contain initial firmware loading and encoding support for the
+CODA7 series VPU contained in i.MX51 and i.MX53 SoCs, and fix some multi-instance
+issues.
 
-> Replace the deprecated V4L2_SEL_TGT_*_ACTIVE selection target
-> names with their new unified counterparts.
-> Compatibility definitions are already in linux/v4l2-common.h.
-> 
-> Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Changes since v4:
+ - Added Javier's Tested/Reviewed/Acked-by.
+ - Fixed menu_skip_mask for V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE v4l2_ctrl.
+ - Dropped the ARM patches, those should not go through the media tree.
+ - Dropped the 1080p frame size limit patch for now.
 
-Thanks, queued.
+I'll add support for larger than PAL sized frames properly in the next patch
+series, together with decoder support for i.MX5/CODA7 and i.MX6/CODA960.
 
-Guennadi
-
-> ---
->  drivers/media/platform/soc_camera/soc_camera.c |    8 ++++----
->  1 files changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-> index 10b57f8..ba62960 100644
-> --- a/drivers/media/platform/soc_camera/soc_camera.c
-> +++ b/drivers/media/platform/soc_camera/soc_camera.c
-> @@ -950,11 +950,11 @@ static int soc_camera_s_selection(struct file *file, void *fh,
->  
->  	/* In all these cases cropping emulation will not help */
->  	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE ||
-> -	    (s->target != V4L2_SEL_TGT_COMPOSE_ACTIVE &&
-> -	     s->target != V4L2_SEL_TGT_CROP_ACTIVE))
-> +	    (s->target != V4L2_SEL_TGT_COMPOSE &&
-> +	     s->target != V4L2_SEL_TGT_CROP))
->  		return -EINVAL;
->  
-> -	if (s->target == V4L2_SEL_TGT_COMPOSE_ACTIVE) {
-> +	if (s->target == V4L2_SEL_TGT_COMPOSE) {
->  		/* No output size change during a running capture! */
->  		if (is_streaming(ici, icd) &&
->  		    (icd->user_width != s->r.width ||
-> @@ -974,7 +974,7 @@ static int soc_camera_s_selection(struct file *file, void *fh,
->  
->  	ret = ici->ops->set_selection(icd, s);
->  	if (!ret &&
-> -	    s->target == V4L2_SEL_TGT_COMPOSE_ACTIVE) {
-> +	    s->target == V4L2_SEL_TGT_COMPOSE) {
->  		icd->user_width = s->r.width;
->  		icd->user_height = s->r.height;
->  		if (!icd->streamer)
-> -- 
-> 1.7.4.1
-> 
+regards
+Philipp
 
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/platform/Kconfig |    3 +-
+ drivers/media/platform/coda.c  |  422 +++++++++++++++++++++++++++++-----------
+ drivers/media/platform/coda.h  |   30 ++-
+ 3 files changed, 337 insertions(+), 118 deletions(-)
+
