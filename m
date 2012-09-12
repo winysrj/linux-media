@@ -1,46 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f46.google.com ([209.85.213.46]:57499 "EHLO
-	mail-yh0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757484Ab2I1QOA convert rfc822-to-8bit (ORCPT
+Received: from rcsinet15.oracle.com ([148.87.113.117]:17983 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752032Ab2ILR0X (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Sep 2012 12:14:00 -0400
+	Wed, 12 Sep 2012 13:26:23 -0400
+Date: Wed, 12 Sep 2012 20:25:54 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Peter Senna Tschudin <peter.senna@gmail.com>
+Cc: Marcos Souza <marcos.souza.org@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 7/8] drivers/media/platform/davinci/vpbe.c: Removes
+ useless kfree()
+Message-ID: <20120912172554.GH19396@mwanda>
+References: <1347454564-5178-2-git-send-email-peter.senna@gmail.com>
+ <CAH0vN5+ZoexHtmgyZ+s9tiW3LYx+6PMT8aLyYt-T5mnaGXvYbQ@mail.gmail.com>
+ <CA+MoWDquDi6+kY9z3rj79dJK6j5tSWO9oWHCkvt6J-XBB=HNvA@mail.gmail.com>
 MIME-Version: 1.0
-Date: Fri, 28 Sep 2012 13:13:59 -0300
-Message-ID: <CAH0vN5LH2HJ6c9tGUtV7E7SH4BTWs+OQFL=7q5vLAEBji-43Eg@mail.gmail.com>
-Subject: Build
-From: Marcos Souza <marcos.souza.org@gmail.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CA+MoWDquDi6+kY9z3rj79dJK6j5tSWO9oWHCkvt6J-XBB=HNvA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi media guys,
+On Wed, Sep 12, 2012 at 05:50:54PM +0200, Peter Senna Tschudin wrote:
+> Marcos,
+> 
+> > Now that you removed this kfree, you could remove this label too. Very
+> > nice your cleanup :)
+> Thanks!
+> 
+> >
+> >>  vpbe_fail_sd_register:
+> >>         kfree(vpbe_dev->encoders);
+> >>  vpbe_fail_v4l2_device:
+> 
+> The problem removing the label is that it will require some more work
+> naming the labels. See:
+> if (!vpbe_dev->amp) {
+> ...
+> 	goto vpbe_fail_amp_register;
+> 
+> If I just remove the label vpbe_fail_amp_register, the label names
+> will not make sense any more as the next label is
+> vpbe_fail_sd_register. So I will need to change the name to something
+> different or rename all labels to out1, out2, out3 or err1, err2,
+> err3, or ....
+> 
+> Any suggestions?
 
-After try to build the media drivers with some radios enabled, I got this error:
+Labal names should not be numbers because this is not GW-BASIC.  The
+label should reflect what happens on the next line.  Labeling the
+place after the goto location where you started from is always
+nonsense.
 
-marcos@tux:/mnt/dados/gitroot/linux$ make M=drivers/media
-  Building modules, stage 2.
-  MODPOST 21 modules
-WARNING: "snd_tea575x_init" [drivers/media/radio/radio-shark.ko] undefined!
-WARNING: "snd_tea575x_exit" [drivers/media/radio/radio-shark.ko] undefined!
-WARNING: "snd_tea575x_init" [drivers/media/radio/radio-maxiradio.ko] undefined!
-WARNING: "snd_tea575x_exit" [drivers/media/radio/radio-maxiradio.ko] undefined!
+regards,
+dan carpenter
 
-I saw that there is a EXPORT_SYMBOL of these functions in the file
-sound/i2c/other/tea575x-tuner.c
-
-But, I don't know how to find this...
-
-Can someone show me how can I fix this?
-
-Thanks since now!
-
--- 
-Att,
-
-Marcos Paulo de Souza
-Acadêmico de Ciencia da Computação - FURB - SC
-Github: https://github.com/marcosps/
-"Uma vida sem desafios é uma vida sem razão"
-"A life without challenges, is a non reason life"
