@@ -1,59 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:56857 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756318Ab2ICQQx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2012 12:16:53 -0400
-Subject: Re: [PATCH v3 04/16] media: coda: allocate internal framebuffers
- separately from v4l2 buffers
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
-In-Reply-To: <CACKLOr29xXXrcspbS-zG+_mrgBfNC23sGR+_r8owXuw+mnpofg@mail.gmail.com>
-References: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
-	 <1346400670-16002-5-git-send-email-p.zabel@pengutronix.de>
-	 <CACKLOr29xXXrcspbS-zG+_mrgBfNC23sGR+_r8owXuw+mnpofg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 03 Sep 2012 18:16:46 +0200
-Message-ID: <1346689006.2391.28.camel@pizza.hi.pengutronix.de>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-we0-f174.google.com ([74.125.82.174]:37861 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758309Ab2ILM4Y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Sep 2012 08:56:24 -0400
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v2 4/8] drivers/media/dvb-frontends/s921.c: Removes useless kfree()
+Date: Wed, 12 Sep 2012 14:56:01 +0200
+Message-Id: <1347454564-5178-5-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+From: Peter Senna Tschudin <peter.senna@gmail.com>
 
-Am Montag, den 03.09.2012, 13:01 +0200 schrieb javier Martin:
-> Hi Philipp,
-> thank you for your effort.
-> 
-> My comment is aimed to the whole patch.
-> 
-> Couldn't we use a more descriptive name for these 'framebuffers'? Both
-> the internal buffers and the output frames are framebuffers which
-> leads to confusion.
+Remove useless kfree() and clean up code related to the removal.
 
-They are frame buffers, though, for reconstructed and reference frames.
+The semantic patch that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
 
-And whether output/source vb2_buffers or capture/destination vb2_buffers
-contain raw frames will depend whether ctx->inst_type is
-CODA_INST_ENCODER or CODA_INST_DECODER, so it's bound to be confusing
-anyway.
+// <smpl>
+@r exists@
+position p1,p2;
+expression x;
+@@
 
-> How about 'internalbuffers' or 'privatebuffers'? I know the name of
-> some register, according to the datasheet, is
-> 'CODA_CMD_SET_FRAME_BUF_NUM', but this is quite unfortunate IMHO and
-> we shouldnt' stick to this naming.
+if (x@p1 == NULL) { ... kfree@p2(x); ... return ...; }
 
-Dropping the 'frame', one could argue, would lead to confusion with the
-code/work/parabuffers. ctx->internal_frames[] ?
+@unchanged exists@
+position r.p1,r.p2;
+expression e <= r.x,x,e1;
+iterator I;
+statement S;
+@@
 
-regards
-Philipp
+if (x@p1 == NULL) { ... when != I(x,...) S
+                        when != e = e1
+                        when != e += e1
+                        when != e -= e1
+                        when != ++e
+                        when != --e
+                        when != e++
+                        when != e--
+                        when != &e
+   kfree@p2(x); ... return ...; }
 
+@ok depends on unchanged exists@
+position any r.p1;
+position r.p2;
+expression x;
+@@
+
+... when != true x@p1 == NULL
+kfree@p2(x);
+
+@depends on !ok && unchanged@
+position r.p2;
+expression x;
+@@
+
+*kfree@p2(x);
+// </smpl>
+
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+
+---
+ drivers/media/dvb-frontends/s921.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/s921.c b/drivers/media/dvb-frontends/s921.c
+index cd2288c..a271ac3 100644
+--- a/drivers/media/dvb-frontends/s921.c
++++ b/drivers/media/dvb-frontends/s921.c
+@@ -487,9 +487,9 @@ struct dvb_frontend *s921_attach(const struct s921_config *config,
+ 		kzalloc(sizeof(struct s921_state), GFP_KERNEL);
+ 
+ 	dprintk("\n");
+-	if (state == NULL) {
++	if (!state) {
+ 		rc("Unable to kzalloc\n");
+-		goto rcor;
++		return NULL;
+ 	}
+ 
+ 	/* setup the state */
+@@ -502,11 +502,6 @@ struct dvb_frontend *s921_attach(const struct s921_config *config,
+ 	state->frontend.demodulator_priv = state;
+ 
+ 	return &state->frontend;
+-
+-rcor:
+-	kfree(state);
+-
+-	return NULL;
+ }
+ EXPORT_SYMBOL(s921_attach);
+ 
 
