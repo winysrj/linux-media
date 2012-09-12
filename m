@@ -1,99 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59398 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752419Ab2IMUuB (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:38091 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758141Ab2ILM4W (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 16:50:01 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 API PATCH 12/28] v4l2-core: Add new V4L2_CAP_MONOTONIC_TS capability.
-Date: Thu, 13 Sep 2012 22:50:32 +0200
-Message-ID: <10295113.chWiZVzcZs@avalon>
-In-Reply-To: <20120913203814.GK6834@valkosipuli.retiisi.org.uk>
-References: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com> <86a39343d33f0f75079407d8b36202a1de4c58de.1347023744.git.hans.verkuil@cisco.com> <20120913203814.GK6834@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Wed, 12 Sep 2012 08:56:22 -0400
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v2 5/8] drivers/media/dvb-frontends/stb6100.c: Removes useless kfree()
+Date: Wed, 12 Sep 2012 14:56:00 +0200
+Message-Id: <1347454564-5178-4-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: Peter Senna Tschudin <peter.senna@gmail.com>
 
-On Thursday 13 September 2012 23:38:14 Sakari Ailus wrote:
-> On Fri, Sep 07, 2012 at 03:29:12PM +0200, Hans Verkuil wrote:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > Add a new flag that tells userspace that the monotonic clock is used
-> > for timestamps and update the documentation accordingly.
-> > 
-> > We decided on this new flag during the 2012 Media Workshop.
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> > 
-> >  Documentation/DocBook/media/v4l/io.xml              |   10 +++++++---
-> >  Documentation/DocBook/media/v4l/vidioc-dqevent.xml  |    3 ++-
-> >  Documentation/DocBook/media/v4l/vidioc-querycap.xml |    7 +++++++
-> >  include/linux/videodev2.h                           |    1 +
-> >  4 files changed, 17 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/Documentation/DocBook/media/v4l/io.xml
-> > b/Documentation/DocBook/media/v4l/io.xml index 2dc39d8..b680d66 100644
-> > --- a/Documentation/DocBook/media/v4l/io.xml
-> > +++ b/Documentation/DocBook/media/v4l/io.xml
-> > @@ -582,10 +582,14 @@ applications when an output stream.</entry>
-> > 
-> >  	    <entry>struct timeval</entry>
-> >  	    <entry><structfield>timestamp</structfield></entry>
-> >  	    <entry></entry>
-> > 
-> > -	    <entry><para>For input streams this is the
-> > +	    <entry><para>This is either the
-> > 
-> >  system time (as returned by the <function>gettimeofday()</function>
-> > 
-> > -function) when the first data byte was captured. For output streams
-> > -the data will not be displayed before this time, secondary to the
-> > +function) or a monotonic timestamp (as returned by the
-> > +<function>clock_gettime(CLOCK_MONOTONIC, &amp;ts)</function> function).
-> > +A monotonic timestamp is used if the
-> > <constant>V4L2_CAP_MONOTONIC_TS</constant> +capability is set, otherwise
-> > the system time is used.
-> > +For input streams this is the timestamp when the first data byte was
-> > captured. +For output streams the data will not be displayed before this
-> > time, secondary to the
-> I have an alternative proposal.
-> 
-> The type of the desired timestamps depend on the use case, not the driver
-> used to capture the buffers. Thus we could also give the choice to the user
-> by means of e.g. a control.
+Remove useless kfree() and clean up code related to the removal.
 
-Or a buffer flag. I will need something similar to select device-specific 
-timestamps.
+The semantic patch that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
 
-However, for wall clock vs. monotonic clock, I don't think there's a reason to 
-let applications decide to use the wall clock. It would be a broken use case. 
-I don't think we should let applications decide in this case.
+// <smpl>
+@r exists@
+position p1,p2;
+expression x;
+@@
 
-On the other hand, reporting a timespec instead of a timeval would be a good 
-idea. I'm tempted.
+if (x@p1 == NULL) { ... kfree@p2(x); ... return ...; }
 
-> If we'd make it configurable (applications would still get the wallclock
-> time unless they ask for monotonic time), we'd have a chance to add more
-> precision by using struct timespec (ns precision) instead of struct timeval
-> (us precision). struct timespec is also used by V4L2 events.
-> 
-> Adding support for CLOCK_MONOTONIC_RAW would also be a non-issue.
-> 
-> Additional helper function could be used to generate the timestamp of the
-> desired type.
-> 
-> What do you think?
+@unchanged exists@
+position r.p1,r.p2;
+expression e <= r.x,x,e1;
+iterator I;
+statement S;
+@@
 
--- 
-Regards,
+if (x@p1 == NULL) { ... when != I(x,...) S
+                        when != e = e1
+                        when != e += e1
+                        when != e -= e1
+                        when != ++e
+                        when != --e
+                        when != e++
+                        when != e--
+                        when != &e
+   kfree@p2(x); ... return ...; }
 
-Laurent Pinchart
+@ok depends on unchanged exists@
+position any r.p1;
+position r.p2;
+expression x;
+@@
+
+... when != true x@p1 == NULL
+kfree@p2(x);
+
+@depends on !ok && unchanged@
+position r.p2;
+expression x;
+@@
+
+*kfree@p2(x);
+// </smpl>
+
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+
+---
+ drivers/media/dvb-frontends/stb6100.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/stb6100.c b/drivers/media/dvb-frontends/stb6100.c
+index 2e93e65..45f9523 100644
+--- a/drivers/media/dvb-frontends/stb6100.c
++++ b/drivers/media/dvb-frontends/stb6100.c
+@@ -575,8 +575,8 @@ struct dvb_frontend *stb6100_attach(struct dvb_frontend *fe,
+ 	struct stb6100_state *state = NULL;
+ 
+ 	state = kzalloc(sizeof (struct stb6100_state), GFP_KERNEL);
+-	if (state == NULL)
+-		goto error;
++	if (!state)
++		return NULL;
+ 
+ 	state->config		= config;
+ 	state->i2c		= i2c;
+@@ -587,10 +587,6 @@ struct dvb_frontend *stb6100_attach(struct dvb_frontend *fe,
+ 
+ 	printk("%s: Attaching STB6100 \n", __func__);
+ 	return fe;
+-
+-error:
+-	kfree(state);
+-	return NULL;
+ }
+ 
+ static int stb6100_release(struct dvb_frontend *fe)
 
