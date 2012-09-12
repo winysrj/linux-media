@@ -1,34 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx.fr.smartjog.net ([95.81.144.3]:47979 "EHLO
-	mx.fr.smartjog.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753837Ab2INJ1k (ORCPT
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:50909 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758327Ab2ILM40 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 05:27:40 -0400
-From: =?UTF-8?q?R=C3=A9mi=20Cardona?= <remi.cardona@smartjog.com>
-To: linux-media@vger.kernel.org
-Cc: liplianin@me.by
-Subject: [PATCH v2 0/6] ds3000 improvements
-Date: Fri, 14 Sep 2012 11:27:20 +0200
-Message-Id: <1347614846-19046-1-git-send-email-remi.cardona@smartjog.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Wed, 12 Sep 2012 08:56:26 -0400
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v2 3/8] drivers/media/dvb-frontends/s5h1432.c: Removes useless kfree()
+Date: Wed, 12 Sep 2012 14:56:02 +0200
+Message-Id: <1347454564-5178-6-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+From: Peter Senna Tschudin <peter.senna@gmail.com>
 
-Here is an updated and more complete patch series for ds3000. I've
-done my testing on top of kernel 3.5.2 and things look ok so far.
+Remove useless kfree() and clean up code related to the removal.
 
-Reviews and comments are again more than welcome.
+The semantic patch that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
 
-Cheers,
+// <smpl>
+@r exists@
+position p1,p2;
+expression x;
+@@
 
-Rémi Cardona
+if (x@p1 == NULL) { ... kfree@p2(x); ... return ...; }
 
--- 
-SmartJog | T: +33 1 5868 6229
-27 Blvd Hippolyte Marquès, 94200 Ivry-sur-Seine, France
-www.smartjog.com | a TDF Group company
+@unchanged exists@
+position r.p1,r.p2;
+expression e <= r.x,x,e1;
+iterator I;
+statement S;
+@@
+
+if (x@p1 == NULL) { ... when != I(x,...) S
+                        when != e = e1
+                        when != e += e1
+                        when != e -= e1
+                        when != ++e
+                        when != --e
+                        when != e++
+                        when != e--
+                        when != &e
+   kfree@p2(x); ... return ...; }
+
+@ok depends on unchanged exists@
+position any r.p1;
+position r.p2;
+expression x;
+@@
+
+... when != true x@p1 == NULL
+kfree@p2(x);
+
+@depends on !ok && unchanged@
+position r.p2;
+expression x;
+@@
+
+*kfree@p2(x);
+// </smpl>
+
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+
+---
+ drivers/media/dvb-frontends/s5h1432.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/s5h1432.c b/drivers/media/dvb-frontends/s5h1432.c
+index 8352ce1..6ec16a2 100644
+--- a/drivers/media/dvb-frontends/s5h1432.c
++++ b/drivers/media/dvb-frontends/s5h1432.c
+@@ -351,8 +351,8 @@ struct dvb_frontend *s5h1432_attach(const struct s5h1432_config *config,
+ 	printk(KERN_INFO " Enter s5h1432_attach(). attach success!\n");
+ 	/* allocate memory for the internal state */
+ 	state = kmalloc(sizeof(struct s5h1432_state), GFP_KERNEL);
+-	if (state == NULL)
+-		goto error;
++	if (!state)
++		return NULL;
+ 
+ 	/* setup the state */
+ 	state->config = config;
+@@ -367,10 +367,6 @@ struct dvb_frontend *s5h1432_attach(const struct s5h1432_config *config,
+ 	state->frontend.demodulator_priv = state;
+ 
+ 	return &state->frontend;
+-
+-error:
+-	kfree(state);
+-	return NULL;
+ }
+ EXPORT_SYMBOL(s5h1432_attach);
+ 
 
