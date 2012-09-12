@@ -1,58 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([93.97.41.153]:51166 "EHLO pequod.mess.org"
+Received: from mx1.redhat.com ([209.132.183.28]:33590 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752703Ab2IIW0c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Sep 2012 18:26:32 -0400
-Date: Sun, 9 Sep 2012 23:26:30 +0100
-From: Sean Young <sean@mess.org>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Paul Gortmaker <paul.gortmaker@windriver.com>,
-	David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	Ben Hutchings <ben@decadent.org.uk>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch v2] [media] rc-core: prevent divide by zero bug in
- s_tx_carrier()
-Message-ID: <20120909222629.GA28355@pequod.mess.org>
-References: <20120909203142.GA12296@elgon.mountain>
+	id S1751282Ab2ILLLK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Sep 2012 07:11:10 -0400
+Message-ID: <50506DCB.6040101@redhat.com>
+Date: Wed, 12 Sep 2012 08:11:07 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20120909203142.GA12296@elgon.mountain>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: Kconfig DVB_CAPTURE_DRIVERS no longer exists?
+References: <201209120901.14575.hverkuil@xs4all.nl>
+In-Reply-To: <201209120901.14575.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Sep 09, 2012 at 11:31:42PM +0300, Dan Carpenter wrote:
-> Several of the drivers use carrier as a divisor in their s_tx_carrier()
-> functions.  We should do a sanity check here like we do for
-> LIRC_SET_REC_CARRIER.
+Em 12-09-2012 04:01, Hans Verkuil escreveu:
+> Hi Mauro,
 > 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> ---
-> v2: Ben Hutchings pointed out that my first patch was not a complete
->     fix.
-> 
-> diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-> index 6ad4a07..28dc0f0 100644
-> --- a/drivers/media/rc/ir-lirc-codec.c
-> +++ b/drivers/media/rc/ir-lirc-codec.c
-> @@ -211,6 +211,9 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
->  		if (!dev->s_tx_carrier)
->  			return -EINVAL;
+> Two drivers, au0828 and cx2341xx depend on the DVB_CAPTURE_DRIVERS config
+> option, which no longer exists. So au0828 and the DVB part of cx231xx are
+> no longer built. Should this dependency be removed or was it renamed?
 
-This should be ENOSYS.
+Thanks for reporting it!
 
->  
-> +		if (val <= 0)
-> +			return -EINVAL;
-> +
+Those dependencies got somewhat renamed, somewhat removed ;)
+Truly, the logic was simplified.
 
-1) val is unsigned so it would never be less than zero.
+At the usb menu, checking for MEDIA_DIGITAL_TV_SUPPORT is now enough.
+For hybrid drivers, like the two above, a "depends on DVB_CORE" is enough.
 
-2) A value of zero means disabling carrier modulation, which is used by 
-   the mceusb driver.
+So, we can simply drop the dependency for DVB_CAPTURE_DRIVERS, as both
+already depends on DVB_CORE (and MEDIA_DIGITAL_TV_SUPPORT is a boolean).
 
-So the check belongs in the individual drivers, as in the original patch.
+> Can you take a look at it?
 
+Ok, I'll write a patch fixing it.
 
-Sean
+Thanks for reporting it.
+
+Regards,
+Mauro
