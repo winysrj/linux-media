@@ -1,99 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:58097 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757075Ab2IUJVt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Sep 2012 05:21:49 -0400
-From: Federico Vaga <federico.vaga@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Jonathan Corbet <corbet@lwn.net>,
-	Federico Vaga <federico.vaga@gmail.com>
-Subject: [PATCH 1/4] v4l: vb2: add prepare/finish callbacks to allocators
-Date: Fri, 21 Sep 2012 11:21:35 +0200
-Message-Id: <1348219298-23273-1-git-send-email-federico.vaga@gmail.com>
+Received: from eu1sys200aog120.obsmtp.com ([207.126.144.149]:54209 "EHLO
+	eu1sys200aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757056Ab2ILKdG convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Sep 2012 06:33:06 -0400
+From: Bhupesh SHARMA <bhupesh.sharma@st.com>
+To: Scott Jiang <scott.jiang.linux@gmail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Armando VISCONTI <armando.visconti@st.com>,
+	Shiraz HASHIM <shiraz.hashim@st.com>,
+	"m.szyprowski@samsung.com" <m.szyprowski@samsung.com>,
+	"uclinux-dist-devel@blackfin.uclinux.org"
+	<uclinux-dist-devel@blackfin.uclinux.org>
+Date: Wed, 12 Sep 2012 18:32:16 +0800
+Subject: RE: Using MMAP calls on a video capture device having underlying
+ NOMMU arch
+Message-ID: <D5ECB3C7A6F99444980976A8C6D896384FB1E692B3@EAPEX1MAIL1.st.com>
+References: <D5ECB3C7A6F99444980976A8C6D896384FB084B206@EAPEX1MAIL1.st.com>
+ <CAHG8p1DnP_=AwS6t8LAftFu=OyWAjX5hp=sYcQD4kpJ7fAaDRg@mail.gmail.com>
+In-Reply-To: <CAHG8p1DnP_=AwS6t8LAftFu=OyWAjX5hp=sYcQD4kpJ7fAaDRg@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for prepare/finish callbacks in VB2 allocators.
-These callback are used for buffer flushing.
+Hi Scott,
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Federico Vaga <federico.vaga@gmail.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 11 +++++++++++
- include/media/videobuf2-core.h           |  7 +++++++
- 2 file modificati, 18 inserzioni(+)
+> -----Original Message-----
+> From: Scott Jiang [mailto:scott.jiang.linux@gmail.com]
+> Sent: Wednesday, September 12, 2012 3:09 PM
+> To: Bhupesh SHARMA
+> Cc: linux-media@vger.kernel.org; Laurent Pinchart; Armando VISCONTI;
+> Shiraz HASHIM; m.szyprowski@samsung.com; uclinux-dist-
+> devel@blackfin.uclinux.org
+> Subject: Re: Using MMAP calls on a video capture device having
+> underlying NOMMU arch
+> 
+> >
+> > Now, I see that the requested videobuffers are correctly allocated
+> via 'vb2_dma_contig_alloc'
+> > call (see [3] for reference). But the MMAP call fails in
+> 'vb2_dma_contig_alloc' function
+> > in mm/nommu.c (see [4] for reference) when it tries to make the
+> following check:
+> >
+> >         if (addr != (pfn << PAGE_SHIFT))
+> >                 return -EINVAL;
+> >
+> > I address Scott also, as I see that he has worked on the Blackfin
+> v4l2 capture driver using
+> > DMA contiguous method and may have seen this issue (on a NOMMU
+> system) with a v4l2 application
+> > performing a MMAP operation.
+> >
+> > Any comments on what I could be doing wrong here?
+> >
+> 
+> int remap_pfn_range(struct vm_area_struct *vma, unsigned long addr,
+>                 unsigned long pfn, unsigned long size, pgprot_t prot)
+> {
+>         if ((addr & PAGE_MASK) != (pfn << PAGE_SHIFT))
+>                 return -EINVAL;
+> 
+>         vma->vm_flags |= VM_IO | VM_RESERVED | VM_PFNMAP;
+>         return 0;
+> }
+> 
+> This patch seems not in current kernel. Hope it can resolve your
+> problem.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 4da3df6..079fa79 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -790,6 +790,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
- 	unsigned long flags;
-+	unsigned int plane;
- 
- 	if (vb->state != VB2_BUF_STATE_ACTIVE)
- 		return;
-@@ -800,6 +801,10 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 	dprintk(4, "Done processing on buffer %d, state: %d\n",
- 			vb->v4l2_buf.index, vb->state);
- 
-+	/* sync buffers */
-+	for (plane = 0; plane < vb->num_planes; ++plane)
-+		call_memop(q, finish, vb->planes[plane].mem_priv);
-+
- 	/* Add the buffer to the done buffers list */
- 	spin_lock_irqsave(&q->done_lock, flags);
- 	vb->state = state;
-@@ -975,9 +980,15 @@ static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- static void __enqueue_in_driver(struct vb2_buffer *vb)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
-+	unsigned int plane;
- 
- 	vb->state = VB2_BUF_STATE_ACTIVE;
- 	atomic_inc(&q->queued_count);
-+
-+	/* sync buffers */
-+	for (plane = 0; plane < vb->num_planes; ++plane)
-+		call_memop(q, prepare, vb->planes[plane].mem_priv);
-+
- 	q->ops->buf_queue(vb);
- }
- 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 8dd9b6c..f374f99 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -41,6 +41,10 @@ struct vb2_fileio_data;
-  *		 argument to other ops in this structure
-  * @put_userptr: inform the allocator that a USERPTR buffer will no longer
-  *		 be used
-+ * @prepare:	called everytime the buffer is passed from userspace to the
-+ *		driver, usefull for cache synchronisation, optional
-+ * @finish:	called everytime the buffer is passed back from the driver
-+ *		to the userspace, also optional
-  * @vaddr:	return a kernel virtual address to a given memory buffer
-  *		associated with the passed private structure or NULL if no
-  *		such mapping exists
-@@ -65,6 +69,9 @@ struct vb2_mem_ops {
- 					unsigned long size, int write);
- 	void		(*put_userptr)(void *buf_priv);
- 
-+	void		(*prepare)(void *buf_priv);
-+	void		(*finish)(void *buf_priv);
-+
- 	void		*(*vaddr)(void *buf_priv);
- 	void		*(*cookie)(void *buf_priv);
- 
--- 
-1.7.11.4
+Thanks for your pointer.
+I already referred to this modification a couple of days ago from the Blackfin ucLinux implementation
+(http://blackfin.uclinux.org/git/?p=linux-kernel;a=blob;f=mm/nommu.c;h=50dc42ec5f71d56fb418a4adfc3169c2f2e930ce;hb=HEAD)
+and can now safely say the MMAP works fine for all v4l2 drivers on my NOMMU architecture
+based SoC as well :)
+
+BTW, I was wondering whether a patch for the same is already in the pipe to be included
+in the latest linux kernel, because this is a really important fix for MMAP IO method
+to work on NOMMU systems (so probably this patch should also be cc'ed to stable kernel list). 
+
+Till then I think this discussion can help others who see a similar issue on their
+NOMMU systems.
+
+Regards,
+Bhupesh
 
