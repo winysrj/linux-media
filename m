@@ -1,63 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:33647 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754777Ab2IYLQm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Sep 2012 07:16:42 -0400
-From: Prabhakar <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	VGER <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH] media: davinci: vpif: set device capabilities
-Date: Tue, 25 Sep 2012 16:46:24 +0530
-Message-Id: <1348571784-4237-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:59395 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760189Ab2ILPh6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Sep 2012 11:37:58 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 5/5] tda10071: declare MODULE_FIRMWARE
+Date: Wed, 12 Sep 2012 18:37:29 +0300
+Message-Id: <1347464249-23728-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1347464249-23728-1-git-send-email-crope@iki.fi>
+References: <1347464249-23728-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.lad@ti.com>
-
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/platform/davinci/vpif_capture.c |    4 +++-
- drivers/media/platform/davinci/vpif_display.c |    4 +++-
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ drivers/media/dvb-frontends/tda10071.c      | 3 ++-
+ drivers/media/dvb-frontends/tda10071_priv.h | 2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 4828888..faeca98 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -1630,7 +1630,9 @@ static int vpif_querycap(struct file *file, void  *priv,
- {
- 	struct vpif_capture_config *config = vpif_dev->platform_data;
+diff --git a/drivers/media/dvb-frontends/tda10071.c b/drivers/media/dvb-frontends/tda10071.c
+index 703c3d0..806d1fe 100644
+--- a/drivers/media/dvb-frontends/tda10071.c
++++ b/drivers/media/dvb-frontends/tda10071.c
+@@ -850,7 +850,7 @@ static int tda10071_init(struct dvb_frontend *fe)
+ 	struct tda10071_cmd cmd;
+ 	int ret, i, len, remaining, fw_size;
+ 	const struct firmware *fw;
+-	u8 *fw_file = TDA10071_DEFAULT_FIRMWARE;
++	u8 *fw_file = TDA10071_FIRMWARE;
+ 	u8 tmp, buf[4];
+ 	struct tda10071_reg_val_mask tab[] = {
+ 		{ 0xcd, 0x00, 0x07 },
+@@ -1282,3 +1282,4 @@ static struct dvb_frontend_ops tda10071_ops = {
+ MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
+ MODULE_DESCRIPTION("NXP TDA10071 DVB-S/S2 demodulator driver");
+ MODULE_LICENSE("GPL");
++MODULE_FIRMWARE(TDA10071_FIRMWARE);
+diff --git a/drivers/media/dvb-frontends/tda10071_priv.h b/drivers/media/dvb-frontends/tda10071_priv.h
+index 0fa85cf..4baf14b 100644
+--- a/drivers/media/dvb-frontends/tda10071_priv.h
++++ b/drivers/media/dvb-frontends/tda10071_priv.h
+@@ -77,7 +77,7 @@ struct tda10071_reg_val_mask {
+ };
  
--	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-+	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
-+			V4L2_CAP_READWRITE;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	strlcpy(cap->driver, "vpif capture", sizeof(cap->driver));
- 	strlcpy(cap->bus_info, "VPIF Platform", sizeof(cap->bus_info));
- 	strlcpy(cap->card, config->card_name, sizeof(cap->card));
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index d94b8a2..171e449 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -827,7 +827,9 @@ static int vpif_querycap(struct file *file, void  *priv,
- {
- 	struct vpif_display_config *config = vpif_dev->platform_data;
+ /* firmware filename */
+-#define TDA10071_DEFAULT_FIRMWARE      "dvb-fe-tda10071.fw"
++#define TDA10071_FIRMWARE "dvb-fe-tda10071.fw"
  
--	cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
-+	cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING |
-+			    V4L2_CAP_READWRITE;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	strlcpy(cap->driver, "vpif display", sizeof(cap->driver));
- 	strlcpy(cap->bus_info, "Platform", sizeof(cap->bus_info));
- 	strlcpy(cap->card, config->card_name, sizeof(cap->card));
+ /* firmware commands */
+ #define CMD_DEMOD_INIT          0x10
 -- 
-1.7.4.1
+1.7.11.4
 
