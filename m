@@ -1,60 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:58925 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754345Ab2IUI0o (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:64519 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750737Ab2ILT2l (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Sep 2012 04:26:44 -0400
-Received: by lbbgj3 with SMTP id gj3so3527305lbb.19
-        for <linux-media@vger.kernel.org>; Fri, 21 Sep 2012 01:26:43 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20120921080123.GM2450@S2101-09.ap.freescale.net>
-References: <1348123547-31082-1-git-send-email-shawn.guo@linaro.org>
-	<201209200739.34899.arnd@arndb.de>
-	<20120920145342.GI2450@S2101-09.ap.freescale.net>
-	<201209201556.57171.arnd@arndb.de>
-	<20120921080123.GM2450@S2101-09.ap.freescale.net>
-Date: Fri, 21 Sep 2012 01:26:43 -0700
-Message-ID: <CAOesGMi6CbvFikycJVdE8W-DxLD3W7+CyScz+YT103dxR31U9g@mail.gmail.com>
-Subject: Re: [alsa-devel] [PATCH v2 00/34] i.MX multi-platform support
-From: Olof Johansson <olof@lixom.net>
-To: Shawn Guo <shawn.guo@linaro.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, alsa-devel@alsa-project.org,
+	Wed, 12 Sep 2012 15:28:41 -0400
+Date: Wed, 12 Sep 2012 21:28:34 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Stephen Warren <swarren@wwwdotorg.org>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	devicetree-discuss <devicetree-discuss@lists.ozlabs.org>,
+	linux-sh@vger.kernel.org,
 	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
-	linux-fbdev@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>,
-	linux-mtd@lists.infradead.org, linux-i2c@vger.kernel.org,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
-	Chris Ball <cjb@laptop.org>, linux-media@vger.kernel.org,
-	linux-watchdog@vger.kernel.org, rtc-linux@googlegroups.com,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <rob.herring@calxeda.com>,
-	linux-arm-kernel@lists.infradead.org,
-	Vinod Koul <vinod.koul@linux.intel.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-usb@vger.kernel.org, linux-mmc@vger.kernel.org,
-	Wolfram Sang <w.sang@pengutronix.de>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-1
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH] media: add V4L2 DT binding documentation
+In-Reply-To: <5050DA40.8050105@wwwdotorg.org>
+Message-ID: <Pine.LNX.4.64.1209122111100.28968@axis700.grange>
+References: <Pine.LNX.4.64.1209111746420.22084@axis700.grange>
+ <5050DA40.8050105@wwwdotorg.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 21, 2012 at 1:01 AM, Shawn Guo <shawn.guo@linaro.org> wrote:
-> On Thu, Sep 20, 2012 at 03:56:56PM +0000, Arnd Bergmann wrote:
->> Ok, fair enough. I think we can put it in arm-soc/for-next as a staging
->> branch anyway to give it some exposure to linux-next, and then we can
->> decide whether a rebase is necessary before sending it to Linus.
->>
-> I just saw the announcement from Olof - no more major merge for 3.7
-> will be accepted from now on.  Can this be an exception or should I
-> plan this for 3.8?
+Hi Stephen
 
+On Wed, 12 Sep 2012, Stephen Warren wrote:
 
-I'll take a look at merging it tomorrow after I've dealt with smp_ops;
-if it looks reasonably conflict-free I'll pull it in. We need the
-sound dependency sorted out (or agreed upon) first though.
+> On 09/11/2012 09:51 AM, Guennadi Liakhovetski wrote:
+> > This patch adds a document, describing common V4L2 device tree bindings.
+> > 
+> > Co-authored-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> 
+> Overall, I think this looks pretty reasonable, so:
 
+Good, thanks!
 
--Olof
+> Acked-by: Stephen Warren <swarren@wwwdotorg.org>
+> 
+> Just a couple comments:
+> 
+> > +++ b/Documentation/devicetree/bindings/media/v4l2.txt
+> 
+> > +	ceu0: ceu@0xfe910000 {
+> 
+> > +		mclk: master_clock {
+> > +			compatible = "renesas,ceu-clock";
+> > +			#clock-cells = <1>;
+> 
+> Why 1? If there's only 1 clock output from this provider, I don't see a
+> need for any cells, unless there are some configuration flags?
+
+Yes, indeed, that's also what's suggested in the clock bindings 
+documentation, thanks for pointing out.
+
+> 
+> > +			clock-frequency = <50000000>;	/* max clock frequency */
+> > +			clock-output-names = "mclk";
+> > +		};
+> > +
+> > +		port {
+> ...
+> > +			ceu0_0: link@0 {
+> > +				reg = <0>;
+> > +				remote = <&csi2_2>;
+> > +				immutable;
+> 
+> Did we decide "immutable" was actually needed? Presumably the driver for
+> the HW in question knows the HW isn't configurable, and would simply not
+> attempt to apply any configuration even if the .dts author erroneously
+> provided some?
+
+Well, I've been thinking about this today. I think, bridge drivers will 
+call centrally provided helper functions to enumerate links inside ports. 
+While doing that they will want to differentiate between links to external 
+devices with explicit configuration, and links to internal devices, whose 
+configuration drivers might be able to figure out themselves. How should a 
+driver find out what device this link is pointing to? Should it follow the 
+"remote" phandle and then check the "compatible" property? The word 
+"immutable" is a hint, that this is a link to an internal device, but it 
+might either be unneeded or be transformed into something more 
+informative.
+
+> > +			};
+> > +		};
+> > +	};
+> > +
+> > +	i2c0: i2c@0xfff20000 {
+> ...
+> > +		ov772x_1: camera@0x21 {
+> ...
+> > +			clocks = <&mclk 0>;
+> 
+> So presumably that could just be "clocks = <&mclk>;"?
+
+Right.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
