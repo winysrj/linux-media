@@ -1,80 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:57031 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754548Ab2ILSxz (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:38091 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758341Ab2ILM40 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Sep 2012 14:53:55 -0400
-Message-ID: <5050DA40.8050105@wwwdotorg.org>
-Date: Wed, 12 Sep 2012 12:53:52 -0600
-From: Stephen Warren <swarren@wwwdotorg.org>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	devicetree-discuss <devicetree-discuss@lists.ozlabs.org>,
-	linux-sh@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH] media: add V4L2 DT binding documentation
-References: <Pine.LNX.4.64.1209111746420.22084@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1209111746420.22084@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Wed, 12 Sep 2012 08:56:26 -0400
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v2 2/8] drivers/media/dvb-frontends/lg2160.c: Removes useless kfree()
+Date: Wed, 12 Sep 2012 14:56:03 +0200
+Message-Id: <1347454564-5178-7-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/11/2012 09:51 AM, Guennadi Liakhovetski wrote:
-> This patch adds a document, describing common V4L2 device tree bindings.
-> 
-> Co-authored-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+From: Peter Senna Tschudin <peter.senna@gmail.com>
 
-Overall, I think this looks pretty reasonable, so:
+Remove useless kfree() and clean up code related to the removal.
 
-Acked-by: Stephen Warren <swarren@wwwdotorg.org>
+The semantic patch that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
 
-Just a couple comments:
+// <smpl>
+@r exists@
+position p1,p2;
+expression x;
+@@
 
-> +++ b/Documentation/devicetree/bindings/media/v4l2.txt
+if (x@p1 == NULL) { ... kfree@p2(x); ... return ...; }
 
-> +	ceu0: ceu@0xfe910000 {
+@unchanged exists@
+position r.p1,r.p2;
+expression e <= r.x,x,e1;
+iterator I;
+statement S;
+@@
 
-> +		mclk: master_clock {
-> +			compatible = "renesas,ceu-clock";
-> +			#clock-cells = <1>;
+if (x@p1 == NULL) { ... when != I(x,...) S
+                        when != e = e1
+                        when != e += e1
+                        when != e -= e1
+                        when != ++e
+                        when != --e
+                        when != e++
+                        when != e--
+                        when != &e
+   kfree@p2(x); ... return ...; }
 
-Why 1? If there's only 1 clock output from this provider, I don't see a
-need for any cells, unless there are some configuration flags?
+@ok depends on unchanged exists@
+position any r.p1;
+position r.p2;
+expression x;
+@@
 
-> +			clock-frequency = <50000000>;	/* max clock frequency */
-> +			clock-output-names = "mclk";
-> +		};
-> +
-> +		port {
-...
-> +			ceu0_0: link@0 {
-> +				reg = <0>;
-> +				remote = <&csi2_2>;
-> +				immutable;
+... when != true x@p1 == NULL
+kfree@p2(x);
 
-Did we decide "immutable" was actually needed? Presumably the driver for
-the HW in question knows the HW isn't configurable, and would simply not
-attempt to apply any configuration even if the .dts author erroneously
-provided some?
+@depends on !ok && unchanged@
+position r.p2;
+expression x;
+@@
 
-> +			};
-> +		};
-> +	};
-> +
-> +	i2c0: i2c@0xfff20000 {
-...
-> +		ov772x_1: camera@0x21 {
-...
-> +			clocks = <&mclk 0>;
+*kfree@p2(x);
+// </smpl>
 
-So presumably that could just be "clocks = <&mclk>;"?
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+
+---
+ drivers/media/dvb-frontends/lg2160.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/lg2160.c b/drivers/media/dvb-frontends/lg2160.c
+index cc11260..5fd14f8 100644
+--- a/drivers/media/dvb-frontends/lg2160.c
++++ b/drivers/media/dvb-frontends/lg2160.c
+@@ -1421,8 +1421,8 @@ struct dvb_frontend *lg2160_attach(const struct lg2160_config *config,
+ 	       config ? config->i2c_addr : 0);
+ 
+ 	state = kzalloc(sizeof(struct lg216x_state), GFP_KERNEL);
+-	if (state == NULL)
+-		goto fail;
++	if (!state)
++		return NULL;
+ 
+ 	state->cfg = config;
+ 	state->i2c_adap = i2c_adap;
+@@ -1449,10 +1449,6 @@ struct dvb_frontend *lg2160_attach(const struct lg2160_config *config,
+ 	state->frontend.dtv_property_cache.atscmh_parade_id = 1;
+ 
+ 	return &state->frontend;
+-fail:
+-	lg_warn("unable to detect LG216x hardware\n");
+-	kfree(state);
+-	return NULL;
+ }
+ EXPORT_SYMBOL(lg2160_attach);
+ 
+
