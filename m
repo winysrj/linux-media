@@ -1,60 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:57798 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756815Ab2INK57 (ORCPT
+Received: from forward10.mail.yandex.net ([77.88.61.49]:43142 "EHLO
+	forward10.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757021Ab2IMOTl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 06:57:59 -0400
-Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
-	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id q8EAvqBb013688
-	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 10:57:54 GMT
-From: Hans Verkuil <hans.verkuil@cisco.com>
+	Thu, 13 Sep 2012 10:19:41 -0400
+Received: from web8e.yandex.ru (web8e.yandex.ru [77.88.60.150])
+	by forward10.mail.yandex.net (Yandex) with ESMTP id E81641020B8E
+	for <linux-media@vger.kernel.org>; Thu, 13 Sep 2012 18:19:39 +0400 (MSK)
+From: CrazyCat <crazycat69@yandex.ru>
 To: linux-media@vger.kernel.org
-Subject: [RFCv3 API PATCH 06/31] vivi/mem2mem_testdev: update to latest bus_info specification.
-Date: Fri, 14 Sep 2012 12:57:21 +0200
-Message-Id: <0d254e4e0e8976370c6741818a1b7bfae68b8bce.1347619766.git.hans.verkuil@cisco.com>
-In-Reply-To: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
-References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
-References: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
+Subject: [PATCH] stv090x: Multistream support 
+MIME-Version: 1.0
+Message-Id: <1060931347545979@web8e.yandex.ru>
+Date: Thu, 13 Sep 2012 17:19:39 +0300
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Prefix bus_info with "platform:".
+Multistream support for stv090x
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/mem2mem_testdev.c |    3 ++-
- drivers/media/platform/vivi.c            |    3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/mem2mem_testdev.c b/drivers/media/platform/mem2mem_testdev.c
-index 0b496f3..74de642 100644
---- a/drivers/media/platform/mem2mem_testdev.c
-+++ b/drivers/media/platform/mem2mem_testdev.c
-@@ -430,7 +430,8 @@ static int vidioc_querycap(struct file *file, void *priv,
- {
- 	strncpy(cap->driver, MEM2MEM_NAME, sizeof(cap->driver) - 1);
- 	strncpy(cap->card, MEM2MEM_NAME, sizeof(cap->card) - 1);
--	strlcpy(cap->bus_info, MEM2MEM_NAME, sizeof(cap->bus_info));
-+	snprintf(cap->bus_info, sizeof(cap->bus_info),
-+			"platform:%s", MEM2MEM_NAME);
- 	cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	return 0;
-diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
-index a6351c4..7f3e6329 100644
---- a/drivers/media/platform/vivi.c
-+++ b/drivers/media/platform/vivi.c
-@@ -898,7 +898,8 @@ static int vidioc_querycap(struct file *file, void  *priv,
+Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
+diff --git a/drivers/media/dvb-frontends/stv090x.c b/drivers/media/dvb-frontends/stv090x.c
+index ea86a56..13caec0 100644
+--- a/drivers/media/dvb-frontends/stv090x.c
++++ b/drivers/media/dvb-frontends/stv090x.c
+@@ -3425,6 +3425,33 @@ err:
+ 	return -1;
+ }
  
- 	strcpy(cap->driver, "vivi");
- 	strcpy(cap->card, "vivi");
--	strlcpy(cap->bus_info, dev->v4l2_dev.name, sizeof(cap->bus_info));
-+	snprintf(cap->bus_info, sizeof(cap->bus_info),
-+			"platform:%s", dev->v4l2_dev.name);
- 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
- 			    V4L2_CAP_READWRITE;
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
--- 
-1.7.10.4
-
++static int stv090x_set_mis(struct stv090x_state *state, int mis)
++{
++	u32 reg;
++
++	if (mis < 0 || mis > 255) {
++		dprintk(FE_DEBUG, 1, "Disable MIS filtering");
++		reg = STV090x_READ_DEMOD(state, PDELCTRL1);
++		STV090x_SETFIELD_Px(reg, FILTER_EN_FIELD, 0x00);
++		if (STV090x_WRITE_DEMOD(state, PDELCTRL1, reg) < 0)
++			goto err;
++	} else {
++		dprintk(FE_DEBUG, 1, "Enable MIS filtering - %d", mis);
++		reg = STV090x_READ_DEMOD(state, PDELCTRL1);
++		STV090x_SETFIELD_Px(reg, FILTER_EN_FIELD, 0x01);
++		if (STV090x_WRITE_DEMOD(state, PDELCTRL1, reg) < 0)
++			goto err;
++		if (STV090x_WRITE_DEMOD(state, ISIENTRY, mis) < 0)
++			goto err;
++		if (STV090x_WRITE_DEMOD(state, ISIBITENA, 0xff) < 0)
++			goto err;
++	}
++	return 0;
++err:
++	dprintk(FE_ERROR, 1, "I/O error");
++	return -1;
++}
++
+ static enum dvbfe_search stv090x_search(struct dvb_frontend *fe)
+ {
+ 	struct stv090x_state *state = fe->demodulator_priv;
+@@ -3447,6 +3474,8 @@ static enum dvbfe_search stv090x_search(struct dvb_frontend *fe)
+ 		state->search_range = 5000000;
+ 	}
+ 
++	stv090x_set_mis(state, props->stream_id);
++
+ 	if (stv090x_algo(state) == STV090x_RANGEOK) {
+ 		dprintk(FE_DEBUG, 1, "Search success!");
+ 		return DVBFE_ALGO_SEARCH_SUCCESS;
+@@ -4798,6 +4827,9 @@ struct dvb_frontend *stv090x_attach(const struct stv090x_config *config,
+ 		}
+ 	}
+ 
++	if (state->internal->dev_ver >= 0x30)
++		state->frontend.ops.info.caps |= FE_CAN_MULTISTREAM;
++
+ 	/* workaround for stuck DiSEqC output */
+ 	if (config->diseqc_envelope_mode)
+ 		stv090x_send_diseqc_burst(&state->frontend, SEC_MINI_A);
