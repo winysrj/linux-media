@@ -1,146 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49380 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59422 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754805Ab2IYKv6 convert rfc822-to-8bit (ORCPT
+	with ESMTP id S1757088Ab2IMKQv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Sep 2012 06:51:58 -0400
+	Thu, 13 Sep 2012 06:16:51 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Enric =?ISO-8859-1?Q?Balletb=F2?= i Serra <eballetbo@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: omap3isp: wrong image after resizer with mt9v034 sensor
-Date: Tue, 25 Sep 2012 12:52:34 +0200
-Message-ID: <2021377.tLq3KYvgLo@avalon>
-In-Reply-To: <CAFqH_528bnSm+6JjqEHKxNz1mw-PEArG8ut3w=J0-VvwH+xYaw@mail.gmail.com>
-References: <CAFqH_53EY7BcMjn+fy=KfAhSU9Ut1pcLUyrmu2kiHznrBUB2XQ@mail.gmail.com> <2462466.0FeDLqYgmx@avalon> <CAFqH_528bnSm+6JjqEHKxNz1mw-PEArG8ut3w=J0-VvwH+xYaw@mail.gmail.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-kernel@vger.kernel.org,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	linux-doc@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Rob Landley <rob@landley.net>
+Subject: Re: [PATCH v2] media: v4l2-ctrls: add control for test pattern
+Date: Thu, 13 Sep 2012 03:04:58 +0200
+Message-ID: <2535230.94CWWn0niF@avalon>
+In-Reply-To: <20120909074017.GF6834@valkosipuli.retiisi.org.uk>
+References: <1347007309-6913-1-git-send-email-prabhakar.lad@ti.com> <201209081311.04861.hverkuil@xs4all.nl> <20120909074017.GF6834@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Enric,
+Hi Sakari,
 
-On Tuesday 25 September 2012 09:44:42 Enric Balletbò i Serra wrote:
-> 2012/9/25 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> > On Monday 24 September 2012 15:49:01 Enric Balletbò i Serra wrote:
-> >> 2012/9/24 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> >> > On Monday 24 September 2012 10:33:42 Enric Balletbò i Serra wrote:
-> >> >> Hi everybody,
-> >> >> 
-> >> >> I'm trying to add support for MT9V034 Aptina image sensor to current
-> >> >> mainline, as a base of my current work I start using the latest
-> >> >> omap3isp-next branch from Laurent's git tree [1]. The MT9V034 image
-> >> >> sensor is very similar to MT9V032 sensor, so I modified current driver
-> >> >> to accept MT9V034 sensor adding the chip ID. The driver recognizes the
-> >> >> sensor and I'm able to capture some frames.
-> >> >> 
-> >> >> I started capturing directly frames using the pipeline Sensor -> CCDC
-> >> >> 
-> >> >>     ./media-ctl -r
-> >> >>     ./media-ctl -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1]'
-> >> >>     ./media-ctl -l '"OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-> >> >>     ./media-ctl -f '"mt9v032 3-005c":0 [SGRBG10 752x480]'
-> >> >>     ./media-ctl -f '"OMAP3 ISP CCDC":1 [SGRBG10 752x480]'
-> >> >>     
-> >> >>     # Test pattern
-> >> >>     ./yavta --set-control '0x00981901 1' /dev/v4l-subdev8
-> >> >>     
-> >> >>     # ./yavta -p -f SGRBG10 -s 752x480 -n 4 --capture=3 /dev/video2
-> >> >> 
-> >> >> --file=img-#.bin
-> >> >> 
-> >> >> To convert to jpg I used bayer2rgb [2] program executing following
-> >> >> command,
-> >> >> 
-> >> >>     $ convert -size 752x480  GRBG_BAYER:./img-000000.bin
-> >> >>     img-000000.jpg
-> >> >> 
-> >> >> And the result image looks like this
-> >> >> 
-> >> >>     http://downloads.isee.biz/pub/files/patterns/img-from-sensor.jpg
-> >> >> 
-> >> >> Seems good, so I tried to use following pipeline Sensor -> CCDC ->
-> >> >> Preview -> Resizer
-> >> >> 
-> >> >>     ./media-ctl -r
-> >> >>     ./media-ctl -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1]'
-> >> >>     ./media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
-> >> >>     ./media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
-> >> >>     ./media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer
-> >> >>     output":0[1]'
-> >> >>     
-> >> >>     ./media-ctl -V '"mt9v032 3-005c":0[SGRBG10 752x480]'
-> >> >>     ./media-ctl -V  '"OMAP3 ISP CCDC":0 [SGRBG10 752x480]'
-> >> >>     ./media-ctl -V  '"OMAP3 ISP CCDC":2 [SGRBG10 752x480]'
-> >> >>     ./media-ctl -V  '"OMAP3 ISP preview":1 [UYVY 752x480]'
-> >> >>     ./media-ctl -V  '"OMAP3 ISP resizer":1 [UYVY 752x480]'
-> >> >>     
-> >> >>     # Set Test pattern
-> >> >>     
-> >> >>     ./yavta --set-control '0x00981901 1' /dev/v4l-subdev8
-> >> >>     
-> >> >>     ./yavta -f UYVY -s 752x480 --capture=3 --file=img-#.uyvy
-> >> >>     /dev/video6
-> >> >> 
-> >> >> I used 'convert' program to pass from UYVY to jpg,
-> >> >> 
-> >> >>     $ convert -size 752x480 img-000000.uyvy img-000000.jpg
-> >> >> 
-> >> >> and the result image looks like this
-> >> >> 
-> >> >>     http://downloads.isee.biz/pub/files/patterns/img-from-resizer.jpg
-> >> >> 
-> >> >> As you can see, the image is wrong and I'm not sure if the problem is
-> >> >> from the sensor, from the previewer, from the resizer or from my
-> >> >> conversion. Anyone have idea where should I look ? Or which is the
-> >> >> source of the problem ?
-> >> > 
-> >> > Could you please post the output of all the above media-ctl and yavta
-> >> > runs, as well as the captured raw binary frame ?
-> >> 
-> >> Of course,
-> >> 
-> >> The log configuring the pipeline Sensor -> CCDC is
-> >> 
-> >>     http://pastebin.com/WX8ex5x2
-> >> 
-> >> and the raw image can be found
-> >> 
-> >>     http://downloads.isee.biz/pub/files/patterns/img-000000.bin
+On Sunday 09 September 2012 10:40:17 Sakari Ailus wrote:
+> On Sat, Sep 08, 2012 at 01:11:04PM +0200, Hans Verkuil wrote:
+> > On Fri September 7 2012 20:20:51 Sakari Ailus wrote:
+> > > Prabhakar Lad wrote:
+> > > > From: Lad, Prabhakar <prabhakar.lad@ti.com>
+> > > > 
+> > > > add V4L2_CID_TEST_PATTERN of type menu, which determines
+> > > > the internal test pattern selected by the device.
+> > > > 
+> > > > Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> > > > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> > > > Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> > > > Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> > > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > > Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> > > > Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> > > > Cc: Hans de Goede <hdegoede@redhat.com>
+> > > > Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> > > > Cc: Rob Landley <rob@landley.net>
+> > > > ---
+> > > > This patches has one checkpatch warning for line over
+> > > > 80 characters altough it can be avoided I have kept it
+> > > > for consistency.
+> > > > 
+> > > > Changes for v2:
+> > > > 1: Included display devices in the description for test pattern
+> > > >     as pointed by Hans.
+> > > > 
+> > > > 2: In the menu replaced 'Test Pattern Disabled' by 'Disabled' as
+> > > >     pointed by Sylwester.
+> > > > 
+> > > > 3: Removed the test patterns from menu as the are hardware specific
+> > > >     as pointed by Sakari.
+> > > >   
+> > > >   Documentation/DocBook/media/v4l/controls.xml |   20 ++++++++++++++++
+> > > >   drivers/media/v4l2-core/v4l2-ctrls.c         |    8 ++++++++
+> > > >   include/linux/videodev2.h                    |    4 ++++
+> > > >   3 files changed, 32 insertions(+), 0 deletions(-)
+> > > > 
+> > > > diff --git a/Documentation/DocBook/media/v4l/controls.xml
+> > > > b/Documentation/DocBook/media/v4l/controls.xml index ad873ea..173934e
+> > > > 100644
+> > > > --- a/Documentation/DocBook/media/v4l/controls.xml
+> > > > +++ b/Documentation/DocBook/media/v4l/controls.xml
+> > > > @@ -4311,6 +4311,26 @@ interface and may change in the future.</para>
+> > > >   	      </tbody>
+> > > >   	    </entrytbl>
+> > > >   	  </row>
+> > > > +	  <row>
+> > > > +	    <entry
+> > > > spanname="id"><constant>V4L2_CID_TEST_PATTERN</constant></entry> +	  
+> > > >  <entry>menu</entry>
+> > > > +	  </row>
+> > > > +	  <row id="v4l2-test-pattern">
+> > > > +	    <entry spanname="descr"> The Capture/Display/Sensors have the
+> > > > capability
+> > > > +	    to generate internal test patterns and this are hardware
+> > > > specific. This
+> > > > +	    test patterns are used to test a device is properly working and
+> > > > can generate
+> > > > +	    the desired waveforms that
+> > > > it supports.</entry>
+> > > > +	  </row>
+> > > > +	  <row>
+> > > > +	    <entrytbl spanname="descr" cols="2">
+> > > > +	      <tbody valign="top">
+> > > > +	        <row>
+> > > > +	        
+> > > > <entry><constant>V4L2_TEST_PATTERN_DISABLED</constant></entry>
+> > > > +	          <entry>Test pattern generation is disabled</entry>
+> > > > +	        </row>
+> > > > +	      </tbody>
+> > > > +	    </entrytbl>
+> > > > +	  </row>
+> > > >   	<row><entry></entry></row>
+> > > >   	</tbody>
+> > > >         </tgroup>
+> > > > diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c
+> > > > b/drivers/media/v4l2-core/v4l2-ctrls.c index 8f2f40b..d731422 100644
+> > > > --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> > > > +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> > > > @@ -430,6 +430,10 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+> > > >   		"Advanced",
+> > > >   		NULL,
+> > > >   	};
+> > > > +	static const char * const test_pattern[] = {
+> > > > +		"Disabled",
+> > > > +		NULL,
+> > > > +	};
+> > > > 
+> > > >   	switch (id) {
+> > > >   	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+> > > > @@ -509,6 +513,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+> > > >   		return jpeg_chroma_subsampling;
+> > > >   	case V4L2_CID_DPCM_PREDICTOR:
+> > > >   		return dpcm_predictor;
+> > > > +	case V4L2_CID_TEST_PATTERN:
+> > > > +		return test_pattern;
+> > > 
+> > > I think it's not necessary to define test_pattern (nor be prepared to
+> > > return it) since the menu is going to be device specific. So the driver
+> > > is responsible for all of the menu items. Such menus are created using
+> > > v4l2_ctrl_new_custom() instead of v4l2_ctrl_new_std_menu().
+> > > 
+> > > Looks good to me otherwise.
 > > 
-> > It looks like D9 and D8 have trouble keeping their high-level. Possible
-> > reasons would be conflicts on the signal lines (with something actively
-> > driving them to a low-level, a pull-down wouldn't have such an effect),
-> > faulty cable/solder joints (but I doubt that), or sampling the data on
-> > the wrong edge.
+> > I would suggest that we *do* make this a standard control, but the menu
+> > consists of just one item: "Disabled". After creating the control you can
+> > just set the ctrl->qmenu pointer to the device-specific menu. I like
+> > using standard controls because they guarantee standard naming and type
+> > conventions. They are also easier to use in an application.
 > 
-> In that case don't be the first image also wrong ? (the image that
-> outputs from sensor /dev/video2)
+> That's not quite enough. Also menu_skip_mask and max also need to be
+> replaced. In a general case min as well. It's easy to do mistakes in that
+> --- how about a separate function for doing that? It'd be also nice to be
+> able to use the existing standardised menu item strings, but that's just an
+> extra plus.
 
-Yes, it should be, and 
-http://downloads.isee.biz/pub/files/patterns/img-000000.bin is corrupted. 
-That's the image captured at the CCDC output, isn't it ?
+Agreed. A way to create a standard menu control with driver-supplied menu 
+items would be a good addition to the control framework API.
 
->  http://downloads.isee.biz/pub/files/patterns/img-from-sensor.jpg
-
-How did you capture that one ?
-
-> I'll investigate a bit more following this line.
+> However I think it's beyond this patch, which I think then is be fine w/o
+> modifications. So on my behalf,
 > 
-> > The last option should be easy to test, just change the struct
-> > isp_v4l2_subdevs_group::bus::parallel::clk_pol field.
-> 
-> I tested and seems this is not the problem.
-> 
-> >> And the log configuring the pipeline Sensor -> CCDC -> Previewer ->
-> >> Resizer is http://pastebin.com/wh5ZJwne and the raw image can be found
-> >> 
-> >>     http://downloads.isee.biz/pub/files/patterns/img-000000.uyvy
-> >> >> 
-> >> >> [1]
-> >> >> http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/
-> >> >> omap3isp-omap3isp-next
-> >> >> [2] https://github.com/jdthomas/bayer2rgb
+> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
 -- 
 Regards,
