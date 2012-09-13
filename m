@@ -1,120 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:47350 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757539Ab2IJPaL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Sep 2012 11:30:11 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:52377 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756497Ab2IMAY0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Sep 2012 20:24:26 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v4 02/16] media: coda: add i.MX53 / CODA7541 platform support
-Date: Mon, 10 Sep 2012 17:29:46 +0200
-Message-Id: <1347291000-340-3-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
-References: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 03/16] ec100: use Kernel dev_foo() logging
+Date: Thu, 13 Sep 2012 03:23:44 +0300
+Message-Id: <1347495837-3244-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1347495837-3244-1-git-send-email-crope@iki.fi>
+References: <1347495837-3244-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/platform/coda.c |   31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ drivers/media/dvb-frontends/ec100.c      | 23 ++++++++-----------
+ drivers/media/dvb-frontends/ec100.h      |  2 +-
+ drivers/media/dvb-frontends/ec100_priv.h | 39 --------------------------------
+ 3 files changed, 11 insertions(+), 53 deletions(-)
+ delete mode 100644 drivers/media/dvb-frontends/ec100_priv.h
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index d4a5dd0..8ec2ff4 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -84,6 +84,7 @@ enum coda_inst_type {
+diff --git a/drivers/media/dvb-frontends/ec100.c b/drivers/media/dvb-frontends/ec100.c
+index c56fddb..b4ea34c 100644
+--- a/drivers/media/dvb-frontends/ec100.c
++++ b/drivers/media/dvb-frontends/ec100.c
+@@ -20,13 +20,8 @@
+  */
  
- enum coda_product {
- 	CODA_DX6 = 0xf001,
-+	CODA_7541 = 0xf012,
- };
+ #include "dvb_frontend.h"
+-#include "ec100_priv.h"
+ #include "ec100.h"
  
- struct coda_fmt {
-@@ -261,6 +262,24 @@ static struct coda_fmt codadx6_formats[] = {
- 	},
- };
+-int ec100_debug;
+-module_param_named(debug, ec100_debug, int, 0644);
+-MODULE_PARM_DESC(debug, "Turn on/off frontend debugging (default:off).");
+-
+ struct ec100_state {
+ 	struct i2c_adapter *i2c;
+ 	struct dvb_frontend frontend;
+@@ -46,7 +41,8 @@ static int ec100_write_reg(struct ec100_state *state, u8 reg, u8 val)
+ 		.buf = buf};
  
-+static struct coda_fmt coda7_formats[] = {
-+	{
-+		.name = "YUV 4:2:0 Planar",
-+		.fourcc = V4L2_PIX_FMT_YUV420,
-+		.type = CODA_FMT_RAW,
-+	},
-+	{
-+		.name = "H264 Encoded Stream",
-+		.fourcc = V4L2_PIX_FMT_H264,
-+		.type = CODA_FMT_ENC,
-+	},
-+	{
-+		.name = "MPEG4 Encoded Stream",
-+		.fourcc = V4L2_PIX_FMT_MPEG4,
-+		.type = CODA_FMT_ENC,
-+	},
-+};
-+
- static struct coda_fmt *find_format(struct coda_dev *dev, struct v4l2_format *f)
+ 	if (i2c_transfer(state->i2c, &msg, 1) != 1) {
+-		warn("I2C write failed reg:%02x", reg);
++		dev_warn(&state->i2c->dev, "%s: i2c wr failed reg=%02x\n",
++				KBUILD_MODNAME, reg);
+ 		return -EREMOTEIO;
+ 	}
+ 	return 0;
+@@ -70,7 +66,8 @@ static int ec100_read_reg(struct ec100_state *state, u8 reg, u8 *val)
+ 	};
+ 
+ 	if (i2c_transfer(state->i2c, msg, 2) != 2) {
+-		warn("I2C read failed reg:%02x", reg);
++		dev_warn(&state->i2c->dev, "%s: i2c rd failed reg=%02x\n",
++				KBUILD_MODNAME, reg);
+ 		return -EREMOTEIO;
+ 	}
+ 	return 0;
+@@ -83,8 +80,8 @@ static int ec100_set_frontend(struct dvb_frontend *fe)
+ 	int ret;
+ 	u8 tmp, tmp2;
+ 
+-	deb_info("%s: freq:%d bw:%d\n", __func__, c->frequency,
+-		c->bandwidth_hz);
++	dev_dbg(&state->i2c->dev, "%s: frequency=%d bandwidth_hz=%d\n",
++			__func__, c->frequency, c->bandwidth_hz);
+ 
+ 	/* program tuner */
+ 	if (fe->ops.tuner_ops.set_params)
+@@ -150,7 +147,7 @@ static int ec100_set_frontend(struct dvb_frontend *fe)
+ 
+ 	return ret;
+ error:
+-	deb_info("%s: failed:%d\n", __func__, ret);
++	dev_dbg(&state->i2c->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
+@@ -196,7 +193,7 @@ static int ec100_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 
+ 	return ret;
+ error:
+-	deb_info("%s: failed:%d\n", __func__, ret);
++	dev_dbg(&state->i2c->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
+@@ -228,7 +225,7 @@ static int ec100_read_ber(struct dvb_frontend *fe, u32 *ber)
+ 
+ 	return ret;
+ error:
+-	deb_info("%s: failed:%d\n", __func__, ret);
++	dev_dbg(&state->i2c->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
+@@ -248,7 +245,7 @@ static int ec100_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
+ 
+ 	return ret;
+ error:
+-	deb_info("%s: failed:%d\n", __func__, ret);
++	dev_dbg(&state->i2c->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
+diff --git a/drivers/media/dvb-frontends/ec100.h b/drivers/media/dvb-frontends/ec100.h
+index ee8e524..b847971 100644
+--- a/drivers/media/dvb-frontends/ec100.h
++++ b/drivers/media/dvb-frontends/ec100.h
+@@ -38,7 +38,7 @@ extern struct dvb_frontend *ec100_attach(const struct ec100_config *config,
+ static inline struct dvb_frontend *ec100_attach(
+ 	const struct ec100_config *config, struct i2c_adapter *i2c)
  {
- 	struct coda_fmt *formats = dev->devtype->formats;
-@@ -1485,6 +1504,7 @@ static irqreturn_t coda_irq_handler(int irq, void *data)
- 
- static u32 coda_supported_firmwares[] = {
- 	CODA_FIRMWARE_VERNUM(CODA_DX6, 2, 2, 5),
-+	CODA_FIRMWARE_VERNUM(CODA_7541, 13, 4, 29),
- };
- 
- static bool coda_firmware_supported(u32 vernum)
-@@ -1504,6 +1524,8 @@ static char *coda_product_name(int product)
- 	switch (product) {
- 	case CODA_DX6:
- 		return "CodaDx6";
-+	case CODA_7541:
-+		return "CODA7541";
- 	default:
- 		snprintf(buf, sizeof(buf), "(0x%04x)", product);
- 		return buf;
-@@ -1695,6 +1717,7 @@ static int coda_firmware_request(struct coda_dev *dev)
- 
- enum coda_platform {
- 	CODA_IMX27,
-+	CODA_IMX53,
- };
- 
- static const struct coda_devtype coda_devdata[] = {
-@@ -1704,10 +1727,17 @@ static const struct coda_devtype coda_devdata[] = {
- 		.formats     = codadx6_formats,
- 		.num_formats = ARRAY_SIZE(codadx6_formats),
- 	},
-+	[CODA_IMX53] = {
-+		.firmware    = "v4l-coda7541-imx53.bin",
-+		.product     = CODA_7541,
-+		.formats     = coda7_formats,
-+		.num_formats = ARRAY_SIZE(coda7_formats),
-+	},
- };
- 
- static struct platform_device_id coda_platform_ids[] = {
- 	{ .name = "coda-imx27", .driver_data = CODA_IMX27 },
-+	{ .name = "coda-imx53", .driver_data = CODA_7541 },
- 	{ /* sentinel */ }
- };
- MODULE_DEVICE_TABLE(platform, coda_platform_ids);
-@@ -1715,6 +1745,7 @@ MODULE_DEVICE_TABLE(platform, coda_platform_ids);
- #ifdef CONFIG_OF
- static const struct of_device_id coda_dt_ids[] = {
- 	{ .compatible = "fsl,imx27-vpu", .data = &coda_platform_ids[CODA_IMX27] },
-+	{ .compatible = "fsl,imx53-vpu", .data = &coda_devdata[CODA_IMX53] },
- 	{ /* sentinel */ }
- };
- MODULE_DEVICE_TABLE(of, coda_dt_ids);
+-	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
++	pr_warn("%s: driver disabled by Kconfig\n", __func__);
+ 	return NULL;
+ }
+ #endif
+diff --git a/drivers/media/dvb-frontends/ec100_priv.h b/drivers/media/dvb-frontends/ec100_priv.h
+deleted file mode 100644
+index 5c99014..0000000
+--- a/drivers/media/dvb-frontends/ec100_priv.h
++++ /dev/null
+@@ -1,39 +0,0 @@
+-/*
+- * E3C EC100 demodulator driver
+- *
+- * Copyright (C) 2009 Antti Palosaari <crope@iki.fi>
+- *
+- *    This program is free software; you can redistribute it and/or modify
+- *    it under the terms of the GNU General Public License as published by
+- *    the Free Software Foundation; either version 2 of the License, or
+- *    (at your option) any later version.
+- *
+- *    This program is distributed in the hope that it will be useful,
+- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- *    GNU General Public License for more details.
+- *
+- *    You should have received a copy of the GNU General Public License
+- *    along with this program; if not, write to the Free Software
+- *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+- *
+- */
+-
+-#ifndef EC100_PRIV
+-#define EC100_PRIV
+-
+-#define LOG_PREFIX "ec100"
+-
+-#define dprintk(var, level, args...) \
+-	do { if ((var & level)) printk(args); } while (0)
+-
+-#define deb_info(args...) dprintk(ec100_debug, 0x01, args)
+-
+-#undef err
+-#define err(f, arg...)  printk(KERN_ERR     LOG_PREFIX": " f "\n" , ## arg)
+-#undef info
+-#define info(f, arg...) printk(KERN_INFO    LOG_PREFIX": " f "\n" , ## arg)
+-#undef warn
+-#define warn(f, arg...) printk(KERN_WARNING LOG_PREFIX": " f "\n" , ## arg)
+-
+-#endif /* EC100_PRIV */
 -- 
-1.7.10.4
+1.7.11.4
 
