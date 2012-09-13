@@ -1,62 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:47445 "EHLO
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:48693 "EHLO
 	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753435Ab2ICS1w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2012 14:27:52 -0400
-Received: by bkwj10 with SMTP id j10so2314521bkw.19
-        for <linux-media@vger.kernel.org>; Mon, 03 Sep 2012 11:27:50 -0700 (PDT)
-Message-ID: <5044F69E.9030901@googlemail.com>
-Date: Mon, 03 Sep 2012 20:27:42 +0200
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+	with ESMTP id S1758294Ab2IMPmr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Sep 2012 11:42:47 -0400
+From: Federico Vaga <federico.vaga@gmail.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: 'Mauro Carvalho Chehab' <mchehab@infradead.org>,
+	'Pawel Osciak' <pawel@osciak.com>,
+	'Hans Verkuil' <hans.verkuil@cisco.com>,
+	'Giancarlo Asnaghi' <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	'Jonathan Corbet' <corbet@lwn.net>
+Subject: Re: [PATCH 3/4] videobuf2-dma-streaming: new videobuf2 memory allocator
+Date: Thu, 13 Sep 2012 17:46:32 +0200
+Message-ID: <2107949.TNqhOsq2WF@harkonnen>
+In-Reply-To: <002e01cd91b9$2110d160$63327420$%szyprowski@samsung.com>
+References: <1347544368-30583-1-git-send-email-federico.vaga@gmail.com> <1347544368-30583-3-git-send-email-federico.vaga@gmail.com> <002e01cd91b9$2110d160$63327420$%szyprowski@samsung.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org,
-	=?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
-Subject: Re: gspca_pac7302 driver broken ?
-References: <5043943E.2090802@googlemail.com> <CALF0-+UqPu3Pw74XCtFwfZHOp_WS775y77xmEXisnbx8pzG2ew@mail.gmail.com>
-In-Reply-To: <CALF0-+UqPu3Pw74XCtFwfZHOp_WS775y77xmEXisnbx8pzG2ew@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 02.09.2012 22:08, schrieb Ezequiel Garcia:
-> Hi Frank,
->
-> On Sun, Sep 2, 2012 at 2:15 PM, Frank Schäfer
-> <fschaefer.oss@googlemail.com> wrote:
->> Hi,
->>
->> can anyone who owns such a device confirm that the gspca_pac7302 driver
->> (kernel 3.6.0-rc1+) is fine ?
->>
-> It's working here with latest media-tree kernel.
->
-> Driver Info:
-> 	Driver name   : gspca_pac7302
-> 	Card type     : USB Camera (093a:2625)
-> 	Bus info      : usb-0000:00:12.0-1
-> 	Driver version: 3.6.0
-> 	Capabilities  : 0x85000001
-> 		Video Capture
-> 		Read/Write
-> 		Streaming
-> 		Device Capabilities
-> 	Device Caps   : 0x05000001
-> 		Video Capture
-> 		Read/Write
-> 		Streaming
->
-> Hope this helps,
-> Ezequiel.
+> On Thursday, September 13, 2012 3:53 PM Federico Vaga wrote:
+> > Signed-off-by: Federico Vaga <federico.vaga@gmail.com>
+> 
+> A few words explaining why this memory handling module is required or
+> beneficial will definitely improve the commit :)
 
-Ok, thank you for testing.
-Then this device must be somehow different. :(
-The driver seems to be "straight-forward", it basically writes static
-sequences to registers and doesn't check things like chip ids etc.
-So I guess it's time again for USB-sniffing...
+ok, I will write some lines
 
-Regards,
-Frank
+> > +static void *vb2_dma_streaming_cookie(void *buf_priv)
+> > +{
+> > +	struct vb2_streaming_buf *buf = buf_priv;
+> > +
+> > +	return (void *)buf->dma_handle;
+> > +}
+> 
+> Please change this function to:
+> 
+> static void *vb2_dma_streaming_cookie(void *buf_priv)
+> {
+> 	struct vb2_streaming_buf *buf = buf_priv;
+> 	return &buf->dma_handle;
+> }
+> 
+> and add a following static inline to
+> include/media/videobuf2-dma-streaming.h:
+> 
+> static inline dma_addr_t
+> vb2_dma_streaming_plane_paddr(struct vb2_buffer *vb, unsigned int
+> plane_no) {
+>         dma_addr_t *dma_addr = vb2_plane_cookie(vb, plane_no);
+>         return *dma_addr;
+> }
+> 
+> Do not use 'cookie' callback directly in the driver, the driver should
+> use the above proxy.
+> 
+> The &buf->dma_handle workaround is required for some possible
+> configurations with 64bit dma addresses, see commit 472af2b05bdefc.
 
+ACK.
 
-
+-- 
+Federico Vaga
