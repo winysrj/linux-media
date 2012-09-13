@@ -1,122 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53430 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59417 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750911Ab2IYAnN convert rfc822-to-8bit (ORCPT
+	with ESMTP id S1757013Ab2IMKQu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 20:43:13 -0400
+	Thu, 13 Sep 2012 06:16:50 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Enric =?ISO-8859-1?Q?Balletb=F2?= i Serra <eballetbo@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: omap3isp: wrong image after resizer with mt9v034 sensor
-Date: Tue, 25 Sep 2012 02:43:48 +0200
-Message-ID: <2462466.0FeDLqYgmx@avalon>
-In-Reply-To: <CAFqH_52mu7ME9EBemVhnpLYDgxJ-g53Qeecx5xWR5S1O_awBCA@mail.gmail.com>
-References: <CAFqH_53EY7BcMjn+fy=KfAhSU9Ut1pcLUyrmu2kiHznrBUB2XQ@mail.gmail.com> <10375683.p3v6BRe8Fj@avalon> <CAFqH_52mu7ME9EBemVhnpLYDgxJ-g53Qeecx5xWR5S1O_awBCA@mail.gmail.com>
+To: Prabhakar Lad <prabhakar.lad@ti.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-kernel@vger.kernel.org,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	linux-doc@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Rob Landley <rob@landley.net>
+Subject: Re: [PATCH v3] media: v4l2-ctrl: add a helper function to modify the menu
+Date: Thu, 13 Sep 2012 03:15:57 +0200
+Message-ID: <1481481.zLUeB0rsrG@avalon>
+In-Reply-To: <1347373418-18927-1-git-send-email-prabhakar.lad@ti.com>
+References: <1347373418-18927-1-git-send-email-prabhakar.lad@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Enric,
+Hi Prabhakar,
 
-On Monday 24 September 2012 15:49:01 Enric Balletbò i Serra wrote:
-> 2012/9/24 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> > On Monday 24 September 2012 10:33:42 Enric Balletbò i Serra wrote:
-> >> Hi everybody,
-> >> 
-> >> I'm trying to add support for MT9V034 Aptina image sensor to current
-> >> mainline, as a base of my current work I start using the latest
-> >> omap3isp-next branch from Laurent's git tree [1]. The MT9V034 image
-> >> sensor is very similar to MT9V032 sensor, so I modified current driver
-> >> to accept MT9V034 sensor adding the chip ID. The driver recognizes the
-> >> sensor and I'm able to capture some frames.
-> >> 
-> >> I started capturing directly frames using the pipeline Sensor -> CCDC
-> >> 
-> >>     ./media-ctl -r
-> >>     ./media-ctl -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1]'
-> >>     ./media-ctl -l '"OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-> >>     ./media-ctl -f '"mt9v032 3-005c":0 [SGRBG10 752x480]'
-> >>     ./media-ctl -f '"OMAP3 ISP CCDC":1 [SGRBG10 752x480]'
-> >>     
-> >>     # Test pattern
-> >>     ./yavta --set-control '0x00981901 1' /dev/v4l-subdev8
-> >>     
-> >>     # ./yavta -p -f SGRBG10 -s 752x480 -n 4 --capture=3 /dev/video2
-> >> 
-> >> --file=img-#.bin
-> >> 
-> >> To convert to jpg I used bayer2rgb [2] program executing following
-> >> command,
-> >> 
-> >>     $ convert -size 752x480  GRBG_BAYER:./img-000000.bin img-000000.jpg
-> >> 
-> >> And the result image looks like this
-> >> 
-> >>     http://downloads.isee.biz/pub/files/patterns/img-from-sensor.jpg
-> >> 
-> >> Seems good, so I tried to use following pipeline Sensor -> CCDC ->
-> >> Preview -> Resizer
-> >> 
-> >>     ./media-ctl -r
-> >>     ./media-ctl -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1]'
-> >>     ./media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
-> >>     ./media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
-> >>     ./media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer
-> >>     output":0[1]'
-> >>     
-> >>     ./media-ctl -V '"mt9v032 3-005c":0[SGRBG10 752x480]'
-> >>     ./media-ctl -V  '"OMAP3 ISP CCDC":0 [SGRBG10 752x480]'
-> >>     ./media-ctl -V  '"OMAP3 ISP CCDC":2 [SGRBG10 752x480]'
-> >>     ./media-ctl -V  '"OMAP3 ISP preview":1 [UYVY 752x480]'
-> >>     ./media-ctl -V  '"OMAP3 ISP resizer":1 [UYVY 752x480]'
-> >>     
-> >>     # Set Test pattern
-> >>     
-> >>     ./yavta --set-control '0x00981901 1' /dev/v4l-subdev8
-> >>     
-> >>     ./yavta -f UYVY -s 752x480 --capture=3 --file=img-#.uyvy /dev/video6
-> >> 
-> >> I used 'convert' program to pass from UYVY to jpg,
-> >> 
-> >>     $ convert -size 752x480 img-000000.uyvy img-000000.jpg
-> >> 
-> >> and the result image looks like this
-> >> 
-> >>     http://downloads.isee.biz/pub/files/patterns/img-from-resizer.jpg
-> >> 
-> >> As you can see, the image is wrong and I'm not sure if the problem is
-> >> from the sensor, from the previewer, from the resizer or from my
-> >> conversion. Anyone have idea where should I look ? Or which is the
-> >> source of the problem ?
-> > 
-> > Could you please post the output of all the above media-ctl and yavta
-> > runs, as well as the captured raw binary frame ?
-> 
-> Of course,
-> 
-> The log configuring the pipeline Sensor -> CCDC is
->     http://pastebin.com/WX8ex5x2
-> and the raw image can be found
->     http://downloads.isee.biz/pub/files/patterns/img-000000.bin
+Thanks for the patch.
 
-It looks like D9 and D8 have trouble keeping their high-level. Possible 
-reasons would be conflicts on the signal lines (with something actively 
-driving them to a low-level, a pull-down wouldn't have such an effect), faulty 
-cable/solder joints (but I doubt that), or sampling the data on the wrong 
-edge. The last option should be easy to test, just change the struct 
-isp_v4l2_subdevs_group::bus::parallel::clk_pol field.
-
-> And the log configuring the pipeline Sensor -> CCDC -> Previewer -> Resizer
-> is http://pastebin.com/wh5ZJwne
-> and the raw image can be found
->     http://downloads.isee.biz/pub/files/patterns/img-000000.uyvy
+On Tuesday 11 September 2012 19:53:38 Prabhakar Lad wrote:
+> From: Lad, Prabhakar <prabhakar.lad@ti.com>
 > 
-> >> [1]
-> >> http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp-
-> >> omap3isp-next
-> >> [2] https://github.com/jdthomas/bayer2rgb
+> Add a helper function to modify the menu, max and default value
+> to set.
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: Hans de Goede <hdegoede@redhat.com>
+> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Cc: Rob Landley <rob@landley.net>
+> ---
+> Changes for v3:
+> 1: Fixed style/grammer issues as pointed by Hans.
+>    Thanks Hans for providing the description.
+> 
+> Changes for v2:
+> 1: Fixed review comments from Hans, to have return type as
+>    void, add WARN_ON() for fail conditions, allow this fucntion
+>    to modify the menu of custom controls.
+> 
+>  Documentation/video4linux/v4l2-controls.txt |   29 ++++++++++++++++++++++++
+>  drivers/media/v4l2-core/v4l2-ctrls.c        |   17 +++++++++++++++
+>  include/media/v4l2-ctrls.h                  |   11 ++++++++++
+>  3 files changed, 57 insertions(+), 0 deletions(-)
+> 
+> diff --git a/Documentation/video4linux/v4l2-controls.txt
+> b/Documentation/video4linux/v4l2-controls.txt index 43da22b..01d0a82 100644
+> --- a/Documentation/video4linux/v4l2-controls.txt
+> +++ b/Documentation/video4linux/v4l2-controls.txt
+> @@ -367,6 +367,35 @@ it to 0 means that all menu items are supported.
+>  You set this mask either through the v4l2_ctrl_config struct for a custom
+>  control, or by calling v4l2_ctrl_new_std_menu().
+> 
+> +There are situations where menu items may be device specific. In such cases
+> the
+> +framework provides a helper function to change the menu:
+> +
+> +void v4l2_ctrl_modify_menu(struct v4l2_ctrl *ctrl, const char * const
+> *qmenu,
+> +	s32 max, u32 menu_skip_mask, s32 def);
+
+Sorry if this is a stupid question, but wouldn't it be better to add a 
+function to create a custom menu instead of modifying it afterwards ?
+
+> +
+> +A good example is the test pattern control for capture/display/sensors
+> devices
+> +that have the capability to generate test patterns. These test patterns are
+> +hardware specific, so the contents of the menu will vary from device to
+> device.
+> +
+> +This helper function is used to modify the menu, max, mask and the default
+> +value of the control.
+> +
+> +Example:
+> +
+> +	static const char * const test_pattern[] = {
+> +		"Disabled",
+> +		"Vertical Bars",
+> +		"Solid Black",
+> +		"Solid White",
+> +		NULL,
+> +	};
+> +	struct v4l2_ctrl *test_pattern_ctrl =
+> +		v4l2_ctrl_new_std_menu(&foo->ctrl_handler, &foo_ctrl_ops,
+> +			V4L2_CID_TEST_PATTERN, V4L2_TEST_PATTERN_DISABLED, 0,
+> +			V4L2_TEST_PATTERN_DISABLED);
+> +
+> +	v4l2_ctrl_modify_menu(test_pattern_ctrl, test_pattern, 3, 0,
+> +		V4L2_TEST_PATTERN_DISABLED);
+> 
+>  Custom Controls
+>  ===============
 
 -- 
 Regards,
