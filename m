@@ -1,54 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:27311 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754506Ab2INLPn (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2397 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758825Ab2IMVAN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 07:15:43 -0400
-Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
-	by ams-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id q8EBFghN000742
-	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 11:15:42 GMT
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [RFCv1 API PATCH 1/4] vb2: fix wrong owner check
-Date: Fri, 14 Sep 2012 13:15:33 +0200
-Message-Id: <da47f14735bb06321de298db1cb50172f8e1f480.1347620872.git.hans.verkuil@cisco.com>
-In-Reply-To: <1347621336-14108-1-git-send-email-hans.verkuil@cisco.com>
-References: <1347621336-14108-1-git-send-email-hans.verkuil@cisco.com>
+	Thu, 13 Sep 2012 17:00:13 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH] [media] DocBook: Fix docbook compilation
+Date: Thu, 13 Sep 2012 23:00:03 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1347567100-2256-1-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1347567100-2256-1-git-send-email-mchehab@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201209132300.03671.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Check against q->fileio to see if the queue owner should be set or not.
-The former check against the return value of read or write is wrong, since
-read/write can return an error, even if the queue is in streaming mode.
-For example, EAGAIN when in non-blocking mode.
+On Thu September 13 2012 22:11:40 Mauro Carvalho Chehab wrote:
+> changeset 1248c7cb66d734b60efed41be7c7b86909812c0e broke html compilation:
+> 
+> Documentation/DocBook/v4l2.xml:584: parser error : Entity 'sub-subdev-g-edid' not defined
+> Documentation/DocBook/v4l2.xml:626: parser error : chunk is not well balanced
+> Documentation/DocBook/media_api.xml:74: parser error : Failure to process entity sub-v4l2
+> Documentation/DocBook/media_api.xml:74: parser error : Entity 'sub-v4l2' not defined
+> 
+> I suspect that one file was simply missed at the patch.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Indeed. The missing vidioc-subdev-g-edid.xml file is here:
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 4da3df6..59ed522 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -2278,7 +2278,7 @@ ssize_t vb2_fop_write(struct file *file, char __user *buf,
- 		goto exit;
- 	err = vb2_write(vdev->queue, buf, count, ppos,
- 		       file->f_flags & O_NONBLOCK);
--	if (err >= 0)
-+	if (vdev->queue->fileio)
- 		vdev->queue->owner = file->private_data;
- exit:
- 	if (lock)
-@@ -2300,7 +2300,7 @@ ssize_t vb2_fop_read(struct file *file, char __user *buf,
- 		goto exit;
- 	err = vb2_read(vdev->queue, buf, count, ppos,
- 		       file->f_flags & O_NONBLOCK);
--	if (err >= 0)
-+	if (vdev->queue->fileio)
- 		vdev->queue->owner = file->private_data;
- exit:
- 	if (lock)
--- 
-1.7.10.4
+https://patchwork.kernel.org/patch/1209461/
 
+I forgot to do a git add when I made the RFCv3, but that documentation file
+hasn't changed since RFCv2, so you can just use the one from RFCv2 and revert
+this patch.
+
+My apologies, I haven't found a good way yet to check that I didn't forgot to
+add a file.
+
+Regards,
+
+	Hans
+
+> Yet, keeping
+> it broken is a very bad idea, so we should either remove the broken
+> patch or to remove just the invalid include. Let's take the latter
+> approach.
+> 
+> Due to that, a warning is now produced:
+> 
+> Error: no ID for constraint linkend: v4l2-subdev-edid.
+> 
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> ---
+>  Documentation/DocBook/media/v4l/v4l2.xml | 1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+> index 10ccde9..0292ed1 100644
+> --- a/Documentation/DocBook/media/v4l/v4l2.xml
+> +++ b/Documentation/DocBook/media/v4l/v4l2.xml
+> @@ -581,7 +581,6 @@ and discussions on the V4L mailing list.</revremark>
+>      &sub-subdev-enum-frame-size;
+>      &sub-subdev-enum-mbus-code;
+>      &sub-subdev-g-crop;
+> -    &sub-subdev-g-edid;
+>      &sub-subdev-g-fmt;
+>      &sub-subdev-g-frame-interval;
+>      &sub-subdev-g-selection;
+> 
