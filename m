@@ -1,151 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:58527 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752410Ab2IXNgU (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59407 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752521Ab2IMKQk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 09:36:20 -0400
-Received: by bkcjk13 with SMTP id jk13so911608bkc.19
-        for <linux-media@vger.kernel.org>; Mon, 24 Sep 2012 06:36:19 -0700 (PDT)
-Message-ID: <506061E4.1030701@googlemail.com>
-Date: Mon, 24 Sep 2012 15:36:36 +0200
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+	Thu, 13 Sep 2012 06:16:40 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Wanlong Gao <gaowanlong@cn.fujitsu.com>
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 4/5] video:omap3isp:fix up ENOIOCTLCMD error handling
+Date: Thu, 13 Sep 2012 06:03:21 +0200
+Message-ID: <1946796.hhZ2Ot34qB@avalon>
+In-Reply-To: <1346052196-32682-5-git-send-email-gaowanlong@cn.fujitsu.com>
+References: <1346052196-32682-1-git-send-email-gaowanlong@cn.fujitsu.com> <1346052196-32682-5-git-send-email-gaowanlong@cn.fujitsu.com>
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/4] gspca_pac7302: add support for green balance adjustment
-References: <1347811240-4000-1-git-send-email-fschaefer.oss@googlemail.com> <1347811240-4000-4-git-send-email-fschaefer.oss@googlemail.com> <5059FFF1.30104@googlemail.com> <505A2C52.4040001@redhat.com> <505A3112.10207@googlemail.com> <505ADD14.7070208@redhat.com> <505B03FC.3080707@googlemail.com> <50603A52.3040208@redhat.com>
-In-Reply-To: <50603A52.3040208@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Wanlong,
 
-Am 24.09.2012 12:47, schrieb Hans de Goede:
-> Hi,
->
-> Sorry for the slow response ...
->
-> On 09/20/2012 01:54 PM, Frank Schäfer wrote:
->> Hi,
->>
->> Am 20.09.2012 11:08, schrieb Hans de Goede:
->
-> <snip>
->
->>> Many webcams have RGB gains, but we don't have standard CID-s for
->>> these,
->>> instead we've Blue and Red Balance. This has grown historically
->>> because of
->>> the bttv cards which actually have Blue and Red balance controls in
->>> hardware,
->>> rather then the usual RGB gain triplet. Various gspca drivers cope
->>> with this
->>> in different ways.
->>>
->>> If you look at the pac7302 driver before your latest 4 patches it has
->>> a Red and Blue balance control controlling the Red and Blue gain, and a
->>> Whitebalance control, which is not White balance at all, but simply
->>> controls the green gain...
->>
->> Ok, so if I understand you right, red+green+blue balance = white
->> balance.
->> And because we already have defined red, blue and whitebalance controls
->> for historical reasons, we don't need green balance ?
->> Maybe that matches physics, but I don't think it's a sane approach for a
->> user interface...
->
-> No what I was trying to say is that the balance controls are for hardware
-> which actually has balance controls and not per color gains (such as the
-> bt87x chips), but they are being abused by many drivers to add support
-> for
-> per color gains. And then you miss one control. And in the case of the
-> pac7302
-> driver the "original" route was taken of using whitebalance to control
-> the green gain. Which is wrong IMHO, but it is what the driver does know.
->
-> A proper fix would be to introduce new controls for all 3 gains, and use
-> those instead of using the balance controls + adding a 3th balance
-> control
-> being discussed in the thread titled:
-> "Gain controls in v4l2-ctrl framework".
+Thanks for the patch.
 
-Ok, it seems I'm misunderstanding the meaning of color "gain" and
-"balance"...
+On Monday 27 August 2012 15:23:15 Wanlong Gao wrote:
+> At commit 07d106d0, Linus pointed out that ENOIOCTLCMD should be
+> translated as ENOTTY to user mode.
+> 
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: linux-media@vger.kernel.org
+> Signed-off-by: Wanlong Gao <gaowanlong@cn.fujitsu.com>
+> ---
+>  drivers/media/video/omap3isp/ispvideo.c | 10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3isp/ispvideo.c
+> b/drivers/media/video/omap3isp/ispvideo.c index b37379d..2dd982e 100644
+> --- a/drivers/media/video/omap3isp/ispvideo.c
+> +++ b/drivers/media/video/omap3isp/ispvideo.c
+> @@ -337,7 +337,7 @@ __isp_video_get_format(struct isp_video *video, struct
+> v4l2_format *format) fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+>  	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
+>  	if (ret == -ENOIOCTLCMD)
+> -		ret = -EINVAL;
+> +		ret = -ENOTTY;
 
-Anyway, I would say that it makes sense to have per color AND global
-controls, so a V4L2_CID_GREEN_BALANCE would be missing.
-Weather it makes sense to use them at the same time is a different question.
+I don't think this location should be changed. __isp_video_get_format() is 
+called by isp_video_check_format() only, which in turn is called by 
+isp_video_streamon() only. A failure to retrieve the format in 
+__isp_video_get_format() does not really mean the VIDIOC_STREAMON is not 
+supported.
 
-And why do you think the controls in question are gain controls instead
-of balance controls ?
-The Windows driver calls them balance controls, too (which could of
-course also be a Windows driver or API issue...).
+I'll apply hunks 2 to 5 and drop hunk 1 if that's fine with you.
 
+> 
+>  	mutex_unlock(&video->mutex);
+> 
+> @@ -723,7 +723,7 @@ isp_video_try_format(struct file *file, void *fh, struct
+> v4l2_format *format) fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+>  	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
+>  	if (ret)
+> -		return ret == -ENOIOCTLCMD ? -EINVAL : ret;
+> +		return ret == -ENOIOCTLCMD ? -ENOTTY : ret;
+> 
+>  	isp_video_mbus_to_pix(video, &fmt.format, &format->fmt.pix);
+>  	return 0;
+> @@ -744,7 +744,7 @@ isp_video_cropcap(struct file *file, void *fh, struct
+> v4l2_cropcap *cropcap) ret = v4l2_subdev_call(subdev, video, cropcap,
+> cropcap);
+>  	mutex_unlock(&video->mutex);
+> 
+> -	return ret == -ENOIOCTLCMD ? -EINVAL : ret;
+> +	return ret == -ENOIOCTLCMD ? -ENOTTY : ret;
+>  }
+> 
+>  static int
+> @@ -771,7 +771,7 @@ isp_video_get_crop(struct file *file, void *fh, struct
+> v4l2_crop *crop) format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+>  	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &format);
+>  	if (ret < 0)
+> -		return ret == -ENOIOCTLCMD ? -EINVAL : ret;
+> +		return ret == -ENOIOCTLCMD ? -ENOTTY : ret;
+> 
+>  	crop->c.left = 0;
+>  	crop->c.top = 0;
+> @@ -796,7 +796,7 @@ isp_video_set_crop(struct file *file, void *fh, struct
+> v4l2_crop *crop) ret = v4l2_subdev_call(subdev, video, s_crop, crop);
+>  	mutex_unlock(&video->mutex);
+> 
+> -	return ret == -ENOIOCTLCMD ? -EINVAL : ret;
+> +	return ret == -ENOIOCTLCMD ? -ENOTTY : ret;
+>  }
+> 
+>  static int
 
->
->>> And as said other drivers have similar (albeit usually different)
->>> hacks.
->>>
->>> At a minimum I would like you to rework your patches to:
->>> 1) Not add the new Green balance, and instead modify the existing
->>> whitebalance
->>> to control the new green gain you've found. Keeping things as broken as
->>> they are, but not worse; and
->>
->> I prefer waiting for the results of the discussion you are proposing
->> further down.
->>
->
-> I see in your next mail that you've changed your mind. So I would like to
-> move forward with this by adding your 2 patches + 1 more patch to also
-> make the whitebalance control (which really is the green gain control)
-> use 0x02 rather then 0xc6. To do this we must make sure that 0xc6 has
-> a proper fixed / default setting. So what does the windows driver use
-> for this? 1 like with 0xc5 and 0xc7 ?
->
-> And can you do a 3th patch to make the whitebalance control control
-> 0x02 rather then 0xc6 like you did for red and blue balance?
-
-No, we shouldn't do that.
-Reg 0xc6 (currently called "white balance temperature") definitely works
-different compared to register 0x02.
-Whatever it does exactly, it's not green gain or balance adjustment.
-Will try to figure out next time.
-The Windows driver doesn't use this register for an (user settable)
-image control. It just sets its value to 55, which I fixed with one of
-the patches from my previous patch series, so we have the correct
-default value now.
-0xc6 is also different from regs 0xc5 and 0xc7: settable values are
-0-255 compared to 0-3.
-
-So let's not touch 0xc6 / "white balance" until we know its real meaning
-and just apply the first 2 patches.
-
+-- 
 Regards,
-Frank
 
-
->
-> Then later on when the "Gain controls in v4l2-ctrl framework" discussion
-> is done we can change these controls to the new controls.
->
->>> 2) Try to use both the page 0 reg 0x01 - 0x03 and page 0 reg 0xc5 -
->>> 0xc7
->>> at the same time to get a wider ranged control. Maybe 0xc5 - 0xc7 are
->>> simply the most significant bits of a wider ranged gain ?
->>
->> I don't think so. The windows driver does not use them.
->> It even doesn't use the full range of registers 0x01-0x03.
->> Of course, I have expermiented with the full range and it works, but it
->> doesn't make much sense to use it.
->>
->
-> Ok.
->
->
-> Regards,
->
-> Hans
+Laurent Pinchart
 
