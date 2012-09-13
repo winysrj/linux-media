@@ -1,69 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:59357 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751042Ab2I3REN (ORCPT
+Received: from forward3.mail.yandex.net ([77.88.46.8]:44191 "EHLO
+	forward3.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755508Ab2IMOZX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Sep 2012 13:04:13 -0400
-Received: by mail-qa0-f46.google.com with SMTP id c26so1035057qad.19
-        for <linux-media@vger.kernel.org>; Sun, 30 Sep 2012 10:04:12 -0700 (PDT)
-Date: Sun, 30 Sep 2012 13:04:09 -0400
-From: Ido Yariv <ido@wizery.com>
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/3] iommu/omap: Merge iommu2.h into iommu.h
-Message-ID: <20120930170408.GA5745@NoteStation.RenaNet>
-References: <1348204448-30855-1-git-send-email-ido@wizery.com>
- <1348204448-30855-2-git-send-email-ido@wizery.com>
- <20120927195313.GO4840@atomide.com>
- <20120927195526.GP4840@atomide.com>
+	Thu, 13 Sep 2012 10:25:23 -0400
+From: CrazyCat <crazycat69@yandex.ru>
+To: linux-media@vger.kernel.org
+Cc: Akihiro TSUKADA <tskd2@yahoo.co.jp>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH] va1j5jf8007s: Multistream support 
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20120927195526.GP4840@atomide.com>
+Message-Id: <1057731347546320@web15d.yandex.ru>
+Date: Thu, 13 Sep 2012 17:25:20 +0300
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 27, 2012 at 12:55:26PM -0700, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [120927 12:54]:
-> > Hi Ido,
-> > 
-> > * Ido Yariv <ido@wizery.com> [120920 22:15]:
-> > > Since iommu is not currently supported on OMAP1, merge plat/iommu2.h into
-> > > iommu.h so only one file would have to move to platform_data/ as part of the
-> > > single zImage effort.
-> > 
-> > Looks like you need patch 2.5/3 in this series too that
-> > makes some of the things defined in iommu.h local.
-> > 
-> > We should only have platform data in include/linux/platform_data,
-> > so things that are private to drivers should be defined in the
-> > driver, and things that are private to arch/arm/mach-omap2 should
-> > defined locally there.
-> > 
-> > Based on a quick grepping of files, looks like these should be
-> > defined in omap-iommu.c driver and not in the platform_data header:
-> > 
-> > struct iotlb_lock
-> > struct iotlb_lock
-> > dev_to_omap_iommu
-> > various register defines
-> > omap_iommu_arch_version
-> > omap_iotlb_cr_to_e
-> > omap_iopgtable_store_entry
-> > omap_iommu_save_ctx
-> > omap_iommu_restore_ctx
-> > omap_foreach_iommu_device
-> > omap_iommu_dump_ctx
-> > omap_dump_tlb_entries
-> 
-> And looks like while at it, you can also move plat/iopgtable.h
-> and put it in some drivers/iommu/*.h file that's shared by
-> omap-iommu*.c and omap-iovmm.c drivers ;)
+Update multistream support.
 
-Sure thing, I'll post a v2 shortly.
-
-Thanks,
-Ido.
+Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
+diff --git a/drivers/media/pci/pt1/va1j5jf8007s.c b/drivers/media/pci/pt1/va1j5jf8007s.c
+index d980dfb..1b637b7 100644
+--- a/drivers/media/pci/pt1/va1j5jf8007s.c
++++ b/drivers/media/pci/pt1/va1j5jf8007s.c
+@@ -329,8 +329,8 @@ va1j5jf8007s_set_ts_id(struct va1j5jf8007s_state *state)
+ 	u8 buf[3];
+ 	struct i2c_msg msg;
+ 
+-	ts_id = state->fe.dtv_property_cache.isdbs_ts_id;
+-	if (!ts_id)
++	ts_id = state->fe.dtv_property_cache.stream_id;
++	if (!ts_id || ts_id == NO_STREAM_ID_FILTER)
+ 		return 0;
+ 
+ 	buf[0] = 0x8f;
+@@ -356,8 +356,8 @@ va1j5jf8007s_check_ts_id(struct va1j5jf8007s_state *state, int *lock)
+ 	struct i2c_msg msgs[2];
+ 	u32 ts_id;
+ 
+-	ts_id = state->fe.dtv_property_cache.isdbs_ts_id;
+-	if (!ts_id) {
++	ts_id = state->fe.dtv_property_cache.stream_id;
++	if (!ts_id || ts_id == NO_STREAM_ID_FILTER) {
+ 		*lock = 1;
+ 		return 0;
+ 	}
+@@ -587,7 +587,8 @@ static struct dvb_frontend_ops va1j5jf8007s_ops = {
+ 		.frequency_stepsize = 1000,
+ 		.caps = FE_CAN_INVERSION_AUTO | FE_CAN_FEC_AUTO |
+ 			FE_CAN_QAM_AUTO | FE_CAN_TRANSMISSION_MODE_AUTO |
+-			FE_CAN_GUARD_INTERVAL_AUTO | FE_CAN_HIERARCHY_AUTO,
++			FE_CAN_GUARD_INTERVAL_AUTO | FE_CAN_HIERARCHY_AUTO |
++			FE_CAN_MULTISTREAM,
+ 	},
+ 
+ 	.read_snr = va1j5jf8007s_read_snr,
