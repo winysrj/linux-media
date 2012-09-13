@@ -1,48 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:13392 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751838Ab2ISI7h (ORCPT
+Received: from p600.netmaster.dk ([217.157.54.18]:53375 "EHLO
+	p600.netmaster.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751188Ab2IMS2z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Sep 2012 04:59:37 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: Questions regarding vb2 and multiplanar support
-Date: Wed, 19 Sep 2012 10:59:23 +0200
-Cc: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
+	Thu, 13 Sep 2012 14:28:55 -0400
+Message-ID: <505225E6.7020809@netmaster.dk>
+Date: Thu, 13 Sep 2012 20:28:54 +0200
+From: Thomas Seilund <tps@netmaster.dk>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: hdpvr and HD PVR 2 Gaming Edition from Haoppauge
+References: <5050AC4A.8070003@netmaster.dk> <CAGoCfizcU_oe7Go_-xH1CkWsTvdVcFgBNL8PCG8F8UnxiF4TOA@mail.gmail.com>
+In-Reply-To: <CAGoCfizcU_oe7Go_-xH1CkWsTvdVcFgBNL8PCG8F8UnxiF4TOA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201209191059.23319.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'm working on adding multiplanar support to v4l2-ctl, but I have a few questions.
+On 12-09-2012 17:56, Devin Heitmueller wrote:
+> On Wed, Sep 12, 2012 at 11:37 AM, Thomas Seilund <tps@netmaster.dk> wrote:
+>> Hi All,
+>>
+>> I just bought the HD PVR 2 Gaming Edition from Hauppauge.
+>>
+>> It there any change this device will be supported by the hdpvr kernel
+>> driver. (Or any other driver for that matter!)
+> No.  It is a totally different hardware design and will need an
+> entirely new driver.
+>
+> Devin
+>
+Thanks
 
-First of all, when I call QUERYBUF I set the length field of v4l2_buffer to the
-number of elements in my v4l2_plane array.
+Do you know if anybody plans to make a driver?
 
-When QUERYBUF returns, shouldn't the length field be updated to the actual number
-of planes? Right now it remains unchanged which was somewhat surprising to me.
+I would love to contribute but my skills are not quite there!
 
-Since the length isn't updated, can you walk over the planes and detect which are
-valid and which aren't? The documentation is very vague.
+I have looked at the code for hdpvr kernel driver and I will try to pick 
+up more knowledge from the internet.
 
-Is anyone relying on the current behavior or could it be changed? It would actually
-make __fill_v4l2_buffer() more efficient since currently it is copying as many
-v4l2_planes as possible, when it only needs to copy num_planes.
+Do you have any hints on where to look?
 
-The second question is that it seems that for multiplanar support you must setup
-the pointer to the v4l2_plane array, otherwise __verify_planes_array() returns
-an error. What is scary is that __fill_v4l2_buffer() calls __verify_planes_array(),
-but often the error code of __fill_v4l2_buffer() is not checked. So if DQBUF
-is called without a proper pointer, then it seems to work, but in reality struct
-v4l2_buffer isn't filled in.
+Thanks
 
-__verify_planes_array() should be called before __fill_v4l2_buffer() is called,
-rather than inside that function.
-
-Comments?
-
-	Hans
+Thomas S
