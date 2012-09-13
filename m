@@ -1,40 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:45870 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758716Ab2IMSLp (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:51212 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756264Ab2IMHgC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 14:11:45 -0400
-From: Federico Vaga <federico.vaga@gmail.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 3/4] videobuf2-dma-streaming: new videobuf2 memory allocator
-Date: Thu, 13 Sep 2012 20:14:57 +0200
-Message-ID: <2025764.e9gFDuMQWu@harkonnen>
-In-Reply-To: <20120913115438.0557462f@lwn.net>
-References: <1347544368-30583-1-git-send-email-federico.vaga@gmail.com> <17733334.UmoCxqVfBu@harkonnen> <20120913115438.0557462f@lwn.net>
+	Thu, 13 Sep 2012 03:36:02 -0400
+Received: by weyx8 with SMTP id x8so1500347wey.19
+        for <linux-media@vger.kernel.org>; Thu, 13 Sep 2012 00:36:01 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1347462158-20417-13-git-send-email-p.zabel@pengutronix.de>
+References: <1347462158-20417-1-git-send-email-p.zabel@pengutronix.de>
+	<1347462158-20417-13-git-send-email-p.zabel@pengutronix.de>
+Date: Thu, 13 Sep 2012 09:36:01 +0200
+Message-ID: <CACKLOr2aMBkwjUtwBmJRxXMOhSpguffyZb1VdALyHV4QuCSLoQ@mail.gmail.com>
+Subject: Re: [PATCH v5 12/13] media: coda: add byte size slice limit control
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Well, there is some documentation here:
-> 
-> 	https://lwn.net/Articles/447435/
+Hi Philipp,
+it now works properly.
 
-I know this, I learned from this page :)
+On 12 September 2012 17:02, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+> Changes since v4:
+>  - Fix menu_skip_mask for V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE v4l2_ctrl.
 
-What I'm saying is that I don't know what to write inside the code to 
-make it clearer than now. I think is clear, because if you know the 
-videobuf2, you know what I'm doing in each vb2_mem_ops. I suppose that 
-this is the reason why there are no comments inside the other memory 
-allocator. Maybe I am wrong.
+Tested-by: Javier Martin <javier.martin@vista-silicon.com>
+
+> ---
+>  drivers/media/platform/coda.c |   29 +++++++++++++++++++++++------
+>  1 file changed, 23 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+> index 81e3401..0235f4e 100644
+> --- a/drivers/media/platform/coda.c
+> +++ b/drivers/media/platform/coda.c
+> @@ -151,6 +151,7 @@ struct coda_params {
+>         enum v4l2_mpeg_video_multi_slice_mode slice_mode;
+>         u32                     framerate;
+>         u16                     bitrate;
+> +       u32                     slice_max_bits;
+>         u32                     slice_max_mb;
+>  };
+>
+> @@ -1056,12 +1057,23 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+>                 return -EINVAL;
+>         }
+>
+> -       value  = (ctx->params.slice_max_mb & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
+> -       value |= (1 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
+> -       if (ctx->params.slice_mode == V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB)
+> +       switch (ctx->params.slice_mode) {
+> +       case V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE:
+> +               value = 0;
+> +               break;
+> +       case V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB:
+> +               value  = (ctx->params.slice_max_mb & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
+> +               value |= (1 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
+> +               value |=  1 & CODA_SLICING_MODE_MASK;
+> +               break;
+> +       case V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES:
+> +               value  = (ctx->params.slice_max_bits & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
+> +               value |= (0 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
+>                 value |=  1 & CODA_SLICING_MODE_MASK;
+> +               break;
+> +       }
+>         coda_write(dev, value, CODA_CMD_ENC_SEQ_SLICE_MODE);
+> -       value  =  ctx->params.gop_size & CODA_GOP_SIZE_MASK;
+> +       value = ctx->params.gop_size & CODA_GOP_SIZE_MASK;
+>         coda_write(dev, value, CODA_CMD_ENC_SEQ_GOP_SIZE);
+>
+>         if (ctx->params.bitrate) {
+> @@ -1308,6 +1320,9 @@ static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
+>         case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB:
+>                 ctx->params.slice_max_mb = ctrl->val;
+>                 break;
+> +       case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES:
+> +               ctx->params.slice_max_bits = ctrl->val * 8;
+> +               break;
+>         case V4L2_CID_MPEG_VIDEO_HEADER_MODE:
+>                 break;
+>         default:
+> @@ -1346,10 +1361,12 @@ static int coda_ctrls_setup(struct coda_ctx *ctx)
+>                 V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP, 1, 31, 1, 2);
+>         v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
+>                 V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE,
+> -               V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB, 0,
+> -               V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB);
+> +               V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES, 0x0,
+> +               V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE);
+>         v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+>                 V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB, 1, 0x3fffffff, 1, 1);
+> +       v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+> +               V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES, 1, 0x3fffffff, 1, 500);
+>         v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
+>                 V4L2_CID_MPEG_VIDEO_HEADER_MODE,
+>                 V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME,
+> --
+> 1.7.10.4
+>
+
+
 
 -- 
-Federico Vaga
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
