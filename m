@@ -1,51 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39215 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754302Ab2IXLwh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 07:52:37 -0400
-Message-ID: <5060496E.6090304@iki.fi>
-Date: Mon, 24 Sep 2012 14:52:14 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:60142 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754898Ab2IMSXg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Sep 2012 14:23:36 -0400
+From: Federico Vaga <federico.vaga@gmail.com>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	'Mauro Carvalho Chehab' <mchehab@infradead.org>,
+	'Pawel Osciak' <pawel@osciak.com>,
+	'Hans Verkuil' <hans.verkuil@cisco.com>,
+	'Giancarlo Asnaghi' <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 3/4] videobuf2-dma-streaming: new videobuf2 memory allocator
+Date: Thu, 13 Sep 2012 20:27:21 +0200
+Message-ID: <3388232.NZrhE7HLxb@harkonnen>
+In-Reply-To: <20120913114531.4560b3f0@lwn.net>
+References: <1347544368-30583-1-git-send-email-federico.vaga@gmail.com> <2107949.TNqhOsq2WF@harkonnen> <20120913114531.4560b3f0@lwn.net>
 MIME-Version: 1.0
-To: Gianluca Gennari <gennarone@gmail.com>
-CC: linux-media@vger.kernel.org, mchehab@redhat.com
-Subject: Re: [PATCH 1/3] fc2580: define const as UL to silence a warning
-References: <1348486638-31169-1-git-send-email-gennarone@gmail.com> <1348486638-31169-2-git-send-email-gennarone@gmail.com>
-In-Reply-To: <1348486638-31169-2-git-send-email-gennarone@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/24/2012 02:37 PM, Gianluca Gennari wrote:
-> fc2580.c: In function 'fc2580_set_params':
-> fc2580.c:150: warning: this decimal constant is unsigned only in ISO C90
->
-> Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
+In data giovedì 13 settembre 2012 11:45:31, Jonathan Corbet ha scritto:
+> On Thu, 13 Sep 2012 17:46:32 +0200
+> 
+> Federico Vaga <federico.vaga@gmail.com> wrote:
+> > > A few words explaining why this memory handling module is required
+> > > or
+> > > beneficial will definitely improve the commit :)
+> > 
+> > ok, I will write some lines
+> 
+> In general, all of these patches need *much* better changelogs (i.e.
+> they need changelogs).  What are you doing, and *why* are you doing
+> it?  The future will want to know.
 
-Acked-by: Antti Palosaari <crope@iki.fi>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+I can improve the comment about the ADV7180: it is not clear why I'm 
+removing that functions. (and the memory allocator commit is also in the 
+todo list).
 
+The STA2X11_VIP commit, I think is clear, I convert it to use videobu2 
+and control framework. I can add some extra lines to explain why: 
+because videobuf is obsolete
 
-> ---
->   drivers/media/tuners/fc2580.c |    2 +-
->   1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/media/tuners/fc2580.c b/drivers/media/tuners/fc2580.c
-> index afc0491..036e94b 100644
-> --- a/drivers/media/tuners/fc2580.c
-> +++ b/drivers/media/tuners/fc2580.c
-> @@ -147,7 +147,7 @@ static int fc2580_set_params(struct dvb_frontend *fe)
->   	f_vco = c->frequency;
->   	f_vco *= fc2580_pll_lut[i].div;
->
-> -	if (f_vco >= 2600000000)
-> +	if (f_vco >= 2600000000UL)
->   		tmp_val = 0x0e | fc2580_pll_lut[i].band;
->   	else
->   		tmp_val = 0x06 | fc2580_pll_lut[i].band;
->
+> I'm going to try to look at the actual code, but time isn't something
+> I have a lot of, still...
 
+The actual code is the same of the previous one with yours (plural) 
+suggestions from the RFC submission (few week ago). I did not write 
+anything else.
 
 -- 
-http://palosaari.fi/
+Federico Vaga
