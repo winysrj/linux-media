@@ -1,58 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:25749 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756139Ab2ICJZ4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2012 05:25:56 -0400
-Message-id: <504477A1.6020304@samsung.com>
-Date: Mon, 03 Sep 2012 11:25:53 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Prabhakar Lad <prabhakar.lad@ti.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-kernel@vger.kernel.org,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-doc@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Rob Landley <rob@landley.net>
-Subject: Re: [PATCH] media: v4l2-ctrls: add control for test pattern
-References: <1346663777-23149-1-git-send-email-prabhakar.lad@ti.com>
-In-reply-to: <1346663777-23149-1-git-send-email-prabhakar.lad@ti.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:30520 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751889Ab2IMKs2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Sep 2012 06:48:28 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFCv2 API PATCH 14/28] DocBook: clarify that sequence is also set for output devices.
+Date: Thu, 13 Sep 2012 12:48:23 +0200
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl> <218a8f843734b9b2572842bc817ed36970931c24.1347023744.git.hans.verkuil@cisco.com> <1972373.6VO1sanVZv@avalon>
+In-Reply-To: <1972373.6VO1sanVZv@avalon>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201209131248.23818.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/03/2012 11:16 AM, Prabhakar Lad wrote:
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index 2d7bc15..ae709d1 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -430,6 +430,18 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->  		"Advanced Predictor",
->  		NULL,
->  	};
-> +	static const char * const test_pattern[] = {
-> +		"Test Pattern Disabled",
+On Thu 13 September 2012 04:28:41 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> Thanks for the patch.
+> 
+> On Friday 07 September 2012 15:29:14 Hans Verkuil wrote:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > It was not entirely obvious that the sequence count should also
+> > be set for output devices. Also made it more explicit that this
+> > sequence counter counts frames, not fields.
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  Documentation/DocBook/media/v4l/io.xml |    4 ++--
+> >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/Documentation/DocBook/media/v4l/io.xml
+> > b/Documentation/DocBook/media/v4l/io.xml index b680d66..d1c2369 100644
+> > --- a/Documentation/DocBook/media/v4l/io.xml
+> > +++ b/Documentation/DocBook/media/v4l/io.xml
+> > @@ -617,8 +617,8 @@ field is independent of the
+> > <structfield>timestamp</structfield> and <entry>__u32</entry>
+> >  	    <entry><structfield>sequence</structfield></entry>
+> >  	    <entry></entry>
+> > -	    <entry>Set by the driver, counting the frames in the
+> > -sequence.</entry>
+> > +	    <entry>Set by the driver, counting the frames (not fields!) in the
+> > +sequence. This field is set for both input and output devices.</entry>
+> 
+> Nitpicking, s/in the sequence/in sequence/ ?
 
-How about just "Disabled" ?
-
-> +		"Vertical Lines",
-> +		"Horizontal Lines",
-> +		"Diagonal Lines",
-> +		"Solid Black",
-> +		"Solid White",
-> +		"Solid Blue",
-> +		"Solid Red",
-> +		"Checker Board",
-> +		NULL,
-> +	};
-
---
+Will fix.
 
 Regards,
-Sylwester
+
+	Hans
+
+> 
+> >  	  </row>
+> >  	  <row>
+> >  	    <entry spanname="hspan"><para>In <link
+> 
+> 
