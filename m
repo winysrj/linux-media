@@ -1,135 +1,316 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46488 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758648Ab2I1Ro4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Sep 2012 13:44:56 -0400
-Message-ID: <5065E1FE.6050105@iki.fi>
-Date: Fri, 28 Sep 2012 20:44:30 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:19346 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755313Ab2IMOIL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Sep 2012 10:08:11 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Federico Vaga <federico.vaga@gmail.com>
+Subject: Re: [PATCH 3/4] videobuf2-dma-streaming: new videobuf2 memory allocator
+Date: Thu, 13 Sep 2012 16:08:05 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jonathan Corbet <corbet@lwn.net>
+References: <1347544368-30583-1-git-send-email-federico.vaga@gmail.com> <1347544368-30583-3-git-send-email-federico.vaga@gmail.com>
+In-Reply-To: <1347544368-30583-3-git-send-email-federico.vaga@gmail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [git:v4l-dvb/for_v3.7] [media] add LNA support for DVB API
-References: <E1THIJb-0006hA-NK@www.linuxtv.org> <201209281621.35561.hverkuil@xs4all.nl> <20120928123005.6e1c4a74@redhat.com> <201209281907.47334.hverkuil@xs4all.nl>
-In-Reply-To: <201209281907.47334.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201209131608.05869.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/28/2012 08:07 PM, Hans Verkuil wrote:
-> On Fri September 28 2012 17:30:05 Mauro Carvalho Chehab wrote:
->> Em Fri, 28 Sep 2012 16:21:35 +0200
->> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>
->>> On Fri September 28 2012 14:43:32 Hans Verkuil wrote:
->>>> Hi Antti,
->>>>
->>>> Mauro asked me to look into LNA as well, in particular how this could be done
->>>> on the analog side as well.
->>
->> Thanks for that!
->>
->>>>
->>>> While reading through this patch I noticed that the new property was added to
->>>> dtv_property_process_set, but not to dtv_property_process_get. Can you look
->>>> into that and add 'get' support for this property?
->>>
->>> It's a sign of insanity when you start replying to your own email, but so
->>> be it :-)
->>
->> :)
->>
->>>
->>> I've been thinking how this can be implemented in such a way that it works
->>> well in all the various board/tuner configurations.
->>>
->>> First, the property should be cached in dtv_frontend_properties, that way
->>> tuners with a built-in LNA can use it. The initial value should be AUTO,
->>> I guess.
->>>
->>> The property_process_set code changes to:
->>>
->>> 	case DTV_LNA:
->>> 		if (fe->ops.set_lna)
->>> 			r = fe->ops.set_lna(fe, tvp->u.data);
->>> 		if (!r)
->>> 			c->lna = tvp->u.data;
->>> 		break;
->>>
->>> Tuners can now check the c->lna value when set_params is called and take the
->>> appropriate steps if they have a built-in LNA.
->>>
->>> To be able to access the LNA from the V4L2 side you would need to add two
->>> new tuner ops in include/media/v4l2-subdev.h:
->>>
->>> 	int (*g_lna)(struct v4l2_subdev *sd, u32 *lna);
->>> 	int (*s_lna)(struct v4l2_subdev *sd, u32 lna);
->>>
->>> The tuner-core.c driver can implement these ops to get and set c->lna accordingly.
->>>
->>> A menu control would be needed to actually change the LNA.
->>>
->>> The code that handles that control would have to call a board-specific function
->>> if necessary (if the LNA is on the board), and call the tuner's s_lna op otherwise.
->>>
->>
->> Makes sense.
->>
->>>> The only question is whether the digital and analog APIs should share the same
->>> LNA setting or keep different LNA states for each.
->>>
->>> So if I call DTV_LNA to set the LNA, and then check the LNA control value from V4L2,
->>> should the two match? Or should we keep separate states and whenever you select
->>> digital or analog mode the LNA is updated with the corresponding LNA value for that
->>> mode.
->>>
->>> The latter is a bit more work (struct analog_parameters should probably be extended
->>> with an LNA value), but I do think it is a cleaner solution.
->>
->> I think they both should share the same LNA state, as this depends on the physical
->> connection (e. g. if the antenna has LNA; if the signal reception is weak or strong
->> with that particular antenna).
->>
->>> I am not sure if the LNA work on the analog side should be done without having
->>> hardware that actually uses it, but at least the LNA support on the digital side
->>> should be done in such a way that it can be extended for analog as well.
->>
->> There are several saa7134 hardware with LNA support. I have one of such boards
->> here, although never needed to dig into the LNA stuff on it.
->
-> I'll wait until Antti makes the necessary changes on the digital side, after that
-> I'll see if I can make a patch for the analog part, and post that. There is an
-> outside chance that I have a board with an LNA as well: for ivtv there were issues
-> with a Samsung TCPN 2121P30A tuner where the LNA had to be turned on or off manually
-> (it should have been automatic but due to a hardware bug that didn't work). This
-> was never supported in ivtv, but this would make a good test case.
->
-> The only problem is that I don't know if I still have that card or if I gave it
-> to Andy. I think it went to him, actually.
+On Thu 13 September 2012 15:52:47 Federico Vaga wrote:
+> Signed-off-by: Federico Vaga <federico.vaga@gmail.com>
+> ---
+>  drivers/media/v4l2-core/Kconfig                   |   5 +
+>  drivers/media/v4l2-core/Makefile                  |   1 +
+>  drivers/media/v4l2-core/videobuf2-dma-streaming.c | 205 ++++++++++++++++++++++
+>  include/media/videobuf2-dma-streaming.h           |  24 +++
+>  4 file modificati, 235 inserzioni(+)
+>  create mode 100644 drivers/media/v4l2-core/videobuf2-dma-streaming.c
+>  create mode 100644 include/media/videobuf2-dma-streaming.h
+> 
+> diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
+> index 0c54e19..60548a7 100644
+> --- a/drivers/media/v4l2-core/Kconfig
+> +++ b/drivers/media/v4l2-core/Kconfig
+> @@ -79,3 +79,8 @@ config VIDEOBUF2_DMA_SG
+>  	#depends on HAS_DMA
+>  	select VIDEOBUF2_CORE
+>  	select VIDEOBUF2_MEMOPS
+> +
+> +config VIDEOBUF2_DMA_STREAMING
+> +	select VIDEOBUF2_CORE
+> +	select VIDEOBUF2_MEMOPS
+> +	tristate
+> diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
+> index c2d61d4..0b2756f 100644
+> --- a/drivers/media/v4l2-core/Makefile
+> +++ b/drivers/media/v4l2-core/Makefile
+> @@ -28,6 +28,7 @@ obj-$(CONFIG_VIDEOBUF2_MEMOPS) += videobuf2-memops.o
+>  obj-$(CONFIG_VIDEOBUF2_VMALLOC) += videobuf2-vmalloc.o
+>  obj-$(CONFIG_VIDEOBUF2_DMA_CONTIG) += videobuf2-dma-contig.o
+>  obj-$(CONFIG_VIDEOBUF2_DMA_SG) += videobuf2-dma-sg.o
+> +obj-$(CONFIG_VIDEOBUF2_DMA_STREAMING) += videobuf2-dma-streaming.o
+>  
+>  ccflags-y += -I$(srctree)/drivers/media/dvb-core
+>  ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-streaming.c b/drivers/media/v4l2-core/videobuf2-dma-streaming.c
+> new file mode 100644
+> index 0000000..23475a6
+> --- /dev/null
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-streaming.c
+> @@ -0,0 +1,205 @@
+> +/*
+> + * videobuf2-dma-streaming.c - DMA streaming memory allocator for videobuf2
+> + *
+> + * Copyright (C) 2012 Federico Vaga <federico.vaga@gmail.com>
+> + * *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/slab.h>
+> +#include <linux/pagemap.h>
+> +#include <linux/dma-mapping.h>
+> +
+> +#include <media/videobuf2-core.h>
+> +#include <media/videobuf2-dma-streaming.h>
+> +#include <media/videobuf2-memops.h>
+> +
+> +struct vb2_streaming_conf {
+> +	struct device			*dev;
+> +};
+> +struct vb2_streaming_buf {
+> +	struct vb2_streaming_conf	*conf;
+> +	void				*vaddr;
+> +
+> +	dma_addr_t			dma_handle;
+> +
+> +	unsigned long			size;
+> +	struct vm_area_struct		*vma;
+> +
+> +	atomic_t			refcount;
+> +	struct vb2_vmarea_handler	handler;
+> +};
+> +
+> +static void vb2_dma_streaming_put(void *buf_priv)
+> +{
+> +	struct vb2_streaming_buf *buf = buf_priv;
+> +
+> +	if (atomic_dec_and_test(&buf->refcount)) {
+> +		dma_unmap_single(buf->conf->dev, buf->dma_handle, buf->size,
+> +				 DMA_FROM_DEVICE);
+> +		free_pages_exact(buf->vaddr, buf->size);
+> +		kfree(buf);
+> +	}
+> +
+> +}
+> +
+> +static void *vb2_dma_streaming_alloc(void *alloc_ctx, unsigned long size)
+> +{
+> +	struct vb2_streaming_conf *conf = alloc_ctx;
+> +	struct vb2_streaming_buf *buf;
+> +	int err;
+> +
+> +	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+> +	if (!buf)
+> +		return ERR_PTR(-ENOMEM);
+> +	buf->vaddr = alloc_pages_exact(size, GFP_KERNEL | GFP_DMA);
+> +	if (!buf->vaddr) {
+> +		err = -ENOMEM;
+> +		goto out;
+> +	}
+> +	buf->dma_handle = dma_map_single(conf->dev, buf->vaddr, size,
+> +					 DMA_FROM_DEVICE);
+> +	err = dma_mapping_error(conf->dev, buf->dma_handle);
+> +	if (err) {
+> +		dev_err(conf->dev, "dma_map_single failed\n");
+> +
+> +		free_pages_exact(buf->vaddr, size);
+> +		buf->vaddr = NULL;
+> +		goto out_pages;
+> +	}
+> +	buf->conf = conf;
+> +	buf->size = size;
+> +	buf->handler.refcount = &buf->refcount;
+> +	buf->handler.put = vb2_dma_streaming_put;
+> +	buf->handler.arg = buf;
+> +
+> +	atomic_inc(&buf->refcount);
+> +	return buf;
+> +
+> +out_pages:
+> +	free_pages_exact(buf->vaddr, buf->size);
+> +out:
+> +	kfree(buf);
+> +	return ERR_PTR(err);
+> +}
+> +
+> +static void *vb2_dma_streaming_cookie(void *buf_priv)
+> +{
+> +	struct vb2_streaming_buf *buf = buf_priv;
+> +
+> +	return (void *)buf->dma_handle;
+> +}
+> +
+> +static void *vb2_dma_streaming_vaddr(void *buf_priv)
+> +{
+> +	struct vb2_streaming_buf *buf = buf_priv;
+> +
+> +	if (!buf)
+> +		return NULL;
+> +	return buf->vaddr;
+> +}
+> +
+> +static unsigned int vb2_dma_streaming_num_users(void *buf_priv)
+> +{
+> +	struct vb2_streaming_buf *buf = buf_priv;
+> +
+> +	return atomic_read(&buf->refcount);
+> +}
+> +
+> +static int vb2_dma_streaming_mmap(void *buf_priv, struct vm_area_struct *vma)
+> +{
+> +	struct vb2_streaming_buf *buf = buf_priv;
+> +	unsigned long pos, start = vma->vm_start;
+> +	unsigned long size;
+> +	struct page *page;
+> +	int err;
+> +
+> +	/* Try to remap memory */
+> +	size = vma->vm_end - vma->vm_start;
+> +	size = (size < buf->size) ? size : buf->size;
+> +	pos = (unsigned long)buf->vaddr;
+> +
+> +	while (size > 0) {
+> +		page = virt_to_page((void *)pos);
+> +		if (!page) {
+> +			dev_err(buf->conf->dev, "mmap: virt_to_page failed\n");
+> +			return -ENOMEM;
+> +		}
+> +		err = vm_insert_page(vma, start, page);
+> +		if (err) {
+> +			dev_err(buf->conf->dev, "mmap: insert failed %d\n", err);
+> +			return -ENOMEM;
+> +		}
+> +		start += PAGE_SIZE;
+> +		pos += PAGE_SIZE;
+> +
+> +		if (size > PAGE_SIZE)
+> +			size -= PAGE_SIZE;
+> +		else
+> +			size = 0;
+> +	}
+> +
+> +
+> +	vma->vm_ops = &vb2_common_vm_ops;
+> +	vma->vm_flags |= VM_DONTEXPAND;
+> +	vma->vm_private_data = &buf->handler;
+> +
+> +	vma->vm_ops->open(vma);
+> +
+> +	return 0;
+> +}
+> +
+> +static void vb2_dma_streaming_prepare(void *buf_priv)
+> +{
+> +	struct vb2_streaming_buf *buf = buf_priv;
+> +
+> +	dma_sync_single_for_device(buf->conf->dev, buf->dma_handle,
+> +				   buf->size, DMA_FROM_DEVICE);
+> +}
+> +
+> +static void vb2_dma_streaming_finish(void *buf_priv)
+> +{
+> +	struct vb2_streaming_buf *buf = buf_priv;
+> +
+> +	dma_sync_single_for_cpu(buf->conf->dev, buf->dma_handle,
+> +				buf->size, DMA_FROM_DEVICE);
+> +}
+> +
+> +const struct vb2_mem_ops vb2_dma_streaming_memops = {
+> +	.alloc		= vb2_dma_streaming_alloc,
+> +	.put		= vb2_dma_streaming_put,
+> +	.cookie		= vb2_dma_streaming_cookie,
+> +	.vaddr		= vb2_dma_streaming_vaddr,
+> +	.mmap		= vb2_dma_streaming_mmap,
+> +	.num_users	= vb2_dma_streaming_num_users,
+> +	.prepare	= vb2_dma_streaming_prepare,
+> +	.finish		= vb2_dma_streaming_finish,
+> +};
+> +EXPORT_SYMBOL_GPL(vb2_dma_streaming_memops);
+> +
+> +void *vb2_dma_streaming_init_ctx(struct device *dev)
+> +{
+> +	struct vb2_streaming_conf *conf;
+> +
+> +	conf = kmalloc(sizeof *conf, GFP_KERNEL);
+> +	if (!conf)
+> +		return ERR_PTR(-ENOMEM);
+> +
+> +	conf->dev = dev;
+> +
+> +	return conf;
+> +}
+> +EXPORT_SYMBOL_GPL(vb2_dma_streaming_init_ctx);
+> +
+> +void vb2_dma_streaming_cleanup_ctx(void *alloc_ctx)
+> +{
+> +	kfree(alloc_ctx);
+> +}
+> +EXPORT_SYMBOL_GPL(vb2_dma_streaming_cleanup_ctx);
+> +
+> +MODULE_DESCRIPTION("DMA-streaming memory allocator for videobuf2");
+> +MODULE_AUTHOR("Federico Vaga <federico.vaga@gmail.com>");
+> +MODULE_LICENSE("GPL v2");
+> diff --git a/include/media/videobuf2-dma-streaming.h b/include/media/videobuf2-dma-streaming.h
+> new file mode 100644
+> index 0000000..89cbd06
+> --- /dev/null
+> +++ b/include/media/videobuf2-dma-streaming.h
+> @@ -0,0 +1,24 @@
+> +/*
+> + * videobuf2-dma-streaming.h - DMA steaming memory allocator for videobuf2
 
-Hans, your changes moving lna to property cache is fine for my eyes. I 
-can change it if you wish, but maybe Sunday or next week
+typo: steaming -> streaming :-)
 
-I dropped get operation originally as I wanted to keep workload small on 
-that time. Also there was some other design issues, like one I selected 
-AUTO as minimum possible value to leave space for extending possible 
-values (both attenuation and gain). For now it is just on/off, but there 
-is existing LNAs having more gain levels, not to mention VGAs and LNAs 
-integrated to RF-tuners. Other design issue was units. Gains are 
-measured as units of decibels, but I decided to use device specific 
-steps instead of making some mechanism to enumerate supported gain levels.
+The header and esp. the source could really do with more documentation. It is
+not at all clear from the code what the dma-streaming allocator does and how
+it differs from other allocators.
 
-Here is some discussion behind that LNA.
+Regards,
 
-http://www.spinics.net/lists/linux-media/msg50132.html
-http://www.spinics.net/lists/linux-media/msg50133.html
-http://www.spinics.net/lists/linux-media/msg50139.html
+	Hans
 
-http://blog.palosaari.fi/2012/07/patch-rfc-add-lna-support-for-dvb-api.html
-
-regards
-Antti
--- 
-http://palosaari.fi/
+> + *
+> + * Copyright (C) 2012 Federico Vaga
+> + *
+> + * Author: Federico Vaga <federico.vaga@gmail.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation.
+> + */
+> +
+> +#ifndef _MEDIA_VIDEOBUF2_DMA_STREAMING_H
+> +#define _MEDIA_VIDEOBUF2_DMA_STREAMING_H
+> +
+> +#include <media/videobuf2-core.h>
+> +#include <linux/dma-mapping.h>
+> +
+> +void *vb2_dma_streaming_init_ctx(struct device *dev);
+> +void vb2_dma_streaming_cleanup_ctx(void *alloc_ctx);
+> +
+> +extern const struct vb2_mem_ops vb2_dma_streaming_memops;
+> +
+> +#endif
+> 
