@@ -1,160 +1,248 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37519 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752721Ab2IAQOC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Sep 2012 12:14:02 -0400
-Message-ID: <50423436.9040708@iki.fi>
-Date: Sat, 01 Sep 2012 19:13:42 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:32820 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752711Ab2IMKHp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Sep 2012 06:07:45 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: javier Martin <javier.martin@vista-silicon.com>
+Subject: Re: Improving ov7670 sensor driver.
+Date: Thu, 13 Sep 2012 12:07:39 +0200
+Cc: linux-media@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	brijohn@gmail.com
+References: <CACKLOr22AvmWhXmj2SrMGO4y39ESHfyh_HPnLr6nmQGkUv2+zg@mail.gmail.com>
+In-Reply-To: <CACKLOr22AvmWhXmj2SrMGO4y39ESHfyh_HPnLr6nmQGkUv2+zg@mail.gmail.com>
 MIME-Version: 1.0
-To: poma <pomidorabelisima@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Juergen Lock <nox@jelal.kn-bremen.de>, hselasky@c2i.net
-Subject: Re: Fwd: [PATCH, RFC] Fix DVB ioctls failing if frontend open/closed
- too fast
-References: <20120731222216.GA36603@triton8.kn-bremen.de> <502711BE.4020701@redhat.com> <50422EFA.5000606@gmail.com>
-In-Reply-To: <50422EFA.5000606@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201209131207.39370.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/01/2012 06:51 PM, poma wrote:
-> On 08/12/2012 04:15 AM, Mauro Carvalho Chehab wrote:
->> Devin/Antti,
->>
->> As Juergen mentioned your help on this patch, do you mind helping reviewing
->> and testing it?
->>
->> Touching on those semaphores can be very tricky, as anything wrong may cause
->> a driver hangup. So, it is great to have more pair of eyes looking on it.
->>
->> While I didn't test the code (too busy trying to clean up my long queue -
->> currently with still 200+ patches left), I did a careful review at the
->> semaphore code there, and it seems this approach will work.
->>
->> At least, the first hunk looks perfect for me. The second hunk seems
->> a little more worrying, as the dvb core might be waiting forever for
->> a lock on a device that was already removed.
->>
->> In order to test it in practice, I think we need to remove an USB device
->> by hand while tuning it, and see if the core will not lock the device
->> forever.
->>
->> What do you think?
->> Mauro
->>
->> -------- Mensagem original --------
->> Assunto: [PATCH, RFC] Fix DVB ioctls failing if frontend open/closed too fast
->> Data: Wed, 1 Aug 2012 00:22:16 +0200
->> De: Juergen Lock <nox@jelal.kn-bremen.de>
->> Para: linux-media@vger.kernel.org
->> CC: hselasky@c2i.net
->>
->> That likely fxes this MythTV ticket:
->>
->> 	http://code.mythtv.org/trac/ticket/10830
->>
->> (which btw affects all usb tuners I tested as well, pctv452e,
->> dib0700, af9015)  pctv452e is still possibly broken with MythTV
->> even after this fix; it does work with VDR here tho despite I2C
->> errors.
->>
->> Reduced testcase:
->>
->> 	http://people.freebsd.org/~nox/tmp/ioctltst.c
->>
->> Thanx to devinheitmueller and crope from #linuxtv for helping with
->> this fix! :)
->>
->> Signed-off-by: Juergen Lock <nox@jelal.kn-bremen.de>
->>
->> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
->> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
->> @@ -604,6 +604,7 @@ static int dvb_frontend_thread(void *dat
->>   	enum dvbfe_algo algo;
->>
->>   	bool re_tune = false;
->> +	bool semheld = false;
->>
->>   	dprintk("%s\n", __func__);
->>
->> @@ -627,6 +628,8 @@ restart:
->>
->>   		if (kthread_should_stop() || dvb_frontend_is_exiting(fe)) {
->>   			/* got signal or quitting */
->> +			if (!down_interruptible (&fepriv->sem))
->> +				semheld = true;
->>   			fepriv->exit = DVB_FE_NORMAL_EXIT;
->>   			break;
->>   		}
->> @@ -742,6 +745,8 @@ restart:
->>   		fepriv->exit = DVB_FE_NO_EXIT;
->>   	mb();
->>
->> +	if (semheld)
->> +		up(&fepriv->sem);
->>   	dvb_frontend_wakeup(fe);
->>   	return 0;
->>   }
->> @@ -1804,16 +1809,20 @@ static int dvb_frontend_ioctl(struct fil
->>
->>   	dprintk("%s (%d)\n", __func__, _IOC_NR(cmd));
->>
->> -	if (fepriv->exit != DVB_FE_NO_EXIT)
->> +	if (down_interruptible (&fepriv->sem))
->> +		return -ERESTARTSYS;
->> +
->> +	if (fepriv->exit != DVB_FE_NO_EXIT) {
->> +		up(&fepriv->sem);
->>   		return -ENODEV;
->> +	}
->>
->>   	if ((file->f_flags & O_ACCMODE) == O_RDONLY &&
->>   	    (_IOC_DIR(cmd) != _IOC_READ || cmd == FE_GET_EVENT ||
->> -	     cmd == FE_DISEQC_RECV_SLAVE_REPLY))
->> +	     cmd == FE_DISEQC_RECV_SLAVE_REPLY)) {
->> +		up(&fepriv->sem);
->>   		return -EPERM;
->> -
->> -	if (down_interruptible (&fepriv->sem))
->> -		return -ERESTARTSYS;
->> +	}
->>
->>   	if ((cmd == FE_SET_PROPERTY) || (cmd == FE_GET_PROPERTY))
->>   		err = dvb_frontend_ioctl_properties(file, cmd, parg);
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
-> +1
-> This one resolve annoying mythtv-setup output:
-> "E FE_GET_INFO ioctl failed (/dev/dvb/adapter0/frontend0)
-> eno: No such device (19)"
-> http://www.gossamer-threads.com/lists/mythtv/dev/513410
->
-> But, there is a new one!
-> Just had a little déjà vu :)
+On Thu 13 September 2012 11:48:17 javier Martin wrote:
+> Hi,
+> our new i.MX27 based platform (Visstrim-SM20) uses an ov7675 sensor
+> attached to the CSI interface. Apparently, this sensor is fully
+> compatible with the old ov7670. For this reason, it seems rather
+> sensible that they should share the same driver: ov7670.c
+> One of the challenges we have to face is that capture video support
+> for our platform is mx2_camera.c, which is a soc-camera host driver;
+> while ov7670.c was developed for being used as part of a more complex
+> video card.
+> 
+> Here is the list of current users of ov7670:
+> 
+> http://lxr.linux.no/#linux+v3.5.3/drivers/media/video/gspca/ov519.c
+> http://lxr.linux.no/#linux+v3.5.3/drivers/media/video/gspca/sn9c20x.c
+> http://lxr.linux.no/#linux+v3.5.3/drivers/media/video/gspca/vc032x.c
 
+These do not actually use the ov7670 driver. They program it themselves.
+It would be nice if the gspca driver would get support for subdevs, but
+that's a separate topic.
 
-Is there anyone caring to review that carefully?
+> http://lxr.linux.no/#linux+v3.5.3/drivers/media/video/via-camera.c
+> http://lxr.linux.no/#linux+v3.5.3/drivers/media/video/marvell-ccic/mcam-core.c
+> 
+> These are basically the improvements we need to make to this driver in
+> order to satisfy our needs:
+> 
+> 1.- Adapt v4l2 controls to the subvevice control framework, with a
+> proper ctrl handler, etc...
+> 2.- Add the possibility to bypass PLL and clkrc preescaler.
+> 3.- Adjust vstart/vstop in order to remove an horizontal green line.
+> 4.- Disable pixclk during horizontal blanking.
+> 5.- min_height, min_width should be respected in try_fmt().
+> 6.- Pass platform data when used with a soc-camera host driver.
+> 7.- Add V4L2_CID_POWER_LINE_FREQUENCY ctrl.
+> 
+> I will try to summarize below why we need to accomplish each of the
+> previous tasks and what solution we propose for them:
+> 
+> 1.- Adapt v4l2 controls to the subvevice control framework, with a
+> proper ctrl handler, etc...
+> 
+> Why? Because soc-camera needs to inherit v4l2 subdevice controls in
+> order to expose them to user space.
+> How? Something like the following, incomplete, patch:
 
-I am quite out with semaphores (up/down_interruptible) and also frontend 
-is so complex... I would rather design / write whole dvb-frontend from 
-the scratch :] (not doing that as no time).
+Luckily you didn't do too much work on this. I have old patches for this in
+this tree:
 
-regards
-Antti
+http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/cafe-ctrl
 
--- 
-http://palosaari.fi/
+The main reason why I never continued with this was that at the time I wrote
+this I realized that the control framework needed proper support for what's
+now called auto-clusters (i.e. how to handle autofoo/foo controls like autogain
+and gain correctly).
+
+I intended to pick this up at some time, but never got around to it.
+
+I think these patches will still apply with some work, but it needs to be
+converted to use the autocluster support that's now in the control framework.
+
+> 
+> ---
+> @@ -190,6 +196,7 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
+>  struct ov7670_format_struct;  /* coming later */
+>  struct ov7670_info {
+>         struct v4l2_subdev sd;
+> +       struct v4l2_ctrl_handler hdl;
+>         struct ov7670_format_struct *fmt;  /* Current format */
+>         unsigned char sat;              /* Saturation value */
+>         int hue;                        /* Hue value */
+> 
+> 
+> @@ -1480,10 +1518,14 @@ static int ov7670_s_register(struct
+> v4l2_subdev *sd, struct v4l2_dbg_register *r
+> 
+>  /* ----------------------------------------------------------------------- */
+> 
+> +static const struct v4l2_ctrl_ops ov7670_ctrl_ops = {
+> +       .s_ctrl = ov7670_s_ctrl,
+> +};
+> +
+>  static const struct v4l2_subdev_core_ops ov7670_core_ops = {
+>         .g_chip_ident = ov7670_g_chip_ident,
+> -       .g_ctrl = ov7670_g_ctrl,
+> -       .s_ctrl = ov7670_s_ctrl,
+> +       .g_ctrl = v4l2_subdev_g_ctrl,
+> +       .s_ctrl = v4l2_subdev_s_ctrl,
+>         .queryctrl = ov7670_queryctrl,
+>         .reset = ov7670_reset,
+>         .init = ov7670_init,
+> 
+> @@ -1551,6 +1600,16 @@ static int ov7670_probe(struct i2c_client *client,
+>         v4l_info(client, "chip found @ 0x%02x (%s)\n",
+>                         client->addr << 1, client->adapter->name);
+> 
+> +       v4l2_ctrl_handler_init(&info->hdl, 1);
+> +       v4l2_ctrl_new_std(&info->hdl, &ov7670_ctrl_ops,
+> V4L2_CID_VFLIP, 0, 1, 1, 0);
+> ...
+> ...
+> +       sd->ctrl_handler = &info->hdl;
+> +       if (info->hdl.error) {
+> +               v4l2_ctrl_handler_free(&info->hdl);
+> +               kfree(info);
+> +               return info->hdl.error;
+> +       }
+> +       v4l2_ctrl_handler_setup(&info->hdl);
+> +
+> ---
+> 
+> 2.- Add the possibility to bypass PLL and clkrc preescaler.
+> 
+> Why? The formula to get the desired frame rate in this chip in YUV is
+> the following: fps = fpclk / (2 * 510 * 784) This means that for a
+> desired fps = 30 we need fpclk = 24MHz. For that reason we have a
+> clean 24MHz xvclk input that comes from an oscillator. If we enable
+> the PLL it internally transforms the 24MHz in 22MHz and thus fps is
+> not 30 but 27. In order to get 30fps we need to bypass the PLL.
+> How? Defining a platform flag 'direct_clk' or similar that allows
+> xvclk being used directly as the pixel clock.
+> 
+> 3.- Adjust vstart/vstop in order to remove an horizontal green line.
+> 
+> Why? Currently, in the driver, for VGA, vstart =  10 and vstop = 490.
+> From our tests we found out that vstart = 14, vstop = 494 in order to
+> remove a disgusting horizontal green line in ov7675.
+> How? It seems these sensor aren't provided with a version register or
+> anything similar so I can't think of a clean solution for this yet.
+> Suggestions will be much appreciated.
+
+Using platform_data for this is what springs to mind.
+
+> 4.- Disable pixclk during horizontal blanking.
+> 
+> Why? Otherwise i.MX27 will capture wrong pixels during blanking periods.
+> How? Through a private V4L2 control.
+
+Or platform_data as well?
+
+> 5.- min_height, min_width should be respected in try_fmt().
+> Why? Otherwise you are telling the user you are going to use a
+> different size than the one you are going to use.
+> How? With a patch similar to this:
+> 
+> ---
+> @@ -759,8 +772,10 @@ static int ov7670_try_fmt_internal(struct v4l2_subdev *sd,
+>                 struct ov7670_format_struct **ret_fmt,
+>                 struct ov7670_win_size **ret_wsize)
+>  {
+> -       int index;
+> +       int index, i;
+> +       int win_sizes_limit = N_WIN_SIZES;
+>         struct ov7670_win_size *wsize;
+> +       struct ov7670_info *info = to_state(sd);
+> 
+>         for (index = 0; index < N_OV7670_FMTS; index++)
+>                 if (ov7670_formats[index].mbus_code == fmt->code)
+> @@ -776,15 +791,30 @@ static int ov7670_try_fmt_internal(struct v4l2_subdev *sd,
+>          * Fields: the OV devices claim to be progressive.
+>          */
+>         fmt->field = V4L2_FIELD_NONE;
+> +
+> +       /*
+> +        * Don't consider values that don't match min_height and min_width
+> +        * constraints.
+> +        */
+> +       if (info->min_width || info->min_height)
+> +               for (i=0; i < N_WIN_SIZES; i++) {
+> +                       wsize = ov7670_win_sizes + i;
+> +
+> +                       if (wsize->width < info->min_width ||
+> +                           wsize->height < info->min_height) {
+> +                               win_sizes_limit = i;
+> +                               break;
+> +                       }
+> +               }
+>         /*
+>          * Round requested image size down to the nearest
+>          * we support, but not below the smallest.
+>          */
+> -       for (wsize = ov7670_win_sizes; wsize < ov7670_win_sizes + N_WIN_SIZES;
+> +       for (wsize = ov7670_win_sizes; wsize < ov7670_win_sizes +
+> win_sizes_limit;
+>              wsize++)
+>                 if (fmt->width >= wsize->width && fmt->height >= wsize->height)
+>                         break;
+> -       if (wsize >= ov7670_win_sizes + N_WIN_SIZES)
+> +       if (wsize >= ov7670_win_sizes + win_sizes_limit)
+>                 wsize--;   /* Take the smallest one */
+>         if (ret_wsize != NULL)
+>                 *ret_wsize = wsize;
+> ---
+> 
+> 6.- Pass platform data when used with a soc-camera host driver.
+> Why? We need to set several platform data like 'min_height',
+> 'min_width' and others.
+> How? This is an old subject we discussed in January. We agreed that
+> some soc-camera core changes were needed, but I couldn't find the time
+> and I think nobody else has addressed it either. Please, correct me if
+> I am wrong:http://patchwork.linuxtv.org/patch/8860/
+> 
+> 7.- Add V4L2_CID_POWER_LINE_FREQUENCY ctrl.
+> Why? Because the platform will be used in several countries.
+> How? As long as point 1 is solved this is quite trivial.
+> 
+> 
+> The reason of this e-mail is to discuss whether you find these
+> solution suitable or not and, more important, whether you think the
+> suggested changes could break existing drivers.
+
+Well, those bridge drivers that use the ov7670 subdev should also be converted
+to the control framework. My tree does at least some of that work, although I
+think some drivers got moved around or were renamed. The changes to those drivers
+should be fairly minimal.
+
+In theory it's possible to skip that conversion, but my goal is to get (almost)
+all drivers converted to the control framework so this is a good opportunity
+to convert these bridge drivers at the same time.
+
+Regards,
+
+	Hans
