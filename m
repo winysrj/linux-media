@@ -1,173 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:2039 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751202Ab2ITG3g (ORCPT
+Received: from forward4.mail.yandex.net ([77.88.46.9]:50175 "EHLO
+	forward4.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755455Ab2IMONi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Sep 2012 02:29:36 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [RFCv1 PATCH 3/6] videobuf2-core: move plane verification out of __fill_v4l2_buffer.
-Date: Thu, 20 Sep 2012 08:28:50 +0200
-Cc: linux-media@vger.kernel.org, Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1348065460-1624-1-git-send-email-hverkuil@xs4all.nl> <bf34157b75c930ab456dc977ebafbe895c7a3e8a.1348064901.git.hans.verkuil@cisco.com> <5059F8FD.8040403@samsung.com>
-In-Reply-To: <5059F8FD.8040403@samsung.com>
+	Thu, 13 Sep 2012 10:13:38 -0400
+From: CrazyCat <crazycat69@yandex.ru>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH] dvb_frontend: Multistream support
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Message-Id: <289401347545610@web6d.yandex.ru>
+Date: Thu, 13 Sep 2012 17:13:30 +0300
 Content-Transfer-Encoding: 7bit
-Message-Id: <201209200828.50628.hverkuil@xs4all.nl>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed September 19 2012 18:55:25 Sylwester Nawrocki wrote:
-> On 09/19/2012 04:37 PM, Hans Verkuil wrote:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > The plane verification should be done before actually queuing or
-> > dequeuing buffers, so move it out of __fill_v4l2_buffer and call it
-> > as a separate step.
-> > 
-> > The also makes it possible to change the return type of __fill_v4l2_buffer
-> > to void.
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Tested-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> 
-> There are just two small comment below...
-> 
-> > ---
-> >  drivers/media/v4l2-core/videobuf2-core.c |   29 +++++++++++++++++------------
-> >  1 file changed, 17 insertions(+), 12 deletions(-)
-> > 
-> > diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> > index 2e26e58..929cc99 100644
-> > --- a/drivers/media/v4l2-core/videobuf2-core.c
-> > +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> > @@ -276,6 +276,9 @@ static void __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
-> >   */
-> >  static int __verify_planes_array(struct vb2_queue *q, const struct v4l2_buffer *b)
-> >  {
-> > +	if (!V4L2_TYPE_IS_MULTIPLANAR(b->type))
-> > +		return 0;
-> > +
-> >  	/* Is memory for copying plane information present? */
-> >  	if (NULL == b->m.planes) {
-> >  		dprintk(1, "Multi-planar buffer passed but "
-> > @@ -331,10 +334,9 @@ static bool __buffers_in_use(struct vb2_queue *q)
-> >   * __fill_v4l2_buffer() - fill in a struct v4l2_buffer with information to be
-> >   * returned to userspace
-> >   */
-> > -static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
-> > +static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
-> >  {
-> >  	struct vb2_queue *q = vb->vb2_queue;
-> > -	int ret;
-> >  
-> >  	/* Copy back data such as timestamp, flags, etc. */
-> >  	memcpy(b, &vb->v4l2_buf, offsetof(struct v4l2_buffer, m));
-> > @@ -342,10 +344,6 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
-> >  	b->reserved = vb->v4l2_buf.reserved;
-> >  
-> >  	if (V4L2_TYPE_IS_MULTIPLANAR(q->type)) {
-> > -		ret = __verify_planes_array(q, b);
-> > -		if (ret)
-> > -			return ret;
-> > -
-> >  		/*
-> >  		 * Fill in plane-related data if userspace provided an array
-> >  		 * for it. The memory and size is verified above.
-> 
-> This comment should be updated, since __verify_planes_array() is now removed.
+Multistream support for DVBAPI. Version increased to 5.8.
 
-Will do.
-
-> > @@ -391,8 +389,6 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
-> >  
-> >  	if (__buffer_in_use(q, vb))
-> >  		b->flags |= V4L2_BUF_FLAG_MAPPED;
-> > -
-> > -	return 0;
-> >  }
-> >  
-> >  /**
-> > @@ -411,6 +407,7 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
-> >  int vb2_querybuf(struct vb2_queue *q, struct v4l2_buffer *b)
-> >  {
-> >  	struct vb2_buffer *vb;
-> > +	int ret;
-> >  
-> >  	if (b->type != q->type) {
-> >  		dprintk(1, "querybuf: wrong buffer type\n");
-> > @@ -422,8 +419,10 @@ int vb2_querybuf(struct vb2_queue *q, struct v4l2_buffer *b)
-> >  		return -EINVAL;
-> >  	}
-> >  	vb = q->bufs[b->index];
-> > -
-> > -	return __fill_v4l2_buffer(vb, b);
-> > +	ret = __verify_planes_array(q, b);
-> > +	if (!ret)
-> > +		__fill_v4l2_buffer(vb, b);
-> > +	return ret;
-> >  }
-> >  EXPORT_SYMBOL(vb2_querybuf);
-> >  
-> > @@ -1061,8 +1060,8 @@ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b)
-> >  		dprintk(1, "%s(): invalid buffer state %d\n", __func__, vb->state);
-> >  		return -EINVAL;
-> >  	}
-> > -
-> > -	ret = __buf_prepare(vb, b);
-> > +	ret = __verify_planes_array(q, b);
-> > +	ret = ret ? ret : __buf_prepare(vb, b);
-> 
-> Could we just make it:
-> 
-> 	ret = __verify_planes_array(q, b);
->   	if (ret < 0)
->   		return ret;
-> 
-> 	ret = __buf_prepare(vb, b);
->   	if (ret < 0)
->   		return ret;
-> 
-> ?
-
-OK.
-
-Regards,
-
-	Hans
-
-> >  	if (ret < 0)
-> >  		return ret;
-> >  
-> > @@ -1149,6 +1148,9 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
-> >  		ret = -EINVAL;
-> >  		goto unlock;
-> >  	}
-> > +	ret = __verify_planes_array(q, b);
-> > +	if (ret)
-> > +		return ret;
-> >  
-> >  	switch (vb->state) {
-> >  	case VB2_BUF_STATE_DEQUEUED:
-> > @@ -1337,6 +1339,9 @@ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
-> >  		dprintk(1, "dqbuf: invalid buffer type\n");
-> >  		return -EINVAL;
-> >  	}
-> > +	ret = __verify_planes_array(q, b);
-> > +	if (ret)
-> > +		return ret;
-> >  
-> >  	ret = __vb2_get_done_vb(q, &vb, nonblocking);
-> >  	if (ret < 0) {
-> 
-> --
-> 
-> Regards,
-> Sylwester
-> 
+Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
+diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
+index bb51edf..a6a6839 100644
+--- a/include/linux/dvb/frontend.h
++++ b/include/linux/dvb/frontend.h
+@@ -62,6 +62,7 @@ typedef enum fe_caps {
+ 	FE_CAN_8VSB			= 0x200000,
+ 	FE_CAN_16VSB			= 0x400000,
+ 	FE_HAS_EXTENDED_CAPS		= 0x800000,   /* We need more bitspace for newer APIs, indicate this. */
++	FE_CAN_MULTISTREAM		= 0x4000000,  /* frontend supports multistream filtering */
+ 	FE_CAN_TURBO_FEC		= 0x8000000,  /* frontend supports "turbo fec modulation" */
+ 	FE_CAN_2G_MODULATION		= 0x10000000, /* frontend supports "2nd generation modulation" (DVB-S2) */
+ 	FE_NEEDS_BENDING		= 0x20000000, /* not supported anymore, don't use (frontend requires frequency bending) */
+@@ -338,9 +339,9 @@ struct dvb_frontend_event {
+ 
+ #define DTV_ISDBT_LAYER_ENABLED	41
+ 
+-#define DTV_ISDBS_TS_ID		42
+-
+-#define DTV_DVBT2_PLP_ID	43
++#define DTV_STREAM_ID		42
++#define DTV_ISDBS_TS_ID_LEGACY	DTV_STREAM_ID
++#define DTV_DVBT2_PLP_ID_LEGACY	43
+ 
+ #define DTV_ENUM_DELSYS		44
+ 
+@@ -436,6 +437,7 @@ enum atscmh_rs_code_mode {
+ 	ATSCMH_RSCODE_RES        = 3,
+ };
+ 
++#define NO_STREAM_ID_FILTER	(~0U)
+ 
+ struct dtv_cmds_h {
+ 	char	*name;		/* A display name for debugging purposes */
+diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
+index db309db..33996a0 100644
+--- a/drivers/media/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb-core/dvb_frontend.h
+@@ -370,11 +370,8 @@ struct dtv_frontend_properties {
+ 	    u8			interleaving;
+ 	} layer[3];
+ 
+-	/* ISDB-T specifics */
+-	u32			isdbs_ts_id;
+-
+-	/* DVB-T2 specifics */
+-	u32                     dvbt2_plp_id;
++	/* Multistream specifics */
++	u32			stream_id;
+ 
+ 	/* ATSC-MH specifics */
+ 	u8			atscmh_fic_ver;
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index aa4d4d8..fc0c0ca 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -946,8 +946,7 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
+ 		c->layer[i].segment_count = 0;
+ 	}
+ 
+-	c->isdbs_ts_id = 0;
+-	c->dvbt2_plp_id = 0;
++	c->stream_id = NO_STREAM_ID_FILTER;
+ 
+ 	switch (c->delivery_system) {
+ 	case SYS_DVBS:
+@@ -1018,8 +1017,8 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
+ 	_DTV_CMD(DTV_ISDBT_LAYERC_SEGMENT_COUNT, 1, 0),
+ 	_DTV_CMD(DTV_ISDBT_LAYERC_TIME_INTERLEAVING, 1, 0),
+ 
+-	_DTV_CMD(DTV_ISDBS_TS_ID, 1, 0),
+-	_DTV_CMD(DTV_DVBT2_PLP_ID, 1, 0),
++	_DTV_CMD(DTV_STREAM_ID, 1, 0),
++	_DTV_CMD(DTV_DVBT2_PLP_ID_LEGACY, 1, 0),
+ 
+ 	/* Get */
+ 	_DTV_CMD(DTV_DISEQC_SLAVE_REPLY, 0, 1),
+@@ -1387,11 +1386,11 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
+ 	case DTV_ISDBT_LAYERC_TIME_INTERLEAVING:
+ 		tvp->u.data = c->layer[2].interleaving;
+ 		break;
+-	case DTV_ISDBS_TS_ID:
+-		tvp->u.data = c->isdbs_ts_id;
+-		break;
+-	case DTV_DVBT2_PLP_ID:
+-		tvp->u.data = c->dvbt2_plp_id;
++
++	/* Multistream support */
++	case DTV_STREAM_ID:
++	case DTV_DVBT2_PLP_ID_LEGACY:
++		tvp->u.data = c->stream_id;
+ 		break;
+ 
+ 	/* ATSC-MH */
+@@ -1779,11 +1778,11 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
+ 	case DTV_ISDBT_LAYERC_TIME_INTERLEAVING:
+ 		c->layer[2].interleaving = tvp->u.data;
+ 		break;
+-	case DTV_ISDBS_TS_ID:
+-		c->isdbs_ts_id = tvp->u.data;
+-		break;
+-	case DTV_DVBT2_PLP_ID:
+-		c->dvbt2_plp_id = tvp->u.data;
++
++	/* Multistream support */
++	case DTV_STREAM_ID:
++	case DTV_DVBT2_PLP_ID_LEGACY:
++		c->stream_id = tvp->u.data;
+ 		break;
+ 
+ 	/* ATSC-MH */
+diff --git a/include/linux/dvb/version.h b/include/linux/dvb/version.h
+index 70c2c7e..20e5eac 100644
+--- a/include/linux/dvb/version.h
++++ b/include/linux/dvb/version.h
+@@ -24,6 +24,6 @@
+ #define _DVBVERSION_H_
+ 
+ #define DVB_API_VERSION 5
+-#define DVB_API_VERSION_MINOR 7
++#define DVB_API_VERSION_MINOR 8
+ 
+ #endif /*_DVBVERSION_H_*/
