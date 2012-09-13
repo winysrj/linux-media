@@ -1,35 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:51835 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755905Ab2IGUSO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 16:18:14 -0400
-Received: by eekc1 with SMTP id c1so1426333eek.19
-        for <linux-media@vger.kernel.org>; Fri, 07 Sep 2012 13:18:13 -0700 (PDT)
-Message-ID: <504A5683.5020807@gmail.com>
-Date: Fri, 07 Sep 2012 22:18:11 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org,
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:52342 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757551Ab2IMLci (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Sep 2012 07:32:38 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: javier Martin <javier.martin@vista-silicon.com>
+Subject: Re: Improving ov7670 sensor driver.
+Date: Thu, 13 Sep 2012 13:32:32 +0200
+Cc: linux-media@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 API PATCH 14/28] DocBook: clarify that sequence is also
- set for output devices.
-References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl> <218a8f843734b9b2572842bc817ed36970931c24.1347023744.git.hans.verkuil@cisco.com>
-In-Reply-To: <218a8f843734b9b2572842bc817ed36970931c24.1347023744.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	brijohn@gmail.com
+References: <CACKLOr22AvmWhXmj2SrMGO4y39ESHfyh_HPnLr6nmQGkUv2+zg@mail.gmail.com> <201209131300.12630.hverkuil@xs4all.nl> <CACKLOr1xpTv7775Uj6xmfbecDaQBaWMqB7htNjOLfwubQD8AbQ@mail.gmail.com>
+In-Reply-To: <CACKLOr1xpTv7775Uj6xmfbecDaQBaWMqB7htNjOLfwubQD8AbQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201209131332.32924.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/07/2012 03:29 PM, Hans Verkuil wrote:
-> From: Hans Verkuil<hans.verkuil@cisco.com>
->
-> It was not entirely obvious that the sequence count should also
-> be set for output devices. Also made it more explicit that this
-> sequence counter counts frames, not fields.
->
-> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
+On Thu 13 September 2012 13:19:14 javier Martin wrote:
+> On 13 September 2012 13:00, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > On Thu 13 September 2012 12:47:53 javier Martin wrote:
+> >> >> 3.- Adjust vstart/vstop in order to remove an horizontal green line.
+> >> >>
+> >> >> Why? Currently, in the driver, for VGA, vstart =  10 and vstop = 490.
+> >> >> From our tests we found out that vstart = 14, vstop = 494 in order to
+> >> >> remove a disgusting horizontal green line in ov7675.
+> >> >> How? It seems these sensor aren't provided with a version register or
+> >> >> anything similar so I can't think of a clean solution for this yet.
+> >> >> Suggestions will be much appreciated.
+> >> >
+> >> > Using platform_data for this is what springs to mind.
+> >>
+> >> I had thought about it too but, there
+> >
+> > Unfinished sentence?
+> >
+> 
+> Yes. Sorry :)
+> 
+> I meant that I had thought about it too but there are one pair of
+> vstart,vstop values for each supported resolution: VGA, QVGA, CIF,
+> QCIF.
+> I could add 'vstart_vga', 'vstop_vga' as platform_data but in the
+> future someone could want to add the same values for the other ones
+> and I don't know if that would be acceptable.
+> 
+> Another solution I just came up with would be adding a flag 'version'
+> where we could indicate if we are dealing with an ov7670 or an ov7675
+> and change those 'vstart', 'vstop' values internally based on this.
+> This could be useful for some other issues in the future.
 
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+You can actually add support for a ov7675 to the ov7670 driver itself
+by adding a ov7675 entry to the ov7670_id table. See for example the
+i2c/saa7127.c driver on how to do that.
 
+Regards,
+
+	Hans
