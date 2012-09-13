@@ -1,348 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46651 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750861Ab2IYAVE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 20:21:04 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	remi@remlab.net, daniel-gl@gmx.net, sylwester.nawrocki@gmail.com
-Subject: Re: [RFC] Timestamps and V4L2
-Date: Tue, 25 Sep 2012 02:21:37 +0200
-Message-ID: <4737813.NDfuc3Kl0N@avalon>
-In-Reply-To: <201209231118.45904.hverkuil@xs4all.nl>
-References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk> <505DB12F.1090600@iki.fi> <201209231118.45904.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail.kapsi.fi ([217.30.184.167]:56842 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756629Ab2IMAY1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Sep 2012 20:24:27 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 15/16] ec168: use Kernel dev_foo() logging
+Date: Thu, 13 Sep 2012 03:23:56 +0300
+Message-Id: <1347495837-3244-15-git-send-email-crope@iki.fi>
+In-Reply-To: <1347495837-3244-1-git-send-email-crope@iki.fi>
+References: <1347495837-3244-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/ec168.c | 40 +++++++++++++++++++++---------------
+ 1 file changed, 24 insertions(+), 16 deletions(-)
 
-On Sunday 23 September 2012 11:18:45 Hans Verkuil wrote:
-> On Sat September 22 2012 14:38:07 Sakari Ailus wrote:
-> > Hans Verkuil wrote:
-> > > On Thu September 20 2012 22:21:22 Sakari Ailus wrote:
-> > >> Hi all,
-> > >> 
-> > >> 
-> > >> This RFC intends to summarise and further the recent discussion on
-> > >> linux-media regarding the proposed changes of timestamping V4L2
-> > >> buffers.
-> > >> 
-> > >> 
-> > >> The problem
-> > >> ===========
-> > >> 
-> > >> The V4L2 has long used realtime timestamps (such as
-> > >> clock_gettime(CLOCK_REALTIME, ...)) to stamp the video buffers before
-> > >> handing them over to the user. This has been found problematic in
-> > >> associating the video buffers with data from other sources: realtime
-> > >> clock may jump around due to daylight saving time, for example, and
-> > >> ALSA (audio-video synchronisation is a common use case) user space API
-> > >> does not provide the user with realtime timestamps, but instead uses
-> > >> monotonic time (i.e. clock_gettime(CLOCK_MONOTONIC, ...)).
-> > >> 
-> > >> This is especially an issue in embedded systems where video recording
-> > >> is a common use case. Drivers typically used in such systems have
-> > >> silently switched to use monotonic timestamps. While against the spec,
-> > >> this is necessary for those systems to operate properly.
-> > >> 
-> > >> In general, realtime timestamps are seen of little use in other than
-> > >> debugging purposes, but monotonic timestamps are fine for that as well.
-> > >> It's still possible that an application I'm not aware of uses them in
-> > >> a peculiar way that would be adversely affected by changing to
-> > >> monotonic timestamps. Nevertheless, we're not supposed to break the
-> > >> API (or ABI). It'd be also very important for the application to know
-> > >> what kind of timestamps are provided by the device.
-> > >> 
-> > >> 
-> > >> Requirements, wishes and constraints
-> > >> ====================================
-> > >> 
-> > >> Now that it seems to be about the time to fix these issues, it's worth
-> > >> looking a little bit to the future to anticipate the coming changes to
-> > >> be able to accommodate them better later on.
-> > >> 
-> > >> - The new default should be monotonic. As the monotonic timestamps are
-> > >> seen to be the most useful, they should be made the default.
-> > >> 
-> > >> - timeval vs. timespec. The two structs can be used to store timestamp
-> > >> information. They are not compatible with each other. It's a little bit
-> > >> uncertain what's the case with all the architectures but it looks like
-> > >> the timespec fits into the space of timeval in all cases. If timespec
-> > >> is considered to be used somewhere the compatibility must be ensured.
-> > >> Timespec is better than timeval since timespec has more precision and
-> > >> it's the same struct that's used everywhere else in the V4L2 API:
-> > >> timespec does not need conversion to timespec in the user space.
-> > >> 
-> > >> struct timespec {
-> > >>          __kernel_time_t tv_sec;                 /* seconds */
-> > >>          long            tv_nsec;                /* nanoseconds */
-> > >> };
-> > >> 
-> > >> struct timeval {
-> > >>          __kernel_time_t         tv_sec;         /* seconds */
-> > >>          __kernel_suseconds_t    tv_usec;        /* microseconds */
-> > >> };
-> > >> 
-> > >> To be able to use timespec, the user would have to most likely
-> > >> explicitly choose to do that.
-> > >> 
-> > >> - Users should know what kind of timestamps the device produces. This
-> > >> includes existing and future kernels. What should be considered are
-> > >> uninformed porting drivers back and forth across kernel versions and
-> > >> out-of-date kernel header files.
-> > >> 
-> > >> - Device-dependent timestamps. Some devices such as the uvcvideo ones
-> > >> produce device-dependent timestamps for synchronising video and audio,
-> > >> both produced by the same physical hardware device. For uvcvideo these
-> > >> timestamps are unsigned 32-bit integers.
-> > >> 
-> > >> - There's also another clock, Linux-specific raw monotonic clock (as in
-> > >> clock_gettime(CLOCK_RAW_MONOTONIC, ...)) that could be better in some
-> > >> use cases than the regular monotonic clock. The difference is that the
-> > >> raw monotonic clock is free from the NTP adjustments. It would be nice
-> > >> for the user to be able to choose the clock used for timestamps. This
-> > >> is especially important for device-dependent timestamps: not all
-> > >> applications can be expected to be able to use them.
-> > >> 
-> > >> - The field adjacent to timestamp, timecode, is 128 bits wide, and not
-> > >> used by a single driver. This field could be re-used.
-> > >> 
-> > >> 
-> > >> Possible solutions
-> > >> ==================
-> > >> 
-> > >> Not all of the solutions below that have been proposed are mutually
-> > >> exclusive. That's also what's making the choice difficult: the ultimate
-> > >> solution to the issue of timestamping may involve several of these ---
-> > >> or possibly something better that's not on the list.
-> > >> 
-> > >> 
-> > >> Use of timespec
-> > >> ---------------
-> > >> 
-> > >> If we can conclude timespec will always fit into the size of timeval
-> > >> (or timecode) we could use timespec instead. The solution should still
-> > >> make the use of timespec explicit to the user space. This seems to
-> > >> conflict with the idea of making monotonic timestamps the default: the
-> > >> default can't be anything incompatible with timeval, and at the same
-> > >> time it's the most important that the monotonic timestamps are
-> > >> timespec.
-> > > 
-> > > We have to keep timeval. Changing this will break the ABI. I see
-> > > absolutely no reason to use timespec for video. At 60 Hz a frame takes
-> > > 16.67 ms, and that's far, far removed from ns precisions. Should we ever
-> > > have to support high-speed cameras running at 60000 Hz, then we'll talk
-> > > again.
-> > > 
-> > > For me this is a non-issue.
-> > > 
-> > >> Kernel version as indicator of timestamp
-> > >> ----------------------------------------
-> > >> 
-> > >> Conversion of drivers to use monotonic timestamp is trivial, so the
-> > >> conversion could be done once and for all drivers. The kernel version
-> > >> could be used to indicate the type of the timestamp.
-> > >> 
-> > >> If this approach is taken care must be taken when new drivers are
-> > >> integrated: developers sometimes use old kernels for development and
-> > >> might also use an old driver for guidance on timestamps, thus using
-> > >> real-time timestamps when monotonic timestamps should be used.
-> > > 
-> > > More importantly, this also fails when users use out-of-tree drivers.
-> > 
-> > Could you mention some examples what we could be breaking in particular?
-> 
-> The version reported in QUERYCAP by out-of-tree drivers is unreliable. It
-> has no relationship with a kernel version in general. Actually, even inside
-> the kernel I've come across drivers that still fill in the version number
-> themselves.
->
-> > >> This approach has an advantage over the capability flag below: which is
-> > >> that we don't populate the interface with essentially dead definitions.
-> > > 
-> > > Using a kernel version to decide whether some feature is available or
-> > > not is IMHO something of a last resort. It's very application
-> > > unfriendly.
-> > 
-> > Could be, but that's a passing pain. We're going to live with the flags
-> > for the foreseeable future, whether we need them or not.
-> 
-> Never underestimate the glacial speed (or lack of speed) with which
-> applications adapt to new features.
-> 
-> > >> Capability flag for monotonic timestamps
-> > >> ----------------------------------------
-> > >> 
-> > >> A capability flag can be used to tell whether the timestamp is
-> > >> monotonic. However, it's not extensible cleanly to provide selectable
-> > >> timestamps. These are not features that are needed right now, though.
-> > >> 
-> > >> The upside of this option is ease of implementation and use, but it's
-> > >> not extensible. Also we're left with a flag that's set for all drivers:
-> > >> in the end it provides no information to the user and is only noise in
-> > >> the spec.
-> > >> 
-> > >> 
-> > >> Control for timestamp type
-> > >> --------------------------
-> > >> 
-> > >> Using a control to tell the type of the timestamp is extensible but not
-> > >> as easy to implement than the capability flag: each and every device
-> > >> would get an additional control. The value should likely be also file
-> > >> handle specific, and we do not have file handle specific controls yet.
-> > > 
-> > > Yes, we do. You can make per-file handle controls. M2M devices need
-> > > that.
-> > 
-> > Thanks for correcting me.
-> > 
-> > > I'm not sure why this would be filehandle specific, BTW.
-> > 
-> > Good point. I thought that as other properties of the buffers are
-> > specific to file handles, including format when using CREATE_BUFS, it'd
-> > make sense to make the timestamp source file-handle specific as well.
-> > 
-> > What do you think?
-> 
-> I don't think it makes sense to have different streams from the same device
-> use different clocks.
-
-Not on different streams, but on the same stream for two consecutive 
-applications. If application A selects a device-specific timestamps, 
-application B that is not aware of timestamp selection should get standard 
-timestamps when it streams from the device.
-
-> > >> In the meantime the control could be read-only, and later made
-> > >> read-write when the timestamp type can be made selectable. Much of he
-> > >> work of timestamping can be done by the framework: drivers can use a
-> > >> single helper function and need to create one extra standard control.
-> > >> 
-> > >> Should the control also have an effect on the types of the timestamps
-> > >> in V4L2 events? Likely yes.
-> > > 
-> > > You are missing one other option:
-> > > 
-> > > Using v4l2_buffer flags to report the clock
-> > > -------------------------------------------
-> > > 
-> > > By defining flags like this:
-> > > 
-> > > V4L2_BUF_FLAG_CLOCK_MASK	0x7000
-> > > /* Possible Clocks */
-> > > V4L2_BUF_FLAG_CLOCK_UNKNOWN	0x0000  /* system or monotonic, we don't
-> > > know */ V4L2_BUF_FLAG_CLOCK_MONOTONIC   0x1000
-> > > 
-> > > you could tell the application which clock is used.
-> > > 
-> > > This does allow for more clocks to be added in the future and clock
-> > > selection would then be done by a control or possibly an ioctl. For now
-> > > there are no plans to do such things, so this flag should be
-> > > sufficient. And it can be implemented very efficiently. It works with
-> > > existing drivers as well, since they will report CLOCK_UNKNOWN.
-> > > 
-> > > I am very much in favor of this approach.
-> > 
-> > Thanks for adding this. I knew I was forgetting something but didn't
-> > remember what --- I swear it was unintentional! :-)
-> > 
-> > If we'd add more clocks without providing an ability to choose the clock
-> > from the user space, how would the clock be selected? It certainly isn't
-> > the driver's job, nor I think it should be system-specific either
-> > (platform data on embedded systems).
-> 
-> IF a driver supports more than one clock (which I really don't see happening
-> anytime soon),
-
-uvcvideo will support both PTS and monotonic system time (and possibly raw 
-monotonic system time).
-
-> then we either need a control to select the clock or an ioctl. And something
-> as well to enumerate the available clocks. I'm leaning towards ioctls, but I
-> think this should be decided if we ever get an actual use-case for this.
-
-Wouldn't a control be easier ? The control API already provides everything we 
-need.
-
-> > It's up to the application and its needs. That would suggest we should
-> > always provide monotonic timestamps to applications (besides a potential
-> > driver-specific timestamp), and for that purpose the capability flag ---
-> > I admit I disliked the idea at first --- is enough.
-> > 
-> > What comes to buffer flags, the application would also have to receive
-> > the first buffer from the device to even know what kind of timestamps
-> > the device uses, or at least call QUERYBUF. And in principle the flag
-> > should be checked on every buffer, unless we also specify the flag is
-> > the same for all buffers. And at certain point this will stop to make
-> > any sense...
-> 
-> It should definitely be the same for all buffers. And since apps will
-> typically call querybuf anyway I don't see this as a problem. These
-> clocks are also specific to the streaming I/O API, so reporting this as
-> part of that API makes sense to me as well.
-> 
-> > A capability flag is cleaner solution from this perspective, and it can
-> > be amended by a control (or an ioctl) later on: the flag can be
-> > disregarded by applications whenever the control is present.
-> 
-> Yuck.
-> 
-> > If the application doesn't know about the control it can still rely on the
-> > flag. (I think this would be less clean than to go for the control right
-> > from the beginning, but better IMO.)
-> > 
-> > >> Device-dependent timestamp
-> > >> --------------------------
-> > >> 
-> > >> Should we agree on selectable timestamps, the existing timestamp field
-> > >> (or a union with another field of different type) could be used for
-> > >> the device-dependent timestamps.
-> > > 
-> > > No. Device timestamps should get their own field. You want to be able to
-> > > relate device timestamps with the monotonic timestamps, so you need
-> > > both.
-> > >
-> > >> Alternatively we can choose to re-use the existing timecode field.
-> > >> 
-> > >> At the moment there's no known use case for passing device-dependent
-> > >> timestamps at the same time with monotonic timestamps.
-> > > 
-> > > Well, the use case is there, but there is no driver support. The device
-> > > timestamps should be 64 bits to accomodate things like PTS and DTS from
-> > > MPEG streams. Since timecode is 128 bits we might want to use two u64
-> > > fields or perhaps 4 u32 fields.
-> > 
-> > That should be an union for different kinds (or rather types) of
-> > device-dependent timestamps. On uvcvideo I think this is u32, not u64.
-> > We should be also able to tell what kind device dependent timestamp
-> > there is --- should buffer flags be used for that as well?
-> 
-> That's definitely part of the buffer flags. The presence of timecode is
-> already signalled using that. And not every buffer may have device
-> timestamps (that depends on the hardware), so you have to signal it through
-> the buffer flags.
-> 
-> An anonymous union might be best with the buffer flags signalling the type
-> of the union. What I don't know is how to specify the type. Shall we just
-> specify the type of the union (e.g. 4 u32 fields or 2 u64 fields) and leave
-> the interpretation of those fields up to the application based on the
-> driver name? Or shall the type act more like a fourcc in that it also
-> uniquely identifies the interpretation of the timestamps?
-> 
-> Or should all device timestamps be converted to a timespec by the driver?
-
-Conversion to a timespec requires floating point operation to be accurate in 
-the general case. Implementing proper conversion algorithms requires userspace 
-code.
-
-> Answers on a postcard.
-
+diff --git a/drivers/media/usb/dvb-usb-v2/ec168.c b/drivers/media/usb/dvb-usb-v2/ec168.c
+index b6a9c5b..5c68f39 100644
+--- a/drivers/media/usb/dvb-usb-v2/ec168.c
++++ b/drivers/media/usb/dvb-usb-v2/ec168.c
+@@ -61,7 +61,8 @@ static int ec168_ctrl_msg(struct dvb_usb_device *d, struct ec168_req *req)
+ 		request = DEMOD_RW;
+ 		break;
+ 	default:
+-		pr_err("%s: unknown command=%02x\n", KBUILD_MODNAME, req->cmd);
++		dev_err(&d->udev->dev, "%s: unknown command=%02x\n",
++				KBUILD_MODNAME, req->cmd);
+ 		ret = -EINVAL;
+ 		goto error;
+ 	}
+@@ -104,7 +105,7 @@ static int ec168_ctrl_msg(struct dvb_usb_device *d, struct ec168_req *req)
+ err_dealloc:
+ 	kfree(buf);
+ error:
+-	pr_debug("%s: failed=%d\n", __func__, ret);
++	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
+@@ -136,7 +137,8 @@ static int ec168_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 				ret = ec168_ctrl_msg(d, &req);
+ 				i += 2;
+ 			} else {
+-				pr_err("%s: I2C read not implemented\n",
++				dev_err(&d->udev->dev, "%s: I2C read not " \
++						"implemented\n",
+ 						KBUILD_MODNAME);
+ 				ret = -EOPNOTSUPP;
+ 				i += 2;
+@@ -187,13 +189,13 @@ static int ec168_identify_state(struct dvb_usb_device *d, const char **name)
+ 	int ret;
+ 	u8 reply;
+ 	struct ec168_req req = {GET_CONFIG, 0, 1, sizeof(reply), &reply};
+-	pr_debug("%s:\n", __func__);
++	dev_dbg(&d->udev->dev, "%s:\n", __func__);
+ 
+ 	ret = ec168_ctrl_msg(d, &req);
+ 	if (ret)
+ 		goto error;
+ 
+-	pr_debug("%s: reply=%02x\n", __func__, reply);
++	dev_dbg(&d->udev->dev, "%s: reply=%02x\n", __func__, reply);
+ 
+ 	if (reply == 0x01)
+ 		ret = WARM;
+@@ -202,7 +204,7 @@ static int ec168_identify_state(struct dvb_usb_device *d, const char **name)
+ 
+ 	return ret;
+ error:
+-	pr_debug("%s: failed=%d\n", __func__, ret);
++	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
+@@ -211,7 +213,7 @@ static int ec168_download_firmware(struct dvb_usb_device *d,
+ {
+ 	int ret, len, remaining;
+ 	struct ec168_req req = {DOWNLOAD_FIRMWARE, 0, 0, 0, NULL};
+-	pr_debug("%s:\n", __func__);
++	dev_dbg(&d->udev->dev, "%s:\n", __func__);
+ 
+ 	#define LEN_MAX 2048 /* max packet size */
+ 	for (remaining = fw->size; remaining > 0; remaining -= LEN_MAX) {
+@@ -225,7 +227,8 @@ static int ec168_download_firmware(struct dvb_usb_device *d,
+ 
+ 		ret = ec168_ctrl_msg(d, &req);
+ 		if (ret) {
+-			pr_err("%s: firmware download failed=%d\n",
++			dev_err(&d->udev->dev,
++					"%s: firmware download failed=%d\n",
+ 					KBUILD_MODNAME, ret);
+ 			goto error;
+ 		}
+@@ -259,7 +262,7 @@ static int ec168_download_firmware(struct dvb_usb_device *d,
+ 
+ 	return ret;
+ error:
+-	pr_debug("%s: failed=%d\n", __func__, ret);
++	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
+@@ -269,9 +272,11 @@ static struct ec100_config ec168_ec100_config = {
+ 
+ static int ec168_ec100_frontend_attach(struct dvb_usb_adapter *adap)
+ {
+-	pr_debug("%s:\n", __func__);
++	struct dvb_usb_device *d = adap_to_d(adap);
++	dev_dbg(&d->udev->dev, "%s:\n", __func__);
++
+ 	adap->fe[0] = dvb_attach(ec100_attach, &ec168_ec100_config,
+-			&adap_to_d(adap)->i2c_adap);
++			&d->i2c_adap);
+ 	if (adap->fe[0] == NULL)
+ 		return -ENODEV;
+ 
+@@ -297,19 +302,22 @@ static struct mxl5005s_config ec168_mxl5003s_config = {
+ 
+ static int ec168_mxl5003s_tuner_attach(struct dvb_usb_adapter *adap)
+ {
+-	pr_debug("%s:\n", __func__);
+-	return dvb_attach(mxl5005s_attach, adap->fe[0],
+-			&adap_to_d(adap)->i2c_adap,
++	struct dvb_usb_device *d = adap_to_d(adap);
++	dev_dbg(&d->udev->dev, "%s:\n", __func__);
++
++	return dvb_attach(mxl5005s_attach, adap->fe[0], &d->i2c_adap,
+ 			&ec168_mxl5003s_config) == NULL ? -ENODEV : 0;
+ }
+ 
+ static int ec168_streaming_ctrl(struct dvb_frontend *fe, int onoff)
+ {
++	struct dvb_usb_device *d = fe_to_d(fe);
+ 	struct ec168_req req = {STREAMING_CTRL, 0x7f01, 0x0202, 0, NULL};
+-	pr_debug("%s: onoff=%d\n", __func__, onoff);
++	dev_dbg(&d->udev->dev, "%s: onoff=%d\n", __func__, onoff);
++
+ 	if (onoff)
+ 		req.index = 0x0102;
+-	return ec168_ctrl_msg(fe_to_d(fe), &req);
++	return ec168_ctrl_msg(d, &req);
+ }
+ 
+ /* DVB USB Driver stuff */
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.11.4
 
