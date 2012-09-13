@@ -1,141 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:2298 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756651Ab2IGN3k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 09:29:40 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from 173-160-178-141-Washington.hfc.comcastbusiness.net ([173.160.178.141]:45784
+	"EHLO relay" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753535Ab2IMWvH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Sep 2012 18:51:07 -0400
+From: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
 To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 API PATCH 22/28] v4l2: make vidioc_s_modulator const.
-Date: Fri,  7 Sep 2012 15:29:22 +0200
-Message-Id: <719ebad3c869bd4700d56d3a1ffad103c04edae6.1347023744.git.hans.verkuil@cisco.com>
-In-Reply-To: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
-References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
-References: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
+Cc: linux-kernel@vger.kernel.org
+Subject: [PATCH 0/3] A driver for Si476x series of chips
+Date: Thu, 13 Sep 2012 15:40:10 -0700
+Message-Id: <1347576013-28832-1-git-send-email-andrey.smirnov@convergeddevices.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This patchset contains a driver for a Silicon Laboratories 476x series
+of radio tuners. The driver itself is implemented as an MFD devices
+comprised of three parts:
+ 1. Core device that provides all the other devices with basic
+ functionality and locking scheme.
+ 2. Radio device that translates between V4L2 subsystem requests into
+ Core device commands.
+ 3. Codec device that does similar to the earlier described task, but
+ for ALSA SoC subsystem.
 
-Write-only ioctls should have a const argument in the ioctl op.
+This driver has been tested to work in two different sytems:
+ 1. A custom Tegra-based ARM board(design is based on Harmony board)
+ running linux kernel 3.1.10 kernel
+ 2. A standalone USB-connected board that has a dedicated Cortex M3
+ working as a transparent USB to I2C bridge which was connected to a
+ off-the-shelf x86-64 laptop running Ubuntu with 3.2.0 kernel.
 
-Do this conversion for vidioc_s_modulator.
+As far as SubmitChecklist is concerned following criteria should be
+satisfied: 2b, 3, 5, 7, 9, 10
 
-Adding const for write-only ioctls was decided during the 2012 Media Workshop.
+Andrey Smirnov (3):
+  Add a core driver for SI476x MFD
+  Add a V4L2 driver for SI476X MFD
+  Add a codec driver for SI476X MFD
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/radio/radio-keene.c       |    2 +-
- drivers/media/radio/radio-si4713.c      |    2 +-
- drivers/media/radio/radio-wl1273.c      |    2 +-
- drivers/media/radio/si4713-i2c.c        |    4 ++--
- drivers/media/radio/wl128x/fmdrv_v4l2.c |    2 +-
- include/media/v4l2-ioctl.h              |    2 +-
- include/media/v4l2-subdev.h             |    2 +-
- 7 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/media/radio/Kconfig        |   17 +
+ drivers/media/radio/radio-si476x.c | 1307 +++++++++++++++++++++++++++++++
+ drivers/mfd/Kconfig                |   14 +
+ drivers/mfd/Makefile               |    3 +
+ drivers/mfd/si476x-cmd.c           | 1509 ++++++++++++++++++++++++++++++++++++
+ drivers/mfd/si476x-i2c.c           | 1033 ++++++++++++++++++++++++
+ drivers/mfd/si476x-prop.c          |  477 ++++++++++++
+ include/linux/mfd/si476x-core.h    |  532 +++++++++++++
+ include/media/si476x.h             |  461 +++++++++++
+ sound/soc/codecs/Kconfig           |    4 +
+ sound/soc/codecs/Makefile          |    2 +
+ sound/soc/codecs/si476x.c          |  346 +++++++++
+ 12 files changed, 5705 insertions(+)
+ create mode 100644 drivers/media/radio/radio-si476x.c
+ create mode 100644 drivers/mfd/si476x-cmd.c
+ create mode 100644 drivers/mfd/si476x-i2c.c
+ create mode 100644 drivers/mfd/si476x-prop.c
+ create mode 100644 include/linux/mfd/si476x-core.h
+ create mode 100644 include/media/si476x.h
+ create mode 100644 sound/soc/codecs/si476x.c
 
-diff --git a/drivers/media/radio/radio-keene.c b/drivers/media/radio/radio-keene.c
-index 79adf3e..e10e525 100644
---- a/drivers/media/radio/radio-keene.c
-+++ b/drivers/media/radio/radio-keene.c
-@@ -203,7 +203,7 @@ static int vidioc_g_modulator(struct file *file, void *priv,
- }
- 
- static int vidioc_s_modulator(struct file *file, void *priv,
--				struct v4l2_modulator *v)
-+				const struct v4l2_modulator *v)
- {
- 	struct keene_device *radio = video_drvdata(file);
- 
-diff --git a/drivers/media/radio/radio-si4713.c b/drivers/media/radio/radio-si4713.c
-index 1e04101..a082e40 100644
---- a/drivers/media/radio/radio-si4713.c
-+++ b/drivers/media/radio/radio-si4713.c
-@@ -200,7 +200,7 @@ static int radio_si4713_g_modulator(struct file *file, void *p,
- }
- 
- static int radio_si4713_s_modulator(struct file *file, void *p,
--						struct v4l2_modulator *vm)
-+						const struct v4l2_modulator *vm)
- {
- 	return v4l2_device_call_until_err(get_v4l2_dev(file), 0, tuner,
- 							s_modulator, vm);
-diff --git a/drivers/media/radio/radio-wl1273.c b/drivers/media/radio/radio-wl1273.c
-index 2d93354..b53ecbc 100644
---- a/drivers/media/radio/radio-wl1273.c
-+++ b/drivers/media/radio/radio-wl1273.c
-@@ -1715,7 +1715,7 @@ out:
- }
- 
- static int wl1273_fm_vidioc_s_modulator(struct file *file, void *priv,
--					struct v4l2_modulator *modulator)
-+					const struct v4l2_modulator *modulator)
- {
- 	struct wl1273_device *radio = video_get_drvdata(video_devdata(file));
- 	struct wl1273_core *core = radio->core;
-diff --git a/drivers/media/radio/si4713-i2c.c b/drivers/media/radio/si4713-i2c.c
-index b898c89..a9e6d17 100644
---- a/drivers/media/radio/si4713-i2c.c
-+++ b/drivers/media/radio/si4713-i2c.c
-@@ -1213,7 +1213,7 @@ exit:
- }
- 
- static int si4713_s_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f);
--static int si4713_s_modulator(struct v4l2_subdev *sd, struct v4l2_modulator *);
-+static int si4713_s_modulator(struct v4l2_subdev *sd, const struct v4l2_modulator *);
- /*
-  * si4713_setup - Sets the device up with current configuration.
-  * @sdev: si4713_device structure for the device we are communicating
-@@ -1873,7 +1873,7 @@ exit:
- }
- 
- /* si4713_s_modulator - set modulator attributes */
--static int si4713_s_modulator(struct v4l2_subdev *sd, struct v4l2_modulator *vm)
-+static int si4713_s_modulator(struct v4l2_subdev *sd, const struct v4l2_modulator *vm)
- {
- 	struct si4713_device *sdev = to_si4713_device(sd);
- 	int rval = 0;
-diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.c b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-index 09585a9..8a672a3 100644
---- a/drivers/media/radio/wl128x/fmdrv_v4l2.c
-+++ b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-@@ -448,7 +448,7 @@ static int fm_v4l2_vidioc_g_modulator(struct file *file, void *priv,
- 
- /* Set modulator attributes. If mode is not TX, set to TX. */
- static int fm_v4l2_vidioc_s_modulator(struct file *file, void *priv,
--		struct v4l2_modulator *mod)
-+		const struct v4l2_modulator *mod)
- {
- 	struct fmdev *fmdev = video_drvdata(file);
- 	u8 rds_mode;
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index d4c7729..fbeb00e 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -179,7 +179,7 @@ struct v4l2_ioctl_ops {
- 	int (*vidioc_g_modulator)      (struct file *file, void *fh,
- 					struct v4l2_modulator *a);
- 	int (*vidioc_s_modulator)      (struct file *file, void *fh,
--					struct v4l2_modulator *a);
-+					const struct v4l2_modulator *a);
- 	/* Crop ioctls */
- 	int (*vidioc_cropcap)          (struct file *file, void *fh,
- 					struct v4l2_cropcap *a);
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 4cc1652..279bd8d 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -194,7 +194,7 @@ struct v4l2_subdev_tuner_ops {
- 	int (*g_tuner)(struct v4l2_subdev *sd, struct v4l2_tuner *vt);
- 	int (*s_tuner)(struct v4l2_subdev *sd, struct v4l2_tuner *vt);
- 	int (*g_modulator)(struct v4l2_subdev *sd, struct v4l2_modulator *vm);
--	int (*s_modulator)(struct v4l2_subdev *sd, struct v4l2_modulator *vm);
-+	int (*s_modulator)(struct v4l2_subdev *sd, const struct v4l2_modulator *vm);
- 	int (*s_type_addr)(struct v4l2_subdev *sd, struct tuner_setup *type);
- 	int (*s_config)(struct v4l2_subdev *sd, const struct v4l2_priv_tun_config *config);
- };
 -- 
-1.7.10.4
+1.7.9.5
 
