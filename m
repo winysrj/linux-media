@@ -1,133 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:45155 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750735Ab2IVRM6 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:49548 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757628Ab2IMLaA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Sep 2012 13:12:58 -0400
-Received: by bkcjk13 with SMTP id jk13so226702bkc.19
-        for <linux-media@vger.kernel.org>; Sat, 22 Sep 2012 10:12:56 -0700 (PDT)
-Message-ID: <505DF194.9030007@gmail.com>
-Date: Sat, 22 Sep 2012 19:12:52 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Thu, 13 Sep 2012 07:30:00 -0400
+Date: Thu, 13 Sep 2012 13:29:54 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	Bryan Wu <bryan.wu@canonical.com>,
+	Richard Purdie <rpurdie@rpsys.net>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
+	Sumit Semwal <sumit.semwal@ti.com>,
+	Archit Taneja <archit@ti.com>,
+	Sebastien Guiriec <s-guiriec@ti.com>,
+	Inki Dae <inki.dae@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [RFC 1/5] video: Add generic display panel core
+Message-ID: <20120913112954.GI6180@pengutronix.de>
+References: <1345164583-18924-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1345164583-18924-2-git-send-email-laurent.pinchart@ideasonboard.com>
+ <20120904092446.GN24458@pengutronix.de>
+ <224585745.5E32B1Gv1v@avalon>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hverkuil@xs4all.nl>, remi@remlab.net,
-	daniel-gl@gmx.net, laurent.pinchart@ideasonboard.com
-Subject: Re: [RFC] Timestamps and V4L2
-References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk> <201209211133.24174.hverkuil@xs4all.nl> <505DB12F.1090600@iki.fi>
-In-Reply-To: <505DB12F.1090600@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <224585745.5E32B1Gv1v@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/22/2012 02:38 PM, Sakari Ailus wrote:
->> You are missing one other option:
->>
->> Using v4l2_buffer flags to report the clock
->> -------------------------------------------
->>
->> By defining flags like this:
->>
->> V4L2_BUF_FLAG_CLOCK_MASK 0x7000
->> /* Possible Clocks */
->> V4L2_BUF_FLAG_CLOCK_UNKNOWN 0x0000 /* system or monotonic, we don't 
->> know */
->> V4L2_BUF_FLAG_CLOCK_MONOTONIC 0x1000
->>
->> you could tell the application which clock is used.
->>
->> This does allow for more clocks to be added in the future and clock 
->> selection
->> would then be done by a control or possibly an ioctl. For now there 
->> are no
->> plans to do such things, so this flag should be sufficient. And it can be
->> implemented very efficiently. It works with existing drivers as well, 
->> since
->> they will report CLOCK_UNKNOWN.
->>
->> I am very much in favor of this approach.
-
-+1
-
-I think I like this idea best, it's relatively simple (even with adding
-support for reporting flags in VIDIOC_QUERYBUF) for the purpose.
-
-If we ever need the clock selection API I would vote for an IOCTL.
-The controls API is a bad choice for something such fundamental as
-type of clock for buffer timestamping IMHO. Let's stop making the
-controls API a dumping ground for almost everything in V4L2! ;)
-
-> Thanks for adding this. I knew I was forgetting something but didn't 
-> remember what --- I swear it was unintentional! :-)
+On Thu, Sep 13, 2012 at 03:40:40AM +0200, Laurent Pinchart wrote:
+> Hi Sascha,
 > 
-> If we'd add more clocks without providing an ability to choose the clock 
-> from the user space, how would the clock be selected? It certainly isn't 
-> the driver's job, nor I think it should be system-specific either 
-> (platform data on embedded systems).
+> > > +int panel_get_modes(struct panel *panel, const struct fb_videomode
+> > > **modes)
+> > > +{
+> > > +	if (!panel->ops || !panel->ops->get_modes)
+> > > +		return 0;
+> > > +
+> > > +	return panel->ops->get_modes(panel, modes);
+> > > +}
+> > > +EXPORT_SYMBOL_GPL(panel_get_modes);
+> > 
+> > You have seen my of videomode helper proposal. One result there was that
+> > we want to have ranges for the margin/synclen fields. Does it make sense
+> > to base this new panel framework on a more sophisticated internal
+> > reprentation of the panel parameters?
 > 
-> It's up to the application and its needs. That would suggest we should 
-> always provide monotonic timestamps to applications (besides a potential 
-> driver-specific timestamp), and for that purpose the capability flag --- 
-> I admit I disliked the idea at first --- is enough.
+> I think it does, yes. We need a common video mode structure, and the panel 
+> framework should use it. I'll try to rebase my patches on top of your 
+> proposal. Have you posted the latest version ?
+
+V2 is the newest version. I'd like to implement ranges for the display
+timings which then makes for a new common video mode structure, which
+then could be used by drm and fbdev, probably with helper functions to
+convert from common videomode to drm/fbdev specific variants.
+
 > 
-> What comes to buffer flags, the application would also have to receive 
-> the first buffer from the device to even know what kind of timestamps 
-> the device uses, or at least call QUERYBUF. And in principle the flag 
-> should be checked on every buffer, unless we also specify the flag is 
-> the same for all buffers. And at certain point this will stop to make 
-> any sense...
-
-Good point. Perhaps VIDIOC_QUERYBUF and VIDIOC_DQBUF should be reporting
-timestamps type only for the time they are being called. Not per buffer,
-per device. And applications would be checking the flags any time they
-want to find out what is the buffer timestamp type. Or every time if it
-don't have full control over the device (S/G_PRIORITY).
-
-> A capability flag is cleaner solution from this perspective, and it can 
-> be amended by a control (or an ioctl) later on: the flag can be 
-> disregarded by applications whenever the control is present. If the 
-> application doesn't know about the control it can still rely on the 
-> flag. (I think this would be less clean than to go for the control right 
-> from the beginning, but better IMO.)
-
-But with the capability flag we would only be able to report one type of
-clock, right ?
-
->>> Device-dependent timestamp
->>> --------------------------
->>>
->>> Should we agree on selectable timestamps, the existing timestamp 
->>> field (or a
->>> union with another field of different type) could be used for the
->>> device-dependent timestamps.
->>
->> No. Device timestamps should get their own field. You want to be able 
->> to relate
->> device timestamps with the monotonic timestamps, so you need both.
->>
->>> Alternatively we can choose to re-use the
->>> existing timecode field.
->>>
->>> At the moment there's no known use case for passing device-dependent
->>> timestamps at the same time with monotonic timestamps.
->>
->> Well, the use case is there, but there is no driver support. The device
->> timestamps should be 64 bits to accomodate things like PTS and DTS from
->> MPEG streams. Since timecode is 128 bits we might want to use two u64 
->> fields
->> or perhaps 4 u32 fields.
+> > This could then be converted to struct fb_videomode / struct
+> > drm_display_mode as needed. This would also make it more suitable for drm
+> > drivers which are not interested in struct fb_videomode.
+> > 
+> > Related to this I suggest to change the API to be able to iterate over
+> > the different modes, like:
+> > 
+> > struct videomode *panel_get_mode(struct panel *panel, int num);
+> > 
+> > This was we do not have to have an array of modes in memory, which may
+> > be a burden for some panel drivers.
 > 
-> That should be an union for different kinds (or rather types) of 
-> device-dependent timestamps. On uvcvideo I think this is u32, not u64. 
-> We should be also able to tell what kind device dependent timestamp 
-> there is --- should buffer flags be used for that as well?
+> I currently have mixed feelings about this. Both approaches have pros and 
+> cons. Iterating over the modes would be more complex for drivers that use 
+> panels, and would be race-prone if the modes can change at runtime (OK, this 
+> isn't supported by the current panel API proposal).
 
-Timecode has 'type' and 'flags' fields, couldn't it be accommodated for 
-reporting device-dependant timestamps as well ?
+I just remember that the array approach was painful when I worked on an
+fbdev driver some time ago. There some possible modes came from platform_data,
+other modes were default modes in the driver and all had to be merged
+into a single array. I don't remember the situation exactly, but it
+would have been simpler if it had been a list instead of an array.
 
---
+Sascha
 
-Regards,
-Sylwester
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
