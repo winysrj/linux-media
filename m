@@ -1,19 +1,20 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:42225 "EHLO
+Received: from mail-we0-f174.google.com ([74.125.82.174]:38984 "EHLO
 	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750713Ab2IMHlx (ORCPT
+	with ESMTP id S1757551Ab2IMLcY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 03:41:53 -0400
-Received: by weyx8 with SMTP id x8so1502878wey.19
-        for <linux-media@vger.kernel.org>; Thu, 13 Sep 2012 00:41:52 -0700 (PDT)
+	Thu, 13 Sep 2012 07:32:24 -0400
+Received: by weyx8 with SMTP id x8so1614671wey.19
+        for <linux-media@vger.kernel.org>; Thu, 13 Sep 2012 04:32:23 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1347462158-20417-14-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1347535478.2429.345.camel@pizza.hi.pengutronix.de>
 References: <1347462158-20417-1-git-send-email-p.zabel@pengutronix.de>
-	<1347462158-20417-14-git-send-email-p.zabel@pengutronix.de>
-Date: Thu, 13 Sep 2012 09:41:52 +0200
-Message-ID: <CACKLOr1p2A9bZ45G-b2sExTp3Gx5dM-f=DybJU3nZHkjp73pgg@mail.gmail.com>
-Subject: Re: [PATCH v5 13/13] media: coda: set up buffers to be sized as
- negotiated with s_fmt
+	<CACKLOr2XDFUU=_dQ+P=ff9o27+_YZTTiA_nS+tv5t09mwDFPrQ@mail.gmail.com>
+	<CACKLOr2AjC3chZHK_jx1ZJsariT7i_f6pQ6BCiUJG+nfDzZBKA@mail.gmail.com>
+	<1347535478.2429.345.camel@pizza.hi.pengutronix.de>
+Date: Thu, 13 Sep 2012 13:32:23 +0200
+Message-ID: <CACKLOr0NVi0tq3=ADRJPGJkjXA=+=u2=_Cu9vSNpgpYhK1a8pQ@mail.gmail.com>
+Subject: Re: [PATCH v5 0/13] Initial i.MX5/CODA7 support for the CODA driver
 From: javier Martin <javier.martin@vista-silicon.com>
 To: Philipp Zabel <p.zabel@pengutronix.de>
 Cc: linux-media@vger.kernel.org,
@@ -27,57 +28,33 @@ Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12 September 2012 17:02, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> This fixes a failure in vb2_qbuf in user pointer mode where
-> __qbuf_userptr checks if the buffer queued by userspace is large
-> enough. The failure would happen if coda_queue_setup was called
-> with empty fmt (and thus set the expected buffer size to the maximum
-> resolution), and userspace queues buffers of smaller size -
-> corresponding to the negotiated dimensions - were queued.
-> Explicitly setting sizeimage to the value negotiated via s_fmt
-> fixes the issue.
->
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
+Hi Philipp,
 
-Acked-by: Javier Martin <javier.martin@vista-silicon.com>
+On 13 September 2012 13:24, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> Am Donnerstag, den 13.09.2012, 09:51 +0200 schrieb javier Martin:
+>> If you want to speed up the process and you have you could send a pull
+>> request to Mauro.
+>
+> Should I include the four patches below in the pull request, or wait for
+> them to hit staging/for_v3.7 ?
 
->  drivers/media/platform/coda.c |   13 +++----------
->  1 file changed, 3 insertions(+), 10 deletions(-)
+I think you should include them.
+In fact it could be more comfortable for you to apply them before your
+series and rebase those trivial patches instead of doing the opposite.
+Unless you have developed your series on top of the four patches
+below, which I think you didn't. Or maybe a rebase isn't necessary and
+the patches apply cleanly. I haven't tried.
+
+>> But be careful with the following patches that have been sent to the
+>> list after the initial support of the driver and before these series:
+>> http://patchwork.linuxtv.org/patch/14048/
+>> https://patchwork.kernel.org/patch/1367011/
+>> https://patchwork.kernel.org/patch/1363331/
+>> https://patchwork.kernel.org/patch/1352551/
 >
-> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-> index 0235f4e..0e0b4fe 100644
-> --- a/drivers/media/platform/coda.c
-> +++ b/drivers/media/platform/coda.c
-> @@ -813,18 +813,11 @@ static int coda_queue_setup(struct vb2_queue *vq,
->                                 unsigned int sizes[], void *alloc_ctxs[])
->  {
->         struct coda_ctx *ctx = vb2_get_drv_priv(vq);
-> +       struct coda_q_data *q_data;
->         unsigned int size;
+> regards
+> Philipp
 >
-> -       if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-> -               if (fmt)
-> -                       size = fmt->fmt.pix.width *
-> -                               fmt->fmt.pix.height * 3 / 2;
-> -               else
-> -                       size = MAX_W *
-> -                               MAX_H * 3 / 2;
-> -       } else {
-> -               size = CODA_MAX_FRAME_SIZE;
-> -       }
-> +       q_data = get_q_data(ctx, vq->type);
-> +       size = q_data->sizeimage;
->
->         *nplanes = 1;
->         sizes[0] = size;
-> --
-> 1.7.10.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
 
