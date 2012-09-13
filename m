@@ -1,46 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:50521 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754240Ab2IISBu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Sep 2012 14:01:50 -0400
-Received: by mail-ey0-f174.google.com with SMTP id c11so540081eaa.19
-        for <linux-media@vger.kernel.org>; Sun, 09 Sep 2012 11:01:50 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: hdegoede@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 4/6] gspca_pac7302: increase default value for white balance temperature
-Date: Sun,  9 Sep 2012 20:02:22 +0200
-Message-Id: <1347213744-8509-4-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1347213744-8509-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1347213744-8509-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from cn.fujitsu.com ([222.73.24.84]:58815 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1754687Ab2IMKV5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Sep 2012 06:21:57 -0400
+Message-ID: <5051B39E.8050806@cn.fujitsu.com>
+Date: Thu, 13 Sep 2012 18:21:18 +0800
+From: Wanlong Gao <gaowanlong@cn.fujitsu.com>
+Reply-To: gaowanlong@cn.fujitsu.com
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 4/5] video:omap3isp:fix up ENOIOCTLCMD error handling
+References: <1346052196-32682-1-git-send-email-gaowanlong@cn.fujitsu.com> <1346052196-32682-5-git-send-email-gaowanlong@cn.fujitsu.com> <1946796.hhZ2Ot34qB@avalon>
+In-Reply-To: <1946796.hhZ2Ot34qB@avalon>
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The current white balance temperature default value is 4, which is much too small (possible values are 0-255).
-Improve the picture quality by increasing the default value to 55, which is the default value used by the Windows driver.
+On 09/13/2012 12:03 PM, Laurent Pinchart wrote:
+> Hi Wanlong,
+> 
+> Thanks for the patch.
+> 
+> On Monday 27 August 2012 15:23:15 Wanlong Gao wrote:
+>> At commit 07d106d0, Linus pointed out that ENOIOCTLCMD should be
+>> translated as ENOTTY to user mode.
+>>
+>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+>> Cc: linux-media@vger.kernel.org
+>> Signed-off-by: Wanlong Gao <gaowanlong@cn.fujitsu.com>
+>> ---
+>>  drivers/media/video/omap3isp/ispvideo.c | 10 +++++-----
+>>  1 file changed, 5 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/media/video/omap3isp/ispvideo.c
+>> b/drivers/media/video/omap3isp/ispvideo.c index b37379d..2dd982e 100644
+>> --- a/drivers/media/video/omap3isp/ispvideo.c
+>> +++ b/drivers/media/video/omap3isp/ispvideo.c
+>> @@ -337,7 +337,7 @@ __isp_video_get_format(struct isp_video *video, struct
+>> v4l2_format *format) fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+>>  	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
+>>  	if (ret == -ENOIOCTLCMD)
+>> -		ret = -EINVAL;
+>> +		ret = -ENOTTY;
+> 
+> I don't think this location should be changed. __isp_video_get_format() is 
+> called by isp_video_check_format() only, which in turn is called by 
+> isp_video_streamon() only. A failure to retrieve the format in 
+> __isp_video_get_format() does not really mean the VIDIOC_STREAMON is not 
+> supported.
+> 
+> I'll apply hunks 2 to 5 and drop hunk 1 if that's fine with you.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/gspca/pac7302.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Fine, I defer to your great knowledge in this.
 
-diff --git a/drivers/media/usb/gspca/pac7302.c b/drivers/media/usb/gspca/pac7302.c
-index 8c29613..bed34df 100644
---- a/drivers/media/usb/gspca/pac7302.c
-+++ b/drivers/media/usb/gspca/pac7302.c
-@@ -632,7 +632,7 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
- 					V4L2_CID_SATURATION, 0, 255, 1, 127);
- 	sd->white_balance = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
- 					V4L2_CID_WHITE_BALANCE_TEMPERATURE,
--					0, 255, 1, 4);
-+					0, 255, 1, 55);
- 	sd->red_balance = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
- 					V4L2_CID_RED_BALANCE, 0, 3, 1, 1);
- 	sd->blue_balance = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
--- 
-1.7.7
+Thanks,
+Wanlong Gao
 
