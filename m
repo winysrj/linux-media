@@ -1,120 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:30760 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751295Ab2IFMmq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2012 08:42:46 -0400
-Received: from cobaltpc1.localnet (dhcp-10-54-92-107.cisco.com [10.54.92.107])
-	by ams-core-1.cisco.com (8.14.5/8.14.5) with ESMTP id q86Cgig8000571
-	for <linux-media@vger.kernel.org>; Thu, 6 Sep 2012 12:42:44 GMT
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Question: em28xx and audio inputs?
-Date: Thu, 6 Sep 2012 14:42:40 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209061442.40850.hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:52757 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756596Ab2IMAY0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Sep 2012 20:24:26 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 10/16] af9015: improve af9015_eeprom_hash()
+Date: Thu, 13 Sep 2012 03:23:51 +0300
+Message-Id: <1347495837-3244-10-git-send-email-crope@iki.fi>
+In-Reply-To: <1347495837-3244-1-git-send-email-crope@iki.fi>
+References: <1347495837-3244-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/af9015.c | 49 ++++++++++++++---------------------
+ 1 file changed, 20 insertions(+), 29 deletions(-)
 
-I've started work on fixing v4l2-compliance failures in em28xx and I came
-across a broken ENUM/G/S_AUDIO implementation.
+diff --git a/drivers/media/usb/dvb-usb-v2/af9015.c b/drivers/media/usb/dvb-usb-v2/af9015.c
+index c429da7..a4be303 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9015.c
++++ b/drivers/media/usb/dvb-usb-v2/af9015.c
+@@ -398,43 +398,34 @@ error:
+ static int af9015_eeprom_hash(struct dvb_usb_device *d)
+ {
+ 	struct af9015_state *state = d_to_priv(d);
+-	int ret;
+-	static const unsigned int eeprom_size = 256;
+-	unsigned int reg;
+-	u8 val, *eeprom;
+-	struct req_t req = {READ_I2C, AF9015_I2C_EEPROM, 0, 0, 1, 1, &val};
+-
+-	eeprom = kmalloc(eeprom_size, GFP_KERNEL);
+-	if (eeprom == NULL)
+-		return -ENOMEM;
+-
+-	for (reg = 0; reg < eeprom_size; reg++) {
+-		req.addr = reg;
++	int ret, i;
++	static const unsigned int AF9015_EEPROM_SIZE = 256;
++	u8 buf[AF9015_EEPROM_SIZE];
++	struct req_t req = {READ_I2C, AF9015_I2C_EEPROM, 0, 0, 1, 1, NULL};
++
++	/* read eeprom */
++	for (i = 0; i < AF9015_EEPROM_SIZE; i++) {
++		req.addr = i;
++		req.data = &buf[i];
+ 		ret = af9015_ctrl_msg(d, &req);
+-		if (ret)
+-			goto free;
+-
+-		eeprom[reg] = val;
++		if (ret < 0)
++			goto err;
+ 	}
+ 
+-	for (reg = 0; reg < eeprom_size; reg += 16)
+-		dev_dbg(&d->udev->dev, "%s: %*ph\n", __func__, 16,
+-				eeprom + reg);
+-
+-	BUG_ON(eeprom_size % 4);
+-
+-	state->eeprom_sum = 0;
+-	for (reg = 0; reg < eeprom_size / sizeof(u32); reg++) {
++	/* calculate checksum */
++	for (i = 0; i < AF9015_EEPROM_SIZE / sizeof(u32); i++) {
+ 		state->eeprom_sum *= GOLDEN_RATIO_PRIME_32;
+-		state->eeprom_sum += le32_to_cpu(((u32 *)eeprom)[reg]);
++		state->eeprom_sum += le32_to_cpu(((u32 *)buf)[i]);
+ 	}
+ 
++	for (i = 0; i < AF9015_EEPROM_SIZE; i += 16)
++		dev_dbg(&d->udev->dev, "%s: %*ph\n", __func__, 16, buf + i);
++
+ 	dev_dbg(&d->udev->dev, "%s: eeprom sum=%.8x\n",
+ 			__func__, state->eeprom_sum);
+-
+-	ret = 0;
+-free:
+-	kfree(eeprom);
++	return 0;
++err:
++	dev_err(&d->udev->dev, "%s: eeprom failed=%d\n", KBUILD_MODNAME, ret);
+ 	return ret;
+ }
+ 
+-- 
+1.7.11.4
 
-This is the current implementation:
-
-static int vidioc_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
-{
-        struct em28xx_fh   *fh    = priv;
-        struct em28xx      *dev   = fh->dev;
-
-        if (!dev->audio_mode.has_audio)
-                return -EINVAL;
-
-        switch (a->index) {
-        case EM28XX_AMUX_VIDEO:
-                strcpy(a->name, "Television");
-                break;
-        case EM28XX_AMUX_LINE_IN:
-                strcpy(a->name, "Line In");
-                break;
-        case EM28XX_AMUX_VIDEO2:
-                strcpy(a->name, "Television alt");
-                break;
-        case EM28XX_AMUX_PHONE:
-                strcpy(a->name, "Phone");
-                break;
-        case EM28XX_AMUX_MIC:
-                strcpy(a->name, "Mic");
-                break;
-        case EM28XX_AMUX_CD:
-                strcpy(a->name, "CD");
-                break;
-        case EM28XX_AMUX_AUX:
-                strcpy(a->name, "Aux");
-                break;
-        case EM28XX_AMUX_PCM_OUT:
-                strcpy(a->name, "PCM");
-                break;
-        default:
-                return -EINVAL;
-        }
-
-        a->index = dev->ctl_ainput;
-        a->capability = V4L2_AUDCAP_STEREO;
-
-        return 0;
-}
-
-static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio *a)
-{
-        struct em28xx_fh   *fh  = priv;
-        struct em28xx      *dev = fh->dev;
-
-
-        if (!dev->audio_mode.has_audio)
-                return -EINVAL;
-
-        if (a->index >= MAX_EM28XX_INPUT)
-                return -EINVAL;
-        if (0 == INPUT(a->index)->type)
-                return -EINVAL;
-
-        dev->ctl_ainput = INPUT(a->index)->amux;
-        dev->ctl_aoutput = INPUT(a->index)->aout;
-
-        if (!dev->ctl_aoutput)
-                dev->ctl_aoutput = EM28XX_AOUT_MASTER;
-
-        return 0;
-}
-
-The g_audio implementation is wrong because it has a switch on a->index instead
-of on dev->ctl_ainput. That's easy enough to fix, but s_audio is a real problem:
-it interprets a->index as an input index instead of as an audio input index.
-
-In addition, ctl_ainput does not have to be an EM28XX_AMUX_* index, as some
-boards use an msp34xx instead.
-
-I see a number of possible solutions:
-
-1) Just delete the audio input support. Clearly nobody has used this code.
-2) Don't implement audio input support if the msp3400 is used, otherwise
-allow the user to set the em28xx AMUX to any of the possible values.
-3) Don't implement audio input support if the msp3400 is used, otherwise
-allow the user to set the em28xx AMUX to any of the values supported by
-the list of inputs for that board.
-
-The difference between 2 and 3 is that with 2 you can select e.g. a CD
-input, even though it is unlikely that it is hooked up to something.
-
-I have no idea whether that would make sense or not. I'm inclined to do
-either 1 or 3.
-
-Any em28xx that can shed some light on this?
-
-Regards,
-
-	Hans
