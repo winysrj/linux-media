@@ -1,19 +1,16 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39859 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754972Ab2IGSpg (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59422 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756783Ab2IMKQy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Sep 2012 14:45:36 -0400
-Message-ID: <504A4114.5010106@iki.fi>
-Date: Fri, 07 Sep 2012 21:46:44 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.lad@ti.com>
-CC: LMML <linux-media@vger.kernel.org>,
+	Thu, 13 Sep 2012 06:16:54 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Prabhakar Lad <prabhakar.lad@ti.com>,
+	LMML <linux-media@vger.kernel.org>,
 	dlos <davinci-linux-open-source@linux.davincidsp.com>,
 	linux-kernel@vger.kernel.org,
 	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	linux-doc@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
@@ -21,132 +18,68 @@ CC: LMML <linux-media@vger.kernel.org>,
 	Kyungmin Park <kyungmin.park@samsung.com>,
 	Rob Landley <rob@landley.net>
 Subject: Re: [PATCH v4] media: v4l2-ctrls: add control for dpcm predictor
-References: <1346737072-24341-1-git-send-email-prabhakar.lad@ti.com> <20120904191227.GE6834@valkosipuli.retiisi.org.uk> <5046DEC1.6050704@ti.com>
-In-Reply-To: <5046DEC1.6050704@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Date: Thu, 13 Sep 2012 02:59:22 +0200
+Message-ID: <1966621.qrSMP274pk@avalon>
+In-Reply-To: <504A4114.5010106@iki.fi>
+References: <1346737072-24341-1-git-send-email-prabhakar.lad@ti.com> <5046DEC1.6050704@ti.com> <504A4114.5010106@iki.fi>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Hi Sakari,
 
-Prabhakar Lad wrote:
-> Hi Sakari,
->
-> Thanks for the review.
->
-> On Wednesday 05 September 2012 12:42 AM, Sakari Ailus wrote:
->> Hi Prabhakar,
->>
->> Thanks for the patch. I've got a few comments below.
->>
->> On Tue, Sep 04, 2012 at 11:07:52AM +0530, Prabhakar Lad wrote:
->>> From: Lad, Prabhakar <prabhakar.lad@ti.com>
->>>
->>> add V4L2_CID_DPCM_PREDICTOR control of type menu, which
->>> determines the dpcm predictor. The predictor can be either
->>> simple or advanced.
->>>
->>> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
->>> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
->>> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
->>> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
->>> Cc: Sakari Ailus <sakari.ailus@iki.fi>
->>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
->>> Cc: Hans de Goede <hdegoede@redhat.com>
->>> Cc: Kyungmin Park <kyungmin.park@samsung.com>
->>> Cc: Rob Landley <rob@landley.net>
->>> ---
->>> This patches has one checkpatch warning for line over
->>> 80 characters altough it can be avoided I have kept it
->>> for consistency.
->>>
->>> Changes for v4:
->>> 1: Aligned the description to fit appropriately in the
->>> para tag, pointed by Sylwester.
->>>
->>> Changes for v3:
->>> 1: Added better explanation for DPCM, pointed by Hans.
->>>
->>> Changes for v2:
->>> 1: Added documentaion in controls.xml pointed by Sylwester.
->>> 2: Chnaged V4L2_DPCM_PREDICTOR_ADVANCE to V4L2_DPCM_PREDICTOR_ADVANCED
->>>     pointed by Sakari.
->>>
->>>   Documentation/DocBook/media/v4l/controls.xml |   46 +++++++++++++++++++++++++-
->>>   drivers/media/v4l2-core/v4l2-ctrls.c         |    9 +++++
->>>   include/linux/videodev2.h                    |    5 +++
->>>   3 files changed, 59 insertions(+), 1 deletions(-)
->>>
->>> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
->>> index 93b9c68..ad873ea 100644
->>> --- a/Documentation/DocBook/media/v4l/controls.xml
->>> +++ b/Documentation/DocBook/media/v4l/controls.xml
->>> @@ -4267,7 +4267,51 @@ interface and may change in the future.</para>
->>>   	    pixels / second.
->>>   	    </entry>
->>>   	  </row>
->>> -	  <row><entry></entry></row>
->>> +	  <row>
->>> +	    <entry spanname="id"><constant>V4L2_CID_DPCM_PREDICTOR</constant></entry>
->>> +	    <entry>menu</entry>
->>> +	  </row>
->>> +	  <row id="v4l2-dpcm-predictor">
->>> +	    <entry spanname="descr"> Differential pulse-code modulation (DPCM) is a signal
->>> +	    encoder that uses the baseline of pulse-code modulation (PCM) but adds some
->>> +	    functionalities based on the prediction of the samples of the signal. The input
->>> +	    can be an analog signal or a digital signal.
->>> +
->>> +	    <para>If the input is a continuous-time analog signal, it needs to be sampled
->>> +	    first so that a discrete-time signal is the input to the DPCM encoder.</para>
->>> +
->>> +	    <para>Simple: take the values of two consecutive samples; if they are analog
->>> +	    samples, quantize them; calculate the difference between the first one and the
->>> +	    next; the output is the difference, and it can be further entropy coded.</para>
->>> +
->>> +	    <para>Advanced: instead of taking a difference relative to a previous input sample,
->>> +	    take the difference relative to the output of a local model of the decoder process;
->>> +	    in this option, the difference can be quantized, which allows a good way to
->>> +	    incorporate a controlled loss in the encoding.</para>
->>
->> This is directly from Wikipedia, isn't it?
->>
-> Yes.
->
->> What comes to the content, DPCM in the context of V4L2 media bus codes, as a
->> digital interface, is always digital. So there's no need to document it.
->> Entropy coding is also out of the question: the samples of the currently
->> defined formats are equal in size.
->>
-> Ok.
+On Friday 07 September 2012 21:46:44 Sakari Ailus wrote:
+> 
+> Could you replace the above with this text (with appropriate indentation
+> etc.) while keeping the reference to Wikipedia?
+> 
+> ------8<------
+> Differential pulse-code modulation (DPCM) compression can be used to
+> compress the samples into fewer bits than they would otherwise require.
+> This is done by calculating the difference between consecutive samples
+> and outputting the difference which in average is much smaller than the
+> values of the samples themselves since there is generally lots of
+> correlation between adjacent pixels. In decompression the original
+> samples are reconstructed. The process isn't lossless as the encoded
+> sample size in bits is less than the original.
+> 
+> Formats using DPCM compression include <xref
+> linkend="pixfmt-srggb10dpcm8" />.
+> 
+> This control is used to select the predictor used to encode the samples.
 
-Could you replace the above with this text (with appropriate indentation 
-etc.) while keeping the reference to Wikipedia?
+If I remember correctly this control will be used on the receiver side on 
+DaVinci, to decode pixels not encode them. How is the predictor used in that 
+case ? Must it match the predictor used on the encoding side ? If so I expect 
+documentation to be available somewhere.
 
-------8<------
-Differential pulse-code modulation (DPCM) compression can be used to 
-compress the samples into fewer bits than they would otherwise require. 
-This is done by calculating the difference between consecutive samples 
-and outputting the difference which in average is much smaller than the 
-values of the samples themselves since there is generally lots of 
-correlation between adjacent pixels. In decompression the original 
-samples are reconstructed. The process isn't lossless as the encoded 
-sample size in bits is less than the original.
+The OMAP3 ISP supports both DPCM encoding and decoding, and documents the 
+predictors as
 
-Formats using DPCM compression include <xref 
-linkend="pixfmt-srggb10dpcm8" />.
+"- The simple predictor
 
-This control is used to select the predictor used to encode the samples.
+This predictor uses only the previous same color component value as a 
+prediction value. Therefore, only two-pixel memory is required.
 
-The main difference between the simple and the advanced predictors is 
-image quality, with advanced predictor supposed to produce better 
-quality images as a result. Simple predictor can be used e.g. for 
-testing purposes.
-------8<------
+- The advanced predictor
 
-Kind regards,
+This predictor uses four previous pixel values, when the prediction value is 
+evaluated. This means that also the other color component values are used, 
+when the prediction value has been defined."
+
+It also states the the simple predictor is preferred for 10-8-10 conversion, 
+and the advanced predictor for 10-7-10 and 10-6-10 conversion.
+
+> The main difference between the simple and the advanced predictors is
+> image quality, with advanced predictor supposed to produce better
+> quality images as a result. Simple predictor can be used e.g. for
+> testing purposes.
+> ------8<------
 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Regards,
+
+Laurent Pinchart
+
