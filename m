@@ -1,85 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57828 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754368Ab2INV5W (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:42225 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750713Ab2IMHlx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 17:57:22 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Antoine Reversat <a.reversat@gmail.com>, sakari.ailus@iki.fi
-Subject: [PATCH v2] omap3isp: Use monotonic timestamps for statistics buffers
-Date: Fri, 14 Sep 2012 23:57:48 +0200
-Message-Id: <1347659868-17398-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Thu, 13 Sep 2012 03:41:53 -0400
+Received: by weyx8 with SMTP id x8so1502878wey.19
+        for <linux-media@vger.kernel.org>; Thu, 13 Sep 2012 00:41:52 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1347462158-20417-14-git-send-email-p.zabel@pengutronix.de>
+References: <1347462158-20417-1-git-send-email-p.zabel@pengutronix.de>
+	<1347462158-20417-14-git-send-email-p.zabel@pengutronix.de>
+Date: Thu, 13 Sep 2012 09:41:52 +0200
+Message-ID: <CACKLOr1p2A9bZ45G-b2sExTp3Gx5dM-f=DybJU3nZHkjp73pgg@mail.gmail.com>
+Subject: Re: [PATCH v5 13/13] media: coda: set up buffers to be sized as
+ negotiated with s_fmt
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-V4L2 buffers use the monotonic clock, while statistics buffers use wall
-time. This makes it difficult to correlate video frames and statistics.
+On 12 September 2012 17:02, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> This fixes a failure in vb2_qbuf in user pointer mode where
+> __qbuf_userptr checks if the buffer queued by userspace is large
+> enough. The failure would happen if coda_queue_setup was called
+> with empty fmt (and thus set the expected buffer size to the maximum
+> resolution), and userspace queues buffers of smaller size -
+> corresponding to the negotiated dimensions - were queued.
+> Explicitly setting sizeimage to the value negotiated via s_fmt
+> fixes the issue.
+>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
 
-Switch statistics buffers to the monotonic clock to fix this, and
-replace struct timeval with struct timespec.
+Acked-by: Javier Martin <javier.martin@vista-silicon.com>
 
-Reported-by: Antoine Reversat <a.reversat@gmail.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/ispstat.c |    2 +-
- drivers/media/platform/omap3isp/ispstat.h |    2 +-
- include/linux/omap3isp.h                  |    7 ++++++-
- 3 files changed, 8 insertions(+), 3 deletions(-)
+>  drivers/media/platform/coda.c |   13 +++----------
+>  1 file changed, 3 insertions(+), 10 deletions(-)
+>
+> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+> index 0235f4e..0e0b4fe 100644
+> --- a/drivers/media/platform/coda.c
+> +++ b/drivers/media/platform/coda.c
+> @@ -813,18 +813,11 @@ static int coda_queue_setup(struct vb2_queue *vq,
+>                                 unsigned int sizes[], void *alloc_ctxs[])
+>  {
+>         struct coda_ctx *ctx = vb2_get_drv_priv(vq);
+> +       struct coda_q_data *q_data;
+>         unsigned int size;
+>
+> -       if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+> -               if (fmt)
+> -                       size = fmt->fmt.pix.width *
+> -                               fmt->fmt.pix.height * 3 / 2;
+> -               else
+> -                       size = MAX_W *
+> -                               MAX_H * 3 / 2;
+> -       } else {
+> -               size = CODA_MAX_FRAME_SIZE;
+> -       }
+> +       q_data = get_q_data(ctx, vq->type);
+> +       size = q_data->sizeimage;
+>
+>         *nplanes = 1;
+>         sizes[0] = size;
+> --
+> 1.7.10.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-diff --git a/drivers/media/platform/omap3isp/ispstat.c b/drivers/media/platform/omap3isp/ispstat.c
-index b8640be..bb21c4e 100644
---- a/drivers/media/platform/omap3isp/ispstat.c
-+++ b/drivers/media/platform/omap3isp/ispstat.c
-@@ -256,7 +256,7 @@ static int isp_stat_buf_queue(struct ispstat *stat)
- 	if (!stat->active_buf)
- 		return STAT_NO_BUF;
- 
--	do_gettimeofday(&stat->active_buf->ts);
-+	ktime_get_ts(&stat->active_buf->ts);
- 
- 	stat->active_buf->buf_size = stat->buf_size;
- 	if (isp_stat_buf_check_magic(stat, stat->active_buf)) {
-diff --git a/drivers/media/platform/omap3isp/ispstat.h b/drivers/media/platform/omap3isp/ispstat.h
-index 9b7c865..8221d0c 100644
---- a/drivers/media/platform/omap3isp/ispstat.h
-+++ b/drivers/media/platform/omap3isp/ispstat.h
-@@ -50,7 +50,7 @@ struct ispstat_buffer {
- 	struct iovm_struct *iovm;
- 	void *virt_addr;
- 	dma_addr_t dma_addr;
--	struct timeval ts;
-+	struct timespec ts;
- 	u32 buf_size;
- 	u32 frame_number;
- 	u16 config_counter;
-diff --git a/include/linux/omap3isp.h b/include/linux/omap3isp.h
-index c090cf9..263a0c0 100644
---- a/include/linux/omap3isp.h
-+++ b/include/linux/omap3isp.h
-@@ -27,6 +27,11 @@
- #ifndef OMAP3_ISP_USER_H
- #define OMAP3_ISP_USER_H
- 
-+#ifdef __KERNEL__
-+#include <linux/time.h>     /* need struct timespec */
-+#else
-+#include <sys/time.h>
-+#endif
- #include <linux/types.h>
- #include <linux/videodev2.h>
- 
-@@ -164,7 +169,7 @@ struct omap3isp_h3a_aewb_config {
-  * @config_counter: Number of the configuration associated with the data.
-  */
- struct omap3isp_stat_data {
--	struct timeval ts;
-+	struct timespec ts;
- 	void __user *buf;
- 	__u32 buf_size;
- 	__u16 frame_number;
+
+
 -- 
-Regards,
-
-Laurent Pinchart
-
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
