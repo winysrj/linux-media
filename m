@@ -1,156 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3431 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753880Ab2IGN3m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 09:29:42 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:38216 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757506Ab2IMLxj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Sep 2012 07:53:39 -0400
+From: Hans Verkuil <hansverk@cisco.com>
+To: Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: Re: [PATCH v3] media: v4l2-ctrl: add a helper function to modify the menu
+Date: Thu, 13 Sep 2012 13:53:34 +0200
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 API PATCH 08/28] v4l2: remove experimental tag from a number of old drivers.
-Date: Fri,  7 Sep 2012 15:29:08 +0200
-Message-Id: <0cbef0a949709d1c824b850f5bf59225d224059e.1347023744.git.hans.verkuil@cisco.com>
-In-Reply-To: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
-References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
-References: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
+	LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-kernel@vger.kernel.org,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	linux-doc@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	"Sakari Ailus" <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
+	Rob Landley <rob@landley.net>
+References: <1347373418-18927-1-git-send-email-prabhakar.lad@ti.com> <1481481.zLUeB0rsrG@avalon> <5051C6E8.8030109@ti.com>
+In-Reply-To: <5051C6E8.8030109@ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201209131353.34497.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thu 13 September 2012 13:43:36 Prabhakar Lad wrote:
+> Hi Laurent,
+> 
+> Thanks for the review.
+> 
+> On Thursday 13 September 2012 06:45 AM, Laurent Pinchart wrote:
+> > Hi Prabhakar,
+> > 
+> > Thanks for the patch.
+> > 
+> > On Tuesday 11 September 2012 19:53:38 Prabhakar Lad wrote:
+> >> From: Lad, Prabhakar <prabhakar.lad@ti.com>
+> >>
+> >> Add a helper function to modify the menu, max and default value
+> >> to set.
+> >>
+> >> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> >> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> >> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> >> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> >> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> >> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> >> Cc: Hans de Goede <hdegoede@redhat.com>
+> >> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> >> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> >> Cc: Rob Landley <rob@landley.net>
+> >> ---
+> >> Changes for v3:
+> >> 1: Fixed style/grammer issues as pointed by Hans.
+> >>    Thanks Hans for providing the description.
+> >>
+> >> Changes for v2:
+> >> 1: Fixed review comments from Hans, to have return type as
+> >>    void, add WARN_ON() for fail conditions, allow this fucntion
+> >>    to modify the menu of custom controls.
+> >>
+> >>  Documentation/video4linux/v4l2-controls.txt |   29 ++++++++++++++++++++++++
+> >>  drivers/media/v4l2-core/v4l2-ctrls.c        |   17 +++++++++++++++
+> >>  include/media/v4l2-ctrls.h                  |   11 ++++++++++
+> >>  3 files changed, 57 insertions(+), 0 deletions(-)
+> >>
+> >> diff --git a/Documentation/video4linux/v4l2-controls.txt
+> >> b/Documentation/video4linux/v4l2-controls.txt index 43da22b..01d0a82 100644
+> >> --- a/Documentation/video4linux/v4l2-controls.txt
+> >> +++ b/Documentation/video4linux/v4l2-controls.txt
+> >> @@ -367,6 +367,35 @@ it to 0 means that all menu items are supported.
+> >>  You set this mask either through the v4l2_ctrl_config struct for a custom
+> >>  control, or by calling v4l2_ctrl_new_std_menu().
+> >>
+> >> +There are situations where menu items may be device specific. In such cases
+> >> the
+> >> +framework provides a helper function to change the menu:
+> >> +
+> >> +void v4l2_ctrl_modify_menu(struct v4l2_ctrl *ctrl, const char * const
+> >> *qmenu,
+> >> +	s32 max, u32 menu_skip_mask, s32 def);
+> > 
+> > Sorry if this is a stupid question, but wouldn't it be better to add a 
+> > function to create a custom menu instead of modifying it afterwards ?
+> > 
+> Create a custom menu? eventually everything boils down to modifying the
+> menu itself.
 
-A number of old drivers still had the experimental tag. Time to remove it.
+Laurent, the reason we went for modifying a standard control is that that
+ensures that the control name and type is all standardized. The only thing
+that can be changed later is the menu contents.
 
-It concerns the following drivers:
+Regards,
 
-VIDEO_TLV320AIC23B
-USB_STKWEBCAM
-VIDEO_CX18
-VIDEO_CX18_ALSA
-VIDEO_ZORAN_AVS6EYES
-DVB_USB_AF9005
-MEDIA_TUNER_TEA5761
-VIDEO_NOON010PC30
+	Hans
 
-This decision was taken during the 2012 Media Workshop.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/Kconfig           |    4 ++--
- drivers/media/pci/cx18/Kconfig      |    4 ++--
- drivers/media/pci/zoran/Kconfig     |    4 ++--
- drivers/media/tuners/Kconfig        |    5 ++---
- drivers/media/usb/dvb-usb/Kconfig   |    2 +-
- drivers/media/usb/stkwebcam/Kconfig |    2 +-
- 6 files changed, 10 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 9a5a059..64e0c5c 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -117,7 +117,7 @@ config VIDEO_CS53L32A
- 
- config VIDEO_TLV320AIC23B
- 	tristate "Texas Instruments TLV320AIC23B audio codec"
--	depends on VIDEO_V4L2 && I2C && EXPERIMENTAL
-+	depends on VIDEO_V4L2 && I2C
- 	---help---
- 	  Support for the Texas Instruments TLV320AIC23B audio codec.
- 
-@@ -469,7 +469,7 @@ config VIDEO_SR030PC30
- 
- config VIDEO_NOON010PC30
- 	tristate "Siliconfile NOON010PC30 sensor support"
--	depends on I2C && VIDEO_V4L2 && EXPERIMENTAL && VIDEO_V4L2_SUBDEV_API
-+	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
- 	depends on MEDIA_CAMERA_SUPPORT
- 	---help---
- 	  This driver supports NOON010PC30 CIF camera from Siliconfile
-diff --git a/drivers/media/pci/cx18/Kconfig b/drivers/media/pci/cx18/Kconfig
-index 9a9f765..c675b83 100644
---- a/drivers/media/pci/cx18/Kconfig
-+++ b/drivers/media/pci/cx18/Kconfig
-@@ -1,6 +1,6 @@
- config VIDEO_CX18
- 	tristate "Conexant cx23418 MPEG encoder support"
--	depends on VIDEO_V4L2 && DVB_CORE && PCI && I2C && EXPERIMENTAL
-+	depends on VIDEO_V4L2 && DVB_CORE && PCI && I2C
- 	select I2C_ALGOBIT
- 	select VIDEOBUF_VMALLOC
- 	depends on RC_CORE
-@@ -25,7 +25,7 @@ config VIDEO_CX18
- 
- config VIDEO_CX18_ALSA
- 	tristate "Conexant 23418 DMA audio support"
--	depends on VIDEO_CX18 && SND && EXPERIMENTAL
-+	depends on VIDEO_CX18 && SND
- 	select SND_PCM
- 	---help---
- 	  This is a video4linux driver for direct (DMA) audio on
-diff --git a/drivers/media/pci/zoran/Kconfig b/drivers/media/pci/zoran/Kconfig
-index a9b2318..26ca870 100644
---- a/drivers/media/pci/zoran/Kconfig
-+++ b/drivers/media/pci/zoran/Kconfig
-@@ -65,8 +65,8 @@ config VIDEO_ZORAN_LML33R10
- 	  card.
- 
- config VIDEO_ZORAN_AVS6EYES
--	tristate "AverMedia 6 Eyes support (EXPERIMENTAL)"
--	depends on VIDEO_ZORAN_ZR36060 && EXPERIMENTAL
-+	tristate "AverMedia 6 Eyes support"
-+	depends on VIDEO_ZORAN_ZR36060
- 	select VIDEO_BT856 if MEDIA_SUBDRV_AUTOSELECT
- 	select VIDEO_BT866 if MEDIA_SUBDRV_AUTOSELECT
- 	select VIDEO_KS0127 if MEDIA_SUBDRV_AUTOSELECT
-diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
-index 80238b9..901d886 100644
---- a/drivers/media/tuners/Kconfig
-+++ b/drivers/media/tuners/Kconfig
-@@ -28,7 +28,7 @@ config MEDIA_TUNER
- 	select MEDIA_TUNER_XC4000 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_MT20XX if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_TDA8290 if MEDIA_SUBDRV_AUTOSELECT
--	select MEDIA_TUNER_TEA5761 if MEDIA_SUBDRV_AUTOSELECT && MEDIA_RADIO_SUPPORT && EXPERIMENTAL
-+	select MEDIA_TUNER_TEA5761 if MEDIA_SUBDRV_AUTOSELECT && MEDIA_RADIO_SUPPORT
- 	select MEDIA_TUNER_TEA5767 if MEDIA_SUBDRV_AUTOSELECT && MEDIA_RADIO_SUPPORT
- 	select MEDIA_TUNER_SIMPLE if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_TDA9887 if MEDIA_SUBDRV_AUTOSELECT
-@@ -78,9 +78,8 @@ config MEDIA_TUNER_TDA9887
- 	  analog IF demodulator.
- 
- config MEDIA_TUNER_TEA5761
--	tristate "TEA 5761 radio tuner (EXPERIMENTAL)"
-+	tristate "TEA 5761 radio tuner"
- 	depends on MEDIA_SUPPORT && I2C
--	depends on EXPERIMENTAL
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
- 	help
- 	  Say Y here to include support for the Philips TEA5761 radio tuner.
-diff --git a/drivers/media/usb/dvb-usb/Kconfig b/drivers/media/usb/dvb-usb/Kconfig
-index 3c5fff8..fa0b293 100644
---- a/drivers/media/usb/dvb-usb/Kconfig
-+++ b/drivers/media/usb/dvb-usb/Kconfig
-@@ -227,7 +227,7 @@ config DVB_USB_OPERA1
- 
- config DVB_USB_AF9005
- 	tristate "Afatech AF9005 DVB-T USB1.1 support"
--	depends on DVB_USB && EXPERIMENTAL
-+	depends on DVB_USB
- 	select MEDIA_TUNER_MT2060 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_QT1010 if MEDIA_SUBDRV_AUTOSELECT
- 	help
-diff --git a/drivers/media/usb/stkwebcam/Kconfig b/drivers/media/usb/stkwebcam/Kconfig
-index 2fb0c2b..a6a00aa 100644
---- a/drivers/media/usb/stkwebcam/Kconfig
-+++ b/drivers/media/usb/stkwebcam/Kconfig
-@@ -1,6 +1,6 @@
- config USB_STKWEBCAM
- 	tristate "USB Syntek DC1125 Camera support"
--	depends on VIDEO_V4L2 && EXPERIMENTAL
-+	depends on VIDEO_V4L2
- 	---help---
- 	  Say Y here if you want to use this type of camera.
- 	  Supported devices are typically found in some Asus laptops,
--- 
-1.7.10.4
-
+> 
+> Regards,
+> --Prabhakar Lad
+> 
+> >> +
+> >> +A good example is the test pattern control for capture/display/sensors
+> >> devices
+> >> +that have the capability to generate test patterns. These test patterns are
+> >> +hardware specific, so the contents of the menu will vary from device to
+> >> device.
+> >> +
+> >> +This helper function is used to modify the menu, max, mask and the default
+> >> +value of the control.
+> >> +
+> >> +Example:
+> >> +
+> >> +	static const char * const test_pattern[] = {
+> >> +		"Disabled",
+> >> +		"Vertical Bars",
+> >> +		"Solid Black",
+> >> +		"Solid White",
+> >> +		NULL,
+> >> +	};
+> >> +	struct v4l2_ctrl *test_pattern_ctrl =
+> >> +		v4l2_ctrl_new_std_menu(&foo->ctrl_handler, &foo_ctrl_ops,
+> >> +			V4L2_CID_TEST_PATTERN, V4L2_TEST_PATTERN_DISABLED, 0,
+> >> +			V4L2_TEST_PATTERN_DISABLED);
+> >> +
+> >> +	v4l2_ctrl_modify_menu(test_pattern_ctrl, test_pattern, 3, 0,
+> >> +		V4L2_TEST_PATTERN_DISABLED);
+> >>
+> >>  Custom Controls
+> >>  ===============
+> > 
+> 
+> 
