@@ -1,37 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx.fr.smartjog.net ([95.81.144.3]:47994 "EHLO
-	mx.fr.smartjog.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758498Ab2INJ1l (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59422 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754800Ab2IMKQp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 05:27:41 -0400
-From: =?UTF-8?q?R=C3=A9mi=20Cardona?= <remi.cardona@smartjog.com>
-To: linux-media@vger.kernel.org
-Cc: liplianin@me.by
-Subject: [PATCH 1/6] [media] ds3000: Declare MODULE_FIRMWARE usage
-Date: Fri, 14 Sep 2012 11:27:21 +0200
-Message-Id: <1347614846-19046-2-git-send-email-remi.cardona@smartjog.com>
-In-Reply-To: <1347614846-19046-1-git-send-email-remi.cardona@smartjog.com>
-References: <1347614846-19046-1-git-send-email-remi.cardona@smartjog.com>
+	Thu, 13 Sep 2012 06:16:45 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 API PATCH 10/28] Rename V4L2_(IN|OUT)_CAP_CUSTOM_TIMINGS.
+Date: Thu, 13 Sep 2012 04:22:52 +0200
+Message-ID: <1460675.kl1J5jUHQS@avalon>
+In-Reply-To: <0c01d1164be688b20ae03f51c700a31a7f154acc.1347023744.git.hans.verkuil@cisco.com>
+References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl> <0c01d1164be688b20ae03f51c700a31a7f154acc.1347023744.git.hans.verkuil@cisco.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Rémi Cardona <remi.cardona@smartjog.com>
----
- drivers/media/dvb/frontends/ds3000.c |    1 +
- 1 file changed, 1 insertion(+)
+Hi Hans,
 
-diff --git a/drivers/media/dvb/frontends/ds3000.c b/drivers/media/dvb/frontends/ds3000.c
-index 4c8ac26..46874c7 100644
---- a/drivers/media/dvb/frontends/ds3000.c
-+++ b/drivers/media/dvb/frontends/ds3000.c
-@@ -1310,3 +1310,4 @@ MODULE_DESCRIPTION("DVB Frontend module for Montage Technology "
- 			"DS3000/TS2020 hardware");
- MODULE_AUTHOR("Konstantin Dimitrov");
- MODULE_LICENSE("GPL");
-+MODULE_FIRMWARE(DS3000_DEFAULT_FIRMWARE);
+Thanks for the patch.
+
+On Friday 07 September 2012 15:29:10 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> The 'custom' timings are no longer just for custom timings, but also for
+> standard CEA/VESA timings. So rename to V4L2_IN/OUT_CAP_DV_TIMINGS.
+> 
+> The old define is still kept for backwards compatibility.
+
+Should they be added to feature-removal-schedule.txt ?
+
+> This decision was taken during the 2012 Media Workshop.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
