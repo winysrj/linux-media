@@ -1,100 +1,424 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60960 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756129Ab2ISKl6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Sep 2012 06:41:58 -0400
-Message-ID: <5059A161.7040907@iki.fi>
-Date: Wed, 19 Sep 2012 13:41:37 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Oliver Schinagl <oliver+list@schinagl.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Support for Asus MyCinema U3100Mini Plus (attempt 2)
-References: <1348006936-6334-1-git-send-email-oliver+list@schinagl.nl> <5058F8F2.90106@iki.fi> <505995D3.7010201@schinagl.nl>
-In-Reply-To: <505995D3.7010201@schinagl.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from 173-160-178-141-Washington.hfc.comcastbusiness.net ([173.160.178.141]:45782
+	"EHLO relay" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753246Ab2IMWqD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Sep 2012 18:46:03 -0400
+From: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
+To: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Subject: [PATCH 3/3] Add a codec driver for SI476X MFD
+Date: Thu, 13 Sep 2012 15:40:13 -0700
+Message-Id: <1347576013-28832-4-git-send-email-andrey.smirnov@convergeddevices.net>
+In-Reply-To: <1347576013-28832-1-git-send-email-andrey.smirnov@convergeddevices.net>
+References: <1347576013-28832-1-git-send-email-andrey.smirnov@convergeddevices.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/19/2012 12:52 PM, Oliver Schinagl wrote:
-> On 19-09-12 00:42, Antti Palosaari wrote:
->> On 09/19/2012 01:22 AM, oliver@schinagl.nl wrote:
->>> From: Oliver Schinagl <oliver@schinagl.nl>
->>>
->>> This is initial support for the Asus MyCinema U3100Mini Plus. The driver
->>> in its current form gets detected and loads properly. It uses the
->>> af9035 USB Bridge chip, with an af9033 demodulator. The tuner used is
->>> the FCI FC2580.
->>>
->>> I have only done a quick dvb scan, but it failed to tune to anything.
->>> Using dvbv5-scan -I CHANNEL <channelfile> It did show 'signal 100%' but
->>> failed to tune to anything, so I don't think signal strength works at
->>> all. Since I have really bad reception where my dev PC is, I may simple
->>> not receive anything here.
->>
->> Signal strength is very worst indicator. It should not be 100% in any
->> case. Switch off stupid % meter your are using and look plain numbers.
->> It is should be something between 0-0xffff (0xffff == 100% ?).
-> I know 100% says nothing :p and I think especially with this driver? I
-> didn't see the signal strength function implemented in the FC2580 (I
-> have some code for it, once I have the device actually working :) But
-> this is what dvbv5-scan reported.
+This commit add a sound codec driver for Silicon Laboratories 476x
+series of AM/FM radio chips.
 
-Have to say have never used tool. Instead w_scan, scan (dvbscan, 
-scandvb) and tzap. If you get working channels.conf file for your area 
-you are able to use tzap.
+Signed-off-by: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
+---
+ sound/soc/codecs/Kconfig  |    4 +
+ sound/soc/codecs/Makefile |    2 +
+ sound/soc/codecs/si476x.c |  346 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 352 insertions(+)
+ create mode 100644 sound/soc/codecs/si476x.c
 
-Signal strength is reported by af9033 demodulator regardless if tuner 
-could report it or not.
-
->> For me successful tzap reports (af9035 + tua9001):
->> status 1f | signal 5eb7 | snr 010e | ber 00000000 | unc 00000000 |
->> FE_HAS_LOCK
->>
->> FE_HAS_LOCK is most important, it says demodulator is locked to
->> channel and likely device is 100% working.
-> I can't use tzap, as I can't scan for channel file. As I write this, I
-> remember that I may have one on another system so should be able to use
-> that to try tonight.
->
-> Furthermore, when checking debug while it's running a scan (either
-> dvbscan or dvbv5-scan) I notice that it passes the loop 5 times, but I
-> think that's normal from what I can tell from the code. Also
-> fc2580_get_if_frequency appears to be a stub, correct?
-
-I suspect it tests different parameters. Like one iteration for each 
-bandwidth. If you know your area transmission parameters you could skip 
-whole scanning and just waste only two seconds using tzap to test.
-
-fc2580_get_if_frequency is not stub, it is correctly implemented. FC2580 
-is direct conversion tuner (== zero-IF, IF 0 Hz) which means it 
-transfers RF band directly to the base-band. No IF used.
-
->> Biggest problem of your patch is fc2580 frontend callback. fc2580
->> driver does not use any callback and that code is simple dead. It is
->> never called.
-> Ah, assumption eh, I simply thought the callback is always used by the
-> driver. I noticed some tuners do have the callback, others do their init
-> just once. What's the cleanest solution, leave the code in the callback,
-> and call it from fc9035_tuner_attach? (As you otherwise get a huge
-> tuner_attach function). Anyway, why do some tuners have the callback and
-> others don't? I guess it's a design decision of the driver, but why
-> aren't they more equal?
-
-There should not be frontend callback unless needed. The basic (and only 
-one I know?) use scenario for tuner callback is to control some tuner 
-external pins using bridge GPIO. If there is no such pins then there is 
-no need for callback. For example digital AGC you asked earlier is such 
-control pin (actually 2 pins) but as it is not used no need for 
-callback. TUA9001 is good example of tuner having control pins.
-
-I think you refer fc0011 tuner callbacks. There seems to be reset and 
-power. At least power sounds something like it should not be there, I 
-suspect it is just some GPIO that turns on/off power from tuner and not 
-control any fc0011 pin.
-
-Antti
-
+diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
+index 9f8e859..71ab390 100644
+--- a/sound/soc/codecs/Kconfig
++++ b/sound/soc/codecs/Kconfig
+@@ -70,6 +70,7 @@ config SND_SOC_ALL_CODECS
+ 	select SND_SOC_UDA134X
+ 	select SND_SOC_UDA1380 if I2C
+ 	select SND_SOC_WL1273 if MFD_WL1273_CORE
++	select SND_SOC_SI476X if MFD_SI476X_CORE
+ 	select SND_SOC_WM1250_EV1 if I2C
+ 	select SND_SOC_WM2000 if I2C
+ 	select SND_SOC_WM2200 if I2C
+@@ -326,6 +327,9 @@ config SND_SOC_UDA1380
+ config SND_SOC_WL1273
+ 	tristate
+ 
++config SND_SOC_SI476X
++	tristate
++
+ config SND_SOC_WM1250_EV1
+ 	tristate
+ 
+diff --git a/sound/soc/codecs/Makefile b/sound/soc/codecs/Makefile
+index 34148bb..aecf09b 100644
+--- a/sound/soc/codecs/Makefile
++++ b/sound/soc/codecs/Makefile
+@@ -61,6 +61,7 @@ snd-soc-twl6040-objs := twl6040.o
+ snd-soc-uda134x-objs := uda134x.o
+ snd-soc-uda1380-objs := uda1380.o
+ snd-soc-wl1273-objs := wl1273.o
++snd-soc-si476x-objs := si476x.o
+ snd-soc-wm1250-ev1-objs := wm1250-ev1.o
+ snd-soc-wm2000-objs := wm2000.o
+ snd-soc-wm2200-objs := wm2200.o
+@@ -177,6 +178,7 @@ obj-$(CONFIG_SND_SOC_TWL6040)	+= snd-soc-twl6040.o
+ obj-$(CONFIG_SND_SOC_UDA134X)	+= snd-soc-uda134x.o
+ obj-$(CONFIG_SND_SOC_UDA1380)	+= snd-soc-uda1380.o
+ obj-$(CONFIG_SND_SOC_WL1273)	+= snd-soc-wl1273.o
++obj-$(CONFIG_SND_SOC_SI476X)	+= snd-soc-si476x.o
+ obj-$(CONFIG_SND_SOC_WM1250_EV1) += snd-soc-wm1250-ev1.o
+ obj-$(CONFIG_SND_SOC_WM2000)	+= snd-soc-wm2000.o
+ obj-$(CONFIG_SND_SOC_WM2200)	+= snd-soc-wm2200.o
+diff --git a/sound/soc/codecs/si476x.c b/sound/soc/codecs/si476x.c
+new file mode 100644
+index 0000000..beea2ca
+--- /dev/null
++++ b/sound/soc/codecs/si476x.c
+@@ -0,0 +1,346 @@
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <sound/pcm.h>
++#include <sound/pcm_params.h>
++#include <sound/soc.h>
++#include <sound/initval.h>
++
++#include <linux/mfd/si476x-core.h>
++
++#define SI476X_AUDIO_VOLUME			0x0300
++#define SI476X_AUDIO_MUTE			0x0301
++#define SI476X_DIGITAL_IO_OUTPUT_FORMAT		0x0203
++#define SI476X_DIGITAL_IO_OUTPUT_SAMPLE_RATE	0x0202
++
++#define SI476X_DIGITAL_IO_OUTPUT_WIDTH_MASK	~((0b111 << 11) | (0b111 << 8))
++#define SI476X_DIGITAL_IO_OUTPUT_FORMAT_MASK	~(0b1111110)
++
++
++/* codec private data */
++struct si476x_codec {
++	struct si476x_core *core;
++};
++
++static unsigned int si476x_codec_read(struct snd_soc_codec *codec,
++				      unsigned int reg)
++{
++	int err;
++	struct si476x_codec *si476x = snd_soc_codec_get_drvdata(codec);
++	struct si476x_core  *core   = si476x->core;
++
++	si476x_core_lock(core);
++	err = si476x_core_cmd_get_property(core, reg);
++	si476x_core_unlock(core);
++
++	return err;
++}
++
++static int si476x_codec_write(struct snd_soc_codec *codec,
++			      unsigned int reg, unsigned int val)
++{
++	int err;
++	struct si476x_codec *si476x = snd_soc_codec_get_drvdata(codec);
++	struct si476x_core  *core   = si476x->core;
++
++	si476x_core_lock(core);
++	err = si476x_core_cmd_set_property(core, reg, val);
++	si476x_core_unlock(core);
++
++	return err;
++}
++
++
++
++static int si476x_codec_set_daudio_params(struct snd_soc_codec *codec,
++					  int width, int rate)
++{
++	int err;
++	u16 digital_io_output_format = \
++		snd_soc_read(codec,
++			     SI476X_DIGITAL_IO_OUTPUT_FORMAT);
++
++	if ((rate < 32000) || (rate > 48000)) {
++		dev_dbg(codec->dev, "Rate: %d is not supported\n", rate);
++		return -EINVAL;
++	}
++
++	err = snd_soc_write(codec, SI476X_DIGITAL_IO_OUTPUT_SAMPLE_RATE,
++			    rate);
++	if (err < 0) {
++		dev_err(codec->dev, "Failed to set sample rate\n");
++		return err;
++	}
++
++	digital_io_output_format &= SI476X_DIGITAL_IO_OUTPUT_WIDTH_MASK;
++	digital_io_output_format |= (width << 11) | (width << 8);
++
++	return snd_soc_write(codec, SI476X_DIGITAL_IO_OUTPUT_FORMAT,
++			     digital_io_output_format);
++}
++
++static int si476x_codec_volume_get(struct snd_kcontrol *kcontrol,
++				   struct snd_ctl_elem_value *ucontrol)
++{
++	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
++
++	ucontrol->value.integer.value[0] =
++		snd_soc_read(codec, SI476X_AUDIO_VOLUME);
++	return 0;
++}
++
++static int si476x_codec_volume_put(struct snd_kcontrol *kcontrol,
++				   struct snd_ctl_elem_value *ucontrol)
++{
++
++	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
++
++	snd_soc_write(codec, SI476X_AUDIO_VOLUME,
++		      ucontrol->value.integer.value[0]);
++	return 1;
++}
++
++#define SI476X_MAX_VOLUME 63
++
++static const struct snd_kcontrol_new si476x_controls[] = {
++	SOC_SINGLE_EXT("Analog Volume", 0, 0, SI476X_MAX_VOLUME, 0,
++		       si476x_codec_volume_get, si476x_codec_volume_put),
++};
++
++enum si476x_daudio_formats {
++	SI476X_DAUDIO_MODE_I2S     = (0x0 << 1),
++	SI476X_DAUDIO_MODE_DSP_A   = (0x6 << 1),
++	SI476X_DAUDIO_MODE_DSP_B   = (0x7 << 1),
++	SI476X_DAUDIO_MODE_LEFT_J  = (0x8 << 1),
++	SI476X_DAUDIO_MODE_RIGHT_J = (0x9 << 1),
++
++	SI476X_DAUDIO_MODE_IB = (1 << 5),
++	SI476X_DAUDIO_MODE_IF = (1 << 6),
++};
++
++static int si476x_codec_set_dai_fmt(struct snd_soc_dai *codec_dai,
++				    unsigned int fmt)
++{
++	struct snd_soc_codec *codec  = codec_dai->codec;
++	u16 digital_io_output_format = \
++		snd_soc_read(codec,
++			     SI476X_DIGITAL_IO_OUTPUT_FORMAT);
++
++	if ((fmt & SND_SOC_DAIFMT_MASTER_MASK) != SND_SOC_DAIFMT_CBS_CFS)
++		return -EINVAL;
++
++	digital_io_output_format &= SI476X_DIGITAL_IO_OUTPUT_FORMAT_MASK;
++
++	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
++	case SND_SOC_DAIFMT_DSP_A:
++		digital_io_output_format |= SI476X_DAUDIO_MODE_DSP_A;
++		break;
++	case SND_SOC_DAIFMT_DSP_B:
++		digital_io_output_format |= SI476X_DAUDIO_MODE_DSP_B;
++		break;
++	case SND_SOC_DAIFMT_I2S:
++		digital_io_output_format |= SI476X_DAUDIO_MODE_I2S;
++		break;
++	case SND_SOC_DAIFMT_RIGHT_J:
++		digital_io_output_format |= SI476X_DAUDIO_MODE_RIGHT_J;
++		break;
++	case SND_SOC_DAIFMT_LEFT_J:
++		digital_io_output_format |= SI476X_DAUDIO_MODE_LEFT_J;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	/* Clock inversion */
++	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
++	case SND_SOC_DAIFMT_DSP_A:
++	case SND_SOC_DAIFMT_DSP_B:
++		/* frame inversion not valid for DSP modes */
++		switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
++		case SND_SOC_DAIFMT_NB_NF:
++			break;
++		case SND_SOC_DAIFMT_IB_NF:
++			digital_io_output_format |= SI476X_DAUDIO_MODE_IB;
++			break;
++		default:
++			return -EINVAL;
++		}
++		break;
++	case SND_SOC_DAIFMT_I2S:
++	case SND_SOC_DAIFMT_RIGHT_J:
++	case SND_SOC_DAIFMT_LEFT_J:
++		switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
++		case SND_SOC_DAIFMT_NB_NF:
++			break;
++		case SND_SOC_DAIFMT_IB_IF:
++			digital_io_output_format |= SI476X_DAUDIO_MODE_IB |
++				SI476X_DAUDIO_MODE_IF;
++			break;
++		case SND_SOC_DAIFMT_IB_NF:
++			digital_io_output_format |= SI476X_DAUDIO_MODE_IB;
++			break;
++		case SND_SOC_DAIFMT_NB_IF:
++			digital_io_output_format |= SI476X_DAUDIO_MODE_IF;
++			break;
++		default:
++			return -EINVAL;
++		}
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return snd_soc_write(codec, SI476X_DIGITAL_IO_OUTPUT_FORMAT,
++			     digital_io_output_format);
++}
++
++static int si476x_codec_digital_mute(struct snd_soc_dai *codec_dai, int mute)
++{
++	if (mute)
++		snd_soc_write(codec_dai->codec, SI476X_AUDIO_MUTE, 0x3);
++
++	return 0;
++}
++
++
++enum si476x_pcm_format {
++	SI476X_PCM_FORMAT_S8		= 2,
++	SI476X_PCM_FORMAT_S16_LE	= 4,
++	SI476X_PCM_FORMAT_S20_3LE	= 5,
++	SI476X_PCM_FORMAT_S24_LE	= 6,
++};
++
++static int si476x_codec_hw_params(struct snd_pcm_substream *substream,
++				  struct snd_pcm_hw_params *params,
++				  struct snd_soc_dai *dai)
++{
++	int rate, width, err;
++
++	struct snd_soc_pcm_runtime *rtd    = substream->private_data;
++
++	rate = params_rate(params);
++
++	switch (params_format(params)) {
++	case SNDRV_PCM_FORMAT_S8:
++		width = SI476X_PCM_FORMAT_S8;
++	case SNDRV_PCM_FORMAT_S16_LE:
++		width = SI476X_PCM_FORMAT_S16_LE;
++		break;
++	case SNDRV_PCM_FORMAT_S20_3LE:
++		width = SI476X_PCM_FORMAT_S20_3LE;
++		break;
++	case SNDRV_PCM_FORMAT_S24_LE:
++		width = SI476X_PCM_FORMAT_S24_LE;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	err = si476x_codec_set_daudio_params(rtd->codec, width, rate);
++
++	return err;
++}
++
++
++
++static int si476x_codec_probe(struct snd_soc_codec *codec)
++{
++	struct si476x_core **core = codec->dev->platform_data;
++	struct si476x_codec *si476x;
++
++	if (!core) {
++		dev_err(codec->dev, "Platform data is missing.\n");
++		return -EINVAL;
++	}
++
++	si476x = kzalloc(sizeof(*si476x), GFP_KERNEL);
++	if (si476x == NULL) {
++		dev_err(codec->dev, "Cannot allocate memory.\n");
++		return -ENOMEM;
++	}
++
++	si476x->core = *core;
++
++	snd_soc_codec_set_drvdata(codec, si476x);
++
++	return 0;
++}
++
++static int si476x_codec_remove(struct snd_soc_codec *codec)
++{
++	struct si476x_codec *si476x = snd_soc_codec_get_drvdata(codec);
++
++	kfree(si476x);
++
++	return 0;
++}
++
++static struct snd_soc_dai_ops si476x_dai_ops = {
++	.hw_params	= si476x_codec_hw_params,
++	.digital_mute	= si476x_codec_digital_mute,
++	.set_fmt	= si476x_codec_set_dai_fmt,
++};
++
++static struct snd_soc_dai_driver si476x_dai = {
++	.name		= "si476x-codec",
++
++	.capture	= {
++		.stream_name	= "Capture",
++		.channels_min	= 2,
++		.channels_max	= 2,
++
++		.rates = SNDRV_PCM_RATE_32000 |
++		SNDRV_PCM_RATE_44100 |
++		SNDRV_PCM_RATE_48000,
++		.formats = SNDRV_PCM_FMTBIT_S8 |
++		SNDRV_PCM_FMTBIT_S16_LE |
++		SNDRV_PCM_FMTBIT_S20_3LE |
++		SNDRV_PCM_FMTBIT_S24_LE
++	},
++	.ops		= &si476x_dai_ops,
++};
++
++static struct snd_soc_codec_driver soc_codec_dev_si476x = {
++	.probe  = si476x_codec_probe,
++	.remove = si476x_codec_remove,
++	.read   = si476x_codec_read,
++	.write  = si476x_codec_write,
++};
++
++static int __devinit si476x_platform_probe(struct platform_device *pdev)
++{
++	return snd_soc_register_codec(&pdev->dev, &soc_codec_dev_si476x,
++				      &si476x_dai, 1);
++}
++
++static int __devexit si476x_platform_remove(struct platform_device *pdev)
++{
++	snd_soc_unregister_codec(&pdev->dev);
++	return 0;
++}
++
++MODULE_ALIAS("platform:si476x-codec");
++
++static struct platform_driver si476x_platform_driver = {
++	.driver		= {
++		.name	= "si476x-codec",
++		.owner	= THIS_MODULE,
++	},
++	.probe		= si476x_platform_probe,
++	.remove		= __devexit_p(si476x_platform_remove),
++};
++
++static int __init si476x_init(void)
++{
++	return platform_driver_register(&si476x_platform_driver);
++}
++module_init(si476x_init);
++
++static void __exit si476x_exit(void)
++{
++	platform_driver_unregister(&si476x_platform_driver);
++}
++module_exit(si476x_exit);
++
++MODULE_AUTHOR("Andrey Smirnov <andrey.smirnov@convergeddevices.net>");
++MODULE_DESCRIPTION("ASoC Si4761/64 codec driver");
++MODULE_LICENSE("GPL");
 -- 
-http://palosaari.fi/
+1.7.9.5
+
