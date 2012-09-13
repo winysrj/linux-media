@@ -1,62 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54165 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752327Ab2ICKzb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Sep 2012 06:55:31 -0400
-Message-ID: <50448C8F.8000603@iki.fi>
-Date: Mon, 03 Sep 2012 13:55:11 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59417 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756783Ab2IMKQp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Sep 2012 06:16:45 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 API PATCH 12/28] v4l2-core: Add new V4L2_CAP_MONOTONIC_TS capability.
+Date: Thu, 13 Sep 2012 04:26:22 +0200
+Message-ID: <1377342.NWW6JoyPuR@avalon>
+In-Reply-To: <86a39343d33f0f75079407d8b36202a1de4c58de.1347023744.git.hans.verkuil@cisco.com>
+References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl> <86a39343d33f0f75079407d8b36202a1de4c58de.1347023744.git.hans.verkuil@cisco.com>
 MIME-Version: 1.0
-To: Philipp Dreimann <philipp@dreimann.net>
-CC: linux-media@vger.kernel.org,
-	Thomas Mair <thomas.mair86@googlemail.com>
-Subject: Re: [PATCH] Add the usb id of the Trekstor DVB-T Stick Terres 2.0
-References: <1346628654-3348-1-git-send-email-philipp@dreimann.net>
-In-Reply-To: <1346628654-3348-1-git-send-email-philipp@dreimann.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/03/2012 02:30 AM, Philipp Dreimann wrote:
-> It needs the e4000 tuner driver.
->
-> Signed-off-by: Philipp Dreimann <philipp@dreimann.net>
-> ---
->   drivers/media/dvb-core/dvb-usb-ids.h    |    1 +
->   drivers/media/usb/dvb-usb-v2/rtl28xxu.c |    2 ++
->   2 files changed, 3 insertions(+)
->
-> diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
-> index 26c4481..fed6dcd 100644
-> --- a/drivers/media/dvb-core/dvb-usb-ids.h
-> +++ b/drivers/media/dvb-core/dvb-usb-ids.h
-> @@ -82,6 +82,7 @@
->   #define USB_PID_AFATECH_AF9035_1003			0x1003
->   #define USB_PID_AFATECH_AF9035_9035			0x9035
->   #define USB_PID_TREKSTOR_DVBT				0x901b
-> +#define USB_PID_TREKSTOR_TERRES_2_0			0xC803
->   #define USB_VID_ALINK_DTU				0xf170
->   #define USB_PID_ANSONIC_DVBT_USB			0x6000
->   #define USB_PID_ANYSEE					0x861f
-> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> index 88b5ea1..d0d23f2 100644
-> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> @@ -1236,6 +1236,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
->   		&rtl2832u_props, "NOXON DAB/DAB+ USB dongle", NULL) },
->   	{ DVB_USB_DEVICE(USB_VID_REALTEK, 0x2838,
->   		&rtl2832u_props, "Realtek RTL2832U reference design", NULL) },
-> +	{ DVB_USB_DEVICE(USB_VID_GTEK, USB_PID_TREKSTOR_TERRES_2_0,
-> +		&rtl2832u_props, "Trekstor DVB-T Stick Terres 2.0", NULL) },
->   	{ }
->   };
->   MODULE_DEVICE_TABLE(usb, rtl28xxu_id_table);
->
+On Friday 07 September 2012 15:29:12 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Add a new flag that tells userspace that the monotonic clock is used
+> for timestamps and update the documentation accordingly.
+> 
+> We decided on this new flag during the 2012 Media Workshop.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Acked-by: Antti Palosaari <crope@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-
-Antti
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
+
