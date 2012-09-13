@@ -1,307 +1,289 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:42188 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756140Ab2IMLTQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 07:19:16 -0400
-Received: by wibhi8 with SMTP id hi8so6654386wib.1
-        for <linux-media@vger.kernel.org>; Thu, 13 Sep 2012 04:19:14 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201209131300.12630.hverkuil@xs4all.nl>
-References: <CACKLOr22AvmWhXmj2SrMGO4y39ESHfyh_HPnLr6nmQGkUv2+zg@mail.gmail.com>
-	<201209131207.39370.hverkuil@xs4all.nl>
-	<CACKLOr25zrz4spBSEdNWfE9yOr1L-FTNAD4Qc0EZmOx0bZg7+w@mail.gmail.com>
-	<201209131300.12630.hverkuil@xs4all.nl>
-Date: Thu, 13 Sep 2012 13:19:14 +0200
-Message-ID: <CACKLOr1xpTv7775Uj6xmfbecDaQBaWMqB7htNjOLfwubQD8AbQ@mail.gmail.com>
-Subject: Re: Improving ov7670 sensor driver.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	brijohn@gmail.com
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail.kapsi.fi ([217.30.184.167]:39514 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756439Ab2IMAY0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Sep 2012 20:24:26 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 05/16] hd29l2: use Kernel dev_foo() logging
+Date: Thu, 13 Sep 2012 03:23:46 +0300
+Message-Id: <1347495837-3244-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1347495837-3244-1-git-send-email-crope@iki.fi>
+References: <1347495837-3244-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 13 September 2012 13:00, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Thu 13 September 2012 12:47:53 javier Martin wrote:
->> Hi Hans,
->> thank you for your response.
->>
->> On 13 September 2012 12:07, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> > On Thu 13 September 2012 11:48:17 javier Martin wrote:
->> >> Hi,
->> >> our new i.MX27 based platform (Visstrim-SM20) uses an ov7675 sensor
->> >> attached to the CSI interface. Apparently, this sensor is fully
->> >> compatible with the old ov7670. For this reason, it seems rather
->> >> sensible that they should share the same driver: ov7670.c
->> >> One of the challenges we have to face is that capture video support
->> >> for our platform is mx2_camera.c, which is a soc-camera host driver;
->> >> while ov7670.c was developed for being used as part of a more complex
->> >> video card.
->> >>
->> >> Here is the list of current users of ov7670:
->> >>
->> >> http://lxr.linux.no/#linux+v3.5.3/drivers/media/video/gspca/ov519.c
->> >> http://lxr.linux.no/#linux+v3.5.3/drivers/media/video/gspca/sn9c20x.c
->> >> http://lxr.linux.no/#linux+v3.5.3/drivers/media/video/gspca/vc032x.c
->> >
->> > These do not actually use the ov7670 driver. They program it themselves.
->> > It would be nice if the gspca driver would get support for subdevs, but
->> > that's a separate topic.
->> >
->> >> http://lxr.linux.no/#linux+v3.5.3/drivers/media/video/via-camera.c
->> >> http://lxr.linux.no/#linux+v3.5.3/drivers/media/video/marvell-ccic/mcam-core.c
->> >>
->> >> These are basically the improvements we need to make to this driver in
->> >> order to satisfy our needs:
->> >>
->> >> 1.- Adapt v4l2 controls to the subvevice control framework, with a
->> >> proper ctrl handler, etc...
->> >> 2.- Add the possibility to bypass PLL and clkrc preescaler.
->> >> 3.- Adjust vstart/vstop in order to remove an horizontal green line.
->> >> 4.- Disable pixclk during horizontal blanking.
->> >> 5.- min_height, min_width should be respected in try_fmt().
->> >> 6.- Pass platform data when used with a soc-camera host driver.
->> >> 7.- Add V4L2_CID_POWER_LINE_FREQUENCY ctrl.
->> >>
->> >> I will try to summarize below why we need to accomplish each of the
->> >> previous tasks and what solution we propose for them:
->> >>
->> >> 1.- Adapt v4l2 controls to the subvevice control framework, with a
->> >> proper ctrl handler, etc...
->> >>
->> >> Why? Because soc-camera needs to inherit v4l2 subdevice controls in
->> >> order to expose them to user space.
->> >> How? Something like the following, incomplete, patch:
->> >
->> > Luckily you didn't do too much work on this. I have old patches for this in
->> > this tree:
->> >
->> > http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/cafe-ctrl
->> >
->>
->> Great. This is the reason why I like to always ask first.
->>
->> > The main reason why I never continued with this was that at the time I wrote
->> > this I realized that the control framework needed proper support for what's
->> > now called auto-clusters (i.e. how to handle autofoo/foo controls like autogain
->> > and gain correctly).
->> >
->> > I intended to pick this up at some time, but never got around to it.
->> >
->> > I think these patches will still apply with some work, but it needs to be
->> > converted to use the autocluster support that's now in the control framework.
->> >
->> >>
->> >> ---
->> >> @@ -190,6 +196,7 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
->> >>  struct ov7670_format_struct;  /* coming later */
->> >>  struct ov7670_info {
->> >>         struct v4l2_subdev sd;
->> >> +       struct v4l2_ctrl_handler hdl;
->> >>         struct ov7670_format_struct *fmt;  /* Current format */
->> >>         unsigned char sat;              /* Saturation value */
->> >>         int hue;                        /* Hue value */
->> >>
->> >>
->> >> @@ -1480,10 +1518,14 @@ static int ov7670_s_register(struct
->> >> v4l2_subdev *sd, struct v4l2_dbg_register *r
->> >>
->> >>  /* ----------------------------------------------------------------------- */
->> >>
->> >> +static const struct v4l2_ctrl_ops ov7670_ctrl_ops = {
->> >> +       .s_ctrl = ov7670_s_ctrl,
->> >> +};
->> >> +
->> >>  static const struct v4l2_subdev_core_ops ov7670_core_ops = {
->> >>         .g_chip_ident = ov7670_g_chip_ident,
->> >> -       .g_ctrl = ov7670_g_ctrl,
->> >> -       .s_ctrl = ov7670_s_ctrl,
->> >> +       .g_ctrl = v4l2_subdev_g_ctrl,
->> >> +       .s_ctrl = v4l2_subdev_s_ctrl,
->> >>         .queryctrl = ov7670_queryctrl,
->> >>         .reset = ov7670_reset,
->> >>         .init = ov7670_init,
->> >>
->> >> @@ -1551,6 +1600,16 @@ static int ov7670_probe(struct i2c_client *client,
->> >>         v4l_info(client, "chip found @ 0x%02x (%s)\n",
->> >>                         client->addr << 1, client->adapter->name);
->> >>
->> >> +       v4l2_ctrl_handler_init(&info->hdl, 1);
->> >> +       v4l2_ctrl_new_std(&info->hdl, &ov7670_ctrl_ops,
->> >> V4L2_CID_VFLIP, 0, 1, 1, 0);
->> >> ...
->> >> ...
->> >> +       sd->ctrl_handler = &info->hdl;
->> >> +       if (info->hdl.error) {
->> >> +               v4l2_ctrl_handler_free(&info->hdl);
->> >> +               kfree(info);
->> >> +               return info->hdl.error;
->> >> +       }
->> >> +       v4l2_ctrl_handler_setup(&info->hdl);
->> >> +
->> >> ---
->> >>
->> >> 2.- Add the possibility to bypass PLL and clkrc preescaler.
->> >>
->> >> Why? The formula to get the desired frame rate in this chip in YUV is
->> >> the following: fps = fpclk / (2 * 510 * 784) This means that for a
->> >> desired fps = 30 we need fpclk = 24MHz. For that reason we have a
->> >> clean 24MHz xvclk input that comes from an oscillator. If we enable
->> >> the PLL it internally transforms the 24MHz in 22MHz and thus fps is
->> >> not 30 but 27. In order to get 30fps we need to bypass the PLL.
->> >> How? Defining a platform flag 'direct_clk' or similar that allows
->> >> xvclk being used directly as the pixel clock.
->> >>
->> >> 3.- Adjust vstart/vstop in order to remove an horizontal green line.
->> >>
->> >> Why? Currently, in the driver, for VGA, vstart =  10 and vstop = 490.
->> >> From our tests we found out that vstart = 14, vstop = 494 in order to
->> >> remove a disgusting horizontal green line in ov7675.
->> >> How? It seems these sensor aren't provided with a version register or
->> >> anything similar so I can't think of a clean solution for this yet.
->> >> Suggestions will be much appreciated.
->> >
->> > Using platform_data for this is what springs to mind.
->>
->> I had thought about it too but, there
->
-> Unfinished sentence?
->
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/hd29l2.c      | 75 ++++++++++++++++---------------
+ drivers/media/dvb-frontends/hd29l2.h      |  2 +-
+ drivers/media/dvb-frontends/hd29l2_priv.h | 13 ------
+ 3 files changed, 41 insertions(+), 49 deletions(-)
 
-Yes. Sorry :)
-
-I meant that I had thought about it too but there are one pair of
-vstart,vstop values for each supported resolution: VGA, QVGA, CIF,
-QCIF.
-I could add 'vstart_vga', 'vstop_vga' as platform_data but in the
-future someone could want to add the same values for the other ones
-and I don't know if that would be acceptable.
-
-Another solution I just came up with would be adding a flag 'version'
-where we could indicate if we are dealing with an ov7670 or an ov7675
-and change those 'vstart', 'vstop' values internally based on this.
-This could be useful for some other issues in the future.
-
->> >> 4.- Disable pixclk during horizontal blanking.
->> >>
->> >> Why? Otherwise i.MX27 will capture wrong pixels during blanking periods.
->> >> How? Through a private V4L2 control.
->> >
->> > Or platform_data as well?
->>
->> Yes, that could be a valid option too.
->>
->> >
->> >> 5.- min_height, min_width should be respected in try_fmt().
->> >> Why? Otherwise you are telling the user you are going to use a
->> >> different size than the one you are going to use.
->> >> How? With a patch similar to this:
->> >>
->> >> ---
->> >> @@ -759,8 +772,10 @@ static int ov7670_try_fmt_internal(struct v4l2_subdev *sd,
->> >>                 struct ov7670_format_struct **ret_fmt,
->> >>                 struct ov7670_win_size **ret_wsize)
->> >>  {
->> >> -       int index;
->> >> +       int index, i;
->> >> +       int win_sizes_limit = N_WIN_SIZES;
->> >>         struct ov7670_win_size *wsize;
->> >> +       struct ov7670_info *info = to_state(sd);
->> >>
->> >>         for (index = 0; index < N_OV7670_FMTS; index++)
->> >>                 if (ov7670_formats[index].mbus_code == fmt->code)
->> >> @@ -776,15 +791,30 @@ static int ov7670_try_fmt_internal(struct v4l2_subdev *sd,
->> >>          * Fields: the OV devices claim to be progressive.
->> >>          */
->> >>         fmt->field = V4L2_FIELD_NONE;
->> >> +
->> >> +       /*
->> >> +        * Don't consider values that don't match min_height and min_width
->> >> +        * constraints.
->> >> +        */
->> >> +       if (info->min_width || info->min_height)
->> >> +               for (i=0; i < N_WIN_SIZES; i++) {
->> >> +                       wsize = ov7670_win_sizes + i;
->> >> +
->> >> +                       if (wsize->width < info->min_width ||
->> >> +                           wsize->height < info->min_height) {
->> >> +                               win_sizes_limit = i;
->> >> +                               break;
->> >> +                       }
->> >> +               }
->> >>         /*
->> >>          * Round requested image size down to the nearest
->> >>          * we support, but not below the smallest.
->> >>          */
->> >> -       for (wsize = ov7670_win_sizes; wsize < ov7670_win_sizes + N_WIN_SIZES;
->> >> +       for (wsize = ov7670_win_sizes; wsize < ov7670_win_sizes +
->> >> win_sizes_limit;
->> >>              wsize++)
->> >>                 if (fmt->width >= wsize->width && fmt->height >= wsize->height)
->> >>                         break;
->> >> -       if (wsize >= ov7670_win_sizes + N_WIN_SIZES)
->> >> +       if (wsize >= ov7670_win_sizes + win_sizes_limit)
->> >>                 wsize--;   /* Take the smallest one */
->> >>         if (ret_wsize != NULL)
->> >>                 *ret_wsize = wsize;
->> >> ---
->> >>
->> >> 6.- Pass platform data when used with a soc-camera host driver.
->> >> Why? We need to set several platform data like 'min_height',
->> >> 'min_width' and others.
->> >> How? This is an old subject we discussed in January. We agreed that
->> >> some soc-camera core changes were needed, but I couldn't find the time
->> >> and I think nobody else has addressed it either. Please, correct me if
->> >> I am wrong:http://patchwork.linuxtv.org/patch/8860/
->> >>
->> >> 7.- Add V4L2_CID_POWER_LINE_FREQUENCY ctrl.
->> >> Why? Because the platform will be used in several countries.
->> >> How? As long as point 1 is solved this is quite trivial.
->> >>
->> >>
->> >> The reason of this e-mail is to discuss whether you find these
->> >> solution suitable or not and, more important, whether you think the
->> >> suggested changes could break existing drivers.
->> >
->> > Well, those bridge drivers that use the ov7670 subdev should also be converted
->> > to the control framework. My tree does at least some of that work, although I
->> > think some drivers got moved around or were renamed. The changes to those drivers
->> > should be fairly minimal.
->> >
->> > In theory it's possible to skip that conversion, but my goal is to get (almost)
->> > all drivers converted to the control framework so this is a good opportunity
->> > to convert these bridge drivers at the same time.
->>
->> So, how can we proceed to collaborate on this task? Should I pick up
->> the ov7670 code from your tree and add some fixes so that it applies
->> to current mainline?
->
-> Please do. I won't have time to work on this any time soon.
->
->> We'd like to do the ov7670 control conversion but waiting for all
->> bridge drivers to be converted at the same time seems like delaying
->> progress in ov7670, specially points 1 and 7.
->>
->> What do you think?
->
-> If you look at the two patches in my tree that convert the bridge drivers
-> you'll see that those patches are quite small. And there are only two bridge
-> drivers as well. Unless things have changed in those drivers since the last
-> time I looked I expect that this is a minimal amount of work.
-
-OK, I will take a look.
-
-Regards.
+diff --git a/drivers/media/dvb-frontends/hd29l2.c b/drivers/media/dvb-frontends/hd29l2.c
+index a003181..d7b9d54 100644
+--- a/drivers/media/dvb-frontends/hd29l2.c
++++ b/drivers/media/dvb-frontends/hd29l2.c
+@@ -22,10 +22,6 @@
+ 
+ #include "hd29l2_priv.h"
+ 
+-int hd29l2_debug;
+-module_param_named(debug, hd29l2_debug, int, 0644);
+-MODULE_PARM_DESC(debug, "Turn on/off frontend debugging (default:off).");
+-
+ /* write multiple registers */
+ static int hd29l2_wr_regs(struct hd29l2_priv *priv, u8 reg, u8 *val, int len)
+ {
+@@ -48,7 +44,9 @@ static int hd29l2_wr_regs(struct hd29l2_priv *priv, u8 reg, u8 *val, int len)
+ 	if (ret == 1) {
+ 		ret = 0;
+ 	} else {
+-		warn("i2c wr failed=%d reg=%02x len=%d", ret, reg, len);
++		dev_warn(&priv->i2c->dev,
++				"%s: i2c wr failed=%d reg=%02x len=%d\n",
++				KBUILD_MODNAME, ret, reg, len);
+ 		ret = -EREMOTEIO;
+ 	}
+ 
+@@ -78,7 +76,9 @@ static int hd29l2_rd_regs(struct hd29l2_priv *priv, u8 reg, u8 *val, int len)
+ 	if (ret == 2) {
+ 		ret = 0;
+ 	} else {
+-		warn("i2c rd failed=%d reg=%02x len=%d", ret, reg, len);
++		dev_warn(&priv->i2c->dev,
++				"%s: i2c rd failed=%d reg=%02x len=%d\n",
++				KBUILD_MODNAME, ret, reg, len);
+ 		ret = -EREMOTEIO;
+ 	}
+ 
+@@ -160,7 +160,7 @@ static int hd29l2_soft_reset(struct hd29l2_priv *priv)
+ 
+ 	return 0;
+ err:
+-	dbg("%s: failed=%d", __func__, ret);
++	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
+@@ -170,7 +170,7 @@ static int hd29l2_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
+ 	struct hd29l2_priv *priv = fe->demodulator_priv;
+ 	u8 tmp;
+ 
+-	dbg("%s: enable=%d", __func__, enable);
++	dev_dbg(&priv->i2c->dev, "%s: enable=%d\n", __func__, enable);
+ 
+ 	/* set tuner address for demod */
+ 	if (!priv->tuner_i2c_addr_programmed && enable) {
+@@ -199,11 +199,11 @@ static int hd29l2_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
+ 		usleep_range(5000, 10000);
+ 	}
+ 
+-	dbg("%s: loop=%d", __func__, i);
++	dev_dbg(&priv->i2c->dev, "%s: loop=%d\n", __func__, i);
+ 
+ 	return ret;
+ err:
+-	dbg("%s: failed=%d", __func__, ret);
++	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
+@@ -238,7 +238,7 @@ static int hd29l2_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 
+ 	return 0;
+ err:
+-	dbg("%s: failed=%d", __func__, ret);
++	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
+@@ -270,7 +270,7 @@ static int hd29l2_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 
+ 	return 0;
+ err:
+-	dbg("%s: failed=%d", __func__, ret);
++	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
+@@ -295,7 +295,7 @@ static int hd29l2_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
+ 
+ 	return 0;
+ err:
+-	dbg("%s: failed=%d", __func__, ret);
++	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
+@@ -322,7 +322,7 @@ static int hd29l2_read_ber(struct dvb_frontend *fe, u32 *ber)
+ 
+ 	return 0;
+ err:
+-	dbg("%s: failed=%d", __func__, ret);
++	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
+@@ -344,11 +344,12 @@ static enum dvbfe_search hd29l2_search(struct dvb_frontend *fe)
+ 	u32 if_freq, if_ctl;
+ 	bool auto_mode;
+ 
+-	dbg("%s: delivery_system=%d frequency=%d bandwidth_hz=%d " \
+-		"modulation=%d inversion=%d fec_inner=%d guard_interval=%d",
+-		 __func__,
+-		c->delivery_system, c->frequency, c->bandwidth_hz,
+-		c->modulation, c->inversion, c->fec_inner, c->guard_interval);
++	dev_dbg(&priv->i2c->dev, "%s: delivery_system=%d frequency=%d " \
++			"bandwidth_hz=%d modulation=%d inversion=%d " \
++			"fec_inner=%d guard_interval=%d\n", __func__,
++			c->delivery_system, c->frequency, c->bandwidth_hz,
++			c->modulation, c->inversion, c->fec_inner,
++			c->guard_interval);
+ 
+ 	/* as for now we detect always params automatically */
+ 	auto_mode = true;
+@@ -394,7 +395,8 @@ static enum dvbfe_search hd29l2_search(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
+-	dbg("%s: if_freq=%d if_ctl=%x", __func__, if_freq, if_ctl);
++	dev_dbg(&priv->i2c->dev, "%s: if_freq=%d if_ctl=%x\n",
++			__func__, if_freq, if_ctl);
+ 
+ 	if (auto_mode) {
+ 		/*
+@@ -437,7 +439,7 @@ static enum dvbfe_search hd29l2_search(struct dvb_frontend *fe)
+ 				break;
+ 		}
+ 
+-		dbg("%s: loop=%d", __func__, i);
++		dev_dbg(&priv->i2c->dev, "%s: loop=%d\n", __func__, i);
+ 
+ 		if (i == 0)
+ 			/* detection failed */
+@@ -477,7 +479,8 @@ static enum dvbfe_search hd29l2_search(struct dvb_frontend *fe)
+ 	/* ensure modulation validy */
+ 	/* 0=QAM4_NR, 1=QAM4, 2=QAM16, 3=QAM32, 4=QAM64 */
+ 	if (modulation > (ARRAY_SIZE(reg_mod_vals_tab[0].val) - 1)) {
+-		dbg("%s: modulation=%d not valid", __func__, modulation);
++		dev_dbg(&priv->i2c->dev, "%s: modulation=%d not valid\n",
++				__func__, modulation);
+ 		goto err;
+ 	}
+ 
+@@ -499,12 +502,14 @@ static enum dvbfe_search hd29l2_search(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
+-	dbg("%s: modulation=%d guard_interval=%d carrier=%d",
+-		__func__, modulation, guard_interval, carrier);
++	dev_dbg(&priv->i2c->dev,
++			"%s: modulation=%d guard_interval=%d carrier=%d\n",
++			__func__, modulation, guard_interval, carrier);
+ 
+ 	if ((carrier == HD29L2_CARRIER_MULTI) && (modulation == HD29L2_QAM64) &&
+ 		(guard_interval == HD29L2_PN945)) {
+-		dbg("%s: C=3780 && QAM64 && PN945", __func__);
++		dev_dbg(&priv->i2c->dev, "%s: C=3780 && QAM64 && PN945\n",
++				__func__);
+ 
+ 		ret = hd29l2_wr_reg(priv, 0x42, 0x33);
+ 		if (ret)
+@@ -535,14 +540,14 @@ static enum dvbfe_search hd29l2_search(struct dvb_frontend *fe)
+ 			break;
+ 	}
+ 
+-	dbg("%s: loop=%d", __func__, i);
++	dev_dbg(&priv->i2c->dev, "%s: loop=%d\n", __func__, i);
+ 
+ 	if (i == 0)
+ 		return DVBFE_ALGO_SEARCH_AGAIN;
+ 
+ 	return DVBFE_ALGO_SEARCH_SUCCESS;
+ err:
+-	dbg("%s: failed=%d", __func__, ret);
++	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
+ 	return DVBFE_ALGO_SEARCH_ERROR;
+ }
+ 
+@@ -704,14 +709,14 @@ static int hd29l2_get_frontend(struct dvb_frontend *fe)
+ 
+ 	if_ctl = (buf[0] << 16) | ((buf[1] - 7) << 8) | buf[2];
+ 
+-	dbg("%s: %s %s %s | %s %s %s | %s %s | NCO=%06x", __func__,
+-		str_constellation, str_code_rate, str_constellation_code_rate,
+-		str_guard_interval, str_carrier, str_guard_interval_carrier,
+-		str_interleave, str_interleave_, if_ctl);
+-
++	dev_dbg(&priv->i2c->dev, "%s: %s %s %s | %s %s %s | %s %s | NCO=%06x\n",
++			__func__, str_constellation, str_code_rate,
++			str_constellation_code_rate, str_guard_interval,
++			str_carrier, str_guard_interval_carrier, str_interleave,
++			str_interleave_, if_ctl);
+ 	return 0;
+ err:
+-	dbg("%s: failed=%d", __func__, ret);
++	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
+@@ -730,7 +735,7 @@ static int hd29l2_init(struct dvb_frontend *fe)
+ 		{ 0x10, 0x38 },
+ 	};
+ 
+-	dbg("%s:", __func__);
++	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
+ 
+ 	/* reset demod */
+ 	/* it is recommended to HW reset chip using RST_N pin */
+@@ -774,7 +779,7 @@ static int hd29l2_init(struct dvb_frontend *fe)
+ 
+ 	return ret;
+ err:
+-	dbg("%s: failed=%d", __func__, ret);
++	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
+diff --git a/drivers/media/dvb-frontends/hd29l2.h b/drivers/media/dvb-frontends/hd29l2.h
+index a7a6443..4ad00d7 100644
+--- a/drivers/media/dvb-frontends/hd29l2.h
++++ b/drivers/media/dvb-frontends/hd29l2.h
+@@ -58,7 +58,7 @@ extern struct dvb_frontend *hd29l2_attach(const struct hd29l2_config *config,
+ static inline struct dvb_frontend *hd29l2_attach(
+ const struct hd29l2_config *config, struct i2c_adapter *i2c)
+ {
+-	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
++	pr_warn("%s: driver disabled by Kconfig\n", __func__);
+ 	return NULL;
+ }
+ #endif
+diff --git a/drivers/media/dvb-frontends/hd29l2_priv.h b/drivers/media/dvb-frontends/hd29l2_priv.h
+index ba16dc3..4d571a2 100644
+--- a/drivers/media/dvb-frontends/hd29l2_priv.h
++++ b/drivers/media/dvb-frontends/hd29l2_priv.h
+@@ -28,19 +28,6 @@
+ #include "dvb_math.h"
+ #include "hd29l2.h"
+ 
+-#define LOG_PREFIX "hd29l2"
+-
+-#undef dbg
+-#define dbg(f, arg...) \
+-	if (hd29l2_debug) \
+-		printk(KERN_INFO   LOG_PREFIX": " f "\n" , ## arg)
+-#undef err
+-#define err(f, arg...)  printk(KERN_ERR     LOG_PREFIX": " f "\n" , ## arg)
+-#undef info
+-#define info(f, arg...) printk(KERN_INFO    LOG_PREFIX": " f "\n" , ## arg)
+-#undef warn
+-#define warn(f, arg...) printk(KERN_WARNING LOG_PREFIX": " f "\n" , ## arg)
+-
+ #define HD29L2_XTAL 30400000 /* Hz */
+ 
+ 
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+1.7.11.4
+
