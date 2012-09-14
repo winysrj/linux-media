@@ -1,96 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:33721 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753228Ab2IXGzu (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55432 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750825Ab2INVs5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 02:55:50 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MAU00BOFDWGJ1R0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 24 Sep 2012 15:55:49 +0900 (KST)
-Received: from AMDC159 ([106.116.147.30])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MAU00JBYDW38750@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 24 Sep 2012 15:55:49 +0900 (KST)
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: 'Sachin Kamat' <sachin.kamat@linaro.org>,
-	linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, pawel@osciak.com, patches@linaro.org
-References: <1348467468-19854-1-git-send-email-sachin.kamat@linaro.org>
- <1348467468-19854-4-git-send-email-sachin.kamat@linaro.org>
-In-reply-to: <1348467468-19854-4-git-send-email-sachin.kamat@linaro.org>
-Subject: RE: [PATCH 4/4] [media] mem2mem_testdev: Use devm_kzalloc() in probe
-Date: Mon, 24 Sep 2012 08:55:33 +0200
-Message-id: <049001cd9a21$9b4103e0$d1c30ba0$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Fri, 14 Sep 2012 17:48:57 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org,
+	Antoine Reversat <a.reversat@gmail.com>
+Subject: Re: [PATCH] omap3isp: Use monotonic timestamps for statistics buffers
+Date: Fri, 14 Sep 2012 23:49:27 +0200
+Message-ID: <1853693.vMPZbuiXtB@avalon>
+In-Reply-To: <20120913210139.GL6834@valkosipuli.retiisi.org.uk>
+References: <1347566003-14500-1-git-send-email-laurent.pinchart@ideasonboard.com> <20120913210139.GL6834@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Sakari,
 
-On Monday, September 24, 2012 8:18 AM Sachin Kamat wrote:
- 
-> devm_kzalloc() makes error handling and cleanup simpler.
+On Friday 14 September 2012 00:01:39 Sakari Ailus wrote:
+> On Thu, Sep 13, 2012 at 09:53:23PM +0200, Laurent Pinchart wrote:
+> > V4L2 buffers use the monotonic clock, while statistics buffers use wall
+> > time. This makes it difficult to correlate video frames and statistics.
+> > 
+> > Switch statistics buffers to the monotonic clock to fix this.
+> > 
+> > Reported-by: Antoine Reversat <a.reversat@gmail.com>
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  drivers/media/platform/omap3isp/ispstat.c |    6 +++++-
+> >  1 files changed, 5 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/omap3isp/ispstat.c
+> > b/drivers/media/platform/omap3isp/ispstat.c index b8640be..52263cc 100644
+> > --- a/drivers/media/platform/omap3isp/ispstat.c
+> > +++ b/drivers/media/platform/omap3isp/ispstat.c
+> > @@ -253,10 +253,14 @@ isp_stat_buf_find_oldest_or_empty(struct ispstat
+> > *stat)> 
+> >  static int isp_stat_buf_queue(struct ispstat *stat)
+> >  {
+> > +	struct timespec ts;
+> > +
+> >  	if (!stat->active_buf)
+> >  		return STAT_NO_BUF;
+> > 
+> > -	do_gettimeofday(&stat->active_buf->ts);
+> > +	ktime_get_ts(&ts);
+> > +	stat->active_buf->ts.tv_sec = ts.tv_sec;
+> > +	stat->active_buf->ts.tv_usec = ts.tv_nsec / NSEC_PER_USEC;
+> > 
+> >  	stat->active_buf->buf_size = stat->buf_size;
+> >  	if (isp_stat_buf_check_magic(stat, stat->active_buf)) {
 > 
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+> I didn't think wall clock timestamps were used for statistics. This change
+> is sure going to affect anyone using them --- which likely equates to no-one
+> since I can hardly see use for wall clock timestams in such use.
+> 
+> How about using struct timespec instead?
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Sounds good. I've tested it on ARM, x86-32 and x86-64, and both structures 
+have the same size. I'll send a v2.
 
-> ---
->  drivers/media/platform/mem2mem_testdev.c |    7 ++-----
->  1 files changed, 2 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/platform/mem2mem_testdev.c
-> b/drivers/media/platform/mem2mem_testdev.c
-> index f7d15ec..cd1c844 100644
-> --- a/drivers/media/platform/mem2mem_testdev.c
-> +++ b/drivers/media/platform/mem2mem_testdev.c
-> @@ -1019,7 +1019,7 @@ static int m2mtest_probe(struct platform_device *pdev)
->  	struct video_device *vfd;
->  	int ret;
-> 
-> -	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
-> +	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
->  	if (!dev)
->  		return -ENOMEM;
-> 
-> @@ -1027,7 +1027,7 @@ static int m2mtest_probe(struct platform_device *pdev)
-> 
->  	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
->  	if (ret)
-> -		goto free_dev;
-> +		return ret;
-> 
->  	atomic_set(&dev->num_inst, 0);
->  	mutex_init(&dev->dev_mutex);
-> @@ -1073,8 +1073,6 @@ rel_vdev:
->  	video_device_release(vfd);
->  unreg_dev:
->  	v4l2_device_unregister(&dev->v4l2_dev);
-> -free_dev:
-> -	kfree(dev);
-> 
->  	return ret;
->  }
-> @@ -1089,7 +1087,6 @@ static int m2mtest_remove(struct platform_device *pdev)
->  	del_timer_sync(&dev->timer);
->  	video_unregister_device(dev->vfd);
->  	v4l2_device_unregister(&dev->v4l2_dev);
-> -	kfree(dev);
-> 
->  	return 0;
->  }
-> --
-> 1.7.4.1
-
-Best regards
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
+Regards,
 
+Laurent Pinchart
 
