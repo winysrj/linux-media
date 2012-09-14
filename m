@@ -1,67 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:35860 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752895Ab2IFPYM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2012 11:24:12 -0400
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 13/14] drivers/media/usb/hdpvr/hdpvr-core.c: fix error return code
-Date: Thu,  6 Sep 2012 17:23:48 +0200
-Message-Id: <1346945041-26676-1-git-send-email-peter.senna@gmail.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:45446 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752146Ab2INNyH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Sep 2012 09:54:07 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	David Oleszkiewicz <doleszki@adsyscontrols.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH] davinci: vpif: capture/display: fix race condition
+Date: Fri, 14 Sep 2012 19:23:56 +0530
+Message-Id: <1347630836-7545-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Senna Tschudin <peter.senna@gmail.com>
+From: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-Convert a nonnegative error return code to a negative one, as returned
-elsewhere in the function.
+channel_first_int[][] variable is used as a flag for the ISR,
+This flag was being set after enabling the interrupts, There
+where suitaions when the isr ocuurend even before the flag was set
+dues to which it was causing the applicaiotn hang.
+This patch sets  channel_first_int[][] flag just before enabling the
+interrupt.
 
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
-
-// <smpl>
-(
-if@p1 (\(ret < 0\|ret != 0\))
- { ... return ret; }
-|
-ret@p1 = 0
-)
-... when != ret = e1
-    when != &ret
-*if(...)
-{
-  ... when != ret = e2
-      when forall
- return ret;
-}
-
-// </smpl>
-
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-
+Reported-by: David Oleszkiewicz <doleszki@adsyscontrols.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/hdpvr/hdpvr-core.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/platform/davinci/vpif_capture.c |    2 +-
+ drivers/media/platform/davinci/vpif_display.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/hdpvr/hdpvr-core.c b/drivers/media/usb/hdpvr/hdpvr-core.c
-index 304f43e..84dc26f 100644
---- a/drivers/media/usb/hdpvr/hdpvr-core.c
-+++ b/drivers/media/usb/hdpvr/hdpvr-core.c
-@@ -401,12 +401,14 @@ static int hdpvr_probe(struct usb_interface *interface,
- 	client = hdpvr_register_ir_rx_i2c(dev);
- 	if (!client) {
- 		v4l2_err(&dev->v4l2_dev, "i2c IR RX device register failed\n");
-+		retval = -ENODEV;
- 		goto reg_fail;
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 1b625b0..f64919b 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -339,6 +339,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	 * Set interrupt for both the fields in VPIF Register enable channel in
+ 	 * VPIF register
+ 	 */
++	channel_first_int[VPIF_VIDEO_INDEX][ch->channel_id] = 1;
+ 	if ((VPIF_CHANNEL0_VIDEO == ch->channel_id)) {
+ 		channel0_intr_assert();
+ 		channel0_intr_enable(1);
+@@ -350,7 +351,6 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 		channel1_intr_enable(1);
+ 		enable_channel1(1);
  	}
+-	channel_first_int[VPIF_VIDEO_INDEX][ch->channel_id] = 1;
  
- 	client = hdpvr_register_ir_tx_i2c(dev);
- 	if (!client) {
- 		v4l2_err(&dev->v4l2_dev, "i2c IR TX device register failed\n");
-+		retval = -ENODEV;
- 		goto reg_fail;
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index 4a24848..523a840 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -302,6 +302,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 
+ 	/* Set interrupt for both the fields in VPIF
+ 	    Register enable channel in VPIF register */
++	channel_first_int[VPIF_VIDEO_INDEX][ch->channel_id] = 1;
+ 	if (VPIF_CHANNEL2_VIDEO == ch->channel_id) {
+ 		channel2_intr_assert();
+ 		channel2_intr_enable(1);
+@@ -318,7 +319,6 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 		if (vpif_config_data->ch3_clip_en)
+ 			channel3_clipping_enable(1);
  	}
- #endif
+-	channel_first_int[VPIF_VIDEO_INDEX][ch->channel_id] = 1;
+ 
+ 	return 0;
+ }
+-- 
+1.7.4.1
 
