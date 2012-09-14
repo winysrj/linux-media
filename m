@@ -1,131 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hrndva-omtalb.mail.rr.com ([71.74.56.122]:12562 "EHLO
-	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751125Ab2I0Cmd (ORCPT
+Received: from mx.fr.smartjog.net ([95.81.144.3]:48003 "EHLO
+	mx.fr.smartjog.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758498Ab2INJ1o (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Sep 2012 22:42:33 -0400
-Message-ID: <5063BD18.4060309@austin.rr.com>
-Date: Wed, 26 Sep 2012 21:42:32 -0500
-From: Keith Pyle <kpyle@austin.rr.com>
-MIME-Version: 1.0
+	Fri, 14 Sep 2012 05:27:44 -0400
+From: =?UTF-8?q?R=C3=A9mi=20Cardona?= <remi.cardona@smartjog.com>
 To: linux-media@vger.kernel.org
-Subject: HD-PVR fails consistently on Linux, works on Windows
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: liplianin@me.by
+Subject: [PATCH 6/6] [media] ds3000: add module parameter to force firmware upload
+Date: Fri, 14 Sep 2012 11:27:26 +0200
+Message-Id: <1347614846-19046-7-git-send-email-remi.cardona@smartjog.com>
+In-Reply-To: <1347614846-19046-1-git-send-email-remi.cardona@smartjog.com>
+References: <1347614846-19046-1-git-send-email-remi.cardona@smartjog.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I recently purchased a Hauppauge HD-PVR (the 1212 version, label on 
-bottom 49001LF, Rev F2).  I have consistent capture failures on Linux 
-where data from the device simply stops, generally within a few minutes 
-of starting a capture.  Yet, the device works flawlessly on Windows with 
-the same USB and component cables, same power supply, and same physical 
-position.  This suggests that the device itself has acceptable power, is 
-not overheating, etc.  I'll detail below the testing I've done thus far 
-and would appreciate any suggestions on how to further test or address 
-the problem.
+Signed-off-by: Rémi Cardona <remi.cardona@smartjog.com>
+---
+ drivers/media/dvb/frontends/ds3000.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-The good news is that I have a highly reproducible failure on Linux, but 
-then that's the bad news too.
+diff --git a/drivers/media/dvb/frontends/ds3000.c b/drivers/media/dvb/frontends/ds3000.c
+index 970963c..3e0e9de 100644
+--- a/drivers/media/dvb/frontends/ds3000.c
++++ b/drivers/media/dvb/frontends/ds3000.c
+@@ -30,6 +30,7 @@
+ #include "ds3000.h"
+ 
+ static int debug;
++static int force_fw_upload;
+ 
+ #define dprintk(args...) \
+ 	do { \
+@@ -396,10 +397,13 @@ static int ds3000_firmware_ondemand(struct dvb_frontend *fe)
+ 	dprintk("%s()\n", __func__);
+ 
+ 	ret = ds3000_readreg(state, 0xb2);
+-	if (ret == 0) {
++	if (ret == 0 && force_fw_upload == 0) {
+ 		printk(KERN_INFO "%s: Firmware already uploaded, skipping\n",
+ 			__func__);
+ 		return ret;
++	} else if (ret == 0 && force_fw_upload) {
++		printk(KERN_INFO "%s: Firmware already uploaded, "
++			"forcing upload\n", __func__);
+ 	} else if (ret < 0) {
+ 		return ret;
+ 	}
+@@ -1308,6 +1312,9 @@ static struct dvb_frontend_ops ds3000_ops = {
+ module_param(debug, int, 0644);
+ MODULE_PARM_DESC(debug, "Activates frontend debugging (default:0)");
+ 
++module_param(force_fw_upload, int, 0644);
++MODULE_PARM_DESC(force_fw_upload, "Force firmware upload (default:0)");
++
+ MODULE_DESCRIPTION("DVB Frontend module for Montage Technology "
+ 			"DS3000/TS2020 hardware");
+ MODULE_AUTHOR("Konstantin Dimitrov");
+-- 
+1.7.10.4
 
-Thanks.
-
-Keith
-
--- Linux tests --
-I started trying to use the HD-PVR directly with my MythTV backend. I 
-have subsequently switched all of my testing to simple direct captures 
-from the /dev/video? device using /bin/cat to eliminate as many 
-variables as possible.
-
-I've done a large number of tests with combinations of the following:
-
-OS: gentoo 3.4.7, gentoo 3.5.4
-HD-PVR firmware: 1.5.7.0 (0x15), 1.7.1.30059 (0x1e)
-Input resolution: fixed to 720p, fixed to 1080i, floating based on input
-USB ports: motherboard ports on Intel DP45SG, motherboard ports on MSI 
-X58 Pro-E, ports on SIIG USB PCIe card
-
-Captures fail consistently.
-
-I've verified that the HD-PVR is the only device on the USB bus and that 
-the bus shows as "Linux Foundation 2.0 root hub" in all tests. I've 
-increased the debug output level for the hdpvr driver to 6 
-(/sys/module/hdpvr/parameters/hdpvr_debug) and collected the following:
-
-Sep 21 17:01:00 mythbe kernel: [535043.504450] usb 9-1: New USB device 
-found, idVendor=2040, idProduct=4903
-Sep 21 17:01:00 mythbe kernel: [535043.504453] usb 9-1: New USB device 
-strings: Mfr=1, Product=2, SerialNumber=3
-Sep 21 17:01:00 mythbe kernel: [535043.504456] usb 9-1: Product: 
-Hauppauge HD PVR
-Sep 21 17:01:00 mythbe kernel: [535043.504458] usb 9-1: Manufacturer: AMBA
-Sep 21 17:01:00 mythbe kernel: [535043.504459] usb 9-1: SerialNumber: 
-00A6DD48
-Sep 21 17:01:00 mythbe kernel: [535043.504523] usb 9-1: ep 0x1 - 
-rounding interval to 32768 microframes, ep desc says 0 microframes
-Sep 21 17:01:00 mythbe kernel: [535043.504528] usb 9-1: ep 0x81 - 
-rounding interval to 32768 microframes, ep desc says 0 microframes
-Sep 21 17:01:01 mythbe kernel: [535043.703947] hdpvr 9-1:1.0: firmware 
-version 0x15 dated Jun 17 2010 09:26:53
-Sep 21 17:01:01 mythbe kernel: [535043.889144] IR keymap rc-hauppauge 
-not found
-Sep 21 17:01:01 mythbe kernel: [535043.889146] Registered IR keymap 
-rc-empty
-Sep 21 17:01:01 mythbe kernel: [535043.889190] input: i2c IR (HD-PVR) as 
-/devices/virtual/rc/rc5/input16
-Sep 21 17:01:01 mythbe kernel: [535043.889415] rc5: i2c IR (HD-PVR) as 
-/devices/virtual/rc/rc5
-Sep 21 17:01:01 mythbe kernel: [535043.889417] ir-kbd-i2c: i2c IR 
-(HD-PVR) detected at i2c-8/8-0071/ir0 [Hauppage HD PVR I2C]
-Sep 21 17:01:01 mythbe kernel: [535043.889518] hdpvr 9-1:1.0: device now 
-attached to video6
-Sep 21 17:01:01 mythbe kernel: [535043.889534] usbcore: registered new 
-interface driver hdpvr
-Sep 21 17:05:11 mythbe kernel: [535293.776318] hdpvr 9-1:1.0: video 
-signal: 1920x1080@30hz
-Sep 21 17:05:14 mythbe kernel: [535297.312589] hdpvr 9-1:1.0: encoder 
-start control request returned 0
-Sep 21 17:05:15 mythbe kernel: [535297.670830] hdpvr 9-1:1.0: config 
-call request for value 0x700 returned 1
-Sep 21 17:05:15 mythbe kernel: [535297.670833] hdpvr 9-1:1.0: streaming 
-started
-Sep 21 17:05:15 mythbe kernel: [535297.670839] hdpvr 9-1:1.0: 
-hdpvr_read:442 buffer stat: 64 free, 0 proc
-Sep 21 17:05:15 mythbe kernel: [535297.670882] hdpvr 9-1:1.0: 
-hdpvr_submit_buffers:209 buffer stat: 0 free, 64 proc
-Sep 21 17:05:15 mythbe kernel: [535297.709079] hdpvr 9-1:1.0: 
-hdpvr_read:502 buffer stat: 1 free, 63 proc
-Sep 21 17:05:15 mythbe kernel: [535297.709088] hdpvr 9-1:1.0: 
-hdpvr_submit_buffers:209 buffer stat: 0 free, 64 proc
-
-(many repeats of the above two line sequence)
-
-Sep 21 17:17:09 mythbe kernel: [536011.936858] hdpvr 9-1:1.0: 
-hdpvr_read:502 buffer stat: 1 free, 63 proc
-Sep 21 17:17:09 mythbe kernel: [536011.936866] hdpvr 9-1:1.0: 
-hdpvr_submit_buffers:209 buffer stat: 0 free, 64 proc
-Sep 21 17:17:36 mythbe kernel: [536038.853044] hdpvr 9-1:1.0: config 
-call request for value 0x800 returned -110
-Sep 21 17:17:36 mythbe kernel: [536038.853052] hdpvr 9-1:1.0: transmit 
-worker exited
-Sep 21 17:17:36 mythbe kernel: [536038.996035] hdpvr 9-1:1.0: used 0 
-urbs to empty device buffers
-
-If I understand correctly, this is showing a ETIMEDOUT error.  When I've 
-looked at the cat with strace, it is always blocked on a read. So, it 
-seems like the HD-PVR just stops sending.
-
-I also ran a USB capture with wireshark and see much the same thing.  
-While I haven't tried to decode the USB packets, the pattern is that the 
-HD-PVR sends, the host sends a message/ack, this pattern repeats, and 
-then nothing.  The majority of the failures occur in less than 15 minutes.
-
--- Windows tests --
-
-I installed the Hauppauge software on a Windows 7 system and moved the 
-USB cable to the Windows system.  Nothing else was changed. I've run 
-many hours of successful captures.  I've checked each recording with 
-ffprobe and verified that each is the expected length (i.e., no data 
-drops at all).  The recordings are of good quality. This shows that the 
-HD-PVR is capable of working as expected and quite reliably.
