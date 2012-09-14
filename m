@@ -1,142 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2869 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932103Ab2ICNsz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2012 09:48:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 10/10] Rename V4L2_(IN|OUT)_CAP_CUSTOM_TIMINGS.
-Date: Mon,  3 Sep 2012 15:48:44 +0200
-Message-Id: <e92e07d3fc571ba6c26b607f327e0eea9c93d268.1346679785.git.hans.verkuil@cisco.com>
-In-Reply-To: <1346680124-15169-1-git-send-email-hverkuil@xs4all.nl>
-References: <1346680124-15169-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <c31da93f2bf615b90086d749e3f3eae6d6c3fc41.1346679785.git.hans.verkuil@cisco.com>
-References: <c31da93f2bf615b90086d749e3f3eae6d6c3fc41.1346679785.git.hans.verkuil@cisco.com>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:57042 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756600Ab2INMvP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Sep 2012 08:51:15 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>
+Subject: [PATCH 13/14] davinci: vpfe: build infrastructure for dm365
+Date: Fri, 14 Sep 2012 18:16:43 +0530
+Message-Id: <1347626804-5703-14-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1347626804-5703-1-git-send-email-prabhakar.lad@ti.com>
+References: <1347626804-5703-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Manjunath Hadli <manjunath.hadli@ti.com>
 
-The 'custom' timings are no longer just for custom timings, but also for standard
-CEA/VESA timings. So rename to V4L2_IN/OUT_CAP_DV_TIMINGS.
+add build infrastructure for dm365 specific modules
+such as IPIPE, AEW, AF.
 
-The old define is still kept for backwards compatibility.
-
-This decision was taken during the 2012 Media Workshop.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
 ---
- Documentation/DocBook/media/v4l/vidioc-enuminput.xml    |    2 +-
- Documentation/DocBook/media/v4l/vidioc-enumoutput.xml   |    2 +-
- Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml |    2 +-
- drivers/media/v4l2-core/v4l2-ioctl.c                    |    8 ++++----
- include/linux/videodev2.h                               |    6 ++++--
- 5 files changed, 11 insertions(+), 9 deletions(-)
+ drivers/media/platform/davinci/Kconfig  |   40 +++++++++++++++++++++++++++++-
+ drivers/media/platform/davinci/Makefile |    9 +++++++
+ 2 files changed, 47 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-enuminput.xml b/Documentation/DocBook/media/v4l/vidioc-enuminput.xml
-index 46d5a04..3c9a813 100644
---- a/Documentation/DocBook/media/v4l/vidioc-enuminput.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-enuminput.xml
-@@ -283,7 +283,7 @@ input/output interface to linux-media@vger.kernel.org on 19 Oct 2009.
- 	    <entry>This input supports setting DV presets by using VIDIOC_S_DV_PRESET.</entry>
- 	  </row>
- 	  <row>
--	    <entry><constant>V4L2_IN_CAP_CUSTOM_TIMINGS</constant></entry>
-+	    <entry><constant>V4L2_IN_CAP_DV_TIMINGS</constant></entry>
- 	    <entry>0x00000002</entry>
- 	    <entry>This input supports setting video timings by using VIDIOC_S_DV_TIMINGS.</entry>
- 	  </row>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-enumoutput.xml b/Documentation/DocBook/media/v4l/vidioc-enumoutput.xml
-index 4280200..f4ab079 100644
---- a/Documentation/DocBook/media/v4l/vidioc-enumoutput.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-enumoutput.xml
-@@ -168,7 +168,7 @@ input/output interface to linux-media@vger.kernel.org on 19 Oct 2009.
- 	    <entry>This output supports setting DV presets by using VIDIOC_S_DV_PRESET.</entry>
- 	  </row>
- 	  <row>
--	    <entry><constant>V4L2_OUT_CAP_CUSTOM_TIMINGS</constant></entry>
-+	    <entry><constant>V4L2_OUT_CAP_DV_TIMINGS</constant></entry>
- 	    <entry>0x00000002</entry>
- 	    <entry>This output supports setting video timings by using VIDIOC_S_DV_TIMINGS.</entry>
- 	  </row>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml b/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
-index feaa180..7236970 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
-@@ -57,7 +57,7 @@ or the timing values are not correct, the driver returns &EINVAL;.</para>
- <para>The <filename>linux/v4l2-dv-timings.h</filename> header can be used to get the
- timings of the formats in the <xref linkend="cea861" /> and <xref linkend="vesadmt" />
- standards. If the current input or output does not support DV timings (e.g. if
--&VIDIOC-ENUMINPUT; does not set the <constant>V4L2_IN_CAP_CUSTOM_TIMINGS</constant> flag), then
-+&VIDIOC-ENUMINPUT; does not set the <constant>V4L2_IN_CAP_DV_TIMINGS</constant> flag), then
- &ENODATA; is returned.</para>
-   </refsect1>
+diff --git a/drivers/media/platform/davinci/Kconfig b/drivers/media/platform/davinci/Kconfig
+index 78e26d2..4eddb00 100644
+--- a/drivers/media/platform/davinci/Kconfig
++++ b/drivers/media/platform/davinci/Kconfig
+@@ -56,7 +56,7 @@ config VIDEO_VPFE_CAPTURE
  
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 473ebea..99a8ad7 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -982,7 +982,7 @@ static int v4l_enuminput(const struct v4l2_ioctl_ops *ops,
- 	struct v4l2_input *p = arg;
+ config VIDEO_DM6446_CCDC
+ 	tristate "DM6446 CCDC HW module"
+-	depends on VIDEO_VPFE_CAPTURE
++	depends on VIDEO_VPFE_CAPTURE && ARCH_DAVINCI_DM644x
+ 	select VIDEO_VPSS_SYSTEM
+ 	default y
+ 	help
+@@ -85,7 +85,7 @@ config VIDEO_DM355_CCDC
+ 	   module will be called vpfe.
  
- 	/*
--	 * We set the flags for CAP_PRESETS, CAP_CUSTOM_TIMINGS &
-+	 * We set the flags for CAP_PRESETS, CAP_DV_TIMINGS &
- 	 * CAP_STD here based on ioctl handler provided by the
- 	 * driver. If the driver doesn't support these
- 	 * for a specific input, it must override these flags.
-@@ -992,7 +992,7 @@ static int v4l_enuminput(const struct v4l2_ioctl_ops *ops,
- 	if (ops->vidioc_s_dv_preset)
- 		p->capabilities |= V4L2_IN_CAP_PRESETS;
- 	if (ops->vidioc_s_dv_timings)
--		p->capabilities |= V4L2_IN_CAP_CUSTOM_TIMINGS;
-+		p->capabilities |= V4L2_IN_CAP_DV_TIMINGS;
+ config VIDEO_ISIF
+-	tristate "ISIF HW module"
++	tristate "DM365 ISIF HW module"
+ 	depends on ARCH_DAVINCI_DM365 && VIDEO_VPFE_CAPTURE
+ 	select VIDEO_VPSS_SYSTEM
+ 	default y
+@@ -119,3 +119,39 @@ config VIDEO_VPBE_DISPLAY
  
- 	return ops->vidioc_enum_input(file, fh, p);
- }
-@@ -1003,7 +1003,7 @@ static int v4l_enumoutput(const struct v4l2_ioctl_ops *ops,
- 	struct v4l2_output *p = arg;
- 
- 	/*
--	 * We set the flags for CAP_PRESETS, CAP_CUSTOM_TIMINGS &
-+	 * We set the flags for CAP_PRESETS, CAP_DV_TIMINGS &
- 	 * CAP_STD here based on ioctl handler provided by the
- 	 * driver. If the driver doesn't support these
- 	 * for a specific output, it must override these flags.
-@@ -1013,7 +1013,7 @@ static int v4l_enumoutput(const struct v4l2_ioctl_ops *ops,
- 	if (ops->vidioc_s_dv_preset)
- 		p->capabilities |= V4L2_OUT_CAP_PRESETS;
- 	if (ops->vidioc_s_dv_timings)
--		p->capabilities |= V4L2_OUT_CAP_CUSTOM_TIMINGS;
-+		p->capabilities |= V4L2_OUT_CAP_DV_TIMINGS;
- 
- 	return ops->vidioc_enum_output(file, fh, p);
- }
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index b06342b..47d58ed 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1190,7 +1190,8 @@ struct v4l2_input {
- 
- /* capabilities flags */
- #define V4L2_IN_CAP_PRESETS		0x00000001 /* Supports S_DV_PRESET */
--#define V4L2_IN_CAP_CUSTOM_TIMINGS	0x00000002 /* Supports S_DV_TIMINGS */
-+#define V4L2_IN_CAP_DV_TIMINGS		0x00000002 /* Supports S_DV_TIMINGS */
-+#define V4L2_IN_CAP_CUSTOM_TIMINGS	V4L2_IN_CAP_DV_TIMINGS /* For compatibility */
- #define V4L2_IN_CAP_STD			0x00000004 /* Supports S_STD */
- 
- /*
-@@ -1213,7 +1214,8 @@ struct v4l2_output {
- 
- /* capabilities flags */
- #define V4L2_OUT_CAP_PRESETS		0x00000001 /* Supports S_DV_PRESET */
--#define V4L2_OUT_CAP_CUSTOM_TIMINGS	0x00000002 /* Supports S_DV_TIMINGS */
-+#define V4L2_OUT_CAP_DV_TIMINGS		0x00000002 /* Supports S_DV_TIMINGS */
-+#define V4L2_OUT_CAP_CUSTOM_TIMINGS	V4L2_OUT_CAP_DV_TIMINGS /* For compatibility */
- #define V4L2_OUT_CAP_STD		0x00000004 /* Supports S_STD */
- 
- /*
+ 	    To compile this driver as a module, choose M here: the
+ 	    module will be called vpbe_display.
++
++
++config VIDEO_365_CCDC
++	tristate "DM365 CCDC HW module"
++	depends on ARCH_DAVINCI_DM365 && VIDEO_VPFE_MC_CAPTURE
++	select VIDEO_VPSS_SYSTEM
++	default y
++	help
++	   Enables ISIF hw module. This is the hardware module for
++	   configuring ISIF in VPFE to capture Raw Bayer RGB data  from
++	   a image sensor or YUV data from a YUV source.
++
++	   To compile this driver as a module, choose M here: the
++	   module will be called vpfe.
++
++config DM365_IPIPE
++	depends on ARCH_DAVINCI && ARCH_DAVINCI_DM365 && VIDEO_VPFE_MC_CAPTURE
++	tristate "DM365 IPIPE"
++	help
++	  dm365 IPIPE hardware module.
++
++	  This is the hardware module that implements imp_hw_interface
++	  for DM365. This hardware module provides previewer and resizer
++	  functionality for image processing.
++
++config VIDEO_VPFE_MC_CAPTURE
++	tristate "VPFE Media Controller Capture Driver"
++	depends on VIDEO_V4L2 && (ARCH_DAVINCI) && !VIDEO_VPFE_CAPTURE
++	select VIDEOBUF_DMA_CONTIG
++	help
++	  Support for DMx/AMx VPFE based Media Controller Capture driver. This is the
++	  common V4L2 module for following DMx/AMx SoCs from Texas
++	  Instruments:- DM6446, DM365, DM355 & AM3517/05.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called vpfe-mc-capture.
+diff --git a/drivers/media/platform/davinci/Makefile b/drivers/media/platform/davinci/Makefile
+index 74ed92d..955f63d 100644
+--- a/drivers/media/platform/davinci/Makefile
++++ b/drivers/media/platform/davinci/Makefile
+@@ -16,5 +16,14 @@ obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
+ obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
+ obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
+ obj-$(CONFIG_VIDEO_ISIF) += isif.o
++obj-$(CONFIG_VIDEO_365_CCDC) += dm365_ccdc.o
++obj-$(CONFIG_VIDEO_VPFE_MC_CAPTURE) += vpfe_mc_capture.o \
++		vpfe_ccdc.o vpfe_resizer.o vpfe_previewer.o \
++		vpfe_video.o
++
++dm365_imp-objs := dm365_ipipe.o dm365_def_para.o \
++		dm365_ipipe_hw.o dm3xx_ipipeif.o
++obj-$(CONFIG_DM365_IPIPE) += dm365_imp.o
++
+ obj-$(CONFIG_VIDEO_DM644X_VPBE) += vpbe.o vpbe_osd.o vpbe_venc.o
+ obj-$(CONFIG_VIDEO_VPBE_DISPLAY) += vpbe_display.o
 -- 
-1.7.10.4
+1.7.4.1
 
