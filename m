@@ -1,83 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:45152 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753692Ab2ICVmE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2012 17:42:04 -0400
-Date: Mon, 3 Sep 2012 23:41:55 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Sean Young <sean@mess.org>
-Cc: Timo Kokkonen <timo.t.kokkonen@iki.fi>,
-	Sakari Ailus <sakari.ailus@iki.fi>, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCHv3 2/9] ir-rx51: Handle signals properly
-Message-ID: <20120903214155.GA6393@hardeman.nu>
-References: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
- <1346349271-28073-3-git-send-email-timo.t.kokkonen@iki.fi>
- <20120901171420.GC6638@valkosipuli.retiisi.org.uk>
- <50437328.9050903@iki.fi>
- <504375FA.1030209@iki.fi>
- <20120902152027.GA5236@itanic.dhcp.inet.fi>
- <20120902194110.GA6834@valkosipuli.retiisi.org.uk>
- <5043BCB4.1040308@iki.fi>
- <20120903123653.GA7218@pequod.mess.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20120903123653.GA7218@pequod.mess.org>
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:48145 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757421Ab2INK6G (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Sep 2012 06:58:06 -0400
+Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
+	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id q8EAvqBw013688
+	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 10:57:59 GMT
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [RFCv3 API PATCH 27/31] v4l2-dev: add new VFL_DIR_ defines.
+Date: Fri, 14 Sep 2012 12:57:42 +0200
+Message-Id: <5a262a9825e89a2c7b3e094de9432d65634fd1ba.1347619766.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
+References: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hej,
+These will be used by v4l2-dev.c to improve ioctl checking.
+I.e. ioctls for capture should return -ENOTTY when called for
+an output device.
 
-On Mon, Sep 03, 2012 at 01:36:53PM +0100, Sean Young wrote:
->On Sun, Sep 02, 2012 at 11:08:20PM +0300, Timo Kokkonen wrote:
->> I guess the assumption is to avoid
->> breaking the transmission in the middle in case the process is signaled.
->> And that's why we shouldn't use interruptible waits.
->>
->> However, if we allow simply breaking the transmitting in case the
->> process is signaled any way during the transmission, then the handling
->> would be trivial in the driver. That is, if someone for example kills or
->> stops the lirc daemon process, then the IR code just wouldn't finish ever.
->> 
->> Sean, do you have an opinion how this should or is allowed to work?
->
->You want to know when the hardware is done sending the IR. If you return
->EINTR to user space, how would user space know how much IR has been sent, 
->if any?
->
->This ABI is not particularily elegant so there are proposals for a better
->interface which would obsolete the lirc interface. David Hardeman has
->worked on this:
->
->http://patchwork.linuxtv.org/patch/11411/
->
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/media/v4l2-dev.h |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-Yes, the first step is an asynchronous interface using a kfifo which is
-managed/fed using functionality in rc-core and drained by the drivers.
-
-The size of the kfifo() itself is the only limiting factor right now,
-but I do think we should eventually add some restrictions on the combined
-duration of the pulse/space timings that are in the queue at any given
-point.
-
-Say, for example, that any given pulse/space value is not allowed to be
-above 500ms and the total duration of the queue is not allowed to be
-above 1000ms. In case user-space wants (for whatever reason)...to write
-a 4000ms space, it would have to do so in 8 messages of 500ms each.
-
-Each message write() provides the opportunity for a interruptible wait
-(in the regular case) or returning EAGAIN (in the O_NONBLOCK case) -
-assuming that the kfifo already holds pulse/space timing totalling
-1000ms and/or is full.
-
-EINTR should only be returned if nothing has been written to the kfifo
-at all.
-
-That way we would avoid policy in kernel while still making it possible
-to kill a misbehaving user-space process by forcing it to drip feed long
-TX sequences.
-
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 6ee8897..95d1c91 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -26,6 +26,12 @@
+ #define VFL_TYPE_SUBDEV		3
+ #define VFL_TYPE_MAX		4
+ 
++/* Is this a receiver, transmitter or mem-to-mem? */
++/* Ignored for VFL_TYPE_SUBDEV. */
++#define VFL_DIR_RX		0
++#define VFL_DIR_TX		1
++#define VFL_DIR_M2M		2
++
+ struct v4l2_ioctl_callbacks;
+ struct video_device;
+ struct v4l2_device;
+@@ -105,7 +111,8 @@ struct video_device
+ 
+ 	/* device info */
+ 	char name[32];
+-	int vfl_type;
++	int vfl_type;	/* device type */
++	int vfl_dir;	/* receiver, transmitter or m2m */
+ 	/* 'minor' is set to -1 if the registration failed */
+ 	int minor;
+ 	u16 num;
 -- 
-David Härdeman
+1.7.10.4
+
