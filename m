@@ -1,124 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:53958 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751817Ab2ITRrS convert rfc822-to-8bit (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:57798 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757490Ab2INK6J (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Sep 2012 13:47:18 -0400
-Received: by obbuo13 with SMTP id uo13so1738822obb.19
-        for <linux-media@vger.kernel.org>; Thu, 20 Sep 2012 10:47:18 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <5020175D.3070601@iki.fi>
-References: <500C5B9B.8000303@iki.fi>
-	<CAOcJUbw-8zG-j7YobgKy7k5vp-k_trkaB5fYGz605KdUQHKTGQ@mail.gmail.com>
-	<500F1DC5.1000608@iki.fi>
-	<CAOcJUbzXoLx10o8oprxPM1TELFxyGE7_wodcWsBr8MX4OR0N_w@mail.gmail.com>
-	<50200AC9.9080203@iki.fi>
-	<CAGoCfixmre37ph46E6U9mJ+tyt+OL7+RbDwg+W6DkL01im2nCg@mail.gmail.com>
-	<CAOcJUbwyNBEoPyE_6QZQ-6tbUsHFzurYBEavegQO1aVYNsQ_kA@mail.gmail.com>
-	<5020175D.3070601@iki.fi>
-Date: Thu, 20 Sep 2012 13:47:17 -0400
-Message-ID: <CAOcJUbw5+wfaZ6Os5gKbPzCf0_d_rh=apatQwA=0k5gKm_FfOQ@mail.gmail.com>
-Subject: Re: tda18271 driver power consumption
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Fri, 14 Sep 2012 06:58:09 -0400
+Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
+	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id q8EAvqBk013688
+	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 10:57:56 GMT
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [RFCv3 API PATCH 15/31] v4l2-core: Add new V4L2_CAP_MONOTONIC_TS capability.
+Date: Fri, 14 Sep 2012 12:57:30 +0200
+Message-Id: <573d42b4b775afd8beeadc7a903cc2190a6f430a.1347619766.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
+References: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 6, 2012 at 3:13 PM, Antti Palosaari <crope@iki.fi> wrote:
-> On 08/06/2012 09:57 PM, Michael Krufky wrote:
->>
->> On Mon, Aug 6, 2012 at 2:35 PM, Devin Heitmueller
->> <dheitmueller@kernellabs.com> wrote:
->>>
->>> On Mon, Aug 6, 2012 at 2:19 PM, Antti Palosaari <crope@iki.fi> wrote:
->>>>
->>>> You should understand from DVB driver model:
->>>> * attach() called only once when driver is loaded
->>>> * init() called to wake-up device
->>>> * sleep() called to sleep device
->>>>
->>>> What I would like to say is that there is very big risk to shoot own leg
->>>> when doing some initialization on attach(). For example resuming from
->>>> the
->>>> suspend could cause device reset and if you rely some settings that are
->>>> done
->>>> during attach() you will likely fail as Kernel / USB-host controller has
->>>> reset your device.
->>>>
->>>> See reset_resume from Kernel documentation:
->>>> Documentation/usb/power-management.txt
->>>
->>>
->>> Be forewarned:  there is a very high likelihood that this patch will
->>> cause regressions on hybrid devices due to known race conditions
->>> related to dvb_frontend sleeping the tuner asynchronously on close.
->>> This is a hybrid tuner, and unless code is specifically added to the
->>> bridge or tuner driver, going from digital to analog mode too quickly
->>> will cause the tuner to be shutdown while it's actively in analog
->>> mode.
->>>
->>> (I discovered this the hard way when working on problems MythTV users
->>> reported against the HVR-950q).
->>>
->>> Description of race:
->>>
->>> 1.  User opens DVB frontend tunes
->>> 2.  User closes DVB frontend
->>> 3.  User *immediately* opens V4L device using same tuner
->>> 4.  User performs tuning request for analog
->>> 5.  DVB frontend issues sleep() call to tuner, causing analog tuning to
->>> fail.
->>>
->>> This class of problem isn't seen on DVB only devices or those that
->>> have dedicated digital tuners not shared for analog usage.  And in
->>> some cases it isn't noticed because a delay between closing the DVB
->>> device and opening the analog devices causes the sleep() call to
->>> happen before the analog tune (in which case you don't hit the race).
->>>
->>> I'm certainly not against improved power management, but it will
->>> require the race conditions to be fixed first in order to avoid
->>> regressions.
->>>
->>> Devin
->>>
->>> --
->>> Devin J. Heitmueller - Kernel Labs
->>> http://www.kernellabs.com
->>
->>
->> Devin's right.  I'm sorry, please *don't* merge the patch, Mauro.
->> Antti, you should just call sleep from your driver after attach(), as
->> I had previously suggested.  We can revisit this some time in the
->> future after we can be sure that these race conditions wont occur.
->
->
-> OK, maybe it is safer then. I have no any hybrid hardware to test...
->
-> Anyhow, I wonder how many years it will take to resolve that V4L2/DVB API
-> hybrid usage pŕoblem. I ran thinking that recently when looked how to
-> implement DVB SDR for V4L2 API... I could guess problem will not disappear
-> near future even analog TV disappears, because there is surely coming new
-> nasty features which spreads over both V4L2 and DVB APIs.
+Add a new flag that tells userspace that the monotonic clock is used
+for timestamps and update the documentation accordingly.
 
-Guys,
+We decided on this new flag during the 2012 Media Workshop.
 
-Please take another look at this branch and test if possible -- I
-pushed an additional patch that takes Devin's concerns into account.
-After applying these patches, the tda18271 driver will behave as it
-always has, but it will sleep the tuner after attaching the first
-instance.  If there is only one instance, then this works exactly as
-Antti desires.  If there are more instances, then the tuner will only
-be woken up again during attach if the tda18271_need_cal_on_startup()
-returns non-zero.  The driver does not attempt to re-sleep the
-hardware again during successive attach() calls.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/DocBook/media/v4l/io.xml              |   10 +++++++---
+ Documentation/DocBook/media/v4l/vidioc-dqevent.xml  |    3 ++-
+ Documentation/DocBook/media/v4l/vidioc-querycap.xml |    7 +++++++
+ include/linux/videodev2.h                           |    1 +
+ 4 files changed, 17 insertions(+), 4 deletions(-)
 
-I have not tested this yet myself, but I believe it resolves the
-matter -- please comment.
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index 2dc39d8..b680d66 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -582,10 +582,14 @@ applications when an output stream.</entry>
+ 	    <entry>struct timeval</entry>
+ 	    <entry><structfield>timestamp</structfield></entry>
+ 	    <entry></entry>
+-	    <entry><para>For input streams this is the
++	    <entry><para>This is either the
+ system time (as returned by the <function>gettimeofday()</function>
+-function) when the first data byte was captured. For output streams
+-the data will not be displayed before this time, secondary to the
++function) or a monotonic timestamp (as returned by the
++<function>clock_gettime(CLOCK_MONOTONIC, &amp;ts)</function> function).
++A monotonic timestamp is used if the <constant>V4L2_CAP_MONOTONIC_TS</constant>
++capability is set, otherwise the system time is used.
++For input streams this is the timestamp when the first data byte was captured.
++For output streams the data will not be displayed before this time, secondary to the
+ nominal frame rate determined by the current video standard in
+ enqueued order. Applications can for example zero this field to
+ display frames as soon as possible. The driver stores the time at
+diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+index 98a856f..00757d4 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+@@ -120,7 +120,8 @@
+ 	    <entry>struct timespec</entry>
+ 	    <entry><structfield>timestamp</structfield></entry>
+             <entry></entry>
+-	    <entry>Event timestamp.</entry>
++	    <entry>Event timestamp using the monotonic clock as returned by the
++	    <function>clock_gettime(CLOCK_MONOTONIC, &amp;ts)</function> function.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>u32</entry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+index 4c70215..fae2036 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+@@ -315,6 +315,13 @@ linkend="async">asynchronous</link> I/O methods.</entry>
+ linkend="mmap">streaming</link> I/O method.</entry>
+ 	  </row>
+ 	  <row>
++	    <entry><constant>V4L2_CAP_MONOTONIC_TS</constant></entry>
++	    <entry>0x40000000</entry>
++	    <entry>The driver uses a monotonic timestamp instead of wallclock time for the
++	    &v4l2-buffer; <structfield>timestamp</structfield> field.
++	    </entry>
++	  </row>
++	  <row>
+ 	    <entry><constant>V4L2_CAP_DEVICE_CAPS</constant></entry>
+ 	    <entry>0x80000000</entry>
+ 	    <entry>The driver fills the <structfield>device_caps</structfield>
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 292a2ef..3aad418 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -290,6 +290,7 @@ struct v4l2_capability {
+ #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
+ #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O ioctls */
+ 
++#define V4L2_CAP_MONOTONIC_TS           0x40000000  /* uses monotonic timestamps */
+ #define V4L2_CAP_DEVICE_CAPS            0x80000000  /* sets device capabilities field */
+ 
+ /*
+-- 
+1.7.10.4
 
-Regards,
-
-Mike Krufky
