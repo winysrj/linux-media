@@ -1,208 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:56410 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757397Ab2INLPq (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:62348 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756835Ab2INK57 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 07:15:46 -0400
+	Fri, 14 Sep 2012 06:57:59 -0400
 Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
-	by ams-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id q8EBFghP000742
-	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 11:15:42 GMT
+	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id q8EAvqBg013688
+	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 10:57:55 GMT
 From: Hans Verkuil <hans.verkuil@cisco.com>
 To: linux-media@vger.kernel.org
-Subject: [RFCv1 API PATCH 3/4] v4l2-ctrls: add a filter function to v4l2_ctrl_add_handler.
-Date: Fri, 14 Sep 2012 13:15:35 +0200
-Message-Id: <fdcaa41c6855681d4ddd0c258c17a420c321bb73.1347620872.git.hans.verkuil@cisco.com>
-In-Reply-To: <1347621336-14108-1-git-send-email-hans.verkuil@cisco.com>
-References: <1347621336-14108-1-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <da47f14735bb06321de298db1cb50172f8e1f480.1347620872.git.hans.verkuil@cisco.com>
-References: <da47f14735bb06321de298db1cb50172f8e1f480.1347620872.git.hans.verkuil@cisco.com>
+Subject: [RFCv3 API PATCH 11/31] v4l2-core: tvnorms may be 0 for a given input, handle that case.
+Date: Fri, 14 Sep 2012 12:57:26 +0200
+Message-Id: <1ee0dab3d7403c0de9a04cf66b4e1a3f09a44761.1347619766.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
+References: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With a filter function you can control more precisely which controls
-are added. This is useful in particular for radio device nodes for
-combined TV/Radio cards where you want to show just the radio-specific
-controls and not controls like brightness.
+Currently the core code looks at tvnorms to see whether ENUMSTD
+or G_PARM should be enabled. This is not a good check for drivers
+that support the STD API on one input and the DV Timings API on another.
+
+In that case tvnorms may be 0.
+
+Instead check whether s_std is present (for ENUMSTD) or whether g_std or
+current_norm is present for g_parm.
+
+Also, in the enumstd core function return ENODATA if tvnorms is 0,
+because in that case the current input does not support the STD API
+and ENUMSTD should return ENODATA for that.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/video4linux/v4l2-controls.txt    |    6 +++++-
- drivers/media/pci/cx88/cx88-blackbird.c        |    2 +-
- drivers/media/pci/cx88/cx88-video.c            |    2 +-
- drivers/media/platform/s5p-fimc/fimc-capture.c |    2 +-
- drivers/media/platform/soc_camera/soc_camera.c |    2 +-
- drivers/media/v4l2-core/v4l2-ctrls.c           |   25 +++++++++++++++++++++++-
- drivers/media/v4l2-core/v4l2-device.c          |    2 +-
- include/media/v4l2-ctrls.h                     |   18 +++++++++++++++--
- 8 files changed, 50 insertions(+), 9 deletions(-)
+ drivers/media/v4l2-core/v4l2-dev.c   |    4 ++--
+ drivers/media/v4l2-core/v4l2-ioctl.c |    5 +++++
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
-index cecaff8..cd4a26c 100644
---- a/Documentation/video4linux/v4l2-controls.txt
-+++ b/Documentation/video4linux/v4l2-controls.txt
-@@ -594,7 +594,11 @@ handler and finally add the first handler to the second. For example:
- 	v4l2_ctrl_new_std(&radio_ctrl_handler, &radio_ops, V4L2_CID_AUDIO_MUTE, ...);
- 	v4l2_ctrl_new_std(&video_ctrl_handler, &video_ops, V4L2_CID_BRIGHTNESS, ...);
- 	v4l2_ctrl_new_std(&video_ctrl_handler, &video_ops, V4L2_CID_CONTRAST, ...);
--	v4l2_ctrl_add_handler(&video_ctrl_handler, &radio_ctrl_handler);
-+	v4l2_ctrl_add_handler(&video_ctrl_handler, &radio_ctrl_handler, NULL);
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 95f92ea..498049f 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -609,7 +609,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 	SET_VALID_IOCTL(ops, VIDIOC_S_FBUF, vidioc_s_fbuf);
+ 	SET_VALID_IOCTL(ops, VIDIOC_STREAMON, vidioc_streamon);
+ 	SET_VALID_IOCTL(ops, VIDIOC_STREAMOFF, vidioc_streamoff);
+-	if (vdev->tvnorms)
++	if (ops->vidioc_s_std)
+ 		set_bit(_IOC_NR(VIDIOC_ENUMSTD), valid_ioctls);
+ 	if (ops->vidioc_g_std || vdev->current_norm)
+ 		set_bit(_IOC_NR(VIDIOC_G_STD), valid_ioctls);
+@@ -663,7 +663,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 	SET_VALID_IOCTL(ops, VIDIOC_DECODER_CMD, vidioc_decoder_cmd);
+ 	SET_VALID_IOCTL(ops, VIDIOC_TRY_DECODER_CMD, vidioc_try_decoder_cmd);
+ 	if (ops->vidioc_g_parm || (vdev->vfl_type == VFL_TYPE_GRABBER &&
+-					(ops->vidioc_g_std || vdev->tvnorms)))
++					(ops->vidioc_g_std || vdev->current_norm)))
+ 		set_bit(_IOC_NR(VIDIOC_G_PARM), valid_ioctls);
+ 	SET_VALID_IOCTL(ops, VIDIOC_S_PARM, vidioc_s_parm);
+ 	SET_VALID_IOCTL(ops, VIDIOC_G_TUNER, vidioc_g_tuner);
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 449ca9c..4ee9158 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1302,6 +1302,11 @@ static int v4l_enumstd(const struct v4l2_ioctl_ops *ops,
+ 	unsigned int index = p->index, i, j = 0;
+ 	const char *descr = "";
+ 
++	/* Return -ENODATA if the tvnorms for the current input
++	   or output is 0, meaning that it doesn't support this API. */
++	if (id == 0)
++		return -ENODATA;
 +
-+The last argument to v4l2_ctrl_add_handler() is a filter function that allows
-+you to filter which controls will be added. Set it to NULL if you want to add
-+all controls.
- 
- Or you can add specific controls to a handler:
- 
-diff --git a/drivers/media/pci/cx88/cx88-blackbird.c b/drivers/media/pci/cx88/cx88-blackbird.c
-index 843ffd9..def363f 100644
---- a/drivers/media/pci/cx88/cx88-blackbird.c
-+++ b/drivers/media/pci/cx88/cx88-blackbird.c
-@@ -1236,7 +1236,7 @@ static int cx8802_blackbird_probe(struct cx8802_driver *drv)
- 	err = cx2341x_handler_init(&dev->cxhdl, 36);
- 	if (err)
- 		goto fail_core;
--	v4l2_ctrl_add_handler(&dev->cxhdl.hdl, &core->video_hdl);
-+	v4l2_ctrl_add_handler(&dev->cxhdl.hdl, &core->video_hdl, NULL);
- 
- 	/* blackbird stuff */
- 	printk("%s/2: cx23416 based mpeg encoder (blackbird reference design)\n",
-diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
-index f6fcc7e..a146d50 100644
---- a/drivers/media/pci/cx88/cx88-video.c
-+++ b/drivers/media/pci/cx88/cx88-video.c
-@@ -1795,7 +1795,7 @@ static int __devinit cx8800_initdev(struct pci_dev *pci_dev,
- 		if (vc->id == V4L2_CID_CHROMA_AGC)
- 			core->chroma_agc = vc;
- 	}
--	v4l2_ctrl_add_handler(&core->video_hdl, &core->audio_hdl);
-+	v4l2_ctrl_add_handler(&core->video_hdl, &core->audio_hdl, NULL);
- 
- 	/* load and configure helper modules */
- 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c b/drivers/media/platform/s5p-fimc/fimc-capture.c
-index 8e413dd..dde0901 100644
---- a/drivers/media/platform/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
-@@ -472,7 +472,7 @@ int fimc_capture_ctrls_create(struct fimc_dev *fimc)
- 		return ret;
- 
- 	return v4l2_ctrl_add_handler(&vid_cap->ctx->ctrls.handler,
--		    fimc->pipeline.subdevs[IDX_SENSOR]->ctrl_handler);
-+		    fimc->pipeline.subdevs[IDX_SENSOR]->ctrl_handler, NULL);
- }
- 
- static int fimc_capture_set_default_format(struct fimc_dev *fimc);
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index f6b1c1f..3be9294 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -1184,7 +1184,7 @@ static int soc_camera_probe(struct soc_camera_device *icd)
- 	sd->grp_id = soc_camera_grp_id(icd);
- 	v4l2_set_subdev_hostdata(sd, icd);
- 
--	if (v4l2_ctrl_add_handler(&icd->ctrl_handler, sd->ctrl_handler))
-+	if (v4l2_ctrl_add_handler(&icd->ctrl_handler, sd->ctrl_handler, NULL))
- 		goto ectrl;
- 
- 	/* At this point client .probe() should have run already */
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 43061e1..b1b4660 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1689,7 +1689,8 @@ EXPORT_SYMBOL(v4l2_ctrl_add_ctrl);
- 
- /* Add the controls from another handler to our own. */
- int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
--			  struct v4l2_ctrl_handler *add)
-+			  struct v4l2_ctrl_handler *add,
-+			  bool (*filter)(const struct v4l2_ctrl *ctrl))
- {
- 	struct v4l2_ctrl_ref *ref;
- 	int ret = 0;
-@@ -1709,6 +1710,9 @@ int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
- 		/* And control classes */
- 		if (ctrl->type == V4L2_CTRL_TYPE_CTRL_CLASS)
- 			continue;
-+		/* Filter any unwanted controls */
-+		if (filter && !filter(ctrl))
-+			continue;
- 		ret = handler_new_ref(hdl, ctrl);
- 		if (ret)
- 			break;
-@@ -1718,6 +1722,25 @@ int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
- }
- EXPORT_SYMBOL(v4l2_ctrl_add_handler);
- 
-+bool v4l2_ctrl_radio_filter(const struct v4l2_ctrl *ctrl)
-+{
-+	if (V4L2_CTRL_ID2CLASS(ctrl->id) == V4L2_CTRL_CLASS_FM_TX)
-+		return true;
-+	switch (ctrl->id) {
-+	case V4L2_CID_AUDIO_MUTE:
-+	case V4L2_CID_AUDIO_VOLUME:
-+	case V4L2_CID_AUDIO_BALANCE:
-+	case V4L2_CID_AUDIO_BASS:
-+	case V4L2_CID_AUDIO_TREBLE:
-+	case V4L2_CID_AUDIO_LOUDNESS:
-+		return true;
-+	default:
-+		break;
-+	}
-+	return false;
-+}
-+EXPORT_SYMBOL(v4l2_ctrl_radio_filter);
-+
- /* Cluster controls */
- void v4l2_ctrl_cluster(unsigned ncontrols, struct v4l2_ctrl **controls)
- {
-diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
-index 1f203b8..513969f 100644
---- a/drivers/media/v4l2-core/v4l2-device.c
-+++ b/drivers/media/v4l2-core/v4l2-device.c
-@@ -166,7 +166,7 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
- 	}
- 
- 	/* This just returns 0 if either of the two args is NULL */
--	err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler);
-+	err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler, NULL);
- 	if (err) {
- 		if (sd->internal_ops && sd->internal_ops->unregistered)
- 			sd->internal_ops->unregistered(sd);
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 4484fd3..2c486be 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -395,14 +395,28 @@ struct v4l2_ctrl *v4l2_ctrl_add_ctrl(struct v4l2_ctrl_handler *hdl,
-   * @hdl:	The control handler.
-   * @add:	The control handler whose controls you want to add to
-   *		the @hdl control handler.
-+  * @filter:	This function will filter which controls should be added.
-   *
--  * Does nothing if either of the two is a NULL pointer.
-+  * Does nothing if either of the two handlers is a NULL pointer.
-+  * If @filter is NULL, then all controls are added. Otherwise only those
-+  * controls for which @filter returns true will be added.
-   * In case of an error @hdl->error will be set to the error code (if it
-   * wasn't set already).
-   */
- int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
--			  struct v4l2_ctrl_handler *add);
-+			  struct v4l2_ctrl_handler *add,
-+			  bool (*filter)(const struct v4l2_ctrl *ctrl));
- 
-+/** v4l2_ctrl_radio_filter() - Standard filter for radio controls.
-+  * @ctrl:	The control that is filtered.
-+  *
-+  * This will return true for any controls that are valid for radio device
-+  * nodes. Those are all of the V4L2_CID_AUDIO_* user controls and all FM
-+  * transmitter class controls.
-+  *
-+  * This function is to be used with v4l2_ctrl_add_handler().
-+  */
-+bool v4l2_ctrl_radio_filter(const struct v4l2_ctrl *ctrl);
- 
- /** v4l2_ctrl_cluster() - Mark all controls in the cluster as belonging to that cluster.
-   * @ncontrols:	The number of controls in this cluster.
+ 	/* Return norm array in a canonical way */
+ 	for (i = 0; i <= index && id; i++) {
+ 		/* last std value in the standards array is 0, so this
 -- 
 1.7.10.4
 
