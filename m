@@ -1,36 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59417 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56421 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756970Ab2IMKQt (ORCPT
+	with ESMTP id S1750891Ab2INWFN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 06:16:49 -0400
+	Fri, 14 Sep 2012 18:05:13 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 API PATCH 13/28] Add V4L2_CAP_MONOTONIC_TS where applicable.
-Date: Thu, 13 Sep 2012 03:27:24 +0200
-Message-ID: <2207739.BysYlheGG5@avalon>
-In-Reply-To: <753ddb14136b19372f3a533961fc90b5adbfb07a.1347023744.git.hans.verkuil@cisco.com>
-References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl> <753ddb14136b19372f3a533961fc90b5adbfb07a.1347023744.git.hans.verkuil@cisco.com>
+To: javier Martin <javier.martin@vista-silicon.com>
+Cc: linux-media@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	brijohn@gmail.com
+Subject: Re: Improving ov7670 sensor driver.
+Date: Sat, 15 Sep 2012 00:05:45 +0200
+Message-ID: <1436194.OkjyqZg1hD@avalon>
+In-Reply-To: <CACKLOr22AvmWhXmj2SrMGO4y39ESHfyh_HPnLr6nmQGkUv2+zg@mail.gmail.com>
+References: <CACKLOr22AvmWhXmj2SrMGO4y39ESHfyh_HPnLr6nmQGkUv2+zg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Javier,
 
-On Friday 07 September 2012 15:29:13 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thursday 13 September 2012 11:48:17 javier Martin wrote:
+> Hi,
+> our new i.MX27 based platform (Visstrim-SM20) uses an ov7675 sensor
+> attached to the CSI interface. Apparently, this sensor is fully
+> compatible with the old ov7670. For this reason, it seems rather
+> sensible that they should share the same driver: ov7670.c
+> One of the challenges we have to face is that capture video support
+> for our platform is mx2_camera.c, which is a soc-camera host driver;
+> while ov7670.c was developed for being used as part of a more complex
+> video card.
 > 
-> Add the new V4L2_CAP_MONOTONIC_TS capability to those drivers that
-> use monotomic timestamps instead of the system time.
+> Here is the list of current users of ov7670:
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> http://lxr.linux.no/#linux+v3.5.3/drivers/media/video/gspca/ov519.c
+> http://lxr.linux.no/#linux+v3.5.3/drivers/media/video/gspca/sn9c20x.c
+> http://lxr.linux.no/#linux+v3.5.3/drivers/media/video/gspca/vc032x.c
+> http://lxr.linux.no/#linux+v3.5.3/drivers/media/video/via-camera.c
+> http://lxr.linux.no/#linux+v3.5.3/drivers/media/video/marvell-ccic/mcam-core
+> .c
+> 
+> These are basically the improvements we need to make to this driver in
+> order to satisfy our needs:
+> 
+> 1.- Adapt v4l2 controls to the subvevice control framework, with a
+> proper ctrl handler, etc...
+> 2.- Add the possibility to bypass PLL and clkrc preescaler.
+> 3.- Adjust vstart/vstop in order to remove an horizontal green line.
+> 4.- Disable pixclk during horizontal blanking.
+> 5.- min_height, min_width should be respected in try_fmt().
+> 6.- Pass platform data when used with a soc-camera host driver.
+> 7.- Add V4L2_CID_POWER_LINE_FREQUENCY ctrl.
 
-For uvcvideo,
+8. Make sure it still works when used with a non soc-camera bridge.
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+That's the tricky part. I've spent time working on this for the ov772x driver 
+(albeit in the other direction, making it usable with a non soc-camera 
+bridge). You can find work-in-progress hacks at
+
+http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp-
+sensors-board
+
+The basic idea is that the soc-camera platform data structure needs to be 
+split into a generic device part (currently called soc_camera_pdtata, which 
+should be renamed to something not related to soc-camera), and a soc-camera 
+specific structure. The device should only see the device part, and the soc-
+camera framework will get the host part. That's currently not implemented.
 
 -- 
 Regards,
