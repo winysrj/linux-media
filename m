@@ -1,242 +1,462 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ch1ehsobe003.messaging.microsoft.com ([216.32.181.183]:51737
-	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751345Ab2IJIUR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Sep 2012 04:20:17 -0400
-Date: Mon, 10 Sep 2012 16:20:27 +0800
-From: Richard Zhao <richard.zhao@freescale.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-CC: <linux-media@vger.kernel.org>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, <kernel@pengutronix.de>
-Subject: Re: [PATCH v3 03/16] media: coda: fix IRAM/AXI handling for i.MX53
-Message-ID: <20120910082026.GC9043@b20223-02.ap.freescale.net>
-References: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
- <1346400670-16002-4-git-send-email-p.zabel@pengutronix.de>
+Received: from mx1.redhat.com ([209.132.183.28]:50654 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751101Ab2INBAI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Sep 2012 21:00:08 -0400
+Message-ID: <5052818B.7090708@redhat.com>
+Date: Thu, 13 Sep 2012 21:59:55 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <1346400670-16002-4-git-send-email-p.zabel@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Steven Toth <stoth@kernellabs.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux-Media <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL] ViewCast O820E capture support added
+References: <CALzAhNVEXexQELbbXzpzxeiUat-oXqhxQ1kiA7K1ibXTm8X+YQ@mail.gmail.com> <201208161649.43284.hverkuil@xs4all.nl> <CALzAhNWT3eNUNwNsGG_w+Jbz=ErRxogvv+_3GcKy8xZ+R-uZ=A@mail.gmail.com> <201208162049.35773.hverkuil@xs4all.nl> <CALzAhNXZx1+048S_rVsWH3fMg8sJnawo3o+bS6ygD5KRpjYZ3g@mail.gmail.com> <20120913201958.266fee52@infradead.org> <50526AFE.20003@redhat.com>
+In-Reply-To: <50526AFE.20003@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 31, 2012 at 10:10:57AM +0200, Philipp Zabel wrote:
-> This uses the ARCH_MXC specific iram_alloc API to allocate a work
-> buffer in the SoC's on-chip SRAM and sets up the AXI_SRAM_USE
-> register. In the future, the allocation will be converted to use
-> the genalloc API.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  drivers/media/platform/Kconfig |    3 ++-
->  drivers/media/platform/coda.c  |   51 ++++++++++++++++++++++++++++++++++++----
->  drivers/media/platform/coda.h  |   21 +++++++++++++----
->  3 files changed, 66 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index d4c034d..76f9a8f 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -130,9 +130,10 @@ if V4L_MEM2MEM_DRIVERS
->  
->  config VIDEO_CODA
->  	tristate "Chips&Media Coda multi-standard codec IP"
-> -	depends on VIDEO_DEV && VIDEO_V4L2
-> +	depends on VIDEO_DEV && VIDEO_V4L2 && ARCH_MXC
->  	select VIDEOBUF2_DMA_CONTIG
->  	select V4L2_MEM2MEM_DEV
-> +	select IRAM_ALLOC if SOC_IMX53
->  	---help---
->  	   Coda is a range of video codec IPs that supports
->  	   H.264, MPEG-4, and other video formats.
-> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-> index 8ec2ff4..5c06bc1 100644
-> --- a/drivers/media/platform/coda.c
-> +++ b/drivers/media/platform/coda.c
-> @@ -24,6 +24,7 @@
->  #include <linux/videodev2.h>
->  #include <linux/of.h>
->  
-> +#include <mach/iram.h>
->  #include <media/v4l2-ctrls.h>
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-ioctl.h>
-> @@ -42,6 +43,7 @@
->  #define CODA7_WORK_BUF_SIZE	(512 * 1024 + CODA_FMO_BUF_SIZE * 8 * 1024)
->  #define CODA_PARA_BUF_SIZE	(10 * 1024)
->  #define CODA_ISRAM_SIZE	(2048 * 2)
-> +#define CODA7_IRAM_SIZE		0x14000 /* 81920 bytes */
->  
->  #define CODA_OUTPUT_BUFS	4
->  #define CODA_CAPTURE_BUFS	2
-> @@ -127,6 +129,8 @@ struct coda_dev {
->  
->  	struct coda_aux_buf	codebuf;
->  	struct coda_aux_buf	workbuf;
-> +	long unsigned int	iram_vaddr;
-should be void __iomem * ?
-> +	long unsigned int	iram_paddr;
->  
->  	spinlock_t		irqlock;
->  	struct mutex		dev_mutex;
-> @@ -710,6 +714,13 @@ static void coda_device_run(void *m2m_priv)
->  	coda_write(dev, pic_stream_buffer_addr, CODA_CMD_ENC_PIC_BB_START);
->  	coda_write(dev, pic_stream_buffer_size / 1024,
->  		   CODA_CMD_ENC_PIC_BB_SIZE);
-> +
-> +	if (dev->devtype->product == CODA_7541) {
-> +		coda_write(dev, CODA7_USE_BIT_ENABLE | CODA7_USE_HOST_BIT_ENABLE |
-> +				CODA7_USE_ME_ENABLE | CODA7_USE_HOST_ME_ENABLE,
-> +				CODA7_REG_BIT_AXI_SRAM_USE);
-> +	}
-> +
->  	coda_command_async(ctx, CODA_COMMAND_PIC_RUN);
->  }
->  
-> @@ -941,8 +952,10 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
->  			CODA7_STREAM_BUF_PIC_RESET, CODA_REG_BIT_STREAM_CTRL);
->  	}
->  
-> -	/* Configure the coda */
-> -	coda_write(dev, 0xffff4c00, CODA_REG_BIT_SEARCH_RAM_BASE_ADDR);
-> +	if (dev->devtype->product == CODA_DX6) {
-> +		/* Configure the coda */
-> +		coda_write(dev, dev->iram_paddr, CODADX6_REG_BIT_SEARCH_RAM_BASE_ADDR);
-> +	}
->  
->  	/* Could set rotation here if needed */
->  	switch (dev->devtype->product) {
-> @@ -1017,7 +1030,12 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
->  		value  = (FMO_SLICE_SAVE_BUF_SIZE << 7);
->  		value |= (0 & CODA_FMOPARAM_TYPE_MASK) << CODA_FMOPARAM_TYPE_OFFSET;
->  		value |=  0 & CODA_FMOPARAM_SLICENUM_MASK;
-> -		coda_write(dev, value, CODA_CMD_ENC_SEQ_FMO);
-> +		if (dev->devtype->product == CODA_DX6) {
-> +			coda_write(dev, value, CODADX6_CMD_ENC_SEQ_FMO);
-> +		} else {
-> +			coda_write(dev, dev->iram_paddr, CODA7_CMD_ENC_SEQ_SEARCH_BASE);
-> +			coda_write(dev, 48 * 1024, CODA7_CMD_ENC_SEQ_SEARCH_SIZE);
-> +		}
->  	}
->  
->  	if (coda_command_sync(ctx, CODA_COMMAND_SEQ_INIT)) {
-> @@ -1047,7 +1065,15 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
->  	}
->  
->  	coda_write(dev, src_vq->num_buffers, CODA_CMD_SET_FRAME_BUF_NUM);
-> -	coda_write(dev, q_data_src->width, CODA_CMD_SET_FRAME_BUF_STRIDE);
-> +	coda_write(dev, round_up(q_data_src->width, 8), CODA_CMD_SET_FRAME_BUF_STRIDE);
-> +	if (dev->devtype->product != CODA_DX6) {
-> +		coda_write(dev, round_up(q_data_src->width, 8), CODA7_CMD_SET_FRAME_SOURCE_BUF_STRIDE);
-> +		coda_write(dev, dev->iram_paddr + 48 * 1024, CODA7_CMD_SET_FRAME_AXI_DBKY_ADDR);
-> +		coda_write(dev, dev->iram_paddr + 53 * 1024, CODA7_CMD_SET_FRAME_AXI_DBKC_ADDR);
-> +		coda_write(dev, dev->iram_paddr + 58 * 1024, CODA7_CMD_SET_FRAME_AXI_BIT_ADDR);
-> +		coda_write(dev, dev->iram_paddr + 68 * 1024, CODA7_CMD_SET_FRAME_AXI_IPACDC_ADDR);
-> +		coda_write(dev, 0x0, CODA7_CMD_SET_FRAME_AXI_OVL_ADDR);
-> +	}
->  	if (coda_command_sync(ctx, CODA_COMMAND_SET_FRAME_BUF)) {
->  		v4l2_err(v4l2_dev, "CODA_COMMAND_SET_FRAME_BUF timeout\n");
->  		return -ETIMEDOUT;
-> @@ -1580,6 +1606,10 @@ static int coda_hw_init(struct coda_dev *dev)
->  		coda_write(dev, CODA7_STREAM_BUF_PIC_FLUSH, CODA_REG_BIT_STREAM_CTRL);
->  	}
->  	coda_write(dev, 0, CODA_REG_BIT_FRAME_MEM_CTRL);
-> +
-> +	if (dev->devtype->product != CODA_DX6)
-> +		coda_write(dev, 0, CODA7_REG_BIT_AXI_SRAM_USE);
-> +
->  	coda_write(dev, CODA_INT_INTERRUPT_ENABLE,
->  		      CODA_REG_BIT_INT_ENABLE);
->  
-> @@ -1848,6 +1878,17 @@ static int __devinit coda_probe(struct platform_device *pdev)
->  		return -ENOMEM;
->  	}
->  
-> +	if (dev->devtype->product == CODA_DX6) {
-> +		dev->iram_paddr = 0xffff4c00;
-> +	} else {
-> +		dev->iram_vaddr = iram_alloc(CODA7_IRAM_SIZE,
-> +					     &dev->iram_paddr);
-There will be no build warning if iram_vaddr is void __iomem *.
-> +		if (!dev->iram_vaddr) {
-> +			dev_err(&pdev->dev, "unable to alloc iram\n");
-> +			return -ENOMEM;
-> +		}
-> +	}
-> +
->  	platform_set_drvdata(pdev, dev);
->  
->  	return coda_firmware_request(dev);
-> @@ -1863,6 +1904,8 @@ static int coda_remove(struct platform_device *pdev)
->  	if (dev->alloc_ctx)
->  		vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
->  	v4l2_device_unregister(&dev->v4l2_dev);
-> +	if (dev->iram_vaddr)
-> +		iram_free(dev->iram_vaddr, CODA7_IRAM_SIZE);
-It should be freed by paddr.
+Em Thu, 13 Sep 2012 20:23:42 -0300
+Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
 
-Thanks
-Richard
->  	if (dev->codebuf.vaddr)
->  		dma_free_coherent(&pdev->dev, dev->codebuf.size,
->  				  &dev->codebuf.vaddr, dev->codebuf.paddr);
-> diff --git a/drivers/media/platform/coda.h b/drivers/media/platform/coda.h
-> index 3fbb315..3324010 100644
-> --- a/drivers/media/platform/coda.h
-> +++ b/drivers/media/platform/coda.h
-> @@ -45,7 +45,12 @@
->  #define		CODA_IMAGE_ENDIAN_SELECT	(1 << 0)
->  #define CODA_REG_BIT_RD_PTR(x)			(0x120 + 8 * (x))
->  #define CODA_REG_BIT_WR_PTR(x)			(0x124 + 8 * (x))
-> -#define CODA_REG_BIT_SEARCH_RAM_BASE_ADDR	0x140
-> +#define CODADX6_REG_BIT_SEARCH_RAM_BASE_ADDR	0x140
-> +#define CODA7_REG_BIT_AXI_SRAM_USE		0x140
-> +#define		CODA7_USE_BIT_ENABLE		(1 << 0)
-> +#define		CODA7_USE_HOST_BIT_ENABLE	(1 << 7)
-> +#define		CODA7_USE_ME_ENABLE		(1 << 4)
-> +#define		CODA7_USE_HOST_ME_ENABLE	(1 << 11)
->  #define CODA_REG_BIT_BUSY			0x160
->  #define		CODA_REG_BIT_BUSY_FLAG		1
->  #define CODA_REG_BIT_RUN_COMMAND		0x164
-> @@ -162,11 +167,13 @@
->  #define		CODA_RATECONTROL_ENABLE_MASK			0x01
->  #define CODA_CMD_ENC_SEQ_RC_BUF_SIZE				0x1b0
->  #define CODA_CMD_ENC_SEQ_INTRA_REFRESH				0x1b4
-> -#define CODA_CMD_ENC_SEQ_FMO					0x1b8
-> +#define CODADX6_CMD_ENC_SEQ_FMO					0x1b8
->  #define		CODA_FMOPARAM_TYPE_OFFSET			4
->  #define		CODA_FMOPARAM_TYPE_MASK				1
->  #define		CODA_FMOPARAM_SLICENUM_OFFSET			0
->  #define		CODA_FMOPARAM_SLICENUM_MASK			0x0f
-> +#define CODA7_CMD_ENC_SEQ_SEARCH_BASE				0x1b8
-> +#define CODA7_CMD_ENC_SEQ_SEARCH_SIZE				0x1bc
->  #define CODA_CMD_ENC_SEQ_RC_QP_MAX				0x1c8
->  #define		CODA_QPMAX_OFFSET				0
->  #define		CODA_QPMAX_MASK					0x3f
-> @@ -189,8 +196,14 @@
->  #define CODA_RET_ENC_PIC_FLAG		0x1d0
->  
->  /* Set Frame Buffer */
-> -#define CODA_CMD_SET_FRAME_BUF_NUM	0x180
-> -#define CODA_CMD_SET_FRAME_BUF_STRIDE	0x184
-> +#define CODA_CMD_SET_FRAME_BUF_NUM		0x180
-> +#define CODA_CMD_SET_FRAME_BUF_STRIDE		0x184
-> +#define CODA7_CMD_SET_FRAME_AXI_BIT_ADDR	0x190
-> +#define CODA7_CMD_SET_FRAME_AXI_IPACDC_ADDR	0x194
-> +#define CODA7_CMD_SET_FRAME_AXI_DBKY_ADDR	0x198
-> +#define CODA7_CMD_SET_FRAME_AXI_DBKC_ADDR	0x19c
-> +#define CODA7_CMD_SET_FRAME_AXI_OVL_ADDR	0x1a0
-> +#define CODA7_CMD_SET_FRAME_SOURCE_BUF_STRIDE	0x1a8
->  
->  /* Encoder Header */
->  #define CODA_CMD_ENC_HEADER_CODE	0x180
-> -- 
-> 1.7.10.4
+> Em 13-09-2012 20:19, Mauro Carvalho Chehab escreveu:
+> > Em Sat, 18 Aug 2012 11:48:52 -0400
+> > Steven Toth <stoth@kernellabs.com> escreveu:
+> > 
+> >> Mauro, please read below, a new set of patches I'm submitting for merge.
+> >>
+> >> On Thu, Aug 16, 2012 at 2:49 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> >>> On Thu August 16 2012 19:39:51 Steven Toth wrote:
+> >>>>>> So, I've ran v4l2-compliance and it pointed out a few things that I've
+> >>>>>> fixed, but it also does a few things that (for some reason) I can't
+> >>>>>> seem to catch. One particular test is on (iirc) s_fmt. It attempts to
+> >>>>>> set ATSC but by ioctl callback never receives ATSC in the norm/id arg,
+> >>>>>> it actually receives 0x0. This feels more like a bug in the test.
+> >>>>>> Either way, I have some if (std & ATSC) return -EINVAL, but it still
+> >>>>>> appears to fail the test.
+> >>>>
+> >>>> Oddly enough. If I set tvnorms to something valid, then compliance
+> >>>> passes but gstreamer
+> >>>> fails to run, looks like some kind of confusion about either the
+> >>>> current established
+> >>>> norm, or a failure to establish a norm.
+> >>>>
+> >>>> For the time being I've set tvnorms to 0 (with a comment) and removed
+> >>>> current_norm.
+> >>>
+> >>> Well, this needs to be sorted, because something is clearly amiss.
+> >>
+> >> Agreed. I just can't see what's wrong. I may need your advise /
+> >> eyeballs on this. I'd be willing to provide logs that show gstreamer
+> >> accessing the driver and exiting. It needs fixed, I've tried, I just
+> >> can't see why gstreamer fails.
+> >>
+> >> On the main topic of merge.... As promised, I spent quite a bit of
+> >> time this week reworking the code based on the feedback. I also
+> >> flattened all of these patches into a single patchset and upgraded to
+> >> the latest re-org tree.
+> >>
+> >> The source notes describe in a little more detail the major changes:
+> >> http://git.kernellabs.com/?p=stoth/media_tree.git;a=commit;h=f295dd63e2f7027e327daad730eb86f2c17e3b2c
+> >>
+> >> Mauro, so, I hereby submit for your review/merge again, the updated
+> >> patchset. *** Please comment. ***
+> > 
+> > I'll comment patch by patch. Let's hope the ML will get this email. Not sure,
+> > as it tends to discard big emails like that.
+> > 
+> > This is the comment of patch 1/4.
+> > 
 > 
+> Patch 2 is trivial. It is obviously OK.
 > 
+> Patch 3 also looked OK on my eyes.
+
+Patch 4 will very likely be discarded by vger server, if everything is
+added there. So, I'll drop the parts that weren't commented.
+
+Anyway:
+
+> Subject: [media] vc8x0: Adding support for the ViewCast O820E Capture Card.
+> Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+> 
+> A dual channel 1920x1080p60 PCIe x4 capture card, two DVI
+> inputs capable of capturing DVI/HDMI, Component, Svideo, Composite
+> and some VGA resolutions.
+...
+
+> +#include "vc8x0.h"
+> +
+> +static unsigned int audio_debug;
+> +module_param(audio_debug, int, 0644);
+> +MODULE_PARM_DESC(audio_debug, "enable debug messages [audio]");
+> +
+> +static unsigned int audio_alsa_during_irq = 1;
+> +module_param(audio_alsa_during_irq, int, 0644);
+> +MODULE_PARM_DESC(audio_alsa_during_irq, "feed alsa during the irq handler, not via a dpc [audio]");
+> +
+> +#define dprintk(level, fmt, arg...)\
+> +	do {\
+> +		if (audio_debug >= level)\
+> +			pr_err("%s/0: " fmt, \
+> +				channel->dev->name, ## arg);\
+> +	} while (0)
+> +
+> +#define MIXER_RCA_JACKS 1
+> +
+> +/* Repack 24 bit audio samples (in 32bit alignment)
+> + * into 16bit samples within the same buffer, and
+> + * return the new buffer length in bytes.
+> + *
+> + * Input Sample:
+> + * LEFT         RIGHT
+> + * 00 B0 B1 B2  00 B1 B1 B2
+> +
+> + * Output Sample:
+> + * LEFT   RIGHT
+> + * B1 B2  B1 B2
+> + */
+> +static int repack_24_to_16(u8 *buf, int len)
+> +{
+> +	int i;
+> +	u8 *dst = buf;
+> +	u8 *src = buf + 2;
+> +
+> +	/* For each 24 bit sample */
+> +	for (i = 0; i < (len / 4); i++) {
+> +		*(dst) = *(src);
+> +		*(dst + 1) = *(src + 1);
+> +		dst += 2;
+> +		src += 4;
+> +	}
+> +
+> +	return (len / 4) * 2;
+> +}
+
+Why is it needed? It would be better to let ALSA userspace to handle
+it.
+
+> +	dprintk(3,
+> +		"%s() %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
+> +		__func__, *(buf->cpu + 0), *(buf->cpu + 1), *(buf->cpu + 2),
+> +		*(buf->cpu + 3), *(buf->cpu + 4), *(buf->cpu + 5),
+> +		*(buf->cpu + 6), *(buf->cpu + 7), *(buf->cpu + 8),
+> +		*(buf->cpu + 9), *(buf->cpu + 10), *(buf->cpu + 11),
+> +		*(buf->cpu + 12), *(buf->cpu + 13), *(buf->cpu + 14),
+> +		*(buf->cpu + 15)
+> +	    );
+
+FYI, there's now a new printk syntax to print buffer dumps like
+that, where you pass the buffer and the length, and printk does the
+rest.
+
+> +	spin_unlock(&channel->dma_buffers_full_lock);
+> +	spin_unlock_irqrestore(&channel->dma_buffers_dpc_lock, flags);
+> +
+> +	/* BAM! The interrupt handler is now free to move on */
+> +	/* BAM! The interrupt handler is now free to move on */
+> +	/* BAM! The interrupt handler is now free to move on */
+> +	/* BAM! The interrupt handler is now free to move on */
+
+Wow! the above 4 lines won the prize of the weirdest comment I ever seen ;)
+Why you need to say the above 4 times? :)
+
+Even saying it once seems overkill to me, as it just repeats what the
+ spin_unlock() just said ;)
+
+> +
+> +	/* Now let's dequeue the full buffers */
+> +	/* For each full buffer, send it to user space */
+> +	spin_lock(&channel->dma_buffers_full_lock);
+
+Huh? You just unlocked it... Also, it looks weird that you're using two spin
+locks on the above code, and just one here. Using more than one spin lock
+like that could cause dead locks.
+
+Btw, this patch is too big! You should break it into some smaller
+pieces (one patch per file, for example) making life easier for reviewers and
+allowing people at the ML to see/comment the full code, as one of the requirements
+is that, before sending a pull request, you should be sending the patches to
+the ML.
+
+In the specific case of the -alsa driver, it is mandatory to have it on a
+separate patch, as it should be copied also to the alsa ML, to allow alsa
+people to comment/review.
+
+So, please split patch 4 into separate patches, doing the Kconfig/Makefile
+integration at the end of your series.
+
+> +	buf->used_len = 3840;
+> +	buf->used_len = repack_24_to_16(buf->cpu, buf->used_len);
+
+This repack thing looks weird on my eyes.
+
+> +	spin_lock_irqsave(&channel->dma_buffers_busy_lock, flags);
+> +
+> +	/* Last, put the buffer on the DPC list for our deferred worker
+> +	 * to process */
+> +	spin_lock_irqsave(&channel->dma_buffers_dpc_lock, flags);
+
+Again, double-locking.
+
+> +static inline void handle_audio_data(struct vc8x0_dma_buffer *buf,
+> +	int *period_elapsed)
+> +{
+> +	struct vc8x0_dma_channel *channel = buf->channel;
+> +	struct vc8x0_audio_dev *chip = channel->audio_dev;
+> +	struct snd_pcm_runtime *runtime = chip->capture_pcm_substream->runtime;
+> +	int stride;
+> +	int len, rdb, cpsafe[3];
+> +	unsigned char *cp;
+> +	unsigned int oldptr;
+> +
+> +	stride = runtime->frame_bits >> 3;
+> +	if (stride == 0) {
+> +		pr_err("%s() divbyzero BUG\n", __func__);
+> +		stride = 4;
+> +	}
+> +
+> +	len = buf->used_len / stride;
+
+Hmm... that looks weird on my eyes, as other drivers don't have
+such check. Why such logic is needed? Rounding it to 4 won't cause
+buffer overflows? Maybe a BUG_ON would apply better here.
+
+> +#if ENABLE_ALSA_MIXER
+
+Please use CONFIG_foo instead, it the user may opt to have it or not.
+
+> diff --git a/drivers/media/pci/vc8x0/vc8x0-buffer.c b/drivers/media/pci/vc8x0/vc8x0-buffer.c
+
+
+> +DMA buffers per channel must be contigious, reside only in 32bit
+
+typo: contiguous.
+
+> +memory.
+> +
+> +The PCIe bridge (GN4124) supports up to 18 'fifos', essentially
+> +discrete DMA channels. The GN4124 uses a DMA Sequencer architecture
+> +to control which dma buffers are targets for which channel. The sequencer
+> +is a list of program instructions that effictivel handle the data modement
+
+typo: effective
+
+> +
+> +void vc8x0_buffer_analyze(u8 *buf, int len)
+> +{
+> +	int i;
+> +	u32 data[256];
+> +	memset(data, 0, sizeof(data));
+> +
+> +	for (i = 0; i < len; i++) {
+> +		data[*(buf + i)]++;
+> +	}
+> +
+> +	for (i = 0; i < 256; i++) {
+> +		if (data[i]) {
+> +			pr_err("%02x %x\n", i, data[i]);
+> +		}
+> +	}
+
+use print_hex_dump() instead of the loop.
+
+On a big driver, like that, it is hard to see how each module
+interacts with the others. Yet, it seemed, on my eyes, that
+vc8x0-buffer is doing something close to what vb2-contig is
+already doing.
+
+If you need to use contiguous buffer memories for DMA transfers,
+I strongly suggest you to use vb2, as vb1 is known to have some
+serious issues with contiguous memories.
+
+> diff --git a/drivers/media/pci/vc8x0/vc8x0-channel.c b/drivers/media/pci/vc8x0/vc8x0-channel.c
+
+Again, it is hard to understand what is there at *-channel, in the context
+of the entire driver, but it seems part of a videobuf handling code.
+
+> diff --git a/drivers/media/pci/vc8x0/vc8x0-core.c b/drivers/media/pci/vc8x0/vc8x0-core.c
+
+> +
+> +/* 1 = Basic device statistics
+> + * 2 = PCIe register dump for entire device
+> + * 4 = AD9985 register dump
+> + * 8 = SIL9013 register dump
+> + */
+> +unsigned int vc8x0_thread_active = 1;
+> +module_param(vc8x0_thread_active, int, 0644);
+> +MODULE_PARM_DESC(vc8x0_thread_active, "should keep alive thread run");
+
+Is it really needed? If so, I think you should better describe it as, the
+above description doesn't mean anything for me... What Thread? What happens
+if the thread doesn't run?
+
+> +static int vc8x0_dev_setup(struct vc8x0_dev *dev)
+> +{
+> +	int i;
+> +
+> +	mutex_init(&dev->lock);
+> +
+> +	atomic_inc(&dev->refcount);
+> +
+> +	dev->nr = vc8x0_devcount++;
+> +	sprintf(dev->name, "vc8x0[%d]", dev->nr);
+> +
+> +	/* board config */
+> +	dev->board = UNSET;
+> +	if (card[dev->nr] < vc8x0_bcount)
+> +		dev->board = card[dev->nr];
+> +	for (i = 0; UNSET == dev->board  &&  i < vc8x0_idcount; i++)
+> +		if (dev->pci->subsystem_vendor == vc8x0_subids[i].subvendor &&
+> +		    dev->pci->subsystem_device == vc8x0_subids[i].subdevice)
+> +			dev->board = vc8x0_subids[i].card;
+> +	if (UNSET == dev->board) {
+> +		dev->board = VC8X0_BOARD_UNKNOWN;
+> +		vc8x0_card_list(dev);
+> +	}
+> +
+> +	/* The keepalive thread needs a mutex */
+> +	mutex_init(&dev->kthread_lock);
+> +
+> +	/* Main Master 0 Bus incl. eeprom */
+> +	mutex_init(&dev->i2c_bus.lock);
+> +	dev->i2c_bus.nr = 0;
+> +	dev->i2c_bus.dev = dev;
+> +	dev->i2c_bus.reg_base = 0xd80;
+> +
+> +	if (get_resources(dev) < 0) {
+> +		pr_err(
+> +		"CORE %s No more PCIe resources for subsystem: %04x:%04x\n",
+> +		       dev->name, dev->pci->subsystem_vendor,
+> +		       dev->pci->subsystem_device);
+> +
+> +		vc8x0_devcount--;
+> +		return -ENODEV;
+> +	}
+> +
+> +	/* PCIe stuff */
+> +	dev->lmmio032 = ioremap(pci_resource_start(dev->pci, BAR0),
+> +			     pci_resource_len(dev->pci, BAR0));
+> +	dev->lmmio064 = (u64 *)dev->lmmio032;
+> +	dev->bmmio = (u8 *)dev->lmmio032;
+> +	dev->lmmio4 = ioremap(pci_resource_start(dev->pci, BAR4),
+> +			     pci_resource_len(dev->pci, BAR4));
+> +
+> +	dev->m_nInterruptMask1 = 0;
+> +	dev->m_nInterruptMask2 = 0;
+> +
+> +	pr_info("CORE %s: subsystem: %04x:%04x, board: %s [card=%d,%s]\n",
+> +	       dev->name, dev->pci->subsystem_vendor,
+> +	       dev->pci->subsystem_device, vc8x0_boards[dev->board].name,
+> +	       dev->board, card[dev->nr] == dev->board ?
+> +	       "insmod option" : "autodetected");
+> +
+> +	return 0;
+> +}
+
+This is driver's author choice, but I would move driver init, register, unregister
+logic to be at *-cards.c. That balances a little more the code size on each
+.c file. We successfully did it on several drivers, and the end result reduced
+the number of exported functions.
+
+> +#if ENABLE_ALSA
+...
+
+> +#if ENABLE_MONITOR_REGISTERS
+...
+> +#if ENABLE_AUDIO_KEEPALIVE && ENABLE_ALSA
+...
+
+Why do you need those defines? If they're needed, please use CONFIG_foo.
+
+If they're for debug purposes, please convert them on if (debug == FOO).
+
+> +#if ENABLE_ALSA && ENABLE_AUDIO_KEEPALIVE
+> +		/* The PCM audio subsystem throws this messages:
+> +		 * ALSA sound/core/pcm_lib.c:1765: capture write error
+> +		 * (DMA or IRQ trouble?) when no audio is delivered for 10
+> +		 * seconds. It basically means it's worker thread didn't
+> +		 * receive a notification with 10 seconds. The message is poor.
+> +		 * In terms of the vc8x0 driver this message will appear by
+> +		 * default if the HDMI cable is disconnected for > 10 seconds,
+> +		 * and it will appear every 10 seconds. If you don't want
+> +		 * this IRQ message to appear then set ENABLE_AUDIO_KEEPLIVE=1
+
+How to set it? It is not on Kconfig, nor it is a modprobe option.
+
+> +		/* Other parts of the driver need to guarantee that
+> +		 * various 'keep alives' aren't happening. We'll
+> +		 * prevent race conditions by allowing the
+> +		 * rest of the driver to dictate when
+> +		 * this keepalives can occur.
+> +		 */
+> +		mutex_lock(&dev->kthread_lock);
+> +
+> +		mutex_unlock(&dev->kthread_lock);
+
+Huh???? Lock/unlock here, without any code inside? That looks odd.
+
+> +#if ENABLE_BAD_READS
+
+Yet another define stuff, without a Kconfig item.
+
+> diff --git a/drivers/media/pci/vc8x0/vc8x0-display.c b/drivers/media/pci/vc8x0/vc8x0-display.c
+
+> +struct letter_t {
+> +	u8 *ptr;
+> +	u8 data[8];
+> +} charset[] = {
+> + /* ' ' */ [0x20] = { 0, { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, },
+> + /* 00000000 */
+> + /* 00000000 */
+> + /* 00000000 */
+> + /* 00000000 */
+> + /* 00000000 */
+> + /* 00000000 */
+> + /* 00000000 */
+> + /* 00000000 */
+> + /* '!' */ [0x21] = { 0, { 0x04, 0x04, 0x04, 0x04, 0x00, 0x00, 0x04, 0x00 }, },
+> + /* 00000100 */
+> + /* 00000100 */
+> + /* 00000100 */
+> + /* 00000100 */
+> + /* 00000000 */
+> + /* 00000000 */
+> + /* 00000100 */
+> + /* 00000000 */
+
+Charset???? No, please! If you really need a charset, take a look at the
+vivi driver. It uses an already-existent Kernel charset. See:
+
+	static int __init vivi_init(void)
+	{
+		const struct font_desc *font = find_font("VGA8x16");
+
+Not sure about the rest of the code here at vc8x0-display.c, but maybe you'll
+find a similar code to it already coded. Where do you use it?
+
+> diff --git a/drivers/media/pci/vc8x0/vc8x0-dma.c b/drivers/media/pci/vc8x0/vc8x0-dma.c
+
+> +/* DMA SEQUENCER PROGRAM */
+> +
+> +static u32 vc8x0_FlexDMAProgram[] = {
+> +/*	0x0000	*/	VDMA_LOAD_RA(VD_1_STREAM_DISABLED),
+...
+> +/*	0x02DA	*/	VDMA_JMP(VDMA_ALWAYS, 0, MAIN),
+> +};
+> +
+
+Firmware? It is likely better to put it elsewhere, maybe at linux-firmware.
+There are some GPL'd firmwares there.
+
+I'll comment the remaining files of patch 4 on a separate email
+(editing a 11.000 lines email is very hard... my emailer crashed a few
+ times).
+
+Regards,
+Mauro
+
 
