@@ -1,316 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:19346 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755313Ab2IMOIL (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4178 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753190Ab2INH2L (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 10:08:11 -0400
+	Fri, 14 Sep 2012 03:28:11 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Federico Vaga <federico.vaga@gmail.com>
-Subject: Re: [PATCH 3/4] videobuf2-dma-streaming: new videobuf2 memory allocator
-Date: Thu, 13 Sep 2012 16:08:05 +0200
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [GIT PULL] ViewCast O820E capture support added
+Date: Fri, 14 Sep 2012 09:27:00 +0200
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Jonathan Corbet <corbet@lwn.net>
-References: <1347544368-30583-1-git-send-email-federico.vaga@gmail.com> <1347544368-30583-3-git-send-email-federico.vaga@gmail.com>
-In-Reply-To: <1347544368-30583-3-git-send-email-federico.vaga@gmail.com>
+	Steven Toth <stoth@kernellabs.com>,
+	"Linux-Media" <linux-media@vger.kernel.org>
+References: <CALzAhNVEXexQELbbXzpzxeiUat-oXqhxQ1kiA7K1ibXTm8X+YQ@mail.gmail.com> <5052818B.7090708@redhat.com> <505291E6.9020606@redhat.com>
+In-Reply-To: <505291E6.9020606@redhat.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201209131608.05869.hverkuil@xs4all.nl>
+Message-Id: <201209140927.00426.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 13 September 2012 15:52:47 Federico Vaga wrote:
-> Signed-off-by: Federico Vaga <federico.vaga@gmail.com>
-> ---
->  drivers/media/v4l2-core/Kconfig                   |   5 +
->  drivers/media/v4l2-core/Makefile                  |   1 +
->  drivers/media/v4l2-core/videobuf2-dma-streaming.c | 205 ++++++++++++++++++++++
->  include/media/videobuf2-dma-streaming.h           |  24 +++
->  4 file modificati, 235 inserzioni(+)
->  create mode 100644 drivers/media/v4l2-core/videobuf2-dma-streaming.c
->  create mode 100644 include/media/videobuf2-dma-streaming.h
+On Fri September 14 2012 04:09:42 Mauro Carvalho Chehab wrote:
+> Em 13-09-2012 21:59, Mauro Carvalho Chehab escreveu:
+> > Em Thu, 13 Sep 2012 20:23:42 -0300
+> > Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
+> > 
+> >> Em 13-09-2012 20:19, Mauro Carvalho Chehab escreveu:
+> >>> Em Sat, 18 Aug 2012 11:48:52 -0400
+> >>> Steven Toth <stoth@kernellabs.com> escreveu:
+> >>>
+> >>>> Mauro, please read below, a new set of patches I'm submitting for merge.
+> >>>>
+> >>>> On Thu, Aug 16, 2012 at 2:49 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> >>>>> On Thu August 16 2012 19:39:51 Steven Toth wrote:
+> >>>>>>>> So, I've ran v4l2-compliance and it pointed out a few things that I've
+> >>>>>>>> fixed, but it also does a few things that (for some reason) I can't
+> >>>>>>>> seem to catch. One particular test is on (iirc) s_fmt. It attempts to
+> >>>>>>>> set ATSC but by ioctl callback never receives ATSC in the norm/id arg,
+> >>>>>>>> it actually receives 0x0. This feels more like a bug in the test.
+> >>>>>>>> Either way, I have some if (std & ATSC) return -EINVAL, but it still
+> >>>>>>>> appears to fail the test.
+> >>>>>>
+> >>>>>> Oddly enough. If I set tvnorms to something valid, then compliance
+> >>>>>> passes but gstreamer
+> >>>>>> fails to run, looks like some kind of confusion about either the
+> >>>>>> current established
+> >>>>>> norm, or a failure to establish a norm.
+> >>>>>>
+> >>>>>> For the time being I've set tvnorms to 0 (with a comment) and removed
+> >>>>>> current_norm.
+> >>>>>
+> >>>>> Well, this needs to be sorted, because something is clearly amiss.
+> >>>>
+> >>>> Agreed. I just can't see what's wrong. I may need your advise /
+> >>>> eyeballs on this. I'd be willing to provide logs that show gstreamer
+> >>>> accessing the driver and exiting. It needs fixed, I've tried, I just
+> >>>> can't see why gstreamer fails.
+> >>>>
+> >>>> On the main topic of merge.... As promised, I spent quite a bit of
+> >>>> time this week reworking the code based on the feedback. I also
+> >>>> flattened all of these patches into a single patchset and upgraded to
+> >>>> the latest re-org tree.
+> >>>>
+> >>>> The source notes describe in a little more detail the major changes:
+> >>>> http://git.kernellabs.com/?p=stoth/media_tree.git;a=commit;h=f295dd63e2f7027e327daad730eb86f2c17e3b2c
+> >>>>
+> >>>> Mauro, so, I hereby submit for your review/merge again, the updated
+> >>>> patchset. *** Please comment. ***
+> >>>
+> >>> I'll comment patch by patch. Let's hope the ML will get this email. Not sure,
+> >>> as it tends to discard big emails like that.
+> >>>
+> >>> This is the comment of patch 1/4.
+> >>>
+> >>
+> >> Patch 2 is trivial. It is obviously OK.
+> >>
+> >> Patch 3 also looked OK on my eyes.
+> > 
+> > Patch 4 will very likely be discarded by vger server, if everything is
+> > added there. So, I'll drop the parts that weren't commented.
+> > 
+> > Anyway:
+> > 
+> >> Subject: [media] vc8x0: Adding support for the ViewCast O820E Capture Card.
+> >> Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+> >>
+> >> A dual channel 1920x1080p60 PCIe x4 capture card, two DVI
+> >> inputs capable of capturing DVI/HDMI, Component, Svideo, Composite
+> >> and some VGA resolutions.
+> > ...
+> > 
+
+
+> >> diff --git a/drivers/media/pci/vc8x0/vc8x0-display.c b/drivers/media/pci/vc8x0/vc8x0-display.c
+> > 
+> >> +struct letter_t {
+> >> +	u8 *ptr;
+> >> +	u8 data[8];
+> >> +} charset[] = {
+> >> + /* ' ' */ [0x20] = { 0, { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, },
+> >> + /* 00000000 */
+> >> + /* 00000000 */
+> >> + /* 00000000 */
+> >> + /* 00000000 */
+> >> + /* 00000000 */
+> >> + /* 00000000 */
+> >> + /* 00000000 */
+> >> + /* 00000000 */
+> >> + /* '!' */ [0x21] = { 0, { 0x04, 0x04, 0x04, 0x04, 0x00, 0x00, 0x04, 0x00 }, },
+> >> + /* 00000100 */
+> >> + /* 00000100 */
+> >> + /* 00000100 */
+> >> + /* 00000100 */
+> >> + /* 00000000 */
+> >> + /* 00000000 */
+> >> + /* 00000100 */
+> >> + /* 00000000 */
+> > 
+> > Charset???? No, please! If you really need a charset, take a look at the
+> > vivi driver. It uses an already-existent Kernel charset. See:
+> > 
+> > 	static int __init vivi_init(void)
+> > 	{
+> > 		const struct font_desc *font = find_font("VGA8x16");
+> > 
+> > Not sure about the rest of the code here at vc8x0-display.c, but maybe you'll
+> > find a similar code to it already coded. Where do you use it?
+
+I think all this is just for debugging and should just be removed. It renders
+debugging text in the frame.
+
+> > diff --git a/drivers/media/pci/vc8x0/vc8x0-video.c b/drivers/media/pci/vc8x0/vc8x0-video.c
 > 
-> diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
-> index 0c54e19..60548a7 100644
-> --- a/drivers/media/v4l2-core/Kconfig
-> +++ b/drivers/media/v4l2-core/Kconfig
-> @@ -79,3 +79,8 @@ config VIDEOBUF2_DMA_SG
->  	#depends on HAS_DMA
->  	select VIDEOBUF2_CORE
->  	select VIDEOBUF2_MEMOPS
-> +
-> +config VIDEOBUF2_DMA_STREAMING
-> +	select VIDEOBUF2_CORE
-> +	select VIDEOBUF2_MEMOPS
-> +	tristate
-> diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
-> index c2d61d4..0b2756f 100644
-> --- a/drivers/media/v4l2-core/Makefile
-> +++ b/drivers/media/v4l2-core/Makefile
-> @@ -28,6 +28,7 @@ obj-$(CONFIG_VIDEOBUF2_MEMOPS) += videobuf2-memops.o
->  obj-$(CONFIG_VIDEOBUF2_VMALLOC) += videobuf2-vmalloc.o
->  obj-$(CONFIG_VIDEOBUF2_DMA_CONTIG) += videobuf2-dma-contig.o
->  obj-$(CONFIG_VIDEOBUF2_DMA_SG) += videobuf2-dma-sg.o
-> +obj-$(CONFIG_VIDEOBUF2_DMA_STREAMING) += videobuf2-dma-streaming.o
->  
->  ccflags-y += -I$(srctree)/drivers/media/dvb-core
->  ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-streaming.c b/drivers/media/v4l2-core/videobuf2-dma-streaming.c
-> new file mode 100644
-> index 0000000..23475a6
-> --- /dev/null
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-streaming.c
-> @@ -0,0 +1,205 @@
-> +/*
-> + * videobuf2-dma-streaming.c - DMA streaming memory allocator for videobuf2
-> + *
-> + * Copyright (C) 2012 Federico Vaga <federico.vaga@gmail.com>
-> + * *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/slab.h>
-> +#include <linux/pagemap.h>
-> +#include <linux/dma-mapping.h>
-> +
-> +#include <media/videobuf2-core.h>
-> +#include <media/videobuf2-dma-streaming.h>
-> +#include <media/videobuf2-memops.h>
-> +
-> +struct vb2_streaming_conf {
-> +	struct device			*dev;
-> +};
-> +struct vb2_streaming_buf {
-> +	struct vb2_streaming_conf	*conf;
-> +	void				*vaddr;
-> +
-> +	dma_addr_t			dma_handle;
-> +
-> +	unsigned long			size;
-> +	struct vm_area_struct		*vma;
-> +
-> +	atomic_t			refcount;
-> +	struct vb2_vmarea_handler	handler;
-> +};
-> +
-> +static void vb2_dma_streaming_put(void *buf_priv)
-> +{
-> +	struct vb2_streaming_buf *buf = buf_priv;
-> +
-> +	if (atomic_dec_and_test(&buf->refcount)) {
-> +		dma_unmap_single(buf->conf->dev, buf->dma_handle, buf->size,
-> +				 DMA_FROM_DEVICE);
-> +		free_pages_exact(buf->vaddr, buf->size);
-> +		kfree(buf);
-> +	}
-> +
-> +}
-> +
-> +static void *vb2_dma_streaming_alloc(void *alloc_ctx, unsigned long size)
-> +{
-> +	struct vb2_streaming_conf *conf = alloc_ctx;
-> +	struct vb2_streaming_buf *buf;
-> +	int err;
-> +
-> +	buf = kzalloc(sizeof *buf, GFP_KERNEL);
-> +	if (!buf)
-> +		return ERR_PTR(-ENOMEM);
-> +	buf->vaddr = alloc_pages_exact(size, GFP_KERNEL | GFP_DMA);
-> +	if (!buf->vaddr) {
-> +		err = -ENOMEM;
-> +		goto out;
-> +	}
-> +	buf->dma_handle = dma_map_single(conf->dev, buf->vaddr, size,
-> +					 DMA_FROM_DEVICE);
-> +	err = dma_mapping_error(conf->dev, buf->dma_handle);
-> +	if (err) {
-> +		dev_err(conf->dev, "dma_map_single failed\n");
-> +
-> +		free_pages_exact(buf->vaddr, size);
-> +		buf->vaddr = NULL;
-> +		goto out_pages;
-> +	}
-> +	buf->conf = conf;
-> +	buf->size = size;
-> +	buf->handler.refcount = &buf->refcount;
-> +	buf->handler.put = vb2_dma_streaming_put;
-> +	buf->handler.arg = buf;
-> +
-> +	atomic_inc(&buf->refcount);
-> +	return buf;
-> +
-> +out_pages:
-> +	free_pages_exact(buf->vaddr, buf->size);
-> +out:
-> +	kfree(buf);
-> +	return ERR_PTR(err);
-> +}
-> +
-> +static void *vb2_dma_streaming_cookie(void *buf_priv)
-> +{
-> +	struct vb2_streaming_buf *buf = buf_priv;
-> +
-> +	return (void *)buf->dma_handle;
-> +}
-> +
-> +static void *vb2_dma_streaming_vaddr(void *buf_priv)
-> +{
-> +	struct vb2_streaming_buf *buf = buf_priv;
-> +
-> +	if (!buf)
-> +		return NULL;
-> +	return buf->vaddr;
-> +}
-> +
-> +static unsigned int vb2_dma_streaming_num_users(void *buf_priv)
-> +{
-> +	struct vb2_streaming_buf *buf = buf_priv;
-> +
-> +	return atomic_read(&buf->refcount);
-> +}
-> +
-> +static int vb2_dma_streaming_mmap(void *buf_priv, struct vm_area_struct *vma)
-> +{
-> +	struct vb2_streaming_buf *buf = buf_priv;
-> +	unsigned long pos, start = vma->vm_start;
-> +	unsigned long size;
-> +	struct page *page;
-> +	int err;
-> +
-> +	/* Try to remap memory */
-> +	size = vma->vm_end - vma->vm_start;
-> +	size = (size < buf->size) ? size : buf->size;
-> +	pos = (unsigned long)buf->vaddr;
-> +
-> +	while (size > 0) {
-> +		page = virt_to_page((void *)pos);
-> +		if (!page) {
-> +			dev_err(buf->conf->dev, "mmap: virt_to_page failed\n");
-> +			return -ENOMEM;
-> +		}
-> +		err = vm_insert_page(vma, start, page);
-> +		if (err) {
-> +			dev_err(buf->conf->dev, "mmap: insert failed %d\n", err);
-> +			return -ENOMEM;
-> +		}
-> +		start += PAGE_SIZE;
-> +		pos += PAGE_SIZE;
-> +
-> +		if (size > PAGE_SIZE)
-> +			size -= PAGE_SIZE;
-> +		else
-> +			size = 0;
-> +	}
-> +
-> +
-> +	vma->vm_ops = &vb2_common_vm_ops;
-> +	vma->vm_flags |= VM_DONTEXPAND;
-> +	vma->vm_private_data = &buf->handler;
-> +
-> +	vma->vm_ops->open(vma);
-> +
-> +	return 0;
-> +}
-> +
-> +static void vb2_dma_streaming_prepare(void *buf_priv)
-> +{
-> +	struct vb2_streaming_buf *buf = buf_priv;
-> +
-> +	dma_sync_single_for_device(buf->conf->dev, buf->dma_handle,
-> +				   buf->size, DMA_FROM_DEVICE);
-> +}
-> +
-> +static void vb2_dma_streaming_finish(void *buf_priv)
-> +{
-> +	struct vb2_streaming_buf *buf = buf_priv;
-> +
-> +	dma_sync_single_for_cpu(buf->conf->dev, buf->dma_handle,
-> +				buf->size, DMA_FROM_DEVICE);
-> +}
-> +
-> +const struct vb2_mem_ops vb2_dma_streaming_memops = {
-> +	.alloc		= vb2_dma_streaming_alloc,
-> +	.put		= vb2_dma_streaming_put,
-> +	.cookie		= vb2_dma_streaming_cookie,
-> +	.vaddr		= vb2_dma_streaming_vaddr,
-> +	.mmap		= vb2_dma_streaming_mmap,
-> +	.num_users	= vb2_dma_streaming_num_users,
-> +	.prepare	= vb2_dma_streaming_prepare,
-> +	.finish		= vb2_dma_streaming_finish,
-> +};
-> +EXPORT_SYMBOL_GPL(vb2_dma_streaming_memops);
-> +
-> +void *vb2_dma_streaming_init_ctx(struct device *dev)
-> +{
-> +	struct vb2_streaming_conf *conf;
-> +
-> +	conf = kmalloc(sizeof *conf, GFP_KERNEL);
-> +	if (!conf)
-> +		return ERR_PTR(-ENOMEM);
-> +
-> +	conf->dev = dev;
-> +
-> +	return conf;
-> +}
-> +EXPORT_SYMBOL_GPL(vb2_dma_streaming_init_ctx);
-> +
-> +void vb2_dma_streaming_cleanup_ctx(void *alloc_ctx)
-> +{
-> +	kfree(alloc_ctx);
-> +}
-> +EXPORT_SYMBOL_GPL(vb2_dma_streaming_cleanup_ctx);
-> +
-> +MODULE_DESCRIPTION("DMA-streaming memory allocator for videobuf2");
-> +MODULE_AUTHOR("Federico Vaga <federico.vaga@gmail.com>");
-> +MODULE_LICENSE("GPL v2");
-> diff --git a/include/media/videobuf2-dma-streaming.h b/include/media/videobuf2-dma-streaming.h
-> new file mode 100644
-> index 0000000..89cbd06
-> --- /dev/null
-> +++ b/include/media/videobuf2-dma-streaming.h
-> @@ -0,0 +1,24 @@
-> +/*
-> + * videobuf2-dma-streaming.h - DMA steaming memory allocator for videobuf2
 
-typo: steaming -> streaming :-)
+> > +static int vc8x0_video_generate_osd(struct vc8x0_dma_channel *channel, u8 *dst)
+> > +{
+> > +#if 1
+> > +	return 0;
+> > +#else
+> > +	/* Do some text rendering */
+> > +	struct vc8x0_format *fmt = channel->ad7441_ctx.detected_fmt;
+> > +	unsigned char tmp[256];
+> > +	int ret;
+> > +
+> > +	ret = vc8x0_display_render_reset(&channel->display_ctx, dst,
+> > +		channel->fmt->width);
+> > +	if (ret < 0)
+> > +		return ret;
+> 
+> Hmm... Are you using the *-display.c code for OSD? Not sure if it is
+> a good idea to handle it like that.
+> 
+> Hans,
+> 
+> What do you think?
+> 
+> Yet, the code here is commented, but there's a hole driver there in order
+> to implement OSD display, just bloating the driver's code... 
 
-The header and esp. the source could really do with more documentation. It is
-not at all clear from the code what the dma-streaming allocator does and how
-it differs from other allocators.
+I think it can all be removed completely. It's not a real OSD, it just
+renders text in a captured frame.
+
+> > +static int vc8x0_log_status(struct file *file, void *priv)
+> > +{
+> > +	struct vc8x0_dma_channel *channel = ((struct vc8x0_fh *)priv)->channel;
+> > +	struct vc8x0_dev *dev = channel->dev;
+> > +
+> > +	v4l2_subdev_call(channel->sd_adv7441a, core, log_status);
+> > +	v4l2_subdev_call(dev->dma_channel[DMA_CHANNEL9].sd_pcm3052,
+> > +		core, log_status);
+> > +
+> > +	return 0;
+> > +}
+> 
+> I think this is only available with advanced debug.
+
+No, this is always available. Only g/s_dbg_register are under advanced debug.
 
 Regards,
 
 	Hans
-
-> + *
-> + * Copyright (C) 2012 Federico Vaga
-> + *
-> + * Author: Federico Vaga <federico.vaga@gmail.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation.
-> + */
-> +
-> +#ifndef _MEDIA_VIDEOBUF2_DMA_STREAMING_H
-> +#define _MEDIA_VIDEOBUF2_DMA_STREAMING_H
-> +
-> +#include <media/videobuf2-core.h>
-> +#include <linux/dma-mapping.h>
-> +
-> +void *vb2_dma_streaming_init_ctx(struct device *dev);
-> +void vb2_dma_streaming_cleanup_ctx(void *alloc_ctx);
-> +
-> +extern const struct vb2_mem_ops vb2_dma_streaming_memops;
-> +
-> +#endif
-> 
