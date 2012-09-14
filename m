@@ -1,62 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45969 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750852Ab2ITBGF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Sep 2012 21:06:05 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 1/3] em28xx: do not set PCTV 290e LNA handler if fe attach fail
-Date: Thu, 20 Sep 2012 04:05:28 +0300
-Message-Id: <1348103130-1777-1-git-send-email-crope@iki.fi>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:36503 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750957Ab2INMyK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Sep 2012 08:54:10 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Rob Landley <rob@landley.net>, <linux-doc@vger.kernel.org>
+Subject: [PATCH 14/14] [media] davinci: vpfe: Add documentation
+Date: Fri, 14 Sep 2012 18:16:44 +0530
+Message-Id: <1347626804-5703-15-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1347626804-5703-1-git-send-email-prabhakar.lad@ti.com>
+References: <1347626804-5703-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It was a bug that could cause oops if demodulator attach was
-failed.
+From: Manjunath Hadli <manjunath.hadli@ti.com>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Add documentation on the Davinci VPFE driver. Document the subdevs,
+and private IOTCLs the driver implements
+
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Cc: Rob Landley <rob@landley.net>
+Cc: <linux-doc@vger.kernel.org>
 ---
- drivers/media/usb/em28xx/em28xx-dvb.c | 23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+ Documentation/video4linux/davinci-vpfe-mc.txt |   95 +++++++++++++++++++++++++
+ 1 files changed, 95 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/video4linux/davinci-vpfe-mc.txt
 
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index e0128b3..be242ac 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -1001,19 +1001,22 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 				result = -EINVAL;
- 				goto out_free;
- 			}
--		}
- 
- #ifdef CONFIG_GPIOLIB
--		/* enable LNA for DVB-T, DVB-T2 and DVB-C */
--		result = gpio_request_one(dvb->gpio, GPIOF_OUT_INIT_LOW, NULL);
--		if (result)
--			em28xx_errdev("gpio request failed %d\n", result);
--		else
--			gpio_free(dvb->gpio);
--
--		result = 0; /* continue even set LNA fails */
-+			/* enable LNA for DVB-T, DVB-T2 and DVB-C */
-+			result = gpio_request_one(dvb->gpio,
-+					GPIOF_OUT_INIT_LOW, NULL);
-+			if (result)
-+				em28xx_errdev("gpio request failed %d\n",
-+						result);
-+			else
-+				gpio_free(dvb->gpio);
+diff --git a/Documentation/video4linux/davinci-vpfe-mc.txt b/Documentation/video4linux/davinci-vpfe-mc.txt
+new file mode 100644
+index 0000000..9dfc4f9
+--- /dev/null
++++ b/Documentation/video4linux/davinci-vpfe-mc.txt
+@@ -0,0 +1,95 @@
++Davinci Video processing Front End (VPFE) driver
 +
-+			result = 0; /* continue even set LNA fails */
- #endif
--		dvb->fe[0]->ops.set_lna = em28xx_pctv_290e_set_lna;
-+			dvb->fe[0]->ops.set_lna = em28xx_pctv_290e_set_lna;
-+		}
++Copyright (C) 2012 Texas Instruments Inc
 +
- 		break;
- 	case EM2884_BOARD_HAUPPAUGE_WINTV_HVR_930C:
- 	{
++Contacts: Manjunath Hadli <manjunath.hadli@ti.com>
++
++
++Introduction
++============
++
++This file documents the Texas Instruments Davinci Video processing Front End
++(VPFE) driver located under drivers/media/platform/davinci. The original driver
++exists for Davinci VPFE, which is now being changed to Media Controller
++Framework.
++
++Currently the driver has been successfully used on the following
++version of Davinci:
++
++	DM365/DM368
++
++The driver implements V4L2, Media controller and v4l2_subdev interfaces. Sensor,
++lens and flash drivers using the v4l2_subdev interface in the kernel are
++supported.
++
++
++Split to subdevs
++================
++
++The Davinci VPFE is split into V4L2 subdevs, each of the blocks inside the VPFE
++having one subdev to represent it. Each of the subdevs provide a V4L2 subdev
++interface to userspace.
++
++	DAVINCI CCDC
++	DAVINCI PREVIEWER
++	DAVINCI RESIZER
++
++Each possible link in the VPFE is modeled by a link in the Media controller
++interface. For an example program see [1].
++
++
++Private IOCTLs
++==============
++
++The Davinci Video processing Front End (VPFE) driver supports standard V4L2
++IOCTLs and controls where possible and practical. Much of the functions provided
++by the VPFE, however, does not fall under the standard IOCTL's.
++
++In general, there is a private ioctl for configuring each of the blocks
++containing hardware-dependent functions.
++
++The following private IOCTLs are supported:
++
++	VIDIOC_VPFE_CCDC_[S/G]_RAW_PARAMS
++	VIDIOC_VPFE_PRV_[S/G]_CONFIG
++	VIDIOC_VPFE_RSZ_[S/G]_CONFIG
++
++The parameter structures used by these ioctl's are described in
++include/linux/davinci_vpfe.h and include/linux/dm365_ccdc.h.
++
++The VIDIOC_VPFE_CCDC_S_RAW_PARAMS, VIDIOC_VPFE_PRV_S_CONFIG and
++VIDIOC_VPFE_RSZ_S_CONFIG are used to configure, enable and disable functions in
++the CCDC, preview and resizer blocks respectively. These IOCTL's control several
++functions in the blocks they control. VIDIOC_VPFE_CCDC_S_RAW_PARAMS IOCTL
++accepts a pointer to struct ccdc_config_params_raw as its argument. Similarly
++VIDIOC_VPFE_PRV_S_CONFIG accepts a pointer to struct vpfe_prev_config. And
++VIDIOC_VPFE_RSZ_S_CONFIG accepts a pointer to struct vpfe_rsz_config as its
++argument. Similarly VIDIOC_VPFE_CCDC_G_RAW_PARAMS, VIDIOC_VPFE_PRV_G_CONFIG and
++VIDIOC_VPFE_RSZ_G_CONFIG are used to get the current configuration set
++in the CCDC, preview and resizer blocks respectively.
++
++The detailed functions of the VPFE itself related to a given VPFE block is
++described in the Technical Reference Manuals (TRMs) --- see the end of the
++document for those.
++
++
++Technical reference manuals (TRMs) and other documentation
++==========================================================
++
++Davinci DM365 TRM:
++<URL:http://www.ti.com/lit/ds/sprs457e/sprs457e.pdf>
++Referenced MARCH 2009-REVISED JUNE 2011
++
++Davinci DM368 TRM:
++<URL:http://www.ti.com/lit/ds/sprs668c/sprs668c.pdf>
++Referenced APRIL 2010-REVISED JUNE 2011
++
++Davinci Video Processing Front End (VPFE) DM36x
++<URL:http://www.ti.com/lit/ug/sprufg8c/sprufg8c.pdf>
++
++
++References
++==========
++
++[1] http://git.ideasonboard.org/?p=media-ctl.git;a=summary
++[2] include/linux/davinci_vpfe.h & include/linux/dm365_ccdc.h
 -- 
-1.7.11.4
+1.7.4.1
 
