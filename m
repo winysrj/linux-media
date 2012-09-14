@@ -1,91 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:60514 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754237Ab2IWUn6 convert rfc822-to-8bit (ORCPT
+Received: from oyp.chewa.net ([91.121.6.101]:53535 "EHLO oyp.chewa.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751525Ab2INU1u convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Sep 2012 16:43:58 -0400
-Date: Sun, 23 Sep 2012 22:43:56 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-cc: maramaopercheseimorto@gmail.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 3/3] ov2640: simplify single register writes
-In-Reply-To: <1348424926-12864-3-git-send-email-fschaefer.oss@googlemail.com>
-Message-ID: <Pine.LNX.4.64.1209232239210.31250@axis700.grange>
-References: <1348424926-12864-1-git-send-email-fschaefer.oss@googlemail.com>
- <1348424926-12864-3-git-send-email-fschaefer.oss@googlemail.com>
+	Fri, 14 Sep 2012 16:27:50 -0400
+Received: from leon.localnet (ALille-155-1-154-177.w86-208.abo.wanadoo.fr [86.208.170.177])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: remi)
+	by oyp.chewa.net (Postfix) with ESMTPSA id AF47320263
+	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 22:27:48 +0200 (CEST)
+From: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>
+To: linux-media@vger.kernel.org
+Subject: Re: [RFCv3 API PATCH 15/31] v4l2-core: Add new V4L2_CAP_MONOTONIC_TS capability.
+Date: Fri, 14 Sep 2012 23:27:47 +0300
+References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com> <573d42b4b775afd8beeadc7a903cc2190a6f430a.1347619766.git.hans.verkuil@cisco.com> <5053929D.4050902@iki.fi>
+In-Reply-To: <5053929D.4050902@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 8BIT
+Message-Id: <201209142327.47675@leon.remlab.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 23 Sep 2012, Frank Schäfer wrote:
+Le vendredi 14 septembre 2012 23:25:01, Sakari Ailus a �crit :
+> I had a quick discussion with Laurent, and what he suggested was to use
+> the kernel version to figure out the type of the timestamp. The drivers
+> that use the monotonic time right now wouldn't be affected by the new
+> flag on older kernels. If we've decided we're going to switch to
+> monotonic time anyway, why not just change all the drivers now and
+> forget the capability flag.
 
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> ---
->  drivers/media/i2c/soc_camera/ov2640.c |   17 ++++++++---------
->  1 Datei geändert, 8 Zeilen hinzugefügt(+), 9 Zeilen entfernt(-)
-> 
-> diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
-> index 182d5a1..e71bf4c 100644
-> --- a/drivers/media/i2c/soc_camera/ov2640.c
-> +++ b/drivers/media/i2c/soc_camera/ov2640.c
-> @@ -639,17 +639,19 @@ static struct ov2640_priv *to_ov2640(const struct i2c_client *client)
->  			    subdev);
->  }
->  
-> +static int ov2640_write_single(struct i2c_client *client, u8  reg, u8 val)
-> +{
-> +	dev_vdbg(&client->dev, "write: 0x%02x, 0x%02x", reg, val);
-> +	return i2c_smbus_write_byte_data(client, reg, val);
-> +}
+That does not work In Real Life.
 
-Well, I'm not convinced. I don't necessarily see it as a simplification. 
-You replace one perfectly ok function with another one with exactly the 
-same parameters. Ok, you also hide a debug printk() in your wrapper, but 
-that's not too useful either, IMHO. Besides, you're missing more calls to 
-i2c_smbus_write_byte_data() in ov2640_mask_set(), ov2640_s_register() and 
-ov2640_video_probe(). So, I'd just drop it.
+People do port old drivers forward to new kernels.
+People do port new drivers back to old kernels
 
-Thanks
-Guennadi
+User space needs a flag is needed. Full point.
 
-> +
->  static int ov2640_write_array(struct i2c_client *client,
->  			      const struct regval_list *vals)
->  {
->  	int ret;
->  
->  	while ((vals->reg_num != 0xff) || (vals->value != 0xff)) {
-> -		ret = i2c_smbus_write_byte_data(client,
-> -						vals->reg_num, vals->value);
-> -		dev_vdbg(&client->dev, "array: 0x%02x, 0x%02x",
-> -			 vals->reg_num, vals->value);
-> -
-> +		ret = ov2640_write_single(client, vals->reg_num, vals->value);
->  		if (ret < 0)
->  			return ret;
->  		vals++;
-> @@ -704,13 +706,10 @@ static int ov2640_s_ctrl(struct v4l2_ctrl *ctrl)
->  	struct v4l2_subdev *sd =
->  		&container_of(ctrl->handler, struct ov2640_priv, hdl)->subdev;
->  	struct i2c_client  *client = v4l2_get_subdevdata(sd);
-> -	struct regval_list regval;
->  	int ret;
->  	u8 val;
->  
-> -	regval.reg_num = BANK_SEL;
-> -	regval.value = BANK_SEL_SENS;
-> -	ret = ov2640_write_array(client, &regval);
-> +	ret = ov2640_write_single(client, BANK_SEL, BANK_SEL_SENS);
->  	if (ret < 0)
->  		return ret;
->  
-> -- 
-> 1.7.10.4
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+R�mi Denis-Courmont
+http://www.remlab.net/
