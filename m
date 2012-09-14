@@ -1,186 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:43035 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751075Ab2IIQAW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Sep 2012 12:00:22 -0400
-Received: by eaac11 with SMTP id c11so510192eaa.19
-        for <linux-media@vger.kernel.org>; Sun, 09 Sep 2012 09:00:20 -0700 (PDT)
-Message-ID: <504CBD47.5050802@gmail.com>
-Date: Sun, 09 Sep 2012 18:01:11 +0200
-From: Francesco Lavra <francescolavra.fl@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:41740 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756634Ab2INOPu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Sep 2012 10:15:50 -0400
+Message-ID: <50533C09.1020809@redhat.com>
+Date: Fri, 14 Sep 2012 11:15:37 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Sangwook Lee <sangwook.lee@linaro.org>
-CC: linux-media@vger.kernel.org, linaro-dev@lists.linaro.org,
-	patches@linaro.org, mchehab@infradead.org,
-	kyungmin.park@samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com
-Subject: Re: [RFC PATCH v6] media: add v4l2 subdev driver for S5K4ECGX sensor
-References: <1346944114-17527-1-git-send-email-sangwook.lee@linaro.org>
-In-Reply-To: <1346944114-17527-1-git-send-email-sangwook.lee@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: =?UTF-8?B?QnJ1bm8gUHLDqW1vbnQ=?= <bonbons@linux-vserver.org>
+CC: Jiri Kosina <jkosina@suse.cz>, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/6] HID: picoLCD: Add support for CIR
+References: <20120819192859.74136bb0@neptune.home> <20120819193254.6a48348d@neptune.home>
+In-Reply-To: <20120819193254.6a48348d@neptune.home>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-I'm going to report the (few) things which are also present in
-Sylwester's tree.
-
-On 09/06/2012 05:08 PM, Sangwook Lee wrote:
-> This patch adds driver for S5K4ECGX sensor with embedded ISP SoC,
-> S5K4ECGX, which is a 5M CMOS Image sensor from Samsung
-> The driver implements preview mode of the S5K4ECGX sensor.
-> capture (snapshot) operation, face detection are missing now.
-> Following controls are supported:
-> contrast/saturation/brightness/sharpness
+Em 19-08-2012 14:32, Bruno Prémont escreveu:
+> Implement support for picoLCD's CIR header using RC_CORE for decoding
+> the IR event stream.
 > 
-> Signed-off-by: Sangwook Lee <sangwook.lee@linaro.org>
-> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Bruno Prémont <bonbons@linux-vserver.org>
 
-[snip]
+Sorry for a late answer. I'm with a huge backlog due to KS/2012 workshop.
 
-> +static const char * const s5k4ecgx_supply_names[] = {
-> +	/*
-> +	 * Usually 2.8V is used for analog power (vdda)
-> +	 * and digital IO (vddio, vddd_core)
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-s/vddd_core/vddcore
-
-[snip]
-
-> +static int s5k4ecgx_load_firmware(struct v4l2_subdev *sd)
+> ---
+>  drivers/hid/hid-picolcd.h      |    5 ++-
+>  drivers/hid/hid-picolcd_cir.c  |   95 +++++++++++++++++++++++++++++++++++++++-
+>  drivers/hid/hid-picolcd_core.c |    3 +-
+>  3 files changed, 98 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/hid/hid-picolcd.h b/drivers/hid/hid-picolcd.h
+> index dc4c795..240eb1c 100644
+> --- a/drivers/hid/hid-picolcd.h
+> +++ b/drivers/hid/hid-picolcd.h
+> @@ -85,7 +85,9 @@ struct picolcd_data {
+>  	/* input stuff */
+>  	u8 pressed_keys[2];
+>  	struct input_dev *input_keys;
+> -	struct input_dev *input_cir;
+> +#ifdef CONFIG_HID_PICOLCD_CIR
+> +	struct rc_dev *rc_dev;
+> +#endif
+>  	unsigned short keycode[PICOLCD_KEYS];
+>  
+>  #ifdef CONFIG_HID_PICOLCD_FB
+> @@ -114,6 +116,7 @@ struct picolcd_data {
+>  	int status;
+>  #define PICOLCD_BOOTLOADER 1
+>  #define PICOLCD_FAILED 2
+> +#define PICOLCD_CIR_SHUN 4
+>  };
+>  
+>  #ifdef CONFIG_HID_PICOLCD_FB
+> diff --git a/drivers/hid/hid-picolcd_cir.c b/drivers/hid/hid-picolcd_cir.c
+> index dc632c3..f38af30 100644
+> --- a/drivers/hid/hid-picolcd_cir.c
+> +++ b/drivers/hid/hid-picolcd_cir.c
+> @@ -37,6 +37,7 @@
+>  #include <linux/completion.h>
+>  #include <linux/uaccess.h>
+>  #include <linux/module.h>
+> +#include <media/rc-core.h>
+>  
+>  #include "hid-picolcd.h"
+>  
+> @@ -44,18 +45,108 @@
+>  int picolcd_raw_cir(struct picolcd_data *data,
+>  		struct hid_report *report, u8 *raw_data, int size)
+>  {
+> -	/* Need understanding of CIR data format to implement ... */
+> +	unsigned long flags;
+> +	int i, w, sz;
+> +	DEFINE_IR_RAW_EVENT(rawir);
+> +
+> +	/* ignore if rc_dev is NULL or status is shunned */
+> +	spin_lock_irqsave(&data->lock, flags);
+> +	if (data->rc_dev && (data->status & PICOLCD_CIR_SHUN)) {
+> +		spin_unlock_irqrestore(&data->lock, flags);
+> +		return 1;
+> +	}
+> +	spin_unlock_irqrestore(&data->lock, flags);
+> +
+> +	/* PicoLCD USB packets contain 16-bit intervals in network order,
+> +	 * with value negated for pulse. Intervals are in microseconds.
+> +	 *
+> +	 * Note: some userspace LIRC code for PicoLCD says negated values
+> +	 * for space - is it a matter of IR chip? (pulse for my TSOP2236)
+> +	 *
+> +	 * In addition, the first interval seems to be around 15000 + base
+> +	 * interval for non-first report of IR data - thus the quirk below
+> +	 * to get RC_CODE to understand Sony and JVC remotes I have at hand
+> +	 */
+> +	sz = size > 0 ? min((int)raw_data[0], size-1) : 0;
+> +	for (i = 0; i+1 < sz; i += 2) {
+> +		init_ir_raw_event(&rawir);
+> +		w = (raw_data[i] << 8) | (raw_data[i+1]);
+> +		rawir.pulse = !!(w & 0x8000);
+> +		rawir.duration = US_TO_NS(rawir.pulse ? (65536 - w) : w);
+> +		/* Quirk!! - see above */
+> +		if (i == 0 && rawir.duration > 15000000)
+> +			rawir.duration -= 15000000;
+> +		ir_raw_event_store(data->rc_dev, &rawir);
+> +	}
+> +	ir_raw_event_handle(data->rc_dev);
+> +
+>  	return 1;
+>  }
+>  
+> +static int picolcd_cir_open(struct rc_dev *dev)
 > +{
-> +	const struct firmware *fw;
-> +	int err, i, regs_num;
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +	u16 val;
-> +	u32 addr, crc, crc_file, addr_inc = 0;
+> +	struct picolcd_data *data = dev->priv;
+> +	unsigned long flags;
 > +
-> +	err = request_firmware(&fw, S5K4ECGX_FIRMWARE, sd->v4l2_dev->dev);
-> +	if (err) {
-> +		v4l2_err(sd, "Failed to read firmware %s\n", S5K4ECGX_FIRMWARE);
-> +		return err;
-> +	}
-> +	regs_num = *(u32 *)(fw->data);
-> +	v4l2_dbg(3, debug, sd, "FW: %s size %d register sets %d\n",
-> +		 S5K4ECGX_FIRMWARE, fw->size, regs_num);
-> +	regs_num++; /* Add header */
-> +	if (fw->size != regs_num * FW_RECORD_SIZE + FW_CRC_SIZE) {
-> +		err = -EINVAL;
-> +		goto fw_out;
-> +	}
-> +	crc_file = *(u32 *)(fw->data + regs_num * FW_RECORD_SIZE);
-
-Depending on the value of regs_num, this may result in unaligned access
-
-[snip]
-
-> +static int s5k4ecgx_s_power(struct v4l2_subdev *sd, int on)
-> +{
-> +	struct s5k4ecgx *priv = to_s5k4ecgx(sd);
-> +	int ret;
-> +
-> +	v4l2_dbg(1, debug, sd, "Switching %s\n", on ? "on" : "off");
-> +
-> +	if (on) {
-> +		ret = __s5k4ecgx_power_on(priv);
-> +		if (ret < 0)
-> +			return ret;
-> +		/* Time to stabilize sensor */
-> +		msleep(100);
-> +		ret = s5k4ecgx_init_sensor(sd);
-> +		if (ret < 0)
-> +			__s5k4ecgx_power_off(priv);
-> +		else
-> +			priv->set_params = 1;
-> +	} else {
-> +		ret = __s5k4ecgx_power_off(priv);
-> +	}
-> +
+> +	spin_lock_irqsave(&data->lock, flags);
+> +	data->status &= ~PICOLCD_CIR_SHUN;
+> +	spin_unlock_irqrestore(&data->lock, flags);
 > +	return 0;
-
-return ret;
-
-[snip]
-
-> +static int s5k4ecgx_probe(struct i2c_client *client,
-> +			  const struct i2c_device_id *id)
-> +{
-> +	int	ret, i;
-> +	struct v4l2_subdev *sd;
-> +	struct s5k4ecgx *priv;
-> +	struct s5k4ecgx_platform_data *pdata = client->dev.platform_data;
-> +
-> +	if (pdata == NULL) {
-> +		dev_err(&client->dev, "platform data is missing!\n");
-> +		return -EINVAL;
-> +	}
-> +	priv = devm_kzalloc(&client->dev, sizeof(struct s5k4ecgx), GFP_KERNEL);
-> +	if (!priv)
-> +		return -ENOMEM;
-> +
-> +	mutex_init(&priv->lock);
-> +	priv->streaming = 0;
-> +
-> +	sd = &priv->sd;
-> +	/* Registering subdev */
-> +	v4l2_i2c_subdev_init(sd, client, &s5k4ecgx_ops);
-> +	strlcpy(sd->name, S5K4ECGX_DRIVER_NAME, sizeof(sd->name));
-> +
-> +	sd->internal_ops = &s5k4ecgx_subdev_internal_ops;
-> +	/* Support v4l2 sub-device user space API */
-> +	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-> +
-> +	priv->pad.flags = MEDIA_PAD_FL_SOURCE;
-> +	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
-> +	ret = media_entity_init(&sd->entity, 1, &priv->pad, 0);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = s5k4ecgx_config_gpios(priv, pdata);
-> +	if (ret) {
-> +		dev_err(&client->dev, "Failed to set gpios\n");
-> +		goto out_err1;
-> +	}
-> +	for (i = 0; i < S5K4ECGX_NUM_SUPPLIES; i++)
-> +		priv->supplies[i].supply = s5k4ecgx_supply_names[i];
-> +
-> +	ret = devm_regulator_bulk_get(&client->dev, S5K4ECGX_NUM_SUPPLIES,
-> +				 priv->supplies);
-> +	if (ret) {
-> +		dev_err(&client->dev, "Failed to get regulators\n");
-> +		goto out_err2;
-> +	}
-> +	ret = s5k4ecgx_init_v4l2_ctrls(priv);
-> +	if (ret)
-> +		goto out_err2;
-> +
-> +	priv->curr_pixfmt = &s5k4ecgx_formats[0];
-> +	priv->curr_frmsize = &s5k4ecgx_prev_sizes[0];
-> +
-> +	return 0;
-> +
-> +out_err2:
-> +	s5k4ecgx_free_gpios(priv);
-> +out_err1:
-> +	media_entity_cleanup(&priv->sd.entity);
-> +
-> +	return ret;
 > +}
 > +
-> +static int s5k4ecgx_remove(struct i2c_client *client)
+> +static void picolcd_cir_close(struct rc_dev *dev)
 > +{
-> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> +	struct s5k4ecgx *priv = to_s5k4ecgx(sd);
+> +	struct picolcd_data *data = dev->priv;
+> +	unsigned long flags;
 > +
-> +	mutex_destroy(&priv->lock);
-> +	v4l2_device_unregister_subdev(sd);
-> +	v4l2_ctrl_handler_free(&priv->handler);
-> +	media_entity_cleanup(&sd->entity);
+> +	spin_lock_irqsave(&data->lock, flags);
+> +	data->status |= PICOLCD_CIR_SHUN;
+> +	spin_unlock_irqrestore(&data->lock, flags);
+> +}
 > +
-> +	return 0;
+>  /* initialize CIR input device */
+>  int picolcd_init_cir(struct picolcd_data *data, struct hid_report *report)
+>  {
+> -	/* support not implemented yet */
+> +	struct rc_dev *rdev;
+> +	int ret = 0;
+> +
+> +	rdev = rc_allocate_device();
+> +	if (!rdev)
+> +		return -ENOMEM;
+> +
+> +	rdev->priv             = data;
+> +	rdev->driver_type      = RC_DRIVER_IR_RAW;
+> +	rdev->allowed_protos   = RC_TYPE_ALL;
+> +	rdev->open             = picolcd_cir_open;
+> +	rdev->close            = picolcd_cir_close;
+> +	rdev->input_name       = data->hdev->name;
+> +	rdev->input_phys       = data->hdev->phys;
+> +	rdev->input_id.bustype = data->hdev->bus;
+> +	rdev->input_id.vendor  = data->hdev->vendor;
+> +	rdev->input_id.product = data->hdev->product;
+> +	rdev->input_id.version = data->hdev->version;
+> +	rdev->dev.parent       = &data->hdev->dev;
+> +	rdev->driver_name      = PICOLCD_NAME;
+> +	rdev->map_name         = RC_MAP_RC6_MCE;
+> +	rdev->timeout          = MS_TO_NS(100);
+> +	rdev->rx_resolution    = US_TO_NS(1);
+> +
+> +	ret = rc_register_device(rdev);
+> +	if (ret)
+> +		goto err;
+> +	data->rc_dev = rdev;
+>  	return 0;
+> +
+> +err:
+> +	rc_free_device(rdev);
+> +	return ret;
+>  }
+>  
+>  void picolcd_exit_cir(struct picolcd_data *data)
+>  {
+> +	struct rc_dev *rdev = data->rc_dev;
+> +
+> +	data->rc_dev = NULL;
+> +	rc_unregister_device(rdev);
+>  }
+>  
+> diff --git a/drivers/hid/hid-picolcd_core.c b/drivers/hid/hid-picolcd_core.c
+> index 76ab173..580269b 100644
+> --- a/drivers/hid/hid-picolcd_core.c
+> +++ b/drivers/hid/hid-picolcd_core.c
+> @@ -356,8 +356,7 @@ static int picolcd_raw_event(struct hid_device *hdev,
+>  		if (data->input_keys)
+>  			ret = picolcd_raw_keypad(data, report, raw_data+1, size-1);
+>  	} else if (report->id == REPORT_IR_DATA) {
+> -		if (data->input_cir)
+> -			ret = picolcd_raw_cir(data, report, raw_data+1, size-1);
+> +		ret = picolcd_raw_cir(data, report, raw_data+1, size-1);
+>  	} else {
+>  		spin_lock_irqsave(&data->lock, flags);
+>  		/*
+> 
 
-Maybe s5k4ecgx_free_gpios() should be called?
-
-Regards,
-Francesco
