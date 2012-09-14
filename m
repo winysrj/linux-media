@@ -1,95 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59546 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755810Ab2IBBJy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Sep 2012 21:09:54 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 2/2] rtl28xxu: add support for Elonics E4000 tuner
-Date: Sun,  2 Sep 2012 04:09:22 +0300
-Message-Id: <1346548162-21168-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1346548162-21168-1-git-send-email-crope@iki.fi>
-References: <1346548162-21168-1-git-send-email-crope@iki.fi>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42851 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753775Ab2INJC1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Sep 2012 05:02:27 -0400
+Date: Fri, 14 Sep 2012 12:02:22 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 API PATCH 12/28] v4l2-core: Add new
+ V4L2_CAP_MONOTONIC_TS capability.
+Message-ID: <20120914090222.GM6834@valkosipuli.retiisi.org.uk>
+References: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
+ <20120913203814.GK6834@valkosipuli.retiisi.org.uk>
+ <10295113.chWiZVzcZs@avalon>
+ <201209132256.41941.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201209132256.41941.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/Kconfig    |  1 +
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 17 +++++++++++++++--
- 2 files changed, 16 insertions(+), 2 deletions(-)
+On Thu, Sep 13, 2012 at 10:56:41PM +0200, Hans Verkuil wrote:
+> On Thu September 13 2012 22:50:32 Laurent Pinchart wrote:
+> > Hi Sakari,
+> > 
+> > On Thursday 13 September 2012 23:38:14 Sakari Ailus wrote:
+> > > On Fri, Sep 07, 2012 at 03:29:12PM +0200, Hans Verkuil wrote:
+> > > > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > > > 
+> > > > Add a new flag that tells userspace that the monotonic clock is used
+> > > > for timestamps and update the documentation accordingly.
+> > > > 
+> > > > We decided on this new flag during the 2012 Media Workshop.
+> > > > 
+> > > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > > > ---
+> > > > 
+> > > >  Documentation/DocBook/media/v4l/io.xml              |   10 +++++++---
+> > > >  Documentation/DocBook/media/v4l/vidioc-dqevent.xml  |    3 ++-
+> > > >  Documentation/DocBook/media/v4l/vidioc-querycap.xml |    7 +++++++
+> > > >  include/linux/videodev2.h                           |    1 +
+> > > >  4 files changed, 17 insertions(+), 4 deletions(-)
+> > > > 
+> > > > diff --git a/Documentation/DocBook/media/v4l/io.xml
+> > > > b/Documentation/DocBook/media/v4l/io.xml index 2dc39d8..b680d66 100644
+> > > > --- a/Documentation/DocBook/media/v4l/io.xml
+> > > > +++ b/Documentation/DocBook/media/v4l/io.xml
+> > > > @@ -582,10 +582,14 @@ applications when an output stream.</entry>
+> > > > 
+> > > >  	    <entry>struct timeval</entry>
+> > > >  	    <entry><structfield>timestamp</structfield></entry>
+> > > >  	    <entry></entry>
+> > > > 
+> > > > -	    <entry><para>For input streams this is the
+> > > > +	    <entry><para>This is either the
+> > > > 
+> > > >  system time (as returned by the <function>gettimeofday()</function>
+> > > > 
+> > > > -function) when the first data byte was captured. For output streams
+> > > > -the data will not be displayed before this time, secondary to the
+> > > > +function) or a monotonic timestamp (as returned by the
+> > > > +<function>clock_gettime(CLOCK_MONOTONIC, &amp;ts)</function> function).
+> > > > +A monotonic timestamp is used if the
+> > > > <constant>V4L2_CAP_MONOTONIC_TS</constant> +capability is set, otherwise
+> > > > the system time is used.
+> > > > +For input streams this is the timestamp when the first data byte was
+> > > > captured. +For output streams the data will not be displayed before this
+> > > > time, secondary to the
+> > > I have an alternative proposal.
+> > > 
+> > > The type of the desired timestamps depend on the use case, not the driver
+> > > used to capture the buffers. Thus we could also give the choice to the user
+> > > by means of e.g. a control.
+> > 
+> > Or a buffer flag. I will need something similar to select device-specific 
+> > timestamps.
+> > 
+> > However, for wall clock vs. monotonic clock, I don't think there's a reason to 
+> > let applications decide to use the wall clock. It would be a broken use case. 
+> > I don't think we should let applications decide in this case.
+> 
+> I agree.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/Kconfig b/drivers/media/usb/dvb-usb-v2/Kconfig
-index 9671151..329d222 100644
---- a/drivers/media/usb/dvb-usb-v2/Kconfig
-+++ b/drivers/media/usb/dvb-usb-v2/Kconfig
-@@ -141,6 +141,7 @@ config DVB_USB_RTL28XXU
- 	select MEDIA_TUNER_MXL5005S if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_FC0012 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_FC0013 if MEDIA_SUBDRV_AUTOSELECT
-+	select MEDIA_TUNER_E4000 if MEDIA_SUBDRV_AUTOSELECT
- 	help
- 	  Say Y here to support the Realtek RTL28xxU DVB USB receiver.
- 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index 7d11c5d..88b5ea1 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -30,6 +30,7 @@
- #include "mxl5005s.h"
- #include "fc0012.h"
- #include "fc0013.h"
-+#include "e4000.h"
- 
- DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- 
-@@ -625,10 +626,11 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
- 	ret = rtl28xxu_ctrl_msg(d, &req_e4000);
- 	if (ret == 0 && buf[0] == 0x40) {
- 		priv->tuner = TUNER_RTL2832_E4000;
--		/* TODO implement tuner */
-+		/* FIXME: do not abuse fc0012 settings */
-+		rtl2832_config = &rtl28xxu_rtl2832_fc0012_config;
- 		dev_info(&d->udev->dev, "%s: E4000 tuner found",
- 				KBUILD_MODNAME);
--		goto unsupported;
-+		goto found;
- 	}
- 
- 	/* check TDA18272 ID register; reg=00 val=c760  */
-@@ -746,6 +748,11 @@ err:
- 	return ret;
- }
- 
-+static const struct e4000_config rtl2832u_e4000_config = {
-+	.i2c_addr = 0x64,
-+	.clock = 28800000,
-+};
-+
- static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- {
- 	int ret;
-@@ -774,6 +781,10 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 		adap->fe[0]->ops.read_signal_strength =
- 				adap->fe[0]->ops.tuner_ops.get_rf_strength;
- 		return 0;
-+	case TUNER_RTL2832_E4000:
-+		fe = dvb_attach(e4000_attach, adap->fe[0], &d->i2c_adap,
-+				&rtl2832u_e4000_config);
-+		break;
- 	default:
- 		fe = NULL;
- 		dev_err(&d->udev->dev, "%s: unknown tuner=%d\n", KBUILD_MODNAME,
-@@ -1223,6 +1234,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
- 		&rtl2832u_props, "G-Tek Electronics Group Lifeview LV5TDLX DVB-T", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_NOXON_DAB_STICK,
- 		&rtl2832u_props, "NOXON DAB/DAB+ USB dongle", NULL) },
-+	{ DVB_USB_DEVICE(USB_VID_REALTEK, 0x2838,
-+		&rtl2832u_props, "Realtek RTL2832U reference design", NULL) },
- 	{ }
- };
- MODULE_DEVICE_TABLE(usb, rtl28xxu_id_table);
+How about the raw monotonic clock then? You can also tell clock_gettime()
+what kind of timestamp you're interested in. It's also true monotonic
+timestamps are being used elsewhere, so the selection should apply there as
+well.
+
+> > On the other hand, reporting a timespec instead of a timeval would be a good 
+> > idea. I'm tempted.
+> 
+> Microsecond precision seems more than sufficient to me for video frames. I see
+> no good reason for messing around with the v4l2_buffer struct just to get a
+> timespec in.
+
+The extra precision could be confusing for some existing users.
+
+Another thing, however not related to this patch, is that the spec mentions
+the timestamp is taken when the "first data byte is captured". In practice
+many (if not most) drivers produce the timestamp when the buffer is ready.
+The reason is that some hardware simply does not produce interrupts at when
+the reception of the frame starts. What kind of timestamps should be used in
+that case? The frame start event can be used to get information on when the
+frame starts.
+
+Regards,
+
 -- 
-1.7.11.4
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
