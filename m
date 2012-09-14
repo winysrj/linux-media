@@ -1,76 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:36461 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751958Ab2IANyY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Sep 2012 09:54:24 -0400
-Received: by bkwj10 with SMTP id j10so1633397bkw.19
-        for <linux-media@vger.kernel.org>; Sat, 01 Sep 2012 06:54:23 -0700 (PDT)
-Message-ID: <5042138B.4080109@gmail.com>
-Date: Sat, 01 Sep 2012 15:54:19 +0200
-From: poma <pomidorabelisima@gmail.com>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org,
-	Thomas Mair <thomas.mair86@googlemail.com>,
-	David Basden <davidb-git@rcpt.to>,
-	Zdenek Styblik <stybla@turnovfree.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH 2/5] rtl28xxu: fix rtl2832u module reload fails bug
-References: <1345593382-11367-1-git-send-email-crope@iki.fi> <1345593382-11367-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1345593382-11367-2-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:23132 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757088Ab2INK6D (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Sep 2012 06:58:03 -0400
+Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
+	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id q8EAvqBm013688
+	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 10:57:56 GMT
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [RFCv3 API PATCH 17/31] DocBook: clarify that sequence is also set for output devices.
+Date: Fri, 14 Sep 2012 12:57:32 +0200
+Message-Id: <43be7ce4539b2bb5cf7715af61c59186803e9d8b.1347619766.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
+References: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/22/2012 01:56 AM, Antti Palosaari wrote:
-> This is workaround / partial fix.
-> 
-> rtl2832u_power_ctrl() and rtl2832u_frontend_attach() needs to
-> be go through carefully and fix properly. There is clearly
-> some logical errors when handling power-management ang GPIOs...
-> 
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> Cc: Thomas Mair <thomas.mair86@googlemail.com>
-> ---
->  drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 11 -----------
->  1 file changed, 11 deletions(-)
-> 
-> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> index 1ccb99b..c246c50 100644
-> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> @@ -946,17 +946,6 @@ static int rtl2832u_power_ctrl(struct dvb_usb_device *d, int onoff)
->  		if (ret)
->  			goto err;
->  
-> -		/* demod HW reset */
-> -		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL, &val);
-> -		if (ret)
-> -			goto err;
-> -		/* bit 5 to 0 */
-> -		val &= 0xdf;
-> -
-> -		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL, val);
-> -		if (ret)
-> -			goto err;
-> -
->  		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL, &val);
->  		if (ret)
->  			goto err;
-> 
+It was not entirely obvious that the sequence count should also
+be set for output devices. Also made it more explicit that this
+sequence counter counts frames, not fields.
 
-Test: PASSED!
-Working zapping on every hard/cold boot, soft/warm [re]boot and every
-module(dvb_usb_rtl28xxu) [re]load.
-Outside the box thinking!
-Antti, thank you very much!
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ Documentation/DocBook/media/v4l/io.xml |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-media_build
-commit 420335f564c32517a791ecea3909af233925634d
-1f4d:b803 G-Tek Electronics Group Lifeview LV5TDLX DVB-T [RTL2832U]
-
-Cheers,
-poma
-
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index b680d66..c32cb0a 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -617,8 +617,8 @@ field is independent of the <structfield>timestamp</structfield> and
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>sequence</structfield></entry>
+ 	    <entry></entry>
+-	    <entry>Set by the driver, counting the frames in the
+-sequence.</entry>
++	    <entry>Set by the driver, counting the frames (not fields!) in
++sequence. This field is set for both input and output devices.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry spanname="hspan"><para>In <link
+-- 
+1.7.10.4
 
