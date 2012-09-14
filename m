@@ -1,139 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:59283 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751410Ab2IZD2A (ORCPT
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:52795 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756966Ab2INK6B (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Sep 2012 23:28:00 -0400
-Received: by vcbfo13 with SMTP id fo13so141119vcb.19
-        for <linux-media@vger.kernel.org>; Tue, 25 Sep 2012 20:28:00 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <506228E8.1040704@gmail.com>
-References: <1348298907-20791-1-git-send-email-sachin.kamat@linaro.org>
-	<506228E8.1040704@gmail.com>
-Date: Wed, 26 Sep 2012 08:58:00 +0530
-Message-ID: <CAK9yfHymGOXtPb0ArhfcNdCCtXqC6Rdx7JZXbP2=-X8Bo49XxQ@mail.gmail.com>
-Subject: Re: [PATCH] [media] s5k6aa: Fix possible NULL pointer dereference
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
-	mchehab@infradead.org, patches@linaro.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 14 Sep 2012 06:58:01 -0400
+Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
+	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id q8EAvqBo013688
+	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 10:57:57 GMT
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [RFCv3 API PATCH 19/31] v4l2: make vidioc_s_fbuf const.
+Date: Fri, 14 Sep 2012 12:57:34 +0200
+Message-Id: <b02605307e4ca35d6f86889b671b54b8def88f99.1347619766.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
+References: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Write-only ioctls should have a const argument in the ioctl op.
 
-On 26 September 2012 03:28, Sylwester Nawrocki
-<sylvester.nawrocki@gmail.com> wrote:
-> Hi Sachin,
->
-> On 09/22/2012 09:28 AM, Sachin Kamat wrote:
->> It is previously assumed that 'rect' could be NULL.
->> Hence add a check to print the members of 'rect' only when it is not
->> NULL.
->>
->> Signed-off-by: Sachin Kamat<sachin.kamat@linaro.org>
->> ---
->>   drivers/media/i2c/s5k6aa.c |    5 +++--
->>   1 files changed, 3 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/i2c/s5k6aa.c b/drivers/media/i2c/s5k6aa.c
->> index 045ca7f..7531edb 100644
->> --- a/drivers/media/i2c/s5k6aa.c
->> +++ b/drivers/media/i2c/s5k6aa.c
->> @@ -1177,8 +1177,9 @@ static int s5k6aa_get_crop(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
->>
->>       mutex_unlock(&s5k6aa->lock);
->>
->> -     v4l2_dbg(1, debug, sd, "Current crop rectangle: (%d,%d)/%dx%d\n",
->> -              rect->left, rect->top, rect->width, rect->height);
->> +     if (rect)
->> +             v4l2_dbg(1, debug, sd, "Current crop rectangle: (%d,%d)/%dx%d\n",
->> +                      rect->left, rect->top, rect->width, rect->height);
->>
->>       return 0;
->>   }
->
-> Thank you for the patch. I would attack this problem form slightly
-> different angle though, i.e. I would make sure __s5k6aa_get_crop_rect()
-> always returns valid pointer. There is similar issue in s5k6aa_set_crop().
-> Since crop->which is already validated in
-> drivers/media/v4l2-core/v4l2-subdev.c and can have only values:
-> V4L2_SUBDEV_FORMAT_TRY, V4L2_SUBDEV_FORMAT_ACTIVE it's safe to do
-> something like:
+Do this conversion for vidioc_s_fbuf.
 
-Looks good to me.
+Adding const for write-only ioctls was decided during the 2012 Media Workshop.
 
->
-> 8<-------------------------------------------------------------------------
-> From 724aa5f1fefcaca2dee4f75ba960a1f620400e1a Mon Sep 17 00:00:00 2001
-> From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-> Date: Tue, 25 Sep 2012 23:53:27 +0200
-> Subject: [PATCH] s5k6aa: Fix potential null pointer dereference
->
-> Make sure __s5k6aa_get_crop_rect() always returns valid pointer,
-> as it is assumed at the callers.
->
-> crop->which is already validated when subdev set_crop and get_crop
-> callbacks are called from within the v4l2-core. If it ever happens
-> the crop operations are called directly for some reason in kernel
-> space, with incorrect crop->which argument, just log it with WARN
-> and return reference to the TRY crop.
->
-> Reported-by: Sachin Kamat <sachin.kamat@linaro.org>
-> Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/common/saa7146/saa7146_video.c |    2 +-
+ drivers/media/pci/bt8xx/bttv-driver.c        |    2 +-
+ drivers/media/pci/ivtv/ivtv-ioctl.c          |    4 ++--
+ drivers/media/pci/saa7134/saa7134-video.c    |    2 +-
+ drivers/media/pci/zoran/zoran_driver.c       |    2 +-
+ drivers/media/platform/fsl-viu.c             |    2 +-
+ drivers/media/platform/omap/omap_vout.c      |    2 +-
+ include/media/v4l2-ioctl.h                   |    2 +-
+ 8 files changed, 9 insertions(+), 9 deletions(-)
 
-Acked-by: Sachin Kamat <sachin.kamat@linaro.org>
-
-> ---
->  drivers/media/i2c/s5k6aa.c |   11 ++++-------
->  1 files changed, 4 insertions(+), 7 deletions(-)
->
-> diff --git a/drivers/media/i2c/s5k6aa.c b/drivers/media/i2c/s5k6aa.c
-> index 045ca7f..57cd4fa 100644
-> --- a/drivers/media/i2c/s5k6aa.c
-> +++ b/drivers/media/i2c/s5k6aa.c
-> @@ -1061,10 +1061,9 @@ __s5k6aa_get_crop_rect(struct s5k6aa *s5k6aa, struct v4l2_subdev_fh *fh,
->  {
->         if (which == V4L2_SUBDEV_FORMAT_ACTIVE)
->                 return &s5k6aa->ccd_rect;
-> -       if (which == V4L2_SUBDEV_FORMAT_TRY)
-> -               return v4l2_subdev_get_try_crop(fh, 0);
->
-> -       return NULL;
-> +       WARN_ON(which != V4L2_SUBDEV_FORMAT_TRY);
-> +       return v4l2_subdev_get_try_crop(fh, 0);
->  }
->
->  static void s5k6aa_try_format(struct s5k6aa *s5k6aa,
-> @@ -1169,12 +1168,10 @@ static int s5k6aa_get_crop(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
->         struct v4l2_rect *rect;
->
->         memset(crop->reserved, 0, sizeof(crop->reserved));
-> -       mutex_lock(&s5k6aa->lock);
->
-> +       mutex_lock(&s5k6aa->lock);
->         rect = __s5k6aa_get_crop_rect(s5k6aa, fh, crop->which);
-> -       if (rect)
-> -               crop->rect = *rect;
-> -
-> +       crop->rect = *rect;
->         mutex_unlock(&s5k6aa->lock);
->
->         v4l2_dbg(1, debug, sd, "Current crop rectangle: (%d,%d)/%dx%d\n",
-> --
-> 1.7.4.1
-> 8<-------------------------------------------------------------------------
->
-> I'm going to queue this patch for 3.7.
->
-> --
->
-> Thanks,
-> Sylwester
-
-
-
+diff --git a/drivers/media/common/saa7146/saa7146_video.c b/drivers/media/common/saa7146/saa7146_video.c
+index 6d14785..4143d61 100644
+--- a/drivers/media/common/saa7146/saa7146_video.c
++++ b/drivers/media/common/saa7146/saa7146_video.c
+@@ -479,7 +479,7 @@ static int vidioc_g_fbuf(struct file *file, void *fh, struct v4l2_framebuffer *f
+ 	return 0;
+ }
+ 
+-static int vidioc_s_fbuf(struct file *file, void *fh, struct v4l2_framebuffer *fb)
++static int vidioc_s_fbuf(struct file *file, void *fh, const struct v4l2_framebuffer *fb)
+ {
+ 	struct saa7146_dev *dev = ((struct saa7146_fh *)fh)->dev;
+ 	struct saa7146_vv *vv = dev->vv_data;
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index b58ff87..26bf309 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -2740,7 +2740,7 @@ static int bttv_overlay(struct file *file, void *f, unsigned int on)
+ }
+ 
+ static int bttv_s_fbuf(struct file *file, void *f,
+-				struct v4l2_framebuffer *fb)
++				const struct v4l2_framebuffer *fb)
+ {
+ 	struct bttv_fh *fh = f;
+ 	struct bttv *btv = fh->btv;
+diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c b/drivers/media/pci/ivtv/ivtv-ioctl.c
+index 32a5910..d3b32c2 100644
+--- a/drivers/media/pci/ivtv/ivtv-ioctl.c
++++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
+@@ -1427,7 +1427,7 @@ static int ivtv_g_fbuf(struct file *file, void *fh, struct v4l2_framebuffer *fb)
+ 	return 0;
+ }
+ 
+-static int ivtv_s_fbuf(struct file *file, void *fh, struct v4l2_framebuffer *fb)
++static int ivtv_s_fbuf(struct file *file, void *fh, const struct v4l2_framebuffer *fb)
+ {
+ 	struct ivtv_open_id *id = fh2id(fh);
+ 	struct ivtv *itv = id->itv;
+@@ -1444,7 +1444,7 @@ static int ivtv_s_fbuf(struct file *file, void *fh, struct v4l2_framebuffer *fb)
+ 	itv->osd_chroma_key_state = (fb->flags & V4L2_FBUF_FLAG_CHROMAKEY) != 0;
+ 	ivtv_set_osd_alpha(itv);
+ 	yi->track_osd = (fb->flags & V4L2_FBUF_FLAG_OVERLAY) != 0;
+-	return ivtv_g_fbuf(file, fh, fb);
++	return 0;
+ }
+ 
+ static int ivtv_overlay(struct file *file, void *fh, unsigned int on)
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+index 6de10b1..bac4386 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -2158,7 +2158,7 @@ static int saa7134_g_fbuf(struct file *file, void *f,
+ }
+ 
+ static int saa7134_s_fbuf(struct file *file, void *f,
+-					struct v4l2_framebuffer *fb)
++					const struct v4l2_framebuffer *fb)
+ {
+ 	struct saa7134_fh *fh = f;
+ 	struct saa7134_dev *dev = fh->dev;
+diff --git a/drivers/media/pci/zoran/zoran_driver.c b/drivers/media/pci/zoran/zoran_driver.c
+index c6ccdeb..f91b551 100644
+--- a/drivers/media/pci/zoran/zoran_driver.c
++++ b/drivers/media/pci/zoran/zoran_driver.c
+@@ -1978,7 +1978,7 @@ static int zoran_g_fbuf(struct file *file, void *__fh,
+ }
+ 
+ static int zoran_s_fbuf(struct file *file, void *__fh,
+-		struct v4l2_framebuffer *fb)
++		const struct v4l2_framebuffer *fb)
+ {
+ 	struct zoran_fh *fh = __fh;
+ 	struct zoran *zr = fh->zr;
+diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
+index 20f9810..897250b 100644
+--- a/drivers/media/platform/fsl-viu.c
++++ b/drivers/media/platform/fsl-viu.c
+@@ -860,7 +860,7 @@ int vidioc_g_fbuf(struct file *file, void *priv, struct v4l2_framebuffer *arg)
+ 	return 0;
+ }
+ 
+-int vidioc_s_fbuf(struct file *file, void *priv, struct v4l2_framebuffer *arg)
++int vidioc_s_fbuf(struct file *file, void *priv, const struct v4l2_framebuffer *arg)
+ {
+ 	struct viu_fh  *fh = priv;
+ 	struct viu_dev *dev = fh->dev;
+diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
+index 88cf9d9..92845f8 100644
+--- a/drivers/media/platform/omap/omap_vout.c
++++ b/drivers/media/platform/omap/omap_vout.c
+@@ -1744,7 +1744,7 @@ static int vidioc_streamoff(struct file *file, void *fh, enum v4l2_buf_type i)
+ }
+ 
+ static int vidioc_s_fbuf(struct file *file, void *fh,
+-				struct v4l2_framebuffer *a)
++				const struct v4l2_framebuffer *a)
+ {
+ 	int enable = 0;
+ 	struct omap_overlay *ovl;
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index 0bc1444..73ae24a 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -120,7 +120,7 @@ struct v4l2_ioctl_ops {
+ 	int (*vidioc_g_fbuf)   (struct file *file, void *fh,
+ 				struct v4l2_framebuffer *a);
+ 	int (*vidioc_s_fbuf)   (struct file *file, void *fh,
+-				struct v4l2_framebuffer *a);
++				const struct v4l2_framebuffer *a);
+ 
+ 		/* Stream on/off */
+ 	int (*vidioc_streamon) (struct file *file, void *fh, enum v4l2_buf_type i);
 -- 
-With warm regards,
-Sachin
+1.7.10.4
+
