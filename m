@@ -1,82 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40719 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754330Ab2IIVzn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Sep 2012 17:55:43 -0400
-Message-ID: <504D109C.8000803@redhat.com>
-Date: Sun, 09 Sep 2012 23:56:44 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mx.fr.smartjog.net ([95.81.144.3]:47990 "EHLO
+	mx.fr.smartjog.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758190Ab2INJ1l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Sep 2012 05:27:41 -0400
+From: =?UTF-8?q?R=C3=A9mi=20Cardona?= <remi.cardona@smartjog.com>
+To: linux-media@vger.kernel.org
+Cc: liplianin@me.by
+Subject: [PATCH 4/6] [media] ds3000: bail out early on i2c failures during firmware load
+Date: Fri, 14 Sep 2012 11:27:24 +0200
+Message-Id: <1347614846-19046-5-git-send-email-remi.cardona@smartjog.com>
+In-Reply-To: <1347614846-19046-1-git-send-email-remi.cardona@smartjog.com>
+References: <1347614846-19046-1-git-send-email-remi.cardona@smartjog.com>
 MIME-Version: 1.0
-To: Peter Senna Tschudin <peter.senna@gmail.com>
-CC: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 14/14] drivers/media/usb/gspca/cpia1.c: fix error return
- code
-References: <1346945041-26676-14-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <1346945041-26676-14-git-send-email-peter.senna@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+ - if kmalloc() returns NULL, we can return immediately without trying
+   to kfree() a NULL pointer.
+ - if i2c_transfer() fails, error out immediately instead of trying to
+   upload the remaining bytes of the firmware.
+ - the error code is then properly propagated down to ds3000_initfe().
 
-Applied to my gspca tree and included in my pull-req for 3.7 which I just send out.
+Signed-off-by: Rémi Cardona <remi.cardona@smartjog.com>
+---
+ drivers/media/dvb/frontends/ds3000.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-Thanks,
+diff --git a/drivers/media/dvb/frontends/ds3000.c b/drivers/media/dvb/frontends/ds3000.c
+index 6752222..162faaf 100644
+--- a/drivers/media/dvb/frontends/ds3000.c
++++ b/drivers/media/dvb/frontends/ds3000.c
+@@ -280,15 +280,14 @@ static int ds3000_tuner_writereg(struct ds3000_state *state, int reg, int data)
+ static int ds3000_writeFW(struct ds3000_state *state, int reg,
+ 				const u8 *data, u16 len)
+ {
+-	int i, ret = -EREMOTEIO;
++	int i, ret = 0;
+ 	struct i2c_msg msg;
+ 	u8 *buf;
+ 
+ 	buf = kmalloc(33, GFP_KERNEL);
+ 	if (buf == NULL) {
+ 		printk(KERN_ERR "Unable to kmalloc\n");
+-		ret = -ENOMEM;
+-		goto error;
++		return -ENOMEM;
+ 	}
+ 
+ 	*(buf) = reg;
+@@ -308,8 +307,10 @@ static int ds3000_writeFW(struct ds3000_state *state, int reg,
+ 			printk(KERN_ERR "%s: write error(err == %i, "
+ 				"reg == 0x%02x\n", __func__, ret, reg);
+ 			ret = -EREMOTEIO;
++			goto error;
+ 		}
+ 	}
++	ret = 0;
+ 
+ error:
+ 	kfree(buf);
+@@ -426,6 +427,7 @@ static int ds3000_load_firmware(struct dvb_frontend *fe,
+ 					const struct firmware *fw)
+ {
+ 	struct ds3000_state *state = fe->demodulator_priv;
++	int ret = 0;
+ 
+ 	dprintk("%s\n", __func__);
+ 	dprintk("Firmware is %zu bytes (%02x %02x .. %02x %02x)\n",
+@@ -438,10 +440,10 @@ static int ds3000_load_firmware(struct dvb_frontend *fe,
+ 	/* Begin the firmware load process */
+ 	ds3000_writereg(state, 0xb2, 0x01);
+ 	/* write the entire firmware */
+-	ds3000_writeFW(state, 0xb0, fw->data, fw->size);
++	ret = ds3000_writeFW(state, 0xb0, fw->data, fw->size);
+ 	ds3000_writereg(state, 0xb2, 0x00);
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ static int ds3000_set_voltage(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
+-- 
+1.7.10.4
 
-Hans
-
-
-On 09/06/2012 05:24 PM, Peter Senna Tschudin wrote:
-> From: Peter Senna Tschudin <peter.senna@gmail.com>
->
-> Convert a nonnegative error return code to a negative one, as returned
-> elsewhere in the function.
->
-> A simplified version of the semantic match that finds this problem is as
-> follows: (http://coccinelle.lip6.fr/)
->
-> // <smpl>
-> (
-> if@p1 (\(ret < 0\|ret != 0\))
->   { ... return ret; }
-> |
-> ret@p1 = 0
-> )
-> ... when != ret = e1
->      when != &ret
-> *if(...)
-> {
->    ... when != ret = e2
->        when forall
->   return ret;
-> }
->
-> // </smpl>
->
-> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
->
-> ---
->   drivers/media/usb/gspca/cpia1.c |    2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/usb/gspca/cpia1.c b/drivers/media/usb/gspca/cpia1.c
-> index 2499a88..b3ba47d 100644
-> --- a/drivers/media/usb/gspca/cpia1.c
-> +++ b/drivers/media/usb/gspca/cpia1.c
-> @@ -751,7 +751,7 @@ static int goto_high_power(struct gspca_dev *gspca_dev)
->   	if (signal_pending(current))
->   		return -EINTR;
->
-> -	do_command(gspca_dev, CPIA_COMMAND_GetCameraStatus, 0, 0, 0, 0);
-> +	ret = do_command(gspca_dev, CPIA_COMMAND_GetCameraStatus, 0, 0, 0, 0);
->   	if (ret)
->   		return ret;
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
