@@ -1,52 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47213 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932180Ab2IXUGi (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:39514 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760282Ab2INWul (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 16:06:38 -0400
-Date: Mon, 24 Sep 2012 23:06:34 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: Re: Gain controls in v4l2-ctrl framework
-Message-ID: <20120924200634.GK12025@valkosipuli.retiisi.org.uk>
-References: <CA+V-a8vYDFhJzKVKsv7Q_JOQzDDYRyev15jDKio0tG2CP8iCCw@mail.gmail.com>
+	Fri, 14 Sep 2012 18:50:41 -0400
+Received: by iahk25 with SMTP id k25so3777866iah.19
+        for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 15:50:40 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CA+V-a8vYDFhJzKVKsv7Q_JOQzDDYRyev15jDKio0tG2CP8iCCw@mail.gmail.com>
+In-Reply-To: <20120719211510.GA32763@google.com>
+References: <20120719211510.GA32763@google.com>
+Date: Fri, 14 Sep 2012 15:50:40 -0700
+Message-ID: <CAMbhsRQs+2MCXq0M-eTeezwPR=KMnBKtJny1rjiUJL-wNYctMQ@mail.gmail.com>
+Subject: Re: [PATCHSET] kthread_worker: reimplement flush_kthread_work() to
+ allow freeing during execution
+From: Colin Cross <ccross@google.com>
+To: Tejun Heo <tj@kernel.org>
+Cc: linux-kernel@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Avi Kivity <avi@redhat.com>, kvm@vger.kernel.org,
+	Andy Walls <awalls@md.metrocast.net>,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
+	Grant Likely <grant.likely@secretlab.ca>,
+	spi-devel-general@lists.sourceforge.net,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	stable@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+On Thu, Jul 19, 2012 at 2:15 PM, Tejun Heo <tj@kernel.org> wrote:
+> Hello,
+>
+> kthread_worker was introduced together with concurrency managed
+> workqueue to serve workqueue users which need a special dedicated
+> worker - e.g. RT scheduling.  This is minimal queue / flush / flush
+> all iterface on top of kthread and each provided interface matches the
+> workqueue counterpart so that switching isn't difficult.
+>
+> However, one noticeable difference was that kthread_worker doesn't
+> allow a work item to be freed while being executed.  The intention was
+> to keep the code simpler but it didn't really and the restriction is
+> subtle and does prevent some valid use cases.
+>
+> This two-patch series reimplements flush_kthread_work() so that it
+> uses an extra work item for flushing.  While this takes a bit more
+> lines, this is easier to understand and removes the annoying
+> difference.
+>
+> This patchset contains the following two patches.
+>
+>  0001-kthread_worker-reorganize-to-prepare-for-flush_kthre.patch
+>  0002-kthread_worker-reimplement-flush_kthread_work-to-all.patch
+>
+> The first one is a prep patch which makes no functional changes.  The
+> second reimplements flush_kthread_work().
+>
+> All current kthread_worker users are cc'd.  If no one objects, I'll
+> push it through the workqueue branch.  This patchset is also available
+> in the following git branch.
+>
+>  git://git.kernel.org/pub/scm/linux/kernel/git/tj/wq.git review-kthread_worker-flush
+>
+> diffstat follows.  Thanks.
+>
+>  include/linux/kthread.h |    8 +---
+>  kernel/kthread.c        |   86 +++++++++++++++++++++++++++---------------------
+>  2 files changed, 52 insertions(+), 42 deletions(-)
+>
+> --
+> tejun
 
-On Sun, Sep 23, 2012 at 04:56:21PM +0530, Prabhakar Lad wrote:
-> Hi All,
-> 
-> The CCD/Sensors have the capability to adjust the R/ye, Gr/Cy, Gb/G,
-> B/Mg gain values.
-> Since these control can be re-usable I am planning to add the
-> following gain controls as part
-> of the framework:
-> 
-> 1: V4L2_CID_GAIN_RED
-> 2: V4L2_CID_GAIN_GREEN_RED
-> 3: V4L2_CID_GAIN_GREEN_BLUE
-> 4: V4L2_CID_GAIN_BLUE
+This patch set fixes a reproducible crash I'm seeing on a 3.4.10
+kernel.  flush_kthread_worker (which is different from
+flush_kthread_work) is initializing a kthread_work and a completion on
+the stack, then queuing it and calling wait_for_completion.  Once the
+completion is signaled, flush_kthread_worker exits and the stack
+region used by the kthread_work may be immediately reused by another
+object on the stack, but kthread_worker_fn continues accessing its
+work pointer:
+                work->func(work);         <- calls complete,
+effectively frees work
+                smp_wmb();      /* wmb worker-b0 paired with flush-b1 */
+                work->done_seq = work->queue_seq;   <- overwrites a
+new stack object
+                smp_mb();       /* mb worker-b1 paired with flush-b0 */
+                if (atomic_read(&work->flushing))
+                        wake_up_all(&work->done);  <- or crashes here
 
-One more thing: There's an analogue gain control already in the image source
-class. I think we should explicitly say that the gains are digital (vs.
-analogue).
-
-Kind regards,
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+These patches fix the problem by not accessing work after work->func
+is called, and should be backported to stable.  They apply cleanly to
+3.4.10.  Upstream commits are 9a2e03d8ed518a61154f18d83d6466628e519f94
+and 46f3d976213452350f9d10b0c2780c2681f7075b.
