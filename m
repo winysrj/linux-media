@@ -1,181 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1291 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932116Ab2ICNt3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2012 09:49:29 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:30690 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757282Ab2INK6F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Sep 2012 06:58:05 -0400
+Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
+	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id q8EAvqBt013688
+	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 10:57:58 GMT
+From: Hans Verkuil <hans.verkuil@cisco.com>
 To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 01/10] v4l: Remove experimental tag from certain API elements
-Date: Mon,  3 Sep 2012 15:48:35 +0200
-Message-Id: <c31da93f2bf615b90086d749e3f3eae6d6c3fc41.1346679785.git.hans.verkuil@cisco.com>
-In-Reply-To: <1346680124-15169-1-git-send-email-hverkuil@xs4all.nl>
-References: <1346680124-15169-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [RFCv3 API PATCH 24/31] v4l2: make vidioc_s_audout const.
+Date: Fri, 14 Sep 2012 12:57:39 +0200
+Message-Id: <b1760fde3f7cfd37716e6c86b73f59ca9ed004ef.1347619766.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
+References: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Write-only ioctls should have a const argument in the ioctl op.
 
-Remove experimantal tag from the following API elements:
+Do this conversion for vidioc_s_audout.
 
-V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY buffer type.
-V4L2_CAP_VIDEO_OUTPUT_OVERLAY capability flag.
-VIDIOC_ENUM_FRAMESIZES IOCTL.
-VIDIOC_G_ENC_INDEX IOCTL.
-VIDIOC_ENCODER_CMD and VIDIOC_TRY_ENCODER_CMD IOCTLs.
-VIDIOC_DECODER_CMD and VIDIOC_TRY_DECODER_CMD IOCTLs.
+Adding const for write-only ioctls was decided during the 2012 Media Workshop.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/DocBook/media/v4l/compat.xml         |   23 --------------------
- Documentation/DocBook/media/v4l/dev-osd.xml        |    7 ------
- Documentation/DocBook/media/v4l/io.xml             |    3 +--
- .../DocBook/media/v4l/vidioc-decoder-cmd.xml       |    7 ------
- .../DocBook/media/v4l/vidioc-encoder-cmd.xml       |    7 ------
- .../DocBook/media/v4l/vidioc-enum-framesizes.xml   |    7 ------
- .../DocBook/media/v4l/vidioc-g-enc-index.xml       |    7 ------
- 7 files changed, 1 insertion(+), 60 deletions(-)
+ drivers/media/pci/ivtv/ivtv-ioctl.c |    6 ++++--
+ drivers/media/radio/radio-si4713.c  |    2 +-
+ include/media/v4l2-ioctl.h          |    2 +-
+ 3 files changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index 98e8d08..578135e 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2555,29 +2555,6 @@ and may change in the future.</para>
- 	  <para>Video Output Overlay (OSD) Interface, <xref
- 	    linkend="osd" />.</para>
-         </listitem>
--	<listitem>
--	  <para><constant>V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY</constant>,
--	&v4l2-buf-type;, <xref linkend="v4l2-buf-type" />.</para>
--        </listitem>
--        <listitem>
--	  <para><constant>V4L2_CAP_VIDEO_OUTPUT_OVERLAY</constant>,
--&VIDIOC-QUERYCAP; ioctl, <xref linkend="device-capabilities" />.</para>
--        </listitem>
--        <listitem>
--	  <para>&VIDIOC-ENUM-FRAMESIZES; and
--&VIDIOC-ENUM-FRAMEINTERVALS; ioctls.</para>
--        </listitem>
--        <listitem>
--	  <para>&VIDIOC-G-ENC-INDEX; ioctl.</para>
--        </listitem>
--        <listitem>
--	  <para>&VIDIOC-ENCODER-CMD; and &VIDIOC-TRY-ENCODER-CMD;
--ioctls.</para>
--        </listitem>
--        <listitem>
--	  <para>&VIDIOC-DECODER-CMD; and &VIDIOC-TRY-DECODER-CMD;
--ioctls.</para>
--        </listitem>
-         <listitem>
- 	  <para>&VIDIOC-DBG-G-REGISTER; and &VIDIOC-DBG-S-REGISTER;
- ioctls.</para>
-diff --git a/Documentation/DocBook/media/v4l/dev-osd.xml b/Documentation/DocBook/media/v4l/dev-osd.xml
-index 479d943..dd91d61 100644
---- a/Documentation/DocBook/media/v4l/dev-osd.xml
-+++ b/Documentation/DocBook/media/v4l/dev-osd.xml
-@@ -1,13 +1,6 @@
-   <title>Video Output Overlay Interface</title>
-   <subtitle>Also known as On-Screen Display (OSD)</subtitle>
+diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c b/drivers/media/pci/ivtv/ivtv-ioctl.c
+index 99e35dd..d5cbb61 100644
+--- a/drivers/media/pci/ivtv/ivtv-ioctl.c
++++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
+@@ -813,11 +813,13 @@ static int ivtv_g_audout(struct file *file, void *fh, struct v4l2_audioout *vin)
+ 	return ivtv_get_audio_output(itv, vin->index, vin);
+ }
  
--  <note>
--    <title>Experimental</title>
--
--    <para>This is an <link linkend="experimental">experimental</link>
--interface and may change in the future.</para>
--  </note>
--
-   <para>Some video output devices can overlay a framebuffer image onto
- the outgoing video signal. Applications can set up such an overlay
- using this interface, which borrows structures and ioctls of the <link
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index 1885cc0..2512649 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -827,8 +827,7 @@ should set this to 0.</entry>
- 	    <entry><constant>V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY</constant></entry>
- 	    <entry>8</entry>
- 	    <entry>Buffer for video output overlay (OSD), see <xref
--		linkend="osd" />. Status: <link
--linkend="experimental">Experimental</link>.</entry>
-+		linkend="osd" />.</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_BUF_TYPE_PRIVATE</constant></entry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
-index 74b87f6..9215627 100644
---- a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
-@@ -49,13 +49,6 @@
-   <refsect1>
-     <title>Description</title>
+-static int ivtv_s_audout(struct file *file, void *fh, struct v4l2_audioout *vout)
++static int ivtv_s_audout(struct file *file, void *fh, const struct v4l2_audioout *vout)
+ {
+ 	struct ivtv *itv = fh2id(fh)->itv;
  
--    <note>
--      <title>Experimental</title>
--
--      <para>This is an <link linkend="experimental">experimental</link>
--interface and may change in the future.</para>
--    </note>
--
-     <para>These ioctls control an audio/video (usually MPEG-) decoder.
- <constant>VIDIOC_DECODER_CMD</constant> sends a command to the
- decoder, <constant>VIDIOC_TRY_DECODER_CMD</constant> can be used to
-diff --git a/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
-index f431b3b..0619ca5 100644
---- a/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
-@@ -49,13 +49,6 @@
-   <refsect1>
-     <title>Description</title>
+-	return ivtv_get_audio_output(itv, vout->index, vout);
++	if (itv->card->video_outputs == NULL || vout->index != 0)
++		return -EINVAL;
++	return 0;
+ }
  
--    <note>
--      <title>Experimental</title>
--
--      <para>This is an <link linkend="experimental">experimental</link>
--interface and may change in the future.</para>
--    </note>
--
-     <para>These ioctls control an audio/video (usually MPEG-) encoder.
- <constant>VIDIOC_ENCODER_CMD</constant> sends a command to the
- encoder, <constant>VIDIOC_TRY_ENCODER_CMD</constant> can be used to
-diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml b/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml
-index f77a13f..a78454b 100644
---- a/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml
-@@ -50,13 +50,6 @@ and pixel format and receives a frame width and height.</para>
-   <refsect1>
-     <title>Description</title>
+ static int ivtv_enum_input(struct file *file, void *fh, struct v4l2_input *vin)
+diff --git a/drivers/media/radio/radio-si4713.c b/drivers/media/radio/radio-si4713.c
+index 5f366d1..1e04101 100644
+--- a/drivers/media/radio/radio-si4713.c
++++ b/drivers/media/radio/radio-si4713.c
+@@ -83,7 +83,7 @@ static int radio_si4713_g_audout(struct file *file, void *priv,
+ }
  
--    <note>
--      <title>Experimental</title>
--
--      <para>This is an <link linkend="experimental">experimental</link>
--interface and may change in the future.</para>
--    </note>
--
-     <para>This ioctl allows applications to enumerate all frame sizes
- (&ie; width and height in pixels) that the device supports for the
- given pixel format.</para>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-enc-index.xml b/Documentation/DocBook/media/v4l/vidioc-g-enc-index.xml
-index 2aef02c..be25029 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-enc-index.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-enc-index.xml
-@@ -48,13 +48,6 @@
-   <refsect1>
-     <title>Description</title>
- 
--    <note>
--      <title>Experimental</title>
--
--      <para>This is an <link linkend="experimental">experimental</link>
--interface and may change in the future.</para>
--    </note>
--
-     <para>The <constant>VIDIOC_G_ENC_INDEX</constant> ioctl provides
- meta data about a compressed video stream the same or another
- application currently reads from the driver, which is useful for
+ static int radio_si4713_s_audout(struct file *file, void *priv,
+-					struct v4l2_audioout *vao)
++					const struct v4l2_audioout *vao)
+ {
+ 	return vao->index ? -EINVAL : 0;
+ }
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index babbe09..d4c7729 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -175,7 +175,7 @@ struct v4l2_ioctl_ops {
+ 	int (*vidioc_g_audout)         (struct file *file, void *fh,
+ 					struct v4l2_audioout *a);
+ 	int (*vidioc_s_audout)         (struct file *file, void *fh,
+-					struct v4l2_audioout *a);
++					const struct v4l2_audioout *a);
+ 	int (*vidioc_g_modulator)      (struct file *file, void *fh,
+ 					struct v4l2_modulator *a);
+ 	int (*vidioc_s_modulator)      (struct file *file, void *fh,
 -- 
 1.7.10.4
 
