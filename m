@@ -1,112 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:50838 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752417Ab2IWRQP (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:48145 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755500Ab2INK56 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Sep 2012 13:16:15 -0400
-From: Federico Vaga <federico.vaga@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH v2 3/4] sta2x11_vip: convert to videobuf2 and control framework
-Date: Sun, 23 Sep 2012 19:20:04 +0200
-Message-ID: <1568507.e1NUzqJ3mL@harkonnen>
-In-Reply-To: <201209211147.06204.hverkuil@xs4all.nl>
-References: <1348219298-23273-1-git-send-email-federico.vaga@gmail.com> <1348219298-23273-3-git-send-email-federico.vaga@gmail.com> <201209211147.06204.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 14 Sep 2012 06:57:58 -0400
+Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
+	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id q8EAvqBl013688
+	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 10:57:56 GMT
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [RFCv3 API PATCH 16/31] Add V4L2_CAP_MONOTONIC_TS where applicable.
+Date: Fri, 14 Sep 2012 12:57:31 +0200
+Message-Id: <2341490a8ec5a509d598c8884e1076575e019ccd.1347619766.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
+References: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> > +struct sta2x11_vip_fh {
-> > +	struct v4l2_fh fh;
-> > +};
-> 
-> No need to make a sta2x11_vip_fh struct, just use v4l2_fh directly. It
-> doesn't add anything. In fact, it's not even used.
+Add the new V4L2_CAP_MONOTONIC_TS capability to those drivers that
+use monotomic timestamps instead of the system time.
 
-Thank you :)
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/pci/cx18/cx18-ioctl.c           |    2 +-
+ drivers/media/platform/davinci/vpbe_display.c |    3 ++-
+ drivers/media/platform/omap3isp/ispvideo.c    |    5 +++--
+ drivers/media/platform/s5p-fimc/fimc-lite.c   |    2 +-
+ drivers/media/usb/gspca/gspca.c               |    1 +
+ drivers/media/usb/uvc/uvc_v4l2.c              |    7 +++----
+ 6 files changed, 11 insertions(+), 9 deletions(-)
 
-
-> >  static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
-> >  
-> >  				  struct v4l2_format *f)
-> >  
-> >  {
-> > 
-> > -	struct video_device *dev = priv;
-> > -	struct sta2x11_vip *vip = video_get_drvdata(dev);
-> > +	struct sta2x11_vip *vip = video_drvdata(file);
-> > 
-> >  	int interlace_lim;
-> > 
-> > -	if (V4L2_PIX_FMT_UYVY != f->fmt.pix.pixelformat)
-> > -		return -EINVAL;
-> > -
-> > 
-> >  	if (V4L2_STD_525_60 & vip->std)
-> >  	
-> >  		interlace_lim = 240;
-> >  	
-> >  	else
-> > 
-> > @@ -827,6 +522,8 @@ static int vidioc_try_fmt_vid_cap(struct file
-> > *file, void *priv,> 
-> >  		return -EINVAL;
-> 
-> No -EINVAL allowed anymore in try_fmt_vid_cap. I generally handle
-> unknown field values in try_fmt_vid_cap as if FIELD_ANY was
-> specified.
-
-ok, unknown -> any
-
-> > 
-> >  	memcpy(&vip->format, &f->fmt.pix, sizeof(struct 
-v4l2_pix_format));
-> 
-> Just use an assignment: vip->format = f->fmt.pix
-> 
-
-> > 
-> >  	memcpy(&f->fmt.pix, &vip->format, sizeof(struct 
-v4l2_pix_format));
-> 
-> Assignment
-> 
-
-Fixed
-
-
-> > -
-> > 
-> >  static const struct v4l2_ioctl_ops vip_ioctl_ops = {
-> >  
-> >  	.vidioc_querycap = vidioc_querycap,
-> > 
-> > -	.vidioc_s_std = vidioc_s_std,
-> > +	/* FMT handling */
-> > +	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
-> > +	.vidioc_g_fmt_vid_cap = vidioc_g_fmt_vid_cap,
-> > +	.vidioc_s_fmt_vid_cap = vidioc_s_fmt_vid_cap,
-> > +	.vidioc_try_fmt_vid_cap = vidioc_try_fmt_vid_cap,
-> > +	/* Buffer handlers */
-> > +	.vidioc_reqbufs = vb2_ioctl_reqbufs,
-> > +	.vidioc_querybuf = vb2_ioctl_querybuf,
-> > +	.vidioc_qbuf = vb2_ioctl_qbuf,
-> > +	.vidioc_dqbuf = vb2_ioctl_dqbuf,
-> > +	.vidioc_create_bufs = vb2_ioctl_create_bufs,
-> 
-> If you want to use create_bufs, then in queue_setup() you need to
-> handle the fmt argument. See e.g. vivi.c for an example.
-
-Fixed
-
-I will send a patch v3 tomorrow
+diff --git a/drivers/media/pci/cx18/cx18-ioctl.c b/drivers/media/pci/cx18/cx18-ioctl.c
+index e9912db..51675bc 100644
+--- a/drivers/media/pci/cx18/cx18-ioctl.c
++++ b/drivers/media/pci/cx18/cx18-ioctl.c
+@@ -473,7 +473,7 @@ static int cx18_querycap(struct file *file, void *fh,
+ 		 "PCI:%s", pci_name(cx->pci_dev));
+ 	vcap->capabilities = cx->v4l2_cap; 	    /* capabilities */
+ 	if (id->type == CX18_ENC_STREAM_TYPE_YUV)
+-		vcap->capabilities |= V4L2_CAP_STREAMING;
++		vcap->capabilities |= V4L2_CAP_STREAMING | V4L2_CAP_MONOTONIC_TS;
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+index 9a05c81..a529e28 100644
+--- a/drivers/media/platform/davinci/vpbe_display.c
++++ b/drivers/media/platform/davinci/vpbe_display.c
+@@ -620,7 +620,8 @@ static int vpbe_display_querycap(struct file *file, void  *priv,
+ 	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
+ 
+ 	cap->version = VPBE_DISPLAY_VERSION_CODE;
+-	cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
++	cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING |
++		V4L2_CAP_MONOTONIC_TS;
+ 	strlcpy(cap->driver, VPBE_DISPLAY_DRIVER, sizeof(cap->driver));
+ 	strlcpy(cap->bus_info, "platform", sizeof(cap->bus_info));
+ 	strlcpy(cap->card, vpbe_dev->cfg->module_name, sizeof(cap->card));
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 3a5085e..a25aa1d 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -663,10 +663,11 @@ isp_video_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
+ 	strlcpy(cap->card, video->video.name, sizeof(cap->card));
+ 	strlcpy(cap->bus_info, "media", sizeof(cap->bus_info));
+ 
++	cap->capabilities = V4L2_CAP_STREAMING | V4L2_CAP_MONOTONIC_TS;
+ 	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-		cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
++		cap->capabilities |= V4L2_CAP_VIDEO_CAPTURE;
+ 	else
+-		cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
++		cap->capabilities |= V4L2_CAP_VIDEO_OUTPUT;
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c b/drivers/media/platform/s5p-fimc/fimc-lite.c
+index c5b57e8..ab12928 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-lite.c
++++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
+@@ -629,7 +629,7 @@ static int fimc_vidioc_querycap_capture(struct file *file, void *priv,
+ 	strlcpy(cap->driver, FIMC_LITE_DRV_NAME, sizeof(cap->driver));
+ 	cap->bus_info[0] = 0;
+ 	cap->card[0] = 0;
+-	cap->capabilities = V4L2_CAP_STREAMING;
++	cap->capabilities = V4L2_CAP_STREAMING | V4L2_CAP_MONOTONIC_TS;
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
+index 2abbf52..98b91a2 100644
+--- a/drivers/media/usb/gspca/gspca.c
++++ b/drivers/media/usb/gspca/gspca.c
+@@ -1351,6 +1351,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
+ 	usb_make_path(gspca_dev->dev, (char *) cap->bus_info,
+ 			sizeof(cap->bus_info));
+ 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE
++			  | V4L2_CAP_MONOTONIC_TS
+ 			  | V4L2_CAP_STREAMING
+ 			  | V4L2_CAP_READWRITE;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index f00db30..1c6dff0 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -564,12 +564,11 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		usb_make_path(stream->dev->udev,
+ 			      cap->bus_info, sizeof(cap->bus_info));
+ 		cap->version = LINUX_VERSION_CODE;
++		cap->capabilities = V4L2_CAP_STREAMING | V4L2_CAP_MONOTONIC_TS;
+ 		if (stream->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-			cap->capabilities = V4L2_CAP_VIDEO_CAPTURE
+-					  | V4L2_CAP_STREAMING;
++			cap->capabilities |= V4L2_CAP_VIDEO_CAPTURE;
+ 		else
+-			cap->capabilities = V4L2_CAP_VIDEO_OUTPUT
+-					  | V4L2_CAP_STREAMING;
++			cap->capabilities |= V4L2_CAP_VIDEO_OUTPUT;
+ 		break;
+ 	}
+ 
 -- 
-Federico Vaga
+1.7.10.4
+
