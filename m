@@ -1,302 +1,1132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50890 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754874Ab2IRXAJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Sep 2012 19:00:09 -0400
-Message-ID: <5058FCE3.20509@iki.fi>
-Date: Wed, 19 Sep 2012 01:59:47 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Oliver Schinagl <oliver@schinagl.nl>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Support for Asus MyCinema U3100Mini Plus
-References: <1347223647-645-1-git-send-email-oliver+list@schinagl.nl> <504D00BC.4040109@schinagl.nl> <504D0F44.6030706@iki.fi> <504D17AA.8020807@schinagl.nl> <504D1859.5050201@iki.fi> <504DB9D4.6020502@schinagl.nl> <504DD311.7060408@iki.fi> <504DF950.8060006@schinagl.nl> <504E2345.5090800@schinagl.nl> <5055DD27.7080501@schinagl.nl> <505601B6.2010103@iki.fi> <5055EA30.8000200@schinagl.nl> <50560B82.7000205@iki.fi> <50564E58.20004@schinagl.nl> <50566260.1090108@iki.fi> <5056DE5C.70003@schinagl.nl> <50571F83.10708@schinagl.nl> <50572290.8090308@iki.fi> <505724F0.20502@schinagl.nl> <50572B1D.3080807@iki.fi> <50573FC5.40307@schinagl.nl>
-In-Reply-To: <50573FC5.40307@schinagl.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:57053 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754156Ab2INMtU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Sep 2012 08:49:20 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>
+Subject: [PATCH 05/14] davinci: vpfe: add ccdc driver with media controller interface
+Date: Fri, 14 Sep 2012 18:16:35 +0530
+Message-Id: <1347626804-5703-6-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1347626804-5703-1-git-send-email-prabhakar.lad@ti.com>
+References: <1347626804-5703-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/17/2012 06:20 PM, Oliver Schinagl wrote:
-> On 17-09-12 15:52, Antti Palosaari wrote:
->> On 09/17/2012 04:26 PM, Oliver Schinagl wrote:
->>> On 17-09-12 15:16, Antti Palosaari wrote:
->>>> On 09/17/2012 04:02 PM, Oliver Schinagl wrote:
->>>>> On 17-09-12 10:25, Oliver Schinagl wrote:
->>>>>> On 17-09-12 01:36, Antti Palosaari wrote:
->>>>>>> On 09/17/2012 01:10 AM, Oliver Schinagl wrote:
->>>>>>>> On 09/16/12 19:25, Antti Palosaari wrote:
->>>>>>>>> On 09/16/2012 06:03 PM, Oliver Schinagl wrote:
->>>>>>>>>> I don't have windows, so capturing using windows is near
->>>>>>>>>> impossible.
->>>>>>>>>> Also since the vendor driver used to work, I guess I will have
->>>>>>>>>> to dig
->>>>>>>>>> into that more.
->>>>>>>>>
->>>>>>>>> You could capture data from Linux too (eg. Wireshark).
->>>>>>>> Ah of course. I'll dig up the old vendor driver and see if I can
->>>>>>>> get it
->>>>>>>> running on 3.2 or better yet, on 3.5/your-3.6. I know there's
->>>>>>>> patches
->>>>>>>> for 3.2 but I've never tested those. Otherwise the older 2.6.2*
->>>>>>>> series
->>>>>>>> should still work.
->>>>>>>>
->>>>>>>>>
->>>>>>>>> But with a little experience you could see those GPIOs reading
->>>>>>>>> existing
->>>>>>>>> Linux driver and then do some tests to see what happens. For
->>>>>>>>> example
->>>>>>>>> some GPIO powers tuner off, you will see I2C error. Changing it
->>>>>>>>> back
->>>>>>>>> error disappears.
->>>>>>>> I have zero experience so I'll try to figure things out. I guess
->>>>>>>> you
->>>>>>>> currently turn on/off GPIO's etc in the current driver? Any line
->>>>>>>> which
->>>>>>>> does this so I can examine how it's done? As for the I2C errors, I
->>>>>>>> suppose the current driver will spew those out?
->>>>>>>
->>>>>>> Those GPIOs are set in file af9035.c, functiuons:
->>>>>>> af9035_tuner_attach() and af9035_fc0011_tuner_callback(). For
->>>>>>> TDA18218 tuner there is no any GPIOs set, which could be wrong
->>>>>>> and it
->>>>>>> just works with good luck OR it is wired/connected directly so that
->>>>>>> GPIOs are not used at all.
->>>>>> Ahah! Then I know what to look for. Since af9035 also has fc0011
->>>>>> support, there should be some similarities I can find.
->>>>> Which I did. I found that the af9033 sets the "gpiot2" o, en and on
->>>>> values high to enable the tuner. Luckly, the fc2580 is routed to the
->>>>> exact same gpio and thus the same tuner enable/disable routine can be
->>>>> used as the FC0011. Appearantly the FC0011 tuner also has a led that
->>>>> needs to be enabled/disabled, at gpioh8, which the fc2580 lacks. So I
->>>>> found the tuner enable and should be able to incorporate that without
->>>>> issue.
->>>>>
->>>>> The other callback the fc2580 has, is a 'reset'. The fc2580 appears to
->>>>> be lacking such feature, or is not used in the vendor driver.
->>>>>>>
->>>>>>>> Speaking off, in my previous message, I wrote about the driver
->>>>>>>> spitting
->>>>>>>> out the following error:
->>>>>>>> [dvb_usb_af9035]af9035_read_config =_ "%s: [%d]tuner=%02x\012"
->>>>>>>
->>>>>>> It is the tuner ID value got from eeprom. You should take that
->>>>>>> number
->>>>>>> and add it to af9033.h file:
->>>>>>> #define AF9033_TUNER_FC2580    0xXXXX <= insert number here
->>>>>> Yes, but I think %s, %d and %02x\012 should actually list values?
->>>>>> (\012 I belive is \newline)
->>>>> I need to learn dynamic_debug; and I think I may have set it up wrong
->>>>> last time (af9035 and fc2580, but not af9033). I found some good
->>>>> documentation and will try this tonight.
->>>>>>>
->>>>>>>> None of the values where set however. Did I miss-configure
->>>>>>>> anything for
->>>>>>>> it to cause to 'forget' substituting?
->>>>>>>
->>>>>>> What you mean? Could you enable debugs, plug stick in and copy paste
->>>>>>> what debugs says?
->>>>>> I have dynamic debugging enabled and have gotten the above snipped
->>>>>> from the proc/sysfs interface. Also dmesg from replugging I've
->>>>>> attached a few messages back.
->>>>>>
->>>>>> [  188.051502] af9033: firmware version: LINK=12.13.15.0
->>>>>> OFDM=6.20.15.0
->>>>>> [  188.051520] usb 1-3: DVB: registering adapter 0 frontend 0
->>>>>> (Afatech
->>>>>> AF9033 (DVB-T))...
->>>>>> [  188.054019] i2c i2c-1: fc2580_attach: chip_id=5a
->>>>>> [  188.054030] i2c i2c-1: fc2580_attach: failed=0
->>>>>> [  188.054471] i2c i2c-1: fc2580_release:
->>>>>> [  188.054485] usb 1-3: dvb_usbv2: 'Asus U3100Mini Plus' error while
->>>>>> loading driver (-19)
->>>>>>
->>>>>> is the dmesg output from then, which doesn't list the values from the
->>>>>> debugging bit either. I suppose I need more debugging options enabled
->>>>>> to have those flag characters actually filled in?
->>>>
->>>> It should print af9035 debugs too.
->>>>
->>>> usb 2-2: af9035_read_config: [0]tuner=27
->>>>
->>>> modprobe dvb_usb_af9035; echo -n 'module dvb_usb_af9035 +p' >
->>>> /sys/kernel/debug/dynamic_debug/control
->>>>
->>>> modprobe dvb_usb_v2; echo -n 'module dvb_usb_v2 +p' >
->>>> /sys/kernel/debug/dynamic_debug/control
->>>>
->>>> If tuner communication is really working and it says chip id is 0x5a
->>>> then it is different than driver knows. It could be new revision of
->>>> tuner. Change chip_id to match 0x5a
->>>>
->>> Ah, so it's called chip_id on one end, but tuner_id on the other end.
->>> If/when I got this link working properly, I'll write a patch to fix some
->>> naming consistencies.
->>
->> No, you are totally wrong now. Chip ID is value inside chip register.
->> Almost every chip has some chip id value which driver could detect it
->> is speaking with correct chip. In that case value is stored inside
->> fc2580.
->>
->> Tuner ID is value stored inside AF9035 chip / eeprom. It is
->> configuration value for AF9035 hardware design. It says "that AF9035
->> device uses FC2580 RF-tuner". AF9035 (FC2580) tuner ID and FC2580 chip
->> ID are different values having different meaning.
-> Ok, I understand the difference between Chip ID and Tuner ID I guess,
-> and with my new knowledge about dynamic debug I know also understand my
-> findings and where it goes wrong. I also know understand the chipID is
-> stored in fc2580.c under the fc2580_attach, where it checks for 0x56.
-> Appearantly my chipID is 0x5a. I wasn't triggered by this as none of the
-> other fc2580 or af9035 devices had such a change so it wasn't obvious.
-> Tuner ID is actively being chechked/set in the source, so that seemed
-> more obvious.
->>
->>> The vendor source also slightly more accurately describes
->>> fc2580_init_reg_vals. When writing to 0x45 and 0x4c, it can have
->>> different meanings, it controls the AGC. While the vendor driver always
->>> uses the same bytes the init table uses, there always exists these
->>> differences and its documentation. Is it desired to document this, and
->>> if so where? A comment in the source? A wikipage somewhere? Or does it
->>> simply not matter? See
->>> http://git.schinagl.nl/AF903x_SRC.git/tree/api/fc2580.c#n135 for what I
->>> mean exactly.
->>
->> It does not matter how vendor have implemented it and how I have
->> implemented it if both end up same register value anyway. And even
->> register value is different it could be still correct. Driver does not
->> need to be similar, driver aim is just program chip and it could do
->> totally differently.
->>
->> If you do...
->> write_register(0x1a, 0x12);
->> write_register(0x1b, 0x34);
->> OR
->> write_register(0x1b, 0x34);
->> write_register(0x1a, 0x12);
->> OR
->> write_registers(0x1a, "\x12\x34", 2);
->>
->> all will generally end up similar solution, even all those are done
->> differently.
-> No, you misunderstand me here entirely. Although I'm sure in some cases
-> order can be of influence, I don't think this is the case. What happens
-> in the original driver, upon init of the fc2580 they write some bytes
-> over the i2c bus, at one point, (at line 135) there's a simple statement:
-> if (ifagc_mode == 1) {
->      write(0x45, 0x10); /* internal AGC */ write(0x4c, 0x00); /*
-> HOLD_AGC polarity */
-> } else if (ifagc_mode == 2) {
->      write(0x45, 0x20); /* Voltage Control Mode */ write (0x4c, 0x02);
-> /* HOLD_AGC polarity */
-> } else if(ifagc_mode == 3) {
-> write(0x45, 0x30); /* Up/Down Control (Digital AGC) */ write(0x4c,
-> 0x02); /* HOLD_AGC polarity */
-> }
->
-> Thus there is 3 ways to init the fc2580, with 0x45 being 10, 20 or 30.
+From: Manjunath Hadli <manjunath.hadli@ti.com>
 
-It is tuner AGC configuration. I suspect could work in any case, but 
-performance is surely reduced.
-Likely mode == 1 is correct, it is automatic AGC. 2 means control is 
-coming outside, like from demod using voltage levels. And 3 means AGC 
-which is controlled by steps, one step more / less every time some chip 
-PIN is changed. I have never seen DVB stick that uses digital ADC control.
+Add the CCDC driver for davinci Dm3XX SoCs. The driver supports
+CCDC as a media entity with 2 pads - 1 input and 1 output. The
+driver implements streaming support and subdev interface. The
+ccdc supports bayer and YUV formats.
 
->>> I guess which address goes with which GPIO is far less interesting, as
->>> the gpio name could in theory be different from the actual pin due to
->>> pin multiplexing, right?
->>
->> dunno what you mean
-> A microcontroler can change the meaning of a pin at startup. E.g. pin1
-> could be GPIO1 or I2C_M, I believe this is set with fuses internal to
-> the uC. So while we assume pin1 is always I2C_M, the chip could be
-> reconfigured to have pin2 be I2C_M. Or anything really. So documenting
-> which address/pin is GPIO1, 2 or 3 isn't that interesting? Or is the
-> address always linked to a certain 'meaning' and not pin number?
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+---
+ drivers/media/platform/davinci/ccdc_hw_device.h |   11 +-
+ drivers/media/platform/davinci/dm355_ccdc.c     |    2 +-
+ drivers/media/platform/davinci/dm644x_ccdc.c    |    2 +-
+ drivers/media/platform/davinci/isif.c           |    2 +-
+ drivers/media/platform/davinci/vpfe_capture.c   |    2 +-
+ drivers/media/platform/davinci/vpfe_ccdc.c      |  903 +++++++++++++++++++++++
+ drivers/media/platform/davinci/vpfe_ccdc.h      |   87 +++
+ 7 files changed, 997 insertions(+), 12 deletions(-)
+ create mode 100644 drivers/media/platform/davinci/vpfe_ccdc.c
+ create mode 100644 drivers/media/platform/davinci/vpfe_ccdc.h
 
-Yes those pins are very often multipurpose. If there is some unused pin 
-it could be used as a GPIO. In real life those are just same pins from 
-device to device, because of chip vendor design some reference and 
-device vendors just follow that.
-
->>
->>>>
->>>>>>>>>
->>>>>>>>>> Since all the pieces should be there, fc2580 driver, af9033/5
->>>>>>>>>> driver,
->>>>>>>>>> it's just a matter of glueing things together, right? I'll dig
->>>>>>>>>> further
->>>>>>>>>> into it and see what I can find/do.
->>>>>>>>>
->>>>>>>>> Correct. Tuner init (demod settings fc2580) for is needed for
->>>>>>>>> af9033.
->>>>>>>>> And GPIOs for AF9035. In very bad luck some changes for fc2580 is
->>>>>>>>> needed
->>>>>>>>> too, but it is not very, very, unlikely.
->>>>>>>>>
->>>>>>>>> This patch is very similar you will need to do (tda18218 tuner
->>>>>>>>> support
->>>>>>>>> for af9035):
->>>>>>>>> http://patchwork.linuxtv.org/patch/10547/
->>>>>>>> I re-did my patch using that as a template (before I used your
->>>>>>>> work on
->>>>>>>> the rtl) and got the exact result.
->>>>>>>>
->>>>>>>> Your rtl|fc2580 combo btw (from bare memory) didn't have the
->>>>>>>> fc2580_init
->>>>>>>> stream in af9033_priv.h. What exactly gets init-ed there? The
->>>>>>>> af9033 to
->>>>>>>> work with the fc2580?
->>>>>>>
->>>>>>> You have to add fc2580 init table to file af9033_priv.h. It
->>>>>>> configures all the settings needed for AF9033 demod in order to
->>>>>>> operate with FC2580 tuner. There is some values like "tuner ID"
->>>>>>> which
->>>>>>> is passed for AF9033 firmware, dunno what kind of tweaks it done.
->>>>>>> Maybe calculates some values like signal strengths and AGC
->>>>>>> values. It
->>>>>>> could work without, but at least performance is reduced.
->>>>>> I did add it. I found the init tables in the vendor driver, compared
->>>>>> them to the existing init tables, found that the others where
->>>>>> identical, but offset by 0x8000. I thus copied the table for the
->>>>>> fc2580 and added the address offset.
->>>>>> You can glance over it in the driver patch I submitted last week,
->>>>>> should be there :)
->>>>>>
->>>>>> But since it modified the AF9033, I understand why your rtl driver
->>>>>> didn't have the init table for the fc2580.
->>>>
->>>> If you look comment from the rtl28xxu.c around line 635 you will see
->>>> it.
->>>> /* FIXME: do not abuse fc0012 settings */
->>> I take it, if my patch works, it can be also useful to the rtl28xxu
->>> driver?
->>
->> If there is someday tuner version having different tuner id. Idea of
->> checking that ID is to ensure driver is speaking with chip it know.
->> The language is something that both chip and driver both understand.
->> Hey these are so basic questions I hope you will try to google answers
->> first.
-> I think then this is such a day, where there exists another chip ID for
-> the FC2580 :) I can read of specifics of the chips, so you can compare
-> it to your other FC2580's and see maybe why the chip id is different.
-> meanwhile I try to see how compatible the 5a is and how much the vendor
-> driver relies on the chip ID.
->
-> As for basic questions, Maybe somewhat basic, but certainly not extremly
-> basic I would think. Also I wouldn't even know where to start googling
-> with such specifics. I did not intend to offend you with my lack of
-> knowledge, for that I sincerely appologize :(
->>
->> regards
->> Antti
->>
->
->
-
-Antti
-
-
+diff --git a/drivers/media/platform/davinci/ccdc_hw_device.h b/drivers/media/platform/davinci/ccdc_hw_device.h
+index 86b9b35..43615d7 100644
+--- a/drivers/media/platform/davinci/ccdc_hw_device.h
++++ b/drivers/media/platform/davinci/ccdc_hw_device.h
+@@ -57,7 +57,7 @@ struct ccdc_hw_ops {
+ 	 */
+ 	int (*get_params) (void *params);
+ 	/* Pointer to function to configure ccdc */
+-	int (*configure) (void);
++	int (*configure) (int mode);
+ 
+ 	/* Pointer to function to set buffer type */
+ 	int (*set_buftype) (enum ccdc_buftype buf_type);
+@@ -80,17 +80,12 @@ struct ccdc_hw_ops {
+ 	/* Pointer to function to get line length */
+ 	unsigned int (*get_line_length) (void);
+ 
+-	/* Query CCDC control IDs */
+-	int (*queryctrl)(struct v4l2_queryctrl *qctrl);
+-	/* Set CCDC control */
+-	int (*set_control)(struct v4l2_control *ctrl);
+-	/* Get CCDC control */
+-	int (*get_control)(struct v4l2_control *ctrl);
+-
+ 	/* Pointer to function to set frame buffer address */
+ 	void (*setfbaddr) (unsigned long addr);
+ 	/* Pointer to function to get field id */
+ 	int (*getfid) (void);
++	/* Pointer to function to set_ctrl */
++	int (*set_ctrl) (u32 ctrl_id, s32 val);
+ };
+ 
+ struct ccdc_hw_device {
+diff --git a/drivers/media/platform/davinci/dm355_ccdc.c b/drivers/media/platform/davinci/dm355_ccdc.c
+index ce0e413..c5563fd 100644
+--- a/drivers/media/platform/davinci/dm355_ccdc.c
++++ b/drivers/media/platform/davinci/dm355_ccdc.c
+@@ -779,7 +779,7 @@ static int ccdc_config_raw(void)
+ 	return 0;
+ }
+ 
+-static int ccdc_configure(void)
++static int ccdc_configure(int mode)
+ {
+ 	if (ccdc_cfg.if_type == VPFE_RAW_BAYER)
+ 		return ccdc_config_raw();
+diff --git a/drivers/media/platform/davinci/dm644x_ccdc.c b/drivers/media/platform/davinci/dm644x_ccdc.c
+index ee7942b..e51776a 100644
+--- a/drivers/media/platform/davinci/dm644x_ccdc.c
++++ b/drivers/media/platform/davinci/dm644x_ccdc.c
+@@ -689,7 +689,7 @@ void ccdc_config_raw(void)
+ 	ccdc_readregs();
+ }
+ 
+-static int ccdc_configure(void)
++static int ccdc_configure(int mode)
+ {
+ 	if (ccdc_cfg.if_type == VPFE_RAW_BAYER)
+ 		ccdc_config_raw();
+diff --git a/drivers/media/platform/davinci/isif.c b/drivers/media/platform/davinci/isif.c
+index b99d542..3e4fe87 100644
+--- a/drivers/media/platform/davinci/isif.c
++++ b/drivers/media/platform/davinci/isif.c
+@@ -993,7 +993,7 @@ static int isif_config_ycbcr(void)
+ 	return 0;
+ }
+ 
+-static int isif_configure(void)
++static int isif_configure(int mode)
+ {
+ 	if (isif_cfg.if_type == VPFE_RAW_BAYER)
+ 		return isif_config_raw();
+diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
+index 843b138..59cafa8 100644
+--- a/drivers/media/platform/davinci/vpfe_capture.c
++++ b/drivers/media/platform/davinci/vpfe_capture.c
+@@ -1572,7 +1572,7 @@ static int vpfe_streamon(struct file *file, void *priv,
+ 		ret = -EFAULT;
+ 		goto unlock_out;
+ 	}
+-	if (ccdc_dev->hw_ops.configure() < 0) {
++	if (ccdc_dev->hw_ops.configure(0) < 0) {
+ 		v4l2_err(&vpfe_dev->v4l2_dev,
+ 			 "Error in configuring ccdc\n");
+ 		ret = -EINVAL;
+diff --git a/drivers/media/platform/davinci/vpfe_ccdc.c b/drivers/media/platform/davinci/vpfe_ccdc.c
+new file mode 100644
+index 0000000..fdc0aa4
+--- /dev/null
++++ b/drivers/media/platform/davinci/vpfe_ccdc.c
+@@ -0,0 +1,903 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Inc
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
++ *
++ * Contributors:
++ *      Manjunath Hadli <manjunath.hadli@ti.com>
++ *      Prabhakar Lad <prabhakar.lad@ti.com>
++ */
++
++#include <linux/videodev2.h>
++#include <linux/v4l2-mediabus.h>
++#include <linux/platform_device.h>
++
++#include <media/v4l2-device.h>
++#include <media/media-entity.h>
++#include <media/davinci/vpfe_types.h>
++
++#include "vpfe_mc_capture.h"
++#include "ccdc_hw_device.h"
++
++#define MAX_WIDTH	4096
++#define MAX_HEIGHT	4096
++
++static const unsigned int ccdc_fmts[] = {
++	V4L2_MBUS_FMT_YUYV8_2X8,
++	V4L2_MBUS_FMT_UYVY8_2X8,
++	V4L2_MBUS_FMT_YUYV8_1X16,
++	V4L2_MBUS_FMT_YUYV10_1X20,
++	V4L2_MBUS_FMT_SGRBG12_1X12,
++	V4L2_MBUS_FMT_SGRBG10_ALAW8_1X8,
++#ifdef CONFIG_ARCH_DAVINCI_DM365
++	V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8,
++#endif
++};
++
++/*
++ * CCDC helper functions
++ */
++
++/* get field id in ccdc hardware */
++enum v4l2_field ccdc_get_fid(struct vpfe_device *vpfe_dev)
++{
++	struct vpfe_ccdc_device *ccdc = &vpfe_dev->vpfe_ccdc;
++	struct ccdc_hw_device *ccdc_dev = ccdc->ccdc_dev;
++
++	return ccdc_dev->hw_ops.getfid();
++}
++
++/* Retrieve active or try pad format based on query */
++static struct v4l2_mbus_framefmt *
++__ccdc_get_format(struct vpfe_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
++		  unsigned int pad, enum v4l2_subdev_format_whence which)
++{
++	if (which == V4L2_SUBDEV_FORMAT_TRY) {
++		struct v4l2_subdev_format fmt;
++
++		fmt.pad = pad;
++		fmt.which = which;
++
++		return v4l2_subdev_get_try_format(fh, pad);
++	}
++	return &ccdc->formats[pad];
++}
++
++/* configure format in ccdc hardware */
++static int
++vpfe_config_ccdc_format(struct vpfe_device *vpfe_dev, unsigned int pad)
++{
++	struct ccdc_hw_device *ccdc_dev = vpfe_dev->vpfe_ccdc.ccdc_dev;
++	struct vpfe_ccdc_device *vpfe_ccdc = &vpfe_dev->vpfe_ccdc;
++	enum ccdc_frmfmt frm_fmt = CCDC_FRMFMT_INTERLACED;
++	struct v4l2_pix_format format;
++	int ret = 0;
++
++	v4l2_fill_pix_format(&format, &vpfe_dev->vpfe_ccdc.formats[pad]);
++	mbus_to_pix(&vpfe_dev->vpfe_ccdc.formats[pad], &format);
++
++	if (ccdc_dev->hw_ops.set_pixel_format(
++			format.pixelformat) < 0) {
++		v4l2_err(&vpfe_dev->v4l2_dev,
++			"Failed to set pix format in ccdc\n");
++		return -EINVAL;
++	}
++
++	/* call for s_crop will override these values */
++	vpfe_ccdc->crop.left = 0;
++	vpfe_ccdc->crop.top = 0;
++	vpfe_ccdc->crop.width = format.width;
++	vpfe_ccdc->crop.height = format.height;
++
++	/* configure the image window */
++	ccdc_dev->hw_ops.set_image_window(&vpfe_ccdc->crop);
++
++	switch (vpfe_dev->vpfe_ccdc.formats[pad].field) {
++	case V4L2_FIELD_INTERLACED:
++		/* do nothing, since it is default */
++		ret = ccdc_dev->hw_ops.set_buftype(
++				CCDC_BUFTYPE_FLD_INTERLEAVED);
++		break;
++	case V4L2_FIELD_NONE:
++		frm_fmt = CCDC_FRMFMT_PROGRESSIVE;
++		/* buffer type only applicable for interlaced scan */
++		break;
++	case V4L2_FIELD_SEQ_TB:
++		ret = ccdc_dev->hw_ops.set_buftype(
++				CCDC_BUFTYPE_FLD_SEPARATED);
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	/* set the frame format */
++	if (!ret)
++		ret = ccdc_dev->hw_ops.set_frame_format(frm_fmt);
++
++	return ret;
++}
++
++/*
++ * ccdc_try_format() - Try video format on a pad
++ * @ccdc: VPFE CCDC device
++ * @fh : V4L2 subdev file handle
++ * @pad: Pad number
++ * @fmt: Format
++ */
++static void
++ccdc_try_format(struct vpfe_ccdc_device *vpfe_ccdc, struct v4l2_subdev_fh *fh,
++		struct v4l2_subdev_format *fmt)
++{
++	unsigned int width = fmt->format.width;
++	unsigned int height = fmt->format.height;
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(ccdc_fmts); i++) {
++		if (fmt->format.code == ccdc_fmts[i])
++			break;
++	}
++
++	/* If not found, use YUYV8_2x8 as default */
++	if (i >= ARRAY_SIZE(ccdc_fmts))
++		fmt->format.code = V4L2_MBUS_FMT_YUYV8_2X8;
++
++	/* Clamp the size. */
++	fmt->format.width = clamp_t(u32, width, 32, MAX_WIDTH);
++	fmt->format.height = clamp_t(u32, height, 32, MAX_HEIGHT);
++
++	/* The data formatter truncates the number of horizontal output
++	* pixels to a multiple of 16. To avoid clipping data, allow
++	* callers to request an output size bigger than the input size
++	* up to the nearest multiple of 16.
++	*/
++	if (fmt->pad == CCDC_PAD_SOURCE)
++		fmt->format.width &= ~15;
++}
++
++/*
++ * ccdc_buffer_isr() - CCDC module non-progressive buffer scheduling isr
++ * @ccdc: CCDC device pointer
++ *
++ */
++void ccdc_buffer_isr(struct vpfe_ccdc_device *ccdc)
++{
++	struct vpfe_video_device *video = &ccdc->video_out;
++	struct ccdc_hw_device *ccdc_dev = ccdc->ccdc_dev;
++	enum v4l2_field field;
++	int fid;
++
++	if (!video->started)
++		return;
++
++	field = video->fmt.fmt.pix.field;
++
++	/* reset sbl overblow bit */
++	if (ccdc_dev->hw_ops.reset != NULL)
++		ccdc_dev->hw_ops.reset();
++
++	if (field == V4L2_FIELD_NONE) {
++		/* handle progressive frame capture */
++		if (video->cur_frm != video->next_frm)
++			vpfe_process_buffer_complete(video);
++		return;
++	}
++
++	/* interlaced or TB capture check which field we
++	  * are in hardware
++	  */
++	fid = ccdc_dev->hw_ops.getfid();
++
++	/* switch the software maintained field id */
++	video->field_id ^= 1;
++	if (fid == video->field_id) {
++		/* we are in-sync here,continue */
++		if (fid == 0) {
++			/*
++			  * One frame is just being captured. If the
++			  * next frame is available, release the current
++			  * frame and move on
++			  */
++			if (video->cur_frm != video->next_frm)
++				vpfe_process_buffer_complete(video);
++			/*
++			  * based on whether the two fields are stored
++			  * interleavely or separately in memory,
++			  * reconfigure the CCDC memory address
++			  */
++			if (field == V4L2_FIELD_SEQ_TB)
++				vpfe_schedule_bottom_field(video);
++
++			return;
++		}
++		/*
++		  * if one field is just being captured configure
++		  * the next frame get the next frame from the
++		  * empty queue if no frame is available hold on
++		  * to the current buffer
++		  */
++		spin_lock(&video->dma_queue_lock);
++		if (!list_empty(&video->dma_queue) &&
++		video->cur_frm == video->next_frm)
++			vpfe_schedule_next_buffer(video);
++		spin_unlock(&video->dma_queue_lock);
++	} else if (fid == 0) {
++		/*
++		  * out of sync. Recover from any hardware out-of-sync.
++		  * May loose one frame
++		  */
++		video->field_id = fid;
++	}
++}
++
++/*
++ * ccdc_vidint1_isr() - CCDC module progressive buffer scheduling isr
++ * @ccdc: CCDC device pointer
++ *
++ */
++void ccdc_vidint1_isr(struct vpfe_ccdc_device *ccdc)
++{
++	struct vpfe_video_device *video = &ccdc->video_out;
++
++	if (!video->started)
++		return;
++
++	spin_lock(&video->dma_queue_lock);
++	if (video->fmt.fmt.pix.field == V4L2_FIELD_NONE &&
++	    !list_empty(&video->dma_queue) && video->cur_frm == video->next_frm)
++		vpfe_schedule_next_buffer(video);
++
++	spin_unlock(&video->dma_queue_lock);
++}
++
++/*
++ * VPFE video operations
++ */
++
++static void ccdc_video_queue(struct vpfe_device *vpfe_dev, unsigned long addr)
++{
++	struct vpfe_ccdc_device *vpfe_ccdc = &vpfe_dev->vpfe_ccdc;
++	struct ccdc_hw_device *ccdc_dev = vpfe_ccdc->ccdc_dev;
++
++	ccdc_dev->hw_ops.setfbaddr(addr);
++}
++
++static const struct vpfe_video_operations ccdc_video_ops = {
++	.queue = ccdc_video_queue,
++};
++
++
++/*
++ * V4L2 subdev operations
++ */
++
++/*
++ * ccdc_ioctl() - CCDC module private ioctl's
++ * @sd: VPFE CCDC V4L2 subdevice
++ * @cmd: ioctl command
++ * @arg: ioctl argument
++ *
++ * Return 0 on success or a negative error code otherwise.
++ */
++static long ccdc_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
++{
++	struct vpfe_ccdc_device *ccdc = v4l2_get_subdevdata(sd);
++	struct ccdc_hw_device *ccdc_dev = ccdc->ccdc_dev;
++	int ret;
++
++	switch (cmd) {
++	case VIDIOC_VPFE_CCDC_S_RAW_PARAMS:
++		ret = ccdc_dev->hw_ops.set_params(arg);
++		break;
++	case VIDIOC_VPFE_CCDC_G_RAW_PARAMS:
++		ret = ccdc_dev->hw_ops.get_params(arg);
++		break;
++
++	default:
++		ret = -ENOIOCTLCMD;
++	}
++
++	return ret;
++}
++
++/*
++ * ccdc_set_stream() - Enable/Disable streaming on the CCDC module
++ * @sd: VPFE CCDC V4L2 subdevice
++ * @enable: Enable/disable stream
++ */
++static int ccdc_set_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct vpfe_ccdc_device *ccdc = v4l2_get_subdevdata(sd);
++	struct ccdc_hw_device *ccdc_dev = ccdc->ccdc_dev;
++	int ret;
++
++	if (enable) {
++		ret = ccdc_dev->hw_ops.configure(
++		(ccdc->output == CCDC_OUTPUT_MEMORY) ? 0 : 1);
++		if (ret)
++			return ret;
++
++		if ((ccdc_dev->hw_ops.enable_out_to_sdram) &&
++			(ccdc->output == CCDC_OUTPUT_MEMORY))
++			ccdc_dev->hw_ops.enable_out_to_sdram(1);
++
++		ccdc_dev->hw_ops.enable(1);
++	} else {
++
++		ccdc_dev->hw_ops.enable(0);
++
++		if (ccdc_dev->hw_ops.enable_out_to_sdram)
++			ccdc_dev->hw_ops.enable_out_to_sdram(0);
++	}
++
++	return 0;
++}
++
++/*
++* ccdc_set_format() - set format on pad
++* @sd    : VPFE ccdc device
++* @fh    : V4L2 subdev file handle
++* @fmt   : pointer to v4l2 subdev format structure
++*
++* Return 0 on success or -EINVAL if format or pad is invalid
++*/
++static int
++ccdc_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++		struct v4l2_subdev_format *fmt)
++{
++	struct vpfe_ccdc_device *ccdc = v4l2_get_subdevdata(sd);
++	struct vpfe_device *vpfe_dev = to_vpfe_device(ccdc);
++	struct v4l2_mbus_framefmt *format;
++
++	format = __ccdc_get_format(ccdc, fh, fmt->pad, fmt->which);
++	if (format == NULL)
++		return -EINVAL;
++
++	ccdc_try_format(ccdc, fh, fmt);
++	memcpy(format, &fmt->format, sizeof(*format));
++
++	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY)
++		return 0;
++
++	if (fmt->pad == CCDC_PAD_SOURCE)
++		return vpfe_config_ccdc_format(vpfe_dev, fmt->pad);
++
++	return 0;
++}
++
++/*
++ * ccdc_get_format() - Retrieve the video format on a pad
++ * @sd : VPFE CCDC V4L2 subdevice
++ * @fh : V4L2 subdev file handle
++ * @fmt: Format
++ *
++ * Return 0 on success or -EINVAL if the pad is invalid or doesn't correspond
++ * to the format type.
++ */
++static int
++ccdc_get_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++		struct v4l2_subdev_format *fmt)
++{
++	struct vpfe_ccdc_device *vpfe_ccdc = v4l2_get_subdevdata(sd);
++	struct v4l2_mbus_framefmt *format;
++
++	format = __ccdc_get_format(vpfe_ccdc, fh, fmt->pad, fmt->which);
++	if (format == NULL)
++		return -EINVAL;
++
++	memcpy(&fmt->format, format, sizeof(fmt->format));
++
++	return 0;
++}
++
++/*
++ * ccdc_enum_frame_size() - enum frame sizes on pads
++ * @sd: VPFE ccdc V4L2 subdevice
++ * @fh: V4L2 subdev file handle
++ * @code: pointer to v4l2_subdev_frame_size_enum structure
++ */
++static int
++ccdc_enum_frame_size(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++		     struct v4l2_subdev_frame_size_enum *fse)
++{
++	struct vpfe_ccdc_device *ccdc = v4l2_get_subdevdata(sd);
++	struct v4l2_subdev_format format;
++
++	if (fse->index != 0)
++		return -EINVAL;
++
++	format.pad = fse->pad;
++	format.format.code = fse->code;
++	format.format.width = 1;
++	format.format.height = 1;
++	format.which = V4L2_SUBDEV_FORMAT_TRY;
++	ccdc_try_format(ccdc, fh, &format);
++	fse->min_width = format.format.width;
++	fse->min_height = format.format.height;
++
++	if (format.format.code != fse->code)
++		return -EINVAL;
++
++	format.pad = fse->pad;
++	format.format.code = fse->code;
++	format.format.width = -1;
++	format.format.height = -1;
++	format.which = V4L2_SUBDEV_FORMAT_TRY;
++	ccdc_try_format(ccdc, fh, &format);
++	fse->max_width = format.format.width;
++	fse->max_height = format.format.height;
++
++	return 0;
++}
++
++/*
++ * ccdc_enum_mbus_code() - enum mbus codes for pads
++ * @sd: VPFE ccdc V4L2 subdevice
++ * @fh: V4L2 subdev file handle
++ * @code: pointer to v4l2_subdev_mbus_code_enum structure
++ */
++static int
++ccdc_enum_mbus_code(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++		    struct v4l2_subdev_mbus_code_enum *code)
++{
++	switch (code->pad) {
++	case CCDC_PAD_SINK:
++	case CCDC_PAD_SOURCE:
++		if (code->index >= ARRAY_SIZE(ccdc_fmts))
++			return -EINVAL;
++
++		code->code = ccdc_fmts[code->index];
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++/*
++ * ccdc_pad_set_crop() - set crop rectangle on pad
++ * @sd: VPFE ccdc V4L2 subdevice
++ * @fh: V4L2 subdev file handle
++ * @code: pointer to v4l2_subdev_mbus_code_enum structure
++ *
++ * Return 0 on success, -EINVAL if pad is invalid
++ */
++static int
++ccdc_pad_set_crop(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++		  struct v4l2_subdev_crop *crop)
++{
++	struct vpfe_ccdc_device *vpfe_ccdc = v4l2_get_subdevdata(sd);
++	struct ccdc_hw_device *ccdc_dev = vpfe_ccdc->ccdc_dev;
++	struct v4l2_mbus_framefmt *format;
++
++	/* check wether its a valid pad */
++	if (crop->pad != CCDC_PAD_SINK)
++		return -EINVAL;
++
++	format = __ccdc_get_format(vpfe_ccdc, fh, crop->pad, crop->which);
++	if (format == NULL)
++		return -EINVAL;
++
++	/* check wether crop rect is within limits */
++	if (crop->rect.top < 0 || crop->rect.left < 0 ||
++		(crop->rect.left + crop->rect.width >
++		vpfe_ccdc->formats[CCDC_PAD_SINK].width) ||
++		(crop->rect.top + crop->rect.height >
++			vpfe_ccdc->formats[CCDC_PAD_SINK].height)) {
++		crop->rect.left = 0;
++		crop->rect.top = 0;
++		crop->rect.width = format->width;
++		crop->rect.height = format->height;
++	}
++
++	/* adjust the width to 16 pixel boundry */
++	crop->rect.width = ((crop->rect.width + 15) & ~0xf);
++
++	vpfe_ccdc->crop = crop->rect;
++
++	if (crop->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
++		ccdc_dev->hw_ops.set_image_window(&vpfe_ccdc->crop);
++	} else {
++		struct v4l2_rect *rect;
++
++		rect = v4l2_subdev_get_try_crop(fh, CCDC_PAD_SINK);
++		memcpy(rect, &vpfe_ccdc->crop, sizeof(*rect));
++	}
++
++	return 0;
++}
++
++/*
++ * ccdc_pad_get_crop() - get crop rectangle on pad
++ * @sd: VPFE ccdc V4L2 subdevice
++ * @fh: V4L2 subdev file handle
++ * @code: pointer to v4l2_subdev_mbus_code_enum structure
++ *
++ * Return 0 on success, -EINVAL if pad is invalid
++ */
++static int
++ccdc_pad_get_crop(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++		  struct v4l2_subdev_crop *crop)
++{
++	struct vpfe_ccdc_device *vpfe_ccdc = v4l2_get_subdevdata(sd);
++
++	/* check wether its a valid pad */
++	if (crop->pad != CCDC_PAD_SINK)
++		return -EINVAL;
++
++	if (crop->which == V4L2_SUBDEV_FORMAT_TRY) {
++		struct v4l2_rect *rect;
++		rect = v4l2_subdev_get_try_crop(fh, CCDC_PAD_SINK);
++		memcpy(&crop->rect, rect, sizeof(*rect));
++	} else {
++		crop->rect = vpfe_ccdc->crop;
++	}
++
++	return 0;
++}
++
++/*
++ * ccdc_init_formats() - Initialize formats on all pads
++ * @sd: VPFE ccdc V4L2 subdevice
++ * @fh: V4L2 subdev file handle
++ *
++ * Initialize all pad formats with default values. If fh is not NULL, try
++ * formats are initialized on the file handle. Otherwise active formats are
++ * initialized on the device.
++ */
++static int
++ccdc_init_formats(struct v4l2_subdev *sd,
++		  struct v4l2_subdev_fh *fh)
++{
++	struct v4l2_subdev_format format;
++	struct v4l2_subdev_crop crop;
++
++	memset(&format, 0, sizeof(format));
++	format.pad = CCDC_PAD_SINK;
++	format.which = fh ? V4L2_SUBDEV_FORMAT_TRY : V4L2_SUBDEV_FORMAT_ACTIVE;
++	format.format.code = V4L2_MBUS_FMT_SGRBG12_1X12;
++	format.format.width = MAX_WIDTH;
++	format.format.height = MAX_HEIGHT;
++	ccdc_set_format(sd, fh, &format);
++
++	memset(&format, 0, sizeof(format));
++	format.pad = CCDC_PAD_SOURCE;
++	format.which = fh ? V4L2_SUBDEV_FORMAT_TRY : V4L2_SUBDEV_FORMAT_ACTIVE;
++	format.format.code = V4L2_MBUS_FMT_SGRBG12_1X12;
++	format.format.width = MAX_WIDTH;
++	format.format.height = MAX_HEIGHT;
++	ccdc_set_format(sd, fh, &format);
++
++	memset(&crop, 0, sizeof(crop));
++	crop.pad = CCDC_PAD_SINK;
++	crop.which = fh ? V4L2_SUBDEV_FORMAT_TRY : V4L2_SUBDEV_FORMAT_ACTIVE;
++	crop.rect.width = MAX_WIDTH;
++	crop.rect.height = MAX_HEIGHT;
++	ccdc_pad_set_crop(sd, fh, &crop);
++
++	return 0;
++}
++
++/* subdev core operations */
++static const struct v4l2_subdev_core_ops ccdc_v4l2_core_ops = {
++	.ioctl = ccdc_ioctl,
++};
++
++/* subdev file operations */
++static const struct v4l2_subdev_internal_ops ccdc_v4l2_internal_ops = {
++	.open = ccdc_init_formats,
++};
++
++/* subdev video operations */
++static const struct v4l2_subdev_video_ops ccdc_v4l2_video_ops = {
++	.s_stream = ccdc_set_stream,
++};
++
++/* subdev pad operations */
++static const struct v4l2_subdev_pad_ops ccdc_v4l2_pad_ops = {
++	.enum_mbus_code = ccdc_enum_mbus_code,
++	.enum_frame_size = ccdc_enum_frame_size,
++	.get_fmt = ccdc_get_format,
++	.set_fmt = ccdc_set_format,
++	.set_crop = ccdc_pad_set_crop,
++	.get_crop = ccdc_pad_get_crop,
++};
++
++/* v4l2 subdev operations */
++static const struct v4l2_subdev_ops ccdc_v4l2_ops = {
++	.core = &ccdc_v4l2_core_ops,
++	.video = &ccdc_v4l2_video_ops,
++	.pad = &ccdc_v4l2_pad_ops,
++};
++
++/*
++ * Media entity operations
++ */
++
++/*
++ * ccdc_link_setup() - Setup CCDC connections
++ * @entity: CCDC media entity
++ * @local: Pad at the local end of the link
++ * @remote: Pad at the remote end of the link
++ * @flags: Link flags
++ *
++ * return -EINVAL or zero on success
++ */
++static int
++ccdc_link_setup(struct media_entity *entity, const struct media_pad *local,
++		const struct media_pad *remote, u32 flags)
++{
++	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
++	struct vpfe_ccdc_device *ccdc = v4l2_get_subdevdata(sd);
++
++	switch (local->index | media_entity_type(remote->entity)) {
++	case CCDC_PAD_SINK | MEDIA_ENT_T_V4L2_SUBDEV:
++		/* read from decoder/sensor */
++		if (!(flags & MEDIA_LNK_FL_ENABLED)) {
++			ccdc->input = CCDC_INPUT_NONE;
++			break;
++		}
++
++		if (ccdc->input != CCDC_INPUT_NONE)
++			return -EBUSY;
++
++		ccdc->input = CCDC_INPUT_PARALLEL;
++
++		break;
++
++	case CCDC_PAD_SOURCE | MEDIA_ENT_T_DEVNODE:
++		/* write to memory */
++		if (flags & MEDIA_LNK_FL_ENABLED)
++			ccdc->output = CCDC_OUTPUT_MEMORY;
++		else
++			ccdc->output = CCDC_OUTPUT_NONE;
++		break;
++
++	case CCDC_PAD_SOURCE | MEDIA_ENT_T_V4L2_SUBDEV:
++		if (flags & MEDIA_LNK_FL_ENABLED)
++			ccdc->output = CCDC_OUTPUT_PREVIEWER;
++		else
++			ccdc->output = CCDC_OUTPUT_NONE;
++
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++static const struct media_entity_operations ccdc_media_ops = {
++	.link_setup = ccdc_link_setup,
++};
++
++/*
++ * vpfe_ccdc_unregister_entities() - CCDC subdevs/video
++ * driver unregistrations.
++ * @ccdc - pointer to ccdc subdevice structure.
++ */
++void vpfe_ccdc_unregister_entities(struct vpfe_ccdc_device *ccdc)
++{
++	struct ccdc_hw_device *ccdc_dev = ccdc->ccdc_dev;
++	struct device *dev = ccdc->subdev.v4l2_dev->dev;
++
++	vpfe_video_unregister(&ccdc->video_out);
++
++	if (ccdc_dev->hw_ops.close)
++		ccdc_dev->hw_ops.close(dev);
++
++	/* cleanup entity */
++	media_entity_cleanup(&ccdc->subdev.entity);
++	/* unregister subdev */
++	v4l2_device_unregister_subdev(&ccdc->subdev);
++}
++
++/*
++ * vpfe_ccdc_register_entities() - CCDC subdevs/video
++ * driver registrations.
++ * @ccdc - pointer to ccdc subdevice structure.
++ * @vdev: pointer to v4l2 device structure.
++ */
++int vpfe_ccdc_register_entities(struct vpfe_ccdc_device *ccdc,
++			    struct v4l2_device *vdev)
++{
++	struct ccdc_hw_device *ccdc_dev = NULL;
++	struct vpfe_device *vpfe_dev = to_vpfe_device(ccdc);
++	struct device *dev = vdev->dev;
++	unsigned int flags;
++	int ret;
++
++	/* Register the subdev */
++	ret = v4l2_device_register_subdev(vdev, &ccdc->subdev);
++	if (ret < 0)
++		return ret;
++
++	ccdc_dev = ccdc->ccdc_dev;
++
++	ret = ccdc_dev->hw_ops.open(dev);
++	if (ret)
++		goto out_ccdc_open;
++
++	ret = vpfe_video_register(&ccdc->video_out, vdev);
++	if (ret) {
++		pr_err("Failed to register ccdc video out device\n");
++		goto out_video_register;
++	}
++
++	ccdc->video_out.vpfe_dev = vpfe_dev;
++
++	flags = 0;
++	/* connect ccdc to video node */
++	ret = media_entity_create_link(&ccdc->subdev.entity, 1,
++				       &ccdc->video_out.video_dev.entity,
++				       0, flags);
++	if (ret < 0)
++		goto out_create_link;
++
++	return 0;
++out_create_link:
++	vpfe_video_unregister(&ccdc->video_out);
++out_video_register:
++	if (ccdc_dev->hw_ops.close)
++		ccdc_dev->hw_ops.close(dev);
++
++out_ccdc_open:
++	v4l2_device_unregister_subdev(&ccdc->subdev);
++
++	return ret;
++}
++
++/* -------------------------------------------------------------------
++ * V4L2 subdev control operations
++ */
++
++static int vpfe_ccdc_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct vpfe_ccdc_device *ccdc =
++		container_of(ctrl->handler, struct vpfe_ccdc_device, ctrls);
++	struct ccdc_hw_device *ccdc_dev = ccdc->ccdc_dev;
++
++	return ccdc_dev->hw_ops.set_ctrl(ctrl->id, ctrl->val);
++
++}
++
++static struct v4l2_ctrl_ops vpfe_ccdc_ctrl_ops = {
++	.s_ctrl = vpfe_ccdc_s_ctrl,
++};
++
++static const struct v4l2_ctrl_config vpfe_ccdc_crgain = {
++	.ops = &vpfe_ccdc_ctrl_ops,
++	.id = VPFE_CCDC_CID_CRGAIN,
++	.name = "CRGAIN",
++	.type = V4L2_CTRL_TYPE_INTEGER,
++	.min = 0,
++	.max = (1 << 12) - 1,
++	.step = 1,
++	.def = 0,
++};
++
++static const struct v4l2_ctrl_config vpfe_ccdc_cgrgain = {
++	.ops = &vpfe_ccdc_ctrl_ops,
++	.id = VPFE_CCDC_CID_CGRGAIN,
++	.name = "CGRGAIN",
++	.type = V4L2_CTRL_TYPE_INTEGER,
++	.min = 0,
++	.max = (1 << 12) - 1,
++	.step = 1,
++	.def = 0,
++};
++
++static const struct v4l2_ctrl_config vpfe_ccdc_cgbgain = {
++	.ops = &vpfe_ccdc_ctrl_ops,
++	.id = VPFE_CCDC_CID_CGBGAIN,
++	.name = "CGBGAIN",
++	.type = V4L2_CTRL_TYPE_INTEGER,
++	.min = 0,
++	.max = (1 << 12) - 1,
++	.step = 1,
++	.def = 0,
++};
++
++static const struct v4l2_ctrl_config vpfe_ccdc_cbgain = {
++	.ops = &vpfe_ccdc_ctrl_ops,
++	.id = VPFE_CCDC_CID_CBGAIN,
++	.name = "CBGAIN",
++	.type = V4L2_CTRL_TYPE_INTEGER,
++	.min = 0,
++	.max = (1 << 12) - 1,
++	.step = 1,
++	.def = 0,
++};
++
++static const struct v4l2_ctrl_config vpfe_ccdc_gain_offset = {
++	.ops = &vpfe_ccdc_ctrl_ops,
++	.id = VPFE_CCDC_CID_GAIN_OFFSET,
++	.name = "Gain Offset",
++	.type = V4L2_CTRL_TYPE_INTEGER,
++	.min = 0,
++	.max = (1 << 12) - 1,
++	.step = 1,
++	.def = 0,
++};
++
++/*
++ * vpfe_ccdc_init() - Initialize V4L2 subdev and media entity
++ * @ccdc: VPFE CCDC module
++ *
++ * Return 0 on success and a negative error code on failure.
++ */
++int vpfe_ccdc_init(struct vpfe_ccdc_device *ccdc, struct platform_device *pdev)
++{
++	struct v4l2_subdev *sd = &ccdc->subdev;
++	struct media_pad *pads = &ccdc->pads[0];
++	struct media_entity *me = &sd->entity;
++	int ret;
++
++	if (ccdc_init(pdev)) {
++		pr_err("vpfe_ccdc_init: Init failed\n");
++		return -EINVAL;
++	}
++
++	/* queue ops */
++	ccdc->video_out.ops = &ccdc_video_ops;
++
++	v4l2_subdev_init(sd, &ccdc_v4l2_ops);
++	sd->internal_ops = &ccdc_v4l2_internal_ops;
++	strlcpy(sd->name, "DAVINCI CCDC", sizeof(sd->name));
++	sd->grp_id = 1 << 16;	/* group ID for davinci subdevs */
++	v4l2_set_subdevdata(sd, ccdc);
++	sd->flags |= V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_HAS_DEVNODE;
++	pads[CCDC_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
++	pads[CCDC_PAD_SOURCE].flags = MEDIA_PAD_FL_SOURCE;
++
++	ccdc->input = CCDC_INPUT_NONE;
++	ccdc->output = CCDC_OUTPUT_NONE;
++
++	me->ops = &ccdc_media_ops;
++	ret = media_entity_init(me, CCDC_PADS_NUM, pads, 0);
++	if (ret)
++		goto out_davanci_init;
++	ccdc->video_out.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	ret = vpfe_video_init(&ccdc->video_out, "CCDC");
++	if (ret) {
++		pr_err("Failed to init ccdc-out video device\n");
++		goto out_davanci_init;
++	}
++
++	ccdc->ccdc_dev = get_ccdc_dev();
++	v4l2_ctrl_handler_init(&ccdc->ctrls, 5);
++	v4l2_ctrl_new_custom(&ccdc->ctrls, &vpfe_ccdc_crgain, NULL);
++	v4l2_ctrl_new_custom(&ccdc->ctrls, &vpfe_ccdc_cgrgain, NULL);
++	v4l2_ctrl_new_custom(&ccdc->ctrls, &vpfe_ccdc_cgbgain, NULL);
++	v4l2_ctrl_new_custom(&ccdc->ctrls, &vpfe_ccdc_cbgain, NULL);
++	v4l2_ctrl_new_custom(&ccdc->ctrls, &vpfe_ccdc_gain_offset, NULL);
++
++	v4l2_ctrl_handler_setup(&ccdc->ctrls);
++	sd->ctrl_handler = &ccdc->ctrls;
++
++	return 0;
++
++out_davanci_init:
++	v4l2_ctrl_handler_free(&ccdc->ctrls);
++	ccdc_remove(pdev);
++	return ret;
++}
++
++/*
++ * vpfe_ccdc_cleanup - CCDC module cleanup.
++ * @dev: Device pointer specific to the VPFE.
++ */
++void vpfe_ccdc_cleanup(struct platform_device *pdev)
++{
++	ccdc_remove(pdev);
++}
+diff --git a/drivers/media/platform/davinci/vpfe_ccdc.h b/drivers/media/platform/davinci/vpfe_ccdc.h
+new file mode 100644
+index 0000000..23f78d0
+--- /dev/null
++++ b/drivers/media/platform/davinci/vpfe_ccdc.h
+@@ -0,0 +1,87 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Inc
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
++ *
++ * Contributors:
++ *      Manjunath Hadli <manjunath.hadli@ti.com>
++ *      Prabhakar Lad <prabhakar.lad@ti.com>
++ */
++
++#ifndef _VPFE_CCDC_H
++#define _VPFE_CCDC_H
++
++#include <media/v4l2-ctrls.h>
++
++#ifdef CONFIG_ARCH_DAVINCI_DM365
++#include "dm365_ccdc.h"
++#endif
++
++#ifdef CONFIG_ARCH_DAVINCI_DM355
++#include "dm355_ccdc.h"
++#endif
++
++#ifdef CONFIG_ARCH_DAVINCI_DM644x
++#include "dm644x_ccdc.h"
++#endif
++
++#define CCDC_PAD_SINK      0
++#define CCDC_PAD_SOURCE    1
++
++#define CCDC_PADS_NUM      2
++
++#define DAVINCI_CCDC_NEVENTS 0
++
++enum ccdc_input_entity {
++	CCDC_INPUT_NONE,
++	CCDC_INPUT_PARALLEL,
++};
++
++#define CCDC_OUTPUT_NONE	(0)
++#define CCDC_OUTPUT_MEMORY	(1 << 0)
++#define CCDC_OUTPUT_RESIZER	(1 << 1)
++#define CCDC_OUTPUT_PREVIEWER	(1 << 2)
++
++#define CCDC_NOT_CHAINED	0
++#define CCDC_CHAINED		1
++
++struct vpfe_ccdc_device {
++	struct v4l2_subdev		subdev;
++	struct media_pad		pads[CCDC_PADS_NUM];
++	struct v4l2_mbus_framefmt	formats[CCDC_PADS_NUM];
++	enum ccdc_input_entity		input;
++	unsigned int			output;
++	struct v4l2_ctrl_handler        ctrls;
++	struct ccdc_hw_device		*ccdc_dev;
++	struct v4l2_rect		crop;
++
++	/* independent video device */
++	struct vpfe_video_device	video_out;
++};
++
++enum v4l2_field ccdc_get_fid(struct vpfe_device *vpfe_dev);
++void ccdc_remove(struct platform_device *pdev);
++int ccdc_init(struct platform_device *pdev);
++struct ccdc_hw_device *get_ccdc_dev(void);
++
++void vpfe_ccdc_unregister_entities(struct vpfe_ccdc_device *ccdc);
++int vpfe_ccdc_register_entities(struct vpfe_ccdc_device *ccdc,
++				struct v4l2_device *v4l2_dev);
++int vpfe_ccdc_init(struct vpfe_ccdc_device *vpfe_ccdc,
++			struct platform_device *pdev);
++void vpfe_ccdc_cleanup(struct platform_device *pdev);
++void ccdc_vidint1_isr(struct vpfe_ccdc_device *ccdc);
++void ccdc_buffer_isr(struct vpfe_ccdc_device *ccdc);
++
++#endif
 -- 
-http://palosaari.fi/
+1.7.4.1
+
