@@ -1,238 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:23856 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752330Ab2ISHyC (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:48023 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754739Ab2INK55 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Sep 2012 03:54:02 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Subject: Re: [PATCH v4] media: v4l2-ctrl: add a helper function to add standard control with driver specific menu
-Date: Wed, 19 Sep 2012 09:53:45 +0200
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-doc@vger.kernel.org, "Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Rob Landley <rob@landley.net>
-References: <1347994478-31784-1-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1347994478-31784-1-git-send-email-prabhakar.lad@ti.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209190953.45560.hverkuil@xs4all.nl>
+	Fri, 14 Sep 2012 06:57:57 -0400
+Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
+	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id q8EAvqBh013688
+	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 10:57:55 GMT
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [RFCv3 API PATCH 12/31] Rename V4L2_(IN|OUT)_CAP_CUSTOM_TIMINGS.
+Date: Fri, 14 Sep 2012 12:57:27 +0200
+Message-Id: <18be3aba13a7f24b073cd1558205f6ac889a3366.1347619766.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
+References: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+The 'custom' timings are no longer just for custom timings, but also for standard
+CEA/VESA timings. So rename to V4L2_IN/OUT_CAP_DV_TIMINGS.
 
-I found some grammar issues, but also some (small) things that should be changed.
+The old define is still kept for backwards compatibility.
 
+This decision was taken during the 2012 Media Workshop.
 
-On Tue 18 September 2012 20:54:38 Prabhakar Lad wrote:
-> From: Lad, Prabhakar <prabhakar.lad@ti.com>
-> 
-> Add helper function v4l2_ctrl_new_std_menu_items(), which adds
-> a standard menu control, with driver specific menu.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Hans de Goede <hdegoede@redhat.com>
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Rob Landley <rob@landley.net>
-> ---
-> Changes for v4:
-> 1: Rather then adding a function to modify the menu, added a helper
->    function, that creates a new standard control with user specific
->    menu.
-> 
-> Changes for v3:
-> 1: Fixed style/grammer issues as pointed by Hans.
->    Thanks Hans for providing the description.
-> 
-> Changes for v2:
-> 1: Fixed review comments from Hans, to have return type as
->    void, add WARN_ON() for fail conditions, allow this fucntion
->    to modify the menu of custom controls.
-> 
->  Documentation/video4linux/v4l2-controls.txt |   25 ++++++++++++++++++++++++
->  drivers/media/v4l2-core/v4l2-ctrls.c        |   28 +++++++++++++++++++++++++++
->  include/media/v4l2-ctrls.h                  |   23 ++++++++++++++++++++++
->  3 files changed, 76 insertions(+), 0 deletions(-)
-> 
-> diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
-> index 43da22b..ad8e172 100644
-> --- a/Documentation/video4linux/v4l2-controls.txt
-> +++ b/Documentation/video4linux/v4l2-controls.txt
-> @@ -136,11 +136,25 @@ Or alternatively for integer menu controls, by calling v4l2_ctrl_new_int_menu:
->  			const struct v4l2_ctrl_ops *ops,
->  			u32 id, s32 max, s32 def, const s64 *qmenu_int);
->  
-> +Standard menu controls with driver specific menu are added by calling
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/vidioc-enuminput.xml    |    2 +-
+ Documentation/DocBook/media/v4l/vidioc-enumoutput.xml   |    2 +-
+ Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml |    2 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c                    |    8 ++++----
+ include/linux/videodev2.h                               |    6 ++++--
+ 5 files changed, 11 insertions(+), 9 deletions(-)
 
-with driver -> with a driver
+diff --git a/Documentation/DocBook/media/v4l/vidioc-enuminput.xml b/Documentation/DocBook/media/v4l/vidioc-enuminput.xml
+index 46d5a04..3c9a813 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-enuminput.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-enuminput.xml
+@@ -283,7 +283,7 @@ input/output interface to linux-media@vger.kernel.org on 19 Oct 2009.
+ 	    <entry>This input supports setting DV presets by using VIDIOC_S_DV_PRESET.</entry>
+ 	  </row>
+ 	  <row>
+-	    <entry><constant>V4L2_IN_CAP_CUSTOM_TIMINGS</constant></entry>
++	    <entry><constant>V4L2_IN_CAP_DV_TIMINGS</constant></entry>
+ 	    <entry>0x00000002</entry>
+ 	    <entry>This input supports setting video timings by using VIDIOC_S_DV_TIMINGS.</entry>
+ 	  </row>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-enumoutput.xml b/Documentation/DocBook/media/v4l/vidioc-enumoutput.xml
+index 4280200..f4ab079 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-enumoutput.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-enumoutput.xml
+@@ -168,7 +168,7 @@ input/output interface to linux-media@vger.kernel.org on 19 Oct 2009.
+ 	    <entry>This output supports setting DV presets by using VIDIOC_S_DV_PRESET.</entry>
+ 	  </row>
+ 	  <row>
+-	    <entry><constant>V4L2_OUT_CAP_CUSTOM_TIMINGS</constant></entry>
++	    <entry><constant>V4L2_OUT_CAP_DV_TIMINGS</constant></entry>
+ 	    <entry>0x00000002</entry>
+ 	    <entry>This output supports setting video timings by using VIDIOC_S_DV_TIMINGS.</entry>
+ 	  </row>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml b/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
+index feaa180..7236970 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
+@@ -57,7 +57,7 @@ or the timing values are not correct, the driver returns &EINVAL;.</para>
+ <para>The <filename>linux/v4l2-dv-timings.h</filename> header can be used to get the
+ timings of the formats in the <xref linkend="cea861" /> and <xref linkend="vesadmt" />
+ standards. If the current input or output does not support DV timings (e.g. if
+-&VIDIOC-ENUMINPUT; does not set the <constant>V4L2_IN_CAP_CUSTOM_TIMINGS</constant> flag), then
++&VIDIOC-ENUMINPUT; does not set the <constant>V4L2_IN_CAP_DV_TIMINGS</constant> flag), then
+ &ENODATA; is returned.</para>
+   </refsect1>
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 4ee9158..8de792c 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -982,7 +982,7 @@ static int v4l_enuminput(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_input *p = arg;
+ 
+ 	/*
+-	 * We set the flags for CAP_PRESETS, CAP_CUSTOM_TIMINGS &
++	 * We set the flags for CAP_PRESETS, CAP_DV_TIMINGS &
+ 	 * CAP_STD here based on ioctl handler provided by the
+ 	 * driver. If the driver doesn't support these
+ 	 * for a specific input, it must override these flags.
+@@ -992,7 +992,7 @@ static int v4l_enuminput(const struct v4l2_ioctl_ops *ops,
+ 	if (ops->vidioc_s_dv_preset)
+ 		p->capabilities |= V4L2_IN_CAP_PRESETS;
+ 	if (ops->vidioc_s_dv_timings)
+-		p->capabilities |= V4L2_IN_CAP_CUSTOM_TIMINGS;
++		p->capabilities |= V4L2_IN_CAP_DV_TIMINGS;
+ 
+ 	return ops->vidioc_enum_input(file, fh, p);
+ }
+@@ -1003,7 +1003,7 @@ static int v4l_enumoutput(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_output *p = arg;
+ 
+ 	/*
+-	 * We set the flags for CAP_PRESETS, CAP_CUSTOM_TIMINGS &
++	 * We set the flags for CAP_PRESETS, CAP_DV_TIMINGS &
+ 	 * CAP_STD here based on ioctl handler provided by the
+ 	 * driver. If the driver doesn't support these
+ 	 * for a specific output, it must override these flags.
+@@ -1013,7 +1013,7 @@ static int v4l_enumoutput(const struct v4l2_ioctl_ops *ops,
+ 	if (ops->vidioc_s_dv_preset)
+ 		p->capabilities |= V4L2_OUT_CAP_PRESETS;
+ 	if (ops->vidioc_s_dv_timings)
+-		p->capabilities |= V4L2_OUT_CAP_CUSTOM_TIMINGS;
++		p->capabilities |= V4L2_OUT_CAP_DV_TIMINGS;
+ 
+ 	return ops->vidioc_enum_output(file, fh, p);
+ }
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index b66057b..292a2ef 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1190,7 +1190,8 @@ struct v4l2_input {
+ 
+ /* capabilities flags */
+ #define V4L2_IN_CAP_PRESETS		0x00000001 /* Supports S_DV_PRESET */
+-#define V4L2_IN_CAP_CUSTOM_TIMINGS	0x00000002 /* Supports S_DV_TIMINGS */
++#define V4L2_IN_CAP_DV_TIMINGS		0x00000002 /* Supports S_DV_TIMINGS */
++#define V4L2_IN_CAP_CUSTOM_TIMINGS	V4L2_IN_CAP_DV_TIMINGS /* For compatibility */
+ #define V4L2_IN_CAP_STD			0x00000004 /* Supports S_STD */
+ 
+ /*
+@@ -1213,7 +1214,8 @@ struct v4l2_output {
+ 
+ /* capabilities flags */
+ #define V4L2_OUT_CAP_PRESETS		0x00000001 /* Supports S_DV_PRESET */
+-#define V4L2_OUT_CAP_CUSTOM_TIMINGS	0x00000002 /* Supports S_DV_TIMINGS */
++#define V4L2_OUT_CAP_DV_TIMINGS		0x00000002 /* Supports S_DV_TIMINGS */
++#define V4L2_OUT_CAP_CUSTOM_TIMINGS	V4L2_OUT_CAP_DV_TIMINGS /* For compatibility */
+ #define V4L2_OUT_CAP_STD		0x00000004 /* Supports S_STD */
+ 
+ /*
+-- 
+1.7.10.4
 
-> +v4l2_ctrl_new_std_menu_items:
-> +
-> +	struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(
-> +		struct v4l2_ctrl_handler *hdl,
-> +		const struct v4l2_ctrl_ops *ops, u32 id, s32 max,
-> +		s32 skip_mask, s32 def, const char * const *qmenu_user);
-
-I would recommend that qmenu_user is just renamed to qmenu.
-The _user suffix suggests that this is a userspace-provided menu, which
-is not the case.
-
-> +
->  These functions are typically called right after the v4l2_ctrl_handler_init:
->  
->  	static const s64 exp_bias_qmenu[] = {
->  	       -2, -1, 0, 1, 2
->  	};
-> +	static const char * const test_pattern[] = {
-> +		"Disabled",
-> +		"Vertical Bars",
-> +		"Solid Black",
-> +		"Solid White",
-> +	};
->  
->  	v4l2_ctrl_handler_init(&foo->ctrl_handler, nr_of_controls);
->  	v4l2_ctrl_new_std(&foo->ctrl_handler, &foo_ctrl_ops,
-> @@ -156,6 +170,9 @@ These functions are typically called right after the v4l2_ctrl_handler_init:
->  			ARRAY_SIZE(exp_bias_qmenu) - 1,
->  			ARRAY_SIZE(exp_bias_qmenu) / 2 - 1,
->  			exp_bias_qmenu);
-> +	v4l2_ctrl_new_std_menu_items(&foo->ctrl_handler, &foo_ctrl_ops,
-> +			V4L2_CID_TEST_PATTERN, ARRAY_SIZE(test_pattern) - 1, 0,
-> +			0, test_pattern);
->  	...
->  	if (foo->ctrl_handler.error) {
->  		int err = foo->ctrl_handler.error;
-> @@ -185,6 +202,14 @@ v4l2_ctrl_new_std_menu in that it doesn't have the mask argument and takes
->  as the last argument an array of signed 64-bit integers that form an exact
->  menu item list.
->  
-> +The v4l2_ctrl_new_std_menu_items funtion is very similar as
-
-funtion -> function
-similar as -> similar to
-
-> +v4l2_ctrl_new_std_menu but takes a extra parameter qmenu_user, which is
-
-a extra -> an extra
-
-> +driver specific menu but yet a standard menu control.
-
-the driver specific menu for an otherwise standard menu control.
-
-> +A good example for this control is the test pattern control for
-> +capture/display/sensors devices that have the capability to generate test
-> +patterns. These test patterns are hardware specific, so the contents of the
-> +menu will vary from device to device.
-> +
->  Note that if something fails, the function will return NULL or an error and
->  set ctrl_handler->error to the error code. If ctrl_handler->error was already
->  set, then it will just return and do nothing. This is also true for
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index d731422..9ac1b75 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -1649,6 +1649,34 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
->  }
->  EXPORT_SYMBOL(v4l2_ctrl_new_std_menu);
->  
-> +/* Helper function for standard menu controls with user defined menu */
-> +struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
-> +			const struct v4l2_ctrl_ops *ops, u32 id, s32 max,
-> +			s32 mask, s32 def, const char * const *qmenu_user)
-> +{
-> +	const char * const *qmenu = v4l2_ctrl_get_menu(id);
-> +	const char *name;
-> +	enum v4l2_ctrl_type type;
-> +	s32 min;
-> +	s32 step;
-> +	u32 flags;
-> +
-> +	if (!qmenu) {
-
-This test should be inverted: if (qmenu)
-
-Add a comment that v4l2_ctrl_new_std_menu_items() may only be called for
-standard controls *without* a standard menu.
-
-> +		handler_set_err(hdl, -EINVAL);
-> +		return NULL;
-> +	}
-> +
-> +	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
-> +	if (type != V4L2_CTRL_TYPE_MENU) {
-> +		handler_set_err(hdl, -EINVAL);
-> +		return NULL;
-> +	}
-> +	return v4l2_ctrl_new(hdl, ops, id, name, type,
-> +			     0, max, mask, def, flags, qmenu_user, NULL, NULL);
-> +
-> +}
-> +EXPORT_SYMBOL(v4l2_ctrl_new_std_menu_items);
-> +
->  /* Helper function for standard integer menu controls */
->  struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
->  			const struct v4l2_ctrl_ops *ops,
-> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-> index 776605f..e0dd392 100644
-> --- a/include/media/v4l2-ctrls.h
-> +++ b/include/media/v4l2-ctrls.h
-> @@ -351,6 +351,29 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
->  			const struct v4l2_ctrl_ops *ops,
->  			u32 id, s32 max, s32 mask, s32 def);
->  
-> +/** v4l2_ctrl_new_std_menu_items() - Create a new standard V4L2 menu control
-> +  * with driver specific menu.
-> +  * @hdl:	The control handler.
-> +  * @ops:	The control ops.
-> +  * @id:	The control ID.
-> +  * @max:	The control's maximum value.
-> +  * @mask:	The control's skip mask for menu controls. This makes it
-> +  *		easy to skip menu items that are not valid. If bit X is set,
-> +  *		then menu item X is skipped. Of course, this only works for
-> +  *		menus with <= 32 menu items. There are no menus that come
-> +  *		close to that number, so this is OK. Should we ever need more,
-> +  *		then this will have to be extended to a u64 or a bit array.
-> +  * @def:	The control's default value.
-> +  * @qmenu_user:The new menu.
-> +  *
-> +  * Same as v4l2_ctrl_new_std_menu().but @qmenu_user will be the menu to
-
-.but -> , but
-
-'will be the driver specific menu of this control.'
-
-> +  * which the control will be pointing to.
-> +  *
-> +  */
-> +struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
-> +			const struct v4l2_ctrl_ops *ops, u32 id, s32 max,
-> +			s32 mask, s32 def, const char * const *qmenu_user);
-> +
->  /** v4l2_ctrl_new_int_menu() - Create a new standard V4L2 integer menu control.
->    * @hdl:	The control handler.
->    * @ops:	The control ops.
-> 
-
-Regards,
-
-	Hans
