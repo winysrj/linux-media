@@ -1,237 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:59561 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756175Ab2INK55 (ORCPT
+Received: from mx.fr.smartjog.net ([95.81.144.3]:47998 "EHLO
+	mx.fr.smartjog.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758675Ab2INJ1m (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 06:57:57 -0400
-Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
-	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id q8EAvqBf013688
-	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 10:57:55 GMT
-From: Hans Verkuil <hans.verkuil@cisco.com>
+	Fri, 14 Sep 2012 05:27:42 -0400
+From: =?UTF-8?q?R=C3=A9mi=20Cardona?= <remi.cardona@smartjog.com>
 To: linux-media@vger.kernel.org
-Subject: [RFCv3 API PATCH 10/31] DocBook: document when to return ENODATA.
-Date: Fri, 14 Sep 2012 12:57:25 +0200
-Message-Id: <0760b53b4d32c3c97b1c2362b0c17b0587063924.1347619766.git.hans.verkuil@cisco.com>
-In-Reply-To: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
-References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
-References: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
+Cc: liplianin@me.by
+Subject: [PATCH 5/6] [media] ds3000: properly report firmware probing issues
+Date: Fri, 14 Sep 2012 11:27:25 +0200
+Message-Id: <1347614846-19046-6-git-send-email-remi.cardona@smartjog.com>
+In-Reply-To: <1347614846-19046-1-git-send-email-remi.cardona@smartjog.com>
+References: <1347614846-19046-1-git-send-email-remi.cardona@smartjog.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ENODATA should be returned if the API used for getting, changing, querying
-or enumerating the current video timings is not supported by the current input
-or output.
+ds3000_readreg() returns negative values in case of i2c failures. The
+old code would simply return 0 when failing to read the 0xb2 register,
+misleading ds3000_initfe() into believing that the firmware had been
+correctly loaded.
 
-This was decided during the 2012 Media Workshop.
+Also print out a message if the chip says a firmware is already loaded.
+This should make it more obvious if the chip is in a weird state.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Rémi Cardona <remi.cardona@smartjog.com>
 ---
- .../DocBook/media/v4l/vidioc-enum-dv-presets.xml          |    6 ++++++
- .../DocBook/media/v4l/vidioc-enum-dv-timings.xml          |    6 ++++++
- Documentation/DocBook/media/v4l/vidioc-enumstd.xml        |    6 ++++++
- Documentation/DocBook/media/v4l/vidioc-g-dv-preset.xml    |    9 ++++++---
- Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml   |   13 +++++++++----
- Documentation/DocBook/media/v4l/vidioc-g-std.xml          |   10 +++++++++-
- .../DocBook/media/v4l/vidioc-query-dv-preset.xml          |    9 +++++++++
- .../DocBook/media/v4l/vidioc-query-dv-timings.xml         |    6 ++++++
- Documentation/DocBook/media/v4l/vidioc-querystd.xml       |    8 ++++++++
- 9 files changed, 65 insertions(+), 8 deletions(-)
+ drivers/media/dvb/frontends/ds3000.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-dv-presets.xml b/Documentation/DocBook/media/v4l/vidioc-enum-dv-presets.xml
-index 509f001..fced5fb 100644
---- a/Documentation/DocBook/media/v4l/vidioc-enum-dv-presets.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-enum-dv-presets.xml
-@@ -229,6 +229,12 @@ intended for the user.</entry>
- is out of bounds.</para>
- 	</listitem>
-       </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>ENODATA</errorcode></term>
-+	<listitem>
-+	  <para>Digital video presets are not supported for this input or output.</para>
-+	</listitem>
-+      </varlistentry>
-     </variablelist>
-   </refsect1>
- </refentry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml b/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
-index 24c3bf4..b3e17c1 100644
---- a/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
-@@ -106,6 +106,12 @@ application.</entry>
- is out of bounds.</para>
- 	</listitem>
-       </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>ENODATA</errorcode></term>
-+	<listitem>
-+	  <para>Digital video presets are not supported for this input or output.</para>
-+	</listitem>
-+      </varlistentry>
-     </variablelist>
-   </refsect1>
- </refentry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-enumstd.xml b/Documentation/DocBook/media/v4l/vidioc-enumstd.xml
-index 3a5fc54..8065099 100644
---- a/Documentation/DocBook/media/v4l/vidioc-enumstd.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-enumstd.xml
-@@ -378,6 +378,12 @@ system)</para></footnote></para></entry>
- is out of bounds.</para>
- 	</listitem>
-       </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>ENODATA</errorcode></term>
-+	<listitem>
-+	  <para>Standard video timings are not supported for this input or output.</para>
-+	</listitem>
-+      </varlistentry>
-     </variablelist>
-   </refsect1>
- </refentry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-dv-preset.xml b/Documentation/DocBook/media/v4l/vidioc-g-dv-preset.xml
-index 61be9fa..b9ea376 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-dv-preset.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-dv-preset.xml
-@@ -78,6 +78,12 @@ If the preset is not supported, it returns an &EINVAL; </para>
- 	</listitem>
-       </varlistentry>
-       <varlistentry>
-+	<term><errorcode>ENODATA</errorcode></term>
-+	<listitem>
-+	  <para>Digital video presets are not supported for this input or output.</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
- 	<term><errorcode>EBUSY</errorcode></term>
- 	<listitem>
- 	  <para>The device is busy and therefore can not change the preset.</para>
-@@ -104,7 +110,4 @@ If the preset is not supported, it returns an &EINVAL; </para>
-       </tgroup>
-     </table>
-   </refsect1>
--  <refsect1>
--    &return-value;
--  </refsect1>
- </refentry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml b/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
-index eda1a29..feaa180 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
-@@ -56,7 +56,9 @@ a pointer to the &v4l2-dv-timings; structure as argument. If the ioctl is not su
- or the timing values are not correct, the driver returns &EINVAL;.</para>
- <para>The <filename>linux/v4l2-dv-timings.h</filename> header can be used to get the
- timings of the formats in the <xref linkend="cea861" /> and <xref linkend="vesadmt" />
--standards.</para>
-+standards. If the current input or output does not support DV timings (e.g. if
-+&VIDIOC-ENUMINPUT; does not set the <constant>V4L2_IN_CAP_CUSTOM_TIMINGS</constant> flag), then
-+&ENODATA; is returned.</para>
-   </refsect1>
+diff --git a/drivers/media/dvb/frontends/ds3000.c b/drivers/media/dvb/frontends/ds3000.c
+index 162faaf..970963c 100644
+--- a/drivers/media/dvb/frontends/ds3000.c
++++ b/drivers/media/dvb/frontends/ds3000.c
+@@ -395,8 +395,14 @@ static int ds3000_firmware_ondemand(struct dvb_frontend *fe)
  
-   <refsect1>
-@@ -71,6 +73,12 @@ standards.</para>
- 	</listitem>
-       </varlistentry>
-       <varlistentry>
-+	<term><errorcode>ENODATA</errorcode></term>
-+	<listitem>
-+	  <para>Digital video timings are not supported for this input or output.</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
- 	<term><errorcode>EBUSY</errorcode></term>
- 	<listitem>
- 	  <para>The device is busy and therefore can not change the timings.</para>
-@@ -320,7 +328,4 @@ detected or used depends on the hardware.
-       </tgroup>
-     </table>
-   </refsect1>
--  <refsect1>
--    &return-value;
--  </refsect1>
- </refentry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-std.xml b/Documentation/DocBook/media/v4l/vidioc-g-std.xml
-index 99ff1a0..4a89841 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-std.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-std.xml
-@@ -72,7 +72,9 @@ flags, being a write-only ioctl it does not return the actual new standard as
- the current input does not support the requested standard the driver
- returns an &EINVAL;. When the standard set is ambiguous drivers may
- return <errorcode>EINVAL</errorcode> or choose any of the requested
--standards.</para>
-+standards. If the current input or output does not support standard video timings (e.g. if
-+&VIDIOC-ENUMINPUT; does not set the <constant>V4L2_IN_CAP_STD</constant> flag), then
-+&ENODATA; is returned.</para>
-   </refsect1>
+ 	dprintk("%s()\n", __func__);
  
-   <refsect1>
-@@ -85,6 +87,12 @@ standards.</para>
- 	  <para>The <constant>VIDIOC_S_STD</constant> parameter was unsuitable.</para>
- 	</listitem>
-       </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>ENODATA</errorcode></term>
-+	<listitem>
-+	  <para>Standard video timings are not supported for this input or output.</para>
-+	</listitem>
-+      </varlistentry>
-     </variablelist>
-   </refsect1>
- </refentry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-query-dv-preset.xml b/Documentation/DocBook/media/v4l/vidioc-query-dv-preset.xml
-index 1bc8aeb..68b49d0 100644
---- a/Documentation/DocBook/media/v4l/vidioc-query-dv-preset.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-query-dv-preset.xml
-@@ -65,5 +65,14 @@ returned.</para>
+-	if (ds3000_readreg(state, 0xb2) <= 0)
++	ret = ds3000_readreg(state, 0xb2);
++	if (ret == 0) {
++		printk(KERN_INFO "%s: Firmware already uploaded, skipping\n",
++			__func__);
+ 		return ret;
++	} else if (ret < 0) {
++		return ret;
++	}
  
-   <refsect1>
-     &return-value;
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><errorcode>ENODATA</errorcode></term>
-+	<listitem>
-+	  <para>Digital video presets are not supported for this input or output.</para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-   </refsect1>
- </refentry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml b/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml
-index 44935a0..e185f14 100644
---- a/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml
-@@ -78,6 +78,12 @@ capabilities in order to give more precise feedback to the user.
- 
-     <variablelist>
-       <varlistentry>
-+	<term><errorcode>ENODATA</errorcode></term>
-+	<listitem>
-+	  <para>Digital video timings are not supported for this input or output.</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
- 	<term><errorcode>ENOLINK</errorcode></term>
- 	<listitem>
- 	  <para>No timings could be detected because no signal was found.
-diff --git a/Documentation/DocBook/media/v4l/vidioc-querystd.xml b/Documentation/DocBook/media/v4l/vidioc-querystd.xml
-index 4b79c7c..fe80a18 100644
---- a/Documentation/DocBook/media/v4l/vidioc-querystd.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-querystd.xml
-@@ -62,5 +62,13 @@ current video input or output.</para>
- 
-   <refsect1>
-     &return-value;
-+    <variablelist>
-+      <varlistentry>
-+	<term><errorcode>ENODATA</errorcode></term>
-+	<listitem>
-+	  <para>Standard video timings are not supported for this input or output.</para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-   </refsect1>
- </refentry>
+ 	/* Load firmware */
+ 	/* request the firmware, this will block until someone uploads it */
 -- 
 1.7.10.4
 
