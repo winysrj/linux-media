@@ -1,86 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46640 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752411Ab2IICHy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Sep 2012 22:07:54 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:27311 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754506Ab2INLPn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Sep 2012 07:15:43 -0400
+Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
+	by ams-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id q8EBFghN000742
+	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 11:15:42 GMT
+From: Hans Verkuil <hans.verkuil@cisco.com>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 2/3] rtl28xxu: add support for FCI FC2580 silicon tuner driver
-Date: Sun,  9 Sep 2012 05:07:25 +0300
-Message-Id: <1347156446-12439-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1347156446-12439-1-git-send-email-crope@iki.fi>
-References: <1347156446-12439-1-git-send-email-crope@iki.fi>
+Subject: [RFCv1 API PATCH 1/4] vb2: fix wrong owner check
+Date: Fri, 14 Sep 2012 13:15:33 +0200
+Message-Id: <da47f14735bb06321de298db1cb50172f8e1f480.1347620872.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347621336-14108-1-git-send-email-hans.verkuil@cisco.com>
+References: <1347621336-14108-1-git-send-email-hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/Kconfig    |  1 +
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 15 +++++++++++++--
- 2 files changed, 14 insertions(+), 2 deletions(-)
+Check against q->fileio to see if the queue owner should be set or not.
+The former check against the return value of read or write is wrong, since
+read/write can return an error, even if the queue is in streaming mode.
+For example, EAGAIN when in non-blocking mode.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/Kconfig b/drivers/media/usb/dvb-usb-v2/Kconfig
-index 329d222..e09930c 100644
---- a/drivers/media/usb/dvb-usb-v2/Kconfig
-+++ b/drivers/media/usb/dvb-usb-v2/Kconfig
-@@ -142,6 +142,7 @@ config DVB_USB_RTL28XXU
- 	select MEDIA_TUNER_FC0012 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_FC0013 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_E4000 if MEDIA_SUBDRV_AUTOSELECT
-+	select MEDIA_TUNER_FC2580 if MEDIA_SUBDRV_AUTOSELECT
- 	help
- 	  Say Y here to support the Realtek RTL28xxU DVB USB receiver.
- 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index d0d23f2..f195b77 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -31,6 +31,7 @@
- #include "fc0012.h"
- #include "fc0013.h"
- #include "e4000.h"
-+#include "fc2580.h"
- 
- DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- 
-@@ -576,10 +577,11 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
- 	ret = rtl28xxu_ctrl_msg(d, &req_fc2580);
- 	if (ret == 0 && buf[0] == 0x56) {
- 		priv->tuner = TUNER_RTL2832_FC2580;
--		/* TODO implement tuner */
-+		/* FIXME: do not abuse fc0012 settings */
-+		rtl2832_config = &rtl28xxu_rtl2832_fc0012_config;
- 		dev_info(&d->udev->dev, "%s: FC2580 tuner found",
- 				KBUILD_MODNAME);
--		goto unsupported;
-+		goto found;
- 	}
- 
- 	/* check MT2063 ID register; reg=00 val=9e || 9c */
-@@ -753,6 +755,11 @@ static const struct e4000_config rtl2832u_e4000_config = {
- 	.clock = 28800000,
- };
- 
-+static const struct fc2580_config rtl2832u_fc2580_config = {
-+	.i2c_addr = 0x56,
-+	.clock = 16384000,
-+};
-+
- static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- {
- 	int ret;
-@@ -785,6 +792,10 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 		fe = dvb_attach(e4000_attach, adap->fe[0], &d->i2c_adap,
- 				&rtl2832u_e4000_config);
- 		break;
-+	case TUNER_RTL2832_FC2580:
-+		fe = dvb_attach(fc2580_attach, adap->fe[0], &d->i2c_adap,
-+				&rtl2832u_fc2580_config);
-+		break;
- 	default:
- 		fe = NULL;
- 		dev_err(&d->udev->dev, "%s: unknown tuner=%d\n", KBUILD_MODNAME,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 4da3df6..59ed522 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2278,7 +2278,7 @@ ssize_t vb2_fop_write(struct file *file, char __user *buf,
+ 		goto exit;
+ 	err = vb2_write(vdev->queue, buf, count, ppos,
+ 		       file->f_flags & O_NONBLOCK);
+-	if (err >= 0)
++	if (vdev->queue->fileio)
+ 		vdev->queue->owner = file->private_data;
+ exit:
+ 	if (lock)
+@@ -2300,7 +2300,7 @@ ssize_t vb2_fop_read(struct file *file, char __user *buf,
+ 		goto exit;
+ 	err = vb2_read(vdev->queue, buf, count, ppos,
+ 		       file->f_flags & O_NONBLOCK);
+-	if (err >= 0)
++	if (vdev->queue->fileio)
+ 		vdev->queue->owner = file->private_data;
+ exit:
+ 	if (lock)
 -- 
-1.7.11.4
+1.7.10.4
 
