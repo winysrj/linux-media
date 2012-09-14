@@ -1,70 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog112.obsmtp.com ([207.126.144.133]:40319 "EHLO
-	eu1sys200aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758704Ab2INKPx convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 06:15:53 -0400
-From: Bhupesh SHARMA <bhupesh.sharma@st.com>
-To: Scott Jiang <scott.jiang.linux@gmail.com>,
-	Andrew Morton <akpm@linux-foundation.org>
-Cc: Bob Liu <lliubbo@gmail.com>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"uclinux-dist-devel@blackfin.uclinux.org"
-	<uclinux-dist-devel@blackfin.uclinux.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"dhowells@redhat.com" <dhowells@redhat.com>,
-	"geert@linux-m68k.org" <geert@linux-m68k.org>,
-	"gerg@uclinux.org" <gerg@uclinux.org>,
-	"stable@kernel.org" <stable@kernel.org>,
-	"gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
-	Hugh Dickins <hughd@google.com>
-Date: Fri, 14 Sep 2012 18:15:19 +0800
-Subject: RE: [PATCH] nommu: remap_pfn_range: fix addr parameter check
-Message-ID: <D5ECB3C7A6F99444980976A8C6D896384FB1E6975F@EAPEX1MAIL1.st.com>
-References: <1347504057-5612-1-git-send-email-lliubbo@gmail.com>
-	<20120913122738.04eaceb3.akpm@linux-foundation.org>
- <CAHG8p1CJ7YizySrocYvQeCye4_63TkAimsAGU1KC5+Fn0wqF8w@mail.gmail.com>
-In-Reply-To: <CAHG8p1CJ7YizySrocYvQeCye4_63TkAimsAGU1KC5+Fn0wqF8w@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60971 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758675Ab2INJXz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Sep 2012 05:23:55 -0400
+Date: Fri, 14 Sep 2012 10:23:40 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: javier Martin <javier.martin@vista-silicon.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: Alignment problems: arm_memblock_steal() +
+	dma_declare_coherent_memory()
+Message-ID: <20120914092340.GB12245@n2100.arm.linux.org.uk>
+References: <CACKLOr1_KqsKovcpV06_nAzVKRGAf3z17S-XfNBw8d3BbTshZg@mail.gmail.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CACKLOr1_KqsKovcpV06_nAzVKRGAf3z17S-XfNBw8d3BbTshZg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> -----Original Message-----
-> From: Scott Jiang [mailto:scott.jiang.linux@gmail.com]
-> Sent: Friday, September 14, 2012 2:53 PM
-> To: Andrew Morton
-> Cc: Bob Liu; linux-mm@kvack.org; Bhupesh SHARMA;
-> laurent.pinchart@ideasonboard.com; uclinux-dist-
-> devel@blackfin.uclinux.org; linux-media@vger.kernel.org;
-> dhowells@redhat.com; geert@linux-m68k.org; gerg@uclinux.org;
-> stable@kernel.org; gregkh@linuxfoundation.org; Hugh Dickins
-> Subject: Re: [PATCH] nommu: remap_pfn_range: fix addr parameter check
+On Fri, Sep 14, 2012 at 10:49:27AM +0200, javier Martin wrote:
+> Hello,
+> we use arm_memblock_steal() + dma_declare_coherent_memory() in order
+> to reserve son contiguous video memory in our platform:
+> http://git.linuxtv.org/media_tree.git/blob/refs/heads/staging/for_v3.7:/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
 > 
-> > Yes, the MMU version of remap_pfn_range() does permit non-page-
-> aligned
-> > `addr' (at least, if the userspace maaping is a non-COW one).  But I
-> > suspect that was an implementation accident - it is a nonsensical
-> > thing to do, isn't it?  The MMU cannot map a bunch of kernel pages
-> > onto a non-page-aligned userspace address.
-> >
-> > So I'm thinking that we should declare ((addr & ~PAGE_MASK) != 0) to
-> > be a caller bug, and fix up this regrettably unidentified v4l driver?
+> We've noticed that some restrictive alignment constraints are being
+> applied. For example, for coda driver, the following allocations are
+> made:
 > 
-> I agree. This should be fixed in videobuf.
+> coda coda-imx27.0: dma_alloc_from_coherent: try to allocate 557056
+> bytes, out of 8388608 (vaddr = 0xc6000000) PAGE_SHIFT = 0xc
+> coda coda-imx27.0: dma_alloc_from_coherent: try to allocate 65536
+> bytes, out of 8388608 (vaddr = 0xc6100000) PAGE_SHIFT = 0xc
+> coda coda-imx27.0: dma_alloc_from_coherent: try to allocate 10240
+> bytes, out of 8388608 (vaddr = 0xc6110000) PAGE_SHIFT = 0xc
+> coda coda-imx27.0: dma_alloc_from_coherent: try to allocate 622080
+> bytes, out of 8388608 (vaddr = 0xc6200000) PAGE_SHIFT = 0xc
+> coda coda-imx27.0: dma_alloc_from_coherent: try to allocate 622080
+> bytes, out of 8388608 (vaddr = 0xc6300000) PAGE_SHIFT = 0xc
+> coda coda-imx27.0: dma_alloc_from_coherent: try to allocate 622080
+> bytes, out of 8388608 (vaddr = 0xc6400000) PAGE_SHIFT = 0xc
+> coda coda-imx27.0: dma_alloc_from_coherent: try to allocate 589824
+> bytes, out of 8388608 (vaddr = 0xc6500000) PAGE_SHIFT = 0xc
+> coda coda-imx27.0: dma_alloc_from_coherent: try to allocate 589824
+> bytes, out of 8388608 (vaddr = 0xc6600000) PAGE_SHIFT = 0xc
+> coda coda-imx27.0: dma_alloc_from_coherent: try to allocate 622080
+> bytes, out of 8388608 (vaddr = 0xc6700000) PAGE_SHIFT = 0xc
 > 
-> Hi sharma, what's your kernel version? It seems videobuf2 already fixed this
-> bug in 3.5.
+> If we take a look at the size of each allocation and the different
+> vaddr values we find that the alignment is 0x100000 = 1MB for values
+> like 622080 byte size. Why is that?
 
-Hi Scott,
+Have you thought about get_order() on the allocation size, and what the
+resulting order will be?  I'm sure if you could come up with a better
+allocation algorithm for this which doesn't lead to too much fragmentation
+(or convert it to use the pool infrastructure)...
 
-I was using 3.3 linux kernel. I will again check if videobuf2 in 3.5 has already fixed this issue.
-
-Regards,
-Bhupesh
-
-
+BTW, your question has nothing to do with arm_memblock_steal().
