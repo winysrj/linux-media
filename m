@@ -1,55 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:32881 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752721Ab2IAQ0O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Sep 2012 12:26:14 -0400
-Received: by iahk25 with SMTP id k25so2628137iah.19
-        for <linux-media@vger.kernel.org>; Sat, 01 Sep 2012 09:26:13 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <50423436.9040708@iki.fi>
-References: <20120731222216.GA36603@triton8.kn-bremen.de>
-	<502711BE.4020701@redhat.com>
-	<50422EFA.5000606@gmail.com>
-	<50423436.9040708@iki.fi>
-Date: Sat, 1 Sep 2012 12:26:13 -0400
-Message-ID: <CAGoCfiy=nbL1MvLZmiRG0JZe+69VBjPNur8R64pcoL0f3Y7Q_A@mail.gmail.com>
-Subject: Re: Fwd: [PATCH, RFC] Fix DVB ioctls failing if frontend open/closed
- too fast
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: poma <pomidorabelisima@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Juergen Lock <nox@jelal.kn-bremen.de>, hselasky@c2i.net
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:63481 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757048Ab2INMuS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Sep 2012 08:50:18 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>
+Subject: [PATCH 10/14] dm365: vpss: setup ISP registers
+Date: Fri, 14 Sep 2012 18:16:40 +0530
+Message-Id: <1347626804-5703-11-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1347626804-5703-1-git-send-email-prabhakar.lad@ti.com>
+References: <1347626804-5703-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Sep 1, 2012 at 12:13 PM, Antti Palosaari <crope@iki.fi> wrote:
-> Is there anyone caring to review that carefully?
->
-> I am quite out with semaphores (up/down_interruptible) and also frontend is
-> so complex... I would rather design / write whole dvb-frontend from the
-> scratch :] (not doing that as no time).
+From: Manjunath Hadli <manjunath.hadli@ti.com>
 
-If you're not willing to take the time to understand why the existing
-dvb-frontend is so complex, how could you possibly suggest that you
-could do a better job rewriting it from scratch?  :-)
+enable PPCR, enbale ISIF out on BCR and disable all events.
 
-Like most things, the devil is in the details.  The threading model is
-complicated not because it was done poorly, but because there are lots
-of complexity that is not obvious (combined with it having evolved
-over time to adapt to hardware bugs).  It's only when you run it
-against a half dozen cards with different behavior that you begin to
-see why certain things were done the way they were.
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+---
+ drivers/media/platform/davinci/vpss.c |   13 +++++++++++++
+ 1 files changed, 13 insertions(+), 0 deletions(-)
 
-In this case, I think the race condition in question has become more
-obvious because of more aggressive use of power management for the
-tuner and demod.  Because powering down the frontend now takes actual
-time (due to i2c), users are now starting to hit the race condition.
-
-Devin
-
+diff --git a/drivers/media/platform/davinci/vpss.c b/drivers/media/platform/davinci/vpss.c
+index 146e4b0..34ad7bd 100644
+--- a/drivers/media/platform/davinci/vpss.c
++++ b/drivers/media/platform/davinci/vpss.c
+@@ -52,9 +52,11 @@ MODULE_AUTHOR("Texas Instruments");
+ #define DM355_VPSSBL_EVTSEL_DEFAULT	0x4
+ 
+ #define DM365_ISP5_PCCR 		0x04
++#define DM365_ISP5_BCR			0x08
+ #define DM365_ISP5_INTSEL1		0x10
+ #define DM365_ISP5_INTSEL2		0x14
+ #define DM365_ISP5_INTSEL3		0x18
++#define DM365_ISP5_EVTSEL		0x1c
+ #define DM365_ISP5_CCDCMUX 		0x20
+ #define DM365_ISP5_PG_FRAME_SIZE 	0x28
+ #define DM365_VPBE_CLK_CTRL 		0x00
+@@ -357,6 +359,10 @@ void dm365_vpss_set_pg_frame_size(struct vpss_pg_frame_size frame_size)
+ }
+ EXPORT_SYMBOL(dm365_vpss_set_pg_frame_size);
+ 
++#define DM365_ISP5_EVTSEL_EVT_DISABLE	0x00000000
++#define DM365_ISP5_BCR_ISIF_OUT_ENABLE	0x00000002
++#define DM365_ISP5_PCCR_CLK_ENABLE	0x0000007f
++
+ static int __devinit vpss_probe(struct platform_device *pdev)
+ {
+ 	struct resource		*r1, *r2;
+@@ -426,9 +432,16 @@ static int __devinit vpss_probe(struct platform_device *pdev)
+ 		oper_cfg.hw_ops.enable_clock = dm365_enable_clock;
+ 		oper_cfg.hw_ops.select_ccdc_source = dm365_select_ccdc_source;
+ 		/* Setup vpss interrupts */
++		isp5_write((isp5_read(DM365_ISP5_PCCR) |
++				DM365_ISP5_PCCR_CLK_ENABLE), DM365_ISP5_PCCR);
++		isp5_write((isp5_read(DM365_ISP5_BCR) |
++			     DM365_ISP5_BCR_ISIF_OUT_ENABLE), DM365_ISP5_BCR);
+ 		isp5_write(DM365_ISP5_INTSEL1_DEFAULT, DM365_ISP5_INTSEL1);
+ 		isp5_write(DM365_ISP5_INTSEL2_DEFAULT, DM365_ISP5_INTSEL2);
+ 		isp5_write(DM365_ISP5_INTSEL3_DEFAULT, DM365_ISP5_INTSEL3);
++		/* No event selected */
++		isp5_write((isp5_read(DM365_ISP5_EVTSEL) |
++			DM365_ISP5_EVTSEL_EVT_DISABLE), DM365_ISP5_EVTSEL);
+ 	} else
+ 		oper_cfg.hw_ops.clear_wbl_overflow = dm644x_clear_wbl_overflow;
+ 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.4.1
+
