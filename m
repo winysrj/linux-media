@@ -1,171 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58636 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756014Ab2IQU6k (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Sep 2012 16:58:40 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from mx.fr.smartjog.net ([95.81.144.3]:47989 "EHLO
+	mx.fr.smartjog.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753837Ab2INJ1l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Sep 2012 05:27:41 -0400
+From: =?UTF-8?q?R=C3=A9mi=20Cardona?= <remi.cardona@smartjog.com>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 2/7] rtl28xxu: masked reg write
-Date: Mon, 17 Sep 2012 23:58:07 +0300
-Message-Id: <1347915492-24924-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1347915492-24924-1-git-send-email-crope@iki.fi>
-References: <1347915492-24924-1-git-send-email-crope@iki.fi>
+Cc: liplianin@me.by
+Subject: [PATCH 2/6] [media] ds3000: remove useless 'locking'
+Date: Fri, 14 Sep 2012 11:27:22 +0200
+Message-Id: <1347614846-19046-3-git-send-email-remi.cardona@smartjog.com>
+In-Reply-To: <1347614846-19046-1-git-send-email-remi.cardona@smartjog.com>
+References: <1347614846-19046-1-git-send-email-remi.cardona@smartjog.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement masked register write and use it.
+Since b9bf2eafaad9c1ef02fb3db38c74568be601a43a, the function
+ds3000_firmware_ondemand() is called only once during init. This
+locking scheme may have been useful when the firmware was loaded at
+each tune.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Furthermore, it looks like this 'lock' was put in to prevent concurrent
+access (and not recursion as the comments suggest). However, this open-
+coded mechanism is anything but race-free and should have used a proper
+mutex.
+
+Signed-off-by: Rémi Cardona <remi.cardona@smartjog.com>
 ---
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 83 ++++++++++++++-------------------
- 1 file changed, 36 insertions(+), 47 deletions(-)
+ drivers/media/dvb/frontends/ds3000.c |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index ca77e62..a1fe982 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -130,6 +130,26 @@ static int rtl28xx_rd_reg(struct dvb_usb_device *d, u16 reg, u8 *val)
- 	return rtl2831_rd_regs(d, reg, val, 1);
+diff --git a/drivers/media/dvb/frontends/ds3000.c b/drivers/media/dvb/frontends/ds3000.c
+index 46874c7..474f26e 100644
+--- a/drivers/media/dvb/frontends/ds3000.c
++++ b/drivers/media/dvb/frontends/ds3000.c
+@@ -233,7 +233,6 @@ struct ds3000_state {
+ 	struct i2c_adapter *i2c;
+ 	const struct ds3000_config *config;
+ 	struct dvb_frontend frontend;
+-	u8 skip_fw_load;
+ 	/* previous uncorrected block counter for DVB-S2 */
+ 	u16 prevUCBS2;
+ };
+@@ -395,8 +394,6 @@ static int ds3000_firmware_ondemand(struct dvb_frontend *fe)
+ 	if (ds3000_readreg(state, 0xb2) <= 0)
+ 		return ret;
+ 
+-	if (state->skip_fw_load)
+-		return 0;
+ 	/* Load firmware */
+ 	/* request the firmware, this will block until someone uploads it */
+ 	printk(KERN_INFO "%s: Waiting for firmware upload (%s)...\n", __func__,
+@@ -410,9 +407,6 @@ static int ds3000_firmware_ondemand(struct dvb_frontend *fe)
+ 		return ret;
+ 	}
+ 
+-	/* Make sure we don't recurse back through here during loading */
+-	state->skip_fw_load = 1;
+-
+ 	ret = ds3000_load_firmware(fe, fw);
+ 	if (ret)
+ 		printk("%s: Writing firmware to device failed\n", __func__);
+@@ -422,9 +416,6 @@ static int ds3000_firmware_ondemand(struct dvb_frontend *fe)
+ 	dprintk("%s: Firmware upload %s\n", __func__,
+ 			ret == 0 ? "complete" : "failed");
+ 
+-	/* Ensure firmware is always loaded if required */
+-	state->skip_fw_load = 0;
+-
+ 	return ret;
  }
  
-+static int rtl28xx_wr_reg_mask(struct dvb_usb_device *d, u16 reg, u8 val,
-+		u8 mask)
-+{
-+	int ret;
-+	u8 tmp;
-+
-+	/* no need for read if whole reg is written */
-+	if (mask != 0xff) {
-+		ret = rtl28xx_rd_reg(d, reg, &tmp);
-+		if (ret)
-+			return ret;
-+
-+		val &= mask;
-+		tmp &= ~mask;
-+		val |= tmp;
-+	}
-+
-+	return rtl28xx_wr_reg(d, reg, val);
-+}
-+
- /* I2C */
- static int rtl28xxu_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
- 	int num)
-@@ -258,7 +278,7 @@ static int rtl2832u_read_config(struct dvb_usb_device *d)
- {
- 	struct rtl28xxu_priv *priv = d_to_priv(d);
- 	int ret;
--	u8 buf[2], val;
-+	u8 buf[2];
- 	/* open RTL2832U/RTL2832 I2C gate */
- 	struct rtl28xxu_req req_gate_open = {0x0120, 0x0011, 0x0001, "\x18"};
- 	/* close RTL2832U/RTL2832 I2C gate */
-@@ -277,24 +297,12 @@ static int rtl2832u_read_config(struct dvb_usb_device *d)
- 
- 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
- 
--	ret = rtl28xx_rd_reg(d, SYS_GPIO_DIR, &val);
-+	/* enable GPIO3 and GPIO6 as output */
-+	ret = rtl28xx_wr_reg_mask(d, SYS_GPIO_DIR, 0x00, 0x40);
- 	if (ret)
- 		goto err;
- 
--	val &= 0xbf;
--
--	ret = rtl28xx_wr_reg(d, SYS_GPIO_DIR, val);
--	if (ret)
--		goto err;
--
--	/* enable as output GPIO3 and GPIO6 */
--	ret = rtl28xx_rd_reg(d, SYS_GPIO_OUT_EN, &val);
--	if (ret)
--		goto err;
--
--	val |= 0x48;
--
--	ret = rtl28xx_wr_reg(d, SYS_GPIO_OUT_EN, val);
-+	ret = rtl28xx_wr_reg_mask(d, SYS_GPIO_OUT_EN, 0x48, 0x48);
- 	if (ret)
- 		goto err;
- 
-@@ -611,29 +619,25 @@ static int rtl2832u_tua9001_tuner_callback(struct dvb_usb_device *d,
- 	 * RXEN    GPIO1
- 	 */
- 
--	ret = rtl28xx_rd_reg(d, SYS_GPIO_OUT_VAL, &val);
--	if (ret < 0)
--		goto err;
--
- 	switch (cmd) {
- 	case TUA9001_CMD_RESETN:
- 		if (arg)
--			val |= (1 << 4);
-+			val = (1 << 4);
- 		else
--			val &= ~(1 << 4);
-+			val = (0 << 4);
- 
--		ret = rtl28xx_wr_reg(d, SYS_GPIO_OUT_VAL, val);
--		if (ret < 0)
-+		ret = rtl28xx_wr_reg_mask(d, SYS_GPIO_OUT_VAL, val, 0x10);
-+		if (ret)
- 			goto err;
- 		break;
- 	case TUA9001_CMD_RXEN:
- 		if (arg)
--			val |= (1 << 1);
-+			val = (1 << 1);
- 		else
--			val &= ~(1 << 1);
-+			val = (0 << 1);
- 
--		ret = rtl28xx_wr_reg(d, SYS_GPIO_OUT_VAL, val);
--		if (ret < 0)
-+		ret = rtl28xx_wr_reg_mask(d, SYS_GPIO_OUT_VAL, val, 0x02);
-+		if (ret)
- 			goto err;
- 		break;
- 	}
-@@ -821,7 +825,6 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 	struct dvb_usb_device *d = adap_to_d(adap);
- 	struct rtl28xxu_priv *priv = d_to_priv(d);
- 	struct dvb_frontend *fe;
--	u8 val;
- 
- 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
- 
-@@ -854,26 +857,12 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 		break;
- 	case TUNER_RTL2832_TUA9001:
- 		/* enable GPIO1 and GPIO4 as output */
--		ret = rtl28xx_rd_reg(d, SYS_GPIO_DIR, &val);
--		if (ret < 0)
--			goto err;
--
--		val &= ~(1 << 1);
--		val &= ~(1 << 4);
--
--		ret = rtl28xx_wr_reg(d, SYS_GPIO_DIR, val);
--		if (ret < 0)
--			goto err;
--
--		ret = rtl28xx_rd_reg(d, SYS_GPIO_OUT_EN, &val);
--		if (ret < 0)
-+		ret = rtl28xx_wr_reg_mask(d, SYS_GPIO_DIR, 0x00, 0x12);
-+		if (ret)
- 			goto err;
- 
--		val |= (1 << 1);
--		val |= (1 << 4);
--
--		ret = rtl28xx_wr_reg(d, SYS_GPIO_OUT_EN, val);
--		if (ret < 0)
-+		ret = rtl28xx_wr_reg_mask(d, SYS_GPIO_OUT_EN, 0x12, 0x12);
-+		if (ret)
- 			goto err;
- 
- 		fe = dvb_attach(tua9001_attach, adap->fe[0], &d->i2c_adap,
 -- 
-1.7.11.4
+1.7.10.4
 
