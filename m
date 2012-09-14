@@ -1,40 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:41624 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752887Ab2IGT6d (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 15:58:33 -0400
-Received: by eekc1 with SMTP id c1so1417182eek.19
-        for <linux-media@vger.kernel.org>; Fri, 07 Sep 2012 12:58:32 -0700 (PDT)
-Message-ID: <504A51E5.6020502@gmail.com>
-Date: Fri, 07 Sep 2012 21:58:29 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:65212 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758336Ab2INJXN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Sep 2012 05:23:13 -0400
+Received: by ieje11 with SMTP id e11so6441089iej.19
+        for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 02:23:12 -0700 (PDT)
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 API PATCH 03/28] DocBook: improve STREAMON/OFF documentation.
-References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl> <133a249609e30bd0c77fcc12c01b8899f3ff81d7.1347023744.git.hans.verkuil@cisco.com>
-In-Reply-To: <133a249609e30bd0c77fcc12c01b8899f3ff81d7.1347023744.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20120913122738.04eaceb3.akpm@linux-foundation.org>
+References: <1347504057-5612-1-git-send-email-lliubbo@gmail.com>
+	<20120913122738.04eaceb3.akpm@linux-foundation.org>
+Date: Fri, 14 Sep 2012 17:23:12 +0800
+Message-ID: <CAHG8p1CJ7YizySrocYvQeCye4_63TkAimsAGU1KC5+Fn0wqF8w@mail.gmail.com>
+Subject: Re: [PATCH] nommu: remap_pfn_range: fix addr parameter check
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Bob Liu <lliubbo@gmail.com>, linux-mm@kvack.org,
+	bhupesh.sharma@st.com, laurent.pinchart@ideasonboard.com,
+	uclinux-dist-devel@blackfin.uclinux.org,
+	linux-media@vger.kernel.org, dhowells@redhat.com,
+	geert@linux-m68k.org, gerg@uclinux.org, stable@kernel.org,
+	gregkh@linuxfoundation.org, Hugh Dickins <hughd@google.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/07/2012 03:29 PM, Hans Verkuil wrote:
-> From: Hans Verkuil<hans.verkuil@cisco.com>
+> Yes, the MMU version of remap_pfn_range() does permit non-page-aligned
+> `addr' (at least, if the userspace maaping is a non-COW one).  But I
+> suspect that was an implementation accident - it is a nonsensical thing
+> to do, isn't it?  The MMU cannot map a bunch of kernel pages onto a
+> non-page-aligned userspace address.
 >
-> Specify that STREAMON/OFF should return 0 if the stream is already
-> started/stopped.
->
-> The spec never specified what the correct behavior is. This ambiguity
-> was resolved during the 2012 Media Workshop.
->
-> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
+> So I'm thinking that we should declare ((addr & ~PAGE_MASK) != 0) to be
+> a caller bug, and fix up this regrettably unidentified v4l driver?
 
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+I agree. This should be fixed in videobuf.
 
---
-
-Regards,
-Sylwester
+Hi sharma, what's your kernel version? It seems videobuf2 already
+fixed this bug in 3.5.
