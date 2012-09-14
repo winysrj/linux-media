@@ -1,76 +1,209 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3485 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752561Ab2IBIom (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Sep 2012 04:44:42 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] [media] davinci: vpfe: Add documentation
-Date: Sun, 2 Sep 2012 10:44:32 +0200
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-doc@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Rob Landley <rob@landley.net>,
-	LMML <linux-media@vger.kernel.org>
-References: <1342021166-6092-1-git-send-email-manjunath.hadli@ti.com> <20120901095707.GB6348@valkosipuli.retiisi.org.uk> <8524664.XGp3WDre5y@avalon>
-In-Reply-To: <8524664.XGp3WDre5y@avalon>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209021044.32571.hverkuil@xs4all.nl>
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:62348 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757494Ab2INK6M (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Sep 2012 06:58:12 -0400
+Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
+	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id q8EAvqBq013688
+	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 10:57:57 GMT
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [RFCv3 API PATCH 21/31] v4l2: make vidioc_s_freq_hw_seek const.
+Date: Fri, 14 Sep 2012 12:57:36 +0200
+Message-Id: <34ac99718a6d3bae17c9ca3520d3089a16f5a9ec.1347619766.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
+References: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat September 1 2012 16:22:30 Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> On Saturday 01 September 2012 12:57:07 Sakari Ailus wrote:
-> > On Wed, Aug 29, 2012 at 08:11:50PM +0530, Prabhakar Lad wrote:
-> 
-> [snip]
-> 
-> > > For test pattern you meant control to enable/disable it ?
-> > 
-> > There are two approaches I can think of.
-> > 
-> > One is a menu control which can be used to choose the test pattern (or
-> > disable it). The control could be standardised but the menu items would have
-> > to be hardware-specific since the test patterns themselves are not
-> > standardised.
-> 
-> Agreed. The test patterns themselves are highly hardware-specific.
-> 
-> From personal experience with sensors, most devices implement a small, fixed 
-> set of test patterns that can be exposed through a menu control. However, some 
-> devices also implement more "configurable" test patterns. For instance the 
-> MT9V032 can generate horizontal, vertical or diagonal test patterns, or a 
-> uniform grey test pattern with a user-configurable value. This would then 
-> require two controls.
-> 
-> > The alternative is to have a boolean control to enable (and disable) the
-> > test pattern and then a menu control to choose which one to use. Using or
-> > implemeting the control to select the test pattern isn't even strictly
-> > necessary to get a test pattern out of the device: one can enable it without
-> > knowing which one it is.
-> > 
-> > So which one would be better? Similar cases include V4L2_CID_SCENE_MODE
-> > which is used to choose the scene mode from a list of alternatives. The main
-> > difference to this case is that the menu items of the scene mode control
-> > are standardised, too.
-> > 
-> > I'd be inclined to have a single menu control, even if the other menu items
-> > will be device-specific. The first value (0) still has to be documented to
-> > mean the test pattern is disabled.
-> > 
-> > Laurent, Hans: what do you think?
-> 
-> A menu control with value 0 meaning test pattern disabled has my preference as 
-> well.
+Write-only ioctls should have a const argument in the ioctl op.
 
-+1
+Do this conversion for vidioc_s_freq_hw_seek.
 
-	Hans
+Adding const for write-only ioctls was decided during the 2012 Media Workshop.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/radio/radio-mr800.c                |    2 +-
+ drivers/media/radio/radio-tea5777.c              |   32 ++++++++++++----------
+ drivers/media/radio/radio-wl1273.c               |    2 +-
+ drivers/media/radio/si470x/radio-si470x-common.c |    4 +--
+ drivers/media/radio/wl128x/fmdrv_v4l2.c          |    2 +-
+ include/media/v4l2-ioctl.h                       |    2 +-
+ sound/i2c/other/tea575x-tuner.c                  |    2 +-
+ 7 files changed, 24 insertions(+), 22 deletions(-)
+
+diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
+index 3182b26..720bf0d 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -348,7 +348,7 @@ static int vidioc_g_frequency(struct file *file, void *priv,
+ }
+ 
+ static int vidioc_s_hw_freq_seek(struct file *file, void *priv,
+-		struct v4l2_hw_freq_seek *seek)
++		const struct v4l2_hw_freq_seek *seek)
+ {
+ 	static u8 buf[8] = {
+ 		0x3d, 0x32, 0x0f, 0x08, 0x3d, 0x32, 0x0f, 0x08
+diff --git a/drivers/media/radio/radio-tea5777.c b/drivers/media/radio/radio-tea5777.c
+index ef82898..c1a2ea6 100644
+--- a/drivers/media/radio/radio-tea5777.c
++++ b/drivers/media/radio/radio-tea5777.c
+@@ -385,59 +385,61 @@ static int vidioc_s_frequency(struct file *file, void *priv,
+ }
+ 
+ static int vidioc_s_hw_freq_seek(struct file *file, void *fh,
+-					struct v4l2_hw_freq_seek *a)
++					const struct v4l2_hw_freq_seek *a)
+ {
+ 	struct radio_tea5777 *tea = video_drvdata(file);
+ 	unsigned long timeout;
++	u32 rangelow = a->rangelow;
++	u32 rangehigh = a->rangehigh;
+ 	int i, res, spacing;
+ 	u32 orig_freq;
+ 
+ 	if (a->tuner || a->wrap_around)
+ 		return -EINVAL;
+ 
+-	if (a->rangelow || a->rangehigh) {
++	if (rangelow || rangehigh) {
+ 		for (i = 0; i < ARRAY_SIZE(bands); i++) {
+ 			if (i == BAND_AM && !tea->has_am)
+ 				continue;
+-			if (bands[i].rangelow  >= a->rangelow &&
+-			    bands[i].rangehigh <= a->rangehigh)
++			if (bands[i].rangelow  >= rangelow &&
++			    bands[i].rangehigh <= rangehigh)
+ 				break;
+ 		}
+ 		if (i == ARRAY_SIZE(bands))
+ 			return -EINVAL; /* No matching band found */
+ 
+ 		tea->band = i;
+-		if (tea->freq < a->rangelow || tea->freq > a->rangehigh) {
+-			tea->freq = clamp(tea->freq, a->rangelow,
+-						     a->rangehigh);
++		if (tea->freq < rangelow || tea->freq > rangehigh) {
++			tea->freq = clamp(tea->freq, rangelow,
++						     rangehigh);
+ 			res = radio_tea5777_set_freq(tea);
+ 			if (res)
+ 				return res;
+ 		}
+ 	} else {
+-		a->rangelow  = bands[tea->band].rangelow;
+-		a->rangehigh = bands[tea->band].rangehigh;
++		rangelow  = bands[tea->band].rangelow;
++		rangehigh = bands[tea->band].rangehigh;
+ 	}
+ 
+ 	spacing   = (tea->band == BAND_AM) ? (5 * 16) : (200 * 16); /* kHz */
+ 	orig_freq = tea->freq;
+ 
+ 	tea->write_reg |= TEA5777_W_PROGBLIM_MASK;
+-	if (tea->seek_rangelow != a->rangelow) {
++	if (tea->seek_rangelow != rangelow) {
+ 		tea->write_reg &= ~TEA5777_W_UPDWN_MASK;
+-		tea->freq = a->rangelow;
++		tea->freq = rangelow;
+ 		res = radio_tea5777_set_freq(tea);
+ 		if (res)
+ 			goto leave;
+-		tea->seek_rangelow = a->rangelow;
++		tea->seek_rangelow = rangelow;
+ 	}
+-	if (tea->seek_rangehigh != a->rangehigh) {
++	if (tea->seek_rangehigh != rangehigh) {
+ 		tea->write_reg |= TEA5777_W_UPDWN_MASK;
+-		tea->freq = a->rangehigh;
++		tea->freq = rangehigh;
+ 		res = radio_tea5777_set_freq(tea);
+ 		if (res)
+ 			goto leave;
+-		tea->seek_rangehigh = a->rangehigh;
++		tea->seek_rangehigh = rangehigh;
+ 	}
+ 	tea->write_reg &= ~TEA5777_W_PROGBLIM_MASK;
+ 
+diff --git a/drivers/media/radio/radio-wl1273.c b/drivers/media/radio/radio-wl1273.c
+index a22ad1c..71968a6 100644
+--- a/drivers/media/radio/radio-wl1273.c
++++ b/drivers/media/radio/radio-wl1273.c
+@@ -1682,7 +1682,7 @@ static int wl1273_fm_vidioc_s_frequency(struct file *file, void *priv,
+ #define WL1273_DEFAULT_SEEK_LEVEL	7
+ 
+ static int wl1273_fm_vidioc_s_hw_freq_seek(struct file *file, void *priv,
+-					   struct v4l2_hw_freq_seek *seek)
++					   const struct v4l2_hw_freq_seek *seek)
+ {
+ 	struct wl1273_device *radio = video_get_drvdata(video_devdata(file));
+ 	struct wl1273_core *core = radio->core;
+diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
+index 9bb65e1..74a5c90 100644
+--- a/drivers/media/radio/si470x/radio-si470x-common.c
++++ b/drivers/media/radio/si470x/radio-si470x-common.c
+@@ -296,7 +296,7 @@ int si470x_set_freq(struct si470x_device *radio, unsigned int freq)
+  * si470x_set_seek - set seek
+  */
+ static int si470x_set_seek(struct si470x_device *radio,
+-			   struct v4l2_hw_freq_seek *seek)
++			   const struct v4l2_hw_freq_seek *seek)
+ {
+ 	int band, retval;
+ 	unsigned int freq;
+@@ -701,7 +701,7 @@ static int si470x_vidioc_s_frequency(struct file *file, void *priv,
+  * si470x_vidioc_s_hw_freq_seek - set hardware frequency seek
+  */
+ static int si470x_vidioc_s_hw_freq_seek(struct file *file, void *priv,
+-		struct v4l2_hw_freq_seek *seek)
++		const struct v4l2_hw_freq_seek *seek)
+ {
+ 	struct si470x_device *radio = video_drvdata(file);
+ 
+diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.c b/drivers/media/radio/wl128x/fmdrv_v4l2.c
+index db2248e..f816ea6 100644
+--- a/drivers/media/radio/wl128x/fmdrv_v4l2.c
++++ b/drivers/media/radio/wl128x/fmdrv_v4l2.c
+@@ -403,7 +403,7 @@ static int fm_v4l2_vidioc_s_freq(struct file *file, void *priv,
+ 
+ /* Set hardware frequency seek. If current mode is NOT RX, set it RX. */
+ static int fm_v4l2_vidioc_s_hw_freq_seek(struct file *file, void *priv,
+-		struct v4l2_hw_freq_seek *seek)
++		const struct v4l2_hw_freq_seek *seek)
+ {
+ 	struct fmdev *fmdev = video_drvdata(file);
+ 	int ret;
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index 21f6245..865f95d 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -233,7 +233,7 @@ struct v4l2_ioctl_ops {
+ 	int (*vidioc_log_status)       (struct file *file, void *fh);
+ 
+ 	int (*vidioc_s_hw_freq_seek)   (struct file *file, void *fh,
+-					struct v4l2_hw_freq_seek *a);
++					const struct v4l2_hw_freq_seek *a);
+ 
+ 	/* Debugging ioctls */
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+diff --git a/sound/i2c/other/tea575x-tuner.c b/sound/i2c/other/tea575x-tuner.c
+index cd79ed5..4a8fad6 100644
+--- a/sound/i2c/other/tea575x-tuner.c
++++ b/sound/i2c/other/tea575x-tuner.c
+@@ -357,7 +357,7 @@ static int vidioc_s_frequency(struct file *file, void *priv,
+ }
+ 
+ static int vidioc_s_hw_freq_seek(struct file *file, void *fh,
+-					struct v4l2_hw_freq_seek *a)
++					const struct v4l2_hw_freq_seek *a)
+ {
+ 	struct snd_tea575x *tea = video_drvdata(file);
+ 	unsigned long timeout;
+-- 
+1.7.10.4
+
