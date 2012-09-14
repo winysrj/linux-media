@@ -1,263 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:47755 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755789Ab2IAX3N (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Sep 2012 19:29:13 -0400
-Message-ID: <50429A37.1050803@iki.fi>
-Date: Sun, 02 Sep 2012 02:28:55 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: poma <pomidorabelisima@gmail.com>
-CC: linux-media@vger.kernel.org,
-	Hin-Tak Leung <htl10@users.sourceforge.net>
-Subject: Re: [PATCH] rtl28xxu: correct usb_clear_halt() usage
-References: <1346507683-3621-1-git-send-email-crope@iki.fi> <50422B57.60701@gmail.com> <50422E32.9000501@iki.fi> <504247F0.40500@gmail.com> <50429307.7000706@gmail.com>
-In-Reply-To: <50429307.7000706@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:48023 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757240Ab2INK6F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Sep 2012 06:58:05 -0400
+Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
+	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id q8EAvqBr013688
+	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 10:57:58 GMT
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [RFCv3 API PATCH 22/31] v4l2: make vidioc_(un)subscribe_event const.
+Date: Fri, 14 Sep 2012 12:57:37 +0200
+Message-Id: <7fa0e4d61d1f2f048a0d1598f64e29a85141c717.1347619766.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
+References: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/02/2012 01:58 AM, poma wrote:
-> On 09/01/2012 07:37 PM, poma wrote:
->> On 09/01/2012 05:48 PM, Antti Palosaari wrote:
->>> On 09/01/2012 06:35 PM, poma wrote:
->>>> On 09/01/2012 03:54 PM, Antti Palosaari wrote:
->>>>> It is not allowed to call usb_clear_halt() after urbs are submitted.
->>>>> That causes oops sometimes. Move whole streaming_ctrl() logic to
->>>>> power_ctrl() in order to avoid wrong usb_clear_halt() use. Also,
->>>>> configuring streaming endpoint in streaming_ctrl() sounds like a
->>>>> little bit wrong as it is aimed for control stream gate.
->>>>>
->>>>> Reported-by: Hin-Tak Leung <htl10@users.sourceforge.net>
->>>>> Signed-off-by: Antti Palosaari <crope@iki.fi>
->>>>> ---
->>>>>    drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 55
->>>>> +++++++++++++++------------------
->>>>>    1 file changed, 25 insertions(+), 30 deletions(-)
->>>>>
->>>>> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
->>>>> b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
->>>>> index e29fca2..7d11c5d 100644
->>>>> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
->>>>> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
->>>>> @@ -825,37 +825,10 @@ err:
->>>>>        return ret;
->>>>>    }
->>>>>
->>>>> -static int rtl28xxu_streaming_ctrl(struct dvb_frontend *fe , int onoff)
->>>>> -{
->>>>> -    int ret;
->>>>> -    u8 buf[2];
->>>>> -    struct dvb_usb_device *d = fe_to_d(fe);
->>>>> -
->>>>> -    dev_dbg(&d->udev->dev, "%s: onoff=%d\n", __func__, onoff);
->>>>> -
->>>>> -    if (onoff) {
->>>>> -        buf[0] = 0x00;
->>>>> -        buf[1] = 0x00;
->>>>> -        usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x81));
->>>>> -    } else {
->>>>> -        buf[0] = 0x10; /* stall EPA */
->>>>> -        buf[1] = 0x02; /* reset EPA */
->>>>> -    }
->>>>> -
->>>>> -    ret = rtl28xx_wr_regs(d, USB_EPA_CTL, buf, 2);
->>>>> -    if (ret)
->>>>> -        goto err;
->>>>> -
->>>>> -    return ret;
->>>>> -err:
->>>>> -    dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
->>>>> -    return ret;
->>>>> -}
->>>>> -
->>>>>    static int rtl2831u_power_ctrl(struct dvb_usb_device *d, int onoff)
->>>>>    {
->>>>>        int ret;
->>>>> -    u8 gpio, sys0;
->>>>> +    u8 gpio, sys0, epa_ctl[2];
->>>>>
->>>>>        dev_dbg(&d->udev->dev, "%s: onoff=%d\n", __func__, onoff);
->>>>>
->>>>> @@ -878,11 +851,15 @@ static int rtl2831u_power_ctrl(struct
->>>>> dvb_usb_device *d, int onoff)
->>>>>            gpio |= 0x04; /* GPIO2 = 1, LED on */
->>>>>            sys0 = sys0 & 0x0f;
->>>>>            sys0 |= 0xe0;
->>>>> +        epa_ctl[0] = 0x00; /* clear stall */
->>>>> +        epa_ctl[1] = 0x00; /* clear reset */
->>>>>        } else {
->>>>>            gpio &= (~0x01); /* GPIO0 = 0 */
->>>>>            gpio |= 0x10; /* GPIO4 = 1 */
->>>>>            gpio &= (~0x04); /* GPIO2 = 1, LED off */
->>>>>            sys0 = sys0 & (~0xc0);
->>>>> +        epa_ctl[0] = 0x10; /* set stall */
->>>>> +        epa_ctl[1] = 0x02; /* set reset */
->>>>>        }
->>>>>
->>>>>        dev_dbg(&d->udev->dev, "%s: WR SYS0=%02x GPIO_OUT_VAL=%02x\n",
->>>>> __func__,
->>>>> @@ -898,6 +875,14 @@ static int rtl2831u_power_ctrl(struct
->>>>> dvb_usb_device *d, int onoff)
->>>>>        if (ret)
->>>>>            goto err;
->>>>>
->>>>> +    /* streaming EP: stall & reset */
->>>>> +    ret = rtl28xx_wr_regs(d, USB_EPA_CTL, epa_ctl, 2);
->>>>> +    if (ret)
->>>>> +        goto err;
->>>>> +
->>>>> +    if (onoff)
->>>>> +        usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x81));
->>>>> +
->>>>>        return ret;
->>>>>    err:
->>>>>        dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
->>>>> @@ -972,6 +957,14 @@ static int rtl2832u_power_ctrl(struct
->>>>> dvb_usb_device *d, int onoff)
->>>>>                goto err;
->>>>>
->>>>>
->>>>> +        /* streaming EP: clear stall & reset */
->>>>> +        ret = rtl28xx_wr_regs(d, USB_EPA_CTL, "\x00\x00", 2);
->>>>> +        if (ret)
->>>>> +            goto err;
->>>>> +
->>>>> +        ret = usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x81));
->>>>> +        if (ret)
->>>>> +            goto err;
->>>>>        } else {
->>>>>            /* demod_ctl_1 */
->>>>>            ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL1, &val);
->>>>> @@ -1006,6 +999,10 @@ static int rtl2832u_power_ctrl(struct
->>>>> dvb_usb_device *d, int onoff)
->>>>>            if (ret)
->>>>>                goto err;
->>>>>
->>>>> +        /* streaming EP: set stall & reset */
->>>>> +        ret = rtl28xx_wr_regs(d, USB_EPA_CTL, "\x10\x02", 2);
->>>>> +        if (ret)
->>>>> +            goto err;
->>>>>        }
->>>>>
->>>>>        return ret;
->>>>> @@ -1182,7 +1179,6 @@ static const struct dvb_usb_device_properties
->>>>> rtl2831u_props = {
->>>>>        .tuner_attach = rtl2831u_tuner_attach,
->>>>>        .init = rtl28xxu_init,
->>>>>        .get_rc_config = rtl2831u_get_rc_config,
->>>>> -    .streaming_ctrl = rtl28xxu_streaming_ctrl,
->>>>>
->>>>>        .num_adapters = 1,
->>>>>        .adapter = {
->>>>> @@ -1204,7 +1200,6 @@ static const struct dvb_usb_device_properties
->>>>> rtl2832u_props = {
->>>>>        .tuner_attach = rtl2832u_tuner_attach,
->>>>>        .init = rtl28xxu_init,
->>>>>        .get_rc_config = rtl2832u_get_rc_config,
->>>>> -    .streaming_ctrl = rtl28xxu_streaming_ctrl,
->>>>>
->>>>>        .num_adapters = 1,
->>>>>        .adapter = {
->>>>>
->>>>
->>>> OK, after patching with this one from http://goo.gl/5wtpT there is no
->>>> OOPS, but this happened[1][2]:
->>>> 1. mythtv-setup version: fixes/0.25 [v0.25.2-3-gf0e2ad8-dirty]:
->>>> …
->>>>      E  DVBChan(1:/dev/dvb/adapter0/frontend0): Getting Frontend
->>>> uncorrected block count failed.
->>>> eno: Operation not supported (95)
->>>> 2012-09-01 17:08:20.577044 W  DVBSM(/dev/dvb/adapter0/frontend0): Cannot
->>>> count Uncorrected Blocks
->>>> eno: Operation not supported (95)
->>>> …
->>>> 2. tzap/femon:
->>>> …
->>>> status 1f | signal 2f2f | snr 00f2 | ber 0000001e | unc 00000033 |
->>>> FE_HAS_LOCK
->>>> status 1f | signal 2f2f | snr 00f3 | ber 0000000b | unc 00000033 |
->>>> FE_HAS_LOCK
->>>> status 1f | signal 2f2f | snr 00f1 | ber 00000000 | unc 00000033 |
->>>> FE_HAS_LOCK
->>>> …
->>>> …
->>>> Problem retrieving frontend information: Operation not supported
->>>> status SCVYL | signal  18% | snr   0% | ber 19 | unc 1 | FE_HAS_LOCK
->>>> Problem retrieving frontend information: Operation not supported
->>>> status SCVYL | signal  18% | snr   0% | ber 7 | unc 1 | FE_HAS_LOCK
->>>> Problem retrieving frontend information: Operation not supported
->>>> status SCVYL | signal  18% | snr   0% | ber 54 | unc 1 | FE_HAS_LOCK
->>>> …
->>>
->>> It is correct as driver does not report uncorrected blocks at all. Those
->>> applications should be fixed. When I removed stub callback
->>> implementation I looked quite many frontend drivers and there is surely
->>> more than 10 other demod drivers reporting errors too. Unfortunately
->>> returned error codes varies from driver by driver. Correct error code
->>> for non-supported IOCTL is ENOTTY and DVB-frontend is changed to return
->>> it too, but you don't seems to have a such patch.
->>>
->>
->> Yeah, as you mentioned before this case;
->> http://www.spinics.net/lists/linux-media/msg49869.html
->> Thanks for explain that again!
->>
->>> And also, patch in question has nothing to do with that error code.
->>>
->>
->> I'll go from 1st patch just to confirm ;)
->>
->
-> You are right!
-> Actually none of this patches:
-> - RFC-Fix-DVB-ioctls-failing-if-frontend-open-closed-too-fast.patch
-> - 1-5-rtl28xxu-stream-did-not-start-after-stop-on-USB3.0.patch
-> - 2-5-rtl28xxu-fix-rtl2832u-module-reload-fails-bug.patch
-> - 3-5-rtl2832-implement-.get_frontend.patch
-> - 4-5-rtl2832-implement-.read_snr.patch
-> - 5-5-rtl2832-implement-.read_ber.patch
-> - rtl28xxu-correct-usb_clear_halt-usage.patch
-> cause errors from femon during tzap-ing and mythtv-setup during scan-ing.
-> What is causing them is removed mentioned stub callback,
-> actually:
-> static int rtl2832_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
-> {
->        *ucblocks = 0;
->        return 0;
-> }
-> …
-> .read_ucblocks = rtl2832_read_ucblocks,
-> in 'dvb-frontends/rtl2832.c'
-> Yes, it is still part of media_build, although you send relative
-> patches, right :)
-> If 'rtl2832_read_ucblocks' stay in 'rtl2832.c' no problemo with femon
-> and mythtv-setup.
+Write-only ioctls should have a const argument in the ioctl op.
 
-It will not stay. And error code will change to ENOTTY.
+Do this conversion for vidioc_(un)subscribe_event.
 
-> I checked and compared current hg femon source -
-> http://linuxtv.org/hg/dvb-apps/file/96025655e6e8/util/femon with current
-> fedora - zero diff.
-> I can understand non-engagement from mythtv devs, but femon's…
-> All this is for the reader's sake ;)
-> And excuse me for hurriedness.
+Adding const for write-only ioctls was decided during the 2012 Media Workshop.
 
-Feel free to fix femon to show some vise values, eg. N/A when ENOTTY or 
-EAGAIN is got.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/ivtv/ivtv-ioctl.c       |    2 +-
+ drivers/media/platform/omap3isp/ispccdc.c |    4 ++--
+ drivers/media/platform/omap3isp/ispstat.c |    4 ++--
+ drivers/media/platform/omap3isp/ispstat.h |    4 ++--
+ drivers/media/v4l2-core/v4l2-ctrls.c      |    2 +-
+ drivers/media/v4l2-core/v4l2-event.c      |    4 ++--
+ include/media/v4l2-ctrls.h                |    2 +-
+ include/media/v4l2-event.h                |    4 ++--
+ include/media/v4l2-ioctl.h                |    4 ++--
+ 9 files changed, 15 insertions(+), 15 deletions(-)
 
-Those are just visual problems. I am almost 100% nothing will break what 
-ever error codes are returned. That is because there is so many existing 
-demodulator (frontend) drivers returning many different error codes. Now 
-that error code will be standardized to ENOTTY slowly. And EAGAIN will 
-be returned to IOCTL when device is in state it cannot perform requested 
-operation (like sleeping).
-
-http://git.linuxtv.org/anttip/media_tree.git/commit/0467305ac2771ba301d6a59fae359edf20fe49d1
-
-regards
-Antti
-
+diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c b/drivers/media/pci/ivtv/ivtv-ioctl.c
+index d3b32c2..966abb4 100644
+--- a/drivers/media/pci/ivtv/ivtv-ioctl.c
++++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
+@@ -1460,7 +1460,7 @@ static int ivtv_overlay(struct file *file, void *fh, unsigned int on)
+ 	return 0;
+ }
+ 
+-static int ivtv_subscribe_event(struct v4l2_fh *fh, struct v4l2_event_subscription *sub)
++static int ivtv_subscribe_event(struct v4l2_fh *fh, const struct v4l2_event_subscription *sub)
+ {
+ 	switch (sub->type) {
+ 	case V4L2_EVENT_VSYNC:
+diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
+index aa9df9d..60181ab 100644
+--- a/drivers/media/platform/omap3isp/ispccdc.c
++++ b/drivers/media/platform/omap3isp/ispccdc.c
+@@ -1706,7 +1706,7 @@ static long ccdc_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
+ }
+ 
+ static int ccdc_subscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
+-				struct v4l2_event_subscription *sub)
++				const struct v4l2_event_subscription *sub)
+ {
+ 	if (sub->type != V4L2_EVENT_FRAME_SYNC)
+ 		return -EINVAL;
+@@ -1719,7 +1719,7 @@ static int ccdc_subscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
+ }
+ 
+ static int ccdc_unsubscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
+-				  struct v4l2_event_subscription *sub)
++				  const struct v4l2_event_subscription *sub)
+ {
+ 	return v4l2_event_unsubscribe(fh, sub);
+ }
+diff --git a/drivers/media/platform/omap3isp/ispstat.c b/drivers/media/platform/omap3isp/ispstat.c
+index b8640be..d7ac76b 100644
+--- a/drivers/media/platform/omap3isp/ispstat.c
++++ b/drivers/media/platform/omap3isp/ispstat.c
+@@ -1025,7 +1025,7 @@ void omap3isp_stat_dma_isr(struct ispstat *stat)
+ 
+ int omap3isp_stat_subscribe_event(struct v4l2_subdev *subdev,
+ 				  struct v4l2_fh *fh,
+-				  struct v4l2_event_subscription *sub)
++				  const struct v4l2_event_subscription *sub)
+ {
+ 	struct ispstat *stat = v4l2_get_subdevdata(subdev);
+ 
+@@ -1037,7 +1037,7 @@ int omap3isp_stat_subscribe_event(struct v4l2_subdev *subdev,
+ 
+ int omap3isp_stat_unsubscribe_event(struct v4l2_subdev *subdev,
+ 				    struct v4l2_fh *fh,
+-				    struct v4l2_event_subscription *sub)
++				    const struct v4l2_event_subscription *sub)
+ {
+ 	return v4l2_event_unsubscribe(fh, sub);
+ }
+diff --git a/drivers/media/platform/omap3isp/ispstat.h b/drivers/media/platform/omap3isp/ispstat.h
+index 9b7c865..a6fe653 100644
+--- a/drivers/media/platform/omap3isp/ispstat.h
++++ b/drivers/media/platform/omap3isp/ispstat.h
+@@ -147,10 +147,10 @@ int omap3isp_stat_init(struct ispstat *stat, const char *name,
+ void omap3isp_stat_cleanup(struct ispstat *stat);
+ int omap3isp_stat_subscribe_event(struct v4l2_subdev *subdev,
+ 				  struct v4l2_fh *fh,
+-				  struct v4l2_event_subscription *sub);
++				  const struct v4l2_event_subscription *sub);
+ int omap3isp_stat_unsubscribe_event(struct v4l2_subdev *subdev,
+ 				    struct v4l2_fh *fh,
+-				    struct v4l2_event_subscription *sub);
++				    const struct v4l2_event_subscription *sub);
+ int omap3isp_stat_s_stream(struct v4l2_subdev *subdev, int enable);
+ 
+ int omap3isp_stat_busy(struct ispstat *stat);
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index ab287f2..f400035 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -2699,7 +2699,7 @@ int v4l2_ctrl_log_status(struct file *file, void *fh)
+ EXPORT_SYMBOL(v4l2_ctrl_log_status);
+ 
+ int v4l2_ctrl_subscribe_event(struct v4l2_fh *fh,
+-				struct v4l2_event_subscription *sub)
++				const struct v4l2_event_subscription *sub)
+ {
+ 	if (sub->type == V4L2_EVENT_CTRL)
+ 		return v4l2_event_subscribe(fh, sub, 0, &v4l2_ctrl_sub_ev_ops);
+diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
+index ef2a33c..18a040b 100644
+--- a/drivers/media/v4l2-core/v4l2-event.c
++++ b/drivers/media/v4l2-core/v4l2-event.c
+@@ -203,7 +203,7 @@ int v4l2_event_pending(struct v4l2_fh *fh)
+ EXPORT_SYMBOL_GPL(v4l2_event_pending);
+ 
+ int v4l2_event_subscribe(struct v4l2_fh *fh,
+-			 struct v4l2_event_subscription *sub, unsigned elems,
++			 const struct v4l2_event_subscription *sub, unsigned elems,
+ 			 const struct v4l2_subscribed_event_ops *ops)
+ {
+ 	struct v4l2_subscribed_event *sev, *found_ev;
+@@ -278,7 +278,7 @@ void v4l2_event_unsubscribe_all(struct v4l2_fh *fh)
+ EXPORT_SYMBOL_GPL(v4l2_event_unsubscribe_all);
+ 
+ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+-			   struct v4l2_event_subscription *sub)
++			   const struct v4l2_event_subscription *sub)
+ {
+ 	struct v4l2_subscribed_event *sev;
+ 	unsigned long flags;
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 7ef6b27..6890f5e 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -546,7 +546,7 @@ int v4l2_ctrl_log_status(struct file *file, void *fh);
+ /* Can be used as a vidioc_subscribe_event function that just subscribes
+    control events. */
+ int v4l2_ctrl_subscribe_event(struct v4l2_fh *fh,
+-				struct v4l2_event_subscription *sub);
++				const struct v4l2_event_subscription *sub);
+ 
+ /* Can be used as a poll function that just polls for control events. */
+ unsigned int v4l2_ctrl_poll(struct file *file, struct poll_table_struct *wait);
+diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+index 2885a81..e7c5d17 100644
+--- a/include/media/v4l2-event.h
++++ b/include/media/v4l2-event.h
+@@ -124,10 +124,10 @@ void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev);
+ void v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev);
+ int v4l2_event_pending(struct v4l2_fh *fh);
+ int v4l2_event_subscribe(struct v4l2_fh *fh,
+-			 struct v4l2_event_subscription *sub, unsigned elems,
++			 const struct v4l2_event_subscription *sub, unsigned elems,
+ 			 const struct v4l2_subscribed_event_ops *ops);
+ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+-			   struct v4l2_event_subscription *sub);
++			   const struct v4l2_event_subscription *sub);
+ void v4l2_event_unsubscribe_all(struct v4l2_fh *fh);
+ 
+ #endif /* V4L2_EVENT_H */
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index 865f95d..3eef4de 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -273,9 +273,9 @@ struct v4l2_ioctl_ops {
+ 				    struct v4l2_dv_timings_cap *cap);
+ 
+ 	int (*vidioc_subscribe_event)  (struct v4l2_fh *fh,
+-					struct v4l2_event_subscription *sub);
++					const struct v4l2_event_subscription *sub);
+ 	int (*vidioc_unsubscribe_event)(struct v4l2_fh *fh,
+-					struct v4l2_event_subscription *sub);
++					const struct v4l2_event_subscription *sub);
+ 
+ 	/* For other private ioctls */
+ 	long (*vidioc_default)	       (struct file *file, void *fh,
 -- 
-http://palosaari.fi/
+1.7.10.4
+
