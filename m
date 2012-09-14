@@ -1,67 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 173-166-109-252-newengland.hfc.comcastbusiness.net ([173.166.109.252]:33515
-	"EHLO bombadil.infradead.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752526Ab2IZUcn (ORCPT
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:30690 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755387Ab2INK5z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Sep 2012 16:32:43 -0400
-Date: Wed, 26 Sep 2012 17:32:33 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Sangwook Lee <sangwook.lee@linaro.org>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	kyungmin.park@samsung.com, hans.verkuil@cisco.com,
-	linaro-dev@lists.linaro.org, patches@linaro.org,
-	Francesco Lavra <francescolavra.fl@gmail.com>,
-	Scott Bambrough <scott.bambrough@linaro.org>,
-	Homin Lee <suapapa@insignal.co.kr>
-Subject: Re: [RFC PATCH v8] media: add v4l2 subdev driver for S5K4ECGX
- sensor
-Message-ID: <20120926173233.01d64f9a@infradead.org>
-In-Reply-To: <1347534134-6231-1-git-send-email-sangwook.lee@linaro.org>
-References: <1347534134-6231-1-git-send-email-sangwook.lee@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Fri, 14 Sep 2012 06:57:55 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [RFCv3 API PATCH 01/31] v4l: Remove experimental tag from certain API elements
+Date: Fri, 14 Sep 2012 12:57:16 +0200
+Message-Id: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 13 Sep 2012 12:02:14 +0100
-Sangwook Lee <sangwook.lee@linaro.org> escreveu:
+From: Sakari Ailus <sakari.ailus@iki.fi>
 
-> This patch adds driver for S5K4ECGX sensor with embedded ISP SoC,
-> S5K4ECGX, which is a 5M CMOS Image sensor from Samsung
-> The driver implements preview mode of the S5K4ECGX sensor.
-> capture (snapshot) operation, face detection are missing now.
-> Following controls are supported:
-> contrast/saturation/brightness/sharpness
-> 
-> Signed-off-by: Sangwook Lee <sangwook.lee@linaro.org>
-> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Francesco Lavra <francescolavra.fl@gmail.com>
-> Cc: Scott Bambrough <scott.bambrough@linaro.org>
-> Cc: Homin Lee <suapapa@insignal.co.kr>
+Remove experimantal tag from the following API elements:
 
-...
+V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY buffer type.
+V4L2_CAP_VIDEO_OUTPUT_OVERLAY capability flag.
+VIDIOC_ENUM_FRAMESIZES IOCTL.
+VIDIOC_ENUM_FRAMEINTERVALS IOCTL.
+VIDIOC_G_ENC_INDEX IOCTL.
+VIDIOC_ENCODER_CMD and VIDIOC_TRY_ENCODER_CMD IOCTLs.
+VIDIOC_DECODER_CMD and VIDIOC_TRY_DECODER_CMD IOCTLs.
 
-> +static int s5k4ecgx_load_firmware(struct v4l2_subdev *sd)
-> +{
-> +	const struct firmware *fw;
-> +	const u8 *ptr;
-> +	int err, i, regs_num;
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +	u16 val;
-> +	u32 addr, crc, crc_file, addr_inc = 0;
-> +
-> +	err = request_firmware(&fw, S5K4ECGX_FIRMWARE, sd->v4l2_dev->dev);
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/compat.xml         |   23 --------------------
+ Documentation/DocBook/media/v4l/dev-osd.xml        |    7 ------
+ Documentation/DocBook/media/v4l/io.xml             |    3 +--
+ .../DocBook/media/v4l/vidioc-decoder-cmd.xml       |    7 ------
+ .../DocBook/media/v4l/vidioc-encoder-cmd.xml       |    7 ------
+ .../DocBook/media/v4l/vidioc-enum-framesizes.xml   |    7 ------
+ .../DocBook/media/v4l/vidioc-g-enc-index.xml       |    7 ------
+ 7 files changed, 1 insertion(+), 60 deletions(-)
 
-The patch looks correct on my eyes... Yet, calling request_firmware()
-might not be the right thing to do. The thing is that newer versions of
-udev refuse to load firmware synchronously during probe/init time.
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index 98e8d08..578135e 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2555,29 +2555,6 @@ and may change in the future.</para>
+ 	  <para>Video Output Overlay (OSD) Interface, <xref
+ 	    linkend="osd" />.</para>
+         </listitem>
+-	<listitem>
+-	  <para><constant>V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY</constant>,
+-	&v4l2-buf-type;, <xref linkend="v4l2-buf-type" />.</para>
+-        </listitem>
+-        <listitem>
+-	  <para><constant>V4L2_CAP_VIDEO_OUTPUT_OVERLAY</constant>,
+-&VIDIOC-QUERYCAP; ioctl, <xref linkend="device-capabilities" />.</para>
+-        </listitem>
+-        <listitem>
+-	  <para>&VIDIOC-ENUM-FRAMESIZES; and
+-&VIDIOC-ENUM-FRAMEINTERVALS; ioctls.</para>
+-        </listitem>
+-        <listitem>
+-	  <para>&VIDIOC-G-ENC-INDEX; ioctl.</para>
+-        </listitem>
+-        <listitem>
+-	  <para>&VIDIOC-ENCODER-CMD; and &VIDIOC-TRY-ENCODER-CMD;
+-ioctls.</para>
+-        </listitem>
+-        <listitem>
+-	  <para>&VIDIOC-DECODER-CMD; and &VIDIOC-TRY-DECODER-CMD;
+-ioctls.</para>
+-        </listitem>
+         <listitem>
+ 	  <para>&VIDIOC-DBG-G-REGISTER; and &VIDIOC-DBG-S-REGISTER;
+ ioctls.</para>
+diff --git a/Documentation/DocBook/media/v4l/dev-osd.xml b/Documentation/DocBook/media/v4l/dev-osd.xml
+index 479d943..dd91d61 100644
+--- a/Documentation/DocBook/media/v4l/dev-osd.xml
++++ b/Documentation/DocBook/media/v4l/dev-osd.xml
+@@ -1,13 +1,6 @@
+   <title>Video Output Overlay Interface</title>
+   <subtitle>Also known as On-Screen Display (OSD)</subtitle>
+ 
+-  <note>
+-    <title>Experimental</title>
+-
+-    <para>This is an <link linkend="experimental">experimental</link>
+-interface and may change in the future.</para>
+-  </note>
+-
+   <para>Some video output devices can overlay a framebuffer image onto
+ the outgoing video signal. Applications can set up such an overlay
+ using this interface, which borrows structures and ioctls of the <link
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index 1885cc0..2512649 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -827,8 +827,7 @@ should set this to 0.</entry>
+ 	    <entry><constant>V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY</constant></entry>
+ 	    <entry>8</entry>
+ 	    <entry>Buffer for video output overlay (OSD), see <xref
+-		linkend="osd" />. Status: <link
+-linkend="experimental">Experimental</link>.</entry>
++		linkend="osd" />.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_TYPE_PRIVATE</constant></entry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
+index 74b87f6..9215627 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
+@@ -49,13 +49,6 @@
+   <refsect1>
+     <title>Description</title>
+ 
+-    <note>
+-      <title>Experimental</title>
+-
+-      <para>This is an <link linkend="experimental">experimental</link>
+-interface and may change in the future.</para>
+-    </note>
+-
+     <para>These ioctls control an audio/video (usually MPEG-) decoder.
+ <constant>VIDIOC_DECODER_CMD</constant> sends a command to the
+ decoder, <constant>VIDIOC_TRY_DECODER_CMD</constant> can be used to
+diff --git a/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
+index f431b3b..0619ca5 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
+@@ -49,13 +49,6 @@
+   <refsect1>
+     <title>Description</title>
+ 
+-    <note>
+-      <title>Experimental</title>
+-
+-      <para>This is an <link linkend="experimental">experimental</link>
+-interface and may change in the future.</para>
+-    </note>
+-
+     <para>These ioctls control an audio/video (usually MPEG-) encoder.
+ <constant>VIDIOC_ENCODER_CMD</constant> sends a command to the
+ encoder, <constant>VIDIOC_TRY_ENCODER_CMD</constant> can be used to
+diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml b/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml
+index f77a13f..a78454b 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml
+@@ -50,13 +50,6 @@ and pixel format and receives a frame width and height.</para>
+   <refsect1>
+     <title>Description</title>
+ 
+-    <note>
+-      <title>Experimental</title>
+-
+-      <para>This is an <link linkend="experimental">experimental</link>
+-interface and may change in the future.</para>
+-    </note>
+-
+     <para>This ioctl allows applications to enumerate all frame sizes
+ (&ie; width and height in pixels) that the device supports for the
+ given pixel format.</para>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-enc-index.xml b/Documentation/DocBook/media/v4l/vidioc-g-enc-index.xml
+index 2aef02c..be25029 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-enc-index.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-enc-index.xml
+@@ -48,13 +48,6 @@
+   <refsect1>
+     <title>Description</title>
+ 
+-    <note>
+-      <title>Experimental</title>
+-
+-      <para>This is an <link linkend="experimental">experimental</link>
+-interface and may change in the future.</para>
+-    </note>
+-
+     <para>The <constant>VIDIOC_G_ENC_INDEX</constant> ioctl provides
+ meta data about a compressed video stream the same or another
+ application currently reads from the driver, which is useful for
+-- 
+1.7.10.4
 
-As this function is actually called by s_power, maybe this driver doesn't
-suffer from that new udev behavior, so, I'll be merging it as-is. However,
-I suggest you to take a deeper review on that and, if possible, test it with
-the latest udev.
-
-
-Cheers,
-Mauro
