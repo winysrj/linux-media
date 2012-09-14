@@ -1,150 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:33037 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753365Ab2IYHon convert rfc822-to-8bit (ORCPT
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:24386 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756839Ab2INK6A (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Sep 2012 03:44:43 -0400
-Received: by pbbrr4 with SMTP id rr4so8619017pbb.19
-        for <linux-media@vger.kernel.org>; Tue, 25 Sep 2012 00:44:43 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <2462466.0FeDLqYgmx@avalon>
-References: <CAFqH_53EY7BcMjn+fy=KfAhSU9Ut1pcLUyrmu2kiHznrBUB2XQ@mail.gmail.com>
-	<10375683.p3v6BRe8Fj@avalon>
-	<CAFqH_52mu7ME9EBemVhnpLYDgxJ-g53Qeecx5xWR5S1O_awBCA@mail.gmail.com>
-	<2462466.0FeDLqYgmx@avalon>
-Date: Tue, 25 Sep 2012 09:44:42 +0200
-Message-ID: <CAFqH_528bnSm+6JjqEHKxNz1mw-PEArG8ut3w=J0-VvwH+xYaw@mail.gmail.com>
-Subject: Re: omap3isp: wrong image after resizer with mt9v034 sensor
-From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Fri, 14 Sep 2012 06:58:00 -0400
+Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
+	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id q8EAvqBe013688
+	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 10:57:55 GMT
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [RFCv3 API PATCH 09/31] v4l2: remove experimental tag from a number of old drivers.
+Date: Fri, 14 Sep 2012 12:57:24 +0200
+Message-Id: <ea446295b563a6b52b6310c657f4ab1b87045bd2.1347619766.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
+References: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+A number of old drivers still had the experimental tag. Time to remove it.
 
-Many thanks for your time.
+It concerns the following drivers:
 
-2012/9/25 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hi Enric,
->
-> On Monday 24 September 2012 15:49:01 Enric Balletbò i Serra wrote:
->> 2012/9/24 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
->> > On Monday 24 September 2012 10:33:42 Enric Balletbò i Serra wrote:
->> >> Hi everybody,
->> >>
->> >> I'm trying to add support for MT9V034 Aptina image sensor to current
->> >> mainline, as a base of my current work I start using the latest
->> >> omap3isp-next branch from Laurent's git tree [1]. The MT9V034 image
->> >> sensor is very similar to MT9V032 sensor, so I modified current driver
->> >> to accept MT9V034 sensor adding the chip ID. The driver recognizes the
->> >> sensor and I'm able to capture some frames.
->> >>
->> >> I started capturing directly frames using the pipeline Sensor -> CCDC
->> >>
->> >>     ./media-ctl -r
->> >>     ./media-ctl -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1]'
->> >>     ./media-ctl -l '"OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
->> >>     ./media-ctl -f '"mt9v032 3-005c":0 [SGRBG10 752x480]'
->> >>     ./media-ctl -f '"OMAP3 ISP CCDC":1 [SGRBG10 752x480]'
->> >>
->> >>     # Test pattern
->> >>     ./yavta --set-control '0x00981901 1' /dev/v4l-subdev8
->> >>
->> >>     # ./yavta -p -f SGRBG10 -s 752x480 -n 4 --capture=3 /dev/video2
->> >>
->> >> --file=img-#.bin
->> >>
->> >> To convert to jpg I used bayer2rgb [2] program executing following
->> >> command,
->> >>
->> >>     $ convert -size 752x480  GRBG_BAYER:./img-000000.bin img-000000.jpg
->> >>
->> >> And the result image looks like this
->> >>
->> >>     http://downloads.isee.biz/pub/files/patterns/img-from-sensor.jpg
->> >>
->> >> Seems good, so I tried to use following pipeline Sensor -> CCDC ->
->> >> Preview -> Resizer
->> >>
->> >>     ./media-ctl -r
->> >>     ./media-ctl -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1]'
->> >>     ./media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
->> >>     ./media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
->> >>     ./media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer
->> >>     output":0[1]'
->> >>
->> >>     ./media-ctl -V '"mt9v032 3-005c":0[SGRBG10 752x480]'
->> >>     ./media-ctl -V  '"OMAP3 ISP CCDC":0 [SGRBG10 752x480]'
->> >>     ./media-ctl -V  '"OMAP3 ISP CCDC":2 [SGRBG10 752x480]'
->> >>     ./media-ctl -V  '"OMAP3 ISP preview":1 [UYVY 752x480]'
->> >>     ./media-ctl -V  '"OMAP3 ISP resizer":1 [UYVY 752x480]'
->> >>
->> >>     # Set Test pattern
->> >>
->> >>     ./yavta --set-control '0x00981901 1' /dev/v4l-subdev8
->> >>
->> >>     ./yavta -f UYVY -s 752x480 --capture=3 --file=img-#.uyvy /dev/video6
->> >>
->> >> I used 'convert' program to pass from UYVY to jpg,
->> >>
->> >>     $ convert -size 752x480 img-000000.uyvy img-000000.jpg
->> >>
->> >> and the result image looks like this
->> >>
->> >>     http://downloads.isee.biz/pub/files/patterns/img-from-resizer.jpg
->> >>
->> >> As you can see, the image is wrong and I'm not sure if the problem is
->> >> from the sensor, from the previewer, from the resizer or from my
->> >> conversion. Anyone have idea where should I look ? Or which is the
->> >> source of the problem ?
->> >
->> > Could you please post the output of all the above media-ctl and yavta
->> > runs, as well as the captured raw binary frame ?
->>
->> Of course,
->>
->> The log configuring the pipeline Sensor -> CCDC is
->>     http://pastebin.com/WX8ex5x2
->> and the raw image can be found
->>     http://downloads.isee.biz/pub/files/patterns/img-000000.bin
->
-> It looks like D9 and D8 have trouble keeping their high-level. Possible
-> reasons would be conflicts on the signal lines (with something actively
-> driving them to a low-level, a pull-down wouldn't have such an effect), faulty
-> cable/solder joints (but I doubt that), or sampling the data on the wrong
-> edge.
+VIDEO_TLV320AIC23B
+USB_STKWEBCAM
+VIDEO_CX18
+VIDEO_CX18_ALSA
+VIDEO_ZORAN_AVS6EYES
+DVB_USB_AF9005
+MEDIA_TUNER_TEA5761
+VIDEO_NOON010PC30
 
-In that case don't be the first image also wrong ? (the image that
-outputs from sensor /dev/video2)
+This decision was taken during the 2012 Media Workshop.
 
- http://downloads.isee.biz/pub/files/patterns/img-from-sensor.jpg
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/i2c/Kconfig           |    4 ++--
+ drivers/media/pci/cx18/Kconfig      |    4 ++--
+ drivers/media/pci/zoran/Kconfig     |    4 ++--
+ drivers/media/tuners/Kconfig        |    5 ++---
+ drivers/media/usb/dvb-usb/Kconfig   |    2 +-
+ drivers/media/usb/stkwebcam/Kconfig |    2 +-
+ 6 files changed, 10 insertions(+), 11 deletions(-)
 
-I'll investigate a bit more following this line.
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index 0e0793a..d3be0ca 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -117,7 +117,7 @@ config VIDEO_CS53L32A
+ 
+ config VIDEO_TLV320AIC23B
+ 	tristate "Texas Instruments TLV320AIC23B audio codec"
+-	depends on VIDEO_V4L2 && I2C && EXPERIMENTAL
++	depends on VIDEO_V4L2 && I2C
+ 	---help---
+ 	  Support for the Texas Instruments TLV320AIC23B audio codec.
+ 
+@@ -492,7 +492,7 @@ config VIDEO_SR030PC30
+ 
+ config VIDEO_NOON010PC30
+ 	tristate "Siliconfile NOON010PC30 sensor support"
+-	depends on I2C && VIDEO_V4L2 && EXPERIMENTAL && VIDEO_V4L2_SUBDEV_API
++	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+ 	depends on MEDIA_CAMERA_SUPPORT
+ 	---help---
+ 	  This driver supports NOON010PC30 CIF camera from Siliconfile
+diff --git a/drivers/media/pci/cx18/Kconfig b/drivers/media/pci/cx18/Kconfig
+index 9a9f765..c675b83 100644
+--- a/drivers/media/pci/cx18/Kconfig
++++ b/drivers/media/pci/cx18/Kconfig
+@@ -1,6 +1,6 @@
+ config VIDEO_CX18
+ 	tristate "Conexant cx23418 MPEG encoder support"
+-	depends on VIDEO_V4L2 && DVB_CORE && PCI && I2C && EXPERIMENTAL
++	depends on VIDEO_V4L2 && DVB_CORE && PCI && I2C
+ 	select I2C_ALGOBIT
+ 	select VIDEOBUF_VMALLOC
+ 	depends on RC_CORE
+@@ -25,7 +25,7 @@ config VIDEO_CX18
+ 
+ config VIDEO_CX18_ALSA
+ 	tristate "Conexant 23418 DMA audio support"
+-	depends on VIDEO_CX18 && SND && EXPERIMENTAL
++	depends on VIDEO_CX18 && SND
+ 	select SND_PCM
+ 	---help---
+ 	  This is a video4linux driver for direct (DMA) audio on
+diff --git a/drivers/media/pci/zoran/Kconfig b/drivers/media/pci/zoran/Kconfig
+index a9b2318..26ca870 100644
+--- a/drivers/media/pci/zoran/Kconfig
++++ b/drivers/media/pci/zoran/Kconfig
+@@ -65,8 +65,8 @@ config VIDEO_ZORAN_LML33R10
+ 	  card.
+ 
+ config VIDEO_ZORAN_AVS6EYES
+-	tristate "AverMedia 6 Eyes support (EXPERIMENTAL)"
+-	depends on VIDEO_ZORAN_ZR36060 && EXPERIMENTAL
++	tristate "AverMedia 6 Eyes support"
++	depends on VIDEO_ZORAN_ZR36060
+ 	select VIDEO_BT856 if MEDIA_SUBDRV_AUTOSELECT
+ 	select VIDEO_BT866 if MEDIA_SUBDRV_AUTOSELECT
+ 	select VIDEO_KS0127 if MEDIA_SUBDRV_AUTOSELECT
+diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
+index 80238b9..901d886 100644
+--- a/drivers/media/tuners/Kconfig
++++ b/drivers/media/tuners/Kconfig
+@@ -28,7 +28,7 @@ config MEDIA_TUNER
+ 	select MEDIA_TUNER_XC4000 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_MT20XX if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_TDA8290 if MEDIA_SUBDRV_AUTOSELECT
+-	select MEDIA_TUNER_TEA5761 if MEDIA_SUBDRV_AUTOSELECT && MEDIA_RADIO_SUPPORT && EXPERIMENTAL
++	select MEDIA_TUNER_TEA5761 if MEDIA_SUBDRV_AUTOSELECT && MEDIA_RADIO_SUPPORT
+ 	select MEDIA_TUNER_TEA5767 if MEDIA_SUBDRV_AUTOSELECT && MEDIA_RADIO_SUPPORT
+ 	select MEDIA_TUNER_SIMPLE if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_TDA9887 if MEDIA_SUBDRV_AUTOSELECT
+@@ -78,9 +78,8 @@ config MEDIA_TUNER_TDA9887
+ 	  analog IF demodulator.
+ 
+ config MEDIA_TUNER_TEA5761
+-	tristate "TEA 5761 radio tuner (EXPERIMENTAL)"
++	tristate "TEA 5761 radio tuner"
+ 	depends on MEDIA_SUPPORT && I2C
+-	depends on EXPERIMENTAL
+ 	default m if !MEDIA_SUBDRV_AUTOSELECT
+ 	help
+ 	  Say Y here to include support for the Philips TEA5761 radio tuner.
+diff --git a/drivers/media/usb/dvb-usb/Kconfig b/drivers/media/usb/dvb-usb/Kconfig
+index 3c5fff8..fa0b293 100644
+--- a/drivers/media/usb/dvb-usb/Kconfig
++++ b/drivers/media/usb/dvb-usb/Kconfig
+@@ -227,7 +227,7 @@ config DVB_USB_OPERA1
+ 
+ config DVB_USB_AF9005
+ 	tristate "Afatech AF9005 DVB-T USB1.1 support"
+-	depends on DVB_USB && EXPERIMENTAL
++	depends on DVB_USB
+ 	select MEDIA_TUNER_MT2060 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_QT1010 if MEDIA_SUBDRV_AUTOSELECT
+ 	help
+diff --git a/drivers/media/usb/stkwebcam/Kconfig b/drivers/media/usb/stkwebcam/Kconfig
+index 2fb0c2b..a6a00aa 100644
+--- a/drivers/media/usb/stkwebcam/Kconfig
++++ b/drivers/media/usb/stkwebcam/Kconfig
+@@ -1,6 +1,6 @@
+ config USB_STKWEBCAM
+ 	tristate "USB Syntek DC1125 Camera support"
+-	depends on VIDEO_V4L2 && EXPERIMENTAL
++	depends on VIDEO_V4L2
+ 	---help---
+ 	  Say Y here if you want to use this type of camera.
+ 	  Supported devices are typically found in some Asus laptops,
+-- 
+1.7.10.4
 
-> The last option should be easy to test, just change the struct
-> isp_v4l2_subdevs_group::bus::parallel::clk_pol field.
-
-I tested and seems this is not the problem.
-
->
->> And the log configuring the pipeline Sensor -> CCDC -> Previewer -> Resizer
->> is http://pastebin.com/wh5ZJwne
->> and the raw image can be found
->>     http://downloads.isee.biz/pub/files/patterns/img-000000.uyvy
->>
->> >> [1]
->> >> http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp-
->> >> omap3isp-next
->> >> [2] https://github.com/jdthomas/bayer2rgb
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
-
-Regards,
-  Enric
