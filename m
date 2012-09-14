@@ -1,79 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:61132 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757317Ab2IKKsH (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:35043 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754961Ab2INLPo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Sep 2012 06:48:07 -0400
-Received: by mail-ob0-f174.google.com with SMTP id uo13so487437obb.19
-        for <linux-media@vger.kernel.org>; Tue, 11 Sep 2012 03:48:06 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1347291000-340-11-git-send-email-p.zabel@pengutronix.de>
-References: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
-	<1347291000-340-11-git-send-email-p.zabel@pengutronix.de>
-Date: Tue, 11 Sep 2012 12:48:06 +0200
-Message-ID: <CACKLOr0EUmAEYFtiQV_SZOcjEGOWrBD=ijNeyUZWK4LqwmqHQA@mail.gmail.com>
-Subject: Re: [PATCH v4 10/16] media: coda: fix sizeimage setting in try_fmt
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 14 Sep 2012 07:15:44 -0400
+Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
+	by ams-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id q8EBFghO000742
+	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 11:15:42 GMT
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [RFCv1 API PATCH 2/4] v4l2-ctrls: add a notify callback.
+Date: Fri, 14 Sep 2012 13:15:34 +0200
+Message-Id: <598b270f69d510c29436b51ef5cc0034afe77101.1347620872.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347621336-14108-1-git-send-email-hans.verkuil@cisco.com>
+References: <1347621336-14108-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <da47f14735bb06321de298db1cb50172f8e1f480.1347620872.git.hans.verkuil@cisco.com>
+References: <da47f14735bb06321de298db1cb50172f8e1f480.1347620872.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10 September 2012 17:29, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> VIDIOC_TRY_FMT would incorrectly return bytesperline * height,
-> instead of width * height * 3 / 2.
->
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  drivers/media/platform/coda.c |   10 +++-------
->  1 file changed, 3 insertions(+), 7 deletions(-)
->
-> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-> index fe8a397..e8ed427 100644
-> --- a/drivers/media/platform/coda.c
-> +++ b/drivers/media/platform/coda.c
-> @@ -407,8 +407,8 @@ static int vidioc_try_fmt(struct coda_dev *dev, struct v4l2_format *f)
->                                       W_ALIGN, &f->fmt.pix.height,
->                                       MIN_H, MAX_H, H_ALIGN, S_ALIGN);
->                 f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 2);
-> -               f->fmt.pix.sizeimage = f->fmt.pix.height *
-> -                                       f->fmt.pix.bytesperline;
-> +               f->fmt.pix.sizeimage = f->fmt.pix.width *
-> +                                       f->fmt.pix.height * 3 / 2;
->         } else { /*encoded formats h.264/mpeg4 */
->                 f->fmt.pix.bytesperline = 0;
->                 f->fmt.pix.sizeimage = CODA_MAX_FRAME_SIZE;
-> @@ -492,11 +492,7 @@ static int vidioc_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f)
->         q_data->fmt = find_format(ctx->dev, f);
->         q_data->width = f->fmt.pix.width;
->         q_data->height = f->fmt.pix.height;
-> -       if (q_data->fmt->fourcc == V4L2_PIX_FMT_YUV420) {
-> -               q_data->sizeimage = q_data->width * q_data->height * 3 / 2;
-> -       } else { /* encoded format h.264/mpeg-4 */
-> -               q_data->sizeimage = CODA_MAX_FRAME_SIZE;
-> -       }
-> +       q_data->sizeimage = f->fmt.pix.sizeimage;
->
->         v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
->                 "Setting format for type %d, wxh: %dx%d, fmt: %d\n",
-> --
-> 1.7.10.4
->
+Sometimes platform/bridge drivers need to be notified when a control from
+a subdevice changes value. In order to support this a notify callback was
+added.
 
-Tested-by: Javier Martin <javier.martin@vista-silicon.com
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/video4linux/v4l2-controls.txt |   22 ++++++++++++++--------
+ drivers/media/v4l2-core/v4l2-ctrls.c        |   25 +++++++++++++++++++++++++
+ include/media/v4l2-ctrls.h                  |   25 +++++++++++++++++++++++++
+ 3 files changed, 64 insertions(+), 8 deletions(-)
 
+diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
+index 43da22b..cecaff8 100644
+--- a/Documentation/video4linux/v4l2-controls.txt
++++ b/Documentation/video4linux/v4l2-controls.txt
+@@ -687,14 +687,20 @@ a control of this type whenever the first control belonging to a new control
+ class is added.
+ 
+ 
+-Proposals for Extensions
+-========================
++Adding Notify Callbacks
++=======================
++
++Sometimes the platform or bridge driver needs to be notified when a control
++from a sub-device driver changes. You can set a notify callback by calling
++this function:
+ 
+-Some ideas for future extensions to the spec:
++void v4l2_ctrl_notify(struct v4l2_ctrl *ctrl,
++	void (*notify)(struct v4l2_ctrl *ctrl, void *priv), void *priv);
+ 
+-1) Add a V4L2_CTRL_FLAG_HEX to have values shown as hexadecimal instead of
+-decimal. Useful for e.g. video_mute_yuv.
++Whenever the give control changes value the notify callback will be called
++with a pointer to the control and the priv pointer that was passed with
++v4l2_ctrl_notify. Note that the control's handler lock is held when the
++notify function is called.
+ 
+-2) It is possible to mark in the controls array which controls have been
+-successfully written and which failed by for example adding a bit to the
+-control ID. Not sure if it is worth the effort, though.
++There can be only one notify function per control handler. Any attempt
++to set another notify function will cause a WARN_ON.
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index f400035..43061e1 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1160,6 +1160,8 @@ static void new_to_cur(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl,
+ 		send_event(fh, ctrl,
+ 			(changed ? V4L2_EVENT_CTRL_CH_VALUE : 0) |
+ 			(update_inactive ? V4L2_EVENT_CTRL_CH_FLAGS : 0));
++		if (ctrl->call_notify && changed && ctrl->handler->notify)
++			ctrl->handler->notify(ctrl, ctrl->handler->notify_priv);
+ 	}
+ }
+ 
+@@ -2628,6 +2630,29 @@ int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val)
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_s_ctrl_int64);
+ 
++void v4l2_ctrl_notify(struct v4l2_ctrl *ctrl, v4l2_ctrl_notify_fnc notify, void *priv)
++{
++	if (ctrl == NULL)
++		return;
++	if (notify == NULL) {
++		ctrl->call_notify = 0;
++		return;
++	}
++	/* Only one notifier is allowed. Should we ever need to support
++	   multiple notifiers, then some sort of linked list of notifiers
++	   should be implemented. But I don't see any real reason to implement
++	   that now. If you think you need multiple notifiers, then contact
++	   the linux-media mailinglist. */
++	if (WARN_ON(ctrl->handler->notify &&
++			(ctrl->handler->notify != notify ||
++			 ctrl->handler->notify_priv != priv)))
++		return;
++	ctrl->handler->notify = notify;
++	ctrl->handler->notify_priv = priv;
++	ctrl->call_notify = 1;
++}
++EXPORT_SYMBOL(v4l2_ctrl_notify);
++
+ static int v4l2_ctrl_add_event(struct v4l2_subscribed_event *sev, unsigned elems)
+ {
+ 	struct v4l2_ctrl *ctrl = v4l2_ctrl_find(sev->fh->ctrl_handler, sev->id);
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 6890f5e..4484fd3 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -53,6 +53,8 @@ struct v4l2_ctrl_ops {
+ 	int (*s_ctrl)(struct v4l2_ctrl *ctrl);
+ };
+ 
++typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
++
+ /** struct v4l2_ctrl - The control structure.
+   * @node:	The list node.
+   * @ev_subs:	The list of control event subscriptions.
+@@ -72,6 +74,8 @@ struct v4l2_ctrl_ops {
+   *		set this flag directly.
+   * @has_volatiles: If set, then one or more members of the cluster are volatile.
+   *		Drivers should never touch this flag.
++  * @call_notify: If set, then call the handler's notify function whenever the
++  *		control's value changes.
+   * @manual_mode_value: If the is_auto flag is set, then this is the value
+   *		of the auto control that determines if that control is in
+   *		manual mode. So if the value of the auto control equals this
+@@ -119,6 +123,7 @@ struct v4l2_ctrl {
+ 	unsigned int is_private:1;
+ 	unsigned int is_auto:1;
+ 	unsigned int has_volatiles:1;
++	unsigned int call_notify:1;
+ 	unsigned int manual_mode_value:8;
+ 
+ 	const struct v4l2_ctrl_ops *ops;
+@@ -177,6 +182,10 @@ struct v4l2_ctrl_ref {
+   *		control is needed multiple times, so this is a simple
+   *		optimization.
+   * @buckets:	Buckets for the hashing. Allows for quick control lookup.
++  * @notify:	A notify callback that is called whenever the control changes value.
++  *		Note that the handler's lock is held when the notify function
++  *		is called!
++  * @notify_priv: Passed as argument to the v4l2_ctrl notify callback.
+   * @nr_of_buckets: Total number of buckets in the array.
+   * @error:	The error code of the first failed control addition.
+   */
+@@ -187,6 +196,8 @@ struct v4l2_ctrl_handler {
+ 	struct list_head ctrl_refs;
+ 	struct v4l2_ctrl_ref *cached;
+ 	struct v4l2_ctrl_ref **buckets;
++	v4l2_ctrl_notify_fnc notify;
++	void *notify_priv;
+ 	u16 nr_of_buckets;
+ 	int error;
+ };
+@@ -488,6 +499,20 @@ static inline void v4l2_ctrl_unlock(struct v4l2_ctrl *ctrl)
+ 	mutex_unlock(ctrl->handler->lock);
+ }
+ 
++/** v4l2_ctrl_notify() - Function to set a notify callback for a control.
++  * @ctrl:	The control.
++  * @notify:	The callback function.
++  * @priv:	The callback private handle, passed as argument to the callback.
++  *
++  * This function sets a callback function for the control. If @ctrl is NULL,
++  * then it will do nothing. If @notify is NULL, then the notify callback will
++  * be removed.
++  *
++  * There can be only one notify. If another already exists, then a WARN_ON
++  * will be issued and the function will do nothing.
++  */
++void v4l2_ctrl_notify(struct v4l2_ctrl *ctrl, v4l2_ctrl_notify_fnc notify, void *priv);
++
+ /** v4l2_ctrl_g_ctrl() - Helper function to get the control's value from within a driver.
+   * @ctrl:	The control.
+   *
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+1.7.10.4
+
