@@ -1,53 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59417 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756966Ab2IMKQw (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:52458 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756243Ab2INK54 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 06:16:52 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: workshop-2011@linuxtv.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Jun Nie <niej0001@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [Workshop-2011] Media summit/KS-2012 proposals
-Date: Thu, 13 Sep 2012 03:01:34 +0200
-Message-ID: <4239754.MNv9h5rKCc@avalon>
-In-Reply-To: <201209051028.30258.hverkuil@xs4all.nl>
-References: <20120713173708.GB17109@thunk.org> <CAGA24MKVVfT7BDGus+spj9CZWctS1YLdvOM5eWOGBdgeGqmnHw@mail.gmail.com> <201209051028.30258.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 14 Sep 2012 06:57:56 -0400
+Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
+	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id q8EAvqBa013688
+	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 10:57:54 GMT
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [RFCv3 API PATCH 05/31] DocBook: bus_info can no longer be empty.
+Date: Fri, 14 Sep 2012 12:57:20 +0200
+Message-Id: <0b476660ae29f3e7b53f69c0c8f755bd916cd7ec.1347619766.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
+References: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+During the 2012 Media Workshop it was decided that bus_info as returned
+by VIDIOC_QUERYCAP can no longer be empty. It should be a unique identifier,
+and empty strings are obviously not unique.
 
-On Wednesday 05 September 2012 10:28:30 Hans Verkuil wrote:
-> On Wed 5 September 2012 10:04:41 Jun Nie wrote:
-> > Is there any summary for this summit or presentation material? I am
-> > looking forward for some idea on CEC. It is really complex in
-> > functionality.
-> > Maybe other guys is expecting simiar fruite from summit too.
-> 
-> Yes, there will be a summit report. It's not quite finished yet, I think.
-> 
-> With respect to CEC we had some useful discussions. It will have to be a
-> new class of device (/dev/cecX), so the userspace API will be separate from
-> drm or v4l.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ Documentation/DocBook/media/v4l/vidioc-querycap.xml |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-This is a repeat of a comment from the KS discussion: what about using the 
-socket API instead of a device node ?
-
-> And the kernel will have to take care of the core CEC protocol w.r.t.
-> control and discovery due to the HDMI 1.4a requirements.
-> 
-> I plan on starting work on this within 1-2 weeks.
-> 
-> My CEC presentation can be found here:
-> 
-> http://hverkuil.home.xs4all.nl/presentations/v4l2-workshop-cec.odp
-
+diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+index f33dd74..4c70215 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+@@ -90,11 +90,13 @@ ambiguities.</entry>
+ 	    <entry>__u8</entry>
+ 	    <entry><structfield>bus_info</structfield>[32]</entry>
+ 	    <entry>Location of the device in the system, a
+-NUL-terminated ASCII string. For example: "PCI Slot 4". This
++NUL-terminated ASCII string. For example: "PCI:0000:05:06.0". This
+ information is intended for users, to distinguish multiple
+-identical devices. If no such information is available the field may
+-simply count the devices controlled by the driver, or contain the
+-empty string (<structfield>bus_info</structfield>[0] = 0).<!-- XXX pci_dev->slot_name example --></entry>
++identical devices. If no such information is available the field must
++simply count the devices controlled by the driver ("platform:vivi-000").
++The bus_info must start with "PCI:" for PCI boards, "PCIe:" for PCI Express boards,
++"usb-" for USB devices, "I2C:" for i2c devices, "ISA:" for ISA devices,
++"parport" for parallel port devices and "platform:" for platform devices.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
