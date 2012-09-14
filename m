@@ -1,31 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:58309 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753923Ab2IRS0N (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:52458 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756866Ab2INK6A (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Sep 2012 14:26:13 -0400
-Received: by eaac11 with SMTP id c11so46072eaa.19
-        for <linux-media@vger.kernel.org>; Tue, 18 Sep 2012 11:26:12 -0700 (PDT)
-MIME-Version: 1.0
-From: Henk Poley <henkpoley@gmail.com>
-Date: Tue, 18 Sep 2012 20:25:51 +0200
-Message-ID: <CAN_ZOpz567C=yJmKEKP_1x2pXUh4kqFgRaUY8stpqNioUQW1Yg@mail.gmail.com>
-Subject: 2x TT CT-3650 CI USB = corrupt video
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 14 Sep 2012 06:58:00 -0400
+Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
+	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id q8EAvqBi013688
+	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 10:57:55 GMT
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [RFCv3 API PATCH 13/31] Feature removal: Remove CUSTOM_TIMINGS defines in 3.9.
+Date: Fri, 14 Sep 2012 12:57:28 +0200
+Message-Id: <3629d5063c36dfc2a570c7afa831b8d849814bb5.1347619766.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
+References: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Individually each of them work. When both of them are connected I get
-corrupted video as soon as I tune to another channel. There is no
-specific pattern in the logs, but now and then trouble about too large
-packets when communicating with the CAM appears in dmesg, which could
-make sense given the pervasive use of encryption by my cable provider.
+These have been replaced by new defines without the "CUSTOM_" part.
+Get rid of the old ones.
 
-I have kept a log of most of the things I've already tried here:
-http://ubuntuforums.org/showthread.php?t=2054643
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/feature-removal-schedule.txt |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-Is this a common problem when you use two of the same tuners? Who can
-help me fix this problem?
+diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
+index a52924e..4f7e6ad 100644
+--- a/Documentation/feature-removal-schedule.txt
++++ b/Documentation/feature-removal-schedule.txt
+@@ -646,3 +646,12 @@ Who:	Russell King <linux@arm.linux.org.uk>,
+ 	Santosh Shilimkar <santosh.shilimkar@ti.com>
+ 
+ ----------------------------
++
++What:	Remove deprecated DV timings capability defines V4L2_IN_CAP_CUSTOM_TIMINGS
++	and V4L2_OUT_CAP_CUSTOM_TIMINGS.
++When:	3.9
++Why:	These defines have been replaced by V4L2_IN_CAP_TIMINGS and
++	V4L2_OUT_CAP_TIMINGS respectively.
++Who:	Hans Verkuil <hans.verkuil@cisco.com>
++
++----------------------------
+-- 
+1.7.10.4
 
-Henk Poley
