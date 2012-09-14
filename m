@@ -1,103 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43528 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753847Ab2IOVmJ (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:65188 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755242Ab2INMr3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Sep 2012 17:42:09 -0400
-Received: from localhost.localdomain (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:6d9a::83:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 4D2BB6009C
-	for <linux-media@vger.kernel.org>; Sun, 16 Sep 2012 00:42:07 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 2/2] smiapp: Provide module identification information through sysfs
-Date: Sun, 16 Sep 2012 00:43:29 +0300
-Message-Id: <1347745409-21003-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <5054F66C.1050400@iki.fi>
-References: <5054F66C.1050400@iki.fi>
+	Fri, 14 Sep 2012 08:47:29 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>
+Subject: [PATCH 00/14] Media Controller capture driver for DM365
+Date: Fri, 14 Sep 2012 18:16:30 +0530
+Message-Id: <1347626804-5703-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@iki.if>
+From: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-Provide module ident information through sysfs.
+This patch set adds media controller based capture driver for
+DM365.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.if>
----
- drivers/media/i2c/smiapp/smiapp-core.c |   28 ++++++++++++++++++++++++++--
- 1 files changed, 26 insertions(+), 2 deletions(-)
+This driver bases its design on Laurent Pinchart's Media Controller Design
+whose patches for Media Controller and subdev enhancements form the base.
+The driver also takes copious elements taken from Laurent Pinchart and
+others' OMAP ISP driver based on Media Controller. So thank you all the
+people who are responsible for the Media Controller and the OMAP ISP driver.
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 02bfa44..e08e588 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2211,6 +2211,21 @@ smiapp_sysfs_nvm_read(struct device *dev, struct device_attribute *attr,
- }
- static DEVICE_ATTR(nvm, S_IRUGO, smiapp_sysfs_nvm_read, NULL);
- 
-+static ssize_t
-+smiapp_sysfs_ident_read(struct device *dev, struct device_attribute *attr,
-+			char *buf)
-+{
-+	struct v4l2_subdev *subdev = i2c_get_clientdata(to_i2c_client(dev));
-+	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
-+	struct smiapp_module_info *minfo = &sensor->minfo;
-+
-+	return snprintf(buf, PAGE_SIZE, "%2.2x%4.4x%2.2x\n",
-+			minfo->manufacturer_id, minfo->model_id,
-+			minfo->revision_number_major) + 1;
-+}
-+
-+static DEVICE_ATTR(ident, S_IRUGO, smiapp_sysfs_ident_read, NULL);
-+
- /* -----------------------------------------------------------------------------
-  * V4L2 subdev core operations
-  */
-@@ -2467,6 +2482,11 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
- 	sensor->binning_horizontal = 1;
- 	sensor->binning_vertical = 1;
- 
-+	if (device_create_file(&client->dev, &dev_attr_ident) != 0) {
-+		dev_err(&client->dev, "sysfs ident entry creation failed\n");
-+		rval = -ENOENT;
-+		goto out_power_off;
-+	}
- 	/* SMIA++ NVM initialization - it will be read from the sensor
- 	 * when it is first requested by userspace.
- 	 */
-@@ -2476,13 +2496,13 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
- 		if (sensor->nvm == NULL) {
- 			dev_err(&client->dev, "nvm buf allocation failed\n");
- 			rval = -ENOMEM;
--			goto out_power_off;
-+			goto out_ident_release;
- 		}
- 
- 		if (device_create_file(&client->dev, &dev_attr_nvm) != 0) {
- 			dev_err(&client->dev, "sysfs nvm entry failed\n");
- 			rval = -EBUSY;
--			goto out_power_off;
-+			goto out_ident_release;
- 		}
- 	}
- 
-@@ -2637,6 +2657,9 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
- out_nvm_release:
- 	device_remove_file(&client->dev, &dev_attr_nvm);
- 
-+out_ident_release:
-+	device_remove_file(&client->dev, &dev_attr_ident);
-+
- out_power_off:
- 	smiapp_power_off(sensor);
- 
-@@ -2832,6 +2855,7 @@ static int __exit smiapp_remove(struct i2c_client *client)
- 		sensor->power_count = 0;
- 	}
- 
-+	device_remove_file(&client->dev, &dev_attr_ident);
- 	if (sensor->nvm)
- 		device_remove_file(&client->dev, &dev_attr_nvm);
- 
+Also, the core functionality of the driver comes from the arago vpfe capture
+driver of which the CCDC capture was based on V4L2, with other drivers like
+Previwer, and Resizer.
+
+The current driver caters to dm6446,dm355 and dm365 of which the current
+implementation works for dm365. The three VPFE IPs have some common elements
+in terms of some high level functionality but there are differences in terms
+of register definitions and some core blocks.
+
+The individual specifications for each of these can be found here:
+dm365  vpfe: http://www.ti.com/litv/pdf/sprufg8c
+dm6446 vpfe: http://www.ti.com/litv/pdf/sprue38h
+dm355  vpfe: http://www.ti.com/litv/pdf/spruf71a
+
+This patch set has undergone reviewed several revisions.
+(http://davinci-linux-open-source.1494791.n2.nabble.com/
+RESEND-RFC-PATCH-v4-00-15-RFC-for-Media-Controller-capture-
+driver-for-DM365-td7003648.html). This patches might be appearing
+new due to the new folder structure changes to video drivers.
+
+Manjunath Hadli (14):
+  davinci: vpfe: add dm3xx IPIPEIF hardware support module
+  davinci: vpfe: add IPIPE hardware layer support
+  davinci: vpfe: add IPIPE support for media controller driver
+  davinci: vpfe: add support for CCDC hardware for dm365
+  davinci: vpfe: add ccdc driver with media controller interface
+  davinci: vpfe: add v4l2 video driver support
+  davinci: vpfe: v4l2 capture driver with media interface
+  davinci: vpfe: previewer driver based on v4l2 media controller
+    framework
+  davinci: vpfe: resizer driver based on media framework
+  dm365: vpss: setup ISP registers
+  dm365: vpss: set vpss clk ctrl
+  dm365: vpss: add vpss helper functions to be used in the main driver
+    for setting hardware parameters
+  davinci: vpfe: build infrastructure for dm365
+  [media] davinci: vpfe: Add documentation
+
+ Documentation/video4linux/davinci-vpfe-mc.txt    |   95 +
+ drivers/media/platform/davinci/Kconfig           |   40 +-
+ drivers/media/platform/davinci/Makefile          |    9 +
+ drivers/media/platform/davinci/ccdc_hw_device.h  |   11 +-
+ drivers/media/platform/davinci/dm355_ccdc.c      |    2 +-
+ drivers/media/platform/davinci/dm365_ccdc.c      | 1424 +++++++++
+ drivers/media/platform/davinci/dm365_ccdc.h      |  137 +
+ drivers/media/platform/davinci/dm365_ccdc_regs.h |  314 ++
+ drivers/media/platform/davinci/dm365_def_para.c  |  294 ++
+ drivers/media/platform/davinci/dm365_def_para.h  |   49 +
+ drivers/media/platform/davinci/dm365_ipipe.c     | 3673 ++++++++++++++++++++++
+ drivers/media/platform/davinci/dm365_ipipe.h     |  430 +++
+ drivers/media/platform/davinci/dm365_ipipe_hw.c  |  936 ++++++
+ drivers/media/platform/davinci/dm365_ipipe_hw.h  |  538 ++++
+ drivers/media/platform/davinci/dm3xx_ipipeif.c   |  318 ++
+ drivers/media/platform/davinci/dm3xx_ipipeif.h   |  262 ++
+ drivers/media/platform/davinci/dm644x_ccdc.c     |    2 +-
+ drivers/media/platform/davinci/imp_hw_if.h       |  180 ++
+ drivers/media/platform/davinci/isif.c            |    2 +-
+ drivers/media/platform/davinci/vpfe_capture.c    |    2 +-
+ drivers/media/platform/davinci/vpfe_ccdc.c       |  903 ++++++
+ drivers/media/platform/davinci/vpfe_ccdc.h       |   87 +
+ drivers/media/platform/davinci/vpfe_imp_common.h |   84 +
+ drivers/media/platform/davinci/vpfe_mc_capture.c |  764 +++++
+ drivers/media/platform/davinci/vpfe_mc_capture.h |  104 +
+ drivers/media/platform/davinci/vpfe_previewer.c  | 1041 ++++++
+ drivers/media/platform/davinci/vpfe_previewer.h  |   71 +
+ drivers/media/platform/davinci/vpfe_resizer.c    | 1080 +++++++
+ drivers/media/platform/davinci/vpfe_resizer.h    |   66 +
+ drivers/media/platform/davinci/vpfe_video.c      | 1725 ++++++++++
+ drivers/media/platform/davinci/vpfe_video.h      |  150 +
+ drivers/media/platform/davinci/vpss.c            |   56 +
+ include/linux/davinci_vpfe.h                     |  929 ++++++
+ include/linux/dm365_ccdc.h                       |  592 ++++
+ include/linux/dm3xx_ipipeif.h                    |   62 +
+ include/media/davinci/vpfe.h                     |   84 +
+ include/media/davinci/vpss.h                     |   16 +
+ 37 files changed, 16518 insertions(+), 14 deletions(-)
+ create mode 100644 Documentation/video4linux/davinci-vpfe-mc.txt
+ create mode 100644 drivers/media/platform/davinci/dm365_ccdc.c
+ create mode 100644 drivers/media/platform/davinci/dm365_ccdc.h
+ create mode 100644 drivers/media/platform/davinci/dm365_ccdc_regs.h
+ create mode 100644 drivers/media/platform/davinci/dm365_def_para.c
+ create mode 100644 drivers/media/platform/davinci/dm365_def_para.h
+ create mode 100644 drivers/media/platform/davinci/dm365_ipipe.c
+ create mode 100644 drivers/media/platform/davinci/dm365_ipipe.h
+ create mode 100644 drivers/media/platform/davinci/dm365_ipipe_hw.c
+ create mode 100644 drivers/media/platform/davinci/dm365_ipipe_hw.h
+ create mode 100644 drivers/media/platform/davinci/dm3xx_ipipeif.c
+ create mode 100644 drivers/media/platform/davinci/dm3xx_ipipeif.h
+ create mode 100644 drivers/media/platform/davinci/imp_hw_if.h
+ create mode 100644 drivers/media/platform/davinci/vpfe_ccdc.c
+ create mode 100644 drivers/media/platform/davinci/vpfe_ccdc.h
+ create mode 100644 drivers/media/platform/davinci/vpfe_imp_common.h
+ create mode 100644 drivers/media/platform/davinci/vpfe_mc_capture.c
+ create mode 100644 drivers/media/platform/davinci/vpfe_mc_capture.h
+ create mode 100644 drivers/media/platform/davinci/vpfe_previewer.c
+ create mode 100644 drivers/media/platform/davinci/vpfe_previewer.h
+ create mode 100644 drivers/media/platform/davinci/vpfe_resizer.c
+ create mode 100644 drivers/media/platform/davinci/vpfe_resizer.h
+ create mode 100644 drivers/media/platform/davinci/vpfe_video.c
+ create mode 100644 drivers/media/platform/davinci/vpfe_video.h
+ create mode 100644 include/linux/davinci_vpfe.h
+ create mode 100644 include/linux/dm365_ccdc.h
+ create mode 100644 include/linux/dm3xx_ipipeif.h
+ create mode 100644 include/media/davinci/vpfe.h
+
 -- 
-1.7.2.5
+1.7.4.1
 
