@@ -1,1550 +1,1633 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:43207 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755946Ab2INK56 (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2371 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750960Ab2INGoJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 06:57:58 -0400
-Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
-	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id q8EAvqBX013688
-	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 10:57:53 GMT
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [RFCv3 API PATCH 02/31] videodev2.h: split off controls into v4l2-controls.h
-Date: Fri, 14 Sep 2012 12:57:17 +0200
-Message-Id: <4f1b28d324c98bcbd61a1a593005832321355169.1347619766.git.hans.verkuil@cisco.com>
-In-Reply-To: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
-References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
-References: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
+	Fri, 14 Sep 2012 02:44:09 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
+Subject: Re: [PATCH 1/3] Add a core driver for SI476x MFD
+Date: Fri, 14 Sep 2012 08:44:01 +0200
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <1347576013-28832-1-git-send-email-andrey.smirnov@convergeddevices.net> <1347576013-28832-2-git-send-email-andrey.smirnov@convergeddevices.net>
+In-Reply-To: <1347576013-28832-2-git-send-email-andrey.smirnov@convergeddevices.net>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201209140844.01978.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-During the 2012 Media Workshop it was decided to split off the control
-definitions into their own v4l2-controls.h header, included by videodev2.h.
+Hi Andrey!
 
-Because controls make up such a large part of V4L2 they made it hard
-to read videodev2.h. Splitting off the control definitions makes life
-easier.
+Thanks for posting this driver. One request for the future: please split this
+patch up in smaller pieces: one for each c source for example. That makes it
+easier to review.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/linux/Kbuild          |    1 +
- include/linux/v4l2-controls.h |  761 +++++++++++++++++++++++++++++++++++++++++
- include/linux/videodev2.h     |  697 +------------------------------------
- 3 files changed, 764 insertions(+), 695 deletions(-)
- create mode 100644 include/linux/v4l2-controls.h
+On Fri September 14 2012 00:40:11 Andrey Smirnov wrote:
+> This patch adds a core driver for Silicon Laboratories Si476x series
+> of AM/FM tuner chips. The driver as a whole is implemented as an MFD device
+> and this patch adds a core portion of it that provides all the necessary
+> functionality to the two other drivers that represent radio and audio
+> codec subsystems of the chip.
+> 
+> Signed-off-by: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
+> ---
+>  drivers/mfd/Kconfig             |   14 +
+>  drivers/mfd/Makefile            |    3 +
+>  drivers/mfd/si476x-cmd.c        | 1509 +++++++++++++++++++++++++++++++++++++++
+>  drivers/mfd/si476x-i2c.c        | 1033 +++++++++++++++++++++++++++
+>  drivers/mfd/si476x-prop.c       |  477 +++++++++++++
+>  include/linux/mfd/si476x-core.h |  522 ++++++++++++++
+>  include/media/si476x.h          |  455 ++++++++++++
+>  7 files changed, 4013 insertions(+)
+>  create mode 100644 drivers/mfd/si476x-cmd.c
+>  create mode 100644 drivers/mfd/si476x-i2c.c
+>  create mode 100644 drivers/mfd/si476x-prop.c
+>  create mode 100644 include/linux/mfd/si476x-core.h
+>  create mode 100644 include/media/si476x.h
+> 
+> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+> index b1a1462..3fab06d 100644
+> --- a/drivers/mfd/Kconfig
+> +++ b/drivers/mfd/Kconfig
+> @@ -895,6 +895,20 @@ config MFD_WL1273_CORE
+>  	  driver connects the radio-wl1273 V4L2 module and the wl1273
+>  	  audio codec.
+>  
+> +config MFD_SI476X_CORE
+> +	tristate "Support for Silicon Laboratories 4761/64/68 AM/FM radio."
+> +	depends on I2C
+> +	select MFD_CORE
+> +	default n
+> +	help
+> +	  This is the core driver for the SI476x series of AM/FM radio. This MFD
+> +	  driver connects the radio-si476x V4L2 module and the si476x
+> +	  audio codec.
+> +
+> +	  To compile this driver as a module, choose M here: the
+> +	  module will be called si476x-core.
+> +
+> +
+>  config MFD_OMAP_USB_HOST
+>  	bool "Support OMAP USBHS core driver"
+>  	depends on USB_EHCI_HCD_OMAP || USB_OHCI_HCD_OMAP3
+> diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
+> index 79dd22d..942257b 100644
+> --- a/drivers/mfd/Makefile
+> +++ b/drivers/mfd/Makefile
+> @@ -132,3 +132,6 @@ obj-$(CONFIG_MFD_RC5T583)	+= rc5t583.o rc5t583-irq.o
+>  obj-$(CONFIG_MFD_SEC_CORE)	+= sec-core.o sec-irq.o
+>  obj-$(CONFIG_MFD_ANATOP)	+= anatop-mfd.o
+>  obj-$(CONFIG_MFD_LM3533)	+= lm3533-core.o lm3533-ctrlbank.o
+> +
+> +si476x-core-objs := si476x-cmd.o si476x-prop.o si476x-i2c.o
+> +obj-$(CONFIG_MFD_SI476X_CORE)	+= si476x-core.o
+> diff --git a/drivers/mfd/si476x-cmd.c b/drivers/mfd/si476x-cmd.c
+> new file mode 100644
+> index 0000000..defe1f5
+> --- /dev/null
+> +++ b/drivers/mfd/si476x-cmd.c
+> @@ -0,0 +1,1509 @@
+> +/*
+> + * include/media/si476x-cmd.c -- Subroutines implementing command
+> + * protocol of si476x series of chips
+> + *
+> + * Copyright (C) 2012 Innovative Converged Devices(ICD)
+> + *
+> + * Author: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; version 2 of the License.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + */
+> +#include <linux/module.h>
+> +#include <linux/completion.h>
+> +#include <linux/delay.h>
+> +#include <linux/atomic.h>
+> +#include <linux/i2c.h>
+> +#include <linux/device.h>
+> +#include <linux/gpio.h>
+> +#include <linux/videodev2.h>
+> +
+> +#include <media/si476x.h>
+> +#include <linux/mfd/si476x-core.h>
+> +
+> +#define msb(x)                  ((u8)((u16) x >> 8))
+> +#define lsb(x)                  ((u8)((u16) x &  0x00FF))
+> +
+> +
+> +
+> +#define CMD_POWER_UP				0x01
+> +#define CMD_POWER_UP_A10_NRESP			1
+> +#define CMD_POWER_UP_A10_NARGS			5
+> +
+> +#define CMD_POWER_UP_A20_NRESP			1
+> +#define CMD_POWER_UP_A20_NARGS			5
+> +
+> +#define POWER_UP_DELAY_MS			110
+> +
+> +#define CMD_POWER_DOWN				0x11
+> +#define CMD_POWER_DOWN_A10_NRESP		1
+> +
+> +#define CMD_POWER_DOWN_A20_NRESP		1
+> +#define CMD_POWER_DOWN_A20_NARGS		1
+> +
+> +#define CMD_FUNC_INFO				0x12
+> +#define CMD_FUNC_INFO_NRESP			7
+> +
+> +#define CMD_SET_PROPERTY			0x13
+> +#define CMD_SET_PROPERTY_NARGS			5
+> +#define CMD_SET_PROPERTY_NRESP			1
+> +
+> +#define CMD_GET_PROPERTY			0x14
+> +#define CMD_GET_PROPERTY_NARGS			3
+> +#define CMD_GET_PROPERTY_NRESP			4
+> +
+> +#define CMD_AGC_STATUS				0x17
+> +#define CMD_AGC_STATUS_NRESP_A10		2
+> +#define CMD_AGC_STATUS_NRESP_A20                6
+> +
+> +#define PIN_CFG_BYTE(x) (0x7F & (x))
+> +#define CMD_DIG_AUDIO_PIN_CFG			0x18
+> +#define CMD_DIG_AUDIO_PIN_CFG_NARGS		4
+> +#define CMD_DIG_AUDIO_PIN_CFG_NRESP		5
+> +
+> +#define CMD_ZIF_PIN_CFG				0x19
+> +#define CMD_ZIF_PIN_CFG_NARGS			4
+> +#define CMD_ZIF_PIN_CFG_NRESP			5
+> +
+> +#define CMD_IC_LINK_GPO_CTL_PIN_CFG		0x1A
+> +#define CMD_IC_LINK_GPO_CTL_PIN_CFG_NARGS	4
+> +#define CMD_IC_LINK_GPO_CTL_PIN_CFG_NRESP	5
+> +
+> +#define CMD_ANA_AUDIO_PIN_CFG			0x1B
+> +#define CMD_ANA_AUDIO_PIN_CFG_NARGS		1
+> +#define CMD_ANA_AUDIO_PIN_CFG_NRESP		2
+> +
+> +#define CMD_INTB_PIN_CFG			0x1C
+> +#define CMD_INTB_PIN_CFG_NARGS			2
+> +#define CMD_INTB_PIN_CFG_A10_NRESP		6
+> +#define CMD_INTB_PIN_CFG_A20_NRESP		3
+> +
+> +#define CMD_FM_TUNE_FREQ			0x30
+> +#define CMD_FM_TUNE_FREQ_A10_NARGS		5
+> +#define CMD_FM_TUNE_FREQ_A20_NARGS		3
+> +#define CMD_FM_TUNE_FREQ_NRESP			1
+> +
+> +#define CMD_FM_RSQ_STATUS			0x32
+> +
+> +#define CMD_FM_RSQ_STATUS_A10_NARGS		1
+> +#define CMD_FM_RSQ_STATUS_A10_NRESP		17
+> +#define CMD_FM_RSQ_STATUS_A30_NARGS		1
+> +#define CMD_FM_RSQ_STATUS_A30_NRESP		23
+> +
+> +
+> +#define CMD_FM_SEEK_START			0x31
+> +#define CMD_FM_SEEK_START_NARGS			1
+> +#define CMD_FM_SEEK_START_NRESP			1
+> +
+> +#define CMD_FM_RDS_STATUS			0x36
+> +#define CMD_FM_RDS_STATUS_NARGS			1
+> +#define CMD_FM_RDS_STATUS_NRESP			16
+> +
+> +#define CMD_FM_RDS_BLOCKCOUNT			0x37
+> +#define CMD_FM_RDS_BLOCKCOUNT_NARGS		1
+> +#define CMD_FM_RDS_BLOCKCOUNT_NRESP		8
+> +
+> +#define CMD_FM_PHASE_DIVERSITY			0x38
+> +#define CMD_FM_PHASE_DIVERSITY_NARGS		1
+> +#define CMD_FM_PHASE_DIVERSITY_NRESP		1
+> +
+> +#define CMD_FM_PHASE_DIV_STATUS			0x39
+> +#define CMD_FM_PHASE_DIV_STATUS_NRESP		2
+> +
+> +#define CMD_AM_TUNE_FREQ			0x40
+> +#define CMD_AM_TUNE_FREQ_NARGS			3
+> +#define CMD_AM_TUNE_FREQ_NRESP			1
+> +
+> +#define CMD_AM_RSQ_STATUS			0x42
+> +#define CMD_AM_RSQ_STATUS_NARGS			1
+> +#define CMD_AM_RSQ_STATUS_NRESP			13
+> +
+> +#define CMD_AM_SEEK_START			0x41
+> +#define CMD_AM_SEEK_START_NARGS			1
+> +#define CMD_AM_SEEK_START_NRESP			1
+> +
+> +
+> +#define CMD_AM_ACF_STATUS			0x45
+> +#define CMD_AM_ACF_STATUS_NRESP			6
+> +#define CMD_AM_ACF_STATUS_NARGS			1
+> +
+> +#define CMD_FM_ACF_STATUS			0x35
+> +#define CMD_FM_ACF_STATUS_NRESP			8
+> +#define CMD_FM_ACF_STATUS_NARGS			1
+> +
+> +#define CMD_MAX_ARGS_COUNT			(10)
+> +
+> +
+> +enum si476x_acf_status_report_bits {
+> +	SI476X_ACF_BLEND_INT	= (1 << 4),
+> +	SI476X_ACF_HIBLEND_INT	= (1 << 3),
+> +	SI476X_ACF_HICUT_INT	= (1 << 2),
+> +	SI476X_ACF_CHBW_INT	= (1 << 1),
+> +	SI476X_ACF_SOFTMUTE_INT	= (1 << 0),
+> +
+> +	SI476X_ACF_SMUTE	= (1 << 0),
+> +	SI476X_ACF_SMATTN	= 0b11111,
+> +	SI476X_ACF_PILOT	= (1 << 7),
+> +	SI476X_ACF_STBLEND	= ~SI476X_ACF_PILOT,
+> +};
+> +
+> +enum si476x_agc_status_report_bits {
+> +	SI476X_AGC_MXHI		= (1 << 5),
+> +	SI476X_AGC_MXLO		= (1 << 4),
+> +	SI476X_AGC_LNAHI	= (1 << 3),
+> +	SI476X_AGC_LNALO	= (1 << 2),
+> +};
+> +
+> +enum si476x_errors {
+> +	SI476X_ERR_BAD_COMMAND		= 0x10,
+> +	SI476X_ERR_BAD_ARG1		= 0x11,
+> +	SI476X_ERR_BAD_ARG2		= 0x12,
+> +	SI476X_ERR_BAD_ARG3		= 0x13,
+> +	SI476X_ERR_BAD_ARG4		= 0x14,
+> +	SI476X_ERR_BUSY			= 0x18,
+> +	SI476X_ERR_BAD_INTERNAL_MEMORY  = 0x20,
+> +	SI476X_ERR_BAD_PATCH		= 0x30,
+> +	SI476X_ERR_BAD_BOOT_MODE	= 0x31,
+> +	SI476X_ERR_BAD_PROPERTY		= 0x40,
+> +};
+> +
+> +
+> +static int si476x_core_parse_and_nag_about_error(struct si476x_core *core)
+> +{
+> +	int err;
+> +	char *cause;
+> +	u8 buffer[2];
+> +
+> +	if (core->revision != SI476X_REVISION_A10) {
 
-diff --git a/include/linux/Kbuild b/include/linux/Kbuild
-index fa21760..e53840d 100644
---- a/include/linux/Kbuild
-+++ b/include/linux/Kbuild
-@@ -387,6 +387,7 @@ header-y += utsname.h
- header-y += uuid.h
- header-y += uvcvideo.h
- header-y += v4l2-common.h
-+header-y += v4l2-controls.h
- header-y += v4l2-dv-timings.h
- header-y += v4l2-mediabus.h
- header-y += v4l2-subdev.h
-diff --git a/include/linux/v4l2-controls.h b/include/linux/v4l2-controls.h
-new file mode 100644
-index 0000000..421d24c
---- /dev/null
-+++ b/include/linux/v4l2-controls.h
-@@ -0,0 +1,761 @@
-+/*
-+ *  Video for Linux Two controls header file
-+ *
-+ *  Copyright (C) 1999-2012 the contributors
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  Alternatively you can redistribute this file under the terms of the
-+ *  BSD license as stated below:
-+ *
-+ *  Redistribution and use in source and binary forms, with or without
-+ *  modification, are permitted provided that the following conditions
-+ *  are met:
-+ *  1. Redistributions of source code must retain the above copyright
-+ *     notice, this list of conditions and the following disclaimer.
-+ *  2. Redistributions in binary form must reproduce the above copyright
-+ *     notice, this list of conditions and the following disclaimer in
-+ *     the documentation and/or other materials provided with the
-+ *     distribution.
-+ *  3. The names of its contributors may not be used to endorse or promote
-+ *     products derived from this software without specific prior written
-+ *     permission.
-+ *
-+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ *  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ *  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
-+ *  TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-+ *  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-+ *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-+ *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-+ *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ *  The contents of this header was split off from videodev2.h. All control
-+ *  definitions should be added to this header, which is included by
-+ *  videodev2.h.
-+ */
-+
-+#ifndef __LINUX_V4L2_CONTROLS_H
-+#define __LINUX_V4L2_CONTROLS_H
-+
-+/* Control classes */
-+#define V4L2_CTRL_CLASS_USER		0x00980000	/* Old-style 'user' controls */
-+#define V4L2_CTRL_CLASS_MPEG		0x00990000	/* MPEG-compression controls */
-+#define V4L2_CTRL_CLASS_CAMERA		0x009a0000	/* Camera class controls */
-+#define V4L2_CTRL_CLASS_FM_TX		0x009b0000	/* FM Modulator control class */
-+#define V4L2_CTRL_CLASS_FLASH		0x009c0000	/* Camera flash controls */
-+#define V4L2_CTRL_CLASS_JPEG		0x009d0000	/* JPEG-compression controls */
-+#define V4L2_CTRL_CLASS_IMAGE_SOURCE	0x009e0000	/* Image source controls */
-+#define V4L2_CTRL_CLASS_IMAGE_PROC	0x009f0000	/* Image processing controls */
-+#define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
-+
-+/* User-class control IDs */
-+
-+#define V4L2_CID_BASE			(V4L2_CTRL_CLASS_USER | 0x900)
-+#define V4L2_CID_USER_BASE 		V4L2_CID_BASE
-+#define V4L2_CID_USER_CLASS 		(V4L2_CTRL_CLASS_USER | 1)
-+#define V4L2_CID_BRIGHTNESS		(V4L2_CID_BASE+0)
-+#define V4L2_CID_CONTRAST		(V4L2_CID_BASE+1)
-+#define V4L2_CID_SATURATION		(V4L2_CID_BASE+2)
-+#define V4L2_CID_HUE			(V4L2_CID_BASE+3)
-+#define V4L2_CID_AUDIO_VOLUME		(V4L2_CID_BASE+5)
-+#define V4L2_CID_AUDIO_BALANCE		(V4L2_CID_BASE+6)
-+#define V4L2_CID_AUDIO_BASS		(V4L2_CID_BASE+7)
-+#define V4L2_CID_AUDIO_TREBLE		(V4L2_CID_BASE+8)
-+#define V4L2_CID_AUDIO_MUTE		(V4L2_CID_BASE+9)
-+#define V4L2_CID_AUDIO_LOUDNESS		(V4L2_CID_BASE+10)
-+#define V4L2_CID_BLACK_LEVEL		(V4L2_CID_BASE+11) /* Deprecated */
-+#define V4L2_CID_AUTO_WHITE_BALANCE	(V4L2_CID_BASE+12)
-+#define V4L2_CID_DO_WHITE_BALANCE	(V4L2_CID_BASE+13)
-+#define V4L2_CID_RED_BALANCE		(V4L2_CID_BASE+14)
-+#define V4L2_CID_BLUE_BALANCE		(V4L2_CID_BASE+15)
-+#define V4L2_CID_GAMMA			(V4L2_CID_BASE+16)
-+#define V4L2_CID_WHITENESS		(V4L2_CID_GAMMA) /* Deprecated */
-+#define V4L2_CID_EXPOSURE		(V4L2_CID_BASE+17)
-+#define V4L2_CID_AUTOGAIN		(V4L2_CID_BASE+18)
-+#define V4L2_CID_GAIN			(V4L2_CID_BASE+19)
-+#define V4L2_CID_HFLIP			(V4L2_CID_BASE+20)
-+#define V4L2_CID_VFLIP			(V4L2_CID_BASE+21)
-+
-+/* Deprecated; use V4L2_CID_PAN_RESET and V4L2_CID_TILT_RESET */
-+#define V4L2_CID_HCENTER		(V4L2_CID_BASE+22)
-+#define V4L2_CID_VCENTER		(V4L2_CID_BASE+23)
-+
-+#define V4L2_CID_POWER_LINE_FREQUENCY	(V4L2_CID_BASE+24)
-+enum v4l2_power_line_frequency {
-+	V4L2_CID_POWER_LINE_FREQUENCY_DISABLED	= 0,
-+	V4L2_CID_POWER_LINE_FREQUENCY_50HZ	= 1,
-+	V4L2_CID_POWER_LINE_FREQUENCY_60HZ	= 2,
-+	V4L2_CID_POWER_LINE_FREQUENCY_AUTO	= 3,
-+};
-+#define V4L2_CID_HUE_AUTO			(V4L2_CID_BASE+25)
-+#define V4L2_CID_WHITE_BALANCE_TEMPERATURE	(V4L2_CID_BASE+26)
-+#define V4L2_CID_SHARPNESS			(V4L2_CID_BASE+27)
-+#define V4L2_CID_BACKLIGHT_COMPENSATION 	(V4L2_CID_BASE+28)
-+#define V4L2_CID_CHROMA_AGC                     (V4L2_CID_BASE+29)
-+#define V4L2_CID_COLOR_KILLER                   (V4L2_CID_BASE+30)
-+#define V4L2_CID_COLORFX			(V4L2_CID_BASE+31)
-+enum v4l2_colorfx {
-+	V4L2_COLORFX_NONE			= 0,
-+	V4L2_COLORFX_BW				= 1,
-+	V4L2_COLORFX_SEPIA			= 2,
-+	V4L2_COLORFX_NEGATIVE			= 3,
-+	V4L2_COLORFX_EMBOSS			= 4,
-+	V4L2_COLORFX_SKETCH			= 5,
-+	V4L2_COLORFX_SKY_BLUE			= 6,
-+	V4L2_COLORFX_GRASS_GREEN		= 7,
-+	V4L2_COLORFX_SKIN_WHITEN		= 8,
-+	V4L2_COLORFX_VIVID			= 9,
-+	V4L2_COLORFX_AQUA			= 10,
-+	V4L2_COLORFX_ART_FREEZE			= 11,
-+	V4L2_COLORFX_SILHOUETTE			= 12,
-+	V4L2_COLORFX_SOLARIZATION		= 13,
-+	V4L2_COLORFX_ANTIQUE			= 14,
-+	V4L2_COLORFX_SET_CBCR			= 15,
-+};
-+#define V4L2_CID_AUTOBRIGHTNESS			(V4L2_CID_BASE+32)
-+#define V4L2_CID_BAND_STOP_FILTER		(V4L2_CID_BASE+33)
-+
-+#define V4L2_CID_ROTATE				(V4L2_CID_BASE+34)
-+#define V4L2_CID_BG_COLOR			(V4L2_CID_BASE+35)
-+
-+#define V4L2_CID_CHROMA_GAIN                    (V4L2_CID_BASE+36)
-+
-+#define V4L2_CID_ILLUMINATORS_1			(V4L2_CID_BASE+37)
-+#define V4L2_CID_ILLUMINATORS_2			(V4L2_CID_BASE+38)
-+
-+#define V4L2_CID_MIN_BUFFERS_FOR_CAPTURE	(V4L2_CID_BASE+39)
-+#define V4L2_CID_MIN_BUFFERS_FOR_OUTPUT		(V4L2_CID_BASE+40)
-+
-+#define V4L2_CID_ALPHA_COMPONENT		(V4L2_CID_BASE+41)
-+#define V4L2_CID_COLORFX_CBCR			(V4L2_CID_BASE+42)
-+
-+/* last CID + 1 */
-+#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+43)
-+
-+
-+/* MPEG-class control IDs */
-+
-+#define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
-+#define V4L2_CID_MPEG_CLASS 			(V4L2_CTRL_CLASS_MPEG | 1)
-+
-+/*  MPEG streams, specific to multiplexed streams */
-+#define V4L2_CID_MPEG_STREAM_TYPE 		(V4L2_CID_MPEG_BASE+0)
-+enum v4l2_mpeg_stream_type {
-+	V4L2_MPEG_STREAM_TYPE_MPEG2_PS   = 0, /* MPEG-2 program stream */
-+	V4L2_MPEG_STREAM_TYPE_MPEG2_TS   = 1, /* MPEG-2 transport stream */
-+	V4L2_MPEG_STREAM_TYPE_MPEG1_SS   = 2, /* MPEG-1 system stream */
-+	V4L2_MPEG_STREAM_TYPE_MPEG2_DVD  = 3, /* MPEG-2 DVD-compatible stream */
-+	V4L2_MPEG_STREAM_TYPE_MPEG1_VCD  = 4, /* MPEG-1 VCD-compatible stream */
-+	V4L2_MPEG_STREAM_TYPE_MPEG2_SVCD = 5, /* MPEG-2 SVCD-compatible stream */
-+};
-+#define V4L2_CID_MPEG_STREAM_PID_PMT 		(V4L2_CID_MPEG_BASE+1)
-+#define V4L2_CID_MPEG_STREAM_PID_AUDIO 		(V4L2_CID_MPEG_BASE+2)
-+#define V4L2_CID_MPEG_STREAM_PID_VIDEO 		(V4L2_CID_MPEG_BASE+3)
-+#define V4L2_CID_MPEG_STREAM_PID_PCR 		(V4L2_CID_MPEG_BASE+4)
-+#define V4L2_CID_MPEG_STREAM_PES_ID_AUDIO 	(V4L2_CID_MPEG_BASE+5)
-+#define V4L2_CID_MPEG_STREAM_PES_ID_VIDEO 	(V4L2_CID_MPEG_BASE+6)
-+#define V4L2_CID_MPEG_STREAM_VBI_FMT 		(V4L2_CID_MPEG_BASE+7)
-+enum v4l2_mpeg_stream_vbi_fmt {
-+	V4L2_MPEG_STREAM_VBI_FMT_NONE = 0,  /* No VBI in the MPEG stream */
-+	V4L2_MPEG_STREAM_VBI_FMT_IVTV = 1,  /* VBI in private packets, IVTV format */
-+};
-+
-+/*  MPEG audio controls specific to multiplexed streams  */
-+#define V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ 	(V4L2_CID_MPEG_BASE+100)
-+enum v4l2_mpeg_audio_sampling_freq {
-+	V4L2_MPEG_AUDIO_SAMPLING_FREQ_44100 = 0,
-+	V4L2_MPEG_AUDIO_SAMPLING_FREQ_48000 = 1,
-+	V4L2_MPEG_AUDIO_SAMPLING_FREQ_32000 = 2,
-+};
-+#define V4L2_CID_MPEG_AUDIO_ENCODING 		(V4L2_CID_MPEG_BASE+101)
-+enum v4l2_mpeg_audio_encoding {
-+	V4L2_MPEG_AUDIO_ENCODING_LAYER_1 = 0,
-+	V4L2_MPEG_AUDIO_ENCODING_LAYER_2 = 1,
-+	V4L2_MPEG_AUDIO_ENCODING_LAYER_3 = 2,
-+	V4L2_MPEG_AUDIO_ENCODING_AAC     = 3,
-+	V4L2_MPEG_AUDIO_ENCODING_AC3     = 4,
-+};
-+#define V4L2_CID_MPEG_AUDIO_L1_BITRATE 		(V4L2_CID_MPEG_BASE+102)
-+enum v4l2_mpeg_audio_l1_bitrate {
-+	V4L2_MPEG_AUDIO_L1_BITRATE_32K  = 0,
-+	V4L2_MPEG_AUDIO_L1_BITRATE_64K  = 1,
-+	V4L2_MPEG_AUDIO_L1_BITRATE_96K  = 2,
-+	V4L2_MPEG_AUDIO_L1_BITRATE_128K = 3,
-+	V4L2_MPEG_AUDIO_L1_BITRATE_160K = 4,
-+	V4L2_MPEG_AUDIO_L1_BITRATE_192K = 5,
-+	V4L2_MPEG_AUDIO_L1_BITRATE_224K = 6,
-+	V4L2_MPEG_AUDIO_L1_BITRATE_256K = 7,
-+	V4L2_MPEG_AUDIO_L1_BITRATE_288K = 8,
-+	V4L2_MPEG_AUDIO_L1_BITRATE_320K = 9,
-+	V4L2_MPEG_AUDIO_L1_BITRATE_352K = 10,
-+	V4L2_MPEG_AUDIO_L1_BITRATE_384K = 11,
-+	V4L2_MPEG_AUDIO_L1_BITRATE_416K = 12,
-+	V4L2_MPEG_AUDIO_L1_BITRATE_448K = 13,
-+};
-+#define V4L2_CID_MPEG_AUDIO_L2_BITRATE 		(V4L2_CID_MPEG_BASE+103)
-+enum v4l2_mpeg_audio_l2_bitrate {
-+	V4L2_MPEG_AUDIO_L2_BITRATE_32K  = 0,
-+	V4L2_MPEG_AUDIO_L2_BITRATE_48K  = 1,
-+	V4L2_MPEG_AUDIO_L2_BITRATE_56K  = 2,
-+	V4L2_MPEG_AUDIO_L2_BITRATE_64K  = 3,
-+	V4L2_MPEG_AUDIO_L2_BITRATE_80K  = 4,
-+	V4L2_MPEG_AUDIO_L2_BITRATE_96K  = 5,
-+	V4L2_MPEG_AUDIO_L2_BITRATE_112K = 6,
-+	V4L2_MPEG_AUDIO_L2_BITRATE_128K = 7,
-+	V4L2_MPEG_AUDIO_L2_BITRATE_160K = 8,
-+	V4L2_MPEG_AUDIO_L2_BITRATE_192K = 9,
-+	V4L2_MPEG_AUDIO_L2_BITRATE_224K = 10,
-+	V4L2_MPEG_AUDIO_L2_BITRATE_256K = 11,
-+	V4L2_MPEG_AUDIO_L2_BITRATE_320K = 12,
-+	V4L2_MPEG_AUDIO_L2_BITRATE_384K = 13,
-+};
-+#define V4L2_CID_MPEG_AUDIO_L3_BITRATE 		(V4L2_CID_MPEG_BASE+104)
-+enum v4l2_mpeg_audio_l3_bitrate {
-+	V4L2_MPEG_AUDIO_L3_BITRATE_32K  = 0,
-+	V4L2_MPEG_AUDIO_L3_BITRATE_40K  = 1,
-+	V4L2_MPEG_AUDIO_L3_BITRATE_48K  = 2,
-+	V4L2_MPEG_AUDIO_L3_BITRATE_56K  = 3,
-+	V4L2_MPEG_AUDIO_L3_BITRATE_64K  = 4,
-+	V4L2_MPEG_AUDIO_L3_BITRATE_80K  = 5,
-+	V4L2_MPEG_AUDIO_L3_BITRATE_96K  = 6,
-+	V4L2_MPEG_AUDIO_L3_BITRATE_112K = 7,
-+	V4L2_MPEG_AUDIO_L3_BITRATE_128K = 8,
-+	V4L2_MPEG_AUDIO_L3_BITRATE_160K = 9,
-+	V4L2_MPEG_AUDIO_L3_BITRATE_192K = 10,
-+	V4L2_MPEG_AUDIO_L3_BITRATE_224K = 11,
-+	V4L2_MPEG_AUDIO_L3_BITRATE_256K = 12,
-+	V4L2_MPEG_AUDIO_L3_BITRATE_320K = 13,
-+};
-+#define V4L2_CID_MPEG_AUDIO_MODE 		(V4L2_CID_MPEG_BASE+105)
-+enum v4l2_mpeg_audio_mode {
-+	V4L2_MPEG_AUDIO_MODE_STEREO       = 0,
-+	V4L2_MPEG_AUDIO_MODE_JOINT_STEREO = 1,
-+	V4L2_MPEG_AUDIO_MODE_DUAL         = 2,
-+	V4L2_MPEG_AUDIO_MODE_MONO         = 3,
-+};
-+#define V4L2_CID_MPEG_AUDIO_MODE_EXTENSION 	(V4L2_CID_MPEG_BASE+106)
-+enum v4l2_mpeg_audio_mode_extension {
-+	V4L2_MPEG_AUDIO_MODE_EXTENSION_BOUND_4  = 0,
-+	V4L2_MPEG_AUDIO_MODE_EXTENSION_BOUND_8  = 1,
-+	V4L2_MPEG_AUDIO_MODE_EXTENSION_BOUND_12 = 2,
-+	V4L2_MPEG_AUDIO_MODE_EXTENSION_BOUND_16 = 3,
-+};
-+#define V4L2_CID_MPEG_AUDIO_EMPHASIS 		(V4L2_CID_MPEG_BASE+107)
-+enum v4l2_mpeg_audio_emphasis {
-+	V4L2_MPEG_AUDIO_EMPHASIS_NONE         = 0,
-+	V4L2_MPEG_AUDIO_EMPHASIS_50_DIV_15_uS = 1,
-+	V4L2_MPEG_AUDIO_EMPHASIS_CCITT_J17    = 2,
-+};
-+#define V4L2_CID_MPEG_AUDIO_CRC 		(V4L2_CID_MPEG_BASE+108)
-+enum v4l2_mpeg_audio_crc {
-+	V4L2_MPEG_AUDIO_CRC_NONE  = 0,
-+	V4L2_MPEG_AUDIO_CRC_CRC16 = 1,
-+};
-+#define V4L2_CID_MPEG_AUDIO_MUTE 		(V4L2_CID_MPEG_BASE+109)
-+#define V4L2_CID_MPEG_AUDIO_AAC_BITRATE		(V4L2_CID_MPEG_BASE+110)
-+#define V4L2_CID_MPEG_AUDIO_AC3_BITRATE		(V4L2_CID_MPEG_BASE+111)
-+enum v4l2_mpeg_audio_ac3_bitrate {
-+	V4L2_MPEG_AUDIO_AC3_BITRATE_32K  = 0,
-+	V4L2_MPEG_AUDIO_AC3_BITRATE_40K  = 1,
-+	V4L2_MPEG_AUDIO_AC3_BITRATE_48K  = 2,
-+	V4L2_MPEG_AUDIO_AC3_BITRATE_56K  = 3,
-+	V4L2_MPEG_AUDIO_AC3_BITRATE_64K  = 4,
-+	V4L2_MPEG_AUDIO_AC3_BITRATE_80K  = 5,
-+	V4L2_MPEG_AUDIO_AC3_BITRATE_96K  = 6,
-+	V4L2_MPEG_AUDIO_AC3_BITRATE_112K = 7,
-+	V4L2_MPEG_AUDIO_AC3_BITRATE_128K = 8,
-+	V4L2_MPEG_AUDIO_AC3_BITRATE_160K = 9,
-+	V4L2_MPEG_AUDIO_AC3_BITRATE_192K = 10,
-+	V4L2_MPEG_AUDIO_AC3_BITRATE_224K = 11,
-+	V4L2_MPEG_AUDIO_AC3_BITRATE_256K = 12,
-+	V4L2_MPEG_AUDIO_AC3_BITRATE_320K = 13,
-+	V4L2_MPEG_AUDIO_AC3_BITRATE_384K = 14,
-+	V4L2_MPEG_AUDIO_AC3_BITRATE_448K = 15,
-+	V4L2_MPEG_AUDIO_AC3_BITRATE_512K = 16,
-+	V4L2_MPEG_AUDIO_AC3_BITRATE_576K = 17,
-+	V4L2_MPEG_AUDIO_AC3_BITRATE_640K = 18,
-+};
-+#define V4L2_CID_MPEG_AUDIO_DEC_PLAYBACK	(V4L2_CID_MPEG_BASE+112)
-+enum v4l2_mpeg_audio_dec_playback {
-+	V4L2_MPEG_AUDIO_DEC_PLAYBACK_AUTO	    = 0,
-+	V4L2_MPEG_AUDIO_DEC_PLAYBACK_STEREO	    = 1,
-+	V4L2_MPEG_AUDIO_DEC_PLAYBACK_LEFT	    = 2,
-+	V4L2_MPEG_AUDIO_DEC_PLAYBACK_RIGHT	    = 3,
-+	V4L2_MPEG_AUDIO_DEC_PLAYBACK_MONO	    = 4,
-+	V4L2_MPEG_AUDIO_DEC_PLAYBACK_SWAPPED_STEREO = 5,
-+};
-+#define V4L2_CID_MPEG_AUDIO_DEC_MULTILINGUAL_PLAYBACK (V4L2_CID_MPEG_BASE+113)
-+
-+/*  MPEG video controls specific to multiplexed streams */
-+#define V4L2_CID_MPEG_VIDEO_ENCODING 		(V4L2_CID_MPEG_BASE+200)
-+enum v4l2_mpeg_video_encoding {
-+	V4L2_MPEG_VIDEO_ENCODING_MPEG_1     = 0,
-+	V4L2_MPEG_VIDEO_ENCODING_MPEG_2     = 1,
-+	V4L2_MPEG_VIDEO_ENCODING_MPEG_4_AVC = 2,
-+};
-+#define V4L2_CID_MPEG_VIDEO_ASPECT 		(V4L2_CID_MPEG_BASE+201)
-+enum v4l2_mpeg_video_aspect {
-+	V4L2_MPEG_VIDEO_ASPECT_1x1     = 0,
-+	V4L2_MPEG_VIDEO_ASPECT_4x3     = 1,
-+	V4L2_MPEG_VIDEO_ASPECT_16x9    = 2,
-+	V4L2_MPEG_VIDEO_ASPECT_221x100 = 3,
-+};
-+#define V4L2_CID_MPEG_VIDEO_B_FRAMES 		(V4L2_CID_MPEG_BASE+202)
-+#define V4L2_CID_MPEG_VIDEO_GOP_SIZE 		(V4L2_CID_MPEG_BASE+203)
-+#define V4L2_CID_MPEG_VIDEO_GOP_CLOSURE 	(V4L2_CID_MPEG_BASE+204)
-+#define V4L2_CID_MPEG_VIDEO_PULLDOWN 		(V4L2_CID_MPEG_BASE+205)
-+#define V4L2_CID_MPEG_VIDEO_BITRATE_MODE 	(V4L2_CID_MPEG_BASE+206)
-+enum v4l2_mpeg_video_bitrate_mode {
-+	V4L2_MPEG_VIDEO_BITRATE_MODE_VBR = 0,
-+	V4L2_MPEG_VIDEO_BITRATE_MODE_CBR = 1,
-+};
-+#define V4L2_CID_MPEG_VIDEO_BITRATE 		(V4L2_CID_MPEG_BASE+207)
-+#define V4L2_CID_MPEG_VIDEO_BITRATE_PEAK 	(V4L2_CID_MPEG_BASE+208)
-+#define V4L2_CID_MPEG_VIDEO_TEMPORAL_DECIMATION (V4L2_CID_MPEG_BASE+209)
-+#define V4L2_CID_MPEG_VIDEO_MUTE 		(V4L2_CID_MPEG_BASE+210)
-+#define V4L2_CID_MPEG_VIDEO_MUTE_YUV 		(V4L2_CID_MPEG_BASE+211)
-+#define V4L2_CID_MPEG_VIDEO_DECODER_SLICE_INTERFACE		(V4L2_CID_MPEG_BASE+212)
-+#define V4L2_CID_MPEG_VIDEO_DECODER_MPEG4_DEBLOCK_FILTER	(V4L2_CID_MPEG_BASE+213)
-+#define V4L2_CID_MPEG_VIDEO_CYCLIC_INTRA_REFRESH_MB		(V4L2_CID_MPEG_BASE+214)
-+#define V4L2_CID_MPEG_VIDEO_FRAME_RC_ENABLE			(V4L2_CID_MPEG_BASE+215)
-+#define V4L2_CID_MPEG_VIDEO_HEADER_MODE				(V4L2_CID_MPEG_BASE+216)
-+enum v4l2_mpeg_video_header_mode {
-+	V4L2_MPEG_VIDEO_HEADER_MODE_SEPARATE			= 0,
-+	V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME	= 1,
-+
-+};
-+#define V4L2_CID_MPEG_VIDEO_MAX_REF_PIC			(V4L2_CID_MPEG_BASE+217)
-+#define V4L2_CID_MPEG_VIDEO_MB_RC_ENABLE		(V4L2_CID_MPEG_BASE+218)
-+#define V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES	(V4L2_CID_MPEG_BASE+219)
-+#define V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB		(V4L2_CID_MPEG_BASE+220)
-+#define V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE		(V4L2_CID_MPEG_BASE+221)
-+enum v4l2_mpeg_video_multi_slice_mode {
-+	V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE		= 0,
-+	V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB		= 1,
-+	V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES	= 2,
-+};
-+#define V4L2_CID_MPEG_VIDEO_VBV_SIZE			(V4L2_CID_MPEG_BASE+222)
-+#define V4L2_CID_MPEG_VIDEO_DEC_PTS			(V4L2_CID_MPEG_BASE+223)
-+#define V4L2_CID_MPEG_VIDEO_DEC_FRAME			(V4L2_CID_MPEG_BASE+224)
-+
-+#define V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP		(V4L2_CID_MPEG_BASE+300)
-+#define V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP		(V4L2_CID_MPEG_BASE+301)
-+#define V4L2_CID_MPEG_VIDEO_H263_B_FRAME_QP		(V4L2_CID_MPEG_BASE+302)
-+#define V4L2_CID_MPEG_VIDEO_H263_MIN_QP			(V4L2_CID_MPEG_BASE+303)
-+#define V4L2_CID_MPEG_VIDEO_H263_MAX_QP			(V4L2_CID_MPEG_BASE+304)
-+#define V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP		(V4L2_CID_MPEG_BASE+350)
-+#define V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP		(V4L2_CID_MPEG_BASE+351)
-+#define V4L2_CID_MPEG_VIDEO_H264_B_FRAME_QP		(V4L2_CID_MPEG_BASE+352)
-+#define V4L2_CID_MPEG_VIDEO_H264_MIN_QP			(V4L2_CID_MPEG_BASE+353)
-+#define V4L2_CID_MPEG_VIDEO_H264_MAX_QP			(V4L2_CID_MPEG_BASE+354)
-+#define V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM		(V4L2_CID_MPEG_BASE+355)
-+#define V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE		(V4L2_CID_MPEG_BASE+356)
-+#define V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE		(V4L2_CID_MPEG_BASE+357)
-+enum v4l2_mpeg_video_h264_entropy_mode {
-+	V4L2_MPEG_VIDEO_H264_ENTROPY_MODE_CAVLC	= 0,
-+	V4L2_MPEG_VIDEO_H264_ENTROPY_MODE_CABAC	= 1,
-+};
-+#define V4L2_CID_MPEG_VIDEO_H264_I_PERIOD		(V4L2_CID_MPEG_BASE+358)
-+#define V4L2_CID_MPEG_VIDEO_H264_LEVEL			(V4L2_CID_MPEG_BASE+359)
-+enum v4l2_mpeg_video_h264_level {
-+	V4L2_MPEG_VIDEO_H264_LEVEL_1_0	= 0,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_1B	= 1,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_1_1	= 2,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_1_2	= 3,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_1_3	= 4,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_2_0	= 5,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_2_1	= 6,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_2_2	= 7,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_3_0	= 8,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_3_1	= 9,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_3_2	= 10,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_4_0	= 11,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_4_1	= 12,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_4_2	= 13,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_5_0	= 14,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_5_1	= 15,
-+};
-+#define V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_ALPHA	(V4L2_CID_MPEG_BASE+360)
-+#define V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_BETA	(V4L2_CID_MPEG_BASE+361)
-+#define V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE	(V4L2_CID_MPEG_BASE+362)
-+enum v4l2_mpeg_video_h264_loop_filter_mode {
-+	V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_ENABLED				= 0,
-+	V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED				= 1,
-+	V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED_AT_SLICE_BOUNDARY	= 2,
-+};
-+#define V4L2_CID_MPEG_VIDEO_H264_PROFILE		(V4L2_CID_MPEG_BASE+363)
-+enum v4l2_mpeg_video_h264_profile {
-+	V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE			= 0,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_CONSTRAINED_BASELINE	= 1,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_MAIN			= 2,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_EXTENDED			= 3,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH			= 4,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_10			= 5,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_422			= 6,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_444_PREDICTIVE	= 7,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_10_INTRA		= 8,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_422_INTRA		= 9,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_444_INTRA		= 10,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_CAVLC_444_INTRA		= 11,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_SCALABLE_BASELINE		= 12,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_SCALABLE_HIGH		= 13,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_SCALABLE_HIGH_INTRA	= 14,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_STEREO_HIGH		= 15,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_MULTIVIEW_HIGH		= 16,
-+};
-+#define V4L2_CID_MPEG_VIDEO_H264_VUI_EXT_SAR_HEIGHT	(V4L2_CID_MPEG_BASE+364)
-+#define V4L2_CID_MPEG_VIDEO_H264_VUI_EXT_SAR_WIDTH	(V4L2_CID_MPEG_BASE+365)
-+#define V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_ENABLE		(V4L2_CID_MPEG_BASE+366)
-+#define V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC		(V4L2_CID_MPEG_BASE+367)
-+enum v4l2_mpeg_video_h264_vui_sar_idc {
-+	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_UNSPECIFIED	= 0,
-+	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_1x1		= 1,
-+	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_12x11		= 2,
-+	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_10x11		= 3,
-+	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_16x11		= 4,
-+	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_40x33		= 5,
-+	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_24x11		= 6,
-+	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_20x11		= 7,
-+	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_32x11		= 8,
-+	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_80x33		= 9,
-+	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_18x11		= 10,
-+	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_15x11		= 11,
-+	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_64x33		= 12,
-+	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_160x99		= 13,
-+	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_4x3		= 14,
-+	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_3x2		= 15,
-+	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_2x1		= 16,
-+	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_EXTENDED	= 17,
-+};
-+#define V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP	(V4L2_CID_MPEG_BASE+400)
-+#define V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP	(V4L2_CID_MPEG_BASE+401)
-+#define V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP	(V4L2_CID_MPEG_BASE+402)
-+#define V4L2_CID_MPEG_VIDEO_MPEG4_MIN_QP	(V4L2_CID_MPEG_BASE+403)
-+#define V4L2_CID_MPEG_VIDEO_MPEG4_MAX_QP	(V4L2_CID_MPEG_BASE+404)
-+#define V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL		(V4L2_CID_MPEG_BASE+405)
-+enum v4l2_mpeg_video_mpeg4_level {
-+	V4L2_MPEG_VIDEO_MPEG4_LEVEL_0	= 0,
-+	V4L2_MPEG_VIDEO_MPEG4_LEVEL_0B	= 1,
-+	V4L2_MPEG_VIDEO_MPEG4_LEVEL_1	= 2,
-+	V4L2_MPEG_VIDEO_MPEG4_LEVEL_2	= 3,
-+	V4L2_MPEG_VIDEO_MPEG4_LEVEL_3	= 4,
-+	V4L2_MPEG_VIDEO_MPEG4_LEVEL_3B	= 5,
-+	V4L2_MPEG_VIDEO_MPEG4_LEVEL_4	= 6,
-+	V4L2_MPEG_VIDEO_MPEG4_LEVEL_5	= 7,
-+};
-+#define V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE	(V4L2_CID_MPEG_BASE+406)
-+enum v4l2_mpeg_video_mpeg4_profile {
-+	V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE				= 0,
-+	V4L2_MPEG_VIDEO_MPEG4_PROFILE_ADVANCED_SIMPLE			= 1,
-+	V4L2_MPEG_VIDEO_MPEG4_PROFILE_CORE				= 2,
-+	V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE_SCALABLE			= 3,
-+	V4L2_MPEG_VIDEO_MPEG4_PROFILE_ADVANCED_CODING_EFFICIENCY	= 4,
-+};
-+#define V4L2_CID_MPEG_VIDEO_MPEG4_QPEL		(V4L2_CID_MPEG_BASE+407)
-+
-+/*  MPEG-class control IDs specific to the CX2341x driver as defined by V4L2 */
-+#define V4L2_CID_MPEG_CX2341X_BASE 				(V4L2_CTRL_CLASS_MPEG | 0x1000)
-+#define V4L2_CID_MPEG_CX2341X_VIDEO_SPATIAL_FILTER_MODE 	(V4L2_CID_MPEG_CX2341X_BASE+0)
-+enum v4l2_mpeg_cx2341x_video_spatial_filter_mode {
-+	V4L2_MPEG_CX2341X_VIDEO_SPATIAL_FILTER_MODE_MANUAL = 0,
-+	V4L2_MPEG_CX2341X_VIDEO_SPATIAL_FILTER_MODE_AUTO   = 1,
-+};
-+#define V4L2_CID_MPEG_CX2341X_VIDEO_SPATIAL_FILTER 		(V4L2_CID_MPEG_CX2341X_BASE+1)
-+#define V4L2_CID_MPEG_CX2341X_VIDEO_LUMA_SPATIAL_FILTER_TYPE 	(V4L2_CID_MPEG_CX2341X_BASE+2)
-+enum v4l2_mpeg_cx2341x_video_luma_spatial_filter_type {
-+	V4L2_MPEG_CX2341X_VIDEO_LUMA_SPATIAL_FILTER_TYPE_OFF                  = 0,
-+	V4L2_MPEG_CX2341X_VIDEO_LUMA_SPATIAL_FILTER_TYPE_1D_HOR               = 1,
-+	V4L2_MPEG_CX2341X_VIDEO_LUMA_SPATIAL_FILTER_TYPE_1D_VERT              = 2,
-+	V4L2_MPEG_CX2341X_VIDEO_LUMA_SPATIAL_FILTER_TYPE_2D_HV_SEPARABLE      = 3,
-+	V4L2_MPEG_CX2341X_VIDEO_LUMA_SPATIAL_FILTER_TYPE_2D_SYM_NON_SEPARABLE = 4,
-+};
-+#define V4L2_CID_MPEG_CX2341X_VIDEO_CHROMA_SPATIAL_FILTER_TYPE 	(V4L2_CID_MPEG_CX2341X_BASE+3)
-+enum v4l2_mpeg_cx2341x_video_chroma_spatial_filter_type {
-+	V4L2_MPEG_CX2341X_VIDEO_CHROMA_SPATIAL_FILTER_TYPE_OFF    = 0,
-+	V4L2_MPEG_CX2341X_VIDEO_CHROMA_SPATIAL_FILTER_TYPE_1D_HOR = 1,
-+};
-+#define V4L2_CID_MPEG_CX2341X_VIDEO_TEMPORAL_FILTER_MODE 	(V4L2_CID_MPEG_CX2341X_BASE+4)
-+enum v4l2_mpeg_cx2341x_video_temporal_filter_mode {
-+	V4L2_MPEG_CX2341X_VIDEO_TEMPORAL_FILTER_MODE_MANUAL = 0,
-+	V4L2_MPEG_CX2341X_VIDEO_TEMPORAL_FILTER_MODE_AUTO   = 1,
-+};
-+#define V4L2_CID_MPEG_CX2341X_VIDEO_TEMPORAL_FILTER 		(V4L2_CID_MPEG_CX2341X_BASE+5)
-+#define V4L2_CID_MPEG_CX2341X_VIDEO_MEDIAN_FILTER_TYPE 		(V4L2_CID_MPEG_CX2341X_BASE+6)
-+enum v4l2_mpeg_cx2341x_video_median_filter_type {
-+	V4L2_MPEG_CX2341X_VIDEO_MEDIAN_FILTER_TYPE_OFF      = 0,
-+	V4L2_MPEG_CX2341X_VIDEO_MEDIAN_FILTER_TYPE_HOR      = 1,
-+	V4L2_MPEG_CX2341X_VIDEO_MEDIAN_FILTER_TYPE_VERT     = 2,
-+	V4L2_MPEG_CX2341X_VIDEO_MEDIAN_FILTER_TYPE_HOR_VERT = 3,
-+	V4L2_MPEG_CX2341X_VIDEO_MEDIAN_FILTER_TYPE_DIAG     = 4,
-+};
-+#define V4L2_CID_MPEG_CX2341X_VIDEO_LUMA_MEDIAN_FILTER_BOTTOM 	(V4L2_CID_MPEG_CX2341X_BASE+7)
-+#define V4L2_CID_MPEG_CX2341X_VIDEO_LUMA_MEDIAN_FILTER_TOP 	(V4L2_CID_MPEG_CX2341X_BASE+8)
-+#define V4L2_CID_MPEG_CX2341X_VIDEO_CHROMA_MEDIAN_FILTER_BOTTOM	(V4L2_CID_MPEG_CX2341X_BASE+9)
-+#define V4L2_CID_MPEG_CX2341X_VIDEO_CHROMA_MEDIAN_FILTER_TOP 	(V4L2_CID_MPEG_CX2341X_BASE+10)
-+#define V4L2_CID_MPEG_CX2341X_STREAM_INSERT_NAV_PACKETS 	(V4L2_CID_MPEG_CX2341X_BASE+11)
-+
-+/*  MPEG-class control IDs specific to the Samsung MFC 5.1 driver as defined by V4L2 */
-+#define V4L2_CID_MPEG_MFC51_BASE				(V4L2_CTRL_CLASS_MPEG | 0x1100)
-+
-+#define V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_DELAY		(V4L2_CID_MPEG_MFC51_BASE+0)
-+#define V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_DELAY_ENABLE	(V4L2_CID_MPEG_MFC51_BASE+1)
-+#define V4L2_CID_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE			(V4L2_CID_MPEG_MFC51_BASE+2)
-+enum v4l2_mpeg_mfc51_video_frame_skip_mode {
-+	V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_DISABLED		= 0,
-+	V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_LEVEL_LIMIT	= 1,
-+	V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_BUF_LIMIT		= 2,
-+};
-+#define V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE			(V4L2_CID_MPEG_MFC51_BASE+3)
-+enum v4l2_mpeg_mfc51_video_force_frame_type {
-+	V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_DISABLED		= 0,
-+	V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_I_FRAME		= 1,
-+	V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_NOT_CODED	= 2,
-+};
-+#define V4L2_CID_MPEG_MFC51_VIDEO_PADDING				(V4L2_CID_MPEG_MFC51_BASE+4)
-+#define V4L2_CID_MPEG_MFC51_VIDEO_PADDING_YUV				(V4L2_CID_MPEG_MFC51_BASE+5)
-+#define V4L2_CID_MPEG_MFC51_VIDEO_RC_FIXED_TARGET_BIT			(V4L2_CID_MPEG_MFC51_BASE+6)
-+#define V4L2_CID_MPEG_MFC51_VIDEO_RC_REACTION_COEFF			(V4L2_CID_MPEG_MFC51_BASE+7)
-+#define V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_ACTIVITY		(V4L2_CID_MPEG_MFC51_BASE+50)
-+#define V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_DARK			(V4L2_CID_MPEG_MFC51_BASE+51)
-+#define V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_SMOOTH		(V4L2_CID_MPEG_MFC51_BASE+52)
-+#define V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_STATIC		(V4L2_CID_MPEG_MFC51_BASE+53)
-+#define V4L2_CID_MPEG_MFC51_VIDEO_H264_NUM_REF_PIC_FOR_P		(V4L2_CID_MPEG_MFC51_BASE+54)
-+
-+
-+/*  Camera class control IDs */
-+
-+#define V4L2_CID_CAMERA_CLASS_BASE 	(V4L2_CTRL_CLASS_CAMERA | 0x900)
-+#define V4L2_CID_CAMERA_CLASS 		(V4L2_CTRL_CLASS_CAMERA | 1)
-+
-+#define V4L2_CID_EXPOSURE_AUTO			(V4L2_CID_CAMERA_CLASS_BASE+1)
-+enum  v4l2_exposure_auto_type {
-+	V4L2_EXPOSURE_AUTO = 0,
-+	V4L2_EXPOSURE_MANUAL = 1,
-+	V4L2_EXPOSURE_SHUTTER_PRIORITY = 2,
-+	V4L2_EXPOSURE_APERTURE_PRIORITY = 3
-+};
-+#define V4L2_CID_EXPOSURE_ABSOLUTE		(V4L2_CID_CAMERA_CLASS_BASE+2)
-+#define V4L2_CID_EXPOSURE_AUTO_PRIORITY		(V4L2_CID_CAMERA_CLASS_BASE+3)
-+
-+#define V4L2_CID_PAN_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+4)
-+#define V4L2_CID_TILT_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+5)
-+#define V4L2_CID_PAN_RESET			(V4L2_CID_CAMERA_CLASS_BASE+6)
-+#define V4L2_CID_TILT_RESET			(V4L2_CID_CAMERA_CLASS_BASE+7)
-+
-+#define V4L2_CID_PAN_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+8)
-+#define V4L2_CID_TILT_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+9)
-+
-+#define V4L2_CID_FOCUS_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+10)
-+#define V4L2_CID_FOCUS_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+11)
-+#define V4L2_CID_FOCUS_AUTO			(V4L2_CID_CAMERA_CLASS_BASE+12)
-+
-+#define V4L2_CID_ZOOM_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+13)
-+#define V4L2_CID_ZOOM_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+14)
-+#define V4L2_CID_ZOOM_CONTINUOUS		(V4L2_CID_CAMERA_CLASS_BASE+15)
-+
-+#define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
-+
-+#define V4L2_CID_IRIS_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+17)
-+#define V4L2_CID_IRIS_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+18)
-+
-+#define V4L2_CID_AUTO_EXPOSURE_BIAS		(V4L2_CID_CAMERA_CLASS_BASE+19)
-+
-+#define V4L2_CID_AUTO_N_PRESET_WHITE_BALANCE	(V4L2_CID_CAMERA_CLASS_BASE+20)
-+enum v4l2_auto_n_preset_white_balance {
-+	V4L2_WHITE_BALANCE_MANUAL		= 0,
-+	V4L2_WHITE_BALANCE_AUTO			= 1,
-+	V4L2_WHITE_BALANCE_INCANDESCENT		= 2,
-+	V4L2_WHITE_BALANCE_FLUORESCENT		= 3,
-+	V4L2_WHITE_BALANCE_FLUORESCENT_H	= 4,
-+	V4L2_WHITE_BALANCE_HORIZON		= 5,
-+	V4L2_WHITE_BALANCE_DAYLIGHT		= 6,
-+	V4L2_WHITE_BALANCE_FLASH		= 7,
-+	V4L2_WHITE_BALANCE_CLOUDY		= 8,
-+	V4L2_WHITE_BALANCE_SHADE		= 9,
-+};
-+
-+#define V4L2_CID_WIDE_DYNAMIC_RANGE		(V4L2_CID_CAMERA_CLASS_BASE+21)
-+#define V4L2_CID_IMAGE_STABILIZATION		(V4L2_CID_CAMERA_CLASS_BASE+22)
-+
-+#define V4L2_CID_ISO_SENSITIVITY		(V4L2_CID_CAMERA_CLASS_BASE+23)
-+#define V4L2_CID_ISO_SENSITIVITY_AUTO		(V4L2_CID_CAMERA_CLASS_BASE+24)
-+enum v4l2_iso_sensitivity_auto_type {
-+	V4L2_ISO_SENSITIVITY_MANUAL		= 0,
-+	V4L2_ISO_SENSITIVITY_AUTO		= 1,
-+};
-+
-+#define V4L2_CID_EXPOSURE_METERING		(V4L2_CID_CAMERA_CLASS_BASE+25)
-+enum v4l2_exposure_metering {
-+	V4L2_EXPOSURE_METERING_AVERAGE		= 0,
-+	V4L2_EXPOSURE_METERING_CENTER_WEIGHTED	= 1,
-+	V4L2_EXPOSURE_METERING_SPOT		= 2,
-+};
-+
-+#define V4L2_CID_SCENE_MODE			(V4L2_CID_CAMERA_CLASS_BASE+26)
-+enum v4l2_scene_mode {
-+	V4L2_SCENE_MODE_NONE			= 0,
-+	V4L2_SCENE_MODE_BACKLIGHT		= 1,
-+	V4L2_SCENE_MODE_BEACH_SNOW		= 2,
-+	V4L2_SCENE_MODE_CANDLE_LIGHT		= 3,
-+	V4L2_SCENE_MODE_DAWN_DUSK		= 4,
-+	V4L2_SCENE_MODE_FALL_COLORS		= 5,
-+	V4L2_SCENE_MODE_FIREWORKS		= 6,
-+	V4L2_SCENE_MODE_LANDSCAPE		= 7,
-+	V4L2_SCENE_MODE_NIGHT			= 8,
-+	V4L2_SCENE_MODE_PARTY_INDOOR		= 9,
-+	V4L2_SCENE_MODE_PORTRAIT		= 10,
-+	V4L2_SCENE_MODE_SPORTS			= 11,
-+	V4L2_SCENE_MODE_SUNSET			= 12,
-+	V4L2_SCENE_MODE_TEXT			= 13,
-+};
-+
-+#define V4L2_CID_3A_LOCK			(V4L2_CID_CAMERA_CLASS_BASE+27)
-+#define V4L2_LOCK_EXPOSURE			(1 << 0)
-+#define V4L2_LOCK_WHITE_BALANCE			(1 << 1)
-+#define V4L2_LOCK_FOCUS				(1 << 2)
-+
-+#define V4L2_CID_AUTO_FOCUS_START		(V4L2_CID_CAMERA_CLASS_BASE+28)
-+#define V4L2_CID_AUTO_FOCUS_STOP		(V4L2_CID_CAMERA_CLASS_BASE+29)
-+#define V4L2_CID_AUTO_FOCUS_STATUS		(V4L2_CID_CAMERA_CLASS_BASE+30)
-+#define V4L2_AUTO_FOCUS_STATUS_IDLE		(0 << 0)
-+#define V4L2_AUTO_FOCUS_STATUS_BUSY		(1 << 0)
-+#define V4L2_AUTO_FOCUS_STATUS_REACHED		(1 << 1)
-+#define V4L2_AUTO_FOCUS_STATUS_FAILED		(1 << 2)
-+
-+#define V4L2_CID_AUTO_FOCUS_RANGE		(V4L2_CID_CAMERA_CLASS_BASE+31)
-+enum v4l2_auto_focus_range {
-+	V4L2_AUTO_FOCUS_RANGE_AUTO		= 0,
-+	V4L2_AUTO_FOCUS_RANGE_NORMAL		= 1,
-+	V4L2_AUTO_FOCUS_RANGE_MACRO		= 2,
-+	V4L2_AUTO_FOCUS_RANGE_INFINITY		= 3,
-+};
-+
-+
-+/* FM Modulator class control IDs */
-+
-+#define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
-+#define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
-+
-+#define V4L2_CID_RDS_TX_DEVIATION		(V4L2_CID_FM_TX_CLASS_BASE + 1)
-+#define V4L2_CID_RDS_TX_PI			(V4L2_CID_FM_TX_CLASS_BASE + 2)
-+#define V4L2_CID_RDS_TX_PTY			(V4L2_CID_FM_TX_CLASS_BASE + 3)
-+#define V4L2_CID_RDS_TX_PS_NAME			(V4L2_CID_FM_TX_CLASS_BASE + 5)
-+#define V4L2_CID_RDS_TX_RADIO_TEXT		(V4L2_CID_FM_TX_CLASS_BASE + 6)
-+
-+#define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 64)
-+#define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 65)
-+#define V4L2_CID_AUDIO_LIMITER_DEVIATION	(V4L2_CID_FM_TX_CLASS_BASE + 66)
-+
-+#define V4L2_CID_AUDIO_COMPRESSION_ENABLED	(V4L2_CID_FM_TX_CLASS_BASE + 80)
-+#define V4L2_CID_AUDIO_COMPRESSION_GAIN		(V4L2_CID_FM_TX_CLASS_BASE + 81)
-+#define V4L2_CID_AUDIO_COMPRESSION_THRESHOLD	(V4L2_CID_FM_TX_CLASS_BASE + 82)
-+#define V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 83)
-+#define V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 84)
-+
-+#define V4L2_CID_PILOT_TONE_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 96)
-+#define V4L2_CID_PILOT_TONE_DEVIATION		(V4L2_CID_FM_TX_CLASS_BASE + 97)
-+#define V4L2_CID_PILOT_TONE_FREQUENCY		(V4L2_CID_FM_TX_CLASS_BASE + 98)
-+
-+#define V4L2_CID_TUNE_PREEMPHASIS		(V4L2_CID_FM_TX_CLASS_BASE + 112)
-+enum v4l2_preemphasis {
-+	V4L2_PREEMPHASIS_DISABLED	= 0,
-+	V4L2_PREEMPHASIS_50_uS		= 1,
-+	V4L2_PREEMPHASIS_75_uS		= 2,
-+};
-+#define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FM_TX_CLASS_BASE + 113)
-+#define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FM_TX_CLASS_BASE + 114)
-+
-+
-+/* Flash and privacy (indicator) light controls */
-+
-+#define V4L2_CID_FLASH_CLASS_BASE		(V4L2_CTRL_CLASS_FLASH | 0x900)
-+#define V4L2_CID_FLASH_CLASS			(V4L2_CTRL_CLASS_FLASH | 1)
-+
-+#define V4L2_CID_FLASH_LED_MODE			(V4L2_CID_FLASH_CLASS_BASE + 1)
-+enum v4l2_flash_led_mode {
-+	V4L2_FLASH_LED_MODE_NONE,
-+	V4L2_FLASH_LED_MODE_FLASH,
-+	V4L2_FLASH_LED_MODE_TORCH,
-+};
-+
-+#define V4L2_CID_FLASH_STROBE_SOURCE		(V4L2_CID_FLASH_CLASS_BASE + 2)
-+enum v4l2_flash_strobe_source {
-+	V4L2_FLASH_STROBE_SOURCE_SOFTWARE,
-+	V4L2_FLASH_STROBE_SOURCE_EXTERNAL,
-+};
-+
-+#define V4L2_CID_FLASH_STROBE			(V4L2_CID_FLASH_CLASS_BASE + 3)
-+#define V4L2_CID_FLASH_STROBE_STOP		(V4L2_CID_FLASH_CLASS_BASE + 4)
-+#define V4L2_CID_FLASH_STROBE_STATUS		(V4L2_CID_FLASH_CLASS_BASE + 5)
-+
-+#define V4L2_CID_FLASH_TIMEOUT			(V4L2_CID_FLASH_CLASS_BASE + 6)
-+#define V4L2_CID_FLASH_INTENSITY		(V4L2_CID_FLASH_CLASS_BASE + 7)
-+#define V4L2_CID_FLASH_TORCH_INTENSITY		(V4L2_CID_FLASH_CLASS_BASE + 8)
-+#define V4L2_CID_FLASH_INDICATOR_INTENSITY	(V4L2_CID_FLASH_CLASS_BASE + 9)
-+
-+#define V4L2_CID_FLASH_FAULT			(V4L2_CID_FLASH_CLASS_BASE + 10)
-+#define V4L2_FLASH_FAULT_OVER_VOLTAGE		(1 << 0)
-+#define V4L2_FLASH_FAULT_TIMEOUT		(1 << 1)
-+#define V4L2_FLASH_FAULT_OVER_TEMPERATURE	(1 << 2)
-+#define V4L2_FLASH_FAULT_SHORT_CIRCUIT		(1 << 3)
-+#define V4L2_FLASH_FAULT_OVER_CURRENT		(1 << 4)
-+#define V4L2_FLASH_FAULT_INDICATOR		(1 << 5)
-+
-+#define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
-+#define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
-+
-+
-+/* JPEG-class control IDs */
-+
-+#define V4L2_CID_JPEG_CLASS_BASE		(V4L2_CTRL_CLASS_JPEG | 0x900)
-+#define V4L2_CID_JPEG_CLASS			(V4L2_CTRL_CLASS_JPEG | 1)
-+
-+#define	V4L2_CID_JPEG_CHROMA_SUBSAMPLING	(V4L2_CID_JPEG_CLASS_BASE + 1)
-+enum v4l2_jpeg_chroma_subsampling {
-+	V4L2_JPEG_CHROMA_SUBSAMPLING_444	= 0,
-+	V4L2_JPEG_CHROMA_SUBSAMPLING_422	= 1,
-+	V4L2_JPEG_CHROMA_SUBSAMPLING_420	= 2,
-+	V4L2_JPEG_CHROMA_SUBSAMPLING_411	= 3,
-+	V4L2_JPEG_CHROMA_SUBSAMPLING_410	= 4,
-+	V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY	= 5,
-+};
-+#define	V4L2_CID_JPEG_RESTART_INTERVAL		(V4L2_CID_JPEG_CLASS_BASE + 2)
-+#define	V4L2_CID_JPEG_COMPRESSION_QUALITY	(V4L2_CID_JPEG_CLASS_BASE + 3)
-+
-+#define	V4L2_CID_JPEG_ACTIVE_MARKER		(V4L2_CID_JPEG_CLASS_BASE + 4)
-+#define	V4L2_JPEG_ACTIVE_MARKER_APP0		(1 << 0)
-+#define	V4L2_JPEG_ACTIVE_MARKER_APP1		(1 << 1)
-+#define	V4L2_JPEG_ACTIVE_MARKER_COM		(1 << 16)
-+#define	V4L2_JPEG_ACTIVE_MARKER_DQT		(1 << 17)
-+#define	V4L2_JPEG_ACTIVE_MARKER_DHT		(1 << 18)
-+
-+/* Image source controls */
-+#define V4L2_CID_IMAGE_SOURCE_CLASS_BASE	(V4L2_CTRL_CLASS_IMAGE_SOURCE | 0x900)
-+#define V4L2_CID_IMAGE_SOURCE_CLASS		(V4L2_CTRL_CLASS_IMAGE_SOURCE | 1)
-+
-+#define V4L2_CID_VBLANK				(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 1)
-+#define V4L2_CID_HBLANK				(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 2)
-+#define V4L2_CID_ANALOGUE_GAIN			(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 3)
-+
-+
-+/* Image processing controls */
-+
-+#define V4L2_CID_IMAGE_PROC_CLASS_BASE		(V4L2_CTRL_CLASS_IMAGE_PROC | 0x900)
-+#define V4L2_CID_IMAGE_PROC_CLASS		(V4L2_CTRL_CLASS_IMAGE_PROC | 1)
-+
-+#define V4L2_CID_LINK_FREQ			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 1)
-+#define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
-+
-+#endif
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 91939a7..2b99f55 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1,7 +1,7 @@
- /*
-  *  Video for Linux Two header file
-  *
-- *  Copyright (C) 1999-2007 the contributors
-+ *  Copyright (C) 1999-2012 the contributors
-  *
-  *  This program is free software; you can redistribute it and/or modify
-  *  it under the terms of the GNU General Public License as published by
-@@ -65,6 +65,7 @@
- #include <linux/ioctl.h>
- #include <linux/types.h>
- #include <linux/v4l2-common.h>
-+#include <linux/v4l2-controls.h>
- 
- /*
-  * Common stuff for both V4L1 and V4L2
-@@ -1241,17 +1242,6 @@ struct v4l2_ext_controls {
- 	struct v4l2_ext_control *controls;
- };
- 
--/*  Values for ctrl_class field */
--#define V4L2_CTRL_CLASS_USER 0x00980000	/* Old-style 'user' controls */
--#define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
--#define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
--#define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
--#define V4L2_CTRL_CLASS_FLASH 0x009c0000	/* Camera flash controls */
--#define V4L2_CTRL_CLASS_JPEG 0x009d0000		/* JPEG-compression controls */
--#define V4L2_CTRL_CLASS_IMAGE_SOURCE 0x009e0000	/* Image source controls */
--#define V4L2_CTRL_CLASS_IMAGE_PROC 0x009f0000	/* Image processing controls */
--#define V4L2_CTRL_CLASS_DV 0x00a00000		/* Digital Video controls */
--
- #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
- #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
- #define V4L2_CTRL_DRIVER_PRIV(id) (((id) & 0xffff) >= 0x1000)
-@@ -1307,692 +1297,9 @@ struct v4l2_querymenu {
- 
- /*  User-class control IDs defined by V4L2 */
- #define V4L2_CID_MAX_CTRLS		1024
--#define V4L2_CID_BASE			(V4L2_CTRL_CLASS_USER | 0x900)
--#define V4L2_CID_USER_BASE 		V4L2_CID_BASE
- /*  IDs reserved for driver specific controls */
- #define V4L2_CID_PRIVATE_BASE		0x08000000
- 
--#define V4L2_CID_USER_CLASS 		(V4L2_CTRL_CLASS_USER | 1)
--#define V4L2_CID_BRIGHTNESS		(V4L2_CID_BASE+0)
--#define V4L2_CID_CONTRAST		(V4L2_CID_BASE+1)
--#define V4L2_CID_SATURATION		(V4L2_CID_BASE+2)
--#define V4L2_CID_HUE			(V4L2_CID_BASE+3)
--#define V4L2_CID_AUDIO_VOLUME		(V4L2_CID_BASE+5)
--#define V4L2_CID_AUDIO_BALANCE		(V4L2_CID_BASE+6)
--#define V4L2_CID_AUDIO_BASS		(V4L2_CID_BASE+7)
--#define V4L2_CID_AUDIO_TREBLE		(V4L2_CID_BASE+8)
--#define V4L2_CID_AUDIO_MUTE		(V4L2_CID_BASE+9)
--#define V4L2_CID_AUDIO_LOUDNESS		(V4L2_CID_BASE+10)
--#define V4L2_CID_BLACK_LEVEL		(V4L2_CID_BASE+11) /* Deprecated */
--#define V4L2_CID_AUTO_WHITE_BALANCE	(V4L2_CID_BASE+12)
--#define V4L2_CID_DO_WHITE_BALANCE	(V4L2_CID_BASE+13)
--#define V4L2_CID_RED_BALANCE		(V4L2_CID_BASE+14)
--#define V4L2_CID_BLUE_BALANCE		(V4L2_CID_BASE+15)
--#define V4L2_CID_GAMMA			(V4L2_CID_BASE+16)
--#define V4L2_CID_WHITENESS		(V4L2_CID_GAMMA) /* Deprecated */
--#define V4L2_CID_EXPOSURE		(V4L2_CID_BASE+17)
--#define V4L2_CID_AUTOGAIN		(V4L2_CID_BASE+18)
--#define V4L2_CID_GAIN			(V4L2_CID_BASE+19)
--#define V4L2_CID_HFLIP			(V4L2_CID_BASE+20)
--#define V4L2_CID_VFLIP			(V4L2_CID_BASE+21)
--
--/* Deprecated; use V4L2_CID_PAN_RESET and V4L2_CID_TILT_RESET */
--#define V4L2_CID_HCENTER		(V4L2_CID_BASE+22)
--#define V4L2_CID_VCENTER		(V4L2_CID_BASE+23)
--
--#define V4L2_CID_POWER_LINE_FREQUENCY	(V4L2_CID_BASE+24)
--enum v4l2_power_line_frequency {
--	V4L2_CID_POWER_LINE_FREQUENCY_DISABLED	= 0,
--	V4L2_CID_POWER_LINE_FREQUENCY_50HZ	= 1,
--	V4L2_CID_POWER_LINE_FREQUENCY_60HZ	= 2,
--	V4L2_CID_POWER_LINE_FREQUENCY_AUTO	= 3,
--};
--#define V4L2_CID_HUE_AUTO			(V4L2_CID_BASE+25)
--#define V4L2_CID_WHITE_BALANCE_TEMPERATURE	(V4L2_CID_BASE+26)
--#define V4L2_CID_SHARPNESS			(V4L2_CID_BASE+27)
--#define V4L2_CID_BACKLIGHT_COMPENSATION 	(V4L2_CID_BASE+28)
--#define V4L2_CID_CHROMA_AGC                     (V4L2_CID_BASE+29)
--#define V4L2_CID_COLOR_KILLER                   (V4L2_CID_BASE+30)
--#define V4L2_CID_COLORFX			(V4L2_CID_BASE+31)
--enum v4l2_colorfx {
--	V4L2_COLORFX_NONE			= 0,
--	V4L2_COLORFX_BW				= 1,
--	V4L2_COLORFX_SEPIA			= 2,
--	V4L2_COLORFX_NEGATIVE			= 3,
--	V4L2_COLORFX_EMBOSS			= 4,
--	V4L2_COLORFX_SKETCH			= 5,
--	V4L2_COLORFX_SKY_BLUE			= 6,
--	V4L2_COLORFX_GRASS_GREEN		= 7,
--	V4L2_COLORFX_SKIN_WHITEN		= 8,
--	V4L2_COLORFX_VIVID			= 9,
--	V4L2_COLORFX_AQUA			= 10,
--	V4L2_COLORFX_ART_FREEZE			= 11,
--	V4L2_COLORFX_SILHOUETTE			= 12,
--	V4L2_COLORFX_SOLARIZATION		= 13,
--	V4L2_COLORFX_ANTIQUE			= 14,
--	V4L2_COLORFX_SET_CBCR			= 15,
--};
--#define V4L2_CID_AUTOBRIGHTNESS			(V4L2_CID_BASE+32)
--#define V4L2_CID_BAND_STOP_FILTER		(V4L2_CID_BASE+33)
--
--#define V4L2_CID_ROTATE				(V4L2_CID_BASE+34)
--#define V4L2_CID_BG_COLOR			(V4L2_CID_BASE+35)
--
--#define V4L2_CID_CHROMA_GAIN                    (V4L2_CID_BASE+36)
--
--#define V4L2_CID_ILLUMINATORS_1			(V4L2_CID_BASE+37)
--#define V4L2_CID_ILLUMINATORS_2			(V4L2_CID_BASE+38)
--
--#define V4L2_CID_MIN_BUFFERS_FOR_CAPTURE	(V4L2_CID_BASE+39)
--#define V4L2_CID_MIN_BUFFERS_FOR_OUTPUT		(V4L2_CID_BASE+40)
--
--#define V4L2_CID_ALPHA_COMPONENT		(V4L2_CID_BASE+41)
--#define V4L2_CID_COLORFX_CBCR			(V4L2_CID_BASE+42)
--
--/* last CID + 1 */
--#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+43)
--
--/*  MPEG-class control IDs defined by V4L2 */
--#define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
--#define V4L2_CID_MPEG_CLASS 			(V4L2_CTRL_CLASS_MPEG | 1)
--
--/*  MPEG streams, specific to multiplexed streams */
--#define V4L2_CID_MPEG_STREAM_TYPE 		(V4L2_CID_MPEG_BASE+0)
--enum v4l2_mpeg_stream_type {
--	V4L2_MPEG_STREAM_TYPE_MPEG2_PS   = 0, /* MPEG-2 program stream */
--	V4L2_MPEG_STREAM_TYPE_MPEG2_TS   = 1, /* MPEG-2 transport stream */
--	V4L2_MPEG_STREAM_TYPE_MPEG1_SS   = 2, /* MPEG-1 system stream */
--	V4L2_MPEG_STREAM_TYPE_MPEG2_DVD  = 3, /* MPEG-2 DVD-compatible stream */
--	V4L2_MPEG_STREAM_TYPE_MPEG1_VCD  = 4, /* MPEG-1 VCD-compatible stream */
--	V4L2_MPEG_STREAM_TYPE_MPEG2_SVCD = 5, /* MPEG-2 SVCD-compatible stream */
--};
--#define V4L2_CID_MPEG_STREAM_PID_PMT 		(V4L2_CID_MPEG_BASE+1)
--#define V4L2_CID_MPEG_STREAM_PID_AUDIO 		(V4L2_CID_MPEG_BASE+2)
--#define V4L2_CID_MPEG_STREAM_PID_VIDEO 		(V4L2_CID_MPEG_BASE+3)
--#define V4L2_CID_MPEG_STREAM_PID_PCR 		(V4L2_CID_MPEG_BASE+4)
--#define V4L2_CID_MPEG_STREAM_PES_ID_AUDIO 	(V4L2_CID_MPEG_BASE+5)
--#define V4L2_CID_MPEG_STREAM_PES_ID_VIDEO 	(V4L2_CID_MPEG_BASE+6)
--#define V4L2_CID_MPEG_STREAM_VBI_FMT 		(V4L2_CID_MPEG_BASE+7)
--enum v4l2_mpeg_stream_vbi_fmt {
--	V4L2_MPEG_STREAM_VBI_FMT_NONE = 0,  /* No VBI in the MPEG stream */
--	V4L2_MPEG_STREAM_VBI_FMT_IVTV = 1,  /* VBI in private packets, IVTV format */
--};
--
--/*  MPEG audio controls specific to multiplexed streams  */
--#define V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ 	(V4L2_CID_MPEG_BASE+100)
--enum v4l2_mpeg_audio_sampling_freq {
--	V4L2_MPEG_AUDIO_SAMPLING_FREQ_44100 = 0,
--	V4L2_MPEG_AUDIO_SAMPLING_FREQ_48000 = 1,
--	V4L2_MPEG_AUDIO_SAMPLING_FREQ_32000 = 2,
--};
--#define V4L2_CID_MPEG_AUDIO_ENCODING 		(V4L2_CID_MPEG_BASE+101)
--enum v4l2_mpeg_audio_encoding {
--	V4L2_MPEG_AUDIO_ENCODING_LAYER_1 = 0,
--	V4L2_MPEG_AUDIO_ENCODING_LAYER_2 = 1,
--	V4L2_MPEG_AUDIO_ENCODING_LAYER_3 = 2,
--	V4L2_MPEG_AUDIO_ENCODING_AAC     = 3,
--	V4L2_MPEG_AUDIO_ENCODING_AC3     = 4,
--};
--#define V4L2_CID_MPEG_AUDIO_L1_BITRATE 		(V4L2_CID_MPEG_BASE+102)
--enum v4l2_mpeg_audio_l1_bitrate {
--	V4L2_MPEG_AUDIO_L1_BITRATE_32K  = 0,
--	V4L2_MPEG_AUDIO_L1_BITRATE_64K  = 1,
--	V4L2_MPEG_AUDIO_L1_BITRATE_96K  = 2,
--	V4L2_MPEG_AUDIO_L1_BITRATE_128K = 3,
--	V4L2_MPEG_AUDIO_L1_BITRATE_160K = 4,
--	V4L2_MPEG_AUDIO_L1_BITRATE_192K = 5,
--	V4L2_MPEG_AUDIO_L1_BITRATE_224K = 6,
--	V4L2_MPEG_AUDIO_L1_BITRATE_256K = 7,
--	V4L2_MPEG_AUDIO_L1_BITRATE_288K = 8,
--	V4L2_MPEG_AUDIO_L1_BITRATE_320K = 9,
--	V4L2_MPEG_AUDIO_L1_BITRATE_352K = 10,
--	V4L2_MPEG_AUDIO_L1_BITRATE_384K = 11,
--	V4L2_MPEG_AUDIO_L1_BITRATE_416K = 12,
--	V4L2_MPEG_AUDIO_L1_BITRATE_448K = 13,
--};
--#define V4L2_CID_MPEG_AUDIO_L2_BITRATE 		(V4L2_CID_MPEG_BASE+103)
--enum v4l2_mpeg_audio_l2_bitrate {
--	V4L2_MPEG_AUDIO_L2_BITRATE_32K  = 0,
--	V4L2_MPEG_AUDIO_L2_BITRATE_48K  = 1,
--	V4L2_MPEG_AUDIO_L2_BITRATE_56K  = 2,
--	V4L2_MPEG_AUDIO_L2_BITRATE_64K  = 3,
--	V4L2_MPEG_AUDIO_L2_BITRATE_80K  = 4,
--	V4L2_MPEG_AUDIO_L2_BITRATE_96K  = 5,
--	V4L2_MPEG_AUDIO_L2_BITRATE_112K = 6,
--	V4L2_MPEG_AUDIO_L2_BITRATE_128K = 7,
--	V4L2_MPEG_AUDIO_L2_BITRATE_160K = 8,
--	V4L2_MPEG_AUDIO_L2_BITRATE_192K = 9,
--	V4L2_MPEG_AUDIO_L2_BITRATE_224K = 10,
--	V4L2_MPEG_AUDIO_L2_BITRATE_256K = 11,
--	V4L2_MPEG_AUDIO_L2_BITRATE_320K = 12,
--	V4L2_MPEG_AUDIO_L2_BITRATE_384K = 13,
--};
--#define V4L2_CID_MPEG_AUDIO_L3_BITRATE 		(V4L2_CID_MPEG_BASE+104)
--enum v4l2_mpeg_audio_l3_bitrate {
--	V4L2_MPEG_AUDIO_L3_BITRATE_32K  = 0,
--	V4L2_MPEG_AUDIO_L3_BITRATE_40K  = 1,
--	V4L2_MPEG_AUDIO_L3_BITRATE_48K  = 2,
--	V4L2_MPEG_AUDIO_L3_BITRATE_56K  = 3,
--	V4L2_MPEG_AUDIO_L3_BITRATE_64K  = 4,
--	V4L2_MPEG_AUDIO_L3_BITRATE_80K  = 5,
--	V4L2_MPEG_AUDIO_L3_BITRATE_96K  = 6,
--	V4L2_MPEG_AUDIO_L3_BITRATE_112K = 7,
--	V4L2_MPEG_AUDIO_L3_BITRATE_128K = 8,
--	V4L2_MPEG_AUDIO_L3_BITRATE_160K = 9,
--	V4L2_MPEG_AUDIO_L3_BITRATE_192K = 10,
--	V4L2_MPEG_AUDIO_L3_BITRATE_224K = 11,
--	V4L2_MPEG_AUDIO_L3_BITRATE_256K = 12,
--	V4L2_MPEG_AUDIO_L3_BITRATE_320K = 13,
--};
--#define V4L2_CID_MPEG_AUDIO_MODE 		(V4L2_CID_MPEG_BASE+105)
--enum v4l2_mpeg_audio_mode {
--	V4L2_MPEG_AUDIO_MODE_STEREO       = 0,
--	V4L2_MPEG_AUDIO_MODE_JOINT_STEREO = 1,
--	V4L2_MPEG_AUDIO_MODE_DUAL         = 2,
--	V4L2_MPEG_AUDIO_MODE_MONO         = 3,
--};
--#define V4L2_CID_MPEG_AUDIO_MODE_EXTENSION 	(V4L2_CID_MPEG_BASE+106)
--enum v4l2_mpeg_audio_mode_extension {
--	V4L2_MPEG_AUDIO_MODE_EXTENSION_BOUND_4  = 0,
--	V4L2_MPEG_AUDIO_MODE_EXTENSION_BOUND_8  = 1,
--	V4L2_MPEG_AUDIO_MODE_EXTENSION_BOUND_12 = 2,
--	V4L2_MPEG_AUDIO_MODE_EXTENSION_BOUND_16 = 3,
--};
--#define V4L2_CID_MPEG_AUDIO_EMPHASIS 		(V4L2_CID_MPEG_BASE+107)
--enum v4l2_mpeg_audio_emphasis {
--	V4L2_MPEG_AUDIO_EMPHASIS_NONE         = 0,
--	V4L2_MPEG_AUDIO_EMPHASIS_50_DIV_15_uS = 1,
--	V4L2_MPEG_AUDIO_EMPHASIS_CCITT_J17    = 2,
--};
--#define V4L2_CID_MPEG_AUDIO_CRC 		(V4L2_CID_MPEG_BASE+108)
--enum v4l2_mpeg_audio_crc {
--	V4L2_MPEG_AUDIO_CRC_NONE  = 0,
--	V4L2_MPEG_AUDIO_CRC_CRC16 = 1,
--};
--#define V4L2_CID_MPEG_AUDIO_MUTE 		(V4L2_CID_MPEG_BASE+109)
--#define V4L2_CID_MPEG_AUDIO_AAC_BITRATE		(V4L2_CID_MPEG_BASE+110)
--#define V4L2_CID_MPEG_AUDIO_AC3_BITRATE		(V4L2_CID_MPEG_BASE+111)
--enum v4l2_mpeg_audio_ac3_bitrate {
--	V4L2_MPEG_AUDIO_AC3_BITRATE_32K  = 0,
--	V4L2_MPEG_AUDIO_AC3_BITRATE_40K  = 1,
--	V4L2_MPEG_AUDIO_AC3_BITRATE_48K  = 2,
--	V4L2_MPEG_AUDIO_AC3_BITRATE_56K  = 3,
--	V4L2_MPEG_AUDIO_AC3_BITRATE_64K  = 4,
--	V4L2_MPEG_AUDIO_AC3_BITRATE_80K  = 5,
--	V4L2_MPEG_AUDIO_AC3_BITRATE_96K  = 6,
--	V4L2_MPEG_AUDIO_AC3_BITRATE_112K = 7,
--	V4L2_MPEG_AUDIO_AC3_BITRATE_128K = 8,
--	V4L2_MPEG_AUDIO_AC3_BITRATE_160K = 9,
--	V4L2_MPEG_AUDIO_AC3_BITRATE_192K = 10,
--	V4L2_MPEG_AUDIO_AC3_BITRATE_224K = 11,
--	V4L2_MPEG_AUDIO_AC3_BITRATE_256K = 12,
--	V4L2_MPEG_AUDIO_AC3_BITRATE_320K = 13,
--	V4L2_MPEG_AUDIO_AC3_BITRATE_384K = 14,
--	V4L2_MPEG_AUDIO_AC3_BITRATE_448K = 15,
--	V4L2_MPEG_AUDIO_AC3_BITRATE_512K = 16,
--	V4L2_MPEG_AUDIO_AC3_BITRATE_576K = 17,
--	V4L2_MPEG_AUDIO_AC3_BITRATE_640K = 18,
--};
--#define V4L2_CID_MPEG_AUDIO_DEC_PLAYBACK	(V4L2_CID_MPEG_BASE+112)
--enum v4l2_mpeg_audio_dec_playback {
--	V4L2_MPEG_AUDIO_DEC_PLAYBACK_AUTO	    = 0,
--	V4L2_MPEG_AUDIO_DEC_PLAYBACK_STEREO	    = 1,
--	V4L2_MPEG_AUDIO_DEC_PLAYBACK_LEFT	    = 2,
--	V4L2_MPEG_AUDIO_DEC_PLAYBACK_RIGHT	    = 3,
--	V4L2_MPEG_AUDIO_DEC_PLAYBACK_MONO	    = 4,
--	V4L2_MPEG_AUDIO_DEC_PLAYBACK_SWAPPED_STEREO = 5,
--};
--#define V4L2_CID_MPEG_AUDIO_DEC_MULTILINGUAL_PLAYBACK (V4L2_CID_MPEG_BASE+113)
--
--/*  MPEG video controls specific to multiplexed streams */
--#define V4L2_CID_MPEG_VIDEO_ENCODING 		(V4L2_CID_MPEG_BASE+200)
--enum v4l2_mpeg_video_encoding {
--	V4L2_MPEG_VIDEO_ENCODING_MPEG_1     = 0,
--	V4L2_MPEG_VIDEO_ENCODING_MPEG_2     = 1,
--	V4L2_MPEG_VIDEO_ENCODING_MPEG_4_AVC = 2,
--};
--#define V4L2_CID_MPEG_VIDEO_ASPECT 		(V4L2_CID_MPEG_BASE+201)
--enum v4l2_mpeg_video_aspect {
--	V4L2_MPEG_VIDEO_ASPECT_1x1     = 0,
--	V4L2_MPEG_VIDEO_ASPECT_4x3     = 1,
--	V4L2_MPEG_VIDEO_ASPECT_16x9    = 2,
--	V4L2_MPEG_VIDEO_ASPECT_221x100 = 3,
--};
--#define V4L2_CID_MPEG_VIDEO_B_FRAMES 		(V4L2_CID_MPEG_BASE+202)
--#define V4L2_CID_MPEG_VIDEO_GOP_SIZE 		(V4L2_CID_MPEG_BASE+203)
--#define V4L2_CID_MPEG_VIDEO_GOP_CLOSURE 	(V4L2_CID_MPEG_BASE+204)
--#define V4L2_CID_MPEG_VIDEO_PULLDOWN 		(V4L2_CID_MPEG_BASE+205)
--#define V4L2_CID_MPEG_VIDEO_BITRATE_MODE 	(V4L2_CID_MPEG_BASE+206)
--enum v4l2_mpeg_video_bitrate_mode {
--	V4L2_MPEG_VIDEO_BITRATE_MODE_VBR = 0,
--	V4L2_MPEG_VIDEO_BITRATE_MODE_CBR = 1,
--};
--#define V4L2_CID_MPEG_VIDEO_BITRATE 		(V4L2_CID_MPEG_BASE+207)
--#define V4L2_CID_MPEG_VIDEO_BITRATE_PEAK 	(V4L2_CID_MPEG_BASE+208)
--#define V4L2_CID_MPEG_VIDEO_TEMPORAL_DECIMATION (V4L2_CID_MPEG_BASE+209)
--#define V4L2_CID_MPEG_VIDEO_MUTE 		(V4L2_CID_MPEG_BASE+210)
--#define V4L2_CID_MPEG_VIDEO_MUTE_YUV 		(V4L2_CID_MPEG_BASE+211)
--#define V4L2_CID_MPEG_VIDEO_DECODER_SLICE_INTERFACE		(V4L2_CID_MPEG_BASE+212)
--#define V4L2_CID_MPEG_VIDEO_DECODER_MPEG4_DEBLOCK_FILTER	(V4L2_CID_MPEG_BASE+213)
--#define V4L2_CID_MPEG_VIDEO_CYCLIC_INTRA_REFRESH_MB		(V4L2_CID_MPEG_BASE+214)
--#define V4L2_CID_MPEG_VIDEO_FRAME_RC_ENABLE			(V4L2_CID_MPEG_BASE+215)
--#define V4L2_CID_MPEG_VIDEO_HEADER_MODE				(V4L2_CID_MPEG_BASE+216)
--enum v4l2_mpeg_video_header_mode {
--	V4L2_MPEG_VIDEO_HEADER_MODE_SEPARATE			= 0,
--	V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME	= 1,
--
--};
--#define V4L2_CID_MPEG_VIDEO_MAX_REF_PIC			(V4L2_CID_MPEG_BASE+217)
--#define V4L2_CID_MPEG_VIDEO_MB_RC_ENABLE		(V4L2_CID_MPEG_BASE+218)
--#define V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES	(V4L2_CID_MPEG_BASE+219)
--#define V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB		(V4L2_CID_MPEG_BASE+220)
--#define V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE		(V4L2_CID_MPEG_BASE+221)
--enum v4l2_mpeg_video_multi_slice_mode {
--	V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE		= 0,
--	V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB		= 1,
--	V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES	= 2,
--};
--#define V4L2_CID_MPEG_VIDEO_VBV_SIZE			(V4L2_CID_MPEG_BASE+222)
--#define V4L2_CID_MPEG_VIDEO_DEC_PTS			(V4L2_CID_MPEG_BASE+223)
--#define V4L2_CID_MPEG_VIDEO_DEC_FRAME			(V4L2_CID_MPEG_BASE+224)
--
--#define V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP		(V4L2_CID_MPEG_BASE+300)
--#define V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP		(V4L2_CID_MPEG_BASE+301)
--#define V4L2_CID_MPEG_VIDEO_H263_B_FRAME_QP		(V4L2_CID_MPEG_BASE+302)
--#define V4L2_CID_MPEG_VIDEO_H263_MIN_QP			(V4L2_CID_MPEG_BASE+303)
--#define V4L2_CID_MPEG_VIDEO_H263_MAX_QP			(V4L2_CID_MPEG_BASE+304)
--#define V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP		(V4L2_CID_MPEG_BASE+350)
--#define V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP		(V4L2_CID_MPEG_BASE+351)
--#define V4L2_CID_MPEG_VIDEO_H264_B_FRAME_QP		(V4L2_CID_MPEG_BASE+352)
--#define V4L2_CID_MPEG_VIDEO_H264_MIN_QP			(V4L2_CID_MPEG_BASE+353)
--#define V4L2_CID_MPEG_VIDEO_H264_MAX_QP			(V4L2_CID_MPEG_BASE+354)
--#define V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM		(V4L2_CID_MPEG_BASE+355)
--#define V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE		(V4L2_CID_MPEG_BASE+356)
--#define V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE		(V4L2_CID_MPEG_BASE+357)
--enum v4l2_mpeg_video_h264_entropy_mode {
--	V4L2_MPEG_VIDEO_H264_ENTROPY_MODE_CAVLC	= 0,
--	V4L2_MPEG_VIDEO_H264_ENTROPY_MODE_CABAC	= 1,
--};
--#define V4L2_CID_MPEG_VIDEO_H264_I_PERIOD		(V4L2_CID_MPEG_BASE+358)
--#define V4L2_CID_MPEG_VIDEO_H264_LEVEL			(V4L2_CID_MPEG_BASE+359)
--enum v4l2_mpeg_video_h264_level {
--	V4L2_MPEG_VIDEO_H264_LEVEL_1_0	= 0,
--	V4L2_MPEG_VIDEO_H264_LEVEL_1B	= 1,
--	V4L2_MPEG_VIDEO_H264_LEVEL_1_1	= 2,
--	V4L2_MPEG_VIDEO_H264_LEVEL_1_2	= 3,
--	V4L2_MPEG_VIDEO_H264_LEVEL_1_3	= 4,
--	V4L2_MPEG_VIDEO_H264_LEVEL_2_0	= 5,
--	V4L2_MPEG_VIDEO_H264_LEVEL_2_1	= 6,
--	V4L2_MPEG_VIDEO_H264_LEVEL_2_2	= 7,
--	V4L2_MPEG_VIDEO_H264_LEVEL_3_0	= 8,
--	V4L2_MPEG_VIDEO_H264_LEVEL_3_1	= 9,
--	V4L2_MPEG_VIDEO_H264_LEVEL_3_2	= 10,
--	V4L2_MPEG_VIDEO_H264_LEVEL_4_0	= 11,
--	V4L2_MPEG_VIDEO_H264_LEVEL_4_1	= 12,
--	V4L2_MPEG_VIDEO_H264_LEVEL_4_2	= 13,
--	V4L2_MPEG_VIDEO_H264_LEVEL_5_0	= 14,
--	V4L2_MPEG_VIDEO_H264_LEVEL_5_1	= 15,
--};
--#define V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_ALPHA	(V4L2_CID_MPEG_BASE+360)
--#define V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_BETA	(V4L2_CID_MPEG_BASE+361)
--#define V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE	(V4L2_CID_MPEG_BASE+362)
--enum v4l2_mpeg_video_h264_loop_filter_mode {
--	V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_ENABLED				= 0,
--	V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED				= 1,
--	V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED_AT_SLICE_BOUNDARY	= 2,
--};
--#define V4L2_CID_MPEG_VIDEO_H264_PROFILE		(V4L2_CID_MPEG_BASE+363)
--enum v4l2_mpeg_video_h264_profile {
--	V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE			= 0,
--	V4L2_MPEG_VIDEO_H264_PROFILE_CONSTRAINED_BASELINE	= 1,
--	V4L2_MPEG_VIDEO_H264_PROFILE_MAIN			= 2,
--	V4L2_MPEG_VIDEO_H264_PROFILE_EXTENDED			= 3,
--	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH			= 4,
--	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_10			= 5,
--	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_422			= 6,
--	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_444_PREDICTIVE	= 7,
--	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_10_INTRA		= 8,
--	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_422_INTRA		= 9,
--	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_444_INTRA		= 10,
--	V4L2_MPEG_VIDEO_H264_PROFILE_CAVLC_444_INTRA		= 11,
--	V4L2_MPEG_VIDEO_H264_PROFILE_SCALABLE_BASELINE		= 12,
--	V4L2_MPEG_VIDEO_H264_PROFILE_SCALABLE_HIGH		= 13,
--	V4L2_MPEG_VIDEO_H264_PROFILE_SCALABLE_HIGH_INTRA	= 14,
--	V4L2_MPEG_VIDEO_H264_PROFILE_STEREO_HIGH		= 15,
--	V4L2_MPEG_VIDEO_H264_PROFILE_MULTIVIEW_HIGH		= 16,
--};
--#define V4L2_CID_MPEG_VIDEO_H264_VUI_EXT_SAR_HEIGHT	(V4L2_CID_MPEG_BASE+364)
--#define V4L2_CID_MPEG_VIDEO_H264_VUI_EXT_SAR_WIDTH	(V4L2_CID_MPEG_BASE+365)
--#define V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_ENABLE		(V4L2_CID_MPEG_BASE+366)
--#define V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC		(V4L2_CID_MPEG_BASE+367)
--enum v4l2_mpeg_video_h264_vui_sar_idc {
--	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_UNSPECIFIED	= 0,
--	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_1x1		= 1,
--	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_12x11		= 2,
--	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_10x11		= 3,
--	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_16x11		= 4,
--	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_40x33		= 5,
--	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_24x11		= 6,
--	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_20x11		= 7,
--	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_32x11		= 8,
--	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_80x33		= 9,
--	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_18x11		= 10,
--	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_15x11		= 11,
--	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_64x33		= 12,
--	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_160x99		= 13,
--	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_4x3		= 14,
--	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_3x2		= 15,
--	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_2x1		= 16,
--	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_EXTENDED	= 17,
--};
--#define V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP	(V4L2_CID_MPEG_BASE+400)
--#define V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP	(V4L2_CID_MPEG_BASE+401)
--#define V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP	(V4L2_CID_MPEG_BASE+402)
--#define V4L2_CID_MPEG_VIDEO_MPEG4_MIN_QP	(V4L2_CID_MPEG_BASE+403)
--#define V4L2_CID_MPEG_VIDEO_MPEG4_MAX_QP	(V4L2_CID_MPEG_BASE+404)
--#define V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL		(V4L2_CID_MPEG_BASE+405)
--enum v4l2_mpeg_video_mpeg4_level {
--	V4L2_MPEG_VIDEO_MPEG4_LEVEL_0	= 0,
--	V4L2_MPEG_VIDEO_MPEG4_LEVEL_0B	= 1,
--	V4L2_MPEG_VIDEO_MPEG4_LEVEL_1	= 2,
--	V4L2_MPEG_VIDEO_MPEG4_LEVEL_2	= 3,
--	V4L2_MPEG_VIDEO_MPEG4_LEVEL_3	= 4,
--	V4L2_MPEG_VIDEO_MPEG4_LEVEL_3B	= 5,
--	V4L2_MPEG_VIDEO_MPEG4_LEVEL_4	= 6,
--	V4L2_MPEG_VIDEO_MPEG4_LEVEL_5	= 7,
--};
--#define V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE	(V4L2_CID_MPEG_BASE+406)
--enum v4l2_mpeg_video_mpeg4_profile {
--	V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE				= 0,
--	V4L2_MPEG_VIDEO_MPEG4_PROFILE_ADVANCED_SIMPLE			= 1,
--	V4L2_MPEG_VIDEO_MPEG4_PROFILE_CORE				= 2,
--	V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE_SCALABLE			= 3,
--	V4L2_MPEG_VIDEO_MPEG4_PROFILE_ADVANCED_CODING_EFFICIENCY	= 4,
--};
--#define V4L2_CID_MPEG_VIDEO_MPEG4_QPEL		(V4L2_CID_MPEG_BASE+407)
--
--/*  MPEG-class control IDs specific to the CX2341x driver as defined by V4L2 */
--#define V4L2_CID_MPEG_CX2341X_BASE 				(V4L2_CTRL_CLASS_MPEG | 0x1000)
--#define V4L2_CID_MPEG_CX2341X_VIDEO_SPATIAL_FILTER_MODE 	(V4L2_CID_MPEG_CX2341X_BASE+0)
--enum v4l2_mpeg_cx2341x_video_spatial_filter_mode {
--	V4L2_MPEG_CX2341X_VIDEO_SPATIAL_FILTER_MODE_MANUAL = 0,
--	V4L2_MPEG_CX2341X_VIDEO_SPATIAL_FILTER_MODE_AUTO   = 1,
--};
--#define V4L2_CID_MPEG_CX2341X_VIDEO_SPATIAL_FILTER 		(V4L2_CID_MPEG_CX2341X_BASE+1)
--#define V4L2_CID_MPEG_CX2341X_VIDEO_LUMA_SPATIAL_FILTER_TYPE 	(V4L2_CID_MPEG_CX2341X_BASE+2)
--enum v4l2_mpeg_cx2341x_video_luma_spatial_filter_type {
--	V4L2_MPEG_CX2341X_VIDEO_LUMA_SPATIAL_FILTER_TYPE_OFF                  = 0,
--	V4L2_MPEG_CX2341X_VIDEO_LUMA_SPATIAL_FILTER_TYPE_1D_HOR               = 1,
--	V4L2_MPEG_CX2341X_VIDEO_LUMA_SPATIAL_FILTER_TYPE_1D_VERT              = 2,
--	V4L2_MPEG_CX2341X_VIDEO_LUMA_SPATIAL_FILTER_TYPE_2D_HV_SEPARABLE      = 3,
--	V4L2_MPEG_CX2341X_VIDEO_LUMA_SPATIAL_FILTER_TYPE_2D_SYM_NON_SEPARABLE = 4,
--};
--#define V4L2_CID_MPEG_CX2341X_VIDEO_CHROMA_SPATIAL_FILTER_TYPE 	(V4L2_CID_MPEG_CX2341X_BASE+3)
--enum v4l2_mpeg_cx2341x_video_chroma_spatial_filter_type {
--	V4L2_MPEG_CX2341X_VIDEO_CHROMA_SPATIAL_FILTER_TYPE_OFF    = 0,
--	V4L2_MPEG_CX2341X_VIDEO_CHROMA_SPATIAL_FILTER_TYPE_1D_HOR = 1,
--};
--#define V4L2_CID_MPEG_CX2341X_VIDEO_TEMPORAL_FILTER_MODE 	(V4L2_CID_MPEG_CX2341X_BASE+4)
--enum v4l2_mpeg_cx2341x_video_temporal_filter_mode {
--	V4L2_MPEG_CX2341X_VIDEO_TEMPORAL_FILTER_MODE_MANUAL = 0,
--	V4L2_MPEG_CX2341X_VIDEO_TEMPORAL_FILTER_MODE_AUTO   = 1,
--};
--#define V4L2_CID_MPEG_CX2341X_VIDEO_TEMPORAL_FILTER 		(V4L2_CID_MPEG_CX2341X_BASE+5)
--#define V4L2_CID_MPEG_CX2341X_VIDEO_MEDIAN_FILTER_TYPE 		(V4L2_CID_MPEG_CX2341X_BASE+6)
--enum v4l2_mpeg_cx2341x_video_median_filter_type {
--	V4L2_MPEG_CX2341X_VIDEO_MEDIAN_FILTER_TYPE_OFF      = 0,
--	V4L2_MPEG_CX2341X_VIDEO_MEDIAN_FILTER_TYPE_HOR      = 1,
--	V4L2_MPEG_CX2341X_VIDEO_MEDIAN_FILTER_TYPE_VERT     = 2,
--	V4L2_MPEG_CX2341X_VIDEO_MEDIAN_FILTER_TYPE_HOR_VERT = 3,
--	V4L2_MPEG_CX2341X_VIDEO_MEDIAN_FILTER_TYPE_DIAG     = 4,
--};
--#define V4L2_CID_MPEG_CX2341X_VIDEO_LUMA_MEDIAN_FILTER_BOTTOM 	(V4L2_CID_MPEG_CX2341X_BASE+7)
--#define V4L2_CID_MPEG_CX2341X_VIDEO_LUMA_MEDIAN_FILTER_TOP 	(V4L2_CID_MPEG_CX2341X_BASE+8)
--#define V4L2_CID_MPEG_CX2341X_VIDEO_CHROMA_MEDIAN_FILTER_BOTTOM	(V4L2_CID_MPEG_CX2341X_BASE+9)
--#define V4L2_CID_MPEG_CX2341X_VIDEO_CHROMA_MEDIAN_FILTER_TOP 	(V4L2_CID_MPEG_CX2341X_BASE+10)
--#define V4L2_CID_MPEG_CX2341X_STREAM_INSERT_NAV_PACKETS 	(V4L2_CID_MPEG_CX2341X_BASE+11)
--
--/*  MPEG-class control IDs specific to the Samsung MFC 5.1 driver as defined by V4L2 */
--#define V4L2_CID_MPEG_MFC51_BASE				(V4L2_CTRL_CLASS_MPEG | 0x1100)
--
--#define V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_DELAY		(V4L2_CID_MPEG_MFC51_BASE+0)
--#define V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_DELAY_ENABLE	(V4L2_CID_MPEG_MFC51_BASE+1)
--#define V4L2_CID_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE			(V4L2_CID_MPEG_MFC51_BASE+2)
--enum v4l2_mpeg_mfc51_video_frame_skip_mode {
--	V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_DISABLED		= 0,
--	V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_LEVEL_LIMIT	= 1,
--	V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_BUF_LIMIT		= 2,
--};
--#define V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE			(V4L2_CID_MPEG_MFC51_BASE+3)
--enum v4l2_mpeg_mfc51_video_force_frame_type {
--	V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_DISABLED		= 0,
--	V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_I_FRAME		= 1,
--	V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_NOT_CODED	= 2,
--};
--#define V4L2_CID_MPEG_MFC51_VIDEO_PADDING				(V4L2_CID_MPEG_MFC51_BASE+4)
--#define V4L2_CID_MPEG_MFC51_VIDEO_PADDING_YUV				(V4L2_CID_MPEG_MFC51_BASE+5)
--#define V4L2_CID_MPEG_MFC51_VIDEO_RC_FIXED_TARGET_BIT			(V4L2_CID_MPEG_MFC51_BASE+6)
--#define V4L2_CID_MPEG_MFC51_VIDEO_RC_REACTION_COEFF			(V4L2_CID_MPEG_MFC51_BASE+7)
--#define V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_ACTIVITY		(V4L2_CID_MPEG_MFC51_BASE+50)
--#define V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_DARK			(V4L2_CID_MPEG_MFC51_BASE+51)
--#define V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_SMOOTH		(V4L2_CID_MPEG_MFC51_BASE+52)
--#define V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_STATIC		(V4L2_CID_MPEG_MFC51_BASE+53)
--#define V4L2_CID_MPEG_MFC51_VIDEO_H264_NUM_REF_PIC_FOR_P		(V4L2_CID_MPEG_MFC51_BASE+54)
--
--/*  Camera class control IDs */
--#define V4L2_CID_CAMERA_CLASS_BASE 	(V4L2_CTRL_CLASS_CAMERA | 0x900)
--#define V4L2_CID_CAMERA_CLASS 		(V4L2_CTRL_CLASS_CAMERA | 1)
--
--#define V4L2_CID_EXPOSURE_AUTO			(V4L2_CID_CAMERA_CLASS_BASE+1)
--enum  v4l2_exposure_auto_type {
--	V4L2_EXPOSURE_AUTO = 0,
--	V4L2_EXPOSURE_MANUAL = 1,
--	V4L2_EXPOSURE_SHUTTER_PRIORITY = 2,
--	V4L2_EXPOSURE_APERTURE_PRIORITY = 3
--};
--#define V4L2_CID_EXPOSURE_ABSOLUTE		(V4L2_CID_CAMERA_CLASS_BASE+2)
--#define V4L2_CID_EXPOSURE_AUTO_PRIORITY		(V4L2_CID_CAMERA_CLASS_BASE+3)
--
--#define V4L2_CID_PAN_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+4)
--#define V4L2_CID_TILT_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+5)
--#define V4L2_CID_PAN_RESET			(V4L2_CID_CAMERA_CLASS_BASE+6)
--#define V4L2_CID_TILT_RESET			(V4L2_CID_CAMERA_CLASS_BASE+7)
--
--#define V4L2_CID_PAN_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+8)
--#define V4L2_CID_TILT_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+9)
--
--#define V4L2_CID_FOCUS_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+10)
--#define V4L2_CID_FOCUS_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+11)
--#define V4L2_CID_FOCUS_AUTO			(V4L2_CID_CAMERA_CLASS_BASE+12)
--
--#define V4L2_CID_ZOOM_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+13)
--#define V4L2_CID_ZOOM_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+14)
--#define V4L2_CID_ZOOM_CONTINUOUS		(V4L2_CID_CAMERA_CLASS_BASE+15)
--
--#define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
--
--#define V4L2_CID_IRIS_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+17)
--#define V4L2_CID_IRIS_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+18)
--
--#define V4L2_CID_AUTO_EXPOSURE_BIAS		(V4L2_CID_CAMERA_CLASS_BASE+19)
--
--#define V4L2_CID_AUTO_N_PRESET_WHITE_BALANCE	(V4L2_CID_CAMERA_CLASS_BASE+20)
--enum v4l2_auto_n_preset_white_balance {
--	V4L2_WHITE_BALANCE_MANUAL		= 0,
--	V4L2_WHITE_BALANCE_AUTO			= 1,
--	V4L2_WHITE_BALANCE_INCANDESCENT		= 2,
--	V4L2_WHITE_BALANCE_FLUORESCENT		= 3,
--	V4L2_WHITE_BALANCE_FLUORESCENT_H	= 4,
--	V4L2_WHITE_BALANCE_HORIZON		= 5,
--	V4L2_WHITE_BALANCE_DAYLIGHT		= 6,
--	V4L2_WHITE_BALANCE_FLASH		= 7,
--	V4L2_WHITE_BALANCE_CLOUDY		= 8,
--	V4L2_WHITE_BALANCE_SHADE		= 9,
--};
--
--#define V4L2_CID_WIDE_DYNAMIC_RANGE		(V4L2_CID_CAMERA_CLASS_BASE+21)
--#define V4L2_CID_IMAGE_STABILIZATION		(V4L2_CID_CAMERA_CLASS_BASE+22)
--
--#define V4L2_CID_ISO_SENSITIVITY		(V4L2_CID_CAMERA_CLASS_BASE+23)
--#define V4L2_CID_ISO_SENSITIVITY_AUTO		(V4L2_CID_CAMERA_CLASS_BASE+24)
--enum v4l2_iso_sensitivity_auto_type {
--	V4L2_ISO_SENSITIVITY_MANUAL		= 0,
--	V4L2_ISO_SENSITIVITY_AUTO		= 1,
--};
--
--#define V4L2_CID_EXPOSURE_METERING		(V4L2_CID_CAMERA_CLASS_BASE+25)
--enum v4l2_exposure_metering {
--	V4L2_EXPOSURE_METERING_AVERAGE		= 0,
--	V4L2_EXPOSURE_METERING_CENTER_WEIGHTED	= 1,
--	V4L2_EXPOSURE_METERING_SPOT		= 2,
--};
--
--#define V4L2_CID_SCENE_MODE			(V4L2_CID_CAMERA_CLASS_BASE+26)
--enum v4l2_scene_mode {
--	V4L2_SCENE_MODE_NONE			= 0,
--	V4L2_SCENE_MODE_BACKLIGHT		= 1,
--	V4L2_SCENE_MODE_BEACH_SNOW		= 2,
--	V4L2_SCENE_MODE_CANDLE_LIGHT		= 3,
--	V4L2_SCENE_MODE_DAWN_DUSK		= 4,
--	V4L2_SCENE_MODE_FALL_COLORS		= 5,
--	V4L2_SCENE_MODE_FIREWORKS		= 6,
--	V4L2_SCENE_MODE_LANDSCAPE		= 7,
--	V4L2_SCENE_MODE_NIGHT			= 8,
--	V4L2_SCENE_MODE_PARTY_INDOOR		= 9,
--	V4L2_SCENE_MODE_PORTRAIT		= 10,
--	V4L2_SCENE_MODE_SPORTS			= 11,
--	V4L2_SCENE_MODE_SUNSET			= 12,
--	V4L2_SCENE_MODE_TEXT			= 13,
--};
--
--#define V4L2_CID_3A_LOCK			(V4L2_CID_CAMERA_CLASS_BASE+27)
--#define V4L2_LOCK_EXPOSURE			(1 << 0)
--#define V4L2_LOCK_WHITE_BALANCE			(1 << 1)
--#define V4L2_LOCK_FOCUS				(1 << 2)
--
--#define V4L2_CID_AUTO_FOCUS_START		(V4L2_CID_CAMERA_CLASS_BASE+28)
--#define V4L2_CID_AUTO_FOCUS_STOP		(V4L2_CID_CAMERA_CLASS_BASE+29)
--#define V4L2_CID_AUTO_FOCUS_STATUS		(V4L2_CID_CAMERA_CLASS_BASE+30)
--#define V4L2_AUTO_FOCUS_STATUS_IDLE		(0 << 0)
--#define V4L2_AUTO_FOCUS_STATUS_BUSY		(1 << 0)
--#define V4L2_AUTO_FOCUS_STATUS_REACHED		(1 << 1)
--#define V4L2_AUTO_FOCUS_STATUS_FAILED		(1 << 2)
--
--#define V4L2_CID_AUTO_FOCUS_RANGE		(V4L2_CID_CAMERA_CLASS_BASE+31)
--enum v4l2_auto_focus_range {
--	V4L2_AUTO_FOCUS_RANGE_AUTO		= 0,
--	V4L2_AUTO_FOCUS_RANGE_NORMAL		= 1,
--	V4L2_AUTO_FOCUS_RANGE_MACRO		= 2,
--	V4L2_AUTO_FOCUS_RANGE_INFINITY		= 3,
--};
--
--/* FM Modulator class control IDs */
--#define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
--#define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
--
--#define V4L2_CID_RDS_TX_DEVIATION		(V4L2_CID_FM_TX_CLASS_BASE + 1)
--#define V4L2_CID_RDS_TX_PI			(V4L2_CID_FM_TX_CLASS_BASE + 2)
--#define V4L2_CID_RDS_TX_PTY			(V4L2_CID_FM_TX_CLASS_BASE + 3)
--#define V4L2_CID_RDS_TX_PS_NAME			(V4L2_CID_FM_TX_CLASS_BASE + 5)
--#define V4L2_CID_RDS_TX_RADIO_TEXT		(V4L2_CID_FM_TX_CLASS_BASE + 6)
--
--#define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 64)
--#define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 65)
--#define V4L2_CID_AUDIO_LIMITER_DEVIATION	(V4L2_CID_FM_TX_CLASS_BASE + 66)
--
--#define V4L2_CID_AUDIO_COMPRESSION_ENABLED	(V4L2_CID_FM_TX_CLASS_BASE + 80)
--#define V4L2_CID_AUDIO_COMPRESSION_GAIN		(V4L2_CID_FM_TX_CLASS_BASE + 81)
--#define V4L2_CID_AUDIO_COMPRESSION_THRESHOLD	(V4L2_CID_FM_TX_CLASS_BASE + 82)
--#define V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 83)
--#define V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 84)
--
--#define V4L2_CID_PILOT_TONE_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 96)
--#define V4L2_CID_PILOT_TONE_DEVIATION		(V4L2_CID_FM_TX_CLASS_BASE + 97)
--#define V4L2_CID_PILOT_TONE_FREQUENCY		(V4L2_CID_FM_TX_CLASS_BASE + 98)
--
--#define V4L2_CID_TUNE_PREEMPHASIS		(V4L2_CID_FM_TX_CLASS_BASE + 112)
--enum v4l2_preemphasis {
--	V4L2_PREEMPHASIS_DISABLED	= 0,
--	V4L2_PREEMPHASIS_50_uS		= 1,
--	V4L2_PREEMPHASIS_75_uS		= 2,
--};
--#define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FM_TX_CLASS_BASE + 113)
--#define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FM_TX_CLASS_BASE + 114)
--
--/* Flash and privacy (indicator) light controls */
--#define V4L2_CID_FLASH_CLASS_BASE		(V4L2_CTRL_CLASS_FLASH | 0x900)
--#define V4L2_CID_FLASH_CLASS			(V4L2_CTRL_CLASS_FLASH | 1)
--
--#define V4L2_CID_FLASH_LED_MODE			(V4L2_CID_FLASH_CLASS_BASE + 1)
--enum v4l2_flash_led_mode {
--	V4L2_FLASH_LED_MODE_NONE,
--	V4L2_FLASH_LED_MODE_FLASH,
--	V4L2_FLASH_LED_MODE_TORCH,
--};
--
--#define V4L2_CID_FLASH_STROBE_SOURCE		(V4L2_CID_FLASH_CLASS_BASE + 2)
--enum v4l2_flash_strobe_source {
--	V4L2_FLASH_STROBE_SOURCE_SOFTWARE,
--	V4L2_FLASH_STROBE_SOURCE_EXTERNAL,
--};
--
--#define V4L2_CID_FLASH_STROBE			(V4L2_CID_FLASH_CLASS_BASE + 3)
--#define V4L2_CID_FLASH_STROBE_STOP		(V4L2_CID_FLASH_CLASS_BASE + 4)
--#define V4L2_CID_FLASH_STROBE_STATUS		(V4L2_CID_FLASH_CLASS_BASE + 5)
--
--#define V4L2_CID_FLASH_TIMEOUT			(V4L2_CID_FLASH_CLASS_BASE + 6)
--#define V4L2_CID_FLASH_INTENSITY		(V4L2_CID_FLASH_CLASS_BASE + 7)
--#define V4L2_CID_FLASH_TORCH_INTENSITY		(V4L2_CID_FLASH_CLASS_BASE + 8)
--#define V4L2_CID_FLASH_INDICATOR_INTENSITY	(V4L2_CID_FLASH_CLASS_BASE + 9)
--
--#define V4L2_CID_FLASH_FAULT			(V4L2_CID_FLASH_CLASS_BASE + 10)
--#define V4L2_FLASH_FAULT_OVER_VOLTAGE		(1 << 0)
--#define V4L2_FLASH_FAULT_TIMEOUT		(1 << 1)
--#define V4L2_FLASH_FAULT_OVER_TEMPERATURE	(1 << 2)
--#define V4L2_FLASH_FAULT_SHORT_CIRCUIT		(1 << 3)
--#define V4L2_FLASH_FAULT_OVER_CURRENT		(1 << 4)
--#define V4L2_FLASH_FAULT_INDICATOR		(1 << 5)
--
--#define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
--#define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
--
--/*  JPEG-class control IDs defined by V4L2 */
--#define V4L2_CID_JPEG_CLASS_BASE		(V4L2_CTRL_CLASS_JPEG | 0x900)
--#define V4L2_CID_JPEG_CLASS			(V4L2_CTRL_CLASS_JPEG | 1)
--
--#define	V4L2_CID_JPEG_CHROMA_SUBSAMPLING	(V4L2_CID_JPEG_CLASS_BASE + 1)
--enum v4l2_jpeg_chroma_subsampling {
--	V4L2_JPEG_CHROMA_SUBSAMPLING_444	= 0,
--	V4L2_JPEG_CHROMA_SUBSAMPLING_422	= 1,
--	V4L2_JPEG_CHROMA_SUBSAMPLING_420	= 2,
--	V4L2_JPEG_CHROMA_SUBSAMPLING_411	= 3,
--	V4L2_JPEG_CHROMA_SUBSAMPLING_410	= 4,
--	V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY	= 5,
--};
--#define	V4L2_CID_JPEG_RESTART_INTERVAL		(V4L2_CID_JPEG_CLASS_BASE + 2)
--#define	V4L2_CID_JPEG_COMPRESSION_QUALITY	(V4L2_CID_JPEG_CLASS_BASE + 3)
--
--#define	V4L2_CID_JPEG_ACTIVE_MARKER		(V4L2_CID_JPEG_CLASS_BASE + 4)
--#define	V4L2_JPEG_ACTIVE_MARKER_APP0		(1 << 0)
--#define	V4L2_JPEG_ACTIVE_MARKER_APP1		(1 << 1)
--#define	V4L2_JPEG_ACTIVE_MARKER_COM		(1 << 16)
--#define	V4L2_JPEG_ACTIVE_MARKER_DQT		(1 << 17)
--#define	V4L2_JPEG_ACTIVE_MARKER_DHT		(1 << 18)
--
--/* Image source controls */
--#define V4L2_CID_IMAGE_SOURCE_CLASS_BASE	(V4L2_CTRL_CLASS_IMAGE_SOURCE | 0x900)
--#define V4L2_CID_IMAGE_SOURCE_CLASS		(V4L2_CTRL_CLASS_IMAGE_SOURCE | 1)
--
--#define V4L2_CID_VBLANK				(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 1)
--#define V4L2_CID_HBLANK				(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 2)
--#define V4L2_CID_ANALOGUE_GAIN			(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 3)
--
--/* Image processing controls */
--#define V4L2_CID_IMAGE_PROC_CLASS_BASE		(V4L2_CTRL_CLASS_IMAGE_PROC | 0x900)
--#define V4L2_CID_IMAGE_PROC_CLASS		(V4L2_CTRL_CLASS_IMAGE_PROC | 1)
--
--#define V4L2_CID_LINK_FREQ			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 1)
--#define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
- 
- /*  DV-class control IDs defined by V4L2 */
- #define V4L2_CID_DV_CLASS_BASE			(V4L2_CTRL_CLASS_DV | 0x900)
--- 
-1.7.10.4
+It's much easier to reverse the test:
 
+	if (core->revision == SI476X_REVISION_A10)
+		return -EIO;
+
+It reduces the indentation.
+
+> +		err = si476x_i2c_xfer(core, SI476X_I2C_RECV,
+> +				      buffer, sizeof(buffer));
+> +		if (err == sizeof(buffer)) {
+
+Ditto for the test above.
+
+Add an err = -EINVAL line here, then you don't need to add it for all the cases
+below.
+
+> +			switch (buffer[1]) {
+> +			case SI476X_ERR_BAD_COMMAND:
+> +				cause = "Bad command";
+> +				err = -EINVAL;
+> +				break;
+> +			case SI476X_ERR_BAD_ARG1:
+> +				cause = "Bad argument #1";
+> +				err = -EINVAL;
+> +				break;
+> +			case SI476X_ERR_BAD_ARG2:
+> +				cause = "Bad argument #2";
+> +				err = -EINVAL;
+> +				break;
+> +			case SI476X_ERR_BAD_ARG3:
+> +				cause = "Bad argument #3";
+> +				err = -EINVAL;
+> +				break;
+> +			case SI476X_ERR_BAD_ARG4:
+> +				cause = "Bad argument #4";
+> +				err = -EINVAL;
+> +				break;
+> +			case SI476X_ERR_BUSY:
+> +				cause = "Chip is busy";
+> +				err = -EBUSY;
+> +				break;
+> +			case SI476X_ERR_BAD_INTERNAL_MEMORY:
+> +				cause = "Bad internal memory";
+> +				err = -EIO;
+> +				break;
+> +			case SI476X_ERR_BAD_PATCH:
+> +				cause = "Bad patch";
+> +				err = -EINVAL;
+> +				break;
+> +			case SI476X_ERR_BAD_BOOT_MODE:
+> +				cause = "Bad boot mode";
+> +				err = -EINVAL;
+> +				break;
+> +			case SI476X_ERR_BAD_PROPERTY:
+> +				cause = "Bad property";
+> +				err = -EINVAL;
+> +				break;
+> +			default:
+> +				cause = "Unknown";
+> +				err = -EIO;
+> +			}
+> +
+> +			dev_err(&core->client->dev,
+> +				"[Chip error status]: %s\n", cause);
+> +		} else {
+> +			dev_err(&core->client->dev,
+> +				"Failed to fetch error code\n");
+> +			err = (err >= 0) ? -EIO : err;
+> +		}
+> +	} else {
+> +		err = -EIO;
+> +	}
+> +
+> +	return err;
+> +}
+> +
+> +/**
+> + * __core_send_command() - sends a command to si476x and waits its
+> + * response
+> + * @core:    si476x_device structure for the device we are
+> + *            communicating with
+> + * @command:  command id
+> + * @args:     command arguments we are sending
+> + * @argn:     actual size of @args
+> + * @response: buffer to place the expected response from the device
+> + * @respn:    actual size of @response
+> + * @usecs:    amount of time to wait before reading the response (in
+> + *            usecs)
+> + *
+> + * Function returns 0 on succsess and negative error code on
+> + * failure
+> + */
+> +static int __core_send_command(struct si476x_core *core,
+> +				    const u8 command,
+> +				    const u8 args[],
+> +				    const int argn,
+> +				    u8 resp[],
+> +				    const int respn,
+> +				    const int usecs)
+> +{
+> +	struct i2c_client *client = core->client;
+> +	int err;
+> +	u8  data[CMD_MAX_ARGS_COUNT + 1];
+> +
+> +	if (argn > CMD_MAX_ARGS_COUNT) {
+> +		err = -ENOMEM;
+> +		goto exit;
+
+Why goto exit? There is no clean up after the exit label, so just return
+immediately. Ditto for all the other goto exit's in this function.
+
+> +	}
+> +
+> +	if (!client->adapter) {
+> +		err = -ENODEV;
+> +		goto exit;
+> +	}
+> +
+> +	/* First send the command and its arguments */
+> +	data[0] = command;
+> +	memcpy(&data[1], args, argn);
+> +	DBG_BUFFER(&client->dev, "Command:\n", data, argn + 1);
+> +
+> +	err = si476x_i2c_xfer(core, SI476X_I2C_SEND, (char *) data, argn + 1);
+> +	if (err != argn + 1) {
+> +		dev_err(&core->client->dev,
+> +			"Error while sending command 0x%02x\n",
+> +			command);
+> +		err = (err >= 0) ? -EIO : err;
+> +		goto exit;
+> +	}
+> +	/* Set CTS to zero only after the command is send to avoid
+> +	 * possible racing conditions when working in polling mode */
+> +	atomic_set(&core->cts, 0);
+> +
+> +	if (!wait_event_timeout(core->command,
+> +				atomic_read(&core->cts),
+> +				usecs_to_jiffies(usecs) + 1))
+> +		dev_warn(&core->client->dev,
+> +			 "(%s) [CMD 0x%02x] Device took too much time to answer.\n",
+> +			 __func__, command);
+> +
+> +	/*
+> +	  When working in polling mode, for some reason the tuner will
+> +	  report CTS bit as being set in the first status byte read,
+> +	  but all the consequtive ones will return zros until the
+> +	  tuner is actually completed the POWER_UP command. To
+> +	  workaround that we wait for second CTS to be reported
+> +	 */
+> +	if (unlikely(!core->client->irq && command == CMD_POWER_UP)) {
+> +		if (!wait_event_timeout(core->command,
+> +					atomic_read(&core->cts),
+> +					usecs_to_jiffies(usecs) + 1))
+> +			dev_warn(&core->client->dev,
+> +				 "(%s) Power up took too much time.\n",
+> +				 __func__);
+> +	}
+> +
+> +	/* Then get the response */
+> +	err = si476x_i2c_xfer(core, SI476X_I2C_RECV, resp, respn);
+> +	if (err != respn) {
+> +		dev_err(&core->client->dev,
+> +			"Error while reading response for command 0x%02x\n",
+> +			command);
+> +		err = (err >= 0) ? -EIO : err;
+> +		goto exit;
+> +	}
+> +	DBG_BUFFER(&client->dev, "Response:\n", resp, respn);
+> +
+> +	err = 0;
+> +
+> +	if (resp[0] & SI476X_ERR) {
+> +		dev_err(&core->client->dev, "Chip set error flag\n");
+> +		err = si476x_core_parse_and_nag_about_error(core);
+> +		goto exit;
+> +	}
+> +
+> +	if (!(resp[0] & SI476X_CTS))
+> +		err = -EBUSY;
+> +exit:
+> +	return err;
+> +}
+> +
+> +#define CORE_SEND_COMMAND(core, cmd, args, resp, timeout)		\
+> +	__core_send_command(core, cmd, args,				\
+> +			    ARRAY_SIZE(args),				\
+> +			    resp, ARRAY_SIZE(resp),			\
+> +			    timeout)
+> +
+> +
+> +static int __cmd_tune_seek_freq(struct si476x_core *core,
+> +				uint8_t cmd,
+> +				const uint8_t args[], size_t argn,
+> +				uint8_t *resp, size_t respn,
+> +				int (*clear_stcint) (struct si476x_core *core))
+> +{
+> +	int err;
+> +
+> +	atomic_set(&core->stc, 0);
+> +	err = __core_send_command(core, cmd, args, argn,
+> +				  resp, respn,
+> +				  atomic_read(&core->timeouts.command));
+> +	if (!err) {
+
+Invert the test to simplify indentation.
+
+> +		if (!wait_event_timeout(core->tuning,
+> +		atomic_read(&core->stc),
+> +		usecs_to_jiffies(atomic_read(&core->timeouts.tune)) + 1)) {
+
+Weird indentation above. Indent the arguments more to the right.
+
+> +			dev_warn(&core->client->dev,
+> +				 "%s: Device took too much time "
+> +				 "to answer (%d usec).\n",
+> +				 __func__,
+> +				 atomic_read(&core->timeouts.tune));
+> +			err = -ETIMEDOUT;
+> +		} else {
+> +			err = clear_stcint(core);
+> +		}
+> +	}
+> +
+> +	return err;
+> +}
+> +
+> +
+> +/**
+> + * si476x_cmd_func_info() - send 'FUNC_INFO' command to the device
+> + * @core: device to send the command to
+> + * @info:  struct si476x_func_info to fill all the information
+> + *         returned by the command
+> + *
+> + * The command requests the firmware and patch version for currently
+> + * loaded firmware (dependent on the function of the device FM/AM/WB)
+> + *
+> + * Function returns 0 on succsess and negative error code on
+
+typo: success
+
+> + * failure
+> + */
+> +int si476x_core_cmd_func_info(struct si476x_core *core,
+> +			      struct si476x_func_info *info)
+> +{
+> +	int err;
+> +	u8  resp[CMD_FUNC_INFO_NRESP];
+> +
+> +	err = __core_send_command(core, CMD_FUNC_INFO,
+> +				  NULL, 0,
+> +				  resp, ARRAY_SIZE(resp),
+> +				  atomic_read(&core->timeouts.command));
+> +
+> +	info->firmware.major    = resp[1];
+> +	info->firmware.minor[0] = resp[2];
+> +	info->firmware.minor[1] = resp[3];
+> +
+> +	info->patch_id = ((u16) resp[4] << 8) | resp[5];
+> +	info->func     = resp[6];
+> +
+> +	return err;
+> +}
+> +EXPORT_SYMBOL_GPL(si476x_core_cmd_func_info);
+> +
+> +/**
+> + * si476x_cmd_set_property() - send 'SET_PROPERTY' command to the device
+> + * @core:    device to send the command to
+> + * @property: property address
+> + * @value:    property value
+> + *
+> + * Function returns 0 on succsess and negative error code on
+> + * failure
+> + */
+> +int si476x_core_cmd_set_property(struct si476x_core *core,
+> +				 u16 property, u16 value)
+> +{
+> +	u8       resp[CMD_SET_PROPERTY_NRESP];
+> +	const u8 args[CMD_SET_PROPERTY_NARGS] = {
+> +		0x00,
+> +		msb(property),
+> +		lsb(property),
+> +		msb(value),
+> +		lsb(value),
+> +	};
+> +
+> +	return CORE_SEND_COMMAND(core, CMD_SET_PROPERTY,
+> +				 args, resp,
+> +				 atomic_read(&core->timeouts.command));
+> +}
+> +EXPORT_SYMBOL_GPL(si476x_core_cmd_set_property);
+> +
+> +/**
+> + * si476x_cmd_get_property() - send 'GET_PROPERTY' command to the device
+> + * @core:    device to send the command to
+> + * @property: property address
+> + *
+> + * Function return the value of property as u16 on success or a
+> + * negative error on failure
+> + */
+> +int si476x_core_cmd_get_property(struct si476x_core *core, u16 property)
+> +{
+> +	int err;
+> +	u8       resp[CMD_GET_PROPERTY_NRESP];
+> +	const u8 args[CMD_GET_PROPERTY_NARGS] = {
+> +		0x00,
+> +		msb(property),
+> +		lsb(property),
+> +	};
+> +
+> +	err = CORE_SEND_COMMAND(core, CMD_GET_PROPERTY,
+> +				args, resp,
+> +				atomic_read(&core->timeouts.command));
+> +	if (err < 0)
+> +		return err;
+> +	else
+> +		return be16_to_cpup((__be16 *)(resp + 2));
+> +}
+> +EXPORT_SYMBOL_GPL(si476x_core_cmd_get_property);
+> +
+> +/**
+> + * si476x_cmd_dig_audio_pin_cfg() - send 'DIG_AUDIO_PIN_CFG' command to
+> + * the device
+> + * @core: device to send the command to
+> + * @dclk:  DCLK pin function configuration:
+> + *	   #SI476X_DCLK_NOOP     - do not modify the behaviour
+> + *         #SI476X_DCLK_TRISTATE - put the pin in tristate condition,
+> + *                                 enable 1MOhm pulldown
+> + *         #SI476X_DCLK_DAUDIO   - set the pin to be a part of digital
+> + *                                 audio interface
+> + * @dfs:   DFS pin function configuration:
+> + *         #SI476X_DFS_NOOP      - do not modify the behaviour
+> + *         #SI476X_DFS_TRISTATE  - put the pin in tristate condition,
+> + *                             enable 1MOhm pulldown
+> + *      SI476X_DFS_DAUDIO    - set the pin to be a part of digital
+> + *                             audio interface
+> + * @dout - DOUT pin function configuration:
+> + *      SI476X_DOUT_NOOP       - do not modify the behaviour
+> + *      SI476X_DOUT_TRISTATE   - put the pin in tristate condition,
+> + *                               enable 1MOhm pulldown
+> + *      SI476X_DOUT_I2S_OUTPUT - set this pin to be digital out on I2S
+> + *                               port 1
+> + *      SI476X_DOUT_I2S_INPUT  - set this pin to be digital in on I2S
+> + *                               port 1
+> + * @xout - XOUT pin function configuration:
+> + *	SI476X_XOUT_NOOP        - do not modify the behaviour
+> + *      SI476X_XOUT_TRISTATE    - put the pin in tristate condition,
+> + *                                enable 1MOhm pulldown
+> + *      SI476X_XOUT_I2S_INPUT   - set this pin to be digital in on I2S
+> + *                                port 1
+> + *      SI476X_XOUT_MODE_SELECT - set this pin to be the input that
+> + *                                selects the mode of the I2S audio
+> + *                                combiner (analog or HD)
+> + *                                [SI4761/63/65/67 Only]
+> + *
+> + * Function returns 0 on success and negative error code on failure
+> + */
+> +int si476x_core_cmd_dig_audio_pin_cfg(struct  si476x_core *core,
+> +				      enum si476x_dclk_config dclk,
+> +				      enum si476x_dfs_config  dfs,
+> +				      enum si476x_dout_config dout,
+> +				      enum si476x_xout_config xout)
+> +{
+> +	u8       resp[CMD_DIG_AUDIO_PIN_CFG_NRESP];
+> +	const u8 args[CMD_DIG_AUDIO_PIN_CFG_NARGS] = {
+> +		PIN_CFG_BYTE(dclk),
+> +		PIN_CFG_BYTE(dfs),
+> +		PIN_CFG_BYTE(dout),
+> +		PIN_CFG_BYTE(xout),
+> +	};
+> +
+> +	return CORE_SEND_COMMAND(core, CMD_DIG_AUDIO_PIN_CFG,
+> +				 args, resp,
+> +				 atomic_read(&core->timeouts.command));
+> +}
+> +EXPORT_SYMBOL_GPL(si476x_core_cmd_dig_audio_pin_cfg);
+> +
+> +/**
+> + * si476x_cmd_zif_pin_cfg - send 'ZIF_PIN_CFG_COMMAND'
+> + * @core - device to send the command to
+> + * @iqclk - IQCL pin function configuration:
+> + *       SI476X_IQCLK_NOOP     - do not modify the behaviour
+> + *       SI476X_IQCLK_TRISTATE - put the pin in tristate condition,
+> + *                               enable 1MOhm pulldown
+> + *       SI476X_IQCLK_IQ       - set pin to be a part of I/Q interace
+> + *                               in master mode
+> + * @iqfs - IQFS pin function configuration:
+> + *       SI476X_IQFS_NOOP     - do not modify the behaviour
+> + *       SI476X_IQFS_TRISTATE - put the pin in tristate condition,
+> + *                              enable 1MOhm pulldown
+> + *       SI476X_IQFS_IQ       - set pin to be a part of I/Q interace
+> + *                              in master mode
+> + * @iout - IOUT pin function configuration:
+> + *       SI476X_IOUT_NOOP     - do not modify the behaviour
+> + *       SI476X_IOUT_TRISTATE - put the pin in tristate condition,
+> + *                              enable 1MOhm pulldown
+> + *       SI476X_IOUT_OUTPUT   - set pin to be I out
+> + * @qout - QOUT pin function configuration:
+> + *       SI476X_QOUT_NOOP     - do not modify the behaviour
+> + *       SI476X_QOUT_TRISTATE - put the pin in tristate condition,
+> + *                              enable 1MOhm pulldown
+> + *       SI476X_QOUT_OUTPUT   - set pin to be Q out
+> + *
+> + * Function returns 0 on success and negative error code on failure
+> + */
+> +int si476x_core_cmd_zif_pin_cfg(struct si476x_core *core,
+> +				enum si476x_iqclk_config iqclk,
+> +				enum si476x_iqfs_config iqfs,
+> +				enum si476x_iout_config iout,
+> +				enum si476x_qout_config qout)
+> +{
+> +	u8       resp[CMD_ZIF_PIN_CFG_NRESP];
+> +	const u8 args[CMD_ZIF_PIN_CFG_NARGS] = {
+> +		PIN_CFG_BYTE(iqclk),
+> +		PIN_CFG_BYTE(iqfs),
+> +		PIN_CFG_BYTE(iout),
+> +		PIN_CFG_BYTE(qout),
+> +	};
+> +
+> +	return CORE_SEND_COMMAND(core, CMD_ZIF_PIN_CFG,
+> +				 args, resp,
+> +				 atomic_read(&core->timeouts.command));
+> +}
+> +EXPORT_SYMBOL_GPL(si476x_core_cmd_zif_pin_cfg);
+> +
+> +/**
+> + * si476x_cmd_ic_link_gpo_ctl_pin_cfg - send
+> + * 'IC_LINK_GPIO_CTL_PIN_CFG' comand to the device
+> + * @core - device to send the command to
+> + * @icin - ICIN pin function configuration:
+> + *      SI476X_ICIN_NOOP      - do not modify the behaviour
+> + *      SI476X_ICIN_TRISTATE  - put the pin in tristate condition,
+> + *                              enable 1MOhm pulldown
+> + *      SI476X_ICIN_GPO1_HIGH - set pin to be an output, drive it high
+> + *      SI476X_ICIN_GPO1_LOW  - set pin to be an output, drive it low
+> + *      SI476X_ICIN_IC_LINK   - set the pin to be a part of Inter-Chip link
+> + * @icip - ICIP pin function configuration:
+> + *      SI476X_ICIP_NOOP      - do not modify the behaviour
+> + *      SI476X_ICIP_TRISTATE  - put the pin in tristate condition,
+> + *                              enable 1MOhm pulldown
+> + *      SI476X_ICIP_GPO1_HIGH - set pin to be an output, drive it high
+> + *      SI476X_ICIP_GPO1_LOW  - set pin to be an output, drive it low
+> + *      SI476X_ICIP_IC_LINK   - set the pin to be a part of Inter-Chip link
+> + * @icon - ICON pin function configuration:
+> + *      SI476X_ICON_NOOP     - do not modify the behaviour
+> + *      SI476X_ICON_TRISTATE - put the pin in tristate condition,
+> + *                             enable 1MOhm pulldown
+> + *      SI476X_ICON_I2S      - set the pin to be a part of audio
+> + *                             interface in slave mode (DCLK)
+> + *      SI476X_ICON_IC_LINK  - set the pin to be a part of Inter-Chip link
+> + * @icop - ICOP pin function configuration:
+> + *      SI476X_ICOP_NOOP     - do not modify the behaviour
+> + *      SI476X_ICOP_TRISTATE - put the pin in tristate condition,
+> + *                             enable 1MOhm pulldown
+> + *      SI476X_ICOP_I2S      - set the pin to be a part of audio
+> + *                             interface in slave mode (DOUT)
+> + *                             [Si4761/63/65/67 Only]
+> + *      SI476X_ICOP_IC_LINK  - set the pin to be a part of Inter-Chip link
+> + *
+> + * Function returns 0 on success and negative error code on failure
+> + */
+> +int si476x_core_cmd_ic_link_gpo_ctl_pin_cfg(struct si476x_core *core,
+> +					    enum si476x_icin_config icin,
+> +					    enum si476x_icip_config icip,
+> +					    enum si476x_icon_config icon,
+> +					    enum si476x_icop_config icop)
+> +{
+> +	u8       resp[CMD_IC_LINK_GPO_CTL_PIN_CFG_NRESP];
+> +	const u8 args[CMD_IC_LINK_GPO_CTL_PIN_CFG_NARGS] = {
+> +		PIN_CFG_BYTE(icin),
+> +		PIN_CFG_BYTE(icip),
+> +		PIN_CFG_BYTE(icon),
+> +		PIN_CFG_BYTE(icop),
+> +	};
+> +
+> +	return CORE_SEND_COMMAND(core, CMD_IC_LINK_GPO_CTL_PIN_CFG,
+> +				 args, resp,
+> +				 atomic_read(&core->timeouts.command));
+> +}
+> +EXPORT_SYMBOL_GPL(si476x_core_cmd_ic_link_gpo_ctl_pin_cfg);
+> +
+> +/**
+> + * si476x_cmd_ana_audio_pin_cfg - send 'ANA_AUDIO_PIN_CFG' to the
+> + * device
+> + * @core - device to send the command to
+> + * @lrout - LROUT pin function configuration:
+> + *       SI476X_LROUT_NOOP     - do not modify the behaviour
+> + *       SI476X_LROUT_TRISTATE - put the pin in tristate condition,
+> + *                               enable 1MOhm pulldown
+> + *       SI476X_LROUT_AUDIO    - set pin to be audio output
+> + *       SI476X_LROUT_MPX      - set pin to be MPX output
+> + *
+> + * Function returns 0 on success and negative error code on failure
+> + */
+> +int si476x_core_cmd_ana_audio_pin_cfg(struct si476x_core *core,
+> +				      enum si476x_lrout_config lrout)
+> +{
+> +	u8       resp[CMD_ANA_AUDIO_PIN_CFG_NRESP];
+> +	const u8 args[CMD_ANA_AUDIO_PIN_CFG_NARGS] = {
+> +		PIN_CFG_BYTE(lrout),
+> +	};
+> +
+> +	return CORE_SEND_COMMAND(core, CMD_ANA_AUDIO_PIN_CFG,
+> +				 args, resp,
+> +				 atomic_read(&core->timeouts.command));
+> +}
+> +EXPORT_SYMBOL_GPL(si476x_core_cmd_ana_audio_pin_cfg);
+> +
+> +
+> +/**
+> + * si476x_cmd_intb_pin_cfg - send 'INTB_PIN_CFG' command to the device
+> + * @core - device to send the command to
+> + * @intb - INTB pin function configuration:
+> + *      SI476X_INTB_NOOP     - do not modify the behaviour
+> + *      SI476X_INTB_TRISTATE - put the pin in tristate condition,
+> + *                             enable 1MOhm pulldown
+> + *      SI476X_INTB_DAUDIO   - set pin to be a part of digital
+> + *                             audio interface in slave mode
+> + *      SI476X_INTB_IRQ      - set pin to be an interrupt request line
+> + * @a1 - A1 pin function configuration:
+> + *      SI476X_A1_NOOP     - do not modify the behaviour
+> + *      SI476X_A1_TRISTATE - put the pin in tristate condition,
+> + *                           enable 1MOhm pulldown
+> + *      SI476X_A1_IRQ      - set pin to be an interrupt request line
+> + *
+> + * Function returns 0 on success and negative error code on failure
+> + */
+> +static int si476x_core_cmd_intb_pin_cfg_a10(struct si476x_core *core,
+> +					    enum si476x_intb_config intb,
+> +					    enum si476x_a1_config a1)
+> +{
+> +	u8       resp[CMD_INTB_PIN_CFG_A10_NRESP];
+> +	const u8 args[CMD_INTB_PIN_CFG_NARGS] = {
+> +		PIN_CFG_BYTE(intb),
+> +		PIN_CFG_BYTE(a1),
+> +	};
+> +
+> +	return CORE_SEND_COMMAND(core, CMD_INTB_PIN_CFG,
+> +				 args, resp,
+> +				 atomic_read(&core->timeouts.command));
+> +}
+> +
+> +static int si476x_core_cmd_intb_pin_cfg_a20(struct si476x_core *core,
+> +					    enum si476x_intb_config intb,
+> +					    enum si476x_a1_config a1)
+> +{
+> +	u8       resp[CMD_INTB_PIN_CFG_A20_NRESP];
+> +	const u8 args[CMD_INTB_PIN_CFG_NARGS] = {
+> +		PIN_CFG_BYTE(intb),
+> +		PIN_CFG_BYTE(a1),
+> +	};
+> +
+> +	return CORE_SEND_COMMAND(core, CMD_INTB_PIN_CFG,
+> +				 args, resp,
+> +				 atomic_read(&core->timeouts.command));
+> +}
+> +
+> +
+> +
+> +/**
+> + * si476x_cmd_am_rsq_status - send 'FM_TUNE_FREQ' command to the
+> + * device
+> + * @core  - device to send the command to
+> + * @rsqack - if set command clears RSQINT, SNRINT, SNRLINT, RSSIHINT,
+> + *           RSSSILINT, BLENDINT, MULTHINT and MULTLINT
+> + * @attune - when set the values in the status report are the values
+> + *           that were calculated at tune
+> + * @cancel - abort ongoing seek/tune opertation
+> + * @stcack - clear the STCINT bin in status register
+> + * @report - all signal quality information retured by the command
+> + *           (if NULL then the output of the command is ignored)
+> + *
+> + * Function returns 0 on success and negative error code on failure
+> + */
+> +int si476x_core_cmd_am_rsq_status(struct si476x_core *core,
+> +				  struct si476x_rsq_status_args *rsqargs,
+> +				  struct si476x_rsq_status_report *report)
+> +{
+> +	int err;
+> +	u8       resp[CMD_AM_RSQ_STATUS_NRESP];
+> +	const u8 args[CMD_AM_RSQ_STATUS_NARGS] = {
+> +		rsqargs->rsqack << 3 | rsqargs->attune << 2 |
+> +		rsqargs->cancel << 1 | rsqargs->stcack,
+> +	};
+> +
+> +	err = CORE_SEND_COMMAND(core, CMD_AM_RSQ_STATUS,
+> +				args, resp,
+> +				atomic_read(&core->timeouts.command));
+> +
+> +	if (report) {
+> +		report->snrhint		= 0b00001000 & resp[1];
+> +		report->snrlint		= 0b00000100 & resp[1];
+> +		report->rssihint	= 0b00000010 & resp[1];
+> +		report->rssilint	= 0b00000001 & resp[1];
+> +
+> +		report->bltf		= 0b10000000 & resp[2];
+> +		report->snr_ready	= 0b00100000 & resp[2];
+> +		report->rssiready	= 0b00001000 & resp[2];
+> +		report->afcrl		= 0b00000010 & resp[2];
+> +		report->valid		= 0b00000001 & resp[2];
+> +
+> +		report->readfreq	= be16_to_cpup((__be16 *)(resp + 3));
+> +		report->freqoff		= resp[5];
+> +		report->rssi		= resp[6];
+> +		report->snr		= resp[7];
+> +		report->lassi		= resp[9];
+> +		report->hassi		= resp[10];
+> +		report->mult		= resp[11];
+> +		report->dev		= resp[12];
+> +	}
+> +
+> +	return err;
+> +}
+> +EXPORT_SYMBOL_GPL(si476x_core_cmd_am_rsq_status);
+> +
+> +int si476x_core_cmd_fm_acf_status(struct si476x_core *core,
+> +			     struct si476x_acf_status_report *report)
+> +{
+> +	int err;
+> +	u8       resp[CMD_FM_ACF_STATUS_NRESP];
+> +	const u8 args[CMD_FM_ACF_STATUS_NARGS] = {
+> +		0x0,
+> +	};
+> +
+> +	if (!report)
+> +		return -EINVAL;
+> +
+> +	err = CORE_SEND_COMMAND(core, CMD_FM_ACF_STATUS,
+> +				args, resp,
+> +				atomic_read(&core->timeouts.command));
+> +
+> +	if (!err) {
+> +		report->blend_int	= resp[1] & SI476X_ACF_BLEND_INT;
+> +		report->hblend_int	= resp[1] & SI476X_ACF_HIBLEND_INT;
+> +		report->hicut_int	= resp[1] & SI476X_ACF_HICUT_INT;
+> +		report->chbw_int	= resp[1] & SI476X_ACF_CHBW_INT;
+> +		report->softmute_int	= resp[1] & SI476X_ACF_SOFTMUTE_INT;
+> +		report->smute		= resp[2] & SI476X_ACF_SMUTE;
+> +		report->smattn		= resp[3] & SI476X_ACF_SMATTN;
+> +		report->chbw		= resp[4];
+> +		report->hicut		= resp[5];
+> +		report->hiblend		= resp[6];
+> +		report->pilot		= resp[7] & SI476X_ACF_PILOT;
+> +		report->stblend		= resp[7] & SI476X_ACF_STBLEND;
+> +	}
+> +
+> +	return err;
+> +}
+> +EXPORT_SYMBOL_GPL(si476x_core_cmd_fm_acf_status);
+> +
+> +int si476x_core_cmd_am_acf_status(struct si476x_core *core,
+> +				  struct si476x_acf_status_report *report)
+> +{
+> +	int err;
+> +	u8       resp[CMD_AM_ACF_STATUS_NRESP];
+> +	const u8 args[CMD_AM_ACF_STATUS_NARGS] = {
+> +		0x0,
+> +	};
+> +
+> +	if (!report)
+> +		return -EINVAL;
+> +
+> +	err = CORE_SEND_COMMAND(core, CMD_AM_ACF_STATUS,
+> +				args, resp,
+> +				atomic_read(&core->timeouts.command));
+> +
+> +	if (!err) {
+> +		report->blend_int	= resp[1] & SI476X_ACF_BLEND_INT;
+> +		report->hblend_int	= resp[1] & SI476X_ACF_HIBLEND_INT;
+> +		report->hicut_int	= resp[1] & SI476X_ACF_HICUT_INT;
+> +		report->chbw_int	= resp[1] & SI476X_ACF_CHBW_INT;
+> +		report->softmute_int	= resp[1] & SI476X_ACF_SOFTMUTE_INT;
+> +		report->smute		= resp[2] & SI476X_ACF_SMUTE;
+> +		report->smattn		= resp[3] & SI476X_ACF_SMATTN;
+> +		report->chbw		= resp[4];
+> +		report->hicut		= resp[5];
+> +	}
+> +
+> +	return err;
+> +}
+> +EXPORT_SYMBOL_GPL(si476x_core_cmd_am_acf_status);
+> +
+> +static inline int __fm_clear_stcint(struct si476x_core *core)
+> +{
+> +	struct si476x_rsq_status_args args = {
+> +		.primary	= false,
+> +		.rsqack		= false,
+> +		.attune		= false,
+> +		.cancel		= false,
+> +		.stcack		= true,
+> +	};
+> +	return si476x_core_cmd_fm_rsq_status(core, &args, NULL);
+> +}
+> +
+> +static inline int __am_clear_stcint(struct si476x_core *core)
+> +{
+> +	struct si476x_rsq_status_args args = {
+> +		.primary	= false,
+> +		.rsqack		= false,
+> +		.attune		= false,
+> +		.cancel		= false,
+> +		.stcack		= true,
+> +	};
+> +	return si476x_core_cmd_am_rsq_status(core,  &args, NULL);
+> +}
+> +
+> +
+> +
+> +/**
+> + * si476x_cmd_fm_seek_start - send 'FM_SEEK_START' command to the
+> + * device
+> + * @core  - device to send the command to
+> + * @seekup - if set the direction of the search is 'up'
+> + * @wrap   - if set seek wraps when hitting band limit
+> + *
+> + * This function begins search for a valid station. The station is
+> + * considered valid when 'FM_VALID_SNR_THRESHOLD' and
+> + * 'FM_VALID_RSSI_THRESHOLD' and 'FM_VALID_MAX_TUNE_ERROR' criteria
+> + * are met.
+> +} *
+> + * Function returns 0 on success and negative error code on failure
+> + */
+> +int si476x_core_cmd_fm_seek_start(struct si476x_core *core,
+> +				  bool seekup, bool wrap)
+> +{
+> +	u8       resp[CMD_FM_SEEK_START_NRESP];
+> +	const u8 args[CMD_FM_SEEK_START_NARGS] = {
+> +		seekup << 3 | wrap << 2,
+> +	};
+> +
+> +	return __cmd_tune_seek_freq(core, CMD_FM_SEEK_START,
+> +				    args, sizeof(args), resp, sizeof(resp),
+> +				    __fm_clear_stcint);
+> +}
+> +EXPORT_SYMBOL_GPL(si476x_core_cmd_fm_seek_start);
+> +
+> +/**
+> + * si476x_cmd_fm_rds_status - send 'FM_RDS_STATUS' command to the
+> + * device
+> + * @core - device to send the command to
+> + * @status_only - if set the data is not removed from RDSFIFO,
+> + *                RDSFIFOUSED is not decremented and data in all the
+> + *                rest RDS data contains the last valid info received
+> + * @mtfifo if set the command clears RDS receive FIFO
+> + * @intack if set the command clards the RDSINT bit.
+> + *
+> + * Function returns 0 on success and negative error code on failure
+> + */
+> +int si476x_core_cmd_fm_rds_status(struct si476x_core *core,
+> +				  bool status_only,
+> +				  bool mtfifo,
+> +				  bool intack,
+> +				  struct si476x_rds_status_report *report)
+> +{
+> +	int err;
+> +	u8       resp[CMD_FM_RDS_STATUS_NRESP];
+> +	const u8 args[CMD_FM_RDS_STATUS_NARGS] = {
+> +		status_only << 2 | mtfifo << 1 | intack,
+> +	};
+> +
+> +	err = CORE_SEND_COMMAND(core, CMD_FM_RDS_STATUS,
+> +				args, resp,
+> +				atomic_read(&core->timeouts.command));
+> +
+> +	if (!err && report) {
+> +		report->rdstpptyint	= 0b00010000 & resp[1];
+> +		report->rdspiint	= 0b00001000 & resp[1];
+> +		report->rdssyncint	= 0b00000010 & resp[1];
+> +		report->rdsfifoint	= 0b00000001 & resp[1];
+> +
+> +		report->tpptyvalid	= 0b00010000 & resp[2];
+> +		report->pivalid		= 0b00001000 & resp[2];
+> +		report->rdssync		= 0b00000010 & resp[2];
+> +		report->rdsfifolost	= 0b00000001 & resp[2];
+> +
+> +		report->tp		= 0b00100000 & resp[3];
+> +		report->pty		= 0b00011111 & resp[3];
+> +
+> +		report->pi		= be16_to_cpup((__be16 *)(resp + 4));
+> +		report->rdsfifoused	= resp[6];
+> +
+> +		report->ble[V4L2_RDS_BLOCK_A]	= 0b11000000 & resp[7];
+> +		report->ble[V4L2_RDS_BLOCK_B]	= 0b00110000 & resp[7];
+> +		report->ble[V4L2_RDS_BLOCK_C]	= 0b00001100 & resp[7];
+> +		report->ble[V4L2_RDS_BLOCK_D]	= 0b00000011 & resp[7];
+> +
+> +		report->rds[V4L2_RDS_BLOCK_A].block = V4L2_RDS_BLOCK_A;
+> +		report->rds[V4L2_RDS_BLOCK_A].msb = resp[8];
+> +		report->rds[V4L2_RDS_BLOCK_A].lsb = resp[9];
+> +
+> +		report->rds[V4L2_RDS_BLOCK_B].block = V4L2_RDS_BLOCK_B;
+> +		report->rds[V4L2_RDS_BLOCK_B].msb = resp[10];
+> +		report->rds[V4L2_RDS_BLOCK_B].lsb = resp[11];
+> +
+> +		report->rds[V4L2_RDS_BLOCK_C].block = V4L2_RDS_BLOCK_C;
+> +		report->rds[V4L2_RDS_BLOCK_C].msb = resp[12];
+> +		report->rds[V4L2_RDS_BLOCK_C].lsb = resp[13];
+> +
+> +		report->rds[V4L2_RDS_BLOCK_D].block = V4L2_RDS_BLOCK_D;
+> +		report->rds[V4L2_RDS_BLOCK_D].msb = resp[14];
+> +		report->rds[V4L2_RDS_BLOCK_D].lsb = resp[15];
+> +	}
+> +
+> +	return err;
+> +}
+> +
+> +int si476x_core_cmd_fm_rds_blockcount(struct si476x_core *core,
+> +				bool clear,
+> +				struct si476x_rds_blockcount_report *report)
+> +{
+> +	int err;
+> +	u8       resp[CMD_FM_RDS_BLOCKCOUNT_NRESP];
+> +	const u8 args[CMD_FM_RDS_BLOCKCOUNT_NARGS] = {
+> +		clear,
+> +	};
+> +
+> +	if (!report)
+> +		return -EINVAL;
+> +
+> +	err = CORE_SEND_COMMAND(core, CMD_FM_RDS_BLOCKCOUNT,
+> +				args, resp,
+> +				atomic_read(&core->timeouts.command));
+> +
+> +	if (!err) {
+> +		report->expected	= be16_to_cpup((__be16 *)(resp + 2));
+> +		report->received	= be16_to_cpup((__be16 *)(resp + 4));
+> +		report->uncorrectable	= be16_to_cpup((__be16 *)(resp + 6));
+> +	}
+> +
+> +	return err;
+> +}
+> +EXPORT_SYMBOL_GPL(si476x_core_cmd_fm_rds_blockcount);
+> +
+> +int si476x_core_cmd_fm_phase_diversity(struct si476x_core *core,
+> +				       enum si476x_phase_diversity_mode mode)
+> +{
+> +	u8       resp[CMD_FM_PHASE_DIVERSITY_NRESP];
+> +	const u8 args[CMD_FM_PHASE_DIVERSITY_NARGS] = {
+> +		mode & 0b111,
+> +	};
+> +
+> +	return CORE_SEND_COMMAND(core, CMD_FM_PHASE_DIVERSITY,
+> +				 args, resp,
+> +				 atomic_read(&core->timeouts.command));
+> +}
+> +EXPORT_SYMBOL_GPL(si476x_core_cmd_fm_phase_diversity);
+> +/**
+> + * si476x_core_cmd_fm_phase_div_status() - get the phase diversity
+> + * status
+> + *
+> + * @core: si476x device
+> + *
+> + * NOTE caller must hold core lock
+> + *
+> + * Function returns the value of the status bit in case of success and
+> + * negative error code in case of failre.
+> + */
+> +int si476x_core_cmd_fm_phase_div_status(struct si476x_core *core)
+> +{
+> +	int err;
+> +	u8 resp[CMD_FM_PHASE_DIV_STATUS_NRESP];
+> +
+> +	err = __core_send_command(core, CMD_FM_PHASE_DIV_STATUS,
+> +				  NULL, 0,
+> +				  resp, ARRAY_SIZE(resp),
+> +				  atomic_read(&core->timeouts.command));
+> +
+> +	return (err < 0) ? err : resp[1];
+> +}
+> +EXPORT_SYMBOL_GPL(si476x_core_cmd_fm_phase_div_status);
+> +
+> +
+> +/**
+> + * si476x_cmd_am_seek_start - send 'FM_SEEK_START' command to the
+> + * device
+> + * @core  - device to send the command to
+> + * @seekup - if set the direction of the search is 'up'
+> + * @wrap   - if set seek wraps when hitting band limit
+> + *
+> + * This function begins search for a valid station. The station is
+> + * considered valid when 'FM_VALID_SNR_THRESHOLD' and
+> + * 'FM_VALID_RSSI_THRESHOLD' and 'FM_VALID_MAX_TUNE_ERROR' criteria
+> + * are met.
+> + *
+> + * Function returns 0 on success and negative error code on failure
+> + */
+> +int si476x_core_cmd_am_seek_start(struct si476x_core *core,
+> +				  bool seekup, bool wrap)
+> +{
+> +	u8       resp[CMD_AM_SEEK_START_NRESP];
+> +	const u8 args[CMD_AM_SEEK_START_NARGS] = {
+> +		seekup << 3 | wrap << 2,
+> +	};
+> +
+> +	return __cmd_tune_seek_freq(core,  CMD_AM_SEEK_START,
+> +				    args, sizeof(args), resp, sizeof(resp),
+> +				    __am_clear_stcint);
+> +}
+> +EXPORT_SYMBOL_GPL(si476x_core_cmd_am_seek_start);
+> +
+> +
+> +
+> +static int si476x_core_cmd_power_up_a10(struct si476x_core *core,
+> +					struct si476x_power_up_args *puargs)
+> +{
+> +	u8       resp[CMD_POWER_UP_A10_NRESP];
+> +	const bool intsel = (core->pinmux.a1 == SI476X_A1_IRQ);
+> +	const bool ctsen  = (core->client->irq != 0);
+> +	const u8 args[CMD_POWER_UP_A10_NARGS] = {
+> +		0xF7,		/* Reserved, always 0xF7 */
+> +		0x3F & puargs->xcload,	/* First two bits are reserved to be
+> +				 * zeros */
+> +		ctsen << 7 | intsel << 6 | 0x07, /* Last five bits
+> +						   * are reserved to
+> +						   * be written as 0x7 */
+> +		puargs->func << 4 | puargs->freq,
+> +		0x11,		/* Reserved, always 0x11 */
+> +	};
+> +
+> +	return CORE_SEND_COMMAND(core, CMD_POWER_UP,
+> +				 args, resp,
+> +				 atomic_read(&core->timeouts.power_up));
+> +}
+> +
+> +static int si476x_core_cmd_power_up_a20(struct si476x_core *core,
+> +				 struct si476x_power_up_args *puargs)
+> +{
+> +	u8       resp[CMD_POWER_UP_A20_NRESP];
+> +	const bool intsel = (core->pinmux.a1 == SI476X_A1_IRQ);
+> +	const bool ctsen  = (core->client->irq != 0);
+> +	const u8 args[CMD_POWER_UP_A20_NARGS] = {
+> +		puargs->ibias6x << 7 | puargs->xstart,
+> +		0x3F & puargs->xcload,	/* First two bits are reserved to be
+> +					 * zeros */
+> +		ctsen << 7 | intsel << 6 | puargs->fastboot << 5 |
+> +		puargs->xbiashc << 3 | puargs->xbias,
+> +		puargs->func << 4 | puargs->freq,
+> +		0x10 | puargs->xmode,
+> +	};
+> +
+> +	return CORE_SEND_COMMAND(core, CMD_POWER_UP,
+> +				 args, resp,
+> +				 atomic_read(&core->timeouts.power_up));
+> +}
+> +
+> +static int si476x_core_cmd_power_down_a10(struct si476x_core *core,
+> +					  struct si476x_power_down_args *pdargs)
+> +{
+> +	u8 resp[CMD_POWER_DOWN_A10_NRESP];
+> +
+> +	return __core_send_command(core, CMD_POWER_DOWN,
+> +				   NULL, 0,
+> +				   resp, ARRAY_SIZE(resp),
+> +				   atomic_read(&core->timeouts.command));
+> +}
+> +
+> +static int si476x_core_cmd_power_down_a20(struct si476x_core *core,
+> +					  struct si476x_power_down_args *pdargs)
+> +{
+> +	u8 resp[CMD_POWER_DOWN_A20_NRESP];
+> +	const u8 args[CMD_POWER_DOWN_A20_NARGS] = {
+> +		pdargs->xosc,
+> +	};
+> +	return CORE_SEND_COMMAND(core, CMD_POWER_DOWN,
+> +				 args, resp,
+> +				 atomic_read(&core->timeouts.command));
+> +}
+> +
+> +static int si476x_core_cmd_am_tune_freq_a10(struct si476x_core *core,
+> +					struct si476x_tune_freq_args *tuneargs)
+> +{
+> +
+> +	const int am_freq = tuneargs->freq;
+> +	u8       resp[CMD_AM_TUNE_FREQ_NRESP];
+> +	const u8 args[CMD_AM_TUNE_FREQ_NARGS] = {
+> +		(tuneargs->hd << 6),
+> +		msb(am_freq),
+> +		lsb(am_freq),
+> +	};
+> +
+> +	return __cmd_tune_seek_freq(core, CMD_AM_TUNE_FREQ, args, sizeof(args),
+> +			       resp, sizeof(resp), __am_clear_stcint);
+> +}
+> +
+> +static int si476x_core_cmd_am_tune_freq_a20(struct si476x_core *core,
+> +					struct si476x_tune_freq_args *tuneargs)
+> +{
+> +	const int am_freq = tuneargs->freq;
+> +	u8       resp[CMD_AM_TUNE_FREQ_NRESP];
+> +	const u8 args[CMD_AM_TUNE_FREQ_NARGS] = {
+> +		(tuneargs->zifsr << 6) | (tuneargs->injside & 0b11),
+> +		msb(am_freq),
+> +		lsb(am_freq),
+> +	};
+> +
+> +	return __cmd_tune_seek_freq(core, CMD_AM_TUNE_FREQ, args, sizeof(args),
+> +			       resp, sizeof(resp), __am_clear_stcint);
+> +}
+> +
+> +static int si476x_core_cmd_fm_rsq_status_a10(struct si476x_core *core,
+> +					struct si476x_rsq_status_args *rsqargs,
+> +					struct si476x_rsq_status_report *report)
+> +{
+> +	int err;
+> +	u8       resp[CMD_FM_RSQ_STATUS_A10_NRESP];
+> +	const u8 args[CMD_FM_RSQ_STATUS_A10_NARGS] = {
+> +		rsqargs->rsqack << 3 | rsqargs->attune << 2 |
+> +		rsqargs->cancel << 1 | rsqargs->stcack,
+> +	};
+> +
+> +	err = CORE_SEND_COMMAND(core, CMD_FM_RSQ_STATUS,
+> +				args, resp,
+> +				atomic_read(&core->timeouts.command));
+> +
+> +	if (report && !err) {
+> +		report->multhint	= 0b10000000 & resp[1];
+> +		report->multlint	= 0b01000000 & resp[1];
+> +		report->snrhint		= 0b00001000 & resp[1];
+> +		report->snrlint		= 0b00000100 & resp[1];
+> +		report->rssihint	= 0b00000010 & resp[1];
+> +		report->rssilint	= 0b00000001 & resp[1];
+> +
+> +		report->bltf		= 0b10000000 & resp[2];
+> +		report->snr_ready	= 0b00100000 & resp[2];
+> +		report->rssiready	= 0b00001000 & resp[2];
+> +		report->afcrl		= 0b00000010 & resp[2];
+> +		report->valid		= 0b00000001 & resp[2];
+> +
+> +		report->readfreq	= be16_to_cpup((__be16 *)(resp + 3));
+> +		report->freqoff		= resp[5];
+> +		report->rssi		= resp[6];
+> +		report->snr		= resp[7];
+> +		report->lassi		= resp[9];
+> +		report->hassi		= resp[10];
+> +		report->mult		= resp[11];
+> +		report->dev		= resp[12];
+> +		report->readantcap	= be16_to_cpup((__be16 *)(resp + 13));
+> +		report->assi		= resp[15];
+> +		report->usn		= resp[16];
+> +	}
+> +
+> +	return err;
+> +}
+> +
+> +static int si476x_core_cmd_fm_rsq_status_a20(struct si476x_core *core,
+> +					struct si476x_rsq_status_args *rsqargs,
+> +					struct si476x_rsq_status_report *report)
+> +{
+> +	int err;
+> +	u8       resp[CMD_FM_RSQ_STATUS_A10_NRESP];
+> +
+> +	const u8 args[CMD_FM_RSQ_STATUS_A30_NARGS] = {
+> +		rsqargs->primary << 4 | rsqargs->rsqack << 3 |
+> +		rsqargs->attune  << 2 | rsqargs->cancel << 1 |
+> +		rsqargs->stcack,
+> +	};
+> +
+> +	err = CORE_SEND_COMMAND(core, CMD_FM_RSQ_STATUS,
+> +				args, resp,
+> +				atomic_read(&core->timeouts.command));
+> +
+> +	if (report && !err) {
+> +		report->multhint	= 0b10000000 & resp[1];
+> +		report->multlint	= 0b01000000 & resp[1];
+> +		report->snrhint		= 0b00001000 & resp[1];
+> +		report->snrlint		= 0b00000100 & resp[1];
+> +		report->rssihint	= 0b00000010 & resp[1];
+> +		report->rssilint	= 0b00000001 & resp[1];
+> +
+> +		report->bltf		= 0b10000000 & resp[2];
+> +		report->snr_ready	= 0b00100000 & resp[2];
+> +		report->rssiready	= 0b00001000 & resp[2];
+> +		report->afcrl		= 0b00000010 & resp[2];
+> +		report->valid		= 0b00000001 & resp[2];
+> +
+> +		report->readfreq	= be16_to_cpup((__be16 *)(resp + 3));
+> +		report->freqoff		= resp[5];
+> +		report->rssi		= resp[6];
+> +		report->snr		= resp[7];
+> +		report->lassi		= resp[9];
+> +		report->hassi		= resp[10];
+> +		report->mult		= resp[11];
+> +		report->dev		= resp[12];
+> +		report->readantcap	= be16_to_cpup((__be16 *)(resp + 13));
+> +		report->assi		= resp[15];
+> +		report->usn		= resp[16];
+> +	}
+> +
+> +	return err;
+> +}
+> +
+> +
+> +static int si476x_core_cmd_fm_rsq_status_a30(struct si476x_core *core,
+> +					struct si476x_rsq_status_args *rsqargs,
+> +					struct si476x_rsq_status_report *report)
+> +{
+> +	int err;
+> +	u8       resp[CMD_FM_RSQ_STATUS_A30_NRESP];
+> +	const u8 args[CMD_FM_RSQ_STATUS_A30_NARGS] = {
+> +		rsqargs->primary << 4 | rsqargs->rsqack << 3 |
+> +		rsqargs->attune << 2 | rsqargs->cancel << 1 |
+> +		rsqargs->stcack,
+> +	};
+> +
+> +	err = CORE_SEND_COMMAND(core, CMD_FM_RSQ_STATUS,
+> +				args, resp,
+> +				atomic_read(&core->timeouts.command));
+> +
+> +	if (report && !err) {
+> +		report->multhint	= 0b10000000 & resp[1];
+> +		report->multlint	= 0b01000000 & resp[1];
+> +		report->snrhint		= 0b00001000 & resp[1];
+> +		report->snrlint		= 0b00000100 & resp[1];
+> +		report->rssihint	= 0b00000010 & resp[1];
+> +		report->rssilint	= 0b00000001 & resp[1];
+> +
+> +		report->bltf		= 0b10000000 & resp[2];
+> +		report->snr_ready	= 0b00100000 & resp[2];
+> +		report->rssiready	= 0b00001000 & resp[2];
+> +		report->injside         = 0b00000100 & resp[2];
+> +		report->afcrl		= 0b00000010 & resp[2];
+> +		report->valid		= 0b00000001 & resp[2];
+> +
+> +		report->readfreq	= be16_to_cpup((__be16 *)(resp + 3));
+> +		report->freqoff		= resp[5];
+> +		report->rssi		= resp[6];
+> +		report->snr		= resp[7];
+> +		report->issi		= resp[8];
+> +		report->lassi		= resp[9];
+> +		report->hassi		= resp[10];
+> +		report->mult		= resp[11];
+> +		report->dev		= resp[12];
+> +		report->readantcap	= be16_to_cpup((__be16 *)(resp + 13));
+> +		report->assi		= resp[15];
+> +		report->usn		= resp[16];
+> +
+> +		report->pilotdev	= resp[17];
+> +		report->rdsdev		= resp[18];
+> +		report->assidev		= resp[19];
+> +		report->strongdev	= resp[20];
+> +		report->rdspi		= be16_to_cpup((__be16 *)(resp + 21));
+> +	}
+> +
+> +	return err;
+> +}
+> +
+> +static int si476x_core_cmd_fm_tune_freq_a10(struct si476x_core *core,
+> +					struct si476x_tune_freq_args *tuneargs)
+> +{
+> +	u8       resp[CMD_FM_TUNE_FREQ_NRESP];
+> +	const u8 args[CMD_FM_TUNE_FREQ_A10_NARGS] = {
+> +		(tuneargs->hd << 6) | (tuneargs->tunemode << 4)
+> +		| (tuneargs->smoothmetrics << 2),
+> +		msb(tuneargs->freq),
+> +		lsb(tuneargs->freq),
+> +		msb(tuneargs->antcap),
+> +		lsb(tuneargs->antcap)
+> +	};
+> +
+> +	return __cmd_tune_seek_freq(core, CMD_FM_TUNE_FREQ, args, sizeof(args),
+> +			       resp, sizeof(resp), __fm_clear_stcint);
+> +}
+> +
+> +static int si476x_core_cmd_fm_tune_freq_a20(struct si476x_core *core,
+> +					struct si476x_tune_freq_args *tuneargs)
+> +{
+> +	u8       resp[CMD_FM_TUNE_FREQ_NRESP];
+> +	const u8 args[CMD_FM_TUNE_FREQ_A20_NARGS] = {
+> +		(tuneargs->hd << 6) | (tuneargs->tunemode << 4)
+> +		|  (tuneargs->smoothmetrics << 2) | (tuneargs->injside),
+> +		msb(tuneargs->freq),
+> +		lsb(tuneargs->freq),
+> +	};
+> +
+> +	return __cmd_tune_seek_freq(core, CMD_FM_TUNE_FREQ, args, sizeof(args),
+> +			       resp, sizeof(resp), __fm_clear_stcint);
+> +}
+> +
+> +static int si476x_core_cmd_agc_status_a20(struct si476x_core *core,
+> +					struct si476x_agc_status_report *report)
+> +{
+> +	int err;
+> +	u8 resp[CMD_AGC_STATUS_NRESP_A20];
+> +
+> +	if (!report)
+> +		return -EINVAL;
+> +
+> +	err = __core_send_command(core, CMD_AGC_STATUS,
+> +				  NULL, 0,
+> +				  resp, ARRAY_SIZE(resp),
+> +				  atomic_read(&core->timeouts.command));
+> +	if (!err) {
+> +		report->mxhi		= resp[1] & SI476X_AGC_MXHI;
+> +		report->mxlo		= resp[1] & SI476X_AGC_MXLO;
+> +		report->lnahi		= resp[1] & SI476X_AGC_LNAHI;
+> +		report->lnalo		= resp[1] & SI476X_AGC_LNALO;
+> +		report->fmagc1		= resp[2];
+> +		report->fmagc2		= resp[3];
+> +		report->pgagain		= resp[4];
+> +		report->fmwblang	= resp[5];
+> +	}
+> +
+> +	return err;
+> +}
+> +
+> +static int si476x_core_cmd_agc_status_a10(struct si476x_core *core,
+> +					struct si476x_agc_status_report *report)
+> +{
+> +	int err;
+> +	u8 resp[CMD_AGC_STATUS_NRESP_A10];
+> +
+> +	if (!report)
+> +		return -EINVAL;
+> +
+> +	err = __core_send_command(core, CMD_AGC_STATUS,
+> +				  NULL, 0,
+> +				  resp, ARRAY_SIZE(resp),
+> +				  atomic_read(&core->timeouts.command));
+> +	if (!err) {
+> +		report->mxhi		= resp[1] & SI476X_AGC_MXHI;
+> +		report->mxlo		= resp[1] & SI476X_AGC_MXLO;
+> +		report->lnahi		= resp[1] & SI476X_AGC_LNAHI;
+> +		report->lnalo		= resp[1] & SI476X_AGC_LNALO;
+> +	}
+> +
+> +	return err;
+> +}
+> +
+> +static struct {
+> +	int (*power_up) (struct si476x_core *,
+> +			 struct si476x_power_up_args *);
+> +	int (*power_down) (struct si476x_core *,
+> +			   struct si476x_power_down_args *);
+> +
+> +	tune_freq_func_t fm_tune_freq;
+> +	tune_freq_func_t am_tune_freq;
+> +
+> +	int (*fm_rsq_status)(struct si476x_core *,
+> +			     struct si476x_rsq_status_args *,
+> +			     struct si476x_rsq_status_report *);
+> +
+> +	int (*agc_status)(struct si476x_core *,
+> +			  struct si476x_agc_status_report *);
+> +	int (*intb_pin_cfg)(struct si476x_core *core,
+> +			    enum si476x_intb_config intb,
+> +			    enum si476x_a1_config a1);
+> +} si476x_cmds_vtable[] = {
+> +	[SI476X_REVISION_A10] = {
+> +		.power_up	= si476x_core_cmd_power_up_a10,
+> +		.power_down	= si476x_core_cmd_power_down_a10,
+> +		.fm_tune_freq	= si476x_core_cmd_fm_tune_freq_a10,
+> +		.am_tune_freq	= si476x_core_cmd_am_tune_freq_a10,
+> +		.fm_rsq_status	= si476x_core_cmd_fm_rsq_status_a10,
+> +		.agc_status	= si476x_core_cmd_agc_status_a10,
+> +		.intb_pin_cfg   = si476x_core_cmd_intb_pin_cfg_a10,
+> +	},
+> +	[SI476X_REVISION_A20] = {
+> +		.power_up	= si476x_core_cmd_power_up_a20,
+> +		.power_down	= si476x_core_cmd_power_down_a20,
+> +		.fm_tune_freq	= si476x_core_cmd_fm_tune_freq_a20,
+> +		.am_tune_freq	= si476x_core_cmd_am_tune_freq_a20,
+> +		.fm_rsq_status	= si476x_core_cmd_fm_rsq_status_a20,
+> +		.agc_status	= si476x_core_cmd_agc_status_a20,
+> +		.intb_pin_cfg   = si476x_core_cmd_intb_pin_cfg_a20,
+> +	},
+> +	[SI476X_REVISION_A30] = {
+> +		.power_up	= si476x_core_cmd_power_up_a20,
+> +		.power_down	= si476x_core_cmd_power_down_a20,
+> +		.fm_tune_freq	= si476x_core_cmd_fm_tune_freq_a20,
+> +		.am_tune_freq	= si476x_core_cmd_am_tune_freq_a20,
+> +		.fm_rsq_status	= si476x_core_cmd_fm_rsq_status_a30,
+> +		.agc_status	= si476x_core_cmd_agc_status_a20,
+> +		.intb_pin_cfg   = si476x_core_cmd_intb_pin_cfg_a20,
+> +	},
+> +};
+> +
+> +int si476x_core_cmd_power_up(struct si476x_core *core,
+> +			     struct si476x_power_up_args *args)
+> +{
+> +	BUG_ON(core->revision > SI476X_REVISION_A30 ||
+> +	       core->revision == -1);
+> +	return si476x_cmds_vtable[core->revision].power_up(core, args);
+> +}
+> +EXPORT_SYMBOL_GPL(si476x_core_cmd_power_up);
+> +
+> +int si476x_core_cmd_power_down(struct si476x_core *core,
+> +			       struct si476x_power_down_args *args)
+> +{
+> +	BUG_ON(core->revision > SI476X_REVISION_A30 ||
+> +	       core->revision == -1);
+> +	return si476x_cmds_vtable[core->revision].power_down(core, args);
+> +}
+> +EXPORT_SYMBOL_GPL(si476x_core_cmd_power_down);
+> +
+> +int si476x_core_cmd_fm_tune_freq(struct si476x_core *core,
+> +				 struct si476x_tune_freq_args *args)
+> +{
+> +	BUG_ON(core->revision > SI476X_REVISION_A30 ||
+> +	       core->revision == -1);
+> +	return si476x_cmds_vtable[core->revision].fm_tune_freq(core, args);
+> +}
+> +EXPORT_SYMBOL_GPL(si476x_core_cmd_fm_tune_freq);
+> +
+> +int si476x_core_cmd_am_tune_freq(struct si476x_core *core,
+> +				 struct si476x_tune_freq_args *args)
+> +{
+> +	BUG_ON(core->revision > SI476X_REVISION_A30 ||
+> +	       core->revision == -1);
+> +	return si476x_cmds_vtable[core->revision].am_tune_freq(core, args);
+> +}
+> +EXPORT_SYMBOL_GPL(si476x_core_cmd_am_tune_freq);
+> +
+> +int si476x_core_cmd_fm_rsq_status(struct si476x_core *core,
+> +				  struct si476x_rsq_status_args *args,
+> +				  struct si476x_rsq_status_report *report)
+> +
+> +{
+> +	BUG_ON(core->revision > SI476X_REVISION_A30 ||
+> +	       core->revision == -1);
+> +	return si476x_cmds_vtable[core->revision].fm_rsq_status(core, args,
+> +								report);
+> +}
+> +EXPORT_SYMBOL_GPL(si476x_core_cmd_fm_rsq_status);
+> +
+> +int si476x_core_cmd_agc_status(struct si476x_core *core,
+> +				  struct si476x_agc_status_report *report)
+> +
+> +{
+> +	BUG_ON(core->revision > SI476X_REVISION_A30 ||
+> +	       core->revision == -1);
+> +	return si476x_cmds_vtable[core->revision].agc_status(core, report);
+> +}
+> +EXPORT_SYMBOL_GPL(si476x_core_cmd_agc_status);
+> +
+> +
+> +int si476x_core_cmd_intb_pin_cfg(struct si476x_core *core,
+> +			    enum si476x_intb_config intb,
+> +			    enum si476x_a1_config a1)
+> +{
+> +	BUG_ON(core->revision > SI476X_REVISION_A30 ||
+> +	       core->revision == -1);
+> +
+> +	return si476x_cmds_vtable[core->revision].intb_pin_cfg(core, intb, a1);
+> +}
+> +EXPORT_SYMBOL_GPL(si476x_core_cmd_intb_pin_cfg);
+> +
+> +
+> +
+
+Andrey, you should look at the drivers/media/radio/si4713-i2c.c source.
+It is for the same chip family and is much, much smaller.
+
+See if you can use some of the code that's there.
+
+Regards,
+
+  Hans
