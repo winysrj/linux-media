@@ -1,45 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37630 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932174Ab2ICOcu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Sep 2012 10:32:50 -0400
-Date: Mon, 3 Sep 2012 17:32:46 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: =?iso-8859-1?Q?R=E9mi?= Denis-Courmont <remi@remlab.net>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 01/10] v4l: Remove experimental tag from certain
- API elements
-Message-ID: <20120903143245.GC6834@valkosipuli.retiisi.org.uk>
-References: <1346680124-15169-1-git-send-email-hverkuil@xs4all.nl>
- <c31da93f2bf615b90086d749e3f3eae6d6c3fc41.1346679785.git.hans.verkuil@cisco.com>
- <201209031707.53631@leon.remlab.net>
+Received: from mailfe03.c2i.net ([212.247.154.66]:34664 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753629Ab2IOMv1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Sep 2012 08:51:27 -0400
+From: Hans Petter Selasky <hselasky@c2i.net>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: Strong pairing cam doesn't work with CT-3650 driver (ttusb2)
+Date: Sat, 15 Sep 2012 14:52:35 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <201208172135.17623.hselasky@c2i.net> <502EB0A9.4090501@iki.fi>
+In-Reply-To: <502EB0A9.4090501@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <201209031707.53631@leon.remlab.net>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201209151452.35183.hselasky@c2i.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 03, 2012 at 05:07:53PM +0300, Rémi Denis-Courmont wrote:
-> Le lundi 3 septembre 2012 16:48:35, Hans Verkuil a écrit :
-> > From: Sakari Ailus <sakari.ailus@iki.fi>
+On Friday 17 August 2012 22:59:21 Antti Palosaari wrote:
+> On 08/17/2012 10:35 PM, Hans Petter Selasky wrote:
+> > Hi,
 > > 
-> > Remove experimantal tag from the following API elements:
-> > 
-> > V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY buffer type.
-> > V4L2_CAP_VIDEO_OUTPUT_OVERLAY capability flag.
-> > VIDIOC_ENUM_FRAMESIZES IOCTL.
+> > Have anyone out there tested the CT-3650 USB driver in the Linux kernel
+> > with a "strong pairing cam".
 > 
-> The patch correctly but silently clears ENUM_FRAMEINTERVALS too...
+> Likely that means CI+ with some pairing features enabled.
+> 
+> > According to some web-forums, the hardware should support that given
+> > using the vendor provided DVB WinXXX software.
+> > 
+> > drivers/media/dvb/dvb-usb/ttusb2.c
+> > 
+> > Any clues how to debug or what can be wrong?
+> 
+> Take USB traffic capture from working Windows setup and analyze what is
+> done differently.
+> 
 
-Good point. I had that in my original patch (for cleaning up the two enums
-only) but didn't notice that when I reworked it.
+Just forget this thread. The CAM was broken. Works now.
 
-Regards,
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+--HPS
