@@ -1,76 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59422 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756611Ab2IMKQo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 06:16:44 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 API PATCH 24/28] v4l2-dev: add new VFL_DIR_ defines.
-Date: Thu, 13 Sep 2012 04:36:27 +0200
-Message-ID: <3100048.RJKoMcdZ5k@avalon>
-In-Reply-To: <e2043c0ca47cc3ed1fd45f62a6bce14e3ed5e2e8.1347023744.git.hans.verkuil@cisco.com>
-References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl> <e2043c0ca47cc3ed1fd45f62a6bce14e3ed5e2e8.1347023744.git.hans.verkuil@cisco.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mx1.redhat.com ([209.132.183.28]:32389 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751080Ab2IOVRR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Sep 2012 17:17:17 -0400
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q8FLHG5I029280
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 15 Sep 2012 17:17:16 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 1/2] MAINTAINERS: Remove entries for drivers that got removed
+Date: Sat, 15 Sep 2012 18:17:12 -0300
+Message-Id: <1347743833-32689-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Those two drivers got removed, as gspca replaced both. So,
+remove the old entries.
 
-Thanks for the patch.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ MAINTAINERS | 17 -----------------
+ 1 file changed, 17 deletions(-)
 
-On Friday 07 September 2012 15:29:24 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> These will be used by v4l2-dev.c to improve ioctl checking.
-> I.e. ioctls for capture should return -ENOTTY when called for
-> an output device.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  include/media/v4l2-dev.h |    9 ++++++++-
->  1 file changed, 8 insertions(+), 1 deletion(-)
-> 
-> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-> index 6ee8897..95d1c91 100644
-> --- a/include/media/v4l2-dev.h
-> +++ b/include/media/v4l2-dev.h
-> @@ -26,6 +26,12 @@
->  #define VFL_TYPE_SUBDEV		3
->  #define VFL_TYPE_MAX		4
-> 
-> +/* Is this a receiver, transmitter or mem-to-mem? */
-> +/* Ignored for VFL_TYPE_SUBDEV. */
-> +#define VFL_DIR_RX		0
-> +#define VFL_DIR_TX		1
-> +#define VFL_DIR_M2M		2
-> +
-
-Wouldn't VFL_DIR_CAPTURE and VFL_DIR_OUTPUT sound more familiar ?
-
->  struct v4l2_ioctl_callbacks;
->  struct video_device;
->  struct v4l2_device;
-> @@ -105,7 +111,8 @@ struct video_device
-> 
->  	/* device info */
->  	char name[32];
-> -	int vfl_type;
-> +	int vfl_type;	/* device type */
-> +	int vfl_dir;	/* receiver, transmitter or m2m */
-
-Would combining vfl_dir with vfl_type using bitflags be an option ? The 
-direction is somehow part of (or closely related to) the type.
-
->  	/* 'minor' is set to -1 if the registration failed */
->  	int minor;
->  	u16 num;
-
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 91b79ba..ada8f05 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -7130,14 +7130,6 @@ S:	Maintained
+ F:	Documentation/usb/ehci.txt
+ F:	drivers/usb/host/ehci*
+ 
+-USB ET61X[12]51 DRIVER
+-M:	Luca Risolia <luca.risolia@studio.unibo.it>
+-L:	linux-usb@vger.kernel.org
+-L:	linux-media@vger.kernel.org
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
+-W:	http://www.linux-projects.org
+-S:	Maintained
+-F:	drivers/media/video/et61x251/
+ 
+ USB GADGET/PERIPHERAL SUBSYSTEM
+ M:	Felipe Balbi <balbi@ti.com>
+@@ -7345,15 +7337,6 @@ W:	http://www.ideasonboard.org/uvc/
+ S:	Maintained
+ F:	drivers/media/usb/uvc/
+ 
+-USB W996[87]CF DRIVER
+-M:	Luca Risolia <luca.risolia@studio.unibo.it>
+-L:	linux-usb@vger.kernel.org
+-L:	linux-media@vger.kernel.org
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
+-W:	http://www.linux-projects.org
+-S:	Maintained
+-F:	Documentation/video4linux/w9968cf.txt
+-F:	drivers/media/video/w996*
+ 
+ USB WIRELESS RNDIS DRIVER (rndis_wlan)
+ M:	Jussi Kivilinna <jussi.kivilinna@mbnet.fi>
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.11.4
 
