@@ -1,83 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:11481 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:10690 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754665Ab2IXAYA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Sep 2012 20:24:00 -0400
-Date: Sun, 23 Sep 2012 21:23:46 -0300
+	id S1752471Ab2IOR6g (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Sep 2012 13:58:36 -0400
+Date: Sat, 15 Sep 2012 14:58:34 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 07/16] rtl2830: use .get_if_frequency()
-Message-ID: <20120923212346.2ff462f1@redhat.com>
-In-Reply-To: <505FA471.5010805@iki.fi>
-References: <1347495837-3244-1-git-send-email-crope@iki.fi>
-	<1347495837-3244-7-git-send-email-crope@iki.fi>
-	<20120923201742.4eaf7455@redhat.com>
-	<505FA471.5010805@iki.fi>
+To: Anders Thomson <aeriksson2@gmail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: tda8290 regression fix
+Message-ID: <20120915145834.0b763f73@redhat.com>
+In-Reply-To: <5054BD53.7060109@gmail.com>
+References: <503F4E19.1050700@gmail.com>
+	<20120915133417.27cb82a1@redhat.com>
+	<5054BD53.7060109@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 24 Sep 2012 03:08:17 +0300
-Antti Palosaari <crope@iki.fi> escreveu:
+Em Sat, 15 Sep 2012 19:39:31 +0200
+Anders Thomson <aeriksson2@gmail.com> escreveu:
 
-> On 09/24/2012 02:17 AM, Mauro Carvalho Chehab wrote:
-> > Em Thu, 13 Sep 2012 03:23:48 +0300
-> > Antti Palosaari <crope@iki.fi> escreveu:
+> On 2012-09-15 18:34, Mauro Carvalho Chehab wrote:
+> > >  $ cat /TV_CARD.diff
+> > >  diff --git a/drivers/media/common/tuners/tda8290.c
+> > >  b/drivers/media/common/tuners/tda8290.c
+> > >  index 064d14c..498cc7b 100644
+> > >  --- a/drivers/media/common/tuners/tda8290.c
+> > >  +++ b/drivers/media/common/tuners/tda8290.c
+> > >  @@ -635,7 +635,11 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
+> > >
+> > >                   dvb_attach(tda827x_attach, fe, priv->tda827x_addr,
+> > >                              priv->i2c_props.adap,&priv->cfg);
+> > >  +               tuner_info("ANDERS: setting switch_addr. was 0x%02x, new
+> > >  0x%02x\n",priv->cfg.switch_addr,priv->i2c_props.addr);
+> > >                   priv->cfg.switch_addr = priv->i2c_props.addr;
+> > >  +               priv->cfg.switch_addr = 0xc2 / 2;
 > >
-> >> Use .get_if_frequency() as all used tuner drivers
-> >> (mt2060/qt1010/mxl5005s) supports it.
-> >>
-> >> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> > No, this is wrong. The I2C address is passed by the bridge driver or by
+> > the tuner_core attachment, being stored at priv->i2c_props.addr.
 > >
-> >> @@ -240,26 +237,6 @@ static int rtl2830_init(struct dvb_frontend *fe)
-> >>   	if (ret)
-> >>   		goto err;
-> >>
-> >> -	num = priv->cfg.if_dvbt % priv->cfg.xtal;
-> >> -	num *= 0x400000;
-> >> -	num = div_u64(num, priv->cfg.xtal);
-> >> -	num = -num;
-> >> -	if_ctl = num & 0x3fffff;
-> >> -	dev_dbg(&priv->i2c->dev, "%s: if_ctl=%08x\n", __func__, if_ctl);
-> >> -
-> >> -	ret = rtl2830_rd_reg_mask(priv, 0x119, &tmp, 0xc0); /* b[7:6] */
-> >> -	if (ret)
-> >> -		goto err;
-> >> -
-> >> -	buf[0] = tmp << 6;
-> >> -	buf[0] |= (if_ctl >> 16) & 0x3f;
-> >> -	buf[1] = (if_ctl >>  8) & 0xff;
-> >> -	buf[2] = (if_ctl >>  0) & 0xff;
+> > What's the driver and card you're using?
 > >
-> > Patch applied, but there was a context difference above:
-> >
-> >   --- a/drivers/media/dvb-frontends/rtl2830.c
-> >   +++ b/drivers/media/dvb-frontends/rtl2830.c
-> >   @@ -182,9 +182,6 @@ static int rtl2830_init(struct dvb_frontend *fe)
-> > @@ -28,7 +50,7 @@ index eca1d72..3954760 100644
-> >   -		goto err;
-> >   -
-> >   -	buf[0] = tmp << 6;
-> > --	buf[0] = (if_ctl >> 16) & 0x3f;
-> > +-	buf[0] |= (if_ctl >> 16) & 0x3f;
-> >   -	buf[1] = (if_ctl >>  8) & 0xff;
-> >   -	buf[2] = (if_ctl >>  0) & 0xff;
-> >   -
-> >
-> > (that's the diff between the patch applied and your original one)
-> 
-> Because of that:
-> 
-> http://patchwork.linuxtv.org/patch/14066/
+> lspci -vv:
+> 03:06.0 Multimedia controller: Philips Semiconductors 
+> SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d1)
+>          Subsystem: Pinnacle Systems Inc. Device 002f
 
-That's why I ask driver maintainers to send me pull requests, instead of
-sending long series of patches at the mailing list, and tagging the patches
-for review at ML as RFC: it is not warranted that the patches will be merged
-at the order they're sent to the mailing list.
+There are lots of Pinnacle device supported by saa7134 driver. Without its
+PCI ID that's not much we can do.
 
--- 
+Also, please post the dmesg showing what happens without and with your patch.
+
 Regards,
 Mauro
