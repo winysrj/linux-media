@@ -1,48 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:32412 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758078Ab2IFKtU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2012 06:49:20 -0400
-Received: from eusync3.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M9X004OVCQV2B60@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 06 Sep 2012 11:49:43 +0100 (BST)
-Received: from [106.116.147.32] by eusync3.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0M9X00NH1CQ50350@eusync3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 06 Sep 2012 11:49:17 +0100 (BST)
-Message-id: <50487FAC.5000203@samsung.com>
-Date: Thu, 06 Sep 2012 12:49:16 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: Fabio Estevam <festevam@gmail.com>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	=?ISO-8859-1?Q?Ga=EBtan_Carlier?= <gcembed@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: Camera not detected on linux-next
-References: <CAOMZO5D7Ar0SE9vmi41jSxbPqv8sSOQshbL6Uzv4Ltow5xKx4w@mail.gmail.com>
- <50477B20.1030902@samsung.com>
- <CA+V-a8t0GCKsvn5i8U8xNpeRQZCfu6b0s3O+XuOKbSfUY8AD8Q@mail.gmail.com>
-In-reply-to: <CA+V-a8t0GCKsvn5i8U8xNpeRQZCfu6b0s3O+XuOKbSfUY8AD8Q@mail.gmail.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43527 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753744Ab2IOVmI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Sep 2012 17:42:08 -0400
+Received: from localhost.localdomain (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:6d9a::83:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id BB88E60099
+	for <linux-media@vger.kernel.org>; Sun, 16 Sep 2012 00:42:05 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 1/2] smiapp: Use highest bits-per-pixel for sensor internal format
+Date: Sun, 16 Sep 2012 00:43:28 +0300
+Message-Id: <1347745409-21003-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <5054F66C.1050400@iki.fi>
+References: <5054F66C.1050400@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+The format shown on the links internal to the sensor was the first one
+enumerated from the sensor, not the highest bit depth data that can be
+produced by the sensor. Correct this.
 
-On 09/06/2012 11:16 AM, Prabhakar Lad wrote:
-> Thanks for the patch.  I too had created one but didnt submit. I guess you will
-> post the patch soon to the list.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
 
-I've posted it a few days ago, it's already queued in the patchwork:
-http://patchwork.linuxtv.org/patch/14046/
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 4f1c8d6..02bfa44 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -777,7 +777,11 @@ static int smiapp_get_mbus_formats(struct smiapp_sensor *sensor)
+ 			dev_dbg(&client->dev, "jolly good! %d\n", j);
+ 
+ 			sensor->default_mbus_frame_fmts |= 1 << j;
+-			if (!sensor->csi_format) {
++			if (!sensor->csi_format
++			    || f->width > sensor->csi_format->width
++			    || (f->width == sensor->csi_format->width
++				&& f->compressed
++				> sensor->csi_format->compressed)) {
+ 				sensor->csi_format = f;
+ 				sensor->internal_csi_format = f;
+ 			}
+-- 
+1.7.2.5
 
-
-Regards,
-Sylwester
