@@ -1,46 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2716 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755220Ab2IQPmB (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43528 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753847Ab2IOVmJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Sep 2012 11:42:01 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH 1/4] videobuf2-core: Replace BUG_ON and return an error at vb2_queue_init()
-Date: Mon, 17 Sep 2012 17:41:24 +0200
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-References: <1347889437-15073-1-git-send-email-elezegarcia@gmail.com> <201209171610.43862.hverkuil@xs4all.nl> <20120917093636.635feb96@lwn.net>
-In-Reply-To: <20120917093636.635feb96@lwn.net>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209171741.24310.hverkuil@xs4all.nl>
+	Sat, 15 Sep 2012 17:42:09 -0400
+Received: from localhost.localdomain (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:6d9a::83:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 4D2BB6009C
+	for <linux-media@vger.kernel.org>; Sun, 16 Sep 2012 00:42:07 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 2/2] smiapp: Provide module identification information through sysfs
+Date: Sun, 16 Sep 2012 00:43:29 +0300
+Message-Id: <1347745409-21003-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <5054F66C.1050400@iki.fi>
+References: <5054F66C.1050400@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon September 17 2012 17:36:36 Jonathan Corbet wrote:
-> On Mon, 17 Sep 2012 16:10:43 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> 
-> > Why WARN_ON_ONCE? I'd want to see this all the time, not just once.
-> > 
-> > It's certainly better than BUG_ON, but I'd go for WARN_ON.
-> 
-> I like WARN_ON_ONCE better, myself.  Avoids the risk of spamming the logs,
-> and once is enough to answer that "why doesn't my camera work?" question.
-> Don't feel all that strongly about it, though...
+From: Sakari Ailus <sakari.ailus@iki.if>
 
-However, videobuf2-core.c is a core function of a core module. So it will
-give this warning once for one driver, then another is loaded with the same
-problem and you'll get no warnings anymore. It makes sense in a driver, but
-not here IMHO. Unless I'm missing something.
+Provide module ident information through sysfs.
 
-Neither is this likely to ever spam the logs. It's called only when the device
-is initialized.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.if>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c |   28 ++++++++++++++++++++++++++--
+ 1 files changed, 26 insertions(+), 2 deletions(-)
 
-Regards,
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 02bfa44..e08e588 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2211,6 +2211,21 @@ smiapp_sysfs_nvm_read(struct device *dev, struct device_attribute *attr,
+ }
+ static DEVICE_ATTR(nvm, S_IRUGO, smiapp_sysfs_nvm_read, NULL);
+ 
++static ssize_t
++smiapp_sysfs_ident_read(struct device *dev, struct device_attribute *attr,
++			char *buf)
++{
++	struct v4l2_subdev *subdev = i2c_get_clientdata(to_i2c_client(dev));
++	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
++	struct smiapp_module_info *minfo = &sensor->minfo;
++
++	return snprintf(buf, PAGE_SIZE, "%2.2x%4.4x%2.2x\n",
++			minfo->manufacturer_id, minfo->model_id,
++			minfo->revision_number_major) + 1;
++}
++
++static DEVICE_ATTR(ident, S_IRUGO, smiapp_sysfs_ident_read, NULL);
++
+ /* -----------------------------------------------------------------------------
+  * V4L2 subdev core operations
+  */
+@@ -2467,6 +2482,11 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
+ 	sensor->binning_horizontal = 1;
+ 	sensor->binning_vertical = 1;
+ 
++	if (device_create_file(&client->dev, &dev_attr_ident) != 0) {
++		dev_err(&client->dev, "sysfs ident entry creation failed\n");
++		rval = -ENOENT;
++		goto out_power_off;
++	}
+ 	/* SMIA++ NVM initialization - it will be read from the sensor
+ 	 * when it is first requested by userspace.
+ 	 */
+@@ -2476,13 +2496,13 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
+ 		if (sensor->nvm == NULL) {
+ 			dev_err(&client->dev, "nvm buf allocation failed\n");
+ 			rval = -ENOMEM;
+-			goto out_power_off;
++			goto out_ident_release;
+ 		}
+ 
+ 		if (device_create_file(&client->dev, &dev_attr_nvm) != 0) {
+ 			dev_err(&client->dev, "sysfs nvm entry failed\n");
+ 			rval = -EBUSY;
+-			goto out_power_off;
++			goto out_ident_release;
+ 		}
+ 	}
+ 
+@@ -2637,6 +2657,9 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
+ out_nvm_release:
+ 	device_remove_file(&client->dev, &dev_attr_nvm);
+ 
++out_ident_release:
++	device_remove_file(&client->dev, &dev_attr_ident);
++
+ out_power_off:
+ 	smiapp_power_off(sensor);
+ 
+@@ -2832,6 +2855,7 @@ static int __exit smiapp_remove(struct i2c_client *client)
+ 		sensor->power_count = 0;
+ 	}
+ 
++	device_remove_file(&client->dev, &dev_attr_ident);
+ 	if (sensor->nvm)
+ 		device_remove_file(&client->dev, &dev_attr_nvm);
+ 
+-- 
+1.7.2.5
 
-	Hans
