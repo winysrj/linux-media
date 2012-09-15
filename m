@@ -1,99 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51129 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754077Ab2IZLU6 (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2520 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751190Ab2IOHnR convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Sep 2012 07:20:58 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/4] uvc: Add return code check at vb2_queue_init()
-Date: Wed, 26 Sep 2012 13:21:35 +0200
-Message-ID: <3190813.MGRGtUxtHD@avalon>
-In-Reply-To: <1347889790-15187-1-git-send-email-elezegarcia@gmail.com>
-References: <1347889790-15187-1-git-send-email-elezegarcia@gmail.com>
+	Sat, 15 Sep 2012 03:43:17 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [RFCv3 API PATCH 15/31] v4l2-core: Add new V4L2_CAP_MONOTONIC_TS capability.
+Date: Sat, 15 Sep 2012 09:41:59 +0200
+Cc: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>,
+	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com> <201209142327.47675@leon.remlab.net> <50539C29.2070209@iki.fi>
+In-Reply-To: <50539C29.2070209@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201209150941.59198.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ezequiel,
+On Fri September 14 2012 23:05:45 Sakari Ailus wrote:
+> Hi Rémi,
+> 
+> Rémi Denis-Courmont wrote:
+> > Le vendredi 14 septembre 2012 23:25:01, Sakari Ailus a écrit :
+> >> I had a quick discussion with Laurent, and what he suggested was to use
+> >> the kernel version to figure out the type of the timestamp. The drivers
+> >> that use the monotonic time right now wouldn't be affected by the new
+> >> flag on older kernels. If we've decided we're going to switch to
+> >> monotonic time anyway, why not just change all the drivers now and
+> >> forget the capability flag.
+> >
+> > That does not work In Real Life.
+> >
+> > People do port old drivers forward to new kernels.
+> > People do port new drivers back to old kernels
+> 
+> Why would you port a driver from an old kernel to a new kernel? Or are 
+> you talking about out-of-tree drivers?
 
-Thanks for the patch.
+More likely the latter.
 
-On Monday 17 September 2012 10:49:50 Ezequiel Garcia wrote:
-> This function returns an integer and it's mandatory
-> to check the return code.
+> If you do port drivers across different kernel versions I guess you're 
+> supposed to use the appropriate interfaces for those kernels, too. Using 
+> a helper function helps here, so compiling a backported driver would 
+> fail w/o the helper function that produces the timestamp, forcing the 
+> backporter to notice the situation.
 > 
-> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
-> ---
->  drivers/media/usb/uvc/uvc_queue.c |    8 ++++++--
->  drivers/media/usb/uvc/uvc_video.c |    4 +++-
->  drivers/media/usb/uvc/uvcvideo.h  |    2 +-
->  3 files changed, 10 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_queue.c
-> b/drivers/media/usb/uvc/uvc_queue.c index 5577381..2cec818 100644
-> --- a/drivers/media/usb/uvc/uvc_queue.c
-> +++ b/drivers/media/usb/uvc/uvc_queue.c
-> @@ -122,16 +122,20 @@ static struct vb2_ops uvc_queue_qops = {
->  	.buf_finish = uvc_buffer_finish,
->  };
-> 
-> -void uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
-> +int uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
-> int drop_corrupted)
->  {
-> +	int rc;
-> +
+> Anyway, I don't have a very strict opinion on this, so I'm okay with the 
+> flag, too, but I personally simply don't think it's the best choice we 
+> can make now. Also, without converting the drivers now the user space 
+> must live with different kinds of timestamps much longer.
 
-Please use ret instead of rc. Other than that the patch looks good to me.
+There are a number of reasons why I want to go with a flag:
 
->  	queue->queue.type = type;
->  	queue->queue.io_modes = VB2_MMAP | VB2_USERPTR;
->  	queue->queue.drv_priv = queue;
->  	queue->queue.buf_struct_size = sizeof(struct uvc_buffer);
->  	queue->queue.ops = &uvc_queue_qops;
->  	queue->queue.mem_ops = &vb2_vmalloc_memops;
-> -	vb2_queue_init(&queue->queue);
-> +	rc = vb2_queue_init(&queue->queue);
-> +	if (rc)
-> +		return rc;
-> 
->  	mutex_init(&queue->mutex);
->  	spin_lock_init(&queue->irqlock);
-> diff --git a/drivers/media/usb/uvc/uvc_video.c
-> b/drivers/media/usb/uvc/uvc_video.c index 1c15b42..57c3076 100644
-> --- a/drivers/media/usb/uvc/uvc_video.c
-> +++ b/drivers/media/usb/uvc/uvc_video.c
-> @@ -1755,7 +1755,9 @@ int uvc_video_init(struct uvc_streaming *stream)
->  	atomic_set(&stream->active, 0);
-> 
->  	/* Initialize the video buffers queue. */
-> -	uvc_queue_init(&stream->queue, stream->type, !uvc_no_drop_param);
-> +	ret = uvc_queue_init(&stream->queue, stream->type, !uvc_no_drop_param);
-> +	if (ret)
-> +		return ret;
-> 
->  	/* Alternate setting 0 should be the default, yet the XBox Live Vision
->  	 * Cam (and possibly other devices) crash or otherwise misbehave if
-> diff --git a/drivers/media/usb/uvc/uvcvideo.h
-> b/drivers/media/usb/uvc/uvcvideo.h index 3764040..af216ec 100644
-> --- a/drivers/media/usb/uvc/uvcvideo.h
-> +++ b/drivers/media/usb/uvc/uvcvideo.h
-> @@ -600,7 +600,7 @@ extern struct uvc_driver uvc_driver;
->  extern struct uvc_entity *uvc_entity_by_id(struct uvc_device *dev, int id);
-> 
->  /* Video buffers queue management. */
-> -extern void uvc_queue_init(struct uvc_video_queue *queue,
-> +extern int uvc_queue_init(struct uvc_video_queue *queue,
->  		enum v4l2_buf_type type, int drop_corrupted);
->  extern int uvc_alloc_buffers(struct uvc_video_queue *queue,
->  		struct v4l2_requestbuffers *rb);
--- 
+- Out-of-tree drivers which are unlikely to switch to monotonic in practice
+- Backporting drivers
+- It makes it easy to verify in v4l2-compliance and enforce the use of
+  the monotonic clock.
+- It's easy for apps to check.
+
+The third reason is probably the most important one for me. There tends to
+be a great deal of inertia before changes like this are applied to new drivers,
+and without being able to (easily) check this in v4l2-compliance more drivers
+will be merged that keep using gettimeofday. It's all too easy to miss in a
+review.
+
+That doesn't mean that it isn't a good idea to convert existing drivers asap.
+But it's not something I'm likely to take up myself.
+
+Creating a small helper function as you suggested elsewhere is a good idea as
+well. I'll write something for that.
+
 Regards,
 
-Laurent Pinchart
-
+	Hans
