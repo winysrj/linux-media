@@ -1,68 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46653 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43382 "EHLO
 	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751684Ab2IWQZh (ORCPT
+	by vger.kernel.org with ESMTP id S1751190Ab2IOKgk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Sep 2012 12:25:37 -0400
-Message-ID: <505F3857.50603@iki.fi>
-Date: Sun, 23 Sep 2012 19:27:03 +0300
+	Sat, 15 Sep 2012 06:36:40 -0400
+Message-ID: <50545A86.3050904@iki.fi>
+Date: Sat, 15 Sep 2012 13:37:58 +0300
 From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: Re: Gain controls in v4l2-ctrl framework
-References: <CA+V-a8vYDFhJzKVKsv7Q_JOQzDDYRyev15jDKio0tG2CP8iCCw@mail.gmail.com> <505F0C86.9070206@iki.fi> <3579105.beYuXk8XyG@avalon>
-In-Reply-To: <3579105.beYuXk8XyG@avalon>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	=?ISO-8859-1?Q?R=E9mi_Denis-Courmont?= <remi@remlab.net>,
+	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv3 API PATCH 15/31] v4l2-core: Add new V4L2_CAP_MONOTONIC_TS
+ capability.
+References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com> <201209150941.59198.hverkuil@xs4all.nl> <3763500.054S7eWLyn@avalon> <201209151205.20981.hverkuil@xs4all.nl>
+In-Reply-To: <201209151205.20981.hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Hans and Laurent,
 
-Laurent Pinchart wrote:
-> Hi,
->
-> On Sunday 23 September 2012 16:20:06 Sakari Ailus wrote:
->> Prabhakar Lad wrote:
->>> Hi All,
+Hans Verkuil wrote:
+> On Sat September 15 2012 11:31:29 Laurent Pinchart wrote:
+>> Hi Hans,
+>>
+>> On Saturday 15 September 2012 09:41:59 Hans Verkuil wrote:
+>>> On Fri September 14 2012 23:05:45 Sakari Ailus wrote:
+>>>> Rémi Denis-Courmont wrote:
+>>>>> Le vendredi 14 septembre 2012 23:25:01, Sakari Ailus a écrit :
+>>>>>> I had a quick discussion with Laurent, and what he suggested was to use
+>>>>>> the kernel version to figure out the type of the timestamp. The drivers
+>>>>>> that use the monotonic time right now wouldn't be affected by the new
+>>>>>> flag on older kernels. If we've decided we're going to switch to
+>>>>>> monotonic time anyway, why not just change all the drivers now and
+>>>>>> forget the capability flag.
+>>>>>
+>>>>> That does not work In Real Life.
+>>>>>
+>>>>> People do port old drivers forward to new kernels.
+>>>>> People do port new drivers back to old kernels
+>>>>
+>>>> Why would you port a driver from an old kernel to a new kernel? Or are
+>>>> you talking about out-of-tree drivers?
 >>>
->>> The CCD/Sensors have the capability to adjust the R/ye, Gr/Cy, Gb/G,
->>> B/Mg gain values.
->>> Since these control can be re-usable I am planning to add the
->>> following gain controls as part
->>> of the framework:
+>>> More likely the latter.
 >>>
->>> 1: V4L2_CID_GAIN_RED
->>> 2: V4L2_CID_GAIN_GREEN_RED
->>> 3: V4L2_CID_GAIN_GREEN_BLUE
->>> 4: V4L2_CID_GAIN_BLUE
->>> 5: V4L2_CID_GAIN_OFFSET
+>>>> If you do port drivers across different kernel versions I guess you're
+>>>> supposed to use the appropriate interfaces for those kernels, too. Using
+>>>> a helper function helps here, so compiling a backported driver would
+>>>> fail w/o the helper function that produces the timestamp, forcing the
+>>>> backporter to notice the situation.
+>>>>
+>>>> Anyway, I don't have a very strict opinion on this, so I'm okay with the
+>>>> flag, too, but I personally simply don't think it's the best choice we
+>>>> can make now. Also, without converting the drivers now the user space
+>>>> must live with different kinds of timestamps much longer.
 >>>
->>> I need your opinion's to get moving to add them.
+>>> There are a number of reasons why I want to go with a flag:
+>>>
+>>> - Out-of-tree drivers which are unlikely to switch to monotonic in practice
+>>> - Backporting drivers
+>>> - It makes it easy to verify in v4l2-compliance and enforce the use of
+>>>    the monotonic clock.
+>>> - It's easy for apps to check.
+>>>
+>>> The third reason is probably the most important one for me. There tends to
+>>> be a great deal of inertia before changes like this are applied to new
+>>> drivers, and without being able to (easily) check this in v4l2-compliance
+>>> more drivers will be merged that keep using gettimeofday. It's all too easy
+>>> to miss in a review.
+>>
+>> If we switch all existing drivers to monotonic timestamps in kernel release
+>> 3.x, v4l2-compliance can just use the version it gets from VIDIOC_QUERYCAP and
+>> enforce monotonic timestamps verification if the version is >= 3.x. This isn't
+>> more difficult for apps to check than a dedicated flag (although it's less
+>> explicit).
 >
-> We already have a V4L2_CID_GAIN control and a V4L2_CID_CHROMA_GAIN control in
-> the user controls class. I'd like to document how those controls and the new
-> proposed gain controls interact. At first glance they don't interact at all,
-> devices should not implement both, the user class gain controls are higher-
-> level than the controls you proposed - this should still be documented though,
-> to make sure driver and application authors will not get confused.
->
-> A couple of quick questions about the new controls. Do we also need a common
-> gain controls for monochrome sensors ? Is the offset always common for the 4
+> I think that checking for the driver (kernel) version is a very poor substitute
+> for testing against a proper flag.
 
-I think we should have a common gain control for sensors in general, 
-whether monochrome or not. Many sensors support global digital gain, 
-either only or besides the per-channel gains.
+That flag should be the default in this case. The flag should be set by 
+the framework instead giving every driver the job of setting it.
 
-Kind regards,
+> One alternative might be to use a v4l2_buffer flag instead. That does have the
+> advantage that in the future we can add additional flags should we need to
+> support different clocks. Should we ever add support to switch clocks dynamically,
+> then a buffer flag is more suitable than a driver capability. In that scenario
+> it does make real sense to have a flag (or really mask).
+>
+> Say something like this:
+>
+> /* Clock Mask */
+> V4L2_BUF_FLAG_CLOCK_MASK	0xf000
+> /* Possible Clocks */
+> V4L2_BUF_FLAG_CLOCK_SYSTEM	0x0000
+> V4L2_BUF_FLAG_CLOCK_MONOTONIC	0x1000
+
+There are three clocks defined in clock_gettime (2) man page. It'd 
+indeed be good that the timestamp was selectable, but this really 
+depends on the user rather than the driver. As you suggested earlier on, 
+I agree that only monotonic timestamps are seen necessary right now.
+
+It might be that raw monotonic timestamps could have some potential use 
+(albeit I don't know a use case right now) but I still wouldn't think 
+users would change the type of the timestamp that often. So I don't see 
+a need for the buffer flag, but I still think it's better than a device 
+capability flag.
+
+If we gave the user the ability to pick the type of the timestamp we 
+should move to use timespec at the same time.
+
+>> My concern is identical to Sakari's, I'm not very keen on introducing a flag
+>> that all drivers will set in the very near future and that we will have to
+>> keep around forever.
+>>
+>>> That doesn't mean that it isn't a good idea to convert existing drivers
+>>> asap. But it's not something I'm likely to take up myself.
+>>
+>> Sakari, are you volunteering for that ? ;-)
+
+I'd be happy to do that. As the changes are mostly mechanical, it won't 
+really take much time to do that.
+
+What comes to new drivers --- I think it's wrong to assume every new 
+driver would have been written wrong kind of timestamps in mind. I mean, 
+what do you think would be the reasons why a driver writer would pick 
+do_gettimeofday() instead of ktime_get_ts() if every driver in the tree 
+already uses ktime_get_ts()?
+
+Kind regards.
 
 -- 
 Sakari Ailus
