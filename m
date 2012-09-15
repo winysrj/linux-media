@@ -1,200 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:53336 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751214Ab2JAAqQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Sep 2012 20:46:16 -0400
-Message-ID: <5068E7C1.4060602@iki.fi>
-Date: Mon, 01 Oct 2012 03:45:53 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:64247 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752079Ab2IORjf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Sep 2012 13:39:35 -0400
+Received: by lbbgj3 with SMTP id gj3so3418938lbb.19
+        for <linux-media@vger.kernel.org>; Sat, 15 Sep 2012 10:39:34 -0700 (PDT)
+Message-ID: <5054BD53.7060109@gmail.com>
+Date: Sat, 15 Sep 2012 19:39:31 +0200
+From: Anders Thomson <aeriksson2@gmail.com>
 MIME-Version: 1.0
-CC: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH RFC] dvb: LNA implementation changes
-References: <1349051751-11826-1-git-send-email-crope@iki.fi>
-In-Reply-To: <1349051751-11826-1-git-send-email-crope@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: tda8290 regression fix
+References: <503F4E19.1050700@gmail.com> <20120915133417.27cb82a1@redhat.com>
+In-Reply-To: <20120915133417.27cb82a1@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I added few comments for things what I was a little but unsure. Please 
-comment.
+On 2012-09-15 18:34, Mauro Carvalho Chehab wrote:
+> >  $ cat /TV_CARD.diff
+> >  diff --git a/drivers/media/common/tuners/tda8290.c
+> >  b/drivers/media/common/tuners/tda8290.c
+> >  index 064d14c..498cc7b 100644
+> >  --- a/drivers/media/common/tuners/tda8290.c
+> >  +++ b/drivers/media/common/tuners/tda8290.c
+> >  @@ -635,7 +635,11 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
+> >
+> >                   dvb_attach(tda827x_attach, fe, priv->tda827x_addr,
+> >                              priv->i2c_props.adap,&priv->cfg);
+> >  +               tuner_info("ANDERS: setting switch_addr. was 0x%02x, new
+> >  0x%02x\n",priv->cfg.switch_addr,priv->i2c_props.addr);
+> >                   priv->cfg.switch_addr = priv->i2c_props.addr;
+> >  +               priv->cfg.switch_addr = 0xc2 / 2;
+>
+> No, this is wrong. The I2C address is passed by the bridge driver or by
+> the tuner_core attachment, being stored at priv->i2c_props.addr.
+>
+> What's the driver and card you're using?
+>
+lspci -vv:
+03:06.0 Multimedia controller: Philips Semiconductors 
+SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d1)
+         Subsystem: Pinnacle Systems Inc. Device 002f
+         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
+ParErr- Stepping- SERR- FastB2B- DisINTx-
+         Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium 
+ >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+         Latency: 64 (21000ns min, 8000ns max)
+         Interrupt: pin A routed to IRQ 21
+         Region 0: Memory at fdeff000 (32-bit, non-prefetchable) [size=2K]
+         Capabilities: [40] Power Management version 2
+                 Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA 
+PME(D0-,D1-,D2-,D3hot-,D3cold-)
+                 Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=1 PME-
+         Kernel driver in use: saa7134
+         Kernel modules: saa7134
 
-On 10/01/2012 03:35 AM, Antti Palosaari wrote:
-> * use dvb property cache
-> * implement get
-> * LNA_AUTO value changed
->
-> Hans and Mauro proposed	use of cache implementation of get as they
-> were planning to extend LNA usage for analog side too.
->
-> LNA_AUTO value was changed from (~0U) to INT_MIN as (~0U) resulted
-> only -1 which is waste of numeric range if need to extend that in
-> the future.
->
-> Reported-by: Hans Verkuil <hverkuil@xs4all.nl>
-> Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->   drivers/media/dvb-core/dvb_frontend.c | 18 ++++++++++++++----
->   drivers/media/dvb-core/dvb_frontend.h |  4 +++-
->   drivers/media/usb/em28xx/em28xx-dvb.c |  9 +++++----
->   include/linux/dvb/frontend.h          |  2 +-
->   4 files changed, 23 insertions(+), 10 deletions(-)
->
-> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-> index 8f58f24..246a3c5 100644
-> --- a/drivers/media/dvb-core/dvb_frontend.c
-> +++ b/drivers/media/dvb-core/dvb_frontend.c
-> @@ -966,6 +966,8 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
->   		break;
->   	}
->
-> +	c->lna = LNA_AUTO;
-> +
->   	return 0;
->   }
->
-> @@ -1054,6 +1056,8 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
->   	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_B, 0, 0),
->   	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_C, 0, 0),
->   	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_D, 0, 0),
-> +
-> +	_DTV_CMD(DTV_LNA, 0, 0),
->   };
->
->   static void dtv_property_dump(struct dvb_frontend *fe, struct dtv_property *tvp)
-> @@ -1440,6 +1444,10 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
->   		tvp->u.data = fe->dtv_property_cache.atscmh_sccc_code_mode_d;
->   		break;
->
-> +	case DTV_LNA:
-> +		tvp->u.data = c->lna;
-> +		break;
-> +
->   	default:
->   		return -EINVAL;
->   	}
-> @@ -1731,10 +1739,6 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
->   	case DTV_INTERLEAVING:
->   		c->interleaving = tvp->u.data;
->   		break;
-> -	case DTV_LNA:
-> -		if (fe->ops.set_lna)
-> -			r = fe->ops.set_lna(fe, tvp->u.data);
-> -		break;
->
->   	/* ISDB-T Support here */
->   	case DTV_ISDBT_PARTIAL_RECEPTION:
-> @@ -1806,6 +1810,12 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
->   		fe->dtv_property_cache.atscmh_rs_frame_ensemble = tvp->u.data;
->   		break;
->
-> +	case DTV_LNA:
-> +		c->lna = tvp->u.data;
-> +		if (fe->ops.set_lna)
-> +			r = fe->ops.set_lna(fe);
-> +		break;
-> +
->   	default:
->   		return -EINVAL;
->   	}
-> diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
-> index 44a445c..5d25953 100644
-> --- a/drivers/media/dvb-core/dvb_frontend.h
-> +++ b/drivers/media/dvb-core/dvb_frontend.h
-> @@ -303,7 +303,7 @@ struct dvb_frontend_ops {
->   	int (*dishnetwork_send_legacy_command)(struct dvb_frontend* fe, unsigned long cmd);
->   	int (*i2c_gate_ctrl)(struct dvb_frontend* fe, int enable);
->   	int (*ts_bus_ctrl)(struct dvb_frontend* fe, int acquire);
-> -	int (*set_lna)(struct dvb_frontend *, int);
-> +	int (*set_lna)(struct dvb_frontend *);
->
->   	/* These callbacks are for devices that implement their own
->   	 * tuning algorithms, rather than a simple swzigzag
-> @@ -391,6 +391,8 @@ struct dtv_frontend_properties {
->   	u8			atscmh_sccc_code_mode_b;
->   	u8			atscmh_sccc_code_mode_c;
->   	u8			atscmh_sccc_code_mode_d;
-> +
-> +	int			lna;
+Without the patch I get a layer of noise added. Kind of like a weak 
+aerial signal to an old analogue TV set.
 
-Is it reason or coincidence that all the other variables are unsigned here?
-
->   };
->
->   struct dvb_frontend {
-> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-> index 109474b..1166e8b 100644
-> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
-> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-> @@ -569,15 +569,16 @@ static void pctv_520e_init(struct em28xx *dev)
->   		i2c_master_send(&dev->i2c_client, regs[i].r, regs[i].len);
->   };
->
-> -static int em28xx_pctv_290e_set_lna(struct dvb_frontend *fe, int val)
-> +static int em28xx_pctv_290e_set_lna(struct dvb_frontend *fe)
->   {
-> +	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->   	struct em28xx *dev = fe->dvb->priv;
->   #ifdef CONFIG_GPIOLIB
->   	struct em28xx_dvb *dvb = dev->dvb;
->   	int ret;
->   	unsigned long flags;
->
-> -	if (val)
-> +	if (c->lna)
->   		flags = GPIOF_OUT_INIT_LOW;
->   	else
->   		flags = GPIOF_OUT_INIT_HIGH;
-> @@ -590,8 +591,8 @@ static int em28xx_pctv_290e_set_lna(struct dvb_frontend *fe, int val)
->
->   	return ret;
->   #else
-> -	dev_warn(&dev->udev->dev, "%s: LNA control is disabled\n",
-> -			KBUILD_MODNAME);
-> +	dev_warn(&dev->udev->dev, "%s: LNA control is disabled (lna=%d)\n",
-> +			KBUILD_MODNAME, c->lna);
->   	return 0;
->   #endif
->   }
-> diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
-> index c12d452..6c97457 100644
-> --- a/include/linux/dvb/frontend.h
-> +++ b/include/linux/dvb/frontend.h
-> @@ -439,7 +439,7 @@ enum atscmh_rs_code_mode {
->   };
->
->   #define NO_STREAM_ID_FILTER	(~0U)
-> -#define LNA_AUTO                (~0U)
-> +#define LNA_AUTO                INT_MIN
-
-That's (INT_MIN) again here because I used int in struct 
-dtv_frontend_properties.
-
-I would like to use signed value that this could be extended later like 
-use of attenuation.
-
-
->
->   struct dtv_cmds_h {
->   	char	*name;		/* A display name for debugging purposes */
->
-
-And one question still. If we use signed value for LNA then value 0 
-could be used as a LNA_AUTO. Like:
--1 = LNA disabled
-0 = LNA AUTO
-1 = LNA enabled
-
-
-It is easy to change it now as it is new feature for 3.7. After that 
-everything goes harder, so I really would like to get comments before 
--rc1 :)
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
+-Anders
