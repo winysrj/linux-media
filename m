@@ -1,103 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59407 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752521Ab2IMKQk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 06:16:40 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Wanlong Gao <gaowanlong@cn.fujitsu.com>
-Cc: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/5] video:omap3isp:fix up ENOIOCTLCMD error handling
-Date: Thu, 13 Sep 2012 06:03:21 +0200
-Message-ID: <1946796.hhZ2Ot34qB@avalon>
-In-Reply-To: <1346052196-32682-5-git-send-email-gaowanlong@cn.fujitsu.com>
-References: <1346052196-32682-1-git-send-email-gaowanlong@cn.fujitsu.com> <1346052196-32682-5-git-send-email-gaowanlong@cn.fujitsu.com>
+Received: from mx1.redhat.com ([209.132.183.28]:38714 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753054Ab2IOMsS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Sep 2012 08:48:18 -0400
+Message-ID: <50547907.2050101@redhat.com>
+Date: Sat, 15 Sep 2012 09:48:07 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+CC: Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH 9/9] videobuf2-core: Change vb2_queue_init return type
+ to void
+References: <1345864146-2207-1-git-send-email-elezegarcia@gmail.com> <1345864146-2207-9-git-send-email-elezegarcia@gmail.com> <20120825092814.4eee46f0@lwn.net> <CALF0-+VEGKL6zqFcqkw__qxuy+_3aDa-0u4xD63+Mc4FioM+aw@mail.gmail.com> <20120825113021.690440ba@lwn.net> <CALF0-+WjGYhHd4xshW9fOtdVp-Cgmz-7t8JzzoqMW-w0pNv85A@mail.gmail.com> <20120828105552.1e39b32b@lwn.net> <CALF0-+XhgNSjA_RMVK1VWkM=_oEh3JHitZNH55cCSn=AKK0N3Q@mail.gmail.com>
+In-Reply-To: <CALF0-+XhgNSjA_RMVK1VWkM=_oEh3JHitZNH55cCSn=AKK0N3Q@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Wanlong,
+Em 28-08-2012 14:23, Ezequiel Garcia escreveu:
+> Hi Jon,
+> 
+> Thanks for your answers, I really appreciate it.
+> 
+> On Tue, Aug 28, 2012 at 1:55 PM, Jonathan Corbet <corbet@lwn.net> wrote:
+>> On Sun, 26 Aug 2012 19:59:40 -0300
+>> Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+>>
+>>> 1.
+>>> Why do we need to check for all these conditions in the first place?
+>>> There are many other functions relying on "struct vb2_queue *q"
+>>> not being null (almost all of them) and we don't check for it.
+>>> What makes vb2_queue_init() so special that we need to check for it?
+>>
+>> There are plenty of developers who would argue for the removal of the
+>> BUG_ON(!q) line regardless, since the kernel will quickly crash shortly
+>> thereafter.  I'm a bit less convinced; there are attackers who are very
+>> good at exploiting null pointer dereferences, and some systems still allow
+>> the low part of the address space to be mapped.
+>>
+>> In general, IMO, checks for consistency make sense; it's nice if the
+>> kernel can *tell* you that something is wrong.
+>>
+>> What's a mistake is the BUG_ON; that should really only be used in places
+>> where things simply cannot continue.  In this case, the initialization can
+>> be failed, the V4L2 device will likely be unavailable, but everything else
+>> can continue as normal.  -EINVAL is the right response here.
+>>
+> 
+> I see your point.
+> 
+> What I really can't seem to understand is why we should have a check
+> at vb2_queue_init() but not at vb2_get_drv_priv(), just to pick one.
 
-Thanks for the patch.
+Those BUG_ON() checks are there since likely the first version of VB1.
+VB2 just inherited it.
 
-On Monday 27 August 2012 15:23:15 Wanlong Gao wrote:
-> At commit 07d106d0, Linus pointed out that ENOIOCTLCMD should be
-> translated as ENOTTY to user mode.
-> 
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: linux-media@vger.kernel.org
-> Signed-off-by: Wanlong Gao <gaowanlong@cn.fujitsu.com>
-> ---
->  drivers/media/video/omap3isp/ispvideo.c | 10 +++++-----
->  1 file changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap3isp/ispvideo.c
-> b/drivers/media/video/omap3isp/ispvideo.c index b37379d..2dd982e 100644
-> --- a/drivers/media/video/omap3isp/ispvideo.c
-> +++ b/drivers/media/video/omap3isp/ispvideo.c
-> @@ -337,7 +337,7 @@ __isp_video_get_format(struct isp_video *video, struct
-> v4l2_format *format) fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
->  	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
->  	if (ret == -ENOIOCTLCMD)
-> -		ret = -EINVAL;
-> +		ret = -ENOTTY;
+The think is that letting the VB code to run without checking for some
+conditions is evil, as it could cause mass memory corruption, as the
+videobuf code writes on a large amount of memory (typically, something
+like 512MB written on every 1/30s). So, the code has protections, in order
+to try avoiding it. Even so, with VB1, when the output buffer is at the
+video adapter memory region (what is called PCI2PCI memory transfers),
+there are known bugs with some chipsets that will cause mass data corruption
+at the hard disks (as the PCI2PCI transfers interfere at the data transfers
+from/to the disk, due to hardware bugs).
 
-I don't think this location should be changed. __isp_video_get_format() is 
-called by isp_video_check_format() only, which in turn is called by 
-isp_video_streamon() only. A failure to retrieve the format in 
-__isp_video_get_format() does not really mean the VIDIOC_STREAMON is not 
-supported.
+Calling WARN_ON_ONCE() and returning some error code works, provided that
+we enforce that the error code will be handled at the drivers that call
+vb2_queue_init(), using something like __attribute__((warn_unused_result, nonnull))
+and double_checking the code at VB2 callers.
 
-I'll apply hunks 2 to 5 and drop hunk 1 if that's fine with you.
-
-> 
->  	mutex_unlock(&video->mutex);
-> 
-> @@ -723,7 +723,7 @@ isp_video_try_format(struct file *file, void *fh, struct
-> v4l2_format *format) fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
->  	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
->  	if (ret)
-> -		return ret == -ENOIOCTLCMD ? -EINVAL : ret;
-> +		return ret == -ENOIOCTLCMD ? -ENOTTY : ret;
-> 
->  	isp_video_mbus_to_pix(video, &fmt.format, &format->fmt.pix);
->  	return 0;
-> @@ -744,7 +744,7 @@ isp_video_cropcap(struct file *file, void *fh, struct
-> v4l2_cropcap *cropcap) ret = v4l2_subdev_call(subdev, video, cropcap,
-> cropcap);
->  	mutex_unlock(&video->mutex);
-> 
-> -	return ret == -ENOIOCTLCMD ? -EINVAL : ret;
-> +	return ret == -ENOIOCTLCMD ? -ENOTTY : ret;
->  }
-> 
->  static int
-> @@ -771,7 +771,7 @@ isp_video_get_crop(struct file *file, void *fh, struct
-> v4l2_crop *crop) format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
->  	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &format);
->  	if (ret < 0)
-> -		return ret == -ENOIOCTLCMD ? -EINVAL : ret;
-> +		return ret == -ENOIOCTLCMD ? -ENOTTY : ret;
-> 
->  	crop->c.left = 0;
->  	crop->c.top = 0;
-> @@ -796,7 +796,7 @@ isp_video_set_crop(struct file *file, void *fh, struct
-> v4l2_crop *crop) ret = v4l2_subdev_call(subdev, video, s_crop, crop);
->  	mutex_unlock(&video->mutex);
-> 
-> -	return ret == -ENOIOCTLCMD ? -EINVAL : ret;
-> +	return ret == -ENOIOCTLCMD ? -ENOTTY : ret;
->  }
-> 
->  static int
-
--- 
 Regards,
-
-Laurent Pinchart
-
+Mauro
