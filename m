@@ -1,63 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2141 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751138Ab2IUJzl (ORCPT
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:65349 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751228Ab2IPIsH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Sep 2012 05:55:41 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: Re: [RFCv1 PATCH 4/6] videobuf2-core: fill in length field for multiplanar buffers.
-Date: Fri, 21 Sep 2012 11:54:56 +0200
-Cc: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1348065460-1624-1-git-send-email-hverkuil@xs4all.nl> <bbbf815b74d00312a07be07ad4f336a3792fd0d3.1348064901.git.hans.verkuil@cisco.com>
-In-Reply-To: <bbbf815b74d00312a07be07ad4f336a3792fd0d3.1348064901.git.hans.verkuil@cisco.com>
+	Sun, 16 Sep 2012 04:48:07 -0400
+Received: by lagy9 with SMTP id y9so3582329lag.19
+        for <linux-media@vger.kernel.org>; Sun, 16 Sep 2012 01:48:05 -0700 (PDT)
+Message-ID: <50559241.6070408@gmail.com>
+Date: Sun, 16 Sep 2012 10:48:01 +0200
+From: Anders Thomson <aeriksson2@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: tda8290 regression fix
+References: <503F4E19.1050700@gmail.com> <20120915133417.27cb82a1@redhat.com> <5054BD53.7060109@gmail.com> <20120915145834.0b763f73@redhat.com> <5054C521.1090200@gmail.com> <20120915192530.74aedaa6@redhat.com>
+In-Reply-To: <20120915192530.74aedaa6@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201209211154.56770.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed September 19 2012 16:37:38 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> length should be set to num_planes in __fill_v4l2_buffer(). That way the
-> caller knows how many planes there are in the buffer.
+On 2012-09-16 00:25, Mauro Carvalho Chehab wrote:
+> Em Sat, 15 Sep 2012 20:12:49 +0200
+> Anders Thomson<aeriksson2@gmail.com>  escreveu:
+>
+> >  On 2012-09-15 19:58, Mauro Carvalho Chehab wrote:
+> >  >  Em Sat, 15 Sep 2012 19:39:31 +0200
+> >  >  Anders Thomson<aeriksson2@gmail.com>   escreveu:
+> >  >
+> >  >  >   On 2012-09-15 18:34, Mauro Carvalho Chehab wrote:
+> >  >  >   >   >    $ cat /TV_CARD.diff
+> >  >  >   >   >    diff --git a/drivers/media/common/tuners/tda8290.c
+> >  >  >   >   >    b/drivers/media/common/tuners/tda8290.c
+> >  >  >   >   >    index 064d14c..498cc7b 100644
+> >  >  >   >   >    --- a/drivers/media/common/tuners/tda8290.c
+> >  >  >   >   >    +++ b/drivers/media/common/tuners/tda8290.c
+> >  >  >   >   >    @@ -635,7 +635,11 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
+> >  >  >   >   >
+> >  >  >   >   >                     dvb_attach(tda827x_attach, fe, priv->tda827x_addr,
+> >  >  >   >   >                                priv->i2c_props.adap,&priv->cfg);
+> >  >  >   >   >    +               tuner_info("ANDERS: setting switch_addr. was 0x%02x, new
+> >  >  >   >   >    0x%02x\n",priv->cfg.switch_addr,priv->i2c_props.addr);
+> >  >  >   >   >                     priv->cfg.switch_addr = priv->i2c_props.addr;
+> >  >  >   >   >    +               priv->cfg.switch_addr = 0xc2 / 2;
+> >  >  >   >
+> >  >  >   >   No, this is wrong. The I2C address is passed by the bridge driver or by
+> >  >  >   >   the tuner_core attachment, being stored at priv->i2c_props.addr.
+> >  >  >   >
+> >  >  >   >   What's the driver and card you're using?
+> >  >  >   >
+> >  >  >   lspci -vv:
+> >  >  >   03:06.0 Multimedia controller: Philips Semiconductors
+> >  >  >   SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d1)
+> >  >  >            Subsystem: Pinnacle Systems Inc. Device 002f
+> >  >
+> >  >  There are lots of Pinnacle device supported by saa7134 driver. Without its
+> >  >  PCI ID that's not much we can do.
+> >  That here, right?
+> >  lspci -nvv:
+> >  03:06.0 0480: 1131:7133 (rev d1)
+> >           Subsystem: 11bd:002f
+> >           Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
+> >  ParErr- Stepping- SERR- FastB2B- DisINTx-
+> >           Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium
+> >   >TAbort-<TAbort-<MAbort->SERR-<PERR- INTx-
+> >           Latency: 64 (21000ns min, 8000ns max)
+> >           Interrupt: pin A routed to IRQ 21
+> >           Region 0: Memory at fdeff000 (32-bit, non-prefetchable) [size=2K]
+> >           Capabilities: [40] Power Management version 2
+> >                   Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA
+> >  PME(D0-,D1-,D2-,D3hot-,D3cold-)
+> >                   Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=1 PME-
+> >           Kernel driver in use: saa7134
+> >           Kernel modules: saa7134
+> >
+> >
+> >
+> >
+> >  >  Also, please post the dmesg showing what happens without and with your patch.
+> >  Coming. Hold on...
+>
+> Thanks!
+>
+> Please try the enclosed patch.
+>
+> -
+>
+> [PATCH] tda8290: Fix lna switch address
+>
+> When LNA is configured with config 1 or config 2, tda827x driver
+> will use the LNA switch_addr. However, this is not happening for
+> all devices using such config, as reported by Anders. According
+> to him, he is experiencing bad tuning with this code since
+> Kenrel 2.6.26.
+>
+> Reported-by: Anders Thomson<aeriksson2@gmail.com>
+> Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
+>
+> diff --git a/drivers/media/tuners/tda8290.c b/drivers/media/tuners/tda8290.c
+> index 8c48521..bedc6ce 100644
+> --- a/drivers/media/tuners/tda8290.c
+> +++ b/drivers/media/tuners/tda8290.c
+> @@ -627,6 +627,9 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
+>   		return -EREMOTEIO;
+>   	}
+>
+> +	if (priv->cfg.config == 1 || priv->cfg.config == 2)
+> +		priv->cfg.switch_addr = priv->i2c_props.addr;
+> +
+>   	if ((data == 0x83) || (data == 0x84)) {
+>   		priv->ver |= TDA18271;
+>   		tda829x_tda18271_config.config = priv->cfg.config;
+> @@ -640,7 +643,6 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
+>
+>   		dvb_attach(tda827x_attach, fe, priv->tda827x_addr,
+>   			   priv->i2c_props.adap,&priv->cfg);
+> -		priv->cfg.switch_addr = priv->i2c_props.addr;
+>   	}
+>   	if (fe->ops.tuner_ops.init)
+>   		fe->ops.tuner_ops.init(fe);
+>
+>
+Hi,
+Which tree should this be applied to? I have no drivers/media/tuners dir 
+here.
+However, it applies cleanly to 3.5.3 as:
+  diff --git a/drivers/media/common/tuners/tda8290.c 
+b/drivers/media/common/tuners/tda8290.c
+index 8c48521..bedc6ce 100644
+--- a/drivers/media/common/tuners/tda8290.c
++++ b/drivers/media/common/tuners/tda8290.c
+@@ -627,6 +627,9 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
+                 return -EREMOTEIO;
+         }
 
-Can someone review this? I'd like to know whether it will cause problems
-for existing applications to set the length back to the actual number of
-planes, and whether it makes sense at all to do so. I believe it does, but
-I don't know if anyone is using the current behavior.
++       if (priv->cfg.config == 1 || priv->cfg.config == 2)
++               priv->cfg.switch_addr = priv->i2c_props.addr;
++
+         if ((data == 0x83) || (data == 0x84)) {
+                 priv->ver |= TDA18271;
+                 tda829x_tda18271_config.config = priv->cfg.config;
+@@ -640,7 +643,6 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
 
-Note that the documentation currently doesn't specify what will happen with
-length.
+                 dvb_attach(tda827x_attach, fe, priv->tda827x_addr,
+                            priv->i2c_props.adap, &priv->cfg);
+-               priv->cfg.switch_addr = priv->i2c_props.addr;
+         }
+         if (fe->ops.tuner_ops.init)
+                 fe->ops.tuner_ops.init(fe);
 
-Since the only drivers implementing multiplanar support are Samsung drivers,
-I assume that Samsung will know best whether this change might cause problems.
+It doesn't make any difference though :-( I still have the layer of noise...
 
-Regards,
-
-	Hans
-
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 929cc99..bbfe022 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -348,6 +348,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
->  		 * Fill in plane-related data if userspace provided an array
->  		 * for it. The memory and size is verified above.
->  		 */
-> +		b->length = q->num_planes;
->  		memcpy(b->m.planes, vb->v4l2_planes,
->  			b->length * sizeof(struct v4l2_plane));
->  	} else {
-> 
+-A
