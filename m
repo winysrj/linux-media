@@ -1,122 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4845 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751349Ab2ITMHU (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:50076 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751675Ab2IPQAk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Sep 2012 08:07:20 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 10/14] vpif_capture: fix cleanup code.
-Date: Thu, 20 Sep 2012 14:06:29 +0200
-Message-Id: <dd8a4d60d322f1d2d66a60eee084500c5806c0c0.1348142407.git.hans.verkuil@cisco.com>
-In-Reply-To: <1348142793-27157-1-git-send-email-hverkuil@xs4all.nl>
-References: <1348142793-27157-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <15fd87671d173ae4b943df4114aafb55d7e958fa.1348142407.git.hans.verkuil@cisco.com>
-References: <15fd87671d173ae4b943df4114aafb55d7e958fa.1348142407.git.hans.verkuil@cisco.com>
+	Sun, 16 Sep 2012 12:00:40 -0400
+Received: by wibhi8 with SMTP id hi8so1638679wib.1
+        for <linux-media@vger.kernel.org>; Sun, 16 Sep 2012 09:00:39 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: hdegoede@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 2/4] gspca_pac7302: use registers 0x01 and 0x03 for red and blue balance controls
+Date: Sun, 16 Sep 2012 18:00:38 +0200
+Message-Id: <1347811240-4000-2-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1347811240-4000-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1347811240-4000-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Currently used registers 0xc5 and 0xc7 provide only a very coarse
+adjustment possibility within a very small value range (0-3).
+With registers 0x01 and 0x03, a fine grained adjustment with
+255 steps is possible. This is also what the Windows driver does.
 
-The cleanup sequence was incorrect and could cause a kernel oops.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- drivers/media/platform/davinci/vpif_capture.c |   41 ++++++++++++-------------
- 1 file changed, 20 insertions(+), 21 deletions(-)
+ drivers/media/usb/gspca/pac7302.c |   51 +++++++++++++++++++++++++++++--------
+ 1 files changed, 40 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 98423b5..5f81e0f 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -2060,7 +2060,8 @@ static __init int vpif_probe(struct platform_device *pdev)
- {
- 	struct vpif_subdev_info *subdevdata;
- 	struct vpif_capture_config *config;
--	int i, j, k, m, q, err;
-+	int i, j, k, err;
-+	int res_idx = 0;
- 	struct i2c_adapter *i2c_adap;
- 	struct channel_obj *ch;
- 	struct common_obj *common;
-@@ -2083,18 +2084,18 @@ static __init int vpif_probe(struct platform_device *pdev)
- 		return err;
- 	}
+diff --git a/drivers/media/usb/gspca/pac7302.c b/drivers/media/usb/gspca/pac7302.c
+index 4894ac1..8a0f4d6 100644
+--- a/drivers/media/usb/gspca/pac7302.c
++++ b/drivers/media/usb/gspca/pac7302.c
+@@ -77,12 +77,12 @@
+  *
+  * Page | Register   | Function
+  * -----+------------+---------------------------------------------------
++ *  0   | 0x01       | setredbalance()
++ *  0   | 0x03       | setbluebalance()
+  *  0   | 0x0f..0x20 | setcolors()
+  *  0   | 0xa2..0xab | setbrightcont()
+  *  0   | 0xb6       | setsharpness()
+- *  0   | 0xc5       | setredbalance()
+  *  0   | 0xc6       | setwhitebalance()
+- *  0   | 0xc7       | setbluebalance()
+  *  0   | 0xdc       | setbrightcont(), setcolors()
+  *  3   | 0x02       | setexposure()
+  *  3   | 0x10, 0x12 | setgain()
+@@ -98,10 +98,13 @@
+ /* Include pac common sof detection functions */
+ #include "pac_common.h"
  
--	k = 0;
--	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, k))) {
-+	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, res_idx))) {
- 		for (i = res->start; i <= res->end; i++) {
- 			if (request_irq(i, vpif_channel_isr, IRQF_SHARED,
- 					"VPIF_Capture",
--				(void *)(&vpif_obj.dev[k]->channel_id))) {
-+					(void *)(&vpif_obj.dev[res_idx]->channel_id))) {
- 				err = -EBUSY;
--				i--;
-+				for (j = 0; j < i; j++)
-+					free_irq(j, (void *)(&vpif_obj.dev[res_idx]->channel_id));
- 				goto vpif_int_err;
- 			}
- 		}
--		k++;
-+		res_idx++;
- 	}
+-#define PAC7302_GAIN_DEFAULT      15
+-#define PAC7302_GAIN_KNEE         42
+-#define PAC7302_EXPOSURE_DEFAULT  66 /* 33 ms / 30 fps */
+-#define PAC7302_EXPOSURE_KNEE    133 /* 66 ms / 15 fps */
++#define PAC7302_RGB_BALANCE_MIN		  0
++#define PAC7302_RGB_BALANCE_MAX		200
++#define PAC7302_RGB_BALANCE_DEFAULT	100
++#define PAC7302_GAIN_DEFAULT		 15
++#define PAC7302_GAIN_KNEE 		 42
++#define PAC7302_EXPOSURE_DEFAULT	 66 /* 33 ms / 30 fps */
++#define PAC7302_EXPOSURE_KNEE		133 /* 66 ms / 15 fps */
  
- 	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
-@@ -2108,7 +2109,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 				video_device_release(ch->video_dev);
- 			}
- 			err = -ENOMEM;
--			goto vpif_dev_alloc_err;
-+			goto vpif_int_err;
- 		}
- 
- 		/* Initialize field of video device */
-@@ -2148,7 +2149,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 	if (vpif_obj.sd == NULL) {
- 		vpif_err("unable to allocate memory for subdevice pointers\n");
- 		err = -ENOMEM;
--		goto vpif_dev_alloc_err;
-+		goto vpif_sd_error;
- 	}
- 
- 	for (i = 0; i < subdev_count; i++) {
-@@ -2197,21 +2198,19 @@ probe_subdev_out:
- 	/* free sub devices memory */
- 	kfree(vpif_obj.sd);
- 
--vpif_dev_alloc_err:
--	k = VPIF_CAPTURE_MAX_DEVICES-1;
--	res = platform_get_resource(pdev, IORESOURCE_IRQ, k);
--	i = res->end;
--
--vpif_int_err:
--	for (q = k; q >= 0; q--) {
--		for (m = i; m >= (int)res->start; m--)
--			free_irq(m, (void *)(&vpif_obj.dev[q]->channel_id));
--
--		res = platform_get_resource(pdev, IORESOURCE_IRQ, q-1);
--		if (res)
--			i = res->end;
-+vpif_sd_error:
-+	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
-+		ch = vpif_obj.dev[i];
-+		/* Note: does nothing if ch->video_dev == NULL */
-+		video_device_release(ch->video_dev);
- 	}
-+vpif_int_err:
- 	v4l2_device_unregister(&vpif_obj.v4l2_dev);
-+	for (i = 0; i < res_idx; i++) {
-+		res = platform_get_resource(pdev, IORESOURCE_IRQ, i);
-+		for (j = res->start; j <= res->end; j++)
-+			free_irq(j, (void *)(&vpif_obj.dev[i]->channel_id));
-+	}
- 	return err;
+ MODULE_AUTHOR("Jean-Francois Moine <http://moinejf.free.fr>, "
+ 		"Thomas Kaiser thomas@kaiser-linux.li");
+@@ -438,12 +441,31 @@ static void setwhitebalance(struct gspca_dev *gspca_dev)
+ 	reg_w(gspca_dev, 0xdc, 0x01);
  }
  
++static u8 rgbbalance_ctrl_to_reg_value(s32 rgb_ctrl_val)
++{
++	const unsigned int k = 1000;	/* precision factor */
++	unsigned int norm;
++
++	/* Normed value [0...k] */
++	norm = k * (rgb_ctrl_val - PAC7302_RGB_BALANCE_MIN)
++		    / (PAC7302_RGB_BALANCE_MAX - PAC7302_RGB_BALANCE_MIN);
++	/* Qudratic apporach improves control at small (register) values: */
++	return 64 * norm * norm / (k*k)  +  32 * norm / k  +  32;
++	/* Y = 64*X*X + 32*X + 32
++	 * => register values 0x20-0x80; Windows driver uses these limits */
++
++	/* NOTE: for full value range (0x00-0xff) use
++	 *         Y = 254*X*X + X
++	 *         => 254 * norm * norm / (k*k)  +  1 * norm / k	*/
++}
++
+ static void setredbalance(struct gspca_dev *gspca_dev)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 
+-	reg_w(gspca_dev, 0xff, 0x00);		/* page 0 */
+-	reg_w(gspca_dev, 0xc5, sd->red_balance->val);
++	reg_w(gspca_dev, 0xff, 0x00);			/* page 0 */
++	reg_w(gspca_dev, 0x01,
++	      rgbbalance_ctrl_to_reg_value(sd->red_balance->val));
+ 
+ 	reg_w(gspca_dev, 0xdc, 0x01);
+ }
+@@ -453,7 +475,8 @@ static void setbluebalance(struct gspca_dev *gspca_dev)
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 
+ 	reg_w(gspca_dev, 0xff, 0x00);			/* page 0 */
+-	reg_w(gspca_dev, 0xc7, sd->blue_balance->val);
++	reg_w(gspca_dev, 0x03,
++	      rgbbalance_ctrl_to_reg_value(sd->blue_balance->val));
+ 
+ 	reg_w(gspca_dev, 0xdc, 0x01);
+ }
+@@ -642,9 +665,15 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
+ 					V4L2_CID_WHITE_BALANCE_TEMPERATURE,
+ 					0, 255, 1, 55);
+ 	sd->red_balance = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
+-					V4L2_CID_RED_BALANCE, 0, 3, 1, 1);
++					V4L2_CID_RED_BALANCE,
++					PAC7302_RGB_BALANCE_MIN,
++					PAC7302_RGB_BALANCE_MAX,
++					1, PAC7302_RGB_BALANCE_DEFAULT);
+ 	sd->blue_balance = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
+-					V4L2_CID_BLUE_BALANCE, 0, 3, 1, 1);
++					V4L2_CID_BLUE_BALANCE,
++					PAC7302_RGB_BALANCE_MIN,
++					PAC7302_RGB_BALANCE_MAX,
++					1, PAC7302_RGB_BALANCE_DEFAULT);
+ 
+ 	gspca_dev->autogain = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
+ 					V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
 -- 
-1.7.10.4
+1.7.7
 
