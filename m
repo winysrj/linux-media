@@ -1,289 +1,496 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46438 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750948Ab2IVMiL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Sep 2012 08:38:11 -0400
-Message-ID: <505DB12F.1090600@iki.fi>
-Date: Sat, 22 Sep 2012 15:38:07 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:38747 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751133Ab2IPWKe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Sep 2012 18:10:34 -0400
+Message-ID: <50564E58.20004@schinagl.nl>
+Date: Mon, 17 Sep 2012 00:10:32 +0200
+From: Oliver Schinagl <oliver+list@schinagl.nl>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, remi@remlab.net, daniel-gl@gmx.net,
-	sylwester.nawrocki@gmail.com, laurent.pinchart@ideasonboard.com
-Subject: Re: [RFC] Timestamps and V4L2
-References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk> <201209211133.24174.hverkuil@xs4all.nl>
-In-Reply-To: <201209211133.24174.hverkuil@xs4all.nl>
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Support for Asus MyCinema U3100Mini Plus
+References: <1347223647-645-1-git-send-email-oliver+list@schinagl.nl> <504D00BC.4040109@schinagl.nl> <504D0F44.6030706@iki.fi> <504D17AA.8020807@schinagl.nl> <504D1859.5050201@iki.fi> <504DB9D4.6020502@schinagl.nl> <504DD311.7060408@iki.fi> <504DF950.8060006@schinagl.nl> <504E2345.5090800@schinagl.nl> <5055DD27.7080501@schinagl.nl> <505601B6.2010103@iki.fi> <5055EA30.8000200@schinagl.nl> <50560B82.7000205@iki.fi>
+In-Reply-To: <50560B82.7000205@iki.fi>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-Thanks for the comments.
-
-Hans Verkuil wrote:
-> On Thu September 20 2012 22:21:22 Sakari Ailus wrote:
->> Hi all,
->>
->>
->> This RFC intends to summarise and further the recent discussion on
->> linux-media regarding the proposed changes of timestamping V4L2 buffers.
->>
->>
->> The problem
->> ===========
->>
->> The V4L2 has long used realtime timestamps (such as
->> clock_gettime(CLOCK_REALTIME, ...)) to stamp the video buffers before
->> handing them over to the user. This has been found problematic in
->> associating the video buffers with data from other sources: realtime clock
->> may jump around due to daylight saving time, for example, and ALSA
->> (audio-video synchronisation is a common use case) user space API does not
->> provide the user with realtime timestamps, but instead uses monotonic time
->> (i.e. clock_gettime(CLOCK_MONOTONIC, ...)).
->>
->> This is especially an issue in embedded systems where video recording is a
->> common use case. Drivers typically used in such systems have silently
->> switched to use monotonic timestamps. While against the spec, this is
->> necessary for those systems to operate properly.
->>
->> In general, realtime timestamps are seen of little use in other than
->> debugging purposes, but monotonic timestamps are fine for that as well. It's
->> still possible that an application I'm not aware of uses them in a peculiar
->> way that would be adversely affected by changing to monotonic timestamps.
->> Nevertheless, we're not supposed to break the API (or ABI). It'd be also
->> very important for the application to know what kind of timestamps are
->> provided by the device.
->>
->>
->> Requirements, wishes and constraints
->> ====================================
->>
->> Now that it seems to be about the time to fix these issues, it's worth
->> looking a little bit to the future to anticipate the coming changes to be
->> able to accommodate them better later on.
->>
->> - The new default should be monotonic. As the monotonic timestamps are seen
->> to be the most useful, they should be made the default.
->>
->> - timeval vs. timespec. The two structs can be used to store timestamp
->> information. They are not compatible with each other. It's a little bit
->> uncertain what's the case with all the architectures but it looks like the
->> timespec fits into the space of timeval in all cases. If timespec is
->> considered to be used somewhere the compatibility must be ensured. Timespec
->> is better than timeval since timespec has more precision and it's the same
->> struct that's used everywhere else in the V4L2 API: timespec does not need
->> conversion to timespec in the user space.
->>
->> struct timespec {
->>          __kernel_time_t tv_sec;                 /* seconds */
->>          long            tv_nsec;                /* nanoseconds */
->> };
->>
->> struct timeval {
->>          __kernel_time_t         tv_sec;         /* seconds */
->>          __kernel_suseconds_t    tv_usec;        /* microseconds */
->> };
->>
->> To be able to use timespec, the user would have to most likely explicitly
->> choose to do that.
->>
->> - Users should know what kind of timestamps the device produces. This
->> includes existing and future kernels. What should be considered are
->> uninformed porting drivers back and forth across kernel versions and
->> out-of-date kernel header files.
->>
->> - Device-dependent timestamps. Some devices such as the uvcvideo ones
->> produce device-dependent timestamps for synchronising video and audio, both
->> produced by the same physical hardware device. For uvcvideo these timestamps
->> are unsigned 32-bit integers.
->>
->> - There's also another clock, Linux-specific raw monotonic clock (as in
->> clock_gettime(CLOCK_RAW_MONOTONIC, ...)) that could be better in some use
->> cases than the regular monotonic clock. The difference is that the raw
->> monotonic clock is free from the NTP adjustments. It would be nice for the
->> user to be able to choose the clock used for timestamps. This is especially
->> important for device-dependent timestamps: not all applications can be
->> expected to be able to use them.
->>
->> - The field adjacent to timestamp, timecode, is 128 bits wide, and not used
->> by a single driver. This field could be re-used.
->>
->>
->> Possible solutions
->> ==================
->>
->> Not all of the solutions below that have been proposed are mutually
->> exclusive. That's also what's making the choice difficult: the ultimate
->> solution to the issue of timestamping may involve several of these --- or
->> possibly something better that's not on the list.
->>
->>
->> Use of timespec
->> ---------------
->>
->> If we can conclude timespec will always fit into the size of timeval (or
->> timecode) we could use timespec instead. The solution should still make
->> the use of timespec explicit to the user space. This seems to conflict with
->> the idea of making monotonic timestamps the default: the default can't be
->> anything incompatible with timeval, and at the same time it's the most
->> important that the monotonic timestamps are timespec.
+On 09/16/12 19:25, Antti Palosaari wrote:
+> On 09/16/2012 06:03 PM, Oliver Schinagl wrote:
+>> I don't have windows, so capturing using windows is near impossible.
+>> Also since the vendor driver used to work, I guess I will have to dig
+>> into that more.
 >
-> We have to keep timeval. Changing this will break the ABI. I see absolutely
-> no reason to use timespec for video. At 60 Hz a frame takes 16.67 ms, and that's
-> far, far removed from ns precisions. Should we ever have to support high-speed
-> cameras running at 60000 Hz, then we'll talk again.
+> You could capture data from Linux too (eg. Wireshark).
+Ah of course. I'll dig up the old vendor driver and see if I can get it 
+running on 3.2 or better yet, on 3.5/your-3.6. I know there's patches 
+for 3.2 but I've never tested those. Otherwise the older 2.6.2* series 
+should still work.
+
 >
-> For me this is a non-issue.
+> But with a little experience you could see those GPIOs reading existing
+> Linux driver and then do some tests to see what happens. For example
+> some GPIO powers tuner off, you will see I2C error. Changing it back
+> error disappears.
+I have zero experience so I'll try to figure things out. I guess you 
+currently turn on/off GPIO's etc in the current driver? Any line which 
+does this so I can examine how it's done? As for the I2C errors, I 
+suppose the current driver will spew those out?
+
+Speaking off, in my previous message, I wrote about the driver spitting 
+out the following error:
+[dvb_usb_af9035]af9035_read_config =_ "%s: [%d]tuner=%02x\012"
+
+None of the values where set however. Did I miss-configure anything for 
+it to cause to 'forget' substituting?
+
 >
->> Kernel version as indicator of timestamp
->> ----------------------------------------
+>> Since all the pieces should be there, fc2580 driver, af9033/5 driver,
+>> it's just a matter of glueing things together, right? I'll dig further
+>> into it and see what I can find/do.
+>
+> Correct. Tuner init (demod settings fc2580) for is needed for af9033.
+> And GPIOs for AF9035. In very bad luck some changes for fc2580 is needed
+> too, but it is not very, very, unlikely.
+>
+> This patch is very similar you will need to do (tda18218 tuner support
+> for af9035):
+> http://patchwork.linuxtv.org/patch/10547/
+I re-did my patch using that as a template (before I used your work on 
+the rtl) and got the exact result.
+
+Your rtl|fc2580 combo btw (from bare memory) didn't have the fc2580_init 
+stream in af9033_priv.h. What exactly gets init-ed there? The af9033 to 
+work with the fc2580?
+
+>
+>
+> regards
+> Antti
+
+Thanks so far,
+
+Oliver
 >>
->> Conversion of drivers to use monotonic timestamp is trivial, so the
->> conversion could be done once and for all drivers. The kernel version could
->> be used to indicate the type of the timestamp.
+>> On 09/16/12 18:43, Antti Palosaari wrote:
+>>> Hello
+>>> You have about all the possible info. There is chipset vendor driver
+>>> look example and existing Linux drivers for all the used chips. Just few
+>>> lines of code needed for the device profile. I surely can help, but it
+>>> is not something I would like to teach and say do that and test that. It
+>>> is wasting my time. I encourage you to take one simple USB capture from
+>>> Windows driver and look help from there. GPIOs are the first thing to
+>>> test.
+>>>
+>>> Also maintaining driver without a hardware is something that causes
+>>> always headache later when some changes are needed to do that
+>>> driver.... :s
+>>>
+>>> regards
+>>> Antti
+>>>
+>>>
+>>>
+>>> On 09/16/2012 05:07 PM, Oliver Schinagl wrote:
+>>>> Any pointers where else to look? I'm kinda lost at the moment :)
+>>>>
+>>>> Oliver
+>>>>
+>>>> On 09/10/12 19:28, Oliver Schinagl wrote:
+>>>>> On 09/10/12 16:29, Oliver Schinagl wrote:
+>>>>>> On 10-09-12 13:46, Antti Palosaari wrote:
+>>>>>>> On 09/10/2012 12:58 PM, Oliver Schinagl wrote:
+>>>>>>>> Changed the address as recommended, which after reading 7bit and
+>>>>>>>> 8bit
+>>>>>>>> addressing makes perfect sense (drop the r/w bit and get the actual
+>>>>>>>> address).
+>>>>>>>>
+>>>>>>>> static struct fc2580_config af9035_fc2580_config = {
+>>>>>>>> - .i2c_addr = 0xac,
+>>>>>>>> + .i2c_addr = 0x56,
+>>>>>>>> .clock = 16384000,
+>>>>>>>> };
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> So now the address should actually be correct ;)
+>>>>>>>>
+>>>>>>>> Unfortunately, nothing. What other debug options do I need to
+>>>>>>>> enable
+>>>>>>>> besides CONFIG_DVB_USB_DEBUG to get more interesting output?
+>>>>>>>
+>>>>>>> For me it sees something happens as there is no I2C error seen
+>>>>>>> anymore.
+>>>>>>>
+>>>>>>> AF9035 driver uses Kernel dynamic debugs. CONFIG_DVB_USB_DEBUG is
+>>>>>>> legacy and proprietary DVB subsystem debug which should not be used
+>>>>>>> anymore.
+>>>>>>> You could order dynamic debugs like that:
+>>>>>>> modprobe dvb_usb_af9035; echo -n 'module dvb_usb_af9035 +p' >
+>>>>>>> /sys/kernel/debug/dynamic_debug/control
+>>>>>>>
+>>>>>>> For tuner, demod and dvb_usbv2 similarly if needed.
+>>>>>> I've did and added output from control and dmesg output.
+>>>>>>
+>>>>>> I don't exactly know how to read the dynamic debug output, the only
+>>>>>> thing that jumped out at me, was:
+>>>>>> drivers/media/dvb-frontends/af9033.c:327 [af9033]af9033_init =p "%s:
+>>>>>> unsupported tuner ID=%d\012"
+>>>>>>
+>>>>>> So I will search and see where in the driver the supported tunerID's
+>>>>>> are
+>>>>>> stored and fix that.
+>>>>>>
+>>>>>> Any other pointers/things you see I should look at?
+>>>>> Appearantly, I setup the tuner, like the others, but it skips that
+>>>>> because the tuner id is wrong/not set.
+>>>>>
+>>>>>      case AF9033_TUNER_FC2580:
+>>>>>          len = ARRAY_SIZE(tuner_init_fc2580);
+>>>>>          init = tuner_init_fc2580;
+>>>>>          break;
+>>>>>
+>>>>> So where is the tuner set?
+>>>>>
+>>>>> I did find this bit:
+>>>>>
+>>>>> tatic int af9035_read_config(struct dvb_usb_device *d)
+>>>>> {
+>>>>> <snip>
+>>>>>          ret = af9035_rd_reg(d, EEPROM_1_TUNER_ID + eeprom_shift,
+>>>>> &tmp);
+>>>>>
+>>>>> which suggests that it comes from the actual eeprom. I assumed that
+>>>>> the
+>>>>> 'init/script/firmware' bit, the first 'message' was the ID, 0x32 in
+>>>>> the
+>>>>> case of this tuner. I guess I'm wrong?
+>>>>>
+>>>>> The log is not exactly helpful either:
+>>>>> drivers/media/usb/dvb-usb-v2/af9035.c:542
+>>>>> [dvb_usb_af9035]af9035_read_config =_ "%s: [%d]tuner=%02x\012"
+>>>>>
+>>>>> So close, yet so far. So if I'm right, the actual ID of the tuner and
+>>>>> the first byte in the init are not always the same? Then why use the
+>>>>> define in the first place there? And why would the 'official' code
+>>>>> user
+>>>>> 0x32 as tuner ID. Or is this simply a dec/hex conversion goof?
+>>>>>
+>>>>>
+>>>>> Oliver
+>>>>>
+>>>>>>>
+>>>>>>>> Anyway, dmesg reports the following.
+>>>>>>>> [60.071538] usb 1-3: new high-speed USB device number 3 using
+>>>>>>>> ehci_hcd
+>>>>>>>> [60.192627] usb 1-3: New USB device found, idVendor=0b05,
+>>>>>>>> idProduct=1779
+>>>>>>>> [60.192638] usb 1-3: New USB device strings: Mfr=1, Product=2,
+>>>>>>>> SerialNumber=3
+>>>>>>>> [60.192646] usb 1-3: Product: AF9035A USB Device
+>>>>>>>> [60.192652] usb 1-3: Manufacturer: Afa Technologies Inc.
+>>>>>>>> [60.192657] usb 1-3: SerialNumber: AF010asdfasdf12314
+>>>>>>>> [60.198686] input: Afa Technologies Inc. AF9035A USB Device as
+>>>>>>>> /devices/pci0000:00/0000:00:12.2/usb1/1-3/1-3:1.1/input/input14
+>>>>>>>> [60.198832] hid-generic 0003:0B05:1779.0003: input: USB HID v1.01
+>>>>>>>> Keyboard [Afa Technologies Inc. AF9035A USB Device] on
+>>>>>>>> usb-0000:00:12.2-3/input1
+>>>>>>>> [60.263893] usbcore: registered new interface driver dvb_usb_af9035
+>>>>>>>> [60.264605] usb 1-3: dvb_usbv2: found a 'Asus U3100Mini Plus' in
+>>>>>>>> cold
+>>>>>>>> state
+>>>>>>>> [60.273924] usb 1-3: dvb_usbv2: downloading firmware from file
+>>>>>>>> 'dvb-usb-af9035-02.fw'
+>>>>>>>> [60.584267] dvb_usb_af9035: firmware version=11.5.9.0
+>>>>>>>> [60.584287] usb 1-3: dvb_usbv2: found a 'Asus U3100Mini Plus' in
+>>>>>>>> warm
+>>>>>>>> state
+>>>>>>>> [60.586802] usb 1-3: dvb_usbv2: will pass the complete MPEG2
+>>>>>>>> transport
+>>>>>>>> stream to the software demuxer
+>>>>>>>> [60.586871] DVB: registering new adapter (Asus U3100Mini Plus)
+>>>>>>>> [60.595637] af9033: firmware version: LINK=11.5.9.0 OFDM=5.17.9.1
+>>>>>>>> [60.595654] usb 1-3: DVB: registering adapter 0 frontend 0 (Afatech
+>>>>>>>> AF9033 (DVB-T))...
+>>>>>>>> [60.599889] usb 1-3: dvb_usbv2: 'Asus U3100Mini Plus' error while
+>>>>>>>> loading driver (-19)
+>>>>>>>>
+>>>>>>>> I then tried using the firmware that came with said driver, as the
+>>>>>>>> version seems slightly different/newer.
+>>>>>>>>
+>>>>>>>> #define FW_RELEASE_VERSION "v8_8_63_0"
+>>>>>>>>
+>>>>>>>> #define DVB_LL_VERSION1 11
+>>>>>>>> #define DVB_LL_VERSION2 22
+>>>>>>>> #define DVB_LL_VERSION3 12
+>>>>>>>> #define DVB_LL_VERSION4 0
+>>>>>>>>
+>>>>>>>> #define DVB_OFDM_VERSION1 5
+>>>>>>>> #define DVB_OFDM_VERSION2 66
+>>>>>>>> #define DVB_OFDM_VERSION3 12
+>>>>>>>> #define DVB_OFDM_VERSION4 0
+>>>>>>>>
+>>>>>>>> (which also gets displayed when loading the firmware, originally on
+>>>>>>>> the
+>>>>>>>> old kernel).
+>>>>>>>>
+>>>>>>>> This however results in a hard lock/dump when plugging in the
+>>>>>>>> device.
+>>>>>>>> Are there certain size restrictions etc? What I did to obtain said
+>>>>>>>> firmware was write a simple program that reads the array, static
+>>>>>>>> unsigned char Firmware_codes[] and outputs the read bytes to a
+>>>>>>>> file.
+>>>>>>>> From what I saw from the -02 firmware, the first few bytes are
+>>>>>>>> identical (header?) so should be right procedure.
+>>>>>>>
+>>>>>>> Firmare surely works but you make some mistake. I have extracted
+>>>>>>> those
+>>>>>>> from the windows driver.
+>>>>>>>
+>>>>>>> http://palosaari.fi/linux/v4l-dvb/firmware/af9035/
+>>>>>>>
+>>>>>> A link to, or your files should be listed at the linuxdvb firmware
+>>>>>> download page ;)
+>>>>>>
+>>>>>> I noticed your latest firmware is way newer then the one I had. So
+>>>>>> deffinatly using that one.
+>>>>>>>> Btw, when using the -02 firmware and trying to unload the af9033
+>>>>>>>> module,
+>>>>>>>> either with or without the stick plugged in, it just hangs there
+>>>>>>>> for a
+>>>>>>>> long time. Reboot fails too (it hangs at trying to disable swap).
+>>>>>>>> Only a
+>>>>>>>> sys-req-reisub successfully reboots.
+>>>>>>>>
+>>>>>>>> oliver
+>>>>>>>
+>>>>>>>
+>>>>>>> Antti
+>>>>>>
+>>>>>> Oliver
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> On 09/10/12 00:29, Antti Palosaari wrote:
+>>>>>>>>> On 09/10/2012 01:26 AM, Oliver Schinagl wrote:
+>>>>>>>>>> On 09/09/12 23:51, Antti Palosaari wrote:
+>>>>>>>>>>> On 09/09/2012 11:49 PM, Oliver Schinagl wrote:
+>>>>>>>>>>>> Hi All/Antti,
+>>>>>>>>>>>>
+>>>>>>>>>>>> I used Antti's previous patch to try to get some support in for
+>>>>>>>>>>>> the
+>>>>>>>>>>>> Asus
+>>>>>>>>>>>> MyCinema U3100Mini Plus as it uses a supported driver (af9035)
+>>>>>>>>>>>> and now
+>>>>>>>>>>>> supported tuner (FCI FC2580).
+>>>>>>>>>>>>
+>>>>>>>>>>>> It compiles fine and almost works :(
+>>>>>>>>>>>>
+>>>>>>>>>>>> Here's what I get, which I have no idea what causes it.
+>>>>>>>>>>>>
+>>>>>>>>>>>> dmesg output:
+>>>>>>>>>>>> [ 380.677434] usb 1-3: New USB device found, idVendor=0b05,
+>>>>>>>>>>>> idProduct=1779
+>>>>>>>>>>>> [ 380.677445] usb 1-3: New USB device strings: Mfr=1,
+>>>>>>>>>>>> Product=2,
+>>>>>>>>>>>> SerialNumber=3
+>>>>>>>>>>>> [ 380.677452] usb 1-3: Product: AF9035A USB Device
+>>>>>>>>>>>> [ 380.677458] usb 1-3: Manufacturer: Afa Technologies Inc.
+>>>>>>>>>>>> [ 380.677463] usb 1-3: SerialNumber: AF01020abcdef12301
+>>>>>>>>>>>> [ 380.683361] input: Afa Technologies Inc. AF9035A USB
+>>>>>>>>>>>> Device as
+>>>>>>>>>>>> /devices/pci0000:00/0000:00:12.2/usb1/1-3/1-3:1.1/input/input15
+>>>>>>>>>>>> [ 380.683505] hid-generic 0003:0B05:1779.0004: input: USB HID
+>>>>>>>>>>>> v1.01
+>>>>>>>>>>>> Keyboard [Afa Technologies Inc. AF9035A USB Device] on
+>>>>>>>>>>>> usb-0000:00:12.2-3/input1
+>>>>>>>>>>>> [ 380.703807] usbcore: registered new interface driver
+>>>>>>>>>>>> dvb_usb_af9035
+>>>>>>>>>>>> [ 380.704553] usb 1-3: dvb_usbv2: found a 'Asus U3100Mini
+>>>>>>>>>>>> Plus' in
+>>>>>>>>>>>> cold
+>>>>>>>>>>>> state
+>>>>>>>>>>>> [ 380.705075] usb 1-3: dvb_usbv2: downloading firmware from
+>>>>>>>>>>>> file
+>>>>>>>>>>>> 'dvb-usb-af9035-02.fw'
+>>>>>>>>>>>> [ 381.014996] dvb_usb_af9035: firmware version=11.5.9.0
+>>>>>>>>>>>> [ 381.015018] usb 1-3: dvb_usbv2: found a 'Asus U3100Mini
+>>>>>>>>>>>> Plus' in
+>>>>>>>>>>>> warm
+>>>>>>>>>>>> state
+>>>>>>>>>>>> [ 381.017172] usb 1-3: dvb_usbv2: will pass the complete MPEG2
+>>>>>>>>>>>> transport stream to the software demuxer
+>>>>>>>>>>>> [ 381.017242] DVB: registering new adapter (Asus U3100Mini
+>>>>>>>>>>>> Plus)
+>>>>>>>>>>>> [ 381.037184] af9033: firmware version: LINK=11.5.9.0
+>>>>>>>>>>>> OFDM=5.17.9.1
+>>>>>>>>>>>> [ 381.037200] usb 1-3: DVB: registering adapter 0 frontend 0
+>>>>>>>>>>>> (Afatech
+>>>>>>>>>>>> AF9033 (DVB-T))...
+>>>>>>>>>>>> [ 381.044197] i2c i2c-1: fc2580: i2c rd failed=-5 reg=01 len=1
+>>>>>>>>>>>> [ 381.044357] usb 1-3: dvb_usbv2: 'Asus U3100Mini Plus' error
+>>>>>>>>>>>> while
+>>>>>>>>>>>> loading driver (-19)
+>>>>>>>>>>>
+>>>>>>>>>>> I2C communication to tuner chip does not work at all. It
+>>>>>>>>>>> tries to
+>>>>>>>>>>> read
+>>>>>>>>>>> chip id register but fails. If you enable debugs you will see
+>>>>>>>>>>> which
+>>>>>>>>>>> error status af9035 reports.
+>>>>>>>>>> CONFIG_DVB_USB_DEBUG was enabled, but nothing extra :(
+>>>>>>>>>>
+>>>>>>>>>>>
+>>>>>>>>>>> There is likely 3 possibilities:
+>>>>>>>>>>> 1) wrong I2C address
+>>>>>>>>>> Well as linked before, I used it from the 'official' driver,
+>>>>>>>>>> where it
+>>>>>>>>>> says:
+>>>>>>>>>> #define FC2580_ADDRESS 0xAC
+>>>>>>>>>>
+>>>>>>>>>> grepping the entire source of theirs, I then found this in
+>>>>>>>>>> FC2580.c
+>>>>>>>>>> TunerDescription tuner_FC2580 = {
+>>>>>>>>>> FC2580_open, /** Function to open tuner. */
+>>>>>>>>>> FC2580_close, /** Function to close tuner. */
+>>>>>>>>>> FC2580_set, /** Function set frequency. */
+>>>>>>>>>> FC2580_scripts, /** Scripts. */
+>>>>>>>>>> FC2580_scriptSets, /** Length of scripts. */
+>>>>>>>>>> FC2580_ADDRESS, /** The I2C address of tuner. */
+>>>>>>>>>> 1, /** Valid length of tuner register. */
+>>>>>>>>>> 0, /** IF frequency of tuner. */
+>>>>>>>>>> True, /** Spectrum inversion. */
+>>>>>>>>>> 0x32, /** tuner id */
+>>>>>>>>>> };
+>>>>>>>>>>
+>>>>>>>>>> The only other thing that I recognize is the scripts, which is
+>>>>>>>>>> some
+>>>>>>>>>> init
+>>>>>>>>>> code (which I asked about below, which should also be right,
+>>>>>>>>>> unless I
+>>>>>>>>>> made a typo) and the tuner id, which is the first thing in the
+>>>>>>>>>> script
+>>>>>>>>>> and in my patch defined as AF9033_TUNER_FC2580. No idea of its
+>>>>>>>>>> significance :)
+>>>>>>>>>>
+>>>>>>>>>>> 2) wrong GPIOs
+>>>>>>>>>>> * tuner is not powered on or it is on standby
+>>>>>>>>>> How/where would I check that?
+>>>>>>>>>>
+>>>>>>>>>>> 3) wrong firmware
+>>>>>>>>>>> * it very unlikely that even wrong firmware fails basic I2C...
+>>>>>>>>>> I know there's a few versions right? the 01 02 etc? But that is
+>>>>>>>>>> mostly
+>>>>>>>>>> in relation with the af9035 mostly right?
+>>>>>>>>>>
+>>>>>>>>>>>
+>>>>>>>>>>>> using the following modules.
+>>>>>>>>>>>> fc2580 4189 -1
+>>>>>>>>>>>> af9033 10266 0
+>>>>>>>>>>>> dvb_usb_af9035 8924 0
+>>>>>>>>>>>> dvb_usbv2 11388 1 dvb_usb_af9035
+>>>>>>>>>>>> dvb_core 71756 1 dvb_usbv2
+>>>>>>>>>>>> rc_core 10583 2 dvb_usbv2,dvb_usb_af9035
+>>>>>>>>>>>>
+>>>>>>>>>>>> I'm supprised though that dvb-pll isn't there. Wasn't that a
+>>>>>>>>>>>> requirement? [1]
+>>>>>>>>>>>
+>>>>>>>>>>> No. dvb-pll is used for old simple 4-byte PLLs. FCI FC2580 is
+>>>>>>>>>>> modern
+>>>>>>>>>>> silicon tuner. There is PLL used inside FC2580 for frequency
+>>>>>>>>>>> synthesizer
+>>>>>>>>>>> but no dvb-pll needed as all calculations are done inside that
+>>>>>>>>>>> driver.
+>>>>>>>>>>> Silicon tuners are so much more complicated to program than old
+>>>>>>>>>>> 4-byte
+>>>>>>>>>>> PLLs, thus own driver is needed for each silicon tuner chip.
+>>>>>>>>>> Ah, well then the wiki needs a small update ;)
+>>>>>>>>>>>
+>>>>>>>>>>>> For the tuner 'script' firmware/init bit, I used the 'official'
+>>>>>>>>>>>> driver
+>>>>>>>>>>>> [2].
+>>>>>>>>>>>>
+>>>>>>>>>>>> Also the i2c-addr and clock comes from these files.
+>>>>>>>>>>>
+>>>>>>>>>>> Aaah, now I see. At least I2C address is wrong. You use 0xac but
+>>>>>>>>>>> should
+>>>>>>>>>>> be 0x56. There is wrong "8-bit" address used. 0xac >> 1 == 0x56.
+>>>>>>>>>> That I don't understand (as I wrote above) 0xac 'should' be the
+>>>>>>>>>> correct,
+>>>>>>>>>> but appearantly it needs to be shifted. Why?
+>>>>>>>>>
+>>>>>>>>> Because it is wrong in vendor driver you look. I2C addresses are 7
+>>>>>>>>> bit
+>>>>>>>>> long and LSB bit used for direction (read or write). Try to search
+>>>>>>>>> some
+>>>>>>>>> I2C tutorials. This kind of wrong I2C addresses are called usually
+>>>>>>>>> 8-bit
+>>>>>>>>> I2C address.
+>>>>>>>>>
+>>>>>>>>>>
+>>>>>>>>>>>
+>>>>>>>>>>>
+>>>>>>>>>>> 16384000 (16.384MHz) is FC2580 internal clock what I
+>>>>>>>>>>> understand. It
+>>>>>>>>>>> should be OK. I suspect that everyone uses it for DVB-T to save
+>>>>>>>>>>> components / make design simple.
+>>>>>>>>>> I would assume so, since also that is in the original sources;
+>>>>>>>>>> fc2580.c
+>>>>>>>>>> lists it as:
+>>>>>>>>>> #define FREQ_XTAL 16384 //16.384MHz
+>>>>>>>>>>
+>>>>>>>>>>>
+>>>>>>>>>>>> One minor questions I have regarding the recently submitted RTL
+>>>>>>>>>>>> and
+>>>>>>>>>>>> AF9033 drivers, is one uses AF9033_TUNER_* whereas the other
+>>>>>>>>>>>> uses
+>>>>>>>>>>>> TUNER_RTL2832_*. Any reason for this? It just confused me is
+>>>>>>>>>>>> all.
+>>>>>>>>>>>
+>>>>>>>>>>> It is just naming issue driver, driver author decision. Usually
+>>>>>>>>>>> names
+>>>>>>>>>>> start with driver name letters (in that case RTL28XXU_). It is
+>>>>>>>>>>> not
+>>>>>>>>>>> big
+>>>>>>>>>>> issue for variable names unless it is too "general" to conflict
+>>>>>>>>>>> some
+>>>>>>>>>>> library. For function names driver names prefix (rtl28xxu_)
+>>>>>>>>>>> should be
+>>>>>>>>>>> used as it eases debugging (example ooops is dumped showing
+>>>>>>>>>>> function
+>>>>>>>>>>> names).
+>>>>>>>>>>
+>>>>>>>>>> Ok I will test the shifted i2c address and try that.
+>>>>>>>>>>>
+>>>>>>>>>>>
+>>>>>>>>>>> Antti
+>>>>>>>>>>>
+>>>>>>>>>>>>
+>>>>>>>>>>>> Oliver
+>>>>>>>>>>>>
+>>>>>>>>>>>> [1] http://linuxtv.org/wiki/index.php/DVB_via_USB#Introduction
+>>>>>>>>>>>> [2]
+>>>>>>>>>>>> http://git.schinagl.nl/AF903x_SRC.git/tree/api/FCI_FC2580_Script.h
+>>>>>>>>>>>>
+>>>>>>>>>>>>
+>>>>>>>>>>>>
+>>>>>>>>>> <snipped patch>
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>
+>>>>>
+>>>>> --
+>>>>> To unsubscribe from this list: send the line "unsubscribe
+>>>>> linux-media" in
+>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>
+>>>
+>>>
 >>
->> If this approach is taken care must be taken when new drivers are
->> integrated: developers sometimes use old kernels for development and might
->> also use an old driver for guidance on timestamps, thus using real-time
->> timestamps when monotonic timestamps should be used.
 >
-> More importantly, this also fails when users use out-of-tree drivers.
-
-Could you mention some examples what we could be breaking in particular?
-
->> This approach has an
->> advantage over the capability flag below: which is that we don't populate
->> the interface with essentially dead definitions.
 >
-> Using a kernel version to decide whether some feature is available or not is
-> IMHO something of a last resort. It's very application unfriendly.
 
-Could be, but that's a passing pain. We're going to live with the flags 
-for the foreseeable future, whether we need them or not.
-
->>
->> Capability flag for monotonic timestamps
->> ----------------------------------------
->>
->> A capability flag can be used to tell whether the timestamp is monotonic.
->> However, it's not extensible cleanly to provide selectable timestamps. These
->> are not features that are needed right now, though.
->>
->> The upside of this option is ease of implementation and use, but it's not
->> extensible. Also we're left with a flag that's set for all drivers: in the
->> end it provides no information to the user and is only noise in the spec.
->>
->>
->> Control for timestamp type
->> --------------------------
->>
->> Using a control to tell the type of the timestamp is extensible but not as
->> easy to implement than the capability flag: each and every device would get
->> an additional control. The value should likely be also file handle specific,
->> and we do not have file handle specific controls yet.
->
-> Yes, we do. You can make per-file handle controls. M2M devices need that.
-
-Thanks for correcting me.
-
-> I'm not sure why this would be filehandle specific, BTW.
-
-Good point. I thought that as other properties of the buffers are 
-specific to file handles, including format when using CREATE_BUFS, it'd 
-make sense to make the timestamp source file-handle specific as well.
-
-What do you think?
-
->> In the meantime the control could be read-only, and later made read-write
->> when the timestamp type can be made selectable. Much of he work of
->> timestamping can be done by the framework: drivers can use a single helper
->> function and need to create one extra standard control.
->>
->> Should the control also have an effect on the types of the timestamps in
->> V4L2 events? Likely yes.
->
-> You are missing one other option:
->
-> Using v4l2_buffer flags to report the clock
-> -------------------------------------------
->
-> By defining flags like this:
->
-> V4L2_BUF_FLAG_CLOCK_MASK	0x7000
-> /* Possible Clocks */
-> V4L2_BUF_FLAG_CLOCK_UNKNOWN	0x0000  /* system or monotonic, we don't know */
-> V4L2_BUF_FLAG_CLOCK_MONOTONIC   0x1000
->
-> you could tell the application which clock is used.
->
-> This does allow for more clocks to be added in the future and clock selection
-> would then be done by a control or possibly an ioctl. For now there are no
-> plans to do such things, so this flag should be sufficient. And it can be
-> implemented very efficiently. It works with existing drivers as well, since
-> they will report CLOCK_UNKNOWN.
->
-> I am very much in favor of this approach.
-
-Thanks for adding this. I knew I was forgetting something but didn't 
-remember what --- I swear it was unintentional! :-)
-
-If we'd add more clocks without providing an ability to choose the clock 
-from the user space, how would the clock be selected? It certainly isn't 
-the driver's job, nor I think it should be system-specific either 
-(platform data on embedded systems).
-
-It's up to the application and its needs. That would suggest we should 
-always provide monotonic timestamps to applications (besides a potential 
-driver-specific timestamp), and for that purpose the capability flag --- 
-I admit I disliked the idea at first --- is enough.
-
-What comes to buffer flags, the application would also have to receive 
-the first buffer from the device to even know what kind of timestamps 
-the device uses, or at least call QUERYBUF. And in principle the flag 
-should be checked on every buffer, unless we also specify the flag is 
-the same for all buffers. And at certain point this will stop to make 
-any sense...
-
-A capability flag is cleaner solution from this perspective, and it can 
-be amended by a control (or an ioctl) later on: the flag can be 
-disregarded by applications whenever the control is present. If the 
-application doesn't know about the control it can still rely on the 
-flag. (I think this would be less clean than to go for the control right 
-from the beginning, but better IMO.)
-
->>
->>
->> Device-dependent timestamp
->> --------------------------
->>
->> Should we agree on selectable timestamps, the existing timestamp field (or a
->> union with another field of different type) could be used for the
->> device-dependent timestamps.
->
-> No. Device timestamps should get their own field. You want to be able to relate
-> device timestamps with the monotonic timestamps, so you need both.
->
->> Alternatively we can choose to re-use the
->> existing timecode field.
->>
->> At the moment there's no known use case for passing device-dependent
->> timestamps at the same time with monotonic timestamps.
->
-> Well, the use case is there, but there is no driver support. The device
-> timestamps should be 64 bits to accomodate things like PTS and DTS from
-> MPEG streams. Since timecode is 128 bits we might want to use two u64 fields
-> or perhaps 4 u32 fields.
-
-That should be an union for different kinds (or rather types) of 
-device-dependent timestamps. On uvcvideo I think this is u32, not u64. 
-We should be also able to tell what kind device dependent timestamp 
-there is --- should buffer flags be used for that as well?
-
-Kind regards,
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
