@@ -1,118 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:53979 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753860Ab2IVIJ3 (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3526 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751213Ab2IPN67 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Sep 2012 04:09:29 -0400
-Received: by lbbgj3 with SMTP id gj3so4827945lbb.19
-        for <linux-media@vger.kernel.org>; Sat, 22 Sep 2012 01:09:27 -0700 (PDT)
+	Sun, 16 Sep 2012 09:58:59 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: Re: [RFCv3 API PATCH 15/31] v4l2-core: Add new V4L2_CAP_MONOTONIC_TS capability.
+Date: Sun, 16 Sep 2012 15:57:14 +0200
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	" =?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>,
+	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com> <201209151435.41800.hverkuil@xs4all.nl> <5054E218.4010807@gmail.com>
+In-Reply-To: <5054E218.4010807@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAOesGMiHJnt7zq19ZycxaNUD64QzLYw7o79pP-Y91-zi60ny6g@mail.gmail.com>
-References: <1348123547-31082-1-git-send-email-shawn.guo@linaro.org>
-	<201209200739.34899.arnd@arndb.de>
-	<20120920145342.GI2450@S2101-09.ap.freescale.net>
-	<201209201556.57171.arnd@arndb.de>
-	<20120921080123.GM2450@S2101-09.ap.freescale.net>
-	<CAOesGMi6CbvFikycJVdE8W-DxLD3W7+CyScz+YT103dxR31U9g@mail.gmail.com>
-	<20120921164622.GA5394@S2101-09.ap.freescale.net>
-	<20120921165305.GB5394@S2101-09.ap.freescale.net>
-	<CAOesGMiHJnt7zq19ZycxaNUD64QzLYw7o79pP-Y91-zi60ny6g@mail.gmail.com>
-Date: Sat, 22 Sep 2012 01:09:27 -0700
-Message-ID: <CAOesGMg+FvoVmiCee5hhe+_ZtBpvsnsi2N3vvLmZz1Tq3pOBWw@mail.gmail.com>
-Subject: Re: [alsa-devel] [PATCH v2 00/34] i.MX multi-platform support
-From: Olof Johansson <olof@lixom.net>
-To: Shawn Guo <shawn.guo@linaro.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, alsa-devel@alsa-project.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
-	linux-fbdev@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>,
-	linux-mtd@lists.infradead.org, linux-i2c@vger.kernel.org,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
-	Chris Ball <cjb@laptop.org>, linux-media@vger.kernel.org,
-	linux-watchdog@vger.kernel.org, rtc-linux@googlegroups.com,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <rob.herring@calxeda.com>,
-	linux-arm-kernel@lists.infradead.org,
-	Vinod Koul <vinod.koul@linux.intel.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-usb@vger.kernel.org, linux-mmc@vger.kernel.org,
-	Wolfram Sang <w.sang@pengutronix.de>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201209161557.15049.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Sep 22, 2012 at 12:41 AM, Olof Johansson <olof@lixom.net> wrote:
-> Hi,
->
-> On Fri, Sep 21, 2012 at 9:53 AM, Shawn Guo <shawn.guo@linaro.org> wrote:
->> On Sat, Sep 22, 2012 at 12:46:26AM +0800, Shawn Guo wrote:
->>> I just published the branch below with this series rebased on top of
->>> the necessary dependant branches.
->>>
->>>   git://git.linaro.org/people/shawnguo/linux-2.6.git staging/imx-multiplatform
->>>
->>> The dependant branches include:
->>>
->>
->> Forgot the base:
->>
->>   * arm-soc/next/multiplatform
->>
->> Shawn
->>
->>> * arm-soc/multiplatform/platform-data
->>>
->>> * arm-soc/multiplatform/smp_ops
->>>
->>> * git://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git for-3.7
->>>
->>>   It contains dependant patch "ASoC: mx27vis: retrieve gpio numbers
->>>   from platform_data"
->>>
->>> * git://git.infradead.org/mtd-2.6.git master
->>>
->>>   The series is based on this tree to solve some non-trivial conflicts
->>>   on mxc_nand driver.  Because mtd tree completely missed 3.6 merge
->>>   window, having the series base on 3.6-rc actually means 3.5 code base
->>>   in term of mtd support.  There are currently two cycles changes
->>>   accumulated on mtd, and we need to base the series on it to sort out
->>>   the conflicts.
->>>
->>> * git://linuxtv.org/mchehab/media-next.git master
->>>
->>>   The media tree renames mx2/mx3 camera drivers twice.  I'm not sure
->>>   if git merge can detect them, so I just rebased the series on media
->>>   tree to solve that.  The bonus point is that a number of trivial
->>>   conflicts with imx27-coda support on media tree gets solved as well.
->>>
->>> I'm not requesting you to pull the branch into arm-soc as a stable
->>> branch but staging one, because the external dependencies which might
->>> not be stable.  I attempt to use it for exposing the series on
->>> linux-next, so that we can send it to Linus for 3.7 if there is chance
->>> for us to (e.g. all the dependant branches hit mainline early during
->>> 3.7 merge window).
->
-> I've pulled this in now as staging/imx-multiplatform.
->
-> As you mention, it might or might not make sense to send this up. It
-> also accrued a few more merge conflicts with other branches in
-> arm-soc, so we'll see how things play out.
->
-> Either way, we'll for sure queue it for 3.8.
+On Sat September 15 2012 22:16:24 Sylwester Nawrocki wrote:
+> On 09/15/2012 02:35 PM, Hans Verkuil wrote:
+> >>>> If we switch all existing drivers to monotonic timestamps in kernel release
+> >>>> 3.x, v4l2-compliance can just use the version it gets from VIDIOC_QUERYCAP and
+> >>>> enforce monotonic timestamps verification if the version is>= 3.x. This isn't
+> >>>> more difficult for apps to check than a dedicated flag (although it's less
+> >>>> explicit).
+> >>>
+> >>> I think that checking for the driver (kernel) version is a very poor substitute
+> >>> for testing against a proper flag.
+> >>
+> >> That flag should be the default in this case. The flag should be set by
+> >> the framework instead giving every driver the job of setting it.
+> >>
+> >>> One alternative might be to use a v4l2_buffer flag instead. That does have the
+> >>> advantage that in the future we can add additional flags should we need to
+> >>> support different clocks. Should we ever add support to switch clocks dynamically,
+> >>> then a buffer flag is more suitable than a driver capability. In that scenario
+> >>> it does make real sense to have a flag (or really mask).
+> >>>
+> >>> Say something like this:
+> >>>
+> >>> /* Clock Mask */
+> >>> V4L2_BUF_FLAG_CLOCK_MASK	0xf000
+> >>> /* Possible Clocks */
+> >>> V4L2_BUF_FLAG_CLOCK_SYSTEM	0x0000
+> > 
+> > I realized that this should be called:
+> > 
+> > V4L2_BUF_FLAG_CLOCK_UNKNOWN	0x0000
+> > 
+> > With a comment saying that is clock is either the system clock or a monotonic
+> > clock. That reflects the current situation correctly.
+> > 
+> >>> V4L2_BUF_FLAG_CLOCK_MONOTONIC	0x1000
+> 
+> There is already lots of overhead related to the buffers management, could 
+> we perhaps have the most common option defined in a way that drivers don't 
+> need to update each buffer's flags before dequeuing, only to indicate the
+> timestamp type (other than flags being modified in videobuf) ?
 
-Hmm. Pulling it in gives me a few new build errors, in particular on
-the configs that Russell use to build test omap3, as well as one of
-his vexpress configs. So I dropped it again for now.
+Well, if all vb2 drivers use the monotonic clock, then you could do it in
+__fill_v4l2_buffer: instead of clearing just the state flags you'd clear
+state + clock flags, and you OR in the monotonic flag in the case statement
+below (adding just a single b->flags |= line in the DEQUEUED case).
 
-Let's have the current contents sit in linux-next for at least one
-release before we bring in anything more, especially since it brings
-in dependencies on external trees, and it also has a handful of new
-merge conflicts. We're already exposing Stephen Rothwell to more merge
-conflicts than I'm entirely comfortable with.
+So that wouldn't add any overhead. Not that I think setting a flag will add
+any measurable overhead in any case.
 
+> This buffer flags idea sounds to me worse than the capability flag. After 
+> all the drivers should use monotonic clock timestamps, shouldn't they ?
 
--Olof
+Yes. But you have monotonic and raw monotonic clocks at the moment, and perhaps
+others will be added in the future. You can't change clocks if you put this
+in the querycap capabilities.
+
+> Have anyone has ever come with a use case for switching timestamps clock 
+> type, can anyone give an example of it ? How likely is we will ever need 
+> that ? 
+
+Well, ALSA allows you to switch between gettimeofday and monotonic. So in
+theory at least if an app selects gettimeofday for alsa, that app might also
+want to select gettimeofday for v4l2.
+
+I'd really like to keep this door open. My experience is that if something is
+possible, then someone somewhere will want to use it.
+
+Regards,
+
+	Hans
