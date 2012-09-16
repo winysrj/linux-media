@@ -1,218 +1,400 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:45514 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751761Ab2IARh5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Sep 2012 13:37:57 -0400
-Received: by bkwj10 with SMTP id j10so1679217bkw.19
-        for <linux-media@vger.kernel.org>; Sat, 01 Sep 2012 10:37:56 -0700 (PDT)
-Message-ID: <504247F0.40500@gmail.com>
-Date: Sat, 01 Sep 2012 19:37:52 +0200
-From: poma <pomidorabelisima@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:55544 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751118Ab2IPQny (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Sep 2012 12:43:54 -0400
+Message-ID: <505601B6.2010103@iki.fi>
+Date: Sun, 16 Sep 2012 19:43:34 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org,
-	Hin-Tak Leung <htl10@users.sourceforge.net>
-Subject: Re: [PATCH] rtl28xxu: correct usb_clear_halt() usage
-References: <1346507683-3621-1-git-send-email-crope@iki.fi> <50422B57.60701@gmail.com> <50422E32.9000501@iki.fi>
-In-Reply-To: <50422E32.9000501@iki.fi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Oliver Schinagl <oliver+list@schinagl.nl>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Support for Asus MyCinema U3100Mini Plus
+References: <1347223647-645-1-git-send-email-oliver+list@schinagl.nl> <504D00BC.4040109@schinagl.nl> <504D0F44.6030706@iki.fi> <504D17AA.8020807@schinagl.nl> <504D1859.5050201@iki.fi> <504DB9D4.6020502@schinagl.nl> <504DD311.7060408@iki.fi> <504DF950.8060006@schinagl.nl> <504E2345.5090800@schinagl.nl> <5055DD27.7080501@schinagl.nl>
+In-Reply-To: <5055DD27.7080501@schinagl.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/01/2012 05:48 PM, Antti Palosaari wrote:
-> On 09/01/2012 06:35 PM, poma wrote:
->> On 09/01/2012 03:54 PM, Antti Palosaari wrote:
->>> It is not allowed to call usb_clear_halt() after urbs are submitted.
->>> That causes oops sometimes. Move whole streaming_ctrl() logic to
->>> power_ctrl() in order to avoid wrong usb_clear_halt() use. Also,
->>> configuring streaming endpoint in streaming_ctrl() sounds like a
->>> little bit wrong as it is aimed for control stream gate.
+Hello
+You have about all the possible info. There is chipset vendor driver 
+look example and existing Linux drivers for all the used chips. Just few 
+lines of code needed for the device profile. I surely can help, but it 
+is not something I would like to teach and say do that and test that. It 
+is wasting my time. I encourage you to take one simple USB capture from 
+Windows driver and look help from there. GPIOs are the first thing to test.
+
+Also maintaining driver without a hardware is something that causes 
+always headache later when some changes are needed to do that driver.... :s
+
+regards
+Antti
+
+
+
+On 09/16/2012 05:07 PM, Oliver Schinagl wrote:
+> Any pointers where else to look? I'm kinda lost at the moment :)
+>
+> Oliver
+>
+> On 09/10/12 19:28, Oliver Schinagl wrote:
+>> On 09/10/12 16:29, Oliver Schinagl wrote:
+>>> On 10-09-12 13:46, Antti Palosaari wrote:
+>>>> On 09/10/2012 12:58 PM, Oliver Schinagl wrote:
+>>>>> Changed the address as recommended, which after reading 7bit and 8bit
+>>>>> addressing makes perfect sense (drop the r/w bit and get the actual
+>>>>> address).
+>>>>>
+>>>>> static struct fc2580_config af9035_fc2580_config = {
+>>>>> - .i2c_addr = 0xac,
+>>>>> + .i2c_addr = 0x56,
+>>>>> .clock = 16384000,
+>>>>> };
+>>>>>
+>>>>>
+>>>>> So now the address should actually be correct ;)
+>>>>>
+>>>>> Unfortunately, nothing. What other debug options do I need to enable
+>>>>> besides CONFIG_DVB_USB_DEBUG to get more interesting output?
+>>>>
+>>>> For me it sees something happens as there is no I2C error seen anymore.
+>>>>
+>>>> AF9035 driver uses Kernel dynamic debugs. CONFIG_DVB_USB_DEBUG is
+>>>> legacy and proprietary DVB subsystem debug which should not be used
+>>>> anymore.
+>>>> You could order dynamic debugs like that:
+>>>> modprobe dvb_usb_af9035; echo -n 'module dvb_usb_af9035 +p' >
+>>>> /sys/kernel/debug/dynamic_debug/control
+>>>>
+>>>> For tuner, demod and dvb_usbv2 similarly if needed.
+>>> I've did and added output from control and dmesg output.
 >>>
->>> Reported-by: Hin-Tak Leung <htl10@users.sourceforge.net>
->>> Signed-off-by: Antti Palosaari <crope@iki.fi>
->>> ---
->>>   drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 55
->>> +++++++++++++++------------------
->>>   1 file changed, 25 insertions(+), 30 deletions(-)
+>>> I don't exactly know how to read the dynamic debug output, the only
+>>> thing that jumped out at me, was:
+>>> drivers/media/dvb-frontends/af9033.c:327 [af9033]af9033_init =p "%s:
+>>> unsupported tuner ID=%d\012"
 >>>
->>> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
->>> b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
->>> index e29fca2..7d11c5d 100644
->>> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
->>> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
->>> @@ -825,37 +825,10 @@ err:
->>>       return ret;
->>>   }
+>>> So I will search and see where in the driver the supported tunerID's are
+>>> stored and fix that.
 >>>
->>> -static int rtl28xxu_streaming_ctrl(struct dvb_frontend *fe , int onoff)
->>> -{
->>> -    int ret;
->>> -    u8 buf[2];
->>> -    struct dvb_usb_device *d = fe_to_d(fe);
->>> -
->>> -    dev_dbg(&d->udev->dev, "%s: onoff=%d\n", __func__, onoff);
->>> -
->>> -    if (onoff) {
->>> -        buf[0] = 0x00;
->>> -        buf[1] = 0x00;
->>> -        usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x81));
->>> -    } else {
->>> -        buf[0] = 0x10; /* stall EPA */
->>> -        buf[1] = 0x02; /* reset EPA */
->>> -    }
->>> -
->>> -    ret = rtl28xx_wr_regs(d, USB_EPA_CTL, buf, 2);
->>> -    if (ret)
->>> -        goto err;
->>> -
->>> -    return ret;
->>> -err:
->>> -    dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
->>> -    return ret;
->>> -}
->>> -
->>>   static int rtl2831u_power_ctrl(struct dvb_usb_device *d, int onoff)
->>>   {
->>>       int ret;
->>> -    u8 gpio, sys0;
->>> +    u8 gpio, sys0, epa_ctl[2];
+>>> Any other pointers/things you see I should look at?
+>> Appearantly, I setup the tuner, like the others, but it skips that
+>> because the tuner id is wrong/not set.
+>>
+>>      case AF9033_TUNER_FC2580:
+>>          len = ARRAY_SIZE(tuner_init_fc2580);
+>>          init = tuner_init_fc2580;
+>>          break;
+>>
+>> So where is the tuner set?
+>>
+>> I did find this bit:
+>>
+>> tatic int af9035_read_config(struct dvb_usb_device *d)
+>> {
+>> <snip>
+>>          ret = af9035_rd_reg(d, EEPROM_1_TUNER_ID + eeprom_shift, &tmp);
+>>
+>> which suggests that it comes from the actual eeprom. I assumed that the
+>> 'init/script/firmware' bit, the first 'message' was the ID, 0x32 in the
+>> case of this tuner. I guess I'm wrong?
+>>
+>> The log is not exactly helpful either:
+>> drivers/media/usb/dvb-usb-v2/af9035.c:542
+>> [dvb_usb_af9035]af9035_read_config =_ "%s: [%d]tuner=%02x\012"
+>>
+>> So close, yet so far. So if I'm right, the actual ID of the tuner and
+>> the first byte in the init are not always the same? Then why use the
+>> define in the first place there? And why would the 'official' code user
+>> 0x32 as tuner ID. Or is this simply a dec/hex conversion goof?
+>>
+>>
+>> Oliver
+>>
+>>>>
+>>>>> Anyway, dmesg reports the following.
+>>>>> [60.071538] usb 1-3: new high-speed USB device number 3 using ehci_hcd
+>>>>> [60.192627] usb 1-3: New USB device found, idVendor=0b05,
+>>>>> idProduct=1779
+>>>>> [60.192638] usb 1-3: New USB device strings: Mfr=1, Product=2,
+>>>>> SerialNumber=3
+>>>>> [60.192646] usb 1-3: Product: AF9035A USB Device
+>>>>> [60.192652] usb 1-3: Manufacturer: Afa Technologies Inc.
+>>>>> [60.192657] usb 1-3: SerialNumber: AF010asdfasdf12314
+>>>>> [60.198686] input: Afa Technologies Inc. AF9035A USB Device as
+>>>>> /devices/pci0000:00/0000:00:12.2/usb1/1-3/1-3:1.1/input/input14
+>>>>> [60.198832] hid-generic 0003:0B05:1779.0003: input: USB HID v1.01
+>>>>> Keyboard [Afa Technologies Inc. AF9035A USB Device] on
+>>>>> usb-0000:00:12.2-3/input1
+>>>>> [60.263893] usbcore: registered new interface driver dvb_usb_af9035
+>>>>> [60.264605] usb 1-3: dvb_usbv2: found a 'Asus U3100Mini Plus' in cold
+>>>>> state
+>>>>> [60.273924] usb 1-3: dvb_usbv2: downloading firmware from file
+>>>>> 'dvb-usb-af9035-02.fw'
+>>>>> [60.584267] dvb_usb_af9035: firmware version=11.5.9.0
+>>>>> [60.584287] usb 1-3: dvb_usbv2: found a 'Asus U3100Mini Plus' in warm
+>>>>> state
+>>>>> [60.586802] usb 1-3: dvb_usbv2: will pass the complete MPEG2 transport
+>>>>> stream to the software demuxer
+>>>>> [60.586871] DVB: registering new adapter (Asus U3100Mini Plus)
+>>>>> [60.595637] af9033: firmware version: LINK=11.5.9.0 OFDM=5.17.9.1
+>>>>> [60.595654] usb 1-3: DVB: registering adapter 0 frontend 0 (Afatech
+>>>>> AF9033 (DVB-T))...
+>>>>> [60.599889] usb 1-3: dvb_usbv2: 'Asus U3100Mini Plus' error while
+>>>>> loading driver (-19)
+>>>>>
+>>>>> I then tried using the firmware that came with said driver, as the
+>>>>> version seems slightly different/newer.
+>>>>>
+>>>>> #define FW_RELEASE_VERSION "v8_8_63_0"
+>>>>>
+>>>>> #define DVB_LL_VERSION1 11
+>>>>> #define DVB_LL_VERSION2 22
+>>>>> #define DVB_LL_VERSION3 12
+>>>>> #define DVB_LL_VERSION4 0
+>>>>>
+>>>>> #define DVB_OFDM_VERSION1 5
+>>>>> #define DVB_OFDM_VERSION2 66
+>>>>> #define DVB_OFDM_VERSION3 12
+>>>>> #define DVB_OFDM_VERSION4 0
+>>>>>
+>>>>> (which also gets displayed when loading the firmware, originally on
+>>>>> the
+>>>>> old kernel).
+>>>>>
+>>>>> This however results in a hard lock/dump when plugging in the device.
+>>>>> Are there certain size restrictions etc? What I did to obtain said
+>>>>> firmware was write a simple program that reads the array, static
+>>>>> unsigned char Firmware_codes[] and outputs the read bytes to a file.
+>>>>> From what I saw from the -02 firmware, the first few bytes are
+>>>>> identical (header?) so should be right procedure.
+>>>>
+>>>> Firmare surely works but you make some mistake. I have extracted those
+>>>> from the windows driver.
+>>>>
+>>>> http://palosaari.fi/linux/v4l-dvb/firmware/af9035/
+>>>>
+>>> A link to, or your files should be listed at the linuxdvb firmware
+>>> download page ;)
 >>>
->>>       dev_dbg(&d->udev->dev, "%s: onoff=%d\n", __func__, onoff);
+>>> I noticed your latest firmware is way newer then the one I had. So
+>>> deffinatly using that one.
+>>>>> Btw, when using the -02 firmware and trying to unload the af9033
+>>>>> module,
+>>>>> either with or without the stick plugged in, it just hangs there for a
+>>>>> long time. Reboot fails too (it hangs at trying to disable swap).
+>>>>> Only a
+>>>>> sys-req-reisub successfully reboots.
+>>>>>
+>>>>> oliver
+>>>>
+>>>>
+>>>> Antti
 >>>
->>> @@ -878,11 +851,15 @@ static int rtl2831u_power_ctrl(struct
->>> dvb_usb_device *d, int onoff)
->>>           gpio |= 0x04; /* GPIO2 = 1, LED on */
->>>           sys0 = sys0 & 0x0f;
->>>           sys0 |= 0xe0;
->>> +        epa_ctl[0] = 0x00; /* clear stall */
->>> +        epa_ctl[1] = 0x00; /* clear reset */
->>>       } else {
->>>           gpio &= (~0x01); /* GPIO0 = 0 */
->>>           gpio |= 0x10; /* GPIO4 = 1 */
->>>           gpio &= (~0x04); /* GPIO2 = 1, LED off */
->>>           sys0 = sys0 & (~0xc0);
->>> +        epa_ctl[0] = 0x10; /* set stall */
->>> +        epa_ctl[1] = 0x02; /* set reset */
->>>       }
->>>
->>>       dev_dbg(&d->udev->dev, "%s: WR SYS0=%02x GPIO_OUT_VAL=%02x\n",
->>> __func__,
->>> @@ -898,6 +875,14 @@ static int rtl2831u_power_ctrl(struct
->>> dvb_usb_device *d, int onoff)
->>>       if (ret)
->>>           goto err;
->>>
->>> +    /* streaming EP: stall & reset */
->>> +    ret = rtl28xx_wr_regs(d, USB_EPA_CTL, epa_ctl, 2);
->>> +    if (ret)
->>> +        goto err;
->>> +
->>> +    if (onoff)
->>> +        usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x81));
->>> +
->>>       return ret;
->>>   err:
->>>       dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
->>> @@ -972,6 +957,14 @@ static int rtl2832u_power_ctrl(struct
->>> dvb_usb_device *d, int onoff)
->>>               goto err;
->>>
->>>
->>> +        /* streaming EP: clear stall & reset */
->>> +        ret = rtl28xx_wr_regs(d, USB_EPA_CTL, "\x00\x00", 2);
->>> +        if (ret)
->>> +            goto err;
->>> +
->>> +        ret = usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x81));
->>> +        if (ret)
->>> +            goto err;
->>>       } else {
->>>           /* demod_ctl_1 */
->>>           ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL1, &val);
->>> @@ -1006,6 +999,10 @@ static int rtl2832u_power_ctrl(struct
->>> dvb_usb_device *d, int onoff)
->>>           if (ret)
->>>               goto err;
->>>
->>> +        /* streaming EP: set stall & reset */
->>> +        ret = rtl28xx_wr_regs(d, USB_EPA_CTL, "\x10\x02", 2);
->>> +        if (ret)
->>> +            goto err;
->>>       }
->>>
->>>       return ret;
->>> @@ -1182,7 +1179,6 @@ static const struct dvb_usb_device_properties
->>> rtl2831u_props = {
->>>       .tuner_attach = rtl2831u_tuner_attach,
->>>       .init = rtl28xxu_init,
->>>       .get_rc_config = rtl2831u_get_rc_config,
->>> -    .streaming_ctrl = rtl28xxu_streaming_ctrl,
->>>
->>>       .num_adapters = 1,
->>>       .adapter = {
->>> @@ -1204,7 +1200,6 @@ static const struct dvb_usb_device_properties
->>> rtl2832u_props = {
->>>       .tuner_attach = rtl2832u_tuner_attach,
->>>       .init = rtl28xxu_init,
->>>       .get_rc_config = rtl2832u_get_rc_config,
->>> -    .streaming_ctrl = rtl28xxu_streaming_ctrl,
->>>
->>>       .num_adapters = 1,
->>>       .adapter = {
+>>> Oliver
+>>>>>
+>>>>>
+>>>>> On 09/10/12 00:29, Antti Palosaari wrote:
+>>>>>> On 09/10/2012 01:26 AM, Oliver Schinagl wrote:
+>>>>>>> On 09/09/12 23:51, Antti Palosaari wrote:
+>>>>>>>> On 09/09/2012 11:49 PM, Oliver Schinagl wrote:
+>>>>>>>>> Hi All/Antti,
+>>>>>>>>>
+>>>>>>>>> I used Antti's previous patch to try to get some support in for
+>>>>>>>>> the
+>>>>>>>>> Asus
+>>>>>>>>> MyCinema U3100Mini Plus as it uses a supported driver (af9035)
+>>>>>>>>> and now
+>>>>>>>>> supported tuner (FCI FC2580).
+>>>>>>>>>
+>>>>>>>>> It compiles fine and almost works :(
+>>>>>>>>>
+>>>>>>>>> Here's what I get, which I have no idea what causes it.
+>>>>>>>>>
+>>>>>>>>> dmesg output:
+>>>>>>>>> [ 380.677434] usb 1-3: New USB device found, idVendor=0b05,
+>>>>>>>>> idProduct=1779
+>>>>>>>>> [ 380.677445] usb 1-3: New USB device strings: Mfr=1, Product=2,
+>>>>>>>>> SerialNumber=3
+>>>>>>>>> [ 380.677452] usb 1-3: Product: AF9035A USB Device
+>>>>>>>>> [ 380.677458] usb 1-3: Manufacturer: Afa Technologies Inc.
+>>>>>>>>> [ 380.677463] usb 1-3: SerialNumber: AF01020abcdef12301
+>>>>>>>>> [ 380.683361] input: Afa Technologies Inc. AF9035A USB Device as
+>>>>>>>>> /devices/pci0000:00/0000:00:12.2/usb1/1-3/1-3:1.1/input/input15
+>>>>>>>>> [ 380.683505] hid-generic 0003:0B05:1779.0004: input: USB HID
+>>>>>>>>> v1.01
+>>>>>>>>> Keyboard [Afa Technologies Inc. AF9035A USB Device] on
+>>>>>>>>> usb-0000:00:12.2-3/input1
+>>>>>>>>> [ 380.703807] usbcore: registered new interface driver
+>>>>>>>>> dvb_usb_af9035
+>>>>>>>>> [ 380.704553] usb 1-3: dvb_usbv2: found a 'Asus U3100Mini Plus' in
+>>>>>>>>> cold
+>>>>>>>>> state
+>>>>>>>>> [ 380.705075] usb 1-3: dvb_usbv2: downloading firmware from file
+>>>>>>>>> 'dvb-usb-af9035-02.fw'
+>>>>>>>>> [ 381.014996] dvb_usb_af9035: firmware version=11.5.9.0
+>>>>>>>>> [ 381.015018] usb 1-3: dvb_usbv2: found a 'Asus U3100Mini Plus' in
+>>>>>>>>> warm
+>>>>>>>>> state
+>>>>>>>>> [ 381.017172] usb 1-3: dvb_usbv2: will pass the complete MPEG2
+>>>>>>>>> transport stream to the software demuxer
+>>>>>>>>> [ 381.017242] DVB: registering new adapter (Asus U3100Mini Plus)
+>>>>>>>>> [ 381.037184] af9033: firmware version: LINK=11.5.9.0
+>>>>>>>>> OFDM=5.17.9.1
+>>>>>>>>> [ 381.037200] usb 1-3: DVB: registering adapter 0 frontend 0
+>>>>>>>>> (Afatech
+>>>>>>>>> AF9033 (DVB-T))...
+>>>>>>>>> [ 381.044197] i2c i2c-1: fc2580: i2c rd failed=-5 reg=01 len=1
+>>>>>>>>> [ 381.044357] usb 1-3: dvb_usbv2: 'Asus U3100Mini Plus' error
+>>>>>>>>> while
+>>>>>>>>> loading driver (-19)
+>>>>>>>>
+>>>>>>>> I2C communication to tuner chip does not work at all. It tries to
+>>>>>>>> read
+>>>>>>>> chip id register but fails. If you enable debugs you will see which
+>>>>>>>> error status af9035 reports.
+>>>>>>> CONFIG_DVB_USB_DEBUG was enabled, but nothing extra :(
+>>>>>>>
+>>>>>>>>
+>>>>>>>> There is likely 3 possibilities:
+>>>>>>>> 1) wrong I2C address
+>>>>>>> Well as linked before, I used it from the 'official' driver,
+>>>>>>> where it
+>>>>>>> says:
+>>>>>>> #define FC2580_ADDRESS 0xAC
+>>>>>>>
+>>>>>>> grepping the entire source of theirs, I then found this in FC2580.c
+>>>>>>> TunerDescription tuner_FC2580 = {
+>>>>>>> FC2580_open, /** Function to open tuner. */
+>>>>>>> FC2580_close, /** Function to close tuner. */
+>>>>>>> FC2580_set, /** Function set frequency. */
+>>>>>>> FC2580_scripts, /** Scripts. */
+>>>>>>> FC2580_scriptSets, /** Length of scripts. */
+>>>>>>> FC2580_ADDRESS, /** The I2C address of tuner. */
+>>>>>>> 1, /** Valid length of tuner register. */
+>>>>>>> 0, /** IF frequency of tuner. */
+>>>>>>> True, /** Spectrum inversion. */
+>>>>>>> 0x32, /** tuner id */
+>>>>>>> };
+>>>>>>>
+>>>>>>> The only other thing that I recognize is the scripts, which is some
+>>>>>>> init
+>>>>>>> code (which I asked about below, which should also be right,
+>>>>>>> unless I
+>>>>>>> made a typo) and the tuner id, which is the first thing in the
+>>>>>>> script
+>>>>>>> and in my patch defined as AF9033_TUNER_FC2580. No idea of its
+>>>>>>> significance :)
+>>>>>>>
+>>>>>>>> 2) wrong GPIOs
+>>>>>>>> * tuner is not powered on or it is on standby
+>>>>>>> How/where would I check that?
+>>>>>>>
+>>>>>>>> 3) wrong firmware
+>>>>>>>> * it very unlikely that even wrong firmware fails basic I2C...
+>>>>>>> I know there's a few versions right? the 01 02 etc? But that is
+>>>>>>> mostly
+>>>>>>> in relation with the af9035 mostly right?
+>>>>>>>
+>>>>>>>>
+>>>>>>>>> using the following modules.
+>>>>>>>>> fc2580 4189 -1
+>>>>>>>>> af9033 10266 0
+>>>>>>>>> dvb_usb_af9035 8924 0
+>>>>>>>>> dvb_usbv2 11388 1 dvb_usb_af9035
+>>>>>>>>> dvb_core 71756 1 dvb_usbv2
+>>>>>>>>> rc_core 10583 2 dvb_usbv2,dvb_usb_af9035
+>>>>>>>>>
+>>>>>>>>> I'm supprised though that dvb-pll isn't there. Wasn't that a
+>>>>>>>>> requirement? [1]
+>>>>>>>>
+>>>>>>>> No. dvb-pll is used for old simple 4-byte PLLs. FCI FC2580 is
+>>>>>>>> modern
+>>>>>>>> silicon tuner. There is PLL used inside FC2580 for frequency
+>>>>>>>> synthesizer
+>>>>>>>> but no dvb-pll needed as all calculations are done inside that
+>>>>>>>> driver.
+>>>>>>>> Silicon tuners are so much more complicated to program than old
+>>>>>>>> 4-byte
+>>>>>>>> PLLs, thus own driver is needed for each silicon tuner chip.
+>>>>>>> Ah, well then the wiki needs a small update ;)
+>>>>>>>>
+>>>>>>>>> For the tuner 'script' firmware/init bit, I used the 'official'
+>>>>>>>>> driver
+>>>>>>>>> [2].
+>>>>>>>>>
+>>>>>>>>> Also the i2c-addr and clock comes from these files.
+>>>>>>>>
+>>>>>>>> Aaah, now I see. At least I2C address is wrong. You use 0xac but
+>>>>>>>> should
+>>>>>>>> be 0x56. There is wrong "8-bit" address used. 0xac >> 1 == 0x56.
+>>>>>>> That I don't understand (as I wrote above) 0xac 'should' be the
+>>>>>>> correct,
+>>>>>>> but appearantly it needs to be shifted. Why?
+>>>>>>
+>>>>>> Because it is wrong in vendor driver you look. I2C addresses are 7
+>>>>>> bit
+>>>>>> long and LSB bit used for direction (read or write). Try to search
+>>>>>> some
+>>>>>> I2C tutorials. This kind of wrong I2C addresses are called usually
+>>>>>> 8-bit
+>>>>>> I2C address.
+>>>>>>
+>>>>>>>
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> 16384000 (16.384MHz) is FC2580 internal clock what I understand. It
+>>>>>>>> should be OK. I suspect that everyone uses it for DVB-T to save
+>>>>>>>> components / make design simple.
+>>>>>>> I would assume so, since also that is in the original sources;
+>>>>>>> fc2580.c
+>>>>>>> lists it as:
+>>>>>>> #define FREQ_XTAL 16384 //16.384MHz
+>>>>>>>
+>>>>>>>>
+>>>>>>>>> One minor questions I have regarding the recently submitted RTL
+>>>>>>>>> and
+>>>>>>>>> AF9033 drivers, is one uses AF9033_TUNER_* whereas the other uses
+>>>>>>>>> TUNER_RTL2832_*. Any reason for this? It just confused me is all.
+>>>>>>>>
+>>>>>>>> It is just naming issue driver, driver author decision. Usually
+>>>>>>>> names
+>>>>>>>> start with driver name letters (in that case RTL28XXU_). It is not
+>>>>>>>> big
+>>>>>>>> issue for variable names unless it is too "general" to conflict
+>>>>>>>> some
+>>>>>>>> library. For function names driver names prefix (rtl28xxu_)
+>>>>>>>> should be
+>>>>>>>> used as it eases debugging (example ooops is dumped showing
+>>>>>>>> function
+>>>>>>>> names).
+>>>>>>>
+>>>>>>> Ok I will test the shifted i2c address and try that.
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> Antti
+>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> Oliver
+>>>>>>>>>
+>>>>>>>>> [1] http://linuxtv.org/wiki/index.php/DVB_via_USB#Introduction
+>>>>>>>>> [2]
+>>>>>>>>> http://git.schinagl.nl/AF903x_SRC.git/tree/api/FCI_FC2580_Script.h
+>>>>>>> <snipped patch>
+>>>>>>
+>>>>>>
+>>>>>
+>>>>
+>>>>
 >>>
 >>
->> OK, after patching with this one from http://goo.gl/5wtpT there is no
->> OOPS, but this happened[1][2]:
->> 1. mythtv-setup version: fixes/0.25 [v0.25.2-3-gf0e2ad8-dirty]:
->> …
->>     E  DVBChan(1:/dev/dvb/adapter0/frontend0): Getting Frontend
->> uncorrected block count failed.
->> eno: Operation not supported (95)
->> 2012-09-01 17:08:20.577044 W  DVBSM(/dev/dvb/adapter0/frontend0): Cannot
->> count Uncorrected Blocks
->> eno: Operation not supported (95)
->> …
->> 2. tzap/femon:
->> …
->> status 1f | signal 2f2f | snr 00f2 | ber 0000001e | unc 00000033 |
->> FE_HAS_LOCK
->> status 1f | signal 2f2f | snr 00f3 | ber 0000000b | unc 00000033 |
->> FE_HAS_LOCK
->> status 1f | signal 2f2f | snr 00f1 | ber 00000000 | unc 00000033 |
->> FE_HAS_LOCK
->> …
->> …
->> Problem retrieving frontend information: Operation not supported
->> status SCVYL | signal  18% | snr   0% | ber 19 | unc 1 | FE_HAS_LOCK
->> Problem retrieving frontend information: Operation not supported
->> status SCVYL | signal  18% | snr   0% | ber 7 | unc 1 | FE_HAS_LOCK
->> Problem retrieving frontend information: Operation not supported
->> status SCVYL | signal  18% | snr   0% | ber 54 | unc 1 | FE_HAS_LOCK
->> …
-> 
-> It is correct as driver does not report uncorrected blocks at all. Those
-> applications should be fixed. When I removed stub callback
-> implementation I looked quite many frontend drivers and there is surely
-> more than 10 other demod drivers reporting errors too. Unfortunately
-> returned error codes varies from driver by driver. Correct error code
-> for non-supported IOCTL is ENOTTY and DVB-frontend is changed to return
-> it too, but you don't seems to have a such patch.
-> 
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-Yeah, as you mentioned before this case;
-http://www.spinics.net/lists/linux-media/msg49869.html
-Thanks for explain that again!
 
-> And also, patch in question has nothing to do with that error code.
-> 
-
-I'll go from 1st patch just to confirm ;)
-
-> regards
-> Antti
-> 
-
-Cheers,
-poma
-
+-- 
+http://palosaari.fi/
