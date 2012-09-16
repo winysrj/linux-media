@@ -1,75 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3014 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1749667Ab2IOHeE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Sep 2012 03:34:04 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [RFCv3 API PATCH 00/31] Full series of API fixes from the 2012 Media Workshop
-Date: Sat, 15 Sep 2012 09:33:21 +0200
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
-References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com> <5053A115.9060303@iki.fi>
-In-Reply-To: <5053A115.9060303@iki.fi>
+Received: from ns.unixsol.org ([193.110.159.2]:42626 "EHLO ns.unixsol.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751756Ab2IPQtD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Sep 2012 12:49:03 -0400
+Message-ID: <505602FC.90502@unixsol.org>
+Date: Sun, 16 Sep 2012 19:49:00 +0300
+From: Georgi Chorbadzhiyski <gf@unixsol.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: How to set pixelaspect in struct v4l2_cropcap returned by VIDIOC_CROPCAP?
+References: <5055F124.8020507@unixsol.org> <201209161828.44984.hverkuil@xs4all.nl>
+In-Reply-To: <201209161828.44984.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201209150933.21699.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri September 14 2012 23:26:45 Sakari Ailus wrote:
-> Hans Verkuil wrote:
-> > Hi all,
-> >
-> > This is the full patch series containing API fixes as discussed during the
-> > 2012 Media Workshop.
-> >
-> > Regarding the 'make ioctl const' patches: I've only done the easy ones in
-> > this patch series. The remaining write-only ioctls are used much more widely,
-> > so changing those will happen later.
-> >
-> > The last few patches that enhance the core code with more stringent tests
-> > against what ioctls can be called for which types of device node will need
-> > reviewing. I have tested it exhaustively with ivtv (which is one of the
-> > most complex drivers, and the only one that has exotic devices like VBI
-> > out).
-> >
-> > To use v4l2-compliance with ivtv I also needed to make a few other fixes
-> > elsewhere. The tree with both this patch series and the addition ivtv fixes
-> > can be found here:
-> >
-> > http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/ivtv
-> >
-> > I have also tested this patch series (actually a slightly older version)
-> > with em28xx. That driver needed a lot of changes to get it to pass the
-> > v4l2-compliance tests. Those can be found here:
-> >
-> > http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/em28xx
-> 
-> Hi, Hans!
-> 
-> Thanks for the patchset!
-> 
-> On patch 7 (which I somehow managed not to receive): both cx18 and ivtv 
-> contain references to V4L2_BUF_TYPE_PRIVATE. I wonder if that's intentional.
+On 9/16/12 7:28 PM, Hans Verkuil wrote:
+> On Sun September 16 2012 17:32:52 Georgi Chorbadzhiyski wrote:
+>> Guys I'm adding v4l2 output device support for VLC/ffmpeg/libav (I'm using
+>> v4l2loopback [1] driver for testing) but I have a problem which I can't seem
+>> to find a solution.
+>>
+>> VLC [2] uses VIDIOC_CROPCAP [3] to detect the pixelaspect ratio of the input
+>> it receives from v4l2 device. But I can't seem to find a way to set struct
+>> v4l2_cropcap.pixelaspect when I'm outputting data to the device and the
+>> result is that VLC assumes pixelaspect is 1:1.
+>>
+>> I was hoping that VIDIOC_S_CROP [4] would allow setting pixelaspect but
+>> according to docs that is not case. What am I missing?
+>
+> The pixelaspect ratio returned by CROPCAP depends on the current video standard
+> of the video receiver or transmitter.
+>
+> So for video capture the pixelaspect depends on the standard (50 vs 60 Hz) and
+> the horizontal sampling frequency of the video receiver (hardware specific).
+>
+> For video output the pixelaspect depends also on the standard and on how the
+> transmitter goes from digital to analog pixels (the reverse of what a receiver
+> does).
+>
+> It is *not* the pixelaspect of the video data itself. For output it is the
+> pixel aspect that the transmitter expects. Any difference between the two will
+> need to be resolved somehow, typically by software or hardware scaling.
 
-Yes. Those streams are, well, private to those drivers. It's just an internal
-placeholder and could be replaced by a cx18/ivtv specific define.
+Since I'm using virtual output v4l2 loopback device this means I have to set the
+standard somehow, right?
 
-Perhaps I should do that anyway to prevent exactly this confusion.
-
-> For patches 2, 3, 4, 6, 8, 17 and 28 (for omap3isp)
-> 
-> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-> 
-> And for patches 5, 11, 18
-> 
-> Reviewed-by: Sakari Ailus <sakari.ailus@iki.fi>
-
-Thanks!
-
-Regards,
-
-	Hans
+-- 
+Georgi Chorbadzhiyski
+http://georgi.unixsol.org/
