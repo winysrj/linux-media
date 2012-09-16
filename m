@@ -1,62 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52138 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:52814 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751685Ab2IWQXB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Sep 2012 12:23:01 -0400
-Message-ID: <505F3750.8070104@iki.fi>
-Date: Sun, 23 Sep 2012 19:22:40 +0300
+	id S1750894Ab2IPBqN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Sep 2012 21:46:13 -0400
+Message-ID: <50552F51.6070406@iki.fi>
+Date: Sun, 16 Sep 2012 04:45:53 +0300
 From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Marx <acc.for.news@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: ITE9135 on AMD SB700 - ehci_hcd bug
-References: <ksm5i9-2t1.ln1@wuwek.kopernik.gliwice.pl> <5055E0ED.8030808@iki.fi>
-In-Reply-To: <5055E0ED.8030808@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: =?UTF-8?B?UsOpbWkgQ2FyZG9uYQ==?= <remi.cardona@smartjog.com>
+CC: linux-media@vger.kernel.org, liplianin@me.by
+Subject: Re: [PATCH 6/6] [media] ds3000: add module parameter to force firmware
+ upload
+References: <1347614846-19046-1-git-send-email-remi.cardona@smartjog.com> <1347614846-19046-7-git-send-email-remi.cardona@smartjog.com>
+In-Reply-To: <1347614846-19046-7-git-send-email-remi.cardona@smartjog.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/16/2012 05:23 PM, Antti Palosaari wrote:
-> On 09/12/2012 09:32 AM, Marx wrote:
->> Hello
->> I'm trying to use dual DVB-T tuner based on ITE9135 tuner. I use Debian
->> kernel 3.5-trunk-686-pae. My motherboard is AsRock E350M1 (no USB3
->> ports).
->> Tuner is detected ok, see log at the end of post.
->>
->> When I try to scan channels, bug happens:
->> Sep 11 17:16:31 wuwek kernel: [  209.291329] ehci_hcd 0000:00:13.2:
->> force halt; handshake f821a024 00004000 00000000 -> -110
->> Sep 11 17:16:31 wuwek kernel: [  209.291401] ehci_hcd 0000:00:13.2: HC
->> died; cleaning up
->> Sep 11 17:16:31 wuwek kernel: [  209.291606] usb 2-3: USB disconnect,
->> device number 2
->> Sep 11 17:16:41 wuwek kernel: [  219.312848] dvb-usb: error while
->> stopping stream.
->> Sep 11 17:16:41 wuwek kernel: [  219.320585] dvb-usb: ITE 9135(9006)
->> Generic successfully deinitialized and disconnected.
->>
->> After trying many ways I've read about problems with ehci on SB700 based
->> boards and switched off ehci via command
->> sh -c 'echo -n "0000:00:13.2" > unbind'
->> and now ehci bug doesn't happen. Of course I can see only one tuner and
->> in slower USB mode (see log at the end). But now I can scan succesfully
->> without any errors.
->>
->> Of course it isn't acceptable fix for my problem. Drivers for ITE9135
->> seems ok, but there is a problem with ehci_hcd on my motherboard.
->> I would like to know what can I do to fix my problem.
->
-> I am quite sure dvb_usb_v2 fixes that. Test latest tree.
->
-> Antti
->
+On 09/14/2012 12:27 PM, Rémi Cardona wrote:
+> Signed-off-by: Rémi Cardona <remi.cardona@smartjog.com>
 
-Test results please?
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
+With same comments as earlier patch.
 
-Antti
+> ---
+>   drivers/media/dvb/frontends/ds3000.c |    9 ++++++++-
+>   1 file changed, 8 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/dvb/frontends/ds3000.c b/drivers/media/dvb/frontends/ds3000.c
+> index 970963c..3e0e9de 100644
+> --- a/drivers/media/dvb/frontends/ds3000.c
+> +++ b/drivers/media/dvb/frontends/ds3000.c
+> @@ -30,6 +30,7 @@
+>   #include "ds3000.h"
+>
+>   static int debug;
+> +static int force_fw_upload;
+>
+>   #define dprintk(args...) \
+>   	do { \
+> @@ -396,10 +397,13 @@ static int ds3000_firmware_ondemand(struct dvb_frontend *fe)
+>   	dprintk("%s()\n", __func__);
+>
+>   	ret = ds3000_readreg(state, 0xb2);
+> -	if (ret == 0) {
+> +	if (ret == 0 && force_fw_upload == 0) {
+>   		printk(KERN_INFO "%s: Firmware already uploaded, skipping\n",
+>   			__func__);
+>   		return ret;
+> +	} else if (ret == 0 && force_fw_upload) {
+> +		printk(KERN_INFO "%s: Firmware already uploaded, "
+> +			"forcing upload\n", __func__);
+>   	} else if (ret < 0) {
+>   		return ret;
+>   	}
+> @@ -1308,6 +1312,9 @@ static struct dvb_frontend_ops ds3000_ops = {
+>   module_param(debug, int, 0644);
+>   MODULE_PARM_DESC(debug, "Activates frontend debugging (default:0)");
+>
+> +module_param(force_fw_upload, int, 0644);
+> +MODULE_PARM_DESC(force_fw_upload, "Force firmware upload (default:0)");
+> +
+>   MODULE_DESCRIPTION("DVB Frontend module for Montage Technology "
+>   			"DS3000/TS2020 hardware");
+>   MODULE_AUTHOR("Konstantin Dimitrov");
+>
 
 
 -- 
