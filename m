@@ -1,163 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:46808 "EHLO 7of9.schinagl.nl"
+Received: from mail.kapsi.fi ([217.30.184.167]:59797 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752703Ab2IIWZy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Sep 2012 18:25:54 -0400
-Message-ID: <504D17AA.8020807@schinagl.nl>
-Date: Mon, 10 Sep 2012 00:26:50 +0200
-From: Oliver Schinagl <oliver+list@schinagl.nl>
+	id S1751623Ab2IPAFm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Sep 2012 20:05:42 -0400
+Message-ID: <505517C0.3020905@iki.fi>
+Date: Sun, 16 Sep 2012 03:05:20 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Support for Asus MyCinema U3100Mini Plus
-References: <1347223647-645-1-git-send-email-oliver+list@schinagl.nl> <504D00BC.4040109@schinagl.nl> <504D0F44.6030706@iki.fi>
-In-Reply-To: <504D0F44.6030706@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org,
+	Hin-Tak Leung <htl10@users.sourceforge.net>
+Subject: Re: [PATCH 2/4] dvb_frontend: add routine for DVB-T2 parameter validation
+References: <1345169022-10221-1-git-send-email-crope@iki.fi> <1345169022-10221-3-git-send-email-crope@iki.fi> <504F91FB.20309@redhat.com>
+In-Reply-To: <504F91FB.20309@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/09/12 23:51, Antti Palosaari wrote:
-> On 09/09/2012 11:49 PM, Oliver Schinagl wrote:
->> Hi All/Antti,
+On 09/11/2012 10:33 PM, Mauro Carvalho Chehab wrote:
+> Em 16-08-2012 23:03, Antti Palosaari escreveu:
+>> Common routine for use of dvb-core, demodulator and tuner for check
+>> given DVB-T2 parameters correctness.
 >>
->> I used Antti's previous patch to try to get some support in for the Asus
->> MyCinema U3100Mini Plus as it uses a supported driver (af9035) and now
->> supported tuner (FCI FC2580).
+>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>> ---
+>>   drivers/media/dvb-core/dvb_frontend.c | 118 ++++++++++++++++++++++++++++++++++
+>>   drivers/media/dvb-core/dvb_frontend.h |   1 +
+>>   2 files changed, 119 insertions(+)
 >>
->> It compiles fine and almost works :(
+>> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+>> index 4abb648..6413c74 100644
+>> --- a/drivers/media/dvb-core/dvb_frontend.c
+>> +++ b/drivers/media/dvb-core/dvb_frontend.c
+>> @@ -2641,6 +2641,124 @@ int dvb_validate_params_dvbt(struct dvb_frontend *fe)
+>>   }
+>>   EXPORT_SYMBOL(dvb_validate_params_dvbt);
 >>
->> Here's what I get, which I have no idea what causes it.
+>> +int dvb_validate_params_dvbt2(struct dvb_frontend *fe)
+>> +{
+>> +	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+>> +
+>> +	dev_dbg(fe->dvb->device, "%s:\n", __func__);
+>> +
+>> +	switch (c->delivery_system) {
+>> +	case SYS_DVBT2:
+>> +		break;
+>> +	default:
+>> +		dev_dbg(fe->dvb->device, "%s: delivery_system=%d\n", __func__,
+>> +				c->delivery_system);
+>> +		return -EINVAL;
+>> +	}
+>
+> Same comments made on patch 1/4 apply here.
+>
+>> +
+>> +	/*
+>> +	 * DVB-T2 specification as such does not specify any frequency bands.
+>> +	 * Define real life limits still. L-Band 1452 - 1492 MHz may exits in
+>> +	 * future too.
+>> +	 */
+>> +	if (c->frequency >= 174000000 && c->frequency <= 230000000) {
+>> +		;
+>> +	} else if (c->frequency >= 470000000 && c->frequency <= 862000000) {
+>> +		;
+>> +	} else {
+>> +		dev_dbg(fe->dvb->device, "%s: frequency=%d\n", __func__,
+>> +				c->frequency);
+>> +		return -EINVAL;
+>> +	}
+>
+> Same comments made on patch 1/4 apply here.
+
+Maybe it is then better to move these limits totally for the 
+responsibility of RF-tuner driver and use limits tuner really can do.
+
+Personally I still like more to see real limits... But those limits are 
+still changing over the time when ITU radio conference makes new 
+allocations.
+
+For example here in Finland upper channels from UHF DVB-T band are 
+already taken for LTE, one year ago or so. IIRC it is not officially yet 
+allocated for LTE as thereis transition period ongoing worldwide. But we 
+need so badly fast wireless internet connections for rural areas that it 
+was taken in use early, and even not used near Russian border as they 
+are still using those channels for TV.
+
+>> +	switch (c->bandwidth_hz) {
+>> +	case  6000000:
+>> +	case  7000000:
+>> +	case  8000000:
+>> +	case  1700000:
+>> +	case  5000000:
+>> +	case 10000000:
+>> +		break;
+>
+> 0 is also valid. Also, better to sort the entries here.
+>
+>> +	default:
+>> +		dev_dbg(fe->dvb->device, "%s: bandwidth_hz=%d\n", __func__,
+>> +				c->bandwidth_hz);
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	/*
+>> +	 * Valid Physical Layer Pipe (PLP) values are 0 - 255
+>> +	 */
+>> +	if (c->dvbt2_plp_id <= 255) {
+>> +		;
+>> +	} else {
+>> +		dev_dbg(fe->dvb->device, "%s: dvbt2_plp_id=%d\n", __func__,
+>> +				c->dvbt2_plp_id);
+>> +		return -EINVAL;
+>> +	}
+>
+> Is it possible to disable it for DVB-T2? If so, a new value
+> is needed here (~0), according with our discussions related to
+> multistream patches.
+
+Have to check, but I think so.
+
+IIRC there was also some other errors in current DVB-T2 API. Smallest 
+nominal bw was defined wrong and also hierarchy. Hierarchy is used for 
+DVB-T, for DVB-T2 it is replaced with PLP.
+
+>> +	switch (c->transmission_mode) {
+>> +	case TRANSMISSION_MODE_AUTO:
+>> +	case TRANSMISSION_MODE_2K:
+>> +	case TRANSMISSION_MODE_8K:
+>> +	case TRANSMISSION_MODE_1K:
+>> +	case TRANSMISSION_MODE_4K:
+>> +	case TRANSMISSION_MODE_16K:
+>> +	case TRANSMISSION_MODE_32K:
+>> +		break;
+>> +	default:
+>> +		dev_dbg(fe->dvb->device, "%s: transmission_mode=%d\n", __func__,
+>> +				c->transmission_mode);
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	switch (c->modulation) {
+>> +	case QAM_AUTO:
+>> +	case QPSK:
+>> +	case QAM_16:
+>> +	case QAM_64:
+>> +	case QAM_256:
+>> +		break;
+>> +	default:
+>> +		dev_dbg(fe->dvb->device, "%s: modulation=%d\n", __func__,
+>> +				c->modulation);
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	switch (c->guard_interval) {
+>> +	case GUARD_INTERVAL_AUTO:
+>> +	case GUARD_INTERVAL_1_32:
+>> +	case GUARD_INTERVAL_1_16:
+>> +	case GUARD_INTERVAL_1_8:
+>> +	case GUARD_INTERVAL_1_4:
+>> +	case GUARD_INTERVAL_1_128:
+>> +	case GUARD_INTERVAL_19_128:
+>> +	case GUARD_INTERVAL_19_256:
+>> +		break;
+>> +	default:
+>> +		dev_dbg(fe->dvb->device, "%s: guard_interval=%d\n", __func__,
+>> +				c->guard_interval);
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	switch (c->fec_inner) {
+>> +	case FEC_AUTO:
+>> +	case FEC_1_2:
+>> +	case FEC_3_5:
+>> +	case FEC_2_3:
+>> +	case FEC_3_4:
+>> +	case FEC_4_5:
+>> +	case FEC_5_6:
+>> +		break;
+>> +	default:
+>> +		dev_dbg(fe->dvb->device, "%s: fec_inner=%d\n", __func__,
+>> +				c->fec_inner);
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +EXPORT_SYMBOL(dvb_validate_params_dvbt2);
+>
+> Same comments made on patch 1/4 apply here.
+>
+>> +
+>>   int dvb_register_frontend(struct dvb_adapter* dvb,
+>>   			  struct dvb_frontend* fe)
+>>   {
+>> diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
+>> index 6df0c44..bcd572d 100644
+>> --- a/drivers/media/dvb-core/dvb_frontend.h
+>> +++ b/drivers/media/dvb-core/dvb_frontend.h
+>> @@ -426,5 +426,6 @@ extern void dvb_frontend_sleep_until(struct timeval *waketime, u32 add_usec);
+>>   extern s32 timeval_usec_diff(struct timeval lasttime, struct timeval curtime);
 >>
->> dmesg output:
->> [ 380.677434] usb 1-3: New USB device found, idVendor=0b05,
->> idProduct=1779
->> [ 380.677445] usb 1-3: New USB device strings: Mfr=1, Product=2,
->> SerialNumber=3
->> [ 380.677452] usb 1-3: Product: AF9035A USB Device
->> [ 380.677458] usb 1-3: Manufacturer: Afa Technologies Inc.
->> [ 380.677463] usb 1-3: SerialNumber: AF01020abcdef12301
->> [ 380.683361] input: Afa Technologies Inc. AF9035A USB Device as
->> /devices/pci0000:00/0000:00:12.2/usb1/1-3/1-3:1.1/input/input15
->> [ 380.683505] hid-generic 0003:0B05:1779.0004: input: USB HID v1.01
->> Keyboard [Afa Technologies Inc. AF9035A USB Device] on
->> usb-0000:00:12.2-3/input1
->> [ 380.703807] usbcore: registered new interface driver dvb_usb_af9035
->> [ 380.704553] usb 1-3: dvb_usbv2: found a 'Asus U3100Mini Plus' in cold
->> state
->> [ 380.705075] usb 1-3: dvb_usbv2: downloading firmware from file
->> 'dvb-usb-af9035-02.fw'
->> [ 381.014996] dvb_usb_af9035: firmware version=11.5.9.0
->> [ 381.015018] usb 1-3: dvb_usbv2: found a 'Asus U3100Mini Plus' in warm
->> state
->> [ 381.017172] usb 1-3: dvb_usbv2: will pass the complete MPEG2
->> transport stream to the software demuxer
->> [ 381.017242] DVB: registering new adapter (Asus U3100Mini Plus)
->> [ 381.037184] af9033: firmware version: LINK=11.5.9.0 OFDM=5.17.9.1
->> [ 381.037200] usb 1-3: DVB: registering adapter 0 frontend 0 (Afatech
->> AF9033 (DVB-T))...
->> [ 381.044197] i2c i2c-1: fc2580: i2c rd failed=-5 reg=01 len=1
->> [ 381.044357] usb 1-3: dvb_usbv2: 'Asus U3100Mini Plus' error while
->> loading driver (-19)
->
-> I2C communication to tuner chip does not work at all. It tries to read
-> chip id register but fails. If you enable debugs you will see which
-> error status af9035 reports.
-CONFIG_DVB_USB_DEBUG was enabled, but nothing extra :(
-
->
-> There is likely 3 possibilities:
-> 1) wrong I2C address
-Well as linked before, I used it from the 'official' driver, where it says:
-#define FC2580_ADDRESS 0xAC
-
-grepping the entire source of theirs, I then found this in FC2580.c
-TunerDescription tuner_FC2580 = {
-    FC2580_open,                /** Function to open tuner.            */
-    FC2580_close,               /** Function to close tuner.           */
-    FC2580_set,                 /** Function set frequency.            */
-    FC2580_scripts,             /** Scripts.                           */
-    FC2580_scriptSets,          /** Length of scripts.                 */
-    FC2580_ADDRESS,             /** The I2C address of tuner.          */
-    1,                          /** Valid length of tuner register.    */
-    0,                          /** IF frequency of tuner.             */
-    True,                       /** Spectrum inversion.                */
-    0x32,                       /** tuner id                           */
-};
-
-The only other thing that I recognize is the scripts, which is some init 
-code (which I asked about below, which should also be right, unless I 
-made a typo) and the tuner id, which is the first thing in the script 
-and in my patch defined as AF9033_TUNER_FC2580. No idea of its 
-significance :)
-
-> 2) wrong GPIOs
-> * tuner is not powered on or it is on standby
-How/where would I check that?
-
-> 3) wrong firmware
-> * it very unlikely that even wrong firmware fails basic I2C...
-I know there's a few versions right? the 01 02 etc? But that is mostly 
-in relation with the af9035 mostly right?
-
->
->> using the following modules.
->> fc2580 4189 -1
->> af9033 10266 0
->> dvb_usb_af9035 8924 0
->> dvb_usbv2 11388 1 dvb_usb_af9035
->> dvb_core 71756 1 dvb_usbv2
->> rc_core 10583 2 dvb_usbv2,dvb_usb_af9035
+>>   extern int dvb_validate_params_dvbt(struct dvb_frontend *fe);
+>> +extern int dvb_validate_params_dvbt2(struct dvb_frontend *fe);
 >>
->> I'm supprised though that dvb-pll isn't there. Wasn't that a
->> requirement? [1]
->
-> No. dvb-pll is used for old simple 4-byte PLLs. FCI FC2580 is modern
-> silicon tuner. There is PLL used inside FC2580 for frequency synthesizer
-> but no dvb-pll needed as all calculations are done inside that driver.
-> Silicon tuners are so much more complicated to program than old 4-byte
-> PLLs, thus own driver is needed for each silicon tuner chip.
-Ah, well then the wiki needs a small update ;)
->
->> For the tuner 'script' firmware/init bit, I used the 'official' driver
->> [2].
+>>   #endif
 >>
->> Also the i2c-addr and clock comes from these files.
 >
-> Aaah, now I see. At least I2C address is wrong. You use 0xac but should
-> be 0x56. There is wrong "8-bit" address used. 0xac >> 1 == 0x56.
-That I don't understand (as I wrote above) 0xac 'should' be the correct, 
-but appearantly it needs to be shifted. Why?
 
->
->
-> 16384000 (16.384MHz) is FC2580 internal clock what I understand. It
-> should be OK. I suspect that everyone uses it for DVB-T to save
-> components / make design simple.
-I would assume so, since also that is in the original sources; fc2580.c 
-lists it as:
-#define FREQ_XTAL	16384	//16.384MHz
 
->
->> One minor questions I have regarding the recently submitted RTL and
->> AF9033 drivers, is one uses AF9033_TUNER_* whereas the other uses
->> TUNER_RTL2832_*. Any reason for this? It just confused me is all.
->
-> It is just naming issue driver, driver author decision. Usually names
-> start with driver name letters (in that case RTL28XXU_). It is not big
-> issue for variable names unless it is too "general" to conflict some
-> library. For function names driver names prefix (rtl28xxu_) should be
-> used as it eases debugging (example ooops is dumped showing function
-> names).
-
-Ok I will test the shifted i2c address and try that.
->
->
-> Antti
->
->>
->> Oliver
->>
->> [1] http://linuxtv.org/wiki/index.php/DVB_via_USB#Introduction
->> [2] http://git.schinagl.nl/AF903x_SRC.git/tree/api/FCI_FC2580_Script.h
-<snipped patch>
+-- 
+http://palosaari.fi/
