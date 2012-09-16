@@ -1,50 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:42428 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754513Ab2IISBz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Sep 2012 14:01:55 -0400
-Received: by mail-ee0-f46.google.com with SMTP id c1so640416eek.19
-        for <linux-media@vger.kernel.org>; Sun, 09 Sep 2012 11:01:55 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: hdegoede@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 6/6] gspca_pac7302: extend register documentation
-Date: Sun,  9 Sep 2012 20:02:24 +0200
-Message-Id: <1347213744-8509-6-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1347213744-8509-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1347213744-8509-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:42207 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750894Ab2IPBad (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Sep 2012 21:30:33 -0400
+Message-ID: <50552BA5.1000000@iki.fi>
+Date: Sun, 16 Sep 2012 04:30:13 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+To: =?UTF-8?B?UsOpbWkgQ2FyZG9uYQ==?= <remi.cardona@smartjog.com>
+CC: linux-media@vger.kernel.org, liplianin@me.by
+Subject: Re: [PATCH 3/6] [media] ds3000: properly report register read errors
+References: <1347614846-19046-1-git-send-email-remi.cardona@smartjog.com> <1347614846-19046-4-git-send-email-remi.cardona@smartjog.com>
+In-Reply-To: <1347614846-19046-4-git-send-email-remi.cardona@smartjog.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/gspca/pac7302.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+On 09/14/2012 12:27 PM, Rémi Cardona wrote:
+> This brings both ds3000_readreg() and ds3000_tuner_readreg() in line
+> with ds3000_writereg() and ds3000_tuner_writereg() respectively.
+>
+> Signed-off-by: Rémi Cardona <remi.cardona@smartjog.com>
 
-diff --git a/drivers/media/usb/gspca/pac7302.c b/drivers/media/usb/gspca/pac7302.c
-index 71fa5a4..2d5c6d83 100644
---- a/drivers/media/usb/gspca/pac7302.c
-+++ b/drivers/media/usb/gspca/pac7302.c
-@@ -29,6 +29,15 @@
-  * Register page 0:
-  *
-  * Address	Description
-+ * 0x02		Red balance control
-+ * 0x03		Green balance control
-+ * 0x04 	Blue balance control
-+ *		     Valus are inverted (0=max, 255=min).
-+ *		     The Windows driver uses a quadratic approach to map
-+ *		     the settable values (0-200) on register values:
-+ *		     min=0x80, default=0x40, max=0x20
-+ * 0x0f-0x20	Colors, saturation and exposure control
-+ * 0xa2-0xab	Brightness, contrast and gamma control
-  * 0xb6		Sharpness control (bits 0-4)
-  *
-  * Register page 1:
+Reviewed-by: Antti Palosaari <crope@iki.fi>
+
+
+Not related, but just guess, register 03 value 12 opens demod I2C gate.
+
+regards
+Antti
+
 -- 
-1.7.7
-
+http://palosaari.fi/
