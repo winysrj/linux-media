@@ -1,86 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imr-da02.mx.aol.com ([205.188.105.144]:41962 "EHLO
-	imr-da02.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756334Ab2ICUN0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2012 16:13:26 -0400
-Received: from mtaout-ma01.r1000.mx.aol.com (mtaout-ma01.r1000.mx.aol.com [172.29.41.1])
-	by imr-da02.mx.aol.com (8.14.1/8.14.1) with ESMTP id q83KDMsC002540
-	for <linux-media@vger.kernel.org>; Mon, 3 Sep 2012 16:13:22 -0400
-Received: from [192.168.1.35] (unknown [190.50.52.121])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mtaout-ma01.r1000.mx.aol.com (MUA/Third Party Client Interface) with ESMTPSA id CE06DE0000C3
-	for <linux-media@vger.kernel.org>; Mon,  3 Sep 2012 16:13:20 -0400 (EDT)
-Message-ID: <50450FB5.3090503@netscape.net>
-Date: Mon, 03 Sep 2012 17:14:45 -0300
-From: =?ISO-8859-1?Q?Alfredo_Jes=FAs_Delaiti?=
-	<alfredodelaiti@netscape.net>
+Received: from bear.ext.ti.com ([192.94.94.41]:40778 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756793Ab2IQPXA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Sep 2012 11:23:00 -0400
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>, <julia.lawall@lip6.fr>,
+	Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCH 4/6] media: Convert struct i2c_msg initialization to C99 format
+Date: Mon, 17 Sep 2012 20:52:31 +0530
+Message-ID: <1347895353-18090-5-git-send-email-shubhrajyoti@ti.com>
+In-Reply-To: <1347895353-18090-1-git-send-email-shubhrajyoti@ti.com>
+References: <1347895353-18090-1-git-send-email-shubhrajyoti@ti.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [PATCH] Mygica X8507 audio for YPbPr, AV and S-Video
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+        Convert the struct i2c_msg initialization to C99 format. This makes
+        maintaining and editing the code simpler. Also helps once other fields
+        like transferred are added in future.
 
-This patch add audio support for input YPbPr, AV and S-Video for Mygica 
-X8507 card.
-I tried it with the 3.4 and 3.5 kernel
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ drivers/media/radio/radio-tea5764.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-Remains to be done: IR, FM and ISDBT
-
-Sorry if I sent the patch improperly.
-
-Signed-off-by: Alfredo J. Delaiti <alfredodelaiti@netscape.net>
-
-
-
-diff --git a/media/video/cx23885/cx23885-cards.c b/media/video/cx23885/cx23885-cards.c
-index 080e111..17e2576 100644
---- a/media/video/cx23885/cx23885-cards.c
-+++ b/media/video/cx23885/cx23885-cards.c
-@@ -541,11 +541,13 @@ struct cx23885_board cx23885_boards[] = {
-                         {
-                                 .type   = CX23885_VMUX_COMPOSITE1,
-                                 .vmux   = CX25840_COMPOSITE8,
-+                               .amux   = CX25840_AUDIO7,
-                         },
-                         {
-                                 .type   = CX23885_VMUX_SVIDEO,
-                                 .vmux   = CX25840_SVIDEO_LUMA3 |
-                                                 CX25840_SVIDEO_CHROMA4,
-+                               .amux   = CX25840_AUDIO7,
-                         },
-                         {
-                                 .type   = CX23885_VMUX_COMPONENT,
-@@ -553,6 +555,7 @@ struct cx23885_board cx23885_boards[] = {
-                                         CX25840_VIN1_CH1 |
-                                         CX25840_VIN6_CH2 |
-                                         CX25840_VIN7_CH3,
-+                               .amux   = CX25840_AUDIO7,
-                         },
-                 },
-         },
-diff --git a/media/video/cx23885/cx23885-video.c b/media/video/cx23885/cx23885-video.c
-index 22f8e7f..fcb3f22 100644
---- a/media/video/cx23885/cx23885-video.c
-+++ b/media/video/cx23885/cx23885-video.c
-@@ -508,7 +508,8 @@ static int cx23885_video_mux(struct cx23885_dev *dev, unsigned int input)
-                 (dev->board == CX23885_BOARD_HAUPPAUGE_HVR1250) ||
-                 (dev->board == CX23885_BOARD_HAUPPAUGE_HVR1255) ||
-                 (dev->board == CX23885_BOARD_HAUPPAUGE_HVR1255_22111) ||
--               (dev->board == CX23885_BOARD_HAUPPAUGE_HVR1850)) {
-+               (dev->board == CX23885_BOARD_HAUPPAUGE_HVR1850) ||
-+               (dev->board == CX23885_BOARD_MYGICA_X8507)) {
-                 /* Configure audio routing */
-                 v4l2_subdev_call(dev->sd_cx25840, audio, s_routing,
-                         INPUT(input)->amux, 0, 0);
-
-
-
+diff --git a/drivers/media/radio/radio-tea5764.c b/drivers/media/radio/radio-tea5764.c
+index 6b1fae3..5dbe12e 100644
+--- a/drivers/media/radio/radio-tea5764.c
++++ b/drivers/media/radio/radio-tea5764.c
+@@ -151,8 +151,8 @@ int tea5764_i2c_read(struct tea5764_device *radio)
+ 	u16 *p = (u16 *) &radio->regs;
+ 
+ 	struct i2c_msg msgs[1] = {
+-		{ radio->i2c_client->addr, I2C_M_RD, sizeof(radio->regs),
+-			(void *)&radio->regs },
++		{ .addr = radio->i2c_client->addr, .flags = I2C_M_RD, .len = sizeof(radio->regs),
++			.buf = (void *)&radio->regs },
+ 	};
+ 	if (i2c_transfer(radio->i2c_client->adapter, msgs, 1) != 1)
+ 		return -EIO;
+@@ -167,7 +167,7 @@ int tea5764_i2c_write(struct tea5764_device *radio)
+ 	struct tea5764_write_regs wr;
+ 	struct tea5764_regs *r = &radio->regs;
+ 	struct i2c_msg msgs[1] = {
+-		{ radio->i2c_client->addr, 0, sizeof(wr), (void *) &wr },
++		{ .addr = radio->i2c_client->addr, .flags = 0, .len = sizeof(wr), .buf = (void *)&wr },
+ 	};
+ 	wr.intreg  = r->intreg & 0xff;
+ 	wr.frqset  = __cpu_to_be16(r->frqset);
 -- 
-Dona tu voz
-http://www.voxforge.org/es
+1.7.5.4
 
