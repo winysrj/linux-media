@@ -1,100 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:23132 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756507Ab2INK55 (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2709 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754940Ab2IQIRJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 06:57:57 -0400
-Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
-	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id q8EAvqBj013688
-	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 10:57:56 GMT
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [RFCv3 API PATCH 14/31] DocBook: fix awkward language and fix the documented return value.
-Date: Fri, 14 Sep 2012 12:57:29 +0200
-Message-Id: <531c334494477b45d1ad035bbec98d11b406d71c.1347619766.git.hans.verkuil@cisco.com>
-In-Reply-To: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
-References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
-References: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
+	Mon, 17 Sep 2012 04:17:09 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id q8H8H7ka090312
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Mon, 17 Sep 2012 10:17:08 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.localnet (tschai.lan [192.168.1.10])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 3822335C012A
+	for <linux-media@vger.kernel.org>; Mon, 17 Sep 2012 10:17:00 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.7] Two fixes
+Date: Mon, 17 Sep 2012 10:17:00 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201209171017.00829.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Video Standard section contains some awkward language. It also wasn't
-updated when the error code for unimplemented ioctls changed from EINVAL
-to ENOTTY.
+This pull request fixes a problem when using vb2_fop_read/write in non-blocking
+mode and a tuner-core issue when setting the audmode for a radio device.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/common.xml |   30 +++++++++++++---------------
- 1 file changed, 14 insertions(+), 16 deletions(-)
+Regards,
 
-diff --git a/Documentation/DocBook/media/v4l/common.xml b/Documentation/DocBook/media/v4l/common.xml
-index b91d253..08db1cf 100644
---- a/Documentation/DocBook/media/v4l/common.xml
-+++ b/Documentation/DocBook/media/v4l/common.xml
-@@ -564,7 +564,7 @@ automatically.</para>
-     <para>To query and select the standard used by the current video
- input or output applications call the &VIDIOC-G-STD; and
- &VIDIOC-S-STD; ioctl, respectively. The <emphasis>received</emphasis>
--standard can be sensed with the &VIDIOC-QUERYSTD; ioctl. Note parameter of all these ioctls is a pointer to a &v4l2-std-id; type (a standard set), <emphasis>not</emphasis> an index into the standard enumeration.<footnote>
-+standard can be sensed with the &VIDIOC-QUERYSTD; ioctl. Note that the parameter of all these ioctls is a pointer to a &v4l2-std-id; type (a standard set), <emphasis>not</emphasis> an index into the standard enumeration.<footnote>
- 	<para>An alternative to the current scheme is to use pointers
- to indices as arguments of <constant>VIDIOC_G_STD</constant> and
- <constant>VIDIOC_S_STD</constant>, the &v4l2-input; and
-@@ -588,30 +588,28 @@ switch to a standard by &v4l2-std-id;.</para>
-       </footnote> Drivers must implement all video standard ioctls
- when the device has one or more video inputs or outputs.</para>
- 
--    <para>Special rules apply to USB cameras where the notion of video
--standards makes little sense. More generally any capture device,
--output devices accordingly, which is <itemizedlist>
-+    <para>Special rules apply to devices such as USB cameras where the notion of video
-+standards makes little sense. More generally for any capture or output device
-+which is: <itemizedlist>
- 	<listitem>
- 	  <para>incapable of capturing fields or frames at the nominal
- rate of the video standard, or</para>
- 	</listitem>
- 	<listitem>
--	  <para>where <link linkend="buffer">timestamps</link> refer
--to the instant the field or frame was received by the driver, not the
--capture time, or</para>
--	</listitem>
--	<listitem>
--	  <para>where <link linkend="buffer">sequence numbers</link>
--refer to the frames received by the driver, not the captured
--frames.</para>
-+	  <para>that does not support the video standard formats at all.</para>
- 	</listitem>
-       </itemizedlist> Here the driver shall set the
- <structfield>std</structfield> field of &v4l2-input; and &v4l2-output;
--to zero, the <constant>VIDIOC_G_STD</constant>,
-+to zero and the <constant>VIDIOC_G_STD</constant>,
- <constant>VIDIOC_S_STD</constant>,
- <constant>VIDIOC_QUERYSTD</constant> and
- <constant>VIDIOC_ENUMSTD</constant> ioctls shall return the
--&EINVAL;.<footnote>
-+&ENOTTY;.<footnote>
-+	<para>See <xref linkend="buffer" /> for a rationale.</para>
-+	<para>Applications can make use of the <xref linkend="input-capabilities" /> and
-+<xref linkend="output-capabilities"/> flags to determine whether the video standard ioctls
-+are available for the device.</para>
-+&ENOTTY;.<footnote>
- 	<para>See <xref linkend="buffer" /> for a rationale. Probably
- even USB cameras follow some well known video standard. It might have
- been better to explicitly indicate elsewhere if a device cannot live
-@@ -626,9 +624,9 @@ up to normal expectations, instead of this exception.</para>
- &v4l2-standard; standard;
- 
- if (-1 == ioctl (fd, &VIDIOC-G-STD;, &amp;std_id)) {
--	/* Note when VIDIOC_ENUMSTD always returns EINVAL this
-+	/* Note when VIDIOC_ENUMSTD always returns ENOTTY this
- 	   is no video device or it falls under the USB exception,
--	   and VIDIOC_G_STD returning EINVAL is no error. */
-+	   and VIDIOC_G_STD returning ENOTTY is no error. */
- 
- 	perror ("VIDIOC_G_STD");
- 	exit (EXIT_FAILURE);
--- 
-1.7.10.4
+	Hans
 
+The following changes since commit 36aee5ff9098a871bda38dbbdad40ad59f6535cf:
+
+  [media] ir-rx51: Adjust dependencies (2012-09-15 19:44:30 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git fixes
+
+for you to fetch changes up to 862f7d91ff01bba8a59b89beef8cba715814a2f6:
+
+  tuner-core: map audmode to STEREO for radio devices. (2012-09-17 10:14:55 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (2):
+      vb2: fix wrong owner check
+      tuner-core: map audmode to STEREO for radio devices.
+
+ drivers/media/v4l2-core/tuner-core.c     |    5 ++++-
+ drivers/media/v4l2-core/videobuf2-core.c |    4 ++--
+ 2 files changed, 6 insertions(+), 3 deletions(-)
