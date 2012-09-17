@@ -1,87 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:45307 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754696Ab2IRPG5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Sep 2012 11:06:57 -0400
-Received: from eusync4.samsung.com (mailout4.w1.samsung.com [210.118.77.14])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MAJ001Q1WOJZU80@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 18 Sep 2012 16:07:31 +0100 (BST)
-Received: from [106.116.147.32] by eusync4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTPA id <0MAJ00I5DWNIX430@eusync4.samsung.com> for
- linux-media@vger.kernel.org; Tue, 18 Sep 2012 16:06:55 +0100 (BST)
-Message-id: <50588E0E.9000307@samsung.com>
-Date: Tue, 18 Sep 2012 17:06:54 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Seung-Woo Kim <sw0312.kim@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [RFC] Processing context in the V4L2 subdev and V4L2 controls API ?
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from bear.ext.ti.com ([192.94.94.41]:40774 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756724Ab2IQPW7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Sep 2012 11:22:59 -0400
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>, <julia.lawall@lip6.fr>,
+	Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCH 5/6] media: Convert struct i2c_msg initialization to C99 format
+Date: Mon, 17 Sep 2012 20:52:32 +0530
+Message-ID: <1347895353-18090-6-git-send-email-shubhrajyoti@ti.com>
+In-Reply-To: <1347895353-18090-1-git-send-email-shubhrajyoti@ti.com>
+References: <1347895353-18090-1-git-send-email-shubhrajyoti@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+        Convert the struct i2c_msg initialization to C99 format. This makes
+        maintaining and editing the code simpler. Also helps once other fields
+        like transferred are added in future.
 
-I'm trying to fulfil following requirements with V4L2 API that are specific
-to most of Samsung camera sensors with embedded SoC ISP and also for local 
-SoC camera ISPs:
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ drivers/media/radio/saa7706h.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
- - separate pixel format and pixel resolution needs to be configured
-   in a device for camera preview and capture;
+diff --git a/drivers/media/radio/saa7706h.c b/drivers/media/radio/saa7706h.c
+index bb953ef..ca3d655 100644
+--- a/drivers/media/radio/saa7706h.c
++++ b/drivers/media/radio/saa7706h.c
+@@ -199,8 +199,8 @@ static int saa7706h_get_reg16(struct v4l2_subdev *sd, u16 reg)
+ 	u8 buf[2];
+ 	int err;
+ 	u8 regaddr[] = {reg >> 8, reg};
+-	struct i2c_msg msg[] = { {client->addr, 0, sizeof(regaddr), regaddr},
+-				{client->addr, I2C_M_RD, sizeof(buf), buf} };
++	struct i2c_msg msg[] = { {.addr = client->addr, .flags = 0, .len = sizeof(regaddr), .buf = regaddr},
++				{.addr = client->addr, .flags = I2C_M_RD, .len = sizeof(buf), .buf = buf} };
+ 
+ 	err = saa7706h_i2c_transfer(client, msg, ARRAY_SIZE(msg));
+ 	if (err)
+-- 
+1.7.5.4
 
- - there is a need to set capture or preview mode in a device explicitly
-   as it makes various adjustments (in firmware) in each operation mode
-   and controls external devices accordingly (e.g. camera Flash);
-
- - some devices have more than two use case specific contexts that a user
-   needs to choose from, e.g. video preview, video capture, still preview, 
-   still capture; for each of these modes there are separate settings, 
-   especially pixel resolution and others corresponding to existing v4l2 
-   controls;
-
- - some devices can have two processing contexts enabled simultaneously,
-   e.g. a sensor emitting YUYV and JPEG streams simultaneously (please see 
-   discussion [1]).
-
-This makes me considering making the v4l2 subdev (and maybe v4l2 controls)
-API processing (capture) context aware.
-
-If I remember correctly introducing processing context, as the per file 
-handle device contexts in case of mem-to-mem devices was considered bad
-idea in past discussions. But this was more about v4ll2 video nodes.
-
-And I was considering adding context only to v4l2 subdev API, and possibly
-to the (extended) control API. The idea is to extend the subdev (and 
-controls ?) ioctls so it is possible to preconfigure sets of parameters 
-on subdevs, while V4L2 video node parameters would be switched "manually"
-by applications to match a selected subdevs contest. There would also be
-needed an API to select specific context (e.g. a control), or maybe 
-multiple contexts like in case of a sensor from discussion [1].
-
-I've seen various hacks in some v4l2 drivers trying to fulfil above
-requirements, e.g. abusing struct v4l2_mbus_framefmt::colorspace field
-to select between capture/preview in a device or using 32-bit integer
-control where upper 16-bits are used for pixel width and lower 16 for
-pixel height. This may suggest there something missing at the API.
-
-Any suggestions, critics, please ?... :)
-
---
-
-Regards,
-Sylwester
-
-[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg42707.html
