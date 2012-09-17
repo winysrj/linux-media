@@ -1,69 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2417 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752246Ab2ITMHY (ORCPT
+Received: from out3-smtp.messagingengine.com ([66.111.4.27]:51148 "EHLO
+	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755393Ab2IQUgU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Sep 2012 08:07:24 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 02/14] vpif_display: remove unused data structures.
-Date: Thu, 20 Sep 2012 14:06:21 +0200
-Message-Id: <de85e0fb7ef65ef0b18937c9a0ac04d0a3412090.1348142407.git.hans.verkuil@cisco.com>
-In-Reply-To: <1348142793-27157-1-git-send-email-hverkuil@xs4all.nl>
-References: <1348142793-27157-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <15fd87671d173ae4b943df4114aafb55d7e958fa.1348142407.git.hans.verkuil@cisco.com>
-References: <15fd87671d173ae4b943df4114aafb55d7e958fa.1348142407.git.hans.verkuil@cisco.com>
+	Mon, 17 Sep 2012 16:36:20 -0400
+Date: Mon, 17 Sep 2012 13:28:50 -0700
+From: Greg KH <greg@kroah.com>
+To: Tejun Heo <tj@kernel.org>
+Cc: Colin Cross <ccross@google.com>, linux-kernel@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Avi Kivity <avi@redhat.com>, kvm@vger.kernel.org,
+	Andy Walls <awalls@md.metrocast.net>,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
+	Grant Likely <grant.likely@secretlab.ca>,
+	spi-devel-general@lists.sourceforge.net,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	stable@vger.kernel.org
+Subject: Re: [PATCHSET] kthread_worker: reimplement flush_kthread_work() to
+ allow freeing during execution
+Message-ID: <20120917202850.GA18910@kroah.com>
+References: <20120719211510.GA32763@google.com>
+ <CAMbhsRQs+2MCXq0M-eTeezwPR=KMnBKtJny1rjiUJL-wNYctMQ@mail.gmail.com>
+ <20120917194016.GI18677@google.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20120917194016.GI18677@google.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Mon, Sep 17, 2012 at 12:40:16PM -0700, Tejun Heo wrote:
+> On Fri, Sep 14, 2012 at 03:50:40PM -0700, Colin Cross wrote:
+> > This patch set fixes a reproducible crash I'm seeing on a 3.4.10
+> > kernel.  flush_kthread_worker (which is different from
+> > flush_kthread_work) is initializing a kthread_work and a completion on
+> > the stack, then queuing it and calling wait_for_completion.  Once the
+> > completion is signaled, flush_kthread_worker exits and the stack
+> > region used by the kthread_work may be immediately reused by another
+> > object on the stack, but kthread_worker_fn continues accessing its
+> > work pointer:
+> >                 work->func(work);         <- calls complete,
+> > effectively frees work
+> >                 smp_wmb();      /* wmb worker-b0 paired with flush-b1 */
+> >                 work->done_seq = work->queue_seq;   <- overwrites a
+> > new stack object
+> >                 smp_mb();       /* mb worker-b1 paired with flush-b0 */
+> >                 if (atomic_read(&work->flushing))
+> >                         wake_up_all(&work->done);  <- or crashes here
+> > 
+> > These patches fix the problem by not accessing work after work->func
+> > is called, and should be backported to stable.  They apply cleanly to
+> > 3.4.10.  Upstream commits are 9a2e03d8ed518a61154f18d83d6466628e519f94
+> > and 46f3d976213452350f9d10b0c2780c2681f7075b.
+> 
+> Yeah, you're right.  I wonder why this didn't come up before.  Greg,
+> can you please pick up these two commits?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/davinci/vpif_display.h |   15 ---------------
- 1 file changed, 15 deletions(-)
+Ok, will do, thanks for letting me know.
 
-diff --git a/drivers/media/platform/davinci/vpif_display.h b/drivers/media/platform/davinci/vpif_display.h
-index 19c7976..8654002 100644
---- a/drivers/media/platform/davinci/vpif_display.h
-+++ b/drivers/media/platform/davinci/vpif_display.h
-@@ -65,12 +65,6 @@ struct video_obj {
- 	u32 output_id;			/* Current output id */
- };
- 
--struct vbi_obj {
--	int num_services;
--	struct vpif_vbi_params vbiparams;	/* vpif parameters for the raw
--						 * vbi data */
--};
--
- struct vpif_disp_buffer {
- 	struct vb2_buffer vb;
- 	struct list_head list;
-@@ -136,7 +130,6 @@ struct channel_obj {
- 	struct vpif_params vpifparams;
- 	struct common_obj common[VPIF_NUMOBJECTS];
- 	struct video_obj video;
--	struct vbi_obj vbi;
- };
- 
- /* File handle structure */
-@@ -168,12 +161,4 @@ struct config_vpif_params {
- 	u8 min_numbuffers;
- };
- 
--/* Struct which keeps track of the line numbers for the sliced vbi service */
--struct vpif_service_line {
--	u16 service_id;
--	u16 service_line[2];
--	u16 enc_service_id;
--	u8 bytestowrite;
--};
--
- #endif				/* DAVINCIHD_DISPLAY_H */
--- 
-1.7.10.4
-
+greg k-h
