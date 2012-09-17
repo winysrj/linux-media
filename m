@@ -1,67 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47834 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753767Ab2IYUDe (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:35733 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751941Ab2IQNt4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Sep 2012 16:03:34 -0400
-Message-ID: <50620E6C.8050308@iki.fi>
-Date: Tue, 25 Sep 2012 23:05:00 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, remi@remlab.net, daniel-gl@gmx.net,
-	sylwester.nawrocki@gmail.com
-Subject: Re: [RFC] Timestamps and V4L2
-References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk> <201209211133.24174.hverkuil@xs4all.nl> <3710877.YmOTmlHk1B@avalon> <201209250847.45104.hverkuil@xs4all.nl>
-In-Reply-To: <201209250847.45104.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Mon, 17 Sep 2012 09:49:56 -0400
+Received: by yhmm54 with SMTP id m54so1498641yhm.19
+        for <linux-media@vger.kernel.org>; Mon, 17 Sep 2012 06:49:56 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	<linux-media@vger.kernel.org>
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: [PATCH 4/4] uvc: Add return code check at vb2_queue_init()
+Date: Mon, 17 Sep 2012 10:49:50 -0300
+Message-Id: <1347889790-15187-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans and Laurent,
+This function returns an integer and it's mandatory
+to check the return code.
 
-Hans Verkuil wrote:
-...
->>> Using v4l2_buffer flags to report the clock
->>> -------------------------------------------
->>>
->>> By defining flags like this:
->>>
->>> V4L2_BUF_FLAG_CLOCK_MASK	0x7000
->>> /* Possible Clocks */
->>> V4L2_BUF_FLAG_CLOCK_UNKNOWN	0x0000  /* system or monotonic, we don't know 
->> */
->>> V4L2_BUF_FLAG_CLOCK_MONOTONIC   0x1000
->>>
->>> you could tell the application which clock is used.
->>>
->>> This does allow for more clocks to be added in the future and clock
->>> selection would then be done by a control or possibly an ioctl.
->>
->> Clock selection could also be done by setting the buffer flag at QBUF time.
-> 
-> True. Not a bad idea, actually. You would have to specify that setting the
-> clock to 0 (UNKNOWN) or any other unsupported clock, then that will be mapped
-> to MONOTONIC for newer kernels, but that's no problem.
-> 
-> It has the advantage of not requiring any controls, ioctls, etc. The only
-> disadvantage is that you can't check if a particular clock is actually
-> supported. Although I guess you could do a QBUF followed by QUERYBUF to check
-> the clock bits. But you can't change to a different clock for that buffer
-> afterwards (at least, not until it is dequeued).
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/media/usb/uvc/uvc_queue.c |    8 ++++++--
+ drivers/media/usb/uvc/uvc_video.c |    4 +++-
+ drivers/media/usb/uvc/uvcvideo.h  |    2 +-
+ 3 files changed, 10 insertions(+), 4 deletions(-)
 
-Buffer flags are not and will not be available on subdevs. If the
-timestamp clock source is made selectable it should be selectable on
-subdevs, too. I'm afraid otherwise it may end up being a useless
-feature: the timestamps that the application gets from the devices must
-be from the same clock, otherwise they cannot be compared in a
-meaningful way. Or at least alternative mechanism should be provided to
-subdevs, but I don't see then why that wouldn't be done on V4L2, too...
-
-Kind regards,
-
+diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+index 5577381..2cec818 100644
+--- a/drivers/media/usb/uvc/uvc_queue.c
++++ b/drivers/media/usb/uvc/uvc_queue.c
+@@ -122,16 +122,20 @@ static struct vb2_ops uvc_queue_qops = {
+ 	.buf_finish = uvc_buffer_finish,
+ };
+ 
+-void uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
++int uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
+ 		    int drop_corrupted)
+ {
++	int rc;
++
+ 	queue->queue.type = type;
+ 	queue->queue.io_modes = VB2_MMAP | VB2_USERPTR;
+ 	queue->queue.drv_priv = queue;
+ 	queue->queue.buf_struct_size = sizeof(struct uvc_buffer);
+ 	queue->queue.ops = &uvc_queue_qops;
+ 	queue->queue.mem_ops = &vb2_vmalloc_memops;
+-	vb2_queue_init(&queue->queue);
++	rc = vb2_queue_init(&queue->queue);
++	if (rc)
++		return rc;
+ 
+ 	mutex_init(&queue->mutex);
+ 	spin_lock_init(&queue->irqlock);
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index 1c15b42..57c3076 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -1755,7 +1755,9 @@ int uvc_video_init(struct uvc_streaming *stream)
+ 	atomic_set(&stream->active, 0);
+ 
+ 	/* Initialize the video buffers queue. */
+-	uvc_queue_init(&stream->queue, stream->type, !uvc_no_drop_param);
++	ret = uvc_queue_init(&stream->queue, stream->type, !uvc_no_drop_param);
++	if (ret)
++		return ret;
+ 
+ 	/* Alternate setting 0 should be the default, yet the XBox Live Vision
+ 	 * Cam (and possibly other devices) crash or otherwise misbehave if
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 3764040..af216ec 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -600,7 +600,7 @@ extern struct uvc_driver uvc_driver;
+ extern struct uvc_entity *uvc_entity_by_id(struct uvc_device *dev, int id);
+ 
+ /* Video buffers queue management. */
+-extern void uvc_queue_init(struct uvc_video_queue *queue,
++extern int uvc_queue_init(struct uvc_video_queue *queue,
+ 		enum v4l2_buf_type type, int drop_corrupted);
+ extern int uvc_alloc_buffers(struct uvc_video_queue *queue,
+ 		struct v4l2_requestbuffers *rb);
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+1.7.8.6
+
