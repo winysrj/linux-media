@@ -1,71 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59859 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754080Ab2IWQQn (ORCPT
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:54366 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752532Ab2IQNrp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Sep 2012 12:16:43 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: Re: Gain controls in v4l2-ctrl framework
-Date: Sun, 23 Sep 2012 18:17:16 +0200
-Message-ID: <3579105.beYuXk8XyG@avalon>
-In-Reply-To: <505F0C86.9070206@iki.fi>
-References: <CA+V-a8vYDFhJzKVKsv7Q_JOQzDDYRyev15jDKio0tG2CP8iCCw@mail.gmail.com> <505F0C86.9070206@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Mon, 17 Sep 2012 09:47:45 -0400
+Received: by ggdk6 with SMTP id k6so1433998ggd.19
+        for <linux-media@vger.kernel.org>; Mon, 17 Sep 2012 06:47:44 -0700 (PDT)
+From: elezegarcia@gmail.com
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	<linux-media@vger.kernel.org>
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 2/4] pwc: Add return code check at vb2_queue_init()
+Date: Mon, 17 Sep 2012 10:47:38 -0300
+Message-Id: <1347889658-15116-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Ezequiel Garcia <elezegarcia@gmail.com>
 
-On Sunday 23 September 2012 16:20:06 Sakari Ailus wrote:
-> Prabhakar Lad wrote:
-> > Hi All,
-> > 
-> > The CCD/Sensors have the capability to adjust the R/ye, Gr/Cy, Gb/G,
-> > B/Mg gain values.
-> > Since these control can be re-usable I am planning to add the
-> > following gain controls as part
-> > of the framework:
-> > 
-> > 1: V4L2_CID_GAIN_RED
-> > 2: V4L2_CID_GAIN_GREEN_RED
-> > 3: V4L2_CID_GAIN_GREEN_BLUE
-> > 4: V4L2_CID_GAIN_BLUE
-> > 5: V4L2_CID_GAIN_OFFSET
-> > 
-> > I need your opinion's to get moving to add them.
+This function returns an integer and it's mandatory
+to check the return code.
 
-We already have a V4L2_CID_GAIN control and a V4L2_CID_CHROMA_GAIN control in 
-the user controls class. I'd like to document how those controls and the new 
-proposed gain controls interact. At first glance they don't interact at all, 
-devices should not implement both, the user class gain controls are higher-
-level than the controls you proposed - this should still be documented though, 
-to make sure driver and application authors will not get confused.
+Cc: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/media/usb/pwc/pwc-if.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-A couple of quick questions about the new controls. Do we also need a common 
-gain controls for monochrome sensors ? Is the offset always common for the 4 
-channels, or could devices implement a per-channel offset ? Is the offset 
-applied before or after the gains ? How does it relate to black level 
-compensation ?
-
-> I think these controls can fit under the image processing controls class
-> --- image processing and not image source since these can also have a
-> digital implementation e.g. in an ISP.
-
-Sounds good to me.
-
+diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
+index 42e36ba..31d082e 100644
+--- a/drivers/media/usb/pwc/pwc-if.c
++++ b/drivers/media/usb/pwc/pwc-if.c
+@@ -1000,7 +1000,9 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
+ 	pdev->vb_queue.buf_struct_size = sizeof(struct pwc_frame_buf);
+ 	pdev->vb_queue.ops = &pwc_vb_queue_ops;
+ 	pdev->vb_queue.mem_ops = &vb2_vmalloc_memops;
+-	vb2_queue_init(&pdev->vb_queue);
++	rc = vb2_queue_init(&pdev->vb_queue);
++	if (rc)
++		goto err_free_mem;
+ 
+ 	/* Init video_device structure */
+ 	memcpy(&pdev->vdev, &pwc_template, sizeof(pwc_template));
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.8.6
 
