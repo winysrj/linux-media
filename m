@@ -1,82 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:59028 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757868Ab2IRKAN (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:61285 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753348Ab2IQISy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Sep 2012 06:00:13 -0400
+	Mon, 17 Sep 2012 04:18:54 -0400
+Date: Mon, 17 Sep 2012 10:18:42 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Shawn Guo <shawn.guo@linaro.org>
+cc: linux-arm-kernel@lists.infradead.org,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 26/34] media: mx2_camera: remove dead code in
+ mx2_camera_add_device
+In-Reply-To: <1347860103-4141-27-git-send-email-shawn.guo@linaro.org>
+Message-ID: <Pine.LNX.4.64.1209171017460.1689@axis700.grange>
+References: <1347860103-4141-1-git-send-email-shawn.guo@linaro.org>
+ <1347860103-4141-27-git-send-email-shawn.guo@linaro.org>
 MIME-Version: 1.0
-In-Reply-To: <D958900912E20642BCBC71664EFECE3E6DDEFB947B@BGMAIL02.nvidia.com>
-References: <1347961843-9376-1-git-send-email-shubhrajyoti@ti.com>
-	<1347961843-9376-7-git-send-email-shubhrajyoti@ti.com>
-	<D958900912E20642BCBC71664EFECE3E6DDEFB947B@BGMAIL02.nvidia.com>
-Date: Tue, 18 Sep 2012 15:30:10 +0530
-Message-ID: <CAM=Q2cv8R8QUbV2UqNO+AbwgprAYxBtBjK=4rkHnqegGJWTdog@mail.gmail.com>
-Subject: Re: [PATCHv2 6/6] media: Convert struct i2c_msg initialization to C99 format
-From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
-To: Venu Byravarasu <vbyravarasu@nvidia.com>
-Cc: Shubhrajyoti D <shubhrajyoti@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"julia.lawall@lip6.fr" <julia.lawall@lip6.fr>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 18, 2012 at 3:26 PM, Venu Byravarasu <vbyravarasu@nvidia.com> wrote:
->> -----Original Message-----
->> From: linux-kernel-owner@vger.kernel.org [mailto:linux-kernel-
->> owner@vger.kernel.org] On Behalf Of Shubhrajyoti D
->> Sent: Tuesday, September 18, 2012 3:21 PM
->> To: linux-media@vger.kernel.org
->> Cc: linux-kernel@vger.kernel.org; julia.lawall@lip6.fr; Shubhrajyoti D
->> Subject: [PATCHv2 6/6] media: Convert struct i2c_msg initialization to C99
->> format
->>
->>         Convert the struct i2c_msg initialization to C99 format. This makes
->>         maintaining and editing the code simpler. Also helps once other fields
->>         like transferred are added in future.
->>
->> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
->> ---
->>  drivers/media/i2c/msp3400-driver.c |   42
->> ++++++++++++++++++++++++++++++-----
->>  1 files changed, 36 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/media/i2c/msp3400-driver.c
->> b/drivers/media/i2c/msp3400-driver.c
->> index aeb22be..b8cef8d 100644
->> --- a/drivers/media/i2c/msp3400-driver.c
->> +++ b/drivers/media/i2c/msp3400-driver.c
->> @@ -119,12 +119,32 @@ int msp_reset(struct i2c_client *client)
->>       static u8 write[3]     = { I2C_MSP_DSP + 1, 0x00, 0x1e };
->>       u8 read[2];
->>       struct i2c_msg reset[2] = {
->> -             { client->addr, I2C_M_IGNORE_NAK, 3, reset_off },
->> -             { client->addr, I2C_M_IGNORE_NAK, 3, reset_on  },
->> +             {
->> +                     .addr = client->addr,
->> +                     .flags = I2C_M_IGNORE_NAK,
->> +                     .len = 3,
->> +                     .buf = reset_off
->> +             },
->> +             {
->> +                     .addr = client->addr,
->> +                     .flags = I2C_M_IGNORE_NAK,
->> +                     .len = 3,
->> +                     .buf = reset_on
->> +             },
->>       };
->>       struct i2c_msg test[2] = {
->> -             { client->addr, 0,        3, write },
->> -             { client->addr, I2C_M_RD, 2, read  },
->> +             {
->> +                     .addr = client->addr,
->> +                     .flags = 0,
->
-> Does flags not contain 0 by default?
->
+Hi Shawn
 
-It does however I felt that 0 means write so letting it be explicit.
+Thanks for the clean up. Would you like these patches to go via a single 
+tree, presumably, arm-soc? In this case
 
-In case a removal is preferred that's doable too however felt it is
-more readable this way.
+On Mon, 17 Sep 2012, Shawn Guo wrote:
+
+> This is a piece of code becoming dead since commit 2c9ba37 ([media]
+> V4L: mx2_camera: remove unsupported i.MX27 DMA mode, make EMMA
+> mandatory).  It should have been removed together with the commit.
+> Remove it now.
+> 
+> Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Cc: linux-media@vger.kernel.org
+
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+
+Thanks
+Guennadi
+
+> ---
+>  drivers/media/video/mx2_camera.c |    4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+> index 965427f..89c7e28 100644
+> --- a/drivers/media/video/mx2_camera.c
+> +++ b/drivers/media/video/mx2_camera.c
+> @@ -441,11 +441,9 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
+>  
+>  	csicr1 = CSICR1_MCLKEN;
+>  
+> -	if (cpu_is_mx27()) {
+> +	if (cpu_is_mx27())
+>  		csicr1 |= CSICR1_PRP_IF_EN | CSICR1_FCC |
+>  			CSICR1_RXFF_LEVEL(0);
+> -	} else if (cpu_is_mx27())
+> -		csicr1 |= CSICR1_SOF_INTEN | CSICR1_RXFF_LEVEL(2);
+>  
+>  	pcdev->csicr1 = csicr1;
+>  	writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
+> -- 
+> 1.7.9.5
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
