@@ -1,172 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:29922 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757279Ab2IZPyr (ORCPT
+Received: from zoneX.GCU-Squad.org ([194.213.125.0]:44357 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752238Ab2IQMyD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Sep 2012 11:54:47 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MAY00F2NS6UKE21@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Thu, 27 Sep 2012 00:54:46 +0900 (KST)
-Received: from amdc248.digital.local ([106.116.147.32])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MAY000JLS6LTOA0@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 27 Sep 2012 00:54:45 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+	Mon, 17 Sep 2012 08:54:03 -0400
+Date: Mon, 17 Sep 2012 14:53:53 +0200
+From: Jean Delvare <khali@linux-fr.org>
 To: linux-media@vger.kernel.org
-Cc: a.hajda@samsung.com, sakari.ailus@iki.fi,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC v3 3/5] s5p-csis: Add support for non-image data packets
- capture
-Date: Wed, 26 Sep 2012 17:54:11 +0200
-Message-id: <1348674853-24596-4-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1348674853-24596-1-git-send-email-s.nawrocki@samsung.com>
-References: <1348674853-24596-1-git-send-email-s.nawrocki@samsung.com>
+Cc: Stefan Ringel <linuxtv@stefanringel.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] [media] cx23885: Select drivers for Terratec Cinergy T PCIe
+ Dual
+Message-ID: <20120917145353.6a98e115@endymion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-MIPI-CSI has internal memory mapped buffers for the frame embedded
-(non-image) data. There are two buffers, for even and odd frames which
-need to be saved after an interrupt is raised. The packet data buffers
-size is 4 KiB and there is no status register in the hardware where the
-actual non-image data size can be read from. Hence the driver copies
-whole packet data buffer into a buffer provided by the FIMC driver.
-This will form a separate plane in the user buffer.
+The Terratec Cinergy T PCIe Dual is based on the CX23885, and uses
+MT2063, DRX-3913k and DRX-3916k chips, so select the relevant drivers.
 
-When FIMC DMA engine is stopped by the driver due the to user space
-not keeping up with buffer de-queuing the MIPI-CSIS will still run,
-however it must discard data which is not captured by FIMC. Which
-frames are actually captured by MIPI-CSIS is determined by means of
-the s_rx_buffer subdev callback. When it is not called after a single
-embedded data frame has been captured and copied and before next
-embedded data frame interrupt occurrs, subsequent embedded data frames
-will be dropped.
-
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Stefan Ringel <linuxtv@stefanringel.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 ---
- drivers/media/platform/s5p-fimc/mipi-csis.c | 51 +++++++++++++++++++++++++++++
- 1 file changed, 51 insertions(+)
+ drivers/media/video/cx23885/Kconfig |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/media/platform/s5p-fimc/mipi-csis.c b/drivers/media/platform/s5p-fimc/mipi-csis.c
-index c1c5c86..306410f 100644
---- a/drivers/media/platform/s5p-fimc/mipi-csis.c
-+++ b/drivers/media/platform/s5p-fimc/mipi-csis.c
-@@ -98,6 +98,11 @@ MODULE_PARM_DESC(debug, "Debug level (0-2)");
- #define CSIS_MAX_PIX_WIDTH		0xffff
- #define CSIS_MAX_PIX_HEIGHT		0xffff
- 
-+/* Non-image packet data buffers */
-+#define S5PCSIS_PKTDATA_ODD		0x2000
-+#define S5PCSIS_PKTDATA_EVEN		0x3000
-+#define S5PCSIS_PKTDATA_SIZE		SZ_4K
-+
- enum {
- 	CSIS_CLK_MUX,
- 	CSIS_CLK_GATE,
-@@ -144,6 +149,11 @@ static const struct s5pcsis_event s5pcsis_events[] = {
- };
- #define S5PCSIS_NUM_EVENTS ARRAY_SIZE(s5pcsis_events)
- 
-+struct csis_pktbuf {
-+	u32 *data;
-+	unsigned int len;
-+};
-+
- /**
-  * struct csis_state - the driver's internal state data structure
-  * @lock: mutex serializing the subdev and power management operations,
-@@ -160,6 +170,7 @@ static const struct s5pcsis_event s5pcsis_events[] = {
-  * @csis_fmt: current CSIS pixel format
-  * @format: common media bus format for the source and sink pad
-  * @slock: spinlock protecting structure members below
-+ * @pkt_buf: the frame embedded (non-image) data buffer
-  * @events: MIPI-CSIS event (error) counters
-  */
- struct csis_state {
-@@ -177,6 +188,7 @@ struct csis_state {
- 	struct v4l2_mbus_framefmt format;
- 
- 	struct spinlock slock;
-+	struct csis_pktbuf pkt_buf;
- 	struct s5pcsis_event events[S5PCSIS_NUM_EVENTS];
- };
- 
-@@ -534,6 +546,21 @@ static int s5pcsis_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 	return 0;
- }
- 
-+static int s5pcsis_s_rx_buffer(struct v4l2_subdev *sd, void *buf,
-+			       unsigned int *size)
-+{
-+	struct csis_state *state = sd_to_csis_state(sd);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&state->slock, flags);
-+	*size = min_t(unsigned int, *size, S5PCSIS_PKTDATA_SIZE);
-+	state->pkt_buf.data = buf;
-+	state->pkt_buf.len = *size;
-+	spin_unlock_irqrestore(&state->slock, flags);
-+
-+	return 0;
-+}
-+
- static int s5pcsis_log_status(struct v4l2_subdev *sd)
- {
- 	struct csis_state *state = sd_to_csis_state(sd);
-@@ -571,6 +598,7 @@ static struct v4l2_subdev_pad_ops s5pcsis_pad_ops = {
- };
- 
- static struct v4l2_subdev_video_ops s5pcsis_video_ops = {
-+	.s_rx_buffer = s5pcsis_s_rx_buffer,
- 	.s_stream = s5pcsis_s_stream,
- };
- 
-@@ -580,16 +608,39 @@ static struct v4l2_subdev_ops s5pcsis_subdev_ops = {
- 	.video = &s5pcsis_video_ops,
- };
- 
-+static void s5pcsis_pkt_copy(struct csis_state *state, u32 *buf,
-+			     u32 offset, u32 size)
-+{
-+	int i;
-+
-+	for (i = 0; i < S5PCSIS_PKTDATA_SIZE; i += 4, buf++)
-+		*buf = s5pcsis_read(state, offset + i);
-+}
-+
- static irqreturn_t s5pcsis_irq_handler(int irq, void *dev_id)
- {
- 	struct csis_state *state = dev_id;
-+	struct csis_pktbuf *pktbuf = &state->pkt_buf;
- 	unsigned long flags;
- 	u32 status;
- 
- 	status = s5pcsis_read(state, S5PCSIS_INTSRC);
-+	s5pcsis_write(state, S5PCSIS_INTSRC, status);
- 
- 	spin_lock_irqsave(&state->slock, flags);
- 
-+	if ((status & S5PCSIS_INTSRC_NON_IMAGE_DATA) && pktbuf->data) {
-+		u32 offset;
-+
-+		if (status & S5PCSIS_INTSRC_EVEN)
-+			offset = S5PCSIS_PKTDATA_EVEN;
-+		else
-+			offset = S5PCSIS_PKTDATA_ODD;
-+
-+		s5pcsis_pkt_copy(state, pktbuf->data, offset, pktbuf->len);
-+		pktbuf->data = NULL;
-+	}
-+
- 	/* Update the event/error counters */
- 	if ((status & S5PCSIS_INTSRC_ERRORS) || debug) {
- 		int i;
+--- linux-3.6-rc5.orig/drivers/media/video/cx23885/Kconfig	2012-07-21 22:58:29.000000000 +0200
++++ linux-3.6-rc5/drivers/media/video/cx23885/Kconfig	2012-09-13 15:57:13.833548830 +0200
+@@ -23,7 +23,9 @@ config VIDEO_CX23885
+ 	select DVB_STV0900 if !DVB_FE_CUSTOMISE
+ 	select DVB_DS3000 if !DVB_FE_CUSTOMISE
+ 	select DVB_STV0367 if !DVB_FE_CUSTOMISE
++	select DVB_DRXK if !DVB_FE_CUSTOMISE
+ 	select MEDIA_TUNER_MT2131 if !MEDIA_TUNER_CUSTOMISE
++	select MEDIA_TUNER_MT2063 if !MEDIA_TUNER_CUSTOMISE
+ 	select MEDIA_TUNER_XC2028 if !MEDIA_TUNER_CUSTOMISE
+ 	select MEDIA_TUNER_TDA8290 if !MEDIA_TUNER_CUSTOMISE
+ 	select MEDIA_TUNER_TDA18271 if !MEDIA_TUNER_CUSTOMISE
+
+
 -- 
-1.7.11.3
-
+Jean Delvare
