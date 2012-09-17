@@ -1,182 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:30690 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755387Ab2INK5z (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.23]:42843 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751462Ab2IQHNp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 06:57:55 -0400
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [RFCv3 API PATCH 01/31] v4l: Remove experimental tag from certain API elements
-Date: Fri, 14 Sep 2012 12:57:16 +0200
-Message-Id: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
-In-Reply-To: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+	Mon, 17 Sep 2012 03:13:45 -0400
+Date: Mon, 17 Sep 2012 09:13:42 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	=?iso-8859-1?Q?R=E9mi?= Denis-Courmont <remi@remlab.net>,
+	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv3 API PATCH 15/31] v4l2-core: Add new
+ V4L2_CAP_MONOTONIC_TS capability.
+Message-ID: <20120917071342.GA15574@minime.bse>
 References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+ <5054E218.4010807@gmail.com>
+ <201209161557.15049.hverkuil@xs4all.nl>
+ <2870315.6PlfZS62FS@avalon>
+ <50564BCE.8010901@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <50564BCE.8010901@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@iki.fi>
+On Sun, Sep 16, 2012 at 11:59:42PM +0200, Sylwester Nawrocki wrote:
+> On 09/16/2012 05:33 PM, Laurent Pinchart wrote:
+> > On Sunday 16 September 2012 15:57:14 Hans Verkuil wrote:
+> >> On Sat September 15 2012 22:16:24 Sylwester Nawrocki wrote:
+> >>> There is already lots of overhead related to the buffers management, could
+> >>> we perhaps have the most common option defined in a way that drivers don't
+> >>> need to update each buffer's flags before dequeuing, only to indicate the
+> >>> timestamp type (other than flags being modified in videobuf) ?
+> >>
+> >> Well, if all vb2 drivers use the monotonic clock, then you could do it in
+> >> __fill_v4l2_buffer: instead of clearing just the state flags you'd clear
+> >> state + clock flags, and you OR in the monotonic flag in the case statement
+> >> below (adding just a single b->flags |= line in the DEQUEUED case).
+> >>
+> >> So that wouldn't add any overhead. Not that I think setting a flag will add
+> >> any measurable overhead in any case.
+> 
+> Yes, that might be indeed negligible overhead, especially if it's done well.
+> User space logic usually adds much more to complexity.
+> 
+> Might be good idea to add some helpers to videobuf2, so handling timestamps
+> is as simple as possible in drivers.
 
-Remove experimantal tag from the following API elements:
+The kernel keeps the time of the last timer interrupt in
+timekeeper.xtime_sec and timekeeper.xtime_nsec in CLOCK_REALTIME,
+so it just has to add the nanoseconds since then. Getting CLOCK_MONOTONIC
+always involves adding timekeeper.wall_to_monotonic, so it is
+a few cycles less overhead to get CLOCK_REALTIME.
 
-V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY buffer type.
-V4L2_CAP_VIDEO_OUTPUT_OVERLAY capability flag.
-VIDIOC_ENUM_FRAMESIZES IOCTL.
-VIDIOC_ENUM_FRAMEINTERVALS IOCTL.
-VIDIOC_G_ENC_INDEX IOCTL.
-VIDIOC_ENCODER_CMD and VIDIOC_TRY_ENCODER_CMD IOCTLs.
-VIDIOC_DECODER_CMD and VIDIOC_TRY_DECODER_CMD IOCTLs.
+How about storing both values and deferring the addition to
+__fill_v4l2_buffer just for applications that want monotonic time?
+I wouldn't justify this with the reduced overhead but with backward
+compatibility.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/compat.xml         |   23 --------------------
- Documentation/DocBook/media/v4l/dev-osd.xml        |    7 ------
- Documentation/DocBook/media/v4l/io.xml             |    3 +--
- .../DocBook/media/v4l/vidioc-decoder-cmd.xml       |    7 ------
- .../DocBook/media/v4l/vidioc-encoder-cmd.xml       |    7 ------
- .../DocBook/media/v4l/vidioc-enum-framesizes.xml   |    7 ------
- .../DocBook/media/v4l/vidioc-g-enc-index.xml       |    7 ------
- 7 files changed, 1 insertion(+), 60 deletions(-)
-
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index 98e8d08..578135e 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2555,29 +2555,6 @@ and may change in the future.</para>
- 	  <para>Video Output Overlay (OSD) Interface, <xref
- 	    linkend="osd" />.</para>
-         </listitem>
--	<listitem>
--	  <para><constant>V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY</constant>,
--	&v4l2-buf-type;, <xref linkend="v4l2-buf-type" />.</para>
--        </listitem>
--        <listitem>
--	  <para><constant>V4L2_CAP_VIDEO_OUTPUT_OVERLAY</constant>,
--&VIDIOC-QUERYCAP; ioctl, <xref linkend="device-capabilities" />.</para>
--        </listitem>
--        <listitem>
--	  <para>&VIDIOC-ENUM-FRAMESIZES; and
--&VIDIOC-ENUM-FRAMEINTERVALS; ioctls.</para>
--        </listitem>
--        <listitem>
--	  <para>&VIDIOC-G-ENC-INDEX; ioctl.</para>
--        </listitem>
--        <listitem>
--	  <para>&VIDIOC-ENCODER-CMD; and &VIDIOC-TRY-ENCODER-CMD;
--ioctls.</para>
--        </listitem>
--        <listitem>
--	  <para>&VIDIOC-DECODER-CMD; and &VIDIOC-TRY-DECODER-CMD;
--ioctls.</para>
--        </listitem>
-         <listitem>
- 	  <para>&VIDIOC-DBG-G-REGISTER; and &VIDIOC-DBG-S-REGISTER;
- ioctls.</para>
-diff --git a/Documentation/DocBook/media/v4l/dev-osd.xml b/Documentation/DocBook/media/v4l/dev-osd.xml
-index 479d943..dd91d61 100644
---- a/Documentation/DocBook/media/v4l/dev-osd.xml
-+++ b/Documentation/DocBook/media/v4l/dev-osd.xml
-@@ -1,13 +1,6 @@
-   <title>Video Output Overlay Interface</title>
-   <subtitle>Also known as On-Screen Display (OSD)</subtitle>
- 
--  <note>
--    <title>Experimental</title>
--
--    <para>This is an <link linkend="experimental">experimental</link>
--interface and may change in the future.</para>
--  </note>
--
-   <para>Some video output devices can overlay a framebuffer image onto
- the outgoing video signal. Applications can set up such an overlay
- using this interface, which borrows structures and ioctls of the <link
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index 1885cc0..2512649 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -827,8 +827,7 @@ should set this to 0.</entry>
- 	    <entry><constant>V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY</constant></entry>
- 	    <entry>8</entry>
- 	    <entry>Buffer for video output overlay (OSD), see <xref
--		linkend="osd" />. Status: <link
--linkend="experimental">Experimental</link>.</entry>
-+		linkend="osd" />.</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_BUF_TYPE_PRIVATE</constant></entry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
-index 74b87f6..9215627 100644
---- a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
-@@ -49,13 +49,6 @@
-   <refsect1>
-     <title>Description</title>
- 
--    <note>
--      <title>Experimental</title>
--
--      <para>This is an <link linkend="experimental">experimental</link>
--interface and may change in the future.</para>
--    </note>
--
-     <para>These ioctls control an audio/video (usually MPEG-) decoder.
- <constant>VIDIOC_DECODER_CMD</constant> sends a command to the
- decoder, <constant>VIDIOC_TRY_DECODER_CMD</constant> can be used to
-diff --git a/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
-index f431b3b..0619ca5 100644
---- a/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
-@@ -49,13 +49,6 @@
-   <refsect1>
-     <title>Description</title>
- 
--    <note>
--      <title>Experimental</title>
--
--      <para>This is an <link linkend="experimental">experimental</link>
--interface and may change in the future.</para>
--    </note>
--
-     <para>These ioctls control an audio/video (usually MPEG-) encoder.
- <constant>VIDIOC_ENCODER_CMD</constant> sends a command to the
- encoder, <constant>VIDIOC_TRY_ENCODER_CMD</constant> can be used to
-diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml b/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml
-index f77a13f..a78454b 100644
---- a/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml
-@@ -50,13 +50,6 @@ and pixel format and receives a frame width and height.</para>
-   <refsect1>
-     <title>Description</title>
- 
--    <note>
--      <title>Experimental</title>
--
--      <para>This is an <link linkend="experimental">experimental</link>
--interface and may change in the future.</para>
--    </note>
--
-     <para>This ioctl allows applications to enumerate all frame sizes
- (&ie; width and height in pixels) that the device supports for the
- given pixel format.</para>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-enc-index.xml b/Documentation/DocBook/media/v4l/vidioc-g-enc-index.xml
-index 2aef02c..be25029 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-enc-index.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-enc-index.xml
-@@ -48,13 +48,6 @@
-   <refsect1>
-     <title>Description</title>
- 
--    <note>
--      <title>Experimental</title>
--
--      <para>This is an <link linkend="experimental">experimental</link>
--interface and may change in the future.</para>
--    </note>
--
-     <para>The <constant>VIDIOC_G_ENC_INDEX</constant> ioctl provides
- meta data about a compressed video stream the same or another
- application currently reads from the driver, which is useful for
--- 
-1.7.10.4
+  Daniel
 
