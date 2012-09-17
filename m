@@ -1,141 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:38216 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757506Ab2IMLxj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 07:53:39 -0400
-From: Hans Verkuil <hansverk@cisco.com>
-To: Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: Re: [PATCH v3] media: v4l2-ctrl: add a helper function to modify the menu
-Date: Thu, 13 Sep 2012 13:53:34 +0200
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-kernel@vger.kernel.org,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	linux-doc@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	"Sakari Ailus" <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
-	Rob Landley <rob@landley.net>
-References: <1347373418-18927-1-git-send-email-prabhakar.lad@ti.com> <1481481.zLUeB0rsrG@avalon> <5051C6E8.8030109@ti.com>
-In-Reply-To: <5051C6E8.8030109@ti.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209131353.34497.hansverk@cisco.com>
+Received: from tex.lwn.net ([70.33.254.29]:54517 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932205Ab2IQPqv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Sep 2012 11:46:51 -0400
+Date: Mon, 17 Sep 2012 09:47:42 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/4] videobuf2-core: Replace BUG_ON and return an error
+ at vb2_queue_init()
+Message-ID: <20120917094742.7309b29a@lwn.net>
+In-Reply-To: <201209171741.24310.hverkuil@xs4all.nl>
+References: <1347889437-15073-1-git-send-email-elezegarcia@gmail.com>
+	<201209171610.43862.hverkuil@xs4all.nl>
+	<20120917093636.635feb96@lwn.net>
+	<201209171741.24310.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 13 September 2012 13:43:36 Prabhakar Lad wrote:
-> Hi Laurent,
-> 
-> Thanks for the review.
-> 
-> On Thursday 13 September 2012 06:45 AM, Laurent Pinchart wrote:
-> > Hi Prabhakar,
-> > 
-> > Thanks for the patch.
-> > 
-> > On Tuesday 11 September 2012 19:53:38 Prabhakar Lad wrote:
-> >> From: Lad, Prabhakar <prabhakar.lad@ti.com>
-> >>
-> >> Add a helper function to modify the menu, max and default value
-> >> to set.
-> >>
-> >> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> >> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> >> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> >> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> >> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> >> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> >> Cc: Hans de Goede <hdegoede@redhat.com>
-> >> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> >> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> >> Cc: Rob Landley <rob@landley.net>
-> >> ---
-> >> Changes for v3:
-> >> 1: Fixed style/grammer issues as pointed by Hans.
-> >>    Thanks Hans for providing the description.
-> >>
-> >> Changes for v2:
-> >> 1: Fixed review comments from Hans, to have return type as
-> >>    void, add WARN_ON() for fail conditions, allow this fucntion
-> >>    to modify the menu of custom controls.
-> >>
-> >>  Documentation/video4linux/v4l2-controls.txt |   29 ++++++++++++++++++++++++
-> >>  drivers/media/v4l2-core/v4l2-ctrls.c        |   17 +++++++++++++++
-> >>  include/media/v4l2-ctrls.h                  |   11 ++++++++++
-> >>  3 files changed, 57 insertions(+), 0 deletions(-)
-> >>
-> >> diff --git a/Documentation/video4linux/v4l2-controls.txt
-> >> b/Documentation/video4linux/v4l2-controls.txt index 43da22b..01d0a82 100644
-> >> --- a/Documentation/video4linux/v4l2-controls.txt
-> >> +++ b/Documentation/video4linux/v4l2-controls.txt
-> >> @@ -367,6 +367,35 @@ it to 0 means that all menu items are supported.
-> >>  You set this mask either through the v4l2_ctrl_config struct for a custom
-> >>  control, or by calling v4l2_ctrl_new_std_menu().
-> >>
-> >> +There are situations where menu items may be device specific. In such cases
-> >> the
-> >> +framework provides a helper function to change the menu:
-> >> +
-> >> +void v4l2_ctrl_modify_menu(struct v4l2_ctrl *ctrl, const char * const
-> >> *qmenu,
-> >> +	s32 max, u32 menu_skip_mask, s32 def);
-> > 
-> > Sorry if this is a stupid question, but wouldn't it be better to add a 
-> > function to create a custom menu instead of modifying it afterwards ?
-> > 
-> Create a custom menu? eventually everything boils down to modifying the
-> menu itself.
+On Mon, 17 Sep 2012 17:41:24 +0200
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-Laurent, the reason we went for modifying a standard control is that that
-ensures that the control name and type is all standardized. The only thing
-that can be changed later is the menu contents.
+> However, videobuf2-core.c is a core function of a core module. So it will
+> give this warning once for one driver, then another is loaded with the same
+> problem and you'll get no warnings anymore.
 
-Regards,
+Unlikely scenario, but good point regardless, I hadn't thought about that
+aspect of the problem. 
 
-	Hans
-
-> 
-> Regards,
-> --Prabhakar Lad
-> 
-> >> +
-> >> +A good example is the test pattern control for capture/display/sensors
-> >> devices
-> >> +that have the capability to generate test patterns. These test patterns are
-> >> +hardware specific, so the contents of the menu will vary from device to
-> >> device.
-> >> +
-> >> +This helper function is used to modify the menu, max, mask and the default
-> >> +value of the control.
-> >> +
-> >> +Example:
-> >> +
-> >> +	static const char * const test_pattern[] = {
-> >> +		"Disabled",
-> >> +		"Vertical Bars",
-> >> +		"Solid Black",
-> >> +		"Solid White",
-> >> +		NULL,
-> >> +	};
-> >> +	struct v4l2_ctrl *test_pattern_ctrl =
-> >> +		v4l2_ctrl_new_std_menu(&foo->ctrl_handler, &foo_ctrl_ops,
-> >> +			V4L2_CID_TEST_PATTERN, V4L2_TEST_PATTERN_DISABLED, 0,
-> >> +			V4L2_TEST_PATTERN_DISABLED);
-> >> +
-> >> +	v4l2_ctrl_modify_menu(test_pattern_ctrl, test_pattern, 3, 0,
-> >> +		V4L2_TEST_PATTERN_DISABLED);
-> >>
-> >>  Custom Controls
-> >>  ===============
-> > 
-> 
-> 
+jon
