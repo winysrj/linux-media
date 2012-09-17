@@ -1,67 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44270 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755454Ab2IXOPl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 10:15:41 -0400
-Message-ID: <50606B5E.8030002@redhat.com>
-Date: Mon, 24 Sep 2012 16:17:02 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from moutng.kundenserver.de ([212.227.17.8]:60402 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753950Ab2IQJ0b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Sep 2012 05:26:31 -0400
+Date: Mon, 17 Sep 2012 11:26:17 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Shawn Guo <shawn.guo@linaro.org>
+cc: linux-arm-kernel@lists.infradead.org,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Vinod Koul <vinod.koul@intel.com>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org
+Subject: Re: [PATCH 14/34] dma: ipu: rename mach/ipu.h to include/linux/dma/ipu-dma.h
+In-Reply-To: <1347860103-4141-15-git-send-email-shawn.guo@linaro.org>
+Message-ID: <Pine.LNX.4.64.1209171124130.1689@axis700.grange>
+References: <1347860103-4141-1-git-send-email-shawn.guo@linaro.org>
+ <1347860103-4141-15-git-send-email-shawn.guo@linaro.org>
 MIME-Version: 1.0
-To: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/4] gspca_pac7302: correct register documentation
-References: <1348406983-3451-1-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1348406983-3451-1-git-send-email-fschaefer.oss@googlemail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Mon, 17 Sep 2012, Shawn Guo wrote:
 
-On 09/23/2012 03:29 PM, Frank Schäfer wrote:
-> R,G,B balance registers are 0x01-0x03 instead of 0x02-0x04,
-> which lead to the wrong conclusion that values are inverted.
-> Exposure is controlled via page 3 registers and this is already documented.
-> Also fix a whitespace issue.
->
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> The header ipu.h really belongs to dma subsystem rather than imx
+> platform.  Rename it to ipu-dma.h and put it into include/linux/dma/.
+> 
+> Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
+> Cc: Vinod Koul <vinod.koul@intel.com>
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+> Cc: linux-media@vger.kernel.org
+> Cc: linux-fbdev@vger.kernel.org
 
-Thanks, as discussed I've added the first 2 patches to my media tree and
-they will be included in my next pull-req to Mauro.
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-Regards,
-
-Hans
-
-
+Thanks
+Guennadi
 
 > ---
->   drivers/media/usb/gspca/pac7302.c |   11 +++++------
->   1 files changed, 5 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/media/usb/gspca/pac7302.c b/drivers/media/usb/gspca/pac7302.c
-> index 2d5c6d83..4894ac1 100644
-> --- a/drivers/media/usb/gspca/pac7302.c
-> +++ b/drivers/media/usb/gspca/pac7302.c
-> @@ -29,14 +29,13 @@
->    * Register page 0:
->    *
->    * Address	Description
-> - * 0x02		Red balance control
-> - * 0x03		Green balance control
-> - * 0x04 	Blue balance control
-> - *		     Valus are inverted (0=max, 255=min).
-> + * 0x01		Red balance control
-> + * 0x02		Green balance control
-> + * 0x03		Blue balance control
->    *		     The Windows driver uses a quadratic approach to map
->    *		     the settable values (0-200) on register values:
-> - *		     min=0x80, default=0x40, max=0x20
-> - * 0x0f-0x20	Colors, saturation and exposure control
-> + *		     min=0x20, default=0x40, max=0x80
-> + * 0x0f-0x20	Color and saturation control
->    * 0xa2-0xab	Brightness, contrast and gamma control
->    * 0xb6		Sharpness control (bits 0-4)
->    *
->
+>  drivers/dma/ipu/ipu_idmac.c                        |    3 +--
+>  drivers/dma/ipu/ipu_irq.c                          |    3 +--
+>  drivers/media/video/mx3_camera.c                   |    2 +-
+>  drivers/video/mx3fb.c                              |    2 +-
+>  .../mach/ipu.h => include/linux/dma/ipu-dma.h      |    6 +++---
+>  5 files changed, 7 insertions(+), 9 deletions(-)
+>  rename arch/arm/mach-imx/include/mach/ipu.h => include/linux/dma/ipu-dma.h (97%)
+> 
+> diff --git a/drivers/dma/ipu/ipu_idmac.c b/drivers/dma/ipu/ipu_idmac.c
+> index c7573e5..6585537 100644
+> --- a/drivers/dma/ipu/ipu_idmac.c
+> +++ b/drivers/dma/ipu/ipu_idmac.c
+> @@ -22,8 +22,7 @@
+>  #include <linux/interrupt.h>
+>  #include <linux/io.h>
+>  #include <linux/module.h>
+> -
+> -#include <mach/ipu.h>
+> +#include <linux/dma/ipu-dma.h>
+>  
+>  #include "../dmaengine.h"
+>  #include "ipu_intern.h"
+> diff --git a/drivers/dma/ipu/ipu_irq.c b/drivers/dma/ipu/ipu_irq.c
+> index fa95bcc..a5ee37d 100644
+> --- a/drivers/dma/ipu/ipu_irq.c
+> +++ b/drivers/dma/ipu/ipu_irq.c
+> @@ -15,8 +15,7 @@
+>  #include <linux/irq.h>
+>  #include <linux/io.h>
+>  #include <linux/module.h>
+> -
+> -#include <mach/ipu.h>
+> +#include <linux/dma/ipu-dma.h>
+>  
+>  #include "ipu_intern.h"
+>  
+> diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
+> index 1481b0d..892cba5 100644
+> --- a/drivers/media/video/mx3_camera.c
+> +++ b/drivers/media/video/mx3_camera.c
+> @@ -17,6 +17,7 @@
+>  #include <linux/vmalloc.h>
+>  #include <linux/interrupt.h>
+>  #include <linux/sched.h>
+> +#include <linux/dma/ipu-dma.h>
+>  
+>  #include <media/v4l2-common.h>
+>  #include <media/v4l2-dev.h>
+> @@ -24,7 +25,6 @@
+>  #include <media/soc_camera.h>
+>  #include <media/soc_mediabus.h>
+>  
+> -#include <mach/ipu.h>
+>  #include <linux/platform_data/camera-mx3.h>
+>  #include <linux/platform_data/dma-imx.h>
+>  
+> diff --git a/drivers/video/mx3fb.c b/drivers/video/mx3fb.c
+> index d738108..3b63ad8 100644
+> --- a/drivers/video/mx3fb.c
+> +++ b/drivers/video/mx3fb.c
+> @@ -26,10 +26,10 @@
+>  #include <linux/console.h>
+>  #include <linux/clk.h>
+>  #include <linux/mutex.h>
+> +#include <linux/dma/ipu-dma.h>
+>  
+>  #include <linux/platform_data/dma-imx.h>
+>  #include <mach/hardware.h>
+> -#include <mach/ipu.h>
+>  #include <linux/platform_data/video-mx3fb.h>
+>  
+>  #include <asm/io.h>
+> diff --git a/arch/arm/mach-imx/include/mach/ipu.h b/include/linux/dma/ipu-dma.h
+> similarity index 97%
+> rename from arch/arm/mach-imx/include/mach/ipu.h
+> rename to include/linux/dma/ipu-dma.h
+> index 539e559..1803111 100644
+> --- a/arch/arm/mach-imx/include/mach/ipu.h
+> +++ b/include/linux/dma/ipu-dma.h
+> @@ -9,8 +9,8 @@
+>   * published by the Free Software Foundation.
+>   */
+>  
+> -#ifndef _IPU_H_
+> -#define _IPU_H_
+> +#ifndef __LINUX_DMA_IPU_DMA_H
+> +#define __LINUX_DMA_IPU_DMA_H
+>  
+>  #include <linux/types.h>
+>  #include <linux/dmaengine.h>
+> @@ -174,4 +174,4 @@ struct idmac_channel {
+>  #define to_tx_desc(tx) container_of(tx, struct idmac_tx_desc, txd)
+>  #define to_idmac_chan(c) container_of(c, struct idmac_channel, dma_chan)
+>  
+> -#endif
+> +#endif /* __LINUX_DMA_IPU_DMA_H */
+> -- 
+> 1.7.9.5
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
