@@ -1,82 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:59317 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757157Ab2IQS7m (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:57610 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755973Ab2IQLij (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Sep 2012 14:59:42 -0400
-Received: by yhmm54 with SMTP id m54so1597420yhm.19
-        for <linux-media@vger.kernel.org>; Mon, 17 Sep 2012 11:59:41 -0700 (PDT)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	<linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH v2] videobuf2-core: Replace BUG_ON and return an error at vb2_queue_init()
-Date: Mon, 17 Sep 2012 15:59:30 -0300
-Message-Id: <1347908370-2560-1-git-send-email-elezegarcia@gmail.com>
+	Mon, 17 Sep 2012 07:38:39 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Subject: Re: [PATCH 00/34] i.MX multi-platform support
+Date: Mon, 17 Sep 2012 11:38:13 +0000
+Cc: Shawn Guo <shawn.guo@linaro.org>,
+	linux-arm-kernel@lists.infradead.org,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	alsa-devel@alsa-project.org,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	linux-fbdev@vger.kernel.org, Chris Ball <cjb@laptop.org>,
+	linux-mmc@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	rtc-linux@googlegroups.com,
+	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
+	linux-mtd@lists.infradead.org,
+	Wolfram Sang <w.sang@pengutronix.de>,
+	linux-i2c@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>,
+	linux-watchdog@vger.kernel.org,
+	"Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
+	linux-usb@vger.kernel.org, Vinod Koul <vinod.koul@linux.intel.com>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
+References: <1347860103-4141-1-git-send-email-shawn.guo@linaro.org> <20120917075138.GN6180@pengutronix.de>
+In-Reply-To: <20120917075138.GN6180@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201209171138.13327.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This replaces BUG_ON() calls with WARN_ON(), and returns
-EINVAL if some parameter is NULL, as suggested by Jonathan and Mauro.
+On Monday 17 September 2012, Sascha Hauer wrote:
+> On Mon, Sep 17, 2012 at 01:34:29PM +0800, Shawn Guo wrote:
+> > The series enables multi-platform support for imx.  Since the required
+> > frameworks (clk, pwm) and spare_irq have already been adopted on imx,
+> > the series is all about cleaning up mach/* headers.  Along with the
+> > changes, arch/arm/plat-mxc gets merged into arch/arm/mach-imx.
+> > 
+> > It's based on a bunch of branches (works from others), Rob's initial
+> > multi-platform series, Arnd's platform-data and smp_ops (Marc's) and
+> > imx 3.7 material (Sascha and myself).
+> > 
+> > It's available on branch below.
+> > 
+> >   git://git.linaro.org/people/shawnguo/linux-2.6.git imx/multi-platform
+> > 
+> > It's been tested on imx5 and imx6, and only compile-tested on imx2 and
+> > imx3, so testing on imx2/3 are appreciated.
+> 
+> Great work! This really pushes the i.MX architecture one step closer to
+> a clean code base.
 
-The BUG_ON() call is too drastic to be used in this case.
-See the full discussion here:
-http://www.spinics.net/lists/linux-media/msg52462.html
+I agree, this series is wonderful, I thought it would take much longer
+to get this far.
 
-Cc: Jonathan Corbet <corbet@lwn.net>
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
-Changes from v1: Replace WARN_ON_ONCE with WARN_ON
+Two small comments on the last two patches from me, but overall I really
+love it.
 
- drivers/media/v4l2-core/videobuf2-core.c |   19 +++++++++++--------
- include/media/videobuf2-core.h           |    2 +-
- 2 files changed, 12 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 4da3df6..78a764a 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1738,14 +1738,17 @@ EXPORT_SYMBOL_GPL(vb2_poll);
-  */
- int vb2_queue_init(struct vb2_queue *q)
- {
--	BUG_ON(!q);
--	BUG_ON(!q->ops);
--	BUG_ON(!q->mem_ops);
--	BUG_ON(!q->type);
--	BUG_ON(!q->io_modes);
--
--	BUG_ON(!q->ops->queue_setup);
--	BUG_ON(!q->ops->buf_queue);
-+	/*
-+	 * Sanity check
-+	 */
-+	if (WARN_ON(!q)			  ||
-+	    WARN_ON(!q->ops)		  ||
-+	    WARN_ON(!q->mem_ops)	  ||
-+	    WARN_ON(!q->type)		  ||
-+	    WARN_ON(!q->io_modes)	  ||
-+	    WARN_ON(!q->ops->queue_setup) ||
-+	    WARN_ON(!q->ops->buf_queue))
-+		return -EINVAL;
- 
- 	INIT_LIST_HEAD(&q->queued_list);
- 	INIT_LIST_HEAD(&q->done_list);
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 8dd9b6c..e04252a 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -324,7 +324,7 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req);
- int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create);
- int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b);
- 
--int vb2_queue_init(struct vb2_queue *q);
-+int __must_check vb2_queue_init(struct vb2_queue *q);
- 
- void vb2_queue_release(struct vb2_queue *q);
- 
--- 
-1.7.8.6
-
+Acked-by: Arnd Bergmann <arnd@arndb.de>
