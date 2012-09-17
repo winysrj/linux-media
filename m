@@ -1,131 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:54257 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750860Ab2IOPWt (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:59317 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757157Ab2IQS7m (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Sep 2012 11:22:49 -0400
-Received: by ieje11 with SMTP id e11so7728518iej.19
-        for <linux-media@vger.kernel.org>; Sat, 15 Sep 2012 08:22:48 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CALF0-+Vrf+t1eN+0LRGP4rBrrbSxrwTgkY1205v=7=5YQxsqWg@mail.gmail.com>
-References: <1345864146-2207-1-git-send-email-elezegarcia@gmail.com>
-	<1345864146-2207-9-git-send-email-elezegarcia@gmail.com>
-	<20120825092814.4eee46f0@lwn.net>
-	<CALF0-+VEGKL6zqFcqkw__qxuy+_3aDa-0u4xD63+Mc4FioM+aw@mail.gmail.com>
-	<20120825113021.690440ba@lwn.net>
-	<CALF0-+WjGYhHd4xshW9fOtdVp-Cgmz-7t8JzzoqMW-w0pNv85A@mail.gmail.com>
-	<20120828105552.1e39b32b@lwn.net>
-	<CALF0-+XhgNSjA_RMVK1VWkM=_oEh3JHitZNH55cCSn=AKK0N3Q@mail.gmail.com>
-	<50547907.2050101@redhat.com>
-	<CALF0-+Vx2eb4KJ4UoHts7R1ks4YsiUFHoqSixY-yd9bMV5VBeA@mail.gmail.com>
-	<20120915103719.4f038ee0@redhat.com>
-	<CALF0-+Vrf+t1eN+0LRGP4rBrrbSxrwTgkY1205v=7=5YQxsqWg@mail.gmail.com>
-Date: Sat, 15 Sep 2012 12:22:48 -0300
-Message-ID: <CALF0-+Uyp6mV1ho-tqeezaCZc6tfZTJsqw92_oD49_TgX2b1bQ@mail.gmail.com>
-Subject: Re: [PATCH 9/9] videobuf2-core: Change vb2_queue_init return type to void
+	Mon, 17 Sep 2012 14:59:42 -0400
+Received: by yhmm54 with SMTP id m54so1597420yhm.19
+        for <linux-media@vger.kernel.org>; Mon, 17 Sep 2012 11:59:41 -0700 (PDT)
 From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	<linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Ezequiel Garcia <elezegarcia@gmail.com>,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH v2] videobuf2-core: Replace BUG_ON and return an error at vb2_queue_init()
+Date: Mon, 17 Sep 2012 15:59:30 -0300
+Message-Id: <1347908370-2560-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+This replaces BUG_ON() calls with WARN_ON(), and returns
+EINVAL if some parameter is NULL, as suggested by Jonathan and Mauro.
 
-(Cc got messed up, so I'm sending this to you and media list)
+The BUG_ON() call is too drastic to be used in this case.
+See the full discussion here:
+http://www.spinics.net/lists/linux-media/msg52462.html
 
-On Sat, Sep 15, 2012 at 10:37 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em Sat, 15 Sep 2012 10:05:40 -0300
-> Ezequiel Garcia <elezegarcia@gmail.com> escreveu:
->
->> On Sat, Sep 15, 2012 at 9:48 AM, Mauro Carvalho Chehab
->> <mchehab@redhat.com> wrote:
->> > Em 28-08-2012 14:23, Ezequiel Garcia escreveu:
->> >> Hi Jon,
->> >>
->> >> Thanks for your answers, I really appreciate it.
->> >>
->> >> On Tue, Aug 28, 2012 at 1:55 PM, Jonathan Corbet <corbet@lwn.net> wrote:
->> >>> On Sun, 26 Aug 2012 19:59:40 -0300
->> >>> Ezequiel Garcia <elezegarcia@gmail.com> wrote:
->> >>>
->> >>>> 1.
->> >>>> Why do we need to check for all these conditions in the first place?
->> >>>> There are many other functions relying on "struct vb2_queue *q"
->> >>>> not being null (almost all of them) and we don't check for it.
->> >>>> What makes vb2_queue_init() so special that we need to check for it?
->> >>>
->> >>> There are plenty of developers who would argue for the removal of the
->> >>> BUG_ON(!q) line regardless, since the kernel will quickly crash shortly
->> >>> thereafter.  I'm a bit less convinced; there are attackers who are very
->> >>> good at exploiting null pointer dereferences, and some systems still allow
->> >>> the low part of the address space to be mapped.
->> >>>
->> >>> In general, IMO, checks for consistency make sense; it's nice if the
->> >>> kernel can *tell* you that something is wrong.
->> >>>
->> >>> What's a mistake is the BUG_ON; that should really only be used in places
->> >>> where things simply cannot continue.  In this case, the initialization can
->> >>> be failed, the V4L2 device will likely be unavailable, but everything else
->> >>> can continue as normal.  -EINVAL is the right response here.
->> >>>
->> >>
->> >> I see your point.
->> >>
->> >> What I really can't seem to understand is why we should have a check
->> >> at vb2_queue_init() but not at vb2_get_drv_priv(), just to pick one.
->> >
->> > Those BUG_ON() checks are there since likely the first version of VB1.
->> > VB2 just inherited it.
->> >
->> > The think is that letting the VB code to run without checking for some
->> > conditions is evil, as it could cause mass memory corruption, as the
->> > videobuf code writes on a large amount of memory (typically, something
->> > like 512MB written on every 1/30s). So, the code has protections, in order
->> > to try avoiding it. Even so, with VB1, when the output buffer is at the
->> > video adapter memory region (what is called PCI2PCI memory transfers),
->> > there are known bugs with some chipsets that will cause mass data corruption
->> > at the hard disks (as the PCI2PCI transfers interfere at the data transfers
->> > from/to the disk, due to hardware bugs).
->> >
->> > Calling WARN_ON_ONCE() and returning some error code works, provided that
->> > we enforce that the error code will be handled at the drivers that call
->> > vb2_queue_init(), using something like __attribute__((warn_unused_result, nonnull))
->> > and double_checking the code at VB2 callers.
->> >
->>
->> So, you want me to resend?
->
-> Yes, please.
->
+Cc: Jonathan Corbet <corbet@lwn.net>
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+Changes from v1: Replace WARN_ON_ONCE with WARN_ON
 
-I can't decide on coding style. So, how about this?:
+ drivers/media/v4l2-core/videobuf2-core.c |   19 +++++++++++--------
+ include/media/videobuf2-core.h           |    2 +-
+ 2 files changed, 12 insertions(+), 9 deletions(-)
 
-(copy pasted on gmail, sorry if spaces are mangled):
-
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 4da3df6..78a764a 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1738,14 +1738,17 @@ EXPORT_SYMBOL_GPL(vb2_poll);
   */
  int vb2_queue_init(struct vb2_queue *q)
  {
--       BUG_ON(!q);
--       BUG_ON(!q->ops);
--       BUG_ON(!q->mem_ops);
--       BUG_ON(!q->type);
--       BUG_ON(!q->io_modes);
+-	BUG_ON(!q);
+-	BUG_ON(!q->ops);
+-	BUG_ON(!q->mem_ops);
+-	BUG_ON(!q->type);
+-	BUG_ON(!q->io_modes);
 -
--       BUG_ON(!q->ops->queue_setup);
--       BUG_ON(!q->ops->buf_queue);
-+       /*
-+        * Sanity check
-+        */
-+       if (WARN_ON_ONCE(!q)            ||
-+           WARN_ON_ONCE(!q->ops)       ||
-+           WARN_ON_ONCE(!q->mem_ops)   ||
-+           WARN_ON_ONCE(!q->type)      ||
-+           WARN_ON_ONCE(!q->io_modes)  ||
-+           WARN_ON_ONCE(!q->ops->queue_setup) ||
-+           WARN_ON_ONCE(!q->ops->buf_queue))
-+               return -EINVAL;
+-	BUG_ON(!q->ops->queue_setup);
+-	BUG_ON(!q->ops->buf_queue);
++	/*
++	 * Sanity check
++	 */
++	if (WARN_ON(!q)			  ||
++	    WARN_ON(!q->ops)		  ||
++	    WARN_ON(!q->mem_ops)	  ||
++	    WARN_ON(!q->type)		  ||
++	    WARN_ON(!q->io_modes)	  ||
++	    WARN_ON(!q->ops->queue_setup) ||
++	    WARN_ON(!q->ops->buf_queue))
++		return -EINVAL;
+ 
+ 	INIT_LIST_HEAD(&q->queued_list);
+ 	INIT_LIST_HEAD(&q->done_list);
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 8dd9b6c..e04252a 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -324,7 +324,7 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req);
+ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create);
+ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b);
+ 
+-int vb2_queue_init(struct vb2_queue *q);
++int __must_check vb2_queue_init(struct vb2_queue *q);
+ 
+ void vb2_queue_release(struct vb2_queue *q);
+ 
+-- 
+1.7.8.6
 
-        INIT_LIST_HEAD(&q->queued_list);
-        INIT_LIST_HEAD(&q->done_list);
