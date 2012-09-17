@@ -1,729 +1,466 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:58805 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751627Ab2I0MFp (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:60961 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754774Ab2IQOAH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Sep 2012 08:05:45 -0400
+	Mon, 17 Sep 2012 10:00:07 -0400
+Date: Mon, 17 Sep 2012 15:59:53 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: javier Martin <javier.martin@vista-silicon.com>
+cc: Shawn Guo <shawn.guo@linaro.org>,
+	linux-arm-kernel@lists.infradead.org,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 28/34] media: mx2_camera: remove mach/hardware.h inclusion
+In-Reply-To: <CACKLOr10vWKUzZxjKQ=HWcpKP-9cDfhhfJtuyW39UJsyPpcs_w@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1209171559100.1689@axis700.grange>
+References: <1347860103-4141-1-git-send-email-shawn.guo@linaro.org>
+ <1347860103-4141-29-git-send-email-shawn.guo@linaro.org>
+ <Pine.LNX.4.64.1209171120550.1689@axis700.grange>
+ <CACKLOr10vWKUzZxjKQ=HWcpKP-9cDfhhfJtuyW39UJsyPpcs_w@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CA+V-a8uA4uUE0cxjYXapuFzTck32T7_JUs==PnU6CHhXd_bMFQ@mail.gmail.com>
-References: <1348745454-25849-1-git-send-email-peter.senna@gmail.com>
-	<CA+V-a8uA4uUE0cxjYXapuFzTck32T7_JUs==PnU6CHhXd_bMFQ@mail.gmail.com>
-Date: Thu, 27 Sep 2012 14:05:42 +0200
-Message-ID: <CA+MoWDp9Zng7aQHhs-r3_GZnkoLVZVEkqrpoF=jC2N25_7pZMQ@mail.gmail.com>
-Subject: Re: [PATCH] drivers/media: Remove unnecessary semicolon
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: trivial@vger.kernel.org, mchehab@infradead.org, crope@iki.fi,
-	gennarone@gmail.com, dan.carpenter@oracle.com,
-	hans.verkuil@cisco.com, thomas@m3y3r.de,
-	santoshprasadnayak@gmail.com, abraham.manu@gmail.com,
-	stoth@kernellabs.com, dheitmueller@kernellabs.com,
-	t.stanislaws@samsung.com, liplianin@netup.ru,
-	andriy.shevchenko@linux.intel.com, ptqa@netup.ru, David@fries.net,
-	thunder.mmm@gmail.com, j@jannau.net, s.nawrocki@samsung.com,
-	sungchun.kang@samsung.com, khw0178.kim@samsung.com,
-	shaik.ameer@samsung.com, hdegoede@redhat.com,
-	tobias.lorenz@gmx.net, gregkh@suse.de,
-	paul.gortmaker@windriver.com, laurent.pinchart@ideasonboard.com,
-	m@bues.ch, hfvogt@gmx.net, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 27, 2012 at 1:55 PM, Prabhakar Lad
-<prabhakar.csengg@gmail.com> wrote:
-> Hi Peter,
->
-> Thanks for the patch.
->
-> On Thu, Sep 27, 2012 at 5:00 PM, Peter Senna Tschudin
-> <peter.senna@gmail.com> wrote:
->> Remove unnecessary semicolon
->>
->> And:
->> drivers/media/dvb-frontends/stv0900_core.c: remove unnecessary whitespace before a
->> quoted newline
->>
->> Found by http://coccinelle.lip6.fr/
->>
->> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
->>
->> ---
->>  drivers/media/dvb-core/dvb_frontend.c         |    2
->>  drivers/media/dvb-frontends/a8293.c           |    2
->>  drivers/media/dvb-frontends/af9013.c          |    6 +-
->>  drivers/media/dvb-frontends/bcm3510.c         |    2
->>  drivers/media/dvb-frontends/cx24110.c         |    6 +-
->>  drivers/media/dvb-frontends/drxd_hard.c       |    2
->>  drivers/media/dvb-frontends/isl6405.c         |    2
->>  drivers/media/dvb-frontends/isl6421.c         |    2
->>  drivers/media/dvb-frontends/itd1000.c         |    2
->>  drivers/media/dvb-frontends/lnbp21.c          |    4 -
->>  drivers/media/dvb-frontends/lnbp22.c          |    2
->>  drivers/media/dvb-frontends/si21xx.c          |    4 -
->>  drivers/media/dvb-frontends/sp8870.c          |    6 +-
->>  drivers/media/dvb-frontends/sp887x.c          |    6 +-
->>  drivers/media/dvb-frontends/stv0299.c         |    6 +-
->>  drivers/media/dvb-frontends/stv0900_core.c    |    2
->>  drivers/media/dvb-frontends/tda8083.c         |    4 -
->>  drivers/media/i2c/cx25840/cx25840-core.c      |    2
->>  drivers/media/pci/bt8xx/dst_ca.c              |    2
->>  drivers/media/pci/cx23885/altera-ci.c         |    4 -
->>  drivers/media/pci/cx23885/cimax2.c            |    2
->>  drivers/media/pci/cx88/cx88-blackbird.c       |    6 +-
->>  drivers/media/pci/cx88/cx88-dvb.c             |    2
->>  drivers/media/pci/cx88/cx88-mpeg.c            |    2
->>  drivers/media/pci/cx88/cx88-tvaudio.c         |    4 -
->>  drivers/media/pci/cx88/cx88-video.c           |    2
->>  drivers/media/pci/saa7134/saa7134-video.c     |    2
->>  drivers/media/platform/davinci/vpif_capture.c |   78 +++++++++++++-------------
->
-> I dont see any diff for this file in the patch.
->
->>  drivers/media/platform/exynos-gsc/gsc-regs.c  |    4 -
->>  drivers/media/platform/fsl-viu.c              |   18 +++---
-> ditto
->
->>  drivers/media/platform/vivi.c                 |    2
-> ditto and some more
->
-> Is it a valid patch or is it that I am missing something ?
+On Mon, 17 Sep 2012, javier Martin wrote:
 
-I've sent V2 fixing this.
+> Hi Shawn,
+> 
+> On 17 September 2012 11:21, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> > On Mon, 17 Sep 2012, Shawn Guo wrote:
+> >
+> >> It changes the driver to use platform_device_id rather than cpu_is_xxx
+> >> to determine the controller type, and updates the platform code
+> >> accordingly.
+> >>
+> >> As the result, mach/hardware.h inclusion gets removed from the driver.
+> >>
+> >> Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
+> >> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> >> Cc: linux-media@vger.kernel.org
+> >
+> > Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> 
+> i.MX25 support is broken and is scheduled for removal.
 
+It is not yet, I haven't pushed those your patches yet.
 
->
-> Regards,
-> --Prabhakar Lad
->
->>  drivers/media/radio/si470x/radio-si470x-i2c.c |    2
->>  drivers/media/radio/si470x/radio-si470x-usb.c |    2
->>  drivers/media/radio/si4713-i2c.c              |   12 ++--
->>  drivers/media/usb/dvb-usb-v2/af9015.c         |    4 -
->>  drivers/media/usb/dvb-usb-v2/af9035.c         |    2
->>  drivers/media/usb/dvb-usb/cinergyT2-fe.c      |    6 --
->>  37 files changed, 106 insertions(+), 112 deletions(-)
->>
->> diff -u -p a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
->> --- a/drivers/media/i2c/cx25840/cx25840-core.c
->> +++ b/drivers/media/i2c/cx25840/cx25840-core.c
->> @@ -599,7 +599,7 @@ static void cx23885_initialize(struct i2
->>                 cx25840_write4(client, 0x114, 0x01bf0c9e);
->>                 cx25840_write4(client, 0x110, 0x000a030c);
->>                 break;
->> -       };
->> +       }
->>
->>         /* ADC2 input select */
->>         cx25840_write(client, 0x102, 0x10);
->> diff -u -p a/drivers/media/usb/dvb-usb-v2/af9015.c b/drivers/media/usb/dvb-usb-v2/af9015.c
->> --- a/drivers/media/usb/dvb-usb-v2/af9015.c
->> +++ b/drivers/media/usb/dvb-usb-v2/af9015.c
->> @@ -500,7 +500,7 @@ static int af9015_read_config(struct dvb
->>                 case 3:
->>                         state->af9013_config[i].clock = 25000000;
->>                         break;
->> -               };
->> +               }
->>                 dev_dbg(&d->udev->dev, "%s: [%d] xtal=%d set clock=%d\n",
->>                                 __func__, i, val,
->>                                 state->af9013_config[i].clock);
->> @@ -568,7 +568,7 @@ static int af9015_read_config(struct dvb
->>                                         "supported, please report!\n",
->>                                         KBUILD_MODNAME, val);
->>                         return -ENODEV;
->> -               };
->> +               }
->>
->>                 state->af9013_config[i].tuner = val;
->>                 dev_dbg(&d->udev->dev, "%s: [%d] tuner id=%d\n",
->> diff -u -p a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
->> --- a/drivers/media/usb/dvb-usb-v2/af9035.c
->> +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
->> @@ -519,7 +519,7 @@ static int af9035_read_config(struct dvb
->>                         dev_warn(&d->udev->dev, "%s: tuner id=%02x not " \
->>                                         "supported, please report!",
->>                                         KBUILD_MODNAME, tmp);
->> -               };
->> +               }
->>
->>                 /* tuner IF frequency */
->>                 ret = af9035_rd_reg(d, EEPROM_1_IFFREQ_L + eeprom_shift, &tmp);
->> diff -u -p a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
->> --- a/drivers/media/dvb-core/dvb_frontend.c
->> +++ b/drivers/media/dvb-core/dvb_frontend.c
->> @@ -2288,7 +2288,7 @@ static int dvb_frontend_ioctl_legacy(str
->>                 fepriv->tune_mode_flags = (unsigned long) parg;
->>                 err = 0;
->>                 break;
->> -       };
->> +       }
->>
->>         return err;
->>  }
->> diff -u -p a/drivers/media/radio/si470x/radio-si470x-i2c.c b/drivers/media/radio/si470x/radio-si470x-i2c.c
->> --- a/drivers/media/radio/si470x/radio-si470x-i2c.c
->> +++ b/drivers/media/radio/si470x/radio-si470x-i2c.c
->> @@ -297,7 +297,7 @@ static irqreturn_t si470x_i2c_interrupt(
->>                                         READCHAN_BLERD) >> 10;
->>                         rds = radio->registers[RDSD];
->>                         break;
->> -               };
->> +               }
->>
->>                 /* Fill the V4L2 RDS buffer */
->>                 put_unaligned_le16(rds, &tmpbuf);
->> diff -u -p a/drivers/media/radio/si470x/radio-si470x-usb.c b/drivers/media/radio/si470x/radio-si470x-usb.c
->> --- a/drivers/media/radio/si470x/radio-si470x-usb.c
->> +++ b/drivers/media/radio/si470x/radio-si470x-usb.c
->> @@ -446,7 +446,7 @@ static void si470x_int_in_callback(struc
->>                                                 READCHAN_BLERD) >> 10;
->>                                 rds = radio->registers[RDSD];
->>                                 break;
->> -                       };
->> +                       }
->>
->>                         /* Fill the V4L2 RDS buffer */
->>                         put_unaligned_le16(rds, &tmpbuf);
->> diff -u -p a/drivers/media/radio/si4713-i2c.c b/drivers/media/radio/si4713-i2c.c
->> --- a/drivers/media/radio/si4713-i2c.c
->> +++ b/drivers/media/radio/si4713-i2c.c
->> @@ -1009,7 +1009,7 @@ static int si4713_choose_econtrol_action
->>
->>         default:
->>                 rval = -EINVAL;
->> -       };
->> +       }
->>
->>         return rval;
->>  }
->> @@ -1081,7 +1081,7 @@ static int si4713_write_econtrol_string(
->>         default:
->>                 rval = -EINVAL;
->>                 break;
->> -       };
->> +       }
->>
->>  exit:
->>         return rval;
->> @@ -1130,7 +1130,7 @@ static int si4713_write_econtrol_tune(st
->>         default:
->>                 rval = -EINVAL;
->>                 goto unlock;
->> -       };
->> +       }
->>
->>         if (sdev->power_state)
->>                 rval = si4713_tx_tune_power(sdev, power, antcap);
->> @@ -1420,7 +1420,7 @@ static int si4713_read_econtrol_string(s
->>         default:
->>                 rval = -EINVAL;
->>                 break;
->> -       };
->> +       }
->>
->>  exit:
->>         return rval;
->> @@ -1473,7 +1473,7 @@ static int si4713_read_econtrol_tune(str
->>                 break;
->>         default:
->>                 rval = -EINVAL;
->> -       };
->> +       }
->>
->>  unlock:
->>         mutex_unlock(&sdev->mutex);
->> @@ -1698,7 +1698,7 @@ static int si4713_queryctrl(struct v4l2_
->>         default:
->>                 rval = -EINVAL;
->>                 break;
->> -       };
->> +       }
->>
->>         return rval;
->>  }
->> diff -u -p a/drivers/media/dvb-frontends/isl6421.c b/drivers/media/dvb-frontends/isl6421.c
->> --- a/drivers/media/dvb-frontends/isl6421.c
->> +++ b/drivers/media/dvb-frontends/isl6421.c
->> @@ -63,7 +63,7 @@ static int isl6421_set_voltage(struct dv
->>                 break;
->>         default:
->>                 return -EINVAL;
->> -       };
->> +       }
->>
->>         isl6421->config |= isl6421->override_or;
->>         isl6421->config &= isl6421->override_and;
->> diff -u -p a/drivers/media/dvb-frontends/sp8870.c b/drivers/media/dvb-frontends/sp8870.c
->> --- a/drivers/media/dvb-frontends/sp8870.c
->> +++ b/drivers/media/dvb-frontends/sp8870.c
->> @@ -188,7 +188,7 @@ static int configure_reg0xc05 (struct dt
->>                 break;
->>         default:
->>                 return -EINVAL;
->> -       };
->> +       }
->>
->>         switch (p->hierarchy) {
->>         case HIERARCHY_NONE:
->> @@ -207,7 +207,7 @@ static int configure_reg0xc05 (struct dt
->>                 break;
->>         default:
->>                 return -EINVAL;
->> -       };
->> +       }
->>
->>         switch (p->code_rate_HP) {
->>         case FEC_1_2:
->> @@ -229,7 +229,7 @@ static int configure_reg0xc05 (struct dt
->>                 break;
->>         default:
->>                 return -EINVAL;
->> -       };
->> +       }
->>
->>         if (known_parameters)
->>                 *reg0xc05 |= (2 << 1);  /* use specified parameters */
->> diff -u -p a/drivers/media/dvb-frontends/itd1000.c b/drivers/media/dvb-frontends/itd1000.c
->> --- a/drivers/media/dvb-frontends/itd1000.c
->> +++ b/drivers/media/dvb-frontends/itd1000.c
->> @@ -231,7 +231,7 @@ static void itd1000_set_lo(struct itd100
->>         state->frequency = ((plln * 1000) + (pllf * 1000)/1048576) * 2*FREF;
->>         itd_dbg("frequency: %dkHz (wanted) %dkHz (set), PLLF = %d, PLLN = %d\n", freq_khz, state->frequency, pllf, plln);
->>
->> -       itd1000_write_reg(state, PLLNH, 0x80); /* PLLNH */;
->> +       itd1000_write_reg(state, PLLNH, 0x80); /* PLLNH */
->>         itd1000_write_reg(state, PLLNL, plln & 0xff);
->>         itd1000_write_reg(state, PLLFH, (itd1000_read_reg(state, PLLFH) & 0xf0) | ((pllf >> 16) & 0x0f));
->>         itd1000_write_reg(state, PLLFM, (pllf >> 8) & 0xff);
->> diff -u -p a/drivers/media/dvb-frontends/lnbp21.c b/drivers/media/dvb-frontends/lnbp21.c
->> --- a/drivers/media/dvb-frontends/lnbp21.c
->> +++ b/drivers/media/dvb-frontends/lnbp21.c
->> @@ -65,7 +65,7 @@ static int lnbp21_set_voltage(struct dvb
->>                 break;
->>         default:
->>                 return -EINVAL;
->> -       };
->> +       }
->>
->>         lnbp21->config |= lnbp21->override_or;
->>         lnbp21->config &= lnbp21->override_and;
->> @@ -108,7 +108,7 @@ static int lnbp21_set_tone(struct dvb_fr
->>                 break;
->>         default:
->>                 return -EINVAL;
->> -       };
->> +       }
->>
->>         lnbp21->config |= lnbp21->override_or;
->>         lnbp21->config &= lnbp21->override_and;
->> diff -u -p a/drivers/media/dvb-frontends/si21xx.c b/drivers/media/dvb-frontends/si21xx.c
->> --- a/drivers/media/dvb-frontends/si21xx.c
->> +++ b/drivers/media/dvb-frontends/si21xx.c
->> @@ -343,7 +343,7 @@ static int si21xx_wait_diseqc_idle(struc
->>                         return -ETIMEDOUT;
->>                 }
->>                 msleep(10);
->> -       };
->> +       }
->>
->>         return 0;
->>  }
->> @@ -472,7 +472,7 @@ static int si21xx_set_voltage(struct dvb
->>                 break;
->>         default:
->>                 return -EINVAL;
->> -       };
->> +       }
->>  }
->>
->>  static int si21xx_init(struct dvb_frontend *fe)
->> diff -u -p a/drivers/media/dvb-frontends/isl6405.c b/drivers/media/dvb-frontends/isl6405.c
->> --- a/drivers/media/dvb-frontends/isl6405.c
->> +++ b/drivers/media/dvb-frontends/isl6405.c
->> @@ -77,7 +77,7 @@ static int isl6405_set_voltage(struct dv
->>                         break;
->>                 default:
->>                         return -EINVAL;
->> -               };
->> +               }
->>         }
->>         isl6405->config |= isl6405->override_or;
->>         isl6405->config &= isl6405->override_and;
->> diff -u -p a/drivers/media/dvb-frontends/lnbp22.c b/drivers/media/dvb-frontends/lnbp22.c
->> --- a/drivers/media/dvb-frontends/lnbp22.c
->> +++ b/drivers/media/dvb-frontends/lnbp22.c
->> @@ -73,7 +73,7 @@ static int lnbp22_set_voltage(struct dvb
->>                 break;
->>         default:
->>                 return -EINVAL;
->> -       };
->> +       }
->>
->>         dprintk(1, "%s: 0x%02x)\n", __func__, lnbp22->config[3]);
->>         return (i2c_transfer(lnbp22->i2c, &msg, 1) == 1) ? 0 : -EIO;
->> diff -u -p a/drivers/media/dvb-frontends/stv0299.c b/drivers/media/dvb-frontends/stv0299.c
->> --- a/drivers/media/dvb-frontends/stv0299.c
->> +++ b/drivers/media/dvb-frontends/stv0299.c
->> @@ -199,7 +199,7 @@ static int stv0299_wait_diseqc_fifo (str
->>                         return -ETIMEDOUT;
->>                 }
->>                 msleep(10);
->> -       };
->> +       }
->>
->>         return 0;
->>  }
->> @@ -216,7 +216,7 @@ static int stv0299_wait_diseqc_idle (str
->>                         return -ETIMEDOUT;
->>                 }
->>                 msleep(10);
->> -       };
->> +       }
->>
->>         return 0;
->>  }
->> @@ -387,7 +387,7 @@ static int stv0299_set_voltage (struct d
->>                 break;
->>         default:
->>                 return -EINVAL;
->> -       };
->> +       }
->>
->>         if (state->config->op0_off)
->>                 reg0x0c &= ~0x10;
->> diff -u -p a/drivers/media/dvb-frontends/tda8083.c b/drivers/media/dvb-frontends/tda8083.c
->> --- a/drivers/media/dvb-frontends/tda8083.c
->> +++ b/drivers/media/dvb-frontends/tda8083.c
->> @@ -175,7 +175,7 @@ static void tda8083_wait_diseqc_fifo (st
->>                !(tda8083_readreg(state, 0x02) & 0x80))
->>         {
->>                 msleep(50);
->> -       };
->> +       }
->>  }
->>
->>  static int tda8083_set_tone (struct tda8083_state* state, fe_sec_tone_mode_t tone)
->> @@ -215,7 +215,7 @@ static int tda8083_send_diseqc_burst (st
->>                 break;
->>         default:
->>                 return -EINVAL;
->> -       };
->> +       }
->>
->>         tda8083_wait_diseqc_fifo (state, 100);
->>
->> diff -u -p a/drivers/media/dvb-frontends/stv0900_core.c b/drivers/media/dvb-frontends/stv0900_core.c
->> --- a/drivers/media/dvb-frontends/stv0900_core.c
->> +++ b/drivers/media/dvb-frontends/stv0900_core.c
->> @@ -1553,7 +1553,7 @@ static int stv0900_status(struct stv0900
->>                         * (tsbitrate1_val << 8 | tsbitrate0_val);
->>                 bitrate /= 16384;
->>                 dprintk("TS bitrate = %d Mbit/sec\n", bitrate);
->> -       };
->> +       }
->>
->>         return locked;
->>  }
->> diff -u -p a/drivers/media/dvb-frontends/sp887x.c b/drivers/media/dvb-frontends/sp887x.c
->> --- a/drivers/media/dvb-frontends/sp887x.c
->> +++ b/drivers/media/dvb-frontends/sp887x.c
->> @@ -229,7 +229,7 @@ static int configure_reg0xc05(struct dtv
->>                 break;
->>         default:
->>                 return -EINVAL;
->> -       };
->> +       }
->>
->>         switch (p->hierarchy) {
->>         case HIERARCHY_NONE:
->> @@ -248,7 +248,7 @@ static int configure_reg0xc05(struct dtv
->>                 break;
->>         default:
->>                 return -EINVAL;
->> -       };
->> +       }
->>
->>         switch (p->code_rate_HP) {
->>         case FEC_1_2:
->> @@ -270,7 +270,7 @@ static int configure_reg0xc05(struct dtv
->>                 break;
->>         default:
->>                 return -EINVAL;
->> -       };
->> +       }
->>
->>         if (known_parameters)
->>                 *reg0xc05 |= (2 << 1);  /* use specified parameters */
->> diff -u -p a/drivers/media/dvb-frontends/a8293.c b/drivers/media/dvb-frontends/a8293.c
->> --- a/drivers/media/dvb-frontends/a8293.c
->> +++ b/drivers/media/dvb-frontends/a8293.c
->> @@ -90,7 +90,7 @@ static int a8293_set_voltage(struct dvb_
->>         default:
->>                 ret = -EINVAL;
->>                 goto err;
->> -       };
->> +       }
->>
->>         ret = a8293_wr(priv, &priv->reg[0], 1);
->>         if (ret)
->> diff -u -p a/drivers/media/dvb-frontends/af9013.c b/drivers/media/dvb-frontends/af9013.c
->> --- a/drivers/media/dvb-frontends/af9013.c
->> +++ b/drivers/media/dvb-frontends/af9013.c
->> @@ -241,7 +241,7 @@ static int af9013_set_gpio(struct af9013
->>                                 KBUILD_MODNAME, gpio);
->>                 ret = -EINVAL;
->>                 goto err;
->> -       };
->> +       }
->>
->>         switch (gpio) {
->>         case 0:
->> @@ -253,7 +253,7 @@ static int af9013_set_gpio(struct af9013
->>         default:
->>                 pos = 4;
->>                 break;
->> -       };
->> +       }
->>
->>         ret = af9013_wr_reg_bits(state, addr, pos, 4, gpioval);
->>         if (ret)
->> @@ -726,7 +726,7 @@ static int af9013_set_frontend(struct dv
->>         default:
->>                 dev_dbg(&state->i2c->dev, "%s: invalid hierarchy\n", __func__);
->>                 auto_mode = 1;
->> -       };
->> +       }
->>
->>         switch (c->modulation) {
->>         case QAM_AUTO:
->> diff -u -p a/drivers/media/dvb-frontends/drxd_hard.c b/drivers/media/dvb-frontends/drxd_hard.c
->> --- a/drivers/media/dvb-frontends/drxd_hard.c
->> +++ b/drivers/media/dvb-frontends/drxd_hard.c
->> @@ -991,7 +991,7 @@ static int HI_Command(struct drxd_state
->>                 if (nrRetries > DRXD_MAX_RETRIES) {
->>                         status = -1;
->>                         break;
->> -               };
->> +               }
->>                 status = Read16(state, HI_RA_RAM_SRV_CMD__A, &waitCmd, 0);
->>         } while (waitCmd != 0);
->>
->> diff -u -p a/drivers/media/dvb-frontends/bcm3510.c b/drivers/media/dvb-frontends/bcm3510.c
->> --- a/drivers/media/dvb-frontends/bcm3510.c
->> +++ b/drivers/media/dvb-frontends/bcm3510.c
->> @@ -527,7 +527,7 @@ static int bcm3510_set_frontend(struct d
->>                         cmd.ACQUIRE1.IF_FREQ = 0x0;
->>                 default:
->>                         return -EINVAL;
->> -       };
->> +       }
->>         cmd.ACQUIRE0.OFFSET = 0;
->>         cmd.ACQUIRE0.NTSCSWEEP = 1;
->>         cmd.ACQUIRE0.FA = 1;
->> diff -u -p a/drivers/media/dvb-frontends/cx24110.c b/drivers/media/dvb-frontends/cx24110.c
->> --- a/drivers/media/dvb-frontends/cx24110.c
->> +++ b/drivers/media/dvb-frontends/cx24110.c
->> @@ -218,7 +218,7 @@ static int cx24110_set_fec (struct cx241
->>            } else
->>                    return -EOPNOTSUPP;
->>  /* fixme (low): which is the correct return code? */
->> -       };
->> +       }
->>         return 0;
->>  }
->>
->> @@ -275,7 +275,7 @@ static int cx24110_set_symbolrate (struc
->>                 cx24110_writereg(state,0x07,tmp|0x3);
->>                 cx24110_writereg(state,0x06,0x78);
->>                 fclk=90999000UL;
->> -       };
->> +       }
->>         dprintk("cx24110 debug: fclk %d Hz\n",fclk);
->>         /* we need to divide two integers with approx. 27 bits in 32 bit
->>            arithmetic giving a 25 bit result */
->> @@ -362,7 +362,7 @@ static int cx24110_initfe(struct dvb_fro
->>
->>         for(i = 0; i < ARRAY_SIZE(cx24110_regdata); i++) {
->>                 cx24110_writereg(state, cx24110_regdata[i].reg, cx24110_regdata[i].data);
->> -       };
->> +       }
->>
->>         return 0;
->>  }
->> diff -u -p a/drivers/media/pci/cx23885/altera-ci.c b/drivers/media/pci/cx23885/altera-ci.c
->> --- a/drivers/media/pci/cx23885/altera-ci.c
->> +++ b/drivers/media/pci/cx23885/altera-ci.c
->> @@ -416,7 +416,7 @@ static void netup_read_ci_status(struct
->>                                 DVB_CA_EN50221_POLL_CAM_READY : 0);
->>                 ci_dbg_print("%s: setting CI[1] status = 0x%x\n",
->>                                 __func__, inter->state[1]->status);
->> -       };
->> +       }
->>
->>         if (inter->state[0] != NULL) {
->>                 inter->state[0]->status =
->> @@ -425,7 +425,7 @@ static void netup_read_ci_status(struct
->>                                 DVB_CA_EN50221_POLL_CAM_READY : 0);
->>                 ci_dbg_print("%s: setting CI[0] status = 0x%x\n",
->>                                 __func__, inter->state[0]->status);
->> -       };
->> +       }
->>  }
->>
->>  /* CI irq handler */
->> diff -u -p a/drivers/media/pci/cx23885/cimax2.c b/drivers/media/pci/cx23885/cimax2.c
->> --- a/drivers/media/pci/cx23885/cimax2.c
->> +++ b/drivers/media/pci/cx23885/cimax2.c
->> @@ -193,7 +193,7 @@ int netup_ci_op_cam(struct dvb_ca_en5022
->>                                 0, &store, 1);
->>                 if (ret != 0)
->>                         return ret;
->> -       };
->> +       }
->>         state->current_ci_flag = flag;
->>
->>         mutex_lock(&dev->gpio_lock);
->> diff -u -p a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
->> --- a/drivers/media/pci/cx88/cx88-video.c
->> +++ b/drivers/media/pci/cx88/cx88-video.c
->> @@ -1535,7 +1535,7 @@ static irqreturn_t cx8800_irq(int irq, v
->>                         cx88_core_irq(core,status);
->>                 if (status & PCI_INT_VIDINT)
->>                         cx8800_vid_irq(dev);
->> -       };
->> +       }
->>         if (10 == loop) {
->>                 printk(KERN_WARNING "%s/0: irq loop -- clearing mask\n",
->>                        core->name);
->> diff -u -p a/drivers/media/pci/cx88/cx88-mpeg.c b/drivers/media/pci/cx88/cx88-mpeg.c
->> --- a/drivers/media/pci/cx88/cx88-mpeg.c
->> +++ b/drivers/media/pci/cx88/cx88-mpeg.c
->> @@ -450,7 +450,7 @@ static irqreturn_t cx8802_irq(int irq, v
->>                         cx88_core_irq(core,status);
->>                 if (status & PCI_INT_TSINT)
->>                         cx8802_mpeg_irq(dev);
->> -       };
->> +       }
->>         if (MAX_IRQ_LOOP == loop) {
->>                 dprintk( 0, "clearing mask\n" );
->>                 printk(KERN_WARNING "%s/0: irq loop -- clearing mask\n",
->> diff -u -p a/drivers/media/pci/cx88/cx88-tvaudio.c b/drivers/media/pci/cx88/cx88-tvaudio.c
->> --- a/drivers/media/pci/cx88/cx88-tvaudio.c
->> +++ b/drivers/media/pci/cx88/cx88-tvaudio.c
->> @@ -373,7 +373,7 @@ static void set_audio_standard_NICAM(str
->>                 set_audio_registers(core, nicam_bgdki_common);
->>                 set_audio_registers(core, nicam_default);
->>                 break;
->> -       };
->> +       }
->>
->>         mode |= EN_DMTRX_LR | EN_DMTRX_BYPASS;
->>         set_audio_finish(core, mode);
->> @@ -639,7 +639,7 @@ static void set_audio_standard_A2(struct
->>                 dprintk("%s Warning: wrong value\n", __func__);
->>                 return;
->>                 break;
->> -       };
->> +       }
->>
->>         mode |= EN_FMRADIO_EN_RDS | EN_DMTRX_SUMDIFF;
->>         set_audio_finish(core, mode);
->> diff -u -p a/drivers/media/pci/cx88/cx88-blackbird.c b/drivers/media/pci/cx88/cx88-blackbird.c
->> --- a/drivers/media/pci/cx88/cx88-blackbird.c
->> +++ b/drivers/media/pci/cx88/cx88-blackbird.c
->> @@ -721,7 +721,7 @@ static int vidioc_g_fmt_vid_cap (struct
->>
->>         f->fmt.pix.pixelformat  = V4L2_PIX_FMT_MPEG;
->>         f->fmt.pix.bytesperline = 0;
->> -       f->fmt.pix.sizeimage    = 188 * 4 * mpegbufs; /* 188 * 4 * 1024; */;
->> +       f->fmt.pix.sizeimage    = 188 * 4 * mpegbufs; /* 188 * 4 * 1024; */
->>         f->fmt.pix.colorspace   = V4L2_COLORSPACE_SMPTE170M;
->>         f->fmt.pix.width        = dev->width;
->>         f->fmt.pix.height       = dev->height;
->> @@ -739,7 +739,7 @@ static int vidioc_try_fmt_vid_cap (struc
->>
->>         f->fmt.pix.pixelformat  = V4L2_PIX_FMT_MPEG;
->>         f->fmt.pix.bytesperline = 0;
->> -       f->fmt.pix.sizeimage    = 188 * 4 * mpegbufs; /* 188 * 4 * 1024; */;
->> +       f->fmt.pix.sizeimage    = 188 * 4 * mpegbufs; /* 188 * 4 * 1024; */
->>         f->fmt.pix.colorspace   = V4L2_COLORSPACE_SMPTE170M;
->>         dprintk(1, "VIDIOC_TRY_FMT: w: %d, h: %d, f: %d\n",
->>                 dev->width, dev->height, fh->mpegq.field );
->> @@ -755,7 +755,7 @@ static int vidioc_s_fmt_vid_cap (struct
->>
->>         f->fmt.pix.pixelformat  = V4L2_PIX_FMT_MPEG;
->>         f->fmt.pix.bytesperline = 0;
->> -       f->fmt.pix.sizeimage    = 188 * 4 * mpegbufs; /* 188 * 4 * 1024; */;
->> +       f->fmt.pix.sizeimage    = 188 * 4 * mpegbufs; /* 188 * 4 * 1024; */
->>         f->fmt.pix.colorspace   = V4L2_COLORSPACE_SMPTE170M;
->>         dev->width              = f->fmt.pix.width;
->>         dev->height             = f->fmt.pix.height;
->> diff -u -p a/drivers/media/pci/cx88/cx88-dvb.c b/drivers/media/pci/cx88/cx88-dvb.c
->> --- a/drivers/media/pci/cx88/cx88-dvb.c
->> +++ b/drivers/media/pci/cx88/cx88-dvb.c
->> @@ -896,7 +896,7 @@ static int samsung_smt_7020_set_voltage(
->>                 break;
->>         default:
->>                 return -EINVAL;
->> -       };
->> +       }
->>
->>         return (i2c_transfer(&dev->core->i2c_adap, &msg, 1) == 1) ? 0 : -EIO;
->>  }
->> diff -u -p a/drivers/media/pci/bt8xx/dst_ca.c b/drivers/media/pci/bt8xx/dst_ca.c
->> --- a/drivers/media/pci/bt8xx/dst_ca.c
->> +++ b/drivers/media/pci/bt8xx/dst_ca.c
->> @@ -646,7 +646,7 @@ static long dst_ca_ioctl(struct file *fi
->>                 dprintk(verbose, DST_CA_INFO, 1, " -->CA_SET_PID Success !");
->>         default:
->>                 result = -EOPNOTSUPP;
->> -       };
->> +       }
->>   free_mem_and_exit:
->>         kfree (p_ca_message);
->>         kfree (p_ca_slot_info);
->> diff -u -p a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
->> --- a/drivers/media/pci/saa7134/saa7134-video.c
->> +++ b/drivers/media/pci/saa7134/saa7134-video.c
->> @@ -1204,7 +1204,7 @@ int saa7134_s_ctrl_internal(struct saa71
->>                 break;
->>         default:
->>                 /* nothing */;
->> -       };
->> +       }
->>         switch (c->id) {
->>         case V4L2_CID_BRIGHTNESS:
->>                 dev->ctl_bright = c->value;
->> diff -u -p a/drivers/media/platform/exynos-gsc/gsc-regs.c b/drivers/media/platform/exynos-gsc/gsc-regs.c
->> --- a/drivers/media/platform/exynos-gsc/gsc-regs.c
->> +++ b/drivers/media/platform/exynos-gsc/gsc-regs.c
->> @@ -212,7 +212,7 @@ void gsc_hw_set_in_image_format(struct g
->>                 else
->>                         cfg |= GSC_IN_YUV422_3P;
->>                 break;
->> -       };
->> +       }
->>
->>         writel(cfg, dev->regs + GSC_IN_CON);
->>  }
->> @@ -332,7 +332,7 @@ void gsc_hw_set_out_image_format(struct
->>         case 3:
->>                 cfg |= GSC_OUT_YUV420_3P;
->>                 break;
->> -       };
->> +       }
->>
->>  end_set:
->>         writel(cfg, dev->regs + GSC_OUT_CON);
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+Guennadi
 
+> I think we should not keep on trying to maintain it. Couldn't we just
+> drop it? It only makes maintenance tasks more difficult.
+> 
+> > Thanks
+> > Guennadi
+> >
+> >> ---
+> >>  arch/arm/mach-imx/clk-imx25.c                   |    6 +-
+> >>  arch/arm/mach-imx/clk-imx27.c                   |    6 +-
+> >>  arch/arm/mach-imx/devices/devices-common.h      |    1 +
+> >>  arch/arm/mach-imx/devices/platform-mx2-camera.c |   12 +--
+> >>  drivers/media/video/mx2_camera.c                |   95 +++++++++++++++++------
+> >>  5 files changed, 85 insertions(+), 35 deletions(-)
+> >>
+> >> diff --git a/arch/arm/mach-imx/clk-imx25.c b/arch/arm/mach-imx/clk-imx25.c
+> >> index 1aea073..71fe521 100644
+> >> --- a/arch/arm/mach-imx/clk-imx25.c
+> >> +++ b/arch/arm/mach-imx/clk-imx25.c
+> >> @@ -231,9 +231,9 @@ int __init mx25_clocks_init(void)
+> >>       clk_register_clkdev(clk[esdhc2_ipg_per], "per", "sdhci-esdhc-imx25.1");
+> >>       clk_register_clkdev(clk[esdhc2_ipg], "ipg", "sdhci-esdhc-imx25.1");
+> >>       clk_register_clkdev(clk[esdhc2_ahb], "ahb", "sdhci-esdhc-imx25.1");
+> >> -     clk_register_clkdev(clk[csi_ipg_per], "per", "mx2-camera.0");
+> >> -     clk_register_clkdev(clk[csi_ipg], "ipg", "mx2-camera.0");
+> >> -     clk_register_clkdev(clk[csi_ahb], "ahb", "mx2-camera.0");
+> >> +     clk_register_clkdev(clk[csi_ipg_per], "per", "imx25-camera.0");
+> >> +     clk_register_clkdev(clk[csi_ipg], "ipg", "imx25-camera.0");
+> >> +     clk_register_clkdev(clk[csi_ahb], "ahb", "imx25-camera.0");
+> >>       clk_register_clkdev(clk[dummy], "audmux", NULL);
+> >>       clk_register_clkdev(clk[can1_ipg], NULL, "flexcan.0");
+> >>       clk_register_clkdev(clk[can2_ipg], NULL, "flexcan.1");
+> >> diff --git a/arch/arm/mach-imx/clk-imx27.c b/arch/arm/mach-imx/clk-imx27.c
+> >> index 5ff5cf0..e26de52 100644
+> >> --- a/arch/arm/mach-imx/clk-imx27.c
+> >> +++ b/arch/arm/mach-imx/clk-imx27.c
+> >> @@ -224,7 +224,7 @@ int __init mx27_clocks_init(unsigned long fref)
+> >>       clk_register_clkdev(clk[per3_gate], "per", "imx-fb.0");
+> >>       clk_register_clkdev(clk[lcdc_ipg_gate], "ipg", "imx-fb.0");
+> >>       clk_register_clkdev(clk[lcdc_ahb_gate], "ahb", "imx-fb.0");
+> >> -     clk_register_clkdev(clk[csi_ahb_gate], "ahb", "mx2-camera.0");
+> >> +     clk_register_clkdev(clk[csi_ahb_gate], "ahb", "imx27-camera.0");
+> >>       clk_register_clkdev(clk[usb_div], "per", "fsl-usb2-udc");
+> >>       clk_register_clkdev(clk[usb_ipg_gate], "ipg", "fsl-usb2-udc");
+> >>       clk_register_clkdev(clk[usb_ahb_gate], "ahb", "fsl-usb2-udc");
+> >> @@ -251,8 +251,8 @@ int __init mx27_clocks_init(unsigned long fref)
+> >>       clk_register_clkdev(clk[i2c2_ipg_gate], NULL, "imx21-i2c.1");
+> >>       clk_register_clkdev(clk[owire_ipg_gate], NULL, "mxc_w1.0");
+> >>       clk_register_clkdev(clk[kpp_ipg_gate], NULL, "imx-keypad");
+> >> -     clk_register_clkdev(clk[emma_ahb_gate], "emma-ahb", "mx2-camera.0");
+> >> -     clk_register_clkdev(clk[emma_ipg_gate], "emma-ipg", "mx2-camera.0");
+> >> +     clk_register_clkdev(clk[emma_ahb_gate], "emma-ahb", "imx27-camera.0");
+> >> +     clk_register_clkdev(clk[emma_ipg_gate], "emma-ipg", "imx27-camera.0");
+> >>       clk_register_clkdev(clk[emma_ahb_gate], "ahb", "m2m-emmaprp.0");
+> >>       clk_register_clkdev(clk[emma_ipg_gate], "ipg", "m2m-emmaprp.0");
+> >>       clk_register_clkdev(clk[iim_ipg_gate], "iim", NULL);
+> >> diff --git a/arch/arm/mach-imx/devices/devices-common.h b/arch/arm/mach-imx/devices/devices-common.h
+> >> index 7f2698c..8112a1a 100644
+> >> --- a/arch/arm/mach-imx/devices/devices-common.h
+> >> +++ b/arch/arm/mach-imx/devices/devices-common.h
+> >> @@ -202,6 +202,7 @@ struct platform_device *__init imx_add_mx3_sdc_fb(
+> >>
+> >>  #include <linux/platform_data/camera-mx2.h>
+> >>  struct imx_mx2_camera_data {
+> >> +     const char *devid;
+> >>       resource_size_t iobasecsi;
+> >>       resource_size_t iosizecsi;
+> >>       resource_size_t irqcsi;
+> >> diff --git a/arch/arm/mach-imx/devices/platform-mx2-camera.c b/arch/arm/mach-imx/devices/platform-mx2-camera.c
+> >> index 9ad5b2d..b88877d 100644
+> >> --- a/arch/arm/mach-imx/devices/platform-mx2-camera.c
+> >> +++ b/arch/arm/mach-imx/devices/platform-mx2-camera.c
+> >> @@ -9,14 +9,16 @@
+> >>  #include <mach/hardware.h>
+> >>  #include "devices-common.h"
+> >>
+> >> -#define imx_mx2_camera_data_entry_single(soc)                                \
+> >> +#define imx_mx2_camera_data_entry_single(soc, _devid)                        \
+> >>       {                                                               \
+> >> +             .devid = _devid,                                        \
+> >>               .iobasecsi = soc ## _CSI_BASE_ADDR,                     \
+> >>               .iosizecsi = SZ_4K,                                     \
+> >>               .irqcsi = soc ## _INT_CSI,                              \
+> >>       }
+> >> -#define imx_mx2_camera_data_entry_single_emma(soc)                   \
+> >> +#define imx_mx2_camera_data_entry_single_emma(soc, _devid)           \
+> >>       {                                                               \
+> >> +             .devid = _devid,                                        \
+> >>               .iobasecsi = soc ## _CSI_BASE_ADDR,                     \
+> >>               .iosizecsi = SZ_32,                                     \
+> >>               .irqcsi = soc ## _INT_CSI,                              \
+> >> @@ -27,12 +29,12 @@
+> >>
+> >>  #ifdef CONFIG_SOC_IMX25
+> >>  const struct imx_mx2_camera_data imx25_mx2_camera_data __initconst =
+> >> -     imx_mx2_camera_data_entry_single(MX25);
+> >> +     imx_mx2_camera_data_entry_single(MX25, "imx25-camera");
+> >>  #endif /* ifdef CONFIG_SOC_IMX25 */
+> >>
+> >>  #ifdef CONFIG_SOC_IMX27
+> >>  const struct imx_mx2_camera_data imx27_mx2_camera_data __initconst =
+> >> -     imx_mx2_camera_data_entry_single_emma(MX27);
+> >> +     imx_mx2_camera_data_entry_single_emma(MX27, "imx27-camera");
+> >>  #endif /* ifdef CONFIG_SOC_IMX27 */
+> >>
+> >>  struct platform_device *__init imx_add_mx2_camera(
+> >> @@ -58,7 +60,7 @@ struct platform_device *__init imx_add_mx2_camera(
+> >>                       .flags = IORESOURCE_IRQ,
+> >>               },
+> >>       };
+> >> -     return imx_add_platform_device_dmamask("mx2-camera", 0,
+> >> +     return imx_add_platform_device_dmamask(data->devid, 0,
+> >>                       res, data->iobaseemmaprp ? 4 : 2,
+> >>                       pdata, sizeof(*pdata), DMA_BIT_MASK(32));
+> >>  }
+> >> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+> >> index fe4c76c..cde3374 100644
+> >> --- a/drivers/media/video/mx2_camera.c
+> >> +++ b/drivers/media/video/mx2_camera.c
+> >> @@ -41,7 +41,6 @@
+> >>  #include <linux/videodev2.h>
+> >>
+> >>  #include <linux/platform_data/camera-mx2.h>
+> >> -#include <mach/hardware.h>
+> >>
+> >>  #include <asm/dma.h>
+> >>
+> >> @@ -121,11 +120,13 @@
+> >>
+> >>  #define CSICR1                       0x00
+> >>  #define CSICR2                       0x04
+> >> -#define CSISR                        (cpu_is_mx27() ? 0x08 : 0x18)
+> >> +#define CSISR_IMX25          0x18
+> >> +#define CSISR_IMX27          0x08
+> >>  #define CSISTATFIFO          0x0c
+> >>  #define CSIRFIFO             0x10
+> >>  #define CSIRXCNT             0x14
+> >> -#define CSICR3                       (cpu_is_mx27() ? 0x1C : 0x08)
+> >> +#define CSICR3_IMX25         0x08
+> >> +#define CSICR3_IMX27         0x1c
+> >>  #define CSIDMASA_STATFIFO    0x20
+> >>  #define CSIDMATA_STATFIFO    0x24
+> >>  #define CSIDMASA_FB1         0x28
+> >> @@ -268,6 +269,11 @@ struct mx2_buffer {
+> >>       struct mx2_buf_internal         internal;
+> >>  };
+> >>
+> >> +enum mx2_camera_type {
+> >> +     IMX25_CAMERA,
+> >> +     IMX27_CAMERA,
+> >> +};
+> >> +
+> >>  struct mx2_camera_dev {
+> >>       struct device           *dev;
+> >>       struct soc_camera_host  soc_host;
+> >> @@ -291,6 +297,9 @@ struct mx2_camera_dev {
+> >>       struct mx2_buffer       *fb2_active;
+> >>
+> >>       u32                     csicr1;
+> >> +     u32                     reg_csisr;
+> >> +     u32                     reg_csicr3;
+> >> +     enum mx2_camera_type    devtype;
+> >>
+> >>       struct mx2_buf_internal buf_discard[2];
+> >>       void                    *discard_buffer;
+> >> @@ -303,6 +312,29 @@ struct mx2_camera_dev {
+> >>       struct vb2_alloc_ctx    *alloc_ctx;
+> >>  };
+> >>
+> >> +static struct platform_device_id mx2_camera_devtype[] = {
+> >> +     {
+> >> +             .name = "imx25-camera",
+> >> +             .driver_data = IMX25_CAMERA,
+> >> +     }, {
+> >> +             .name = "imx27-camera",
+> >> +             .driver_data = IMX27_CAMERA,
+> >> +     }, {
+> >> +             /* sentinel */
+> >> +     }
+> >> +};
+> >> +MODULE_DEVICE_TABLE(platform, mx2_camera_devtype);
+> >> +
+> >> +static inline int is_imx25_camera(struct mx2_camera_dev *pcdev)
+> >> +{
+> >> +     return pcdev->devtype == IMX25_CAMERA;
+> >> +}
+> >> +
+> >> +static inline int is_imx27_camera(struct mx2_camera_dev *pcdev)
+> >> +{
+> >> +     return pcdev->devtype == IMX27_CAMERA;
+> >> +}
+> >> +
+> >>  static struct mx2_buffer *mx2_ibuf_to_buf(struct mx2_buf_internal *int_buf)
+> >>  {
+> >>       return container_of(int_buf, struct mx2_buffer, internal);
+> >> @@ -406,9 +438,9 @@ static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
+> >>
+> >>       clk_disable_unprepare(pcdev->clk_csi);
+> >>       writel(0, pcdev->base_csi + CSICR1);
+> >> -     if (cpu_is_mx27()) {
+> >> +     if (is_imx27_camera(pcdev)) {
+> >>               writel(0, pcdev->base_emma + PRP_CNTL);
+> >> -     } else if (cpu_is_mx25()) {
+> >> +     } else if (is_imx25_camera(pcdev)) {
+> >>               spin_lock_irqsave(&pcdev->lock, flags);
+> >>               pcdev->fb1_active = NULL;
+> >>               pcdev->fb2_active = NULL;
+> >> @@ -438,7 +470,7 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
+> >>
+> >>       csicr1 = CSICR1_MCLKEN;
+> >>
+> >> -     if (cpu_is_mx27())
+> >> +     if (is_imx27_camera(pcdev))
+> >>               csicr1 |= CSICR1_PRP_IF_EN | CSICR1_FCC |
+> >>                       CSICR1_RXFF_LEVEL(0);
+> >>
+> >> @@ -514,7 +546,7 @@ out:
+> >>  static irqreturn_t mx25_camera_irq(int irq_csi, void *data)
+> >>  {
+> >>       struct mx2_camera_dev *pcdev = data;
+> >> -     u32 status = readl(pcdev->base_csi + CSISR);
+> >> +     u32 status = readl(pcdev->base_csi + pcdev->reg_csisr);
+> >>
+> >>       if (status & CSISR_DMA_TSF_FB1_INT)
+> >>               mx25_camera_frame_done(pcdev, 1, MX2_STATE_DONE);
+> >> @@ -523,7 +555,7 @@ static irqreturn_t mx25_camera_irq(int irq_csi, void *data)
+> >>
+> >>       /* FIXME: handle CSISR_RFF_OR_INT */
+> >>
+> >> -     writel(status, pcdev->base_csi + CSISR);
+> >> +     writel(status, pcdev->base_csi + pcdev->reg_csisr);
+> >>
+> >>       return IRQ_HANDLED;
+> >>  }
+> >> @@ -608,7 +640,7 @@ static void mx2_videobuf_queue(struct vb2_buffer *vb)
+> >>       buf->state = MX2_STATE_QUEUED;
+> >>       list_add_tail(&buf->internal.queue, &pcdev->capture);
+> >>
+> >> -     if (cpu_is_mx25()) {
+> >> +     if (is_imx25_camera(pcdev)) {
+> >>               u32 csicr3, dma_inten = 0;
+> >>
+> >>               if (pcdev->fb1_active == NULL) {
+> >> @@ -627,20 +659,20 @@ static void mx2_videobuf_queue(struct vb2_buffer *vb)
+> >>                       list_del(&buf->internal.queue);
+> >>                       buf->state = MX2_STATE_ACTIVE;
+> >>
+> >> -                     csicr3 = readl(pcdev->base_csi + CSICR3);
+> >> +                     csicr3 = readl(pcdev->base_csi + pcdev->reg_csicr3);
+> >>
+> >>                       /* Reflash DMA */
+> >>                       writel(csicr3 | CSICR3_DMA_REFLASH_RFF,
+> >> -                                     pcdev->base_csi + CSICR3);
+> >> +                                     pcdev->base_csi + pcdev->reg_csicr3);
+> >>
+> >>                       /* clear & enable interrupts */
+> >> -                     writel(dma_inten, pcdev->base_csi + CSISR);
+> >> +                     writel(dma_inten, pcdev->base_csi + pcdev->reg_csisr);
+> >>                       pcdev->csicr1 |= dma_inten;
+> >>                       writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
+> >>
+> >>                       /* enable DMA */
+> >>                       csicr3 |= CSICR3_DMA_REQ_EN_RFF | CSICR3_RXFF_LEVEL(1);
+> >> -                     writel(csicr3, pcdev->base_csi + CSICR3);
+> >> +                     writel(csicr3, pcdev->base_csi + pcdev->reg_csicr3);
+> >>               }
+> >>       }
+> >>
+> >> @@ -684,7 +716,7 @@ static void mx2_videobuf_release(struct vb2_buffer *vb)
+> >>        */
+> >>
+> >>       spin_lock_irqsave(&pcdev->lock, flags);
+> >> -     if (cpu_is_mx25() && buf->state == MX2_STATE_ACTIVE) {
+> >> +     if (is_imx25_camera(pcdev) && buf->state == MX2_STATE_ACTIVE) {
+> >>               if (pcdev->fb1_active == buf) {
+> >>                       pcdev->csicr1 &= ~CSICR1_FB1_DMA_INTEN;
+> >>                       writel(0, pcdev->base_csi + CSIDMASA_FB1);
+> >> @@ -807,7 +839,7 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
+> >>       unsigned long phys;
+> >>       int bytesperline;
+> >>
+> >> -     if (cpu_is_mx27()) {
+> >> +     if (is_imx27_camera(pcdev)) {
+> >>               unsigned long flags;
+> >>               if (count < 2)
+> >>                       return -EINVAL;
+> >> @@ -902,7 +934,7 @@ static int mx2_stop_streaming(struct vb2_queue *q)
+> >>       void *b;
+> >>       u32 cntl;
+> >>
+> >> -     if (cpu_is_mx27()) {
+> >> +     if (is_imx27_camera(pcdev)) {
+> >>               spin_lock_irqsave(&pcdev->lock, flags);
+> >>
+> >>               cntl = readl(pcdev->base_emma + PRP_CNTL);
+> >> @@ -1054,11 +1086,11 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
+> >>       if (bytesperline < 0)
+> >>               return bytesperline;
+> >>
+> >> -     if (cpu_is_mx27()) {
+> >> +     if (is_imx27_camera(pcdev)) {
+> >>               ret = mx27_camera_emma_prp_reset(pcdev);
+> >>               if (ret)
+> >>                       return ret;
+> >> -     } else if (cpu_is_mx25()) {
+> >> +     } else if (is_imx25_camera(pcdev)) {
+> >>               writel((bytesperline * icd->user_height) >> 2,
+> >>                               pcdev->base_csi + CSIRXCNT);
+> >>               writel((bytesperline << 16) | icd->user_height,
+> >> @@ -1351,7 +1383,7 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
+> >>       /* FIXME: implement MX27 limits */
+> >>
+> >>       /* limit to MX25 hardware capabilities */
+> >> -     if (cpu_is_mx25()) {
+> >> +     if (is_imx25_camera(pcdev)) {
+> >>               if (xlate->host_fmt->bits_per_sample <= 8)
+> >>                       width_limit = 0xffff * 4;
+> >>               else
+> >> @@ -1685,6 +1717,20 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+> >>               goto exit;
+> >>       }
+> >>
+> >> +     pcdev->devtype = pdev->id_entry->driver_data;
+> >> +     switch (pcdev->devtype) {
+> >> +     case IMX25_CAMERA:
+> >> +             pcdev->reg_csisr = CSISR_IMX25;
+> >> +             pcdev->reg_csicr3 = CSICR3_IMX25;
+> >> +             break;
+> >> +     case IMX27_CAMERA:
+> >> +             pcdev->reg_csisr = CSISR_IMX27;
+> >> +             pcdev->reg_csicr3 = CSICR3_IMX27;
+> >> +             break;
+> >> +     default:
+> >> +             break;
+> >> +     }
+> >> +
+> >>       pcdev->clk_csi = devm_clk_get(&pdev->dev, "ahb");
+> >>       if (IS_ERR(pcdev->clk_csi)) {
+> >>               dev_err(&pdev->dev, "Could not get csi clock\n");
+> >> @@ -1722,7 +1768,7 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+> >>       pcdev->dev = &pdev->dev;
+> >>       platform_set_drvdata(pdev, pcdev);
+> >>
+> >> -     if (cpu_is_mx25()) {
+> >> +     if (is_imx25_camera(pcdev)) {
+> >>               err = devm_request_irq(&pdev->dev, irq_csi, mx25_camera_irq, 0,
+> >>                                      MX2_CAM_DRV_NAME, pcdev);
+> >>               if (err) {
+> >> @@ -1731,7 +1777,7 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+> >>               }
+> >>       }
+> >>
+> >> -     if (cpu_is_mx27()) {
+> >> +     if (is_imx27_camera(pcdev)) {
+> >>               err = mx27_camera_emma_init(pdev);
+> >>               if (err)
+> >>                       goto exit;
+> >> @@ -1742,7 +1788,7 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+> >>       pcdev->soc_host.priv            = pcdev;
+> >>       pcdev->soc_host.v4l2_dev.dev    = &pdev->dev;
+> >>       pcdev->soc_host.nr              = pdev->id;
+> >> -     if (cpu_is_mx25())
+> >> +     if (is_imx25_camera(pcdev))
+> >>               pcdev->soc_host.capabilities = SOCAM_HOST_CAP_STRIDE;
+> >>
+> >>       pcdev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+> >> @@ -1762,7 +1808,7 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+> >>  exit_free_emma:
+> >>       vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
+> >>  eallocctx:
+> >> -     if (cpu_is_mx27()) {
+> >> +     if (is_imx27_camera(pcdev)) {
+> >>               clk_disable_unprepare(pcdev->clk_emma_ipg);
+> >>               clk_disable_unprepare(pcdev->clk_emma_ahb);
+> >>       }
+> >> @@ -1780,7 +1826,7 @@ static int __devexit mx2_camera_remove(struct platform_device *pdev)
+> >>
+> >>       vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
+> >>
+> >> -     if (cpu_is_mx27()) {
+> >> +     if (is_imx27_camera(pcdev)) {
+> >>               clk_disable_unprepare(pcdev->clk_emma_ipg);
+> >>               clk_disable_unprepare(pcdev->clk_emma_ahb);
+> >>       }
+> >> @@ -1794,6 +1840,7 @@ static struct platform_driver mx2_camera_driver = {
+> >>       .driver         = {
+> >>               .name   = MX2_CAM_DRV_NAME,
+> >>       },
+> >> +     .id_table       = mx2_camera_devtype,
+> >>       .remove         = __devexit_p(mx2_camera_remove),
+> >>  };
+> >>
+> >> --
+> >> 1.7.9.5
+> 
+> I can't test this patch because it depends heavily on the previous
+> one, which breaks the driver.
+> 
+> Regards.
+> 
+> -- 
+> Javier Martin
+> Vista Silicon S.L.
+> CDTUC - FASE C - Oficina S-345
+> Avda de los Castros s/n
+> 39005- Santander. Cantabria. Spain
+> +34 942 25 32 60
+> www.vista-silicon.com
+> 
 
-
--- 
-Peter
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
