@@ -1,81 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:34012 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756869Ab2IDMLA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Sep 2012 08:11:00 -0400
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 3/3] drivers/media/platform/davinci/vpfe_capture.c: fix error return code
-Date: Tue,  4 Sep 2012 14:05:03 +0200
-Message-Id: <1346760305-13060-1-git-send-email-peter.senna@gmail.com>
+Received: from mailout1.samsung.com ([203.254.224.24]:42525 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754909Ab2IQKys (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Sep 2012 06:54:48 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 5/7] s5p-fimc: Remove unused platform data structure fields
+Date: Mon, 17 Sep 2012 12:54:31 +0200
+Message-id: <1347879273-30463-2-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1347879273-30463-1-git-send-email-s.nawrocki@samsung.com>
+References: <1347878888-30001-1-git-send-email-s.nawrocki@samsung.com>
+ <1347879273-30463-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Senna Tschudin <peter.senna@gmail.com>
+alignment, fixed_phy_vdd and phy_enable fields are now unused
+so removed them. The data alignment is now derived directly
+from media bus pixel code, phy_enable callback has been replaced
+with direct function call and fixed_phy_vdd was dropped in commit
+438df3ebe5f0ce408490a777a758d5905f0dd58f
+"[media] s5p-csis: Handle all available power supplies".
 
-Convert a nonnegative error return code to a negative one, as returned
-elsewhere in the function.
-
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
-
-// <smpl>
-(
-if@p1 (\(ret < 0\|ret != 0\))
- { ... return ret; }
-|
-ret@p1 = 0
-)
-... when != ret = e1
-    when != &ret
-*if(...)
-{
-  ... when != ret = e2
-      when forall
- return ret;
-}
-
-// </smpl>
-
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/platform/davinci/vpfe_capture.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ include/linux/platform_data/mipi-csis.h | 15 ++++-----------
+ include/media/s5p_fimc.h                |  2 --
+ 2 files changed, 4 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
-index 843b138..f99198c 100644
---- a/drivers/media/platform/davinci/vpfe_capture.c
-+++ b/drivers/media/platform/davinci/vpfe_capture.c
-@@ -1131,11 +1131,11 @@ static int vpfe_s_input(struct file *file, void *priv, unsigned int index)
- 		ret = -EBUSY;
- 		goto unlock_out;
- 	}
--
--	if (vpfe_get_subdev_input_index(vpfe_dev,
--					&subdev_index,
--					&inp_index,
--					index) < 0) {
-+	ret = vpfe_get_subdev_input_index(vpfe_dev,
-+					  &subdev_index,
-+					  &inp_index,
-+					  index);
-+	if (ret < 0) {
- 		v4l2_err(&vpfe_dev->v4l2_dev, "invalid input index\n");
- 		goto unlock_out;
- 	}
-@@ -1748,8 +1748,9 @@ static long vpfe_param_handler(struct file *file, void *priv,
- 					"Error setting parameters in CCDC\n");
- 				goto unlock_out;
- 			}
--			if (vpfe_get_ccdc_image_format(vpfe_dev,
--						       &vpfe_dev->fmt) < 0) {
-+			ret = vpfe_get_ccdc_image_format(vpfe_dev,
-+							 &vpfe_dev->fmt);
-+			if (ret < 0) {
- 				v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
- 					"Invalid image format at CCDC\n");
- 				goto unlock_out;
+diff --git a/include/linux/platform_data/mipi-csis.h b/include/linux/platform_data/mipi-csis.h
+index 2e59e43..8b703e1 100644
+--- a/include/linux/platform_data/mipi-csis.h
++++ b/include/linux/platform_data/mipi-csis.h
+@@ -1,7 +1,7 @@
+ /*
+  * Copyright (C) 2010-2011 Samsung Electronics Co., Ltd.
+  *
+- * S5P series MIPI CSI slave device support
++ * Samsung S5P/Exynos SoC series MIPI CSIS device support
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -13,21 +13,14 @@
+ 
+ /**
+  * struct s5p_platform_mipi_csis - platform data for S5P MIPI-CSIS driver
+- * @clk_rate: bus clock frequency
+- * @lanes: number of data lanes used
+- * @alignment: data alignment in bits
+- * @hs_settle: HS-RX settle time
+- * @fixed_phy_vdd: false to enable external D-PHY regulator management in the
+- *		   driver or true in case this regulator has no enable function
+- * @phy_enable: pointer to a callback controlling D-PHY enable/reset
++ * @clk_rate:    bus clock frequency
++ * @lanes:       number of data lanes used
++ * @hs_settle:   HS-RX settle time
+  */
+ struct s5p_platform_mipi_csis {
+ 	unsigned long clk_rate;
+ 	u8 lanes;
+-	u8 alignment;
+ 	u8 hs_settle;
+-	bool fixed_phy_vdd;
+-	int (*phy_enable)(struct platform_device *pdev, bool on);
+ };
+ 
+ /**
+diff --git a/include/media/s5p_fimc.h b/include/media/s5p_fimc.h
+index 09421a61..eaea62a 100644
+--- a/include/media/s5p_fimc.h
++++ b/include/media/s5p_fimc.h
+@@ -30,7 +30,6 @@ struct i2c_board_info;
+  * @board_info: pointer to I2C subdevice's board info
+  * @clk_frequency: frequency of the clock the host interface provides to sensor
+  * @bus_type: determines bus type, MIPI, ITU-R BT.601 etc.
+- * @csi_data_align: MIPI-CSI interface data alignment in bits
+  * @i2c_bus_num: i2c control bus id the sensor is attached to
+  * @mux_id: FIMC camera interface multiplexer index (separate for MIPI and ITU)
+  * @clk_id: index of the SoC peripheral clock for sensors
+@@ -40,7 +39,6 @@ struct s5p_fimc_isp_info {
+ 	struct i2c_board_info *board_info;
+ 	unsigned long clk_frequency;
+ 	enum cam_bus_type bus_type;
+-	u16 csi_data_align;
+ 	u16 i2c_bus_num;
+ 	u16 mux_id;
+ 	u16 flags;
+-- 
+1.7.11.3
 
