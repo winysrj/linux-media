@@ -1,460 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:57276 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753844Ab2IXNWF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 09:22:05 -0400
+Received: from mail.kapsi.fi ([217.30.184.167]:45608 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755075Ab2IQNQW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Sep 2012 09:16:22 -0400
+Message-ID: <50572290.8090308@iki.fi>
+Date: Mon, 17 Sep 2012 16:16:00 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <201209241350.00893.hverkuil@xs4all.nl>
-References: <1348483451-20668-1-git-send-email-prabhakar.lad@ti.com>
- <201209241259.11570.hverkuil@xs4all.nl> <201209241350.00893.hverkuil@xs4all.nl>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Mon, 24 Sep 2012 18:51:44 +0530
-Message-ID: <CA+V-a8t5qYBAY4xjFQOM5UcdrLRfuta-mbeO0qbTZ-EFR8=LwA@mail.gmail.com>
-Subject: Re: [PATCH v2] media: davinci: vpif: display: separate out subdev
- from output
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	Sekhar Nori <nsekhar@ti.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	VGER <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Oliver Schinagl <oliver+list@schinagl.nl>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Support for Asus MyCinema U3100Mini Plus
+References: <1347223647-645-1-git-send-email-oliver+list@schinagl.nl> <504D00BC.4040109@schinagl.nl> <504D0F44.6030706@iki.fi> <504D17AA.8020807@schinagl.nl> <504D1859.5050201@iki.fi> <504DB9D4.6020502@schinagl.nl> <504DD311.7060408@iki.fi> <504DF950.8060006@schinagl.nl> <504E2345.5090800@schinagl.nl> <5055DD27.7080501@schinagl.nl> <505601B6.2010103@iki.fi> <5055EA30.8000200@schinagl.nl> <50560B82.7000205@iki.fi> <50564E58.20004@schinagl.nl> <50566260.1090108@iki.fi> <5056DE5C.70003@schinagl.nl> <50571F83.10708@schinagl.nl>
+In-Reply-To: <50571F83.10708@schinagl.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Mon, Sep 24, 2012 at 5:20 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Mon September 24 2012 12:59:11 Hans Verkuil wrote:
->> On Mon September 24 2012 12:44:11 Prabhakar wrote:
->> > From: Lad, Prabhakar <prabhakar.lad@ti.com>
->> >
->> > vpif_display relied on a 1-1 mapping of output and subdev. This is not
->> > necessarily the case. Separate the two. So there is a list of subdevs
->> > and a list of outputs. Each output refers to a subdev and has routing
->> > information. An output does not have to have a subdev.
->> >
->> > The initial output for each channel is set to the fist output.
->> >
->> > Currently missing is support for associating multiple subdevs with
->> > an output.
->> >
->> > Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
->> > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
->> > Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> > Cc: Sekhar Nori <nsekhar@ti.com>
+On 09/17/2012 04:02 PM, Oliver Schinagl wrote:
+> On 17-09-12 10:25, Oliver Schinagl wrote:
+>> On 17-09-12 01:36, Antti Palosaari wrote:
+>>> On 09/17/2012 01:10 AM, Oliver Schinagl wrote:
+>>>> On 09/16/12 19:25, Antti Palosaari wrote:
+>>>>> On 09/16/2012 06:03 PM, Oliver Schinagl wrote:
+>>>>>> I don't have windows, so capturing using windows is near impossible.
+>>>>>> Also since the vendor driver used to work, I guess I will have to dig
+>>>>>> into that more.
+>>>>>
+>>>>> You could capture data from Linux too (eg. Wireshark).
+>>>> Ah of course. I'll dig up the old vendor driver and see if I can get it
+>>>> running on 3.2 or better yet, on 3.5/your-3.6. I know there's patches
+>>>> for 3.2 but I've never tested those. Otherwise the older 2.6.2* series
+>>>> should still work.
+>>>>
+>>>>>
+>>>>> But with a little experience you could see those GPIOs reading
+>>>>> existing
+>>>>> Linux driver and then do some tests to see what happens. For example
+>>>>> some GPIO powers tuner off, you will see I2C error. Changing it back
+>>>>> error disappears.
+>>>> I have zero experience so I'll try to figure things out. I guess you
+>>>> currently turn on/off GPIO's etc in the current driver? Any line which
+>>>> does this so I can examine how it's done? As for the I2C errors, I
+>>>> suppose the current driver will spew those out?
+>>>
+>>> Those GPIOs are set in file af9035.c, functiuons:
+>>> af9035_tuner_attach() and af9035_fc0011_tuner_callback(). For
+>>> TDA18218 tuner there is no any GPIOs set, which could be wrong and it
+>>> just works with good luck OR it is wired/connected directly so that
+>>> GPIOs are not used at all.
+>> Ahah! Then I know what to look for. Since af9035 also has fc0011
+>> support, there should be some similarities I can find.
+> Which I did. I found that the af9033 sets the "gpiot2" o, en and on
+> values high to enable the tuner. Luckly, the fc2580 is routed to the
+> exact same gpio and thus the same tuner enable/disable routine can be
+> used as the FC0011. Appearantly the FC0011 tuner also has a led that
+> needs to be enabled/disabled, at gpioh8, which the fc2580 lacks. So I
+> found the tuner enable and should be able to incorporate that without
+> issue.
+>
+> The other callback the fc2580 has, is a 'reset'. The fc2580 appears to
+> be lacking such feature, or is not used in the vendor driver.
+>>>
+>>>> Speaking off, in my previous message, I wrote about the driver spitting
+>>>> out the following error:
+>>>> [dvb_usb_af9035]af9035_read_config =_ "%s: [%d]tuner=%02x\012"
+>>>
+>>> It is the tuner ID value got from eeprom. You should take that number
+>>> and add it to af9033.h file:
+>>> #define AF9033_TUNER_FC2580    0xXXXX <= insert number here
+>> Yes, but I think %s, %d and %02x\012 should actually list values?
+>> (\012 I belive is \newline)
+> I need to learn dynamic_debug; and I think I may have set it up wrong
+> last time (af9035 and fc2580, but not af9033). I found some good
+> documentation and will try this tonight.
+>>>
+>>>> None of the values where set however. Did I miss-configure anything for
+>>>> it to cause to 'forget' substituting?
+>>>
+>>> What you mean? Could you enable debugs, plug stick in and copy paste
+>>> what debugs says?
+>> I have dynamic debugging enabled and have gotten the above snipped
+>> from the proc/sysfs interface. Also dmesg from replugging I've
+>> attached a few messages back.
 >>
->> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
->
-> I'm retracting this Ack. I did see something that wasn't right but I thought
-> it was harmless, but after thinking some more I believe it should be fixed.
-> Luckily, it's easy to fix. See below. Since we need a new version anyway I
-> also added a comment to a few minor issues that can be fixed at the same time.
->
+>> [  188.051502] af9033: firmware version: LINK=12.13.15.0 OFDM=6.20.15.0
+>> [  188.051520] usb 1-3: DVB: registering adapter 0 frontend 0 (Afatech
+>> AF9033 (DVB-T))...
+>> [  188.054019] i2c i2c-1: fc2580_attach: chip_id=5a
+>> [  188.054030] i2c i2c-1: fc2580_attach: failed=0
+>> [  188.054471] i2c i2c-1: fc2580_release:
+>> [  188.054485] usb 1-3: dvb_usbv2: 'Asus U3100Mini Plus' error while
+>> loading driver (-19)
 >>
->> Regards,
+>> is the dmesg output from then, which doesn't list the values from the
+>> debugging bit either. I suppose I need more debugging options enabled
+>> to have those flag characters actually filled in?
+
+It should print af9035 debugs too.
+
+usb 2-2: af9035_read_config: [0]tuner=27
+
+modprobe dvb_usb_af9035; echo -n 'module dvb_usb_af9035 +p' > 
+/sys/kernel/debug/dynamic_debug/control
+
+modprobe dvb_usb_v2; echo -n 'module dvb_usb_v2 +p' > 
+/sys/kernel/debug/dynamic_debug/control
+
+If tuner communication is really working and it says chip id is 0x5a 
+then it is different than driver knows. It could be new revision of 
+tuner. Change chip_id to match 0x5a
+
+
+>>>>>
+>>>>>> Since all the pieces should be there, fc2580 driver, af9033/5 driver,
+>>>>>> it's just a matter of glueing things together, right? I'll dig
+>>>>>> further
+>>>>>> into it and see what I can find/do.
+>>>>>
+>>>>> Correct. Tuner init (demod settings fc2580) for is needed for af9033.
+>>>>> And GPIOs for AF9035. In very bad luck some changes for fc2580 is
+>>>>> needed
+>>>>> too, but it is not very, very, unlikely.
+>>>>>
+>>>>> This patch is very similar you will need to do (tda18218 tuner support
+>>>>> for af9035):
+>>>>> http://patchwork.linuxtv.org/patch/10547/
+>>>> I re-did my patch using that as a template (before I used your work on
+>>>> the rtl) and got the exact result.
+>>>>
+>>>> Your rtl|fc2580 combo btw (from bare memory) didn't have the
+>>>> fc2580_init
+>>>> stream in af9033_priv.h. What exactly gets init-ed there? The af9033 to
+>>>> work with the fc2580?
+>>>
+>>> You have to add fc2580 init table to file af9033_priv.h. It
+>>> configures all the settings needed for AF9033 demod in order to
+>>> operate with FC2580 tuner. There is some values like "tuner ID" which
+>>> is passed for AF9033 firmware, dunno what kind of tweaks it done.
+>>> Maybe calculates some values like signal strengths and AGC values. It
+>>> could work without, but at least performance is reduced.
+>> I did add it. I found the init tables in the vendor driver, compared
+>> them to the existing init tables, found that the others where
+>> identical, but offset by 0x8000. I thus copied the table for the
+>> fc2580 and added the address offset.
+>> You can glance over it in the driver patch I submitted last week,
+>> should be there :)
 >>
->>       Hans
->>
->> > ---
->> >  This patch is dependent on the patch series from Hans
->> >  (http://www.mail-archive.com/linux-media@vger.kernel.org/msg52270.html)
->> >
->> >  Changes for V2:
->> >  1: Changed v4l2_device_call_until_err() call to v4l2_subdev_call() for
->> >     s_routing, since this call is for specific subdev, pointed out by Hans.
->> >
->> >  arch/arm/mach-davinci/board-da850-evm.c       |   29 +++++-
->> >  arch/arm/mach-davinci/board-dm646x-evm.c      |   39 ++++++-
->> >  drivers/media/platform/davinci/vpif_display.c |  136 ++++++++++++++++++++-----
->> >  include/media/davinci/vpif_types.h            |   20 +++-
->> >  4 files changed, 183 insertions(+), 41 deletions(-)
->> >
->> > diff --git a/arch/arm/mach-davinci/board-da850-evm.c b/arch/arm/mach-davinci/board-da850-evm.c
->> > index 3081ea4..23a7012 100644
->> > --- a/arch/arm/mach-davinci/board-da850-evm.c
->> > +++ b/arch/arm/mach-davinci/board-da850-evm.c
->> > @@ -46,6 +46,7 @@
->> >  #include <mach/spi.h>
->> >
->> >  #include <media/tvp514x.h>
->> > +#include <media/adv7343.h>
->> >
->> >  #define DA850_EVM_PHY_ID           "davinci_mdio-0:00"
->> >  #define DA850_LCD_PWR_PIN          GPIO_TO_PIN(2, 8)
->> > @@ -1257,16 +1258,34 @@ static struct vpif_subdev_info da850_vpif_subdev[] = {
->> >     },
->> >  };
->> >
->> > -static const char const *vpif_output[] = {
->> > -           "Composite",
->> > -           "S-Video",
->> > +static const struct vpif_output da850_ch0_outputs[] = {
->> > +   {
->> > +           .output = {
->> > +                   .index = 0,
->> > +                   .name = "Composite",
->> > +                   .type = V4L2_OUTPUT_TYPE_ANALOG,
->> > +           },
->> > +           .subdev_name = "adv7343",
->> > +           .output_route = ADV7343_COMPOSITE_ID,
->> > +   },
->> > +   {
->> > +           .output = {
->> > +                   .index = 1,
->> > +                   .name = "S-Video",
->> > +                   .type = V4L2_OUTPUT_TYPE_ANALOG,
->> > +           },
->> > +           .subdev_name = "adv7343",
->> > +           .output_route = ADV7343_SVIDEO_ID,
->> > +   },
->> >  };
->> >
->> >  static struct vpif_display_config da850_vpif_display_config = {
->> >     .subdevinfo   = da850_vpif_subdev,
->> >     .subdev_count = ARRAY_SIZE(da850_vpif_subdev),
->> > -   .output       = vpif_output,
->> > -   .output_count = ARRAY_SIZE(vpif_output),
->> > +   .chan_config[0] = {
->> > +           .outputs = da850_ch0_outputs,
->> > +           .output_count = ARRAY_SIZE(da850_ch0_outputs),
->> > +   },
->> >     .card_name    = "DA850/OMAP-L138 Video Display",
->> >  };
->> >
->> > diff --git a/arch/arm/mach-davinci/board-dm646x-evm.c b/arch/arm/mach-davinci/board-dm646x-evm.c
->> > index ad249c7..c206768 100644
->> > --- a/arch/arm/mach-davinci/board-dm646x-evm.c
->> > +++ b/arch/arm/mach-davinci/board-dm646x-evm.c
->> > @@ -26,6 +26,7 @@
->> >  #include <linux/i2c/pcf857x.h>
->> >
->> >  #include <media/tvp514x.h>
->> > +#include <media/adv7343.h>
->> >
->> >  #include <linux/mtd/mtd.h>
->> >  #include <linux/mtd/nand.h>
->> > @@ -496,18 +497,44 @@ static struct vpif_subdev_info dm646x_vpif_subdev[] = {
->> >     },
->> >  };
->> >
->> > -static const char *output[] = {
->> > -   "Composite",
->> > -   "Component",
->> > -   "S-Video",
->> > +static const struct vpif_output dm6467_ch0_outputs[] = {
->> > +   {
->> > +           .output = {
->> > +                   .index = 0,
->> > +                   .name = "Composite",
->> > +                   .type = V4L2_OUTPUT_TYPE_ANALOG,
->> > +           },
->> > +           .subdev_name = "adv7343",
->> > +           .output_route = ADV7343_COMPOSITE_ID,
->> > +   },
->> > +   {
->> > +           .output = {
->> > +                   .index = 1,
->> > +                   .name = "Component",
->> > +                   .type = V4L2_OUTPUT_TYPE_ANALOG,
->> > +           },
->> > +           .subdev_name = "adv7343",
->> > +           .output_route = ADV7343_COMPONENT_ID,
->> > +   },
->> > +   {
->> > +           .output = {
->> > +                   .index = 2,
->> > +                   .name = "S-Video",
->> > +                   .type = V4L2_OUTPUT_TYPE_ANALOG,
->> > +           },
->> > +           .subdev_name = "adv7343",
->> > +           .output_route = ADV7343_SVIDEO_ID,
->> > +   },
->> >  };
->> >
->> >  static struct vpif_display_config dm646x_vpif_display_config = {
->> >     .set_clock      = set_vpif_clock,
->> >     .subdevinfo     = dm646x_vpif_subdev,
->> >     .subdev_count   = ARRAY_SIZE(dm646x_vpif_subdev),
->> > -   .output         = output,
->> > -   .output_count   = ARRAY_SIZE(output),
->> > +   .chan_config[0] = {
->> > +           .outputs = dm6467_ch0_outputs,
->> > +           .output_count = ARRAY_SIZE(dm6467_ch0_outputs),
->> > +   },
->> >     .card_name      = "DM646x EVM",
->> >  };
->> >
->> > diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
->> > index 8d1ce09..f68780f 100644
->> > --- a/drivers/media/platform/davinci/vpif_display.c
->> > +++ b/drivers/media/platform/davinci/vpif_display.c
->> > @@ -308,7 +308,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
->> >             channel2_intr_assert();
->> >             channel2_intr_enable(1);
->> >             enable_channel2(1);
->> > -           if (vpif_config_data->ch2_clip_en)
->> > +           if (vpif_config_data->chan_config[VPIF_CHANNEL2_VIDEO].clip_en)
->> >                     channel2_clipping_enable(1);
->> >     }
->> >
->> > @@ -317,7 +317,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
->> >             channel3_intr_assert();
->> >             channel3_intr_enable(1);
->> >             enable_channel3(1);
->> > -           if (vpif_config_data->ch3_clip_en)
->> > +           if (vpif_config_data->chan_config[VPIF_CHANNEL3_VIDEO].clip_en)
->> >                     channel3_clipping_enable(1);
->> >     }
->> >
->> > @@ -1174,14 +1174,16 @@ static int vpif_streamoff(struct file *file, void *priv,
->> >     if (buftype == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
->> >             /* disable channel */
->> >             if (VPIF_CHANNEL2_VIDEO == ch->channel_id) {
->> > -                   if (vpif_config_data->ch2_clip_en)
->> > +                   if (vpif_config_data->
->> > +                           chan_config[VPIF_CHANNEL2_VIDEO].clip_en)
->> >                             channel2_clipping_enable(0);
->> >                     enable_channel2(0);
->> >                     channel2_intr_enable(0);
->> >             }
->> >             if ((VPIF_CHANNEL3_VIDEO == ch->channel_id) ||
->> >                                     (2 == common->started)) {
->> > -                   if (vpif_config_data->ch3_clip_en)
->> > +                   if (vpif_config_data->
->> > +                           chan_config[VPIF_CHANNEL3_VIDEO].clip_en)
->> >                             channel3_clipping_enable(0);
->> >                     enable_channel3(0);
->> >                     channel3_intr_enable(0);
->> > @@ -1214,41 +1216,118 @@ static int vpif_enum_output(struct file *file, void *fh,
->> >  {
->> >
->> >     struct vpif_display_config *config = vpif_dev->platform_data;
->> > +   struct vpif_display_chan_config *chan_cfg;
->> > +   struct vpif_fh *vpif_handler = fh;
->> > +   struct channel_obj *ch = vpif_handler->channel;
->> >
->> > -   if (output->index >= config->output_count) {
->> > +   chan_cfg = &config->chan_config[ch->channel_id];
->> > +   if (output->index >= chan_cfg->output_count) {
->> >             vpif_dbg(1, debug, "Invalid output index\n");
->> >             return -EINVAL;
->> >     }
->> >
->> > -   strcpy(output->name, config->output[output->index]);
->> > -   output->type = V4L2_OUTPUT_TYPE_ANALOG;
->> > +   memcpy(output, &chan_cfg->outputs[output->index].output,
->> > +           sizeof(*output));
->
->         *output = chan_cfg->outputs[output->index].output;
->
->> >     output->std = VPIF_V4L2_STD;
->
-Should I move 'VPIF_V4L2_STD' this macro to vpif_types.h ?
+>> But since it modified the AF9033, I understand why your rtl driver
+>> didn't have the init table for the fc2580.
 
-> This should be part of chan_cfg->outputs[output->index].output and not be
-> overridden. If the output is a HDTV output, then std should be 0, otherwise
-> it should be whatever the std is that is supported by the output.
->
-> Really no different to what we do in vpif_capture.
->
-Ok
+If you look comment from the rtl28xxu.c around line 635 you will see it.
+/* FIXME: do not abuse fc0012 settings */
 
->> >
->> >     return 0;
->> >  }
->> >
->> > +/**
->> > + * vpif_output_to_subdev() - Maps output to sub device
->> > + * @vpif_cfg - global config ptr
->> > + * @chan_cfg - channel config ptr
->> > + * @index - Given output index from application
->> > + *
->> > + * lookup the sub device information for a given output index.
->> > + * we report all the output to application. output table also
->> > + * has sub device name for the each output
->> > + */
->> > +static int
->> > +vpif_output_to_subdev(struct vpif_display_config *vpif_cfg,
->> > +                 struct vpif_display_chan_config *chan_cfg, int index)
->> > +{
->> > +   struct vpif_subdev_info *subdev_info;
->> > +   const char *subdev_name;
->> > +   int i;
->> > +
->> > +   vpif_dbg(2, debug, "vpif_output_to_subdev\n");
->> > +
->> > +   if (chan_cfg->outputs == NULL)
->> > +           return -1;
->> > +
->> > +   subdev_name = chan_cfg->outputs[index].subdev_name;
->> > +   if (subdev_name == NULL)
->> > +           return -1;
->> > +
->> > +   /* loop through the sub device list to get the sub device info */
->> > +   for (i = 0; i < vpif_cfg->subdev_count; i++) {
->> > +           subdev_info = &vpif_cfg->subdevinfo[i];
->> > +           if (!strcmp(subdev_info->name, subdev_name))
->> > +                   return i;
->> > +   }
->> > +   return -1;
->> > +}
->> > +
->> > +/**
->> > + * vpif_set_output() - Select an output
->> > + * @vpif_cfg - global config ptr
->> > + * @ch - channel
->> > + * @index - Given output index from application
->> > + *
->> > + * Select the given output.
->> > + */
->> > +static int vpif_set_output(struct vpif_display_config *vpif_cfg,
->> > +                 struct channel_obj *ch, int index)
->> > +{
->> > +   struct vpif_display_chan_config *chan_cfg =
->> > +           &vpif_cfg->chan_config[ch->channel_id];
->> > +   struct vpif_subdev_info *subdev_info = NULL;
->> > +   struct v4l2_subdev *sd = NULL;
->> > +   u32 input = 0, output = 0;
->> > +   int sd_index;
->> > +   int ret;
->> > +
->> > +   sd_index = vpif_output_to_subdev(vpif_cfg, chan_cfg, index);
->> > +   if (sd_index >= 0) {
->> > +           sd = vpif_obj.sd[sd_index];
->> > +           subdev_info = &vpif_cfg->subdevinfo[sd_index];
->> > +   }
->> > +
->> > +   if (sd) {
->> > +           input = chan_cfg->outputs[index].input_route;
->> > +           output = chan_cfg->outputs[index].output_route;
->> > +           ret = v4l2_subdev_call(sd, video, s_routing, input, output, 0);
->> > +           if (ret < 0) {
->
-> Replace with:
->
->                 if (ret < 0 && ret != -ENOIOCTLCMD) {
->
-> It's OK if the subdev doesn't support this s_routing operation.
->
-Ok
-
->> > +                   vpif_err("Failed to set output\n");
->> > +                   return ret;
->> > +           }
->> > +
->> > +   }
->> > +   ch->output_idx = index;
->> > +   ch->sd = sd;
->
-> Just like in the capture case you should update tvnorms:
->
->         ch->video_dev->tvnorms = chan_cfg->inputs[index].output.std;
->
-> Make sure tvnorms is no longer set in vpif_video_template.
-> Ditto for current_norm. Since vpif_display.c supports g_std the current_norm
-> field shouldn't be used anymore.
->
-> The capture case also updates vpifparams.iface:
->
->         ch->vpifparams.iface = chan_cfg->vpif_if;
->
-> Isn't that needed for output as well?
->
-The iface is never used  in display, so there isnt any necessity to assign it.
-
-Regards,
---Prabhakar Lad
-
->> > +   return 0;
->> > +}
->> > +
->> >  static int vpif_s_output(struct file *file, void *priv, unsigned int i)
->> >  {
->> > +   struct vpif_display_config *config = vpif_dev->platform_data;
->> > +   struct vpif_display_chan_config *chan_cfg;
->> >     struct vpif_fh *fh = priv;
->> >     struct channel_obj *ch = fh->channel;
->> >     struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
->> > -   int ret = 0;
->> > +
->> > +   chan_cfg = &config->chan_config[ch->channel_id];
->> > +
->> > +   if (i >= chan_cfg->output_count)
->> > +           return -EINVAL;
->> >
->> >     if (common->started) {
->> >             vpif_err("Streaming in progress\n");
->> >             return -EBUSY;
->> >     }
->> >
->> > -   ret = v4l2_device_call_until_err(&vpif_obj.v4l2_dev, 1, video,
->> > -                                                   s_routing, 0, i, 0);
->> > -
->> > -   if (ret < 0)
->> > -           vpif_err("Failed to set output standard\n");
->> > -
->> > -   ch->output_idx = i;
->> > -   if (vpif_obj.sd[i])
->> > -           ch->sd = vpif_obj.sd[i];
->> > -   return ret;
->> > +   return vpif_set_output(config, ch, i);
->> >  }
->> >
->> >  static int vpif_g_output(struct file *file, void *priv, unsigned int *i)
->> > @@ -1291,9 +1370,12 @@ vpif_enum_dv_timings(struct file *file, void *priv,
->> >  {
->> >     struct vpif_fh *fh = priv;
->> >     struct channel_obj *ch = fh->channel;
->> > +   int ret;
->> >
->> > -   return v4l2_subdev_call(vpif_obj.sd[ch->output_idx],
->> > -                   video, enum_dv_timings, timings);
->> > +   ret = v4l2_subdev_call(ch->sd, video, enum_dv_timings, timings);
->> > +   if (ret == -ENOIOCTLCMD && ret == -ENODEV)
->> > +           return -EINVAL;
->> > +   return ret;
->> >  }
->> >
->> >  /**
->> > @@ -1320,12 +1402,9 @@ static int vpif_s_dv_timings(struct file *file, void *priv,
->> >
->> >     /* Configure subdevice timings, if any */
->> >     ret = v4l2_subdev_call(ch->sd, video, s_dv_timings, timings);
->> > -   if (ret == -ENOIOCTLCMD) {
->> > -           vpif_dbg(2, debug, "Custom DV timings not supported by "
->> > -                           "subdevice\n");
->> > -           return -ENODATA;
->> > -   }
->> > -   if (ret < 0 && ret != -ENODEV) {
->> > +   if (ret == -ENOIOCTLCMD || ret == -ENODEV)
->> > +           ret = 0;
->> > +   if (ret < 0) {
->> >             vpif_dbg(2, debug, "Error setting custom DV timings\n");
->> >             return ret;
->> >     }
->> > @@ -1754,6 +1833,11 @@ static __init int vpif_probe(struct platform_device *pdev)
->> >             ch->video_dev->lock = &common->lock;
->> >             video_set_drvdata(ch->video_dev, ch);
->> >
->> > +           /* select output 0 */
->> > +           err = vpif_set_output(config, ch, 0);
->> > +           if (err)
->> > +                   goto probe_out;
->> > +
->> >             /* register video device */
->> >             vpif_dbg(1, debug, "channel=%x,channel->video_dev=%x\n",
->> >                             (int)ch, (int)&ch->video_dev);
->
-> Regards,
->
->         Hans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Antti
+-- 
+http://palosaari.fi/
