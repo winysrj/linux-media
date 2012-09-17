@@ -1,68 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:48693 "EHLO
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:64665 "EHLO
 	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758294Ab2IMPmr (ORCPT
+	with ESMTP id S1755495Ab2IQKGA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 11:42:47 -0400
-From: Federico Vaga <federico.vaga@gmail.com>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: 'Mauro Carvalho Chehab' <mchehab@infradead.org>,
-	'Pawel Osciak' <pawel@osciak.com>,
-	'Hans Verkuil' <hans.verkuil@cisco.com>,
-	'Giancarlo Asnaghi' <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	'Jonathan Corbet' <corbet@lwn.net>
-Subject: Re: [PATCH 3/4] videobuf2-dma-streaming: new videobuf2 memory allocator
-Date: Thu, 13 Sep 2012 17:46:32 +0200
-Message-ID: <2107949.TNqhOsq2WF@harkonnen>
-In-Reply-To: <002e01cd91b9$2110d160$63327420$%szyprowski@samsung.com>
-References: <1347544368-30583-1-git-send-email-federico.vaga@gmail.com> <1347544368-30583-3-git-send-email-federico.vaga@gmail.com> <002e01cd91b9$2110d160$63327420$%szyprowski@samsung.com>
+	Mon, 17 Sep 2012 06:06:00 -0400
+Received: by bkwj10 with SMTP id j10so2374974bkw.19
+        for <linux-media@vger.kernel.org>; Mon, 17 Sep 2012 03:05:59 -0700 (PDT)
+Message-ID: <5056F605.7040006@gmail.com>
+Date: Mon, 17 Sep 2012 12:05:57 +0200
+From: =?ISO-8859-15?Q?Klaus-Dieter_M=F6ller?= <kdmoeller57@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: linux-media@vger.kernel.org
+Subject: TerraTec Cinergy T PCIe dual freezes the system
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> On Thursday, September 13, 2012 3:53 PM Federico Vaga wrote:
-> > Signed-off-by: Federico Vaga <federico.vaga@gmail.com>
-> 
-> A few words explaining why this memory handling module is required or
-> beneficial will definitely improve the commit :)
-
-ok, I will write some lines
-
-> > +static void *vb2_dma_streaming_cookie(void *buf_priv)
-> > +{
-> > +	struct vb2_streaming_buf *buf = buf_priv;
-> > +
-> > +	return (void *)buf->dma_handle;
-> > +}
-> 
-> Please change this function to:
-> 
-> static void *vb2_dma_streaming_cookie(void *buf_priv)
-> {
-> 	struct vb2_streaming_buf *buf = buf_priv;
-> 	return &buf->dma_handle;
-> }
-> 
-> and add a following static inline to
-> include/media/videobuf2-dma-streaming.h:
-> 
-> static inline dma_addr_t
-> vb2_dma_streaming_plane_paddr(struct vb2_buffer *vb, unsigned int
-> plane_no) {
->         dma_addr_t *dma_addr = vb2_plane_cookie(vb, plane_no);
->         return *dma_addr;
-> }
-> 
-> Do not use 'cookie' callback directly in the driver, the driver should
-> use the above proxy.
-> 
-> The &buf->dma_handle workaround is required for some possible
-> configurations with 64bit dma addresses, see commit 472af2b05bdefc.
-
-ACK.
-
--- 
-Federico Vaga
+Hello everybody,
+I want to use 2 TerraTec Cinergy T PCIe dual PCIe-cards in the same 
+system. Both cards are working without any problems if used standalone. 
+If both cards are used parallel the hole system freezes mostly on 
+loading the kernel modules. There are no error messages in the log 
+files. Sometimes (very seldom) the modules are loaded successfully and 
+then both cards can work over hours without problems. Freezing occurs 
+before starting a dvb application.Maybe someone has an idea what to do.
