@@ -1,55 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2709 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754940Ab2IQIRJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Sep 2012 04:17:09 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id q8H8H7ka090312
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Mon, 17 Sep 2012 10:17:08 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from tschai.localnet (tschai.lan [192.168.1.10])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 3822335C012A
-	for <linux-media@vger.kernel.org>; Mon, 17 Sep 2012 10:17:00 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.7] Two fixes
-Date: Mon, 17 Sep 2012 10:17:00 +0200
+Received: from mail.kapsi.fi ([217.30.184.167]:38483 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752238Ab2IQVHo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Sep 2012 17:07:44 -0400
+Message-ID: <5057910C.10408@iki.fi>
+Date: Tue, 18 Sep 2012 00:07:24 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: oliver+list@schinagl.nl
+CC: Oliver Schinagl <oliver@schinagl.nl>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Support for Asus MyCinema U3100Mini Plus
+References: <1347223647-645-1-git-send-email-oliver+list@schinagl.nl> <504D00BC.4040109@schinagl.nl> <504D0F44.6030706@iki.fi> <504D17AA.8020807@schinagl.nl> <504D1859.5050201@iki.fi> <504DB9D4.6020502@schinagl.nl> <504DD311.7060408@iki.fi> <504DF950.8060006@schinagl.nl> <504E2345.5090800@schinagl.nl> <5055DD27.7080501@schinagl.nl> <505601B6.2010103@iki.fi> <5055EA30.8000200@schinagl.nl> <50560B82.7000205@iki.fi> <50564E58.20004@schinagl.nl> <50566260.1090108@iki.fi> <5056DE5C.70003@schinagl.nl> <50571F83.10708@schinagl.nl> <50572290.8090308@iki.fi> <505724F0.20502@schinagl.nl> <50572B1D.3080807@iki.fi> <50573FC5.40307@schinagl.nl> <50578B61.1040700@schinagl.nl>
+In-Reply-To: <50578B61.1040700@schinagl.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201209171017.00829.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This pull request fixes a problem when using vb2_fop_read/write in non-blocking
-mode and a tuner-core issue when setting the audmode for a radio device.
+On 09/17/2012 11:43 PM, Oliver Schinagl wrote:
+> On 09/17/12 17:20, Oliver Schinagl wrote:
+>
+>>>>> If tuner communication is really working and it says chip id is 0x5a
+>>>>> then it is different than driver knows. It could be new revision of
+>>>>> tuner. Change chip_id to match 0x5a
+>>>>>
+>>>> Ah, so it's called chip_id on one end, but tuner_id on the other end.
+>>>> If/when I got this link working properly, I'll write a patch to fix
+>>>> some
+>>>> naming consistencies.
+>>>
+>>> No, you are totally wrong now. Chip ID is value inside chip register.
+>>> Almost every chip has some chip id value which driver could detect it
+>>> is speaking with correct chip. In that case value is stored inside
+>>> fc2580.
+>>>
+>>> Tuner ID is value stored inside AF9035 chip / eeprom. It is
+>>> configuration value for AF9035 hardware design. It says "that AF9035
+>>> device uses FC2580 RF-tuner". AF9035 (FC2580) tuner ID and FC2580 chip
+>>> ID are different values having different meaning.
+>> Ok, I understand the difference between Chip ID and Tuner ID I guess,
+>> and with my new knowledge about dynamic debug I know also understand my
+>> findings and where it goes wrong. I also know understand the chipID is
+>> stored in fc2580.c under the fc2580_attach, where it checks for 0x56.
+>> Appearantly my chipID is 0x5a. I wasn't triggered by this as none of the
+>> other fc2580 or af9035 devices had such a change so it wasn't obvious.
+>> Tuner ID is actively being chechked/set in the source, so that seemed
+>> more obvious.
+> It can't be 0x5a as chipid. I actually found that the vendor driver also
+> reads from 0x01 once to test the chip.
+>
+> This function is a generic function which tests I2C interface's
+> availability by reading out it's I2C id data from reg. address '0x01'.
+>
+> int fc2580_i2c_test( void ) {
+>      return ( fc2580_i2c_read( 0x01 ) == 0x56 )? 0x01 : 0x00;
+> }
+>
+> So something else is going weird. chipid being 0x56 is good though; same
+> chip revision. However I now got my system to hang, got some soft-hang
+> errors and the driver only reported failure on loading. No other debug
+> that I saw from dmesg before the crash. Will investigate more.
 
-Regards,
+huoh.
 
-	Hans
+usb 2-2: rtl28xxu_ctrl_msg: c0 00 ac 01 00 03 01 00 <<< 56
+usb 2-2: rtl28xxu_ctrl_msg: 40 00 ac 01 10 03 01 00 >>> ff
+usb 2-2: rtl28xxu_ctrl_msg: c0 00 ac 01 00 03 01 00 <<< 56
+usb 2-2: rtl28xxu_ctrl_msg: 40 00 ac 01 10 03 01 00 >>> 00
+usb 2-2: rtl28xxu_ctrl_msg: c0 00 ac 01 00 03 01 00 <<< 56
+i2c i2c-5: fc2580: FCI FC2580 successfully identified
 
-The following changes since commit 36aee5ff9098a871bda38dbbdad40ad59f6535cf:
+Why do you think its value is static - it cannot be changed...
 
-  [media] ir-rx51: Adjust dependencies (2012-09-15 19:44:30 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git fixes
-
-for you to fetch changes up to 862f7d91ff01bba8a59b89beef8cba715814a2f6:
-
-  tuner-core: map audmode to STEREO for radio devices. (2012-09-17 10:14:55 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (2):
-      vb2: fix wrong owner check
-      tuner-core: map audmode to STEREO for radio devices.
-
- drivers/media/v4l2-core/tuner-core.c     |    5 ++++-
- drivers/media/v4l2-core/videobuf2-core.c |    4 ++--
- 2 files changed, 6 insertions(+), 3 deletions(-)
+Antti
+-- 
+http://palosaari.fi/
