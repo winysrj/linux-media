@@ -1,137 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:49998 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752225Ab2ITGq6 (ORCPT
+Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:32911 "EHLO
+	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752313Ab2IQKdA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Sep 2012 02:46:58 -0400
-Received: by pbbrr13 with SMTP id rr13so4370522pbb.19
-        for <linux-media@vger.kernel.org>; Wed, 19 Sep 2012 23:46:58 -0700 (PDT)
-From: Shawn Guo <shawn.guo@linaro.org>
-To: linux-arm-kernel@lists.infradead.org
-Cc: Sascha Hauer <s.hauer@pengutronix.de>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org
-Subject: [PATCH v2 13/34] dma: ipu: rename mach/ipu.h to include/linux/dma/ipu-dma.h
-Date: Thu, 20 Sep 2012 14:45:26 +0800
-Message-Id: <1348123547-31082-14-git-send-email-shawn.guo@linaro.org>
-In-Reply-To: <1348123547-31082-1-git-send-email-shawn.guo@linaro.org>
-References: <1348123547-31082-1-git-send-email-shawn.guo@linaro.org>
+	Mon, 17 Sep 2012 06:33:00 -0400
+Received: from localhost.localdomain (earthlight.etchedpixels.co.uk [81.2.110.250])
+	by lxorguk.ukuu.org.uk (8.14.5/8.14.1) with ESMTP id q8HB5RF0000776
+	for <linux-media@vger.kernel.org>; Mon, 17 Sep 2012 12:05:36 +0100
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: [PATCH] v4l2: spi modalias is an array
+To: linux-media@vger.kernel.org
+Date: Mon, 17 Sep 2012 11:51:27 +0100
+Message-ID: <20120917105124.29964.72985.stgit@localhost.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The header ipu.h really belongs to dma subsystem rather than imx
-platform.  Rename it to ipu-dma.h and put it into include/linux/dma/.
+From: Alan Cox <alan@linux.intel.com>
 
-Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Acked-by: Sascha Hauer <s.hauer@pengutronix.de>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Vinod Koul <vinod.koul@intel.com>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: linux-media@vger.kernel.org
-Cc: linux-fbdev@vger.kernel.org
+We want to check the contents not the array itself versus NULL
+
+Signed-off-by: Alan Cox <alan@linux.intel.com>
 ---
- drivers/dma/ipu/ipu_idmac.c                        |    3 +--
- drivers/dma/ipu/ipu_irq.c                          |    3 +--
- drivers/media/video/mx3_camera.c                   |    2 +-
- drivers/video/mx3fb.c                              |    2 +-
- .../mach/ipu.h => include/linux/dma/ipu-dma.h      |    6 +++---
- 5 files changed, 7 insertions(+), 9 deletions(-)
- rename arch/arm/mach-imx/include/mach/ipu.h => include/linux/dma/ipu-dma.h (97%)
 
-diff --git a/drivers/dma/ipu/ipu_idmac.c b/drivers/dma/ipu/ipu_idmac.c
-index c7573e5..6585537 100644
---- a/drivers/dma/ipu/ipu_idmac.c
-+++ b/drivers/dma/ipu/ipu_idmac.c
-@@ -22,8 +22,7 @@
- #include <linux/interrupt.h>
- #include <linux/io.h>
- #include <linux/module.h>
--
--#include <mach/ipu.h>
-+#include <linux/dma/ipu-dma.h>
+ drivers/media/v4l2-core/v4l2-common.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+index 105f88c..415874f 100644
+--- a/drivers/media/v4l2-core/v4l2-common.c
++++ b/drivers/media/v4l2-core/v4l2-common.c
+@@ -443,7 +443,7 @@ struct v4l2_subdev *v4l2_spi_new_subdev(struct v4l2_device *v4l2_dev,
  
- #include "../dmaengine.h"
- #include "ipu_intern.h"
-diff --git a/drivers/dma/ipu/ipu_irq.c b/drivers/dma/ipu/ipu_irq.c
-index fa95bcc..a5ee37d 100644
---- a/drivers/dma/ipu/ipu_irq.c
-+++ b/drivers/dma/ipu/ipu_irq.c
-@@ -15,8 +15,7 @@
- #include <linux/irq.h>
- #include <linux/io.h>
- #include <linux/module.h>
--
--#include <mach/ipu.h>
-+#include <linux/dma/ipu-dma.h>
+ 	BUG_ON(!v4l2_dev);
  
- #include "ipu_intern.h"
+-	if (info->modalias)
++	if (info->modalias[0])
+ 		request_module(info->modalias);
  
-diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
-index 1481b0d..892cba5 100644
---- a/drivers/media/video/mx3_camera.c
-+++ b/drivers/media/video/mx3_camera.c
-@@ -17,6 +17,7 @@
- #include <linux/vmalloc.h>
- #include <linux/interrupt.h>
- #include <linux/sched.h>
-+#include <linux/dma/ipu-dma.h>
- 
- #include <media/v4l2-common.h>
- #include <media/v4l2-dev.h>
-@@ -24,7 +25,6 @@
- #include <media/soc_camera.h>
- #include <media/soc_mediabus.h>
- 
--#include <mach/ipu.h>
- #include <linux/platform_data/camera-mx3.h>
- #include <linux/platform_data/dma-imx.h>
- 
-diff --git a/drivers/video/mx3fb.c b/drivers/video/mx3fb.c
-index d738108..3b63ad8 100644
---- a/drivers/video/mx3fb.c
-+++ b/drivers/video/mx3fb.c
-@@ -26,10 +26,10 @@
- #include <linux/console.h>
- #include <linux/clk.h>
- #include <linux/mutex.h>
-+#include <linux/dma/ipu-dma.h>
- 
- #include <linux/platform_data/dma-imx.h>
- #include <mach/hardware.h>
--#include <mach/ipu.h>
- #include <linux/platform_data/video-mx3fb.h>
- 
- #include <asm/io.h>
-diff --git a/arch/arm/mach-imx/include/mach/ipu.h b/include/linux/dma/ipu-dma.h
-similarity index 97%
-rename from arch/arm/mach-imx/include/mach/ipu.h
-rename to include/linux/dma/ipu-dma.h
-index 539e559..1803111 100644
---- a/arch/arm/mach-imx/include/mach/ipu.h
-+++ b/include/linux/dma/ipu-dma.h
-@@ -9,8 +9,8 @@
-  * published by the Free Software Foundation.
-  */
- 
--#ifndef _IPU_H_
--#define _IPU_H_
-+#ifndef __LINUX_DMA_IPU_DMA_H
-+#define __LINUX_DMA_IPU_DMA_H
- 
- #include <linux/types.h>
- #include <linux/dmaengine.h>
-@@ -174,4 +174,4 @@ struct idmac_channel {
- #define to_tx_desc(tx) container_of(tx, struct idmac_tx_desc, txd)
- #define to_idmac_chan(c) container_of(c, struct idmac_channel, dma_chan)
- 
--#endif
-+#endif /* __LINUX_DMA_IPU_DMA_H */
--- 
-1.7.9.5
+ 	spi = spi_new_device(master, info);
 
