@@ -1,34 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail5.guate.net.gt ([200.12.63.16]:54149 "EHLO mail5"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752227Ab2IHSpi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Sep 2012 14:45:38 -0400
-Message-ID: <61eb18d9cf06c51dd06738c56e27a65b.squirrel@mail5.guate.net.gt>
-Date: Sat, 8 Sep 2012 11:53:39 -0500
-Subject: Dear Account Owner
-From: "EMAIL HELP DESK" <helpdeskunit001@admin.in.th>
-Reply-To: helpdeskunit001@admin.in.th
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:35340 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932536Ab2IQTkW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Sep 2012 15:40:22 -0400
+Date: Mon, 17 Sep 2012 12:40:16 -0700
+From: Tejun Heo <tj@kernel.org>
+To: Colin Cross <ccross@google.com>
+Cc: linux-kernel@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Avi Kivity <avi@redhat.com>, kvm@vger.kernel.org,
+	Andy Walls <awalls@md.metrocast.net>,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
+	Grant Likely <grant.likely@secretlab.ca>,
+	spi-devel-general@lists.sourceforge.net,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	stable@vger.kernel.org
+Subject: Re: [PATCHSET] kthread_worker: reimplement flush_kthread_work() to
+ allow freeing during execution
+Message-ID: <20120917194016.GI18677@google.com>
+References: <20120719211510.GA32763@google.com>
+ <CAMbhsRQs+2MCXq0M-eTeezwPR=KMnBKtJny1rjiUJL-wNYctMQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-To: undisclosed-recipients:;
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAMbhsRQs+2MCXq0M-eTeezwPR=KMnBKtJny1rjiUJL-wNYctMQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Account Owner,
+On Fri, Sep 14, 2012 at 03:50:40PM -0700, Colin Cross wrote:
+> This patch set fixes a reproducible crash I'm seeing on a 3.4.10
+> kernel.  flush_kthread_worker (which is different from
+> flush_kthread_work) is initializing a kthread_work and a completion on
+> the stack, then queuing it and calling wait_for_completion.  Once the
+> completion is signaled, flush_kthread_worker exits and the stack
+> region used by the kthread_work may be immediately reused by another
+> object on the stack, but kthread_worker_fn continues accessing its
+> work pointer:
+>                 work->func(work);         <- calls complete,
+> effectively frees work
+>                 smp_wmb();      /* wmb worker-b0 paired with flush-b1 */
+>                 work->done_seq = work->queue_seq;   <- overwrites a
+> new stack object
+>                 smp_mb();       /* mb worker-b1 paired with flush-b0 */
+>                 if (atomic_read(&work->flushing))
+>                         wake_up_all(&work->done);  <- or crashes here
+> 
+> These patches fix the problem by not accessing work after work->func
+> is called, and should be backported to stable.  They apply cleanly to
+> 3.4.10.  Upstream commits are 9a2e03d8ed518a61154f18d83d6466628e519f94
+> and 46f3d976213452350f9d10b0c2780c2681f7075b.
 
-We sincerely wish to inform you that we are currently
-carrying out maintenance on our site.
+Yeah, you're right.  I wonder why this didn't come up before.  Greg,
+can you please pick up these two commits?
 
-please fill the following.
+Thanks.
 
-Full Names:
-User Name:
-Password:
-
-Thanks for your understanding and cooperation.
-Copyright © 1994-2012.
-
-
-
-
+-- 
+tejun
