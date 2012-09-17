@@ -1,51 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:59683 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751572Ab2IKIzg (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:43358 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752674Ab2IQFf6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Sep 2012 04:55:36 -0400
-Date: Tue, 11 Sep 2012 10:55:31 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Anatolij Gustschin <agust@denx.de>
-cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>, dzu@denx.de
-Subject: Re: [PATCH 3/3] mt9v022: set y_skip_top field to zero
-In-Reply-To: <20120824153420.66806bf1@wker>
-Message-ID: <Pine.LNX.4.64.1209111047410.22084@axis700.grange>
-References: <1345799431-29426-1-git-send-email-agust@denx.de>
- <1345799431-29426-4-git-send-email-agust@denx.de>
- <Pine.LNX.4.64.1208241323030.20710@axis700.grange> <20120824153420.66806bf1@wker>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Mon, 17 Sep 2012 01:35:58 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rr13so8484957pbb.19
+        for <linux-media@vger.kernel.org>; Sun, 16 Sep 2012 22:35:58 -0700 (PDT)
+From: Shawn Guo <shawn.guo@linaro.org>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Sascha Hauer <s.hauer@pengutronix.de>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Vinod Koul <vinod.koul@intel.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org
+Subject: [PATCH 14/34] dma: ipu: rename mach/ipu.h to include/linux/dma/ipu-dma.h
+Date: Mon, 17 Sep 2012 13:34:43 +0800
+Message-Id: <1347860103-4141-15-git-send-email-shawn.guo@linaro.org>
+In-Reply-To: <1347860103-4141-1-git-send-email-shawn.guo@linaro.org>
+References: <1347860103-4141-1-git-send-email-shawn.guo@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 24 Aug 2012, Anatolij Gustschin wrote:
+The header ipu.h really belongs to dma subsystem rather than imx
+platform.  Rename it to ipu-dma.h and put it into include/linux/dma/.
 
-> On Fri, 24 Aug 2012 13:23:22 +0200 (CEST)
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> 
-> > On Fri, 24 Aug 2012, Anatolij Gustschin wrote:
-> > 
-> > > Set "y_skip_top" to zero and remove comment as I do not see this
-> > > line corruption on two different mt9v022 setups. The first read-out
-> > > line is perfectly fine.
-> > 
-> > On what systems have you checked this?
-> 
-> On camera systems from ifm, both using mt9v022.
-
-Ok, I agree, this was a hack in the beginning, and, probably, there was a 
-reason for the problem, that we've seen, that we didn't find a proper 
-solution to, but I wouldn't like to punish those systems now. The 
-y_skip_top field is only taken into account by the pxa driver, and there 
-is only one pxa270 system, using mt9v022: pcm990-baseboard.c. Could you, 
-please, add platform data to mt9v022 with only one parameter to initialise 
-y_skip_top, use 0 as default and set it to 1 on pcm990-baseboard.c?
-
-Thanks
-Guennadi
+Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
+Cc: Vinod Koul <vinod.koul@intel.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: linux-media@vger.kernel.org
+Cc: linux-fbdev@vger.kernel.org
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/dma/ipu/ipu_idmac.c                        |    3 +--
+ drivers/dma/ipu/ipu_irq.c                          |    3 +--
+ drivers/media/video/mx3_camera.c                   |    2 +-
+ drivers/video/mx3fb.c                              |    2 +-
+ .../mach/ipu.h => include/linux/dma/ipu-dma.h      |    6 +++---
+ 5 files changed, 7 insertions(+), 9 deletions(-)
+ rename arch/arm/mach-imx/include/mach/ipu.h => include/linux/dma/ipu-dma.h (97%)
+
+diff --git a/drivers/dma/ipu/ipu_idmac.c b/drivers/dma/ipu/ipu_idmac.c
+index c7573e5..6585537 100644
+--- a/drivers/dma/ipu/ipu_idmac.c
++++ b/drivers/dma/ipu/ipu_idmac.c
+@@ -22,8 +22,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/io.h>
+ #include <linux/module.h>
+-
+-#include <mach/ipu.h>
++#include <linux/dma/ipu-dma.h>
+ 
+ #include "../dmaengine.h"
+ #include "ipu_intern.h"
+diff --git a/drivers/dma/ipu/ipu_irq.c b/drivers/dma/ipu/ipu_irq.c
+index fa95bcc..a5ee37d 100644
+--- a/drivers/dma/ipu/ipu_irq.c
++++ b/drivers/dma/ipu/ipu_irq.c
+@@ -15,8 +15,7 @@
+ #include <linux/irq.h>
+ #include <linux/io.h>
+ #include <linux/module.h>
+-
+-#include <mach/ipu.h>
++#include <linux/dma/ipu-dma.h>
+ 
+ #include "ipu_intern.h"
+ 
+diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
+index 1481b0d..892cba5 100644
+--- a/drivers/media/video/mx3_camera.c
++++ b/drivers/media/video/mx3_camera.c
+@@ -17,6 +17,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/interrupt.h>
+ #include <linux/sched.h>
++#include <linux/dma/ipu-dma.h>
+ 
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-dev.h>
+@@ -24,7 +25,6 @@
+ #include <media/soc_camera.h>
+ #include <media/soc_mediabus.h>
+ 
+-#include <mach/ipu.h>
+ #include <linux/platform_data/camera-mx3.h>
+ #include <linux/platform_data/dma-imx.h>
+ 
+diff --git a/drivers/video/mx3fb.c b/drivers/video/mx3fb.c
+index d738108..3b63ad8 100644
+--- a/drivers/video/mx3fb.c
++++ b/drivers/video/mx3fb.c
+@@ -26,10 +26,10 @@
+ #include <linux/console.h>
+ #include <linux/clk.h>
+ #include <linux/mutex.h>
++#include <linux/dma/ipu-dma.h>
+ 
+ #include <linux/platform_data/dma-imx.h>
+ #include <mach/hardware.h>
+-#include <mach/ipu.h>
+ #include <linux/platform_data/video-mx3fb.h>
+ 
+ #include <asm/io.h>
+diff --git a/arch/arm/mach-imx/include/mach/ipu.h b/include/linux/dma/ipu-dma.h
+similarity index 97%
+rename from arch/arm/mach-imx/include/mach/ipu.h
+rename to include/linux/dma/ipu-dma.h
+index 539e559..1803111 100644
+--- a/arch/arm/mach-imx/include/mach/ipu.h
++++ b/include/linux/dma/ipu-dma.h
+@@ -9,8 +9,8 @@
+  * published by the Free Software Foundation.
+  */
+ 
+-#ifndef _IPU_H_
+-#define _IPU_H_
++#ifndef __LINUX_DMA_IPU_DMA_H
++#define __LINUX_DMA_IPU_DMA_H
+ 
+ #include <linux/types.h>
+ #include <linux/dmaengine.h>
+@@ -174,4 +174,4 @@ struct idmac_channel {
+ #define to_tx_desc(tx) container_of(tx, struct idmac_tx_desc, txd)
+ #define to_idmac_chan(c) container_of(c, struct idmac_channel, dma_chan)
+ 
+-#endif
++#endif /* __LINUX_DMA_IPU_DMA_H */
+-- 
+1.7.9.5
+
