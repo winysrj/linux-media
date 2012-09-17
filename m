@@ -1,101 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:37861 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758309Ab2ILM4Y (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.22]:40087 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754593Ab2IQJaL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Sep 2012 08:56:24 -0400
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v2 4/8] drivers/media/dvb-frontends/s921.c: Removes useless kfree()
-Date: Wed, 12 Sep 2012 14:56:01 +0200
-Message-Id: <1347454564-5178-5-git-send-email-peter.senna@gmail.com>
+	Mon, 17 Sep 2012 05:30:11 -0400
+Date: Mon, 17 Sep 2012 11:30:08 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	=?iso-8859-1?Q?R=E9mi?= Denis-Courmont <remi@remlab.net>,
+	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv3 API PATCH 15/31] v4l2-core: Add new
+ V4L2_CAP_MONOTONIC_TS capability.
+Message-ID: <20120917093008.GA23361@minime.bse>
+References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
+ <2870315.6PlfZS62FS@avalon>
+ <50564BCE.8010901@gmail.com>
+ <4124728.lDo7VTRoK5@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4124728.lDo7VTRoK5@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Senna Tschudin <peter.senna@gmail.com>
+On Mon, Sep 17, 2012 at 11:18:58AM +0200, Laurent Pinchart wrote:
+> > >> Well, ALSA allows you to switch between gettimeofday and monotonic. So in
+> > >> theory at least if an app selects gettimeofday for alsa, that app might
+> > >> also want to select gettimeofday for v4l2.
+> 
+> Does it, in its kernel API ? The userspace ALSA library (or possibly 
+> PulseAudio, I'd need to check) allows converting between clock sources, but I 
+> don't think the kernel API supports several clock sources.
 
-Remove useless kfree() and clean up code related to the removal.
+See snd_pcm_gettime in <sound/pcm.h>.
+This header is not exported to userspace.
 
-The semantic patch that finds this problem is as follows:
-(http://coccinelle.lip6.fr/)
-
-// <smpl>
-@r exists@
-position p1,p2;
-expression x;
-@@
-
-if (x@p1 == NULL) { ... kfree@p2(x); ... return ...; }
-
-@unchanged exists@
-position r.p1,r.p2;
-expression e <= r.x,x,e1;
-iterator I;
-statement S;
-@@
-
-if (x@p1 == NULL) { ... when != I(x,...) S
-                        when != e = e1
-                        when != e += e1
-                        when != e -= e1
-                        when != ++e
-                        when != --e
-                        when != e++
-                        when != e--
-                        when != &e
-   kfree@p2(x); ... return ...; }
-
-@ok depends on unchanged exists@
-position any r.p1;
-position r.p2;
-expression x;
-@@
-
-... when != true x@p1 == NULL
-kfree@p2(x);
-
-@depends on !ok && unchanged@
-position r.p2;
-expression x;
-@@
-
-*kfree@p2(x);
-// </smpl>
-
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-
----
- drivers/media/dvb-frontends/s921.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/media/dvb-frontends/s921.c b/drivers/media/dvb-frontends/s921.c
-index cd2288c..a271ac3 100644
---- a/drivers/media/dvb-frontends/s921.c
-+++ b/drivers/media/dvb-frontends/s921.c
-@@ -487,9 +487,9 @@ struct dvb_frontend *s921_attach(const struct s921_config *config,
- 		kzalloc(sizeof(struct s921_state), GFP_KERNEL);
- 
- 	dprintk("\n");
--	if (state == NULL) {
-+	if (!state) {
- 		rc("Unable to kzalloc\n");
--		goto rcor;
-+		return NULL;
- 	}
- 
- 	/* setup the state */
-@@ -502,11 +502,6 @@ struct dvb_frontend *s921_attach(const struct s921_config *config,
- 	state->frontend.demodulator_priv = state;
- 
- 	return &state->frontend;
--
--rcor:
--	kfree(state);
--
--	return NULL;
- }
- EXPORT_SYMBOL(s921_attach);
- 
-
+  Daniel
