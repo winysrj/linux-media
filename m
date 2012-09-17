@@ -1,48 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:57921 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753438Ab2IMTga (ORCPT
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:58755 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754492Ab2IQIFN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 15:36:30 -0400
-Received: by oago6 with SMTP id o6so2218847oag.19
-        for <linux-media@vger.kernel.org>; Thu, 13 Sep 2012 12:36:30 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <505225E6.7020809@netmaster.dk>
-References: <5050AC4A.8070003@netmaster.dk>
-	<CAGoCfizcU_oe7Go_-xH1CkWsTvdVcFgBNL8PCG8F8UnxiF4TOA@mail.gmail.com>
-	<505225E6.7020809@netmaster.dk>
-Date: Thu, 13 Sep 2012 15:36:29 -0400
-Message-ID: <CAGoCfizVYw8SVqUADU6xCefgWVBrV0yJuqeVUzrKqfZw9ngvgA@mail.gmail.com>
-Subject: Re: hdpvr and HD PVR 2 Gaming Edition from Haoppauge
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Thomas Seilund <tps@netmaster.dk>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 17 Sep 2012 04:05:13 -0400
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: mchehab@infradead.org
+Cc: leonidsbox@gmail.com, peter.senna@gmail.com, thomas@m3y3r.de,
+	hans.verkuil@cisco.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 1/3] cx25821: fix error return code and clean up
+Date: Mon, 17 Sep 2012 10:04:56 +0200
+Message-Id: <1347869098-2236-1-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 13, 2012 at 2:28 PM, Thomas Seilund <tps@netmaster.dk> wrote:
-> Do you know if anybody plans to make a driver?
+From: Peter Senna Tschudin <peter.senna@gmail.com>
 
-I have not heard of any such plans.  It's a brand new device though,
-so it's possible that somebody will step up to do such (especially if
-the original HD-PVR stops being sold).
+The function cx25821_sram_channel_setup_upstream_audio always return zero,
+so the return value is not saved any more.
 
-> I would love to contribute but my skills are not quite there!
->
-> I have looked at the code for hdpvr kernel driver and I will try to pick up
-> more knowledge from the internet.
->
-> Do you have any hints on where to look?
+Convert a nonnegative error return code to a negative one, as returned
+elsewhere in the function.
 
-The Linuxtv.org wiki has some docs on creating Linux USB drivers
-(techniques for reverse engineering Windows drivers, collecting USB
-bus traces, etc).  Normally I might suggest that you try to find the
-datasheets for all the chips involved, but I can tell you that you
-won't find them publicly available.
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
-Devin
+// <smpl>
+(
+if@p1 (\(ret < 0\|ret != 0\))
+ { ... return ret; }
+|
+ret@p1 = 0
+)
+... when != ret = e1
+    when != &ret
+*if(...)
+{
+  ... when != ret = e2
+      when forall
+ return ret;
+}
 
+// </smpl>
+
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+---
+ drivers/media/pci/cx25821/cx25821-audio-upstream.c | 17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/media/pci/cx25821/cx25821-audio-upstream.c b/drivers/media/pci/cx25821/cx25821-audio-upstream.c
+index 8b2a999..49a28ae 100644
+--- a/drivers/media/pci/cx25821/cx25821-audio-upstream.c
++++ b/drivers/media/pci/cx25821/cx25821-audio-upstream.c
+@@ -700,7 +700,6 @@ fail_irq:
+ int cx25821_audio_upstream_init(struct cx25821_dev *dev, int channel_select)
+ {
+ 	struct sram_channel *sram_ch;
+-	int retval = 0;
+ 	int err = 0;
+ 	int str_length = 0;
+ 
+@@ -735,8 +734,10 @@ int cx25821_audio_upstream_init(struct cx25821_dev *dev, int channel_select)
+ 		dev->_audiofilename = kmemdup(dev->input_audiofilename,
+ 					      str_length + 1, GFP_KERNEL);
+ 
+-		if (!dev->_audiofilename)
++		if (!dev->_audiofilename) {
++			err = -ENOMEM;
+ 			goto error;
++		}
+ 
+ 		/* Default if filename is empty string */
+ 		if (strcmp(dev->input_audiofilename, "") == 0)
+@@ -746,12 +747,14 @@ int cx25821_audio_upstream_init(struct cx25821_dev *dev, int channel_select)
+ 		dev->_audiofilename = kmemdup(_defaultAudioName,
+ 					      str_length + 1, GFP_KERNEL);
+ 
+-		if (!dev->_audiofilename)
++		if (!dev->_audiofilename) {
++			err = -ENOMEM;
+ 			goto error;
++		}
+ 	}
+ 
+-	retval = cx25821_sram_channel_setup_upstream_audio(dev, sram_ch,
+-							_line_size, 0);
++	cx25821_sram_channel_setup_upstream_audio(dev, sram_ch,
++						  _line_size, 0);
+ 
+ 	dev->audio_upstream_riscbuf_size =
+ 		AUDIO_RISC_DMA_BUF_SIZE * NUM_AUDIO_PROGS +
+@@ -759,9 +762,9 @@ int cx25821_audio_upstream_init(struct cx25821_dev *dev, int channel_select)
+ 	dev->audio_upstream_databuf_size = AUDIO_DATA_BUF_SZ * NUM_AUDIO_PROGS;
+ 
+ 	/* Allocating buffers and prepare RISC program */
+-	retval = cx25821_audio_upstream_buffer_prepare(dev, sram_ch,
++	err = cx25821_audio_upstream_buffer_prepare(dev, sram_ch,
+ 							_line_size);
+-	if (retval < 0) {
++	if (err < 0) {
+ 		pr_err("%s: Failed to set up Audio upstream buffers!\n",
+ 			dev->name);
+ 		goto error;
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.11.4
+
