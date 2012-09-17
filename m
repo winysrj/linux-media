@@ -1,155 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3598 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755007Ab2IGN3h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 09:29:37 -0400
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3770 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753804Ab2IQKmy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Sep 2012 06:42:54 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 API PATCH 16/28] v4l2: make vidioc_s_fbuf const.
-Date: Fri,  7 Sep 2012 15:29:16 +0200
-Message-Id: <6adca8757d94f0a16558a07a7f3d7a1340f13009.1347023744.git.hans.verkuil@cisco.com>
-In-Reply-To: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
-References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
-References: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
+To: davinci-linux-open-source@linux.davincidsp.com
+Subject: Re: [PATCH] media: davinci: vpif: add check for NULL handler
+Date: Mon, 17 Sep 2012 12:41:41 +0200
+Cc: Prabhakar Lad <prabhakar.lad@ti.com>,
+	LMML <linux-media@vger.kernel.org>, linux-kernel@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <1345125720-24059-1-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1345125720-24059-1-git-send-email-prabhakar.lad@ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201209171241.41203.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thu August 16 2012 16:02:00 Prabhakar Lad wrote:
+> From: Lad, Prabhakar <prabhakar.lad@ti.com>
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
 
-Write-only ioctls should have a const argument in the ioctl op.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Do this conversion for vidioc_s_fbuf.
+Regards,
 
-Adding const for write-only ioctls was decided during the 2012 Media Workshop.
+	Hans
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/common/saa7146/saa7146_video.c |    2 +-
- drivers/media/pci/bt8xx/bttv-driver.c        |    2 +-
- drivers/media/pci/ivtv/ivtv-ioctl.c          |    4 ++--
- drivers/media/pci/saa7134/saa7134-video.c    |    2 +-
- drivers/media/pci/zoran/zoran_driver.c       |    2 +-
- drivers/media/platform/fsl-viu.c             |    2 +-
- drivers/media/platform/omap/omap_vout.c      |    2 +-
- include/media/v4l2-ioctl.h                   |    2 +-
- 8 files changed, 9 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/media/common/saa7146/saa7146_video.c b/drivers/media/common/saa7146/saa7146_video.c
-index 6d14785..4143d61 100644
---- a/drivers/media/common/saa7146/saa7146_video.c
-+++ b/drivers/media/common/saa7146/saa7146_video.c
-@@ -479,7 +479,7 @@ static int vidioc_g_fbuf(struct file *file, void *fh, struct v4l2_framebuffer *f
- 	return 0;
- }
- 
--static int vidioc_s_fbuf(struct file *file, void *fh, struct v4l2_framebuffer *fb)
-+static int vidioc_s_fbuf(struct file *file, void *fh, const struct v4l2_framebuffer *fb)
- {
- 	struct saa7146_dev *dev = ((struct saa7146_fh *)fh)->dev;
- 	struct saa7146_vv *vv = dev->vv_data;
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index b58ff87..26bf309 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -2740,7 +2740,7 @@ static int bttv_overlay(struct file *file, void *f, unsigned int on)
- }
- 
- static int bttv_s_fbuf(struct file *file, void *f,
--				struct v4l2_framebuffer *fb)
-+				const struct v4l2_framebuffer *fb)
- {
- 	struct bttv_fh *fh = f;
- 	struct bttv *btv = fh->btv;
-diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c b/drivers/media/pci/ivtv/ivtv-ioctl.c
-index 32a5910..d3b32c2 100644
---- a/drivers/media/pci/ivtv/ivtv-ioctl.c
-+++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
-@@ -1427,7 +1427,7 @@ static int ivtv_g_fbuf(struct file *file, void *fh, struct v4l2_framebuffer *fb)
- 	return 0;
- }
- 
--static int ivtv_s_fbuf(struct file *file, void *fh, struct v4l2_framebuffer *fb)
-+static int ivtv_s_fbuf(struct file *file, void *fh, const struct v4l2_framebuffer *fb)
- {
- 	struct ivtv_open_id *id = fh2id(fh);
- 	struct ivtv *itv = id->itv;
-@@ -1444,7 +1444,7 @@ static int ivtv_s_fbuf(struct file *file, void *fh, struct v4l2_framebuffer *fb)
- 	itv->osd_chroma_key_state = (fb->flags & V4L2_FBUF_FLAG_CHROMAKEY) != 0;
- 	ivtv_set_osd_alpha(itv);
- 	yi->track_osd = (fb->flags & V4L2_FBUF_FLAG_OVERLAY) != 0;
--	return ivtv_g_fbuf(file, fh, fb);
-+	return 0;
- }
- 
- static int ivtv_overlay(struct file *file, void *fh, unsigned int on)
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index 6de10b1..bac4386 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -2158,7 +2158,7 @@ static int saa7134_g_fbuf(struct file *file, void *f,
- }
- 
- static int saa7134_s_fbuf(struct file *file, void *f,
--					struct v4l2_framebuffer *fb)
-+					const struct v4l2_framebuffer *fb)
- {
- 	struct saa7134_fh *fh = f;
- 	struct saa7134_dev *dev = fh->dev;
-diff --git a/drivers/media/pci/zoran/zoran_driver.c b/drivers/media/pci/zoran/zoran_driver.c
-index c6ccdeb..f91b551 100644
---- a/drivers/media/pci/zoran/zoran_driver.c
-+++ b/drivers/media/pci/zoran/zoran_driver.c
-@@ -1978,7 +1978,7 @@ static int zoran_g_fbuf(struct file *file, void *__fh,
- }
- 
- static int zoran_s_fbuf(struct file *file, void *__fh,
--		struct v4l2_framebuffer *fb)
-+		const struct v4l2_framebuffer *fb)
- {
- 	struct zoran_fh *fh = __fh;
- 	struct zoran *zr = fh->zr;
-diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
-index 20f9810..897250b 100644
---- a/drivers/media/platform/fsl-viu.c
-+++ b/drivers/media/platform/fsl-viu.c
-@@ -860,7 +860,7 @@ int vidioc_g_fbuf(struct file *file, void *priv, struct v4l2_framebuffer *arg)
- 	return 0;
- }
- 
--int vidioc_s_fbuf(struct file *file, void *priv, struct v4l2_framebuffer *arg)
-+int vidioc_s_fbuf(struct file *file, void *priv, const struct v4l2_framebuffer *arg)
- {
- 	struct viu_fh  *fh = priv;
- 	struct viu_dev *dev = fh->dev;
-diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
-index 88cf9d9..92845f8 100644
---- a/drivers/media/platform/omap/omap_vout.c
-+++ b/drivers/media/platform/omap/omap_vout.c
-@@ -1744,7 +1744,7 @@ static int vidioc_streamoff(struct file *file, void *fh, enum v4l2_buf_type i)
- }
- 
- static int vidioc_s_fbuf(struct file *file, void *fh,
--				struct v4l2_framebuffer *a)
-+				const struct v4l2_framebuffer *a)
- {
- 	int enable = 0;
- 	struct omap_overlay *ovl;
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index 0bc1444..73ae24a 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -120,7 +120,7 @@ struct v4l2_ioctl_ops {
- 	int (*vidioc_g_fbuf)   (struct file *file, void *fh,
- 				struct v4l2_framebuffer *a);
- 	int (*vidioc_s_fbuf)   (struct file *file, void *fh,
--				struct v4l2_framebuffer *a);
-+				const struct v4l2_framebuffer *a);
- 
- 		/* Stream on/off */
- 	int (*vidioc_streamon) (struct file *file, void *fh, enum v4l2_buf_type i);
--- 
-1.7.10.4
-
+> ---
+>  drivers/media/video/davinci/vpif_capture.c |   12 +++++++-----
+>  drivers/media/video/davinci/vpif_display.c |   14 ++++++++------
+>  2 files changed, 15 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
+> index 266025e..a87b7a5 100644
+> --- a/drivers/media/video/davinci/vpif_capture.c
+> +++ b/drivers/media/video/davinci/vpif_capture.c
+> @@ -311,12 +311,14 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+>  	}
+>  
+>  	/* configure 1 or 2 channel mode */
+> -	ret = vpif_config_data->setup_input_channel_mode
+> -					(vpif->std_info.ycmux_mode);
+> +	if (vpif_config_data->setup_input_channel_mode) {
+> +		ret = vpif_config_data->setup_input_channel_mode
+> +						(vpif->std_info.ycmux_mode);
+>  
+> -	if (ret < 0) {
+> -		vpif_dbg(1, debug, "can't set vpif channel mode\n");
+> -		return ret;
+> +		if (ret < 0) {
+> +			vpif_dbg(1, debug, "can't set vpif channel mode\n");
+> +			return ret;
+> +		}
+>  	}
+>  
+>  	/* Call vpif_set_params function to set the parameters and addresses */
+> diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
+> index e129c98..1e35f92 100644
+> --- a/drivers/media/video/davinci/vpif_display.c
+> +++ b/drivers/media/video/davinci/vpif_display.c
+> @@ -280,12 +280,14 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+>  	}
+>  
+>  	/* clock settings */
+> -	ret =
+> -	    vpif_config_data->set_clock(ch->vpifparams.std_info.ycmux_mode,
+> -					ch->vpifparams.std_info.hd_sd);
+> -	if (ret < 0) {
+> -		vpif_err("can't set clock\n");
+> -		return ret;
+> +	if (vpif_config_data->set_clock) {
+> +		ret =
+> +		vpif_config_data->set_clock(ch->vpifparams.std_info.ycmux_mode,
+> +						ch->vpifparams.std_info.hd_sd);
+> +		if (ret < 0) {
+> +			vpif_err("can't set clock\n");
+> +			return ret;
+> +		}
+>  	}
+>  
+>  	/* set the parameters and addresses */
+> 
