@@ -1,99 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:38091 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758141Ab2ILM4W (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:42562 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755969Ab2IQMXl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Sep 2012 08:56:22 -0400
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v2 5/8] drivers/media/dvb-frontends/stb6100.c: Removes useless kfree()
-Date: Wed, 12 Sep 2012 14:56:00 +0200
-Message-Id: <1347454564-5178-4-git-send-email-peter.senna@gmail.com>
+	Mon, 17 Sep 2012 08:23:41 -0400
+Subject: Re: [GIT PULL] Initial i.MX5/CODA7 support for the CODA driver
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Richard Zhao <richard.zhao@freescale.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+In-Reply-To: <CALF0-+X5S-TXBX05HiB8X_GfgAY4gvmTO+-CDJNZMn_Bzxf5Sw@mail.gmail.com>
+References: <1347554436.2429.609.camel@pizza.hi.pengutronix.de>
+	 <CALF0-+X5S-TXBX05HiB8X_GfgAY4gvmTO+-CDJNZMn_Bzxf5Sw@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 17 Sep 2012 14:23:36 +0200
+Message-ID: <1347884616.2493.2.camel@pizza.hi.pengutronix.de>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Senna Tschudin <peter.senna@gmail.com>
+Thank you Ezequiel,
 
-Remove useless kfree() and clean up code related to the removal.
+Am Samstag, den 15.09.2012, 10:41 -0300 schrieb Ezequiel Garcia:
+> Hi Philipp,
+> 
+> On Thu, Sep 13, 2012 at 1:40 PM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> > Hi Mauro,
+> >
+> > please pull the following patches that fix a few issues in the coda driver and
+> > add initial firmware loading and encoding support for the CODA7 series VPU
+> > contained in i.MX51 and i.MX53 SoCs.
+> >
+> >
+> > The following changes since commit 79e8c7bebb467bbc3f2514d75bba669a3f354324:
+> >
+> >   Merge tag 'v3.6-rc3' into staging/for_v3.7 (2012-08-24 11:25:10 -0300)
+> >
+> > are available in the git repository at:
+> >
+> >
+> >   http://git.pengutronix.de/git/pza/linux.git coda/for_v3.7
+> >
+> > for you to fetch changes up to b50252c494ad56b88904811b1ac2d4fee1972446:
+> >
+> >   media: coda: set up buffers to be sized as negotiated with s_fmt (2012-09-13 17:14:36 +0200)
+> >
+> > ----------------------------------------------------------------
+> > Ezequiel Garcia (1):
+> >       coda: Remove unneeded struct vb2_queue clear on queue_init()
+> >
+> > Ezequiel García (1):
+> >       coda: Don't check vb2_queue_init() return value
+> >
+> 
+> This commit shouldn't be commited. See the recent discussion:
+> https://patchwork.kernel.org/patch/1372951/
 
-The semantic patch that finds this problem is as follows:
-(http://coccinelle.lip6.fr/)
+I'll drop this commit and resend the pull request.
 
-// <smpl>
-@r exists@
-position p1,p2;
-expression x;
-@@
-
-if (x@p1 == NULL) { ... kfree@p2(x); ... return ...; }
-
-@unchanged exists@
-position r.p1,r.p2;
-expression e <= r.x,x,e1;
-iterator I;
-statement S;
-@@
-
-if (x@p1 == NULL) { ... when != I(x,...) S
-                        when != e = e1
-                        when != e += e1
-                        when != e -= e1
-                        when != ++e
-                        when != --e
-                        when != e++
-                        when != e--
-                        when != &e
-   kfree@p2(x); ... return ...; }
-
-@ok depends on unchanged exists@
-position any r.p1;
-position r.p2;
-expression x;
-@@
-
-... when != true x@p1 == NULL
-kfree@p2(x);
-
-@depends on !ok && unchanged@
-position r.p2;
-expression x;
-@@
-
-*kfree@p2(x);
-// </smpl>
-
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-
----
- drivers/media/dvb-frontends/stb6100.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/dvb-frontends/stb6100.c b/drivers/media/dvb-frontends/stb6100.c
-index 2e93e65..45f9523 100644
---- a/drivers/media/dvb-frontends/stb6100.c
-+++ b/drivers/media/dvb-frontends/stb6100.c
-@@ -575,8 +575,8 @@ struct dvb_frontend *stb6100_attach(struct dvb_frontend *fe,
- 	struct stb6100_state *state = NULL;
- 
- 	state = kzalloc(sizeof (struct stb6100_state), GFP_KERNEL);
--	if (state == NULL)
--		goto error;
-+	if (!state)
-+		return NULL;
- 
- 	state->config		= config;
- 	state->i2c		= i2c;
-@@ -587,10 +587,6 @@ struct dvb_frontend *stb6100_attach(struct dvb_frontend *fe,
- 
- 	printk("%s: Attaching STB6100 \n", __func__);
- 	return fe;
--
--error:
--	kfree(state);
--	return NULL;
- }
- 
- static int stb6100_release(struct dvb_frontend *fe)
+regards
+Philipp
 
