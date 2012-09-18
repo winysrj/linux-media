@@ -1,50 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:42876 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754173Ab2IISf0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Sep 2012 14:35:26 -0400
-Received: by eekc1 with SMTP id c1so651506eek.19
-        for <linux-media@vger.kernel.org>; Sun, 09 Sep 2012 11:35:25 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: hdegoede@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 1/3] libv4lconvert: fix format of the error messages concerning jpeg frame size mismatch
-Date: Sun,  9 Sep 2012 20:36:06 +0200
-Message-Id: <1347215768-9843-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:40548 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932791Ab2IRLo5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Sep 2012 07:44:57 -0400
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>, <julia.lawall@lip6.fr>,
+	Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCHv3 5/6] media: Convert struct i2c_msg initialization to C99 format
+Date: Tue, 18 Sep 2012 17:14:31 +0530
+Message-ID: <1347968672-10803-6-git-send-email-shubhrajyoti@ti.com>
+In-Reply-To: <1347968672-10803-1-git-send-email-shubhrajyoti@ti.com>
+References: <1347968672-10803-1-git-send-email-shubhrajyoti@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- lib/libv4lconvert/jpeg.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+        Convert the struct i2c_msg initialization to C99 format. This makes
+        maintaining and editing the code simpler. Also helps once other fields
+        like transferred are added in future.
 
-diff --git a/lib/libv4lconvert/jpeg.c b/lib/libv4lconvert/jpeg.c
-index e088a90..aa9cace 100644
---- a/lib/libv4lconvert/jpeg.c
-+++ b/lib/libv4lconvert/jpeg.c
-@@ -56,7 +56,7 @@ int v4lconvert_decode_jpeg_tinyjpeg(struct v4lconvert_data *data,
- 	}
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ drivers/media/radio/saa7706h.c |   15 +++++++++++++--
+ 1 files changed, 13 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/radio/saa7706h.c b/drivers/media/radio/saa7706h.c
+index bb953ef..54db36c 100644
+--- a/drivers/media/radio/saa7706h.c
++++ b/drivers/media/radio/saa7706h.c
+@@ -199,8 +199,19 @@ static int saa7706h_get_reg16(struct v4l2_subdev *sd, u16 reg)
+ 	u8 buf[2];
+ 	int err;
+ 	u8 regaddr[] = {reg >> 8, reg};
+-	struct i2c_msg msg[] = { {client->addr, 0, sizeof(regaddr), regaddr},
+-				{client->addr, I2C_M_RD, sizeof(buf), buf} };
++	struct i2c_msg msg[] = {
++					{
++						.addr = client->addr,
++						.len = sizeof(regaddr),
++						.buf = regaddr
++					},
++					{
++						.addr = client->addr,
++						.flags = I2C_M_RD,
++						.len = sizeof(buf),
++						.buf = buf
++					}
++				};
  
- 	if (header_width != width || header_height != height) {
--		V4LCONVERT_ERR("unexpected width / height in JPEG header"
-+		V4LCONVERT_ERR("unexpected width / height in JPEG header: "
- 			       "expected: %ux%u, header: %ux%u\n",
- 			       width, height, header_width, header_height);
- 		errno = EIO;
-@@ -288,7 +288,7 @@ int v4lconvert_decode_jpeg_libjpeg(struct v4lconvert_data *data,
- 
- 	if (data->cinfo.image_width  != width ||
- 	    data->cinfo.image_height != height) {
--		V4LCONVERT_ERR("unexpected width / height in JPEG header"
-+		V4LCONVERT_ERR("unexpected width / height in JPEG header: "
- 			       "expected: %ux%u, header: %ux%u\n", width,
- 			       height, data->cinfo.image_width,
- 			       data->cinfo.image_height);
+ 	err = saa7706h_i2c_transfer(client, msg, ARRAY_SIZE(msg));
+ 	if (err)
 -- 
-1.7.7
+1.7.5.4
 
