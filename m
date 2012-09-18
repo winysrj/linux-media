@@ -1,50 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:50726 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751454Ab2ISUV1 (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:56905 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752166Ab2IRTBm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Sep 2012 16:21:27 -0400
-Received: by bkwj10 with SMTP id j10so764457bkw.19
-        for <linux-media@vger.kernel.org>; Wed, 19 Sep 2012 13:21:26 -0700 (PDT)
-Message-ID: <505A2943.6070801@gmail.com>
-Date: Wed, 19 Sep 2012 22:21:23 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Tue, 18 Sep 2012 15:01:42 -0400
+Received: by obbuo13 with SMTP id uo13so238837obb.19
+        for <linux-media@vger.kernel.org>; Tue, 18 Sep 2012 12:01:42 -0700 (PDT)
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sangwook Lee <sangwook.lee@linaro.org>,
-	javier Martin <javier.martin@vista-silicon.com>
-Subject: [GIT PULL FOR 3.7] s5k4ecgx sensor driver and m2m capability fix
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAGoCfixqaSY4MFosg=uCwGMRRmbQhYE5gUBdPGFddCpKHDRtwg@mail.gmail.com>
+References: <CAAnFQG_SrXyr8MtPDujciE2=QRQK8dAK_SPBE3rC_c-XNSC00w@mail.gmail.com>
+ <CAGoCfiy4Ybymdd4Mym1JB3gwW9Suqdj3w6bEdMpxWWBHPhUvTQ@mail.gmail.com>
+ <CAAnFQG8fDnmGN2_sfrhU8tB_kiuheSmXPqVq5wdmh73vB8EtdA@mail.gmail.com> <CAGoCfixqaSY4MFosg=uCwGMRRmbQhYE5gUBdPGFddCpKHDRtwg@mail.gmail.com>
+From: Javier Marcet <jmarcet@gmail.com>
+Date: Tue, 18 Sep 2012 21:01:21 +0200
+Message-ID: <CAAnFQG-zwQ9uizt4QjVFMmBcdEvrTSDL4-UHQppqC-_hyXqt8A@mail.gmail.com>
+Subject: Re: Terratec Cinergy T PCIe Dual doesn;t work nder the Xen hypervisor
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Tue, Sep 18, 2012 at 8:56 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
 
-The following changes since commit 4313902ebe33155209472215c62d2f29d117be29:
+>> You can see the original thread where this was found, together with a
+>> working patch, here:
+>>
+>> http://lists.xen.org/archives/html/xen-devel/2012-01/msg01927.html
+>
+> As far as I can read, the patch has never been confirmed to work.  The
+> user mentioned upgrading to an updated kernel and seeing a slight
+> decrease in load:
+>
+> http://lists.xen.org/archives/html/xen-devel/2012-01/msg02166.html
+>
+> Further, the reason many of the drivers in question require the memory
+> to be in the 0-4GB memory region is due to some hardware not being
+> able to DMA to memory > 4GB.  Such a change would have to be tested
+> with every board that does scatter/gather, and the framework would
+> likely have to change to explicitly allow the board driver to specify
+> whether it supports memory > 4GB.
+>
+> In short, this is a useful bit of information, but not clear whether
+> it would actually solve the underlying problem.
+>
+> Again, I would be happy to be proven wrong, but there appears to still
+> be quite a bit of work required for such.  I would suggest trying the
+> patch yourself to see if it has any visible effect on the problem.
 
-  [media] ivtv-alsa, ivtv: Connect ivtv PCM capture stream to ivtv-alsa interface driver (2012-09-18 13:29:07 -0300)
+I'm sorry I was not explicit. I have tested it, I have it working
+right now, flawlessly. It even worked after resuming from S3!
 
-are available in the git repository at:
-  git://linuxtv.org/snawrocki/media.git v4l-next
 
-Sangwook Lee (1):
-      Add v4l2 subdev driver for S5K4ECGX sensor
-
-Sylwester Nawrocki (1):
-      m2m-deinterlace: Add V4L2_CAP_VIDEO_M2M capability flag
-
- drivers/media/i2c/Kconfig                |    7 +
- drivers/media/i2c/Makefile               |    1 +
- drivers/media/i2c/s5k4ecgx.c             | 1036 ++++++++++++++++++++++++++++++
- drivers/media/platform/m2m-deinterlace.c |    9 +-
- include/media/s5k4ecgx.h                 |   37 ++
- 5 files changed, 1088 insertions(+), 2 deletions(-)
- create mode 100644 drivers/media/i2c/s5k4ecgx.c
- create mode 100644 include/media/s5k4ecgx.h
-
----
-
-Regards,
-Sylwester
+-- 
+Javier Marcet <jmarcet@gmail.com>
