@@ -1,60 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:8959 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757387Ab2IMKiR (ORCPT
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:59028 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757868Ab2IRKAN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 06:38:17 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [Workshop-2011] Media summit/KS-2012 proposals
-Date: Thu, 13 Sep 2012 12:38:11 +0200
-Cc: workshop-2011@linuxtv.org, Jun Nie <niej0001@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <20120713173708.GB17109@thunk.org> <201209051028.30258.hverkuil@xs4all.nl> <4239754.MNv9h5rKCc@avalon>
-In-Reply-To: <4239754.MNv9h5rKCc@avalon>
+	Tue, 18 Sep 2012 06:00:13 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209131238.11888.hverkuil@xs4all.nl>
+In-Reply-To: <D958900912E20642BCBC71664EFECE3E6DDEFB947B@BGMAIL02.nvidia.com>
+References: <1347961843-9376-1-git-send-email-shubhrajyoti@ti.com>
+	<1347961843-9376-7-git-send-email-shubhrajyoti@ti.com>
+	<D958900912E20642BCBC71664EFECE3E6DDEFB947B@BGMAIL02.nvidia.com>
+Date: Tue, 18 Sep 2012 15:30:10 +0530
+Message-ID: <CAM=Q2cv8R8QUbV2UqNO+AbwgprAYxBtBjK=4rkHnqegGJWTdog@mail.gmail.com>
+Subject: Re: [PATCHv2 6/6] media: Convert struct i2c_msg initialization to C99 format
+From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
+To: Venu Byravarasu <vbyravarasu@nvidia.com>
+Cc: Shubhrajyoti D <shubhrajyoti@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"julia.lawall@lip6.fr" <julia.lawall@lip6.fr>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 13 September 2012 03:01:34 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Wednesday 05 September 2012 10:28:30 Hans Verkuil wrote:
-> > On Wed 5 September 2012 10:04:41 Jun Nie wrote:
-> > > Is there any summary for this summit or presentation material? I am
-> > > looking forward for some idea on CEC. It is really complex in
-> > > functionality.
-> > > Maybe other guys is expecting simiar fruite from summit too.
-> > 
-> > Yes, there will be a summit report. It's not quite finished yet, I think.
-> > 
-> > With respect to CEC we had some useful discussions. It will have to be a
-> > new class of device (/dev/cecX), so the userspace API will be separate from
-> > drm or v4l.
-> 
-> This is a repeat of a comment from the KS discussion: what about using the 
-> socket API instead of a device node ?
+On Tue, Sep 18, 2012 at 3:26 PM, Venu Byravarasu <vbyravarasu@nvidia.com> wrote:
+>> -----Original Message-----
+>> From: linux-kernel-owner@vger.kernel.org [mailto:linux-kernel-
+>> owner@vger.kernel.org] On Behalf Of Shubhrajyoti D
+>> Sent: Tuesday, September 18, 2012 3:21 PM
+>> To: linux-media@vger.kernel.org
+>> Cc: linux-kernel@vger.kernel.org; julia.lawall@lip6.fr; Shubhrajyoti D
+>> Subject: [PATCHv2 6/6] media: Convert struct i2c_msg initialization to C99
+>> format
+>>
+>>         Convert the struct i2c_msg initialization to C99 format. This makes
+>>         maintaining and editing the code simpler. Also helps once other fields
+>>         like transferred are added in future.
+>>
+>> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+>> ---
+>>  drivers/media/i2c/msp3400-driver.c |   42
+>> ++++++++++++++++++++++++++++++-----
+>>  1 files changed, 36 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/drivers/media/i2c/msp3400-driver.c
+>> b/drivers/media/i2c/msp3400-driver.c
+>> index aeb22be..b8cef8d 100644
+>> --- a/drivers/media/i2c/msp3400-driver.c
+>> +++ b/drivers/media/i2c/msp3400-driver.c
+>> @@ -119,12 +119,32 @@ int msp_reset(struct i2c_client *client)
+>>       static u8 write[3]     = { I2C_MSP_DSP + 1, 0x00, 0x1e };
+>>       u8 read[2];
+>>       struct i2c_msg reset[2] = {
+>> -             { client->addr, I2C_M_IGNORE_NAK, 3, reset_off },
+>> -             { client->addr, I2C_M_IGNORE_NAK, 3, reset_on  },
+>> +             {
+>> +                     .addr = client->addr,
+>> +                     .flags = I2C_M_IGNORE_NAK,
+>> +                     .len = 3,
+>> +                     .buf = reset_off
+>> +             },
+>> +             {
+>> +                     .addr = client->addr,
+>> +                     .flags = I2C_M_IGNORE_NAK,
+>> +                     .len = 3,
+>> +                     .buf = reset_on
+>> +             },
+>>       };
+>>       struct i2c_msg test[2] = {
+>> -             { client->addr, 0,        3, write },
+>> -             { client->addr, I2C_M_RD, 2, read  },
+>> +             {
+>> +                     .addr = client->addr,
+>> +                     .flags = 0,
+>
+> Does flags not contain 0 by default?
+>
 
-What benefit would that give me? I frankly don't think it maps that well to
-a socket API. Some parts of the CEC protocol are more or less network like,
-but others are point-to-point. Basically CEC is a mess, protocol-wise, and
-I much prefer a char-device where you have more flexibility.
+It does however I felt that 0 means write so letting it be explicit.
 
-Regards,
-
-	Hans
-
-> > And the kernel will have to take care of the core CEC protocol w.r.t.
-> > control and discovery due to the HDMI 1.4a requirements.
-> > 
-> > I plan on starting work on this within 1-2 weeks.
-> > 
-> > My CEC presentation can be found here:
-> > 
-> > http://hverkuil.home.xs4all.nl/presentations/v4l2-workshop-cec.odp
-> 
-> 
+In case a removal is preferred that's doable too however felt it is
+more readable this way.
