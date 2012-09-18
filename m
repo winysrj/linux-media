@@ -1,47 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1109 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751157Ab2ISOie (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Sep 2012 10:38:34 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 5/6] v4l2-ioctl,c: handle PREPARE_BUF like QUERYBUF.
-Date: Wed, 19 Sep 2012 16:37:39 +0200
-Message-Id: <a11e758478fdb4940028fee8e7d26840143ce335.1348064901.git.hans.verkuil@cisco.com>
-In-Reply-To: <1348065460-1624-1-git-send-email-hverkuil@xs4all.nl>
-References: <1348065460-1624-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <9e4acd70e02bb67e6e7af0c236c69af27108e4fa.1348064901.git.hans.verkuil@cisco.com>
-References: <9e4acd70e02bb67e6e7af0c236c69af27108e4fa.1348064901.git.hans.verkuil@cisco.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43819 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757270Ab2IRMWv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Sep 2012 08:22:51 -0400
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>, <julia.lawall@lip6.fr>,
+	Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCHv4 0/6] media: convert to c99 format
+Date: Tue, 18 Sep 2012 17:52:30 +0530
+Message-ID: <1347970956-11158-1-git-send-email-shubhrajyoti@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The series tries to convert the i2c_msg to c99 struct.
+This may avoid issues like below if someone tries to add an
+element to the structure.
+http://www.mail-archive.com/linux-i2c@vger.kernel.org/msg08972.html
 
-The core code for PREPARE_BUF didn't take the multiplanar case into account,
-which might cause page faults. Handle PREPARE_BUF just like QUERYBUF and
-QBUF/DQBUF.
+Special thanks to Julia Lawall for helping it automate.
+By the below script.
+http://www.mail-archive.com/cocci@diku.dk/msg02753.html
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c |    1 +
- 1 file changed, 1 insertion(+)
+Changelogs
+- Remove the zero inititialisation of the flags.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 932d9bf..bbbda4e 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2173,6 +2173,7 @@ static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
- 	int ret = 0;
- 
- 	switch (cmd) {
-+	case VIDIOC_PREPARE_BUF:
- 	case VIDIOC_QUERYBUF:
- 	case VIDIOC_QBUF:
- 	case VIDIOC_DQBUF: {
+Shubhrajyoti D (6):
+  media: Convert struct i2c_msg initialization to C99 format
+  media: Convert struct i2c_msg initialization to C99 format
+  media: Convert struct i2c_msg initialization to C99 format
+  media: Convert struct i2c_msg initialization to C99 format
+  media: Convert struct i2c_msg initialization to C99 format
+  media: Convert struct i2c_msg initialization to C99 format
+
+ drivers/media/i2c/ks0127.c                    |   13 +++++++-
+ drivers/media/i2c/msp3400-driver.c            |   40 +++++++++++++++++++++----
+ drivers/media/i2c/tvaudio.c                   |   13 +++++++-
+ drivers/media/radio/radio-tea5764.c           |   13 ++++++--
+ drivers/media/radio/saa7706h.c                |   15 ++++++++-
+ drivers/media/radio/si470x/radio-si470x-i2c.c |   23 ++++++++++----
+ 6 files changed, 96 insertions(+), 21 deletions(-)
+
 -- 
-1.7.10.4
+1.7.5.4
 
