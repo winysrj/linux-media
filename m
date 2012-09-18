@@ -1,48 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:61996 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750819Ab2ITHKr (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:58658 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753969Ab2IRFK2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Sep 2012 03:10:47 -0400
-Received: by wgbfm10 with SMTP id fm10so189562wgb.1
-        for <linux-media@vger.kernel.org>; Thu, 20 Sep 2012 00:10:46 -0700 (PDT)
+	Tue, 18 Sep 2012 01:10:28 -0400
 MIME-Version: 1.0
-In-Reply-To: <20120920033206.GA9407@b20223-02.ap.freescale.net>
-References: <1347957978.2529.4.camel@pizza.hi.pengutronix.de>
-	<20120920033206.GA9407@b20223-02.ap.freescale.net>
-Date: Thu, 20 Sep 2012 09:10:46 +0200
-Message-ID: <CACKLOr0BATxZc3xwE44JJowTcOf1N4XT1oXGW9Gj0n0s-wSd_w@mail.gmail.com>
-Subject: Re: [GIT PULL v2] Initial i.MX5/CODA7 support for the CODA driver
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Richard Zhao <richard.zhao@freescale.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org,
-	=?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
+In-Reply-To: <1344429020-27616-1-git-send-email-prabhakar.lad@ti.com>
+References: <1344429020-27616-1-git-send-email-prabhakar.lad@ti.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 18 Sep 2012 10:40:07 +0530
+Message-ID: <CA+V-a8t2H_1xJb4MCfzSzHtrjTbq7HFNjuWtgtwWERS_3qZH1Q@mail.gmail.com>
+Subject: Re: [PATCH 0/2] Replace the obsolete preset API by timings API
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sekhar Nori <nsekhar@ti.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-kernel@vger.kernel.org, Hans Verkuil <hansverk@cisco.com>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Richard,
+Hi Mauro/Sekhar
 
-On 20 September 2012 05:32, Richard Zhao <richard.zhao@freescale.com> wrote:
-> why is it a request-pull?
+On Wed, Aug 8, 2012 at 6:00 PM, Prabhakar Lad <prabhakar.lad@ti.com> wrote:
+> This first patch replaces the obsolete preset API by timings
+> API for davinci VPBE, appropriate chnages in machine file for
+> dm644x in which VPBE is enabled. And the second patch adds support for
+> timings API for ths7303 driver. Sending them as s series
+> since VPBE uses the ths7303 driver.
+>
+> Hans Verkuil (1):
+>   dm644x: replace the obsolete preset API by the timings API.
+>
+> Manjunath Hadli (1):
+>   ths7303: enable THS7303 for HD modes
+>
+Can you pull this patchset ? Please inform me if anything is
+needed from my side.
 
-After 5 version of Philipp's patches we have agreed they are good
-enough to be merged; they don't break anything related to the old
-codadx6 while provide support for the new coda7:
-http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/53627
+Regards,
+--Prabhakar
 
-The pull request is a way to tell Mauro this is ready to be merged in
-his linux-media tree and making things easier for him.
-
-Regards.
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+>  arch/arm/mach-davinci/board-dm644x-evm.c   |   15 ++--
+>  arch/arm/mach-davinci/dm644x.c             |   17 +---
+>  drivers/media/video/davinci/vpbe.c         |  110 ++++++++++++----------------
+>  drivers/media/video/davinci/vpbe_display.c |   60 +++++++--------
+>  drivers/media/video/davinci/vpbe_venc.c    |   25 +++---
+>  drivers/media/video/ths7303.c              |  107 +++++++++++++++++++++++----
+>  include/media/davinci/vpbe.h               |   14 ++--
+>  include/media/davinci/vpbe_types.h         |    8 +--
+>  include/media/davinci/vpbe_venc.h          |    2 +-
+>  9 files changed, 202 insertions(+), 156 deletions(-)
+>
+> _______________________________________________
+> Davinci-linux-open-source mailing list
+> Davinci-linux-open-source@linux.davincidsp.com
+> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
