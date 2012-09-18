@@ -1,86 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rekin10.go2.pl ([193.17.41.30]:59901 "EHLO moh2-ve3.go2.pl"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751439Ab2ITHxl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Sep 2012 03:53:41 -0400
-Received: from moh2-ve3.go2.pl (unknown [10.0.0.117])
-	by moh2-ve3.go2.pl (Postfix) with ESMTP id 64690A6A097
-	for <linux-media@vger.kernel.org>; Thu, 20 Sep 2012 09:53:40 +0200 (CEST)
-Received: from o2.pl (unknown [10.0.0.7])
-	by moh2-ve3.go2.pl (Postfix) with SMTP
-	for <linux-media@vger.kernel.org>; Thu, 20 Sep 2012 09:53:39 +0200 (CEST)
-Subject: =?UTF-8?Q?[PATCH]_[3/5]_dvb-apps_-_update_scan?=
-	=?UTF-8?Q?_file_DVB-S_9E?=
-From: =?UTF-8?Q?VoJcEK?= <vojcek@tlen.pl>
-To: linux-media@vger.kernel.org
-Mime-Version: 1.0
-Message-ID: <58f4a753.2403a8fb.505acb82.4babd@tlen.pl>
-Date: Thu, 20 Sep 2012 09:53:38 +0200
-Content-Type: multipart/mixed;
-	boundary="==o2.pl-WebMail-332f8354.374a73aa.4bac4=="
+Received: from mx1.redhat.com ([209.132.183.28]:58265 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750877Ab2IRQQ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Sep 2012 12:16:28 -0400
+Message-ID: <50589E52.5050602@redhat.com>
+Date: Tue, 18 Sep 2012 13:16:18 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: =?ISO-8859-1?Q?Alfredo_Jes=FAs_Delaiti?=
+	<alfredodelaiti@netscape.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Mygica X8507 audio for YPbPr, AV and S-Video
+References: <50450FB5.3090503@netscape.net>
+In-Reply-To: <50450FB5.3090503@netscape.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
+Em 03-09-2012 17:14, Alfredo Jesús Delaiti escreveu:
+> Hi
+> 
+> This patch add audio support for input YPbPr, AV and S-Video for Mygica X8507 card.
+> I tried it with the 3.4 and 3.5 kernel
+> 
+> Remains to be done: IR, FM and ISDBT
+> 
+> Sorry if I sent the patch improperly.
+> 
+> Signed-off-by: Alfredo J. Delaiti <alfredodelaiti@netscape.net>
+> 
+> 
+> 
+> diff --git a/media/video/cx23885/cx23885-cards.c b/media/video/cx23885/cx23885-cards.c
+> index 080e111..17e2576 100644
+> --- a/media/video/cx23885/cx23885-cards.c
+> +++ b/media/video/cx23885/cx23885-cards.c
 
---==o2.pl-WebMail-332f8354.374a73aa.4bac4==
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Wrong format... the "drivers/" is missing.
 
-Eutelsat=209E
---==o2.pl-WebMail-332f8354.374a73aa.4bac4==
-Content-Type: text/x-patch;
-	name="=?UTF-8?Q?dvb-apps=5Fscan=5F9E.patch?="
-Content-Disposition: attachment;
-	filename="=?UTF-8?Q?dvb-apps=5Fscan=5F9E.patch?="
-Content-Transfer-Encoding: quoted-printable
+Well, the location also changed to drivers/media/pci, but my scripts can
+fix it.
 
----=20util/scan/dvb-s/Eutelsat9-9.0E.old=092012-09-20=2008:47:47.24636664=
-7=20+0200
-+++=20util/scan/dvb-s/Eutelsat9-9.0E=092012-09-20=2008:57:30.217456457=20=
-+0200
-@@=20-1,16=20+1,33=20@@
-=20#=20Eurobird=209.0E
-=20#=20freq=20pol=20sr=20fec
--S=2011727000=20V=2027500000=205/6
-+S=2011727000=20V=2027500000=203/4
-=20S=2011747000=20H=2027500000=203/4
--S=2011766000=20V=2027500000=205/6
--S=2011785000=20H=2027500000=203/4
--S=2011804000=20V=2027500000=203/4
-+S=2011766000=20V=2027500000=203/4
-+S2=2011785000=20H=2027500000=202/3=20AUTO=208PSK
-=20S=2011823000=20H=2027500000=203/4
-=20S=2011843000=20V=2027500000=203/4
--S=2011881000=20V=2026700000=203/4
--S=2011919000=20V=2027500000=205/6
-+S2=2011862000=20H=2027500000=202/3=20AUTO=208PSK
-+S2=2011881000=20V=2027500000=202/3=20AUTO=208PSK
-+S2=2011900000=20H=2027500000=202/3=20AUTO=208PSK
-+S=2011919000=20V=2027500000=203/4
-=20S=2011938000=20H=2027500000=203/4
-+S2=2011958000=20V=2027500000=202/3=20AUTO=208PSK
-=20S=2011977000=20H=2027500000=203/4
-=20S=2011996000=20V=2027500000=203/4
--S=2012054000=20H=2027500000=203/4
--S=2012092000=20H=2027500000=203/4
-+S2=2012015000=20H=2027500000=202/3=20AUTO=208PSK
-+S2=2012034000=20V=2027500000=203/4=20AUTO=208PSK
-+S2=2012054000=20H=2027500000=202/3=20AUTO=208PSK
-+S2=2012073000=20V=2027500000=203/4=20AUTO=208PSK
-+S2=2012111000=20V=2027500000=203/5=20AUTO=208PSK
-+S=2012130000=20H=2027500000=203/4
-+S2=2012149000=20V=2027500000=202/3=20AUTO=208PSK
-+S2=2012226000=20V=2027500000=202/3=20AUTO=208PSK
-+S2=2012245000=20H=2027500000=203/4=20AUTO=208PSK
-+S2=2012265000=20V=2027500000=202/3=20AUTO=208PSK
-+S2=2012284000=20H=2027500000=202/3=20AUTO=208PSK
-+S=2012322000=20H=2027500000=203/4
-+S=2012341000=20V=2027500000=203/4
-+S2=2012360000=20H=2027500000=202/3=20AUTO=208PSK
-+S2=2012399000=20H=2027500000=202/3=20AUTO=208PSK
-+S=2012418000=20V=2027500000=203/4
-+S2=2012437000=20H=2027500000=202/3=20AUTO=208PSK
+> @@ -541,11 +541,13 @@ struct cx23885_board cx23885_boards[] = {
+>                         {
+>                                 .type   = CX23885_VMUX_COMPOSITE1,
+>                                 .vmux   = CX25840_COMPOSITE8,
+> +                               .amux   = CX25840_AUDIO7,
 
---==o2.pl-WebMail-332f8354.374a73aa.4bac4==--
+Didn't apply well. It seems it conflicted with some other patch.
 
+Please, re-generate it against the very latest tree.
+
+Also, when doing diffs for the boards entries, it is wise to have
+more context lines, in order that a patch made for one driver would
+be badly applied at some other board entry.
+
+The easiest way to do that is to do: 
+
+	$ git diff -U10
+		or
+	$ git show -U10
+		(if you've merged the patch at your local copy)
+
+(if you're generating the patch against the main media-tree.git)
+
+Where "10" is just an arbitrary large number that will allow to
+see the board name that will be modified, like:
+
+--- a/drivers/media/pci/cx23885/cx23885-cards.c
++++ b/drivers/media/pci/cx23885/cx23885-cards.c
+@@ -531,20 +531,21 @@ struct cx23885_board cx23885_boards[] = {
+                .name           = "Mygica X8507",
+                .tuner_type = TUNER_XC5000,
+                .tuner_addr = 0x61,
+                .tuner_bus      = 1,
+                .porta          = CX23885_ANALOG_VIDEO,
+                .input          = {
+                        {
+                                .type   = CX23885_VMUX_TELEVISION,
+                                .vmux   = CX25840_COMPOSITE2,
+                                .amux   = CX25840_AUDIO8,
++ /* Some foo addition - just for testing */
+                        },
+                        {
+                                .type   = CX23885_VMUX_COMPOSITE1,
+                                .vmux   = CX25840_COMPOSITE8,
+                        },
+                        {
+                                .type   = CX23885_VMUX_SVIDEO,
+                                .vmux   = CX25840_SVIDEO_LUMA3 |
+                                                CX25840_SVIDEO_CHROMA4,
+                        },
+
+
+Thanks,
+Mauro
