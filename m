@@ -1,70 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:64779 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759068Ab2INRea (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 13:34:30 -0400
-Received: by bkwj10 with SMTP id j10so1362498bkw.19
-        for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 10:34:29 -0700 (PDT)
-Message-ID: <50536AA2.5090507@gmail.com>
-Date: Fri, 14 Sep 2012 19:34:26 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43822 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757545Ab2IRMWw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Sep 2012 08:22:52 -0400
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>, <julia.lawall@lip6.fr>,
+	Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCHv4 5/6] media: Convert struct i2c_msg initialization to C99 format
+Date: Tue, 18 Sep 2012 17:52:35 +0530
+Message-ID: <1347970956-11158-6-git-send-email-shubhrajyoti@ti.com>
+In-Reply-To: <1347970956-11158-1-git-send-email-shubhrajyoti@ti.com>
+References: <1347970956-11158-1-git-send-email-shubhrajyoti@ti.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hans.verkuil@cisco.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [RFCv3 API PATCH 06/31] vivi/mem2mem_testdev: update to latest
- bus_info specification.
-References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com> <0d254e4e0e8976370c6741818a1b7bfae68b8bce.1347619766.git.hans.verkuil@cisco.com>
-In-Reply-To: <0d254e4e0e8976370c6741818a1b7bfae68b8bce.1347619766.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/14/2012 12:57 PM, Hans Verkuil wrote:
-> Prefix bus_info with "platform:".
->
-> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
+Convert the struct i2c_msg initialization to C99 format. This makes
+maintaining and editing the code simpler. Also helps once other fields
+like transferred are added in future.
 
-Looks good to me,
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ drivers/media/radio/saa7706h.c |   15 +++++++++++++--
+ 1 files changed, 13 insertions(+), 2 deletions(-)
 
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+diff --git a/drivers/media/radio/saa7706h.c b/drivers/media/radio/saa7706h.c
+index bb953ef..54db36c 100644
+--- a/drivers/media/radio/saa7706h.c
++++ b/drivers/media/radio/saa7706h.c
+@@ -199,8 +199,19 @@ static int saa7706h_get_reg16(struct v4l2_subdev *sd, u16 reg)
+ 	u8 buf[2];
+ 	int err;
+ 	u8 regaddr[] = {reg >> 8, reg};
+-	struct i2c_msg msg[] = { {client->addr, 0, sizeof(regaddr), regaddr},
+-				{client->addr, I2C_M_RD, sizeof(buf), buf} };
++	struct i2c_msg msg[] = {
++					{
++						.addr = client->addr,
++						.len = sizeof(regaddr),
++						.buf = regaddr
++					},
++					{
++						.addr = client->addr,
++						.flags = I2C_M_RD,
++						.len = sizeof(buf),
++						.buf = buf
++					}
++				};
+ 
+ 	err = saa7706h_i2c_transfer(client, msg, ARRAY_SIZE(msg));
+ 	if (err)
+-- 
+1.7.5.4
 
-> ---
->   drivers/media/platform/mem2mem_testdev.c |    3 ++-
->   drivers/media/platform/vivi.c            |    3 ++-
->   2 files changed, 4 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/platform/mem2mem_testdev.c b/drivers/media/platform/mem2mem_testdev.c
-> index 0b496f3..74de642 100644
-> --- a/drivers/media/platform/mem2mem_testdev.c
-> +++ b/drivers/media/platform/mem2mem_testdev.c
-> @@ -430,7 +430,8 @@ static int vidioc_querycap(struct file *file, void *priv,
->   {
->   	strncpy(cap->driver, MEM2MEM_NAME, sizeof(cap->driver) - 1);
->   	strncpy(cap->card, MEM2MEM_NAME, sizeof(cap->card) - 1);
-> -	strlcpy(cap->bus_info, MEM2MEM_NAME, sizeof(cap->bus_info));
-> +	snprintf(cap->bus_info, sizeof(cap->bus_info),
-> +			"platform:%s", MEM2MEM_NAME);
->   	cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
->   	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
->   	return 0;
-> diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
-> index a6351c4..7f3e6329 100644
-> --- a/drivers/media/platform/vivi.c
-> +++ b/drivers/media/platform/vivi.c
-> @@ -898,7 +898,8 @@ static int vidioc_querycap(struct file *file, void  *priv,
->
->   	strcpy(cap->driver, "vivi");
->   	strcpy(cap->card, "vivi");
-> -	strlcpy(cap->bus_info, dev->v4l2_dev.name, sizeof(cap->bus_info));
-> +	snprintf(cap->bus_info, sizeof(cap->bus_info),
-> +			"platform:%s", dev->v4l2_dev.name);
->   	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
->   			    V4L2_CAP_READWRITE;
->   	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-
---
-
-Regards,
-Sylwester
