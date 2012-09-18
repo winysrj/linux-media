@@ -1,45 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:36950 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754777Ab2IYLNN convert rfc822-to-8bit (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:40539 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932827Ab2IRLox (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Sep 2012 07:13:13 -0400
-MIME-Version: 1.0
-In-Reply-To: <1348571366.10028.4.camel@localhost.localdomain>
+	Tue, 18 Sep 2012 07:44:53 -0400
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>, <julia.lawall@lip6.fr>,
+	Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCHv3 1/6] media: Convert struct i2c_msg initialization to C99 format
+Date: Tue, 18 Sep 2012 17:14:27 +0530
+Message-ID: <1347968672-10803-2-git-send-email-shubhrajyoti@ti.com>
+In-Reply-To: <1347968672-10803-1-git-send-email-shubhrajyoti@ti.com>
 References: <1347968672-10803-1-git-send-email-shubhrajyoti@ti.com>
-	<CALF0-+UZGCpBcGFSyGirdAoKY5MGV-k6c9YefBHfvv5Qk=rTUg@mail.gmail.com>
-	<1348571366.10028.4.camel@localhost.localdomain>
-Date: Tue, 25 Sep 2012 08:13:12 -0300
-Message-ID: <CALF0-+UHZbbNokHbK7y2kn=eAhk1r4a3gD=1FmXStgK8BmGN=w@mail.gmail.com>
-Subject: Re: [PATCHv3 0/6] media: convert to c99 format
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Shubhrajyoti D <shubhrajyoti@ti.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, julia.lawall@lip6.fr
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 25, 2012 at 8:09 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em Ter, 2012-09-25 às 08:03 -0300, Ezequiel Garcia escreveu:
->> Shubhrajyoti,
->>
->> Thanks for your patches.
->>
->> I'm adding media maintainer (Mauro) in Cc. When you send
->> patches for a file you should check who maintains them
->> and put those people in Cc.
->
-> I actually prefer to not be c/c on the patches ;) Copying the
-> linux-media mailing list and checking if the patch was caught by
-> patchwork.linuxtv.kernel.org is enough, as I rely on patchwork to
-> queue patches for me. So, I just discard any media patch sent to me
-> directly.
->
+        Convert the struct i2c_msg initialization to C99 format. This makes
+        maintaining and editing the code simpler. Also helps once other fields
+        like transferred are added in future.
 
-Ouch! I didn't know that!
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ drivers/media/i2c/ks0127.c |   13 +++++++++++--
+ 1 files changed, 11 insertions(+), 2 deletions(-)
 
-Thanks for the information,
-Ezequiel.
+diff --git a/drivers/media/i2c/ks0127.c b/drivers/media/i2c/ks0127.c
+index ee7ca2d..04a6efa 100644
+--- a/drivers/media/i2c/ks0127.c
++++ b/drivers/media/i2c/ks0127.c
+@@ -319,8 +319,17 @@ static u8 ks0127_read(struct v4l2_subdev *sd, u8 reg)
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	char val = 0;
+ 	struct i2c_msg msgs[] = {
+-		{ client->addr, 0, sizeof(reg), &reg },
+-		{ client->addr, I2C_M_RD | I2C_M_NO_RD_ACK, sizeof(val), &val }
++		{
++			.addr = client->addr,
++			.len = sizeof(reg),
++			.buf = &reg
++		},
++		{
++			.addr = client->addr,
++			.flags = I2C_M_RD | I2C_M_NO_RD_ACK,
++			.len = sizeof(val),
++			.buf = &val
++		}
+ 	};
+ 	int ret;
+ 
+-- 
+1.7.5.4
+
