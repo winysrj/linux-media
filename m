@@ -1,70 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40382 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755828Ab2IBDDf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Sep 2012 23:03:35 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-doc@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Rob Landley <rob@landley.net>,
-	LMML <linux-media@vger.kernel.org>, hverkuil@xs4all.nl
-Subject: Re: [PATCH] [media] davinci: vpfe: Add documentation
-Date: Sun, 02 Sep 2012 05:03:58 +0200
-Message-ID: <1459671.FPoEVypYcA@avalon>
-In-Reply-To: <20120901161156.GB6638@valkosipuli.retiisi.org.uk>
-References: <1342021166-6092-1-git-send-email-manjunath.hadli@ti.com> <CA+V-a8sg+MR8TasN0p9kL0yQU1KtJEZZUQsknC6hrRysWA52UQ@mail.gmail.com> <20120901161156.GB6638@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42267 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752200Ab2IRL4l convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Sep 2012 07:56:41 -0400
+From: "Lad, Prabhakar" <prabhakar.lad@ti.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
+	"prabhakar.csengg@gmail.com" <prabhakar.csengg@gmail.com>
+Subject: [GIT PULL FOR v3.7] Davinci VPIF cleanup and feature enhancement
+Date: Tue, 18 Sep 2012 11:56:04 +0000
+Message-ID: <4665BC9CC4253445B213A010E6DC7B35CF5A26@DBDE01.ent.ti.com>
+Content-Language: en-US
 Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 01 September 2012 19:11:56 Sakari Ailus wrote:
-> Hi Prabhakar,
-> 
-> On Sat, Sep 01, 2012 at 08:23:58PM +0530, Prabhakar Lad wrote:
-> > On Sat, Sep 1, 2012 at 7:52 PM, Laurent Pinchart
-> > 
-> > <laurent.pinchart@ideasonboard.com> wrote:
-> > > Hi Sakari,
-> > > 
-> > > On Saturday 01 September 2012 12:57:07 Sakari Ailus wrote:
-> > >> On Wed, Aug 29, 2012 at 08:11:50PM +0530, Prabhakar Lad wrote:
-> > > [snip]
-> > > 
-> > >> > For test pattern you meant control to enable/disable it ?
-> > >> 
-> > >> There are two approaches I can think of.
-> > >> 
-> > >> One is a menu control which can be used to choose the test pattern (or
-> > >> disable it). The control could be standardised but the menu items would
-> > >> have to be hardware-specific since the test patterns themselves are
-> > >> not standardised.
-> > > 
-> > > Agreed. The test patterns themselves are highly hardware-specific.
-> > > 
-> > > From personal experience with sensors, most devices implement a small,
-> > > fixed set of test patterns that can be exposed through a menu control.
-> > > However, some devices also implement more "configurable" test patterns.
-> > > For instance the MT9V032 can generate horizontal, vertical or diagonal
-> > > test patterns, or a uniform grey test pattern with a user-configurable
-> > > value. This would then require two controls.
-> > 
-> > two controls I didn't get it ? When we have menu itself with a list of
-> > standard patterns why would two controls be required ?
-> 
-> Two are not required. A single menu control will do.
+Hi Mauro,
 
-That's correct, in this case a single menu control will do. We would only need 
-multiple controls if the device exposes test pattern parameters, as in the 
-MT9V032 sensor example.
+Can you please pull the following patches for vpif, Which
+involves driver cleanup and replace preset by timings API.
 
--- 
-Regards,
+Thanks and Regards,
+--Prabhakar Lad
 
-Laurent Pinchart
+The following changes since commit 36aee5ff9098a871bda38dbbdad40ad59f6535cf:
 
+  [media] ir-rx51: Adjust dependencies (2012-09-15 19:44:30 -0300)
+
+are available in the git repository at:
+  git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git vpif_driver_cleanup
+
+Dror Cohen (1):
+      media/video: vpif: fixing function name start to vpif_config_params
+
+Hans Verkuil (2):
+      vpif: replace preset with the timings API.
+      davinci: vpif: remove unwanted header file inclusion
+
+Lad, Prabhakar (2):
+      media: davinci: vpif: add check for NULL handler
+      davinci: vpif: capture/display: fix race condition
+
+ drivers/media/platform/davinci/vpif.c         |   22 +++--
+ drivers/media/platform/davinci/vpif.h         |    4 +-
+ drivers/media/platform/davinci/vpif_capture.c |  133 ++++++-------------------
+ drivers/media/platform/davinci/vpif_capture.h |    6 +-
+ drivers/media/platform/davinci/vpif_display.c |  121 ++++------------------
+ drivers/media/platform/davinci/vpif_display.h |    6 +-
+ 6 files changed, 69 insertions(+), 223 deletions(-)
