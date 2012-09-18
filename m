@@ -1,203 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:24268 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752641Ab2IKHzk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Sep 2012 03:55:40 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: Re: [PATCH v2] media: v4l2-ctrl: add a helper function to modify the menu
-Date: Tue, 11 Sep 2012 09:55:26 +0200
-Cc: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-kernel@vger.kernel.org,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	linux-doc@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Rob Landley <rob@landley.net>
-References: <1347349142-2230-1-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1347349142-2230-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:42533 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755773Ab2IRWv0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Sep 2012 18:51:26 -0400
+Message-ID: <5058FAD9.4090204@iki.fi>
+Date: Wed, 19 Sep 2012 01:51:05 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: Oliver Schinagl <oliver+list@schinagl.nl>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Support for Asus MyCinema U3100Mini Plus
+References: <1347223647-645-1-git-send-email-oliver+list@schinagl.nl> <504D00BC.4040109@schinagl.nl> <504D0F44.6030706@iki.fi> <504D17AA.8020807@schinagl.nl> <504D1859.5050201@iki.fi> <504DB9D4.6020502@schinagl.nl> <504DD311.7060408@iki.fi> <504DF950.8060006@schinagl.nl> <504E2345.5090800@schinagl.nl> <5055DD27.7080501@schinagl.nl> <505601B6.2010103@iki.fi> <5055EA30.8000200@schinagl.nl> <50560B82.7000205@iki.fi> <50564E58.20004@schinagl.nl> <50566260.1090108@iki.fi> <5056DE5C.70003@schinagl.nl> <50571F83.10708@schinagl.nl> <50572290.8090308@iki.fi> <505724F0.20502@schinagl.nl> <50572B1D.3080807@iki.fi> <50573FC5.40307@schinagl.nl> <50578B61.1040700@schinagl.nl> <5057910C.10408@iki.fi> <50579CC3.5040703@schinagl.nl> <5058ACE4.6070408@schinagl.nl>
+In-Reply-To: <5058ACE4.6070408@schinagl.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201209110955.26208.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pradhakar,
+On 09/18/2012 08:18 PM, Oliver Schinagl wrote:
+> On 09/17/12 23:57, Oliver Schinagl wrote:
+>> On 09/17/12 23:07, Antti Palosaari wrote:
+>>> On 09/17/2012 11:43 PM, Oliver Schinagl wrote:
+>>>> On 09/17/12 17:20, Oliver Schinagl wrote:
+>>>>
+>>>>>>>> If tuner communication is really working and it says chip id is
+>>>>>>>> 0x5a
+>>>>>>>> then it is different than driver knows. It could be new revision of
+>>>>>>>> tuner. Change chip_id to match 0x5a
+>>>>>>>>
+>>>>>>> Ah, so it's called chip_id on one end, but tuner_id on the other
+>>>>>>> end.
+>>>>>>> If/when I got this link working properly, I'll write a patch to fix
+>>>>>>> some
+>>>>>>> naming consistencies.
+>>>>>>
+>>>>>> No, you are totally wrong now. Chip ID is value inside chip register.
+>>>>>> Almost every chip has some chip id value which driver could detect it
+>>>>>> is speaking with correct chip. In that case value is stored inside
+>>>>>> fc2580.
+>>>>>>
+>>>>>> Tuner ID is value stored inside AF9035 chip / eeprom. It is
+>>>>>> configuration value for AF9035 hardware design. It says "that AF9035
+>>>>>> device uses FC2580 RF-tuner". AF9035 (FC2580) tuner ID and FC2580
+>>>>>> chip
+>>>>>> ID are different values having different meaning.
+>>>>> Ok, I understand the difference between Chip ID and Tuner ID I guess,
+>>>>> and with my new knowledge about dynamic debug I know also
+>>>>> understand my
+>>>>> findings and where it goes wrong. I also know understand the chipID is
+>>>>> stored in fc2580.c under the fc2580_attach, where it checks for 0x56.
+>>>>> Appearantly my chipID is 0x5a. I wasn't triggered by this as none of
+>>>>> the
+>>>>> other fc2580 or af9035 devices had such a change so it wasn't obvious.
+>>>>> Tuner ID is actively being chechked/set in the source, so that seemed
+>>>>> more obvious.
+>>>> It can't be 0x5a as chipid. I actually found that the vendor driver
+>>>> also
+>>>> reads from 0x01 once to test the chip.
+>>>>
+>>>> This function is a generic function which tests I2C interface's
+>>>> availability by reading out it's I2C id data from reg. address '0x01'.
+>>>>
+>>>> int fc2580_i2c_test( void ) {
+>>>>      return ( fc2580_i2c_read( 0x01 ) == 0x56 )? 0x01 : 0x00;
+>>>> }
+>>>>
+>>>> So something else is going weird. chipid being 0x56 is good though;
+>>>> same
+>>>> chip revision. However I now got my system to hang, got some soft-hang
+>>>> errors and the driver only reported failure on loading. No other debug
+>>>> that I saw from dmesg before the crash. Will investigate more.
+>>>
+>>> huoh.
+>>>
+>>> usb 2-2: rtl28xxu_ctrl_msg: c0 00 ac 01 00 03 01 00 <<< 56
+>>> usb 2-2: rtl28xxu_ctrl_msg: 40 00 ac 01 10 03 01 00 >>> ff
+>>> usb 2-2: rtl28xxu_ctrl_msg: c0 00 ac 01 00 03 01 00 <<< 56
+>>> usb 2-2: rtl28xxu_ctrl_msg: 40 00 ac 01 10 03 01 00 >>> 00
+>>> usb 2-2: rtl28xxu_ctrl_msg: c0 00 ac 01 00 03 01 00 <<< 56
+>>> i2c i2c-5: fc2580: FCI FC2580 successfully identified
+>>>
+>>> Why do you think its value is static - it cannot be changed...
+>> I'm not saying it can be at all :p
+>>
+>> according to debug output, I had
+>>
+>> [  188.054019] i2c i2c-1: fc2580_attach: chip_id=5a
+>>
+>> so to your suggestion, I made it accept chip_id 0x5a as well.
+>>      if ((chip_id != 0x56) || (chip_id != 0x5a))
+>>          goto err;
+>>
+>> But theoretically, it can't be 0x5a, as even the vendor driver would
+>> only check for 0x56 (the function actually never gets called, so any
+>> revision according the those sources could work).
+>>
+>> So I will investigate why it would return 0x5a for the chip id :)
+>>
+>>
+> Turns out, the chip REALLY REALLY is 0x5a. I took some snapshots of both
+> the tuner and bridge/demodulator and uploaded them to the linuxtv wiki
+> [1]. If you could compare that one to your Chips? The markings are:
+>
+> FCI 2580 01BD
+>
+> AF9035B-N2
+> 1012 QJFSQ
 
-Looks good, but I have a number of style/grammar issues which I've corrected
-below.
+I haven't opened my device at all...
 
-On Tue 11 September 2012 09:39:02 Prabhakar Lad wrote:
-> From: Lad, Prabhakar <prabhakar.lad@ti.com>
-> 
-> Add a helper function to modify the menu, max and default value
-> to set.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Hans de Goede <hdegoede@redhat.com>
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Rob Landley <rob@landley.net>
-> ---
-> Changes for v2:
-> 1: Fixed review comments from Hans, to have return type as
->    void, add WARN_ON() for fail conditions, allow this fucntion
->    to modify the menu of custom controls.
-> 
->  Documentation/video4linux/v4l2-controls.txt |   30 +++++++++++++++++++++++++++
->  drivers/media/v4l2-core/v4l2-ctrls.c        |   17 +++++++++++++++
->  include/media/v4l2-ctrls.h                  |   11 +++++++++
->  3 files changed, 58 insertions(+), 0 deletions(-)
-> 
-> diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
-> index 43da22b..160368a 100644
-> --- a/Documentation/video4linux/v4l2-controls.txt
-> +++ b/Documentation/video4linux/v4l2-controls.txt
-> @@ -367,6 +367,36 @@ it to 0 means that all menu items are supported.
->  You set this mask either through the v4l2_ctrl_config struct for a custom
->  control, or by calling v4l2_ctrl_new_std_menu().
->  
-> +Changing the menu:
-> +There are situations when menu items may be device specific, in such cases the
-> +framework provides the helper function to change the menu.
-> +
-> +void v4l2_ctrl_modify_menu(struct v4l2_ctrl *ctrl, const char * const *qmenu,
-> +	s32 max, u32 menu_skip_mask, s32 def);
-> +
-> +A good example is the test pattern generation, the capture/display/sensors have
-> +the capability to generate test patterns. This test patterns are hardware
-> +specific, In such case the menu will vary from device to device.
-> +
-> +This helper, function is used to modify the menu, max, mask and the default
-> +value to set.
-> +
-> +Example for usage:
-> +	static const char * const test_pattern[] = {
-> +		"Disabled",
-> +		"Vertical Bars",
-> +		"Vertical Bars",
-> +		"Solid Black",
-> +		"Solid White",
-> +		NULL
-> +	};
-> +	struct v4l2_ctrl *test_pattern_ctrl =
-> +		v4l2_ctrl_new_std_menu(&foo->ctrl_handler, &foo_ctrl_ops,
-> +			V4L2_CID_TEST_PATTERN, V4L2_TEST_PATTERN_DISABLED, 0,
-> +			V4L2_TEST_PATTERN_DISABLED);
-> +
-> +	v4l2_ctrl_modify_menu(test_pattern_ctrl, test_pattern, 5, 0x3, 1);
-> +
+> On a more serious note, right now, the driver soft-locks-up. Either with
+> or without accepting the 0x5a chip_id.
+>
+> What I do is, manually load all modules, enable debugging and plug in
+> the device.
+>
+> Everything appears to work normally for a while, I can do the dmesg dump
+> etc, but after about 22 seconds, I get this warning:
+> BUG: soft lockup - CPU#2 stuck for 22s! [udev-acl:2320]
+> (With the CPU# number being arbitrary). 22s later, another CPU fails. I
+> haven't waited for the other core's to fail.
+>
+> Also, removing the module is impossible. Rebooting also fails. I have to
+> sys-req reboot it.
+>
+> I don't know how much my patch is responsible for this of course, but
+> since attaching of the tuner fails due to the wrong chip_id in one case,
+> the only code affected is the USB id that loads the driver/firmware. I
+> did see this with the older firmware too btw, so appears to be firmware
+> unrelated.
+>
+> In the meantime, I continue finding out why after accepting chip_id
+> 0x5a, it still fails on tuner attach. I suppose somehow the tuner_id
+> isn't matching, which is weird, but will find out about it in the next
+> few days.
 
-There are a number of style/grammar issues with the text above. I've
-corrected them in the revised version below. That replaces your version
-completely. So just to make it clear: I've dropped the first line ('Changing
-the menu:') because I don't think that line is necessary.
+Tuner attach does nothing more that could fail than check that one 
+register. It is almost impossible to get it failing if tuner ID match. 
+Maybe I2C communication is not working, error returned and it bails out? 
+Anyhow, such situation should be visible when debugs are enabled.
 
-New text:
+> [1] http://www.linuxtv.org/wiki/index.php/Asus_U3100_Mini_plus_DVB-T
 
-There are situations where menu items may be device specific. In such cases the
-framework provides a helper function to change the menu:
+regards
+Antti
 
-void v4l2_ctrl_modify_menu(struct v4l2_ctrl *ctrl, const char * const *qmenu,
-	s32 max, u32 menu_skip_mask, s32 def);
-
-A good example is the test pattern control for capture/display/sensors devices
-that have the capability to generate test patterns. These test patterns are
-hardware specific, so the contents of the menu will vary from device to device.
-
-This helper function is used to modify the menu, max, mask and the default
-value of the control.
-
-Example:
-
-	static const char * const test_pattern[] = {
-		"Disabled",
-		"Vertical Bars",
-		"Solid Black",
-		"Solid White",
-		NULL
-	};
-	struct v4l2_ctrl *test_pattern_ctrl =
-		v4l2_ctrl_new_std_menu(&foo->ctrl_handler, &foo_ctrl_ops,
-			V4L2_CID_TEST_PATTERN, V4L2_TEST_PATTERN_DISABLED, 0,
-			V4L2_TEST_PATTERN_DISABLED);
-
-	v4l2_ctrl_modify_menu(test_pattern_ctrl, test_pattern, 3, 0,
-			V4L2_TEST_PATTERN_DISABLED);
-
->  
->  Custom Controls
->  ===============
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index d731422..d89b460 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -2666,3 +2666,20 @@ unsigned int v4l2_ctrl_poll(struct file *file, struct poll_table_struct *wait)
->  	return 0;
->  }
->  EXPORT_SYMBOL(v4l2_ctrl_poll);
-> +
-> +/* Helper function for modifying the menu */
-> +void v4l2_ctrl_modify_menu(struct v4l2_ctrl *ctrl, const char * const *qmenu,
-> +			   s32 max, u32 menu_skip_mask, s32 def)
-> +{
-> +	if (WARN_ON(ctrl->type != V4L2_CTRL_TYPE_MENU || qmenu == NULL))
-> +		return;
-> +
-> +	if (WARN_ON(def < 0 || def > max))
-> +		return;
-> +
-> +	ctrl->qmenu = qmenu;
-> +	ctrl->maximum = max;
-> +	ctrl->menu_skip_mask = menu_skip_mask;
-> +	ctrl->cur.val = ctrl->val = ctrl->default_value = def;
-> +}
-> +EXPORT_SYMBOL(v4l2_ctrl_modify_menu);
-> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-> index 776605f..0c91b4e 100644
-> --- a/include/media/v4l2-ctrls.h
-> +++ b/include/media/v4l2-ctrls.h
-> @@ -488,6 +488,17 @@ static inline void v4l2_ctrl_unlock(struct v4l2_ctrl *ctrl)
->  	mutex_unlock(ctrl->handler->lock);
->  }
->  
-> +/**
-> + * v4l2_ctrl_modify_menu() - This function is used to modify the menu.
-> + * @ctrl:		The control of which menu should be changed.
-
-"The control whose menu should be modified."
-
-> + * @qmenu:		The new menu to which control will point to.
-
-"The new menu."
-
-> + * @max:		Maximum value of the control.
-> + * @menu_skip_mask:	The control's skip mask for menu controls.
-> + * @def:		The default value for control to be set.
-> + */
-> +void v4l2_ctrl_modify_menu(struct v4l2_ctrl *ctrl, const char * const *qmenu,
-> +			   s32 max, u32 menu_skip_mask, s32 def);
-> +
->  /** v4l2_ctrl_g_ctrl() - Helper function to get the control's value from within a driver.
->    * @ctrl:	The control.
->    *
-> 
-
-Regards,
-
-	Hans
+-- 
+http://palosaari.fi/
