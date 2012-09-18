@@ -1,89 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog112.obsmtp.com ([207.126.144.133]:59426 "EHLO
-	eu1sys200aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751390Ab2ITVTl convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Sep 2012 17:19:41 -0400
-From: Alain VOLMAT <alain.volmat@st.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"media-workshop@linuxtv.org" <media-workshop@linuxtv.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Thu, 20 Sep 2012 23:19:17 +0200
-Subject: RE: [media-workshop] [ANNOUNCE] media workshop in November
-Message-ID: <E27519AE45311C49887BE8C438E68FAA01012C5F9496@SAFEX1MAIL1.st.com>
-References: <50597E1F.2010503@redhat.com> <5059807C.4050809@redhat.com>
-In-Reply-To: <5059807C.4050809@redhat.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:43107 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932098Ab2IRHxZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Sep 2012 03:53:25 -0400
+Date: Tue, 18 Sep 2012 09:52:13 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Shawn Guo <shawn.guo@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	alsa-devel@alsa-project.org,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	linux-fbdev@vger.kernel.org, Chris Ball <cjb@laptop.org>,
+	linux-mmc@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	rtc-linux@googlegroups.com,
+	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
+	linux-mtd@lists.infradead.org,
+	Wolfram Sang <w.sang@pengutronix.de>,
+	linux-i2c@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>,
+	linux-watchdog@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-usb@vger.kernel.org, Vinod Koul <vinod.koul@linux.intel.com>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
+Subject: Re: [PATCH 00/34] i.MX multi-platform support
+Message-ID: <20120918075213.GD24458@pengutronix.de>
+References: <1347860103-4141-1-git-send-email-shawn.guo@linaro.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1347860103-4141-1-git-send-email-shawn.guo@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Shawn,
 
-I'd like to attend this one (couldn't attend the one last month in San-Diego).
-That would be me and possibly another member (Silvano Vigna) also.
-
-Amount various parts we have in our LinuxDVB/V4L2 model that need discussion with you, we would particularly like to discuss about a TSMux (a Mux rather than a demux) device within LinuxTV.
-
-Can you confirm the possibility of our attendance?
-
-Regards,
-
-Alain
-
-> -----Original Message-----
-> From: media-workshop-bounces@linuxtv.org [mailto:media-workshop-bounces@linuxtv.org] On
-> Behalf Of Mauro Carvalho Chehab
-> Sent: mercredi 19 septembre 2012 10:21
-> To: media-workshop@linuxtv.org; Linux Media Mailing List
-> Subject: Re: [media-workshop] [ANNOUNCE] media workshop in November
+On Mon, Sep 17, 2012 at 01:34:29PM +0800, Shawn Guo wrote:
+> The series enables multi-platform support for imx.  Since the required
+> frameworks (clk, pwm) and spare_irq have already been adopted on imx,
+> the series is all about cleaning up mach/* headers.  Along with the
+> changes, arch/arm/plat-mxc gets merged into arch/arm/mach-imx.
 > 
-> Em 19-09-2012 05:11, Mauro Carvalho Chehab escreveu:
-> > Dear developers,
-> >
-> > We're feeling the need for one more media workshop this year.
-> >
-> > As there will be already several developers going to LinuxCon Europe
-> > and Embedded Linux Conference Europe, we'll be co-locating the
-> > workshop together with those two events.
-> >
-> > As there will be several developers speaking about the media subsystem
-> > at both LinuxCon and ELCE, we decided to take just one day (September,
-> > 8th)
+> It's based on a bunch of branches (works from others), Rob's initial
+> multi-platform series, Arnd's platform-data and smp_ops (Marc's) and
+> imx 3.7 material (Sascha and myself).
 > 
-> Sorry, I meant November, 8th.
+> It's available on branch below.
 > 
-> > for the media workshop (while we expect that we'll likely have some
-> > other discussions during the week).
-> >
-> > In order to finish the arrangements, I need to know who will be
-> > attending, and also we need to receive the theme proposals. Please
-> > estimate how long do you think that it would be needed for the
-> > proposed theme presentation and discussions.
-> >
-> > I have a theme proposal already:
-> >
-> > 	How to improve the patch submission workflow for media patches - 2 hours.
-> >
-> > So, please confirm your intention to be there and propose the themes
-> > of your interests to media-workshop@linuxtv.org mailing list.
-> >
-> > Thanks!
-> > Mauro
-> >
-> >
-> >
-> >
-> > _______________________________________________
-> > media-workshop mailing list
-> > media-workshop@linuxtv.org
-> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/media-workshop
-> >
+>   git://git.linaro.org/people/shawnguo/linux-2.6.git imx/multi-platform
 > 
+> It's been tested on imx5 and imx6, and only compile-tested on imx2 and
+> imx3, so testing on imx2/3 are appreciated.
 > 
-> _______________________________________________
-> media-workshop mailing list
-> media-workshop@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/media-workshop
+> Subsystem maintainers,
+> 
+> I plan to send the whole series via arm-soc tree at the end of 3.7
+> merge window when all dependant bits hit mainline.  Please have a
+> look at the patches you get copied and provide ACKs if the changes
+> are good.  Thanks.
+
+I just had a look at the remaining initcalls in arch-imx. Most of them
+are protected with a cpu_is_*, but this one should be fixed before i.MX
+is enabled for multi platform:
+
+arch/arm/mach-imx/devices/devices.c:48:core_initcall(mxc_device_init);
+
+I think this won't harm others directly, but it will register i.MX
+related devices on foreign platforms.
+
+Sascha
+
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
