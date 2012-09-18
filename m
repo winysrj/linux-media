@@ -1,56 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:29707 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755593Ab2IQKzS (ORCPT
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:34973 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932379Ab2IRAGO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Sep 2012 06:55:18 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 7/7] s5p-csis: Change regulator supply names
-Date: Mon, 17 Sep 2012 12:54:33 +0200
-Message-id: <1347879273-30463-4-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1347879273-30463-1-git-send-email-s.nawrocki@samsung.com>
-References: <1347878888-30001-1-git-send-email-s.nawrocki@samsung.com>
- <1347879273-30463-1-git-send-email-s.nawrocki@samsung.com>
+	Mon, 17 Sep 2012 20:06:14 -0400
+Received: by oago6 with SMTP id o6so5409465oag.19
+        for <linux-media@vger.kernel.org>; Mon, 17 Sep 2012 17:06:14 -0700 (PDT)
+MIME-Version: 1.0
+From: Javier Marcet <jmarcet@gmail.com>
+Date: Tue, 18 Sep 2012 02:05:53 +0200
+Message-ID: <CAAnFQG_SrXyr8MtPDujciE2=QRQK8dAK_SPBE3rC_c-XNSC00w@mail.gmail.com>
+Subject: Terratec Cinergy T PCIe Dual doesn;t work nder the Xen hypervisor
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rename the regulator supply names to more meaningful ones.
-It's a prerequisite for adding device tree support.
+Hi,
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/mipi-csis.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+I recently began to investigate the Xen hypervisor. One key piece of
+the server I'm
+using is its DVB tuners. I'm using a Terratec Cinergy T PCIe Dual.
 
-diff --git a/drivers/media/video/s5p-fimc/mipi-csis.c b/drivers/media/video/s5p-fimc/mipi-csis.c
-index fbfe739..4bf7a68 100644
---- a/drivers/media/video/s5p-fimc/mipi-csis.c
-+++ b/drivers/media/video/s5p-fimc/mipi-csis.c
-@@ -2,7 +2,7 @@
-  * Samsung S5P/EXYNOS4 SoC series MIPI-CSI receiver driver
-  *
-  * Copyright (C) 2011 - 2012 Samsung Electronics Co., Ltd.
-- * Sylwester Nawrocki, <s.nawrocki@samsung.com>
-+ * Sylwester Nawrocki <s.nawrocki@samsung.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-@@ -110,8 +110,8 @@ static char *csi_clock_name[] = {
- #define NUM_CSIS_CLOCKS	ARRAY_SIZE(csi_clock_name)
- 
- static const char * const csis_supply_name[] = {
--	"vdd11", /* 1.1V or 1.2V (s5pc100) MIPI CSI suppply */
--	"vdd18", /* VDD 1.8V and MIPI CSI PLL supply */
-+	"vddcore",  /* CSIS Core (1.0V, 1.1V or 1.2V) suppply */
-+	"vddio",    /* CSIS I/O and PLL (1.8V) supply */
- };
- #define CSIS_NUM_SUPPLIES ARRAY_SIZE(csis_supply_name)
- 
+When running on bare metal it works relatively well (it has other bugs
+I'll report later),
+but when running on a dom0 under the Xen hypervisor I get no data from
+the tuners,
+or very damaged data like if there was more noise than signal.
+
+Initially I thought Xen would be the cause of the problem, but after
+having written on
+the Xen development mailing list and talked about it with a couple
+developers, it isn't
+very clear where the problem is. So far I haven't been able to get the
+smallest warning
+or error.
+
+I thought someone more involved with the DVB drivers could give us a
+hand. You can
+see the thread on the Xen development ml here:
+
+http://www.gossamer-threads.com/lists/xen/devel/256197#256197
+
+Neither raising the loglevel nor enabling the cx23885, cx25840, drxk
+and mt2063 debug
+options I get anything wrong. Just scrambled data from the tuners.
+
+I'd appreciate any help.
+
+
 -- 
-1.7.11.3
-
+Javier Marcet <jmarcet@gmail.com>
