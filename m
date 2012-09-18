@@ -1,68 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx01.sz.bfs.de ([194.94.69.103]:39399 "EHLO mx01.sz.bfs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753724Ab2I2Kwm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Sep 2012 06:52:42 -0400
-Message-ID: <5066D2F6.10800@bfs.de>
-Date: Sat, 29 Sep 2012 12:52:38 +0200
-From: walter harms <wharms@bfs.de>
-Reply-To: wharms@bfs.de
+Received: from devils.ext.ti.com ([198.47.26.153]:40540 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932828Ab2IRLoy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Sep 2012 07:44:54 -0400
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>, <julia.lawall@lip6.fr>,
+	Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCHv3 4/6] media: Convert struct i2c_msg initialization to C99 format
+Date: Tue, 18 Sep 2012 17:14:30 +0530
+Message-ID: <1347968672-10803-5-git-send-email-shubhrajyoti@ti.com>
+In-Reply-To: <1347968672-10803-1-git-send-email-shubhrajyoti@ti.com>
+References: <1347968672-10803-1-git-send-email-shubhrajyoti@ti.com>
 MIME-Version: 1.0
-To: Dan Carpenter <dan.carpenter@oracle.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Leonid V. Fedorenchik" <leonidsbox@gmail.com>,
-	Thomas Meyer <thomas@m3y3r.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] cx25821: testing the wrong variable
-References: <20120929071253.GD10993@elgon.mountain>
-In-Reply-To: <20120929071253.GD10993@elgon.mountain>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+        Convert the struct i2c_msg initialization to C99 format. This makes
+        maintaining and editing the code simpler. Also helps once other fields
+        like transferred are added in future.
 
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ drivers/media/i2c/msp3400-driver.c |   40 ++++++++++++++++++++++++++++++-----
+ 1 files changed, 34 insertions(+), 6 deletions(-)
 
-Am 29.09.2012 09:12, schrieb Dan Carpenter:
-> ->input_filename could be NULL here.  The intent was to test
-> ->_filename.
-> 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> ---
-> I'm not totally convinced that using /root/vid411.yuv is the right idea.
-> 
-> diff --git a/drivers/media/pci/cx25821/cx25821-video-upstream.c b/drivers/media/pci/cx25821/cx25821-video-upstream.c
-> index 52c13e0..6759fff 100644
-> --- a/drivers/media/pci/cx25821/cx25821-video-upstream.c
-> +++ b/drivers/media/pci/cx25821/cx25821-video-upstream.c
-> @@ -808,7 +808,7 @@ int cx25821_vidupstream_init_ch1(struct cx25821_dev *dev, int channel_select,
->  	}
->  
->  	/* Default if filename is empty string */
-> -	if (strcmp(dev->input_filename, "") == 0) {
-> +	if (strcmp(dev->_filename, "") == 0) {
->  		if (dev->_isNTSC) {
->  			dev->_filename =
->  				(dev->_pixel_format == PIXEL_FRMT_411) ?
-> diff --git a/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c b/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
-> index c8c94fb..d33fc1a 100644
-> --- a/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
-> +++ b/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
-> @@ -761,7 +761,7 @@ int cx25821_vidupstream_init_ch2(struct cx25821_dev *dev, int channel_select,
->  	}
->  
->  	/* Default if filename is empty string */
-> -	if (strcmp(dev->input_filename_ch2, "") == 0) {
-> +	if (strcmp(dev->_filename_ch2, "") == 0) {
->  		if (dev->_isNTSC_ch2) {
->  			dev->_filename_ch2 = (dev->_pixel_format_ch2 ==
->  				PIXEL_FRMT_411) ? "/root/vid411.yuv" :
->
+diff --git a/drivers/media/i2c/msp3400-driver.c b/drivers/media/i2c/msp3400-driver.c
+index aeb22be..766305f 100644
+--- a/drivers/media/i2c/msp3400-driver.c
++++ b/drivers/media/i2c/msp3400-driver.c
+@@ -119,12 +119,31 @@ int msp_reset(struct i2c_client *client)
+ 	static u8 write[3]     = { I2C_MSP_DSP + 1, 0x00, 0x1e };
+ 	u8 read[2];
+ 	struct i2c_msg reset[2] = {
+-		{ client->addr, I2C_M_IGNORE_NAK, 3, reset_off },
+-		{ client->addr, I2C_M_IGNORE_NAK, 3, reset_on  },
++		{
++			.addr = client->addr,
++			.flags = I2C_M_IGNORE_NAK,
++			.len = 3,
++			.buf = reset_off
++		},
++		{
++			.addr = client->addr,
++			.flags = I2C_M_IGNORE_NAK,
++			.len = 3,
++			.buf = reset_on
++		},
+ 	};
+ 	struct i2c_msg test[2] = {
+-		{ client->addr, 0,        3, write },
+-		{ client->addr, I2C_M_RD, 2, read  },
++		{
++			.addr = client->addr,
++			.len = 3,
++			.buf = write
++		},
++		{
++			.addr = client->addr,
++			.flags = I2C_M_RD,
++			.len = 2,
++			.buf = read
++		},
+ 	};
+ 
+ 	v4l_dbg(3, msp_debug, client, "msp_reset\n");
+@@ -143,8 +162,17 @@ static int msp_read(struct i2c_client *client, int dev, int addr)
+ 	u8 write[3];
+ 	u8 read[2];
+ 	struct i2c_msg msgs[2] = {
+-		{ client->addr, 0,        3, write },
+-		{ client->addr, I2C_M_RD, 2, read  }
++		{
++			.addr = client->addr,
++			.len = 3,
++			.buf = write
++		},
++		{
++			.addr = client->addr,
++			.flags = I2C_M_RD,
++			.len = 2,
++			.buf = read
++		}
+ 	};
+ 
+ 	write[0] = dev + 1;
+-- 
+1.7.5.4
 
-In this case stcmp seems a bit of a overkill. A simple
-*(dev->_filename_ch2) == 0
-should be ok ?
-
-re,
- wh
