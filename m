@@ -1,91 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51313 "EHLO mail.kapsi.fi"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36301 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753464Ab2IJOjw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Sep 2012 10:39:52 -0400
-Message-ID: <504DFBA4.8050402@iki.fi>
-Date: Mon, 10 Sep 2012 17:39:32 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S1754524Ab2IRJvE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Sep 2012 05:51:04 -0400
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>, <julia.lawall@lip6.fr>,
+	Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCHv2 1/6] media: Convert struct i2c_msg initialization to C99 format
+Date: Tue, 18 Sep 2012 15:20:38 +0530
+Message-ID: <1347961843-9376-2-git-send-email-shubhrajyoti@ti.com>
+In-Reply-To: <1347961843-9376-1-git-send-email-shubhrajyoti@ti.com>
+References: <1347961843-9376-1-git-send-email-shubhrajyoti@ti.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org,
-	Hin-Tak Leung <htl10@users.sourceforge.net>
-Subject: Re: [PATCH 3/5] dvb_frontend: do not allow statistic IOCTLs when
- sleeping
-References: <1345076921-9773-1-git-send-email-crope@iki.fi> <1345076921-9773-4-git-send-email-crope@iki.fi> <504DF8D5.7050709@redhat.com>
-In-Reply-To: <504DF8D5.7050709@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/10/2012 05:27 PM, Mauro Carvalho Chehab wrote:
-> Em 15-08-2012 21:28, Antti Palosaari escreveu:
->> Demodulator cannot perform statistic IOCTLs when it is not tuned.
->> Return -EAGAIN in such case.
->>
->> Signed-off-by: Antti Palosaari <crope@iki.fi>
->> ---
->>   drivers/media/dvb-core/dvb_frontend.c | 34 +++++++++++++++++++++++++---------
->>   1 file changed, 25 insertions(+), 9 deletions(-)
->>
->> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
->> index 2bc80b1..7d079fb 100644
->> --- a/drivers/media/dvb-core/dvb_frontend.c
->> +++ b/drivers/media/dvb-core/dvb_frontend.c
->> @@ -2132,27 +2132,43 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
->>   			err = fe->ops.read_status(fe, status);
->>   		break;
->>   	}
->> +
->>   	case FE_READ_BER:
->> -		if (fe->ops.read_ber)
->> -			err = fe->ops.read_ber(fe, (__u32*) parg);
->> +		if (fe->ops.read_ber) {
->> +			if (fepriv->thread)
->> +				err = fe->ops.read_ber(fe, (__u32 *) parg);
->> +			else
->> +				err = -EAGAIN;
->> +		}
->>   		break;
->>
->
->
->>   	case FE_READ_SIGNAL_STRENGTH:
->> -		if (fe->ops.read_signal_strength)
->> -			err = fe->ops.read_signal_strength(fe, (__u16*) parg);
->> +		if (fe->ops.read_signal_strength) {
->> +			if (fepriv->thread)
->> +				err = fe->ops.read_signal_strength(fe, (__u16 *) parg);
->> +			else
->> +				err = -EAGAIN;
->> +		}
->>   		break;
->
-> This one doesn't look right, as the frontend can be able to get the signal strength
-> at the analog part (afaik, most DVB-S frontends do that). Also, some drivers just
-> map it to the tuner RF strength.
->
-> The proper approach for it is to break signal strength into two different statistics:
-> 	- analog RF strength;
-> 	- signal strength at the demod, after having demod locked.
->
-> It makes sense to return -EAGAIN for the second case, but doing it for the first case
-> is bad, as the RF strength can be used on DVB-S devices, in order to fine-adjust the
-> antenna position.
+        Convert the struct i2c_msg initialization to C99 format. This makes
+        maintaining and editing the code simpler. Also helps once other fields
+        like transferred are added in future.
 
-I have to say I don't understand what you mean. That one is DVB frontend 
-callback and it is not called in case of analog. Could you provide some 
-example?
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ drivers/media/i2c/ks0127.c |   14 ++++++++++++--
+ 1 files changed, 12 insertions(+), 2 deletions(-)
 
-Frontend thread is running always when frontend is opened. It is hard 
-for me to see why frontend FE_READ_SIGNAL_STRENGTH should be allowed 
-call even frontend is closed.
-
-OK, I will try to grep sources to see what you mean.
-
-regards
-Antti
-
+diff --git a/drivers/media/i2c/ks0127.c b/drivers/media/i2c/ks0127.c
+index ee7ca2d..4ede64a 100644
+--- a/drivers/media/i2c/ks0127.c
++++ b/drivers/media/i2c/ks0127.c
+@@ -319,8 +319,18 @@ static u8 ks0127_read(struct v4l2_subdev *sd, u8 reg)
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	char val = 0;
+ 	struct i2c_msg msgs[] = {
+-		{ client->addr, 0, sizeof(reg), &reg },
+-		{ client->addr, I2C_M_RD | I2C_M_NO_RD_ACK, sizeof(val), &val }
++		{
++			.addr = client->addr,
++			.flags = 0,
++			.len = sizeof(reg),
++			.buf = &reg
++		},
++		{
++			.addr = client->addr,
++			.flags = I2C_M_RD | I2C_M_NO_RD_ACK,
++			.len = sizeof(val),
++			.buf = &val
++		}
+ 	};
+ 	int ret;
+ 
 -- 
-http://palosaari.fi/
+1.7.5.4
+
