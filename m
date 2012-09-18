@@ -1,84 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:33701 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754561Ab2IWWZJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Sep 2012 18:25:09 -0400
-Received: by ieak13 with SMTP id k13so9472566iea.19
-        for <linux-media@vger.kernel.org>; Sun, 23 Sep 2012 15:25:08 -0700 (PDT)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43818 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757225Ab2IRMWv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Sep 2012 08:22:51 -0400
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>, <julia.lawall@lip6.fr>,
+	Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCHv4 1/6] media: Convert struct i2c_msg initialization to C99 format
+Date: Tue, 18 Sep 2012 17:52:31 +0530
+Message-ID: <1347970956-11158-2-git-send-email-shubhrajyoti@ti.com>
+In-Reply-To: <1347970956-11158-1-git-send-email-shubhrajyoti@ti.com>
+References: <1347970956-11158-1-git-send-email-shubhrajyoti@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <1345425826-13429-1-git-send-email-elezegarcia@gmail.com>
-References: <1345425826-13429-1-git-send-email-elezegarcia@gmail.com>
-Date: Sun, 23 Sep 2012 19:25:08 -0300
-Message-ID: <CALF0-+VMYuop_WF+KoR3dJOyDAG1uGTYrBy7ebPuLJiM4xQLmA@mail.gmail.com>
-Subject: Re: [PATCH 1/4] stk1160: Make kill/free urb debug message more verbose
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+Convert the struct i2c_msg initialization to C99 format. This makes
+maintaining and editing the code simpler. Also helps once other fields
+like transferred are added in future.
 
-On Sun, Aug 19, 2012 at 10:23 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
-> This is just a cleaning patch to produce more useful
-> debug messages.
->
-> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
-> ---
->  drivers/media/usb/stk1160/stk1160-video.c |   14 +++++++-------
->  1 files changed, 7 insertions(+), 7 deletions(-)
->
-> diff --git a/drivers/media/usb/stk1160/stk1160-video.c b/drivers/media/usb/stk1160/stk1160-video.c
-> index 3785269..022092a 100644
-> --- a/drivers/media/usb/stk1160/stk1160-video.c
-> +++ b/drivers/media/usb/stk1160/stk1160-video.c
-> @@ -342,18 +342,18 @@ static void stk1160_isoc_irq(struct urb *urb)
->   */
->  void stk1160_cancel_isoc(struct stk1160 *dev)
->  {
-> -       int i;
-> +       int i, num_bufs = dev->isoc_ctl.num_bufs;
->
->         /*
->          * This check is not necessary, but we add it
->          * to avoid a spurious debug message
->          */
-> -       if (!dev->isoc_ctl.num_bufs)
-> +       if (!num_bufs)
->                 return;
->
-> -       stk1160_dbg("killing urbs...\n");
-> +       stk1160_dbg("killing %d urbs...\n", num_bufs);
->
-> -       for (i = 0; i < dev->isoc_ctl.num_bufs; i++) {
-> +       for (i = 0; i < num_bufs; i++) {
->
->                 /*
->                  * To kill urbs we can't be in atomic context.
-> @@ -373,11 +373,11 @@ void stk1160_cancel_isoc(struct stk1160 *dev)
->  void stk1160_free_isoc(struct stk1160 *dev)
->  {
->         struct urb *urb;
-> -       int i;
-> +       int i, num_bufs = dev->isoc_ctl.num_bufs;
->
-> -       stk1160_dbg("freeing urb buffers...\n");
-> +       stk1160_dbg("freeing %d urb buffers...\n", num_bufs);
->
-> -       for (i = 0; i < dev->isoc_ctl.num_bufs; i++) {
-> +       for (i = 0; i < num_bufs; i++) {
->
->                 urb = dev->isoc_ctl.urb[i];
->                 if (urb) {
-> --
-> 1.7.8.6
->
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ drivers/media/i2c/ks0127.c |   13 +++++++++++--
+ 1 files changed, 11 insertions(+), 2 deletions(-)
 
-Please don't forget these patches for your v3.7 pull request.
-Unless you don't want to add them yet.
+diff --git a/drivers/media/i2c/ks0127.c b/drivers/media/i2c/ks0127.c
+index ee7ca2d..04a6efa 100644
+--- a/drivers/media/i2c/ks0127.c
++++ b/drivers/media/i2c/ks0127.c
+@@ -319,8 +319,17 @@ static u8 ks0127_read(struct v4l2_subdev *sd, u8 reg)
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	char val = 0;
+ 	struct i2c_msg msgs[] = {
+-		{ client->addr, 0, sizeof(reg), &reg },
+-		{ client->addr, I2C_M_RD | I2C_M_NO_RD_ACK, sizeof(val), &val }
++		{
++			.addr = client->addr,
++			.len = sizeof(reg),
++			.buf = &reg
++		},
++		{
++			.addr = client->addr,
++			.flags = I2C_M_RD | I2C_M_NO_RD_ACK,
++			.len = sizeof(val),
++			.buf = &val
++		}
+ 	};
+ 	int ret;
+ 
+-- 
+1.7.5.4
 
-Thanks,
-Ezequiel.
