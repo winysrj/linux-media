@@ -1,91 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:59901 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754276Ab2IETgx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Sep 2012 15:36:53 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:33321 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753581Ab2IRPuf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Sep 2012 11:50:35 -0400
+Message-ID: <50589821.6000108@redhat.com>
+Date: Tue, 18 Sep 2012 12:49:53 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <1346775269-12191-3-git-send-email-peter.senna@gmail.com>
-References: <1346775269-12191-3-git-send-email-peter.senna@gmail.com>
-Date: Wed, 5 Sep 2012 16:36:52 -0300
-Message-ID: <CALF0-+W6i548ehTDaqkXj7ehFfYBPOBwwPBZQ03eMoo+3K3HXQ@mail.gmail.com>
-Subject: Re: [PATCH 3/5] drivers/media/platform/s5p-tv/mixer_video.c: fix
- error return code
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Peter Senna Tschudin <peter.senna@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+CC: LMML <linux-media@vger.kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] [media] mceusb: Optimize DIV_ROUND_CLOSEST call
+References: <20120901205357.1a75d8a1@endymion.delvare>
+In-Reply-To: <20120901205357.1a75d8a1@endymion.delvare>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Peter,
-
-On Tue, Sep 4, 2012 at 1:14 PM, Peter Senna Tschudin
-<peter.senna@gmail.com> wrote:
-> From: Peter Senna Tschudin <peter.senna@gmail.com>
->
-> Convert a nonnegative error return code to a negative one, as returned
-> elsewhere in the function.
->
-> A simplified version of the semantic match that finds this problem is as
-> follows: (http://coccinelle.lip6.fr/)
->
-> // <smpl>
-> (
-> if@p1 (\(ret < 0\|ret != 0\))
->  { ... return ret; }
-> |
-> ret@p1 = 0
-> )
-> ... when != ret = e1
->     when != &ret
-> *if(...)
-> {
->   ... when != ret = e2
->       when forall
->  return ret;
-> }
->
-> // </smpl>
->
-> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
->
+Em 01-09-2012 15:53, Jean Delvare escreveu:
+> DIV_ROUND_CLOSEST is faster if the compiler knows it will only be
+> dealing with unsigned dividends.
+> 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Guenter Roeck <linux@roeck-us.net>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 > ---
->  drivers/media/platform/s5p-tv/mixer_video.c |    5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
-> index a9c6be3..f139fed 100644
-> --- a/drivers/media/platform/s5p-tv/mixer_video.c
-> +++ b/drivers/media/platform/s5p-tv/mixer_video.c
-> @@ -83,6 +83,7 @@ int __devinit mxr_acquire_video(struct mxr_device *mdev,
->         mdev->alloc_ctx = vb2_dma_contig_init_ctx(mdev->dev);
->         if (IS_ERR_OR_NULL(mdev->alloc_ctx)) {
->                 mxr_err(mdev, "could not acquire vb2 allocator\n");
-> +               ret = -ENODEV;
->                 goto fail_v4l2_dev;
->         }
->
-> @@ -764,8 +765,10 @@ static int mxr_video_open(struct file *file)
->         }
->
->         /* leaving if layer is already initialized */
-> -       if (!v4l2_fh_is_singular_file(file))
-> +       if (!v4l2_fh_is_singular_file(file)) {
-> +               ret = -EBUSY; /* Not sure if EBUSY is the best for here */
->                 goto unlock;
-> +       }
->
->         /* FIXME: should power be enabled on open? */
->         ret = mxr_power_get(mdev);
->
+>  drivers/media/rc/mceusb.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> --- linux-3.6-rc3.orig/drivers/media/rc/mceusb.c	2012-08-04 21:49:27.000000000 +0200
+> +++ linux-3.6-rc3/drivers/media/rc/mceusb.c	2012-09-01 18:53:32.053042123 +0200
+> @@ -627,7 +627,7 @@ static void mceusb_dev_printdata(struct
+>  			break;
+>  		case MCE_RSP_EQIRCFS:
+>  			period = DIV_ROUND_CLOSEST(
+> -					(1 << data1 * 2) * (data2 + 1), 10);
+> +					(1U << data1 * 2) * (data2 + 1), 10);
+>  			if (!period)
+>  				break;
+>  			carrier = (1000 * 1000) / period;
+> 
+> 
 
-Well, same to say here. I think if you look at this functions you'll realize
-it's so much easy to just initialize ret to something, instead of the obviously
-wrong ret = 0.
+Hmm... this generates the following warning with "W=1":
 
-IMO, initializing ret to zero it's a free ticket to bugs. :-)
+drivers/media/rc/mceusb.c:629:4: warning: comparison of unsigned expression >= 0 is always true [-Wtype-limits]
+drivers/media/rc/mceusb.c:629:4: warning: comparison of unsigned expression >= 0 is always true [-Wtype-limits]
 
-Hope it helps,
-Ezequiel.
+Perhaps it makes sense to use an optimized version for unsigned, or to
+change the macro to take the data types into account.
+
+Regards,
+Mauro
