@@ -1,102 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moh2-ve3.go2.pl ([193.17.41.208]:36154 "EHLO moh2-ve3.go2.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932546Ab2ISQJW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Sep 2012 12:09:22 -0400
-Received: from moh2-ve3.go2.pl (unknown [10.0.0.208])
-	by moh2-ve3.go2.pl (Postfix) with ESMTP id EF74948013
-	for <linux-media@vger.kernel.org>; Wed, 19 Sep 2012 17:59:46 +0200 (CEST)
-Received: from o2.pl (unknown [10.0.0.144])
-	by moh2-ve3.go2.pl (Postfix) with SMTP
-	for <linux-media@vger.kernel.org>; Wed, 19 Sep 2012 17:59:46 +0200 (CEST)
-Subject: =?UTF-8?Q?[PATCH]_[2/3]_dvb-apps_-_update_scan?=
-	=?UTF-8?Q?_file_for_Hotrird_19E=2C_Astra_19E=2C_Thor_1W?=
-From: =?UTF-8?Q?VoJcEK?= <vojcek@tlen.pl>
-To: linux-media@vger.kernel.org
-Mime-Version: 1.0
-Message-ID: <20e83e4.3b42866d.5059ebf2.e6c78@tlen.pl>
-Date: Wed, 19 Sep 2012 17:59:46 +0200
-Content-Type: multipart/mixed;
-	boundary="==o2.pl-WebMail-7c8debb7.11db9757.e6c7f=="
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:56861 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932152Ab2IRMtj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Sep 2012 08:49:39 -0400
+MIME-Version: 1.0
+In-Reply-To: <1966621.qrSMP274pk@avalon>
+References: <1346737072-24341-1-git-send-email-prabhakar.lad@ti.com>
+ <5046DEC1.6050704@ti.com> <504A4114.5010106@iki.fi> <1966621.qrSMP274pk@avalon>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 18 Sep 2012 18:19:18 +0530
+Message-ID: <CA+V-a8vaPwaivk7B8AQEUHWJHQ6LNZ=BwQEFsRyiek6HBBS28g@mail.gmail.com>
+Subject: Re: [PATCH v4] media: v4l2-ctrls: add control for dpcm predictor
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Rob Landley <rob@landley.net>, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
+Hi Sakari,
 
---==o2.pl-WebMail-7c8debb7.11db9757.e6c7f==
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On Thu, Sep 13, 2012 at 6:29 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Sakari,
+>
+> On Friday 07 September 2012 21:46:44 Sakari Ailus wrote:
+>>
+>> Could you replace the above with this text (with appropriate indentation
+>> etc.) while keeping the reference to Wikipedia?
+>>
+>> ------8<------
+>> Differential pulse-code modulation (DPCM) compression can be used to
+>> compress the samples into fewer bits than they would otherwise require.
+>> This is done by calculating the difference between consecutive samples
+>> and outputting the difference which in average is much smaller than the
+>> values of the samples themselves since there is generally lots of
+>> correlation between adjacent pixels. In decompression the original
+>> samples are reconstructed. The process isn't lossless as the encoded
+>> sample size in bits is less than the original.
+>>
+>> Formats using DPCM compression include <xref
+>> linkend="pixfmt-srggb10dpcm8" />.
+>>
+>> This control is used to select the predictor used to encode the samples.
+>
+> If I remember correctly this control will be used on the receiver side on
+> DaVinci, to decode pixels not encode them. How is the predictor used in that
+> case ? Must it match the predictor used on the encoding side ? If so I expect
+> documentation to be available somewhere.
+>
+> The OMAP3 ISP supports both DPCM encoding and decoding, and documents the
+> predictors as
+>
+> "- The simple predictor
+>
+> This predictor uses only the previous same color component value as a
+> prediction value. Therefore, only two-pixel memory is required.
+>
+> - The advanced predictor
+>
+> This predictor uses four previous pixel values, when the prediction value is
+> evaluated. This means that also the other color component values are used,
+> when the prediction value has been defined."
+>
+> It also states the the simple predictor is preferred for 10-8-10 conversion,
+> and the advanced predictor for 10-7-10 and 10-6-10 conversion.
+>
+What do you suggest ?
 
-Astra=2019E=20patch
---==o2.pl-WebMail-7c8debb7.11db9757.e6c7f==
-Content-Type: application/octet-stream;
-	name="=?UTF-8?Q?dvb-apps=5Fscan=5F19E.patch?="
-Content-Disposition: attachment;
-	filename="=?UTF-8?Q?dvb-apps=5Fscan=5F19E.patch?="
-Content-Transfer-Encoding: base64
+Regards,
+--Prabhakar Lad
 
-LS0tIHV0aWwvc2Nhbi9kdmItcy9Bc3RyYS0xOS4yRS5vbGQJMjAxMi0wOS0xOSAxNToxNDow
-MC42MDgxNTcwMzQgKzAyMDAKKysrIHV0aWwvc2Nhbi9kdmItcy9Bc3RyYS0xOS4yRQkyMDEy
-LTA5LTE5IDE2OjI3OjM0LjkxOTE1MTM3NyArMDIwMApAQCAtMSwzICsxLDEwMyBAQAotIyBB
-c3RyYSAxOS4yRSBTRFQgaW5mbyBzZXJ2aWNlIHRyYW5zcG9uZGVyCisjIEFzdHJhIDE5LjJF
-CiAjIGZyZXEgcG9sIHNyIGZlYwotUyAxMjU1MTUwMCBWIDIyMDAwMDAwIDUvNgorUzIgMTA3
-MjkwMDAgViAyMjAwMDAwMCAyLzMgQVVUTyA4UFNLCitTIDEwNzQ0MDAwIEggMjIwMDAwMDAg
-NS82CitTIDEwNzU5MDAwIFYgMjIwMDAwMDAgNS82CitTMiAxMDc3MzAwMCBIIDIyMDAwMDAw
-IDMvNCBBVVRPIDhQU0sKK1MgMTA3ODgwMDAgViAyMjAwMDAwMCA1LzYKK1MyIDEwODAzMDAw
-IEggMjIwMDAwMDAgMy80IEFVVE8gOFBTSworUzIgMTA4MTgwMDAgViAyMjAwMDAwMCAyLzMg
-QVVUTyA4UFNLCitTMiAxMDgzMjAwMCBIIDIyMDAwMDAwIDIvMyBBVVRPIDhQU0sKK1MgMTA4
-NDcwMDAgViAyMjAwMDAwMCA1LzYKK1MgMTA4NjIwMDAgSCAyMjAwMDAwMCA3LzgKK1MgMTA4
-NzcwMDAgViAyMjAwMDAwMCA1LzYKK1MgMTA5MjEwMDAgSCAyMjAwMDAwMCA3LzgKK1MyIDEw
-OTM2MDAwIFYgMjIwMDAwMDAgMi8zIEFVVE8gOFBTSworUyAxMDk3OTAwMCBWIDIyMDAwMDAw
-IDUvNgorUyAxMTAyMzAwMCBIIDIyMDAwMDAwIDUvNgorUyAxMTAzODAwMCBWIDIyMDAwMDAw
-IDUvNgorUyAxMTA2NzAwMCBWIDIyMDAwMDAwIDUvNgorUyAxMTA5NzAwMCBWIDIyMDAwMDAw
-IDUvNgorUzIgMTExMjYwMDAgViAyMjAwMDAwMCAyLzMgQVVUTyA4UFNLCitTIDExMTU2MDAw
-IFYgMjIwMDAwMDAgNS82CitTMiAxMTE3MTAwMCBIIDIyMDAwMDAwIDIvMworUyAxMTE4NjAw
-MCBWIDIyMDAwMDAwIDUvNgorUyAxMTI0NDAwMCBIIDIyMDAwMDAwIDUvNgorUzIgMTEyNTkw
-MDAgViAyMjAwMDAwMCAyLzMgQVVUTyA4UFNLCitTIDExMzAzMDAwIEggMjIwMDAwMDAgMi8z
-CitTIDExMzE4MDAwIFYgMjIwMDAwMDAgNS82CitTMiAxMTM0NzAwMCBWIDIyMDAwMDAwIDIv
-MyBBVVRPIDhQU0sKK1MyIDExMzYyMDAwIEggMjIwMDAwMDAgMi8zIEFVVE8gOFBTSworUzIg
-MTEzNzcwMDAgViAyMjAwMDAwMCAyLzMgQVVUTyA4UFNLCitTIDExNDIxMDAwIEggMjIwMDAw
-MDAgNS82CitTMiAxMTQzNTAwMCBWIDIyMDAwMDAwIDIvMyBBVVRPIDhQU0sKK1MyIDExNDY0
-MDAwIEggMjIwMDAwMDAgMi8zIEFVVE8gOFBTSworUyAxMTQ3OTAwMCBWIDIyMDAwMDAwIDUv
-NgorUzIgMTE0OTQwMDAgSCAyMjAwMDAwMCAyLzMgQVVUTyA4UFNLCitTIDExNTA5MDAwIFYg
-MjIwMDAwMDAgNS82CitTIDExNTIzMDAwIEggMjIwMDAwMDAgNS82CitTIDExNTM4MDAwIFYg
-MjIwMDAwMDAgNS82CitTIDExNTY4MDAwIFYgMjIwMDAwMDAgNS82CitTMiAxMTU4MjAwMCBI
-IDIyMDAwMDAwIDIvMyBBVVRPIDhQU0sKK1MgMTE1OTcwMDAgViAyMjAwMDAwMCA1LzYKK1Mg
-MTE2MTIwMDAgSCAyMjAwMDAwMCA1LzYKK1MyIDExNjI3MDAwIFYgMjIwMDAwMDAgMi8zIEFV
-VE8gOFBTSworUzIgMTE2NDEwMDAgSCAyMjAwMDAwMCAzLzQgQVVUTyA4UFNLCitTMiAxMTY3
-MTAwMCBIIDIyMDAwMDAwIDIvMyBBVVRPIDhQU0sKK1MgMTE2ODYwMDAgViAyMjAwMDAwMCA1
-LzYKK1MgMTE3MTkwMDAgSCAyNzUwMDAwMCAzLzQKK1MgMTE3MzkwMDAgViAyNzUwMDAwMCAz
-LzQKK1MgMTE3NTkwMDAgSCAyNzUwMDAwMCAzLzQKK1MgMTE3NzgwMDAgViAyNzUwMDAwMCAz
-LzQKK1MgMTE3OTcwMDAgSCAyNzUwMDAwMCAzLzQKK1MgMTE4MTcwMDAgViAyNzUwMDAwMCAz
-LzQKK1MgMTE4MzcwMDAgSCAyNzUwMDAwMCAzLzQKK1MgMTE4NTYwMDAgViAyNzUwMDAwMCAz
-LzQKK1MgMTE4NzYwMDAgSCAyNzUwMDAwMCA5LzEwIEFVVE8gUVBTSworUyAxMTg5NTAwMCBW
-IDI3NTAwMDAwIDMvNAorUyAxMTkxNDAwMCBIIDI3NTAwMDAwIDMvNAorUyAxMTkzNDAwMCBW
-IDI3NTAwMDAwIDMvNAorUyAxMTk1NDAwMCBIIDI3NTAwMDAwIDMvNAorUyAxMTk3MzAwMCBW
-IDI3NTAwMDAwIDMvNAorUzIgMTE5OTMwMDAgSCAyNzUwMDAwMCA5LzEwIEFVVE8gUVBTSwor
-UzIgMTIwMTIwMDAgViAyOTcwMDAwMCAyLzMgQVVUTyBRUFNLCitTIDEyMDMyMDAwIEggMjc1
-MDAwMDAgMy80CitTIDEyMDUxMDAwIFYgMjc1MDAwMDAgMy80CitTIDEyMDcxMDAwIEggMjc1
-MDAwMDAgMy80CitTIDEyMDkwMDAwIFYgMjc1MDAwMDAgMy80CitTIDEyMTEwMDAwIEggMjc1
-MDAwMDAgMy80CitTIDEyMTI5MDAwIFYgMjc1MDAwMDAgMy80CitTIDEyMTQ5MDAwIEggMjc1
-MDAwMDAgMy80CitTMiAxMjE2ODAwMCBWIDI5NzAwMDAwIDIvMyBBVVRPIDhQU0sKK1MgMTIx
-ODgwMDAgSCAyNzUwMDAwMCAzLzQKK1MyIDEyMjA3MDAwIFYgMjk3MDAwMDAgMi8zIEFVVE8g
-OFBTSworUyAxMjIyNzAwMCBIIDI3NTAwMDAwIDMvNAorUzIgMTIyNDYwMDAgViAyOTcwMDAw
-MCAyLzMgQVVUTyA4UFNLCitTIDEyMjY2MDAwIEggMjc1MDAwMDAgMy80CitTIDEyMjg1MDAw
-IFYgMjc1MDAwMDAgMy80CitTMiAxMjMwNTAwMCBIIDI3NTAwMDAwIDkvMTAgQVVUTyBRUFNL
-CitTIDEyMzI0MDAwIFYgMjc1MDAwMDAgMy80CitTIDEyMzQ0MDAwIEggMjc1MDAwMDAgMy80
-CitTIDEyMzYzMDAwIFYgMjc1MDAwMDAgMy80CitTMiAxMjM4MzAwMCBIIDI3NTAwMDAwIDkv
-MTAgQVVUTyBRUFNLCitTIDEyNDAyMDAwIFYgMjc1MDAwMDAgMy80CitTIDEyNDIyMDAwIEgg
-Mjc1MDAwMDAgMy80CitTMiAxMjQ0MTAwMCBWIDI5NzAwMDAwIDIvMyBBVVRPIDhQU0sKK1Mg
-MTI0NjEwMDAgSCAyNzUwMDAwMCAzLzQKK1MgMTI0ODAwMDAgViAyNzUwMDAwMCAzLzQKK1Mg
-MTI1MTUwMDAgSCAyMjAwMDAwMCA1LzYKK1MgMTI1MjIwMDAgViAyMjAwMDAwMCA1LzYKK1Mg
-MTI1NDUwMDAgSCAyMjAwMDAwMCA1LzYKK1MgMTI1NTIwMDAgViAyMjAwMDAwMCA1LzYKK1My
-IDEyNTc1MDAwIEggMjIwMDAwMDAgMi8zIEFVVE8gOFBTSworUyAxMjU4MTAwMCBWIDIyMDAw
-MDAwIDUvNgorUyAxMjYwNDAwMCBIIDIyMDAwMDAwIDUvNgorUyAxMjYxMTAwMCBWIDIyMDAw
-MDAwIDUvNgorUyAxMjYzMzAwMCBIIDIyMDAwMDAwIDUvNgorUyAxMjY0MDAwMCBWIDIyMDAw
-MDAwIDUvNgorUyAxMjY2MTAwMCBIIDIyMDAwMDAwIDUvNgorUzIgMTI2NzAwMDAgViAyMjAw
-MDAwMCAyLzMgQVVUTyA4UFNLCitTIDEyNjkyMDAwIEggMjIwMDAwMDAgNS82CitTIDEyNjk5
-MDAwIFYgMjIwMDAwMDAgNS82CitTIDEyNzIyMDAwIEggMjIwMDAwMDAgNS82CitTIDEyNzI5
-MDAwIFYgMjIwMDAwMDAgNS82Cg==
-
---==o2.pl-WebMail-7c8debb7.11db9757.e6c7f==--
-
+>> The main difference between the simple and the advanced predictors is
+>> image quality, with advanced predictor supposed to produce better
+>> quality images as a result. Simple predictor can be used e.g. for
+>> testing purposes.
+>> ------8<------
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
+> _______________________________________________
+> Davinci-linux-open-source mailing list
+> Davinci-linux-open-source@linux.davincidsp.com
+> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
