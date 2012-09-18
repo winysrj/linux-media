@@ -1,123 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:4174 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751127Ab2IIIqi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Sep 2012 04:46:38 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [RFCv2 API PATCH 05/28] DocBook: bus_info can no longer be empty.
-Date: Sun, 9 Sep 2012 10:45:56 +0200
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl> <201209081315.15411.hverkuil@xs4all.nl> <504B53E6.6000107@gmail.com>
-In-Reply-To: <504B53E6.6000107@gmail.com>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:55280 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758092Ab2IRLrK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Sep 2012 07:47:10 -0400
+Received: by lbbgj3 with SMTP id gj3so4873445lbb.19
+        for <linux-media@vger.kernel.org>; Tue, 18 Sep 2012 04:47:08 -0700 (PDT)
+Date: Tue, 18 Sep 2012 14:42:26 +0300
+From: Felipe Balbi <balbi@ti.com>
+To: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	julia.lawall@lip6.fr
+Subject: Re: [PATCHv3 5/6] media: Convert struct i2c_msg initialization to
+ C99 format
+Message-ID: <20120918114224.GH24047@arwen.pp.htv.fi>
+Reply-To: balbi@ti.com
+References: <1347968672-10803-1-git-send-email-shubhrajyoti@ti.com>
+ <1347968672-10803-6-git-send-email-shubhrajyoti@ti.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209091045.56740.hverkuil@xs4all.nl>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="nOM8ykUjac0mNN89"
+Content-Disposition: inline
+In-Reply-To: <1347968672-10803-6-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat September 8 2012 16:19:18 Sylwester Nawrocki wrote:
-> On 09/08/2012 01:15 PM, Hans Verkuil wrote:
-> > On Fri September 7 2012 22:00:33 Sylwester Nawrocki wrote:
-> >> On 09/07/2012 03:29 PM, Hans Verkuil wrote:
-> >>> From: Hans Verkuil<hans.verkuil@cisco.com>
-> >>>
-> >>> During the 2012 Media Workshop it was decided that bus_info as returned
-> >>> by VIDIOC_QUERYCAP can no longer be empty. It should be a unique identifier,
-> >>> and empty strings are obviously not unique.
-> >>>
-> >>> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
-> >>
-> >> Reviewed-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
-> >>
-> >>> ---
-> >>>    Documentation/DocBook/media/v4l/vidioc-querycap.xml |   14 ++++++++++----
-> >>>    1 file changed, 10 insertions(+), 4 deletions(-)
-> >>>
-> >>> diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> >>> index f33dd74..d5b1248 100644
-> >>> --- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> >>> +++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> >>> @@ -90,11 +90,17 @@ ambiguities.</entry>
-> >>>    	<entry>__u8</entry>
-> >>>    	<entry><structfield>bus_info</structfield>[32]</entry>
-> >>>    	<entry>Location of the device in the system, a
-> >>> -NUL-terminated ASCII string. For example: "PCI Slot 4". This
-> >>> +NUL-terminated ASCII string. For example: "PCI:0000:05:06.0". This
-> >>>    information is intended for users, to distinguish multiple
-> >>> -identical devices. If no such information is available the field may
-> >>> -simply count the devices controlled by the driver, or contain the
-> >>> -empty string (<structfield>bus_info</structfield>[0] = 0).<!-- XXX pci_dev->slot_name example --></entry>
-> >>> +identical devices. If no such information is available the field must
-> >>> +simply count the devices controlled by the driver ("vivi-000"). The bus_info
-> >>> +must start with "PCI:" for PCI boards, "PCIe:" for PCI Express boards,
-> >>> +"usb-" for USB devices, "I2C:" for i2c devices, "ISA:" for ISA devices and
-> >>> +"parport" for parallel port devices.
-> >>> +For devices without a bus it should start with the driver name, optionally
-> >>
-> >> Most, if not all, devices are on some sort of bus. What would be an example
-> >> of a device "without a bus" ?
-> > 
-> > Virtual devices like vivi and platform devices. Or is there some sort of
-> > platform bus?
-> 
-> OK, then virtual devices like vivi are indeed not on any bus. But saying so,
-> or implicitly assuming, about platform devices would have been misleading.
-> 
-> On ASICs and SoCs such devices are on some kind of on-chip peripheral bus, 
-> e.g. AMBA APB/AHB [1].
 
-Yes, but such busses are internal to the hardware and are not enumerated by
-the kernel. The kernel will generate unique names for e.g. usb and pci busses
-which is used to identify the device on that bus. And that's used also when
-generating the bus_info.
+--nOM8ykUjac0mNN89
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-That said, I checked drivers/base/platform.c and there is actually a platform
-bus that's created in the kernel for platform devices. So perhaps something
-like platform:devname wouldn't be such a bad idea after all. I'd have to do
-some tests with this to see how it would look.
+On Tue, Sep 18, 2012 at 05:14:31PM +0530, Shubhrajyoti D wrote:
+>         Convert the struct i2c_msg initialization to C99 format. This mak=
+es
+>         maintaining and editing the code simpler. Also helps once other f=
+ields
+>         like transferred are added in future.
 
-Regards,
+no need for these tabs here.
 
-	Hans
+FWIW:
 
-> So perhaps we could specify that for platform devices
-> bus_info should start with "platform-" ? A unique remainder could be easily 
-> formed in drivers on basis of a memory mapped register region address/size
-> and/or a device interrupt number to the CPU. However, exposing such sensitive
-> data may be questionable, so it's probably better to just stick with a simple 
-> counter of identical devices.
-> 
-> >> Could we just be saying here "For other devices" instead of "For devices
-> >> without a bus", or something similar ?
-> > 
-> > Well, I'd like for any device on a bus to have a consistent naming convention
-> > so we can guarantee that bus_info is always unique.
-> > 
-> > Regards,
-> > 
-> > 	Hans
-> > 
-> >>
-> >>> +followed by "-" and an index if multiple instances of the device as possible.
-> >>> +Many platform devices can have only one instance, so in that case bus_info
-> >>> +is identical to the<structfield>driver</structfield>   field.</entry>
-> >>>    	</row>
-> >>>    	<row>
-> >>>    	<entry>__u32</entry>
-> 
-> [1] http://www-micro.deis.unibo.it/~magagni/amba99.pdf
-> 
+Reviewed-by: Felipe Balbi <balbi@ti.com>
+
+>=20
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> ---
+>  drivers/media/radio/saa7706h.c |   15 +++++++++++++--
+>  1 files changed, 13 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/drivers/media/radio/saa7706h.c b/drivers/media/radio/saa7706=
+h.c
+> index bb953ef..54db36c 100644
+> --- a/drivers/media/radio/saa7706h.c
+> +++ b/drivers/media/radio/saa7706h.c
+> @@ -199,8 +199,19 @@ static int saa7706h_get_reg16(struct v4l2_subdev *sd=
+, u16 reg)
+>  	u8 buf[2];
+>  	int err;
+>  	u8 regaddr[] =3D {reg >> 8, reg};
+> -	struct i2c_msg msg[] =3D { {client->addr, 0, sizeof(regaddr), regaddr},
+> -				{client->addr, I2C_M_RD, sizeof(buf), buf} };
+> +	struct i2c_msg msg[] =3D {
+> +					{
+> +						.addr =3D client->addr,
+> +						.len =3D sizeof(regaddr),
+> +						.buf =3D regaddr
+> +					},
+> +					{
+> +						.addr =3D client->addr,
+> +						.flags =3D I2C_M_RD,
+> +						.len =3D sizeof(buf),
+> +						.buf =3D buf
+> +					}
+> +				};
+> =20
+>  	err =3D saa7706h_i2c_transfer(client, msg, ARRAY_SIZE(msg));
+>  	if (err)
+> --=20
+> 1.7.5.4
+>=20
 > --
-> 
-> Regards,
-> Sylwester
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> Please read the FAQ at  http://www.tux.org/lkml/
+
+--=20
+balbi
+
+--nOM8ykUjac0mNN89
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQWF4gAAoJEIaOsuA1yqREOwsP/0VNvKgy/2AJeoCEkQY/Qcwz
+RaU3OlWPCtFy8SJpwn1cxWW49sftySXUzSM+ndZOoKJfwh1ccEgEqyjH9l+Pbm54
+FYku1m5B3j6LJhKN2Yv0uLSyoaJJavXaXtqc66PrCRdpWC+KGOAT4rM4NAclMvh5
+Omw1nV9SE8CvoXzJro3wGKcKrbiDzlt/g1uqNwQ8Hnj1LL3cBjkF5tlDKFzdUnPW
+eI2PILqzGxcV5EwUP/ykPJdk6F/7OIYJkVNhaUocZYQJAppw6RUYg9D8GSG2aVPn
+A6Y/oyJhdlKdS59WgAmIgU17R0MApUNZaxDCBf4u42HL4Yz3SZ9Ppw36qWEK14OA
+LwZEuCJVOYleY1lqolyanDkDlLLPNknSAtXJj4zlhuwrfq9IEc2qa4EiQAvYaSJR
+U7colorvQ5eclV0DNDTE+5F5Dh862YAWX+kCj2SI3g7U5lQCQMxwCyEtA67THjhg
+UeNxzS7qZdibBoe9BjCKspeajBsegraQTMwnFhqi8mC7TRxRtiyAk4LY41YWh9zX
+ChNngy3MgnteHmJbTEV1fki9DyLn4+bbQrQYr9ZPceF0CxVl0mtdRjulw/vcLsFR
+30yP+Z4OJ3C1c2ZVCSPjgaF1lDDW0W++7i+FD4PYA5QfQ4X2NsPaNgSUBGSux4cf
+GlkIMATagO2wttq/vb4E
+=etEM
+-----END PGP SIGNATURE-----
+
+--nOM8ykUjac0mNN89--
