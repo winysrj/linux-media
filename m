@@ -1,70 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46978 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752410Ab2IXNo7 (ORCPT
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:53187 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757998Ab2IRKxb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 09:44:59 -0400
-Date: Mon, 24 Sep 2012 16:44:54 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, a.hajda@samsung.com,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com
-Subject: Re: [PATCH RFC] V4L: Add s_rx_buffer subdev video operation
-Message-ID: <20120924134453.GH12025@valkosipuli.retiisi.org.uk>
-References: <1348493213-32278-1-git-send-email-s.nawrocki@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1348493213-32278-1-git-send-email-s.nawrocki@samsung.com>
+	Tue, 18 Sep 2012 06:53:31 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>
+Subject: [RFCv1 PATCH 11/11] davinci: move struct vpif_interface to chan_cfg.
+Date: Tue, 18 Sep 2012 12:53:13 +0200
+Message-Id: <f7d971bb87838632b6a94289e7c98546e51880a7.1347965140.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347965593-16746-1-git-send-email-hans.verkuil@cisco.com>
+References: <1347965593-16746-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <bd383d11cd06a8f66571cf1dccb42fd89760ecdb.1347965140.git.hans.verkuil@cisco.com>
+References: <bd383d11cd06a8f66571cf1dccb42fd89760ecdb.1347965140.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+struct vpif_interface is channel specific, not subdev specific.
+Move it to the channel config.
 
-On Mon, Sep 24, 2012 at 03:26:53PM +0200, Sylwester Nawrocki wrote:
-> The s_rx_buffer callback allows the host to set buffer for non-image
-> (meta) data at a subdev. This callback can be implemented by an image
-> sensor or a MIPI-CSI receiver, allowing the host to retrieve the frame
-> embedded data from a subdev.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  include/media/v4l2-subdev.h | 6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 22ab09e..28067ed 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -274,6 +274,10 @@ struct v4l2_subdev_audio_ops {
->     s_mbus_config: set a certain mediabus configuration. This operation is added
->  	for compatibility with soc-camera drivers and should not be used by new
->  	software.
-> +
-> +   s_rx_buffer: set a host allocated memory buffer for the subdev. The subdev
-> +	can adjust @size to a lower value and must not write more data to the
-> +	buffer starting at @data than the original value of @size.
->   */
->  struct v4l2_subdev_video_ops {
->  	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 config);
-> @@ -327,6 +331,8 @@ struct v4l2_subdev_video_ops {
->  			     struct v4l2_mbus_config *cfg);
->  	int (*s_mbus_config)(struct v4l2_subdev *sd,
->  			     const struct v4l2_mbus_config *cfg);
-> +	int (*s_rx_buffer)(struct v4l2_subdev *sd, void *buf,
-> +			   unsigned int *size);
->  };
-> 
->  /*
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ arch/arm/mach-davinci/board-da850-evm.c    |   24 ++++++++++++------------
+ arch/arm/mach-davinci/board-dm646x-evm.c   |   24 ++++++++++++------------
+ drivers/media/video/davinci/vpif_capture.c |    2 +-
+ include/media/davinci/vpif_types.h         |    2 +-
+ 4 files changed, 26 insertions(+), 26 deletions(-)
 
-How about useing a separate video buffer queue for the purpose? That would
-provide a nice way to pass it to the user space where it's needed. It'd also
-play nicely together with the frame layout descriptors.
-
-Kind regards,
-
+diff --git a/arch/arm/mach-davinci/board-da850-evm.c b/arch/arm/mach-davinci/board-da850-evm.c
+index 514d4d4..3081ea4 100644
+--- a/arch/arm/mach-davinci/board-da850-evm.c
++++ b/arch/arm/mach-davinci/board-da850-evm.c
+@@ -1211,12 +1211,6 @@ static struct vpif_subdev_info da850_vpif_capture_sdev_info[] = {
+ 			I2C_BOARD_INFO("tvp5146", 0x5d),
+ 			.platform_data = &tvp5146_pdata,
+ 		},
+-		.vpif_if = {
+-			.if_type = VPIF_IF_BT656,
+-			.hd_pol  = 1,
+-			.vd_pol  = 1,
+-			.fid_pol = 0,
+-		},
+ 	},
+ 	{
+ 		.name = TVP5147_CH1,
+@@ -1224,12 +1218,6 @@ static struct vpif_subdev_info da850_vpif_capture_sdev_info[] = {
+ 			I2C_BOARD_INFO("tvp5146", 0x5c),
+ 			.platform_data = &tvp5146_pdata,
+ 		},
+-		.vpif_if = {
+-			.if_type = VPIF_IF_BT656,
+-			.hd_pol  = 1,
+-			.vd_pol  = 1,
+-			.fid_pol = 0,
+-		},
+ 	},
+ };
+ 
+@@ -1239,10 +1227,22 @@ static struct vpif_capture_config da850_vpif_capture_config = {
+ 	.chan_config[0] = {
+ 		.inputs = da850_ch0_inputs,
+ 		.input_count = ARRAY_SIZE(da850_ch0_inputs),
++		.vpif_if = {
++			.if_type = VPIF_IF_BT656,
++			.hd_pol  = 1,
++			.vd_pol  = 1,
++			.fid_pol = 0,
++		},
+ 	},
+ 	.chan_config[1] = {
+ 		.inputs = da850_ch1_inputs,
+ 		.input_count = ARRAY_SIZE(da850_ch1_inputs),
++		.vpif_if = {
++			.if_type = VPIF_IF_BT656,
++			.hd_pol  = 1,
++			.vd_pol  = 1,
++			.fid_pol = 0,
++		},
+ 	},
+ 	.card_name = "DA850/OMAP-L138 Video Capture",
+ };
+diff --git a/arch/arm/mach-davinci/board-dm646x-evm.c b/arch/arm/mach-davinci/board-dm646x-evm.c
+index 0daec7e..ad249c7 100644
+--- a/arch/arm/mach-davinci/board-dm646x-evm.c
++++ b/arch/arm/mach-davinci/board-dm646x-evm.c
+@@ -601,12 +601,6 @@ static struct vpif_subdev_info vpif_capture_sdev_info[] = {
+ 			I2C_BOARD_INFO("tvp5146", 0x5d),
+ 			.platform_data = &tvp5146_pdata,
+ 		},
+-		.vpif_if = {
+-			.if_type = VPIF_IF_BT656,
+-			.hd_pol = 1,
+-			.vd_pol = 1,
+-			.fid_pol = 0,
+-		},
+ 	},
+ 	{
+ 		.name	= TVP5147_CH1,
+@@ -614,12 +608,6 @@ static struct vpif_subdev_info vpif_capture_sdev_info[] = {
+ 			I2C_BOARD_INFO("tvp5146", 0x5c),
+ 			.platform_data = &tvp5146_pdata,
+ 		},
+-		.vpif_if = {
+-			.if_type = VPIF_IF_BT656,
+-			.hd_pol = 1,
+-			.vd_pol = 1,
+-			.fid_pol = 0,
+-		},
+ 	},
+ };
+ 
+@@ -659,10 +647,22 @@ static struct vpif_capture_config dm646x_vpif_capture_cfg = {
+ 	.chan_config[0] = {
+ 		.inputs = dm6467_ch0_inputs,
+ 		.input_count = ARRAY_SIZE(dm6467_ch0_inputs),
++		.vpif_if = {
++			.if_type = VPIF_IF_BT656,
++			.hd_pol = 1,
++			.vd_pol = 1,
++			.fid_pol = 0,
++		},
+ 	},
+ 	.chan_config[1] = {
+ 		.inputs = dm6467_ch1_inputs,
+ 		.input_count = ARRAY_SIZE(dm6467_ch1_inputs),
++		.vpif_if = {
++			.if_type = VPIF_IF_BT656,
++			.hd_pol = 1,
++			.vd_pol = 1,
++			.fid_pol = 0,
++		},
+ 	},
+ };
+ 
+diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
+index 5266167..466f02d 100644
+--- a/drivers/media/video/davinci/vpif_capture.c
++++ b/drivers/media/video/davinci/vpif_capture.c
+@@ -1295,7 +1295,7 @@ static int vpif_set_input(
+ 	ch->input_idx = index;
+ 	ch->sd = sd;
+ 	/* copy interface parameters to vpif */
+-	ch->vpifparams.iface = subdev_info->vpif_if;
++	ch->vpifparams.iface = chan_cfg->vpif_if;
+ 
+ 	/* update tvnorms from the sub device input info */
+ 	ch->video_dev->tvnorms = chan_cfg->inputs[index].input.std;
+diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
+index a422ed0..65e8fe1 100644
+--- a/include/media/davinci/vpif_types.h
++++ b/include/media/davinci/vpif_types.h
+@@ -37,7 +37,6 @@ struct vpif_interface {
+ struct vpif_subdev_info {
+ 	const char *name;
+ 	struct i2c_board_info board_info;
+-	struct vpif_interface vpif_if;
+ };
+ 
+ struct vpif_display_config {
+@@ -59,6 +58,7 @@ struct vpif_input {
+ };
+ 
+ struct vpif_capture_chan_config {
++	struct vpif_interface vpif_if;
+ 	const struct vpif_input *inputs;
+ 	int input_count;
+ };
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+1.7.10.4
+
