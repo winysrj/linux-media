@@ -1,60 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47644 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756729Ab2I0Kka (ORCPT
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:8274 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757951Ab2IRKxa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Sep 2012 06:40:30 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hverkuil@xs4all.nl>, remi@remlab.net,
-	Kamil Debski <k.debski@samsung.com>
-Subject: Re: [RFC] Timestamps and V4L2
-Date: Thu, 27 Sep 2012 12:41:08 +0200
-Message-ID: <21756413.MuViFDO8NB@avalon>
-In-Reply-To: <50638219.7020105@gmail.com>
-References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk> <32114057.tIVjSTYujk@avalon> <50638219.7020105@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Tue, 18 Sep 2012 06:53:30 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>
+Subject: [RFCv1 PATCH 07/11] vpif_capture: first init subdevs, then register device nodes.
+Date: Tue, 18 Sep 2012 12:53:09 +0200
+Message-Id: <ee0ac2f8564eb7a713d50279762829a396eb2f35.1347965140.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347965593-16746-1-git-send-email-hans.verkuil@cisco.com>
+References: <1347965593-16746-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <bd383d11cd06a8f66571cf1dccb42fd89760ecdb.1347965140.git.hans.verkuil@cisco.com>
+References: <bd383d11cd06a8f66571cf1dccb42fd89760ecdb.1347965140.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+When device nodes are registered they must be ready for use
+immediately, so make sure the subdevs are loaded first.
 
-On Thursday 27 September 2012 00:30:49 Sylwester Nawrocki wrote:
-> On 09/25/2012 02:35 AM, Laurent Pinchart wrote:
-> > Does the clock type need to be selectable for mem-to-mem devices ? Do
-> > device- specific timestamps make sense there ?
-> 
-> I'd like to clarify one thing here, i.e. if we select device-specific
-> timestamps how should the v4l2_buffer::timestamp field behave ?
-> 
-> Are these two things exclusive ? Or should v4l2_buffer::timestamp be
-> valid even if device-specific timestamps are enabled ?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/davinci/vpif_capture.c |   55 ++++++++++++----------------
+ 1 file changed, 24 insertions(+), 31 deletions(-)
 
-That's a very good question. The use cases I have in mind don't need both at 
-the same time. The point of device-specific timestamps is to get a precise 
-timestamp corresponding to the frame capture time, instead of the frame 
-transfer time. They need to be correlated with system timestamps, but for that 
-we need device-specific APIs to pass correlation information to userspace. 
-Passing a "transfer time" system timestamp along with the device timestamp 
-would be useless, as there would be no good correlation between the two.
-
-> With regards to your question, I think device-specific timestamps make
-> sense for mem-to-mem devices. Maybe not for the very simple ones, that
-> process buffers 1-to-1, but codecs may need it. I was told the Exynos/
-> S5P Multi Format Codec device has some register the timestamps could
-> be read from, but it's currently not used by the s5p-mfc driver. Kamil
-> might provide more details on that.
-
-What kind of timestamps are they ?
-
-> I guess if capture and output devices can have their timestamping clocks
-> selectable it should be also possible for mem-to-mem devices.
-
+diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
+index f11b9e3..0d67443 100644
+--- a/drivers/media/video/davinci/vpif_capture.c
++++ b/drivers/media/video/davinci/vpif_capture.c
+@@ -2122,28 +2122,6 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
+-	for (j = 0; j < VPIF_CAPTURE_MAX_DEVICES; j++) {
+-		ch = vpif_obj.dev[j];
+-		ch->channel_id = j;
+-		common = &(ch->common[VPIF_VIDEO_INDEX]);
+-		spin_lock_init(&common->irqlock);
+-		mutex_init(&common->lock);
+-		/* Locking in file operations other than ioctl should be done
+-		   by the driver, not the V4L2 core.
+-		   This driver needs auditing so that this flag can be removed. */
+-		set_bit(V4L2_FL_LOCK_ALL_FOPS, &ch->video_dev->flags);
+-		ch->video_dev->lock = &common->lock;
+-		/* Initialize prio member of channel object */
+-		v4l2_prio_init(&ch->prio);
+-		err = video_register_device(ch->video_dev,
+-					    VFL_TYPE_GRABBER, (j ? 1 : 0));
+-		if (err)
+-			goto probe_out;
+-
+-		video_set_drvdata(ch->video_dev, ch);
+-
+-	}
+-
+ 	i2c_adap = i2c_get_adapter(1);
+ 	config = pdev->dev.platform_data;
+ 
+@@ -2153,7 +2131,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 	if (vpif_obj.sd == NULL) {
+ 		vpif_err("unable to allocate memory for subdevice pointers\n");
+ 		err = -ENOMEM;
+-		goto probe_out;
++		goto vpif_dev_alloc_err;
+ 	}
+ 
+ 	for (i = 0; i < subdev_count; i++) {
+@@ -2170,19 +2148,31 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 		}
+ 		v4l2_info(&vpif_obj.v4l2_dev, "registered sub device %s\n",
+ 			  subdevdata->name);
+-
+-		if (vpif_obj.sd[i])
+-			vpif_obj.sd[i]->grp_id = 1 << i;
+ 	}
+ 
++	for (j = 0; j < VPIF_CAPTURE_MAX_DEVICES; j++) {
++		ch = vpif_obj.dev[j];
++		ch->channel_id = j;
++		common = &(ch->common[VPIF_VIDEO_INDEX]);
++		spin_lock_init(&common->irqlock);
++		mutex_init(&common->lock);
++		/* Locking in file operations other than ioctl should be done
++		   by the driver, not the V4L2 core.
++		   This driver needs auditing so that this flag can be removed. */
++		set_bit(V4L2_FL_LOCK_ALL_FOPS, &ch->video_dev->flags);
++		ch->video_dev->lock = &common->lock;
++		/* Initialize prio member of channel object */
++		v4l2_prio_init(&ch->prio);
++		video_set_drvdata(ch->video_dev, ch);
++		
++		err = video_register_device(ch->video_dev,
++					    VFL_TYPE_GRABBER, (j ? 1 : 0));
++		if (err)
++			goto probe_out;
++	}
+ 	v4l2_info(&vpif_obj.v4l2_dev, "VPIF capture driver initialized\n");
+ 	return 0;
+ 
+-probe_subdev_out:
+-	/* free sub devices memory */
+-	kfree(vpif_obj.sd);
+-
+-	j = VPIF_CAPTURE_MAX_DEVICES;
+ probe_out:
+ 	for (k = 0; k < j; k++) {
+ 		/* Get the pointer to the channel object */
+@@ -2190,6 +2180,9 @@ probe_out:
+ 		/* Unregister video device */
+ 		video_unregister_device(ch->video_dev);
+ 	}
++probe_subdev_out:
++	/* free sub devices memory */
++	kfree(vpif_obj.sd);
+ 
+ vpif_dev_alloc_err:
+ 	k = VPIF_CAPTURE_MAX_DEVICES-1;
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
