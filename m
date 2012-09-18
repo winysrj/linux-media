@@ -1,110 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:65157 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754102Ab2IHS6T (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Sep 2012 14:58:19 -0400
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:62459 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755827Ab2IRIUn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Sep 2012 04:20:43 -0400
+Received: by pbbrr13 with SMTP id rr13so10578482pbb.19
+        for <linux-media@vger.kernel.org>; Tue, 18 Sep 2012 01:20:42 -0700 (PDT)
+Date: Tue, 18 Sep 2012 16:20:58 +0800
+From: Shawn Guo <shawn.guo@linaro.org>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: linux-arm-kernel@lists.infradead.org,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	alsa-devel@alsa-project.org,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	linux-fbdev@vger.kernel.org, Chris Ball <cjb@laptop.org>,
+	linux-mmc@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	rtc-linux@googlegroups.com,
+	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
+	linux-mtd@lists.infradead.org,
+	Wolfram Sang <w.sang@pengutronix.de>,
+	linux-i2c@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>,
+	linux-watchdog@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-usb@vger.kernel.org, Vinod Koul <vinod.koul@linux.intel.com>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
+Subject: Re: [PATCH 00/34] i.MX multi-platform support
+Message-ID: <20120918082055.GD6377@S2101-09.ap.freescale.net>
+References: <1347860103-4141-1-git-send-email-shawn.guo@linaro.org>
+ <20120917075138.GN6180@pengutronix.de>
 MIME-Version: 1.0
-In-Reply-To: <1347112918-7738-1-git-send-email-peter.senna@gmail.com>
-References: <1347112918-7738-1-git-send-email-peter.senna@gmail.com>
-Date: Sat, 8 Sep 2012 15:58:18 -0300
-Message-ID: <CALF0-+U_D4ipSbN=DHSdxRvE1sju-Uq0e_mTE9=QsjLOtpLe1w@mail.gmail.com>
-Subject: Re: [PATCH v2] drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c:
- fix error return code
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Peter Senna Tschudin <peter.senna@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	kernel-janitors@vger.kernel.org, wharms@bfs.de,
-	Julia.Lawall@lip6.fr, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20120917075138.GN6180@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Peter,
+On Mon, Sep 17, 2012 at 09:51:38AM +0200, Sascha Hauer wrote:
+> I gave it a test on i.MX1, i.MX27, i.MX31 and i.MX35. All run fine, but
+> the last patch breaks the imx_v4_v5_defconfig: Somehow it now defaults
+> to ARMv7 based machines. I haven't looked into it, just reenabled
+> ARMv4/ARMv5 and the boards again -> works. The config should be updated
+> with the last patch.
+> 
+Yes, I will rework the patch with all these and Arnd's comment on the
+last patch taken into account.
 
-On Sat, Sep 8, 2012 at 11:01 AM, Peter Senna Tschudin
-<peter.senna@gmail.com> wrote:
-> From: Peter Senna Tschudin <peter.senna@gmail.com>
->
-> Convert a nonnegative error return code to a negative one, as returned
-> elsewhere in the function.
->
-> A simplified version of the semantic match that finds this problem is as
-> follows: (http://coccinelle.lip6.fr/)
->
-> // <smpl>
-> (
-> if@p1 (\(ret < 0\|ret != 0\))
->  { ... return ret; }
-> |
-> ret@p1 = 0
-> )
-> ... when != ret = e1
->     when != &ret
-> *if(...)
-> {
->   ... when != ret = e2
->       when forall
->  return ret;
-> }
->
-> // </smpl>
->
-> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
->
-> ---
-> walter harms <wharms@bfs.de>, thanks for the tip. Please take a look carefully to check if I got your suggestion correctly. It was tested by compilation only.
->
->  drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c |   30 ++++++-----------
->  1 file changed, 12 insertions(+), 18 deletions(-)
->
-> diff --git a/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c b/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
-> index c8c94fb..b663dac 100644
-> --- a/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
-> +++ b/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
-> @@ -704,11 +704,9 @@ int cx25821_vidupstream_init_ch2(struct cx25821_dev *dev, int channel_select,
->  {
->         struct sram_channel *sram_ch;
->         u32 tmp;
-> -       int retval = 0;
->         int err = 0;
->         int data_frame_size = 0;
->         int risc_buffer_size = 0;
-> -       int str_length = 0;
->
->         if (dev->_is_running_ch2) {
->                 pr_info("Video Channel is still running so return!\n");
-> @@ -744,20 +742,16 @@ int cx25821_vidupstream_init_ch2(struct cx25821_dev *dev, int channel_select,
->         risc_buffer_size = dev->_isNTSC_ch2 ?
->                 NTSC_RISC_BUF_SIZE : PAL_RISC_BUF_SIZE;
->
-> -       if (dev->input_filename_ch2) {
-> -               str_length = strlen(dev->input_filename_ch2);
-> -               dev->_filename_ch2 = kmemdup(dev->input_filename_ch2,
-> -                                            str_length + 1, GFP_KERNEL);
-> -
-> -               if (!dev->_filename_ch2)
-> -                       goto error;
-> -       } else {
-> -               str_length = strlen(dev->_defaultname_ch2);
-> -               dev->_filename_ch2 = kmemdup(dev->_defaultname_ch2,
-> -                                            str_length + 1, GFP_KERNEL);
-> +       if (dev->input_filename_ch2)
-> +               dev->_filename_ch2 = kstrdup(dev->input_filename_ch2,
-> +                                                               GFP_KERNEL);
-> +       else
-> +               dev->_filename_ch2 = kstrdup(dev->_defaultname_ch2,
-> +                                                               GFP_KERNEL);
->
+> I'm fine with the changes to mx2-camera, but Javier should give his ok
+> to it, he has worked on it quite a lot recently.
+> 
+> One other issue related to imx-dma, see comment to that patch.
+> 
+> Otherwise:
+> 
+> Acked-by: Sascha Hauer <s.hauer@pengutronix.de>
+> Tested-by: Sascha Hauer <s.hauer@pengutronix.de>
+> 
+Thanks a lot.
 
-You're replacing kmemdup for kstrdup, which is great,
-but that's not anywhere in the commit message.
-
-I'm not sure if you should re-send, but you should definitely
-try to have better commit messages in the future!
-
-Not to mention you're doing two things in one patch, and that makes
-very difficult to bisect.
-
-Thanks (and sorry for the nitpick)...
-Ezequiel.
+Shawn
