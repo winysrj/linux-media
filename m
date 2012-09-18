@@ -1,49 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40536 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932791Ab2IRLox (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:54213 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752365Ab2IRJOM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Sep 2012 07:44:53 -0400
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: <linux-kernel@vger.kernel.org>, <julia.lawall@lip6.fr>,
-	Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv3 0/6] media: convert to c99 format
-Date: Tue, 18 Sep 2012 17:14:26 +0530
-Message-ID: <1347968672-10803-1-git-send-email-shubhrajyoti@ti.com>
+	Tue, 18 Sep 2012 05:14:12 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Shawn Guo <shawn.guo@linaro.org>
+Subject: Re: [PATCH 12/34] media: mx1_camera: remove the driver
+Date: Tue, 18 Sep 2012 09:13:54 +0000
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <1347860103-4141-1-git-send-email-shawn.guo@linaro.org> <Pine.LNX.4.64.1209171031010.1689@axis700.grange> <20120918012848.GE1338@S2101-09.ap.freescale.net>
+In-Reply-To: <20120918012848.GE1338@S2101-09.ap.freescale.net>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201209180913.54835.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The series tries to convert the i2c_msg to c99 struct.
-This may avoid issues like below if someone tries to add an
-element to the structure.
-http://www.mail-archive.com/linux-i2c@vger.kernel.org/msg08972.html
+On Tuesday 18 September 2012, Shawn Guo wrote:
+> 
+> On Mon, Sep 17, 2012 at 10:33:25AM +0200, Guennadi Liakhovetski wrote:
+> > Ok, it used to compile not-so-long-ago, but it doesn't seem to be cared 
+> > for a lot lately. Let's give Paulius a bit more time to react to this 
+> > mail, otherwise I'll have no objections. Just as an idea, to make it a bit 
+> > milder we could first mark it BROKEN and add to remove schedule... But I 
+> > don't mind either way.
+> > 
+> I chose to remove the driver completely rather than marking it BROKEN
+> because the removal of the driver cleans up platform code a lot :)
+> 
+> Ok, if we hear anything back from Paulius in the next couple of weeks,
+> I keep the driver there with BROKEN marked.
 
-Special thanks to Julia Lawall for helping it automate.
-By the below script.
-http://www.mail-archive.com/cocci@diku.dk/msg02753.html
+Sounds fine to me. Of course, if someone wants the driver back and is
+willing to fix it, we'll just revert this patch even after the driver
+is gone.
 
-Changelogs
-- Remove the zero inititialisation of the flags.
+I would like an Ack from Mauro however. You did not Cc him directly
+in the patch, and he probably has an opionion on it as well, or may
+want to take this patch through his git tree.
 
-Shubhrajyoti D (6):
-  media: Convert struct i2c_msg initialization to C99 format
-  media: Convert struct i2c_msg initialization to C99 format
-  media: Convert struct i2c_msg initialization to C99 format
-  media: Convert struct i2c_msg initialization to C99 format
-  media: Convert struct i2c_msg initialization to C99 format
-  media: Convert struct i2c_msg initialization to C99 format
-
- drivers/media/i2c/ks0127.c                    |   13 +++++++-
- drivers/media/i2c/msp3400-driver.c            |   40 +++++++++++++++++++++----
- drivers/media/i2c/tvaudio.c                   |   13 +++++++-
- drivers/media/radio/radio-tea5764.c           |   13 ++++++--
- drivers/media/radio/saa7706h.c                |   15 ++++++++-
- drivers/media/radio/si470x/radio-si470x-i2c.c |   23 ++++++++++----
- 6 files changed, 96 insertions(+), 21 deletions(-)
-
--- 
-1.7.5.4
-
+	Arnd
