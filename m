@@ -1,70 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57930 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756157Ab2ICJvm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2012 05:51:42 -0400
-Message-ID: <50447D90.1090009@ti.com>
-Date: Mon, 3 Sep 2012 15:21:12 +0530
-From: Prabhakar Lad <prabhakar.lad@ti.com>
-MIME-Version: 1.0
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	<linux-kernel@vger.kernel.org>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	<linux-doc@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Rob Landley <rob@landley.net>
-Subject: Re: [PATCH] media: v4l2-ctrls: add control for test pattern
-References: <1346663777-23149-1-git-send-email-prabhakar.lad@ti.com> <504477A1.6020304@samsung.com>
-In-Reply-To: <504477A1.6020304@samsung.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:8274 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757963Ab2IRKx3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Sep 2012 06:53:29 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>
+Subject: [RFCv1 PATCH 01/11] vpif_capture: remove unused data structure.
+Date: Tue, 18 Sep 2012 12:53:03 +0200
+Message-Id: <bd383d11cd06a8f66571cf1dccb42fd89760ecdb.1347965140.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347965593-16746-1-git-send-email-hans.verkuil@cisco.com>
+References: <1347965593-16746-1-git-send-email-hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/davinci/vpif_capture.h |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-Thanks for the review.
-
-On Monday 03 September 2012 02:55 PM, Sylwester Nawrocki wrote:
-> On 09/03/2012 11:16 AM, Prabhakar Lad wrote:
->> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
->> index 2d7bc15..ae709d1 100644
->> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
->> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
->> @@ -430,6 +430,18 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->>  		"Advanced Predictor",
->>  		NULL,
->>  	};
->> +	static const char * const test_pattern[] = {
->> +		"Test Pattern Disabled",
-> 
-> How about just "Disabled" ?
-> 
-Ok.
-
-Thanks and Regards,
---Prabhakar Lad
-
->> +		"Vertical Lines",
->> +		"Horizontal Lines",
->> +		"Diagonal Lines",
->> +		"Solid Black",
->> +		"Solid White",
->> +		"Solid Blue",
->> +		"Solid Red",
->> +		"Checker Board",
->> +		NULL,
->> +	};
-> 
-> --
-> 
-> Regards,
-> Sylwester
-> 
+diff --git a/drivers/media/video/davinci/vpif_capture.h b/drivers/media/video/davinci/vpif_capture.h
+index aa6d3da..de19c80 100644
+--- a/drivers/media/video/davinci/vpif_capture.h
++++ b/drivers/media/video/davinci/vpif_capture.h
+@@ -160,10 +160,6 @@ struct vpif_config_params {
+ 	u32 video_limit[VPIF_CAPTURE_NUM_CHANNELS];
+ 	u8 max_device_type;
+ };
+-/* Struct which keeps track of the line numbers for the sliced vbi service */
+-struct vpif_service_line {
+-	u16 service_id;
+-	u16 service_line[2];
+-};
++
+ #endif				/* End of __KERNEL__ */
+ #endif				/* VPIF_CAPTURE_H */
+-- 
+1.7.10.4
 
