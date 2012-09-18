@@ -1,113 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48668 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754568Ab2I0Tti (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:60497 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757987Ab2IRKx3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Sep 2012 15:49:38 -0400
-Message-ID: <5064ADCE.3000708@iki.fi>
-Date: Thu, 27 Sep 2012 22:49:34 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Antoine Reversat <a.reversat@gmail.com>
-Subject: Re: [PATCH v2] omap3isp: Use monotonic timestamps for statistics
- buffers
-References: <1347659868-17398-1-git-send-email-laurent.pinchart@ideasonboard.com> <20120927135233.3acd00a5@redhat.com>
-In-Reply-To: <20120927135233.3acd00a5@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Tue, 18 Sep 2012 06:53:29 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>
+Subject: [RFCv1 PATCH 05/11] vpif_capture: remove unnecessary can_route flag.
+Date: Tue, 18 Sep 2012 12:53:07 +0200
+Message-Id: <efb3f14ddf21ccf96eb76875344cac49605dd586.1347965140.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347965593-16746-1-git-send-email-hans.verkuil@cisco.com>
+References: <1347965593-16746-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <bd383d11cd06a8f66571cf1dccb42fd89760ecdb.1347965140.git.hans.verkuil@cisco.com>
+References: <bd383d11cd06a8f66571cf1dccb42fd89760ecdb.1347965140.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Calling a subdev op that isn't implemented will just return -ENOIOCTLCMD
+No need to have a flag for that.
 
-Mauro Carvalho Chehab wrote:
-> Em Fri, 14 Sep 2012 23:57:48 +0200
-> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
->
->> V4L2 buffers use the monotonic clock, while statistics buffers use wall
->> time. This makes it difficult to correlate video frames and statistics.
->>
->> Switch statistics buffers to the monotonic clock to fix this, and
->> replace struct timeval with struct timespec.
->>
->> Reported-by: Antoine Reversat <a.reversat@gmail.com>
->> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> ---
->>   drivers/media/platform/omap3isp/ispstat.c |    2 +-
->>   drivers/media/platform/omap3isp/ispstat.h |    2 +-
->>   include/linux/omap3isp.h                  |    7 ++++++-
->>   3 files changed, 8 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/media/platform/omap3isp/ispstat.c b/drivers/media/platform/omap3isp/ispstat.c
->> index b8640be..bb21c4e 100644
->> --- a/drivers/media/platform/omap3isp/ispstat.c
->> +++ b/drivers/media/platform/omap3isp/ispstat.c
->> @@ -256,7 +256,7 @@ static int isp_stat_buf_queue(struct ispstat *stat)
->>   	if (!stat->active_buf)
->>   		return STAT_NO_BUF;
->>
->> -	do_gettimeofday(&stat->active_buf->ts);
->> +	ktime_get_ts(&stat->active_buf->ts);
->>
->>   	stat->active_buf->buf_size = stat->buf_size;
->>   	if (isp_stat_buf_check_magic(stat, stat->active_buf)) {
->> diff --git a/drivers/media/platform/omap3isp/ispstat.h b/drivers/media/platform/omap3isp/ispstat.h
->> index 9b7c865..8221d0c 100644
->> --- a/drivers/media/platform/omap3isp/ispstat.h
->> +++ b/drivers/media/platform/omap3isp/ispstat.h
->> @@ -50,7 +50,7 @@ struct ispstat_buffer {
->>   	struct iovm_struct *iovm;
->>   	void *virt_addr;
->>   	dma_addr_t dma_addr;
->> -	struct timeval ts;
->> +	struct timespec ts;
->>   	u32 buf_size;
->>   	u32 frame_number;
->>   	u16 config_counter;
->> diff --git a/include/linux/omap3isp.h b/include/linux/omap3isp.h
->> index c090cf9..263a0c0 100644
->> --- a/include/linux/omap3isp.h
->> +++ b/include/linux/omap3isp.h
->> @@ -27,6 +27,11 @@
->>   #ifndef OMAP3_ISP_USER_H
->>   #define OMAP3_ISP_USER_H
->>
->> +#ifdef __KERNEL__
->> +#include <linux/time.h>     /* need struct timespec */
->> +#else
->> +#include <sys/time.h>
->> +#endif
->>   #include <linux/types.h>
->>   #include <linux/videodev2.h>
->>
->> @@ -164,7 +169,7 @@ struct omap3isp_h3a_aewb_config {
->>    * @config_counter: Number of the configuration associated with the data.
->>    */
->>   struct omap3isp_stat_data {
->> -	struct timeval ts;
->> +	struct timespec ts;
->
-> NACK. That breaks userspace API, as this structure is part of an ioctl.
->
-> It is too late to touch here. Please keep timeval. It is ok to fill it with
-> a mononotic time, but replacing it is an API breakage.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ arch/arm/mach-davinci/board-da850-evm.c    |    2 --
+ arch/arm/mach-davinci/board-dm646x-evm.c   |    2 --
+ drivers/media/video/davinci/vpif_capture.c |   18 ++++++++----------
+ include/media/davinci/vpif_types.h         |    1 -
+ 4 files changed, 8 insertions(+), 15 deletions(-)
 
-I beg to present a differing opinion.
-
-The timestamp that has been taken from a realtime clock has NOT been 
-useful to begin with in this context: the OMAP3ISP driver has used 
-monotonic time on video buffers since the very beginning of its 
-existence in mainline kernel. As no-one has complained about this --- 
-except Antoine very recently --- I'm pretty certain we wouldn't be 
-breaking any application by changing this. The statistics timestamp is 
-only useful when it's comparable to other timestamps (from video buffers 
-and events), which this patch achieves.
-
-Kind regards,
-
+diff --git a/arch/arm/mach-davinci/board-da850-evm.c b/arch/arm/mach-davinci/board-da850-evm.c
+index d0954a2..d92e0ab 100644
+--- a/arch/arm/mach-davinci/board-da850-evm.c
++++ b/arch/arm/mach-davinci/board-da850-evm.c
+@@ -1209,7 +1209,6 @@ static struct vpif_subdev_info da850_vpif_capture_sdev_info[] = {
+ 		},
+ 		.input = INPUT_CVBS_VI2B,
+ 		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
+-		.can_route = 1,
+ 		.vpif_if = {
+ 			.if_type = VPIF_IF_BT656,
+ 			.hd_pol  = 1,
+@@ -1225,7 +1224,6 @@ static struct vpif_subdev_info da850_vpif_capture_sdev_info[] = {
+ 		},
+ 		.input = INPUT_SVIDEO_VI2C_VI1C,
+ 		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
+-		.can_route = 1,
+ 		.vpif_if = {
+ 			.if_type = VPIF_IF_BT656,
+ 			.hd_pol  = 1,
+diff --git a/arch/arm/mach-davinci/board-dm646x-evm.c b/arch/arm/mach-davinci/board-dm646x-evm.c
+index 958679a..a0be63b 100644
+--- a/arch/arm/mach-davinci/board-dm646x-evm.c
++++ b/arch/arm/mach-davinci/board-dm646x-evm.c
+@@ -603,7 +603,6 @@ static struct vpif_subdev_info vpif_capture_sdev_info[] = {
+ 		},
+ 		.input = INPUT_CVBS_VI2B,
+ 		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
+-		.can_route = 1,
+ 		.vpif_if = {
+ 			.if_type = VPIF_IF_BT656,
+ 			.hd_pol = 1,
+@@ -619,7 +618,6 @@ static struct vpif_subdev_info vpif_capture_sdev_info[] = {
+ 		},
+ 		.input = INPUT_SVIDEO_VI2C_VI1C,
+ 		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
+-		.can_route = 1,
+ 		.vpif_if = {
+ 			.if_type = VPIF_IF_BT656,
+ 			.hd_pol = 1,
+diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
+index eec687c..ae5cabf 100644
+--- a/drivers/media/video/davinci/vpif_capture.c
++++ b/drivers/media/video/davinci/vpif_capture.c
+@@ -1487,15 +1487,13 @@ static int vpif_s_input(struct file *file, void *priv, unsigned int index)
+ 		}
+ 	}
+ 
+-	if (subdev_info->can_route) {
+-		input = subdev_info->input;
+-		output = subdev_info->output;
+-		ret = v4l2_subdev_call(vpif_obj.sd[sd_index], video, s_routing,
+-					input, output, 0);
+-		if (ret < 0) {
+-			vpif_dbg(1, debug, "Failed to set input\n");
+-			return ret;
+-		}
++	input = subdev_info->input;
++	output = subdev_info->output;
++	ret = v4l2_subdev_call(vpif_obj.sd[sd_index], video, s_routing,
++			input, output, 0);
++	if (ret < 0 && ret != -ENOIOCTLCMD) {
++		vpif_dbg(1, debug, "Failed to set input\n");
++		return ret;
+ 	}
+ 	ch->input_idx = index;
+ 	ch->curr_subdev_info = subdev_info;
+@@ -1505,7 +1503,7 @@ static int vpif_s_input(struct file *file, void *priv, unsigned int index)
+ 
+ 	/* update tvnorms from the sub device input info */
+ 	ch->video_dev->tvnorms = chan_cfg->inputs[index].input.std;
+-	return ret;
++	return 0;
+ }
+ 
+ /**
+diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
+index d8f6ab1..1fe46a5 100644
+--- a/include/media/davinci/vpif_types.h
++++ b/include/media/davinci/vpif_types.h
+@@ -39,7 +39,6 @@ struct vpif_subdev_info {
+ 	struct i2c_board_info board_info;
+ 	u32 input;
+ 	u32 output;
+-	unsigned can_route:1;
+ 	struct vpif_interface vpif_if;
+ };
+ 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+1.7.10.4
+
