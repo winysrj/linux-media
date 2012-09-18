@@ -1,126 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:57814 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753743Ab2IYOl4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Sep 2012 10:41:56 -0400
-Received: from eusync2.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MAW009EQU6F8VB0@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 25 Sep 2012 15:42:15 +0100 (BST)
-Received: from [106.116.147.108] by eusync2.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0MAW00IA0U5T9V00@eusync2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 25 Sep 2012 15:41:54 +0100 (BST)
-Message-id: <5061C2AF.60904@samsung.com>
-Date: Tue, 25 Sep 2012 16:41:51 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-MIME-version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
-	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
-	robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
-	subashrp@gmail.com, mchehab@redhat.com, g.liakhovetski@gmx.de,
-	dmitriyz@google.com, s.nawrocki@samsung.com, k.debski@samsung.com
-Subject: Re: [PATCHv8 13/26] v4l: vivi: support for dmabuf importing
-References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
- <1344958496-9373-14-git-send-email-t.stanislaws@samsung.com>
- <201208221256.30179.hverkuil@xs4all.nl> <201208221347.56879.hverkuil@xs4all.nl>
-In-reply-to: <201208221347.56879.hverkuil@xs4all.nl>
-Content-type: text/plain; charset=ISO-8859-15
-Content-transfer-encoding: 7bit
+Received: from 7of9.schinagl.nl ([88.159.158.68]:43072 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754322Ab2IRTSb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Sep 2012 15:18:31 -0400
+Message-ID: <5058ACE4.6070408@schinagl.nl>
+Date: Tue, 18 Sep 2012 19:18:28 +0200
+From: Oliver Schinagl <oliver+list@schinagl.nl>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Support for Asus MyCinema U3100Mini Plus
+References: <1347223647-645-1-git-send-email-oliver+list@schinagl.nl> <504D00BC.4040109@schinagl.nl> <504D0F44.6030706@iki.fi> <504D17AA.8020807@schinagl.nl> <504D1859.5050201@iki.fi> <504DB9D4.6020502@schinagl.nl> <504DD311.7060408@iki.fi> <504DF950.8060006@schinagl.nl> <504E2345.5090800@schinagl.nl> <5055DD27.7080501@schinagl.nl> <505601B6.2010103@iki.fi> <5055EA30.8000200@schinagl.nl> <50560B82.7000205@iki.fi> <50564E58.20004@schinagl.nl> <50566260.1090108@iki.fi> <5056DE5C.70003@schinagl.nl> <50571F83.10708@schinagl.nl> <50572290.8090308@iki.fi> <505724F0.20502@schinagl.nl> <50572B1D.3080807@iki.fi> <50573FC5.40307@schinagl.nl> <50578B61.1040700@schinagl.nl> <5057910C.10408@iki.fi> <50579CC3.5040703@schinagl.nl>
+In-Reply-To: <50579CC3.5040703@schinagl.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/22/2012 01:47 PM, Hans Verkuil wrote:
-> On Wed August 22 2012 12:56:30 Hans Verkuil wrote:
->> On Tue August 14 2012 17:34:43 Tomasz Stanislawski wrote:
->>> This patch enhances VIVI driver with a support for importing a buffer
->>> from DMABUF file descriptors.
->>
->> Thanks for adding DMABUF support to vivi.
->>
->> What would be great is if DMABUF support is also added to mem2mem_testdev.
->> It would make an excellent test case to take the vivi output, pass it
->> through mem2mem_testdev, and finally output the image using the gpu, all
->> using dmabuf.
->>
->> It's also very useful for application developers to test dmabuf support
->> without requiring special hardware (other than a dmabuf-enabled gpu
->> driver).
-> 
-> Adding VIDIOC_EXPBUF support to vivi and mem2mem_testdev would be
-> welcome as well for the same reasons.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-
-Hi Hans,
-
-Adding DMABUF exporting to vmalloc is not easy as it seams.
-Exporting introduces a new level of complexity and code bloat to a framework.
-I mean support for:
-- NULL devices as DMABUF exporters
-- vmalloc to sglist conversions
-- calling dma_map_sg for importers
-- cache management
-
-I admit that most of the work should be delegated to dmabuf framework.
-I propose to postpone support for dmabuf exporting in vmalloc until
-vb2-dmabuf gets merged.
-
-Regards,
-Tomasz Stanislawski
-
-
->>
->> Regards,
->>
->> 	Hans
->>
+On 09/17/12 23:57, Oliver Schinagl wrote:
+> On 09/17/12 23:07, Antti Palosaari wrote:
+>> On 09/17/2012 11:43 PM, Oliver Schinagl wrote:
+>>> On 09/17/12 17:20, Oliver Schinagl wrote:
 >>>
->>> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
->>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
->>> ---
->>>  drivers/media/video/Kconfig |    1 +
->>>  drivers/media/video/vivi.c  |    2 +-
->>>  2 files changed, 2 insertions(+), 1 deletion(-)
+>>>>>>> If tuner communication is really working and it says chip id is 0x5a
+>>>>>>> then it is different than driver knows. It could be new revision of
+>>>>>>> tuner. Change chip_id to match 0x5a
+>>>>>>>
+>>>>>> Ah, so it's called chip_id on one end, but tuner_id on the other end.
+>>>>>> If/when I got this link working properly, I'll write a patch to fix
+>>>>>> some
+>>>>>> naming consistencies.
+>>>>>
+>>>>> No, you are totally wrong now. Chip ID is value inside chip register.
+>>>>> Almost every chip has some chip id value which driver could detect it
+>>>>> is speaking with correct chip. In that case value is stored inside
+>>>>> fc2580.
+>>>>>
+>>>>> Tuner ID is value stored inside AF9035 chip / eeprom. It is
+>>>>> configuration value for AF9035 hardware design. It says "that AF9035
+>>>>> device uses FC2580 RF-tuner". AF9035 (FC2580) tuner ID and FC2580 chip
+>>>>> ID are different values having different meaning.
+>>>> Ok, I understand the difference between Chip ID and Tuner ID I guess,
+>>>> and with my new knowledge about dynamic debug I know also understand my
+>>>> findings and where it goes wrong. I also know understand the chipID is
+>>>> stored in fc2580.c under the fc2580_attach, where it checks for 0x56.
+>>>> Appearantly my chipID is 0x5a. I wasn't triggered by this as none of
+>>>> the
+>>>> other fc2580 or af9035 devices had such a change so it wasn't obvious.
+>>>> Tuner ID is actively being chechked/set in the source, so that seemed
+>>>> more obvious.
+>>> It can't be 0x5a as chipid. I actually found that the vendor driver also
+>>> reads from 0x01 once to test the chip.
 >>>
->>> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
->>> index 966954d..8fa81be 100644
->>> --- a/drivers/media/video/Kconfig
->>> +++ b/drivers/media/video/Kconfig
->>> @@ -653,6 +653,7 @@ config VIDEO_VIVI
->>>  	depends on FRAMEBUFFER_CONSOLE || STI_CONSOLE
->>>  	select FONT_8x16
->>>  	select VIDEOBUF2_VMALLOC
->>> +	select DMA_SHARED_BUFFER
->>>  	default n
->>>  	---help---
->>>  	  Enables a virtual video driver. This device shows a color bar
->>> diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
->>> index a6351c4..37d8fd4 100644
->>> --- a/drivers/media/video/vivi.c
->>> +++ b/drivers/media/video/vivi.c
->>> @@ -1308,7 +1308,7 @@ static int __init vivi_create_instance(int inst)
->>>  	q = &dev->vb_vidq;
->>>  	memset(q, 0, sizeof(dev->vb_vidq));
->>>  	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
->>> -	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
->>> +	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
->>>  	q->drv_priv = dev;
->>>  	q->buf_struct_size = sizeof(struct vivi_buffer);
->>>  	q->ops = &vivi_video_qops;
+>>> This function is a generic function which tests I2C interface's
+>>> availability by reading out it's I2C id data from reg. address '0x01'.
 >>>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>> int fc2580_i2c_test( void ) {
+>>>      return ( fc2580_i2c_read( 0x01 ) == 0x56 )? 0x01 : 0x00;
+>>> }
+>>>
+>>> So something else is going weird. chipid being 0x56 is good though; same
+>>> chip revision. However I now got my system to hang, got some soft-hang
+>>> errors and the driver only reported failure on loading. No other debug
+>>> that I saw from dmesg before the crash. Will investigate more.
 >>
+>> huoh.
+>>
+>> usb 2-2: rtl28xxu_ctrl_msg: c0 00 ac 01 00 03 01 00 <<< 56
+>> usb 2-2: rtl28xxu_ctrl_msg: 40 00 ac 01 10 03 01 00 >>> ff
+>> usb 2-2: rtl28xxu_ctrl_msg: c0 00 ac 01 00 03 01 00 <<< 56
+>> usb 2-2: rtl28xxu_ctrl_msg: 40 00 ac 01 10 03 01 00 >>> 00
+>> usb 2-2: rtl28xxu_ctrl_msg: c0 00 ac 01 00 03 01 00 <<< 56
+>> i2c i2c-5: fc2580: FCI FC2580 successfully identified
+>>
+>> Why do you think its value is static - it cannot be changed...
+> I'm not saying it can be at all :p
+>
+> according to debug output, I had
+>
+> [  188.054019] i2c i2c-1: fc2580_attach: chip_id=5a
+>
+> so to your suggestion, I made it accept chip_id 0x5a as well.
+>      if ((chip_id != 0x56) || (chip_id != 0x5a))
+>          goto err;
+>
+> But theoretically, it can't be 0x5a, as even the vendor driver would
+> only check for 0x56 (the function actually never gets called, so any
+> revision according the those sources could work).
+>
+> So I will investigate why it would return 0x5a for the chip id :)
+>
+>
+Turns out, the chip REALLY REALLY is 0x5a. I took some snapshots of both 
+the tuner and bridge/demodulator and uploaded them to the linuxtv wiki 
+[1]. If you could compare that one to your Chips? The markings are:
+
+FCI 2580 01BD
+
+AF9035B-N2
+1012 QJFSQ
+
+
+On a more serious note, right now, the driver soft-locks-up. Either with 
+or without accepting the 0x5a chip_id.
+
+What I do is, manually load all modules, enable debugging and plug in 
+the device.
+
+Everything appears to work normally for a while, I can do the dmesg dump 
+etc, but after about 22 seconds, I get this warning:
+BUG: soft lockup - CPU#2 stuck for 22s! [udev-acl:2320]
+(With the CPU# number being arbitrary). 22s later, another CPU fails. I 
+haven't waited for the other core's to fail.
+
+Also, removing the module is impossible. Rebooting also fails. I have to 
+sys-req reboot it.
+
+I don't know how much my patch is responsible for this of course, but 
+since attaching of the tuner fails due to the wrong chip_id in one case, 
+the only code affected is the USB id that loads the driver/firmware. I 
+did see this with the older firmware too btw, so appears to be firmware 
+unrelated.
+
+In the meantime, I continue finding out why after accepting chip_id 
+0x5a, it still fails on tuner attach. I suppose somehow the tuner_id 
+isn't matching, which is weird, but will find out about it in the next 
+few days.
+
+
+[1] http://www.linuxtv.org/wiki/index.php/Asus_U3100_Mini_plus_DVB-T
+>>
+>> Antti
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
