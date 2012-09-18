@@ -1,43 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailfe03.c2i.net ([212.247.154.66]:34664 "EHLO swip.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753629Ab2IOMv1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Sep 2012 08:51:27 -0400
-From: Hans Petter Selasky <hselasky@c2i.net>
-To: Antti Palosaari <crope@iki.fi>
-Subject: Re: Strong pairing cam doesn't work with CT-3650 driver (ttusb2)
-Date: Sat, 15 Sep 2012 14:52:35 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <201208172135.17623.hselasky@c2i.net> <502EB0A9.4090501@iki.fi>
-In-Reply-To: <502EB0A9.4090501@iki.fi>
+Received: from bear.ext.ti.com ([192.94.94.41]:45066 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757800Ab2IRJvP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Sep 2012 05:51:15 -0400
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>, <julia.lawall@lip6.fr>,
+	Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCHv2 3/6] media: Convert struct i2c_msg initialization to C99 format
+Date: Tue, 18 Sep 2012 15:20:40 +0530
+Message-ID: <1347961843-9376-4-git-send-email-shubhrajyoti@ti.com>
+In-Reply-To: <1347961843-9376-1-git-send-email-shubhrajyoti@ti.com>
+References: <1347961843-9376-1-git-send-email-shubhrajyoti@ti.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209151452.35183.hselasky@c2i.net>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 17 August 2012 22:59:21 Antti Palosaari wrote:
-> On 08/17/2012 10:35 PM, Hans Petter Selasky wrote:
-> > Hi,
-> > 
-> > Have anyone out there tested the CT-3650 USB driver in the Linux kernel
-> > with a "strong pairing cam".
-> 
-> Likely that means CI+ with some pairing features enabled.
-> 
-> > According to some web-forums, the hardware should support that given
-> > using the vendor provided DVB WinXXX software.
-> > 
-> > drivers/media/dvb/dvb-usb/ttusb2.c
-> > 
-> > Any clues how to debug or what can be wrong?
-> 
-> Take USB traffic capture from working Windows setup and analyze what is
-> done differently.
-> 
+        Convert the struct i2c_msg initialization to C99 format. This makes
+        maintaining and editing the code simpler. Also helps once other fields
+        like transferred are added in future.
 
-Just forget this thread. The CAM was broken. Works now.
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ drivers/media/radio/radio-tea5764.c |   14 +++++++++++---
+ 1 files changed, 11 insertions(+), 3 deletions(-)
 
---HPS
+diff --git a/drivers/media/radio/radio-tea5764.c b/drivers/media/radio/radio-tea5764.c
+index 6b1fae3..41de676 100644
+--- a/drivers/media/radio/radio-tea5764.c
++++ b/drivers/media/radio/radio-tea5764.c
+@@ -151,8 +151,11 @@ int tea5764_i2c_read(struct tea5764_device *radio)
+ 	u16 *p = (u16 *) &radio->regs;
+ 
+ 	struct i2c_msg msgs[1] = {
+-		{ radio->i2c_client->addr, I2C_M_RD, sizeof(radio->regs),
+-			(void *)&radio->regs },
++		{	.addr = radio->i2c_client->addr,
++			.flags = I2C_M_RD,
++			.len = sizeof(radio->regs),
++			.buf = (void *)&radio->regs
++		},
+ 	};
+ 	if (i2c_transfer(radio->i2c_client->adapter, msgs, 1) != 1)
+ 		return -EIO;
+@@ -167,7 +170,12 @@ int tea5764_i2c_write(struct tea5764_device *radio)
+ 	struct tea5764_write_regs wr;
+ 	struct tea5764_regs *r = &radio->regs;
+ 	struct i2c_msg msgs[1] = {
+-		{ radio->i2c_client->addr, 0, sizeof(wr), (void *) &wr },
++		{
++			.addr = radio->i2c_client->addr,
++			.flags = 0,
++			.len = sizeof(wr),
++			.buf = (void *)&wr
++		},
+ 	};
+ 	wr.intreg  = r->intreg & 0xff;
+ 	wr.frqset  = __cpu_to_be16(r->frqset);
+-- 
+1.7.5.4
+
