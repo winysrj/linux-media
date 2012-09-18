@@ -1,149 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:60402 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753950Ab2IQJ0b (ORCPT
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:42705 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757996Ab2IRKxa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Sep 2012 05:26:31 -0400
-Date: Mon, 17 Sep 2012 11:26:17 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Shawn Guo <shawn.guo@linaro.org>
-cc: linux-arm-kernel@lists.infradead.org,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org
-Subject: Re: [PATCH 14/34] dma: ipu: rename mach/ipu.h to include/linux/dma/ipu-dma.h
-In-Reply-To: <1347860103-4141-15-git-send-email-shawn.guo@linaro.org>
-Message-ID: <Pine.LNX.4.64.1209171124130.1689@axis700.grange>
-References: <1347860103-4141-1-git-send-email-shawn.guo@linaro.org>
- <1347860103-4141-15-git-send-email-shawn.guo@linaro.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Tue, 18 Sep 2012 06:53:30 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>
+Subject: [RFCv1 PATCH 10/11] vpif_display: use a v4l2_subdev pointer to call a subdev.
+Date: Tue, 18 Sep 2012 12:53:12 +0200
+Message-Id: <65a795e86372648bb126c35048b749a9be1c68ad.1347965140.git.hans.verkuil@cisco.com>
+In-Reply-To: <1347965593-16746-1-git-send-email-hans.verkuil@cisco.com>
+References: <1347965593-16746-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <bd383d11cd06a8f66571cf1dccb42fd89760ecdb.1347965140.git.hans.verkuil@cisco.com>
+References: <bd383d11cd06a8f66571cf1dccb42fd89760ecdb.1347965140.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 17 Sep 2012, Shawn Guo wrote:
+This makes it easier to have outputs without subdevs.
+This needs more work. The way the outputs are configured should be identical
+to how inputs are configured.
 
-> The header ipu.h really belongs to dma subsystem rather than imx
-> platform.  Rename it to ipu-dma.h and put it into include/linux/dma/.
-> 
-> Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
-> Cc: Vinod Koul <vinod.koul@intel.com>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-> Cc: linux-media@vger.kernel.org
-> Cc: linux-fbdev@vger.kernel.org
-
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-
-Thanks
-Guennadi
-
-> ---
->  drivers/dma/ipu/ipu_idmac.c                        |    3 +--
->  drivers/dma/ipu/ipu_irq.c                          |    3 +--
->  drivers/media/video/mx3_camera.c                   |    2 +-
->  drivers/video/mx3fb.c                              |    2 +-
->  .../mach/ipu.h => include/linux/dma/ipu-dma.h      |    6 +++---
->  5 files changed, 7 insertions(+), 9 deletions(-)
->  rename arch/arm/mach-imx/include/mach/ipu.h => include/linux/dma/ipu-dma.h (97%)
-> 
-> diff --git a/drivers/dma/ipu/ipu_idmac.c b/drivers/dma/ipu/ipu_idmac.c
-> index c7573e5..6585537 100644
-> --- a/drivers/dma/ipu/ipu_idmac.c
-> +++ b/drivers/dma/ipu/ipu_idmac.c
-> @@ -22,8 +22,7 @@
->  #include <linux/interrupt.h>
->  #include <linux/io.h>
->  #include <linux/module.h>
-> -
-> -#include <mach/ipu.h>
-> +#include <linux/dma/ipu-dma.h>
->  
->  #include "../dmaengine.h"
->  #include "ipu_intern.h"
-> diff --git a/drivers/dma/ipu/ipu_irq.c b/drivers/dma/ipu/ipu_irq.c
-> index fa95bcc..a5ee37d 100644
-> --- a/drivers/dma/ipu/ipu_irq.c
-> +++ b/drivers/dma/ipu/ipu_irq.c
-> @@ -15,8 +15,7 @@
->  #include <linux/irq.h>
->  #include <linux/io.h>
->  #include <linux/module.h>
-> -
-> -#include <mach/ipu.h>
-> +#include <linux/dma/ipu-dma.h>
->  
->  #include "ipu_intern.h"
->  
-> diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
-> index 1481b0d..892cba5 100644
-> --- a/drivers/media/video/mx3_camera.c
-> +++ b/drivers/media/video/mx3_camera.c
-> @@ -17,6 +17,7 @@
->  #include <linux/vmalloc.h>
->  #include <linux/interrupt.h>
->  #include <linux/sched.h>
-> +#include <linux/dma/ipu-dma.h>
->  
->  #include <media/v4l2-common.h>
->  #include <media/v4l2-dev.h>
-> @@ -24,7 +25,6 @@
->  #include <media/soc_camera.h>
->  #include <media/soc_mediabus.h>
->  
-> -#include <mach/ipu.h>
->  #include <linux/platform_data/camera-mx3.h>
->  #include <linux/platform_data/dma-imx.h>
->  
-> diff --git a/drivers/video/mx3fb.c b/drivers/video/mx3fb.c
-> index d738108..3b63ad8 100644
-> --- a/drivers/video/mx3fb.c
-> +++ b/drivers/video/mx3fb.c
-> @@ -26,10 +26,10 @@
->  #include <linux/console.h>
->  #include <linux/clk.h>
->  #include <linux/mutex.h>
-> +#include <linux/dma/ipu-dma.h>
->  
->  #include <linux/platform_data/dma-imx.h>
->  #include <mach/hardware.h>
-> -#include <mach/ipu.h>
->  #include <linux/platform_data/video-mx3fb.h>
->  
->  #include <asm/io.h>
-> diff --git a/arch/arm/mach-imx/include/mach/ipu.h b/include/linux/dma/ipu-dma.h
-> similarity index 97%
-> rename from arch/arm/mach-imx/include/mach/ipu.h
-> rename to include/linux/dma/ipu-dma.h
-> index 539e559..1803111 100644
-> --- a/arch/arm/mach-imx/include/mach/ipu.h
-> +++ b/include/linux/dma/ipu-dma.h
-> @@ -9,8 +9,8 @@
->   * published by the Free Software Foundation.
->   */
->  
-> -#ifndef _IPU_H_
-> -#define _IPU_H_
-> +#ifndef __LINUX_DMA_IPU_DMA_H
-> +#define __LINUX_DMA_IPU_DMA_H
->  
->  #include <linux/types.h>
->  #include <linux/dmaengine.h>
-> @@ -174,4 +174,4 @@ struct idmac_channel {
->  #define to_tx_desc(tx) container_of(tx, struct idmac_tx_desc, txd)
->  #define to_idmac_chan(c) container_of(c, struct idmac_channel, dma_chan)
->  
-> -#endif
-> +#endif /* __LINUX_DMA_IPU_DMA_H */
-> -- 
-> 1.7.9.5
-> 
-
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/davinci/vpif_display.c |   17 +++++++++--------
+ drivers/media/video/davinci/vpif_display.h |    1 +
+ 2 files changed, 10 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
+index a6e8ddd..5f1d736 100644
+--- a/drivers/media/video/davinci/vpif_display.c
++++ b/drivers/media/video/davinci/vpif_display.c
+@@ -1232,6 +1232,8 @@ static int vpif_s_output(struct file *file, void *priv, unsigned int i)
+ 		vpif_err("Failed to set output standard\n");
+ 
+ 	ch->output_idx = i;
++	if (vpif_obj.sd[i])
++		ch->sd = vpif_obj.sd[i];
+ 	return ret;
+ }
+ 
+@@ -1302,14 +1304,13 @@ static int vpif_s_dv_timings(struct file *file, void *priv,
+ 	}
+ 
+ 	/* Configure subdevice timings, if any */
+-	ret = v4l2_subdev_call(vpif_obj.sd[ch->output_idx],
+-			video, s_dv_timings, timings);
++	ret = v4l2_subdev_call(ch->sd, video, s_dv_timings, timings);
+ 	if (ret == -ENOIOCTLCMD) {
+ 		vpif_dbg(2, debug, "Custom DV timings not supported by "
+ 				"subdevice\n");
+-		return -EINVAL;
++		return -ENODATA;
+ 	}
+-	if (ret < 0) {
++	if (ret < 0 && ret != -ENODEV) {
+ 		vpif_dbg(2, debug, "Error setting custom DV timings\n");
+ 		return ret;
+ 	}
+@@ -1434,8 +1435,7 @@ static int vpif_dbg_g_register(struct file *file, void *priv,
+ 	struct vpif_fh *fh = priv;
+ 	struct channel_obj *ch = fh->channel;
+ 
+-	return v4l2_subdev_call(vpif_obj.sd[ch->output_idx], core,
+-			g_register, reg);
++	return v4l2_subdev_call(ch->sd, core, g_register, reg);
+ }
+ 
+ /*
+@@ -1452,8 +1452,7 @@ static int vpif_dbg_s_register(struct file *file, void *priv,
+ 	struct vpif_fh *fh = priv;
+ 	struct channel_obj *ch = fh->channel;
+ 
+-	return v4l2_subdev_call(vpif_obj.sd[ch->output_idx], core,
+-			s_register, reg);
++	return v4l2_subdev_call(ch->sd, core, s_register, reg);
+ }
+ #endif
+ 
+@@ -1721,6 +1720,8 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 
+ 		}
+ 		ch->initialized = 0;
++		if (subdev_count)
++			ch->sd = vpif_obj.sd[0];
+ 		ch->channel_id = j;
+ 		if (j < 2)
+ 			ch->common[VPIF_VIDEO_INDEX].numbuffers =
+diff --git a/drivers/media/video/davinci/vpif_display.h b/drivers/media/video/davinci/vpif_display.h
+index b602def..1e436ac 100644
+--- a/drivers/media/video/davinci/vpif_display.h
++++ b/drivers/media/video/davinci/vpif_display.h
+@@ -126,6 +126,7 @@ struct channel_obj {
+ 	u8 initialized;			/* flag to indicate whether
+ 					 * encoder is initialized */
+ 	u32 output_idx;			/* Current output index */
++	struct v4l2_subdev *sd;		/* Current output subdev (may be NULL) */
+ 
+ 	enum vpif_channel_id channel_id;/* Identifies channel */
+ 	struct vpif_params vpifparams;
+-- 
+1.7.10.4
+
