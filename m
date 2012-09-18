@@ -1,57 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog111.obsmtp.com ([207.126.144.131]:36671 "EHLO
-	eu1sys200aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751531Ab2INPA3 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 11:00:29 -0400
-Received: from zeta.dmz-eu.st.com (zeta.dmz-eu.st.com [164.129.230.9])
-	by beta.dmz-eu.st.com (STMicroelectronics) with ESMTP id 1D8CBC7
-	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 15:00:26 +0000 (GMT)
-Received: from Webmail-eu.st.com (safex1hubcas5.st.com [10.75.90.71])
-	by zeta.dmz-eu.st.com (STMicroelectronics) with ESMTP id BA2BF4A6A
-	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 15:00:26 +0000 (GMT)
-From: Nicolas THERY <nicolas.thery@st.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Jean-Marc VOLLE <jean-marc.volle@st.com>,
-	Pierre-yves TALOUD <pierre-yves.taloud@st.com>,
-	Willy POISSON <willy.poisson@st.com>,
-	Benjamin GAIGNARD <benjamin.gaignard@st.com>,
-	Vincent ABRIOU <vincent.abriou@st.com>
-Date: Fri, 14 Sep 2012 17:00:24 +0200
-Subject: how to crop/scale in mono-subdev camera sensor driver?
-Message-ID: <50534688.7010805@st.com>
-References: <1345715489-30158-1-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1345715489-30158-1-git-send-email-s.nawrocki@samsung.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:47122 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751742Ab2IRSed (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Sep 2012 14:34:33 -0400
+Received: by obbuo13 with SMTP id uo13so205909obb.19
+        for <linux-media@vger.kernel.org>; Tue, 18 Sep 2012 11:34:32 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <CAGoCfiy4Ybymdd4Mym1JB3gwW9Suqdj3w6bEdMpxWWBHPhUvTQ@mail.gmail.com>
+References: <CAAnFQG_SrXyr8MtPDujciE2=QRQK8dAK_SPBE3rC_c-XNSC00w@mail.gmail.com>
+ <CAGoCfiy4Ybymdd4Mym1JB3gwW9Suqdj3w6bEdMpxWWBHPhUvTQ@mail.gmail.com>
+From: Javier Marcet <jmarcet@gmail.com>
+Date: Tue, 18 Sep 2012 20:34:12 +0200
+Message-ID: <CAAnFQG8fDnmGN2_sfrhU8tB_kiuheSmXPqVq5wdmh73vB8EtdA@mail.gmail.com>
+Subject: Re: Terratec Cinergy T PCIe Dual doesn;t work nder the Xen hypervisor
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Tue, Sep 18, 2012 at 5:40 AM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
 
-I'm studying how to support cropping and scaling (binning, skipping, digital
-scaling if any) for different models for camera sensor drivers.  There seems to
-be (at least) two kinds of sensor drivers:
+Hi Devin,
 
-1) The smiapp driver has 2 or 3 subdevs: pixel array -> binning (-> scaling).
-It gives clients full control over the various ways of cropping and scaling 
-thanks to the selection API.
+> This is a very common problem when attempting to use any PCI/PCIe
+> tuner under a hypervisor.  Essentially the issue is all of the
+> virtualization solutions provide very poor interrupt latency, which
+> results in the data being lost.
+>
+> Devices delivering a high bitrate stream of data in realtime are much
+> more likely for this problem to be visible since such devices have
+> very little buffering (it's not like a hard drive controller where it
+> can just deliver the data slower).  The problem is not specific to the
+> cx23885 - pretty much all of the PCI/PCIe bridges used in tuner cards
+> work this way, and they cannot really be blamed for expecting to run
+> in an environment with really crappy interrupt latency.
+>
+> I won't go as far as to say, "abandon all hope", but you're not really
+> likely to find any help in this forum.
 
-2) The mt9p031 driver (and maybe others) has a single subdev.  Clients use the
-obsolete SUBDEV_S_CROP ioctl for selecting a region of interest in the pixel
-array and SUBDEV_S_FMT for setting the source pad mbus size.  If the mbus size
-differs from the cropping rectangle size, scaling is enabled and the driver
-decides internally how to combine skipping and binning to achieve the requested
-scaling factors.
+I can't say how happy I am that you were wrong in your guess. Quoting
+Konrad Rzeszutek Wilk:
 
-As SUBDEV_S_CROP is obsolete, I wonder whether it is okay to support cropping
-and scaling in a mono-subdev sensor driver by (a) setting the cropping
-rectangle with SUBDEV_S_SELECTION on the source pad, and (b) setting the
-scaling factors via the source pad mbus size as in the mt9p031 driver?
+"""
+The issue as I understand is that the DVB drivers allocate their
+buffers from 0->4GB most (all the time?) so they never have to do
+bounce-buffering.
 
-Thanks in advance.
+While the pv-ops one ends up quite frequently doing the
+bounce-buffering, which implies that the DVB drivers end up allocating
+their buffers above the 4GB.
+This means we end up spending some CPU time (in the guest) copying the
+memory from >4GB to 0-4GB region (And vice-versa).
+"""
 
-Best regards,
-Nicolas
+You can see the original thread where this was found, together with a
+working patch, here:
+
+http://lists.xen.org/archives/html/xen-devel/2012-01/msg01927.html
+
+
+-- 
+Javier Marcet <jmarcet@gmail.com>
