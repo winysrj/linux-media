@@ -1,46 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40774 "EHLO bear.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:37495 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756724Ab2IQPW7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Sep 2012 11:22:59 -0400
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: <linux-kernel@vger.kernel.org>, <julia.lawall@lip6.fr>,
-	Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCH 5/6] media: Convert struct i2c_msg initialization to C99 format
-Date: Mon, 17 Sep 2012 20:52:32 +0530
-Message-ID: <1347895353-18090-6-git-send-email-shubhrajyoti@ti.com>
-In-Reply-To: <1347895353-18090-1-git-send-email-shubhrajyoti@ti.com>
-References: <1347895353-18090-1-git-send-email-shubhrajyoti@ti.com>
+	id S1751643Ab2ISUdL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Sep 2012 16:33:11 -0400
+Message-ID: <505A2C52.4040001@redhat.com>
+Date: Wed, 19 Sep 2012 22:34:26 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 4/4] gspca_pac7302: add support for green balance adjustment
+References: <1347811240-4000-1-git-send-email-fschaefer.oss@googlemail.com> <1347811240-4000-4-git-send-email-fschaefer.oss@googlemail.com> <5059FFF1.30104@googlemail.com>
+In-Reply-To: <5059FFF1.30104@googlemail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-        Convert the struct i2c_msg initialization to C99 format. This makes
-        maintaining and editing the code simpler. Also helps once other fields
-        like transferred are added in future.
+Hi,
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- drivers/media/radio/saa7706h.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+On 09/19/2012 07:25 PM, Frank Schäfer wrote:
+> Am 16.09.2012 18:00, schrieb Frank Schäfer:
+>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+>> ---
+>>   drivers/media/usb/gspca/pac7302.c |   23 ++++++++++++++++++++++-
+>>   1 files changed, 22 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/media/usb/gspca/pac7302.c b/drivers/media/usb/gspca/pac7302.c
+>> index 8a0f4d6..9b62b74 100644
+>> --- a/drivers/media/usb/gspca/pac7302.c
+>> +++ b/drivers/media/usb/gspca/pac7302.c
+>> @@ -78,6 +78,7 @@
+>>    * Page | Register   | Function
+>>    * -----+------------+---------------------------------------------------
+>>    *  0   | 0x01       | setredbalance()
+>> + *  0   | 0x02       | setgreenbalance()
+>>    *  0   | 0x03       | setbluebalance()
+>>    *  0   | 0x0f..0x20 | setcolors()
+>>    *  0   | 0xa2..0xab | setbrightcont()
+>> @@ -121,6 +122,7 @@ struct sd {
+>>   	struct v4l2_ctrl *saturation;
+>>   	struct v4l2_ctrl *white_balance;
+>>   	struct v4l2_ctrl *red_balance;
+>> +	struct v4l2_ctrl *green_balance;
+>>   	struct v4l2_ctrl *blue_balance;
+>>   	struct { /* flip cluster */
+>>   		struct v4l2_ctrl *hflip;
+>> @@ -470,6 +472,17 @@ static void setredbalance(struct gspca_dev *gspca_dev)
+>>   	reg_w(gspca_dev, 0xdc, 0x01);
+>>   }
+>>
+>> +static void setgreenbalance(struct gspca_dev *gspca_dev)
+>> +{
+>> +	struct sd *sd = (struct sd *) gspca_dev;
+>> +
+>> +	reg_w(gspca_dev, 0xff, 0x00);			/* page 0 */
+>> +	reg_w(gspca_dev, 0x02,
+>> +	      rgbbalance_ctrl_to_reg_value(sd->green_balance->val));
+>> +
+>> +	reg_w(gspca_dev, 0xdc, 0x01);
+>> +}
+>> +
+>>   static void setbluebalance(struct gspca_dev *gspca_dev)
+>>   {
+>>   	struct sd *sd = (struct sd *) gspca_dev;
+>> @@ -620,6 +633,9 @@ static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
+>>   	case V4L2_CID_RED_BALANCE:
+>>   		setredbalance(gspca_dev);
+>>   		break;
+>> +	case V4L2_CID_GREEN_BALANCE:
+>> +		setgreenbalance(gspca_dev);
+>> +		break;
+>>   	case V4L2_CID_BLUE_BALANCE:
+>>   		setbluebalance(gspca_dev);
+>>   		break;
+>> @@ -652,7 +668,7 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
+>>   	struct v4l2_ctrl_handler *hdl = &gspca_dev->ctrl_handler;
+>>
+>>   	gspca_dev->vdev.ctrl_handler = hdl;
+>> -	v4l2_ctrl_handler_init(hdl, 12);
+>> +	v4l2_ctrl_handler_init(hdl, 13);
+>>
+>>   	sd->brightness = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
+>>   					V4L2_CID_BRIGHTNESS, 0, 32, 1, 16);
+>> @@ -669,6 +685,11 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
+>>   					PAC7302_RGB_BALANCE_MIN,
+>>   					PAC7302_RGB_BALANCE_MAX,
+>>   					1, PAC7302_RGB_BALANCE_DEFAULT);
+>> +	sd->green_balance = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
+>> +					V4L2_CID_GREEN_BALANCE,
+>> +					PAC7302_RGB_BALANCE_MIN,
+>> +					PAC7302_RGB_BALANCE_MAX,
+>> +					1, PAC7302_RGB_BALANCE_DEFAULT);
+>>   	sd->blue_balance = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
+>>   					V4L2_CID_BLUE_BALANCE,
+>>   					PAC7302_RGB_BALANCE_MIN,
+>
+> Hans, it seems like you didn't pick up these patches up yet...
+> Is there anything wrong with them ?
 
-diff --git a/drivers/media/radio/saa7706h.c b/drivers/media/radio/saa7706h.c
-index bb953ef..ca3d655 100644
---- a/drivers/media/radio/saa7706h.c
-+++ b/drivers/media/radio/saa7706h.c
-@@ -199,8 +199,8 @@ static int saa7706h_get_reg16(struct v4l2_subdev *sd, u16 reg)
- 	u8 buf[2];
- 	int err;
- 	u8 regaddr[] = {reg >> 8, reg};
--	struct i2c_msg msg[] = { {client->addr, 0, sizeof(regaddr), regaddr},
--				{client->addr, I2C_M_RD, sizeof(buf), buf} };
-+	struct i2c_msg msg[] = { {.addr = client->addr, .flags = 0, .len = sizeof(regaddr), .buf = regaddr},
-+				{.addr = client->addr, .flags = I2C_M_RD, .len = sizeof(buf), .buf = buf} };
- 
- 	err = saa7706h_i2c_transfer(client, msg, ARRAY_SIZE(msg));
- 	if (err)
--- 
-1.7.5.4
+I've somehow completely missed them. Can you resend the entire set please?
 
+Thanks,
+
+Hans
