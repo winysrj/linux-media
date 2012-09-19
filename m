@@ -1,146 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52017 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751958Ab2IANzT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Sep 2012 09:55:19 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1716 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751157Ab2ISOic (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Sep 2012 10:38:32 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hin-Tak Leung <htl10@users.sourceforge.net>,
-	poma <pomidorabelisima@gmail.com>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] rtl28xxu: correct usb_clear_halt() usage
-Date: Sat,  1 Sep 2012 16:54:43 +0300
-Message-Id: <1346507683-3621-1-git-send-email-crope@iki.fi>
+Cc: Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 6/6] DocBook: various updates w.r.t. v4l2_buffer and multiplanar.
+Date: Wed, 19 Sep 2012 16:37:40 +0200
+Message-Id: <499780c9daeee902db65382be3bdf481d205e99c.1348064901.git.hans.verkuil@cisco.com>
+In-Reply-To: <1348065460-1624-1-git-send-email-hverkuil@xs4all.nl>
+References: <1348065460-1624-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <9e4acd70e02bb67e6e7af0c236c69af27108e4fa.1348064901.git.hans.verkuil@cisco.com>
+References: <9e4acd70e02bb67e6e7af0c236c69af27108e4fa.1348064901.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is not allowed to call usb_clear_halt() after urbs are submitted.
-That causes oops sometimes. Move whole streaming_ctrl() logic to
-power_ctrl() in order to avoid wrong usb_clear_halt() use. Also,
-configuring streaming endpoint in streaming_ctrl() sounds like a
-little bit wrong as it is aimed for control stream gate.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Reported-by: Hin-Tak Leung <htl10@users.sourceforge.net>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Clarify the behavior of v4l2_buffer in the multiplanar case,
+including fixing a false statement: you can't set m.planes to NULL
+when calling DQBUF.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 55 +++++++++++++++------------------
- 1 file changed, 25 insertions(+), 30 deletions(-)
+ Documentation/DocBook/media/v4l/io.xml              |    6 ++++--
+ Documentation/DocBook/media/v4l/vidioc-qbuf.xml     |    3 +--
+ Documentation/DocBook/media/v4l/vidioc-querybuf.xml |   11 +++++++----
+ 3 files changed, 12 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index e29fca2..7d11c5d 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -825,37 +825,10 @@ err:
- 	return ret;
- }
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index 1885cc0..c6d39fe 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -677,8 +677,10 @@ memory, set by the application. See <xref linkend="userp" /> for details.
+ 	    <entry><structfield>length</structfield></entry>
+ 	    <entry></entry>
+ 	    <entry>Size of the buffer (not the payload) in bytes for the
+-	    single-planar API. For the multi-planar API should contain the
+-	    number of elements in the <structfield>planes</structfield> array.
++	    single-planar API. For the multi-planar API the application sets
++	    this to the number of elements in the <structfield>planes</structfield>
++	    array. The driver will fill in the actual number of valid elements in
++	    that array.
+ 	    </entry>
+ 	  </row>
+ 	  <row>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
+index 6a821a6..2d37abe 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
+@@ -121,8 +121,7 @@ remaining fields or returns an error code. The driver may also set
+ field. It indicates a non-critical (recoverable) streaming error. In such case
+ the application may continue as normal, but should be aware that data in the
+ dequeued buffer might be corrupted. When using the multi-planar API, the
+-planes array does not have to be passed; the <structfield>m.planes</structfield>
+-member must be set to NULL in that case.</para>
++planes array must be passed in as well.</para>
  
--static int rtl28xxu_streaming_ctrl(struct dvb_frontend *fe , int onoff)
--{
--	int ret;
--	u8 buf[2];
--	struct dvb_usb_device *d = fe_to_d(fe);
--
--	dev_dbg(&d->udev->dev, "%s: onoff=%d\n", __func__, onoff);
--
--	if (onoff) {
--		buf[0] = 0x00;
--		buf[1] = 0x00;
--		usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x81));
--	} else {
--		buf[0] = 0x10; /* stall EPA */
--		buf[1] = 0x02; /* reset EPA */
--	}
--
--	ret = rtl28xx_wr_regs(d, USB_EPA_CTL, buf, 2);
--	if (ret)
--		goto err;
--
--	return ret;
--err:
--	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
--	return ret;
--}
--
- static int rtl2831u_power_ctrl(struct dvb_usb_device *d, int onoff)
- {
- 	int ret;
--	u8 gpio, sys0;
-+	u8 gpio, sys0, epa_ctl[2];
+     <para>By default <constant>VIDIOC_DQBUF</constant> blocks when no
+ buffer is in the outgoing queue. When the
+diff --git a/Documentation/DocBook/media/v4l/vidioc-querybuf.xml b/Documentation/DocBook/media/v4l/vidioc-querybuf.xml
+index 6e414d7..a597155 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-querybuf.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-querybuf.xml
+@@ -48,8 +48,8 @@
+   <refsect1>
+     <title>Description</title>
  
- 	dev_dbg(&d->udev->dev, "%s: onoff=%d\n", __func__, onoff);
+-    <para>This ioctl is part of the <link linkend="mmap">memory
+-mapping</link> I/O method. It can be used to query the status of a
++    <para>This ioctl is part of the <link linkend="mmap">streaming
++</link> I/O method. It can be used to query the status of a
+ buffer at any time after buffers have been allocated with the
+ &VIDIOC-REQBUFS; ioctl.</para>
  
-@@ -878,11 +851,15 @@ static int rtl2831u_power_ctrl(struct dvb_usb_device *d, int onoff)
- 		gpio |= 0x04; /* GPIO2 = 1, LED on */
- 		sys0 = sys0 & 0x0f;
- 		sys0 |= 0xe0;
-+		epa_ctl[0] = 0x00; /* clear stall */
-+		epa_ctl[1] = 0x00; /* clear reset */
- 	} else {
- 		gpio &= (~0x01); /* GPIO0 = 0 */
- 		gpio |= 0x10; /* GPIO4 = 1 */
- 		gpio &= (~0x04); /* GPIO2 = 1, LED off */
- 		sys0 = sys0 & (~0xc0);
-+		epa_ctl[0] = 0x10; /* set stall */
-+		epa_ctl[1] = 0x02; /* set reset */
- 	}
+@@ -71,6 +71,7 @@ the structure.</para>
  
- 	dev_dbg(&d->udev->dev, "%s: WR SYS0=%02x GPIO_OUT_VAL=%02x\n", __func__,
-@@ -898,6 +875,14 @@ static int rtl2831u_power_ctrl(struct dvb_usb_device *d, int onoff)
- 	if (ret)
- 		goto err;
+     <para>In the <structfield>flags</structfield> field the
+ <constant>V4L2_BUF_FLAG_MAPPED</constant>,
++<constant>V4L2_BUF_FLAG_PREPARED</constant>,
+ <constant>V4L2_BUF_FLAG_QUEUED</constant> and
+ <constant>V4L2_BUF_FLAG_DONE</constant> flags will be valid. The
+ <structfield>memory</structfield> field will be set to the current
+@@ -79,8 +80,10 @@ contains the offset of the buffer from the start of the device memory,
+ the <structfield>length</structfield> field its size. For the multi-planar API,
+ fields <structfield>m.mem_offset</structfield> and
+ <structfield>length</structfield> in the <structfield>m.planes</structfield>
+-array elements will be used instead. The driver may or may not set the remaining
+-fields and flags, they are meaningless in this context.</para>
++array elements will be used instead and the <structfield>length</structfield>
++field of &v4l2-buffer; is set to the number of filled-in array elements.
++The driver may or may not set the remaining fields and flags, they are
++meaningless in this context.</para>
  
-+	/* streaming EP: stall & reset */
-+	ret = rtl28xx_wr_regs(d, USB_EPA_CTL, epa_ctl, 2);
-+	if (ret)
-+		goto err;
-+
-+	if (onoff)
-+		usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x81));
-+
- 	return ret;
- err:
- 	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
-@@ -972,6 +957,14 @@ static int rtl2832u_power_ctrl(struct dvb_usb_device *d, int onoff)
- 			goto err;
- 
- 
-+		/* streaming EP: clear stall & reset */
-+		ret = rtl28xx_wr_regs(d, USB_EPA_CTL, "\x00\x00", 2);
-+		if (ret)
-+			goto err;
-+
-+		ret = usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x81));
-+		if (ret)
-+			goto err;
- 	} else {
- 		/* demod_ctl_1 */
- 		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL1, &val);
-@@ -1006,6 +999,10 @@ static int rtl2832u_power_ctrl(struct dvb_usb_device *d, int onoff)
- 		if (ret)
- 			goto err;
- 
-+		/* streaming EP: set stall & reset */
-+		ret = rtl28xx_wr_regs(d, USB_EPA_CTL, "\x10\x02", 2);
-+		if (ret)
-+			goto err;
- 	}
- 
- 	return ret;
-@@ -1182,7 +1179,6 @@ static const struct dvb_usb_device_properties rtl2831u_props = {
- 	.tuner_attach = rtl2831u_tuner_attach,
- 	.init = rtl28xxu_init,
- 	.get_rc_config = rtl2831u_get_rc_config,
--	.streaming_ctrl = rtl28xxu_streaming_ctrl,
- 
- 	.num_adapters = 1,
- 	.adapter = {
-@@ -1204,7 +1200,6 @@ static const struct dvb_usb_device_properties rtl2832u_props = {
- 	.tuner_attach = rtl2832u_tuner_attach,
- 	.init = rtl28xxu_init,
- 	.get_rc_config = rtl2832u_get_rc_config,
--	.streaming_ctrl = rtl28xxu_streaming_ctrl,
- 
- 	.num_adapters = 1,
- 	.adapter = {
+     <para>The <structname>v4l2_buffer</structname> structure is
+     specified in <xref linkend="buffer" />.</para>
 -- 
-1.7.11.4
+1.7.10.4
 
