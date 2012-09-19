@@ -1,422 +1,299 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:51761 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751473Ab2IQFhE (ORCPT
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:54341 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752142Ab2ISLpf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Sep 2012 01:37:04 -0400
-Received: by dady13 with SMTP id y13so659207dad.19
-        for <linux-media@vger.kernel.org>; Sun, 16 Sep 2012 22:37:04 -0700 (PDT)
-From: Shawn Guo <shawn.guo@linaro.org>
-To: linux-arm-kernel@lists.infradead.org
-Cc: Sascha Hauer <s.hauer@pengutronix.de>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 28/34] media: mx2_camera: remove mach/hardware.h inclusion
-Date: Mon, 17 Sep 2012 13:34:57 +0800
-Message-Id: <1347860103-4141-29-git-send-email-shawn.guo@linaro.org>
-In-Reply-To: <1347860103-4141-1-git-send-email-shawn.guo@linaro.org>
-References: <1347860103-4141-1-git-send-email-shawn.guo@linaro.org>
+	Wed, 19 Sep 2012 07:45:35 -0400
+Received: by lbbgj3 with SMTP id gj3so753708lbb.19
+        for <linux-media@vger.kernel.org>; Wed, 19 Sep 2012 04:45:32 -0700 (PDT)
+Message-ID: <1348055129.2565.54.camel@deskari>
+Subject: Re: [RFC 0/5] Generic panel framework
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	Bryan Wu <bryan.wu@canonical.com>,
+	Richard Purdie <rpurdie@rpsys.net>,
+	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
+	Sumit Semwal <sumit.semwal@ti.com>,
+	Archit Taneja <archit@ti.com>,
+	Sebastien Guiriec <s-guiriec@ti.com>,
+	Inki Dae <inki.dae@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Alexandre Courbot <acourbot@nvidia.com>
+Date: Wed, 19 Sep 2012 14:45:29 +0300
+In-Reply-To: <1345164583-18924-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1345164583-18924-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-R8a6q3oReQ1az69Eh5Nv"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It changes the driver to use platform_device_id rather than cpu_is_xxx
-to determine the controller type, and updates the platform code
-accordingly.
 
-As the result, mach/hardware.h inclusion gets removed from the driver.
+--=-R8a6q3oReQ1az69Eh5Nv
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
----
- arch/arm/mach-imx/clk-imx25.c                   |    6 +-
- arch/arm/mach-imx/clk-imx27.c                   |    6 +-
- arch/arm/mach-imx/devices/devices-common.h      |    1 +
- arch/arm/mach-imx/devices/platform-mx2-camera.c |   12 +--
- drivers/media/video/mx2_camera.c                |   95 +++++++++++++++++------
- 5 files changed, 85 insertions(+), 35 deletions(-)
+Hi,
 
-diff --git a/arch/arm/mach-imx/clk-imx25.c b/arch/arm/mach-imx/clk-imx25.c
-index 1aea073..71fe521 100644
---- a/arch/arm/mach-imx/clk-imx25.c
-+++ b/arch/arm/mach-imx/clk-imx25.c
-@@ -231,9 +231,9 @@ int __init mx25_clocks_init(void)
- 	clk_register_clkdev(clk[esdhc2_ipg_per], "per", "sdhci-esdhc-imx25.1");
- 	clk_register_clkdev(clk[esdhc2_ipg], "ipg", "sdhci-esdhc-imx25.1");
- 	clk_register_clkdev(clk[esdhc2_ahb], "ahb", "sdhci-esdhc-imx25.1");
--	clk_register_clkdev(clk[csi_ipg_per], "per", "mx2-camera.0");
--	clk_register_clkdev(clk[csi_ipg], "ipg", "mx2-camera.0");
--	clk_register_clkdev(clk[csi_ahb], "ahb", "mx2-camera.0");
-+	clk_register_clkdev(clk[csi_ipg_per], "per", "imx25-camera.0");
-+	clk_register_clkdev(clk[csi_ipg], "ipg", "imx25-camera.0");
-+	clk_register_clkdev(clk[csi_ahb], "ahb", "imx25-camera.0");
- 	clk_register_clkdev(clk[dummy], "audmux", NULL);
- 	clk_register_clkdev(clk[can1_ipg], NULL, "flexcan.0");
- 	clk_register_clkdev(clk[can2_ipg], NULL, "flexcan.1");
-diff --git a/arch/arm/mach-imx/clk-imx27.c b/arch/arm/mach-imx/clk-imx27.c
-index 5ff5cf0..e26de52 100644
---- a/arch/arm/mach-imx/clk-imx27.c
-+++ b/arch/arm/mach-imx/clk-imx27.c
-@@ -224,7 +224,7 @@ int __init mx27_clocks_init(unsigned long fref)
- 	clk_register_clkdev(clk[per3_gate], "per", "imx-fb.0");
- 	clk_register_clkdev(clk[lcdc_ipg_gate], "ipg", "imx-fb.0");
- 	clk_register_clkdev(clk[lcdc_ahb_gate], "ahb", "imx-fb.0");
--	clk_register_clkdev(clk[csi_ahb_gate], "ahb", "mx2-camera.0");
-+	clk_register_clkdev(clk[csi_ahb_gate], "ahb", "imx27-camera.0");
- 	clk_register_clkdev(clk[usb_div], "per", "fsl-usb2-udc");
- 	clk_register_clkdev(clk[usb_ipg_gate], "ipg", "fsl-usb2-udc");
- 	clk_register_clkdev(clk[usb_ahb_gate], "ahb", "fsl-usb2-udc");
-@@ -251,8 +251,8 @@ int __init mx27_clocks_init(unsigned long fref)
- 	clk_register_clkdev(clk[i2c2_ipg_gate], NULL, "imx21-i2c.1");
- 	clk_register_clkdev(clk[owire_ipg_gate], NULL, "mxc_w1.0");
- 	clk_register_clkdev(clk[kpp_ipg_gate], NULL, "imx-keypad");
--	clk_register_clkdev(clk[emma_ahb_gate], "emma-ahb", "mx2-camera.0");
--	clk_register_clkdev(clk[emma_ipg_gate], "emma-ipg", "mx2-camera.0");
-+	clk_register_clkdev(clk[emma_ahb_gate], "emma-ahb", "imx27-camera.0");
-+	clk_register_clkdev(clk[emma_ipg_gate], "emma-ipg", "imx27-camera.0");
- 	clk_register_clkdev(clk[emma_ahb_gate], "ahb", "m2m-emmaprp.0");
- 	clk_register_clkdev(clk[emma_ipg_gate], "ipg", "m2m-emmaprp.0");
- 	clk_register_clkdev(clk[iim_ipg_gate], "iim", NULL);
-diff --git a/arch/arm/mach-imx/devices/devices-common.h b/arch/arm/mach-imx/devices/devices-common.h
-index 7f2698c..8112a1a 100644
---- a/arch/arm/mach-imx/devices/devices-common.h
-+++ b/arch/arm/mach-imx/devices/devices-common.h
-@@ -202,6 +202,7 @@ struct platform_device *__init imx_add_mx3_sdc_fb(
- 
- #include <linux/platform_data/camera-mx2.h>
- struct imx_mx2_camera_data {
-+	const char *devid;
- 	resource_size_t iobasecsi;
- 	resource_size_t iosizecsi;
- 	resource_size_t irqcsi;
-diff --git a/arch/arm/mach-imx/devices/platform-mx2-camera.c b/arch/arm/mach-imx/devices/platform-mx2-camera.c
-index 9ad5b2d..b88877d 100644
---- a/arch/arm/mach-imx/devices/platform-mx2-camera.c
-+++ b/arch/arm/mach-imx/devices/platform-mx2-camera.c
-@@ -9,14 +9,16 @@
- #include <mach/hardware.h>
- #include "devices-common.h"
- 
--#define imx_mx2_camera_data_entry_single(soc)				\
-+#define imx_mx2_camera_data_entry_single(soc, _devid)			\
- 	{								\
-+		.devid = _devid,					\
- 		.iobasecsi = soc ## _CSI_BASE_ADDR,			\
- 		.iosizecsi = SZ_4K,					\
- 		.irqcsi = soc ## _INT_CSI,				\
- 	}
--#define imx_mx2_camera_data_entry_single_emma(soc)			\
-+#define imx_mx2_camera_data_entry_single_emma(soc, _devid)		\
- 	{								\
-+		.devid = _devid,					\
- 		.iobasecsi = soc ## _CSI_BASE_ADDR,			\
- 		.iosizecsi = SZ_32,					\
- 		.irqcsi = soc ## _INT_CSI,				\
-@@ -27,12 +29,12 @@
- 
- #ifdef CONFIG_SOC_IMX25
- const struct imx_mx2_camera_data imx25_mx2_camera_data __initconst =
--	imx_mx2_camera_data_entry_single(MX25);
-+	imx_mx2_camera_data_entry_single(MX25, "imx25-camera");
- #endif /* ifdef CONFIG_SOC_IMX25 */
- 
- #ifdef CONFIG_SOC_IMX27
- const struct imx_mx2_camera_data imx27_mx2_camera_data __initconst =
--	imx_mx2_camera_data_entry_single_emma(MX27);
-+	imx_mx2_camera_data_entry_single_emma(MX27, "imx27-camera");
- #endif /* ifdef CONFIG_SOC_IMX27 */
- 
- struct platform_device *__init imx_add_mx2_camera(
-@@ -58,7 +60,7 @@ struct platform_device *__init imx_add_mx2_camera(
- 			.flags = IORESOURCE_IRQ,
- 		},
- 	};
--	return imx_add_platform_device_dmamask("mx2-camera", 0,
-+	return imx_add_platform_device_dmamask(data->devid, 0,
- 			res, data->iobaseemmaprp ? 4 : 2,
- 			pdata, sizeof(*pdata), DMA_BIT_MASK(32));
- }
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index fe4c76c..cde3374 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -41,7 +41,6 @@
- #include <linux/videodev2.h>
- 
- #include <linux/platform_data/camera-mx2.h>
--#include <mach/hardware.h>
- 
- #include <asm/dma.h>
- 
-@@ -121,11 +120,13 @@
- 
- #define CSICR1			0x00
- #define CSICR2			0x04
--#define CSISR			(cpu_is_mx27() ? 0x08 : 0x18)
-+#define CSISR_IMX25		0x18
-+#define CSISR_IMX27		0x08
- #define CSISTATFIFO		0x0c
- #define CSIRFIFO		0x10
- #define CSIRXCNT		0x14
--#define CSICR3			(cpu_is_mx27() ? 0x1C : 0x08)
-+#define CSICR3_IMX25		0x08
-+#define CSICR3_IMX27		0x1c
- #define CSIDMASA_STATFIFO	0x20
- #define CSIDMATA_STATFIFO	0x24
- #define CSIDMASA_FB1		0x28
-@@ -268,6 +269,11 @@ struct mx2_buffer {
- 	struct mx2_buf_internal		internal;
- };
- 
-+enum mx2_camera_type {
-+	IMX25_CAMERA,
-+	IMX27_CAMERA,
-+};
-+
- struct mx2_camera_dev {
- 	struct device		*dev;
- 	struct soc_camera_host	soc_host;
-@@ -291,6 +297,9 @@ struct mx2_camera_dev {
- 	struct mx2_buffer	*fb2_active;
- 
- 	u32			csicr1;
-+	u32			reg_csisr;
-+	u32			reg_csicr3;
-+	enum mx2_camera_type	devtype;
- 
- 	struct mx2_buf_internal buf_discard[2];
- 	void			*discard_buffer;
-@@ -303,6 +312,29 @@ struct mx2_camera_dev {
- 	struct vb2_alloc_ctx	*alloc_ctx;
- };
- 
-+static struct platform_device_id mx2_camera_devtype[] = {
-+	{
-+		.name = "imx25-camera",
-+		.driver_data = IMX25_CAMERA,
-+	}, {
-+		.name = "imx27-camera",
-+		.driver_data = IMX27_CAMERA,
-+	}, {
-+		/* sentinel */
-+	}
-+};
-+MODULE_DEVICE_TABLE(platform, mx2_camera_devtype);
-+
-+static inline int is_imx25_camera(struct mx2_camera_dev *pcdev)
-+{
-+	return pcdev->devtype == IMX25_CAMERA;
-+}
-+
-+static inline int is_imx27_camera(struct mx2_camera_dev *pcdev)
-+{
-+	return pcdev->devtype == IMX27_CAMERA;
-+}
-+
- static struct mx2_buffer *mx2_ibuf_to_buf(struct mx2_buf_internal *int_buf)
- {
- 	return container_of(int_buf, struct mx2_buffer, internal);
-@@ -406,9 +438,9 @@ static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
- 
- 	clk_disable_unprepare(pcdev->clk_csi);
- 	writel(0, pcdev->base_csi + CSICR1);
--	if (cpu_is_mx27()) {
-+	if (is_imx27_camera(pcdev)) {
- 		writel(0, pcdev->base_emma + PRP_CNTL);
--	} else if (cpu_is_mx25()) {
-+	} else if (is_imx25_camera(pcdev)) {
- 		spin_lock_irqsave(&pcdev->lock, flags);
- 		pcdev->fb1_active = NULL;
- 		pcdev->fb2_active = NULL;
-@@ -438,7 +470,7 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
- 
- 	csicr1 = CSICR1_MCLKEN;
- 
--	if (cpu_is_mx27())
-+	if (is_imx27_camera(pcdev))
- 		csicr1 |= CSICR1_PRP_IF_EN | CSICR1_FCC |
- 			CSICR1_RXFF_LEVEL(0);
- 
-@@ -514,7 +546,7 @@ out:
- static irqreturn_t mx25_camera_irq(int irq_csi, void *data)
- {
- 	struct mx2_camera_dev *pcdev = data;
--	u32 status = readl(pcdev->base_csi + CSISR);
-+	u32 status = readl(pcdev->base_csi + pcdev->reg_csisr);
- 
- 	if (status & CSISR_DMA_TSF_FB1_INT)
- 		mx25_camera_frame_done(pcdev, 1, MX2_STATE_DONE);
-@@ -523,7 +555,7 @@ static irqreturn_t mx25_camera_irq(int irq_csi, void *data)
- 
- 	/* FIXME: handle CSISR_RFF_OR_INT */
- 
--	writel(status, pcdev->base_csi + CSISR);
-+	writel(status, pcdev->base_csi + pcdev->reg_csisr);
- 
- 	return IRQ_HANDLED;
- }
-@@ -608,7 +640,7 @@ static void mx2_videobuf_queue(struct vb2_buffer *vb)
- 	buf->state = MX2_STATE_QUEUED;
- 	list_add_tail(&buf->internal.queue, &pcdev->capture);
- 
--	if (cpu_is_mx25()) {
-+	if (is_imx25_camera(pcdev)) {
- 		u32 csicr3, dma_inten = 0;
- 
- 		if (pcdev->fb1_active == NULL) {
-@@ -627,20 +659,20 @@ static void mx2_videobuf_queue(struct vb2_buffer *vb)
- 			list_del(&buf->internal.queue);
- 			buf->state = MX2_STATE_ACTIVE;
- 
--			csicr3 = readl(pcdev->base_csi + CSICR3);
-+			csicr3 = readl(pcdev->base_csi + pcdev->reg_csicr3);
- 
- 			/* Reflash DMA */
- 			writel(csicr3 | CSICR3_DMA_REFLASH_RFF,
--					pcdev->base_csi + CSICR3);
-+					pcdev->base_csi + pcdev->reg_csicr3);
- 
- 			/* clear & enable interrupts */
--			writel(dma_inten, pcdev->base_csi + CSISR);
-+			writel(dma_inten, pcdev->base_csi + pcdev->reg_csisr);
- 			pcdev->csicr1 |= dma_inten;
- 			writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
- 
- 			/* enable DMA */
- 			csicr3 |= CSICR3_DMA_REQ_EN_RFF | CSICR3_RXFF_LEVEL(1);
--			writel(csicr3, pcdev->base_csi + CSICR3);
-+			writel(csicr3, pcdev->base_csi + pcdev->reg_csicr3);
- 		}
- 	}
- 
-@@ -684,7 +716,7 @@ static void mx2_videobuf_release(struct vb2_buffer *vb)
- 	 */
- 
- 	spin_lock_irqsave(&pcdev->lock, flags);
--	if (cpu_is_mx25() && buf->state == MX2_STATE_ACTIVE) {
-+	if (is_imx25_camera(pcdev) && buf->state == MX2_STATE_ACTIVE) {
- 		if (pcdev->fb1_active == buf) {
- 			pcdev->csicr1 &= ~CSICR1_FB1_DMA_INTEN;
- 			writel(0, pcdev->base_csi + CSIDMASA_FB1);
-@@ -807,7 +839,7 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
- 	unsigned long phys;
- 	int bytesperline;
- 
--	if (cpu_is_mx27()) {
-+	if (is_imx27_camera(pcdev)) {
- 		unsigned long flags;
- 		if (count < 2)
- 			return -EINVAL;
-@@ -902,7 +934,7 @@ static int mx2_stop_streaming(struct vb2_queue *q)
- 	void *b;
- 	u32 cntl;
- 
--	if (cpu_is_mx27()) {
-+	if (is_imx27_camera(pcdev)) {
- 		spin_lock_irqsave(&pcdev->lock, flags);
- 
- 		cntl = readl(pcdev->base_emma + PRP_CNTL);
-@@ -1054,11 +1086,11 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
- 	if (bytesperline < 0)
- 		return bytesperline;
- 
--	if (cpu_is_mx27()) {
-+	if (is_imx27_camera(pcdev)) {
- 		ret = mx27_camera_emma_prp_reset(pcdev);
- 		if (ret)
- 			return ret;
--	} else if (cpu_is_mx25()) {
-+	} else if (is_imx25_camera(pcdev)) {
- 		writel((bytesperline * icd->user_height) >> 2,
- 				pcdev->base_csi + CSIRXCNT);
- 		writel((bytesperline << 16) | icd->user_height,
-@@ -1351,7 +1383,7 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
- 	/* FIXME: implement MX27 limits */
- 
- 	/* limit to MX25 hardware capabilities */
--	if (cpu_is_mx25()) {
-+	if (is_imx25_camera(pcdev)) {
- 		if (xlate->host_fmt->bits_per_sample <= 8)
- 			width_limit = 0xffff * 4;
- 		else
-@@ -1685,6 +1717,20 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
- 		goto exit;
- 	}
- 
-+	pcdev->devtype = pdev->id_entry->driver_data;
-+	switch (pcdev->devtype) {
-+	case IMX25_CAMERA:
-+		pcdev->reg_csisr = CSISR_IMX25;
-+		pcdev->reg_csicr3 = CSICR3_IMX25;
-+		break;
-+	case IMX27_CAMERA:
-+		pcdev->reg_csisr = CSISR_IMX27;
-+		pcdev->reg_csicr3 = CSICR3_IMX27;
-+		break;
-+	default:
-+		break;
-+	}
-+
- 	pcdev->clk_csi = devm_clk_get(&pdev->dev, "ahb");
- 	if (IS_ERR(pcdev->clk_csi)) {
- 		dev_err(&pdev->dev, "Could not get csi clock\n");
-@@ -1722,7 +1768,7 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
- 	pcdev->dev = &pdev->dev;
- 	platform_set_drvdata(pdev, pcdev);
- 
--	if (cpu_is_mx25()) {
-+	if (is_imx25_camera(pcdev)) {
- 		err = devm_request_irq(&pdev->dev, irq_csi, mx25_camera_irq, 0,
- 				       MX2_CAM_DRV_NAME, pcdev);
- 		if (err) {
-@@ -1731,7 +1777,7 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
- 		}
- 	}
- 
--	if (cpu_is_mx27()) {
-+	if (is_imx27_camera(pcdev)) {
- 		err = mx27_camera_emma_init(pdev);
- 		if (err)
- 			goto exit;
-@@ -1742,7 +1788,7 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
- 	pcdev->soc_host.priv		= pcdev;
- 	pcdev->soc_host.v4l2_dev.dev	= &pdev->dev;
- 	pcdev->soc_host.nr		= pdev->id;
--	if (cpu_is_mx25())
-+	if (is_imx25_camera(pcdev))
- 		pcdev->soc_host.capabilities = SOCAM_HOST_CAP_STRIDE;
- 
- 	pcdev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
-@@ -1762,7 +1808,7 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
- exit_free_emma:
- 	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
- eallocctx:
--	if (cpu_is_mx27()) {
-+	if (is_imx27_camera(pcdev)) {
- 		clk_disable_unprepare(pcdev->clk_emma_ipg);
- 		clk_disable_unprepare(pcdev->clk_emma_ahb);
- 	}
-@@ -1780,7 +1826,7 @@ static int __devexit mx2_camera_remove(struct platform_device *pdev)
- 
- 	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
- 
--	if (cpu_is_mx27()) {
-+	if (is_imx27_camera(pcdev)) {
- 		clk_disable_unprepare(pcdev->clk_emma_ipg);
- 		clk_disable_unprepare(pcdev->clk_emma_ahb);
- 	}
-@@ -1794,6 +1840,7 @@ static struct platform_driver mx2_camera_driver = {
- 	.driver 	= {
- 		.name	= MX2_CAM_DRV_NAME,
- 	},
-+	.id_table	= mx2_camera_devtype,
- 	.remove		= __devexit_p(mx2_camera_remove),
- };
- 
--- 
-1.7.9.5
+On Fri, 2012-08-17 at 02:49 +0200, Laurent Pinchart wrote:
+> Hi everybody,
+>=20
+> While working on DT bindings for the Renesas Mobile SoC display controlle=
+r
+> (a.k.a. LCDC) I quickly realized that display panel implementation based =
+on
+> board code callbacks would need to be replaced by a driver-based panel
+> framework.
+
+I thought I'd try to approach the common panel framework by creating
+device tree examples that OMAP would need. I only thought about the
+connections and organization, not individual properties, so I have not
+filled any "compatible" or such properties.
+
+What I have below is first DT data for OMAP SoC (more or less what omap4
+has), then display examples of different board setups. The hardware
+examples I have here are all real, so no imaginary use cases =3D).
+
+We don't need to implement support for all these at once, but I think
+the DT data structure should be right from the start, so I'm posting
+this to get discussion about the format.
+
+
+OMAP SoC
+=3D=3D=3D=3D=3D=3D=3D=3D
+
+So here's first the SoC specific display nodes. OMAP has a DSS (display
+subsystem) block, which contains the following elements:
+
+- DISPC (display controller) reads the pixels from memory and outputs
+them using specified video timings. DISPC has three outputs, LCD0, LCD1
+and TV. These are SoC internal outputs, they do not go outside the SoC.
+
+- DPI gets its data from DISPC's LCD0, and outputs MIPI DPI (parallel
+RBG)
+
+- Two independent DSI modules, which get their data from LCD0 or LCD1,
+and output MIPI DSI (a serial two-way video bus)
+
+- HDMI, gets data from DISPC's TV output and outputs HDMI
+
+/ {
+	ocp {
+		dss {
+			dispc {
+				dss-lcd0: output@0 {
+				};
+
+				dss-lcd1: output@1 {
+				};
+
+				dss-tv: output@2 {
+				};
+			};
+
+			dpi: dpi {
+				video-source =3D <&dss-lcd0>;
+			};
+
+			dsi0: dsi@0 {
+				video-source =3D <&dss-lcd0>;
+			};
+
+			dsi1: dsi@1 {
+				video-source =3D <&dss-lcd1>;
+			};
+
+			hdmi: hdmi {
+				video-source =3D <&dss-tv>;
+			};
+		};
+	};
+};
+
+I have defined all the relevant nodes, and video-source property is used
+to point to the source for video data. I also define aliases for the SoC
+outputs so that panels can use them.
+
+One thing to note is that the video sources for some of the blocks, like
+DSI, are not hardcoded in the HW, so dsi0 could get its data from LCD0
+or LCD1. However, I don't think they are usually changed during runtime,
+and the dss driver cannot change them independently for sure (meaning
+that some upper layer should tell it how to change the config). Thus I
+specify sane defaults here, but the board dts files can of course
+override the video sources.
+
+Another thing to note is that we have more outputs from OMAP than we
+have outputs from DISPC. This means that the same video source is used
+by multiple sinks (LCD0 used by DPI and DSI0). DPI and DSI0 cannot be
+used at the same time, obviously.
+
+And third thing to note, DISPC node defines outputs explicitly, as it
+has multiple outputs, whereas the external outputs do not as they have
+only one output. Thus the node's output is implicitly the node itself.
+So, instead of having:
+
+ds0: dsi@0 {
+	video-source =3D <&dss-lcd0>;
+	dsi0-out0: output@0 {
+	};
+};
+
+I have:
+
+dsi0: dsi@0 {
+	video-source =3D <&dss-lcd0>;
+};
+
+Of this I'm a bit unsure. I believe in most cases there's only one
+output, so it'd be nice to have a shorter representation, but I'm not
+sure if it's good to handle the cases for single and multiple outputs
+differently. Or if it's good to mix control and data busses, as, for
+example, dsi0 can be used as both control and data bus. Having the
+output defined explicitly would separate the control and data bus nodes.
+
+
+Simple DPI panel
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+
+Here a board has a DPI panel, which is controlled via i2c. Panel nodes
+are children of the control bus, so in this case we define the panel
+under i2c2.
+
+&i2c2 {
+	dpi-lcd-panel {
+		video-source =3D <&dpi>;
+
+	};
+};
+
+
+HDMI
+=3D=3D=3D=3D
+
+OMAP has a HDMI output, but it cannot be connected directly to an HDMI
+cable. TI uses tpd12s015 chip in its board, which provides ESD,
+level-shifting and whatnot (I'm an SW guy, google for the chip to read
+the details =3D). tpd12s015 has a few GPIOs and powers that need to be
+controlled, so we need a driver for it.
+
+There's no control bus for the tpd12s015, so it's platform device. Then
+there's the device for the HDMI monitor, and the DDC lines are connected
+to OMAP's i2c4, thus the hdmi monitor device is a child of i2c.
+
+/ {
+	hdmi-connector: tpd12s015 {
+		video-source =3D <&hdmi>;
+	};
+};
+
+&i2c4 {
+	hdmi-monitor {
+		video-source =3D <&hdmi-connector>;
+	};
+};
+
+
+DSI bridge chip
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+
+In this board we have a DSI bridge chip that is controlled via DSI, and
+gets the pixel data via DSI video mode stream. The chip converts this to
+LVDS. We then have an LVDS panel connected to this bridge chip, which is
+controlled via SPI.
+
+&dsi0 {
+	dsi2lvds: dsi2lvds {
+		video-source =3D <&dsi0>;
+
+	};
+};
+
+&spi2 {
+	lvds-lcd-panel {
+		video-source =3D <&dsi2lvds>;
+	};
+};
+
+
+High res dual-DSI panel
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+
+Here we have a DSI video mode panel that gets its data from two DSI
+buses. This allows it to get the combined bandwidth of the DSI buses,
+achieving higher resolution than with single DSI bus. The panel is
+controlled via the first DSI bus.
+
+&dsi0 {
+	dual-dsi-panel {
+		video-source-1 =3D <&dsi0>;
+		video-source-2 =3D <&dsi1>;
+
+	};
+};
+
+
+DSI buffer chip with two outputs
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D
+
+This board has a DSI command mode buffer chip, that contains its own
+framebuffer. The buffer chip has two DPI outputs, which get the pixels
+from the framebuffer. Similar to OMAP's DISPC this chip has multiple
+outputs so they need to be defined explicitly. And we also have two
+dummy DPI panels connected to this buffer chip.
+
+&dsi0 {
+	dsibuf {
+		video-source =3D <&dsi0>;
+
+		dsibuf-dpi0: output@0 {
+		};
+
+		dsibuf-dpi1: output@1 {
+		};
+	};
+};
+
+/ {
+	dpi-lcd-panel@0 {
+		video-source =3D <&dsibuf-dpi0>;
+
+	};
+
+	dpi-lcd-panel@1 {
+		video-source =3D <&dsibuf-dpi1>;
+
+	};
+};
+
+ Tomi
+
+
+--=-R8a6q3oReQ1az69Eh5Nv
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJQWbBZAAoJEPo9qoy8lh71x88P/A4GZt/4vVGpUf51NjpRzOZr
+NbNPrqjtTYrjD+cgPEBjF/m5jdPkkhtiqQFwaxanahby+YoC2rilHhbP7TWesGOi
+nqeiG15mA5DTGkI8q91zlLZGlJneHZFtrihyz0FXOOuEHn0KqMGfvSRyYQohDplE
+vxluOXrHoA4HvTDF1QCgEUzWS+euzdhdAcG4sZjrlcFKX2/0XhBJDaUNZIlswG5N
+6ekWBadSfesXDI2FP1bcZ3b2PEInEJ49PXks8UjKbz1409qRUI6JJF+nJgxr47XS
+cezuyDe/7UqXrhtwnw9Bhkq2TfnvG3C+SskX4dcU/NRGgbHLPcPOxkcevyAuXwxu
+qMikoAgCY/3C5hv54Pi4tGIQISR2/Aa+idOeGJ1sv/K4V8ftbvkaH6Lm9MPps0iC
+gsoEY/cmUKB6kYlKmrOjJ2VZirRVEB3uL8jh4mqjcJBF1Q0txupJHF1AHR0Tbu3d
+XZPpIfK80gCVvV71qBZzCaugYfLbxkbRisENEbZRJHDvT1Q5FdTs7k/km5kK+5+L
+yQm2bd294eBy5IRAhBw3wGUewjxKTtnczCOEm0mc1+xCS1IIW9zrLLIkyuteOmvg
+0v1l329LqV+Sx7ptTn/inuS7ILvT990u96m60+icXjhSgLxSeXXq3HjmfI/r/wlC
+4a9M9DMgsB7Pihuz35fg
+=pQuG
+-----END PGP SIGNATURE-----
+
+--=-R8a6q3oReQ1az69Eh5Nv--
 
