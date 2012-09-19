@@ -1,100 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 173-166-109-252-newengland.hfc.comcastbusiness.net ([173.166.109.252]:33395
-	"EHLO bombadil.infradead.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751493Ab2IZUHq (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41749 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753007Ab2ISLde (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Sep 2012 16:07:46 -0400
-Date: Wed, 26 Sep 2012 17:07:37 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Prabhakar Lad <prabhakar.lad@ti.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	<linux-kernel@vger.kernel.org>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH] media: davinci: vpif: add check for NULL handler
-Message-ID: <20120926170737.5979b1e8@infradead.org>
-In-Reply-To: <1345125720-24059-1-git-send-email-prabhakar.lad@ti.com>
-References: <1345125720-24059-1-git-send-email-prabhakar.lad@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Wed, 19 Sep 2012 07:33:34 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: media-workshop@linuxtv.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [media-workshop] [ANNOUNCE] media workshop in November
+Date: Wed, 19 Sep 2012 13:34:09 +0200
+Message-ID: <1607382.njAb2Pt0ha@avalon>
+In-Reply-To: <50597E1F.2010503@redhat.com>
+References: <50597E1F.2010503@redhat.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 16 Aug 2012 19:32:00 +0530
-Prabhakar Lad <prabhakar.lad@ti.com> escreveu:
+Hi Mauro,
 
-It is amazing how many SOB's/acks are in this patch and nobody
-asked you to provide a patch description... the subject just
-tells what the code is also telling. Could you please provide
-a better patch description?
-
-Thanks!
-Mauro
-
-> From: Lad, Prabhakar <prabhakar.lad@ti.com>
+On Wednesday 19 September 2012 05:11:11 Mauro Carvalho Chehab wrote:
+> Dear developers,
 > 
-> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/video/davinci/vpif_capture.c |   12 +++++++-----
->  drivers/media/video/davinci/vpif_display.c |   14 ++++++++------
->  2 files changed, 15 insertions(+), 11 deletions(-)
+> We're feeling the need for one more media workshop this year.
 > 
-> diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
-> index 266025e..a87b7a5 100644
-> --- a/drivers/media/video/davinci/vpif_capture.c
-> +++ b/drivers/media/video/davinci/vpif_capture.c
-> @@ -311,12 +311,14 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
->  	}
->  
->  	/* configure 1 or 2 channel mode */
-> -	ret = vpif_config_data->setup_input_channel_mode
-> -					(vpif->std_info.ycmux_mode);
-> +	if (vpif_config_data->setup_input_channel_mode) {
-> +		ret = vpif_config_data->setup_input_channel_mode
-> +						(vpif->std_info.ycmux_mode);
->  
-> -	if (ret < 0) {
-> -		vpif_dbg(1, debug, "can't set vpif channel mode\n");
-> -		return ret;
-> +		if (ret < 0) {
-> +			vpif_dbg(1, debug, "can't set vpif channel mode\n");
-> +			return ret;
-> +		}
->  	}
->  
->  	/* Call vpif_set_params function to set the parameters and addresses */
-> diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
-> index e129c98..1e35f92 100644
-> --- a/drivers/media/video/davinci/vpif_display.c
-> +++ b/drivers/media/video/davinci/vpif_display.c
-> @@ -280,12 +280,14 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
->  	}
->  
->  	/* clock settings */
-> -	ret =
-> -	    vpif_config_data->set_clock(ch->vpifparams.std_info.ycmux_mode,
-> -					ch->vpifparams.std_info.hd_sd);
-> -	if (ret < 0) {
-> -		vpif_err("can't set clock\n");
-> -		return ret;
-> +	if (vpif_config_data->set_clock) {
-> +		ret =
-> +		vpif_config_data->set_clock(ch->vpifparams.std_info.ycmux_mode,
-> +						ch->vpifparams.std_info.hd_sd);
-> +		if (ret < 0) {
-> +			vpif_err("can't set clock\n");
-> +			return ret;
-> +		}
->  	}
->  
->  	/* set the parameters and addresses */
+> As there will be already several developers going to LinuxCon Europe and
+> Embedded Linux Conference Europe, we'll be co-locating the workshop together
+> with those two events.
+> 
+> As there will be several developers speaking about the media subsystem at
+> both LinuxCon and ELCE, we decided to take just one day (September, 8th)
+> for the media workshop (while we expect that we'll likely have some other
+> discussions during the week).
+> 
+> In order to finish the arrangements, I need to know who will be attending,
+> and also we need to receive the theme proposals. Please estimate how long
+> do you think that it would be needed for the proposed theme presentation
+> and discussions.
+> 
+> I have a theme proposal already:
+> 
+> 	How to improve the patch submission workflow for media patches - 2 hours.
+> 
+> So, please confirm your intention to be there and propose the themes of
+> your interests to media-workshop@linuxtv.org mailing list.
 
+I'll be there.
 
+-- 
+Regards,
 
+Laurent Pinchart
 
-Cheers,
-Mauro
