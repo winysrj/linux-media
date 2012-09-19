@@ -1,146 +1,258 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36325 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752609Ab2IJL6R (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Sep 2012 07:58:17 -0400
-From: Prabhakar Lad <prabhakar.lad@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	<linux-kernel@vger.kernel.org>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	<linux-doc@vger.kernel.org>, Hans Verkuil <hans.verkuil@cisco.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:58979 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750838Ab2ISJEX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Sep 2012 05:04:23 -0400
+MIME-Version: 1.0
+In-Reply-To: <201209190953.45560.hverkuil@xs4all.nl>
+References: <1347994478-31784-1-git-send-email-prabhakar.lad@ti.com> <201209190953.45560.hverkuil@xs4all.nl>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Wed, 19 Sep 2012 14:34:01 +0530
+Message-ID: <CA+V-a8tj3LpVYy4=hZfvEP3Bmf3JXqxg-ThkBJuCsfSuNMqVvA@mail.gmail.com>
+Subject: Re: [PATCH v4] media: v4l2-ctrl: add a helper function to add
+ standard control with driver specific menu
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-doc@vger.kernel.org, "Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Hans de Goede <hdegoede@redhat.com>,
 	Kyungmin Park <kyungmin.park@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
 	Rob Landley <rob@landley.net>
-Subject: [PATCH] media: v4l2-ctrl: add a helper fucntion to modify the menu
-Date: Mon, 10 Sep 2012 17:27:36 +0530
-Message-ID: <1347278256-4560-1-git-send-email-prabhakar.lad@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.lad@ti.com>
+Hi Hans,
 
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Hans de Goede <hdegoede@redhat.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Rob Landley <rob@landley.net>
----
- Documentation/video4linux/v4l2-controls.txt |   26 +++++++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-ctrls.c        |   28 +++++++++++++++++++++++++++
- include/media/v4l2-ctrls.h                  |   14 +++++++++++++
- 3 files changed, 68 insertions(+), 0 deletions(-)
+Thanks for the review.
 
-diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
-index 43da22b..54a9539 100644
---- a/Documentation/video4linux/v4l2-controls.txt
-+++ b/Documentation/video4linux/v4l2-controls.txt
-@@ -196,6 +196,32 @@ the error code at the end. Saves a lot of repetitive error checking.
- It is recommended to add controls in ascending control ID order: it will be
- a bit faster that way.
- 
-+2.1) Changing the menu of a standard control:
-+There are suitations when the control is standard but the menu items may be
-+device specific, in such cases the framework provides the helper to do that.
-+
-+struct v4l2_ctrl * v4l2_ctrl_modify_menu(struct v4l2_ctrl *ctrl,
-+	const char * const *qmenu, s32 min, s32 max,
-+	u32 menu_skip_mask, s32 def);
-+
-+This helper, function is used to modify the menu, min, max, mask and
-+the default value to set.
-+Example for usage:
-+	static const char * const test_pattern[] = {
-+		"Disabled",
-+		"Vertical Bars",
-+		"Vertical Bars",
-+		"Solid Black",
-+		"Solid White",
-+		NULL
-+	};
-+	struct v4l2_ctrl *test_pattern_ctrl =
-+		v4l2_ctrl_new_std_menu(&foo->ctrl_handler, &foo_ctrl_ops,
-+			V4L2_CID_TEST_PATTERN, V4L2_TEST_PATTERN_DISABLED, 0,
-+			V4L2_TEST_PATTERN_DISABLED);
-+
-+	v4l2_ctrl_modify_menu(test_pattern_ctrl, test_pattern, 0, 5, 0x3, 0);
-+
- 3) Optionally force initial control setup:
- 
- 	v4l2_ctrl_handler_setup(&foo->ctrl_handler);
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index d731422..ac0fb28 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -2666,3 +2666,31 @@ unsigned int v4l2_ctrl_poll(struct file *file, struct poll_table_struct *wait)
- 	return 0;
- }
- EXPORT_SYMBOL(v4l2_ctrl_poll);
-+
-+/* Helper function for standard menu controls to modify the menu */
-+struct v4l2_ctrl *v4l2_ctrl_modify_menu(struct v4l2_ctrl *ctrl,
-+					 const char * const *qmenu, s32 min,
-+					 s32 max, u32 menu_skip_mask, s32 def)
-+{
-+	if (ctrl->type != V4L2_CTRL_TYPE_MENU)
-+		return NULL;
-+
-+	if (qmenu == NULL)
-+		return NULL;
-+
-+	/* Determine if it is standard menu control */
-+	if (!v4l2_ctrl_get_menu(ctrl->id))
-+		return NULL;
-+
-+	if ((def > max) || (max < min))
-+		return NULL;
-+
-+	ctrl->qmenu = qmenu;
-+	ctrl->minimum = min;
-+	ctrl->maximum = max;
-+	ctrl->menu_skip_mask = menu_skip_mask;
-+	ctrl->cur.val = ctrl->val = ctrl->default_value = def;
-+
-+	return ctrl;
-+}
-+EXPORT_SYMBOL(v4l2_ctrl_modify_menu);
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 776605f..5b0ea04 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -488,6 +488,20 @@ static inline void v4l2_ctrl_unlock(struct v4l2_ctrl *ctrl)
- 	mutex_unlock(ctrl->handler->lock);
- }
- 
-+/**
-+ * v4l2_ctrl_modify_menu() - Modify the menu. This function is used when the
-+ * control is standard but the menu is specific to device.
-+ * @ctrl:		The control to change the menu.
-+ * @qmenu:		The menu to which control will point to.
-+ * @min:		Minimum value of the control.
-+ * @max:		Maximum valur of the control.
-+ * @menu_skip_mask:	The control's skip mask for menu controls.
-+ * @def:		The default value for control.
-+ */
-+struct v4l2_ctrl *v4l2_ctrl_modify_menu(struct v4l2_ctrl *ctrl,
-+					 const char * const *qmenu, s32 min,
-+					 s32 max, u32 menu_skip_mask, s32 def);
-+
- /** v4l2_ctrl_g_ctrl() - Helper function to get the control's value from within a driver.
-   * @ctrl:	The control.
-   *
--- 
-1.7.0.4
+On Wed, Sep 19, 2012 at 1:23 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Prabhakar,
+>
+> I found some grammar issues, but also some (small) things that should be changed.
+>
+>
+> On Tue 18 September 2012 20:54:38 Prabhakar Lad wrote:
+>> From: Lad, Prabhakar <prabhakar.lad@ti.com>
+>>
+>> Add helper function v4l2_ctrl_new_std_menu_items(), which adds
+>> a standard menu control, with driver specific menu.
+>>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+>> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+>> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+>> Cc: Hans de Goede <hdegoede@redhat.com>
+>> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+>> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>> Cc: Rob Landley <rob@landley.net>
+>> ---
+>> Changes for v4:
+>> 1: Rather then adding a function to modify the menu, added a helper
+>>    function, that creates a new standard control with user specific
+>>    menu.
+>>
+>> Changes for v3:
+>> 1: Fixed style/grammer issues as pointed by Hans.
+>>    Thanks Hans for providing the description.
+>>
+>> Changes for v2:
+>> 1: Fixed review comments from Hans, to have return type as
+>>    void, add WARN_ON() for fail conditions, allow this fucntion
+>>    to modify the menu of custom controls.
+>>
+>>  Documentation/video4linux/v4l2-controls.txt |   25 ++++++++++++++++++++++++
+>>  drivers/media/v4l2-core/v4l2-ctrls.c        |   28 +++++++++++++++++++++++++++
+>>  include/media/v4l2-ctrls.h                  |   23 ++++++++++++++++++++++
+>>  3 files changed, 76 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
+>> index 43da22b..ad8e172 100644
+>> --- a/Documentation/video4linux/v4l2-controls.txt
+>> +++ b/Documentation/video4linux/v4l2-controls.txt
+>> @@ -136,11 +136,25 @@ Or alternatively for integer menu controls, by calling v4l2_ctrl_new_int_menu:
+>>                       const struct v4l2_ctrl_ops *ops,
+>>                       u32 id, s32 max, s32 def, const s64 *qmenu_int);
+>>
+>> +Standard menu controls with driver specific menu are added by calling
+>
+> with driver -> with a driver
+>
+Ok.
 
+>> +v4l2_ctrl_new_std_menu_items:
+>> +
+>> +     struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(
+>> +             struct v4l2_ctrl_handler *hdl,
+>> +             const struct v4l2_ctrl_ops *ops, u32 id, s32 max,
+>> +             s32 skip_mask, s32 def, const char * const *qmenu_user);
+>
+> I would recommend that qmenu_user is just renamed to qmenu.
+> The _user suffix suggests that this is a userspace-provided menu, which
+> is not the case.
+>
+Ok.
+
+>> +
+>>  These functions are typically called right after the v4l2_ctrl_handler_init:
+>>
+>>       static const s64 exp_bias_qmenu[] = {
+>>              -2, -1, 0, 1, 2
+>>       };
+>> +     static const char * const test_pattern[] = {
+>> +             "Disabled",
+>> +             "Vertical Bars",
+>> +             "Solid Black",
+>> +             "Solid White",
+>> +     };
+>>
+>>       v4l2_ctrl_handler_init(&foo->ctrl_handler, nr_of_controls);
+>>       v4l2_ctrl_new_std(&foo->ctrl_handler, &foo_ctrl_ops,
+>> @@ -156,6 +170,9 @@ These functions are typically called right after the v4l2_ctrl_handler_init:
+>>                       ARRAY_SIZE(exp_bias_qmenu) - 1,
+>>                       ARRAY_SIZE(exp_bias_qmenu) / 2 - 1,
+>>                       exp_bias_qmenu);
+>> +     v4l2_ctrl_new_std_menu_items(&foo->ctrl_handler, &foo_ctrl_ops,
+>> +                     V4L2_CID_TEST_PATTERN, ARRAY_SIZE(test_pattern) - 1, 0,
+>> +                     0, test_pattern);
+>>       ...
+>>       if (foo->ctrl_handler.error) {
+>>               int err = foo->ctrl_handler.error;
+>> @@ -185,6 +202,14 @@ v4l2_ctrl_new_std_menu in that it doesn't have the mask argument and takes
+>>  as the last argument an array of signed 64-bit integers that form an exact
+>>  menu item list.
+>>
+>> +The v4l2_ctrl_new_std_menu_items funtion is very similar as
+>
+> funtion -> function
+> similar as -> similar to
+>
+Ok.
+>> +v4l2_ctrl_new_std_menu but takes a extra parameter qmenu_user, which is
+>
+> a extra -> an extra
+>
+>> +driver specific menu but yet a standard menu control.
+>
+> the driver specific menu for an otherwise standard menu control.
+>
+Ok.
+
+>> +A good example for this control is the test pattern control for
+>> +capture/display/sensors devices that have the capability to generate test
+>> +patterns. These test patterns are hardware specific, so the contents of the
+>> +menu will vary from device to device.
+>> +
+>>  Note that if something fails, the function will return NULL or an error and
+>>  set ctrl_handler->error to the error code. If ctrl_handler->error was already
+>>  set, then it will just return and do nothing. This is also true for
+>> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> index d731422..9ac1b75 100644
+>> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+>> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> @@ -1649,6 +1649,34 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
+>>  }
+>>  EXPORT_SYMBOL(v4l2_ctrl_new_std_menu);
+>>
+>> +/* Helper function for standard menu controls with user defined menu */
+>> +struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
+>> +                     const struct v4l2_ctrl_ops *ops, u32 id, s32 max,
+>> +                     s32 mask, s32 def, const char * const *qmenu_user)
+>> +{
+>> +     const char * const *qmenu = v4l2_ctrl_get_menu(id);
+>> +     const char *name;
+>> +     enum v4l2_ctrl_type type;
+>> +     s32 min;
+>> +     s32 step;
+>> +     u32 flags;
+>> +
+>> +     if (!qmenu) {
+>
+> This test should be inverted: if (qmenu)
+>
+This check is if it really belongs standard menu control, here
+qmenu is filled by v4l2_ctrl_get_menu(), If it returns null its a error case.
+
+> Add a comment that v4l2_ctrl_new_std_menu_items() may only be called for
+> standard controls *without* a standard menu.
+>
+Ok.
+>> +             handler_set_err(hdl, -EINVAL);
+>> +             return NULL;
+>> +     }
+>> +
+>> +     v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
+>> +     if (type != V4L2_CTRL_TYPE_MENU) {
+>> +             handler_set_err(hdl, -EINVAL);
+>> +             return NULL;
+>> +     }
+>> +     return v4l2_ctrl_new(hdl, ops, id, name, type,
+>> +                          0, max, mask, def, flags, qmenu_user, NULL, NULL);
+>> +
+>> +}
+>> +EXPORT_SYMBOL(v4l2_ctrl_new_std_menu_items);
+>> +
+>>  /* Helper function for standard integer menu controls */
+>>  struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
+>>                       const struct v4l2_ctrl_ops *ops,
+>> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+>> index 776605f..e0dd392 100644
+>> --- a/include/media/v4l2-ctrls.h
+>> +++ b/include/media/v4l2-ctrls.h
+>> @@ -351,6 +351,29 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
+>>                       const struct v4l2_ctrl_ops *ops,
+>>                       u32 id, s32 max, s32 mask, s32 def);
+>>
+>> +/** v4l2_ctrl_new_std_menu_items() - Create a new standard V4L2 menu control
+>> +  * with driver specific menu.
+>> +  * @hdl:    The control handler.
+>> +  * @ops:    The control ops.
+>> +  * @id:     The control ID.
+>> +  * @max:    The control's maximum value.
+>> +  * @mask:   The control's skip mask for menu controls. This makes it
+>> +  *          easy to skip menu items that are not valid. If bit X is set,
+>> +  *          then menu item X is skipped. Of course, this only works for
+>> +  *          menus with <= 32 menu items. There are no menus that come
+>> +  *          close to that number, so this is OK. Should we ever need more,
+>> +  *          then this will have to be extended to a u64 or a bit array.
+>> +  * @def:    The control's default value.
+>> +  * @qmenu_user:The new menu.
+>> +  *
+>> +  * Same as v4l2_ctrl_new_std_menu().but @qmenu_user will be the menu to
+>
+> .but -> , but
+>
+> 'will be the driver specific menu of this control.'
+>
+Ok.
+
+Regards,
+--Prabhakar
+
+>> +  * which the control will be pointing to.
+>> +  *
+>> +  */
+>> +struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
+>> +                     const struct v4l2_ctrl_ops *ops, u32 id, s32 max,
+>> +                     s32 mask, s32 def, const char * const *qmenu_user);
+>> +
+>>  /** v4l2_ctrl_new_int_menu() - Create a new standard V4L2 integer menu control.
+>>    * @hdl:    The control handler.
+>>    * @ops:    The control ops.
+>>
+>
+> Regards,
+>
+>         Hans
