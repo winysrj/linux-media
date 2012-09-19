@@ -1,57 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:56905 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752166Ab2IRTBm (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:23111 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753531Ab2ISPSO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Sep 2012 15:01:42 -0400
-Received: by obbuo13 with SMTP id uo13so238837obb.19
-        for <linux-media@vger.kernel.org>; Tue, 18 Sep 2012 12:01:42 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAGoCfixqaSY4MFosg=uCwGMRRmbQhYE5gUBdPGFddCpKHDRtwg@mail.gmail.com>
-References: <CAAnFQG_SrXyr8MtPDujciE2=QRQK8dAK_SPBE3rC_c-XNSC00w@mail.gmail.com>
- <CAGoCfiy4Ybymdd4Mym1JB3gwW9Suqdj3w6bEdMpxWWBHPhUvTQ@mail.gmail.com>
- <CAAnFQG8fDnmGN2_sfrhU8tB_kiuheSmXPqVq5wdmh73vB8EtdA@mail.gmail.com> <CAGoCfixqaSY4MFosg=uCwGMRRmbQhYE5gUBdPGFddCpKHDRtwg@mail.gmail.com>
-From: Javier Marcet <jmarcet@gmail.com>
-Date: Tue, 18 Sep 2012 21:01:21 +0200
-Message-ID: <CAAnFQG-zwQ9uizt4QjVFMmBcdEvrTSDL4-UHQppqC-_hyXqt8A@mail.gmail.com>
-Subject: Re: Terratec Cinergy T PCIe Dual doesn;t work nder the Xen hypervisor
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Wed, 19 Sep 2012 11:18:14 -0400
+Received: from eusync3.samsung.com (mailout3.w1.samsung.com [210.118.77.13])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MAL005SMRV6SX10@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 19 Sep 2012 16:18:42 +0100 (BST)
+Received: from [106.116.147.32] by eusync3.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0MAL006W2RUBV500@eusync3.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 19 Sep 2012 16:18:12 +0100 (BST)
+Message-id: <5059E233.4030006@samsung.com>
+Date: Wed, 19 Sep 2012 17:18:11 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv1 PATCH 1/6] videobuf2-core: move num_planes from vb2_buffer
+ to vb2_queue.
+References: <1348065460-1624-1-git-send-email-hverkuil@xs4all.nl>
+ <9e4acd70e02bb67e6e7af0c236c69af27108e4fa.1348064901.git.hans.verkuil@cisco.com>
+In-reply-to: <9e4acd70e02bb67e6e7af0c236c69af27108e4fa.1348064901.git.hans.verkuil@cisco.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 18, 2012 at 8:56 PM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
+Hi Hans,
 
->> You can see the original thread where this was found, together with a
->> working patch, here:
->>
->> http://lists.xen.org/archives/html/xen-devel/2012-01/msg01927.html
->
-> As far as I can read, the patch has never been confirmed to work.  The
-> user mentioned upgrading to an updated kernel and seeing a slight
-> decrease in load:
->
-> http://lists.xen.org/archives/html/xen-devel/2012-01/msg02166.html
->
-> Further, the reason many of the drivers in question require the memory
-> to be in the 0-4GB memory region is due to some hardware not being
-> able to DMA to memory > 4GB.  Such a change would have to be tested
-> with every board that does scatter/gather, and the framework would
-> likely have to change to explicitly allow the board driver to specify
-> whether it supports memory > 4GB.
->
-> In short, this is a useful bit of information, but not clear whether
-> it would actually solve the underlying problem.
->
-> Again, I would be happy to be proven wrong, but there appears to still
-> be quite a bit of work required for such.  I would suggest trying the
-> patch yourself to see if it has any visible effect on the problem.
+On 09/19/2012 04:37 PM, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> It's a queue-global value, so keep it there rather than with the
+> buffer struct.
 
-I'm sorry I was not explicit. I have tested it, I have it working
-right now, flawlessly. It even worked after resuming from S3!
+I would prefer not doing this. It makes the path to variable
+number of per buffer planes more difficult.
 
 
--- 
-Javier Marcet <jmarcet@gmail.com>
+Regards,
+Sylwester
