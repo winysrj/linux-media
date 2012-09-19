@@ -1,203 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:1586 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756122Ab2IUHbR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Sep 2012 03:31:17 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "andrey.smirnov@convergeddevices.net"
-	<andrey.smirnov@convergeddevices.net>
-Subject: Re: [PATCH 1/3] Add a core driver for SI476x MFD
-Date: Fri, 21 Sep 2012 09:31:03 +0200
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <1347576013-28832-1-git-send-email-andrey.smirnov@convergeddevices.net> <201209140844.01978.hverkuil@xs4all.nl> <505BBD65.6090906@convergeddevices.net>
-In-Reply-To: <505BBD65.6090906@convergeddevices.net>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:55289 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932823Ab2ISSAJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Sep 2012 14:00:09 -0400
+Message-ID: <505A0828.8040907@schinagl.nl>
+Date: Wed, 19 Sep 2012 20:00:08 +0200
+From: Oliver Schinagl <oliver+list@schinagl.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Support for Asus MyCinema U3100Mini Plus (attempt 2)
+References: <1348006936-6334-1-git-send-email-oliver+list@schinagl.nl> <5058F8F2.90106@iki.fi> <505995D3.7010201@schinagl.nl> <5059A161.7040907@iki.fi> <505A0799.7050307@schinagl.nl>
+In-Reply-To: <505A0799.7050307@schinagl.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201209210931.03109.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri September 21 2012 03:05:41 andrey.smirnov@convergeddevices.net wrote:
-> On 09/13/2012 11:44 PM, Hans Verkuil wrote:
-> > Hi Andrey!
-> >
-> > Thanks for posting this driver. One request for the future: please split this
-> > patch up in smaller pieces: one for each c source for example. That makes it
-> > easier to review.
-> 
-> Will do for next version.
-> 
-> > +
-> > +/**
-> > + * __core_send_command() - sends a command to si476x and waits its
-> > + * response
-> > + * @core:    si476x_device structure for the device we are
-> > + *            communicating with
-> > + * @command:  command id
-> > + * @args:     command arguments we are sending
-> > + * @argn:     actual size of @args
-> > + * @response: buffer to place the expected response from the device
-> > + * @respn:    actual size of @response
-> > + * @usecs:    amount of time to wait before reading the response (in
-> > + *            usecs)
-> > + *
-> > + * Function returns 0 on succsess and negative error code on
-> > + * failure
-> > + */
-> > +static int __core_send_command(struct si476x_core *core,
-> > +				    const u8 command,
-> > +				    const u8 args[],
-> > +				    const int argn,
-> > +				    u8 resp[],
-> > +				    const int respn,
-> > +				    const int usecs)
-> > +{
-> > +	struct i2c_client *client = core->client;
-> > +	int err;
-> > +	u8  data[CMD_MAX_ARGS_COUNT + 1];
-> > +
-> > +	if (argn > CMD_MAX_ARGS_COUNT) {
-> > +		err = -ENOMEM;
-> > +		goto exit;
-> > Why goto exit? There is no clean up after the exit label, so just return
-> > immediately. Ditto for all the other goto exit's in this function.
-> 
-> To have only just on point of exit from the function that's just
-> personal coding style preference.
-> There are no technical reasons behind that, I can change that.
-> 
-> >
-> >> +	}
-> >> +
-> >> +	if (!client->adapter) {
-> >> +		err = -ENODEV;
-> >> +		goto exit;
-> >> +	}
-> >> +
-> >> +	/* First send the command and its arguments */
-> >> +	data[0] = command;
-> >> +	memcpy(&data[1], args, argn);
-> >> +	DBG_BUFFER(&client->dev, "Command:\n", data, argn + 1);
-> >> +
-> >> +	err = si476x_i2c_xfer(core, SI476X_I2C_SEND, (char *) data, argn + 1);
-> >> +	if (err != argn + 1) {
-> >> +		dev_err(&core->client->dev,
-> >> +			"Error while sending command 0x%02x\n",
-> >> +			command);
-> >> +		err = (err >= 0) ? -EIO : err;
-> >> +		goto exit;
-> >> +	}
-> >> +	/* Set CTS to zero only after the command is send to avoid
-> >> +	 * possible racing conditions when working in polling mode */
-> >> +	atomic_set(&core->cts, 0);
-> >> +
-> >> +	if (!wait_event_timeout(core->command,
-> >> +				atomic_read(&core->cts),
-> >> +				usecs_to_jiffies(usecs) + 1))
-> >> +		dev_warn(&core->client->dev,
-> >> +			 "(%s) [CMD 0x%02x] Device took too much time to answer.\n",
-> >> +			 __func__, command);
-> >> +
-> >> +	/*
-> >> +	  When working in polling mode, for some reason the tuner will
-> >> +	  report CTS bit as being set in the first status byte read,
-> >> +	  but all the consequtive ones will return zros until the
-> >> +	  tuner is actually completed the POWER_UP command. To
-> >> +	  workaround that we wait for second CTS to be reported
-> >> +	 */
-> >> +	if (unlikely(!core->client->irq && command == CMD_POWER_UP)) {
-> >> +		if (!wait_event_timeout(core->command,
-> >> +					atomic_read(&core->cts),
-> >> +					usecs_to_jiffies(usecs) + 1))
-> >> +			dev_warn(&core->client->dev,
-> >> +				 "(%s) Power up took too much time.\n",
-> >> +				 __func__);
-> >> +	}
-> >> +
-> >> +	/* Then get the response */
-> >> +	err = si476x_i2c_xfer(core, SI476X_I2C_RECV, resp, respn);
-> >> +	if (err != respn) {
-> >> +		dev_err(&core->client->dev,
-> >> +			"Error while reading response for command 0x%02x\n",
-> >> +			command);
-> >> +		err = (err >= 0) ? -EIO : err;
-> >> +		goto exit;
-> >> +	}
-> >> +	DBG_BUFFER(&client->dev, "Response:\n", resp, respn);
-> >> +
-> >> +	err = 0;
-> >> +
-> >> +	if (resp[0] & SI476X_ERR) {
-> >> +		dev_err(&core->client->dev, "Chip set error flag\n");
-> >> +		err = si476x_core_parse_and_nag_about_error(core);
-> >> +		goto exit;
-> >> +	}
-> >> +
-> >> +	if (!(resp[0] & SI476X_CTS))
-> >> +		err = -EBUSY;
-> >> +exit:
-> >> +	return err;
-> >> +}
-> >> +
-> >> +#define CORE_SEND_COMMAND(core, cmd, args, resp, timeout)		\
-> >> +	__core_send_command(core, cmd, args,				\
-> >> +			    ARRAY_SIZE(args),				\
-> >> +			    resp, ARRAY_SIZE(resp),			\
-> >> +			    timeout)
-> >> +
-> >> +
-> >> +static int __cmd_tune_seek_freq(struct si476x_core *core,
-> >> +				uint8_t cmd,
-> >> +				const uint8_t args[], size_t argn,
-> >> +				uint8_t *resp, size_t respn,
-> >> +				int (*clear_stcint) (struct si476x_core *core))
-> >> +{
-> >> +	int err;
-> >> +
-> >> +	atomic_set(&core->stc, 0);
-> >> +	err = __core_send_command(core, cmd, args, argn,
-> >> +				  resp, respn,
-> >> +				  atomic_read(&core->timeouts.command));
-> >> +	if (!err) {
-> > Invert the test to simplify indentation.
-> >
-> >> +		if (!wait_event_timeout(core->tuning,
-> >> +		atomic_read(&core->stc),
-> >> +		usecs_to_jiffies(atomic_read(&core->timeouts.tune)) + 1)) {
-> > Weird indentation above. Indent the arguments more to the right.
-> 
-> 80 symbol line length limit is the reason for that indentation.
+On 09/19/12 19:57, Oliver Schinagl wrote:
+> On 09/19/12 12:41, Antti Palosaari wrote:
+>> On 09/19/2012 12:52 PM, Oliver Schinagl wrote:
+>>> On 19-09-12 00:42, Antti Palosaari wrote:
+>>>> On 09/19/2012 01:22 AM, oliver@schinagl.nl wrote:
+>>>>> From: Oliver Schinagl <oliver@schinagl.nl>
+>>>>>
+>>>>> This is initial support for the Asus MyCinema U3100Mini Plus. The
+>>>>> driver
+>>>>> in its current form gets detected and loads properly. It uses the
+>>>>> af9035 USB Bridge chip, with an af9033 demodulator. The tuner used is
+>>>>> the FCI FC2580.
+>>>>>
+>>>>> I have only done a quick dvb scan, but it failed to tune to anything.
+>>>>> Using dvbv5-scan -I CHANNEL <channelfile> It did show 'signal 100%'
+>>>>> but
+>>>>> failed to tune to anything, so I don't think signal strength works at
+>>>>> all. Since I have really bad reception where my dev PC is, I may
+>>>>> simple
+>>>>> not receive anything here.
+>>>>
+>>>> Signal strength is very worst indicator. It should not be 100% in any
+>>>> case. Switch off stupid % meter your are using and look plain numbers.
+>>>> It is should be something between 0-0xffff (0xffff == 100% ?).
+>>> I know 100% says nothing :p and I think especially with this driver? I
+>>> didn't see the signal strength function implemented in the FC2580 (I
+>>> have some code for it, once I have the device actually working :) But
+>>> this is what dvbv5-scan reported.
+>>
+>> Have to say have never used tool. Instead w_scan, scan (dvbscan,
+>> scandvb) and tzap. If you get working channels.conf file for your area
+>> you are able to use tzap.
+> dvbv5-scan is written by Mauro, it comes in the dvb-utils package
+> together with tzap and dvbscan. It is to utilize the new dvb v5 api.
+>
+> Both can't find any channels however when scanning. Scanning with my
+> Terratec Cynergy Dual T PCI-e, I also get 'tuning failed' when scanning
+> for channels using dvbscan, however I do get a usefull channels.conf
+> that I can use with tzap on the stick. Unfortunatly, no success.
+>
+> oliver@valexia ~ $ tzap -c channels.conf "Nederland 1"
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> reading channels from file 'channels.conf'
+> tuning to 546000000 Hz
+> video pid 0x1b63, audio pid 0x1b64
+> status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
+> status 01 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
+>
+> The status blinks to 01 every once in a while, but stays on zero mostly.
+> "Nederland 1" is a FTA channel that should come in pretty strong.
+>
+> Of course I tested this all before changing the tuner enable bits. Once
+> I changed that, well, I had a little party :)
+>
+> dvbscan still says tuning failed using dvbscan, but it actually finds
+> all Networks and channels. Also tuning with tzap using a previously
+> known working channels.conf works. (tzap -r + mplayer) though mplayer
+> does some weird scaling, which I'm sure is mplayer's fault:
+> Movie-Aspect is 1.78:1 - prescaling to correct movie aspect.
+> VO: [x11] 704x576 => 1024x576 Planar YV12
 
-It's not a limit, it's a warning only. Usually readability improves if such
-long lines are split up or otherwise shortened, but if readability becomes
-worse because of that, then just leave in the long line.
+Forgot to mention, here's output from tzap when successfully tuning a 
+channel for completness sake. Also note, signal strength is awefully 
+happy at 100% (ffff) which I doubt to be accurate.
 
-> 
-> >
-> > Andrey, you should look at the drivers/media/radio/si4713-i2c.c source.
-> > It is for the same chip family and is much, much smaller.
-> >
-> > See if you can use some of the code that's there.
-> 
-> I did when I started writing the driver, that driver and driver for
-> wl1273 were my two examples. In my initial version of the driver I tried
-> to blend both si4713 and si476x into one generic driver, but the problem
-> is: si4713 is a transmitter and si476x are receiver chips, the
-> "impedance mismatch" in functionality of the two, IMHO, was too much to
-> justify the unification.
+status 00 | signal ffff | snr 0000 | ber 00000000 | unc 000001fa |
+status 1f | signal ffff | snr 0000 | ber 00000000 | unc 000003de | 
+FE_HAS_LOCK
+status 1f | signal ffff | snr 00dc | ber 0001d85c | unc 000003e9 | 
+FE_HAS_LOCK
+status 1f | signal ffff | snr 0104 | ber 0000d1b0 | unc 000003e9 | 
+FE_HAS_LOCK
+status 1f | signal ffff | snr 0104 | ber 00000000 | unc 000003e9 | 
+FE_HAS_LOCK
+status 1f | signal ffff | snr 0104 | ber 00000000 | unc 000003e9 | 
+FE_HAS_LOCK
 
-But the way the commands are handled, etc. should be the same or very similar.
-That's the main area where I suspect you can reuse code from those other
-drivers.
+>
+>
+>>
+>> Signal strength is reported by af9033 demodulator regardless if tuner
+>> could report it or not.
+>>
+>>>> For me successful tzap reports (af9035 + tua9001):
+>>>> status 1f | signal 5eb7 | snr 010e | ber 00000000 | unc 00000000 |
+>>>> FE_HAS_LOCK
+>>>>
+>>>> FE_HAS_LOCK is most important, it says demodulator is locked to
+>>>> channel and likely device is 100% working.
+>>> I can't use tzap, as I can't scan for channel file. As I write this, I
+>>> remember that I may have one on another system so should be able to use
+>>> that to try tonight.
+>>>
+>>> Furthermore, when checking debug while it's running a scan (either
+>>> dvbscan or dvbv5-scan) I notice that it passes the loop 5 times, but I
+>>> think that's normal from what I can tell from the code. Also
+>>> fc2580_get_if_frequency appears to be a stub, correct?
+>>
+>> I suspect it tests different parameters. Like one iteration for each
+>> bandwidth. If you know your area transmission parameters you could skip
+>> whole scanning and just waste only two seconds using tzap to test.
+>>
+>> fc2580_get_if_frequency is not stub, it is correctly implemented. FC2580
+>> is direct conversion tuner (== zero-IF, IF 0 Hz) which means it
+>> transfers RF band directly to the base-band. No IF used.
+> Ah, so it is intended to always return zero. It just felt as the debug
+> information was missing something, as there was a colon, indicating to
+> show us some output. Maybe always print 0 :)
+>
+>>
+>>>> Biggest problem of your patch is fc2580 frontend callback. fc2580
+>>>> driver does not use any callback and that code is simple dead. It is
+>>>> never called.
+>>> Ah, assumption eh, I simply thought the callback is always used by the
+>>> driver. I noticed some tuners do have the callback, others do their init
+>>> just once. What's the cleanest solution, leave the code in the callback,
+>>> and call it from fc9035_tuner_attach? (As you otherwise get a huge
+>>> tuner_attach function). Anyway, why do some tuners have the callback and
+>>> others don't? I guess it's a design decision of the driver, but why
+>>> aren't they more equal?
+>>
+>> There should not be frontend callback unless needed. The basic (and only
+>> one I know?) use scenario for tuner callback is to control some tuner
+>> external pins using bridge GPIO. If there is no such pins then there is
+>> no need for callback. For example digital AGC you asked earlier is such
+>> control pin (actually 2 pins) but as it is not used no need for
+>> callback. TUA9001 is good example of tuner having control pins.
+> Since this tuner doesn't have external AGC that we know of, this tuner
+> shouldn't have a callback. Makes sense.
+>
+>>
+>> I think you refer fc0011 tuner callbacks. There seems to be reset and
+>> power. At least power sounds something like it should not be there, I
+>> suspect it is just some GPIO that turns on/off power from tuner and not
+>> control any fc0011 pin.
+>>
+>> Antti
+>>
+>
+> Will tidy up my commit and submit it to ML again.
+>
+> Oliver
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-> Thanks for review, and I'll try to incorporate your suggestions into my
-> next version of the patches.
-
-Thanks!
-
-Regards,
-
-	Hans
