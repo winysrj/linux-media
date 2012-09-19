@@ -1,156 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:33542 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932152Ab2IJU3o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Sep 2012 16:29:44 -0400
-Received: by eaac11 with SMTP id c11so1121717eaa.19
-        for <linux-media@vger.kernel.org>; Mon, 10 Sep 2012 13:29:43 -0700 (PDT)
-Message-ID: <504E4DB3.8000404@gmail.com>
-Date: Mon, 10 Sep 2012 22:29:39 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:39989 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751718Ab2ISKxY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Sep 2012 06:53:24 -0400
+Message-ID: <5059A410.3020106@iki.fi>
+Date: Wed, 19 Sep 2012 13:53:04 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Francesco Lavra <francescolavra.fl@gmail.com>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sangwook Lee <sangwook.lee@linaro.org>,
-	linux-media@vger.kernel.org, linaro-dev@lists.linaro.org,
-	patches@linaro.org, mchehab@infradead.org,
-	kyungmin.park@samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, 'Arnd Bergmann' <arnd@arndb.de>
-Subject: Re: [RFC PATCH v6] media: add v4l2 subdev driver for S5K4ECGX sensor
-References: <1346944114-17527-1-git-send-email-sangwook.lee@linaro.org> <504CBD47.5050802@gmail.com> <504E0175.80504@samsung.com> <504E36FE.60006@gmail.com>
-In-Reply-To: <504E36FE.60006@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Oliver Schinagl <oliver+list@schinagl.nl>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Support for Asus MyCinema U3100Mini Plus
+References: <1347223647-645-1-git-send-email-oliver+list@schinagl.nl> <504D00BC.4040109@schinagl.nl> <504D0F44.6030706@iki.fi> <504D17AA.8020807@schinagl.nl> <504D1859.5050201@iki.fi> <504DB9D4.6020502@schinagl.nl> <504DD311.7060408@iki.fi> <504DF950.8060006@schinagl.nl> <504E2345.5090800@schinagl.nl> <5055DD27.7080501@schinagl.nl> <505601B6.2010103@iki.fi> <5055EA30.8000200@schinagl.nl> <50560B82.7000205@iki.fi> <50564E58.20004@schinagl.nl> <50566260.1090108@iki.fi> <5056DE5C.70003@schinagl.nl> <50571F83.10708@schinagl.nl> <50572290.8090308@iki.fi> <505724F0.20502@schinagl.nl> <50572B1D.3080807@iki.fi> <50573FC5.40307@schinagl.nl> <50578B61.1040700@schinagl.nl> <5057910C.10408@iki.fi> <50579CC3.5040703@schinagl.nl> <5058ACE4.6070408@schinagl.nl> <5058FAD9.4090204@iki.fi> <5059A155.3000502@schinagl.nl>
+In-Reply-To: <5059A155.3000502@schinagl.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/10/2012 08:52 PM, Francesco Lavra wrote:
-> On 09/10/2012 05:04 PM, Sylwester Nawrocki wrote:
->> On 09/09/2012 06:01 PM, Francesco Lavra wrote:
->>>> +static int s5k4ecgx_load_firmware(struct v4l2_subdev *sd)
->>>> +{
->>>> +	const struct firmware *fw;
->>>> +	int err, i, regs_num;
->>>> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
->>>> +	u16 val;
->>>> +	u32 addr, crc, crc_file, addr_inc = 0;
->>>> +
->>>> +	err = request_firmware(&fw, S5K4ECGX_FIRMWARE, sd->v4l2_dev->dev);
->>>> +	if (err) {
->>>> +		v4l2_err(sd, "Failed to read firmware %s\n", S5K4ECGX_FIRMWARE);
->>>> +		return err;
->>>> +	}
->>>> +	regs_num = *(u32 *)(fw->data);
->>>> +	v4l2_dbg(3, debug, sd, "FW: %s size %d register sets %d\n",
->>>> +		 S5K4ECGX_FIRMWARE, fw->size, regs_num);
->>>> +	regs_num++; /* Add header */
->>>> +	if (fw->size != regs_num * FW_RECORD_SIZE + FW_CRC_SIZE) {
->>>> +		err = -EINVAL;
->>>> +		goto fw_out;
->>>> +	}
->>>> +	crc_file = *(u32 *)(fw->data + regs_num * FW_RECORD_SIZE);
+On 09/19/2012 01:41 PM, Oliver Schinagl wrote:
+> On 19-09-12 00:51, Antti Palosaari wrote:
+>> On 09/18/2012 08:18 PM, Oliver Schinagl wrote:
+>>> On 09/17/12 23:57, Oliver Schinagl wrote:
+>>>> On 09/17/12 23:07, Antti Palosaari wrote:
+>>>>> On 09/17/2012 11:43 PM, Oliver Schinagl wrote:
+>>>>>> On 09/17/12 17:20, Oliver Schinagl wrote:
+>>>>>>
+>>>>>>>>>> If tuner communication is really working and it says chip id is
+>>>>>>>>>> 0x5a
+>>>>>>>>>> then it is different than driver knows. It could be new
+>>>>>>>>>> revision of
+>>>>>>>>>> tuner. Change chip_id to match 0x5a
+>>>>>>>>>>
+>>>>>>>>> Ah, so it's called chip_id on one end, but tuner_id on the other
+>>>>>>>>> end.
+>>>>>>>>> If/when I got this link working properly, I'll write a patch to
+>>>>>>>>> fix
+>>>>>>>>> some
+>>>>>>>>> naming consistencies.
+>>>>>>>>
+>>>>>>>> No, you are totally wrong now. Chip ID is value inside chip
+>>>>>>>> register.
+>>>>>>>> Almost every chip has some chip id value which driver could
+>>>>>>>> detect it
+>>>>>>>> is speaking with correct chip. In that case value is stored inside
+>>>>>>>> fc2580.
+>>>>>>>>
+>>>>>>>> Tuner ID is value stored inside AF9035 chip / eeprom. It is
+>>>>>>>> configuration value for AF9035 hardware design. It says "that
+>>>>>>>> AF9035
+>>>>>>>> device uses FC2580 RF-tuner". AF9035 (FC2580) tuner ID and FC2580
+>>>>>>>> chip
+>>>>>>>> ID are different values having different meaning.
+>>>>>>> Ok, I understand the difference between Chip ID and Tuner ID I
+>>>>>>> guess,
+>>>>>>> and with my new knowledge about dynamic debug I know also
+>>>>>>> understand my
+>>>>>>> findings and where it goes wrong. I also know understand the
+>>>>>>> chipID is
+>>>>>>> stored in fc2580.c under the fc2580_attach, where it checks for
+>>>>>>> 0x56.
+>>>>>>> Appearantly my chipID is 0x5a. I wasn't triggered by this as none of
+>>>>>>> the
+>>>>>>> other fc2580 or af9035 devices had such a change so it wasn't
+>>>>>>> obvious.
+>>>>>>> Tuner ID is actively being chechked/set in the source, so that
+>>>>>>> seemed
+>>>>>>> more obvious.
+>>>>>> It can't be 0x5a as chipid. I actually found that the vendor driver
+>>>>>> also
+>>>>>> reads from 0x01 once to test the chip.
+>>>>>>
+>>>>>> This function is a generic function which tests I2C interface's
+>>>>>> availability by reading out it's I2C id data from reg. address
+>>>>>> '0x01'.
+>>>>>>
+>>>>>> int fc2580_i2c_test( void ) {
+>>>>>>      return ( fc2580_i2c_read( 0x01 ) == 0x56 )? 0x01 : 0x00;
+>>>>>> }
+>>>>>>
+>>>>>> So something else is going weird. chipid being 0x56 is good though;
+>>>>>> same
+>>>>>> chip revision. However I now got my system to hang, got some
+>>>>>> soft-hang
+>>>>>> errors and the driver only reported failure on loading. No other
+>>>>>> debug
+>>>>>> that I saw from dmesg before the crash. Will investigate more.
+>>>>>
+>>>>> huoh.
+>>>>>
+>>>>> usb 2-2: rtl28xxu_ctrl_msg: c0 00 ac 01 00 03 01 00 <<< 56
+>>>>> usb 2-2: rtl28xxu_ctrl_msg: 40 00 ac 01 10 03 01 00 >>> ff
+>>>>> usb 2-2: rtl28xxu_ctrl_msg: c0 00 ac 01 00 03 01 00 <<< 56
+>>>>> usb 2-2: rtl28xxu_ctrl_msg: 40 00 ac 01 10 03 01 00 >>> 00
+>>>>> usb 2-2: rtl28xxu_ctrl_msg: c0 00 ac 01 00 03 01 00 <<< 56
+>>>>> i2c i2c-5: fc2580: FCI FC2580 successfully identified
+>>>>>
+>>>>> Why do you think its value is static - it cannot be changed...
+>>>> I'm not saying it can be at all :p
+>>>>
+>>>> according to debug output, I had
+>>>>
+>>>> [  188.054019] i2c i2c-1: fc2580_attach: chip_id=5a
+>>>>
+>>>> so to your suggestion, I made it accept chip_id 0x5a as well.
+>>>>      if ((chip_id != 0x56) || (chip_id != 0x5a))
+>>>>          goto err;
+>>>>
+>>>> But theoretically, it can't be 0x5a, as even the vendor driver would
+>>>> only check for 0x56 (the function actually never gets called, so any
+>>>> revision according the those sources could work).
+>>>>
+>>>> So I will investigate why it would return 0x5a for the chip id :)
+>>>>
+>>>>
+>>> Turns out, the chip REALLY REALLY is 0x5a. I took some snapshots of both
+>>> the tuner and bridge/demodulator and uploaded them to the linuxtv wiki
+>>> [1]. If you could compare that one to your Chips? The markings are:
 >>>
->>> Depending on the value of regs_num, this may result in unaligned access
+>>> FCI 2580 01BD
+>>>
+>>> AF9035B-N2
+>>> 1012 QJFSQ
 >>
->> Thanks for the catch. I think it is not the only place where unaligned
->> issues are possible. Since the data records are 4-byte address + 2-byte
->> value there is also an issue with reading the address entries. Assuming
->> fw->data is aligned to at least 2-bytes (not quite sure if we can assume
->> that) there should be no problem with reading 2-byte register values.
-> 
-> I'm not sure 2-byte alignment can be safely assumed, either.
-> 
->> We could change the data types of the register values from u16 to u32,
->> wasting some memory (there is approximately 3 000 records), so there is
->> no other data types in the file structure than u32. Or use a patch as
->> below. Not sure what's better.
-> 
-> I prefer the approach of your patch below, but I would use get_unaligned
-> to get the 2-byte values, too. Also there are another couple of
-> glitches, see below.
+>> I haven't opened my device at all...
+>>
+>>> On a more serious note, right now, the driver soft-locks-up. Either with
+>>> or without accepting the 0x5a chip_id.
+>>>
+>>> What I do is, manually load all modules, enable debugging and plug in
+>>> the device.
+>>>
+>>> Everything appears to work normally for a while, I can do the dmesg dump
+>>> etc, but after about 22 seconds, I get this warning:
+>>> BUG: soft lockup - CPU#2 stuck for 22s! [udev-acl:2320]
+>>> (With the CPU# number being arbitrary). 22s later, another CPU fails. I
+>>> haven't waited for the other core's to fail.
+>>>
+>>> Also, removing the module is impossible. Rebooting also fails. I have to
+>>> sys-req reboot it.
+>>>
+>>> I don't know how much my patch is responsible for this of course, but
+>>> since attaching of the tuner fails due to the wrong chip_id in one case,
+>>> the only code affected is the USB id that loads the driver/firmware. I
+>>> did see this with the older firmware too btw, so appears to be firmware
+>>> unrelated.
+>>>
+>>> In the meantime, I continue finding out why after accepting chip_id
+>>> 0x5a, it still fails on tuner attach. I suppose somehow the tuner_id
+>>> isn't matching, which is weird, but will find out about it in the next
+>>> few days.
+>>
+>> Tuner attach does nothing more that could fail than check that one
+>> register. It is almost impossible to get it failing if tuner ID match.
+>> Maybe I2C communication is not working, error returned and it bails
+>> out? Anyhow, such situation should be visible when debugs are enabled.
+> When it hangs the PC, nothing is visible. All functions bail out with
+> error code -19. The fc2580 module is then used -1 times and can't be
+> unloaded, as can't the others. As with my other post, when the tuner IS
+> detected and is working, no hangs or stalls appear to be happening.
 
-OK, thanks for the feedback. It was also my preference. The performance
-impact seems insignificant, given a write of each record takes time of
-1 ms order.
+Sounds like a bug somewhere in dvb-usb-v2 framework. Actually, I have 
+seen similar cases few times but lastly I made quick decision it was due 
+to "positive" error status returned. Maybe I should take new round of 
+tests and checks...
 
->> 8<---------------------------------------------------------------------
->>  From a970480b99bdb74e2bf48e1a321724231e6516a0 Mon Sep 17 00:00:00 2001
->> From: Sylwester Nawrocki<sylvester.nawrocki@gmail.com>
->> Date: Sun, 9 Sep 2012 19:56:31 +0200
->> Subject: [PATCH] s5k4ecgx: Fix unaligned access issues
 >>
->> Signed-off-by: Sylwester Nawrocki<sylvester.nawrocki@gmail.com>
->> ---
->>   drivers/media/i2c/s5k4ecgx.c |   16 ++++++++++++----
->>   1 files changed, 12 insertions(+), 4 deletions(-)
+>>> [1] http://www.linuxtv.org/wiki/index.php/Asus_U3100_Mini_plus_DVB-T
 >>
->> diff --git a/drivers/media/i2c/s5k4ecgx.c b/drivers/media/i2c/s5k4ecgx.c
->> index 0ef0b7d..4c6439a 100644
->> --- a/drivers/media/i2c/s5k4ecgx.c
->> +++ b/drivers/media/i2c/s5k4ecgx.c
->> @@ -24,6 +24,7 @@
->>   #include<linux/module.h>
->>   #include<linux/regulator/consumer.h>
->>   #include<linux/slab.h>
->> +#include<asm/unaligned.h>
+>> regards
+>> Antti
 >>
->>   #include<media/media-entity.h>
->>   #include<media/s5k4ecgx.h>
->> @@ -331,6 +332,7 @@ static int s5k4ecgx_load_firmware(struct v4l2_subdev *sd)
->>   	const struct firmware *fw;
->>   	int err, i, regs_num;
->>   	u32 addr, crc, crc_file, addr_inc = 0;
->> +	const u8 *ptr;
->>   	u16 val;
->>
->>   	err = request_firmware(&fw, S5K4ECGX_FIRMWARE, sd->v4l2_dev->dev);
->> @@ -338,7 +340,7 @@ static int s5k4ecgx_load_firmware(struct v4l2_subdev *sd)
->>   		v4l2_err(sd, "Failed to read firmware %s\n", S5K4ECGX_FIRMWARE);
->>   		return err;
->>   	}
->> -	regs_num = le32_to_cpu(*(u32 *)fw->data);
->> +	regs_num = le32_to_cpu(get_unaligned((__le32 *)fw->data));
->>
->>   	v4l2_dbg(3, debug, sd, "FW: %s size %d register sets %d\n",
->>   		 S5K4ECGX_FIRMWARE, fw->size, regs_num);
->> @@ -349,7 +351,8 @@ static int s5k4ecgx_load_firmware(struct v4l2_subdev *sd)
->>   		goto fw_out;
->>   	}
->>
->> -	crc_file = *(u32 *)(fw->data + regs_num * FW_RECORD_SIZE);
->> +	memcpy(&crc_file, fw->data + regs_num * FW_RECORD_SIZE, sizeof(u32));
-> 
-> crc_file should be converted from little endian to native endian.
+>
 
-Right, I should have verified that crc32_le() return value is in native
-endianness.
 
->> +
->>   	crc = crc32_le(~0, fw->data, regs_num * FW_RECORD_SIZE);
->>   	if (crc != crc_file) {
->>   		v4l2_err(sd, "FW: invalid crc (%#x:%#x)\n", crc, crc_file);
->> @@ -357,9 +360,14 @@ static int s5k4ecgx_load_firmware(struct v4l2_subdev *sd)
->>   		goto fw_out;
->>   	}
->>
->> +	ptr = fw->data + FW_RECORD_SIZE;
->> +
->>   	for (i = 1; i<  regs_num; i++) {
->> -		addr = le32_to_cpu(*(u32 *)(fw->data + i * FW_RECORD_SIZE));
->> -		val = le16_to_cpu(*(u16 *)(fw->data + i * FW_RECORD_SIZE + 4));
->> +		addr = le32_to_cpu(get_unaligned((__le32 *)ptr));
->> +		ptr += 4;
->> +		val = le16_to_cpu(*(__le16 *)ptr);
->> +		ptr += FW_RECORD_SIZE;
-> 
-> ptr is being incremented by (4 + FW_RECORD_SIZE) bytes at each iteration.
-
-Oops, I was to quick in sending that patch out. Indeed, that's wrong.
-Sangwook, FWIW, I just pushed the corrected patch to my tree
-(http://git.linuxtv.org/snawrocki/media.git/commitdiff/4a0ecad6f08ccbba3)
-
---
-
-Thanks,
-Sylwester
+-- 
+http://palosaari.fi/
