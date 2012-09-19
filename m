@@ -1,41 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:9087 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751646Ab2IMKrw (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4257 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756346Ab2ISP3X (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 06:47:52 -0400
+	Wed, 19 Sep 2012 11:29:23 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFCv2 API PATCH 10/28] Rename V4L2_(IN|OUT)_CAP_CUSTOM_TIMINGS.
-Date: Thu, 13 Sep 2012 12:47:47 +0200
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl> <0c01d1164be688b20ae03f51c700a31a7f154acc.1347023744.git.hans.verkuil@cisco.com> <1460675.kl1J5jUHQS@avalon>
-In-Reply-To: <1460675.kl1J5jUHQS@avalon>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [RFCv1 PATCH 1/6] videobuf2-core: move num_planes from vb2_buffer to vb2_queue.
+Date: Wed, 19 Sep 2012 17:28:38 +0200
+Cc: linux-media@vger.kernel.org, Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1348065460-1624-1-git-send-email-hverkuil@xs4all.nl> <9e4acd70e02bb67e6e7af0c236c69af27108e4fa.1348064901.git.hans.verkuil@cisco.com> <5059E233.4030006@samsung.com>
+In-Reply-To: <5059E233.4030006@samsung.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201209131247.47754.hverkuil@xs4all.nl>
+Message-Id: <201209191728.38722.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 13 September 2012 04:22:52 Laurent Pinchart wrote:
+On Wed September 19 2012 17:18:11 Sylwester Nawrocki wrote:
 > Hi Hans,
 > 
-> Thanks for the patch.
-> 
-> On Friday 07 September 2012 15:29:10 Hans Verkuil wrote:
+> On 09/19/2012 04:37 PM, Hans Verkuil wrote:
 > > From: Hans Verkuil <hans.verkuil@cisco.com>
 > > 
-> > The 'custom' timings are no longer just for custom timings, but also for
-> > standard CEA/VESA timings. So rename to V4L2_IN/OUT_CAP_DV_TIMINGS.
-> > 
-> > The old define is still kept for backwards compatibility.
+> > It's a queue-global value, so keep it there rather than with the
+> > buffer struct.
 > 
-> Should they be added to feature-removal-schedule.txt ?
+> I would prefer not doing this. It makes the path to variable
+> number of per buffer planes more difficult.
 
-That might be a good idea. The old defines are basically only used on embedded
-systems, so we can probably remove them by 3.9 or so.
+You can't have a variable number of planes per buffer. You can decide not to
+fill certain planes (e.g. set bytesused to 0 or something), but that's a
+different thing.
+
+So applications will always need to set up q->num_planes elements of the array.
+And in the MMAP case all planes need to be mmap()ed. You can't have one buffer
+that's setup with only 2 planes while all others are setup with 3 planes.
 
 Regards,
 
