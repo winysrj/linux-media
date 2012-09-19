@@ -1,123 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:58584 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751077Ab2IJPgx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Sep 2012 11:36:53 -0400
-Received: by eaac11 with SMTP id c11so973790eaa.19
-        for <linux-media@vger.kernel.org>; Mon, 10 Sep 2012 08:36:52 -0700 (PDT)
-Message-ID: <504E0916.8010204@googlemail.com>
-Date: Mon, 10 Sep 2012 17:36:54 +0200
-From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:60960 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756129Ab2ISKl6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Sep 2012 06:41:58 -0400
+Message-ID: <5059A161.7040907@iki.fi>
+Date: Wed, 19 Sep 2012 13:41:37 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
+To: Oliver Schinagl <oliver+list@schinagl.nl>
 CC: linux-media@vger.kernel.org
-Subject: Re: pac7302-webcams and libv4lconvert interaction
-References: <5048BDA2.7090203@googlemail.com> <504D080C.8020608@redhat.com>
-In-Reply-To: <504D080C.8020608@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH] Support for Asus MyCinema U3100Mini Plus (attempt 2)
+References: <1348006936-6334-1-git-send-email-oliver+list@schinagl.nl> <5058F8F2.90106@iki.fi> <505995D3.7010201@schinagl.nl>
+In-Reply-To: <505995D3.7010201@schinagl.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-Am 09.09.2012 23:20, schrieb Hans de Goede:
-> Hi,
->
-> On 09/06/2012 05:13 PM, Frank Schäfer wrote:
+On 09/19/2012 12:52 PM, Oliver Schinagl wrote:
+> On 19-09-12 00:42, Antti Palosaari wrote:
+>> On 09/19/2012 01:22 AM, oliver@schinagl.nl wrote:
+>>> From: Oliver Schinagl <oliver@schinagl.nl>
+>>>
+>>> This is initial support for the Asus MyCinema U3100Mini Plus. The driver
+>>> in its current form gets detected and loads properly. It uses the
+>>> af9035 USB Bridge chip, with an af9033 demodulator. The tuner used is
+>>> the FCI FC2580.
+>>>
+>>> I have only done a quick dvb scan, but it failed to tune to anything.
+>>> Using dvbv5-scan -I CHANNEL <channelfile> It did show 'signal 100%' but
+>>> failed to tune to anything, so I don't think signal strength works at
+>>> all. Since I have really bad reception where my dev PC is, I may simple
+>>> not receive anything here.
 >>
->> Hi,
+>> Signal strength is very worst indicator. It should not be 100% in any
+>> case. Switch off stupid % meter your are using and look plain numbers.
+>> It is should be something between 0-0xffff (0xffff == 100% ?).
+> I know 100% says nothing :p and I think especially with this driver? I
+> didn't see the signal strength function implemented in the FC2580 (I
+> have some code for it, once I have the device actually working :) But
+> this is what dvbv5-scan reported.
+
+Have to say have never used tool. Instead w_scan, scan (dvbscan, 
+scandvb) and tzap. If you get working channels.conf file for your area 
+you are able to use tzap.
+
+Signal strength is reported by af9033 demodulator regardless if tuner 
+could report it or not.
+
+>> For me successful tzap reports (af9035 + tua9001):
+>> status 1f | signal 5eb7 | snr 010e | ber 00000000 | unc 00000000 |
+>> FE_HAS_LOCK
 >>
->> I'm currently looking into the gspca_pac7302-driver and how it interacts
->> with libv4lconvert.
->> This is how it currently works
->> - driver announces v4l2_pix_format 640x480 (width x height)
->> - the frames (jpeg) passed to userspace are encoded as 480x640 and this
->> complies with the jpeg-header we generate
->> - libv4lconvert checks width/height in the jpeg-header and compares them
->> with the image format announced by the kernel:
->>     a) values are the same:
->>        1) V4LCONTROL_ROTATED_90_JPEG is NOT set for the device (standard
->> case):
->>            => everything is fine, image is decoded
->>        2) V4LCONTROL_ROTATED_90_JPEG is set for the device:
->>            => libv4lconvert bails out with -EIO displaying the error
->> message "unexpected width / height in JPEG header: expected: 640x480,
->> header: 480x640"
->>     b) values are different:
->>        1) V4LCONTROL_ROTATED_90_JPEG is NOT set:
->>            => libv4lconvert bails out with -EIO displaying the error
->> message "unexpected width / height in JPEG header: expected: 640x480,
->> header: 480x640"
->>        2) V4LCONTROL_ROTATED_90_JPEG is set:
->>            => image is decoded and rotated correctly
->>
->>
->> Thinking about this for some minutes:
->>
->> 1) shouldn't the kernel always announce the real image format (size) of
->> the data it passes to userspace ?
+>> FE_HAS_LOCK is most important, it says demodulator is locked to
+>> channel and likely device is 100% working.
+> I can't use tzap, as I can't scan for channel file. As I write this, I
+> remember that I may have one on another system so should be able to use
+> that to try tonight.
 >
-> It is passing the real size, the data is just in a vary funky format
-> which
-> needs rotation as part of its "decoding" / decompression.
+> Furthermore, when checking debug while it's running a scan (either
+> dvbscan or dvbv5-scan) I notice that it passes the loop 5 times, but I
+> think that's normal from what I can tell from the code. Also
+> fc2580_get_if_frequency appears to be a stub, correct?
 
-It is first decoded, then rotated, right ?
-Are the frames encoded as 480x640 (that's what the header says) or 640x480 ?
-If the header is wrong, everything is fine. Otherwise we are passing the
-size we finally get AFTER decoding and rotation to userspace, which I
-think would be inconsistent.
+I suspect it tests different parameters. Like one iteration for each 
+bandwidth. If you know your area transmission parameters you could skip 
+whole scanning and just waste only two seconds using tzap to test.
 
->
->> Current behavior seems inconsistent to me...
->> Announcing the actual image size allows applications which trust the API
->> value more than the value in the frame header to decode the image
->> correctly without using libv4lconvert (although the image would still be
->> rotated).
->
-> That assumes that the app would know how to decompress the data which it
-> will not know, these cams do not generate standard JPEG data,
-> libv4lconvert's
-> decompression code is the only decompression code for this fsck-ed up
-> JPEG-s,
-> short of the windows drivers code.
+fc2580_get_if_frequency is not stub, it is correctly implemented. FC2580 
+is direct conversion tuner (== zero-IF, IF 0 Hz) which means it 
+transfers RF band directly to the base-band. No IF used.
 
-Ok, that's true.
-Because of the special format, applications are forced to use
-libv4lconvert, so there is CURRENTLY no need to think about the kernel
-<-> userspace interface.
-But that might change in the future...
+>> Biggest problem of your patch is fc2580 frontend callback. fc2580
+>> driver does not use any callback and that code is simple dead. It is
+>> never called.
+> Ah, assumption eh, I simply thought the callback is always used by the
+> driver. I noticed some tuners do have the callback, others do their init
+> just once. What's the cleanest solution, leave the code in the callback,
+> and call it from fc9035_tuner_attach? (As you otherwise get a huge
+> tuner_attach function). Anyway, why do some tuners have the callback and
+> others don't? I guess it's a design decision of the driver, but why
+> aren't they more equal?
 
->
->> 2) shouldn't libv4lconvert always rotate the image if
->> V4LCONTROL_ROTATED_90_JPEG is set for a device ?
->> It seems like a2) is a bug, because the expected size should be 640x480,
->> too.
->
-> rotating by 90 degrees also swaps the width and height, which are usually
-> not the same, so rotating an image which starts at 640x480 will yield
-> a final image of 480x640 which will not be what the app expects.
+There should not be frontend callback unless needed. The basic (and only 
+one I know?) use scenario for tuner callback is to control some tuner 
+external pins using bridge GPIO. If there is no such pins then there is 
+no need for callback. For example digital AGC you asked earlier is such 
+control pin (actually 2 pins) but as it is not used no need for 
+callback. TUA9001 is good example of tuner having control pins.
 
-Well, I can't see why 480x640 should be an invalid format !? Depends on
-the hardware.
-Applications really shouldn't rely on width beeing always larger then
-height. Otherwise I would call them buggy.
+I think you refer fc0011 tuner callbacks. There seems to be reset and 
+power. At least power sounds something like it should not be there, I 
+suspect it is just some GPIO that turns on/off power from tuner and not 
+control any fc0011 pin.
 
-Regards,
-Frank
+Antti
 
-
->
->> 3) because all pac7302 devices are sending rotated image data, we should
->> add them ALL to libv4lconvert. Currently only 4 of the 14 devices are on
->> the list.
->> Do you want me to send a patch ?
->
-> I see you've send a patch in the mean time, I'll reply in more detail to
-> this to the patch mail.
->
-> Regards,
->
-> Hans
-
+-- 
+http://palosaari.fi/
