@@ -1,124 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:59394 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751265Ab2IEQMG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Sep 2012 12:12:06 -0400
-Received: from eusync2.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M9V00MQMX0TXO80@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 05 Sep 2012 17:12:29 +0100 (BST)
-Received: from [106.116.147.32] by eusync2.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0M9V00L7EX03Y210@eusync2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 05 Sep 2012 17:12:04 +0100 (BST)
-Message-id: <504779D3.7040804@samsung.com>
-Date: Wed, 05 Sep 2012 18:12:03 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [GIT PATCHES FOR v3.6] Samsung media driver fixes
-References: <5034991F.5040403@samsung.com>
-In-reply-to: <5034991F.5040403@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53810 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755388Ab2ISAcv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Sep 2012 20:32:51 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Wanlong Gao <gaowanlong@cn.fujitsu.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 4/5] video:omap3isp:fix up ENOIOCTLCMD error handling
+Date: Wed, 19 Sep 2012 02:33:25 +0200
+Message-ID: <2908044.4diAvkzB1o@avalon>
+In-Reply-To: <20120915132437.74dd11bb@infradead.org>
+References: <1346052196-32682-1-git-send-email-gaowanlong@cn.fujitsu.com> <1946796.hhZ2Ot34qB@avalon> <20120915132437.74dd11bb@infradead.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Mauro,
 
-On 08/22/2012 10:32 AM, Sylwester Nawrocki wrote:
-> The following changes since commit f9cd49033b349b8be3bb1f01b39eed837853d880:
+On Saturday 15 September 2012 13:24:37 Mauro Carvalho Chehab wrote:
+> Em Thu, 13 Sep 2012 06:03:21 +0200 Laurent Pinchart escreveu:
+> > On Monday 27 August 2012 15:23:15 Wanlong Gao wrote:
+> > > At commit 07d106d0, Linus pointed out that ENOIOCTLCMD should be
+> > > translated as ENOTTY to user mode.
+> > > 
+> > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> > > Cc: linux-media@vger.kernel.org
+> > > Signed-off-by: Wanlong Gao <gaowanlong@cn.fujitsu.com>
+> > > ---
+> > > 
+> > >  drivers/media/video/omap3isp/ispvideo.c | 10 +++++-----
+> > >  1 file changed, 5 insertions(+), 5 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/video/omap3isp/ispvideo.c
+> > > b/drivers/media/video/omap3isp/ispvideo.c index b37379d..2dd982e 100644
+> > > --- a/drivers/media/video/omap3isp/ispvideo.c
+> > > +++ b/drivers/media/video/omap3isp/ispvideo.c
+> > > @@ -337,7 +337,7 @@ __isp_video_get_format(struct isp_video *video,
+> > > struct
+> > > v4l2_format *format) fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> > > 
+> > >  	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
+> > >  	if (ret == -ENOIOCTLCMD)
+> > > 
+> > > -		ret = -EINVAL;
+> > > +		ret = -ENOTTY;
+> > 
+> > I don't think this location should be changed. __isp_video_get_format() is
+> > called by isp_video_check_format() only, which in turn is called by
+> > isp_video_streamon() only. A failure to retrieve the format in
+> > __isp_video_get_format() does not really mean the VIDIOC_STREAMON is not
+> > supported.
+> > 
+> > I'll apply hunks 2 to 5 and drop hunk 1 if that's fine with you.
 > 
->   Merge tag 'v3.6-rc1' into staging/for_v3.6 (2012-08-03 22:41:33 -0300)
-> 
-> are available in the git repository at:
-> 
-> 
->   git://git.infradead.org/users/kmpark/linux-samsung v4l-fixes
-> 
-> for you to fetch changes up to 0e59db054e30658c6955d6e27b0a252cef9bfafc:
-> 
->   s5p-mfc: Fix second memory bank alignment (2012-08-16 19:12:19 +0200)
-> 
-> ----------------------------------------------------------------
-> Kamil Debski (1):
->       s5p-mfc: Fix second memory bank alignment
-> 
-> Sylwester Nawrocki (7):
->       s5p-fimc: Enable FIMC-LITE driver only for SOC_EXYNOS4x12
->       s5p-fimc: Don't allocate fimc-lite video device structure dynamically
->       s5p-fimc: Don't allocate fimc-capture video device dynamically
->       s5p-fimc: Don't allocate fimc-m2m video device dynamically
->       m5mols: Add missing free_irq() on error path
->       m5mols: Fix cast warnings from m5mols_[set/get]_ctrl_mode
->       s5p-fimc: Fix setup of initial links to FIMC entities
+> Not quite sure how to tag it at patchwork... I guess I'll mark it as
+> "accepted", as, from what I understood, Laurent partially accepted it, and
+> will be adding on his tree.
 
-I've added 2 more patches to this series:
+Yes I'll add a modified version to my tree.
 
+-- 
+Regards,
 
-The following changes since commit f9cd49033b349b8be3bb1f01b39eed837853d880:
+Laurent Pinchart
 
-  Merge tag 'v3.6-rc1' into staging/for_v3.6 (2012-08-03 22:41:33 -0300)
-
-are available in the git repository at:
-
-
-  git://git.infradead.org/users/kmpark/linux-samsung v4l-fixes
-
-for you to fetch changes up to 06ed4e72ce30ef7d15ef2de7e15ed47107d05ded:
-
-  s5p-fimc: fimc-lite: Propagate frame format on the subdev (2012-09-05 15:21:33 +0200)
-
-----------------------------------------------------------------
-Kamil Debski (1):
-      s5p-mfc: Fix second memory bank alignment
-
-Sylwester Nawrocki (9):
-      s5p-fimc: Enable FIMC-LITE driver only for SOC_EXYNOS4x12
-      s5p-fimc: Don't allocate fimc-lite video device structure dynamically
-      s5p-fimc: Don't allocate fimc-capture video device dynamically
-      s5p-fimc: Don't allocate fimc-m2m video device dynamically
-      m5mols: Add missing free_irq() on error path
-      m5mols: Fix cast warnings from m5mols_[set/get]_ctrl_mode
-      s5p-fimc: Fix setup of initial links to FIMC entities
-      s5p-fimc: fimc-lite: Correct Bayer pixel format definitions
-      s5p-fimc: fimc-lite: Propagate frame format on the subdev
-
- drivers/media/video/m5mols/m5mols.h          |  4 ++--
- drivers/media/video/m5mols/m5mols_controls.c |  4 ++--
- drivers/media/video/m5mols/m5mols_core.c     |  4 +++-
- drivers/media/video/s5p-fimc/Kconfig         |  2 +-
- drivers/media/video/s5p-fimc/fimc-capture.c  | 31 ++++++++-----------
- drivers/media/video/s5p-fimc/fimc-core.h     |  4 ++--
- drivers/media/video/s5p-fimc/fimc-lite-reg.c |  8 ++++----
- drivers/media/video/s5p-fimc/fimc-lite.c     | 49 ++++++++++++++---------------
- drivers/media/video/s5p-fimc/fimc-lite.h     |  2 +-
- drivers/media/video/s5p-fimc/fimc-m2m.c      | 40 +++++++++---------------
- drivers/media/video/s5p-fimc/fimc-mdevice.c  |  9 ++++++---
- drivers/media/video/s5p-fimc/fimc-mdevice.h  |  6 ++----
- drivers/media/video/s5p-fimc/fimc-reg.c      |  6 +++---
- drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c   |  2 +-
- 14 files changed, 73 insertions(+), 98 deletions(-)
-
->  drivers/media/video/m5mols/m5mols.h          |  4 +--
->  drivers/media/video/m5mols/m5mols_controls.c |  4 +--
->  drivers/media/video/m5mols/m5mols_core.c     |  4 ++-
->  drivers/media/video/s5p-fimc/Kconfig         |  2 +-
->  drivers/media/video/s5p-fimc/fimc-capture.c  | 31 +++++++-----------
->  drivers/media/video/s5p-fimc/fimc-core.h     |  4 +--
->  drivers/media/video/s5p-fimc/fimc-lite-reg.c |  2 +-
->  drivers/media/video/s5p-fimc/fimc-lite.c     | 42 ++++++++++---------------
->  drivers/media/video/s5p-fimc/fimc-lite.h     |  2 +-
->  drivers/media/video/s5p-fimc/fimc-m2m.c      | 40 ++++++++---------------
->  drivers/media/video/s5p-fimc/fimc-mdevice.c  |  9 ++++--
->  drivers/media/video/s5p-fimc/fimc-mdevice.h  |  6 ++--
->  drivers/media/video/s5p-fimc/fimc-reg.c      |  6 ++--
->  drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c   |  2 +-
->  14 files changed, 65 insertions(+), 93 deletions(-)
- 
---
-
-Thanks,
-Sylwester
