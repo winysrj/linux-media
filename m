@@ -1,71 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4849 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754196Ab2IXNxh (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1573 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752367Ab2ISOi1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 09:53:37 -0400
+	Wed, 19 Sep 2012 10:38:27 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [RFCv1 PATCH 4/6] videobuf2-core: fill in length field for multiplanar buffers.
-Date: Mon, 24 Sep 2012 15:52:46 +0200
-Cc: linux-media@vger.kernel.org, Pawel Osciak <pawel@osciak.com>,
+To: linux-media@vger.kernel.org
+Cc: Pawel Osciak <pawel@osciak.com>,
 	Marek Szyprowski <m.szyprowski@samsung.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1348065460-1624-1-git-send-email-hverkuil@xs4all.nl> <505C9A3A.4030500@samsung.com> <201209211854.12059.hverkuil@xs4all.nl>
-In-Reply-To: <201209211854.12059.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209241552.46806.hverkuil@xs4all.nl>
+Subject: [RFCv1 PATCH 3/6] videobuf2-core: move plane verification out of __fill_v4l2_buffer.
+Date: Wed, 19 Sep 2012 16:37:37 +0200
+Message-Id: <bf34157b75c930ab456dc977ebafbe895c7a3e8a.1348064901.git.hans.verkuil@cisco.com>
+In-Reply-To: <1348065460-1624-1-git-send-email-hverkuil@xs4all.nl>
+References: <1348065460-1624-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <9e4acd70e02bb67e6e7af0c236c69af27108e4fa.1348064901.git.hans.verkuil@cisco.com>
+References: <9e4acd70e02bb67e6e7af0c236c69af27108e4fa.1348064901.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri September 21 2012 18:54:12 Hans Verkuil wrote:
-> On Fri September 21 2012 18:47:54 Sylwester Nawrocki wrote:
-> > On 09/21/2012 06:23 PM, Hans Verkuil wrote:
-> > > On Fri September 21 2012 18:13:20 Sylwester Nawrocki wrote:
-> > >> Hi Hans,
-> > >>
-> > >> On 09/19/2012 04:37 PM, Hans Verkuil wrote:
-> > >>> From: Hans Verkuil <hans.verkuil@cisco.com>
-> > >>>
-> > >>> length should be set to num_planes in __fill_v4l2_buffer(). That way the
-> > >>> caller knows how many planes there are in the buffer.
-> > >>>
-> > >>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > >>
-> > >> I think this would break VIDIOC_CREATE_BUFS. We need per buffer num_planes.
-> > >> Consider a use case where device is streaming with 2-planar pixel format
-> > >> and we invoke VIDIOC_CREATE_BUFS with single-planar format. On a single 
-> > >> queue there will be buffers with different number of planes. The number of 
-> > >> planes information must be attached to a buffer, otherwise VIDIOC_QUERYBUF 
-> > >> won't work.
-> > > 
-> > > That's a very good point and one I need to meditate on.
-> > > 
-> > > However, your comment applies to patch 1/6, not to this one.
-> > > This patch is about whether or not the length field of v4l2_buffer should
-> > > be filled in with the actual number of planes used by that buffer or not.
-> > 
-> > Yes, right. Sorry, I was editing response to multiple patches from this
-> > series and have mixed things a bit. I agree that it is logical and expected
-> > to update struct v4l2_buffer for user space.
-> 
-> OK, great. That's was actually the main reason for working on this as this
-> unexpected behavior bit me when writing mplane streaming support for v4l2-ctl.
-> 
-> > I have spent some time on this series, and even prepared a patch for s5p-mfc,
-> > as it relies on num_planes being in struct vb2_buffer. But then a realized
-> > there could be buffers with distinct number of planes an a single queue.
-> 
-> I'll get back to you about this, probably on Monday. I need to think about the
-> implications of this.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-You are absolutely right about that. It makes my patch a bit more complex since
-you have to be careful in VIDIOC_DQBUF not to dequeue unless the provided
-v4l2_buffer struct has enough room to store the plane information.
+The plane verification should be done before actually queuing or
+dequeuing buffers, so move it out of __fill_v4l2_buffer and call it
+as a separate step.
 
-Regards,
+The also makes it possible to change the return type of __fill_v4l2_buffer
+to void.
 
-	Hans
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c |   29 +++++++++++++++++------------
+ 1 file changed, 17 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 2e26e58..929cc99 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -276,6 +276,9 @@ static void __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
+  */
+ static int __verify_planes_array(struct vb2_queue *q, const struct v4l2_buffer *b)
+ {
++	if (!V4L2_TYPE_IS_MULTIPLANAR(b->type))
++		return 0;
++
+ 	/* Is memory for copying plane information present? */
+ 	if (NULL == b->m.planes) {
+ 		dprintk(1, "Multi-planar buffer passed but "
+@@ -331,10 +334,9 @@ static bool __buffers_in_use(struct vb2_queue *q)
+  * __fill_v4l2_buffer() - fill in a struct v4l2_buffer with information to be
+  * returned to userspace
+  */
+-static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
++static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
+-	int ret;
+ 
+ 	/* Copy back data such as timestamp, flags, etc. */
+ 	memcpy(b, &vb->v4l2_buf, offsetof(struct v4l2_buffer, m));
+@@ -342,10 +344,6 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+ 	b->reserved = vb->v4l2_buf.reserved;
+ 
+ 	if (V4L2_TYPE_IS_MULTIPLANAR(q->type)) {
+-		ret = __verify_planes_array(q, b);
+-		if (ret)
+-			return ret;
+-
+ 		/*
+ 		 * Fill in plane-related data if userspace provided an array
+ 		 * for it. The memory and size is verified above.
+@@ -391,8 +389,6 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+ 
+ 	if (__buffer_in_use(q, vb))
+ 		b->flags |= V4L2_BUF_FLAG_MAPPED;
+-
+-	return 0;
+ }
+ 
+ /**
+@@ -411,6 +407,7 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+ int vb2_querybuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ {
+ 	struct vb2_buffer *vb;
++	int ret;
+ 
+ 	if (b->type != q->type) {
+ 		dprintk(1, "querybuf: wrong buffer type\n");
+@@ -422,8 +419,10 @@ int vb2_querybuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 		return -EINVAL;
+ 	}
+ 	vb = q->bufs[b->index];
+-
+-	return __fill_v4l2_buffer(vb, b);
++	ret = __verify_planes_array(q, b);
++	if (!ret)
++		__fill_v4l2_buffer(vb, b);
++	return ret;
+ }
+ EXPORT_SYMBOL(vb2_querybuf);
+ 
+@@ -1061,8 +1060,8 @@ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 		dprintk(1, "%s(): invalid buffer state %d\n", __func__, vb->state);
+ 		return -EINVAL;
+ 	}
+-
+-	ret = __buf_prepare(vb, b);
++	ret = __verify_planes_array(q, b);
++	ret = ret ? ret : __buf_prepare(vb, b);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -1149,6 +1148,9 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 		ret = -EINVAL;
+ 		goto unlock;
+ 	}
++	ret = __verify_planes_array(q, b);
++	if (ret)
++		return ret;
+ 
+ 	switch (vb->state) {
+ 	case VB2_BUF_STATE_DEQUEUED:
+@@ -1337,6 +1339,9 @@ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
+ 		dprintk(1, "dqbuf: invalid buffer type\n");
+ 		return -EINVAL;
+ 	}
++	ret = __verify_planes_array(q, b);
++	if (ret)
++		return ret;
+ 
+ 	ret = __vb2_get_done_vb(q, &vb, nonblocking);
+ 	if (ret < 0) {
+-- 
+1.7.10.4
+
