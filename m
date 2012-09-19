@@ -1,289 +1,226 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39514 "EHLO mail.kapsi.fi"
+Received: from 7of9.schinagl.nl ([88.159.158.68]:55588 "EHLO 7of9.schinagl.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756439Ab2IMAY0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Sep 2012 20:24:26 -0400
-From: Antti Palosaari <crope@iki.fi>
+	id S1756470Ab2ISSoa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Sep 2012 14:44:30 -0400
+From: oliver@schinagl.nl
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 05/16] hd29l2: use Kernel dev_foo() logging
-Date: Thu, 13 Sep 2012 03:23:46 +0300
-Message-Id: <1347495837-3244-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1347495837-3244-1-git-send-email-crope@iki.fi>
-References: <1347495837-3244-1-git-send-email-crope@iki.fi>
+Cc: crope@iki.fi, Oliver Schinagl <oliver@schinagl.nl>
+Subject: [PATCH] Support for Asus MyCinema U3100Mini Plus
+Date: Wed, 19 Sep 2012 20:44:03 +0200
+Message-Id: <1348080243-3818-1-git-send-email-oliver+list@schinagl.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/hd29l2.c      | 75 ++++++++++++++++---------------
- drivers/media/dvb-frontends/hd29l2.h      |  2 +-
- drivers/media/dvb-frontends/hd29l2_priv.h | 13 ------
- 3 files changed, 41 insertions(+), 49 deletions(-)
+From: Oliver Schinagl <oliver@schinagl.nl>
 
-diff --git a/drivers/media/dvb-frontends/hd29l2.c b/drivers/media/dvb-frontends/hd29l2.c
-index a003181..d7b9d54 100644
---- a/drivers/media/dvb-frontends/hd29l2.c
-+++ b/drivers/media/dvb-frontends/hd29l2.c
-@@ -22,10 +22,6 @@
+This is initial support for the Asus MyCinema U3100Mini Plus. The driver
+in its current form gets detected and loads properly.
+
+Scanning using dvbscan works without problems, Locking onto a channel
+using tzap also works fine. Only playback using tzap -r + mplayer was
+tested and was fully functional.
+
+It uses the af9035 USB Bridge chip, with an af9033 demodulator. The tuner
+used is the FCI FC2580.
+
+Signed-off-by: Oliver Schinagl <oliver@schinagl.nl>
+---
+ drivers/media/dvb-core/dvb-usb-ids.h      |  1 +
+ drivers/media/dvb-frontends/af9033.c      |  4 ++++
+ drivers/media/dvb-frontends/af9033.h      |  1 +
+ drivers/media/dvb-frontends/af9033_priv.h | 38 +++++++++++++++++++++++++++++++
+ drivers/media/tuners/fc2580.c             |  3 ++-
+ drivers/media/usb/dvb-usb-v2/Kconfig      |  1 +
+ drivers/media/usb/dvb-usb-v2/af9035.c     | 27 ++++++++++++++++++++++
+ drivers/media/usb/dvb-usb-v2/af9035.h     |  1 +
+ 8 files changed, 75 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
+index d572307..58e0220 100644
+--- a/drivers/media/dvb-core/dvb-usb-ids.h
++++ b/drivers/media/dvb-core/dvb-usb-ids.h
+@@ -329,6 +329,7 @@
+ #define USB_PID_ASUS_U3000				0x171f
+ #define USB_PID_ASUS_U3000H				0x1736
+ #define USB_PID_ASUS_U3100				0x173f
++#define USB_PID_ASUS_U3100MINI_PLUS			0x1779
+ #define USB_PID_YUAN_EC372S				0x1edc
+ #define USB_PID_YUAN_STK7700PH				0x1f08
+ #define USB_PID_YUAN_PD378S				0x2edc
+diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
+index 0979ada..b40f5a0 100644
+--- a/drivers/media/dvb-frontends/af9033.c
++++ b/drivers/media/dvb-frontends/af9033.c
+@@ -314,6 +314,10 @@ static int af9033_init(struct dvb_frontend *fe)
+ 		len = ARRAY_SIZE(tuner_init_tda18218);
+ 		init = tuner_init_tda18218;
+ 		break;
++	case AF9033_TUNER_FC2580:
++		len = ARRAY_SIZE(tuner_init_fc2580);
++		init = tuner_init_fc2580;
++		break;
+ 	default:
+ 		dev_dbg(&state->i2c->dev, "%s: unsupported tuner ID=%d\n",
+ 				__func__, state->cfg.tuner);
+diff --git a/drivers/media/dvb-frontends/af9033.h b/drivers/media/dvb-frontends/af9033.h
+index 288622b..739137e 100644
+--- a/drivers/media/dvb-frontends/af9033.h
++++ b/drivers/media/dvb-frontends/af9033.h
+@@ -42,6 +42,7 @@ struct af9033_config {
+ #define AF9033_TUNER_FC0011      0x28 /* Fitipower FC0011 */
+ #define AF9033_TUNER_MXL5007T    0xa0 /* MaxLinear MxL5007T */
+ #define AF9033_TUNER_TDA18218    0xa1 /* NXP TDA 18218HN */
++#define AF9033_TUNER_FC2580      0x32 /* FIC FC2580 */
+ 	u8 tuner;
  
- #include "hd29l2_priv.h"
+ 	/*
+diff --git a/drivers/media/dvb-frontends/af9033_priv.h b/drivers/media/dvb-frontends/af9033_priv.h
+index 0b783b9..d2c9ae6 100644
+--- a/drivers/media/dvb-frontends/af9033_priv.h
++++ b/drivers/media/dvb-frontends/af9033_priv.h
+@@ -466,5 +466,43 @@ static const struct reg_val tuner_init_tda18218[] = {
+ 	{0x80f1e6, 0x00},
+ };
  
--int hd29l2_debug;
--module_param_named(debug, hd29l2_debug, int, 0644);
--MODULE_PARM_DESC(debug, "Turn on/off frontend debugging (default:off).");
--
- /* write multiple registers */
- static int hd29l2_wr_regs(struct hd29l2_priv *priv, u8 reg, u8 *val, int len)
- {
-@@ -48,7 +44,9 @@ static int hd29l2_wr_regs(struct hd29l2_priv *priv, u8 reg, u8 *val, int len)
- 	if (ret == 1) {
- 		ret = 0;
- 	} else {
--		warn("i2c wr failed=%d reg=%02x len=%d", ret, reg, len);
-+		dev_warn(&priv->i2c->dev,
-+				"%s: i2c wr failed=%d reg=%02x len=%d\n",
-+				KBUILD_MODNAME, ret, reg, len);
- 		ret = -EREMOTEIO;
- 	}
++/* FIC FC2580 tuner init
++   AF9033_TUNER_FC2580      = 0x32 */
++static const struct reg_val tuner_init_fc2580[] = {
++	{ 0x800046, AF9033_TUNER_FC2580 },
++	{ 0x800057, 0x01 },
++	{ 0x800058, 0x00 },
++	{ 0x80005f, 0x00 },
++	{ 0x800060, 0x00 },
++	{ 0x800071, 0x05 },
++	{ 0x800072, 0x02 },
++	{ 0x800074, 0x01 },
++	{ 0x800079, 0x01 },
++	{ 0x800093, 0x00 },
++	{ 0x800094, 0x00 },
++	{ 0x800095, 0x00 },
++	{ 0x800096, 0x05 },
++	{ 0x8000b3, 0x01 },
++	{ 0x8000c3, 0x01 },
++	{ 0x8000c4, 0x00 },
++	{ 0x80f007, 0x00 },
++	{ 0x80f00c, 0x19 },
++	{ 0x80f00d, 0x1A },
++	{ 0x80f00e, 0x00 },
++	{ 0x80f00f, 0x02 },
++	{ 0x80f010, 0x00 },
++	{ 0x80f011, 0x02 },
++	{ 0x80f012, 0x00 },
++	{ 0x80f013, 0x02 },
++	{ 0x80f014, 0x00 },
++	{ 0x80f015, 0x02 },
++	{ 0x80f01f, 0x96 },
++	{ 0x80f020, 0x00 },
++	{ 0x80f029, 0x96 },
++	{ 0x80f02a, 0x00 },
++	{ 0x80f077, 0x01 },
++	{ 0x80f1e6, 0x01 },
++};
++
+ #endif /* AF9033_PRIV_H */
  
-@@ -78,7 +76,9 @@ static int hd29l2_rd_regs(struct hd29l2_priv *priv, u8 reg, u8 *val, int len)
- 	if (ret == 2) {
- 		ret = 0;
- 	} else {
--		warn("i2c rd failed=%d reg=%02x len=%d", ret, reg, len);
-+		dev_warn(&priv->i2c->dev,
-+				"%s: i2c rd failed=%d reg=%02x len=%d\n",
-+				KBUILD_MODNAME, ret, reg, len);
- 		ret = -EREMOTEIO;
- 	}
+diff --git a/drivers/media/tuners/fc2580.c b/drivers/media/tuners/fc2580.c
+index afc0491..51bc39c 100644
+--- a/drivers/media/tuners/fc2580.c
++++ b/drivers/media/tuners/fc2580.c
+@@ -498,8 +498,9 @@ struct dvb_frontend *fc2580_attach(struct dvb_frontend *fe,
  
-@@ -160,7 +160,7 @@ static int hd29l2_soft_reset(struct hd29l2_priv *priv)
+ 	dev_dbg(&priv->i2c->dev, "%s: chip_id=%02x\n", __func__, chip_id);
  
- 	return 0;
- err:
--	dbg("%s: failed=%d", __func__, ret);
-+	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
- 	return ret;
- }
- 
-@@ -170,7 +170,7 @@ static int hd29l2_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
- 	struct hd29l2_priv *priv = fe->demodulator_priv;
- 	u8 tmp;
- 
--	dbg("%s: enable=%d", __func__, enable);
-+	dev_dbg(&priv->i2c->dev, "%s: enable=%d\n", __func__, enable);
- 
- 	/* set tuner address for demod */
- 	if (!priv->tuner_i2c_addr_programmed && enable) {
-@@ -199,11 +199,11 @@ static int hd29l2_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
- 		usleep_range(5000, 10000);
- 	}
- 
--	dbg("%s: loop=%d", __func__, i);
-+	dev_dbg(&priv->i2c->dev, "%s: loop=%d\n", __func__, i);
- 
- 	return ret;
- err:
--	dbg("%s: failed=%d", __func__, ret);
-+	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
- 	return ret;
- }
- 
-@@ -238,7 +238,7 @@ static int hd29l2_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 
- 	return 0;
- err:
--	dbg("%s: failed=%d", __func__, ret);
-+	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
- 	return ret;
- }
- 
-@@ -270,7 +270,7 @@ static int hd29l2_read_snr(struct dvb_frontend *fe, u16 *snr)
- 
- 	return 0;
- err:
--	dbg("%s: failed=%d", __func__, ret);
-+	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
- 	return ret;
- }
- 
-@@ -295,7 +295,7 @@ static int hd29l2_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
- 
- 	return 0;
- err:
--	dbg("%s: failed=%d", __func__, ret);
-+	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
- 	return ret;
- }
- 
-@@ -322,7 +322,7 @@ static int hd29l2_read_ber(struct dvb_frontend *fe, u32 *ber)
- 
- 	return 0;
- err:
--	dbg("%s: failed=%d", __func__, ret);
-+	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
- 	return ret;
- }
- 
-@@ -344,11 +344,12 @@ static enum dvbfe_search hd29l2_search(struct dvb_frontend *fe)
- 	u32 if_freq, if_ctl;
- 	bool auto_mode;
- 
--	dbg("%s: delivery_system=%d frequency=%d bandwidth_hz=%d " \
--		"modulation=%d inversion=%d fec_inner=%d guard_interval=%d",
--		 __func__,
--		c->delivery_system, c->frequency, c->bandwidth_hz,
--		c->modulation, c->inversion, c->fec_inner, c->guard_interval);
-+	dev_dbg(&priv->i2c->dev, "%s: delivery_system=%d frequency=%d " \
-+			"bandwidth_hz=%d modulation=%d inversion=%d " \
-+			"fec_inner=%d guard_interval=%d\n", __func__,
-+			c->delivery_system, c->frequency, c->bandwidth_hz,
-+			c->modulation, c->inversion, c->fec_inner,
-+			c->guard_interval);
- 
- 	/* as for now we detect always params automatically */
- 	auto_mode = true;
-@@ -394,7 +395,8 @@ static enum dvbfe_search hd29l2_search(struct dvb_frontend *fe)
- 	if (ret)
+-	if (chip_id != 0x56)
++	if ((chip_id != 0x56) && (chip_id != 0x5a)) {
  		goto err;
++	}
  
--	dbg("%s: if_freq=%d if_ctl=%x", __func__, if_freq, if_ctl);
-+	dev_dbg(&priv->i2c->dev, "%s: if_freq=%d if_ctl=%x\n",
-+			__func__, if_freq, if_ctl);
+ 	dev_info(&priv->i2c->dev,
+ 			"%s: FCI FC2580 successfully identified\n",
+diff --git a/drivers/media/usb/dvb-usb-v2/Kconfig b/drivers/media/usb/dvb-usb-v2/Kconfig
+index e09930c..834bfec 100644
+--- a/drivers/media/usb/dvb-usb-v2/Kconfig
++++ b/drivers/media/usb/dvb-usb-v2/Kconfig
+@@ -40,6 +40,7 @@ config DVB_USB_AF9035
+ 	select MEDIA_TUNER_FC0011 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_MXL5007T if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_TDA18218 if MEDIA_SUBDRV_AUTOSELECT
++	select MEDIA_TUNER_FC2580 if MEDIA_SUBDRV_AUTOSELECT
+ 	help
+ 	  Say Y here to support the Afatech AF9035 based DVB USB receiver.
  
- 	if (auto_mode) {
- 		/*
-@@ -437,7 +439,7 @@ static enum dvbfe_search hd29l2_search(struct dvb_frontend *fe)
- 				break;
- 		}
- 
--		dbg("%s: loop=%d", __func__, i);
-+		dev_dbg(&priv->i2c->dev, "%s: loop=%d\n", __func__, i);
- 
- 		if (i == 0)
- 			/* detection failed */
-@@ -477,7 +479,8 @@ static enum dvbfe_search hd29l2_search(struct dvb_frontend *fe)
- 	/* ensure modulation validy */
- 	/* 0=QAM4_NR, 1=QAM4, 2=QAM16, 3=QAM32, 4=QAM64 */
- 	if (modulation > (ARRAY_SIZE(reg_mod_vals_tab[0].val) - 1)) {
--		dbg("%s: modulation=%d not valid", __func__, modulation);
-+		dev_dbg(&priv->i2c->dev, "%s: modulation=%d not valid\n",
-+				__func__, modulation);
- 		goto err;
- 	}
- 
-@@ -499,12 +502,14 @@ static enum dvbfe_search hd29l2_search(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	dbg("%s: modulation=%d guard_interval=%d carrier=%d",
--		__func__, modulation, guard_interval, carrier);
-+	dev_dbg(&priv->i2c->dev,
-+			"%s: modulation=%d guard_interval=%d carrier=%d\n",
-+			__func__, modulation, guard_interval, carrier);
- 
- 	if ((carrier == HD29L2_CARRIER_MULTI) && (modulation == HD29L2_QAM64) &&
- 		(guard_interval == HD29L2_PN945)) {
--		dbg("%s: C=3780 && QAM64 && PN945", __func__);
-+		dev_dbg(&priv->i2c->dev, "%s: C=3780 && QAM64 && PN945\n",
-+				__func__);
- 
- 		ret = hd29l2_wr_reg(priv, 0x42, 0x33);
- 		if (ret)
-@@ -535,14 +540,14 @@ static enum dvbfe_search hd29l2_search(struct dvb_frontend *fe)
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 89cc901..8ca13e4 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -513,6 +513,7 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ 		case AF9033_TUNER_FC0011:
+ 		case AF9033_TUNER_MXL5007T:
+ 		case AF9033_TUNER_TDA18218:
++		case AF9033_TUNER_FC2580:
+ 			state->af9033_config[i].spec_inv = 1;
  			break;
- 	}
+ 		default:
+@@ -750,6 +751,11 @@ static struct tda18218_config af9035_tda18218_config = {
+ 	.i2c_wr_max = 21,
+ };
  
--	dbg("%s: loop=%d", __func__, i);
-+	dev_dbg(&priv->i2c->dev, "%s: loop=%d\n", __func__, i);
- 
- 	if (i == 0)
- 		return DVBFE_ALGO_SEARCH_AGAIN;
- 
- 	return DVBFE_ALGO_SEARCH_SUCCESS;
- err:
--	dbg("%s: failed=%d", __func__, ret);
-+	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
- 	return DVBFE_ALGO_SEARCH_ERROR;
- }
- 
-@@ -704,14 +709,14 @@ static int hd29l2_get_frontend(struct dvb_frontend *fe)
- 
- 	if_ctl = (buf[0] << 16) | ((buf[1] - 7) << 8) | buf[2];
- 
--	dbg("%s: %s %s %s | %s %s %s | %s %s | NCO=%06x", __func__,
--		str_constellation, str_code_rate, str_constellation_code_rate,
--		str_guard_interval, str_carrier, str_guard_interval_carrier,
--		str_interleave, str_interleave_, if_ctl);
--
-+	dev_dbg(&priv->i2c->dev, "%s: %s %s %s | %s %s %s | %s %s | NCO=%06x\n",
-+			__func__, str_constellation, str_code_rate,
-+			str_constellation_code_rate, str_guard_interval,
-+			str_carrier, str_guard_interval_carrier, str_interleave,
-+			str_interleave_, if_ctl);
- 	return 0;
- err:
--	dbg("%s: failed=%d", __func__, ret);
-+	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
- 	return ret;
- }
- 
-@@ -730,7 +735,7 @@ static int hd29l2_init(struct dvb_frontend *fe)
- 		{ 0x10, 0x38 },
- 	};
- 
--	dbg("%s:", __func__);
-+	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
- 
- 	/* reset demod */
- 	/* it is recommended to HW reset chip using RST_N pin */
-@@ -774,7 +779,7 @@ static int hd29l2_init(struct dvb_frontend *fe)
- 
- 	return ret;
- err:
--	dbg("%s: failed=%d", __func__, ret);
-+	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
- 	return ret;
- }
- 
-diff --git a/drivers/media/dvb-frontends/hd29l2.h b/drivers/media/dvb-frontends/hd29l2.h
-index a7a6443..4ad00d7 100644
---- a/drivers/media/dvb-frontends/hd29l2.h
-+++ b/drivers/media/dvb-frontends/hd29l2.h
-@@ -58,7 +58,7 @@ extern struct dvb_frontend *hd29l2_attach(const struct hd29l2_config *config,
- static inline struct dvb_frontend *hd29l2_attach(
- const struct hd29l2_config *config, struct i2c_adapter *i2c)
++static struct fc2580_config af9035_fc2580_config = {
++	.i2c_addr = 0x56,
++	.clock = 16384000,
++};
++
+ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
  {
--	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
-+	pr_warn("%s: driver disabled by Kconfig\n", __func__);
- 	return NULL;
- }
- #endif
-diff --git a/drivers/media/dvb-frontends/hd29l2_priv.h b/drivers/media/dvb-frontends/hd29l2_priv.h
-index ba16dc3..4d571a2 100644
---- a/drivers/media/dvb-frontends/hd29l2_priv.h
-+++ b/drivers/media/dvb-frontends/hd29l2_priv.h
-@@ -28,19 +28,6 @@
- #include "dvb_math.h"
- #include "hd29l2.h"
+ 	struct state *state = adap_to_priv(adap);
+@@ -851,6 +857,25 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
+ 		fe = dvb_attach(tda18218_attach, adap->fe[0],
+ 				&d->i2c_adap, &af9035_tda18218_config);
+ 		break;
++	case AF9033_TUNER_FC2580:
++		/* Tuner enable using gpiot2_o, gpiot2_en and gpiot2_on  */
++		ret = af9035_wr_reg(d, 0xd8eb, 1);
++		if (ret < 0)
++			goto err;
++
++		ret = af9035_wr_reg(d, 0xd8ec, 1);
++		if (ret < 0)
++			goto err;
++
++		ret = af9035_wr_reg(d, 0xd8ed, 1);
++		if (ret < 0)
++			goto err;
++
++		usleep_range(10000, 50000);
++		/* attach tuner */
++		fe = dvb_attach(fc2580_attach, adap->fe[0],
++				&d->i2c_adap, &af9035_fc2580_config);
++		break;
+ 	default:
+ 		fe = NULL;
+ 	}
+@@ -1075,6 +1100,8 @@ static const struct usb_device_id af9035_id_table[] = {
+ 		&af9035_props, "AVerMedia HD Volar (A867)", NULL) },
+ 	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_TWINSTAR,
+ 		&af9035_props, "AVerMedia Twinstar (A825)", NULL) },
++	{ DVB_USB_DEVICE(USB_VID_ASUS, USB_PID_ASUS_U3100MINI_PLUS,
++		&af9035_props, "Asus U3100Mini Plus", NULL) },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(usb, af9035_id_table);
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h b/drivers/media/usb/dvb-usb-v2/af9035.h
+index de8e761..75ef1ec 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.h
++++ b/drivers/media/usb/dvb-usb-v2/af9035.h
+@@ -28,6 +28,7 @@
+ #include "fc0011.h"
+ #include "mxl5007t.h"
+ #include "tda18218.h"
++#include "fc2580.h"
  
--#define LOG_PREFIX "hd29l2"
--
--#undef dbg
--#define dbg(f, arg...) \
--	if (hd29l2_debug) \
--		printk(KERN_INFO   LOG_PREFIX": " f "\n" , ## arg)
--#undef err
--#define err(f, arg...)  printk(KERN_ERR     LOG_PREFIX": " f "\n" , ## arg)
--#undef info
--#define info(f, arg...) printk(KERN_INFO    LOG_PREFIX": " f "\n" , ## arg)
--#undef warn
--#define warn(f, arg...) printk(KERN_WARNING LOG_PREFIX": " f "\n" , ## arg)
--
- #define HD29L2_XTAL 30400000 /* Hz */
- 
- 
+ struct reg_val {
+ 	u32 reg;
 -- 
-1.7.11.4
+1.7.12
 
